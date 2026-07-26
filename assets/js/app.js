@@ -16,6 +16,7 @@ const SAYFALAR = [
   { yol: "karakterler.html", ad: "Karakterler" },
   { yol: "irade.html", ad: "İrade Sistemi" },
   { yol: "efsane.html", ad: "Kanlı Göz Efsanesi" },
+  { yol: "orgut.html", ad: "Örgüt Haritası" },
   { yol: "guc-tablosu.html", ad: "Güç Tablosu" },
 ];
 
@@ -144,6 +145,43 @@ function iradeyiKur() {
   ).join("");
 }
 
+/* --- Örgüt hiyerarşisi --- */
+function orgutuKur() {
+  const tepe = document.querySelector("[data-orgut-tepe]");
+  if (tepe) {
+    tepe.innerHTML = ORGUT_TEPE.map(
+      (o, i) => `
+      <div class="hiyerarsi-kat">
+        <div class="hiyerarsi-kutu" data-seviye="${i + 1}">
+          <div class="seviye-etiket">Seviye ${i + 1}</div>
+          <h3>${kacir(o.ad)}</h3>
+          <div class="unvan">${kacir(o.unvan)}</div>
+          <p>${kacir(o.not)}</p>
+        </div>
+      </div>
+      <div class="hiyerarsi-cizgi"></div>`
+    ).join("");
+  }
+
+  const alt = document.querySelector("[data-derebeyleri]");
+  if (alt) {
+    const bilinen = DEREBEYLERI.filter((d) => d.ad).length;
+    alt.innerHTML = DEREBEYLERI.map(
+      (d) => `
+      <div class="derebeyi ${d.ad ? "" : "bos"}">
+        <div class="derebeyi-il">${d.il ? kacir(d.il) : "?"}</div>
+        <div class="derebeyi-ad">${d.ad ? kacir(d.ad) : "İsimsiz Derebeyi"}</div>
+        <div class="derebeyi-not">${kacir(d.not)}</div>
+      </div>`
+    ).join("");
+
+    const sayac = document.querySelector("[data-derebeyi-sayac]");
+    if (sayac) {
+      sayac.textContent = `${bilinen} / ${DEREBEYLERI.length} derebeyi isimlendirildi`;
+    }
+  }
+}
+
 /* --- Başlat --- */
 document.addEventListener("DOMContentLoaded", () => {
   menuyuKur();
@@ -151,4 +189,5 @@ document.addEventListener("DOMContentLoaded", () => {
   karakterleriKur();
   gucTablosunuKur();
   iradeyiKur();
+  orgutuKur();
 });

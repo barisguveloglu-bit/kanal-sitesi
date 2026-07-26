@@ -10,6 +10,7 @@ Hikayenin lore arşivi. Derleme adımı yok, kurulum yok — HTML/CSS/JS.
 | `karakterler.html` | Tüm karakterler, taraflarına göre ayrılmış |
 | `irade.html` | İrade sistemi ve Kanlı Göz paradoksu |
 | `efsane.html` | 300 yıllık efsane ve kuruyan ağaç |
+| `orgut.html` | Örgüt hiyerarşisi ve derebeyi ağı |
 | `guc-tablosu.html` | Ayrıntılı güç karşılaştırması |
 
 ## Siteyi açmak
@@ -51,6 +52,17 @@ Kaydet, sayfayı yenile. Karakter otomatik olarak doğru bölümde görünür.
 
 Aynı dosyadaki `GUC_SIRALAMASI` dizisine ekle. Çubuklar en yüksek değere göre
 kendiliğinden ölçeklenir.
+
+### Derebeyi eklemek
+
+`DEREBEYLERI` dizisine ekle:
+
+```js
+{ il: "Ankara", ad: "Derebeyi adı", not: "Kısa bilgi" }
+```
+
+Adı henüz belli değilse `ad: null` bırak — site "İsimsiz Derebeyi" gösterir ve
+sayaç kendini günceller.
 
 ### İrade kademelerini değiştirmek
 

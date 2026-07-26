@@ -412,6 +412,82 @@ section + section { border-top: 1px solid var(--line-soft); }
 .blok h3 { color: var(--text); }
 .blok :last-child { margin-bottom: 0; }
 
+/* --- Örgüt hiyerarşisi --- */
+.hiyerarsi { display: grid; justify-items: center; }
+.hiyerarsi-kat { width: 100%; display: flex; justify-content: center; }
+.hiyerarsi-kutu {
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--kan);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  max-width: 460px;
+  text-align: center;
+}
+.hiyerarsi-kutu[data-seviye="2"] { border-top-color: var(--elektrik); max-width: 400px; }
+.hiyerarsi-kutu h3 { margin: 0 0 2px; }
+.hiyerarsi-kutu .unvan {
+  font-size: 0.74rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 12px;
+}
+.hiyerarsi-kutu p { margin: 0; color: var(--text-2); font-size: 0.9rem; }
+.seviye-etiket {
+  font-size: 0.66rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--kan-parlak);
+  margin-bottom: 8px;
+}
+.hiyerarsi-kutu[data-seviye="2"] .seviye-etiket { color: var(--elektrik); }
+
+.hiyerarsi-cizgi {
+  width: 1px;
+  height: 34px;
+  background: linear-gradient(180deg, var(--kan), var(--line));
+}
+
+/* Derebeyi kartları */
+.derebeyi-izgara {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 12px;
+}
+.derebeyi {
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 16px;
+  text-align: center;
+}
+.derebeyi.bos {
+  border-style: dashed;
+  background: transparent;
+  opacity: 0.65;
+}
+.derebeyi-il {
+  font-family: var(--font-baslik);
+  font-size: 1.25rem;
+  color: var(--kan-parlak);
+  line-height: 1.2;
+}
+.derebeyi.bos .derebeyi-il { color: var(--text-3); }
+.derebeyi-ad { font-size: 0.94rem; margin-top: 4px; }
+.derebeyi.bos .derebeyi-ad { color: var(--text-3); font-style: italic; }
+.derebeyi-not { font-size: 0.78rem; color: var(--text-3); margin-top: 6px; }
+
+.sayac {
+  display: inline-block;
+  font-size: 0.78rem;
+  color: var(--altin);
+  border: 1px solid rgba(212, 165, 60, 0.35);
+  border-radius: 100px;
+  padding: 3px 12px;
+  margin-bottom: 20px;
+}
+
 /* --- Alt bilgi --- */
 .alt-bilgi {
   border-top: 1px solid var(--line);

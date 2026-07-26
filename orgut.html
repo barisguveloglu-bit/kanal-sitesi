@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Örgüt Haritası — Kanlı Göz</title>
+  <meta name="description" content="Gizemli Çocuğun Abisi'nin il il derebeyi ağı ve hiyerarşi şeması.">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<header class="ust-bar" data-menu></header>
+
+<section>
+  <div class="kapsayici">
+    <span class="ust-etiket">Kötülerin ağı</span>
+    <h1>Örgüt Haritası</h1>
+    <p class="giris-metni">
+      Her ilde bir patron var. Her patron doğrudan tek bir kişiye bağlı.
+      Ülkenin tamamı tek elde toplanmış durumda — Barış'ı arayan ağ bu.
+    </p>
+  </div>
+</section>
+
+<section>
+  <div class="kapsayici">
+    <h2>Hiyerarşi</h2>
+    <div class="hiyerarsi" style="margin-top:32px" data-orgut-tepe></div>
+
+    <div style="text-align:center;margin-bottom:24px">
+      <span class="ust-etiket" style="margin:0">Seviye 3 · Derebeyleri</span>
+    </div>
+    <div style="text-align:center">
+      <span class="sayac" data-derebeyi-sayac></span>
+    </div>
+    <div class="derebeyi-izgara" data-derebeyleri></div>
+
+    <div class="not-kutu" style="margin-top:28px">
+      <strong>Bu bölüm eksik.</strong> Derebeylerinin isimleri ve hangi ilde
+      oldukları henüz belirlenmedi. Karar verdikçe
+      <code>assets/js/data.js</code> içindeki <code>DEREBEYLERI</code> listesine
+      eklemen yeterli — kutular kendiliğinden dolar.
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="kapsayici">
+    <h2>Ağ Nasıl İşliyor?</h2>
+    <div class="izgara" style="margin-top:24px">
+
+      <article class="kart" data-taraf="kotu">
+        <h3>Tek merkez</h3>
+        <div class="unvan">Zincirin tepesi</div>
+        <p class="ozet">
+          İlleri yöneten patronların hiçbiri bağımsız değil. Hepsi doğrudan
+          Gizemli Çocuğun Abisi'ne bağlı — arada başka bir kademe yok.
+        </p>
+      </article>
+
+      <article class="kart" data-taraf="kotu">
+        <h3>Coğrafi yayılma</h3>
+        <div class="unvan">Neden her ilde bir adam</div>
+        <p class="ozet">
+          Barış'ın nerede olduğu bilinmiyor. Ülkenin her yerinde bir göz
+          bulundurmak, onu bulmanın tek yolu.
+        </p>
+      </article>
+
+      <article class="kart" data-taraf="belirsiz">
+        <h3>Zayıf nokta</h3>
+        <div class="unvan">Merkezî yapının bedeli</div>
+        <p class="ozet">
+          Tek merkeze bağlı olmak hızlı karar demek — ama merkez düşerse
+          bütün ağ aynı anda sahipsiz kalır.
+        </p>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="kapsayici">
+    <h2>Örgütün Amacı</h2>
+    <div class="ikili" style="margin-top:24px">
+      <div>
+        <p class="giris-metni">
+          Bu ağın tek bir hedefi var: <a href="karakterler.html#kameraci-baris">Kameracı Barış</a>'ı
+          bulmak ve <a href="efsane.html">dilek hakkını</a> elde etmek.
+        </p>
+        <p class="giris-metni">
+          Dileyecekleri şey kavgasız bir dünya. Ama o dünyaya ulaşmak için
+          kurdukları yapı, tam olarak yok etmek istedikleri şeyin kendisi:
+          korkuyla ayakta duran bir güç düzeni.
+        </p>
+      </div>
+      <div>
+        <blockquote class="alinti">
+          Savaşı bitirmek için kurulmuş, savaşla ayakta duran bir örgüt.
+        </blockquote>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="alt-bilgi" data-alt-bilgi></footer>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>

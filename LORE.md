@@ -108,7 +108,28 @@ Yani kötüler, kırılması imkânsıza en yakın olan şeyi kırmak zorunda.
 
 ---
 
-## 5. Güç Tablosu (tır cinsinden)
+## 5. Örgüt Yapısı
+
+Kötülerin ağı üç seviyeli ve tek merkeze bağlı:
+
+| Seviye | Kim | Not |
+|---|---|---|
+| 1 | Gizemli Çocuğun Abisi | Asıl patron. Bütün ağ ona bağlı. |
+| 2 | Gizemli Çocuk | Abisinin kardeşi, derebeylerinin üstünde. |
+| 3 | Derebeyleri | Her ilde bir tane. Hepsi doğrudan seviye 1'e bağlı. |
+
+**Arada kademe yok:** illeri yöneten patronların hiçbiri bağımsız değil,
+hepsi doğrudan Gizemli Çocuğun Abisi'ne bağlı.
+
+**Neden her ilde bir adam var:** Barış'ın nerede olduğu bilinmiyor.
+
+**Yapının zayıf noktası:** merkez düşerse bütün ağ aynı anda sahipsiz kalır.
+
+> **EKSİK:** Derebeylerinin isimleri ve illeri henüz belirlenmedi.
+
+---
+
+## 6. Güç Tablosu (tır cinsinden)
 
 | Karakter | Kaldırma | Not |
 |---|---|---|
@@ -122,7 +143,7 @@ Yani kötüler, kırılması imkânsıza en yakın olan şeyi kırmak zorunda.
 
 ---
 
-## 6. Açık Uçlar / Karar Verilecekler
+## 7. Açık Uçlar / Karar Verilecekler
 
 - [ ] İrade kademelerinin son hali
 - [ ] Derebeylerinin isimleri ve illeri

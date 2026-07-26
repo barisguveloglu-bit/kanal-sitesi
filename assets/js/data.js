@@ -204,6 +204,36 @@ const IRADE_KADEMELERI = [
   },
 ];
 
+/*
+ * Örgüt hiyerarşisi — Gizemli Çocuğun Abisi'nin ağı.
+ * Her ilde bir derebeyi var; hepsi doğrudan abiye bağlı.
+ *
+ * DEREBEYLERI dizisine yeni satır eklemek yeterli:
+ *   { il: "Ankara", ad: "Derebeyi adı", not: "Kısa bilgi" }
+ * Adı henüz belli değilse ad: null bırak — site "İsimsiz" olarak gösterir.
+ */
+const ORGUT_TEPE = [
+  {
+    id: "gizemli-cocugun-abisi",
+    ad: "Gizemli Çocuğun Abisi",
+    unvan: "Asıl Patron",
+    not: "Bütün ağı yöneten kişi. Elektriğe tam hâkim, aşırı kurnaz. Her derebeyi doğrudan ona bağlı.",
+  },
+  {
+    id: "gizemli-cocuk",
+    ad: "Gizemli Çocuk",
+    unvan: "Abinin Kardeşi",
+    not: "Hiyerarşide derebeylerinin üstünde, abisinin hemen altında. Elektrik kontrolü hâlâ temel seviyede.",
+  },
+];
+
+const DEREBEYLERI = [
+  { il: null, ad: null, not: "Henüz belirlenmedi" },
+  { il: null, ad: null, not: "Henüz belirlenmedi" },
+  { il: null, ad: null, not: "Henüz belirlenmedi" },
+  { il: null, ad: null, not: "Henüz belirlenmedi" },
+];
+
 const TARAF_ETIKET = {
   iyi: "İyi",
   kotu: "Kötü",
