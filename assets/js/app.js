@@ -39,6 +39,43 @@ function menuyuKur() {
     </div>`;
 }
 
+/*
+ * Gizli kapı.
+ * Üst bardaki nabız atan kırmızı noktaya üç kez basınca açılıyor.
+ * Menüde yok, hiçbir yerden bağlantı verilmiyor — bulunması gerekiyor.
+ */
+function gizliKapiyiKur() {
+  const goz = document.querySelector(".marka .goz");
+  if (!goz) return;
+
+  let sayi = 0;
+  let zaman;
+
+  goz.addEventListener("click", (e) => {
+    e.preventDefault();
+    clearTimeout(zaman);
+    sayi++;
+
+    // arka arkaya basılmazsa sayaç sıfırlanır
+    zaman = setTimeout(() => { sayi = 0; }, 1200);
+
+    // her basışta göz biraz daha uyanır
+    goz.classList.add("uyandi");
+    setTimeout(() => goz.classList.remove("uyandi"), 400);
+
+    if (sayi < 3) return;
+    sayi = 0;
+
+    if (document.querySelector(".kapi-serit")) return;
+
+    const serit = document.createElement("div");
+    serit.className = "kapi-serit";
+    serit.innerHTML =
+      'Bir kapı açıldı · <a href="gizli.html">içeri gir</a>';
+    document.querySelector(".ust-bar")?.insertAdjacentElement("afterend", serit);
+  });
+}
+
 /* --- Durum şeridi (her sayfada, menünün altında) --- */
 function durumSeridiniKur() {
   const hedef = document.querySelector("[data-durum]");
@@ -266,6 +303,7 @@ function cekismeyiKur() {
 /* --- Başlat --- */
 document.addEventListener("DOMContentLoaded", () => {
   menuyuKur();
+  gizliKapiyiKur();
   durumSeridiniKur();
   sizintiyiKur();
   altBilgiyiKur();
