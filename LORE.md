@@ -53,12 +53,17 @@ Bu yüzden Barış ve ailesi kim olduklarını bilmiyor. Barış kendi kaderinde
 
 ### Önceki taşıyıcı — Yılmaz
 
-Barış'tan önceki Kanlı Göz **300 yıl önce** doğdu.
+Barış'tan önceki Kanlı Göz **1726'da** doğdu — bundan üç yüz yıl önce,
+**Osmanlı dönemi.**
 
 Bilinen tek şey adı: **Yılmaz.** Ağaca kazınmış son okunabilir isimlerden biri.
 
-Bunun dışında hiçbir kayıt yok: kim olduğu, nerede yaşadığı, başına ne geldiği.
-O 300 yılda dilek hakkının kullanılıp kullanılmadığı da bilinmiyor.
+Bunun dışında ne kayıt var ne rivayet: kim olduğu, hangi diyarda yaşadığı,
+âkıbetinin ne olduğu bilinmiyor. O devirde dilek hakkının kullanılıp
+kullanılmadığı da meçhul.
+
+Sitede bu bölüm **eski bir belge gibi** gösteriliyor (eskimiş kâğıt, sepya
+tonlar, eski dil) — sayfanın geri kalanından kasten ayrışıyor.
 
 *(Adın anlamı: yılmayan, pes etmeyen. Barış'ın adı gibi bu da taşıyıcının
 tek özelliğini anlatıyor.)*

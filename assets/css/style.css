@@ -948,6 +948,128 @@ section + section { border-top: 1px solid var(--line-soft); }
 .yasakli-ad { font-size: 0.94rem; }
 .yasakli-sebep { font-size: 0.78rem; color: var(--text-3); }
 
+/* ===================================================================
+   ESKİ KAYIT — 1726, Osmanlı dönemi
+   Karanlık sitenin arasına iliştirilmiş, yıpranmış bir belge gibi.
+   =================================================================== */
+
+.eski-kayit {
+  background:
+    radial-gradient(ellipse at 22% 18%, rgba(255, 250, 235, 0.5), transparent 55%),
+    radial-gradient(ellipse at 82% 88%, rgba(120, 92, 52, 0.22), transparent 55%),
+    linear-gradient(158deg, #ddd0b4 0%, #d3c4a3 46%, #c4b18d 100%);
+  color: #3a2f22;
+  border: 1px solid #8a7449;
+  border-radius: 2px;
+  padding: 44px clamp(22px, 5vw, 56px);
+  max-width: 900px;
+  margin: 0 auto;
+  position: relative;
+  box-shadow:
+    inset 0 0 60px rgba(90, 66, 32, 0.28),
+    inset 0 0 130px rgba(90, 66, 32, 0.12),
+    0 18px 50px rgba(0, 0, 0, 0.55);
+}
+/* eski belgelerdeki ikinci ince çerçeve */
+.eski-kayit::before {
+  content: "";
+  position: absolute;
+  inset: 11px;
+  border: 1px solid rgba(120, 96, 54, 0.45);
+  pointer-events: none;
+}
+/* kâğıdın lekeli dokusu */
+.eski-kayit::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  background:
+    radial-gradient(circle at 12% 72%, rgba(120, 88, 40, 0.16) 0 2px, transparent 3px),
+    radial-gradient(circle at 68% 24%, rgba(120, 88, 40, 0.13) 0 3px, transparent 4px),
+    radial-gradient(circle at 88% 62%, rgba(120, 88, 40, 0.10) 0 2px, transparent 3px),
+    radial-gradient(circle at 38% 90%, rgba(120, 88, 40, 0.12) 0 2px, transparent 3px);
+}
+.eski-kayit > * { position: relative; z-index: 1; }
+
+.eski-tarih {
+  text-align: center;
+  font-family: var(--font-baslik);
+  font-size: 0.82rem;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: #6b5836;
+  margin-bottom: 6px;
+}
+.eski-kayit h2 {
+  text-align: center;
+  color: #2e2519;
+  font-size: clamp(2.2rem, 6vw, 3.4rem);
+  letter-spacing: 0.06em;
+  margin: 0 0 4px;
+}
+
+/* Osmanlı el yazmalarındaki ayraç — saf CSS, yazı tipine bağlı değil */
+.eski-ayrac {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 22px auto 30px;
+  max-width: 320px;
+}
+.eski-ayrac span {
+  height: 1px;
+  flex: 1;
+  background: linear-gradient(90deg, transparent, #8a7449, transparent);
+}
+.eski-ayrac i {
+  width: 9px;
+  height: 9px;
+  border: 1px solid #8a7449;
+  transform: rotate(45deg);
+  flex: none;
+}
+.eski-ayrac i:nth-child(3) { width: 5px; height: 5px; background: #8a7449; }
+
+.eski-kayit p {
+  color: #43372a;
+  font-family: var(--font-baslik);
+  font-size: 1.06rem;
+  line-height: 1.95;
+  text-align: center;
+  max-width: 56ch;
+  margin: 0 auto 1.2em;
+}
+.eski-kayit p strong { color: #2e2519; }
+.eski-kayit .ad-vurgu {
+  font-size: 1.5rem;
+  letter-spacing: 0.14em;
+  display: inline-block;
+  border-bottom: 1px solid rgba(120, 96, 54, 0.5);
+  padding-bottom: 2px;
+}
+.eski-kayit .soluk {
+  font-style: italic;
+  color: #6b5836;
+  font-size: 0.98rem;
+}
+.eski-kayit .kayip-kutu {
+  border-top: 1px solid rgba(120, 96, 54, 0.4);
+  margin-top: 30px;
+  padding-top: 24px;
+}
+.eski-kayit .kayip-kutu strong {
+  display: block;
+  font-size: 0.74rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: #6b5836;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
 /* --- Kurgu uyarısı --- */
 .uyari-kutu {
   background: rgba(212, 165, 60, 0.07);
