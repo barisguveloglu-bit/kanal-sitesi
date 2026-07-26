@@ -1,5 +1,8 @@
 # Kanlı Göz — Evren Kaynağı (Canon)
 
+> **Bu bir kurgu evrenidir.** Buradaki kişi, mafya ve olayların tamamı
+> hayal ürünüdür; gerçek kişi, kurum veya olaylarla ilgisi yoktur.
+>
 > Bu dosya hikayenin **tek doğru kaynağıdır**. Sitedeki tüm içerik buradan türetilir.
 > Yeni bir şey eklerken önce burayı güncelle, sonra `assets/js/data.js` dosyasına yansıt.
 
@@ -29,7 +32,7 @@ Kötülerin amacı **"gerçek barışı elde etmek"**.
 Bu cümle aynı anda iki şeyi söylüyor: dünya barışı **ve** Kameracı Barış'ın kendisi.
 Hikayenin ana ironisi burada: barışı istedikleri için savaş çıkarıyorlar.
 
-**"O GERÇEK BARIŞ'I BULACAK"** — örgütün sloganı. Buradaki **"o"**,
+**"O GERÇEK BARIŞ'I BULACAK"** — mafyanın sloganı. Buradaki **"o"**,
 **Gizemli Çocuğun Abisi.** Savaşsız dünya fikri onundu; kardeşi Gizemli Çocuk
 sonradan bu fikre katıldı. Cümle aynı anda iki şey söylüyor: abi dünya barışını
 bulacak **ve** abi Kameracı Barış'ı bulacak.
@@ -122,11 +125,11 @@ Yani kötüler, kırılması imkânsıza en yakın olan şeyi kırmak zorunda.
 - Aşırı kurnaz.
 - **Savaşsız dünya fikri onun.** Kardeşi sonradan katıldı.
 - **Üç komutan derebeyi** doğrudan ona rapor verir; onların altında 81 il derebeyi var.
-- Örgüt sloganı **"O gerçek barışı bulacak"** cümlesindeki "o" kendisi.
+- Mafya sloganı **"O gerçek barışı bulacak"** cümlesindeki "o" kendisi.
 
 ---
 
-## 5. Örgüt Yapısı
+## 5. Mafya Yapısı
 
 Kötülerin ağı **dört kademeli**:
 
@@ -148,7 +151,7 @@ Her komutanın adı, **yönettiği toprakların mitolojisinden** geliyor:
 | Orta | **Teşup** | Hitit | Fırtına tanrısı, elinde yıldırım | İç Anadolu, Batı Karadeniz, Çukurova |
 | Doğu | **Ahriman** | Pers | Yıkımın ruhu, iyiliğin karşıtı | Doğu Anadolu, Güneydoğu, Doğu Karadeniz |
 
-**Nemesis** — haksızlığı bitirmek için kurulmuş bir örgütte, adı doğrudan
+**Nemesis** — haksızlığı bitirmek için kurulmuş bir mafyada, adı doğrudan
 adaleti anlatan komutan. Kendi ölçüsünü kendi koyuyor.
 
 **Ahriman** — adı doğrudan yıkımı anlatıyor. Üçünün en acımasızı.
@@ -172,7 +175,7 @@ Her biri **iyilerin bir kozunu** etkisiz bırakacak şekilde kurgulandı:
 
 **Teşup'un çatlağı:** Fırtına tanrısının adını taşıyor ama yıldırım abide.
 Üstelik üçü arasında iradesi en zayıf olan da o (Kademe 3 — Samara Kadın'ın
-emirlerine kısmen açık). Örgütün en kırılgan halkası.
+emirlerine kısmen açık). Mafyanın en kırılgan halkası.
 
 ### Neden birbirleriyle çatışıyorlar — sonsuz para
 Gizemli Çocuğun Abisi üç komutana da aynı teklifi yaptı: **iş başarıya
@@ -296,7 +299,7 @@ Her cephenin derebeyleri, o cephenin mitolojisinden isim taşıyor.
 | 76 | Iğdır | **Kiyumars** | ilk insan, ilk kral |
 | 79 | Kilis | **Div-e Sepid** | Ak Dev |
 
-### Örgütün şu anki hâli
+### Mafyanın şu anki hâli
 Barış'ı yakaladılar ama **kilidi açamıyorlar.** Beyin yıkama yöntemini
 bilmedikleri için elde tuttukları güç şu an işe yaramıyor.
 Bu, iyilere zaman kazandıran tek şey.

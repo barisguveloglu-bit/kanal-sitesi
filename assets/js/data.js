@@ -226,7 +226,7 @@ const IRADE_KADEMELERI = [
 ];
 
 /*
- * Örgüt hiyerarşisi — dört kademe:
+ * Mafya hiyerarşisi — dört kademe:
  *   1. Gizemli Çocuğun Abisi (asıl patron, fikrin sahibi)
  *   2. Gizemli Çocuk (kardeşi, fikre katılan)
  *   3. Üç Komutan Derebeyi (81 ili üçe bölüp yönetirler, abiye rapor verirler)
@@ -234,7 +234,7 @@ const IRADE_KADEMELERI = [
  *
  * İsim vermek için ilgili satırdaki ad: null yerine ad: "İsim" yaz.
  */
-const ORGUT_TEPE = [
+const MAFYA_TEPE = [
   {
     id: "gizemli-cocugun-abisi",
     ad: "Gizemli Çocuğun Abisi",

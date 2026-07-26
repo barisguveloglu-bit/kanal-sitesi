@@ -16,7 +16,7 @@ const SAYFALAR = [
   { yol: "karakterler.html", ad: "Karakterler" },
   { yol: "irade.html", ad: "İrade Sistemi" },
   { yol: "efsane.html", ad: "Kanlı Göz Efsanesi" },
-  { yol: "orgut.html", ad: "Örgüt Haritası" },
+  { yol: "mafya.html", ad: "Mafya Haritası" },
   { yol: "guc-tablosu.html", ad: "Güç Tablosu" },
   { yol: "soru-cevap.html", ad: "Soru & Cevap" },
 ];
@@ -64,7 +64,7 @@ function altBilgiyiKur() {
   hedef.innerHTML = `
     <div class="kapsayici">
       <span>Kanlı Göz — hikaye evreni arşivi</span>
-      <span>Yaşayan belge · sürekli güncelleniyor</span>
+      <span class="kurgu-not">Kurgu evren arşivi — anlatılanlar hayal ürünüdür</span>
     </div>`;
 }
 
@@ -166,11 +166,11 @@ function iradeyiKur() {
   ).join("");
 }
 
-/* --- Örgüt hiyerarşisi --- */
-function orgutuKur() {
-  const tepe = document.querySelector("[data-orgut-tepe]");
+/* --- Mafya hiyerarşisi --- */
+function mafyayiKur() {
+  const tepe = document.querySelector("[data-mafya-tepe]");
   if (tepe) {
-    tepe.innerHTML = ORGUT_TEPE.map(
+    tepe.innerHTML = MAFYA_TEPE.map(
       (o, i) => `
       <div class="hiyerarsi-kat">
         <div class="hiyerarsi-kutu" data-seviye="${i + 1}">
@@ -273,6 +273,6 @@ document.addEventListener("DOMContentLoaded", () => {
   karakterleriKur();
   gucTablosunuKur();
   iradeyiKur();
-  orgutuKur();
+  mafyayiKur();
   cekismeyiKur();
 });

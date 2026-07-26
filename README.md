@@ -10,7 +10,7 @@ Hikayenin lore arşivi. Derleme adımı yok, kurulum yok — HTML/CSS/JS.
 | `karakterler.html` | Tüm karakterler, taraflarına göre ayrılmış |
 | `irade.html` | İrade sistemi ve Kanlı Göz paradoksu |
 | `efsane.html` | 300 yıllık efsane ve kuruyan ağaç |
-| `orgut.html` | Örgüt hiyerarşisi ve derebeyi ağı |
+| `mafya.html` | Mafya hiyerarşisi ve derebeyi ağı (kurgu uyarılı) |
 | `guc-tablosu.html` | Ayrıntılı güç karşılaştırması |
 | `soru-cevap.html` | İzleyici soruları ve cevapları |
 | `yonetim.html` | Soru onaylama ve ban paneli (sadece yönetici) |
