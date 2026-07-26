@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Yönetim — Kanlı Göz</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<header class="ust-bar" data-menu></header>
+
+<section>
+  <div class="kapsayici">
+    <span class="ust-etiket">Sadece yönetici</span>
+    <h1>Yönetim</h1>
+    <p class="giris-metni">
+      Gelen soruları burada cevaplayıp yayınlıyorsun. Rahatsız eden birini
+      buradan banlayabilirsin.
+    </p>
+    <div class="oturum-kutu" data-oturum></div>
+    <div class="sistem-mesaj" data-mesaj hidden></div>
+  </div>
+</section>
+
+<section data-sb-gerekli>
+  <div class="kapsayici">
+    <div data-yonetim>
+      <div class="not-kutu">Yükleniyor...</div>
+    </div>
+  </div>
+</section>
+
+<section data-yonetici-alani hidden>
+  <div class="kapsayici">
+    <div data-yasaklilar></div>
+    <div class="not-kutu" style="margin-top:24px">
+      <strong>Ban gerçekten sunucuda uygulanıyor.</strong>
+      Yasaklı bir hesap soru göndermeye çalışırsa veritabanı reddediyor —
+      tarayıcı verisini silmek, gizli sekme açmak ya da sayfayı kurcalamak
+      işe yaramıyor. Ban ancak buradan kaldırılırsa kalkar.
+    </div>
+  </div>
+</section>
+
+<footer class="alt-bilgi" data-alt-bilgi></footer>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/ayarlar.js"></script>
+<script type="module" src="assets/js/soru-cevap.js"></script>
+</body>
+</html>

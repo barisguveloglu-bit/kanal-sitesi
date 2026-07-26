@@ -18,6 +18,7 @@ const SAYFALAR = [
   { yol: "efsane.html", ad: "Kanlı Göz Efsanesi" },
   { yol: "orgut.html", ad: "Örgüt Haritası" },
   { yol: "guc-tablosu.html", ad: "Güç Tablosu" },
+  { yol: "soru-cevap.html", ad: "Soru & Cevap" },
 ];
 
 function menuyuKur() {
@@ -268,7 +269,7 @@ document.addEventListener("DOMContentLoaded", () => {
   durumSeridiniKur();
   sizintiyiKur();
   altBilgiyiKur();
-  gozuKur();
+  if (typeof gozuKur === "function") gozuKur();
   karakterleriKur();
   gucTablosunuKur();
   iradeyiKur();

@@ -12,6 +12,8 @@ Hikayenin lore arşivi. Derleme adımı yok, kurulum yok — HTML/CSS/JS.
 | `efsane.html` | 300 yıllık efsane ve kuruyan ağaç |
 | `orgut.html` | Örgüt hiyerarşisi ve derebeyi ağı |
 | `guc-tablosu.html` | Ayrıntılı güç karşılaştırması |
+| `soru-cevap.html` | İzleyici soruları ve cevapları |
+| `yonetim.html` | Soru onaylama ve ban paneli (sadece yönetici) |
 
 ## Siteyi açmak
 
@@ -103,3 +105,100 @@ Dosyayı değiştir, commit'le, push'la. Pages 1-2 dakika içinde kendini günce
 ### Yerelde denemek
 Yayınlamadan önce kendi bilgisayarında görmek istersen `index.html`
 dosyasına çift tıklaman yeterli.
+
+
+---
+
+# Soru & Cevap kurulumu
+
+Sitenin geri kalanı statik ama soru-cevap bölümü **Supabase** kullanıyor
+(ücretsiz). Kurmadan da site sorunsuz çalışır — o bölüm sadece
+"henüz kurulmadı" yazar.
+
+## 1. Supabase projesi aç
+
+1. [supabase.com](https://supabase.com) → **Start your project** → GitHub ile giriş
+2. **New project**
+   - İsim: `kanli-goz`
+   - **Database Password**: güçlü bir şifre belirle ve bir yere kaydet
+   - **Region**: `Central EU (Frankfurt)` — Türkiye'ye en yakını
+3. Proje kurulana kadar 1-2 dakika bekle
+
+## 2. Veritabanını kur
+
+1. Sol menüden **SQL Editor** → **New query**
+2. Depodaki `supabase-kurulum.sql` dosyasının **tamamını** kopyala, yapıştır
+3. **Run**
+
+Bu adım tabloları ve güvenlik kurallarını oluşturur. Ban sisteminin gerçekten
+çalışmasını sağlayan şey bu kurallardır.
+
+## 3. Google girişini aç
+
+Bu en uzun adım, çünkü Google tarafında da bir kayıt gerekiyor.
+
+**Google Cloud Console tarafı:**
+1. [console.cloud.google.com](https://console.cloud.google.com) → yeni proje aç
+2. **APIs & Services → OAuth consent screen** → External → uygulama adını yaz
+3. **APIs & Services → Credentials → Create Credentials → OAuth client ID**
+4. Type: **Web application**
+5. **Authorized redirect URIs** kısmına şunu ekle:
+   ```
+   https://SENIN-PROJEN.supabase.co/auth/v1/callback
+   ```
+   (Bu adresi Supabase → Project Settings → API → Project URL'den alıyorsun)
+6. Oluşan **Client ID** ve **Client Secret**'ı kopyala
+
+**Supabase tarafı:**
+1. **Authentication → Sign In / Providers → Google** → aç
+2. Client ID ve Secret'ı yapıştır → **Save**
+3. **Authentication → URL Configuration**
+   - **Site URL**: `https://barisguveloglu-bit.github.io/kanal-sitesi/`
+   - **Redirect URLs** listesine de aynısını ekle
+
+## 4. Anahtarları siteye yaz
+
+1. Supabase → **Project Settings → API**
+2. `Project URL` ve `anon public` anahtarını kopyala
+3. `assets/js/ayarlar.js` dosyasını aç, ikisini de yaz:
+
+```js
+const SUPABASE_URL = "https://senin-projen.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGci...";
+```
+
+4. Commit'le ve push'la
+
+> **`anon` anahtarının herkese görünmesi normaldir** — zaten tarayıcıya gitmek
+> zorunda. Veriyi koruyan şey o anahtar değil, 2. adımdaki kurallar.
+> **`service_role` anahtarını ASLA buraya yazma** — o bütün kuralları atlar.
+
+## 5. Kendini yönetici yap
+
+1. Siteye git, **Google ile giriş yap** (bir kez giriş yapman şart)
+2. Supabase → **SQL Editor** → şunu çalıştır (mailini kendi mailinle değiştir):
+
+```sql
+insert into public.yoneticiler (kullanici_id)
+select id from auth.users where email = 'barisguveloglu@gmail.com'
+on conflict do nothing;
+```
+
+3. `yonetim.html` sayfasına git — panel açılmış olmalı
+
+## Nasıl kullanılır
+
+- İzleyici Google ile girer, soru sorar → soru **beklemede** olur, sitede görünmez
+- Sen `yonetim.html`'e girersin, cevabı yazıp **Cevapla ve yayınla** dersin
+- Soru cevabıyla birlikte `soru-cevap.html` sayfasında yayınlanır
+- Konu dışıysa **Reddet**, rahatsız ediyorsa **Kullanıcıyı banla**
+
+## Bilmen gerekenler
+
+- **Ban gerçektir.** Sunucuda uygulanıyor; gizli sekme, çerez silme, sayfayı
+  kurcalama işe yaramaz. Ama kişi **yeni bir Google hesabıyla** dönebilir —
+  bunun önüne geçen bir sistem yok, hiçbir sitede yok.
+- **Spam koruması:** bir hesap saatte en fazla 3 soru sorabilir.
+- **Ücretsiz Supabase projeleri** bir hafta hiç kullanılmazsa uykuya geçer.
+  Panelden tek tuşla uyandırılıyor, veri kaybolmuyor.
+- **Toplanan veri:** sadece Google adın ve e-postan. Başka hiçbir şey tutulmuyor.

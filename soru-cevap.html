@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Soru & Cevap — Kanlı Göz</title>
+  <meta name="description" content="Site ve kanal videolarıyla ilgili sorular ve cevapları.">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<header class="ust-bar" data-menu></header>
+<div class="durum-serit" data-durum></div>
+
+<section>
+  <div class="kapsayici">
+    <span class="ust-etiket">Sorular</span>
+    <h1 class="bozuk" data-metin="Soru &amp; Cevap">Soru &amp; Cevap</h1>
+    <p class="giris-metni">
+      Aklına takılan bir şey varsa sor. Cevapladıkça burada yayınlanacak.
+    </p>
+    <p class="giris-metni">
+      <strong>Tek kural:</strong> soru <em>bu siteyle</em> ya da
+      <em>kanaldaki videolarla</em> ilgili olmalı. Konu dışı sorular
+      yayınlanmıyor.
+    </p>
+  </div>
+</section>
+
+<section data-sb-gerekli>
+  <div class="kapsayici">
+    <h2>Soru sor</h2>
+
+    <div class="oturum-kutu" data-oturum></div>
+    <div class="sistem-mesaj" data-mesaj hidden></div>
+
+    <form class="soru-form" data-soru-form>
+      <label class="alan">
+        <span class="alan-ad">Konu</span>
+        <select name="kategori">
+          <option value="site">Site / Lore — Kanlı Göz evreni hakkında</option>
+          <option value="video">Kanal videoları hakkında</option>
+          <option value="diger">Diğer</option>
+        </select>
+      </label>
+
+      <label class="alan">
+        <span class="alan-ad">Sorun</span>
+        <textarea name="soru" rows="4" maxlength="500" required
+          placeholder="Örnek: Kanlı Göz'ün taşıyıcısı neden hep aynı ailede doğmuyor?"></textarea>
+        <span class="sayac-kucuk" data-sayac>0 / 500</span>
+      </label>
+
+      <button class="dugme birincil" type="submit">Soruyu gönder</button>
+      <p class="form-not">
+        Sorular önce inceleniyor, sonra cevabıyla birlikte yayınlanıyor.
+        Saatte en fazla 3 soru sorabilirsin.
+      </p>
+    </form>
+
+    <div class="benim-kutu" data-benim></div>
+  </div>
+</section>
+
+<section>
+  <div class="kapsayici">
+    <h2>Cevaplananlar <span class="sayac" data-soru-sayisi></span></h2>
+    <div class="sc-liste" data-sorular>
+      <div class="not-kutu">Yükleniyor...</div>
+    </div>
+  </div>
+</section>
+
+<div class="sizinti" data-sizinti></div>
+
+<footer class="alt-bilgi" data-alt-bilgi></footer>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/goz.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/ayarlar.js"></script>
+<script type="module" src="assets/js/soru-cevap.js"></script>
+</body>
+</html>
