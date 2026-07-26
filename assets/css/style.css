@@ -1070,6 +1070,35 @@ section + section { border-top: 1px solid var(--line-soft); }
   text-align: center;
 }
 
+/* Eski kayıttaki vakayiname (zaman çizelgesi) */
+.eski-zaman { margin-top: 34px; }
+.eski-zaman-satir {
+  display: grid;
+  grid-template-columns: 78px 1fr;
+  gap: 18px;
+  padding: 16px 0;
+  border-top: 1px solid rgba(120, 96, 54, 0.32);
+  text-align: left;
+}
+.eski-zaman-satir:last-child { border-bottom: 1px solid rgba(120, 96, 54, 0.32); }
+.eski-yil {
+  font-family: var(--font-baslik);
+  font-size: 1.02rem;
+  color: #6b5836;
+  letter-spacing: 0.06em;
+  padding-top: 2px;
+}
+.eski-zaman-satir p {
+  text-align: left;
+  margin: 0;
+  max-width: none;
+  font-size: 0.99rem;
+  line-height: 1.8;
+}
+@media (max-width: 560px) {
+  .eski-zaman-satir { grid-template-columns: 1fr; gap: 4px; }
+}
+
 /* --- Kurgu uyarısı --- */
 .uyari-kutu {
   background: rgba(212, 165, 60, 0.07);

@@ -51,19 +51,35 @@ Nesiller geçti ve efsane tamamen kayboldu.
 
 Bu yüzden Barış ve ailesi kim olduklarını bilmiyor. Barış kendi kaderinden habersiz.
 
-### Önceki taşıyıcı — Yılmaz
+### Önceki taşıyıcı — Yılmaz (öl. 1728)
 
-Barış'tan önceki Kanlı Göz **1726'da** doğdu — bundan üç yüz yıl önce,
-**Osmanlı dönemi.**
+Barış'tan önceki Kanlı Göz **Yılmaz.** III. Ahmed devrinde, **Lâle Devri'nde**
+yaşadı. 1728'de öldürüldü — bugüne 298 yıl, yani "300 yılda bir" ile uyumlu.
 
-Bilinen tek şey adı: **Yılmaz.** Ağaca kazınmış son okunabilir isimlerden biri.
+Hakkında bilinen tek şey adı. Resmi yok, memleketi bilinmiyor, yaşı bilinmiyor.
+Geriye iki şey kaldı: ağaca kazınmış adı ve nasıl öldüğü.
 
-Bunun dışında ne kayıt var ne rivayet: kim olduğu, hangi diyarda yaşadığı,
-âkıbetinin ne olduğu bilinmiyor. O devirde dilek hakkının kullanılıp
-kullanılmadığı da meçhul.
+### Ağacın sonu — vakayiname
+
+| Tarih | Olay |
+|---|---|
+| Lâle Devri | Ağaç, görkemli olduğu için yerinden söktürülüp **Bâb-ı Hümâyun** önüne dikilir. Üzerindeki isimlere kimse dikkat etmez. |
+| **1728** | Yılmaz saraya çıkar, ağacın yerine iadesini ister; isimlerin evvelkilere ait olduğunu, bunun saygısızlık olduğunu söyler. **III. Ahmed yanlış anlar**, Yılmaz'ın kellesi cellatlar eliyle vurulur. **Güçleri henüz uyanmadığı için karşılık veremez.** |
+| **1730** | III. Ahmed tahttan iner (1 Ekim 1730). I. Mahmud devrinde ağacın imar işlerinde kullanılmasına karar verilir. |
+| **1730** | Keresteciler gövdenin bazı yerlerinden **bal gibi bir sıvı** aktığını görür. Tadarlar: **baldan tatlı.** |
+| 1730–1735 | Gövde parça parça kesilir, sarayın ziyafetlerinde kullanılır, sıvısı **padişahın cariyelerine** dağıtılır. |
+| **1735** | Sıvı kesilir, ilgi biter, bakımsızlıktan **ağaç kurur.** |
+
+**Ağaç kendiliğinden ölmedi.** Önce yerinden söküldü, sonra yenildi, sonra unutuldu.
+Efsanenin unutulma sebebi doğa değil, insan.
+
+> **Tarih notu:** Kullanıcı "2 yıl sonra, 1731" demişti. 1728+2=1730 ve
+> III. Ahmed 1 Ekim 1730'da tahttan indiği için 1730, hem "2 yıl sonra"yı
+> hem "I. Mahmud devri"ni aynı anda doğru kılıyor. 1731 tercih edilirse
+> "3 yıl sonra" olmalı.
 
 Sitede bu bölüm **eski bir belge gibi** gösteriliyor (eskimiş kâğıt, sepya
-tonlar, eski dil) — sayfanın geri kalanından kasten ayrışıyor.
+tonlar, eski dil, vakayiname) — sayfanın geri kalanından kasten ayrışıyor.
 
 *(Adın anlamı: yılmayan, pes etmeyen. Barış'ın adı gibi bu da taşıyıcının
 tek özelliğini anlatıyor.)*
@@ -336,19 +352,3 @@ Bu, iyilere zaman kazandıran tek şey.
 | Yoğurt Yiyen Adam | 5 tır | Cips Yiyen Adam'ın savaş modu |
 
 ---
-
-## 7. Açık Uçlar / Karar Verilecekler
-
-- [ ] İrade kademelerinin son hali
-- [x] Üç komutanın isimleri: Nemesis, Teşup, Ahriman
-- [x] 81 il derebeyinin isimleri (cepheye göre mitolojiden)
-- [x] Komutanlar neden çatışıyor: sonsuz para vaadi, ödül sonuca bağlı
-- [ ] Teşup'un yıldırım meselesi: abiye karşı bir kırılma noktası mı?
-- [ ] Kuruyan ağacın nerede olduğu — hâlâ duruyor mu?
-- [ ] Barış efsaneyi ne zaman ve nasıl öğreniyor?
-- [ ] Barış nerede tutuluyor? Hangi derebeyinin elinde?
-- [ ] Beyin yıkama yöntemi neydi? Ağaçla birlikte o bilgi de mi kayboldu?
-- [ ] İyiler Barış'ın kaçırıldığını biliyor mu?
-- [ ] Samara Kadın'ın ihanetinin sebebi
-- [ ] Cips Yiyen Adam'ın üçüncü bir formu olacak mı?
-- [ ] Zaman çizelgesi (olaylar hangi sırayla oluyor?)
