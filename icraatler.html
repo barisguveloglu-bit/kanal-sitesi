@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>İcraatler — Kanlı Göz</title>
+  <meta name="description" content="Karakterlerin şimdiye kadar yaptıkları. Güç sıralaması değil, olan biten.">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<header class="ust-bar" data-menu></header>
+<div class="durum-serit" data-durum></div>
+
+<section>
+  <div class="kapsayici">
+    <span class="ust-etiket">Kayıtlar</span>
+    <h1 class="bozuk" data-metin="İcraatler">İcraatler</h1>
+    <p class="giris-metni">
+      Bu sayfada kimin daha güçlü olduğu yazmaz. Sıralama yok, puan yok.
+      Yalnızca <strong>şimdiye kadar ne olduğu</strong> yazar.
+    </p>
+    <p class="giris-metni">
+      Bir karakterin listesi uzun diye yenilmez olduğu anlamına gelmez.
+      Bir dövüşün nasıl biteceğini geçmişi değil, o günkü şartlar belirler.
+    </p>
+    <div style="margin-top:22px">
+      <span class="sayac" data-icraat-sayisi></span>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="kapsayici">
+    <h2>İyiler</h2>
+    <div class="icraat-izgara" data-icraat="iyi" style="margin-top:24px"></div>
+  </div>
+</section>
+
+<section>
+  <div class="kapsayici">
+    <h2>Belirsiz</h2>
+    <div class="icraat-izgara" data-icraat="belirsiz" style="margin-top:24px"></div>
+  </div>
+</section>
+
+<section>
+  <div class="kapsayici">
+    <h2>Kötüler</h2>
+    <div class="icraat-izgara" data-icraat="kotu" style="margin-top:24px"></div>
+  </div>
+</section>
+
+<div class="sizinti" data-sizinti></div>
+
+<footer class="alt-bilgi" data-alt-bilgi></footer>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/goz.js"></script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>

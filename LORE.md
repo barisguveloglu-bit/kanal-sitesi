@@ -339,7 +339,13 @@ Bu, iyilere zaman kazandıran tek şey.
 
 ---
 
-## 6. Güç Tablosu (tır cinsinden)
+## 6. Tır Değerleri (iç referans)
+
+> **Sitede sıralı güç tablosu YOK.** Sıralı tablo "en üstteki yenilmez" sözü
+> verir; video ile çakışınca site yalancı çıkar. Site bunun yerine
+> **icraat listesi** gösteriyor: kim ne yaptı, sıralama yok.
+>
+> Aşağıdaki tablo sadece yazarken tutarlı kalmak için, iç referans.
 
 | Karakter | Kaldırma | Not |
 |---|---|---|

@@ -61,8 +61,8 @@ const SORULAR = [
     ozet: "6451a0acb2b816f1dbcba9e23ca23949cdbfb8923e6617b7ea8907b8bf8292ef",
   },
   {
-    soru: "Yoğurt Yiyen Adam kaç tır kaldırır?",
-    ipucu: "Güç tablosunun en tepesi.",
+    soru: "Yoğurt Yiyen Adam kaç tır kaldırdı?",
+    ipucu: "İcraatler sayfasında yazıyor.",
     ozet: "ef2d127de37b942baad06145e54b0c619a1f22327b2ebbcfbec78f5564afe39d",
   },
 ];

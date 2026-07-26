@@ -312,48 +312,6 @@ section + section { border-top: 1px solid var(--line-soft); }
 .form-kutu .tir-sayi { color: var(--kan-parlak); font-size: 0.85rem; font-family: var(--font-metin); }
 .form-kutu .aciklama { font-size: 0.84rem; color: var(--text-3); margin-top: 2px; }
 
-/* --- Güç çubukları --- */
-.guc-liste { display: grid; gap: 14px; }
-.guc-satir {
-  display: grid;
-  grid-template-columns: minmax(140px, 210px) 1fr auto;
-  gap: 16px;
-  align-items: center;
-}
-.guc-satir .isim { font-size: 0.95rem; }
-.guc-satir .isim small { display: block; color: var(--text-3); font-size: 0.78rem; }
-.guc-cubuk {
-  height: 9px;
-  background: var(--bg-3);
-  border: 1px solid var(--line);
-  border-radius: 100px;
-  overflow: hidden;
-}
-.guc-dolgu {
-  height: 100%;
-  border-radius: 100px;
-  background: linear-gradient(90deg, var(--kan), var(--kan-parlak));
-  width: 0;
-  transition: width 1s cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-.guc-satir[data-taraf="kotu"] .guc-dolgu {
-  background: linear-gradient(90deg, #6a1410, var(--kan-parlak));
-}
-.guc-satir[data-taraf="iyi"] .guc-dolgu {
-  background: linear-gradient(90deg, #1f5b41, var(--iyi));
-}
-.guc-satir[data-taraf="belirsiz"] .guc-dolgu {
-  background: linear-gradient(90deg, #5c441a, var(--belirsiz));
-}
-.guc-deger {
-  font-size: 0.85rem;
-  color: var(--text-2);
-  min-width: 58px;
-  text-align: right;
-  white-space: nowrap;
-}
-.guc-yok { color: var(--text-3); font-style: italic; }
-
 /* --- İrade merdiveni --- */
 .merdiven { display: grid; gap: 10px; counter-reset: k; }
 .basamak {
@@ -1276,6 +1234,53 @@ body.kapi-aciliyor { animation: kapiBozulma 1.4s steps(1) forwards; }
 }
 .kapi-serit a { color: var(--kilit-camgobegi); }
 
+/* --- İcraatler --- */
+.icraat-izgara {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+.icraat-blok {
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--line);
+  border-radius: var(--radius);
+  padding: 20px 22px;
+}
+.icraat-blok[data-taraf="iyi"] { border-left-color: var(--iyi); }
+.icraat-blok[data-taraf="kotu"] { border-left-color: var(--kotu); }
+.icraat-blok[data-taraf="belirsiz"] { border-left-color: var(--belirsiz); }
+.icraat-blok h3 { margin: 0 0 14px; }
+
+.icraat-liste { list-style: none; padding: 0; margin: 0; }
+.icraat-liste li {
+  position: relative;
+  padding: 10px 0 10px 18px;
+  border-bottom: 1px solid var(--line-soft);
+}
+.icraat-liste li:last-child { border-bottom: 0; padding-bottom: 0; }
+.icraat-liste li::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 19px;
+  width: 5px; height: 5px;
+  background: var(--text-3);
+  transform: rotate(45deg);
+}
+.icraat-ne {
+  display: block;
+  font-size: 0.92rem;
+  color: var(--text-2);
+  line-height: 1.65;
+}
+.icraat-kaynak {
+  display: block;
+  font-size: 0.76rem;
+  color: var(--text-3);
+  margin-top: 4px;
+}
+.icraat-kaynak a { color: var(--kan-parlak); }
+
 /* --- Kurgu uyarısı --- */
 .uyari-kutu {
   background: rgba(212, 165, 60, 0.07);
@@ -1329,14 +1334,6 @@ body.kapi-aciliyor { animation: kapiBozulma 1.4s steps(1) forwards; }
 }
 
 @media (max-width: 560px) {
-  .guc-satir {
-    grid-template-columns: 1fr auto;
-    grid-template-areas: "isim deger" "cubuk cubuk";
-    gap: 6px 12px;
-  }
-  .guc-satir .isim { grid-area: isim; }
-  .guc-deger { grid-area: deger; }
-  .guc-cubuk { grid-area: cubuk; }
   .ust-bar .kapsayici { min-height: 0; padding-top: 10px; padding-bottom: 10px; }
   .menu { width: 100%; }
   .menu a { padding: 6px 10px; font-size: 0.82rem; }

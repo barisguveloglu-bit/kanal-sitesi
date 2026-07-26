@@ -184,19 +184,96 @@ const KARAKTERLER = [
   },
 ];
 
-/* Güç tablosu — formlar dahil, büyükten küçüğe */
-const GUC_SIRALAMASI = [
-  { ad: "Yoğurt Yiyen Adam", tir: 5, not: "Cips Yiyen Adam'ın savaş modu", taraf: "iyi" },
-  { ad: "Gizemli Çocuğun Abisi", tir: 4, not: "Tam elektrik kontrolü", taraf: "kotu" },
-  { ad: "Gizemli Çocuk", tir: 4, not: "Temel elektrik manipülasyonu", taraf: "kotu" },
-  { ad: "Nemesis", tir: 3, not: "Batı Cephesi — misilleme", taraf: "kotu" },
-  { ad: "Teşup", tir: 3, not: "Orta Cephe — basınç ve fırtına", taraf: "kotu" },
-  { ad: "Ahriman", tir: 3, not: "Doğu Cephesi — çürütme", taraf: "kotu" },
-  { ad: "Cips Yiyen Adam", tir: 2, not: "Normal form", taraf: "iyi" },
-  { ad: "İl Derebeyi (ortalama)", tir: 1, not: "81 ilin her birinde bir tane", taraf: "kotu" },
-  { ad: "Samara Kadın", tir: 0, not: "Fiziksel güç yok — zihin kontrolü", taraf: "belirsiz" },
-  { ad: "Sarı Gülücük", tir: 0, not: "Fiziksel güç yok — zekâ ve icat", taraf: "iyi" },
-  { ad: "Kameracı Barış", tir: 0, not: "Hiçbir gücü yok — sadece iradesi", taraf: "iyi" },
+/*
+ * İCRAATLER — karakterlerin yaptığı işler.
+ *
+ * Burada SIRALAMA YOK, PUAN YOK. "Kim kimi yener" sorusunun cevabı burada
+ * aranmaz; burada yalnızca ne olduğu yazar. Sıralı bir güç tablosu
+ * "en üstteki yenilmez" sözü verir ve hikaye onu tutmak zorunda kalır.
+ * İcraat listesi böyle bir söz vermez.
+ *
+ * Yeni icraat eklemek: ilgili karakterin liste dizisine bir satır ekle.
+ *   { ne: "Ne yaptığı", video: "Video adı", baglanti: "https://..." }
+ * video ve baglanti isteğe bağlı — yoksa yazma.
+ */
+const ICRAATLER = [
+  {
+    karakter: "Cips Yiyen Adam",
+    taraf: "iyi",
+    liste: [
+      { ne: "İki tır kaldırdı." },
+      { ne: "Yoğurda geçip beş tır kaldırdı." },
+      { ne: "Samara Kadın'ın yüzünü gördü ve emirlerinin hiçbirine uymadı." },
+    ],
+  },
+  {
+    karakter: "Sarı Gülücük",
+    taraf: "iyi",
+    liste: [
+      { ne: "Ayı kapanı satan bir şirket kurdu ve icatlarını onunla finanse etti." },
+      { ne: "Ağır yaralı Samara Kadın'ı ayakta tuttu." },
+    ],
+  },
+  {
+    karakter: "Kameracı Barış",
+    taraf: "iyi",
+    liste: [
+      { ne: "Ailesinden kalan servete bugüne kadar hiç dokunmadı." },
+      { ne: "Hiçbir gücü olmadan Kanlı Göz'ü taşıdı." },
+    ],
+  },
+  {
+    karakter: "Samara Kadın",
+    taraf: "belirsiz",
+    liste: [
+      { ne: "Yüzünü gösterdiği insanları iradesiz hâle getirdi." },
+      { ne: "Kötülerin dileğinin ne anlama geldiğini herkesten önce anladı ve reddetti." },
+    ],
+  },
+  {
+    karakter: "Gizemli Çocuk",
+    taraf: "kotu",
+    liste: [
+      { ne: "Dört tır kaldırdı." },
+      { ne: "Elektriği manipüle etti." },
+    ],
+  },
+  {
+    karakter: "Gizemli Çocuğun Abisi",
+    taraf: "kotu",
+    liste: [
+      { ne: "Dört tır kaldırdı." },
+      { ne: "Elektriği tam anlamıyla kontrol etti." },
+      { ne: "81 ilin tamamına yayılan bir ağ kurdu." },
+      { ne: "Üç komutana sonsuz para vaat edip hepsini bağladı." },
+      { ne: "Kameracı Barış'ı buldu ve ele geçirdi." },
+    ],
+  },
+  {
+    karakter: "Nemesis",
+    taraf: "kotu",
+    liste: [
+      { ne: "Üç tır kaldırdı." },
+      { ne: "Yediği darbeyi katlayarak geri verdi." },
+    ],
+  },
+  {
+    karakter: "Teşup",
+    taraf: "kotu",
+    liste: [
+      { ne: "Üç tır kaldırdı." },
+      { ne: "Hava basıncını kontrol edip kasırga çıkardı." },
+      { ne: "Barış'ı kendi cephesinde tuttu." },
+    ],
+  },
+  {
+    karakter: "Ahriman",
+    taraf: "kotu",
+    liste: [
+      { ne: "Üç tır kaldırdı." },
+      { ne: "Dokunduğu makineleri ve tuzakları çürüttü." },
+    ],
+  },
 ];
 
 /* İrade kademeleri */

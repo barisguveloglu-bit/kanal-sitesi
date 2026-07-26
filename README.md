@@ -11,7 +11,7 @@ Hikayenin lore arşivi. Derleme adımı yok, kurulum yok — HTML/CSS/JS.
 | `irade.html` | İrade sistemi ve Kanlı Göz paradoksu |
 | `efsane.html` | 300 yıllık efsane ve kuruyan ağaç |
 | `mafya.html` | Mafya hiyerarşisi ve derebeyi ağı (kurgu uyarılı) |
-| `guc-tablosu.html` | Ayrıntılı güç karşılaştırması |
+| `icraatler.html` | Karakterlerin yaptıkları — sıralama değil, kayıt |
 | `soru-cevap.html` | İzleyici soruları ve cevapları |
 | `yonetim.html` | Soru onaylama ve ban paneli (sadece yönetici) |
 
@@ -50,10 +50,16 @@ Sonra tarayıcıda `http://localhost:8000` adresini aç.
 
 Kaydet, sayfayı yenile. Karakter otomatik olarak doğru bölümde görünür.
 
-### Güç tablosuna eklemek
+### İcraat eklemek
 
-Aynı dosyadaki `GUC_SIRALAMASI` dizisine ekle. Çubuklar en yüksek değere göre
-kendiliğinden ölçeklenir.
+`ICRAATLER` içinde ilgili karakterin `liste` dizisine bir satır ekle:
+
+```js
+{ ne: "Ne yaptığı", video: "Video adı", baglanti: "https://..." }
+```
+
+`video` ve `baglanti` isteğe bağlı. **Sıralama ve puan yok** — bu liste
+"kim daha güçlü" sorusuna cevap vermez, sadece olanı kaydeder.
 
 ### Derebeyi eklemek
 

@@ -17,7 +17,7 @@ const SAYFALAR = [
   { yol: "irade.html", ad: "İrade Sistemi" },
   { yol: "efsane.html", ad: "Kanlı Göz Efsanesi" },
   { yol: "mafya.html", ad: "Mafya Haritası" },
-  { yol: "guc-tablosu.html", ad: "Güç Tablosu" },
+  { yol: "icraatler.html", ad: "İcraatler" },
   { yol: "soru-cevap.html", ad: "Soru & Cevap" },
 ];
 
@@ -157,32 +157,37 @@ function karakterleriKur() {
   });
 }
 
-/* --- Güç tablosu --- */
-function gucTablosunuKur() {
-  const hedef = document.querySelector("[data-guc]");
-  if (!hedef) return;
+/* --- İcraatler --- */
+function icraatleriKur() {
+  // Bir sayfada birden fazla bölüm olabilir (iyi / kotu / belirsiz)
+  document.querySelectorAll("[data-icraat]").forEach((hedef) => {
+  const sadece = hedef.dataset.icraat; // "" (hepsi) veya taraf
+  const liste = sadece ? ICRAATLER.filter((k) => k.taraf === sadece) : ICRAATLER;
 
-  const enYuksek = Math.max(...GUC_SIRALAMASI.map((g) => g.tir));
-
-  hedef.innerHTML = GUC_SIRALAMASI.map((g) => {
-    const oran = enYuksek > 0 ? (g.tir / enYuksek) * 100 : 0;
-    const deger = g.tir > 0
-      ? `${g.tir} tır`
-      : '<span class="guc-yok">fiziksel güç yok</span>';
-    return `
-      <div class="guc-satir" data-taraf="${kacir(g.taraf)}">
-        <div class="isim">${kacir(g.ad)}<small>${kacir(g.not)}</small></div>
-        <div class="guc-cubuk"><div class="guc-dolgu" data-oran="${oran}"></div></div>
-        <div class="guc-deger">${deger}</div>
-      </div>`;
-  }).join("");
-
-  // Çubukları bir kare sonra doldur ki animasyon çalışsın
-  requestAnimationFrame(() => {
-    hedef.querySelectorAll(".guc-dolgu").forEach((el) => {
-      el.style.width = el.dataset.oran + "%";
-    });
+  hedef.innerHTML = liste.map((k) => `
+    <article class="icraat-blok" data-taraf="${kacir(k.taraf)}">
+      <h3>${kacir(k.karakter)}</h3>
+      <ul class="icraat-liste">
+        ${k.liste.map((i) => `
+          <li>
+            <span class="icraat-ne">${kacir(i.ne)}</span>
+            ${i.video
+              ? `<span class="icraat-kaynak">${
+                  i.baglanti
+                    ? `<a href="${kacir(i.baglanti)}" target="_blank" rel="noopener">${kacir(i.video)}</a>`
+                    : kacir(i.video)
+                }</span>`
+              : ""}
+          </li>`).join("")}
+      </ul>
+    </article>`).join("");
   });
+
+  const sayac = document.querySelector("[data-icraat-sayisi]");
+  if (sayac) {
+    const toplam = ICRAATLER.reduce((a, k) => a + k.liste.length, 0);
+    sayac.textContent = `${toplam} kayıt`;
+  }
 }
 
 /* --- İrade merdiveni --- */
@@ -309,7 +314,7 @@ document.addEventListener("DOMContentLoaded", () => {
   altBilgiyiKur();
   if (typeof gozuKur === "function") gozuKur();
   karakterleriKur();
-  gucTablosunuKur();
+  icraatleriKur();
   iradeyiKur();
   mafyayiKur();
   cekismeyiKur();
