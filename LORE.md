@@ -137,12 +137,26 @@ Kötülerin ağı **dört kademeli**:
 | 3 | **Üç Komutan Derebeyi** | 81 ili üçe bölüp yönetirler. Doğrudan abiye rapor verirler. |
 | 4 | **81 il derebeyi** | Türkiye'nin her ilinde bir tane. Bağlı oldukları komutana rapor verirler. |
 
-### Üç cephe
-81 il, üç komutan arasında **eşit bölünmüş** — her birine 27 il:
+### Üç cephe ve komutanları
+81 il, üç komutan arasında **eşit bölünmüş** — her birine 27 il.
 
-- **Batı Cephesi** — Marmara, Ege, Batı Akdeniz (Trakya'dan Antalya'ya)
-- **Orta Cephe** — İç Anadolu, Batı Karadeniz, Çukurova (başkent dahil)
-- **Doğu Cephesi** — Doğu Anadolu, Güneydoğu, Doğu Karadeniz
+Her komutanın adı, **yönettiği toprakların mitolojisinden** geliyor:
+
+| Cephe | Komutan | Mitoloji | Kim? | Bölge |
+|---|---|---|---|---|
+| Batı | **Nemesis** | Yunan | İntikam ve ilahi adalet tanrıçası | Marmara, Ege, Batı Akdeniz |
+| Orta | **Teşup** | Hitit | Fırtına tanrısı, elinde yıldırım | İç Anadolu, Batı Karadeniz, Çukurova |
+| Doğu | **Ahriman** | Pers | Yıkımın ruhu, iyiliğin karşıtı | Doğu Anadolu, Güneydoğu, Doğu Karadeniz |
+
+**Nemesis** — haksızlığı bitirmek için kurulmuş bir örgütte, adı doğrudan
+adaleti anlatan komutan. Kendi ölçüsünü kendi koyuyor.
+
+**Teşup** — fırtına tanrısının adını taşıyor ama **gerçek yıldırım abinin
+elinde.** İsim ona bir şey vaat ediyor; o vaat henüz karşılanmadı. Üç komutan
+arasındaki çatışmanın en olası kaynağı burası.
+
+**Ahriman** — adı doğrudan yıkımı anlatıyor. Kavgasız bir dünya için çalışan
+üç komutandan en acımasızı.
 
 ### Komutanlar arası çekişme
 Üç komutan birbirine bağlı değil; hepsi doğrudan abiye rapor veriyor.
@@ -157,8 +171,8 @@ ve o an ağ kendi içine döner.
 **Neden her ilde bir adam vardı:** Barış'ın nerede olduğu bilinmiyordu.
 (Artık yakalandı; ağın bu amacı tamamlandı.)
 
-> **EKSİK:** Ne üç komutanın ne de 81 il derebeyinin isimleri belli.
-> İsimler **farklı mitolojilerden** seçilecek.
+> **EKSİK:** 81 il derebeyinin isimleri henüz belli değil.
+> Üç komutan isimlendirildi.
 
 ### Örgütün şu anki hâli
 Barış'ı yakaladılar ama **kilidi açamıyorlar.** Beyin yıkama yöntemini
@@ -184,9 +198,10 @@ Bu, iyilere zaman kazandıran tek şey.
 ## 7. Açık Uçlar / Karar Verilecekler
 
 - [ ] İrade kademelerinin son hali
-- [ ] Üç komutanın isimleri (farklı mitolojilerden)
+- [x] Üç komutanın isimleri: Nemesis, Teşup, Ahriman
 - [ ] 81 il derebeyinin isimleri
 - [ ] Komutanlar neden ve ne zaman birbirleriyle çatışıyor?
+- [ ] Teşup'un yıldırım meselesi: abiye karşı bir kırılma noktası mı?
 - [ ] Kuruyan ağacın nerede olduğu — hâlâ duruyor mu?
 - [ ] Barış efsaneyi ne zaman ve nasıl öğreniyor?
 - [ ] Barış nerede tutuluyor? Hangi derebeyinin elinde?

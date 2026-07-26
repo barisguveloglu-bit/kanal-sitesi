@@ -192,7 +192,13 @@ function orgutuKur() {
       <div class="komutan ${k.ad ? "" : "bos"}" data-bolge="${kacir(k.id)}">
         <div class="seviye-etiket">${kacir(k.bolge)} Cephesi</div>
         <h3>${k.ad ? kacir(k.ad) : "İsimsiz Komutan"}</h3>
-        <div class="unvan">${kacir(k.unvan)}${k.mitoloji ? " · " + kacir(k.mitoloji) : ""}</div>
+        <div class="unvan">${kacir(k.unvan)}</div>
+        ${k.mitoloji
+          ? `<div class="komutan-kaynak">
+               <span class="mitoloji">${kacir(k.mitoloji)}</span>
+               ${k.kaynak ? kacir(k.kaynak) : ""}
+             </div>`
+          : ""}
         <p>${kacir(k.not)}</p>
         <div class="komutan-sayi">${iller.length} il</div>
       </div>`;

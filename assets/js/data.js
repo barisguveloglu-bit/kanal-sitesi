@@ -249,27 +249,39 @@ const ORGUT_TEPE = [
 const KOMUTANLAR = [
   {
     id: "bati",
-    ad: null,
+    ad: "Nemesis",
     bolge: "Batı",
     unvan: "Batı Cephesi Komutanı",
-    mitoloji: null,
-    not: "Marmara, Ege ve Batı Akdeniz. Trakya'dan Antalya'ya kadar 27 il.",
+    mitoloji: "Yunan mitolojisi",
+    kaynak: "İntikam ve ilahi adalet tanrıçası. Haddini aşanı cezalandırır.",
+    not:
+      "Marmara, Ege ve Batı Akdeniz — Trakya'dan Antalya'ya 27 il. " +
+      "Haksızlığı bitirmek için kurulmuş bir örgütte, adı doğrudan adaleti " +
+      "anlatan komutan. Kendi ölçüsünü kendi koyuyor.",
   },
   {
     id: "orta",
-    ad: null,
+    ad: "Teşup",
     bolge: "Orta",
     unvan: "Orta Cephe Komutanı",
-    mitoloji: null,
-    not: "İç Anadolu, Batı Karadeniz ve Çukurova. Başkenti de kapsayan 27 il.",
+    mitoloji: "Hitit mitolojisi",
+    kaynak: "Fırtına tanrısı. Elinde yıldırımla betimlenir.",
+    not:
+      "İç Anadolu, Batı Karadeniz ve Çukurova — başkenti kapsayan 27 il. " +
+      "Fırtına tanrısının adını taşıyor, ama gerçek yıldırım abinin elinde. " +
+      "Bu isim ona bir şey vaat ediyor ve o vaat henüz karşılanmadı.",
   },
   {
     id: "dogu",
-    ad: null,
+    ad: "Ahriman",
     bolge: "Doğu",
     unvan: "Doğu Cephesi Komutanı",
-    mitoloji: null,
-    not: "Doğu Anadolu, Güneydoğu ve Doğu Karadeniz. En sert coğrafyadaki 27 il.",
+    mitoloji: "Pers mitolojisi",
+    kaynak: "Yıkımın ruhu. İyilik tanrısının tam karşıtı.",
+    not:
+      "Doğu Anadolu, Güneydoğu ve Doğu Karadeniz — en sert coğrafyadaki 27 il. " +
+      "Adı doğrudan yıkımı anlatıyor. Kavgasız bir dünya için çalışan üç " +
+      "komutandan en acımasızı.",
   },
 ];
 
