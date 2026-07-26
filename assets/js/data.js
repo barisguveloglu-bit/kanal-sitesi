@@ -191,7 +191,7 @@ const GUC_SIRALAMASI = [
   { ad: "Kameracı Barış", tir: 0, not: "Hiçbir gücü yok — sadece iradesi", taraf: "iyi" },
 ];
 
-/* İrade kademeleri — TASLAK, birlikte detaylandırılacak */
+/* İrade kademeleri */
 const IRADE_KADEMELERI = [
   {
     kademe: 1,

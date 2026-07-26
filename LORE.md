@@ -51,6 +51,18 @@ Nesiller geçti ve efsane tamamen kayboldu.
 
 Bu yüzden Barış ve ailesi kim olduklarını bilmiyor. Barış kendi kaderinden habersiz.
 
+### Önceki taşıyıcı — Yılmaz
+
+Barış'tan önceki Kanlı Göz **300 yıl önce** doğdu.
+
+Bilinen tek şey adı: **Yılmaz.** Ağaca kazınmış son okunabilir isimlerden biri.
+
+Bunun dışında hiçbir kayıt yok: kim olduğu, nerede yaşadığı, başına ne geldiği.
+O 300 yılda dilek hakkının kullanılıp kullanılmadığı da bilinmiyor.
+
+*(Adın anlamı: yılmayan, pes etmeyen. Barış'ın adı gibi bu da taşıyıcının
+tek özelliğini anlatıyor.)*
+
 ---
 
 ## 3. İrade Sistemi

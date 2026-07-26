@@ -180,7 +180,7 @@ const SUPABASE_ANON_KEY = "eyJhbGci...";
 
 ```sql
 insert into public.yoneticiler (kullanici_id)
-select id from auth.users where email = 'barisguveloglu@gmail.com'
+select id from auth.users where email = 'KENDI-MAIL-ADRESIN@ornek.com'
 on conflict do nothing;
 ```
 
