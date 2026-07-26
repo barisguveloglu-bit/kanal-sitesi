@@ -81,14 +81,40 @@ as $$
 $$;
 
 
--- --- 3. RLS'İ AÇ --------------------------------------------------
+-- --- 3. TABLO İZİNLERİ --------------------------------------------
+-- Postgres'te iki ayrı katman var: GRANT (tabloya hiç dokunabilir mi?)
+-- ve RLS (hangi satırları görebilir?). İkisi de gerekli.
+--
+-- Bunları açıkça yazıyoruz ki proje kurulurken "Yeni tabloları otomatik
+-- olarak göster" seçeneği kapalı olsa bile site çalışsın.
+
+grant usage on schema public to anon, authenticated;
+
+-- Yayındaki soruları giriş yapmamış ziyaretçi de okuyabilmeli
+grant select on public.sorular to anon, authenticated;
+
+-- Soru sorma, cevaplama ve silme — hangi satıra dokunabildiğini RLS belirliyor
+grant insert, update, delete on public.sorular to authenticated;
+
+-- Ban listesi sadece giriş yapmışlara açık; yönetici olmayanı RLS eliyor
+grant select, insert, delete on public.yasaklilar to authenticated;
+
+-- public.yoneticiler tablosuna BİLEREK hiçbir izin verilmiyor.
+-- O tabloya sadece SQL Editor'den erişilebilir.
+
+grant execute on function public.yonetici_mi()            to anon, authenticated;
+grant execute on function public.yasakli_mi()             to anon, authenticated;
+grant execute on function public.son_saatteki_soru_sayisi() to authenticated;
+
+
+-- --- 4. RLS'İ AÇ --------------------------------------------------
 
 alter table public.sorular     enable row level security;
 alter table public.yasaklilar  enable row level security;
 alter table public.yoneticiler enable row level security;
 
 
--- --- 4. SORULAR KURALLARI -----------------------------------------
+-- --- 5. SORULAR KURALLARI -----------------------------------------
 
 -- Herkes yayındaki soruları okuyabilir (giriş yapmasa bile)
 drop policy if exists "yayindakileri herkes okur" on public.sorular;
@@ -135,7 +161,7 @@ create policy "yonetici siler"
   using (public.yonetici_mi());
 
 
--- --- 5. YASAKLILAR KURALLARI --------------------------------------
+-- --- 6. YASAKLILAR KURALLARI --------------------------------------
 -- Yasaklı listesini kimse okuyamaz; sadece yönetici.
 -- Kullanıcı kendi durumunu yasakli_mi() fonksiyonuyla öğreniyor.
 
@@ -156,7 +182,7 @@ create policy "yonetici ban kaldirir"
   using (public.yonetici_mi());
 
 
--- --- 6. YÖNETİCİLER KURALLARI -------------------------------------
+-- --- 7. YÖNETİCİLER KURALLARI -------------------------------------
 -- Kimse bu tabloyu okuyamaz veya yazamaz.
 -- Yönetici eklemek sadece buradan, SQL Editor'den yapılır.
 -- (Hiç policy tanımlamıyoruz; RLS açık olduğu için her şey kapalı.)
