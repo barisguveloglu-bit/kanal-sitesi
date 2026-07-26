@@ -199,6 +199,16 @@ function orgutuKur() {
                ${k.kaynak ? kacir(k.kaynak) : ""}
              </div>`
           : ""}
+        ${k.gucAdi
+          ? `<div class="komutan-guc">
+               <div class="guc-adi">${kacir(k.gucAdi)} <span>${k.tir} tır</span></div>
+               <p class="guc-aciklama">${kacir(k.gucAciklama)}</p>
+               <ul class="ozellik-listesi">
+                 ${(k.ozellikler || []).map((o) => `<li>${kacir(o)}</li>`).join("")}
+               </ul>
+               <p class="guc-zaaf"><strong>Zaafı:</strong> ${kacir(k.zaaf)}</p>
+             </div>`
+          : ""}
         <p>${kacir(k.not)}</p>
         <div class="komutan-sayi">${iller.length} il</div>
       </div>`;
@@ -217,6 +227,7 @@ function orgutuKur() {
           <div class="derebeyi-plaka">${d.plaka}</div>
           <div class="derebeyi-il">${kacir(d.il)}</div>
           <div class="derebeyi-ad">${d.ad ? kacir(d.ad) : "isimsiz"}</div>
+          ${d.kim ? `<div class="derebeyi-kim">${kacir(d.kim)}</div>` : ""}
         </div>`
         )
         .join("");
@@ -241,6 +252,16 @@ function orgutuKur() {
   }
 }
 
+/* --- Komutanlar arası çekişme --- */
+function cekismeyiKur() {
+  const hedef = document.querySelector("[data-cekisme]");
+  if (!hedef) return;
+  hedef.innerHTML = `
+    <h3>${kacir(KOMUTAN_CEKISMESI.baslik)}</h3>
+    <p>${kacir(KOMUTAN_CEKISMESI.metin)}</p>
+    <p style="margin-bottom:0">${kacir(KOMUTAN_CEKISMESI.sonuc)}</p>`;
+}
+
 /* --- Başlat --- */
 document.addEventListener("DOMContentLoaded", () => {
   menuyuKur();
@@ -252,4 +273,5 @@ document.addEventListener("DOMContentLoaded", () => {
   gucTablosunuKur();
   iradeyiKur();
   orgutuKur();
+  cekismeyiKur();
 });

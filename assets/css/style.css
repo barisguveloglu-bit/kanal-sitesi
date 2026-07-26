@@ -692,6 +692,52 @@ section + section { border-top: 1px solid var(--line-soft); }
   margin-bottom: 3px;
 }
 .komutan p { margin: 0 0 14px; color: var(--text-2); font-size: 0.88rem; }
+
+/* Komutan gücü */
+.komutan-guc {
+  text-align: left;
+  background: var(--bg-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 14px;
+}
+.komutan-guc .guc-adi {
+  font-family: var(--font-baslik);
+  font-size: 1.05rem;
+  color: var(--bolge-renk, var(--kan-parlak));
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.komutan-guc .guc-adi span {
+  font-family: var(--font-metin);
+  font-size: 0.78rem;
+  color: var(--text-2);
+}
+.komutan-guc .guc-aciklama {
+  font-size: 0.85rem;
+  color: var(--text-2);
+  margin: 0 0 10px;
+}
+.komutan-guc .ozellik-listesi { margin-bottom: 10px; }
+.komutan-guc .guc-zaaf {
+  font-size: 0.82rem;
+  color: var(--text-3);
+  margin: 0;
+  border-top: 1px solid var(--line-soft);
+  padding-top: 10px;
+}
+.komutan-guc .guc-zaaf strong { color: var(--iyi); }
+
+.derebeyi-kim {
+  font-size: 0.68rem;
+  color: var(--text-3);
+  line-height: 1.35;
+  margin-top: 3px;
+}
 .komutan-sayi {
   display: inline-block;
   font-size: 0.76rem;
@@ -731,7 +777,7 @@ section + section { border-top: 1px solid var(--line-soft); }
 /* 81 il kutusu — küçük ve sık */
 .derebeyi-izgara {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(124px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(158px, 1fr));
   gap: 8px;
 }
 .derebeyi {

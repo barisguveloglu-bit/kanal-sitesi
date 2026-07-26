@@ -151,19 +151,42 @@ Her komutanın adı, **yönettiği toprakların mitolojisinden** geliyor:
 **Nemesis** — haksızlığı bitirmek için kurulmuş bir örgütte, adı doğrudan
 adaleti anlatan komutan. Kendi ölçüsünü kendi koyuyor.
 
-**Teşup** — fırtına tanrısının adını taşıyor ama **gerçek yıldırım abinin
-elinde.** İsim ona bir şey vaat ediyor; o vaat henüz karşılanmadı. Üç komutan
-arasındaki çatışmanın en olası kaynağı burası.
+**Ahriman** — adı doğrudan yıkımı anlatıyor. Üçünün en acımasızı.
 
-**Ahriman** — adı doğrudan yıkımı anlatıyor. Kavgasız bir dünya için çalışan
-üç komutandan en acımasızı.
+### Komutanların güçleri
+Üçü de **3 tır** — kardeşlerin (4 tır) altında, Cips Yiyen Adam'ın normal
+formunun (2 tır) üstünde, Yoğurt formunun (5 tır) altında.
 
-### Komutanlar arası çekişme
-Üç komutan birbirine bağlı değil; hepsi doğrudan abiye rapor veriyor.
-**Gerektiğinde kendi aralarında çatışıyorlar.**
+Her biri **iyilerin bir kozunu** etkisiz bırakacak şekilde kurgulandı:
 
-Bu, örgütün hem gücü hem zaafı: cepheler bağımsız hareket edebildiği için ağ
-hızlı, ama aralarındaki rekabet dışarıdan girilebilecek bir çatlak bırakıyor.
+| Komutan | Güç | Ne yapar | Zaafı | İrade |
+|---|---|---|---|---|
+| **Nemesis** | Misilleme | Yediği darbeyi soğurup katlayarak geri verir. Sert vuran düşmana karşı en güçlü. | Vurulmazsa hiçbir şey yapamaz. Biriktirdiği hasarın sınırı var; taşarsa kendisi çöker. | Kademe 4 |
+| **Teşup** | Basınç ve Fırtına | Hava basıncını kontrol eder; kasırga ve şok dalgası. **Yıldırım atamaz.** Geniş alanda ve kalabalığa karşı çok güçlü. | Kapalı ve dar alanda gücü kırılır. Tünelde, bodrumda sıradan bir savaşçı. | Kademe 3 |
+| **Ahriman** | Çürütme | Dokunduğu maddeyi bozar; makineleri ve tuzakları öldürür. | Canlıya karşı çok yavaş etki eder. Temas şart — uzaktan hiçbir şey yapamaz. | Kademe 4 |
+
+**Kimi kilitliyorlar:**
+- **Nemesis → Cips Yiyen Adam.** Ham güç ona karşı işe yaramıyor; ne kadar sert vurursa o kadar sert geri alıyor.
+- **Ahriman → Sarı Gülücük.** İcatlar ve tuzaklar, dokunulduğu anda çürüyor.
+- **Teşup → alan ve hareket.** Açık alanda kalabalığı dağıtıyor, hafif ekipmanı uçuruyor.
+
+**Teşup'un çatlağı:** Fırtına tanrısının adını taşıyor ama yıldırım abide.
+Üstelik üçü arasında iradesi en zayıf olan da o (Kademe 3 — Samara Kadın'ın
+emirlerine kısmen açık). Örgütün en kırılgan halkası.
+
+### Neden birbirleriyle çatışıyorlar — sonsuz para
+Gizemli Çocuğun Abisi üç komutana da aynı teklifi yaptı: **iş başarıya
+ulaşırsa sonsuz para.** Üçü de kabul etti ve o günden sonra zamanla
+güçlendiler — bugünkü seviyelerine parayla ulaştılar.
+
+Ama ödül sonuca bağlı olduğu için **birbirlerine rakipler.** Aynı adama rapor
+veriyorlar, aynı ödülü bekliyorlar, gerektiğinde çatışıyorlar.
+
+> **Not:** Bu, Sarı Gülücük'ün aynadaki yansıması. O da icatlarını parayla
+> finanse ediyor (ayı kapanı şirketi) — ama onun parası sınırlı, komutanlarınki
+> sınırsız.
+
+
 
 **Yapının zayıf noktası:** merkez düşerse üç cephe aynı anda sahipsiz kalır —
 ve o an ağ kendi içine döner.
@@ -171,8 +194,107 @@ ve o an ağ kendi içine döner.
 **Neden her ilde bir adam vardı:** Barış'ın nerede olduğu bilinmiyordu.
 (Artık yakalandı; ağın bu amacı tamamlandı.)
 
-> **EKSİK:** 81 il derebeyinin isimleri henüz belli değil.
-> Üç komutan isimlendirildi.
+
+### 81 il derebeyi
+
+Her cephenin derebeyleri, o cephenin mitolojisinden isim taşıyor.
+İsimler mümkün olduğunca ilin gerçek tarihiyle eşleştirildi.
+
+#### Batı Cephesi — Nemesis · Yunan mitolojisi
+
+| Plaka | İl | Derebeyi | Kim? |
+|---|---|---|---|
+| 3 | Afyonkarahisar | **Marsyas** | Apollon'a meydan okuyan Frig satiri |
+| 7 | Antalya | **Khimaira** | ateş püsküren Likya canavarı — Yanartaş |
+| 9 | Aydın | **Aphrodite** | aşk tanrıçası — Afrodisias onun kenti |
+| 10 | Balıkesir | **Boreas** | kuzey rüzgârı |
+| 11 | Bilecik | **Hypnos** | uyku tanrısı |
+| 14 | Bolu | **Kerberos** | yeraltının üç başlı bekçi köpeği |
+| 15 | Burdur | **Leto** | Apollon ve Artemis'in annesi — Letoon |
+| 16 | Bursa | **Kronos** | babasını deviren titan |
+| 17 | Çanakkale | **Akhilleus** | Truva'nın en büyük savaşçısı |
+| 20 | Denizli | **Hades** | yeraltı tanrısı — Hierapolis'teki cehennem kapısı |
+| 22 | Edirne | **Orpheus** | Trakyalı ozan, yeraltına inen |
+| 26 | Eskişehir | **Midas** | dokunduğunu altına çeviren Frig kralı |
+| 32 | Isparta | **Athena** | savaş ve akıl tanrıçası |
+| 34 | İstanbul | **Kharon** | ölüleri karşı kıyıya geçiren kayıkçı |
+| 35 | İzmir | **Artemis** | av ve ay tanrıçası — Efes onun kenti |
+| 39 | Kırklareli | **Bendis** | Trak av tanrıçası |
+| 41 | Kocaeli | **Ares** | savaş tanrısı |
+| 43 | Kütahya | **Apollon** | ışık, kehanet ve ok tanrısı |
+| 45 | Manisa | **Niobe** | taşa dönüşüp ağlayan anne — Ağlayan Kaya |
+| 48 | Muğla | **Nereus** | denizin yaşlı bilgesi |
+| 54 | Sakarya | **Sangarios** | Sakarya ırmağının tanrısı |
+| 59 | Tekirdağ | **Dionysos** | şarap ve coşku tanrısı, Trakya kökenli |
+| 64 | Uşak | **Pan** | kırların keçi ayaklı tanrısı, panik yaratan |
+| 67 | Zonguldak | **Herakles** | on iki görevin kahramanı — Herakleia Pontike |
+| 74 | Bartın | **Thanatos** | ölümün kendisi |
+| 77 | Yalova | **Hebe** | gençlik tanrıçası |
+| 81 | Düzce | **Prometheus** | ateşi çalıp insana veren titan |
+
+#### Orta Cephe — Teşup · Hitit / Anadolu mitolojisi
+
+| Plaka | İl | Derebeyi | Kim? |
+|---|---|---|---|
+| 1 | Adana | **Şanta** | Kilikya'nın veba ve savaş tanrısı |
+| 5 | Amasya | **Lelwani** | yeraltı dünyasının hükümdarı |
+| 6 | Ankara | **Kumarbi** | tahttan indirilen tanrılar babası |
+| 18 | Çankırı | **Miyatanzipa** | büyüme ve bolluk tanrısı |
+| 19 | Çorum | **Arinnitti** | Arinna'nın güneş tanrıçası — Hattuşa'nın baş tanrısı |
+| 28 | Giresun | **Zithariya** | koruyucu tanrı |
+| 31 | Hatay | **Kubaba** | Karkamış'ın kraliçe tanrıçası |
+| 33 | Mersin | **Runtiya** | Luvi geyik ve av tanrısı |
+| 37 | Kastamonu | **Pirwa** | at tanrısı |
+| 38 | Kayseri | **İştanu** | güneş ve adalet tanrısı — Kaneş |
+| 40 | Kırşehir | **İnara** | İlluyanka'yı tuzağa düşüren tanrıça |
+| 42 | Konya | **Telipinu** | öfkelenip kaybolan bereket tanrısı |
+| 46 | Kahramanmaraş | **Hepat** | Hurri ana tanrıçası, Teşup'un eşi |
+| 50 | Nevşehir | **Kamrusepa** | şifa ve büyü tanrıçası |
+| 51 | Niğde | **Halki** | tahıl tanrısı |
+| 52 | Ordu | **Taşmişu** | Teşup'un veziri ve kardeşi |
+| 55 | Samsun | **Kaşku** | ay tanrısı |
+| 57 | Sinop | **Zaliyanu** | yağmur getiren dağ tanrısı |
+| 58 | Sivas | **Wurunkatte** | toprağın savaş tanrısı |
+| 60 | Tokat | **Şauşka** | aşk ve savaş tanrıçası |
+| 61 | Trabzon | **Şuwaliyat** | fırtına tanrısının kardeşi |
+| 66 | Yozgat | **Şarruma** | dağ tanrısı, Hepat'ın oğlu |
+| 68 | Aksaray | **Hannahanna** | her şeyi bilen ana tanrıça |
+| 70 | Karaman | **Ullikummi** | tanrılara meydan okuyan taş dev |
+| 71 | Kırıkkale | **Zababa** | savaş tanrısı |
+| 78 | Karabük | **Hasameli** | demircilerin ve madencilerin tanrısı |
+| 80 | Osmaniye | **Yarri** | salgın ve ok tanrısı |
+
+#### Doğu Cephesi — Ahriman · Pers mitolojisi
+
+| Plaka | İl | Derebeyi | Kim? |
+|---|---|---|---|
+| 2 | Adıyaman | **Mithra** | ışık ve yemin tanrısı — Nemrut'taki dev |
+| 4 | Ağrı | **Simurg** | dağın tepesinde yuva kuran efsanevi kuş |
+| 8 | Artvin | **Zal** | Simurg'un büyüttüğü ak saçlı kahraman |
+| 12 | Bingöl | **Haoma** | kutsal bitkinin tanrısı |
+| 13 | Bitlis | **Apaosha** | kuraklık cini |
+| 21 | Diyarbakır | **Verethragna** | zaferin tanrısı |
+| 23 | Elazığ | **Zurvan** | zamanın kendisi |
+| 24 | Erzincan | **Ashi** | talih ve bolluk tanrıçası |
+| 25 | Erzurum | **Vayu** | rüzgârın tanrısı |
+| 27 | Gaziantep | **Siyavash** | ateşin içinden geçen prens |
+| 29 | Gümüşhane | **Kaveh** | Zahhak'a başkaldıran demirci |
+| 30 | Hakkari | **Aeshma** | öfke ve şiddet cini |
+| 36 | Kars | **Tishtrya** | yağmur getiren yıldız tanrısı |
+| 44 | Malatya | **Jamshid** | altın çağın efsanevi kralı |
+| 47 | Mardin | **Rashnu** | ruhları tartan yargıç |
+| 49 | Muş | **Garshasp** | ejderha öldüren kahraman |
+| 53 | Rize | **Fereydun** | Zahhak'ı deviren kral |
+| 56 | Siirt | **Sraosha** | itaat ve dinleyişin tanrısı |
+| 62 | Tunceli | **Afrasiyab** | Turan'ın efsanevi hükümdarı |
+| 63 | Şanlıurfa | **Zahhak** | omuzlarından yılan çıkan zalim kral |
+| 65 | Van | **Anahita** | suların ve bereketin tanrıçası |
+| 69 | Bayburt | **Esfandiyar** | yara almaz prens |
+| 72 | Batman | **Atar** | ateşin kendisi |
+| 73 | Şırnak | **Druj** | yalanın ve bozgunun cini |
+| 75 | Ardahan | **Arash** | canı pahasına ok atan okçu |
+| 76 | Iğdır | **Kiyumars** | ilk insan, ilk kral |
+| 79 | Kilis | **Div-e Sepid** | Ak Dev |
 
 ### Örgütün şu anki hâli
 Barış'ı yakaladılar ama **kilidi açamıyorlar.** Beyin yıkama yöntemini
@@ -199,8 +321,8 @@ Bu, iyilere zaman kazandıran tek şey.
 
 - [ ] İrade kademelerinin son hali
 - [x] Üç komutanın isimleri: Nemesis, Teşup, Ahriman
-- [ ] 81 il derebeyinin isimleri
-- [ ] Komutanlar neden ve ne zaman birbirleriyle çatışıyor?
+- [x] 81 il derebeyinin isimleri (cepheye göre mitolojiden)
+- [x] Komutanlar neden çatışıyor: sonsuz para vaadi, ödül sonuca bağlı
 - [ ] Teşup'un yıldırım meselesi: abiye karşı bir kırılma noktası mı?
 - [ ] Kuruyan ağacın nerede olduğu — hâlâ duruyor mu?
 - [ ] Barış efsaneyi ne zaman ve nasıl öğreniyor?
