@@ -17,7 +17,8 @@ const DURUM = {
   baslik: "Kameracı Barış ele geçirildi",
   ozet:
     "Barış şu anda kötülerin elinde. Ama beynini nasıl yıkayacaklarını bilmiyorlar — " +
-    "dilek hakkı hâlâ kilitli.",
+    "dilek hakkı hâlâ kilitli. İyiler kaçırıldığını biliyor, neden önemli " +
+    "olduğunu bilmiyor.",
   sizanCumle: "O GERÇEK BARIŞ'I BULACAK",
 };
 
@@ -39,14 +40,18 @@ const KARAKTERLER = [
       "Gazeteci / kameraman",
       "Ailesiz",
       "Zengin — ama fakir gibi davranıyor",
+      "Serveti anne babasından kalan miras",
       "Azimli ve kararlı",
       "Verdiği hiçbir karardan vazgeçmez",
     ],
     iradeKademe: 5,
     detay:
-      "Şu anda kötülerin elinde. Ama beynini nasıl yıkayacaklarını bilmiyorlar, " +
-      "yani dilek hakkı hâlâ kilitli. Onu kaybetmek iyilerin en büyük gücünü " +
-      "kaybetmesi demek — hiçbir yeteneği yoktu ama hikayenin tek anahtarı oydu.",
+      "Ailesi bir kazada öldü — öyle sanıyor. Bütün servet ona kaldı ama tek " +
+      "kuruşuna dokunmuyor; o parayı harcamak, onların gidişini kabul etmek " +
+      "gibi geliyor. Fakir gibi yaşamasının sebebi bu.\n\n" +
+      "Şu anda kötülerin elinde. Beynini nasıl yıkayacaklarını bilmiyorlar, " +
+      "yani dilek hakkı hâlâ kilitli. Hiçbir yeteneği yoktu — ama hikayenin " +
+      "tek anahtarı oydu.",
   },
   {
     id: "cips-yiyen-adam",
@@ -121,9 +126,12 @@ const KARAKTERLER = [
       "Güçlü iradeye karşı etkisiz",
     ],
     detay:
-      "Başlangıçta kötülerin yanındaydı. İhaneti ortaya çıkınca çok ağır " +
-      "yaralandı. Şu anda Sarı Gülücük'ün korumasında. Hangi tarafta olduğu " +
-      "hâlâ net değil.",
+      "İradesiz bir insanın ne demek olduğunu dünyada en iyi bilen kişi o — " +
+      "çünkü onu her gün kendi eliyle yapıyor. Kötülerin dileğini duyduğunda " +
+      "ne anlama geldiğini herkesten önce anladı: kimsenin itiraz etmediği bir " +
+      "dünya, kimsenin iradesi olmayan bir dünyadır.\n\n" +
+      "Reddetti. İhaneti ortaya çıkınca çok ağır yaralandı. Şu anda Sarı " +
+      "Gülücük'ün korumasında.",
   },
   {
     id: "gizemli-cocuk",
@@ -311,7 +319,10 @@ const KOMUTANLAR = [
     not:
       "İç Anadolu, Batı Karadeniz ve Çukurova — başkenti kapsayan 27 il. " +
       "Fırtına tanrısının adını taşıyor ama gerçek yıldırım abinin elinde. " +
-      "Üçü arasında iradesi en zayıf olan da o.",
+      "Üçü arasında iradesi en zayıf olan da o.\n\n" +
+      "Barış şu anda onun cephesinde tutuluyor. Elindeki en değerli şeyi " +
+      "kaybetmekten korkuyor — ve korkan bir komutan, kırılabilecek bir " +
+      "komutandır.",
   },
   {
     id: "dogu",

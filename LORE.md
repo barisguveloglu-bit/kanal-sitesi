@@ -352,3 +352,80 @@ Bu, iyilere zaman kazandıran tek şey.
 | Yoğurt Yiyen Adam | 5 tır | Cips Yiyen Adam'ın savaş modu |
 
 ---
+
+---
+
+## 7. Güçlerin Kaynağı
+
+**Bütün güçler ağacın özünden geliyor.**
+
+1730–1735 arasında ağacın gövdesinden akan o baldan tatlı sıvı sarayın
+ziyafetlerinde yenildi ve **padişahın cariyelerine dağıtıldı.** Güçler o
+soydan gelenlerde, nesiller sonra ortaya çıktı — seyrelmiş ve çarpılmış
+hâlde. Güçlerin bu kadar tuhaf ve kişiye özel olmasının sebebi bu:
+cips, yoğurt, bir bakış, elektrik.
+
+Bu üç şeyi aynı anda açıklıyor:
+
+1. **1728'de neden kimsede güç yoktu** — ağaç henüz kesilmemişti.
+2. **Yılmaz neden karşılık veremedi** — o çağda güç diye bir şey yoktu.
+   Yılmaz da Barış gibi sıradan bir adamdı.
+3. **Bugün neden güçlü insanlar var** — hepsi o sofraya oturanların soyundan.
+
+> **Acı ironi:** Yılmaz ağacı korumaya çalışırken öldü. Ağacın yok edilmesi
+> güçleri yarattı. Bugün Barış'ı avlayanların gücü, Yılmaz'ın ölümüne sebep
+> olan aynı yıkımdan geliyor.
+
+**Kanlı Göz taşıyıcısı asla güç kazanmaz.** O başka bir çizgiden geliyor.
+Barış güçsüz kalacak — hikayenin şartı bu.
+
+> **Okura söylenmiyor.** Site bu bağlantıyı açıkça yazmıyor; vakayinamedeki
+> tarihleri okuyan kendi bağlıyor. Evren içinde de bunu bilen kimse yok.
+
+---
+
+## 8. Beyin Yıkama Yöntemi
+
+Gövdeye yalnız isimler kazınmamıştı. **Taşıyıcının nasıl kırılacağı da**
+isimlerin yanına yazılmıştı — her nesil bilsin ve korusun diye.
+
+Ağaç parça parça kesilince o satırlar da dağıldı. Kereste sarayın masalarına,
+kapılarına, sandıklarına gitti. **Bir kısmı hâlâ duruyor olabilir.**
+
+- Kötüler bunu biliyor; bu yüzden hayatta kalan kerestenin peşindeler.
+- İyilerin işi: o parçayı önce bulmak ve yok etmek.
+- Barış ellerinde ama kilidi açan şey ellerinde değil. Yarış bunun üstüne kurulu.
+
+---
+
+## 9. Kapatılan Diğer Uçlar
+
+### Barış'ın ailesi
+Ailesi ağacı koruyan soydan geliyordu. Mafya kan izini sürdü ve anne babasını
+öldürdü; **kaza gibi göründü.** Barış o gün evde değildi.
+
+Bütün servet ona kaldı. **Tek kuruşuna dokunmuyor** — o parayı harcamak,
+onların gidişini kabul etmek gibi geliyor. Zengin olup fakir gibi yaşamasının
+sebebi bu.
+
+Barış hâlâ kaza olduğunu sanıyor.
+
+### Samara Kadın neden ihanet etti
+İradesiz bir insanın ne demek olduğunu **dünyada en iyi bilen kişi o** —
+çünkü onu her gün kendi eliyle yapıyor.
+
+Kötülerin dileğini duyduğunda ne anlama geldiğini herkesten önce anladı:
+*kimsenin itiraz etmediği bir dünya, kimsenin iradesi olmayan bir dünyadır.*
+Reddetti. Ağır yaralanmasının sebebi bu.
+
+### Barış nerede tutuluyor
+**Teşup'un elinde**, Orta Cephe'de. Üç komutan arasında iradesi en zayıf olan
+o (Kademe 3) ve elindeki en değerli şeyi kaybetmekten korkuyor.
+Korkan bir komutan, kırılabilecek bir komutandır — iyilerin en olası kapısı.
+
+### İyiler ne biliyor
+Barış'ın kaçırıldığını biliyorlar. **Neden önemli olduğunu bilmiyorlar.**
+Arkadaşlarını arıyorlar, dünyanın anahtarını değil.
+
+### Cips Yiyen Adam
+İki formu var: cips ve yoğurt. Başka form tanımlı değil.

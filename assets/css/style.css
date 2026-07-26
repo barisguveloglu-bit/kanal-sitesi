@@ -234,6 +234,7 @@ section + section { border-top: 1px solid var(--line-soft); }
 }
 .kart .ozet { color: var(--text-2); font-size: 0.94rem; margin-bottom: 16px; }
 .kart .detay {
+  white-space: pre-line;   /* metindeki paragraf araları korunsun */
   font-size: 0.9rem;
   color: var(--text-2);
   border-top: 1px solid var(--line-soft);
@@ -697,7 +698,7 @@ section + section { border-top: 1px solid var(--line-soft); }
   color: var(--bolge-renk, var(--kan-parlak));
   margin-bottom: 3px;
 }
-.komutan p { margin: 0 0 14px; color: var(--text-2); font-size: 0.88rem; }
+.komutan p { margin: 0 0 14px; color: var(--text-2); font-size: 0.88rem; white-space: pre-line; }
 
 /* Komutan gücü */
 .komutan-guc {
