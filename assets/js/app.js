@@ -183,21 +183,54 @@ function orgutuKur() {
     ).join("");
   }
 
+  /* Üç komutan */
+  const kom = document.querySelector("[data-komutanlar]");
+  if (kom) {
+    kom.innerHTML = KOMUTANLAR.map((k) => {
+      const iller = IL_DEREBEYLERI.filter((d) => d.komutan === k.id);
+      return `
+      <div class="komutan ${k.ad ? "" : "bos"}" data-bolge="${kacir(k.id)}">
+        <div class="seviye-etiket">${kacir(k.bolge)} Cephesi</div>
+        <h3>${k.ad ? kacir(k.ad) : "İsimsiz Komutan"}</h3>
+        <div class="unvan">${kacir(k.unvan)}${k.mitoloji ? " · " + kacir(k.mitoloji) : ""}</div>
+        <p>${kacir(k.not)}</p>
+        <div class="komutan-sayi">${iller.length} il</div>
+      </div>`;
+    }).join("");
+  }
+
+  /* 81 il derebeyi — komutanlara göre gruplanmış */
   const alt = document.querySelector("[data-derebeyleri]");
   if (alt) {
-    const bilinen = DEREBEYLERI.filter((d) => d.ad).length;
-    alt.innerHTML = DEREBEYLERI.map(
-      (d) => `
-      <div class="derebeyi ${d.ad ? "" : "bos"}">
-        <div class="derebeyi-il">${d.il ? kacir(d.il) : "?"}</div>
-        <div class="derebeyi-ad">${d.ad ? kacir(d.ad) : "İsimsiz Derebeyi"}</div>
-        <div class="derebeyi-not">${kacir(d.not)}</div>
-      </div>`
-    ).join("");
+    alt.innerHTML = KOMUTANLAR.map((k) => {
+      const iller = IL_DEREBEYLERI.filter((d) => d.komutan === k.id);
+      const kutular = iller
+        .map(
+          (d) => `
+        <div class="derebeyi ${d.ad ? "" : "bos"}" data-bolge="${kacir(k.id)}">
+          <div class="derebeyi-plaka">${d.plaka}</div>
+          <div class="derebeyi-il">${kacir(d.il)}</div>
+          <div class="derebeyi-ad">${d.ad ? kacir(d.ad) : "isimsiz"}</div>
+        </div>`
+        )
+        .join("");
+      return `
+      <div class="cephe" data-bolge="${kacir(k.id)}">
+        <h3 class="cephe-baslik">
+          ${kacir(k.bolge)} Cephesi
+          <span>${k.ad ? kacir(k.ad) : "isimsiz komutan"} · ${iller.length} il</span>
+        </h3>
+        <div class="derebeyi-izgara">${kutular}</div>
+      </div>`;
+    }).join("");
 
     const sayac = document.querySelector("[data-derebeyi-sayac]");
     if (sayac) {
-      sayac.textContent = `${bilinen} / ${DEREBEYLERI.length} derebeyi isimlendirildi`;
+      const bilinen = IL_DEREBEYLERI.filter((d) => d.ad).length;
+      const komBilinen = KOMUTANLAR.filter((k) => k.ad).length;
+      sayac.textContent =
+        `${komBilinen} / ${KOMUTANLAR.length} komutan · ` +
+        `${bilinen} / ${IL_DEREBEYLERI.length} il derebeyi isimlendirildi`;
     }
   }
 }

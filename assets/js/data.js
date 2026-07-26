@@ -144,8 +144,9 @@ const KARAKTERLER = [
       "Elektrik manipülasyonu (temel)",
     ],
     detay:
-      "Abisinin gölgesinde büyüyor. Elektrik gücü abisininkinin ham hâli — " +
-      "yani potansiyeli açık, kontrolü eksik.",
+      "Savaşsız dünya fikri abisinindi; o da bu fikre katıldı. Abisinin " +
+      "gölgesinde büyüyor ve elektrik gücü abisininkinin ham hâli — " +
+      "potansiyeli açık, kontrolü eksik.",
   },
   {
     id: "gizemli-cocugun-abisi",
@@ -156,19 +157,22 @@ const KARAKTERLER = [
     tir: 4,
     gucEtiketi: "4 tır + tam elektrik",
     ozet:
-      "Her ilde bir adamı var. Her ili yöneten derebeyi doğrudan ona bağlı. " +
-      "Elektriği tam anlamıyla kontrol ediyor ve aşırı kurnaz.",
+      "Savaşsız dünya fikri onun. 81 ilin tamamında adamı var; üç cephe " +
+      "komutanı doğrudan ona rapor veriyor. Elektriği tam anlamıyla kontrol " +
+      "ediyor ve aşırı kurnaz.",
     ozellikler: [
       "4 tır kaldırma gücü",
       "İnsanüstü hız",
       "İnsanüstü çeviklik",
       "İnsanüstü dayanıklılık",
       "Elektriğe tam hâkimiyet",
-      "Her ilde bir derebeyi",
+      "Üç komutan, 81 il derebeyi",
+      "Savaşsız dünya fikrinin sahibi",
     ],
     detay:
-      "Hikayenin asıl patronu. Kanlı Göz'ün dileğini isteyen ve bütün ağı yöneten kişi. " +
-      "Amacı kavgasız bir dünya — ama ona giden yolu güçle döşüyor.",
+      "Hikayenin asıl patronu ve fikrin sahibi. Kavgasız bir dünya onun " +
+      "düşüncesiydi; kardeşi Gizemli Çocuk sonradan ona katıldı. " +
+      "\"O gerçek barışı bulacak\" cümlesindeki \"o\" işte bu adam.",
   },
 ];
 
@@ -218,33 +222,140 @@ const IRADE_KADEMELERI = [
 ];
 
 /*
- * Örgüt hiyerarşisi — Gizemli Çocuğun Abisi'nin ağı.
- * Her ilde bir derebeyi var; hepsi doğrudan abiye bağlı.
+ * Örgüt hiyerarşisi — dört kademe:
+ *   1. Gizemli Çocuğun Abisi (asıl patron, fikrin sahibi)
+ *   2. Gizemli Çocuk (kardeşi, fikre katılan)
+ *   3. Üç Komutan Derebeyi (81 ili üçe bölüp yönetirler, abiye rapor verirler)
+ *   4. 81 il derebeyi (her ilde bir tane)
  *
- * DEREBEYLERI dizisine yeni satır eklemek yeterli:
- *   { il: "Ankara", ad: "Derebeyi adı", not: "Kısa bilgi" }
- * Adı henüz belli değilse ad: null bırak — site "İsimsiz" olarak gösterir.
+ * İsim vermek için ilgili satırdaki ad: null yerine ad: "İsim" yaz.
  */
 const ORGUT_TEPE = [
   {
     id: "gizemli-cocugun-abisi",
     ad: "Gizemli Çocuğun Abisi",
     unvan: "Asıl Patron",
-    not: "Bütün ağı yöneten kişi. Elektriğe tam hâkim, aşırı kurnaz. Her derebeyi doğrudan ona bağlı.",
+    not: "Savaşsız dünya fikri onun. Bütün ağ ona bağlı, üç komutan doğrudan ona rapor veriyor. Elektriğe tam hâkim.",
   },
   {
     id: "gizemli-cocuk",
     ad: "Gizemli Çocuk",
-    unvan: "Abinin Kardeşi",
-    not: "Hiyerarşide derebeylerinin üstünde, abisinin hemen altında. Elektrik kontrolü hâlâ temel seviyede.",
+    unvan: "Kardeşi",
+    not: "Abisinin fikrine katıldı. Hiyerarşide komutanların üstünde. Elektrik kontrolü hâlâ temel seviyede.",
   },
 ];
 
-const DEREBEYLERI = [
-  { il: null, ad: null, not: "Henüz belirlenmedi" },
-  { il: null, ad: null, not: "Henüz belirlenmedi" },
-  { il: null, ad: null, not: "Henüz belirlenmedi" },
-  { il: null, ad: null, not: "Henüz belirlenmedi" },
+/* Üç komutan derebeyi — isimleri farklı mitolojilerden seçilecek */
+const KOMUTANLAR = [
+  {
+    id: "bati",
+    ad: null,
+    bolge: "Batı",
+    unvan: "Batı Cephesi Komutanı",
+    mitoloji: null,
+    not: "Marmara, Ege ve Batı Akdeniz. Trakya'dan Antalya'ya kadar 27 il.",
+  },
+  {
+    id: "orta",
+    ad: null,
+    bolge: "Orta",
+    unvan: "Orta Cephe Komutanı",
+    mitoloji: null,
+    not: "İç Anadolu, Batı Karadeniz ve Çukurova. Başkenti de kapsayan 27 il.",
+  },
+  {
+    id: "dogu",
+    ad: null,
+    bolge: "Doğu",
+    unvan: "Doğu Cephesi Komutanı",
+    mitoloji: null,
+    not: "Doğu Anadolu, Güneydoğu ve Doğu Karadeniz. En sert coğrafyadaki 27 il.",
+  },
+];
+
+/* 81 il derebeyi — plaka sırasına göre */
+const IL_DEREBEYLERI = [
+  { plaka: 1, il: "Adana", komutan: "orta", ad: null },
+  { plaka: 2, il: "Adıyaman", komutan: "dogu", ad: null },
+  { plaka: 3, il: "Afyonkarahisar", komutan: "bati", ad: null },
+  { plaka: 4, il: "Ağrı", komutan: "dogu", ad: null },
+  { plaka: 5, il: "Amasya", komutan: "orta", ad: null },
+  { plaka: 6, il: "Ankara", komutan: "orta", ad: null },
+  { plaka: 7, il: "Antalya", komutan: "bati", ad: null },
+  { plaka: 8, il: "Artvin", komutan: "dogu", ad: null },
+  { plaka: 9, il: "Aydın", komutan: "bati", ad: null },
+  { plaka: 10, il: "Balıkesir", komutan: "bati", ad: null },
+  { plaka: 11, il: "Bilecik", komutan: "bati", ad: null },
+  { plaka: 12, il: "Bingöl", komutan: "dogu", ad: null },
+  { plaka: 13, il: "Bitlis", komutan: "dogu", ad: null },
+  { plaka: 14, il: "Bolu", komutan: "bati", ad: null },
+  { plaka: 15, il: "Burdur", komutan: "bati", ad: null },
+  { plaka: 16, il: "Bursa", komutan: "bati", ad: null },
+  { plaka: 17, il: "Çanakkale", komutan: "bati", ad: null },
+  { plaka: 18, il: "Çankırı", komutan: "orta", ad: null },
+  { plaka: 19, il: "Çorum", komutan: "orta", ad: null },
+  { plaka: 20, il: "Denizli", komutan: "bati", ad: null },
+  { plaka: 21, il: "Diyarbakır", komutan: "dogu", ad: null },
+  { plaka: 22, il: "Edirne", komutan: "bati", ad: null },
+  { plaka: 23, il: "Elazığ", komutan: "dogu", ad: null },
+  { plaka: 24, il: "Erzincan", komutan: "dogu", ad: null },
+  { plaka: 25, il: "Erzurum", komutan: "dogu", ad: null },
+  { plaka: 26, il: "Eskişehir", komutan: "bati", ad: null },
+  { plaka: 27, il: "Gaziantep", komutan: "dogu", ad: null },
+  { plaka: 28, il: "Giresun", komutan: "orta", ad: null },
+  { plaka: 29, il: "Gümüşhane", komutan: "dogu", ad: null },
+  { plaka: 30, il: "Hakkari", komutan: "dogu", ad: null },
+  { plaka: 31, il: "Hatay", komutan: "orta", ad: null },
+  { plaka: 32, il: "Isparta", komutan: "bati", ad: null },
+  { plaka: 33, il: "Mersin", komutan: "orta", ad: null },
+  { plaka: 34, il: "İstanbul", komutan: "bati", ad: null },
+  { plaka: 35, il: "İzmir", komutan: "bati", ad: null },
+  { plaka: 36, il: "Kars", komutan: "dogu", ad: null },
+  { plaka: 37, il: "Kastamonu", komutan: "orta", ad: null },
+  { plaka: 38, il: "Kayseri", komutan: "orta", ad: null },
+  { plaka: 39, il: "Kırklareli", komutan: "bati", ad: null },
+  { plaka: 40, il: "Kırşehir", komutan: "orta", ad: null },
+  { plaka: 41, il: "Kocaeli", komutan: "bati", ad: null },
+  { plaka: 42, il: "Konya", komutan: "orta", ad: null },
+  { plaka: 43, il: "Kütahya", komutan: "bati", ad: null },
+  { plaka: 44, il: "Malatya", komutan: "dogu", ad: null },
+  { plaka: 45, il: "Manisa", komutan: "bati", ad: null },
+  { plaka: 46, il: "Kahramanmaraş", komutan: "orta", ad: null },
+  { plaka: 47, il: "Mardin", komutan: "dogu", ad: null },
+  { plaka: 48, il: "Muğla", komutan: "bati", ad: null },
+  { plaka: 49, il: "Muş", komutan: "dogu", ad: null },
+  { plaka: 50, il: "Nevşehir", komutan: "orta", ad: null },
+  { plaka: 51, il: "Niğde", komutan: "orta", ad: null },
+  { plaka: 52, il: "Ordu", komutan: "orta", ad: null },
+  { plaka: 53, il: "Rize", komutan: "dogu", ad: null },
+  { plaka: 54, il: "Sakarya", komutan: "bati", ad: null },
+  { plaka: 55, il: "Samsun", komutan: "orta", ad: null },
+  { plaka: 56, il: "Siirt", komutan: "dogu", ad: null },
+  { plaka: 57, il: "Sinop", komutan: "orta", ad: null },
+  { plaka: 58, il: "Sivas", komutan: "orta", ad: null },
+  { plaka: 59, il: "Tekirdağ", komutan: "bati", ad: null },
+  { plaka: 60, il: "Tokat", komutan: "orta", ad: null },
+  { plaka: 61, il: "Trabzon", komutan: "orta", ad: null },
+  { plaka: 62, il: "Tunceli", komutan: "dogu", ad: null },
+  { plaka: 63, il: "Şanlıurfa", komutan: "dogu", ad: null },
+  { plaka: 64, il: "Uşak", komutan: "bati", ad: null },
+  { plaka: 65, il: "Van", komutan: "dogu", ad: null },
+  { plaka: 66, il: "Yozgat", komutan: "orta", ad: null },
+  { plaka: 67, il: "Zonguldak", komutan: "bati", ad: null },
+  { plaka: 68, il: "Aksaray", komutan: "orta", ad: null },
+  { plaka: 69, il: "Bayburt", komutan: "dogu", ad: null },
+  { plaka: 70, il: "Karaman", komutan: "orta", ad: null },
+  { plaka: 71, il: "Kırıkkale", komutan: "orta", ad: null },
+  { plaka: 72, il: "Batman", komutan: "dogu", ad: null },
+  { plaka: 73, il: "Şırnak", komutan: "dogu", ad: null },
+  { plaka: 74, il: "Bartın", komutan: "bati", ad: null },
+  { plaka: 75, il: "Ardahan", komutan: "dogu", ad: null },
+  { plaka: 76, il: "Iğdır", komutan: "dogu", ad: null },
+  { plaka: 77, il: "Yalova", komutan: "bati", ad: null },
+  { plaka: 78, il: "Karabük", komutan: "orta", ad: null },
+  { plaka: 79, il: "Kilis", komutan: "dogu", ad: null },
+  { plaka: 80, il: "Osmaniye", komutan: "orta", ad: null },
+  { plaka: 81, il: "Düzce", komutan: "bati", ad: null },
 ];
 
 const TARAF_ETIKET = {

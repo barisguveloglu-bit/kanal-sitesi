@@ -29,6 +29,11 @@ Kötülerin amacı **"gerçek barışı elde etmek"**.
 Bu cümle aynı anda iki şeyi söylüyor: dünya barışı **ve** Kameracı Barış'ın kendisi.
 Hikayenin ana ironisi burada: barışı istedikleri için savaş çıkarıyorlar.
 
+**"O GERÇEK BARIŞ'I BULACAK"** — örgütün sloganı. Buradaki **"o"**,
+**Gizemli Çocuğun Abisi.** Savaşsız dünya fikri onundu; kardeşi Gizemli Çocuk
+sonradan bu fikre katıldı. Cümle aynı anda iki şey söylüyor: abi dünya barışını
+bulacak **ve** abi Kameracı Barış'ı bulacak.
+
 ---
 
 ## 2. Unutulan Efsane — Kuruyan Ağaç
@@ -105,6 +110,7 @@ Yani kötüler, kırılması imkânsıza en yakın olan şeyi kırmak zorunda.
 
 ### Gizemli Çocuk — *oynanan karakter*
 - **Taraf:** Kötü
+- Savaşsız dünya fikri abisinindi; **o da bu fikre katıldı.**
 - 4 tır kaldırır.
 - İnsanüstü hız, insanüstü çeviklik, insanüstü dayanıklılık.
 - **Elektriği manipüle edebilir** — ama hâlâ temel seviyede.
@@ -114,28 +120,45 @@ Yani kötüler, kırılması imkânsıza en yakın olan şeyi kırmak zorunda.
 - Gizemli Çocuk ile aynı fiziksel özellikler.
 - **Elektriği tam anlamıyla kontrol eder.**
 - Aşırı kurnaz.
-- **Her ilde bir adamı / derebeyi var.** Her ili yöneten patron doğrudan ona bağlı.
+- **Savaşsız dünya fikri onun.** Kardeşi sonradan katıldı.
+- **Üç komutan derebeyi** doğrudan ona rapor verir; onların altında 81 il derebeyi var.
+- Örgüt sloganı **"O gerçek barışı bulacak"** cümlesindeki "o" kendisi.
 
 ---
 
 ## 5. Örgüt Yapısı
 
-Kötülerin ağı üç seviyeli ve tek merkeze bağlı:
+Kötülerin ağı **dört kademeli**:
 
-| Seviye | Kim | Not |
+| Seviye | Kim | Görev |
 |---|---|---|
-| 1 | Gizemli Çocuğun Abisi | Asıl patron. Bütün ağ ona bağlı. |
-| 2 | Gizemli Çocuk | Abisinin kardeşi, derebeylerinin üstünde. |
-| 3 | Derebeyleri | Her ilde bir tane. Hepsi doğrudan seviye 1'e bağlı. |
+| 1 | Gizemli Çocuğun Abisi | Asıl patron. Fikrin sahibi. |
+| 2 | Gizemli Çocuk | Kardeşi. Fikre katıldı. |
+| 3 | **Üç Komutan Derebeyi** | 81 ili üçe bölüp yönetirler. Doğrudan abiye rapor verirler. |
+| 4 | **81 il derebeyi** | Türkiye'nin her ilinde bir tane. Bağlı oldukları komutana rapor verirler. |
 
-**Arada kademe yok:** illeri yöneten patronların hiçbiri bağımsız değil,
-hepsi doğrudan Gizemli Çocuğun Abisi'ne bağlı.
+### Üç cephe
+81 il, üç komutan arasında **eşit bölünmüş** — her birine 27 il:
 
-**Neden her ilde bir adam var:** Barış'ın nerede olduğu bilinmiyor.
+- **Batı Cephesi** — Marmara, Ege, Batı Akdeniz (Trakya'dan Antalya'ya)
+- **Orta Cephe** — İç Anadolu, Batı Karadeniz, Çukurova (başkent dahil)
+- **Doğu Cephesi** — Doğu Anadolu, Güneydoğu, Doğu Karadeniz
 
-**Yapının zayıf noktası:** merkez düşerse bütün ağ aynı anda sahipsiz kalır.
+### Komutanlar arası çekişme
+Üç komutan birbirine bağlı değil; hepsi doğrudan abiye rapor veriyor.
+**Gerektiğinde kendi aralarında çatışıyorlar.**
 
-> **EKSİK:** Derebeylerinin isimleri ve illeri henüz belirlenmedi.
+Bu, örgütün hem gücü hem zaafı: cepheler bağımsız hareket edebildiği için ağ
+hızlı, ama aralarındaki rekabet dışarıdan girilebilecek bir çatlak bırakıyor.
+
+**Yapının zayıf noktası:** merkez düşerse üç cephe aynı anda sahipsiz kalır —
+ve o an ağ kendi içine döner.
+
+**Neden her ilde bir adam vardı:** Barış'ın nerede olduğu bilinmiyordu.
+(Artık yakalandı; ağın bu amacı tamamlandı.)
+
+> **EKSİK:** Ne üç komutanın ne de 81 il derebeyinin isimleri belli.
+> İsimler **farklı mitolojilerden** seçilecek.
 
 ### Örgütün şu anki hâli
 Barış'ı yakaladılar ama **kilidi açamıyorlar.** Beyin yıkama yöntemini
@@ -161,7 +184,9 @@ Bu, iyilere zaman kazandıran tek şey.
 ## 7. Açık Uçlar / Karar Verilecekler
 
 - [ ] İrade kademelerinin son hali
-- [ ] Derebeylerinin isimleri ve illeri
+- [ ] Üç komutanın isimleri (farklı mitolojilerden)
+- [ ] 81 il derebeyinin isimleri
+- [ ] Komutanlar neden ve ne zaman birbirleriyle çatışıyor?
 - [ ] Kuruyan ağacın nerede olduğu — hâlâ duruyor mu?
 - [ ] Barış efsaneyi ne zaman ve nasıl öğreniyor?
 - [ ] Barış nerede tutuluyor? Hangi derebeyinin elinde?

@@ -18,8 +18,8 @@
     <span class="ust-etiket">Kötülerin ağı</span>
     <h1 class="bozuk" data-metin="Örgüt Haritası">Örgüt Haritası</h1>
     <p class="giris-metni">
-      Her ilde bir patron var. Her patron doğrudan tek bir kişiye bağlı.
-      Ülkenin tamamı tek elde toplanmış durumda — Barış'ı arayan ağ bu.
+      Türkiye'nin 81 ilinin her birinde bir derebeyi var. Bunlar üç cephe
+      komutanına, komutanlar da tek bir kişiye bağlı. Barış'ı arayan ağ bu.
     </p>
   </div>
 </section>
@@ -29,19 +29,50 @@
     <h2>Hiyerarşi</h2>
     <div class="hiyerarsi" style="margin-top:32px" data-orgut-tepe></div>
 
-    <div style="text-align:center;margin-bottom:24px">
-      <span class="ust-etiket" style="margin:0">Seviye 3 · Derebeyleri</span>
+    <div style="text-align:center;margin-bottom:20px">
+      <span class="ust-etiket" style="margin:0">Seviye 3 · Üç Komutan Derebeyi</span>
+    </div>
+    <div class="komutan-izgara" data-komutanlar></div>
+
+    <div style="text-align:center;margin:40px 0 20px">
+      <span class="ust-etiket" style="margin:0">Seviye 4 · 81 İl Derebeyi</span>
     </div>
     <div style="text-align:center">
       <span class="sayac" data-derebeyi-sayac></span>
     </div>
-    <div class="derebeyi-izgara" data-derebeyleri></div>
+    <div data-derebeyleri></div>
 
     <div class="not-kutu" style="margin-top:28px">
-      <strong>Bu bölüm eksik.</strong> Derebeylerinin isimleri ve hangi ilde
-      oldukları henüz belirlenmedi. Karar verdikçe
-      <code>assets/js/data.js</code> içindeki <code>DEREBEYLERI</code> listesine
-      eklemen yeterli — kutular kendiliğinden dolar.
+      <strong>İsimler bekliyor.</strong> Yapı hazır, 81 ilin tamamı yerleşti —
+      ama isimler henüz konmadı. Farklı mitolojilerden seçtikçe
+      <code>assets/js/data.js</code> içinde ilgili satırdaki
+      <code>ad: null</code> yerine ismi yazman yeterli; sayaç ve kutular
+      kendiliğinden dolar.
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="kapsayici">
+    <h2>Komutanlar Arası Çekişme</h2>
+    <div class="ikili" style="margin-top:24px">
+      <div>
+        <p class="giris-metni">
+          Üç komutan aynı hedefe hizmet ediyor ama birbirlerine bağlı değiller.
+          Hepsi doğrudan Gizemli Çocuğun Abisi'ne rapor veriyor — ve
+          <strong>gerektiğinde kendi aralarında çatışıyorlar.</strong>
+        </p>
+        <p class="giris-metni">
+          Bu, örgütün hem gücü hem zaafı. Üç ayrı cephe birbirinden bağımsız
+          hareket edebildiği için ağ hızlı; ama aralarındaki rekabet, dışarıdan
+          bakan birinin araya girebileceği bir çatlak bırakıyor.
+        </p>
+      </div>
+      <div>
+        <blockquote class="alinti">
+          Aynı adama rapor veriyorlar. Bu onları müttefik yapmıyor.
+        </blockquote>
+      </div>
     </div>
   </div>
 </section>
@@ -52,11 +83,12 @@
     <div class="izgara" style="margin-top:24px">
 
       <article class="kart" data-taraf="kotu">
-        <h3>Tek merkez</h3>
+        <h3>Tek merkez, üç kol</h3>
         <div class="unvan">Zincirin tepesi</div>
         <p class="ozet">
-          İlleri yöneten patronların hiçbiri bağımsız değil. Hepsi doğrudan
-          Gizemli Çocuğun Abisi'ne bağlı — arada başka bir kademe yok.
+          81 il derebeyi doğrudan patrona değil, bağlı oldukları cephe
+          komutanına rapor veriyor. Üç komutan ise doğrudan Gizemli Çocuğun
+          Abisi'ne bağlı.
         </p>
       </article>
 
@@ -73,8 +105,8 @@
         <h3>Zayıf nokta</h3>
         <div class="unvan">Merkezî yapının bedeli</div>
         <p class="ozet">
-          Tek merkeze bağlı olmak hızlı karar demek — ama merkez düşerse
-          bütün ağ aynı anda sahipsiz kalır.
+          Merkez düşerse üç cephe aynı anda sahipsiz kalır. Üstelik komutanlar
+          birbirleriyle çatışabildiği için, o an ağ kendi içine döner.
         </p>
       </article>
 

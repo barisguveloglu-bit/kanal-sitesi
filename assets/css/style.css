@@ -649,34 +649,98 @@ section + section { border-top: 1px solid var(--line-soft); }
   background: linear-gradient(180deg, var(--kan), var(--line));
 }
 
-/* Derebeyi kartları */
+/* Üç komutan */
+.komutan-izgara {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}
+.komutan {
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--bolge-renk, var(--kan));
+  border-radius: var(--radius);
+  padding: 20px;
+  text-align: center;
+}
+.komutan.bos { border-style: dashed; border-top-style: solid; }
+.komutan h3 { margin: 0 0 2px; }
+.komutan.bos h3 { color: var(--text-3); font-style: italic; }
+.komutan .unvan {
+  font-size: 0.74rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 12px;
+}
+.komutan p { margin: 0 0 14px; color: var(--text-2); font-size: 0.88rem; }
+.komutan-sayi {
+  display: inline-block;
+  font-size: 0.76rem;
+  letter-spacing: 0.1em;
+  color: var(--bolge-renk, var(--kan-parlak));
+  border: 1px solid currentColor;
+  border-radius: 100px;
+  padding: 2px 12px;
+}
+.komutan .seviye-etiket { color: var(--bolge-renk, var(--kan-parlak)); }
+
+/* Bölge renkleri — üç cephe birbirinden ayrılsın */
+[data-bolge="bati"] { --bolge-renk: #d98324; }
+[data-bolge="orta"] { --bolge-renk: #c0271f; }
+[data-bolge="dogu"] { --bolge-renk: #7a4fd0; }
+
+/* Cephe blokları */
+.cephe + .cephe { margin-top: 34px; }
+.cephe-baslik {
+  font-size: 1.15rem;
+  border-left: 3px solid var(--bolge-renk, var(--kan));
+  padding-left: 12px;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.cephe-baslik span {
+  font-family: var(--font-metin);
+  font-size: 0.76rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+/* 81 il kutusu — küçük ve sık */
 .derebeyi-izgara {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(124px, 1fr));
+  gap: 8px;
 }
 .derebeyi {
   background: var(--bg-2);
   border: 1px solid var(--line);
+  border-left: 2px solid var(--bolge-renk, var(--line));
   border-radius: var(--radius);
-  padding: 16px;
-  text-align: center;
+  padding: 9px 11px;
 }
-.derebeyi.bos {
-  border-style: dashed;
-  background: transparent;
-  opacity: 0.65;
+.derebeyi.bos { background: transparent; border-left-style: dotted; }
+.derebeyi-plaka {
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 0.66rem;
+  color: var(--text-3);
+  letter-spacing: 0.08em;
 }
 .derebeyi-il {
-  font-family: var(--font-baslik);
-  font-size: 1.25rem;
-  color: var(--kan-parlak);
-  line-height: 1.2;
+  font-size: 0.88rem;
+  color: var(--text);
+  line-height: 1.3;
 }
-.derebeyi.bos .derebeyi-il { color: var(--text-3); }
-.derebeyi-ad { font-size: 0.94rem; margin-top: 4px; }
+.derebeyi-ad {
+  font-size: 0.74rem;
+  color: var(--bolge-renk, var(--kan-parlak));
+  margin-top: 2px;
+}
 .derebeyi.bos .derebeyi-ad { color: var(--text-3); font-style: italic; }
-.derebeyi-not { font-size: 0.78rem; color: var(--text-3); margin-top: 6px; }
 
 .sayac {
   display: inline-block;
