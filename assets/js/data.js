@@ -9,6 +9,18 @@
  * tir:   kaldırabildiği tır sayısı (gücü yoksa null)
  */
 
+/*
+ * Hikayenin şu anki durumu. Site genelindeki uyarı şeridi buradan geliyor.
+ * Durum değişince sadece burayı güncelle.
+ */
+const DURUM = {
+  baslik: "Kameracı Barış ele geçirildi",
+  ozet:
+    "Barış şu anda kötülerin elinde. Ama beynini nasıl yıkayacaklarını bilmiyorlar — " +
+    "dilek hakkı hâlâ kilitli.",
+  sizanCumle: "O GERÇEK BARIŞ'I BULACAK",
+};
+
 const KARAKTERLER = [
   {
     id: "kameraci-baris",
@@ -16,6 +28,7 @@ const KARAKTERLER = [
     unvan: "Kanlı Göz'ün Taşıyıcısı",
     taraf: "iyi",
     oynanan: true,
+    esir: true,
     tir: null,
     gucEtiketi: "Güç yok",
     ozet:
@@ -31,9 +44,9 @@ const KARAKTERLER = [
     ],
     iradeKademe: 5,
     detay:
-      "Hikayenin merkezinde o var, çünkü kötülerin istediği dilek ancak onun " +
-      "beyni yıkanırsa doğuyor. Kendi kaderinden habersiz olması onu en " +
-      "savunmasız hâle getiren şey.",
+      "Şu anda kötülerin elinde. Ama beynini nasıl yıkayacaklarını bilmiyorlar, " +
+      "yani dilek hakkı hâlâ kilitli. Onu kaybetmek iyilerin en büyük gücünü " +
+      "kaybetmesi demek — hiçbir yeteneği yoktu ama hikayenin tek anahtarı oydu.",
   },
   {
     id: "cips-yiyen-adam",

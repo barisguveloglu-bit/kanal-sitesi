@@ -38,6 +38,25 @@ function menuyuKur() {
     </div>`;
 }
 
+/* --- Durum şeridi (her sayfada, menünün altında) --- */
+function durumSeridiniKur() {
+  const hedef = document.querySelector("[data-durum]");
+  if (!hedef) return;
+  hedef.innerHTML = `
+    <div class="kapsayici">
+      <span class="durum-nokta"></span>
+      <span class="durum-baslik">${kacir(DURUM.baslik)}</span>
+      <span class="durum-ozet">${kacir(DURUM.ozet)}</span>
+    </div>`;
+}
+
+/* --- Sızan cümle --- */
+function sizintiyiKur() {
+  document.querySelectorAll("[data-sizinti]").forEach((el) => {
+    el.textContent = DURUM.sizanCumle;
+  });
+}
+
 function altBilgiyiKur() {
   const hedef = document.querySelector("[data-alt-bilgi]");
   if (!hedef) return;
@@ -71,10 +90,11 @@ function karakterKarti(k) {
     : "";
 
   return `
-    <article class="kart" data-taraf="${kacir(k.taraf)}" id="${kacir(k.id)}">
+    <article class="kart" data-taraf="${kacir(k.taraf)}" data-esir="${k.esir ? "evet" : "hayir"}" id="${kacir(k.id)}">
       <div class="kart-ust">
         <h3>${kacir(k.ad)}</h3>
         <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
+          ${k.esir ? '<span class="rozet esir">Esir</span>' : ""}
           ${k.oynanan ? '<span class="rozet oynanan">Oynanan</span>' : ""}
           <span class="rozet" data-taraf="${kacir(k.taraf)}">${kacir(TARAF_ETIKET[k.taraf])}</span>
         </div>
@@ -185,7 +205,10 @@ function orgutuKur() {
 /* --- Başlat --- */
 document.addEventListener("DOMContentLoaded", () => {
   menuyuKur();
+  durumSeridiniKur();
+  sizintiyiKur();
   altBilgiyiKur();
+  gozuKur();
   karakterleriKur();
   gucTablosunuKur();
   iradeyiKur();

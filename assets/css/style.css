@@ -412,6 +412,206 @@ section + section { border-top: 1px solid var(--line-soft); }
 .blok h3 { color: var(--text); }
 .blok :last-child { margin-bottom: 0; }
 
+/* ===================================================================
+   KANLI GÖZ — göz çizimi
+   =================================================================== */
+
+.goz-sarmal {
+  width: min(78vw, 520px);
+  margin: 0 auto 34px;
+  position: relative;
+  aspect-ratio: 1;
+  animation: gozKayma 11s infinite steps(1);
+}
+.goz-svg { width: 100%; height: 100%; display: block; }
+
+.goz-parilti { animation: gozNefes 7s ease-in-out infinite; transform-origin: center; }
+.goz-lifler { animation: donusYavas 150s linear infinite; }
+.goz-kadran { animation: donusTers 90s linear infinite; }
+.goz-bebek { animation: bebekNefes 6.5s ease-in-out infinite; }
+.goz-isaret { animation: isaretYanip 3.2s ease-in-out infinite; }
+
+@keyframes donusYavas { to { transform: rotate(360deg); } }
+@keyframes donusTers { to { transform: rotate(-360deg); } }
+@keyframes gozNefes {
+  0%, 100% { opacity: 0.85; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.045); }
+}
+@keyframes bebekNefes {
+  0%, 100% { transform: scale(1); }
+  45% { transform: scale(1.11); }
+}
+@keyframes isaretYanip {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+/* Gözün ara ara kayması — sinyal bozulması hissi */
+@keyframes gozKayma {
+  0%, 92%, 100% { transform: translate(0, 0); filter: none; }
+  93% { transform: translate(-7px, 2px); filter: hue-rotate(-18deg) saturate(1.5); }
+  94% { transform: translate(5px, -3px); filter: none; }
+  95% { transform: translate(-3px, 0); filter: hue-rotate(12deg); }
+  96% { transform: translate(0, 0); filter: none; }
+}
+
+/* ===================================================================
+   BOZULMA EFEKTLERİ
+   =================================================================== */
+
+/* Bozulan başlık — kırmızı/mavi kanal ayrışması */
+.bozuk {
+  position: relative;
+  display: inline-block;
+}
+.bozuk::before,
+.bozuk::after {
+  content: attr(data-metin);
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  pointer-events: none;
+  opacity: 0.85;
+}
+.bozuk::before {
+  color: var(--kan-parlak);
+  animation: kanalKirmizi 4.5s infinite steps(1);
+}
+.bozuk::after {
+  color: var(--elektrik);
+  animation: kanalMavi 4.5s infinite steps(1);
+}
+@keyframes kanalKirmizi {
+  0%, 88%, 100% { transform: translate(0); clip-path: inset(0 0 100% 0); }
+  89% { transform: translate(-4px, 1px); clip-path: inset(12% 0 58% 0); }
+  91% { transform: translate(3px, -2px); clip-path: inset(62% 0 18% 0); }
+  93% { transform: translate(-2px, 0); clip-path: inset(34% 0 44% 0); }
+}
+@keyframes kanalMavi {
+  0%, 88%, 100% { transform: translate(0); clip-path: inset(0 0 100% 0); }
+  90% { transform: translate(4px, -1px); clip-path: inset(44% 0 30% 0); }
+  92% { transform: translate(-3px, 2px); clip-path: inset(8% 0 70% 0); }
+  94% { transform: translate(2px, 0); clip-path: inset(70% 0 10% 0); }
+}
+
+/* Tarama çizgileri — bölümün üstüne ince yatay bantlar */
+.taramali { position: relative; }
+.taramali::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.028) 0px,
+    rgba(255, 255, 255, 0.028) 1px,
+    transparent 1px,
+    transparent 4px
+  );
+  animation: taramaKay 9s linear infinite;
+}
+@keyframes taramaKay {
+  to { background-position: 0 400px; }
+}
+
+/* Sızan cümle — ele geçirilme hissi */
+.sizinti {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: clamp(0.72rem, 2vw, 0.95rem);
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--kan-parlak);
+  text-align: center;
+  padding: 12px 16px;
+  border-top: 1px solid rgba(192, 39, 31, 0.3);
+  border-bottom: 1px solid rgba(192, 39, 31, 0.3);
+  background: rgba(192, 39, 31, 0.05);
+  position: relative;
+  overflow: hidden;
+  animation: sizintiTitre 6s infinite steps(1);
+}
+.sizinti::before {
+  content: "";
+  position: absolute;
+  left: -100%;
+  top: 0;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 68, 56, 0.16), transparent);
+  animation: sizintiTara 5s ease-in-out infinite;
+}
+@keyframes sizintiTitre {
+  0%, 78%, 100% { opacity: 0.9; transform: translateX(0); }
+  80% { opacity: 0.35; transform: translateX(-4px); }
+  82% { opacity: 1; transform: translateX(3px); }
+  84% { opacity: 0.6; transform: translateX(0); }
+}
+@keyframes sizintiTara {
+  0% { left: -100%; }
+  60%, 100% { left: 160%; }
+}
+
+/* Durum şeridi — üst menünün altında */
+.durum-serit {
+  background: linear-gradient(90deg, rgba(192, 39, 31, 0.18), rgba(192, 39, 31, 0.06));
+  border-bottom: 1px solid rgba(192, 39, 31, 0.35);
+  position: relative;
+  overflow: hidden;
+}
+.durum-serit .kapsayici {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  flex-wrap: wrap;
+}
+.durum-nokta {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--kan-parlak);
+  box-shadow: 0 0 8px var(--kan-parlak);
+  flex: none;
+  animation: nabiz 1.8s ease-in-out infinite;
+}
+.durum-baslik {
+  font-size: 0.84rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--kan-parlak);
+  font-weight: 600;
+}
+.durum-ozet { font-size: 0.86rem; color: var(--text-2); }
+
+/* Esir rozeti */
+.rozet.esir {
+  color: var(--kan-parlak);
+  border-color: rgba(255, 68, 56, 0.5);
+  background: rgba(192, 39, 31, 0.12);
+  animation: esirYanip 2.6s ease-in-out infinite;
+}
+@keyframes esirYanip {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Kart üstünde bozulma — esir karakter */
+.kart[data-esir="evet"] { border-color: rgba(192, 39, 31, 0.45); }
+.kart[data-esir="evet"]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    180deg,
+    rgba(255, 68, 56, 0.05) 0px,
+    rgba(255, 68, 56, 0.05) 1px,
+    transparent 1px,
+    transparent 5px
+  );
+}
+
 /* --- Örgüt hiyerarşisi --- */
 .hiyerarsi { display: grid; justify-items: center; }
 .hiyerarsi-kat { width: 100%; display: flex; justify-content: center; }

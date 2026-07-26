@@ -12,6 +12,15 @@ Kanlı Göz'ün taşıyıcısının beyni yeterince yıkanırsa, onu yıkayan ki
 
 Bu neslin taşıyıcısı: **Kameracı Barış**.
 
+> ### ŞU ANKİ DURUM
+> **Barış kötülerin elinde.** Ele geçirildi.
+>
+> Ama **beynini nasıl yıkayacaklarını bilmiyorlar.** Dilek hakkı ancak beyni
+> yeterince yıkanırsa doğuyor; elde tuttukları şeyin kilidini açamıyorlar.
+>
+> İyiler bu yüzden **en büyük gücünü kaybetmiş** durumda. Barış'ın hiçbir
+> yeteneği yoktu — ama hikayenin tek anahtarı oydu.
+
 Kötüler bu dileği "kavgasız, savaşsız, haksızlığın olmadığı bir dünya" için kullanmak istiyor.
 Ama bunu konuşarak değil, **güç kullanarak** yapıyorlar.
 
@@ -70,6 +79,7 @@ Yani kötüler, kırılması imkânsıza en yakın olan şeyi kırmak zorunda.
 - Azimli, kararlı. **Verdiği hiçbir karardan vazgeçmez.**
 - **Hiçbir gücü yok.** Tek sahip olduğu şey iradesi.
 - Kanlı Göz'ün bu neslin taşıyıcısı — ama bundan haberi yok.
+- **DURUM: ESİR.** Şu anda kötülerin elinde. Beynini yıkamayı beceremiyorlar.
 
 ### Cips Yiyen Adam
 - **Taraf:** İyi
@@ -127,6 +137,11 @@ hepsi doğrudan Gizemli Çocuğun Abisi'ne bağlı.
 
 > **EKSİK:** Derebeylerinin isimleri ve illeri henüz belirlenmedi.
 
+### Örgütün şu anki hâli
+Barış'ı yakaladılar ama **kilidi açamıyorlar.** Beyin yıkama yöntemini
+bilmedikleri için elde tuttukları güç şu an işe yaramıyor.
+Bu, iyilere zaman kazandıran tek şey.
+
 ---
 
 ## 6. Güç Tablosu (tır cinsinden)
@@ -149,6 +164,9 @@ hepsi doğrudan Gizemli Çocuğun Abisi'ne bağlı.
 - [ ] Derebeylerinin isimleri ve illeri
 - [ ] Kuruyan ağacın nerede olduğu — hâlâ duruyor mu?
 - [ ] Barış efsaneyi ne zaman ve nasıl öğreniyor?
+- [ ] Barış nerede tutuluyor? Hangi derebeyinin elinde?
+- [ ] Beyin yıkama yöntemi neydi? Ağaçla birlikte o bilgi de mi kayboldu?
+- [ ] İyiler Barış'ın kaçırıldığını biliyor mu?
 - [ ] Samara Kadın'ın ihanetinin sebebi
 - [ ] Cips Yiyen Adam'ın üçüncü bir formu olacak mı?
 - [ ] Zaman çizelgesi (olaylar hangi sırayla oluyor?)
