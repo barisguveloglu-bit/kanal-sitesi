@@ -53,24 +53,36 @@ function bolumuDegistir(icerik) {
   document.querySelectorAll("[data-sb-gerekli]").forEach((el) => {
     el.innerHTML = `<div class="kapsayici"><div class="not-kutu">${icerik}</div></div>`;
   });
-  const liste = document.querySelector("[data-sorular]");
-  if (liste) liste.innerHTML = "";
+  // Cevaplar bölümü boş başlıkla asılı kalmasın
+  document.querySelectorAll("[data-cevaplar-bolum]").forEach((el) => {
+    el.hidden = true;
+  });
 }
 
+/*
+ * Ziyaretçiye teknik ayrıntı gösterilmiyor — dosya adları, hangi servisi
+ * kullandığımız ve sistemin kurulu olup olmadığı dışarıyı ilgilendirmez.
+ * O bilgi yalnızca geliştirici konsoluna yazılıyor.
+ */
 function kurulumUyarisi() {
-  bolumuDegistir(`
-    <strong>Soru-cevap henüz kurulmadı.</strong>
-    Çalışması için <code>assets/js/ayarlar.js</code> dosyasına Supabase
-    proje bilgilerinin girilmesi ve <code>supabase-kurulum.sql</code>
-    dosyasının bir kez çalıştırılması gerekiyor.
-    Adımlar <code>README.md</code> içinde.`);
+  console.info(
+    "[Kanlı Göz] Soru-cevap kapalı. Açmak için ayarlar dosyasına Supabase " +
+    "bilgileri girilmeli ve kurulum SQL'i bir kez çalıştırılmalı. " +
+    "Adımlar depodaki README içinde."
+  );
+  bolumuDegistir(
+    "<strong>Soru-cevap bölümü yakında açılacak.</strong> " +
+    "Hazır olduğunda sorularını buradan sorabilecek, cevapları yine " +
+    "burada okuyabileceksin."
+  );
 }
 
 function baglantiHatasi() {
-  bolumuDegistir(`
-    <strong>Soru-cevap şu anda açılamıyor.</strong>
-    Gerekli kütüphane yüklenemedi — internet bağlantın kesik olabilir ya da
-    ağın bu adresi engelliyor olabilir. Sitenin geri kalanı normal çalışıyor.`);
+  console.warn("[Kanlı Göz] Soru-cevap için gereken kütüphane yüklenemedi.");
+  bolumuDegistir(
+    "<strong>Soru-cevap şu anda açılamıyor.</strong> " +
+    "Biraz sonra tekrar dener misin? Sitenin geri kalanı normal çalışıyor."
+  );
 }
 
 /* --- Oturum --- */
@@ -290,11 +302,13 @@ async function yonetimPaneli() {
     return;
   }
   if (!yoneticiMi) {
+    console.info(
+      "[Kanlı Göz] Bu hesap yönetici listesinde değil. Yönetici ekleme " +
+      "adımları kurulum SQL dosyasının sonunda."
+    );
     hedef.innerHTML = `
       <div class="not-kutu">
-        <strong>Bu hesap yönetici değil.</strong>
-        Yönetici eklemek Supabase SQL Editor'den yapılıyor —
-        adımlar <code>supabase-kurulum.sql</code> dosyasının sonunda.
+        <strong>Bu sayfaya erişimin yok.</strong>
       </div>`;
     return;
   }
