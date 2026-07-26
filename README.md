@@ -73,7 +73,33 @@ sayaç kendini günceller.
 Hikayenin tek doğru kaynağı [`LORE.md`](LORE.md). Önce orayı güncelle,
 sonra `data.js` dosyasına yansıt.
 
-## Yayınlamak
+## Yayınlamak — GitHub Pages
 
-GitHub Pages'e hazır. Depo ayarlarından **Settings → Pages → Source: main branch**
-seçmen yeterli.
+Site GitHub Pages'e hazır: derleme adımı yok, bütün bağlantılar göreli, alt
+klasörden yayınlandığında da çalışıyor.
+
+1. GitHub'da depoya gir: `github.com/barisguveloglu-bit/kanal-sitesi`
+2. Üstten **Settings** sekmesine tıkla
+3. Sol menüden **Pages**
+4. **Source** kısmında **Deploy from a branch** seçili olsun
+5. **Branch** kısmında yayınlamak istediğin dalı seç, klasör **/ (root)** kalsın
+6. **Save**
+
+1-2 dakika sonra adres hazır olur:
+
+```
+https://barisguveloglu-bit.github.io/kanal-sitesi/
+```
+
+Sayfayı yenileyip Pages bölümünün üstünde çıkan yeşil kutudaki adrese tıklayarak
+girebilirsin.
+
+**Not:** Depo **Public** olmalı. Private depoda Pages ücretli plan istiyor.
+Settings → General → en altta **Danger Zone → Change repository visibility**.
+
+### Sonradan değişiklik yapmak
+Dosyayı değiştir, commit'le, push'la. Pages 1-2 dakika içinde kendini günceller.
+
+### Yerelde denemek
+Yayınlamadan önce kendi bilgisayarında görmek istersen `index.html`
+dosyasına çift tıklaman yeterli.
