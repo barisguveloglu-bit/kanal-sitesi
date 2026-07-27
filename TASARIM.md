@@ -55,6 +55,20 @@ Yani kaydırma animasyonu (scroll animation) yazacaksan:
 `IntersectionObserver`'ı **içerik basıldıktan sonra** kurman gerekiyor.
 Sayfa yüklenir yüklenmez kurarsan gözlenecek eleman henüz ortada olmaz.
 
+**Bunun için hazır bir olay var.** İçerik basıldıktan sonra yayılıyor:
+
+```js
+document.addEventListener("icerik-hazir", () => {
+  // buradan itibaren kartlar, listeler, 81 il kutusu hepsi DOM'da
+});
+```
+
+`MutationObserver` kurmana gerek yok. Olay `app.js` içinde, bütün
+oluşturucu fonksiyonlar çalıştıktan sonra yayılıyor. Gizli sayfada kilit
+basıldıktan sonra bir kez daha yayılıyor, o yüzden dinleyicinin **birden
+fazla kez çalışabileceğini** hesaba kat (aynı elemanı iki kez gözlememek
+için `dataset` ile işaretlemen yeterli).
+
 ---
 
 ## Mevcut tasarım sistemi

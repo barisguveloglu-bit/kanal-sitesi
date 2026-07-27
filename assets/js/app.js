@@ -346,4 +346,12 @@ document.addEventListener("DOMContentLoaded", () => {
   iradeyiKur();
   mafyayiKur();
   cekismeyiKur();
+
+  /*
+   * Sayfadaki içeriğin çoğu buraya kadar JS ile basıldı.
+   * Kaydırma animasyonu gibi şeylerin elemanları bulabilmesi için
+   * bittiğini duyuruyoruz. Dinlemek için:
+   *   document.addEventListener("icerik-hazir", () => { ... });
+   */
+  document.dispatchEvent(new CustomEvent("icerik-hazir"));
 });

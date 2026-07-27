@@ -220,6 +220,9 @@ function kilidiKur() {
   });
 
   tazele();
+
+  // kilit basıldı — geç gelen içerik için haber ver
+  document.dispatchEvent(new CustomEvent("icerik-hazir"));
 }
 
 document.addEventListener("DOMContentLoaded", kilidiKur);
