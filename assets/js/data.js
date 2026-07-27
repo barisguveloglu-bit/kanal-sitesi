@@ -9,6 +9,9 @@
  * tir:   kaldırabildiği tır sayısı (gücü yoksa null)
  */
 
+/* Kanalın adresi — hem alt bilgide hem gizli sayfada kullanılıyor */
+const KANAL = "https://www.youtube.com/@mahmutguveloglu473";
+
 /*
  * Hikayenin şu anki durumu. Site genelindeki uyarı şeridi buradan geliyor.
  * Durum değişince sadece burayı güncelle.

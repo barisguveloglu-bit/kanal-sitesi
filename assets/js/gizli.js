@@ -19,8 +19,7 @@
  *   node -e "const c=require('crypto');const n=s=>s.toLocaleLowerCase('tr').replace(/ı/g,'i').replace(/ğ/g,'g').replace(/ü/g,'u').replace(/ş/g,'s').replace(/ö/g,'o').replace(/ç/g,'c').replace(/[^a-z0-9]/g,'');console.log(c.createHash('sha256').update(n('CEVAP')).digest('hex'))"
  */
 
-/* --- Kanal --- */
-const KANAL = "https://www.youtube.com/@mahmutguveloglu473";
+/* Kanal adresi data.js içinde tanımlı */
 
 /* --- Güven usulü adımlar (site bunları doğrulayamaz) --- */
 const SART_LISTESI = [

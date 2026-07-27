@@ -100,9 +100,19 @@ function altBilgiyiKur() {
   if (!hedef) return;
   hedef.innerHTML = `
     <div class="kapsayici">
-      <span>Kanlı Göz — hikaye evreni arşivi</span>
+      <span>
+        Kanlı Göz — hikaye evreni arşivi ·
+        <a href="${kacir(KANAL)}" target="_blank" rel="noopener">YouTube kanalı</a>
+      </span>
       <span class="kurgu-not">Kurgu evren arşivi — anlatılanlar hayal ürünüdür</span>
     </div>`;
+}
+
+/* --- Kanal bağlantıları --- */
+function kanalBaglantilariniKur() {
+  document.querySelectorAll("[data-kanal]").forEach((el) => {
+    el.setAttribute("href", KANAL);
+  });
 }
 
 /* --- Neden bakmalısın --- */
@@ -329,6 +339,7 @@ document.addEventListener("DOMContentLoaded", () => {
   sizintiyiKur();
   altBilgiyiKur();
   if (typeof gozuKur === "function") gozuKur();
+  kanalBaglantilariniKur();
   sebepleriKur();
   karakterleriKur();
   icraatleriKur();
