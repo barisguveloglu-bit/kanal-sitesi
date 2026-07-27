@@ -76,6 +76,13 @@ sayaç kendini günceller.
 
 `IRADE_KADEMELERI` dizisini düzenle.
 
+## Tasarım yardımı almak
+
+Başka bir yerden animasyon veya tasarım yardımı isterken
+[`TASARIM.md`](TASARIM.md) dosyasının tamamını kopyalayıp yapıştır.
+İçinde teknik kısıtlar, renk sistemi, mevcut animasyonlar ve hikayenin
+tonu yazılı — her şeyi baştan anlatmana gerek kalmaz.
+
 ## Canon
 
 Hikayenin tek doğru kaynağı [`LORE.md`](LORE.md). Önce orayı güncelle,
