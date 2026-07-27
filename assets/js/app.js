@@ -105,6 +105,22 @@ function altBilgiyiKur() {
     </div>`;
 }
 
+/* --- Neden bakmalısın --- */
+function sebepleriKur() {
+  const hedef = document.querySelector("[data-sebepler]");
+  if (!hedef) return;
+
+  hedef.innerHTML = SEBEPLER.map((s, i) => `
+    <li class="sebep">
+      <div class="sebep-no">${String(i + 1).padStart(2, "0")}</div>
+      <div class="sebep-govde">
+        <h3>${kacir(s.baslik)}</h3>
+        <p>${kacir(s.metin)}</p>
+        <a href="${kacir(s.yol)}">${kacir(s.yolAd)} →</a>
+      </div>
+    </li>`).join("");
+}
+
 /* --- Karakter kartları --- */
 function karakterKarti(k) {
   const formlarHtml = k.formlar
@@ -313,6 +329,7 @@ document.addEventListener("DOMContentLoaded", () => {
   sizintiyiKur();
   altBilgiyiKur();
   if (typeof gozuKur === "function") gozuKur();
+  sebepleriKur();
   karakterleriKur();
   icraatleriKur();
   iradeyiKur();

@@ -22,6 +22,55 @@ const DURUM = {
   sizanCumle: "O GERÇEK BARIŞ'I BULACAK",
 };
 
+/*
+ * Ana sayfadaki "neden bakmalısın" bölümü.
+ * Beş madde — her biri sitede gerçekten var olan bir şeye işaret etsin.
+ * Uzatma: burası vitrin, arşiv değil.
+ */
+const SEBEPLER = [
+  {
+    baslik: "Barış için savaş çıkarıyorlar",
+    metin:
+      "Kötülerin dileği kavgasız bir dünya. Ama o dileği almak için ele " +
+      "geçirmeleri gereken adamın adı da Barış. Söyledikleri cümle aynı anda " +
+      "iki şey anlatıyor.",
+    yol: "efsane.html",
+    yolAd: "Efsaneyi oku",
+  },
+  {
+    baslik: "1728'de, gerçek bir sarayın önünde başlıyor",
+    metin:
+      "Hikayenin kökü Lâle Devri'ne uzanıyor: Bâb-ı Hümâyun önüne dikilen bir " +
+      "ağaç, III. Ahmed'in yanlış anladığı bir cümle ve vurulan bir kelle.",
+    yol: "efsane.html",
+    yolAd: "Vakayinameyi gör",
+  },
+  {
+    baslik: "Aşık olmak ile itaat etmek ayrı şeyler",
+    metin:
+      "Samara Kadın'ın yüzünü gören herkes ona aşık oluyor. Ama iradesi güçlü " +
+      "olan emir almıyor. Bu evrende her şeyin ölçüsü irade.",
+    yol: "irade.html",
+    yolAd: "İrade sistemine bak",
+  },
+  {
+    baslik: "81 ilin her birinde bir isim var",
+    metin:
+      "Batıda Yunan, ortada Hitit, doğuda Pers. Her derebeyinin adı bulunduğu " +
+      "ilin kendi tarihinden seçildi — Çanakkale'de Akhilleus, Çorum'da Arinnitti.",
+    yol: "mafya.html",
+    yolAd: "Haritayı aç",
+  },
+  {
+    baslik: "Kimin kazanacağı burada yazmıyor",
+    metin:
+      "Güç sıralaması yok, puan yok. Sadece şimdiye kadar ne olduğu var — ve " +
+      "videolar ilerledikçe bu arşiv de büyüyor.",
+    yol: "icraatler.html",
+    yolAd: "İcraatlere git",
+  },
+];
+
 const KARAKTERLER = [
   {
     id: "kameraci-baris",

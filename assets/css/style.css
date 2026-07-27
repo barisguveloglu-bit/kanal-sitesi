@@ -1234,6 +1234,44 @@ body.kapi-aciliyor { animation: kapiBozulma 1.4s steps(1) forwards; }
 }
 .kapi-serit a { color: var(--kilit-camgobegi); }
 
+/* --- Neden bakmalısın --- */
+.sebep-liste {
+  list-style: none;
+  padding: 0;
+  margin: 32px 0 0;
+  display: grid;
+  gap: 4px;
+  max-width: 780px;
+}
+.sebep {
+  display: grid;
+  grid-template-columns: 62px 1fr;
+  gap: 8px;
+  align-items: start;
+  padding: 22px 0;
+  border-top: 1px solid var(--line-soft);
+}
+.sebep:last-child { border-bottom: 1px solid var(--line-soft); }
+.sebep-no {
+  font-family: var(--font-baslik);
+  font-size: 1.6rem;
+  color: var(--kan);
+  line-height: 1.1;
+  padding-top: 2px;
+}
+.sebep-govde h3 { margin: 0 0 6px; }
+.sebep-govde p {
+  color: var(--text-2);
+  font-size: 0.96rem;
+  margin: 0 0 10px;
+  max-width: 58ch;
+}
+.sebep-govde a { font-size: 0.88rem; }
+@media (max-width: 560px) {
+  .sebep { grid-template-columns: 44px 1fr; padding: 18px 0; }
+  .sebep-no { font-size: 1.3rem; }
+}
+
 /* --- İcraatler --- */
 .icraat-izgara {
   display: grid;
