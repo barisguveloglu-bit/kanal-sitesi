@@ -14,6 +14,10 @@ Hikayenin lore arşivi. Derleme adımı yok, kurulum yok — HTML/CSS/JS.
 | `icraatler.html` | Karakterlerin yaptıkları — sıralama değil, kayıt |
 | `soru-cevap.html` | İzleyici soruları ve cevapları |
 | `yonetim.html` | Soru onaylama ve ban paneli (sadece yönetici) |
+| `404.html` | Olmayan adreslerde çıkan sayfa (stili kendi içinde) |
+
+Ayrıca `sitemap.xml`, `robots.txt` ve paylaşım önizlemesi için
+`assets/og-kanli-goz.png` var.
 
 ## Siteyi açmak
 
@@ -28,6 +32,38 @@ Sonra tarayıcıda `http://localhost:8000` adresini aç.
 ## İçerik nasıl eklenir
 
 **Hiçbir HTML dosyasına dokunman gerekmiyor.** Bütün içerik `assets/js/data.js` içinde.
+
+### YouTube videolarını eklemek
+
+**Site açıldığında ilk göze çarpan şey bu olmalı, ama şu an boş.**
+`assets/js/data.js` içindeki `VIDEOLAR` bloğunu doldur:
+
+```js
+const VIDEOLAR = {
+  baslangic: { kimlik: "AbCdEf12345", baglanti: "", baslik: "" },
+  oneCikan:  { kimlik: "AbCdEf12345", baslik: "Bölüm 1", aciklama: "...", sure: "12:40" },
+  rota: [
+    { kimlik: "...", baslik: "...", aciklama: "...", sure: "" },
+  ],
+};
+```
+
+- `kimlik` = izleme adresindeki `v=` kısmı. Yazarsan kapak görseli ve
+  bağlantı kendiliğinden üretilir.
+- Oynatma listesi gibi bir şey vereceksen `baglanti` alanına tam adresi yaz.
+- **Boş bıraktığın bölüm siteye hiç basılmaz.** Ziyaretçi "yakında" yazan
+  boş bir kart görmez. Doldurduğun an kendiliğinden görünür.
+- `rota` açıklamaları spoilersız olmalı: ne olduğunu değil, neye bakacağını söyle.
+
+### Yeni sayfa eklemek
+
+**Menü artık JavaScript ile üretilmiyor**, her HTML dosyasında yazılı duruyor.
+Sebebi: JavaScript yüklenmezse ziyaretçi sitede mahsur kalmasın.
+
+Yeni bir sayfa eklersen bağlantısını **her HTML dosyasındaki**
+`<nav class="menu">` bloğuna eklemen ve `sitemap.xml` dosyasına bir satır
+yazman gerekiyor. (Karakter/icraat/derebeyi eklerken böyle bir şey gerekmiyor —
+onlar hâlâ sadece `data.js`.)
 
 ### Yeni karakter eklemek
 
@@ -75,6 +111,20 @@ sayaç kendini günceller.
 ### İrade kademelerini değiştirmek
 
 `IRADE_KADEMELERI` dizisini düzenle.
+
+### Spoiler kapağı koymak
+
+Hikayenin güncel gelişmelerini anlatan bir bölümü yeni gelenlerden gizlemek
+için kapsayıcıya iki öznitelik yeter:
+
+```html
+<div data-spoiler="Hikayenin geldiği nokta" data-spoiler-anahtar="efsane-durum">
+  ...
+</div>
+```
+
+Bölüm kapalı başlar, ziyaretçi bir kez açarsa tercihi hatırlanır.
+JavaScript çalışmazsa içerik olduğu gibi görünür — hiçbir şey kaybolmaz.
 
 ## Tasarım yardımı almak
 

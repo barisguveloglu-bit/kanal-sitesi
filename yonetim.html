@@ -8,10 +8,39 @@
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="assets/css/style.css">
   <link rel="stylesheet" href="assets/css/animasyon.css">
+  <!-- animasyon-acik-js-isaret: JS çalışıyorsa mobil menü katlanabilir -->
+  <script>document.documentElement.classList.add("js");</script>
 </head>
 <body>
 
-<header class="ust-bar" data-menu></header>
+<a class="atlama" href="#icerik">İçeriğe geç</a>
+
+<header class="ust-bar">
+  <div class="kapsayici">
+    <a class="marka" href="index.html"><span class="goz" aria-hidden="true"></span> Kanlı Göz</a>
+
+    <a class="yt-baglanti" href="https://www.youtube.com/@mahmutguveloglu473" data-kanal target="_blank" rel="noopener">
+      <span class="yt-isaret" aria-hidden="true">▶</span> YouTube
+      <span class="gizli-metin">kanalı (yeni sekmede açılır)</span>
+    </a>
+
+    <button class="menu-dugme" type="button" aria-expanded="false" aria-controls="ana-menu" hidden>
+      <span class="menu-cizgi" aria-hidden="true"><span></span></span> Menü
+    </button>
+
+    <nav class="menu" id="ana-menu" aria-label="Site menüsü">
+        <a href="index.html">Ana Sayfa</a>
+        <a href="karakterler.html">Karakterler</a>
+        <a href="irade.html">İrade Sistemi</a>
+        <a href="efsane.html">Kanlı Göz Efsanesi</a>
+        <a href="mafya.html">Mafya Haritası</a>
+        <a href="icraatler.html">İcraatlar</a>
+        <a href="soru-cevap.html">Soru & Cevap</a>
+    </nav>
+  </div>
+</header>
+
+<main id="icerik">
 
 <section>
   <div class="kapsayici">
@@ -46,12 +75,22 @@
   </div>
 </section>
 
-<footer class="alt-bilgi" data-alt-bilgi></footer>
+</main>
 
-<script src="assets/js/data.js"></script>
-<script src="assets/js/app.js"></script>
-<script src="assets/js/ayarlar.js"></script>
+<footer class="alt-bilgi">
+  <div class="kapsayici">
+    <span>
+      Kanlı Göz — hikaye evreni arşivi ·
+      <a href="https://www.youtube.com/@mahmutguveloglu473" data-kanal target="_blank" rel="noopener">YouTube kanalı<span class="gizli-metin"> (yeni sekmede açılır)</span></a>
+    </span>
+    <span class="kurgu-not">Kurgu evren arşivi — anlatılanlar hayal ürünüdür</span>
+  </div>
+</footer>
+
+<script defer src="assets/js/data.js"></script>
+<script defer src="assets/js/app.js"></script>
+<script defer src="assets/js/ayarlar.js"></script>
 <script type="module" src="assets/js/soru-cevap.js"></script>
-<script src="assets/js/animasyon.js"></script>
+<script defer src="assets/js/animasyon.js"></script>
 </body>
 </html>

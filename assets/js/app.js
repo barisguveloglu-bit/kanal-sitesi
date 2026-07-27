@@ -10,33 +10,65 @@ function kacir(s) {
   }[c]));
 }
 
-/* --- Üst menü --- */
-const SAYFALAR = [
-  { yol: "index.html", ad: "Ana Sayfa" },
-  { yol: "karakterler.html", ad: "Karakterler" },
-  { yol: "irade.html", ad: "İrade Sistemi" },
-  { yol: "efsane.html", ad: "Kanlı Göz Efsanesi" },
-  { yol: "mafya.html", ad: "Mafya Haritası" },
-  { yol: "icraatler.html", ad: "İcraatler" },
-  { yol: "soru-cevap.html", ad: "Soru & Cevap" },
-];
+/* --- Üst menü ---
+ *
+ * DİKKAT: Menü artık JavaScript ile ÜRETİLMİYOR, her sayfanın HTML'inde
+ * yazılı duruyor. Sebebi: JS yüklenmezse ziyaretçi sitede mahsur kalmasın.
+ * Buradaki iş sadece zenginleştirme — aktif sayfayı işaretlemek ve
+ * telefonda menüyü katlamak.
+ *
+ * YENİ SAYFA EKLERSEN: bağlantıyı 9 HTML dosyasındaki <nav class="menu">
+ * bloğuna da eklemen gerekiyor. (Bkz. README → "Yeni sayfa eklemek".)
+ */
+function menuyuHazirla() {
+  const menu = document.querySelector(".ust-bar .menu");
+  if (!menu) return;
 
-function menuyuKur() {
-  const hedef = document.querySelector("[data-menu]");
-  if (!hedef) return;
-
+  /* Aktif sayfa — hem görsel sınıf hem de ekran okuyucu için aria-current */
   const suan = location.pathname.split("/").pop() || "index.html";
+  menu.querySelectorAll("a").forEach((a) => {
+    const yol = a.getAttribute("href");
+    if (yol !== suan) return;
+    a.classList.add("aktif");
+    a.setAttribute("aria-current", "page");
+  });
 
-  hedef.innerHTML = `
-    <div class="kapsayici">
-      <a class="marka" href="index.html"><span class="goz"></span> Kanlı Göz</a>
-      <nav class="menu">
-        ${SAYFALAR.map(
-          (s) =>
-            `<a href="${s.yol}" class="${s.yol === suan ? "aktif" : ""}">${kacir(s.ad)}</a>`
-        ).join("")}
-      </nav>
-    </div>`;
+  const dugme = document.querySelector(".menu-dugme");
+  if (!dugme) return;
+
+  /* Düğme HTML'de gizli duruyor; ancak JS varsa anlamı var. */
+  dugme.hidden = false;
+
+  const ac = (acik) => {
+    menu.classList.toggle("acik", acik);
+    dugme.setAttribute("aria-expanded", acik ? "true" : "false");
+  };
+
+  dugme.addEventListener("click", () => ac(!menu.classList.contains("acik")));
+
+  /* Escape kapatsın ve odak düğmeye dönsün */
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape" || !menu.classList.contains("acik")) return;
+    ac(false);
+    dugme.focus();
+  });
+
+  /* Menünün dışına tıklanınca kapansın */
+  document.addEventListener("click", (e) => {
+    if (!menu.classList.contains("acik")) return;
+    if (e.target.closest(".ust-bar")) return;
+    ac(false);
+  });
+
+  /* Bir bağlantıya gidilince açık kalmasın */
+  menu.addEventListener("click", (e) => {
+    if (e.target.closest("a")) ac(false);
+  });
+
+  /* Masaüstü genişliğine dönülürse katlama durumu takılı kalmasın */
+  const genis = window.matchMedia("(min-width: 821px)");
+  const sifirla = () => { if (genis.matches) ac(false); };
+  genis.addEventListener ? genis.addEventListener("change", sifirla) : genis.addListener(sifirla);
 }
 
 /*
@@ -76,16 +108,90 @@ function gizliKapiyiKur() {
   });
 }
 
-/* --- Durum şeridi (her sayfada, menünün altında) --- */
+/* --- Hatırlanan tercihler (spoiler kapakları) --- */
+function tercihOku(anahtar) {
+  try { return localStorage.getItem(anahtar); } catch (e) { return null; }
+}
+function tercihYaz(anahtar, deger) {
+  try { localStorage.setItem(anahtar, deger); } catch (e) { /* gizli sekme */ }
+}
+
+/*
+ * Bir düğme ile bir gövdeyi eşleyen ortak açma/kapama kurulumu.
+ * Gizleme "hidden" özniteliğiyle yapılıyor — opacity değil.
+ * Sebebi: hareket azaltma açıkken style.css bütün geçişleri kapatıyor,
+ * opacity ile gizlenen bir şey bir daha asla görünmez hâle gelirdi.
+ */
+function kapakKur(dugme, govde, anahtar) {
+  const ac = (acik, yaz) => {
+    govde.hidden = !acik;
+    dugme.setAttribute("aria-expanded", acik ? "true" : "false");
+    if (yaz && anahtar) tercihYaz(anahtar, acik ? "acik" : "kapali");
+  };
+  ac(anahtar ? tercihOku(anahtar) === "acik" : false, false);
+  dugme.addEventListener("click", () => ac(govde.hidden, true));
+}
+
+/* --- Durum şeridi (her sayfada, menünün altında) ---
+ *
+ * Hikayenin şu anki hâli spoiler. Yeni gelen biri istemeden okumasın diye
+ * kapalı başlıyor; bir kez açan kişinin tercihi hatırlanıyor.
+ */
 function durumSeridiniKur() {
   const hedef = document.querySelector("[data-durum]");
   if (!hedef) return;
+
   hedef.innerHTML = `
     <div class="kapsayici">
-      <span class="durum-nokta"></span>
-      <span class="durum-baslik">${kacir(DURUM.baslik)}</span>
-      <span class="durum-ozet">${kacir(DURUM.ozet)}</span>
+      <button class="durum-dugme" type="button"
+              aria-expanded="false" aria-controls="durum-govde">
+        <span class="durum-nokta"></span>
+        <span class="durum-etiket">Hikayenin şu anki durumu</span>
+        <span class="durum-uyari">spoiler</span>
+        <span class="durum-ok" aria-hidden="true">▾</span>
+      </button>
+      <div class="durum-govde" id="durum-govde" hidden>
+        <span class="durum-baslik">${kacir(DURUM.baslik)}</span>
+        <span class="durum-ozet">${kacir(DURUM.ozet)}</span>
+      </div>
     </div>`;
+
+  kapakKur(
+    hedef.querySelector(".durum-dugme"),
+    hedef.querySelector(".durum-govde"),
+    "kg-durum"
+  );
+}
+
+/*
+ * --- Sayfa içi spoiler kapakları ---
+ * Kullanımı: <div data-spoiler="Şu anki durum"> ... </div>
+ * JS yoksa içerik olduğu gibi görünür — hiçbir şey kaybolmaz.
+ */
+let spoilerSayaci = 0;
+function spoilerlariKur() {
+  document.querySelectorAll("[data-spoiler]").forEach((kap) => {
+    if (kap.dataset.spoilerHazir) return;
+    kap.dataset.spoilerHazir = "1";
+
+    const kimlik = "spoiler-" + ++spoilerSayaci;
+    const govde = document.createElement("div");
+    govde.className = "spoiler-govde";
+    govde.id = kimlik;
+    while (kap.firstChild) govde.appendChild(kap.firstChild);
+
+    const dugme = document.createElement("button");
+    dugme.type = "button";
+    dugme.className = "spoiler-dugme";
+    dugme.setAttribute("aria-controls", kimlik);
+    dugme.innerHTML =
+      `<span class="durum-uyari">spoiler</span>` +
+      `<span>${kacir(kap.dataset.spoiler)} — göstermek için bas</span>`;
+
+    kap.appendChild(dugme);
+    kap.appendChild(govde);
+    kapakKur(dugme, govde, "kg-" + (kap.dataset.spoilerAnahtar || kimlik));
+  });
 }
 
 /* --- Sızan cümle --- */
@@ -95,24 +201,123 @@ function sizintiyiKur() {
   });
 }
 
-function altBilgiyiKur() {
-  const hedef = document.querySelector("[data-alt-bilgi]");
-  if (!hedef) return;
-  hedef.innerHTML = `
-    <div class="kapsayici">
-      <span>
-        Kanlı Göz — hikaye evreni arşivi ·
-        <a href="${kacir(KANAL)}" target="_blank" rel="noopener">YouTube kanalı</a>
-      </span>
-      <span class="kurgu-not">Kurgu evren arşivi — anlatılanlar hayal ürünüdür</span>
-    </div>`;
-}
-
-/* --- Kanal bağlantıları --- */
+/* --- Kanal bağlantıları ---
+ *
+ * Adresler HTML'de de yazılı (JS yoksa çalışsınlar diye). Burada sadece
+ * data.js'teki güncel değerle üzerine yazılıyor; tek kaynak yine data.js.
+ */
 function kanalBaglantilariniKur() {
   document.querySelectorAll("[data-kanal]").forEach((el) => {
     el.setAttribute("href", KANAL);
   });
+
+  /* "İzlemeye başla" düğmesi: başlangıç videosu varsa oraya, yoksa kanala */
+  const izle = videoAdresi(VIDEOLAR.baslangic);
+  document.querySelectorAll("[data-izle]").forEach((el) => {
+    el.setAttribute("href", izle || KANAL);
+  });
+}
+
+/* --- YouTube yardımcıları --- */
+
+/* Elde ne varsa ondan izlenebilir bir adres üret. Yoksa boş dön. */
+function videoAdresi(v) {
+  if (!v) return "";
+  if (v.baglanti) return v.baglanti;
+  if (v.kimlik) return "https://www.youtube.com/watch?v=" + encodeURIComponent(v.kimlik);
+  return "";
+}
+
+/* Kapak görseli yalnızca video kimliği verilmişse üretilebiliyor. */
+function videoKapagi(v) {
+  return v && v.kimlik
+    ? "https://i.ytimg.com/vi/" + encodeURIComponent(v.kimlik) + "/hqdefault.jpg"
+    : "";
+}
+
+/* Gösterilmeye değer mi? Adresi ve başlığı olmayan video basılmıyor. */
+function videoDolu(v) {
+  return !!(videoAdresi(v) && v && v.baslik);
+}
+
+function kapakHtml(v, sinif, tembel) {
+  const kapak = videoKapagi(v);
+  const gorsel = kapak
+    ? `<img src="${kacir(kapak)}" alt="" width="480" height="360"${tembel ? ' loading="lazy" decoding="async"' : ""}>`
+    : "";
+  return `
+    <a class="${sinif}" href="${kacir(videoAdresi(v))}" target="_blank" rel="noopener"
+       tabindex="-1" aria-hidden="true">
+      ${gorsel}<span class="oynat-isaret">▶</span>
+    </a>`;
+}
+
+/* --- Öne çıkan video ---
+ * data.js'te doldurulmadıysa bölüm hiç basılmıyor: ziyaretçi boş kutu görmüyor.
+ */
+function oneCikanVideoyuKur() {
+  const bolum = document.querySelector("[data-one-cikan]");
+  if (!bolum) return;
+  const v = VIDEOLAR.oneCikan;
+  if (!videoDolu(v)) return; // hidden kalır
+
+  const hedef = bolum.querySelector("[data-one-cikan-govde]") || bolum;
+  hedef.innerHTML = `
+    <div class="one-cikan">
+      ${kapakHtml(v, "one-cikan-kapak", false)}
+      <div>
+        <h3>${kacir(v.baslik)}</h3>
+        ${v.sure ? `<div class="sure">${kacir(v.sure)}</div>` : ""}
+        ${v.aciklama ? `<p class="ozet">${kacir(v.aciklama)}</p>` : ""}
+        <a class="dugme birincil" href="${kacir(videoAdresi(v))}"
+           target="_blank" rel="noopener">
+          YouTube'da izle<span class="gizli-metin"> (yeni sekmede açılır)</span>
+        </a>
+      </div>
+    </div>`;
+  bolum.hidden = false;
+}
+
+/* --- Üç videoda evrene gir --- */
+function rotayiKur() {
+  const bolum = document.querySelector("[data-rota]");
+  if (!bolum) return;
+  const liste = (VIDEOLAR.rota || []).filter(videoDolu);
+  if (!liste.length) return; // hidden kalır
+
+  const hedef = bolum.querySelector("[data-rota-govde]") || bolum;
+  hedef.innerHTML = `
+    <div class="rota-izgara">
+      ${liste.map((v, i) => `
+        <article class="rota-kart">
+          <div class="rota-no">${String(i + 1).padStart(2, "0")}</div>
+          ${videoKapagi(v) ? kapakHtml(v, "rota-kapak", true) : ""}
+          <h3>${kacir(v.baslik)}</h3>
+          ${v.sure ? `<div class="sure">${kacir(v.sure)}</div>` : ""}
+          ${v.aciklama ? `<p>${kacir(v.aciklama)}</p>` : ""}
+          <a class="izle" href="${kacir(videoAdresi(v))}" target="_blank" rel="noopener">
+            YouTube'da izle →<span class="gizli-metin"> (yeni sekmede açılır)</span>
+          </a>
+        </article>`).join("")}
+    </div>`;
+  bolum.hidden = false;
+}
+
+/* --- Kanalı kim yapıyor --- */
+function yapimciyiKur() {
+  const hedef = document.querySelector("[data-yapimci]");
+  if (!hedef) return;
+  hedef.innerHTML = `
+    <div class="yapimci">
+      <div class="yapimci-govde">
+        <div class="yapimci-ad">${kacir(YAPIMCI.ad)}</div>
+        <div class="yapimci-rol">${kacir(YAPIMCI.rol)}</div>
+        <p>${kacir(YAPIMCI.metin)}</p>
+      </div>
+      <a class="dugme" data-kanal href="${kacir(KANAL)}" target="_blank" rel="noopener">
+        Kanala git<span class="gizli-metin"> (yeni sekmede açılır)</span>
+      </a>
+    </div>`;
 }
 
 /* --- Neden bakmalısın --- */
@@ -333,12 +538,15 @@ function cekismeyiKur() {
 
 /* --- Başlat --- */
 document.addEventListener("DOMContentLoaded", () => {
-  menuyuKur();
+  menuyuHazirla();
   gizliKapiyiKur();
   durumSeridiniKur();
+  spoilerlariKur();
   sizintiyiKur();
-  altBilgiyiKur();
   if (typeof gozuKur === "function") gozuKur();
+  oneCikanVideoyuKur();
+  rotayiKur();
+  yapimciyiKur();
   kanalBaglantilariniKur();
   sebepleriKur();
   karakterleriKur();

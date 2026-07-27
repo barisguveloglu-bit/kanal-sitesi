@@ -12,6 +12,57 @@
 /* Kanalın adresi — hem alt bilgide hem gizli sayfada kullanılıyor */
 const KANAL = "https://www.youtube.com/@mahmutguveloglu473";
 
+/* Sitenin yayındaki adresi — paylaşım önizlemeleri ve site haritası için */
+const SITE_ADRESI = "https://barisguveloglu-bit.github.io/kanal-sitesi/";
+
+/*
+ * VİDEOLAR — sitenin YouTube tarafı.
+ * ---------------------------------------------------------------
+ * BURAYI BARIŞ DOLDURACAK. Şu an hepsi boş ve bu bilinçli:
+ * boş kalan bölüm siteye HİÇ basılmıyor. Yani ziyaretçi asla
+ * "yakında", "örnek video" gibi sahte bir kart görmüyor.
+ *
+ * kimlik: YouTube video kimliği — izleme adresindeki v= kısmı.
+ *         Örnek: youtube.com/watch?v=AbCdEf12345  →  kimlik: "AbCdEf12345"
+ *         Yazılırsa hem izleme bağlantısı hem kapak görseli ondan üretilir.
+ *
+ * baglanti: Elinde kimlik yoksa (oynatma listesi gibi) tam adresi buraya yaz.
+ *           İkisi birden varsa "baglanti" öncelikli.
+ */
+const VIDEOLAR = {
+  /* Ana sayfadaki birincil düğme. Boşsa düğme kanal adresine gider. */
+  baslangic: { kimlik: "", baglanti: "", baslik: "" },
+
+  /* Ana sayfanın üst kısmındaki büyük kart. Boşsa bölüm basılmaz. */
+  oneCikan: { kimlik: "", baglanti: "", baslik: "", aciklama: "", sure: "" },
+
+  /*
+   * "Üç videoda evrene gir" rotası — yeni gelen biri neyi hangi sırayla
+   * izlemeli. Boş bırakılan satır atlanır; hiçbiri dolu değilse bölüm basılmaz.
+   * Açıklamalar SPOILERSIZ olmalı: ne olduğunu değil, neye bakacağını söyle.
+   */
+  rota: [
+    { kimlik: "", baglanti: "", baslik: "", aciklama: "", sure: "" },
+    { kimlik: "", baglanti: "", baslik: "", aciklama: "", sure: "" },
+    { kimlik: "", baglanti: "", baslik: "", aciklama: "", sure: "" },
+  ],
+};
+
+/*
+ * Kanalı kim yapıyor. Ana sayfanın altındaki kısa tanıtım.
+ * Buradaki metin yalnızca sitede zaten yazan doğrulanabilir şeyleri
+ * söylüyor. Barış kendi cümleleriyle değiştirmek isterse "metin" alanını
+ * düzenlemesi yeterli.
+ */
+const YAPIMCI = {
+  ad: "Barış Güveloğlu",
+  rol: "Kanalın sahibi · hikayenin anlatıcısı",
+  metin:
+    "Kanlı Göz evrenini Barış Güveloğlu anlatıyor. Hikaye YouTube'da bölüm " +
+    "bölüm ilerliyor; bu site de anlatılanların arşivi. Videolarda hem " +
+    "kamerayı tutan hem de hikayedeki Kameracı Barış o.",
+};
+
 /*
  * Hikayenin şu anki durumu. Site genelindeki uyarı şeridi buradan geliyor.
  * Durum değişince sadece burayı güncelle.
@@ -70,7 +121,7 @@ const SEBEPLER = [
       "Güç sıralaması yok, puan yok. Sadece şimdiye kadar ne olduğu var — ve " +
       "videolar ilerledikçe bu arşiv de büyüyor.",
     yol: "icraatler.html",
-    yolAd: "İcraatlere git",
+    yolAd: "İcraatlara git",
   },
 ];
 

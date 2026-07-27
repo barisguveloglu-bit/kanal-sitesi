@@ -31,3 +31,26 @@ yapmadan önce o dosyayı oku — karakterler, güçler ve efsane orada tanıml�
 
 `LORE.md` dosyasının sonundaki "Açık Uçlar" bölümüne bak — irade kademelerinin
 son hâli, derebeyi isimleri ve zaman çizelgesi henüz netleşmedi.
+
+## Denetim sonrası eklenen kurallar
+
+Bu kısım dış bir kullanıcı deneyimi denetiminden sonra eklendi.
+Aşağıdakiler bilinçli kararlar — "düzeltilecek eksik" değil.
+
+- **Menü artık `app.js` üretmiyor**, her HTML'de yazılı. JavaScript
+  yüklenmezse navigasyon kaybolmasın diye. Yeni sayfa eklersen menüyü
+  bütün HTML dosyalarında ve `sitemap.xml` içinde güncelle.
+- **Sahte içerik yasak.** `VIDEOLAR` boşken ana sayfadaki video bölümleri
+  `hidden` kalır. Örnek başlık, "yakında", uydurma bağlantı **üretme** —
+  boş bırak, eksik olduğunu rapor et.
+- **Gizleme her zaman `hidden` özniteliğiyle** yapılır, `opacity: 0` ile
+  değil. Hareket azaltma açıkken `style.css` bütün geçişleri kapatıyor;
+  opacity ile gizlenen bir şey bir daha asla görünmez.
+  Bu yüzden `[hidden] { display: none !important; }` kuralı var — silme.
+- **Renk paleti ölçülerek belirlendi.** `--text-3`, `--kotu-metin` ve
+  `--bolge-renk` değerleri WCAG AA (4.5:1) sınırına göre hesaplandı.
+  Değiştireceksen önce kontrastı ölç.
+- **Odak halkası silinmez.** `outline: none` yazma; `:focus-visible`
+  tasarımı bilerek var.
+- Betikler `defer` ile yükleniyor (ilk boyama ~%28 hızlandı). Sıra korunur,
+  bozma.
