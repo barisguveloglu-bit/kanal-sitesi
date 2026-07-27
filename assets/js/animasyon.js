@@ -1,19 +1,29 @@
 /*
- * KANLI GÖZ — Animasyonlar
+ * KANLI GÖZ — Animasyon sürücüsü
  * ---------------------------------------------------------------
- * app.js'ten SONRA yüklenmeli. İçeriğin çoğu JS ile basıldığı için
+ * animasyon.css'in beklediği sınıfları ekler, başka hiçbir şey yapmaz.
+ * app.js'ten SONRA yüklenmeli: içeriğin çoğu JS ile basıldığı için
  * "icerik-hazir" olayını bekliyor.
  *
- * Bu dosya hiçbir mevcut davranışı değiştirmiyor; sadece sınıf ekliyor.
- * Silinirse site aynen çalışmaya devam eder.
+ * CSS ile sözleşme (animasyon.css bunları bekliyor):
+ *   html.animasyon-acik          — animasyon katmanının ana anahtarı
+ *   .beliren / .belirdi / .hemen — kaydırınca beliren bölümler
+ *   .derebeyi-izgara.tarandi     — 81 il taraması
+ *   .merdiven.doldu + --gecikme  — irade merdiveninin dolması
+ *   .eski-kayit.kagit / .acildi  — 1728 vakayinamesinin açılışı
+ *   .goz-svg.takipli             — imleci takip eden göz
+ *   .gurultu-serit               — sayfa altındaki sinyal şeridi
+ *
+ * Bu dosya silinirse hiçbir sınıf eklenmez ve site animasyonsuz,
+ * ama eksiksiz çalışır.
  */
 
 (function () {
   "use strict";
 
   /*
-   * Azaltılmış hareket açıksa hiçbir şey yapma.
-   * ÖNEMLİ: style.css içinde "* { transition: none !important }" var.
+   * Azaltılmış hareket açıksa hiç devreye girmiyoruz.
+   * ÖNEMLİ: style.css'in sonunda "* { transition: none !important }" var.
    * Gizleme sınıfını ekleyip geçişe güvenirsek içerik opacity:0'da
    * kilitlenir ve hiç görünmez. O yüzden burada tamamen çekiliyoruz.
    */
@@ -23,51 +33,121 @@
 
   if (AZALTILMIS) return;
 
-  const ADIM = 70;      // kardeşler arası gecikme (ms)
-  const EN_COK = 350;   // toplam gecikme tavanı (ms)
-  const TARAMA = 820;   // 81 ilin toplam beliriş süresi (ms)
+  /*
+   * Ana anahtar. Bu satır çalışmazsa animasyon.css'teki hiçbir gizleme
+   * kuralı eşleşmez — yani bir hata olursa içerik görünür kalır.
+   * Script gövdenin en sonunda olduğu için sınıf ilk boyamadan önce ekleniyor.
+   */
+  document.documentElement.classList.add("animasyon-acik");
 
-  /* --- Gözlemci --- */
+  const ADIM = 70;       // kardeşler arası gecikme (ms)
+  const EN_COK = 350;    // toplam gecikme tavanı (ms)
+  const MERDIVEN = 90;   // basamaklar arası gecikme (ms)
+  const TARAMA = 820;    // 81 ilin toplam beliriş süresi (ms)
+  const EMNIYET = 6000;  // "ne olursa olsun göster" süresi (ms)
 
-  const gozlemci = new IntersectionObserver(
+  /* ----------------------------------------------------------------
+     Ortak yardımcılar
+     ---------------------------------------------------------------- */
+
+  /* Bir kapsayıcı ekrana girince verilen işi bir kez yap. */
+  function gorununceYap(el, isle, secenek) {
+    const ayar = secenek || {};
+    let yapildi = false;
+
+    function calistir() {
+      if (yapildi) return;
+      yapildi = true;
+      isle();
+    }
+
+    const gozlemci = new IntersectionObserver(
+      (girisler) => {
+        girisler.forEach((g) => {
+          if (!g.isIntersecting) return;
+          gozlemci.unobserve(el);
+          calistir();
+        });
+      },
+      {
+        rootMargin: ayar.kenar || "0px 0px -8% 0px",
+        threshold: ayar.esik === undefined ? 0.05 : ayar.esik,
+      }
+    );
+    gozlemci.observe(el);
+
+    /* Emniyet: gözlemci bir sebeple hiç tetiklenmezse içerik gizli kalmasın. */
+    setTimeout(calistir, EMNIYET);
+  }
+
+  /* ----------------------------------------------------------------
+     1 · Kaydırınca beliren bölümler
+     ---------------------------------------------------------------- */
+
+  const belirenGozlemci = new IntersectionObserver(
     (girisler) => {
       girisler.forEach((g) => {
         if (!g.isIntersecting) return;
-        g.target.classList.add("gorundu");
-        gozlemci.unobserve(g.target);
+        belirenGozlemci.unobserve(g.target);
+        goster(g.target);
       });
     },
     { rootMargin: "0px 0px -8% 0px", threshold: 0.08 }
   );
 
-  /* Aynı elemanı iki kez hazırlama — "icerik-hazir" birden çok kez gelebilir */
-  function hazirla(el, sinif, gecikme) {
-    if (el.dataset.animHazir) return false;
-    el.dataset.animHazir = "1";
-    if (gecikme) el.style.setProperty("--gecikme", gecikme + "ms");
-    el.classList.add(sinif);
-    gozlemci.observe(el);
-    return true;
+  function goster(el) {
+    el.classList.add("belirdi");
+    /*
+     * Geçiş bitince "beliren" sınıfını ve inline gecikmeyi kaldırıyoruz.
+     * Sebebi: .beliren'in transition'ı style.css'teki kart geçişini
+     * (border-color/transform 0.2s) eziyor; temizleyince kart kendi
+     * hover davranışına dönüyor. Son görünüm zaten aynı, sıçrama olmuyor.
+     */
+    const bekle = (parseFloat(el.style.transitionDelay) || 0) + 900;
+    setTimeout(() => {
+      el.classList.remove("beliren", "hemen");
+      el.style.transitionDelay = "";
+    }, bekle);
   }
 
-  /* Bir grubu sırayla hazırla */
-  function grupHazirla(secici, sinif, secenek) {
-    const ayar = secenek || {};
+  function belirenYap(el, gecikme) {
+    if (el.dataset.animHazir) return;
+    el.dataset.animHazir = "1";
+    el.classList.add("beliren");
+
+    /*
+     * Açılışta ekranda görünen (ucu bile görünen) içerik beklemesin.
+     * Sınır tam pencere yüksekliği: aksi halde katlama çizgisinden
+     * hafifçe sarkan bir kutu boş bir boşluk gibi duruyor.
+     */
+    const kutu = el.getBoundingClientRect();
+    if (kutu.top < window.innerHeight && kutu.bottom > 0) {
+      el.classList.add("hemen", "belirdi");
+      requestAnimationFrame(() => el.classList.remove("beliren", "hemen"));
+      return;
+    }
+
+    if (gecikme) el.style.transitionDelay = gecikme + "ms";
+    belirenGozlemci.observe(el);
+  }
+
+  /* Bir kapsayıcının çocuklarını sırayla hazırla */
+  function grupHazirla(secici) {
     document.querySelectorAll(secici).forEach((kap) => {
-      const cocuklar = [...kap.children];
-      cocuklar.forEach((el, i) => {
-        const sira = ayar.tersten ? cocuklar.length - 1 - i : i;
-        hazirla(el, sinif, Math.min(sira * ADIM, EN_COK));
+      [...kap.children].forEach((el, i) => {
+        belirenYap(el, Math.min(i * ADIM, EN_COK));
       });
     });
   }
 
   /* Kapsayıcısı olmayan tekil elemanlar */
-  function tekilHazirla(secici, sinif) {
-    document.querySelectorAll(secici).forEach((el) => hazirla(el, sinif, 0));
+  function tekilHazirla(secici) {
+    document.querySelectorAll(secici).forEach((el) => belirenYap(el, 0));
   }
 
-  /* --- 2 · 81 il · rastgele tarama --- */
+  /* ----------------------------------------------------------------
+     2 · 81 il · rastgele sırayla tarama
+     ---------------------------------------------------------------- */
 
   function illeriHazirla() {
     document.querySelectorAll(".derebeyi-izgara").forEach((izgara) => {
@@ -76,87 +156,75 @@
       if (!kutular.length) return;
       izgara.dataset.animHazir = "1";
 
-      // Fisher-Yates ile karıştırılmış sıra
+      /* Fisher-Yates: her açılışta farklı bir tarama sırası */
       const sira = kutular.map((_, i) => i);
       for (let i = sira.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [sira[i], sira[j]] = [sira[j], sira[i]];
       }
-
       kutular.forEach((el, i) => {
-        el.dataset.animHazir = "1";
-        el.style.setProperty(
-          "--gecikme",
-          Math.round((sira[i] / kutular.length) * TARAMA) + "ms"
-        );
-        el.classList.add("tarama");
+        el.style.transitionDelay =
+          Math.round((sira[i] / kutular.length) * TARAMA) + "ms";
       });
 
       /*
-       * Kutuları tek tek gözlemiyoruz. Öyle yapınca yalnızca ekranda olanlar
-       * beliriyor ve "veri akıyor" hissi kayboluyordu. Kapsayıcı görününce
-       * o cephenin 27 kutusu birlikte, karışık sırayla açılıyor.
+       * Kutular tek tek gözlenmiyor. Öyle yapınca yalnızca ekrandakiler
+       * beliriyor ve "veri akıyor" hissi kayboluyor. Kapsayıcı görününce
+       * o cephenin bütün kutuları birlikte, karışık sırayla açılıyor.
        */
-      const izgaraGozlemci = new IntersectionObserver(
-        (girisler) => {
-          girisler.forEach((g) => {
-            if (!g.isIntersecting) return;
-            kutular.forEach((el) => el.classList.add("gorundu"));
-            izgaraGozlemci.unobserve(izgara);
-          });
-        },
-        { rootMargin: "0px 0px -5% 0px", threshold: 0.02 }
-      );
-      izgaraGozlemci.observe(izgara);
-
-      /* Emniyet: içerik görünmez kalmasın */
-      setTimeout(() => kutular.forEach((el) => el.classList.add("gorundu")), 6000);
+      gorununceYap(izgara, () => izgara.classList.add("tarandi"), {
+        kenar: "0px 0px -5% 0px",
+        esik: 0.02,
+      });
     });
   }
 
-  /* --- 4 · Vakayiname · kâğıt açılışı --- */
+  /* ----------------------------------------------------------------
+     3 · İrade merdiveni · alttan üste dolma
+     ---------------------------------------------------------------- */
+
+  function merdiveniHazirla() {
+    document.querySelectorAll(".merdiven").forEach((merdiven) => {
+      if (merdiven.dataset.animHazir) return;
+      const basamaklar = [...merdiven.children];
+      if (!basamaklar.length) return;
+      merdiven.dataset.animHazir = "1";
+
+      basamaklar.forEach((el, i) => {
+        /* Ters sıra: en alttaki basamak ilk dolar. */
+        const gecikme = Math.min((basamaklar.length - 1 - i) * MERDIVEN, 450);
+        /* --gecikme dolan çizgiyi (::after), transitionDelay basamağın
+           kendisini sürüyor. */
+        el.style.setProperty("--gecikme", gecikme + "ms");
+        el.style.transitionDelay = gecikme + "ms";
+      });
+
+      gorununceYap(merdiven, () => merdiven.classList.add("doldu"), {
+        esik: 0.04,
+      });
+    });
+  }
+
+  /* ----------------------------------------------------------------
+     4 · 1728 vakayinamesi · kâğıdın açılışı
+     ---------------------------------------------------------------- */
 
   function kagidiHazirla() {
     document.querySelectorAll(".eski-kayit").forEach((kagit) => {
       if (kagit.dataset.animHazir) return;
       kagit.dataset.animHazir = "1";
-      kagit.classList.add("kagit-kapali");
+      kagit.classList.add("kagit");
 
-      function ac() {
-        if (!kagit.classList.contains("kagit-kapali")) return;
-        kagit.classList.add("kagit-aciliyor");
-        kagit.addEventListener(
-          "animationend",
-          () => kagit.classList.remove("kagit-kapali", "kagit-aciliyor"),
-          { once: true }
-        );
-      }
-
-      /*
-       * DİKKAT: Kâğıdın kendisini gözlemek İŞE YARAMIYOR.
-       * clip-path ile tamamen kırpıldığı için tarayıcı onu "ekranda değil"
-       * sayıyor ve olay hiç gelmiyor — kâğıt sonsuza kadar görünmez kalıyor.
-       * Bu yüzden kırpılmamış olan kapsayıcısı gözleniyor.
-       */
-      const gozlenen = kagit.parentElement || kagit;
-      const kagitGozlemci = new IntersectionObserver(
-        (girisler) => {
-          girisler.forEach((g) => {
-            if (!g.isIntersecting) return;
-            ac();
-            kagitGozlemci.unobserve(gozlenen);
-          });
-        },
-        { rootMargin: "0px 0px -10% 0px", threshold: 0.05 }
-      );
-      kagitGozlemci.observe(gozlenen);
-
-      /* Emniyet: ne olursa olsun içerik görünmez kalmasın */
-      setTimeout(ac, 6000);
+      gorununceYap(kagit, () => kagit.classList.add("acildi"), {
+        kenar: "0px 0px -10% 0px",
+        esik: 0.02,
+      });
     });
   }
 
-  /* --- 5 · Göz · imleci hafifçe takip --- */
+  /* ----------------------------------------------------------------
+     5 · Dev göz · imleci hafifçe takip
+     ---------------------------------------------------------------- */
 
   const EN_UZAK = 9; // piksel
 
@@ -165,6 +233,7 @@
     const svg = sarmal && sarmal.querySelector(".goz-svg");
     if (!svg || sarmal.dataset.gozBagli) return;
     sarmal.dataset.gozBagli = "1";
+    svg.classList.add("takipli");
 
     let hedefX = 0;
     let hedefY = 0;
@@ -172,8 +241,14 @@
 
     function yaz() {
       bekliyor = false;
-      svg.style.setProperty("--goz-x", hedefX.toFixed(2) + "px");
-      svg.style.setProperty("--goz-y", hedefY.toFixed(2) + "px");
+      svg.style.transform =
+        "translate3d(" + hedefX.toFixed(2) + "px," + hedefY.toFixed(2) + "px,0)";
+    }
+
+    function sirala() {
+      if (bekliyor) return;
+      bekliyor = true;
+      requestAnimationFrame(yaz);
     }
 
     function hesapla(x, y) {
@@ -184,71 +259,55 @@
       const oran = Math.min(uzaklik, 400) / 400; // uzaklaştıkça tam açılsın
       hedefX = (dx / uzaklik) * EN_UZAK * oran;
       hedefY = (dy / uzaklik) * EN_UZAK * oran;
-      if (!bekliyor) {
-        bekliyor = true;
-        requestAnimationFrame(yaz);
-      }
+      sirala();
     }
 
-    window.addEventListener(
-      "pointermove",
-      (e) => hesapla(e.clientX, e.clientY),
-      { passive: true }
-    );
+    window.addEventListener("pointermove", (e) => hesapla(e.clientX, e.clientY), {
+      passive: true,
+    });
 
-    // İmleç pencereden çıkınca göz ortaya dönsün
+    /* İmleç pencereden çıkınca göz ortaya dönsün */
     document.addEventListener("pointerleave", () => {
       hedefX = 0;
       hedefY = 0;
-      if (!bekliyor) {
-        bekliyor = true;
-        requestAnimationFrame(yaz);
-      }
+      sirala();
     });
   }
 
-  /* --- 6 · Sinyal kaybı şeridi --- */
+  /* ----------------------------------------------------------------
+     6 · Sayfa altındaki sinyal şeridi
+     ---------------------------------------------------------------- */
 
   function seridiKur() {
-    if (document.querySelector(".sinyal-serit")) return;
+    if (!document.body || document.querySelector(".gurultu-serit")) return;
     const serit = document.createElement("div");
-    serit.className = "sinyal-serit";
+    serit.className = "gurultu-serit";
     serit.setAttribute("aria-hidden", "true");
     document.body.appendChild(serit);
   }
 
-  /* --- Hepsini kur --- */
+  /* ----------------------------------------------------------------
+     Kurulum
+     ---------------------------------------------------------------- */
 
   function kur() {
-    // 1 · beliren bölümler
-    grupHazirla(".sebep-liste", "beliren");
-    grupHazirla(".izgara", "beliren");
-    grupHazirla(".icraat-izgara", "beliren");
-    grupHazirla(".komutan-izgara", "beliren");
-    // .sc-liste bilerek yok: içeriği Supabase'den sonradan geliyor,
-    // burada işaretlenen eleman silinip yerine yenisi geliyor.
-    tekilHazirla(".hiyerarsi-kutu", "beliren");
-    tekilHazirla(".yonetim-kart", "beliren");
+    grupHazirla(".sebep-liste");
+    grupHazirla(".izgara");
+    grupHazirla(".icraat-izgara");
+    grupHazirla(".komutan-izgara");
+    /* .sc-liste bilerek yok: içeriği Supabase'den sonradan geliyor,
+       burada işaretlenen eleman silinip yerine yenisi basılıyor. */
+    tekilHazirla(".hiyerarsi-kutu");
 
-    // 2 · 81 il
     illeriHazirla();
-
-    // 3 · irade merdiveni — en alttaki basamak ilk dolsun
-    grupHazirla(".merdiven", "cizgi-buyur", { tersten: true });
-    document.querySelectorAll(".merdiven .basamak").forEach((el) => {
-      el.classList.add("beliren");
-    });
-
-    // 4 · vakayiname
+    merdiveniHazirla();
     kagidiHazirla();
-
-    // 5 · göz
     gozuBagla();
   }
 
   seridiKur();
   document.addEventListener("icerik-hazir", kur);
 
-  // İçerik statik olan sayfalar için (olay gelmezse) emniyet
+  /* İçeriği statik olan sayfalar için (olay hiç gelmezse) emniyet */
   document.addEventListener("DOMContentLoaded", () => setTimeout(kur, 0));
 })();

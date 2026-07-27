@@ -1,153 +1,218 @@
 /* ===================================================================
-   KANLI GÖZ — Animasyonlar
+   KANLI GÖZ — Animasyon katmanı
    -------------------------------------------------------------------
-   style.css'e dokunulmadı. Buradaki her şey üstüne biniyor.
-   Beğenilmezse bu dosya ile animasyon.js silinir, site aynen kalır.
+   style.css'e dokunmaz, üstüne biner. Silinirse site aynen çalışır.
 
-   Kural: sadece opacity, transform ve clip-path animasyonlanıyor.
-   filter / box-shadow / width gibi pahalı şeyler animasyonlanmıyor.
+   Kural: sadece transform ve opacity animasyonlanır.
+   Tek istisna, en alttaki gürültü şeridi — o da sabit bir CSS deseninin
+   opacity'si (filter/backdrop-filter yok).
 
-   GÜVENLİK: Gizleme sınıflarını JavaScript ekliyor. Azaltılmış hareket
-   açıksa animasyon.js hiçbir sınıf eklemiyor, dolayısıyla hiçbir şey
-   gizlenmiyor. Aşağıdaki @media bloğu da ikinci bir emniyet kemeri.
+   Her şey  html.animasyon-acik  altına yazılmıştır. Bu sınıfı
+   animasyon.js ekler. Yani JS yüklenmezse veya hata verirse
+   hiçbir şey gizli kalmaz — içerik olduğu gibi görünür.
    =================================================================== */
 
-:root {
-  --anim-egri: cubic-bezier(0.2, 0.7, 0.3, 1);
+
+/* -------------------------------------------------------------------
+   1) Sayfa geçişi — sadece CSS, JavaScript yok
+   Desteklemeyen tarayıcı bu bloğu görmezden gelir, sayfa normal açılır.
+   Geri/ileri tuşları tarayıcının kendi işi, bozulmaz.
+   ------------------------------------------------------------------- */
+@view-transition { navigation: auto; }
+
+::view-transition-old(root) {
+  animation: gecisCik 0.16s ease both;
 }
+::view-transition-new(root) {
+  animation: gecisGir 0.22s ease both;
+}
+@keyframes gecisCik { to { opacity: 0; } }
+@keyframes gecisGir { from { opacity: 0; } }
 
 
-/* --- 1 · Kaydırınca beliren bölümler ------------------------------ */
-
-.beliren {
+/* -------------------------------------------------------------------
+   2) Kaydırınca beliren bölümler
+   Sınıfı animasyon.js ekler. Zaten ekranda olan elemanlar
+   animasyonsuz açılır (.hemen) — sayfa açılışı hiç gecikmez.
+   ------------------------------------------------------------------- */
+html.animasyon-acik .beliren {
   opacity: 0;
   transform: translateY(14px);
   transition:
-    opacity 0.55s var(--anim-egri),
-    transform 0.55s var(--anim-egri);
-  transition-delay: var(--gecikme, 0ms);
+    opacity 0.5s ease,
+    transform 0.55s cubic-bezier(0.22, 0.61, 0.36, 1);
 }
-.beliren.gorundu {
+html.animasyon-acik .beliren.belirdi {
+  opacity: 1;
+  transform: none;
+}
+/* İlk ekranda duran içerik: gizlenmez, beklemez */
+html.animasyon-acik .beliren.hemen {
+  transition: none;
+}
+
+/* style.css'teki kart havalanması korunuyor — üstteki
+   "transform: none" kuralı onu ezmesin diye tekrar tanımlıyoruz. */
+html.animasyon-acik .kart.beliren.belirdi:hover {
+  transform: translateY(-2px);
+}
+
+
+/* -------------------------------------------------------------------
+   3) 81 il kutusu — rastgele sırayla "taranıyor" gibi beliriş
+   81 küçük kutu olduğu için sadece opacity: en ucuz özellik.
+   Gecikmeler JS tarafından karıştırılıp inline yazılır.
+   ------------------------------------------------------------------- */
+html.animasyon-acik .derebeyi-izgara .derebeyi {
+  opacity: 0;
+  transition: opacity 0.3s linear;
+}
+html.animasyon-acik .derebeyi-izgara.tarandi .derebeyi {
+  opacity: 1;
+}
+/* isimsiz iller zaten sönük durur, taramada da geride kalsınlar */
+html.animasyon-acik .derebeyi-izgara.tarandi .derebeyi.bos {
+  opacity: 0.75;
+}
+
+
+/* -------------------------------------------------------------------
+   4) İrade merdiveni — alttan üste doğru dolma
+   Sol kenardaki 3px'lik çizgi aşağıdan yukarı büyür (scaleY),
+   basamağın kendisi de hafifçe yerine oturur.
+   Gecikmeler ters sırada verilir: en alt basamak ilk dolar.
+   ------------------------------------------------------------------- */
+html.animasyon-acik .merdiven .basamak {
+  position: relative;
+  opacity: 0;
+  transform: translateY(10px);
+  transition:
+    opacity 0.4s ease,
+    transform 0.45s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+html.animasyon-acik .merdiven.doldu .basamak {
   opacity: 1;
   transform: none;
 }
 
-/* Kartın kendi hover tepkisi korunuyor — beliriş bitince devreye giriyor */
-.kart.beliren.gorundu { transition-property: opacity, transform, border-color; }
-
-
-/* --- 2 · 81 il · rastgele tarama ---------------------------------- */
-/* 81 kutu var, transform bile fazla; yalnızca opacity. */
-
-.tarama {
-  opacity: 0;
-  transition: opacity 0.45s linear;
-  transition-delay: var(--gecikme, 0ms);
-}
-.tarama.gorundu { opacity: 1; }
-
-
-/* --- 3 · İrade merdiveni · alttan üste dolma ---------------------- */
-/* Sol kenardaki renkli çizgi aşağıdan yukarı büyüyor.
-   Gerçek border gizlenip yerine scaleY ile büyüyen bir katman konuyor;
-   kademe renkleri style.css'teki değerlerle birebir aynı. */
-
-.basamak.cizgi-buyur {
-  position: relative;
-  border-left-color: transparent;
-}
-.basamak.cizgi-buyur::before {
+/* dolan çizgi — mevcut border-left'in tam üstüne oturuyor */
+html.animasyon-acik .merdiven .basamak::after {
   content: "";
   position: absolute;
   left: -3px;
   top: 0;
   bottom: 0;
   width: 3px;
-  background: var(--line);
+  background: var(--dolgu-renk, var(--text-2));
   transform: scaleY(0);
-  transform-origin: bottom center;
-  transition: transform 0.6s var(--anim-egri);
-  transition-delay: var(--gecikme, 0ms);
+  transform-origin: bottom;
+  transition: transform 0.5s cubic-bezier(0.33, 1, 0.68, 1);
+  /* gecikmeyi animasyon.js basamak başına yazar */
+  transition-delay: var(--gecikme, 0s);
+  pointer-events: none;
 }
-.basamak.cizgi-buyur.gorundu::before { transform: scaleY(1); }
-
-.basamak[data-kademe="4"].cizgi-buyur::before { background: var(--altin); }
-.basamak[data-kademe="5"].cizgi-buyur::before { background: var(--kan-parlak); }
-
-
-/* --- 4 · Vakayiname · kâğıt açılışı ------------------------------- */
-/* Üst kenardan aşağı doğru açılıyor. Kâğıdın rengi, dokusu ve çerçevesi
-   değişmiyor. Animasyon bitince clip-path tamamen kaldırılıyor
-   (animasyon.js yapıyor) — yoksa kutu gölgesi kırpık kalırdı. */
-
-.kagit-kapali { clip-path: inset(0 0 100% 0); }
-
-.kagit-aciliyor {
-  animation: kagitAcil 1s var(--anim-egri) forwards;
+html.animasyon-acik .merdiven.doldu .basamak::after {
+  transform: scaleY(1);
 }
-@keyframes kagitAcil {
-  from { clip-path: inset(0 0 100% 0); }
-  to   { clip-path: inset(0 0 0 0); }
+/* kademe renkleri style.css'teki border-left renkleriyle aynı */
+html.animasyon-acik .basamak[data-kademe="4"] { --dolgu-renk: var(--altin); }
+html.animasyon-acik .basamak[data-kademe="5"] { --dolgu-renk: var(--kan-parlak); }
+
+
+/* -------------------------------------------------------------------
+   5) 1728 vakayinamesi — eski kâğıdın açılışı
+   Kâğıdın rengine, dokusuna, gölgesine dokunulmuyor;
+   sadece üst kenarından aşağı doğru bir kez yayılıyor.
+   ------------------------------------------------------------------- */
+html.animasyon-acik .eski-kayit.kagit {
+  opacity: 0;
+  transform: perspective(1500px) rotateX(-7deg) translateY(-10px) scale(0.985);
+  transform-origin: top center;
+  transition:
+    opacity 0.5s ease,
+    transform 0.85s cubic-bezier(0.16, 0.84, 0.32, 1);
 }
-
-
-/* --- 5 · Göz · imleci hafifçe takip ------------------------------- */
-/* Değişkenleri animasyon.js yazıyor, en fazla 9 piksel.
-   goz.js'e ve çizimin kendisine dokunulmadı; transform yalnızca
-   .goz-svg üzerinde, .goz-sarmal'ın kendi kayma animasyonuyla çakışmıyor. */
-
-.goz-svg {
-  transform: translate3d(var(--goz-x, 0px), var(--goz-y, 0px), 0);
-  transition: transform 0.4s var(--anim-egri);
+html.animasyon-acik .eski-kayit.kagit.acildi {
+  opacity: 1;
+  transform: none;
 }
 
 
-/* --- 6 · Sinyal kaybı şeridi -------------------------------------- */
-/* Ekranın en altında sabit duran ince desen. z-index 0 olduğu için
-   içeriğin (z-index 1) altında kalıyor — hiçbir yazının üstüne gelmiyor.
-   Sadece opacity nefes alıyor; filter yok. */
+/* -------------------------------------------------------------------
+   6) Dev göz — imleci/dokunuşu çok hafif takip eder
+   .goz-sarmal'a DOKUNMUYORUZ; onda zaten gozKayma transform'u var.
+   Takip .goz-svg üzerinde, JS tarafından transform ile yazılıyor.
+   Buradaki tek iş, öğenin GPU'ya alınacağını haber vermek.
+   ------------------------------------------------------------------- */
+html.animasyon-acik .goz-svg.takipli {
+  will-change: transform;
+}
 
-.sinyal-serit {
+
+/* -------------------------------------------------------------------
+   7) Sayfa altındaki "sinyal kaybı" şeridi
+   İnce bir şerit; metnin üstüne gelmiyor, tıklamayı engellemiyor.
+   Desen sabit — yalnızca opacity nefes alıyor.
+   ------------------------------------------------------------------- */
+.gurultu-serit {
   position: fixed;
   left: 0;
   right: 0;
   bottom: 0;
   height: 42px;
-  /* -1: statik içeriğin de arkasında kalsın. 0 olsaydı konumlandırılmış
-     bir eleman olarak sayfa altındaki yazının üstüne çıkardı. */
-  z-index: -1;
+  z-index: 3;
   pointer-events: none;
-  background-image: repeating-linear-gradient(
-    0deg,
-    rgba(255, 255, 255, 0.055) 0 1px,
-    transparent 1px 3px
-  );
+  opacity: 0.4;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.05) 0 1px,
+      transparent 1px 3px
+    ),
+    repeating-linear-gradient(
+      180deg,
+      rgba(192, 39, 31, 0.07) 0 1px,
+      transparent 1px 4px
+    );
   -webkit-mask-image: linear-gradient(0deg, #000 0%, transparent 100%);
   mask-image: linear-gradient(0deg, #000 0%, transparent 100%);
-  animation: sinyalNefes 9s ease-in-out infinite;
+  animation: gurultuNefes 9s ease-in-out infinite;
 }
-@keyframes sinyalNefes {
-  0%, 100% { opacity: 0.35; }
-  50%      { opacity: 0.8; }
+@keyframes gurultuNefes {
+  0%, 100% { opacity: 0.28; }
+  50%      { opacity: 0.62; }
+}
+
+/* Gizli sayfada şeridin rengi de bozulma paletine dönsün */
+.gizli-sayfa .gurultu-serit {
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.05) 0 1px,
+      transparent 1px 3px
+    ),
+    repeating-linear-gradient(
+      180deg,
+      rgba(177, 75, 255, 0.08) 0 1px,
+      transparent 1px 4px
+    );
 }
 
 
-/* --- Azaltılmış hareket · emniyet kemeri -------------------------- */
-/* animasyon.js zaten hiçbir sınıf eklemiyor ama sınıflar bir şekilde
-   sayfada kalırsa içerik yine de görünür olsun. */
-
+/* -------------------------------------------------------------------
+   8) Hareket azaltma
+   style.css'in sonunda zaten global bir kapatma var; burada
+   ayrıca "gizli kalmış eleman" bırakmadığımızı garantiye alıyoruz.
+   (animasyon.js bu durumda html'e sınıfı hiç eklemez.)
+   ------------------------------------------------------------------- */
 @media (prefers-reduced-motion: reduce) {
-  .beliren,
-  .tarama {
+  html.animasyon-acik .beliren,
+  html.animasyon-acik .merdiven .basamak,
+  html.animasyon-acik .derebeyi-izgara .derebeyi,
+  html.animasyon-acik .eski-kayit.kagit {
     opacity: 1 !important;
     transform: none !important;
   }
-  .basamak.cizgi-buyur { border-left-color: var(--line); }
-  .basamak[data-kademe="4"].cizgi-buyur { border-left-color: var(--altin); }
-  .basamak[data-kademe="5"].cizgi-buyur { border-left-color: var(--kan-parlak); }
-  .basamak.cizgi-buyur::before { display: none; }
-  .kagit-kapali,
-  .kagit-aciliyor { clip-path: none !important; }
-  .goz-svg { transform: none !important; }
-  .sinyal-serit { display: none; }
+  html.animasyon-acik .merdiven .basamak::after { display: none; }
+  .gurultu-serit { display: none !important; }
 }
