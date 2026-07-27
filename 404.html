@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Kayıt bulunamadı — Kanlı Göz</title>
+  <meta name="theme-color" content="#0a0a0c">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <!--
+    Bu sayfanın stili bilerek dosyanın içinde.
+    404, sitede olmayan HERHANGİ bir adreste açılabiliyor; dışarıdan
+    yüklenen bir stil dosyasının yolu o adreste tutmayabilir. Tek dosya
+    olunca her yerde aynı görünüyor.
+  -->
+  <style>
+    :root { --bg:#0a0a0c; --text:#e8e6e3; --text-2:#9a9aa5; --text-3:#7f7f8b;
+            --kan:#c0271f; --kan-parlak:#ff4438; --line:#26262f; }
+    * { box-sizing:border-box; }
+    body {
+      margin:0; min-height:100vh; background:var(--bg); color:var(--text);
+      font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+      line-height:1.7; display:flex; align-items:center; justify-content:center;
+      padding:32px; text-align:center;
+    }
+    body::before {
+      content:""; position:fixed; inset:0; pointer-events:none;
+      background:radial-gradient(ellipse 80% 50% at 50% -10%, rgba(192,39,31,0.12), transparent 70%);
+    }
+    .kutu { position:relative; max-width:540px; }
+    .nokta {
+      width:9px; height:9px; border-radius:50%; background:var(--kan-parlak);
+      box-shadow:0 0 12px var(--kan-parlak); margin:0 auto 26px;
+      animation:nabiz 3s ease-in-out infinite;
+    }
+    @keyframes nabiz { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:.45;transform:scale(.82);} }
+    .etiket {
+      font-size:.72rem; letter-spacing:.22em; text-transform:uppercase;
+      color:var(--text-3); display:block; margin-bottom:.9rem;
+    }
+    h1 { font-family:Georgia,"Times New Roman",serif; font-weight:400;
+         font-size:clamp(1.8rem,5vw,2.8rem); margin:0 0 .5em; letter-spacing:-.01em; }
+    p { color:var(--text-2); margin:0 0 1.1em; }
+    .dugmeler { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-top:26px; }
+    a.dugme {
+      display:inline-block; padding:11px 22px; border-radius:4px;
+      border:1px solid var(--line); color:var(--text); text-decoration:none;
+      font-size:.92rem; transition:border-color .18s, background .18s;
+    }
+    a.dugme:hover { border-color:var(--kan); background:rgba(192,39,31,.12); }
+    a.dugme.birincil { background:var(--kan); border-color:var(--kan); color:#fff; }
+    a.dugme.birincil:hover { background:var(--kan-parlak); border-color:var(--kan-parlak); }
+    a:focus-visible, .dugme:focus-visible {
+      outline:2px solid var(--kan-parlak); outline-offset:2px;
+    }
+    @media (prefers-reduced-motion: reduce) { * { animation:none !important; transition:none !important; } }
+  </style>
+</head>
+<body>
+  <main class="kutu">
+    <div class="nokta" aria-hidden="true"></div>
+    <span class="etiket">Kayıt bulunamadı</span>
+    <h1>Bu sayfa arşivde yok</h1>
+    <p>
+      Aradığın kayıt silinmiş, adı değişmiş ya da adres yanlış yazılmış olabilir.
+      Arşivin girişinden devam edebilirsin.
+    </p>
+    <div class="dugmeler">
+      <a class="dugme birincil" href="index.html">Arşive dön</a>
+      <a class="dugme" href="karakterler.html">Karakterler</a>
+      <a class="dugme" href="efsane.html">Efsane</a>
+    </div>
+  </main>
+</body>
+</html>
