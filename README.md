@@ -212,12 +212,25 @@ Bu en uzun adım, çünkü Google tarafında da bir kayıt gerekiyor.
    (Bu adresi Supabase → Project Settings → API → Project URL'den alıyorsun)
 6. Oluşan **Client ID** ve **Client Secret**'ı kopyala
 
+7. **UYGULAMAYI YAYINLA.** Consent screen sayfasında uygulama "Testing"
+   durumundaysa **yalnızca test kullanıcısı olarak eklediğin hesaplar**
+   giriş yapabilir; herkese açık olmaz. **Publish app / Uygulamayı yayınla**
+   düğmesine bas. Sadece ad-soyad ve e-posta istediğimiz için Google'ın
+   incelemesine girmez, anında yayına geçer.
+
 **Supabase tarafı:**
 1. **Authentication → Sign In / Providers → Google** → aç
 2. Client ID ve Secret'ı yapıştır → **Save**
 3. **Authentication → URL Configuration**
    - **Site URL**: `https://barisguveloglu-bit.github.io/kanal-sitesi/`
-   - **Redirect URLs** listesine de aynısını ekle
+   - **Redirect URLs** listesine şunu ekle:
+     ```
+     https://barisguveloglu-bit.github.io/kanal-sitesi/**
+     ```
+     Sondaki `**` şart. Giriş bitince Supabase kullanıcıyı **ayrıldığı
+     sayfaya** geri gönderiyor (`soru-cevap.html` ya da `yonetim.html`),
+     ana adrese değil. Sadece ana adresi yazarsan giriş
+     "requested path is invalid" hatasıyla döner.
 
 ## 4. Anahtarları siteye yaz
 
