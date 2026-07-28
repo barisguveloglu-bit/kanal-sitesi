@@ -121,7 +121,7 @@ const SEBEPLER = [
       "Güç sıralaması yok, puan yok. Sadece şimdiye kadar ne olduğu var — ve " +
       "videolar ilerledikçe bu arşiv de büyüyor.",
     yol: "icraatler.html",
-    yolAd: "İcraatlara git",
+    yolAd: "İcraatlere git",
   },
 ];
 
