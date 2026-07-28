@@ -246,15 +246,15 @@ Her cephenin derebeyleri, o cephenin mitolojisinden isim taşıyor.
 | 10 | Balıkesir | **Boreas** | kuzey rüzgârı |
 | 11 | Bilecik | **Hypnos** | uyku tanrısı |
 | 14 | Bolu | **Kerberos** | yeraltının üç başlı bekçi köpeği |
-| 15 | Burdur | **Leto** | Apollon ve Artemis'in annesi — Letoon |
+| 15 | Burdur | **Leto** | Apollon ve Artemis'in annesi |
 | 16 | Bursa | **Kronos** | babasını deviren titan |
-| 17 | Çanakkale | **Akhilleus** | Truva'nın en büyük savaşçısı |
+| 17 | Çanakkale | **Akhilleus** | Truva Savaşı'nın en büyük Akha savaşçısı |
 | 20 | Denizli | **Hades** | yeraltı tanrısı — Hierapolis'teki cehennem kapısı |
 | 22 | Edirne | **Orpheus** | Trakyalı ozan, yeraltına inen |
 | 26 | Eskişehir | **Midas** | dokunduğunu altına çeviren Frig kralı |
 | 32 | Isparta | **Athena** | savaş ve akıl tanrıçası |
 | 34 | İstanbul | **Kharon** | ölüleri karşı kıyıya geçiren kayıkçı |
-| 35 | İzmir | **Artemis** | av ve ay tanrıçası — Efes onun kenti |
+| 35 | İzmir | **Artemis** | av ve vahşi doğa tanrıçası — Efes onun kenti |
 | 39 | Kırklareli | **Bendis** | Trak av tanrıçası |
 | 41 | Kocaeli | **Ares** | savaş tanrısı |
 | 43 | Kütahya | **Apollon** | ışık, kehanet ve ok tanrısı |
@@ -276,9 +276,9 @@ Her cephenin derebeyleri, o cephenin mitolojisinden isim taşıyor.
 | 5 | Amasya | **Lelwani** | yeraltı dünyasının hükümdarı |
 | 6 | Ankara | **Kumarbi** | tahttan indirilen tanrılar babası |
 | 18 | Çankırı | **Miyatanzipa** | büyüme ve bolluk tanrısı |
-| 19 | Çorum | **Arinnitti** | Arinna'nın güneş tanrıçası — Hattuşa'nın baş tanrısı |
+| 19 | Çorum | **Arinnitti** | Arinna'nın güneş tanrıçası — Hitit devletinin baş tanrıçası |
 | 28 | Giresun | **Zithariya** | koruyucu tanrı |
-| 31 | Hatay | **Kubaba** | Karkamış'ın kraliçe tanrıçası |
+| 31 | Hatay | **Kubaba** | Geç Hitit dünyasının kraliçe tanrıçası |
 | 33 | Mersin | **Runtiya** | Luvi geyik ve av tanrısı |
 | 37 | Kastamonu | **Pirwa** | at tanrısı |
 | 38 | Kayseri | **İştanu** | güneş ve adalet tanrısı — Kaneş |
@@ -288,16 +288,16 @@ Her cephenin derebeyleri, o cephenin mitolojisinden isim taşıyor.
 | 50 | Nevşehir | **Kamrusepa** | şifa ve büyü tanrıçası |
 | 51 | Niğde | **Halki** | tahıl tanrısı |
 | 52 | Ordu | **Taşmişu** | Teşup'un veziri ve kardeşi |
-| 55 | Samsun | **Kaşku** | ay tanrısı |
-| 57 | Sinop | **Zaliyanu** | yağmur getiren dağ tanrısı |
+| 55 | Samsun | **Zaliyanu** | Nerik'e yağmur getiren dağ tanrısı |
+| 57 | Sinop | **Kaşku** | Hatti ay tanrısı |
 | 58 | Sivas | **Wurunkatte** | toprağın savaş tanrısı |
 | 60 | Tokat | **Şauşka** | aşk ve savaş tanrıçası |
 | 61 | Trabzon | **Şuwaliyat** | fırtına tanrısının kardeşi |
 | 66 | Yozgat | **Şarruma** | dağ tanrısı, Hepat'ın oğlu |
-| 68 | Aksaray | **Hannahanna** | her şeyi bilen ana tanrıça |
+| 68 | Aksaray | **Hannahanna** | tanrıların büyükannesi |
 | 70 | Karaman | **Ullikummi** | tanrılara meydan okuyan taş dev |
 | 71 | Kırıkkale | **Zababa** | savaş tanrısı |
-| 78 | Karabük | **Hasameli** | demircilerin ve madencilerin tanrısı |
+| 78 | Karabük | **Hasameli** | demircilerin tanrısı |
 | 80 | Osmaniye | **Yarri** | salgın ve ok tanrısı |
 
 #### Doğu Cephesi — Ahriman · Pers mitolojisi
