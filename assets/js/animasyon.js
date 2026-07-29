@@ -295,8 +295,6 @@
     grupHazirla(".izgara");
     grupHazirla(".icraat-izgara");
     grupHazirla(".komutan-izgara");
-    /* .sc-liste bilerek yok: içeriği Supabase'den sonradan geliyor,
-       burada işaretlenen eleman silinip yerine yenisi basılıyor. */
     tekilHazirla(".hiyerarsi-kutu");
 
     illeriHazirla();
