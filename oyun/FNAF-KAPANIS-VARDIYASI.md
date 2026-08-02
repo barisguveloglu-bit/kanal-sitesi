@@ -6,7 +6,10 @@
 > **Hayran yapımı (fan game) tasarımıdır.** Five Nights at Freddy's ve içindeki
 > tüm karakterler Scott Cawthon'a aittir. Bu belge ticari bir iddia taşımaz.
 
-**Durum:** v1 taslak — tartışmaya açık. Kararı bekleyen sorular en altta.
+**Durum:** v2 — ana karakter, kardeş hattı ve final kararlaştırıldı.
+Kalan sorular en altta.
+
+> **Tema:** *Kimse öldürmedi. Kimse bakmadı.*
 
 **Alternatif isimler:** *FNAF: Salvage* · *FNAF: Son Envanter* · *FNAF: Sökük*
 
@@ -92,10 +95,14 @@ girmemek üzere programlandı.
 - **Eksi:** İçeride iki yaylı kilitli kostüm duruyor — Spring Bonnie ve
   Fredbear. Oda dar, havasız. **Nem sayacı** doluyor. Sayaç dolarsa yaylar
   ıslanır ve tetiklenir; içeride ne varsa kapanır.
+- **Mandal tek yönlü: oda sadece dışarıdan açılır.** İçerideyken kapıyı
+  açacak olan sen değilsin.
 - Yani: en güvenli yer, en fazla 40 saniye güvenli.
 
 Bu odanın oyundaki asıl işlevi mekanik değil, **kurulum**. Oyuncu beş gece
 boyunca yaylı kilit sesini öğreniyor ki finalde ne olduğunu anlasın.
+Tek yönlü mandalı da beş gece boyunca kullanıyor ki finalde ne yaptığını
+anlasın. *(Bkz. 4. bölüm — Nora Rennard.)*
 
 ---
 
@@ -105,17 +112,68 @@ boyunca yaylı kilit sesini öğreniyor ki finalde ne olduğunu anlasın.
 
 Bekçi. İşi para için almadı.
 
-1985'te kız kardeşi bir doğum günü partisinde kayboldu. Eli o gün onu
-izlemekle görevliydi; arcade makinesine daldı, döndüğünde kardeşi yoktu.
-Dokuz yıldır Fazbear mülklerinin çevresinde iş buluyor: bulaşıkçılık,
-temizlik, kurye. Şimdi binanın **son insanı** olma şansı çıktı.
+1985'te kız kardeşi **Nora** (7) bir doğum günü partisinde kayboldu. Eli o
+gün onu izlemekle görevliydi; arcade makinesine daldı, döndüğünde kardeşi
+yoktu. Dokuz yıldır Fazbear mülklerinin çevresinde iş buluyor:
+bulaşıkçılık, temizlik, kurye. Şimdi binanın **son insanı** olma şansı çıktı.
 
-Bilmediği şey: bina onun kardeşini geri veremez, sadece nerede olduğunu
-söyleyebilir.
+Bilmediği şey: bina ona kardeşini vermeyecek. Ona **odayı** verecek.
 
 > **Neden yeni bir karakter:** Michael Afton, Jeremy, Fritz gibi canon
 > isimlerin hepsi tarihe çakılı. Boşluğa yeni bir isim koymak hem canon'u
-> bozmuyor hem oyuncuya bir sebep veriyor. Alternatifler 8. bölümde.
+> bozmuyor hem oyuncuya bir sebep veriyor.
+
+### Nora Rennard — oyunun omurgası
+
+Nora **beş kayıp çocuktan biri değil.** Onu kimse öldürmedi. Mor adamın
+Nora'dan haberi bile yok.
+
+**Ne oldu:** 1985'te, başka bir Fazbear şubesinde, parti kalabalığında
+saklambaç oynarken bir kapı buldu. Kapı kat planında yoktu, kameraya
+bağlı değildi, sesi geçirmiyordu ve **sadece dışarıdan açılıyordu.**
+Nora içeri girdi, kapı arkasından kapandı.
+
+Kimse aramadı — çünkü aranacak oda kayıtlarda yoktu. Haftalar sonra bir
+koku şikâyeti geldi; şirket **animatroniklerin bakımsızlığına yordu** ve
+şubeyi kapattı. Bina yıkıldı. Dosya kapandı.
+
+Yani Nora'yı bir katil değil, **bir mimari karar** öldürdü.
+
+**Eli bunu bilmiyor.** Dokuz yıldır bir katil arıyor.
+
+**Oyunda nasıl ortaya çıkıyor:** Fazbear Entertainment aynı gizli odayı
+**her şubeye aynı planla yaptırdı** — aynı ölçü, aynı raf, aynı tek yönlü
+mandal. 4. gecede yakıt almaya çıkan Eli, ilk kez güvenli odaya giriyor.
+
+Kardeşinin cesedini bulmuyor. **Kardeşinin öldüğü odanın birebir kopyasına
+giriyor.** Ölçüyü tanıyor, mandalı tanıyor, kokuyu tanıyor.
+
+O sahneden sonra oyunun tonu değişir: Eli artık hayatta kalmaya çalışan bir
+bekçi değil, dokuz yıl geç kalmış bir ağabey.
+
+#### Neden Nora hiçbir animatronikte yok
+
+Kukla öldürülen çocuklara "hayat veriyor" — canon mekanik bu.
+Ama Kukla **güvenli odaya giremiyor.**
+
+Nora, Kukla'nın ulaşamadığı tek yerde öldü. O yüzden hiçbir animatronikte
+yok, hiçbir ruh onun değil, hiçbir mini oyunda görünmüyor.
+**Ona hiçbir şey verilmedi.**
+
+Bu, mini oyun 3'ün (`FOLLOW`) neden hep aynı duvarda bittiğini açıklıyor —
+ve iyi sonun neden bir kurtarma değil, bir **gecikmiş ulaşma** olduğunu.
+
+#### Bunun finalle bağı
+
+5. gecede hukuk biriminden gelen emir şu: *güvenli odaları kapatın.*
+
+Yani Eli'den istenen şey, **kardeşini öldüren refleksin ta kendisi**:
+görünmeyeni kayda geçirme, kapat, geç.
+
+Ve o bunu yapıyor. Mor adam içerideyken.
+
+Son vuruş: mandal sadece dışarıdan açılıyor. Nora'nın kapısında olduğu gibi.
+**Eli dışarıda.** Açabilirdi. Açmıyor.
 
 ### Sesler (Telefoncu yerine)
 
@@ -188,11 +246,16 @@ Ses odaklı gece. Oyuncu mor adamı düzgün görüyor. Ve Freddy'nin onun
 peşinde olduğunu. Ray'in mesajı tuhaflaşıyor: *"Bugün depoda bir kasa
 buldum, manifestoda yoktu. Sen mi yazdın?"*
 
-**Gece 4 — "Jeneratöre geçtik."**
+**Gece 4 — "Jeneratöre geçtik." (dönüm noktası)**
 Ofisten çıkma gecesi. Mutfağa yakıt almaya gidiyorsun — mutfakta kamera
 yok, sadece ses. Dönerken güvenli odanın kapısını ilk kez görüyorsun:
-duvarda, kat planında olmayan bir kapı. İçeride kaset var. Ray'in
-mesajı kısa: *"Yarın gelmiyorum. Sen de gelme."*
+duvarda, kat planında olmayan bir kapı.
+
+İçeri giriyorsun. Oda dar, raflı, tek ampul, tek yönlü mandal.
+**Eli odayı tanıyor.** Oyun bunu tek bir replikle veriyor, sonra susuyor.
+
+Rafta 1983 tarihli yaylı kilit eğitim kaseti var. Ray'in mesajı kısa:
+*"Yarın gelmiyorum. Sen de gelme."*
 
 **Gece 5 — "Duvarı aldılar."**
 Ray yok. Hukuk biriminin mesajı: *sabah 6'da güvenli odaları örün, malzeme
@@ -217,10 +280,16 @@ beş gecedir öğrendiği o ses.
 Sabah 6. Bina sessiz. Hiçbir şey hareket etmiyor. Oyuncunun elinde
 harç ve tuğla var. Hukuk biriminin talimatı ekranda.
 
-Güvenli odanın kapısına yürürsün. İçeriden bir ses gelir — bir nefes,
-ya da nefes gibi bir şey.
+Güvenli odanın kapısına yürürsün. Mandal dışarıda — kapalı, ama kilitli
+değil. Bir hareketle açılır. İçeriden bir ses gelir: bir nefes, ya da
+nefes gibi bir şey.
 
-**Ve oyun sana tuğlayı verir.**
+Oyun sana **iki** şey verir: mandal ve tuğla.
+
+Mandala basma tuşu vardır ve çalışır. Oyun seni engellemez, uyarmaz,
+zaman baskısı koymaz. İstediğin kadar bekleyebilirsin.
+
+**Ve oyun bekler.**
 
 ---
 
@@ -230,11 +299,12 @@ Anlatının ağırlığını bunlar taşıyor — seride olduğu gibi.
 
 | # | Ad | Ne oynanır |
 |---|---|---|
-| 1 | **WATCH HER** | 1985. Eli olarak kız kardeşini izlemekle görevlisin. Arcade makinesi ekranın kenarında yanıp söner. Ona gidersen mini oyun içinde mini oyun oynarsın — ve döndüğünde kardeşin yoktur. **Gitmezsen de yoktur.** Oyun seni suçlamıyor; Eli kendini suçluyor. |
-| 2 | **CRATE** | Freddy olarak kasalar arasında dolaşırsın. Her kasada kendi bir parçan var. Hepsini bulunca kasa kapanır. |
-| 3 | **FOLLOW** | Kukla olarak mor adamın izini sürersin. Her seferinde aynı duvarda durursun — güvenli oda. Geçemezsin. Beş deneme, beş başarısızlık. |
-| 4 | **SIGN HERE** | Eli olarak manifestoyu imzalarsın. İmzaladığın her satırdaki parça adı, imzaladıktan sonra bir **çocuk adına** dönüşür. |
-| 5 | **SEAL** | Final. Tuğlaları dizersin. Son tuğla elinde kalır. Koyman gerekiyor. Oyun devam etmiyor koymadan. |
+| 1 | **WATCH HER** | 1985. Eli olarak Nora'yı izlemekle görevlisin. Arcade makinesi ekranın kenarında yanıp söner. Ona gidersen mini oyun içinde mini oyun oynarsın — ve döndüğünde Nora yoktur. **Gitmezsen de yoktur:** o sen bakarken saklambaç oynuyor ve kapıyı buluyor. Oyun seni suçlamıyor; Eli kendini suçluyor. Fark bu. |
+| 2 | **HIDE** | Nora olarak saklambaç oynarsın. Bütün saklanma yerleri sırayla kapanır; geriye tek kapı kalır. İçeri girersin. Ekran kararır. Mini oyun bitmez — **hiçbir tuş çalışmaz**, sadece 4 saniye sonra kendi kendine kapanır. |
+| 3 | **CRATE** | Freddy olarak kasalar arasında dolaşırsın. Her kasada kendi bir parçan var. Hepsini bulunca kasa kapanır. |
+| 4 | **FOLLOW** | Kukla olarak mor adamın izini sürersin. Her seferinde aynı duvarda durursun — güvenli oda. Geçemezsin. Dört deneme, dört başarısızlık. *(Beşincisi sadece iyi sonda oynanır.)* |
+| 5 | **SIGN HERE** | Eli olarak manifestoyu imzalarsın. İmzaladığın her satırdaki parça adı, imzaladıktan sonra bir **çocuk adına** dönüşür. Son satır boştur. |
+| 6 | **SEAL** | Final. Tuğlaları dizersin. Son tuğla elinde kalır. |
 
 ---
 
@@ -249,50 +319,62 @@ arasında bir şey bulundu.**
 Bu son zorunlu. Oyunun varlık sebebi bu.
 
 ### İyi son — "En Mutlu Gün"
-Gizli koşul: beş gece boyunca **beş kasayı doğru işaretlemek** ve Kukla'nın
-müzik kutusunu bulup 5. gecede kurmak.
+Gizli koşul: beş gece boyunca **beş kasayı da doğru işaretlemek** ve
+Kukla'nın müzik kutusunu bulup 5. gecede kurmak.
 
-O zaman 5. gecede animatronikler oyuncuya hiç gelmez. Koridor boştur. Mini
-oyun 3 (FOLLOW) bir kez daha oynanır ve **bu sefer Kukla duvarı geçer.**
+O zaman 5. gecede animatronikler oyuncuya hiç gelmez. Koridor boştur.
+`FOLLOW` beşinci kez oynanır ve **bu sefer Kukla duvarı geçer** — çünkü
+duvarı örecek olan adam onu bu kez içeriden değil dışarıdan tutuyor.
 
-Duvarı yine örersin — ama bu sefer bilerek, ve arkanda beş çocuk
-pastanın başında oturuyordur.
+Masada beş çocuk oturur. Kukla altıncı bir tabak koyar.
+
+Duvarı yine örersin — ama bu sefer bilerek. `SIGN HERE`'ın boş kalan son
+satırı doldurulur: **NORA.**
+
+> Bu bir kurtarma değil. Nora dokuz yıl önce öldü ve iyi son bunu
+> değiştirmiyor. Değişen tek şey, birinin sonunda onun için o odaya
+> girmiş olması.
 
 ### Gizli son — "Boş Oda" *(canon dışı)*
-Tuğlayı koymazsın. 6. gecede kapıyı **açarsın.**
+Tuğlayı koymazsın. 6. gecede mandalı **kaldırırsın.**
 Ekran: 2023, Fazbear's Fright, boş bir sergi vitrini, altında bir etiket:
 *"Bu vitrinde bir şey olması gerekiyordu."*
 Sonra: **OLMAYAN TARİH — %1.**
 
+> Bu son mekanik olarak "iyi" görünüyor ama değil: Eli o kapıyı, kardeşine
+> açılmayan kapı olduğu için açıyor. Yani doğru sebeple yanlış adamı
+> kurtarıyor. Oyun bunu hiç söylemiyor.
+
 ---
 
-## 8. Karar bekleyen sorular
+## 8. Kararlar
 
-Bunları sen belirle, ben ona göre detaylandırayım:
+### Verildi
 
-1. **Ana karakter kim?**
-   - (a) Eli Rennard — kardeşi kayıp, yeni karakter *(benim önerim: canon'u
-     bozmuyor, oyuncuya sebep veriyor)*
-   - (b) Michael Afton — babasını takip ediyor. Daha bağlı ama daha riskli.
-   - (c) İsimsiz bekçi — klasik FNAF 1 hissi, duygusal bağ yok.
+| Konu | Karar |
+|---|---|
+| Ana karakter | **Eli Rennard** — yeni karakter, kardeşi 1985'te kayıp |
+| Kardeş | **Nora Rennard**, beş kayıp çocuktan biri **değil**, ayrı vaka. Güvenli odada unutularak öldü. Kukla ona ulaşamadı. |
+| Final | **FNAF 3'e tam bağlanıyor.** Springtrap'in doğuşu ekranda, duvarı oyuncu örüyor, kapanışta 2023. |
 
-2. **Eli'nin kardeşi beş kayıp çocuktan biri mi?**
-   - (a) Evet, biri — Chica'nın ruhu. Daha sert bağlanır.
-   - (b) Hayır, ayrı bir vaka — hiçbir animatronikte yok. Daha acı: bina
-     ona cevap vermiyor.
+### Kalanlar
 
-3. **Mor adamı ne kadar gösterelim?** Hiç yüz yok / siluet / net.
+1. **Mor adamı ne kadar gösterelim?** Hiç yüz yok / siluet / net.
    *(Önerim: 5. geceye kadar hiç yüz, 5. gecede net — çünkü o an artık
    korkulacak bir şey değil, kaçan bir adam.)*
 
-4. **Oynanış klasik ofis mi kalsın?**
+2. **Oynanış klasik ofis mi kalsın?**
    *(Önerim: evet, ama 4. geceden itibaren kısıtlı çıkışla. Tam serbest
    dolaşım FNAF hissini bozuyor.)*
 
-5. **Final FNAF 3'e bu kadar sıkı bağlansın mı,** yoksa "kim öldü belli
-   olmasın" mı? *(Önerim: sıkı bağlansın — oyunun tek satış noktası bu.)*
+3. **Eli odayı 4. gecede mi tanısın, yoksa daha geç mi?**
+   *(Önerim: 4. gece. Son iki geceyi oyuncunun bilerek oynaması, sürprizden
+   daha ağır.)*
 
-6. **Dil:** Türkçe mi, İngilizce mi, iki dilli mi?
+4. **Nora'nın öldüğü şube gösterilsin mi?** Mini oyunla (`HIDE`) veriliyor
+   ama gerçek bir mekân olarak hiç görünmüyor. Böyle kalsın mı?
+
+5. **Dil:** Türkçe mi, İngilizce mi, iki dilli mi?
 
 ---
 
