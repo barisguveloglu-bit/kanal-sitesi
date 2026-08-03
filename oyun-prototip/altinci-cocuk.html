@@ -49,7 +49,10 @@ button{font:inherit;color:inherit;cursor:pointer}
 /* ---------- menü ---------- */
 #menu h1{font-family:var(--f-machine);font-size:clamp(26px,6vw,60px);
   letter-spacing:.16em;text-transform:uppercase;margin:0;color:#e6e2d8;
-  text-shadow:0 0 22px rgba(200,180,120,.16)}
+  text-shadow:0 0 22px rgba(200,180,120,.16);animation:titleFlick 7s steps(1) infinite}
+@keyframes titleFlick{0%,63%,100%{opacity:1}64%{opacity:.25}65%{opacity:1}
+  78%{opacity:.5}79%{opacity:1}80%{opacity:.15}81.5%{opacity:1}}
+#menu .art{margin-bottom:6px;opacity:.9;filter:drop-shadow(0 8px 26px rgba(0,0,0,.9))}
 #menu .sub{font-family:var(--f-child);font-size:clamp(20px,4.6vw,40px);
   color:var(--c-puppet);margin:6px 0 2px}
 #menu .tag{color:var(--dim);font-size:13px;letter-spacing:.1em;text-transform:uppercase}
@@ -71,29 +74,75 @@ button{font:inherit;color:inherit;cursor:pointer}
   font-size:20px;color:#e6e2d8;margin:0 0 4px}
 
 /* ---------- oda / sahne görünümü ---------- */
-.room{position:relative;width:min(940px,96vw);aspect-ratio:16/10;
-  background:radial-gradient(120% 100% at 50% 40%,#141821 0%,#080a0e 68%,#000 100%);
-  border:1px solid var(--line);overflow:hidden}
-.room.dark{background:radial-gradient(120% 100% at 50% 45%,#0d1014 0%,#050608 70%,#000 100%)}
-.floor{position:absolute;left:0;right:0;bottom:0;height:26%;
-  background:linear-gradient(#0c0f14,#05070a);border-top:1px solid #171b22}
-.beam{position:absolute;width:520px;height:520px;border-radius:50%;pointer-events:none;
-  background:radial-gradient(circle,rgba(255,244,214,.20) 0%,rgba(255,244,214,.09) 34%,
-    rgba(255,244,214,0) 66%);transform:translate(-50%,-50%);mix-blend-mode:screen}
-.figure{position:absolute;bottom:30%;transform:translateX(-50%);
-  filter:drop-shadow(0 0 14px rgba(0,0,0,.9))}
+.room{position:relative;width:min(1000px,96vw);aspect-ratio:16/10;
+  background:#040507;border:1px solid var(--line);overflow:hidden}
+.bg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.bg svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+
+/* fener: yumuşak koni + sıcak göbek */
+.beam{position:absolute;width:640px;height:640px;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle,rgba(255,246,216,.26) 0%,rgba(255,242,206,.13) 26%,
+    rgba(255,238,196,.05) 48%,rgba(255,238,196,0) 70%);
+  transform:translate(-50%,-50%);mix-blend-mode:screen;z-index:3}
+.beam::after{content:"";position:absolute;left:50%;top:50%;width:150px;height:150px;
+  transform:translate(-50%,-50%);border-radius:50%;
+  background:radial-gradient(circle,rgba(255,250,230,.22),rgba(255,250,230,0) 70%);
+  animation:beamPulse 3.4s ease-in-out infinite}
+@keyframes beamPulse{0%,100%{opacity:.75;transform:translate(-50%,-50%) scale(1)}
+  50%{opacity:1;transform:translate(-50%,-50%) scale(1.09)}}
+
+/* toz zerreleri */
+.motes{position:absolute;inset:0;pointer-events:none;z-index:2;opacity:.5}
+.mote{position:absolute;width:2px;height:2px;border-radius:50%;background:#cfc7ae;
+  opacity:.0;animation:mote linear infinite}
+@keyframes mote{0%{opacity:0;transform:translateY(0)}
+  12%{opacity:.55}88%{opacity:.4}100%{opacity:0;transform:translateY(-90px)}}
+
+.figure{position:absolute;bottom:30%;transform:translateX(-50%);z-index:2;
+  filter:drop-shadow(0 10px 18px rgba(0,0,0,.85))}
 .figure svg{display:block}
-.vig{position:absolute;inset:0;pointer-events:none;
-  box-shadow:inset 0 0 170px 60px #000}
-.grain{position:absolute;inset:0;pointer-events:none;opacity:.05;
-  background-image:repeating-linear-gradient(0deg,#fff 0 1px,transparent 1px 3px)}
+.figure.idle{animation:sway 5.2s ease-in-out infinite}
+.figure.idle.b{animation-duration:6.1s;animation-delay:-1.4s}
+.figure.idle.c{animation-duration:4.7s;animation-delay:-2.6s}
+.figure.idle.d{animation-duration:5.8s;animation-delay:-3.7s}
+@keyframes sway{0%,100%{transform:translateX(-50%) rotate(-.5deg) translateY(0)}
+  50%{transform:translateX(-50%) rotate(.5deg) translateY(-3px)}}
+.eyeglow{animation:eyeFlick 4.6s steps(1) infinite}
+@keyframes eyeFlick{0%,86%,100%{opacity:1}88%{opacity:.15}90%{opacity:1}
+  93%{opacity:.3}95%{opacity:1}}
+
+.vig{position:absolute;inset:0;pointer-events:none;z-index:4;
+  box-shadow:inset 0 0 150px 46px #000, inset 0 0 50px 4px rgba(0,0,0,.45)}
+.grain{position:absolute;inset:0;pointer-events:none;z-index:4;opacity:.055;
+  background-image:repeating-linear-gradient(0deg,#fff 0 1px,transparent 1px 3px);
+  animation:grainShift .5s steps(3) infinite}
+@keyframes grainShift{0%{transform:translateY(0)}33%{transform:translateY(-1px)}
+  66%{transform:translateY(1px)}}
+.room.rumble{animation:rumble .36s ease-out}
+@keyframes rumble{0%{transform:translate(0,0)}18%{transform:translate(-2px,2px)}
+  36%{transform:translate(3px,-1px)}54%{transform:translate(-2px,-2px)}
+  72%{transform:translate(2px,1px)}100%{transform:translate(0,0)}}
+
+/* sahne perdesi dalgalanması */
+.curtain{transform-origin:top center;animation:curtSway 7s ease-in-out infinite}
+.curtain.r{animation-delay:-3.2s}
+@keyframes curtSway{0%,100%{transform:skewX(0deg)}50%{transform:skewX(.7deg)}}
+/* tavan lambası titremesi */
+.lampglow{animation:lampFlick 6.5s steps(1) infinite}
+@keyframes lampFlick{0%,70%,100%{opacity:.9}72%{opacity:.25}74%{opacity:.9}
+  81%{opacity:.4}83%{opacity:.9}}
+/* tavan pervanesi */
+.fanblades{transform-origin:center;animation:fanSpin 1.6s linear infinite}
+@keyframes fanSpin{to{transform:rotate(360deg)}}
 
 /* ---------- altyazı ---------- */
 #subs{position:absolute;left:0;right:0;bottom:4%;display:flex;flex-direction:column;
   align-items:center;justify-content:flex-end;gap:6px;pointer-events:none;padding:0 4%;
   max-height:34%}
 .sub{max-width:min(760px,92%);padding:7px 15px;border-radius:3px;
-  background:rgba(4,5,7,.88);line-height:1.42;text-align:center}
+  background:rgba(4,5,7,.88);line-height:1.42;text-align:center;
+  animation:subIn .22s ease-out}
+@keyframes subIn{0%{opacity:0;transform:translateY(7px)}100%{opacity:1;transform:none}}
 .sub.left{align-self:flex-start;text-align:left}
 .sub.right{align-self:flex-end;text-align:right}
 .sub .who{display:block;font-family:var(--f-michael);font-size:9.5px;letter-spacing:.24em;
@@ -114,23 +163,63 @@ button{font:inherit;color:inherit;cursor:pointer}
 
 /* ---------- ofis ---------- */
 #office .room{cursor:crosshair}
-.doorway{position:absolute;top:10%;bottom:30%;width:19%;
-  background:linear-gradient(#05070a,#020305);border:1px solid #191d25}
-.doorway.l{left:2%} .doorway.r{right:2%}
-.doorway .lbl{position:absolute;top:6px;left:0;right:0;text-align:center;font-size:9px;
-  letter-spacing:.2em;color:#3d4450}
-.shutter{position:absolute;inset:0;background:repeating-linear-gradient(#2a2f38 0 6px,#171b22 6px 12px);
-  transform:translateY(-101%);transition:transform .22s ease}
-.shutter.down{transform:translateY(0)}
-.hallLight{position:absolute;inset:0;background:rgba(255,246,220,.10);opacity:0}
-.hallLight.on{opacity:1}
-.desk{position:absolute;left:22%;right:22%;bottom:0;height:30%;
-  background:linear-gradient(#0f131a,#070a0e);border-top:1px solid #1c212a}
-.desk::before{content:"";position:absolute;left:8%;bottom:56%;width:84px;height:56px;
-  background:#0a0d12;border:1px solid #232935;border-radius:3px;
-  box-shadow:0 0 22px rgba(120,160,200,.06) inset}
-.desk::after{content:"";position:absolute;right:10%;bottom:56%;width:44px;height:44px;
-  border:1px solid #232935;border-radius:50%;background:radial-gradient(#11151c,#080b0f)}
+
+/* kapı boşluğu: içinde koridor görünüyor */
+.doorway{position:absolute;top:9%;bottom:26%;width:20%;overflow:hidden;
+  background:#020304;border:1px solid #171b22;
+  box-shadow:inset 0 0 40px 12px rgba(0,0,0,.9);z-index:2}
+.doorway.l{left:1.5%} .doorway.r{right:1.5%}
+.doorway .hallbg{position:absolute;inset:0}
+.doorway .hallbg svg{width:100%;height:100%;display:block}
+.doorway .lbl{position:absolute;top:5px;left:0;right:0;text-align:center;font-size:9px;
+  letter-spacing:.2em;color:#39404b;z-index:6}
+
+/* kapı çerçevesi ve uyarı lambası */
+.dframe{position:absolute;inset:0;border:3px solid #14181f;pointer-events:none;z-index:7}
+.warnlamp{position:absolute;top:0;left:50%;transform:translateX(-50%);
+  width:34%;height:5px;background:#1b1f26;z-index:8;border-radius:0 0 3px 3px}
+.warnlamp.on{background:var(--c-bad);box-shadow:0 0 16px 3px rgba(210,86,74,.7);
+  animation:warnBlink .62s steps(1) infinite}
+@keyframes warnBlink{0%,49%{opacity:1}50%,100%{opacity:.25}}
+
+/* PANJUR — lamel lamel, çarpma ve sekme ile */
+.shutter{position:absolute;left:0;right:0;top:0;height:100%;z-index:5;
+  transform:translateY(-101%);will-change:transform;
+  filter:drop-shadow(0 6px 12px rgba(0,0,0,.8))}
+.shutter .slat{height:7.6%;position:relative;
+  background:linear-gradient(#333a45 0%,#232932 38%,#1b212a 62%,#2b323d 100%);
+  border-top:1px solid #454f5d;border-bottom:1px solid #0d1116}
+.shutter .slat::after{content:"";position:absolute;left:0;right:0;top:32%;height:1px;
+  background:rgba(255,255,255,.055)}
+.shutter .rail{position:absolute;top:0;bottom:0;width:5px;background:linear-gradient(90deg,#3b434f,#171c23);
+  z-index:2}
+.shutter .rail.l{left:0} .shutter .rail.r{right:0}
+.shutter .lip{height:9%;background:repeating-linear-gradient(45deg,
+    #b9962f 0 9px,#171b22 9px 18px);border-top:2px solid #5b5334;
+  box-shadow:0 3px 10px rgba(0,0,0,.85)}
+.shutter.down{animation:shutClose .38s cubic-bezier(.3,.85,.25,1) forwards}
+.shutter.up{animation:shutOpen .34s cubic-bezier(.5,0,.75,.4) forwards}
+@keyframes shutClose{0%{transform:translateY(-101%)}
+  70%{transform:translateY(1.5%)}84%{transform:translateY(-2.5%)}
+  93%{transform:translateY(.8%)}100%{transform:translateY(0)}}
+@keyframes shutOpen{0%{transform:translateY(0)}12%{transform:translateY(2%)}
+  100%{transform:translateY(-101%)}}
+
+/* kapı tozu */
+.dust{position:absolute;left:0;right:0;bottom:0;height:26%;pointer-events:none;z-index:6;
+  opacity:0}
+.dust.go{animation:dustPuff .8s ease-out}
+.dust i{position:absolute;bottom:4px;width:3px;height:3px;border-radius:50%;background:#8d8368}
+@keyframes dustPuff{0%{opacity:0}15%{opacity:.55}100%{opacity:0;transform:translateY(-26px)}}
+
+.hallLight{position:absolute;inset:0;z-index:4;opacity:0;transition:opacity .09s;
+  background:radial-gradient(120% 90% at 50% 40%,rgba(255,246,214,.26),rgba(255,246,214,.05) 62%,transparent 78%)}
+.hallLight.on{opacity:1;animation:hallBuzz .16s steps(2) 2}
+@keyframes hallBuzz{0%{opacity:.4}50%{opacity:1}100%{opacity:1}}
+
+/* masa */
+.deskwrap{position:absolute;left:0;right:0;bottom:0;height:34%;z-index:3;pointer-events:none}
+.deskwrap svg{width:100%;height:100%;display:block}
 
 #hud{position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;
   gap:10px;padding:10px 14px;font-size:11px;letter-spacing:.12em;text-transform:uppercase}
@@ -150,11 +239,21 @@ button{font:inherit;color:inherit;cursor:pointer}
 .cbtn:hover{color:#fff}
 
 /* kamera */
-#cams{position:absolute;inset:0;background:#04050700;backdrop-filter:blur(0px)}
 .camview{position:absolute;inset:0;background:#05070a;padding:44px 18px 60px;
-  display:flex;flex-direction:column;gap:8px}
+  display:flex;flex-direction:column;gap:8px;z-index:9;
+  animation:camOn .28s ease-out}
+@keyframes camOn{0%{opacity:0;transform:translateY(9px) scaleY(.94);filter:brightness(3)}
+  40%{filter:brightness(1.5)}100%{opacity:1;transform:none;filter:none}}
 .camstatic{position:absolute;inset:0;pointer-events:none;opacity:.09;
-  background-image:repeating-linear-gradient(0deg,#fff 0 1px,transparent 1px 2px)}
+  background-image:repeating-linear-gradient(0deg,#fff 0 1px,transparent 1px 2px);
+  animation:grainShift .34s steps(3) infinite}
+.camscan{position:absolute;left:0;right:0;height:120px;pointer-events:none;z-index:3;
+  background:linear-gradient(rgba(255,255,255,0),rgba(180,220,255,.05),rgba(255,255,255,0));
+  animation:scan 5.5s linear infinite}
+@keyframes scan{0%{top:-120px}100%{top:100%}}
+.camflash{position:absolute;inset:0;pointer-events:none;background:#cfe3ff;opacity:0;z-index:4}
+.camflash.go{animation:camFlash .22s ease-out}
+@keyframes camFlash{0%{opacity:.22}100%{opacity:0}}
 .camrooms{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:7px;
   position:relative;z-index:2}
 .cr{border:1px solid #1c212a;background:#080a0e;padding:9px 10px;min-height:74px;
@@ -165,8 +264,14 @@ button{font:inherit;color:inherit;cursor:pointer}
 .boxwrap{position:relative;z-index:2;border:1px solid #2a2f38;background:#080a0e;padding:10px 12px}
 
 /* koridor (çıkış) */
-.corridor{position:absolute;inset:0;background:linear-gradient(#0a0d12,#04060a)}
-.walker{position:absolute;left:50%;bottom:16%;transform:translateX(-50%)}
+.corridor{position:absolute;inset:0;background:#04060a;overflow:hidden}
+.corridor .cbg{position:absolute;inset:0}
+.corridor .cbg svg{width:100%;height:100%;display:block}
+.walker{position:absolute;left:50%;bottom:16%;transform:translateX(-50%);z-index:3;
+  filter:drop-shadow(0 8px 14px rgba(0,0,0,.9))}
+.walker.moving{animation:bob .42s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateX(-50%) translateY(0) rotate(-1deg)}
+  50%{transform:translateX(-50%) translateY(-5px) rotate(1deg)}}
 .progbar{position:absolute;left:8%;right:8%;bottom:8%;height:6px;background:#161a21}
 .progbar i{position:absolute;inset:0;width:0;background:#7fa8c9}
 .watcheye{position:absolute;top:16%;left:50%;transform:translateX(-50%);
@@ -175,9 +280,16 @@ button{font:inherit;color:inherit;cursor:pointer}
 
 /* jumpscare */
 #scare{position:absolute;inset:0;background:#000;display:flex;align-items:center;
-  justify-content:center;z-index:60}
+  justify-content:center;z-index:60;animation:scareIn .12s steps(2)}
+@keyframes scareIn{0%{background:#3a0d0a}100%{background:#000}}
+#scare .who{animation:scareShake .09s steps(2) infinite, scarePush .5s cubic-bezier(.1,.9,.2,1)}
+@keyframes scareShake{0%{transform:translate(-5px,3px) rotate(-1.4deg)}
+  50%{transform:translate(6px,-4px) rotate(1.6deg)}100%{transform:translate(-4px,-2px) rotate(-1deg)}}
+@keyframes scarePush{0%{scale:.35;filter:brightness(3)}100%{scale:1;filter:none}}
 #scare .msg{font-family:var(--f-machine);text-transform:uppercase;letter-spacing:.22em;
   color:var(--c-bad);font-size:clamp(20px,5vw,40px)}
+.room.blackout{animation:blackout .5s steps(2) infinite}
+@keyframes blackout{0%,100%{filter:brightness(.22)}50%{filter:brightness(.3)}}
 
 /* kart / metin ekranları */
 .card{width:min(720px,92vw);text-align:center}
@@ -282,7 +394,9 @@ const A = (()=>{
     },
     fanOff(){ if(hum){ try{hum.stop();}catch(e){} hum=null; } },
     click(){ noise(.05,.10,1400); },
-    doorMove(){ tone(90,.16,"square",.10,.6); noise(.10,.07,300); },
+    doorMove(){ tone(90,.30,"square",.09,.55); noise(.30,.06,260); },
+    slam(){ tone(58,.34,"square",.17,.42); noise(.20,.15,120); },
+    buzz(){ tone(120,.14,"square",.035); tone(240,.14,"square",.02); },
     step(){ noise(.06,.05,250); },
     ping(){ tone(880,.09,"triangle",.06); },
     bad(){ tone(120,.5,"sawtooth",.14,.4); noise(.5,.12,200); },
@@ -313,40 +427,605 @@ const loop = fn => { let id; const step=t=>{ if(fn(t)!==false) id=requestAnimati
 const stopLoops = () => { rafs.forEach(f=>f()); rafs=[]; };
 const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-/* animatronik siluetleri — görsel dosya yok, hepsi SVG */
-function figure(kind, h=170){
-  const c = {freddy:"#3a2c1d",bonnie:"#2e2440",chica:"#3d3418",foxy:"#3a1f1c",
-             golden:"#4a4023",puppet:"#151515",jesse:"#20242c"}[kind] || "#222";
-  const eye = {freddy:"#c98a3b",bonnie:"#8e6fd8",chica:"#e8c33a",foxy:"#c4453b",
-               golden:"#d9c46a",puppet:"#edeae3",jesse:"#000"}[kind] || "#888";
-  let ears="";
-  if(kind==="freddy"||kind==="golden") ears=`<circle cx="30" cy="26" r="11" fill="${c}"/><circle cx="70" cy="26" r="11" fill="${c}"/>`;
-  if(kind==="bonnie") ears=`<rect x="26" y="-16" width="13" height="46" rx="6" fill="${c}"/><rect x="61" y="-16" width="13" height="46" rx="6" fill="${c}"/>`;
-  if(kind==="chica") ears=`<path d="M42 20 L50 -2 L58 20 Z" fill="${c}"/>`;
-  if(kind==="foxy") ears=`<path d="M28 30 L32 8 L44 26 Z" fill="${c}"/><path d="M72 30 L68 8 L56 26 Z" fill="${c}"/>`;
-  if(kind==="puppet") return `<svg viewBox="0 0 100 220" height="${h}" aria-hidden="true">
-      <rect x="44" y="52" width="12" height="120" fill="#111"/>
-      <rect x="18" y="60" width="10" height="96" rx="5" fill="#111"/>
-      <rect x="72" y="60" width="10" height="96" rx="5" fill="#111"/>
-      <ellipse cx="50" cy="34" rx="22" ry="27" fill="#e9e6de"/>
-      <circle cx="42" cy="30" r="3.4" fill="#111"/><circle cx="58" cy="30" r="3.4" fill="#111"/>
-      <path d="M42 44 Q50 50 58 44" stroke="#a3355f" stroke-width="2.4" fill="none"/>
-      <circle cx="42" cy="40" r="2.2" fill="#a3355f"/><circle cx="58" cy="40" r="2.2" fill="#a3355f"/>
-    </svg>`;
-  if(kind==="jesse") return `<svg viewBox="0 0 100 220" height="${h}" aria-hidden="true">
-      <circle cx="50" cy="34" r="17" fill="#1b1f26"/>
-      <path d="M26 60 h48 l7 74 h-62 Z" fill="#242832"/>
-      <rect x="22" y="60" width="10" height="72" rx="4" fill="#242832"/>
-      <rect x="68" y="60" width="10" height="72" rx="4" fill="#242832"/>
-    </svg>`;
-  return `<svg viewBox="0 0 100 220" height="${h}" aria-hidden="true">
-    ${ears}
-    <ellipse cx="50" cy="40" rx="27" ry="25" fill="${c}"/>
-    <rect x="24" y="62" width="52" height="86" rx="12" fill="${c}"/>
-    <rect x="10" y="66" width="13" height="70" rx="6" fill="${c}"/>
-    <rect x="77" y="66" width="13" height="70" rx="6" fill="${c}"/>
-    <circle cx="41" cy="38" r="4.6" fill="${eye}"/><circle cx="59" cy="38" r="4.6" fill="${eye}"/>
-    <ellipse cx="50" cy="52" rx="10" ry="7" fill="#0d0d0d" opacity=".55"/>
+/* ==========================================================================
+   ANIMATRONİKLER — görsel dosya yok, hepsi elle çizilmiş SVG.
+   Hepsi 0 0 200 340 kutusunda; ayak hizası y=336.
+   ========================================================================== */
+function eyes(cx1, cx2, cy, r, iris, look=0){
+  return `<g class="eyeglow">
+    <ellipse cx="${cx1}" cy="${cy}" rx="${r}" ry="${r*1.06}" fill="#efeadd"/>
+    <ellipse cx="${cx2}" cy="${cy}" rx="${r}" ry="${r*1.06}" fill="#efeadd"/>
+    <circle cx="${cx1+look}" cy="${cy}" r="${r*.55}" fill="${iris}"/>
+    <circle cx="${cx2+look}" cy="${cy}" r="${r*.55}" fill="${iris}"/>
+    <circle cx="${cx1+look}" cy="${cy}" r="${r*.27}" fill="#08090b"/>
+    <circle cx="${cx2+look}" cy="${cy}" r="${r*.27}" fill="#08090b"/>
+    <circle cx="${cx1+look-r*.2}" cy="${cy-r*.24}" r="${r*.13}" fill="#fff" opacity=".85"/>
+    <circle cx="${cx2+look-r*.2}" cy="${cy-r*.24}" r="${r*.13}" fill="#fff" opacity=".85"/>
+  </g>`;
+}
+function teeth(x, y, w, n=6){
+  let t=""; const s=w/n;
+  for(let i=0;i<n;i++) t+=`<rect x="${x+i*s+1}" y="${y}" width="${s-2}" height="7" rx="1.5" fill="#e8e3d4"/>`;
+  return t;
+}
+
+const FIGURES = {
+  freddy(){ return `
+    <g>
+      <ellipse cx="100" cy="330" rx="52" ry="9" fill="#000" opacity=".5"/>
+      <rect x="60" y="292" width="34" height="40" rx="12" fill="#4a3520"/>
+      <rect x="58" y="290" width="36" height="44" rx="13" fill="#3d2e1c"/>
+      <rect x="106" y="290" width="36" height="44" rx="13" fill="#3d2e1c"/>
+      <rect x="62" y="200" width="76" height="104" rx="26" fill="#63482c"/>
+      <ellipse cx="100" cy="264" rx="32" ry="34" fill="#7a5b39"/>
+      <rect x="28" y="206" width="26" height="82" rx="13" fill="#563e26"/>
+      <rect x="146" y="206" width="26" height="82" rx="13" fill="#563e26"/>
+      <ellipse cx="41" cy="292" rx="15" ry="13" fill="#4a3520"/>
+      <ellipse cx="41" cy="292" rx="15" ry="13" fill="#4a3520"/>
+      <ellipse cx="159" cy="292" rx="15" ry="13" fill="#4a3520"/>
+      <rect x="152" y="252" width="7" height="46" rx="3.5" fill="#1a1a1e"/>
+      <ellipse cx="155" cy="248" rx="10" ry="12" fill="#2b2b30"/>
+      <circle cx="87" cy="216" r="6" fill="#151517"/><circle cx="113" cy="216" r="6" fill="#151517"/>
+      <path d="M78 196 L122 196 L112 210 L88 210 Z" fill="#141416"/>
+      <ellipse cx="100" cy="196" rx="17" ry="9" fill="#1b1b1e"/>
+      <circle cx="59" cy="112" r="21" fill="#4a3520"/><circle cx="59" cy="112" r="12" fill="#6f5335"/>
+      <circle cx="141" cy="112" r="21" fill="#4a3520"/><circle cx="141" cy="112" r="12" fill="#6f5335"/>
+      <ellipse cx="100" cy="130" rx="54" ry="50" fill="#63482c"/>
+      <ellipse cx="100" cy="158" rx="31" ry="24" fill="#7a5b39"/>
+      <ellipse cx="100" cy="146" rx="12" ry="9" fill="#17140f"/>
+      ${teeth(80,168,40,5)}
+      <path d="M70 106 q12 -9 24 -2" stroke="#3a2a18" stroke-width="6" fill="none" stroke-linecap="round"/>
+      <path d="M130 106 q-12 -9 -24 -2" stroke="#3a2a18" stroke-width="6" fill="none" stroke-linecap="round"/>
+      ${eyes(80,120,124,11,"#3f7fa8")}
+      <path d="M62 86 h76 v-6 h-76 z" fill="#141416"/>
+      <rect x="72" y="42" width="56" height="42" rx="4" fill="#17171a"/>
+      <rect x="70" y="76" width="60" height="10" rx="3" fill="#101012"/>
+      <rect x="72" y="66" width="56" height="8" fill="#2a2a30"/>
+    </g>`; },
+
+  bonnie(){ return `
+    <g>
+      <ellipse cx="100" cy="330" rx="50" ry="9" fill="#000" opacity=".5"/>
+      <rect x="58" y="290" width="36" height="44" rx="13" fill="#2f2547"/>
+      <rect x="106" y="290" width="36" height="44" rx="13" fill="#2f2547"/>
+      <rect x="62" y="198" width="76" height="106" rx="26" fill="#4b3b6e"/>
+      <ellipse cx="100" cy="262" rx="31" ry="33" fill="#5e4b87"/>
+      <rect x="28" y="204" width="26" height="86" rx="13" fill="#42335f"/>
+      <rect x="146" y="204" width="26" height="86" rx="13" fill="#42335f"/>
+      <ellipse cx="41" cy="294" rx="15" ry="13" fill="#392c52"/>
+      <ellipse cx="159" cy="294" rx="15" ry="13" fill="#392c52"/>
+      <path d="M120 232 l44 -22 l8 15 l-44 22 z" fill="#8e2f3a"/>
+      <ellipse cx="128" cy="244" rx="20" ry="16" fill="#a8394a" transform="rotate(-26 128 244)"/>
+      <ellipse cx="128" cy="244" rx="8" ry="6" fill="#2a1013" transform="rotate(-26 128 244)"/>
+      <circle cx="87" cy="214" r="6" fill="#241c36"/><circle cx="113" cy="214" r="6" fill="#241c36"/>
+      <path d="M80 194 L120 194 L111 208 L89 208 Z" fill="#b23241"/>
+      <ellipse cx="100" cy="194" rx="15" ry="8" fill="#c53a4b"/>
+      <rect x="56" y="18" width="24" height="82" rx="12" fill="#42335f"/>
+      <rect x="61" y="28" width="14" height="60" rx="7" fill="#7d5f9e"/>
+      <rect x="120" y="18" width="24" height="82" rx="12" fill="#42335f"/>
+      <rect x="125" y="28" width="14" height="60" rx="7" fill="#7d5f9e"/>
+      <rect x="56" y="96" width="88" height="70" rx="26" fill="#4b3b6e"/>
+      <ellipse cx="100" cy="152" rx="28" ry="21" fill="#5e4b87"/>
+      <ellipse cx="100" cy="141" rx="10" ry="8" fill="#191322"/>
+      ${teeth(82,160,36,4)}
+      ${eyes(82,118,120,11,"#a9316b")}
+      <path d="M72 100 q11 -8 22 -2" stroke="#332747" stroke-width="6" fill="none" stroke-linecap="round"/>
+      <path d="M128 100 q-11 -8 -22 -2" stroke="#332747" stroke-width="6" fill="none" stroke-linecap="round"/>
+    </g>`; },
+
+  chica(){ return `
+    <g>
+      <ellipse cx="100" cy="330" rx="48" ry="9" fill="#000" opacity=".5"/>
+      <rect x="66" y="292" width="26" height="42" rx="10" fill="#c47a1e"/>
+      <rect x="108" y="292" width="26" height="42" rx="10" fill="#c47a1e"/>
+      <path d="M56 330 h44 v6 h-46 z" fill="#d0851f"/><path d="M100 330 h44 v6 h-46 z" fill="#d0851f"/>
+      <rect x="62" y="196" width="76" height="106" rx="26" fill="#c9ad2c"/>
+      <rect x="28" y="202" width="26" height="86" rx="13" fill="#b89a24"/>
+      <rect x="146" y="202" width="26" height="86" rx="13" fill="#b89a24"/>
+      <ellipse cx="41" cy="292" rx="15" ry="13" fill="#a68a1e"/>
+      <g transform="translate(150,246)">
+        <ellipse cx="0" cy="14" rx="20" ry="13" fill="#e0d3ba"/>
+        <path d="M-18 12 h36 l-4 -14 h-28 z" fill="#c9835f"/>
+        <ellipse cx="0" cy="-4" rx="17" ry="12" fill="#e05a72"/>
+        <circle cx="-6" cy="-6" r="3" fill="#1a1216"/><circle cx="6" cy="-6" r="3" fill="#1a1216"/>
+        <rect x="-1.6" y="-24" width="3.2" height="14" fill="#e8e3d4"/>
+        <ellipse cx="0" cy="-26" rx="3" ry="5" fill="#f2a13a"/>
+      </g>
+      <path d="M64 196 h72 l-8 62 h-56 z" fill="#f0eadb"/>
+      <text x="100" y="222" font-family="Impact, 'Arial Black', sans-serif" font-size="17"
+        fill="#c2447a" text-anchor="middle" letter-spacing="1">LET'S</text>
+      <text x="100" y="242" font-family="Impact, 'Arial Black', sans-serif" font-size="17"
+        fill="#c2447a" text-anchor="middle" letter-spacing="1">EAT!!!</text>
+      <path d="M78 78 q10 -34 22 -30 q-6 12 2 22 z" fill="#e8cf34"/>
+      <path d="M104 74 q14 -30 24 -22 q-9 9 -6 22 z" fill="#e8cf34"/>
+      <ellipse cx="100" cy="126" rx="50" ry="45" fill="#dcc02f"/>
+      <path d="M58 132 q42 26 84 0 q-6 22 -42 22 q-36 0 -42 -22 z" fill="#f2a13a"/>
+      <path d="M60 130 q40 -30 80 0 q-40 16 -80 0 z" fill="#f8b445"/>
+      <path d="M60 130 q40 12 80 0" stroke="#a9631d" stroke-width="2" fill="none"/>
+      ${eyes(80,120,110,11.5,"#8e2f6e")}
+      <path d="M70 90 q11 -8 22 -2" stroke="#a98d1c" stroke-width="6" fill="none" stroke-linecap="round"/>
+      <path d="M130 90 q-11 -8 -22 -2" stroke="#a98d1c" stroke-width="6" fill="none" stroke-linecap="round"/>
+    </g>`; },
+
+  foxy(){ return `
+    <g>
+      <ellipse cx="100" cy="330" rx="48" ry="9" fill="#000" opacity=".5"/>
+      <rect x="60" y="286" width="34" height="48" rx="10" fill="#2f2b33"/>
+      <rect x="106" y="286" width="34" height="48" rx="10" fill="#2f2b33"/>
+      <rect x="64" y="238" width="72" height="58" rx="10" fill="#3a3540"/>
+      <rect x="64" y="196" width="72" height="48" rx="14" fill="#8e3128"/>
+      <rect x="86" y="206" width="9" height="40" rx="4" fill="#6b6b73"/>
+      <rect x="100" y="206" width="9" height="40" rx="4" fill="#6b6b73"/>
+      <rect x="114" y="206" width="9" height="40" rx="4" fill="#6b6b73"/>
+      <path d="M64 196 h32 l-4 50 h-28 z" fill="#a53a2e"/>
+      <rect x="30" y="200" width="25" height="84" rx="12" fill="#7d2b23"/>
+      <ellipse cx="42" cy="288" rx="14" ry="12" fill="#6d251e"/>
+      <rect x="148" y="200" width="25" height="70" rx="12" fill="#7d2b23"/>
+      <path d="M160 268 q18 8 12 28 q-3 10 -12 8 q7 -4 6 -14 q-1 -12 -12 -14 z"
+        fill="#b9bcc4"/>
+      <path d="M62 74 l10 -44 l26 32 z" fill="#8e3128"/>
+      <path d="M138 74 l-10 -44 l-26 32 z" fill="#8e3128"/>
+      <path d="M68 70 l6 -26 l14 18 z" fill="#5d1f19"/>
+      <ellipse cx="100" cy="112" rx="46" ry="40" fill="#a53a2e"/>
+      <path d="M64 122 q36 -14 72 0 l6 34 q-42 16 -84 0 z" fill="#8e3128"/>
+      <ellipse cx="100" cy="150" rx="40" ry="16" fill="#a53a2e"/>
+      <ellipse cx="100" cy="150" rx="9" ry="6" fill="#191317"/>
+      <path d="M64 140 q36 12 72 0 l-4 12 q-32 10 -64 0 z" fill="#efe9da"/>
+      <path d="M70 146 l5 12 l5 -12 z M84 149 l5 13 l5 -13 z M110 149 l5 13 l5 -13 z
+               M124 146 l5 12 l5 -12 z" fill="#efe9da"/>
+      <g class="eyeglow">
+        <ellipse cx="120" cy="104" rx="10" ry="10.5" fill="#efeadd"/>
+        <circle cx="120" cy="104" r="5.4" fill="#c9a227"/>
+        <circle cx="120" cy="104" r="2.6" fill="#0b0a0a"/>
+      </g>
+      <path d="M62 96 q22 -14 30 8 q-16 6 -30 -8 z" fill="#141416"/>
+      <path d="M92 100 q22 -26 42 -30" stroke="#141416" stroke-width="3" fill="none"/>
+      <path d="M56 92 q-16 -18 -6 -34" stroke="#141416" stroke-width="3" fill="none"/>
+    </g>`; },
+
+  golden(){ return `
+    <g opacity=".92">
+      <ellipse cx="100" cy="330" rx="56" ry="9" fill="#000" opacity=".55"/>
+      <rect x="46" y="286" width="46" height="30" rx="12" fill="#8a7a32" transform="rotate(-8 46 286)"/>
+      <rect x="112" y="286" width="46" height="30" rx="12" fill="#8a7a32" transform="rotate(7 112 286)"/>
+      <rect x="60" y="216" width="80" height="86" rx="26" fill="#a08e3c"/>
+      <ellipse cx="100" cy="272" rx="32" ry="30" fill="#b9a54a"/>
+      <rect x="24" y="228" width="26" height="72" rx="13" fill="#8a7a32" transform="rotate(-10 24 228)"/>
+      <rect x="150" y="228" width="26" height="72" rx="13" fill="#8a7a32" transform="rotate(9 150 228)"/>
+      <circle cx="86" cy="230" r="6" fill="#3d3618"/><circle cx="114" cy="230" r="6" fill="#3d3618"/>
+      <path d="M78 210 L122 210 L112 224 L88 224 Z" fill="#2e2a14"/>
+      <g transform="rotate(-9 100 150)">
+        <circle cx="58" cy="128" r="20" fill="#8a7a32"/><circle cx="58" cy="128" r="11" fill="#a8953f"/>
+        <circle cx="142" cy="128" r="20" fill="#8a7a32"/><circle cx="142" cy="128" r="11" fill="#a8953f"/>
+        <ellipse cx="100" cy="146" rx="52" ry="48" fill="#a08e3c"/>
+        <ellipse cx="100" cy="172" rx="30" ry="23" fill="#b9a54a"/>
+        <ellipse cx="100" cy="161" rx="11" ry="8" fill="#332d13"/>
+        ${teeth(81,182,38,5)}
+        <ellipse cx="81" cy="139" rx="11" ry="12" fill="#0a0a0b"/>
+        <ellipse cx="119" cy="139" rx="11" ry="12" fill="#0a0a0b"/>
+        <circle cx="81" cy="139" r="2.6" fill="#efe9d8" class="eyeglow"/>
+        <circle cx="119" cy="139" r="2.6" fill="#efe9d8" class="eyeglow"/>
+        <rect x="72" y="102" width="56" height="40" rx="4" fill="#1a1913"/>
+        <rect x="70" y="134" width="60" height="10" rx="3" fill="#111009"/>
+      </g>
+    </g>`; },
+
+  puppet(){ return `
+    <g>
+      <ellipse cx="100" cy="332" rx="34" ry="8" fill="#000" opacity=".55"/>
+      <path d="M86 150 h28 l10 176 h-48 z" fill="#0d0d0f"/>
+      <path d="M100 150 v176" stroke="#1b1b1f" stroke-width="1"/>
+      <g stroke="#0d0d0f" stroke-width="11" stroke-linecap="round" fill="none">
+        <path d="M88 158 q-46 26 -52 92"/><path d="M112 158 q46 26 52 92"/>
+      </g>
+      <g fill="#e9e6de">
+        <rect x="30" y="228" width="11" height="7" rx="2"/><rect x="27" y="242" width="11" height="7" rx="2"/>
+        <rect x="159" y="228" width="11" height="7" rx="2"/><rect x="162" y="242" width="11" height="7" rx="2"/>
+      </g>
+      <ellipse cx="34" cy="256" rx="12" ry="14" fill="#e9e6de"/>
+      <ellipse cx="166" cy="256" rx="12" ry="14" fill="#e9e6de"/>
+      <circle cx="100" cy="176" r="7" fill="#e9e6de"/>
+      <circle cx="100" cy="206" r="7" fill="#e9e6de"/>
+      <circle cx="100" cy="236" r="7" fill="#e9e6de"/>
+      <ellipse cx="100" cy="100" rx="42" ry="52" fill="#f0ede5"/>
+      <ellipse cx="100" cy="100" rx="42" ry="52" fill="none" stroke="#cbc6b8" stroke-width="1.5"/>
+      <ellipse cx="82" cy="92" rx="9" ry="11" fill="#0c0c0e"/>
+      <ellipse cx="118" cy="92" rx="9" ry="11" fill="#0c0c0e"/>
+      <circle cx="82" cy="90" r="2.4" fill="#fff" class="eyeglow"/>
+      <circle cx="118" cy="90" r="2.4" fill="#fff" class="eyeglow"/>
+      <path d="M82 104 L78 138" stroke="#7d4fa8" stroke-width="5" stroke-linecap="round"/>
+      <path d="M118 104 L122 138" stroke="#7d4fa8" stroke-width="5" stroke-linecap="round"/>
+      <circle cx="74" cy="118" r="6" fill="#c2447a" opacity=".8"/>
+      <circle cx="126" cy="118" r="6" fill="#c2447a" opacity=".8"/>
+      <path d="M84 126 q16 12 32 0" stroke="#b8355f" stroke-width="3.4" fill="none" stroke-linecap="round"/>
+    </g>`; },
+
+  /* Jesse — ceketli hâli hikayenin tamamı. Ceketsizken görünür şekilde küçülüyor. */
+  jesse(coat){
+    const head = `
+      <ellipse cx="100" cy="126" rx="27" ry="30" fill="#c9a98c"/>
+      <path d="M73 118 q6 -30 27 -30 q22 0 27 30 q-10 -14 -27 -14 q-18 0 -27 14 z" fill="#2a2118"/>
+      <circle cx="90" cy="128" r="3" fill="#141319"/><circle cx="110" cy="128" r="3" fill="#141319"/>
+      <path d="M92 142 q8 4 16 0" stroke="#8d6f57" stroke-width="2" fill="none" stroke-linecap="round"/>`;
+    if (coat) return `
+      <g>
+        <ellipse cx="100" cy="332" rx="36" ry="8" fill="#000" opacity=".5"/>
+        <rect x="80" y="288" width="17" height="46" rx="5" fill="#1c2027"/>
+        <rect x="103" y="288" width="17" height="46" rx="5" fill="#1c2027"/>
+        <path d="M62 176 q38 -18 76 0 l10 124 h-96 z" fill="#2b313b"/>
+        <path d="M62 176 l-14 6 l-6 108 q14 8 22 2 l4 -96 z" fill="#242a33"/>
+        <path d="M138 176 l14 6 l6 108 q-14 8 -22 2 l-4 -96 z" fill="#242a33"/>
+        <ellipse cx="47" cy="292" rx="10" ry="12" fill="#1b1f26"/>
+        <ellipse cx="153" cy="292" rx="10" ry="12" fill="#1b1f26"/>
+        <path d="M100 176 v124" stroke="#1a1e25" stroke-width="2.4"/>
+        <circle cx="100" cy="212" r="3" fill="#4d5666"/><circle cx="100" cy="244" r="3" fill="#4d5666"/>
+        <circle cx="100" cy="276" r="3" fill="#4d5666"/>
+        <path d="M74 170 l26 22 l26 -22 l-14 -8 h-24 z" fill="#343c48"/>
+        <rect x="118" y="196" width="20" height="13" rx="2" fill="#5c6672"/>
+        <rect x="120" y="199" width="16" height="2" fill="#98a2ad"/>
+        <rect x="120" y="203" width="11" height="2" fill="#98a2ad"/>
+        ${head}
+      </g>`;
+    return `
+      <g>
+        <ellipse cx="100" cy="332" rx="30" ry="7" fill="#000" opacity=".5"/>
+        <rect x="83" y="278" width="14" height="56" rx="5" fill="#1c2027"/>
+        <rect x="103" y="278" width="14" height="56" rx="5" fill="#1c2027"/>
+        <path d="M76 176 q24 -12 48 0 l6 106 h-60 z" fill="#5a5f68"/>
+        <rect x="62" y="180" width="13" height="86" rx="6" fill="#c9a98c"/>
+        <rect x="125" y="180" width="13" height="86" rx="6" fill="#c9a98c"/>
+        <path d="M84 172 q16 -8 32 0 l-6 12 h-20 z" fill="#4a4f58"/>
+        ${head}
+      </g>`;
+  }
+};
+
+function figure(kind, h=170, opt){
+  const inner = kind==="jesse" ? FIGURES.jesse(opt !== false)
+              : (FIGURES[kind] ? FIGURES[kind]() : FIGURES.freddy());
+  return `<svg viewBox="0 0 200 340" height="${h}" aria-hidden="true">${inner}</svg>`;
+}
+
+/* ==========================================================================
+   2b. MEKAN — Freddy Fazbear's Pizza, elle çizilmiş.
+   Zemin gerçek perspektifle üretiliyor: kaçış noktası (800,470),
+   derinlik s(t) = (1-t)^2.3 ile hem x hem y aynı anda küçülüyor.
+   ========================================================================== */
+const W = 1600, H = 1000, VPX = 800, VPY = 470, FLOOR_Y = 1000;
+
+function sAt(t){ return Math.pow(1-t, 2.3); }
+function pt(x, t){ const s = sAt(t);
+  return [ VPX + (x - VPX)*s, VPY + (FLOOR_Y - VPY)*s ]; }
+
+/* siyah-beyaz damalı zemin */
+function checkerFloor(){
+  const ROWS = 11, COLS = 16, half = COLS/2, cell = 260;
+  let out = `<rect x="0" y="${VPY}" width="${W}" height="${H-VPY}" fill="#0a0c10"/>`;
+  for (let r=0; r<ROWS; r++){
+    const t0 = r/ROWS, t1 = (r+1)/ROWS;
+    for (let c=0; c<COLS; c++){
+      const x0 = (c-half)*cell + VPX, x1 = (c+1-half)*cell + VPX;
+      const [ax,ay] = pt(x0,t0), [bx,by] = pt(x1,t0);
+      const [cx,cy] = pt(x1,t1), [dx,dy] = pt(x0,t1);
+      const light = (r+c)%2===0;
+      const fade = 0.30 + 0.70*sAt(t0);
+      const col = light ? `rgba(140,150,166,${(0.46*fade).toFixed(3)})`
+                        : `rgba(11,14,19,${(0.80*fade).toFixed(3)})`;
+      out += `<path d="M${ax.toFixed(1)} ${ay.toFixed(1)} L${bx.toFixed(1)} ${by.toFixed(1)}
+               L${cx.toFixed(1)} ${cy.toFixed(1)} L${dx.toFixed(1)} ${dy.toFixed(1)} Z" fill="${col}"/>`;
+    }
+  }
+  return out;
+}
+
+/* duvar: lambri + bordür + kirli boya */
+function wall(){
+  return `
+    <rect x="0" y="0" width="${W}" height="${VPY}" fill="#242c3a"/>
+    <rect x="0" y="0" width="${W}" height="${VPY}" fill="url(#wallGrad)"/>
+    <rect x="0" y="${VPY-118}" width="${W}" height="118" fill="#2d3547"/>
+    <rect x="0" y="${VPY-124}" width="${W}" height="9" fill="#3d3020"/>
+    <rect x="0" y="${VPY-8}" width="${W}" height="8" fill="#12151b"/>
+    ${Array.from({length:17},(_,i)=>
+      `<rect x="${i*100+6}" y="${VPY-112}" width="3" height="104" fill="#1b202a"/>`).join("")}
+    <g opacity=".5">${Array.from({length:9},(_,i)=>
+      `<path d="M${i*190+40} ${VPY-124} l24 -${60+((i*37)%70)}" stroke="#141922"
+        stroke-width="3" fill="none"/>`).join("")}</g>`;
+}
+
+/* zikzak bayrak dizisi */
+function bunting(y, x0, x1, n){
+  let o = `<path d="M${x0} ${y} Q${(x0+x1)/2} ${y+34} ${x1} ${y}" stroke="#2b3240" stroke-width="3" fill="none"/>`;
+  const cols = ["#c2447a","#3f7fa8","#e0b02e","#5aa06a","#a8553f"];
+  for (let i=0;i<n;i++){
+    const f = (i+.5)/n, cx = x0 + (x1-x0)*f;
+    const cy = y + 34*4*f*(1-f);
+    o += `<path d="M${cx-17} ${cy} L${cx+17} ${cy} L${cx} ${cy+34} Z"
+            fill="${cols[i%cols.length]}" opacity=".55"/>`;
+  }
+  return o;
+}
+
+/* parti masası — perspektifte, üstünde bardak, tabak, şapka */
+function table(x, t, seed=0){
+  const s = sAt(t), [px,py] = pt(x,t);
+  const rw = 210*s, rh = 62*s, top = py - 150*s;
+  const R = (n)=> ((seed*37 + n*53) % 100)/100;
+  let o = `<g>
+    <ellipse cx="${px}" cy="${py-4}" rx="${rw*1.05}" ry="${rh*.55}" fill="#000" opacity=".45"/>
+    <path d="M${px-rw*.13} ${top} h${rw*.26} l${rw*.07} ${150*s} h-${rw*.4} z" fill="#20252f"/>
+    <ellipse cx="${px}" cy="${py}" rx="${rw*.42}" ry="${rh*.32}" fill="#252b36"/>
+    <ellipse cx="${px}" cy="${top+10*s}" rx="${rw}" ry="${rh}" fill="#2f3542"/>
+    <ellipse cx="${px}" cy="${top}" rx="${rw}" ry="${rh}" fill="#3c4454"/>
+    <ellipse cx="${px}" cy="${top}" rx="${rw*.86}" ry="${rh*.82}" fill="#465063"/>
+    <ellipse cx="${px}" cy="${top}" rx="${rw*.86}" ry="${rh*.82}" fill="#465063"/>`;
+  // tabaklar
+  for (let i=0;i<3;i++){
+    const a = R(i)*6.28, dx = Math.cos(a)*rw*.55, dy = Math.sin(a)*rh*.5;
+    o += `<ellipse cx="${px+dx}" cy="${top+dy}" rx="${26*s}" ry="${10*s}" fill="#d9d3c4" opacity=".8"/>`;
+  }
+  // bardaklar
+  for (let i=0;i<2;i++){
+    const a = R(i+5)*6.28, dx = Math.cos(a)*rw*.4, dy = Math.sin(a)*rh*.35;
+    o += `<path d="M${px+dx-9*s} ${top+dy-30*s} h${18*s} l-${3*s} ${30*s} h-${12*s} z"
+            fill="#c2447a" opacity=".75"/>`;
+  }
+  // parti şapkası
+  const a2 = R(9)*6.28, hx = px+Math.cos(a2)*rw*.62, hy = top+Math.sin(a2)*rh*.5;
+  o += `<path d="M${hx} ${hy-46*s} L${hx-15*s} ${hy} L${hx+15*s} ${hy} Z" fill="#e0b02e" opacity=".85"/>
+        <circle cx="${hx}" cy="${hy-48*s}" r="${5*s}" fill="#f0eadb" opacity=".85"/>`;
+  return o + `</g>`;
+}
+
+/* sahne: yükselti + kırmızı perdeler + yıldızlı fon + spotlar */
+function showStage(){
+  const t = .74, s = sAt(t), [cx, cy] = pt(0 + VPX, t);
+  const w = 640*s*4.2, top = cy - 300*s*2.4;
+  let stars = "";
+  for (let i=0;i<26;i++){
+    const sx = VPX-300 + (i*97)%600, sy = VPY-300 + (i*61)%180, r = 3+((i*13)%5);
+    stars += `<circle cx="${sx}" cy="${sy}" r="${r}" fill="#d6c37a" opacity=".22"/>`;
+  }
+  return `
+    <g>
+      <rect x="${VPX-320}" y="${VPY-330}" width="640" height="270" fill="#141a26"/>
+      ${stars}
+      <rect x="${VPX-320}" y="${VPY-330}" width="640" height="18" fill="#2a3040"/>
+      <g class="curtain">
+        <path d="M${VPX-330} ${VPY-336} h120 q-14 130 -34 276 h-86 z" fill="#7a1f2a"/>
+        <path d="M${VPX-330} ${VPY-336} h44 q-6 140 -20 276 h-24 z" fill="#93262f"/>
+        ${Array.from({length:5},(_,i)=>
+          `<path d="M${VPX-322+i*24} ${VPY-330} q-6 130 -${10+i*3} 268"
+            stroke="#5c1620" stroke-width="4" fill="none" opacity=".7"/>`).join("")}
+      </g>
+      <g class="curtain r">
+        <path d="M${VPX+330} ${VPY-336} h-120 q14 130 34 276 h86 z" fill="#7a1f2a"/>
+        <path d="M${VPX+330} ${VPY-336} h-44 q6 140 20 276 h24 z" fill="#93262f"/>
+        ${Array.from({length:5},(_,i)=>
+          `<path d="M${VPX+322-i*24} ${VPY-330} q6 130 ${10+i*3} 268"
+            stroke="#5c1620" stroke-width="4" fill="none" opacity=".7"/>`).join("")}
+      </g>
+      <path d="M${VPX-340} ${VPY-60} h680 l40 66 h-760 z" fill="#2b2118"/>
+      <path d="M${VPX-340} ${VPY-60} h680 v10 h-680 z" fill="#3d3020"/>
+      <g opacity=".16">
+        <path d="M${VPX-190} ${VPY-330} l-70 300 h150 l30 -300 z" fill="#ffe9a8"/>
+        <path d="M${VPX+190} ${VPY-330} l70 300 h-150 l-30 -300 z" fill="#ffe9a8"/>
+      </g>
+    </g>`;
+}
+
+/* Korsan Koyu — mor yıldızlı perde. Arka duvara sabit ölçekle çiziliyor;
+   perspektif küçültmesine bırakılırsa noktaya dönüşüyor. */
+function pirateCove(cx){
+  const w = 560, h = 400, x0 = cx - w/2, yT = VPY - 396, yB = VPY - 46;
+  let stars = "";
+  for (let i=0;i<16;i++){
+    const sx = x0 + 40 + ((i*127)%(w-80)), sy = yT + 40 + ((i*89)%(h-110)), r = 7+((i*11)%6);
+    stars += `<path d="M${sx} ${sy-r} l${r*.32} ${r*.7} l${r*.75} .1 l-${r*.6} ${r*.5}
+      l${r*.24} ${r*.74} l-${r*.71} -${r*.45} l-${r*.71} ${r*.45} l${r*.24} -${r*.74}
+      l-${r*.6} -${r*.5} l${r*.75} -.1 z" fill="#e0cf86" opacity=".45"/>`;
+  }
+  // perdenin dalgaları
+  let folds = "";
+  for (let i=0;i<=10;i++){
+    const fx = x0 + i*(w/10);
+    folds += `<path d="M${fx} ${yT+16} q${(i%2?8:-8)} ${(yB-yT)/2} ${(i%2?-4:4)} ${yB-yT-24}"
+      stroke="#3a1f57" stroke-width="7" fill="none" opacity=".55"/>`;
+  }
+  return `<g>
+    <rect x="${x0-22}" y="${yT-24}" width="${w+44}" height="26" rx="4" fill="#2a3040"/>
+    <rect x="${x0-22}" y="${yT-24}" width="${w+44}" height="7" fill="#3d4658"/>
+    <rect x="${x0}" y="${yT}" width="${w}" height="${h}" fill="#3f2560"/>
+    <path d="M${x0} ${yT} q${w*.14} 46 ${w*.25} 0 q${w*.11} 46 ${w*.25} 0
+             q${w*.14} 46 ${w*.25} 0 q${w*.11} 46 ${w*.25} 0 l0 26 h-${w} z" fill="#4e2e77"/>
+    <path d="M${x0} ${yT} l${w*.44} 12 l0 ${h-12} h-${w*.44} z" fill="#563383" opacity=".5"/>
+    ${stars}${folds}
+    <rect x="${x0-4}" y="${yB}" width="${w+8}" height="16" fill="#2a1a3f"/>
+    <g transform="translate(${cx-10},${yT+150}) rotate(-5)">
+      <rect x="-118" y="-40" width="236" height="80" rx="5" fill="#ded3b0"/>
+      <rect x="-112" y="-34" width="224" height="68" rx="3" fill="none" stroke="#8e2f28" stroke-width="3"/>
+      <text x="0" y="-6" font-family="'Arial Black',Impact,sans-serif" font-size="27" fill="#8e2f28"
+        text-anchor="middle">SORRY!</text>
+      <text x="0" y="22" font-family="'Arial Black',Impact,sans-serif" font-size="17" fill="#8e2f28"
+        text-anchor="middle">OUT OF ORDER</text>
+    </g>
+  </g>`;
+}
+
+/* tavan lambası */
+function ceilLamp(x, y, r=1){
+  return `<g class="lampglow">
+    <path d="M${x} 0 v${y-30*r}" stroke="#2a3040" stroke-width="${3*r}"/>
+    <path d="M${x-42*r} ${y} q${42*r} -${44*r} ${84*r} 0 z" fill="#39414f"/>
+    <ellipse cx="${x}" cy="${y}" rx="${42*r}" ry="${9*r}" fill="#ffeec2"/>
+    <path d="M${x-42*r} ${y} L${x-150*r} ${y+330*r} L${x+150*r} ${y+330*r} L${x+42*r} ${y} Z"
+      fill="url(#lampCone)"/>
+  </g>`;
+}
+
+const DEFS = `<defs>
+  <linearGradient id="wallGrad" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#000" stop-opacity=".38"/>
+    <stop offset="1" stop-color="#000" stop-opacity="0"/>
+  </linearGradient>
+  <linearGradient id="lampCone" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#ffeec2" stop-opacity=".16"/>
+    <stop offset="1" stop-color="#ffeec2" stop-opacity="0"/>
+  </linearGradient>
+  <radialGradient id="warmPool" cx=".5" cy=".5" r=".5">
+    <stop offset="0" stop-color="#ffe6b0" stop-opacity=".20"/>
+    <stop offset="1" stop-color="#ffe6b0" stop-opacity="0"/>
+  </radialGradient>
+</defs>`;
+
+/* mekan kurucu */
+function buildPizzeria(kind){
+  let g = DEFS + wall() + checkerFloor();
+  g += `<ellipse cx="${VPX}" cy="${VPY+180}" rx="700" ry="260" fill="url(#warmPool)"/>`;
+  if (kind === "cove") g += pirateCove(VPX);
+  else                 g += showStage();
+  g += bunting(96, 40, 780, 7) + bunting(96, 820, 1560, 7);
+  // arka duvarda poster
+  g += `<g opacity=".5">
+      <rect x="128" y="200" width="150" height="110" rx="3" fill="#cfc7ae"/>
+      <text x="203" y="248" font-family="Impact,sans-serif" font-size="26" fill="#8e2f28"
+        text-anchor="middle">LET'S</text>
+      <text x="203" y="284" font-family="Impact,sans-serif" font-size="26" fill="#8e2f28"
+        text-anchor="middle">PARTY!</text>
+      <rect x="1330" y="188" width="140" height="128" rx="3" fill="#cfc7ae"/>
+      <circle cx="1400" cy="238" r="30" fill="#63482c"/>
+      <circle cx="1381" cy="215" r="10" fill="#4a3520"/><circle cx="1419" cy="215" r="10" fill="#4a3520"/>
+      <text x="1400" y="298" font-family="Impact,sans-serif" font-size="17" fill="#8e2f28"
+        text-anchor="middle">CELEBRATE!</text>
+    </g>`;
+  // masalar: uzaktan yakına
+  g += table(VPX-560, .30, 1) + table(VPX+540, .30, 2)
+     + table(VPX-330, .52, 3) + table(VPX+340, .52, 4)
+     + table(VPX-80,  .66, 5);
+  if (kind === "arcade"){
+    for (let i=0;i<3;i++){
+      const x = 120 + i*150, y = VPY-96;
+      g += `<g><rect x="${x}" y="${y-190}" width="118" height="250" rx="8" fill="#1d232e"/>
+        <rect x="${x+12}" y="${y-172}" width="94" height="72" rx="4" fill="#0a1622"/>
+        <rect x="${x+16}" y="${y-168}" width="86" height="64" rx="3" fill="#12314a" opacity=".7"/>
+        <rect x="${x+22}" y="${y-84}" width="74" height="26" rx="4" fill="#2a3140"/>
+        <circle cx="${x+38}" cy="${y-71}" r="7" fill="#c2447a"/>
+        <circle cx="${x+60}" cy="${y-71}" r="7" fill="#e0b02e"/>
+        <circle cx="${x+82}" cy="${y-71}" r="7" fill="#3f7fa8"/></g>`;
+    }
+  }
+  g += ceilLamp(360, 118, .9) + ceilLamp(800, 96, 1.1) + ceilLamp(1240, 118, .9);
+  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMax slice" aria-hidden="true">${g}</svg>`;
+}
+
+/* ofis: masa, monitör, pervane, kablolar */
+function buildDesk(){
+  return `<svg viewBox="0 0 1600 340" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+    <defs><linearGradient id="deskTop" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#39424f"/><stop offset="1" stop-color="#212833"/>
+    </linearGradient></defs>
+    <path d="M0 96 h1600 v244 h-1600 z" fill="url(#deskTop)"/>
+    <path d="M0 90 h1600 v10 h-1600 z" fill="#5b6675"/>
+    <path d="M0 100 h1600 v5 h-1600 z" fill="#161c25" opacity=".7"/>
+    <path d="M120 190 h1360 l-40 150 h-1280 z" fill="#10151d" opacity=".85"/>
+    <g opacity=".22">${Array.from({length:26},(_,i)=>
+      `<rect x="${i*62}" y="105" width="30" height="235" fill="#4c5666"/>`).join("")}</g>
+    <g>
+      <rect x="250" y="-24" width="230" height="150" rx="8" fill="#11161e"/>
+      <rect x="264" y="-10" width="202" height="118" rx="4" fill="#0a1119"/>
+      <rect x="264" y="-10" width="202" height="118" rx="4" fill="#16324a" opacity=".5"/>
+      <g opacity=".35">${Array.from({length:11},(_,i)=>
+        `<rect x="272" y="${-2+i*10}" width="${60+((i*57)%120)}" height="3" fill="#8fd0ff"/>`).join("")}</g>
+      <rect x="330" y="126" width="70" height="18" fill="#1b212b"/>
+      <rect x="292" y="144" width="146" height="10" rx="4" fill="#232a36"/>
+    </g>
+    <g transform="translate(1230,56)">
+      <rect x="-8" y="70" width="16" height="46" fill="#232a36"/>
+      <rect x="-34" y="112" width="68" height="12" rx="5" fill="#2a3140"/>
+      <circle cx="0" cy="40" r="58" fill="none" stroke="#2a3140" stroke-width="5"/>
+      <circle cx="0" cy="40" r="44" fill="none" stroke="#232a36" stroke-width="3"/>
+      <g class="fanblades" transform-origin="0 40">
+        <ellipse cx="0" cy="10" rx="13" ry="30" fill="#39414f" opacity=".85"/>
+        <ellipse cx="26" cy="55" rx="13" ry="30" fill="#39414f" opacity=".85" transform="rotate(120 0 40)"/>
+        <ellipse cx="-26" cy="55" rx="13" ry="30" fill="#39414f" opacity=".85" transform="rotate(240 0 40)"/>
+        <circle cx="0" cy="40" r="9" fill="#4d5666"/>
+      </g>
+    </g>
+    <g transform="translate(620,40)">
+      <rect x="0" y="46" width="120" height="76" rx="3" fill="#cfc7ae" opacity=".55" transform="rotate(-4)"/>
+      <rect x="18" y="34" width="120" height="76" rx="3" fill="#ded6bd" opacity=".6" transform="rotate(3)"/>
+      ${Array.from({length:5},(_,i)=>
+        `<rect x="28" y="${48+i*12}" width="${60+((i*31)%50)}" height="3" fill="#6b6350" opacity=".7"
+          transform="rotate(3)"/>`).join("")}
+    </g>
+    <g transform="translate(880,26)">
+      <ellipse cx="0" cy="96" rx="26" ry="8" fill="#000" opacity=".4"/>
+      <g transform="scale(.29) translate(-100,-50)">${FIGURES.freddy()}</g>
+    </g>
+    <g transform="translate(1030,72)">
+      <path d="M0 30 h44 l-5 44 h-34 z" fill="#8c3550" opacity=".7"/>
+      <ellipse cx="22" cy="30" rx="22" ry="6" fill="#a8415f" opacity=".7"/>
+    </g>
+    <path d="M480 130 q120 46 260 24 q140 -22 280 26" stroke="#0a0e14" stroke-width="7"
+      fill="none" opacity=".8"/>
+  </svg>`;
+}
+
+/* kapı boşluğundan görünen koridor */
+function buildHall(side){
+  const f = side === "l" ? 1 : -1;
+  return `<svg viewBox="0 0 300 600" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <defs><linearGradient id="hallLit${side}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffeec2" stop-opacity=".10"/>
+      <stop offset="1" stop-color="#ffeec2" stop-opacity="0"/>
+    </linearGradient></defs>
+    <rect width="300" height="600" fill="#0c1119"/>
+    <g transform="${f>0?"":"translate(300,0) scale(-1,1)"}">
+      <path d="M0 0 L150 150 L150 470 L0 600 Z" fill="#222a37"/>
+      <path d="M150 150 L300 60 L300 540 L150 470 Z" fill="#161d28"/>
+      <path d="M0 470 L150 470 L300 540 L300 600 L0 600 Z" fill="#0c1017"/>
+      <g opacity=".55">${Array.from({length:9},(_,i)=>{
+        const p = i/9, x0 = p*150, x1 = (p+1/9)*150;
+        const yt = 470 + p*70, yb = 600 - p*30;
+        return `<path d="M${x0} ${yt} L${x1} ${yt+8} L${x1} ${yb-8} L${x0} ${yb} Z"
+          fill="${i%2 ? "#6e7789" : "#0d1117"}" opacity=".45"/>`;
+      }).join("")}</g>
+      ${Array.from({length:5},(_,i)=>{
+        const p = i/5, x = p*150, yt = p*150, yb = 600 - p*130;
+        return `<rect x="${x}" y="${yt}" width="4" height="${yb-yt}" fill="#2b3442"/>`;
+      }).join("")}
+      <path d="M150 300 h150 v8 h-150 z" fill="#3d3020" opacity=".7"/>
+      <path d="M0 336 L150 300 v8 L0 350 Z" fill="#3d3020" opacity=".7"/>
+      <g class="lampglow">
+        <ellipse cx="212" cy="150" rx="40" ry="10" fill="#ffeec2" opacity=".5"/>
+        <path d="M172 152 L150 470 L280 470 L252 152 Z" fill="url(#hallLit${side})"/>
+      </g>
+      <ellipse cx="70" cy="70" rx="34" ry="9" fill="#ffeec2" opacity=".28" class="lampglow"/>
+    </g>
+  </svg>`;
+}
+
+/* çıkış koridoru — derinlemesine */
+function buildCorridor(){
+  let ribs = "";
+  for (let i=0;i<9;i++){
+    const t = i/9, s = sAt(t);
+    const x0 = VPX - 620*s, x1 = VPX + 620*s;
+    const yT = VPY - 380*s, yB = VPY + 420*s;
+    ribs += `<rect x="${x0}" y="${yT}" width="6" height="${yB-yT}" fill="#1c2330" opacity="${.8*s+.2}"/>
+             <rect x="${x1}" y="${yT}" width="6" height="${yB-yT}" fill="#1c2330" opacity="${.8*s+.2}"/>
+             <ellipse cx="${VPX}" cy="${yT+18}" rx="${64*s}" ry="${11*s}" fill="#ffeec2"
+               opacity="${.20*s}"/>`;
+  }
+  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+    ${DEFS}
+    <rect width="${W}" height="${H}" fill="#080b10"/>
+    <path d="M0 0 L${VPX-180} ${VPY-120} L${VPX-180} ${VPY+160} L0 ${H} Z" fill="#141a24"/>
+    <path d="M${W} 0 L${VPX+180} ${VPY-120} L${VPX+180} ${VPY+160} L${W} ${H} Z" fill="#11161f"/>
+    <rect x="${VPX-180}" y="${VPY-120}" width="360" height="280" fill="#0a0e14"/>
+    ${checkerFloor()}
+    ${ribs}
+    <ellipse cx="${VPX}" cy="${VPY+40}" rx="220" ry="150" fill="url(#warmPool)"/>
   </svg>`;
 }
 
@@ -443,9 +1122,30 @@ function show(node){
 }
 function screen(id){ const d = el("div","screen"); if(id) d.id=id; return d; }
 
-function roomBox(dark){
-  const r = el("div","room"+(dark?" dark":""));
-  r.appendChild(el("div","floor"));
+/* dolaşan toz zerreleri */
+function motes(n=26){
+  const m = el("div","motes");
+  if (reduced) return m;
+  for (let i=0;i<n;i++){
+    const d = el("span","mote");
+    d.style.left = (Math.random()*100).toFixed(1)+"%";
+    d.style.top  = (35+Math.random()*60).toFixed(1)+"%";
+    d.style.animationDuration = (7+Math.random()*9).toFixed(1)+"s";
+    d.style.animationDelay = (-Math.random()*12).toFixed(1)+"s";
+    m.appendChild(d);
+  }
+  return m;
+}
+
+/* kind: "dining" | "cove" | "arcade" | "office" | "corridor" | "void" */
+function roomBox(kind){
+  const r = el("div","room");
+  if (kind && kind !== "void"){
+    const bg = el("div","bg");
+    bg.innerHTML = kind === "corridor" ? buildCorridor() : buildPizzeria(kind);
+    r.appendChild(bg);
+  }
+  r.appendChild(motes());
   r.appendChild(el("div","vig"));
   if(!reduced) r.appendChild(el("div","grain"));
   return r;
@@ -454,6 +1154,14 @@ function roomBox(dark){
 /* ---------- MENÜ ---------- */
 function sceneMenu(){
   const s = screen("menu");
+  const art = el("div","art");
+  art.innerHTML = `<svg viewBox="0 0 560 296" width="min(450px,82vw)" aria-hidden="true">
+      <ellipse cx="280" cy="288" rx="250" ry="16" fill="#0d0f14"/>
+      <g transform="translate(4,-8) scale(.86)">${FIGURES.freddy()}</g>
+      <g transform="translate(176,8) scale(.80)" opacity=".85">${FIGURES.puppet()}</g>
+      <g transform="translate(348,-8) scale(.86)">${FIGURES.bonnie()}</g>
+    </svg>`;
+  s.appendChild(art);
   s.appendChild(el("div","tag","Five Nights at Freddy's"));
   s.appendChild(el("h1",null,"The Sixth Child"));
   s.appendChild(el("div","sub","altıncı çocuk"));
@@ -496,6 +1204,7 @@ function scenePicker(){
     ["Gece 4 — ofis","Foxy hızlanıyor", ()=>{S.night=4;sceneOffice();}],
     ["Gece 5 — açılış","Jesse saklanmıyor", ()=>{S.night=5;sceneOpener();}],
     ["Gece 5 — ofis","Son gece", ()=>{S.night=5;sceneOffice();}],
+    ["Koridor çıkışı","3 AM — \"kırmızıyken dur\"", ()=>{S.night=4;sceneOffice({startAtExcursion:true});}],
     ["Safe room","Golden Freddy + Puppet finali", ()=>{S.night=5;sceneSafeRoom();}],
     ["2023 — final","Gazete, telefon, \"Okay.\"", ()=>{sceneNewspaper();}],
     ["Jenerik","Beş isim", ()=>{S.openersHeard=[1,1,1,1,1];sceneCredits();}]
@@ -547,10 +1256,12 @@ const OPENERS = {
              ["jesse","he didn't do it.",""]] }
 };
 
+const OPENER_SET = {1:"dining", 2:"arcade", 3:"dining", 4:"cove", 5:"dining"};
+
 function sceneOpener(){
   const cfg = OPENERS[S.night];
   const s = screen("opener");
-  const room = roomBox(true);
+  const room = roomBox(OPENER_SET[S.night] || "dining");
 
   const head = el("div","box");
   head.style.cssText="position:absolute;top:10px;left:14px;font-size:10.5px;letter-spacing:.16em;"+
@@ -558,22 +1269,25 @@ function sceneOpener(){
   head.innerHTML = `Gece ${S.night} &nbsp;·&nbsp; ${cfg.time}<br><span style="color:#3d4450">${cfg.place}</span>`;
   room.appendChild(head);
 
-  // figürler
+  // figürler — hafif salınım, her biri kendi temposunda
   const figs = [];
-  cfg.cast.forEach(([kind, xPct])=>{
-    const f = el("div","figure", figure(kind, 190));
-    f.style.left = xPct+"%"; f.style.opacity = ".30";
+  const idleCls = ["","b","c","d"];
+  cfg.cast.forEach(([kind, xPct], i)=>{
+    const f = el("div","figure idle "+idleCls[i%4], figure(kind, 210));
+    f.style.left = xPct+"%";
+    f.style.filter = "brightness(.2) drop-shadow(0 10px 18px rgba(0,0,0,.9))";
     room.appendChild(f); figs.push({kind, node:f, x:xPct});
   });
   if (cfg.standing){
-    const j = el("div","figure", figure("jesse",150));
-    j.style.left="50%"; j.style.bottom="30%"; j.style.opacity=".9";
+    const j = el("div","figure", figure("jesse",168,true));
+    j.style.left="50%"; j.style.bottom="28%"; j.style.opacity=".95";
+    j.style.zIndex="3";
     room.appendChild(j);
   }
 
-  // fener
+  // fener — boş zemine bakarak başlıyor, kimsenin üstünde değil
   const beam = el("div","beam");
-  beam.style.left="50%"; beam.style.top="55%";
+  beam.style.left="50%"; beam.style.top="92%";
   if (!cfg.standing) room.appendChild(beam);
 
   // görülme ölçeri
@@ -595,33 +1309,40 @@ function sceneOpener(){
   A.init(); A.fanOn();
 
   const subs = makeSubs(room);
-  let exposure = 0, cut = false, mx=0.5, my=0.55;
+  let exposure = 0, cut = false, mx=0.5, my=0.92, tPrev=0, moved=false;
 
   if (!cfg.standing){
     room.addEventListener("pointermove", e=>{
       const r = room.getBoundingClientRect();
       mx = (e.clientX-r.left)/r.width; my = (e.clientY-r.top)/r.height;
       beam.style.left = (mx*100)+"%"; beam.style.top = (my*100)+"%";
+      moved = true;                      // fareye dokunmadıysan asla yakalanmazsın
     });
-    loop(()=>{
+    loop(t=>{
       if (cut) return false;
+      const dt = tPrev ? Math.min(70, t-tPrev) : 0; tPrev = t;
       let lit = 0;
       figs.forEach(f=>{
         const d = Math.abs(mx*100 - f.x);
-        const near = d < 13 && my > .28 && my < .86;
-        f.node.style.opacity = near ? ".85" : (d<26 ? ".45" : ".26");
+        const near = moved && d < 12 && my > .24 && my < .80;
+        // karanlıkta saydam değil, KARANLIK duruyorlar
+        f.node.style.filter = near ? "brightness(1) drop-shadow(0 10px 18px rgba(0,0,0,.85))"
+                            : (d<26 ? "brightness(.42) drop-shadow(0 10px 18px rgba(0,0,0,.9))"
+                                    : "brightness(.2) drop-shadow(0 10px 18px rgba(0,0,0,.9))");
         if (near) lit++;
       });
-      exposure = Math.max(0, exposure + (lit ? 0.9*lit : -0.5));
+      // saniye başına: ışık üstündeyse ~30, değilse -24 (kare hızından bağımsız)
+      exposure = Math.max(0, exposure + (lit ? 30*lit : -24) * dt/1000);
       seenBar.style.width = Math.min(100, exposure) + "%";
       if (exposure >= 100 && !cut){
         cut = true; A.bad();
         subs.clear();
-        room.appendChild(Object.assign(el("div",null,
+        room.appendChild(el("div",null,
           `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-           background:rgba(0,0,0,.86);font-family:var(--f-machine);letter-spacing:.2em;
-           text-transform:uppercase;color:var(--c-bad);text-align:center;z-index:20;font-size:15px">
-           Seni gördüler.<br><span style="color:#5c6472;font-size:12px">Gece bir oda yakından başlıyor.</span></div>`)));
+           background:rgba(0,0,0,.86);z-index:20"><div style="font-family:var(--f-machine);
+           letter-spacing:.2em;text-transform:uppercase;color:var(--c-bad);text-align:center;font-size:19px">
+           Seni gördüler.<div style="color:#5c6472;font-size:12px;margin-top:10px">
+           Gece bir oda yakından başlıyor.</div></div></div>`));
         later(()=>sceneOffice({penalty:true}), 2200);
         return false;
       }
@@ -671,10 +1392,50 @@ const PATHS = {
 const ROOMS = ["Show Stage","Dining Area","Backstage","Kitchen","Pirate Cove",
                "Restrooms","West Hall","East Hall","W. Corner","E. Corner","Prize Corner"];
 
+/* panjur: lamel lamel kurulur */
+function shutterHTML(){
+  let slats = `<div class="rail l"></div><div class="rail r"></div>`;
+  for (let i=0;i<12;i++) slats += `<div class="slat"></div>`;
+  return slats + `<div class="lip"></div>`;
+}
+function dustHTML(){
+  let d = "";
+  for (let i=0;i<14;i++)
+    d += `<i style="left:${(i*7+3)}%;animation-delay:${(i*20)}ms"></i>`;
+  return d;
+}
+
 function sceneOffice(opt={}){
   const night = S.night;
   const s = screen("office");
-  const room = roomBox();
+  const room = roomBox("void");
+  // ofisin kendi arka planı: duvar + masa
+  const back = el("div","bg");
+  back.innerHTML = `<svg viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+      ${DEFS}
+      <rect width="1600" height="1000" fill="#0c1017"/>
+      <rect x="0" y="0" width="1600" height="640" fill="#151b24"/>
+      <rect x="0" y="0" width="1600" height="640" fill="url(#wallGrad)"/>
+      <rect x="0" y="524" width="1600" height="116" fill="#1c2330"/>
+      <rect x="0" y="516" width="1600" height="9" fill="#3d3020"/>
+      ${Array.from({length:17},(_,i)=>
+        `<rect x="${i*100+8}" y="530" width="3" height="104" fill="#161c26"/>`).join("")}
+      <g opacity=".55">
+        <rect x="600" y="150" width="180" height="128" rx="3" fill="#cfc7ae"/>
+        <circle cx="690" cy="200" r="32" fill="#63482c"/>
+        <circle cx="670" cy="176" r="11" fill="#4a3520"/><circle cx="710" cy="176" r="11" fill="#4a3520"/>
+        <text x="690" y="262" font-family="Impact,sans-serif" font-size="20" fill="#8e2f28"
+          text-anchor="middle">CELEBRATE!</text>
+        <rect x="850" y="168" width="150" height="110" rx="3" fill="#cfc7ae"/>
+        <text x="925" y="216" font-family="Impact,sans-serif" font-size="24" fill="#8e2f28"
+          text-anchor="middle">LET'S</text>
+        <text x="925" y="252" font-family="Impact,sans-serif" font-size="24" fill="#8e2f28"
+          text-anchor="middle">PARTY!</text>
+      </g>
+      ${ceilLamp(800, 74, 1)}
+      <ellipse cx="800" cy="700" rx="620" ry="240" fill="url(#warmPool)"/>
+    </svg>`;
+  room.insertBefore(back, room.firstChild);
 
   // HUD
   const hud = el("div"); hud.id="hud";
@@ -685,18 +1446,28 @@ function sceneOffice(opt={}){
     <div class="box">Ceket <b id="hJack">ÜSTÜNDE</b><div class="meter warn"><i id="mCold"></i></div></div>`;
   room.appendChild(hud);
 
-  // kapılar
+  // kapılar — içinde koridor, üstünde uyarı lambası, panjur lamelli
   const dl = el("div","doorway l"), dr = el("div","doorway r");
-  dl.innerHTML = `<span class="lbl">WEST</span><div class="hallLight"></div><div class="shutter"></div>`;
-  dr.innerHTML = `<span class="lbl">EAST</span><div class="hallLight"></div><div class="shutter"></div>`;
-  const figL = el("div","figure"); figL.style.cssText="left:50%;bottom:6%;opacity:0";
-  const figR = el("div","figure"); figR.style.cssText="left:50%;bottom:6%;opacity:0";
+  dl.innerHTML = `<div class="hallbg">${buildHall("l")}</div>
+    <span class="lbl">WEST</span><div class="hallLight"></div>
+    <div class="shutter">${shutterHTML()}</div>
+    <div class="dust">${dustHTML()}</div>
+    <div class="dframe"></div><div class="warnlamp"></div>`;
+  dr.innerHTML = `<div class="hallbg">${buildHall("r")}</div>
+    <span class="lbl">EAST</span><div class="hallLight"></div>
+    <div class="shutter">${shutterHTML()}</div>
+    <div class="dust">${dustHTML()}</div>
+    <div class="dframe"></div><div class="warnlamp"></div>`;
+  const figL = el("div","figure"); figL.style.cssText="left:50%;bottom:4%;opacity:0;z-index:3";
+  const figR = el("div","figure"); figR.style.cssText="left:50%;bottom:4%;opacity:0;z-index:3";
   dl.appendChild(figL); dr.appendChild(figR);
-  room.append(dl, dr, el("div","desk"));
+  const deskw = el("div","deskwrap"); deskw.innerHTML = buildDesk();
+  room.append(dl, dr, deskw);
 
   // kamera katmanı
   const cams = el("div","camview"); cams.hidden = true;
-  cams.innerHTML = `<div class="camstatic"></div>
+  cams.innerHTML = `<div class="camstatic"></div><div class="camscan"></div>
+    <div class="camflash"></div>
     <div style="position:relative;z-index:2;font-size:10px;letter-spacing:.2em;
       text-transform:uppercase;color:#5c6472">Kamera — CAM 1993</div>
     <div class="camrooms" id="crWrap"></div>
@@ -732,12 +1503,14 @@ function sceneOffice(opt={}){
     doorL:false, doorR:false, lightL:false, lightR:false, camUp:false,
     box:100, boxOn: night>=2, winding:false,
     pos:{ bonnie:0, chica:0, freddy:0, foxy:0 },
-    atDoor:{L:0,R:0}, excursionDone:false, paused:false
+    atDoor:{L:0,R:0}, excursionDone:false, paused:false,
+    wasL:null, wasR:null
   };
   if (opt.penalty){ G.pos.bonnie=2; G.pos.chica=2; }
 
   const HOUR_MS = 21000;
   const $ = id => room.querySelector("#"+id);
+  if (opt.startAtExcursion) later(()=>excursion(), 400);
 
   /* --- kamera odaları --- */
   const crWrap = $("crWrap");
@@ -774,13 +1547,38 @@ function sceneOffice(opt={}){
   }
 
   /* --- girdiler --- */
+  // kapı: panjur iner, oda sarsılır, altından toz kalkar
+  function door(side, open){
+    const wrap = side === "l" ? dl : dr;
+    const sh = wrap.querySelector(".shutter");
+    sh.classList.remove("down","up");
+    void sh.offsetWidth;                       // animasyonu yeniden tetikle
+    sh.classList.add(open ? "up" : "down");
+    A.doorMove();
+    if (!open && !reduced){
+      room.classList.remove("rumble"); void room.offsetWidth; room.classList.add("rumble");
+      const d = wrap.querySelector(".dust");
+      d.classList.remove("go"); void d.offsetWidth;
+      later(()=>d.classList.add("go"), 250);
+      later(()=>A.slam(), 250);
+    }
+  }
+
   function toggle(k){
     if (G.over) return;
-    if (k==="dl"){ G.doorL=!G.doorL; A.doorMove(); dl.querySelector(".shutter").classList.toggle("down",G.doorL); $("bDL").dataset.on=G.doorL?1:0; }
-    if (k==="dr"){ G.doorR=!G.doorR; A.doorMove(); dr.querySelector(".shutter").classList.toggle("down",G.doorR); $("bDR").dataset.on=G.doorR?1:0; }
-    if (k==="ll"){ G.lightL=!G.lightL; dl.querySelector(".hallLight").classList.toggle("on",G.lightL); $("bLL").dataset.on=G.lightL?1:0; }
-    if (k==="rl"){ G.lightR=!G.lightR; dr.querySelector(".hallLight").classList.toggle("on",G.lightR); $("bRL").dataset.on=G.lightR?1:0; }
-    if (k==="cam"){ G.camUp=!G.camUp; A.click(); cams.hidden=!G.camUp; $("bCam").dataset.on=G.camUp?1:0; }
+    if (k==="dl"){ G.doorL=!G.doorL; door("l", !G.doorL); $("bDL").dataset.on=G.doorL?1:0; }
+    if (k==="dr"){ G.doorR=!G.doorR; door("r", !G.doorR); $("bDR").dataset.on=G.doorR?1:0; }
+    if (k==="ll"){ G.lightL=!G.lightL; dl.querySelector(".hallLight").classList.toggle("on",G.lightL);
+                   $("bLL").dataset.on=G.lightL?1:0; if(G.lightL) A.buzz(); }
+    if (k==="rl"){ G.lightR=!G.lightR; dr.querySelector(".hallLight").classList.toggle("on",G.lightR);
+                   $("bRL").dataset.on=G.lightR?1:0; if(G.lightR) A.buzz(); }
+    if (k==="cam"){
+      G.camUp=!G.camUp; A.click(); cams.hidden=!G.camUp; $("bCam").dataset.on=G.camUp?1:0;
+      if (G.camUp && !reduced){
+        const f = cams.querySelector(".camflash");
+        if (f){ f.classList.remove("go"); void f.offsetWidth; f.classList.add("go"); }
+      }
+    }
     if (k==="jack"){
       S.jacket=!S.jacket; A.step();
       $("hJack").textContent = S.jacket ? "ÜSTÜNDE" : "ÇIKARDIN";
@@ -812,7 +1610,7 @@ function sceneOffice(opt={}){
     A.scare();
     const sc = el("div"); sc.id="scare";
     sc.innerHTML = `<div style="text-align:center">
-      <div style="opacity:.9;margin-bottom:14px">${figure(who,220)}</div>
+      <div class="who" style="margin-bottom:14px">${figure(who,300)}</div>
       <div class="msg">${why}</div>
       <div style="color:#5c6472;font-size:12px;letter-spacing:.16em;margin-top:14px">
         Gece ${night} — tekrar</div></div>`;
@@ -826,18 +1624,20 @@ function sceneOffice(opt={}){
     G.paused = true;
     const ov = el("div","corridor"); ov.style.zIndex="40";
     ov.innerHTML = `
+      <div class="cbg">${buildCorridor()}</div>
+      <div class="vig"></div>
       <div style="position:absolute;top:12px;left:0;right:0;text-align:center;font-size:10px;
-        letter-spacing:.2em;text-transform:uppercase;color:#5c6472">
+        letter-spacing:.2em;text-transform:uppercase;color:#5c6472;z-index:5">
         ÇIKIŞ — ${TARGETS[night]} &nbsp;·&nbsp; babanın defterinden bir sayfa</div>
-      <div class="watcheye" id="eye">— — —</div>
-      <div class="walker" id="walk">${figure("jesse",130)}</div>
+      <div class="watcheye" id="eye" style="z-index:5">— — —</div>
+      <div class="walker" id="walk">${figure("jesse",150,S.jacket)}</div>
       <div class="progbar"><i id="prog"></i></div>
       <div style="position:absolute;bottom:16px;left:0;right:0;text-align:center;font-size:10.5px;
         letter-spacing:.16em;text-transform:uppercase;color:#4a515e">
         Basılı tut = yürü &nbsp;·&nbsp; kırmızıyken dur</div>`;
     room.appendChild(ov);
 
-    let prog=0, walking=false, watching=false, caught=0, tNext=1400;
+    let prog=0, walking=false, watching=false, caught=0, tNext=1400, seenFor=0;
     const eye = ov.querySelector("#eye"), bar = ov.querySelector("#prog"), wk = ov.querySelector("#walk");
     const dn = ()=>walking=true, up = ()=>walking=false;
     ov.addEventListener("pointerdown", dn);
@@ -861,14 +1661,17 @@ function sceneOffice(opt={}){
         eye.textContent = watching ? "● ● ●" : "— — —";
         if (watching) A.ping();
       }
+      wk.classList.toggle("moving", walking && !reduced);
       if (walking){
         prog += dt*0.022;
-        wk.style.bottom = (16 + prog*0.42) + "%";
-        if (!reduced) wk.style.transform = `translateX(-50%) scale(${1 - prog*0.004})`;
-        if (watching){ caught += dt*0.10; }
+        wk.style.bottom = (16 + prog*0.30) + "%";
+        wk.style.scale = (1 - prog*0.0045).toFixed(3);
+        // bakış açıldıktan sonra ~200ms tepki payı, sonra ~2sn'de dolar
+        if (watching && seenFor > 200){ caught += dt*0.055; }
       } else {
-        caught = Math.max(0, caught - dt*0.03);
+        caught = Math.max(0, caught - dt*0.045);
       }
+      seenFor = watching ? seenFor + dt : 0;
       G.power -= dt/1000 * 0.5;
       bar.style.width = Math.min(100, prog) + "%";
       bar.style.background = caught>50 ? "var(--c-bad)" : "#7fa8c9";
@@ -903,7 +1706,7 @@ function sceneOffice(opt={}){
     const hour = Math.floor(G.t / HOUR_MS);
     if (hour !== G.hour && hour <= 6){
       G.hour = hour; A.ping();
-      if (hour === 3 && !G.excursionDone) excursion();
+      if (hour === 3 && !G.excursionDone && !opt.noExcursion) excursion();
     }
     if (G.t >= HOUR_MS*6){ finishNight(); return false; }
 
@@ -947,11 +1750,15 @@ function sceneOffice(opt={}){
 
     // kapıda bekleyenler
     const lAt = (PATHS.bonnie[G.pos.bonnie]==="LEFT");
-    const rAt = (PATHS.chica[G.pos.chica]==="RIGHT") || (PATHS.freddy[G.pos.freddy]==="RIGHT");
-    figL.innerHTML = lAt ? figure("bonnie",120) : "";
-    figR.innerHTML = rAt ? figure(PATHS.chica[G.pos.chica]==="RIGHT"?"chica":"freddy",120) : "";
-    figL.style.opacity = (lAt && G.lightL) ? ".95" : (lAt ? ".18" : "0");
-    figR.style.opacity = (rAt && G.lightR) ? ".95" : (rAt ? ".18" : "0");
+    const rKind = PATHS.chica[G.pos.chica]==="RIGHT" ? "chica"
+                : (PATHS.freddy[G.pos.freddy]==="RIGHT" ? "freddy" : null);
+    const rAt = !!rKind;
+    if (lAt !== G.wasL){ figL.innerHTML = lAt ? figure("bonnie",250) : ""; G.wasL = lAt; }
+    if (rKind !== G.wasR){ figR.innerHTML = rKind ? figure(rKind,250) : ""; G.wasR = rKind; }
+    figL.style.opacity = (lAt && G.lightL) ? ".98" : (lAt ? ".16" : "0");
+    figR.style.opacity = (rAt && G.lightR) ? ".98" : (rAt ? ".16" : "0");
+    dl.querySelector(".warnlamp").classList.toggle("on", lAt && !G.doorL);
+    dr.querySelector(".warnlamp").classList.toggle("on", rAt && !G.doorR);
 
     const delay = G.cold > 90 ? 2600 : 1500;   // üşüyorsan tepkin geç
     G.atDoor.L = lAt ? (G.doorL ? 0 : G.atDoor.L + dt) : 0;
@@ -985,8 +1792,9 @@ function sceneOffice(opt={}){
   function powerOut(){
     if (G.over) return; G.over = true;
     A.fanOff(); cams.hidden = true;
-    room.querySelectorAll(".shutter").forEach(x=>x.classList.remove("down"));
-    room.style.filter = "brightness(.25)";
+    room.querySelectorAll(".shutter").forEach(x=>{ x.classList.remove("down"); x.classList.add("up"); });
+    room.querySelectorAll(".warnlamp").forEach(x=>x.classList.remove("on"));
+    room.classList.add("blackout");
     A.bad();
     later(()=>die("freddy","Güç bitti."), 3600);
   }
@@ -1046,8 +1854,39 @@ function sceneNightEnd(){
    ========================================================================== */
 function sceneSafeRoom(){
   const s = screen();
-  const room = roomBox(true);
+  const room = roomBox("void");
   room.style.cursor = "default";
+  // çıplak beton oda — yedek kostümler duvarda asılı
+  const back = el("div","bg");
+  back.innerHTML = `<svg viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+      ${DEFS}
+      <rect width="1600" height="1000" fill="#0a0c11"/>
+      <rect x="0" y="0" width="1600" height="660" fill="#12161d"/>
+      <rect x="0" y="0" width="1600" height="660" fill="url(#wallGrad)"/>
+      ${Array.from({length:9},(_,i)=>
+        `<rect x="${i*180}" y="0" width="2" height="660" fill="#0d1116"/>`).join("")}
+      ${Array.from({length:4},(_,i)=>
+        `<rect x="0" y="${140+i*140}" width="1600" height="2" fill="#0d1116"/>`).join("")}
+      <rect x="0" y="652" width="1600" height="12" fill="#1a2029"/>
+      <g opacity=".28">
+        <rect x="1180" y="180" width="14" height="60" fill="#2a3140"/>
+        <g transform="translate(1120,240) scale(.9)">${FIGURES.golden()}</g>
+        <rect x="1420" y="180" width="14" height="60" fill="#2a3140"/>
+        <g transform="translate(1360,250) scale(.8)">${FIGURES.golden()}</g>
+      </g>
+      <g opacity=".5">
+        <rect x="150" y="470" width="180" height="120" rx="4" fill="#2a2318"/>
+        <rect x="150" y="470" width="180" height="10" fill="#3a3020"/>
+        <rect x="200" y="500" width="80" height="6" fill="#4a3f28"/>
+      </g>
+      <ellipse cx="700" cy="740" rx="520" ry="220" fill="url(#warmPool)"/>
+      <path d="M760 0 v300" stroke="#2a3140" stroke-width="3"/>
+      <g class="lampglow">
+        <ellipse cx="760" cy="304" rx="30" ry="8" fill="#ffeec2"/>
+        <path d="M730 304 L620 700 L900 700 L790 304 Z" fill="url(#lampCone)"/>
+      </g>
+    </svg>`;
+  room.insertBefore(back, room.firstChild);
 
   const head = el("div");
   head.style.cssText="position:absolute;top:10px;left:14px;z-index:5;font-size:10.5px;"+
@@ -1121,7 +1960,14 @@ function sceneSafeRoom(){
       coat = false; A.step();
       coatBtn.textContent = "Ceket yerde";
       coatBtn.style.opacity = ".5";
-      jf.innerHTML = figure("jesse",128);
+      jf.innerHTML = figure("jesse",140,false);      // ceketsiz: gözle görülür şekilde küçük
+      const coatOnFloor = el("div","figure");
+      coatOnFloor.style.cssText = "left:52%;bottom:29%;z-index:2;filter:brightness(.5)";
+      coatOnFloor.innerHTML = `<svg viewBox="0 0 200 80" height="34" aria-hidden="true">
+        <ellipse cx="100" cy="58" rx="62" ry="15" fill="#2b313b"/>
+        <ellipse cx="100" cy="50" rx="52" ry="12" fill="#343c48"/>
+        <rect x="72" y="34" width="56" height="16" rx="7" fill="#2b313b"/></svg>`;
+      room.appendChild(coatOnFloor);
       subs.say("gil","(Ceket katlanıp yere kondu.)",{night:5,hold:1600});
     };
 
@@ -1188,11 +2034,47 @@ function sceneSafeRoom(){
 /* ---------- 5. gecenin sonu: Michael ---------- */
 function sceneAfterFive(){
   const s = screen();
-  const room = roomBox(true);
-  const jf = el("div","figure", figure("jesse",150));
-  jf.style.cssText="left:36%;bottom:30%;opacity:.9"; room.appendChild(jf);
-  const mf = el("div","figure", figure("jesse",178));
-  mf.style.cssText="left:62%;bottom:30%;opacity:.65;filter:hue-rotate(180deg)"; room.appendChild(mf);
+  const room = roomBox("void");
+  // otopark — şafak sökmek üzere
+  const back = el("div","bg");
+  back.innerHTML = `<svg viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+      ${DEFS}
+      <linearGradient id="dawn" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#121a2a"/><stop offset=".62" stop-color="#243043"/>
+        <stop offset=".78" stop-color="#5c4a44"/><stop offset="1" stop-color="#2a2026"/>
+      </linearGradient>
+      <rect width="1600" height="1000" fill="url(#dawn)"/>
+      <rect x="0" y="700" width="1600" height="300" fill="#0d1015"/>
+      <g opacity=".55">${Array.from({length:5},(_,i)=>
+        `<rect x="${120+i*300}" y="742" width="180" height="5" fill="#c9bd8a"/>`).join("")}</g>
+      <g opacity=".8">
+        <rect x="0" y="480" width="1600" height="230" fill="#0a0d12"/>
+        <rect x="140" y="380" width="420" height="330" fill="#0d1117"/>
+        <path d="M120 384 h460 l-24 -34 h-412 z" fill="#141922"/>
+        <g opacity=".45">
+          <rect x="230" y="300" width="240" height="58" rx="8" fill="#2a2018"/>
+          <text x="350" y="342" font-family="Impact,sans-serif" font-size="34" fill="#6b4f2c"
+            text-anchor="middle" letter-spacing="1">FREDDY'S</text>
+        </g>
+        <rect x="1040" y="418" width="420" height="292" fill="#0b0f14"/>
+      </g>
+      <g opacity=".9">
+        <rect x="860" y="596" width="330" height="86" rx="18" fill="#151b24"/>
+        <rect x="906" y="548" width="220" height="60" rx="16" fill="#1b222d"/>
+        <circle cx="930" cy="686" r="26" fill="#0a0c10"/><circle cx="1120" cy="686" r="26" fill="#0a0c10"/>
+      </g>
+      <g class="lampglow">
+        <rect x="700" y="240" width="7" height="270" fill="#1c2330"/>
+        <ellipse cx="703" cy="240" rx="26" ry="9" fill="#ffeec2"/>
+        <path d="M677 240 L600 700 L810 700 L729 240 Z" fill="url(#lampCone)"/>
+      </g>
+    </svg>`;
+  room.insertBefore(back, room.firstChild);
+  const jf = el("div","figure", figure("jesse",176,false));
+  jf.style.cssText="left:36%;bottom:24%;opacity:.95;z-index:3"; room.appendChild(jf);
+  const mf = el("div","figure idle b", figure("jesse",214,true));
+  mf.style.cssText="left:62%;bottom:24%;opacity:.8;z-index:3;filter:brightness(.6) hue-rotate(-25deg)";
+  room.appendChild(mf);
   s.appendChild(room);
   s.appendChild(el("div","hint","6:04 AM — otoparkta"));
   show(s); A.init();

@@ -48,6 +48,47 @@ depoda duruyor.
 Menüde **"Sahne seç"** var — beş geceyi oynamadan herhangi bir sahneye
 doğrudan atlıyor.
 
+### Görsel katman
+
+Tek bir görsel dosya yok; her şey kodla çizilen SVG.
+
+- **Mekan gerçek perspektifle üretiliyor.** Damalı zemin, kaçış noktası
+  (800, 470) ve `s(t) = (1-t)^2.3` derinlik eğrisiyle karo karo hesaplanıyor —
+  x ve y aynı katsayıyla küçüldüğü için perspektif tutarlı.
+- **Yemek salonu:** sahne, kırmızı perdeler (hafifçe dalgalanıyor), yıldızlı
+  fon, zikzak bayraklar, "LET'S PARTY / CELEBRATE!" posterleri, üstünde
+  tabak-bardak-parti şapkası olan masalar, ışık konisi düşüren tavan lambaları.
+- **Korsan Koyu:** mor yıldızlı perde + "SORRY! OUT OF ORDER" tabelası.
+  *(Perspektif ölçeğine bırakılınca noktaya döndüğü için arka duvara sabit
+  ölçekle çiziliyor.)*
+- **Ofis:** kapı boşluklarının içinde derinlemesine koridor görünüyor,
+  masada monitör, kağıtlar, Freddy biblosu, bardak ve dönen pervane var.
+- **Karakterler ayrı ayrı çizildi:** Freddy'nin silindir şapkası ve papyonu,
+  Bonnie'nin gitarı ve uzun kulakları, Chica'nın "LET'S EAT!!!" önlüğü ve
+  cupcake'i, Foxy'nin göz bandı, kancası ve yırtık gövdesinden görünen
+  endoiskeleti, Golden Freddy'nin çökmüş duruşu ve boş göz çukurları,
+  Puppet'ın mor gözyaşı çizgileri ve çizgili kolları.
+- **Jesse'nin iki hâli var:** ceketliyken kolları eline kadar sarkan, iki beden
+  büyük bir servis ceketi; ceketsizken gözle görülür şekilde ince ve küçük bir
+  çocuk. Ceket çıkarılınca yere katlanmış olarak duruyor.
+
+### Animasyonlar
+
+| Ne | Nasıl |
+|---|---|
+| **Kapı** | Tek blok değil — 12 lamelli panjur. İnerken hafifçe aşıp geri sekiyor, altında sarı-siyah tehlike şeridi var, oda sarsılıyor, yerden toz kalkıyor, çarpma sesi geliyor |
+| Kapı uyarı lambası | Kapının üstünde, o tarafta biri varken kırmızı yanıp sönüyor |
+| Animatronikler | Kendi temposunda hafif salınım + göz parıltısı titremesi |
+| Fener | Yumuşak koni, nefes alan sıcak göbek, içinde uçuşan toz zerreleri |
+| Kamera | Açılışta parlama, sürekli tarama çizgisi, kayan parazit |
+| Koridor ışığı | Yakınca kısa bir vızıltı ve titreme |
+| Jumpscare | Sarsıntı + ekrana doğru büyüme + kırmızı flaş |
+| Güç bitişi | Panjurlar kendiliğinden açılıyor, oda kararıp titriyor |
+| Perdeler, tavan lambaları, pervane | Sürekli, düşük tempolu döngüler |
+
+**Hareket azaltma (`prefers-reduced-motion`) açıkken hepsi kapanıyor** —
+toz, salınım, titreme, sarsıntı. Oyun oynanabilir kalıyor.
+
 > **Yazı tipleri:** prototip önce gerçek adları arıyor (Nunito, Inter, VT323,
 > Patrick Hand, Special Elite, Libre Baskerville), bulamazsa sistem
 > karşılıklarına düşüyor. El yazısı efekti font olmadan da duruyor: her harf
