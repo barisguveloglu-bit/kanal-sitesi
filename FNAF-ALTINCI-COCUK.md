@@ -19,7 +19,7 @@ Bu tasarım defteri Türkçe. Oyunda geçecek repliklerin **İngilizcesi asıl m
 altındaki Türkçe sadece burada okunsun diye.
 
 **Seslendirme yok.** Bütçe gerektirdiği için hiçbir replik seslendirilmiyor;
-her şey altyazıyla veriliyor. Bu bir eksik değil — §7'deki altyazı sistemi
+her şey altyazıyla veriliyor. Bu bir eksik değil — §8’deki altyazı sistemi
 seslendirmenin yapabileceğinden fazlasını yapıyor.
 
 ---
@@ -154,7 +154,160 @@ Kapanış kartı:
 
 ---
 
-## 5. Michael Afton — arkadaşlık
+## 5. Gece açılışları — onları izlediğimiz an
+
+Her gece, saat 12:00'den önce Jesse binaya girmiş ama gece daha başlamamış
+oluyor. O aralıkta **animatronikler henüz avlanmıyor** — ve Jesse saklandığı
+yerden onları izliyor.
+
+**Bu bir ara sahne değil.** Jesse uyanık, yerinde, kontrol oyuncuda.
+Rüya yok, hatıra yok, mini oyun yok. Gerçek zamanda, o binada, olan şey.
+
+### Nasıl çalışıyor
+
+- Oyuncu **yerinden kımıldayamıyor** (saklanma pozisyonu), sadece bakışını
+  çevirebiliyor.
+- **Yakalanabilirsin.** Feneri onların üstüne tutarsan ya da fazla oynarsan
+  sahne yarıda kesiliyor ve o gece **bir oda daha yakından** başlıyor.
+- Yani ödül doğrudan hikaye: **kıpırdamadan durursan daha çok şey duyuyorsun.**
+- Beş açılışın beşini de sonuna kadar dinlediysen, jenerikte **beş çocuğun
+  adı yazıyor.** Dinlemediysen jenerik boş geçiyor. Zorlama yok, uyarı yok.
+
+### Kim var, kim yok
+
+Açılışlarda hep aynı dördü var: **Freddy, Bonnie, Chica, Foxy.**
+
+**Golden Freddy hiçbirinde yok.** Cassidy tartışmaya katılmıyor, safe room'da
+tek başına. **Puppet de yok** — o sadece müzik kutusu olarak duyuluyor.
+İkisinin de 5. gecede ilk kez görünmesi bu yüzden vuruyor.
+
+### Gece 1 — 23:52, tünel ızgarası
+
+Jesse tünelden çıkıyor, batı koridorunun altındaki ızgaranın arkasında bekliyor.
+Sahne ışıkları kapalı. Üç siluet.
+
+Chica'nın başı Bonnie'ye dönüyor. **Oyunun ilk altyazısı** — makine yazısı, sarı:
+
+> **"HE CAME BACK."**
+
+Bonnie cevap vermiyor. 12:00. Sahne boş.
+
+*İki anlamı var ve oyuncu ikincisini 5. gecede anlıyor: "geri geldi" dedikleri
+Jesse değil, ceket.*
+
+### Gece 2 — 23:48, oyun makinelerinin arkası
+
+Bonnie ve Chica yemek salonunda, masaların arasında, kımıldamadan duruyorlar.
+
+> **CHICA:** "IT'S THE SAME COAT."
+>
+> **BONNIE:** "IT'S NOT THE SAME WALK."
+>
+> **CHICA:** "IT'S THE SAME COAT."
+
+Uzun sessizlik. Sonra Bonnie başını yavaşça oyun makinelerine çeviriyor.
+**Jesse'nin tam olarak nerede olduğunu biliyor.** Gelmiyor.
+
+12:00.
+
+*(Aynı ceket. — Aynı yürüyüş değil. — Aynı ceket.)*
+
+Ceket mekaniğini oyuncuya kimse anlatmıyor; **onlar birbirlerine anlatıyor.**
+
+### Gece 3 — 23:55, parti masasının altı
+
+Bonnie'nin yazısı 2. gecenin sonunda çocuk el yazısına döndü. Artık Freddy'yle
+tartışıyor ve **iki yazı tipi yan yana görünüyor.**
+
+> **BONNIE** *(çocuk el yazısı, mor)*: "he cried."
+>
+> **FREDDY** *(makine, kehribar)*: **"THEY CRY. ALL OF THEM CRY. HE CRIED TOO."**
+>
+> **BONNIE:** "not like that."
+>
+> **FREDDY:** **"YOU WANT IT TO BE SOMEONE ELSE."**
+>
+> **BONNIE:** "yes."
+
+Freddy cevap vermiyor.
+
+*(Ağladı. — Ağlarlar. Hepsi ağlar. O da ağlamıştı. — Öyle değil. — Sen onun
+başkası olmasını istiyorsun. — Evet.)*
+
+### Gece 4 — 23:41, Korsan Koyu'nun perdesi
+
+Dördü de aynı odada, oyunda ilk ve tek kez. Ve bu bir duruşma.
+Bonnie ve Chica artık el yazısı, Freddy ve Foxy hâlâ makine.
+
+> **CHICA:** "he talked to me."
+>
+> **FOXY:** **"HE TALKED TO YOU BECAUSE HE WAS AFRAID OF YOU."**
+>
+> **CHICA:** "yes."
+>
+> **FOXY:** **"THAT'S WHAT PREY DOES."**
+>
+> **BONNIE:** "that's what children do."
+
+Sessizlik.
+
+> **FREDDY:** **"THEN WE LOOK AT HIM. TOMORROW WE LOOK AT HIM PROPERLY."**
+
+*(Benimle konuştu. — Senden korktuğu için konuştu. — Evet. — Av öyle yapar. —
+Çocuk öyle yapar. — O zaman ona bakarız. Yarın ona düzgün bakarız.)*
+
+**5. geceyi Freddy ayarlıyor.** Oyuncu ertesi gecenin bir duruşma olduğunu
+biliyor.
+
+### Gece 5 — 23:59, Jesse saklanmıyor
+
+Açılışın kuralı bozuluyor: Jesse yemek salonuna giriyor ve **ortada duruyor.**
+Dördü de orada. Kimse kımıldamıyor.
+
+Ve oyunda ilk kez **açılışta konuşan Jesse.**
+
+> **JESSE:** "my name is jesse marlow."
+>
+> **JESSE:** "my father's name was gil marlow. he fixed you."
+>
+> **JESSE:** "he didn't do it."
+
+Saat 12:00'yi vuruyor — ve **ilk kez kimse hareket etmiyor.**
+
+Sonra arkadaki koridordan bir müzik kutusu çalmaya başlıyor.
+
+Dördü karar verdi. **Karar vermeyen tek biri kaldı.**
+
+*(Adım Jesse Marlow. — Babamın adı Gil Marlow'du. Sizi o tamir ederdi. —
+O yapmadı.)*
+
+> Not: Jesse bu sahnede ceketi hâlâ üstünde. Ceket 5. gecenin sonunda,
+> Puppet'ın önünde çıkıyor. Dördünü sözleri ikna etti; **Puppet'ı sadece
+> savunmasız kalmak ikna edecek.**
+
+---
+
+## 5.1 Beş gece, o kadar
+
+**Gece 6 yok. Custom Night yok. Ekstra mod yok.**
+
+Bu bir eksiklik değil, hikayenin şartı:
+
+> **Beş gece, beş ruh.** Altıncı gece kalan çocuk, altıncı ruh olurdu.
+> Oyunun bittiği yer, Jesse'nin geri gelmediği yer.
+
+Cassidy'nin cümlesi zaten kuralı koyuyor: **"DON'T COME BACK."**
+Oyunun sana altıncı geceyi vermemesi, o sözün tutulması.
+
+Küçük detay: FNAF'ta 5. geceyi bitirince ekranda **"NIGHT 6"** açılır.
+Burada o ekranda hiçbir şey yok — doğrudan 2023'e geçiyor. Ana menüde de
+tek bir yıldız var ve başka hiçbir şey açılmıyor.
+
+**Yokluğun kendisi cümle.**
+
+---
+
+## 6. Michael Afton — arkadaşlık
 
 Michael 1993'te yirmili yaşlarının başında. Kovuldu ama anahtarı geri vermedi
 ve her gece geri geliyor, çünkü işi bitmedi.
@@ -184,7 +337,7 @@ Michael'ın oraya gitme sebebi bu. Otuz yıl sonrasının fitili burada yanıyor
 
 ---
 
-## 6. Son sahne — 2023
+## 7. Son sahne — 2023
 
 > Kullanıcının istediği kapanış. Hikayenin bütün ağırlığı buraya biniyor.
 
@@ -245,7 +398,7 @@ Türkçesi (sadece burada okunsun diye):
 
 ---
 
-## 7. Altyazı sistemi — konuşan yazı
+## 8. Altyazı sistemi — konuşan yazı
 
 Seslendirme bütçesi yok. O yüzden **ses yerine yazı oynuyor.** Her konuşanın
 kendi rengi *ve kendi yazı tipi* var; kim konuşuyorsa yazı ona benziyor.
@@ -319,7 +472,7 @@ başına, o soğuk gri-mavide.
 
 ---
 
-## 8. Neden bu final işliyor
+## 9. Neden bu final işliyor
 
 FNAF 3'te Michael binayı yakıyor ve beş ruh özgür kalıyor.
 
@@ -332,7 +485,7 @@ Merhamet geri dönüyor. Çember kapanıyor. Oyunun bütün tezi bu:
 
 ---
 
-## 9. Oynanış çekirdeği
+## 10. Oynanış çekirdeği
 
 | Sistem | Nasıl |
 |---|---|
@@ -348,19 +501,20 @@ beş gece boyunca o tuşa basıyor.
 
 ---
 
-## 10. Kapanan kararlar
+## 11. Kapanan kararlar
 
 | Konu | Karar |
 |---|---|
 | İsimler | **Değişmiyor.** Jesse Marlow, Gil Marlow, Michael Afton. |
 | Oyun dili | **İngilizce.** Türk yapımı ama evren Amerika'da. |
-| Seslendirme | **Yok.** Her şey altyazı; yazı tipi karakteri taşıyor (§7). |
+| Seslendirme | **Yok.** Her şey altyazı; yazı tipi karakteri taşıyor (§8). |
+| Gece sayısı | **5. Gece 6 yok, Custom Night yok.** Oyun 5. gecede bitiyor (§5). |
 | Michael son sahnede | **Konuşuyor. Tek kelime: "Okay."** Oyunun son altyazısı. |
 | Son konuşmanın tonu | **Soğuk.** Selam yok, veda yok, açıklama yok. Michael kapatıyor. |
 
 ---
 
-## 11. Açık Uçlar
+## 12. Açık Uçlar
 
 Netleşmemiş, konuşulacak yerler:
 
