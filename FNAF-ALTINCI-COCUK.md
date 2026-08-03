@@ -22,6 +22,37 @@ altındaki Türkçe sadece burada okunsun diye.
 her şey altyazıyla veriliyor. Bu bir eksik değil — §8’deki altyazı sistemi
 seslendirmenin yapabileceğinden fazlasını yapıyor.
 
+## Oynanabilir prototip
+
+`oyun-prototip/altinci-cocuk.html` — çift tıkla, açılır.
+
+Tek dosya. Derleme yok, paket yok, dış kaynak yok (sitenin kuralları burada da
+geçerli). Sesler bile dosya değil, WebAudio ile üretiliyor.
+
+**Bu bir site sayfası değil** — menüye ve `sitemap.xml`'e bilerek eklenmedi,
+hiçbir HTML'den bağlanmıyor. Kanlı Göz sitesiyle ilgisi yok, sadece aynı
+depoda duruyor.
+
+İçinde ne var:
+
+| Bölüm | Durum |
+|---|---|
+| 5 gece açılışı (§5) | Oynanır — fener, fark edilme ölçeri, replikler |
+| Altyazı sistemi (§8) | Tam — renk, yazı tipi, makine→el yazısı dönüşümü |
+| Ofis döngüsü (§10) | Oynanır — kapı, ışık, kamera, güç, ceket, müzik kutusu |
+| Çıkış mini oyunu | Oynanır — 3 AM'de, "kırmızıyken dur" |
+| Safe room finali (§4) | Oynanır — ceketi çıkar + kutuyu kurma |
+| 2023 finali (§7) | Tam — gazete, telefon, "Okay." |
+| Jenerik | Beş isim, sadece beş açılışı da dinlediysen |
+
+Menüde **"Sahne seç"** var — beş geceyi oynamadan herhangi bir sahneye
+doğrudan atlıyor.
+
+> **Yazı tipleri:** prototip önce gerçek adları arıyor (Nunito, Inter, VT323,
+> Patrick Hand, Special Elite, Libre Baskerville), bulamazsa sistem
+> karşılıklarına düşüyor. El yazısı efekti font olmadan da duruyor: her harf
+> kendi açısında çiziliyor. Gerçek fontlar gömülünce daha da iyi olur.
+
 ---
 
 ## 0. Tek cümlelik özet

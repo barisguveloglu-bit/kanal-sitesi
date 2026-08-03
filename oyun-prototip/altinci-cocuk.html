@@ -1,0 +1,1335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Five Nights at Freddy's: The Sixth Child — Prototype</title>
+<style>
+/* ============================================================
+   ALTINCI ÇOCUK — oynanabilir prototip
+   Tek dosya. Derleme yok, paket yok, dış kaynak yok.
+   Yazı tipleri önce gerçek adlarıyla aranıyor; yoksa sistem
+   karşılıkları devreye giriyor (bkz. FNAF-ALTINCI-COCUK.md §8).
+   ============================================================ */
+:root{
+  --bg:#08090b; --panel:#101216; --line:#22262e;
+  --text:#cfd4dc; --dim:#767d8a;
+
+  --c-jesse:#f2efe8;
+  --c-michael:#9fb3c8;
+  --c-gil:#b9a88c;
+  --c-freddy:#c98a3b;
+  --c-bonnie:#8e6fd8;
+  --c-chica:#e8c33a;
+  --c-foxy:#c4453b;
+  --c-golden:#d9c46a;
+  --c-puppet:#edeae3;
+  --c-bad:#d2564a;
+
+  --f-jesse:"Nunito",ui-rounded,"SF Pro Rounded","Trebuchet MS",system-ui,sans-serif;
+  --f-michael:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --f-machine:"VT323","Courier New",ui-monospace,monospace;
+  --f-child:"Patrick Hand","Comic Sans MS","Segoe Print","Bradley Hand",cursive;
+  --f-type:"Special Elite","Courier New",monospace;
+  --f-news:"Libre Baskerville",Georgia,"Times New Roman",serif;
+}
+*{box-sizing:border-box}
+[hidden]{display:none !important}
+html,body{margin:0;height:100%;background:#000;color:var(--text);
+  font-family:var(--f-michael);overflow:hidden}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid #7aa2c8;outline-offset:2px}
+
+#stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+  background:#000}
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;padding:20px}
+
+/* ---------- menü ---------- */
+#menu h1{font-family:var(--f-machine);font-size:clamp(26px,6vw,60px);
+  letter-spacing:.16em;text-transform:uppercase;margin:0;color:#e6e2d8;
+  text-shadow:0 0 22px rgba(200,180,120,.16)}
+#menu .sub{font-family:var(--f-child);font-size:clamp(20px,4.6vw,40px);
+  color:var(--c-puppet);margin:6px 0 2px}
+#menu .tag{color:var(--dim);font-size:13px;letter-spacing:.1em;text-transform:uppercase}
+.mbtns{display:flex;flex-direction:column;gap:10px;margin-top:34px;width:min(300px,84vw)}
+.mbtn{background:#0e1116;border:1px solid var(--line);color:var(--text);
+  padding:12px 16px;letter-spacing:.09em;text-transform:uppercase;font-size:13px}
+.mbtn:hover{background:#161a21;border-color:#3a414d}
+.mbtn.primary{border-color:#4a5260;color:#fff}
+#star{margin-top:22px;color:var(--c-golden);font-size:22px;letter-spacing:.4em;height:26px}
+
+/* ---------- sahne seçici ---------- */
+#picker .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));
+  gap:8px;width:min(760px,94vw);max-height:64vh;overflow:auto;padding:2px}
+#picker .p{background:#0e1116;border:1px solid var(--line);padding:10px 12px;text-align:left}
+#picker .p:hover{background:#171b22}
+#picker .p b{display:block;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#fff}
+#picker .p span{display:block;font-size:11px;color:var(--dim);margin-top:3px}
+#picker h2{font-family:var(--f-machine);letter-spacing:.2em;text-transform:uppercase;
+  font-size:20px;color:#e6e2d8;margin:0 0 4px}
+
+/* ---------- oda / sahne görünümü ---------- */
+.room{position:relative;width:min(940px,96vw);aspect-ratio:16/10;
+  background:radial-gradient(120% 100% at 50% 40%,#141821 0%,#080a0e 68%,#000 100%);
+  border:1px solid var(--line);overflow:hidden}
+.room.dark{background:radial-gradient(120% 100% at 50% 45%,#0d1014 0%,#050608 70%,#000 100%)}
+.floor{position:absolute;left:0;right:0;bottom:0;height:26%;
+  background:linear-gradient(#0c0f14,#05070a);border-top:1px solid #171b22}
+.beam{position:absolute;width:520px;height:520px;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle,rgba(255,244,214,.20) 0%,rgba(255,244,214,.09) 34%,
+    rgba(255,244,214,0) 66%);transform:translate(-50%,-50%);mix-blend-mode:screen}
+.figure{position:absolute;bottom:30%;transform:translateX(-50%);
+  filter:drop-shadow(0 0 14px rgba(0,0,0,.9))}
+.figure svg{display:block}
+.vig{position:absolute;inset:0;pointer-events:none;
+  box-shadow:inset 0 0 170px 60px #000}
+.grain{position:absolute;inset:0;pointer-events:none;opacity:.05;
+  background-image:repeating-linear-gradient(0deg,#fff 0 1px,transparent 1px 3px)}
+
+/* ---------- altyazı ---------- */
+#subs{position:absolute;left:0;right:0;bottom:4%;display:flex;flex-direction:column;
+  align-items:center;justify-content:flex-end;gap:6px;pointer-events:none;padding:0 4%;
+  max-height:34%}
+.sub{max-width:min(760px,92%);padding:7px 15px;border-radius:3px;
+  background:rgba(4,5,7,.88);line-height:1.42;text-align:center}
+.sub.left{align-self:flex-start;text-align:left}
+.sub.right{align-self:flex-end;text-align:right}
+.sub .who{display:block;font-family:var(--f-michael);font-size:9.5px;letter-spacing:.24em;
+  text-transform:uppercase;opacity:.55;margin-bottom:3px}
+.sub .txt{display:block}
+
+.fx-machine .txt{font-family:var(--f-machine);text-transform:uppercase;
+  letter-spacing:.13em;font-size:clamp(17px,2.5vw,25px)}
+.fx-child .txt{font-family:var(--f-child);text-transform:lowercase;
+  font-size:clamp(19px,2.8vw,28px);letter-spacing:.01em;
+  transform:rotate(-.7deg);transform-origin:left center}
+.fx-jesse .txt{font-family:var(--f-jesse);text-transform:lowercase;
+  font-size:clamp(16px,2.3vw,22px);font-weight:600}
+.fx-cold .txt{font-family:var(--f-michael);font-size:clamp(15px,2.1vw,20px);
+  letter-spacing:.015em}
+.fx-type .txt{font-family:var(--f-type);font-size:clamp(14px,2vw,19px);letter-spacing:.03em}
+.fx-child .ch{display:inline-block}
+
+/* ---------- ofis ---------- */
+#office .room{cursor:crosshair}
+.doorway{position:absolute;top:10%;bottom:30%;width:19%;
+  background:linear-gradient(#05070a,#020305);border:1px solid #191d25}
+.doorway.l{left:2%} .doorway.r{right:2%}
+.doorway .lbl{position:absolute;top:6px;left:0;right:0;text-align:center;font-size:9px;
+  letter-spacing:.2em;color:#3d4450}
+.shutter{position:absolute;inset:0;background:repeating-linear-gradient(#2a2f38 0 6px,#171b22 6px 12px);
+  transform:translateY(-101%);transition:transform .22s ease}
+.shutter.down{transform:translateY(0)}
+.hallLight{position:absolute;inset:0;background:rgba(255,246,220,.10);opacity:0}
+.hallLight.on{opacity:1}
+.desk{position:absolute;left:22%;right:22%;bottom:0;height:30%;
+  background:linear-gradient(#0f131a,#070a0e);border-top:1px solid #1c212a}
+.desk::before{content:"";position:absolute;left:8%;bottom:56%;width:84px;height:56px;
+  background:#0a0d12;border:1px solid #232935;border-radius:3px;
+  box-shadow:0 0 22px rgba(120,160,200,.06) inset}
+.desk::after{content:"";position:absolute;right:10%;bottom:56%;width:44px;height:44px;
+  border:1px solid #232935;border-radius:50%;background:radial-gradient(#11151c,#080b0f)}
+
+#hud{position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;
+  gap:10px;padding:10px 14px;font-size:11px;letter-spacing:.12em;text-transform:uppercase}
+#hud .box{background:rgba(4,5,7,.72);border:1px solid var(--line);padding:6px 10px}
+#hud b{color:#fff;font-weight:600;letter-spacing:.06em}
+.meter{height:5px;width:96px;background:#1a1e26;margin-top:5px;position:relative}
+.meter i{position:absolute;inset:0;width:0;background:#7fa8c9;transition:width .2s linear}
+.meter.warn i{background:var(--c-bad)}
+.meter.gold i{background:var(--c-golden)}
+
+#ctrls{position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:center;
+  gap:6px;padding:10px;flex-wrap:wrap}
+.cbtn{background:rgba(10,13,18,.9);border:1px solid var(--line);padding:8px 12px;
+  font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+.cbtn.active{border-color:#6d7e93;color:#fff}
+.cbtn[data-on="1"]{border-color:#5e7f9c;color:#fff;background:#111821}
+.cbtn:hover{color:#fff}
+
+/* kamera */
+#cams{position:absolute;inset:0;background:#04050700;backdrop-filter:blur(0px)}
+.camview{position:absolute;inset:0;background:#05070a;padding:44px 18px 60px;
+  display:flex;flex-direction:column;gap:8px}
+.camstatic{position:absolute;inset:0;pointer-events:none;opacity:.09;
+  background-image:repeating-linear-gradient(0deg,#fff 0 1px,transparent 1px 2px)}
+.camrooms{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:7px;
+  position:relative;z-index:2}
+.cr{border:1px solid #1c212a;background:#080a0e;padding:9px 10px;min-height:74px;
+  font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#5c6472;text-align:left}
+.cr.here{border-color:#5e7f9c;color:#cfd4dc;background:#0c1219}
+.cr .occ{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap}
+.cr .dot{width:9px;height:9px;border-radius:50%;box-shadow:0 0 8px currentColor}
+.boxwrap{position:relative;z-index:2;border:1px solid #2a2f38;background:#080a0e;padding:10px 12px}
+
+/* koridor (çıkış) */
+.corridor{position:absolute;inset:0;background:linear-gradient(#0a0d12,#04060a)}
+.walker{position:absolute;left:50%;bottom:16%;transform:translateX(-50%)}
+.progbar{position:absolute;left:8%;right:8%;bottom:8%;height:6px;background:#161a21}
+.progbar i{position:absolute;inset:0;width:0;background:#7fa8c9}
+.watcheye{position:absolute;top:16%;left:50%;transform:translateX(-50%);
+  font-family:var(--f-machine);letter-spacing:.3em;font-size:15px;color:#3a414d}
+.watcheye.on{color:var(--c-bad);text-shadow:0 0 18px rgba(210,86,74,.6)}
+
+/* jumpscare */
+#scare{position:absolute;inset:0;background:#000;display:flex;align-items:center;
+  justify-content:center;z-index:60}
+#scare .msg{font-family:var(--f-machine);text-transform:uppercase;letter-spacing:.22em;
+  color:var(--c-bad);font-size:clamp(20px,5vw,40px)}
+
+/* kart / metin ekranları */
+.card{width:min(720px,92vw);text-align:center}
+.card h2{font-family:var(--f-machine);letter-spacing:.2em;text-transform:uppercase;
+  font-size:clamp(18px,3.4vw,28px);color:#e6e2d8;margin:0 0 14px}
+.card p{color:var(--dim);line-height:1.66;margin:8px 0}
+.card .beat{font-family:var(--f-child);font-size:clamp(18px,3vw,26px);color:var(--c-puppet);
+  margin:22px 0 6px}
+.hint{position:absolute;bottom:14px;left:0;right:0;text-align:center;font-size:10.5px;
+  letter-spacing:.16em;text-transform:uppercase;color:#4a515e}
+
+/* gazete */
+.paper{background:#ded8c9;color:#15130f;padding:26px 24px;width:min(660px,92vw);
+  font-family:var(--f-news);box-shadow:0 20px 70px rgba(0,0,0,.8)}
+.paper .kicker{font-size:10px;letter-spacing:.28em;text-transform:uppercase;
+  border-bottom:1px solid #15130f;padding-bottom:7px;margin-bottom:14px;
+  display:flex;justify-content:space-between;font-family:var(--f-michael)}
+.paper h3{font-size:clamp(21px,4.2vw,34px);margin:0 0 10px;line-height:1.18}
+.paper .lede{font-size:14px;line-height:1.62;color:#3a352c;margin:0}
+.paper .rule{height:1px;background:#15130f33;margin:14px 0}
+
+/* telefon */
+.phone{width:min(300px,80vw);border:1px solid #2a2f38;background:#0b0e13;
+  padding:22px 18px;text-align:center;border-radius:16px}
+.phone .name{font-family:var(--f-michael);font-size:26px;color:#fff;letter-spacing:.02em}
+.phone .st{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);
+  margin-top:8px;min-height:16px}
+
+.center-line{font-family:var(--f-michael);color:var(--c-michael);
+  font-size:clamp(22px,4vw,34px);letter-spacing:.02em}
+
+@media (prefers-reduced-motion:reduce){
+  *{transition:none !important;animation:none !important}
+}
+</style>
+</head>
+<body>
+<div id="stage"></div>
+
+<script>
+"use strict";
+/* ==========================================================================
+   0. KONUŞANLAR — renk + yazı tipi (tasarım defteri §8)
+   ========================================================================== */
+const SPEAK = {
+  jesse  : {name:"JESSE",         color:"var(--c-jesse)",   fx:"fx-jesse"},
+  jesseOld:{name:"JESSE / 2023",  color:"var(--c-jesse)",   fx:"fx-cold"},
+  michael: {name:"MICHAEL",       color:"var(--c-michael)", fx:"fx-cold"},
+  gil    : {name:"G. MARLOW — LOG",color:"var(--c-gil)",    fx:"fx-type"},
+  // ruhlar: turns = hangi gecenin SONUNDA çocuk el yazısına dönüyorlar
+  freddy : {name:"FREDDY",  color:"var(--c-freddy)", soul:true, turns:4},
+  bonnie : {name:"BONNIE",  color:"var(--c-bonnie)", soul:true, turns:2},
+  chica  : {name:"CHICA",   color:"var(--c-chica)",  soul:true, turns:3},
+  foxy   : {name:"FOXY",    color:"var(--c-foxy)",   soul:true, turns:4},
+  golden : {name:"???",     color:"var(--c-golden)", soul:true, turns:99},
+  puppet : {name:"",        color:"var(--c-puppet)", soul:true, turns:99}
+};
+const SOULNAME = {freddy:"Gabriel",bonnie:"Jeremy",chica:"Susie",foxy:"Fritz",golden:"Cassidy"};
+
+function fxFor(id, night){
+  const s = SPEAK[id];
+  if (!s.soul) return s.fx;
+  return (night > s.turns) ? "fx-child" : "fx-machine";
+}
+
+/* ==========================================================================
+   1. SES — dosya yok, hepsi WebAudio ile üretiliyor
+   ========================================================================== */
+const A = (()=>{
+  let ctx=null, hum=null, on=true;
+  const start=()=>{ if(!ctx){ try{ctx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){} }
+                    if(ctx&&ctx.state==="suspended") ctx.resume(); };
+  const gain=(v,t)=>{ const g=ctx.createGain(); g.gain.value=on?v:0; g.connect(ctx.destination); return g; };
+  const tone=(freq,dur,type="sine",vol=.1,slide=0)=>{
+    if(!ctx||!on) return;
+    const o=ctx.createOscillator(), g=gain(vol);
+    o.type=type; o.frequency.value=freq;
+    if(slide) o.frequency.exponentialRampToValueAtTime(Math.max(20,freq*slide), ctx.currentTime+dur);
+    g.gain.setValueAtTime(vol,ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.0008, ctx.currentTime+dur);
+    o.connect(g); o.start(); o.stop(ctx.currentTime+dur+.02);
+  };
+  const noise=(dur,vol=.18,hp=400)=>{
+    if(!ctx||!on) return;
+    const n=ctx.sampleRate*dur, b=ctx.createBuffer(1,n,ctx.sampleRate), d=b.getChannelData(0);
+    for(let i=0;i<n;i++) d[i]=(Math.random()*2-1)*(1-i/n);
+    const s=ctx.createBufferSource(); s.buffer=b;
+    const f=ctx.createBiquadFilter(); f.type="highpass"; f.frequency.value=hp;
+    const g=gain(vol);
+    s.connect(f); f.connect(g); s.start();
+  };
+  return {
+    init(){ start(); },
+    set(v){ on=v; if(!v&&hum){hum.stop&&hum.stop();hum=null;} },
+    get on(){ return on; },
+    fanOn(){
+      if(!ctx||!on||hum) return;
+      const o=ctx.createOscillator(), f=ctx.createBiquadFilter(), g=gain(.035);
+      o.type="sawtooth"; o.frequency.value=58;
+      f.type="lowpass"; f.frequency.value=200;
+      o.connect(f); f.connect(g); o.start(); hum=o;
+    },
+    fanOff(){ if(hum){ try{hum.stop();}catch(e){} hum=null; } },
+    click(){ noise(.05,.10,1400); },
+    doorMove(){ tone(90,.16,"square",.10,.6); noise(.10,.07,300); },
+    step(){ noise(.06,.05,250); },
+    ping(){ tone(880,.09,"triangle",.06); },
+    bad(){ tone(120,.5,"sawtooth",.14,.4); noise(.5,.12,200); },
+    scare(){ noise(.85,.34,120); tone(70,.9,"sawtooth",.22,.35); },
+    chime(){ [523,659,784,1046].forEach((f,i)=>setTimeout(()=>tone(f,1.1,"triangle",.09),i*150)); },
+    // müzik kutusu: kurulu oldukça hızlı ve tiz, boşaldıkça yavaşlar ve pesleşir
+    boxNote(step, wind){
+      const mel=[659,587,523,587,659,659,659,587,587,587,659,784,784];
+      const p = .55 + wind*.45;               // 0 boş → çok pes
+      tone(mel[step%mel.length]*p, .42, "triangle", .055 + wind*.03);
+    }
+  };
+})();
+
+/* ==========================================================================
+   2. YARDIMCILAR
+   ========================================================================== */
+const stage = document.getElementById("stage");
+const el = (tag, cls, html) => { const d=document.createElement(tag);
+  if(cls) d.className=cls; if(html!=null) d.innerHTML=html; return d; };
+const wait = ms => new Promise(r=>setTimeout(r,ms));
+let timers = [];
+const later = (fn,ms) => { const t=setTimeout(fn,ms); timers.push(t); return t; };
+const clearTimers = () => { timers.forEach(clearTimeout); timers=[]; };
+let rafs = [];
+const loop = fn => { let id; const step=t=>{ if(fn(t)!==false) id=requestAnimationFrame(step); };
+  id=requestAnimationFrame(step); rafs.push(()=>cancelAnimationFrame(id)); };
+const stopLoops = () => { rafs.forEach(f=>f()); rafs=[]; };
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* animatronik siluetleri — görsel dosya yok, hepsi SVG */
+function figure(kind, h=170){
+  const c = {freddy:"#3a2c1d",bonnie:"#2e2440",chica:"#3d3418",foxy:"#3a1f1c",
+             golden:"#4a4023",puppet:"#151515",jesse:"#20242c"}[kind] || "#222";
+  const eye = {freddy:"#c98a3b",bonnie:"#8e6fd8",chica:"#e8c33a",foxy:"#c4453b",
+               golden:"#d9c46a",puppet:"#edeae3",jesse:"#000"}[kind] || "#888";
+  let ears="";
+  if(kind==="freddy"||kind==="golden") ears=`<circle cx="30" cy="26" r="11" fill="${c}"/><circle cx="70" cy="26" r="11" fill="${c}"/>`;
+  if(kind==="bonnie") ears=`<rect x="26" y="-16" width="13" height="46" rx="6" fill="${c}"/><rect x="61" y="-16" width="13" height="46" rx="6" fill="${c}"/>`;
+  if(kind==="chica") ears=`<path d="M42 20 L50 -2 L58 20 Z" fill="${c}"/>`;
+  if(kind==="foxy") ears=`<path d="M28 30 L32 8 L44 26 Z" fill="${c}"/><path d="M72 30 L68 8 L56 26 Z" fill="${c}"/>`;
+  if(kind==="puppet") return `<svg viewBox="0 0 100 220" height="${h}" aria-hidden="true">
+      <rect x="44" y="52" width="12" height="120" fill="#111"/>
+      <rect x="18" y="60" width="10" height="96" rx="5" fill="#111"/>
+      <rect x="72" y="60" width="10" height="96" rx="5" fill="#111"/>
+      <ellipse cx="50" cy="34" rx="22" ry="27" fill="#e9e6de"/>
+      <circle cx="42" cy="30" r="3.4" fill="#111"/><circle cx="58" cy="30" r="3.4" fill="#111"/>
+      <path d="M42 44 Q50 50 58 44" stroke="#a3355f" stroke-width="2.4" fill="none"/>
+      <circle cx="42" cy="40" r="2.2" fill="#a3355f"/><circle cx="58" cy="40" r="2.2" fill="#a3355f"/>
+    </svg>`;
+  if(kind==="jesse") return `<svg viewBox="0 0 100 220" height="${h}" aria-hidden="true">
+      <circle cx="50" cy="34" r="17" fill="#1b1f26"/>
+      <path d="M26 60 h48 l7 74 h-62 Z" fill="#242832"/>
+      <rect x="22" y="60" width="10" height="72" rx="4" fill="#242832"/>
+      <rect x="68" y="60" width="10" height="72" rx="4" fill="#242832"/>
+    </svg>`;
+  return `<svg viewBox="0 0 100 220" height="${h}" aria-hidden="true">
+    ${ears}
+    <ellipse cx="50" cy="40" rx="27" ry="25" fill="${c}"/>
+    <rect x="24" y="62" width="52" height="86" rx="12" fill="${c}"/>
+    <rect x="10" y="66" width="13" height="70" rx="6" fill="${c}"/>
+    <rect x="77" y="66" width="13" height="70" rx="6" fill="${c}"/>
+    <circle cx="41" cy="38" r="4.6" fill="${eye}"/><circle cx="59" cy="38" r="4.6" fill="${eye}"/>
+    <ellipse cx="50" cy="52" rx="10" ry="7" fill="#0d0d0d" opacity=".55"/>
+  </svg>`;
+}
+
+/* ==========================================================================
+   3. ALTYAZI MOTORU — sistemin yıldızı
+   ========================================================================== */
+function makeSubs(parent){
+  const box = el("div"); box.id="subs"; parent.appendChild(box);
+  let queue = Promise.resolve();
+
+  function render(line){
+    const {who, text, night, pos} = line;
+    const sp = SPEAK[who], fx = fxFor(who, night||1);
+    const d = el("div", "sub "+fx+(pos?" "+pos:""));
+    d.style.color = sp.color;
+    if (sp.name) d.appendChild(el("span","who",sp.name));
+    const t = el("span","txt"); d.appendChild(t);
+    box.appendChild(d);
+    while (box.children.length > 2) box.removeChild(box.firstChild);
+    return {d, t, fx};
+  }
+
+  // el yazısında her harf kendi açısında duruyor — yazı bitince de öyle KALIYOR
+  function childText(t, chars, upTo){
+    t.innerHTML = "";
+    for (let k=0;k<upTo;k++){
+      const s = el("span","ch", chars[k]===" " ? "&nbsp;" : chars[k]);
+      s.style.transform = `rotate(${((k*37)%7)-3}deg) translateY(${((k*53)%5)-2}px)`;
+      t.appendChild(s);
+    }
+  }
+
+  // harf harf açılış. makine yazısı arada bozuluyor, el yazısı hafif eğri duruyor.
+  function reveal(t, text, fx){
+    return new Promise(done=>{
+      const chars = [...text];
+      let i = 0;
+      const GLITCH = "#%&@*+/\\";
+      const tick = () => {
+        if (i >= chars.length){
+          if (fx === "fx-child" && !reduced) childText(t, chars, chars.length);
+          else t.textContent = text;
+          return done();
+        }
+        i++;
+        if (fx === "fx-child" && !reduced){
+          childText(t, chars, i);
+        } else if (fx === "fx-machine" && !reduced && Math.random()<.25){
+          t.textContent = chars.slice(0,i-1).join("") + GLITCH[(Math.random()*GLITCH.length)|0];
+          later(()=>{ t.textContent = chars.slice(0,i).join(""); }, 45);
+        } else {
+          t.textContent = chars.slice(0,i).join("");
+        }
+        if (chars[i-1] !== " " && i%2===0) A.click();
+        later(tick, fx==="fx-machine" ? 30 : 26);
+      };
+      tick();
+    });
+  }
+
+  return {
+    el: box,
+    say(who, text, opts={}){
+      queue = queue.then(async ()=>{
+        const {t, fx} = render({who, text, night:opts.night, pos:opts.pos});
+        await reveal(t, text, fx);
+        await wait(opts.hold != null ? opts.hold : Math.min(2600, 700 + text.length*42));
+      });
+      return queue;
+    },
+    beat(ms){ queue = queue.then(()=>wait(ms)); return queue; },
+    clear(){ box.innerHTML=""; },
+    done(){ return queue; }
+  };
+}
+
+/* ==========================================================================
+   4. OYUN DURUMU
+   ========================================================================== */
+const S = {
+  night: 1,
+  openersHeard: [false,false,false,false,false],
+  turned: {},          // hangi ruh tanıdı
+  finished: false,
+  jacket: true         // ceket başta üstünde
+};
+
+/* ==========================================================================
+   5. SAHNE YÖNETİMİ
+   ========================================================================== */
+function show(node){
+  clearTimers(); stopLoops(); A.fanOff();
+  stage.innerHTML = ""; stage.appendChild(node);
+}
+function screen(id){ const d = el("div","screen"); if(id) d.id=id; return d; }
+
+function roomBox(dark){
+  const r = el("div","room"+(dark?" dark":""));
+  r.appendChild(el("div","floor"));
+  r.appendChild(el("div","vig"));
+  if(!reduced) r.appendChild(el("div","grain"));
+  return r;
+}
+
+/* ---------- MENÜ ---------- */
+function sceneMenu(){
+  const s = screen("menu");
+  s.appendChild(el("div","tag","Five Nights at Freddy's"));
+  s.appendChild(el("h1",null,"The Sixth Child"));
+  s.appendChild(el("div","sub","altıncı çocuk"));
+  s.appendChild(el("div","tag","November 1993 &nbsp;·&nbsp; playable prototype"));
+
+  const b = el("div","mbtns");
+  const start = el("button","mbtn primary","▶ Yeni oyun — Gece 1");
+  start.onclick = ()=>{ A.init(); S.night=1; S.turned={}; S.jacket=true;
+                        S.openersHeard=[false,false,false,false,false]; sceneOpener(); };
+  const pick = el("button","mbtn","⌘ Sahne seç");
+  pick.onclick = ()=>{ A.init(); scenePicker(); };
+  const snd = el("button","mbtn","♪ Ses: açık");
+  snd.onclick = ()=>{ A.set(!A.on); snd.textContent = "♪ Ses: " + (A.on?"açık":"kapalı"); };
+  b.append(start, pick, snd);
+  s.appendChild(b);
+
+  const star = el("div"); star.id="star";
+  star.textContent = S.finished ? "★" : "";
+  s.appendChild(star);
+  if (S.finished) s.appendChild(el("div","tag","Ve başka hiçbir şey açılmıyor."));
+
+  s.appendChild(el("div","hint","Tasarım defteri: FNAF-ALTINCI-COCUK.md"));
+  show(s);
+}
+
+/* ---------- SAHNE SEÇİCİ ---------- */
+function scenePicker(){
+  const s = screen("picker");
+  s.appendChild(el("h2",null,"Sahne seç"));
+  s.appendChild(el("div","tag","Beş geceyi oynamadan tek tek bakmak için"));
+  const g = el("div","grid");
+  const items = [
+    ["Gece 1 — açılış","\"HE CAME BACK.\"", ()=>{S.night=1;sceneOpener();}],
+    ["Gece 1 — ofis","Klasik döngü + ceket", ()=>{S.night=1;sceneOffice();}],
+    ["Gece 2 — açılış","\"IT'S THE SAME COAT.\"", ()=>{S.night=2;sceneOpener();}],
+    ["Gece 2 — ofis","Müzik kutusu devrede", ()=>{S.night=2;sceneOffice();}],
+    ["Gece 3 — açılış","Bonnie el yazısına döndü", ()=>{S.night=3;sceneOpener();}],
+    ["Gece 3 — ofis","Mutfak: ekran kapalı", ()=>{S.night=3;sceneOffice();}],
+    ["Gece 4 — açılış","Duruşma kuruluyor", ()=>{S.night=4;sceneOpener();}],
+    ["Gece 4 — ofis","Foxy hızlanıyor", ()=>{S.night=4;sceneOffice();}],
+    ["Gece 5 — açılış","Jesse saklanmıyor", ()=>{S.night=5;sceneOpener();}],
+    ["Gece 5 — ofis","Son gece", ()=>{S.night=5;sceneOffice();}],
+    ["Safe room","Golden Freddy + Puppet finali", ()=>{S.night=5;sceneSafeRoom();}],
+    ["2023 — final","Gazete, telefon, \"Okay.\"", ()=>{sceneNewspaper();}],
+    ["Jenerik","Beş isim", ()=>{S.openersHeard=[1,1,1,1,1];sceneCredits();}]
+  ];
+  items.forEach(([t,d,fn])=>{
+    const b = el("button","p"); b.appendChild(el("b",null,t)); b.appendChild(el("span",null,d));
+    b.onclick = fn; g.appendChild(b);
+  });
+  s.appendChild(g);
+  const back = el("button","mbtn","← Menü"); back.style.marginTop="14px";
+  back.onclick = sceneMenu; s.appendChild(back);
+  show(s);
+}
+
+/* ==========================================================================
+   6. GECE AÇILIŞLARI  (tasarım defteri §5)
+      Ara sahne değil: Jesse uyanık, saklanıyor, fener oyuncuda.
+      Feneri onların üstünde tutarsan sahne kesiliyor.
+   ========================================================================== */
+const OPENERS = {
+  1:{ time:"11:52 PM", place:"Tünel ızgarası — batı koridorunun altı",
+      cast:[["chica",30],["bonnie",50],["freddy",70]],
+      lines:[["chica","HE CAME BACK.","left"]] },
+  2:{ time:"11:48 PM", place:"Oyun makinelerinin arkası",
+      cast:[["chica",36],["bonnie",62]],
+      lines:[["chica","IT'S THE SAME COAT.","left"],
+             ["bonnie","IT'S NOT THE SAME WALK.","right"],
+             ["chica","IT'S THE SAME COAT.","left"]] },
+  3:{ time:"11:55 PM", place:"Parti masasının altı",
+      cast:[["bonnie",34],["freddy",66]],
+      lines:[["bonnie","he cried.","left"],
+             ["freddy","THEY CRY. ALL OF THEM CRY. HE CRIED TOO.","right"],
+             ["bonnie","not like that.","left"],
+             ["freddy","YOU WANT IT TO BE SOMEONE ELSE.","right"],
+             ["bonnie","yes.","left"]] },
+  4:{ time:"11:41 PM", place:"Korsan Koyu'nun perdesi",
+      cast:[["chica",22],["foxy",42],["bonnie",60],["freddy",80]],
+      lines:[["chica","he talked to me.","left"],
+             ["foxy","HE TALKED TO YOU BECAUSE HE WAS AFRAID OF YOU.",""],
+             ["chica","yes.","left"],
+             ["foxy","THAT'S WHAT PREY DOES.",""],
+             ["bonnie","that's what children do.","left"],
+             ["freddy","THEN WE LOOK AT HIM. TOMORROW WE LOOK AT HIM PROPERLY.","right"]] },
+  5:{ time:"11:59 PM", place:"Yemek salonu — ortada",
+      cast:[["chica",20],["bonnie",40],["freddy",60],["foxy",80]],
+      standing:true,
+      lines:[["jesse","my name is jesse marlow.",""],
+             ["jesse","my father's name was gil marlow. he fixed you.",""],
+             ["jesse","he didn't do it.",""]] }
+};
+
+function sceneOpener(){
+  const cfg = OPENERS[S.night];
+  const s = screen("opener");
+  const room = roomBox(true);
+
+  const head = el("div","box");
+  head.style.cssText="position:absolute;top:10px;left:14px;font-size:10.5px;letter-spacing:.16em;"+
+    "text-transform:uppercase;color:#5c6472;background:rgba(4,5,7,.7);border:1px solid #22262e;padding:6px 10px;z-index:5";
+  head.innerHTML = `Gece ${S.night} &nbsp;·&nbsp; ${cfg.time}<br><span style="color:#3d4450">${cfg.place}</span>`;
+  room.appendChild(head);
+
+  // figürler
+  const figs = [];
+  cfg.cast.forEach(([kind, xPct])=>{
+    const f = el("div","figure", figure(kind, 190));
+    f.style.left = xPct+"%"; f.style.opacity = ".30";
+    room.appendChild(f); figs.push({kind, node:f, x:xPct});
+  });
+  if (cfg.standing){
+    const j = el("div","figure", figure("jesse",150));
+    j.style.left="50%"; j.style.bottom="30%"; j.style.opacity=".9";
+    room.appendChild(j);
+  }
+
+  // fener
+  const beam = el("div","beam");
+  beam.style.left="50%"; beam.style.top="55%";
+  if (!cfg.standing) room.appendChild(beam);
+
+  // görülme ölçeri
+  const seen = el("div");
+  seen.style.cssText="position:absolute;top:12px;right:14px;z-index:5;text-align:right;"+
+    "font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#5c6472";
+  seen.innerHTML = `Fark edilme<div class="meter warn" style="margin-left:auto"><i></i></div>`;
+  const seenBar = seen.querySelector("i");
+  if (!cfg.standing) room.appendChild(seen);
+
+  s.appendChild(room);
+  if (S.night===1 && !cfg.standing)
+    s.appendChild(el("div","hint","Fareyi oynat — feneri onların üstünde tutma. Kıpırdamazsan daha çok duyarsın."));
+  else if (cfg.standing)
+    s.appendChild(el("div","hint","Bu gece saklanmıyorsun."));
+  else
+    s.appendChild(el("div","hint","Feneri onların üstünde tutma."));
+  show(s);
+  A.init(); A.fanOn();
+
+  const subs = makeSubs(room);
+  let exposure = 0, cut = false, mx=0.5, my=0.55;
+
+  if (!cfg.standing){
+    room.addEventListener("pointermove", e=>{
+      const r = room.getBoundingClientRect();
+      mx = (e.clientX-r.left)/r.width; my = (e.clientY-r.top)/r.height;
+      beam.style.left = (mx*100)+"%"; beam.style.top = (my*100)+"%";
+    });
+    loop(()=>{
+      if (cut) return false;
+      let lit = 0;
+      figs.forEach(f=>{
+        const d = Math.abs(mx*100 - f.x);
+        const near = d < 13 && my > .28 && my < .86;
+        f.node.style.opacity = near ? ".85" : (d<26 ? ".45" : ".26");
+        if (near) lit++;
+      });
+      exposure = Math.max(0, exposure + (lit ? 0.9*lit : -0.5));
+      seenBar.style.width = Math.min(100, exposure) + "%";
+      if (exposure >= 100 && !cut){
+        cut = true; A.bad();
+        subs.clear();
+        room.appendChild(Object.assign(el("div",null,
+          `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+           background:rgba(0,0,0,.86);font-family:var(--f-machine);letter-spacing:.2em;
+           text-transform:uppercase;color:var(--c-bad);text-align:center;z-index:20;font-size:15px">
+           Seni gördüler.<br><span style="color:#5c6472;font-size:12px">Gece bir oda yakından başlıyor.</span></div>`)));
+        later(()=>sceneOffice({penalty:true}), 2200);
+        return false;
+      }
+    });
+  }
+
+  // replikler
+  (async ()=>{
+    await wait(cfg.standing ? 1200 : 2200);
+    for (const [who, text, pos] of cfg.lines){
+      if (cut) return;
+      await subs.say(who, text, {night:S.night, pos});
+      if (cut) return;
+      await subs.beat(700);
+    }
+    if (cut) return;
+
+    // gece 2: bonnie başını çevirir
+    if (S.night===2){
+      const b = figs.find(f=>f.kind==="bonnie");
+      if (b){ b.node.style.transition="transform .9s ease"; b.node.style.transform="translateX(-50%) scaleX(-1)"; }
+      await wait(1400);
+      await subs.say("gil","(Bonnie başını oyun makinelerine çeviriyor. Nerede olduğunu biliyor. Gelmiyor.)",
+                     {night:S.night, hold:2400});
+    }
+    if (S.night===5){
+      await wait(700);
+      await subs.say("gil","(Saat 12:00. İlk kez kimse hareket etmiyor.)",{night:5,hold:2200});
+      A.boxNote(0,1); await wait(500); A.boxNote(1,1); await wait(500); A.boxNote(2,1);
+      await subs.say("gil","(Koridordan bir müzik kutusu çalmaya başlıyor.)",{night:5,hold:2400});
+    }
+    S.openersHeard[S.night-1] = true;
+    await wait(900);
+    if (!cut) sceneOffice();
+  })();
+}
+
+/* ==========================================================================
+   7. OFİS  (§10 oynanış çekirdeği)
+   ========================================================================== */
+const PATHS = {
+  bonnie:["Show Stage","Dining Area","Backstage","West Hall","W. Corner","LEFT"],
+  chica :["Show Stage","Dining Area","Kitchen","East Hall","E. Corner","RIGHT"],
+  freddy:["Show Stage","Dining Area","Restrooms","East Hall","E. Corner","RIGHT"],
+  foxy  :["Pirate Cove","Pirate Cove","Pirate Cove","West Hall","RUN"]
+};
+const ROOMS = ["Show Stage","Dining Area","Backstage","Kitchen","Pirate Cove",
+               "Restrooms","West Hall","East Hall","W. Corner","E. Corner","Prize Corner"];
+
+function sceneOffice(opt={}){
+  const night = S.night;
+  const s = screen("office");
+  const room = roomBox();
+
+  // HUD
+  const hud = el("div"); hud.id="hud";
+  hud.innerHTML = `
+    <div class="box">Gece <b id="hNight">${night}</b> &nbsp; <span id="hClock">12 AM</span></div>
+    <div class="box">Güç <b id="hPow">100%</b><div class="meter"><i id="mPow"></i></div></div>
+    <div class="box" id="boxHud">Müzik kutusu<div class="meter gold"><i id="mBox"></i></div></div>
+    <div class="box">Ceket <b id="hJack">ÜSTÜNDE</b><div class="meter warn"><i id="mCold"></i></div></div>`;
+  room.appendChild(hud);
+
+  // kapılar
+  const dl = el("div","doorway l"), dr = el("div","doorway r");
+  dl.innerHTML = `<span class="lbl">WEST</span><div class="hallLight"></div><div class="shutter"></div>`;
+  dr.innerHTML = `<span class="lbl">EAST</span><div class="hallLight"></div><div class="shutter"></div>`;
+  const figL = el("div","figure"); figL.style.cssText="left:50%;bottom:6%;opacity:0";
+  const figR = el("div","figure"); figR.style.cssText="left:50%;bottom:6%;opacity:0";
+  dl.appendChild(figL); dr.appendChild(figR);
+  room.append(dl, dr, el("div","desk"));
+
+  // kamera katmanı
+  const cams = el("div","camview"); cams.hidden = true;
+  cams.innerHTML = `<div class="camstatic"></div>
+    <div style="position:relative;z-index:2;font-size:10px;letter-spacing:.2em;
+      text-transform:uppercase;color:#5c6472">Kamera — CAM 1993</div>
+    <div class="camrooms" id="crWrap"></div>
+    <div class="boxwrap" id="bwrap" hidden>
+      <div style="font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#5c6472">
+        CAM 11 — Prize Corner</div>
+      <div class="meter gold" style="width:100%;margin:8px 0"><i id="mBox2"></i></div>
+      <button class="cbtn" id="windBtn" style="width:100%">Basılı tut — kur</button>
+    </div>`;
+  room.appendChild(cams);
+
+  // kontroller
+  const ctr = el("div"); ctr.id="ctrls";
+  ctr.innerHTML = `
+    <button class="cbtn" id="bDL" data-on="0">A — Batı kapı</button>
+    <button class="cbtn" id="bLL" data-on="0">Q — Batı ışık</button>
+    <button class="cbtn" id="bCam" data-on="0">SPACE — Kamera</button>
+    <button class="cbtn" id="bRL" data-on="0">E — Doğu ışık</button>
+    <button class="cbtn" id="bDR" data-on="0">D — Doğu kapı</button>
+    <button class="cbtn" id="bJack" data-on="1">J — Ceket</button>`;
+  room.appendChild(ctr);
+
+  s.appendChild(room);
+  s.appendChild(el("div","hint","A/D kapı · Q/E ışık · SPACE kamera · J ceket"));
+  show(s); A.init(); A.fanOn();
+
+  const subs = makeSubs(room);
+
+  /* --- durum --- */
+  const lvl = [0,3,4,6,8,11][night];
+  const G = {
+    t:0, hour:0, power:100, cold:0, dead:false, over:false,
+    doorL:false, doorR:false, lightL:false, lightR:false, camUp:false,
+    box:100, boxOn: night>=2, winding:false,
+    pos:{ bonnie:0, chica:0, freddy:0, foxy:0 },
+    atDoor:{L:0,R:0}, excursionDone:false, paused:false
+  };
+  if (opt.penalty){ G.pos.bonnie=2; G.pos.chica=2; }
+
+  const HOUR_MS = 21000;
+  const $ = id => room.querySelector("#"+id);
+
+  /* --- kamera odaları --- */
+  const crWrap = $("crWrap");
+  ROOMS.forEach(r=>{
+    const c = el("button","cr"); c.dataset.room=r;
+    c.innerHTML = `${r}<div class="occ"></div>`;
+    c.onclick = ()=>{ A.click(); selectRoom(r); };
+    crWrap.appendChild(c);
+  });
+  let selected = "Show Stage";
+  function selectRoom(r){
+    selected = r;
+    crWrap.querySelectorAll(".cr").forEach(c=>c.classList.toggle("here", c.dataset.room===r));
+    $("bwrap").hidden = (r !== "Prize Corner") || !G.boxOn;
+    if (r === "Kitchen"){
+      subs.clear();
+      subs.say("gil","(CAM 6 — Kitchen. Kamera bozuk. Sadece ses var.)",{night,hold:1800});
+    }
+    if (r === "Pirate Cove" && G.pos.foxy < 3) G.pos.foxy = Math.max(0, G.pos.foxy-1);
+  }
+  selectRoom("Show Stage");
+
+  function drawCams(){
+    crWrap.querySelectorAll(".cr").forEach(c=>{
+      const occ = c.querySelector(".occ"); occ.innerHTML="";
+      Object.keys(G.pos).forEach(k=>{
+        const p = PATHS[k][Math.min(G.pos[k], PATHS[k].length-1)];
+        if (p === c.dataset.room && c.dataset.room !== "Kitchen"){
+          const d = el("span","dot"); d.style.color = SPEAK[k].color;
+          d.style.background = SPEAK[k].color; occ.appendChild(d);
+        }
+      });
+    });
+  }
+
+  /* --- girdiler --- */
+  function toggle(k){
+    if (G.over) return;
+    if (k==="dl"){ G.doorL=!G.doorL; A.doorMove(); dl.querySelector(".shutter").classList.toggle("down",G.doorL); $("bDL").dataset.on=G.doorL?1:0; }
+    if (k==="dr"){ G.doorR=!G.doorR; A.doorMove(); dr.querySelector(".shutter").classList.toggle("down",G.doorR); $("bDR").dataset.on=G.doorR?1:0; }
+    if (k==="ll"){ G.lightL=!G.lightL; dl.querySelector(".hallLight").classList.toggle("on",G.lightL); $("bLL").dataset.on=G.lightL?1:0; }
+    if (k==="rl"){ G.lightR=!G.lightR; dr.querySelector(".hallLight").classList.toggle("on",G.lightR); $("bRL").dataset.on=G.lightR?1:0; }
+    if (k==="cam"){ G.camUp=!G.camUp; A.click(); cams.hidden=!G.camUp; $("bCam").dataset.on=G.camUp?1:0; }
+    if (k==="jack"){
+      S.jacket=!S.jacket; A.step();
+      $("hJack").textContent = S.jacket ? "ÜSTÜNDE" : "ÇIKARDIN";
+      $("bJack").dataset.on = S.jacket?1:0;
+      if(!S.jacket) subs.say("gil","(Ceket yerde. Daha yavaş geliyorlar — ama üşüyorsun.)",{night,hold:1600});
+    }
+  }
+  $("bDL").onclick=()=>toggle("dl"); $("bDR").onclick=()=>toggle("dr");
+  $("bLL").onclick=()=>toggle("ll"); $("bRL").onclick=()=>toggle("rl");
+  $("bCam").onclick=()=>toggle("cam"); $("bJack").onclick=()=>toggle("jack");
+
+  const keymap = {a:"dl",d:"dr",q:"ll",e:"rl"," ":"cam",j:"jack"};
+  const onKey = ev=>{
+    const k = ev.key.toLowerCase();
+    if (keymap[k]){ ev.preventDefault(); toggle(keymap[k]); }
+  };
+  window.addEventListener("keydown", onKey);
+  rafs.push(()=>window.removeEventListener("keydown", onKey));
+
+  const wb = $("windBtn");
+  const windOn = ()=>{ G.winding=true; }, windOff = ()=>{ G.winding=false; };
+  wb.addEventListener("pointerdown", windOn);
+  window.addEventListener("pointerup", windOff);
+  rafs.push(()=>window.removeEventListener("pointerup", windOff));
+
+  /* --- ölüm --- */
+  function die(who, why){
+    if (G.over) return; G.over=true; G.dead=true;
+    A.scare();
+    const sc = el("div"); sc.id="scare";
+    sc.innerHTML = `<div style="text-align:center">
+      <div style="opacity:.9;margin-bottom:14px">${figure(who,220)}</div>
+      <div class="msg">${why}</div>
+      <div style="color:#5c6472;font-size:12px;letter-spacing:.16em;margin-top:14px">
+        Gece ${night} — tekrar</div></div>`;
+    room.appendChild(sc);
+    later(()=>{ sceneOpener(); }, 2600);
+  }
+
+  /* --- ÇIKIŞ: koridor mini oyunu (3 AM) --- */
+  const TARGETS = {1:"Backstage",2:"Supply Closet",3:"Kitchen",4:"Pirate Cove",5:"West Wall"};
+  function excursion(){
+    G.paused = true;
+    const ov = el("div","corridor"); ov.style.zIndex="40";
+    ov.innerHTML = `
+      <div style="position:absolute;top:12px;left:0;right:0;text-align:center;font-size:10px;
+        letter-spacing:.2em;text-transform:uppercase;color:#5c6472">
+        ÇIKIŞ — ${TARGETS[night]} &nbsp;·&nbsp; babanın defterinden bir sayfa</div>
+      <div class="watcheye" id="eye">— — —</div>
+      <div class="walker" id="walk">${figure("jesse",130)}</div>
+      <div class="progbar"><i id="prog"></i></div>
+      <div style="position:absolute;bottom:16px;left:0;right:0;text-align:center;font-size:10.5px;
+        letter-spacing:.16em;text-transform:uppercase;color:#4a515e">
+        Basılı tut = yürü &nbsp;·&nbsp; kırmızıyken dur</div>`;
+    room.appendChild(ov);
+
+    let prog=0, walking=false, watching=false, caught=0, tNext=1400;
+    const eye = ov.querySelector("#eye"), bar = ov.querySelector("#prog"), wk = ov.querySelector("#walk");
+    const dn = ()=>walking=true, up = ()=>walking=false;
+    ov.addEventListener("pointerdown", dn);
+    window.addEventListener("pointerup", up);
+    const kd = e=>{ if(e.key===" "){e.preventDefault(); walking=true;} };
+    const ku = e=>{ if(e.key===" ") walking=false; };
+    window.addEventListener("keydown",kd); window.addEventListener("keyup",ku);
+    const cleanup = ()=>{ window.removeEventListener("pointerup",up);
+      window.removeEventListener("keydown",kd); window.removeEventListener("keyup",ku); };
+    rafs.push(cleanup);
+
+    let last = performance.now();
+    loop(t=>{
+      if (G.over) return false;
+      const dt = Math.min(60, t-last); last = t;
+      tNext -= dt;
+      if (tNext <= 0){
+        watching = !watching;
+        tNext = watching ? (900 + Math.random()*900) : (1100 + Math.random()*1200);
+        eye.classList.toggle("on", watching);
+        eye.textContent = watching ? "● ● ●" : "— — —";
+        if (watching) A.ping();
+      }
+      if (walking){
+        prog += dt*0.022;
+        wk.style.bottom = (16 + prog*0.42) + "%";
+        if (!reduced) wk.style.transform = `translateX(-50%) scale(${1 - prog*0.004})`;
+        if (watching){ caught += dt*0.10; }
+      } else {
+        caught = Math.max(0, caught - dt*0.03);
+      }
+      G.power -= dt/1000 * 0.5;
+      bar.style.width = Math.min(100, prog) + "%";
+      bar.style.background = caught>50 ? "var(--c-bad)" : "#7fa8c9";
+      if (caught >= 100){ cleanup(); die(night>=4?"foxy":"bonnie","Koridorda yakalandın."); return false; }
+      if (prog >= 100){
+        cleanup(); G.excursionDone = true;
+        ov.innerHTML = `<div style="position:absolute;inset:0;display:flex;align-items:center;
+          justify-content:center;text-align:center;padding:20px">
+          <div><div style="font-family:var(--f-type);color:var(--c-gil);font-size:15px;
+          max-width:480px;line-height:1.7">${LOGPAGE[night]}</div></div></div>`;
+        later(()=>{ ov.remove(); G.paused=false; }, 4200);
+        return false;
+      }
+    });
+  }
+  const LOGPAGE = {
+    1:"SERVICE LOG — 03/12/87 — G. MARLOW<br>Suit #4 springlocks show wear on the<br>left shoulder. Nobody logged a fitting.<br>Somebody has been wearing it.",
+    2:"SERVICE LOG — 03/19/87<br>Asked about after-hours access again.<br>Told to stop asking. — <b>JEREMY</b>",
+    3:"SERVICE LOG — 04/02/87<br>The room behind the west wall is not<br>on any floor plan I was given. — <b>SUSIE</b>",
+    4:"SERVICE LOG — 04/11/87<br>Second set of keys signed out at 11 PM,<br>six nights running. Not mine. — <b>FRITZ / GABRIEL</b>",
+    5:"SERVICE LOG — 04/14/87 — LAST ENTRY<br>I gave management everything.<br>They gave the police my name.<br>The name on the second key card is —"
+  };
+
+  /* --- ana döngü --- */
+  let last = performance.now(), moveAcc = 0, boxAcc = 0;
+  loop(t=>{
+    if (G.over) return false;
+    const dt = Math.min(70, t - last); last = t;
+    if (G.paused){ updateHud(); return; }
+
+    G.t += dt;
+    const hour = Math.floor(G.t / HOUR_MS);
+    if (hour !== G.hour && hour <= 6){
+      G.hour = hour; A.ping();
+      if (hour === 3 && !G.excursionDone) excursion();
+    }
+    if (G.t >= HOUR_MS*6){ finishNight(); return false; }
+
+    // güç
+    let drain = 0.22 + (G.doorL?0.40:0) + (G.doorR?0.40:0) + (G.camUp?0.25:0)
+              + (G.lightL?0.18:0) + (G.lightR?0.18:0);
+    G.power -= drain * dt/1000;
+    if (G.power <= 0){ G.power=0; powerOut(); return false; }
+
+    // ceket / soğuk
+    if (S.jacket) G.cold = Math.max(0, G.cold - dt/1000*3.5);
+    else          G.cold = Math.min(100, G.cold + dt/1000*4.5);
+
+    // müzik kutusu
+    if (G.boxOn){
+      if (G.winding && G.camUp && selected==="Prize Corner"){
+        G.box = Math.min(100, G.box + dt/1000*26);
+      } else {
+        G.box -= dt/1000 * (2.4 + night*0.5);
+      }
+      boxAcc += dt;
+      if (boxAcc > 620 - G.box*3){ boxAcc = 0; A.boxNote((G.t/620)|0, G.box/100); }
+      if (G.box <= 0){ die("puppet","Müzik kutusu sustu."); return false; }
+    }
+
+    // animatronik hareketi
+    moveAcc += dt;
+    const step = Math.max(1800, 5200 - lvl*260) * (S.jacket ? 1 : 1.5);
+    if (moveAcc >= step){
+      moveAcc = 0;
+      ["bonnie","chica","freddy","foxy"].forEach(k=>{
+        const p = PATHS[k], at = G.pos[k];
+        if (at >= p.length-1) return;
+        if (k==="freddy" && G.camUp) return;              // Freddy kamera açıkken donuyor
+        if (k==="foxy" && G.camUp && selected==="Pirate Cove") return;
+        if (Math.random() < (lvl + (S.jacket?2:0)) / 22) {
+          G.pos[k] = at+1; A.step();
+        }
+      });
+    }
+
+    // kapıda bekleyenler
+    const lAt = (PATHS.bonnie[G.pos.bonnie]==="LEFT");
+    const rAt = (PATHS.chica[G.pos.chica]==="RIGHT") || (PATHS.freddy[G.pos.freddy]==="RIGHT");
+    figL.innerHTML = lAt ? figure("bonnie",120) : "";
+    figR.innerHTML = rAt ? figure(PATHS.chica[G.pos.chica]==="RIGHT"?"chica":"freddy",120) : "";
+    figL.style.opacity = (lAt && G.lightL) ? ".95" : (lAt ? ".18" : "0");
+    figR.style.opacity = (rAt && G.lightR) ? ".95" : (rAt ? ".18" : "0");
+
+    const delay = G.cold > 90 ? 2600 : 1500;   // üşüyorsan tepkin geç
+    G.atDoor.L = lAt ? (G.doorL ? 0 : G.atDoor.L + dt) : 0;
+    G.atDoor.R = rAt ? (G.doorR ? 0 : G.atDoor.R + dt) : 0;
+    if (lAt && G.doorL && G.atDoor.L===0 && Math.random()<0.004) G.pos.bonnie = 1;
+    if (rAt && G.doorR && G.atDoor.R===0 && Math.random()<0.004){ G.pos.chica=1; G.pos.freddy=1; }
+    if (G.atDoor.L > delay){ die("bonnie","Batı kapı açıktı."); return false; }
+    if (G.atDoor.R > delay){ die("chica","Doğu kapı açıktı."); return false; }
+
+    // Foxy koşusu
+    if (PATHS.foxy[G.pos.foxy]==="RUN"){
+      G.pos.foxy = 0;
+      if (G.doorL){ G.power -= 6; A.doorMove();
+        subs.say("gil","(Foxy kapıya vurdu. Güç gitti.)",{night,hold:1300}); }
+      else { die("foxy","Foxy koridoru koştu."); return false; }
+    }
+
+    drawCams(); updateHud();
+  });
+
+  function updateHud(){
+    $("hClock").textContent = (G.hour===0?12:G.hour) + " AM";
+    $("hPow").textContent = Math.max(0,G.power).toFixed(0) + "%";
+    $("mPow").style.width = Math.max(0,G.power) + "%";
+    $("mPow").parentElement.classList.toggle("warn", G.power < 25);
+    $("mCold").style.width = G.cold + "%";
+    $("boxHud").hidden = !G.boxOn;
+    if (G.boxOn){ $("mBox").style.width = G.box+"%"; const b2=$("mBox2"); if(b2) b2.style.width=G.box+"%"; }
+  }
+
+  function powerOut(){
+    if (G.over) return; G.over = true;
+    A.fanOff(); cams.hidden = true;
+    room.querySelectorAll(".shutter").forEach(x=>x.classList.remove("down"));
+    room.style.filter = "brightness(.25)";
+    A.bad();
+    later(()=>die("freddy","Güç bitti."), 3600);
+  }
+
+  function finishNight(){
+    if (G.over) return; G.over = true;
+    A.fanOff(); A.chime();
+    later(()=>sceneNightEnd(), 1400);
+  }
+}
+
+/* ==========================================================================
+   8. GECE SONU — tanınma anı
+   ========================================================================== */
+const BEATS = {
+  1:{who:null, text:"Kimse ona bakmadı. Sadece avlandılar.",
+     note:"Korku kişisel değil — henüz."},
+  2:{who:"bonnie", text:"Köşeye sıkıştı ve ağladı. Bonnie durdu.",
+     note:"O adam hiç ağlamamıştı."},
+  3:{who:"chica", text:"Karanlık mutfakta babasını anlattı. Chica dinledi.",
+     note:"Mutfak artık güvenli."},
+  4:{who:"foxy", text:"Foxy koştu ve durdu. Jesse kaçmadı, ceketi yere bıraktı.",
+     note:"Freddy izledi. Karar vermedi. Henüz."},
+  5:{who:null, text:"Dördü karar verdi.",
+     note:"Karar vermeyen tek biri kaldı."}
+};
+function sceneNightEnd(){
+  const b = BEATS[S.night];
+  if (b.who) S.turned[b.who] = true;
+  if (S.night === 4) S.turned.freddy = true;
+
+  const s = screen();
+  const c = el("div","card");
+  c.appendChild(el("h2",null,`6 AM &nbsp;·&nbsp; Gece ${S.night} bitti`));
+  c.appendChild(el("p",null,b.text));
+  if (b.who){
+    const d = el("div","beat");
+    d.style.color = SPEAK[b.who].color;
+    d.textContent = `${SPEAK[b.who].name.toLowerCase()} artık el yazısıyla konuşuyor`;
+    c.appendChild(d);
+    c.appendChild(el("p",null,`— ${SOULNAME[b.who]}`));
+  }
+  c.appendChild(el("p",null,b.note));
+
+  const btn = el("button","mbtn primary");
+  btn.style.marginTop = "22px";
+  if (S.night < 5){ btn.textContent = `▶ Gece ${S.night+1}`; btn.onclick = ()=>{ S.night++; sceneOpener(); }; }
+  else            { btn.textContent = "▶ Safe room";        btn.onclick = sceneSafeRoom; }
+  c.appendChild(btn);
+  s.appendChild(c);
+  show(s);
+}
+
+/* ==========================================================================
+   9. SAFE ROOM — oyunun tersine dönen mekaniği
+      Oyun sana "KUR" diye bağırıyor. Kazanmanın tek yolu kurmamak.
+   ========================================================================== */
+function sceneSafeRoom(){
+  const s = screen();
+  const room = roomBox(true);
+  room.style.cursor = "default";
+
+  const head = el("div");
+  head.style.cssText="position:absolute;top:10px;left:14px;z-index:5;font-size:10.5px;"+
+    "letter-spacing:.16em;text-transform:uppercase;color:#5c6472";
+  head.innerHTML = "Gece 5 &nbsp;·&nbsp; 5:12 AM<br><span style='color:#3d4450'>Batı duvarının arkası — planda olmayan oda</span>";
+  room.appendChild(head);
+
+  const gf = el("div","figure", figure("golden",180));
+  gf.style.cssText = "left:20%;bottom:30%;opacity:.55";
+  room.appendChild(gf);
+
+  const jf = el("div","figure", figure("jesse",140));
+  jf.style.cssText = "left:58%;bottom:30%;opacity:.9";
+  room.appendChild(jf);
+
+  const pp = el("div","figure", figure("puppet",230));
+  pp.style.cssText = "left:88%;bottom:30%;opacity:0;transition:opacity 2.4s ease, left 3s ease";
+  room.appendChild(pp);
+
+  // panel
+  const panel = el("div");
+  panel.style.cssText="position:absolute;right:14px;top:14px;z-index:6;width:230px;"+
+    "background:rgba(4,5,7,.86);border:1px solid #2a2f38;padding:12px";
+  panel.innerHTML = `
+    <div style="font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#5c6472">
+      Müzik kutusu</div>
+    <div class="meter gold" style="width:100%;margin:8px 0"><i id="sBox" style="width:100%"></i></div>
+    <button class="cbtn" id="sWind" style="width:100%;border-color:#8a6a2a;color:#e8c33a">
+      Basılı tut — KUR</button>
+    <button class="cbtn" id="sCoat" style="width:100%;margin-top:6px">Ceketi çıkar</button>
+    <div id="sWarn" style="margin-top:10px;font-family:var(--f-machine);font-size:14px;
+      letter-spacing:.16em;color:var(--c-bad);min-height:20px;text-align:center"></div>`;
+  panel.hidden = true;
+  room.appendChild(panel);
+
+  s.appendChild(room);
+  const hint = el("div","hint","");
+  s.appendChild(hint);
+  show(s); A.init();
+
+  const subs = makeSubs(room);
+  const $ = id => room.querySelector("#"+id);
+
+  (async ()=>{
+    await wait(1000);
+    await subs.say("golden","YOU'RE NOT HIM.", {night:5, pos:"left", hold:1400});
+    await subs.beat(400);
+    await subs.say("golden","DON'T COME BACK. NEXT TIME I WON'T CHECK.", {night:5, pos:"left", hold:1800});
+    await subs.beat(500);
+    await subs.say("gil","(Cassidy'nin yazısı hiç dönmedi. Ekrandaki tek makine yazısı onunki.)",
+                   {night:5, hold:1800});
+    await subs.beat(300);
+
+    panel.hidden = false;
+    hint.textContent = "Müzik kutusu boşalmak üzere.";
+    A.boxNote(0,1);
+    runBox();
+  })();
+
+  function runBox(){
+    let box = 100, coat = true, still = 0, winding = false, done = false;
+    const bar = $("sBox"), warn = $("sWarn"), wind = $("sWind"), coatBtn = $("sCoat");
+
+    wind.addEventListener("pointerdown", ()=>winding=true);
+    const up = ()=>winding=false;
+    window.addEventListener("pointerup", up);
+    rafs.push(()=>window.removeEventListener("pointerup", up));
+
+    coatBtn.onclick = ()=>{
+      if (!coat) return;
+      coat = false; A.step();
+      coatBtn.textContent = "Ceket yerde";
+      coatBtn.style.opacity = ".5";
+      jf.innerHTML = figure("jesse",128);
+      subs.say("gil","(Ceket katlanıp yere kondu.)",{night:5,hold:1600});
+    };
+
+    let last = performance.now(), acc = 0;
+    loop(t=>{
+      if (done) return false;
+      const dt = Math.min(70, t-last); last = t;
+
+      if (winding){ box = Math.min(100, box + dt/1000*30); still = 0; }
+      else { box -= dt/1000*7; still += dt; }
+      box = Math.max(0, box);
+      bar.style.width = box + "%";
+
+      acc += dt;
+      if (acc > 640 - box*3.2){ acc = 0; A.boxNote((t/640)|0, box/100); }
+
+      // oyun seni kurmaya zorluyor
+      if (box < 55 && box > 0){
+        warn.textContent = box < 22 ? "SHE IS COMING" : "WIND IT";
+        if (!reduced) warn.style.opacity = (Math.sin(t/120)*.5+.5).toFixed(2);
+      } else warn.textContent = "";
+
+      if (winding){
+        hint.textContent = "Kurdukça hiçbir şey olmuyor. Kutu bitmeden bu oda bitmiyor.";
+      }
+
+      if (box <= 0){
+        done = true;
+        if (coat){
+          hint.textContent = "";
+          subs.clear();
+          subs.say("gil","(Ceket hâlâ üstünde. Seni yine o adam sandı.)",{night:5,hold:2200});
+          later(()=>{ A.scare(); const sc=el("div"); sc.id="scare";
+            sc.innerHTML=`<div style="text-align:center"><div>${figure("puppet",240)}</div>
+              <div class="msg" style="margin-top:12px">Ceketi çıkarmadın.</div></div>`;
+            room.appendChild(sc); later(sceneSafeRoom, 2600); }, 2400);
+        } else {
+          finale();
+        }
+        return false;
+      }
+    });
+
+    async function finale(){
+      panel.hidden = true;
+      hint.textContent = "";
+      A.fanOff();
+      pp.style.opacity = ".95"; pp.style.left = "68%";
+      await wait(2600);
+      await subs.say("gil","(Puppet onu kaldırıyor.)",{night:5,hold:2000});
+      await subs.beat(600);
+      await subs.say("gil","(Ve yere bırakıyor.)",{night:5,hold:2200});
+      await subs.beat(500);
+      await subs.say("gil","(Maske vermiyor. Babasının kutusunu veriyor. Ve kapıyı gösteriyor.)",
+                     {night:5,hold:3000});
+      await subs.beat(700);
+      A.chime();
+      await wait(1600);
+      sceneAfterFive();
+    }
+  }
+}
+
+/* ---------- 5. gecenin sonu: Michael ---------- */
+function sceneAfterFive(){
+  const s = screen();
+  const room = roomBox(true);
+  const jf = el("div","figure", figure("jesse",150));
+  jf.style.cssText="left:36%;bottom:30%;opacity:.9"; room.appendChild(jf);
+  const mf = el("div","figure", figure("jesse",178));
+  mf.style.cssText="left:62%;bottom:30%;opacity:.65;filter:hue-rotate(180deg)"; room.appendChild(mf);
+  s.appendChild(room);
+  s.appendChild(el("div","hint","6:04 AM — otoparkta"));
+  show(s); A.init();
+
+  const subs = makeSubs(room);
+  (async ()=>{
+    await wait(1200);
+    await subs.say("jesse","this was in the wall.", {night:5, pos:"left"});
+    await subs.beat(500);
+    await subs.say("gil","SERVICE LOG — 04/14/87 — LAST ENTRY<br>The name on the second key card is —",
+                   {night:5, hold:3000});
+    await subs.beat(900);
+    await subs.say("michael","...that's my father.", {night:5, pos:"right"});
+    await subs.beat(700);
+    await subs.say("michael","Michael. Michael Afton.", {night:5, pos:"right"});
+    await subs.beat(1400);
+
+    const c = el("div","card");
+    c.style.cssText="position:absolute;inset:0;display:flex;flex-direction:column;"+
+      "align-items:center;justify-content:center;background:rgba(0,0,0,.9);z-index:30";
+    c.innerHTML = `<div class="beat" style="color:var(--c-puppet)">
+      "Beşi kaldı. Birinin gitmesine izin verildi."</div>`;
+    const b = el("button","mbtn primary","▶ Otuz yıl sonra");
+    b.style.marginTop="26px"; b.onclick = sceneNewspaper;
+    c.appendChild(b); room.appendChild(c);
+  })();
+}
+
+/* ==========================================================================
+   10. 2023 — gazete, telefon, "Okay."
+   ========================================================================== */
+function sceneNewspaper(){
+  const s = screen();
+  const p = el("div","paper");
+  p.innerHTML = `
+    <div class="kicker"><span>Local</span><span>August 2023</span></div>
+    <h3>Fazbear's Fright: Thirty Years Later, The Horror Returns</h3>
+    <div class="rule"></div>
+    <p class="lede">Operators of a new horror attraction say the exhibit will
+    display <em>genuine artifacts recovered from the original locations</em> —
+    including, they claim, one intact animatronic. The attraction opens on the
+    site of the restaurant that closed at the end of 1993.</p>`;
+  s.appendChild(p);
+  const b = el("button","mbtn primary","Telefonu çıkar");
+  b.style.marginTop="22px"; b.onclick = scenePhone;
+  s.appendChild(b);
+  s.appendChild(el("div","hint","Masanın kenarında katlanmış eski bir servis ceketi duruyor. Hiç atmamış."));
+  show(s); A.init();
+}
+
+function scenePhone(){
+  const s = screen();
+  const wrap = el("div");
+  wrap.style.cssText="position:relative;width:min(900px,96vw);min-height:60vh;display:flex;"+
+    "flex-direction:column;align-items:center;justify-content:center;gap:18px";
+  const ph = el("div","phone");
+  ph.innerHTML = `<div class="name">Mike</div><div class="st" id="pst">calling…</div>`;
+  wrap.appendChild(ph);
+  s.appendChild(wrap);
+  s.appendChild(el("div","hint","Rehberde soyad yok. Otuz yıldır yok."));
+  show(s); A.init();
+
+  const subs = makeSubs(wrap);
+  subs.el.style.position = "relative";
+  subs.el.style.bottom = "auto";
+  subs.el.style.marginTop = "12px";
+
+  const st = wrap.querySelector("#pst");
+
+  (async ()=>{
+    for (let i=0;i<6;i++){ A.ping(); await wait(750); }
+    st.textContent = "connected";
+    await wait(1400);
+    st.textContent = "— silence —";
+    await wait(1600);
+
+    // Jesse'nin yazı tipi artık soğuk. Kimse söylemiyor.
+    await subs.say("jesseOld","It's open again. Same building.", {hold:1800});
+    await subs.beat(1800);
+    await subs.say("jesseOld","They're advertising real ones. If it's them, they've been in a crate since '93.", {hold:2200});
+    await subs.beat(2400);
+    await subs.say("jesseOld","I'm not going.", {hold:2400});
+    await subs.beat(2000);
+
+    subs.clear();
+    const line = el("div","center-line","Okay.");
+    line.style.opacity = "0";
+    line.style.transition = "opacity 1.1s ease";
+    wrap.appendChild(line);
+    await wait(60); line.style.opacity = "1";
+    await wait(2600);
+
+    st.textContent = "call ended";
+    A.bad();
+    await wait(2200);
+    sceneCredits();
+  })();
+}
+
+/* ==========================================================================
+   11. JENERİK — beş isim, sadece beş açılışı da dinlediysen
+   ========================================================================== */
+function sceneCredits(){
+  S.finished = true;
+  const s = screen();
+  const c = el("div","card");
+  c.appendChild(el("h2",null,"August 2023"));
+
+  const all = S.openersHeard.every(Boolean);
+  if (all){
+    const names = el("div");
+    names.style.cssText="margin:26px 0;display:flex;flex-direction:column;gap:9px";
+    [["freddy","Gabriel"],["bonnie","Jeremy"],["chica","Susie"],
+     ["foxy","Fritz"],["golden","Cassidy"]].forEach(([k,n])=>{
+      const d = el("div", null, n);
+      d.style.cssText = `font-family:${k==="golden"?"var(--f-machine)":"var(--f-child)"};
+        font-size:${k==="golden"?"22px":"28px"};color:${SPEAK[k].color};
+        ${k==="golden"?"letter-spacing:.2em;text-transform:uppercase;":"text-transform:lowercase;"}`;
+      names.appendChild(d);
+    });
+    c.appendChild(names);
+    c.appendChild(el("p",null,"Beş açılışı da dinledin. İsimler bu yüzden burada."));
+  } else {
+    c.appendChild(el("p",null,"Jenerik boş geçiyor."));
+    c.appendChild(el("p",null,
+      "Beş gece açılışını da sonuna kadar dinleseydin burada beş isim olurdu."));
+  }
+
+  c.appendChild(el("div","beat","five nights at freddy's 3 buradan başlıyor"));
+  const b = el("button","mbtn primary","← Menü"); b.style.marginTop="20px";
+  b.onclick = sceneMenu; c.appendChild(b);
+  s.appendChild(c);
+  show(s);
+}
+
+/* ---- başlat ---- */
+sceneMenu();
+</script>
+</body>
+</html>
