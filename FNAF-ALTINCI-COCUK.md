@@ -9,6 +9,19 @@
 > Afton, animatronikler ve beş kayıp çocuk özgün eserin parçasıdır; Jesse Marlow
 > ve babası bu tasarıma özgüdür.
 
+## Dil kararı
+
+**Oyunun dili İngilizce.** Türk yapımı ama FNAF evreni Amerika'da geçtiği için
+bütün metin, isimler ve arayüz İngilizce. İsimler değişmiyor: **Jesse Marlow**,
+**Gil Marlow**, **Michael Afton**.
+
+Bu tasarım defteri Türkçe. Oyunda geçecek repliklerin **İngilizcesi asıl metin**,
+altındaki Türkçe sadece burada okunsun diye.
+
+**Seslendirme yok.** Bütçe gerektirdiği için hiçbir replik seslendirilmiyor;
+her şey altyazıyla veriliyor. Bu bir eksik değil — §7'deki altyazı sistemi
+seslendirmenin yapabileceğinden fazlasını yapıyor.
+
 ---
 
 ## 0. Tek cümlelik özet
@@ -110,9 +123,11 @@ Safe room, batı koridorunun duvarının arkasında; hiçbir kat planında yok.
 **Golden Freddy** hiç kımıldamıyor. Köşede oturuyor. Jesse girince bir çocuk
 sesiyle iki cümle söylüyor:
 
-> *"Sen o değilsin."*
+> **"YOU'RE NOT HIM."**
 >
-> *"Bir daha gelme. İkinci sefer bakmam."*
+> **"DON'T COME BACK. NEXT TIME I WON'T CHECK."**
+>
+> *(Sen o değilsin. — Bir daha gelme. İkinci sefer bakmam.)*
 
 Cassidy affetmiyor — sadece **bu sefer kontrol ediyor.** Karakterine uygun olan bu.
 
@@ -149,7 +164,7 @@ ve her gece geri geliyor, çünkü işi bitmedi.
 | Gece | İlişki |
 |---|---|
 | 1 | Jesse hem animatroniklerden hem de bekçiden saklanıyor. |
-| 2 | Michael onu yakalıyor. İhbar etmiyor. *"Ne arıyorsan doğru binadasın. Ama içeride ne olduğu konusunda yanılıyorsun."* |
+| 2 | Michael onu yakalıyor. İhbar etmiyor. **"Whatever you're looking for, you're in the right building. You're just wrong about what's in it."** *(Ne arıyorsan doğru binadasın. Sadece içeride ne olduğu konusunda yanılıyorsun.)* |
 | 3–4 | İş bölüşüyorlar: biri kameraya bakıyor, biri koridora çıkıyor. Telsizle. |
 | 5 | Michael soyadını söylüyor. |
 
@@ -179,31 +194,132 @@ Sabah. Mutfak masası. Gazete.
 > *İşletmeciler, orijinal mekanlardan kurtarılan gerçek parçalar sergilediklerini
 > iddia ediyor.*
 
-Jesse 44 yaşında. Gazeteye uzun uzun bakıyor. Masanın kenarında katlanmış eski
-bir servis ceketi duruyor — hiç atmamış.
+Jesse 44 yaşında. Gazeteye bakıyor. Yüzü değişmiyor.
+
+Masanın kenarında katlanmış eski bir servis ceketi duruyor — hiç atmamış.
 
 Telefonunu çıkarıyor. Rehberde soyadsız bir kayıt: **"Mike."**
 (1993'te Michael soyadını söyledi; Jesse otuz yıl boyunca hiç kullanmadı.
 Ona bunu yapmazdı.)
 
 Uzun uzun çalıyor. Sonra biri açıyor ve **hiçbir şey söylemiyor.**
-Jesse kimin açtığını biliyor.
+Jesse kimin açtığını biliyor. Selam vermiyor.
 
-> *"İlan vermişler. Otuz yıl olmuş, bilet satıyorlar."*
+> **JESSE:** "It's open again. Same building."
 >
-> *"Mike — gerçek bir şey bulmuşlar. Eğer onlarsa, '93'ten beri bir kutunun içindeler."*
+> *(sessizlik)*
 >
-> *"Bana bir kere doğru binada olduğumu söylemiştin. Haklıydın. Bu sefer sıra sende."*
+> **JESSE:** "They're advertising real ones. If it's them, they've been in a crate since '93."
+>
+> *(sessizlik — uzun)*
+>
+> **JESSE:** "I'm not going."
+>
+> **MICHAEL:** "Okay."
 
-Hat kesiliyor. Karartma.
+*Hattı Michael kapatıyor.* Jesse'nin ekranı üç saniye daha yanık kalıyor,
+sonra sönüyor.
 
-Tek satır:
+Karartma. Tek satır:
 
-> *Ağustos 2023.*
+> *August 2023.*
+
+### Neden bu kadar soğuk
+
+İkisi de otuz yıl önce olanları biliyor. **Hiçbir şeyi birbirlerine
+açıklamıyorlar** — açıklama olsaydı sahne ısınırdı. Selam yok, veda yok,
+"haklıydın" yok, "sıra sende" yok.
+
+**"I'm not going."** cümlesi işin bütün ağırlığını taşıyor:
+
+- Jesse gitmeyeceğini söylüyor, Michael'a *git* demiyor. Ama ikisi de ne
+  söylendiğini biliyor. Rica etmiyor, sadece bilgiyi bırakıp çekiliyor.
+- Aynı zamanda Cassidy'ye verilmiş bir söz: *"Bir daha gelme."* Jesse otuz
+  yıldır sözünü tutuyor.
+- Ve Michael'ın **"Okay."**si tek kelimede *"o zaman ben giderim"* demek.
+  FNAF 3 bu tek kelimenin içinden çıkıyor.
+
+Türkçesi (sadece burada okunsun diye):
+*"Yine açılmış. Aynı bina." / "Gerçeklerini sergiliyorlarmış. Eğer onlarsa,
+'93'ten beri bir sandığın içindeler." / "Ben gitmiyorum." / "Tamam."*
 
 ---
 
-## 7. Neden bu final işliyor
+## 7. Altyazı sistemi — konuşan yazı
+
+Seslendirme bütçesi yok. O yüzden **ses yerine yazı oynuyor.** Her konuşanın
+kendi rengi *ve kendi yazı tipi* var; kim konuşuyorsa yazı ona benziyor.
+
+Bütün yazı tipleri **ücretsiz ve ticari kullanıma açık** (SIL OFL / Apache 2.0,
+hepsi Google Fonts'ta). Tek kuruş gitmiyor.
+
+### Konuşanlar
+
+| Kim | Yazı tipi | Renk | Neden |
+|---|---|---|---|
+| **Jesse** (1993) | Nunito — yumuşak, yuvarlak uçlu | Sıcak kirli beyaz `#F2EFE8` | Çocuk. Tek yuvarlak yazı tipi onunki. |
+| **Michael** | Inter — dar, soğuk, sıfır süsleme | Soğuk gri-mavi `#9FB3C8` | Kapalı adam. Hiç italik kullanmıyor, hiç ünlem almıyor. |
+| **Gil Marlow** (defter) | Special Elite — daktilo, solmuş karbon | Soluk sepya `#B9A88C` | Ölü adam. Hiç konuşmuyor, sadece yazdıkları okunuyor. |
+| **Gazete / sistem** | Libre Baskerville | Kağıt beyazı | Dış dünya. |
+
+### Beş ruh + Puppet — asıl numara burada
+
+Ruhların altyazısı **oyun boyunca değişiyor.** Tanınma eğrisini (§4) yazı
+tipinin kendisi oynuyor:
+
+**Başlangıç hâli — makine:**
+VT323, **hep büyük harf**, harf araları açık, arada bozulan karakterler.
+Konuşan bir şey değil, bozuk bir hoparlör gibi duruyor.
+
+**Tanıdıkları an — çocuk:**
+O ruh Jesse'nin çocuk olduğunu gördüğü gece, altyazısı **kalıcı olarak**
+Patrick Hand'e (çocuk el yazısı) dönüyor ve küçük harfe iniyor.
+
+| Ruh | Renk | Ne zaman dönüyor |
+|---|---|---|
+| Bonnie — Jeremy | Mor `#8E6FD8` | Gece 2 |
+| Chica — Susie | Sarı `#E8C33A` | Gece 3 |
+| Foxy — Fritz | Kırmızı `#C4453B` | Gece 4 |
+| Freddy — Gabriel | Kehribar `#C98A3B` | Gece 4 sonu |
+| **Golden Freddy — Cassidy** | Solgun altın `#D9C46A` | **Hiç dönmüyor** |
+| **Puppet — Charlotte** | Kemik beyazı `#EDEAE3` | Konuşmuyor |
+
+**Cassidy'nin yazısı sonuna kadar makine kalıyor.** Oyunun sonunda ekrandaki
+tek büyük harfli, tek bozuk altyazı onunki. Kimse "Cassidy affetmiyor" demiyor —
+**yazı tipi söylüyor.**
+
+**Puppet'ın hiç altyazısı yok.** Onun konuşması müzik kutusu. Altyazı satırında
+sadece **♪** işareti beliriyor, notalar seyrekleşince işaretler de azalıyor.
+Son gecede kutu tamamen susunca **altyazı çubuğu boş bir satır olarak kalıyor** —
+ve o boşluk oyunun en gerilimli üç saniyesi.
+
+### Son sahnenin detayı
+
+2023'te Jesse'nin altyazısı **artık Nunito değil.** Rengi aynı, ama yazı tipi
+Michael'ın soğuk Inter'ine dönmüş.
+
+Kimse söylemiyor. Çocuk gitmiş.
+
+Ve oyunun **son altyazısı** Michael'ın tek kelimesi: ekranın ortasında, tek
+başına, o soğuk gri-mavide.
+
+> Okay.
+
+### Küçük kurallar
+
+- **Altyazı konumu yön veriyor.** Ruhların yazısı sesin geldiği tarafta
+  beliriyor (sol koridor → sol taraf). Hem detay hem oynanış yardımı.
+- **Renkler koyu zemine göre seçildi**, hepsi yarı saydam koyu bir plaka
+  üstünde duruyor. Renk tek başına bilgi taşımıyor — yazı tipi de ayırt
+  ediyor, yani renk körlüğünde bile kimin konuştuğu belli.
+- **Jesse'nin repliklerinde asla büyük harf yok.** Bağırdığı sahnelerde bile.
+  Bağıramıyor, çocuk.
+- **Michael hiç noktalama şişirmiyor.** Bütün replikleri nokta ile bitiyor.
+  Tek bir soru işareti var, o da 2. gecede: *"How old are you?"*
+
+---
+
+## 8. Neden bu final işliyor
 
 FNAF 3'te Michael binayı yakıyor ve beş ruh özgür kalıyor.
 
@@ -216,7 +332,7 @@ Merhamet geri dönüyor. Çember kapanıyor. Oyunun bütün tezi bu:
 
 ---
 
-## 8. Oynanış çekirdeği
+## 9. Oynanış çekirdeği
 
 | Sistem | Nasıl |
 |---|---|
@@ -232,18 +348,32 @@ beş gece boyunca o tuşa basıyor.
 
 ---
 
-## 9. Açık Uçlar
+## 10. Kapanan kararlar
+
+| Konu | Karar |
+|---|---|
+| İsimler | **Değişmiyor.** Jesse Marlow, Gil Marlow, Michael Afton. |
+| Oyun dili | **İngilizce.** Türk yapımı ama evren Amerika'da. |
+| Seslendirme | **Yok.** Her şey altyazı; yazı tipi karakteri taşıyor (§7). |
+| Michael son sahnede | **Konuşuyor. Tek kelime: "Okay."** Oyunun son altyazısı. |
+| Son konuşmanın tonu | **Soğuk.** Selam yok, veda yok, açıklama yok. Michael kapatıyor. |
+
+---
+
+## 11. Açık Uçlar
 
 Netleşmemiş, konuşulacak yerler:
 
-- **Jesse'nin ismi Türkçe mi olsun?** Şu an Amerikan kalıbında; değiştirmek
-  hikayenin hiçbir yerini bozmuyor.
-- **Michael son sahnede konuşsun mu?** Şu an sessiz (Scooping sonrası hâline
-  uygun). Alternatif: tek kelime — *"Tamam."*
 - **Golden Freddy'nin iki repliği fazla mı açık?** FNAF sessizliği sever;
   tek replikle de olur.
 - **Ofis dışı çıkışlar oynanış olarak fazla mı kalabalık?** Beş gecenin ikisi
   tamamen ofiste geçebilir, çıkışlar 3'e inebilir.
 - **Puppet'ın kutuyu vermesi mi, sadece kapıyı göstermesi mi?** İkisi birden
   fazla olabilir.
+- **Puppet gerçekten hiç konuşmasın mı?** Şu an tek bir repliği bile yok.
+  İstenirse oyunun en sonunda tek satır alabilir — ama o zaman "boş altyazı
+  çubuğu" detayı gider.
+- **Ruhların yazı tipi dönüşümü oyuncuya çok mu erken sızdırıyor?** Gece 2'de
+  Bonnie'nin yazısı çocuk el yazısına dönünce oyuncu gerçeği anlıyor olabilir.
+  Alternatif: dönüşüm sadece o gecelik olsun, kalıcılık 5. gecede yerleşsin.
 - **Alt başlık:** "Altıncı Çocuk" / *The Sixth Child*. Kesinleşmedi.
