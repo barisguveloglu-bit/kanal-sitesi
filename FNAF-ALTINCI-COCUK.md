@@ -561,12 +561,33 @@ Merhamet geri dönüyor. Çember kapanıyor. Oyunun bütün tezi bu:
 
 | Sistem | Nasıl |
 |---|---|
-| **Süre** | 00:00 – 06:00, klasik |
+| **Süre** | 00:00 – 06:00, klasik. Prototipte saat başı 21 sn, gece 126 sn |
 | **Ofis** | İki kapı, sınırlı güç (FNAF 1 kalıbı) |
 | **Müzik kutusu** | Ödül Köşesi'ndeki kutu tabletten uzaktan kuruluyor; boşalırsa Puppet kalkıyor |
 | **Çıkış** | Her gece bir zorunlu ofis dışı görev. Ofis o sırada savunmasız; 3. geceden sonra Michael kapatıyor |
 | **CEKET** | Açılıp kapanabilir. **Takılıyken:** alet taşıyabiliyor, ısınıyor — ama algılanma menzili uzun. **Çıkarınca:** alet yok, yavaş soğuk debuff'ı — ama animatronikler yarım saniye tereddüt ediyor |
 | **Son gece** | Ceket seçenek olmaktan çıkıyor. Bitirmenin tek yolu onsuz |
+
+### Denge (prototipte ölçülmüş değerler)
+
+| Tüketim | Saniyede |
+|---|---|
+| Taban | %0.14 |
+| Her kapalı kapı | %0.26 |
+| Kamera açık | %0.16 |
+| Her koridor ışığı | %0.12 |
+| Koridor çıkışı sırasında | %0.30 |
+
+- **İki kapı da baştan sona kapalı** — en kötü oynanış — gece sonunda hâlâ
+  ~%30 güç kalıyor. Yani güç artık ceza değil, baskı.
+- Düzgün oynayan bir bot **1., 3. ve 5. geceyi bitirdi**, sırasıyla %71, %67
+  ve %61-63 güçle.
+- **Müzik kutusu** dolu hâlde 2. gecede ~69 sn, 5. gecede ~48 sn dayanıyor;
+  kurma hızı saniyede %48, yani tepeye çıkmak ~1.3 sn sürüyor.
+- **Kapıya tepki penceresi 2.2 sn** (üşümüşken 3.0 sn).
+
+> Bu değerler bilerek cömert. Zorlaştırmak istersen ilk dokunacağın yer
+> kapı tüketimi (%0.26) ve tepki penceresi (2.2 sn).
 
 Yani hikayenin metaforu doğrudan bir tuşa bağlı. Oyuncu, ne anlattığını anlamadan
 beş gece boyunca o tuşa basıyor.

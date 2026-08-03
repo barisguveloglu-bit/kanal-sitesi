@@ -206,11 +206,14 @@ button{font:inherit;color:inherit;cursor:pointer}
   100%{transform:translateY(-101%)}}
 
 /* kapı tozu */
-.dust{position:absolute;left:0;right:0;bottom:0;height:26%;pointer-events:none;z-index:6;
-  opacity:0}
-.dust.go{animation:dustPuff .8s ease-out}
-.dust i{position:absolute;bottom:4px;width:3px;height:3px;border-radius:50%;background:#8d8368}
-@keyframes dustPuff{0%{opacity:0}15%{opacity:.55}100%{opacity:0;transform:translateY(-26px)}}
+.dust{position:absolute;left:0;right:0;bottom:0;height:30%;pointer-events:none;z-index:6}
+.dust i{position:absolute;bottom:3px;width:3px;height:3px;border-radius:50%;
+  background:#9a8f70;opacity:0}
+.dust.go i{animation:dustPuff .85s ease-out}
+@keyframes dustPuff{
+  0%{opacity:0;transform:translate(0,0) scale(.6)}
+  12%{opacity:.7}
+  100%{opacity:0;transform:translate(var(--dx,0),-34px) scale(1.9)}}
 
 .hallLight{position:absolute;inset:0;z-index:4;opacity:0;transition:opacity .09s;
   background:radial-gradient(120% 90% at 50% 40%,rgba(255,246,214,.26),rgba(255,246,214,.05) 62%,transparent 78%)}
@@ -225,6 +228,9 @@ button{font:inherit;color:inherit;cursor:pointer}
   gap:10px;padding:10px 14px;font-size:11px;letter-spacing:.12em;text-transform:uppercase}
 #hud .box{background:rgba(4,5,7,.72);border:1px solid var(--line);padding:6px 10px}
 #hud b{color:#fff;font-weight:600;letter-spacing:.06em}
+.use{letter-spacing:.05em;color:#5aa06a}
+.use[data-lvl="3"]{color:#e0b02e} .use[data-lvl="4"]{color:#e08a2e}
+.use[data-lvl="5"],.use[data-lvl="6"]{color:var(--c-bad)}
 .meter{height:5px;width:96px;background:#1a1e26;margin-top:5px;position:relative}
 .meter i{position:absolute;inset:0;width:0;background:#7fa8c9;transition:width .2s linear}
 .meter.warn i{background:var(--c-bad)}
@@ -371,15 +377,30 @@ const A = (()=>{
     g.gain.setValueAtTime(vol,ctx.currentTime);
     g.gain.exponentialRampToValueAtTime(.0008, ctx.currentTime+dur);
     o.connect(g); o.start(); o.stop(ctx.currentTime+dur+.02);
+    o.onended = ()=>{ try{ o.disconnect(); g.disconnect(); }catch(e){} };  // düğümleri bırak
+  };
+  // gürültü tamponları önbellekte: altyazı motoru harf başına click() çağırıyor,
+  // her seferinde yeni buffer üretmek boşuna ayırma
+  const nbuf = new Map();
+  const noiseBuf=(dur)=>{
+    const key = dur.toFixed(2);
+    let b = nbuf.get(key);
+    if (!b){
+      const n = Math.max(1, (ctx.sampleRate*dur)|0);
+      b = ctx.createBuffer(1,n,ctx.sampleRate);
+      const d = b.getChannelData(0);
+      for(let i=0;i<n;i++) d[i]=(Math.random()*2-1)*(1-i/n);
+      nbuf.set(key,b);
+    }
+    return b;
   };
   const noise=(dur,vol=.18,hp=400)=>{
     if(!ctx||!on) return;
-    const n=ctx.sampleRate*dur, b=ctx.createBuffer(1,n,ctx.sampleRate), d=b.getChannelData(0);
-    for(let i=0;i<n;i++) d[i]=(Math.random()*2-1)*(1-i/n);
-    const s=ctx.createBufferSource(); s.buffer=b;
+    const s=ctx.createBufferSource(); s.buffer=noiseBuf(dur);
     const f=ctx.createBiquadFilter(); f.type="highpass"; f.frequency.value=hp;
     const g=gain(vol);
     s.connect(f); f.connect(g); s.start();
+    s.onended = ()=>{ try{ s.disconnect(); f.disconnect(); g.disconnect(); }catch(e){} };
   };
   return {
     init(){ start(); },
@@ -418,9 +439,14 @@ const stage = document.getElementById("stage");
 const el = (tag, cls, html) => { const d=document.createElement(tag);
   if(cls) d.className=cls; if(html!=null) d.innerHTML=html; return d; };
 const wait = ms => new Promise(r=>setTimeout(r,ms));
-let timers = [];
-const later = (fn,ms) => { const t=setTimeout(fn,ms); timers.push(t); return t; };
-const clearTimers = () => { timers.forEach(clearTimeout); timers=[]; };
+// Set kullanılıyor: biten zamanlayıcılar kendini siliyor, dizi sonsuza kadar büyümüyor
+// (altyazı motoru harf başına bir zamanlayıcı açıyor, bu olmadan binlerce ölü kayıt birikiyordu)
+const timers = new Set();
+const later = (fn,ms) => {
+  const t = setTimeout(()=>{ timers.delete(t); fn(); }, ms);
+  timers.add(t); return t;
+};
+const clearTimers = () => { timers.forEach(clearTimeout); timers.clear(); };
 let rafs = [];
 const loop = fn => { let id; const step=t=>{ if(fn(t)!==false) id=requestAnimationFrame(step); };
   id=requestAnimationFrame(step); rafs.push(()=>cancelAnimationFrame(id)); };
@@ -1400,8 +1426,10 @@ function shutterHTML(){
 }
 function dustHTML(){
   let d = "";
-  for (let i=0;i<14;i++)
-    d += `<i style="left:${(i*7+3)}%;animation-delay:${(i*20)}ms"></i>`;
+  for (let i=0;i<16;i++){
+    const dx = (((i*37)%13)-6) * 2;          // kenarlara doğru savrulma
+    d += `<i style="left:${(i*6+3)}%;--dx:${dx}px;animation-delay:${(i%5)*38}ms"></i>`;
+  }
   return d;
 }
 
@@ -1441,7 +1469,8 @@ function sceneOffice(opt={}){
   const hud = el("div"); hud.id="hud";
   hud.innerHTML = `
     <div class="box">Gece <b id="hNight">${night}</b> &nbsp; <span id="hClock">12 AM</span></div>
-    <div class="box">Güç <b id="hPow">100%</b><div class="meter"><i id="mPow"></i></div></div>
+    <div class="box">Güç <b id="hPow">100%</b> <span id="hUse" class="use">▮</span>
+      <div class="meter"><i id="mPow"></i></div></div>
     <div class="box" id="boxHud">Müzik kutusu<div class="meter gold"><i id="mBox"></i></div></div>
     <div class="box">Ceket <b id="hJack">ÜSTÜNDE</b><div class="meter warn"><i id="mCold"></i></div></div>`;
   room.appendChild(hud);
@@ -1463,6 +1492,11 @@ function sceneOffice(opt={}){
   dl.appendChild(figL); dr.appendChild(figR);
   const deskw = el("div","deskwrap"); deskw.innerHTML = buildDesk();
   room.append(dl, dr, deskw);
+  // döngüde her karede querySelector çağırmamak için bir kez yakala
+  const lampL = dl.querySelector(".warnlamp"), lampR = dr.querySelector(".warnlamp");
+  const shutL = dl.querySelector(".shutter"), shutR = dr.querySelector(".shutter");
+  const hallL = dl.querySelector(".hallLight"), hallR = dr.querySelector(".hallLight");
+  const dustL = dl.querySelector(".dust"), dustR = dr.querySelector(".dust");
 
   // kamera katmanı
   const cams = el("div","camview"); cams.hidden = true;
@@ -1475,7 +1509,7 @@ function sceneOffice(opt={}){
       <div style="font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#5c6472">
         CAM 11 — Prize Corner</div>
       <div class="meter gold" style="width:100%;margin:8px 0"><i id="mBox2"></i></div>
-      <button class="cbtn" id="windBtn" style="width:100%">Basılı tut — kur</button>
+      <button class="cbtn" id="windBtn" style="width:100%;padding:14px 12px;border-color:#8a6a2a;color:#e8c33a">Basılı tut ya da <b>W</b> — KUR</button>
     </div>`;
   room.appendChild(cams);
 
@@ -1491,7 +1525,7 @@ function sceneOffice(opt={}){
   room.appendChild(ctr);
 
   s.appendChild(room);
-  s.appendChild(el("div","hint","A/D kapı · Q/E ışık · SPACE kamera · J ceket"));
+  s.appendChild(el("div","hint","A/D kapı · Q/E ışık · SPACE kamera · J ceket · W müzik kutusunu kur"));
   show(s); A.init(); A.fanOn();
 
   const subs = makeSubs(room);
@@ -1504,7 +1538,7 @@ function sceneOffice(opt={}){
     box:100, boxOn: night>=2, winding:false,
     pos:{ bonnie:0, chica:0, freddy:0, foxy:0 },
     atDoor:{L:0,R:0}, excursionDone:false, paused:false,
-    wasL:null, wasR:null
+    wasL:null, wasR:null, use:1, lastOpL:null, lastOpR:null
   };
   if (opt.penalty){ G.pos.bonnie=2; G.pos.chica=2; }
 
@@ -1533,50 +1567,67 @@ function sceneOffice(opt={}){
   }
   selectRoom("Show Stage");
 
-  function drawCams(){
-    crWrap.querySelectorAll(".cr").forEach(c=>{
-      const occ = c.querySelector(".occ"); occ.innerHTML="";
-      Object.keys(G.pos).forEach(k=>{
-        const p = PATHS[k][Math.min(G.pos[k], PATHS[k].length-1)];
-        if (p === c.dataset.room && c.dataset.room !== "Kitchen"){
-          const d = el("span","dot"); d.style.color = SPEAK[k].color;
-          d.style.background = SPEAK[k].color; occ.appendChild(d);
-        }
-      });
-    });
+  // Kamera listesi eskiden HER KAREDE 11 odanın innerHTML'ini yeniden yazıyordu
+  // (saniyede ~660 DOM yazımı). Artık sadece kamera açıkken ve konumlar
+  // gerçekten değiştiğinde çiziliyor.
+  const crCells = [...crWrap.querySelectorAll(".cr")]
+    .map(c => ({ node:c, room:c.dataset.room, occ:c.querySelector(".occ") }));
+  let camSig = "";
+  function drawCams(force){
+    if (!G.camUp && !force) return;
+    const sig = G.pos.bonnie+","+G.pos.chica+","+G.pos.freddy+","+G.pos.foxy;
+    if (sig === camSig && !force) return;
+    camSig = sig;
+    const where = {};
+    for (const k in G.pos){
+      const p = PATHS[k][Math.min(G.pos[k], PATHS[k].length-1)];
+      (where[p] || (where[p] = [])).push(k);
+    }
+    for (const c of crCells){
+      const here = (c.room === "Kitchen") ? null : where[c.room];
+      const want = here ? here.join("") : "";
+      if (c.last === want) continue;              // o oda değişmediyse dokunma
+      c.last = want;
+      c.occ.innerHTML = here
+        ? here.map(k=>`<span class="dot" style="background:${SPEAK[k].color};color:${SPEAK[k].color}"></span>`).join("")
+        : "";
+    }
   }
 
   /* --- girdiler --- */
   // kapı: panjur iner, oda sarsılır, altından toz kalkar
   function door(side, open){
-    const wrap = side === "l" ? dl : dr;
-    const sh = wrap.querySelector(".shutter");
+    const sh = side === "l" ? shutL : shutR;
+    const d  = side === "l" ? dustL : dustR;
     sh.classList.remove("down","up");
     void sh.offsetWidth;                       // animasyonu yeniden tetikle
     sh.classList.add(open ? "up" : "down");
     A.doorMove();
     if (!open && !reduced){
       room.classList.remove("rumble"); void room.offsetWidth; room.classList.add("rumble");
-      const d = wrap.querySelector(".dust");
       d.classList.remove("go"); void d.offsetWidth;
       later(()=>d.classList.add("go"), 250);
       later(()=>A.slam(), 250);
     }
   }
 
+  const camFlash = cams.querySelector(".camflash");
+
   function toggle(k){
     if (G.over) return;
     if (k==="dl"){ G.doorL=!G.doorL; door("l", !G.doorL); $("bDL").dataset.on=G.doorL?1:0; }
     if (k==="dr"){ G.doorR=!G.doorR; door("r", !G.doorR); $("bDR").dataset.on=G.doorR?1:0; }
-    if (k==="ll"){ G.lightL=!G.lightL; dl.querySelector(".hallLight").classList.toggle("on",G.lightL);
+    if (k==="ll"){ G.lightL=!G.lightL; hallL.classList.toggle("on",G.lightL);
                    $("bLL").dataset.on=G.lightL?1:0; if(G.lightL) A.buzz(); }
-    if (k==="rl"){ G.lightR=!G.lightR; dr.querySelector(".hallLight").classList.toggle("on",G.lightR);
+    if (k==="rl"){ G.lightR=!G.lightR; hallR.classList.toggle("on",G.lightR);
                    $("bRL").dataset.on=G.lightR?1:0; if(G.lightR) A.buzz(); }
     if (k==="cam"){
       G.camUp=!G.camUp; A.click(); cams.hidden=!G.camUp; $("bCam").dataset.on=G.camUp?1:0;
-      if (G.camUp && !reduced){
-        const f = cams.querySelector(".camflash");
-        if (f){ f.classList.remove("go"); void f.offsetWidth; f.classList.add("go"); }
+      if (G.camUp){
+        drawCams(true);                        // açılır açılmaz güncel görüntü
+        if (!reduced && camFlash){
+          camFlash.classList.remove("go"); void camFlash.offsetWidth; camFlash.classList.add("go");
+        }
       }
     }
     if (k==="jack"){
@@ -1593,13 +1644,19 @@ function sceneOffice(opt={}){
   const keymap = {a:"dl",d:"dr",q:"ll",e:"rl"," ":"cam",j:"jack"};
   const onKey = ev=>{
     const k = ev.key.toLowerCase();
+    if (k === "w"){ ev.preventDefault(); G.winding = true; return; }   // basılı tut
+    if (ev.repeat) return;
     if (keymap[k]){ ev.preventDefault(); toggle(keymap[k]); }
   };
+  const onKeyUp = ev=>{ if (ev.key.toLowerCase()==="w") G.winding = false; };
   window.addEventListener("keydown", onKey);
-  rafs.push(()=>window.removeEventListener("keydown", onKey));
+  window.addEventListener("keyup", onKeyUp);
+  rafs.push(()=>{ window.removeEventListener("keydown", onKey);
+                  window.removeEventListener("keyup", onKeyUp); });
 
+  // Kurma: düğmeye basılı tut YA DA W'ye bas. Prize Corner kamerası açık olmalı.
   const wb = $("windBtn");
-  const windOn = ()=>{ G.winding=true; }, windOff = ()=>{ G.winding=false; };
+  const windOn = e=>{ e.preventDefault(); G.winding=true; }, windOff = ()=>{ G.winding=false; };
   wb.addEventListener("pointerdown", windOn);
   window.addEventListener("pointerup", windOff);
   rafs.push(()=>window.removeEventListener("pointerup", windOff));
@@ -1672,7 +1729,7 @@ function sceneOffice(opt={}){
         caught = Math.max(0, caught - dt*0.045);
       }
       seenFor = watching ? seenFor + dt : 0;
-      G.power -= dt/1000 * 0.5;
+      G.power -= dt/1000 * 0.30;
       bar.style.width = Math.min(100, prog) + "%";
       bar.style.background = caught>50 ? "var(--c-bad)" : "#7fa8c9";
       if (caught >= 100){ cleanup(); die(night>=4?"foxy":"bonnie","Koridorda yakalandın."); return false; }
@@ -1710,9 +1767,12 @@ function sceneOffice(opt={}){
     }
     if (G.t >= HOUR_MS*6){ finishNight(); return false; }
 
-    // güç
-    let drain = 0.22 + (G.doorL?0.40:0) + (G.doorR?0.40:0) + (G.camUp?0.25:0)
-              + (G.lightL?0.18:0) + (G.lightR?0.18:0);
+    // güç — bir gece 126 sn. Kapıları gecenin yarısında kapalı tutan oyuncu
+    // %45 civarı harcıyor, yani hata payı var. (Eski değerlerin ~1.6 katı sıkıydı.)
+    G.use = 1 + (G.doorL?1:0) + (G.doorR?1:0) + (G.camUp?1:0)
+              + (G.lightL?1:0) + (G.lightR?1:0);
+    const drain = 0.14 + (G.doorL?0.26:0) + (G.doorR?0.26:0) + (G.camUp?0.16:0)
+                + (G.lightL?0.12:0) + (G.lightR?0.12:0);
     G.power -= drain * dt/1000;
     if (G.power <= 0){ G.power=0; powerOut(); return false; }
 
@@ -1723,9 +1783,11 @@ function sceneOffice(opt={}){
     // müzik kutusu
     if (G.boxOn){
       if (G.winding && G.camUp && selected==="Prize Corner"){
-        G.box = Math.min(100, G.box + dt/1000*26);
+        G.box = Math.min(100, G.box + dt/1000*48);
       } else {
-        G.box -= dt/1000 * (2.4 + night*0.5);
+        // Dolu kutu gece 2de ~69sn, gece 5te ~48sn dayanıyor.
+        // (Eskiden 25sn'de boşalıyordu — 126 saniyelik gecede imkânsızdı.)
+        G.box -= dt/1000 * (1.00 + night*0.22);
       }
       boxAcc += dt;
       if (boxAcc > 620 - G.box*3){ boxAcc = 0; A.boxNote((G.t/620)|0, G.box/100); }
@@ -1755,12 +1817,14 @@ function sceneOffice(opt={}){
     const rAt = !!rKind;
     if (lAt !== G.wasL){ figL.innerHTML = lAt ? figure("bonnie",250) : ""; G.wasL = lAt; }
     if (rKind !== G.wasR){ figR.innerHTML = rKind ? figure(rKind,250) : ""; G.wasR = rKind; }
-    figL.style.opacity = (lAt && G.lightL) ? ".98" : (lAt ? ".16" : "0");
-    figR.style.opacity = (rAt && G.lightR) ? ".98" : (rAt ? ".16" : "0");
-    dl.querySelector(".warnlamp").classList.toggle("on", lAt && !G.doorL);
-    dr.querySelector(".warnlamp").classList.toggle("on", rAt && !G.doorR);
+    const opL = (lAt && G.lightL) ? ".98" : (lAt ? ".16" : "0");
+    const opR = (rAt && G.lightR) ? ".98" : (rAt ? ".16" : "0");
+    if (opL !== G.lastOpL){ figL.style.opacity = opL; G.lastOpL = opL; }
+    if (opR !== G.lastOpR){ figR.style.opacity = opR; G.lastOpR = opR; }
+    lampL.classList.toggle("on", lAt && !G.doorL);
+    lampR.classList.toggle("on", rAt && !G.doorR);
 
-    const delay = G.cold > 90 ? 2600 : 1500;   // üşüyorsan tepkin geç
+    const delay = G.cold > 90 ? 3000 : 2200;   // üşüyorsan tepkin geç
     G.atDoor.L = lAt ? (G.doorL ? 0 : G.atDoor.L + dt) : 0;
     G.atDoor.R = rAt ? (G.doorR ? 0 : G.atDoor.R + dt) : 0;
     if (lAt && G.doorL && G.atDoor.L===0 && Math.random()<0.004) G.pos.bonnie = 1;
@@ -1779,14 +1843,38 @@ function sceneOffice(opt={}){
     drawCams(); updateHud();
   });
 
+  // HUD de her karede yazılıyordu. Değişmeyen alana dokunmuyoruz artık.
+  const hudEl = { clock:$("hClock"), pow:$("hPow"), use:$("hUse"), mPow:$("mPow"),
+                  mCold:$("mCold"), boxHud:$("boxHud"), mBox:$("mBox") };
+  const hudLast = {};
   function updateHud(){
-    $("hClock").textContent = (G.hour===0?12:G.hour) + " AM";
-    $("hPow").textContent = Math.max(0,G.power).toFixed(0) + "%";
-    $("mPow").style.width = Math.max(0,G.power) + "%";
-    $("mPow").parentElement.classList.toggle("warn", G.power < 25);
-    $("mCold").style.width = G.cold + "%";
-    $("boxHud").hidden = !G.boxOn;
-    if (G.boxOn){ $("mBox").style.width = G.box+"%"; const b2=$("mBox2"); if(b2) b2.style.width=G.box+"%"; }
+    const clock = (G.hour===0?12:G.hour) + " AM";
+    if (hudLast.clock !== clock){ hudEl.clock.textContent = clock; hudLast.clock = clock; }
+
+    const p = Math.max(0, G.power), pr = p.toFixed(0);
+    if (hudLast.pow !== pr){
+      hudEl.pow.textContent = pr + "%";
+      hudEl.mPow.style.width = p + "%";
+      hudEl.mPow.parentElement.classList.toggle("warn", p < 25);
+      hudLast.pow = pr;
+    }
+    if (hudLast.use !== G.use){
+      hudEl.use.textContent = "▮".repeat(G.use);
+      hudEl.use.dataset.lvl = G.use;
+      hudLast.use = G.use;
+    }
+    const c = G.cold.toFixed(0);
+    if (hudLast.cold !== c){ hudEl.mCold.style.width = c + "%"; hudLast.cold = c; }
+
+    if (hudEl.boxHud.hidden !== !G.boxOn) hudEl.boxHud.hidden = !G.boxOn;
+    if (G.boxOn){
+      const b = G.box.toFixed(0);
+      if (hudLast.box !== b){
+        hudEl.mBox.style.width = b + "%";
+        const b2 = $("mBox2"); if (b2) b2.style.width = b + "%";
+        hudLast.box = b;
+      }
+    }
   }
 
   function powerOut(){
