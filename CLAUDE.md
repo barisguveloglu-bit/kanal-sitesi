@@ -12,8 +12,24 @@ yapmadan önce o dosyayı oku — karakterler, güçler ve efsane orada tanıml�
 - Statik site: HTML + CSS + vanilla JS. **Derleme adımı, paket yöneticisi yok.**
   Backend yok, veritabanı yok, hiçbir dış servise bağlı değil.
 - Bütün içerik `assets/js/data.js` içinde veri olarak duruyor.
-- `assets/js/app.js` bu veriyi HTML'e çeviriyor; menü ve alt bilgi de oradan geliyor.
+- `assets/js/app.js` bu veriyi HTML'e çeviriyor; alt bilgi de oradan geliyor.
+  Menü ise her HTML'de yazılı — `app.js` sadece davranışını yönetir
+  (aktif bağlantı, telefonda katlama).
 - HTML sayfaları sadece iskelet + `data-*` bağlama noktaları içeriyor.
+
+## Bağlam haritası — hangi iş için hangi dosyayı oku
+
+| İş | Oku |
+|---|---|
+| Hikaye / içerik değişikliği | `LORE.md` (canon) → sonra `assets/js/data.js` |
+| Tasarım / animasyon | `TASARIM.md` — kısıtlar, renk sistemi, `icerik-hazir` olayı |
+| Video ekleme, yeni sayfa, yayınlama | `README.md` |
+| Render mantığı, alt bilgi | `assets/js/app.js` |
+
+`LORE.md` uzun; tamamını okumak şart değil, ilgili bölüm yeter. Bölümleri:
+1 Temel Fikir · 2 Kuruyan Ağaç ve Yılmaz · 3 İrade Sistemi (taslak) ·
+4 Karakterler · 5 Mafya Yapısı ve 81 derebeyi · 6 Tır Değerleri (iç referans) ·
+7 Güçlerin Kaynağı · 8 Beyin Yıkama Yöntemi · 9 Kapatılan Diğer Uçlar.
 
 ## Kurallar
 
@@ -27,8 +43,14 @@ yapmadan önce o dosyayı oku — karakterler, güçler ve efsane orada tanıml�
 
 ## Bekleyen işler
 
-`LORE.md` dosyasının sonundaki "Açık Uçlar" bölümüne bak — irade kademelerinin
-son hâli, derebeyi isimleri ve zaman çizelgesi henüz netleşmedi.
+- **İrade kademeleri hâlâ taslak** — `LORE.md` §3'teki "DURUM: TASLAK" notu
+  duruyor; 5 kademe birlikte detaylandırılacak.
+- **`VIDEOLAR` boş** — ana sayfadaki video bölümleri bu yüzden gizli.
+- **Zaman çizelgesi yazılmadı** — 1728'den bugüne olayların sırası
+  `LORE.md`'de dağınık, tek bir çizelgede toplanmadı.
+- Derebeyi isimleri netleşti: 81'i de `LORE.md` §5 ve `data.js` içinde tanımlı.
+  (Eski notlardaki "Açık Uçlar" bölümü artık yok; kapatılanlar
+  `LORE.md` §9'da.)
 
 ## Denetim sonrası eklenen kurallar
 

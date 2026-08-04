@@ -98,14 +98,15 @@ Kaydet, sayfayı yenile. Karakter otomatik olarak doğru bölümde görünür.
 
 ### Derebeyi eklemek
 
-`DEREBEYLERI` dizisine ekle:
+`IL_DEREBEYLERI` dizisine ekle (plaka sırasına göre duruyor):
 
 ```js
-{ il: "Ankara", ad: "Derebeyi adı", not: "Kısa bilgi" }
+{ plaka: 6, il: "Ankara", komutan: "orta", ad: "Kumarbi", kim: "tahttan indirilen tanrılar babası" }
 ```
 
-Adı henüz belli değilse `ad: null` bırak — site "İsimsiz Derebeyi" gösterir ve
-sayaç kendini günceller.
+`komutan` değeri `"bati"`, `"orta"` veya `"dogu"` olabilir — derebeyinin hangi
+cepheye bağlı olduğunu söyler. Adı henüz belli değilse `ad: null` bırak — site
+"İsimsiz Derebeyi" gösterir ve sayaç kendini günceller.
 
 ### İrade kademelerini değiştirmek
 
