@@ -452,8 +452,10 @@ Kapanan bir uç buradan silinir ve ilgili bölüme yazılır.
 - Beş kademe son hâli mi, sayı değişecek mi?
 - Kademe 1, 2 ve 3 için örnek karakter yok (`data.js` içinde `ornek: null`).
   Kademe 4 = Cips Yiyen Adam, kademe 5 = Kameracı Barış olarak bağlandı.
-- Komutanların kademeleri: Teşup için Kademe 3 yazılı (bölüm 5),
-  Nemesis ve Ahriman için kademe verilmedi.
+
+Komutanların kademeleri **açık uç değil**: Nemesis 4, Teşup 3, Ahriman 4
+olarak hem bölüm 5 tablosunda hem `data.js` içindeki `iradeKademe` alanında
+yazılı ve eşleşiyor.
 
 Kademe sayısı değişirse `data.js` içindeki `IRADE_KADEMELERI` ve
 `irade.html` birlikte güncellenmeli.

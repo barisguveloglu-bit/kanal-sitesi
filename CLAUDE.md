@@ -10,7 +10,11 @@ yapmadan önce o dosyayı oku — karakterler, güçler ve efsane orada tanıml�
 ## Yapı
 
 - Statik site: HTML + CSS + vanilla JS. **Derleme adımı, paket yöneticisi yok.**
-  Backend yok, veritabanı yok, hiçbir dış servise bağlı değil.
+  Backend yok, veritabanı yok, dış kütüphane yok.
+  **Tek dış bağımlılık YouTube kapak görselleri:** `app.js` içindeki
+  `videoKapagi()` `i.ytimg.com` adresinden resim çekiyor. `VIDEOLAR` boş
+  olduğu için şu an hiç istek gitmiyor; doldurulduğu an gidecek.
+  Font, betik veya CSS için dış sunucu kullanma — bu tek istisna.
 - Bütün içerik `assets/js/data.js` içinde veri olarak duruyor.
 - `assets/js/app.js` bu veriyi `data-*` noktalarına basıyor.
 - **Menü ve alt bilgi `app.js` üretmiyor** — her HTML dosyasında yazılı.
@@ -24,9 +28,14 @@ yapmadan önce o dosyayı oku — karakterler, güçler ve efsane orada tanıml�
 - İçerik değişince `LORE.md` ile `data.js` senkron kalmalı.
 - Arayüz metinleri **Türkçe**.
 - Kod içindeki değişken ve fonksiyon isimleri de Türkçe (mevcut düzene uy).
-- **Sitede hiç kullanıcı verisi toplanmıyor.** Form yok, giriş yok, çerez yok.
+- **Sitede hiç kullanıcı verisi toplanmıyor.** Form yok, giriş yok, çerez yok,
+  sunucuya giden hiçbir istek yok (`fetch`/`XMLHttpRequest` sıfır).
   Soru-cevap YouTube yorumlarında yapılıyor; site sadece oraya yönlendiriyor.
   Buraya backend eklemeden önce iki kez düşün — sadeliği bilinçli bir tercih.
+  **Tek istisna `localStorage`:** `app.js` spoiler kapaklarının tercihini
+  cihazda saklıyor (`tercihOku`/`tercihYaz`, gizli sekmede sessizce
+  başarısız oluyor). Cihazdan çıkmıyor, kimseye gönderilmiyor — bu bir veri
+  toplama değil. Silme, ama yenisini eklemeden önce sor.
 
 ## Prosedürler
 
@@ -71,7 +80,11 @@ Aşağıdakiler bilinçli kararlar — "düzeltilecek eksik" değil.
 - **Renk paleti ölçülerek belirlendi.** `--text-3`, `--kotu-metin` ve
   `--bolge-renk` değerleri WCAG AA (4.5:1) sınırına göre hesaplandı.
   Değiştireceksen önce kontrastı ölç.
-- **Odak halkası silinmez.** `outline: none` yazma; `:focus-visible`
-  tasarımı bilerek var.
+- **Odak halkası silinmez.** Odaklanabilir bir öğeden halkayı kaldırma;
+  `:focus-visible` tasarımı bilerek var (`style.css` içinde 7 kural).
+  **Tek meşru istisna zaten yazılı:** `style.css:1453` satırındaki
+  `:focus:not(:focus-visible) { outline: none; }` — halkayı sadece fare
+  tıklamasında gizliyor, klavyede bırakıyor. O satır doğru, silme.
+  Başka yere `outline: none` ekleme.
 - Betikler `defer` ile yükleniyor (ilk boyama ~%28 hızlandı). Sıra korunur,
   bozma.
