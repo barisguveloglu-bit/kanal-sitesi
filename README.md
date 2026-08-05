@@ -183,3 +183,17 @@ ve yorumlar kanala da yarıyor.
 > Tek kişilik bir kanal için sürekli bakım gerektirdiği ve YouTube
 > yorumları aynı işi zaten yaptığı için kaldırıldı. Kodu silinmedi,
 > git geçmişinde duruyor.
+
+---
+
+## Yapay zekâ ile çalışırken
+
+Depoda hikayeyi ve kuralları anlatan bir context katmanı var:
+
+- `LORE.md` — canon kaynağı. Açık uçlar bölüm 10'da.
+- `CLAUDE.md` — projenin kuralları (sadece Claude Code okur).
+- `.claude/skills/` — sık yapılan işlerin adımları: içerik ekleme,
+  sayfa ekleme, video ekleme. İlgili iş başlayınca kendiliğinden yükleniyor.
+
+Aynı kurulumu claude.ai tarafında da kullanmak için:
+[`CLAUDE-AI-KURULUM.md`](CLAUDE-AI-KURULUM.md).

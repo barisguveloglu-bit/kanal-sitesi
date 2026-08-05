@@ -39,6 +39,11 @@ kopyalanmıyor ki bu dosya şişmesin. İşe başlarken ilgili olanı aç:
 | Yeni HTML sayfası, sayfa silme veya yeniden adlandırma | `sayfa-ekle` |
 | Ana sayfadaki YouTube bölümlerini doldurma | `video-ekle` |
 
+Bu skill'ler claude.ai'de de çalışıyor ama **kendiliğinden gitmiyor** —
+zip'leyip yüklemek gerekiyor. Bu dosya (`CLAUDE.md`) ise sadece Claude
+Code'da okunuyor. İkisini de claude.ai'ye taşımak için:
+[`CLAUDE-AI-KURULUM.md`](CLAUDE-AI-KURULUM.md).
+
 ## Bekleyen işler
 
 - **Hikaye tarafı:** [`LORE.md`](LORE.md) bölüm 10 "Açık Uçlar".
