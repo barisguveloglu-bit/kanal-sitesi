@@ -12,7 +12,10 @@ yapmadan önce o dosyayı oku — karakterler, güçler ve efsane orada tanıml�
 - Statik site: HTML + CSS + vanilla JS. **Derleme adımı, paket yöneticisi yok.**
   Backend yok, veritabanı yok, hiçbir dış servise bağlı değil.
 - Bütün içerik `assets/js/data.js` içinde veri olarak duruyor.
-- `assets/js/app.js` bu veriyi HTML'e çeviriyor; menü ve alt bilgi de oradan geliyor.
+- `assets/js/app.js` bu veriyi `data-*` noktalarına basıyor.
+- **Menü ve alt bilgi `app.js` üretmiyor** — her HTML dosyasında yazılı.
+  `app.js` menüde sadece açık sayfayı işaretliyor ve mobil düğmeyi çalıştırıyor;
+  alt bilgide sadece kanal bağlantısını (`data-kanal`) dolduruyor.
 - HTML sayfaları sadece iskelet + `data-*` bağlama noktaları içeriyor.
 
 ## Kurallar
@@ -25,10 +28,25 @@ yapmadan önce o dosyayı oku — karakterler, güçler ve efsane orada tanıml�
   Soru-cevap YouTube yorumlarında yapılıyor; site sadece oraya yönlendiriyor.
   Buraya backend eklemeden önce iki kez düşün — sadeliği bilinçli bir tercih.
 
+## Prosedürler
+
+Sık yapılan işlerin adımları `.claude/skills/` altında duruyor; buraya
+kopyalanmıyor ki bu dosya şişmesin. İşe başlarken ilgili olanı aç:
+
+| Ne yapıyorsun | Skill |
+|---|---|
+| Karakter, güç, kademe, derebeyi, icraat — hikaye içeriği | `canon-ekle` |
+| Yeni HTML sayfası, sayfa silme veya yeniden adlandırma | `sayfa-ekle` |
+| Ana sayfadaki YouTube bölümlerini doldurma | `video-ekle` |
+
 ## Bekleyen işler
 
-`LORE.md` dosyasının sonundaki "Açık Uçlar" bölümüne bak — irade kademelerinin
-son hâli, derebeyi isimleri ve zaman çizelgesi henüz netleşmedi.
+- **Hikaye tarafı:** [`LORE.md`](LORE.md) bölüm 10 "Açık Uçlar".
+  Şu an açık olan iki şey var: irade kademeleri hâlâ TASLAK ve vakayiname
+  tarihi (1730 mü 1731 mi) karara bağlanmadı. Derebeyi isimleri kapandı.
+- **Site tarafı:** `data.js` içindeki `VIDEOLAR` bloğu tamamen boş, yani ana
+  sayfanın en görünür bölümü hiç basılmıyor. Doldurmak için gerçek YouTube
+  kimlikleri lazım — **uydurma, iste.**
 
 ## Denetim sonrası eklenen kurallar
 

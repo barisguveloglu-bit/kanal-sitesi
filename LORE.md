@@ -435,3 +435,41 @@ Arkadaşlarını arıyorlar, dünyanın anahtarını değil.
 
 ### Cips Yiyen Adam
 İki formu var: cips ve yoğurt. Başka form tanımlı değil.
+
+---
+
+## 10. Açık Uçlar
+
+Bu bölüm **hikayenin kendisi değil, hikayeyle ilgili karar bekleyen sorular.**
+Kapanan bir uç buradan silinir ve ilgili bölüme yazılır.
+
+### Hâlâ açık
+
+**İrade kademeleri — TASLAK**
+`LORE.md` bölüm 3 beş kademeyi öneri olarak tanımlıyor, o bölüm
+"DURUM: TASLAK" işaretini taşıyor. Karar bekleyenler:
+
+- Beş kademe son hâli mi, sayı değişecek mi?
+- Kademe 1, 2 ve 3 için örnek karakter yok (`data.js` içinde `ornek: null`).
+  Kademe 4 = Cips Yiyen Adam, kademe 5 = Kameracı Barış olarak bağlandı.
+- Komutanların kademeleri: Teşup için Kademe 3 yazılı (bölüm 5),
+  Nemesis ve Ahriman için kademe verilmedi.
+
+Kademe sayısı değişirse `data.js` içindeki `IRADE_KADEMELERI` ve
+`irade.html` birlikte güncellenmeli.
+
+**Vakayiname tarihi — 1730 mü 1731 mi?**
+`LORE.md` bölüm 2 tablosu şu an **1730** kullanıyor.
+Oradaki tarih notu sebebini açıklıyor: 1728 + 2 yıl = 1730 ve III. Ahmed
+1 Ekim 1730'da tahttan indiği için 1730 hem "2 yıl sonra"yı hem "I. Mahmud
+devri"ni aynı anda doğru kılıyor. 1731 tercih edilirse metinde
+"3 yıl sonra" denmeli. **Karar verilmedi, 1730 geçici olarak duruyor.**
+
+### Kapanan uçlar
+
+- **81 il derebeyi — KAPANDI.** Üç cephenin tamamı isimlendirildi;
+  bölüm 5 tablosu ile `data.js` içindeki `IL_DEREBEYLERI`
+  81 kayıtta eşleşiyor.
+- **Anlatı boşlukları — KAPANDI.** Barış'ın ailesi, Samara Kadın'ın ihaneti,
+  Barış'ın nerede tutulduğu ve iyilerin ne bildiği
+  bölüm 9'da cevaplandı.

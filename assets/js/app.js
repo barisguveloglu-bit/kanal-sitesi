@@ -17,8 +17,9 @@ function kacir(s) {
  * Buradaki iş sadece zenginleştirme — aktif sayfayı işaretlemek ve
  * telefonda menüyü katlamak.
  *
- * YENİ SAYFA EKLERSEN: bağlantıyı 9 HTML dosyasındaki <nav class="menu">
- * bloğuna da eklemen gerekiyor. (Bkz. README → "Yeni sayfa eklemek".)
+ * YENİ SAYFA EKLERSEN: bağlantıyı menü taşıyan 8 HTML dosyasındaki
+ * <nav class="menu"> bloğuna da eklemen gerekiyor. (404.html'de menü yok,
+ * kendi kurtarma bağlantıları var.) Bkz. README → "Yeni sayfa eklemek".
  */
 function menuyuHazirla() {
   const menu = document.querySelector(".ust-bar .menu");
