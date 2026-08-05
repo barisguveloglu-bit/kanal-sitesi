@@ -1,8 +1,8 @@
 # Kanlı Göz — arama motoru yönergeleri
-# Not: yönetim ve gizli sayfalar burada LİSTELENMİYOR. Sebebi, robots.txt
-# herkese açık bir dosya — bir adresi buraya yazmak onu gizlemez, duyurur.
-# O sayfaların indekslenmesi kendi <meta name="robots" content="noindex">
-# etiketleriyle engelleniyor; erişim güvenliği ise Supabase kurallarında.
+# Not: gizli sayfa burada LİSTELENMİYOR. Sebebi, robots.txt herkese açık bir
+# dosya — bir adresi buraya yazmak onu gizlemez, duyurur.
+# O sayfanın indekslenmesi kendi <meta name="robots" content="noindex">
+# etiketiyle engelleniyor. Sitede backend yok; korunacak bir veri de yok.
 
 User-agent: *
 Allow: /
