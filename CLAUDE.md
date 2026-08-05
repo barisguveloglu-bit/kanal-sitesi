@@ -4,8 +4,24 @@ Bu depo bir **hikaye lore sitesi**. Türkçe bir kurgu evreninin arşivi.
 
 ## Önce bunu oku
 
-Hikayenin canon kaynağı [`LORE.md`](LORE.md). Herhangi bir içerik değişikliği
-yapmadan önce o dosyayı oku — karakterler, güçler ve efsane orada tanımlı.
+Hikayenin canon kaynağı [`LORE.md`](LORE.md) — karakterler, güçler ve efsane
+orada tanımlı. **Ama dosyayı baştan sona okuma:** 437 satır ve büyük kısmı
+eldeki işle ilgisiz. `lore` becerisi (`.claude/skills/lore/`) hangi bölümün
+okunacağını söyleyen bir harita tutuyor; önce ona bak, sonra sadece o bölümü oku.
+
+## Hangi dosyaya ne için bakılır
+
+| Soru | Dosya |
+|---|---|
+| Hikayede ne oluyor, kim kim | `LORE.md` — ilgili bölüm (`lore` becerisi) |
+| İçerik nasıl eklenir, site nasıl yayınlanır | `README.md` |
+| Renk, tipografi, animasyon, erişilebilirlik | `TASARIM.md` |
+| Geçen oturumda ne yaptık, ne kaldı | `DEFTER.md` |
+| Sayfada görünen her şeyin verisi | `assets/js/data.js` |
+| Verinin HTML'e nasıl çevrildiği | `assets/js/app.js` |
+
+Gereksiz dosya okumak bağlam penceresini doldurur ve yanıtı kötüleştirir.
+Tabloda karşılığı olan soruyu tabloya bakarak cevapla.
 
 ## Yapı
 
@@ -27,8 +43,23 @@ yapmadan önce o dosyayı oku — karakterler, güçler ve efsane orada tanıml�
 
 ## Bekleyen işler
 
-`LORE.md` dosyasının sonundaki "Açık Uçlar" bölümüne bak — irade kademelerinin
-son hâli, derebeyi isimleri ve zaman çizelgesi henüz netleşmedi.
+Henüz netleşmemiş üç şey — bunlar canon değil, taslak:
+
+- **İrade kademeleri.** `LORE.md` → `## 3. İrade Sistemi`, tablonun hemen
+  üstünde "DURUM: TASLAK" yazıyor.
+- **81 il derebeyi.** `### 81 il derebeyi` — kadro dolu değil.
+- **Zaman çizelgesi.** 1728 ve 1730–1735 dışındaki tarihler belirsiz.
+
+Güncel liste `DEFTER.md` içindeki en son kaydın "Kaldığımız yer" bölümünde.
+
+## Oturum düzeni
+
+- Oturum başında `DEFTER.md`'nin başı otomatik yüklenir
+  (`.claude/settings.json` → `SessionStart`). Geçen seferden devam et.
+- İş bitince **`/gunluk`** yaz — kararlar ve kalan işler deftere geçsin.
+  Yazılmayan karar bir sonraki oturumda kaybolur.
+- İçerik değiştirdikten sonra **`/lore-denetle`** ile `LORE.md` ↔ `data.js`
+  tutarlılığını kontrol et.
 
 ## Denetim sonrası eklenen kurallar
 

@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git branch:*)",
+      "Bash(git checkout:*)",
+      "Bash(node --check:*)",
+      "Bash(python3 -m http.server:*)",
+      "Read(//home/user/kanal-sitesi/**)",
+      "Glob",
+      "Grep"
+    ],
+    "deny": [
+      "Read(//home/user/kanal-sitesi/.env)",
+      "Read(//home/user/kanal-sitesi/.env.*)"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "head -c 3000 \"${CLAUDE_PROJECT_DIR:-.}/DEFTER.md\" 2>/dev/null || true"
+          }
+        ]
+      }
+    ]
+  }
+}
