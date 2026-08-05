@@ -94,6 +94,22 @@ satır numaralarının hâlâ doğru yeri gösterdiğini denetler.
 
 Siteyi görmek için: `python3 -m http.server 8000`
 
+## Alt-agent'lar
+
+`.claude/agents/` altında üç tanesi tanımlı. Üçü de **canon'u uydurmaya
+karşı** kurgulandı: kaynaksız cümle kurmazlar, her iddiada `dosya:satır`
+verirler, bulamadıklarında "yok" derler.
+
+| Agent | Ne zaman |
+|---|---|
+| `canon-denetci` | Hikaye hakkında bir iddia doğrulanacaksa. `LORE.md`'ye veya siteye yeni lore yazılmadan **önce**. Salt-okunur. |
+| `lore-arastirmaci` | Derin/çapraz bilgi gerektiğinde. `LORE.md` + `data.js` + HTML + git geçmişini birlikte tarar. Kalıcı hafızası var. |
+| `senkron-bekcisi` | İçerik değişikliğinden sonra. `LORE.md` ↔ `data.js` **anlam** ayrışmasını arar (`kontrol.sh` sadece sayar). |
+
+Üçünün de cevabında **CANON/BULGULAR** ile **ÖNERİ** ayrı bloklar hâlinde
+gelir. Öneri bloğundaki hiçbir şey canon değildir; `LORE.md` veya `data.js`
+dosyasına Barış onaylamadan yazılmaz.
+
 ## Gizlilik
 
 **Sitede hiç kullanıcı verisi toplanmıyor.** Form yok, giriş yok, çerez yok.

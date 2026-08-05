@@ -260,6 +260,62 @@ if [ "$isimsiz" -gt 0 ]; then
 fi
 
 
+baslik "9. Alt-agent tanımları"
+# Frontmatter bozuksa agent sessizce hiç yüklenmez — hata vermez, sadece yok
+# sayılır. Bu yüzden burada denetleniyor.
+if [ ! -d .claude/agents ]; then
+  uyari ".claude/agents/ yok — tanımlı alt-agent bulunmuyor"
+else
+  bilinen_arac=" Read Grep Glob Bash Write Edit WebFetch WebSearch NotebookEdit TodoWrite Skill ToolSearch Agent Monitor "
+  agent_sayisi=0
+  for tanim in .claude/agents/*.md; do
+    [ -e "$tanim" ] || continue
+    agent_sayisi=$((agent_sayisi + 1))
+    kisa=$(basename "$tanim")
+
+    if [ "$(head -1 "$tanim")" != "---" ]; then
+      hata "$kisa: ilk satır '---' değil, frontmatter yok — agent yüklenmez"
+      continue
+    fi
+    son=$(sed -n '2,$ { /^---$/ { =; q; } }' "$tanim")
+    if [ -z "$son" ]; then
+      hata "$kisa: frontmatter kapanmamış (ikinci '---' yok)"
+      continue
+    fi
+
+    fm=$(sed -n "2,$((son))p" "$tanim")
+    ad=$(printf '%s\n' "$fm" | sed -n 's/^name: *//p')
+    aciklama=$(printf '%s\n' "$fm" | sed -n 's/^description: *//p')
+    araclar=$(printf '%s\n' "$fm" | sed -n 's/^tools: *//p')
+    govde=$(sed -n "$((son + 1)),\$p" "$tanim" | wc -c)
+
+    [ -z "$ad" ]       && hata "$kisa: 'name' eksik"
+    [ -z "$aciklama" ] && hata "$kisa: 'description' eksik — Claude bu agent'ı ne zaman çağıracağını bilemez"
+    case "$ad" in
+      *:*) hata "$kisa: isimde ':' olamaz" ;;
+    esac
+    if [ -n "$ad" ] && ! printf '%s' "$ad" | grep -qE '^[a-z0-9-]+$'; then
+      hata "$kisa: isim sadece küçük harf ve tire olmalı → $ad"
+    fi
+    [ "$govde" -lt 100 ] && hata "$kisa: sistem istemi neredeyse boş"
+
+    for arac in ${araclar//,/ }; do
+      case "$bilinen_arac" in
+        *" $arac "*) ;;
+        *) hata "$kisa: bilinmeyen araç '$arac' — hiçbiri çözülmezse agent hiç başlamaz" ;;
+      esac
+    done
+  done
+  [ "$agent_sayisi" -gt 0 ] && basarili "$agent_sayisi agent tanımı geçerli"
+
+  # İsim çakışması: aynı klasörde iki aynı isim varsa biri sessizce düşer
+  cakisan=$(grep -h '^name: ' .claude/agents/*.md 2>/dev/null | sort | uniq -d)
+  if [ -n "$cakisan" ]; then
+    hata "aynı isimde birden fazla agent var: $cakisan"
+  fi
+fi
+
+
 printf '\n'
 if [ "$HATA" -eq 0 ]; then
   printf '\033[32mTemiz.\033[0m %s uyarı var (uyarılar hata değil — eksik içeriği hatırlatıyor).\n' "$UYARI"
