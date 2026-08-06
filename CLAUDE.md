@@ -25,6 +25,32 @@ yapmadan önce o dosyayı oku — karakterler, güçler ve efsane orada tanıml�
   Soru-cevap YouTube yorumlarında yapılıyor; site sadece oraya yönlendiriyor.
   Buraya backend eklemeden önce iki kez düşün — sadeliği bilinçli bir tercih.
 
+## Denetim — içerik değiştirdiysen çalıştır
+
+```
+node arac/denetim.mjs
+```
+
+Bağımlılığı yok, kurulum istemiyor. Üç şeyi ölçüyor:
+
+1. `data.js` kendi içinde tutarlı mı — 81 il eksiksiz mi, her cephede 27 il
+   var mı, tekrar eden isim/plaka var mı, `gucEtiketi` ile `tir` uyuşuyor mu,
+   icraatlerdeki karakterler tanımlı mı.
+2. `LORE.md` ile `data.js` aynı şeyi mi söylüyor — derebeyi isimleri, cephe
+   dağılımı, karakter ve komutan adları.
+3. Site bütün mü — menü bütün sayfalarda aynı mı, kırık iç bağlantı var mı,
+   `sitemap.xml` eksik/fazla sayfa listeliyor mu.
+
+Hata varsa çıkış kodu 1. Aynı betik her push'ta GitHub Actions'ta da koşuyor
+(`.github/workflows/denetim.yml`).
+
+**Uyarı ile hata farklı.** Eksik derebeyi adı gibi şeyler *uyarı* — site
+çalışır. Canon ile verinin ayrışması *hata* — düzeltilmeli.
+
+Denetime yeni kural eklersen `arac/denetim-testi.sh` ile doğrula: betik
+kasten bozulmuş verileri gerçekten yakalıyor mu? Hiçbir şey yakalamayan
+denetim, denetim değildir.
+
 ## Bekleyen işler
 
 `LORE.md` dosyasının sonundaki "Açık Uçlar" bölümüne bak — irade kademelerinin

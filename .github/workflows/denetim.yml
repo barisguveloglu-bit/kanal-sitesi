@@ -1,0 +1,30 @@
+name: Denetim
+
+# Canon (LORE.md) ile veri (data.js) ayrışırsa ve site bütünlüğü bozulursa
+# burada yakalanır. Kurulum gerekmiyor — betiğin bağımlılığı yok.
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  denetim:
+    name: Canon ve site bütünlüğü
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Denetimi çalıştır
+        run: node arac/denetim.mjs
+
+      # Denetimin kendisi hâlâ iş görüyor mu — kasten bozulmuş verileri
+      # yakalayamıyorsa denetim körelmiş demektir.
+      - name: Denetimin denetimi
+        run: bash arac/denetim-testi.sh
