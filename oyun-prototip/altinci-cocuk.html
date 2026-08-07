@@ -266,17 +266,22 @@ button{font:inherit;color:inherit;cursor:pointer}
 .meter.gold i{background:var(--c-golden)}
 
 #ctrls{position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:center;
-  gap:5px;padding:9px 8px;flex-wrap:wrap;z-index:10}
-.cbtn{background:rgba(8,11,15,.94);border:1px solid var(--line);padding:7px 11px;
-  font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);
-  display:flex;flex-direction:column;align-items:center;gap:3px;min-width:82px;
-  border-radius:4px;transition:border-color .12s,color .12s,background .12s}
-.cbtn kbd{font-family:var(--f-machine);font-size:13px;letter-spacing:.08em;
-  background:#1b2029;border:1px solid #2e3644;border-bottom-width:2px;border-radius:3px;
-  padding:1px 7px;color:#b8c0cc;min-width:26px;text-align:center}
-.cbtn span{font-size:9.5px;letter-spacing:.13em}
-.cbtn em{font-style:normal;font-size:9.5px;letter-spacing:.13em;font-weight:700;
-  color:#4e5765}
+  gap:3px;padding:5px 6px;flex-wrap:nowrap;z-index:10}
+.cbtn{background:rgba(8,11,15,.9);border:1px solid var(--line);padding:4px 6px;
+  font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);
+  display:flex;flex-direction:column;align-items:center;gap:1px;min-width:58px;
+  border-radius:3px;transition:border-color .12s,color .12s,background .12s;
+  line-height:1.15}
+.cbtn kbd{font-family:var(--f-machine);font-size:11px;letter-spacing:.05em;
+  background:#1b2029;border:1px solid #2e3644;border-radius:2px;
+  padding:0 5px;color:#b8c0cc;min-width:20px;text-align:center}
+.cbtn span{font-size:7.5px;letter-spacing:.07em;white-space:nowrap}
+.cbtn em{font-style:normal;font-size:8.5px;letter-spacing:.06em;font-weight:700;
+  color:#4e5765;white-space:nowrap}
+@media (max-width:640px){
+  .cbtn{min-width:46px;padding:3px 4px}
+  .cbtn span{display:none}
+}
 .cbtn:hover{color:#fff;border-color:#3f4856}
 .cbtn:hover kbd{color:#fff;background:#232a35}
 .cbtn[data-on="1"]{border-color:#5e7f9c;color:#e8eef5;background:#101922}
@@ -284,10 +289,10 @@ button{font:inherit;color:inherit;cursor:pointer}
 .cbtn[data-on="1"] kbd{background:#1b2b39;border-color:#3f6076;color:#dceaf6}
 .cbtn.urgent{border-color:var(--c-bad);animation:urgentPulse .7s steps(1) infinite}
 @keyframes urgentPulse{0%,49%{background:#22100e}50%,100%{background:rgba(8,11,15,.94)}}
-.cbtn.help{min-width:64px}
+.cbtn.help{min-width:44px}
 
 /* uyarı şeridi */
-#alertbar{position:absolute;left:50%;bottom:82px;transform:translateX(-50%);z-index:11;
+#alertbar{position:absolute;left:50%;bottom:58px;transform:translateX(-50%);z-index:11;
   background:rgba(10,4,4,.94);border:1px solid var(--c-bad);border-left-width:4px;
   padding:9px 16px;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;
   color:#f0c9c4;white-space:nowrap;max-width:94vw;overflow:hidden;text-overflow:ellipsis}
@@ -322,7 +327,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 #helppanel .close{display:block;margin:18px auto 0;width:min(280px,80vw)}
 
 /* kamera */
-.camview{position:absolute;inset:0;background:#05070a;padding:44px 18px 60px;
+.camview{position:absolute;inset:0;background:#05070a;padding:40px 16px 50px;
   display:flex;flex-direction:column;gap:8px;z-index:9;
   animation:camOn .28s ease-out}
 @keyframes camOn{0%{opacity:0;transform:translateY(9px) scaleY(.94);filter:brightness(3)}
@@ -542,259 +547,553 @@ const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
 /* ==========================================================================
    ANIMATRONİKLER — görsel dosya yok, hepsi elle çizilmiş SVG.
    Hepsi 0 0 200 340 kutusunda; ayak hizası y=336.
+   Her çağrıda gradyan kimlikleri benzersizleşiyor (aynı ekranda birden çok
+   figür olunca çakışmasın diye).
    ========================================================================== */
-function eyes(cx1, cx2, cy, r, iris, look=0){
-  return `<g class="eyeglow">
-    <ellipse cx="${cx1}" cy="${cy}" rx="${r}" ry="${r*1.06}" fill="#efeadd"/>
-    <ellipse cx="${cx2}" cy="${cy}" rx="${r}" ry="${r*1.06}" fill="#efeadd"/>
-    <circle cx="${cx1+look}" cy="${cy}" r="${r*.55}" fill="${iris}"/>
-    <circle cx="${cx2+look}" cy="${cy}" r="${r*.55}" fill="${iris}"/>
-    <circle cx="${cx1+look}" cy="${cy}" r="${r*.27}" fill="#08090b"/>
-    <circle cx="${cx2+look}" cy="${cy}" r="${r*.27}" fill="#08090b"/>
-    <circle cx="${cx1+look-r*.2}" cy="${cy-r*.24}" r="${r*.13}" fill="#fff" opacity=".85"/>
-    <circle cx="${cx2+look-r*.2}" cy="${cy-r*.24}" r="${r*.13}" fill="#fff" opacity=".85"/>
-  </g>`;
-}
-function teeth(x, y, w, n=6){
+let FIGID = 0;
+
+/* --- ortak parçalar --- */
+const lg = (id,a,b,x1,y1,x2,y2) =>
+  `<linearGradient id="${id}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}">
+     <stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient>`;
+
+/* endoiskelet eklemi — omuz, dirsek, diz */
+const joint = (cx,cy,r) =>
+  `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#767d8b"/>
+   <circle cx="${cx}" cy="${cy}" r="${r*.62}" fill="#454c58"/>
+   <circle cx="${cx-r*.28}" cy="${cy-r*.28}" r="${r*.2}" fill="#a8aeb9" opacity=".8"/>`;
+
+/* dört parmaklı el */
+const hand = (x,y,c,dark,flip=1) => {
+  let f = "";
+  for (let i=0;i<4;i++)
+    f += `<rect x="${x + flip*(i*6.2) - (flip<0?5:0)}" y="${y+3+Math.abs(i-1.5)*1.8}"
+            width="5.4" height="${16-Math.abs(i-1.5)*2.4}" rx="2.7" fill="${c}"/>`;
+  return `<g><ellipse cx="${x+flip*11}" cy="${y+2}" rx="14" ry="10" fill="${c}"/>
+    ${f}<ellipse cx="${x+flip*11}" cy="${y+1}" rx="9" ry="6" fill="${dark}" opacity=".45"/></g>`;
+};
+
+/* göz: akı, iris, bebek, parlama, üst göz kapağı */
+const eyeD = (cx,cy,r,iris,irisDark,lid="#0000") =>
+  `<g class="eyeglow">
+     <ellipse cx="${cx}" cy="${cy}" rx="${r}" ry="${r*1.08}" fill="#f2ede0"/>
+     <ellipse cx="${cx}" cy="${cy}" rx="${r}" ry="${r*1.08}" fill="none"
+       stroke="#b9b3a3" stroke-width=".8"/>
+     <circle cx="${cx}" cy="${cy}" r="${r*.58}" fill="${iris}"/>
+     <circle cx="${cx}" cy="${cy}" r="${r*.58}" fill="none" stroke="${irisDark}" stroke-width="1.2"/>
+     <circle cx="${cx}" cy="${cy}" r="${r*.27}" fill="#07080a"/>
+     <circle cx="${cx-r*.22}" cy="${cy-r*.26}" r="${r*.15}" fill="#fff" opacity=".9"/>
+     <circle cx="${cx+r*.2}" cy="${cy+r*.24}" r="${r*.08}" fill="#fff" opacity=".45"/>
+     <path d="M${cx-r} ${cy-r*.35} a${r} ${r*1.08} 0 0 1 ${r*2} 0 l0 -${r*.8} l-${r*2} 0 z"
+       fill="${lid}"/>
+   </g>`;
+
+const teethRow = (x,y,w,n,h=8,c="#eae4d3") => {
   let t=""; const s=w/n;
-  for(let i=0;i<n;i++) t+=`<rect x="${x+i*s+1}" y="${y}" width="${s-2}" height="7" rx="1.5" fill="#e8e3d4"/>`;
+  for(let i=0;i<n;i++){
+    t += `<rect x="${x+i*s+.9}" y="${y}" width="${s-1.8}" height="${h}" rx="1.6" fill="${c}"/>
+          <rect x="${x+i*s+.9}" y="${y}" width="${s-1.8}" height="${h*.3}" rx="1.6"
+            fill="#fff" opacity=".35"/>`;
+  }
   return t;
-}
+};
+
+/* vidalar / panel dikişi */
+const screws = (pts) => pts.map(([x,y])=>
+  `<circle cx="${x}" cy="${y}" r="2.4" fill="#2b2b2e" opacity=".7"/>
+   <path d="M${x-1.4} ${y} h2.8 M${x} ${y-1.4} v2.8" stroke="#8b8b93" stroke-width=".8"/>`).join("");
 
 const FIGURES = {
-  freddy(){ return `
-    <g>
-      <ellipse cx="100" cy="330" rx="52" ry="9" fill="#000" opacity=".5"/>
-      <rect x="60" y="292" width="34" height="40" rx="12" fill="#4a3520"/>
-      <rect x="58" y="290" width="36" height="44" rx="13" fill="#3d2e1c"/>
-      <rect x="106" y="290" width="36" height="44" rx="13" fill="#3d2e1c"/>
-      <rect x="62" y="200" width="76" height="104" rx="26" fill="#63482c"/>
-      <ellipse cx="100" cy="264" rx="32" ry="34" fill="#7a5b39"/>
-      <rect x="28" y="206" width="26" height="82" rx="13" fill="#563e26"/>
-      <rect x="146" y="206" width="26" height="82" rx="13" fill="#563e26"/>
-      <ellipse cx="41" cy="292" rx="15" ry="13" fill="#4a3520"/>
-      <ellipse cx="41" cy="292" rx="15" ry="13" fill="#4a3520"/>
-      <ellipse cx="159" cy="292" rx="15" ry="13" fill="#4a3520"/>
-      <rect x="152" y="252" width="7" height="46" rx="3.5" fill="#1a1a1e"/>
-      <ellipse cx="155" cy="248" rx="10" ry="12" fill="#2b2b30"/>
-      <circle cx="87" cy="216" r="6" fill="#151517"/><circle cx="113" cy="216" r="6" fill="#151517"/>
-      <path d="M78 196 L122 196 L112 210 L88 210 Z" fill="#141416"/>
-      <ellipse cx="100" cy="196" rx="17" ry="9" fill="#1b1b1e"/>
-      <circle cx="59" cy="112" r="21" fill="#4a3520"/><circle cx="59" cy="112" r="12" fill="#6f5335"/>
-      <circle cx="141" cy="112" r="21" fill="#4a3520"/><circle cx="141" cy="112" r="12" fill="#6f5335"/>
-      <ellipse cx="100" cy="130" rx="54" ry="50" fill="#63482c"/>
-      <ellipse cx="100" cy="158" rx="31" ry="24" fill="#7a5b39"/>
-      <ellipse cx="100" cy="146" rx="12" ry="9" fill="#17140f"/>
-      ${teeth(80,168,40,5)}
-      <path d="M70 106 q12 -9 24 -2" stroke="#3a2a18" stroke-width="6" fill="none" stroke-linecap="round"/>
-      <path d="M130 106 q-12 -9 -24 -2" stroke="#3a2a18" stroke-width="6" fill="none" stroke-linecap="round"/>
-      ${eyes(80,120,124,11,"#3f7fa8")}
-      <path d="M62 86 h76 v-6 h-76 z" fill="#141416"/>
-      <rect x="72" y="42" width="56" height="42" rx="4" fill="#17171a"/>
-      <rect x="70" y="76" width="60" height="10" rx="3" fill="#101012"/>
-      <rect x="72" y="66" width="56" height="8" fill="#2a2a30"/>
-    </g>`; },
+/* ---------------------------------------------------------------- FREDDY */
+freddy(u){ const g=`fr${u}`; return `
+  <defs>
+    ${lg(g+"b","#7a5b39","#4a3520",0,0,1,1)}
+    ${lg(g+"h","#7f5f3b","#4d3722",0,0,1,.9)}
+    ${lg(g+"m","#8c6a42","#5f4527",0,0,0,1)}
+  </defs>
+  <ellipse cx="100" cy="331" rx="56" ry="10" fill="#000" opacity=".5"/>
+  <!-- bacaklar -->
+  <rect x="62" y="286" width="30" height="34" rx="9" fill="#4a3520"/>
+  <rect x="108" y="286" width="30" height="34" rx="9" fill="#4a3520"/>
+  ${joint(77,288,8)}${joint(123,288,8)}
+  <path d="M56 336 q0 -22 21 -22 q21 0 21 22 z" fill="#3f2c1a"/>
+  <path d="M102 336 q0 -22 21 -22 q21 0 21 22 z" fill="#3f2c1a"/>
+  <path d="M58 330 q19 -8 38 0" stroke="#5c422a" stroke-width="2" fill="none"/>
+  <path d="M104 330 q19 -8 38 0" stroke="#5c422a" stroke-width="2" fill="none"/>
+  <!-- gövde -->
+  <rect x="60" y="198" width="80" height="102" rx="27" fill="url(#${g}b)"/>
+  <ellipse cx="100" cy="262" rx="33" ry="35" fill="url(#${g}m)"/>
+  <path d="M100 200 v96" stroke="#3a2a18" stroke-width="1.6" opacity=".55"/>
+  <path d="M68 214 q32 -12 64 0" stroke="#3a2a18" stroke-width="1.6" fill="none" opacity=".5"/>
+  ${screws([[70,238],[130,238],[70,282],[130,282]])}
+  <!-- kollar -->
+  <rect x="42" y="206" width="26" height="46" rx="13" fill="#563e26"/>
+  ${joint(55,206,11)}${joint(55,252,9)}
+  <rect x="43" y="250" width="24" height="44" rx="12" fill="#5f4529"/>
+  <rect x="132" y="206" width="26" height="46" rx="13" fill="#4e3822"/>
+  ${joint(145,206,11)}${joint(145,252,9)}
+  <rect x="133" y="250" width="24" height="44" rx="12" fill="#563e26"/>
+  ${hand(52,294,"#4a3520","#33240f",-1)}
+  <!-- mikrofon: elin içinde -->
+  <rect x="141" y="250" width="7" height="44" rx="3.5" fill="#1c1c20"/>
+  <rect x="141" y="250" width="2.5" height="44" fill="#3a3a42"/>
+  <circle cx="144.5" cy="242" r="13" fill="#33333b"/>
+  <circle cx="144.5" cy="242" r="13" fill="none" stroke="#1a1a1e" stroke-width="1.5"/>
+  <path d="M135 237 h19 M134 242 h21 M135 247 h19" stroke="#15151a" stroke-width="1.4"/>
+  <circle cx="140" cy="237" r="3.6" fill="#5c5c68" opacity=".55"/>
+  ${hand(139,294,"#4a3520","#33240f",1)}
+  <!-- boyun -->
+  <rect x="83" y="162" width="34" height="46" rx="13" fill="#43301c"/>
+  <path d="M86 166 v38" stroke="#33240f" stroke-width="1.4" opacity=".6"/>
+  <!-- papyon + düğmeler -->
+  <path d="M76 194 L94 186 L94 208 Z" fill="#17171b"/>
+  <path d="M124 194 L106 186 L106 208 Z" fill="#17171b"/>
+  <ellipse cx="100" cy="197" rx="8" ry="7" fill="#232329"/>
+  <ellipse cx="98" cy="195" rx="3" ry="2.4" fill="#3c3c46" opacity=".8"/>
+  <circle cx="88" cy="222" r="6.5" fill="#17171b"/><circle cx="86" cy="220" r="2.2" fill="#43434e"/>
+  <circle cx="112" cy="222" r="6.5" fill="#17171b"/><circle cx="110" cy="220" r="2.2" fill="#43434e"/>
+  <!-- kulaklar -->
+  <circle cx="49" cy="96" r="24" fill="#4a3520"/><circle cx="49" cy="96" r="14.5" fill="#6f5335"/>
+  <circle cx="49" cy="96" r="14.5" fill="none" stroke="#3d2c19" stroke-width="1.4"/>
+  <circle cx="151" cy="96" r="24" fill="#42301c"/><circle cx="151" cy="96" r="14.5" fill="#63492e"/>
+  <circle cx="151" cy="96" r="14.5" fill="none" stroke="#382718" stroke-width="1.4"/>
+  <!-- kafa -->
+  <ellipse cx="100" cy="130" rx="55" ry="51" fill="url(#${g}h)"/>
+  <path d="M52 116 q48 -26 96 0" stroke="#3a2a18" stroke-width="1.4" fill="none" opacity=".5"/>
+  <!-- burun bölgesi -->
+  <ellipse cx="100" cy="159" rx="32" ry="25" fill="url(#${g}m)"/>
+  <ellipse cx="100" cy="159" rx="32" ry="25" fill="none" stroke="#3f2d1a" stroke-width="1.2"/>
+  <path d="M100 140 v14" stroke="#3f2d1a" stroke-width="1.2"/>
+  <ellipse cx="100" cy="147" rx="12.5" ry="9.5" fill="#141109"/>
+  <ellipse cx="96" cy="144" rx="4" ry="2.6" fill="#4a412c" opacity=".7"/>
+  <circle cx="84" cy="165" r="1.6" fill="#4a3520"/><circle cx="90" cy="170" r="1.6" fill="#4a3520"/>
+  <circle cx="116" cy="165" r="1.6" fill="#4a3520"/><circle cx="110" cy="170" r="1.6" fill="#4a3520"/>
+  <!-- çene + dişler -->
+  <path d="M72 170 q28 16 56 0 l-4 14 q-24 10 -48 0 z" fill="#5a4227"/>
+  ${teethRow(78,168,44,5,8)}
+  <path d="M78 182 h44" stroke="#3a2a18" stroke-width="1.2" opacity=".6"/>
+  <!-- kaşlar -->
+  <path d="M68 105 q13 -11 27 -3" stroke="#33240f" stroke-width="7" fill="none" stroke-linecap="round"/>
+  <path d="M132 105 q-13 -11 -27 -3" stroke="#33240f" stroke-width="7" fill="none" stroke-linecap="round"/>
+  ${eyeD(80,124,12,"#4a86ad","#2b5f80")}
+  ${eyeD(120,124,12,"#4a86ad","#2b5f80")}
+  <!-- şapka -->
+  <path d="M58 88 q42 -10 84 0 l0 -7 q-42 -9 -84 0 z" fill="#101014"/>
+  <ellipse cx="100" cy="84" rx="42" ry="8" fill="#17171b"/>
+  <path d="M72 84 q28 -6 56 0 l-5 -44 q-23 -5 -46 0 z" fill="#1c1c22"/>
+  <path d="M72 78 q28 -6 56 0 l-1.4 -10 q-27 -6 -53 0 z" fill="#33333d"/>
+  <path d="M78 44 q22 -4 44 0" stroke="#2c2c34" stroke-width="1.4" fill="none"/>
+  <path d="M80 46 l-4 34" stroke="#2a2a32" stroke-width="2" opacity=".7"/>`; },
 
-  bonnie(){ return `
-    <g>
-      <ellipse cx="100" cy="330" rx="50" ry="9" fill="#000" opacity=".5"/>
-      <rect x="58" y="290" width="36" height="44" rx="13" fill="#2f2547"/>
-      <rect x="106" y="290" width="36" height="44" rx="13" fill="#2f2547"/>
-      <rect x="62" y="198" width="76" height="106" rx="26" fill="#4b3b6e"/>
-      <ellipse cx="100" cy="262" rx="31" ry="33" fill="#5e4b87"/>
-      <rect x="28" y="204" width="26" height="86" rx="13" fill="#42335f"/>
-      <rect x="146" y="204" width="26" height="86" rx="13" fill="#42335f"/>
-      <ellipse cx="41" cy="294" rx="15" ry="13" fill="#392c52"/>
-      <ellipse cx="159" cy="294" rx="15" ry="13" fill="#392c52"/>
-      <path d="M120 232 l44 -22 l8 15 l-44 22 z" fill="#8e2f3a"/>
-      <ellipse cx="128" cy="244" rx="20" ry="16" fill="#a8394a" transform="rotate(-26 128 244)"/>
-      <ellipse cx="128" cy="244" rx="8" ry="6" fill="#2a1013" transform="rotate(-26 128 244)"/>
-      <circle cx="87" cy="214" r="6" fill="#241c36"/><circle cx="113" cy="214" r="6" fill="#241c36"/>
-      <path d="M80 194 L120 194 L111 208 L89 208 Z" fill="#b23241"/>
-      <ellipse cx="100" cy="194" rx="15" ry="8" fill="#c53a4b"/>
-      <rect x="56" y="18" width="24" height="82" rx="12" fill="#42335f"/>
-      <rect x="61" y="28" width="14" height="60" rx="7" fill="#7d5f9e"/>
-      <rect x="120" y="18" width="24" height="82" rx="12" fill="#42335f"/>
-      <rect x="125" y="28" width="14" height="60" rx="7" fill="#7d5f9e"/>
-      <rect x="56" y="96" width="88" height="70" rx="26" fill="#4b3b6e"/>
-      <ellipse cx="100" cy="152" rx="28" ry="21" fill="#5e4b87"/>
-      <ellipse cx="100" cy="141" rx="10" ry="8" fill="#191322"/>
-      ${teeth(82,160,36,4)}
-      ${eyes(82,118,120,11,"#a9316b")}
-      <path d="M72 100 q11 -8 22 -2" stroke="#332747" stroke-width="6" fill="none" stroke-linecap="round"/>
-      <path d="M128 100 q-11 -8 -22 -2" stroke="#332747" stroke-width="6" fill="none" stroke-linecap="round"/>
-    </g>`; },
+/* ---------------------------------------------------------------- BONNIE */
+bonnie(u){ const g=`bn${u}`; return `
+  <defs>
+    ${lg(g+"b","#6a548f","#3b2d59",0,0,1,1)}
+    ${lg(g+"h","#6d5793","#3d2f5c",0,0,1,.9)}
+    ${lg(g+"e","#9a7ab8","#5c4480",0,0,0,1)}
+  </defs>
+  <ellipse cx="100" cy="331" rx="52" ry="10" fill="#000" opacity=".5"/>
+  <rect x="63" y="286" width="28" height="34" rx="9" fill="#3b2d59"/>
+  <rect x="109" y="286" width="28" height="34" rx="9" fill="#3b2d59"/>
+  ${joint(77,288,8)}${joint(123,288,8)}
+  <path d="M58 336 q0 -22 20 -22 q20 0 20 22 z" fill="#33264c"/>
+  <path d="M102 336 q0 -22 20 -22 q20 0 20 22 z" fill="#33264c"/>
+  <rect x="60" y="196" width="80" height="104" rx="27" fill="url(#${g}b)"/>
+  <ellipse cx="100" cy="260" rx="32" ry="34" fill="#7059a0"/>
+  <path d="M100 198 v96" stroke="#2e2346" stroke-width="1.6" opacity=".5"/>
+  ${screws([[70,236],[130,236],[70,280],[130,280]])}
+  <rect x="42" y="204" width="26" height="48" rx="13" fill="#4a3a6e"/>
+  ${joint(55,204,11)}${joint(55,252,9)}
+  <rect x="43" y="250" width="24" height="46" rx="12" fill="#523f78"/>
+  <rect x="132" y="204" width="26" height="48" rx="13" fill="#42335f"/>
+  ${joint(145,204,11)}${joint(145,252,9)}
+  <rect x="133" y="250" width="24" height="46" rx="12" fill="#4a3a6e"/>
+  ${hand(52,296,"#3b2d59","#291f40",-1)}
+  <!-- gitar -->
+  <g transform="rotate(-24 124 244) translate(-14,0)">
+    <path d="M112 210 h46 l4 10 h-50 z" fill="#7a2430"/>
+    <ellipse cx="136" cy="252" rx="28" ry="23" fill="#a8394a"/>
+    <ellipse cx="136" cy="252" rx="28" ry="23" fill="none" stroke="#5f1a24" stroke-width="2"/>
+    <ellipse cx="136" cy="252" rx="9" ry="7.5" fill="#2a1013"/>
+    <rect x="130" y="196" width="12" height="58" fill="#3a2016"/>
+    <rect x="128" y="188" width="16" height="12" rx="2" fill="#241310"/>
+    ${[0,1,2,3,4].map(i=>`<rect x="130" y="${206+i*9}" width="12" height="1.6" fill="#b9915a"/>`).join("")}
+    ${[0,1,2].map(i=>`<rect x="${132+i*3.4}" y="196" width="1" height="60" fill="#d8d2c0" opacity=".7"/>`).join("")}
+    <rect x="126" y="262" width="20" height="7" rx="2" fill="#d8d2c0" opacity=".8"/>
+  </g>
+  <rect x="83" y="158" width="34" height="46" rx="13" fill="#3b2d59"/>
+  <path d="M86 162 v38" stroke="#2e2346" stroke-width="1.4" opacity=".6"/>
+  <path d="M78 192 L98 184 L98 206 Z" fill="#b23241"/>
+  <path d="M122 192 L102 184 L102 206 Z" fill="#b23241"/>
+  <ellipse cx="100" cy="195" rx="8" ry="7" fill="#c53a4b"/>
+  <ellipse cx="98" cy="193" rx="3" ry="2.4" fill="#e05f6c" opacity=".8"/>
+  <circle cx="88" cy="220" r="6.5" fill="#2b2143"/><circle cx="86" cy="218" r="2.2" fill="#5a4880"/>
+  <circle cx="112" cy="220" r="6.5" fill="#2b2143"/><circle cx="110" cy="218" r="2.2" fill="#5a4880"/>
+  <!-- kulaklar -->
+  <rect x="54" y="14" width="25" height="86" rx="12.5" fill="#42335f"/>
+  <rect x="59" y="24" width="15" height="64" rx="7.5" fill="url(#${g}e)"/>
+  <rect x="121" y="14" width="25" height="86" rx="12.5" fill="#3b2d59"/>
+  <rect x="126" y="24" width="15" height="64" rx="7.5" fill="#7d5f9e"/>
+  <path d="M66 22 v66" stroke="#31254b" stroke-width="1.2" opacity=".6"/>
+  <!-- kafa -->
+  <rect x="52" y="92" width="96" height="78" rx="30" fill="url(#${g}h)"/>
+  <path d="M52 116 q48 -20 96 0" stroke="#2e2346" stroke-width="1.4" fill="none" opacity=".5"/>
+  <ellipse cx="100" cy="154" rx="30" ry="23" fill="#7b63aa"/>
+  <ellipse cx="100" cy="154" rx="30" ry="23" fill="none" stroke="#332752" stroke-width="1.2"/>
+  <ellipse cx="100" cy="143" rx="11" ry="8.5" fill="#191322"/>
+  <ellipse cx="96.5" cy="140.5" rx="3.6" ry="2.4" fill="#463a5e" opacity=".7"/>
+  <path d="M74 164 q26 14 52 0 l-4 12 q-22 9 -44 0 z" fill="#5c4783"/>
+  ${teethRow(86,162,28,2,13)}
+  ${teethRow(80,162,44,4,7)}
+  <path d="M70 100 q12 -10 25 -3" stroke="#2b2143" stroke-width="7" fill="none" stroke-linecap="round"/>
+  <path d="M130 100 q-12 -10 -25 -3" stroke="#2b2143" stroke-width="7" fill="none" stroke-linecap="round"/>
+  ${eyeD(81,120,12,"#c2447a","#8e2f5a")}
+  ${eyeD(119,120,12,"#c2447a","#8e2f5a")}`; },
 
-  chica(){ return `
-    <g>
-      <ellipse cx="100" cy="330" rx="48" ry="9" fill="#000" opacity=".5"/>
-      <rect x="66" y="292" width="26" height="42" rx="10" fill="#c47a1e"/>
-      <rect x="108" y="292" width="26" height="42" rx="10" fill="#c47a1e"/>
-      <path d="M56 330 h44 v6 h-46 z" fill="#d0851f"/><path d="M100 330 h44 v6 h-46 z" fill="#d0851f"/>
-      <rect x="62" y="196" width="76" height="106" rx="26" fill="#c9ad2c"/>
-      <rect x="28" y="202" width="26" height="86" rx="13" fill="#b89a24"/>
-      <rect x="146" y="202" width="26" height="86" rx="13" fill="#b89a24"/>
-      <ellipse cx="41" cy="292" rx="15" ry="13" fill="#a68a1e"/>
-      <g transform="translate(150,246)">
-        <ellipse cx="0" cy="14" rx="20" ry="13" fill="#e0d3ba"/>
-        <path d="M-18 12 h36 l-4 -14 h-28 z" fill="#c9835f"/>
-        <ellipse cx="0" cy="-4" rx="17" ry="12" fill="#e05a72"/>
-        <circle cx="-6" cy="-6" r="3" fill="#1a1216"/><circle cx="6" cy="-6" r="3" fill="#1a1216"/>
-        <rect x="-1.6" y="-24" width="3.2" height="14" fill="#e8e3d4"/>
-        <ellipse cx="0" cy="-26" rx="3" ry="5" fill="#f2a13a"/>
-      </g>
-      <path d="M64 196 h72 l-8 62 h-56 z" fill="#f0eadb"/>
-      <text x="100" y="222" font-family="Impact, 'Arial Black', sans-serif" font-size="17"
-        fill="#c2447a" text-anchor="middle" letter-spacing="1">LET'S</text>
-      <text x="100" y="242" font-family="Impact, 'Arial Black', sans-serif" font-size="17"
-        fill="#c2447a" text-anchor="middle" letter-spacing="1">EAT!!!</text>
-      <path d="M78 78 q10 -34 22 -30 q-6 12 2 22 z" fill="#e8cf34"/>
-      <path d="M104 74 q14 -30 24 -22 q-9 9 -6 22 z" fill="#e8cf34"/>
-      <ellipse cx="100" cy="126" rx="50" ry="45" fill="#dcc02f"/>
-      <path d="M58 132 q42 26 84 0 q-6 22 -42 22 q-36 0 -42 -22 z" fill="#f2a13a"/>
-      <path d="M60 130 q40 -30 80 0 q-40 16 -80 0 z" fill="#f8b445"/>
-      <path d="M60 130 q40 12 80 0" stroke="#a9631d" stroke-width="2" fill="none"/>
-      ${eyes(80,120,110,11.5,"#8e2f6e")}
-      <path d="M70 90 q11 -8 22 -2" stroke="#a98d1c" stroke-width="6" fill="none" stroke-linecap="round"/>
-      <path d="M130 90 q-11 -8 -22 -2" stroke="#a98d1c" stroke-width="6" fill="none" stroke-linecap="round"/>
-    </g>`; },
+/* ----------------------------------------------------------------- CHICA */
+chica(u){ const g=`ch${u}`; return `
+  <defs>
+    ${lg(g+"b","#e8cf34","#b89a24",0,0,1,1)}
+    ${lg(g+"h","#e6cb32","#b59721",0,0,1,.9)}
+    ${lg(g+"k","#fbc04f","#d3821f",0,0,0,1)}
+  </defs>
+  <ellipse cx="100" cy="331" rx="50" ry="10" fill="#000" opacity=".5"/>
+  <rect x="68" y="288" width="22" height="34" rx="8" fill="#c98d1f"/>
+  <rect x="110" y="288" width="22" height="34" rx="8" fill="#c98d1f"/>
+  ${joint(79,290,7)}${joint(121,290,7)}
+  <path d="M54 336 q10 -18 25 -18 q15 0 25 18 z" fill="#d99320"/>
+  <path d="M96 336 q10 -18 25 -18 q15 0 25 18 z" fill="#d99320"/>
+  <path d="M62 332 l6 -12 M79 330 v-14 M96 332 l-6 -12" stroke="#a86f16" stroke-width="2"/>
+  <path d="M104 332 l6 -12 M121 330 v-14 M138 332 l-6 -12" stroke="#a86f16" stroke-width="2"/>
+  <rect x="60" y="196" width="80" height="102" rx="27" fill="url(#${g}b)"/>
+  <ellipse cx="100" cy="258" rx="32" ry="33" fill="#efd955"/>
+  ${screws([[68,236],[132,236]])}
+  <rect x="42" y="202" width="26" height="48" rx="13" fill="#c9ad2c"/>
+  ${joint(55,202,11)}${joint(55,250,9)}
+  <rect x="43" y="248" width="24" height="46" rx="12" fill="#d4b72f"/>
+  <rect x="132" y="202" width="26" height="48" rx="13" fill="#b89a24"/>
+  ${joint(145,202,11)}${joint(145,250,9)}
+  <rect x="133" y="248" width="24" height="46" rx="12" fill="#c9ad2c"/>
+  ${hand(52,294,"#b89a24","#8f7718",-1)}
+  <!-- cupcake -->
+  <g transform="translate(146,268)">
+    <ellipse cx="0" cy="20" rx="21" ry="7" fill="#000" opacity=".35"/>
+    <path d="M-19 14 h38 l-5 -18 h-28 z" fill="#d9c9a8"/>
+    ${[-14,-7,0,7,14].map(x=>`<path d="M${x} -4 l-1.6 18" stroke="#b8a684" stroke-width="1.6"/>`).join("")}
+    <ellipse cx="0" cy="-5" rx="18" ry="13" fill="#e05a72"/>
+    <ellipse cx="0" cy="-8" rx="18" ry="11" fill="#ef6b83"/>
+    ${[[-9,-11],[6,-13],[-2,-6],[11,-6],[-12,-4]].map(([x,y])=>
+      `<rect x="${x}" y="${y}" width="5" height="2" rx="1" fill="#fff" opacity=".8"
+        transform="rotate(${(x*7)%60} ${x} ${y})"/>`).join("")}
+    <circle cx="-6" cy="-7" r="3.4" fill="#f2ede0"/><circle cx="-6" cy="-7" r="1.8" fill="#1a1216"/>
+    <circle cx="7" cy="-7" r="3.4" fill="#f2ede0"/><circle cx="7" cy="-7" r="1.8" fill="#1a1216"/>
+    <rect x="-1.6" y="-28" width="3.2" height="16" fill="#efe8d6"/>
+    <ellipse cx="0" cy="-30" rx="3.4" ry="6" fill="#f2a13a"/>
+    <ellipse cx="0" cy="-31" rx="1.6" ry="3" fill="#fde5a8"/>
+  </g>
+  <rect x="84" y="160" width="32" height="44" rx="12" fill="#b89a24"/>
+  <!-- önlük -->
+  <path d="M64 194 q36 -10 72 0 l-9 66 q-27 9 -54 0 z" fill="#f4efe2"/>
+  <path d="M64 194 q36 -10 72 0 l-9 66 q-27 9 -54 0 z" fill="none" stroke="#cfc7ae" stroke-width="1.4"/>
+  <text x="100" y="222" font-family="Impact,'Arial Black',sans-serif" font-size="19"
+    fill="#c2447a" text-anchor="middle" letter-spacing="1">LET'S</text>
+  <text x="100" y="245" font-family="Impact,'Arial Black',sans-serif" font-size="19"
+    fill="#c2447a" text-anchor="middle" letter-spacing="1">EAT!!!</text>
+  <!-- tepe tüyleri -->
+  <path d="M76 80 q6 -38 22 -34 q-8 14 0 26 z" fill="#e8cf34"/>
+  <path d="M96 74 q12 -34 26 -26 q-11 10 -8 24 z" fill="#e0c62c"/>
+  <path d="M112 82 q16 -24 24 -14 q-11 5 -12 18 z" fill="#d6bc26"/>
+  <!-- kafa -->
+  <ellipse cx="100" cy="126" rx="51" ry="46" fill="url(#${g}h)"/>
+  <path d="M52 118 q48 -22 96 0" stroke="#a98d1c" stroke-width="1.4" fill="none" opacity=".5"/>
+  <!-- gaga -->
+  <path d="M56 130 q44 -32 88 0 q-44 18 -88 0 z" fill="url(#${g}k)"/>
+  <path d="M56 130 q44 18 88 0 q-6 24 -44 24 q-38 0 -44 -24 z" fill="#e8952c"/>
+  <path d="M56 130 q44 14 88 0" stroke="#a9631d" stroke-width="2" fill="none"/>
+  <path d="M64 124 q36 -18 72 0" stroke="#fdd282" stroke-width="1.6" fill="none" opacity=".6"/>
+  <circle cx="88" cy="116" r="2.2" fill="#a9631d"/><circle cx="112" cy="116" r="2.2" fill="#a9631d"/>
+  <path d="M70 138 q30 12 60 0" stroke="#c47a1e" stroke-width="1.4" fill="none" opacity=".6"/>
+  <path d="M72 92 q11 -9 23 -2" stroke="#a98d1c" stroke-width="7" fill="none" stroke-linecap="round"/>
+  <path d="M128 92 q-11 -9 -23 -2" stroke="#a98d1c" stroke-width="7" fill="none" stroke-linecap="round"/>
+  ${eyeD(81,110,12.5,"#9c3878","#6d2453")}
+  ${eyeD(119,110,12.5,"#9c3878","#6d2453")}`; },
 
-  foxy(){ return `
-    <g>
-      <ellipse cx="100" cy="330" rx="48" ry="9" fill="#000" opacity=".5"/>
-      <rect x="60" y="286" width="34" height="48" rx="10" fill="#2f2b33"/>
-      <rect x="106" y="286" width="34" height="48" rx="10" fill="#2f2b33"/>
-      <rect x="64" y="238" width="72" height="58" rx="10" fill="#3a3540"/>
-      <rect x="64" y="196" width="72" height="48" rx="14" fill="#8e3128"/>
-      <rect x="86" y="206" width="9" height="40" rx="4" fill="#6b6b73"/>
-      <rect x="100" y="206" width="9" height="40" rx="4" fill="#6b6b73"/>
-      <rect x="114" y="206" width="9" height="40" rx="4" fill="#6b6b73"/>
-      <path d="M64 196 h32 l-4 50 h-28 z" fill="#a53a2e"/>
-      <rect x="30" y="200" width="25" height="84" rx="12" fill="#7d2b23"/>
-      <ellipse cx="42" cy="288" rx="14" ry="12" fill="#6d251e"/>
-      <rect x="148" y="200" width="25" height="70" rx="12" fill="#7d2b23"/>
-      <path d="M160 268 q18 8 12 28 q-3 10 -12 8 q7 -4 6 -14 q-1 -12 -12 -14 z"
-        fill="#b9bcc4"/>
-      <path d="M62 74 l10 -44 l26 32 z" fill="#8e3128"/>
-      <path d="M138 74 l-10 -44 l-26 32 z" fill="#8e3128"/>
-      <path d="M68 70 l6 -26 l14 18 z" fill="#5d1f19"/>
-      <ellipse cx="100" cy="112" rx="46" ry="40" fill="#a53a2e"/>
-      <path d="M64 122 q36 -14 72 0 l6 34 q-42 16 -84 0 z" fill="#8e3128"/>
-      <ellipse cx="100" cy="150" rx="40" ry="16" fill="#a53a2e"/>
-      <ellipse cx="100" cy="150" rx="9" ry="6" fill="#191317"/>
-      <path d="M64 140 q36 12 72 0 l-4 12 q-32 10 -64 0 z" fill="#efe9da"/>
-      <path d="M70 146 l5 12 l5 -12 z M84 149 l5 13 l5 -13 z M110 149 l5 13 l5 -13 z
-               M124 146 l5 12 l5 -12 z" fill="#efe9da"/>
-      <g class="eyeglow">
-        <ellipse cx="120" cy="104" rx="10" ry="10.5" fill="#efeadd"/>
-        <circle cx="120" cy="104" r="5.4" fill="#c9a227"/>
-        <circle cx="120" cy="104" r="2.6" fill="#0b0a0a"/>
-      </g>
-      <path d="M62 96 q22 -14 30 8 q-16 6 -30 -8 z" fill="#141416"/>
-      <path d="M92 100 q22 -26 42 -30" stroke="#141416" stroke-width="3" fill="none"/>
-      <path d="M56 92 q-16 -18 -6 -34" stroke="#141416" stroke-width="3" fill="none"/>
-    </g>`; },
+/* ------------------------------------------------------------------ FOXY */
+foxy(u){ const g=`fx${u}`; return `
+  <defs>
+    ${lg(g+"b","#b8442f","#7a2b21",0,0,1,1)}
+    ${lg(g+"h","#b8462f","#7d2c22",0,0,1,.9)}
+  </defs>
+  <ellipse cx="100" cy="331" rx="50" ry="10" fill="#000" opacity=".5"/>
+  <rect x="62" y="284" width="32" height="40" rx="9" fill="#2f2b33"/>
+  <rect x="106" y="284" width="32" height="40" rx="9" fill="#2f2b33"/>
+  ${joint(78,286,8)}${joint(122,286,8)}
+  <path d="M54 336 q0 -20 24 -20 q24 0 24 20 z" fill="#26232b"/>
+  <path d="M98 336 q0 -20 24 -20 q24 0 24 20 z" fill="#26232b"/>
+  <!-- pantolon -->
+  <rect x="63" y="238" width="74" height="56" rx="10" fill="#3a3540"/>
+  <path d="M63 238 h74 v8 h-74 z" fill="#474250"/>
+  <path d="M100 246 v48" stroke="#2c2833" stroke-width="1.6"/>
+  <!-- yırtık gövde: endoiskelet görünüyor -->
+  <rect x="62" y="192" width="76" height="52" rx="14" fill="#5a5a66"/>
+  ${[0,1,2,3].map(i=>`<rect x="${72+i*15}" y="${198+Math.abs(i-1.5)*2}" width="10"
+     height="${42-Math.abs(i-1.5)*4}" rx="5" fill="#7d818c"/>
+     <rect x="${72+i*15}" y="${198+Math.abs(i-1.5)*2}" width="4"
+     height="${42-Math.abs(i-1.5)*4}" rx="2" fill="#9aa0ab" opacity=".7"/>`).join("")}
+  <rect x="96" y="192" width="8" height="52" rx="4" fill="#4a4d57"/>
+  <path d="M62 192 q22 -6 34 0 l-3 52 h-31 z" fill="url(#${g}b)"/>
+  <path d="M96 192 l-4 52 l10 -6 l-2 -46 z" fill="#8e3128" opacity=".7"/>
+  <path d="M138 192 q-14 -5 -24 0 l4 52 h20 z" fill="#8e3128"/>
+  <path d="M92 196 l6 10 l-7 9 l7 9 l-6 10 l5 10" stroke="#6d251e" stroke-width="2.5"
+    fill="none" opacity=".9"/>
+  <!-- kollar -->
+  <rect x="44" y="198" width="26" height="46" rx="13" fill="#8e3128"/>
+  ${joint(57,198,11)}${joint(57,246,9)}
+  <rect x="45" y="244" width="24" height="44" rx="12" fill="#9c372c"/>
+  ${hand(54,288,"#7d2b23","#5c1d17",-1)}
+  <rect x="130" y="198" width="26" height="46" rx="13" fill="#7d2b23"/>
+  ${joint(143,198,11)}${joint(143,246,9)}
+  <rect x="131" y="244" width="24" height="42" rx="12" fill="#8e3128"/>
+  <!-- kanca -->
+  <path d="M133 286 h20 l-2 12 h-16 z" fill="#8a8e99"/>
+  <path d="M142 298 q20 8 14 30 q-4 13 -16 10 q9 -5 8 -17 q-1 -15 -14 -17 z"
+    fill="#b9bcc4"/>
+  <path d="M145 302 q14 8 9 24" stroke="#e6e9ee" stroke-width="2.5" fill="none" opacity=".8"/>
+  <!-- boyun -->
+  <rect x="84" y="152" width="32" height="46" rx="12" fill="#7d2b23"/>
+  <!-- kulaklar: ayrı ayrı, dik -->
+  <path d="M56 84 L70 22 L94 74 Z" fill="#8e3128"/>
+  <path d="M144 84 L130 22 L106 74 Z" fill="#7d2b23"/>
+  <path d="M63 76 L72 38 L86 68 Z" fill="#5d1f19"/>
+  <path d="M137 76 L128 38 L114 68 Z" fill="#521a15"/>
+  <!-- kafa -->
+  <ellipse cx="100" cy="110" rx="47" ry="41" fill="url(#${g}h)"/>
+  <path d="M55 118 q45 -24 90 0" stroke="#6d251e" stroke-width="1.4" fill="none" opacity=".55"/>
+  <!-- uzun burun -->
+  <path d="M62 120 q38 -16 76 0 l7 36 q-45 18 -90 0 z" fill="#a53a2e"/>
+  <ellipse cx="100" cy="152" rx="42" ry="17" fill="#b8452f"/>
+  <ellipse cx="100" cy="150" rx="10" ry="6.6" fill="#1a1316"/>
+  <ellipse cx="96.6" cy="148" rx="3.2" ry="2" fill="#4a3a3a" opacity=".7"/>
+  <!-- sivri dişler -->
+  <path d="M62 138 q38 12 76 0 l-3 12 q-35 10 -70 0 z" fill="#efe9da"/>
+  ${[66,78,90,110,122,134].map(x=>
+    `<path d="M${x} 148 l4.5 14 l4.5 -14 z" fill="#efe9da"/>`).join("")}
+  ${[72,84,116,128].map(x=>
+    `<path d="M${x} 140 l3.5 -11 l3.5 11 z" fill="#e2dbc9"/>`).join("")}
+  <!-- göz bandı + sağlam göz -->
+  ${eyeD(121,104,11,"#d9b02e","#9c7a15")}
+  <path d="M58 92 q24 -16 33 8 q-18 8 -33 -8 z" fill="#17171b"/>
+  <ellipse cx="75" cy="97" rx="9" ry="7" fill="#101014"/>
+  <path d="M91 100 q24 -26 46 -31" stroke="#17171b" stroke-width="3.4" fill="none"/>
+  <path d="M52 90 q-14 -20 -3 -36" stroke="#17171b" stroke-width="3.4" fill="none"/>
+  <path d="M128 88 q-11 -9 -23 -2" stroke="#6d251e" stroke-width="6" fill="none" stroke-linecap="round"/>`; },
 
-  golden(){ return `
-    <g opacity=".92">
-      <ellipse cx="100" cy="330" rx="56" ry="9" fill="#000" opacity=".55"/>
-      <rect x="46" y="286" width="46" height="30" rx="12" fill="#8a7a32" transform="rotate(-8 46 286)"/>
-      <rect x="112" y="286" width="46" height="30" rx="12" fill="#8a7a32" transform="rotate(7 112 286)"/>
-      <rect x="60" y="216" width="80" height="86" rx="26" fill="#a08e3c"/>
-      <ellipse cx="100" cy="272" rx="32" ry="30" fill="#b9a54a"/>
-      <rect x="24" y="228" width="26" height="72" rx="13" fill="#8a7a32" transform="rotate(-10 24 228)"/>
-      <rect x="150" y="228" width="26" height="72" rx="13" fill="#8a7a32" transform="rotate(9 150 228)"/>
-      <circle cx="86" cy="230" r="6" fill="#3d3618"/><circle cx="114" cy="230" r="6" fill="#3d3618"/>
-      <path d="M78 210 L122 210 L112 224 L88 224 Z" fill="#2e2a14"/>
-      <g transform="rotate(-9 100 150)">
-        <circle cx="58" cy="128" r="20" fill="#8a7a32"/><circle cx="58" cy="128" r="11" fill="#a8953f"/>
-        <circle cx="142" cy="128" r="20" fill="#8a7a32"/><circle cx="142" cy="128" r="11" fill="#a8953f"/>
-        <ellipse cx="100" cy="146" rx="52" ry="48" fill="#a08e3c"/>
-        <ellipse cx="100" cy="172" rx="30" ry="23" fill="#b9a54a"/>
-        <ellipse cx="100" cy="161" rx="11" ry="8" fill="#332d13"/>
-        ${teeth(81,182,38,5)}
-        <ellipse cx="81" cy="139" rx="11" ry="12" fill="#0a0a0b"/>
-        <ellipse cx="119" cy="139" rx="11" ry="12" fill="#0a0a0b"/>
-        <circle cx="81" cy="139" r="2.6" fill="#efe9d8" class="eyeglow"/>
-        <circle cx="119" cy="139" r="2.6" fill="#efe9d8" class="eyeglow"/>
-        <rect x="72" y="102" width="56" height="40" rx="4" fill="#1a1913"/>
-        <rect x="70" y="134" width="60" height="10" rx="3" fill="#111009"/>
-      </g>
-    </g>`; },
+/* --------------------------------------------------------- GOLDEN FREDDY */
+golden(u){ const g=`gf${u}`; return `
+  <defs>
+    ${lg(g+"b","#b9a54a","#7d6d2a",0,0,1,1)}
+    ${lg(g+"h","#bda948","#806f2b",0,0,1,.9)}
+  </defs>
+  <g opacity=".94">
+  <ellipse cx="100" cy="330" rx="60" ry="10" fill="#000" opacity=".55"/>
+  <!-- çökmüş bacaklar -->
+  <path d="M44 316 q6 -30 34 -26 l8 26 z" fill="#8a7a32"/>
+  <path d="M156 316 q-6 -30 -34 -26 l-8 26 z" fill="#7d6d2a"/>
+  <path d="M38 330 q0 -16 22 -16 q22 0 22 16 z" fill="#6f6124"/>
+  <path d="M118 330 q0 -16 22 -16 q22 0 22 16 z" fill="#6f6124"/>
+  <!-- gövde: hafif sönük -->
+  <path d="M62 216 q38 -12 76 0 l4 84 q-42 12 -84 0 z" fill="url(#${g}b)"/>
+  <ellipse cx="100" cy="272" rx="31" ry="29" fill="#c6b254"/>
+  <path d="M100 218 v78" stroke="#6b5c22" stroke-width="1.6" opacity=".5"/>
+  ${screws([[72,244],[128,244]])}
+  <path d="M70 258 q30 8 60 0" stroke="#6b5c22" stroke-width="1.2" fill="none" opacity=".5"/>
+  <!-- sarkan kollar -->
+  <g transform="rotate(-13 56 230)">
+    <rect x="42" y="224" width="26" height="46" rx="13" fill="#8a7a32"/>
+    ${joint(55,224,10)}${joint(55,270,9)}
+    <rect x="43" y="268" width="24" height="42" rx="12" fill="#94842f"/>
+  </g>
+  <g transform="rotate(12 144 230)">
+    <rect x="132" y="224" width="26" height="46" rx="13" fill="#7d6d2a"/>
+    ${joint(145,224,10)}${joint(145,270,9)}
+    <rect x="133" y="268" width="24" height="42" rx="12" fill="#8a7a32"/>
+  </g>
+  <rect x="84" y="180" width="32" height="46" rx="12" fill="#7d6d2a"/>
+  <path d="M76 212 L94 204 L94 226 Z" fill="#2e2a14"/>
+  <path d="M124 212 L106 204 L106 226 Z" fill="#2e2a14"/>
+  <ellipse cx="100" cy="215" rx="7.5" ry="6.5" fill="#3a3519"/>
+  <circle cx="88" cy="238" r="6" fill="#3d3618"/><circle cx="112" cy="238" r="6" fill="#3d3618"/>
+  <!-- eğik kafa -->
+  <g transform="rotate(-11 100 150)">
+    <circle cx="57" cy="128" r="21" fill="#8a7a32"/><circle cx="57" cy="128" r="12" fill="#a8953f"/>
+    <circle cx="143" cy="128" r="21" fill="#7d6d2a"/><circle cx="143" cy="128" r="12" fill="#9a8836"/>
+    <ellipse cx="100" cy="146" rx="53" ry="49" fill="url(#${g}h)"/>
+    <path d="M52 134 q48 -24 96 0" stroke="#6b5c22" stroke-width="1.4" fill="none" opacity=".5"/>
+    <ellipse cx="100" cy="174" rx="31" ry="24" fill="#c6b254"/>
+    <ellipse cx="100" cy="174" rx="31" ry="24" fill="none" stroke="#6b5c22" stroke-width="1.2"/>
+    <ellipse cx="100" cy="163" rx="12" ry="9" fill="#332d13"/>
+    <path d="M73 185 q27 15 54 0 l-4 13 q-23 9 -46 0 z" fill="#a8953f"/>
+    ${teethRow(78,183,44,5,8,"#ded7bd")}
+    <!-- boş göz çukurları, dipte iki nokta -->
+    <ellipse cx="81" cy="140" rx="12.5" ry="13.5" fill="#08080a"/>
+    <ellipse cx="119" cy="140" rx="12.5" ry="13.5" fill="#08080a"/>
+    <ellipse cx="81" cy="140" rx="12.5" ry="13.5" fill="none" stroke="#5f5424" stroke-width="1.4"/>
+    <ellipse cx="119" cy="140" rx="12.5" ry="13.5" fill="none" stroke="#5f5424" stroke-width="1.4"/>
+    <circle cx="81" cy="141" r="2.8" fill="#efe9d8" class="eyeglow"/>
+    <circle cx="119" cy="141" r="2.8" fill="#efe9d8" class="eyeglow"/>
+    <path d="M70 118 q12 -9 24 -2" stroke="#5f5424" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <path d="M130 118 q-12 -9 -24 -2" stroke="#5f5424" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <path d="M60 104 q40 -9 80 0 l0 -6 q-40 -8 -80 0 z" fill="#141310"/>
+    <ellipse cx="100" cy="100" rx="40" ry="7.5" fill="#1a1913"/>
+    <path d="M74 100 q26 -6 52 0 l-5 -40 q-21 -5 -42 0 z" fill="#1f1e16"/>
+    <path d="M74 95 q26 -6 52 0 l-1.2 -9 q-25 -6 -49 0 z" fill="#38352a"/>
+  </g></g>`; },
 
-  puppet(){ return `
-    <g>
-      <ellipse cx="100" cy="332" rx="34" ry="8" fill="#000" opacity=".55"/>
-      <path d="M86 150 h28 l10 176 h-48 z" fill="#0d0d0f"/>
-      <path d="M100 150 v176" stroke="#1b1b1f" stroke-width="1"/>
-      <g stroke="#0d0d0f" stroke-width="11" stroke-linecap="round" fill="none">
-        <path d="M88 158 q-46 26 -52 92"/><path d="M112 158 q46 26 52 92"/>
-      </g>
-      <g fill="#e9e6de">
-        <rect x="30" y="228" width="11" height="7" rx="2"/><rect x="27" y="242" width="11" height="7" rx="2"/>
-        <rect x="159" y="228" width="11" height="7" rx="2"/><rect x="162" y="242" width="11" height="7" rx="2"/>
-      </g>
-      <ellipse cx="34" cy="256" rx="12" ry="14" fill="#e9e6de"/>
-      <ellipse cx="166" cy="256" rx="12" ry="14" fill="#e9e6de"/>
-      <circle cx="100" cy="176" r="7" fill="#e9e6de"/>
-      <circle cx="100" cy="206" r="7" fill="#e9e6de"/>
-      <circle cx="100" cy="236" r="7" fill="#e9e6de"/>
-      <ellipse cx="100" cy="100" rx="42" ry="52" fill="#f0ede5"/>
-      <ellipse cx="100" cy="100" rx="42" ry="52" fill="none" stroke="#cbc6b8" stroke-width="1.5"/>
-      <ellipse cx="82" cy="92" rx="9" ry="11" fill="#0c0c0e"/>
-      <ellipse cx="118" cy="92" rx="9" ry="11" fill="#0c0c0e"/>
-      <circle cx="82" cy="90" r="2.4" fill="#fff" class="eyeglow"/>
-      <circle cx="118" cy="90" r="2.4" fill="#fff" class="eyeglow"/>
-      <path d="M82 104 L78 138" stroke="#7d4fa8" stroke-width="5" stroke-linecap="round"/>
-      <path d="M118 104 L122 138" stroke="#7d4fa8" stroke-width="5" stroke-linecap="round"/>
-      <circle cx="74" cy="118" r="6" fill="#c2447a" opacity=".8"/>
-      <circle cx="126" cy="118" r="6" fill="#c2447a" opacity=".8"/>
-      <path d="M84 126 q16 12 32 0" stroke="#b8355f" stroke-width="3.4" fill="none" stroke-linecap="round"/>
-    </g>`; },
+/* ---------------------------------------------------------------- PUPPET */
+puppet(u){ const g=`pp${u}`; return `
+  <defs>${lg(g+"m","#f7f4ec","#d8d3c4",0,0,.4,1)}</defs>
+  <ellipse cx="100" cy="333" rx="36" ry="8" fill="#000" opacity=".55"/>
+  <!-- ince gövde -->
+  <path d="M85 148 h30 l11 178 h-52 z" fill="#101012"/>
+  <path d="M85 148 h13 l-4 178 h-19 z" fill="#191920" opacity=".9"/>
+  <path d="M100 148 v178" stroke="#242430" stroke-width=".9"/>
+  <!-- uzun kollar -->
+  <g stroke="#101012" stroke-width="12" stroke-linecap="round" fill="none">
+    <path d="M88 158 q-48 28 -54 96"/><path d="M112 158 q48 28 54 96"/>
+  </g>
+  <g stroke="#2a2a34" stroke-width="3" stroke-linecap="round" fill="none" opacity=".8">
+    <path d="M88 158 q-48 28 -54 96"/><path d="M112 158 q48 28 54 96"/>
+  </g>
+  <!-- kol şeritleri -->
+  <g fill="#eeebe3">
+    <rect x="28" y="222" width="13" height="7.5" rx="2" transform="rotate(-14 34 226)"/>
+    <rect x="25" y="238" width="13" height="7.5" rx="2" transform="rotate(-8 31 242)"/>
+    <rect x="159" y="222" width="13" height="7.5" rx="2" transform="rotate(14 166 226)"/>
+    <rect x="162" y="238" width="13" height="7.5" rx="2" transform="rotate(8 169 242)"/>
+  </g>
+  <!-- eller: uzun ince parmaklar -->
+  <g fill="#eeebe3">
+    <ellipse cx="33" cy="258" rx="12" ry="14"/>
+    ${[0,1,2].map(i=>`<rect x="${24+i*7}" y="266" width="4.6" height="${20-i*3}" rx="2.3"
+       transform="rotate(${-14+i*10} ${26+i*7} 270)"/>`).join("")}
+    <ellipse cx="167" cy="258" rx="12" ry="14"/>
+    ${[0,1,2].map(i=>`<rect x="${171-i*7}" y="266" width="4.6" height="${20-i*3}" rx="2.3"
+       transform="rotate(${14-i*10} ${173-i*7} 270)"/>`).join("")}
+  </g>
+  <!-- göğüs düğmeleri -->
+  ${[176,204,232].map(y=>
+    `<circle cx="100" cy="${y}" r="7.5" fill="#eeebe3"/>
+     <circle cx="100" cy="${y}" r="7.5" fill="none" stroke="#c3bfb0" stroke-width="1"/>
+     <circle cx="98" cy="${y-2}" r="2.2" fill="#fff" opacity=".7"/>`).join("")}
+  <!-- maske -->
+  <ellipse cx="100" cy="98" rx="43" ry="54" fill="url(#${g}m)"/>
+  <ellipse cx="100" cy="98" rx="43" ry="54" fill="none" stroke="#bab5a6" stroke-width="1.6"/>
+  <path d="M100 44 v108" stroke="#e2ded1" stroke-width="1" opacity=".7"/>
+  <path d="M63 78 q10 -26 37 -30" stroke="#fff" stroke-width="3" fill="none" opacity=".45"/>
+  <!-- çatlak -->
+  <path d="M128 62 l-7 12 l6 5 l-9 11" stroke="#c3bfb0" stroke-width="1.4" fill="none"/>
+  <!-- gözler -->
+  <ellipse cx="81" cy="90" rx="9.5" ry="12" fill="#0b0b0d"/>
+  <ellipse cx="119" cy="90" rx="9.5" ry="12" fill="#0b0b0d"/>
+  <circle cx="81" cy="87" r="2.6" fill="#fff" class="eyeglow"/>
+  <circle cx="119" cy="87" r="2.6" fill="#fff" class="eyeglow"/>
+  <!-- mor gözyaşı -->
+  <path d="M81 103 L76 140" stroke="#7d4fa8" stroke-width="5.5" stroke-linecap="round"/>
+  <path d="M119 103 L124 140" stroke="#7d4fa8" stroke-width="5.5" stroke-linecap="round"/>
+  <path d="M81 103 L79 122" stroke="#9d6fc8" stroke-width="2" stroke-linecap="round" opacity=".8"/>
+  <path d="M119 103 L121 122" stroke="#9d6fc8" stroke-width="2" stroke-linecap="round" opacity=".8"/>
+  <!-- yanaklar + ağız -->
+  <circle cx="72" cy="118" r="6.5" fill="#c2447a" opacity=".85"/>
+  <circle cx="128" cy="118" r="6.5" fill="#c2447a" opacity=".85"/>
+  <circle cx="70" cy="116" r="2.2" fill="#e07ba5" opacity=".7"/>
+  <circle cx="126" cy="116" r="2.2" fill="#e07ba5" opacity=".7"/>
+  <path d="M83 125 q17 13 34 0" stroke="#b8355f" stroke-width="3.6" fill="none" stroke-linecap="round"/>
+  <path d="M86 128 q14 8 28 0" stroke="#8e2748" stroke-width="1.6" fill="none" opacity=".7"/>`; },
 
-  /* Jesse — ceketli hâli hikayenin tamamı. Ceketsizken görünür şekilde küçülüyor. */
-  jesse(coat){
-    const head = `
-      <ellipse cx="100" cy="126" rx="27" ry="30" fill="#c9a98c"/>
-      <path d="M73 118 q6 -30 27 -30 q22 0 27 30 q-10 -14 -27 -14 q-18 0 -27 14 z" fill="#2a2118"/>
-      <circle cx="90" cy="128" r="3" fill="#141319"/><circle cx="110" cy="128" r="3" fill="#141319"/>
-      <path d="M92 142 q8 4 16 0" stroke="#8d6f57" stroke-width="2" fill="none" stroke-linecap="round"/>`;
-    if (coat) return `
-      <g>
-        <ellipse cx="100" cy="332" rx="36" ry="8" fill="#000" opacity=".5"/>
-        <rect x="80" y="288" width="17" height="46" rx="5" fill="#1c2027"/>
-        <rect x="103" y="288" width="17" height="46" rx="5" fill="#1c2027"/>
-        <path d="M62 176 q38 -18 76 0 l10 124 h-96 z" fill="#2b313b"/>
-        <path d="M62 176 l-14 6 l-6 108 q14 8 22 2 l4 -96 z" fill="#242a33"/>
-        <path d="M138 176 l14 6 l6 108 q-14 8 -22 2 l-4 -96 z" fill="#242a33"/>
-        <ellipse cx="47" cy="292" rx="10" ry="12" fill="#1b1f26"/>
-        <ellipse cx="153" cy="292" rx="10" ry="12" fill="#1b1f26"/>
-        <path d="M100 176 v124" stroke="#1a1e25" stroke-width="2.4"/>
-        <circle cx="100" cy="212" r="3" fill="#4d5666"/><circle cx="100" cy="244" r="3" fill="#4d5666"/>
-        <circle cx="100" cy="276" r="3" fill="#4d5666"/>
-        <path d="M74 170 l26 22 l26 -22 l-14 -8 h-24 z" fill="#343c48"/>
-        <rect x="118" y="196" width="20" height="13" rx="2" fill="#5c6672"/>
-        <rect x="120" y="199" width="16" height="2" fill="#98a2ad"/>
-        <rect x="120" y="203" width="11" height="2" fill="#98a2ad"/>
-        ${head}
-      </g>`;
-    return `
-      <g>
-        <ellipse cx="100" cy="332" rx="30" ry="7" fill="#000" opacity=".5"/>
-        <rect x="83" y="278" width="14" height="56" rx="5" fill="#1c2027"/>
-        <rect x="103" y="278" width="14" height="56" rx="5" fill="#1c2027"/>
-        <path d="M76 176 q24 -12 48 0 l6 106 h-60 z" fill="#5a5f68"/>
-        <rect x="62" y="180" width="13" height="86" rx="6" fill="#c9a98c"/>
-        <rect x="125" y="180" width="13" height="86" rx="6" fill="#c9a98c"/>
-        <path d="M84 172 q16 -8 32 0 l-6 12 h-20 z" fill="#4a4f58"/>
-        ${head}
-      </g>`;
+/* ----------------------------------------------------------------- JESSE */
+jesse(coat,u){ const g=`js${u}`;
+  const head = `
+    <ellipse cx="100" cy="127" rx="27" ry="30" fill="#c9a98c"/>
+    <ellipse cx="100" cy="127" rx="27" ry="30" fill="url(#${g}f)"/>
+    <ellipse cx="76" cy="130" rx="5" ry="7" fill="#c19a7c"/>
+    <ellipse cx="124" cy="130" rx="5" ry="7" fill="#b89073"/>
+    <path d="M73 120 q4 -32 27 -32 q23 0 27 32 q-4 -8 -12 -11 q-9 6 -18 2
+             q-9 5 -14 -1 q-7 3 -10 8 z" fill="#2b2118"/>
+    <path d="M78 100 q10 -8 22 -7" stroke="#3d2f22" stroke-width="2" fill="none" opacity=".8"/>
+    <path d="M86 118 q7 -4 13 0" stroke="#6b5442" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+    <path d="M114 118 q-7 -4 -13 0" stroke="#6b5442" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+    <ellipse cx="90" cy="129" rx="3.4" ry="3.6" fill="#f0eadd"/>
+    <ellipse cx="110" cy="129" rx="3.4" ry="3.6" fill="#f0eadd"/>
+    <circle cx="90" cy="129" r="2.2" fill="#3d2f22"/><circle cx="110" cy="129" r="2.2" fill="#3d2f22"/>
+    <circle cx="89.2" cy="128.2" r=".9" fill="#fff"/><circle cx="109.2" cy="128.2" r=".9" fill="#fff"/>
+    <path d="M97 136 q3 3 6 0" stroke="#a37f63" stroke-width="1.4" fill="none"/>
+    <path d="M92 145 q8 4 16 0" stroke="#8d6f57" stroke-width="2" fill="none" stroke-linecap="round"/>`;
+  const defs = `<defs>
+    ${lg(g+"c","#3a4250","#1e232b",0,0,1,1)}
+    ${lg(g+"f","#00000000","#00000038",0,0,.3,1)}
+    ${lg(g+"s","#6a7080","#43485a",0,0,1,1)}
+  </defs>`;
+  if (coat) return `
+    ${defs}
+    <ellipse cx="100" cy="333" rx="38" ry="8" fill="#000" opacity=".5"/>
+    <rect x="79" y="286" width="18" height="48" rx="5" fill="#1a1e26"/>
+    <rect x="103" y="286" width="18" height="48" rx="5" fill="#1a1e26"/>
+    <path d="M74 330 q0 -12 13 -12 q13 0 13 12 z" fill="#141820"/>
+    <path d="M100 330 q0 -12 13 -12 q13 0 13 12 z" fill="#141820"/>
+    <!-- iki beden büyük ceket -->
+    <path d="M60 174 q40 -20 80 0 l11 128 h-102 z" fill="url(#${g}c)"/>
+    <path d="M60 174 l-15 7 l-7 112 q15 9 24 2 l4 -100 z" fill="#252b35"/>
+    <path d="M140 174 l15 7 l7 112 q-15 9 -24 2 l-4 -100 z" fill="#1f242d"/>
+    <!-- eli örten manşetler -->
+    <ellipse cx="45" cy="296" rx="12" ry="14" fill="#191d25"/>
+    <ellipse cx="155" cy="296" rx="12" ry="14" fill="#191d25"/>
+    <path d="M35 292 h20 M145 292 h20" stroke="#323a46" stroke-width="2"/>
+    <!-- yaka -->
+    <path d="M72 168 l28 26 l28 -26 l-13 -9 q-15 -5 -30 0 z" fill="#3b4552"/>
+    <path d="M72 168 l28 26 l-6 -32 z" fill="#485362"/>
+    <path d="M128 168 l-28 26 l6 -32 z" fill="#333c48"/>
+    <!-- fermuar + düğmeler -->
+    <path d="M100 194 v108" stroke="#171c23" stroke-width="3"/>
+    <path d="M100 194 v108" stroke="#4d5666" stroke-width="1" stroke-dasharray="3 3"/>
+    ${[214,244,274].map(y=>
+      `<circle cx="100" cy="${y}" r="3.4" fill="#5b6473"/>
+       <circle cx="99" cy="${y-1}" r="1.2" fill="#8d96a5"/>`).join("")}
+    <!-- cepler -->
+    <path d="M66 250 h26 v5 h-26 z" fill="#2c333e"/>
+    <path d="M108 250 h26 v5 h-26 z" fill="#262c36"/>
+    <!-- göğüs rozeti: babasının adı -->
+    <rect x="112" y="200" width="24" height="15" rx="2" fill="#5c6672"/>
+    <rect x="113" y="201" width="22" height="13" rx="1.5" fill="#3f4855"/>
+    <rect x="115" y="204" width="18" height="2" fill="#a8b2bd"/>
+    <rect x="115" y="208" width="12" height="2" fill="#98a2ad"/>
+    ${head}`;
+  return `
+    ${defs}
+    <ellipse cx="100" cy="333" rx="30" ry="7" fill="#000" opacity=".5"/>
+    <rect x="83" y="272" width="15" height="62" rx="5" fill="#1a1e26"/>
+    <rect x="102" y="272" width="15" height="62" rx="5" fill="#1a1e26"/>
+    <path d="M78 330 q0 -11 12 -11 q12 0 12 11 z" fill="#141820"/>
+    <path d="M98 330 q0 -11 12 -11 q12 0 12 11 z" fill="#141820"/>
+    <!-- ince tişört -->
+    <path d="M78 174 q22 -12 44 0 l6 104 h-56 z" fill="url(#${g}s)"/>
+    <path d="M78 174 q22 -12 44 0 l-3 8 q-19 -9 -38 0 z" fill="#7b8394"/>
+    <path d="M86 170 q14 -7 28 0 l-5 11 h-18 z" fill="#4a5060"/>
+    <path d="M100 182 v92" stroke="#3a4050" stroke-width="1" opacity=".6"/>
+    <!-- çıplak kollar -->
+    <rect x="62" y="178" width="14" height="46" rx="7" fill="#c9a98c"/>
+    <rect x="63" y="222" width="12" height="44" rx="6" fill="#c19a7c"/>
+    <rect x="124" y="178" width="14" height="46" rx="7" fill="#c19a7c"/>
+    <rect x="125" y="222" width="12" height="44" rx="6" fill="#b89073"/>
+    <ellipse cx="69" cy="270" rx="8" ry="9" fill="#c9a98c"/>
+    <ellipse cx="131" cy="270" rx="8" ry="9" fill="#c19a7c"/>
+    ${head}`;
   }
 };
 
 function figure(kind, h=170, opt){
-  const inner = kind==="jesse" ? FIGURES.jesse(opt !== false)
-              : (FIGURES[kind] ? FIGURES[kind]() : FIGURES.freddy());
+  const u = ++FIGID;
+  const inner = kind==="jesse" ? FIGURES.jesse(opt !== false, u)
+              : (FIGURES[kind] ? FIGURES[kind](u) : FIGURES.freddy(u));
   return `<svg viewBox="0 0 200 340" height="${h}" aria-hidden="true">${inner}</svg>`;
 }
 

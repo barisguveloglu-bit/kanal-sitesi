@@ -51,7 +51,9 @@ depoda duruyor.
 Oyuncu "ne yapacağımı bilemedim" dediği için:
 
 - **Alt çubuktaki her düğme** tuşunu, ne işe yaradığını ve **o an açık mı
-  kapalı mı** olduğunu yazıyor.
+  kapalı mı** olduğunu yazıyor. Çubuk 55 piksel yüksekliğinde ve dar
+  ekranda bile tek satır — kapı boşluklarının en az 85 piksel altında
+  kalıyor, yani kapıda kim var görüntüsünü örtmüyor.
 - **Uyarı şeridi** ne yapman gerektiğini doğrudan söylüyor: *"BATI KAPIDA
   BİRİ VAR — A ile KAPAT"*, *"MÜZİK KUTUSU BİTİYOR — SPACE → PRIZE CORNER → W"*.
 - İlgili düğme kırmızı yanıp sönüyor.
@@ -78,11 +80,23 @@ Tek bir görsel dosya yok; her şey kodla çizilen SVG.
   ölçekle çiziliyor.)*
 - **Ofis:** kapı boşluklarının içinde derinlemesine koridor görünüyor,
   masada monitör, kağıtlar, Freddy biblosu, bardak ve dönen pervane var.
-- **Karakterler ayrı ayrı çizildi:** Freddy'nin silindir şapkası ve papyonu,
-  Bonnie'nin gitarı ve uzun kulakları, Chica'nın "LET'S EAT!!!" önlüğü ve
-  cupcake'i, Foxy'nin göz bandı, kancası ve yırtık gövdesinden görünen
-  endoiskeleti, Golden Freddy'nin çökmüş duruşu ve boş göz çukurları,
-  Puppet'ın mor gözyaşı çizgileri ve çizgili kolları.
+- **Karakterler ayrı ayrı, detaylı çizildi.** Ortak iskelet: gövde ve kafada
+  hacim veren gradyanlar, omuz–dirsek–dizde **endoiskelet eklemleri**, panel
+  dikişleri ve vidalar, dört parmaklı eller, akı + iris + bebek + parlama
+  içeren gözler, kafa ile gövdeyi bağlayan boyun.
+
+| Kim | Kendine özel |
+|---|---|
+| Freddy | Silindir şapka (kenar, kurdele, sheen), papyon, elinde ızgaralı mikrofon, burun üstü benekler |
+| Bonnie | Telleri, perdeleri ve manyetiği çizilmiş gitar, iç gölgeli uzun kulaklar, iki ön diş |
+| Chica | "LET'S EAT!!!" önlüğü, kâğıt kılıflı ve mumlu cupcake, dikişli gaga, üç parmaklı ayaklar |
+| Foxy | Göz bandı ve kayışı, parlayan kanca, yırtık gövdeden görünen kaburgalar, sivri dişler, dik kulaklar |
+| Golden Freddy | Çökmüş duruş, eğik kafa, sarkan kollar, boş göz çukurlarında iki nokta |
+| Puppet | Çatlaklı maske, mor gözyaşı çizgileri, çizgili kollar, uzun ince parmaklar |
+| Jesse | İki hâli: eli örten manşetleri ve göğüs rozetiyle iki beden büyük ceket / ince tişört ve çıplak kollar |
+
+> Gradyan kimlikleri her çağrıda benzersizleşiyor — aynı ekranda altı figür
+> olunca (Özel Gece ekranı) renkler birbirine karışmasın diye.
 - **Jesse'nin iki hâli var:** ceketliyken kolları eline kadar sarkan, iki beden
   büyük bir servis ceketi; ceketsizken gözle görülür şekilde ince ve küçük bir
   çocuk. Ceket çıkarılınca yere katlanmış olarak duruyor.
