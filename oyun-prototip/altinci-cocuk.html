@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="tr">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -72,6 +72,35 @@ button{font:inherit;color:inherit;cursor:pointer}
 #picker .p span{display:block;font-size:11px;color:var(--dim);margin-top:3px}
 #picker h2{font-family:var(--f-machine);letter-spacing:.2em;text-transform:uppercase;
   font-size:20px;color:#e6e2d8;margin:0 0 4px}
+.mbtn[disabled]{opacity:.38;cursor:not-allowed}
+.mbtn[disabled]:hover{background:#0e1116;border-color:var(--line)}
+
+/* ---------- özel gece ---------- */
+.customwrap{width:min(980px,96vw);max-height:92vh;overflow:auto;text-align:center}
+.customwrap h2{font-family:var(--f-machine);letter-spacing:.22em;text-transform:uppercase;
+  font-size:clamp(19px,3.2vw,28px);color:#e6e2d8;margin:0}
+.csub{color:var(--dim);font-size:12.5px;margin:6px 0 18px}
+.cgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.ccard{background:#0d1016;border:1px solid var(--line);padding:12px 10px 10px;
+  display:flex;flex-direction:column;align-items:center;gap:6px}
+.ccard.off{opacity:.45}
+.cportrait{height:120px;display:flex;align-items:flex-end;cursor:pointer}
+.cportrait:hover{filter:brightness(1.25)}
+.cname{font-size:12px;letter-spacing:.12em;text-transform:uppercase;font-weight:600}
+.cnote{font-size:10.5px;color:var(--dim);line-height:1.35;min-height:28px}
+.crow{display:flex;align-items:center;gap:10px;margin-top:2px}
+.cstep{width:34px;height:34px;background:#151a22;border:1px solid #2a3140;color:#cfd4dc;
+  font-size:19px;line-height:1;border-radius:3px}
+.cstep:hover{background:#1e2531;color:#fff}
+.cval{font-family:var(--f-machine);font-size:30px;min-width:52px;color:#fff}
+.cbar{height:4px;width:100%;background:#1a1e26;margin-top:4px;position:relative}
+.cbar i{position:absolute;inset:0;width:0;transition:width .12s}
+.cfoot{margin-top:18px;display:flex;flex-direction:column;align-items:center;gap:12px}
+.ctotal{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+.ctotal b{font-size:19px;color:#fff}
+.cpresets{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.cpresets .cbtn{padding:7px 14px}
+.cactions{display:flex;flex-direction:column;gap:8px;width:min(300px,84vw)}
 
 /* ---------- oda / sahne görünümü ---------- */
 .room{position:relative;width:min(1000px,96vw);aspect-ratio:16/10;
@@ -237,12 +266,60 @@ button{font:inherit;color:inherit;cursor:pointer}
 .meter.gold i{background:var(--c-golden)}
 
 #ctrls{position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:center;
-  gap:6px;padding:10px;flex-wrap:wrap}
-.cbtn{background:rgba(10,13,18,.9);border:1px solid var(--line);padding:8px 12px;
-  font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
-.cbtn.active{border-color:#6d7e93;color:#fff}
-.cbtn[data-on="1"]{border-color:#5e7f9c;color:#fff;background:#111821}
-.cbtn:hover{color:#fff}
+  gap:5px;padding:9px 8px;flex-wrap:wrap;z-index:10}
+.cbtn{background:rgba(8,11,15,.94);border:1px solid var(--line);padding:7px 11px;
+  font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);
+  display:flex;flex-direction:column;align-items:center;gap:3px;min-width:82px;
+  border-radius:4px;transition:border-color .12s,color .12s,background .12s}
+.cbtn kbd{font-family:var(--f-machine);font-size:13px;letter-spacing:.08em;
+  background:#1b2029;border:1px solid #2e3644;border-bottom-width:2px;border-radius:3px;
+  padding:1px 7px;color:#b8c0cc;min-width:26px;text-align:center}
+.cbtn span{font-size:9.5px;letter-spacing:.13em}
+.cbtn em{font-style:normal;font-size:9.5px;letter-spacing:.13em;font-weight:700;
+  color:#4e5765}
+.cbtn:hover{color:#fff;border-color:#3f4856}
+.cbtn:hover kbd{color:#fff;background:#232a35}
+.cbtn[data-on="1"]{border-color:#5e7f9c;color:#e8eef5;background:#101922}
+.cbtn[data-on="1"] em{color:#8fc0e8}
+.cbtn[data-on="1"] kbd{background:#1b2b39;border-color:#3f6076;color:#dceaf6}
+.cbtn.urgent{border-color:var(--c-bad);animation:urgentPulse .7s steps(1) infinite}
+@keyframes urgentPulse{0%,49%{background:#22100e}50%,100%{background:rgba(8,11,15,.94)}}
+.cbtn.help{min-width:64px}
+
+/* uyarı şeridi */
+#alertbar{position:absolute;left:50%;bottom:82px;transform:translateX(-50%);z-index:11;
+  background:rgba(10,4,4,.94);border:1px solid var(--c-bad);border-left-width:4px;
+  padding:9px 16px;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:#f0c9c4;white-space:nowrap;max-width:94vw;overflow:hidden;text-overflow:ellipsis}
+#alertbar b{color:#fff}
+#alertbar.calm{border-color:#5e7f9c;background:rgba(6,12,18,.94);color:#cfe0ef}
+
+/* rehber baloncuğu (ilk gece) */
+#coach{position:absolute;left:50%;top:64px;transform:translateX(-50%);z-index:12;
+  background:rgba(6,9,13,.96);border:1px solid #3f4856;padding:11px 18px;border-radius:4px;
+  font-size:12.5px;color:#dfe5ec;max-width:min(560px,92%);text-align:center;line-height:1.5;
+  animation:subIn .25s ease-out}
+#coach kbd{font-family:var(--f-machine);background:#1b2029;border:1px solid #2e3644;
+  border-radius:3px;padding:1px 7px;color:#fff}
+
+/* yardım paneli */
+#helppanel{position:absolute;inset:0;z-index:30;background:rgba(3,5,8,.96);
+  padding:26px 22px;overflow:auto;animation:subIn .2s ease-out}
+#helppanel h3{font-family:var(--f-machine);letter-spacing:.2em;text-transform:uppercase;
+  font-size:17px;color:#e6e2d8;margin:0 0 4px;text-align:center}
+#helppanel .hsub{text-align:center;color:var(--dim);font-size:11.5px;margin-bottom:18px}
+.hgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;
+  max-width:820px;margin:0 auto}
+.hrow{display:flex;gap:11px;align-items:flex-start;background:#0c1016;
+  border:1px solid var(--line);padding:10px 12px;border-radius:4px}
+.hrow kbd{font-family:var(--f-machine);font-size:13px;background:#1b2029;
+  border:1px solid #2e3644;border-bottom-width:2px;border-radius:3px;padding:2px 8px;
+  color:#dceaf6;flex:none;min-width:44px;text-align:center}
+/* > kullanılıyor: açıklama metninin içindeki <b> satır kırmasın diye */
+.hrow div > b{display:block;font-size:11.5px;color:#fff;letter-spacing:.06em;margin-bottom:2px}
+.hrow div span{font-size:11px;color:var(--dim);line-height:1.45}
+.hrow div span b{color:#cfe0ef}
+#helppanel .close{display:block;margin:18px auto 0;width:min(280px,80vw)}
 
 /* kamera */
 .camview{position:absolute;inset:0;background:#05070a;padding:44px 18px 60px;
@@ -265,6 +342,15 @@ button{font:inherit;color:inherit;cursor:pointer}
 .cr{border:1px solid #1c212a;background:#080a0e;padding:9px 10px;min-height:74px;
   font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#5c6472;text-align:left}
 .cr.here{border-color:#5e7f9c;color:#cfd4dc;background:#0c1219}
+.cr:hover{border-color:#3f4856;color:#9aa3b1}
+.cr.occupied{border-color:#7a4a44}
+.cr.boxlow{border-color:var(--c-golden);animation:urgentPulse .7s steps(1) infinite}
+.camhead{position:relative;z-index:2;display:flex;justify-content:space-between;
+  align-items:center;gap:12px;flex-wrap:wrap;font-size:10px;letter-spacing:.18em;
+  text-transform:uppercase;color:#5c6472}
+.camlegend{display:flex;gap:10px;align-items:center;letter-spacing:.1em}
+.camlegend i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px;
+  vertical-align:middle}
 .cr .occ{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap}
 .cr .dot{width:9px;height:9px;border-radius:50%;box-shadow:0 0 8px currentColor}
 .boxwrap{position:relative;z-index:2;border:1px solid #2a2f38;background:#080a0e;padding:10px 12px}
@@ -1059,7 +1145,7 @@ function buildCorridor(){
    3. ALTYAZI MOTORU — sistemin yıldızı
    ========================================================================== */
 function makeSubs(parent){
-  const box = el("div"); box.id="subs"; parent.appendChild(box);
+  const box = el("div"); box.id="subs"; box.lang="en"; parent.appendChild(box);
   let queue = Promise.resolve();
 
   function render(line){
@@ -1136,6 +1222,8 @@ const S = {
   openersHeard: [false,false,false,false,false],
   turned: {},          // hangi ruh tanıdı
   finished: false,
+  perfect: false,      // Özel Gece 20/20 bitirildi mi
+  tutorialSeen: false, // ilk gecede rehber gösterildi mi
   jacket: true         // ceket başta üstünde
 };
 
@@ -1197,17 +1285,22 @@ function sceneMenu(){
   const start = el("button","mbtn primary","▶ Yeni oyun — Gece 1");
   start.onclick = ()=>{ A.init(); S.night=1; S.turned={}; S.jacket=true;
                         S.openersHeard=[false,false,false,false,false]; sceneOpener(); };
+  const cust = el("button","mbtn", S.finished ? "★ Gece 6 — Özel Gece" : "🔒 Gece 6 — 5 geceyi bitir");
+  cust.disabled = !S.finished;
+  cust.onclick = ()=>{ A.init(); sceneCustom(); };
   const pick = el("button","mbtn","⌘ Sahne seç");
   pick.onclick = ()=>{ A.init(); scenePicker(); };
   const snd = el("button","mbtn","♪ Ses: açık");
   snd.onclick = ()=>{ A.set(!A.on); snd.textContent = "♪ Ses: " + (A.on?"açık":"kapalı"); };
-  b.append(start, pick, snd);
+  b.append(start, cust, pick, snd);
   s.appendChild(b);
 
   const star = el("div"); star.id="star";
-  star.textContent = S.finished ? "★" : "";
+  star.textContent = (S.finished ? "★" : "") + (S.perfect ? "★" : "");
   s.appendChild(star);
-  if (S.finished) s.appendChild(el("div","tag","Ve başka hiçbir şey açılmıyor."));
+  if (S.finished) s.appendChild(el("div","tag",
+    S.perfect ? "Hikâye bitti. Özel Gece de 20/20'de bitti."
+              : "Hikâye bitti. Özel Gece açıldı — hikâyenin parçası değil."));
 
   s.appendChild(el("div","hint","Tasarım defteri: FNAF-ALTINCI-COCUK.md"));
   show(s);
@@ -1233,7 +1326,8 @@ function scenePicker(){
     ["Koridor çıkışı","3 AM — \"kırmızıyken dur\"", ()=>{S.night=4;sceneOffice({startAtExcursion:true});}],
     ["Safe room","Golden Freddy + Puppet finali", ()=>{S.night=5;sceneSafeRoom();}],
     ["2023 — final","Gazete, telefon, \"Okay.\"", ()=>{sceneNewspaper();}],
-    ["Jenerik","Beş isim", ()=>{S.openersHeard=[1,1,1,1,1];sceneCredits();}]
+    ["Jenerik","Beş isim", ()=>{S.openersHeard=[1,1,1,1,1];sceneCredits();}],
+    ["Gece 6 — Özel Gece","0–20 arası zorluk ayarı", ()=>{S.finished=true;sceneCustom();}]
   ];
   items.forEach(([t,d,fn])=>{
     const b = el("button","p"); b.appendChild(el("b",null,t)); b.appendChild(el("span",null,d));
@@ -1491,7 +1585,10 @@ function sceneOffice(opt={}){
   const figR = el("div","figure"); figR.style.cssText="left:50%;bottom:4%;opacity:0;z-index:3";
   dl.appendChild(figL); dr.appendChild(figR);
   const deskw = el("div","deskwrap"); deskw.innerHTML = buildDesk();
-  room.append(dl, dr, deskw);
+  // Golden Freddy ofiste belirdiğinde buraya çiziliyor
+  const goldFig = el("div","figure goldenIn");
+  goldFig.style.cssText = "left:50%;bottom:8%;opacity:0;z-index:4;transition:opacity .25s";
+  room.append(dl, dr, deskw, goldFig);
   // döngüde her karede querySelector çağırmamak için bir kez yakala
   const lampL = dl.querySelector(".warnlamp"), lampR = dr.querySelector(".warnlamp");
   const shutL = dl.querySelector(".shutter"), shutR = dr.querySelector(".shutter");
@@ -1502,12 +1599,15 @@ function sceneOffice(opt={}){
   const cams = el("div","camview"); cams.hidden = true;
   cams.innerHTML = `<div class="camstatic"></div><div class="camscan"></div>
     <div class="camflash"></div>
-    <div style="position:relative;z-index:2;font-size:10px;letter-spacing:.2em;
-      text-transform:uppercase;color:#5c6472">Kamera — CAM 1993</div>
+    <div class="camhead">
+      <span>Kamera — CAM 1993 &nbsp;·&nbsp; oda seçmek için tıkla</span>
+      <span class="camlegend">${["freddy","bonnie","chica","foxy"].map(k=>
+        `<i style="background:${SPEAK[k].color}"></i>${SPEAK[k].name}`).join("")}</span>
+    </div>
     <div class="camrooms" id="crWrap"></div>
     <div class="boxwrap" id="bwrap" hidden>
       <div style="font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#5c6472">
-        CAM 11 — Prize Corner</div>
+        CAM 11 — Prize Corner &nbsp;·&nbsp; müzik kutusu</div>
       <div class="meter gold" style="width:100%;margin:8px 0"><i id="mBox2"></i></div>
       <button class="cbtn" id="windBtn" style="width:100%;padding:14px 12px;border-color:#8a6a2a;color:#e8c33a">Basılı tut ya da <b>W</b> — KUR</button>
     </div>`;
@@ -1516,33 +1616,45 @@ function sceneOffice(opt={}){
   // kontroller
   const ctr = el("div"); ctr.id="ctrls";
   ctr.innerHTML = `
-    <button class="cbtn" id="bDL" data-on="0">A — Batı kapı</button>
-    <button class="cbtn" id="bLL" data-on="0">Q — Batı ışık</button>
-    <button class="cbtn" id="bCam" data-on="0">SPACE — Kamera</button>
-    <button class="cbtn" id="bRL" data-on="0">E — Doğu ışık</button>
-    <button class="cbtn" id="bDR" data-on="0">D — Doğu kapı</button>
-    <button class="cbtn" id="bJack" data-on="1">J — Ceket</button>`;
+    <button class="cbtn" id="bDL" data-on="0"><kbd>A</kbd><span>Batı kapı</span><em>AÇIK</em></button>
+    <button class="cbtn" id="bLL" data-on="0"><kbd>Q</kbd><span>Batı ışık</span><em>KAPALI</em></button>
+    <button class="cbtn" id="bCam" data-on="0"><kbd>SPACE</kbd><span>Kamera</span><em>KAPALI</em></button>
+    <button class="cbtn" id="bRL" data-on="0"><kbd>E</kbd><span>Doğu ışık</span><em>KAPALI</em></button>
+    <button class="cbtn" id="bDR" data-on="0"><kbd>D</kbd><span>Doğu kapı</span><em>AÇIK</em></button>
+    <button class="cbtn" id="bJack" data-on="1"><kbd>J</kbd><span>Ceket</span><em>ÜSTÜNDE</em></button>
+    <button class="cbtn help" id="bHelp"><kbd>H</kbd><span>Yardım</span><em>&nbsp;</em></button>`;
   room.appendChild(ctr);
 
+  // uyarı şeridi — ne yapman gerektiğini doğrudan söylüyor
+  const alertBar = el("div"); alertBar.id = "alertbar"; alertBar.hidden = true;
+  room.appendChild(alertBar);
+
   s.appendChild(room);
-  s.appendChild(el("div","hint","A/D kapı · Q/E ışık · SPACE kamera · J ceket · W müzik kutusunu kur"));
   show(s); A.init(); A.fanOn();
 
   const subs = makeSubs(room);
 
   /* --- durum --- */
-  const lvl = [0,3,4,6,8,11][night];
+  // Normal gecelerde herkes aynı seviyede; Özel Gece'de her biri ayrı (0–20).
+  const lvl = [0,3,4,6,8,11][night] || 3;
+  // puppet: lvl DEĞİL night. (lvl verilirse 5. gecede kutu 31 sn'ye düşüyor,
+  // oysa ayarlanmış değer 48 sn.)
+  const AI = opt.ai || { freddy:lvl, bonnie:lvl, chica:lvl, foxy:lvl, golden:0, puppet:night };
+  const maxAI = Math.max(AI.freddy, AI.bonnie, AI.chica, AI.foxy);
   const G = {
     t:0, hour:0, power:100, cold:0, dead:false, over:false,
     doorL:false, doorR:false, lightL:false, lightR:false, camUp:false,
-    box:100, boxOn: night>=2, winding:false,
+    box:100, boxOn: opt.ai ? AI.puppet>0 : night>=2, winding:false,
+    golden:false, goldenT:0,
     pos:{ bonnie:0, chica:0, freddy:0, foxy:0 },
-    atDoor:{L:0,R:0}, excursionDone:false, paused:false,
+    atDoor:{L:0,R:0}, excursionDone:false, paused:false, helpOpen:false,
     wasL:null, wasR:null, use:1, lastOpL:null, lastOpR:null
   };
   if (opt.penalty){ G.pos.bonnie=2; G.pos.chica=2; }
 
   const HOUR_MS = 21000;
+  // Son iki gecede pil belirgin şekilde zayıf. 1–3 aynı kaldı.
+  const POWER_MULT = opt.ai ? 2.4 : ([1,1,1,1,1.85,2.6][night] || 1);
   const $ = id => room.querySelector("#"+id);
   if (opt.startAtExcursion) later(()=>excursion(), 400);
 
@@ -1588,10 +1700,19 @@ function sceneOffice(opt={}){
       const want = here ? here.join("") : "";
       if (c.last === want) continue;              // o oda değişmediyse dokunma
       c.last = want;
+      c.node.classList.toggle("occupied", !!here);
       c.occ.innerHTML = here
         ? here.map(k=>`<span class="dot" style="background:${SPEAK[k].color};color:${SPEAK[k].color}"></span>`).join("")
         : "";
     }
+  }
+  // kutu azalınca Prize Corner hücresi altın renginde yanıp sönüyor
+  let boxLowWas = null;
+  function markBoxLow(){
+    const low = G.boxOn && G.box < 45;
+    if (low === boxLowWas) return; boxLowWas = low;
+    const cell = crCells.find(c=>c.room === "Prize Corner");
+    if (cell) cell.node.classList.toggle("boxlow", low);
   }
 
   /* --- girdiler --- */
@@ -1613,16 +1734,73 @@ function sceneOffice(opt={}){
 
   const camFlash = cams.querySelector(".camflash");
 
+  /* ---------- YARDIM PANELİ (H) ---------- */
+  const HELP = [
+    ["A / D","Batı ve doğu kapı","Kapı kapalıyken kimse giremez ama pil hızlı biter. Kapının üstündeki lamba kırmızı yanıyorsa orada biri var."],
+    ["Q / E","Koridor ışıkları","Kapıyı açmadan dışarıda kim var diye bakmanı sağlar."],
+    ["SPACE","Kamera","Odaları gösterir. Renkli nokta = o odada duran animatronik. Nokta rengi karakterin rengi."],
+    ["W","Müzik kutusunu kur","Önce SPACE, sonra <b>Prize Corner</b> odasını seç, sonra W'ye basılı tut. Kutu boşalırsa Puppet gelir."],
+    ["J","Ceket","Üstündeyken seni yetişkin sanıp daha hızlı geliyorlar. Çıkarınca yavaşlıyorlar ama üşüyorsun; çok üşürsen kapıya geç tepki veriyorsun."],
+    ["Fare","Korsan Koyu","Foxy'yi yerinde tutmak için ara sıra kamerada <b>Pirate Cove</b> odasına bak. Bakmazsan koridoru koşar."],
+    ["3 AM","Koridor çıkışı","Ofisten çıkıp bir sayfa alman gerekir. Basılı tut = yürü, gözler kırmızıyken dur."],
+    ["Amaç","6 AM'e kadar dayan","Gece 6 saat sürer. Pil biterse kapılar açılır."]
+  ];
+  const help = el("div"); help.id = "helppanel"; help.hidden = true;
+  help.innerHTML = `<h3>Nasıl oynanır</h3>
+    <div class="hsub">H tuşu bu paneli açar ve kapatır. Panel açıkken oyun duruyor.</div>
+    <div class="hgrid">${HELP.map(([k,t,d])=>
+      `<div class="hrow"><kbd>${k}</kbd><div><b>${t}</b><span>${d}</span></div></div>`).join("")}</div>`;
+  const closeHelp = el("button","mbtn primary close","Kapat (H)");
+  help.appendChild(closeHelp);
+  room.appendChild(help);
+  // Ayrı bayrak: yardımı koridor çıkışı sırasında açıp kapatmak, çıkış hâlâ
+  // ekrandayken ofisi geri başlatıyordu (ikisi de G.paused kullanıyordu).
+  function toggleHelp(){
+    help.hidden = !help.hidden;
+    G.helpOpen = !help.hidden;
+    $("bHelp").dataset.on = help.hidden ? 0 : 1;
+    A.click();
+  }
+  closeHelp.onclick = toggleHelp;
+  $("bHelp").onclick = toggleHelp;
+
+  /* ---------- REHBER (sadece ilk gecede) ---------- */
+  const coach = el("div"); coach.id = "coach"; coach.hidden = true;
+  room.appendChild(coach);
+  function say(html, ms){
+    coach.innerHTML = html; coach.hidden = false;
+    later(()=>{ coach.hidden = true; }, ms);
+  }
+  if (night === 1 && !S.tutorialSeen && !opt.ai){
+    // Bayrak en sondaki ipucu görünene kadar konmuyor: ilk 10 saniyede
+    // ölen oyuncu tekrar denediğinde ipuçlarını hiç görmemiş olmasın.
+    later(()=>{ S.tutorialSeen = true; }, 29500);
+    later(()=>say("Sabah 6'ya kadar dayanacaksın. Aşağıdaki düğmeler tuşları gösteriyor.",5200),  900);
+    later(()=>say("<kbd>SPACE</kbd> kamerayı açar — hangi odada kim var oradan görünür.",5200),  6600);
+    later(()=>say("Kapının üstündeki lamba <b>kırmızı</b> yanarsa o kapıyı hemen kapat: <kbd>A</kbd> batı, <kbd>D</kbd> doğu.",6000), 12300);
+    later(()=>say("Kapı kapalıyken pil hızlı biter. Gerekmedikçe açık bırak.",5000), 18800);
+    later(()=>say("Takıldığın an <kbd>H</kbd> tuşuna bas — her şey orada yazıyor.",5000), 24300);
+  }
+
+  // düğmelerin altındaki durum yazısı — "bu şu an açık mı" sorusunu bitiriyor
+  const setBtn = (id, on, onTxt, offTxt) => {
+    const b = $(id); b.dataset.on = on ? 1 : 0;
+    b.querySelector("em").textContent = on ? onTxt : offTxt;
+  };
+  // döngüde her karede aranmasın diye bir kez yakalanıyor
+  const btnDL = $("bDL"), btnDR = $("bDR"), btnCam = $("bCam");
+
   function toggle(k){
     if (G.over) return;
-    if (k==="dl"){ G.doorL=!G.doorL; door("l", !G.doorL); $("bDL").dataset.on=G.doorL?1:0; }
-    if (k==="dr"){ G.doorR=!G.doorR; door("r", !G.doorR); $("bDR").dataset.on=G.doorR?1:0; }
+    if (k==="dl"){ G.doorL=!G.doorL; door("l", !G.doorL); setBtn("bDL",G.doorL,"KAPALI","AÇIK"); }
+    if (k==="dr"){ G.doorR=!G.doorR; door("r", !G.doorR); setBtn("bDR",G.doorR,"KAPALI","AÇIK"); }
     if (k==="ll"){ G.lightL=!G.lightL; hallL.classList.toggle("on",G.lightL);
-                   $("bLL").dataset.on=G.lightL?1:0; if(G.lightL) A.buzz(); }
+                   setBtn("bLL",G.lightL,"AÇIK","KAPALI"); if(G.lightL) A.buzz(); }
     if (k==="rl"){ G.lightR=!G.lightR; hallR.classList.toggle("on",G.lightR);
-                   $("bRL").dataset.on=G.lightR?1:0; if(G.lightR) A.buzz(); }
+                   setBtn("bRL",G.lightR,"AÇIK","KAPALI"); if(G.lightR) A.buzz(); }
     if (k==="cam"){
-      G.camUp=!G.camUp; A.click(); cams.hidden=!G.camUp; $("bCam").dataset.on=G.camUp?1:0;
+      G.camUp=!G.camUp; A.click(); cams.hidden=!G.camUp;
+      setBtn("bCam",G.camUp,"AÇIK","KAPALI");
       if (G.camUp){
         drawCams(true);                        // açılır açılmaz güncel görüntü
         if (!reduced && camFlash){
@@ -1633,7 +1811,7 @@ function sceneOffice(opt={}){
     if (k==="jack"){
       S.jacket=!S.jacket; A.step();
       $("hJack").textContent = S.jacket ? "ÜSTÜNDE" : "ÇIKARDIN";
-      $("bJack").dataset.on = S.jacket?1:0;
+      setBtn("bJack", S.jacket, "ÜSTÜNDE", "YERDE");
       if(!S.jacket) subs.say("gil","(Ceket yerde. Daha yavaş geliyorlar — ama üşüyorsun.)",{night,hold:1600});
     }
   }
@@ -1644,6 +1822,8 @@ function sceneOffice(opt={}){
   const keymap = {a:"dl",d:"dr",q:"ll",e:"rl"," ":"cam",j:"jack"};
   const onKey = ev=>{
     const k = ev.key.toLowerCase();
+    if (k === "h"){ ev.preventDefault(); if(!ev.repeat) toggleHelp(); return; }
+    if (!help.hidden) return;                                          // panel açıkken oyun durur
     if (k === "w"){ ev.preventDefault(); G.winding = true; return; }   // basılı tut
     if (ev.repeat) return;
     if (keymap[k]){ ev.preventDefault(); toggle(keymap[k]); }
@@ -1672,7 +1852,7 @@ function sceneOffice(opt={}){
       <div style="color:#5c6472;font-size:12px;letter-spacing:.16em;margin-top:14px">
         Gece ${night} — tekrar</div></div>`;
     room.appendChild(sc);
-    later(()=>{ sceneOpener(); }, 2600);
+    later(()=> opt.ai ? sceneCustom(AI) : sceneOpener(), 2600);
   }
 
   /* --- ÇIKIŞ: koridor mini oyunu (3 AM) --- */
@@ -1709,6 +1889,7 @@ function sceneOffice(opt={}){
     let last = performance.now();
     loop(t=>{
       if (G.over) return false;
+      if (G.helpOpen){ last = t; return; }      // yardım açıkken koridor da duruyor
       const dt = Math.min(60, t-last); last = t;
       tNext -= dt;
       if (tNext <= 0){
@@ -1753,17 +1934,17 @@ function sceneOffice(opt={}){
   };
 
   /* --- ana döngü --- */
-  let last = performance.now(), moveAcc = 0, boxAcc = 0;
+  let last = performance.now(), moveAcc = 0, boxAcc = 0, goldAcc = 0;
   loop(t=>{
     if (G.over) return false;
     const dt = Math.min(70, t - last); last = t;
-    if (G.paused){ updateHud(); return; }
+    if (G.paused || G.helpOpen){ updateHud(); return; }
 
     G.t += dt;
     const hour = Math.floor(G.t / HOUR_MS);
     if (hour !== G.hour && hour <= 6){
       G.hour = hour; A.ping();
-      if (hour === 3 && !G.excursionDone && !opt.noExcursion) excursion();
+      if (hour === 3 && !G.excursionDone && !opt.ai) excursion();
     }
     if (G.t >= HOUR_MS*6){ finishNight(); return false; }
 
@@ -1771,8 +1952,8 @@ function sceneOffice(opt={}){
     // %45 civarı harcıyor, yani hata payı var. (Eski değerlerin ~1.6 katı sıkıydı.)
     G.use = 1 + (G.doorL?1:0) + (G.doorR?1:0) + (G.camUp?1:0)
               + (G.lightL?1:0) + (G.lightR?1:0);
-    const drain = 0.14 + (G.doorL?0.26:0) + (G.doorR?0.26:0) + (G.camUp?0.16:0)
-                + (G.lightL?0.12:0) + (G.lightR?0.12:0);
+    const drain = (0.14 + (G.doorL?0.26:0) + (G.doorR?0.26:0) + (G.camUp?0.16:0)
+                + (G.lightL?0.12:0) + (G.lightR?0.12:0)) * POWER_MULT;
     G.power -= drain * dt/1000;
     if (G.power <= 0){ G.power=0; powerOut(); return false; }
 
@@ -1787,27 +1968,52 @@ function sceneOffice(opt={}){
       } else {
         // Dolu kutu gece 2de ~69sn, gece 5te ~48sn dayanıyor.
         // (Eskiden 25sn'de boşalıyordu — 126 saniyelik gecede imkânsızdı.)
-        G.box -= dt/1000 * (1.00 + night*0.22);
+        G.box -= dt/1000 * (0.78 + AI.puppet*0.22);
       }
       boxAcc += dt;
       if (boxAcc > 620 - G.box*3){ boxAcc = 0; A.boxNote((G.t/620)|0, G.box/100); }
       if (G.box <= 0){ die("puppet","Müzik kutusu sustu."); return false; }
     }
 
-    // animatronik hareketi
+    // animatronik hareketi — her karakterin kendi seviyesi var
     moveAcc += dt;
-    const step = Math.max(1800, 5200 - lvl*260) * (S.jacket ? 1 : 1.5);
+    // 5 gecelik eğri korunuyor: maxAI 1–5. gecelerde lvl'e eşit, yani
+    // formül eskisiyle birebir aynı sonucu veriyor. Özel Gece'de 20'ye çıkıyor.
+    const step = Math.max(1800, 5200 - maxAI*260) * (S.jacket ? 1 : 1.5);
     if (moveAcc >= step){
       moveAcc = 0;
       ["bonnie","chica","freddy","foxy"].forEach(k=>{
+        if (AI[k] <= 0) return;
         const p = PATHS[k], at = G.pos[k];
         if (at >= p.length-1) return;
         if (k==="freddy" && G.camUp) return;              // Freddy kamera açıkken donuyor
         if (k==="foxy" && G.camUp && selected==="Pirate Cove") return;
-        if (Math.random() < (lvl + (S.jacket?2:0)) / 22) {
+        if (Math.random() < (AI[k] + (S.jacket?2:0)) / 22) {
           G.pos[k] = at+1; A.step();
         }
       });
+    }
+    // Golden Freddy: ofiste beliriyor, kamerayı kaldırmazsan alıyor.
+    // Kendi sayacı var — hareket tikine bağlıysa, tek başına 20'ye alındığında
+    // tik aralığı 5.2 sn'ye çıkıp neredeyse hiç gelmiyordu.
+    if (AI.golden > 0 && !G.golden && !G.camUp){
+      goldAcc += dt;
+      if (goldAcc >= 1000){
+        goldAcc = 0;
+        if (Math.random() < AI.golden/700){
+          G.golden = true; G.goldenT = 0; A.bad();
+          goldFig.innerHTML = figure("golden", 330);
+          goldFig.style.opacity = "1";
+        }
+      }
+    }
+    if (G.golden){
+      if (G.camUp){                                       // kamera = kurtuluş
+        G.golden = false; goldFig.style.opacity = "0"; goldFig.innerHTML = "";
+      } else {
+        G.goldenT += dt;
+        if (G.goldenT > 2600){ die("golden","Golden Freddy ofisteydi."); return false; }
+      }
     }
 
     // kapıda bekleyenler
@@ -1823,6 +2029,17 @@ function sceneOffice(opt={}){
     if (opR !== G.lastOpR){ figR.style.opacity = opR; G.lastOpR = opR; }
     lampL.classList.toggle("on", lAt && !G.doorL);
     lampR.classList.toggle("on", rAt && !G.doorR);
+    btnDL.classList.toggle("urgent", lAt && !G.doorL);
+    btnDR.classList.toggle("urgent", rAt && !G.doorR);
+    btnCam.classList.toggle("urgent", G.boxOn && G.box < 30 && !G.camUp);
+    setAlert(
+      G.golden                        ? ["KAPIYA DEĞİL — <b>SPACE</b>'e BAS. OFİSTE BİRİ VAR.", 0] :
+      (lAt && !G.doorL)               ? ["BATI KAPIDA BİRİ VAR — <b>A</b> ile KAPAT", 0] :
+      (rAt && !G.doorR)               ? ["DOĞU KAPIDA BİRİ VAR — <b>D</b> ile KAPAT", 0] :
+      (G.boxOn && G.box < 30)         ? ["MÜZİK KUTUSU BİTİYOR — <b>SPACE</b> → <b>PRIZE CORNER</b> → <b>W</b>", 0] :
+      (G.power < 20)                  ? ["PİL AZALDI — KAPILARI AÇIK BIRAK", 0] :
+      (G.cold > 90)                   ? ["ÇOK ÜŞÜDÜN — KAPIYA GEÇ TEPKİ VERİYORSUN, <b>J</b> ile CEKETİ GİY", 1] :
+      null);
 
     const delay = G.cold > 90 ? 3000 : 2200;   // üşüyorsan tepkin geç
     G.atDoor.L = lAt ? (G.doorL ? 0 : G.atDoor.L + dt) : 0;
@@ -1840,8 +2057,20 @@ function sceneOffice(opt={}){
       else { die("foxy","Foxy koridoru koştu."); return false; }
     }
 
-    drawCams(); updateHud();
+    drawCams(); markBoxLow(); updateHud();
   });
+
+  // Uyarı şeridi: aynı metni tekrar tekrar yazmıyoruz
+  let alertLast = null;
+  function setAlert(a){
+    const key = a ? a[0]+"|"+a[1] : "";
+    if (key === alertLast) return;
+    alertLast = key;
+    if (!a){ alertBar.hidden = true; return; }
+    alertBar.innerHTML = a[0];
+    alertBar.classList.toggle("calm", a[1] === 1);
+    alertBar.hidden = false;
+  }
 
   // HUD de her karede yazılıyordu. Değişmeyen alana dokunmuyoruz artık.
   const hudEl = { clock:$("hClock"), pow:$("hPow"), use:$("hUse"), mPow:$("mPow"),
@@ -1890,7 +2119,7 @@ function sceneOffice(opt={}){
   function finishNight(){
     if (G.over) return; G.over = true;
     A.fanOff(); A.chime();
-    later(()=>sceneNightEnd(), 1400);
+    later(()=> opt.ai ? sceneCustomResult(AI) : sceneNightEnd(), 1400);
   }
 }
 
@@ -2192,6 +2421,113 @@ function sceneAfterFive(){
 }
 
 /* ==========================================================================
+   9b. ÖZEL GECE (Gece 6) — hikâye bittikten sonra açılıyor.
+   Hikâye dışı: sahne yok, replik yok, sadece ayarlanabilir zorluk.
+   ========================================================================== */
+const CUSTOM_CAST = [
+  ["freddy","Freddy","Kamera açıkken donuyor"],
+  ["bonnie","Bonnie","Batı kapı"],
+  ["chica","Chica","Doğu kapı"],
+  ["foxy","Foxy","Korsan Koyu'na bakmazsan koşuyor"],
+  ["golden","Golden Freddy","Ofiste belirir — kamerayı kaldır"],
+  ["puppet","Puppet","Müzik kutusunun boşalma hızı"]
+];
+let LAST_AI = null;
+
+function sceneCustom(preset){
+  const ai = Object.assign({freddy:0,bonnie:0,chica:0,foxy:0,golden:0,puppet:0},
+                           preset || LAST_AI || {});
+  const s = screen("custom");
+  const c = el("div","customwrap");
+  c.innerHTML = `<h2>Özel Gece</h2>
+    <p class="csub">Her birinin zorluğunu 0 ile 20 arasında ayarla. Hikâye dışı.</p>`;
+  const grid = el("div","cgrid");
+
+  CUSTOM_CAST.forEach(([k,name,note])=>{
+    const card = el("div","ccard");
+    card.innerHTML = `
+      <div class="cportrait">${figure(k,120)}</div>
+      <div class="cname" style="color:${SPEAK[k].color}">${name}</div>
+      <div class="cnote">${note}</div>
+      <div class="crow">
+        <button class="cstep" data-d="-1" aria-label="${name} azalt">−</button>
+        <span class="cval" data-k="${k}">${ai[k]}</span>
+        <button class="cstep" data-d="1" aria-label="${name} artır">+</button>
+      </div>
+      <div class="cbar"><i></i></div>`;
+    const val = card.querySelector(".cval"), bar = card.querySelector(".cbar i");
+    const paint = ()=>{
+      val.textContent = ai[k];
+      bar.style.width = (ai[k]/20*100) + "%";
+      bar.style.background = ai[k] >= 20 ? "var(--c-bad)"
+                           : ai[k] >= 14 ? "#e08a2e" : SPEAK[k].color;
+      card.classList.toggle("off", ai[k] === 0);
+    };
+    card.querySelectorAll(".cstep").forEach(b=>{
+      b.onclick = ()=>{ const d = +b.dataset.d;
+        ai[k] = (ai[k] + d + 21) % 21;      // 20'den sonra 0'a dönüyor
+        A.click(); paint(); total(); };
+    });
+    card.querySelector(".cportrait").onclick = ()=>{
+      ai[k] = ai[k] >= 20 ? 0 : 20; A.ping(); paint(); total();
+    };
+    paint();
+    grid.appendChild(card);
+  });
+  c.appendChild(grid);
+
+  const bar = el("div","cfoot");
+  bar.innerHTML = `<div class="ctotal">Toplam <b id="cSum">0</b> / 120</div>`;
+  const presets = el("div","cpresets");
+  [["Hepsi 0",0],["Hepsi 10",10],["Hepsi 20",20]].forEach(([lbl,v])=>{
+    const b = el("button","cbtn",lbl);
+    b.onclick = ()=>{ CUSTOM_CAST.forEach(([k])=>ai[k]=v); A.ping(); sceneCustom(ai); };
+    presets.appendChild(b);
+  });
+  bar.appendChild(presets);
+
+  const start = el("button","mbtn primary","▶ Başla");
+  start.onclick = ()=>{ LAST_AI = Object.assign({},ai); A.init(); S.night = 6;
+                        sceneOffice({ ai: Object.assign({},ai) }); };
+  const back = el("button","mbtn","← Menü");
+  back.onclick = sceneMenu;
+  const btns = el("div","cactions"); btns.append(start, back);
+  bar.appendChild(btns);
+  c.appendChild(bar);
+  s.appendChild(c);
+
+  function total(){
+    const sum = CUSTOM_CAST.reduce((a,[k])=>a+ai[k],0);
+    const n = c.querySelector("#cSum");
+    n.textContent = sum;
+    n.style.color = sum >= 120 ? "var(--c-bad)" : sum >= 80 ? "#e08a2e" : "#fff";
+  }
+  show(s); A.init(); total();
+}
+
+function sceneCustomResult(ai){
+  const sum = CUSTOM_CAST.reduce((a,[k])=>a+ai[k],0);
+  const perfect = CUSTOM_CAST.every(([k])=>ai[k]>=20);
+  if (perfect) S.perfect = true;
+  const s = screen();
+  const c = el("div","card");
+  c.appendChild(el("h2",null,"6 AM"));
+  c.appendChild(el("p",null,`Özel Gece bitti — toplam zorluk ${sum} / 120.`));
+  if (perfect){
+    const d = el("div","beat","20 / 20 / 20 / 20 / 20 / 20");
+    d.style.color = "var(--c-golden)"; c.appendChild(d);
+    c.appendChild(el("p",null,"Menüde ikinci yıldız açıldı."));
+  }
+  const again = el("button","mbtn primary","▶ Tekrar ayarla");
+  again.style.marginTop = "20px";
+  again.onclick = ()=>sceneCustom(ai);
+  const back = el("button","mbtn","← Menü"); back.onclick = sceneMenu;
+  c.append(again, back);
+  s.appendChild(c);
+  show(s);
+}
+
+/* ==========================================================================
    10. 2023 — gazete, telefon, "Okay."
    ========================================================================== */
 function sceneNewspaper(){
@@ -2292,8 +2628,14 @@ function sceneCredits(){
   }
 
   c.appendChild(el("div","beat","five nights at freddy's 3 buradan başlıyor"));
-  const b = el("button","mbtn primary","← Menü"); b.style.marginTop="20px";
-  b.onclick = sceneMenu; c.appendChild(b);
+  const unlock = el("div","tag");
+  unlock.style.cssText = "margin-top:18px;color:var(--c-golden);letter-spacing:.14em";
+  unlock.textContent = "★ Gece 6 — Özel Gece açıldı";
+  c.appendChild(unlock);
+  const b = el("button","mbtn primary","▶ Özel Gece"); b.style.marginTop="16px";
+  b.onclick = ()=>sceneCustom();
+  const m = el("button","mbtn","← Menü"); m.onclick = sceneMenu;
+  c.append(b, m);
   s.appendChild(c);
   show(s);
 }

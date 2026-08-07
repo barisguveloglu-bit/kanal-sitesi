@@ -44,6 +44,21 @@ depoda duruyor.
 | Safe room finali (§4) | Oynanır — ceketi çıkar + kutuyu kurma |
 | 2023 finali (§7) | Tam — gazete, telefon, "Okay." |
 | Jenerik | Beş isim, sadece beş açılışı da dinlediysen |
+| **Gece 6 — Özel Gece** | Final bittikten sonra açılıyor; altı karakter 0–20 |
+
+### Arayüz
+
+Oyuncu "ne yapacağımı bilemedim" dediği için:
+
+- **Alt çubuktaki her düğme** tuşunu, ne işe yaradığını ve **o an açık mı
+  kapalı mı** olduğunu yazıyor.
+- **Uyarı şeridi** ne yapman gerektiğini doğrudan söylüyor: *"BATI KAPIDA
+  BİRİ VAR — A ile KAPAT"*, *"MÜZİK KUTUSU BİTİYOR — SPACE → PRIZE CORNER → W"*.
+- İlgili düğme kırmızı yanıp sönüyor.
+- **H tuşu** her şeyi anlatan bir yardım paneli açıyor; panel açıkken oyun duruyor.
+- **İlk gecede** sırayla beş kısa ipucu beliriyor (sadece bir kez).
+- Kamerada **renk açıklaması** var; kutu azalınca Prize Corner hücresi
+  altın renginde yanıp sönüyor.
 
 Menüde **"Sahne seç"** var — beş geceyi oynamadan herhangi bir sahneye
 doğrudan atlıyor.
@@ -372,10 +387,21 @@ Cassidy'nin cümlesi zaten kuralı koyuyor: **"DON'T COME BACK."**
 Oyunun sana altıncı geceyi vermemesi, o sözün tutulması.
 
 Küçük detay: FNAF'ta 5. geceyi bitirince ekranda **"NIGHT 6"** açılır.
-Burada o ekranda hiçbir şey yok — doğrudan 2023'e geçiyor. Ana menüde de
-tek bir yıldız var ve başka hiçbir şey açılmıyor.
+Burada o ekranda hiçbir şey yok — doğrudan 2023'e geçiyor.
 
 **Yokluğun kendisi cümle.**
+
+### Peki ya Özel Gece?
+
+Prototipte **Gece 6 — Özel Gece** var, ama hikâyenin dışında:
+
+- Yalnızca **son sahne bittikten sonra** açılıyor. Yani hikâyeyi bitirmeden
+  altıncı bir gece diye bir şey yok; yukarıdaki tez bozulmuyor.
+- Sahne yok, replik yok, açılış yok, jenerik yok. Sadece ofis döngüsü.
+- Altı karakterin zorluğu tek tek 0–20 arasında ayarlanıyor.
+
+Yani hikâye hâlâ beş gecede bitiyor. Özel Gece, FNAF'ın kendi Custom
+Night'ı gibi **kanon dışı bir ek** — Jesse geri gelmiş olmuyor.
 
 ---
 
@@ -578,16 +604,31 @@ Merhamet geri dönüyor. Çember kapanıyor. Oyunun bütün tezi bu:
 | Her koridor ışığı | %0.12 |
 | Koridor çıkışı sırasında | %0.30 |
 
-- **İki kapı da baştan sona kapalı** — en kötü oynanış — gece sonunda hâlâ
-  ~%30 güç kalıyor. Yani güç artık ceza değil, baskı.
-- Düzgün oynayan bir bot **1., 3. ve 5. geceyi bitirdi**, sırasıyla %71, %67
-  ve %61-63 güçle.
+**Gece çarpanı** — ilk üç gece rahat, son iki gece bilerek zor:
+
+| Gece | 1 | 2 | 3 | 4 | 5 | Özel |
+|---|---|---|---|---|---|---|
+| Çarpan | ×1 | ×1 | ×1 | **×1.85** | **×2.6** | ×2.4 |
+
 - **Müzik kutusu** dolu hâlde 2. gecede ~69 sn, 5. gecede ~48 sn dayanıyor;
-  kurma hızı saniyede %48, yani tepeye çıkmak ~1.3 sn sürüyor.
+  kurma hızı saniyede %48, tepeye çıkmak ~1.3 sn sürüyor.
 - **Kapıya tepki penceresi 2.2 sn** (üşümüşken 3.0 sn).
 
-> Bu değerler bilerek cömert. Zorlaştırmak istersen ilk dokunacağın yer
-> kapı tüketimi (%0.26) ve tepki penceresi (2.2 sn).
+Neredeyse kusursuz oynayan bir bot gecenin sonunda ne kadar güçle kalıyor:
+
+| Gece | 3 | 4 | 5 | Özel 10/10 | Özel 20/20 |
+|---|---|---|---|---|---|
+| Kalan güç | %70 | %38 | **%16** | %23 | öldü (1 AM) |
+
+İnsan bottan yavaştır — yani son iki gecede pil gerçekten bitiyor.
+
+### Özel Gece'nin sayıları
+
+| Karakter | 0–20 ne yapıyor |
+|---|---|
+| Freddy / Bonnie / Chica / Foxy | İlerleme ihtimali `(seviye + 2) / 22`; hareket aralığı en yüksek seviyeye göre 5.2 sn'den 1.8 sn'ye iniyor |
+| **Golden Freddy** | Saniyede `seviye/700` ihtimalle ofiste beliriyor; 2.6 sn içinde kamerayı kaldırmazsan alıyor |
+| **Puppet** | Kutunun boşalma hızı: saniyede `%0.78 + seviye×0.22`. 20'de kutu 19 saniyede bitiyor |
 
 Yani hikayenin metaforu doğrudan bir tuşa bağlı. Oyuncu, ne anlattığını anlamadan
 beş gece boyunca o tuşa basıyor.
