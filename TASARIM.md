@@ -123,6 +123,7 @@ Bunları tekrar üretme, üstlerine ekleme yap:
 | Titreyen "sızıntı" şeridi | Sayfa aralarındaki kırmızı şerit |
 | Ekranı bozan geçiş | Gizli sayfada kapı açılırken |
 | Yanıp sönen "Esir" rozeti | Karakter kartı |
+| Merkezden dışa yayılan ışınlar | Mafya sayfasındaki Türkiye haritası (SVG, kodla çiziliyor) |
 
 Toplam 14 `@keyframes` var. Site **karanlık ve ağır** bir his veriyor;
 neşeli, zıplayan, renkli animasyonlar tona uymaz.
@@ -137,7 +138,7 @@ neşeli, zıplayan, renkli animasyonlar tona uymaz.
 | Karakterler | 6 karakter kartı, taraflarına göre gruplanmış |
 | İrade Sistemi | 5 kademeli merdiven — sitenin ana mekaniği |
 | Kanlı Göz Efsanesi | Efsane + **eskimiş kâğıt görünümlü 1728 vakayinamesi** |
-| Mafya Haritası | 4 kademeli hiyerarşi şeması, 3 komutan kartı, **81 il kutusu** |
+| Mafya Haritası | **Ankara merkezli Türkiye haritası**, 4 kademeli hiyerarşi şeması, 3 komutan kartı, **81 il kutusu** |
 | İcraatler | Karakter başına "ne yaptı" listeleri |
 | Soru & Cevap | İzleyici soruları (backend'i henüz kurulmadı) |
 | Gizli sayfa | Menüde yok. Mor–camgöbeği bozulma renkleri, kilitli bölüm |

@@ -83,6 +83,25 @@
 
 <section>
   <div class="kapsayici">
+    <h2>Ağın Yayılımı</h2>
+    <p class="giris-metni">
+      81 ilin tamamında bir derebeyi var. Aşağıdaki şema bunun ülke
+      üstündeki karşılığı: merkezde başkent Ankara, oradan her yöne
+      giden düz çizgiler ağın erişimi. Hiçbir çizgi sınırın dışına
+      çıkmıyor — bu ağ ülkeden dışarı taşmadı, içini taradı.
+    </p>
+    <div data-harita="turkiye" style="margin-top:28px"></div>
+
+    <div class="not-kutu" style="margin-top:28px">
+      Şema kimin nerede olduğunu söylemiyor. Ne patronun, ne komutanların,
+      ne de Barış'ın yeri burada işaretli — gösterdiği tek şey ağın
+      ülkeyi baştan başa kapladığı.
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="kapsayici">
     <h2>Hiyerarşi</h2>
     <div class="hiyerarsi" style="margin-top:32px" data-mafya-tepe></div>
 
@@ -206,6 +225,9 @@
 
 <script defer src="assets/js/data.js"></script>
 <script defer src="assets/js/goz.js"></script>
+<!-- harita.js app.js'ten ÖNCE: haritayı basıp bitirsin ki app.js'in
+     "icerik-hazir" olayı haritayı da kapsasın -->
+<script defer src="assets/js/harita.js"></script>
 <script defer src="assets/js/app.js"></script>
 <script defer src="assets/js/animasyon.js"></script>
 </body>

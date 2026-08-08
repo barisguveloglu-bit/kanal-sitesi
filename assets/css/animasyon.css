@@ -150,7 +150,38 @@ html.animasyon-acik .goz-svg.takipli {
 
 
 /* -------------------------------------------------------------------
-   7) Sayfa altındaki "sinyal kaybı" şeridi
+   7) Harita — merkezden dışa doğru yayılan ışınlar
+   Işınlar zaten çizili; burada sadece beliriş sıraya konuyor.
+   Gecikme harita.js tarafından ışın başına yazılıyor ve ışının
+   BOYUYLA orantılı: kısa olan önce, uzun olan sonra tamamlanıyor.
+   Sınıfı ekleyen de harita.js (kendi IntersectionObserver'ı var);
+   sınıf hiç eklenmezse ışınlar görünür kalır.
+   ------------------------------------------------------------------- */
+html.animasyon-acik .harita .harita-isin,
+html.animasyon-acik .harita .harita-kor {
+  opacity: 0;
+  transition: opacity 0.45s linear;
+  transition-delay: var(--gecikme, 0s);
+}
+html.animasyon-acik .harita.yayildi .harita-isin,
+html.animasyon-acik .harita.yayildi .harita-kor {
+  opacity: 1;
+}
+
+/* Merkezdeki nokta yavaşça nefes alır — sadece transform ve opacity */
+html.animasyon-acik .harita-nabiz {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: haritaNabiz 3.4s ease-in-out infinite;
+}
+@keyframes haritaNabiz {
+  0%, 100% { transform: scale(0.8);  opacity: 0.55; }
+  50%      { transform: scale(1.25); opacity: 0.16; }
+}
+
+
+/* -------------------------------------------------------------------
+   8) Sayfa altındaki "sinyal kaybı" şeridi
    İnce bir şerit; metnin üstüne gelmiyor, tıklamayı engellemiyor.
    Desen sabit — yalnızca opacity nefes alıyor.
    ------------------------------------------------------------------- */
@@ -200,7 +231,7 @@ html.animasyon-acik .goz-svg.takipli {
 
 
 /* -------------------------------------------------------------------
-   8) Hareket azaltma
+   9) Hareket azaltma
    style.css'in sonunda zaten global bir kapatma var; burada
    ayrıca "gizli kalmış eleman" bırakmadığımızı garantiye alıyoruz.
    (animasyon.js bu durumda html'e sınıfı hiç eklemez.)
@@ -209,7 +240,9 @@ html.animasyon-acik .goz-svg.takipli {
   html.animasyon-acik .beliren,
   html.animasyon-acik .merdiven .basamak,
   html.animasyon-acik .derebeyi-izgara .derebeyi,
-  html.animasyon-acik .eski-kayit.kagit {
+  html.animasyon-acik .eski-kayit.kagit,
+  html.animasyon-acik .harita .harita-isin,
+  html.animasyon-acik .harita .harita-kor {
     opacity: 1 !important;
     transform: none !important;
   }

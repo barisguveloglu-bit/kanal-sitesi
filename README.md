@@ -107,6 +107,36 @@ Kaydet, sayfayı yenile. Karakter otomatik olarak doğru bölümde görünür.
 Adı henüz belli değilse `ad: null` bırak — site "İsimsiz Derebeyi" gösterir ve
 sayaç kendini günceller.
 
+### Yeni ülke haritası eklemek
+
+Harita kodla çiziliyor: hazır görsel yok, dış kütüphane yok. Yeni bir ülke
+eklemek için `assets/js/data.js` içindeki `HARITALAR` nesnesine bir kayıt yaz:
+
+```js
+const HARITALAR = {
+  turkiye: { ... },
+  yeniUlke: {
+    ad: "Ülke",
+    aciklama: "Haritanın altında yazacak kısa cümle.",
+    merkez: { ad: "Başkent", unvan: "...", konum: [boylam, enlem] },
+    isinSayisi: 72,                 // 360 / 72 = 5 derecede bir ışın
+    sinir: [[boylam, enlem], ...],  // ülkenin dış çeperi, sırayla
+    denizler: [{ ad: "...", cokgen: [[boylam, enlem], ...] }], // isteğe bağlı
+  },
+};
+```
+
+Sonra sayfaya tek satır:
+
+```html
+<div data-harita="yeniUlke"></div>
+```
+
+Gerisini `assets/js/harita.js` yapıyor: izdüşüm, ölçek, merkezden çıkan
+ışınların açıları ve her ışının sınıra çarptığı nokta. Işınlar sınırın
+dışına **taşamaz** — hem hesapla kesiliyorlar hem de SVG `clipPath` ile
+kırpılıyorlar. Yeni sayfa açacaksan menü kuralı geçerli (yukarıya bak).
+
 ### İrade kademelerini değiştirmek
 
 `IRADE_KADEMELERI` dizisini düzenle.

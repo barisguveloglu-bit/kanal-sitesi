@@ -635,3 +635,126 @@ const TARAF_ETIKET = {
   kotu: "Kötü",
   belirsiz: "Belirsiz",
 };
+
+/*
+ * HARİTALAR — ağın coğrafyası
+ * ---------------------------------------------------------------
+ * Her ülke burada tek bir kayıt. Sayfada göstermek için HTML'e
+ * sadece şu satır yazılıyor:
+ *
+ *   <div data-harita="turkiye"></div>
+ *
+ * Geri kalan her şeyi assets/js/harita.js hesaplıyor: izdüşüm,
+ * ölçek, merkezden çıkan ışınların açıları ve her ışının sınıra
+ * kaç piksel sonra çarptığı. Yani yeni ülke eklemek = buraya yeni
+ * bir kayıt yazmak. HTML'e ve JS'e dokunmaya gerek yok.
+ *
+ * Alanlar:
+ *   ad          — ülkenin adı
+ *   aciklama    — haritanın altındaki kısa açıklama
+ *   merkez      — ışınların çıktığı şehir { ad, unvan, konum: [boylam, enlem] }
+ *   isinSayisi  — kaç yöne ışın atılacak (360 / sayı = açı adımı)
+ *   sinir       — ülkenin dış çeperi, [boylam, enlem] ikilileri
+ *   denizler    — sadece görsel; ışın hesabına GİRMEZ
+ *
+ * Koordinatlar gerçek boylam/enlem. Sadeleştirilmiş: her burun, her
+ * körfez yok — şekil tanınacak kadar nokta var, o kadar.
+ *
+ * NOT — Marmara ve boğazlar: dış çeper Trakya ile Anadolu'yu tek
+ * parça sayıyor, yani Marmara Denizi çeperin İÇİNDE kalıyor. Bu
+ * bilinçli: ışınlar ülkeyi tek bir bütün olarak tarasın diye. Denizin
+ * kendisi "denizler" listesinden ayrıca çiziliyor, ışınlar üstünden
+ * geçiyor.
+ */
+const HARITALAR = {
+  turkiye: {
+    ad: "Türkiye",
+    aciklama:
+      "Ankara'dan çıkan her çizgi, ağın o yöndeki erişimi. Hiçbiri " +
+      "sınırın dışına taşmıyor — bu ağ ülkenin dışına çıkmıyor, " +
+      "içini tarıyor.",
+    merkez: { ad: "Ankara", unvan: "Başkent · ağın merkezi", konum: [32.85, 39.93] },
+    isinSayisi: 72, // 5 derecede bir
+
+    /* Dış çeper — Enez'den başlayıp saat yönünde ülkeyi dolaşıyor */
+    sinir: [
+      /* Trakya · Meriç boyunca kuzeye (Yunanistan sınırı) */
+      [26.06, 40.73], [26.32, 41.02], [26.36, 41.32], [26.53, 41.61], [26.62, 41.75],
+      /* Bulgaristan sınırı · doğuya */
+      [26.95, 42.00], [27.28, 42.10], [27.60, 42.02], [28.02, 41.98],
+      /* Karadeniz · Trakya kıyısı ve İstanbul Boğazı ağzı */
+      [28.10, 41.80], [28.32, 41.55], [28.80, 41.35], [29.09, 41.24],
+      /* Karadeniz · Anadolu kıyısı, batıdan doğuya */
+      [29.60, 41.18], [30.30, 41.13], [30.98, 41.13], [31.42, 41.30],
+      [31.80, 41.45], [32.30, 41.75], [32.92, 41.90], [33.50, 41.96],
+      [33.78, 41.98], [34.34, 41.96], [34.70, 41.94],
+      [34.99, 42.09], /* İnce Burun — ülkenin en kuzey noktası */
+      [35.17, 42.02], [35.55, 41.88], [35.90, 41.75], [36.12, 41.52],
+      [36.33, 41.30], [36.72, 41.42], [37.28, 41.13], [37.88, 41.02],
+      [38.39, 40.92], [39.00, 40.95], [39.45, 40.98], [39.72, 41.00],
+      [40.30, 41.03], [40.52, 41.03], [41.02, 41.35],
+      [41.53, 41.53], /* Sarp — Gürcistan sınırı */
+      /* Gürcistan sınırı · güneydoğuya */
+      [41.82, 41.44], [42.20, 41.50], [42.60, 41.55], [43.00, 41.30], [43.45, 41.12],
+      /* Ermenistan sınırı · Arpaçay ve Aras boyunca güneye */
+      [43.60, 40.90], [43.66, 40.55], [43.55, 40.30], [43.75, 40.10],
+      [44.05, 40.02], [44.42, 40.03],
+      [44.82, 39.72], /* Dilucu — ülkenin en doğu noktası */
+      /* İran sınırı · güneye */
+      [44.55, 39.55], [44.40, 39.42], [44.10, 39.10], [44.30, 38.80],
+      [44.42, 38.35], [44.35, 38.00], [44.22, 37.80], [44.55, 37.45], [44.78, 37.15],
+      /* Irak sınırı · batıya */
+      [44.30, 37.30], [43.80, 37.22], [43.30, 37.32], [42.90, 37.20],
+      [42.55, 37.25], [42.36, 37.11],
+      /* Suriye sınırı · batıya, sonra Hatay'dan güneye */
+      [41.90, 37.10], [41.22, 37.06], [40.70, 37.00], [40.20, 36.90],
+      [39.80, 36.83], [39.15, 36.70], [38.75, 36.70], [38.20, 36.83],
+      [37.98, 36.85], [37.60, 36.70], [37.10, 36.72], [36.66, 36.85],
+      [36.45, 36.60], [36.35, 36.25],
+      [36.17, 35.86], /* Yayladağı — ülkenin en güney noktası */
+      /* Akdeniz kıyısı · doğudan batıya */
+      [35.95, 36.10], [35.92, 36.45], [36.15, 36.60], [36.20, 36.85],
+      [35.80, 36.80], [35.38, 36.56], [34.90, 36.70], [34.63, 36.79],
+      [34.30, 36.60], [33.88, 36.32], [33.50, 36.15],
+      [32.83, 36.02], /* Anamur — Anadolu'nun en güney ucu */
+      [32.30, 36.20], [31.99, 36.54], [31.40, 36.75], [30.80, 36.85],
+      [30.55, 36.30], [30.42, 36.22], [30.10, 36.30], [29.65, 36.20],
+      [29.30, 36.30], [29.13, 36.60], [28.90, 36.68], [28.60, 36.72],
+      [28.25, 36.80], [27.45, 36.72], [28.10, 37.02], [27.43, 37.03],
+      /* Ege kıyısı · güneyden kuzeye */
+      [27.30, 37.30], [27.26, 37.72], [27.28, 38.05], [26.30, 38.32],
+      [26.75, 38.55], [26.88, 39.07], [26.69, 39.31], [26.63, 39.55],
+      [26.04, 39.46], /* Baba Burnu — ülkenin en batı noktası */
+      [26.20, 39.75], [26.19, 39.98],
+      /* Çanakkale Boğazı ağzı ve Gelibolu yarımadası · Saros'a doğru */
+      [26.19, 40.05], [26.32, 40.28], [26.70, 40.52], [26.88, 40.63], [26.50, 40.70],
+    ],
+
+    /* Sadece görsel: çeperin içinde kalan denizler */
+    denizler: [
+      {
+        ad: "Marmara Denizi",
+        cokgen: [
+          [28.98, 41.00], [28.25, 41.05], [27.51, 40.97], [27.11, 40.60],
+          [26.70, 40.40], [26.78, 40.30], [27.25, 40.33], [27.70, 40.40],
+          [28.30, 40.38], [28.88, 40.38], [29.28, 40.66], [29.60, 40.71],
+          [29.92, 40.74], [29.58, 40.78], [29.24, 40.76],
+        ],
+      },
+      {
+        ad: "Van Gölü",
+        cokgen: [
+          [42.35, 38.60], [42.75, 38.75], [43.30, 38.75], [43.35, 38.45],
+          [43.05, 38.35], [42.65, 38.40], [42.40, 38.45],
+        ],
+      },
+      {
+        ad: "Tuz Gölü",
+        cokgen: [
+          [33.30, 39.05], [33.55, 38.90], [33.55, 38.55], [33.35, 38.45],
+          [33.20, 38.65], [33.18, 38.95],
+        ],
+      },
+    ],
+  },
+};

@@ -1716,3 +1716,95 @@ body.kapi-aciliyor { animation: kapiBozulma 1.4s steps(1) forwards; }
   color: var(--text-3);
   letter-spacing: 0.08em;
 }
+
+/* ===================================================================
+   ÜLKE HARİTASI — merkezden yayılan ağ
+   -------------------------------------------------------------------
+   İçeriği assets/js/harita.js basıyor, koordinatlar data.js'te.
+   Buradaki renkler mevcut paletten; yeni renk uydurulmadı.
+
+   Işınların sınırın dışına taşmamasını CSS değil, SVG'deki clipPath
+   garanti ediyor. Buradaki kurallar sadece görünüm.
+   =================================================================== */
+
+.harita { margin: 0; }
+
+/* Dar ekranda harita okunmaz hâle gelmesin: küçültmek yerine kaydır */
+.harita-cerceve {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg-2);
+}
+
+.harita-svg {
+  display: block;
+  width: 100%;
+  min-width: 560px;
+  height: auto;
+}
+
+/* Kara parçası ve çeper */
+.harita-zemin { fill: #16161e; }
+.harita-sinir {
+  fill: none;
+  stroke: #4a4a58;
+  stroke-width: 1.4;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+/* Çeperin içinde kalan denizler ve göller — sadece görsel */
+.harita-deniz {
+  fill: var(--bg);
+  stroke: rgba(255, 255, 255, 0.07);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+/* Merkezden çıkan düz ışınlar */
+.harita-isin {
+  stroke: var(--kan-parlak);
+  stroke-opacity: 0.5;
+  stroke-width: 1.1;
+  stroke-linecap: butt;
+  vector-effect: non-scaling-stroke;
+}
+
+/* Merkezdeki kızıllık — SVG gradyanının durakları */
+.kor-ic   { stop-color: var(--kan-parlak); stop-opacity: 0.38; }
+.kor-orta { stop-color: var(--kan);        stop-opacity: 0.14; }
+.kor-dis  { stop-color: var(--kan);        stop-opacity: 0; }
+
+/* Merkez şehir işareti */
+.harita-nabiz {
+  fill: none;
+  stroke: var(--kan-parlak);
+  stroke-width: 1.2;
+  opacity: 0.55;
+  vector-effect: non-scaling-stroke;
+}
+.harita-cekirdek { fill: var(--kan-parlak); }
+.harita-etiket {
+  fill: var(--text);
+  font-family: var(--font-metin);
+  font-size: 18px;
+  letter-spacing: 0.02em;
+  paint-order: stroke;
+  stroke: var(--bg);
+  stroke-width: 3;
+  stroke-linejoin: round;
+}
+
+.harita-alt {
+  margin-top: 12px;
+  color: var(--text-3);
+  font-size: 0.85rem;
+}
+.harita-alt strong { color: var(--text-2); font-weight: 600; }
+.harita-alt span {
+  display: block;
+  margin-top: 4px;
+  max-width: 62ch;
+}
