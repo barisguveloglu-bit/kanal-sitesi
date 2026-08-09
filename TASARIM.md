@@ -64,7 +64,7 @@ document.addEventListener("icerik-hazir", () => {
 ```
 
 `MutationObserver` kurmana gerek yok. Olay `app.js` içinde, bütün
-oluşturucu fonksiyonlar çalıştıktan sonra yayılıyor. Gizli sayfada kilit
+oluşturucu fonksiyonlar çalıştıktan sonra yayılıyor. Bazı sayfalarda kilit
 basıldıktan sonra bir kez daha yayılıyor, o yüzden dinleyicinin **birden
 fazla kez çalışabileceğini** hesaba kat (aynı elemanı iki kez gözlememek
 için `dataset` ile işaretlemen yeterli).
@@ -121,7 +121,7 @@ Bunları tekrar üretme, üstlerine ekleme yap:
 | Kırmızı/mavi kanal ayrışması (glitch) | Sayfa başlıkları |
 | Kayan tarama çizgileri | Bazı bölümlerin üstünde |
 | Titreyen "sızıntı" şeridi | Sayfa aralarındaki kırmızı şerit |
-| Ekranı bozan geçiş | Gizli sayfada kapı açılırken |
+| Ekranı bozan geçiş | Menüde olmayan bir bölüm açılırken |
 | Yanıp sönen "Esir" rozeti | Karakter kartı |
 
 Toplam 14 `@keyframes` var. Site **karanlık ve ağır** bir his veriyor;
@@ -140,7 +140,7 @@ neşeli, zıplayan, renkli animasyonlar tona uymaz.
 | Mafya Haritası | 4 kademeli hiyerarşi şeması, 3 komutan kartı, **81 il kutusu** |
 | İcraatler | Karakter başına "ne yaptı" listeleri |
 | Soru & Cevap | İzleyici soruları (backend'i henüz kurulmadı) |
-| Gizli sayfa | Menüde yok. Mor–camgöbeği bozulma renkleri, kilitli bölüm |
+| (menüde olmayan bir sayfa) | Mor–camgöbeği bozulma renkleri, kilitli bölüm |
 
 ---
 
