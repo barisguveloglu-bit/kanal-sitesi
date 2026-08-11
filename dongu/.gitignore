@@ -1,0 +1,5 @@
+# Demo koşusunun ürettiği çalışma dizini — çıktı, kaynak değil.
+calisma/
+__pycache__/
+*.pyc
+plan.json
