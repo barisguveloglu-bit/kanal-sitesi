@@ -25,6 +25,22 @@ yapmadan önce o dosyayı oku — karakterler, güçler ve efsane orada tanıml�
   Soru-cevap YouTube yorumlarında yapılıyor; site sadece oraya yönlendiriyor.
   Buraya backend eklemeden önce iki kez düşün — sadeliği bilinçli bir tercih.
 
+## Çalışma döngüsü
+
+`.claude/` altında bir iş akışı katmanı var — **siteye ait değil, yayına
+çıkmıyor.** Ayrıntı: [`.claude/DONGULER.md`](.claude/DONGULER.md).
+
+- `python3 .claude/dogrula.py` — yukarıdaki kuralları makine tarafından
+  denetler (menü, site haritası, gizleme, odak, `defer`, sahte içerik,
+  kontrast, LORE senkronu). Dış bağımlılığı yok.
+- Bir `.html`/`.css`/`.js`/`.xml` ya da `LORE.md` düzenlendiğinde bu denetim
+  `.claude/kanca.py` üzerinden kendiliğinden çalışır.
+- Komutlar: `/dongu` (tam akış), `/planla` (sadece plan), `/denetle`
+  (sadece denetim), `/orkestra` (çok parçalı büyük iş).
+
+Denetleyici kural ihlalini yakalar ama canon'un anlamca tutarlı olduğunu
+göremez — içerik değişikliğinde `LORE.md`'yi yine de okumak gerekiyor.
+
 ## Bekleyen işler
 
 `LORE.md` dosyasının sonundaki "Açık Uçlar" bölümüne bak — irade kademelerinin
