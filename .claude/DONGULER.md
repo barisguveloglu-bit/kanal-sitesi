@@ -60,7 +60,8 @@ dışa bağımlılığı yok, sadece Python 3 standart kütüphanesi:
 | `gizleme` | `[hidden]` kuralı duruyor mu; JS'te `opacity = 0` ile gizleme var mı |
 | `odak` | `outline: none` yazılmış mı (`:focus-visible` hariç) |
 | `defer` | Dış betikler `defer` ile mi yükleniyor, `async` sırayı bozuyor mu |
-| `sahte` | Uydurma video kimliği, "yakında" başlığı, YouTube olmayan bağlantı |
+| `sahte` | Biçimi bozuk video kimliği, "yakında" başlığı, YouTube olmayan bağlantı |
+| `video` | `VIDEOLAR`'a HEAD'de olmayan kimlik girdi mi → **insan kapısı** |
 | `kontrast` | Renk çiftlerini WCAG AA (4.5:1) sınırına karşı **ölçer** |
 | `lore` | `data.js`'teki adlar `LORE.md`'de geçiyor mu |
 
@@ -69,6 +70,18 @@ python3 .claude/dogrula.py            # hepsi
 python3 .claude/dogrula.py kontrast   # tek başlık
 python3 .claude/dogrula.py --kisa     # sadece hatalar
 ```
+
+Çıkış kodu üç değer alır: `0` temiz, `1` kural ihlali, `3` insan kapısı.
+Üçüncüsü ayrı olmak zorunda — çünkü "yanlış" değil, "doğruluğunu
+bilemiyorum" demek. Ona düzeltme uygulanmaz, soru sorulur.
+
+**Denetleyicinin kendi sınavı var:** `python3 .claude/sinav.py` deponun
+geçici bir kopyasına 18 ayrı fay enjekte eder (yanlış menü bağlantısı,
+silinmiş `[hidden]` kuralı, düşürülmüş kontrast, uydurma karakter…) ve her
+birinin yakalandığını doğrular. Yanına 6 masum vaka koyar — yorum içindeki
+`outline: none`, SVG dizesindeki `opacity="0"` gibi — bunların **yanlış
+alarm üretmediğini** ölçer. Denetleyiciye kural eklersen sınava da vaka ekle;
+yakalamayan denetim, yakaladığını sanmaktan kötüdür.
 
 `.claude/kanca.py` bunu otomatikleştiriyor: bir `.html`, `.css`, `.js`,
 `.xml` ya da `LORE.md` her düzenlendiğinde denetim kendiliğinden koşuyor
@@ -115,7 +128,18 @@ verdiğin komutu çalıştırır, sonucu bildirir. Kurulmadı; istersen kurarız
 
 ## Sınırlar
 
-- Bu katman siteyi değiştirmez, sadece üzerinde çalışma biçimini değiştirir.
+Bunlar tahmin değil, fay enjeksiyon sınavıyla ölçüldü (24 vaka: 18 tuzak,
+6 masum). Ölçülen iki gerçek açık vardı, ikisi de kapatıldı — biri
+tam olarak kapanamadı, aşağıda:
+
+- **Denetleyici doğruyu uydurmadan ayıramaz.** `"aB3dEf7hK9m"` kurallara
+  tamamen uygun bir YouTube kimliğidir ve tamamen uydurma olabilir.
+  Çevrimdışı bir betik bunu asla çözemez. Çözüm doğrulama değil, kapı:
+  `VIDEOLAR`'a yeni giren her kimlik insan onayına takılır (çıkış kodu `3`).
+  Yani sahte içerik **engellenmiyor, görünür kılınıyor.**
 - Denetleyici kural ihlalini yakalar, **iyi fikri kötü fikirden ayıramaz.**
+- `lore` denetimi adların iki dosyada da geçtiğini görür, aynı şeyi
+  söylediklerini göremez. Canon tutarlılığı hâlâ okumakla oluyor.
+- Bu katman siteyi değiştirmez, sadece üzerinde çalışma biçimini değiştirir.
 - Uzman ajanlar sıfırdan başlar; `LORE.md` okumalarını söylemezsen okumazlar.
 - Ajan raporu delil değildir. Sayı/isim/tarih iddiasını dosyadan doğrula.

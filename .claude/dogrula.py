@@ -49,6 +49,7 @@ class Rapor:
     def __init__(self):
         self.hatalar = []
         self.uyarilar = []
+        self.kapilar = []
         self.gecen = 0
 
     def hata(self, denetim, mesaj):
@@ -57,6 +58,14 @@ class Rapor:
     def uyari(self, denetim, mesaj):
         self.uyarilar.append((denetim, mesaj))
 
+    def kapi(self, denetim, mesaj):
+        """İnsan kapısı: kural ihlali değil, ama insanın görmesi gereken şey.
+
+        Denetleyici doğruyu yanlıştan ayıramadığı yerlerde kullanılır —
+        biçimi geçerli ama uydurulmuş olabilecek içerik gibi.
+        """
+        self.kapilar.append((denetim, mesaj))
+
     def tamam(self):
         self.gecen += 1
 
@@ -64,6 +73,17 @@ class Rapor:
 def oku(yol):
     with open(os.path.join(KOK, yol), encoding="utf-8") as f:
         return f.read()
+
+
+def git_goster(yol):
+    """Dosyanın HEAD'deki hâli. Git yoksa ya da dosya yeniyse None."""
+    import subprocess
+    try:
+        sonuc = subprocess.run(["git", "show", f"HEAD:{yol}"], cwd=KOK,
+                               capture_output=True, text=True, timeout=15)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    return sonuc.stdout if sonuc.returncode == 0 else None
 
 
 def html_dosyalari():
@@ -189,14 +209,16 @@ def d_gizleme(r):
     else:
         r.tamam()
 
-    # Gizleme opacity ile yapılmamalı.
+    # Gizleme opacity ile yapılmamalı. Bu bir uyarı değil hatadır: hareket
+    # azaltma açıkken opacity ile gizlenen şey bir daha ASLA görünmez.
     for dosya in ("assets/js/app.js", "assets/js/animasyon.js", "assets/js/gizli.js"):
         js = js_yorumlari_at(oku(dosya))
-        for eslesme in re.finditer(r"style\.opacity\s*=\s*['\"]?0['\"]?", js):
+        for eslesme in re.finditer(r"style\.opacity\s*=\s*['\"]?0(\.0+)?['\"]?", js):
             satir = js[:eslesme.start()].count("\n") + 1
-            r.uyari("gizleme",
-                    f"{dosya}:{satir} opacity=0 ile gizleme. "
-                    "Hareket azaltma açıkken bir daha görünmeyebilir; `hidden` kullan.")
+            r.hata("gizleme",
+                   f"{dosya}:{satir} opacity=0 ile gizleme. Hareket azaltma "
+                   "açıkken bir daha görünmez; `hidden` özniteliğini kullan.")
+        r.tamam()
 
 
 def d_odak(r):
@@ -260,6 +282,38 @@ def d_sahte(r):
     r.tamam()
 
 
+def d_video(r):
+    """Yeni eklenen video kimliği insan onayına takılır.
+
+    Denetleyici bir kimliğin biçimini doğrulayabilir ama GERÇEK olduğunu
+    doğrulayamaz: "aB3dEf7hK9m" kurallara uygun ve tamamen uydurma olabilir.
+    Çevrimdışı bir betik bunu asla ayıramaz.
+
+    Bu yüzden doğruluk iddiası yerine değişim izleniyor: VIDEOLAR bloğuna
+    HEAD'de olmayan bir kimlik/bağlantı girdiyse bu bir insan kapısıdır.
+    Barış kendi videosunu eklediyse onaylar; Claude uydurduysa yakalanır.
+    """
+    eski = git_goster("assets/js/data.js")
+    if eski is None:
+        return  # git yok ya da ilk commit — karşılaştıracak taban yok
+
+    def kimlikleri_al(kaynak):
+        blok = js_yorumlari_at(blok_al(kaynak, "const VIDEOLAR = {"))
+        bulunan = set()
+        for alan in ("kimlik", "baglanti"):
+            bulunan |= {d for d in re.findall(alan + r'\s*:\s*"([^"]*)"', blok) if d}
+        return bulunan
+
+    yeni = kimlikleri_al(oku("assets/js/data.js")) - kimlikleri_al(eski)
+    for deger in sorted(yeni):
+        r.kapi("video",
+               f"data.js: VIDEOLAR'a yeni video eklendi → \"{deger}\"\n"
+               "        Bu kimliğin gerçekten var olduğunu betik doğrulayamaz. "
+               "Barış onaylamadıysa EKLEME.")
+    if not yeni:
+        r.tamam()
+
+
 def d_kontrast(r):
     """Renklerin WCAG AA (4.5:1) sınırında kaldığını ölç."""
     css = oku("assets/css/style.css")
@@ -317,6 +371,7 @@ DENETIMLER = {
     "odak": ("Odak halkası", d_odak),
     "defer": ("Betik yüklemesi", d_defer),
     "sahte": ("Sahte içerik", d_sahte),
+    "video": ("Yeni video (insan kapısı)", d_video),
     "kontrast": ("Renk kontrastı", d_kontrast),
     "lore": ("LORE ↔ data senkronu", d_lore),
 }
@@ -344,20 +399,29 @@ def main(argv):
         print("HATA")
         for denetim, mesaj in r.hatalar:
             print(f"  [{denetim}] {mesaj}")
+    if r.kapilar:
+        print("İNSAN KAPISI")
+        for denetim, mesaj in r.kapilar:
+            print(f"  [{denetim}] {mesaj}")
     if r.uyarilar and not kisa:
         print("UYARI")
         for denetim, mesaj in r.uyarilar:
             print(f"  [{denetim}] {mesaj}")
 
-    if not r.hatalar:
-        if not kisa:
-            print(f"TEMİZ — {r.gecen} denetim geçti "
-                  f"({len(secilen)} başlık: {', '.join(secilen)}).")
-        return 0
+    if r.hatalar:
+        print(f"\n{len(r.hatalar)} hata, {r.gecen} geçen denetim. "
+              "Düzelt ve tekrar çalıştır.")
+        return 1
 
-    print(f"\n{len(r.hatalar)} hata, {r.gecen} geçen denetim. "
-          "Düzelt ve tekrar çalıştır.")
-    return 1
+    if r.kapilar:
+        print(f"\nKural ihlali yok ama {len(r.kapilar)} nokta insan onayı "
+              "istiyor. Kendi başına karar verme — Barış'a sor.")
+        return 3
+
+    if not kisa:
+        print(f"TEMİZ — {r.gecen} denetim geçti "
+              f"({len(secilen)} başlık: {', '.join(secilen)}).")
+    return 0
 
 
 if __name__ == "__main__":

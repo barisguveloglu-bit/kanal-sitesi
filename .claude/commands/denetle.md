@@ -17,8 +17,21 @@ harici kural setine test ettir.
 python3 .claude/dogrula.py
 ```
 
-Sekiz başlık denetlenir: `menu`, `harita`, `gizleme`, `odak`, `defer`,
-`sahte`, `kontrast`, `lore`. Tek başlık için: `python3 .claude/dogrula.py kontrast`
+Dokuz başlık denetlenir: `menu`, `harita`, `gizleme`, `odak`, `defer`,
+`sahte`, `video`, `kontrast`, `lore`.
+Tek başlık için: `python3 .claude/dogrula.py kontrast`
+
+Çıkış kodunu oku, sadece metni değil:
+
+| Kod | Anlamı | Ne yapacaksın |
+|---|---|---|
+| `0` | Temiz | Devam |
+| `1` | Kural ihlali | Düzelt |
+| `3` | **İnsan kapısı** | Düzeltme — **sor.** Betik bunun doğru olduğunu doğrulayamıyor |
+
+Kod `3` genelde `video` denetiminden gelir: `VIDEOLAR`'a yeni bir kimlik
+girmiştir. Biçimi geçerli bir kimlik uydurma da olabilir; betik ikisini
+ayıramaz. Barış onaylamadıysa o satırı geri al.
 
 ## 2. Betiğin göremediği şeyler
 

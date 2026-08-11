@@ -64,12 +64,20 @@ def main():
     if sonuc.returncode == 0:
         return 0
 
-    print(
-        "Denetleyici bu düzenlemeden sonra hata buldu. Turu bitirmeden önce "
-        "düzelt, sonra `python3 .claude/dogrula.py` ile tekrar doğrula.\n\n"
-        + (sonuc.stdout or "") + (sonuc.stderr or ""),
-        file=sys.stderr,
-    )
+    if sonuc.returncode == 3:
+        basli = (
+            "Bu düzenleme insan onayı isteyen bir noktaya dokundu. Kural "
+            "ihlali yok — ama denetleyici bunun doğru olduğunu DOĞRULAYAMIYOR. "
+            "Kendi başına devam etme: `AskUserQuestion` ile Barış'a sor."
+        )
+    else:
+        basli = (
+            "Denetleyici bu düzenlemeden sonra hata buldu. Turu bitirmeden "
+            "önce düzelt, sonra `python3 .claude/dogrula.py` ile tekrar doğrula."
+        )
+
+    print(basli + "\n\n" + (sonuc.stdout or "") + (sonuc.stderr or ""),
+          file=sys.stderr)
     return 2
 
 
