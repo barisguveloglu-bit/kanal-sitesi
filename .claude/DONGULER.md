@@ -78,6 +78,7 @@ dışa bağımlılığı yok, sadece Python 3 standart kütüphanesi:
 | `video` | `VIDEOLAR`'a HEAD'de olmayan kimlik girdi mi → **insan kapısı** |
 | `kontrast` | Renk çiftlerini WCAG AA (4.5:1) sınırına karşı **ölçer** |
 | `lore` | `data.js`'teki adlar `LORE.md`'de geçiyor mu |
+| `belge` | Bu belgedeki sayılar betiklerin gerçeğiyle uyuşuyor mu |
 
 ```
 python3 .claude/dogrula.py            # hepsi
@@ -90,9 +91,9 @@ python3 .claude/dogrula.py --kisa     # sadece hatalar
 bilemiyorum" demek. Ona düzeltme uygulanmaz, soru sorulur.
 
 **Denetleyicinin kendi sınavı var:** `python3 .claude/sinav.py` deponun
-geçici bir kopyasına 18 ayrı fay enjekte eder (yanlış menü bağlantısı,
+geçici bir kopyasına tek tek fay enjekte eder (yanlış menü bağlantısı,
 silinmiş `[hidden]` kuralı, düşürülmüş kontrast, uydurma karakter…) ve her
-birinin yakalandığını doğrular. Yanına 6 masum vaka koyar — yorum içindeki
+birinin yakalandığını doğrular. Yanına masum vakalar koyar — yorum içindeki
 `outline: none`, SVG dizesindeki `opacity="0"` gibi — bunların **yanlış
 alarm üretmediğini** ölçer. Denetleyiciye kural eklersen sınava da vaka ekle;
 yakalamayan denetim, yakaladığını sanmaktan kötüdür.
@@ -231,9 +232,11 @@ verdiğin komutu çalıştırır, sonucu bildirir. Kurulmadı; istersen kurarız
 
 ## Sınırlar
 
-Bunlar tahmin değil, fay enjeksiyon sınavıyla ölçüldü (24 vaka: 18 tuzak,
-6 masum). Ölçülen iki gerçek açık vardı, ikisi de kapatıldı — biri
-tam olarak kapanamadı, aşağıda:
+Bunlar tahmin değil, fay enjeksiyon sınavıyla ölçüldü: **24 vaka
+(19 yakalanmalı, 5 masum)** ve **20 altın soru**. Bu sayılar `dogrula.py`
+tarafından denetleniyor — betikler değişip belge yerinde kalırsa hata verir.
+Ölçülen iki gerçek açık vardı, ikisi de kapatıldı — biri tam olarak
+kapanamadı, aşağıda:
 
 - **Denetleyici doğruyu uydurmadan ayıramaz.** `"aB3dEf7hK9m"` kurallara
   tamamen uygun bir YouTube kimliğidir ve tamamen uydurma olabilir.

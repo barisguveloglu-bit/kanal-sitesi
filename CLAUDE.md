@@ -32,7 +32,8 @@ yapmadan önce o dosyayı oku — karakterler, güçler ve efsane orada tanıml�
 
 - `python3 .claude/dogrula.py` — yukarıdaki kuralları makine tarafından
   denetler (menü, site haritası, gizleme, odak, `defer`, sahte içerik,
-  yeni video, kontrast, LORE senkronu). Dış bağımlılığı yok.
+  yeni video, kontrast, LORE senkronu, belge senkronu).
+  Dış bağımlılığı yok.
   Çıkış kodu `0` temiz, `1` kural ihlali, `3` insan onayı gerekiyor.
 - Bir `.html`/`.css`/`.js`/`.xml` ya da `LORE.md` düzenlendiğinde bu denetim
   `.claude/kanca.py` üzerinden kendiliğinden çalışır.

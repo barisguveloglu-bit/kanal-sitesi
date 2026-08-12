@@ -16,7 +16,7 @@ Siteye hiçbir şey eklemez, sadece okur.
     python3 .claude/dogrula.py --kisa   # sadece hataları yaz
     python3 .claude/dogrula.py menu kontrast   # seçili denetimler
 
-Çıkış kodu: 0 = temiz, 1 = en az bir hata var.
+Çıkış kodu: 0 = temiz, 1 = kural ihlali, 3 = insan onayı gerekiyor.
 """
 
 import os
@@ -295,7 +295,13 @@ def d_video(r):
     """
     eski = git_goster("assets/js/data.js")
     if eski is None:
-        return  # git yok ya da ilk commit — karşılaştıracak taban yok
+        # Kıyas tabanı yoksa bu kapı çalışamaz. Sessizce atlamak en kötüsü:
+        # kapı yokken de varmış gibi görünür. Açıkça söyle.
+        r.uyari("video",
+                "HEAD'deki data.js okunamadı (git yok ya da dosya yeni). "
+                "Yeni video kimliği kapısı BU KOŞUDA DEVRE DIŞI — "
+                "VIDEOLAR'a eklenen kimlikleri elle doğrula.")
+        return
 
     def kimlikleri_al(kaynak):
         blok = js_yorumlari_at(blok_al(kaynak, "const VIDEOLAR = {"))
@@ -364,6 +370,57 @@ def d_lore(r):
                 r.tamam()
 
 
+def d_belge(r):
+    """DONGULER.md'deki sayılar betiklerin gerçeğiyle uyuşuyor mu.
+
+    Belgeye yazılan sayı, koda bakmadan güncellenmediği için sessizce çürür —
+    nitekim çürüdü: sınav 19/5 iken belge 18/6 yazıyordu. LORE ↔ data
+    senkronuyla aynı sınıftan bir hata, aynı şekilde denetlenmeli.
+    """
+    import importlib.util
+
+    belge_yolu = os.path.join(KOK, ".claude", "DONGULER.md")
+    if not os.path.exists(belge_yolu):
+        return
+    belge = open(belge_yolu, encoding="utf-8").read()
+
+    sinav_yolu = os.path.join(KOK, ".claude", "sinav.py")
+    if os.path.exists(sinav_yolu):
+        tanim = importlib.util.spec_from_file_location("_sinav", sinav_yolu)
+        modul = importlib.util.module_from_spec(tanim)
+        tanim.loader.exec_module(modul)
+        toplam = len(modul.VAKALAR)
+        tuzak = sum(1 for v in modul.VAKALAR if v[2])
+        masum = toplam - tuzak
+
+        eslesme = re.search(r"\*\*(\d+) vaka\s*\n?\s*\((\d+) yakalanmalı, (\d+) masum\)\*\*",
+                            belge)
+        if not eslesme:
+            r.hata("belge", "DONGULER.md: sınav vaka sayısı cümlesi bulunamadı. "
+                            "Biçim: **N vaka (T yakalanmalı, M masum)**")
+        elif [int(g) for g in eslesme.groups()] != [toplam, tuzak, masum]:
+            r.hata("belge",
+                   f"DONGULER.md: sınav {toplam} vaka ({tuzak} yakalanmalı, "
+                   f"{masum} masum) diyor, belge {eslesme.group(0)} yazıyor.")
+        else:
+            r.tamam()
+
+    altin_yolu = os.path.join(KOK, ".claude", "altin-sorular.json")
+    if os.path.exists(altin_yolu):
+        import json as _json
+        with open(altin_yolu, encoding="utf-8") as f:
+            sayi = len(_json.load(f)["sorular"])
+        eslesme = re.search(r"\*\*(\d+) altın soru\*\*", belge)
+        if not eslesme:
+            r.hata("belge", "DONGULER.md: altın soru sayısı cümlesi bulunamadı. "
+                            "Biçim: **N altın soru**")
+        elif int(eslesme.group(1)) != sayi:
+            r.hata("belge", f"DONGULER.md: altın sette {sayi} soru var, "
+                            f"belge {eslesme.group(1)} yazıyor.")
+        else:
+            r.tamam()
+
+
 DENETIMLER = {
     "menu": ("Menü bütünlüğü", d_menu),
     "harita": ("Site haritası", d_harita),
@@ -374,6 +431,7 @@ DENETIMLER = {
     "video": ("Yeni video (insan kapısı)", d_video),
     "kontrast": ("Renk kontrastı", d_kontrast),
     "lore": ("LORE ↔ data senkronu", d_lore),
+    "belge": ("Belge ↔ betik senkronu", d_belge),
 }
 
 

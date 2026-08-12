@@ -121,22 +121,30 @@ def isle(a):
 
     mevcut = {v["soru"] for v in altin["sorular"]}
     eklenen, elde = 0, []
+    defter_degisti = False
 
     for k in kayitlar:
         if k["durum"] != "acik":
             continue
 
         if k["tur"] != "geri-getirme":
-            elde.append(k)
+            elde.append((k, TURLER[k["tur"]]))
             continue
 
         eslesme = re.match(r"LORE\.md:(\d+)", k.get("kaynak", ""))
-        if not eslesme or not k["soru"]:
-            elde.append(k)
+        if not k["soru"]:
+            elde.append((k, "Soru metni yok — hangi sorunun vakası olacağı belirsiz."))
+            continue
+        if not eslesme:
+            elde.append((k, "Kaynak yok ya da biçimi hatalı; `LORE.md:<satır>` olmalı. "
+                            "Doğru satırı `ara.py` ile bul, kaydı yeniden ekle."))
             continue
 
         if k["soru"] in mevcut:
+            # Vaka zaten altın sette. Kaydı kapatmak da bir değişikliktir —
+            # yazılmazsa bu kayıt sonsuza kadar "açık" görünüp listeyi kirletir.
             k["durum"] = "islendi"
+            defter_degisti = True
             continue
 
         altin["sorular"].append({
@@ -146,12 +154,14 @@ def isle(a):
             "_kaynak": f"geri bildirim {k['tarih']}",
         })
         k["durum"] = "islendi"
+        defter_degisti = True
         eklenen += 1
 
     if eklenen:
         with open(ALTIN, "w", encoding="utf-8") as f:
             json.dump(altin, f, ensure_ascii=False, indent=2)
             f.write("\n")
+    if defter_degisti:
         defteri_yaz(kayitlar)
 
     print(f"{eklenen} kayıt altın sete vaka olarak eklendi.")
@@ -162,9 +172,9 @@ def isle(a):
 
     if elde:
         print(f"\n{len(elde)} kayıt otomatiğe çevrilemedi, insan işi:")
-        for k in elde:
+        for k, sebep in elde:
             print(f"  • [{k['tur']}] {k['yanlis'][:70]}")
-            print(f"    → {TURLER.get(k['tur'], '')}")
+            print(f"    → {sebep}")
     return 0
 
 
