@@ -298,6 +298,72 @@ def t_dogrula_bozuk_araca_dayaniyor(kok):
     return None
 
 
+# --------------------------------------------------- alt ajan sözleşmesi
+
+def t_gorev_sozlesmesiz_engelleniyor(kok):
+    olay = json.dumps({"tool_name": "Agent", "cwd": kok,
+                       "tool_input": {"prompt": "Karakterleri listele ve özet çıkar.",
+                                      "description": "özet"}})
+    s = subprocess.run([sys.executable, os.path.join(kok, ".claude", "kanca-gorev.py")],
+                       cwd=kok, input=olay, capture_output=True, text=True, timeout=60)
+    if s.returncode != 2:
+        return f"sözleşmesiz görev engellenmedi (çıkış {s.returncode})"
+    for kavram in ("uydurma", "canon", "atıf"):
+        if kavram not in s.stderr:
+            return f"eksik kavram bildirilmedi: {kavram}"
+    return None
+
+
+def t_gorev_sozlesmeli_geciyor(kok):
+    b = kos(kok, "gorev.py", "brief", "--konu", "deneme")
+    if b.returncode != 0 or len(b.stdout) < 200:
+        return "brief üretilemedi"
+    olay = json.dumps({"tool_name": "Agent", "cwd": kok,
+                       "tool_input": {"prompt": b.stdout, "description": "deneme"}})
+    s = subprocess.run([sys.executable, os.path.join(kok, ".claude", "kanca-gorev.py")],
+                       cwd=kok, input=olay, capture_output=True, text=True, timeout=60)
+    if s.returncode != 0:
+        return f"sözleşmeli görev engellendi (çıkış {s.returncode})"
+    return None
+
+
+def t_gorev_dogru_atifi_geciriyor(kok):
+    yol = os.path.join(kok, "rapor-iyi.md")
+    open(yol, "w", encoding="utf-8").write(
+        "Barış Teşup'un elinde Orta Cephe'de tutuluyor. LORE.md:428\n")
+    s = kos(kok, "gorev.py", "dogrula", "--rapor", yol)
+    if s.returncode != 0:
+        return f"doğru atıf kusurlu sayıldı: {s.stdout.strip()[:100]}"
+    return None
+
+
+def t_gorev_uydurma_atifi_yakaliyor(kok):
+    yol = os.path.join(kok, "rapor-kotu.md")
+    open(yol, "w", encoding="utf-8").write(
+        "Nemesis'in gizli bir kardeşi var ve İstanbul'da saklanıyor. LORE.md:201\n"
+        "Ağaç 1899 yılında yeniden dikildi. LORE.md:99999\n")
+    s = kos(kok, "gorev.py", "dogrula", "--rapor", yol)
+    if s.returncode != 1:
+        return "uydurma atıflar geçti"
+    if "desteklemiyor" not in s.stdout or "geçersiz aralık" not in s.stdout:
+        return "iki kusur türünden biri bildirilmedi"
+    return None
+
+
+def t_gorev_kusuru_deftere_yaziyor(kok):
+    yol = os.path.join(kok, "rapor-kotu2.md")
+    open(yol, "w", encoding="utf-8").write(
+        "Samara Kadın otuz yaşında ve Ankara doğumlu. LORE.md:142\n")
+    kos(kok, "gorev.py", "dogrula", "--rapor", yol, "--deftere-yaz")
+    defter = os.path.join(kok, ".claude", "geri-bildirim.jsonl")
+    if not os.path.exists(defter):
+        return "defter hiç oluşmadı"
+    kayitlar = [json.loads(x) for x in open(defter, encoding="utf-8") if x.strip()]
+    if not any("uzman ajan raporu" in k.get("yanlis", "") for k in kayitlar):
+        return "kusur deftere düşmedi — halka kapanmıyor"
+    return None
+
+
 # ------------------------------------------------------------- geri bildirim
 
 def t_geribildirim_vakaya_ceviriyor(kok):
@@ -355,6 +421,12 @@ VAKALAR = [
     ("yargı: hazirla cevabı sızdırmıyor",   t_yargi_hazirla_sizdirmiyor),
     ("yargı: eksik gönderim yakalanıyor",   t_yargi_eksik_gonderim_yakalar),
     ("yargı: yinelenen numara yakalanıyor", t_yargi_yinelenen_yakalar),
+
+    ("görev: sözleşmesiz engelleniyor",     t_gorev_sozlesmesiz_engelleniyor),
+    ("görev: sözleşmeli geçiyor",           t_gorev_sozlesmeli_geciyor),
+    ("görev: doğru atıf geçiyor",           t_gorev_dogru_atifi_geciriyor),
+    ("görev: uydurma atıf yakalanıyor",     t_gorev_uydurma_atifi_yakaliyor),
+    ("görev: kusur deftere yazılıyor",      t_gorev_kusuru_deftere_yaziyor),
 
     ("kanca: kapı sayacı artırmıyor",       t_kanca_kapi_sayaci_artirmiyor),
     ("kanca: üst üste hatada kesiyor",      t_kanca_ustuste_hatada_kesiyor),

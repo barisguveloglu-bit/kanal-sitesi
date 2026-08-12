@@ -25,25 +25,39 @@ Tek dosyalık iş, küçük düzeltme, tek konu → orkestraya gerek yok.
 **1 — Böl.** Hedefi bağımsız parçalara ayır. Her parça için yaz:
 ne isteniyor, hangi dosyalar, hangi çıktı bekleniyor.
 
-**2 — Dağıt.** Her parçayı bir `Agent` ile gönder. Bağımsız olanları
-**aynı anda** başlat. Her göreve şunları koy:
+**2 — Dağıt.** Görev metnini **elle yazma, üret:**
 
-- Uzmanın okuması gereken dosyalar (`LORE.md`, `CLAUDE.md` dahil —
-  ajan bunları bilmiyor)
-- Somut, dar bir soru veya görev
-- İstenen çıktı biçimi
-- **"Bilgi eksikse uydurma, eksik olduğunu raporla"** — bu cümleyi
-  her göreve koy. Sahte içerik bu projede en büyük risk.
+```
+python3 .claude/gorev.py brief --konu "<ne isteniyor>" --cikti "<beklenen çıktı>"
+```
+
+Çıkan sözleşmeyi görevin başına koy, altına o parçaya özel ayrıntıları ekle.
+Sonra `Agent` ile gönder; bağımsız olanları **aynı anda** başlat.
+
+Sözleşme isteğe bağlı değil: `PreToolUse` kancası sözleşmesiz görevi
+**göndermez**, eksik kavramları söyleyip geri çevirir. Bunun sebebi basit —
+"ajana şunları söyle" bir yazıydı, yazı uygulanmayan kuraldır.
 
 Araştırma/denetim işleri için `Explore`, çok adımlı işler için
 `general-purpose` uygun.
 
-**3 — Birleştir.** Gelen sonuçları oku ve şunları ara:
+**3 — Birleştir.** Önce raporu **makineye doğrulat**, sonra oku:
+
+```
+python3 .claude/gorev.py dogrula --rapor <dosya> --deftere-yaz
+```
+
+Her atıfın gerçekten o satırı gösterip göstermediğine bakar. Ajan raporu
+düzgün Türkçeyle gelir ve doğru **görünür**; en yaygın hata "dayanaklı
+görünen ama atıfı cümleyi desteklemeyen" cümledir. `--deftere-yaz`
+bulunan kusuru geri bildirim defterine düşürür — halka böyle kapanır.
+
+Doğrulama geçtikten sonra sen de oku ve şunları ara:
 
 - **Çelişki** — iki uzman aynı şey için farklı şey söylüyor mu?
 - **Boşluk** — sorulan ama cevaplanmamış kısım var mı?
-- **Uydurma** — ajan raporunu olduğu gibi yutma. İddia ettiği şeyi
-  dosyada kendin doğrula, özellikle isim/sayı/tarih söylüyorsa.
+- **Adressiz iddia** — atıfsız gelen isim/sayı/tarih. Doğrulanamayan
+  rapor delil değildir.
 
 **4 — Yeniden gönder.** Çelişki veya boşluk varsa **yeni görev ver.**
 Bu adım döngüyü döngü yapan şeydir; tek seferlik dağıtım yaparsan bu

@@ -253,6 +253,43 @@ ve her turda tek iş yapılıp ayrıntısı unutulur.
 Meşru durma sebebi üç tane: bütün kapılar yeşil, devre kesildi, insan
 kapısı. Dördüncüsü — "çözemedim ama devam ediyorum" — yok.
 
+## Alt ajan sözleşmesi — döngünün en zayıf halkası
+
+Alt ajan bu sistemin en kırılgan yeri, üç sebepten: sıfırdan başlar
+(senin bildiğin hiçbir şeyi bilmez), kendi bağlamında çalışır (onun
+gördüğü kancayı sen görmezsin) ve **raporu düzgün Türkçeyle gelir,
+doğru GÖRÜNÜR.**
+
+`/orkestra` eskiden "ajana şunları söyle" diyordu. Yazı, uygulanmayan
+kuraldır — hele uygulaması gereken taraf acelesi olan taraf ise.
+Şimdi iki yönü de mekanik:
+
+**Giden — brief üretilir, elle yazılmaz.**
+
+```
+python3 .claude/gorev.py brief --konu "..." --cikti "..."
+```
+
+`PreToolUse` kancası sözleşmesiz görevi **göndermez**: uydurma yasağı,
+canon kaynağı ve atıf zorunluluğu geçmiyorsa hangisinin eksik olduğunu
+söyleyip geri çevirir. Devre kesicideki mantığın aynısı — kural süreç
+dışına taşındığı an rica olmaktan çıkar.
+
+**Gelen — rapor makineye doğrulatılır.**
+
+```
+python3 .claude/gorev.py dogrula --rapor <dosya> --deftere-yaz
+```
+
+Her atıf için üç şeye bakar: satır dosyada var mı, aralık geçerli mi, ve
+o satırlar cümleyi **gerçekten destekliyor mu**. Sonuncusu asıl mesele:
+araştırmadaki en yaygın üretim hatası, cevabın %94'ünün "dayanaklı"
+görünmesine karşılık atıfların ancak %61'inin o cümleyi desteklemesiydi.
+Kullanıcı yedinci atıfa tıklar, ilgisi yoktur, güven biter.
+
+`--deftere-yaz` bulunan kusuru geri bildirim defterine düşürür. Halka
+böyle kapanır: ajanın hatası kaybolmaz, kalıcı kayda dönüşür.
+
 ## Cevap yargısı (LLM-as-judge)
 
 `degerlendir.py` aramayı ölçer, `yargi.py` **cevabı** ölçer. Doğru bölümü
