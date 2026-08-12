@@ -28,16 +28,40 @@ KAT 4  Yansıt-İyileştir → çıktıyı dogrula.py'ye test ettirir, hatalıys
 
 ## KAT 2 — Planla-Uygula
 
-Hedefi 3–7 alt göreve böl. Her alt görev için tek satırda yaz:
-ne değişecek, hangi dosyada, nasıl doğrulanacak.
+**Önce hedefi çiviye as.** Çok adımlı bir işse (3+ alt görev):
 
-`TaskCreate` ile listeye geçir. Bu liste plandır; **plan sabittir**.
-Her alt görev bittiğinde şunu kendine sor:
+```
+python3 .claude/hedef.py ac --hedef "$ARGUMENTS" --teslim "<ne teslim edilecek>" \
+    --basari "<bittiğini gösteren ölçüt>" --degismez "<bozulmayacak kural>"
+```
 
-> Yaptığım şey hâlâ asıl hedefe mi hizmet ediyor, yoksa yan bir yola mı saptım?
+Hedefin parmak izi alınır. Bundan sonra **plan değişebilir, hedef
+değişemez** — aradaki farkı tutan bir şey yoksa "planı güncelledim"
+demek "hedefi değiştirdim" demenin kibar hâli olur.
 
-Sapma varsa iki seçenek var — geri dön, ya da KAT 0'a çıkıp planı
-değiştirmek için izin iste. Sessizce plan değiştirme.
+Sonra hedefi ağaca böl — düz liste değil, büyük aşama → alt görev:
+
+```
+python3 .claude/hedef.py dal --ne "<büyük aşama>"
+python3 .claude/hedef.py dal --ust 1 --ne "<alt görev>"
+python3 .claude/hedef.py basla --id 2
+```
+
+Her alt görev bittiğinde:
+
+```
+python3 .claude/hedef.py tamam --id 2
+python3 .claude/hedef.py kontrol      # hâlâ hedefe mi hizmet ediyorum?
+```
+
+`kontrol` çıkış kodu **1 ise dur ve oku.** Hedef kaymış olabilir, bir
+görev takılmış olabilir, onay bekleyen sapma olabilir.
+
+Planı değiştirmen gerekirse **sessizce yapma, kaydet:**
+
+```
+python3 .claude/hedef.py sapma --ne "<ne değişti>" --neden "<neden>" [--onay-gerekli]
+```
 
 ## KAT 3 — ReAct
 
@@ -70,6 +94,8 @@ neyi çözemediğini söyle. Düzenleme kancası da aynı sayacı ayrıca tutuyo
 yani bu sınırı konuşarak geçemezsin.
 
 İş bitince: `python3 .claude/devre.py basari --halka duzeltme`
+
+Hedef açtıysan kapanışta: `python3 .claude/hedef.py kapat`
 
 Denetleyicinin göremediği iki şey var, onları sen kontrol et:
 

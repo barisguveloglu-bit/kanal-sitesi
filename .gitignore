@@ -4,3 +4,4 @@
 # Python önbelleği
 __pycache__/
 *.pyc
+.claude/hedef.json

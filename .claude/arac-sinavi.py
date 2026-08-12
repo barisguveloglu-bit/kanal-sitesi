@@ -181,6 +181,28 @@ def t_yargi_gereksiz_ret_yakalar(kok):
     return None
 
 
+def t_yargi_yanlis_satir_atfini_yakalar(kok):
+    """Atıf GEÇERLİ ama YANLIŞ satırı gösteriyor.
+
+    Bu boşluğu mutasyon sınavı buldu: sınır dışı atıf ve atıfsız iddia
+    için vaka vardı, ama "satır gerçek, cevabın geçtiği yer değil" hâli
+    için yoktu. Üretimdeki en yaygın hata da tam bu — cevap dayanaklı
+    GÖRÜNÜYOR, atıfa tıklayınca ilgisiz çıkıyor.
+    """
+    def boz(c, v):
+        for cevap, vaka in zip(c, v):
+            if vaka["tur"] == "cevaplanabilir":
+                baska = 1 if vaka["satir"] != 1 else 2
+                cevap["atiflar"] = [f"LORE.md:{baska}"]
+                return
+    s = kos(kok, "yargi.py", "puanla", "--dosya", _cevaplar(kok, boz))
+    if s.returncode != 1:
+        return "yanlış satıra atıf geçti"
+    if "geçtiği satırı göstermiyor" not in s.stdout:
+        return f"kusur yanlış teşhis edildi: {s.stdout.strip()[:120]}"
+    return None
+
+
 def t_yargi_hazirla_sizdirmiyor(kok):
     """En kritik test: cevaplayana verilen dosya cevabı içermemeli."""
     s = kos(kok, "yargi.py", "hazirla")
@@ -226,10 +248,16 @@ def t_yargi_eksik_gonderim_yakalar(kok):
     s = kos(kok, "yargi.py", "puanla", "--dosya", yol)
     if s.returncode != 1:
         return f"eksik gönderim tam puan aldı (çıkış {s.returncode})"
-    if "cevaplanmamış" not in s.stdout:
-        return "eksik cevaplar raporlanmadı"
     if f"/{len(hepsi)}" not in s.stdout:
         return f"payda gönderilen sayıya göre hesaplandı: {s.stdout.strip()[-120:]}"
+
+    # Sayıyı da doğrula, sadece "düştü mü" değil. Gönderilmeyen 23 cevabın
+    # KAÇ tane olduğu raporlanmazsa, ihmal sessizce geçer: puan yine düşük
+    # çıkar ama sebebi görünmez. Bu boşluğu mutasyon sınavı buldu.
+    beklenen_eksik = len(hepsi) - 3
+    if f"cevaplanmamış     {beklenen_eksik}" not in s.stdout:
+        return (f"eksik cevap sayısı yanlış raporlandı; {beklenen_eksik} "
+                f"bekleniyordu: {s.stdout.strip()[-160:]}")
     return None
 
 
@@ -423,6 +451,70 @@ def t_seyir_cozulmemisi_kapanista_hatirlatir(kok):
     return None
 
 
+# ------------------------------------------------------------ hedef ağacı
+
+def _hedef_ac(kok):
+    return kos(kok, "hedef.py", "ac", "--hedef", "deneme hedefi",
+               "--teslim", "çıktı", "--basari", "dogrula temiz",
+               "--degismez", "canon bozulmayacak")
+
+
+def t_hedef_kaymasini_yakaliyor(kok):
+    """Uzun ufuklu işin asıl tehlikesi: hedefin sessizce değişmesi."""
+    _hedef_ac(kok)
+    yol = os.path.join(kok, ".claude", "hedef.json")
+    d = json.load(open(yol, encoding="utf-8"))
+    d["hedef"] = "tamamen başka bir iş"
+    json.dump(d, open(yol, "w", encoding="utf-8"), ensure_ascii=False)
+    s = kos(kok, "hedef.py", "kontrol")
+    if s.returncode != 1 or "HEDEF DEĞİŞMİŞ" not in s.stdout:
+        return "hedef kayması yakalanmadı"
+    return None
+
+
+def t_hedef_saglamken_gecer(kok):
+    """Yanlış alarm avı: dokunulmamış hedef temiz geçmeli."""
+    _hedef_ac(kok)
+    kos(kok, "hedef.py", "dal", "--ne", "iş")
+    kos(kok, "hedef.py", "tamam", "--id", "1")
+    s = kos(kok, "hedef.py", "kontrol")
+    if s.returncode != 0:
+        return f"sağlam hedef kusurlu sayıldı: {s.stdout.strip()[:100]}"
+    return None
+
+
+def t_hedef_ustu_erken_kapatmiyor(kok):
+    """Üst görev, alt görevleri açıkken kapatılamamalı."""
+    _hedef_ac(kok)
+    kos(kok, "hedef.py", "dal", "--ne", "büyük aşama")
+    kos(kok, "hedef.py", "dal", "--ust", "1", "--ne", "alt iş")
+    s = kos(kok, "hedef.py", "tamam", "--id", "1")
+    if s.returncode != 1 or "alt görevi" not in s.stdout:
+        return "üst görev alt görevi açıkken kapandı"
+    return None
+
+
+def t_hedef_kaymisken_sapma_yazilmiyor(kok):
+    _hedef_ac(kok)
+    yol = os.path.join(kok, ".claude", "hedef.json")
+    d = json.load(open(yol, encoding="utf-8"))
+    d["basari"] = ["bambaşka ölçüt"]
+    json.dump(d, open(yol, "w", encoding="utf-8"), ensure_ascii=False)
+    s = kos(kok, "hedef.py", "sapma", "--ne", "x", "--neden", "y")
+    if s.returncode != 1:
+        return "hedef kaymışken sapma kaydedildi"
+    return None
+
+
+def t_hedef_acik_gorevle_kapanmiyor(kok):
+    _hedef_ac(kok)
+    kos(kok, "hedef.py", "dal", "--ne", "yarım kalan iş")
+    s = kos(kok, "hedef.py", "kapat")
+    if s.returncode != 1 or "hâlâ açık" not in s.stdout:
+        return "açık görev varken hedef kapandı"
+    return None
+
+
 # --------------------------------------------------------------- bütçe
 
 def t_devre_sure_butcesi_kesiyor(kok):
@@ -572,6 +664,7 @@ VAKALAR = [
     ("yargı: sınır dışı atıf yakalanıyor",  t_yargi_sinirdisi_atif_yakalar),
     ("yargı: atıfsız iddia yakalanıyor",    t_yargi_atifsiz_iddia_yakalar),
     ("yargı: gereksiz ret yakalanıyor",     t_yargi_gereksiz_ret_yakalar),
+    ("yargı: yanlış satır atfı yakalanıyor", t_yargi_yanlis_satir_atfini_yakalar),
     ("yargı: hazirla cevabı sızdırmıyor",   t_yargi_hazirla_sizdirmiyor),
     ("yargı: eksik gönderim yakalanıyor",   t_yargi_eksik_gonderim_yakalar),
     ("yargı: yinelenen numara yakalanıyor", t_yargi_yinelenen_yakalar),
@@ -585,6 +678,12 @@ VAKALAR = [
     ("seyir: ham iz özete girmiyor",        t_seyir_ozet_ham_izi_dislar),
     ("seyir: gerekçesiz karar reddediliyor", t_seyir_gerekcesiz_karari_reddeder),
     ("seyir: kapanışta boşluk hatırlatılıyor", t_seyir_cozulmemisi_kapanista_hatirlatir),
+
+    ("hedef: kayma yakalanıyor",            t_hedef_kaymasini_yakaliyor),
+    ("hedef: sağlam hedef geçiyor",         t_hedef_saglamken_gecer),
+    ("hedef: üst görev erken kapanmıyor",   t_hedef_ustu_erken_kapatmiyor),
+    ("hedef: kaymışken sapma yazılmıyor",   t_hedef_kaymisken_sapma_yazilmiyor),
+    ("hedef: açık görevle kapanmıyor",      t_hedef_acik_gorevle_kapanmiyor),
 
     ("bütçe: duvar saati kesiyor",          t_devre_sure_butcesi_kesiyor),
     ("bütçe: süre kapalıyken kesmiyor",     t_devre_sure_kapaliyken_kesmiyor),

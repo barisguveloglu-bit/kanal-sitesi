@@ -15,6 +15,29 @@ Bu döngü tehlikelidir. Sonsuza dönebilir, bağlamı şişirebilir, aynı şey
 yüz kez deneyebilir. Aşağıdaki üç kısıt bunun için var ve **hiçbiri
 isteğe bağlı değil.**
 
+## Kısıt 0 — Değişmez hedef
+
+Uzun ufuklu koşunun asıl tehlikesi adımların yanlış olması değil.
+Adımlar tek tek doğru olur; yirminci turda başka bir işi yapıyor
+olursun. Kimse yanlış bir şey yapmamıştır — hedef, adım adım, kimsenin
+fark etmediği bir yere kaymıştır.
+
+Başlarken hedefi çiviye as:
+
+```
+python3 .claude/hedef.py ac --hedef "$ARGUMENTS" --basari "<ölçüt>"
+python3 .claude/hedef.py dal --ne "<büyük aşama>"
+```
+
+Her turun sonunda:
+
+```
+python3 .claude/hedef.py kontrol
+```
+
+Çıkış kodu **1 ise oku ve dur.** Hedef kayması bir plan güncellemesi
+değildir; insana çıkılacak bir olaydır.
+
 ## Kısıt 1 — Deterministik kapı
 
 Döngü, bir insanın "iyi olmuş" demesiyle değil, şu üçünün aynı anda yeşil
@@ -98,7 +121,8 @@ sadece "neden takıldım" sorusunu cevaplamak için bak.
    not al, sıraya gir.
 5. Kapıyı tekrar çalıştır. Düzeldi mi?
 6. Sonucu `--not` ile deftere yaz, ayrıntıyı unut.
-7. Hepsi yeşilse `devre.py basari` + `seyir.py kapat --sonuc "..."` ve çık.
+7. Hepsi yeşilse `devre.py basari` + `hedef.py kapat` +
+   `seyir.py kapat --sonuc "..."` ve çık.
    Değilse 1'e dön.
 
 Kapanışta çözülmemiş kayıt kalırsa `seyir.py kapat` bunu hatırlatır ve

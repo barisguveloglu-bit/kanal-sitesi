@@ -211,6 +211,38 @@ açtığında da orada.** Unutmayan taraf burasıdır.
 `canon`, `kural` ve `davranis` kayıtları otomatiğe çevrilmez — `LORE.md`'ye
 ne yazılacağı Barış'ın kararı, yeni denetim kuralı ise yazılması gereken kod.
 
+## Değişmez hedef ve görev ağacı
+
+Uzun ufuklu (long-horizon) koşunun asıl tehlikesi adımların yanlış
+olması değil. Adımlar tek tek doğru olur; yirminci adımda başka bir işi
+yapıyor olursunuz. Kimse yanlış bir şey yapmamıştır — **hedef, adım
+adım, kimsenin fark etmediği bir yere kaymıştır.**
+
+`hedef.py` iki şeyi ayırır:
+
+- **Hedef değişmez.** Açılışta parmak izi alınır; metni sonradan
+  değişirse `kontrol` bunu yakalar. Hedef değişikliği bir plan
+  güncellemesi değil, insana çıkılacak bir olaydır.
+- **Plan değişebilir ama izlenir.** Her değişiklik `sapma` olarak
+  kaydedilir: ne değişti, neden, insan onayı gerekiyor mu.
+
+Görevler düz liste değil **ağaç** — büyük aşama → alt görev. Elli
+adımlık bir işi düz listede takip etmek, yirminci adımda nerede
+olduğunu bilmemek demektir. Üst görev, alt görevleri açıkken
+kapatılamaz: bu bir iş bitirme değil, görmezden gelmedir.
+
+```
+python3 .claude/hedef.py ac --hedef "..." --basari "..." --degismez "..."
+python3 .claude/hedef.py dal --ne "büyük aşama"
+python3 .claude/hedef.py dal --ust 1 --ne "alt görev"
+python3 .claude/hedef.py kontrol     # hâlâ hedefe mi hizmet ediyorum
+```
+
+`kontrol` dört şeye bakar: hedef kaymış mı, takılı görev var mı, onay
+bekleyen sapma var mı, aynı anda birden çok görev "çalışıyor" mu.
+Sonuncusu da uzun ufuklu işin klasik hatası — tek odak tutulmazsa
+ikisi de yarım kalır.
+
 ## Bağlam yönetimi ve epizodik bellek
 
 Uzun koşuların sessiz düşmanı **bağlam çürümesi**: alakasız araç

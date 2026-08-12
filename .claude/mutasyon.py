@@ -83,9 +83,17 @@ def m_yargi_uydurmayi_gormesin(kok):
 
 
 def m_yargi_eksigi_saymasin(kok):
+    """Gönderilmeyen cevabı başarısız saymasın — ihmalle kandırma kapısı.
+
+    Önceki hâli `toplam` hesabını bozuyordu ama döngü artık altın setin
+    tamamı üzerinden döndüğü için mutasyon ETKİSİZ kalmıştı. Ölü mutasyon,
+    ölü test kadar yanıltıcıdır: ikisi de yeşil görünür.
+    """
     duzenle(kok, ".claude/yargi.py",
-            "    toplam = len(vakalar) or 1",
-            "    toplam = len(sonuclar) or 1")
+            '            sonuclar.append({"no": no, "soru": vaka["soru"], "tur": vaka["tur"],\n'
+            '                             "gecti": False, "kusur": ["cevap gönderilmedi"]})\n'
+            "            continue",
+            "            continue")
 
 
 def m_yargi_atif_isabetini_gormesin(kok):
@@ -113,9 +121,19 @@ def m_gorev_yetki_ihlalini_gormesin(kok):
 
 
 def m_seyir_ham_izi_ozete_soksun(kok):
+    """Ham tur izi özete sızsın — bağlam şişmesinin ana kaynağı.
+
+    Sadece KALICI'ya "adim" eklemek yetmiyordu: BASLIK sözlüğünde karşılığı
+    olmadığı için `ozet` KeyError ile çöküyor, sızıntı hiç olmuyordu. Test de
+    "ham iz görünmüyor" diye geçiyordu — DOĞRU SEBEPLE DEĞİL. Mutasyon
+    gerçek sızıntıyı taklit etmeli, çökmeyi değil.
+    """
     duzenle(kok, ".claude/seyir.py",
             'KALICI = ("karar", "cozulmemis", "denendi", "olculdu")',
             'KALICI = ("karar", "cozulmemis", "denendi", "olculdu", "adim")')
+    duzenle(kok, ".claude/seyir.py",
+            '    "olculdu": "ÖLÇÜLENLER",',
+            '    "olculdu": "ÖLÇÜLENLER",\n    "adim": "ADIMLAR",')
 
 
 def m_seyir_gerekcesiz_karari_kabul_etsin(kok):
@@ -148,7 +166,29 @@ def m_ara_bilmiyorum_diyemesin(kok):
             "        if False:")
 
 
+def m_hedef_kaymayi_gormesin(kok):
+    duzenle(kok, ".claude/hedef.py",
+            "    if simdiki != h[\"parmak_izi\"]:",
+            "    if False:")
+
+
+def m_hedef_ustu_erken_kapatsin(kok):
+    duzenle(kok, ".claude/hedef.py",
+            "        if acik:",
+            "        if False:")
+
+
+def m_hedef_parmak_izi_sabit(kok):
+    duzenle(kok, ".claude/hedef.py",
+            "    return hashlib.sha256(govde.encode(\"utf-8\")).hexdigest()[:16]",
+            "    return \"sabit\"")
+
+
 MUTASYONLAR = [
+    ("hedef: kaymayı görmüyor",          m_hedef_kaymayi_gormesin,           "arac-sinavi.py"),
+    ("hedef: üstü erken kapatıyor",      m_hedef_ustu_erken_kapatsin,        "arac-sinavi.py"),
+    ("hedef: parmak izi sabit",          m_hedef_parmak_izi_sabit,           "arac-sinavi.py"),
+
     # (ad, mutasyon, bunu yakalaması gereken sınav)
     ("devre: hiç kesmiyor",              m_devre_kesmesin,                   "arac-sinavi.py"),
     ("devre: süre bütçesi kör",          m_devre_sure_saymasin,              "arac-sinavi.py"),

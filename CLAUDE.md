@@ -48,6 +48,8 @@ yapmadan önce o dosyayı oku — karakterler, güçler ve efsane orada tanıml�
 - `python3 .claude/gorev.py` — alt ajana verilecek sözleşmeli brief üretir
   ve gelen raporun atıflarını denetler. Sözleşmesiz görev `kanca-gorev.py`
   tarafından gönderilmeden engellenir.
+- `python3 .claude/hedef.py` — değişmez hedef sözleşmesi ve görev ağacı.
+  Hedefin parmak izi alınır; sessiz hedef kayması `kontrol` ile yakalanır.
 - `python3 .claude/seyir.py` — uzun koşuların hafızası. `ozet` yeni tura
   kararları ve çözülmemişleri verir, ham tur izini vermez (bağlam çürümesi).
 - `python3 .claude/devre.py` — döngülere mekanik tur sınırı koyar (devre
