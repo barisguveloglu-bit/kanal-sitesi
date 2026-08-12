@@ -59,8 +59,11 @@ Arama da en yakın parçayı verir, doğru parçayı değil: geleni oku, kabul e
 
 ## Bekleyen işler
 
-`LORE.md` dosyasının sonundaki "Açık Uçlar" bölümüne bak — irade kademelerinin
-son hâli, derebeyi isimleri ve zaman çizelgesi henüz netleşmedi.
+`LORE.md` dosyasının sonundaki "Açık Uçlar" bölümüne bak. Şu an açık olanlar:
+irade kademelerinin son hâli, Yılmaz sonrası zaman çizelgesi (1730 mu 1731 mi)
+ve video bağlantıları.
+
+**Derebeyi isimleri kapandı** — 81 ilin 81'i de dolu, `ad: null` kalmadı.
 
 ## Denetim sonrası eklenen kurallar
 

@@ -81,8 +81,12 @@ def main(argv):
         isabet3 += sira > 0
         mrr_toplam += 1.0 / sira if sira else 0.0
 
-        govde = "\n".join(p.metin for p in parcalar)
-        eksik = [g for g in vaka["gercekler"] if g not in govde]
+        # Büyük/küçük harfe duyarsız ara: canon'da "Gövdeye" diye başlayan bir
+        # cümle, "gövde" gerçeğini karşılar. Türkçe küçültme ara.py'den geliyor
+        # çünkü Python'un lower()'ı "İ" harfini bozar.
+        govde = ara.turkce_kucult("\n".join(p.metin for p in parcalar))
+        eksik = [g for g in vaka["gercekler"]
+                 if ara.turkce_kucult(g) not in govde]
         kapsama += not eksik
 
         if sira and not eksik:

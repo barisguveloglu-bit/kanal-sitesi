@@ -405,6 +405,26 @@ def d_belge(r):
         else:
             r.tamam()
 
+    # CLAUDE.md, LORE.md'de var olmayan bir bölüme yollarsa okuyan kişi
+    # aradığını bulamaz. Nitekim bulamadı: "Açık Uçlar" bölümüne yollanıyordu
+    # ama dosyada öyle bir bölüm yoktu — son bölüm "Kapatılan Diğer Uçlar",
+    # yani tam tersi anlamda. Aynı sınıftan bir çürüme, aynı şekilde denetlenir.
+    talimat_yolu = os.path.join(KOK, "CLAUDE.md")
+    lore_yolu = os.path.join(KOK, "LORE.md")
+    if os.path.exists(talimat_yolu) and os.path.exists(lore_yolu):
+        talimat = open(talimat_yolu, encoding="utf-8").read()
+        lore = open(lore_yolu, encoding="utf-8").read()
+        basliklar = {b.strip().lower()
+                     for b in re.findall(r"(?m)^#{1,6}\s+(.+?)\s*$", lore)}
+        # `LORE.md` ... "Bölüm Adı" bölümü  kalıbındaki atıflar
+        for atif in re.findall(r'LORE\.md[^\n]{0,60}?"([^"]+)"\s*bölüm', talimat):
+            if not any(atif.lower() in b for b in basliklar):
+                r.hata("belge",
+                       f'CLAUDE.md, LORE.md\'de "{atif}" bölümüne yolluyor '
+                       "ama öyle bir başlık yok.")
+            else:
+                r.tamam()
+
     altin_yolu = os.path.join(KOK, ".claude", "altin-sorular.json")
     if os.path.exists(altin_yolu):
         import json as _json
