@@ -152,6 +152,7 @@ Türkçe için üç şey özel olarak yapıldı, üçü de ölçümle bulundu:
 python3 .claude/sinav.py          # denetleyici gerçekten yakalıyor mu
 python3 .claude/degerlendir.py    # geri getirme doğru yeri buluyor mu
 python3 .claude/arac-sinavi.py    # kesici, yargıç, geri bildirim, kanca çalışıyor mu
+python3 .claude/mutasyon.py       # bu testler gerçekten canlı mı
 ```
 
 Üçüncüsü sonradan eklendi ve eklenme sebebi öğreticiydi: devre kesici,
@@ -267,15 +268,26 @@ Kancaya da bağlı: bir düzenleme turunda denetim üst üste üç kez düşerse
 kanca "DEVRE KESİLDİ" mesajı basar. Yani sınır komut dosyasını okumayan
 bir akışta bile geçerli.
 
-**İki ayrı bütçe var**, çünkü iki ayrı risk var:
+**Üç ayrı sınır var**, çünkü üç ayrı risk var:
 
-| Bütçe | Neyi karşılar |
+| Sınır | Neyi karşılar |
 |---|---|
 | Tur sayısı (`--sinir`) | Sonsuz döngü — "kaç kez denedin" |
 | Duvar saati (`--sure`) | Tek uzun turda patlama — "ne kadar harcadın" |
+| İlerleme | Yerinde sayma — "ilerliyor musun" |
 
-Sadece tur saymak yetmiyordu: sınır hiç dolmadan tek bir turda saatler
-gidebilir. Tersi de olur; ikisi bağımsız kesiyor.
+Üçüncüsü en sinsi durumu yakalar: **sayaç ilerliyor ama iş ilerlemiyor.**
+Dört tur boyunca aynı iki durum arasında gidip gelen bir döngü sayaca
+göre gayet sağlıklı görünür; sınır dolana kadar döner, sonra "sınırı
+aştı" der. Oysa asıl sorun ikinci turda başlamıştır.
+
+İki kalıp aranıyor: **tekrar** (aynı iş üç kez denendi) ve **salınım**
+(A → B → A → B, yapılan iş geri alınıp tekrar yapılıyor).
+
+Bu, kancayı da düzeltti: eskiden her turda aynı genel notu ("denetim
+düştü") yazıyordu, o yüzden "aynı hatada saplandım" ile "her turda başka
+bir hata düzeltiyorum" ayırt edilemiyordu. Artık gerçek hata imzası
+deftere geçiyor.
 
 İki tasarım ayrıntısı önemli:
 
@@ -450,6 +462,31 @@ alıntı kullanılıyor.
 Kural: claude.ai tarafını soru-cevap ve yazı için kullan, **dosya
 değiştirmek için değil.** Dosya değişikliği denetleyicinin olduğu yerde
 yapılır.
+
+## Testlerin sınavı — mutasyon
+
+Bütün ölçüm katmanının dayandığı son soru: **testler gerçekten canlı mı?**
+
+Bir test sessizce öldürülebilir; gövdesinin başına `return None` koymak
+yeter. Vaka sayısı değişmez, `belge` denetimi bir şey görmez, sınav yeşil
+kalır. Denendi ve oldu: uydurma testi devre dışı bırakıldığında **üç
+ölçüm de yeşil** kaldı.
+
+```
+python3 .claude/mutasyon.py
+```
+
+Klasik mutasyon testi: ölçülen şeyi kasten boz, testin yakalayıp
+yakalamadığına bak. Burada **başarısızlık iyi haberdir** — mutasyon
+yakalandı demektir. Yeşil kalan bir mutasyon, "o davranışı hiçbir şey
+korumuyor" demektir.
+
+15 mutasyon var: kesici hiç kesmesin, yargıç uydurmayı görmesin, sözleşme
+kapısı açılsın, arama "bilmiyorum" diyemesin, ham iz özete girsin…
+
+İlk koşusunda bir kaçak buldu ve o kaçak öğreticiydi: ilerleme denetçisi
+yeni eklenmişti ama **testi yazılmamıştı.** Özellik vardı, koruması yoktu.
+Mutasyon sınavı tam olarak bunun için var.
 
 ## Sınırlar
 

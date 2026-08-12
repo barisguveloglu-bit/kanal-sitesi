@@ -91,10 +91,21 @@ def main():
 
     # Denetim düştü. Kaçıncı kez düştüğünü sayan taraf model değil, dosya —
     # yoksa "bu sefer çözerim" diyerek sonsuza kadar dönebilir.
+    # Nota GERÇEK hata imzası yazılır, genel bir cümle değil. Sebebi:
+    # devre kesicinin ilerleme denetimi bu notlara bakıyor. Her tur aynı
+    # genel cümle yazılırsa "aynı hatada saplandım" ile "her turda başka
+    # bir hata düzeltiyorum" ayırt edilemez — birincisi durmalı, ikincisi
+    # devam etmeli.
+    ilk_hata = "denetim düştü"
+    for satir in (sonuc.stdout or "").splitlines():
+        if satir.strip().startswith("["):
+            ilk_hata = satir.strip()[:90]
+            break
+
     if os.path.exists(devre):
         kesici = subprocess.run(
             [sys.executable, devre, "dene", "--halka", "denetim", "--sinir", "3",
-             "--not", "denetim düştü, düzeltme denendi"],
+             "--not", ilk_hata],
             cwd=kok, capture_output=True, text=True, timeout=30)
         if kesici.returncode == 1:
             print("DEVRE KESİLDİ — bu düzenleme turunda denetim üst üste "

@@ -270,17 +270,37 @@ def t_kanca_kapi_sayaci_artirmiyor(kok):
     return None
 
 
-def t_kanca_ustuste_hatada_kesiyor(kok):
+def t_kanca_ayni_hatada_kesiyor(kok):
+    """Aynı hata üst üste düşerse kesilmeli — hem de tur sınırı dolmadan.
+
+    Kanca nota gerçek hata imzasını yazıyor; aynı imza üç kez görülünce
+    ilerleme denetimi ateşliyor. Bu tur sınırından ÖNCE gelir ve doğrusu
+    budur: aynı hatada üçüncü kez saplanmak, dördüncüyü beklemeye değmez.
+    """
     yol = os.path.join(kok, "assets/css/style.css")
     s = open(yol, encoding="utf-8").read()
     open(yol, "w", encoding="utf-8").write(
         s.replace("[hidden] { display: none !important; }", ""))
-    for tur in range(1, 5):
+    for tur in range(1, 4):
         sonuc = _kanca(kok, "assets/css/style.css")
-        if tur < 4 and "DEVRE KESİLDİ" in sonuc.stderr:
+        if tur < 3 and "DEVRE KESİLDİ" in sonuc.stderr:
             return f"{tur}. turda erken kesti"
-        if tur == 4 and "DEVRE KESİLDİ" not in sonuc.stderr:
-            return "4. turda kesmesi gerekirken kesmedi"
+        if tur == 3 and "DEVRE KESİLDİ" not in sonuc.stderr:
+            return "aynı hata 3 kez düştüğü hâlde kesmedi"
+    return None
+
+
+def t_kanca_hata_imzasini_yaziyor(kok):
+    """Genel cümle değil, gerçek hata deftere geçmeli — yoksa ilerleme
+    denetimi 'aynı hata' ile 'farklı hata' arasını ayıramaz."""
+    yol = os.path.join(kok, "assets/css/style.css")
+    s = open(yol, encoding="utf-8").read()
+    open(yol, "w", encoding="utf-8").write(
+        s.replace("[hidden] { display: none !important; }", ""))
+    _kanca(kok, "assets/css/style.css")
+    d = kos(kok, "devre.py", "durum")
+    if "gizleme" not in d.stdout:
+        return f"defterde hata imzası yok: {d.stdout.strip()[:90]}"
     return None
 
 
@@ -429,6 +449,37 @@ def t_devre_sure_kapaliyken_kesmiyor(kok):
     return None
 
 
+def t_devre_salinimi_yakaliyor(kok):
+    """Sayaç ilerliyor ama iş ilerlemiyor: A → B → A → B."""
+    for n in ("kontrastı düşürdüm", "kontrastı geri aldım",
+              "kontrastı düşürdüm", "kontrastı geri aldım"):
+        s = kos(kok, "devre.py", "dene", "--halka", "t", "--sinir", "20", "--not", n)
+    if s.returncode != 1:
+        return f"salınım yakalanmadı (çıkış {s.returncode})"
+    if "salınım" not in s.stdout:
+        return "kesme sebebi salınım olarak bildirilmedi"
+    return None
+
+
+def t_devre_tekrari_yakaliyor(kok):
+    for _ in range(3):
+        s = kos(kok, "devre.py", "dene", "--halka", "t", "--sinir", "20",
+                "--not", "eşiği ayarladım")
+    if s.returncode != 1 or "tekrar" not in s.stdout:
+        return "aynı işin tekrarı yakalanmadı"
+    return None
+
+
+def t_devre_farkli_isleri_kesmiyor(kok):
+    """Yanlış alarm avı: gerçekten ilerleyen döngü kesilmemeli."""
+    for n in ("menüyü düzelttim", "kontrastı ölçtüm", "belgeyi güncelledim",
+              "testi ekledim", "raporu yazdım"):
+        s = kos(kok, "devre.py", "dene", "--halka", "t", "--sinir", "20", "--not", n)
+        if s.returncode != 0:
+            return f"ilerleyen döngü kesildi: {n!r}"
+    return None
+
+
 # --------------------------------------------------------- ajan yetkisi
 
 def t_gorev_yetkisiz_brief_engelleniyor(kok):
@@ -537,13 +588,17 @@ VAKALAR = [
 
     ("bütçe: duvar saati kesiyor",          t_devre_sure_butcesi_kesiyor),
     ("bütçe: süre kapalıyken kesmiyor",     t_devre_sure_kapaliyken_kesmiyor),
+    ("ilerleme: salınım yakalanıyor",       t_devre_salinimi_yakaliyor),
+    ("ilerleme: tekrar yakalanıyor",        t_devre_tekrari_yakaliyor),
+    ("ilerleme: ilerleyen döngü kesilmiyor", t_devre_farkli_isleri_kesmiyor),
 
     ("yetki: beyansız görev engelleniyor",  t_gorev_yetkisiz_brief_engelleniyor),
     ("yetki: iki mod da üretiliyor",        t_gorev_iki_mod_da_uretiliyor),
     ("yetki: ihlal yakalanıyor",            t_gorev_yetki_ihlali_yakalaniyor),
 
     ("kanca: kapı sayacı artırmıyor",       t_kanca_kapi_sayaci_artirmiyor),
-    ("kanca: üst üste hatada kesiyor",      t_kanca_ustuste_hatada_kesiyor),
+    ("kanca: aynı hatada kesiyor",          t_kanca_ayni_hatada_kesiyor),
+    ("kanca: hata imzasını deftere yazıyor", t_kanca_hata_imzasini_yaziyor),
     ("denetleyici: bozuk araca dayanıyor",  t_dogrula_bozuk_araca_dayaniyor),
 
     ("geri bildirim: vakaya çeviriyor",     t_geribildirim_vakaya_ceviriyor),

@@ -31,7 +31,18 @@ kesici sınırda kesiyor mu, yargıç eksik gönderimi yakalıyor mu, kapı
 olayı sayacı boşuna artırıyor mu, bozuk bir araç denetimin tamamını
 çökertiyor mu.
 
-## 3. Geri getirme evali
+## 3. Mutasyon sınavı
+
+```
+python3 .claude/mutasyon.py
+```
+
+Araçları kasten bozup sınavın yakalayıp yakalamadığına bakar. Kaçan her
+mutasyon, hiçbir testin korumadığı bir davranış demektir — testin var
+olması yetmez, **canlı** olması gerekir. Yavaştır (~2 dk), her koşuda
+değil; test eklendiğinde ve commit öncesi çalıştır.
+
+## 4. Geri getirme evali
 
 ```
 python3 .claude/degerlendir.py --ayrinti
@@ -47,7 +58,7 @@ python3 .claude/degerlendir.py --ayrinti
 | `konu dışı doğru` | Alakasız soruya susuyor mu | Uydurmanın kapısı açık |
 | `sahte delil yok` | Cevapsız soruya sahte dayanak üretiyor mu | **En tehlikelisi** |
 
-## 4. Açık geri bildirimler
+## 5. Açık geri bildirimler
 
 ```
 python3 .claude/geri-bildirim.py listele
@@ -56,7 +67,7 @@ python3 .claude/geri-bildirim.py listele
 Otomatiğe çevrilemeyen kayıtlar insan işidir — canon düzeltmesi, yeni
 denetim kuralı ya da komut değişikliği bekliyor olabilirler.
 
-## 5. Düşen sayı ne demek
+## 6. Düşen sayı ne demek
 
 Bir ölçü eşiğin altına düştüyse üç ihtimal var, üçünü de ayır:
 
@@ -69,7 +80,7 @@ Bir ölçü eşiğin altına düştüyse üç ihtimal var, üçünü de ayır:
 **Eşiği düşürerek yeşile döndürme.** Eşikler ölçülerek konuldu; indirilen
 her eşik, testin ölçtüğü şeyi biraz daha azaltır.
 
-## 6. Raporla
+## 7. Raporla
 
 Barış telefondan bakıyor: sayıları tablo hâlinde ver, hangi ölçü düştü,
 üç ihtimalden hangisi ve ne yapılması gerekiyor. Ham çıktıyı olduğu gibi basma.

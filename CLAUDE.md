@@ -43,13 +43,15 @@ yapmadan önce o dosyayı oku — karakterler, güçler ve efsane orada tanıml�
 - `python3 .claude/sinav.py`, `python3 .claude/degerlendir.py` ve
   `python3 .claude/arac-sinavi.py` — sırasıyla denetleyiciyi, aramayı ve
   araçları (kesici, yargıç, geri bildirim, kanca) ölçer.
+- `python3 .claude/mutasyon.py` — testlerin kendisini ölçer: aracı kasten
+  bozar, sınavın yakalayıp yakalamadığına bakar. Ölü test buradan çıkar.
 - `python3 .claude/gorev.py` — alt ajana verilecek sözleşmeli brief üretir
   ve gelen raporun atıflarını denetler. Sözleşmesiz görev `kanca-gorev.py`
   tarafından gönderilmeden engellenir.
 - `python3 .claude/seyir.py` — uzun koşuların hafızası. `ozet` yeni tura
   kararları ve çözülmemişleri verir, ham tur izini vermez (bağlam çürümesi).
 - `python3 .claude/devre.py` — döngülere mekanik tur sınırı koyar (devre
-  kesici). İki bütçe: tur sayısı ve duvar saati. Aşılırsa çıkış kodu `1`.
+  kesici). Üç sınır: tur sayısı, duvar saati ve ilerleme (tekrar/salınım).
 - `python3 .claude/yargi.py` — verilen cevapları altın sete karşı yargılar:
   atıf gerçekten doğru satırı gösteriyor mu, uydurma var mı.
 - `python3 .claude/geri-bildirim.py` — yanlış çıkan bir cevabı kalıcı test

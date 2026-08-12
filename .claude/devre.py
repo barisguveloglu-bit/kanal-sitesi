@@ -36,12 +36,16 @@ yerine `durum` komutuyla özeti okur. Uzun soluklu döngülerin bağlam
     python3 .claude/devre.py durum
     python3 .claude/devre.py sifirla --hepsi
 
-İki ayrı bütçe var, ikisi ayrı riski karşılar:
+Üç ayrı sınır var, üçü ayrı riski karşılar:
 
-    tur sayısı    "kaç kez denedin" — sonsuz döngüye karşı
-    duvar saati   "ne kadar harcadın" — tek uzun turda patlamaya karşı
+    tur sayısı    "kaç kez denedin"     — sonsuz döngüye karşı
+    duvar saati   "ne kadar harcadın"   — tek uzun turda patlamaya karşı
+    ilerleme      "ilerliyor musun"     — yerinde saymaya karşı
 
-Tur sınırı dolmadan saat dolabilir; tersi de olur.
+Üçüncüsü en sinsi durumu yakalar: sayaç ilerliyor ama iş ilerlemiyor.
+Dört tur boyunca aynı iki durum arasında gidip gelen bir döngü sayaca
+göre sağlıklı görünür; sınır dolana kadar döner ve "sınırı aştı" der.
+Oysa asıl sorun ikinci turda başlamıştır.
 
 Çıkış kodu: 0 devam edebilirsin, 1 DEVRE KESİLDİ (dur, insana çık).
 """
@@ -49,6 +53,7 @@ Tur sınırı dolmadan saat dolabilir; tersi de olur.
 import argparse
 import json
 import os
+import re
 import sys
 from datetime import datetime, timedelta
 
@@ -61,6 +66,9 @@ TAZELIK_SAAT = 6
 
 # Defterde tutulan en fazla satır. Amaç arşiv değil, hatırlatma.
 DEFTER_SINIR = 20
+
+# Aynı işin kaç kez tekrarlanması "ilerlemiyor" sayılır.
+TEKRAR_SINIR = 3
 
 VARSAYILAN_SINIR = 3
 
@@ -84,6 +92,44 @@ def durum_yaz(d):
     with open(DURUM, "w", encoding="utf-8") as f:
         json.dump(d, f, ensure_ascii=False, indent=2)
         f.write("\n")
+
+
+def imza(not_):
+    """Bir turun kaba imzası — küçük harf, noktalama ve sayı atılmış hâli.
+
+    Amaç, aynı işin farklı kelimelerle yazılmış hâlini de eşleştirmek:
+    "kontrastı düşürdüm" ile "Kontrastı düşürdüm." aynı turdur.
+    """
+    s = not_.lower().replace("i̇", "i")
+    return " ".join(k for k in re.findall(r"[a-zçğıöşü]+", s) if len(k) > 2)
+
+
+def ilerleme_sorunu(defter):
+    """Sayı ilerliyor ama İŞ ilerlemiyor mu?
+
+    Tur saymak tek başına bunu göremez: dört tur boyunca aynı iki durum
+    arasında gidip gelen bir döngü, sayaca göre gayet sağlıklı görünür.
+    Sınır dolana kadar döner, sonra "sınırı aştı" der — oysa asıl sorun
+    ikinci turda başlamıştır.
+
+    İki kalıp aranıyor:
+      tekrar   aynı iş üst üste ya da sık sık deneniyor
+      salınım  A → B → A → B, yapılan iş geri alınıp tekrar yapılıyor
+    """
+    imzalar = [imza(x.split(". ", 1)[-1]) for x in defter if x.strip()]
+    imzalar = [i for i in imzalar if i]
+    if len(imzalar) < 3:
+        return None
+
+    for i in set(imzalar):
+        if imzalar.count(i) >= TEKRAR_SINIR:
+            return ("tekrar", f"aynı iş {imzalar.count(i)} kez denendi: \"{i}\"")
+
+    son = imzalar[-4:]
+    if len(son) == 4 and son[0] == son[2] and son[1] == son[3] and son[0] != son[1]:
+        return ("salınım", f"iki durum arasında gidip geliniyor: "
+                           f"\"{son[0]}\" ↔ \"{son[1]}\"")
+    return None
 
 
 def gecen_sure(halka):
@@ -125,8 +171,12 @@ def dene(a):
         halka["defter"].append(f"{halka['sayac']}. {a.not_}")
         halka["defter"] = halka["defter"][-DEFTER_SINIR:]
 
+    # Bu turun notu deftere girdikten SONRA bakılır; aksi hâlde mevcut tur
+    # hesaba katılmaz ve salınım bir tur geç yakalanır.
+    ilerleme = None if a.ilerleme_kapali else ilerleme_sorunu(halka["defter"])
+
     tur_doldu = halka["sayac"] > halka["sinir"]
-    kesildi = tur_doldu or sure_doldu
+    kesildi = tur_doldu or sure_doldu or ilerleme is not None
     halka["durum"] = "kesildi" if kesildi else "acik"
     d[a.halka] = halka
     durum_yaz(d)
@@ -135,11 +185,18 @@ def dene(a):
         if tur_doldu:
             print(f"DEVRE KESİLDİ — '{a.halka}' halkası {halka['sinir']} turluk "
                   f"sınırı aştı ({halka['sayac']}. deneme).")
-        else:
+        elif sure_doldu:
             print(f"DEVRE KESİLDİ — '{a.halka}' halkası {a.sure} saniyelik "
                   f"süreyi aştı ({gecen:.0f} sn, {halka['sayac']}. turda).")
             print("Tur sınırı dolmadı ama saat doldu: tek bir uzun tur da "
                   "bütçe yakar.")
+        else:
+            tur, aciklama = ilerleme
+            print(f"DEVRE KESİLDİ — İLERLEME YOK ({tur}).")
+            print(f"  {aciklama}")
+            print("\nSayaç ilerliyor ama iş ilerlemiyor. Bir tur daha aynı "
+                  "şeyi denemek\nsonucu değiştirmeyecek: ya farklı bir "
+                  "yaklaşım seç ya insana çık.")
         if halka["defter"]:
             print("\nBu halkada neler denendi:")
             for satir in halka["defter"]:
@@ -211,6 +268,8 @@ def main(argv):
     d.add_argument("--sinir", type=int, default=VARSAYILAN_SINIR)
     d.add_argument("--sure", type=int, default=VARSAYILAN_SURE,
                    help="duvar saati bütçesi, saniye (0 = kapalı)")
+    d.add_argument("--ilerleme-kapali", action="store_true",
+                   help="tekrar/salınım denetimini kapat (bilerek yineleyen işler için)")
     d.add_argument("--not", dest="not_", default="", help="bu turda ne yapıldı")
     d.set_defaults(islev=dene)
 
