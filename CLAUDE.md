@@ -25,6 +25,32 @@ yapmadan önce o dosyayı oku — karakterler, güçler ve efsane orada tanıml�
   Soru-cevap YouTube yorumlarında yapılıyor; site sadece oraya yönlendiriyor.
   Buraya backend eklemeden önce iki kez düşün — sadeliği bilinçli bir tercih.
 
+## Çalışma döngüsü
+
+`.claude/` altında bir iş akışı katmanı var — **siteye ait değil, yayına
+çıkmıyor.** Ayrıntı: [`.claude/DONGULER.md`](.claude/DONGULER.md).
+
+- `python3 .claude/dogrula.py` — yukarıdaki kuralları makine tarafından
+  denetler (menü, site haritası, gizleme, odak, `defer`, sahte içerik,
+  yeni video, kontrast, LORE senkronu). Dış bağımlılığı yok.
+  Çıkış kodu `0` temiz, `1` kural ihlali, `3` insan onayı gerekiyor.
+- Bir `.html`/`.css`/`.js`/`.xml` ya da `LORE.md` düzenlendiğinde bu denetim
+  `.claude/kanca.py` üzerinden kendiliğinden çalışır.
+- `python3 .claude/ara.py "<soru>"` — canon içinde arar, cevabı **satır
+  numarasıyla** döndürür. Bu evren hakkında hafızadan cevap verme; her
+  iddiayı `LORE.md:201` gibi adresle.
+- `python3 .claude/sinav.py` ve `python3 .claude/degerlendir.py` —
+  denetleyicinin ve aramanın kendisini ölçer.
+- `python3 .claude/geri-bildirim.py` — yanlış çıkan bir cevabı kalıcı test
+  vakasına çevirir.
+- Komutlar: `/dongu` (tam akış), `/planla` (sadece plan), `/sor` (dayanaklı
+  cevap), `/denetle` (sadece denetim), `/degerlendir` (sistemin ölçümü),
+  `/geri-bildirim` (hatayı teste çevir), `/orkestra` (çok parçalı büyük iş).
+
+Denetleyici kural ihlalini yakalar ama canon'un anlamca tutarlı olduğunu
+göremez — içerik değişikliğinde `LORE.md`'yi yine de okumak gerekiyor.
+Arama da en yakın parçayı verir, doğru parçayı değil: geleni oku, kabul etme.
+
 ## Bekleyen işler
 
 `LORE.md` dosyasının sonundaki "Açık Uçlar" bölümüne bak — irade kademelerinin

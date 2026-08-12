@@ -1,0 +1,213 @@
+{
+  "_aciklama": [
+    "Geri getirmenin altın seti. Her soru için canon'da TEK bir doğru yer var;",
+    "'satir' o yerin LORE.md satır numarası. Bir parça o satırı kapsıyorsa isabet sayılır.",
+    "'gercekler' cevapta mutlaka geçmesi gereken dizeler — geri getirilen metinde",
+    "aranır. Böylece 'doğru bölümü buldu ama içinde cevap yok' durumu yakalanır.",
+    "LORE.md düzenlenince satır numaraları kayar; degerlendir.py bunu hata olarak",
+    "bildirir — sessizce çürümesin diye kasten kırılgan tutuldu."
+  ],
+  "sorular": [
+    {
+      "soru": "Cips Yiyen Adam kaç tır kaldırır",
+      "satir": 129,
+      "gercekler": [
+        "2 tır"
+      ]
+    },
+    {
+      "soru": "Yoğurt Yiyen Adam ne kadar güçlü",
+      "satir": 130,
+      "gercekler": [
+        "5 tır"
+      ]
+    },
+    {
+      "soru": "Teşup'un zaafı nedir",
+      "satir": 201,
+      "gercekler": [
+        "Kapalı ve dar alanda"
+      ]
+    },
+    {
+      "soru": "Ahriman'ın gücü ne yapar",
+      "satir": 202,
+      "gercekler": [
+        "Çürütme"
+      ]
+    },
+    {
+      "soru": "Barış nerede tutuluyor",
+      "satir": 428,
+      "gercekler": [
+        "Teşup'un elinde"
+      ]
+    },
+    {
+      "soru": "ağaç hangi yıl kurudu",
+      "satir": 71,
+      "gercekler": [
+        "1735"
+      ]
+    },
+    {
+      "soru": "Konya'nın derebeyi kim",
+      "satir": 286,
+      "gercekler": [
+        "Telipinu"
+      ]
+    },
+    {
+      "soru": "Van ilinin derebeyi kim",
+      "satir": 327,
+      "gercekler": [
+        "Anahita"
+      ]
+    },
+    {
+      "soru": "dördüncü irade kademesinde ne olur",
+      "satir": 100,
+      "gercekler": [
+        "emirler hiç işlemez"
+      ]
+    },
+    {
+      "soru": "güçler nereden geliyor kaynağı ne",
+      "satir": 366,
+      "gercekler": [
+        "ağacın özünden"
+      ]
+    },
+    {
+      "soru": "Samara Kadın neden ihanet etti",
+      "satir": 424,
+      "gercekler": [
+        "iradesi olmayan"
+      ]
+    },
+    {
+      "soru": "Yılmaz kim ve ne zaman öldü",
+      "satir": 56,
+      "gercekler": [
+        "1728"
+      ]
+    },
+    {
+      "soru": "mafya yapısı kaç kademeli",
+      "satir": 167,
+      "gercekler": [
+        "dört kademeli"
+      ]
+    },
+    {
+      "soru": "Kanlı Göz paradoksu nedir",
+      "satir": 108,
+      "gercekler": [
+        "kırılırsa"
+      ]
+    },
+    {
+      "soru": "Barış'ın ailesine ne oldu",
+      "satir": 411,
+      "gercekler": [
+        "kaza gibi göründü"
+      ]
+    },
+    {
+      "soru": "beyin yıkama yöntemi nereye yazılmıştı",
+      "satir": 398,
+      "gercekler": [
+        "Kereste"
+      ]
+    },
+    {
+      "soru": "mafya sloganındaki o kim",
+      "satir": 36,
+      "gercekler": [
+        "Gizemli Çocuğun Abisi"
+      ]
+    },
+    {
+      "soru": "Sarı Gülücük'ün şirketi ne satıyor",
+      "satir": 137,
+      "gercekler": [
+        "ayı kapanı"
+      ]
+    },
+    {
+      "soru": "komutanlar kaç tır kaldırıyor",
+      "satir": 193,
+      "gercekler": [
+        "3 tır"
+      ],
+      "_kaynak": "geri bildirim 2026-08-12"
+    },
+    {
+      "soru": "Ahriman kimi kilitliyor",
+      "satir": 206,
+      "gercekler": [
+        "Sarı Gülücük"
+      ],
+      "_kaynak": "geri bildirim 2026-08-12"
+    }
+  ],
+  "_konu_disi_aciklama": [
+    "Bu evrenle hiç ilgisi olmayan sorular. Geri getirme HİÇBİR ŞEY",
+    "döndürmemeli. Bir arama motorunun en zor işi budur: bilmediğini söylemek."
+  ],
+  "konu_disi": [
+    "kuantum dolanıklık deneyi nasıl kurulur",
+    "abonelik fiyatlandırma tablosu",
+    "sunucu veritabanı yedekleme prosedürü",
+    "react bileşeni nasıl test edilir"
+  ],
+  "_cevapsiz_aciklama": [
+    "Konu İÇİNDE ama canon'un cevaplamadığı sorular — asıl tehlike bunlar.",
+    "'Barış'ın kız kardeşi kim' sorusunda geri getirmenin Barış'ın aile",
+    "bölümünü getirmesi DOĞRUDUR: bakılacak yer orası. Orada kız kardeş",
+    "olmadığını görmek okuma işi, arama işi değil.",
+    "",
+    "Bu yüzden burada ölçülen şey 'hiçbir şey döndürme' değil, çok daha",
+    "önemlisi: döndürdüğü metin sorulan uydurma şeyi İÇERMEMELİ.",
+    "Güvenlik özelliği 'her zaman bul' değil, 'asla sahte delil üretme'.",
+    "Dayanak gelir, cevap gelmez — doğru davranış 'canon bunu söylemiyor' demektir."
+  ],
+  "cevapsiz": [
+    {
+      "soru": "Barış'ın kız kardeşi kim",
+      "olmamali": [
+        "kız kardeş"
+      ]
+    },
+    {
+      "soru": "Samara Kadın kaç yaşında",
+      "olmamali": [
+        "yaşında"
+      ]
+    },
+    {
+      "soru": "Nemesis hangi arabayı kullanıyor",
+      "olmamali": [
+        "araba"
+      ]
+    },
+    {
+      "soru": "hikaye kaç bölüm sürecek",
+      "olmamali": [
+        "bölüm sayısı"
+      ]
+    },
+    {
+      "soru": "Cips Yiyen Adam'ın gerçek adı ne",
+      "olmamali": [
+        "gerçek adı"
+      ]
+    },
+    {
+      "soru": "Teşup'un üçüncü formu nedir",
+      "olmamali": [
+        "üçüncü form"
+      ]
+    }
+  ]
+}
