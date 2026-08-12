@@ -1,0 +1,4 @@
+# Python önbelleği — .claude/ altındaki betikler birbirini import ettiği için
+# oluşuyor. Derlenmiş çıktı depoda durmaz; her makinede yeniden üretilir.
+__pycache__/
+*.py[cod]
