@@ -46,8 +46,10 @@ yapmadan önce o dosyayı oku — karakterler, güçler ve efsane orada tanıml�
 - `python3 .claude/gorev.py` — alt ajana verilecek sözleşmeli brief üretir
   ve gelen raporun atıflarını denetler. Sözleşmesiz görev `kanca-gorev.py`
   tarafından gönderilmeden engellenir.
+- `python3 .claude/seyir.py` — uzun koşuların hafızası. `ozet` yeni tura
+  kararları ve çözülmemişleri verir, ham tur izini vermez (bağlam çürümesi).
 - `python3 .claude/devre.py` — döngülere mekanik tur sınırı koyar (devre
-  kesici). Sınır aşılırsa çıkış kodu `1`: dur, insana çık.
+  kesici). İki bütçe: tur sayısı ve duvar saati. Aşılırsa çıkış kodu `1`.
 - `python3 .claude/yargi.py` — verilen cevapları altın sete karşı yargılar:
   atıf gerçekten doğru satırı gösteriyor mu, uydurma var mı.
 - `python3 .claude/geri-bildirim.py` — yanlış çıkan bir cevabı kalıcı test

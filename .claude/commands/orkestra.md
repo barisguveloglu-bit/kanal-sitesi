@@ -28,8 +28,13 @@ ne isteniyor, hangi dosyalar, hangi çıktı bekleniyor.
 **2 — Dağıt.** Görev metnini **elle yazma, üret:**
 
 ```
-python3 .claude/gorev.py brief --konu "<ne isteniyor>" --cikti "<beklenen çıktı>"
+python3 .claude/gorev.py brief --konu "<ne isteniyor>" --cikti "<beklenen çıktı>" --mod okuma
 ```
+
+`--mod` ajanın **yetkisini** belirler ve varsayılan `okuma` (salt okunur).
+Doğrulama görevleri her zaman `okuma` olmalı: bulmak ile düzeltmek ayrı
+işlerdir, düzeltme kararı insanındır. `yazma` sadece gerçekten dosya
+değişecekse — o modda bile `git commit` ve `git push` yasak.
 
 Çıkan sözleşmeyi görevin başına koy, altına o parçaya özel ayrıntıları ekle.
 Sonra `Agent` ile gönder; bağımsız olanları **aynı anda** başlat.
@@ -44,8 +49,13 @@ Araştırma/denetim işleri için `Explore`, çok adımlı işler için
 **3 — Birleştir.** Önce raporu **makineye doğrulat**, sonra oku:
 
 ```
-python3 .claude/gorev.py dogrula --rapor <dosya> --deftere-yaz
+python3 .claude/gorev.py dogrula --rapor <dosya> --mod okuma --deftere-yaz
 ```
+
+`--mod okuma` verirsen atıfların yanı sıra **yetki de denetlenir**: salt
+okunur beyan edilen ajan depoya dokunmuşsa yakalanır. Bu harness alt
+ajanın araçlarını kısıtlamaya izin vermiyor — yani gerçek ayrıcalık
+ayrımı yapılamıyor; yapılabilen, beyanı sonradan sınamak.
 
 Her atıfın gerçekten o satırı gösterip göstermediğine bakar. Ajan raporu
 düzgün Türkçeyle gelir ve doğru **görünür**; en yaygın hata "dayanaklı

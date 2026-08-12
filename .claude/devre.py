@@ -36,6 +36,13 @@ yerine `durum` komutuyla özeti okur. Uzun soluklu döngülerin bağlam
     python3 .claude/devre.py durum
     python3 .claude/devre.py sifirla --hepsi
 
+İki ayrı bütçe var, ikisi ayrı riski karşılar:
+
+    tur sayısı    "kaç kez denedin" — sonsuz döngüye karşı
+    duvar saati   "ne kadar harcadın" — tek uzun turda patlamaya karşı
+
+Tur sınırı dolmadan saat dolabilir; tersi de olur.
+
 Çıkış kodu: 0 devam edebilirsin, 1 DEVRE KESİLDİ (dur, insana çık).
 """
 
@@ -57,6 +64,11 @@ DEFTER_SINIR = 20
 
 VARSAYILAN_SINIR = 3
 
+# Duvar saati bütçesi (saniye). Tur saymak tek başına yetmiyor: tek bir uzun
+# turda sınır hiç dolmadan saatler ve token gidebilir. Sayaç "kaç kez
+# denedin", saat "ne kadar harcadın" sorusunu cevaplar; ikisi ayrı risk.
+VARSAYILAN_SURE = 1800
+
 
 def durum_oku():
     if not os.path.exists(DURUM):
@@ -74,6 +86,15 @@ def durum_yaz(d):
         f.write("\n")
 
 
+def gecen_sure(halka):
+    """Halka açıldığından beri geçen saniye."""
+    try:
+        return (datetime.now()
+                - datetime.fromisoformat(halka["baslangic"])).total_seconds()
+    except (KeyError, ValueError):
+        return 0.0
+
+
 def bayat_mi(halka):
     son = halka.get("son")
     if not son:
@@ -89,24 +110,36 @@ def dene(a):
     halka = d.get(a.halka)
 
     if halka is None or bayat_mi(halka):
-        halka = {"sayac": 0, "sinir": a.sinir, "baslangic": datetime.now().isoformat(timespec="seconds"),
+        halka = {"sayac": 0, "sinir": a.sinir,
+                 "baslangic": datetime.now().isoformat(timespec="seconds"),
                  "defter": []}
 
     halka["sinir"] = a.sinir
+    halka["sure_siniri"] = a.sure
     halka["sayac"] += 1
     halka["son"] = datetime.now().isoformat(timespec="seconds")
+
+    gecen = gecen_sure(halka)
+    sure_doldu = a.sure > 0 and gecen > a.sure
     if a.not_:
         halka["defter"].append(f"{halka['sayac']}. {a.not_}")
         halka["defter"] = halka["defter"][-DEFTER_SINIR:]
 
-    kesildi = halka["sayac"] > halka["sinir"]
+    tur_doldu = halka["sayac"] > halka["sinir"]
+    kesildi = tur_doldu or sure_doldu
     halka["durum"] = "kesildi" if kesildi else "acik"
     d[a.halka] = halka
     durum_yaz(d)
 
     if kesildi:
-        print(f"DEVRE KESİLDİ — '{a.halka}' halkası {halka['sinir']} turluk "
-              f"sınırı aştı ({halka['sayac']}. deneme).")
+        if tur_doldu:
+            print(f"DEVRE KESİLDİ — '{a.halka}' halkası {halka['sinir']} turluk "
+                  f"sınırı aştı ({halka['sayac']}. deneme).")
+        else:
+            print(f"DEVRE KESİLDİ — '{a.halka}' halkası {a.sure} saniyelik "
+                  f"süreyi aştı ({gecen:.0f} sn, {halka['sayac']}. turda).")
+            print("Tur sınırı dolmadı ama saat doldu: tek bir uzun tur da "
+                  "bütçe yakar.")
         if halka["defter"]:
             print("\nBu halkada neler denendi:")
             for satir in halka["defter"]:
@@ -116,8 +149,10 @@ def dene(a):
         return 1
 
     kalan = halka["sinir"] - halka["sayac"]
+    kalan_sure = a.sure - gecen if a.sure > 0 else 0
+    ek = f", {kalan_sure:.0f} sn" if a.sure > 0 else ""
     print(f"'{a.halka}' turu {halka['sayac']}/{halka['sinir']} "
-          f"({kalan} tur kaldı).")
+          f"({kalan} tur{ek} kaldı).")
     return 0
 
 
@@ -143,7 +178,9 @@ def durum_goster(a):
     for ad, halka in sorted(d.items()):
         bayat = " (bayat, sonraki denemede sıfırlanır)" if bayat_mi(halka) else ""
         isaret = "KESİLDİ" if halka.get("durum") == "kesildi" else "açık"
-        print(f"[{isaret}] {ad}: {halka['sayac']}/{halka['sinir']} tur{bayat}")
+        gecen = gecen_sure(halka)
+        print(f"[{isaret}] {ad}: {halka['sayac']}/{halka['sinir']} tur, "
+              f"{gecen:.0f} sn{bayat}")
         for satir in halka.get("defter", []):
             print(f"    · {satir}")
     return 0
@@ -172,6 +209,8 @@ def main(argv):
     d = alt.add_parser("dene", help="bir tur harca")
     d.add_argument("--halka", required=True)
     d.add_argument("--sinir", type=int, default=VARSAYILAN_SINIR)
+    d.add_argument("--sure", type=int, default=VARSAYILAN_SURE,
+                   help="duvar saati bütçesi, saniye (0 = kapalı)")
     d.add_argument("--not", dest="not_", default="", help="bu turda ne yapıldı")
     d.set_defaults(islev=dene)
 

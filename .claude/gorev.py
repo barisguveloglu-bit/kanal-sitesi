@@ -59,7 +59,38 @@ ZORUNLU = {
     "uydurma yasağı": ("uydurma", "uydur", "tahmin etme"),
     "canon kaynağı": ("LORE.md", "ara.py", "canon"),
     "atıf zorunluluğu": ("atıf", "kaynak", "satır numarası", "LORE.md:"),
+    # Yetki beyanı: ajanın dosyaya dokunup dokunamayacağı AÇIKÇA yazılmalı.
+    # Bu harness alt ajanın araç kümesini kısıtlamaya izin vermiyor —
+    # yani gerçek ayrıcalık ayrımı yapılamıyor. Yapılabilecek en iyi şey:
+    # yetkiyi beyan ettirmek ve sonradan makineyle doğrulamak.
+    "yetki beyanı": ("YETKİ: okuma", "YETKİ: yazma"),
 }
+
+YETKI_OKUMA = """### YETKİ: okuma
+
+Bu görev **salt okunur**. Sen bir doğrulama/araştırma ajanısın.
+
+**Hiçbir dosyayı değiştirme.** Depoda tek satır bile düzenleme, yeni dosya
+ekleme, dosya silme. `git add`, `git commit`, `git push`, `git checkout`,
+`git reset` komutlarını **çalıştırma**.
+
+Geçici betik yazman gerekiyorsa `/tmp/` altına yaz — depoya değil.
+
+Uyuşmazlık veya hata bulursan **düzeltme**, raporla. Düzeltme kararı
+Barış'ın; senin işin bulmak.
+
+Bu kural raporun ardından `git status` ile makineyle denetlenecek.
+Depoda değişiklik bulunursa görev kusurlu sayılır."""
+
+YETKI_YAZMA = """### YETKİ: yazma
+
+Bu görev dosya değiştirebilir — ama sınırlı:
+
+- Sadece görevde adı geçen dosyalara dokun.
+- Her düzenlemeden sonra `python3 .claude/dogrula.py` çalıştır.
+- Çıkış kodu `3` (insan kapısı) alırsan **düzeltme, raporunda söyle.**
+- `git commit` ve `git push` **YASAK.** Commit kararı insanındır;
+  sen değişikliği bırak, raporunda ne değiştirdiğini yaz."""
 
 BRIEF = """## Bu görevin sözleşmesi
 
@@ -69,6 +100,8 @@ Depo: {kok}
 **Konu:** {konu}
 
 **İstenen çıktı:** {cikti}
+
+{yetki}
 
 ### Önce oku
 - `CLAUDE.md` — projenin kuralları
@@ -111,7 +144,9 @@ Uydurma atıf, atıfsız iddiadan daha kötüdür.
 
 
 def brief(a):
-    print(BRIEF.format(kok=KOK, konu=a.konu, cikti=a.cikti or "kısa rapor"))
+    yetki = YETKI_YAZMA if a.mod == "yazma" else YETKI_OKUMA
+    print(BRIEF.format(kok=KOK, konu=a.konu,
+                       cikti=a.cikti or "kısa rapor", yetki=yetki))
     return 0
 
 
@@ -163,6 +198,18 @@ def iddialar(metin):
     return cikti
 
 
+def depo_degisti_mi():
+    """Çalışma ağacında değişiklik var mı — salt okunur ajanın sınavı."""
+    try:
+        s = subprocess.run(["git", "status", "--porcelain"], cwd=KOK,
+                           capture_output=True, text=True, timeout=30)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if s.returncode != 0:
+        return None
+    return [x for x in s.stdout.splitlines() if x.strip()]
+
+
 def dogrula_rapor(a):
     rapor = open(a.rapor, encoding="utf-8").read()
     satirlar = lore_satirlari()
@@ -201,6 +248,21 @@ def dogrula_rapor(a):
             else:
                 gecen += 1
 
+    # Yetki denetimi: salt okunur beyan edilen görev depoya dokunmuş mu?
+    # Bu harness alt ajanın araçlarını kısıtlamaya izin vermiyor; gerçek
+    # ayrıcalık ayrımı yapılamıyor. Yapılabilen: beyanı sonradan sınamak.
+    if a.mod == "okuma":
+        degisiklik = depo_degisti_mi()
+        if degisiklik is None:
+            print("  UYARI: git durumu okunamadı — yetki denetimi yapılamadı.")
+        elif degisiklik:
+            print(f"  YETKİ İHLALİ: salt okunur görev depoda "
+                  f"{len(degisiklik)} değişiklik bıraktı:")
+            for satir in degisiklik[:10]:
+                print(f"        {satir}")
+            kusurlar.append(("depo", "salt okunur görev dosya değiştirdi",
+                             "yetki beyanı: okuma"))
+
     if not kusurlar and not gecen:
         print("Raporda hiç atıf yok.")
         print("Canon iddiası içeriyorsa bu bir kusurdur — adressiz iddia "
@@ -233,6 +295,8 @@ def main(argv):
     b = alt.add_parser("brief", help="alt ajana verilecek sözleşmeli görev metni üret")
     b.add_argument("--konu", required=True)
     b.add_argument("--cikti", default="")
+    b.add_argument("--mod", choices=("okuma", "yazma"), default="okuma",
+                   help="ajanın yetkisi; varsayılan salt okunur")
     b.set_defaults(islev=brief)
 
     g = alt.add_parser("denetle", help="bir görev metni sözleşmeli mi")
@@ -243,6 +307,11 @@ def main(argv):
     d.add_argument("--rapor", required=True)
     d.add_argument("--esik", type=float, default=0.25,
                    help="cümle ile kaynak arasında beklenen en az örtüşme")
+    # Varsayılan "yok": yetki denetimi AÇIKÇA istenmeli. Aksi hâlde ana
+    # oturumda yapılan her atıf denetimi, commit'lenmemiş normal işi
+    # "ihlal" sanır ve uyarı gürültüye dönüşür — kimse bakmaz olur.
+    d.add_argument("--mod", choices=("yok", "okuma", "yazma"), default="yok",
+                   help="ajana verilen yetki; 'okuma' ise depo da denetlenir")
     d.add_argument("--deftere-yaz", action="store_true",
                    help="kusurları geri bildirim defterine kaydet")
     d.set_defaults(islev=dogrula_rapor)

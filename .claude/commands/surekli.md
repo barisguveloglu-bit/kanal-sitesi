@@ -37,8 +37,12 @@ yeşile ulaşmak döngüyü tamamlamak değil, ölçüyü yok etmektir.
 Her turun başında:
 
 ```
-python3 .claude/devre.py dene --halka surekli --sinir 8 --not "<bu turda ne yapılacak>"
+python3 .claude/devre.py dene --halka surekli --sinir 8 --sure 2700 --not "<bu turda ne yapılacak>"
 ```
+
+İki bütçe birden: **8 tur** ve **45 dakika**. İkisi ayrı riski karşılar —
+tur sayısı sonsuz döngüye, duvar saati tek uzun turda patlamaya karşı.
+Biri dolduğunda kesilir.
 
 Çıkış kodu **1 ise DUR.** Başka bir açıdan denemeye kalkma — sınıra ulaşmış
 bir döngünün bir sonraki turu, öncekilerden daha iyi olmuyor.
@@ -51,18 +55,39 @@ python3 .claude/devre.py basari --halka surekli
 
 ## Kısıt 3 — Hafıza hijyeni
 
-Her turda **tek bir iş** yap. Bitince o turun ayrıntısını bağlamda taşıma;
-tek satır olarak deftere yaz (`--not` ile) ve unut.
+Uzun bir döngüde bağlam sessizce bozulur: alakasız araç çıktıları, tekrar
+okumalar ve çözülmüş turların ayrıntısı birikir. Model hata vermez,
+sadece sinyale daha az dikkat eder. Yirminci turda hâlâ çalışıyor
+görünür ama ne yaptığını bilmez.
 
-Bir sonraki tura başlarken geçmişi hatırlamaya çalışma, **oku**:
+Buna karşı **seyir defteri** var. Başlarken:
 
 ```
-python3 .claude/devre.py durum
+python3 .claude/seyir.py baslat --is "<iş adı>" --hedef "$ARGUMENTS"
+python3 .claude/seyir.py ozet        # önceki koşular ne yapmış?
 ```
 
-Bu döngünün uzun yaşayabilmesinin tek sebebi budur. Ayrıntıyı bağlamda
-biriktirirsen yirminci turda ne yaptığını bilmez hâle gelirsin — döngü
-çalışmaya devam eder ama saçmalar.
+`ozet` bu döngünün epizodik belleğidir: önceki koşuların **kararlarını,
+çözemediklerini ve denenip işe yaramayanları** verir — ham tur izini
+vermez. Körlemesine başlama; özellikle "denenip işe yaramayanlar"
+listesini oku, yoksa aynı duvara tekrar toslarsın.
+
+Her turda **tek bir iş** yap, sonra deftere yaz ve ayrıntıyı unut:
+
+| Ne oldu | Nasıl yazılır |
+|---|---|
+| Ne yaptın (ham iz) | `yaz --tur adim --ne "..."` |
+| Bir karar verdin | `yaz --tur karar --ne "..." --neden "..."` |
+| Çözemedin | `yaz --tur cozulmemis --ne "..."` |
+| Denedin, olmadı | `yaz --tur denendi --ne "..." --neden "..."` |
+| Ölçtün | `yaz --tur olculdu --ne "..."` |
+
+Karar kaydı **gerekçesiz kabul edilmez** — betik reddeder. Gerekçesiz
+karar, altı ay sonra kimsenin anlamadığı bir kısıttır.
+
+Ayrıntıyı bağlamda biriktirme; gerektiğinde `seyir.py ozet` ile oku.
+Ham izi görmen gerekirse `seyir.py iz` — ama onu bağlama taşıma,
+sadece "neden takıldım" sorusunu cevaplamak için bak.
 
 ## Tur düzeni
 
@@ -73,7 +98,11 @@ biriktirirsen yirminci turda ne yaptığını bilmez hâle gelirsin — döngü
    not al, sıraya gir.
 5. Kapıyı tekrar çalıştır. Düzeldi mi?
 6. Sonucu `--not` ile deftere yaz, ayrıntıyı unut.
-7. Hepsi yeşilse `devre.py basari` ve çık. Değilse 1'e dön.
+7. Hepsi yeşilse `devre.py basari` + `seyir.py kapat --sonuc "..."` ve çık.
+   Değilse 1'e dön.
+
+Kapanışta çözülmemiş kayıt kalırsa `seyir.py kapat` bunu hatırlatır ve
+kayıt defterde kalır — bir sonraki koşu onu görecek.
 
 ## Durma sebepleri — üçü de meşru
 

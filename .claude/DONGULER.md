@@ -210,6 +210,42 @@ açtığında da orada.** Unutmayan taraf burasıdır.
 `canon`, `kural` ve `davranis` kayıtları otomatiğe çevrilmez — `LORE.md`'ye
 ne yazılacağı Barış'ın kararı, yeni denetim kuralı ise yazılması gereken kod.
 
+## Bağlam yönetimi ve epizodik bellek
+
+Uzun koşuların sessiz düşmanı **bağlam çürümesi**: alakasız araç
+çıktıları, tekrar okumalar ve çözülmüş turların ayrıntısı birikir. Model
+hata vermez, sadece sinyale daha az dikkat eder — yirminci turda hâlâ
+çalışıyor görünür ama ne yaptığını bilmez.
+
+`seyir.py` dört işlemi karşılıyor:
+
+| İşlem | Karşılığı |
+|---|---|
+| **Write** | `yaz` — bağlamı pencere dışına, dosyaya alır |
+| **Select** | `ozet` — yeni tura sadece gerekli olanı geri verir |
+| **Compress** | şema — ham iz özete girmez, karar ve boşluk girer |
+| **Isolate** | alt ajanlar ayrı pencerelerde (`gorev.py`) |
+
+Kritik nokta: burada **serbest özetleme yok**. Serbest özetleme uzun
+görevlerde kilit kararları güvenilir biçimde korumaz — özetleyici neyin
+önemli olduğunu bilmez ve tam da sonradan lazım olacak şeyi atar.
+Onun yerine **saklama şeması** var, ne saklanacağı önceden yazılı:
+
+```
+karar        hangi karar verildi ve NEDEN   (gerekçesiz kayıt reddedilir)
+cozulmemis   neyin çözülemediği             (sonraki koşu buradan başlar)
+denendi      denenip işe yaramayan yol      (tekrar denenmesin)
+olculdu      ne test edildi, sonucu ne
+adim         ham tur izi — GÖZLEM için, özete GİRMEZ
+```
+
+İlk dördü kalıcı bellek; `adim` sadece "neden takıldı" sorusunu
+cevaplamak için. `ozet` onu kasten dışarıda bırakır: **sıkıştırma budur —
+silmek değil, ayırmak.**
+
+Bu aynı zamanda epizodik bellek: defter git'te durduğu için her yeni
+koşu, önceki koşuların neyi denediğini ve neyi çözemediğini görür.
+
 ## Devre kesici — sınırın yazı olmaktan çıkması
 
 Komut dosyalarında "en fazla 3 tur" yazıyordu. Bu bir sınır değil, bir
@@ -230,6 +266,16 @@ python3 .claude/devre.py durum                       # nerede kalmıştım
 Kancaya da bağlı: bir düzenleme turunda denetim üst üste üç kez düşerse
 kanca "DEVRE KESİLDİ" mesajı basar. Yani sınır komut dosyasını okumayan
 bir akışta bile geçerli.
+
+**İki ayrı bütçe var**, çünkü iki ayrı risk var:
+
+| Bütçe | Neyi karşılar |
+|---|---|
+| Tur sayısı (`--sinir`) | Sonsuz döngü — "kaç kez denedin" |
+| Duvar saati (`--sure`) | Tek uzun turda patlama — "ne kadar harcadın" |
+
+Sadece tur saymak yetmiyordu: sınır hiç dolmadan tek bir turda saatler
+gidebilir. Tersi de olur; ikisi bağımsız kesiyor.
 
 İki tasarım ayrıntısı önemli:
 
@@ -274,6 +320,15 @@ python3 .claude/gorev.py brief --konu "..." --cikti "..."
 canon kaynağı ve atıf zorunluluğu geçmiyorsa hangisinin eksik olduğunu
 söyleyip geri çevirir. Devre kesicideki mantığın aynısı — kural süreç
 dışına taşındığı an rica olmaktan çıkar.
+
+**Yetki beyanı zorunlu.** Her brief `YETKİ: okuma` ya da `YETKİ: yazma`
+içermek zorunda; kanca beyansız görevi de göndermez. Salt okunur mod
+`git commit`/`git push`/dosya düzenlemeyi açıkça yasaklar.
+
+Dürüst sınır: bu harness alt ajanın **araç kümesini kısıtlamaya izin
+vermiyor**, yani gerçek ayrıcalık ayrımı yapılamıyor. Yapılabilen,
+beyanı sonradan sınamak — `dogrula --mod okuma` çalışma ağacına bakıp
+salt okunur ajanın dosya değiştirip değiştirmediğini yakalıyor.
 
 **Gelen — rapor makineye doğrulatılır.**
 

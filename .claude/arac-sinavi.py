@@ -364,6 +364,109 @@ def t_gorev_kusuru_deftere_yaziyor(kok):
     return None
 
 
+# ------------------------------------------------------------- seyir defteri
+
+def t_seyir_ozet_ham_izi_dislar(kok):
+    """Sıkıştırmanın özü: karar kalır, ham tur izi özete girmez."""
+    kos(kok, "seyir.py", "baslat", "--is", "t", "--hedef", "sınav")
+    kos(kok, "seyir.py", "yaz", "--tur", "karar", "--ne", "KARAR_IMI",
+        "--neden", "gerekçe")
+    kos(kok, "seyir.py", "yaz", "--tur", "adim", "--ne", "HAM_IZ_IMI")
+    kos(kok, "seyir.py", "yaz", "--tur", "cozulmemis", "--ne", "BOSLUK_IMI")
+    s = kos(kok, "seyir.py", "ozet")
+    if "KARAR_IMI" not in s.stdout:
+        return "karar özete girmedi"
+    if "BOSLUK_IMI" not in s.stdout:
+        return "çözülmemiş kayıt özete girmedi"
+    if "HAM_IZ_IMI" in s.stdout:
+        return "ham tur izi özete SIZDI — sıkıştırma çalışmıyor"
+    iz = kos(kok, "seyir.py", "iz")
+    if "HAM_IZ_IMI" not in iz.stdout:
+        return "ham iz `iz` komutunda da yok — gözlemlenebilirlik kayıp"
+    return None
+
+
+def t_seyir_gerekcesiz_karari_reddeder(kok):
+    kos(kok, "seyir.py", "baslat", "--is", "t")
+    s = kos(kok, "seyir.py", "yaz", "--tur", "karar", "--ne", "gerekçesiz")
+    if s.returncode == 0:
+        return "gerekçesiz karar kabul edildi"
+    return None
+
+
+def t_seyir_cozulmemisi_kapanista_hatirlatir(kok):
+    kos(kok, "seyir.py", "baslat", "--is", "t")
+    kos(kok, "seyir.py", "yaz", "--tur", "cozulmemis", "--ne", "KALAN_IS")
+    s = kos(kok, "seyir.py", "kapat", "--sonuc", "bitti")
+    if "KALAN_IS" not in s.stdout:
+        return "kapanışta çözülmemiş kayıt hatırlatılmadı"
+    return None
+
+
+# --------------------------------------------------------------- bütçe
+
+def t_devre_sure_butcesi_kesiyor(kok):
+    """Tur sınırı dolmasa bile duvar saati dolarsa kesmeli."""
+    import json as _json
+    from datetime import datetime, timedelta
+    kos(kok, "devre.py", "dene", "--halka", "t", "--sinir", "99", "--sure", "60")
+    yol = os.path.join(kok, ".claude", "devre-durumu.json")
+    d = _json.load(open(yol, encoding="utf-8"))
+    d["t"]["baslangic"] = (datetime.now() - timedelta(seconds=600)).isoformat(timespec="seconds")
+    _json.dump(d, open(yol, "w", encoding="utf-8"), ensure_ascii=False)
+    s = kos(kok, "devre.py", "dene", "--halka", "t", "--sinir", "99", "--sure", "60")
+    if s.returncode != 1:
+        return f"süre aşıldığı hâlde kesmedi (çıkış {s.returncode})"
+    if "süreyi aştı" not in s.stdout:
+        return "kesme sebebi süre olarak bildirilmedi"
+    return None
+
+
+def t_devre_sure_kapaliyken_kesmiyor(kok):
+    s = kos(kok, "devre.py", "dene", "--halka", "t", "--sinir", "5", "--sure", "0")
+    if s.returncode != 0:
+        return "süre kapalıyken bile kesti"
+    return None
+
+
+# --------------------------------------------------------- ajan yetkisi
+
+def t_gorev_yetkisiz_brief_engelleniyor(kok):
+    """Yetki beyanı olmayan görev gönderilememeli."""
+    metin = ("Canon'da ara, LORE.md oku, atıf ver, uydurma yapma.")
+    olay = json.dumps({"tool_name": "Agent", "cwd": kok,
+                       "tool_input": {"prompt": metin, "description": "x"}})
+    s = subprocess.run([sys.executable, os.path.join(kok, ".claude", "kanca-gorev.py")],
+                       cwd=kok, input=olay, capture_output=True, text=True, timeout=60)
+    if s.returncode != 2 or "yetki" not in s.stderr.lower():
+        return "yetki beyanı olmayan görev engellenmedi"
+    return None
+
+
+def t_gorev_iki_mod_da_uretiliyor(kok):
+    o = kos(kok, "gorev.py", "brief", "--konu", "x", "--mod", "okuma")
+    y = kos(kok, "gorev.py", "brief", "--konu", "x", "--mod", "yazma")
+    if "YETKİ: okuma" not in o.stdout:
+        return "okuma modu yetki bloğu üretmedi"
+    if "YETKİ: yazma" not in y.stdout:
+        return "yazma modu yetki bloğu üretmedi"
+    if "git push" not in y.stdout:
+        return "yazma modunda commit/push yasağı yok"
+    return None
+
+
+def t_gorev_yetki_ihlali_yakalaniyor(kok):
+    """Salt okunur beyan edilen görev depoya dokunduysa kusur sayılmalı."""
+    yol = os.path.join(kok, "rapor.md")
+    open(yol, "w", encoding="utf-8").write(
+        "Barış Teşup'un elinde tutuluyor. LORE.md:428\n")
+    open(os.path.join(kok, "LORE.md"), "a", encoding="utf-8").write("\nkirlilik\n")
+    s = kos(kok, "gorev.py", "dogrula", "--rapor", yol, "--mod", "okuma")
+    if "YETKİ İHLALİ" not in s.stdout:
+        return "salt okunur görevin dosya değişikliği yakalanmadı"
+    return None
+
+
 # ------------------------------------------------------------- geri bildirim
 
 def t_geribildirim_vakaya_ceviriyor(kok):
@@ -427,6 +530,17 @@ VAKALAR = [
     ("görev: doğru atıf geçiyor",           t_gorev_dogru_atifi_geciriyor),
     ("görev: uydurma atıf yakalanıyor",     t_gorev_uydurma_atifi_yakaliyor),
     ("görev: kusur deftere yazılıyor",      t_gorev_kusuru_deftere_yaziyor),
+
+    ("seyir: ham iz özete girmiyor",        t_seyir_ozet_ham_izi_dislar),
+    ("seyir: gerekçesiz karar reddediliyor", t_seyir_gerekcesiz_karari_reddeder),
+    ("seyir: kapanışta boşluk hatırlatılıyor", t_seyir_cozulmemisi_kapanista_hatirlatir),
+
+    ("bütçe: duvar saati kesiyor",          t_devre_sure_butcesi_kesiyor),
+    ("bütçe: süre kapalıyken kesmiyor",     t_devre_sure_kapaliyken_kesmiyor),
+
+    ("yetki: beyansız görev engelleniyor",  t_gorev_yetkisiz_brief_engelleniyor),
+    ("yetki: iki mod da üretiliyor",        t_gorev_iki_mod_da_uretiliyor),
+    ("yetki: ihlal yakalanıyor",            t_gorev_yetki_ihlali_yakalaniyor),
 
     ("kanca: kapı sayacı artırmıyor",       t_kanca_kapi_sayaci_artirmiyor),
     ("kanca: üst üste hatada kesiyor",      t_kanca_ustuste_hatada_kesiyor),
