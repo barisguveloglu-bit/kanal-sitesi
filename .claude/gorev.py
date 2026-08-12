@@ -143,10 +143,47 @@ Uydurma atıf, atıfsız iddiadan daha kötüdür.
 """
 
 
+def baglam_blogu(konu, sayi=3):
+    """Konuyla ilgili canon parçalarını briefe ENJEKTE eder.
+
+    Alt ajan sıfırdan başlar ve "ara.py çalıştır" demek yetmez: ajan
+    hangi soruyu soracağını bilmeden arayamaz. İlgili canon'u brief'in
+    içine koymak, ajanı ilk turdan dayanaklı başlatır — bağlam
+    enjeksiyonunun bu sistemdeki karşılığı budur.
+
+    Enjekte edilen şey CEVAP DEĞİL, DAYANAK: satır numarasıyla gelir ve
+    ajanın onu okuyup doğrulaması beklenir. Yeterli olduğu varsayılmaz;
+    aksine "bu kadarı yetmiyorsa kendin ara" denir.
+    """
+    sonuc = ara.dizin_kur().ara(konu, sayi)
+    if not sonuc:
+        return ("### Hazır dayanak\n\n"
+                "Konu başlığı canon'da karşılık bulmadı. Bu, konunun bu\n"
+                "evrenle ilgisiz olabileceği anlamına gelir — iş canon'a\n"
+                "dokunuyorsa `ara.py` ile kendin ara, bulamazsan raporla.")
+
+    satirlar = ["### Hazır dayanak (başlangıç için — yeterli olduğunu varsayma)",
+                "",
+                "Konuyla ilgili canon parçaları aşağıda. **Oku ve doğrula**;",
+                "arama en yakın parçayı verir, doğru parçayı değil. Eksik",
+                "kalırsa `python3 .claude/ara.py \"<soru>\"` ile kendin ara.",
+                ""]
+    for puan, p in sonuc:
+        satirlar.append(f"**{p.adres}** — {p.baslik}")
+        satirlar.append("```")
+        satirlar.append(p.metin if len(p.metin) < 600 else p.metin[:600] + " […]")
+        satirlar.append("```")
+        satirlar.append("")
+    return "\n".join(satirlar)
+
+
 def brief(a):
     yetki = YETKI_YAZMA if a.mod == "yazma" else YETKI_OKUMA
-    print(BRIEF.format(kok=KOK, konu=a.konu,
-                       cikti=a.cikti or "kısa rapor", yetki=yetki))
+    metin = BRIEF.format(kok=KOK, konu=a.konu,
+                         cikti=a.cikti or "kısa rapor", yetki=yetki)
+    if not a.baglamsiz:
+        metin += "\n" + baglam_blogu(a.konu, a.baglam_sayi)
+    print(metin)
     return 0
 
 
@@ -297,6 +334,10 @@ def main(argv):
     b.add_argument("--cikti", default="")
     b.add_argument("--mod", choices=("okuma", "yazma"), default="okuma",
                    help="ajanın yetkisi; varsayılan salt okunur")
+    b.add_argument("--baglamsiz", action="store_true",
+                   help="ilgili canon parçalarını brief'e enjekte etme")
+    b.add_argument("--baglam-sayi", type=int, default=3,
+                   help="kaç canon parçası enjekte edilsin")
     b.set_defaults(islev=brief)
 
     g = alt.add_parser("denetle", help="bir görev metni sözleşmeli mi")

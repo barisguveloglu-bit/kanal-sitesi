@@ -184,7 +184,15 @@ def m_hedef_parmak_izi_sabit(kok):
             "    return \"sabit\"")
 
 
+def m_gorev_baglam_enjekte_etmesin(kok):
+    duzenle(kok, ".claude/gorev.py",
+            "    if not a.baglamsiz:",
+            "    if False:")
+
+
 MUTASYONLAR = [
+    ("görev: bağlam enjekte etmiyor",    m_gorev_baglam_enjekte_etmesin,     "arac-sinavi.py"),
+
     ("hedef: kaymayı görmüyor",          m_hedef_kaymayi_gormesin,           "arac-sinavi.py"),
     ("hedef: üstü erken kapatıyor",      m_hedef_ustu_erken_kapatsin,        "arac-sinavi.py"),
     ("hedef: parmak izi sabit",          m_hedef_parmak_izi_sabit,           "arac-sinavi.py"),

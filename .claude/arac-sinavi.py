@@ -375,6 +375,39 @@ def t_gorev_sozlesmeli_geciyor(kok):
     return None
 
 
+def t_gorev_baglam_enjekte_ediyor(kok):
+    """Brief, konuyla ilgili canon'u satır numarasıyla içermeli."""
+    s = kos(kok, "gorev.py", "brief", "--konu", "Teşup'un zaafı nedir")
+    if s.returncode != 0:
+        return "brief üretilemedi"
+    if "Hazır dayanak" not in s.stdout:
+        return "bağlam bloğu yok"
+    if "LORE.md:201" not in s.stdout:
+        return f"ilgili canon satırı enjekte edilmedi"
+    if "Kapalı ve dar alanda" not in s.stdout:
+        return "dayanak metni gelmemiş, sadece adres var"
+    return None
+
+
+def t_gorev_baglamsiz_secenegi_calisiyor(kok):
+    s = kos(kok, "gorev.py", "brief", "--konu", "Teşup'un zaafı", "--baglamsiz")
+    if "Hazır dayanak" in s.stdout:
+        return "--baglamsiz verildiği hâlde bağlam enjekte edildi"
+    if "YETKİ" not in s.stdout:
+        return "sözleşme bozuldu"
+    return None
+
+
+def t_gorev_konu_disinda_uydurmuyor(kok):
+    """Canon'da karşılığı yoksa uydurma dayanak enjekte edilmemeli."""
+    s = kos(kok, "gorev.py", "brief", "--konu", "kuantum dolanıklık deneyi")
+    if "LORE.md:" in s.stdout.split("Hazır dayanak")[-1]:
+        return "konu dışı başlığa canon dayanağı uyduruldu"
+    if "karşılık bulmadı" not in s.stdout:
+        return "dayanak yokluğu bildirilmedi"
+    return None
+
+
 def t_gorev_dogru_atifi_geciriyor(kok):
     yol = os.path.join(kok, "rapor-iyi.md")
     open(yol, "w", encoding="utf-8").write(
@@ -671,6 +704,9 @@ VAKALAR = [
 
     ("görev: sözleşmesiz engelleniyor",     t_gorev_sozlesmesiz_engelleniyor),
     ("görev: sözleşmeli geçiyor",           t_gorev_sozlesmeli_geciyor),
+    ("görev: bağlam enjekte ediliyor",      t_gorev_baglam_enjekte_ediyor),
+    ("görev: --baglamsiz çalışıyor",        t_gorev_baglamsiz_secenegi_calisiyor),
+    ("görev: konu dışında dayanak uydurmuyor", t_gorev_konu_disinda_uydurmuyor),
     ("görev: doğru atıf geçiyor",           t_gorev_dogru_atifi_geciriyor),
     ("görev: uydurma atıf yakalanıyor",     t_gorev_uydurma_atifi_yakaliyor),
     ("görev: kusur deftere yazılıyor",      t_gorev_kusuru_deftere_yaziyor),

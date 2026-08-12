@@ -144,6 +144,42 @@ Türkçe için üç şey özel olarak yapıldı, üçü de ölçümle bulundu:
   satırında geçmez, başlıktadır. Eşleştirilmezse hiçbir zaaf sorusu
   cevaplanamaz.
 
+### Bağlam enjeksiyonu — alt ajanı ilk turdan dayanaklı başlatmak
+
+`gorev.py brief` artık konuyla ilgili canon parçalarını **brief'in içine
+koyuyor.** Sebebi basit: alt ajana "ara.py çalıştır" demek yetmiyor —
+ajan hangi soruyu soracağını bilmeden arayamaz.
+
+Enjekte edilen şey **cevap değil dayanak**: satır numarasıyla geliyor ve
+ajanın onu okuyup doğrulaması bekleniyor. Blok açıkça "yeterli olduğunu
+varsayma, eksik kalırsa kendin ara" diyor. Konu canon'da karşılık
+bulmuyorsa dayanak uydurulmuyor — "karşılık bulmadı" deniyor.
+
+### Embedding neden yok — ölçüldü ve reddedildi
+
+Karakter n-gram vektörleri (bağımlılıksız yapılabilecek tek "gömme"
+biçimi) altın sete karşı ölçüldü:
+
+| Yöntem | isabet@1 | isabet@3 | Konu dışı reddi |
+|---|---|---|---|
+| BM25 (mevcut) | %70 | %95 | 4/4 |
+| Saf n-gram | %60 | %85 | **0/4** |
+| Melez (BM25 + n-gram) | %75 | %95 | 4/4 |
+
+Saf n-gram belirgin biçimde daha kötü ve konu dışı soruyu hiç
+reddedemiyor — eşiği yok, her soruya bir şey buluyor.
+
+Melez'in +5 puanı ise 20 soruda **tek soru** demek, üstelik takas:
+bir soru 2→1 yükselirken başka biri 2→3 düşüyor. **Bilinen açığı
+("komutanlar kaç tır") çözmüyor.** Bu sinyal değil gürültü; ikinci bir
+puanlama mekanizmasının karmaşıklığına değmez.
+
+Gerçek anlamsal gömme (eğitilmiş model) n-gram'ın yakalayamadığını
+yakalar — ama dış bağımlılık ister ve 470 satırlık tek kaynakta
+BM25'ten iyi olması beklenmez. **Yeniden bakma koşulu:** `LORE.md`
+2000 satırı geçerse ya da altın sette başka türlü sorulmuş sorularda
+tekrarlayan kaçaklar çıkarsa.
+
 ## Değerlendirme (eval) — ölçmediğin şey çalışmıyordur
 
 Üç ayrı ölçüm var, üçü ayrı şeyi ölçüyor:
