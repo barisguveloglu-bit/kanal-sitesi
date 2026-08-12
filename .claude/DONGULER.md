@@ -194,6 +194,29 @@ açtığında da orada.** Unutmayan taraf burasıdır.
 `canon`, `kural` ve `davranis` kayıtları otomatiğe çevrilmez — `LORE.md`'ye
 ne yazılacağı Barış'ın kararı, yeni denetim kuralı ise yazılması gereken kod.
 
+## Cevap yargısı (LLM-as-judge)
+
+`degerlendir.py` aramayı ölçer, `yargi.py` **cevabı** ölçer. Doğru bölümü
+getirip yine de yanlış okumak, fazla iddia etmek ya da canon'un sustuğu
+yerde konuşmak mümkün — ve bunu daha önce hiçbir şey yakalamıyordu.
+
+Yargı ikiye bölündü, çünkü bir modelin kendi cevabını beğenmesi bu
+sistemin en baştan kaçtığı tuzak:
+
+- **Mekanik yarı** (`yargi.py`) oynanamaz. Atıf gerçekten cevabın geçtiği
+  satırı gösteriyor mu, altın gerçek cevapta geçiyor mu, canon'un sustuğu
+  soruda reddedildi mi, ve en önemlisi: **uydurma var mı.** Uydurma sayısı
+  sıfır olmak zorunda — pazarlık yok.
+- **Nitel yarı** (LLM, `/yargila` komutu) mekaniğin göremediğine bakar:
+  cevap soruyu karşılıyor mu, fazla iddia var mı, spoiler kaçmış mı.
+
+Üç ayırma kuralı zorunlu: cevaplayan altın gerçekleri görmez, cevaplayan
+ayrı bir bağlamda (alt ajan) çalışır, ve mekanik yargı nitel yargıdan önce
+gelir. Aynı oturumda cevaplayıp kendini puanlamak ölçüm değildir.
+
+Koşular `.claude/yargi-gecmisi.jsonl` içinde birikir; `gecmis` komutu iki
+koşu arasındaki gerilemeyi söyler.
+
 ## Komutlar
 
 | Komut | Ne yapar | Ne zaman |
@@ -204,6 +227,7 @@ ne yazılacağı Barış'ın kararı, yeni denetim kuralı ise yazılması gerek
 | `/denetle [düzelt]` | Sadece KAT 4 | "Bir şey bozuldu mu?" |
 | `/degerlendir` | Dış halka ölçümü | Değişiklikten sonra, ayda bir |
 | `/geri-bildirim <ne yanlıştı>` | Hatayı teste çevirir | Bir cevap yanlış çıktığında |
+| `/yargila` | Cevap kalitesi yargısı | Canon cevaplarına güven ölçmek |
 | `/orkestra <hedef>` | KAT 1 + altı | 3+ bağımsız parça, farklı uzmanlıklar |
 
 ## İki cihazdan kullanım (tablet + telefon)
