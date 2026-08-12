@@ -57,6 +57,10 @@ yapmadan önce o dosyayı oku — karakterler, güçler ve efsane orada tanıml�
   `/geri-bildirim` (hatayı teste çevir), `/surekli` (sınırlı otonom döngü),
   `/orkestra` (çok parçalı büyük iş).
 
+Bu katman Claude Code'a bağlı: betikler kabuk, kancalar hook sistemi ister.
+claude.ai tarafında kullanmak için `.claude/tasima/claude-projesi.md` —
+kurallar taşınır, zorlama taşınmaz.
+
 Denetleyici kural ihlalini yakalar ama canon'un anlamca tutarlı olduğunu
 göremez — içerik değişikliğinde `LORE.md`'yi yine de okumak gerekiyor.
 Arama da en yakın parçayı verir, doğru parçayı değil: geleni oku, kabul etme.

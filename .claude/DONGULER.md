@@ -374,6 +374,28 @@ Sen hiç bakmadan çalışması gereken bir iş varsa (örneğin haftada bir
 denetim turu) Routine kurulabilir — belirli aralıkla kendi başına açılıp
 verdiğin komutu çalıştırır, sonucu bildirir. Kurulmadı; istersen kurarız.
 
+## Claude Code dışında
+
+Sistemin **hepsi** taşınmaz ve bunu bilmek önemli — taşınmayan kısmın
+çalıştığını sanmak bu sistemin en çok uğraştığı hata türü.
+
+Kısa hâli: **kurallar taşınır, zorlama taşınmaz.** Betikler bir kabuk
+ister, kancalar Claude Code'a özgü, alt ajan aracı yok. claude.ai
+tarafında kural Claude'un uymayı seçmesine bağlı kalır; burada uymamak
+mümkün değildir çünkü kanca durdurur.
+
+Ayrıntı ve yapıştırmaya hazır proje talimatı:
+[`.claude/tasima/claude-projesi.md`](tasima/claude-projesi.md).
+
+Oradaki en önemli uyarlama: satır atfı (`LORE.md:201`) yerine **birebir
+alıntı**. Amaç aynı — her iddia kontrol edilebilir olmalı — ama
+claude.ai'de satır numarası görünmediği için Ctrl+F ile bulunabilecek
+alıntı kullanılıyor.
+
+Kural: claude.ai tarafını soru-cevap ve yazı için kullan, **dosya
+değiştirmek için değil.** Dosya değişikliği denetleyicinin olduğu yerde
+yapılır.
+
 ## Sınırlar
 
 Bunlar tahmin değil, fay enjeksiyon sınavıyla ölçüldü: **28 vaka
