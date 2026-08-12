@@ -44,6 +44,9 @@ değiştirmek için izin iste. Sessizce plan değiştirme.
 Her alt görev içinde şu turu döndür:
 
 1. **Gözlem** — ilgili dosyayı oku. Tahmin etme, bak.
+   Canon'a dair bir şey gerekiyorsa `python3 .claude/ara.py "<soru>"` ile
+   dayanağı satır numarasıyla getir. Hafızandan canon iddiası kurma —
+   adres veremediğin cümleyi yazma.
 2. **Akıl yürütme** — bu veri planı doğruluyor mu? Beklediğin şey mi çıktı?
 3. **Eylem** — tek bir düzenleme yap. Aynı anda beş dosyaya dokunma.
 4. **Yeni gözlem** — sonucu doğrula, bir sonraki adımı buna göre yeniden kur.
@@ -85,3 +88,7 @@ Soru sorarken Barış telefondan bakıyor:
 
 Bitince şunları söyle: ne yaptın, denetleyici ne dedi, neye dokunmadın
 ve neden. Eksik bıraktığın bir şey varsa açıkça yaz — sessizce kapsam daraltma.
+
+Barış bu turda bir cevabını düzelttiyse orada bırakma:
+`/geri-bildirim <ne yanlıştı>` ile kaydet. Düzeltilip unutulan hata geri gelir;
+kaydedilen hata bir daha sessizce geçemez.
