@@ -111,13 +111,32 @@ def puanla(a):
     lore_satir_sayisi = len(open(os.path.join(KOK, "LORE.md"),
                                 encoding="utf-8").read().split("\n"))
 
-    sonuclar = []
+    # Puanlama, GÖNDERİLEN cevaplar üzerinden değil ALTIN SETİN TAMAMI
+    # üzerinden yapılır. Aksi hâlde ölçüm ihmalle kandırılabilir: zor
+    # soruları — özellikle uydurmanın ölçüldüğü cevapsız olanları — hiç
+    # göndermeyip üç kolay cevapla 3/3 almak mümkündü. Cevaplamamak,
+    # yanlış cevaplamaktan iyi değildir.
+    gelen = {}
+    yinelenen = set()
     for cevap in cevaplar:
         no = cevap.get("no")
-        vaka = vakalar.get(no)
-        if not vaka:
-            sonuclar.append({"no": no, "gecti": False,
-                             "kusur": ["numarası altın sette yok"]})
+        if no in gelen:
+            yinelenen.add(no)
+        gelen[no] = cevap
+
+    fazlalik = sorted(n for n in gelen if n not in vakalar)
+
+    sonuclar = []
+    for no in sorted(vakalar):
+        vaka = vakalar[no]
+        cevap = gelen.get(no)
+        if cevap is None:
+            sonuclar.append({"no": no, "soru": vaka["soru"], "tur": vaka["tur"],
+                             "gecti": False, "kusur": ["cevap gönderilmedi"]})
+            continue
+        if no in yinelenen:
+            sonuclar.append({"no": no, "soru": vaka["soru"], "tur": vaka["tur"],
+                             "gecti": False, "kusur": ["aynı numara birden çok kez gönderildi"]})
             continue
 
         kusur = []
@@ -154,7 +173,8 @@ def puanla(a):
                          "gecti": not kusur, "kusur": kusur})
 
     gecen = sum(1 for s in sonuclar if s["gecti"])
-    toplam = len(sonuclar) or 1
+    toplam = len(vakalar) or 1
+    eksik = sum(1 for s in sonuclar if "cevap gönderilmedi" in s["kusur"])
     uydurma = sum(1 for s in sonuclar
                   if any(k.startswith("UYDURMA") for k in s["kusur"]))
 
@@ -165,12 +185,16 @@ def puanla(a):
         for k in s["kusur"]:
             print(f"      · {k}")
 
+    if fazlalik:
+        print(f"  UYARI: altın sette olmayan numaralar gönderildi: {fazlalik}")
+
     print(f"\nmekanik geçen     {gecen}/{toplam}  ({gecen/toplam:.0%})")
+    print(f"cevaplanmamış     {eksik}   (her biri başarısız sayıldı)")
     print(f"uydurma vakası    {uydurma}   (0 olmalı — pazarlık yok)")
 
     kayit = {
         "tarih": datetime.now().isoformat(timespec="seconds"),
-        "toplam": toplam, "gecen": gecen, "uydurma": uydurma,
+        "toplam": toplam, "gecen": gecen, "uydurma": uydurma, "eksik": eksik,
         "not": a.not_ or "",
     }
     with open(GECMIS, "a", encoding="utf-8") as f:

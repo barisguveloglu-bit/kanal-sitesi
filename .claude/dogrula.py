@@ -386,9 +386,22 @@ def d_belge(r):
 
     sinav_yolu = os.path.join(KOK, ".claude", "sinav.py")
     if os.path.exists(sinav_yolu):
-        tanim = importlib.util.spec_from_file_location("_sinav", sinav_yolu)
-        modul = importlib.util.module_from_spec(tanim)
-        tanim.loader.exec_module(modul)
+        # sinav.py'yi içe aktarmak onun kodunu çalıştırır. Orada bir sorun
+        # varsa DENETİMİN TAMAMI çökmemeli: denetleyici, ölçtüğü araçtan
+        # daha sağlam olmak zorunda. Yoksa bir aracın bozulması bütün
+        # kuralları görünmez kılar — en kötü hata türü.
+        try:
+            tanim = importlib.util.spec_from_file_location("_sinav", sinav_yolu)
+            modul = importlib.util.module_from_spec(tanim)
+            tanim.loader.exec_module(modul)
+        except Exception as e:
+            r.hata("belge", f"sinav.py okunamadı ({type(e).__name__}: {e}). "
+                            "Vaka sayısı doğrulanamadı — önce onu düzelt.")
+            modul = None
+    else:
+        modul = None
+
+    if modul is not None:
         toplam = len(modul.VAKALAR)
         tuzak = sum(1 for v in modul.VAKALAR if v[2])
         masum = toplam - tuzak

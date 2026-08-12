@@ -88,6 +88,30 @@ def v_kontrast_bolge(k):
     duzenle(k, "assets/css/style.css", '[data-bolge="bati"] { --bolge-renk: #d98324; }',
             '[data-bolge="bati"] { --bolge-renk: #6b4212; }')
 
+def v_belge_vaka_sayisi(k):
+    """DONGULER.md'deki sınav vaka sayısı gerçekten kayarsa yakalanmalı."""
+    import re as _re
+    p = os.path.join(k, ".claude", "DONGULER.md")
+    s = open(p, encoding="utf-8").read()
+    yeni, adet = _re.subn(r"\*\*(\d+) vaka", lambda m: f"**{int(m.group(1)) + 7} vaka", s, count=1)
+    if not adet:
+        raise AssertionError("DONGULER.md'de '**N vaka' kalıbı bulunamadı")
+    open(p, "w", encoding="utf-8").write(yeni)
+
+def v_belge_altin_sayisi(k):
+    import re as _re
+    p = os.path.join(k, ".claude", "DONGULER.md")
+    s = open(p, encoding="utf-8").read()
+    yeni, adet = _re.subn(r"\*\*(\d+) altın soru\*\*",
+                          lambda m: f"**{int(m.group(1)) + 5} altın soru**", s, count=1)
+    if not adet:
+        raise AssertionError("DONGULER.md'de '**N altın soru**' kalıbı bulunamadı")
+    open(p, "w", encoding="utf-8").write(yeni)
+
+def v_belge_olmayan_bolum(k):
+    """CLAUDE.md var olmayan bir LORE.md bölümüne yollarsa yakalanmalı."""
+    duzenle(k, "LORE.md", "## 10. Açık Uçlar", "## 10. Bir Zamanlar Açıktı")
+
 def v_lore_uydurma_karakter(k):
     duzenle(k, "assets/js/data.js", '    ad: "Sarı Gülücük",',
             '    ad: "Çelik Pençeli Kasap",')
@@ -111,6 +135,11 @@ def m_svg_opacity(k):
 def m_gercek_video(k):
     duzenle(k, "assets/js/data.js", 'baslangic: { kimlik: "", baglanti: "", baslik: "" }',
             'baslangic: { kimlik: "dQw4w9WgXcQ", baglanti: "", baslik: "İlk bölüm" }')
+
+def m_belge_alakasiz_duzenleme(k):
+    """Belgeye sayı içermeyen bir cümle eklemek yanlış alarm üretmemeli."""
+    with open(os.path.join(k, ".claude", "DONGULER.md"), "a", encoding="utf-8") as f:
+        f.write("\n\nEk not: bu satırın hiçbir sayıyla ilgisi yok.\n")
 
 def m_yeni_karakter_lore_ile(k):
     """data.js'e karakter eklendi ve LORE.md'ye de eklendi — senkron."""
@@ -141,6 +170,9 @@ VAKALAR = [
     ("kontrast: --text-3 düşürüldü",      v_kontrast_metin,               "kontrast"),
     ("kontrast: --bolge-renk koyulaştı",  v_kontrast_bolge,               "kontrast"),
     ("lore: data.js'te uydurma karakter", v_lore_uydurma_karakter,        "lore"),
+    ("belge: vaka sayısı kaydı",          v_belge_vaka_sayisi,            "belge"),
+    ("belge: altın soru sayısı kaydı",    v_belge_altin_sayisi,           "belge"),
+    ("belge: olmayan bölüme atıf",        v_belge_olmayan_bolum,          "belge"),
 
     ("MASUM: hiç değişiklik yok",         m_degisiklik_yok,               None),
     ("MASUM: yorumda 'outline: none'",    m_yorumda_outline,              None),
@@ -148,6 +180,7 @@ VAKALAR = [
     ("MASUM: SVG dizesinde opacity=0",    m_svg_opacity,                  None),
     ("KAPI: gerçek video eklendi",        m_gercek_video,                 "video"),
     ("MASUM: karakter + LORE birlikte",   m_yeni_karakter_lore_ile,       None),
+    ("MASUM: belgeye alakasız cümle",     m_belge_alakasiz_duzenleme,     None),
 ]
 
 

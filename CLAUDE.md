@@ -40,8 +40,9 @@ yapmadan önce o dosyayı oku — karakterler, güçler ve efsane orada tanıml�
 - `python3 .claude/ara.py "<soru>"` — canon içinde arar, cevabı **satır
   numarasıyla** döndürür. Bu evren hakkında hafızadan cevap verme; her
   iddiayı `LORE.md:201` gibi adresle.
-- `python3 .claude/sinav.py` ve `python3 .claude/degerlendir.py` —
-  denetleyicinin ve aramanın kendisini ölçer.
+- `python3 .claude/sinav.py`, `python3 .claude/degerlendir.py` ve
+  `python3 .claude/arac-sinavi.py` — sırasıyla denetleyiciyi, aramayı ve
+  araçları (kesici, yargıç, geri bildirim, kanca) ölçer.
 - `python3 .claude/devre.py` — döngülere mekanik tur sınırı koyar (devre
   kesici). Sınır aşılırsa çıkış kodu `1`: dur, insana çık.
 - `python3 .claude/yargi.py` — verilen cevapları altın sete karşı yargılar:

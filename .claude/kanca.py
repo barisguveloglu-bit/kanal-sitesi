@@ -64,12 +64,30 @@ def main():
 
     devre = os.path.join(kok, ".claude", "devre.py")
 
-    if sonuc.returncode == 0:
-        # Temiz çıktı: düzeltme halkası kapandı, sayaç sıfırlansın.
+    def sayaci_sifirla():
         if os.path.exists(devre):
             subprocess.run([sys.executable, devre, "basari", "--halka", "denetim"],
                            cwd=kok, capture_output=True, text=True, timeout=30)
+
+    if sonuc.returncode == 0:
+        # Temiz çıktı: düzeltme halkası kapandı, sayaç sıfırlansın.
+        sayaci_sifirla()
         return 0
+
+    if sonuc.returncode == 3:
+        # İnsan kapısı BAŞARISIZLIK DEĞİLDİR: kural ihlali yok, sadece
+        # doğruluğu betikle bilinemeyen bir şey var. Sayacı artırmak,
+        # soru sormayı cezalandırmak olurdu — üst üste birkaç kapı olayı
+        # devreyi kesip modeli susturabilirdi. Tam tersi: düzeltme halkası
+        # kapandı demektir, sayaç sıfırlanır.
+        sayaci_sifirla()
+        print(
+            "Bu düzenleme insan onayı isteyen bir noktaya dokundu. Kural "
+            "ihlali yok — ama denetleyici bunun doğru olduğunu DOĞRULAYAMIYOR. "
+            "Kendi başına devam etme: `AskUserQuestion` ile Barış'a sor."
+            "\n\n" + (sonuc.stdout or "") + (sonuc.stderr or ""),
+            file=sys.stderr)
+        return 2
 
     # Denetim düştü. Kaçıncı kez düştüğünü sayan taraf model değil, dosya —
     # yoksa "bu sefer çözerim" diyerek sonsuza kadar dönebilir.
@@ -87,17 +105,10 @@ def main():
                   file=sys.stderr)
             return 2
 
-    if sonuc.returncode == 3:
-        basli = (
-            "Bu düzenleme insan onayı isteyen bir noktaya dokundu. Kural "
-            "ihlali yok — ama denetleyici bunun doğru olduğunu DOĞRULAYAMIYOR. "
-            "Kendi başına devam etme: `AskUserQuestion` ile Barış'a sor."
-        )
-    else:
-        basli = (
-            "Denetleyici bu düzenlemeden sonra hata buldu. Turu bitirmeden "
-            "önce düzelt, sonra `python3 .claude/dogrula.py` ile tekrar doğrula."
-        )
+    basli = (
+        "Denetleyici bu düzenlemeden sonra hata buldu. Turu bitirmeden "
+        "önce düzelt, sonra `python3 .claude/dogrula.py` ile tekrar doğrula."
+    )
 
     print(basli + "\n\n" + (sonuc.stdout or "") + (sonuc.stderr or ""),
           file=sys.stderr)

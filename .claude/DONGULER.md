@@ -146,12 +146,20 @@ Türkçe için üç şey özel olarak yapıldı, üçü de ölçümle bulundu:
 
 ## Değerlendirme (eval) — ölçmediğin şey çalışmıyordur
 
-İki ayrı ölçüm var, ikisi ayrı şeyi ölçüyor:
+Üç ayrı ölçüm var, üçü ayrı şeyi ölçüyor:
 
 ```
 python3 .claude/sinav.py          # denetleyici gerçekten yakalıyor mu
 python3 .claude/degerlendir.py    # geri getirme doğru yeri buluyor mu
+python3 .claude/arac-sinavi.py    # kesici, yargıç, geri bildirim, kanca çalışıyor mu
 ```
+
+Üçüncüsü sonradan eklendi ve eklenme sebebi öğreticiydi: devre kesici,
+yargıç ve geri bildirim elle denenmişti ve çalışıyordu. Ama elle yapılan
+deneme buharlaşır — bir sonraki değişiklikte kimse tekrar denemez.
+Ölçülmeyen bir güvenlik mekanizması, çalıştığı *sanılan* bir güvenlik
+mekanizmasıdır. Nitekim ölçmeye başlayınca üç gerçek açık çıktı
+(aşağıda, Sınırlar bölümünde).
 
 `degerlendir.py` cevaplanamayan soruları **iki sınıfta** ölçer, çünkü doğru
 davranışları farklı:
@@ -283,7 +291,7 @@ Hiçbir döngü tek başına durmuyor. Her birinin bir **girdisi**, bir
 | İnsan onayı | Eşikler + çıkış kodu `3` | Barış'ın kararı | Kararı Planla-Uygula'ya geri verir |
 | Orkestratör | `/orkestra` | Uzman ajanlar | Boşluk varsa yeni görev; kesiciyle bağlı |
 | Sınırlı döngü | `/surekli` | Deterministik kapı (3 betik) | Kesici veya insan kapısı durdurur |
-| Değerlendirme | `sinav.py`, `degerlendir.py` | Altın set | Düşen ölçü → düzeltme işi doğurur |
+| Değerlendirme | `sinav.py`, `degerlendir.py`, `arac-sinavi.py` | Altın set + fay enjeksiyonu | Düşen ölçü → düzeltme işi doğurur |
 | Cevap yargısı | `yargi.py` + `/yargila` | Altın set + atıf doğrulama | Kusur → geri bildirime yazılır |
 | Geri bildirim | `geri-bildirim.py` | Barış'ın düzeltmeleri | Altın seti büyütür → değerlendirmeye döner |
 
@@ -331,8 +339,8 @@ verdiğin komutu çalıştırır, sonucu bildirir. Kurulmadı; istersen kurarız
 
 ## Sınırlar
 
-Bunlar tahmin değil, fay enjeksiyon sınavıyla ölçüldü: **24 vaka
-(19 yakalanmalı, 5 masum)** ve **20 altın soru**. Bu sayılar `dogrula.py`
+Bunlar tahmin değil, fay enjeksiyon sınavıyla ölçüldü: **28 vaka
+(22 yakalanmalı, 6 masum)** ve **20 altın soru**. Bu sayılar `dogrula.py`
 tarafından denetleniyor — betikler değişip belge yerinde kalırsa hata verir.
 Ölçülen iki gerçek açık vardı, ikisi de kapatıldı — biri tam olarak
 kapanamadı, aşağıda:
@@ -356,7 +364,30 @@ kapanamadı, aşağıda:
   yolu da geri bildirim defteri.
 - **Açık bir vaka var:** "komutanlar kaç tır kaldırıyor" sorusu tır değerleri
   tablosunu getiriyor, komutanların 3 tır satırını değil. Geri bildirim
-  defterinden geldi, altın sette duruyor, henüz çözülmedi.
+  defterinden geldi, altın sette duruyor, henüz çözülmedi. Yapısal bir
+  düzeltme denendi (düzyazıyı tablolardan ayrı öbeklemek) ve **geri
+  alındı**: hedefi düzeltmedi, isabet@3'ü 95'ten 90'a düşürdü, yeni bir
+  kaçak yarattı.
+
+### Ölçmeye başlayınca çıkan üç açık
+
+`arac-sinavi.py` yazılmadan önce kesici, yargıç ve geri bildirim "elle
+denendi ve çalışıyordu". Ölçmeye başlayınca üçü de açık verdi:
+
+- **Yargıç ihmalle kandırılabiliyordu.** Puanlama gönderilen cevaplar
+  üzerinden yapılıyordu: 26 sorudan 3'ünü gönderen 3/3 alıyordu. Zor
+  soruları — özellikle uydurmanın ölçüldüğü "cevapsız" olanları — hiç
+  göndermemek tam puan getiriyordu. Artık payda altın setin tamamı;
+  cevaplamamak, yanlış cevaplamaktan iyi değil.
+- **İnsan kapısı ceza gibi sayılıyordu.** Kanca, çıkış kodu `3`'te devre
+  sayacını artırıyordu. Kapı bir başarısızlık değil, "doğruluğunu
+  bilemiyorum" demek; üst üste birkaç kapı olayı devreyi kesip modeli
+  susturabilirdi. Artık kapı sayacı sıfırlıyor.
+- **Bozuk bir araç denetimin tamamını çökertiyordu.** `sinav.py`'de bir
+  sözdizimi hatası `dogrula.py`'yi izleme yığınıyla düşürüyordu — yani
+  bir aracın bozulması bütün kuralları görünmez kılıyordu. Denetleyici,
+  ölçtüğü araçtan sağlam olmak zorunda; artık hata olarak bildirip
+  geri kalan 82 denetimi koşuyor.
 - Bu katman siteyi değiştirmez, sadece üzerinde çalışma biçimini değiştirir.
 - Uzman ajanlar sıfırdan başlar; `LORE.md` okumalarını söylemezsen okumazlar.
 - Ajan raporu delil değildir. Sayı/isim/tarih iddiasını dosyadan doğrula.
