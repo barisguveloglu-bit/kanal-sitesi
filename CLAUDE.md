@@ -42,13 +42,16 @@ yapmadan önce o dosyayı oku — karakterler, güçler ve efsane orada tanıml�
   iddiayı `LORE.md:201` gibi adresle.
 - `python3 .claude/sinav.py` ve `python3 .claude/degerlendir.py` —
   denetleyicinin ve aramanın kendisini ölçer.
+- `python3 .claude/devre.py` — döngülere mekanik tur sınırı koyar (devre
+  kesici). Sınır aşılırsa çıkış kodu `1`: dur, insana çık.
 - `python3 .claude/yargi.py` — verilen cevapları altın sete karşı yargılar:
   atıf gerçekten doğru satırı gösteriyor mu, uydurma var mı.
 - `python3 .claude/geri-bildirim.py` — yanlış çıkan bir cevabı kalıcı test
   vakasına çevirir.
 - Komutlar: `/dongu` (tam akış), `/planla` (sadece plan), `/sor` (dayanaklı
   cevap), `/denetle` (sadece denetim), `/degerlendir` (sistemin ölçümü), `/yargila` (cevap kalitesi),
-  `/geri-bildirim` (hatayı teste çevir), `/orkestra` (çok parçalı büyük iş).
+  `/geri-bildirim` (hatayı teste çevir), `/surekli` (sınırlı otonom döngü),
+  `/orkestra` (çok parçalı büyük iş).
 
 Denetleyici kural ihlalini yakalar ama canon'un anlamca tutarlı olduğunu
 göremez — içerik değişikliğinde `LORE.md`'yi yine de okumak gerekiyor.

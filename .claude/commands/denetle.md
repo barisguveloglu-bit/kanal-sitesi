@@ -59,7 +59,13 @@ Bulduklarını iki listede ver:
 ## 4. Düzeltme
 
 Argümanda `düzelt` yazıyorsa hataları gider, sonra denetimi tekrar çalıştır.
-**En fazla 3 tur.** Üçüncüde hâlâ kırmızıysa dur ve neyi çözemediğini söyle —
-kendi kendine döngüde kalma.
+Sınır mekanik — her turdan önce:
+
+```
+python3 .claude/devre.py dene --halka duzeltme --sinir 3 --not "<ne denenecek>"
+```
+
+Çıkış kodu **1 ise dur** ve neyi çözemediğini söyle. Kendi kendine döngüde
+kalma. İş bitince: `python3 .claude/devre.py basari --halka duzeltme`
 
 Argümanda `düzelt` yoksa hiçbir dosyayı değiştirme, sadece raporla.

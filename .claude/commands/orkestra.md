@@ -49,8 +49,15 @@ Araştırma/denetim işleri için `Explore`, çok adımlı işler için
 Bu adım döngüyü döngü yapan şeydir; tek seferlik dağıtım yaparsan bu
 bir iş akışıdır, döngü değil.
 
-**En fazla 2 tur yeniden gönderme.** Sonra elindekiyle devam et ve
-neyin çözülemediğini açıkça söyle.
+Yeniden göndermeden önce sınırı yokla — uzman ajanlar pahalıdır ve
+sonsuz dağıtım maliyeti patlatır:
+
+```
+python3 .claude/devre.py dene --halka orkestra --sinir 2 --not "<hangi boşluk>"
+```
+
+Çıkış kodu **1 ise yeniden gönderme.** Elindekiyle devam et ve neyin
+çözülemediğini açıkça söyle. Bitince: `python3 .claude/devre.py basari --halka orkestra`
 
 **5 — Denetle.** Birleştirme bittiğinde `python3 .claude/dogrula.py`
 çalıştır. Uzmanlar dosya değiştirdiyse bu şart.

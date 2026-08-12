@@ -61,8 +61,31 @@ def main():
         [sys.executable, betik, "--kisa"],
         cwd=kok, capture_output=True, text=True, timeout=60,
     )
+
+    devre = os.path.join(kok, ".claude", "devre.py")
+
     if sonuc.returncode == 0:
+        # Temiz çıktı: düzeltme halkası kapandı, sayaç sıfırlansın.
+        if os.path.exists(devre):
+            subprocess.run([sys.executable, devre, "basari", "--halka", "denetim"],
+                           cwd=kok, capture_output=True, text=True, timeout=30)
         return 0
+
+    # Denetim düştü. Kaçıncı kez düştüğünü sayan taraf model değil, dosya —
+    # yoksa "bu sefer çözerim" diyerek sonsuza kadar dönebilir.
+    if os.path.exists(devre):
+        kesici = subprocess.run(
+            [sys.executable, devre, "dene", "--halka", "denetim", "--sinir", "3",
+             "--not", "denetim düştü, düzeltme denendi"],
+            cwd=kok, capture_output=True, text=True, timeout=30)
+        if kesici.returncode == 1:
+            print("DEVRE KESİLDİ — bu düzenleme turunda denetim üst üste "
+                  "çok kez düştü.\n\nDÜZELTMEYE DEVAM ETME. Dur ve Barış'a çık: "
+                  "neyi çözemediğini, ne denediğini ve hangi kararın eksik "
+                  "olduğunu söyle.\n\n"
+                  + (kesici.stdout or "") + "\n" + (sonuc.stdout or ""),
+                  file=sys.stderr)
+            return 2
 
     if sonuc.returncode == 3:
         basli = (

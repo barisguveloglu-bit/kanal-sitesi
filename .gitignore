@@ -1,4 +1,6 @@
-# Python önbelleği — .claude/ altındaki betikler birbirini import ettiği için
-# oluşuyor. Derlenmiş çıktı depoda durmaz; her makinede yeniden üretilir.
+# Devre kesicinin çalışma anı durumu — koşuya özel, sürüme girmez.
+.claude/devre-durumu.json
+
+# Python önbelleği
 __pycache__/
-*.py[cod]
+*.pyc

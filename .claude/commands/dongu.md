@@ -58,9 +58,18 @@ Bir gözlem planı yanlışlıyorsa planı düzelt, gözlemi görmezden gelme.
 Her alt görev sonunda `python3 .claude/dogrula.py` çalıştır.
 (Düzenleme kancası bunu zaten otomatik tetikler; sen yine de kapanışta çalıştır.)
 
-Hata varsa: düzelt → tekrar çalıştır. **En fazla 3 tur.** Üçüncü turda
-hâlâ kırmızıysa dur ve KAT 0'a çık — kendi kendine debug etmeye devam etme,
-neyi çözemediğini söyle.
+Hata varsa: düzelt → tekrar çalıştır. Sınır **yazılı değil mekanik** —
+her düzeltme turundan önce:
+
+```
+python3 .claude/devre.py dene --halka duzeltme --sinir 3 --not "<ne denenecek>"
+```
+
+Çıkış kodu **1 ise DUR.** Başka bir açıdan denemeye kalkma; KAT 0'a çık ve
+neyi çözemediğini söyle. Düzenleme kancası da aynı sayacı ayrıca tutuyor,
+yani bu sınırı konuşarak geçemezsin.
+
+İş bitince: `python3 .claude/devre.py basari --halka duzeltme`
 
 Denetleyicinin göremediği iki şey var, onları sen kontrol et:
 

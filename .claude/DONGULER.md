@@ -6,7 +6,7 @@ Bu katman sadece *site üzerinde çalışırken* kullanılan iş akışı.
 
 ## Neden iç içe, yan yana değil
 
-Beş döngü birbirinin alternatifi değil. Farklı yüksekliklerde duruyorlar,
+Döngüler birbirinin alternatifi değil. Farklı yüksekliklerde duruyorlar,
 bu yüzden birleşebiliyorlar:
 
 ```
@@ -29,6 +29,9 @@ KAT 3   ReAct                oku → uygula → gözlemle → karar    │
 KAT 4   Yansıt-İyileştir     dogrula.py'ye test ettir           │
    │                                                            │
    └────────────────────────────────────────────────────────────┘
+
+   Bütün katları saran mekanik sınır:  DEVRE KESİCİ (devre.py)
+   Kapıya bağlı uzun soluklu koşu:     SINIRLI DÖNGÜ (/surekli)
 ```
 
 Okuma yönü şöyle: orkestratör bir parçayı bir uzmana verir; uzman o parça
@@ -48,16 +51,21 @@ olur. Gelen sonuçtaki eksiğe göre yeniden görev veriyorsa **döngü** olur.
 
 Her döngünün bir çıkış koşulu var, yoksa sonsuza kadar döner:
 
-| Döngü | Durma koşulu |
-|---|---|
-| Yansıt-İyileştir | Denetim temiz, **ya da 3 tur doldu** → insana çık |
-| Orkestratör | Boşluk kalmadı, **ya da 2 kez yeniden gönderildi** → elindekiyle devam, eksiği söyle |
-| Planla-Uygula | Plandaki alt görevler bitti |
-| ReAct | Gözlem planı doğruladı |
-| İnsan onayı | Cevap geldi |
+| Döngü | Durma koşulu | Sınır nasıl uygulanıyor |
+|---|---|---|
+| Yansıt-İyileştir | Denetim temiz ya da 3 tur doldu | **Mekanik** — `devre.py` + kanca |
+| Orkestratör | Boşluk kalmadı ya da 2 kez yeniden gönderildi | **Mekanik** — `devre.py` |
+| Sınırlı döngü | Kapı yeşil ya da 8 tur doldu | **Mekanik** — `devre.py` |
+| Planla-Uygula | Plandaki alt görevler bitti | Plan listesi |
+| ReAct | Gözlem planı doğruladı | Gözlemin kendisi |
+| İnsan onayı | Cevap geldi | İnsan |
 
 Tur sınırları keyfi değil: üçüncü turda hâlâ çözülemeyen şey genelde
 kodda değil, kararda eksiktir — orada insana çıkmak doğrusu.
+
+"Mekanik" kelimesi burada önemli. Sınır komut dosyasında yazı olarak
+dururken model onu konuşarak geçebiliyordu; sayaç dosyaya taşınınca
+geçemez oldu.
 
 ## Yansıtma katmanı gerçek mi
 
@@ -194,6 +202,49 @@ açtığında da orada.** Unutmayan taraf burasıdır.
 `canon`, `kural` ve `davranis` kayıtları otomatiğe çevrilmez — `LORE.md`'ye
 ne yazılacağı Barış'ın kararı, yeni denetim kuralı ise yazılması gereken kod.
 
+## Devre kesici — sınırın yazı olmaktan çıkması
+
+Komut dosyalarında "en fazla 3 tur" yazıyordu. Bu bir sınır değil, bir
+ricaydı: sınırı uygulayacak olan, sınırı aşmak isteyen tarafın kendisi.
+Model üçüncü turda "bu sefer gerçekten çözeceğim" deyip devam edebilir ve
+bunu fark eden kimse olmaz.
+
+`devre.py` sayacı dosyada tutar. Model kendi sayacını unutabilir, bağlamı
+sıfırlanabilir, kendini ikna edebilir — dosya bunların hiçbirinden
+etkilenmez. Kesici bu yüzden sürecin dışında yaşıyor.
+
+```
+python3 .claude/devre.py dene --halka duzeltme --sinir 3 --not "ne denenecek"
+python3 .claude/devre.py basari --halka duzeltme     # iş bitti
+python3 .claude/devre.py durum                       # nerede kalmıştım
+```
+
+Kancaya da bağlı: bir düzenleme turunda denetim üst üste üç kez düşerse
+kanca "DEVRE KESİLDİ" mesajı basar. Yani sınır komut dosyasını okumayan
+bir akışta bile geçerli.
+
+İki tasarım ayrıntısı önemli:
+
+- **Bayat sayaç kendini sıfırlar** (6 saat). Kesici bir ceza değil fren;
+  dünkü bir başarısızlık bugünkü işi kilitlememeli.
+- **Defter bağlam şişmesine karşı.** Her tur tek satır yazılır. Amaç arşiv
+  değil *unutabilmek*: model geçmişi bağlamında taşımak yerine `durum`
+  komutuyla okur.
+
+## Sınırlı otonom döngü (Ralph Wiggum)
+
+`/surekli` uzun soluklu, kendi kendine dönen döngü. Diğerlerinden iki farkı
+var: durma koşulu bir insanın kanaati değil **deterministik kapı**
+(`dogrula` + `sinav` + `degerlendir` aynı anda yeşil), ve her turda hafıza
+kasten boşaltılır.
+
+Üç kısıtı da isteğe bağlı değil: kapı gevşetilemez (eşik indirerek yeşile
+ulaşmak döngüyü tamamlamak değil ölçüyü yok etmektir), devre kesici bağlıdır,
+ve her turda tek iş yapılıp ayrıntısı unutulur.
+
+Meşru durma sebebi üç tane: bütün kapılar yeşil, devre kesildi, insan
+kapısı. Dördüncüsü — "çözemedim ama devam ediyorum" — yok.
+
 ## Cevap yargısı (LLM-as-judge)
 
 `degerlendir.py` aramayı ölçer, `yargi.py` **cevabı** ölçer. Doğru bölümü
@@ -217,6 +268,29 @@ gelir. Aynı oturumda cevaplayıp kendini puanlamak ölçüm değildir.
 Koşular `.claude/yargi-gecmisi.jsonl` içinde birikir; `gecmis` komutu iki
 koşu arasındaki gerilemeyi söyler.
 
+## Bağlantı haritası — hangi döngü neye bağlı
+
+Hiçbir döngü tek başına durmuyor. Her birinin bir **girdisi**, bir
+**dayanağı** ve bir **çıkışı** var:
+
+| Döngü | Nerede | Neye dayanıyor | Bittiğinde nereye bağlanıyor |
+|---|---|---|---|
+| Planla-Uygula | `/planla`, `/dongu` KAT 2 | Görev listesi | Her adımı ReAct'e verir |
+| ReAct | `/dongu` KAT 3 | **Geri getirme** (`ara.py`) | Çıktıyı Yansıtma'ya verir |
+| Geri getirme | `ara.py` | `LORE.md` + `data.js` | ReAct'in gözlemini adresler; `/sor`'u besler |
+| Yansıt-İyileştir | `dogrula.py` + `kanca.py` | Harici kural seti | Kırmızıysa ReAct'e geri döner |
+| Devre kesici | `devre.py` | Dosyadaki sayaç | Sınır dolunca **İnsan onayına** çıkar |
+| İnsan onayı | Eşikler + çıkış kodu `3` | Barış'ın kararı | Kararı Planla-Uygula'ya geri verir |
+| Orkestratör | `/orkestra` | Uzman ajanlar | Boşluk varsa yeni görev; kesiciyle bağlı |
+| Sınırlı döngü | `/surekli` | Deterministik kapı (3 betik) | Kesici veya insan kapısı durdurur |
+| Değerlendirme | `sinav.py`, `degerlendir.py` | Altın set | Düşen ölçü → düzeltme işi doğurur |
+| Cevap yargısı | `yargi.py` + `/yargila` | Altın set + atıf doğrulama | Kusur → geri bildirime yazılır |
+| Geri bildirim | `geri-bildirim.py` | Barış'ın düzeltmeleri | Altın seti büyütür → değerlendirmeye döner |
+
+Halkanın kapandığı yer sonuncusu: geri bildirim altın seti büyütür, altın
+set değerlendirmeyi besler, değerlendirme gerilemeyi yakalar, gerileme
+düzeltme işi doğurur, düzeltme yine bu döngülerden geçer.
+
 ## Komutlar
 
 | Komut | Ne yapar | Ne zaman |
@@ -228,6 +302,7 @@ koşu arasındaki gerilemeyi söyler.
 | `/degerlendir` | Dış halka ölçümü | Değişiklikten sonra, ayda bir |
 | `/geri-bildirim <ne yanlıştı>` | Hatayı teste çevirir | Bir cevap yanlış çıktığında |
 | `/yargila` | Cevap kalitesi yargısı | Canon cevaplarına güven ölçmek |
+| `/surekli <hedef>` | Sınırlı otonom döngü | Kapı yeşerene kadar dönmesi gereken uzun iş |
 | `/orkestra <hedef>` | KAT 1 + altı | 3+ bağımsız parça, farklı uzmanlıklar |
 
 ## İki cihazdan kullanım (tablet + telefon)
