@@ -798,6 +798,20 @@ geçiyorsa komut reddeder. Üç kapı var:
 | `yesil` | Kayıtlı kırmızı adım olmadan yeşile geçmeyi; ve bu vaka geçse bile başka vaka düştüyse "yeşil" demeyi |
 | `duzenle` | Vaka sayısının düşmesini — yeşil kalmanın en kolay yolu korumayı silmektir, o yol kapalı |
 
+### Ölçülen bir yavaşlama
+
+Bu döngü eklendikten sonra mutasyon sınavı 15 dakikada bitmedi. Sebep
+tahmin edilmedi, ölçüldü: araç sınavının 37 saniyesinin **29'u tek bir
+vakada** geçiyordu — `duzenle` adımı, vaka sayısının düştüğünü doğrulamak
+için önce bütün vakaları koşuyordu.
+
+Sıra yanlıştı, üstelik sadece hız açısından değil: test silinmişse
+kalanların yeşil olması zaten bir şey kanıtlamaz. Ucuz ve mantıksal olarak
+öncelikli denetim öne alındı; sınav 32 saniyeye indi.
+
+Buradaki genel ders şu: bir denetimin pahalı olması çoğu zaman yanlış
+sırada durduğunun işaretidir.
+
 `sinav.py` bilerek kapsam dışı: onun vakaları kendi kendini yargılamıyor,
 kararı dışarıdaki koşucu veriyor. Taklit etmek **yanlış bir yeşil**
 üretirdi; yarım destek, desteksizlikten kötüdür.

@@ -221,8 +221,22 @@ def duzenle(a):
     sayi = len(tablo)
     onceki = d.get("_kapsam", {}).get("vaka_sayisi")
 
+    print(f"YENİDEN DÜZENLEME DENETİMİ\n  vaka sayısı  {sayi}"
+          + (f"  (önceki {onceki})" if onceki else ""))
+
+    # Kapsam denetimi ÖNCE. İki sebeple: mantıksal olarak öncelikli (test
+    # silinmişse kalanların yeşil olması bir şey kanıtlamaz) ve ucuz —
+    # sonraya bırakıldığında bu denetim sınavın süresinin dörtte üçünü
+    # yiyordu, çünkü reddedilecek bir durumu doğrulamak için önce bütün
+    # vakalar koşuluyordu.
+    if onceki is not None and sayi < onceki:
+        print(f"\nREDDEDİLDİ — vaka sayısı {onceki} → {sayi} düştü.\n")
+        print("Yeniden düzenleme testleri silmez. Yeşil kalmanın en kolay "
+              "yolu korumayı kaldırmaktır ve bu yol kapalı.")
+        return 1
+
     if os.environ.get(DERINLIK):
-        print("(iç içe TDD koşusu — vaka taraması atlandı)")
+        print("  (iç içe TDD koşusu — vaka taraması atlandı)")
         dusenler = []
     else:
         os.environ[DERINLIK] = "1"
@@ -232,21 +246,12 @@ def duzenle(a):
         finally:
             os.environ.pop(DERINLIK, None)
 
-    print(f"YENİDEN DÜZENLEME DENETİMİ\n  vaka sayısı  {sayi}"
-          + (f"  (önceki {onceki})" if onceki else ""))
     print(f"  düşen        {len(dusenler)}\n")
 
     if dusenler:
         for x in dusenler[:6]:
             print(f"  DÜŞTÜ: {x}")
         print("\nYeniden düzenleme davranışı değiştirdi. Geri al ya da düzelt.")
-        return 1
-
-    if onceki is not None and sayi < onceki:
-        # Testleri silerek yeşil kalmak, yeşil kalmak değildir.
-        print(f"REDDEDİLDİ — vaka sayısı {onceki} → {sayi} düştü.\n")
-        print("Yeniden düzenleme testleri silmez. Yeşil kalmanın en kolay "
-              "yolu korumayı kaldırmaktır ve bu yol kapalı.")
         return 1
 
     d["_kapsam"] = {"vaka_sayisi": sayi,
