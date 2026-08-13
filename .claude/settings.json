@@ -6,8 +6,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/kanca.py\"",
-            "timeout": 60
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/olay.py\" dagit",
+            "timeout": 90
           }
         ]
       }
@@ -18,8 +18,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/kanca-gorev.py\"",
-            "timeout": 30
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/olay.py\" dagit",
+            "timeout": 60
           }
         ]
       }
@@ -31,7 +31,10 @@
       "Bash(git status:*)",
       "Bash(git diff:*)",
       "Bash(git log:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(python3 .claude/butunluk.py:*)",
+      "Bash(python3 .claude/eniyile.py:*)",
+      "Bash(python3 .claude/olay.py:*)"
     ]
   }
 }

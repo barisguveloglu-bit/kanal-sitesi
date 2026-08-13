@@ -5,3 +5,5 @@
 __pycache__/
 *.pyc
 .claude/hedef.json
+.claude/olay-defteri.jsonl
+.claude/eniyile-durumu.json

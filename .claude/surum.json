@@ -1,12 +1,17 @@
 {
   "majör": 1,
   "minör": 1,
-  "yama": 0,
+  "yama": 1,
   "gecmis": [
     {
       "surum": "v1.1",
       "ne": "denetimden sonra kurulan tam katman — 15 döngü, 4 ölçüm katı",
       "tarih": "2026-08-12"
+    },
+    {
+      "surum": "v1.1.1",
+      "ne": "Değerlendirici-optimize edici ve olay döngüsü eklendi",
+      "tarih": "2026-08-13"
     }
   ]
 }

@@ -50,6 +50,14 @@ Sürüm: `python3 .claude/surum.py goster` — işaret: `python3 .claude/logo.py
   ile atanmış mı, `data.js`'teki her isim `LORE.md`'de geçiyor mu, canon'da
   dayanağı olmayan sıralama iddiası var mı. `dogrula.py` kuralları denetler,
   bu sınav gerçekleri. `data.js`'i `okuyucu.py` dış bağımlılık olmadan okur.
+- `python3 .claude/eniyile.py tur --halka <ad>` — değerlendirici-optimize
+  edici döngü. Denetimi ikili değil **puanlı** çalıştırır, eksikleri geri
+  bildirim olarak verir ve **puan artmayınca durur** (kısır tur). İnsan
+  kapısını optimize etmeye çalışmaz, insana çıkar.
+- `python3 .claude/olay.py tablo` / `defter` — olay döngüsü dağıtıcısı.
+  Bütün kancalar buradan geçiyor; hangi olayın hangi işleyiciye gittiği ve
+  ne karar verildiği deftere yazılıyor. `settings.json` artık işleyiciyi
+  değil dağıtıcıyı çağırıyor.
 - `python3 .claude/mutasyon.py` — testlerin kendisini ölçer: aracı kasten
   bozar, sınavın yakalayıp yakalamadığına bakar. Ölü test buradan çıkar.
 - `python3 .claude/gorev.py` — alt ajana verilecek sözleşmeli brief üretir

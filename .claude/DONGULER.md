@@ -1,4 +1,4 @@
-# Echo v1.1
+# Echo v1.1.1
 
 Bu katmanın adı **Echo**. Adın sebebi işleyişinde: her çıktı bir
 denetimden geri döner, her hata bir teste geri döner, her ölçüm sistemin
@@ -47,6 +47,8 @@ KAT 4   Yansıt-İyileştir     dogrula.py'ye test ettir           │
 
    Bütün katları saran mekanik sınır:  DEVRE KESİCİ (devre.py)
    Kapıya bağlı uzun soluklu koşu:     SINIRLI DÖNGÜ (/surekli)
+   KAT 4'ün puanlı hâli:               DEĞERLENDİRİCİ-OPTİMİZE (eniyile.py)
+   Bütün katları tetikleyen dış uyarı: OLAY DÖNGÜSÜ (olay.py)
 ```
 
 Okuma yönü şöyle: orkestratör bir parçayı bir uzmana verir; uzman o parça
@@ -481,6 +483,26 @@ Hiçbir döngü tek başına durmuyor. Her birinin bir **girdisi**, bir
 | Değerlendirme | `sinav.py`, `degerlendir.py`, `arac-sinavi.py` | Altın set + fay enjeksiyonu | Düşen ölçü → düzeltme işi doğurur |
 | Cevap yargısı | `yargi.py` + `/yargila` | Altın set + atıf doğrulama | Kusur → geri bildirime yazılır |
 | Geri bildirim | `geri-bildirim.py` | Barış'ın düzeltmeleri | Altın seti büyütür → değerlendirmeye döner |
+| Bütünlük | `butunluk.py` | Canon ↔ veri ↔ site | Tutarsızlık → canon kararı ya da düzeltme işi |
+| **Değerlendirici-optimize** | `eniyile.py` | `dogrula.py` + `butunluk.py` puanı | Puan artmazsa **İnsan onayına** çıkar |
+| **Olay döngüsü** | `olay.py` + `settings.json` | Claude Code kancaları | Dış uyarıyı Yansıtma'ya ve sözleşme kapısına dağıtır |
+
+İki yeni halkanın yeri şu: **olay döngüsü en dışta**, çünkü diğerlerini
+başlatan şey o — bir dosya düzenlenmeden yansıtma turu hiç başlamaz.
+**Değerlendirici-optimize KAT 4'ün içinde**, onun ikili çıktısını puana
+çevirip geri bildirimi üreticiye taşıyan parça.
+
+```
+   olay gelir ──▶ olay.py dağıtır ──▶ kanca ──▶ dogrula.py
+                                                    │
+                                          eniyile.py puanlar
+                                                    │
+                                   puan artıyor ────┴──── artmıyor
+                                        │                    │
+                                   İYİLEŞTİR              İNSAN ONAYI
+                                   (üreticiye              (KAT 0)
+                                    geri bildirim)
+```
 
 Halkanın kapandığı yer sonuncusu: geri bildirim altın seti büyütür, altın
 set değerlendirmeyi besler, değerlendirme gerilemeyi yakalar, gerileme
@@ -499,6 +521,9 @@ düzeltme işi doğurur, düzeltme yine bu döngülerden geçer.
 | `/yargila` | Cevap kalitesi yargısı | Canon cevaplarına güven ölçmek |
 | `/surekli <hedef>` | Sınırlı otonom döngü | Kapı yeşerene kadar dönmesi gereken uzun iş |
 | `/orkestra <hedef>` | KAT 1 + altı | 3+ bağımsız parça, farklı uzmanlıklar |
+
+Betik olarak çalışan iki halka daha var (komutu yok, döngünün içinden
+çağrılır): `eniyile.py` puanlı yansıtma, `olay.py` olay dağıtımı.
 
 ## İki cihazdan kullanım (tablet + telefon)
 
@@ -564,7 +589,7 @@ yakalamadığına bak. Burada **başarısızlık iyi haberdir** — mutasyon
 yakalandı demektir. Yeşil kalan bir mutasyon, "o davranışı hiçbir şey
 korumuyor" demektir.
 
-**27 mutasyon** var: kesici hiç kesmesin, yargıç uydurmayı görmesin,
+**32 mutasyon** var: kesici hiç kesmesin, yargıç uydurmayı görmesin,
 sözleşme kapısı açılsın, arama "bilmiyorum" diyemesin, ham iz özete girsin,
 sürüm yamayı dokuzdan öteye taşısın, logo sürümü gövdeye çakılsın…
 
@@ -575,6 +600,91 @@ belge 15 derken gerçek 23'tü. `belge` denetimi artık bu sayıyı da tutuyor.
 yeni eklenmişti ama **testi yazılmamıştı.** Özellik vardı, koruması yoktu.
 Mutasyon sınavı tam olarak bunun için var.
 
+## Değerlendirici-Optimize Edici — puanlı yansıtma
+
+Desen: bir taraf üretir, başka bir taraf eleştirir, geri bildirim üreticiye
+döner, kalite eşiğe ulaşana kadar tekrarlanır.
+
+```
+python3 .claude/eniyile.py tur --halka icerik
+python3 .claude/eniyile.py gecmis --halka icerik
+```
+
+KAT 4 zaten bir yansıtma halkasıydı. İki eksiği vardı ve ikisi de bu deseni
+sakat bırakıyordu:
+
+**Değerlendirme ikiliydi.** `dogrula.py` ya "temiz" ya "hata" der. İkili
+çıktı ilerlemeyi göstermez: 74 vakanın 60'ı temizken 70'i temiz olmak açık
+bir iyileşmedir, ama ikili ölçüm ikisine de "hata" der. Model kendi
+ilerlemesini göremediği için ya erken pes eder ya da kötüleştiğini fark
+etmeden döner. Artık puan var ve kısmi:
+
+```
+tur 1   0.973   2 eksik
+tur 2   0.987   1 eksik   (+0.014)   ← geri bildirim işe yaradı
+```
+
+**Durma koşulu sadece tur sayısıydı.** Asıl durma koşulu "puan artmıyor"
+olmalı. İki tur boyunca yerinde sayan bir döngünün üçüncü turda çözmesi
+için hiçbir sebep yok — orada eksik olan kod değil karardır. Kısır tur
+sayacı dolunca döngü kendini durduruyor ve insana çıkıyor.
+
+Ölçütler ve ağırlıkları: `kural` 0.5 (dogrula.py — ikili kalır, çünkü
+"odak halkası yarı silinmiş" diye bir şey yok), `butunluk` 0.3 (74 vakanın
+kaçı tutarlı — kısmi puanın anlamlı olduğu yer), `dayanak` 0.2 (aday metnin
+atıfları canon'la destekleniyor mu).
+
+**Değerlendirici bir model değil.** Bu deseni anlatan çoğu kaynak "ikinci
+bir model eleştirsin" der. Burada değerlendirici dış kural setinin kendisi.
+Sebebi bu deponun baştan beri tek cümlesi: yapay zekanın kendi işini
+beğenmesi denetim değildir. Üreten ile değerlendireni aynı yerden
+çıkarırsan ikisi de aynı kör noktayı taşır — puan yükselir, iş düzelmez.
+
+İnsan kapısı (çıkış `3`) optimize edilmez. "Yanlış" değil, "doğruluğunu
+bilemiyorum" demek; puanla çözmeye çalışmak uydurmayı ödüllendirirdi.
+
+## Olay döngüsü — dış uyarının girdiği kapı
+
+Sistem boşta bekler; bir olay gelince (dosya düzenlendi, alt ajan
+gönderiliyor) onu ilgili işleyiciye yönlendirir ve tekrar dinlemeye döner.
+
+```
+python3 .claude/olay.py tablo
+python3 .claude/olay.py defter --son 20
+python3 .claude/olay.py defter --karar "geri besledi"
+```
+
+Döngünün kendisi zaten vardı — Claude Code kancaları tam olarak budur.
+Eksik olan iki şeydi:
+
+- **Dağıtıcı yoktu.** Her olay `settings.json` içinde ayrı bir betiğe
+  sabitlenmişti; hangi olayın nereye gittiği tek parça hâlde hiçbir yerde
+  durmuyordu. Artık tablo `olay.py` içinde, ayar dosyası sadece buraya
+  yönlendiriyor.
+- **Defter yoktu.** Bir kanca sessizce çalışmadığında bunu gösteren hiçbir
+  iz kalmıyordu. Çalışmayan bir zorlama katmanı, çalışan bir zorlama
+  katmanı gibi görünür — bu deponun tekrar tekrar yakaladığı hata sınıfı
+  tam olarak bu.
+
+| Olay | Eşleşen araç | İşleyici | Ne yapar |
+|---|---|---|---|
+| `PostToolUse` | `Edit\|Write\|MultiEdit\|NotebookEdit` | `kanca.py` | site dosyası düzenlendi → denetleyiciyi koştur |
+| `PreToolUse` | `Agent\|Task` | `kanca-gorev.py` | alt ajan gönderiliyor → sözleşmesiz görevi engelle |
+
+Dağıtıcı sözleşmeyi **değiştirmez, taşır**: işleyici `2` döndürürse dağıtıcı
+da `2` döndürür. Kendi içinde bir hata olursa `0` döner — dağıtıcının
+bozulması oturumu kilitlememeli.
+
+Dinleyicisi olmayan olay sessizce kaybolmaz, deftere `dinleyicisi yok`
+olarak yazılır. Kaybolsaydı "kanca çalışmıyor mu, yoksa bu olay zaten
+dinlenmiyor mu" sorusu cevaplanamaz hâle gelirdi.
+
+Bu dağıtıcının kendi riski diğerlerinden farklı: bozulursa hiçbir şey
+bağırmaz, çünkü sınavlar betikleri doğrudan çağırıyor, kancadan geçmiyor.
+Bu yüzden yedi vaka dağıtımın kendisini ölçüyor — çıkış kodunun taşındığını,
+bilinmeyen olayın deftere düştüğünü ve `settings.json`'ın gerçekten
+dağıtıcıya yönlendirdiğini.
+
 ## Bütünlük sınavı — canon ile verinin çelişmesi
 
 Üçüncü sınav, diğer ikisiyle kasten örtüşmüyor:
@@ -582,7 +692,7 @@ Mutasyon sınavı tam olarak bunun için var.
 | Sınav | Neyi ölçer | Vaka |
 |---|---|---|
 | `sinav.py` | denetleyiciyi — fay enjeksiyonu | 28 |
-| `arac-sinavi.py` | araçları — devre, yargıç, görev, logo, bütünlük | 63 |
+| `arac-sinavi.py` | araçları — devre, yargıç, görev, logo, olay, eniyile | 77 |
 | `butunluk.py` | **içeriği** — canon ↔ veri ↔ site | **74 bütünlük vakası** |
 
 ```

@@ -21,6 +21,7 @@ dosyalarına (devre-durumu, geri-bildirim defteri) dokunmaz.
 
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -591,10 +592,16 @@ def t_logo_surum_kaymasi_yakalaniyor(kok):
     d["yama"] = 4
     json.dump(d, open(yol, "w", encoding="utf-8"), ensure_ascii=False)
     # Belge başlığını da güncelle ki tek başına logo hatası kalsın.
+    # Başlık GÖMÜLMÜYOR, aranıyor. Sürüm v1.1.1'e çıktığı gün gömülü hâli
+    # kırıldı — araçta sorun yoktu, testin kendisi bayatlamıştı. Aynı
+    # kırılganlık `LORE.md` satır numarasında da yaşandı.
     bel = os.path.join(kok, ".claude", "DONGULER.md")
     m = open(bel, encoding="utf-8").read()
-    open(bel, "w", encoding="utf-8").write(
-        m.replace("# Echo v1.1\n", "# Echo v1.1.4\n", 1))
+    yeni_baslik = re.sub(r"^# Echo v\d+\.\d+(?:\.\d+)?", "# Echo v1.1.4", m,
+                         count=1, flags=re.M)
+    if yeni_baslik == m:
+        return "DONGULER.md başlığı '# Echo vX.Y' biçiminde değil"
+    open(bel, "w", encoding="utf-8").write(yeni_baslik)
     c = kos(kok, "dogrula.py", "belge")
     if c.returncode != 1 or "üreteçle uyuşmuyor" not in c.stdout:
         return f"sürüm kayması logoda yakalanmadı (çıkış {c.returncode})"
@@ -939,6 +946,201 @@ def t_butunluk_okuyucu_data_js_i_cozuyor(kok):
     return None
 
 
+def t_belge_altin_set_kaymasini_yakaliyor(kok):
+    """`LORE.md`'ye satır eklemek altın setteki atıfları kaydırır.
+
+    Bu vakayı mutasyon sınavı istedi: denetim eklenmişti, elle negatif test
+    edilmişti, ama vakası yazılmamıştı — yani korumasızdı. Elle yapılan
+    deneme buharlaşır.
+
+    Asıl tehlike şu: kayma hiçbir yerde kırmızı yanmaz. `degerlendir.py`
+    isabeti yanlış satıra karşı ölçer, `yargi.py` doğru cevaba haksız kusur
+    yazar. Ölçüm zemini altından kayar ve her şey yolunda görünür.
+    """
+    yol = os.path.join(kok, "LORE.md")
+    with open(yol, encoding="utf-8") as f:
+        lore = f.read()
+    imza = "| Cips Yiyen Adam | 2 tır | Normal form |"
+    if imza not in lore:
+        return "canon'da beklenen tır satırı yok — vaka bayatlamış"
+    with open(yol, "w", encoding="utf-8") as f:
+        f.write(lore.replace(imza, imza + "\n| Deneme | 1 tır | sınav |", 1))
+    s = kos(kok, "dogrula.py", "belge")
+    if s.returncode != 1 or "altın set kaymış" not in s.stdout:
+        return f"altın set kayması yakalanmadı (çıkış {s.returncode})"
+    return None
+
+
+def t_belge_kaymamis_altin_set_masum(kok):
+    """Kaymamış set yanlış alarm üretmemeli — aşırı duyarlılık da hatadır."""
+    s = kos(kok, "dogrula.py", "belge")
+    if "altın set kaymış" in s.stdout:
+        return "kaymamış altın set için yanlış alarm"
+    return None
+
+
+# ------------------------------------------------- olay döngüsü (dağıtıcı)
+# Buradaki risk diğerlerinden farklı: dağıtıcı bozulursa hiçbir şey
+# BAĞIRMAZ. Kancalar sessizce çalışmaz, denetim hiç koşmaz, sınavlar yeşil
+# kalır — çünkü sınavlar betikleri doğrudan çağırıyor, kancadan geçmiyor.
+# Bu yüzden dağıtımın kendisi ölçülüyor.
+
+def _olay(kok, govde):
+    yol = os.path.join(kok, ".claude", "olay.py")
+    return subprocess.run([sys.executable, yol, "dagit"], input=govde, cwd=kok,
+                          capture_output=True, text=True, timeout=120)
+
+
+def _duzenleme_olayi(kok, dosya):
+    return json.dumps({"hook_event_name": "PostToolUse", "tool_name": "Edit",
+                       "tool_input": {"file_path": os.path.join(kok, dosya)},
+                       "cwd": kok}, ensure_ascii=False)
+
+
+def t_olay_temiz_duzenlemeyi_geciriyor(kok):
+    s = _olay(kok, _duzenleme_olayi(kok, "index.html"))
+    if s.returncode != 0:
+        return f"temiz düzenleme geri beslendi (çıkış {s.returncode})"
+    return None
+
+
+def t_olay_bozuk_duzenlemeyi_geri_besliyor(kok):
+    """Dağıtıcı işleyicinin çıkış kodunu TAŞIMALI, yutmamalı."""
+    hata = _boz(kok, "assets/css/style.css",
+                "[hidden] { display: none !important; }", "")
+    if hata:
+        return hata
+    s = _olay(kok, _duzenleme_olayi(kok, "assets/css/style.css"))
+    if s.returncode != 2:
+        return f"kural ihlali geri beslenmedi (çıkış {s.returncode})"
+    if "denetleyici" not in s.stderr.lower():
+        return "geri besleme gerekçesi taşınmadı"
+    return None
+
+
+def t_olay_sozlesmesiz_gorevi_engelliyor(kok):
+    govde = json.dumps({"hook_event_name": "PreToolUse", "tool_name": "Task",
+                        "tool_input": {"prompt": "şunu yap"}, "cwd": kok})
+    s = _olay(kok, govde)
+    if s.returncode != 2:
+        return f"sözleşmesiz görev engellenmedi (çıkış {s.returncode})"
+    return None
+
+
+def t_olay_bilinmeyen_olay_deftere_dusuyor(kok):
+    """Dinleyicisi olmayan olay sessizce kaybolursa 'kanca çalışmıyor mu,
+    yoksa bu olay dinlenmiyor mu' sorusu cevaplanamaz hâle gelir."""
+    govde = json.dumps({"hook_event_name": "SessionStart", "tool_name": "",
+                        "cwd": kok})
+    s = _olay(kok, govde)
+    if s.returncode != 0:
+        return f"bilinmeyen olay akışı kesti (çıkış {s.returncode})"
+    d = kos(kok, "olay.py", "defter", "--son", "5")
+    if "dinleyicisi yok" not in d.stdout:
+        return "dinleyicisi olmayan olay deftere yazılmadı"
+    return None
+
+
+def t_olay_bozuk_girdi_kilitlemiyor(kok):
+    s = _olay(kok, "bu json değil")
+    if s.returncode != 0:
+        return f"okunamayan olay oturumu kilitledi (çıkış {s.returncode})"
+    return None
+
+
+def t_olay_tablosu_isleyicileri_gosteriyor(kok):
+    """Tablo gerçek dosyalara işaret etmeli; 'DOSYA YOK' sessiz kopukluktur."""
+    s = kos(kok, "olay.py", "tablo")
+    if "DOSYA YOK" in s.stdout:
+        return "olay tablosu var olmayan işleyiciye işaret ediyor"
+    for beklenen in ("PostToolUse", "PreToolUse", "kanca.py", "kanca-gorev.py"):
+        if beklenen not in s.stdout:
+            return f"tabloda eksik: {beklenen}"
+    return None
+
+
+def t_olay_ayar_dagiticiya_yonlendiriyor(kok):
+    """`settings.json` işleyiciye DOĞRUDAN giderse defter boş kalır ve
+    gözlemlenebilirlik sessizce kaybolur — kancalar yine çalıştığı için."""
+    with open(os.path.join(kok, ".claude", "settings.json"), encoding="utf-8") as f:
+        ayar = json.load(f)
+    komutlar = [k["command"] for grup in ayar["hooks"].values()
+                for e in grup for k in e["hooks"]]
+    if not komutlar:
+        return "settings.json'da hiç kanca yok"
+    for k in komutlar:
+        if "olay.py" not in k:
+            return f"kanca dağıtıcıdan geçmiyor: {k}"
+    return None
+
+
+# ------------------------------------------- değerlendirici-optimize edici
+
+def t_eniyile_temizde_kabul_ediyor(kok):
+    s = kos(kok, "eniyile.py", "tur", "--halka", "t", "--olcut", "kural,butunluk")
+    if s.returncode != 0 or "KABUL" not in s.stdout:
+        return f"temiz depoda kabul edilmedi (çıkış {s.returncode})"
+    return None
+
+
+def t_eniyile_kismi_puan_veriyor(kok):
+    """İkili ölçüm ilerlemeyi göstermez; bu döngünün varlık sebebi bu."""
+    hata = _boz(kok, "assets/js/data.js",
+                'plaka: 6, il: "Ankara"', 'plaka: 6, il: "Ankaraa"')
+    if hata:
+        return hata
+    s = kos(kok, "eniyile.py", "tur", "--halka", "t", "--olcut", "butunluk")
+    if s.returncode != 1 or "İYİLEŞTİR" not in s.stdout:
+        return f"eksik varken iyileştirme istenmedi (çıkış {s.returncode})"
+    import re as _re
+    e = _re.search(r"PUAN\s+([\d.]+)", s.stdout)
+    if not e:
+        return "puan basılmadı"
+    puan = float(e.group(1))
+    if not 0.0 < puan < 1.0:
+        return f"tek bulguda puan kısmi değil: {puan}"
+    return None
+
+
+def t_eniyile_ilerlemeyi_goruyor(kok):
+    """Bir bulgu kapanınca puan ARTMALI — yoksa geri bildirim işe yaramaz."""
+    _boz(kok, "assets/js/data.js", 'plaka: 6, il: "Ankara"', 'plaka: 6, il: "Ankaraa"')
+    _boz(kok, "assets/js/data.js", "Fiziksel gücü yok;", "Masadaki en tehlikeli beyin;")
+    kos(kok, "eniyile.py", "tur", "--halka", "t", "--olcut", "butunluk")
+    _boz(kok, "assets/js/data.js", 'plaka: 6, il: "Ankaraa"', 'plaka: 6, il: "Ankara"')
+    s = kos(kok, "eniyile.py", "tur", "--halka", "t", "--olcut", "butunluk")
+    if "+0." not in s.stdout:
+        return "bir eksik kapandığı hâlde puan artışı raporlanmadı"
+    return None
+
+
+def t_eniyile_kisir_turda_duruyor(kok):
+    """Asıl katkı: puan artmıyorsa dördüncü turun üçüncüden farkı yoktur."""
+    _boz(kok, "assets/js/data.js", 'plaka: 6, il: "Ankara"', 'plaka: 6, il: "Ankaraa"')
+    for _ in range(4):
+        s = kos(kok, "eniyile.py", "tur", "--halka", "t", "--olcut", "butunluk")
+        if "DUR" in s.stdout:
+            if "artmıyor" not in s.stdout:
+                return "durdu ama sebebi kısırlık değil"
+            return None
+    return "puan hiç artmadığı hâlde döngü durmadı"
+
+
+def t_eniyile_insan_kapisini_optimize_etmiyor(kok):
+    """Kapı puanla çözülmez: 'yanlış' değil, 'doğruluğunu bilemiyorum' demek.
+    Optimize etmeye çalışmak uydurmayı ödüllendirirdi."""
+    hata = _boz(kok, "assets/js/data.js",
+                'oneCikan: { kimlik: ""', 'oneCikan: { kimlik: "aB3dEf7hK9m"')
+    if hata:
+        return hata
+    s = kos(kok, "eniyile.py", "tur", "--halka", "t", "--olcut", "kural")
+    if s.returncode != 3:
+        return f"insan kapısı çıkış kodu 3 değil ({s.returncode})"
+    if "AskUserQuestion" not in s.stdout:
+        return "kapıda insana çıkma talimatı yok"
+    return None
+
+
 VAKALAR = [
     ("devre: sınırda kesiyor",              t_devre_sinirda_kesiyor),
     ("devre: başarı sayacı sıfırlıyor",     t_devre_basari_sifirliyor),
@@ -1002,6 +1204,9 @@ VAKALAR = [
     ("kanca: hata imzasını deftere yazıyor", t_kanca_hata_imzasini_yaziyor),
     ("denetleyici: bozuk araca dayanıyor",  t_dogrula_bozuk_araca_dayaniyor),
 
+    ("belge: altın set kayması yakalanıyor", t_belge_altin_set_kaymasini_yakaliyor),
+    ("belge: kaymamış set masum",           t_belge_kaymamis_altin_set_masum),
+
     ("bütünlük: temiz başlangıç",           t_butunluk_temiz_baslangic),
     ("bütünlük: plaka hatası yakalanıyor",  t_butunluk_plaka_hatasi_yakalaniyor),
     ("bütünlük: canon dışı isim yakalanıyor", t_butunluk_canon_disi_isim_yakalaniyor),
@@ -1010,6 +1215,20 @@ VAKALAR = [
     ("bütünlük: kırık bağlantı yakalanıyor", t_butunluk_kirik_baglanti_yakalaniyor),
     ("bütünlük: ölü veri yakalanıyor",       t_butunluk_olu_veri_yakalaniyor),
     ("bütünlük: okuyucu data.js'i çözüyor",  t_butunluk_okuyucu_data_js_i_cozuyor),
+
+    ("olay: temiz düzenleme geçiyor",       t_olay_temiz_duzenlemeyi_geciriyor),
+    ("olay: bozuk düzenleme geri besleniyor", t_olay_bozuk_duzenlemeyi_geri_besliyor),
+    ("olay: sözleşmesiz görev engelleniyor", t_olay_sozlesmesiz_gorevi_engelliyor),
+    ("olay: bilinmeyen olay deftere düşüyor", t_olay_bilinmeyen_olay_deftere_dusuyor),
+    ("olay: bozuk girdi kilitlemiyor",       t_olay_bozuk_girdi_kilitlemiyor),
+    ("olay: tablo işleyicileri gösteriyor",  t_olay_tablosu_isleyicileri_gosteriyor),
+    ("olay: ayar dağıtıcıya yönlendiriyor",  t_olay_ayar_dagiticiya_yonlendiriyor),
+
+    ("eniyile: temizde kabul ediyor",        t_eniyile_temizde_kabul_ediyor),
+    ("eniyile: kısmi puan veriyor",          t_eniyile_kismi_puan_veriyor),
+    ("eniyile: ilerlemeyi görüyor",          t_eniyile_ilerlemeyi_goruyor),
+    ("eniyile: kısır turda duruyor",         t_eniyile_kisir_turda_duruyor),
+    ("eniyile: insan kapısını optimize etmiyor", t_eniyile_insan_kapisini_optimize_etmiyor),
 
     ("geri bildirim: vakaya çeviriyor",     t_geribildirim_vakaya_ceviriyor),
     ("geri bildirim: yineleneni kapatıyor", t_geribildirim_yineleneni_kapatiyor),

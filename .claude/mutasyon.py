@@ -240,7 +240,46 @@ def m_dogrula_altin_kaymasini_gormesin(kok):
             "            if False:")
 
 
+def m_olay_kodu_yutsun(kok):
+    """Dağıtıcı işleyicinin çıkış kodunu yutarsa zorlama katmanı ölür —
+    ve hiçbir yerde bağırmaz, çünkü sınavlar betikleri doğrudan çağırıyor."""
+    duzenle(kok, ".claude/olay.py",
+            "        if s.returncode == 2:\n            kod = 2",
+            "        if False:\n            kod = 2")
+
+
+def m_olay_bilinmeyeni_sessizce_dussun(kok):
+    duzenle(kok, ".claude/olay.py",
+            '                    "olay": olay_adi, "arac": arac, "karar": "dinleyicisi yok"})',
+            '                    "olay": olay_adi, "arac": arac, "karar": "gecti"})')
+
+
+def m_eniyile_kisiri_gormesin(kok):
+    duzenle(kok, ".claude/eniyile.py",
+            "    if kisir >= KISIR_TUR_SINIRI:",
+            "    if False:")
+
+
+def m_eniyile_puani_ikilesin(kok):
+    """Kısmi puanı ikiliye indirmek bu döngünün varlık sebebini siler."""
+    duzenle(kok, ".claude/eniyile.py",
+            "        return temiz / toplam, bulgular, False",
+            "        return 0.0, bulgular, False")
+
+
+def m_eniyile_kapiyi_optimize_etsin(kok):
+    duzenle(kok, ".claude/eniyile.py",
+            "    if kapi:",
+            "    if False:")
+
+
 MUTASYONLAR = [
+    ("olay: çıkış kodunu yutuyor",       m_olay_kodu_yutsun,                 "arac-sinavi.py"),
+    ("olay: bilinmeyeni sessizce düşürüyor", m_olay_bilinmeyeni_sessizce_dussun, "arac-sinavi.py"),
+    ("eniyile: kısırlığı görmüyor",      m_eniyile_kisiri_gormesin,          "arac-sinavi.py"),
+    ("eniyile: puanı ikili yapıyor",     m_eniyile_puani_ikilesin,           "arac-sinavi.py"),
+    ("eniyile: kapıyı optimize ediyor",  m_eniyile_kapiyi_optimize_etsin,    "arac-sinavi.py"),
+
     ("bütünlük: plaka hatasını görmüyor", m_butunluk_plaka_gormesin,          "arac-sinavi.py"),
     ("bütünlük: sıralamayı görmüyor",     m_butunluk_siralamayi_gormesin,     "arac-sinavi.py"),
     ("okuyucu: dizgi zinciri kırık",      m_okuyucu_zinciri_kirsin,           "arac-sinavi.py"),
