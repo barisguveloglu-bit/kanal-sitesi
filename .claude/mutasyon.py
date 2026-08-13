@@ -190,7 +190,22 @@ def m_gorev_baglam_enjekte_etmesin(kok):
             "    if False:")
 
 
+def m_surum_dokuzu_asabilsin(kok):
+    duzenle(kok, ".claude/surum.py",
+            '    if y["yama"] < EN_FAZLA:',
+            "    if True:")
+
+
+def m_dogrula_surumu_gormesin(kok):
+    duzenle(kok, ".claude/dogrula.py",
+            "            elif eslesme.group(1) != beklenen:",
+            "            elif False:")
+
+
 MUTASYONLAR = [
+    ("sürüm: yama 9'u aşabiliyor",       m_surum_dokuzu_asabilsin,           "arac-sinavi.py"),
+    ("sürüm: belge kaymasını görmüyor",  m_dogrula_surumu_gormesin,          "arac-sinavi.py"),
+
     ("görev: bağlam enjekte etmiyor",    m_gorev_baglam_enjekte_etmesin,     "arac-sinavi.py"),
 
     ("hedef: kaymayı görmüyor",          m_hedef_kaymayi_gormesin,           "arac-sinavi.py"),

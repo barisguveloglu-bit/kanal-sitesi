@@ -1,4 +1,19 @@
-# Döngü Sistemleri
+# Echo v1.1
+
+Bu katmanın adı **Echo**. Adın sebebi işleyişinde: her çıktı bir
+denetimden geri döner, her hata bir teste geri döner, her ölçüm sistemin
+kendisine geri döner. Yankı gibi — söylediğin şey sana geri gelir ve
+doğru olup olmadığını orada anlarsın.
+
+Sürüm kuralı `surum.py` içinde kodla tutuluyor: yama 1'den 9'a gider,
+dokuzdan sonraki güncelleme minör sürümü artırıp yamayı sıfırlar
+(`v1.1.9` → `v1.2`), minör de dokuzu doldurunca majör artar
+(`v1.9.9` → `v2.0`).
+
+```
+python3 .claude/surum.py goster
+python3 .claude/surum.py yukselt --ne "<bu sürümde ne değişti>"
+```
 
 Bu klasör siteye ait değil. Site hâlâ derleme adımı olmayan, backend'siz,
 veri toplamayan statik bir arşiv — **buradaki hiçbir şey yayına çıkmıyor.**

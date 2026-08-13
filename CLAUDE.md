@@ -27,8 +27,9 @@ yapmadan önce o dosyayı oku — karakterler, güçler ve efsane orada tanıml�
 
 ## Çalışma döngüsü
 
-`.claude/` altında bir iş akışı katmanı var — **siteye ait değil, yayına
-çıkmıyor.** Ayrıntı: [`.claude/DONGULER.md`](.claude/DONGULER.md).
+`.claude/` altında **Echo** adlı bir iş akışı katmanı var — **siteye ait
+değil, yayına çıkmıyor.** Ayrıntı: [`.claude/DONGULER.md`](.claude/DONGULER.md).
+Sürüm: `python3 .claude/surum.py goster`
 
 - `python3 .claude/dogrula.py` — yukarıdaki kuralları makine tarafından
   denetler (menü, site haritası, gizleme, odak, `defer`, sahte içerik,

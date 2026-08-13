@@ -438,6 +438,28 @@ def d_belge(r):
             else:
                 r.tamam()
 
+    surum_yolu = os.path.join(KOK, ".claude", "surum.json")
+    if os.path.exists(surum_yolu):
+        import json as _json
+        try:
+            with open(surum_yolu, encoding="utf-8") as f:
+                sv = _json.load(f)
+            beklenen = (f"v{sv['majör']}.{sv['minör']}.{sv['yama']}"
+                        if sv.get("yama") else f"v{sv['majör']}.{sv['minör']}")
+        except (ValueError, KeyError) as e:
+            r.hata("belge", f"surum.json okunamadı: {e}")
+            beklenen = None
+        if beklenen:
+            eslesme = re.search(r"^# Echo (v\d+\.\d+(?:\.\d+)?)", belge, re.M)
+            if not eslesme:
+                r.hata("belge", "DONGULER.md başlığı '# Echo vX.Y' biçiminde değil.")
+            elif eslesme.group(1) != beklenen:
+                r.hata("belge", f"sürüm uyuşmuyor: surum.json {beklenen} diyor, "
+                                f"DONGULER.md başlığı {eslesme.group(1)} yazıyor. "
+                                "Sürüm yükseltince belgeyi de güncelle.")
+            else:
+                r.tamam()
+
     altin_yolu = os.path.join(KOK, ".claude", "altin-sorular.json")
     if os.path.exists(altin_yolu):
         import json as _json

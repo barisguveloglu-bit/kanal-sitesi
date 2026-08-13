@@ -484,6 +484,54 @@ def t_seyir_cozulmemisi_kapanista_hatirlatir(kok):
     return None
 
 
+# --------------------------------------------------------------- sürüm
+
+def t_surum_dokuzda_minore_gecer(kok):
+    """Kural: yama 9'u doldurunca minör artar, yama sıfırlanır."""
+    yol = os.path.join(kok, ".claude", "surum.json")
+    json.dump({"majör": 1, "minör": 1, "yama": 9, "gecmis": []},
+              open(yol, "w", encoding="utf-8"), ensure_ascii=False)
+    s = kos(kok, "surum.py", "yukselt", "--ne", "sınav")
+    if "v1.2" not in s.stdout:
+        return f"v1.1.9 sonrası v1.2 olmadı: {s.stdout.strip()[:80]}"
+    d = json.load(open(yol, encoding="utf-8"))
+    if d["yama"] != 0 or d["minör"] != 2:
+        return f"sayaçlar yanlış: {d['majör']}.{d['minör']}.{d['yama']}"
+    return None
+
+
+def t_surum_dokuz_dokuzda_majore_gecer(kok):
+    yol = os.path.join(kok, ".claude", "surum.json")
+    json.dump({"majör": 1, "minör": 9, "yama": 9, "gecmis": []},
+              open(yol, "w", encoding="utf-8"), ensure_ascii=False)
+    s = kos(kok, "surum.py", "yukselt", "--ne", "sınav")
+    if "v2.0" not in s.stdout:
+        return f"v1.9.9 sonrası v2.0 olmadı: {s.stdout.strip()[:80]}"
+    return None
+
+
+def t_surum_normal_yama_artiyor(kok):
+    yol = os.path.join(kok, ".claude", "surum.json")
+    json.dump({"majör": 1, "minör": 1, "yama": 3, "gecmis": []},
+              open(yol, "w", encoding="utf-8"), ensure_ascii=False)
+    s = kos(kok, "surum.py", "yukselt", "--ne", "sınav")
+    if "v1.1.4" not in s.stdout:
+        return f"yama artmadı: {s.stdout.strip()[:80]}"
+    return None
+
+
+def t_surum_belge_kaymasi_yakalaniyor(kok):
+    """Sürüm yükseltilip belge güncellenmezse denetim düşmeli."""
+    yol = os.path.join(kok, ".claude", "surum.json")
+    d = json.load(open(yol, encoding="utf-8"))
+    d["yama"] = 7
+    json.dump(d, open(yol, "w", encoding="utf-8"), ensure_ascii=False)
+    s = kos(kok, "dogrula.py", "belge")
+    if s.returncode != 1 or "sürüm uyuşmuyor" not in s.stdout:
+        return "sürüm kayması yakalanmadı"
+    return None
+
+
 # ------------------------------------------------------------ hedef ağacı
 
 def _hedef_ac(kok):
@@ -714,6 +762,11 @@ VAKALAR = [
     ("seyir: ham iz özete girmiyor",        t_seyir_ozet_ham_izi_dislar),
     ("seyir: gerekçesiz karar reddediliyor", t_seyir_gerekcesiz_karari_reddeder),
     ("seyir: kapanışta boşluk hatırlatılıyor", t_seyir_cozulmemisi_kapanista_hatirlatir),
+
+    ("sürüm: 9'dan sonra minör artıyor",    t_surum_dokuzda_minore_gecer),
+    ("sürüm: 9.9'dan sonra majör artıyor",  t_surum_dokuz_dokuzda_majore_gecer),
+    ("sürüm: normal yama artışı",           t_surum_normal_yama_artiyor),
+    ("sürüm: belge kayması yakalanıyor",    t_surum_belge_kaymasi_yakalaniyor),
 
     ("hedef: kayma yakalanıyor",            t_hedef_kaymasini_yakaliyor),
     ("hedef: sağlam hedef geçiyor",         t_hedef_saglamken_gecer),
