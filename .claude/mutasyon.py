@@ -202,9 +202,25 @@ def m_dogrula_surumu_gormesin(kok):
             "            elif False:")
 
 
+def m_logo_surumu_gomsun(kok):
+    """Numarayı gövdeye çakmak: bugün doğru, v1.2'de sessizce yanlış."""
+    duzenle(kok, ".claude/logo.py",
+            '    """İşaret + yazı + sürüm. Sürüm numarası surum.json\'dan geliyor."""',
+            '    surum_metni = "v1.1"')
+
+
+def m_dogrula_logoyu_gormesin(kok):
+    duzenle(kok, ".claude/dogrula.py",
+            "            sorunlar = logo.bayat()",
+            "            sorunlar = []")
+
+
 MUTASYONLAR = [
     ("sürüm: yama 9'u aşabiliyor",       m_surum_dokuzu_asabilsin,           "arac-sinavi.py"),
     ("sürüm: belge kaymasını görmüyor",  m_dogrula_surumu_gormesin,          "arac-sinavi.py"),
+
+    ("logo: sürüm gövdeye çakılı",       m_logo_surumu_gomsun,               "arac-sinavi.py"),
+    ("logo: bayatlığı görmüyor",         m_dogrula_logoyu_gormesin,          "arac-sinavi.py"),
 
     ("görev: bağlam enjekte etmiyor",    m_gorev_baglam_enjekte_etmesin,     "arac-sinavi.py"),
 

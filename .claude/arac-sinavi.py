@@ -532,6 +532,88 @@ def t_surum_belge_kaymasi_yakalaniyor(kok):
     return None
 
 
+# ------------------------------------------------------------------- logo
+
+def _logo_yolu(kok):
+    return os.path.join(kok, ".claude", "marka", "echo-logo.svg")
+
+
+def t_logo_uretim_kararli(kok):
+    """İki kez üretmek aynı baytı vermeli — yoksa denetim gürültü üretir."""
+    once = open(_logo_yolu(kok), encoding="utf-8").read()
+    if kos(kok, "logo.py", "yaz").returncode != 0:
+        return "logo.py yaz çalışmadı"
+    if open(_logo_yolu(kok), encoding="utf-8").read() != once:
+        return "aynı girdiyle iki farklı çıktı üretildi"
+    return None
+
+
+def t_logo_simge_sade_kaliyor(kok):
+    """Sade simgenin tek varlık sebebi az öğe. Kesik halka ya da ok geri
+    eklenirse 32 pikselde yine dağılır — ve bunu kimse gözle fark etmez."""
+    s = kos(kok, "logo.py", "goster", "--ne", "simge").stdout
+    if "stroke-dasharray" in s:
+        return "sade simgeye kesik halka geri gelmiş"
+    if s.count("<path") > len(("yay", "yay")):
+        return f"sade simgede fazla öğe var: {s.count('<path')} yol"
+    tam = kos(kok, "logo.py", "goster", "--ne", "isaret").stdout
+    if s.count("<path") >= tam.count("<path"):
+        return "sade simge işaretten sade değil"
+    return None
+
+
+def t_logo_elle_duzenleme_yakalaniyor(kok):
+    """Üretilmiş dosyayı elle düzenlemek sessiz kalmamalı: ilk `yaz` siler."""
+    yol = _logo_yolu(kok)
+    s = open(yol, encoding="utf-8").read().replace("ECHO", "EHCO")
+    open(yol, "w", encoding="utf-8").write(s)
+    c = kos(kok, "dogrula.py", "belge")
+    if c.returncode != 1 or "üreteçle uyuşmuyor" not in c.stdout:
+        return f"elle düzenleme yakalanmadı (çıkış {c.returncode})"
+    return None
+
+
+def t_logo_surum_kaymasi_yakalaniyor(kok):
+    """Asıl tehlike bu: sürüm yükselir, logo v1.1'de kalır ve kimse görmez."""
+    yol = os.path.join(kok, ".claude", "surum.json")
+    d = json.load(open(yol, encoding="utf-8"))
+    d["yama"] = 4
+    json.dump(d, open(yol, "w", encoding="utf-8"), ensure_ascii=False)
+    # Belge başlığını da güncelle ki tek başına logo hatası kalsın.
+    bel = os.path.join(kok, ".claude", "DONGULER.md")
+    m = open(bel, encoding="utf-8").read()
+    open(bel, "w", encoding="utf-8").write(
+        m.replace("# Echo v1.1\n", "# Echo v1.1.4\n", 1))
+    c = kos(kok, "dogrula.py", "belge")
+    if c.returncode != 1 or "üreteçle uyuşmuyor" not in c.stdout:
+        return f"sürüm kayması logoda yakalanmadı (çıkış {c.returncode})"
+    if "sürüm uyuşmuyor" in c.stdout:
+        return "belge başlığı güncellendiği hâlde hâlâ şikayet ediyor"
+    return None
+
+
+def t_logo_eksik_dosya_yakalaniyor(kok):
+    yol = _logo_yolu(kok)
+    os.remove(yol)
+    c = kos(kok, "dogrula.py", "belge")
+    if c.returncode != 1 or "yok" not in c.stdout:
+        return f"silinen logo dosyası yakalanmadı (çıkış {c.returncode})"
+    return None
+
+
+def t_logo_surumu_govdeden_aliyor(kok):
+    """Numara SVG'ye elle yazılmamalı: surum.json değişince çıktı değişmeli."""
+    yol = os.path.join(kok, ".claude", "surum.json")
+    json.dump({"majör": 3, "minör": 7, "yama": 2, "gecmis": []},
+              open(yol, "w", encoding="utf-8"), ensure_ascii=False)
+    s = kos(kok, "logo.py", "goster", "--ne", "logo")
+    if "v3.7.2" not in s.stdout:
+        return "logo sürümü surum.json'dan almıyor"
+    if "v1.1" in s.stdout:
+        return "eski sürüm numarası SVG içine gömülü kalmış"
+    return None
+
+
 # ------------------------------------------------------------ hedef ağacı
 
 def _hedef_ac(kok):
@@ -767,6 +849,13 @@ VAKALAR = [
     ("sürüm: 9.9'dan sonra majör artıyor",  t_surum_dokuz_dokuzda_majore_gecer),
     ("sürüm: normal yama artışı",           t_surum_normal_yama_artiyor),
     ("sürüm: belge kayması yakalanıyor",    t_surum_belge_kaymasi_yakalaniyor),
+
+    ("logo: üretim kararlı",                t_logo_uretim_kararli),
+    ("logo: sade simge sade kalıyor",       t_logo_simge_sade_kaliyor),
+    ("logo: elle düzenleme yakalanıyor",    t_logo_elle_duzenleme_yakalaniyor),
+    ("logo: sürüm kayması yakalanıyor",     t_logo_surum_kaymasi_yakalaniyor),
+    ("logo: eksik dosya yakalanıyor",       t_logo_eksik_dosya_yakalaniyor),
+    ("logo: sürüm gövdeden geliyor",        t_logo_surumu_govdeden_aliyor),
 
     ("hedef: kayma yakalanıyor",            t_hedef_kaymasini_yakaliyor),
     ("hedef: sağlam hedef geçiyor",         t_hedef_saglamken_gecer),

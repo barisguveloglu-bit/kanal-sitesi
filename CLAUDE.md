@@ -29,7 +29,8 @@ yapmadan önce o dosyayı oku — karakterler, güçler ve efsane orada tanıml�
 
 `.claude/` altında **Echo** adlı bir iş akışı katmanı var — **siteye ait
 değil, yayına çıkmıyor.** Ayrıntı: [`.claude/DONGULER.md`](.claude/DONGULER.md).
-Sürüm: `python3 .claude/surum.py goster`
+Sürüm: `python3 .claude/surum.py goster` — işaret: `python3 .claude/logo.py yaz`
+(`.claude/marka/` altındaki SVG'ler üretilmiş dosyalar, elle düzenlenmez.)
 
 - `python3 .claude/dogrula.py` — yukarıdaki kuralları makine tarafından
   denetler (menü, site haritası, gizleme, odak, `defer`, sahte içerik,

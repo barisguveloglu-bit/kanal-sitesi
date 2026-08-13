@@ -460,6 +460,48 @@ def d_belge(r):
             else:
                 r.tamam()
 
+    mutasyon_yolu = os.path.join(KOK, ".claude", "mutasyon.py")
+    if os.path.exists(mutasyon_yolu):
+        try:
+            tanim = importlib.util.spec_from_file_location("_mut", mutasyon_yolu)
+            mut = importlib.util.module_from_spec(tanim)
+            tanim.loader.exec_module(mut)
+        except Exception as e:
+            r.hata("belge", f"mutasyon.py okunamadı ({type(e).__name__}: {e}). "
+                            "Mutasyon sayısı doğrulanamadı.")
+            mut = None
+        if mut is not None:
+            sayi = len(mut.MUTASYONLAR)
+            eslesme = re.search(r"\*\*(\d+) mutasyon\*\*", belge)
+            if not eslesme:
+                r.hata("belge", "DONGULER.md: mutasyon sayısı cümlesi bulunamadı. "
+                                "Biçim: **N mutasyon**")
+            elif int(eslesme.group(1)) != sayi:
+                r.hata("belge", f"DONGULER.md: mutasyon {sayi} tane, belge "
+                                f"{eslesme.group(1)} yazıyor.")
+            else:
+                r.tamam()
+
+    # Logo üretilmiş bir dosya: sürüm numarası içinde geçiyor. Elle
+    # düzenlenirse ilk `logo.py yaz`da sessizce silinir, sürüm değişirse
+    # bayat kalır. İkisi de aynı sınıftan çürüme — üreteçle karşılaştır.
+    logo_yolu = os.path.join(KOK, ".claude", "logo.py")
+    if os.path.exists(logo_yolu):
+        try:
+            tanim = importlib.util.spec_from_file_location("_logo", logo_yolu)
+            logo = importlib.util.module_from_spec(tanim)
+            tanim.loader.exec_module(logo)
+        except Exception as e:
+            r.hata("belge", f"logo.py okunamadı ({type(e).__name__}: {e}). "
+                            "Logo dosyaları doğrulanamadı.")
+            logo = None
+        if logo is not None:
+            sorunlar = logo.bayat()
+            for s in sorunlar:
+                r.hata("belge", s)
+            if not sorunlar:
+                r.tamam()
+
     altin_yolu = os.path.join(KOK, ".claude", "altin-sorular.json")
     if os.path.exists(altin_yolu):
         import json as _json

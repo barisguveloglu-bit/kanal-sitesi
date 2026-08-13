@@ -564,12 +564,49 @@ yakalamadığına bak. Burada **başarısızlık iyi haberdir** — mutasyon
 yakalandı demektir. Yeşil kalan bir mutasyon, "o davranışı hiçbir şey
 korumuyor" demektir.
 
-15 mutasyon var: kesici hiç kesmesin, yargıç uydurmayı görmesin, sözleşme
-kapısı açılsın, arama "bilmiyorum" diyemesin, ham iz özete girsin…
+**23 mutasyon** var: kesici hiç kesmesin, yargıç uydurmayı görmesin,
+sözleşme kapısı açılsın, arama "bilmiyorum" diyemesin, ham iz özete girsin,
+sürüm yamayı dokuzdan öteye taşısın, logo sürümü gövdeye çakılsın…
+
+Bu sayı da belgeye elle yazılıyor, yani o da çürüyebilir — nitekim çürüdü:
+belge 15 derken gerçek 23'tü. `belge` denetimi artık bu sayıyı da tutuyor.
 
 İlk koşusunda bir kaçak buldu ve o kaçak öğreticiydi: ilerleme denetçisi
 yeni eklenmişti ama **testi yazılmamıştı.** Özellik vardı, koruması yoktu.
 Mutasyon sınavı tam olarak bunun için var.
+
+## Marka — üretilen, yazılmayan
+
+Echo'nun bir işareti var ve o işaret bir dosya değil, bir **çıktı:**
+
+```
+python3 .claude/logo.py yaz        üç SVG'yi üretir
+python3 .claude/logo.py denetle    diskteki dosya üreteçle aynı mı
+python3 .claude/logo.py goster --ne simge
+```
+
+| Dosya | Nerede kullanılır |
+|---|---|
+| `marka/echo-logo.svg` | Tam kilit — işaret + yazı + sürüm |
+| `marka/echo-isaret.svg` | Kare işaret, 48 piksel ve üstü |
+| `marka/echo-simge.svg` | Sade simge, 32 piksel ve altı, favicon |
+
+Çizim şunu anlatıyor: dış kesik halka **ölçüm halkası**, üç yay merkeze
+doğru güçlenen **KAT 2-3-4**, çekirdek **yapılan iş**, içeri dönen ok
+**çıktının denetimden geri gelmesi** — adın sebebi.
+
+İki karar burada ölçümle alındı, gözle değil:
+
+- **Sürüm numarası SVG'ye elle yazılmıyor,** `surum.json`'dan üretiliyor.
+  İki yerde duran numara ayrışır: `v1.2`'ye geçtiğimiz gün logo `v1.1`
+  kalırdı ve kimse fark etmezdi. `belge` denetimi dosyayı üreteçle
+  karşılaştırıyor — elle düzenlenirse ya da bayatlarsa kırmızı yanıyor.
+- **Üç dosya var çünkü aynı çizim her boyda okunmuyor.** Küçülme sınavını
+  çalıştırdım: işaret 32 pikselde dağıldı — kesik halka gri bulanıklığa,
+  soluk yay hiçliğe, ok lekeye döndü. Sade simge o yüzden var. Sadeliğin
+  kendisi de test edilmiş durumda: simgeye kesik halka ya da ok geri
+  eklenirse sınav düşer, yoksa biri onu "tutarlılık olsun" diye işaretle
+  aynı hâle getirir ve küçük boy sessizce bozulur.
 
 ## Sınırlar
 
