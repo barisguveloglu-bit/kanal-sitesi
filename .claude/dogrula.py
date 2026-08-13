@@ -460,6 +460,28 @@ def d_belge(r):
             else:
                 r.tamam()
 
+    butunluk_yolu = os.path.join(KOK, ".claude", "butunluk.py")
+    if os.path.exists(butunluk_yolu):
+        try:
+            tanim = importlib.util.spec_from_file_location("_but", butunluk_yolu)
+            but = importlib.util.module_from_spec(tanim)
+            tanim.loader.exec_module(but)
+        except Exception as e:
+            r.hata("belge", f"butunluk.py okunamadı ({type(e).__name__}: {e}). "
+                            "Bütünlük vaka sayısı doğrulanamadı.")
+            but = None
+        if but is not None:
+            sayi = len(but.VAKALAR)
+            eslesme = re.search(r"\*\*(\d+) bütünlük vakası\*\*", belge)
+            if not eslesme:
+                r.hata("belge", "DONGULER.md: bütünlük vaka sayısı cümlesi yok. "
+                                "Biçim: **N bütünlük vakası**")
+            elif int(eslesme.group(1)) != sayi:
+                r.hata("belge", f"DONGULER.md: bütünlük sınavı {sayi} vaka, "
+                                f"belge {eslesme.group(1)} yazıyor.")
+            else:
+                r.tamam()
+
     mutasyon_yolu = os.path.join(KOK, ".claude", "mutasyon.py")
     if os.path.exists(mutasyon_yolu):
         try:

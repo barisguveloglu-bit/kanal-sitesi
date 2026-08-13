@@ -575,6 +575,80 @@ belge 15 derken gerçek 23'tü. `belge` denetimi artık bu sayıyı da tutuyor.
 yeni eklenmişti ama **testi yazılmamıştı.** Özellik vardı, koruması yoktu.
 Mutasyon sınavı tam olarak bunun için var.
 
+## Bütünlük sınavı — canon ile verinin çelişmesi
+
+Üçüncü sınav, diğer ikisiyle kasten örtüşmüyor:
+
+| Sınav | Neyi ölçer | Vaka |
+|---|---|---|
+| `sinav.py` | denetleyiciyi — fay enjeksiyonu | 28 |
+| `arac-sinavi.py` | araçları — devre, yargıç, görev, logo | 55 |
+| `butunluk.py` | **içeriği** — canon ↔ veri ↔ site | **74 bütünlük vakası** |
+
+```
+python3 .claude/butunluk.py
+python3 .claude/butunluk.py --bolum canon
+```
+
+Fark şurada: `dogrula.py` **kuralları** denetler (odak halkası duruyor mu,
+betikler `defer` mi). Bu sınav **gerçekleri** denetler — 81 ilin plakası
+resmî kodla eşleşiyor mu, aynı derebeyi iki ile atanmış mı, `data.js`'teki
+her isim canon'da geçiyor mu. İkisi ayrı hata sınıfı: biri "kural bozuldu",
+diğeri "veri kendi kendisiyle çelişiyor". İkincisi gözle bulunmaz — 81
+satırı kimse tek tek karşılaştırmaz.
+
+`CLAUDE.md` bu boşluğu zaten yazıyordu: *"`lore` denetimi adların iki
+dosyada da geçtiğini görür, aynı şeyi söylediklerini göremez."* Bu sınav
+tam olarak oraya bakıyor.
+
+`data.js` bir JS dosyası; `okuyucu.py` onu **dış bağımlılık olmadan**
+okuyor. Node ile JSON dökmek daha kolaydı, yapılmadı: bir sınavın ölçtüğü
+şeyden kırılgan olması saçma. Node'un olmadığı bir ortamda sınav "geçti"
+demez, hiç çalışmaz — ve çalışmayan sınav, geçen sınav gibi görünür.
+
+### İlk koşusunda ne buldu
+
+89 vakayla başladı, 74'e indi. Silinenler dolgu değildi, **kötü testti:**
+keyfi eşikler ("açıklama 8 karakterden kısaysa hata" — Kilis'in derebeyi
+"Ak Dev", 6 karakter ve doğru), boş kapsam (sitede hiç `<img>` yok, alt
+metni denetimi hiçbir şeyi ölçmüyordu) ve `dogrula.py`'nin `kontrast`
+başlığıyla çakışan bir renk denetimi.
+
+Üç test de yanlış kurulmuştu ve düzeltildi. En öğreticisi sıralama
+denetimi: bütün "en güçlü / en tehlikeli" kalıplarını hata sayıyordu ve
+**canon'un kendi cümlesini yakaladı** — `orta.not` içindeki "üçü arasında
+iradesi en zayıf olan da o" `LORE.md:210`'da birebir yazıyor. Yasak olan
+sıralama sözcüğü değil, canon'da karşılığı olmayan sıralama. Ölçüt dayanağa
+bağlandı: iddia canon'da geçmiyorsa hata.
+
+Geriye dört gerçek tutarsızlık kaldı. Üçü canon kararı, `geri-bildirim.py`
+defterinde Barış'ı bekliyor:
+
+- `data.js` Sarı Gülücük için "en tehlikeli ikinci beyin" diyor —
+  `LORE.md:344` sıralı güç tablosunu bilinçli reddediyor.
+- Tır iç referans tablosunda üç komutan hiç yok, ama `data.js` üçüne de
+  tır değeri veriyor.
+- `irade.html` beş kademeyi uyarısız basıyor; canon o tabloyu `LORE.md:93`
+  TASLAK sayıyor ve "netleşmeden kesin dille yazmayın" diyor.
+- `SITE_ADRESI` tanımlı ama hiçbir görünüm kullanmıyor — ölü veri.
+
+### Neden mutasyon sınavında değil
+
+`butunluk.py` şu an `mutasyon.py`'ye bağlı **değil** ve bu bilinçli.
+
+Mutasyon sınavının sözleşmesi şu: ölçülen şeyi kasten boz, sınavın
+düştüğünü gör. Ama bu sınav zaten düşük — dört gerçek bulgu var ve üçü
+Barış'ın kararını bekliyor. Bu hâlde bir mutasyon eklersem sınav yine
+kırmızı yanar ve mutasyon **yakalanmış gibi görünür**, oysa yakalanmamıştır:
+kırmızılığın sebebi mutasyon değil, zaten duran bulgular.
+
+Bu depoda tam olarak bu tuzağa bir kez düşüldü — bir mutasyon sızıntı değil
+çökme ürettiği için test "doğru sebeple değil" geçmişti. Aynı hatayı bilerek
+tekrarlamanın anlamı yok.
+
+Bağlama koşulu: dört bulgu kapandığında sınav yeşile döner, mutasyonlar o
+zaman anlamlı olur.
+
 ## Marka — üretilen, yazılmayan
 
 Echo'nun bir işareti var ve o işaret bir dosya değil, bir **çıktı:**

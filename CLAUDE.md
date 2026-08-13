@@ -45,6 +45,11 @@ Sürüm: `python3 .claude/surum.py goster` — işaret: `python3 .claude/logo.py
 - `python3 .claude/sinav.py`, `python3 .claude/degerlendir.py` ve
   `python3 .claude/arac-sinavi.py` — sırasıyla denetleyiciyi, aramayı ve
   araçları (kesici, yargıç, geri bildirim, kanca) ölçer.
+- `python3 .claude/butunluk.py` — canon ↔ veri ↔ site bütünlüğünü ölçer
+  (74 vaka): 81 ilin plakası resmî kodla eşleşiyor mu, aynı derebeyi iki
+  ile atanmış mı, `data.js`'teki her isim `LORE.md`'de geçiyor mu, canon'da
+  dayanağı olmayan sıralama iddiası var mı. `dogrula.py` kuralları denetler,
+  bu sınav gerçekleri. `data.js`'i `okuyucu.py` dış bağımlılık olmadan okur.
 - `python3 .claude/mutasyon.py` — testlerin kendisini ölçer: aracı kasten
   bozar, sınavın yakalayıp yakalamadığına bakar. Ölü test buradan çıkar.
 - `python3 .claude/gorev.py` — alt ajana verilecek sözleşmeli brief üretir
