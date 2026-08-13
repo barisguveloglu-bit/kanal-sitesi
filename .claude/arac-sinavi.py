@@ -1308,8 +1308,13 @@ def t_tdd_duzenleme_test_silmeyi_reddediyor(kok):
     yol = os.path.join(kok, ".claude", "tdd-durumu.json")
     _j.dump(d, open(yol, "w", encoding="utf-8"), ensure_ascii=False)
     s = kos(kok, "tdd.py", "duzenle")
-    if s.returncode != 1 or "vaka sayısı" not in s.stdout:
-        return f"vaka sayısı düşmesi reddedilmedi (çıkış {s.returncode})"
+    # İddia REDDİN KENDİSİNE bakmalı. İlk hâli "vaka sayısı" arıyordu ama o
+    # ifade başlık satırında her koşuda basılıyor; denetim kapatıldığında
+    # bile test geçiyordu — yanlış sebeple. Mutasyon sınavı yakaladı.
+    if "REDDEDİLDİ" not in s.stdout or "9999" not in s.stdout:
+        return f"vaka sayısı düşmesi reddedilmedi: {s.stdout.strip()[:120]}"
+    if s.returncode != 1:
+        return f"reddedildi ama çıkış kodu 1 değil ({s.returncode})"
     return None
 
 

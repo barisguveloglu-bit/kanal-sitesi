@@ -97,9 +97,16 @@ def m_yargi_eksigi_saymasin(kok):
 
 
 def m_yargi_atif_isabetini_gormesin(kok):
+    """Atıf geçerli ama YANLIŞ satırı gösteriyor — üretimdeki en yaygın hata.
+
+    Mutasyon bir kez bayatladı: altın set şeması tek satırdan listeye
+    geçince hedef satır değişti ve mutasyon "uygulanamadı" dedi. Bayat
+    mutasyon, ölü test kadar yanıltıcı değil ama aynı yönde bir körlük —
+    o davranış o koşuda hiç sınanmamış olur.
+    """
     duzenle(kok, ".claude/yargi.py",
-            "elif not any(b <= vaka[\"satir\"] <= s for b, s in araliklar):",
-            "elif False:")
+            "            elif not any(b <= no <= s for b, s in araliklar",
+            "            elif False and any(b <= no <= s for b, s in araliklar")
 
 
 def m_gorev_sozlesme_kapisi_acilsin(kok):

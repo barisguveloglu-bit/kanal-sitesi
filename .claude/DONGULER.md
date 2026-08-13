@@ -599,6 +599,17 @@ sürüm yamayı dokuzdan öteye taşısın, logo sürümü gövdeye çakılsın�
 Bu sayı da belgeye elle yazılıyor, yani o da çürüyebilir — nitekim çürüdü:
 belge 15 derken gerçek 23'tü. `belge` denetimi artık bu sayıyı da tutuyor.
 
+v1.1.2 koşusunda iki şey birden çıktı ve ikisi de farklı bir körlük türü:
+
+- **Yanlış sebeple geçen test.** `tdd: düzenleme test silmeyi reddediyor`
+  vakası `"vaka sayısı"` ifadesini arıyordu — ama o ifade başlık satırında
+  her koşuda basılıyor. Denetim kapatıldığında bile test yeşil kalıyordu.
+  İddia artık reddin kendisine bakıyor.
+- **Bayat mutasyon.** Altın set şeması tek satırdan listeye geçince
+  `yargı: atıf isabetini görmüyor` mutasyonunun hedef satırı değişti ve
+  mutasyon "uygulanamadı" dedi. Bayat mutasyon ölü test kadar yanıltıcı
+  değil ama aynı yönde bir körlük: o davranış o koşuda hiç sınanmamış olur.
+
 İlk koşusunda bir kaçak buldu ve o kaçak öğreticiydi: ilerleme denetçisi
 yeni eklenmişti ama **testi yazılmamıştı.** Özellik vardı, koruması yoktu.
 Mutasyon sınavı tam olarak bunun için var.
