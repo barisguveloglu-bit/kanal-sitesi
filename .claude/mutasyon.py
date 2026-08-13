@@ -273,7 +273,69 @@ def m_eniyile_kapiyi_optimize_etsin(kok):
             "    if False:")
 
 
+def m_tirmanma_onbellegi_temizlemesin(kok):
+    """Önbellek geçersizleşmezse tırmanış hiçbir şey ölçmez ve her komşu
+    'eşit' çıkar — sahte plato. Ölçmediğini ölçtüğünü sanmak."""
+    duzenle(kok, ".claude/tirmanma.py",
+            '    shutil.rmtree(os.path.join(kok, ".claude", "__pycache__"), ignore_errors=True)\n    ortam = dict(os.environ, PYTHONDONTWRITEBYTECODE="1")',
+            "    ortam = dict(os.environ)")
+
+
+def m_tirmanma_kapiyi_gormesin(kok):
+    duzenle(kok, ".claude/tirmanma.py",
+            "        return self.konu_disi >= 100 and self.sahte >= 100 and self.kapsama >= 90",
+            "        return True")
+
+
+def m_elestirmen_lastik_damgayi_gormesin(kok):
+    duzenle(kok, ".claude/elestirmen.py",
+            "    if onay and mekanik:",
+            "    if False:")
+
+
+def m_elestirmen_sessiz_onayi_kabul_etsin(kok):
+    duzenle(kok, ".claude/elestirmen.py",
+            "    if not bulgular and not onay:",
+            "    if False:")
+
+
+def m_elestirmen_uydurma_atifi_gormesin(kok):
+    duzenle(kok, ".claude/elestirmen.py",
+            "            if not (1 <= int(no) <= satir_sayisi):",
+            "            if False:")
+
+
+def m_tdd_gecen_testle_baslasin(kok):
+    """Kırmızı kapısı kapanırsa TDD bir hatırlatmaya dönüşür."""
+    duzenle(kok, ".claude/tdd.py",
+            "    if sonuc is None:\n        # KAPI.",
+            "    if False:\n        # KAPI.")
+
+
+def m_tdd_kirmizisiz_yesile_izin_versin(kok):
+    duzenle(kok, ".claude/tdd.py",
+            '    if a.vaka not in d or d[a.vaka].get("asama") != "kirmizi":',
+            "    if False:")
+
+
+def m_tdd_test_silmeye_izin_versin(kok):
+    duzenle(kok, ".claude/tdd.py",
+            "    if onceki is not None and sayi < onceki:",
+            "    if False:")
+
+
 MUTASYONLAR = [
+    ("tırmanma: önbellek temizlenmiyor", m_tirmanma_onbellegi_temizlemesin,  "arac-sinavi.py"),
+    ("tırmanma: kapıyı görmüyor",        m_tirmanma_kapiyi_gormesin,         "arac-sinavi.py"),
+
+    ("eleştirmen: lastik damgayı görmüyor", m_elestirmen_lastik_damgayi_gormesin, "arac-sinavi.py"),
+    ("eleştirmen: sessiz onayı kabul ediyor", m_elestirmen_sessiz_onayi_kabul_etsin, "arac-sinavi.py"),
+    ("eleştirmen: uydurma atıfı görmüyor", m_elestirmen_uydurma_atifi_gormesin, "arac-sinavi.py"),
+
+    ("tdd: geçen testle başlıyor",       m_tdd_gecen_testle_baslasin,        "arac-sinavi.py"),
+    ("tdd: kırmızısız yeşile geçiyor",   m_tdd_kirmizisiz_yesile_izin_versin, "arac-sinavi.py"),
+    ("tdd: test silmeye izin veriyor",   m_tdd_test_silmeye_izin_versin,     "arac-sinavi.py"),
+
     ("olay: çıkış kodunu yutuyor",       m_olay_kodu_yutsun,                 "arac-sinavi.py"),
     ("olay: bilinmeyeni sessizce düşürüyor", m_olay_bilinmeyeni_sessizce_dussun, "arac-sinavi.py"),
     ("eniyile: kısırlığı görmüyor",      m_eniyile_kisiri_gormesin,          "arac-sinavi.py"),

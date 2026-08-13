@@ -7,3 +7,4 @@ __pycache__/
 .claude/hedef.json
 .claude/olay-defteri.jsonl
 .claude/eniyile-durumu.json
+.claude/tdd-durumu.json

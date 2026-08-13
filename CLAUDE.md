@@ -58,6 +58,16 @@ Sürüm: `python3 .claude/surum.py goster` — işaret: `python3 .claude/logo.py
   Bütün kancalar buradan geçiyor; hangi olayın hangi işleyiciye gittiği ve
   ne karar verildiği deftere yazılıyor. `settings.json` artık işleyiciyi
   değil dağıtıcıyı çağırıyor.
+- `python3 .claude/tirmanma.py komsular|tirman` — tepe tırmanma. Parametre
+  komşularını `degerlendir.py`'ye karşı ölçer. Plato, sırt ve **ezber tepe**
+  tuzaklarını raporlar; yalıtık tepeyi reddeder ve hiçbir ayarı kendiliğinden
+  uygulamaz.
+- `python3 .claude/elestirmen.py brief|denetle` — eleştirmen-üretici döngüsü.
+  İkinci bir ajan çıktıyı eleştirir; raporu mekanik denetlenir. "KUSUR YOK"
+  derken denetleyiciler kusur buluyorsa **lastik damga** sayılır ve reddedilir.
+- `python3 .claude/tdd.py kirmizi|yesil|duzenle` — kırmızı-yeşil-düzenle.
+  Kırmızı adımı bir kapıdır: şu an geçen bir vakayla TDD başlatılamaz.
+  Düzenleme adımı vaka sayısının düşmesine izin vermez.
 - `python3 .claude/mutasyon.py` — testlerin kendisini ölçer: aracı kasten
   bozar, sınavın yakalayıp yakalamadığına bakar. Ölü test buradan çıkar.
 - `python3 .claude/gorev.py` — alt ajana verilecek sözleşmeli brief üretir

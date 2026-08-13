@@ -476,16 +476,18 @@ def d_belge(r):
             sorular = _json.load(f)["sorular"]
         kaymis = []
         for soru in sorular:
-            no, gercekler = soru.get("satir"), soru.get("gercekler") or []
-            if not isinstance(no, int) or not gercekler:
+            ham, gercekler = soru.get("satir"), soru.get("gercekler") or []
+            numaralar = ham if isinstance(ham, list) else [ham]
+            if not gercekler or not all(isinstance(n, int) for n in numaralar):
                 continue
-            if not (1 <= no <= len(satirlar)):
-                kaymis.append(f"{soru['soru']!r} → {no}. satır dosyada yok")
-                continue
-            metin = satirlar[no - 1].lower()
-            if not any(g.lower() in metin for g in gercekler):
-                kaymis.append(f"{soru['soru']!r} → LORE.md:{no} artık "
-                              f"{gercekler[0]!r} içermiyor")
+            for no in numaralar:
+                if not (1 <= no <= len(satirlar)):
+                    kaymis.append(f"{soru['soru']!r} → {no}. satır dosyada yok")
+                    continue
+                metin = satirlar[no - 1].lower()
+                if not any(g.lower() in metin for g in gercekler):
+                    kaymis.append(f"{soru['soru']!r} → LORE.md:{no} artık "
+                                  f"{gercekler[0]!r} içermiyor")
         for k in kaymis:
             r.hata("belge", f"altın set kaymış: {k}")
         if not kaymis:

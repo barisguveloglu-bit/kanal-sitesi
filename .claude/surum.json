@@ -1,7 +1,7 @@
 {
   "majör": 1,
   "minör": 1,
-  "yama": 1,
+  "yama": 2,
   "gecmis": [
     {
       "surum": "v1.1",
@@ -11,6 +11,11 @@
     {
       "surum": "v1.1.1",
       "ne": "Değerlendirici-optimize edici ve olay döngüsü eklendi",
+      "tarih": "2026-08-13"
+    },
+    {
+      "surum": "v1.1.2",
+      "ne": "Tepe tırmanma, eleştirmen-üretici ve TDD döngüleri eklendi",
       "tarih": "2026-08-13"
     }
   ]

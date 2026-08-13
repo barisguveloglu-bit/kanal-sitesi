@@ -51,8 +51,27 @@ ESIK_CEVAPSIZ = 1.00
 SAYI = 3
 
 
+def beklenen_satirlar(vaka):
+    """Bir sorunun canon'da BİRDEN ÇOK doğru adresi olabilir.
+
+    Şema tek satır tutuyordu ve bu sessizce yanlış ölçüm üretti: tır iç
+    referans tablosuna komutanlar eklenince "komutanlar kaç tır kaldırıyor"
+    sorusunun ikinci bir doğru adresi doğdu (LORE.md:356). Arama onu
+    getiriyordu, ölçüm KAÇAK sayıyordu — yani ölçüm, düzelen bir şeyi
+    bozulmuş gösteriyordu. Ölçümün yanlış olması, aramanın yanlış
+    olmasından daha tehlikeli.
+    """
+    d = vaka["satir"]
+    return d if isinstance(d, list) else [d]
+
+
 def kapsiyor(parca, satir):
-    return parca.kaynak == "LORE.md" and parca.ilk <= satir <= parca.son
+    if parca.kaynak != "LORE.md":
+        return False
+    for no in (satir if isinstance(satir, list) else [satir]):
+        if parca.ilk <= no <= parca.son:
+            return True
+    return False
 
 
 def main(argv):
@@ -96,7 +115,8 @@ def main(argv):
             kacaklar.append((soru, durum))
         else:
             bulunan = parcalar[0].adres if parcalar else "hiçbir şey"
-            durum = f"KAÇAK (beklenen LORE.md:{satir}, gelen {bulunan})"
+            _b = "/".join(str(x) for x in beklenen_satirlar(vaka))
+            durum = f"KAÇAK (beklenen LORE.md:{_b}, gelen {bulunan})"
             kacaklar.append((soru, durum))
         satirlar.append(f"  {durum:52} {soru}")
 

@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 96"
      width="320" height="96" role="img"
-     aria-label="Echo v1.1.1">
-  <title>Echo v1.1.1</title>
+     aria-label="Echo v1.1.2">
+  <title>Echo v1.1.2</title>
   <style>
     .murekkep { fill: #17171e; }
     .sis { stroke: #7f7f8b; fill: none; }
@@ -30,5 +30,5 @@
   <text class="ad murekkep" x="124" y="54">ECHO</text>
   <path class="sis" d="M 126 66 L 302 66" stroke-width="1" opacity="0.5"/>
   <text class="alt soluk" x="126" y="82">YANKI KATMANI</text>
-  <text class="alt vurgu" x="302" y="82" text-anchor="end">v1.1.1</text>
+  <text class="alt vurgu" x="302" y="82" text-anchor="end">v1.1.2</text>
 </svg>

@@ -136,11 +136,15 @@
     },
     {
       "soru": "komutanlar kaç tır kaldırıyor",
-      "satir": 193,
+      "satir": [
+        193,
+        356
+      ],
       "gercekler": [
         "3 tır"
       ],
-      "_kaynak": "geri bildirim 2026-08-12"
+      "_kaynak": "geri bildirim 2026-08-12",
+      "_not": "canon aynı gerçeği iki yerde söylüyor: 193 anlatı, 356 iç referans tablosu. İkisi de doğru adres."
     },
     {
       "soru": "Ahriman kimi kilitliyor",

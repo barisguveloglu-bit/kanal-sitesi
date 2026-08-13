@@ -30,9 +30,11 @@ import tempfile
 KAYNAK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
-def kos(kok, betik, *arg):
+def kos(kok, betik, *arg, ortam=None):
+    cevre = dict(os.environ, **(ortam or {}))
     return subprocess.run([sys.executable, os.path.join(kok, ".claude", betik), *arg],
-                          cwd=kok, capture_output=True, text=True, timeout=120)
+                          cwd=kok, capture_output=True, text=True, timeout=300,
+                          env=cevre)
 
 
 def kopya():
@@ -117,8 +119,11 @@ def _cevaplar(kok, bozma=None):
     cikti = []
     for v in m.vakalari_diz(altin):
         if v["tur"] == "cevaplanabilir":
+            # Bir sorunun canon'da birden çok doğru adresi olabilir; gerçek
+            # bir cevap bunlardan BİRİNİ gösterir, hepsini değil.
+            _s = v["satir"][0] if isinstance(v["satir"], list) else v["satir"]
             cikti.append({"no": v["no"], "cevap": f"Cevap: {v['gercekler'][0]}.",
-                          "atiflar": [f"LORE.md:{v['satir']}"], "reddetti": False})
+                          "atiflar": [f"LORE.md:{_s}"], "reddetti": False})
         else:
             cikti.append({"no": v["no"], "cevap": "Canon bunu söylemiyor.",
                           "atiflar": [], "reddetti": True})
@@ -193,7 +198,8 @@ def t_yargi_yanlis_satir_atfini_yakalar(kok):
     def boz(c, v):
         for cevap, vaka in zip(c, v):
             if vaka["tur"] == "cevaplanabilir":
-                baska = 1 if vaka["satir"] != 1 else 2
+                _k = vaka["satir"] if isinstance(vaka["satir"], list) else [vaka["satir"]]
+                baska = next(n for n in range(1, 50) if n not in _k)
                 cevap["atiflar"] = [f"LORE.md:{baska}"]
                 return
     s = kos(kok, "yargi.py", "puanla", "--dosya", _cevaplar(kok, boz))
@@ -1141,6 +1147,172 @@ def t_eniyile_insan_kapisini_optimize_etmiyor(kok):
     return None
 
 
+# ------------------------------------------------------------ tepe tırmanma
+
+def t_tirmanma_yazma_gercekten_etkiliyor(kok):
+    """Bu sınavın en kritik vakası: parametre yazımı etkisizse BÜTÜN
+    tırmanış sahte olur — her komşu "eşit" çıkar ve tırmanıcı gerçek bir
+    plato bulduğunu sanır. Sessiz başarısızlığın ders kitabı örneği."""
+    import importlib.util
+    t = importlib.util.spec_from_file_location(
+        "tir_" + str(abs(hash(kok))), os.path.join(kok, ".claude", "tirmanma.py"))
+    m = importlib.util.module_from_spec(t)
+    t.loader.exec_module(m)
+    mevcut = dict(m.mevcut_ayar())
+    sert = dict(mevcut)
+    sert["SOZ_DAGARI_ESIK"] = 0.30
+    a = m.yaz_ve_olc(kok, mevcut)
+    b = m.yaz_ve_olc(kok, sert)
+    if a.deger == b.deger:
+        return ("parametre değişimi ölçüyü hiç etkilemedi — yazma çalışmıyor "
+                "ya da değerlendirme parametreyi görmüyor")
+    return None
+
+
+def t_tirmanma_kapi_dusen_adayi_eliyor(kok):
+    """Sadece isabeti optimize etmek konu dışı reddini bozabilir."""
+    import importlib.util
+    t = importlib.util.spec_from_file_location(
+        "tir2_" + str(abs(hash(kok))), os.path.join(kok, ".claude", "tirmanma.py"))
+    m = importlib.util.module_from_spec(t)
+    t.loader.exec_module(m)
+    p = m.Puan(isabet3=100, isabet1=100, mrr=1.0, kapsama=100, konu_disi=75, sahte=100)
+    if p.gecerli or p.deger >= 0:
+        return "konu dışı reddi düşen aday geçerli sayıldı"
+    return None
+
+
+def t_tirmanma_yalitik_tepeyi_reddediyor(kok):
+    """Tek hücrelik tepe iyileşme değil ezberdir — bu depoda bir kez elle
+    reddedildi, artık mekanik."""
+    import importlib.util
+    t = importlib.util.spec_from_file_location(
+        "tir3_" + str(abs(hash(kok))), os.path.join(kok, ".claude", "tirmanma.py"))
+    m = importlib.util.module_from_spec(t)
+    t.loader.exec_module(m)
+    if m.YALITIK_DUSUS <= 0:
+        return "yalıtık tepe eşiği kapalı"
+    s = kos(kok, "tirmanma.py", "komsular")
+    if s.returncode != 0:
+        return f"komşuluk taraması çalışmadı (çıkış {s.returncode})"
+    if "MEVCUT" not in s.stdout:
+        return "komşuluk çıktısı mevcut ayarı göstermiyor"
+    return None
+
+
+# ------------------------------------------------------------- eleştirmen
+
+def t_elestirmen_lastik_damgayi_yakaliyor(kok):
+    """'İyi görünüyor' diyen eleştirmen, eleştirmen olmayan eleştirmendir —
+    ve hiç eleştirmen olmamasından kötüdür, çünkü 'denetlendi' damgası kalır."""
+    hata = _boz(kok, "assets/js/data.js",
+                'plaka: 6, il: "Ankara"', 'plaka: 6, il: "Ankaraa"')
+    if hata:
+        return hata
+    yol = os.path.join(kok, "elestiri.md")
+    open(yol, "w", encoding="utf-8").write("KUSUR YOK\n")
+    s = kos(kok, "elestirmen.py", "denetle", "--rapor", yol)
+    if s.returncode != 1 or "LASTİK DAMGA" not in s.stdout:
+        return f"lastik damga yakalanmadı (çıkış {s.returncode})"
+    return None
+
+
+def t_elestirmen_temiz_onayi_kabul_ediyor(kok):
+    """Aşırı duyarlılık da hatadır: gerçekten temizken 'KUSUR YOK' geçmeli."""
+    yol = os.path.join(kok, "elestiri.md")
+    open(yol, "w", encoding="utf-8").write("KUSUR YOK\n")
+    s = kos(kok, "elestirmen.py", "denetle", "--rapor", yol)
+    if s.returncode != 0:
+        return f"temiz depoda açık onay reddedildi (çıkış {s.returncode})"
+    return None
+
+
+def t_elestirmen_uydurma_atifi_yakaliyor(kok):
+    yol = os.path.join(kok, "elestiri.md")
+    open(yol, "w", encoding="utf-8").write(
+        "- assets/js/data.js:207 — sıralama iddiası (LORE.md:99999)\n")
+    s = kos(kok, "elestirmen.py", "denetle", "--rapor", yol)
+    if s.returncode != 1 or "geçersiz canon atfı" not in s.stdout:
+        return "var olmayan satıra atıf yakalanmadı"
+    return None
+
+
+def t_elestirmen_sessiz_onayi_reddediyor(kok):
+    """Sessizlik 'okudum, temiz' ile 'okumadım' arasında ayrım bırakmaz."""
+    yol = os.path.join(kok, "elestiri.md")
+    open(yol, "w", encoding="utf-8").write("Dosyayı inceledim, genel olarak iyi.\n")
+    s = kos(kok, "elestirmen.py", "denetle", "--rapor", yol)
+    if s.returncode != 1 or "sessiz onay yok" not in s.stdout:
+        return "adressiz, kararsız rapor kabul edildi"
+    return None
+
+
+def t_elestirmen_brief_yetki_beyani_tasiyor(kok):
+    s = kos(kok, "elestirmen.py", "brief", "--hedef", "assets/js/data.js")
+    if s.returncode != 0:
+        return f"brief üretilemedi (çıkış {s.returncode})"
+    for beklenen in ("YETKİ: okuma", "KUSUR YOK", "LORE.md"):
+        if beklenen not in s.stdout:
+            return f"brief'te eksik: {beklenen}"
+    return None
+
+
+# --------------------------------------------------------------------- TDD
+
+def t_tdd_gecen_testle_kirmizi_baslatmiyor(kok):
+    """Hiç kırmızı yanmamış test ne koruduğunu göstermez."""
+    s = kos(kok, "tdd.py", "kirmizi", "--vaka", "olay: bozuk girdi kilitlemiyor")
+    if s.returncode != 1 or "ŞU AN GEÇİYOR" not in s.stdout:
+        return f"geçen testle kırmızı adımı başlatıldı (çıkış {s.returncode})"
+    return None
+
+
+def t_tdd_kirmizisiz_yesile_gecmiyor(kok):
+    s = kos(kok, "tdd.py", "yesil", "--vaka", "olay: bozuk girdi kilitlemiyor")
+    if s.returncode != 1 or "kayıtlı bir kırmızı adım yok" not in s.stdout:
+        return "kırmızı adım olmadan yeşile geçildi"
+    return None
+
+
+def t_tdd_olmayan_vakada_cokmuyor(kok):
+    s = kos(kok, "tdd.py", "kirmizi", "--vaka", "böyle bir vaka yok")
+    if s.returncode != 1:
+        return f"olmayan vaka için çıkış 1 değil ({s.returncode})"
+    if "Traceback" in s.stderr:
+        return "olmayan vakada çöktü"
+    return None
+
+
+def t_tdd_gercek_kirmizi_yesil_donusu(kok):
+    """Tam döngü: bozulmuş depoda vaka kırmızı, düzeltilince yeşil."""
+    hata = _boz(kok, "assets/js/data.js",
+                'plaka: 6, il: "Ankara"', 'plaka: 6, il: "Ankaraa"')
+    if hata:
+        return hata
+    vaka = "il: plaka-il eşleşmesi gerçek"
+    ic = {"ECHO_TDD_DERINLIK": "1"}   # iç içe tam tarama bu vakanın konusu değil
+    s = kos(kok, "tdd.py", "kirmizi", "--vaka", vaka, ortam=ic)
+    if s.returncode != 0 or "KIRMIZI" not in s.stdout:
+        return f"bozuk depoda kırmızı alınamadı (çıkış {s.returncode}): {s.stderr[:80]}"
+    _boz(kok, "assets/js/data.js", 'plaka: 6, il: "Ankaraa"', 'plaka: 6, il: "Ankara"')
+    s = kos(kok, "tdd.py", "yesil", "--vaka", vaka, ortam=ic)
+    if s.returncode != 0 or "YEŞİL" not in s.stdout:
+        return f"düzeltilince yeşile dönmedi (çıkış {s.returncode})"
+    return None
+
+
+def t_tdd_duzenleme_test_silmeyi_reddediyor(kok):
+    """Yeşil kalmanın en kolay yolu korumayı kaldırmaktır; o yol kapalı."""
+    import json as _j
+    d = {"_kapsam": {"vaka_sayisi": 9999, "zaman": "2026-01-01T00:00:00"}}
+    yol = os.path.join(kok, ".claude", "tdd-durumu.json")
+    _j.dump(d, open(yol, "w", encoding="utf-8"), ensure_ascii=False)
+    s = kos(kok, "tdd.py", "duzenle")
+    if s.returncode != 1 or "vaka sayısı" not in s.stdout:
+        return f"vaka sayısı düşmesi reddedilmedi (çıkış {s.returncode})"
+    return None
+
+
 VAKALAR = [
     ("devre: sınırda kesiyor",              t_devre_sinirda_kesiyor),
     ("devre: başarı sayacı sıfırlıyor",     t_devre_basari_sifirliyor),
@@ -1229,6 +1401,22 @@ VAKALAR = [
     ("eniyile: ilerlemeyi görüyor",          t_eniyile_ilerlemeyi_goruyor),
     ("eniyile: kısır turda duruyor",         t_eniyile_kisir_turda_duruyor),
     ("eniyile: insan kapısını optimize etmiyor", t_eniyile_insan_kapisini_optimize_etmiyor),
+
+    ("tırmanma: yazma gerçekten etkiliyor", t_tirmanma_yazma_gercekten_etkiliyor),
+    ("tırmanma: kapı düşen aday eleniyor",  t_tirmanma_kapi_dusen_adayi_eliyor),
+    ("tırmanma: yalıtık tepe reddediliyor", t_tirmanma_yalitik_tepeyi_reddediyor),
+
+    ("eleştirmen: lastik damga yakalanıyor", t_elestirmen_lastik_damgayi_yakaliyor),
+    ("eleştirmen: temiz onay kabul ediliyor", t_elestirmen_temiz_onayi_kabul_ediyor),
+    ("eleştirmen: uydurma atıf yakalanıyor", t_elestirmen_uydurma_atifi_yakaliyor),
+    ("eleştirmen: sessiz onay reddediliyor", t_elestirmen_sessiz_onayi_reddediyor),
+    ("eleştirmen: brief yetki beyanı taşıyor", t_elestirmen_brief_yetki_beyani_tasiyor),
+
+    ("tdd: geçen testle kırmızı başlamıyor", t_tdd_gecen_testle_kirmizi_baslatmiyor),
+    ("tdd: kırmızısız yeşile geçmiyor",      t_tdd_kirmizisiz_yesile_gecmiyor),
+    ("tdd: olmayan vakada çökmüyor",         t_tdd_olmayan_vakada_cokmuyor),
+    ("tdd: gerçek kırmızı-yeşil dönüşü",     t_tdd_gercek_kirmizi_yesil_donusu),
+    ("tdd: düzenleme test silmeyi reddediyor", t_tdd_duzenleme_test_silmeyi_reddediyor),
 
     ("geri bildirim: vakaya çeviriyor",     t_geribildirim_vakaya_ceviriyor),
     ("geri bildirim: yineleneni kapatıyor", t_geribildirim_yineleneni_kapatiyor),

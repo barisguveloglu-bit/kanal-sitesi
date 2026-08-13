@@ -1,4 +1,4 @@
-# Echo v1.1.1
+# Echo v1.1.2
 
 Bu katmanın adı **Echo**. Adın sebebi işleyişinde: her çıktı bir
 denetimden geri döner, her hata bir teste geri döner, her ölçüm sistemin
@@ -486,6 +486,9 @@ Hiçbir döngü tek başına durmuyor. Her birinin bir **girdisi**, bir
 | Bütünlük | `butunluk.py` | Canon ↔ veri ↔ site | Tutarsızlık → canon kararı ya da düzeltme işi |
 | **Değerlendirici-optimize** | `eniyile.py` | `dogrula.py` + `butunluk.py` puanı | Puan artmazsa **İnsan onayına** çıkar |
 | **Olay döngüsü** | `olay.py` + `settings.json` | Claude Code kancaları | Dış uyarıyı Yansıtma'ya ve sözleşme kapısına dağıtır |
+| **Tepe tırmanma** | `tirmanma.py` | `degerlendir.py` altın seti | Aday ayar → **insan onayı** (asla kendiliğinden uygulanmaz) |
+| **Eleştirmen-üretici** | `elestirmen.py` | Ajan + mekanik denetleyiciler | Bulgular üreticiye; lastik damga reddedilir |
+| **TDD** | `tdd.py` | `arac-sinavi.py` + `butunluk.py` | Kırmızı → yeşil → düzenle; koruma azalamaz |
 
 İki yeni halkanın yeri şu: **olay döngüsü en dışta**, çünkü diğerlerini
 başlatan şey o — bir dosya düzenlenmeden yansıtma turu hiç başlamaz.
@@ -589,7 +592,7 @@ yakalamadığına bak. Burada **başarısızlık iyi haberdir** — mutasyon
 yakalandı demektir. Yeşil kalan bir mutasyon, "o davranışı hiçbir şey
 korumuyor" demektir.
 
-**32 mutasyon** var: kesici hiç kesmesin, yargıç uydurmayı görmesin,
+**40 mutasyon** var: kesici hiç kesmesin, yargıç uydurmayı görmesin,
 sözleşme kapısı açılsın, arama "bilmiyorum" diyemesin, ham iz özete girsin,
 sürüm yamayı dokuzdan öteye taşısın, logo sürümü gövdeye çakılsın…
 
@@ -685,6 +688,120 @@ Bu yüzden yedi vaka dağıtımın kendisini ölçüyor — çıkış kodunun ta
 bilinmeyen olayın deftere düştüğünü ve `settings.json`'ın gerçekten
 dağıtıcıya yönlendirdiğini.
 
+## Tepe tırmanma — ve sahte tepenin reddi
+
+```
+python3 .claude/tirmanma.py komsular
+python3 .claude/tirmanma.py tirman --sicrama 6
+```
+
+Komşuları dener, sadece daha iyisini kabul eder, gelişme durana kadar döner.
+
+Bu depoda bir kez **elle** yapılmıştı ve sonucu reddedilmişti: `ara.py`
+taraması tek hücrelik bir tepe göstermiş, kabul edilmemişti. Karar doğruydu
+ama elleydi — bir dahaki sefere aynı kararın verileceğinin garantisi yoktu.
+Artık mekanik.
+
+| Tuzak | Burada ne yapılıyor |
+|---|---|
+| Yerel zirve | Rastgele sıçrama: farklı başlangıçlardan tırmanılır, tepeler karşılaştırılır |
+| Plato | Tespit edilir ve **raporlanır** — körleşmeyi gizlemek yerine söyler |
+| Sırt | Eksen adımları tıkanınca çapraz (iki parametre birden) adım denenir |
+| **Ezber tepe** | Komşu düşüşü ölçülür; tepe yalıtıksa **reddedilir** |
+
+Sonuncusu klasik anlatımlarda yoktur ve burada en önemlisidir. Diğer üçü
+"daha iyi tepeyi bulamama" sorunudur; bu, "bulduğun tepenin sahte olması"
+sorunudur — ve ölçüm setine bakarak kendini haklı çıkarır.
+
+### İlk gerçek koşuda ne çıktı
+
+Manzara ders kitabı gibi bir **sırt** gösterdi:
+
+```
+  KOK_UZUNLUK  5 → 4   tek başına   →  GEÇERSİZ (konu dışı reddi çöküyor)
+  KOK_UZUNLUK  5 → 4   +  SOZ_DAGARI_ESIK 0.5 → 0.55
+                       +  TABAN_UZUNLUK  12 → 14   →  isabet@1 80% → 85%
+```
+
+Tek eksende bir adım uçurum, iki eksende birlikte adım tepe. Sadece eksen
+bakan bir tırmanıcı burada takılır; çapraz adım tam bunun için var.
+
+Aday **uygulanmadı**: kazanç 20 soruda bir soru. Bu depo aynı büyüklükteki
+bir kazancı gömme denemesinde de reddetmişti. Ölçüm seti büyümeden bu
+sayılar kabul edilmemeli.
+
+### Tırmanışın kendi kazası
+
+İlk koşu "her komşu eşit — plato" dedi. Sınav yakaladı: **plato sahteydi.**
+`ara.py`'ye yazılan yeni değer dosyada duruyordu ama Python eski `.pyc`'yi
+yüklüyordu, yani hiçbir aday gerçekten koşmamıştı. Ölçmediğini ölçtüğünü
+sanmak — bu sistemdeki en pahalı hata sınıfı, ve tam da bu döngünün
+üreteceği türden.
+
+Düzeltme iki satır (`__pycache__` silinir, `PYTHONDONTWRITEBYTECODE` verilir)
+ama asıl kazanım vaka: *"tırmanma: yazma gerçekten etkiliyor"* — parametre
+değişimi ölçüyü hiç etkilemiyorsa sınav düşer.
+
+## Eleştirmen-Üretici — lastik damganın yakalanması
+
+```
+python3 .claude/elestirmen.py brief --hedef assets/js/data.js
+python3 .claude/elestirmen.py denetle --rapor elestiri.md
+```
+
+Bir ajan üretir, **ikinci bir ajan** kurallara göre eleştirir, hata bulunursa
+üreticiye döner.
+
+`eniyile.py` ile farkı: orada değerlendiren bir betik, burada bir **ajan** —
+prozayı, tonu, canon'a sadakati okuyabilen bir taraf. Betik "menü eksik" der,
+ajan "bu cümle canon'da olmayan bir sıralama kuruyor" der.
+
+Ajan okuyabildiği için kandırabilir de. Bu desenin tek gerçek tehlikesi şu:
+**"iyi görünüyor" diyen bir eleştirmen, eleştirmen olmayan bir eleştirmendir**
+— ve hiç eleştirmen olmamasından kötüdür, çünkü artık ortada "denetlendi"
+damgası vardır.
+
+Dört mekanik kural:
+
+- **Lastik damga yakalanır.** Eleştirmen "KUSUR YOK" derken `dogrula.py` ve
+  `butunluk.py` kusur buluyorsa rapor reddedilir. Bu karşılaştırma tamamen
+  mekanik ve pazarlığa kapalı.
+- **Her bulgu adreslenebilir** olmalı (`dosya:satır`). "Genel olarak zayıf"
+  bir bulgu değil izlenimdir.
+- **Canon iddiası dayanaklanmalı**; verilen `LORE.md:<satır>` gerçekten var
+  olmalı.
+- **Sessiz onay yoktur.** "KUSUR YOK" açıkça yazılmalı; sessizlik "okudum,
+  temiz" ile "okumadım" arasında ayrım bırakmaz.
+
+## Test odaklı geliştirme — kırmızı adımın kapıya dönüşmesi
+
+```
+python3 .claude/tdd.py kirmizi --vaka "<vaka adı>"
+python3 .claude/tdd.py yesil   --vaka "<vaka adı>"
+python3 .claude/tdd.py duzenle
+```
+
+Bu deponun en pahalı dersi şuydu: **bir test yazılmış olması canlı olduğunu
+göstermez.** `mutasyon.py` bunun için var ve iki ayrı koşuda ölü koruma
+buldu.
+
+TDD'nin kırmızı adımı o sorunun ön cephesi. Hiç kırmızı yanmamış bir test ne
+koruduğunu göstermez: belki gerçekten koruyor, belki zaten doğru olanı
+tekrarlıyor, belki gövdesi boş — **üçü de yeşil görünür.**
+
+Bu yüzden `kirmizi` bir hatırlatma değil **kapı**: adı verilen vaka şu anda
+geçiyorsa komut reddeder. Üç kapı var:
+
+| Adım | Neyi reddeder |
+|---|---|
+| `kirmizi` | Şu an GEÇEN bir vakayla döngü başlatmayı |
+| `yesil` | Kayıtlı kırmızı adım olmadan yeşile geçmeyi; ve bu vaka geçse bile başka vaka düştüyse "yeşil" demeyi |
+| `duzenle` | Vaka sayısının düşmesini — yeşil kalmanın en kolay yolu korumayı silmektir, o yol kapalı |
+
+`sinav.py` bilerek kapsam dışı: onun vakaları kendi kendini yargılamıyor,
+kararı dışarıdaki koşucu veriyor. Taklit etmek **yanlış bir yeşil**
+üretirdi; yarım destek, desteksizlikten kötüdür.
+
 ## Bütünlük sınavı — canon ile verinin çelişmesi
 
 Üçüncü sınav, diğer ikisiyle kasten örtüşmüyor:
@@ -692,7 +809,7 @@ dağıtıcıya yönlendirdiğini.
 | Sınav | Neyi ölçer | Vaka |
 |---|---|---|
 | `sinav.py` | denetleyiciyi — fay enjeksiyonu | 28 |
-| `arac-sinavi.py` | araçları — devre, yargıç, görev, logo, olay, eniyile | 77 |
+| `arac-sinavi.py` | araçları — devre, yargıç, görev, logo, olay, tırmanma, eleştirmen, TDD | 90 |
 | `butunluk.py` | **içeriği** — canon ↔ veri ↔ site | **74 bütünlük vakası** |
 
 ```
