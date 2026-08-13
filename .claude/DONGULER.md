@@ -592,7 +592,7 @@ yakalamadığına bak. Burada **başarısızlık iyi haberdir** — mutasyon
 yakalandı demektir. Yeşil kalan bir mutasyon, "o davranışı hiçbir şey
 korumuyor" demektir.
 
-**40 mutasyon** var: kesici hiç kesmesin, yargıç uydurmayı görmesin,
+**42 mutasyon** var: kesici hiç kesmesin, yargıç uydurmayı görmesin,
 sözleşme kapısı açılsın, arama "bilmiyorum" diyemesin, ham iz özete girsin,
 sürüm yamayı dokuzdan öteye taşısın, logo sürümü gövdeye çakılsın…
 
@@ -834,7 +834,7 @@ kararı dışarıdaki koşucu veriyor. Taklit etmek **yanlış bir yeşil**
 | Sınav | Neyi ölçer | Vaka |
 |---|---|---|
 | `sinav.py` | denetleyiciyi — fay enjeksiyonu | 28 |
-| `arac-sinavi.py` | araçları — devre, yargıç, görev, logo, olay, tırmanma, eleştirmen, TDD | 90 |
+| `arac-sinavi.py` | araçları — devre, yargıç, görev, logo, olay, tırmanma, eleştirmen, TDD | 93 |
 | `butunluk.py` | **içeriği** — canon ↔ veri ↔ site | **74 bütünlük vakası** |
 
 ```
@@ -914,6 +914,34 @@ zinciri kırılsın, altın set kayma denetimi körleşsin.
 Bütünlüğü koruyan şey artık `arac-sinavi.py`'deki sekiz fay enjeksiyon
 vakası: depoyu kasten bozup sınavın yakaladığını doğruluyorlar. Bu vakalar
 bir kez elle çalıştırılmıştı; elle yapılan deneme buharlaşır.
+
+## Geri bildirimin kapanmayan ucu
+
+Halka şöyle anlatılıyordu: hata bulunur, deftere yazılır, kalıcı teste
+dönüşür. Ama `isle` sadece **geri-getirme** kayıtlarını otomatik vakaya
+çeviriyordu; `canon`, `kural` ve `davranis` türleri "(insan)" diyordu ve
+sonra **hiçbir şey insanın gerçekten test yazdığını doğrulamıyordu.**
+
+Kayıt kapanıyor, hata düzeliyor, koruma yazılmıyor — ve hata bir sonraki
+değişiklikte sessizce geri geliyor. Nitekim geldi: altın set kayma denetimi
+eklendi, elle negatif test edildi, vakası yazılmadı; bunu ancak mutasyon
+sınavı buldu.
+
+```
+python3 .claude/geri-bildirim.py kapat --no 4 --vaka "canon: dış sıralama iddiası yok"
+python3 .claude/geri-bildirim.py korumasiz
+```
+
+Artık bir kayıt **koruyan testi adıyla söylenmeden kapatılamıyor**, ve o
+test gerçekten var olmalı. `korumasiz` komutu testsiz kapatılmış kayıtları
+listeliyor.
+
+İlk çalıştırmasında üç kayıt yakalandı — ve üçünü de bu oturumda **elle
+JSONL düzenleyerek** kapatan bendim. Araç vardı, kullanmadım; tam olarak
+bu deponun reddettiği şeyi yaptım. Üçü de koruyan vakalarıyla yeniden
+kapatıldı, bu oturumun kendi dört hatası da deftere geçirildi.
+
+Testsiz kapatılan hata, düzeltilmiş değil **ertelenmiş** hatadır.
 
 ## Marka — üretilen, yazılmayan
 

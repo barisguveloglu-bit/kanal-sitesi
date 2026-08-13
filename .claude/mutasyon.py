@@ -331,7 +331,23 @@ def m_tdd_test_silmeye_izin_versin(kok):
             "    if False:")
 
 
+def m_geri_bildirim_testsiz_kapatsin(kok):
+    """Kapatma kapısı açılırsa halka kapanmış GÖRÜNÜR ama kapanmaz."""
+    duzenle(kok, ".claude/geri-bildirim.py",
+            "    if a.vaka not in vakalar:",
+            "    if False:")
+
+
+def m_geri_bildirim_korumasizi_gormesin(kok):
+    duzenle(kok, ".claude/geri-bildirim.py",
+            "            sorunlu.append((i, k, \"koruyan vaka belirtilmemiş\"))",
+            "            pass")
+
+
 MUTASYONLAR = [
+    ("geri bildirim: testsiz kapatıyor", m_geri_bildirim_testsiz_kapatsin,   "arac-sinavi.py"),
+    ("geri bildirim: korumasızı görmüyor", m_geri_bildirim_korumasizi_gormesin, "arac-sinavi.py"),
+
     ("tırmanma: önbellek temizlenmiyor", m_tirmanma_onbellegi_temizlemesin,  "arac-sinavi.py"),
     ("tırmanma: kapıyı görmüyor",        m_tirmanma_kapiyi_gormesin,         "arac-sinavi.py"),
 

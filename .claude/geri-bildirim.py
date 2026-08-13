@@ -95,6 +95,93 @@ def ekle(a):
     return 0
 
 
+
+def bilinen_vakalar():
+    """Sınavlardaki bütün vaka adları — bir kaydın işaret edebileceği testler."""
+    import importlib.util
+    adlar = set()
+    for dosya, indis in (("arac-sinavi.py", 0), ("butunluk.py", 1), ("sinav.py", 0)):
+        yol = os.path.join(KLASOR, dosya)
+        if not os.path.exists(yol):
+            continue
+        try:
+            t = importlib.util.spec_from_file_location("_gb_" + dosya, yol)
+            m = importlib.util.module_from_spec(t)
+            t.loader.exec_module(m)
+        except Exception:
+            continue
+        for kayit in getattr(m, "VAKALAR", []):
+            adlar.add(kayit[indis])
+    return adlar
+
+
+def kapat(a):
+    """Bir kaydı kapat — ama koruyan testi ADIYLA söylemeden değil.
+
+    Bu komutun sebebi somut bir boşluk: `geri-getirme` dışındaki türler
+    "(insan)" diyordu ve sonra hiçbir şey insanın gerçekten test yazdığını
+    doğrulamıyordu. Kayıt kapanıyor, hata düzeliyor, koruma yazılmıyor ve
+    aynı hata bir sonraki değişiklikte sessizce geri geliyor.
+
+    Nitekim geldi: altın set kayma denetimi eklendi, elle negatif test
+    edildi, vakası yazılmadı — ve bunu ancak mutasyon sınavı buldu.
+    """
+    kayitlar = defteri_oku()
+    if not (1 <= a.no <= len(kayitlar)):
+        print(f"Böyle bir kayıt yok: {a.no} (defterde {len(kayitlar)} kayıt)")
+        return 2
+    kayit = kayitlar[a.no - 1]
+
+    vakalar = bilinen_vakalar()
+    if a.vaka not in vakalar:
+        yakin = [v for v in vakalar if a.vaka.lower() in v.lower()]
+        print(f"REDDEDİLDİ — '{a.vaka}' diye bir sınav vakası yok.\n")
+        if yakin:
+            print("Bunlar mı: " + ", ".join(repr(v) for v in yakin[:5]))
+        else:
+            print("Kaydı kapatmadan önce bu hatayı yakalayan vakayı yaz.\n"
+                  "Testsiz kapatılan hata, düzeltilmiş değil ertelenmiş hatadır: "
+                  "bir sonraki değişiklikte sessizce geri gelir.")
+        return 1
+
+    kayit["durum"] = "kapali"
+    kayit["vaka"] = a.vaka
+    kayit["kapanis"] = date.today().isoformat()
+    if a.cozum:
+        kayit["cozum"] = a.cozum
+    defteri_yaz(kayitlar)
+    print(f"Kapatıldı — '{kayit['soru'] or kayit['yanlis'][:50]}'")
+    print(f"  koruyan vaka: {a.vaka}")
+    return 0
+
+
+def korumasiz(a):
+    """Testi olmadan kapatılmış kayıtlar — halkanın kapanmadığı yerler."""
+    kayitlar = defteri_oku()
+    vakalar = bilinen_vakalar()
+    sorunlu = []
+    for i, k in enumerate(kayitlar, 1):
+        if k.get("durum") not in ("kapali", "islendi"):
+            continue
+        if k["tur"] == "geri-getirme":
+            continue          # altın sete girdi, koruması orada
+        v = k.get("vaka")
+        if not v:
+            sorunlu.append((i, k, "koruyan vaka belirtilmemiş"))
+        elif v not in vakalar:
+            sorunlu.append((i, k, f"belirtilen vaka artık yok: {v}"))
+
+    if not sorunlu:
+        print("Kapatılan her kaydın koruyan bir vakası var.")
+        return 0
+    print(f"{len(sorunlu)} kayıt korumasız kapatılmış:\n")
+    for i, k, sebep in sorunlu:
+        print(f"  [{i}] {k['tur']} — {k['soru'] or k['yanlis'][:60]}")
+        print(f"      {sebep}")
+    print("\nTestsiz kapatılan hata, düzeltilmiş değil ertelenmiş hatadır.")
+    return 1
+
+
 def listele(a):
     kayitlar = defteri_oku()
     acik = [k for k in kayitlar if k["durum"] == "acik"]
@@ -196,6 +283,15 @@ def main(argv):
 
     i = alt.add_parser("isle", help="açık kayıtları vakaya çevir")
     i.set_defaults(islev=isle)
+
+    k = alt.add_parser("kapat", help="kaydı kapat — koruyan testi adıyla ver")
+    k.add_argument("--no", type=int, required=True, help="listele'deki sıra")
+    k.add_argument("--vaka", required=True, help="bu hatayı yakalayan sınav vakası")
+    k.add_argument("--cozum", default="", help="ne yapıldı")
+    k.set_defaults(islev=kapat)
+
+    ko = alt.add_parser("korumasiz", help="testsiz kapatılmış kayıtlar")
+    ko.set_defaults(islev=korumasiz)
 
     secim = a.parse_args(argv)
     return secim.islev(secim)

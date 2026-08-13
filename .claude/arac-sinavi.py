@@ -1318,6 +1318,52 @@ def t_tdd_duzenleme_test_silmeyi_reddediyor(kok):
     return None
 
 
+def t_geri_bildirim_testsiz_kapatmayi_reddediyor(kok):
+    """Testsiz kapatılan hata, düzeltilmiş değil ERTELENMİŞ hatadır.
+
+    Bu boşluk gerçekti: `geri-getirme` dışındaki türler "(insan)" diyordu
+    ve sonra hiçbir şey insanın test yazdığını doğrulamıyordu. Kayıt
+    kapanıyor, hata düzeliyor, koruma yazılmıyor, hata geri geliyor.
+    """
+    kos(kok, "geri-bildirim.py", "ekle", "--tur", "davranis",
+        "--soru", "sınav kaydı", "--yanlis", "x", "--dogru", "y")
+    s = kos(kok, "geri-bildirim.py", "listele")
+    sira = s.stdout.count("•")
+    r = kos(kok, "geri-bildirim.py", "kapat", "--no", str(sira),
+            "--vaka", "böyle bir vaka asla yok")
+    if r.returncode != 1 or "REDDEDİLDİ" not in r.stdout:
+        return f"var olmayan vakayla kapatma geçti (çıkış {r.returncode})"
+    return None
+
+
+def t_geri_bildirim_gercek_vakayla_kapatiyor(kok):
+    kos(kok, "geri-bildirim.py", "ekle", "--tur", "davranis",
+        "--soru", "sınav kaydı 2", "--yanlis", "x", "--dogru", "y")
+    s = kos(kok, "geri-bildirim.py", "listele")
+    sira = s.stdout.count("•")
+    r = kos(kok, "geri-bildirim.py", "kapat", "--no", str(sira),
+            "--vaka", "devre: sınırda kesiyor")
+    if r.returncode != 0:
+        return f"gerçek vakayla kapatma reddedildi (çıkış {r.returncode})"
+    return None
+
+
+def t_geri_bildirim_korumasizi_raporluyor(kok):
+    """Elle kapatılan kayıt görünmez kalmamalı — nitekim üç tanesi kalmıştı."""
+    import json as _j
+    yol = os.path.join(kok, ".claude", "geri-bildirim.jsonl")
+    kayitlar = [_j.loads(x) for x in open(yol, encoding="utf-8") if x.strip()]
+    kayitlar.append({"tarih": "2026-01-01", "tur": "canon", "soru": "elle kapatılmış",
+                     "yanlis": "x", "dogru": "y", "kaynak": "", "durum": "kapali"})
+    with open(yol, "w", encoding="utf-8") as f:
+        for k in kayitlar:
+            f.write(_j.dumps(k, ensure_ascii=False) + "\n")
+    r = kos(kok, "geri-bildirim.py", "korumasiz")
+    if r.returncode != 1 or "korumasız kapatılmış" not in r.stdout:
+        return f"testsiz kapatılmış kayıt raporlanmadı (çıkış {r.returncode})"
+    return None
+
+
 VAKALAR = [
     ("devre: sınırda kesiyor",              t_devre_sinirda_kesiyor),
     ("devre: başarı sayacı sıfırlıyor",     t_devre_basari_sifirliyor),
@@ -1422,6 +1468,10 @@ VAKALAR = [
     ("tdd: olmayan vakada çökmüyor",         t_tdd_olmayan_vakada_cokmuyor),
     ("tdd: gerçek kırmızı-yeşil dönüşü",     t_tdd_gercek_kirmizi_yesil_donusu),
     ("tdd: düzenleme test silmeyi reddediyor", t_tdd_duzenleme_test_silmeyi_reddediyor),
+
+    ("geri bildirim: testsiz kapatma reddediliyor", t_geri_bildirim_testsiz_kapatmayi_reddediyor),
+    ("geri bildirim: gerçek vakayla kapanıyor", t_geri_bildirim_gercek_vakayla_kapatiyor),
+    ("geri bildirim: korumasız kayıt raporlanıyor", t_geri_bildirim_korumasizi_raporluyor),
 
     ("geri bildirim: vakaya çeviriyor",     t_geribildirim_vakaya_ceviriyor),
     ("geri bildirim: yineleneni kapatıyor", t_geribildirim_yineleneni_kapatiyor),
