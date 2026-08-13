@@ -353,6 +353,9 @@ Bu, iyilere zaman kazandıran tek şey.
 | Sarı Gülücük | — | Zekâ ve icat |
 | Samara Kadın | — | Zihin kontrolü |
 | Cips Yiyen Adam | 2 tır | Normal form |
+| Nemesis | 3 tır | Batı Cephesi Komutanı |
+| Teşup | 3 tır | Orta Cephe Komutanı |
+| Ahriman | 3 tır | Doğu Cephesi Komutanı |
 | Gizemli Çocuk | 4 tır | + temel elektrik |
 | Gizemli Çocuğun Abisi | 4 tır | + tam elektrik kontrolü |
 | Yoğurt Yiyen Adam | 5 tır | Cips Yiyen Adam'ın savaş modu |

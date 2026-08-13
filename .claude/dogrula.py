@@ -460,6 +460,37 @@ def d_belge(r):
             else:
                 r.tamam()
 
+    # Altın setteki satır numaraları MUTLAK. `LORE.md`'ye yukarıdan bir satır
+    # eklendiği anda aşağıdaki her atıf kayar ve hiçbir şey bağırmaz: ölçüm
+    # sessizce yanlış yeri gösterir, isabet@k düşer, yargıç haksız kusur
+    # bulur. Nitekim oldu — tır tablosuna üç satır eklendi, beş altın soru
+    # birden kaydı ve bunu ancak sabit atıflı bir araç vakası fark etti.
+    # Şimdi mekanik: her numaranın gösterdiği satır, o sorunun gerçeğini
+    # gerçekten taşıyor mu.
+    altin_yolu = os.path.join(KOK, ".claude", "altin-sorular.json")
+    lore_yolu = os.path.join(KOK, "LORE.md")
+    if os.path.exists(altin_yolu) and os.path.exists(lore_yolu):
+        import json as _json
+        satirlar = open(lore_yolu, encoding="utf-8").read().splitlines()
+        with open(altin_yolu, encoding="utf-8") as f:
+            sorular = _json.load(f)["sorular"]
+        kaymis = []
+        for soru in sorular:
+            no, gercekler = soru.get("satir"), soru.get("gercekler") or []
+            if not isinstance(no, int) or not gercekler:
+                continue
+            if not (1 <= no <= len(satirlar)):
+                kaymis.append(f"{soru['soru']!r} → {no}. satır dosyada yok")
+                continue
+            metin = satirlar[no - 1].lower()
+            if not any(g.lower() in metin for g in gercekler):
+                kaymis.append(f"{soru['soru']!r} → LORE.md:{no} artık "
+                              f"{gercekler[0]!r} içermiyor")
+        for k in kaymis:
+            r.hata("belge", f"altın set kaymış: {k}")
+        if not kaymis:
+            r.tamam()
+
     butunluk_yolu = os.path.join(KOK, ".claude", "butunluk.py")
     if os.path.exists(butunluk_yolu):
         try:

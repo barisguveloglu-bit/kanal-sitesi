@@ -564,7 +564,7 @@ yakalamadığına bak. Burada **başarısızlık iyi haberdir** — mutasyon
 yakalandı demektir. Yeşil kalan bir mutasyon, "o davranışı hiçbir şey
 korumuyor" demektir.
 
-**23 mutasyon** var: kesici hiç kesmesin, yargıç uydurmayı görmesin,
+**27 mutasyon** var: kesici hiç kesmesin, yargıç uydurmayı görmesin,
 sözleşme kapısı açılsın, arama "bilmiyorum" diyemesin, ham iz özete girsin,
 sürüm yamayı dokuzdan öteye taşısın, logo sürümü gövdeye çakılsın…
 
@@ -582,7 +582,7 @@ Mutasyon sınavı tam olarak bunun için var.
 | Sınav | Neyi ölçer | Vaka |
 |---|---|---|
 | `sinav.py` | denetleyiciyi — fay enjeksiyonu | 28 |
-| `arac-sinavi.py` | araçları — devre, yargıç, görev, logo | 55 |
+| `arac-sinavi.py` | araçları — devre, yargıç, görev, logo, bütünlük | 63 |
 | `butunluk.py` | **içeriği** — canon ↔ veri ↔ site | **74 bütünlük vakası** |
 
 ```
@@ -619,35 +619,49 @@ denetimi: bütün "en güçlü / en tehlikeli" kalıplarını hata sayıyordu ve
 **canon'un kendi cümlesini yakaladı** — `orta.not` içindeki "üçü arasında
 iradesi en zayıf olan da o" `LORE.md:210`'da birebir yazıyor. Yasak olan
 sıralama sözcüğü değil, canon'da karşılığı olmayan sıralama. Ölçüt dayanağa
-bağlandı: iddia canon'da geçmiyorsa hata.
+bağlandı: iddia canon'da geçmiyorsa hata. Yanına masum vaka kondu, yoksa
+aynı aşırı duyarlılık geri gelir.
 
-Geriye dört gerçek tutarsızlık kaldı. Üçü canon kararı, `geri-bildirim.py`
-defterinde Barış'ı bekliyor:
+Geriye dört gerçek tutarsızlık kaldı ve **dördü de kapatıldı:**
 
-- `data.js` Sarı Gülücük için "en tehlikeli ikinci beyin" diyor —
-  `LORE.md:344` sıralı güç tablosunu bilinçli reddediyor.
-- Tır iç referans tablosunda üç komutan hiç yok, ama `data.js` üçüne de
-  tır değeri veriyor.
-- `irade.html` beş kademeyi uyarısız basıyor; canon o tabloyu `LORE.md:93`
-  TASLAK sayıyor ve "netleşmeden kesin dille yazmayın" diyor.
-- `SITE_ADRESI` tanımlı ama hiçbir görünüm kullanmıyor — ölü veri.
+| Bulgu | Ne yapıldı |
+|---|---|
+| `data.js` Sarı Gülücük için "en tehlikeli ikinci beyin" diyordu | Sıralama kaldırıldı; `LORE.md:134-138`'e dayanan hâliyle yeniden yazıldı |
+| Tır iç referans tablosunda üç komutan yoktu | `LORE.md`'ye üç satır eklendi — `LORE.md:192` üçünü de zaten **3 tır** ilan ediyordu, tablo sadece onu taşımıyordu |
+| `irade.html` beş kademeyi kesin sunuyordu | Sayfa ölçüm hassasiyeti için çekince koyuyordu ama sınıflandırmanın **kendisinin** taslak olduğunu söylemiyordu; `LORE.md:93`'e uygun cümle eklendi |
+| `SITE_ADRESI` tanımlıydı ama hiçbir görünüm kullanmıyordu | Silindi. Yorumu "paylaşım önizlemeleri ve site haritası için" diyordu, ikisi de kullanmıyordu — sabiti ölçen test de gerçek değişmeze yöneltildi: harita temeli ile `canonical` adresleri aynı mı |
 
-### Neden mutasyon sınavında değil
+### Düzeltmenin açtığı asıl açık
 
-`butunluk.py` şu an `mutasyon.py`'ye bağlı **değil** ve bu bilinçli.
+`LORE.md`'ye üç satır eklemek **altın setteki beş sorunun satır numarasını
+kaydırdı** — ve hiçbir denetim bunu görmedi. Kaymayı ancak `arac-sinavi.py`
+içinde satır numarası gömülü duran bir vaka fark etti, o da yanlış sebeple
+kırılarak.
 
-Mutasyon sınavının sözleşmesi şu: ölçülen şeyi kasten boz, sınavın
-düştüğünü gör. Ama bu sınav zaten düşük — dört gerçek bulgu var ve üçü
-Barış'ın kararını bekliyor. Bu hâlde bir mutasyon eklersem sınav yine
-kırmızı yanar ve mutasyon **yakalanmış gibi görünür**, oysa yakalanmamıştır:
-kırmızılığın sebebi mutasyon değil, zaten duran bulgular.
+Bu, sistemin ölçüm zemininin altından kayması demekti: `degerlendir.py`
+isabet@k'yı yanlış satıra karşı ölçer, `yargi.py` doğru cevaba haksız kusur
+yazar, ikisi de sessizce. Bulunması en zor hata türü — çünkü hiçbir şey
+kırmızı yanmıyor.
 
-Bu depoda tam olarak bu tuzağa bir kez düşüldü — bir mutasyon sızıntı değil
-çökme ürettiği için test "doğru sebeple değil" geçmişti. Aynı hatayı bilerek
-tekrarlamanın anlamı yok.
+İki şey değişti:
 
-Bağlama koşulu: dört bulgu kapandığında sınav yeşile döner, mutasyonlar o
-zaman anlamlı olur.
+- `belge` denetimi artık her altın sorunun satırının **o sorunun gerçeğini
+  taşıdığını** doğruluyor. Kanca `LORE.md` düzenlemesinde koştuğu için
+  kayma, olduğu turda yakalanıyor.
+- Satır numarası gömen test düzeltildi: numarayı gömmüyor, arıyor. Mutlak
+  satır numarası gömen test, ölçtüğü şeyden hızlı çürür.
+
+### Mutasyon sınavına bağlandı
+
+Sınav kırmızıyken mutasyon eklemek yanlış olurdu: mutasyon "yakalanmış"
+görünürdü, oysa kırmızılığın sebebi zaten duran bulgular olurdu. Dört bulgu
+kapanıp sınav yeşile dönünce koşul doğdu ve dört mutasyon eklendi — plaka
+denetimi körleşsin, sıralama denetimi körleşsin, `okuyucu.py`'nin dizgi
+zinciri kırılsın, altın set kayma denetimi körleşsin.
+
+Bütünlüğü koruyan şey artık `arac-sinavi.py`'deki sekiz fay enjeksiyon
+vakası: depoyu kasten bozup sınavın yakaladığını doğruluyorlar. Bu vakalar
+bir kez elle çalıştırılmıştı; elle yapılan deneme buharlaşır.
 
 ## Marka — üretilen, yazılmayan
 

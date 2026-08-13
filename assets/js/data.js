@@ -12,9 +12,6 @@
 /* Kanalın adresi — hem alt bilgide hem gizli sayfada kullanılıyor */
 const KANAL = "https://www.youtube.com/@mahmutguveloglu473";
 
-/* Sitenin yayındaki adresi — paylaşım önizlemeleri ve site haritası için */
-const SITE_ADRESI = "https://barisguveloglu-bit.github.io/kanal-sitesi/";
-
 /*
  * VİDEOLAR — sitenin YouTube tarafı.
  * ---------------------------------------------------------------
@@ -207,8 +204,8 @@ const KARAKTERLER = [
       "Para sıkıntısı yok",
     ],
     detay:
-      "Şu anda ağır yaralı Samara Kadın ile ilgileniyor. Fiziksel gücü olmayan " +
-      "ama masanın üstündeki en tehlikeli ikinci beyin olan karakter.",
+      "Şu anda ağır yaralı Samara Kadın ile ilgileniyor. Fiziksel gücü yok; " +
+      "masaya zekâsıyla ve kurduğu tuzaklarla oturuyor.",
   },
   {
     id: "samara-kadin",

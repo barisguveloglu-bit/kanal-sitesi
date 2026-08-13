@@ -409,9 +409,20 @@ def t_gorev_konu_disinda_uydurmuyor(kok):
 
 
 def t_gorev_dogru_atifi_geciriyor(kok):
+    """Satır numarası GÖMÜLMÜYOR, aranıyor.
+
+    İlk hâli `LORE.md:428` yazıyordu. Canon'a üç satır eklendiği gün test
+    kırıldı — hem de doğru sebeple değil: araçta bir sorun yoktu, testin
+    kendisi bayatlamıştı. Mutlak satır numarası gömen test, ölçtüğü şeyden
+    hızlı çürür.
+    """
+    satirlar = open(os.path.join(kok, "LORE.md"), encoding="utf-8").read().splitlines()
+    no = next((i + 1 for i, x in enumerate(satirlar) if "Teşup'un elinde" in x), None)
+    if no is None:
+        return "canon'da \"Teşup'un elinde\" geçen satır yok"
     yol = os.path.join(kok, "rapor-iyi.md")
     open(yol, "w", encoding="utf-8").write(
-        "Barış Teşup'un elinde Orta Cephe'de tutuluyor. LORE.md:428\n")
+        f"Barış Teşup'un elinde Orta Cephe'de tutuluyor. LORE.md:{no}\n")
     s = kos(kok, "gorev.py", "dogrula", "--rapor", yol)
     if s.returncode != 0:
         return f"doğru atıf kusurlu sayıldı: {s.stdout.strip()[:100]}"
@@ -815,6 +826,119 @@ def t_geribildirim_kaynaksizi_insana_biraktiyor(kok):
     return None
 
 
+# --------------------------------------------------------- bütünlük sınavı
+# `butunluk.py` içeriği ölçüyor; peki onu kim ölçüyor? Aşağıdakiler depoyu
+# kasten bozup sınavın yakaladığını doğruluyor — `sinav.py`'nin denetleyiciye
+# yaptığının aynısı. Bu vakalar elle bir kez çalıştırılmıştı; elle yapılan
+# deneme buharlaşır, bu yüzden kalıcı hâle getirildi.
+
+def _butunluk(kok):
+    return kos(kok, "butunluk.py", "--sessiz")
+
+
+def _boz(kok, yol, eski, yeni):
+    p = os.path.join(kok, yol)
+    with open(p, encoding="utf-8") as f:
+        icerik = f.read()
+    if eski not in icerik:
+        return f"bozma uygulanamadı: {yol} içinde yok"
+    with open(p, "w", encoding="utf-8") as f:
+        f.write(icerik.replace(eski, yeni, 1))
+    return None
+
+
+def t_butunluk_temiz_baslangic(kok):
+    """Bozmadan önce yeşil olmalı — yoksa aşağıdaki vakalar yanlış sebeple geçer."""
+    s = _butunluk(kok)
+    if s.returncode != 0:
+        return f"depo zaten kırmızı: {s.stdout.strip().splitlines()[-1]}"
+    return None
+
+
+def t_butunluk_plaka_hatasi_yakalaniyor(kok):
+    hata = _boz(kok, "assets/js/data.js",
+                'plaka: 6, il: "Ankara"', 'plaka: 6, il: "Ankaraa"')
+    if hata:
+        return hata
+    s = _butunluk(kok)
+    if s.returncode != 1 or "plaka-il eşleşmesi" not in s.stdout:
+        return "resmî plaka listesine uymayan il adı yakalanmadı"
+    return None
+
+
+def t_butunluk_canon_disi_isim_yakalaniyor(kok):
+    hata = _boz(kok, "assets/js/data.js", 'ad: "Şanta"', 'ad: "Zubizarreta"')
+    if hata:
+        return hata
+    s = _butunluk(kok)
+    if s.returncode != 1 or "canon'da geçmeyen" not in s.stdout:
+        return "canon'da olmayan derebeyi adı yakalanmadı"
+    return None
+
+
+def t_butunluk_siralama_iddiasi_yakalaniyor(kok):
+    """Canon'da dayanağı olmayan sıralama — yasağın asıl hedefi bu."""
+    hata = _boz(kok, "assets/js/data.js", "Fiziksel gücü yok;",
+                "Masadaki en tehlikeli beyin;")
+    if hata:
+        return hata
+    s = _butunluk(kok)
+    if s.returncode != 1 or "sıralama iddiası" not in s.stdout:
+        return "canon dışı sıralama iddiası yakalanmadı"
+    return None
+
+
+def t_butunluk_canon_siralamasi_yanlis_alarm_vermiyor(kok):
+    """Canon'un KENDİ sıralama cümlesi hata sayılmamalı.
+
+    İlk hâli tam olarak burada yanılmıştı: `LORE.md:210`'da birebir geçen
+    "üçü arasında iradesi en zayıf olan da o" cümlesi hata olarak
+    raporlanıyordu. Masum vaka olmadan bu tür bir aşırı duyarlılık geri gelir.
+    """
+    s = _butunluk(kok)
+    if s.returncode == 1 and "sıralama iddiası" in s.stdout:
+        return "canon'da geçen sıralama cümlesi yanlış alarm üretti"
+    return None
+
+
+def t_butunluk_kirik_baglanti_yakalaniyor(kok):
+    hata = _boz(kok, "index.html", 'href="karakterler.html"', 'href="yok-boyle.html"')
+    if hata:
+        return hata
+    s = _butunluk(kok)
+    if s.returncode != 1 or "kırık iç bağlantı" not in s.stdout:
+        return "kırık iç bağlantı yakalanmadı"
+    return None
+
+
+def t_butunluk_olu_veri_yakalaniyor(kok):
+    hata = _boz(kok, "assets/js/data.js", "const KANAL = ",
+                'const HIC_KULLANILMAYAN = "x";\nconst KANAL = ')
+    if hata:
+        return hata
+    s = _butunluk(kok)
+    if s.returncode != 1 or "kullanılmayan veri sabiti" not in s.stdout:
+        return "hiç kullanılmayan veri sabiti yakalanmadı"
+    return None
+
+
+def t_butunluk_okuyucu_data_js_i_cozuyor(kok):
+    """Ayrıştırıcı sessizce boş dönerse 74 vakanın çoğu anlamsız geçer."""
+    import importlib.util
+    t = importlib.util.spec_from_file_location(
+        "o_" + str(abs(hash(kok))), os.path.join(kok, ".claude", "okuyucu.py"))
+    m = importlib.util.module_from_spec(t)
+    t.loader.exec_module(m)
+    metin = open(os.path.join(kok, "assets/js/data.js"), encoding="utf-8").read()
+    iller = m.sabit(metin, "IL_DEREBEYLERI")
+    if len(iller) != 81:
+        return f"okuyucu 81 il yerine {len(iller)} kayıt çözdü"
+    k = m.sabit(metin, "KARAKTERLER")
+    if not any("+" not in x["ozet"] and len(x["ozet"]) > 100 for x in k):
+        return "dizgi zinciri (\"a\" + \"b\") birleştirilmemiş"
+    return None
+
+
 VAKALAR = [
     ("devre: sınırda kesiyor",              t_devre_sinirda_kesiyor),
     ("devre: başarı sayacı sıfırlıyor",     t_devre_basari_sifirliyor),
@@ -877,6 +1001,15 @@ VAKALAR = [
     ("kanca: aynı hatada kesiyor",          t_kanca_ayni_hatada_kesiyor),
     ("kanca: hata imzasını deftere yazıyor", t_kanca_hata_imzasini_yaziyor),
     ("denetleyici: bozuk araca dayanıyor",  t_dogrula_bozuk_araca_dayaniyor),
+
+    ("bütünlük: temiz başlangıç",           t_butunluk_temiz_baslangic),
+    ("bütünlük: plaka hatası yakalanıyor",  t_butunluk_plaka_hatasi_yakalaniyor),
+    ("bütünlük: canon dışı isim yakalanıyor", t_butunluk_canon_disi_isim_yakalaniyor),
+    ("bütünlük: sıralama iddiası yakalanıyor", t_butunluk_siralama_iddiasi_yakalaniyor),
+    ("bütünlük: canon sıralaması masum",     t_butunluk_canon_siralamasi_yanlis_alarm_vermiyor),
+    ("bütünlük: kırık bağlantı yakalanıyor", t_butunluk_kirik_baglanti_yakalaniyor),
+    ("bütünlük: ölü veri yakalanıyor",       t_butunluk_olu_veri_yakalaniyor),
+    ("bütünlük: okuyucu data.js'i çözüyor",  t_butunluk_okuyucu_data_js_i_cozuyor),
 
     ("geri bildirim: vakaya çeviriyor",     t_geribildirim_vakaya_ceviriyor),
     ("geri bildirim: yineleneni kapatıyor", t_geribildirim_yineleneni_kapatiyor),

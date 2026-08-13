@@ -215,7 +215,37 @@ def m_dogrula_logoyu_gormesin(kok):
             "            sorunlar = []")
 
 
+def m_butunluk_plaka_gormesin(kok):
+    duzenle(kok, ".claude/butunluk.py",
+            "              if i[\"plaka\"] in PLAKALAR and i[\"il\"] != PLAKALAR[i[\"plaka\"]]]",
+            "              if False]")
+
+
+def m_butunluk_siralamayi_gormesin(kok):
+    duzenle(kok, ".claude/butunluk.py",
+            "                    if e.group(0).lower() not in kanon:",
+            "                    if False:")
+
+
+def m_okuyucu_zinciri_kirsin(kok):
+    """Dizgi zinciri birleşmezse uzun metinler yarım okunur — sessizce."""
+    duzenle(kok, ".claude/okuyucu.py",
+            "        parcalar = [self.dizgi()]",
+            "        return self.dizgi()\n        parcalar = [self.dizgi()]")
+
+
+def m_dogrula_altin_kaymasini_gormesin(kok):
+    duzenle(kok, ".claude/dogrula.py",
+            "            if not any(g.lower() in metin for g in gercekler):",
+            "            if False:")
+
+
 MUTASYONLAR = [
+    ("bütünlük: plaka hatasını görmüyor", m_butunluk_plaka_gormesin,          "arac-sinavi.py"),
+    ("bütünlük: sıralamayı görmüyor",     m_butunluk_siralamayi_gormesin,     "arac-sinavi.py"),
+    ("okuyucu: dizgi zinciri kırık",      m_okuyucu_zinciri_kirsin,           "arac-sinavi.py"),
+    ("belge: altın set kaymasını görmüyor", m_dogrula_altin_kaymasini_gormesin, "arac-sinavi.py"),
+
     ("sürüm: yama 9'u aşabiliyor",       m_surum_dokuzu_asabilsin,           "arac-sinavi.py"),
     ("sürüm: belge kaymasını görmüyor",  m_dogrula_surumu_gormesin,          "arac-sinavi.py"),
 

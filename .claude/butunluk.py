@@ -588,12 +588,25 @@ def h06_kanal_adresi_tutarli():
 
 
 def h07_site_adresi_haritayla_ayni():
-    temel = K.d["SITE_ADRESI"].rstrip("/")
-    if temel not in K.harita:
-        return f"SITE_ADRESI ({temel}) site haritasında geçmiyor"
-    return None
+    """Site haritası ile sayfaların `canonical` adresi aynı temeli göstermeli.
 
-
+    Önceki hâli `data.js`'teki `SITE_ADRESI` sabitini haritayla karşılaştırıyordu.
+    O sabit ölü çıktı — yorumu "paylaşım önizlemeleri ve site haritası için"
+    diyordu ama ikisi de onu kullanmıyordu; silindi. Sabiti ölçmek zaten
+    yanlış hedefti: asıl kırılma noktası haritanın ve `canonical` etiketlerin
+    ayrışması, çünkü ikisi de elle yazılıyor.
+    """
+    e = re.search(r"<loc>(https?://[^<]+?)/?</loc>", K.harita)
+    if not e:
+        return "site haritasında <loc> adresi yok"
+    temel = e.group(1).rsplit("/", 1)[0] if e.group(1).endswith(".html") else e.group(1)
+    kotu = []
+    for a, m in K.sayfalar.items():
+        c = re.search(r'rel="canonical"\s+href="(https?://[^"]+)"', m)
+        if c and not c.group(1).startswith(temel):
+            kotu.append(f"{a} → {c.group(1)}")
+    return None if not kotu else (f"canonical adresi harita temeliyle ({temel}) "
+                                  f"uyuşmuyor: {kotu[:3]}")
 
 
 def h09_acik_uclar_kesin_sunulmuyor():
