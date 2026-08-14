@@ -745,6 +745,48 @@ def h11_sitede_canon_disi_siralama_yok():
                                   + "; ".join(kotu[:4]))
 
 
+def h12_kapatilmis_celiski_geri_gelmemis():
+    """Kapatılmış her canon çelişkisi, kalıcı bir regresyon testine dönüşür.
+
+    Halkanın kapanmayan son ucu buydu: bir çelişki bulunuyor, düzeltiliyor,
+    kayıt kapatılıyor — ve o düzeltmeyi koruyan hiçbir şey kalmıyor. Bir
+    sonraki düzenlemede aynı cümle geri gelse kimse fark etmez.
+
+    Artık defterdeki kapalı `canon` kayıtlarının tırnak içindeki yanlış
+    ifadeleri depoda aranıyor. Kayıt kapandıysa o ifade bir daha
+    görünmemeli; görünüyorsa ya düzeltme geri alınmış ya da kayıt
+    haksız yere kapatılmış.
+
+    Böylece her kapatma, yazmayı ayrıca hatırlamaya gerek kalmadan
+    kendi testini doğurur.
+    """
+    defter = os.path.join(KOK, ".claude", "geri-bildirim.jsonl")
+    if not os.path.exists(defter):
+        return None
+    import json as _j
+    aranan = []
+    with open(defter, encoding="utf-8") as f:
+        for satir in f:
+            if not satir.strip():
+                continue
+            try:
+                k = _j.loads(satir)
+            except ValueError:
+                continue
+            if k.get("tur") != "canon" or k.get("durum") not in ("kapali", "islendi"):
+                continue
+            for ifade in re.findall(r'"([^"]{8,})"', k.get("yanlis", "")):
+                aranan.append((ifade, k.get("soru") or k.get("yanlis")[:40]))
+
+    if not aranan:
+        return None
+    govde = K.data_metin + K.lore + " ".join(K.html.values())
+    geri_gelen = [f'"{i}" ({s})' for i, s in aranan if i in govde]
+    return None if not geri_gelen else (
+        "kapatılmış çelişki geri gelmiş: " + "; ".join(geri_gelen[:3]))
+
+
+
 VAKALAR = [
     ("veri", "il: 81 kayıt var", a01_seksen_bir_kayit),
     ("veri", "il: plakalar eksiksiz", a02_plakalar_eksiksiz),
@@ -817,6 +859,7 @@ VAKALAR = [
     ("canon", "canon: site adresi haritayla aynı", h07_site_adresi_haritayla_ayni),
     ("canon", "canon: taslak kesin sunulmuyor", h09_acik_uclar_kesin_sunulmuyor),
 
+    ("canon", "canon: kapatılmış çelişki geri gelmemiş", h12_kapatilmis_celiski_geri_gelmemis),
     ("canon", "canon: dış sıralama iddiası yok", h11_sitede_canon_disi_siralama_yok),
 
     ("sade", "sadelik: form yok", i01_form_yok),

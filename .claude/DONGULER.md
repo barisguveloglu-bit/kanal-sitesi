@@ -835,7 +835,7 @@ kararı dışarıdaki koşucu veriyor. Taklit etmek **yanlış bir yeşil**
 |---|---|---|
 | `sinav.py` | denetleyiciyi — fay enjeksiyonu | 28 |
 | `arac-sinavi.py` | araçları — devre, yargıç, görev, logo, olay, tırmanma, eleştirmen, TDD, dış ajan | 102 |
-| `butunluk.py` | **içeriği** — canon ↔ veri ↔ site | **74 bütünlük vakası** |
+| `butunluk.py` | **içeriği** — canon ↔ veri ↔ site | **75 bütünlük vakası** |
 
 ```
 python3 .claude/butunluk.py
@@ -1032,6 +1032,21 @@ bu deponun reddettiği şeyi yaptım. Üçü de koruyan vakalarıyla yeniden
 kapatıldı, bu oturumun kendi dört hatası da deftere geçirildi.
 
 Testsiz kapatılan hata, düzeltilmiş değil **ertelenmiş** hatadır.
+
+### Ve kapatmanın kendi testini doğurması
+
+İlk gerçek kullanımda bir adım daha eksik çıktı. Sarı Gülücük'ün parası
+düzeltildi, birleştirildi — ama kayıt **kapatılamadı**, çünkü o düzeltmeyi
+koruyan bir vaka yoktu. Kapı doğru davrandı; eksik olan, her canon
+düzeltmesi için elle test yazmanın sürdürülebilir olmaması.
+
+Çözüm tek bir bütünlük vakası: `canon: kapatılmış çelişki geri gelmemiş`.
+Defterdeki kapalı `canon` kayıtlarının tırnak içindeki yanlış ifadelerini
+depoda arıyor. Kayıt kapandıysa o ifade bir daha görünmemeli.
+
+Böylece **her kapatma kendi regresyon testini doğuruyor** — ayrıca yazmayı
+hatırlamaya gerek kalmadan. Negatif test edildi: `"Parası sınırlı"` geri
+`"Para sıkıntısı yok"` yapıldığında vaka anında düşüyor.
 
 ## Marka — üretilen, yazılmayan
 
