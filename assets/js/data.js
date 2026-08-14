@@ -201,7 +201,7 @@ const KARAKTERLER = [
       "İcat yapabilme",
       "Tuzak kurabilme",
       "Kendi şirketi (ayı kapanı)",
-      "Para sıkıntısı yok",
+      "Parası sınırlı",
     ],
     detay:
       "Şu anda ağır yaralı Samara Kadın ile ilgileniyor. Fiziksel gücü yok; " +
