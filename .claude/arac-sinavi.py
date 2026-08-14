@@ -1471,10 +1471,10 @@ def t_disajan_sohbet_brief_kendi_kendine_yetiyor(kok):
     """Depoya erişemeyen ajana 'dosyayı oku' demek anlamsız — parça brief'in
     içinde olmalı, yoksa ajan ya tahmin eder ya durur."""
     s = kos(kok, "disajan.py", "sohbet", "--konu", "para",
-            "--dosya", "assets/js/data.js", "--imza", "Para sıkıntısı yok")
+            "--dosya", "assets/js/data.js", "--imza", "Tuzak kurabilme")
     if s.returncode != 0:
         return f"sohbet brief üretilemedi (çıkış {s.returncode})"
-    if "Para sıkıntısı yok" not in s.stdout:
+    if "Tuzak kurabilme" not in s.stdout:
         return "değişecek parça brief'e gömülmemiş"
     if "LORE.md" not in s.stdout:
         return "canon dayanağı brief'e gömülmemiş"
@@ -1489,7 +1489,7 @@ def t_disajan_uygula_birebir_eslesme_istiyor(kok):
     istenmeyen değişikliği sessizce içeri sokması."""
     yol = os.path.join(kok, "yanit.txt")
     open(yol, "w", encoding="utf-8").write(
-        '<<<ESKI\n      "Para sıkıntısı YOK",\n>>>\n'
+        '<<<ESKI\n      "Tuzak kurabilmeX",\n>>>\n'
         '<<<YENI\n      "x",\n>>>\nGEREKÇE: y (LORE.md:221)\n')
     s = kos(kok, "disajan.py", "uygula", "--yanit", yol,
             "--dosya", "assets/js/data.js")
@@ -1500,7 +1500,7 @@ def t_disajan_uygula_birebir_eslesme_istiyor(kok):
     if s.returncode != 1 or "REDDEDİLDİ" not in s.stdout:
         return f"eşleşmeyen ESKI bloğu uygulandı (çıkış {s.returncode})"
     with open(os.path.join(kok, "assets/js/data.js"), encoding="utf-8") as f:
-        if "Para sıkıntısı yok" not in f.read():
+        if "Tuzak kurabilme" not in f.read():
             return "reddedildi denildi ama dosya değişmiş"
     return None
 
@@ -1508,15 +1508,15 @@ def t_disajan_uygula_birebir_eslesme_istiyor(kok):
 def t_disajan_uygula_dogru_cevabi_isliyor(kok):
     yol = os.path.join(kok, "yanit.txt")
     open(yol, "w", encoding="utf-8").write(
-        '<<<ESKI\n      "Para sıkıntısı yok",\n>>>\n'
-        '<<<YENI\n      "İcatlarını kendi şirketi finanse ediyor",\n>>>\n'
-        'GEREKÇE: canon sınırlı diyor (LORE.md:221)\n')
+        '<<<ESKI\n      "Tuzak kurabilme",\n>>>\n'
+        '<<<YENI\n      "Tuzak kurma",\n>>>\n'
+        'GEREKÇE: kısaltma (LORE.md:136)\n')
     s = kos(kok, "disajan.py", "uygula", "--yanit", yol,
             "--dosya", "assets/js/data.js")
     if s.returncode != 0 or "Uygulandı" not in s.stdout:
         return f"doğru cevap uygulanmadı (çıkış {s.returncode})"
     with open(os.path.join(kok, "assets/js/data.js"), encoding="utf-8") as f:
-        if "Para sıkıntısı yok" in f.read():
+        if '"Tuzak kurabilme"' in f.read():
             return "uygulandı denildi ama dosya değişmemiş"
     return None
 
@@ -1529,6 +1529,60 @@ def t_disajan_uygula_bicimsiz_cevabi_reddediyor(kok):
             "--dosya", "assets/js/data.js")
     if s.returncode != 1:
         return f"biçimsiz cevap kabul edildi (çıkış {s.returncode})"
+    return None
+
+
+def t_disajan_uygula_birlesmis_satirlari_cozuyor(kok):
+    """Sohbet arayüzü kaynak satırlarını birleştiriyor; içerik aynı, sarma
+    noktası kaybolmuş. Bu her gerçek kullanımda oluyor."""
+    yol = os.path.join(kok, "yanit.txt")
+    open(yol, "w", encoding="utf-8").write(
+        '<<<ESKI "Aşırı zeki bir mucit. İcatlar ve tuzaklar kuruyor. Kendi şirketi var — " '
+        '+ "ayı kapanı satıyor ve icatlarının parasını oradan çıkarıyor.",\n'
+        '<<<YENI "Aşırı zeki bir mucit. İcatlar ve tuzaklar kuruyor. Kendi şirketi var — " '
+        '+ "ayı kapanı satıyor ve masrafını oradan karşılıyor.",\n'
+        'GEREKÇE: canon (LORE.md:136)\n')
+    s = kos(kok, "disajan.py", "uygula", "--yanit", yol, "--dosya", "assets/js/data.js")
+    if s.returncode != 0:
+        return f"birleşmiş satırlar çözülemedi (çıkış {s.returncode})"
+    with open(os.path.join(kok, "assets/js/data.js"), encoding="utf-8") as f:
+        icerik = f.read()
+    if "parasını oradan çıkarıyor" in icerik:
+        return "uygulandı denildi ama eski metin duruyor"
+    # Biçim korunmalı: girinti ve satır sonu.
+    if '\n"Aşırı zeki' in icerik:
+        return "girinti kayboldu — içerik doğru, biçim bozuk"
+    # Satır sonlarını silip "yapışmış mı" diye bakmak anlamsız: silince
+    # her şey yapışık görünür. Doğrusu satırın gerçekten ayrı olduğuna
+    # bakmak.
+    for satir in icerik.splitlines():
+        if "karşılıyor." in satir and "ozellikler" in satir:
+            return "sonraki satır yapıştı — satır sonu yutulmuş"
+    if '      "ayı kapanı satıyor' not in icerik:
+        return "ikinci satırın girintisi korunmadı"
+    return None
+
+
+def t_disajan_uygula_belirsiz_konumu_reddediyor(kok):
+    """Aralık doğrulanmadan uygulanmamalı.
+
+    Bu vakanın sebebi somut: ilk hâlim boşluğa duyarsız eşleşmede 'ilk
+    kelimeyi bul, son kelimeyi bul, arasını al' diyordu. Bu bir TAHMİNDİ
+    ve dosyayı bozdu — araya alakasız satırlar girdi. Doğrulanmayan konum,
+    konum değildir.
+    """
+    yol = os.path.join(kok, "yanit.txt")
+    # Dosyada birden çok kez geçen bir kalıp: tek başına konum belirlemez.
+    open(yol, "w", encoding="utf-8").write(
+        '<<<ESKI "3 tır kaldırma gücü",\n'
+        '<<<YENI "3 tır",\n'
+        'GEREKÇE: kısaltma (LORE.md:193)\n')
+    s = kos(kok, "disajan.py", "uygula", "--yanit", yol, "--dosya", "assets/js/data.js")
+    if s.returncode == 0:
+        with open(os.path.join(kok, "assets/js/data.js"), encoding="utf-8") as f:
+            n = f.read().count('"3 tır kaldırma gücü"')
+        if n > 0:
+            return "birden çok yerde geçen kalıp uygulandı ama hepsi değişmedi"
     return None
 
 
@@ -1651,6 +1705,9 @@ VAKALAR = [
     ("dış ajan: uygula birebir eşleşme istiyor", t_disajan_uygula_birebir_eslesme_istiyor),
     ("dış ajan: uygula doğru cevabı işliyor", t_disajan_uygula_dogru_cevabi_isliyor),
     ("dış ajan: biçimsiz cevap reddediliyor", t_disajan_uygula_bicimsiz_cevabi_reddediyor),
+
+    ("dış ajan: birleşmiş satırlar çözülüyor", t_disajan_uygula_birlesmis_satirlari_cozuyor),
+    ("dış ajan: belirsiz konum reddediliyor", t_disajan_uygula_belirsiz_konumu_reddediyor),
 
     ("geri bildirim: vakaya çeviriyor",     t_geribildirim_vakaya_ceviriyor),
     ("geri bildirim: yineleneni kapatıyor", t_geribildirim_yineleneni_kapatiyor),

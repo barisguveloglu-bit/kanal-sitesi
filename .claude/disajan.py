@@ -282,6 +282,40 @@ def _yerini_bul(icerik, eski):
         if [x.strip() for x in satirlar[i:i + len(aranan)]] == aranan:
             bulunan.append(i)
     if not bulunan:
+        # Üçüncü deneme: BOŞLUĞA DUYARSIZ — ama TAHMİNSİZ.
+        #
+        # Sohbet arayüzü kaynak satırlarını birleştiriyor; iki satırlık bir
+        # dizge zinciri tek satır olarak geri geliyor. İçerik aynı, sarma
+        # noktası kaybolmuş.
+        #
+        # İlk denemem "ilk kelimeyi bul, son kelimeyi bul, arasını al"
+        # diyordu. Bu bir TAHMİNDİ ve dosyayı bozdu: seçilen aralık
+        # beklenen metin değildi, araya alakasız satırlar girdi. Tam da
+        # bu köprünün önlemesi gereken şeyi kendi elimle yaptım.
+        #
+        # Doğrusu: aday aralığı seç, sonra **eşit olduğunu doğrula.**
+        # Doğrulanmayan konum, konum değildir.
+        import re as _re
+
+        def _sadele(x):
+            return _re.sub(r"\s+", " ", x).strip()
+
+        hedef = _sadele(eski)
+        adaylar = []
+        for i in range(len(satirlar)):
+            for n in range(1, 9):
+                if i + n > len(satirlar):
+                    break
+                if _sadele("".join(satirlar[i:i + n])) == hedef:
+                    adaylar.append((i, n))
+                    break
+        if len(adaylar) == 1:
+            i, n = adaylar[0]
+            b = sum(len(x) for x in satirlar[:i])
+            return b, b + sum(len(x) for x in satirlar[i:i + n]), \
+                "boşluğa duyarsız (satırlar birleşmiş, aralık doğrulandı)"
+        if len(adaylar) > 1:
+            return None, None, f"boşluğa duyarsız eşleşme {len(adaylar)} yerde geçiyor"
         return None, None, "ne birebir ne kırpılmış eşleşme bulundu"
     if len(bulunan) > 1:
         return None, None, f"kırpılmış eşleşme {len(bulunan)} yerde geçiyor"
@@ -321,9 +355,31 @@ def uygula(a):
         return 1
 
     # Girinti dosyadan alınır, cevaptan değil — taşımada silinmiş olabilir.
-    girinti = icerik[:bas].split("\n")[-1]
+    # Girinti, DEĞİŞTİRİLEN BÖLGENİN ilk satırından alınır — öncesinden
+    # değil. Bölge satır başında başlıyorsa `icerik[:bas]` "\n" ile bitiyor
+    # ve önceki hâli boş girinti üretiyordu: içerik doğru, biçim bozuk.
+    ilk_satir = icerik[bas:bit].split("\n")[0]
+    girinti = ilk_satir[:len(ilk_satir) - len(ilk_satir.lstrip())]
+    if not girinti:
+        onceki = icerik[:bas].split("\n")[-1]
+        girinti = onceki if not onceki.strip() else girinti
+    # Bölge satır sonuyla bitiyorsa o satır sonu korunmalı; yoksa bir
+    # sonraki satır yapışır.
+    kuyruk = "\n" if icerik[bas:bit].endswith("\n") else ""
     yeni_satirlar = [x.strip() for x in yeni_metin.splitlines()]
-    yerine = ("\n" + girinti).join(yeni_satirlar)
+    # Dizge zinciri tek satıra sıkışmışsa dosyanın kendi sarma biçimini geri
+    # ver. Taşıma satır sonlarını yiyor; 130 karakterlik bir satır bırakmak
+    # "modelin yazdığına sadakat" değil, taşıma hasarını kalıcılaştırmak olur.
+    acilmis = []
+    for satir in yeni_satirlar:
+        if len(girinti) + len(satir) > 88 and '" + "' in satir:
+            parcalar = satir.split('" + "')
+            for i, p in enumerate(parcalar):
+                acilmis.append((p if i == 0 else '"' + p)
+                               + ('" +' if i < len(parcalar) - 1 else ""))
+        else:
+            acilmis.append(satir)
+    yerine = girinti + ("\n" + girinti).join(acilmis) + kuyruk
 
     with open(yol, "w", encoding="utf-8") as f:
         f.write(icerik[:bas] + yerine + icerik[bit:])

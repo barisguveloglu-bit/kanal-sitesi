@@ -834,7 +834,7 @@ kararı dışarıdaki koşucu veriyor. Taklit etmek **yanlış bir yeşil**
 | Sınav | Neyi ölçer | Vaka |
 |---|---|---|
 | `sinav.py` | denetleyiciyi — fay enjeksiyonu | 28 |
-| `arac-sinavi.py` | araçları — devre, yargıç, görev, logo, olay, tırmanma, eleştirmen, TDD, dış ajan | 102 |
+| `arac-sinavi.py` | araçları — devre, yargıç, görev, logo, olay, tırmanma, eleştirmen, TDD, dış ajan | 104 |
 | `butunluk.py` | **içeriği** — canon ↔ veri ↔ site | **75 bütünlük vakası** |
 
 ```
@@ -985,6 +985,27 @@ kapanış işareti taşımada kaybolmuş, girinti silinmişti ve kapı doğru bi
 işi reddetti. **Her gerçek kullanımda düşen bir kapı, kapı değil duvardır.**
 Ayrıştırma esnekleşti (işaretler, girinti), eşleşme katı kaldı (içerik
 kimliği, teklik). Girinti dosyadan alınıyor, cevaptan değil.
+
+### Gevşekliğin bedeli — dosyayı bozdum
+
+Sohbet kipinin ikinci gerçek koşusunda ChatGPT iki kaynak satırını tek
+satıra birleştirmişti. Eşleştirmeyi boşluğa duyarsız hâle getirdim ve
+konumu şöyle buldum: *ilk kelimeyi bul, son kelimeyi bul, arasını al.*
+
+Bu bir **tahmindi** ve `data.js`'i bozdu — seçilen aralık beklenen metin
+değildi, araya alakasız satırlar girdi. Tam da bu köprünün önlemesi
+gereken şeyi kendi elimle yaptım: sessizce giren istenmeyen değişiklik.
+
+Doğrusu şu: aday aralığı seç, sonra **eşit olduğunu doğrula.**
+Doğrulanmayan konum, konum değildir. Ayrıca girinti değiştirilen bölgenin
+kendi ilk satırından alınıyor ve satır sonu korunuyor — ilk düzeltmede
+içerik doğruydu ama biçim bozuktu, sonraki satır yapışmıştı.
+
+Üç ders, üçü de aynı yöne bakıyor:
+
+- Esneklik **taşıma hasarına** karşı olmalı (işaret, girinti, satır sarma).
+- Katılık **içerik kimliğinde** kalmalı (eşitlik + teklik).
+- İkisi karışırsa kapı ya her şeyi reddeder ya da her şeyi kabul eder.
 
 ### Kapının kendi üç hatası
 
