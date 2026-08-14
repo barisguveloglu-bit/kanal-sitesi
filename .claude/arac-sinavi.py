@@ -274,12 +274,22 @@ def t_yargi_yinelenen_yakalar(kok):
 
 # ------------------------------------------------------------------- kanca
 
-def _kanca(kok, dosya):
-    olay = json.dumps({"tool_name": "Edit", "cwd": kok,
-                       "tool_input": {"file_path": os.path.join(kok, dosya)}})
+def _kanca_olay(kok, olay):
     return subprocess.run([sys.executable, os.path.join(kok, ".claude", "kanca.py")],
-                          cwd=kok, input=olay, capture_output=True,
+                          cwd=kok, input=json.dumps(olay), capture_output=True,
                           text=True, timeout=120)
+
+
+def _kanca(kok, dosya):
+    return _kanca_olay(kok, {"tool_name": "Edit", "cwd": kok,
+                             "tool_input": {"file_path": os.path.join(kok, dosya)}})
+
+
+def _gizlemeyi_boz(kok):
+    yol = os.path.join(kok, "assets/css/style.css")
+    s = open(yol, encoding="utf-8").read()
+    open(yol, "w", encoding="utf-8").write(
+        s.replace("[hidden] { display: none !important; }", ""))
 
 
 def t_kanca_kapi_sayaci_artirmiyor(kok):
@@ -329,6 +339,38 @@ def t_kanca_hata_imzasini_yaziyor(kok):
     d = kos(kok, "devre.py", "durum")
     if "gizleme" not in d.stdout:
         return f"defterde hata imzası yok: {d.stdout.strip()[:90]}"
+    return None
+
+
+def t_kanca_kor_araci_denetliyor(kok):
+    """Codex gibi kör araçlar dosya yolu vermez; denetim yine de çalışmalı.
+
+    Yoksa denetim delegasyonla atlatılabilir olurdu: Claude'un kendi Edit'i
+    kancaya takılırken aynı düzenlemeyi Codex'e yaptırmak serbest kalırdı.
+    Kaçak yolu kuralın kendisinden ucuzsa ortada kural yoktur.
+    """
+    _gizlemeyi_boz(kok)
+    sonuc = _kanca_olay(kok, {"tool_name": "mcp__codex__codex", "cwd": kok,
+                              "tool_input": {"prompt": "stil dosyasını düzelt"}})
+    if sonuc.returncode != 2:
+        return f"kör araçtan sonra denetim çalışmadı (çıkış {sonuc.returncode})"
+    if "gizleme" not in sonuc.stderr:
+        return f"denetim çalıştı ama hata geri beslenmedi: {sonuc.stderr[:90]}"
+    return None
+
+
+def t_kanca_ilgisiz_araci_gecistiriyor(kok):
+    """Sınır iki yönlü ölçülmeli.
+
+    Kör araç listesi genişler ya da koşul her araca açılırsa kanca her
+    Bash çağrısında denetim koşturur; o zaman da gürültüye dönüşür ve
+    gürültü, susturulan kancadır.
+    """
+    _gizlemeyi_boz(kok)
+    sonuc = _kanca_olay(kok, {"tool_name": "Bash", "cwd": kok,
+                              "tool_input": {"command": "ls"}})
+    if sonuc.returncode != 0:
+        return f"ilgisiz araç denetim tetikledi (çıkış {sonuc.returncode})"
     return None
 
 
@@ -734,6 +776,8 @@ VAKALAR = [
     ("kanca: kapı sayacı artırmıyor",       t_kanca_kapi_sayaci_artirmiyor),
     ("kanca: aynı hatada kesiyor",          t_kanca_ayni_hatada_kesiyor),
     ("kanca: hata imzasını deftere yazıyor", t_kanca_hata_imzasini_yaziyor),
+    ("kanca: kör aracı denetliyor",         t_kanca_kor_araci_denetliyor),
+    ("kanca: ilgisiz aracı geçiştiriyor",   t_kanca_ilgisiz_araci_gecistiriyor),
     ("denetleyici: bozuk araca dayanıyor",  t_dogrula_bozuk_araca_dayaniyor),
 
     ("geri bildirim: vakaya çeviriyor",     t_geribildirim_vakaya_ceviriyor),

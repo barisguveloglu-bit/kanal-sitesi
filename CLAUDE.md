@@ -67,6 +67,11 @@ Bu katman Claude Code'a bağlı: betikler kabuk, kancalar hook sistemi ister.
 claude.ai tarafında kullanmak için `.claude/tasima/claude-projesi.md` —
 kurallar taşınır, zorlama taşınmaz.
 
+Codex `.mcp.json` üzerinden bir alt ajan olarak bağlı; sözleşme ve denetim
+kancalarına dahil. Kurulum ve sınırlar: [`.claude/tasima/codex-baglantisi.md`](.claude/tasima/codex-baglantisi.md).
+Codex'e verilen iş küçük tutulmalı — kanca çağrının sonunda çalışır,
+ortasında değil.
+
 Denetleyici kural ihlalini yakalar ama canon'un anlamca tutarlı olduğunu
 göremez — içerik değişikliğinde `LORE.md`'yi yine de okumak gerekiyor.
 Arama da en yakın parçayı verir, doğru parçayı değil: geleni oku, kabul etme.

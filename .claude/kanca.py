@@ -25,6 +25,14 @@ import sys
 IZLENEN_UZANTILAR = (".html", ".css", ".js", ".xml")
 IZLENEN_DOSYALAR = ("LORE.md",)
 
+# Kör araçlar: dosyayı BAŞKA bir ajanın süreci içinde değiştirenler.
+# Codex MCP üzerinden çağrıldığında tool_input yalnızca istem metnini taşır,
+# dosya yolu taşımaz — "hangi dosyaya dokunuldu" sorusu buradan cevaplanamaz.
+# Bilinmeyeni "dokunulmadı" saymak denetimi delegasyonla atlatılabilir hâle
+# getirirdi: Claude'un kendi eli bağlıyken Codex'e yaptırmak serbest kalırdı.
+# Bu yüzden kör bir araçtan sonra denetim koşulsuz çalışır.
+KOR_ARACLAR = ("mcp__codex__",)
+
 
 def izleniyor_mu(yol, kok):
     if not yol:
@@ -50,7 +58,8 @@ def main():
     for duzenleme in girdi.get("edits") or []:
         yollar.append(duzenleme.get("file_path"))
 
-    if not any(izleniyor_mu(y, kok) for y in yollar):
+    kor = (olay.get("tool_name") or "").startswith(KOR_ARACLAR)
+    if not kor and not any(izleniyor_mu(y, kok) for y in yollar):
         return 0
 
     betik = os.path.join(kok, ".claude", "dogrula.py")
