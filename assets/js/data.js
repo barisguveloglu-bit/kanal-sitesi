@@ -481,7 +481,7 @@ const KOMUTANLAR = [
     gucAdi: "Basınç ve Fırtına",
     gucAciklama:
       "Hava basıncını kontrol ediyor. Kasırga çıkarıyor, şok dalgasıyla " +
-      "insanı yere çiviliyor. Ama yıldırım atamıyor — o abisinde.",
+      "insanı yere çiviliyor. Ama yıldırım atamıyor — yıldırım kontrolü Gizemli Çocuğun Abisi'nde.",
     ozellikler: [
       "3 tır kaldırma gücü",
       "Hava basıncı kontrolü",
