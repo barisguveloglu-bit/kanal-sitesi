@@ -46,6 +46,30 @@ Sözleşme isteğe bağlı değil: `PreToolUse` kancası sözleşmesiz görevi
 Araştırma/denetim işleri için `Explore`, çok adımlı işler için
 `general-purpose` uygun.
 
+### Uzman Claude değilse — dış ajan
+
+Bir parçayı Claude dışında bir ajana (Codex, ChatGPT) verecekseniz görev
+metnini `gorev.py` değil `disajan.py` üretir. İki ayrı kip var ve seçim
+ajanın **depoya erişip erişemediğine** göre yapılır:
+
+| Ajanın durumu | Kip | Teslim biçimi |
+|---|---|---|
+| Depoya erişiyor, `git` çalıştırabiliyor | `disajan.py brief --dal codex/<ad>` | dal push eder, PR açar |
+| Sadece sohbet — depo yok, komut yok | `disajan.py sohbet --dosya <yol> --imza "<satır>"` | `ESKI`/`YENI` bloğu döner |
+
+Sohbet kipinde değişecek parça ve canon alıntısı brief'in **içine** konur:
+dosya okuyamayan bir ajana "dosyayı oku" demek, ona tahmin ettirmektir.
+Cevap `disajan.py uygula` ile işlenir — ESKI bloğu dosyada bulunmalı ve
+tek olmalı, yoksa reddedilir.
+
+Her iki kipte de sonuç `disajan.py kapi` ile üç ölçümden geçer. Dış ajanın
+çıktısına "başka bir yapay zeka yazdı" diye güvenilmez; aynı duvardan
+Claude'un işi de geçiyor. `.claude/` altına dokunan dal doğrudan
+reddedilir — sınavı gevşeterek geçmek geçmek değildir.
+
+Taşıma insan üzerinden olduğunda döngü bozulmaz, sadece kablosu değişir:
+şef sensin, kapı mekanik, karar Barış'ın.
+
 **3 — Birleştir.** Önce raporu **makineye doğrulat**, sonra oku:
 
 ```
@@ -85,6 +109,15 @@ python3 .claude/devre.py dene --halka orkestra --sinir 2 --not "<hangi boşluk>"
 
 **5 — Denetle.** Birleştirme bittiğinde `python3 .claude/dogrula.py`
 çalıştır. Uzmanlar dosya değiştirdiyse bu şart.
+
+**6 — Kapat.** Bir parça bir geri bildirim kaydını çözdüyse kaydı
+**koruyan testi adıyla** kapat:
+
+```
+python3 .claude/geri-bildirim.py kapat --no <n> --vaka "<sınav vakası>"
+```
+
+Testsiz kapatılan hata, düzeltilmiş değil ertelenmiş hatadır.
 
 ## İnsan kapısı
 
