@@ -50,8 +50,18 @@ KAPILAR = [
     ("kural", ["dogrula.py"], "kural ihlali (menü, gizleme, odak, kontrast, belge…)"),
     ("bütünlük", ["butunluk.py", "--sessiz"], "canon ↔ veri ↔ site tutarlılığı"),
     ("denetleyici", ["sinav.py"], "denetleyicinin kendi sınavı (fay enjeksiyonu)"),
-    ("araçlar", ["arac-sinavi.py"], "döngü araçlarının sınavı"),
 ]
+
+# `arac-sinavi.py` KASTEN yok — iki ayrı sebeple.
+#
+# 1. Gereksiz: o sınav araçları ölçer, içeriği değil. Dış ajan `.claude/`
+#    altına dokunamıyor; dokunmuşsa dal zaten reddediliyor. Yani kabul
+#    edilen her dalda araçlar tabanla BİREBİR aynı. Aynı kodu tekrar
+#    sınamak ölçüm değil, maliyet.
+# 2. Zararlı: `arac-sinavi.py` içinde kapıyı sınayan vakalar var. Kapı onu
+#    koşunca vakalar tekrar kapıyı çağırıyor ve koşu bitmiyor — ilk gerçek
+#    kullanımda kapı 10 dakikada dönmedi ve arkasında 140 yetim çalışma
+#    ağacı bıraktı.
 
 
 def kos(kok, betik, *arg):
@@ -136,6 +146,200 @@ otomatik reddettirir.
     return 0
 
 
+
+# ---------------------------------------------------------------- sohbet kipi
+# Depoya erişemeyen bir ajan (telefondaki ChatGPT gibi) için. Ona "dosyayı
+# oku" ya da "betiği koştur" demek anlamsız — okuyamaz, koşturamaz. Bu kipte
+# ilgili parça brief'in İÇİNE konur ve cevap **uygulanabilir** bir biçimde
+# istenir. Taşıma insan üzerinden olur; kapı yine mekanik kalır.
+
+AYIRAC_ESKI = "<<<ESKI"
+AYIRAC_YENI = "<<<YENI"
+AYIRAC_SON = ">>>"
+
+
+def _parca_cek(yol, imza, once=6, sonra=6):
+    """Değiştirilecek bölgeyi bağlamıyla birlikte çıkarır."""
+    tam = os.path.join(KOK, yol)
+    with open(tam, encoding="utf-8") as f:
+        satirlar = f.read().splitlines()
+    for i, satir in enumerate(satirlar):
+        if imza in satir:
+            bas, son = max(0, i - once), min(len(satirlar), i + sonra + 1)
+            return satirlar[bas:son], bas + 1
+    return None, None
+
+
+def sohbet_brief(a):
+    parca, ilk = _parca_cek(a.dosya, a.imza)
+    if parca is None:
+        print(f"'{a.imza}' {a.dosya} içinde bulunamadı.", file=sys.stderr)
+        return 1
+
+    dayanak = kos(KOK, "ara.py", a.konu, "--sayi", "3")
+
+    print(f"""# GÖREV (sohbet kipi) — {a.konu}
+
+Depoya erişimin yok, komut çalıştıramazsın. Gerekli her şey aşağıda.
+Dosya okumaya, tahmin etmeye ya da "önce şunu görmem lazım" demeye gerek
+yok — göremediğin bir şey varsa **iste**, uydurma.
+
+## Ne yapılacak
+
+{a.konu}
+
+## Kaynak: canon (tek doğru)
+
+Bu evren hakkında hafızandan hiçbir şey bilmiyorsun. Aşağıdaki alıntılar
+`LORE.md` dosyasından, satır numaralarıyla. Bir iddian varsa dayanağı bu
+alıntılardan biri olmalı.
+
+```
+{(dayanak.stdout or "").strip()[:2500]}
+```
+
+## Değiştirilecek parça — `{a.dosya}` (satır {ilk}'den itibaren)
+
+```javascript
+{chr(10).join(parca)}
+```
+
+## Cevap biçimi — ZORUNLU
+
+Sadece şunu yaz, başka hiçbir şey ekleme:
+
+```
+{AYIRAC_ESKI}
+<değiştirilecek satırların BİREBİR kopyası>
+{AYIRAC_SON}
+{AYIRAC_YENI}
+<yerine gelecek satırlar>
+{AYIRAC_SON}
+GEREKÇE: <tek cümle> (LORE.md:<satır>)
+```
+
+Kurallar:
+
+- `ESKI` bloğu yukarıdaki parçadan **birebir** alınmalı — tek boşluk bile
+  değişirse uygulanamaz ve iş geri döner. Kontrol mekanik, pazarlık yok.
+- Sadece değiştirmen gereken satırları al. Bütün dosyayı yeniden yazma.
+- "Bu arada şunu da düzelttim" YOK. İstenmeyen değişiklik reddedilir.
+- Dayanak veremediğin bir cümle kurma. Canon susuyorsa "canon bunu
+  söylemiyor" de ve dur.
+""")
+    return 0
+
+
+def _blok_cek(cevap, isaret):
+    """Bir bloğu esnek biçimde çıkarır.
+
+    Sıkılık **içerik kimliğinde** olmalı, süs işaretlerinde değil. İlk hâlim
+    kapanış `>>>` şart koşuyordu ve gerçek kullanımda ilk denemede düştü:
+    sohbet arayüzü kapanış işaretini yutmuş, içeriği açılış işaretiyle aynı
+    satıra almış, girintiyi silmişti. Her gerçek kullanımda düşen bir kapı,
+    kapı değil duvardır.
+    """
+    import re as _re
+    e = _re.search(_re.escape(isaret) + r"[ \t]*(.*)", cevap)
+    if not e:
+        return None
+    ilk_satir = e.group(1).strip()
+    kalan = cevap[e.end():]
+    govde = []
+    for satir in kalan.splitlines():
+        if satir.strip().startswith((AYIRAC_SON, "<<<", "GEREKÇE:")):
+            break
+        govde.append(satir)
+    parcalar = ([ilk_satir] if ilk_satir else []) + govde
+    while parcalar and not parcalar[0].strip():
+        parcalar.pop(0)
+    while parcalar and not parcalar[-1].strip():
+        parcalar.pop()
+    return "\n".join(parcalar) if parcalar else None
+
+
+def _yerini_bul(icerik, eski):
+    """(başlangıç, bitiş, nasıl) — bulunamazsa (None, None, sebep).
+
+    Önce birebir. Olmazsa satır satır KIRPILMIŞ eşleşme: girinti taşımada
+    kayboluyor ama neyin değişeceği yine tek anlamlı kalıyor. Kırpılmış
+    eşleşmede **teklik şartı** korunuyor — birden çok yere uyuyorsa hangisi
+    olduğu belirsizdir ve tahmin etmek bu köprünün kaçınmak istediği şeyin
+    ta kendisi.
+    """
+    if icerik.count(eski) == 1:
+        i = icerik.index(eski)
+        return i, i + len(eski), "birebir"
+    if icerik.count(eski) > 1:
+        return None, None, "birebir eşleşme birden çok yerde geçiyor"
+
+    satirlar = icerik.splitlines(keepends=True)
+    aranan = [x.strip() for x in eski.splitlines() if x.strip()]
+    if not aranan:
+        return None, None, "ESKI bloğu boş"
+    bulunan = []
+    for i in range(len(satirlar) - len(aranan) + 1):
+        if [x.strip() for x in satirlar[i:i + len(aranan)]] == aranan:
+            bulunan.append(i)
+    if not bulunan:
+        return None, None, "ne birebir ne kırpılmış eşleşme bulundu"
+    if len(bulunan) > 1:
+        return None, None, f"kırpılmış eşleşme {len(bulunan)} yerde geçiyor"
+    i = bulunan[0]
+    bas = sum(len(x) for x in satirlar[:i])
+    bit = bas + sum(len(x) for x in satirlar[i:i + len(aranan)])
+    return bas, bit, "kırpılmış (girinti taşımada kaybolmuş)"
+
+
+def uygula(a):
+    """Sohbet ajanının cevabını uygula — ama neyi değiştirdiğini bilmeden asla.
+
+    Bu kipin asıl riski şu: model "temizlenmiş" bir dosya döndürür ve
+    istenmeyen değişiklikler sessizce içeri girer. Koruma iki şart:
+    ESKI bloğu dosyada **bulunmalı** ve **tek** olmalı.
+    """
+    with open(a.yanit, encoding="utf-8") as f:
+        cevap = f.read()
+
+    eski_metin = _blok_cek(cevap, AYIRAC_ESKI)
+    yeni_metin = _blok_cek(cevap, AYIRAC_YENI)
+    if eski_metin is None or yeni_metin is None:
+        print("Cevapta ESKI/YENI blokları bulunamadı — biçim tutmuyor.",
+              file=sys.stderr)
+        return 1
+
+    yol = os.path.join(KOK, a.dosya)
+    with open(yol, encoding="utf-8") as f:
+        icerik = f.read()
+
+    bas, bit, nasil = _yerini_bul(icerik, eski_metin)
+    if bas is None:
+        print(f"REDDEDİLDİ — {nasil}.\n")
+        print("Model ya yanlış yeri gösteriyor ya da metni kendince yeniden "
+              "yazmış. İkisinde de uygulanmaz: sessizce giren istenmeyen "
+              "değişiklik, bu köprünün tek gerçek riski.")
+        return 1
+
+    # Girinti dosyadan alınır, cevaptan değil — taşımada silinmiş olabilir.
+    girinti = icerik[:bas].split("\n")[-1]
+    yeni_satirlar = [x.strip() for x in yeni_metin.splitlines()]
+    yerine = ("\n" + girinti).join(yeni_satirlar)
+
+    with open(yol, "w", encoding="utf-8") as f:
+        f.write(icerik[:bas] + yerine + icerik[bit:])
+
+    import re as _re
+    gerekce = _re.search(r"GEREKÇE:\s*(.+)", cevap)
+    print(f"Uygulandı — {a.dosya}  ({nasil} eşleşme)")
+    print(f"  - {eski_metin.strip()}")
+    print(f"  + {yerine.strip()}")
+    if gerekce:
+        print(f"  gerekçe: {gerekce.group(1).strip()}")
+    else:
+        print("  UYARI: gerekçe satırı yok — dayanaksız değişiklik.")
+    return 0
+
+
 def _agac_kur(dal):
     """Dalı ayrı bir çalışma ağacına al — ana ağaç bozulmasın."""
     gecici = tempfile.mkdtemp(prefix="echo-disajan-")
@@ -144,15 +348,18 @@ def _agac_kur(dal):
     # Önce uzak dal — Codex'in teslim biçimi bu. Uzakta yoksa yerel dala
     # düş: iş henüz push edilmemişken de kapıdan geçirilebilmeli, yoksa
     # "önce push et sonra öğren" gibi ters bir sıra doğar.
-    getir = git("fetch", "origin", dal)
-    if getir.returncode == 0:
-        hedef = "FETCH_HEAD"
-    elif git("rev-parse", "--verify", dal).returncode == 0:
+    # ÖNCE YEREL. İlk hâlim önce `git fetch` deniyordu ve uzakta olmayan bir
+    # dalda ağ üzerinde bekliyordu — kapı 200 saniyede dönmüyordu, oysa üç
+    # ölçümün toplamı 2 saniye. Yani bekleyen şey denetim değil, gereksiz
+    # bir ağ çağrısıydı. Yerelde varsa ağa hiç çıkma.
+    if git("rev-parse", "--verify", dal).returncode == 0:
         hedef = dal
+    elif git("fetch", "origin", dal).returncode == 0:
+        hedef = "FETCH_HEAD"
     else:
         shutil.rmtree(gecici, ignore_errors=True)
         return None, None, (f"dal ne uzakta ne yerelde bulundu: {dal}\n"
-                            f"{getir.stderr.strip()}")
+                            "ne `git rev-parse` ne `git fetch origin` buldu.")
 
     ekle = git("worktree", "add", "--detach", agac, hedef)
     if ekle.returncode != 0:
@@ -288,6 +495,17 @@ def main(argv):
     p.add_argument("--dal", default="codex/is", help="Codex'in çalışacağı dal")
     p.add_argument("--baglam-sayi", type=int, default=4)
     p.set_defaults(islev=brief)
+
+    p = alt.add_parser("sohbet", help="depoya erişemeyen ajan için brief")
+    p.add_argument("--konu", required=True)
+    p.add_argument("--dosya", required=True, help="değişecek dosya")
+    p.add_argument("--imza", required=True, help="değişecek satırdaki ayırt edici metin")
+    p.set_defaults(islev=sohbet_brief)
+
+    p = alt.add_parser("uygula", help="sohbet ajanının cevabını uygula")
+    p.add_argument("--yanit", required=True, help="cevabın kaydedildiği dosya")
+    p.add_argument("--dosya", required=True)
+    p.set_defaults(islev=uygula)
 
     p = alt.add_parser("kapi", help="dalı Echo ölçümlerinden geçir")
     p.add_argument("--dal", required=True)

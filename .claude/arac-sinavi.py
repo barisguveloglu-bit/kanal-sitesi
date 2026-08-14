@@ -1467,6 +1467,71 @@ def t_disajan_kosmayan_kapiyi_gecmis_saymiyor(kok):
     return None
 
 
+def t_disajan_sohbet_brief_kendi_kendine_yetiyor(kok):
+    """Depoya erişemeyen ajana 'dosyayı oku' demek anlamsız — parça brief'in
+    içinde olmalı, yoksa ajan ya tahmin eder ya durur."""
+    s = kos(kok, "disajan.py", "sohbet", "--konu", "para",
+            "--dosya", "assets/js/data.js", "--imza", "Para sıkıntısı yok")
+    if s.returncode != 0:
+        return f"sohbet brief üretilemedi (çıkış {s.returncode})"
+    if "Para sıkıntısı yok" not in s.stdout:
+        return "değişecek parça brief'e gömülmemiş"
+    if "LORE.md" not in s.stdout:
+        return "canon dayanağı brief'e gömülmemiş"
+    for yasak in ("python3 .claude/dogrula.py", "git checkout"):
+        if yasak in s.stdout:
+            return f"sohbet brief'i koşulamayacak komut istiyor: {yasak}"
+    return None
+
+
+def t_disajan_uygula_birebir_eslesme_istiyor(kok):
+    """Bu köprünün tek gerçek riski: modelin 'temizlenmiş' metin döndürüp
+    istenmeyen değişikliği sessizce içeri sokması."""
+    yol = os.path.join(kok, "yanit.txt")
+    open(yol, "w", encoding="utf-8").write(
+        '<<<ESKI\n      "Para sıkıntısı YOK",\n>>>\n'
+        '<<<YENI\n      "x",\n>>>\nGEREKÇE: y (LORE.md:221)\n')
+    s = kos(kok, "disajan.py", "uygula", "--yanit", yol,
+            "--dosya", "assets/js/data.js")
+    # İddia DAVRANIŞA bağlı, kelimeye değil. İlk hâli "birebir eşleşmiyor"
+    # cümlesini arıyordu; ayrıştırıcı esnekleşince ret mesajı değişti ve
+    # test düştü — oysa davranış doğruydu. Mesaj metnine bağlanan test,
+    # ölçtüğü şeyi değil o günkü kelime seçimini korur.
+    if s.returncode != 1 or "REDDEDİLDİ" not in s.stdout:
+        return f"eşleşmeyen ESKI bloğu uygulandı (çıkış {s.returncode})"
+    with open(os.path.join(kok, "assets/js/data.js"), encoding="utf-8") as f:
+        if "Para sıkıntısı yok" not in f.read():
+            return "reddedildi denildi ama dosya değişmiş"
+    return None
+
+
+def t_disajan_uygula_dogru_cevabi_isliyor(kok):
+    yol = os.path.join(kok, "yanit.txt")
+    open(yol, "w", encoding="utf-8").write(
+        '<<<ESKI\n      "Para sıkıntısı yok",\n>>>\n'
+        '<<<YENI\n      "İcatlarını kendi şirketi finanse ediyor",\n>>>\n'
+        'GEREKÇE: canon sınırlı diyor (LORE.md:221)\n')
+    s = kos(kok, "disajan.py", "uygula", "--yanit", yol,
+            "--dosya", "assets/js/data.js")
+    if s.returncode != 0 or "Uygulandı" not in s.stdout:
+        return f"doğru cevap uygulanmadı (çıkış {s.returncode})"
+    with open(os.path.join(kok, "assets/js/data.js"), encoding="utf-8") as f:
+        if "Para sıkıntısı yok" in f.read():
+            return "uygulandı denildi ama dosya değişmemiş"
+    return None
+
+
+def t_disajan_uygula_bicimsiz_cevabi_reddediyor(kok):
+    yol = os.path.join(kok, "yanit.txt")
+    open(yol, "w", encoding="utf-8").write(
+        "Tabii ki! Şu satırı şöyle değiştirmelisin: para sıkıntısı sınırlı olmalı.\n")
+    s = kos(kok, "disajan.py", "uygula", "--yanit", yol,
+            "--dosya", "assets/js/data.js")
+    if s.returncode != 1:
+        return f"biçimsiz cevap kabul edildi (çıkış {s.returncode})"
+    return None
+
+
 VAKALAR = [
     ("devre: sınırda kesiyor",              t_devre_sinirda_kesiyor),
     ("devre: başarı sayacı sıfırlıyor",     t_devre_basari_sifirliyor),
@@ -1581,6 +1646,11 @@ VAKALAR = [
     ("dış ajan: kural ihlali reddediliyor", t_disajan_kural_ihlalini_reddediyor),
     ("dış ajan: temiz dal kabul ediliyor",  t_disajan_temiz_dali_kabul_ediyor),
     ("dış ajan: koşmayan kapı geçmiş sayılmıyor", t_disajan_kosmayan_kapiyi_gecmis_saymiyor),
+
+    ("dış ajan: sohbet brief'i kendine yetiyor", t_disajan_sohbet_brief_kendi_kendine_yetiyor),
+    ("dış ajan: uygula birebir eşleşme istiyor", t_disajan_uygula_birebir_eslesme_istiyor),
+    ("dış ajan: uygula doğru cevabı işliyor", t_disajan_uygula_dogru_cevabi_isliyor),
+    ("dış ajan: biçimsiz cevap reddediliyor", t_disajan_uygula_bicimsiz_cevabi_reddediyor),
 
     ("geri bildirim: vakaya çeviriyor",     t_geribildirim_vakaya_ceviriyor),
     ("geri bildirim: yineleneni kapatıyor", t_geribildirim_yineleneni_kapatiyor),

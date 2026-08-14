@@ -834,7 +834,7 @@ kararı dışarıdaki koşucu veriyor. Taklit etmek **yanlış bir yeşil**
 | Sınav | Neyi ölçer | Vaka |
 |---|---|---|
 | `sinav.py` | denetleyiciyi — fay enjeksiyonu | 28 |
-| `arac-sinavi.py` | araçları — devre, yargıç, görev, logo, olay, tırmanma, eleştirmen, TDD, dış ajan | 98 |
+| `arac-sinavi.py` | araçları — devre, yargıç, görev, logo, olay, tırmanma, eleştirmen, TDD, dış ajan | 102 |
 | `butunluk.py` | **içeriği** — canon ↔ veri ↔ site | **74 bütünlük vakası** |
 
 ```
@@ -961,7 +961,32 @@ kendisi**.
 
 Kapı dalı ayrı bir `git worktree`'ye alıyor; buradaki iş bozulmuyor.
 
-### Kapının kendi iki hatası
+### Sohbet kipi — deposu olmayan ajan için
+
+Codex'in masaüstü sürümü yoksa elde ChatGPT sohbeti kalıyor: deposu yok,
+komut çalıştıramıyor, `git diff` üretemiyor. Ona "dosyayı oku" demek
+anlamsız.
+
+```
+python3 .claude/disajan.py sohbet --konu "<iş>" --dosya <yol> --imza "<satır>"
+python3 .claude/disajan.py uygula --yanit <cevap.txt> --dosya <yol>
+```
+
+Bu kipte değişecek parça ve canon alıntısı **brief'in içine** konur, cevap
+`ESKI`/`YENI` blokları olarak istenir. Taşıma insan üzerinden olur; kapı
+mekanik kalır.
+
+Asıl risk: modelin "temizlenmiş" bir metin döndürüp istenmeyen değişikliği
+sessizce içeri sokması. Koruma iki şart — ESKI bloğu dosyada **bulunmalı**
+ve **tek** olmalı.
+
+İlk gerçek kullanımda katılığın yanlış yerde olduğu görüldü: cevabın
+kapanış işareti taşımada kaybolmuş, girinti silinmişti ve kapı doğru bir
+işi reddetti. **Her gerçek kullanımda düşen bir kapı, kapı değil duvardır.**
+Ayrıştırma esnekleşti (işaretler, girinti), eşleşme katı kaldı (içerik
+kimliği, teklik). Girinti dosyadan alınıyor, cevaptan değil.
+
+### Kapının kendi üç hatası
 
 İkisi de kurarken çıktı ve ikisi de bu deponun klasik hata sınıfı:
 
@@ -973,6 +998,12 @@ Kapı dalı ayrı bir `git worktree`'ye alıyor; buradaki iş bozulmuyor.
 - **Koşmayan kapıyı geçmiş sayıyordum.** Dalda `butunluk.py` bulunmayınca
   çıkış 2 geldi ve kapı "dördü de geçti" dedi. Koşmayan denetim, geçen
   denetim değildir.
+- **Kapı kendi kendini çağırıyordu.** `arac-sinavi.py`'yi de koşuyordum ama
+  o sınavın içinde kapıyı sınayan vakalar var — sonsuz özyineleme. İlk
+  gerçek kullanımda kapı 10 dakikada dönmedi ve arkasında **140 yetim
+  `git worktree`** bıraktı; git her işlemde hepsini tarayınca depo
+  ağırlaştı. Doğrusu o sınavı hiç koşmamak: dış ajan `.claude/`'a
+  dokunamadığına göre araçlar tabanla birebir aynı.
 
 ## Geri bildirimin kapanmayan ucu
 
