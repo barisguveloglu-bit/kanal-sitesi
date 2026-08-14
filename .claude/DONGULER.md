@@ -834,7 +834,7 @@ kararı dışarıdaki koşucu veriyor. Taklit etmek **yanlış bir yeşil**
 | Sınav | Neyi ölçer | Vaka |
 |---|---|---|
 | `sinav.py` | denetleyiciyi — fay enjeksiyonu | 28 |
-| `arac-sinavi.py` | araçları — devre, yargıç, görev, logo, olay, tırmanma, eleştirmen, TDD | 93 |
+| `arac-sinavi.py` | araçları — devre, yargıç, görev, logo, olay, tırmanma, eleştirmen, TDD, dış ajan | 98 |
 | `butunluk.py` | **içeriği** — canon ↔ veri ↔ site | **74 bütünlük vakası** |
 
 ```
@@ -914,6 +914,65 @@ zinciri kırılsın, altın set kayma denetimi körleşsin.
 Bütünlüğü koruyan şey artık `arac-sinavi.py`'deki sekiz fay enjeksiyon
 vakası: depoyu kasten bozup sınavın yakaladığını doğruluyorlar. Bu vakalar
 bir kez elle çalıştırılmıştı; elle yapılan deneme buharlaşır.
+
+## Dış ajan köprüsü — Codex'i orkestraya bağlamak
+
+Orkestra şefi Claude, uzman Codex. Aralarındaki şey `disajan.py`: bir
+**sözleşme** ve bir **kapı**.
+
+```
+python3 .claude/disajan.py brief --konu "<iş>" --dal codex/<ad>
+python3 .claude/disajan.py kapi  --dal codex/<ad> --taban main
+```
+
+### Akış
+
+```
+  Claude (şef)          Barış (telefon)          Codex (uzman)
+      │                       │                        │
+      │ brief üretir ────────▶│ yapıştırır ───────────▶│
+      │                       │                        │ çalışır
+      │                       │◀─── PR açar ───────────┤
+      │◀── PR haberi ─────────┤                        │
+      │                                                 │
+      │ kapi --dal codex/… ──▶ dört ölçüm               │
+      │                                                 │
+      ├─ GEÇTİ  → merge kararı Barış'ın                 │
+      └─ DÜŞTÜ  → bulgular PR yorumu olarak geri ───────▶
+```
+
+### Neden `gorev.py` yetmedi
+
+Alt ajan Claude Code'un içinde, aynı bağlamda çalışıyor. Codex başka bir
+yerde: bağlamı görmüyor ve işini **PR olarak** teslim ediyor. İki kural
+tersine dönüyor — `gorev.py` "commit ve push YASAK" der, Codex için yasak
+olan **merge**; ve alt ajanın raporu metin, Codex'in raporu **diff'in
+kendisi**.
+
+### Kapı neyi zorluyor
+
+- **Dört ölçüm**: `dogrula.py`, `butunluk.py`, `sinav.py`, `arac-sinavi.py`.
+  Codex'in çıktısına "başka bir yapay zeka yazdı" diye güvenilmiyor; aynı
+  duvardan Claude'un işi de geçiyor.
+- **`.claude/` dokunulmaz.** Tek satır değişmişse dal doğrudan reddedilir.
+  Sınavı gevşeterek geçmek geçmek değildir.
+- **Koşmayan kapı geçmiş sayılmaz.** Çıkış kodu 0/1/3 dışındaysa (betik yok,
+  çöktü) dal reddedilir.
+
+Kapı dalı ayrı bir `git worktree`'ye alıyor; buradaki iş bozulmuyor.
+
+### Kapının kendi iki hatası
+
+İkisi de kurarken çıktı ve ikisi de bu deponun klasik hata sınıfı:
+
+- **Ölçüm katmanını dalın üstüne kopyalıyordum** — "Codex sınavı
+  gevşetmesin" diye. Dal eski bir tabandan türediğinde yeni betikler eski
+  belgelerle karşılaşıyor ve dört kapı da düşüyordu: dalın işiyle hiç
+  ilgisi olmayan bir kırmızı. Gevşetme riski zaten `.claude/` denetimiyle
+  kapalıydı; kopyalama gereksiz ve zararlıydı.
+- **Koşmayan kapıyı geçmiş sayıyordum.** Dalda `butunluk.py` bulunmayınca
+  çıkış 2 geldi ve kapı "dördü de geçti" dedi. Koşmayan denetim, geçen
+  denetim değildir.
 
 ## Geri bildirimin kapanmayan ucu
 

@@ -1364,6 +1364,109 @@ def t_geri_bildirim_korumasizi_raporluyor(kok):
     return None
 
 
+# --------------------------------------------------------- dış ajan köprüsü
+
+def _dal_kur(kok, ad, degistir, yol):
+    """Kopyada sahte bir Codex dalı üret.
+
+    SADECE `yol` commit'lenir. `-am` kullanmak yanlıştı: kopya, ana ağacın
+    commit'lenmemiş değişikliklerini de taşıyor ve onlar dalın içine
+    giriyordu — dal `.claude/` dosyalarına dokunmuş gibi görünüp haksız
+    yere reddediliyordu.
+    """
+    subprocess.run(["git", "checkout", "-q", "-B", ad], cwd=kok,
+                   capture_output=True, text=True, timeout=60)
+    degistir()
+    subprocess.run(["git", "add", "--", yol], cwd=kok,
+                   capture_output=True, text=True, timeout=60)
+    subprocess.run(["git", "commit", "-q", "-m", f"sınav: {ad}", "--", yol],
+                   cwd=kok, capture_output=True, text=True, timeout=60)
+
+
+def t_disajan_brief_pr_akisini_tasiyor(kok):
+    s = kos(kok, "disajan.py", "brief", "--konu", "deneme", "--dal", "codex/x")
+    if s.returncode != 0:
+        return f"brief üretilemedi (çıkış {s.returncode})"
+    for beklenen in ("codex/x", "Merge YASAK", "YETKİ: yazma", ".claude/"):
+        if beklenen not in s.stdout:
+            return f"brief'te eksik: {beklenen}"
+    if "git commit` ve `git push` **YASAK" in s.stdout:
+        return "alt ajan kuralı Codex brief'ine sızmış (PR akışıyla çelişir)"
+    return None
+
+
+def t_disajan_claude_klasorune_dokunmayi_reddediyor(kok):
+    """Dış ajanın sınavı gevşetmesi en sinsi senaryo."""
+    taban = subprocess.run(["git", "rev-parse", "--abbrev-ref", "HEAD"], cwd=kok,
+                           capture_output=True, text=True, timeout=60).stdout.strip()
+
+    def boz():
+        yol = os.path.join(kok, ".claude", "dogrula.py")
+        with open(yol, "a", encoding="utf-8") as f:
+            f.write("\n# sınav\n")
+    _dal_kur(kok, "codex/sinav-gevsetme", boz, ".claude/dogrula.py")
+    s = kos(kok, "disajan.py", "kapi", "--dal", "codex/sinav-gevsetme",
+            "--taban", taban)
+    if s.returncode != 1 or "ölçüm katmanına dokunulmuş" not in s.stdout:
+        return f"ölçüm katmanına dokunan dal geçti (çıkış {s.returncode})"
+    return None
+
+
+def t_disajan_kural_ihlalini_reddediyor(kok):
+    taban = subprocess.run(["git", "rev-parse", "--abbrev-ref", "HEAD"], cwd=kok,
+                           capture_output=True, text=True, timeout=60).stdout.strip()
+
+    def boz():
+        yol = os.path.join(kok, "assets", "css", "style.css")
+        with open(yol, encoding="utf-8") as f:
+            icerik = f.read()
+        with open(yol, "w", encoding="utf-8") as f:
+            f.write(icerik.replace("[hidden] { display: none !important; }", "", 1))
+    _dal_kur(kok, "codex/kural-ihlali", boz, "assets/css/style.css")
+    s = kos(kok, "disajan.py", "kapi", "--dal", "codex/kural-ihlali", "--taban", taban)
+    if s.returncode != 1:
+        return f"kural ihlalli dal geçti (çıkış {s.returncode})"
+    if "gizleme" not in s.stdout:
+        return "bulgu Codex'e geri gidecek biçimde raporlanmadı"
+    return None
+
+
+def t_disajan_temiz_dali_kabul_ediyor(kok):
+    """Aşırı duyarlılık da hatadır: temiz iş geçmeli."""
+    taban = subprocess.run(["git", "rev-parse", "--abbrev-ref", "HEAD"], cwd=kok,
+                           capture_output=True, text=True, timeout=60).stdout.strip()
+
+    def duzelt():
+        yol = os.path.join(kok, "assets", "js", "data.js")
+        with open(yol, encoding="utf-8") as f:
+            icerik = f.read()
+        with open(yol, "w", encoding="utf-8") as f:
+            f.write(icerik.replace('"Olağanüstü zekâ"', '"Olağanüstü zekâsı"', 1))
+    _dal_kur(kok, "codex/temiz", duzelt, "assets/js/data.js")
+    s = kos(kok, "disajan.py", "kapi", "--dal", "codex/temiz", "--taban", taban)
+    if s.returncode != 0:
+        return f"temiz dal reddedildi (çıkış {s.returncode}): {s.stdout.strip()[-200:]}"
+    return None
+
+
+def t_disajan_kosmayan_kapiyi_gecmis_saymiyor(kok):
+    """Koşmayan denetim, geçen denetim değildir.
+
+    İlk hâlim tam bunu yapıyordu: dalda `butunluk.py` bulunmayınca çıkış 2
+    geliyor ve kapı "dördü de geçti" diyordu.
+    """
+    taban = subprocess.run(["git", "rev-parse", "--abbrev-ref", "HEAD"], cwd=kok,
+                           capture_output=True, text=True, timeout=60).stdout.strip()
+
+    def sil():
+        os.remove(os.path.join(kok, ".claude", "butunluk.py"))
+    _dal_kur(kok, "codex/kapi-yok", sil, ".claude/butunluk.py")
+    s = kos(kok, "disajan.py", "kapi", "--dal", "codex/kapi-yok", "--taban", taban)
+    if s.returncode == 0:
+        return "koşmayan kapı geçmiş sayıldı"
+    return None
+
+
 VAKALAR = [
     ("devre: sınırda kesiyor",              t_devre_sinirda_kesiyor),
     ("devre: başarı sayacı sıfırlıyor",     t_devre_basari_sifirliyor),
@@ -1472,6 +1575,12 @@ VAKALAR = [
     ("geri bildirim: testsiz kapatma reddediliyor", t_geri_bildirim_testsiz_kapatmayi_reddediyor),
     ("geri bildirim: gerçek vakayla kapanıyor", t_geri_bildirim_gercek_vakayla_kapatiyor),
     ("geri bildirim: korumasız kayıt raporlanıyor", t_geri_bildirim_korumasizi_raporluyor),
+
+    ("dış ajan: brief PR akışını taşıyor",  t_disajan_brief_pr_akisini_tasiyor),
+    ("dış ajan: .claude'a dokunma reddediliyor", t_disajan_claude_klasorune_dokunmayi_reddediyor),
+    ("dış ajan: kural ihlali reddediliyor", t_disajan_kural_ihlalini_reddediyor),
+    ("dış ajan: temiz dal kabul ediliyor",  t_disajan_temiz_dali_kabul_ediyor),
+    ("dış ajan: koşmayan kapı geçmiş sayılmıyor", t_disajan_kosmayan_kapiyi_gecmis_saymiyor),
 
     ("geri bildirim: vakaya çeviriyor",     t_geribildirim_vakaya_ceviriyor),
     ("geri bildirim: yineleneni kapatıyor", t_geribildirim_yineleneni_kapatiyor),
