@@ -24,21 +24,21 @@
     },
     {
       "soru": "Teşup'un zaafı nedir",
-      "satir": 201,
+      "satir": 204,
       "gercekler": [
         "Kapalı ve dar alanda"
       ]
     },
     {
       "soru": "Ahriman'ın gücü ne yapar",
-      "satir": 202,
+      "satir": 205,
       "gercekler": [
         "Çürütme"
       ]
     },
     {
       "soru": "Barış nerede tutuluyor",
-      "satir": 431,
+      "satir": 434,
       "gercekler": [
         "Teşup'un elinde"
       ]
@@ -52,14 +52,14 @@
     },
     {
       "soru": "Konya'nın derebeyi kim",
-      "satir": 286,
+      "satir": 289,
       "gercekler": [
         "Telipinu"
       ]
     },
     {
       "soru": "Van ilinin derebeyi kim",
-      "satir": 327,
+      "satir": 330,
       "gercekler": [
         "Anahita"
       ]
@@ -73,14 +73,14 @@
     },
     {
       "soru": "güçler nereden geliyor kaynağı ne",
-      "satir": 369,
+      "satir": 372,
       "gercekler": [
         "ağacın özünden"
       ]
     },
     {
       "soru": "Samara Kadın neden ihanet etti",
-      "satir": 427,
+      "satir": 430,
       "gercekler": [
         "iradesi olmayan"
       ]
@@ -94,7 +94,7 @@
     },
     {
       "soru": "mafya yapısı kaç kademeli",
-      "satir": 167,
+      "satir": 170,
       "gercekler": [
         "dört kademeli"
       ]
@@ -108,14 +108,14 @@
     },
     {
       "soru": "Barış'ın ailesine ne oldu",
-      "satir": 414,
+      "satir": 417,
       "gercekler": [
         "kaza gibi göründü"
       ]
     },
     {
       "soru": "beyin yıkama yöntemi nereye yazılmıştı",
-      "satir": 398,
+      "satir": 401,
       "gercekler": [
         "gövde"
       ]
@@ -137,8 +137,8 @@
     {
       "soru": "komutanlar kaç tır kaldırıyor",
       "satir": [
-        193,
-        356
+        196,
+        359
       ],
       "gercekler": [
         "3 tır"
@@ -148,7 +148,7 @@
     },
     {
       "soru": "Ahriman kimi kilitliyor",
-      "satir": 206,
+      "satir": 209,
       "gercekler": [
         "Sarı Gülücük"
       ],

@@ -276,10 +276,14 @@ const KARAKTERLER = [
       "Elektriğe tam hâkimiyet",
       "Üç komutan, 81 il derebeyi",
       "Savaşsız dünya fikrinin sahibi",
+      "Zaafı: kibir",
     ],
     detay:
       "Hikayenin asıl patronu ve fikrin sahibi. Kavgasız bir dünya onun " +
       "düşüncesiydi; kardeşi Gizemli Çocuk sonradan ona katıldı. " +
+      "Gücünün sınırı yok, kendine güveninin de yok: küçük gördüğünü " +
+      "hesaba katmaz. Yenilirse gücü yetmediği için değil, gerekmez " +
+      "sandığı için yenilir. " +
       "\"O gerçek barışı bulacak\" cümlesindeki \"o\" işte bu adam.",
   },
 ];

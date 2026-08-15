@@ -156,6 +156,9 @@ Yani kötüler, kırılması imkânsıza en yakın olan şeyi kırmak zorunda.
 - Gizemli Çocuk ile aynı fiziksel özellikler.
 - **Elektriği tam anlamıyla kontrol eder.**
 - Aşırı kurnaz.
+- **Zaafı: kibir.** Gücünün sınırı yok, ama kendine olan güveninin de yok.
+  Küçük gördüğünü hesaba katmaz; yenilirse gücü yetmediği için değil,
+  gerekmez sandığı için yenilir.
 - **Savaşsız dünya fikri onun.** Kardeşi sonradan katıldı.
 - **Üç komutan derebeyi** doğrudan ona rapor verir; onların altında 81 il derebeyi var.
 - Mafya sloganı **"O gerçek barışı bulacak"** cümlesindeki "o" kendisi.
@@ -166,7 +169,7 @@ Yani kötüler, kırılması imkânsıza en yakın olan şeyi kırmak zorunda.
 
 Kötülerin ağı **dört kademeli**:
 
-| Seviye | Kim | Görev |
+| Kademe | Kim | Görev |
 |---|---|---|
 | 1 | Gizemli Çocuğun Abisi | Asıl patron. Fikrin sahibi. |
 | 2 | Gizemli Çocuk | Kardeşi. Fikre katıldı. |
