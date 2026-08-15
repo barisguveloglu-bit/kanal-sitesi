@@ -528,6 +528,20 @@ def d_belge(r):
                                     "ayrı işlerdir.")
             r.tamam()
 
+        # Kadro sayısı da çürüyebilir — nitekim çürüdü: 10 ajan istendi,
+        # 7 tane yapıldı ve bunu ancak Barış fark etti. Sayı belgede
+        # yazıyorsa denetlenmeli.
+        kadro = len([x for x in os.listdir(ajan_klasor) if x.endswith(".md")])
+        eslesme = re.search(r"\*\*(\d+) denetçi ajan\*\*", belge)
+        if not eslesme:
+            r.hata("belge", "DONGULER.md: kadro sayısı cümlesi bulunamadı. "
+                            "Biçim: **N denetçi ajan**")
+        elif int(eslesme.group(1)) != kadro:
+            r.hata("belge", f"DONGULER.md: kadro {kadro} ajan, belge "
+                            f"{eslesme.group(1)} yazıyor.")
+        else:
+            r.tamam()
+
     butunluk_yolu = os.path.join(KOK, ".claude", "butunluk.py")
     if os.path.exists(butunluk_yolu):
         try:

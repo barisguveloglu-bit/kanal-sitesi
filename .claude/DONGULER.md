@@ -834,7 +834,7 @@ kararı dışarıdaki koşucu veriyor. Taklit etmek **yanlış bir yeşil**
 | Sınav | Neyi ölçer | Vaka |
 |---|---|---|
 | `sinav.py` | denetleyiciyi — fay enjeksiyonu | 28 |
-| `arac-sinavi.py` | araçları — devre, yargıç, görev, logo, olay, tırmanma, eleştirmen, TDD, dış ajan, havuz, kadro | 116 |
+| `arac-sinavi.py` | araçları — devre, yargıç, görev, logo, olay, tırmanma, eleştirmen, TDD, dış ajan, havuz, kadro | 118 |
 | `butunluk.py` | **içeriği** — canon ↔ veri ↔ site | **75 bütünlük vakası** |
 
 ```
@@ -962,17 +962,29 @@ birleştirmede sürpriz üretir.
 Ama tanım da sessizce değişebilir, o yüzden `belge` denetimi her ajan
 dosyasını okuyor — `model: sonnet` değilse kırmızı yanıyor.
 
-### Yedi denetçi
+### Kadro — **15 denetçi ajan**
 
-| Ajan | Ne arar |
-|---|---|
-| `canon-denetci` | Site canon'la çelişiyor mu, dayanaksız iddia var mı |
-| `mitoloji-denetci` | 81 il adı gerçek mitolojiyle ve cepheyle uyumlu mu |
-| `erisim-denetci` | Klavye, odak, ekran okuyucu, hareket azaltma |
-| `dil-denetci` | Terim birliği, üslup, yazım, İngilizce sızıntı |
-| `veri-denetci` | `data.js` ↔ `app.js` sözleşmesi, ölü veri, sessiz çökme |
-| `kurgu-denetci` | Zaman çizelgesi, ilişki ve güç mantığı çelişkileri |
-| `mobil-denetci` | Dar ekran taşması, dokunma hedefi, kesme noktaları |
+| # | Ajan | Ne arar |
+|---|---|---|
+| 1 | `canon-denetci` | Site canon'la çelişiyor mu, dayanaksız iddia var mı |
+| 2 | `mitoloji-denetci` | 81 il adı gerçek mitolojiyle ve cepheyle uyumlu mu |
+| 3 | `kurgu-denetci` | Zaman çizelgesi, ilişki ve güç mantığı çelişkileri |
+| 4 | `anlati-denetci` | Spoiler dengesi, yeni gelenin yolu, ton tutarlılığı |
+| 5 | `dil-denetci` | Terim birliği, üslup, yazım, İngilizce sızıntı |
+| 6 | `veri-denetci` | `data.js` ↔ `app.js` sözleşmesi, ölü veri, sessiz çökme |
+| 7 | `erisim-denetci` | Klavye, odak, ekran okuyucu, hareket azaltma |
+| 8 | `mobil-denetci` | Dar ekran taşması, dokunma hedefi, kesme noktaları |
+| 9 | `deneyim-denetci` | Bilgi mimarisi, giriş yolu, boş durum, ölü son |
+| 10 | `performans-denetci` | Render engelleme, yükleme sırası, gereksiz iş |
+| 11 | `gizlilik-denetci` | Veri toplama, dış kaynak, izleme, enjeksiyon yüzeyi |
+| 12 | `kesif-denetci` | Başlık, açıklama, kanonik adres, paylaşım önizlemesi |
+| 13 | `test-denetci` | Ölü test, yanlış sebeple geçen test, kırılgan fikstür |
+| 14 | `belge-denetci` | Belgedeki iddia ile koddaki gerçek uyuşuyor mu |
+| 15 | `surum-denetci` | Sürüm dağınıklığı, üretilmiş dosyanın tazeliği |
+
+Sayı da denetleniyor. Sebebi somut: **10 ajan istendi, 7 tane yapıldı ve
+bunu betik değil Barış fark etti.** Belgede yazan sayı ile klasördeki
+dosya sayısı ayrışırsa `belge` denetimi kırmızı yanıyor.
 
 **Hepsi salt okunur.** Denetçiye yazma aracı verilmesi denetimde
 reddediliyor: bulmak ile düzeltmek ayrı işlerdir ve düzeltme kararı

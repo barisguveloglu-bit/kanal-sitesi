@@ -1747,6 +1747,42 @@ def t_havuz_uydurma_ajan_tipini_reddediyor(kok):
     return None
 
 
+def t_ajan_kadro_sayisi_belgeyle_uyusuyor(kok):
+    """Kadro sayısı çürüyebilir — nitekim çürüdü: 10 istendi, 7 yapıldı ve
+    bunu betik değil insan fark etti. Sayı belgede yazıyorsa denetlenmeli."""
+    klasor = os.path.join(kok, ".claude", "agents")
+    kadro = len([x for x in os.listdir(klasor) if x.endswith(".md")])
+    bel = os.path.join(kok, ".claude", "DONGULER.md")
+    with open(bel, encoding="utf-8") as f:
+        metin = f.read()
+    with open(bel, "w", encoding="utf-8") as f:
+        f.write(metin.replace(f"**{kadro} denetçi ajan**",
+                              f"**{kadro + 3} denetçi ajan**", 1))
+    s = kos(kok, "dogrula.py", "belge")
+    if s.returncode != 1 or "kadro" not in s.stdout:
+        return f"kadro sayısı sapması yakalanmadı (çıkış {s.returncode})"
+    return None
+
+
+def t_ajan_tanimlari_kusur_saymayacaklarini_soyluyor(kok):
+    """Denetçi, CLAUDE.md'deki bilinçli kararları kusur diye raporlamamalı.
+
+    Bu bir yönlendirme değil koruma: bilinçli kararı kusur sayan bir rapor,
+    gerçek kusurları da şüpheli hâle getirir.
+    """
+    klasor = os.path.join(kok, ".claude", "agents")
+    eksik = []
+    for ad in sorted(os.listdir(klasor)):
+        if not ad.endswith(".md"):
+            continue
+        metin = open(os.path.join(klasor, ad), encoding="utf-8").read()
+        if "KUSUR YOK" not in metin:
+            eksik.append(f"{ad}: açık onay biçimi yok")
+        if "değiştirme" not in metin and "Değiştirme" not in metin:
+            eksik.append(f"{ad}: 'dosya değiştirme' yasağı yazılmamış")
+    return None if not eksik else "; ".join(eksik[:4])
+
+
 VAKALAR = [
     ("devre: sınırda kesiyor",              t_devre_sinirda_kesiyor),
     ("devre: başarı sayacı sıfırlıyor",     t_devre_basari_sifirliyor),
@@ -1879,6 +1915,8 @@ VAKALAR = [
     ("havuz: dağıtım sözleşme üretiyor",    t_havuz_dagit_sozlesme_uretiyor),
     ("havuz: dayanaksız rapor sunuma geçmiyor", t_havuz_dayanaksiz_raporu_sunuma_gecirmiyor),
 
+    ("ajan: kadro sayısı belgeyle uyuşuyor", t_ajan_kadro_sayisi_belgeyle_uyusuyor),
+    ("ajan: tanımlar sınırlarını söylüyor", t_ajan_tanimlari_kusur_saymayacaklarini_soyluyor),
     ("ajan: kadro sonnet",                  t_ajan_kadrosu_sonnet),
     ("ajan: model sapması yakalanıyor",     t_ajan_model_sapmasi_yakalaniyor),
     ("ajan: yazma aracı reddediliyor",      t_ajan_yazma_araci_reddediliyor),

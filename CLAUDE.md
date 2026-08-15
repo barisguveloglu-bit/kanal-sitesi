@@ -77,9 +77,10 @@ Sürüm: `python3 .claude/surum.py goster` — işaret: `python3 .claude/logo.py
   **değişken kadro**. Kaç ajan çalışacağını zorluk belirler (1-10), hangi
   görevlerin aynı ajana gideceğini **paylaşılan kaynak** belirler: aynı
   dosyaya dokunan görevler ayrılırsa biri diğerini ezer.
-- `.claude/agents/` — yedi denetçi ajan tanımı, hepsi **Sonnet 5** ve
-  **salt okunur**. Model çağrıda değil tanımda; `dogrula.py` sapmayı ve
-  denetçiye verilmiş yazma aracını yakalar.
+- `.claude/agents/` — **15 denetçi ajan** tanımı, hepsi **Sonnet 5** ve
+  **salt okunur**. Model çağrıda değil tanımda; `dogrula.py` hem model
+  sapmasını, hem denetçiye verilmiş yazma aracını, hem de kadro sayısının
+  belgeyle ayrışmasını yakalar.
 - `python3 .claude/disajan.py brief|kapi` — dış ajan (Codex) köprüsü.
   Şef Claude, uzman Codex: brief PR akışına göre yazılır, gelen dal dört
   ölçümden geçer. `.claude/` altına dokunan dal reddedilir; koşmayan kapı
