@@ -21,10 +21,12 @@ Orkestranın eksik parçası: **kaç ajan?** ve **hangi görevler aynı ajana?**
 
 ## İki karar, ikisi de mekanik
 
-**1. Hangi görevler aynı ajana gider.** Aynı dosyaya dokunan iki görev ayrı
-ajanlara verilirse çakışırlar: ikisi de aynı satırı değiştirir, biri
+**1. Hangi görevler aynı ajana gider.** Aynı dosyayı **değiştiren** iki
+görev ayrı ajanlara verilirse çakışırlar: ikisi de aynı satırı değiştirir, biri
 diğerini ezer, ve bunu ancak birleştirmede fark edersin. Bu yüzden
-**paylaşılan kaynak = aynı ajan**. Görev tipi bunu belirler, kadro değil.
+**paylaşılan yazma kaynağı = aynı ajan**. Görev tipi bunu belirler, kadro
+değil. Salt okuma çakışma üretmez: aynı kitabı okuyan iki kişi birbirinin
+sayfasını yırtmaz.
 
 Bağımsız görevler ise bölünebilir — birbirini beklemezler.
 
@@ -127,7 +129,16 @@ def kumeler(gorevler):
     for i in range(len(gorevler)):
         for j in range(i + 1, len(gorevler)):
             ortak = set(gorevler[i]["kaynak"]) & set(gorevler[j]["kaynak"])
-            if ortak:
+            if not ortak:
+                continue
+            # Çakışma YAZMADAN doğar. İki görev aynı dosyayı OKUYORSA
+            # birbirini bozmaz; ancak en az biri yazıyorsa sıra önemlidir.
+            #
+            # İlk hâlim bu ayrımı yapmıyordu ve ilk gerçek kullanımda
+            # altı bağımsız araştırma görevini tek ajana yığdı — hepsi
+            # `LORE.md` okuduğu için. Aynı kitabı okuyan iki kişi
+            # birbirinin sayfasını yırtmaz.
+            if gorevler[i]["mod"] == "yazma" or gorevler[j]["mod"] == "yazma":
                 ata[kok(i)] = kok(j)
 
     grup = {}
@@ -301,7 +312,8 @@ def main(argv):
     p = alt.add_parser("ekle", help="havuza görev koy")
     p.add_argument("--is", dest="is_", required=True)
     p.add_argument("--zorluk", type=int, required=True, help="1-5")
-    p.add_argument("--kaynak", nargs="*", help="dokunacağı dosyalar")
+    p.add_argument("--kaynak", nargs="*",
+                   help="DEĞİŞTİRECEĞİ dosyalar (okuma çakışma üretmez)")
     p.add_argument("--mod", choices=("okuma", "yazma"), default="okuma")
     p.add_argument("--tip", help="ajan tipi (.claude/agents/ altındaki ad)")
     p.set_defaults(islev=ekle)

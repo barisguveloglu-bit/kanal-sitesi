@@ -834,7 +834,7 @@ kararı dışarıdaki koşucu veriyor. Taklit etmek **yanlış bir yeşil**
 | Sınav | Neyi ölçer | Vaka |
 |---|---|---|
 | `sinav.py` | denetleyiciyi — fay enjeksiyonu | 28 |
-| `arac-sinavi.py` | araçları — devre, yargıç, görev, logo, olay, tırmanma, eleştirmen, TDD, dış ajan, havuz, kadro | 118 |
+| `arac-sinavi.py` | araçları — devre, yargıç, görev, logo, olay, tırmanma, eleştirmen, TDD, dış ajan, havuz, kadro | 121 |
 | `butunluk.py` | **içeriği** — canon ↔ veri ↔ site | **75 bütünlük vakası** |
 
 ```
@@ -954,6 +954,11 @@ bu ancak birleştirmede görünür. Zincirleme de sayılıyor — A ve B
 **Kaynak çakışması uzmanlıktan önce gelir**; farklı tipte görevler aynı
 ajana düşerse bu bir uyarıyla söyleniyor.
 
+Çakışma **yazmadan** doğar. Aynı dosyayı okuyan iki görev birbirini bozmaz
+— aynı kitabı okuyan iki kişi birbirinin sayfasını yırtmaz. İlk hâlim bu
+ayrımı yapmıyordu ve ilk gerçek kullanımda altı bağımsız araştırma görevini
+tek ajana yığdı; hepsi `LORE.md` okuduğu için.
+
 Bölünemeyen küme kapasiteyi aşabilir — ama sessizce değil. Sessiz aşım
 birleştirmede sürpriz üretir.
 
@@ -982,7 +987,23 @@ dosyasını okuyor — `model: sonnet` değilse kırmızı yanıyor.
 | 14 | `belge-denetci` | Belgedeki iddia ile koddaki gerçek uyuşuyor mu |
 | 15 | `surum-denetci` | Sürüm dağınıklığı, üretilmiş dosyanın tazeliği |
 
-Sayı da denetleniyor. Sebebi somut: **10 ajan istendi, 7 tane yapıldı ve
+### Üreticiler — **2 üretici ajan**
+
+| Ajan | Ne yapar |
+|---|---|
+| `tarih-arastirmaci` | Gerçek tarihsel zemini kaynaklarıyla çıkarır; her maddeyi KESİN / YAYGIN KABUL / BELİRSİZ diye ayırır |
+| `hikaye-yazari` | Canon kısıtları içinde taslak yazar; taslağın canon'a **ne eklediğini kendisi listeler** |
+
+Denetçilerden ayrı sayılıyorlar çünkü **sözleşmeleri farklı**: denetçi
+bulur ve düzeltmez, üretici üretir ama canon'a kural koyamaz. Birini
+diğerinin yerine koymak sessiz bir yetki genişlemesidir.
+
+`tarih-arastirmaci` web'e bakabilen tek ajan. Kurgu cümlesi kurması yasak —
+zemin hazırlar, üstüne bina kurmaz. `hikaye-yazari` ise web'e bakamaz:
+kurgu, araştırmanın kendi kendini doğrulamasıyla değil, ayrı bir taraftan
+gelen zeminle kurulmalı.
+
+Sayılar da denetleniyor. Sebebi somut: **10 ajan istendi, 7 tane yapıldı ve
 bunu betik değil Barış fark etti.** Belgede yazan sayı ile klasördeki
 dosya sayısı ayrışırsa `belge` denetimi kırmızı yanıyor.
 

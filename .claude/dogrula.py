@@ -531,16 +531,23 @@ def d_belge(r):
         # Kadro sayısı da çürüyebilir — nitekim çürüdü: 10 ajan istendi,
         # 7 tane yapıldı ve bunu ancak Barış fark etti. Sayı belgede
         # yazıyorsa denetlenmeli.
-        kadro = len([x for x in os.listdir(ajan_klasor) if x.endswith(".md")])
-        eslesme = re.search(r"\*\*(\d+) denetçi ajan\*\*", belge)
-        if not eslesme:
-            r.hata("belge", "DONGULER.md: kadro sayısı cümlesi bulunamadı. "
-                            "Biçim: **N denetçi ajan**")
-        elif int(eslesme.group(1)) != kadro:
-            r.hata("belge", f"DONGULER.md: kadro {kadro} ajan, belge "
-                            f"{eslesme.group(1)} yazıyor.")
-        else:
-            r.tamam()
+        # İki ayrı kadro: denetçiler (bulur, düzeltmez) ve üreticiler
+        # (araştırır/yazar). Ayrı sayılıyorlar çünkü ayrı sözleşmeleri var
+        # ve birini diğerinin yerine koymak sessiz bir yetki genişlemesidir.
+        dosyalar = [x[:-3] for x in os.listdir(ajan_klasor) if x.endswith(".md")]
+        for etiket, sayi in (("denetçi", len([x for x in dosyalar
+                                              if x.endswith("-denetci")])),
+                             ("üretici", len([x for x in dosyalar
+                                              if not x.endswith("-denetci")]))):
+            eslesme = re.search(rf"\*\*(\d+) {etiket} ajan\*\*", belge)
+            if not eslesme:
+                r.hata("belge", f"DONGULER.md: {etiket} sayısı cümlesi yok. "
+                                f"Biçim: **N {etiket} ajan**")
+            elif int(eslesme.group(1)) != sayi:
+                r.hata("belge", f"DONGULER.md: {sayi} {etiket} ajan var, "
+                                f"belge {eslesme.group(1)} yazıyor.")
+            else:
+                r.tamam()
 
     butunluk_yolu = os.path.join(KOK, ".claude", "butunluk.py")
     if os.path.exists(butunluk_yolu):

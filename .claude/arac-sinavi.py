@@ -1783,6 +1783,46 @@ def t_ajan_tanimlari_kusur_saymayacaklarini_soyluyor(kok):
     return None if not eksik else "; ".join(eksik[:4])
 
 
+def t_havuz_okuma_cakismasi_gruplamiyor(kok):
+    """Çakışma yazmadan doğar. Aynı dosyayı OKUYAN iki görev birbirini
+    bozmaz — ilk hâlim altı bağımsız araştırma görevini tek ajana yığdı."""
+    kos(kok, "havuz.py", "temizle")
+    for i in range(4):
+        kos(kok, "havuz.py", "ekle", "--is", f"okuma{i}", "--zorluk", "3",
+            "--kaynak", "LORE.md", "--mod", "okuma")
+    s = kos(kok, "havuz.py", "kadro")
+    if "KADRO — 4 ajan" not in s.stdout:
+        return f"salt okuma görevleri gruplandı: {s.stdout[:160]}"
+    return None
+
+
+def t_havuz_yazma_cakismasi_grupluyor(kok):
+    """Biri yazıyorsa sıra önemlidir — orada gruplama şart."""
+    kos(kok, "havuz.py", "temizle")
+    kos(kok, "havuz.py", "ekle", "--is", "okur", "--zorluk", "2",
+        "--kaynak", "assets/js/data.js", "--mod", "okuma")
+    kos(kok, "havuz.py", "ekle", "--is", "yazar", "--zorluk", "2",
+        "--kaynak", "assets/js/data.js", "--mod", "yazma")
+    s = kos(kok, "havuz.py", "kadro")
+    if "KADRO — 1 ajan" not in s.stdout:
+        return f"yazma çakışması gruplanmadı: {s.stdout[:160]}"
+    return None
+
+
+def t_ajan_uretici_web_erisimi_sadece_arastirmacida(kok):
+    """Kurgu, araştırmanın kendi kendini doğrulamasıyla kurulmamalı:
+    zemin ayrı bir taraftan gelmeli."""
+    klasor = os.path.join(kok, ".claude", "agents")
+    yazar = open(os.path.join(klasor, "hikaye-yazari.md"), encoding="utf-8").read()
+    arastirmaci = open(os.path.join(klasor, "tarih-arastirmaci.md"),
+                       encoding="utf-8").read()
+    if "WebSearch" in yazar:
+        return "hikaye yazarına web erişimi verilmiş"
+    if "WebSearch" not in arastirmaci:
+        return "tarih araştırmacısında web erişimi yok"
+    return None
+
+
 VAKALAR = [
     ("devre: sınırda kesiyor",              t_devre_sinirda_kesiyor),
     ("devre: başarı sayacı sıfırlıyor",     t_devre_basari_sifirliyor),
@@ -1914,6 +1954,10 @@ VAKALAR = [
     ("havuz: kapasite aşımı gizlenmiyor",   t_havuz_kapasite_asimini_gizlemiyor),
     ("havuz: dağıtım sözleşme üretiyor",    t_havuz_dagit_sozlesme_uretiyor),
     ("havuz: dayanaksız rapor sunuma geçmiyor", t_havuz_dayanaksiz_raporu_sunuma_gecirmiyor),
+
+    ("havuz: okuma çakışması gruplamıyor",  t_havuz_okuma_cakismasi_gruplamiyor),
+    ("havuz: yazma çakışması gruplanıyor",  t_havuz_yazma_cakismasi_grupluyor),
+    ("ajan: web erişimi sadece araştırmacıda", t_ajan_uretici_web_erisimi_sadece_arastirmacida),
 
     ("ajan: kadro sayısı belgeyle uyuşuyor", t_ajan_kadro_sayisi_belgeyle_uyusuyor),
     ("ajan: tanımlar sınırlarını söylüyor", t_ajan_tanimlari_kusur_saymayacaklarini_soyluyor),
