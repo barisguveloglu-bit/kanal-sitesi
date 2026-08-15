@@ -55,6 +55,7 @@ KOK = os.path.dirname(KLASOR)
 HAVUZ = os.path.join(KLASOR, "havuz.json")
 
 EN_FAZLA_AJAN = 10
+AJAN_KLASOR = os.path.join(KLASOR, "agents")
 AJAN_KAPASITESI = 5     # bir ajanın taşıyabileceği toplam zorluk puanı
 ZORLUK = {1: "önemsiz", 2: "kolay", 3: "orta", 4: "zor", 5: "çok zor"}
 
@@ -80,8 +81,13 @@ def ekle(a):
         print(f"Zorluk 1-5 arası olmalı. ({', '.join(f'{k}={v}' for k, v in ZORLUK.items())})")
         return 2
     d = oku()
+    if a.tip and a.tip not in ajan_tipleri():
+        print(f"Böyle bir ajan tipi yok: {a.tip}")
+        print("Tanımlı olanlar: " + ", ".join(sorted(ajan_tipleri())))
+        return 2
     d["gorevler"].append({
         "is": a.is_,
+        "tip": a.tip or "",
         "zorluk": a.zorluk,
         "kaynak": sorted(set(a.kaynak or [])),
         "mod": a.mod,
@@ -93,6 +99,13 @@ def ekle(a):
         print("  UYARI: kaynak verilmedi. Kaynaksız görev hiçbir görevle "
               "gruplanamaz — çakışma riski varsa `--kaynak` ver.")
     return 0
+
+
+def ajan_tipleri():
+    """`.claude/agents/` altındaki tanımlı ajanlar. Uydurma tip kabul edilmez."""
+    if not os.path.isdir(AJAN_KLASOR):
+        return set()
+    return {a[:-3] for a in os.listdir(AJAN_KLASOR) if a.endswith(".md")}
 
 
 def kumeler(gorevler):
@@ -171,7 +184,8 @@ def kadro(a):
             gorev = g[i]
             kaynak = ", ".join(gorev["kaynak"]) or "—"
             print(f"    · [{ZORLUK[gorev['zorluk']]}] {gorev['is'][:64]}")
-            print(f"      kaynak: {kaynak}   yetki: {gorev['mod']}")
+            print(f"      kaynak: {kaynak}   yetki: {gorev['mod']}"
+                  f"   tip: {gorev.get('tip') or '—'}")
         print()
 
     # Kapasiteyi aşan küme SESSİZ KALMAMALI. Küme bölünemez (aynı kaynağa
@@ -214,8 +228,16 @@ def dagit(a):
              "--konu", konu[:300], "--mod", mod],
             cwd=KOK, capture_output=True, text=True, timeout=120)
 
+        tipler = sorted({x.get("tip") for x in gorevler if x.get("tip")})
+        etiket = ", ".join(tipler) if tipler else "genel"
         print(f"\n{'=' * 70}\nAJAN {n} / {len(ajanlar)}   (zorluk {ajan['agirlik']}, "
-              f"{len(gorevler)} görev)\n{'=' * 70}\n")
+              f"{len(gorevler)} görev)\n"
+              f"  tip   : {etiket}\n"
+              f"  model : sonnet  (tanım: .claude/agents/)\n{'=' * 70}\n")
+        if len(tipler) > 1:
+            print("UYARI: bu ajana farklı tipte görevler düştü çünkü aynı "
+                  "kaynağa dokunuyorlar. Kaynak çakışması uzmanlıktan "
+                  "önce gelir — ayırmak veri kaybı üretir.\n")
         print(s.stdout.strip())
         print("\n## Bu ajanın görevleri\n")
         for k, gorev in enumerate(gorevler, 1):
@@ -281,6 +303,7 @@ def main(argv):
     p.add_argument("--zorluk", type=int, required=True, help="1-5")
     p.add_argument("--kaynak", nargs="*", help="dokunacağı dosyalar")
     p.add_argument("--mod", choices=("okuma", "yazma"), default="okuma")
+    p.add_argument("--tip", help="ajan tipi (.claude/agents/ altındaki ad)")
     p.set_defaults(islev=ekle)
 
     p = alt.add_parser("kadro", help="kaç ajan, hangi görev kimde")

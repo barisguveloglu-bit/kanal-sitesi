@@ -493,6 +493,41 @@ def d_belge(r):
         if not kaymis:
             r.tamam()
 
+    # Alt ajanların modeli TANIMDA duruyor, çağrıda değil. Sebebi: çağrıda
+    # seçilen model unutulur, tanımdaki unutulamaz. Ama tanım da sessizce
+    # değişebilir — bu yüzden denetleniyor. "Sonnet olsun" bir yazıysa
+    # uygulanmayan kuraldır.
+    ajan_klasor = os.path.join(KOK, ".claude", "agents")
+    if os.path.isdir(ajan_klasor):
+        beklenen_model = "sonnet"
+        for ad in sorted(os.listdir(ajan_klasor)):
+            if not ad.endswith(".md"):
+                continue
+            metin = open(os.path.join(ajan_klasor, ad), encoding="utf-8").read()
+            on = re.match(r"---\n(.*?)\n---", metin, re.S)
+            if not on:
+                r.hata("belge", f"agents/{ad}: ön bilgi (frontmatter) yok.")
+                continue
+            alanlar = dict(re.findall(r"^(\w+):\s*(.+)$", on.group(1), re.M))
+            for zorunlu in ("name", "description", "model", "tools"):
+                if zorunlu not in alanlar:
+                    r.hata("belge", f"agents/{ad}: '{zorunlu}' alanı eksik.")
+            model = alanlar.get("model", "").strip()
+            if model and model != beklenen_model:
+                r.hata("belge", f"agents/{ad}: model '{model}' — beklenen "
+                                f"'{beklenen_model}'. Kadro Sonnet 5 olarak "
+                                "kararlaştırıldı; değiştirmek bir karar, "
+                                "sessizce olmamalı.")
+            # Denetçi ajanlar salt okunur olmalı: bulmak ile düzeltmek ayrı
+            # işler ve düzeltme kararı insanın.
+            araclar = alanlar.get("tools", "")
+            for yazan in ("Edit", "Write", "MultiEdit", "NotebookEdit"):
+                if yazan in araclar:
+                    r.hata("belge", f"agents/{ad}: denetçi ajana yazma aracı "
+                                    f"verilmiş ({yazan}). Bulmak ile düzeltmek "
+                                    "ayrı işlerdir.")
+            r.tamam()
+
     butunluk_yolu = os.path.join(KOK, ".claude", "butunluk.py")
     if os.path.exists(butunluk_yolu):
         try:

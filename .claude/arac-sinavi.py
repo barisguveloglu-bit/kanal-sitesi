@@ -1689,6 +1689,64 @@ def t_havuz_dayanaksiz_raporu_sunuma_gecirmiyor(kok):
     return None
 
 
+def t_ajan_kadrosu_sonnet(kok):
+    """Kadro Sonnet 5 olarak kararlaştırıldı — çağrıda değil TANIMDA.
+
+    Çağrıda seçilen model unutulur, tanımdaki unutulamaz. Ama tanım da
+    sessizce değişebilir; o yüzden denetleniyor.
+    """
+    klasor = os.path.join(kok, ".claude", "agents")
+    if not os.path.isdir(klasor):
+        return "ajan tanımları klasörü yok"
+    dosyalar = [x for x in os.listdir(klasor) if x.endswith(".md")]
+    if not dosyalar:
+        return "hiç ajan tanımı yok"
+    for ad in dosyalar:
+        metin = open(os.path.join(klasor, ad), encoding="utf-8").read()
+        if "model: sonnet" not in metin:
+            return f"{ad}: model sonnet değil"
+    return None
+
+
+def t_ajan_model_sapmasi_yakalaniyor(kok):
+    yol = os.path.join(kok, ".claude", "agents", "canon-denetci.md")
+    if not os.path.exists(yol):
+        return "canon-denetci tanımı yok"
+    with open(yol, encoding="utf-8") as f:
+        metin = f.read()
+    with open(yol, "w", encoding="utf-8") as f:
+        f.write(metin.replace("model: sonnet", "model: opus", 1))
+    s = kos(kok, "dogrula.py", "belge")
+    if s.returncode != 1 or "beklenen 'sonnet'" not in s.stdout:
+        return f"model sapması yakalanmadı (çıkış {s.returncode})"
+    return None
+
+
+def t_ajan_yazma_araci_reddediliyor(kok):
+    """Denetçi ajana yazma aracı verilmemeli: bulmak ile düzeltmek ayrı."""
+    yol = os.path.join(kok, ".claude", "agents", "canon-denetci.md")
+    with open(yol, encoding="utf-8") as f:
+        metin = f.read()
+    with open(yol, "w", encoding="utf-8") as f:
+        f.write(metin.replace("tools: Read, Grep, Glob, Bash",
+                              "tools: Read, Grep, Glob, Bash, Edit", 1))
+    s = kos(kok, "dogrula.py", "belge")
+    if s.returncode != 1 or "yazma aracı" not in s.stdout:
+        return f"denetçiye verilen yazma aracı yakalanmadı (çıkış {s.returncode})"
+    return None
+
+
+def t_havuz_uydurma_ajan_tipini_reddediyor(kok):
+    kos(kok, "havuz.py", "temizle")
+    s = kos(kok, "havuz.py", "ekle", "--is", "x", "--zorluk", "1",
+            "--tip", "boyle-bir-ajan-yok")
+    if s.returncode == 0:
+        return "tanımlı olmayan ajan tipi kabul edildi"
+    if "Tanımlı olanlar" not in s.stdout:
+        return "geçerli tipler listelenmedi"
+    return None
+
+
 VAKALAR = [
     ("devre: sınırda kesiyor",              t_devre_sinirda_kesiyor),
     ("devre: başarı sayacı sıfırlıyor",     t_devre_basari_sifirliyor),
@@ -1820,6 +1878,11 @@ VAKALAR = [
     ("havuz: kapasite aşımı gizlenmiyor",   t_havuz_kapasite_asimini_gizlemiyor),
     ("havuz: dağıtım sözleşme üretiyor",    t_havuz_dagit_sozlesme_uretiyor),
     ("havuz: dayanaksız rapor sunuma geçmiyor", t_havuz_dayanaksiz_raporu_sunuma_gecirmiyor),
+
+    ("ajan: kadro sonnet",                  t_ajan_kadrosu_sonnet),
+    ("ajan: model sapması yakalanıyor",     t_ajan_model_sapmasi_yakalaniyor),
+    ("ajan: yazma aracı reddediliyor",      t_ajan_yazma_araci_reddediliyor),
+    ("havuz: uydurma ajan tipi reddediliyor", t_havuz_uydurma_ajan_tipini_reddediyor),
 
     ("geri bildirim: vakaya çeviriyor",     t_geribildirim_vakaya_ceviriyor),
     ("geri bildirim: yineleneni kapatıyor", t_geribildirim_yineleneni_kapatiyor),

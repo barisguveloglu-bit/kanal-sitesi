@@ -834,7 +834,7 @@ kararı dışarıdaki koşucu veriyor. Taklit etmek **yanlış bir yeşil**
 | Sınav | Neyi ölçer | Vaka |
 |---|---|---|
 | `sinav.py` | denetleyiciyi — fay enjeksiyonu | 28 |
-| `arac-sinavi.py` | araçları — devre, yargıç, görev, logo, olay, tırmanma, eleştirmen, TDD, dış ajan | 104 |
+| `arac-sinavi.py` | araçları — devre, yargıç, görev, logo, olay, tırmanma, eleştirmen, TDD, dış ajan, havuz, kadro | 116 |
 | `butunluk.py` | **içeriği** — canon ↔ veri ↔ site | **75 bütünlük vakası** |
 
 ```
@@ -914,6 +914,70 @@ zinciri kırılsın, altın set kayma denetimi körleşsin.
 Bütünlüğü koruyan şey artık `arac-sinavi.py`'deki sekiz fay enjeksiyon
 vakası: depoyu kasten bozup sınavın yakaladığını doğruluyorlar. Bu vakalar
 bir kez elle çalıştırılmıştı; elle yapılan deneme buharlaşır.
+
+## Kadro — kaç ajan, hangi görev kimde, hangi model
+
+```
+[ Barış ] ──▶ [ Görev Havuzu ]
+                    │  zorluk + paylaşılan kaynak
+          ┌─────────┴─────────┐
+          ▼                   ▼
+    [ 1-9 ajan ]   ya da  [ 10 ajan ]
+          └─────────┬─────────┘
+                    ▼  çıktılar birleşir, atıflar denetlenir
+             [ Codex — sunum ]
+                    ▼
+            [ Opus 5 kontrolü ]
+             │hata│      │temiz│
+             ▼    │      ▼
+         revizyon─┘  [ Barış ]
+```
+
+```
+python3 .claude/havuz.py ekle --is "<görev>" --zorluk 3 \
+    --kaynak assets/js/data.js --tip canon-denetci
+python3 .claude/havuz.py kadro
+python3 .claude/havuz.py dagit
+python3 .claude/havuz.py birlestir --rapor r1.md r2.md
+```
+
+### Üç karar, üçü de mekanik
+
+**Kaç ajan.** Sabit değil, zorluktan çıkıyor (1-10). Tek ajan çıkarsa havuz
+orkestrayı **reddediyor** ve `/dongu` öneriyor — orkestranın kendi
+belgesindeki kurala uyuyor.
+
+**Hangi görevler aynı ajana.** Aynı kaynağa dokunanlar birleşiyor. Sebebi
+somut: ayrılırlarsa ikisi de aynı satırı değiştirir, biri diğerini ezer ve
+bu ancak birleştirmede görünür. Zincirleme de sayılıyor — A ve B
+`data.js`'i, B ve C `app.js`'i paylaşıyorsa üçü de aynı ajanda.
+**Kaynak çakışması uzmanlıktan önce gelir**; farklı tipte görevler aynı
+ajana düşerse bu bir uyarıyla söyleniyor.
+
+Bölünemeyen küme kapasiteyi aşabilir — ama sessizce değil. Sessiz aşım
+birleştirmede sürpriz üretir.
+
+**Hangi model.** Kadro **Sonnet 5**. Tanım `.claude/agents/` altında,
+çağrıda değil: çağrıda seçilen model unutulur, tanımdaki unutulamaz.
+Ama tanım da sessizce değişebilir, o yüzden `belge` denetimi her ajan
+dosyasını okuyor — `model: sonnet` değilse kırmızı yanıyor.
+
+### Yedi denetçi
+
+| Ajan | Ne arar |
+|---|---|
+| `canon-denetci` | Site canon'la çelişiyor mu, dayanaksız iddia var mı |
+| `mitoloji-denetci` | 81 il adı gerçek mitolojiyle ve cepheyle uyumlu mu |
+| `erisim-denetci` | Klavye, odak, ekran okuyucu, hareket azaltma |
+| `dil-denetci` | Terim birliği, üslup, yazım, İngilizce sızıntı |
+| `veri-denetci` | `data.js` ↔ `app.js` sözleşmesi, ölü veri, sessiz çökme |
+| `kurgu-denetci` | Zaman çizelgesi, ilişki ve güç mantığı çelişkileri |
+| `mobil-denetci` | Dar ekran taşması, dokunma hedefi, kesme noktaları |
+
+**Hepsi salt okunur.** Denetçiye yazma aracı verilmesi denetimde
+reddediliyor: bulmak ile düzeltmek ayrı işlerdir ve düzeltme kararı
+insanındır. Her tanım ayrıca "neyi kusur SAYMA" listesi taşıyor —
+`CLAUDE.md`'deki bilinçli kararları kusur diye raporlamasınlar diye.
 
 ## Dış ajan köprüsü — Codex'i orkestraya bağlamak
 
