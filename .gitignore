@@ -9,3 +9,7 @@ __pycache__/
 .claude/eniyile-durumu.json
 .claude/tdd-durumu.json
 .claude/havuz.json
+
+# Uzun koşunun çalışma hafızası — tur izi koşuya özel, sürüme girmez.
+# Kalıcı bilgi (geri-bildirim.jsonl, yargi-gecmisi.jsonl) izlenmeye devam eder.
+.claude/seyir.jsonl
