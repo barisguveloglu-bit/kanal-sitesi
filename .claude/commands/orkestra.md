@@ -22,13 +22,29 @@ Tek dosyalık iş, küçük düzeltme, tek konu → orkestraya gerek yok.
 
 ## Döngü
 
-**1 — Böl.** Hedefi bağımsız parçalara ayır. Her parça için yaz:
-ne isteniyor, hangi dosyalar, hangi çıktı bekleniyor.
+**1 — Böl ve havuza koy.** Kadroyu **elle sayma, hesaplat:**
+
+```
+python3 .claude/havuz.py ekle --is "<görev>" --zorluk 3 --kaynak assets/js/data.js
+python3 .claude/havuz.py kadro
+```
+
+Kadro büyüklüğü sabit değil, **1-10 arası ve zorluktan çıkıyor.** İki kural
+mekanik:
+
+- **Aynı kaynağa dokunan görevler aynı ajana gider.** Ayrılırsa çakışırlar:
+  ikisi de aynı satırı değiştirir, biri diğerini ezer ve bu ancak
+  birleştirmede görünür. Zincirleme de sayılır.
+- **Bağımsız görevler bölünür.** Birbirini beklemezler.
+
+Yani hangi görevlerin toplanacağını **görev tipi** belirliyor, kadro değil.
+Kapasiteyi aşan bölünemez küme sessiz kalmaz, raporlanır.
 
 **2 — Dağıt.** Görev metnini **elle yazma, üret:**
 
 ```
-python3 .claude/gorev.py brief --konu "<ne isteniyor>" --cikti "<beklenen çıktı>" --mod okuma
+python3 .claude/havuz.py dagit          # havuzdaki her ajan için sözleşme
+python3 .claude/gorev.py brief --konu "<ne isteniyor>" --mod okuma   # tek görev
 ```
 
 `--mod` ajanın **yetkisini** belirler ve varsayılan `okuma` (salt okunur).
@@ -70,7 +86,14 @@ reddedilir — sınavı gevşeterek geçmek geçmek değildir.
 Taşıma insan üzerinden olduğunda döngü bozulmaz, sadece kablosu değişir:
 şef sensin, kapı mekanik, karar Barış'ın.
 
-**3 — Birleştir.** Önce raporu **makineye doğrulat**, sonra oku:
+**3 — Birleştir.** Önce bütün raporları **makineye doğrulat**:
+
+```
+python3 .claude/havuz.py birlestir --rapor r1.md r2.md r3.md
+```
+
+Kusurlu rapor **sunuma gitmez** — dayanağı denetlenmemiş rapor delil
+değildir. Tek rapor için:
 
 ```
 python3 .claude/gorev.py dogrula --rapor <dosya> --mod okuma --deftere-yaz
@@ -107,8 +130,19 @@ python3 .claude/devre.py dene --halka orkestra --sinir 2 --not "<hangi boşluk>"
 Çıkış kodu **1 ise yeniden gönderme.** Elindekiyle devam et ve neyin
 çözülemediğini açıkça söyle. Bitince: `python3 .claude/devre.py basari --halka orkestra`
 
+**4.5 — Sunum (Codex).** Raporlar doğrulandıktan sonra derleme işini dış
+ajana ver: `disajan.py sohbet` ile sunum brief'i üret, gelen metni
+`disajan.py uygula` ile işle. Codex burada **işçi değil sunucu** —
+uzmanların bulduklarını tek bir okunur metne çeviriyor.
+
+Sunum da denetimden geçer; "başka bir yapay zeka derledi" güven sebebi
+değildir.
+
 **5 — Denetle.** Birleştirme bittiğinde `python3 .claude/dogrula.py`
 çalıştır. Uzmanlar dosya değiştirdiyse bu şart.
+
+Bu adım **Opus 5 kontrolü**: hata varsa iş 4. adıma (yeniden gönder) döner,
+temizse Barış'a çıkar. Barış'a çıkan şey, kapıdan geçmiş olandır.
 
 **6 — Kapat.** Bir parça bir geri bildirim kaydını çözdüyse kaydı
 **koruyan testi adıyla** kapat:

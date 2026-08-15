@@ -73,6 +73,10 @@ Sürüm: `python3 .claude/surum.py goster` — işaret: `python3 .claude/logo.py
 - `python3 .claude/gorev.py` — alt ajana verilecek sözleşmeli brief üretir
   ve gelen raporun atıflarını denetler. Sözleşmesiz görev `kanca-gorev.py`
   tarafından gönderilmeden engellenir.
+- `python3 .claude/havuz.py ekle|kadro|dagit|birlestir` — görev havuzu ve
+  **değişken kadro**. Kaç ajan çalışacağını zorluk belirler (1-10), hangi
+  görevlerin aynı ajana gideceğini **paylaşılan kaynak** belirler: aynı
+  dosyaya dokunan görevler ayrılırsa biri diğerini ezer.
 - `python3 .claude/disajan.py brief|kapi` — dış ajan (Codex) köprüsü.
   Şef Claude, uzman Codex: brief PR akışına göre yazılır, gelen dal dört
   ölçümden geçer. `.claude/` altına dokunan dal reddedilir; koşmayan kapı

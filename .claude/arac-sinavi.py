@@ -1586,6 +1586,109 @@ def t_disajan_uygula_belirsiz_konumu_reddediyor(kok):
     return None
 
 
+# ------------------------------------------------------- havuz ve kadro
+
+def _havuz_ekle(kok, isim, zorluk, *kaynak):
+    return kos(kok, "havuz.py", "ekle", "--is", isim,
+               "--zorluk", str(zorluk), "--kaynak", *kaynak)
+
+
+def t_havuz_ayni_kaynagi_ayni_ajana_veriyor(kok):
+    """Aynı dosyaya dokunan iki görev ayrı ajanlara giderse çakışırlar:
+    ikisi de aynı satırı değiştirir, biri diğerini ezer, ve bu ancak
+    birleştirmede görünür."""
+    kos(kok, "havuz.py", "temizle")
+    _havuz_ekle(kok, "A", 2, "assets/js/data.js")
+    _havuz_ekle(kok, "B", 2, "assets/js/data.js")
+    s = kos(kok, "havuz.py", "kadro")
+    if "KADRO — 1 ajan" not in s.stdout:
+        return f"aynı kaynağa dokunan iki görev ayrıldı: {s.stdout[:150]}"
+    return None
+
+
+def t_havuz_bagimsizi_boluyor(kok):
+    """Bağımsız görevler birbirini beklemez — bölünmeliler."""
+    kos(kok, "havuz.py", "temizle")
+    _havuz_ekle(kok, "A", 4, "index.html")
+    _havuz_ekle(kok, "B", 4, "efsane.html")
+    s = kos(kok, "havuz.py", "kadro")
+    if "KADRO — 2 ajan" not in s.stdout:
+        return f"bağımsız görevler bölünmedi: {s.stdout[:150]}"
+    return None
+
+
+def t_havuz_zincirleme_paylasimi_goruyor(kok):
+    """A-B `data.js`'i, B-C `app.js`'i paylaşıyorsa üçü de aynı kümede."""
+    kos(kok, "havuz.py", "temizle")
+    _havuz_ekle(kok, "A", 1, "assets/js/data.js")
+    _havuz_ekle(kok, "B", 1, "assets/js/data.js", "assets/js/app.js")
+    _havuz_ekle(kok, "C", 1, "assets/js/app.js")
+    s = kos(kok, "havuz.py", "kadro")
+    if "KADRO — 1 ajan" not in s.stdout:
+        return "zincirleme paylaşım görülmedi, küme bölündü"
+    return None
+
+
+def t_havuz_kadro_tavani_asmiyor(kok):
+    """Tavan 10: daha fazlasının birleştirmesi zaten mümkün olmaz."""
+    kos(kok, "havuz.py", "temizle")
+    for i in range(20):
+        _havuz_ekle(kok, f"is{i}", 5, f"dosya{i}.html")
+    s = kos(kok, "havuz.py", "kadro")
+    import re as _re
+    e = _re.search(r"KADRO — (\d+) ajan", s.stdout)
+    if not e:
+        return "kadro satırı basılmadı"
+    if int(e.group(1)) > 10:
+        return f"kadro tavanı aşıldı: {e.group(1)}"
+    return None
+
+
+def t_havuz_tek_ajanda_orkestrayi_reddediyor(kok):
+    """Orkestra kendi belgesinde 'tek konu → /dongu' diyor; havuz da desin."""
+    kos(kok, "havuz.py", "temizle")
+    _havuz_ekle(kok, "tek küçük iş", 2, "index.html")
+    s = kos(kok, "havuz.py", "kadro")
+    if "orkestraya gerek yok" not in s.stdout:
+        return "tek ajanlık iş için orkestra önerildi"
+    return None
+
+
+def t_havuz_kapasite_asimini_gizlemiyor(kok):
+    """Bölünemeyen küme kapasiteyi aşabilir — ama sessizce değil."""
+    kos(kok, "havuz.py", "temizle")
+    for i in range(4):
+        _havuz_ekle(kok, f"agir{i}", 5, "assets/js/data.js")
+    s = kos(kok, "havuz.py", "kadro")
+    if "KAPASİTE AŞIMI" not in s.stdout:
+        return "kapasiteyi aşan küme sessizce yüklendi"
+    return None
+
+
+def t_havuz_dagit_sozlesme_uretiyor(kok):
+    """Görev metni elle yazılmaz, üretilir — sözleşmesiz görev gönderilmez."""
+    kos(kok, "havuz.py", "temizle")
+    _havuz_ekle(kok, "canon denetimi", 3, "index.html")
+    s = kos(kok, "havuz.py", "dagit")
+    if s.returncode != 0:
+        return f"brief üretilemedi (çıkış {s.returncode})"
+    for beklenen in ("YETKİ", "AJAN 1", "Bu ajanın görevleri"):
+        if beklenen not in s.stdout:
+            return f"brief'te eksik: {beklenen}"
+    return None
+
+
+def t_havuz_dayanaksiz_raporu_sunuma_gecirmiyor(kok):
+    """Dayanağı denetlenmemiş rapor delil değildir — Codex sunumuna gitmez."""
+    yol = os.path.join(kok, "rapor.md")
+    open(yol, "w", encoding="utf-8").write(
+        "Nemesis'in gizli bir kardeşi var. LORE.md:99999\n")
+    s = kos(kok, "havuz.py", "birlestir", "--rapor", yol)
+    if s.returncode != 1 or "SUNUMA GİTMEZ" not in s.stdout:
+        return f"uydurma atıflı rapor sunuma geçti (çıkış {s.returncode})"
+    return None
+
+
 VAKALAR = [
     ("devre: sınırda kesiyor",              t_devre_sinirda_kesiyor),
     ("devre: başarı sayacı sıfırlıyor",     t_devre_basari_sifirliyor),
@@ -1708,6 +1811,15 @@ VAKALAR = [
 
     ("dış ajan: birleşmiş satırlar çözülüyor", t_disajan_uygula_birlesmis_satirlari_cozuyor),
     ("dış ajan: belirsiz konum reddediliyor", t_disajan_uygula_belirsiz_konumu_reddediyor),
+
+    ("havuz: aynı kaynak aynı ajana",       t_havuz_ayni_kaynagi_ayni_ajana_veriyor),
+    ("havuz: bağımsız görev bölünüyor",     t_havuz_bagimsizi_boluyor),
+    ("havuz: zincirleme paylaşım görülüyor", t_havuz_zincirleme_paylasimi_goruyor),
+    ("havuz: kadro tavanı aşılmıyor",       t_havuz_kadro_tavani_asmiyor),
+    ("havuz: tek ajanda orkestra reddediliyor", t_havuz_tek_ajanda_orkestrayi_reddediyor),
+    ("havuz: kapasite aşımı gizlenmiyor",   t_havuz_kapasite_asimini_gizlemiyor),
+    ("havuz: dağıtım sözleşme üretiyor",    t_havuz_dagit_sozlesme_uretiyor),
+    ("havuz: dayanaksız rapor sunuma geçmiyor", t_havuz_dayanaksiz_raporu_sunuma_gecirmiyor),
 
     ("geri bildirim: vakaya çeviriyor",     t_geribildirim_vakaya_ceviriyor),
     ("geri bildirim: yineleneni kapatıyor", t_geribildirim_yineleneni_kapatiyor),
