@@ -571,18 +571,25 @@ def d_belge(r):
             else:
                 r.tamam()
 
-    # LORE.md'nin satır sayısı belgede üç yerde geçiyordu ve üçü de
-    # çürümüştü — üstelik iki farklı yanlış sayıyla (437 ve 470, gerçek
-    # 476). Sayıyı düzeltmek yetmez: zorlanmayan sayı yine çürür.
-    # Burada her geçtiği yer tek tek denetleniyor.
-    lore_satir = len(open(os.path.join(KOK, "LORE.md"),
-                          encoding="utf-8").read().splitlines())
-    iddialar = re.findall(r"(\d+) satır(?:lık)?", belge)
-    yanlis = sorted({s for s in iddialar
-                     if s not in (str(lore_satir), "2000")})
-    if yanlis:
-        r.hata("belge", f"DONGULER.md: LORE.md {lore_satir} satır, "
-                        f"belge {', '.join(yanlis)} yazıyor.")
+    # LORE.md'nin satır sayısı belgede üç yerde yazılıydı ve üçü de
+    # çürümüştü — üstelik iki farklı yanlış sayıyla (437 ve 470).
+    #
+    # İlk çözümüm sayıyı gerçekle karşılaştırmaktı. Yanlıştı: sınavın
+    # masum vakası (canon'a satır ekleyen meşru bir düzenleme) anında
+    # yanlış alarm verdi. O denetim, her canon düzenlemesini belge
+    # güncelleme angaryasına çevirirdi.
+    #
+    # Asıl mesele şu: o cümlenin derdi kesin sayı değil ÖLÇEK — "BM25'in
+    # yeteceği kadar küçük". Kesin sayı orada hiç durmamalıydı. Denetim
+    # artık sayıyı doğrulamıyor, sayının VARLIĞINI reddediyor. Tek
+    # istisna 2000: o bir ölçüm değil, yeniden bakma eşiği.
+    iddialar = sorted(set(re.findall(r"\b(\d+) satır(?:lık)?\b", belge)))
+    kacak = [s for s in iddialar if s != "2000"]
+    if kacak:
+        r.hata("belge", f"DONGULER.md: LORE.md uzunluğu için kesin satır "
+                        f"sayısı yazılmış ({', '.join(kacak)}). Bu sayı "
+                        f"her canon düzenlemesinde çürür — ölçek yaz "
+                        f"('birkaç yüz satır'), sayı yazma.")
     else:
         r.tamam()
 

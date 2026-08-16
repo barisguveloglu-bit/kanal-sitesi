@@ -135,7 +135,7 @@ O kısım hâlâ okumakla oluyor.
 
 ## Geri getirme (RAG) — gözlemin kanıtlanması
 
-`LORE.md` 479 satır ve büyüyor. Asıl mesele hız değil **dayanak**:
+`LORE.md` birkaç yüz satır ve büyüyor. Asıl mesele hız değil **dayanak**:
 hafızadan cevap veren bir model uydurur, dosyadan alıntı yapan uyduramaz.
 
 `ara.py` canon'u parçalara ayırıp soruya en yakınlarını **satır numarasıyla**
@@ -147,7 +147,7 @@ python3 .claude/ara.py "Teşup'un zaafı ne"
 python3 .claude/ara.py --sayi 5 --tam "Konya derebeyi"
 ```
 
-Gömme, vektör veritabanı, dış servis **yok** — 479 satırlık Türkçe bir metin
+Gömme, vektör veritabanı, dış servis **yok** — birkaç yüz satırlık Türkçe bir metin
 için BM25 fazlasıyla yeterli ve her koşuda aynı sonucu verir. Test edilebilir
 olmasının şartı bu: rastgele bir sistem ölçülemez.
 
@@ -192,7 +192,7 @@ bir soru 2→1 yükselirken başka biri 2→3 düşüyor. **Bilinen açığı
 puanlama mekanizmasının karmaşıklığına değmez.
 
 Gerçek anlamsal gömme (eğitilmiş model) n-gram'ın yakalayamadığını
-yakalar — ama dış bağımlılık ister ve 479 satırlık tek kaynakta
+yakalar — ama dış bağımlılık ister ve birkaç yüz satırlık tek kaynakta
 BM25'ten iyi olması beklenmez. **Yeniden bakma koşulu:** `LORE.md`
 2000 satırı geçerse ya da altın sette başka türlü sorulmuş sorularda
 tekrarlayan kaçaklar çıkarsa.
