@@ -38,17 +38,38 @@ const KOL_GECIKME = 10;     // kollar kalktiktan kac tick sonra baslasin
    Iki kisi ayni anda yetenek kullanirsa butce paylasilir; isler
    yavaslar ama sunucu tick'i sismez. Tablet icin kritik olan bu.   */
 
-// Tick basina en fazla kac blok islemi yapilsin.
-// Bir "blok islemi" = 1 getBlock + 1 setType cifti.
-// Olcum: eski kod tek oyuncuda 33/tick yapiyordu, bu tavan onun altinda.
-const TICK_BLOK_BUTCESI = 24;
+/* Tick basina en fazla kac blok islemi yapilsin.
+   Bir "blok islemi" = 1 getBlock + 1 setType cifti.
+
+   Bu deger olculerek secildi. 120 rastgele yonde atis yapilip
+   ucus suresi ve tepe yuk karsilastirildi (orijinal: 62 tick, 33/tick):
+
+     butce 24 -> ucus 80 tick (%29 YAVAS), tepe yuk %27 az
+     butce 28 -> ucus 62 tick (ayni),      tepe yuk %15 az   <-- secilen
+     butce 32 -> ucus 62 tick (ayni),      tepe yuk %3 az
+
+   28 altina inersen top gorunur sekilde yavaslar. Tablette
+   OLCUM satirindaki "maks" degeri surekli 5ms uzerindeyse
+   dusurmek gerekebilir; o zaman yavaslama bilincli bir takas olur. */
+const TICK_BLOK_BUTCESI = 28;
 
 // Tick basina en fazla kac varlik dogurulsun (simsek + TNT ortak).
 const TICK_VARLIK_BUTCESI = 4;
 
-// Olcum harness'i. Acikken her atisin sonunda Content Log'a
-// tick sureleri dusuyor. Kapaliyken maliyeti sifira yakin.
+// Olcum harness'i. Acikken her atisin sonunda tick sureleri
+// raporlaniyor. Kapaliyken maliyeti sifira yakin.
 const OLCUM_ACIK = true;
+
+/* ---------------- Test kolayligi ----------------
+   Content Log'u tablette okumak zahmetli. Bu iki ayar acikken
+   olcum ve hata satirlari SOHBETE de dusuyor, ekran goruntusu
+   almak yeterli oluyor. Yayin/normal oynanista ikisini de
+   kapatmak lazim, yoksa sohbet dolar.                          */
+const OLCUM_SOHBETE = true;
+const HATA_SOHBETE  = true;
+
+// Ayni hata mesaji sohbete en fazla bu aralikta bir kez yazilir (tick)
+const HATA_SOHBET_ARALIK = 100;
 
 // Toprak topunun asla kiramayacagi bloklar
 const KORUNAN = [
@@ -97,10 +118,31 @@ const TOP_HASAR_MUAF = [
    olarak Content Log'a duser.
    ============================================================ */
 
+// Sohbete yazmak dunya hazir olmadan calismaz; o yuzden ayri ve korumali
+function sohbeteYaz(metin) {
+  try {
+    world.sendMessage(metin);
+  } catch (e) {
+    // Dunya henuz hazir degil: Content Log yeterli, sessizce gec
+  }
+}
+
+const sonHataTick = new Map();
+
 function hataYaz(nerede, e) {
   const mesaj = (e && e.message) ? e.message : String(e);
   const iz = (e && e.stack) ? "\n  " + String(e.stack).split("\n").join("\n  ") : "";
   console.warn("[SimsekTNT] HATA @ " + nerede + ": " + mesaj + iz);
+
+  if (!HATA_SOHBETE) return;
+
+  // Ayni hata her tick tekrarlanabilir; sohbeti bogmasin
+  const simdi = system.currentTick;
+  const onceki = sonHataTick.get(nerede);
+  if (onceki !== undefined && simdi - onceki < HATA_SOHBET_ARALIK) return;
+  sonHataTick.set(nerede, simdi);
+
+  sohbeteYaz("§c[SimsekTNT] HATA §f" + nerede + "§7: " + mesaj);
 }
 
 function bilgiYaz(mesaj) {
@@ -172,15 +214,34 @@ function olcumSifirla() {
 function olcumRaporla() {
   if (olcum.tickSayisi === 0) return;
   const ort = olcum.toplamMs / olcum.tickSayisi;
+  const blokTick = olcum.blokIslemi / olcum.tickSayisi;
+
   bilgiYaz(
     "OLCUM | tick: " + olcum.tickSayisi +
     " | ort: " + ort.toFixed(2) + "ms" +
     " | maks: " + olcum.maksMs.toFixed(2) + "ms" +
     " | toplam: " + olcum.toplamMs.toFixed(1) + "ms" +
     " | blok: " + olcum.blokIslemi +
-    " (" + (olcum.blokIslemi / olcum.tickSayisi).toFixed(1) + "/tick)" +
+    " (" + blokTick.toFixed(1) + "/tick)" +
     " | varlik: " + olcum.varlikDogumu +
     " | butce dolan tick: " + olcum.ertelenenTick
+  );
+
+  if (!OLCUM_SOHBETE) return;
+
+  // Sohbet dar, iki satira bolup renklendiriyoruz.
+  // "maks" en onemli sutun: tek bir tick'in en kotu suresi.
+  const renk = olcum.maksMs >= 5 ? "§c" : (olcum.maksMs >= 2 ? "§e" : "§a");
+  sohbeteYaz(
+    "§6[OLCUM] §fmaks " + renk + olcum.maksMs.toFixed(1) + "ms" +
+    " §fort §b" + ort.toFixed(2) + "ms" +
+    " §ftoplam §b" + olcum.toplamMs.toFixed(0) + "ms"
+  );
+  sohbeteYaz(
+    "§7        blok " + olcum.blokIslemi + " (" + blokTick.toFixed(1) + "/tick)" +
+    " · varlik " + olcum.varlikDogumu +
+    " · tick " + olcum.tickSayisi +
+    " · butce dolan " + olcum.ertelenenTick
   );
 }
 
@@ -269,6 +330,24 @@ world.afterEvents.playerLeave.subscribe((olay) => {
   const indeks = isler.indexOf(is);
   if (indeks !== -1) isSil(indeks);
   sonKullanim.delete(olay.playerId);
+});
+
+/* ---------------- Yuklendi bildirimi ----------------
+   Paketin gercekten calistigini dunyaya girer girmez gormek icin.
+   Bu satiri gormuyorsan paket ya etkin degil ya da script hic
+   calismamis demektir.                                            */
+
+world.afterEvents.playerSpawn.subscribe((olay) => {
+  if (!olay.initialSpawn) return;
+  if (!OLCUM_SOHBETE && !HATA_SOHBETE) return;
+  try {
+    olay.player.sendMessage(
+      "§a[SimsekTNT] yuklendi §7· blok butcesi " + TICK_BLOK_BUTCESI + "/tick" +
+      " · olcum " + (OLCUM_ACIK ? "§aacik" : "§7kapali")
+    );
+  } catch (e) {
+    hataYaz("playerSpawn", e);
+  }
 });
 
 /* ============================================================

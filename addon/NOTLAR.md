@@ -39,8 +39,21 @@ yani atış başına 2 kez hesaplanıp 30 kez kullanılıyor.
 bir yönetici döngü var ve tick başına bütçeyi tüm oyuncular arasında
 dağıtıyor:
 
-- `TICK_BLOK_BUTCESI = 24` — tick başına toplam blok işlemi (1 `getBlock` + 1 `setType`)
+- `TICK_BLOK_BUTCESI = 28` — tick başına toplam blok işlemi (1 `getBlock` + 1 `setType`)
 - `TICK_VARLIK_BUTCESI = 4` — tick başına toplam varlık doğumu
+
+Bütçe değeri **ölçülerek** seçildi. 120 rastgele yönde atış yapılıp uçuş
+süresi ve tepe yük karşılaştırıldı (orijinal: 62 tick, 33 blok/tick):
+
+| bütçe | uçuş süresi | tepe yük |
+|---|---|---|
+| 24 | 80 tick (**%29 yavaş**) | %27 az |
+| **28** | **62 tick (aynı)** | **%15 az** |
+| 32 | 62 tick (aynı) | %3 az |
+
+28'in altına inince top gözle görülür şekilde yavaşlıyor. Tablette ölçüm
+satırındaki `maks` sürekli 5 ms üzerindeyse düşürmek gerekebilir; o zaman
+yavaşlama bilinçli bir takas olur.
 
 Bütçe dolarsa iş sonraki tick'e devrediliyor. Kaç oyuncu aynı anda ateş
 ederse etsin tavan sabit kalıyor; efektler yavaşlar, sunucu tick'i şişmez.
@@ -62,38 +75,59 @@ Oyuncu dünyadan çıkarsa işi anında iptal ediliyor.
 ### Ölçüm sonuçları
 
 Eski ve yeni algoritma sahte bir dünya üzerinde 13 senaryoda karşılaştırıldı;
-**hepsinde blok durumu ve patlama noktası birebir aynı** çıktı.
+**hepsinde blok durumu ve patlama noktası birebir aynı** çıktı. Aşağıdaki
+rakamlar 120 rastgele yön üzerinden ortalamadır (eksen hizalı yönler
+gerçekte olduğundan daha iyi sonuç verdiği için kullanılmadı).
 
 | | eski | yeni |
 |---|---|---|
-| Atış başına blok işlemi | 1.980 | 1.316 – 1.410 |
-| Kazanç | — | %26 – %34 |
-| Sürekli yük | 33 blok/tick | tavan 24 blok/tick |
+| Atış başına blok işlemi | 1.980 | 1.414 (%29 az) |
+| Tepe yük | 33 blok/tick | tavan 28 blok/tick (%15 az) |
+| Uçuş süresi | 62 tick | 62 tick (değişmedi) |
 | Sınıra teğet uçuşta istisna | 60 – 91 | 0 |
 | Atış başına nesne tahsisi | ~2.070 | ~5 |
 
 Bütçe tavanı 1, 2, 4 ve 8 oyuncu ile sınandı; hepsinde tick başına en fazla
-24 blok işlemi yapıldı.
+28 blok işlemi yapıldı.
 
 ### Ölçüm harness'ı
 
-`OLCUM_ACIK = true` iken her atışın sonunda Content Log'a şu satır düşüyor:
+Content Log'u tablette okumak zahmetli olduğu için ölçüm ve hata satırları
+**sohbete de** düşüyor. İlgili ayarlar:
+
+| ayar | ne yapar |
+|---|---|
+| `OLCUM_ACIK` | ölçümü açar/kapatır |
+| `OLCUM_SOHBETE` | ölçüm satırı sohbete de düşsün mü |
+| `HATA_SOHBETE` | hatalar sohbete de düşsün mü |
+
+Dünyaya girince paketin çalıştığını doğrulayan satır:
 
 ```
-[SimsekTNT] OLCUM | tick: 62 | ort: 0.41ms | maks: 2.00ms | toplam: 25.4ms
-            | blok: 1342 (21.6/tick) | varlik: 0 | butce dolan tick: 3
+[SimsekTNT] yuklendi · blok butcesi 28/tick · olcum acik
 ```
 
-Tablette gerçek `setType` maliyetini bu satırdan öğrenip `TICK_BLOK_BUTCESI`
-değerini ona göre ayarlamak lazım. `maks` sürekli 5ms üstündeyse bütçe
-düşürülmeli. Ayarı kapatmak için `OLCUM_ACIK = false`.
+Her atıştan sonra sohbete iki satır düşüyor:
 
-Hata kayıtları da aynı yere düşüyor:
+```
+[OLCUM] maks 1.0ms ort 0.07ms toplam 5ms
+        blok 1316 (17.5/tick) · varlik 0 · tick 75 · butce dolan 43
+```
+
+En önemli sütun **`maks`** — tek bir tick'in en kötü süresi. Renk kodu:
+yeşil (< 2 ms) sorunsuz, sarı (2–5 ms) sınırda, kırmızı (> 5 ms) bütçe
+düşürülmeli.
+
+Hatalar hem Content Log'a hem sohbete düşüyor (aynı hata mesajı sohbete
+en fazla 5 saniyede bir yazılır, sohbeti boğmasın diye):
 
 ```
 [SimsekTNT] HATA @ toprakTopu.bosalt: <mesaj>
   <yigin izi>
 ```
+
+Yayın veya normal oynanış öncesi `OLCUM_SOHBETE` ve `HATA_SOHBETE`
+kapatılmalı.
 
 ## Bekleyen işler
 
