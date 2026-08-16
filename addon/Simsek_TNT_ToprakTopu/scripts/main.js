@@ -30,7 +30,14 @@ import "./yetenekler/savur.js";
 import "./yetenekler/ucus.js";
 import "./yetenekler/guclu_tnt.js";
 import "./yetenekler/meteor.js";
-import "./yetenekler/kollar.js";
+
+/* DIKKAT -- SIRA ONEMLI.
+   kollar.js var olan yeteneklere esya BAGLIYOR, yani bagladigi
+   yeteneklerin o an kayitli olmasi gerekiyor. ES modulleri import
+   satirlarinin YAZILDIGI SIRADA calisir; bu satir yukaridakilerin
+   ustune tasinirsa kollar.js once calisir ve hicbir kol baglanmaz
+   (sessizce, sadece Content Log'a uyari duser).                    */
+import { KOL_ESYALARI } from "./yetenekler/kollar.js";
 
 /* ============================================================
    MERKEZI TICK YONETICISI
@@ -303,7 +310,8 @@ olayaAbone("playerSpawn", (olay) => {
   try {
     olay.player.sendMessage(
       "§a[SimsekTNT " + SURUM + "] yuklendi §7· " + tumYetenekler().length +
-      " yetenek · butce " + TICK_BLOK_BUTCESI + "/tick" +
+      " yetenek · " + KOL_ESYALARI.length + " kol" +
+      " · butce " + TICK_BLOK_BUTCESI + "/tick" +
       " · olcum " + (OLCUM_ACIK ? "§aacik" : "§7kapali")
     );
   } catch (e) {
@@ -314,6 +322,7 @@ olayaAbone("playerSpawn", (olay) => {
 bilgiYaz(
   SURUM + " yuklendi | yetenek: " + tumYetenekler().length +
   " (esyasiz sirada " + esyasizSira().length + ")" +
+  " | kol esyasi: " + KOL_ESYALARI.length +
   " | blok butcesi: " + TICK_BLOK_BUTCESI + "/tick" +
   " | olcum: " + (OLCUM_ACIK ? "acik" : "kapali")
 );
