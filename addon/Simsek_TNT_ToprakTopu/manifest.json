@@ -1,0 +1,46 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "Simsek TNT ve Toprak Topu v2",
+    "description": "Kollarini kaldir; simsek yagdir, alan simsegi cak, TNT yagdir veya dev toprak topu firlat.",
+    "uuid": "43a967b7-88e7-4607-a7b1-4ed1394cecb9",
+    "version": [
+      2,
+      1,
+      0
+    ],
+    "min_engine_version": [
+      1,
+      21,
+      0
+    ]
+  },
+  "modules": [
+    {
+      "type": "data",
+      "uuid": "2f5eed9b-3416-4ab7-b01a-d6174c6f969d",
+      "version": [
+        2,
+        1,
+        0
+      ]
+    },
+    {
+      "type": "script",
+      "language": "javascript",
+      "uuid": "95cf17d4-bcac-47ae-8a24-18215b960e18",
+      "entry": "scripts/main.js",
+      "version": [
+        2,
+        1,
+        0
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "module_name": "@minecraft/server",
+      "version": "2.0.0"
+    }
+  ]
+}
