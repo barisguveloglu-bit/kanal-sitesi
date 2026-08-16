@@ -11,12 +11,56 @@ masaüstüne göre değil mobile göre alındı.
 addon/
   Simsek_TNT_ToprakTopu/
     manifest.json
-    scripts/main.js
-  paketle.sh                    -> kurulabilir .mcpack üretir
-  Simsek_TNT_ToprakTopu_v2_5.mcpack
+    scripts/
+      main.js               -> giriş, tick yöneticisi, tetikleme yolları
+      ayarlar.js            -> BÜTÜN sabit sayılar
+      yardimcilar.js        -> günlük, API uyumluluğu, ortak yardımcılar
+      butce.js              -> tick bütçesi + ölçüm harness'ı
+      yetenekler/
+        kayit.js            -> yetenek kayıt defteri
+        _yagmur.js          -> şimşek/TNT için ortak yağmur işi
+        yildirim.js
+        yildirim_halkasi.js
+        alan_simsegi.js
+        tnt_yagmuru.js
+        toprak_topu.js
+  paketle.sh                -> kurulabilir .mcpack üretir
+  Simsek_TNT_ToprakTopu_v3.mcpack
 ```
 
 Paketlemek için: `sh addon/paketle.sh`
+
+## Yeni yetenek nasıl eklenir
+
+1. `yetenekler/` altına bir dosya aç
+2. İçinde `yetenekKaydet({...})` çağır
+3. `main.js`'in üstündeki import listesine bir satır ekle
+
+Üçüncü adım kaçınılmaz: Bedrock'ta klasör tarama yok, her dosyanın bir kez
+import edilmesi gerekiyor.
+
+```js
+import { yetenekKaydet } from "./kayit.js";
+
+yetenekKaydet({
+  kimlik: "ornek",          // benzersiz kısa ad
+  ad: "Örnek Yetenek",      // oyuncuya gösterilen ad
+  esya: "minecraft:stick",  // bu eşya kullanılınca tetiklenir (isteğe bağlı)
+  esyasiz: true,            // jest sırasına girsin mi
+  sira: 60,                 // jest sırasındaki yeri
+  olustur(oyuncu) {
+    return {
+      ad: "ornek",
+      oyuncuId: oyuncu.id,
+      calis() { /* her tick; true dönerse iş biter */ return true; },
+      bitir() { /* temizlik */ }
+    };
+  }
+});
+```
+
+Bütçe isteyen işler `butce.js`'ten `blokIste(n)` / `varlikIste(n)` çağırır ve
+sadece dönen kadarını yapar. Kalanını sonraki tick'e devreder.
 
 ## Aşama 1 — performans (tamamlandı)
 
