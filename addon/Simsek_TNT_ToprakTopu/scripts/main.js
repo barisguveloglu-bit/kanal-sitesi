@@ -3,11 +3,12 @@ import { world, system } from "@minecraft/server";
 import {
   SURUM, BEKLEME, KOL_GECIKME, TICK_BLOK_BUTCESI, OLCUM_ACIK,
   OLCUM_SOHBETE, HATA_SOHBETE, ESYASIZ_ACIK, ESYASIZ_EGILME_SART,
-  ESYASIZ_BAKIS_ESIGI, ESYASIZ_TUTMA, ESYASIZ_TARAMA
+  ESYASIZ_BAKIS_ESIGI, ESYASIZ_TUTMA, ESYASIZ_TARAMA,
+  KOL_VER_ACIK, KOL_VER_ESIGI, KOL_VER_TUTMA
 } from "./ayarlar.js";
 
 import {
-  hataYaz, bilgiYaz, gecerliMi, olayaAbone, kollariKaldir,
+  hataYaz, bilgiYaz, gecerliMi, olayaAbone, sistemOlayaAbone, kollariKaldir,
   kollariIndir, actionbarYaz, eldekiEsya
 } from "./yardimcilar.js";
 
@@ -37,7 +38,9 @@ import "./yetenekler/meteor.js";
    satirlarinin YAZILDIGI SIRADA calisir; bu satir yukaridakilerin
    ustune tasinirsa kollar.js once calisir ve hicbir kol baglanmaz
    (sessizce, sadece Content Log'a uyari duser).                    */
-import { KOL_ESYALARI } from "./yetenekler/kollar.js";
+import {
+  KOL_ESYALARI, kisaAddanEsya, kolDenetimi, kollariVer, kayitliKollar
+} from "./yetenekler/kollar.js";
 
 /* ============================================================
    MERKEZI TICK YONETICISI
@@ -169,6 +172,32 @@ if (!girisKuruldu) {
   bilgiYaz("KRITIK: itemUse olayina abone olunamadi, esyalar calismaz.");
 }
 
+/* ---- Ikinci giris yolu: esya olayindan scriptevent ----
+   itemUse'un OZEL esyalarda tetiklenmedigi surumler var. Kol
+   esyalarinin JSON'unda on_use -> "scriptevent simsek:kol <ad>"
+   tanimli; o komut buraya duser. Iki yol da tetiklenirse ikincisi
+   yetenekTetikle icindeki bekleme kontrolune takilip yutulur,
+   yani cift calisma olmuyor.                                     */
+sistemOlayaAbone("scriptEventReceive", (olay) => {
+  try {
+    if (olay.id !== "simsek:kol") return;
+
+    const oyuncu = olay.sourceEntity;
+    if (!oyuncu || oyuncu.typeId !== "minecraft:player") return;
+
+    const esya = kisaAddanEsya(String(olay.message || "").trim());
+    if (!esya) {
+      bilgiYaz("UYARI: scriptevent simsek:kol -> tanimsiz kol: " + olay.message);
+      return;
+    }
+
+    const tanim = esyaninYetenegi(esya);
+    if (tanim) yetenekTetikle(oyuncu, tanim.kimlik);
+  } catch (e) {
+    hataYaz("scriptEventReceive", e);
+  }
+});
+
 /* ============================================================
    ESYASIZ TETIKLEME (JEST)
      egil + tam yukari bak -> yetenek degistir
@@ -178,6 +207,7 @@ if (!girisKuruldu) {
 const esyasizTutma = new Map();   // oyuncuId -> jest kac tick tutuldu
 const esyasizSecim = new Map();   // oyuncuId -> sira icindeki indeks
 const esyasizZipla = new Map();   // oyuncuId -> onceki taramada zipliyor muydu
+const kolVerTutma = new Map();    // oyuncuId -> asagi bakma jesti kac tick tutuldu
 const ESYASIZ_TAMAM = -1;         // jest islendi, durus bozulana kadar tekrarlama
 let esyasizSayac = 0;
 
@@ -234,8 +264,44 @@ function esyasizTara() {
   }
 }
 
+/* --- Jest 3: egil + tam ASAGI bak -> butun kollari envantere koy ---
+   Kollari almak icin "/give pa:kol_top" yazmak zorunda kalmayasin
+   diye. Tablette komut yazmak zaten eziyet; ustelik esya kayitli
+   degilse komut satiri sadece "soz dizimi hatasi" diyor, sebebini
+   soylemiyor. Bu yol dogrudan API kullaniyor ve eksik esyayi ADIYLA
+   raporluyor.                                                       */
+function kolVerDurusu(oyuncu) {
+  if (!egilmeTamam(oyuncu)) return false;
+  return oyuncu.getViewDirection().y <= -KOL_VER_ESIGI;
+}
+
+function kolVerJesti(oyuncu, id) {
+  const durum = kolVerTutma.get(id);
+
+  if (!kolVerDurusu(oyuncu)) {
+    if (durum !== undefined) kolVerTutma.delete(id);
+    return false;
+  }
+
+  if (durum === ESYASIZ_TAMAM) return true;   // durus bozulana kadar tekrarlama
+
+  const tutulan = (durum || 0) + ESYASIZ_TARAMA;
+  if (tutulan < KOL_VER_TUTMA) {
+    kolVerTutma.set(id, tutulan);
+    return true;
+  }
+
+  kolVerTutma.set(id, ESYASIZ_TAMAM);
+  kollariVer(oyuncu);
+  return true;
+}
+
 function esyasizOyuncu(oyuncu, sira) {
   const id = oyuncu.id;
+
+  // Asagi bakma jesti once bakilir: yukari bakma jestiyle cakismaz
+  // (biri +y, digeri -y) ama ziplamayla ayni anda olabilir.
+  if (KOL_VER_ACIK && kolVerJesti(oyuncu, id)) return;
 
   /* --- Jest 1: egil + zipla -> secili yetenegi calistir ---
      Ziplama anlik bir durum; basili tutuldugu surece tekrar
@@ -292,6 +358,7 @@ olayaAbone("playerLeave", (olay) => {
   esyasizTutma.delete(olay.playerId);
   esyasizSecim.delete(olay.playerId);
   esyasizZipla.delete(olay.playerId);
+  kolVerTutma.delete(olay.playerId);
 
   const is = oyuncununIsi.get(olay.playerId);
   if (is) {
@@ -308,16 +375,35 @@ olayaAbone("playerSpawn", (olay) => {
   if (!olay.initialSpawn) return;
   if (!OLCUM_SOHBETE && !HATA_SOHBETE) return;
   try {
+    const eksik = kayitliKollar();
+    const kolDurum = (eksik === undefined)
+      ? "§7" + KOL_ESYALARI.length + " kol"
+      : (eksik.length === 0
+          ? "§a" + KOL_ESYALARI.length + " kol hazir"
+          : "§c" + eksik.length + "/" + KOL_ESYALARI.length + " kol EKSIK");
+
     olay.player.sendMessage(
       "§a[SimsekTNT " + SURUM + "] yuklendi §7· " + tumYetenekler().length +
-      " yetenek · " + KOL_ESYALARI.length + " kol" +
-      " · butce " + TICK_BLOK_BUTCESI + "/tick" +
-      " · olcum " + (OLCUM_ACIK ? "§aacik" : "§7kapali")
+      " yetenek §7· " + kolDurum +
+      " §7· butce " + TICK_BLOK_BUTCESI + "/tick" +
+      " §7· olcum " + (OLCUM_ACIK ? "§aacik" : "§7kapali")
     );
+
+    if (KOL_VER_ACIK) {
+      olay.player.sendMessage("§7Kollari almak icin: §fegil + yere bak, bekle");
+    }
+    if (eksik && eksik.length > 0) {
+      olay.player.sendMessage(
+        "§cEksik kol esyasi: §f" + eksik.join(", ") +
+        "\n§7Dunyada eski surum behavior pack etkin. Ayarlardan eskiyi kaldir."
+      );
+    }
   } catch (e) {
     hataYaz("playerSpawn", e);
   }
 });
+
+kolDenetimi();
 
 bilgiYaz(
   SURUM + " yuklendi | yetenek: " + tumYetenekler().length +

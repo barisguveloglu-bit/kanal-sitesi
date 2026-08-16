@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v3.3";
+export const SURUM = "v3.4";
 
 /* ---------------- Tetikleyici esyalar ---------------- */
 export const SIMSEK_ESYA = "minecraft:blaze_rod";     // baktigin yere simsek
@@ -127,6 +127,15 @@ export const ESYASIZ_EGILME_SART = true;
 export const ESYASIZ_BAKIS_ESIGI = 0.9;  // 1.0 = tam dik yukari
 export const ESYASIZ_TUTMA       = 8;    // degistirme jesti kac tick tutulmali
 export const ESYASIZ_TARAMA      = 4;    // kac tick'te bir kontrol
+
+/* ---------------- Kollari alma jesti ----------------
+   egil + TAM ASAGI bak, tut -> sekiz kol da envantere girer.
+   Ayni semanin ucuncu ayagi: yukari bak = degistir, zipla =
+   calistir, asagi bak = kollari al. Komut yazmaya gerek yok.     */
+export const KOL_VER_ACIK  = true;
+export const KOL_VER_ESIGI = 0.9;   // 1.0 = tam dik asagi
+export const KOL_VER_TUTMA = 16;    // kac tick tutulmali (degistirmeden uzun,
+                                    // yanlislikla envanter dolmasin)
 
 /* ---------------- Yildirim halkasi (esyasiz) ----------------
    Yildirim oyuncunun UZERINE degil etrafindaki halkaya duser --

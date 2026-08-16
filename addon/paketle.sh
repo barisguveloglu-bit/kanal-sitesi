@@ -1,21 +1,28 @@
 #!/bin/sh
 # Paketleri uretir.
-#   Simsek_TNT_ToprakTopu_v3.mcpack  -> behavior pack (TEK BASINA CALISIR)
-#   Simsek_Kol_Kaynak_v3.mcpack      -> resource pack (istege bagli animasyonlar)
-#   Simsek_TNT_v3.mcaddon            -> ikisi birden, tek dosyada
+#   SimsekTNT_v34.mcpack   -> behavior pack (TEK BASINA CALISIR)
+#   SimsekKol_v34.mcpack   -> resource pack (kol gorunumu + ikonlar)
+#   SimsekTNT_v34.mcaddon  -> ikisi birden, tek dosyada
 # Kullanim: sh addon/paketle.sh
+#
+# DIKKAT: kol esyalarinin IKONU ve 3B GORUNUMU resource pack'te.
+# Sadece behavior pack kurulursa esyalar calisir ama mor-siyah
+# "eksik doku" karesi olarak gorunur.
 set -e
 K="$(cd "$(dirname "$0")" && pwd)"
 BP="Simsek_TNT_ToprakTopu"
 RP="Simsek_Kol_Kaynak"
+S="v34"
 
-rm -f "$K/${BP}_v3.mcpack" "$K/${RP}_v3.mcpack" "$K/Simsek_TNT_v3.mcaddon"
+rm -f "$K"/SimsekTNT_*.mcpack "$K"/SimsekKol_*.mcpack "$K"/SimsekTNT_*.mcaddon
+rm -f "$K"/*_v3.mcpack "$K"/Simsek_TNT_v3.mcaddon
 
-(cd "$K/$BP" && zip -r -X "$K/${BP}_v3.mcpack" manifest.json scripts items >/dev/null)
-(cd "$K/$RP" && zip -r -X "$K/${RP}_v3.mcpack" manifest.json animations models attachables textures >/dev/null)
-(cd "$K" && zip -r -X "$K/Simsek_TNT_v3.mcaddon" "$BP" "$RP" >/dev/null)
+(cd "$K/$BP" && zip -r -X "$K/SimsekTNT_$S.mcpack" manifest.json scripts items >/dev/null)
+(cd "$K/$RP" && zip -r -X "$K/SimsekKol_$S.mcpack" \
+    manifest.json animations models attachables textures texts >/dev/null)
+(cd "$K" && zip -r -X "$K/SimsekTNT_$S.mcaddon" "$BP" "$RP" >/dev/null)
 
 echo "Olusturuldu:"
-for f in "${BP}_v3.mcpack" "${RP}_v3.mcpack" "Simsek_TNT_v3.mcaddon"; do
+for f in "SimsekTNT_$S.mcpack" "SimsekKol_$S.mcpack" "SimsekTNT_$S.mcaddon"; do
   echo "  $f  ($(du -h "$K/$f" | cut -f1))"
 done

@@ -395,11 +395,94 @@ yeterli, başka hiçbir şeye dokunmaya gerek yok.
 
 ### Yeni kol eklemek
 
-1. `textures/entity/<ad>.png` ve `textures/item/<ad>.png` koy
-2. `attachables/<ad>.json` — mevcut birini kopyala, kimlik ve doku adını değiştir
-3. `items/<ad>.json` — aynı şekilde
-4. `textures/item_texture.json`'a ikon satırı ekle
-5. `yetenekler/kollar.js`'e bir satır ekle
+Sekiz dosyayı elle senkron tutmak hataya davetiye olduğu için hepsini **tek bir
+üretici** yazıyor: `kol_uret.py` (scratchpad'de). Yeni kol eklemek için oradaki
+`KOLLAR` listesine bir satır ekleyip çalıştırmak yeterli — eşya JSON'u,
+attachable, iki doku, `item_texture.json` satırı ve iki dil satırı birden
+üretiliyor. Sonra `yetenekler/kollar.js`'e bir satır ekle.
+
+## Aşama 4 — kol sistemi yeniden yazıldı (v3.4)
+
+v3.2/v3.3'teki kol sistemi üç ayrı sebepten çalışmıyordu. Referans olarak
+`add-ons.zip` içindeki "En İyi BoraLo Kol Modu V2" satır satır karşılaştırıldı.
+
+### Hata 1 — kök kemik adı (görünüm hiç çalışmıyordu)
+
+Geometrinin kök kemiği `kol_kok` adındaydı. Bedrock attachable modelini oyuncu
+iskeletine bağlarken **kemik adlarını eşliyor**; oyuncuda `kol_kok` diye bir
+kemik olmadığı için model kola hiç oturmuyordu.
+
+Referanstaki 34 kol modelinin **33'ünde kök kemik `RightArm`**. Bizimki de artık
+öyle:
+
+```
+RightArm  (pivot -5,22,0, kübü yok)
+└── kol   (4×12×4, uv [40,16], inflate 0.15)
+```
+
+`inflate 0.15` skin'in kendi kolunun üstünü kapatıyor, z-fighting olmuyor.
+
+### Hata 2 — `itemUse` özel eşyalarda tetiklenmeyebiliyor
+
+Bazı sürümlerde `world.afterEvents.itemUse` vanilla eşyalarda çalışıyor ama
+özel eşyalarda çalışmıyor. İkinci bir giriş yolu eklendi:
+
+```
+items/kol_top.json:  on_use -> "scriptevent simsek:kol kol_top"
+main.js:             system.afterEvents.scriptEventReceive
+```
+
+İki yol da tetiklenirse ikincisi `yetenekTetikle` içindeki bekleme kontrolüne
+takılıp yutuluyor, yani çift çalışma yok. Test: `kol2.mjs`.
+
+### Hata 3 — teşhis edilemeyen `/give` hatası
+
+`/give @s pa:kol_top` "söz dizimi hatası" veriyorsa sebep tek: eşya oyunun
+kayıt defterinde yok, yani dünyada **eski sürüm behavior pack** etkin. Komut
+satırı bunu söylemiyor. Artık script kendisi bakıyor:
+
+- Açılışta `ItemTypes.get()` ile sekiz eşya tek tek sınanıyor, eksik olanlar
+  **adıyla** Content Log'a ve sohbete yazılıyor.
+- `/give` yazmaya hiç gerek kalmasın diye üçüncü bir jest eklendi:
+  **eğil + tam aşağı bak, tut** → sekiz kol da envantere giriyor. Komut değil
+  doğrudan `ItemStack` + `container.addItem()` kullanıyor.
+
+Jest şeması artık tam:
+
+| jest | sonuç |
+|---|---|
+| eğil + yukarı bak, tut | yetenek değiştir |
+| eğil + zıpla | seçili yeteneği çalıştır |
+| eğil + aşağı bak, tut | sekiz kolu envantere koy |
+
+### Ek düzeltmeler
+
+- `texts/en_US.lang` + `tr_TR.lang` eklendi — eşya adları artık Türkçe
+  karakterli görünüyor (`minecraft:display_name` ASCII kalıyor, dil dosyası
+  onun üstüne yazıyor).
+- `minecraft:cooldown` 3 sn eklendi (`BEKLEME` = 60 tick ile aynı) — ekranda
+  dönen bekleme göstergesi çıkıyor.
+- `off_hand` render offset'leri eklendi.
+- `import * as api from "@minecraft/server"` kullanıldı: adla import
+  ("`import { ItemTypes }`") API'de o ad yoksa modül **bağlanırken** patlar ve
+  tüm paket ölür; isim alanı importu sadece `undefined` bırakır.
+- Üst düzey `await` kullanılmadı — Bedrock motorunda garantisi yok.
+
+### Ölçüm sonucu — bütçe doğrulandı (v3.1, ~17 atış)
+
+| ölçü | değer | yorum |
+|---|---|---|
+| blok/atış | 1202–1438 | orijinal ~2046 olurdu → delta önbelleği **%29–30** kazandırıyor |
+| blok/tick | 21.1–22.8 | bütçe 28, tavana değmiyor |
+| uçuş süresi | 55–66 tick | orijinal 62 → **yavaşlama yok** |
+| bütçe dolan tick | 27–35 / ~60 | tick'lerin yarısında tavan zorlanıyor |
+| ort | 1.71–2.73 ms | 50 ms'lik tick'in %4'ü |
+| maks | 5–22 ms | tek tick'lik sıçrama, patlama tick'i |
+
+`TICK_BLOK_BUTCESI = 28` **değiştirilmedi**. 24'e düşürmek uçuşu 80 tick'e
+çıkarıyordu (ölçülmüştü), 32'ye çıkarmanın faydası yok çünkü zaten 22.8
+blok/tick'i geçmiyor. 22 ms'lik maks patlamadan geliyor,
+`TICK_PATLAMA_BUTCESI` zaten en düşük değerde (1).
 
 ## Bekleyen işler
 
@@ -409,17 +492,12 @@ Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:
    isteniyor ama `min_engine_version` `[1, 21, 0]`. 2.0.0 stable API'si
    bundan çok daha yeni bir sürümle geldi. Doğru değeri yazmak için oyunun
    tablet üzerindeki sürümünün bilinmesi gerekiyor.
-2. **Kod yapısı.** Tek dosyayı `main.js` / `ayarlar.js` / `yardimcilar.js` ve
-   yetenek başına ayrı dosyaya bölmek; yetenekleri ortak bir kayıt arayüzüne
-   taşımak.
-3. **Hata yönetiminin tamamı.** Bu aşamada sadece dokunulan yollar düzeltildi.
-4. **Yeni özellikler.** Toprak topu için "blokları düşürerek kır" modu,
-   yetenek başına ayrı bekleme süresi, actionbar geri bildirimi,
-   `@minecraft/server-ui` ayar menüsü.
+2. **Yeni özellikler.** Toprak topu için "blokları düşürerek kır" modu,
+   yetenek başına ayrı bekleme süresi, `@minecraft/server-ui` seçim menüsü.
 5. **TNT yükü.** 30 TNT tabletteki en ağır kalem ve bu script
    optimizasyonuyla çözülmüyor — sayı/oynanış kararı gerekiyor.
-6. **Ölçüm.** Tabletten `[OLCUM]` satırı hâlâ alınmadı. Patlama ve blok
-   bütçeleri bu yüzden tahminî/muhafazakâr.
-7. **Kalan yetenekler.** `dirt_yap`, `dirt_anvil` ve `yamult_duzelt` henüz
-   yapılmadı. Son ikisinin ne yapması gerektiği net değil.
-8. **Animasyon açıları.** Resource pack'teki kol açıları oyunda denenmedi.
+6. **Kalan yetenekler.** `dirt_yap`, toprak örs, `can_verme`, `buz_adam`.
+7. **Kol dokuları.** `textures/` altındakiler hâlâ üretilmiş yer tutucu; her
+   kolun rengi farklı ama çizim değil. Aynı adlarla değiştirmen yeterli.
+8. **Oyunda denenmedi.** Attachable'ın gerçekten doğru çizildiği ve
+   `scriptevent` köprüsünün tablette çalıştığı henüz görülmedi.

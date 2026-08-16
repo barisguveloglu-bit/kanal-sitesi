@@ -16,7 +16,7 @@
       },
       "bones": [
         {
-          "name": "kol_kok",
+          "name": "RightArm",
           "pivot": [
             -5,
             22,
@@ -25,7 +25,7 @@
         },
         {
           "name": "kol",
-          "parent": "kol_kok",
+          "parent": "RightArm",
           "pivot": [
             -6,
             22,

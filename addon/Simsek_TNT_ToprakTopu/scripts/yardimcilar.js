@@ -83,6 +83,25 @@ export function olayaAbone(olayAdi, isleyici) {
   }
 }
 
+/* Ayni sey system.afterEvents icin. scriptEventReceive bazi eski
+   surumlerde yok; oradaki abonelik de paketi oldurmesin.           */
+export function sistemOlayaAbone(olayAdi, isleyici) {
+  try {
+    const olaylar = system.afterEvents;
+    const olay = olaylar ? olaylar[olayAdi] : undefined;
+    if (!olay || typeof olay.subscribe !== "function") {
+      bilgiYaz("UYARI: system.afterEvents." + olayAdi +
+               " bu API surumunde yok. Ilgili ozellik devre disi.");
+      return false;
+    }
+    olay.subscribe(isleyici);
+    return true;
+  } catch (e) {
+    hataYaz("sistemOlayaAbone(" + olayAdi + ")", e);
+    return false;
+  }
+}
+
 /* ============================================================
    DUNYA SINIRLARI
    Sinir disina cikinca getBlock her cagrida throw ediyordu.
