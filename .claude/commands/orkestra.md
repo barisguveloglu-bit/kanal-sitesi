@@ -130,21 +130,41 @@ python3 .claude/devre.py dene --halka orkestra --sinir 2 --not "<hangi boşluk>"
 Çıkış kodu **1 ise yeniden gönderme.** Elindekiyle devam et ve neyin
 çözülemediğini açıkça söyle. Bitince: `python3 .claude/devre.py basari --halka orkestra`
 
-**4.5 — Sunum (Codex).** Raporlar doğrulandıktan sonra derleme işini dış
-ajana ver: `disajan.py sohbet` ile sunum brief'i üret, gelen metni
-`disajan.py uygula` ile işle. Codex burada **işçi değil sunucu** —
-uzmanların bulduklarını tek bir okunur metne çeviriyor.
+**5 — Codex.** Raporlar doğrulandıktan sonra **dış ajana gider.**
+`disajan.py sohbet` ile brief üret, gelen metni `disajan.py uygula` ile
+işle. Codex hem derler hem denetler: uzmanların bulduklarını tek okunur
+metne çevirir **ve** kaçırdıklarını arar.
 
-Sunum da denetimden geçer; "başka bir yapay zeka derledi" güven sebebi
-değildir.
+> **Bu adım atlanamaz.** Akış şu sırayla işler:
+> **uzman ajanlar → Codex → Opus 5 → Barış.**
+> Hiçbir rapor Codex'e uğramadan Opus 5 kontrolüne çıkmaz.
 
-**5 — Denetle.** Birleştirme bittiğinde `python3 .claude/dogrula.py`
-çalıştır. Uzmanlar dosya değiştirdiyse bu şart.
+Neden zorunlu: 15 ajanın hepsi aynı modelden. Aynı modelin on beş
+kopyası, on beş bağımsız göz değildir — aynı kör noktayı on beş kez
+paylaşırlar. Codex başka bir taraftan bakıyor; değeri "daha iyi olması"
+değil, **farklı yanılması.**
 
-Bu adım **Opus 5 kontrolü**: hata varsa iş 4. adıma (yeniden gönder) döner,
-temizse Barış'a çıkar. Barış'a çıkan şey, kapıdan geçmiş olandır.
+Bu gerçekten işe yaradı: 1428 taslağında iki Claude denetçisinin
+kaçırdığı doğum/ölüm ayrımını Codex yakaladı (`LORE.md:13` döngüyü
+"doğar" ile tanımlıyor, 1728 ise ölüm yılı).
 
-**6 — Kapat.** Bir parça bir geri bildirim kaydını çözdüyse kaydı
+Codex'in çıktısı da **denetimden geçer** — "başka bir yapay zeka
+söyledi" güven sebebi değildir. Gelen raporu oku, atıflarını
+`gorev.py dogrula` ile ölç, kendi içinde çelişiyorsa söyle. (Aynı
+koşuda Codex bir maddeyi başlıkta "bozuyor" diye etiketleyip
+gerekçesinde "çelişki kurulamıyor" dedi.)
+
+Codex fazla sert davranabilir de: taslağı canon'un **kendine
+uygulamadığı** bir standarda tuttuğu bir madde vardı. Şef olarak
+işin gelen denetimi de tartmak, olduğu gibi geçirmek değil.
+
+**6 — Opus 5 kontrolü.** `python3 .claude/dogrula.py` çalıştır.
+Uzmanlar dosya değiştirdiyse bu şart.
+
+Hata varsa iş 4. adıma (yeniden gönder) döner, temizse Barış'a çıkar.
+Barış'a çıkan şey, **kapıdan geçmiş** olandır.
+
+**7 — Kapat.** Bir parça bir geri bildirim kaydını çözdüyse kaydı
 **koruyan testi adıyla** kapat:
 
 ```

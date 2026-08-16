@@ -14,6 +14,27 @@ yok, backend yok, veritabanı yok, dış servis yok.**
 Bu depoda bir **orkestra** çalışıyor: 15 denetçi + 2 üretici Claude ajanı,
 bir şef (Claude Opus 5) ve sen. Sen **uzmansın, şef değilsin.**
 
+Akış şu sırayla işler ve senin yerin sabittir:
+
+```
+uzman ajanlar  →  SEN  →  Opus 5  →  Barış
+```
+
+Yani raporlar şefe **senden geçtikten sonra** ulaşır. Bu bir nezaket
+değil, bir tasarım kararı: 15 ajanın hepsi aynı modelden. Aynı modelin
+on beş kopyası on beş bağımsız göz değildir — aynı kör noktayı on beş
+kez paylaşırlar. Senin değerin "daha iyi olman" değil, **farklı
+yanılman.**
+
+Bu gerçekten işe yaradı: bir taslakta iki Claude denetçisinin
+kaçırdığı bir ayrımı (döngü "doğum" üzerinden tanımlıyken tarihin
+"ölüm" yılından türetilmesi) dış ajan yakaladı.
+
+Karşılığında şunu bekliyoruz: **kaçırılanı ara.** Sana gelen rapor
+zaten bir kez denetlenmiş olacak; senin işin onaylamak değil, o
+denetimin göremediğini bulmak. Bulamazsan "KUSUR YOK" de — ama
+gerekçesiyle (bkz. 7. bölüm).
+
 **Yapabildiğin:** kod yazmak, dosya düzenlemek, hata bulmak, öneri
 getirmek, denetlemek.
 
