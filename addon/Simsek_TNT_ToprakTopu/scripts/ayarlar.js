@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v3.0";
+export const SURUM = "v3.1";
 
 /* ---------------- Tetikleyici esyalar ---------------- */
 export const SIMSEK_ESYA = "minecraft:blaze_rod";     // baktigin yere simsek
@@ -94,6 +94,12 @@ export const ANIM_INDIR = OZEL_ANIMASYON
 export const TICK_BLOK_BUTCESI   = 28;  // tick basina blok islemi (getBlock+setType)
 export const TICK_VARLIK_BUTCESI = 4;   // tick basina varlik dogurma
 
+/* Patlama en pahali is: guc 4'luk bir patlama ~50 blok kirar ve o
+   kadar da item dusurur. Guc 8 bunun kabaca 4 kati. Tablette gercek
+   maliyet henuz olculmedi, o yuzden tavan bilerek dusuk tutuldu.
+   OLCUM satirindaki "maks" rahatsa yukseltilebilir.                */
+export const TICK_PATLAMA_BUTCESI = 1;  // tick basina patlama sayisi
+
 /* ---------------- Olcum ve gunluk ----------------
    Content Log'u tablette okumak zahmetli. SOHBETE ayarlari acikken
    olcum ve hata satirlari sohbete de dusuyor. Yayin/normal oynanista
@@ -128,6 +134,38 @@ export const ESYASIZ_TARAMA      = 4;    // kac tick'te bir kontrol
 export const HALKA_SAYISI      = 20;
 export const HALKA_IC_YARICAP  = 6;
 export const HALKA_DIS_YARICAP = 14;
+
+/* ---------------- Baktigini ucur (savur) ----------------
+   Baktigin yondeki varliklari savurur. Blok kirmaz, sadece iter. */
+export const SAVUR_MENZIL   = 20;   // kac blok oteye kadar etkiler
+export const SAVUR_ACI      = 0.6;  // bakis konisi genisligi (1 = tam dar, 0 = her yon)
+export const SAVUR_GUC      = 3.0;  // yatay itme gucu
+export const SAVUR_YUKARI   = 0.8;  // dikey itme gucu
+export const SAVUR_OYUNCU   = true; // oyunculari da savursun mu
+
+/* ---------------- Ucus ----------------
+   Levitation efekti kullaniliyor: guvenli, ucuz ve stabil API.   */
+export const UCUS_SURE      = 140;  // tick (140 = 7 saniye)
+export const UCUS_SIDDET    = 2;    // levitation seviyesi (0-9)
+export const UCUS_YUMUSAK   = 200;  // bitince kac tick yavas dusme
+
+/* ---------------- Guclu TNT ----------------
+   Vanilla TNT'nin gucu degistirilemez (motor tarafinda sabit 4).
+   Bu yuzden TNT varligi firlatilip fitil dolunca ELLE kaldiriliyor
+   ve yerine kendi patlamamiz cagriliyor. Boylece guc bizim.       */
+export const GTNT_HIZ       = 1.6;  // firlatma hizi
+export const GTNT_FITIL     = 30;   // kac tick sonra patlasin
+export const GTNT_GUC       = 8;    // patlama gucu (vanilla TNT = 4)
+export const GTNT_ATES      = false;// patlama ates cikarsin mi
+
+/* ---------------- Yildirim meteoru ----------------
+   Her meteor = 1 yildirim + 1 patlama. Patlama butcesi yuzunden
+   tick basina en fazla TICK_PATLAMA_BUTCESI tane isleniyor.       */
+export const METEOR_SAYISI  = 6;    // kac meteor dussun
+export const METEOR_YAYILMA = 9;    // hedefin etrafina kac blok sacilsin
+export const METEOR_GUC     = 5;    // her meteorun patlama gucu
+export const METEOR_ARALIK  = 6;    // meteorlar arasi tick
+export const METEOR_ATES    = true; // ates cikarsin mi
 
 /* ---------------- Korunan bloklar ----------------
    Toprak topu ve blok yazan diger yetenekler bunlara dokunmaz.     */

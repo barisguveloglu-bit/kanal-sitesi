@@ -1,5 +1,6 @@
 import {
-  TICK_BLOK_BUTCESI, TICK_VARLIK_BUTCESI, OLCUM_ACIK, OLCUM_SOHBETE
+  TICK_BLOK_BUTCESI, TICK_VARLIK_BUTCESI, TICK_PATLAMA_BUTCESI,
+  OLCUM_ACIK, OLCUM_SOHBETE
 } from "./ayarlar.js";
 import { bilgiYaz, sohbeteYaz, simdiMs } from "./yardimcilar.js";
 
@@ -12,10 +13,12 @@ import { bilgiYaz, sohbeteYaz, simdiMs } from "./yardimcilar.js";
 
 let blokButcesi = 0;
 let varlikButcesi = 0;
+let patlamaButcesi = 0;
 
 export function butceSifirla() {
   blokButcesi = TICK_BLOK_BUTCESI;
   varlikButcesi = TICK_VARLIK_BUTCESI;
+  patlamaButcesi = TICK_PATLAMA_BUTCESI;
 }
 
 /* Istenen miktardan butcenin izin verdigi kadarini dondurur.
@@ -34,8 +37,16 @@ export function varlikIste(adet) {
   return verilen;
 }
 
+/* Patlama en pahali is; ayri ve dusuk tavani var. */
+export function patlamaIste(adet) {
+  const verilen = adet < patlamaButcesi ? adet : patlamaButcesi;
+  patlamaButcesi -= verilen;
+  if (OLCUM_ACIK) olcum.patlama += verilen;
+  return verilen;
+}
+
 export function butceDoldu() {
-  return blokButcesi === 0 || varlikButcesi === 0;
+  return blokButcesi === 0 || varlikButcesi === 0 || patlamaButcesi === 0;
 }
 
 /* ============================================================
@@ -46,7 +57,7 @@ export function butceDoldu() {
 
 const olcum = {
   tickSayisi: 0, toplamMs: 0, maksMs: 0,
-  blokIslemi: 0, varlikDogumu: 0, ertelenenTick: 0
+  blokIslemi: 0, varlikDogumu: 0, patlama: 0, ertelenenTick: 0
 };
 
 let olcumBaslangic = 0;
@@ -57,6 +68,7 @@ export function olcumSifirla() {
   olcum.maksMs = 0;
   olcum.blokIslemi = 0;
   olcum.varlikDogumu = 0;
+  olcum.patlama = 0;
   olcum.ertelenenTick = 0;
 }
 
@@ -84,7 +96,7 @@ export function olcumRaporla() {
     " | maks: " + olcum.maksMs.toFixed(2) + "ms" +
     " | toplam: " + olcum.toplamMs.toFixed(1) + "ms" +
     " | blok: " + olcum.blokIslemi + " (" + blokTick.toFixed(1) + "/tick)" +
-    " | varlik: " + olcum.varlikDogumu +
+    " | varlik: " + olcum.varlikDogumu + " | patlama: " + olcum.patlama +
     " | butce dolan tick: " + olcum.ertelenenTick
   );
 
@@ -99,7 +111,7 @@ export function olcumRaporla() {
   );
   sohbeteYaz(
     "§7        blok " + olcum.blokIslemi + " (" + blokTick.toFixed(1) + "/tick)" +
-    " · varlik " + olcum.varlikDogumu +
+    " · varlik " + olcum.varlikDogumu + " · patlama " + olcum.patlama +
     " · tick " + olcum.tickSayisi +
     " · butce dolan " + olcum.ertelenenTick
   );

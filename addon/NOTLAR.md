@@ -304,6 +304,51 @@ yapmak gerekiyor.
 `getAllPlayers` + `isSneaking` + `getViewDirection`. Blok bütçesine
 dokunmuyor.
 
+## Yetenekler (v3.1 — 9 adet)
+
+| # | yetenek | eşya | jest sırası | maliyet |
+|---|---|---|---|---|
+| 1 | Yıldırım Halkası | — | 10 | düşük |
+| 2 | Yön Şimşeği | blaze_rod | 20 | düşük |
+| 3 | Alan Şimşeği | ghast_tear | 30 | düşük |
+| 4 | TNT Yağmuru | nether_star | 40 | **yüksek** (30 patlama) |
+| 5 | Toprak Topu | clay_ball | 50 | orta (1414 blok) |
+| 6 | Baktığını Uçur | — | 60 | çok düşük (anlık) |
+| 7 | Uçuş | — | 70 | çok düşük (anlık) |
+| 8 | Güçlü TNT | — | 80 | orta (1 patlama, güç 8) |
+| 9 | Yıldırım Meteoru | — | 90 | orta (6 patlama, güç 5) |
+
+### Yeni yetenekler hakkında
+
+**Baktığını Uçur.** Bakış konisindeki varlıkları savurur, blok kırmaz. Koni
+genişliği `SAVUR_ACI` ile ayarlanır (0.6 ≈ 53°). Arkadakiler etkilenmez —
+test edildi. Oyunculara `applyImpulse` çalışmadığı için `applyKnockback`
+kullanılıyor; imzası sürümler arası değiştiğinden iki biçim de deneniyor.
+
+**Uçuş.** `applyImpulse` oyuncularda çalışmaz, o yüzden `levitation` efekti
+kullanılıyor. Bitince serbest düşüşe geçip ölmeyesin diye `slow_falling` da
+veriliyor (7 sn uçuş + 17 sn yavaş düşme).
+
+**Güçlü TNT.** Vanilla TNT'nin patlama gücü motor tarafında **sabit 4** ve
+script ile değiştirilemez. Bu yüzden TNT varlığı fırlatılıyor, fitil dolunca
+varlık **elle kaldırılıp** yerine kendi patlamamız çağrılıyor. Görünüm vanilla
+TNT, güç bizim (`GTNT_GUC = 8`). Varlık kaldırılmazsa çift patlama olur.
+
+**Yıldırım Meteoru.** Her meteor = 1 yıldırım + 1 patlama, 6 tane.
+
+### Patlama bütçesi
+
+Patlama en pahalı iş: güç 4'lük bir patlama ~50 blok kırar ve o kadar item
+düşürür; güç 8 bunun kabaca 4 katı. Tablette gerçek maliyet **henüz
+ölçülmediği için** tavan bilerek düşük tutuldu:
+
+```js
+export const TICK_PATLAMA_BUTCESI = 1;   // tick başına 1 patlama, TÜM oyuncular
+```
+
+4 oyuncu aynı anda meteor atınca bile tick başına 1 patlama işleniyor —
+test edildi. Ölçüm satırındaki `maks` rahatsa bu değer yükseltilebilir.
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:
@@ -321,3 +366,8 @@ Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:
    `@minecraft/server-ui` ayar menüsü.
 5. **TNT yükü.** 30 TNT tabletteki en ağır kalem ve bu script
    optimizasyonuyla çözülmüyor — sayı/oynanış kararı gerekiyor.
+6. **Ölçüm.** Tabletten `[OLCUM]` satırı hâlâ alınmadı. Patlama ve blok
+   bütçeleri bu yüzden tahminî/muhafazakâr.
+7. **Kalan yetenekler.** `dirt_yap`, `dirt_anvil` ve `yamult_duzelt` henüz
+   yapılmadı. Son ikisinin ne yapması gerektiği net değil.
+8. **Animasyon açıları.** Resource pack'teki kol açıları oyunda denenmedi.

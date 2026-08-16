@@ -26,6 +26,10 @@ import "./yetenekler/yildirim_halkasi.js";
 import "./yetenekler/alan_simsegi.js";
 import "./yetenekler/tnt_yagmuru.js";
 import "./yetenekler/toprak_topu.js";
+import "./yetenekler/savur.js";
+import "./yetenekler/ucus.js";
+import "./yetenekler/guclu_tnt.js";
+import "./yetenekler/meteor.js";
 
 /* ============================================================
    MERKEZI TICK YONETICISI
