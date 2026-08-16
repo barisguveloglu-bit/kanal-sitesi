@@ -8,7 +8,7 @@ import {
 
 import {
   hataYaz, bilgiYaz, gecerliMi, olayaAbone, kollariKaldir,
-  kollariIndir, actionbarYaz
+  kollariIndir, actionbarYaz, eldekiEsya
 } from "./yardimcilar.js";
 
 import {
@@ -30,6 +30,7 @@ import "./yetenekler/savur.js";
 import "./yetenekler/ucus.js";
 import "./yetenekler/guclu_tnt.js";
 import "./yetenekler/meteor.js";
+import "./yetenekler/kollar.js";
 
 /* ============================================================
    MERKEZI TICK YONETICISI
@@ -239,7 +240,10 @@ function esyasizOyuncu(oyuncu, sira) {
     if (simdiZipliyor !== oncekiZipliyor) esyasizZipla.set(id, simdiZipliyor);
 
     if (simdiZipliyor && !oncekiZipliyor) {
-      const secim = sira[secimAl(id) % sira.length];
+      // Elde kol varsa secili yetenek yerine KOLUN yetenegi calisir.
+      // "Kolu takinca o guce sahip olursun" mantigi bu.
+      const koldaki = esyaninYetenegi(eldekiEsya(oyuncu));
+      const secim = koldaki || sira[secimAl(id) % sira.length];
       if (secim && !yetenekTetikle(oyuncu, secim.kimlik)) {
         const kalan = kalanBekleme(id);
         if (kalan > 0) {

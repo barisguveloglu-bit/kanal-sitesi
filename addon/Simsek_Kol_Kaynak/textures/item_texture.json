@@ -1,0 +1,30 @@
+{
+  "resource_pack_name": "simsek_kol",
+  "texture_name": "atlas.items",
+  "texture_data": {
+    "kol_halka": {
+      "textures": "textures/item/kol_halka"
+    },
+    "kol_simsek": {
+      "textures": "textures/item/kol_simsek"
+    },
+    "kol_alan": {
+      "textures": "textures/item/kol_alan"
+    },
+    "kol_tnt": {
+      "textures": "textures/item/kol_tnt"
+    },
+    "kol_top": {
+      "textures": "textures/item/kol_top"
+    },
+    "kol_savur": {
+      "textures": "textures/item/kol_savur"
+    },
+    "kol_ucus": {
+      "textures": "textures/item/kol_ucus"
+    },
+    "kol_meteor": {
+      "textures": "textures/item/kol_meteor"
+    }
+  }
+}

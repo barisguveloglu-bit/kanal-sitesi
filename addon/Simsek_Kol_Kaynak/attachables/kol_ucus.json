@@ -1,0 +1,36 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:attachable": {
+    "description": {
+      "identifier": "pa:kol_ucus",
+      "materials": {
+        "default": "entity_alphatest",
+        "enchanted": "entity_alphatest_glint"
+      },
+      "textures": {
+        "default": "textures/entity/kol_ucus",
+        "enchanted": "textures/misc/enchanted_item_glint"
+      },
+      "geometry": {
+        "default": "geometry.simsek_kol"
+      },
+      "animations": {
+        "tutus_birinci": "animation.simsek_kol.birinci_sahis",
+        "tutus_ucuncu": "animation.simsek_kol.ucuncu_sahis"
+      },
+      "scripts": {
+        "animate": [
+          {
+            "tutus_birinci": "c.is_first_person"
+          },
+          {
+            "tutus_ucuncu": "!c.is_first_person"
+          }
+        ]
+      },
+      "render_controllers": [
+        "controller.render.item_default"
+      ]
+    }
+  }
+}

@@ -57,6 +57,23 @@ export function yetenekKaydet(tanim) {
   }
 }
 
+/* Var olan bir yetenege EK bir tetikleyici esya baglar.
+   Kol esyalari boyle baglaniyor: yetenek dosyasina dokunmadan
+   ayni yetenege ikinci bir esya eklenebiliyor.                  */
+export function esyaBagla(esyaTipi, kimlik) {
+  const tanim = kayitlar.get(kimlik);
+  if (!tanim) {
+    bilgiYaz("UYARI: esyaBagla -> bilinmeyen yetenek: " + kimlik);
+    return false;
+  }
+  if (esyaHaritasi.has(esyaTipi)) {
+    bilgiYaz("UYARI: " + esyaTipi + " zaten bagli, atlandi.");
+    return false;
+  }
+  esyaHaritasi.set(esyaTipi, tanim);
+  return true;
+}
+
 export function yetenekAl(kimlik) {
   return kayitlar.get(kimlik);
 }

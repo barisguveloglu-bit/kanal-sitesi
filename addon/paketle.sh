@@ -11,8 +11,8 @@ RP="Simsek_Kol_Kaynak"
 
 rm -f "$K/${BP}_v3.mcpack" "$K/${RP}_v3.mcpack" "$K/Simsek_TNT_v3.mcaddon"
 
-(cd "$K/$BP" && zip -r -X "$K/${BP}_v3.mcpack" manifest.json scripts >/dev/null)
-(cd "$K/$RP" && zip -r -X "$K/${RP}_v3.mcpack" manifest.json animations >/dev/null)
+(cd "$K/$BP" && zip -r -X "$K/${BP}_v3.mcpack" manifest.json scripts items >/dev/null)
+(cd "$K/$RP" && zip -r -X "$K/${RP}_v3.mcpack" manifest.json animations models attachables textures >/dev/null)
 (cd "$K" && zip -r -X "$K/Simsek_TNT_v3.mcaddon" "$BP" "$RP" >/dev/null)
 
 echo "Olusturuldu:"

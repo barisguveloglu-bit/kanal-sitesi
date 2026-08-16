@@ -152,6 +152,33 @@ export function actionbarYaz(oyuncu, metin) {
   }
 }
 
+/* Elde tutulan esyanin tipini dondurur, yoksa undefined.
+   EquippableComponent bazi surumlerde farkli davraniyor, o yuzden
+   hem enum hem duz metin slot adi deneniyor.                      */
+let ekipmanUyarisi = false;
+
+export function eldekiEsya(oyuncu) {
+  try {
+    const ekip = oyuncu.getComponent("minecraft:equippable");
+    if (!ekip || typeof ekip.getEquipment !== "function") {
+      if (!ekipmanUyarisi) {
+        ekipmanUyarisi = true;
+        bilgiYaz("UYARI: equippable bileseni yok. Kol esyalari elde " +
+                 "algilanamaz, jest sistemi calismaya devam eder.");
+      }
+      return undefined;
+    }
+    const esya = ekip.getEquipment("Mainhand");
+    return esya ? esya.typeId : undefined;
+  } catch (e) {
+    if (!ekipmanUyarisi) {
+      ekipmanUyarisi = true;
+      hataYaz("eldekiEsya", e);
+    }
+    return undefined;
+  }
+}
+
 /* Oyuncunun baktigi noktayi bulur. Isin bir seye carpmazsa
    bakis yonunde uzak bir nokta doner.                             */
 export function hedefBul(oyuncu, menzil) {

@@ -349,6 +349,58 @@ export const TICK_PATLAMA_BUTCESI = 1;   // tick başına 1 patlama, TÜM oyuncu
 4 oyuncu aynı anda meteor atınca bile tick başına 1 patlama işleniyor —
 test edildi. Ölçüm satırındaki `maks` rahatsa bu değer yükseltilebilir.
 
+## Aşama 3 — kol sistemi (v3.2)
+
+Sekiz **özel kol eşyası**. Elde tutunca 3B kol olarak görünüyor ve o kolun
+yeteneğini veriyor.
+
+| eşya | görünen ad | tetiklediği yetenek |
+|---|---|---|
+| `pa:kol_halka` | Yıldırım Halkası Kolu | yildirim_halkasi |
+| `pa:kol_simsek` | Şimşek Kolu | yon_simsegi |
+| `pa:kol_alan` | Alan Şimşeği Kolu | alan_simsegi |
+| `pa:kol_tnt` | Güçlü TNT Kolu | guclu_tnt |
+| `pa:kol_top` | Toprak Topu Kolu | toprak_topu |
+| `pa:kol_savur` | Savurma Kolu | savur |
+| `pa:kol_ucus` | Uçuş Kolu | ucus |
+| `pa:kol_meteor` | Meteor Kolu | meteor |
+
+### Nasıl çalışıyor
+
+**Görünüm** — resource pack'te `attachable`. Eşya elde tutulunca yerine 3B kol
+modeli çiziliyor. Model tek: `geometry.simsek_kol`, 4×12×4 kutu (Minecraft'ın
+standart kol ölçüsü), sekiz kol da onu paylaşıyor, sadece doku farklı.
+
+**Doku düzeni** — `uv [40, 16]`, yani **64×64 oyuncu skin'indeki sağ kol
+bölgesi**. Buraya normal bir skin PNG'si koyarsan kol doğru görünür.
+
+**Tetikleme** — iki yol, ikisi de çalışıyor:
+1. Eşyayı kullanmak
+2. **Elde kol varken eğil+zıpla** → seçili yetenek yerine **kolun** yeteneği
+   çalışır. "Kolu takınca o güce sahip olursun" mantığı bu.
+
+Kol yokken jest sistemi normal seçili yeteneği çalıştırmaya devam ediyor.
+
+### Kayıt
+
+`yetenekler/kollar.js` sadece eşya→yetenek eşlemesi yapıyor; yetenek
+dosyalarına hiç dokunulmadı. Kayıt defterine `esyaBagla()` eklendi — var olan
+bir yeteneğe ikinci bir tetikleyici eşya bağlıyor.
+
+### Dokular yer tutucu
+
+`textures/entity/*.png` (64×64) ve `textures/item/*.png` (16×16) şu an
+üretilmiş basit yer tutucular. Kendi çizimlerini aynı adlarla değiştirmen
+yeterli, başka hiçbir şeye dokunmaya gerek yok.
+
+### Yeni kol eklemek
+
+1. `textures/entity/<ad>.png` ve `textures/item/<ad>.png` koy
+2. `attachables/<ad>.json` — mevcut birini kopyala, kimlik ve doku adını değiştir
+3. `items/<ad>.json` — aynı şekilde
+4. `textures/item_texture.json`'a ikon satırı ekle
+5. `yetenekler/kollar.js`'e bir satır ekle
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:
