@@ -53,11 +53,28 @@ export const BEKLEME     = 60;    // tekrar kullanma beklemesi (20 tick = 1 sn)
 export const KOL_GECIKME = 10;    // kollar kalktiktan kac tick sonra baslasin
 
 /* ---------------- Kol animasyonu ----------------
-   animation.zombie.attack_bare_hand OYUNUN ICINDE HAZIR GELEN bir
-   animasyon. Ozel animasyon (orn. pa_up_dirt_arm_lightning) tanimlamak
-   RESOURCE PACK gerektirir; behavior pack'ten yaratilamaz. Ozel
-   animasyon adi verirsen playanimation sessizce basarisiz olur.      */
-export const KOL_ANIMASYON = "animation.zombie.attack_bare_hand";
+   Ozel animasyon tanimlamak RESOURCE PACK gerektirir; behavior
+   pack'ten yaratilamaz. O yuzden animasyonlar AYRI ve ISTEGE BAGLI
+   bir pakete konuldu: "Simsek Kol Animasyonlari".
+
+   KAPALI (varsayilan): animation.zombie.attack_bare_hand kullanilir.
+     Oyunun icinde hazir gelir, hicbir ek paket gerekmez. Kollar one
+     uzanir (zombi durusu), tam olarak "havaya kalkmaz".
+
+   ACIK: kollar gercekten havaya kalkar. Bunun icin resource pack'in
+     dunyada etkin olmasi SART. Etkin degilken acik birakirsan
+     playanimation sessizce basarisiz olur ve kol hic kalkmaz.
+
+   Yani: resource pack'i kurduysan burayi true yap, kurmadiysan false. */
+export const OZEL_ANIMASYON = false;
+
+export const ANIM_KALDIR = OZEL_ANIMASYON
+  ? "animation.simsek.kol_kaldir"
+  : "animation.zombie.attack_bare_hand a 999";
+
+export const ANIM_INDIR = OZEL_ANIMASYON
+  ? "animation.simsek.kol_indir"
+  : "animation.zombie.attack_bare_hand a 0";
 
 /* ---------------- Performans butceleri ----------------
    Bu degerler TUM oyuncular icin ortaktir, oyuncu basina degil.

@@ -1,6 +1,6 @@
 import { world, system } from "@minecraft/server";
 import {
-  HATA_SOHBETE, HATA_SOHBET_ARALIK, KOL_ANIMASYON, YUKSEKLIK_TABLO
+  HATA_SOHBETE, HATA_SOHBET_ARALIK, ANIM_KALDIR, ANIM_INDIR, YUKSEKLIK_TABLO
 } from "./ayarlar.js";
 
 /* ============================================================
@@ -119,7 +119,7 @@ export function yukseklikAraligi(boyut) {
 
 export function kollariKaldir(oyuncu) {
   try {
-    oyuncu.runCommand("playanimation @s " + KOL_ANIMASYON + " a 999");
+    oyuncu.runCommand("playanimation @s " + ANIM_KALDIR);
   } catch (e) {
     hataYaz("kollariKaldir", e);
   }
@@ -128,7 +128,7 @@ export function kollariKaldir(oyuncu) {
 export function kollariIndir(oyuncu) {
   try {
     if (gecerliMi(oyuncu)) {
-      oyuncu.runCommand("playanimation @s " + KOL_ANIMASYON + " a 0");
+      oyuncu.runCommand("playanimation @s " + ANIM_INDIR);
     }
   } catch (e) {
     hataYaz("kollariIndir", e);

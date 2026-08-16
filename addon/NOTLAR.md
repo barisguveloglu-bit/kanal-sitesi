@@ -24,9 +24,43 @@ addon/
         alan_simsegi.js
         tnt_yagmuru.js
         toprak_topu.js
-  paketle.sh                -> kurulabilir .mcpack üretir
-  Simsek_TNT_ToprakTopu_v3.mcpack
+  Simsek_Kol_Kaynak/          -> İSTEĞE BAĞLI resource pack
+    manifest.json
+    animations/simsek_kol.animation.json
+  paketle.sh                  -> paketleri üretir
+  Simsek_TNT_ToprakTopu_v3.mcpack   (behavior, tek başına çalışır)
+  Simsek_Kol_Kaynak_v3.mcpack       (resource, isteğe bağlı)
+  Simsek_TNT_v3.mcaddon             (ikisi birden)
 ```
+
+## Kol animasyonları — isteğe bağlı resource pack
+
+Özel animasyon tanımlamak resource pack gerektiriyor; behavior pack'ten
+yaratılamıyor. Bu yüzden animasyonlar **ayrı ve isteğe bağlı** bir pakete
+konuldu. Behavior pack o paket olmadan da tam çalışır.
+
+| `OZEL_ANIMASYON` | ne olur |
+|---|---|
+| `false` (varsayılan) | `animation.zombie.attack_bare_hand` — oyunda hazır gelir, ek paket gerekmez. Kollar öne uzanır. |
+| `true` | Kollar gerçekten havaya kalkar. Resource pack'in dünyada **etkin olması şart**. |
+
+Resource pack etkin değilken `OZEL_ANIMASYON = true` bırakırsan
+`playanimation` sessizce başarısız olur ve kol hiç kalkmaz.
+
+Pakette dört animasyon var:
+
+| animasyon | ne yapar |
+|---|---|
+| `animation.simsek.kol_kaldir` | iki kol yukarı, son karede kalır |
+| `animation.simsek.kol_indir` | iki kol aşağı iner |
+| `animation.simsek.tek_kol` | sadece sağ kol yukarı |
+| `animation.simsek.ileri_it` | iki kol öne doğru iter |
+
+Son ikisi henüz kullanılmıyor, ileriki yetenekler için hazır.
+
+**Dönüş değerleri oyunda denenmedi.** Kol açıları (`-175`, `-85` gibi) hesapla
+yazıldı; oyunda tuhaf duruyorsa `animations/simsek_kol.animation.json`
+içindeki `rotation` değerleri ayarlanmalı.
 
 Paketlemek için: `sh addon/paketle.sh`
 

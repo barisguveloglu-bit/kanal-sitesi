@@ -1,0 +1,81 @@
+{
+  "format_version": "1.8.0",
+  "animations": {
+
+    "animation.simsek.kol_kaldir": {
+      "loop": "hold_on_last_frame",
+      "animation_length": 0.35,
+      "bones": {
+        "rightArm": {
+          "rotation": {
+            "0.0":  [0, 0, 0],
+            "0.15": [-120, 0, -25],
+            "0.35": [-175, 0, -8]
+          }
+        },
+        "leftArm": {
+          "rotation": {
+            "0.0":  [0, 0, 0],
+            "0.15": [-120, 0, 25],
+            "0.35": [-175, 0, 8]
+          }
+        }
+      }
+    },
+
+    "animation.simsek.kol_indir": {
+      "loop": false,
+      "animation_length": 0.3,
+      "bones": {
+        "rightArm": {
+          "rotation": {
+            "0.0": [-175, 0, -8],
+            "0.3": [0, 0, 0]
+          }
+        },
+        "leftArm": {
+          "rotation": {
+            "0.0": [-175, 0, 8],
+            "0.3": [0, 0, 0]
+          }
+        }
+      }
+    },
+
+    "animation.simsek.tek_kol": {
+      "loop": "hold_on_last_frame",
+      "animation_length": 0.3,
+      "bones": {
+        "rightArm": {
+          "rotation": {
+            "0.0":  [0, 0, 0],
+            "0.12": [-110, 0, -20],
+            "0.3":  [-172, 0, -5]
+          }
+        }
+      }
+    },
+
+    "animation.simsek.ileri_it": {
+      "loop": "hold_on_last_frame",
+      "animation_length": 0.25,
+      "bones": {
+        "rightArm": {
+          "rotation": {
+            "0.0":  [0, 0, 0],
+            "0.1":  [-110, 0, -15],
+            "0.25": [-85, 0, -5]
+          }
+        },
+        "leftArm": {
+          "rotation": {
+            "0.0":  [0, 0, 0],
+            "0.1":  [-110, 0, 15],
+            "0.25": [-85, 0, 5]
+          }
+        }
+      }
+    }
+
+  }
+}
