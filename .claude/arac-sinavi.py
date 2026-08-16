@@ -601,12 +601,22 @@ def t_logo_surum_kaymasi_yakalaniyor(kok):
     # Başlık GÖMÜLMÜYOR, aranıyor. Sürüm v1.1.1'e çıktığı gün gömülü hâli
     # kırıldı — araçta sorun yoktu, testin kendisi bayatlamıştı. Aynı
     # kırılganlık `LORE.md` satır numarasında da yaşandı.
+    # ...ve AD de gömülmemeli. İlk hâli "# Echo" yazıyordu; ad
+    # "Echo Orkestra" olduğu gün test kırıldı — yine araçta değil,
+    # testte. Hem ad hem sürüm tek kaynaktan (surum.py) okunuyor.
+    import importlib.util as _iu
+    _t = _iu.spec_from_file_location(
+        "_sur_sinav", os.path.join(kok, ".claude", "surum.py"))
+    _sur = _iu.module_from_spec(_t)
+    _t.loader.exec_module(_sur)
     bel = os.path.join(kok, ".claude", "DONGULER.md")
     m = open(bel, encoding="utf-8").read()
-    yeni_baslik = re.sub(r"^# Echo v\d+\.\d+(?:\.\d+)?", "# Echo v1.1.4", m,
+    ad = re.escape(_sur.AD)
+    hedef = f"# {_sur.AD} {_sur.metin(d)}"
+    yeni_baslik = re.sub(rf"^# {ad} v\d+\.\d+(?:\.\d+)?", hedef, m,
                          count=1, flags=re.M)
     if yeni_baslik == m:
-        return "DONGULER.md başlığı '# Echo vX.Y' biçiminde değil"
+        return f"DONGULER.md başlığı '# {_sur.AD} vX.Y' biçiminde değil"
     open(bel, "w", encoding="utf-8").write(yeni_baslik)
     c = kos(kok, "dogrula.py", "belge")
     if c.returncode != 1 or "üreteçle uyuşmuyor" not in c.stdout:

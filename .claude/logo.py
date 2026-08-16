@@ -137,8 +137,8 @@ def isaret_govdesi():
 def svg_isaret():
     """Kare işaret — avatar, favicon, köşe damgası."""
     return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96"
-     width="96" height="96" role="img" aria-label="Echo işareti">
-  <title>Echo</title>
+     width="96" height="96" role="img" aria-label="{surum.AD} işareti">
+  <title>{surum.AD}</title>
   <style>{bicem()}
   </style>
   <g>
@@ -159,8 +159,8 @@ def svg_simge():
              f'r="{SIMGE_CEKIRDEK}"/>')
     govde = "\n".join(p)
     return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96"
-     width="96" height="96" role="img" aria-label="Echo simgesi">
-  <title>Echo</title>
+     width="96" height="96" role="img" aria-label="{surum.AD} simgesi">
+  <title>{surum.AD}</title>
   <style>{bicem()}
   </style>
   <g>
@@ -174,8 +174,8 @@ def svg_kilit(surum_metni):
     """İşaret + yazı + sürüm. Sürüm numarası surum.json'dan geliyor."""
     return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 96"
      width="320" height="96" role="img"
-     aria-label="Echo {surum_metni}">
-  <title>Echo {surum_metni}</title>
+     aria-label="{surum.AD} {surum_metni}">
+  <title>{surum.AD} {surum_metni}</title>
   <style>{bicem()}
     .ad {{ font-family: Georgia, "Times New Roman", serif; font-size: 42px;
           letter-spacing: 10px; }}
@@ -249,7 +249,7 @@ def denetle(a):
 
 
 def main(argv):
-    a = argparse.ArgumentParser(description="Echo logo üreteci.")
+    a = argparse.ArgumentParser(description=f"{surum.AD} logo üreteci.")
     alt = a.add_subparsers(dest="komut", required=True)
 
     p = alt.add_parser("yaz", help="SVG dosyalarını üret")

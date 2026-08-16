@@ -438,21 +438,28 @@ def d_belge(r):
             else:
                 r.tamam()
 
-    surum_yolu = os.path.join(KOK, ".claude", "surum.json")
+    surum_yolu = os.path.join(KOK, ".claude", "surum.py")
     if os.path.exists(surum_yolu):
-        import json as _json
+        # surum.py'yi modül olarak yüklüyoruz: hem sürüm metnini hem ADI
+        # oradan alalım diye. Önce surum.json elle ayrıştırılıyordu ve
+        # ad ("Echo") burada sabit yazılıydı — iki ayrı çürüme kapısı.
         try:
-            with open(surum_yolu, encoding="utf-8") as f:
-                sv = _json.load(f)
-            beklenen = (f"v{sv['majör']}.{sv['minör']}.{sv['yama']}"
-                        if sv.get("yama") else f"v{sv['majör']}.{sv['minör']}")
-        except (ValueError, KeyError) as e:
-            r.hata("belge", f"surum.json okunamadı: {e}")
+            _t = importlib.util.spec_from_file_location("_sur", surum_yolu)
+            sur = importlib.util.module_from_spec(_t)
+            _t.loader.exec_module(sur)
+            beklenen = sur.metin(sur.oku())
+        except Exception as e:
+            r.hata("belge", f"surum.py okunamadı: {e}")
             beklenen = None
         if beklenen:
-            eslesme = re.search(r"^# Echo (v\d+\.\d+(?:\.\d+)?)", belge, re.M)
+            # Ad da surum.py'den geliyor — burada elle yazılıydı ve ad
+            # değiştiği gün bu denetim adı yanlış olan bir başlığı
+            # sessizce onaylardı.
+            ad = re.escape(sur.AD)
+            eslesme = re.search(rf"^# {ad} (v\d+\.\d+(?:\.\d+)?)", belge, re.M)
             if not eslesme:
-                r.hata("belge", "DONGULER.md başlığı '# Echo vX.Y' biçiminde değil.")
+                r.hata("belge", f"DONGULER.md başlığı '# {sur.AD} vX.Y' "
+                                "biçiminde değil.")
             elif eslesme.group(1) != beklenen:
                 r.hata("belge", f"sürüm uyuşmuyor: surum.json {beklenen} diyor, "
                                 f"DONGULER.md başlığı {eslesme.group(1)} yazıyor. "

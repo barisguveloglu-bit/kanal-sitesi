@@ -37,7 +37,11 @@ from datetime import date
 KLASOR = os.path.dirname(os.path.abspath(__file__))
 DOSYA = os.path.join(KLASOR, "surum.json")
 
-AD = "Echo"
+# Adın TEK kaynağı burası. logo.py ve dogrula.py buradan okur —
+# ilk hâllerinde "Echo" elle yazılıydı ve ad değişince üç dosyada üç
+# ayrı yerde çürüyecekti. Sürüm için kurduğumuz disiplin ad için de
+# geçerli: aynı gerçeği iki yere yazma.
+AD = "Echo Orkestra"
 EN_FAZLA = 9
 
 
