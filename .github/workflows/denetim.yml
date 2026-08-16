@@ -1,0 +1,144 @@
+name: Denetim
+
+# Echo Orkestra'nın mekanik kapısı — GitHub sunucusunda, benim
+# iyimserliğimden bağımsız. Bu depoda ölçüm katmanı sekiz commit boyunca
+# kırmızı kaldı ve kimse fark etmedi; onu fark etmesi gereken şey bu.
+#
+# Depo public olduğu için Actions dakikası ücretsiz ve sınırsız.
+# Bütün betikler saf Python — kurulum, paket, ağ gerekmiyor.
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    # Pazar 03:00 UTC — mutasyon sınavı için. Haftada bir yeterli:
+    # ölü test bir gecede ortaya çıkmaz, yavaşça birikir.
+    - cron: '0 3 * * 0'
+
+# Aynı dala arka arkaya push atınca eskisini iptal et — sıra beklemesin.
+concurrency:
+  group: denetim-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  kapi:
+    name: Dört kapı
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Depoyu al
+        uses: actions/checkout@v4
+        with:
+          # arac-sinavi.py depoyu geçici bir dizine kopyalayıp orada
+          # git komutları çalıştırıyor — sığ klon yetmez.
+          fetch-depth: 0
+
+      - name: Python kur
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Kimlik (git komutu çalıştıran vakalar için)
+        run: |
+          git config --global user.email "denetim@echo.local"
+          git config --global user.name "Echo Orkestra Denetim"
+          git config --global init.defaultBranch main
+
+      # Her adım aynı sözleşmeyi uyguluyor:
+      #   0 → temiz
+      #   1 → kural ihlali, düzeltilecek
+      #   3 → insan kapısı: karar Barış'ın, ajan çözemez
+      #   başka → araç çalışmadı; "geçti" SAYILMAZ
+      # Son madde önemli: çalışmayan bir denetimi geçmiş saymak, bu
+      # depoda daha önce gerçekten yaşandı.
+
+      - name: Kural denetimi (dogrula.py)
+        run: |
+          python3 .claude/dogrula.py; kod=$?
+          case $kod in
+            0) echo "::notice title=dogrula::Temiz" ;;
+            1) echo "::error title=dogrula::Kural ihlali — düzelt"; exit 1 ;;
+            3) echo "::error title=dogrula::İNSAN KAPISI — karar Barış'ın, otomatik çözülmez"; exit 1 ;;
+            *) echo "::error title=dogrula::Denetim çalışmadı (çıkış $kod) — geçti sayılmaz"; exit 1 ;;
+          esac
+
+      - name: Bütünlük denetimi (butunluk.py)
+        if: '!cancelled()'
+        run: |
+          python3 .claude/butunluk.py; kod=$?
+          case $kod in
+            0) echo "::notice title=butunluk::Canon ↔ veri ↔ site tutarlı" ;;
+            1) echo "::error title=butunluk::İçerik tutarsızlığı"; exit 1 ;;
+            3) echo "::error title=butunluk::İNSAN KAPISI"; exit 1 ;;
+            *) echo "::error title=butunluk::Sınav çalışmadı (çıkış $kod) — geçti sayılmaz"; exit 1 ;;
+          esac
+
+      - name: Denetleyicinin sınavı (sinav.py)
+        if: '!cancelled()'
+        run: |
+          python3 .claude/sinav.py; kod=$?
+          [ $kod -eq 0 ] || { echo "::error title=sinav::Denetleyici kasıtlı bozulmayı kaçırdı (çıkış $kod)"; exit 1; }
+          echo "::notice title=sinav::Denetleyici bozulmayı yakalıyor"
+
+      - name: Araçların sınavı (arac-sinavi.py)
+        if: '!cancelled()'
+        run: |
+          python3 .claude/arac-sinavi.py; kod=$?
+          [ $kod -eq 0 ] || { echo "::error title=arac-sinavi::Araç vakası düştü (çıkış $kod)"; exit 1; }
+          echo "::notice title=arac-sinavi::Bütün araç vakaları beklendiği gibi"
+
+      - name: Geri getirme ölçümü (degerlendir.py)
+        if: '!cancelled()'
+        run: |
+          python3 .claude/degerlendir.py; kod=$?
+          [ $kod -eq 0 ] || { echo "::error title=degerlendir::Geri getirme eşiği düştü (çıkış $kod)"; exit 1; }
+          echo "::notice title=degerlendir::Geri getirme eşikleri geçti"
+
+      - name: Kapatılmamış geri bildirim kaydı var mı
+        if: '!cancelled()'
+        run: |
+          # Çıkış koduna bakıyoruz, metne değil. Metne bağlanan iddia,
+          # cümle değişince sessizce yanlış ölçer — bu depoda yaşandı.
+          python3 .claude/geri-bildirim.py korumasiz; kod=$?
+          [ $kod -eq 0 ] || echo "::warning title=geri-bildirim::Testsiz kapatılmış kayıt var — düzeltilmiş değil, ertelenmiş demektir"
+
+      - name: Depo temiz mi (denetim hiçbir şeyi değiştirmemeli)
+        if: '!cancelled()'
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "::error title=kirlilik::Denetim koşusu depoyu değiştirdi:"
+            git status --porcelain
+            exit 1
+          fi
+          echo "::notice title=kirlilik::Depo temiz"
+
+  mutasyon:
+    name: Mutasyon (testleri test eder)
+    # Yavaş: her mutasyon bir sınav koşusu. Her push'ta çalıştırmak
+    # sırayı tıkar — elle ve haftada bir yeterli.
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Kimlik
+        run: |
+          git config --global user.email "denetim@echo.local"
+          git config --global user.name "Echo Orkestra Denetim"
+      - name: Mutasyon sınavı
+        run: |
+          python3 .claude/mutasyon.py; kod=$?
+          [ $kod -eq 0 ] || { echo "::error title=mutasyon::Ölü test var — bozulma yakalanmadı (çıkış $kod)"; exit 1; }
+          echo "::notice title=mutasyon::Bütün mutasyonlar yakalandı"

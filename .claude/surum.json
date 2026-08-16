@@ -1,0 +1,32 @@
+{
+  "majör": 2,
+  "minör": 0,
+  "yama": 0,
+  "gecmis": [
+    {
+      "surum": "v1.1",
+      "ne": "denetimden sonra kurulan tam katman — 15 döngü, 4 ölçüm katı",
+      "tarih": "2026-08-12"
+    },
+    {
+      "surum": "v1.1.1",
+      "ne": "Değerlendirici-optimize edici ve olay döngüsü eklendi",
+      "tarih": "2026-08-13"
+    },
+    {
+      "surum": "v1.1.2",
+      "ne": "Tepe tırmanma, eleştirmen-üretici ve TDD döngüleri eklendi",
+      "tarih": "2026-08-13"
+    },
+    {
+      "surum": "v1.1.3",
+      "ne": "15 denetçi + 2 üretici kadrosu, görev havuzu, dış ajan köprüsü ve hedef/seyir/devre halkaları tek akışta birleştirildi; kadro ilk kez tam çalıştırıldı",
+      "tarih": "2026-08-16"
+    },
+    {
+      "surum": "v2.0",
+      "ne": "Echo Orkestra — ad ve majör sürüm değişti. 15 denetçi + 2 üretici Sonnet 5 kadrosu, görev havuzu, dış ajan (Codex) köprüsü ve hedef/seyir/devre halkaları tek akış. Majör artış Barış'ın kararı: yama zinciri (v1.1.9→v1.2) kademeli büyüme içindir, bu bir sürüm atlaması değil bilinçli bir ana sürüm.",
+      "tarih": "2026-08-16"
+    }
+  ]
+}

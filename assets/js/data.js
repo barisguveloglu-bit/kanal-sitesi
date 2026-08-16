@@ -12,9 +12,6 @@
 /* Kanalın adresi — hem alt bilgide hem gizli sayfada kullanılıyor */
 const KANAL = "https://www.youtube.com/@mahmutguveloglu473";
 
-/* Sitenin yayındaki adresi — paylaşım önizlemeleri ve site haritası için */
-const SITE_ADRESI = "https://barisguveloglu-bit.github.io/kanal-sitesi/";
-
 /*
  * VİDEOLAR — sitenin YouTube tarafı.
  * ---------------------------------------------------------------
@@ -204,11 +201,11 @@ const KARAKTERLER = [
       "İcat yapabilme",
       "Tuzak kurabilme",
       "Kendi şirketi (ayı kapanı)",
-      "Para sıkıntısı yok",
+      "Parası sınırlı",
     ],
     detay:
-      "Şu anda ağır yaralı Samara Kadın ile ilgileniyor. Fiziksel gücü olmayan " +
-      "ama masanın üstündeki en tehlikeli ikinci beyin olan karakter.",
+      "Şu anda ağır yaralı Samara Kadın ile ilgileniyor. Fiziksel gücü yok; " +
+      "masaya zekâsıyla ve kurduğu tuzaklarla oturuyor.",
   },
   {
     id: "samara-kadin",
@@ -279,10 +276,14 @@ const KARAKTERLER = [
       "Elektriğe tam hâkimiyet",
       "Üç komutan, 81 il derebeyi",
       "Savaşsız dünya fikrinin sahibi",
+      "Zaafı: kibir",
     ],
     detay:
       "Hikayenin asıl patronu ve fikrin sahibi. Kavgasız bir dünya onun " +
       "düşüncesiydi; kardeşi Gizemli Çocuk sonradan ona katıldı. " +
+      "Gücünün sınırı yok, kendine güveninin de yok: küçük gördüğünü " +
+      "hesaba katmaz. Yenilirse gücü yetmediği için değil, gerekmez " +
+      "sandığı için yenilir. " +
       "\"O gerçek barışı bulacak\" cümlesindeki \"o\" işte bu adam.",
   },
 ];
@@ -484,7 +485,7 @@ const KOMUTANLAR = [
     gucAdi: "Basınç ve Fırtına",
     gucAciklama:
       "Hava basıncını kontrol ediyor. Kasırga çıkarıyor, şok dalgasıyla " +
-      "insanı yere çiviliyor. Ama yıldırım atamıyor — o abisinde.",
+      "insanı yere çiviliyor. Ama yıldırım atamıyor — yıldırım kontrolü Gizemli Çocuğun Abisi'nde.",
     ozellikler: [
       "3 tır kaldırma gücü",
       "Hava basıncı kontrolü",

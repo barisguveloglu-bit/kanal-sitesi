@@ -156,6 +156,9 @@ Yani kötüler, kırılması imkânsıza en yakın olan şeyi kırmak zorunda.
 - Gizemli Çocuk ile aynı fiziksel özellikler.
 - **Elektriği tam anlamıyla kontrol eder.**
 - Aşırı kurnaz.
+- **Zaafı: kibir.** Gücünün sınırı yok, ama kendine olan güveninin de yok.
+  Küçük gördüğünü hesaba katmaz; yenilirse gücü yetmediği için değil,
+  gerekmez sandığı için yenilir.
 - **Savaşsız dünya fikri onun.** Kardeşi sonradan katıldı.
 - **Üç komutan derebeyi** doğrudan ona rapor verir; onların altında 81 il derebeyi var.
 - Mafya sloganı **"O gerçek barışı bulacak"** cümlesindeki "o" kendisi.
@@ -166,7 +169,7 @@ Yani kötüler, kırılması imkânsıza en yakın olan şeyi kırmak zorunda.
 
 Kötülerin ağı **dört kademeli**:
 
-| Seviye | Kim | Görev |
+| Kademe | Kim | Görev |
 |---|---|---|
 | 1 | Gizemli Çocuğun Abisi | Asıl patron. Fikrin sahibi. |
 | 2 | Gizemli Çocuk | Kardeşi. Fikre katıldı. |
@@ -353,6 +356,9 @@ Bu, iyilere zaman kazandıran tek şey.
 | Sarı Gülücük | — | Zekâ ve icat |
 | Samara Kadın | — | Zihin kontrolü |
 | Cips Yiyen Adam | 2 tır | Normal form |
+| Nemesis | 3 tır | Batı Cephesi Komutanı |
+| Teşup | 3 tır | Orta Cephe Komutanı |
+| Ahriman | 3 tır | Doğu Cephesi Komutanı |
 | Gizemli Çocuk | 4 tır | + temel elektrik |
 | Gizemli Çocuğun Abisi | 4 tır | + tam elektrik kontrolü |
 | Yoğurt Yiyen Adam | 5 tır | Cips Yiyen Adam'ın savaş modu |
@@ -435,3 +441,39 @@ Arkadaşlarını arıyorlar, dünyanın anahtarını değil.
 
 ### Cips Yiyen Adam
 İki formu var: cips ve yoğurt. Başka form tanımlı değil.
+
+---
+
+## 10. Açık Uçlar
+
+Bu bölüm **canon değil, canon'un neresinin henüz karara bağlanmadığının
+listesidir.** Buraya hiçbir yeni bilgi yazılmaz; dosyanın içinde zaten
+işaretli olan kararsız yerler burada toplanır ki aranırken kaybolmasın.
+
+Karar Barış'ındır. Aşağıdakiler netleşmeden ilgili yerlerde kesin dille
+yazmayın.
+
+### Açık — irade kademeleri
+`LORE.md:93` **DURUM: TASLAK.** Beş kademeli tablo bir öneri olarak duruyor,
+birlikte detaylandırılacak. Kademe adları ve sınırları değişebilir.
+
+Bağlı olduğu yerler: karakterlerin `iradeKademe` değerleri, komutanların
+irade sütunu, `irade.html`.
+
+### Açık — Yılmaz'ın ölümü sonrası zaman çizelgesi
+`LORE.md:76-79` iki seçenek arasında karar bekliyor:
+
+- **1730** — "2 yıl sonra"yı ve "I. Mahmud devri"ni aynı anda doğru kılar
+  (III. Ahmed 1 Ekim 1730'da tahttan indi). Şu an metinde bu kullanılıyor.
+- **1731** — tercih edilirse metindeki "2 yıl sonra" ifadesi
+  "3 yıl sonra" olarak düzeltilmeli.
+
+### Açık — video bağlantıları
+`assets/js/data.js` içindeki `VIDEOLAR` boş. Bu **bilinçli**: boş kalan
+bölüm siteye hiç basılmıyor, ziyaretçi sahte kart görmüyor. Gerçek video
+kimliklerini yalnızca Barış verebilir; denetleyici uydurma kimliği
+insan onayına takar.
+
+### Kapandı — 81 il derebeyi
+Bu iş **bitti.** 81 ilin 81'inde de isim var, hem `LORE.md`'de hem
+`data.js`'te. Eskiden açık uç olarak anılıyordu, artık değil.
