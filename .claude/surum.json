@@ -1,7 +1,7 @@
 {
   "majör": 1,
   "minör": 1,
-  "yama": 2,
+  "yama": 3,
   "gecmis": [
     {
       "surum": "v1.1",
@@ -17,6 +17,11 @@
       "surum": "v1.1.2",
       "ne": "Tepe tırmanma, eleştirmen-üretici ve TDD döngüleri eklendi",
       "tarih": "2026-08-13"
+    },
+    {
+      "surum": "v1.1.3",
+      "ne": "15 denetçi + 2 üretici kadrosu, görev havuzu, dış ajan köprüsü ve hedef/seyir/devre halkaları tek akışta birleştirildi; kadro ilk kez tam çalıştırıldı",
+      "tarih": "2026-08-16"
     }
   ]
 }

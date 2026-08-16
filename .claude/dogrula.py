@@ -571,6 +571,21 @@ def d_belge(r):
             else:
                 r.tamam()
 
+    # LORE.md'nin satır sayısı belgede üç yerde geçiyordu ve üçü de
+    # çürümüştü — üstelik iki farklı yanlış sayıyla (437 ve 470, gerçek
+    # 476). Sayıyı düzeltmek yetmez: zorlanmayan sayı yine çürür.
+    # Burada her geçtiği yer tek tek denetleniyor.
+    lore_satir = len(open(os.path.join(KOK, "LORE.md"),
+                          encoding="utf-8").read().splitlines())
+    iddialar = re.findall(r"(\d+) satır(?:lık)?", belge)
+    yanlis = sorted({s for s in iddialar
+                     if s not in (str(lore_satir), "2000")})
+    if yanlis:
+        r.hata("belge", f"DONGULER.md: LORE.md {lore_satir} satır, "
+                        f"belge {', '.join(yanlis)} yazıyor.")
+    else:
+        r.tamam()
+
     mutasyon_yolu = os.path.join(KOK, ".claude", "mutasyon.py")
     if os.path.exists(mutasyon_yolu):
         try:

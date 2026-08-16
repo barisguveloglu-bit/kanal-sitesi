@@ -1588,8 +1588,15 @@ def t_disajan_uygula_belirsiz_konumu_reddediyor(kok):
 
 # ------------------------------------------------------- havuz ve kadro
 
-def _havuz_ekle(kok, isim, zorluk, *kaynak):
-    return kos(kok, "havuz.py", "ekle", "--is", isim,
+def _havuz_ekle(kok, isim, zorluk, *kaynak, mod="okuma"):
+    """Havuza görev ekler.
+
+    `mod` şart: gruplama yalnızca YAZMA çakışmasından doğuyor (aynı kitabı
+    okuyan iki kişi birbirinin sayfasını yırtmaz). Varsayılan `okuma`
+    bırakılırsa çakışma senaryosu kuran testler hiçbir çakışma üretmez —
+    ölçmek istedikleri şeyden kopar.
+    """
+    return kos(kok, "havuz.py", "ekle", "--is", isim, "--mod", mod,
                "--zorluk", str(zorluk), "--kaynak", *kaynak)
 
 
@@ -1598,8 +1605,8 @@ def t_havuz_ayni_kaynagi_ayni_ajana_veriyor(kok):
     ikisi de aynı satırı değiştirir, biri diğerini ezer, ve bu ancak
     birleştirmede görünür."""
     kos(kok, "havuz.py", "temizle")
-    _havuz_ekle(kok, "A", 2, "assets/js/data.js")
-    _havuz_ekle(kok, "B", 2, "assets/js/data.js")
+    _havuz_ekle(kok, "A", 2, "assets/js/data.js", mod="yazma")
+    _havuz_ekle(kok, "B", 2, "assets/js/data.js", mod="yazma")
     s = kos(kok, "havuz.py", "kadro")
     if "KADRO — 1 ajan" not in s.stdout:
         return f"aynı kaynağa dokunan iki görev ayrıldı: {s.stdout[:150]}"
@@ -1620,9 +1627,9 @@ def t_havuz_bagimsizi_boluyor(kok):
 def t_havuz_zincirleme_paylasimi_goruyor(kok):
     """A-B `data.js`'i, B-C `app.js`'i paylaşıyorsa üçü de aynı kümede."""
     kos(kok, "havuz.py", "temizle")
-    _havuz_ekle(kok, "A", 1, "assets/js/data.js")
-    _havuz_ekle(kok, "B", 1, "assets/js/data.js", "assets/js/app.js")
-    _havuz_ekle(kok, "C", 1, "assets/js/app.js")
+    _havuz_ekle(kok, "A", 1, "assets/js/data.js", mod="yazma")
+    _havuz_ekle(kok, "B", 1, "assets/js/data.js", "assets/js/app.js", mod="yazma")
+    _havuz_ekle(kok, "C", 1, "assets/js/app.js", mod="yazma")
     s = kos(kok, "havuz.py", "kadro")
     if "KADRO — 1 ajan" not in s.stdout:
         return "zincirleme paylaşım görülmedi, küme bölündü"
@@ -1658,7 +1665,7 @@ def t_havuz_kapasite_asimini_gizlemiyor(kok):
     """Bölünemeyen küme kapasiteyi aşabilir — ama sessizce değil."""
     kos(kok, "havuz.py", "temizle")
     for i in range(4):
-        _havuz_ekle(kok, f"agir{i}", 5, "assets/js/data.js")
+        _havuz_ekle(kok, f"agir{i}", 5, "assets/js/data.js", mod="yazma")
     s = kos(kok, "havuz.py", "kadro")
     if "KAPASİTE AŞIMI" not in s.stdout:
         return "kapasiteyi aşan küme sessizce yüklendi"
@@ -1751,7 +1758,12 @@ def t_ajan_kadro_sayisi_belgeyle_uyusuyor(kok):
     """Kadro sayısı çürüyebilir — nitekim çürüdü: 10 istendi, 7 yapıldı ve
     bunu betik değil insan fark etti. Sayı belgede yazıyorsa denetlenmeli."""
     klasor = os.path.join(kok, ".claude", "agents")
-    kadro = len([x for x in os.listdir(klasor) if x.endswith(".md")])
+    # Denetçi ve üretici AYRI sayılıyor — dogrula.py de öyle sayıyor.
+    # İlk hâlim bütün .md dosyalarını "denetçi" saydı; iki üretici ajan
+    # eklenince belgede aranan cümle ("**15 denetçi ajan**") tutmadı,
+    # replace hiçbir şey değiştirmedi ve test "sapma yakalanmadı" dedi.
+    # Araçta kusur yoktu; sayan taraf yanlış sayıyordu.
+    kadro = len([x for x in os.listdir(klasor) if x.endswith("-denetci.md")])
     bel = os.path.join(kok, ".claude", "DONGULER.md")
     with open(bel, encoding="utf-8") as f:
         metin = f.read()
@@ -1759,8 +1771,13 @@ def t_ajan_kadro_sayisi_belgeyle_uyusuyor(kok):
         f.write(metin.replace(f"**{kadro} denetçi ajan**",
                               f"**{kadro + 3} denetçi ajan**", 1))
     s = kos(kok, "dogrula.py", "belge")
-    if s.returncode != 1 or "kadro" not in s.stdout:
-        return f"kadro sayısı sapması yakalanmadı (çıkış {s.returncode})"
+    # İddia, aracın GERÇEKTEN bastığı metne bağlı olmalı. Önceki hâli
+    # "kadro" kelimesini arıyordu; denetleyici o kelimeyi hiç basmıyor
+    # ("15 denetçi ajan var, belge 18 yazıyor" diyor). Doğru çıkış kodu
+    # gelse bile test kırmızı kalıyordu — araçta değil iddiada kusur vardı.
+    if s.returncode != 1 or "denetçi ajan var" not in s.stdout:
+        return (f"kadro sayısı sapması yakalanmadı "
+                f"(çıkış {s.returncode}): {s.stdout[:120]}")
     return None
 
 
@@ -1776,7 +1793,11 @@ def t_ajan_tanimlari_kusur_saymayacaklarini_soyluyor(kok):
         if not ad.endswith(".md"):
             continue
         metin = open(os.path.join(klasor, ad), encoding="utf-8").read()
-        if "KUSUR YOK" not in metin:
+        # "KUSUR YOK" yalnızca DENETÇİ sözleşmesidir. Üretici kusur
+        # raporlamaz, üretir — o cümlenin onda olmaması doğrudur.
+        # İlk hâlim bunu ayırmadı ve iki üretici ajan eklenir eklenmez
+        # testi kırdı: kusur ajanlarda değil, ayrım yapmayan testteydi.
+        if ad.endswith("-denetci.md") and "KUSUR YOK" not in metin:
             eksik.append(f"{ad}: açık onay biçimi yok")
         if "değiştirme" not in metin and "Değiştirme" not in metin:
             eksik.append(f"{ad}: 'dosya değiştirme' yasağı yazılmamış")
