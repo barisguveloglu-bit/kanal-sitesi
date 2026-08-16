@@ -1,5 +1,9 @@
 import { world, system } from "@minecraft/server";
 
+// Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni
+// tutulmali; hangi paketin calistigini sohbetten anlamak icin.
+const SURUM = "v2.5";
+
 /* ============================================================
    AYARLAR
    ============================================================ */
@@ -342,7 +346,7 @@ world.afterEvents.playerSpawn.subscribe((olay) => {
   if (!OLCUM_SOHBETE && !HATA_SOHBETE) return;
   try {
     olay.player.sendMessage(
-      "§a[SimsekTNT] yuklendi §7· blok butcesi " + TICK_BLOK_BUTCESI + "/tick" +
+      "§a[SimsekTNT " + SURUM + "] yuklendi §7· blok butcesi " + TICK_BLOK_BUTCESI + "/tick" +
       " · olcum " + (OLCUM_ACIK ? "§aacik" : "§7kapali")
     );
   } catch (e) {
@@ -916,4 +920,4 @@ function patlat(boyut, poz) {
   }
 }
 
-bilgiYaz("yuklendi | blok butcesi: " + TICK_BLOK_BUTCESI + "/tick, varlik butcesi: " + TICK_VARLIK_BUTCESI + "/tick, olcum: " + (OLCUM_ACIK ? "acik" : "kapali"));
+bilgiYaz(SURUM + " yuklendi | blok butcesi: " + TICK_BLOK_BUTCESI + "/tick, varlik butcesi: " + TICK_VARLIK_BUTCESI + "/tick, olcum: " + (OLCUM_ACIK ? "acik" : "kapali"));

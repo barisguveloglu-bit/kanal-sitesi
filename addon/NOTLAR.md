@@ -13,7 +13,7 @@ addon/
     manifest.json
     scripts/main.js
   paketle.sh                    -> kurulabilir .mcpack üretir
-  Simsek_TNT_ToprakTopu_v2.mcpack
+  Simsek_TNT_ToprakTopu_v2.5.mcpack
 ```
 
 Paketlemek için: `sh addon/paketle.sh`
@@ -104,7 +104,7 @@ Content Log'u tablette okumak zahmetli olduğu için ölçüm ve hata satırlar�
 Dünyaya girince paketin çalıştığını doğrulayan satır:
 
 ```
-[SimsekTNT] yuklendi · blok butcesi 28/tick · olcum acik
+[SimsekTNT v2.5] yuklendi · blok butcesi 28/tick · olcum acik
 ```
 
 Her atıştan sonra sohbete iki satır düşüyor:
