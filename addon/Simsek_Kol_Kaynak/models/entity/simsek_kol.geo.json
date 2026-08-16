@@ -8,25 +8,45 @@
         "texture_height": 64,
         "visible_bounds_width": 4,
         "visible_bounds_height": 4,
-        "visible_bounds_offset": [0, 1, 0]
+        "visible_bounds_offset": [
+          0,
+          1,
+          0
+        ]
       },
       "bones": [
         {
           "name": "kol_kok",
-          "pivot": [-5, 22, 0]
+          "pivot": [
+            -5,
+            22,
+            0
+          ]
         },
         {
           "name": "kol",
           "parent": "kol_kok",
-          "pivot": [-6, 22, 0],
+          "pivot": [
+            -6,
+            22,
+            0
+          ],
           "cubes": [
             {
-              "_yorum": "Ana kol kutusu. 4x12x4 = Minecraft'in standart kol olcusu.",
-              "_yorum2": "uv [40,16] = 64x64 oyuncu skin'inde SAG KOL bolgesi. Yani",
-              "_yorum3": "buraya normal bir skin PNG'si koyunca kol dogru gorunur.",
-              "origin": [-8, 10, -2],
-              "size": [4, 12, 4],
-              "uv": [40, 16],
+              "origin": [
+                -8,
+                10,
+                -2
+              ],
+              "size": [
+                4,
+                12,
+                4
+              ],
+              "uv": [
+                40,
+                16
+              ],
               "inflate": 0.15
             }
           ]

@@ -5,9 +5,16 @@
       "loop": true,
       "bones": {
         "rightitem": {
-          "_yorum": "Modeli oyuncunun sag koluna oturtur (baskalarinin gordugu gorunum)",
-          "position": [0, 22, 5],
-          "rotation": [90, 0, 90]
+          "position": [
+            0,
+            22,
+            5
+          ],
+          "rotation": [
+            90,
+            0,
+            90
+          ]
         }
       }
     },
@@ -15,9 +22,16 @@
       "loop": true,
       "bones": {
         "rightitem": {
-          "_yorum": "Kendi ekraninda elde gorunen hali",
-          "position": [-5, 35, -5.5],
-          "rotation": [0, 0, 180]
+          "position": [
+            -5,
+            35,
+            -5.5
+          ],
+          "rotation": [
+            0,
+            0,
+            180
+          ]
         }
       }
     }
