@@ -129,6 +129,27 @@ en fazla 5 saniyede bir yazılır, sohbeti boğmasın diye):
 Yayın veya normal oynanış öncesi `OLCUM_SOHBETE` ve `HATA_SOHBETE`
 kapatılmalı.
 
+### API dayanıklılığı
+
+Orijinal kod yalnızca `world.afterEvents.itemUse` kullanıyordu. Performans
+aşamasında `playerLeave` ve `playerSpawn` eklendi — bu olaylar oyuncunun API
+sürümünde yoksa `.subscribe` çağrısı **script yüklenirken** hata fırlatır ve
+paketin tamamı ölür. Bu yüzden:
+
+- Bütün olay abonelikleri `olayaAbone()` üzerinden geçiyor. Eksik olay artık
+  sadece ilgili özelliği kapatıyor, paketi öldürmüyor; Content Log'a uyarı
+  düşüyor.
+- `itemUse` kurulamazsa `KRITIK` satırı yazılıyor (o olmadan hiçbir yetenek
+  çalışmaz).
+- `isValid` bazı sürümlerde property, bazılarında metot. Metot olan sürümde
+  `if (e.isValid)` **her zaman doğru** döner (fonksiyon truthy'dir), yani
+  sessizce yanlış çalışır. `gecerliMi()` ikisini de doğru ele alıyor.
+- `Date.now` yoksa ölçüm sıfır süreyle çalışmaya devam ediyor.
+
+Bu yol ayrıca test ediliyor: `playerSpawn`/`playerLeave` silinmiş, `isValid`
+metot yapılmış ve `Date` kaldırılmış sahte bir API'de script yükleniyor ve
+toprak topu normal sonucu üretiyor.
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:

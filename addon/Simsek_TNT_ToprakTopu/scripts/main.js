@@ -122,6 +122,26 @@ const TOP_HASAR_MUAF = [
    olarak Content Log'a duser.
    ============================================================ */
 
+/* isValid bazi API surumlerinde property, bazilarinda metot.
+   Metot oldugu surumde "if (e.isValid)" HER ZAMAN dogru doner
+   (fonksiyon nesnesi truthy'dir), yani sessizce yanlis calisir.
+   Ikisini de dogru ele almak icin tek gecit.                     */
+function gecerliMi(varlik) {
+  if (!varlik) return false;
+  try {
+    const d = varlik.isValid;
+    if (typeof d === "function") return !!varlik.isValid();
+    if (typeof d === "boolean") return d;
+    return true;   // isValid hic yoksa gecerli varsay
+  } catch (e) {
+    return false;
+  }
+}
+
+// Date.now bazi calisma ortamlarinda olmayabilir; olcum onsuz da calissin
+const ZAMAN_VAR = (typeof Date !== "undefined" && typeof Date.now === "function");
+function simdiMs() { return ZAMAN_VAR ? Date.now() : 0; }
+
 // Sohbete yazmak dunya hazir olmadan calismaz; o yuzden ayri ve korumali
 function sohbeteYaz(metin) {
   try {
@@ -300,7 +320,7 @@ system.runInterval(() => {
   blokButcesi = TICK_BLOK_BUTCESI;
   varlikButcesi = TICK_VARLIK_BUTCESI;
 
-  const baslangic = OLCUM_ACIK ? Date.now() : 0;
+  const baslangic = OLCUM_ACIK ? simdiMs() : 0;
 
   for (let i = isler.length - 1; i >= 0; i--) {
     const is = isler[i];
@@ -317,7 +337,7 @@ system.runInterval(() => {
   }
 
   if (OLCUM_ACIK) {
-    const gecen = Date.now() - baslangic;
+    const gecen = simdiMs() - baslangic;
     olcum.tickSayisi++;
     olcum.toplamMs += gecen;
     if (gecen > olcum.maksMs) olcum.maksMs = gecen;
@@ -326,9 +346,35 @@ system.runInterval(() => {
   }
 }, 1);
 
+/* ============================================================
+   OLAY ABONELIGI
+   Bir olay adi API surumunde yoksa .subscribe cagrisi script
+   YUKLENIRKEN hata firlatir ve tum paket olur. Orijinal kod
+   sadece itemUse kullaniyordu; playerLeave ve playerSpawn
+   sonradan eklendi, o yuzden her abonelik tek tek korunuyor.
+   Eksik olay artik sadece o ozelligi kapatir, paketi oldurmez.
+   ============================================================ */
+
+function olayaAbone(olayAdi, isleyici) {
+  try {
+    const olaylar = world.afterEvents;
+    const olay = olaylar ? olaylar[olayAdi] : undefined;
+    if (!olay || typeof olay.subscribe !== "function") {
+      bilgiYaz("UYARI: world.afterEvents." + olayAdi +
+               " bu API surumunde yok. Ilgili ozellik devre disi.");
+      return false;
+    }
+    olay.subscribe(isleyici);
+    return true;
+  } catch (e) {
+    hataYaz("olayaAbone(" + olayAdi + ")", e);
+    return false;
+  }
+}
+
 /* ---------------- Oyuncu ayrilinca temizle ---------------- */
 
-world.afterEvents.playerLeave.subscribe((olay) => {
+olayaAbone("playerLeave", (olay) => {
   const is = oyuncununIsi.get(olay.playerId);
   if (!is) return;
   const indeks = isler.indexOf(is);
@@ -341,7 +387,7 @@ world.afterEvents.playerLeave.subscribe((olay) => {
    Bu satiri gormuyorsan paket ya etkin degil ya da script hic
    calismamis demektir.                                            */
 
-world.afterEvents.playerSpawn.subscribe((olay) => {
+olayaAbone("playerSpawn", (olay) => {
   if (!olay.initialSpawn) return;
   if (!OLCUM_SOHBETE && !HATA_SOHBETE) return;
   try {
@@ -360,7 +406,7 @@ world.afterEvents.playerSpawn.subscribe((olay) => {
 
 const sonKullanim = new Map();
 
-world.afterEvents.itemUse.subscribe((olay) => {
+const girisKuruldu = olayaAbone("itemUse", (olay) => {
   try {
     const oyuncu = olay.source;
     const esya = olay.itemStack;
@@ -381,7 +427,7 @@ world.afterEvents.itemUse.subscribe((olay) => {
 
     system.runTimeout(() => {
       try {
-        if (!oyuncu.isValid) return;
+        if (!gecerliMi(oyuncu)) return;
         yetenekBaslat(oyuncu, tip);
       } catch (e) {
         hataYaz("yetenekBaslat(" + tip + ")", e);
@@ -392,6 +438,10 @@ world.afterEvents.itemUse.subscribe((olay) => {
     hataYaz("itemUse", e);
   }
 });
+
+if (!girisKuruldu) {
+  bilgiYaz("KRITIK: itemUse olayina abone olunamadi, hicbir yetenek calismaz.");
+}
 
 function yetenekBaslat(oyuncu, tip) {
   // Gecikme sirasinda baska bir is baslamis olabilir
@@ -434,7 +484,7 @@ function kollariKaldir(oyuncu) {
 
 function kollariIndir(oyuncu) {
   try {
-    if (oyuncu.isValid) {
+    if (gecerliMi(oyuncu)) {
       oyuncu.runCommand("playanimation @s animation.zombie.attack_bare_hand a 0");
     }
   } catch (e) {
@@ -581,8 +631,7 @@ function alanSimsegiIsi(oyuncu) {
       for (let k = 0; k < izin; k++) {
         const hedef = hedefler[i++];
         try {
-          // isValid @minecraft/server 2.x'te property, metot degil
-          if (hedef.isValid) {
+          if (gecerliMi(hedef)) {
             boyut.spawnEntity("minecraft:lightning_bolt", hedef.location);
           }
         } catch (e) {
@@ -816,7 +865,7 @@ function toprakTopuIsi(oyuncu) {
       sonrakiAdim = system.currentTick + TOP_ARALIK;
 
       // 4) Oyuncu hala gecerli mi (ayrildiysa/oldu ise topu temizleyip bitir)
-      if (!oyuncu.isValid) {
+      if (!gecerliMi(oyuncu)) {
         bitisiKur({ x: poz.x, y: poz.y, z: poz.z });
         return false;
       }
