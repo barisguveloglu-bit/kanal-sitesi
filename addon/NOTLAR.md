@@ -152,19 +152,26 @@ toprak topu normal sonucu üretiyor.
 
 ## Aşama 2 — yıldırım ayarları ve eşyasız tetikleme
 
-### Yıldırım süresi kısaldı
+### Yıldırım süresi
 
-Yağmurun süresi `ceil(sayı / grup) * aralık` tick.
+Yağmurun süresi `ceil(sayı / grup) * aralık` tick (20 tick = 1 sn).
 
 | | grup | aralık | süre |
 |---|---|---|---|
-| Şimşek (eski) | 2 | 3 | 30 tick — 1.5 sn |
-| **Şimşek (yeni)** | **4** | **2** | **10 tick — 0.5 sn** |
+| İlk hâli | 2 | 3 | 30 tick — 1.5 sn |
+| Kısaltılan | 4 | 2 | 10 tick — 0.5 sn |
+| **Şimdiki** | **1** | **3** | **60 tick — 3.0 sn** |
 | TNT | 2 | 2 | değişmedi |
 
-Daha da hızlı istenirse `SIMSEK_ARALIK = 1` (5 tick ≈ 0.25 sn). Grubu 4'ün
-üzerine çıkarmak için `TICK_VARLIK_BUTCESI` de yükseltilmeli, yoksa bütçe
-fazlasını sonraki tick'e atar ve süre kısalmaz.
+Şimşekler artık teker teker düşüyor, hepsi birden değil. Ölçüldü: 20 yıldırım
+58 tick (2.9 sn).
+
+Daha uzun istenirse `SIMSEK_ARALIK` büyütülür (4 → 4.0 sn, 5 → 5.0 sn).
+`SIMSEK_SAYISI` artırmak da süreyi uzatır ve daha çok yıldırım düşürür.
+
+**Dikkat:** yağmur `BEKLEME` süresinden uzun olursa yeni tetikleme beklemeye
+takılır. Şu an ikisi de 60 tick. `SIMSEK_ARALIK`'ı 4'e çıkarırsan `BEKLEME`'yi
+de 80 yap.
 
 ### Eşyasız tetikleme
 

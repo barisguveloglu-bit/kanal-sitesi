@@ -22,17 +22,26 @@ const TNT_SAYISI    = 30;   // toplam kac TNT dussun
 const TNT_YUKSEKLIK = 30;   // TNT hedefin kac blok ustunde dogsun
 
 /* Yagmurun ne kadar surede bitecegi.
-   Sure = ceil(sayi / grup) * aralik  tick.
+   Sure = ceil(sayi / grup) * aralik  tick.  (20 tick = 1 saniye)
 
-   Simsek eskiden: grup 2, aralik 3 -> 10 parti x 3 = 30 tick (1.5 sn)
-   Simsek simdi  : grup 4, aralik 2 ->  5 parti x 2 = 10 tick (0.5 sn)
+   Simsek gecmisi:
+     ilk hali : grup 2, aralik 3 -> 10 parti x 3 = 30 tick (1.5 sn)
+     kisaltilan: grup 4, aralik 2 ->  5 parti x 2 = 10 tick (0.5 sn)
+     SIMDIKI  : grup 1, aralik 3 -> 20 parti x 3 = 60 tick (3.0 sn)
 
-   Daha da hizli istersen SIMSEK_ARALIK'i 1 yap (5 tick = 0.25 sn).
-   Grubu 4'un uzerine cikarmak icin TICK_VARLIK_BUTCESI'ni de
-   yukseltmen gerekir, yoksa butce fazlasini sonraki tick'e atar
-   ve sure kisalmaz.                                                */
-const SIMSEK_GRUP   = 4;    // her partide kac simsek dussun
-const SIMSEK_ARALIK = 2;    // partiler arasi tick
+   Simdi simsekler teker teker dusuyor, hepsi birden degil; hem daha
+   uzun suruyor hem daha etkileyici duruyor.
+
+   Daha da uzun istersen SIMSEK_ARALIK'i buyut:
+     aralik 4 -> 80 tick (4.0 sn)
+     aralik 5 -> 100 tick (5.0 sn)
+   SIMSEK_SAYISI'ni artirmak da sureyi uzatir ve daha cok yildirim dusurur.
+
+   DIKKAT: yagmur BEKLEME suresinden uzun olursa yeni tetikleme
+   beklemeye takilir. Suan bekleme 60 tick, yagmur da 60 tick.
+   Aralik 4'e cikarirsan BEKLEME'yi de 80'e cikar.                  */
+const SIMSEK_GRUP   = 1;    // her partide kac simsek dussun
+const SIMSEK_ARALIK = 3;    // partiler arasi tick
 const TNT_GRUP      = 2;    // her partide kac TNT dussun
 const TNT_ARALIK    = 2;    // partiler arasi tick
 
