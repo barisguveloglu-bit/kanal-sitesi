@@ -150,6 +150,54 @@ Bu yol ayrıca test ediliyor: `playerSpawn`/`playerLeave` silinmiş, `isValid`
 metot yapılmış ve `Date` kaldırılmış sahte bir API'de script yükleniyor ve
 toprak topu normal sonucu üretiyor.
 
+## Aşama 2 — yıldırım ayarları ve eşyasız tetikleme
+
+### Yıldırım süresi kısaldı
+
+Yağmurun süresi `ceil(sayı / grup) * aralık` tick.
+
+| | grup | aralık | süre |
+|---|---|---|---|
+| Şimşek (eski) | 2 | 3 | 30 tick — 1.5 sn |
+| **Şimşek (yeni)** | **4** | **2** | **10 tick — 0.5 sn** |
+| TNT | 2 | 2 | değişmedi |
+
+Daha da hızlı istenirse `SIMSEK_ARALIK = 1` (5 tick ≈ 0.25 sn). Grubu 4'ün
+üzerine çıkarmak için `TICK_VARLIK_BUTCESI` de yükseltilmeli, yoksa bütçe
+fazlasını sonraki tick'e atar ve süre kısalmaz.
+
+### Eşyasız tetikleme
+
+Elin boşken **yukarı bak + eğil (sneak)**, yaklaşık yarım saniye tut →
+kollar kalkar ve etrafına yıldırım yağar. `blaze_rod` hâlâ çalışıyor,
+kaldırılmadı.
+
+| ayar | varsayılan | ne yapar |
+|---|---|---|
+| `ESYASIZ_ACIK` | `true` | özelliği açar/kapatır |
+| `ESYASIZ_EGILME_SART` | `true` | eğilme de gerekli mi |
+| `ESYASIZ_BAKIS_ESIGI` | `0.9` | yukarı bakış eşiği (1.0 = tam dik) |
+| `ESYASIZ_TUTMA` | `8` | kaç tick tutulmalı |
+| `ESYASIZ_TARAMA` | `4` | kaç tick'te bir kontrol |
+| `ESYASIZ_IC_YARICAP` | `6` | oyuncuya en yakın kaç blok |
+| `ESYASIZ_DIS_YARICAP` | `14` | en uzak kaç blok |
+
+İki tasarım kararı:
+
+**Yıldırım oyuncunun üzerine değil, etrafındaki halkaya düşüyor.**
+Tetiklemek için yukarı bakmak gerektiğinden "baktığı yer" gökyüzü olurdu ve
+yıldırım 150 blok yukarıda görünmez şekilde doğardı. Ayrıca üstüne düşseydi
+tetikleyen kişi kendi yıldırımından ölürdü. İç yarıçap güvenlik payı.
+
+**Duruşu bozmadan tekrar tetiklenmiyor.** İlk halde el yukarıda beklerken
+bekleme süresi her dolduğunda kendiliğinden yeniden yağıyordu (testte 20
+yerine 40 yıldırım çıktı). Artık tekrar tetiklemek için duruşu bozup yeniden
+yapmak gerekiyor.
+
+**Maliyet:** tarama 4 tick'te bir yapılıyor (saniyede 5 kez), sadece
+`getAllPlayers` + `isSneaking` + `getViewDirection`. Blok bütçesine
+dokunmuyor.
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:

@@ -21,6 +21,37 @@ const SIMSEK_SAYISI = 20;   // toplam kac simsek dussun
 const TNT_SAYISI    = 30;   // toplam kac TNT dussun
 const TNT_YUKSEKLIK = 30;   // TNT hedefin kac blok ustunde dogsun
 
+/* Yagmurun ne kadar surede bitecegi.
+   Sure = ceil(sayi / grup) * aralik  tick.
+
+   Simsek eskiden: grup 2, aralik 3 -> 10 parti x 3 = 30 tick (1.5 sn)
+   Simsek simdi  : grup 4, aralik 2 ->  5 parti x 2 = 10 tick (0.5 sn)
+
+   Daha da hizli istersen SIMSEK_ARALIK'i 1 yap (5 tick = 0.25 sn).
+   Grubu 4'un uzerine cikarmak icin TICK_VARLIK_BUTCESI'ni de
+   yukseltmen gerekir, yoksa butce fazlasini sonraki tick'e atar
+   ve sure kisalmaz.                                                */
+const SIMSEK_GRUP   = 4;    // her partide kac simsek dussun
+const SIMSEK_ARALIK = 2;    // partiler arasi tick
+const TNT_GRUP      = 2;    // her partide kac TNT dussun
+const TNT_ARALIK    = 2;    // partiler arasi tick
+
+/* ---------------- Esyasiz tetikleme ----------------
+   Elin bosken yukari bakip egilince (sneak) etrafina yildirim
+   yagiyor. Esya tutmaya gerek yok; blaze_rod hala calisiyor.
+
+   Yildirim oyuncunun UZERINE degil, etrafindaki halkaya duser --
+   yoksa kendini oldururdun. Ic yaricapi kucultursen kendine
+   isabet etme ihtimali artar.                                     */
+const ESYASIZ_ACIK        = true;
+const ESYASIZ_EGILME_SART = true;  // egilmek de gerekli mi (yanlislikla tetiklenmesin)
+const ESYASIZ_BAKIS_ESIGI = 0.9;   // yukari bakis esigi (1.0 = tam dik yukari)
+const ESYASIZ_TUTMA       = 8;     // kac tick boyunca tutulmali
+const ESYASIZ_TARAMA      = 4;     // kac tick'te bir kontrol edilsin
+const ESYASIZ_SAYISI      = 20;    // kac yildirim dussun
+const ESYASIZ_IC_YARICAP  = 6;     // oyuncuya en yakin kac blok (guvenlik payi)
+const ESYASIZ_DIS_YARICAP = 14;    // en uzak kac blok
+
 // Alan simsegi
 const ALAN_YARICAP = 25;    // etrafindaki kac blokluk moblar vurulsun
 
@@ -315,6 +346,15 @@ function isSil(indeks) {
 }
 
 system.runInterval(() => {
+  // Esyasiz tetikleme taramasi: is olmasa da calismali
+  if (ESYASIZ_ACIK) {
+    try {
+      esyasizTara();
+    } catch (e) {
+      hataYaz("esyasizTara", e);
+    }
+  }
+
   if (isler.length === 0) return;
 
   blokButcesi = TICK_BLOK_BUTCESI;
@@ -375,8 +415,12 @@ function olayaAbone(olayAdi, isleyici) {
 /* ---------------- Oyuncu ayrilinca temizle ---------------- */
 
 olayaAbone("playerLeave", (olay) => {
+  esyasizTutma.delete(olay.playerId);
   const is = oyuncununIsi.get(olay.playerId);
-  if (!is) return;
+  if (!is) {
+    sonKullanim.delete(olay.playerId);
+    return;
+  }
   const indeks = isler.indexOf(is);
   if (indeks !== -1) isSil(indeks);
   sonKullanim.delete(olay.playerId);
@@ -406,6 +450,33 @@ olayaAbone("playerSpawn", (olay) => {
 
 const sonKullanim = new Map();
 
+// Esyasiz tetikleme icin de kullanilan ortak yol
+const ESYASIZ_TIP = "esyasiz:yildirim";
+
+function yetenekTetikle(oyuncu, tip) {
+  // Oyuncu basina tek aktif efekt: ust uste tetikleme yuku katlamasin
+  if (oyuncununIsi.has(oyuncu.id)) return false;
+
+  const simdi = system.currentTick;
+  const onceki = sonKullanim.get(oyuncu.id);
+  if (onceki !== undefined && simdi - onceki < BEKLEME) return false;
+  sonKullanim.set(oyuncu.id, simdi);
+
+  kollariKaldir(oyuncu);
+
+  system.runTimeout(() => {
+    try {
+      if (!gecerliMi(oyuncu)) return;
+      yetenekBaslat(oyuncu, tip);
+    } catch (e) {
+      hataYaz("yetenekBaslat(" + tip + ")", e);
+      kollariIndir(oyuncu);
+    }
+  }, KOL_GECIKME);
+
+  return true;
+}
+
 const girisKuruldu = olayaAbone("itemUse", (olay) => {
   try {
     const oyuncu = olay.source;
@@ -415,25 +486,7 @@ const girisKuruldu = olayaAbone("itemUse", (olay) => {
     const tip = esya.typeId;
     if (tip !== SIMSEK_ESYA && tip !== ALAN_ESYA && tip !== TNT_ESYA && tip !== TOP_ESYA) return;
 
-    // Oyuncu basina tek aktif efekt: ust uste tetikleme yuku katlamasin
-    if (oyuncununIsi.has(oyuncu.id)) return;
-
-    const simdi = system.currentTick;
-    const onceki = sonKullanim.get(oyuncu.id);
-    if (onceki !== undefined && simdi - onceki < BEKLEME) return;
-    sonKullanim.set(oyuncu.id, simdi);
-
-    kollariKaldir(oyuncu);
-
-    system.runTimeout(() => {
-      try {
-        if (!gecerliMi(oyuncu)) return;
-        yetenekBaslat(oyuncu, tip);
-      } catch (e) {
-        hataYaz("yetenekBaslat(" + tip + ")", e);
-        kollariIndir(oyuncu);
-      }
-    }, KOL_GECIKME);
+    yetenekTetikle(oyuncu, tip);
   } catch (e) {
     hataYaz("itemUse", e);
   }
@@ -459,6 +512,18 @@ function yetenekBaslat(oyuncu, tip) {
     return;
   }
 
+  // Esyasiz: yildirim oyuncunun ETRAFINA yagar, baktigi yere degil.
+  // Tetiklemek icin yukari bakmak gerektiginden "baktigi yer" gokyuzu
+  // olurdu ve yildirim 150 blok yukarida gorunmez sekilde dogardi.
+  if (tip === ESYASIZ_TIP) {
+    const k = oyuncu.location;
+    const merkez = { x: k.x, y: k.y, z: k.z };
+    isEkle(yagdirIsi(oyuncu, merkez, "minecraft:lightning_bolt",
+                     ESYASIZ_SAYISI, 0, SIMSEK_ARALIK, SIMSEK_GRUP,
+                     { ic: ESYASIZ_IC_YARICAP, dis: ESYASIZ_DIS_YARICAP }));
+    return;
+  }
+
   const hedef = hedefBul(oyuncu);
   if (!hedef) {
     kollariIndir(oyuncu);
@@ -466,9 +531,76 @@ function yetenekBaslat(oyuncu, tip) {
   }
 
   if (tip === SIMSEK_ESYA) {
-    isEkle(yagdirIsi(oyuncu, hedef, "minecraft:lightning_bolt", SIMSEK_SAYISI, 0, 3));
+    isEkle(yagdirIsi(oyuncu, hedef, "minecraft:lightning_bolt",
+                     SIMSEK_SAYISI, 0, SIMSEK_ARALIK, SIMSEK_GRUP, null));
   } else {
-    isEkle(yagdirIsi(oyuncu, hedef, "minecraft:tnt", TNT_SAYISI, TNT_YUKSEKLIK, 2));
+    isEkle(yagdirIsi(oyuncu, hedef, "minecraft:tnt",
+                     TNT_SAYISI, TNT_YUKSEKLIK, TNT_ARALIK, TNT_GRUP, null));
+  }
+}
+
+/* ============================================================
+   ESYASIZ TETIKLEME
+   Elin bosken yukari bak + egil -> etrafina yildirim.
+   Her tick oyuncu taramak israf oldugu icin ESYASIZ_TARAMA
+   tick'te bir bakiliyor.
+   ============================================================ */
+
+const esyasizTutma = new Map();   // oyuncuId -> kac tick tutuldu (veya TETIKLENDI)
+const ESYASIZ_TETIKLENDI = -1;    // durus bozulana kadar tekrar tetikleme
+let esyasizSayac = 0;
+
+function esyasizDurus(oyuncu) {
+  if (ESYASIZ_EGILME_SART && !oyuncu.isSneaking) return false;
+  const yon = oyuncu.getViewDirection();
+  return yon.y >= ESYASIZ_BAKIS_ESIGI;
+}
+
+function esyasizTara() {
+  if (++esyasizSayac < ESYASIZ_TARAMA) return;
+  esyasizSayac = 0;
+
+  let oyuncular;
+  try {
+    oyuncular = world.getAllPlayers();
+  } catch (e) {
+    hataYaz("esyasizTara.getAllPlayers", e);
+    return;
+  }
+  if (!oyuncular || oyuncular.length === 0) return;
+
+  for (const oyuncu of oyuncular) {
+    try {
+      const durum = esyasizTutma.get(oyuncu.id);
+
+      // Durus bozulduysa sifirla; tekrar tetiklemenin tek yolu bu
+      if (!esyasizDurus(oyuncu)) {
+        if (durum !== undefined) esyasizTutma.delete(oyuncu.id);
+        continue;
+      }
+
+      // Bir kez tetiklendi: durusu bozup yeniden yapmadan tekrarlamasin.
+      // Yoksa el yukarida beklerken bekleme suresi her doldugunda
+      // kendiliginden yeniden yagardi.
+      if (durum === ESYASIZ_TETIKLENDI) continue;
+
+      // Efekt suruyorsa sayaci koru, sifirlama
+      if (oyuncununIsi.has(oyuncu.id)) continue;
+
+      const tutulan = (durum || 0) + ESYASIZ_TARAMA;
+      if (tutulan < ESYASIZ_TUTMA) {
+        esyasizTutma.set(oyuncu.id, tutulan);
+        continue;
+      }
+
+      // Bekleme suresi dolmadiysa tetiklenmez; o zaman isaretleme de
+      // yapma ki bekleme bitince ayni durusla tekrar denenebilsin.
+      if (yetenekTetikle(oyuncu, ESYASIZ_TIP)) {
+        esyasizTutma.set(oyuncu.id, ESYASIZ_TETIKLENDI);
+      }
+    } catch (e) {
+      hataYaz("esyasizTara", e);
+    }
   }
 }
 
@@ -524,7 +656,7 @@ function hedefBul(oyuncu) {
    YON SIMSEGI VE TNT YAGMURU
    ============================================================ */
 
-function yagdirIsi(oyuncu, hedef, varlik, toplam, yukseklik, aralik) {
+function yagdirIsi(oyuncu, hedef, varlik, toplam, yukseklik, aralik, grup, halka) {
   const boyut = oyuncu.dimension;
   const sinir = yukseklikAraligi(boyut);
   const oyuncuId = oyuncu.id;
@@ -542,14 +674,24 @@ function yagdirIsi(oyuncu, hedef, varlik, toplam, yukseklik, aralik) {
     calis() {
       if (system.currentTick < sonrakiTick) return false;
 
-      // Butce izin verdigi kadar dogur, en fazla 2 (eski davranis)
-      const izin = varlikIste(2 < (toplam - dogan) ? 2 : (toplam - dogan));
+      const kalan = toplam - dogan;
+      const izin = varlikIste(grup < kalan ? grup : kalan);
       if (izin === 0) return false;   // butce dolu, sonraki tick'te devam
 
       for (let i = 0; i < izin; i++) {
-        nokta.x = hedef.x + (Math.random() * 2 - 1) * YAYILMA;
-        nokta.y = hedef.y + yukseklik;
-        nokta.z = hedef.z + (Math.random() * 2 - 1) * YAYILMA;
+        if (halka) {
+          // Oyuncunun etrafindaki halkaya dagit: ic yaricaptan yakina
+          // dusmesin ki tetikleyen kisi kendi yildirimindan olmesin.
+          const aci = Math.random() * Math.PI * 2;
+          const mesafe = halka.ic + Math.random() * (halka.dis - halka.ic);
+          nokta.x = hedef.x + Math.cos(aci) * mesafe;
+          nokta.y = hedef.y + yukseklik;
+          nokta.z = hedef.z + Math.sin(aci) * mesafe;
+        } else {
+          nokta.x = hedef.x + (Math.random() * 2 - 1) * YAYILMA;
+          nokta.y = hedef.y + yukseklik;
+          nokta.z = hedef.z + (Math.random() * 2 - 1) * YAYILMA;
+        }
 
         // Sinir disina dogurmaya calisirsak istisna yerine atla
         if (nokta.y < sinir.min || nokta.y > sinir.max) {
