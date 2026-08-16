@@ -45,21 +45,44 @@ const SIMSEK_ARALIK = 3;    // partiler arasi tick
 const TNT_GRUP      = 2;    // her partide kac TNT dussun
 const TNT_ARALIK    = 2;    // partiler arasi tick
 
-/* ---------------- Esyasiz tetikleme ----------------
-   Elin bosken yukari bakip egilince (sneak) etrafina yildirim
-   yagiyor. Esya tutmaya gerek yok; blaze_rod hala calisiyor.
+/* ============================================================
+   ESYASIZ TETIKLEME
+   Elde esya tutmadan dort yetenegin hepsi kullanilabiliyor.
+   Esyalar da calismaya devam ediyor, kaldirilmadi.
 
-   Yildirim oyuncunun UZERINE degil, etrafindaki halkaya duser --
-   yoksa kendini oldururdun. Ic yaricapi kucultursen kendine
-   isabet etme ihtimali artar.                                     */
+   NEDEN JEST? Minecraft'ta "kolunu kaldir" diye bir oyuncu
+   girdisi YOK. playanimation kolu kaldiran bir KOMUT, yani
+   bizim oynattigimiz bir animasyon; oyuncunun yaptigi bir sey
+   degil ve okunamaz. Script'in gorebilecegi gercek girdiler
+   egilme, ziplama, kosma ve bakis yonu.
+
+   SEMA (ikisi de egilmeyi gerektirir, yanlislikla tetiklenmesin):
+     egil + tam yukari bak  -> yetenek DEGISTIR (actionbar'da yazar)
+     egil + zipla           -> secili yetenegi CALISTIR
+
+   Neden boyle: yon simsegi, TNT ve toprak topu baktigin yere
+   gidiyor. Calistirma jesti bakisi kisitlasaydi nisan alamazdin.
+   Ziplama bakistan bagimsiz, o yuzden calistirma ona bagli.
+   ============================================================ */
 const ESYASIZ_ACIK        = true;
-const ESYASIZ_EGILME_SART = true;  // egilmek de gerekli mi (yanlislikla tetiklenmesin)
+const ESYASIZ_EGILME_SART = true;  // jestler egilme gerektirsin mi
 const ESYASIZ_BAKIS_ESIGI = 0.9;   // yukari bakis esigi (1.0 = tam dik yukari)
-const ESYASIZ_TUTMA       = 8;     // kac tick boyunca tutulmali
+const ESYASIZ_TUTMA       = 8;     // degistirme jesti kac tick tutulmali
 const ESYASIZ_TARAMA      = 4;     // kac tick'te bir kontrol edilsin
-const ESYASIZ_SAYISI      = 20;    // kac yildirim dussun
+const ESYASIZ_SAYISI      = 20;    // yildirim halkasinda kac yildirim dussun
 const ESYASIZ_IC_YARICAP  = 6;     // oyuncuya en yakin kac blok (guvenlik payi)
 const ESYASIZ_DIS_YARICAP = 14;    // en uzak kac blok
+
+// Esyasiz kullanilabilen yetenekler ve sirasi.
+// Siradan cikarmak istersen satiri sil, yeni eklemek icin satir ekle.
+const ESYASIZ_TIP = "esyasiz:yildirim";
+const ESYASIZ_SIRA = [
+  { ad: "Yildirim Halkasi", tip: ESYASIZ_TIP },
+  { ad: "Yon Simsegi",      tip: SIMSEK_ESYA },
+  { ad: "Alan Simsegi",     tip: ALAN_ESYA },
+  { ad: "TNT Yagmuru",      tip: TNT_ESYA },
+  { ad: "Toprak Topu",      tip: TOP_ESYA }
+];
 
 // Alan simsegi
 const ALAN_YARICAP = 25;    // etrafindaki kac blokluk moblar vurulsun
@@ -425,6 +448,8 @@ function olayaAbone(olayAdi, isleyici) {
 
 olayaAbone("playerLeave", (olay) => {
   esyasizTutma.delete(olay.playerId);
+  esyasizSecim.delete(olay.playerId);
+  esyasizZipla.delete(olay.playerId);
   const is = oyuncununIsi.get(olay.playerId);
   if (!is) {
     sonKullanim.delete(olay.playerId);
@@ -458,9 +483,6 @@ olayaAbone("playerSpawn", (olay) => {
    ============================================================ */
 
 const sonKullanim = new Map();
-
-// Esyasiz tetikleme icin de kullanilan ortak yol
-const ESYASIZ_TIP = "esyasiz:yildirim";
 
 function yetenekTetikle(oyuncu, tip) {
   // Oyuncu basina tek aktif efekt: ust uste tetikleme yuku katlamasin
@@ -555,14 +577,56 @@ function yetenekBaslat(oyuncu, tip) {
    tick'te bir bakiliyor.
    ============================================================ */
 
-const esyasizTutma = new Map();   // oyuncuId -> kac tick tutuldu (veya TETIKLENDI)
-const ESYASIZ_TETIKLENDI = -1;    // durus bozulana kadar tekrar tetikleme
+const esyasizTutma = new Map();    // oyuncuId -> degistirme jesti kac tick tutuldu
+const esyasizSecim = new Map();    // oyuncuId -> ESYASIZ_SIRA icindeki indeks
+const esyasizZipla = new Map();    // oyuncuId -> onceki tarama ziplamada miydi
+const ESYASIZ_TAMAM = -1;          // jest islendi, durus bozulana kadar tekrarlama
 let esyasizSayac = 0;
 
-function esyasizDurus(oyuncu) {
-  if (ESYASIZ_EGILME_SART && !oyuncu.isSneaking) return false;
-  const yon = oyuncu.getViewDirection();
-  return yon.y >= ESYASIZ_BAKIS_ESIGI;
+// isJumping bazi surumlerde olmayabilir; bir kez sinanip onbellege alinir
+let ziplamaVar;
+
+function ziplamaOkunabilir(oyuncu) {
+  if (ziplamaVar === undefined) {
+    ziplamaVar = (typeof oyuncu.isJumping === "boolean");
+    if (!ziplamaVar) {
+      bilgiYaz("UYARI: player.isJumping yok. Esyasiz CALISTIRMA jesti " +
+               "kullanilamiyor, sadece yetenek degistirme calisir.");
+    }
+  }
+  return ziplamaVar;
+}
+
+function egilmeTamam(oyuncu) {
+  return !ESYASIZ_EGILME_SART || oyuncu.isSneaking === true;
+}
+
+// Egil + tam yukari bak -> yetenek degistir
+function degistirmeDurusu(oyuncu) {
+  if (!egilmeTamam(oyuncu)) return false;
+  return oyuncu.getViewDirection().y >= ESYASIZ_BAKIS_ESIGI;
+}
+
+function actionbarYaz(oyuncu, metin) {
+  try {
+    const ekran = oyuncu.onScreenDisplay;
+    if (ekran && typeof ekran.setActionBar === "function") {
+      ekran.setActionBar(metin);
+      return;
+    }
+  } catch (e) {
+    // Actionbar yoksa sohbete dus
+  }
+  try {
+    oyuncu.sendMessage(metin);
+  } catch (e) {
+    hataYaz("actionbarYaz", e);
+  }
+}
+
+function secimAl(oyuncuId) {
+  const i = esyasizSecim.get(oyuncuId);
+  return (i === undefined) ? 0 : i;
 }
 
 function esyasizTara() {
@@ -580,37 +644,69 @@ function esyasizTara() {
 
   for (const oyuncu of oyuncular) {
     try {
-      const durum = esyasizTutma.get(oyuncu.id);
-
-      // Durus bozulduysa sifirla; tekrar tetiklemenin tek yolu bu
-      if (!esyasizDurus(oyuncu)) {
-        if (durum !== undefined) esyasizTutma.delete(oyuncu.id);
-        continue;
-      }
-
-      // Bir kez tetiklendi: durusu bozup yeniden yapmadan tekrarlamasin.
-      // Yoksa el yukarida beklerken bekleme suresi her doldugunda
-      // kendiliginden yeniden yagardi.
-      if (durum === ESYASIZ_TETIKLENDI) continue;
-
-      // Efekt suruyorsa sayaci koru, sifirlama
-      if (oyuncununIsi.has(oyuncu.id)) continue;
-
-      const tutulan = (durum || 0) + ESYASIZ_TARAMA;
-      if (tutulan < ESYASIZ_TUTMA) {
-        esyasizTutma.set(oyuncu.id, tutulan);
-        continue;
-      }
-
-      // Bekleme suresi dolmadiysa tetiklenmez; o zaman isaretleme de
-      // yapma ki bekleme bitince ayni durusla tekrar denenebilsin.
-      if (yetenekTetikle(oyuncu, ESYASIZ_TIP)) {
-        esyasizTutma.set(oyuncu.id, ESYASIZ_TETIKLENDI);
-      }
+      esyasizOyuncu(oyuncu);
     } catch (e) {
       hataYaz("esyasizTara", e);
     }
   }
+}
+
+function esyasizOyuncu(oyuncu) {
+  const id = oyuncu.id;
+
+  /* --- Jest 1: egil + zipla -> secili yetenegi calistir ---
+     Ziplama anlik bir durum. Basili tutuldugu surece tekrar
+     tetiklenmesin diye yalnizca "ziplamiyordu -> zipliyor"
+     gecisinde calisiyor.                                      */
+  if (ziplamaOkunabilir(oyuncu)) {
+    const simdiZipliyor = (oyuncu.isJumping === true) && egilmeTamam(oyuncu);
+    const oncekiZipliyor = esyasizZipla.get(id) === true;
+
+    if (simdiZipliyor !== oncekiZipliyor) esyasizZipla.set(id, simdiZipliyor);
+
+    if (simdiZipliyor && !oncekiZipliyor) {
+      const secim = ESYASIZ_SIRA[secimAl(id)];
+      if (secim && !yetenekTetikle(oyuncu, secim.tip)) {
+        // Bekleme suresi dolmadi: kalan sureyi goster
+        const kalan = kalanBekleme(id);
+        if (kalan > 0) {
+          actionbarYaz(oyuncu, "§7" + secim.ad + " §8· §c" +
+                       (kalan / 20).toFixed(1) + " sn");
+        }
+      }
+      return;
+    }
+  }
+
+  /* --- Jest 2: egil + tam yukari bak -> yetenek degistir --- */
+  const durum = esyasizTutma.get(id);
+
+  if (!degistirmeDurusu(oyuncu)) {
+    if (durum !== undefined) esyasizTutma.delete(id);
+    return;
+  }
+
+  // Bir kez degistirdi: durusu bozmadan tekrar degistirmesin
+  if (durum === ESYASIZ_TAMAM) return;
+
+  const tutulan = (durum || 0) + ESYASIZ_TARAMA;
+  if (tutulan < ESYASIZ_TUTMA) {
+    esyasizTutma.set(id, tutulan);
+    return;
+  }
+
+  esyasizTutma.set(id, ESYASIZ_TAMAM);
+  const yeni = (secimAl(id) + 1) % ESYASIZ_SIRA.length;
+  esyasizSecim.set(id, yeni);
+  actionbarYaz(oyuncu, "§6» §e" + ESYASIZ_SIRA[yeni].ad +
+               " §8(egil + zipla)");
+}
+
+function kalanBekleme(oyuncuId) {
+  const onceki = sonKullanim.get(oyuncuId);
+  if (onceki === undefined) return 0;
+  const gecen = system.currentTick - onceki;
+  return gecen < BEKLEME ? (BEKLEME - gecen) : 0;
 }
 
 /* ---------------- Kol animasyonu ---------------- */

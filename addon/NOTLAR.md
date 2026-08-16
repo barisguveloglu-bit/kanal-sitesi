@@ -173,23 +173,44 @@ Daha uzun istenirse `SIMSEK_ARALIK` büyütülür (4 → 4.0 sn, 5 → 5.0 sn).
 takılır. Şu an ikisi de 60 tick. `SIMSEK_ARALIK`'ı 4'e çıkarırsan `BEKLEME`'yi
 de 80 yap.
 
-### Eşyasız tetikleme
+### Eşyasız tetikleme — dört yeteneğin hepsi
 
-Elin boşken **yukarı bak + eğil (sneak)**, yaklaşık yarım saniye tut →
-kollar kalkar ve etrafına yıldırım yağar. `blaze_rod` hâlâ çalışıyor,
-kaldırılmadı.
+Eşya tutmadan hepsi kullanılabiliyor. Eşyalar da çalışmaya devam ediyor.
+
+| jest | ne yapar |
+|---|---|
+| **eğil + tam yukarı bak** (≈0.4 sn tut) | yeteneği değiştirir, actionbar'da yazar |
+| **eğil + zıpla** | seçili yeteneği çalıştırır |
+
+Sıra: Yıldırım Halkası → Yön Şimşeği → Alan Şimşeği → TNT Yağmuru →
+Toprak Topu → (başa döner). `ESYASIZ_SIRA` listesinden düzenlenir.
+
+**Neden jest, "kol kaldırma" değil?** Minecraft'ta "kolunu kaldır" diye bir
+oyuncu girdisi yok. `playanimation` kolu kaldıran bir **komut** — biz
+oynatıyoruz, oyuncu yapmıyor ve okunamıyor. Script'in görebildiği gerçek
+girdiler: eğilme, zıplama, koşma, bakış yönü, hareket.
+
+**Neden çalıştırma zıplamaya bağlı?** Yön şimşeği, TNT ve toprak topu
+baktığın yere gidiyor. Çalıştırma jesti bakışı kısıtlasaydı nişan
+alamazdın. Zıplama bakıştan bağımsız.
+
+Zıplama basılı tutulunca tekrarlamıyor — yalnızca "zıplamıyordu → zıplıyor"
+geçişinde tetikleniyor.
 
 | ayar | varsayılan | ne yapar |
 |---|---|---|
 | `ESYASIZ_ACIK` | `true` | özelliği açar/kapatır |
-| `ESYASIZ_EGILME_SART` | `true` | eğilme de gerekli mi |
+| `ESYASIZ_EGILME_SART` | `true` | jestler eğilme gerektirsin mi |
 | `ESYASIZ_BAKIS_ESIGI` | `0.9` | yukarı bakış eşiği (1.0 = tam dik) |
-| `ESYASIZ_TUTMA` | `8` | kaç tick tutulmalı |
+| `ESYASIZ_TUTMA` | `8` | değiştirme jesti kaç tick tutulmalı |
 | `ESYASIZ_TARAMA` | `4` | kaç tick'te bir kontrol |
 | `ESYASIZ_IC_YARICAP` | `6` | oyuncuya en yakın kaç blok |
 | `ESYASIZ_DIS_YARICAP` | `14` | en uzak kaç blok |
 
-İki tasarım kararı:
+`player.isJumping` API'de yoksa çalıştırma jesti devre dışı kalıyor ve
+Content Log'a uyarı düşüyor; değiştirme jesti çalışmaya devam ediyor.
+
+Yıldırım Halkası için iki tasarım kararı:
 
 **Yıldırım oyuncunun üzerine değil, etrafındaki halkaya düşüyor.**
 Tetiklemek için yukarı bakmak gerektiğinden "baktığı yer" gökyüzü olurdu ve
