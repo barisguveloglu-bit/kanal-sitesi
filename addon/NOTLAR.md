@@ -13,7 +13,7 @@ addon/
     manifest.json
     scripts/main.js
   paketle.sh                    -> kurulabilir .mcpack üretir
-  Simsek_TNT_ToprakTopu_v2.5.mcpack
+  Simsek_TNT_ToprakTopu_v2_5.mcpack
 ```
 
 Paketlemek için: `sh addon/paketle.sh`
