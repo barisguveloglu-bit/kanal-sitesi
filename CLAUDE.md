@@ -40,6 +40,13 @@ Sürüm: `python3 .claude/surum.py goster` — işaret: `python3 .claude/logo.py
 - Bir `.html`/`.css`/`.js`/`.xml` ya da `LORE.md` düzenlendiğinde bu denetim
   kendiliğinden çalışır: `settings.json` → `olay.py dagit` → `kanca.py`.
   Dağıtıcı araya sonradan girdi; kancayı doğrudan çağıran bir yol kalmadı.
+- Aynı denetimler **GitHub'da da** koşuyor: `.github/workflows/denetim.yml`
+  her push ve PR'da `dogrula`, `butunluk`, `sinav`, `arac-sinavi`,
+  `degerlendir` çalıştırır ve koşu sonrası deponun temiz kaldığını doğrular.
+  Kanca yerelde, iş akışı sunucuda — biri atlanırsa diğeri yakalar.
+  Mutasyon sınavı yavaş olduğu için orada haftalık ve elle tetiklenir.
+  Çıkış kodu sözleşmesi orada da geçerli; **0/1/3 dışında bir kod
+  "geçti" sayılmaz.**
 - `python3 .claude/ara.py "<soru>"` — canon içinde arar, cevabı **satır
   numarasıyla** döndürür. Bu evren hakkında hafızadan cevap verme; her
   iddiayı `LORE.md:201` gibi adresle.
