@@ -38,6 +38,9 @@
     "kol_kevin": {
       "textures": "textures/item/kol_kevin"
     },
+    "kol_gunes": {
+      "textures": "textures/item/kol_gunes"
+    },
     "iksir_nitroksin": {
       "textures": "textures/item/iksir_nitroksin"
     },

@@ -16,6 +16,8 @@ import {
   butceSifirla, olcumSifirla, olcumTickBasla, olcumTickBitir, olcumRaporla
 } from "./butce.js";
 
+import { menuAc } from "./menu.js";
+
 import {
   esyaninYetenekleri, yetenekAl, esyasizSira, tumYetenekler
 } from "./yetenekler/kayit.js";
@@ -51,6 +53,8 @@ import "./yetenekler/kasirga.js";
 import "./yetenekler/kubbe.js";
 import "./yetenekler/hapis.js";
 import "./yetenekler/dondur.js";
+import "./yetenekler/isin_topu.js";
+import "./yetenekler/yumruk.js";
 
 /* DIKKAT -- SIRA ONEMLI.
    kollar.js var olan yeteneklere esya BAGLIYOR, yani bagladigi
@@ -67,6 +71,10 @@ import {
 import {
   iksirTara, iksirAktifMi, kademeUnut, iksirSayisi
 } from "./yetenekler/iksirler.js";
+
+/* Gunes Yumrugu kaydi is listesinden bagimsiz bir Map'te; oyuncu
+   cikinca o da temizlenmeli.                                    */
+import { yumrukUnut } from "./yetenekler/yumruk.js";
 
 /* ============================================================
    MERKEZI TICK YONETICISI
@@ -234,6 +242,25 @@ const girisKuruldu = olayaAbone("itemUse", (olay) => {
        calistirir; jestle ayni davransin diye.                    */
     const liste = esyaninYetenekleri(esya.typeId);
     if (!liste || liste.length === 0) return;
+
+    /* EGILEREK kullanmak MENUYU acar (fikir Gunes modundan).
+       Tek yetenekli kolda secilecek bir sey yok, menu acilmiyor.
+       Menu kapali ya da modul yoksa eski davranisa dusuyor:
+       egilerek de kullansan yetenek calisir.                     */
+    if (oyuncu.isSneaking === true && liste.length > 1) {
+      const acildi = menuAc(
+        oyuncu,
+        "§e" + esya.typeId.slice(esya.typeId.indexOf(":") + 1),
+        liste,
+        kolSecimAl(oyuncu.id, esya.typeId, liste.length),
+        (indeks) => {
+          kolSecim.set(oyuncu.id, { esya: esya.typeId, i: indeks });
+          actionbarYaz(oyuncu, "§6» §e" + liste[indeks].ad +
+                       " §8(" + (indeks + 1) + "/" + liste.length + ")");
+        }
+      );
+      if (acildi) return;
+    }
 
     const tanim = liste[kolSecimAl(oyuncu.id, esya.typeId, liste.length)];
     yetenekTetikle(oyuncu, tanim.kimlik);
@@ -504,6 +531,7 @@ olayaAbone("playerLeave", (olay) => {
   kolVerTutma.delete(olay.playerId);
   kolSecim.delete(olay.playerId);
   kademeUnut(olay.playerId);
+  yumrukUnut(olay.playerId);
 
   // Oyuncunun butun isleri durdurulmali, sadece birincisi degil
   const acikIsler = oyuncununIsleri.get(olay.playerId);

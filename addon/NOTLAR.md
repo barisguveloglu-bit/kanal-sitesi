@@ -1378,6 +1378,94 @@ yüklenmesi, tavan).
 
 ---
 
+## Aşama 18 — Güneş modu: menü, ışın topu, yumruk (v4.8)
+
+Kaynak: `güneş modu muhammetlo mz.mcaddon`. Öncekilerden **çok farklı** —
+bu mod gerçek script içeriyor: 835 satır JS, `@minecraft/server-ui`
+menüleri, script tabanlı mermiler. Fikirleri iyi, uygulaması sorunlu.
+
+### Referanstaki hatalar
+
+**Var olmayan fonksiyon çağrılıyor.** `sp_hiperoksin_ultimega_system`
+iki ayrı dosyadan `runCommand("function ...")` ile çağrılıyor ama
+`functions/` altında **yok**. Lazer modunun ana eylemi bu — yani her
+sağ tıkta komut hatası.
+
+**Her atış kendi `system.runInterval`'ını açıyor.** Bütçe yok, üst üste
+biniyor. `kullanDalga` 3 tickte bir 8 hasar × 10 tekrar = 6 blok
+yarıçapındaki her şeye 80 hasar, oyunculara 100.
+
+**Oyuncu çıkınca interval durmuyor.** İçerideki `if (!p) return` sadece
+o tick'i atlıyor, `system.clearRun` çağrılmıyor — döngü dünya kapanana
+kadar dönüyor.
+
+**Durumlar oyuncu ADIYLA anahtarlanıyor** (`player.name`). Ad
+değişebilir; `sun_catalina_menu.js` adla, `gunesinoglu_hf.js` kimlikle
+tutuyor — aynı pakette iki farklı yöntem.
+
+**Her hedef iki kez vuruluyor.** `getEntities` + `getPlayers` ayrı ayrı
+taranıyor ama Bedrock'ta `getEntities` zaten oyuncuları kapsıyor.
+
+**`fireball.isValid()`** — yeni API'de `isValid` bir **özellik**, metot
+değil. Çağırınca hata fırlatıyor, `catch` yakalayıp interval'i hemen
+kapatıyor; yani yeşil topun çarpma tespiti hiç çalışmıyor.
+
+**Kırmızı Yumruk kalıcı.** Menüden "Aç" deyince kapatana kadar açık;
+`entityHurt` içinde `applyDamage` çağrılıyor ve bu yeni bir `entityHurt`
+üretiyor — sonsuz döngü koruması yok.
+
+**11 adet 0 baytlık JSON dosyası.** `items/pa_gunes_adam.json`,
+`entities/pa_lazer.json` ve benzerleri tamamen boş. Yanlarında iki nokta
+üst üsteli gerçek dosyalar var (`items/pa:gunes_adam.json`). **22 dosya
+adında `:` var** — Windows'ta bu dosyalar zaten çıkartılamaz.
+
+Devralınan tanıdıklar: `.data` (Addons Maker proje dosyası, içinde
+`/storage/emulated/0/Android/data/co.pamobile...` yolları), `player.json`
+şablonu, `@minecraft/server` **1.9.0** bildirimi.
+
+Hakkını yiyelim: `durability_manager.js` gerçekten iyi yazılmış (modern
+`ItemComponentTypes`, `startup` kaydı, private class alanları) ve
+`custom:fire_ball` parçacığı düzgün tanımlanmış.
+
+### Alınanlar
+
+**Menü** (`menu.js`). Fikir doğrudan referanstan: kolu **eğilerek**
+kullanınca yetenek menüsü açılıyor, normal kullanınca seçili yetenek
+çalışıyor. Toprak Kol'da sekiz yetenek var; sekizinciye jestle geçmek
+yedi kez "eğil + yukarı bak + bekle" demekti. Menü bunu tek dokunuşa
+indiriyor. Uzun süredir bekleyen iş listesindeydi.
+
+Kritik ayrıntı: `@minecraft/server-ui` **ayrı bir modül**. Statik import
+edilseydi ve modül yoksa `import` satırı modül bağlanırken patlar ve
+**paketin tamamı** ölürdü — kollar da, iksirler de. Dinamik `import()`
+kullanıldı; yüklenemezse menü sessizce kapanıyor ve jestle seçim eskisi
+gibi çalışıyor. Test bunu doğruluyor.
+
+**Işın Topu** (`isin_topu.js`). Script ile ilerleyen, her tick önünü
+tarayan mermi — bizde bu tür bir yetenek yoktu. Referansın beş kusuru
+da kapatıldı: merkezi iş listesinde (bütçeli), oyuncu çıkınca duruyor,
+tek tarama (iki kat hasar yok), duvara ve dünya sınırına çarpınca
+duruyor, kimlikle anahtarlanıyor. Hazırlık aşaması "Yeşil Top"tan
+alındı — elinde toplanırken nişanı değiştirebiliyorsun.
+
+**Güneş Yumruğu** (`yumruk.js`). Açıkken yumruğun ek hasar veriyor.
+Bizde "pasif mod" türünde hiç yetenek yoktu. Referansın kalıcılığı
+yerine **süreli**; ayrıca sonsuz döngü koruması var (`kendiHasarimiz`
+bayrağı) — referansta bu yoktu.
+
+İkisi de yeni **Güneş Kolu**'nda (`pa:kol_gunes`).
+
+### Alınmayanlar
+
+`Yıldırım` → `yon_simsegi` · `Dalga` → `alan_simsegi` + `cekme` ·
+`Lazer` → `goz_lazeri` · `Yeşil Top` (hazırlık fikri ışın topuna
+alındı, ateş topu fırlatma kısmı `guclu_tnt` ile örtüşüyor) ·
+`durability_manager.js` (bizim eşyalarımızda dayanıklılık yok).
+
+Test: 19/19 geçti (`gunes.mjs` yeni).
+
+---
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:

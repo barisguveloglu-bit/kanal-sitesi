@@ -62,6 +62,12 @@ export const KOL_ESYALARI = [
      hic calismiyordu.                                          */
   ["pa:kol_kevin",  "hapis", "dondur"],
 
+  /* GUNES KOL -- Gunes modundan alinan takim. O mod digerlerinin
+     aksine gercek script iceriyordu; fikirleri iyiydi ama her
+     atis kendi runInterval'ini aciyor, oyuncu cikinca durmuyor
+     ve durumlari oyuncu ADIYLA tutuyordu.                     */
+  ["pa:kol_gunes",  "isin_topu", "yumruk"],
+
   // Tek yetenekli kollar
   ["pa:kol_halka",  "yildirim_halkasi"],
   ["pa:kol_simsek", "yon_simsegi"],

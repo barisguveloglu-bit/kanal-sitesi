@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.7";
+export const SURUM = "v4.8";
 
 /* ---------------- Tetikleyici esyalar ---------------- */
 export const SIMSEK_ESYA = "minecraft:blaze_rod";     // baktigin yere simsek
@@ -726,6 +726,47 @@ export const DONDUR_SURE     = 200;  // tick (10 sn)
 export const DONDUR_YAVASLIK = 5;    // slowness seviyesi
 export const DONDUR_ARALIK   = 20;   // etki kac tickte bir tazelensin
 export const DONDUR_ANIM     = "animation.evoker.general a 999";
+
+
+/* ---------------- Menu (@minecraft/server-ui) ----------------
+   Fikir Gunes modundan: esyayi EGILEREK kullaninca menu acilir,
+   normal kullaninca secili yetenek calisir. Toprak Kol'da sekiz
+   yetenek var; sekizinciye jestle gecmek yedi kez "egil + yukari
+   bak + bekle" demekti. Menu bunu tek dokunusa indiriyor.
+
+   KAPATIRSAN hicbir sey kaybolmaz: jestle secim aynen calisir.
+   Modul yuklenemezse de kendiliginden kapaniyor.               */
+export const MENU_ACIK = true;
+
+/* ---------------- Isin topu ----------------
+   Fikir Gunes modundan ("Sari Particle At" + "Yesil Top"):
+   script ile ilerleyen, onunu tarayan mermi. Referansta her atis
+   kendi runInterval'ini aciyordu (butcesiz, ust uste binen) ve
+   oyuncu cikinca durmuyordu; burasi merkezi is listesinde.
+
+   ISINTOP_DELIP_GECER false: ilk hedefte durur (referans gibi).
+   true yaparsan sirayla ISINTOP_TAVAN hedefe kadar deler.      */
+export const ISINTOP_HAZIRLIK       = 20;   // elinde toplanma suresi (tick)
+export const ISINTOP_MENZIL         = 40;   // en fazla kac blok gitsin
+export const ISINTOP_HIZ            = 1.2;  // her tick kac blok ilerlesin
+export const ISINTOP_YARICAP        = 1.2;  // carpma tarama yaricapi
+export const ISINTOP_HASAR          = 7;
+export const ISINTOP_DELIP_GECER    = false;
+export const ISINTOP_TAVAN          = 3;    // delip gecerken en fazla kac hedef
+export const ISINTOP_PARCACIK       = "minecraft:basic_flame_particle";
+export const ISINTOP_HAZIR_PARCACIK = "minecraft:redstone_ore_dust_particle";
+
+/* ---------------- Gunes yumrugu ----------------
+   Fikir Gunes modundan ("Kirmizi Yumruk"): acikken vurdugun her
+   seye ek hasar. Referansta KALICIYDI -- kapatmayi unutursan
+   oyunun sonuna kadar acik kaliyordu. Burasi sureli.
+
+   DIKKAT: ek hasar entityHurt icinde veriliyor ve verilen hasar
+   yeni bir entityHurt uretiyor. Referansta bu korumasizdi;
+   yumruk.js'te "kendiHasarimiz" bayragi sonsuz donguyu kesiyor. */
+export const YUMRUK_SURE     = 200;   // tick (10 sn)
+export const YUMRUK_HASAR    = 5;     // normal vurusun USTUNE
+export const YUMRUK_PARCACIK = "minecraft:critical_hit_emitter";
 
 /* ---------------- Dunya yukseklik sinirlari ----------------
    heightRange okunamazsa bu tablo kullanilir.                      */
