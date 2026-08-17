@@ -80,6 +80,12 @@ export const KOL_ESYALARI = [
      iki sey buraya kondu.                                     */
   ["pa:kol_golge",  "ok_yagmuru", "sarsinti"],
 
+  /* KALP KOL -- kalp sayisini buyutur, geri de alir.
+     Iki yetenek ayni kolda cunku ikisi ayni seyin iki yonu:
+     ekle ve sifirla. Sifirlama ayrica HER kolun menusunde de
+     var -- kalici bir guc geri alinamiyorsa oyunu bozar.      */
+  ["pa:kol_kalp",   "kalp_ekle", "kalp_sifirla"],
+
   // Tek yetenekli kollar
   ["pa:kol_halka",  "yildirim_halkasi"],
   ["pa:kol_simsek", "yon_simsegi"],

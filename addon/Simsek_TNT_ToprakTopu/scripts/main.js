@@ -60,6 +60,8 @@ import "./yetenekler/yakala.js";
 import "./yetenekler/coklu_simsek.js";
 import "./yetenekler/ok_yagmuru.js";
 import "./yetenekler/sarsinti.js";
+import "./yetenekler/kalp_ekle.js";
+import "./yetenekler/kalp_sifirla.js";
 
 /* DIKKAT -- SIRA ONEMLI.
    kollar.js var olan yeteneklere esya BAGLIYOR, yani bagladigi
@@ -76,6 +78,11 @@ import {
 import {
   iksirTara, iksirAktifMi, kademeUnut, iksirSayisi
 } from "./yetenekler/iksirler.js";
+
+/* Kalpler de is listesine GIRMIYOR -- kalici oldugu icin oyuncunun
+   iki is yuvasindan birini sonsuza kadar tutardi. Defter ayri,
+   buradan sadece tazeleme cagriliyor.                            */
+import { kalpTara, kalpliVarMi } from "./yetenekler/_kalp_defteri.js";
 
 /* Gunes Yumrugu kaydi is listesinden bagimsiz bir Map'te; oyuncu
    cikinca o da temizlenmeli.                                    */
@@ -142,11 +149,32 @@ system.runInterval(() => {
   /* Iksir kademesi is listesine GIRMIYOR. Girseydi "oyuncu basina
      tek efekt" kurali yuzunden 60 saniye boyunca butun yetenekler
      kilitlenirdi. Ayrica Map bosken bu cagri bedava.            */
-  if (iksirAktifMi()) {
+  /* Kalp defteri de ayni sebeple is listesi disinda. Ikisi de
+     oyuncu listesi istiyor; getAllPlayers TEK kez cagriliyor,
+     ikisi de bosken hic cagrilmiyor.                           */
+  const iksirVar = iksirAktifMi();
+  const kalpVar = kalpliVarMi();
+  if (iksirVar || kalpVar) {
+    let oyuncular;
     try {
-      iksirTara(world.getAllPlayers());
+      oyuncular = world.getAllPlayers();
     } catch (e) {
-      hataYaz("iksirTara", e);
+      hataYaz("getAllPlayers", e);
+      oyuncular = [];
+    }
+    if (iksirVar) {
+      try {
+        iksirTara(oyuncular);
+      } catch (e) {
+        hataYaz("iksirTara", e);
+      }
+    }
+    if (kalpVar) {
+      try {
+        kalpTara(oyuncular);
+      } catch (e) {
+        hataYaz("kalpTara", e);
+      }
     }
   }
 
@@ -255,6 +283,13 @@ function menuEkleri(oyuncu) {
     {
       ad: "Gucu kapat",
       calis() { yetenekTetikle(oyuncu, "guc_kapat"); }
+    },
+    /* Kalpler KALICI. Geri alinamayan kalici bir guc oyunu bozar
+       (referans modlarin hatasi tam buydu), o yuzden iptali her
+       kolun menusunden bir dokunus uzakta.                       */
+    {
+      ad: "Kalpleri sifirla",
+      calis() { yetenekTetikle(oyuncu, "kalp_sifirla"); }
     }
   ];
 }

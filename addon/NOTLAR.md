@@ -2146,6 +2146,100 @@ Geri kalan 4092 piksel saydam. Test: 27/27 geçti.
 
 ---
 
+## Aşama 30 — kalp ekleme (v4.20)
+
+İstek: kalp ekleme özelliği, "bayağı bayağı" ekleyen türden.
+
+### `can_verme` ile karıştırılmaması gereken bir şey
+
+Zaten `can_verme` vardı ama o **boş kalpleri doldurur** (iyileştirme,
+geçici). İstenen ise **kalp sayısını büyütmek** — kalıcı ve birikmeli.
+İki ayrı yetenek olarak duruyorlar.
+
+### Sayılar
+
+Bedrock'ta maksimum can `health_boost` ile büyüyor:
+
+```
+health_boost seviye N  ->  +4 can x (N + 1)
+1 kalp = 2 can
+eklenen kalp = 2 x (seviye + 1)
+```
+
+Yani kalpler **çift sayılarla** artabiliyor; tek sayı verilirse aşağı
+yuvarlanıyor (`kalbiDuzelt`).
+
+| ayar | değer | neden |
+|---|---|---|
+| `KALP_ADIM` | 10 | bir basışta bir tam can barı, fark hemen görünsün |
+| `KALP_TAVAN` | 100 | toplam 110 kalp; yukarısı ekranda okunamıyor |
+| `KALP_TAZELEME` | 40 | efekt yenileme aralığı |
+| `KALP_SURE` | 200 | efekt süresi (tazelemenin 5 katı, arada sönmesin) |
+
+Motorun kendi sınırı seviye 255, yani 512 kalp — `kalbiDuzelt` orada
+kırpıyor ki ayar elle yükseltilirse sessizce bozulmasın.
+
+### Referansın üç hatası
+
+İncelenen iksir modlarının hepsinde aynı tek satır vardı:
+
+```
+effect @s health_boost 100000 255
+```
+
+1. **255 seviye = 256 kalp.** Can barı ekrana sığmıyor.
+2. **Geri alınamıyor.** Süt içmek dışında çıkış yok, o da bütün
+   efektleri siliyor.
+3. **Kalıcı değil.** Ölünce efekt gidiyor, kalpler kayboluyor ve geri
+   gelmiyor — "kalıcı güç" diye verilen şey ölümde sıfırlanıyor.
+
+### Bizde: defter kaynak, efekt görüntü
+
+`_kalp_defteri.js` kim kaç ek kalp aldığını tutuyor ve dünya
+özelliğine yazıyor. Efekt `KALP_TAZELEME`'de bir yeniden veriliyor.
+Minecraft'ta efektlerin silindiği **üç yer** — ölüm, sürenin dolması,
+süt — artık kalpleri götürmüyor; defter yerinde, efekt geri geliyor.
+
+İş listesine **girmiyor**: kalıcı olduğu için oyuncunun iki iş
+yuvasından birini sonsuza kadar tutardı ve kalp aldıktan sonra tek
+elle oynamak zorunda kalırdın. Hapis kafesleri de aynı sebeple ayrı
+defterde.
+
+### health_boost'un sessiz tuzağı
+
+Eklenen kalpler **boş** gelir. "10 kalp geldi" dersin, bar boş görünür.
+Ekledikten sonra can dolduruluyor — `resetToMaxValue`, yoksa
+`setCurrentValue(effectiveMax)`, o da yoksa `instant_health`. Üçü de
+yoksa kalpler yine ekleniyor, sadece boş geliyor.
+
+### Geri alma
+
+`kalp_sifirla` yeteneği ve **her kolun menüsünde** "Kalpleri sıfırla".
+Kalıcı bir güç geri alınamıyorsa oyunu bozar — referansın hatası tam
+buydu. Sıfırlarken can da dolduruluyor, yoksa tavan düşünce 2 canla
+kalırdın.
+
+### Yeni kol
+
+`pa:kol_kalp` — Kalp Kolu, iki yetenek (ekle + sıfırla). Kol sayısı
+15 → 16, yetenek 32 → 34, eşya 33 → 34.
+
+### Testte çıkan bakım tuzağı
+
+`kol2.mjs` kol listesini **elle yazılmış bir dizide** tutuyordu ve her
+yeni kolda kırılıyordu — üçüncü kez. Daha kötüsü, testin işi "items/
+altındaki eşya `kollar.js`'te bağlı mı" diye bakmaktı ama
+karşılaştırdığı şey elle tutulan bir kopyaydı; kopya güncellenmeyi
+unutulunca test gerçeği değil kendini doğruluyordu. Liste artık
+`kollar.js` kaynağından okunuyor.
+
+Yeni test dosyası `kalp.mjs` — 9 bölüm, özellikle "efekt silinse de
+geri geliyor" ve "dünya özelliğine yazılıyor" kısımları.
+
+Test: 27/27 geçti.
+
+---
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:

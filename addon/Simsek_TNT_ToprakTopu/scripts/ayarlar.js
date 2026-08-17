@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.19";
+export const SURUM = "v4.20";
 
 /* ---------------- Tetikleyici esyalar ---------------- */
 export const SIMSEK_ESYA = "minecraft:blaze_rod";     // baktigin yere simsek
@@ -852,6 +852,55 @@ export const HAPIS_AC_MENZIL = 48;   // bu mesafeden uzaktakini acmaz
 
 // Kafesler dunya ozelligine bu adla kaydediliyor
 export const HAPIS_KAYIT_ANAHTAR = "simsek:kafesler";
+
+/* ============================================================
+   KALP EKLEME
+
+   "Can verme" ile KARISTIRMA -- ikisi ayri is:
+
+     can_verme  -> bos kalpleri DOLDURUR (iyilestirme, gecici)
+     kalp_ekle  -> kalp SAYISINI buyutur (kalici, birikir)
+
+   Bedrock'ta maksimum can health_boost efektiyle buyutuluyor:
+
+     health_boost seviye N  ->  +4 CAN  x  (N + 1)
+     1 KALP = 2 CAN
+
+   Yani eklenen kalp = 2 x (seviye + 1). Bu yuzden kalpler
+   CIFT sayilarla artiyor; KALP_ADIM tek sayi verilirse asagi
+   yuvarlanir. Seviye tavani 255, yani motorun izin verdigi en
+   fazla 512 can = 256 kalp.
+
+   NEDEN KALP_ADIM 10: bir basista bir tam can barisi (10 kalp)
+   ekleniyor -- fark hemen gorunsun diye. KALP_TAVAN 100 ise
+   toplam 110 kalp eder; can bari ekranda satir satir sarilir,
+   daha yukarisi okunamaz hale geliyor.
+
+   UC TUZAK (referans modlarda hepsi var):
+
+   1. health_boost eklenen kalpleri BOS birakir. Icince "10 kalp
+      geldi" dersin ama bar bos gorunur. Bu yuzden ekledikten
+      sonra can DOLDURULUYOR (health.setCurrentValue).
+
+   2. Efekt olunce, cikip girince ve surenin sonunda SILINIR.
+      Kalp sayisi bir deftere yaziliyor ve KALP_TAZELEME'de bir
+      geri veriliyor; oldugunde de kalplerin duruyor.
+
+   3. Kalici efekt geri alinamazsa oyun bozulur. KALP_SIFIRLA
+      yetenegi (ve menudeki "Kalpleri sifirla") her seyi
+      temizliyor. Referanstaki "effect @s health_boost 100000 255"
+      geri alinamiyordu.
+
+   KALP_SURE neden TAZELEME'nin katı: iki tazeleme arasinda efekt
+   sonerse kalpler bir anligina kaybolur ve can bari zıplar.     */
+export const KALP_ADIM     = 10;    // her kullanimda kac kalp eklensin
+export const KALP_TAVAN    = 100;   // en fazla kac EK kalp (normal 10 haric)
+export const KALP_TAZELEME = 40;    // kac tick'te bir efekt yenilensin
+export const KALP_SURE     = 200;   // efekt suresi (TAZELEME x 5)
+export const KALP_DOLDUR   = true;  // eklenince can tam dolsun mu
+
+// Kalp defteri dunya ozelligine bu adla kaydediliyor
+export const KALP_KAYIT_ANAHTAR = "simsek:kalpler";
 
 /* ---------------- Dondur ----------------
    Referans (Kevin1545 "kol koparma"):
