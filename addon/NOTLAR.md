@@ -1800,6 +1800,56 @@ Test: 24/24 geçti (`v15.mjs` yeni).
 
 ---
 
+## Aşama 24 — menü her kolda, tek dokunuşla (v4.14)
+
+Kullanıcı isteği: "her kolda bir tane menü olsun, menüler kolay
+açılabilir olsun."
+
+### Neydi
+
+Menü v4.8'de gelmişti ama iki kapının arkasındaydı:
+
+1. **Eğilerek** kullanmak gerekiyordu — tablette eğilme düğmesini basılı
+   tutup eşyaya dokunmak zahmetli.
+2. Sadece **çok yetenekli** kollarda açılıyordu (`liste.length > 1`).
+   Örs Kolu gibi tek yetenekli kollarda menü hiç yoktu.
+
+### Ne oldu
+
+**Kola dokunmak menüyü açıyor.** Tabletteki en kolay hareket bu.
+`MENU_DOKUNUSLA = true`.
+
+**Seçince hemen çalışıyor.** Eskiden menüden seçmek yalnızca *seçili*
+yapıyordu, çalıştırmak için ayrıca eğil+zıpla gerekiyordu. Artık seçim
+tetiklemenin kendisi — tek akış, hiç jest gerekmiyor. Bekleme
+süresindeyse kaç saniye kaldığını söylüyor.
+
+**Tek yetenekli kollarda da açılıyor**, çünkü menüde artık yeteneklerin
+altında yardımcı düğmeler var:
+
+- `Bütün kolları al` — on beş kolu envantere koyar
+- `Gücü kapat` — açık iksiri kapatır
+
+Yani Örs Kolu'nda bile menü işe yarıyor.
+
+**Başlık artık okunur.** `pa:kol_toprak` yerine "toprak kolu".
+
+### Bozulmayanlar
+
+Jestler aynen duruyor: eğil+zıpla çalıştırır, eğil+yukarı bak değiştirir,
+eğil+aşağı bak kolları verir. Menü onların yerine değil yanına geldi.
+
+`MENU_DOKUNUSLA = false` yapılırsa v4.13 davranışına döner: dokunmak
+çalıştırır, eğilerek dokunmak menüyü açar.
+
+Modül yoksa (server-ui sürümü tutmazsa) dokunmak eskisi gibi seçili
+yeteneği çalıştırıyor — test bunu ayrıca doğruluyor, çünkü bu yol
+bozulursa kollar tamamen ölürdü.
+
+Test: 25/25 geçti (`menu.mjs` yeni).
+
+---
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:

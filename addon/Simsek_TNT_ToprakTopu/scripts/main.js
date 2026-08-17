@@ -4,7 +4,8 @@ import {
   SURUM, BEKLEME, KOL_GECIKME, TICK_BLOK_BUTCESI, OLCUM_ACIK,
   OLCUM_SOHBETE, HATA_SOHBETE, ESYASIZ_ACIK, ESYASIZ_EGILME_SART,
   ESYASIZ_BAKIS_ESIGI, ESYASIZ_TUTMA, ESYASIZ_TARAMA,
-  KOL_VER_ACIK, KOL_VER_ESIGI, KOL_VER_TUTMA, CIFT_EL_ACIK, AYNI_ANDA
+  KOL_VER_ACIK, KOL_VER_ESIGI, KOL_VER_TUTMA, CIFT_EL_ACIK, AYNI_ANDA,
+  MENU_DOKUNUSLA
 } from "./ayarlar.js";
 
 import {
@@ -236,6 +237,28 @@ function kalanBekleme(oyuncuId) {
    ESYA ILE TETIKLEME
    ============================================================ */
 
+/* "pa:kol_toprak" -> "Toprak Kol". Menu basligi icin; kimligi
+   ham gostermek yerine kollar.js'teki adi kullaniyoruz.        */
+function kolBasligi(esyaKimligi) {
+  const kisa = esyaKimligi.slice(esyaKimligi.indexOf(":") + 1);
+  return kisa.replace(/^kol_/, "").replace(/_/g, " ") + " kolu";
+}
+
+/* Menunun altina eklenen yardimci dugmeler. Tek yetenekli kolda
+   menuyu anlamli kilan sey bunlar.                             */
+function menuEkleri(oyuncu) {
+  return [
+    {
+      ad: "Butun kollari al",
+      calis() { kollariVer(oyuncu); }
+    },
+    {
+      ad: "Gucu kapat",
+      calis() { yetenekTetikle(oyuncu, "guc_kapat"); }
+    }
+  ];
+}
+
 const girisKuruldu = olayaAbone("itemUse", (olay) => {
   try {
     const oyuncu = olay.source;
@@ -247,25 +270,48 @@ const girisKuruldu = olayaAbone("itemUse", (olay) => {
     const liste = esyaninYetenekleri(esya.typeId);
     if (!liste || liste.length === 0) return;
 
-    /* EGILEREK kullanmak MENUYU acar (fikir Gunes modundan).
-       Tek yetenekli kolda secilecek bir sey yok, menu acilmiyor.
-       Menu kapali ya da modul yoksa eski davranisa dusuyor:
-       egilerek de kullansan yetenek calisir.                     */
-    if (oyuncu.isSneaking === true && liste.length > 1) {
+    /* ---- MENU: HER KOLDA VAR, TEK DOKUNUSLA ACILIR ----
+
+       v4.13'e kadar menu ancak EGILEREK kullaninca ve sadece cok
+       yetenekli kolda aciliyordu. Tablette egilme dugmesini basili
+       tutup esyaya dokunmak zahmetli; ustelik tek yetenekli
+       kollarda menu hic yoktu.
+
+       Artik kola DOKUNMAK menuyu aciyor -- tabletteki en kolay
+       hareket. Secince yetenek hem secili kaydediliyor hem HEMEN
+       calisiyor, yani ikinci bir jest gerekmiyor.
+
+       Jestler aynen duruyor: egil + zipla hala calistiriyor,
+       egil + yukari bak hala degistiriyor. Menu onlarin yerine
+       degil, yanina geldi.
+
+       MENU_DOKUNUSLA false yapilirsa eski davranisa doner:
+       dokunmak calistirir, EGILEREK dokunmak menuyu acar.       */
+    const menuIstendi = MENU_DOKUNUSLA ? true : (oyuncu.isSneaking === true);
+
+    if (menuIstendi) {
       const acildi = menuAc(
         oyuncu,
-        "§e" + esya.typeId.slice(esya.typeId.indexOf(":") + 1),
+        "§e" + kolBasligi(esya.typeId),
         liste,
         kolSecimAl(oyuncu.id, esya.typeId, liste.length),
         (indeks) => {
           kolSecim.set(oyuncu.id, { esya: esya.typeId, i: indeks });
-          actionbarYaz(oyuncu, "§6» §e" + liste[indeks].ad +
-                       " §8(" + (indeks + 1) + "/" + liste.length + ")");
-        }
+          /* Secince HEMEN calistir: menuden cikip ayrica jest
+             yapmak zorunda kalma.                              */
+          if (!yetenekTetikle(oyuncu, liste[indeks].kimlik)) {
+            const kalan = kalanBekleme(oyuncu.id);
+            actionbarYaz(oyuncu, "§6» §e" + liste[indeks].ad +
+                         (kalan > 0 ? " §8· §c" + (kalan / 20).toFixed(1) + " sn"
+                                    : " §8· secildi"));
+          }
+        },
+        menuEkleri(oyuncu)
       );
       if (acildi) return;
     }
 
+    /* Menu acilamadi (modul yok ya da kapali): eski yol. */
     const tanim = liste[kolSecimAl(oyuncu.id, esya.typeId, liste.length)];
     yetenekTetikle(oyuncu, tanim.kimlik);
   } catch (e) {

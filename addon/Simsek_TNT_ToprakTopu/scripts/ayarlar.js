@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.13";
+export const SURUM = "v4.14";
 
 /* ---------------- Tetikleyici esyalar ---------------- */
 export const SIMSEK_ESYA = "minecraft:blaze_rod";     // baktigin yere simsek
@@ -888,6 +888,20 @@ export const DONDUR_ANIM     = "animation.evoker.general a 999";
    KAPATIRSAN hicbir sey kaybolmaz: jestle secim aynen calisir.
    Modul yuklenemezse de kendiliginden kapaniyor.               */
 export const MENU_ACIK = true;
+
+/* Menu NASIL acilir?
+
+   true  (varsayilan): kola DOKUNMAK menuyu acar. Tablette en
+         kolay hareket bu; egilme dugmesini basili tutmaya gerek
+         yok. Menuden yetenek secince HEMEN calisiyor, yani
+         ikinci bir jest de gerekmiyor.
+
+   false: v4.13 oncesi davranis -- dokunmak secili yetenegi
+         calistirir, EGILEREK dokunmak menuyu acar.
+
+   Iki durumda da jestler aynen duruyor: egil+zipla calistirir,
+   egil+yukari bak degistirir.                                 */
+export const MENU_DOKUNUSLA = true;
 
 /* ---------------- Isin topu ----------------
    Fikir Gunes modundan ("Sari Particle At" + "Yesil Top"):

@@ -73,10 +73,16 @@ export function menuKullanilabilir() {
      baslik   menu basligi
      liste    [{kimlik, ad}, ...]
      secili   su an secili indeks (basina isaret konur)
-     secildi  (indeks) => void   -- kullanici sectiginde cagrilir
+     secildi  (indeks) => void   -- yetenek secilince cagrilir
+     ekler    [{ad, calis()}, ...] -- listenin ALTINA eklenen
+              yardimci dugmeler (kollari al, gucu kapat...)
+
+   TEK YETENEKLI KOLDA DA ACILIYOR. v4.13'e kadar "secilecek bir
+   sey yok" diye acilmiyordu, ama menude yeteneklerin yaninda
+   yardimci dugmeler de var; tek yetenekli kolda da ise yariyor.
 
    Menu acilamazsa false doner; cagiran eski yola dusebilir.   */
-export function menuAc(oyuncu, baslik, liste, secili, secildi) {
+export function menuAc(oyuncu, baslik, liste, secili, secildi, ekler) {
   if (!menuKullanilabilir()) {
     moduluYukle();
     return false;
@@ -90,13 +96,19 @@ export function menuAc(oyuncu, baslik, liste, secili, secildi) {
       form.button((i === secili ? "§a▸ §f" : "§7") + liste[i].ad);
     }
 
+    const yardimci = ekler || [];
+    for (const e of yardimci) form.button("§8" + e.ad);
+
     form.show(oyuncu).then((sonuc) => {
       /* canceled: oyuncu menuyu kapatti. selection undefined
          olabiliyor; ikisi de "secim yok" demek.               */
       if (!sonuc || sonuc.canceled || sonuc.selection === undefined) return;
-      if (sonuc.selection < 0 || sonuc.selection >= liste.length) return;
+      const i = sonuc.selection;
+      if (i < 0 || i >= liste.length + yardimci.length) return;
+
       try {
-        secildi(sonuc.selection);
+        if (i < liste.length) secildi(i);
+        else yardimci[i - liste.length].calis();
       } catch (e) {
         hataYaz("menu.secildi", e);
       }
