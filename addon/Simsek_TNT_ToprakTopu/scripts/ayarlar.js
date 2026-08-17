@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.24";
+export const SURUM = "v4.25";
 
 /* ============================================================
    DIKKAT -- BU PAKET ARTIK "BETA API'ler" ISTIYOR

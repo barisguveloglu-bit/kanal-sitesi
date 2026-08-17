@@ -2578,6 +2578,68 @@ Test: **29/29**.
 
 ---
 
+## Aşama 35 — "Content Log ne olduğunu bilmiyorum" (v4.25)
+
+Kullanıcı sürüm bilgisini yollayıp ekledi: *"Content Log ne olduğunu
+bilmediğim için her şeyi"*.
+
+### Bu bir kullanıcı hatası değil, tasarım hatası
+
+Şu ana kadar **bütün teşhis** Content Log'a yazılıyordu:
+
+```
+kol denetimi: 15 esyanin hepsi kayitli.
+bot denetimi: pa:bot kayitli.
+sohbet komutlari: sohbet ACIK, scriptevent ACIK
+API: @minecraft/server 2.0.0-BETA isteniyor...
+```
+
+Yani "bot neden gelmiyor" sorusunun cevabı hep oradaydı — ama
+okunamıyordu. v4.23'te `OLCUM_SOHBETE` kapatılınca son bağ da koptu.
+
+### `durum` komutu
+
+```
+durum      (ya da 'bilgi' / 'test')
+```
+
+Sohbete basıyor:
+
+```
+--- Simsek durum ---
+Surum v4.25 · API 2.0.0-beta · yetenek 36
+Sohbet komutlari: ACIK
+Menu: ACIK
+Kollar: 15/15 kayitli
+Bot: varlik kayitli · seninki var (takip)
+Iksir: Hiperoksin · lazer icin egil + zipla
+Kalp: +20 ek (toplam 30, tavan 100)
+```
+
+Her kolun menüsünde de **"Durum (her şey çalışıyor mu)"** düğmesi var —
+sohbet çalışmasa bile ulaşılabilir olsun diye.
+
+`_bot_defteri.js`'e `botKayitliMi()` eklendi; üç durum ayırıyor:
+kayıtlı / kayıtlı değil / denetim yapılamadı.
+
+### Kullanıcının sürümü
+
+```
+Sürüm: v26.44        Branch: r/26_u4
+Protokol: 12168      SHA: 93e8d22a...
+```
+
+Bekleyen işler listesindeki **`min_engine_version` uyumsuzluğu** artık
+karara bağlanabilir: manifest `[1, 20, 0]` diyor, oyun `26.44`.
+`min_engine_version` bir **taban**, tavan değil — oyunun sürümü bunun
+üstünde olduğu sürece sorun yok ve şu an her şey çalışıyor (kollar
+görünüyor, eşyalar kayıtlı). **Yükseltilmedi**: yükseltmek eski
+sürümleri dışarıda bırakır ve hiçbir şey kazandırmaz. Madde kapandı.
+
+Test: **29/29** (`sohbet.mjs`'e 12. bölüm).
+
+---
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:

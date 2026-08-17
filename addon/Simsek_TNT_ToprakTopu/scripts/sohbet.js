@@ -173,6 +173,18 @@ export function komutCozumle(oyuncu, hamMetin) {
     return { cevap: cagir("yetenek", oyuncu, "guc_kapat") };
   }
 
+  /* ---- durum ----
+     NEDEN VAR: butun teshis satirlari Content Log'a yaziliyordu
+     ve kullanici Content Log'un ne oldugunu bilmiyordu -- yani
+     "kollar kayitli mi", "sohbet acik mi", "bot varligi tanindi
+     mi" gibi sorularin cevabi pratikte HIC gorunmuyordu.
+
+     Bu komut ayni bilgileri SOHBETE basiyor. Content Log'a
+     ihtiyac kalmiyor.                                          */
+  if (ad === "durum" || ad === "bilgi" || ad === "test") {
+    return { cevap: cagir("durum", oyuncu) || "§cDurum okunamadi." };
+  }
+
   if (ad === "yardim" || ad === "komut" || ad === "komutlar") {
     return { cevap: YARDIM };
   }
@@ -190,6 +202,7 @@ const YARDIM = [
   "§ebot bekle§7 · §ebot takip§7 · §ebot geri",
   "§ekol§7 · butun kollari al",
   "§eguc kapat§7 · acik iksiri kapat",
+  "§edurum§7 · her sey calisiyor mu, tek bakista",
   "§8Calismazsa: /scriptevent simsek:komut can 10"
 ].join("\n");
 

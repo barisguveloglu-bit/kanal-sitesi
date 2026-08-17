@@ -432,6 +432,26 @@ export function botTara(oyuncular) {
    v3.5'te 11/11 ESYA sessizce kaydolmamisti; kolDenetimi() o
    yuzden yazildi. Varlik kaydi daha kirilgan (behavior pack
    etkin degilse hic yok), ayni denetim burada.                */
+/* Bot varligi oyunun kayit defterinde var mi?
+
+   Bu, "bot neden gelmiyor" sorusunun en sik cevabi: behavior
+   pack'teki entities/ klasoru dunyaya yuklenmemisse varlik hic
+   yok demektir. Durum raporu bunu sohbete basiyor -- Content
+   Log'a bakmadan gorulebilsin diye.
+
+   undefined = denetim yapilamadi (EntityTypes yok), false =
+   gercekten kayitli degil.                                     */
+export function botKayitliMi() {
+  if (!BOT_ACIK) return false;
+  const EntityTypes = api.EntityTypes;
+  if (!EntityTypes || typeof EntityTypes.get !== "function") return undefined;
+  try {
+    return EntityTypes.get(BOT_KIMLIK) !== undefined;
+  } catch (e) {
+    return false;
+  }
+}
+
 export function botDenetimi() {
   if (!BOT_ACIK) {
     bilgiYaz("bot: kapali (BOT_ACIK = false).");

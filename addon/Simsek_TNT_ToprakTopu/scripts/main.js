@@ -5,7 +5,8 @@ import {
   OLCUM_SOHBETE, HATA_SOHBETE, ESYASIZ_ACIK, ESYASIZ_EGILME_SART,
   ESYASIZ_BAKIS_ESIGI, ESYASIZ_TUTMA, ESYASIZ_TARAMA,
   KOL_VER_ACIK, KOL_VER_ESIGI, KOL_VER_TUTMA, CIFT_EL_ACIK, AYNI_ANDA,
-  MENU_DOKUNUSLA, BOT_KIMLIK, KALP_ADIM, KALP_TAVAN
+  MENU_DOKUNUSLA, BOT_KIMLIK, KALP_ADIM, KALP_TAVAN, BETA_GEREKLI,
+  SOHBET_ONEK
 } from "./ayarlar.js";
 
 import {
@@ -17,13 +18,13 @@ import {
   butceSifirla, olcumSifirla, olcumTickBasla, olcumTickBitir, olcumRaporla
 } from "./butce.js";
 
-import { menuAc } from "./menu.js";
+import { menuAc, menuKullanilabilir } from "./menu.js";
 
 /* Sohbet komutlari ("can 10", "lazer"...). Bu dosya main.js'i
    import etmiyor; komutlarin calistiracagi fonksiyonlar kanca
    olarak asagida veriliyor.                                    */
 import {
-  sohbetKur, sohbetKancalari, sohbetDurumMesaji
+  sohbetKur, sohbetKancalari, sohbetDurumMesaji, sohbetCalisiyorMu
 } from "./sohbet.js";
 
 import {
@@ -85,21 +86,22 @@ import {
 /* Iksirler de kendi dosyasinda kayit oluyor; buradan sadece
    tarama ve temizlik cagriliyor.                              */
 import {
-  iksirTara, iksirAktifMi, kademeUnut, iksirSayisi, iksirKancalari
+  iksirTara, iksirAktifMi, kademeUnut, iksirSayisi, iksirKancalari, kademeAl
 } from "./yetenekler/iksirler.js";
 
 /* Kalpler de is listesine GIRMIYOR -- kalici oldugu icin oyuncunun
    iki is yuvasindan birini sonsuza kadar tutardi. Defter ayri,
    buradan sadece tazeleme cagriliyor.                            */
 import {
-  kalpTara, kalpliVarMi, kalpEkle, kalpSifirla
+  kalpTara, kalpliVarMi, kalpEkle, kalpSifirla, kalpAl
 } from "./yetenekler/_kalp_defteri.js";
 
 /* Bot da is listesine GIRMIYOR -- kalici oldugu icin oyuncunun
    iki is yuvasindan birini sonsuza kadar tutardi. Kalp ve kafes
    defterleriyle ayni kalip.                                     */
 import {
-  botTara, botVarMi, botDurum, botGeri, botAl, botunSahibi, botDenetimi, botUnut
+  botTara, botVarMi, botDurum, botGeri, botAl, botunSahibi, botDenetimi,
+  botUnut, botKayitliMi
 } from "./yetenekler/_bot_defteri.js";
 
 /* Gunes Yumrugu kaydi is listesinden bagimsiz bir Map'te; oyuncu
@@ -358,6 +360,16 @@ function menuEkleri(oyuncu) {
 
     /* Can eklemek de sohbete bagliydi ("can 10"). Menuden sabit
        adim veriliyor; sayi yazmak isteyen scriptevent'i kullanir. */
+    {
+      ad: "Durum (her sey calisiyor mu)",
+      calis() {
+        try {
+          oyuncu.sendMessage(durumRaporu(oyuncu));
+        } catch (e) {
+          hataYaz("menu.durum", e);
+        }
+      }
+    },
     {
       ad: "Can +" + KALP_ADIM + " kalp",
       calis() {
@@ -892,7 +904,70 @@ botDenetimi();
    yetenekTetikle bekleme suresine ve is tavanina takilabilir;
    takilirsa sebebini metin olarak donduruyoruz ki komut
    "hicbir sey olmadi" diye sessiz kalmasin.                    */
+/* ============================================================
+   DURUM RAPORU
+
+   NEDEN VAR: butun teshis satirlari (kol denetimi, bot denetimi,
+   sohbet durumu, API yuzeyi) Content Log'a yaziliyordu. Kullanici
+   Content Log'un ne oldugunu bilmiyordu, yani bu bilgiler
+   pratikte HIC gorunmuyordu -- "bot gelmedi" derken sebebi orada
+   yaziyordu ama okunamiyordu.
+
+   Artik hepsi sohbete basiliyor: "durum" yaz, yeter.
+   ============================================================ */
+function durumRaporu(oyuncu) {
+  const satir = ["§6--- Simsek durum ---"];
+
+  satir.push("§7Surum §f" + SURUM +
+             " §8· API §f" + (BETA_GEREKLI ? "2.0.0-beta" : "2.0.0") +
+             " §8· yetenek §f" + tumYetenekler().length);
+
+  satir.push("§7Sohbet komutlari: " +
+             (sohbetCalisiyorMu() ? "§aACIK" : "§cKAPALI §7(Beta API'ler?)"));
+
+  satir.push("§7Menu: " + (menuKullanilabilir() ? "§aACIK" : "§cKAPALI §7(server-ui yok)"));
+
+  /* Kollar: kayit defterinde gercekten var mi. "Soz dizimi
+     hatasi" alan biri sebebini burada gorur.                  */
+  const eksik = kayitliKollar();
+  if (eksik === undefined) {
+    satir.push("§7Kollar: §e" + KOL_ESYALARI.length + " tanimli §8(denetim yok)");
+  } else if (eksik.length === 0) {
+    satir.push("§7Kollar: §a" + KOL_ESYALARI.length + "/" + KOL_ESYALARI.length +
+               " kayitli");
+  } else {
+    satir.push("§7Kollar: §c" + eksik.length + "/" + KOL_ESYALARI.length +
+               " EKSIK §8" + eksik.slice(0, 3).join(", "));
+  }
+
+  // Bot varligi oyuna kayitli mi + su an botun var mi
+  const botKayit = botAl(oyuncu.id);
+  const botKayitli = botKayitliMi();
+  satir.push("§7Bot: " + (botKayitli === undefined
+               ? "§edenetim yok"
+               : (botKayitli ? "§avarlik kayitli" : "§cvarlik KAYITLI DEGIL")) +
+             " §8· " + (botKayit
+               ? "§aseninki var §7(" + botKayit.durum + ")"
+               : "§7botun yok"));
+
+  // Acik iksir ve kalan sure
+  const kademe = kademeAl(oyuncu.id);
+  satir.push("§7Iksir: " + (kademe
+    ? "§f" + kademe.ad + " §8· lazer icin egil + zipla"
+    : "§7yok §8(ic, sonra 'lazer' yaz)"));
+
+  const kalp = kalpAl(oyuncu.id);
+  satir.push("§7Kalp: §f+" + kalp + " ek §8(toplam " + (10 + kalp) +
+             ", tavan " + KALP_TAVAN + ")");
+
+  satir.push("§8Hatalar sohbete duser; ayrica '" +
+             (SOHBET_ONEK || "") + "yardim' komut listesi.");
+
+  return satir.join("\n");
+}
+
 sohbetKancalari({
+  durum: (oyuncu) => durumRaporu(oyuncu),
   kalpEkle: (oyuncu, adet) => kalpEkle(oyuncu, adet),
   kalpSifirla: (oyuncu) => kalpSifirla(oyuncu),
   kollariVer: (oyuncu) => kollariVer(oyuncu),
