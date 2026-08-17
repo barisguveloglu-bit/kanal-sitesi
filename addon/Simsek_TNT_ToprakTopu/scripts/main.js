@@ -912,6 +912,13 @@ sohbetKancalari({
 });
 sohbetKur();
 
+/* Beta modulu isteniyor. Buraya gelebildiysek zaten yuklenmis
+   demektir (yuklenmeseydi script hic calismazdi); satir yine de
+   Content Log'da hangi yuzeyde oldugumuzu belli etsin diye var. */
+bilgiYaz("API: @minecraft/server 2.0.0-BETA isteniyor -- dunya " +
+         "ayarlarinda 'Beta API'ler' ACIK olmali. Kapatirsan paket " +
+         "hic yuklenmez (manifest'te 2.0.0 yaparak geri alinabilir).");
+
 bilgiYaz(
   SURUM + " yuklendi | yetenek: " + tumYetenekler().length +
   " (esyasiz sirada " + esyasizSira().length + ")" +

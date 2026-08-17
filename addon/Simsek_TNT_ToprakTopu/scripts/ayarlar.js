@@ -4,7 +4,32 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.23";
+export const SURUM = "v4.24";
+
+/* ============================================================
+   DIKKAT -- BU PAKET ARTIK "BETA API'ler" ISTIYOR
+
+   manifest.json'da @minecraft/server "2.0.0-beta" olarak
+   isteniyor. Dunya ayarlarindaki "Beta API'ler" anahtari ACIK
+   OLMAZSA script modulu HIC YUKLENMEZ ve paketin TAMAMI olur --
+   kollar, iksirler, bot, hepsi.
+
+   NEDEN: sohbet komutlari (world.beforeEvents.chatSend) yalnizca
+   beta modulunde var. v4.22'de kullanici dort kez "bot" yazdi ve
+   mesaj sohbete duz metin olarak dustu; sebep buydu. Ayarlardaki
+   aciklama da bunu soyluyor: "Eklenti paketlerinde API
+   modullerinin '-beta' surumlerini kullanin".
+
+   GERI ALMAK ISTERSEN: manifest.json'daki "2.0.0-beta" degerini
+   "2.0.0" yap. Sohbet komutlari kapanir, geri kalan her sey
+   (menu dahil) calismaya devam eder -- menu yolu bilerek
+   korundu, tek yol sohbet degil.
+
+   @minecraft/server-ui BILEREK kararli (2.0.0) birakildi: menu
+   artik ana arayuz, onu da beta yuzeyine tasimanin bir faydasi
+   yok, riski var.
+   ============================================================ */
+export const BETA_GEREKLI = true;
 
 /* ---------------- Tetikleyici esyalar ---------------- */
 export const SIMSEK_ESYA = "minecraft:blaze_rod";     // baktigin yere simsek

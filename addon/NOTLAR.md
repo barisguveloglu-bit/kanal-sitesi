@@ -2532,6 +2532,52 @@ ulaşılabiliyor mu).
 
 ---
 
+## Aşama 34 — Beta API'ler açıldı (v4.24)
+
+Kullanıcı dünya ayarlarından **Beta API'ler**'i açtı ve botun oradan
+yapılmasını istedi.
+
+### Anahtarı açmak tek başına yetmiyor
+
+Ayarın kendi açıklaması belirleyici:
+
+> *Eklenti paketlerinde API modüllerinin **"-beta" sürümlerini** kullanın*
+
+Yani anahtar, paketlerin beta modül sürümü **istemesine izin veriyor** —
+istemeyen paket kararlı modülü almaya devam ediyor. Bizim manifest
+`"@minecraft/server": "2.0.0"` diyordu, yani anahtar açık olsa da
+`chatSend` yine gelmezdi.
+
+`manifest.json` → `"2.0.0-beta"`.
+
+### Bunun bedeli
+
+Artık **Beta API'ler kapatılırsa script modülü hiç yüklenmez ve paketin
+tamamı ölür** — kollar, iksirler, bot, hepsi. Bu bilinçli bir takas ve
+tek satırla geri alınabilir: manifest'te `2.0.0-beta` → `2.0.0`. O zaman
+sohbet komutları kapanır, **geri kalan her şey çalışmaya devam eder** —
+menü yolu bilerek korundu, tek yol sohbet değil.
+
+`@minecraft/server-ui` **kararlı** (`2.0.0`) bırakıldı: menü artık ana
+arayüz, onu da beta yüzeyine taşımanın faydası yok, riski var.
+
+### Test yeni bir kayma yakaladı
+
+`bot.mjs`'e eklenen 13. bölüm manifest ile kodu bağlıyor. İlk çalıştırmada
+hemen yakaladı:
+
+```
+✗ manifest surumu ayarlardaki SURUM ile ayni :: manifest 4.23.0 / ayar v4.24
+```
+
+`SURUM` sabitini yükseltmiş, manifest'i unutmuştum. Artık her sürümde
+otomatik kontrol ediliyor — `BETA_GEREKLI` ile manifest'in `-beta`
+istemesi de aynı testte bağlı, ikisi sessizce ayrışamıyor.
+
+Test: **29/29**.
+
+---
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:

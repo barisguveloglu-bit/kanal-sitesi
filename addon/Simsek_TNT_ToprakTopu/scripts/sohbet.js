@@ -230,9 +230,14 @@ function sohbeteAbone() {
     const oncekiler = world.beforeEvents;
     const olay = oncekiler ? oncekiler.chatSend : undefined;
     if (!olay || typeof olay.subscribe !== "function") {
-      bilgiYaz("world.beforeEvents.chatSend bu surumde yok. Sohbet " +
-               "komutlari kapali; ayni komutlar /scriptevent simsek:komut " +
-               "ile calisiyor (ornek: /scriptevent simsek:komut can 10).");
+      /* v4.24'te manifest "@minecraft/server": "2.0.0-beta" oldu.
+         Buraya dusuyorsak beta modulu yuklenmemis demektir --
+         ama o durumda script hic calismazdi. Yani pratikte
+         buraya ancak API bicimi degisirse duseriz.             */
+      bilgiYaz("world.beforeEvents.chatSend YOK. Beta modulu yuklu ama " +
+               "olay bulunamadi (API bicimi degismis olabilir). Sohbet " +
+               "komutlari kapali; menu ve /scriptevent simsek:komut " +
+               "calismaya devam ediyor.");
       return false;
     }
 
