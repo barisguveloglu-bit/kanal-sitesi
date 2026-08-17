@@ -80,7 +80,7 @@ yetenekKaydet({
   kimlik: "yumruk",
   ad: "Gunes Yumrugu",
   esyasiz: true,
-  sira: 180,
+  sira: 185,
 
   olustur(oyuncu) {
     if (!kuruldu) {

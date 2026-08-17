@@ -5,7 +5,8 @@ import {
   hataYaz, bilgiYaz, gecerliMi, olayaAbone, actionbarYaz
 } from "../yardimcilar.js";
 import { KADEMELER, IKSIR_TAZELEME, IKSIR_ONEK,
-  PARLAMA_ACIK, PARLAMA_GIRIS, PARLAMA_TUT, PARLAMA_CIKIS
+  PARLAMA_ACIK, PARLAMA_GIRIS, PARLAMA_TUT, PARLAMA_CIKIS,
+  IKSIR_LAZERI_SEC
 } from "../ayarlar.js";
 
 /* ============================================================
@@ -165,6 +166,8 @@ export function kademeBitir(oyuncu) {
     }
   }
   durumlar.delete(oyuncu.id);
+  // Elle kapatinca da lazer secimi geri birakilsin
+  if (IKSIR_LAZERI_SEC) kancaCagir("lazerBirak", oyuncu);
   return d.kademe;
 }
 
@@ -287,6 +290,33 @@ function icmeyiIsle(oyuncu, esya, nereden) {
 
   iksirIc(oyuncu, kademe);
   bilgiYaz("iksir icildi: " + kademe.kimlik + " (" + nereden + ")");
+
+  /* Icince lazer jest secimine gelsin. Sebebi ayarlar.js'teki
+     IKSIR_LAZERI_SEC aciklamasinda: lazer esyasiz sirada 21.
+     sirada ve sifirinci sira Yildirim Halkasi. Secim
+     degistirmeden zipladiginda etrafa yildirim yagiyordu.      */
+  if (IKSIR_LAZERI_SEC) kancaCagir("lazerSec", oyuncu);
+}
+
+/* ---------------- Disari acilan kancalar ----------------
+   main.js jest secimini tutuyor ama bu dosya main.js'i import
+   EDEMEZ (main.js zaten burayi import ediyor, dairesel olur).
+   O yuzden main.js kancayi buraya birakiyor.                   */
+let kancalar = {};
+
+export function iksirKancalari(k) {
+  kancalar = k || {};
+}
+
+function kancaCagir(ad, ...arg) {
+  const f = kancalar[ad];
+  if (typeof f !== "function") return undefined;
+  try {
+    return f(...arg);
+  } catch (e) {
+    hataYaz("iksir.kanca." + ad, e);
+    return undefined;
+  }
 }
 
 const tamKuruldu = olayaAbone("itemCompleteUse", (olay) => {
@@ -333,6 +363,8 @@ export function iksirTara(oyuncular) {
       efektSil(oyuncu, d.kademe);
       gozCikar(oyuncu, d.kademe);
       durumlar.delete(oyuncu.id);
+      // Lazer secimi iksirle gelmisti, iksirle gitsin
+      if (IKSIR_LAZERI_SEC) kancaCagir("lazerBirak", oyuncu);
       actionbarYaz(oyuncu, "§8" + d.kademe.ad + " bitti");
       continue;
     }

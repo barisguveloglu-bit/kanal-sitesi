@@ -162,3 +162,36 @@ export function esyasizSira() {
     .filter((t) => t.esyasiz)
     .sort((a, b) => (a.sira || 0) - (b.sira || 0));
 }
+
+/* ---------------- Sira cakismasi denetimi ----------------
+   v4.20'de esyasiz sirada ON BIR cift ayni "sira" degerini
+   paylasiyordu (110, 130, 140, 150, 160, 170, 180, 190, 200,
+   210, 220). Esit degerlerde siralamanin sonucu import sirasina
+   kaliyor; yani jest sirasinda hangi yetenegin once gelecegi
+   ayarlardan degil, main.js'teki import satirlarinin sirasindan
+   belirleniyordu. Yeni bir yetenek eklemek, ilgisiz bir
+   yetenegin sirasini kaydirabiliyordu.
+
+   Sessiz kalmasin diye acilista bakiliyor. Cakisma oyunu
+   bozmuyor, o yuzden sadece uyari.                             */
+export function siraDenetimi() {
+  const gorulen = new Map();     // sira -> [ad, ...]
+  for (const t of esyasizSira()) {
+    const n = t.sira || 0;
+    const liste = gorulen.get(n);
+    if (liste) liste.push(t.ad);
+    else gorulen.set(n, [t.ad]);
+  }
+
+  const cakisan = [];
+  for (const [n, adlar] of gorulen) {
+    if (adlar.length > 1) cakisan.push(n + ": " + adlar.join(" / "));
+  }
+
+  if (cakisan.length > 0) {
+    bilgiYaz("UYARI: ayni 'sira' degerini paylasan yetenekler var -> " +
+             cakisan.join(" · ") + ". Jest sirasi import sirasina kaliyor; " +
+             "her yetenege benzersiz bir sira ver.");
+  }
+  return cakisan;
+}

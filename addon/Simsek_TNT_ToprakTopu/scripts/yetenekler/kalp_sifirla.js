@@ -16,7 +16,7 @@ yetenekKaydet({
   kimlik: "kalp_sifirla",
   ad: "Kalpleri Sifirla",
   esyasiz: true,
-  sira: 190,
+  sira: 196,
 
   olustur(oyuncu) {
     let silinen = 0;

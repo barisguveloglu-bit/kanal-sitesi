@@ -2240,6 +2240,101 @@ Test: 27/27 geçti.
 
 ---
 
+## Aşama 31 — lazer ulaşılamıyordu, sohbet komutları (v4.21)
+
+### "Göz lazeri attım, etrafa yıldırım çarptı"
+
+**Lazer bozuk değildi — ulaşılamıyordu.**
+
+Eşyasız jest sırasında 34 yetenek var. Sıralamayı bastırdım:
+
+```
+  0  sira= 10  Yildirim Halkasi     <-- varsayılan seçim
+  1  sira= 20  Yon Simsegi
+  ...
+ 21  sira=170  Goz Lazeri           <-- 21 kez "eğil + yukarı bak"
+```
+
+Seçim hiç değiştirilmediyse `secimAl()` **0** döner. "Eğil + zıpla"
+yapınca sıfırıncı çalışıyor — **Yıldırım Halkası**, yani etrafına
+yıldırım yağdıran yetenek. Tam olarak görülen şey.
+
+**Referans bu sorunu yaşamıyor** çünkü orada lazer bir jest değil,
+bir **eşya**:
+
+```json
+"walking": { "transitions": [{ "default":
+  "query.get_equipped_item_name=='nitroxin_goz_lazer' && query.is_using_item" }] }
+```
+
+İksiri içiyorsun, göz takılıyor, lazer elinin altında.
+
+**Bizdeki karşılığı:** iksir içilince eşyasız jest seçimi otomatik
+olarak Göz Lazeri'ne geçer (`IKSIR_LAZERI_SEC`). İç, eğil + zıpla,
+lazer. İksir bitince eski seçimine dönersin — ama iksirliyken seçimi
+**elle** değiştirdiysen ona dokunulmuyor.
+
+### Yan bulgu: on bir çift aynı `sira` değerini paylaşıyordu
+
+110, 130, 140, 150, 160, 170, 180, 190, 200, 210, 220 — her birinde
+en az iki yetenek. Eşitlikte sıralamanın sonucu **import sırasına**
+kalıyor; yani yeni bir yetenek eklemek, ilgisiz bir yeteneğin jest
+sırasını kaydırabiliyordu. Hepsi benzersiz yapıldı ve
+`kayit.js:siraDenetimi()` açılışta çakışma varsa uyarıyor.
+
+### Sohbet komutları — "aramızda bir dil"
+
+İstek: *"her şeyi kol yapma, kol israfını önle... ya chat'e bir şey
+yazacağım ya da Toprak kola ekleyeceğiz."*
+
+```
+can 10        10 kalp ekle (tavan 100)
+can           varsayılan 10 kalp
+can sifirla   eklenen kalpleri geri al
+lazer         göz lazeri at
+kol           bütün kolları al
+guc kapat     açık iksiri kapat
+yardim        listeyi yaz
+```
+
+**İki giriş kapısı, tek çözümleyici.** `world.beforeEvents.chatSend`
+sürümler arası oynadığı için varsa kullanılıyor; yoksa özellik sessizce
+kapanıyor ve aynı komutlar `/scriptevent simsek:komut can 10` ile
+çalışıyor. İkisi de aynı koddan geçiyor.
+
+**Türkçe yazım:** `sıfırla` da `sifirla` da, `güç` de `guc` de kabul.
+Girdi sadeleştiriliyor — Türkçe'de `I`'nın küçüğü `ı` olduğu için
+`toLowerCase()`'e güvenilmiyor, dönüşüm elle yapılıyor.
+
+**"Sınır vardı" sorunu:** `can 500` yazınca sessizce kırpmak yerine
+sebebi yazılıyor: *"+100 kalp · 500 istedin ama tavan 100 ek kalp"*.
+
+**Komut olmayan mesaj sohbette kalıyor** — `canim sikildi` yazınca
+`can` komutu sanılmıyor.
+
+### Kol israfı
+
+`pa:kol_kalp` **kaldırıldı** (v4.20'de eklemiştim, kullanıcının kuralına
+aykırıydı). `kalp_ekle` ve `kalp_sifirla` **Toprak Kol**'a taşındı — o
+kol artık 10 yetenekli, menü tek dokunuşla açıldığı için sorun değil.
+Kol 16 → **15**.
+
+### Bot ertelendi
+
+`BOT_ACIK = false`, hiç bot kodu yazılmadı. Plan duruyor:
+`.claude/plans/concurrent-roaming-cosmos.md`
+
+### Testler
+
+Yeni `sohbet.mjs` — 11 bölüm. `kalp.mjs` ve `menu.mjs`'teki **elle
+yazılmış sayılar** (8 yetenek, `pa:kol_kalp`) yine kırıldı; ikisi de
+kaynaktan türetilecek şekilde düzeltildi. `kol2.mjs`'te aynı dersi
+v4.20'de almıştık.
+
+Test: 28/28 geçti.
+
+---
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:

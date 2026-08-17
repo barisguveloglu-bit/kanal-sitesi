@@ -19,8 +19,13 @@ import {
 
 import { menuAc } from "./menu.js";
 
+/* Sohbet komutlari ("can 10", "lazer"...). Bu dosya main.js'i
+   import etmiyor; komutlarin calistiracagi fonksiyonlar kanca
+   olarak asagida veriliyor.                                    */
+import { sohbetKur, sohbetKancalari } from "./sohbet.js";
+
 import {
-  esyaninYetenekleri, yetenekAl, esyasizSira, tumYetenekler
+  esyaninYetenekleri, yetenekAl, esyasizSira, tumYetenekler, siraDenetimi
 } from "./yetenekler/kayit.js";
 
 /* ---------------- Yetenek dosyalari ----------------
@@ -76,13 +81,15 @@ import {
 /* Iksirler de kendi dosyasinda kayit oluyor; buradan sadece
    tarama ve temizlik cagriliyor.                              */
 import {
-  iksirTara, iksirAktifMi, kademeUnut, iksirSayisi
+  iksirTara, iksirAktifMi, kademeUnut, iksirSayisi, iksirKancalari
 } from "./yetenekler/iksirler.js";
 
 /* Kalpler de is listesine GIRMIYOR -- kalici oldugu icin oyuncunun
    iki is yuvasindan birini sonsuza kadar tutardi. Defter ayri,
    buradan sadece tazeleme cagriliyor.                            */
-import { kalpTara, kalpliVarMi } from "./yetenekler/_kalp_defteri.js";
+import {
+  kalpTara, kalpliVarMi, kalpEkle, kalpSifirla
+} from "./yetenekler/_kalp_defteri.js";
 
 /* Gunes Yumrugu kaydi is listesinden bagimsiz bir Map'te; oyuncu
    cikinca o da temizlenmeli.                                    */
@@ -454,6 +461,64 @@ function secimAl(oyuncuId) {
   return (i === undefined) ? 0 : i;
 }
 
+/* ============================================================
+   IKSIR ICINCE LAZER SECILI GELSIN
+
+   v4.20'de yasanan hata: iksir icip "lazer atayim" diye
+   egil + zipla yapilinca ETRAFA YILDIRIM yagdi.
+
+   Lazer bozuk degildi -- ULASILAMIYORDU. Esyasiz jest sirasinda
+   34 yetenek var, Goz Lazeri 21. sirada ve sifirinci sira
+   Yildirim Halkasi (etrafina yildirim yagdiran yetenek). Secim
+   hic degistirilmediyse sifirinci calisiyor. Lazere ulasmak
+   icin 21 kez "egil + yukari bak + bekle" gerekiyordu.
+
+   Referansta boyle bir sorun yok cunku orada lazer bir ESYA:
+   iksiri icince goz takiliyor ve lazer elinin altinda oluyor.
+   Bizdeki karsiligi bu: icince secim lazere gecer, iksir
+   bitince eski secimine donersin.
+   ============================================================ */
+
+// oyuncuId -> iksirden onceki secim indeksi
+const lazerOncesiSecim = new Map();
+
+function lazerSecimiAc(oyuncu) {
+  try {
+    const sira = esyasizSira();
+    const i = sira.findIndex((t) => t.kimlik === "goz_lazeri");
+    if (i < 0) return;
+
+    const simdiki = secimAl(oyuncu.id);
+    if (simdiki === i) return;                 // zaten lazerdeydi
+
+    lazerOncesiSecim.set(oyuncu.id, simdiki);
+    esyasizSecim.set(oyuncu.id, i);
+    actionbarYaz(oyuncu, "§6» §eGoz Lazeri §8(egil + zipla)");
+  } catch (e) {
+    hataYaz("lazerSecimiAc", e);
+  }
+}
+
+function lazerSecimiBirak(oyuncu) {
+  try {
+    const onceki = lazerOncesiSecim.get(oyuncu.id);
+    lazerOncesiSecim.delete(oyuncu.id);
+    if (onceki === undefined) return;
+
+    /* Oyuncu iksirliyken secimi ELLE degistirdiyse ona dokunma --
+       kendi sectigi seyi geri almak sinir bozucu olur.          */
+    const sira = esyasizSira();
+    const lazer = sira.findIndex((t) => t.kimlik === "goz_lazeri");
+    if (secimAl(oyuncu.id) !== lazer) return;
+
+    esyasizSecim.set(oyuncu.id, onceki);
+  } catch (e) {
+    hataYaz("lazerSecimiBirak", e);
+  }
+}
+
+iksirKancalari({ lazerSec: lazerSecimiAc, lazerBirak: lazerSecimiBirak });
+
 function esyasizTara() {
   if (++esyasizSayac < ESYASIZ_TARAMA) return;
   esyasizSayac = 0;
@@ -675,6 +740,33 @@ olayaAbone("playerSpawn", (olay) => {
 });
 
 kolDenetimi();
+siraDenetimi();
+
+/* ---------------- Sohbet komutlari ----------------
+   Komutlarin calistiracagi isler burada baglaniyor. sohbet.js
+   main.js'i import etmiyor (dairesel olurdu); islevler kanca
+   olarak veriliyor.
+
+   yetenekTetikle bekleme suresine ve is tavanina takilabilir;
+   takilirsa sebebini metin olarak donduruyoruz ki komut
+   "hicbir sey olmadi" diye sessiz kalmasin.                    */
+sohbetKancalari({
+  kalpEkle: (oyuncu, adet) => kalpEkle(oyuncu, adet),
+  kalpSifirla: (oyuncu) => kalpSifirla(oyuncu),
+  kollariVer: (oyuncu) => kollariVer(oyuncu),
+  yetenek: (oyuncu, kimlik) => {
+    const tanim = yetenekAl(kimlik);
+    if (!tanim) return "§cBilinmeyen yetenek: " + kimlik;
+    if (yetenekTetikle(oyuncu, kimlik)) return undefined;   // calisti, sessiz kal
+
+    const kalan = kalanBekleme(oyuncu.id);
+    if (kalan > 0) {
+      return "§7" + tanim.ad + " §8· §c" + (kalan / 20).toFixed(1) + " sn bekle";
+    }
+    return "§7" + tanim.ad + " §8· §caktif isin dolu (" + AYNI_ANDA + ")";
+  }
+});
+sohbetKur();
 
 bilgiYaz(
   SURUM + " yuklendi | yetenek: " + tumYetenekler().length +

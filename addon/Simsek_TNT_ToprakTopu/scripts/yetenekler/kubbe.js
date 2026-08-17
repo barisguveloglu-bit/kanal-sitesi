@@ -32,7 +32,7 @@ yetenekKaydet({
   kimlik: "kubbe",
   ad: "Koruma Kubbesi",
   esyasiz: true,
-  sira: 140,
+  sira: 145,
 
   olustur(oyuncu) {
     let merkez;

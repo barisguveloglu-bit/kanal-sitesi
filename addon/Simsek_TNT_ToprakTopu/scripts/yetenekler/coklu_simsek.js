@@ -39,7 +39,7 @@ yetenekKaydet({
   kimlik: "coklu_simsek",
   ad: "Coklu Simsek",
   esyasiz: true,
-  sira: 200,
+  sira: 205,
 
   olustur(oyuncu) {
     const boyut = oyuncu.dimension;

@@ -39,7 +39,7 @@ yetenekKaydet({
   kimlik: "ok_yagmuru",
   ad: "Ok Yagmuru",
   esyasiz: true,
-  sira: 210,
+  sira: 215,
 
   olustur(oyuncu) {
     const boyut = oyuncu.dimension;

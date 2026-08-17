@@ -41,10 +41,20 @@ import { bilgiYaz, hataYaz, actionbarYaz } from "../yardimcilar.js";
    eleman var; ayri bir kod yolu yok.                             */
 export const KOL_ESYALARI = [
   // Cok yetenekli kol
-  /* TOPRAK KOL -- sekiz yetenek. Meteor ve Guclu TNT kendi
-     kollarindan buraya tasindi, o iki kol tamamen kaldirildi. */
+  /* TOPRAK KOL -- on yetenek. Meteor ve Guclu TNT kendi
+     kollarindan buraya tasindi, o iki kol tamamen kaldirildi.
+
+     v4.21: kalp yetenekleri de buraya geldi ve pa:kol_kalp
+     kaldirildi. Sebep kullanicinin kendi kurali: "her seyi kol
+     yapma, kol israfini onle". Menu tek dokunusla acildigi icin
+     on yetenekli bir kol iki ayri koldan daha kullanisli --
+     envanterde bir yer kapliyor, hepsi ayni listede.
+
+     Kalp eklemenin asil yolu artik SOHBET: "can 10". Menudeki
+     yer ikinci yol.                                            */
   ["pa:kol_toprak", "can_verme", "toprak_topu", "yon_simsegi", "ors",
-                    "toprak_ucus", "toprak_duvar", "meteor", "guclu_tnt"],
+                    "toprak_ucus", "toprak_duvar", "meteor", "guclu_tnt",
+                    "kalp_ekle", "kalp_sifirla"],
 
   /* BUZ KOL -- dondurma takimi. */
   ["pa:kol_buz",    "buz_adam", "buz_mizragi"],
@@ -79,12 +89,6 @@ export const KOL_ESYALARI = [
      zaten aldigimiz kaliplarin tekrariydi; gercekten yeni olan
      iki sey buraya kondu.                                     */
   ["pa:kol_golge",  "ok_yagmuru", "sarsinti"],
-
-  /* KALP KOL -- kalp sayisini buyutur, geri de alir.
-     Iki yetenek ayni kolda cunku ikisi ayni seyin iki yonu:
-     ekle ve sifirla. Sifirlama ayrica HER kolun menusunde de
-     var -- kalici bir guc geri alinamiyorsa oyunu bozar.      */
-  ["pa:kol_kalp",   "kalp_ekle", "kalp_sifirla"],
 
   // Tek yetenekli kollar
   ["pa:kol_halka",  "yildirim_halkasi"],

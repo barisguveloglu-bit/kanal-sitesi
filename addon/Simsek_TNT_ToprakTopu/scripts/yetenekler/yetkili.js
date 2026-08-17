@@ -24,7 +24,7 @@ yetenekKaydet({
   kimlik: "yetkili",
   ad: "Yetkili Modu",
   esyasiz: true,
-  sira: 220,
+  sira: 225,
 
   olustur(oyuncu) {
     if (!YETKILI_ACIK) {

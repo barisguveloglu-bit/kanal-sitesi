@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.20";
+export const SURUM = "v4.21";
 
 /* ---------------- Tetikleyici esyalar ---------------- */
 export const SIMSEK_ESYA = "minecraft:blaze_rod";     // baktigin yere simsek
@@ -901,6 +901,107 @@ export const KALP_DOLDUR   = true;  // eklenince can tam dolsun mu
 
 // Kalp defteri dunya ozelligine bu adla kaydediliyor
 export const KALP_KAYIT_ANAHTAR = "simsek:kalpler";
+
+/* ============================================================
+   SOHBET KOMUTLARI
+
+   NEDEN: her sey icin ayri kol yapmak israf. Kalp eklemek gibi
+   SAYI isteyen isler yazarak daha dogal:  "can 10".
+
+   SOHBET_ONEK bos birakilirsa "can 10" dogrudan calisir. Bir
+   onek (orn. "!") yazarsan "!can 10" gerekir -- baskasiyla
+   sohbet ederken yanlislikla komut calistirmamak icin.
+
+   Sohbet olayi (world.beforeEvents.chatSend) her surumde
+   olmayabilir; yoksa ayni komutlar
+     /scriptevent simsek:komut can 10
+   ile calisiyor. Ikisi de ayni cozumleyiciden geciyor.        */
+export const SOHBET_ACIK = true;
+export const SOHBET_ONEK = "";     // "" = oneksiz. "!" yazarsan "!can 10"
+
+/* ============================================================
+   IKSIR ICINCE LAZERI HAZIR ET
+
+   v4.20'de gercek bir kullanim hatasi cikti: oyuncu iksir icip
+   "goz lazeri atayim" dedi, etrafa YILDIRIM yagdi.
+
+   Sebep lazerde degildi. Esyasiz jest sirasinda 34 yetenek var
+   ve Goz Lazeri 21. sirada; sifirinci sira Yildirim Halkasi.
+   Secim degistirmeden "egil + zipla" yapinca sifirinci calisiyor
+   -- yani etrafa yildirim. Lazere ulasmak icin 21 kez
+   "egil + yukari bak + bekle" yapmak gerekiyordu.
+
+   Referans (iksir modu muhammetlo mz) bunu boyle yapmiyor:
+     query.get_equipped_item_name=='nitroxin_goz_lazer'
+     && query.is_using_item
+   Yani iksiri icip GOZU takinca lazer zaten elinin altinda.
+
+   Bizde karsiligi: iksir icilince esyasiz jest secimi otomatik
+   olarak Goz Lazeri'ne gecer. Icersin, egil + zipla, lazer.
+   Iksir bitince secim eski haline doner -- yildirim atmak
+   isteyen biri iksir yuzunden secimini kaybetmesin.            */
+export const IKSIR_LAZERI_SEC = true;
+
+/* ============================================================
+   BOT  --  Asama 1: var olsun, takip etsin, beklesin
+
+   Depodaki ILK ozel VARLIK. Su ana kadar sadece esya vardi.
+
+   ---- MIMARIYI BELIRLEYEN KISIT ----
+   @minecraft/server'da YOL BULMA API'SI YOK. Script'ten bir
+   varliga "su koordinata yuru" denemiyor. Elde olanlar: varlik
+   JSON'undaki vanilla AI hedefleri, teleport, applyImpulse.
+
+   Bu yuzden is bolunuyor:
+     YURUMEYI  vanilla AI yapar (minecraft:behavior.follow_owner,
+               kurdun/kedinin kullandigi hedef). Gercek yol bulma,
+               bedava, akici.
+     KURTARMAYI script yapar. Bot cok geride kaldiysa, sikistiysa
+               ya da baska boyuttaysa yanina isinlanir -- vanilla
+               takip bunlarin hicbirini cozmuyor.
+
+   @minecraft/server-gametest / SimulatedPlayer KULLANILMIYOR:
+   deneysel ayar istiyor, test amacli bir modul, tablette riskli
+   ve dunya yeniden yuklenince yasamiyor.
+
+   ---- BOT_ACIK bir guvenlik anahtari ----
+   Bot tablette kotu davranirsa (tick sisirir, isinlanip durur)
+   burasi false yapilir; modun geri kalani hic etkilenmez. Yeni
+   ve riskli bir alan oldugu icin bu anahtar bilerek var.
+
+   ---- Neden BOT_TAVAN 1 ----
+   Oyuncu basina tek bot. Ikincisi tick maliyetini ikiye katlar
+   ve "hangisi benimdi" karisikligi yaratir. Sonraki asamada
+   bot is yapmaya baslayinca yukseltmek daha kolay olur.
+
+   BOT_KURTARMA_MENZIL neden 24: vanilla follow_owner ~10 blokta
+   yetisiyor. 24 "gercekten kaybolmus" demek; daha dusuk tutulursa
+   bot normal yururken bile isinlanir ve yuruyus goruntusu bozulur.
+
+   BOT_TARAMA neden 20: kurtarma saniyede bir bakilsa yeter.
+   Her tick mesafe olcmek bos yere getEntity cagrisi demek.     */
+/* DURUM: HENUZ YAPILMADI. v4.21'de bot isi bilerek ertelendi --
+   once goz lazeri ve sohbet komutlari halledildi. Asagidaki
+   ayarlar plan hazir oldugu icin duruyor ama HICBIR bot kodu
+   yok; BOT_ACIK false ve oyle kalacak. Plan:
+   .claude/plans/concurrent-roaming-cosmos.md                   */
+export const BOT_ACIK             = false;
+export const BOT_KIMLIK           = "pa:bot";
+export const BOT_TAVAN            = 1;    // oyuncu basina kac bot
+export const BOT_KURTARMA_MENZIL  = 24;   // bu kadar uzaklasirsa isinlanir
+export const BOT_KURTARMA_YAKIN   = 2;    // isinlanirken oyuncuya kac blok uzaga
+export const BOT_TARAMA           = 20;   // kac tick'te bir mesafe olculsun
+export const BOT_CAGIR_YAKIN      = 3;    // "yanima gel" mesafesi
+export const BOT_DOGUM_YAKIN      = 2;    // yeni bot kac blok yana dogsun
+
+/* Botun sahibi IKI yere birden yaziliyor:
+     - dunya ozelligi (BOT_KAYIT_ANAHTAR): [[oyuncuId, botId], ...]
+     - varligin kendi ozelligi (BOT_SAHIP_OZELLIK)
+   Ikincisi yedek: dunya kaydi bozulur ya da silinirse bot
+   sahipsiz kalmasin, dokununca kendini yeniden baglasin.       */
+export const BOT_KAYIT_ANAHTAR    = "simsek:botlar";
+export const BOT_SAHIP_OZELLIK    = "simsek:sahip";
+export const BOT_DURUM_OZELLIK    = "simsek:durum";   // "takip" | "bekle"
 
 /* ---------------- Dondur ----------------
    Referans (Kevin1545 "kol koparma"):

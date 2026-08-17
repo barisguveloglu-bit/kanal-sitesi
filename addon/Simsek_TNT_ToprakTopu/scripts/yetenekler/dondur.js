@@ -36,7 +36,7 @@ yetenekKaydet({
   kimlik: "dondur",
   ad: "Dondur",
   esyasiz: true,
-  sira: 160,
+  sira: 165,
 
   olustur(oyuncu) {
     const hedef = kilitliHedef(oyuncu, {

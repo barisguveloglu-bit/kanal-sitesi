@@ -49,7 +49,7 @@ yetenekKaydet({
   kimlik: "hapis",
   ad: "Hapis",
   esyasiz: true,
-  sira: 150,
+  sira: 155,
 
   olustur(oyuncu) {
     const boyut = oyuncu.dimension;

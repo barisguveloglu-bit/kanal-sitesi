@@ -30,7 +30,7 @@ yetenekKaydet({
   kimlik: "kalp_ekle",
   ad: "Kalp Ekle",
   esyasiz: true,
-  sira: 110,
+  sira: 115,
 
   olustur(oyuncu) {
     let sonuc;

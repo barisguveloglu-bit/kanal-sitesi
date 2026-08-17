@@ -101,7 +101,7 @@ yetenekKaydet({
   kimlik: "yakala",
   ad: "Yakala / Birak",
   esyasiz: true,
-  sira: 190,
+  sira: 195,
 
   olustur(oyuncu) {
     oku();
