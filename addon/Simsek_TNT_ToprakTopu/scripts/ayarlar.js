@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.10";
+export const SURUM = "v4.11";
 
 /* ---------------- Tetikleyici esyalar ---------------- */
 export const SIMSEK_ESYA = "minecraft:blaze_rod";     // baktigin yere simsek
@@ -518,6 +518,7 @@ export const PARCACIK_LAZER = "minecraft:basic_flame_particle";
 export const KADEMELER = [
   {
     kimlik: "nitroksin",
+    renk: [1.0, 1.0, 1.0],
     ad: "Nitroksin",
     sure: 1200,                     // 60 saniye
     goz: "pa:goz_beyaz",
@@ -534,6 +535,7 @@ export const KADEMELER = [
   },
   {
     kimlik: "grinoksin",
+    renk: [0.0, 1.0, 0.2],
     ad: "Grinoksin",
     sure: 1200,
     goz: "pa:goz_yesil",
@@ -551,6 +553,7 @@ export const KADEMELER = [
   },
   {
     kimlik: "ates_iksiri",
+    renk: [1.0, 0.45, 0.0],
     ad: "Ates Iksiri",
     sure: 1200,
     goz: "pa:goz_ates",
@@ -568,6 +571,7 @@ export const KADEMELER = [
   },
   {
     kimlik: "kan_iksiri",
+    renk: [0.8, 0.0, 0.0],
     ad: "Kan Iksiri",
     sure: 1200,
     goz: "pa:goz_kan",
@@ -585,6 +589,7 @@ export const KADEMELER = [
   },
   {
     kimlik: "hiperoksin",
+    renk: [0.2, 0.6, 1.0],
     ad: "Hiperoksin",
     sure: 1200,
     goz: "pa:goz_mavi",
@@ -852,6 +857,28 @@ export const COKLU_MUAF = [
   "minecraft:xp_orb",
   "minecraft:lightning_bolt"
 ];
+
+
+/* ---------------- Icme parlamasi ----------------
+   Fikir "iksir modu muhammetlo mz"den: iksiri icince ekran o
+   iksirin renginde parliyor (camera fade). Bizde hic gorsel
+   yoktu -- iciyordun, sadece sohbete satir dusuyordu.
+
+   REFERANSTAKI HATA: fade rengi 0.0-1.0 araliginda olmali.
+   Ayni pakette firenoxin "color 1 0.5 0" ve grinoxin
+   "color 0.0 1.0 0.0" DOGRU yaziyor ama redoxin "color 255 0 0",
+   nitroxin "color 255 255 255" yaziyor -- aralik disi. Yani
+   kirmizi iksir kirmizi degil BEYAZ parliyor. Bizdeki renkler
+   KADEMELER tablosunda, hepsi 0.0-1.0.
+
+   AYRICA ALINMADI: referans her icme fonksiyonunun basinda
+   "gamerule sendcommandfeedback false" ve "commandblockoutput
+   false" calistiriyor. Bunlar DUNYA AYARI; iksir icmek dunyanin
+   ayarini kalici degistirmemeli, ustelik geri de almiyor.      */
+export const PARLAMA_ACIK  = true;
+export const PARLAMA_GIRIS = 0.2;   // saniye, kararma
+export const PARLAMA_TUT   = 0.3;   // saniye, sabit kalma
+export const PARLAMA_CIKIS = 0.6;   // saniye, acilma
 
 /* ---------------- Dunya yukseklik sinirlari ----------------
    heightRange okunamazsa bu tablo kullanilir.                      */

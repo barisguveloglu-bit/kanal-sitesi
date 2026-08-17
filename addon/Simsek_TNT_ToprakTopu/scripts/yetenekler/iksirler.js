@@ -4,7 +4,9 @@ import { iksirKaydet, iksirinKademesi, tumIksirler } from "./kayit.js";
 import {
   hataYaz, bilgiYaz, gecerliMi, olayaAbone, actionbarYaz
 } from "../yardimcilar.js";
-import { KADEMELER, IKSIR_TAZELEME, IKSIR_ONEK } from "../ayarlar.js";
+import { KADEMELER, IKSIR_TAZELEME, IKSIR_ONEK,
+  PARLAMA_ACIK, PARLAMA_GIRIS, PARLAMA_TUT, PARLAMA_CIKIS
+} from "../ayarlar.js";
 
 /* ============================================================
    GUC IKSIRLERI  (Nitroksin'in bizdeki karsiligi)
@@ -196,6 +198,36 @@ function efektSil(oyuncu, kademe) {
 
 /* ---------------- Icme ---------------- */
 
+/* Icme parlamasi: ekran kademenin renginde parliyor.
+
+   Fikir referanstan; oradaki hata renk araligiydi. camera fade
+   0.0-1.0 bekliyor, referans bazi iksirlerde 0-255 yaziyordu ve
+   o iksirler kendi renkleri yerine beyaz parliyordu. Buradaki
+   renkler KADEMELER tablosunda, hepsi 0.0-1.0.
+
+   camera komutu eski surumlerde yok; bir kez uyarilip sessizce
+   geciliyor. Parlama tamamen gorsel, olmamasi oynanisi bozmuyor. */
+let parlamaUyarisi = false;
+
+function parlat(oyuncu, kademe) {
+  if (!PARLAMA_ACIK) return;
+  const r = kademe.renk;
+  if (!r || r.length < 3) return;
+
+  try {
+    oyuncu.runCommand(
+      "camera @s fade time " + PARLAMA_GIRIS + " " + PARLAMA_TUT + " " +
+      PARLAMA_CIKIS + " color " + r[0] + " " + r[1] + " " + r[2]
+    );
+  } catch (e) {
+    if (!parlamaUyarisi) {
+      parlamaUyarisi = true;
+      bilgiYaz("Icme parlamasi cizilemiyor (camera komutu yok mu?): " +
+               (e && e.message ? e.message : e) + ". Gorsel eksik, oynanis normal.");
+    }
+  }
+}
+
 export function iksirIc(oyuncu, kademe) {
   if (!kademe) return false;
 
@@ -212,6 +244,7 @@ export function iksirIc(oyuncu, kademe) {
 
   gozTak(oyuncu, kademe);
   efektVer(oyuncu, kademe);
+  parlat(oyuncu, kademe);
 
   try {
     oyuncu.sendMessage(

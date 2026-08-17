@@ -1605,6 +1605,62 @@ Test: 21/21 geçti (`yamultma.mjs` yeni).
 
 ---
 
+## Aşama 21 — iksir modu: içme parlaması (v4.11)
+
+Kaynak: `iksir modu muhammetlo mz`. Güneş modu ile **aynı yapımcı**.
+353 dosya. Altı iksir: nitroxin, hiperoksin, grinoxin, redoxin,
+firenoxin, forest_fire.
+
+### Kademeler karşılaştırması
+
+Bizimki zaten daha zengin:
+
+| | Referans | Bizim |
+|---|---|---|
+| Efekt sayısı | 3–5 | 6–7 |
+| Seviye | hep 0 ya da 1 | kademeye göre 0–5 |
+| Lazer | tek ayar, hepsi aynı | kademeye göre hasar/menzil |
+| Gece görüşü | yok | her kademede |
+| Emiş (absorption) | yok | kademeye göre 1–5 |
+
+Referansın efektleri düz: `nitroxin` ve `hiperoksin` neredeyse aynı
+(ikisi de instant_health + resistance + speed + strength), aralarındaki
+tek fark biri jump_boost biri regeneration veriyor. Yani "en güçlüsü
+hangisi" sorusunun kodda karşılığı yok.
+
+### Alınan: içme parlaması
+
+Bizde **hiç görsel yoktu** — içiyordun, sadece sohbete satır düşüyordu.
+Referansta her iksir kendi renginde ekranı parlatıyor (`camera fade`).
+Alındı, beş kademenin beşi de kendi renginde parlıyor.
+
+**Referanstaki hata:** `camera fade` rengi **0.0–1.0** aralığında olmalı.
+Aynı pakette:
+
+- `firenoxin` → `color 1 0.5 0` ✓
+- `grinoxin` → `color 0.0 1.0 0.0` ✓
+- `redoxin` → `color 255 0 0` ✗
+- `nitroxin` → `color 255 255 255` ✗
+
+Yani **kırmızı iksir kırmızı değil beyaz parlıyor.** Tek pakette iki
+farklı anlayış. Bizim renkler tabloda ve hepsi aralıkta; test bunu
+ayrıca doğruluyor (komutta iki basamaklı sayı olmamalı).
+
+### Alınmayanlar
+
+**`gamerule sendcommandfeedback false`** — referans her içme
+fonksiyonunun başında bunu ve `commandblockoutput false`'u çalıştırıyor.
+Bunlar **dünya ayarı**; iksir içmek dünyanın ayarını kalıcı
+değiştirmemeli ve geri de almıyorlar.
+
+**`item_lock: lock_in_slot`** — göz eşyasını kaskı çıkaramayacak şekilde
+kilitliyorlar. Sistem bozulursa çıkaramadığın bir kaskla kalırsın;
+bizimki süre dolunca gözü kendisi çıkarıyor.
+
+Test: 22/22 geçti (`parlama.mjs` yeni).
+
+---
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:
