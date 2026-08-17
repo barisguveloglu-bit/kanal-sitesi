@@ -1850,6 +1850,65 @@ Test: 25/25 geçti (`menu.mjs` yeni).
 
 ---
 
+## Aşama 25 — ışın topu patlıyor, optimizasyon ölçümü (v4.15)
+
+### Işın topu artık patlıyor
+
+Durduğu yerde **TNT gücünde** (`4`) patlıyor — toprak topunun sonundaki
+patlamayla aynı güç. Üç durumda da patlar: hedefe çarpınca, duvara
+çarpınca, menzil dolunca.
+
+Patlama ayrı bir aşama olarak tutuluyor çünkü patlama bütçesi tick başına
+`1`; sırasını beklemesi gerekebilir. Referansta ("Güneş modu — Sarı
+Particle At") patlama hiç yoktu, sadece hasar veriyordu.
+
+`ISINTOP_BLOK_KIRAR = false` yaparsan kendi üssünü havaya uçurmaz.
+
+### Sahte dünya düzeltildi — bir testin yalancı yeşili
+
+Ölçüm yazarken çıktı: `dunya.mjs`'teki `getEntities()` **seçenekleri yok
+sayıp** bütün listeyi döndürüyordu. Yani "menzil dışındaki vurulmadı"
+diyen testler aslında hiçbir şey sınamıyordu — sahte dünya her varlığı
+menzilde sayıyordu.
+
+Artık gerçek API gibi `location` + `maxDistance`/`minDistance` ve
+`excludeTypes` süzülüyor. Bunu açınca `kevin.mjs`'in tavan testi kırıldı
+ve sebebi öğreticiydi: test tavana vurduktan sonra iki kez daha deniyor,
+o denemeler menzil dışına düştüğü için "hedef yok" sayılıp **var olan
+kafesleri açıyordu**. Ürün doğruydu, test fazla döngü çeviriyordu.
+
+### Optimizasyon ölçümü
+
+32 yeteneğin tamamı tek tek çalıştırılıp ölçüldü (`olcum.mjs`):
+
+| | |
+|---|---|
+| Bütçeyi aşan yetenek | **yok** |
+| En yüksek tepe yük | `hapis` — 56/56 |
+| En uzun süren | `kubbe` — 208 tick (10,4 sn) |
+| En çok işlemci yiyen | `toprak_topu` — 7,74 ms |
+| 32 yeteneğin toplamı | 28,5 ms |
+| Anlık yetenek (tick tutmaz) | 11 |
+| Süreli yetenek | 21 |
+
+**Çift el ölçümü:** iki ağır yetenek (Toprak Kol + Toprak Topu Kolu) aynı
+anda çalışırken tepe yük yine **56/56** — bütçe paylaşılıyor, toplanmıyor.
+Çift el tick yükünü artırmıyor.
+
+Dikkat çeken üç şey:
+
+- **`toprak_topu` tek başına 1360 blok yazıyor** ve toplam sürenin
+  dörtte birini yiyor. Beklenen — bütün paketteki en ağır iş o.
+- **Yeni yeteneklerin hiçbiri ağır değil.** `isin_topu` 0,75 ms,
+  `ok_yagmuru` 0,68 ms, `sarsinti` 0,15 ms. Hepsi eski yeteneklerin
+  disiplinine uymuş.
+- **`hapis` tek tick'te tavanı tam dolduruyor** (56/56) ama bir tick
+  sürüp bitiyor, yani sorun değil.
+
+Test: 25/25 geçti + ölçüm aracı (`olcum.mjs`) eklendi.
+
+---
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:

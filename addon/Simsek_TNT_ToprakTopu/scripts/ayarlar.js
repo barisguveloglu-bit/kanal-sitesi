@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.14";
+export const SURUM = "v4.15";
 
 /* ---------------- Tetikleyici esyalar ---------------- */
 export const SIMSEK_ESYA = "minecraft:blaze_rod";     // baktigin yere simsek
@@ -919,6 +919,17 @@ export const ISINTOP_HASAR          = 7;
 export const ISINTOP_DELIP_GECER    = false;
 export const ISINTOP_TAVAN          = 3;    // delip gecerken en fazla kac hedef
 export const ISINTOP_PARCACIK       = "minecraft:basic_flame_particle";
+
+/* Vardigi yerde patlasin mi. TNT'nin gucu 4 -- PATLAMA_GUCU ile
+   ayni sayi, yani toprak topunun sonundaki patlamayla esit.
+   Referansta (Gunes modu "Sari Particle At") patlama yoktu,
+   sadece hasar veriyordu.
+
+   breaksBlocks true: gercek TNT gibi blok kiriyor. Kendi
+   ussunu havaya ucurmak istemiyorsan false yap.               */
+export const ISINTOP_PATLAR      = true;
+export const ISINTOP_PATLAMA     = 4;      // TNT ile ayni guc
+export const ISINTOP_BLOK_KIRAR  = true;
 export const ISINTOP_HAZIR_PARCACIK = "minecraft:redstone_ore_dust_particle";
 
 /* ---------------- Gunes yumrugu ----------------

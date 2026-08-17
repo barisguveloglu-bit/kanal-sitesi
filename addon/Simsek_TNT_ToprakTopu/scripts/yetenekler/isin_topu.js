@@ -1,12 +1,14 @@
 import { system } from "@minecraft/server";
 import { yetenekKaydet } from "./kayit.js";
+import { patlamaIste } from "../butce.js";
 import {
   hataYaz, gecerliMi, kollariIndir, parcacikAt, actionbarYaz, yukseklikAraligi
 } from "../yardimcilar.js";
 import {
   ISINTOP_MENZIL, ISINTOP_HIZ, ISINTOP_YARICAP, ISINTOP_HASAR,
   ISINTOP_HAZIRLIK, ISINTOP_PARCACIK, ISINTOP_HAZIR_PARCACIK,
-  ISINTOP_DELIP_GECER, ISINTOP_TAVAN
+  ISINTOP_DELIP_GECER, ISINTOP_TAVAN,
+  ISINTOP_PATLAR, ISINTOP_PATLAMA, ISINTOP_BLOK_KIRAR
 } from "../ayarlar.js";
 
 /* ISIN TOPU -- once elinde topluyorsun, sonra firlatiyorsun.
@@ -72,6 +74,12 @@ yetenekKaydet({
     const vurulan = new Set();     // ayni hedefe iki kez hasar yok
     let vurusSayisi = 0;
 
+    /* Patlama, top DURDUGU anda oluyor: hedefe carpinca, duvara
+       carpinca ya da menzil dolunca. Patlama butcesi tick basina
+       1 oldugu icin sirasini beklemesi gerekebilir; o yuzden
+       ayri bir asama olarak tutuluyor.                         */
+    let patlamaNoktasi = null;
+
     // Tarama secenekleri her tick yeniden uretilmesin
     const _tarama = {
       location: { x: 0, y: 0, z: 0 },
@@ -92,11 +100,35 @@ yetenekKaydet({
       }
     }
 
+    /* Top durdu: patlayacaksa noktayi kaydet ve isi ACIK birak
+       (patlama butcesi icin bir tick daha gerekebilir), yoksa
+       hemen bitir.                                             */
+    function patlamayiKur() {
+      if (!ISINTOP_PATLAR) return true;
+      patlamaNoktasi = { x: poz.x, y: poz.y, z: poz.z };
+      return false;
+    }
+
     return {
       ad: "isin_topu",
       oyuncuId: oyuncuId,
 
       calis() {
+        /* --- 0. asama: patlama sirasini bekliyorsa --- */
+        if (patlamaNoktasi) {
+          if (patlamaIste(1) === 0) return false;   // butce dolu
+          try {
+            boyut.createExplosion(patlamaNoktasi, ISINTOP_PATLAMA, {
+              breaksBlocks: ISINTOP_BLOK_KIRAR,
+              causesFire: false,
+              allowUnderwater: true
+            });
+          } catch (e) {
+            hataYaz("isin_topu.patlat", e);
+          }
+          return true;
+        }
+
         /* --- 1. asama: elinde topla --- */
         if (hazirlikKalan > 0) {
           hazirlikKalan--;
@@ -126,7 +158,7 @@ yetenekKaydet({
         }
 
         /* --- 2. asama: ilerle ve tara --- */
-        if (gidilen >= ISINTOP_MENZIL) return true;
+        if (gidilen >= ISINTOP_MENZIL) return patlamayiKur();
 
         poz.x += yon.x * ISINTOP_HIZ;
         poz.y += yon.y * ISINTOP_HIZ;
@@ -136,7 +168,7 @@ yetenekKaydet({
         // Duvara ya da dunya sinirina carptiysa bitir
         if (katiMi(poz.x, poz.y, poz.z)) {
           parcacikAt(boyut, ISINTOP_PARCACIK, poz);
-          return true;
+          return patlamayiKur();
         }
 
         parcacikAt(boyut, ISINTOP_PARCACIK, poz);
@@ -166,8 +198,8 @@ yetenekKaydet({
             varlik.applyDamage(ISINTOP_HASAR);
             vurusSayisi++;
 
-            if (!ISINTOP_DELIP_GECER) return true;     // ilk hedefte dur
-            if (vurusSayisi >= ISINTOP_TAVAN) return true;
+            if (!ISINTOP_DELIP_GECER) return patlamayiKur();  // ilk hedefte dur
+            if (vurusSayisi >= ISINTOP_TAVAN) return patlamayiKur();
           } catch (e) {
             hataYaz("isin_topu.hasar", e);
           }
@@ -180,8 +212,9 @@ yetenekKaydet({
         try {
           if (gecerliMi(oyuncu)) {
             actionbarYaz(oyuncu, vurusSayisi > 0
-              ? "§e☀ §f" + vurusSayisi + " isabet"
-              : "§7Isin topu bosa gitti");
+              ? "§e☀ §f" + vurusSayisi + " isabet" +
+                (ISINTOP_PATLAR ? " §8· patladi" : "")
+              : (ISINTOP_PATLAR ? "§7Isin topu patladi" : "§7Isin topu bosa gitti"));
           }
         } catch (e) {
           hataYaz("isin_topu.bitir", e);
