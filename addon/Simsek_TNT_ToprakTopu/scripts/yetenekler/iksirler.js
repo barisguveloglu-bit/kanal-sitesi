@@ -53,6 +53,7 @@ export function kademeAl(oyuncuId) {
 
 export function kademeUnut(oyuncuId) {
   durumlar.delete(oyuncuId);
+  sonIcme.delete(oyuncuId);
 }
 
 export function iksirSayisi() {
@@ -173,7 +174,7 @@ function efektVer(oyuncu, kademe) {
   const sure = IKSIR_TAZELEME * 3;
   for (const [ad, seviye] of kademe.efektler) {
     try {
-      oyuncu.addEffect(ad, sure, { amplifier: seviye, showParticles: false });
+      oyuncu.addEffect(ad, sure, { amplifier: seviye, showParticles: true });
     } catch (e) {
       // Bilinmeyen efekt adi tum kademeyi dusurmesin
       hataYaz("iksir.addEffect(" + ad + ")", e);
@@ -222,24 +223,59 @@ export function iksirIc(oyuncu, kademe) {
   return true;
 }
 
-/* Icme YETENEKLERDEN FARKLI bir olayla yakalaniyor: itemUse
-   icmeye BASLAYINCA tetiklenir, itemCompleteUse ise BITINCE.
-   Yarim birakip guc kazanmayasin diye ikincisi kullaniliyor. */
-const kuruldu = olayaAbone("itemCompleteUse", (olay) => {
-  try {
-    const oyuncu = olay.source;
-    const esya = olay.itemStack;
-    if (!oyuncu || !esya) return;
+/* ---------------- Icme olayi ----------------
+   ASIL YOL: itemCompleteUse -- icme animasyonu BITINCE gelir,
+   yani yarim birakip guc kazanamazsin.
 
-    const kademe = iksirinKademesi(esya.typeId);
-    if (kademe) iksirIc(oyuncu, kademe);
+   YEDEK YOL: itemUse -- icmeye BASLAYINCA gelir. Neden lazim:
+   esyanin icilebilir sayilmasi minecraft:use_animation'a bagli
+   ve bu bilesenin adi/davranisi surumler arasi degisebiliyor.
+   Icme hic "tamamlanmazsa" itemCompleteUse hic gelmez ve iksir
+   tamamen olu kalir (v4.1'de bu oldu). Yedek yol o durumda
+   devreye giriyor.
+
+   Cift tetiklenme sorun degil: ayni iksir CIFT_ESIK tick icinde
+   ikinci kez gelirse yok sayiliyor, yani sure bastan baslamiyor. */
+const CIFT_ESIK = 30;
+const sonIcme = new Map();   // oyuncuId -> { kimlik, tick }
+
+function icmeyiIsle(oyuncu, esya, nereden) {
+  if (!oyuncu || !esya) return;
+
+  const kademe = iksirinKademesi(esya.typeId);
+  if (!kademe) return;
+
+  const onceki = sonIcme.get(oyuncu.id);
+  const simdi = system.currentTick;
+  if (onceki && onceki.kimlik === kademe.kimlik && simdi - onceki.tick < CIFT_ESIK) {
+    return;   // ayni icme iki yoldan da geldi
+  }
+  sonIcme.set(oyuncu.id, { kimlik: kademe.kimlik, tick: simdi });
+
+  iksirIc(oyuncu, kademe);
+  bilgiYaz("iksir icildi: " + kademe.kimlik + " (" + nereden + ")");
+}
+
+const tamKuruldu = olayaAbone("itemCompleteUse", (olay) => {
+  try {
+    icmeyiIsle(olay.source, olay.itemStack, "itemCompleteUse");
   } catch (e) {
     hataYaz("itemCompleteUse", e);
   }
 });
 
-if (!kuruldu) {
-  bilgiYaz("UYARI: itemCompleteUse yok, iksirler calismayacak.");
+const basKuruldu = olayaAbone("itemUse", (olay) => {
+  try {
+    icmeyiIsle(olay.source, olay.itemStack, "itemUse");
+  } catch (e) {
+    hataYaz("itemUse.iksir", e);
+  }
+});
+
+if (!tamKuruldu && !basKuruldu) {
+  bilgiYaz("KRITIK: ne itemCompleteUse ne itemUse kuruldu, iksirler calismaz.");
+} else if (!tamKuruldu) {
+  bilgiYaz("itemCompleteUse yok, iksirler itemUse ile calisacak.");
 }
 
 /* ---------------- Her tick ----------------

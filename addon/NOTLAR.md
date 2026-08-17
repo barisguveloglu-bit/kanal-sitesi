@@ -1004,6 +1004,63 @@ Ayırt etme yolu: kolu eline al.
 - **Kol şeklinde** bir şey görüyorsan (mor/siyah bile olsa) → resource pack
   etkin, sorun doku yolunda
 
+## Aşama 12 — içme hatası ve kademe güçlendirmesi (v4.2)
+
+### İçince hiçbir şey olmuyordu — gerçek hata
+
+İksir eşyasında `minecraft:use_animation` yoktu. **Bu bileşen olmadan oyun
+eşyayı içilebilir saymıyor:** dokununca içme animasyonu başlamıyor,
+dolayısıyla `itemCompleteUse` olayı hiç tetiklenmiyor ve iksir tamamen ölü
+kalıyor. `minecraft:food` tek başına yetmiyor.
+
+Eklenen: `"minecraft:use_animation": "drink"`.
+
+### Yedek tetikleme yolu
+
+Aynı hatanın tekrar sessizce olmaması için ikinci bir yol açıldı:
+
+| olay | ne zaman | rol |
+|---|---|---|
+| `itemCompleteUse` | içme **bitince** | asıl yol — yarım bırakıp güç kazanamazsın |
+| `itemUse` | içmeye **başlayınca** | yedek — içme hiç tamamlanmazsa devreye girer |
+
+Çift tetiklenme sorun değil: aynı iksir 30 tick içinde ikinci kez gelirse yok
+sayılıyor, süre baştan başlamıyor. Hangi yoldan geldiği Content Log'a
+yazılıyor, yani bir daha teşhis etmek kolay.
+
+### Efektler artık görünür
+
+`showParticles: false` idi — oyuncu efekt aldığını anlayamıyordu. `true`
+yapıldı; artık iksir içince etrafında parçacık dönüyor ve efekt ikonları
+ekranda çıkıyor.
+
+### Kademeler güçlendirildi
+
+Kullanıcının istediği gece görüşü ve kalkan (absorption) **beş kademeye de**
+eklendi. Hiperoksin açık ara en güçlüsü olacak şekilde ayrıldı:
+
+| kademe | efekt | öne çıkan |
+|---|---|---|
+| Nitroksin | 6 | hız 2, güç 2, kalkan 2, gece görüşü |
+| Grinoksin | 7 | + direnç |
+| Ateş İksiri | 7 | + ateş bağışıklığı |
+| Kan İksiri | 7 | + kazma hızı, kalkan 5 |
+| **Hiperoksin** | **11** | hız 6, güç 6, **kalkan 7**, su altında nefes, yüksekten düşme koruması |
+
+Hiperoksin'de levitation bilerek yok: sürekli levitation kontrolü elinden
+alıyor, yerde duramıyorsun. Yerine `slow_falling` — yüksekten atlayabilirsin,
+ölmezsin, ama kontrol sende. Uçmak istersen zaten Uçuş yeteneği var.
+
+### Eşyalar görünmüyor — teşhis
+
+İşlevleri çalışıyor ama ikonları görünmüyor. Bizim taraf tekrar doğrulandı
+(27/27 ikon atlasta, PNG'ler geçerli ve dolu, paket içeriği tam), yani
+kaynak paketi dünyada etkin değil.
+
+Behavior pack ve resource pack Minecraft'ta **ayrı iki liste**. İki `.mcpack`
+ayrı ayrı kurulunca davranış paketi açılıp kaynak paketi kapalı kalabiliyor.
+Çözüm: tek dosyalık `.mcaddon` — Minecraft ikisini birlikte içe aktarıyor.
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:

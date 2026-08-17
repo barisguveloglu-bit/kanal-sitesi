@@ -164,8 +164,13 @@ def iksir_esyasi(kimlik, ad):
                 "minecraft:icon": {"texture": "iksir_" + kimlik},
                 "minecraft:display_name": {"value": ad},
                 "minecraft:max_stack_size": 16,
+                # use_animation OLMADAN esya ICILEBILIR SAYILMIYOR:
+                # dokununca hicbir sey olmuyor, dolayisiyla
+                # itemCompleteUse olayi da hic tetiklenmiyor.
+                # v4.1'de "icince etki yok" hatasinin sebebi buydu.
+                "minecraft:use_animation": "drink",
                 "minecraft:food": {"nutrition": 0, "can_always_eat": True},
-                "minecraft:use_modifiers": {"use_duration": 1.6, "movement_modifier": 0.35},
+                "minecraft:use_modifiers": {"use_duration": 1.4, "movement_modifier": 0.35},
                 "minecraft:cooldown": {"category": "iksir", "duration": 1.0},
             },
         },

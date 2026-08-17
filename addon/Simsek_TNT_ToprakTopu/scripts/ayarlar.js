@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.1";
+export const SURUM = "v4.2";
 
 /* ---------------- Tetikleyici esyalar ---------------- */
 export const SIMSEK_ESYA = "minecraft:blaze_rod";     // baktigin yere simsek
@@ -390,7 +390,9 @@ export const KADEMELER = [
       ["speed",        1],
       ["strength",     1],
       ["jump_boost",   1],
-      ["regeneration", 0]
+      ["regeneration", 0],
+      ["absorption",   1],   // emis/kalkan: can barinin ustune sari kalp
+      ["night_vision", 0]    // gece gorusu: en dusuk kademede bile var
     ]
   },
   {
@@ -405,7 +407,9 @@ export const KADEMELER = [
       ["strength",     2],
       ["jump_boost",   2],
       ["regeneration", 1],
-      ["resistance",   0]
+      ["resistance",   0],
+      ["absorption",   2],
+      ["night_vision", 0]
     ]
   },
   {
@@ -416,11 +420,13 @@ export const KADEMELER = [
     lazerGoz: "pa:goz_ates_lazer",
     lazer: { hasar: 10, menzil: 18, ates: true },
     efektler: [
-      ["speed",           2],
-      ["strength",        2],
+      ["speed",           3],
+      ["strength",        3],
       ["fire_resistance", 0],
       ["regeneration",    1],
-      ["resistance",      1]
+      ["resistance",      1],
+      ["absorption",      3],
+      ["night_vision",    0]
     ]
   },
   {
@@ -431,11 +437,13 @@ export const KADEMELER = [
     lazerGoz: "pa:goz_kan_lazer",
     lazer: { hasar: 13, menzil: 22 },
     efektler: [
-      ["speed",        3],
-      ["strength",     3],
-      ["regeneration", 2],
-      ["resistance",   1],
-      ["absorption",   2]
+      ["speed",         4],
+      ["strength",      4],
+      ["regeneration",  2],
+      ["resistance",    1],
+      ["absorption",    4],
+      ["night_vision",  0],
+      ["haste",         2]
     ]
   },
   {
@@ -445,18 +453,27 @@ export const KADEMELER = [
     goz: "pa:goz_mavi",
     lazerGoz: "pa:goz_mavi_lazer",
     lazer: { hasar: 16, menzil: 28 },
-    /* En ust kademe. Referansta bu kademe ucusu da aciyordu
-       (levitation 1 2) ama surekli levitation kontrolu elinden
-       aliyor -- yerde duramiyorsun. Onun yerine slow_falling:
-       yuksekten atlayabilirsin, olmezsin, ama kontrol sende.    */
+    /* EN GUCLU KADEME -- acik ara. Digerlerinde olan her sey
+       burada daha yuksek, ustune haste, su altinda nefes ve
+       yuksekten dusme korumasi var.
+
+       Referansta bu kademe ucusu da aciyordu (levitation 1 2)
+       ama surekli levitation kontrolu elinden aliyor: yerde
+       duramiyorsun, surekli yukari suruklenirsin. Onun yerine
+       slow_falling -- yuksekten atlayabilirsin, olmezsin, ama
+       kontrol sende. Ucmak istersen zaten Ucus yetenegi var.    */
     efektler: [
-      ["speed",         4],
-      ["strength",      4],
-      ["regeneration",  2],
-      ["resistance",    2],
-      ["absorption",    3],
-      ["slow_falling",  0],
-      ["night_vision",  0]
+      ["speed",           5],
+      ["strength",        5],
+      ["regeneration",    3],
+      ["resistance",      3],
+      ["absorption",      6],   // en yuksek kalkan: 6 kat sari kalp
+      ["night_vision",    0],
+      ["haste",           3],
+      ["jump_boost",      3],
+      ["fire_resistance", 0],
+      ["water_breathing", 0],
+      ["slow_falling",    0]    // yuksekten atlarsan olmezsin
     ]
   }
 ];

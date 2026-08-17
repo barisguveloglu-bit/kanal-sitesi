@@ -15,12 +15,13 @@
         "value": "Kan Iksiri"
       },
       "minecraft:max_stack_size": 16,
+      "minecraft:use_animation": "drink",
       "minecraft:food": {
         "nutrition": 0,
         "can_always_eat": true
       },
       "minecraft:use_modifiers": {
-        "use_duration": 1.6,
+        "use_duration": 1.4,
         "movement_modifier": 0.35
       },
       "minecraft:cooldown": {
