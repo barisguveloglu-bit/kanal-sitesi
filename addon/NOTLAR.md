@@ -2001,6 +2001,79 @@ Test: 25/25 geçti.
 
 ---
 
+## Aşama 28 — Orman Ateşi kaldırıldı (v4.18)
+
+İstek: *"sen başka bir iksir daha kendin yapmışsın sanırım orman ateşi
+diye geçiyor onu kaldır."*
+
+### Bir düzeltme: uydurma değildi
+
+Orman Ateşi **referanstan geliyordu**. `iksir modu muhammetlo mz`
+paketinde `forest_fire` adıyla 18 dosya var:
+
+- `items/sp_m_forest_fire_bottle.json` — içilebilir iksir
+- `items/sp_forest_fire_bottle_goz.json` — içince gelen göz
+- `items/sp_m_forest_fire_lazer.json` — lazer varyantı
+- `functions/sp_forest_fire_bottle_goz_effect.mcfunction`:
+  ```
+  effect @e[hasitem={item=sp:forest_fire_bottle_goz,...}] instant_health 1 0 true
+  effect @e[hasitem={item=sp:forest_fire_bottle_goz,...}] resistance 1 0 true
+  effect @e[hasitem={item=sp:forest_fire_bottle_goz,...}] speed 1 0 true
+  effect @e[hasitem={item=sp:forest_fire_bottle_goz,...}] strength 1 0 true
+  ```
+- `functions/forest_fire_ver_komut.mcfunction`
+
+v4.12'de eklenmesini isteyen de sendin: *"mesela forest_fire ve
+firenoksin ve redoksin bizde var mı yoksa onları da ekleyelim."*
+"Orman Ateşi" o `forest_fire`'ın Türkçesi.
+
+### Yine de kaldırıldı — çünkü kaldırılması doğru
+
+Sebep "referansta yok" değil, **tasarım**: v4.12'de her iksire bir
+uzmanlık verdik, Orman Ateşi'ne düşen "denge" oldu — her şeyden 2.
+Ama zaten Hiperoksin de "her şeyden biraz" veriyor. İki iksir aynı
+boşluğu dolduruyordu ve Orman Ateşi'ni içmek için hiçbir sebep
+kalmıyordu: hız istiyorsan Nitroksin, dayanıklılık istiyorsan
+Grinoksin, karar veremiyorsan Hiperoksin.
+
+Yani **7 → 6**. Kalan altısının hepsinin net bir cevabı var:
+
+| İksir | Ne için |
+|---|---|
+| Nitroksin | hız ve zıplama |
+| Grinoksin | dayanıklılık |
+| Redoksin | saldırı ve kazma |
+| Firenoksin | ateş |
+| Kan İksiri | vampir (vur, canını geri al) |
+| Hiperoksin | her şeyden biraz |
+
+### Neler silindi
+
+`ayarlar.js` içindeki `KADEMELER` girdisi, `kol_uret.py` içindeki
+`IKSIRLER`/`IKSIR_TR`/`GOZ_TR` satırları ve üretilmiş 10 dosya:
+
+```
+items/iksir_orman_atesi.json      items/goz_orman.json
+items/goz_orman_lazer.json        attachables/goz_orman.json
+attachables/goz_orman_lazer.json  textures/item/iksir_orman_atesi.png
+textures/item/goz_orman.png       textures/item/goz_orman_lazer.png
+textures/entity/goz_orman.png     textures/entity/goz_orman_lazer.png
+```
+
+Eşya sayısı **36 → 33**. `.lang` ve `item_texture.json` üretici
+tarafından yeniden yazıldı, artık ismi hiçbir yerde geçmiyor.
+
+### Testte çıkan bir hata
+
+`lazer.mjs` menzil testi iksir listesine `KADEMELER[6]` diye sabit
+indisle bakıyordu — liste altıya inince `undefined.kimlik` patladı.
+Son elemana `KADEMELER.length - 1` ile bakacak şekilde düzeltildi;
+bundan sonra iksir eklense de çıkarılsa da kırılmaz.
+
+Test: 27/27 geçti.
+
+---
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:

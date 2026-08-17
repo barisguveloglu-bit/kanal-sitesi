@@ -2,11 +2,11 @@
   "format_version": 2,
   "header": {
     "name": "Simsek TNT ve Toprak Topu v4",
-    "description": "32 yetenek, 15 kol, 7 guc iksiri. Her kolda menu var: kola DOKUN, menu acilsin, sec, hemen calissin. Jestler de duruyor.",
+    "description": "32 yetenek, 15 kol, 6 guc iksiri. Her kolda menu var: kola DOKUN, menu acilsin, sec, hemen calissin. Jestler de duruyor.",
     "uuid": "43a967b7-88e7-4607-a7b1-4ed1394cecb9",
     "version": [
       4,
-      17,
+      18,
       0
     ],
     "min_engine_version": [
@@ -21,7 +21,7 @@
       "uuid": "2f5eed9b-3416-4ab7-b01a-d6174c6f969d",
       "version": [
         4,
-        17,
+        18,
         0
       ]
     },
@@ -32,7 +32,7 @@
       "entry": "scripts/main.js",
       "version": [
         4,
-        17,
+        18,
         0
       ]
     }

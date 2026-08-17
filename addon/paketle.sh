@@ -12,7 +12,7 @@ set -e
 K="$(cd "$(dirname "$0")" && pwd)"
 BP="Simsek_TNT_ToprakTopu"
 RP="Simsek_Kol_Kaynak"
-S="v417"
+S="v418"
 
 rm -f "$K"/SimsekTNT_*.mcpack "$K"/SimsekKol_*.mcpack "$K"/SimsekTNT_*.mcaddon
 rm -f "$K"/*_v3.mcpack "$K"/Simsek_TNT_v3.mcaddon

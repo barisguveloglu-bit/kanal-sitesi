@@ -83,15 +83,6 @@
     "goz_ates_lazer": {
       "textures": "textures/item/goz_ates_lazer"
     },
-    "iksir_orman_atesi": {
-      "textures": "textures/item/iksir_orman_atesi"
-    },
-    "goz_orman": {
-      "textures": "textures/item/goz_orman"
-    },
-    "goz_orman_lazer": {
-      "textures": "textures/item/goz_orman_lazer"
-    },
     "iksir_kan_iksiri": {
       "textures": "textures/item/iksir_kan_iksiri"
     },

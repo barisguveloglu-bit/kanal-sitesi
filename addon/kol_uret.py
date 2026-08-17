@@ -127,13 +127,14 @@ def esya(kimlik, ad):
 # ---------------------------------------------------------------- iksir
 # kimlik, gorunen ad, sivi rengi, goz kimligi, goz rengi
 # v4.12: hiyerarsi kaldirildi, her iksir kendi alaninda uzman.
-# Referanstan gelen uc yeni iksir: redoksin, firenoksin, orman_atesi.
+# Referanstan gelen iki yeni iksir: redoksin, firenoksin.
+# v4.18: orman_atesi (referansta forest_fire) cikarildi -- "her seyden
+# orta" bir kimlik degil, hicbir durumda tercih sebebi olmuyordu.
 IKSIRLER = [
     ("nitroksin",   "Nitroksin",   (236, 240, 248), "goz_beyaz",    (245, 248, 255)),
     ("grinoksin",   "Grinoksin",   (96, 214, 110),  "goz_yesil",    (150, 255, 160)),
     ("redoksin",    "Redoksin",    (206, 44, 44),   "goz_kirmizi",  (255, 96, 96)),
     ("firenoksin",  "Firenoksin",  (240, 130, 40),  "goz_ates",     (255, 190, 90)),
-    ("orman_atesi", "Orman Atesi", (110, 200, 80),  "goz_orman",    (180, 250, 140)),
     ("kan_iksiri",  "Kan Iksiri",  (140, 20, 28),   "goz_kan",      (220, 50, 50)),
     ("hiperoksin",  "Hiperoksin",  (70, 150, 240),  "goz_mavi",     (140, 210, 255)),
 ]
@@ -145,17 +146,15 @@ IKSIRLER = [
 IKSIR_TR = {
     "nitroksin": "Nitroksin", "grinoksin": "Grinoksin",
     "redoksin": "Redoksin", "firenoksin": "Firenoksin",
-    "orman_atesi": "Orman Ateşi", "kan_iksiri": "Kan İksiri",
-    "hiperoksin": "Hiperoksin",
+    "kan_iksiri": "Kan İksiri", "hiperoksin": "Hiperoksin",
 }
 GOZ_TR = {
     "goz_beyaz": "Beyaz Göz", "goz_yesil": "Yeşil Göz",
     "goz_kirmizi": "Kırmızı Göz", "goz_ates": "Ateş Gözü",
-    "goz_orman": "Orman Gözü", "goz_kan": "Kanlı Göz", "goz_mavi": "Mavi Göz",
+    "goz_kan": "Kanlı Göz", "goz_mavi": "Mavi Göz",
     "goz_beyaz_lazer": "Beyaz Göz (Lazer)", "goz_yesil_lazer": "Yeşil Göz (Lazer)",
     "goz_kirmizi_lazer": "Kırmızı Göz (Lazer)", "goz_ates_lazer": "Ateş Gözü (Lazer)",
-    "goz_orman_lazer": "Orman Gözü (Lazer)", "goz_kan_lazer": "Kanlı Göz (Lazer)",
-    "goz_mavi_lazer": "Mavi Göz (Lazer)",
+    "goz_kan_lazer": "Kanlı Göz (Lazer)", "goz_mavi_lazer": "Mavi Göz (Lazer)",
 }
 
 

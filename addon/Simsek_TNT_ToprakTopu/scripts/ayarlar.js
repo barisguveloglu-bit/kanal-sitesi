@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.17";
+export const SURUM = "v4.18";
 
 /* ---------------- Tetikleyici esyalar ---------------- */
 export const SIMSEK_ESYA = "minecraft:blaze_rod";     // baktigin yere simsek
@@ -546,7 +546,7 @@ export const PARCACIK_LAZER = "minecraft:basic_flame_particle";
    seyini daha yuksek seviyede veriyordu. Yani dordu de aslinda
    gereksizdi, hep sonuncuyu icerdin.
 
-   v4.12'de merdiven kaldirildi. Artik yedi iksirin HER BIRI
+   v4.12'de merdiven kaldirildi. Artik alti iksirin HER BIRI
    kendi alaninda EN IYI, baska alanlarda ortalama. Hangisini
    iceceğin ne yapacagina bagli:
 
@@ -554,9 +554,14 @@ export const PARCACIK_LAZER = "minecraft:basic_flame_particle";
      Grinoksin   -> DAYANIKLILIK          (ayakta kalmak)
      Redoksin    -> SALDIRI ve KAZMA      (vurmak, madencilik)
      Firenoksin  -> ATES                  (nether, lav, yanmamak)
-     Orman Atesi -> DENGE                 (her seyden biraz)
      Kan Iksiri  -> VAMPIR                (vur, canini geri al)
      Hiperoksin  -> HER SEY               (hicbirinde en iyi degil)
+
+   v4.18: ORMAN ATESI KALDIRILDI. Referansta (iksir modu
+   muhammetlo mz) sp:m_forest_fire_bottle olarak vardi, biz de
+   ceviri olarak eklemistik; ama "her seyden orta" olmak bir
+   kimlik degil -- hicbir sebep birakmiyordu onu icmek icin.
+   Kaldirildi, kalan altisi birbirinden net ayriliyor.
 
    Hiperoksin artik "en guclu" degil: her alandan biraz veriyor
    ama hicbir alanda uzmanini gecemiyor. Nitroksin ondan hizli,
@@ -672,31 +677,6 @@ export const KADEMELER = [
       ["night_vision",    0],
       /* v4.16 buff: ates blogu yumusatir gibi: daha hizli kazma (Redoksin 4 ile hala uzman) */
       ["haste", 2]
-    ]
-  },
-  {
-    kimlik: "orman_atesi",
-    ad: "Orman Atesi",
-    renk: [0.35, 0.85, 0.25],       // acik yesil
-    sure: 1200,
-    goz: "pa:goz_orman",
-    lazerGoz: "pa:goz_orman_lazer",
-    ozet: "Denge",
-    lazer: { hasar: 10 },
-    /* Referans: instant_health 0, resistance 0, speed 0,
-       strength 0. Bizde her seyden ORTA -- uzmani yok ama zayif
-       yani da yok.                                             */
-    efektler: [
-      ["resistance",   2],
-      ["strength",     2],
-      ["speed",        2],
-      ["regeneration", 2],
-      ["jump_boost",   2],
-      ["absorption",   2],
-      ["saturation",   0],
-      ["night_vision", 0],
-      /* v4.16 buff: denge: biraz da fazladan can (Grinoksin 4 ile hala uzman) */
-      ["health_boost", 2]
     ]
   },
   {
