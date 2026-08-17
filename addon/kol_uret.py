@@ -547,46 +547,62 @@ def iksir_ikonu(renk):
     return p
 
 
-def lazer_goz_dokusu(renk):
-    """Lazer atarken kullanilan parlak varyant: gozler daha genis,
-    rengi beyaza dogru cekilmis, disinda hale var. Normal gozden
-    ilk bakista ayrilmali."""
-    parlak = tuple(min(255, int(c + (255 - c) * 0.55)) for c in renk)
+# ---- Goz kaplamasinin yeri ----
+# BoraLo'nun gercek skin dosyasi olculerek bulundu (iki surum
+# karsilastirildi: normal goz vs nitroksin gozu). Iki dosya
+# arasinda SADECE su satir degisiyor:
+#
+#         x=8   9    10   11   12   13   14   15
+#   y=12       KOYU KOYU  ten  ten KOYU KOYU        <- goz bebegi
+#   y=13       KOYU KOYU  ten  ten KOYU KOYU        <- goz bebegi
+#   y=14       GOZ  GOZ   ten  ten GOZ  GOZ         <- DEGISEN
+#
+# Yani iksir yalnizca y=14 satirini boyuyor: her gozde 2 piksel,
+# toplam 4. Goz bebegi skin'in KENDI pikseli; kaplama onu
+# cizmiyor, altinda birakiyor.
+#
+# v4.16'ya kadar biz y=11..14 arasini, yani yuzun 28 pikselini
+# boyuyorduk. Iki gozun dis hatlari ortada birlesince tek bir
+# bant olusuyordu ve oyunda goz degil GOZLUK gibi gorunuyordu.
+#
+# Skinin gozu baska satirdaysa burayi degistir: tek sayi.
+GOZ_SATIR   = 14
+GOZ_SUTUNLAR = ((9, 10), (13, 14))
+
+
+def _goz_ciz(renk, alfa=255):
+    """Goz kaplamasi: sadece goz satiri, her gozde iki piksel.
+
+    Dis hat YOK, hale YOK -- ikisi de yuzu bant gibi kaplayip
+    gozluk gorunumu yaratiyordu.
+    """
     p = {}
-    for x in range(8, 16):
-        for y in range(11, 15):
-            # Burun hizasi bos kalsin ki iki ayri goz gorunsun
-            if x == 12:
-                continue
-            p[(x, y)] = parlak + (255,)
-    # Hale
-    for x, y in list(p.keys()):
-        for dx in (-1, 0, 1):
-            for dy in (-1, 0, 1):
-                k = (x + dx, y + dy)
-                if k not in p and 8 <= k[0] < 16 and 8 <= k[1] < 16:
-                    p[k] = renk + (170,)
+    for sol, sag in GOZ_SUTUNLAR:
+        for x in (sol, sag):
+            p[(x, GOZ_SATIR)] = renk + (alfa,)
     return p
 
 
 def goz_dokusu(renk):
-    """64x64 kafa dokusu. Yuzun oldugu yere (8..15, 8..15) iki
-    parlak goz cizilir, gerisi TAMAMEN SAYDAM kalir -- boylece
-    skin'in yuzu gorunur, sadece gozler parliyor."""
-    p = {}
-    # Sol goz ve sag goz: yuz bolgesinde iki yatay serit
-    for x in range(9, 12):
-        for y in range(12, 14):
-            p[(x, y)] = renk + (255,)
-    for x in range(13, 16):
-        for y in range(12, 14):
-            p[(x, y)] = renk + (255,)
-    # Hafif dis hat, gozler zeminden ayrilsin
-    for x, y in list(p.keys()):
-        for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)):
-            k = (x + dx, y + dy)
-            if k not in p and 8 <= k[0] < 16 and 8 <= k[1] < 16:
-                p[k] = golge(renk, 0.35) + (200,)
+    """64x64 kafa dokusu. Yalnizca goz satiri boyanir, gerisi
+    TAMAMEN SAYDAM kalir -- skin'in yuzu ve goz bebegi gorunur."""
+    return _goz_ciz(renk)
+
+
+def lazer_goz_dokusu(renk):
+    """Lazer atarken kullanilan parlak varyant.
+
+    Ayni iki piksellik goz, ama beyaza cekilmis; ustelik bir
+    satir YUKARI da tasiyor, yani goz bebeginin uzerine cikip
+    "gozler parliyor" etkisi veriyor. Yuzun geri kalanina yine
+    dokunmuyor -- bant olusmuyor.
+    """
+    parlak = tuple(min(255, int(c + (255 - c) * 0.65)) for c in renk)
+    p = _goz_ciz(parlak)
+    # Bir satir yukari: goz bebeginin ustunu de kaplasin
+    for sol, sag in GOZ_SUTUNLAR:
+        for x in (sol, sag):
+            p[(x, GOZ_SATIR - 1)] = parlak + (255,)
     return p
 
 

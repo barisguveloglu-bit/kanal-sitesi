@@ -1947,6 +1947,60 @@ Test: 25/25 geçti.
 
 ---
 
+## Aşama 27 — göz kaplaması gözlük gibi görünüyordu (v4.17)
+
+Kullanıcı oyundan ekran görüntüsü gönderdi: iksir içince gözler değil
+**gözlük** görünüyordu — yüzü boydan boya kaplayan bir bant. Sonra
+BoraLo'nun **gerçek skin dosyasını** buldu; iki sürüm, biri normal göz
+biri nitroksin gözü.
+
+### Ölçüm
+
+İki skin dosyası piksel piksel karşılaştırıldı. Yüz `(8,8)-(15,15)`
+karesinde **tek bir satır** farklı:
+
+```
+        x=8   9    10   11   12   13   14   15
+  y=12       KOYU KOYU  ten  ten  KOYU KOYU     göz bebeği
+  y=13       KOYU KOYU  ten  ten  KOYU KOYU     göz bebeği
+  y=14       GÖZ  GÖZ   ten  ten  GÖZ  GÖZ      ← DEĞİŞEN
+```
+
+- normal sürüm → `y=14` rengi `(12, 255, 255)` turkuaz
+- nitroksin sürümü → `y=14` rengi `(255, 255, 255)` bembeyaz
+
+Başka hiçbir piksel değişmiyor.
+
+**Yani iksir yalnızca `y=14` satırını boyuyor: her gözde 2 piksel,
+toplam 4.** Göz bebeği skinin kendi pikseli — kaplama onu çizmiyor,
+altında bırakıyor.
+
+### Bizde ne yanlıştı
+
+v4.16'ya kadar `goz_dokusu()` şunu yapıyordu:
+
+1. Her gözü **3×2** çiziyordu (`y=12-13`)
+2. Sonra her birinin **etrafına 1 piksel dış hat** ekliyordu
+
+İki dış hat ortada birleşince yüzün sekiz pikselinin tamamı boyunca
+uzanan bir bant oluşuyordu: **28/64 piksel**. Oyunda göz değil gözlük.
+
+Lazer varyantı daha da genişti — `y=11..14` arası, artı çepeçevre hale.
+
+### Düzeltme
+
+Artık referansla aynı: `y=14` satırı, `x=9-10` ve `x=13-14`, dış hat
+yok, hale yok. **4/64 piksel.** Lazer varyantı bir satır yukarı da
+taşıyor (göz bebeğinin üstünü kaplayıp "parlıyor" etkisi veriyor) —
+**8/64 piksel**, yine bant değil.
+
+Satır konumu tek sabitte: `GOZ_SATIR = 14`. Skinin gözü başka
+satırdaysa tek sayı değişikliği.
+
+Test: 25/25 geçti.
+
+---
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:
