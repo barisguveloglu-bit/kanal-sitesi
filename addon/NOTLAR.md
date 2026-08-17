@@ -800,6 +800,91 @@ Toplam: **15 yetenek, 12 kol, 5 iksir, 5 göz.**
 (çakışma riski, sıfır fayda), boş tick fonksiyonları, `item_lock` kilidi,
 `@e[hasitem]` tarama deseni, boş tarif dosyaları.
 
+## Aşama 9 — yapı düzeltmesi ve görsel efektler (v3.9)
+
+### İksirler artık yeteneklerle aynı yapıda
+
+v3.8'de iksir sistemi `scripts/iksir.js` diye **özel durum** bir dosyaydı ve
+`main.js` içinde kendine ait bir `itemCompleteUse` aboneliği vardı. Davranış
+doğruydu ama yapı diğerlerinden ayrıydı.
+
+Artık aynı kalıp:
+
+| | yetenekler | kollar | iksirler |
+|---|---|---|---|
+| kayıt | `yetenekKaydet` | `esyaBagla` | `iksirKaydet` |
+| yer | `yetenekler/*.js` | `yetenekler/kollar.js` | `yetenekler/iksirler.js` |
+| main.js'te | bir import satırı | bir import satırı | bir import satırı |
+| sabitler | `ayarlar.js` | `ayarlar.js` | `ayarlar.js` (`KADEMELER`) |
+
+Dosya kendini kayıt defterine yazıyor ve **kendi aboneliğini kendi kuruyor**;
+`main.js` sadece `iksirTara()` çağırıyor. Yeni iksir eklemek =
+`ayarlar.js`'teki `KADEMELER`'e bir satır. **Davranış hiç değişmedi** —
+`iksir.mjs` testinin tamamı dokunulmadan geçiyor.
+
+### Toprak Duvar
+
+Referans: `fill ^1^5^6 ^-2^^6 dirt` — tek tick'te kutuyu dolduruyor ve orada
+ne varsa **yok ediyor**. Bizimki bütçeye uyuyor ve sadece havanın yerine
+koyuyor.
+
+Geometri: duvar bakış yönüne **dik** durmalı. Yatay bakış `(bx, bz)` ise dik
+eksen `(bz, -bx)` — duvarın genişliği bu yönde uzuyor. Hücreler aşağıdan
+yukarı ve ortadan dışa doğru sıralı: bütçe yetmezse duvar "yarım ama işe
+yarar" kalıyor, delik deşik değil. Tam yukarı/aşağı bakarken yön belirsiz
+olduğu için uyarı verip çıkıyor.
+
+Toprak Kol'un altıncı yeteneği oldu.
+
+### Parçacık ve ekran sarsıntısı
+
+İkisi de `yardimcilar.js`'te, ayrı ayrı kapatılabiliyor (`PARCACIK_ACIK`,
+`SARSINTI_ACIK`) çünkü tablette parçacık pahalıya gelebilir.
+
+- Parçacık: referans `execute @s^^^4 /particle ...` diye **komutla** yapıyordu;
+  script API'sinde `dimension.spawnParticle()` var, komut ayrıştırma maliyeti
+  yok. Tip tanınmazsa bir kez uyarıp sessizce geçiyor.
+- Sarsıntı: script API'sinde karşılığı yok, komut şart. Referans
+  `camerashake add @s 4` diyordu — **4 çok fazla**, mide bulandırıyor.
+  Bizimki 0.35 şiddet / 0.45 sn.
+
+Patlamada (meteor, güçlü TNT) sarsıntı + patlama parçacığı; can vermede kalp;
+buz adamda kar tanesi; duvarda toprak parçacığı.
+
+### Doku paketi incelemesi — asıl sürpriz
+
+`BoraLo Mod V14` kaynak paketinde 491 doku, 265 attachable, 182 model var.
+Dosyaları gerçek türlerine göre taradım:
+
+**8 dosyanın adı `.png` ama içeriği JPEG.** Bedrock JPEG yükleyemez — o
+dokular oyunda hiç görünmüyor:
+
+```
+entity/pamobile/pa_boralo_kiyafet4.png    JPEG 4096x2048
+entity/pamobile/pa_boralo_kiyafet_5.png   JPEG 4096x2048
+entity/pamobile/pa_boralo_kiyafet_3.png   JPEG 3072x1536
+entity/pamobile/pa_boralo_kiyafet_2.png   JPEG 3072x1536
+entity/pamobile/pa_boralo_kiyafet_1.png   JPEG 1920x960
+blocks/pa_negromeysr_evren_block_up.png   JPEG 420x420
+blocks/pa_negromeysr_evren_block_side.png JPEG 225x225
+blocks/pa_hhhh_block.png                  JPEG (bozuk başlık)
+```
+
+Yüklenebilenler arasında da ölçüsüz olanlar var:
+
+| dosya | boyut | olması gereken |
+|---|---|---|
+| `pa_entity303_goz.png` | **3072×3072** (9.4 MP) | 64×64 |
+| `pa_mezar.png` | 1024×1024 | 64×64 |
+| `pa_altn_kulcesi.png` | 512×512 (blok) | 16×16 |
+| `pa_gravity_gun.png` | 828×595 (eşya ikonu) | 16×16 |
+
+Tek bir 4096×2048 doku bellekte sıkıştırılmamış **32 MB** yer kaplar. Beş
+tanesi 160 MB eder — ve hiçbiri yüklenmiyor bile. Tablette oynanacak bir mod
+için bu, script tarafındaki bütün optimizasyonlardan daha büyük bir kalem.
+
+Bizim bütün dokularımız 16×16 ve 64×64; toplam paket 24 KB.
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:
@@ -812,9 +897,8 @@ Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:
    yetenek başına ayrı bekleme süresi, `@minecraft/server-ui` seçim menüsü.
 5. **TNT yükü.** 30 TNT tabletteki en ağır kalem ve bu script
    optimizasyonuyla çözülmüyor — sayı/oynanış kararı gerekiyor.
-6. **Kalan yetenekler.** Toprak duvar (`fill ^1^5^6 ^-2^^6 dirt`), parçacık
-   efektleri (`particle`), ekran sarsıntısı (`camerashake`), mermi varlığı
-   (`pa:ucur123_bullet` benzeri).
+6. **Kalan yetenekler.** Mermi varlığı (`pa:ucur123_bullet` benzeri),
+   `@minecraft/server-ui` seçim menüsü, yetenek başına ayrı bekleme süresi.
 7. **Kol dokuları.** `textures/` altındakiler hâlâ üretilmiş yer tutucu; her
    kolun rengi farklı ama çizim değil. Aynı adlarla değiştirmen yeterli.
 8. **Oyunda denenmedi.** Attachable'ın gerçekten doğru çizildiği ve

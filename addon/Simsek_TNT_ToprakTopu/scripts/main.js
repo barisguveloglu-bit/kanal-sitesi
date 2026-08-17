@@ -17,10 +17,6 @@ import {
 } from "./butce.js";
 
 import {
-  iksirIc, iksirTara, iksirinKademesi, kademeUnut, kademeSayisi
-} from "./iksir.js";
-
-import {
   esyaninYetenekleri, yetenekAl, esyasizSira, tumYetenekler
 } from "./yetenekler/kayit.js";
 
@@ -43,6 +39,7 @@ import "./yetenekler/buz_adam.js";
 import "./yetenekler/toprak_ucus.js";
 import "./yetenekler/ucurma.js";
 import "./yetenekler/yamult.js";
+import "./yetenekler/toprak_duvar.js";
 
 /* DIKKAT -- SIRA ONEMLI.
    kollar.js var olan yeteneklere esya BAGLIYOR, yani bagladigi
@@ -54,13 +51,17 @@ import {
   KOL_ESYALARI, kisaAddanEsya, kolDenetimi, kollariVer, kayitliKollar
 } from "./yetenekler/kollar.js";
 
+/* Iksirler de kendi dosyasinda kayit oluyor; buradan sadece
+   tarama ve temizlik cagriliyor.                              */
+import {
+  iksirTara, iksirAktifMi, kademeUnut, iksirSayisi
+} from "./yetenekler/iksirler.js";
+
 /* ============================================================
    MERKEZI TICK YONETICISI
    Her yetenek kendi runInterval'ini acmak yerine tek dongu var
    ve butceyi o dagitiyor.
    ============================================================ */
-
-let iksirVar = false;             // hic iksir icilmis mi (bos tarama yapmayalim)
 
 const isler = [];                 // aktif isler
 const oyuncununIsi = new Map();   // oyuncuId -> is (oyuncu basina tek efekt)
@@ -96,7 +97,7 @@ system.runInterval(() => {
   /* Iksir kademesi is listesine GIRMIYOR. Girseydi "oyuncu basina
      tek efekt" kurali yuzunden 60 saniye boyunca butun yetenekler
      kilitlenirdi. Ayrica Map bosken bu cagri bedava.            */
-  if (iksirVar) {
+  if (iksirAktifMi()) {
     try {
       iksirTara(world.getAllPlayers());
     } catch (e) {
@@ -198,29 +199,6 @@ const girisKuruldu = olayaAbone("itemUse", (olay) => {
 
 if (!girisKuruldu) {
   bilgiYaz("KRITIK: itemUse olayina abone olunamadi, esyalar calismaz.");
-}
-
-/* ---- Iksir icme ----
-   Yiyecek/icecek esyalarinda itemUse KULLANMAYA BASLAYINCA
-   tetiklenir, itemCompleteUse ise BITINCE. Iksirin etkisi
-   bitince gelmeli, yoksa yarim birakip guc kazanirsin.        */
-const iksirKuruldu = olayaAbone("itemCompleteUse", (olay) => {
-  try {
-    const oyuncu = olay.source;
-    const esya = olay.itemStack;
-    if (!oyuncu || !esya) return;
-
-    const kademe = iksirinKademesi(esya.typeId);
-    if (!kademe) return;
-
-    if (iksirIc(oyuncu, kademe)) iksirVar = true;
-  } catch (e) {
-    hataYaz("itemCompleteUse", e);
-  }
-});
-
-if (!iksirKuruldu) {
-  bilgiYaz("UYARI: itemCompleteUse yok, iksirler calismayacak.");
 }
 
 /* ---- Ikinci giris yolu: elle scriptevent ----

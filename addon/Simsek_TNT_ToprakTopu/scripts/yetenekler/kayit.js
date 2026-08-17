@@ -106,6 +106,56 @@ export function tumYetenekler() {
   return Array.from(kayitlar.values());
 }
 
+/* ============================================================
+   IKSIR KAYIT DEFTERI
+
+   Iksirler yeteneklerle AYNI mantikla kaydediliyor: kendi
+   dosyasinda tanimlanip buraya yaziliyor, main.js sadece bir
+   import satiri goruyor. Fark sadece tetiklenme bicimi --
+   yetenek "kullaninca", iksir "icip BITIRINCE" calisiyor.
+
+   TANIM ALANLARI:
+     kimlik   (zorunlu) benzersiz kisa ad, orn. "nitroksin"
+     ad       (zorunlu) oyuncuya gosterilen Turkce ad
+     esya     (zorunlu) icilecek esya tipi
+     sure     (zorunlu) kac tick surecek
+     efektler (zorunlu) [[efektAdi, seviye], ...]
+     goz      (istege bagli) kafaya takilacak gorunum esyasi
+   ============================================================ */
+
+const iksirler = new Map();       // kimlik -> tanim
+const iksirEsyasi = new Map();    // esya tipi -> tanim
+
+export function iksirKaydet(tanim) {
+  if (!tanim || !tanim.kimlik || !tanim.esya) {
+    bilgiYaz("UYARI: kimliksiz/esyasiz iksir kaydi atlandi.");
+    return;
+  }
+  if (!Array.isArray(tanim.efektler) || tanim.efektler.length === 0) {
+    bilgiYaz("UYARI: " + tanim.kimlik + " icin efekt listesi yok, atlandi.");
+    return;
+  }
+  if (iksirler.has(tanim.kimlik)) {
+    bilgiYaz("UYARI: " + tanim.kimlik + " iksiri zaten kayitli, ustune yazilmadi.");
+    return;
+  }
+  if (iksirEsyasi.has(tanim.esya)) {
+    bilgiYaz("UYARI: " + tanim.esya + " zaten baska iksire bagli, atlandi.");
+    return;
+  }
+
+  iksirler.set(tanim.kimlik, tanim);
+  iksirEsyasi.set(tanim.esya, tanim);
+}
+
+export function iksirinKademesi(esyaTipi) {
+  return iksirEsyasi.get(esyaTipi);
+}
+
+export function tumIksirler() {
+  return Array.from(iksirler.values());
+}
+
 /* Esyasiz jest sirasinda gosterilecek yetenekler, sirali. */
 export function esyasizSira() {
   return tumYetenekler()

@@ -1,8 +1,8 @@
 import { yetenekKaydet } from "./kayit.js";
-import { hataYaz, gecerliMi, kollariIndir } from "../yardimcilar.js";
+import { hataYaz, gecerliMi, kollariIndir, parcacikAt } from "../yardimcilar.js";
 import {
   CAN_YARICAP, CAN_SURE, CAN_REJEN, CAN_KALKAN, CAN_ANLIK,
-  CAN_TAVAN, CAN_DUSMAN
+  CAN_TAVAN, CAN_DUSMAN, PARCACIK_IYILES
 } from "../ayarlar.js";
 
 /* CAN VERME -- kendini ve cevredeki dostlari iyilestirir.
@@ -97,6 +97,12 @@ yetenekKaydet({
       } catch (e) {
         hataYaz("can_verme.iyilestir", e);
       }
+    }
+
+    try {
+      parcacikAt(boyut, PARCACIK_IYILES, oyuncu.location);
+    } catch (e) {
+      hataYaz("can_verme.parcacik", e);
     }
 
     try {

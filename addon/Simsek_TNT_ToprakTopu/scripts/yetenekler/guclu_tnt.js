@@ -1,8 +1,13 @@
 import { system } from "@minecraft/server";
 import { yetenekKaydet } from "./kayit.js";
 import { varlikIste, patlamaIste } from "../butce.js";
-import { hataYaz, gecerliMi, kollariIndir, yukseklikAraligi } from "../yardimcilar.js";
-import { GTNT_HIZ, GTNT_FITIL, GTNT_GUC, GTNT_ATES } from "../ayarlar.js";
+import {
+  hataYaz, gecerliMi, kollariIndir, yukseklikAraligi, parcacikAt, ekraniSars
+} from "../yardimcilar.js";
+import {
+  GTNT_HIZ, GTNT_FITIL, GTNT_GUC, GTNT_ATES,
+  PARCACIK_PATLAMA, SARSINTI_PATLAMA, SARSINTI_SURE
+} from "../ayarlar.js";
 
 /* Baktigin yone guclu TNT firlatir.
 
@@ -106,6 +111,8 @@ yetenekKaydet({
           } catch (e) {
             hataYaz("guclu_tnt.createExplosion", e);
           }
+          parcacikAt(boyut, PARCACIK_PATLAMA, sonYer);
+          ekraniSars(oyuncu, SARSINTI_PATLAMA, SARSINTI_SURE);
         }
         return true;
       },

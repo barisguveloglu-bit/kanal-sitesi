@@ -2,11 +2,11 @@ import { system } from "@minecraft/server";
 import { yetenekKaydet } from "./kayit.js";
 import { blokIste } from "../butce.js";
 import {
-  hataYaz, gecerliMi, kollariIndir, yukseklikAraligi, bilgiYaz
+  hataYaz, gecerliMi, kollariIndir, yukseklikAraligi, bilgiYaz, parcacikAt
 } from "../yardimcilar.js";
 import {
   BUZ_MENZIL, BUZ_ACI, BUZ_SURE, BUZ_YARICAP, BUZ_YUKSEK,
-  BUZ_BLOK, BUZ_YAVASLIK, BUZ_OYUNCU
+  BUZ_BLOK, BUZ_YAVASLIK, BUZ_OYUNCU, PARCACIK_BUZ
 } from "../ayarlar.js";
 
 /* BUZ ADAM -- baktigin hedefi buz kabugunun icine hapseder.
@@ -205,6 +205,8 @@ yetenekKaydet({
 
           asama = BEKLEME;
           cozulmeTick = system.currentTick + BUZ_SURE;
+          parcacikAt(boyut, PARCACIK_BUZ,
+                     { x: taban.x + 0.5, y: taban.y + 1, z: taban.z + 0.5 });
           return false;
         }
 

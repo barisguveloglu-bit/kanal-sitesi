@@ -1,6 +1,7 @@
 import { world, system } from "@minecraft/server";
 import {
-  HATA_SOHBETE, HATA_SOHBET_ARALIK, ANIM_KALDIR, ANIM_INDIR, YUKSEKLIK_TABLO
+  HATA_SOHBETE, HATA_SOHBET_ARALIK, ANIM_KALDIR, ANIM_INDIR, YUKSEKLIK_TABLO,
+  PARCACIK_ACIK, SARSINTI_ACIK
 } from "./ayarlar.js";
 
 /* ============================================================
@@ -151,6 +152,52 @@ export function kollariIndir(oyuncu) {
     }
   } catch (e) {
     hataYaz("kollariIndir", e);
+  }
+}
+
+/* ============================================================
+   GORSEL/ISITSEL TUZ BIBER
+   Ikisi de OYNANISI DEGISTIRMEZ, sadece his katar. Ayarlardan
+   kapatilabiliyor cunku tablette parcacik pahaliya gelebilir.
+   ============================================================ */
+
+let parcacikUyarisi = false;
+
+/* Parcacik efekti. Referans mod bunu "execute @s^^^4 /particle ..."
+   diye komutla yapiyordu; script API'sinde dogrudan cagri var,
+   komut ayristirma maliyeti yok.                                */
+export function parcacikAt(boyut, tip, konum) {
+  if (!PARCACIK_ACIK) return;
+  try {
+    boyut.spawnParticle(tip, konum);
+  } catch (e) {
+    /* spawnParticle bazi surumlerde yok ya da parcacik tipi
+       taninmiyor olabilir. Bir kez uyar, sonra sessizce gec --
+       her cagrida log basmak sohbeti bogar.                    */
+    if (!parcacikUyarisi) {
+      parcacikUyarisi = true;
+      bilgiYaz("Parcacik cizilemiyor (" + tip + "): " +
+               (e && e.message ? e.message : e) + ". Gorsel eksik, oynanis normal.");
+    }
+  }
+}
+
+let sarsintiUyarisi = false;
+
+/* Ekran sarsintisi. Script API'sinde karsiligi yok, komut sart.
+   Referans "camerashake add @s 4" diyordu -- sure vermeyince
+   varsayilana dusuyor; biz ikisini de veriyoruz.               */
+export function ekraniSars(oyuncu, siddet, sure) {
+  if (!SARSINTI_ACIK) return;
+  try {
+    oyuncu.runCommand(
+      "camerashake add @s " + siddet.toFixed(2) + " " + sure.toFixed(2) + " positional"
+    );
+  } catch (e) {
+    if (!sarsintiUyarisi) {
+      sarsintiUyarisi = true;
+      bilgiYaz("camerashake calismadi: " + (e && e.message ? e.message : e));
+    }
   }
 }
 

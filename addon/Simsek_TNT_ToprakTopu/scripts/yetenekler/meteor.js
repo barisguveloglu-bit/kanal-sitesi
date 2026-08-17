@@ -2,11 +2,13 @@ import { system } from "@minecraft/server";
 import { yetenekKaydet } from "./kayit.js";
 import { varlikIste, patlamaIste } from "../butce.js";
 import {
-  hedefBul, hataYaz, gecerliMi, kollariIndir, yukseklikAraligi
+  hedefBul, hataYaz, gecerliMi, kollariIndir, yukseklikAraligi,
+  parcacikAt, ekraniSars
 } from "../yardimcilar.js";
 import {
   MENZIL, METEOR_SAYISI, METEOR_YAYILMA, METEOR_GUC, METEOR_ARALIK,
-  METEOR_ATES, METEOR_YUKSEK, METEOR_INIS, METEOR_TAVAN
+  METEOR_ATES, METEOR_YUKSEK, METEOR_INIS, METEOR_TAVAN,
+  PARCACIK_PATLAMA, SARSINTI_PATLAMA, SARSINTI_SURE
 } from "../ayarlar.js";
 
 /* YILDIRIM METEORU -- baktigin noktaya gokten meteor yagar.
@@ -79,6 +81,11 @@ yetenekKaydet({
       } catch (e) {
         hataYaz("meteor.createExplosion", e);
       }
+
+      /* Tuz biber: patlama parcacigi + ekran sarsintisi.
+         Ikisi de oynanisi degistirmiyor, ayarlardan kapanabilir. */
+      parcacikAt(boyut, PARCACIK_PATLAMA, yer);
+      ekraniSars(oyuncu, SARSINTI_PATLAMA, SARSINTI_SURE);
     }
 
     return {

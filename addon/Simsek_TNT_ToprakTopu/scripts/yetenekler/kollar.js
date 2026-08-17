@@ -41,7 +41,8 @@ import { bilgiYaz, hataYaz, actionbarYaz } from "../yardimcilar.js";
    eleman var; ayri bir kod yolu yok.                             */
 export const KOL_ESYALARI = [
   // Cok yetenekli kol
-  ["pa:kol_toprak", "can_verme", "toprak_topu", "yon_simsegi", "ors", "toprak_ucus"],
+  ["pa:kol_toprak", "can_verme", "toprak_topu", "yon_simsegi", "ors",
+                    "toprak_ucus", "toprak_duvar"],
 
   // Tek yetenekli kollar
   ["pa:kol_halka",  "yildirim_halkasi"],

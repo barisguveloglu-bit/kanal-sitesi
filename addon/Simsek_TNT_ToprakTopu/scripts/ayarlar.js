@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v3.8";
+export const SURUM = "v3.9";
 
 /* ---------------- Tetikleyici esyalar ---------------- */
 export const SIMSEK_ESYA = "minecraft:blaze_rod";     // baktigin yere simsek
@@ -264,6 +264,39 @@ export const BUZ_YUKSEK   = 3;    // kabugun yuksekligi
 export const BUZ_BLOK     = "minecraft:ice";
 export const BUZ_YAVASLIK = 5;    // slowness seviyesi
 export const BUZ_OYUNCU   = true; // oyuncular da donsun mu
+
+/* ---------------- Gorsel efektler ----------------
+   Ikisi de OYNANISI DEGISTIRMEZ, sadece his katar. Tablette
+   parcacik pahaliya gelebilir diye ayri kapatilabiliyor.
+
+   Parcacik tipleri vanilla; ozel parcacik tanimlamak resource
+   pack gerektirirdi, gerek yok.                                */
+export const PARCACIK_ACIK = true;
+export const SARSINTI_ACIK = true;
+
+export const PARCACIK_PATLAMA = "minecraft:huge_explosion_emitter";
+export const PARCACIK_ATES    = "minecraft:mobflame_emitter";
+export const PARCACIK_BUZ     = "minecraft:snowflake_particle";
+export const PARCACIK_IYILES  = "minecraft:heart_particle";
+export const PARCACIK_TOPRAK  = "minecraft:crop_growth_emitter";
+
+/* Sarsinti siddeti 0-1 arasi mantikli; 4 gibi degerler mideyi
+   bulandiriyor (referans oyle yapiyordu).                      */
+export const SARSINTI_PATLAMA = 0.35;
+export const SARSINTI_SURE    = 0.45;
+
+/* ---------------- Toprak duvar ----------------
+   Referans: "fill ^1^5^6 ^-2^^6 dirt" -- baktigin yone tek
+   komutla duvar oruyor, orada ne varsa YOK EDEREK.
+
+   Bizimki blok butcesine uyuyor ve sadece havanin yerine
+   koyuyor. Duvar bakis yonune DIK oruluyor: yatay yonun
+   dikeyi alinarak (z, -x) genislik ekseni bulunuyor.          */
+export const DUVAR_UZAKLIK  = 4;    // kac blok onune orulsun
+export const DUVAR_GENISLIK = 3;    // merkezden saga/sola (3 = 7 blok)
+export const DUVAR_YUKSEK   = 4;    // kac blok yukari
+export const DUVAR_DERINLIK = 1;    // kac blok kalinlikta
+export const DUVAR_BLOK     = "minecraft:dirt";
 
 /* ---------------- Ucurma ----------------
    Referans: "execute @s^^^N /effect @e[r=N,c=1] levitation 1 255"
