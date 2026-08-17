@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.15";
+export const SURUM = "v4.16";
 
 /* ---------------- Tetikleyici esyalar ---------------- */
 export const SIMSEK_ESYA = "minecraft:blaze_rod";     // baktigin yere simsek
@@ -601,7 +601,9 @@ export const KADEMELER = [
       ["resistance",   1],
       ["haste",        1],
       ["absorption",   2],
-      ["night_vision", 0]
+      ["night_vision", 0],
+      /* v4.16 buff: ziplama kimligini tamamliyor -- yuksekten atlayip yavas iniyorsun */
+      ["slow_falling", 0]
     ]
   },
   {
@@ -622,7 +624,9 @@ export const KADEMELER = [
       ["health_boost", 4],
       ["strength",     1],
       ["speed",        1],
-      ["night_vision", 0]
+      ["night_vision", 0],
+      /* v4.16 buff: dayaniklilik: suda da bogulmuyorsun */
+      ["water_breathing", 0]
     ]
   },
   {
@@ -642,7 +646,9 @@ export const KADEMELER = [
       ["speed",        2],
       ["regeneration", 1],
       ["absorption",   1],
-      ["night_vision", 0]
+      ["night_vision", 0],
+      /* v4.16 buff: kazarken acikmiyorsun */
+      ["saturation", 0]
     ]
   },
   {
@@ -663,7 +669,9 @@ export const KADEMELER = [
       ["resistance",      2],
       ["regeneration",    1],
       ["absorption",      2],
-      ["night_vision",    0]
+      ["night_vision",    0],
+      /* v4.16 buff: ates blogu yumusatir gibi: daha hizli kazma (Redoksin 4 ile hala uzman) */
+      ["haste", 2]
     ]
   },
   {
@@ -686,7 +694,9 @@ export const KADEMELER = [
       ["jump_boost",   2],
       ["absorption",   2],
       ["saturation",   0],
-      ["night_vision", 0]
+      ["night_vision", 0],
+      /* v4.16 buff: denge: biraz da fazladan can (Grinoksin 4 ile hala uzman) */
+      ["health_boost", 2]
     ]
   },
   {
@@ -706,7 +716,9 @@ export const KADEMELER = [
       ["regeneration", 2],
       ["haste",        2],
       ["speed",        1],
-      ["night_vision", 0]
+      ["night_vision", 0],
+      /* v4.16 buff: vampir kimligi: goze gorunmuyorsun */
+      ["invisibility", 0]
     ]
   },
   {
@@ -733,7 +745,9 @@ export const KADEMELER = [
       ["absorption",      3],
       ["haste",           2],
       ["fire_resistance", 0],
-      ["night_vision",    0]
+      ["night_vision",    0],
+      /* v4.16 buff: her seyden biraz: su alti paketi de var */
+      ["conduit_power", 0]
     ]
   }
 ];

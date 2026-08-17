@@ -1909,6 +1909,44 @@ Test: 25/25 geçti + ölçüm aracı (`olcum.mjs`) eklendi.
 
 ---
 
+## Aşama 26 — her iksire bir buff (v4.16)
+
+Kullanıcı isteği: "genel olarak iksirleri güçlendir, her iksire bu
+güncellemede 1 buff ekle."
+
+Yedi iksirin her birine **tam bir** yeni efekt eklendi. Her biri o
+iksirin kimliğine uyuyor:
+
+| İksir | Yeni buff | Neden |
+|---|---|---|
+| Nitroksin | `slow_falling` | zıplama kimliğini tamamlıyor — yüksekten atlayıp yavaş iniyorsun |
+| Grinoksin | `water_breathing` | dayanıklılık: suda da boğulmuyorsun |
+| Redoksin | `saturation` | kazarken acıkmıyorsun |
+| Firenoksin | `haste 2` | ateş bloğu yumuşatır gibi, daha hızlı kazma |
+| Orman Ateşi | `health_boost 2` | denge: biraz da fazladan can |
+| Kan İksiri | `invisibility` | vampir kimliği: göze görünmüyorsun |
+| Hiperoksin | `conduit_power` | her şeyden biraz — su altı paketi de var |
+
+### Hiyerarşi korundu
+
+Buff'lar seçilirken v4.12'nin kuralı gözetildi: **hiçbir iksir her
+alanda en iyi olmamalı.** Eklenen seviyeler uzmanların altında kaldı:
+
+- Firenoksin `haste 2` < Redoksin `haste 4` — kazma hâlâ Redoksin'in
+- Orman Ateşi `health_boost 2` < Grinoksin `health_boost 4` — dayanıklılık hâlâ Grinoksin'in
+
+Ölçüm: en yüksek seviyeye sahip olma sayısı — Grinoksin 5, Nitroksin 4,
+Redoksin 3, Firenoksin 1, Kan İksiri 1, **Hiperoksin 1**. Hiperoksin
+hâlâ "her şeyden biraz, hiçbirinde en iyi değil".
+
+`saturation` artık iki iksirde (Redoksin ve Orman Ateşi) — sorun değil,
+`resistance` ve `speed` de birkaç iksirde ortak. Her iksir yine tam bir
+yeni efekt kazandı.
+
+Test: 25/25 geçti.
+
+---
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:
