@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v3.6";
+export const SURUM = "v3.7";
 
 /* ---------------- Tetikleyici esyalar ---------------- */
 export const SIMSEK_ESYA = "minecraft:blaze_rod";     // baktigin yere simsek
@@ -157,6 +157,20 @@ export const SAVUR_OYUNCU   = true; // oyunculari da savursun mu
 export const UCUS_SURE      = 140;  // tick (140 = 7 saniye)
 export const UCUS_SIDDET    = 2;    // levitation seviyesi (0-9)
 export const UCUS_YUMUSAK   = 200;  // bitince kac tick yavas dusme
+
+/* ---------------- Toprak yukselisi (Toprak Kol'un ucusu) ----------------
+   Normal Ucus duz levitation, geride bir sey kalmaz. Bu yukselirken
+   ALTINDA toprak sutunu oruyor -- ucus bitince kule duruyor.
+
+   TUCUS_ARALIK sutunun sikligi: 2 tick'te bir blok, levitation 2
+   siddetinde saniyede ~2 blok yukseldigi icin sutun kabaca kesiksiz
+   cikiyor. Buyutursen sutunda bosluk olur (merdiven gibi).       */
+export const TUCUS_SURE    = 140;  // tick (140 = 7 saniye)
+export const TUCUS_SIDDET  = 2;    // levitation seviyesi
+export const TUCUS_YUMUSAK = 200;  // bitince kac tick yavas dusme
+export const TUCUS_ARALIK  = 2;    // kac tick'te bir blok konsun
+export const TUCUS_TAVAN   = 40;   // en fazla kac blokluk sutun
+export const TUCUS_BLOK    = "minecraft:dirt";
 
 /* ---------------- Guclu TNT ----------------
    Vanilla TNT'nin gucu degistirilemez (motor tarafinda sabit 4).

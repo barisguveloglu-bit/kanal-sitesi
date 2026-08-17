@@ -20,7 +20,11 @@ BP = "/home/user/kanal-sitesi/addon/Simsek_TNT_ToprakTopu"
 RP = "/home/user/kanal-sitesi/addon/Simsek_Kol_Kaynak"
 
 # kimlik, yetenek, gorunen ad, ana renk (r,g,b), vurgu rengi
+# NOT: "yetenek" sutunu sadece belge amacli; gercek eslesme
+# scripts/yetenekler/kollar.js icinde. Cok yetenekli kollarda
+# buraya kolun ana yetenegi yaziliyor.
 KOLLAR = [
+    ("kol_toprak", "cok",                "Toprak Kol",            (24, 22, 20),    (198, 138, 90)),
     ("kol_halka",  "yildirim_halkasi", "Yildirim Halkasi Kolu", (86, 148, 232),  (214, 236, 255)),
     ("kol_simsek", "yon_simsegi",      "Simsek Kolu",           (233, 196, 66),  (255, 246, 190)),
     ("kol_alan",   "alan_simsegi",     "Alan Simsegi Kolu",     (72, 196, 190),  (198, 248, 244)),
@@ -36,6 +40,7 @@ KOLLAR = [
 
 # Turkce gorunen adlar (dil dosyasi icin; JSON'da ASCII tutuluyor)
 TR_AD = {
+    "kol_toprak": "Toprak Kol",
     "kol_halka":  "Yıldırım Halkası Kolu",
     "kol_simsek": "Şimşek Kolu",
     "kol_alan":   "Alan Şimşeği Kolu",
@@ -221,6 +226,51 @@ def golge(renk, k):
     return tuple(max(0, min(255, int(c * k))) for c in renk)
 
 
+def toprak_dokusu():
+    """Toprak Kol -- gonderilen gorsele gore.
+
+    Koyu, neredeyse siyah bir zemin uzerinde duzensiz TOPRAK
+    lekeleri ve birkac koyu kirmizi vurgu. Diger kollarin duz
+    renginden bilerek ayri: bu kolun bes yetenegi var, envanterde
+    ilk bakista ayirt edilmesi lazim.
+
+    Desen sabit bir tohumla uretiliyor (random degil) -- her
+    calistirmada ayni doku ciksin, git'te gereksiz degisiklik
+    gorunmesin.
+    """
+    ZEMIN  = (24, 22, 20)      # kararmis siyah
+    TOPRAK = (134, 96, 62)     # toprak
+    ACIK   = (198, 138, 90)    # acik toprak / kum
+    KIRMIZI = (122, 26, 22)    # koyu kirmizi vurgu
+
+    p = {}
+    for y in range(16, 32):
+        for x in range(40, 56):
+            # Yuz kenarlarini koyulastir: kup kenarlari belli olsun
+            kenar = x in (40, 44, 48, 52) or x in (43, 47, 51, 55)
+
+            # Tohumlu sozde-rastgele: ayni (x,y) hep ayni sonucu verir
+            h = (x * 73856093) ^ (y * 19349663)
+            h = (h >> 4) & 0xFF
+
+            if h < 96:
+                renk = TOPRAK
+            elif h < 130:
+                renk = ACIK
+            elif h < 140:
+                renk = KIRMIZI
+            else:
+                renk = ZEMIN
+
+            if kenar:
+                renk = golge(renk, 0.6)
+            if y < 18:                      # omuz tarafi daha koyu
+                renk = golge(renk, 0.75)
+
+            p[(x, y)] = renk + (255,)
+    return p
+
+
 def varlik_dokusu(ana, vurgu):
     """64x64. Vanilla sag kol UV bolgesi (40,16)-(55,31) doldurulur.
 
@@ -275,8 +325,8 @@ def main():
         yaz_json(os.path.join(BP, "items", kimlik + ".json"), esya(kimlik, ad))
         yaz_json(os.path.join(RP, "attachables", kimlik + ".json"), attachable(kimlik))
 
-        png_yaz(os.path.join(RP, "textures/entity", kimlik + ".png"), 64, 64,
-                varlik_dokusu(ana, vurgu))
+        doku = toprak_dokusu() if kimlik == "kol_toprak" else varlik_dokusu(ana, vurgu)
+        png_yaz(os.path.join(RP, "textures/entity", kimlik + ".png"), 64, 64, doku)
         png_yaz(os.path.join(RP, "textures/item", kimlik + ".png"), 16, 16,
                 esya_ikonu(ana, vurgu))
 

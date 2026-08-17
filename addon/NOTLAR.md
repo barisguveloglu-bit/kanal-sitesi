@@ -661,6 +661,61 @@ artık bunu söylüyor; "eski paketi kaldır" tavsiyesi kaldırıldı çünkü y
 Elle deneme yolu da duruyor: `/scriptevent simsek:kol kol_top` — eşya JSON'unda
 `on_use` olmasa da `scriptEventReceive` dinleyicisi yerinde.
 
+## Aşama 7 — Toprak Kol: tek kolda beş yetenek (v3.7)
+
+Şu ana kadar her kol **tek** yetenek taşıyordu. Referans moddaki Dirt Arm ise
+bir kol + o kola ait bir yetenek seti şeklinde. Toprak Kol bunu getiriyor:
+
+| sıra | yetenek |
+|---|---|
+| 1 | Can Verme |
+| 2 | Toprak Topu (kil topu) |
+| 3 | Yön Şimşeği |
+| 4 | Örs Yağdır |
+| 5 | **Toprak Yükselişi** (bu kola özel uçuş) |
+
+### Kayıt defteri: eşya → yetenek LİSTESİ
+
+`esyaHaritasi` artık `esya -> [tanim, ...]` tutuyor. Tek yetenekli kollar da
+aynı yolu kullanıyor, listede tek eleman var — iki ayrı kod yolu yok.
+
+`esyaninYetenekleri(esya)` diziyi, `esyaninYetenegi(esya)` ilk elemanı
+döndürüyor. `esyaBagla()` aynı eşyaya birden çok kez çağrılabilir; yetenekler
+sırayla listeye eklenir.
+
+### Seçim kol başına tutuluyor
+
+```
+kolSecim: oyuncuId -> { esya, i }
+```
+
+Kaydın içinde eşya kimliği de var: elindeki kolu değiştirip geri aldığında o
+kolun seçimi yerinde kalıyor. Kol içi geçiş **genel eşyasız sırayı**
+karıştırmıyor — ikisi ayrı.
+
+Üç tetikleme yolu da (eşya kullanma, jest, `scriptevent`) aynı seçimi okuyor.
+
+### Toprak Yükselişi
+
+Düz `Uçuş` levitation verip bırakıyor, geride bir şey kalmıyor. Toprak
+Yükselişi yükselirken **altında toprak sütunu** örüyor — uçuş bitince kule
+duruyor, üstünde durabilirsin.
+
+Levitation'a hâlâ ihtiyaç var çünkü `applyImpulse` oyunculara işlemiyor;
+sütun itmiyor, sadece arkandan geliyor. Sadece havanın yerine blok konuyor.
+Bütçe doluysa o tick sütun büyümez ama uçuş devam eder — sütunda boşluk olur,
+iş durmaz. `TUCUS_TAVAN` sütunu sınırlıyor.
+
+### Doku
+
+Toprak Kol'un dokusu diğerlerinden ayrı üretiliyor (`toprak_dokusu()`):
+koyu zemin üzerinde düzensiz toprak lekeleri ve birkaç koyu kırmızı vurgu.
+Desen sabit tohumlu — her çalıştırmada aynı çıkıyor, git'te gereksiz
+değişiklik görünmüyor. Beş yeteneği olduğu için envanterde ilk bakışta
+ayırt edilmesi gerekiyordu.
+
+Toplam: **12 kol, 13 yetenek.**
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:

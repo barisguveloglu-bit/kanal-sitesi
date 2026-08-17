@@ -2,11 +2,11 @@
   "format_version": 2,
   "header": {
     "name": "Simsek TNT ve Toprak Topu v3",
-    "description": "On iki yetenek, esyali veya esyasiz. Egil+yukari bak degistirir, egil+zipla calistirir, egil+asagi bak kollari verir.",
+    "description": "Toprak Kol: tek kolda bes yetenek. Egil+yukari bak degistirir, egil+zipla calistirir, egil+asagi bak kollari verir.",
     "uuid": "43a967b7-88e7-4607-a7b1-4ed1394cecb9",
     "version": [
       3,
-      6,
+      7,
       0
     ],
     "min_engine_version": [
@@ -21,7 +21,7 @@
       "uuid": "2f5eed9b-3416-4ab7-b01a-d6174c6f969d",
       "version": [
         3,
-        6,
+        7,
         0
       ]
     },
@@ -32,7 +32,7 @@
       "entry": "scripts/main.js",
       "version": [
         3,
-        6,
+        7,
         0
       ]
     }

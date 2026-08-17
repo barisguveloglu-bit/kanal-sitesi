@@ -2,6 +2,9 @@
   "resource_pack_name": "simsek_kol",
   "texture_name": "atlas.items",
   "texture_data": {
+    "kol_toprak": {
+      "textures": "textures/item/kol_toprak"
+    },
     "kol_halka": {
       "textures": "textures/item/kol_halka"
     },

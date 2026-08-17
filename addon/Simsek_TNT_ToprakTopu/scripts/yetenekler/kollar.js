@@ -30,7 +30,20 @@ import { bilgiYaz, hataYaz, actionbarYaz } from "../yardimcilar.js";
    oturmuyordu. Kok kemik artik "RightArm".
    ============================================================ */
 
+/* Her satir: [esya, ...o kolun yetenekleri]
+
+   Bir kolda birden fazla yetenek olabilir. TOPRAK KOL boyle:
+   tek esya, icinde bes yetenek. Eldeyken:
+     egil + yukari bak, tut -> KOL ICINDE sonraki yetenege gec
+     egil + zipla           -> secili yetenegi calistir
+
+   Tek yetenekli kollar ayni yolu kullaniyor, sadece listede tek
+   eleman var; ayri bir kod yolu yok.                             */
 export const KOL_ESYALARI = [
+  // Cok yetenekli kol
+  ["pa:kol_toprak", "can_verme", "toprak_topu", "yon_simsegi", "ors", "toprak_ucus"],
+
+  // Tek yetenekli kollar
   ["pa:kol_halka",  "yildirim_halkasi"],
   ["pa:kol_simsek", "yon_simsegi"],
   ["pa:kol_alan",   "alan_simsegi"],
@@ -44,8 +57,8 @@ export const KOL_ESYALARI = [
   ["pa:kol_buz",    "buz_adam"]
 ];
 
-for (const [esya, yetenek] of KOL_ESYALARI) {
-  esyaBagla(esya, yetenek);
+for (const satir of KOL_ESYALARI) {
+  for (let i = 1; i < satir.length; i++) esyaBagla(satir[0], satir[i]);
 }
 
 /* Kisa addan tam kimlige. scriptevent koprusu bunu kullaniyor:
@@ -54,8 +67,8 @@ for (const [esya, yetenek] of KOL_ESYALARI) {
    gerektiriyordu), ama komut elle yazilinca hala calisiyor --
    esyalar kaydolmadiginda yetenegi denemenin en kisa yolu.       */
 const KISA_AD = new Map();
-for (const [esya] of KOL_ESYALARI) {
-  KISA_AD.set(esya.slice(esya.indexOf(":") + 1), esya);
+for (const satir of KOL_ESYALARI) {
+  KISA_AD.set(satir[0].slice(satir[0].indexOf(":") + 1), satir[0]);
 }
 
 export function kisaAddanEsya(kisa) {
@@ -89,7 +102,7 @@ export function kayitliKollar() {
   if (!ItemTypes || typeof ItemTypes.get !== "function") return undefined;
 
   const eksik = [];
-  for (const [esya] of KOL_ESYALARI) {
+  for (const [esya] of KOL_ESYALARI) {   // satirin ilk elemani = esya kimligi
     let tip;
     try {
       tip = ItemTypes.get(esya);

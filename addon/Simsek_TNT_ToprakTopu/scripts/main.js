@@ -16,7 +16,9 @@ import {
   butceSifirla, olcumSifirla, olcumTickBasla, olcumTickBitir, olcumRaporla
 } from "./butce.js";
 
-import { esyaninYetenegi, yetenekAl, esyasizSira, tumYetenekler } from "./yetenekler/kayit.js";
+import {
+  esyaninYetenekleri, yetenekAl, esyasizSira, tumYetenekler
+} from "./yetenekler/kayit.js";
 
 /* ---------------- Yetenek dosyalari ----------------
    Her yetenek kendini kayit defterine yaziyor. Yeni yetenek
@@ -34,6 +36,7 @@ import "./yetenekler/meteor.js";
 import "./yetenekler/can_verme.js";
 import "./yetenekler/ors.js";
 import "./yetenekler/buz_adam.js";
+import "./yetenekler/toprak_ucus.js";
 
 /* DIKKAT -- SIRA ONEMLI.
    kollar.js var olan yeteneklere esya BAGLIYOR, yani bagladigi
@@ -162,9 +165,12 @@ const girisKuruldu = olayaAbone("itemUse", (olay) => {
     const esya = olay.itemStack;
     if (!oyuncu || !esya) return;
 
-    const tanim = esyaninYetenegi(esya.typeId);
-    if (!tanim) return;
+    /* Cok yetenekli kolda esyaya dokunmak da SECILI yetenegi
+       calistirir; jestle ayni davransin diye.                    */
+    const liste = esyaninYetenekleri(esya.typeId);
+    if (!liste || liste.length === 0) return;
 
+    const tanim = liste[kolSecimAl(oyuncu.id, esya.typeId, liste.length)];
     yetenekTetikle(oyuncu, tanim.kimlik);
   } catch (e) {
     hataYaz("itemUse", e);
@@ -175,12 +181,12 @@ if (!girisKuruldu) {
   bilgiYaz("KRITIK: itemUse olayina abone olunamadi, esyalar calismaz.");
 }
 
-/* ---- Ikinci giris yolu: esya olayindan scriptevent ----
-   itemUse'un OZEL esyalarda tetiklenmedigi surumler var. Kol
-   esyalarinin JSON'unda on_use -> "scriptevent simsek:kol <ad>"
-   tanimli; o komut buraya duser. Iki yol da tetiklenirse ikincisi
-   yetenekTetikle icindeki bekleme kontrolune takilip yutulur,
-   yani cift calisma olmuyor.                                     */
+/* ---- Ikinci giris yolu: elle scriptevent ----
+     /scriptevent simsek:kol kol_toprak
+   Esya JSON'unda on_use YOK (run_command deneysel ayar
+   gerektiriyordu, v3.6'da kaldirildi). Bu dinleyici duruyor cunku
+   komutu elle yazmak, esyalar kaydolmadiginda yetenegi denemenin
+   en kisa yolu.                                                   */
 sistemOlayaAbone("scriptEventReceive", (olay) => {
   try {
     if (olay.id !== "simsek:kol") return;
@@ -194,8 +200,10 @@ sistemOlayaAbone("scriptEventReceive", (olay) => {
       return;
     }
 
-    const tanim = esyaninYetenegi(esya);
-    if (tanim) yetenekTetikle(oyuncu, tanim.kimlik);
+    const liste = esyaninYetenekleri(esya);
+    if (!liste || liste.length === 0) return;
+    const tanim = liste[kolSecimAl(oyuncu.id, esya, liste.length)];
+    yetenekTetikle(oyuncu, tanim.kimlik);
   } catch (e) {
     hataYaz("scriptEventReceive", e);
   }
@@ -213,6 +221,27 @@ const esyasizZipla = new Map();   // oyuncuId -> onceki taramada zipliyor muydu
 const kolVerTutma = new Map();    // oyuncuId -> asagi bakma jesti kac tick tutuldu
 const ESYASIZ_TAMAM = -1;         // jest islendi, durus bozulana kadar tekrarlama
 let esyasizSayac = 0;
+
+/* Cok yetenekli kollarda (Toprak Kol) hangi yetenegin secili
+   oldugu. Secim KOL BASINA tutuluyor: elindeki kolu degistirip
+   geri aldiginda o kolun secimi yerinde kalir.
+     oyuncuId -> { esya: "pa:kol_toprak", i: 2 }                 */
+const kolSecim = new Map();
+
+function kolSecimAl(oyuncuId, esya, uzunluk) {
+  const kayit = kolSecim.get(oyuncuId);
+  if (!kayit || kayit.esya !== esya) return 0;
+  return kayit.i % uzunluk;
+}
+
+/* Elde tutulan kolun yetenek listesi, yoksa undefined. */
+function eldekiKol(oyuncu) {
+  const esya = eldekiEsya(oyuncu);
+  if (!esya) return undefined;
+  const liste = esyaninYetenekleri(esya);
+  if (!liste || liste.length === 0) return undefined;
+  return { esya, liste };
+}
 
 // isJumping bazi surumlerde olmayabilir; bir kez sinanip onbellege alinir
 let ziplamaVar;
@@ -316,10 +345,13 @@ function esyasizOyuncu(oyuncu, sira) {
     if (simdiZipliyor !== oncekiZipliyor) esyasizZipla.set(id, simdiZipliyor);
 
     if (simdiZipliyor && !oncekiZipliyor) {
-      // Elde kol varsa secili yetenek yerine KOLUN yetenegi calisir.
-      // "Kolu takinca o guce sahip olursun" mantigi bu.
-      const koldaki = esyaninYetenegi(eldekiEsya(oyuncu));
-      const secim = koldaki || sira[secimAl(id) % sira.length];
+      /* Elde kol varsa KOLUN yetenegi calisir -- "kolu takinca o
+         guce sahip olursun" mantigi. Kolda birden fazla yetenek
+         varsa (Toprak Kol) o kolun SECILI olani calisir.         */
+      const kol = eldekiKol(oyuncu);
+      const secim = kol
+        ? kol.liste[kolSecimAl(id, kol.esya, kol.liste.length)]
+        : sira[secimAl(id) % sira.length];
       if (secim && !yetenekTetikle(oyuncu, secim.kimlik)) {
         const kalan = kalanBekleme(id);
         if (kalan > 0) {
@@ -348,6 +380,19 @@ function esyasizOyuncu(oyuncu, sira) {
   }
 
   esyasizTutma.set(id, ESYASIZ_TAMAM);
+
+  /* Elde COK yetenekli bir kol varsa geçiş o kolun icinde olur;
+     genel sirayi karistirmaz. Tek yetenekli kolda degistirecek
+     bir sey yok, o yuzden genel siraya dusuluyor.               */
+  const kol = eldekiKol(oyuncu);
+  if (kol && kol.liste.length > 1) {
+    const yeni = (kolSecimAl(id, kol.esya, kol.liste.length) + 1) % kol.liste.length;
+    kolSecim.set(id, { esya: kol.esya, i: yeni });
+    actionbarYaz(oyuncu, "§6» §e" + kol.liste[yeni].ad +
+                 " §8(" + (yeni + 1) + "/" + kol.liste.length + " · egil + zipla)");
+    return;
+  }
+
   const yeni = (secimAl(id) + 1) % sira.length;
   esyasizSecim.set(id, yeni);
   actionbarYaz(oyuncu, "§6» §e" + sira[yeni].ad + " §8(egil + zipla)");
@@ -362,6 +407,7 @@ olayaAbone("playerLeave", (olay) => {
   esyasizSecim.delete(olay.playerId);
   esyasizZipla.delete(olay.playerId);
   kolVerTutma.delete(olay.playerId);
+  kolSecim.delete(olay.playerId);
 
   const is = oyuncununIsi.get(olay.playerId);
   if (is) {
