@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.11";
+export const SURUM = "v4.12";
 
 /* ---------------- Tetikleyici esyalar ---------------- */
 export const SIMSEK_ESYA = "minecraft:blaze_rod";     // baktigin yere simsek
@@ -505,6 +505,29 @@ export const IKSIR_TAZELEME = 40;   // kac tick'te bir efektler yenilensin
 
    Bizde hasar ve menzil KADEMEYE gore artiyor (asagidaki
    KADEMELER tablosunda her satirin kendi lazer ayari var).      */
+/* MENZIL ARTIK HEPSINDE AYNI. v4.11'e kadar her iksirin lazeri
+   farkli uzaga gidiyordu (10/14/18/22/28 blok) ve "hangisi daha
+   uzagi vuruyor" diye dusunmek gerekiyordu. Artik tek sayi;
+   iksirler sadece HASAR ve YAN ETKI ile ayriliyor.            */
+export const LAZER_MENZIL = 22;      // hepsi icin ortak menzil
+
+/* ---------------- Lazerle duvar delme ----------------
+   Referansta duvar kirma YOK. Aranan tek "wall" gecen yer
+   "damage @e[r=3] 4 fly_into_wall" ve orasi bir HASAR TURU adi
+   (elytra ile duvara carpma), blok kirmayla ilgisi yok.
+   Yani bu sifirdan yazildi.
+
+   Lazer onune cikan bloklari deliyor. Korumalar:
+     - KORUNAN_KUME'deki bloklar (bedrock, sandik, komut blogu...)
+       delinmiyor; yoksa dunyani ve esyalarini kaybedersin
+     - blok butcesine uyuyor
+     - delik yaricapi ve toplam blok sayisi sinirli
+     - DUVAR_DELME_ACIK false yapilirsa lazer eskisi gibi
+       sadece varliklara vuruyor                               */
+export const DUVAR_DELME_ACIK   = true;
+export const DUVAR_DELME_YARICAP = 1;    // delik yaricapi (1 = 3x3)
+export const DUVAR_DELME_TAVAN   = 60;   // tek atista en fazla kac blok
+
 export const LAZER_KALINLIK = 1.4;   // isindan kac blok sapma vurulur
 export const LAZER_SURE     = 10;    // isin kac tick gorunur kalsin
 export const LAZER_ADIM     = 1.5;   // parcacik kac blokta bir
@@ -515,107 +538,202 @@ export const PARCACIK_LAZER = "minecraft:basic_flame_particle";
 /* Her kademe: kimlik, ad, sure, verilen efektler, goz esyasi.
    Efekt suresi TAZELEME'den uzun tutuluyor ki iki tazeleme
    arasinda efekt sonmesin.                                       */
+/* ============================================================
+   IKSIRLER -- HIYERARSI YOK
+
+   v4.11'e kadar bes iksir bir GUC MERDIVENIYDI: nitroksin en
+   zayif, hiperoksin en guclu; her basamak bir oncekinin her
+   seyini daha yuksek seviyede veriyordu. Yani dordu de aslinda
+   gereksizdi, hep sonuncuyu icerdin.
+
+   v4.12'de merdiven kaldirildi. Artik yedi iksirin HER BIRI
+   kendi alaninda EN IYI, baska alanlarda ortalama. Hangisini
+   iceceğin ne yapacagina bagli:
+
+     Nitroksin   -> HIZ ve ZIPLAMA        (kacmak, gezmek)
+     Grinoksin   -> DAYANIKLILIK          (ayakta kalmak)
+     Redoksin    -> SALDIRI ve KAZMA      (vurmak, madencilik)
+     Firenoksin  -> ATES                  (nether, lav, yanmamak)
+     Orman Atesi -> DENGE                 (her seyden biraz)
+     Kan Iksiri  -> VAMPIR                (vur, canini geri al)
+     Hiperoksin  -> HER SEY               (hicbirinde en iyi degil)
+
+   Hiperoksin artik "en guclu" degil: her alandan biraz veriyor
+   ama hicbir alanda uzmanini gecemiyor. Nitroksin ondan hizli,
+   Redoksin ondan sert, Grinoksin ondan dayanikli.
+
+   ---- REFERANSA GORE (iksir modu muhammetlo mz) ----
+   Onunki de merdiven degildi ama sebebi tasarim degil, EKSIKLIK:
+   nitroxin ile hiperoksin neredeyse ayni efektleri veriyordu
+   (ikisi de instant_health + resistance + speed + strength) ve
+   hepsi seviye 0-1'deydi. Ustelik GRINOXIN'IN HIC EFEKT DOSYASI
+   YOK -- icince yesil bir parlama ve goz geliyor, baska hicbir
+   sey olmuyor.
+
+   Bizimkiler onun karsiliklarindan GUCLU: onun seviye 0-1
+   verdigi yerde biz 2-4 veriyoruz ve her iksire kendi kimligini
+   veren ek efektler koyduk. Mantik ayni (ic, sure boyunca guclen,
+   gozun degissin, lazer at), sadece daha yuksek.
+
+   Her kademe: kimlik, ad, renk, sure, efektler, goz esyasi.
+   Efekt suresi TAZELEME'den uzun tutuluyor ki iki tazeleme
+   arasinda efekt sonmesin.
+
+   LAZER: menzil ARTIK HEPSINDE AYNI (LAZER_MENZIL). Sadece
+   hasar ve yan etki iksire gore degisiyor -- "hangisi daha uzagi
+   vuruyor" diye dusunmek zorunda kalma.                        */
 export const KADEMELER = [
   {
     kimlik: "nitroksin",
-    renk: [1.0, 1.0, 1.0],
     ad: "Nitroksin",
+    renk: [1.0, 1.0, 1.0],          // beyaz
     sure: 1200,                     // 60 saniye
     goz: "pa:goz_beyaz",
     lazerGoz: "pa:goz_beyaz_lazer",
-    lazer: { hasar: 6, menzil: 10 },
+    ozet: "Hiz ve ziplama",
+    lazer: { hasar: 9 },
+    /* Referans: speed 0, jump_boost 0, strength 0, resistance 0,
+       instant_health 0.  Bizde hiz/ziplama UZMANI.             */
     efektler: [
-      ["speed",        1],
-      ["strength",     1],
-      ["jump_boost",   1],
-      ["regeneration", 0],
-      ["absorption",   1],   // emis/kalkan: can barinin ustune sari kalp
-      ["night_vision", 0]    // gece gorusu: en dusuk kademede bile var
-    ]
-  },
-  {
-    kimlik: "grinoksin",
-    renk: [0.0, 1.0, 0.2],
-    ad: "Grinoksin",
-    sure: 1200,
-    goz: "pa:goz_yesil",
-    lazerGoz: "pa:goz_yesil_lazer",
-    lazer: { hasar: 8, menzil: 14 },
-    efektler: [
-      ["speed",        2],
+      ["speed",        3],   // referans 0
+      ["jump_boost",   3],   // referans 0
       ["strength",     2],
-      ["jump_boost",   2],
-      ["regeneration", 1],
-      ["resistance",   0],
+      ["resistance",   1],
+      ["haste",        1],
       ["absorption",   2],
       ["night_vision", 0]
     ]
   },
   {
-    kimlik: "ates_iksiri",
-    renk: [1.0, 0.45, 0.0],
-    ad: "Ates Iksiri",
+    kimlik: "grinoksin",
+    ad: "Grinoksin",
+    renk: [0.0, 1.0, 0.2],          // yesil
+    sure: 1200,
+    goz: "pa:goz_yesil",
+    lazerGoz: "pa:goz_yesil_lazer",
+    ozet: "Dayaniklilik",
+    lazer: { hasar: 8, zehir: true },
+    /* Referansta HIC EFEKT YOK -- icince sadece parlama ve goz
+       geliyor. Bizde ayakta kalma UZMANI.                      */
+    efektler: [
+      ["resistance",   3],
+      ["regeneration", 3],
+      ["absorption",   4],
+      ["health_boost", 4],
+      ["strength",     1],
+      ["speed",        1],
+      ["night_vision", 0]
+    ]
+  },
+  {
+    kimlik: "redoksin",
+    ad: "Redoksin",
+    renk: [0.8, 0.0, 0.0],          // kirmizi
+    sure: 1200,
+    goz: "pa:goz_kirmizi",
+    lazerGoz: "pa:goz_kirmizi_lazer",
+    ozet: "Saldiri ve kazma",
+    lazer: { hasar: 13 },
+    /* Referans: regeneration 0, speed 0, strength 0.
+       Bizde vurus ve kazma UZMANI.                             */
+    efektler: [
+      ["strength",     4],   // referans 0
+      ["haste",        4],
+      ["speed",        2],
+      ["regeneration", 1],
+      ["absorption",   1],
+      ["night_vision", 0]
+    ]
+  },
+  {
+    kimlik: "firenoksin",
+    ad: "Firenoksin",
+    renk: [1.0, 0.45, 0.0],         // turuncu
     sure: 1200,
     goz: "pa:goz_ates",
     lazerGoz: "pa:goz_ates_lazer",
-    lazer: { hasar: 10, menzil: 18, ates: true },
+    ozet: "Ates",
+    lazer: { hasar: 10, ates: true },
+    /* Referans: fire_resistance 0, speed 0, strength 0.
+       Bizde ates UZMANI -- lazeri de yakiyor.                  */
     efektler: [
-      ["speed",           3],
-      ["strength",        3],
       ["fire_resistance", 0],
+      ["strength",        3],
+      ["speed",           3],
+      ["resistance",      2],
       ["regeneration",    1],
-      ["resistance",      1],
-      ["absorption",      3],
+      ["absorption",      2],
       ["night_vision",    0]
     ]
   },
   {
+    kimlik: "orman_atesi",
+    ad: "Orman Atesi",
+    renk: [0.35, 0.85, 0.25],       // acik yesil
+    sure: 1200,
+    goz: "pa:goz_orman",
+    lazerGoz: "pa:goz_orman_lazer",
+    ozet: "Denge",
+    lazer: { hasar: 10 },
+    /* Referans: instant_health 0, resistance 0, speed 0,
+       strength 0. Bizde her seyden ORTA -- uzmani yok ama zayif
+       yani da yok.                                             */
+    efektler: [
+      ["resistance",   2],
+      ["strength",     2],
+      ["speed",        2],
+      ["regeneration", 2],
+      ["jump_boost",   2],
+      ["absorption",   2],
+      ["saturation",   0],
+      ["night_vision", 0]
+    ]
+  },
+  {
     kimlik: "kan_iksiri",
-    renk: [0.8, 0.0, 0.0],
     ad: "Kan Iksiri",
+    renk: [0.45, 0.0, 0.05],        // koyu kirmizi
     sure: 1200,
     goz: "pa:goz_kan",
     lazerGoz: "pa:goz_kan_lazer",
-    lazer: { hasar: 13, menzil: 22 },
+    ozet: "Vampir",
+    lazer: { hasar: 12, canCal: true },
+    /* Referansta yok, bizim. Lazeri verdigi hasarin bir kismini
+       CANA CEVIRIYOR -- vampir kimligi.                        */
     efektler: [
-      ["speed",         4],
-      ["strength",      4],
-      ["regeneration",  2],
-      ["resistance",    1],
-      ["absorption",    4],
-      ["night_vision",  0],
-      ["haste",         2]
+      ["strength",     4],
+      ["absorption",   4],
+      ["regeneration", 2],
+      ["haste",        2],
+      ["speed",        1],
+      ["night_vision", 0]
     ]
   },
   {
     kimlik: "hiperoksin",
-    renk: [0.2, 0.6, 1.0],
     ad: "Hiperoksin",
+    renk: [0.2, 0.6, 1.0],          // mavi
     sure: 1200,
     goz: "pa:goz_mavi",
     lazerGoz: "pa:goz_mavi_lazer",
-    lazer: { hasar: 16, menzil: 28 },
-    /* EN GUCLU KADEME -- acik ara. Digerlerinde olan her sey
-       burada daha yuksek, ustune haste, su altinda nefes ve
-       yuksekten dusme korumasi var.
-
-       Referansta bu kademe ucusu da aciyordu (levitation 1 2)
-       ama surekli levitation kontrolu elinden aliyor: yerde
-       duramiyorsun, surekli yukari suruklenirsin. Onun yerine
-       slow_falling -- yuksekten atlayabilirsin, olmezsin, ama
-       kontrol sende. Ucmak istersen zaten Ucus yetenegi var.    */
+    ozet: "Her seyden biraz",
+    lazer: { hasar: 11 },
+    /* ARTIK "EN GUCLU" DEGIL. Her alandan biraz veriyor ama
+       hicbirinde uzmanini gecmiyor:
+         hiz 2  < Nitroksin 3
+         vurus 3 < Redoksin 4
+         dayaniklilik 2 < Grinoksin 3
+       Yani "ne yapacagimi bilmiyorum" iksiri.                  */
     efektler: [
-      ["speed",           5],
-      ["strength",        5],
-      ["regeneration",    3],
-      ["resistance",      3],
-      ["absorption",      6],   // en yuksek kalkan: 6 kat sari kalp
-      ["night_vision",    0],
-      ["haste",           3],
-      ["jump_boost",      3],
+      ["speed",           2],
+      ["strength",        3],
+      ["resistance",      2],
+      ["regeneration",    2],
+      ["jump_boost",      2],
+      ["absorption",      3],
+      ["haste",           2],
       ["fire_resistance", 0],
-      ["water_breathing", 0],
-      ["slow_falling",    0]    // yuksekten atlarsan olmezsin
+      ["night_vision",    0]
     ]
   }
 ];

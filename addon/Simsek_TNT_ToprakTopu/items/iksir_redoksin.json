@@ -2,17 +2,17 @@
   "format_version": "1.21.0",
   "minecraft:item": {
     "description": {
-      "identifier": "pa:iksir_ates_iksiri",
+      "identifier": "pa:iksir_redoksin",
       "menu_category": {
         "category": "items"
       }
     },
     "components": {
       "minecraft:icon": {
-        "texture": "iksir_ates_iksiri"
+        "texture": "iksir_redoksin"
       },
       "minecraft:display_name": {
-        "value": "Ates Iksiri"
+        "value": "Redoksin"
       },
       "minecraft:max_stack_size": 16,
       "minecraft:use_animation": "drink",

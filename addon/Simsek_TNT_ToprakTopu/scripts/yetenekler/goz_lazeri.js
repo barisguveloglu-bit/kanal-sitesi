@@ -1,12 +1,15 @@
 import { system } from "@minecraft/server";
 import { yetenekKaydet } from "./kayit.js";
+import { blokIste } from "../butce.js";
 import { kademeAl, lazerGozuAc, lazerGozuKapat } from "./iksirler.js";
 import {
   hataYaz, gecerliMi, kollariIndir, actionbarYaz, parcacikAt
 } from "../yardimcilar.js";
 import {
   LAZER_KALINLIK, LAZER_SURE, LAZER_ADIM, LAZER_TAVAN, LAZER_OYUNCU,
-  PARCACIK_LAZER
+  PARCACIK_LAZER,
+  LAZER_MENZIL, DUVAR_DELME_ACIK, DUVAR_DELME_YARICAP,
+  DUVAR_DELME_TAVAN, KORUNAN_KUME
 } from "../ayarlar.js";
 
 /* GOZ LAZERI -- Nitroksin'in ikonik yetenegi.
@@ -73,7 +76,7 @@ yetenekKaydet({
     try {
       yakin = boyut.getEntities({
         location: bas,
-        maxDistance: ayar.menzil,
+        maxDistance: LAZER_MENZIL,
         excludeTypes: ["minecraft:item", "minecraft:xp_orb"]
       });
     } catch (e) {
@@ -93,7 +96,7 @@ yetenekKaydet({
 
         // Isin uzerindeki izdusum: ne kadar ILERIDE
         const ileri = dx * yon.x + dy * yon.y + dz * yon.z;
-        if (ileri < 0 || ileri > ayar.menzil) continue;
+        if (ileri < 0 || ileri > LAZER_MENZIL) continue;
 
         // Isina dik uzaklik: ne kadar YANDA
         const sapmaKare = (dx * dx + dy * dy + dz * dz) - ileri * ileri;
@@ -109,10 +112,12 @@ yetenekKaydet({
     vurulanlar.sort((a, b) => a.ileri - b.ileri);
 
     let vuran = 0;
+    let calinanCan = 0;
     for (const h of vurulanlar) {
       if (vuran >= LAZER_TAVAN) break;
       try {
         h.varlik.applyDamage(ayar.hasar, { cause: "fire" });
+
         if (ayar.ates) {
           try {
             h.varlik.setOnFire(4, true);
@@ -120,9 +125,29 @@ yetenekKaydet({
             /* setOnFire bazi surumlerde yok; hasar zaten verildi */
           }
         }
+        /* Grinoksin: zehir. Vanilla zehir OLDURMEZ (1 canda
+           birakir), yani hapsedip eritme etkisi.               */
+        if (ayar.zehir) {
+          try {
+            h.varlik.addEffect("poison", 120, { amplifier: 1 });
+          } catch (e) {
+            /* efekt verilemedi; hasar zaten gitti */
+          }
+        }
         vuran++;
+        calinanCan += ayar.canCal ? Math.floor(ayar.hasar / 3) : 0;
       } catch (e) {
         hataYaz("goz_lazeri.applyDamage", e);
+      }
+    }
+
+    /* Kan Iksiri: verdigin hasarin bir kismi sana can olarak
+       doner. Referansta yok, kan kimligini tamamlamak icin.   */
+    if (calinanCan > 0) {
+      try {
+        oyuncu.addEffect("instant_health", 1, { amplifier: calinanCan - 1 });
+      } catch (e) {
+        hataYaz("goz_lazeri.canCal", e);
       }
     }
 
@@ -139,6 +164,39 @@ yetenekKaydet({
       hataYaz("goz_lazeri.actionbar", e);
     }
 
+    /* ---- Duvar delme ----
+       Isin boyunca onune cikan bloklari deliyor. Referansta bu
+       YOK; oradaki tek "wall" gecen yer "fly_into_wall" ve o bir
+       HASAR TURU adi, blok kirmayla ilgisi yok.
+
+       Nokta listesi bir kez hesaplaniyor; her tick butcenin izin
+       verdigi kadari deliniyor.                                 */
+    const delinecek = [];
+    if (DUVAR_DELME_ACIK) {
+      const r = DUVAR_DELME_YARICAP;
+      for (let d = 1; d <= LAZER_MENZIL && delinecek.length < DUVAR_DELME_TAVAN; d++) {
+        const mx = bas.x + yon.x * d;
+        const my = bas.y + yon.y * d;
+        const mz = bas.z + yon.z * d;
+        for (let ox = -r; ox <= r; ox++) {
+          for (let oy = -r; oy <= r; oy++) {
+            for (let oz = -r; oz <= r; oz++) {
+              if (delinecek.length >= DUVAR_DELME_TAVAN) break;
+              delinecek.push({
+                x: Math.floor(mx) + ox,
+                y: Math.floor(my) + oy,
+                z: Math.floor(mz) + oz
+              });
+            }
+          }
+        }
+      }
+    }
+
+    let delIndeks = 0;
+    let delinen = 0;
+    const _koord = { x: 0, y: 0, z: 0 };
+
     return {
       ad: "goz_lazeri",
       oyuncuId: oyuncu.id,
@@ -148,7 +206,7 @@ yetenekKaydet({
            tablette bosuna yuk. Isin zaten anlik bir sey.        */
         if (!cizildi) {
           cizildi = true;
-          for (let d = 1; d <= ayar.menzil; d += LAZER_ADIM) {
+          for (let d = 1; d <= LAZER_MENZIL; d += LAZER_ADIM) {
             parcacikAt(boyut, PARCACIK_LAZER, {
               x: bas.x + yon.x * d,
               y: bas.y + yon.y * d,
@@ -156,10 +214,38 @@ yetenekKaydet({
             });
           }
         }
+        /* Duvar delme: butce kadar, sonrakine devrederek */
+        while (delIndeks < delinecek.length) {
+          if (blokIste(2) < 2) return false;    // butce dolu
+          const n = delinecek[delIndeks++];
+          try {
+            _koord.x = n.x; _koord.y = n.y; _koord.z = n.z;
+            const b = boyut.getBlock(_koord);
+            if (!b) continue;                   // yuklenmemis chunk
+            if (b.isAir) continue;
+            /* KORUNAN bloklar delinmiyor: bedrock, sandik,
+               komut blogu... Yoksa dunyani ve esyalarini
+               kaybedersin.                                     */
+            if (KORUNAN_KUME.has(b.typeId)) continue;
+            b.setType("minecraft:air");
+            delinen++;
+          } catch (e) {
+            hataYaz("goz_lazeri.duvarDel", e);
+          }
+        }
+
         return system.currentTick >= bitisTick;
       },
 
       bitir() {
+        if (delinen > 0) {
+          try {
+            actionbarYaz(oyuncu, "§c⚡ " + kademe.ad + " lazeri §7· " +
+                         vuran + " hedef · §8" + delinen + " blok delindi");
+          } catch (e) {
+            hataYaz("goz_lazeri.bitirActionbar", e);
+          }
+        }
         // Goz normale donsun -- kademe hala devam ediyor
         lazerGozuKapat(oyuncu, kademe);
         kollariIndir(oyuncu);

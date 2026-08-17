@@ -1661,6 +1661,76 @@ Test: 22/22 geçti (`parlama.mjs` yeni).
 
 ---
 
+## Aşama 22 — hiyerarşi kalktı, 3 yeni iksir, duvar delme (v4.12)
+
+### Hiyerarşi kaldırıldı
+
+v4.11'e kadar beş iksir bir **güç merdiveniydi**: nitroksin en zayıf,
+hiperoksin en güçlü. Her basamak bir öncekinin her şeyini daha yüksek
+seviyede veriyordu — yani dördü aslında gereksizdi, hep sonuncuyu
+içerdin.
+
+Artık **yedi iksirin her biri kendi alanında en iyi**, diğer alanlarda
+ortalama:
+
+| İksir | Uzmanlık |
+|---|---|
+| Nitroksin | hız ve zıplama |
+| Grinoksin | dayanıklılık |
+| Redoksin | saldırı ve kazma |
+| Firenoksin | ateş |
+| Orman Ateşi | denge |
+| Kan İksiri | vampir (lazer can çalar) |
+| Hiperoksin | her şeyden biraz — **hiçbirinde en iyi değil** |
+
+Hiperoksin artık "en güçlü" değil: hız 2 (Nitroksin 3), vuruş 3
+(Redoksin 4), dayanıklılık 2 (Grinoksin 3). "Ne yapacağımı bilmiyorum"
+iksiri.
+
+### Üç yeni iksir + referansa göre güçlendirme
+
+Referanstan alınanlar: **redoksin**, **firenoksin**, **orman ateşi**.
+
+Hepsi onun karşılıklarından güçlü — mantık aynı, seviye yüksek:
+
+| | Referans | Bizim |
+|---|---|---|
+| Nitroksin | speed 0, jump 0, strength 0 | speed 3, jump 3, strength 2 |
+| Grinoksin | **hiç efekt yok** | resistance 3, regen 3, absorption 4 |
+| Redoksin | regen 0, speed 0, strength 0 | strength 4, haste 4, speed 2 |
+| Firenoksin | fire_res 0, speed 0, strength 0 | fire_res, strength 3, speed 3 |
+| Orman Ateşi | instant_health 0, resist 0, speed 0 | 8 efekt, hepsi seviye 2 |
+
+**Referansın grinoxin'inin hiç efekt fonksiyonu yok** — içince yeşil bir
+parlama ve göz geliyor, başka hiçbir şey olmuyor. Bizimki dayanıklılık
+uzmanı.
+
+### Lazer menzili tekleşti
+
+Kullanıcı isteği. v4.11'e kadar 10/14/18/22/28 blok idi ve "hangisi daha
+uzağı vuruyor" diye düşünmek gerekiyordu. Artık hepsi **22 blok**;
+iksirler yalnızca **hasar** ve **yan etki** ile ayrılıyor:
+
+- Firenoksin → ateşe veriyor
+- Grinoksin → zehirliyor
+- Kan İksiri → verdiği hasarın üçte birini cana çeviriyor
+
+### Duvar delme
+
+**Referansta yok.** Tüm pakette "wall" geçen tek yer
+`damage @e[r=3] 4 fly_into_wall` ve orası bir **hasar türü** adı (elytra
+ile duvara çarpma), blok kırmayla ilgisi yok. Sıfırdan yazıldı.
+
+Lazer önüne çıkan blokları deliyor. Korumalar: `KORUNAN_KUME`deki
+bloklar (bedrock, sandık, komut bloğu) delinmiyor, blok bütçesine
+uyuyor, tek atışta en fazla 60 blok, `DUVAR_DELME_ACIK = false` ile
+kapatılabiliyor.
+
+Test: 23/23 geçti (`duvardel.mjs` yeni, `lazer.mjs` hiyerarşi kalktığı
+için yeniden yazıldı).
+
+---
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:
