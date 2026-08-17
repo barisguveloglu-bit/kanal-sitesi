@@ -2463,6 +2463,75 @@ Test: **29/29** geçti (yeni `bot.mjs`, 11 bölüm).
 
 ---
 
+## Aşama 33 — sohbet komutları çalışmıyormuş (v4.23)
+
+### Kanıt
+
+Kullanıcı dört kez `bot` yazdı, bot gelmedi. Ekran görüntüsünde sebep
+açıkça duruyor:
+
+```
+<SmokeyInk8762> bot
+<SmokeyInk8762> bot
+<SmokeyInk8762> bot
+<SmokeyInk8762> Bot
+```
+
+Mesajlar **sohbete düz metin olarak düşmüş**. Yani `e.cancel = true`
+hiç çalışmamış, yani abonelik hiç kurulmamış.
+
+`world.beforeEvents.chatSend` **kararlı API'de yok** — dünya ayarlarında
+**Beta APIs** deneysel ayarını istiyor. v4.21'de bu ihtimal için
+`/scriptevent` yedeği yazılmıştı ama **kullanıcıya söylenmiyordu**:
+durum yalnızca Content Log'a yazılıyordu, tablette kimse oraya bakmıyor.
+
+Büyük/küçük harfin hiçbir etkisi yok — girdi zaten sadeleştiriliyor.
+
+### Çözüm: menü
+
+Tablette tek-dokunuşluk tek yol menü. Bot kontrolleri **her kolun
+menüsüne** kondu:
+
+```
+Bot çağır / Bot: yanıma gel
+Bot: bekle  /  Bot: takip et      (duruma göre değişiyor)
+Bot: geri gönder
+Can +10 kalp
+```
+
+Jest sırası çözüm değildi: `bot_cagir` 36 yeteneğin sonuna yakın, oraya
+ulaşmak için onlarca kez "eğil + yukarı bak" gerekiyor — göz lazerindeki
+hatanın aynısı.
+
+### İkinci düzeltme: durum artık oyunda söyleniyor
+
+Dünyaya girince oyuncuya yazılıyor:
+
+> Sohbet komutları bu sürümde ÇALIŞMIYOR (dünya ayarlarında Beta APIs
+> kapalı). Bunun yerine: kola dokun → menü, ya da
+> `/scriptevent simsek:komut bot`
+
+Beta APIs açıksa onun yerine "sohbete `yardim` yaz" diyor.
+
+### Üçüncü düzeltme: sohbet seli
+
+`OLCUM_SOHBETE` **kapatıldı**. Görüntüde sohbetin tamamı `[OLCUM]`
+satırlarıyla dolmuştu ve gerçek mesajlar arada kayboluyordu. Ölçüm
+Content Log'a yazılmaya devam ediyor. `HATA_SOHBETE` açık kalıyor —
+hatalar seyrek ve görülmesi gerekiyor.
+
+### Görüntüden doğrulananlar
+
+- `Hiperoksin ictin - 480 saniye` → süre değişikliği çalışıyor
+- `blok 68 (34.0/tick)`, `maks 23.0ms` → toprak topu bütçesi normal
+- `Kafes kuruldu`, `1 can yenilendi` → jestler yanlışlıkla tetikleniyor
+  (yürürken eğil+zıpla). Rahatsız ediciyse `ESYASIZ_ACIK = false`.
+
+Test: **29/29** (bot.mjs'e 12. bölüm eklendi — sohbet kapalıyken de
+ulaşılabiliyor mu).
+
+---
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:

@@ -280,12 +280,37 @@ function scripteventeAbone() {
   });
 }
 
+/* Sohbetten komut YAZILABILIYOR mu? Oyuncuya dogru yolu
+   soyleyebilmek icin disari aciliyor.
+
+   v4.23'te ogrenildi: world.beforeEvents.chatSend KARARLI API'de
+   YOK, "Beta APIs" deneysel ayari gerektiriyor. Kapali oldugunda
+   abonelik sessizce kurulmuyor ve yazdigin "bot" sohbete normal
+   bir mesaj olarak dusuyor. Oyunda tam olarak bu goruldu.       */
+let sohbetCalisiyor = false;
+
+export function sohbetCalisiyorMu() {
+  return sohbetCalisiyor;
+}
+
 export function sohbetKur() {
   if (!SOHBET_ACIK) return;
-  const sohbet = sohbeteAbone();
+  sohbetCalisiyor = sohbeteAbone();
   const olay = scripteventeAbone();
   bilgiYaz("sohbet komutlari: " +
-           (sohbet ? "sohbet ACIK" : "sohbet kapali") + ", " +
-           (olay ? "scriptevent ACIK" : "scriptevent kapali") +
-           " (yardim icin sohbete 'yardim' yaz)");
+           (sohbetCalisiyor ? "sohbet ACIK" : "sohbet KAPALI (Beta APIs gerekiyor)") +
+           ", " + (olay ? "scriptevent ACIK" : "scriptevent kapali"));
+}
+
+/* Oyuncuya oyun ICINDE haber ver. Content Log'u tablette acmak
+   zahmetli; komutun neden calismadigini orada birakirsak
+   kullanici bosuna dener (dort kez denendi).                    */
+export function sohbetDurumMesaji() {
+  if (!SOHBET_ACIK) return undefined;
+  if (sohbetCalisiyor) {
+    return "§7Sohbete §fyardim§7 yazarak komutlari gorebilirsin.";
+  }
+  return "§eSohbet komutlari bu surumde CALISMIYOR §7(dunya ayarlarinda " +
+         "§fBeta APIs§7 kapali).\n§7Bunun yerine: §fkola dokun -> menu§7, " +
+         "ya da §f/scriptevent simsek:komut bot";
 }

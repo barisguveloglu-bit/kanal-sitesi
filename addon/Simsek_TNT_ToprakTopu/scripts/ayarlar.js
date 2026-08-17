@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.22";
+export const SURUM = "v4.23";
 
 /* ---------------- Tetikleyici esyalar ---------------- */
 export const SIMSEK_ESYA = "minecraft:blaze_rod";     // baktigin yere simsek
@@ -134,10 +134,17 @@ export const TICK_PATLAMA_BUTCESI = 1;  // tick basina patlama sayisi
 
 /* ---------------- Olcum ve gunluk ----------------
    Content Log'u tablette okumak zahmetli. SOHBETE ayarlari acikken
-   olcum ve hata satirlari sohbete de dusuyor. Yayin/normal oynanista
-   ikisini de kapat, yoksa sohbet dolar.                             */
+   olcum ve hata satirlari sohbete de dusuyor.
+
+   v4.23: OLCUM_SOHBETE KAPATILDI. Oyun ici goruntude sohbetin
+   tamami [OLCUM] satirlariyla dolmustu ve gercek mesajlar
+   (bot cevaplari, iksir bildirimleri) arada kayboluyordu. Olcum
+   Content Log'a yazilmaya devam ediyor; tablette bakmak
+   isteyince buradan tekrar acilir.
+
+   HATA_SOHBETE ACIK kaliyor: hatalar seyrek ve gormek gerekiyor. */
 export const OLCUM_ACIK        = true;
-export const OLCUM_SOHBETE     = true;
+export const OLCUM_SOHBETE     = false;  // v4.23: sohbeti dolduruyordu
 export const HATA_SOHBETE      = true;
 export const HATA_SOHBET_ARALIK = 100;  // ayni hata sohbete en fazla bu aralikta
 

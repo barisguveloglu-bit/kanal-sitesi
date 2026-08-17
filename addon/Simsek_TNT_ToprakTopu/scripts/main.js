@@ -5,7 +5,7 @@ import {
   OLCUM_SOHBETE, HATA_SOHBETE, ESYASIZ_ACIK, ESYASIZ_EGILME_SART,
   ESYASIZ_BAKIS_ESIGI, ESYASIZ_TUTMA, ESYASIZ_TARAMA,
   KOL_VER_ACIK, KOL_VER_ESIGI, KOL_VER_TUTMA, CIFT_EL_ACIK, AYNI_ANDA,
-  MENU_DOKUNUSLA, BOT_KIMLIK
+  MENU_DOKUNUSLA, BOT_KIMLIK, KALP_ADIM, KALP_TAVAN
 } from "./ayarlar.js";
 
 import {
@@ -22,7 +22,9 @@ import { menuAc } from "./menu.js";
 /* Sohbet komutlari ("can 10", "lazer"...). Bu dosya main.js'i
    import etmiyor; komutlarin calistiracagi fonksiyonlar kanca
    olarak asagida veriliyor.                                    */
-import { sohbetKur, sohbetKancalari } from "./sohbet.js";
+import {
+  sohbetKur, sohbetKancalari, sohbetDurumMesaji
+} from "./sohbet.js";
 
 import {
   esyaninYetenekleri, yetenekAl, esyasizSira, tumYetenekler, siraDenetimi
@@ -314,6 +316,56 @@ function menuEkleri(oyuncu) {
     {
       ad: "Kalpleri sifirla",
       calis() { yetenekTetikle(oyuncu, "kalp_sifirla"); }
+    },
+
+    /* ---- v4.23: BOT MENUYE GELDI ----
+       Bot sadece sohbetten yonetiliyordu ve sohbet komutlari
+       KARARLI API'de calismiyor (chatSend "Beta APIs" istiyor).
+       Oyuncu dort kez "bot" yazdi, mesaj sohbete duz metin olarak
+       dustu ve hicbir sey olmadi.
+
+       Jest sirasi da cozum degil: bot_cagir 36 yetenegin sonuna
+       yakin, oraya ulasmak icin onlarca kez "egil + yukari bak"
+       gerekiyor -- goz lazerindeki hatanin aynisi.
+
+       Menu tabletteki TEK tek-dokunusluk yol, o yuzden bot
+       kontrolleri buraya kondu.                                 */
+    {
+      ad: botAl(oyuncu.id) ? "Bot: yanima gel" : "Bot cagir",
+      calis() { yetenekTetikle(oyuncu, "bot_cagir"); }
+    },
+    {
+      ad: (botAl(oyuncu.id) || {}).durum === "bekle"
+        ? "Bot: takip et" : "Bot: bekle",
+      calis() {
+        const kayit = botAl(oyuncu.id);
+        if (!kayit) {
+          actionbarYaz(oyuncu, "§eBotun yok. §7Once 'Bot cagir'.");
+          return;
+        }
+        const yeni = botDurum(oyuncu, kayit.durum === "bekle" ? "takip" : "bekle");
+        actionbarYaz(oyuncu, yeni === "bekle"
+          ? "§eBot bekliyor" : "§aBot pesinden geliyor");
+      }
+    },
+    {
+      ad: "Bot: geri gonder",
+      calis() {
+        actionbarYaz(oyuncu, botGeri(oyuncu)
+          ? "§8Bot geri gonderildi" : "§eBotun yok.");
+      }
+    },
+
+    /* Can eklemek de sohbete bagliydi ("can 10"). Menuden sabit
+       adim veriliyor; sayi yazmak isteyen scriptevent'i kullanir. */
+    {
+      ad: "Can +" + KALP_ADIM + " kalp",
+      calis() {
+        const s = kalpEkle(oyuncu, KALP_ADIM);
+        actionbarYaz(oyuncu, (s && s.eklenen > 0)
+          ? "§c❤ +" + s.eklenen + " kalp §7(toplam " + (10 + s.toplam) + ")"
+          : "§eTavandasin (" + KALP_TAVAN + " ek kalp)");
+      }
     }
   ];
 }
@@ -736,6 +788,12 @@ olayaAbone("playerSpawn", (olay) => {
     if (KOL_VER_ACIK) {
       olay.player.sendMessage("§7Kollari almak icin: §fegil + yere bak, bekle");
     }
+
+    /* Sohbet komutlari calisiyor mu, OYUNDA soyle. Content Log'u
+       tablette acmak zahmetli; v4.22'de kullanici "bot" yazip
+       dort kez bekledi cunku kapali oldugunu bilmiyordu.        */
+    const durum = sohbetDurumMesaji();
+    if (durum) olay.player.sendMessage(durum);
 
     /* Behavior pack RESOURCE pack'i goremez -- Bedrock'ta boyle bir
        API yok. O yuzden tespit edemiyoruz, ama kullanicinin kendi
