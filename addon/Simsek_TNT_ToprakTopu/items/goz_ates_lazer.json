@@ -1,0 +1,25 @@
+{
+  "format_version": "1.21.0",
+  "minecraft:item": {
+    "description": {
+      "identifier": "pa:goz_ates_lazer",
+      "menu_category": {
+        "category": "equipment"
+      }
+    },
+    "components": {
+      "minecraft:icon": "goz_ates_lazer",
+      "minecraft:display_name": {
+        "value": "Ateş Gözü (Lazer)"
+      },
+      "minecraft:max_stack_size": 1,
+      "minecraft:wearable": {
+        "slot": "slot.armor.head"
+      },
+      "minecraft:armor": {
+        "protection": 0
+      },
+      "minecraft:allow_off_hand": false
+    }
+  }
+}

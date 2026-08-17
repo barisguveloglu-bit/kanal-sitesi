@@ -35,7 +35,9 @@ for (const k of KADEMELER) {
     esya: IKSIR_ONEK + k.kimlik,
     sure: k.sure,
     efektler: k.efektler,
-    goz: k.goz
+    goz: k.goz,
+    lazerGoz: k.lazerGoz,
+    lazer: k.lazer
   });
 }
 
@@ -96,11 +98,71 @@ function gozCikar(oyuncu, kademe) {
     // Sadece BIZIM taktigimiz gozu kaldir: oyuncu araya bir kask
     // taktiysa onu silmeyelim.
     const simdiki = e.getEquipment("Head");
-    if (simdiki && simdiki.typeId !== kademe.goz) return;
+    if (!simdiki) return;
+    // Normal goz ya da lazer varyanti -- ikisi de bizim
+    if (simdiki.typeId !== kademe.goz && simdiki.typeId !== kademe.lazerGoz) return;
     e.setEquipment("Head", undefined);
   } catch (err) {
     hataYaz("iksir.gozCikar", err);
   }
+}
+
+/* Lazer atarken goz parlak varyantina geciyor, bitince normale
+   donuyor. Referansta da boyleydi (replaceitem ile goz_lazer),
+   tek farki bizde KILIT yok -- gozu istedigin an cikarabilirsin.
+
+   Lazer gozu kayitli degilse sessizce normal gozde kaliyor:
+   gorsel eksik olur, lazer yine calisir.                        */
+export function lazerGozuAc(oyuncu, kademe) {
+  if (!kademe.lazerGoz) return;
+  const d = durumlar.get(oyuncu.id);
+  if (!d) return;                       // kademe bitmis
+  gozDegistir(oyuncu, kademe.goz, kademe.lazerGoz);
+}
+
+export function lazerGozuKapat(oyuncu, kademe) {
+  if (!kademe.lazerGoz) return;
+  const d = durumlar.get(oyuncu.id);
+  if (!d) return;                       // kademe bitmis, goz zaten cikti
+  gozDegistir(oyuncu, kademe.lazerGoz, kademe.goz);
+}
+
+/* Kafadaki goz BIZIMKIYSE degistir. Oyuncu araya baska bir kask
+   taktiysa dokunmuyoruz.                                        */
+function gozDegistir(oyuncu, eskiTip, yeniTip) {
+  if (!ItemStack) return;
+  const e = ekipman(oyuncu);
+  if (!e) return;
+  try {
+    const simdiki = e.getEquipment("Head");
+    if (!simdiki || simdiki.typeId !== eskiTip) return;
+    e.setEquipment("Head", new ItemStack(yeniTip, 1));
+  } catch (err) {
+    hataYaz("iksir.gozDegistir(" + yeniTip + ")", err);
+  }
+}
+
+/* Kademeyi suresi dolmadan bitirir. Referanstaki "kapama"
+   fonksiyonunun karsiligi -- ama orada sadece esyalar
+   temizleniyordu, efektler uzerinde kaliyordu.                  */
+export function kademeBitir(oyuncu) {
+  const d = durumlar.get(oyuncu.id);
+  if (!d) return undefined;
+
+  efektSil(oyuncu, d.kademe);
+  gozCikar(oyuncu, d.kademe);
+  // Lazer gozu takiliyken kapatilmis olabilir
+  if (d.kademe.lazerGoz) {
+    const e = ekipman(oyuncu);
+    try {
+      const simdiki = e && e.getEquipment("Head");
+      if (simdiki && simdiki.typeId === d.kademe.lazerGoz) e.setEquipment("Head", undefined);
+    } catch (err) {
+      hataYaz("iksir.kademeBitir", err);
+    }
+  }
+  durumlar.delete(oyuncu.id);
+  return d.kademe;
 }
 
 /* ---------------- Efektler ---------------- */

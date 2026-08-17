@@ -1,12 +1,12 @@
 {
   "format_version": 2,
   "header": {
-    "name": "Simsek TNT ve Toprak Topu v3",
-    "description": "16 yetenek, 12 kol, 5 guc iksiri. Toprak Kol'da alti yetenek. Egil+yukari bak degistirir, egil+zipla calistirir.",
+    "name": "Simsek TNT ve Toprak Topu v4",
+    "description": "18 yetenek, 12 kol, 5 guc iksiri, goz lazeri. Egil+yukari bak degistirir, egil+zipla calistirir.",
     "uuid": "43a967b7-88e7-4607-a7b1-4ed1394cecb9",
     "version": [
-      3,
-      9,
+      4,
+      0,
       0
     ],
     "min_engine_version": [
@@ -20,8 +20,8 @@
       "type": "data",
       "uuid": "2f5eed9b-3416-4ab7-b01a-d6174c6f969d",
       "version": [
-        3,
-        9,
+        4,
+        0,
         0
       ]
     },
@@ -31,8 +31,8 @@
       "uuid": "95cf17d4-bcac-47ae-8a24-18215b960e18",
       "entry": "scripts/main.js",
       "version": [
-        3,
-        9,
+        4,
+        0,
         0
       ]
     }

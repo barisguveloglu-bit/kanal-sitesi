@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v3.9";
+export const SURUM = "v4.0";
 
 /* ---------------- Tetikleyici esyalar ---------------- */
 export const SIMSEK_ESYA = "minecraft:blaze_rod";     // baktigin yere simsek
@@ -346,6 +346,35 @@ export const YAMULT_OYUNCU = true;
    yenisi bastan baslar.                                          */
 export const IKSIR_TAZELEME = 40;   // kac tick'te bir efektler yenilensin
 
+/* ---------------- Goz lazeri ----------------
+   Nitroksin'in ikonik yetenegi. Referansta bes kademenin lazeri
+   de BIREBIR AYNIYDI -- hepsi soyle:
+     execute @s^^^2 /damage @e[r=2,c=1] 6 fire
+     execute @s^^^4 /damage @e[r=4,c=1] 6 fire
+     execute @s^^^6 /damage @e[r=6,c=1] 6 fire
+     execute @s^^^8 /damage @e[r=8,c=1] 6 fire
+   Yani sabit 6 hasar, sabit 8 blok, kademe farki yok.
+
+   Uc sorunu vardi:
+     1. Sadece 2/4/6/8 blok mesafedeki noktalari tariyordu --
+        3. blokta duran kurtuluyordu. Bizimki isinin TAMAMINI
+        tariyor (nokta degil, cizgi).
+     2. "c=1" en yakini seciyor ama OYUNCUYU DA sayiyordu; bu
+        yuzden her lazerden once kendilerine instant_health
+        veriyorlardi. Yama, cozum degil. Biz kendimizi hedef
+        listesine hic almiyoruz.
+     3. Kapatma dugmesi de ayni dort hasar satirini calistiriyordu,
+        yani "lazeri kapat" da hasar veriyordu.
+
+   Bizde hasar ve menzil KADEMEYE gore artiyor (asagidaki
+   KADEMELER tablosunda her satirin kendi lazer ayari var).      */
+export const LAZER_KALINLIK = 1.4;   // isindan kac blok sapma vurulur
+export const LAZER_SURE     = 10;    // isin kac tick gorunur kalsin
+export const LAZER_ADIM     = 1.5;   // parcacik kac blokta bir
+export const LAZER_TAVAN    = 10;    // tek atista en fazla kac hedef
+export const LAZER_OYUNCU   = true;  // oyunculara da vursun mu
+export const PARCACIK_LAZER = "minecraft:basic_flame_particle";
+
 /* Her kademe: kimlik, ad, sure, verilen efektler, goz esyasi.
    Efekt suresi TAZELEME'den uzun tutuluyor ki iki tazeleme
    arasinda efekt sonmesin.                                       */
@@ -355,6 +384,8 @@ export const KADEMELER = [
     ad: "Nitroksin",
     sure: 1200,                     // 60 saniye
     goz: "pa:goz_beyaz",
+    lazerGoz: "pa:goz_beyaz_lazer",
+    lazer: { hasar: 6, menzil: 10 },
     efektler: [
       ["speed",        1],
       ["strength",     1],
@@ -367,6 +398,8 @@ export const KADEMELER = [
     ad: "Grinoksin",
     sure: 1200,
     goz: "pa:goz_yesil",
+    lazerGoz: "pa:goz_yesil_lazer",
+    lazer: { hasar: 8, menzil: 14 },
     efektler: [
       ["speed",        2],
       ["strength",     2],
@@ -380,6 +413,8 @@ export const KADEMELER = [
     ad: "Ates Iksiri",
     sure: 1200,
     goz: "pa:goz_ates",
+    lazerGoz: "pa:goz_ates_lazer",
+    lazer: { hasar: 10, menzil: 18, ates: true },
     efektler: [
       ["speed",           2],
       ["strength",        2],
@@ -393,6 +428,8 @@ export const KADEMELER = [
     ad: "Kan Iksiri",
     sure: 1200,
     goz: "pa:goz_kan",
+    lazerGoz: "pa:goz_kan_lazer",
+    lazer: { hasar: 13, menzil: 22 },
     efektler: [
       ["speed",        3],
       ["strength",     3],
@@ -406,6 +443,8 @@ export const KADEMELER = [
     ad: "Hiperoksin",
     sure: 1200,
     goz: "pa:goz_mavi",
+    lazerGoz: "pa:goz_mavi_lazer",
+    lazer: { hasar: 16, menzil: 28 },
     /* En ust kademe. Referansta bu kademe ucusu da aciyordu
        (levitation 1 2) ama surekli levitation kontrolu elinden
        aliyor -- yerde duramiyorsun. Onun yerine slow_falling:

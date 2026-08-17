@@ -885,6 +885,84 @@ için bu, script tarafındaki bütün optimizasyonlardan daha büyük bir kalem.
 
 Bizim bütün dokularımız 16×16 ve 64×64; toplam paket 24 KB.
 
+## Aşama 10 — göz lazeri ve gücü kapatma (v4.0)
+
+v3.8/v3.9'da iksir sisteminin **buff kısmı** yapılmıştı ama Nitroksin'in
+asıl ikonik yeteneği atlanmıştı: **gözden çıkan lazer**.
+
+### Referanstaki lazer
+
+Beş kademenin lazer fonksiyonu da **birebir aynı**:
+
+```
+replaceitem entity @s slot.armor.head 1 pa:X_goz_lazer 1 0 {"item_lock":...}
+effect @s instant_health 1 4
+execute @s^^^2 /damage @e[r=2,c=1] 6 fire
+execute @s^^^4 /damage @e[r=4,c=1] 6 fire
+execute @s^^^6 /damage @e[r=6,c=1] 6 fire
+execute @s^^^8 /damage @e[r=8,c=1] 6 fire
+give @s pa:X_lazer_bitid
+playanimation @s animation.pa_yeni_haraket.nitroksin_lazer
+```
+
+Sabit 6 hasar, sabit 8 blok, kademe farkı yok. Üç sorunu var:
+
+1. **Nokta tarıyor, çizgi değil.** 2/4/6/8. bloktakiler vuruluyor, 3., 5. ve
+   7. bloktakiler kurtuluyor.
+2. **`@e[r=2,c=1]` oyuncunun kendisini de sayıyor.** Bu yüzden her lazerden
+   önce `effect @s instant_health 1 4` var — kendi lazerinle vurulup anında
+   iyileşiyorsun. Yama, çözüm değil.
+3. **"Lazeri kapat" düğmesi de aynı dört hasar satırını çalıştırıyor**, yani
+   kapatmak da hasar veriyor.
+
+Ayrıca **Kan (Bloody) kademesi tamamen bozuk**: dört eşya
+`pa:Bloody_goz`, `pa:Bloody_goz_lazer`, `pa:Bloody_lazer_basla`,
+`pa:Bloody_lazer_bitid` diye **büyük B** ile çağrılıyor ama
+`pa:bloody_...` diye küçük harfle tanımlı. Bedrock kimlikleri büyük/küçük
+harfe duyarlı, yani o kademenin gözü de lazeri de hiç çalışmıyor.
+
+### Bizdeki lazer
+
+Işın bir **çizgi**. Tek `getEntities` çağrısı yapılıyor, sonra her varlığın
+ışın üzerine izdüşümü hesaplanıyor:
+
+```
+ileri     = (hedef - baş) · bakış          → ne kadar ilerde
+sapmaKare = |hedef - baş|² - ileri²        → ne kadar yanda
+vurulur   ⟺ 0 ≤ ileri ≤ menzil ve sapmaKare ≤ kalınlık²
+```
+
+Dört ayrı dünya taraması yerine **bir** tarama — hem daha doğru hem daha ucuz.
+Kendimizi hedef listesine hiç almıyoruz, o yüzden kendini iyileştirme
+yamasına gerek yok. Tavan aşılırsa en yakındakiler vuruluyor.
+
+Hasar ve menzil **kademeye göre** artıyor:
+
+| kademe | hasar | menzil |
+|---|---|---|
+| Nitroksin | 6 | 10 |
+| Grinoksin | 8 | 14 |
+| Ateş İksiri | 10 | 18 (+ ateşe verir) |
+| Kan İksiri | 13 | 22 |
+| Hiperoksin | 16 | 28 |
+
+İksir içmemişsen lazer çalışmıyor ve sebebini söylüyor — lazer gözden çıkar,
+göz de iksirden gelir.
+
+Göz lazer atarken **parlak varyantına** geçip bitince normale dönüyor
+(referansta da böyleydi, tek farkı bizde kilit yok). On göz eşyası: beş normal,
+beş lazer.
+
+### Gücü Kapat
+
+Referanstaki `kapama` fonksiyonunun karşılığı. Orada sadece **eşyalar**
+temizleniyordu (`clear @s pa:mavi_goz` vb.), efektler üzerinde kalıyordu —
+üstelik göz `item_lock` ile kilitli olduğu için `clear`'ın işe yarayıp
+yaramadığı da belirsiz. Bizimki efektleri siliyor, gözü çıkarıyor ve kayıttan
+düşürüyor.
+
+Toplam: **18 yetenek, 12 kol, 5 iksir, 10 göz.**
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:

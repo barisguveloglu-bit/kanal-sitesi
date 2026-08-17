@@ -121,6 +121,10 @@ IKSIRLER = [
     ("hiperoksin",  "Hiperoksin",  (70, 150, 240),  "goz_mavi",  (140, 210, 255)),
 ]
 
+# Her gozun bir de LAZER varyanti var: lazer atarken kisa sureligine
+# ona geciliyor. Referansta da boyleydi (pa:beyaz_goz -> beyaz_goz_lazer),
+# tek farki bizde kilit olmamasi.
+
 IKSIR_TR = {
     "nitroksin": "Nitroksin", "grinoksin": "Grinoksin",
     "ates_iksiri": "Ateş İksiri", "kan_iksiri": "Kan İksiri",
@@ -129,6 +133,9 @@ IKSIR_TR = {
 GOZ_TR = {
     "goz_beyaz": "Beyaz Göz", "goz_yesil": "Yeşil Göz",
     "goz_ates": "Ateş Gözü", "goz_kan": "Kanlı Göz", "goz_mavi": "Mavi Göz",
+    "goz_beyaz_lazer": "Beyaz Göz (Lazer)", "goz_yesil_lazer": "Yeşil Göz (Lazer)",
+    "goz_ates_lazer": "Ateş Gözü (Lazer)", "goz_kan_lazer": "Kanlı Göz (Lazer)",
+    "goz_mavi_lazer": "Mavi Göz (Lazer)",
 }
 
 
@@ -453,6 +460,28 @@ def iksir_ikonu(renk):
     return p
 
 
+def lazer_goz_dokusu(renk):
+    """Lazer atarken kullanilan parlak varyant: gozler daha genis,
+    rengi beyaza dogru cekilmis, disinda hale var. Normal gozden
+    ilk bakista ayrilmali."""
+    parlak = tuple(min(255, int(c + (255 - c) * 0.55)) for c in renk)
+    p = {}
+    for x in range(8, 16):
+        for y in range(11, 15):
+            # Burun hizasi bos kalsin ki iki ayri goz gorunsun
+            if x == 12:
+                continue
+            p[(x, y)] = parlak + (255,)
+    # Hale
+    for x, y in list(p.keys()):
+        for dx in (-1, 0, 1):
+            for dy in (-1, 0, 1):
+                k = (x + dx, y + dy)
+                if k not in p and 8 <= k[0] < 16 and 8 <= k[1] < 16:
+                    p[k] = renk + (170,)
+    return p
+
+
 def goz_dokusu(renk):
     """64x64 kafa dokusu. Yuzun oldugu yere (8..15, 8..15) iki
     parlak goz cizilir, gerisi TAMAMEN SAYDAM kalir -- boylece
@@ -523,22 +552,24 @@ def main():
                 16, 16, iksir_ikonu(sivi))
         dokular["iksir_" + kimlik] = {"textures": "textures/item/iksir_" + kimlik}
 
-        yaz_json(os.path.join(BP, "items", goz + ".json"),
-                 goz_esyasi(goz, GOZ_TR[goz]))
-        yaz_json(os.path.join(RP, "attachables", goz + ".json"), goz_attachable(goz))
-        png_yaz(os.path.join(RP, "textures/entity", goz + ".png"), 64, 64,
-                goz_dokusu(gozRenk))
-        png_yaz(os.path.join(RP, "textures/item", goz + ".png"), 16, 16,
-                esya_ikonu(gozRenk, (255, 255, 255)))
-        dokular[goz] = {"textures": "textures/item/" + goz}
+        # Normal goz + lazer varyanti
+        for ad2, doku in ((goz, goz_dokusu(gozRenk)),
+                          (goz + "_lazer", lazer_goz_dokusu(gozRenk))):
+            yaz_json(os.path.join(BP, "items", ad2 + ".json"),
+                     goz_esyasi(ad2, GOZ_TR[ad2]))
+            yaz_json(os.path.join(RP, "attachables", ad2 + ".json"), goz_attachable(ad2))
+            png_yaz(os.path.join(RP, "textures/entity", ad2 + ".png"), 64, 64, doku)
+            png_yaz(os.path.join(RP, "textures/item", ad2 + ".png"), 16, 16,
+                    esya_ikonu(gozRenk, (255, 255, 255)))
+            dokular[ad2] = {"textures": "textures/item/" + ad2}
+
+            for liste in (en_us, tr_tr):
+                liste.append("item.pa:%s.name=%s" % (ad2, GOZ_TR[ad2]))
+                liste.append("item.pa:%s=%s" % (ad2, GOZ_TR[ad2]))
 
         for liste, tr in ((en_us, ad), (tr_tr, IKSIR_TR[kimlik])):
             liste.append("item.pa:iksir_%s.name=%s" % (kimlik, tr))
             liste.append("item.pa:iksir_%s=%s" % (kimlik, tr))
-        for liste, tr in ((en_us, GOZ_TR[goz]), (tr_tr, GOZ_TR[goz])):
-            liste.append("item.pa:%s.name=%s" % (goz, tr))
-            liste.append("item.pa:%s=%s" % (goz, tr))
-
     yaz_json(os.path.join(RP, "models/entity/simsek_goz.geo.json"), GOZ_GEOMETRI)
     yaz_json(os.path.join(RP, "models/entity/simsek_kol.geo.json"), GEOMETRI)
     yaz_json(os.path.join(RP, "animations/simsek_kol_tutus.animation.json"), TUTUS_ANIM)
@@ -554,10 +585,9 @@ def main():
         with open(os.path.join(RP, "texts", dosya), "w", encoding="utf-8") as f:
             f.write("\n".join(satirlar) + "\n")
 
-    print("uretildi: %d kol, %d iksir, %d goz -> %d esya, %d doku"
-          % (len(KOLLAR), len(IKSIRLER), len(IKSIRLER),
-             len(KOLLAR) + len(IKSIRLER) * 2,
-             len(KOLLAR) * 2 + len(IKSIRLER) * 3))
+    print("uretildi: %d kol, %d iksir, %d goz (lazer varyantiyla) -> %d esya"
+          % (len(KOLLAR), len(IKSIRLER), len(IKSIRLER) * 2,
+             len(KOLLAR) + len(IKSIRLER) * 3))
 
 
 if __name__ == "__main__":

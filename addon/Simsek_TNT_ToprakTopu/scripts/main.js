@@ -40,6 +40,9 @@ import "./yetenekler/toprak_ucus.js";
 import "./yetenekler/ucurma.js";
 import "./yetenekler/yamult.js";
 import "./yetenekler/toprak_duvar.js";
+import "./yetenekler/iksirler.js";
+import "./yetenekler/goz_lazeri.js";
+import "./yetenekler/guc_kapat.js";
 
 /* DIKKAT -- SIRA ONEMLI.
    kollar.js var olan yeteneklere esya BAGLIYOR, yani bagladigi
