@@ -64,3 +64,5 @@ item.pa:goz_mavi_lazer.name=Mavi Göz (Lazer)
 item.pa:goz_mavi_lazer=Mavi Göz (Lazer)
 item.pa:iksir_hiperoksin.name=Hiperoksin
 item.pa:iksir_hiperoksin=Hiperoksin
+entity.pa:bot.name=Şimşek Bot
+item.spawn_egg.entity.pa:bot.name=Şimşek Bot Yumurtasi

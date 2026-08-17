@@ -306,6 +306,252 @@ def attachable(kimlik):
     }
 
 
+# ============================================================ BOT
+# Depodaki ILK ozel VARLIK (v4.22). Su ana kadar sadece esya vardi.
+#
+# Uc dosya birden uretiliyor ve ucu de birbirine bagli:
+#   BP/entities/bot.json          davranis (AI, saglik, olaylar)
+#   RP/entity/bot.entity.json     gorunum (model, doku, yumurta)
+#   RP/models/entity/simsek_bot.geo.json   insansi model
+#
+# Elle yazilsalardi kimlik/geometri/doku adlarini uc yerde senkron
+# tutmak gerekirdi; kol esyalarinda ogrendigimiz ders.
+BOT_KIMLIK = "pa:bot"
+BOT_AD = "Simsek Bot"
+BOT_TR = "Şimşek Bot"
+BOT_ANA = (58, 110, 165)      # tulum mavisi
+BOT_TEN = (198, 138, 96)
+
+
+def bot_sunucu_varligi():
+    """format_version 1.16.0: varliklar icin en genis desteklenen
+    surum ve hicbir deneysel ayar istemiyor. Esyalarda 1.21.0
+    kullaniyoruz cunku orada menu_category gerekiyordu; varlikta
+    boyle bir ihtiyac yok, eski ve saglam olan tercih edildi.
+
+    minecraft:tameable NEDEN VAR: follow_owner bir SAHIP ister ve
+    sahip ancak evcillestirmeyle atanir. Script tameable.tame()
+    cagiriyor. Kemikle de evcillesir -- yedek yol.
+
+    pa:bekle grubu hareket hizini 0 yapiyor. "Dur" demenin en
+    saglam yolu bu: davranis hedefini kaldirmaya calismak
+    surumden surume degisiyor, hiz 0 her yerde ayni."""
+    return {
+        "format_version": "1.16.0",
+        "minecraft:entity": {
+            "description": {
+                "identifier": BOT_KIMLIK,
+                # Yumurta VAR: tablette elle test etmenin en kolay yolu
+                "is_spawnable": True,
+                "is_summonable": True,
+                "is_experimental": False,
+            },
+            "component_groups": {
+                "pa:evcil": {"minecraft:is_tamed": {}},
+                "pa:takip": {"minecraft:movement": {"value": 0.32}},
+                # Hiz 0 = yerinde durur; AI hedefleriyle ugrasmaya gerek yok
+                "pa:bekle": {"minecraft:movement": {"value": 0.0}},
+            },
+            "components": {
+                "minecraft:type_family": {"family": ["pa_bot", "mob"]},
+                "minecraft:health": {"value": 20, "max": 20},
+                "minecraft:collision_box": {"width": 0.6, "height": 1.8},
+                "minecraft:physics": {},
+                "minecraft:pushable": {"is_pushable": True, "is_pushable_by_piston": True},
+                "minecraft:breathable": {"total_supply": 15, "suffocate_time": 0},
+                "minecraft:nameable": {},
+                # Kaybolmasin: bot kalici, chunk bosalinca silinmemeli
+                "minecraft:persistent": {},
+                "minecraft:movement": {"value": 0.32},
+                "minecraft:movement.basic": {},
+                "minecraft:jump.static": {"jump_power": 0.42},
+                "minecraft:can_climb": {},
+                # Yol bulmayi ACAN bilesen: bu olmadan follow_owner yurumez
+                "minecraft:navigation.walk": {
+                    "can_path_over_water": True,
+                    "avoid_water": True,
+                    "avoid_damage_blocks": True,
+                    "can_pass_doors": True,
+                    "can_open_doors": True,
+                    "can_jump": True,
+                },
+                "minecraft:tameable": {
+                    "probability": 1.0,
+                    "tame_items": ["minecraft:bone"],
+                    "tame_event": {"event": "pa:evcillestir", "target": "self"},
+                },
+                # Suda bogulmasin -- oncelik 0, her seyin onunde
+                "minecraft:behavior.float": {"priority": 0},
+                "minecraft:behavior.follow_owner": {
+                    "priority": 3,
+                    "speed_multiplier": 1.2,
+                    "start_distance": 4,
+                    "stop_distance": 2,
+                },
+                "minecraft:behavior.look_at_player": {
+                    "priority": 8, "look_distance": 8, "probability": 0.4
+                },
+                "minecraft:behavior.random_look_around": {"priority": 9},
+            },
+            "events": {
+                "minecraft:entity_spawned": {"add": {"component_groups": ["pa:takip"]}},
+                "pa:evcillestir": {"add": {"component_groups": ["pa:evcil"]}},
+                # Script bu iki olayi triggerEvent ile calistiriyor.
+                # Adlar ayarlar.js'teki BOT_OLAY_* ile AYNI olmali.
+                "pa:takip": {
+                    "remove": {"component_groups": ["pa:bekle"]},
+                    "add": {"component_groups": ["pa:takip"]},
+                },
+                "pa:bekle": {
+                    "remove": {"component_groups": ["pa:takip"]},
+                    "add": {"component_groups": ["pa:bekle"]},
+                },
+            },
+        },
+    }
+
+
+def bot_istemci_varligi():
+    """controller.render.default vanilla'da hazir; kendi render
+    controller'imizi yazmaya gerek yok.
+
+    spawn_egg renk ile veriliyor (doku degil): boylece yumurta
+    ikonu icin ayri bir PNG ve atlas girdisi gerekmiyor."""
+    return {
+        "format_version": "1.10.0",
+        "minecraft:client_entity": {
+            "description": {
+                "identifier": BOT_KIMLIK,
+                "materials": {"default": "entity_alphatest"},
+                "textures": {"default": "textures/entity/bot"},
+                "geometry": {"default": "geometry.simsek_bot"},
+                "render_controllers": ["controller.render.default"],
+                "spawn_egg": {"base_color": "#3a6ea5", "overlay_color": "#c68a60"},
+                "scripts": {"animate": ["yuru"]},
+                "animations": {"yuru": "animation.simsek_bot.yuru"},
+            }
+        },
+    }
+
+
+# Insansi model: vanilla 64x64 skin duzeniyle AYNI UV.
+# Boylece istersen dokuyu bir Minecraft skini ile degistirebilirsin,
+# hicbir sey ayarlamana gerek kalmaz.
+BOT_GEOMETRI = {
+    "format_version": "1.12.0",
+    "minecraft:geometry": [
+        {
+            "description": {
+                "identifier": "geometry.simsek_bot",
+                "texture_width": 64,
+                "texture_height": 64,
+                "visible_bounds_width": 2,
+                "visible_bounds_height": 3,
+                "visible_bounds_offset": [0, 1.5, 0],
+            },
+            "bones": [
+                # Kemik adlari vanilla insansi duzeniyle ayni: ileride
+                # vanilla animasyon kullanmak istersek dogrudan oturur.
+                {"name": "body", "pivot": [0, 24, 0], "cubes": [
+                    {"origin": [-4, 12, -2], "size": [8, 12, 4], "uv": [16, 16]},
+                    {"origin": [-4, 12, -2], "size": [8, 12, 4], "uv": [16, 32], "inflate": 0.25},
+                ]},
+                {"name": "head", "parent": "body", "pivot": [0, 24, 0], "cubes": [
+                    {"origin": [-4, 24, -4], "size": [8, 8, 8], "uv": [0, 0]},
+                    {"origin": [-4, 24, -4], "size": [8, 8, 8], "uv": [32, 0], "inflate": 0.5},
+                ]},
+                {"name": "rightArm", "parent": "body", "pivot": [-5, 22, 0], "cubes": [
+                    {"origin": [-8, 12, -2], "size": [4, 12, 4], "uv": [40, 16]},
+                ]},
+                {"name": "leftArm", "parent": "body", "pivot": [5, 22, 0], "cubes": [
+                    {"origin": [4, 12, -2], "size": [4, 12, 4], "uv": [32, 48]},
+                ]},
+                {"name": "rightLeg", "parent": "body", "pivot": [-2, 12, 0], "cubes": [
+                    {"origin": [-4, 0, -2], "size": [4, 12, 4], "uv": [0, 16]},
+                ]},
+                {"name": "leftLeg", "parent": "body", "pivot": [2, 12, 0], "cubes": [
+                    {"origin": [0, 0, -2], "size": [4, 12, 4], "uv": [16, 48]},
+                ]},
+            ],
+        }
+    ],
+}
+
+# Kendi yuruyus animasyonumuz. Vanilla "animation.humanoid.*"
+# kimliklerine BILEREK guvenilmedi: o kimlikler vanilla resource
+# pack'inde tanimli ve surumden surume degisebiliyor. Bu dosya
+# bizim, hep burada.
+BOT_ANIM = {
+    "format_version": "1.8.0",
+    "animations": {
+        "animation.simsek_bot.yuru": {
+            "loop": True,
+            "bones": {
+                # modified_distance_moved: yurudukce artan sayac.
+                # 38.17 vanilla'nin kullandigi carpan (adim frekansi).
+                "rightLeg": {"rotation": [
+                    "math.cos(query.modified_distance_moved * 38.17) * 40 * query.modified_move_speed",
+                    0, 0]},
+                "leftLeg": {"rotation": [
+                    "math.cos(query.modified_distance_moved * 38.17 + 180) * 40 * query.modified_move_speed",
+                    0, 0]},
+                "rightArm": {"rotation": [
+                    "math.cos(query.modified_distance_moved * 38.17 + 180) * 30 * query.modified_move_speed",
+                    0, 0]},
+                "leftArm": {"rotation": [
+                    "math.cos(query.modified_distance_moved * 38.17) * 30 * query.modified_move_speed",
+                    0, 0]},
+            },
+        }
+    },
+}
+
+
+def bot_dokusu():
+    """64x64, vanilla skin duzeni. Yer tutucu: mavi tulum, ten
+    rengi kafa/kol. Goz satiri v4.19'da OLCULEN yer: y=12,
+    x=9,10 ve x=13,14 (kafanin on yuzu x=8..15, y=8..15).
+
+    Gercek bir skin PNG'si ile degistirmek istersen aynen uzerine
+    yaz -- UV vanilla ile ayni."""
+    p = {}
+
+    def dikdortgen(x0, y0, en, boy, renk, koyu_kenar=True):
+        for y in range(y0, y0 + boy):
+            for x in range(x0, x0 + en):
+                k = 1.0
+                if koyu_kenar and (x == x0 or y == y0):
+                    k = 0.85
+                elif koyu_kenar and (x == x0 + en - 1 or y == y0 + boy - 1):
+                    k = 1.1
+                p[(x, y)] = golge(renk, k) + (255,)
+
+    # Kafa: 8x8'lik alti yuz, hepsi ten
+    dikdortgen(0, 8, 32, 8, BOT_TEN)
+    # Sac: kafanin ust seridi
+    dikdortgen(8, 8, 8, 3, (38, 32, 28), koyu_kenar=False)
+    dikdortgen(0, 0, 32, 8, (38, 32, 28))          # ust/alt kapaklar
+
+    # Govde 8x12 + kollar/bacaklar: tulum
+    dikdortgen(16, 16, 24, 16, BOT_ANA)
+    dikdortgen(40, 16, 16, 16, BOT_ANA)            # sag kol
+    dikdortgen(32, 48, 16, 16, BOT_ANA)            # sol kol
+    dikdortgen(0, 16, 16, 16, golge(BOT_ANA, 0.75))   # sag bacak
+    dikdortgen(16, 48, 16, 16, golge(BOT_ANA, 0.75))  # sol bacak
+
+    # Eller: kollarin alt ucu ten rengi
+    dikdortgen(40, 28, 16, 4, BOT_TEN, koyu_kenar=False)
+    dikdortgen(32, 60, 16, 4, BOT_TEN, koyu_kenar=False)
+
+    # Goz: v4.19'da olculen satir/sutunlar
+    for x in (9, 10, 13, 14):
+        p[(x, 12)] = (250, 250, 255, 255)
+    for x in (10, 13):
+        p[(x, 12)] = (24, 26, 40, 255)             # goz bebegi
+
+    return p
+
+
 # ------------------------------------------------------------- geometri
 GEOMETRI = {
     "format_version": "1.12.0",
@@ -695,6 +941,16 @@ def main():
         for liste, tr in ((en_us, ad), (tr_tr, IKSIR_TR[kimlik])):
             liste.append("item.pa:iksir_%s.name=%s" % (kimlik, tr))
             liste.append("item.pa:iksir_%s=%s" % (kimlik, tr))
+    # ---- Bot (v4.22) ----
+    yaz_json(os.path.join(BP, "entities/bot.json"), bot_sunucu_varligi())
+    yaz_json(os.path.join(RP, "entity/bot.entity.json"), bot_istemci_varligi())
+    yaz_json(os.path.join(RP, "models/entity/simsek_bot.geo.json"), BOT_GEOMETRI)
+    yaz_json(os.path.join(RP, "animations/simsek_bot.animation.json"), BOT_ANIM)
+    png_yaz(os.path.join(RP, "textures/entity/bot.png"), 64, 64, bot_dokusu())
+    for liste, ad in ((en_us, BOT_AD), (tr_tr, BOT_TR)):
+        liste.append("entity.%s.name=%s" % (BOT_KIMLIK, ad))
+        liste.append("item.spawn_egg.entity.%s.name=%s Yumurtasi" % (BOT_KIMLIK, ad))
+
     yaz_json(os.path.join(RP, "models/entity/simsek_goz.geo.json"), GOZ_GEOMETRI)
     yaz_json(os.path.join(RP, "models/entity/simsek_kol.geo.json"), GEOMETRI)
     yaz_json(os.path.join(RP, "animations/simsek_kol_tutus.animation.json"), TUTUS_ANIM)
@@ -729,6 +985,9 @@ def main():
     # ve oyunda hala gorunuyordu. Artik uretecin urettigi kume
     # neyse disk de o.
     beklenen = set()
+    # Bot dokusu KOLLAR/IKSIRLER listelerinde degil; elle ekleniyor
+    # yoksa temizlik adimi her uretimde siler.
+    beklenen.add("bot")
     for satir in KOLLAR:
         beklenen.add(satir[0])
     for kimlik, _ad, _sivi, goz, _gozRenk in IKSIRLER:
@@ -752,7 +1011,7 @@ def main():
     if silinen:
         print("temizlendi: %d artik dosya" % silinen)
 
-    print("uretildi: %d kol, %d iksir, %d goz (lazer varyantiyla) -> %d esya"
+    print("uretildi: %d kol, %d iksir, %d goz (lazer varyantiyla) -> %d esya + 1 bot varligi"
           % (len(KOLLAR), len(IKSIRLER), len(IKSIRLER) * 2,
              len(KOLLAR) + len(IKSIRLER) * 3))
 

@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.21";
+export const SURUM = "v4.22";
 
 /* ---------------- Tetikleyici esyalar ---------------- */
 export const SIMSEK_ESYA = "minecraft:blaze_rod";     // baktigin yere simsek
@@ -580,6 +580,26 @@ export const PARCACIK_LAZER = "minecraft:basic_flame_particle";
    veren ek efektler koyduk. Mantik ayni (ic, sure boyunca guclen,
    gozun degissin, lazer at), sadece daha yuksek.
 
+   ---- SURELER (v4.22) ----
+   60 saniye azdi: iksiri iciyordun, bir sey yapmaya firsat
+   bulamadan bitiyordu. Yeni sureler:
+
+     Nitroksin, Grinoksin, Redoksin, Firenoksin, Kan Iksiri
+                  -> 6000 tick = 5 dakika
+     Hiperoksin   -> 9600 tick = 480 saniye (8 dakika)
+
+   Hiperoksin'in daha uzun olmasi hiyerarsiyi geri getirmiyor:
+   hicbir alanda hala uzman degil (hiz Nitroksin'de, vurus
+   Redoksin'de, dayaniklilik Grinoksin'de). Farki artik GUCTE
+   degil SUREDE -- "her seyden biraz, ama uzun sure". Bu ona
+   uzmanlarin yerini almadan kendi sebebini veriyor.
+
+   DIKKAT: bu sayilar KADEME suresidir, efekt suresi degil.
+   Efektler IKSIR_TAZELEME'de (40 tick) bir yenileniyor ve her
+   seferinde 120 tick veriliyor; kademe bitince elle siliniyor.
+   Yani sureyi uzatmak tick maliyetini ARTIRMIYOR, sadece
+   tazelemenin ne kadar sureceğini degistiriyor.
+
    Her kademe: kimlik, ad, renk, sure, efektler, goz esyasi.
    Efekt suresi TAZELEME'den uzun tutuluyor ki iki tazeleme
    arasinda efekt sonmesin.
@@ -592,7 +612,7 @@ export const KADEMELER = [
     kimlik: "nitroksin",
     ad: "Nitroksin",
     renk: [1.0, 1.0, 1.0],          // beyaz
-    sure: 1200,                     // 60 saniye
+    sure: 6000,                     // 5 dakika
     goz: "pa:goz_beyaz",
     lazerGoz: "pa:goz_beyaz_lazer",
     ozet: "Hiz ve ziplama",
@@ -615,7 +635,7 @@ export const KADEMELER = [
     kimlik: "grinoksin",
     ad: "Grinoksin",
     renk: [0.0, 1.0, 0.2],          // yesil
-    sure: 1200,
+    sure: 6000,
     goz: "pa:goz_yesil",
     lazerGoz: "pa:goz_yesil_lazer",
     ozet: "Dayaniklilik",
@@ -638,7 +658,7 @@ export const KADEMELER = [
     kimlik: "redoksin",
     ad: "Redoksin",
     renk: [0.8, 0.0, 0.0],          // kirmizi
-    sure: 1200,
+    sure: 6000,
     goz: "pa:goz_kirmizi",
     lazerGoz: "pa:goz_kirmizi_lazer",
     ozet: "Saldiri ve kazma",
@@ -660,7 +680,7 @@ export const KADEMELER = [
     kimlik: "firenoksin",
     ad: "Firenoksin",
     renk: [1.0, 0.45, 0.0],         // turuncu
-    sure: 1200,
+    sure: 6000,
     goz: "pa:goz_ates",
     lazerGoz: "pa:goz_ates_lazer",
     ozet: "Ates",
@@ -683,7 +703,7 @@ export const KADEMELER = [
     kimlik: "kan_iksiri",
     ad: "Kan Iksiri",
     renk: [0.45, 0.0, 0.05],        // koyu kirmizi
-    sure: 1200,
+    sure: 6000,
     goz: "pa:goz_kan",
     lazerGoz: "pa:goz_kan_lazer",
     ozet: "Vampir",
@@ -705,7 +725,7 @@ export const KADEMELER = [
     kimlik: "hiperoksin",
     ad: "Hiperoksin",
     renk: [0.2, 0.6, 1.0],          // mavi
-    sure: 1200,
+    sure: 9600,                     // 480 saniye (8 dakika)
     goz: "pa:goz_mavi",
     lazerGoz: "pa:goz_mavi_lazer",
     ozet: "Her seyden biraz",
@@ -980,12 +1000,20 @@ export const IKSIR_LAZERI_SEC = true;
 
    BOT_TARAMA neden 20: kurtarma saniyede bir bakilsa yeter.
    Her tick mesafe olcmek bos yere getEntity cagrisi demek.     */
-/* DURUM: HENUZ YAPILMADI. v4.21'de bot isi bilerek ertelendi --
-   once goz lazeri ve sohbet komutlari halledildi. Asagidaki
-   ayarlar plan hazir oldugu icin duruyor ama HICBIR bot kodu
-   yok; BOT_ACIK false ve oyle kalacak. Plan:
-   .claude/plans/concurrent-roaming-cosmos.md                   */
-export const BOT_ACIK             = false;
+/* ---- ASAMA 1 (v4.22): var olsun, takip etsin, beklesin ----
+   Odun toplama / maden kazma SONRAKI asama. Once zor ve
+   belirsiz olan kismi cozuyoruz: ozel bir varlik kaydoluyor mu
+   ve duzgun takip ediyor mu.
+
+   PLANDAN SAPMA: planda "pa:kol_bot" diye yeni bir kol vardi.
+   Yapilmadi -- kullanicinin kurali "her seyi kol yapma, kol
+   israfini onle". Bot SOHBETTEN yonetiliyor:
+     bot          -> cagir / yanina getir
+     bot bekle    -> oldugu yerde dursun
+     bot takip    -> pesinden gelsin
+     bot geri     -> gonder (sil)
+   Ayrica bota DOKUNUNCA ayni secenekler menu olarak aciliyor.  */
+export const BOT_ACIK             = true;
 export const BOT_KIMLIK           = "pa:bot";
 export const BOT_TAVAN            = 1;    // oyuncu basina kac bot
 export const BOT_KURTARMA_MENZIL  = 24;   // bu kadar uzaklasirsa isinlanir
@@ -1002,6 +1030,24 @@ export const BOT_DOGUM_YAKIN      = 2;    // yeni bot kac blok yana dogsun
 export const BOT_KAYIT_ANAHTAR    = "simsek:botlar";
 export const BOT_SAHIP_OZELLIK    = "simsek:sahip";
 export const BOT_DURUM_OZELLIK    = "simsek:durum";   // "takip" | "bekle"
+
+/* Varlik JSON'undaki olay adlari. Script bunlari triggerEvent
+   ile calistiriyor; JSON'daki "events" bolumuyle AYNI olmali.  */
+export const BOT_OLAY_TAKIP       = "pa:takip";
+export const BOT_OLAY_BEKLE       = "pa:bekle";
+
+/* Vanilla follow_owner bir SAHIP ister; sahip tameable.tame()
+   ile atanir. O cagri her surumde ayni sekilde olmayabilir, o
+   yuzden ozellik tespitiyle deneniyor. Basarisiz olursa script
+   kendi takibine gecer: BOT_SCRIPT_MENZIL'den uzaklasinca
+   isinlaniyor. Kaba ama HER surumde calisiyor.
+
+   Iki menzil ayri:
+     BOT_KURTARMA_MENZIL (24) vanilla takip calisirken sadece
+       "gercekten kayboldu" durumu icin.
+     BOT_SCRIPT_MENZIL (8) vanilla takip YOKKEN, botun yaninda
+       kalmasi icin. Daha kucuk cunku tek kurtaran o.           */
+export const BOT_SCRIPT_MENZIL    = 8;
 
 /* ---------------- Dondur ----------------
    Referans (Kevin1545 "kol koparma"):

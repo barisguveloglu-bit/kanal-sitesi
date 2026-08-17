@@ -2335,6 +2335,134 @@ Test: 28/28 geçti.
 
 ---
 
+## Aşama 32 — bot (aşama 1) ve iksir süreleri (v4.22)
+
+### İksir süreleri
+
+60 saniye azdı — içiyordun, bir şey yapmaya fırsat bulamadan bitiyordu.
+
+| iksir | süre |
+|---|---|
+| Nitroksin, Grinoksin, Redoksin, Firenoksin, Kan İksiri | **5 dakika** (6000 tick) |
+| Hiperoksin | **480 saniye** (9600 tick) |
+
+Hiperoksin'in daha uzun olması hiyerarşiyi geri getirmiyor: hiçbir alanda
+hâlâ uzman değil (hız Nitroksin'de, vuruş Redoksin'de, dayanıklılık
+Grinoksin'de). Farkı artık **güçte değil sürede** — "her şeyden biraz,
+ama uzun süre". Bu ona uzmanların yerini almadan kendi sebebini veriyor.
+Test bunu ayrıca doğruluyor.
+
+Süreyi uzatmak tick maliyetini **artırmıyor**: efektler `IKSIR_TAZELEME`
+(40 tick) aralığıyla yenileniyor, sadece daha uzun süre yenileniyor.
+
+---
+
+### Bot — depodaki ilk özel varlık
+
+Şimdiye kadar sadece **eşya** vardı. Bot bir **varlık** (entity), ve bu
+yeni bir alan.
+
+**Aşama 1 kapsamı** (kullanıcının seçimi): var olsun, takip etsin,
+beklesin, kalıcı olsun. Odun toplama / maden kazma sonraki aşama.
+
+#### Mimariyi belirleyen kısıt
+
+`@minecraft/server`'da **yol bulma API'si yok**. Script'ten bir varlığa
+"şu koordinata yürü" denemiyor. İş bölündü:
+
+- **Yürümeyi vanilla AI yapıyor** — `minecraft:behavior.follow_owner`
+  (kurdun/kedinin kullandığı hedef) + `minecraft:navigation.walk`.
+  Gerçek yol bulma, bedava, akıcı.
+- **Kurtarmayı script yapıyor** — bot çok geride kaldıysa, sıkıştıysa ya
+  da başka boyuttaysa yanına ışınlanıyor. Vanilla takip bunların hiçbirini
+  çözmüyor.
+
+`@minecraft/server-gametest` / `SimulatedPlayer` **kullanılmadı**: deneysel
+ayar istiyor, test amaçlı bir modül, tablette riskli ve dünya yeniden
+yüklenince yaşamıyor.
+
+#### Bilerek iki yollu bırakılan nokta
+
+`follow_owner` bir **sahip** ister; sahip `tameable.tame(oyuncu)` ile
+atanıyor. O çağrının bu API sürümündeki tam şekli **kesin değil**:
+
+```
+tame() tuttuysa  -> vanilla yürüyor, script sadece 24 blokta kurtarıyor
+tutmadıysa       -> script takibi: 8 blokta ışınlanıyor
+```
+
+Hangisinin çalıştığı Content Log'a yazılıyor. Tahmin edilmedi — tablet
+denemesi söyleyecek.
+
+#### Plandan sapma: ayrı kol yapılmadı
+
+Planda `pa:kol_bot` vardı. Yapılmadı — kullanıcının kuralı *"her şeyi kol
+yapma, kol israfını önle"*. Bot **sohbetten** yönetiliyor:
+
+```
+bot          çağır / yanına getir
+bot bekle    olduğu yerde dursun
+bot takip    peşinden gelsin
+bot geri     gönder (sil)
+```
+
+Ayrıca **bota dokununca** aynı seçenekler menü olarak açılıyor
+(`playerInteractWithEntity`). Menü yoksa dokunmak takip ↔ bekle arasında
+geçiş yapıyor — hiçbir şey olmamasından iyi.
+
+`bot geri` **bekleme süresine takılmıyor**: bu bir güç değil, güvenlik
+çıkışı. Bot ayak altında dolaşıyorsa 3 saniye beklemek sinir bozucu.
+Aynı gerekçe kalp sıfırlamada da vardı.
+
+#### Testin yakaladığı gerçek hata
+
+İlk yazılışta `botCagir` bütçeden `varlikIste(1)` istiyordu ve **bot hiç
+doğmuyordu**. Sebep `main.js`'teki tick döngüsü:
+
+```js
+if (isler.length === 0) return;
+butceSifirla();
+```
+
+Bütçe ancak **aktif iş varken** doluyor. Bot çağırmak anlık bir istek; o
+anda çalışan bir iş yoksa bütçe 0'da kalıyor ve spawn sonsuza kadar
+reddediliyordu. Bütçe zaten tick başına onlarca şey doğuran yetenekler
+için var (ok yağmuru, TNT yağmuru); tek bir bot bir kez doğuyor ve zaten
+`BEKLEME` (3 sn) ve `BOT_TAVAN` (oyuncu başına 1) kapılarına takılı.
+Bütçe çağrısı kaldırıldı.
+
+#### İkinci yakalanan hata: `paketle.sh`
+
+Yeni klasörler (`entities/`, `entity/`) zip satırlarında yoktu — bot
+pakete **hiç girmeyecekti** ve oyunda "bot kayıtlı değil" diyecekti.
+Betiğe DİKKAT notu eklendi.
+
+#### Üretilen dosyalar
+
+Hepsi `kol_uret.py`'den — elle JSON yazılmadı:
+
+```
+BP/entities/bot.json                    sunucu varlığı (AI, sağlık, olaylar)
+RP/entity/bot.entity.json               görünüm + yumurta rengi
+RP/models/entity/simsek_bot.geo.json    insansı model (vanilla skin UV'si)
+RP/animations/simsek_bot.animation.json yürüyüş
+RP/textures/entity/bot.png              64×64 yer tutucu
+```
+
+Model **vanilla 64×64 skin düzeniyle aynı UV** kullanıyor: dokuyu bir
+Minecraft skiniyle değiştirmek istersen üzerine yazman yeterli. Göz satırı
+v4.19'da ölçülen yer (`y=12`, `x=9,10,13,14`).
+
+Yürüyüş animasyonu **kendimizin**; vanilla `animation.humanoid.*`
+kimliklerine bilerek güvenilmedi.
+
+Yumurta **var** (`is_spawnable: true`) — tablette elle test etmenin en
+kolay yolu.
+
+Test: **29/29** geçti (yeni `bot.mjs`, 11 bölüm).
+
+---
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:

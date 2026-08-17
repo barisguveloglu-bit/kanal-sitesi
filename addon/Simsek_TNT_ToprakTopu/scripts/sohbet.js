@@ -130,6 +130,40 @@ export function komutCozumle(oyuncu, hamMetin) {
     return { cevap: cagir("yetenek", oyuncu, "goz_lazeri") };
   }
 
+  /* ---- Bot ----
+     "bot"        cagir / yanina getir
+     "bot bekle"  oldugu yerde dursun
+     "bot takip"  pesinden gelsin
+     "bot geri"   gonder (sil)
+     Yeni bir KOL yapilmadi: "her seyi kol yapma" kurali.      */
+  if (ad === "bot") {
+    const alt = parca[1];
+
+    /* Geri gonderme BEKLEME suresine takilmiyor: bu bir guc
+       degil, guvenlik cikisi. Bot ayak altinda dolasiyorsa ya
+       da bir yere sikismissa 3 saniye beklemek sinir bozucu.
+       Ayni gerekce kalp sifirlamada da vardi.                 */
+    if (alt === "geri" || alt === "git" || alt === "sil") {
+      const silindi = cagir("botGeri", oyuncu);
+      return { cevap: silindi
+        ? "§8Bot geri gonderildi."
+        : "§eBotun yok. §7'bot' yaz." };
+    }
+    if (alt === "bekle" || alt === "dur" || alt === "kal") {
+      const d = cagir("botDurum", oyuncu, "bekle");
+      return { cevap: d ? "§eBot bekliyor." : "§eBotun yok. §7'bot' yaz." };
+    }
+    if (alt === "takip" || alt === "gel" || alt === "pesim") {
+      const d = cagir("botDurum", oyuncu, "takip");
+      return { cevap: d ? "§aBot pesinden geliyor." : "§eBotun yok. §7'bot' yaz." };
+    }
+    if (alt !== undefined) {
+      return { cevap: "§cBilmedigim bot komutu: §7" + alt +
+                      " §8(bot / bot bekle / bot takip / bot geri)" };
+    }
+    return { cevap: cagir("yetenek", oyuncu, "bot_cagir") };
+  }
+
   if (ad === "kol" || ad === "kollar") {
     cagir("kollariVer", oyuncu);
     return { cevap: "§aKollar envantere kondu." };
@@ -152,6 +186,8 @@ const YARDIM = [
   "§ecan§7 · varsayilan " + KALP_ADIM + " kalp",
   "§ecan sifirla§7 · eklenen kalpleri geri al",
   "§elazer§7 · goz lazeri at (once iksir ic)",
+  "§ebot§7 · botu cagir / yanina getir",
+  "§ebot bekle§7 · §ebot takip§7 · §ebot geri",
   "§ekol§7 · butun kollari al",
   "§eguc kapat§7 · acik iksiri kapat",
   "§8Calismazsa: /scriptevent simsek:komut can 10"

@@ -5,7 +5,7 @@ import {
   OLCUM_SOHBETE, HATA_SOHBETE, ESYASIZ_ACIK, ESYASIZ_EGILME_SART,
   ESYASIZ_BAKIS_ESIGI, ESYASIZ_TUTMA, ESYASIZ_TARAMA,
   KOL_VER_ACIK, KOL_VER_ESIGI, KOL_VER_TUTMA, CIFT_EL_ACIK, AYNI_ANDA,
-  MENU_DOKUNUSLA
+  MENU_DOKUNUSLA, BOT_KIMLIK
 } from "./ayarlar.js";
 
 import {
@@ -67,6 +67,8 @@ import "./yetenekler/ok_yagmuru.js";
 import "./yetenekler/sarsinti.js";
 import "./yetenekler/kalp_ekle.js";
 import "./yetenekler/kalp_sifirla.js";
+import "./yetenekler/bot_cagir.js";
+import "./yetenekler/bot_geri.js";
 
 /* DIKKAT -- SIRA ONEMLI.
    kollar.js var olan yeteneklere esya BAGLIYOR, yani bagladigi
@@ -90,6 +92,13 @@ import {
 import {
   kalpTara, kalpliVarMi, kalpEkle, kalpSifirla
 } from "./yetenekler/_kalp_defteri.js";
+
+/* Bot da is listesine GIRMIYOR -- kalici oldugu icin oyuncunun
+   iki is yuvasindan birini sonsuza kadar tutardi. Kalp ve kafes
+   defterleriyle ayni kalip.                                     */
+import {
+  botTara, botVarMi, botDurum, botGeri, botAl, botunSahibi, botDenetimi, botUnut
+} from "./yetenekler/_bot_defteri.js";
 
 /* Gunes Yumrugu kaydi is listesinden bagimsiz bir Map'te; oyuncu
    cikinca o da temizlenmeli.                                    */
@@ -161,7 +170,8 @@ system.runInterval(() => {
      ikisi de bosken hic cagrilmiyor.                           */
   const iksirVar = iksirAktifMi();
   const kalpVar = kalpliVarMi();
-  if (iksirVar || kalpVar) {
+  const botVar = botVarMi();
+  if (iksirVar || kalpVar || botVar) {
     let oyuncular;
     try {
       oyuncular = world.getAllPlayers();
@@ -181,6 +191,13 @@ system.runInterval(() => {
         kalpTara(oyuncular);
       } catch (e) {
         hataYaz("kalpTara", e);
+      }
+    }
+    if (botVar) {
+      try {
+        botTara(oyuncular);
+      } catch (e) {
+        hataYaz("botTara", e);
       }
     }
   }
@@ -682,6 +699,7 @@ olayaAbone("playerLeave", (olay) => {
   kolSecim.delete(olay.playerId);
   kademeUnut(olay.playerId);
   yumrukUnut(olay.playerId);
+  botUnut(olay.playerId);
 
   // Oyuncunun butun isleri durdurulmali, sadece birincisi degil
   const acikIsler = oyuncununIsleri.get(olay.playerId);
@@ -739,8 +757,74 @@ olayaAbone("playerSpawn", (olay) => {
   }
 });
 
+/* ============================================================
+   BOTA DOKUNUNCA MENU
+
+   Botun yonetimi iki yoldan: sohbet ("bot bekle") ve buradan.
+   Yeni bir KOL yapilmadi -- "her seyi kol yapma" kurali.
+
+   playerInteractWithEntity her surumde olmayabilir; olayaAbone
+   ozellik tespiti yapiyor, yoksa sadece bu yol kapaniyor ve
+   sohbet komutlari calismaya devam ediyor.
+   ============================================================ */
+olayaAbone("playerInteractWithEntity", (olay) => {
+  try {
+    const oyuncu = olay.player;
+    const hedef = olay.target;
+    if (!oyuncu || !hedef) return;
+    if (hedef.typeId !== BOT_KIMLIK) return;
+
+    /* Baskasinin botuna dokunmak bir sey yapmasin. Sahip
+       varligin KENDI ozelliginde; dunya kaydi silinse bile
+       bot bunu tasiyor.                                       */
+    const sahip = botunSahibi(hedef);
+    if (sahip && sahip !== oyuncu.id) {
+      actionbarYaz(oyuncu, "§7Bu bot senin degil.");
+      return;
+    }
+
+    const kayit = botAl(oyuncu.id);
+    const durum = kayit ? kayit.durum : "takip";
+
+    const liste = [
+      { kimlik: "takip", ad: "Takip et" },
+      { kimlik: "bekle", ad: "Bekle" }
+    ];
+    const secili = (durum === "bekle") ? 1 : 0;
+
+    const acildi = menuAc(oyuncu, "§eBot", liste, secili,
+      (indeks) => {
+        const yeni = botDurum(oyuncu, liste[indeks].kimlik);
+        actionbarYaz(oyuncu, yeni === "bekle"
+          ? "§eBot bekliyor" : "§aBot pesinden geliyor");
+      },
+      [
+        {
+          ad: "Yanima gel",
+          calis() { yetenekTetikle(oyuncu, "bot_cagir"); }
+        },
+        {
+          ad: "Geri gonder",
+          calis() { yetenekTetikle(oyuncu, "bot_geri"); }
+        }
+      ]);
+
+    /* Menu yoksa (server-ui eksik) dokunmak durumu DEGISTIRSIN:
+       hicbir sey olmamasindan iyi. Takip <-> bekle arasi gecis. */
+    if (!acildi) {
+      const yeni = botDurum(oyuncu, durum === "bekle" ? "takip" : "bekle");
+      actionbarYaz(oyuncu, yeni === "bekle"
+        ? "§eBot bekliyor §8(menu yok, dokununca degisir)"
+        : "§aBot pesinden geliyor §8(menu yok, dokununca degisir)");
+    }
+  } catch (e) {
+    hataYaz("playerInteractWithEntity", e);
+  }
+});
+
 kolDenetimi();
 siraDenetimi();
+botDenetimi();
 
 /* ---------------- Sohbet komutlari ----------------
    Komutlarin calistiracagi isler burada baglaniyor. sohbet.js
@@ -754,6 +838,8 @@ sohbetKancalari({
   kalpEkle: (oyuncu, adet) => kalpEkle(oyuncu, adet),
   kalpSifirla: (oyuncu) => kalpSifirla(oyuncu),
   kollariVer: (oyuncu) => kollariVer(oyuncu),
+  botDurum: (oyuncu, durum) => botDurum(oyuncu, durum),
+  botGeri: (oyuncu) => botGeri(oyuncu),
   yetenek: (oyuncu, kimlik) => {
     const tanim = yetenekAl(kimlik);
     if (!tanim) return "§cBilinmeyen yetenek: " + kimlik;
