@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.12";
+export const SURUM = "v4.13";
 
 /* ---------------- Tetikleyici esyalar ---------------- */
 export const SIMSEK_ESYA = "minecraft:blaze_rod";     // baktigin yere simsek
@@ -997,6 +997,56 @@ export const PARLAMA_ACIK  = true;
 export const PARLAMA_GIRIS = 0.2;   // saniye, kararma
 export const PARLAMA_TUT   = 0.3;   // saniye, sabit kalma
 export const PARLAMA_CIKIS = 0.6;   // saniye, acilma
+
+
+/* ---------------- Ok yagmuru ----------------
+   Fikir "En Iyi BoraLo Modu V15"teki okyamuru.mcfunction'dan:
+     summon arrow ^0^7^10 ... 25 satir, 5x5 izgara
+
+   Referansin dort hatasi:
+     1. "^0^7^10" bosluksuz -- komut hic calismiyor
+     2. izgara ^0..^4 arasi, yani hepsi TEK YANA; baktigin yere
+        degil, sagina bir duvar oluyor
+     3. "summon arrow" ile dogan okun HIZI YOK -- oldugu yerde
+        belirip dusuyor. Gercek yagmur icin asagi hiz gerekiyor.
+     4. 25 ok tek tick'te doguyor, butce yok
+
+   OK_HIZ: asagi dogru baslangic hizi. 1.2 civari gercek bir yay
+   okuna yakin duruyor; dusurursen tembel tembel suzuluyor.    */
+export const OK_MENZIL  = 40;    // baktigin nokta en fazla kac blok oteye
+export const OK_SAYISI  = 25;    // referanstaki 5x5 ile ayni sayi
+export const OK_YAYILMA = 3.5;   // hedefin etrafina kac blok sacilsin
+export const OK_YUKSEK  = 12;    // hedefin kac blok ustunde dogsun
+export const OK_GRUP    = 3;     // her partide kac ok
+export const OK_ARALIK  = 2;     // partiler arasi tick
+export const OK_HIZ     = 1.2;   // asagi dogru baslangic hizi
+
+/* ---------------- Sarsinti ----------------
+   Fikir "En Iyi BoraLo Modu V15"teki shadowstaffozlelik'ten:
+     execute @s^^^6 /camerashake add @e[r=6,c=1] 4
+
+   Hasar yok, olum yok -- sadece karsidakinin ekranini sallayip
+   nisan almasini zorlastiriyor.
+
+   Referansin hatalari:
+     1. "@s^^^6" bosluksuz -- calismiyor
+     2. "c=1" en yakini seciyor ama @e OYUNCUYU DA sayiyor, yani
+        cogu zaman KENDI ekranini sarsiyorsun
+     3. camerashake yalnizca OYUNCUDA calisiyor; @e moblari da
+        tarayip bosa donuyor
+     4. sure verilmemis (varsayilan 1 sn) ve siddet 4, yani tavan
+
+   SARS_SIDDET tavani 4. 4 gercekten cok sert -- 1.6 rahatsiz
+   edici ama oynanabilir. Arkadasini denemek icin 3 yap.
+
+   DIKKAT: camerashake mobda calismaz. Tek kisilik dunyada bu
+   yetenek ise yaramaz; arkadasinla oynarken anlamli.          */
+export const SARS_MENZIL    = 16;
+export const SARS_ACI       = 0.8;
+export const SARS_SIDDET    = 1.6;   // 0-4 arasi, 4 tavan
+export const SARS_SURE      = 2.5;   // saniye
+export const SARS_TAVAN     = 5;     // en fazla kac oyuncu
+export const SARS_PARCACIK  = "minecraft:sonic_explosion";
 
 /* ---------------- Dunya yukseklik sinirlari ----------------
    heightRange okunamazsa bu tablo kullanilir.                      */

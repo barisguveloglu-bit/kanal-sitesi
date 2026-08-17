@@ -74,6 +74,12 @@ export const KOL_ESYALARI = [
      tersi yapildi.                                             */
   ["pa:kol_boralo", "yakala", "coklu_simsek"],
 
+  /* GOLGE KOL -- "En Iyi BoraLo Modu V15"ten alinan takim.
+     3018 dosya, 809 komut, hic script yok. Iceriginin cogu
+     zaten aldigimiz kaliplarin tekrariydi; gercekten yeni olan
+     iki sey buraya kondu.                                     */
+  ["pa:kol_golge",  "ok_yagmuru", "sarsinti"],
+
   // Tek yetenekli kollar
   ["pa:kol_halka",  "yildirim_halkasi"],
   ["pa:kol_simsek", "yon_simsegi"],

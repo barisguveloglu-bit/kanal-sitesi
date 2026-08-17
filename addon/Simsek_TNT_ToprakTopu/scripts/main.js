@@ -57,6 +57,8 @@ import "./yetenekler/isin_topu.js";
 import "./yetenekler/yumruk.js";
 import "./yetenekler/yakala.js";
 import "./yetenekler/coklu_simsek.js";
+import "./yetenekler/ok_yagmuru.js";
+import "./yetenekler/sarsinti.js";
 
 /* DIKKAT -- SIRA ONEMLI.
    kollar.js var olan yeteneklere esya BAGLIYOR, yani bagladigi

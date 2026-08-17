@@ -1731,6 +1731,75 @@ için yeniden yazıldı).
 
 ---
 
+## Aşama 23 — BoraLo V15: ok yağmuru, sarsıntı (v4.13)
+
+Kaynak: `En İyi BoraLo Modu V15`. **3018 dosya**, 809 mcfunction, 309
+eşya, 330 tarif, 142 animasyon denetleyici. Şimdiye kadarki en büyüğü —
+ama **hiç script yok**, hepsi komut.
+
+### İçeriğin çoğu tekrar
+
+Komut dağılımı: 464 `give`, 154 `replaceitem`, 109 `execute`, 72
+`effect`. Yetenek mantığının tamamı `execute @s^^^N /… @e[r=N,c=1]`
+kalıbında — bu seride dördüncü kez gördüğüm nokta-örnekleme lazeri.
+`slowness 100000 255`, `levitation 1 255`, `setblock ~~10~ anvil`,
+`fill … iron_bars` — hepsinin karşılığı bizde zaten var.
+
+Gerçekten yeni olan iki şey alındı.
+
+### Ok Yağmuru
+
+Referans `okyamuru.mcfunction`, 25 satır:
+
+```
+summon arrow ^0^7^10
+summon arrow ^1^7^10
+...
+```
+
+Dört hatası:
+
+1. **`^0^7^10` boşluksuz** — komut hiç çalışmıyor (bu seride en yaygın hata).
+2. Izgara `^0`..`^4` arası, yani **hepsi tek yana**. Baktığın yere değil,
+   sağına bir ok duvarı oluyor. Bizimki hedefin etrafına ortalıyor.
+3. **`summon arrow` ile doğan okun hızı yok** — olduğu yerde belirip
+   düşüyor. Ok değil, düşen bir cisim. Bizimki `applyImpulse` ile aşağı
+   hız veriyor (`setLinearVelocity` yedeğiyle).
+4. 25 ok tek tick'te doğuyor, bütçe yok. Bizimki varlık bütçesini
+   kullanıp partiye bölüyor.
+
+Ayrıca referansta tam ızgara; bizde hafif rastgelelik var, yoksa yağmur
+değil cetvel gibi duruyor.
+
+### Sarsıntı
+
+Referans `shadowstaffozlelik.mcfunction`:
+
+```
+execute @s^^^6 /camerashake add @e[r=6,c=1] 4
+```
+
+Hasar yok, ölüm yok — sadece karşıdakinin ekranını sallayıp nişan
+almasını zorlaştırıyor. Bizde kendi ekranımızı sarsan yardımcı vardı
+(`ekraniSars`), başkasınınkini sarsan yoktu.
+
+Dört hatası:
+
+1. **`@s^^^6` boşluksuz** — çalışmıyor.
+2. `c=1` en yakını seçiyor ama `@e` **oyuncunun kendisini de sayıyor** —
+   çoğu zaman kendi ekranını sarsıyorsun. Bu seride **üçüncü kez**
+   gördüğüm aynı hata.
+3. `camerashake` yalnızca **oyuncuda** çalışıyor; `@e` mobları da tarayıp
+   boşa dönüyor. Bizimki mobları süzüyor ve sebebini söylüyor.
+4. **Süre verilmemiş** (varsayılan 1 sn) ve şiddet `4`, yani tavan. Bizde
+   ikisi de ayardan: 1.6 şiddet, 2.5 saniye.
+
+İkisi de yeni **Gölge Kolu**'nda (`pa:kol_golge`).
+
+Test: 24/24 geçti (`v15.mjs` yeni).
+
+---
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:

@@ -44,6 +44,9 @@
     "kol_boralo": {
       "textures": "textures/item/kol_boralo"
     },
+    "kol_golge": {
+      "textures": "textures/item/kol_golge"
+    },
     "iksir_nitroksin": {
       "textures": "textures/item/iksir_nitroksin"
     },

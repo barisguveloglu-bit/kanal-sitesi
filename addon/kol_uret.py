@@ -38,6 +38,7 @@ KOLLAR = [
     ("kol_kevin",  "hapis",            "Kevin Kolu",            (108, 112, 120), (188, 194, 204)),
     ("kol_gunes",  "isin_topu",        "Gunes Kolu",            (232, 168, 40),  (255, 232, 150)),
     ("kol_boralo", "yakala",           "Boralo Kolu",           (74, 60, 96),    (168, 142, 210)),
+    ("kol_golge",  "ok_yagmuru",       "Golge Kolu",            (38, 36, 48),    (120, 116, 140)),
 ]
 
 # Turkce gorunen adlar (dil dosyasi icin; JSON'da ASCII tutuluyor)
@@ -56,6 +57,7 @@ TR_AD = {
     "kol_kevin":  "Kevin Kolu",
     "kol_gunes":  "Güneş Kolu",
     "kol_boralo": "Boralo Kolu",
+    "kol_golge":  "Gölge Kolu",
 }
 
 # BEKLEME = 60 tick = 3 sn. Esya beklemesi bununla ayni tutuluyor ki
