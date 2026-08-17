@@ -34,6 +34,7 @@ KOLLAR = [
     ("kol_can",    "can_verme",        "Can Verme Kolu",        (214, 96, 148),  (255, 200, 226)),
     ("kol_ors",    "ors",              "Ors Kolu",              (118, 118, 128), (206, 210, 222)),
     ("kol_buz",    "buz_adam",         "Buz Kol",               (126, 190, 200), (196, 232, 238)),
+    ("kol_dave",   "kasirga",          "Dave Kolu",             (96, 108, 76),   (176, 200, 140)),
 ]
 
 # Turkce gorunen adlar (dil dosyasi icin; JSON'da ASCII tutuluyor)
@@ -48,6 +49,7 @@ TR_AD = {
     "kol_can":    "Can Verme Kolu",
     "kol_ors":    "Örs Kolu",
     "kol_buz":    "Buz Kol",
+    "kol_dave":   "Dave Kolu",
 }
 
 # BEKLEME = 60 tick = 3 sn. Esya beklemesi bununla ayni tutuluyor ki
@@ -102,7 +104,9 @@ def esya(kimlik, ad):
                 "minecraft:display_name": {"value": ad},
                 "minecraft:max_stack_size": 1,
                 "minecraft:hand_equipped": True,
-                "minecraft:allow_off_hand": False,
+                # Cift el: iki kolu ayni anda takabilmek icin sol el
+                # slotuna da girebilmeli.
+                "minecraft:allow_off_hand": True,
                 "minecraft:cooldown": {
                     "category": kimlik + "_bekleme",
                     "duration": BEKLEME_SN,

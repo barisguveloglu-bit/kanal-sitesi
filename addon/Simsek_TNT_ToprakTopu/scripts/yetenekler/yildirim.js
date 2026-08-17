@@ -1,11 +1,30 @@
 import { yetenekKaydet } from "./kayit.js";
 import { yagmurIsi } from "./_yagmur.js";
-import { hedefBul, kollariIndir } from "../yardimcilar.js";
 import {
-  SIMSEK_ESYA, MENZIL, SIMSEK_SAYISI, SIMSEK_GRUP, SIMSEK_ARALIK
+  hedefBul, kollariIndir, kilitliHedef, varlikKonumu, actionbarYaz
+} from "../yardimcilar.js";
+import {
+  SIMSEK_ESYA, MENZIL, SIMSEK_SAYISI, SIMSEK_GRUP, SIMSEK_ARALIK,
+  KILIT_ACIK, KILIT_MENZIL, KILIT_ACI, KILIT_SAYISI
 } from "../ayarlar.js";
 
-/* Baktigin noktaya simsek yagmuru. */
+/* YON SIMSEGI -- baktigin yere simsek yagmuru.
+
+   HEDEF KILIDI (v4.5):
+   Once bakis konisinde bir varlik araniyor. Varsa simsek o
+   varligin USTUNE dusuyor ve hedef kacarsa PESINDEN gidiyor
+   (merkez her partide yeniden okunuyor). Hedef yoksa eskisi gibi
+   baktigin NOKTAYA yagiyor -- yani hicbir sey kaybolmuyor, sadece
+   nisan aliyor.
+
+   Referans mod (Dave1545) bunu "@e[r=10,c=1]" ile yapiyordu:
+   yaricaptaki en yakin varlik. O secici oyuncunun KENDISINI de
+   kapsiyor ve bakis yonunu gozetmiyordu, yani arkandaki koyun da
+   "hedef" olabiliyordu. kilitliHedef ikisini de duzeltiyor.
+
+   Kilitliyken daha AZ simsek dusuyor (KILIT_SAYISI): tek bir moba
+   20 yildirim atmak hem gereksiz hem tick israfi -- nisan alinca
+   zaten hepsi tutuyor.                                             */
 yetenekKaydet({
   kimlik: "yon_simsegi",
   ad: "Yon Simsegi",
@@ -14,15 +33,41 @@ yetenekKaydet({
   sira: 20,
 
   olustur(oyuncu) {
-    const hedef = hedefBul(oyuncu, MENZIL);
-    if (!hedef) {
+    let kilit;
+    if (KILIT_ACIK) {
+      kilit = kilitliHedef(oyuncu, { menzil: KILIT_MENZIL, aci: KILIT_ACI });
+    }
+
+    /* Kilit varsa merkez hedefin konumu, yoksa baktigin nokta.
+       kilitliHedef gecerli bir varlik dondurse bile konumu bu
+       tick icinde okunamayabilir; o durumda normal yola dusulur. */
+    const hedef = kilit ? varlikKonumu(kilit) : undefined;
+
+    if (kilit && hedef) {
+      actionbarYaz(oyuncu, "§e⚡ §fkilitlendi §7· " + kisaAd(kilit));
+      return yagmurIsi({
+        ad: "yon_simsegi",
+        oyuncu: oyuncu,
+        hedef: hedef,
+        kilit: kilit,
+        varlik: "minecraft:lightning_bolt",
+        toplam: KILIT_SAYISI,
+        yukseklik: 0,
+        aralik: SIMSEK_ARALIK,
+        grup: SIMSEK_GRUP,
+        halka: null
+      });
+    }
+
+    const nokta = hedefBul(oyuncu, MENZIL);
+    if (!nokta) {
       kollariIndir(oyuncu);
       return undefined;
     }
     return yagmurIsi({
       ad: "yon_simsegi",
       oyuncu: oyuncu,
-      hedef: hedef,
+      hedef: nokta,
       varlik: "minecraft:lightning_bolt",
       toplam: SIMSEK_SAYISI,
       yukseklik: 0,
@@ -32,3 +77,14 @@ yetenekKaydet({
     });
   }
 });
+
+/* "minecraft:zombie" -> "zombie". Actionbar'da tam kimlik cok uzun. */
+function kisaAd(varlik) {
+  try {
+    const t = varlik.typeId || "";
+    const i = t.indexOf(":");
+    return i === -1 ? t : t.slice(i + 1);
+  } catch (e) {
+    return "hedef";
+  }
+}

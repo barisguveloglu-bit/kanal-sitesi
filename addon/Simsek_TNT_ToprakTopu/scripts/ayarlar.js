@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.4";
+export const SURUM = "v4.5";
 
 /* ---------------- Tetikleyici esyalar ---------------- */
 export const SIMSEK_ESYA = "minecraft:blaze_rod";     // baktigin yere simsek
@@ -33,6 +33,27 @@ export const SIMSEK_GRUP   = 1;
 export const SIMSEK_ARALIK = 3;
 export const TNT_GRUP      = 2;
 export const TNT_ARALIK    = 2;
+
+/* ---------------- Hedef kilidi ----------------
+   Tek simsek atarken karsindaki varliga kilitlenme. Hedef yoksa
+   yetenek eskisi gibi baktigin NOKTAYA calisir; kilit sadece bir
+   nisan yardimi, davranisi degistirmiyor.
+
+   KILIT_ACI nokta carpimi: 1 = burnunun tam ucu, 0 = her yon.
+   0.9 kabaca 25 derecelik bir koni -- tablette parmakla nisan
+   almak zor oldugu icin bilerek genis tutuldu.
+
+   KILIT_MENZIL neden MENZIL'den (150) cok kucuk: varlik taramasi
+   yaricapla pahalilasiyor ve 150 blok oteki bir mob zaten
+   yuklenmemis chunk'ta olur. 32 gorus mesafesiyle uyumlu.
+
+   KILIT_SAYISI < SIMSEK_SAYISI: nisan alinmis tek hedefe 20
+   yildirim gereksiz; hepsi tuttugu icin 6 fazlasiyla yetiyor.   */
+export const KILIT_ACIK    = true;
+export const KILIT_MENZIL  = 32;
+export const KILIT_ACI     = 0.9;
+export const KILIT_SAYISI  = 6;
+export const KILIT_YAYILMA = 1;    // kilitliyken sacilma (normalde YAYILMA=7)
 
 /* ---------------- Alan simsegi ---------------- */
 export const ALAN_YARICAP = 25;   // etrafindaki kac blokluk moblar vurulsun
@@ -81,17 +102,28 @@ export const ANIM_INDIR = OZEL_ANIMASYON
    Iki kisi ayni anda yetenek kullanirsa butce paylasilir; isler
    yavaslar ama sunucu tick'i sismez. Tablet icin kritik olan bu.
 
+   BIRIM: bir "blok islemi" = getBlock ya da setType, yani tek bir
+   API cagrisi. Bir blogu degistirmek IKI islem eder (once oku, sonra
+   yaz), o yuzden yetenekler blok basina blokIste(2) cagiriyor.
+
    TICK_BLOK_BUTCESI olculerek secildi. 120 rastgele yonde atis
    yapilip ucus suresi ve tepe yuk karsilastirildi
-   (orijinal: 62 tick, 33 blok/tick):
+   (orijinal: 62 tick, 33 BLOK/tick -- yani 66 islem/tick):
 
-     butce 24 -> ucus 80 tick (%29 YAVAS), tepe yuk %27 az
-     butce 28 -> ucus 62 tick (ayni),      tepe yuk %15 az   <-- secilen
-     butce 32 -> ucus 62 tick (ayni),      tepe yuk %3 az
+     28 blok (56 islem) -> ucus 62 tick (ayni), tepe yuk %15 az  <-- secilen
+     24 blok (48 islem) -> ucus 80 tick (%29 YAVAS), tepe yuk %27 az
+     32 blok (64 islem) -> ucus 62 tick (ayni), tepe yuk %3 az
 
-   28 altina inersen top gorunur sekilde yavaslar. Tablette OLCUM
-   satirindaki "maks" surekli 5ms uzerindeyse dusurmek gerekebilir. */
-export const TICK_BLOK_BUTCESI   = 28;  // tick basina blok islemi (getBlock+setType)
+   56'nin altina inersen top gorunur sekilde yavaslar. Tablette OLCUM
+   satirindaki "maks" surekli 5ms uzerindeyse dusurmek gerekebilir.
+
+   NOT: v4.5'e kadar burada 28 yaziyordu ama toprak_topu blok basina
+   1 birim istiyordu (digerleri 2). Yani top gercekte 56 islem/tick
+   yapiyordu ve olcum de o hâliyle alinmisti. v4.5'te toprak_topu
+   digerleriyle ayni sayima gecti; sayi 56'ya cikarildi ki tablette
+   test edilmis ucus hizi AYNEN korunsun. Gercek yuk degismedi,
+   sadece rakam artik dogruyu soyluyor.                            */
+export const TICK_BLOK_BUTCESI   = 56;  // tick basina blok islemi (getBlock/setType)
 export const TICK_VARLIK_BUTCESI = 4;   // tick basina varlik dogurma
 
 /* Patlama en pahali is: guc 4'luk bir patlama ~50 blok kirar ve o
@@ -297,6 +329,57 @@ export const DUVAR_GENISLIK = 3;    // merkezden saga/sola (3 = 7 blok)
 export const DUVAR_YUKSEK   = 4;    // kac blok yukari
 export const DUVAR_DERINLIK = 1;    // kac blok kalinlikta
 export const DUVAR_BLOK     = "minecraft:dirt";
+
+/* ---------------- Cift el (iki kol birden) ----------------
+   BoraLo videolarinda iki kol ayni anda takili: hem ors yagiyor
+   hem buz gidiyor. Minecraft'ta sol el (off-hand) slotu var, biz
+   de onu kullaniyoruz.
+
+     sag el (mainhand) -> kolun secili yetenegi
+     sol el (offhand)  -> onun secili yetenegi
+     egil + zipla      -> IKISI BIRDEN calisir
+
+   Bunun icin "oyuncu basina tek is" kurali gevsetildi: ayni anda
+   en fazla AYNI_ANDA is calisabiliyor. Butce zaten ortak oldugu
+   icin iki is tick basina toplam yuku artirmiyor, sadece
+   paylasiyor -- yani tablette guvenli.                          */
+export const CIFT_EL_ACIK = true;
+export const AYNI_ANDA    = 2;    // oyuncu basina es zamanli is tavani
+
+/* ---------------- Cekme (kamci) ----------------
+   Referans "Bobby whip": execute @s^^^2 /tp @e[r=2,c=1] @s
+   Onundekini KENDINE isinliyor. Uc noktada (2/4/5) tek tek
+   bakiyor -- ustelik ucuncu satirda mesafe 5 ama yaricap 6,
+   yani kendi desenine de uymuyor.
+
+   Bizimki koninin tamamini tariyor ve isinlamak yerine ITIYOR:
+   isinlama duvarin icine sokabiliyor, itme fizige birakiyor.   */
+export const CEKME_MENZIL = 24;
+export const CEKME_ACI    = 0.7;
+export const CEKME_GUC    = 2.2;   // sana dogru cekme kuvveti
+export const CEKME_YUKARI = 0.45;  // biraz yukari kaldir, yere surtmesin
+export const CEKME_TAVAN  = 8;
+export const CEKME_OYUNCU = true;
+
+/* ---------------- Isinlanma ----------------
+   Referans "Kevin1545 (isinlanma)": tp @s ^^^8
+   Duvar olsun olmasin 8 blok ileri isinliyor -- tasin icine
+   girip bogulabiliyorsun. Bizimki ONCE guvenli yer ariyor:
+   uzaktan yakina dogru bakip ayagin ve basin icin bos yer
+   bulunan ilk noktaya gidiyor. Hicbiri uygun degilse hic
+   isinlanmiyor ve sebebini soyluyor.                           */
+export const ISIN_MENZIL = 12;   // en fazla kac blok ileri
+export const ISIN_ADIM   = 1;    // kac blokta bir guvenli yer aransin
+
+/* ---------------- Yetkili modu ----------------
+   Referansta "Admin Olma Esyasi" vardi: op @s + herkese duyuru.
+   Kendi dunyanda zaten operatorsun, yani orada bir ise yaramaz;
+   asil anlami sunucuda/Realm'de. Ayni sebeple TEHLIKELI: esyayi
+   eline gecirien herkes operator olur.
+
+   Bu yuzden varsayilan KAPALI. Acmak icin bunu true yap.       */
+export const YETKILI_ACIK   = false;
+export const YETKILI_DUYURU = true;   // acikken herkese haber versin mi
 
 /* ---------------- Buz mizragi ----------------
    Baktigin yone bir buz parcasi firlatir. Carptigi seye UZUN
@@ -547,6 +630,42 @@ export const TOP_HASAR_MUAF = [
   "minecraft:xp_orb",
   "minecraft:lightning_bolt"
 ];
+
+/* ---------------- Kasirga ----------------
+   Referans (Dave1545):
+     execute as @e[type=!player] at @s run tp ^5^1^1 facing @p
+   Uc kusuru vardi:
+     1. "^5^1^1" bosluksuz -- komut hic calismiyor
+     2. tp ile tasima duvarin/tasin icine sokabiliyor
+     3. yaricap yok: YUKLU BUTUN varliklar cekiliyordu, sinirdaki
+        koyun bile. Sunucuyu kilitleyecek bir secici.
+
+   Bizimki: yaricap icindeki varliklari her tick etrafinda
+   DONDURUYOR (teget hiz) + yukari kaldiriyor. Isinlama yok,
+   applyImpulse ile fizige birakiliyor; carpisma oyunun isi.
+   Sure dolunca birakiliyorlar ve dusuyorlar.                     */
+export const KASIRGA_YARICAP = 12;
+export const KASIRGA_SURE    = 70;    // tick (3.5 sn)
+export const KASIRGA_TAVAN   = 10;    // ayni anda en fazla kac varlik
+export const KASIRGA_DONME   = 0.9;   // teget (dondurme) kuvveti
+export const KASIRGA_MERKEZ  = 0.35;  // merkeze cekme kuvveti
+export const KASIRGA_KALDIR  = 0.32;  // yukari kaldirma kuvveti
+export const KASIRGA_TAVAN_Y = 9;     // merkezden kac blok yukari ciksin
+export const KASIRGA_ARALIK  = 2;     // kac tickte bir itilsin
+export const KASIRGA_OYUNCU  = false; // oyunculari da savursun mu
+
+/* ---------------- Koruma kubbesi ----------------
+   Referans (Dave1545):  fill ~~50~~50~~0barrier
+   Bosluksuz, yani hic calismiyor; calissaydi da 50x50x50'lik dev
+   bir barrier kupu -- 125.000 blok, tableti dondururdu.
+
+   Bizimki: etrafina ICI BOS bir kure kabugu oruyor, sadece HAVA
+   olan yerlere. Sure dolunca koydugu bloklari TEK TEK geri
+   aliyor -- yani dunyada iz birakmiyor. Kabugun kendi koydugu
+   yerler kayitli oldugu icin baskasinin blogunu silmiyor.       */
+export const KUBBE_YARICAP = 4;
+export const KUBBE_SURE    = 200;   // tick (10 sn)
+export const KUBBE_BLOK    = "minecraft:barrier";
 
 /* ---------------- Dunya yukseklik sinirlari ----------------
    heightRange okunamazsa bu tablo kullanilir.                      */

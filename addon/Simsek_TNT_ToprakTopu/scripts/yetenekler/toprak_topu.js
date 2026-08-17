@@ -176,7 +176,12 @@ yetenekKaydet({
       const kalan = (silListe.length - silIndeks) + (cizListe.length - cizIndeks);
       if (kalan === 0) return true;
 
-      let kota = blokIste(kalan);
+      /* Her blok IKI islem: blokYaz once getBlock yapiyor, sonra
+         setType. Butun yetenekler blok basina 2 birim istiyor;
+         burasi v4.5'e kadar 1 istiyordu ve topun gercek yukunu
+         yariya yazip gosteriyordu. Butce sabiti de bu yuzden
+         56'ya cikarildi -- ucus hizi degismedi.                 */
+      let kota = Math.floor(blokIste(kalan * 2) / 2);
       if (kota === 0) return false;
 
       // Tek try: her blok icin ayri try/catch hem pahali hem hatayi yutar

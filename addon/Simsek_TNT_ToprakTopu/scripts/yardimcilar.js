@@ -219,11 +219,12 @@ export function actionbarYaz(oyuncu, metin) {
 }
 
 /* Elde tutulan esyanin tipini dondurur, yoksa undefined.
+   slot verilmezse sag el ("Mainhand"); sol el icin "Offhand".
    EquippableComponent bazi surumlerde farkli davraniyor, o yuzden
-   hem enum hem duz metin slot adi deneniyor.                      */
+   duz metin slot adi kullaniliyor.                                */
 let ekipmanUyarisi = false;
 
-export function eldekiEsya(oyuncu) {
+export function eldekiEsya(oyuncu, slot) {
   try {
     const ekip = oyuncu.getComponent("minecraft:equippable");
     if (!ekip || typeof ekip.getEquipment !== "function") {
@@ -234,7 +235,7 @@ export function eldekiEsya(oyuncu) {
       }
       return undefined;
     }
-    const esya = ekip.getEquipment("Mainhand");
+    const esya = ekip.getEquipment(slot || "Mainhand");
     return esya ? esya.typeId : undefined;
   } catch (e) {
     if (!ekipmanUyarisi) {
@@ -323,6 +324,39 @@ export function koniHedefleri(oyuncu, secenek) {
   bulunan.sort((a, b) => a.uzaklik - b.uzaklik);
   const tavan = secenek.tavan || bulunan.length;
   return bulunan.slice(0, tavan).map((x) => x.varlik);
+}
+
+/* Baktigin yondeki EN YAKIN tek varlik, yoksa undefined.
+
+   Referans mod bunu "@e[r=10,c=1]" ile yapiyordu: yaricap icindeki
+   en yakin varlik. Iki sorunu vardi --
+     1. @e oyuncunun KENDISINI de kapsiyor, yani mod cogu zaman
+        kullaniciyi hedefliyordu
+     2. yon bakmiyordu; arkandaki mob da "en yakin" sayilabiliyordu
+
+   Burasi koniHedefleri'ni kullaniyor: kendini disliyor, bakis
+   konisini gozetiyor ve zaten yakindan uzaga sirali donuyor, yani
+   ilk eleman "karsindaki hedef".                                  */
+export function kilitliHedef(oyuncu, secenek) {
+  const liste = koniHedefleri(oyuncu, {
+    menzil: secenek.menzil,
+    aci: secenek.aci,
+    tavan: 1,
+    oyuncuDahil: secenek.oyuncuDahil === true
+  });
+  return liste.length > 0 ? liste[0] : undefined;
+}
+
+/* Varligin GUNCEL konumu, varlik kaybolduysa undefined.
+   Kilitli hedef kacarken pesinden gitmek icin.                   */
+export function varlikKonumu(varlik) {
+  try {
+    if (!gecerliMi(varlik)) return undefined;
+    const k = varlik.location;
+    return { x: k.x, y: k.y, z: k.z };
+  } catch (e) {
+    return undefined;   // varlik bu tick icinde yok oldu: hata degil
+  }
 }
 
 /* ============================================================

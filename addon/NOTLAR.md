@@ -1146,6 +1146,95 @@ yalnızca **bizim koyduğumuz** blok kaldırılıyor.
 
 Toplam: **19 yetenek, 10 kol, 5 iksir.**
 
+## Aşama 15 — Dave1545 modu, hedef kilidi ve çift el (v4.5)
+
+Kaynak: `Dave1545.zip` (BoraLo'nun "toprak atan" karakteri).
+15 eşya, 44 `.mcfunction`, tamamı tek satırlık komut.
+
+### Referanstaki hatalar
+
+Beş yetenek fonksiyonundan **dördü hiç çalışmıyordu** — sözdizimi bozuk:
+
+| Dosya | Komut | Sorun |
+|---|---|---|
+| `dave1545_koll_barrier` | `fill ~~50~~50~~0barrier` | boşluk yok, ayrıştırılamıyor |
+| `dave1545kasirga` | `tp ^5^1^1 facing @p` | boşluk yok |
+| `dave1545kollsumsek` | `summon lightning_bolt^^^15` | boşluk yok |
+| `davekollbaktiniucur` | `execute positioned^^^10 ...` | boşluk yok |
+| `dave1545koll_ors` | `fill ~~15~ ~~11~ anvil keep` | koordinat eksik |
+
+Çalışsalardı da sorunluydular:
+
+- `fill ~ ~50 ~ ~50 ~ ~0 barrier` **dolu** 50³ küp = 125.000 blok. Tablet
+  donar; üstelik geri alınmıyor, dünyada kalıcı görünmez bir küp bırakır.
+- Kasırga `@e[type=!player]` kullanıyor — **yarıçap yok**, yüklü bütün
+  varlıkları çekiyor. `tp` ile taşıdığı için de duvarın içine sokuyor.
+- `@e[r=10,c=1]` seçicisi iki yerde geçiyor ve ikisinde de aynı iki kusur
+  var: `@e` **oyuncunun kendisini** de kapsıyor, ve **bakış yönüne
+  bakmıyor** — arkandaki koyun da "hedef" olabiliyor.
+- `levitation 15 255` (baktığını uçur) anında ölümcül.
+- Eşyaların hepsi `format_version 1.16.100` + `run_command` — v3.6'da
+  teşhis ettiğimiz, eşyaların hiç kaydolmamasına yol açan kombinasyon.
+
+### Alınanlar
+
+**Hedef kilidi** (`KILIT_*`, `yildirim.js`). Kullanıcının istediği:
+"tekli şimşek attığında direk karşıdaki hedefe odaklansın, hedef yoksa
+normal şimşek atsın." Referansın `@e[r=10,c=1]` fikri alındı, iki kusuru
+düzeltildi: `kilitliHedef()` kendini dışlıyor ve bakış konisine bakıyor
+(`koniHedefleri` üzerinden, zaten yakından uzağa sıralı).
+
+Referansta olmayan bir ek: kilit **takip ediyor**. `_yagmur.js` artık
+`kilit` seçeneği alıyor ve merkezi her partide yeniden okuyor, yani hedef
+kaçarsa yıldırım peşinden gidiyor. Hedef ölürse son bilinen yere devam
+ediyor (çökmüyor). Kilitliyken saçılma 7 → 1 blok ve şimşek sayısı
+20 → 6; nişan alınmış tek hedefe 20 yıldırım hem gereksiz hem tick israfı.
+
+**Kasırga** (`kasirga.js`). Işınlama yerine `applyImpulse`: teğet kuvvet
+(döndürme) + merkeze çekim + yukarı kaldırma. Üçü birlikte yörünge
+oluşturuyor; teğet tek başına savurur, çekim tek başına toplar. Yarıçap
+ve aynı anda işlenen varlık tavanı var. Tavan yüksekliğine varınca
+kaldırma kesiliyor, sadece dönmeye devam ediyorlar.
+
+**Koruma kubbesi** (`kubbe.js`). Dolu küp değil **içi boş küre kabuğu**
+(~134 blok). Sadece havaya koyuyor, koyduğu yerleri kaydediyor ve süre
+dolunca tek tek geri alıyor — dünyada iz bırakmıyor. `bitir()` iş yarıda
+kesilse de (oyuncu çıktı, hata oldu) kalanları topluyor; yoksa görünmez
+barrier blokları kalırdı.
+
+Üçü de Toprak Kol'a değil **yeni Dave Kolu'na** kondu (`pa:kol_dave`),
+yanına daha önce eşyasız kalan `cekme` ve `isinlanma` eklendi. Toprak Kol
+zaten sekiz yetenekli; onuncuya geçmek için sekiz kez jest gerekirdi.
+
+### Alınmayanlar (bizde zaten var)
+
+`daveTp` → `isinlanma` · `davekollbaktiniucur` → `savur` ·
+`dave1545kendiniucur` → `ucus` · `dave1545koll_ors` → `ors` ·
+`pa_kapat` → `guc_kapat` · `dave1545koll_elharaketu` → `kollariKaldir`
+
+Karakter derisi değiştirme (`invisibility 1 0 true` + göğüslük
+attachable) alınmadı: görsel bir numara, oynanışa bir şey katmıyor.
+
+### Bütçe sayımı düzeltildi
+
+`ciftel.mjs` yazılırken çıktı: `toprak_topu` blok başına **1** bütçe
+birimi istiyordu ama `blokYaz` iki blok API çağrısı yapıyor (getBlock +
+setType). Diğer bütün yetenekler doğru sayıyordu (`blokIste(2)`).
+
+Yani top gerçekte tick başına 56 işlem yapıyordu ve tablette ölçüm de o
+hâliyle alınmıştı. `toprak_topu` diğerleriyle aynı sayıma geçirildi ve
+`TICK_BLOK_BUTCESI` 28 → 56 yapıldı. **Gerçek yük değişmedi** — uçuş
+68 tick, tepe 56 işlem/tick, 1360 blok; değişiklikten önce ve sonra
+birebir aynı ölçüldü. Sadece rakam artık doğruyu söylüyor.
+
+### Çift el (aynı sürümde)
+
+`AYNI_ANDA = 2`: sağ ve sol eldeki kollar aynı anda çalışıyor. Tek
+tetikleme sayılıyor, yani sol el sağ elin beklemesine takılmıyor. Bütçe
+ortak olduğu için tick yükü artmıyor, paylaşılıyor.
+
+---
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:

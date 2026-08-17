@@ -4,7 +4,7 @@ import {
   SURUM, BEKLEME, KOL_GECIKME, TICK_BLOK_BUTCESI, OLCUM_ACIK,
   OLCUM_SOHBETE, HATA_SOHBETE, ESYASIZ_ACIK, ESYASIZ_EGILME_SART,
   ESYASIZ_BAKIS_ESIGI, ESYASIZ_TUTMA, ESYASIZ_TARAMA,
-  KOL_VER_ACIK, KOL_VER_ESIGI, KOL_VER_TUTMA
+  KOL_VER_ACIK, KOL_VER_ESIGI, KOL_VER_TUTMA, CIFT_EL_ACIK, AYNI_ANDA
 } from "./ayarlar.js";
 
 import {
@@ -44,6 +44,11 @@ import "./yetenekler/iksirler.js";
 import "./yetenekler/goz_lazeri.js";
 import "./yetenekler/guc_kapat.js";
 import "./yetenekler/buz_mizragi.js";
+import "./yetenekler/cekme.js";
+import "./yetenekler/isinlanma.js";
+import "./yetenekler/yetkili.js";
+import "./yetenekler/kasirga.js";
+import "./yetenekler/kubbe.js";
 
 /* DIKKAT -- SIRA ONEMLI.
    kollar.js var olan yeteneklere esya BAGLIYOR, yani bagladigi
@@ -68,19 +73,40 @@ import {
    ============================================================ */
 
 const isler = [];                 // aktif isler
-const oyuncununIsi = new Map();   // oyuncuId -> is (oyuncu basina tek efekt)
 const sonKullanim = new Map();    // oyuncuId -> son tetikleme tick'i
+
+/* oyuncuId -> [is, ...]
+
+   Eskiden oyuncu basina TEK is vardi. Cift el icin gevsetildi:
+   sag ve sol eldeki kollar ayni anda calisabilsin diye en fazla
+   AYNI_ANDA is tutuluyor. Bu tick yukunu ARTIRMIYOR -- blok/varlik
+   butcesi ortak, iki is onu paylasiyor, toplam tavan ayni.      */
+const oyuncununIsleri = new Map();
+
+function oyuncuIsSayisi(oyuncuId) {
+  const liste = oyuncununIsleri.get(oyuncuId);
+  return liste ? liste.length : 0;
+}
 
 function isEkle(is) {
   if (OLCUM_ACIK && isler.length === 0) olcumSifirla();
   isler.push(is);
-  oyuncununIsi.set(is.oyuncuId, is);
+  const liste = oyuncununIsleri.get(is.oyuncuId);
+  if (liste) liste.push(is);
+  else oyuncununIsleri.set(is.oyuncuId, [is]);
 }
 
 function isSil(indeks) {
   const is = isler[indeks];
   isler.splice(indeks, 1);
-  if (oyuncununIsi.get(is.oyuncuId) === is) oyuncununIsi.delete(is.oyuncuId);
+
+  const liste = oyuncununIsleri.get(is.oyuncuId);
+  if (liste) {
+    const i = liste.indexOf(is);
+    if (i !== -1) liste.splice(i, 1);
+    if (liste.length === 0) oyuncununIsleri.delete(is.oyuncuId);
+  }
+
   try {
     if (typeof is.bitir === "function") is.bitir();
   } catch (e) {
@@ -137,8 +163,16 @@ system.runInterval(() => {
    oyuncu basina tek efekt kurali ikisinde de ayni.
    ============================================================ */
 
-function yetenekTetikle(oyuncu, kimlik) {
-  if (oyuncununIsi.has(oyuncu.id)) return false;
+/* Bir ya da BIRDEN FAZLA yetenegi tek tetikleme olarak calistirir.
+
+   Cift elde iki yetenek birlikte gidiyor ama bu TEK tetikleme
+   sayiliyor: bekleme suresi bir kez isliyor, yoksa sol el sag
+   elin beklemesine takilirdi.                                   */
+function yetenekTetikle(oyuncu, kimlikler) {
+  const liste = Array.isArray(kimlikler) ? kimlikler : [kimlikler];
+  if (liste.length === 0) return false;
+
+  if (oyuncuIsSayisi(oyuncu.id) >= AYNI_ANDA) return false;
 
   const simdi = system.currentTick;
   const onceki = sonKullanim.get(oyuncu.id);
@@ -148,25 +182,30 @@ function yetenekTetikle(oyuncu, kimlik) {
   kollariKaldir(oyuncu);
 
   system.runTimeout(() => {
-    try {
-      if (!gecerliMi(oyuncu)) return;
-      // Gecikme sirasinda baska bir is baslamis olabilir
-      if (oyuncununIsi.has(oyuncu.id)) return;
+    let acilan = 0;
+    for (const kimlik of liste) {
+      try {
+        if (!gecerliMi(oyuncu)) return;
+        if (oyuncuIsSayisi(oyuncu.id) >= AYNI_ANDA) break;
 
-      const tanim = yetenekAl(kimlik);
-      if (!tanim) {
-        bilgiYaz("UYARI: bilinmeyen yetenek kimligi: " + kimlik);
-        kollariIndir(oyuncu);
-        return;
+        const tanim = yetenekAl(kimlik);
+        if (!tanim) {
+          bilgiYaz("UYARI: bilinmeyen yetenek kimligi: " + kimlik);
+          continue;
+        }
+
+        const is = tanim.olustur(oyuncu);
+        if (is) {
+          isEkle(is);
+          acilan++;
+        }
+      } catch (e) {
+        hataYaz("yetenekTetikle(" + kimlik + ")", e);
       }
-
-      const is = tanim.olustur(oyuncu);
-      if (is) isEkle(is);
-      else kollariIndir(oyuncu);
-    } catch (e) {
-      hataYaz("yetenekTetikle(" + kimlik + ")", e);
-      kollariIndir(oyuncu);
     }
+    // Hicbiri surekli is acmadiysa kollari indir; acanlar kendi
+    // bitir()'inde indiriyor.
+    if (acilan === 0) kollariIndir(oyuncu);
   }, KOL_GECIKME);
 
   return true;
@@ -258,13 +297,19 @@ function kolSecimAl(oyuncuId, esya, uzunluk) {
   return kayit.i % uzunluk;
 }
 
-/* Elde tutulan kolun yetenek listesi, yoksa undefined. */
-function eldekiKol(oyuncu) {
-  const esya = eldekiEsya(oyuncu);
+/* Bir eldeki kolun yetenek listesi, yoksa undefined.
+   slot: "Mainhand" (sag) ya da "Offhand" (sol).                */
+function eldekiKol(oyuncu, slot) {
+  const esya = eldekiEsya(oyuncu, slot);
   if (!esya) return undefined;
   const liste = esyaninYetenekleri(esya);
   if (!liste || liste.length === 0) return undefined;
   return { esya, liste };
+}
+
+/* Kolun O AN secili yetenegi. */
+function koldakiSecim(oyuncuId, kol) {
+  return kol.liste[kolSecimAl(oyuncuId, kol.esya, kol.liste.length)];
 }
 
 // isJumping bazi surumlerde olmayabilir; bir kez sinanip onbellege alinir
@@ -371,16 +416,35 @@ function esyasizOyuncu(oyuncu, sira) {
     if (simdiZipliyor && !oncekiZipliyor) {
       /* Elde kol varsa KOLUN yetenegi calisir -- "kolu takinca o
          guce sahip olursun" mantigi. Kolda birden fazla yetenek
-         varsa (Toprak Kol) o kolun SECILI olani calisir.         */
-      const kol = eldekiKol(oyuncu);
-      const secim = kol
-        ? kol.liste[kolSecimAl(id, kol.esya, kol.liste.length)]
-        : sira[secimAl(id) % sira.length];
-      if (secim && !yetenekTetikle(oyuncu, secim.kimlik)) {
-        const kalan = kalanBekleme(id);
-        if (kalan > 0) {
-          actionbarYaz(oyuncu, "§7" + secim.ad + " §8· §c" +
-                       (kalan / 20).toFixed(1) + " sn");
+         varsa (Toprak Kol) o kolun SECILI olani calisir.
+
+         CIFT EL: sag ve sol elde ayri kollar varsa IKISI BIRDEN
+         calisiyor (BoraLo videolarindaki gibi: hem ors yagiyor
+         hem buz gidiyor). Tek tetikleme sayiliyor, yani sol el
+         sag elin beklemesine takilmiyor.                        */
+      const sagKol = eldekiKol(oyuncu, "Mainhand");
+      const solKol = CIFT_EL_ACIK ? eldekiKol(oyuncu, "Offhand") : undefined;
+
+      const secimler = [];
+      if (sagKol) secimler.push(koldakiSecim(id, sagKol));
+      if (solKol && (!sagKol || solKol.esya !== sagKol.esya)) {
+        secimler.push(koldakiSecim(id, solKol));
+      }
+      if (secimler.length === 0) {
+        const genel = sira[secimAl(id) % sira.length];
+        if (genel) secimler.push(genel);
+      }
+
+      if (secimler.length > 0) {
+        const kimlikler = secimler.map((t) => t.kimlik);
+        if (!yetenekTetikle(oyuncu, kimlikler)) {
+          const kalan = kalanBekleme(id);
+          if (kalan > 0) {
+            actionbarYaz(oyuncu, "§7" + secimler.map((t) => t.ad).join(" + ") +
+                         " §8· §c" + (kalan / 20).toFixed(1) + " sn");
+          }
+        } else if (secimler.length > 1) {
+          actionbarYaz(oyuncu, "§b⚔ " + secimler.map((t) => t.ad).join(" §7+ §b"));
         }
       }
       return;
@@ -408,7 +472,12 @@ function esyasizOyuncu(oyuncu, sira) {
   /* Elde COK yetenekli bir kol varsa geçiş o kolun icinde olur;
      genel sirayi karistirmaz. Tek yetenekli kolda degistirecek
      bir sey yok, o yuzden genel siraya dusuluyor.               */
-  const kol = eldekiKol(oyuncu);
+  /* Degistirme SAG eldeki kolu hedefler; sag elde kol yoksa
+     sol eldekini. Boylece iki kol takiliyken once sag eli
+     ayarlayip sonra sag eli bosaltmadan sola gecmek yerine,
+     sag eli bosaltip solu ayarlayabiliyorsun.                 */
+  const kol = eldekiKol(oyuncu, "Mainhand")
+           || (CIFT_EL_ACIK ? eldekiKol(oyuncu, "Offhand") : undefined);
   if (kol && kol.liste.length > 1) {
     const yeni = (kolSecimAl(id, kol.esya, kol.liste.length) + 1) % kol.liste.length;
     kolSecim.set(id, { esya: kol.esya, i: yeni });
@@ -434,10 +503,13 @@ olayaAbone("playerLeave", (olay) => {
   kolSecim.delete(olay.playerId);
   kademeUnut(olay.playerId);
 
-  const is = oyuncununIsi.get(olay.playerId);
-  if (is) {
-    const indeks = isler.indexOf(is);
-    if (indeks !== -1) isSil(indeks);
+  // Oyuncunun butun isleri durdurulmali, sadece birincisi degil
+  const acikIsler = oyuncununIsleri.get(olay.playerId);
+  if (acikIsler) {
+    for (const is of acikIsler.slice()) {
+      const indeks = isler.indexOf(is);
+      if (indeks !== -1) isSil(indeks);
+    }
   }
   sonKullanim.delete(olay.playerId);
 });

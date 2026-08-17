@@ -1,7 +1,9 @@
 import { system } from "@minecraft/server";
 import { varlikIste } from "../butce.js";
-import { hataYaz, kollariIndir, yukseklikAraligi } from "../yardimcilar.js";
-import { YAYILMA } from "../ayarlar.js";
+import {
+  hataYaz, kollariIndir, yukseklikAraligi, varlikKonumu
+} from "../yardimcilar.js";
+import { YAYILMA, KILIT_YAYILMA } from "../ayarlar.js";
 
 /* ============================================================
    ORTAK YAGMUR ISI
@@ -19,10 +21,16 @@ import { YAYILMA } from "../ayarlar.js";
      grup      her partide kac tane
      halka     {ic, dis} verilirse merkez etrafinda halkaya dagitir,
                verilmezse kare alana saçar
+     kilit     verilirse merkez SABIT DEGIL: her partide bu varligin
+               o anki konumu okunur, yani hedef kacsa da pesinden
+               gider. Kacilmaz olmasin diye sacilma da daralir.
+               Varlik olur/kaybolursa son bilinen yere devam edilir.
    ============================================================ */
 
 export function yagmurIsi(secenekler) {
-  const { ad, oyuncu, hedef, varlik, toplam, yukseklik, aralik, grup, halka } = secenekler;
+  const {
+    ad, oyuncu, hedef, varlik, toplam, yukseklik, aralik, grup, halka, kilit
+  } = secenekler;
 
   const boyut = oyuncu.dimension;
   const sinir = yukseklikAraligi(boyut);
@@ -30,6 +38,18 @@ export function yagmurIsi(secenekler) {
 
   // Her dogumda yeni nesne uretmek yerine tek nesneyi yeniden kullan
   const nokta = { x: 0, y: 0, z: 0 };
+
+  /* Kilitli hedefte merkez her partide tazelenir. Sabit bir nesne
+     tutup icini guncelliyoruz ki tick basina yeni nesne olmasin. */
+  const merkez = { x: hedef.x, y: hedef.y, z: hedef.z };
+  const sacilma = kilit ? KILIT_YAYILMA : YAYILMA;
+
+  function merkeziTazele() {
+    if (!kilit) return;
+    const k = varlikKonumu(kilit);
+    if (!k) return;            // hedef oldu/kayboldu: son yere yagmaya devam
+    merkez.x = k.x; merkez.y = k.y; merkez.z = k.z;
+  }
 
   let dogan = 0;
   let sonrakiTick = system.currentTick;
@@ -45,19 +65,21 @@ export function yagmurIsi(secenekler) {
       const izin = varlikIste(grup < kalan ? grup : kalan);
       if (izin === 0) return false;   // butce dolu, sonraki tick'te devam
 
+      merkeziTazele();
+
       for (let i = 0; i < izin; i++) {
         if (halka) {
           // Halkaya dagit: ic yaricaptan yakina dusmesin ki
           // tetikleyen kisi kendi yildirimindan olmesin.
           const aci = Math.random() * Math.PI * 2;
           const mesafe = halka.ic + Math.random() * (halka.dis - halka.ic);
-          nokta.x = hedef.x + Math.cos(aci) * mesafe;
-          nokta.y = hedef.y + yukseklik;
-          nokta.z = hedef.z + Math.sin(aci) * mesafe;
+          nokta.x = merkez.x + Math.cos(aci) * mesafe;
+          nokta.y = merkez.y + yukseklik;
+          nokta.z = merkez.z + Math.sin(aci) * mesafe;
         } else {
-          nokta.x = hedef.x + (Math.random() * 2 - 1) * YAYILMA;
-          nokta.y = hedef.y + yukseklik;
-          nokta.z = hedef.z + (Math.random() * 2 - 1) * YAYILMA;
+          nokta.x = merkez.x + (Math.random() * 2 - 1) * sacilma;
+          nokta.y = merkez.y + yukseklik;
+          nokta.z = merkez.z + (Math.random() * 2 - 1) * sacilma;
         }
 
         // Sinir disina dogurmayi istisna yerine atlayarak gec

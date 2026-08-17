@@ -49,6 +49,13 @@ export const KOL_ESYALARI = [
   /* BUZ KOL -- dondurma takimi. */
   ["pa:kol_buz",    "buz_adam", "buz_mizragi"],
 
+  /* DAVE KOL -- Dave1545 modundan alinan takim. Dordu de orada
+     tek satirlik komutlardi ve dordunun de sozdizimi ya da
+     mantigi bozuktu; burada yeniden yazildilar. Toprak Kol'a
+     eklenmediler cunku orasi zaten sekiz yetenekli, onuncu
+     yetenege gecmek icin sekiz kez jest yapmak gerekirdi.      */
+  ["pa:kol_dave",   "kasirga", "kubbe", "cekme", "isinlanma"],
+
   // Tek yetenekli kollar
   ["pa:kol_halka",  "yildirim_halkasi"],
   ["pa:kol_simsek", "yon_simsegi"],
