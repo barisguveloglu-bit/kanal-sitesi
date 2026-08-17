@@ -25,6 +25,15 @@
     },
     "kol_meteor": {
       "textures": "textures/item/kol_meteor"
+    },
+    "kol_can": {
+      "textures": "textures/item/kol_can"
+    },
+    "kol_ors": {
+      "textures": "textures/item/kol_ors"
+    },
+    "kol_buz": {
+      "textures": "textures/item/kol_buz"
     }
   }
 }

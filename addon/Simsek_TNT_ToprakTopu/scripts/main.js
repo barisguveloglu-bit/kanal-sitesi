@@ -31,6 +31,9 @@ import "./yetenekler/savur.js";
 import "./yetenekler/ucus.js";
 import "./yetenekler/guclu_tnt.js";
 import "./yetenekler/meteor.js";
+import "./yetenekler/can_verme.js";
+import "./yetenekler/ors.js";
+import "./yetenekler/buz_adam.js";
 
 /* DIKKAT -- SIRA ONEMLI.
    kollar.js var olan yeteneklere esya BAGLIYOR, yani bagladigi

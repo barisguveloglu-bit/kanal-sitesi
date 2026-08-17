@@ -38,7 +38,10 @@ export const KOL_ESYALARI = [
   ["pa:kol_top",    "toprak_topu"],
   ["pa:kol_savur",  "savur"],
   ["pa:kol_ucus",   "ucus"],
-  ["pa:kol_meteor", "meteor"]
+  ["pa:kol_meteor", "meteor"],
+  ["pa:kol_can",    "can_verme"],
+  ["pa:kol_ors",    "ors"],
+  ["pa:kol_buz",    "buz_adam"]
 ];
 
 for (const [esya, yetenek] of KOL_ESYALARI) {

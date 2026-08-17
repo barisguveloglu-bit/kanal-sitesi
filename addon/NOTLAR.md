@@ -484,6 +484,128 @@ Jest şeması artık tam:
 blok/tick'i geçmiyor. 22 ms'lik maks patlamadan geliyor,
 `TICK_PATLAMA_BUTCESI` zaten en düşük değerde (1).
 
+## Aşama 5 — referanstan alınan dört yetenek (v3.5)
+
+`add-ons.zip` içindeki iki mod (BoraLo Kol Modu V2 + Nitroksin) tamamen
+söküldü. İkisi de aynı araçla üretilmiş (pamobile "Addons Maker"), tamamı
+`.mcfunction`, hiç JavaScript yok. Kol Modu 3 MB ama **gerçek mantık 113
+satır**; Nitroksin'de de durum aynı.
+
+### Referansın komut dağarcığı
+
+Altı kol ailesinin (Dirt, Bedrock, Anna1545, Bobby, Buz, Falen) bütün
+yetenekleri şu sekiz komuttan ibaret:
+
+| yetenek | referanstaki komut |
+|---|---|
+| şimşek | `summon lightning_bolt^^^12` |
+| uçma | `effect @s levitation 1 2` |
+| uçurma | `execute @s^^^N /effect @e[r=N,c=1] levitation 1 255` |
+| meteor | `execute @s^^^12 /summon tnt ~~30~` |
+| örs yağdır | `execute @s^^^6 /setblock ~~10~ anvil` |
+| yamultma | `slowness 100000 255` + `animation.fox.sleep` |
+| buz adam | hedefin kafasına `pa:buz_man` kaskını kilitle |
+| can verme | `effect @s health_boost 100000 255` |
+
+### Referansın menü sistemi
+
+"Sağ Tıkla" eşyası bir menü açıcı: kullanınca envantere 5 yetenek eşyası
+`give` ediyor. "Kapat" eşyası hepsini `clear` edip açıcıyı geri veriyor.
+Gerçek bir menü yok. Bizde bu işi jest sistemi yapıyor; ileride
+`@minecraft/server-ui` ile gerçek menü gelecek.
+
+### Referansta bulunan hatalar
+
+1. **`simsekbedrockarm.mcfunction` → `summin lightning_bolt^^^12`.** `summon`
+   yazım hatası; Bedrock Arm'ın şimşeği hiç çalışmıyor. Diğer beş kolda doğru.
+2. **`falenkol3` → `execute @s^^^7 /effect [r=7,c=1] levitation 1 30`.** Hedef
+   seçici (`@e`) eksik; Falen Kol'un "Uçur"u çalışmıyor.
+3. **`buzkoz` → `clear @a pa:buz_man`.** Bir kişiyi çözerken haritadaki
+   herkesi çözüyor.
+4. **Üç ayrı uçurma fonksiyonu sonunda `effect @s clear`.** Kendi
+   levitation'ından kurtulmak için ama bütün faydalı efektleri de siliyor.
+5. **`dirtarmyamultma` → `slowness 100000 255`,** yani ~83 dakika felç ve
+   geri alan hiçbir fonksiyon yok.
+6. **35 boş fonksiyon her tick çağrılıyor** (`tick.json`, hepsi 0 bayt).
+   Nitroksin'de 22 girişin 12'si boş; dolu 10'u her tick **50 tane
+   `@e[hasitem=...]`** taraması yapıyor. `@e` dünyadaki bütün varlıkları
+   geziyor — gözü sadece oyuncu takabildiği için `@a` yeterdi.
+7. **Nitroksin `ucmahiperiksin.mcfunction` → `animation...nitroksin_laze`.**
+   Sondaki `r` eksik, uçuş pozu hiç oynamıyor.
+8. **Nitroksin lazeri kendine vuruyor** (`@e[r=2,c=1]` oyuncuyu da sayıyor);
+   çözüm yerine hemen öncesine `instant_health` konmuş.
+
+### Nitroksin nasıl çalışıyor (aldığımız fikir)
+
+İksir `minecraft:food` bileşenli bir eşya: içince efekt veriyor,
+`using_converts_to` ile boş şişeye dönüşüyor ve bir fonksiyon çalıştırıyor.
+O fonksiyon kafa zırhı slotuna **kilitli bir "göz" eşyası** takıyor
+(`item_lock: lock_in_slot`). Göz hem görünüm hem durum bayrağı: `tick.json`
+her tick `@e[hasitem={item=pa:beyaz_goz,location=slot.armor.head}]` seçip buff
+veriyor. Görünüm `.player.json` attachable'ından geliyor ve
+`variable.helmet_layer_visible = 0.0` ile kaskın kendisini gizliyor.
+
+Bu numara Bedrock'ta beyaz göz yapmanın **doğru** yolu; ileride Nitroksin
+yapılırsa aynen alınacak. Ama güç mantığı script'e taşınmalı: bizde durum
+`Map<oyuncuId, kademe>` olur, her tick dünya taraması gerekmez.
+
+### v3.5'te eklenenler
+
+**Can Verme** (`can_verme.js`) — referans sadece `@s`'ye 100000 tick,
+seviye 255 `health_boost` veriyordu. Bizimki:
+- çevredeki **dostları** da iyileştiriyor (asıl "can verme" bu)
+- süresi belli (`CAN_SURE`), seviyeler makul
+- düşmanları atlıyor (`CAN_DUSMAN`) — yoksa sana saldıran zombiyi de iyileştirirsin
+- `health_boost` yerine `absorption`: health_boost can barının **tavanını**
+  yükseltiyor ama boşunu doldurmuyor, yani yaralı birine hiçbir şey yapmıyor
+
+**Örs Yağdır** (`ors.js`) — referans tek örs koyup orada ne varsa yok
+ediyordu. Bizimki birden fazla örs yağdırıyor, **sadece hava olan yere**
+koyuyor, blok bütçesine uyuyor, dünya sınırının dışına çıkmıyor. Örsün
+düşmesi ve hasar vermesi vanilla fiziği, ayrıca hesaplamıyoruz.
+
+**Buz Adam** (`buz_adam.js`) — referans sadece görünüm değiştiriyordu
+(hedef serbest kalıyordu) ve kalıcıydı. Bizimki gerçekten hapsediyor:
+hedefin etrafına buz kabuğu örülüyor, yavaşlık veriliyor, süre dolunca
+buz eriyor. Üç aşamalı iş: **ÖRME → BEKLEME → ERİME**. Örme ve erime blok
+bütçesine uyuyor, bekleme bedava. Sadece havanın yerine buz konuyor ve
+erirken yalnızca **bizim koyduğumuz** buz kaldırılıyor — hiçbir şey yok
+olmuyor.
+
+> `i` ve `eritilen` ayrı sayaçlar. Tek sayaç olsaydı iş ÖRME sırasında
+> durdurulunca (oyuncu çıktı, hata oldu) `bitir()` yanlış yerden başlar ve
+> koyduğumuz buzu temizlemeden bırakırdı.
+
+**Düşen Meteor** (`meteor.js` yeniden yazıldı) — eski hâlimiz anlık
+yıldırım + patlamaydı, **gelen bir şey görünmüyordu**. Referansın tek iyi
+tarafı meteorun görünmesiydi (`summon tnt ~~30~`), zayıf tarafı vanilla
+TNT'nin gücünün motorda sabit 4 olması. İkisi birleştirildi: gövde yukarıda
+doğup gerçekten düşüyor, yere yaklaşınca kaldırılıp yerine **bizim**
+patlamamız çağrılıyor. `METEOR_YUKSEK = 0` eski anlık davranışa döndürür.
+
+Havada birden fazla gövde olabilir; hepsi tek listede izleniyor ve patlama
+bütçesini paylaşıyorlar. `METEOR_TAVAN` takılan bir gövdenin işi sonsuza
+kadar açık tutmasını engelliyor. `bitir()` havada TNT bırakmıyor — bıraksa
+fitili dolunca vanilla güç-4 patlaması yapardı.
+
+Üç yeni kol eklendi: `pa:kol_can`, `pa:kol_ors`, `pa:kol_buz`. Toplam **11
+kol, 13 yetenek**.
+
+### Testler
+
+`dort.mjs` her yetenek için "referansın yaptığı hatayı biz yapmıyoruz"
+iddiasını ayrı ayrı sınıyor: düşman iyileştirilmiyor mu, dolu yere örs
+konmuyor mu, buzun hepsi eriyor mu, patlama gücü vanilla 4 değil mi, hiçbir
+tick blok bütçesini aşmıyor mu.
+
+İki test kendi hatalarını yakalattı:
+- Sahte dünyanın `getViewDirection`'ı birim vektör döndürmüyordu; gerçek API
+  döndürüyor. Düzeltilince `kol2.mjs`'teki "düz bakış" vektörünün
+  `(0,-0.3,0)` olduğu ortaya çıktı — normalleştirilince **tam aşağı**, yani
+  test yanlış şeyi sınıyormuş.
+- `dort.mjs`'te nişan açısı fazla dikti, hedef taş katmanına düşüyordu ve
+  "sadece havaya koyar" kuralı yüzünden hiçbir örs konmuyordu.
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:
@@ -496,7 +618,8 @@ Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:
    yetenek başına ayrı bekleme süresi, `@minecraft/server-ui` seçim menüsü.
 5. **TNT yükü.** 30 TNT tabletteki en ağır kalem ve bu script
    optimizasyonuyla çözülmüyor — sayı/oynanış kararı gerekiyor.
-6. **Kalan yetenekler.** `dirt_yap`, toprak örs, `can_verme`, `buz_adam`.
+6. **Kalan yetenekler.** `dirt_yap`, yamultma (çaresiyle beraber), Nitroksin
+   kademe sistemi.
 7. **Kol dokuları.** `textures/` altındakiler hâlâ üretilmiş yer tutucu; her
    kolun rengi farklı ama çizim değil. Aynı adlarla değiştirmen yeterli.
 8. **Oyunda denenmedi.** Attachable'ın gerçekten doğru çizildiği ve

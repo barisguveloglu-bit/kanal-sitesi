@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v3.4";
+export const SURUM = "v3.5";
 
 /* ---------------- Tetikleyici esyalar ---------------- */
 export const SIMSEK_ESYA = "minecraft:blaze_rod";     // baktigin yere simsek
@@ -129,7 +129,7 @@ export const ESYASIZ_TUTMA       = 8;    // degistirme jesti kac tick tutulmali
 export const ESYASIZ_TARAMA      = 4;    // kac tick'te bir kontrol
 
 /* ---------------- Kollari alma jesti ----------------
-   egil + TAM ASAGI bak, tut -> sekiz kol da envantere girer.
+   egil + TAM ASAGI bak, tut -> butun kollar envantere girer.
    Ayni semanin ucuncu ayagi: yukari bak = degistir, zipla =
    calistir, asagi bak = kollari al. Komut yazmaya gerek yok.     */
 export const KOL_VER_ACIK  = true;
@@ -168,13 +168,88 @@ export const GTNT_GUC       = 8;    // patlama gucu (vanilla TNT = 4)
 export const GTNT_ATES      = false;// patlama ates cikarsin mi
 
 /* ---------------- Yildirim meteoru ----------------
-   Her meteor = 1 yildirim + 1 patlama. Patlama butcesi yuzunden
-   tick basina en fazla TICK_PATLAMA_BUTCESI tane isleniyor.       */
+   Her meteor = 1 dusen govde + 1 yildirim + 1 patlama.
+
+   ESKI HALI anlik patlamaydi: hedefte birden yildirim cakip
+   patliyordu. Gelen bir sey GORUNMUYORDU. Simdi once yukarida
+   bir TNT govdesi doguyor, dusuyor, yere yaklasinca kaldirilip
+   yerine bizim patlamamiz cagriliyor -- yani gorunum "gokten
+   dusen tas", guc bizim. (Ayni teknik guclu_tnt'de de var:
+   vanilla TNT'nin gucu motorda sabit 4, degistirilemiyor.)       */
 export const METEOR_SAYISI  = 6;    // kac meteor dussun
 export const METEOR_YAYILMA = 9;    // hedefin etrafina kac blok sacilsin
 export const METEOR_GUC     = 5;    // her meteorun patlama gucu
 export const METEOR_ARALIK  = 6;    // meteorlar arasi tick
 export const METEOR_ATES    = true; // ates cikarsin mi
+export const METEOR_YUKSEK  = 24;   // kac blok yukaridan dussun (0 = anlik)
+export const METEOR_INIS    = 2.0;  // yere bu kadar yaklasinca patlar
+export const METEOR_TAVAN   = 80;   // govde bu kadar tick'te inmezse zorla patlat
+
+/* ---------------- Can verme ----------------
+   Referans mod bunu "effect @s health_boost 100000 255" diye
+   yapiyordu: sadece kendine, sonsuza kadar, 255 seviye. Yani
+   olumsuzluk. Bizimki cevredeki DOSTLARI da iyilestiriyor,
+   suresi belli ve seviyeler makul.
+
+   Dusmanlar disarida birakiliyor -- yoksa saldiran zombiyi de
+   iyilestirirsin. Liste eksik kalabilir; yeni bir dusman gorursen
+   buraya ekle.                                                    */
+export const CAN_YARICAP = 12;   // kac blokluk cevre iyilessin
+export const CAN_SURE    = 200;  // rejenerasyon/kalkan suresi (tick)
+export const CAN_REJEN   = 1;    // regeneration seviyesi
+export const CAN_KALKAN  = 1;    // absorption seviyesi
+export const CAN_ANLIK   = 2;    // instant_health seviyesi
+export const CAN_TAVAN   = 24;   // en fazla kac varlik iyilestirilsin
+
+export const CAN_DUSMAN = new Set([
+  "minecraft:zombie", "minecraft:husk", "minecraft:drowned",
+  "minecraft:zombie_villager", "minecraft:zombie_pigman",
+  "minecraft:skeleton", "minecraft:stray", "minecraft:wither_skeleton",
+  "minecraft:bogged", "minecraft:creeper", "minecraft:spider",
+  "minecraft:cave_spider", "minecraft:enderman", "minecraft:endermite",
+  "minecraft:silverfish", "minecraft:witch", "minecraft:slime",
+  "minecraft:magma_cube", "minecraft:blaze", "minecraft:ghast",
+  "minecraft:phantom", "minecraft:guardian", "minecraft:elder_guardian",
+  "minecraft:shulker", "minecraft:vindicator", "minecraft:evocation_illager",
+  "minecraft:pillager", "minecraft:ravager", "minecraft:vex",
+  "minecraft:piglin", "minecraft:piglin_brute", "minecraft:hoglin",
+  "minecraft:zoglin", "minecraft:warden", "minecraft:breeze",
+  "minecraft:creaking", "minecraft:wither", "minecraft:ender_dragon"
+]);
+
+/* ---------------- Ors yagdir ----------------
+   Referans: "execute @s^^^6 /setblock ~~10~ anvil" -- tek ors,
+   sabit 6 blok ileri, hedef gozetmeden. Bizimki nisan aldigin
+   noktanin etrafina birden fazla ors yagdiriyor, blok butcesine
+   uyuyor ve sadece HAVA olan yere koyuyor (bir seyin ustune
+   yazip yok etmesin).
+
+   Orsun dusmesi vanilla fizigi: havada duran ors kendiliginden
+   dusen bloga donusuyor ve altindakine hasar veriyor. Bizim
+   ayrica hasar vermemize gerek yok.                              */
+export const ORS_SAYISI  = 8;    // kac ors dussun
+export const ORS_YAYILMA = 4;    // hedefin etrafina kac blok sacilsin
+export const ORS_YUKSEK  = 14;   // hedefin kac blok ustunde dogsun
+export const ORS_ARALIK  = 3;    // orsler arasi tick
+export const ORS_BLOK    = "minecraft:anvil";
+
+/* ---------------- Buz adam ----------------
+   Referans: hedefin kafasina kilitli bir "buz adam" kaski
+   takiyor -- yani sadece gorunum degisiyor, oyuncu serbest
+   kaliyor ve cikarmanin yolu yok (kalici).
+
+   Bizimki gercekten hapsediyor: hedefin etrafina buz kabugu
+   oruluyor, yavaslik veriliyor, sure dolunca buz eriyip
+   ALTINDAKI BLOKLAR GERI GELIYOR. Sadece havanin yerine buz
+   konuyor, hicbir sey yok edilmiyor.                             */
+export const BUZ_MENZIL   = 30;   // kac blok oteye kadar hedef aranir
+export const BUZ_ACI      = 0.95; // bakis konisi (1 = tam dar)
+export const BUZ_SURE     = 200;  // hapis suresi (tick)
+export const BUZ_YARICAP  = 1;    // kabugun yatay yaricapi (1 = 3x3)
+export const BUZ_YUKSEK   = 3;    // kabugun yuksekligi
+export const BUZ_BLOK     = "minecraft:ice";
+export const BUZ_YAVASLIK = 5;    // slowness seviyesi
+export const BUZ_OYUNCU   = true; // oyuncular da donsun mu
 
 /* ---------------- Korunan bloklar ----------------
    Toprak topu ve blok yazan diger yetenekler bunlara dokunmaz.     */
