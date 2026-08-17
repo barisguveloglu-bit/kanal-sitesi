@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.6";
+export const SURUM = "v4.7";
 
 /* ---------------- Tetikleyici esyalar ---------------- */
 export const SIMSEK_ESYA = "minecraft:blaze_rod";     // baktigin yere simsek
@@ -673,10 +673,14 @@ export const KUBBE_BLOK    = "minecraft:barrier";
        fill ~1 ~2 ~1 ~-1 ~ ~-1 iron_bars
    Sozdizimi dogru (referansta nadir) ama DOLU 3x3x3 dolduruyor --
    hedefin durdugu hucre dahil, yani kafes degil demir blogu.
-   Ustelik "keep" yok (orada ne varsa siliyor) ve geri almiyor.
+   Ustelik "keep" yok (orada ne varsa siliyor).
 
-   Bizimki ici bos kabuk oruyor, sadece havaya koyuyor, sure
-   dolunca geri aliyor.
+   Referansta "iron_bars" TUM PAKETTE tek bir yerde geciyor: bu
+   komutta. Yani kafesi acan hicbir sey yok -- kurdugun kafes
+   sonsuza kadar duruyor, elle kirmaktan baska caresi yok.
+
+   Bizimki ici bos kabuk oruyor, sadece havaya koyuyor ve
+   ACILABILIYOR.
 
    HAPIS_YARICAP 1 = 3x3 taban. 2 yaparsan 5x5 olur ama kafes o
    kadar genis olunca hedef icinde dolasabiliyor.               */
@@ -684,8 +688,25 @@ export const HAPIS_MENZIL  = 24;
 export const HAPIS_ACI     = 0.9;
 export const HAPIS_YARICAP = 1;     // taban yaricapi (1 = 3x3)
 export const HAPIS_YUKSEK  = 3;     // kac kat yuksek
-export const HAPIS_SURE    = 300;   // tick (15 sn)
 export const HAPIS_BLOK    = "minecraft:iron_bars";
+
+/* Kafes SURESIZ: kendiliginden acilmiyor, sen aciyorsun.
+     onunde hedef VAR -> yeni kafes
+     onunde hedef YOK -> en yakin kafesini ac
+
+   HAPIS_TAVAN neden var: kafes suresiz oldugu icin sinir olmasa
+   dunya kafesle dolar ve kayit (dunya ozelligi) sisip boyut
+   sinirini asardi. Tavan dolunca yeni kafes kurulmuyor, once
+   birini acman gerekiyor.
+
+   HAPIS_AC_MENZIL: cok uzaktaki kafesi kazara acmayalim. Uzak
+   blok yazimi yuklenmemis chunk'a denk gelir ve sessizce
+   basarisiz olur -- kafes acildi sanip acilmamis olurdun.      */
+export const HAPIS_TAVAN     = 8;    // ayni anda en fazla kac kafes
+export const HAPIS_AC_MENZIL = 48;   // bu mesafeden uzaktakini acmaz
+
+// Kafesler dunya ozelligine bu adla kaydediliyor
+export const HAPIS_KAYIT_ANAHTAR = "simsek:kafesler";
 
 /* ---------------- Dondur ----------------
    Referans (Kevin1545 "kol koparma"):

@@ -1307,6 +1307,77 @@ Test: 18/18 geçti (`kevin.mjs` yeni).
 
 ---
 
+## Aşama 17 — hapis süresiz oldu, aç/kapa (v4.7)
+
+Kevin1545 dosyası ikinci kez gönderildi; **birebir aynı dosya**
+(md5 eşleşiyor). Kafesi açan bir şey var mı diye tüm paket tarandı:
+
+`iron_bars` **tüm pakette tek bir yerde** geçiyor — `hapis.mcfunction`,
+yani kuran komutta. Blok silen hiçbir komut yok (`setblock ... air`,
+`fill ... air`, `structure`, `clone` — hiçbiri). `kevin_sifirla*`
+dosyaları sadece eşya `clear`/`give` ediyor, kafesle ilgisi yok.
+
+**Sonuç: referansta aç/kapa yok.** Kurduğun kafes sonsuza kadar
+duruyor, elle kırmaktan başka çaresi yok. Sıfırdan yazıldı.
+
+### Nasıl çalışıyor
+
+Kafes artık **süresiz**. Aynı yetenek neye baktığına göre iki iş yapıyor:
+
+| Durum | Sonuç |
+|---|---|
+| Önünde hedef **var** | yeni kafes kurar |
+| Önünde hedef **yok** | en yakın kafesini **açar** |
+
+Yani nişan alıp kapatıyorsun, boşluğa bakıp açıyorsun. Yeni bir girdi
+ya da menü gerekmedi; jest düzeni aynen kaldı.
+
+### Bunun getirdiği üç mimari sorun
+
+**1. Süresiz iş, iş yuvasını tutar.** `AYNI_ANDA` 2; süresiz bir kafes
+iş listesinde dursaydı oyuncunun iki yuvasından birini sonsuza kadar
+tutardı. Çözüm: kafes iş değil, **kayıt**. `_kafes_defteri.js` tutuyor;
+kurma ve açma ayrı ayrı kısa işler.
+
+**2. Script yeniden yüklenince kafesler sahipsiz kalır.** Dünyadan çıkıp
+girince modül değişkenleri sıfırlanır — dünyada duran ama açılamayan
+demir kutular kalırdı, yani tam da referansın hatası. Çözüm: defter
+`world.setDynamicProperty` ile kaydediliyor. Özellik tespiti var; API
+yoksa bellekte kalıyor ve kullanıcı uyarılıyor.
+
+**3. Sınırsız kafes = şişen kayıt.** Dünya özelliğinin boyut sınırı var.
+`HAPIS_TAVAN = 8`; dolunca yeni kafes kurulmuyor, sebebi söyleniyor.
+
+Kayıt bilerek kısa tutuldu: bloklar merkeze **göre** saklanıyor
+(değerler -1..3 arası), yani JSON kısa çıkıyor.
+
+### Altyapı üçe bölündü
+
+`_gecici_yapi.js` içinde artık üç iş var, ortak adımlayıcıları
+paylaşıyorlar:
+
+- `geciciYapiIsi` — koy, bekle, kaldır (kubbe; süreli kaldı)
+- `yapiOrIsi` — sadece koy, bitince listeyi geri ver (hapis kurma)
+- `yapiSokIsi` — sadece kaldır (hapis açma)
+
+`yapiOrIsi` iş yarıda kesilirse (oyuncu çıktı) koyduğu blokları hemen
+topluyor — henüz deftere yazılmadıkları için kimsenin kaydında
+olmazlardı, dünyada sahipsiz kafes kalırdı.
+
+### Uzaklık sınırı
+
+`HAPIS_AC_MENZIL = 48`. Daha uzaktaki kafes açılmıyor: uzak blok yazımı
+yüklenmemiş chunk'a denk gelir ve **sessizce başarısız olur** — kafes
+açıldı sanıp açılmamış olurdun. Bu durumda kaç blok uzakta olduğu
+söyleniyor.
+
+Boyut kontrolü de var: Nether'dayken Overworld'deki kafes açılmıyor.
+
+Test: 18/18 geçti (`kevin.mjs` genişletildi: süresizlik, dünya yeniden
+yüklenmesi, tavan).
+
+---
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:
