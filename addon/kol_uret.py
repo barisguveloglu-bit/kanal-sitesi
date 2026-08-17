@@ -547,25 +547,40 @@ def iksir_ikonu(renk):
 
 
 # ---- Goz kaplamasinin yeri ----
-# BoraLo'nun gercek skin dosyasi olculerek bulundu (iki surum
-# karsilastirildi: normal goz vs nitroksin gozu). Iki dosya
-# arasinda SADECE su satir degisiyor:
+# 64x64 skin'de kafanin ON YUZU x=8..15, y=8..15 karesidir.
+# Kaplama o karenin TEK bir satirini boyar; gerisi saydam kalir,
+# yani skin'in kendi yuzu ve goz bebegi altta gorunmeye devam eder.
 #
-#         x=8   9    10   11   12   13   14   15
-#   y=12       KOYU KOYU  ten  ten KOYU KOYU        <- goz bebegi
-#   y=13       KOYU KOYU  ten  ten KOYU KOYU        <- goz bebegi
-#   y=14       GOZ  GOZ   ten  ten GOZ  GOZ         <- DEGISEN
+# v4.18'e kadar burada 14 yaziyordu ve OYUNDA AGZIN YANINA
+# dusuyordu. Sebep: sayi BoraLo'nun skin'inden alinmisti, oysa
+# kaplama BIZIM skin'imizin gozune oturmali. Iki skin farkli:
 #
-# Yani iksir yalnizca y=14 satirini boyuyor: her gozde 2 piksel,
-# toplam 4. Goz bebegi skin'in KENDI pikseli; kaplama onu
-# cizmiyor, altinda birakiyor.
+#            BoraLo'nun skini      bizim skin
+#   y=11     ten                   sac
+#   y=12     koyu (sac/kas)        GOZ  <- goz aki + bebek
+#   y=13     koyu (sac/kas)        ten
+#   y=14     GOZ                   AGIZ
 #
-# v4.16'ya kadar biz y=11..14 arasini, yani yuzun 28 pikselini
-# boyuyorduk. Iki gozun dis hatlari ortada birlesince tek bir
-# bant olusuyordu ve oyunda goz degil GOZLUK gibi gorunuyordu.
+# Bizim skin'in oyun ici goruntusu piksel piksel cozulerek
+# olculdu (kafa 8 satir = 138 ekran pikseli, satir basina 17.25):
 #
-# Skinin gozu baska satirdaysa burayi degistir: tek sayi.
-GOZ_SATIR   = 14
+#   y=12  ->  ekran y 121..137   goz bebegi (11,13,21)
+#   y=13  ->  ekran y 139..154   duz ten    (142,87,64)
+#   y=14  ->  ekran y 157..174   AGIZ       (70,39,19)  <- kaplama buradaydi
+#
+# Sutunlar zaten dogruydu: x=9,10 (sag goz) ve x=13,14 (sol goz).
+# Sadece satir iki asagidaydi.
+#
+# NOT (kaplama neden tam oturuyor): attachable kutusu inflate 0.52
+# ile buyutulmus, bu da dokuyu kutu MERKEZINDEN disari doguru
+# geriyor. Kayma merkeze olan uzakligla artiyor: y=14 icin 0.33
+# satir (gorunur), y=12 icin 0.07 satir (gorunmez). Yani dogru
+# satira gecince esneme sorunu da kendiliginden kayboluyor.
+#
+# SKIN DEGISTIRIRSEN: gozun hangi satirda oldugunu say (kafanin
+# ust kenari y=8) ve asagidaki tek sayiyi degistir. Baska hicbir
+# yere dokunma.
+GOZ_SATIR   = 12
 GOZ_SUTUNLAR = ((9, 10), (13, 14))
 
 
@@ -592,16 +607,19 @@ def lazer_goz_dokusu(renk):
     """Lazer atarken kullanilan parlak varyant.
 
     Ayni iki piksellik goz, ama beyaza cekilmis; ustelik bir
-    satir YUKARI da tasiyor, yani goz bebeginin uzerine cikip
-    "gozler parliyor" etkisi veriyor. Yuzun geri kalanina yine
-    dokunmuyor -- bant olusmuyor.
+    satir ASAGI da tasiyor, yani isik yanaga vurmus gibi duruyor.
+    Yuzun geri kalanina yine dokunmuyor -- bant olusmuyor.
+
+    Neden asagi, yukari degil: goz satirinin USTU cogu skin'de
+    sac/kas oluyor (bizimkinde y=11 sac), parlama orada kaybolur.
+    ALTI ise duz ten (y=13), isik orada gorunur.
     """
     parlak = tuple(min(255, int(c + (255 - c) * 0.65)) for c in renk)
     p = _goz_ciz(parlak)
-    # Bir satir yukari: goz bebeginin ustunu de kaplasin
+    # Bir satir asagi: yanaga vuran isik
     for sol, sag in GOZ_SUTUNLAR:
         for x in (sol, sag):
-            p[(x, GOZ_SATIR - 1)] = parlak + (255,)
+            p[(x, GOZ_SATIR + 1)] = parlak + (255,)
     return p
 
 

@@ -2074,6 +2074,78 @@ Test: 27/27 geçti.
 
 ---
 
+## Aşama 29 — göz kaplaması ağzın yanına düşüyordu (v4.19)
+
+Oyun içi ekran görüntüsü: hiperoksin içildi, mavi kaplama **gözlerde
+değil ağzın iki yanında** belirdi.
+
+### Kök sebep: yanlış skini ölçmüşüm
+
+v4.17'de satır numarasını **BoraLo'nun** skininden almıştım. Ama
+kaplama **kullanıcının** skininin gözüne oturmak zorunda, ve iki skin
+farklı yerde:
+
+| satır | BoraLo'nun skini | bu skin |
+|---|---|---|
+| y=11 | ten | saç |
+| y=12 | koyu (saç/kaş) | **GÖZ** — akı + bebek |
+| y=13 | koyu (saç/kaş) | ten |
+| y=14 | **GÖZ** | **AĞIZ** |
+
+Yani `GOZ_SATIR = 14` BoraLo'da doğru, burada tam ağzın satırı.
+
+### Ölçüm
+
+Ekran görüntüsü PNG olarak çözüldü (zlib + filtre geri alma), kafanın
+ön yüzü 8×8 ızgaraya bölündü — kafa 138 ekran pikseli, satır başına
+17.25:
+
+| doku satırı | ekran y | orada ne var |
+|---|---|---|
+| y=12 | 121–137 | göz bebeği `(11,13,21)`, akı `(146,138,138)` |
+| y=13 | 139–154 | düz ten `(142,87,64)` |
+| y=14 | 157–174 | ağız `(70,39,19)` **+ kaplama** `(83,124,151)` |
+
+Sütunlar zaten doğruydu: `x=9,10` ve `x=13,14` — kaplama tam göz
+akı ve bebeğinin üstüne geliyor. **Sadece satır iki aşağıdaydı.**
+
+`GOZ_SATIR = 14` → `12`. Tek sayı.
+
+### Yan bulgu: inflate esnemesi
+
+Attachable kutusu `inflate: 0.52` ile büyütülmüş, bu da dokuyu kutu
+**merkezinden** dışarı doğru geriyor. Kayma merkeze uzaklıkla artıyor:
+
+```
+kayma = (28 − satır_merkezi) × (9.04/8 − 1)
+
+  y=14 (merkez 25.5)  ->  2.5 × 0.13 = 0.33 satır   (gözle görülür)
+  y=12 (merkez 27.5)  ->  0.5 × 0.13 = 0.07 satır   (görünmez)
+```
+
+Ölçümle doğrulandı: y=14'teki kaplama ekranda 160–179 arasındaydı,
+oysa o satırın kendisi 157–174. Tam 0.33 satır aşağı. Doğru satıra
+geçince esneme de kendiliğinden kayboluyor — geometriye dokunmaya
+gerek kalmadı.
+
+### Lazer varyantı yön değiştirdi
+
+Parlak varyant fazladan bir satır boyuyor; **yukarı** boyuyordu
+(`GOZ_SATIR - 1`). Yeni satırda yukarısı `y=11` yani **saç** — parlama
+orada kaybolurdu. **Aşağı** çevrildi (`GOZ_SATIR + 1` = `y=13`, düz
+ten): ışık yanağa vurmuş gibi görünüyor.
+
+Üretilen doku doğrulandı — koda güvenilmeyip PNG geri çözüldü:
+
+```
+goz_mavi         4 opak piksel   x=9,10,13,14  y=12
+goz_mavi_lazer   8 opak piksel   x=9,10,13,14  y=12 ve y=13
+```
+
+Geri kalan 4092 piksel saydam. Test: 27/27 geçti.
+
+---
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:
