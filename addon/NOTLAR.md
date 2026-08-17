@@ -1537,6 +1537,74 @@ Test: 20/20 geçti (`boralo.mjs` yeni).
 
 ---
 
+## Aşama 20 — yamultma karşılaştırması, silah denetimi (v4.10)
+
+Soru: Boralo Mod V2'de yamultma var mı, iyiyse alalım? Ve silahları
+alalım.
+
+### Yamultma: onlarınki vs bizimki
+
+Onlarınki `spm_advanced_dirtarms_power_3`:
+
+```
+tag @p[r=8,rm=1] add Yamul
+inputpermission set @p[tag=Yamul,r=8,rm=1] movement disabled
+inputpermission set @p[tag=Yamul,r=8,rm=1] camera disabled
+playanimation @p[...] animation.sp_m_animasyon_yamulma.
+```
+
+**Bizden iyi olan tek yanı: görsel.** Hedef gerçekten yamulmuş gibi
+duruyor. Bizde hiç poz yoktu, sadece efekt vardı. **Poz alındı.**
+
+Gerisi bizde zaten daha iyiydi:
+
+| | Boralo Mod V2 | Bizim |
+|---|---|---|
+| Hedef | `@p` — **sadece oyuncu** | mob + oyuncu |
+| Süre | **süresiz** | 8 saniye |
+| Çare | ayrı menü kipi ("Düzel/Düzelt") | aynı yeteneği tekrar kullan |
+| Kamera | **kapatılıyor** | dokunulmuyor |
+
+`@p` olması tek kişilik dünyada yeteneği **tamamen işlevsiz** bırakıyor.
+Süresizlik + ayrı çare kipi de tanıdık tuzak: kolu kaybedersen kurban
+kalıcı kilitli.
+
+`inputpermission camera disabled` alınmadı — kurban etrafına bile
+bakamıyor ve mobda zaten hiçbir etkisi yok.
+
+**Kelepçe silahından alınan:** `mining_fatigue`. Yamulan biri kazma da
+sallayamamalı. Onlarınki 99999 saniye veriyordu; bizimki yeteneğin kendi
+süresi kadar.
+
+### Silahlar: neden alınmadı
+
+Moddaki yedi silah scriptinin **altısı sadece oyuncu hedefliyor** —
+tek kişilik dünyada hiçbir şey yapmıyorlar:
+
+| Silah | Ne yapıyor | Sorun |
+|---|---|---|
+| `bugged_diamond_sword` | vurduğun oyuncuyu 60 sn spectator + tam kilit | oyuncu hedefli |
+| `voidmultitool` | 5,5 saat slowness 255 + görünmezlik + input kilidi | oyuncu hedefli |
+| `stone_converterr` | aynısı, taş derisiyle | oyuncu hedefli |
+| `mobpicker` | oyuncuyu 200 blok yukarı hapsediyor | oyuncu hedefli |
+| `golden_fist` | 15-22 blok knockback | oyuncu hedefli, `savur` var |
+| `fallen_donus1` | dönüştürme | oyuncu hedefli |
+| `kelepcejsoenaam` | kelepçe, "30 tıkla kır" | `@e` kullanıyor, mobda çalışır |
+
+Kelepçe tek işe yarar olanı ve fikri güzel — ama kırma eşyası
+**yakalayanın** elinde, yani kurban kendini kurtaramıyor; kilidi açması
+gereken kişi zaten onu kilitleyen. Actionbar'da kurbana "Kırmak için 30
+sağ tık" yazıyor ama kurbanın tıklayacağı bir şey yok. Mekaniği ters.
+`mining_fatigue` fikri alındı, gerisi alınmadı.
+
+Kalan hatalar: `effect @e clear` faydalı efektleri de siliyor,
+`@e[name="..."]` ile hedefleme (aynı adlı iki zombi varsa ikisi de),
+`Date.now()` ile sayaç, `mining_fatigue 99999 255`.
+
+Test: 21/21 geçti (`yamultma.mjs` yeni).
+
+---
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:

@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.9";
+export const SURUM = "v4.10";
 
 /* ---------------- Tetikleyici esyalar ---------------- */
 export const SIMSEK_ESYA = "minecraft:blaze_rod";     // baktigin yere simsek
@@ -434,6 +434,34 @@ export const YAMULT_SURE   = 160;   // tick (8 saniye)
 export const YAMULT_SIDDET = 5;     // slowness seviyesi
 export const YAMULT_TAVAN  = 8;
 export const YAMULT_OYUNCU = true;
+
+/* v4.10 -- Boralo Mod V2'deki yamultmadan alinanlar.
+
+   Oradaki surum (spm_advanced_dirtarms_power_3):
+     tag @p[r=8,rm=1] add Yamul
+     inputpermission set @p[tag=Yamul,r=8,rm=1] movement disabled
+     inputpermission set @p[tag=Yamul,r=8,rm=1] camera disabled
+     playanimation @p[...] animation.sp_m_animasyon_yamulma.
+
+   Bizimkinden IYI olan tek yani: GORSEL. Hedef gercekten
+   yamulmus gibi duruyor. Bizde hic poz yoktu, sadece efekt.
+   O yuzden poz alindi.
+
+   Gerisi bizde zaten daha iyiydi:
+     - onlarinki @p, yani SADECE OYUNCU. Tek kisilik dunyada
+       hicbir ise yaramiyor. Bizimki moblari da yamultuyor.
+     - onlarinki SURESIZ; caresi ayri bir menu kipi ("Duzel/
+       Duzelt"). Kolu kaybedersen kurban sonsuza kadar kilitli.
+       Bizimki sureli ve ayni yetenek tekrar kullanilinca cozuyor.
+     - inputpermission camera disabled ALINMADI: kurban etrafina
+       bile bakamiyor, ustelik moblarda hicbir etkisi yok.
+
+   Kelepce silahindan (kelepcejsoenaam.js) alinan: mining_fatigue.
+   Yamulan biri kazma da sallayamamali. Onlarinki 99999 saniye
+   veriyordu, bizimki YAMULT_SURE kadar.                        */
+export const YAMULT_KAZMA = 3;      // mining_fatigue seviyesi
+export const YAMULT_ANIM  = "animation.fox.sleep a 9999";
+export const YAMULT_ANIM_BITIS = "animation.humanoid.move a 0";
 
 /* ---------------- Iksirler (Nitroksin sistemi) ----------------
    Referans mod bunu tamamen komutla yapiyordu:
