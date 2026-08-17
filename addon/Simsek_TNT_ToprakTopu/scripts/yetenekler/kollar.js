@@ -48,8 +48,11 @@ for (const [esya, yetenek] of KOL_ESYALARI) {
   esyaBagla(esya, yetenek);
 }
 
-/* Esya JSON'undaki on_use olayi "scriptevent simsek:kol <kisa_ad>"
-   calistiriyor. Kisa addan tam kimlige donmek icin.               */
+/* Kisa addan tam kimlige. scriptevent koprusu bunu kullaniyor:
+     /scriptevent simsek:kol kol_top
+   Esya JSON'unda artik on_use YOK (run_command deneysel ayar
+   gerektiriyordu), ama komut elle yazilinca hala calisiyor --
+   esyalar kaydolmadiginda yetenegi denemenin en kisa yolu.       */
 const KISA_AD = new Map();
 for (const [esya] of KOL_ESYALARI) {
   KISA_AD.set(esya.slice(esya.indexOf(":") + 1), esya);
@@ -109,12 +112,24 @@ export function kolDenetimi() {
     bilgiYaz("kol denetimi: " + KOL_ESYALARI.length + " esyanin hepsi kayitli.");
     return;
   }
+  const hepsi = (eksik.length === KOL_ESYALARI.length);
+
   bilgiYaz(
-    "KRITIK: " + eksik.length + " kol esyasi oyuna KAYITLI DEGIL -> " +
-    eksik.join(", ") + ". Bu esyalari /give ile alamazsin (soz dizimi " +
-    "hatasi verir). Sebebi neredeyse her zaman ayni: dunyada ESKI surum " +
-    "behavior pack etkin. Dunya ayarlarindan eski paketi kaldirip yeniyi ekle."
+    "KRITIK: " + eksik.length + "/" + KOL_ESYALARI.length +
+    " kol esyasi oyuna KAYITLI DEGIL -> " + eksik.join(", ") +
+    ". Bu esyalari /give ile alamazsin (soz dizimi hatasi verir)."
   );
+
+  /* HEPSI eksikse sebep tek bir dosyada degil, yapinin tamamindadir --
+     bozuk bir JSON olsa sadece o esya duserdi. Bir kismi eksikse
+     gercekten o dosyalarda sorun vardir.                             */
+  bilgiYaz(hepsi
+    ? "Hepsi birden eksik. Muhtemel sebepler: (1) dunyada BEHAVIOR " +
+      "pack etkin degil, sadece resource pack eklenmis; (2) esya " +
+      "formati oyunun surumune uymuyor. Yetenekler yine de esyasiz " +
+      "calisir: egil + zipla."
+    : "Bir kismi eksik: bu dosyalarin JSON'unda sorun var, " +
+      "items/ altindaki ilgili dosyalara bak.");
 }
 
 /* ============================================================

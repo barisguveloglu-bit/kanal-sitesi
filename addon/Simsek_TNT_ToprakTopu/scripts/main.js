@@ -398,7 +398,8 @@ olayaAbone("playerSpawn", (olay) => {
     if (eksik && eksik.length > 0) {
       olay.player.sendMessage(
         "§cEksik kol esyasi: §f" + eksik.join(", ") +
-        "\n§7Dunyada eski surum behavior pack etkin. Ayarlardan eskiyi kaldir."
+        "\n§7Kollar gorunmuyor ama butun yetenekler §fesyasiz§7 calisir: " +
+        "§fegil + zipla§7. Yetenek degistirmek icin §fegil + yukari bak§7."
       );
     }
   } catch (e) {

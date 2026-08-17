@@ -1,78 +1,23 @@
 {
-  "format_version": "1.16.100",
+  "format_version": "1.21.0",
   "minecraft:item": {
     "description": {
       "identifier": "pa:kol_alan",
-      "category": "equipment"
+      "menu_category": {
+        "category": "equipment"
+      }
     },
     "components": {
-      "minecraft:icon": {
-        "texture": "kol_alan"
-      },
+      "minecraft:icon": "kol_alan",
       "minecraft:display_name": {
         "value": "Alan Simsegi Kolu"
       },
       "minecraft:max_stack_size": 1,
       "minecraft:hand_equipped": true,
       "minecraft:allow_off_hand": false,
-      "minecraft:foil": false,
-      "minecraft:damage": 0,
-      "minecraft:can_destroy_in_creative": false,
-      "minecraft:creative_category": {
-        "parent": "itemGroup.name.sword"
-      },
       "minecraft:cooldown": {
         "category": "kol_alan_bekleme",
         "duration": 3.0
-      },
-      "minecraft:on_use": {
-        "on_use": {
-          "event": "kol_kullanildi"
-        }
-      },
-      "minecraft:render_offsets": {
-        "main_hand": {
-          "third_person": {
-            "scale": [
-              0.00440771349862259,
-              0.00440771349862259,
-              0.00440771349862259
-            ]
-          },
-          "first_person": {
-            "scale": [
-              0.0016749311294755793,
-              0.0016749311294755793,
-              0.0016749311294755793
-            ]
-          }
-        },
-        "off_hand": {
-          "third_person": {
-            "scale": [
-              0.00440771349862259,
-              0.00440771349862259,
-              0.00440771349862259
-            ]
-          },
-          "first_person": {
-            "scale": [
-              0.0016749311294755793,
-              0.0016749311294755793,
-              0.0016749311294755793
-            ]
-          }
-        }
-      }
-    },
-    "events": {
-      "kol_kullanildi": {
-        "run_command": {
-          "command": [
-            "scriptevent simsek:kol kol_alan"
-          ],
-          "target": "self"
-        }
       }
     }
   }

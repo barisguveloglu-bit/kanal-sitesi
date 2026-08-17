@@ -4,12 +4,14 @@ dokularini uretir. Tek kaynak burasi; sekiz dosyayi elle senkron
 tutmaya calismak hataya davetiye.
 
 Referans: add-ons.zip icindeki "En Iyi BoraLo Kol Modu V2".
-Oradan alinan TEKNIK kararlar:
+Oradan alinan TEKNIK karar:
   - kok kemik adi "RightArm" (oyuncu iskeletindeki kemikle ayni ad;
     model boylece oyuncunun koluna oturuyor)
-  - attachable format_version 1.10.0, entity_alphatest materyali
-  - render_offsets olcekleri (~0.0044 / ~0.00167)
 Model, doku ve yetenek mantigi bize ait.
+
+Referansin ESYA formati alinmadi: o mod format_version 1.16.100 ve
+run_command kullaniyor, ikisi de deneysel ayar gerektiriyor. Bizim
+esyalarimiz kararli formatta (asagidaki esya() aciklamasina bak).
 """
 
 import json, os, struct, zlib
@@ -51,11 +53,6 @@ TR_AD = {
 # oyuncu ekranda donen bekleme gostergesini gorsun.
 BEKLEME_SN = 3.0
 
-# Referanstaki dirt_arm degerleri; bizim kup boyutumuz da ayni (4x12x4).
-OLCEK_UCUNCU = 0.00440771349862259
-OLCEK_BIRINCI = 0.0016749311294755793
-
-
 def yaz_json(yol, veri):
     os.makedirs(os.path.dirname(yol), exist_ok=True)
     with open(yol, "w", encoding="utf-8") as f:
@@ -65,48 +62,45 @@ def yaz_json(yol, veri):
 
 # ---------------------------------------------------------------- esya
 def esya(kimlik, ad):
+    """v3.5'te 11/11 esya oyuna KAYDOLMADI. Sebep tek bir esyada
+    degil, yapinin tamaminda -- tek dosya bozuk olsa 1/11 hata
+    verirdi. Iki deneysel bagimlilik vardi, ikisi de kaldirildi:
+
+      1. format_version "1.16.100" = ESKI veri-tabanli esya formati.
+         Modern surumlerde "Holiday Creator Features" deneysel ayari
+         acik degilse sessizce yok sayiliyor. Kararli yol
+         format_version 1.20.50+ ve description.menu_category.
+
+      2. minecraft:on_use -> events -> run_command. Bu olay yaniti
+         hicbir zaman kararli hale gelmedi. Kaldirildi; tetikleme
+         zaten script tarafindaki itemUse olayindan ve jest
+         sisteminden geliyor.
+
+    Bilesenler bilerek AZ tutuldu: her fazladan bilesen esyanin
+    tamamen reddedilme riski. Sadece kararli oldugundan emin
+    olunanlar var.
+
+    render_offsets da cikarildi -- eski bir bilesen ve bize gerekmiyor:
+    kol modelinin kok kemigi "RightArm" oldugu icin zaten oyuncunun
+    koluyla ayni olcekte cizilir."""
     tam = "pa:" + kimlik
     return {
-        "format_version": "1.16.100",
+        "format_version": "1.21.0",
         "minecraft:item": {
-            "description": {"identifier": tam, "category": "equipment"},
+            "description": {
+                "identifier": tam,
+                "menu_category": {"category": "equipment"},
+            },
             "components": {
-                "minecraft:icon": {"texture": kimlik},
+                "minecraft:icon": kimlik,
                 "minecraft:display_name": {"value": ad},
                 "minecraft:max_stack_size": 1,
                 "minecraft:hand_equipped": True,
                 "minecraft:allow_off_hand": False,
-                "minecraft:foil": False,
-                "minecraft:damage": 0,
-                "minecraft:can_destroy_in_creative": False,
-                "minecraft:creative_category": {"parent": "itemGroup.name.sword"},
                 "minecraft:cooldown": {
                     "category": kimlik + "_bekleme",
                     "duration": BEKLEME_SN,
                 },
-                # itemUse olayinin ozel esyalarda tetiklenmedigi surumler
-                # var. on_use -> scriptevent koprusu ikinci bir yol acar;
-                # ikisi de tetiklenirse main.js'teki bekleme kontrolu
-                # ikincisini zaten yutuyor.
-                "minecraft:on_use": {"on_use": {"event": "kol_kullanildi"}},
-                "minecraft:render_offsets": {
-                    "main_hand": {
-                        "third_person": {"scale": [OLCEK_UCUNCU] * 3},
-                        "first_person": {"scale": [OLCEK_BIRINCI] * 3},
-                    },
-                    "off_hand": {
-                        "third_person": {"scale": [OLCEK_UCUNCU] * 3},
-                        "first_person": {"scale": [OLCEK_BIRINCI] * 3},
-                    },
-                },
-            },
-            "events": {
-                "kol_kullanildi": {
-                    "run_command": {
-                        "command": ["scriptevent simsek:kol " + kimlik],
-                        "target": "self",
-                    }
-                }
             },
         },
     }

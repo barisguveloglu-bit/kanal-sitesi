@@ -589,7 +589,7 @@ kadar açık tutmasını engelliyor. `bitir()` havada TNT bırakmıyor — bıra
 fitili dolunca vanilla güç-4 patlaması yapardı.
 
 Üç yeni kol eklendi: `pa:kol_can`, `pa:kol_ors`, `pa:kol_buz`. Toplam **11
-kol, 13 yetenek**.
+kol, 12 yetenek**.
 
 ### Testler
 
@@ -605,6 +605,61 @@ tick blok bütçesini aşmıyor mu.
   test yanlış şeyi sınıyormuş.
 - `dort.mjs`'te nişan açısı fazla dikti, hedef taş katmanına düşüyordu ve
   "sadece havaya koyar" kuralı yüzünden hiçbir örs konmuyordu.
+
+## Aşama 6 — eşya formatı: deneysel bağımlılıklar kaldırıldı (v3.6)
+
+v3.5 oyunda **11/11 kol eşyası kaydolmadı**. Açılış teşhisi bunu doğru
+yakaladı ama sebep tahmini yanlıştı ("eski sürüm pack etkin" diyordu; oysa
+dünyada tek sürüm vardı, 3.5.0).
+
+Tek bir JSON bozuk olsa **1/11** düşerdi. **11/11** düşmesi yapının
+tamamının reddedildiğini gösteriyor. İki deneysel bağımlılık vardı:
+
+1. **`format_version: "1.16.100"`** — eski veri-tabanlı eşya formatı.
+   Modern sürümlerde **"Holiday Creator Features"** deneysel ayarı açık
+   değilse sessizce yok sayılıyor.
+2. **`minecraft:on_use` → `events` → `run_command`** — bu olay yanıtı hiçbir
+   zaman kararlı hâle gelmedi.
+
+İkisi de referans moddan (Addons Maker çıktısı) miras alınmıştı; o mod
+deneysel ayarlarla çalışıyor olmalı.
+
+### v3.6'daki eşya formatı
+
+```json
+{
+  "format_version": "1.21.0",
+  "minecraft:item": {
+    "description": {
+      "identifier": "pa:kol_top",
+      "menu_category": { "category": "equipment" }
+    },
+    "components": {
+      "minecraft:icon": "kol_top",
+      "minecraft:display_name": { "value": "Toprak Topu Kolu" },
+      "minecraft:max_stack_size": 1,
+      "minecraft:hand_equipped": true,
+      "minecraft:allow_off_hand": false,
+      "minecraft:cooldown": { "category": "kol_top_bekleme", "duration": 3.0 }
+    }
+  }
+}
+```
+
+Bileşenler bilerek az tutuldu: **her fazladan bileşen, eşyanın tamamen
+reddedilme riski.** `render_offsets` da çıkarıldı — eski bir bileşen ve bize
+gerekmiyor, çünkü modelin kök kemiği `RightArm` olduğu için zaten oyuncunun
+koluyla aynı ölçekte çiziliyor.
+
+`kol2.mjs` artık bu deneysel alanların **geri gelmediğini** sınıyor.
+
+### Eşyasız yol her zaman çalışıyor
+
+Eşyalar kaydolmasa bile 12 yeteneğin hepsi jestle çalışıyor. Açılış mesajı
+artık bunu söylüyor; "eski paketi kaldır" tavsiyesi kaldırıldı çünkü yanlıştı.
+
+Elle deneme yolu da duruyor: `/scriptevent simsek:kol kol_top` — eşya JSON'unda
+`on_use` olmasa da `scriptEventReceive` dinleyicisi yerinde.
 
 ## Bekleyen işler
 
