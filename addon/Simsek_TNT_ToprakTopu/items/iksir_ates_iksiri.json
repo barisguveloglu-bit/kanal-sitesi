@@ -8,7 +8,9 @@
       }
     },
     "components": {
-      "minecraft:icon": "iksir_ates_iksiri",
+      "minecraft:icon": {
+        "texture": "iksir_ates_iksiri"
+      },
       "minecraft:display_name": {
         "value": "Ates Iksiri"
       },

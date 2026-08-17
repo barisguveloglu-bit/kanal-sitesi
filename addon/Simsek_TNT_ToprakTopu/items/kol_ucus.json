@@ -8,7 +8,9 @@
       }
     },
     "components": {
-      "minecraft:icon": "kol_ucus",
+      "minecraft:icon": {
+        "texture": "kol_ucus"
+      },
       "minecraft:display_name": {
         "value": "Ucus Kolu"
       },

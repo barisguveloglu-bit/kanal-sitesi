@@ -8,7 +8,9 @@
       }
     },
     "components": {
-      "minecraft:icon": "goz_mavi",
+      "minecraft:icon": {
+        "texture": "goz_mavi"
+      },
       "minecraft:display_name": {
         "value": "Mavi Göz"
       },

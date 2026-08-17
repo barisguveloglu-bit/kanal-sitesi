@@ -8,7 +8,9 @@
       }
     },
     "components": {
-      "minecraft:icon": "goz_ates",
+      "minecraft:icon": {
+        "texture": "goz_ates"
+      },
       "minecraft:display_name": {
         "value": "Ateş Gözü"
       },

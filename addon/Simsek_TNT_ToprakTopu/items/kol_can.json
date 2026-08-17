@@ -8,7 +8,9 @@
       }
     },
     "components": {
-      "minecraft:icon": "kol_can",
+      "minecraft:icon": {
+        "texture": "kol_can"
+      },
       "minecraft:display_name": {
         "value": "Can Verme Kolu"
       },

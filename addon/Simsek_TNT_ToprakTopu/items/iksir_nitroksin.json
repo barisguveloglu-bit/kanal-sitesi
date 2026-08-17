@@ -8,7 +8,9 @@
       }
     },
     "components": {
-      "minecraft:icon": "iksir_nitroksin",
+      "minecraft:icon": {
+        "texture": "iksir_nitroksin"
+      },
       "minecraft:display_name": {
         "value": "Nitroksin"
       },

@@ -8,7 +8,9 @@
       }
     },
     "components": {
-      "minecraft:icon": "goz_mavi_lazer",
+      "minecraft:icon": {
+        "texture": "goz_mavi_lazer"
+      },
       "minecraft:display_name": {
         "value": "Mavi Göz (Lazer)"
       },

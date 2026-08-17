@@ -8,7 +8,9 @@
       }
     },
     "components": {
-      "minecraft:icon": "kol_simsek",
+      "minecraft:icon": {
+        "texture": "kol_simsek"
+      },
       "minecraft:display_name": {
         "value": "Simsek Kolu"
       },

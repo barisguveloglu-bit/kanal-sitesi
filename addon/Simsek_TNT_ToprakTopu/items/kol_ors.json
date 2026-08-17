@@ -8,7 +8,9 @@
       }
     },
     "components": {
-      "minecraft:icon": "kol_ors",
+      "minecraft:icon": {
+        "texture": "kol_ors"
+      },
       "minecraft:display_name": {
         "value": "Ors Kolu"
       },

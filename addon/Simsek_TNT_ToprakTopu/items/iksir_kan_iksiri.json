@@ -8,7 +8,9 @@
       }
     },
     "components": {
-      "minecraft:icon": "iksir_kan_iksiri",
+      "minecraft:icon": {
+        "texture": "iksir_kan_iksiri"
+      },
       "minecraft:display_name": {
         "value": "Kan Iksiri"
       },

@@ -97,7 +97,12 @@ def esya(kimlik, ad):
                 "menu_category": {"category": "equipment"},
             },
             "components": {
-                "minecraft:icon": kimlik,
+                # DIKKAT: ikonun bicimi.
+                #   {"texture": "ad"}  -> 1.16.100'den beri calisan bicim
+                #   "ad" (duz metin)   -> daha yeni kisayol
+                # v3.6-v4.0'da duz metin kullanildi; esyalar KAYDOLDU ama
+                # ikonlar gorunmedi. Uzun sureli desteklenen bicime donuldu.
+                "minecraft:icon": {"texture": kimlik},
                 "minecraft:display_name": {"value": ad},
                 "minecraft:max_stack_size": 1,
                 "minecraft:hand_equipped": True,
@@ -156,7 +161,7 @@ def iksir_esyasi(kimlik, ad):
                 "menu_category": {"category": "items"},
             },
             "components": {
-                "minecraft:icon": "iksir_" + kimlik,
+                "minecraft:icon": {"texture": "iksir_" + kimlik},
                 "minecraft:display_name": {"value": ad},
                 "minecraft:max_stack_size": 16,
                 "minecraft:food": {"nutrition": 0, "can_always_eat": True},
@@ -183,7 +188,7 @@ def goz_esyasi(kimlik, ad):
                 "menu_category": {"category": "equipment"},
             },
             "components": {
-                "minecraft:icon": kimlik,
+                "minecraft:icon": {"texture": kimlik},
                 "minecraft:display_name": {"value": ad},
                 "minecraft:max_stack_size": 1,
                 "minecraft:wearable": {"slot": "slot.armor.head"},

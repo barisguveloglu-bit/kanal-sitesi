@@ -8,7 +8,9 @@
       }
     },
     "components": {
-      "minecraft:icon": "kol_buz",
+      "minecraft:icon": {
+        "texture": "kol_buz"
+      },
       "minecraft:display_name": {
         "value": "Buz Adam Kolu"
       },

@@ -8,7 +8,9 @@
       }
     },
     "components": {
-      "minecraft:icon": "goz_kan_lazer",
+      "minecraft:icon": {
+        "texture": "goz_kan_lazer"
+      },
       "minecraft:display_name": {
         "value": "Kanlı Göz (Lazer)"
       },

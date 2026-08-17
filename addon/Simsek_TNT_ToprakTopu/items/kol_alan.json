@@ -8,7 +8,9 @@
       }
     },
     "components": {
-      "minecraft:icon": "kol_alan",
+      "minecraft:icon": {
+        "texture": "kol_alan"
+      },
       "minecraft:display_name": {
         "value": "Alan Simsegi Kolu"
       },

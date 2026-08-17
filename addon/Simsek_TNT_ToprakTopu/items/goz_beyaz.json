@@ -8,7 +8,9 @@
       }
     },
     "components": {
-      "minecraft:icon": "goz_beyaz",
+      "minecraft:icon": {
+        "texture": "goz_beyaz"
+      },
       "minecraft:display_name": {
         "value": "Beyaz Göz"
       },

@@ -465,6 +465,15 @@ olayaAbone("playerSpawn", (olay) => {
     if (KOL_VER_ACIK) {
       olay.player.sendMessage("§7Kollari almak icin: §fegil + yere bak, bekle");
     }
+
+    /* Behavior pack RESOURCE pack'i goremez -- Bedrock'ta boyle bir
+       API yok. O yuzden tespit edemiyoruz, ama kullanicinin kendi
+       bakabilmesi icin nereye bakacagini soyluyoruz. Ikonlarin ve
+       3B kol gorunumunun tamami resource pack'te.                */
+    olay.player.sendMessage(
+      "§7Esyalar gorunmuyorsa: dunya ayarlari > §fKaynak Paketleri§7 " +
+      "listesinde §fSimsek Kol§7 etkin mi bak."
+    );
     if (eksik && eksik.length > 0) {
       olay.player.sendMessage(
         "§cEksik kol esyasi: §f" + eksik.join(", ") +

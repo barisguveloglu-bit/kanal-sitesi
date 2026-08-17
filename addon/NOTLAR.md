@@ -963,6 +963,47 @@ düşürüyor.
 
 Toplam: **18 yetenek, 12 kol, 5 iksir, 10 göz.**
 
+## Aşama 11 — ikon formatı (v4.1)
+
+Eşyalar envanterde **var** ama ikonları görünmüyordu. Önce bizim tarafı
+doğruladım, tahmin etmeden:
+
+- 27 eşyanın 27'sinin `minecraft:icon` adı `item_texture.json`'da kayıtlı
+- bütün PNG'ler geçerli (`file` ile doğrulandı), 16×16/64×64, içleri dolu
+  (ikon başına ~78 saydam olmayan piksel)
+- `.mcpack` içinde `textures/item_texture.json`, `texts/*.lang`, 28 ikon,
+  23 attachable — hepsi yerinde
+
+Yani atlas, doku ve paketleme sağlam. Geriye iki ihtimal kalıyor.
+
+### İhtimal 1 — ikon bileşeninin biçimi
+
+`minecraft:icon` iki biçimde yazılabiliyor:
+
+```json
+"minecraft:icon": { "texture": "kol_top" }   // 1.16.100'den beri
+"minecraft:icon": "kol_top"                  // daha yeni kısayol
+```
+
+v3.6'da eşyaları kararlı formata taşırken düz metin kısayolunu kullanmıştım.
+Eşyalar **kaydoldu** (envanterde çıkıyorlar) ama ikon araması başarısız.
+Uzun süredir desteklenen `{"texture": ...}` biçimine dönüldü;
+`format_version` `1.21.0` olarak kalıyor çünkü kaydolmanın o sürümle
+çalıştığı zaten kanıtlandı.
+
+### İhtimal 2 — kaynak paketi dünyada etkin değil
+
+İkonların ve 3B kol görünümünün **tamamı** resource pack'te. Behavior pack
+resource pack'i göremiyor (Bedrock'ta böyle bir API yok), o yüzden script
+bunu tespit edip raporlayamıyor. Açılış mesajına kullanıcının nereye
+bakacağı eklendi.
+
+Ayırt etme yolu: kolu eline al.
+- **Düz bir kare** görüyorsan → resource pack etkin değil (attachable hiç
+  yüklenmemiş)
+- **Kol şeklinde** bir şey görüyorsan (mor/siyah bile olsa) → resource pack
+  etkin, sorun doku yolunda
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:

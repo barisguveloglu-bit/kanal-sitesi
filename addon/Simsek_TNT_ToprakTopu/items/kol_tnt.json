@@ -8,7 +8,9 @@
       }
     },
     "components": {
-      "minecraft:icon": "kol_tnt",
+      "minecraft:icon": {
+        "texture": "kol_tnt"
+      },
       "minecraft:display_name": {
         "value": "Guclu TNT Kolu"
       },

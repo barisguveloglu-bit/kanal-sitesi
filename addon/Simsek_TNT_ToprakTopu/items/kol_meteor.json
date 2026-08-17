@@ -8,7 +8,9 @@
       }
     },
     "components": {
-      "minecraft:icon": "kol_meteor",
+      "minecraft:icon": {
+        "texture": "kol_meteor"
+      },
       "minecraft:display_name": {
         "value": "Meteor Kolu"
       },

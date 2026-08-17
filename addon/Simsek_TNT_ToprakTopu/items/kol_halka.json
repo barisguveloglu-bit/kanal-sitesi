@@ -8,7 +8,9 @@
       }
     },
     "components": {
-      "minecraft:icon": "kol_halka",
+      "minecraft:icon": {
+        "texture": "kol_halka"
+      },
       "minecraft:display_name": {
         "value": "Yildirim Halkasi Kolu"
       },

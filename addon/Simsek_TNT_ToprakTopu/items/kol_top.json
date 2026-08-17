@@ -8,7 +8,9 @@
       }
     },
     "components": {
-      "minecraft:icon": "kol_top",
+      "minecraft:icon": {
+        "texture": "kol_top"
+      },
       "minecraft:display_name": {
         "value": "Toprak Topu Kolu"
       },

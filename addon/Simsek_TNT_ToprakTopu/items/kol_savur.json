@@ -8,7 +8,9 @@
       }
     },
     "components": {
-      "minecraft:icon": "kol_savur",
+      "minecraft:icon": {
+        "texture": "kol_savur"
+      },
       "minecraft:display_name": {
         "value": "Savurma Kolu"
       },
