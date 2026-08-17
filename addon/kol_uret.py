@@ -445,6 +445,30 @@ def varlik_dokusu(ana, vurgu):
     return p
 
 
+def paket_ikonu(renk):
+    """64x64 paket ikonu: renkli zemin uzerinde bir simsek."""
+    p = {}
+    for y in range(64):
+        for x in range(64):
+            k = 1.0 - (y / 64) * 0.45          # yukaridan asagi koyulasan zemin
+            p[(x, y)] = golge(renk, k) + (255,)
+    # Kaba bir simsek sekli
+    for y in range(10, 32):
+        genis = 4
+        kayma = 22 - (y - 10) // 2
+        for x in range(kayma, kayma + genis):
+            p[(x, y)] = (255, 236, 140, 255)
+    for y in range(32, 54):
+        genis = 4
+        kayma = 30 - (y - 32) // 2
+        for x in range(kayma, kayma + genis):
+            p[(x, y)] = (255, 236, 140, 255)
+    for x in range(18, 34):
+        p[(x, 31)] = (255, 236, 140, 255)
+        p[(x, 32)] = (255, 236, 140, 255)
+    return p
+
+
 def iksir_ikonu(renk):
     """16x16 sise: cam govde + renkli sivi + tipa."""
     p = {}
@@ -543,10 +567,10 @@ def main():
 
         doku = toprak_dokusu() if kimlik == "kol_toprak" else varlik_dokusu(ana, vurgu)
         png_yaz(os.path.join(RP, "textures/entity", kimlik + ".png"), 64, 64, doku)
-        png_yaz(os.path.join(RP, "textures/item", kimlik + ".png"), 16, 16,
+        png_yaz(os.path.join(RP, "textures/items", kimlik + ".png"), 16, 16,
                 esya_ikonu(ana, vurgu))
 
-        dokular[kimlik] = {"textures": "textures/item/" + kimlik}
+        dokular[kimlik] = {"textures": ["textures/items/" + kimlik]}
 
         tam = "pa:" + kimlik
         en_us.append("item.%s.name=%s" % (tam, ad))
@@ -558,9 +582,9 @@ def main():
     for kimlik, ad, sivi, goz, gozRenk in IKSIRLER:
         yaz_json(os.path.join(BP, "items", "iksir_" + kimlik + ".json"),
                  iksir_esyasi(kimlik, ad))
-        png_yaz(os.path.join(RP, "textures/item", "iksir_" + kimlik + ".png"),
+        png_yaz(os.path.join(RP, "textures/items", "iksir_" + kimlik + ".png"),
                 16, 16, iksir_ikonu(sivi))
-        dokular["iksir_" + kimlik] = {"textures": "textures/item/iksir_" + kimlik}
+        dokular["iksir_" + kimlik] = {"textures": ["textures/items/iksir_" + kimlik]}
 
         # Normal goz + lazer varyanti
         for ad2, doku in ((goz, goz_dokusu(gozRenk)),
@@ -569,9 +593,9 @@ def main():
                      goz_esyasi(ad2, GOZ_TR[ad2]))
             yaz_json(os.path.join(RP, "attachables", ad2 + ".json"), goz_attachable(ad2))
             png_yaz(os.path.join(RP, "textures/entity", ad2 + ".png"), 64, 64, doku)
-            png_yaz(os.path.join(RP, "textures/item", ad2 + ".png"), 16, 16,
+            png_yaz(os.path.join(RP, "textures/items", ad2 + ".png"), 16, 16,
                     esya_ikonu(gozRenk, (255, 255, 255)))
-            dokular[ad2] = {"textures": "textures/item/" + ad2}
+            dokular[ad2] = {"textures": ["textures/items/" + ad2]}
 
             for liste in (en_us, tr_tr):
                 liste.append("item.pa:%s.name=%s" % (ad2, GOZ_TR[ad2]))
@@ -583,11 +607,25 @@ def main():
     yaz_json(os.path.join(RP, "models/entity/simsek_goz.geo.json"), GOZ_GEOMETRI)
     yaz_json(os.path.join(RP, "models/entity/simsek_kol.geo.json"), GEOMETRI)
     yaz_json(os.path.join(RP, "animations/simsek_kol_tutus.animation.json"), TUTUS_ANIM)
+    # Atlas basligi referanstaki CALISAN pakete birebir uyduruldu:
+
+    #      resource_pack_name -> "vanilla"
+    #        Kendi paket adimizi yazmistik. Calisan referans "vanilla"
+    #        diyor; atlasin vanilla atlasiyla birlesmesi buna bagli.
+
+    #      textures degeri -> DIZI
+    #        Duz metin de belgelerde geciyor ama referans dizi
+    #        kullaniyor ve o calisiyor.                            
     yaz_json(os.path.join(RP, "textures/item_texture.json"), {
-        "resource_pack_name": "simsek_kol",
+        "resource_pack_name": "vanilla",
         "texture_name": "atlas.items",
         "texture_data": dokular,
     })
+
+    # Paket ikonu: paket listesinde taninabilsin diye. Yoksa bos
+    # gri kare cikiyor ve hangi paket oldugunu ayirt etmek zor.
+    for kok, renk in ((BP, (198, 62, 54)), (RP, (134, 96, 62))):
+        png_yaz(os.path.join(kok, "pack_icon.png"), 64, 64, paket_ikonu(renk))
 
     os.makedirs(os.path.join(RP, "texts"), exist_ok=True)
     yaz_json(os.path.join(RP, "texts/languages.json"), ["en_US", "tr_TR"])

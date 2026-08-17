@@ -1061,6 +1061,37 @@ Behavior pack ve resource pack Minecraft'ta **ayrı iki liste**. İki `.mcpack`
 ayrı ayrı kurulunca davranış paketi açılıp kaynak paketi kapalı kalabiliyor.
 Çözüm: tek dosyalık `.mcaddon` — Minecraft ikisini birlikte içe aktarıyor.
 
+## Aşama 13 — atlas biçimi (v4.3)
+
+v4.2'de "kaynak paketi etkin değil" tahmini **yanlış çıktı** — kullanıcı ikisini
+birlikte kuruyor ve kaynak paketi açık olmasına rağmen ikonlar görünmüyordu.
+
+Bu sefer tahmin yerine, referansın **çalışan** kaynak paketiyle bizimkini
+karşılaştırdım. Üç fark çıktı:
+
+| | referans (çalışıyor) | bizde (v4.2) |
+|---|---|---|
+| `resource_pack_name` | `"vanilla"` | `"simsek_kol"` |
+| `textures` değeri | dizi: `["textures/items/x"]` | düz metin: `"textures/item/x"` |
+| klasör | `textures/items/` (çoğul) | `textures/item/` (tekil) |
+
+`resource_pack_name` bilinen bir tuzak: atlasın vanilla atlasıyla birleşmesi
+buna bağlı, kendi paket adını yazınca girdi bulunamıyor. `textures` alanının
+dizi biçimi de belgelerde ikisi de geçiyor ama çalıştığı **kanıtlı** olan dizi.
+
+Üçü de referansa uyduruldu. `kol2.mjs` artık bu biçimi de doğruluyor:
+atlas başlığı `"vanilla"` mı, her girdi dizi mi, yol `textures/items/` ile mi
+başlıyor.
+
+### Ek düzeltmeler
+
+- **`pack_icon.png`** eklendi (iki pakete de). Yoksa paket listesinde boş gri
+  kare çıkıyor ve hangi paket olduğunu ayırt etmek zor.
+- Kaynak paketinin adı hâlâ "v3" diyordu → **"Simsek Kol Gorunumleri v4"**,
+  açıklaması da ne işe yaradığını söylüyor artık.
+- `min_engine_version` iki pakette de `[1,20,0]`'a çekildi — bir değişken daha
+  elendi (referans `[1,17,0]` kullanıyor).
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:
