@@ -1,0 +1,25 @@
+{
+  "format_version": "1.21.0",
+  "minecraft:item": {
+    "description": {
+      "identifier": "pa:goz_yesil",
+      "menu_category": {
+        "category": "equipment"
+      }
+    },
+    "components": {
+      "minecraft:icon": "goz_yesil",
+      "minecraft:display_name": {
+        "value": "Yeşil Göz"
+      },
+      "minecraft:max_stack_size": 1,
+      "minecraft:wearable": {
+        "slot": "slot.armor.head"
+      },
+      "minecraft:armor": {
+        "protection": 0
+      },
+      "minecraft:allow_off_hand": false
+    }
+  }
+}

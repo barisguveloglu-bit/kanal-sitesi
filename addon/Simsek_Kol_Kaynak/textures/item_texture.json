@@ -37,6 +37,36 @@
     },
     "kol_buz": {
       "textures": "textures/item/kol_buz"
+    },
+    "iksir_nitroksin": {
+      "textures": "textures/item/iksir_nitroksin"
+    },
+    "goz_beyaz": {
+      "textures": "textures/item/goz_beyaz"
+    },
+    "iksir_grinoksin": {
+      "textures": "textures/item/iksir_grinoksin"
+    },
+    "goz_yesil": {
+      "textures": "textures/item/goz_yesil"
+    },
+    "iksir_ates_iksiri": {
+      "textures": "textures/item/iksir_ates_iksiri"
+    },
+    "goz_ates": {
+      "textures": "textures/item/goz_ates"
+    },
+    "iksir_kan_iksiri": {
+      "textures": "textures/item/iksir_kan_iksiri"
+    },
+    "goz_kan": {
+      "textures": "textures/item/goz_kan"
+    },
+    "iksir_hiperoksin": {
+      "textures": "textures/item/iksir_hiperoksin"
+    },
+    "goz_mavi": {
+      "textures": "textures/item/goz_mavi"
     }
   }
 }

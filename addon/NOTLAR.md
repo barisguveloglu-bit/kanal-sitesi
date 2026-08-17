@@ -716,6 +716,90 @@ ayırt edilmesi gerekiyordu.
 
 Toplam: **12 kol, 13 yetenek.**
 
+## Aşama 8 — iksirler, uçurma, yamultma (v3.8)
+
+Kullanıcı iki yeni arşiv gönderdi: `toprakkol modu v3` ve `BoraLo Mod (V14)`.
+İkisi de aynı araçla (pamobile Addons Maker) üretilmiş, tamamı `.mcfunction`.
+
+### Ölçek: 21 MB, 1132 satır mantık
+
+| | BoraLo V14 | toprakkol v3 |
+|---|---|---|
+| fonksiyon | 643 (**139'u boş**) | 165 (**47'si boş**) |
+| komut satırı | 1132 | 352 |
+| `tick.json` | 161 giriş, **139'u boş** | 48 giriş, **47'si boş** |
+| eşya / blok | 245 / 49 | 58 / 10 |
+
+BoraLo V14'te 1132 satırın **721'i** (%64) sadece `give` + `replaceitem` —
+yani eşya taşıma, "menü" sistemi. Gerçek oynanış: `effect` 112, `summon` 32,
+`playanimation` 31, `particle` 11, `tp` 8, `setblock` 2.
+
+### Referansta bulunan yeni hatalar
+
+1. **`op @s`** — bir fonksiyon oyuncuya operatör yetkisi veriyor, yanında
+   `tellraw @a "ADMİN MOD:Eneblad"`. O eşyayı alan herkes op oluyor.
+2. **`tp @a @s`** — üç ayrı yerde: bütün oyuncuları kendine ışınlıyor.
+3. **`msg @a herkese merhaba`** — pakette kalmış hata ayıklama satırı.
+4. **`tp @s^^^12 @s^^^12`** — hiçbir şeyi hiçbir yere ışınlamıyor, ölü satır.
+5. **`summon lightning_bolt ^^^+10`** — caret koordinatı `+` kabul etmiyor.
+   Aynı modda doğrusu (`^^^10`) da var, yani 6 çağrı sessizce çalışmıyor.
+6. **`Gamerule`** — büyük harfle, komut çalışmıyor.
+7. **`player.json` vanilla oyuncuyu eziyor** ama 23 bileşeni de vanilla
+   kopyası, `animations`/`scripts` boş. Sıfır fayda, tam çakışma riski.
+8. **`custom.animation_controllers.json`** içinde `controller.animation.nethercat`
+   ve `augustolophus` var — alakasız bir mod'dan kalma ölü ağırlık.
+9. **Davranış paketi animasyon denetleyicileri sonsuz döngü:** geçiş şartı
+   `(1.0)` (her zaman doğru), iki durum da `on_entry`'de aynı fonksiyonu
+   çağırıyor. Bağlanmadıkları için patlamıyorlar.
+10. **64 + 68 + 294 tarif dosyasının hepsi boş `{}`.**
+
+### Alınanlar
+
+**İksir / kademe sistemi** (`iksir.js`) — Nitroksin'in bizdeki karşılığı.
+
+Referans: iksir `minecraft:food`, içince kafa zırhına **kilitli** bir "göz"
+takıyor, güç o gözden geliyor çünkü `tick.json` her tick
+`@e[hasitem={item=pa:beyaz_goz,location=slot.armor.head}]` ile **dünyadaki
+bütün varlıkları** tarıyor. Beş göz × beş efekt = tick başına 25 tam tarama.
+Gözü çıkarmanın yolu yok, yani güç kalıcı.
+
+Bizde durum script'te bir `Map`. Tarama yok — sadece iksir içmiş oyuncular
+geziliyor, kimse içmemişse döngü hiç dönmüyor. **Göz sadece görünüm**, güç
+bayrağı değil: oyuncu çıkarsa bile kademe devam eder, o yüzden kilitlemeye
+gerek yok. Süre dolunca göz kendiliğinden çıkıyor.
+
+Beş kademe: Nitroksin → Grinoksin → Ateş İksiri → Kan İksiri → Hiperoksin.
+Kademeler **birikmiyor** — yeni iksir öncekini iptal eder.
+
+> Kademe iş listesine **girmiyor**. Girseydi "oyuncu başına tek efekt" kuralı
+> yüzünden 60 saniye boyunca bütün yetenekler kilitlenirdi.
+
+İçme `itemCompleteUse` ile yakalanıyor (`itemUse` içmeye *başlayınca*
+tetikleniyor — yarım bırakıp güç kazanmayasın).
+
+**Uçurma** (`ucurma.js`) — `savur` ile karıştırılmasın: savur `applyImpulse`
+ile yatay **iter**, uçurma `levitation` ile **kaldırır**, hedef çaresizce
+havada asılı kalır. Referans üç ayrı mesafede (`^^^2`, `^^^5`, `^^^7`) tek tek
+hedefliyordu, yani tam o noktalardakiler vuruluyordu; bizimki koninin tamamını
+tarıyor. Referansın sonundaki `effect @s clear` bize gerekmiyor — kendimizi
+zaten hedef listesine almıyoruz.
+
+**Yamultma** (`yamult.js`) — referans `slowness 100000 255` veriyordu ve geri
+alan **hiçbir fonksiyon yoktu**. Bizimki süreli ve **çaresi var**: felçli
+birine aynı yeteneği tekrar kullanırsan çözülür. Sadece bizim felç
+ettiklerimiz çözülüyor, başkasının verdiği yavaşlığa dokunulmuyor.
+
+Üç yetenek de `koniHedefleri()` yardımcısını paylaşıyor; tavan aşılırsa
+**en yakınlar** seçiliyor, rastgele değil.
+
+Toplam: **15 yetenek, 12 kol, 5 iksir, 5 göz.**
+
+### Alınmayanlar ve sebepleri
+
+`op`/`tp @a`/`gamemode` komutları (tehlikeli), `player.json` override
+(çakışma riski, sıfır fayda), boş tick fonksiyonları, `item_lock` kilidi,
+`@e[hasitem]` tarama deseni, boş tarif dosyaları.
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:
@@ -728,8 +812,9 @@ Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:
    yetenek başına ayrı bekleme süresi, `@minecraft/server-ui` seçim menüsü.
 5. **TNT yükü.** 30 TNT tabletteki en ağır kalem ve bu script
    optimizasyonuyla çözülmüyor — sayı/oynanış kararı gerekiyor.
-6. **Kalan yetenekler.** `dirt_yap`, yamultma (çaresiyle beraber), Nitroksin
-   kademe sistemi.
+6. **Kalan yetenekler.** Toprak duvar (`fill ^1^5^6 ^-2^^6 dirt`), parçacık
+   efektleri (`particle`), ekran sarsıntısı (`camerashake`), mermi varlığı
+   (`pa:ucur123_bullet` benzeri).
 7. **Kol dokuları.** `textures/` altındakiler hâlâ üretilmiş yer tutucu; her
    kolun rengi farklı ama çizim değil. Aynı adlarla değiştirmen yeterli.
 8. **Oyunda denenmedi.** Attachable'ın gerçekten doğru çizildiği ve

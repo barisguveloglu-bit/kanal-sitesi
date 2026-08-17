@@ -1,0 +1,30 @@
+{
+  "format_version": "1.21.0",
+  "minecraft:item": {
+    "description": {
+      "identifier": "pa:iksir_ates_iksiri",
+      "menu_category": {
+        "category": "items"
+      }
+    },
+    "components": {
+      "minecraft:icon": "iksir_ates_iksiri",
+      "minecraft:display_name": {
+        "value": "Ates Iksiri"
+      },
+      "minecraft:max_stack_size": 16,
+      "minecraft:food": {
+        "nutrition": 0,
+        "can_always_eat": true
+      },
+      "minecraft:use_modifiers": {
+        "use_duration": 1.6,
+        "movement_modifier": 0.35
+      },
+      "minecraft:cooldown": {
+        "category": "iksir",
+        "duration": 1.0
+      }
+    }
+  }
+}

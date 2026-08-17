@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v3.7";
+export const SURUM = "v3.8";
 
 /* ---------------- Tetikleyici esyalar ---------------- */
 export const SIMSEK_ESYA = "minecraft:blaze_rod";     // baktigin yere simsek
@@ -264,6 +264,135 @@ export const BUZ_YUKSEK   = 3;    // kabugun yuksekligi
 export const BUZ_BLOK     = "minecraft:ice";
 export const BUZ_YAVASLIK = 5;    // slowness seviyesi
 export const BUZ_OYUNCU   = true; // oyuncular da donsun mu
+
+/* ---------------- Ucurma ----------------
+   Referans: "execute @s^^^N /effect @e[r=N,c=1] levitation 1 255"
+   uc ayri mesafede, ardindan "effect @s clear" (kendi butun
+   efektlerini siler -- kaba bir yan etki).
+
+   Bizdeki SAVUR ile karistirilmasin: savur ITER (applyImpulse,
+   yatay firlatma), ucurma KALDIRIR (levitation, caresiz havada
+   asili kalir). Ikisi farkli his.                                */
+export const UCURMA_MENZIL = 20;
+export const UCURMA_ACI    = 0.75;  // bakis konisi (1 = tam dar)
+export const UCURMA_SURE   = 100;   // tick (5 saniye)
+export const UCURMA_SIDDET = 4;     // levitation seviyesi
+export const UCURMA_TAVAN  = 12;    // en fazla kac hedef
+export const UCURMA_OYUNCU = true;
+
+/* ---------------- Yamultma (felc) ----------------
+   Referans: slowness 100000 tick seviye 255 + animation.fox.sleep,
+   ve GERI ALAN HICBIR FONKSIYON YOK. Yani ~83 dakika kalici felc.
+
+   Bizimki sureli ve CARESI VAR: ayni yetenegi felcli birine tekrar
+   kullanirsan cozuluyor (referansta boyle bir sey yok).           */
+export const YAMULT_MENZIL = 20;
+export const YAMULT_ACI    = 0.85;
+export const YAMULT_SURE   = 160;   // tick (8 saniye)
+export const YAMULT_SIDDET = 5;     // slowness seviyesi
+export const YAMULT_TAVAN  = 8;
+export const YAMULT_OYUNCU = true;
+
+/* ---------------- Iksirler (Nitroksin sistemi) ----------------
+   Referans mod bunu tamamen komutla yapiyordu:
+     - iksir minecraft:food bileseni, icince bos siseye donusuyor
+     - bir fonksiyon kafa zirhina KILITLI bir "goz" esyasi takiyor
+     - tick.json her tick @e[hasitem={...}] ile o gozu ARIYOR ve
+       buff veriyor -> her tick DUNYADAKI TUM VARLIKLAR taraniyor
+     - gozu cikarmanin yolu yok (item_lock), yani kalici
+
+   Bizde durum script'te: kademeAl(oyuncuId) tek Map okumasi.
+   Dunya taramasi yok, sadece iksir icmis oyuncular geziliyor.
+   Sure dolunca goz kendiliginden cikiyor.
+
+   Goz esyasi SADECE GORUNUM. Guc bayragi degil -- oyuncu gozu
+   cikarsa bile kademe suresi devam eder. Referansta tam tersiydi
+   ve bu yuzden gozu kilitlemek zorunda kalmislar.
+
+   Kademeler birikmiyor: yeni iksir icince onceki iptal olur ve
+   yenisi bastan baslar.                                          */
+export const IKSIR_TAZELEME = 40;   // kac tick'te bir efektler yenilensin
+
+/* Her kademe: kimlik, ad, sure, verilen efektler, goz esyasi.
+   Efekt suresi TAZELEME'den uzun tutuluyor ki iki tazeleme
+   arasinda efekt sonmesin.                                       */
+export const KADEMELER = [
+  {
+    kimlik: "nitroksin",
+    ad: "Nitroksin",
+    sure: 1200,                     // 60 saniye
+    goz: "pa:goz_beyaz",
+    efektler: [
+      ["speed",        1],
+      ["strength",     1],
+      ["jump_boost",   1],
+      ["regeneration", 0]
+    ]
+  },
+  {
+    kimlik: "grinoksin",
+    ad: "Grinoksin",
+    sure: 1200,
+    goz: "pa:goz_yesil",
+    efektler: [
+      ["speed",        2],
+      ["strength",     2],
+      ["jump_boost",   2],
+      ["regeneration", 1],
+      ["resistance",   0]
+    ]
+  },
+  {
+    kimlik: "ates_iksiri",
+    ad: "Ates Iksiri",
+    sure: 1200,
+    goz: "pa:goz_ates",
+    efektler: [
+      ["speed",           2],
+      ["strength",        2],
+      ["fire_resistance", 0],
+      ["regeneration",    1],
+      ["resistance",      1]
+    ]
+  },
+  {
+    kimlik: "kan_iksiri",
+    ad: "Kan Iksiri",
+    sure: 1200,
+    goz: "pa:goz_kan",
+    efektler: [
+      ["speed",        3],
+      ["strength",     3],
+      ["regeneration", 2],
+      ["resistance",   1],
+      ["absorption",   2]
+    ]
+  },
+  {
+    kimlik: "hiperoksin",
+    ad: "Hiperoksin",
+    sure: 1200,
+    goz: "pa:goz_mavi",
+    /* En ust kademe. Referansta bu kademe ucusu da aciyordu
+       (levitation 1 2) ama surekli levitation kontrolu elinden
+       aliyor -- yerde duramiyorsun. Onun yerine slow_falling:
+       yuksekten atlayabilirsin, olmezsin, ama kontrol sende.    */
+    efektler: [
+      ["speed",         4],
+      ["strength",      4],
+      ["regeneration",  2],
+      ["resistance",    2],
+      ["absorption",    3],
+      ["slow_falling",  0],
+      ["night_vision",  0]
+    ]
+  }
+];
+
+/* Kademe -> iksir esyasi eslesmesi generator ile ayni sirada
+   uretiliyor: pa:iksir_<kimlik>                                  */
+export const IKSIR_ONEK = "pa:iksir_";
+export const BOS_SISE   = "pa:bos_sise";
 
 /* ---------------- Korunan bloklar ----------------
    Toprak topu ve blok yazan diger yetenekler bunlara dokunmaz.     */

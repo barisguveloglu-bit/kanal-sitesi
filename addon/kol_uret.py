@@ -111,6 +111,137 @@ def esya(kimlik, ad):
     }
 
 
+# ---------------------------------------------------------------- iksir
+# kimlik, gorunen ad, sivi rengi, goz kimligi, goz rengi
+IKSIRLER = [
+    ("nitroksin",   "Nitroksin",   (236, 240, 248), "goz_beyaz", (245, 248, 255)),
+    ("grinoksin",   "Grinoksin",   (96, 214, 110),  "goz_yesil", (150, 255, 160)),
+    ("ates_iksiri", "Ates Iksiri", (240, 130, 40),  "goz_ates",  (255, 190, 90)),
+    ("kan_iksiri",  "Kan Iksiri",  (170, 30, 34),   "goz_kan",   (230, 60, 60)),
+    ("hiperoksin",  "Hiperoksin",  (70, 150, 240),  "goz_mavi",  (140, 210, 255)),
+]
+
+IKSIR_TR = {
+    "nitroksin": "Nitroksin", "grinoksin": "Grinoksin",
+    "ates_iksiri": "Ateş İksiri", "kan_iksiri": "Kan İksiri",
+    "hiperoksin": "Hiperoksin",
+}
+GOZ_TR = {
+    "goz_beyaz": "Beyaz Göz", "goz_yesil": "Yeşil Göz",
+    "goz_ates": "Ateş Gözü", "goz_kan": "Kanlı Göz", "goz_mavi": "Mavi Göz",
+}
+
+
+def iksir_esyasi(kimlik, ad):
+    """Icilebilir iksir. minecraft:food bileseni referanstan alindi --
+    icme animasyonunu ve "bitince bos siseye donusme" davranisini
+    oyunun kendisi hallediyor, biz yazmiyoruz.
+
+    AMA referanstaki gibi efektleri buraya KOYMUYORUZ. Orada
+    food.effects icinde sabit efektler vardi; bizde gucler script
+    tarafinda, cunku kademe suresi/tazeleme/goz yonetimi gerekiyor.
+    Buradaki food sadece "icilebilir olsun" diye.                  """
+    return {
+        "format_version": "1.21.0",
+        "minecraft:item": {
+            "description": {
+                "identifier": "pa:iksir_" + kimlik,
+                "menu_category": {"category": "items"},
+            },
+            "components": {
+                "minecraft:icon": "iksir_" + kimlik,
+                "minecraft:display_name": {"value": ad},
+                "minecraft:max_stack_size": 16,
+                "minecraft:food": {"nutrition": 0, "can_always_eat": True},
+                "minecraft:use_modifiers": {"use_duration": 1.6, "movement_modifier": 0.35},
+                "minecraft:cooldown": {"category": "iksir", "duration": 1.0},
+            },
+        },
+    }
+
+
+def goz_esyasi(kimlik, ad):
+    """Kafaya takilan goz. SADECE GORUNUM -- guc bayragi degil.
+
+    Referansta guc bu esyadan geliyordu (her tick @e[hasitem=...]
+    taramasi) ve bu yuzden item_lock ile kilitlemek zorundaydilar.
+    Bizde durum script'te, o yuzden kilit yok: cikarabilirsin,
+    kademe yine de devam eder ve sure dolunca script kendisi
+    cikarir.                                                       """
+    return {
+        "format_version": "1.21.0",
+        "minecraft:item": {
+            "description": {
+                "identifier": "pa:" + kimlik,
+                "menu_category": {"category": "equipment"},
+            },
+            "components": {
+                "minecraft:icon": kimlik,
+                "minecraft:display_name": {"value": ad},
+                "minecraft:max_stack_size": 1,
+                "minecraft:wearable": {"slot": "slot.armor.head"},
+                "minecraft:armor": {"protection": 0},
+                "minecraft:allow_off_hand": False,
+            },
+        },
+    }
+
+
+GOZ_GEOMETRI = {
+    "format_version": "1.12.0",
+    "minecraft:geometry": [
+        {
+            "description": {
+                "identifier": "geometry.simsek_goz",
+                "texture_width": 64,
+                "texture_height": 64,
+                "visible_bounds_width": 2,
+                "visible_bounds_height": 2,
+                "visible_bounds_offset": [0, 1, 0],
+            },
+            "bones": [
+                # Kol modelindeki ile ayni kural: kemik adi oyuncu
+                # iskeletindekiyle ayni olmali ki kafaya otursun.
+                {
+                    "name": "Head",
+                    "pivot": [0, 24, 0],
+                    "cubes": [
+                        {
+                            "origin": [-4, 24, -4],
+                            "size": [8, 8, 8],
+                            "uv": [0, 0],
+                            "inflate": 0.52,
+                        }
+                    ],
+                }
+            ],
+        }
+    ],
+}
+
+
+def goz_attachable(kimlik):
+    """Referanstan alinan kritik satir: parent_setup ile
+    helmet_layer_visible = 0 -- yoksa kaskin kendisi de cizilir ve
+    goz kaskin altinda kalir."""
+    return {
+        "format_version": "1.10.0",
+        "minecraft:attachable": {
+            "description": {
+                "identifier": "pa:" + kimlik,
+                "materials": {"default": "armor", "enchanted": "armor_enchanted"},
+                "textures": {
+                    "default": "textures/entity/" + kimlik,
+                    "enchanted": "textures/misc/enchanted_item_glint",
+                },
+                "geometry": {"default": "geometry.simsek_goz"},
+                "scripts": {"parent_setup": "variable.helmet_layer_visible = 0.0;"},
+                "render_controllers": ["controller.render.armor"],
+            }
+        },
+    }
+
+
 # ---------------------------------------------------------- attachable
 def attachable(kimlik):
     tam = "pa:" + kimlik
@@ -297,6 +428,52 @@ def varlik_dokusu(ana, vurgu):
     return p
 
 
+def iksir_ikonu(renk):
+    """16x16 sise: cam govde + renkli sivi + tipa."""
+    p = {}
+    CAM = (196, 214, 222)
+    TIPA = (128, 96, 62)
+    for y in range(2, 5):                       # boyun
+        for x in range(7, 9):
+            p[(x, y)] = CAM + (255,)
+    for x in range(6, 10):                      # tipa
+        p[(x, 2)] = TIPA + (255,)
+    for y in range(5, 15):                      # govde
+        genis = 3 if y < 7 else 5
+        for x in range(8 - genis, 8 + genis - 1):
+            if x < 3 or x > 12:
+                continue
+            kenar = (x == 8 - genis or x == 8 + genis - 2 or y == 14)
+            if kenar:
+                p[(x, y)] = golge(CAM, 0.7) + (255,)
+            elif y >= 7:                        # sivi seviyesi
+                p[(x, y)] = (renk if (x + y) % 5 else golge(renk, 1.3)) + (255,)
+            else:
+                p[(x, y)] = golge(CAM, 1.05) + (255,)
+    return p
+
+
+def goz_dokusu(renk):
+    """64x64 kafa dokusu. Yuzun oldugu yere (8..15, 8..15) iki
+    parlak goz cizilir, gerisi TAMAMEN SAYDAM kalir -- boylece
+    skin'in yuzu gorunur, sadece gozler parliyor."""
+    p = {}
+    # Sol goz ve sag goz: yuz bolgesinde iki yatay serit
+    for x in range(9, 12):
+        for y in range(12, 14):
+            p[(x, y)] = renk + (255,)
+    for x in range(13, 16):
+        for y in range(12, 14):
+            p[(x, y)] = renk + (255,)
+    # Hafif dis hat, gozler zeminden ayrilsin
+    for x, y in list(p.keys()):
+        for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)):
+            k = (x + dx, y + dy)
+            if k not in p and 8 <= k[0] < 16 and 8 <= k[1] < 16:
+                p[k] = golge(renk, 0.35) + (200,)
+    return p
+
+
 def esya_ikonu(ana, vurgu):
     """16x16 envanter ikonu: dikey duran basit bir kol silueti."""
     p = {}
@@ -338,6 +515,31 @@ def main():
         tr_tr.append("item.%s.name=%s" % (tam, TR_AD[kimlik]))
         tr_tr.append("item.%s=%s" % (tam, TR_AD[kimlik]))
 
+    # ---- Iksirler ve gozler ----
+    for kimlik, ad, sivi, goz, gozRenk in IKSIRLER:
+        yaz_json(os.path.join(BP, "items", "iksir_" + kimlik + ".json"),
+                 iksir_esyasi(kimlik, ad))
+        png_yaz(os.path.join(RP, "textures/item", "iksir_" + kimlik + ".png"),
+                16, 16, iksir_ikonu(sivi))
+        dokular["iksir_" + kimlik] = {"textures": "textures/item/iksir_" + kimlik}
+
+        yaz_json(os.path.join(BP, "items", goz + ".json"),
+                 goz_esyasi(goz, GOZ_TR[goz]))
+        yaz_json(os.path.join(RP, "attachables", goz + ".json"), goz_attachable(goz))
+        png_yaz(os.path.join(RP, "textures/entity", goz + ".png"), 64, 64,
+                goz_dokusu(gozRenk))
+        png_yaz(os.path.join(RP, "textures/item", goz + ".png"), 16, 16,
+                esya_ikonu(gozRenk, (255, 255, 255)))
+        dokular[goz] = {"textures": "textures/item/" + goz}
+
+        for liste, tr in ((en_us, ad), (tr_tr, IKSIR_TR[kimlik])):
+            liste.append("item.pa:iksir_%s.name=%s" % (kimlik, tr))
+            liste.append("item.pa:iksir_%s=%s" % (kimlik, tr))
+        for liste, tr in ((en_us, GOZ_TR[goz]), (tr_tr, GOZ_TR[goz])):
+            liste.append("item.pa:%s.name=%s" % (goz, tr))
+            liste.append("item.pa:%s=%s" % (goz, tr))
+
+    yaz_json(os.path.join(RP, "models/entity/simsek_goz.geo.json"), GOZ_GEOMETRI)
     yaz_json(os.path.join(RP, "models/entity/simsek_kol.geo.json"), GEOMETRI)
     yaz_json(os.path.join(RP, "animations/simsek_kol_tutus.animation.json"), TUTUS_ANIM)
     yaz_json(os.path.join(RP, "textures/item_texture.json"), {
@@ -352,8 +554,10 @@ def main():
         with open(os.path.join(RP, "texts", dosya), "w", encoding="utf-8") as f:
             f.write("\n".join(satirlar) + "\n")
 
-    print("uretildi: %d esya, %d attachable, %d doku, 2 dil dosyasi"
-          % (len(KOLLAR), len(KOLLAR), len(KOLLAR) * 2))
+    print("uretildi: %d kol, %d iksir, %d goz -> %d esya, %d doku"
+          % (len(KOLLAR), len(IKSIRLER), len(IKSIRLER),
+             len(KOLLAR) + len(IKSIRLER) * 2,
+             len(KOLLAR) * 2 + len(IKSIRLER) * 3))
 
 
 if __name__ == "__main__":

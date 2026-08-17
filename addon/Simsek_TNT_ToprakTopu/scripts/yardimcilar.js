@@ -225,6 +225,59 @@ export function hedefBul(oyuncu, menzil) {
   }
 }
 
+/* Bakis konisindeki varliklar, yakindan uzaga sirali.
+
+   Referans mod bu isi "execute @s^^^2 /... @e[r=2,c=1]" diye
+   AYRI MESAFELERDE tek tek yapiyordu: tam o noktalarda duranlar
+   vuruluyor, arasindakiler kurtuluyordu. Burada koninin tamami
+   bir kez taraniyor.
+
+   secenek: { menzil, aci, tavan, oyuncuDahil }
+     aci: 1 = tam dar koni, 0 = her yon. Iki vektorun nokta
+          carpimiyla olculuyor; getViewDirection birim vektor
+          donduruguu icin dogrudan kosinus.                      */
+export function koniHedefleri(oyuncu, secenek) {
+  const menzil = secenek.menzil;
+  let yakin, merkez, yon;
+
+  try {
+    merkez = oyuncu.location;
+    yon = oyuncu.getViewDirection();
+    yakin = oyuncu.dimension.getEntities({
+      location: merkez,
+      maxDistance: menzil,
+      excludeTypes: ["minecraft:item", "minecraft:xp_orb"]
+    });
+  } catch (e) {
+    hataYaz("koniHedefleri.getEntities", e);
+    return [];
+  }
+
+  const bulunan = [];
+  for (const varlik of yakin) {
+    try {
+      if (varlik.id === oyuncu.id) continue;      // kendimizi asla
+      if (!gecerliMi(varlik)) continue;
+      if (varlik.typeId === "minecraft:player" && !secenek.oyuncuDahil) continue;
+
+      const k = varlik.location;
+      const dx = k.x - merkez.x, dy = k.y - merkez.y, dz = k.z - merkez.z;
+      const uzaklik = Math.sqrt(dx * dx + dy * dy + dz * dz);
+      if (uzaklik < 0.001) continue;
+      if ((dx * yon.x + dy * yon.y + dz * yon.z) / uzaklik < secenek.aci) continue;
+
+      bulunan.push({ varlik, uzaklik });
+    } catch (e) {
+      hataYaz("koniHedefleri.tarama", e);
+    }
+  }
+
+  // Tavan asilirsa EN YAKINLAR kalsin -- rastgele degil
+  bulunan.sort((a, b) => a.uzaklik - b.uzaklik);
+  const tavan = secenek.tavan || bulunan.length;
+  return bulunan.slice(0, tavan).map((x) => x.varlik);
+}
+
 /* ============================================================
    KURE GEOMETRISI
    Blok yazan yeteneklerin ortak altyapisi.

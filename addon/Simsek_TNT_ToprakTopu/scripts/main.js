@@ -17,6 +17,10 @@ import {
 } from "./butce.js";
 
 import {
+  iksirIc, iksirTara, iksirinKademesi, kademeUnut, kademeSayisi
+} from "./iksir.js";
+
+import {
   esyaninYetenekleri, yetenekAl, esyasizSira, tumYetenekler
 } from "./yetenekler/kayit.js";
 
@@ -37,6 +41,8 @@ import "./yetenekler/can_verme.js";
 import "./yetenekler/ors.js";
 import "./yetenekler/buz_adam.js";
 import "./yetenekler/toprak_ucus.js";
+import "./yetenekler/ucurma.js";
+import "./yetenekler/yamult.js";
 
 /* DIKKAT -- SIRA ONEMLI.
    kollar.js var olan yeteneklere esya BAGLIYOR, yani bagladigi
@@ -53,6 +59,8 @@ import {
    Her yetenek kendi runInterval'ini acmak yerine tek dongu var
    ve butceyi o dagitiyor.
    ============================================================ */
+
+let iksirVar = false;             // hic iksir icilmis mi (bos tarama yapmayalim)
 
 const isler = [];                 // aktif isler
 const oyuncununIsi = new Map();   // oyuncuId -> is (oyuncu basina tek efekt)
@@ -82,6 +90,17 @@ system.runInterval(() => {
       esyasizTara();
     } catch (e) {
       hataYaz("esyasizTara", e);
+    }
+  }
+
+  /* Iksir kademesi is listesine GIRMIYOR. Girseydi "oyuncu basina
+     tek efekt" kurali yuzunden 60 saniye boyunca butun yetenekler
+     kilitlenirdi. Ayrica Map bosken bu cagri bedava.            */
+  if (iksirVar) {
+    try {
+      iksirTara(world.getAllPlayers());
+    } catch (e) {
+      hataYaz("iksirTara", e);
     }
   }
 
@@ -179,6 +198,29 @@ const girisKuruldu = olayaAbone("itemUse", (olay) => {
 
 if (!girisKuruldu) {
   bilgiYaz("KRITIK: itemUse olayina abone olunamadi, esyalar calismaz.");
+}
+
+/* ---- Iksir icme ----
+   Yiyecek/icecek esyalarinda itemUse KULLANMAYA BASLAYINCA
+   tetiklenir, itemCompleteUse ise BITINCE. Iksirin etkisi
+   bitince gelmeli, yoksa yarim birakip guc kazanirsin.        */
+const iksirKuruldu = olayaAbone("itemCompleteUse", (olay) => {
+  try {
+    const oyuncu = olay.source;
+    const esya = olay.itemStack;
+    if (!oyuncu || !esya) return;
+
+    const kademe = iksirinKademesi(esya.typeId);
+    if (!kademe) return;
+
+    if (iksirIc(oyuncu, kademe)) iksirVar = true;
+  } catch (e) {
+    hataYaz("itemCompleteUse", e);
+  }
+});
+
+if (!iksirKuruldu) {
+  bilgiYaz("UYARI: itemCompleteUse yok, iksirler calismayacak.");
 }
 
 /* ---- Ikinci giris yolu: elle scriptevent ----
@@ -408,6 +450,7 @@ olayaAbone("playerLeave", (olay) => {
   esyasizZipla.delete(olay.playerId);
   kolVerTutma.delete(olay.playerId);
   kolSecim.delete(olay.playerId);
+  kademeUnut(olay.playerId);
 
   const is = oyuncununIsi.get(olay.playerId);
   if (is) {
