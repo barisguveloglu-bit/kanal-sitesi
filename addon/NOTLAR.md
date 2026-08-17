@@ -1092,6 +1092,60 @@ başlıyor.
 - `min_engine_version` iki pakette de `[1,20,0]`'a çekildi — bir değişken daha
   elendi (referans `[1,17,0]` kullanıyor).
 
+## Aşama 14 — v4.3 geri alındı, kol düzeni ve buz mızrağı (v4.4)
+
+### v4.3 geri alındı
+
+Kullanıcı **v4.2'nin oyunda çalıştığını** bildirdi: ikonlar görünüyor, kollar
+çiziliyor. v4.3 atlas biçimini "referansa uydurmak" için değiştirmişti
+(`resource_pack_name` → `"vanilla"`, `textures` → dizi, klasör → `items/`).
+Yani **çalışan bir şeyi düzeltmeye çalışıyordu.** Üçü de geri alındı ve
+`kol2.mjs` artık v4.2 biçimini kilitliyor — bir daha kaymasın.
+
+Ders: bir sonraki sürümde çalıştığı doğrulanmadan "daha doğru" görünen
+biçime geçmek, düzeltme değil risk.
+
+### Üretecin sildiği dosyalar
+
+`kol_uret.py` yalnızca **yazıyordu**. Listeden bir kol çıkarılınca eski
+`items/`, `attachables/` ve doku dosyaları diskte kalıyor, pakete giriyor ve
+oyunda hâlâ görünüyordu — `kol_meteor` ve `kol_tnt` kaldırıldığında tam bunu
+yaptı. Üreteç artık ürettiği kümede olmayan dosyaları siliyor: **disk = üretecin
+çıktısı.**
+
+### Kol düzeni değişti
+
+| kol | yetenekler |
+|---|---|
+| **Toprak Kol** | Can Verme, Toprak Topu, Yön Şimşeği, Örs, Toprak Yükselişi, Toprak Duvar, **Meteor**, **Güçlü TNT** |
+| **Buz Kol** | Buz Adam, **Buz Mızrağı** |
+| diğer 8 kol | tek yetenek (değişmedi) |
+
+`pa:kol_meteor` ve `pa:kol_tnt` **tamamen kaldırıldı** — yetenekleri Toprak
+Kol'a taşındı, yetenek dosyalarına dokunulmadı.
+
+### Dokular
+
+- **Toprak Kol**: kırmızı vurgular kaldırıldı. Artık sadece toprak tonları —
+  koyu kahve zemin üzerinde açık/orta kahve lekeler, arada tek tük gri taş.
+- **Buz Kol**: kendi paleti (buzul mavisi), aynı lekeli desen mantığı.
+
+### Buz Mızrağı
+
+Baktığın yöne buz parçası fırlatıyor. Çarptığına **2 dakika** yavaşlık +
+zehir + zayıflık veriyor. Zehir canı yavaş yavaş götürüyor ama **öldürmüyor**
+(vanilla zehir 1 canda bırakır) — hedefi hapsedip eritiyorsun, anında infaz
+değil.
+
+Mızrak **varlık değil**, iş olarak uçuyor: her tick `MIZRAK_HIZ` blok
+ilerleyip yolda çarpma arıyor. Böylece varlık bütçesi harcanmıyor, chunk
+sınırında kaybolmuyor ve biri onu vurup yok edemiyor.
+
+Çarptığı yere kısa bir buz dikiti bırakıyor; o da süresi dolunca eriyor ve
+yalnızca **bizim koyduğumuz** blok kaldırılıyor.
+
+Toplam: **19 yetenek, 10 kol, 5 iksir.**
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:

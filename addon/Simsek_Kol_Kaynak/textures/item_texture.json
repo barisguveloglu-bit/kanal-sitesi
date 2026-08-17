@@ -1,141 +1,81 @@
 {
-  "resource_pack_name": "vanilla",
+  "resource_pack_name": "simsek_kol",
   "texture_name": "atlas.items",
   "texture_data": {
     "kol_toprak": {
-      "textures": [
-        "textures/items/kol_toprak"
-      ]
+      "textures": "textures/item/kol_toprak"
     },
     "kol_halka": {
-      "textures": [
-        "textures/items/kol_halka"
-      ]
+      "textures": "textures/item/kol_halka"
     },
     "kol_simsek": {
-      "textures": [
-        "textures/items/kol_simsek"
-      ]
+      "textures": "textures/item/kol_simsek"
     },
     "kol_alan": {
-      "textures": [
-        "textures/items/kol_alan"
-      ]
-    },
-    "kol_tnt": {
-      "textures": [
-        "textures/items/kol_tnt"
-      ]
+      "textures": "textures/item/kol_alan"
     },
     "kol_top": {
-      "textures": [
-        "textures/items/kol_top"
-      ]
+      "textures": "textures/item/kol_top"
     },
     "kol_savur": {
-      "textures": [
-        "textures/items/kol_savur"
-      ]
+      "textures": "textures/item/kol_savur"
     },
     "kol_ucus": {
-      "textures": [
-        "textures/items/kol_ucus"
-      ]
-    },
-    "kol_meteor": {
-      "textures": [
-        "textures/items/kol_meteor"
-      ]
+      "textures": "textures/item/kol_ucus"
     },
     "kol_can": {
-      "textures": [
-        "textures/items/kol_can"
-      ]
+      "textures": "textures/item/kol_can"
     },
     "kol_ors": {
-      "textures": [
-        "textures/items/kol_ors"
-      ]
+      "textures": "textures/item/kol_ors"
     },
     "kol_buz": {
-      "textures": [
-        "textures/items/kol_buz"
-      ]
+      "textures": "textures/item/kol_buz"
     },
     "iksir_nitroksin": {
-      "textures": [
-        "textures/items/iksir_nitroksin"
-      ]
+      "textures": "textures/item/iksir_nitroksin"
     },
     "goz_beyaz": {
-      "textures": [
-        "textures/items/goz_beyaz"
-      ]
+      "textures": "textures/item/goz_beyaz"
     },
     "goz_beyaz_lazer": {
-      "textures": [
-        "textures/items/goz_beyaz_lazer"
-      ]
+      "textures": "textures/item/goz_beyaz_lazer"
     },
     "iksir_grinoksin": {
-      "textures": [
-        "textures/items/iksir_grinoksin"
-      ]
+      "textures": "textures/item/iksir_grinoksin"
     },
     "goz_yesil": {
-      "textures": [
-        "textures/items/goz_yesil"
-      ]
+      "textures": "textures/item/goz_yesil"
     },
     "goz_yesil_lazer": {
-      "textures": [
-        "textures/items/goz_yesil_lazer"
-      ]
+      "textures": "textures/item/goz_yesil_lazer"
     },
     "iksir_ates_iksiri": {
-      "textures": [
-        "textures/items/iksir_ates_iksiri"
-      ]
+      "textures": "textures/item/iksir_ates_iksiri"
     },
     "goz_ates": {
-      "textures": [
-        "textures/items/goz_ates"
-      ]
+      "textures": "textures/item/goz_ates"
     },
     "goz_ates_lazer": {
-      "textures": [
-        "textures/items/goz_ates_lazer"
-      ]
+      "textures": "textures/item/goz_ates_lazer"
     },
     "iksir_kan_iksiri": {
-      "textures": [
-        "textures/items/iksir_kan_iksiri"
-      ]
+      "textures": "textures/item/iksir_kan_iksiri"
     },
     "goz_kan": {
-      "textures": [
-        "textures/items/goz_kan"
-      ]
+      "textures": "textures/item/goz_kan"
     },
     "goz_kan_lazer": {
-      "textures": [
-        "textures/items/goz_kan_lazer"
-      ]
+      "textures": "textures/item/goz_kan_lazer"
     },
     "iksir_hiperoksin": {
-      "textures": [
-        "textures/items/iksir_hiperoksin"
-      ]
+      "textures": "textures/item/iksir_hiperoksin"
     },
     "goz_mavi": {
-      "textures": [
-        "textures/items/goz_mavi"
-      ]
+      "textures": "textures/item/goz_mavi"
     },
     "goz_mavi_lazer": {
-      "textures": [
-        "textures/items/goz_mavi_lazer"
-      ]
+      "textures": "textures/item/goz_mavi_lazer"
     }
   }
 }

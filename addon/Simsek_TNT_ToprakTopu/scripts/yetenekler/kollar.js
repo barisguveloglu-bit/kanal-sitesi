@@ -41,21 +41,23 @@ import { bilgiYaz, hataYaz, actionbarYaz } from "../yardimcilar.js";
    eleman var; ayri bir kod yolu yok.                             */
 export const KOL_ESYALARI = [
   // Cok yetenekli kol
+  /* TOPRAK KOL -- sekiz yetenek. Meteor ve Guclu TNT kendi
+     kollarindan buraya tasindi, o iki kol tamamen kaldirildi. */
   ["pa:kol_toprak", "can_verme", "toprak_topu", "yon_simsegi", "ors",
-                    "toprak_ucus", "toprak_duvar"],
+                    "toprak_ucus", "toprak_duvar", "meteor", "guclu_tnt"],
+
+  /* BUZ KOL -- dondurma takimi. */
+  ["pa:kol_buz",    "buz_adam", "buz_mizragi"],
 
   // Tek yetenekli kollar
   ["pa:kol_halka",  "yildirim_halkasi"],
   ["pa:kol_simsek", "yon_simsegi"],
   ["pa:kol_alan",   "alan_simsegi"],
-  ["pa:kol_tnt",    "guclu_tnt"],
   ["pa:kol_top",    "toprak_topu"],
   ["pa:kol_savur",  "savur"],
   ["pa:kol_ucus",   "ucus"],
-  ["pa:kol_meteor", "meteor"],
   ["pa:kol_can",    "can_verme"],
-  ["pa:kol_ors",    "ors"],
-  ["pa:kol_buz",    "buz_adam"]
+  ["pa:kol_ors",    "ors"]
 ];
 
 for (const satir of KOL_ESYALARI) {

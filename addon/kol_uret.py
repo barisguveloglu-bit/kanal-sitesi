@@ -28,14 +28,12 @@ KOLLAR = [
     ("kol_halka",  "yildirim_halkasi", "Yildirim Halkasi Kolu", (86, 148, 232),  (214, 236, 255)),
     ("kol_simsek", "yon_simsegi",      "Simsek Kolu",           (233, 196, 66),  (255, 246, 190)),
     ("kol_alan",   "alan_simsegi",     "Alan Simsegi Kolu",     (72, 196, 190),  (198, 248, 244)),
-    ("kol_tnt",    "guclu_tnt",        "Guclu TNT Kolu",        (198, 62, 54),   (255, 176, 120)),
     ("kol_top",    "toprak_topu",      "Toprak Topu Kolu",      (134, 96, 62),   (186, 152, 112)),
     ("kol_savur",  "savur",            "Savurma Kolu",          (140, 96, 200),  (214, 190, 250)),
     ("kol_ucus",   "ucus",             "Ucus Kolu",             (120, 190, 236), (226, 246, 255)),
-    ("kol_meteor", "meteor",           "Meteor Kolu",           (226, 122, 48),  (255, 206, 140)),
     ("kol_can",    "can_verme",        "Can Verme Kolu",        (214, 96, 148),  (255, 200, 226)),
     ("kol_ors",    "ors",              "Ors Kolu",              (118, 118, 128), (206, 210, 222)),
-    ("kol_buz",    "buz_adam",         "Buz Adam Kolu",         (152, 214, 236), (240, 252, 255)),
+    ("kol_buz",    "buz_adam",         "Buz Kol",               (126, 190, 200), (196, 232, 238)),
 ]
 
 # Turkce gorunen adlar (dil dosyasi icin; JSON'da ASCII tutuluyor)
@@ -44,14 +42,12 @@ TR_AD = {
     "kol_halka":  "Yıldırım Halkası Kolu",
     "kol_simsek": "Şimşek Kolu",
     "kol_alan":   "Alan Şimşeği Kolu",
-    "kol_tnt":    "Güçlü TNT Kolu",
     "kol_top":    "Toprak Topu Kolu",
     "kol_savur":  "Savurma Kolu",
     "kol_ucus":   "Uçuş Kolu",
-    "kol_meteor": "Meteor Kolu",
     "kol_can":    "Can Verme Kolu",
     "kol_ors":    "Örs Kolu",
-    "kol_buz":    "Buz Adam Kolu",
+    "kol_buz":    "Buz Kol",
 }
 
 # BEKLEME = 60 tick = 3 sn. Esya beklemesi bununla ayni tutuluyor ki
@@ -386,10 +382,14 @@ def toprak_dokusu():
     calistirmada ayni doku ciksin, git'te gereksiz degisiklik
     gorunmesin.
     """
-    ZEMIN  = (24, 22, 20)      # kararmis siyah
+    # Gonderilen gorsele gore: kirmizi vurgular KALDIRILDI.
+    # Sadece toprak tonlari -- koyu kahve zemin uzerinde acik
+    # ve orta kahve lekeler, arada tek tuk gri tas parcasi.   
+    KOYU   = (74, 50, 32)      # koyu kahve zemin
     TOPRAK = (134, 96, 62)     # toprak
-    ACIK   = (198, 138, 90)    # acik toprak / kum
-    KIRMIZI = (122, 26, 22)    # koyu kirmizi vurgu
+    ACIK   = (176, 126, 84)    # acik toprak
+    ENACIK = (198, 150, 104)   # en acik leke
+    TAS    = (128, 128, 132)   # tek tuk gri tas
 
     p = {}
     for y in range(16, 32):
@@ -401,20 +401,54 @@ def toprak_dokusu():
             h = (x * 73856093) ^ (y * 19349663)
             h = (h >> 4) & 0xFF
 
-            if h < 96:
+            if h < 70:
                 renk = TOPRAK
-            elif h < 130:
+            elif h < 110:
                 renk = ACIK
-            elif h < 140:
-                renk = KIRMIZI
+            elif h < 128:
+                renk = ENACIK
+            elif h < 132:
+                renk = TAS
             else:
-                renk = ZEMIN
+                renk = KOYU
 
             if kenar:
                 renk = golge(renk, 0.6)
             if y < 18:                      # omuz tarafi daha koyu
                 renk = golge(renk, 0.75)
 
+            p[(x, y)] = renk + (255,)
+    return p
+
+
+def buz_dokusu():
+    """Buz Kol -- gonderilen gorsele gore: buzul mavisi, duz olmayan
+    lekeli desen. Toprak koluyla ayni mantik, farkli palet."""
+    KOYU  = (86, 142, 152)
+    ORTA  = (126, 190, 200)
+    ACIK  = (164, 214, 222)
+    ENACK = (196, 232, 238)
+
+    p = {}
+    for y in range(16, 32):
+        for x in range(40, 56):
+            kenar = x in (40, 44, 48, 52) or x in (43, 47, 51, 55)
+            h = ((x * 73856093) ^ (y * 19349663))
+            h = (h >> 4) & 0xFF
+
+            if h < 72:
+                renk = ORTA
+            elif h < 118:
+                renk = ACIK
+            elif h < 140:
+                renk = ENACK
+            else:
+                renk = KOYU
+
+            if kenar:
+                renk = golge(renk, 0.72)
+            if y < 18:
+                renk = golge(renk, 0.85)
             p[(x, y)] = renk + (255,)
     return p
 
@@ -565,12 +599,17 @@ def main():
         yaz_json(os.path.join(BP, "items", kimlik + ".json"), esya(kimlik, ad))
         yaz_json(os.path.join(RP, "attachables", kimlik + ".json"), attachable(kimlik))
 
-        doku = toprak_dokusu() if kimlik == "kol_toprak" else varlik_dokusu(ana, vurgu)
+        if kimlik == "kol_toprak":
+            doku = toprak_dokusu()
+        elif kimlik == "kol_buz":
+            doku = buz_dokusu()
+        else:
+            doku = varlik_dokusu(ana, vurgu)
         png_yaz(os.path.join(RP, "textures/entity", kimlik + ".png"), 64, 64, doku)
-        png_yaz(os.path.join(RP, "textures/items", kimlik + ".png"), 16, 16,
+        png_yaz(os.path.join(RP, "textures/item", kimlik + ".png"), 16, 16,
                 esya_ikonu(ana, vurgu))
 
-        dokular[kimlik] = {"textures": ["textures/items/" + kimlik]}
+        dokular[kimlik] = {"textures": "textures/item/" + kimlik}
 
         tam = "pa:" + kimlik
         en_us.append("item.%s.name=%s" % (tam, ad))
@@ -582,9 +621,9 @@ def main():
     for kimlik, ad, sivi, goz, gozRenk in IKSIRLER:
         yaz_json(os.path.join(BP, "items", "iksir_" + kimlik + ".json"),
                  iksir_esyasi(kimlik, ad))
-        png_yaz(os.path.join(RP, "textures/items", "iksir_" + kimlik + ".png"),
+        png_yaz(os.path.join(RP, "textures/item", "iksir_" + kimlik + ".png"),
                 16, 16, iksir_ikonu(sivi))
-        dokular["iksir_" + kimlik] = {"textures": ["textures/items/iksir_" + kimlik]}
+        dokular["iksir_" + kimlik] = {"textures": "textures/item/iksir_" + kimlik}
 
         # Normal goz + lazer varyanti
         for ad2, doku in ((goz, goz_dokusu(gozRenk)),
@@ -593,9 +632,9 @@ def main():
                      goz_esyasi(ad2, GOZ_TR[ad2]))
             yaz_json(os.path.join(RP, "attachables", ad2 + ".json"), goz_attachable(ad2))
             png_yaz(os.path.join(RP, "textures/entity", ad2 + ".png"), 64, 64, doku)
-            png_yaz(os.path.join(RP, "textures/items", ad2 + ".png"), 16, 16,
+            png_yaz(os.path.join(RP, "textures/item", ad2 + ".png"), 16, 16,
                     esya_ikonu(gozRenk, (255, 255, 255)))
-            dokular[ad2] = {"textures": ["textures/items/" + ad2]}
+            dokular[ad2] = {"textures": "textures/item/" + ad2}
 
             for liste in (en_us, tr_tr):
                 liste.append("item.pa:%s.name=%s" % (ad2, GOZ_TR[ad2]))
@@ -607,17 +646,15 @@ def main():
     yaz_json(os.path.join(RP, "models/entity/simsek_goz.geo.json"), GOZ_GEOMETRI)
     yaz_json(os.path.join(RP, "models/entity/simsek_kol.geo.json"), GEOMETRI)
     yaz_json(os.path.join(RP, "animations/simsek_kol_tutus.animation.json"), TUTUS_ANIM)
-    # Atlas basligi referanstaki CALISAN pakete birebir uyduruldu:
+    # DIKKAT -- BURAYA DOKUNMA.
 
-    #      resource_pack_name -> "vanilla"
-    #        Kendi paket adimizi yazmistik. Calisan referans "vanilla"
-    #        diyor; atlasin vanilla atlasiyla birlesmesi buna bagli.
-
-    #      textures degeri -> DIZI
-    #        Duz metin de belgelerde geciyor ama referans dizi
-    #        kullaniyor ve o calisiyor.                            
+    #    v4.3'te bu baslik referansa uydurulmustu (resource_pack_name
+    #    "vanilla", textures dizi, klasor textures/items). AMA v4.2
+    #    oyunda CALISTI: ikonlar goruldu, kollar cizildi. Yani bu
+    #    bicim dogru; v4.3 calisan bir seyi "duzeltmeye" calisiyordu.
+    #    Geri alindi.                                                
     yaz_json(os.path.join(RP, "textures/item_texture.json"), {
-        "resource_pack_name": "vanilla",
+        "resource_pack_name": "simsek_kol",
         "texture_name": "atlas.items",
         "texture_data": dokular,
     })
@@ -632,6 +669,36 @@ def main():
     for dosya, satirlar in (("en_US.lang", en_us), ("tr_TR.lang", tr_tr)):
         with open(os.path.join(RP, "texts", dosya), "w", encoding="utf-8") as f:
             f.write("\n".join(satirlar) + "\n")
+
+    # ---- ARTIK OLMAYAN dosyalari sil ----
+    # Ureteci sadece "yaz" olarak birakmak sinsi bir hataya yol
+    # aciyordu: listeden bir kol cikarilinca eski items/,
+    # attachables/ ve doku dosyalari diskte kaliyor, pakete giriyor
+    # ve oyunda hala gorunuyordu. Artik uretecin urettigi kume
+    # neyse disk de o.
+    beklenen = set()
+    for satir in KOLLAR:
+        beklenen.add(satir[0])
+    for kimlik, _ad, _sivi, goz, _gozRenk in IKSIRLER:
+        beklenen.add("iksir_" + kimlik)
+        beklenen.add(goz)
+        beklenen.add(goz + "_lazer")
+
+    silinen = 0
+    for klasor, uzanti in ((os.path.join(BP, "items"), ".json"),
+                           (os.path.join(RP, "attachables"), ".json"),
+                           (os.path.join(RP, "textures/item"), ".png"),
+                           (os.path.join(RP, "textures/entity"), ".png")):
+        if not os.path.isdir(klasor):
+            continue
+        for f in os.listdir(klasor):
+            if not f.endswith(uzanti):
+                continue
+            if f[:-len(uzanti)] not in beklenen:
+                os.remove(os.path.join(klasor, f))
+                silinen += 1
+    if silinen:
+        print("temizlendi: %d artik dosya" % silinen)
 
     print("uretildi: %d kol, %d iksir, %d goz (lazer varyantiyla) -> %d esya"
           % (len(KOLLAR), len(IKSIRLER), len(IKSIRLER) * 2,

@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.3";
+export const SURUM = "v4.4";
 
 /* ---------------- Tetikleyici esyalar ---------------- */
 export const SIMSEK_ESYA = "minecraft:blaze_rod";     // baktigin yere simsek
@@ -297,6 +297,32 @@ export const DUVAR_GENISLIK = 3;    // merkezden saga/sola (3 = 7 blok)
 export const DUVAR_YUKSEK   = 4;    // kac blok yukari
 export const DUVAR_DERINLIK = 1;    // kac blok kalinlikta
 export const DUVAR_BLOK     = "minecraft:dirt";
+
+/* ---------------- Buz mizragi ----------------
+   Baktigin yone bir buz parcasi firlatir. Carptigi seye UZUN
+   sureli yavaslik + zehir verir; zehir cani yavas yavas
+   goturur ama OLDURMEZ (vanilla zehir 1 canda birakir) --
+   yani hapsedip eritiyorsun, aninda infaz degil.
+
+   Mizrak bizim isimiz olarak ucuyor, varlik degil: her tick
+   MIZRAK_HIZ blok ilerliyor, yolda carpma araniyor. Varlik
+   dogurmadigimiz icin varlik butcesi harcanmiyor ve chunk
+   sinirinda kaybolma derdi yok.
+
+   Carptigi yere buz dikiti birakiyor (gorsel), o da BUZ_SURE
+   sonunda kendiliginden eriyor.                                */
+export const MIZRAK_MENZIL   = 40;    // en fazla kac blok gitsin
+export const MIZRAK_HIZ      = 1.5;   // her tick kac blok
+export const MIZRAK_YARICAP  = 1.6;   // carpma yaricapi
+export const MIZRAK_HASAR    = 6;     // carpma anindaki hasar
+export const MIZRAK_ETKI     = 2400;  // yavaslik/zehir suresi (2 dakika)
+export const MIZRAK_YAVASLIK = 3;     // slowness seviyesi
+export const MIZRAK_ZEHIR    = 1;     // poison seviyesi
+export const MIZRAK_ALAN     = 2.5;   // carpma noktasi etrafinda kac blok
+export const MIZRAK_TAVAN    = 6;     // en fazla kac hedef
+export const MIZRAK_OYUNCU   = true;
+export const MIZRAK_DIKIT    = 4;     // carpma yerine kac blok buz dikiti
+export const MIZRAK_BLOK     = "minecraft:packed_ice";
 
 /* ---------------- Ucurma ----------------
    Referans: "execute @s^^^N /effect @e[r=N,c=1] levitation 1 255"
