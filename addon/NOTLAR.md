@@ -1466,6 +1466,77 @@ Test: 19/19 geçti (`gunes.mjs` yeni).
 
 ---
 
+## Aşama 19 — Boralo Mod V2: yakala/bırak, çoklu şimşek (v4.9)
+
+Kaynak: `Boralo Mod V2`. **1148 dosya**, 265 mcfunction, 114 eşya,
+112 blok, 2054 satır JS. Şimdiye kadarki en büyüğü.
+
+### Referanstaki hatalar
+
+**"Mob Picker" mobu hiç yakalamıyor.** Adı Mob Picker ama kodu yalnızca
+`getNearestPlayer` çağırıyor — sadece **oyuncu** yakalıyor. Adıyla
+yaptığı iş tutmuyor.
+
+**Yakalama yöntemi hatalı.** Kurbanı 200 blok yukarı ışınlayıp **5
+tickte bir oraya geri ışınlıyor**. Tutsak, dünya boyunca sürekli
+ışınlanan bir varlık. Üstelik yakalayan oyuncu çıkarsa `clearCapture`
+hiç çağrılmıyor: interval dönmeye devam ediyor ve kurban **sonsuza
+kadar** yukarıda kalıyor.
+
+**`victim.isValid()`** — yeni API'de `isValid` bir özellik, metot değil.
+İlginç olan: aynı pakette `iceman_staff.js` doğru kullanıyor
+(`player.isValid`), `mobpicker.js` yanlış. Tek pakette iki farklı
+anlayış.
+
+**`stone_converterr.js` 5,5 saatlik tam kilit.** Vurduğun oyuncuya
+`slowness 255` + `invisibility` + `resistance 4` (20000 saniye) veriyor,
+üstüne `inputpermission set @s camera disabled` ve `movement disabled`.
+Çözen eşya kaybolursa kurban kalıcı olarak donuyor. Çözme komutu da
+`effect @s clear` — kurbanın bütün faydalı efektlerini de siliyor.
+
+**`astrape_weapon.js` bekleme süresini `Date.now()` ile tutuyor** —
+duvar saati. Oyun duraklayınca veya tick hızı düşünce oyunla alakası
+kalmıyor. Ayrıca `cooldowns` Map'i hiç temizlenmiyor.
+
+**`iceman_staff.js`'in bekleme süresi hiç yok** (yorumda "Bekleme
+Süresi: YOK" yazıyor) — sağ tık spam'i serbest.
+
+Devralınanlar: `.data`, `player.json` şablonu, `@minecraft/server`
+**1.8.0** bildirimi (bu seriye kadarki en eskisi).
+
+### Alınanlar
+
+**Yakala / Bırak** (`yakala.js`). Referansın adının hakkını veriyor:
+**mob** yakalanıyor, oyuncu yakalanmıyor. Yöntem de tersine çevrildi —
+ışınlayıp tutmak yerine varlık dünyadan alınıp **türü kaydediliyor**.
+Sonuç: tutarken **hiç tick maliyeti yok** (test 2000 tick bekleyip
+doğruluyor), yakalayan çıksa da kayıt duruyor, dünya yeniden yüklense
+de bırakılabiliyor.
+
+Sınırı açıkça yazıldı: bırakınca yeni bir varlık doğuyor, yani
+evcilleştirme/envanter korunmuyor. Script API'de NBT kopyalama yok.
+Boss'lar ve oyuncu yasak listesinde.
+
+**Çoklu Şimşek** (`coklu_simsek.js`). Astrape'nin en iyi fikri **min
+mesafe**: 4 bloktan yakındakini vurmuyor, böylece yıldırımın alan
+hasarından kendin yanmıyorsun. `alan_simsegi`'mizde bu yok — o
+yarıçaptaki herkesi vuruyor. Bekleme `system.currentTick` ile (referans
+duvar saati kullanıyordu) ve yıldırımlar tek tick yerine partiye
+bölünerek düşüyor.
+
+İkisi de yeni **Boralo Kolu**'nda (`pa:kol_boralo`).
+
+### Alınmayanlar
+
+`golden_fist` → `savur` · `stone_converter` (5,5 saatlik kilit, oyuncu
+hedefli) · `fly_potion` → `ucus` + iksir sistemi · `toprakkol_ui` /
+`gelismistoprakkol_ui` → v4.8'de menü zaten geldi · `iceman_staff` →
+`buz_mizragi` · `durability_manager` (eşyalarımızda dayanıklılık yok).
+
+Test: 20/20 geçti (`boralo.mjs` yeni).
+
+---
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:

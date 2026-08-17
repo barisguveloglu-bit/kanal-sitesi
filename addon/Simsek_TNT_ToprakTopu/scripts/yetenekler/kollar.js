@@ -68,6 +68,12 @@ export const KOL_ESYALARI = [
      ve durumlari oyuncu ADIYLA tutuyordu.                     */
   ["pa:kol_gunes",  "isin_topu", "yumruk"],
 
+  /* BORALO KOL -- Boralo Mod V2'den alinan takim. O mod 1148
+     dosya ve 2054 satir script; en iyi iki fikri alindi.
+     "Mob Picker" adina ragmen sadece oyuncu yakaliyordu, burada
+     tersi yapildi.                                             */
+  ["pa:kol_boralo", "yakala", "coklu_simsek"],
+
   // Tek yetenekli kollar
   ["pa:kol_halka",  "yildirim_halkasi"],
   ["pa:kol_simsek", "yon_simsegi"],

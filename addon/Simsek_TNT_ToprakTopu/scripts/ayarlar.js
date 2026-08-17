@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.8";
+export const SURUM = "v4.9";
 
 /* ---------------- Tetikleyici esyalar ---------------- */
 export const SIMSEK_ESYA = "minecraft:blaze_rod";     // baktigin yere simsek
@@ -767,6 +767,63 @@ export const ISINTOP_HAZIR_PARCACIK = "minecraft:redstone_ore_dust_particle";
 export const YUMRUK_SURE     = 200;   // tick (10 sn)
 export const YUMRUK_HASAR    = 5;     // normal vurusun USTUNE
 export const YUMRUK_PARCACIK = "minecraft:critical_hit_emitter";
+
+
+/* ---------------- Yakala / Birak ----------------
+   Fikir Boralo Mod V2'deki "Mob Picker"dan. Adi Mob Picker ama
+   kodu SADECE OYUNCU yakaliyor, moba hic dokunmuyor -- adiyla
+   yaptigi is tutmuyor. Burada tersi: mob yakalaniyor, oyuncu
+   yakalanmiyor.
+
+   Referans kurbani 200 blok yukari isinlayip 5 tick'te bir oraya
+   GERI isinliyordu; ustelik yakalayan oyuncu cikinca temizlik hic
+   calismiyor, kurban sonsuza kadar orada kaliyordu. Burada
+   yakalanan varlik dunyadan aliniyor ve TURU kaydediliyor:
+   tutarken hicbir tick maliyeti yok.
+
+   NE KAYBOLUYOR: birakinca yeni bir varlik doguyor, yani
+   evcillestirme/envanter gibi ayrintilar korunmuyor. Script
+   API'de NBT kopyalama yok.                                    */
+export const YAKALA_MENZIL       = 12;
+export const YAKALA_ACI          = 0.85;
+export const YAKALA_BIRAK_MENZIL = 24;
+export const YAKALA_PARCACIK     = "minecraft:large_explosion";
+export const YAKALA_KAYIT_ANAHTAR = "simsek:cep";
+
+/* Yakalanamayanlar. Oyuncu ayrica kodda ozel olarak engelli.
+   Bosslar disarida: ejderi cebe atip baska dunyaya tasimak
+   oynanisi bozar.                                             */
+export const YAKALA_YASAK = [
+  "minecraft:ender_dragon",
+  "minecraft:wither",
+  "minecraft:item",
+  "minecraft:xp_orb",
+  "minecraft:lightning_bolt",
+  "minecraft:arrow",
+  "minecraft:tnt",
+  "minecraft:falling_block"
+];
+
+/* ---------------- Coklu simsek ----------------
+   Fikir Boralo Mod V2'deki "Astrape Weapon"dan. Oradaki en iyi
+   ayrinti MIN MESAFE: 4 bloktan yakindakini vurmuyor, boylece
+   yildirimin alan hasarindan kendin yanmiyorsun. alan_simsegi'nde
+   bu yok -- o yaricaptaki herkesi vuruyor.
+
+   Referansta bekleme Date.now() ile, yani DUVAR SAATIYLE
+   tutuluyordu; oyun duraklayinca ya da tick dusunce oyunla
+   alakasi kalmiyordu. Bizde bekleme main.js'in ortak yolunda ve
+   system.currentTick ile.                                      */
+export const COKLU_MENZIL    = 15;
+export const COKLU_EN_YAKIN  = 4;    // bundan yakindakini VURMAZ
+export const COKLU_HEDEF     = 3;    // en fazla kac hedef
+export const COKLU_ARALIK    = 3;    // yildirimlar arasi tick
+export const COKLU_OYUNCU    = false;
+export const COKLU_MUAF = [
+  "minecraft:item",
+  "minecraft:xp_orb",
+  "minecraft:lightning_bolt"
+];
 
 /* ---------------- Dunya yukseklik sinirlari ----------------
    heightRange okunamazsa bu tablo kullanilir.                      */
