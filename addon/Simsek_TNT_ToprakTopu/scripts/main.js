@@ -49,6 +49,8 @@ import "./yetenekler/isinlanma.js";
 import "./yetenekler/yetkili.js";
 import "./yetenekler/kasirga.js";
 import "./yetenekler/kubbe.js";
+import "./yetenekler/hapis.js";
+import "./yetenekler/dondur.js";
 
 /* DIKKAT -- SIRA ONEMLI.
    kollar.js var olan yeteneklere esya BAGLIYOR, yani bagladigi

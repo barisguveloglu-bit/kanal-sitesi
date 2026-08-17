@@ -1235,6 +1235,78 @@ ortak olduğu için tick yükü artmıyor, paylaşılıyor.
 
 ---
 
+## Aşama 16 — Kevin1545 modu, hapis ve dondur (v4.6)
+
+Kaynak: `Kevin1545_modu.mcaddon`. 37 `.mcfunction`, 10 eşya.
+Dave1545 ile **aynı üretici aracından** çıkmış (aynı `.data` dosyası,
+aynı `_effect`/tick düzeni, aynı `player.json` şablonu).
+
+### Referanstaki hatalar
+
+| Dosya | Sorun |
+|---|---|
+| `kol_kopar` | `@e [r=10,c=1]` — `@e` ile parantez **arasında boşluk**, komut çalışmıyor |
+| `kevinn_duzelr` | aynı boşluk hatası (geri alma da bozuk) |
+| `hapis` | sözdizimi doğru ama **dolu** 3×3×3 dolduruyor — kafes değil demir bloğu |
+| `hapis` | `keep` yok: orada ne varsa yok ediyor |
+| `hapis` | geri almıyor, dünyada kalıcı demir kule bırakıyor |
+| `hapis` | `@e[r=10,c=1]` — oyuncunun kendisini kapsıyor, yön bakmıyor |
+
+Dave1545'ten devralınan aynı kusurlar:
+
+- **Script yok ama script bağımlılığı var.** `modules` sadece `data`,
+  hiç `.js` dosyası yok; buna rağmen `@minecraft/server` 1.14.0,
+  `@minecraft/server-ui` 1.3.0 ve `@minecraft/common` 1.2.0 isteniyor.
+- `min_engine_version` `[1,19,51]` ama RP bağımlılığı `[1,21,80]` istiyor.
+- `player.json` yine 22/22 can veren component group'larla dolu.
+- `tick.json`'daki 10 fonksiyonun **7'si tamamen boş** — her tick çalışıp
+  hiçbir şey yapmıyor.
+- 9 `replaceitem ... air` fonksiyonu birebir aynı.
+
+Kevin1545'e özgü yeni hata sınıfları:
+
+- **10 recipe dosyasının 10'u da boş `{}`.** Hiçbiri geçerli tarif değil.
+- `entities/pa_heykel_kevin1545.json` "Kevin heykeli" adında ama içeriği
+  **köylü**: `make_love`, `open_door`, `panic`, `play`, `random_stroll`
+  davranışlarıyla. Çiftleşen ve kapı açan bir heykel.
+- `kevin_sifirla` fonksiyonları 1,2,3,**5**,6,7,8 diye numaralı — 4 yok,
+  onun yerine `kevin_sword4` diye ayrı isimde bir dosya var.
+
+### Alınanlar
+
+**Hapis** (`hapis.js`). Referansın dördü de düzeltildi: içi boş kabuk
+(taban ve tavan kapalı, hedefin durduğu iki kat boş), sadece havaya
+koyuyor, süre dolunca geri alıyor, `kilitliHedef` ile nişan alıyor.
+
+**Dondur** (`dondur.js`). Referansın "kol koparma"sı çalışsaydı bile
+**sadece görsel** olurdu — `playanimation` bir poz oynatıyor, zombi o
+poz içinde sana doğru yürümeye devam ediyor. Videoda "dondu" gibi duran
+şey aslında durmuyor. Burada poz korundu ama hedef gerçekten yerinde
+tutuluyor (slowness VI). Referansın kalıcı `a 999`'u yerine **süreli**;
+etki kısa aralıklarla tazeleniyor, yani iş yarıda kesilirse hedef
+saatlerce değil en fazla bir aralık kadar kilitli kalıyor. Hasar yok —
+bu bir tutma yeteneği, infaz değil.
+
+İkisi de yeni **Kevin Kolu**'na kondu (`pa:kol_kevin`).
+
+### Alınmayanlar
+
+`kevin1545_tp` → `isinlanma` · `yildirim` → `yon_simsegi` ·
+`kevin1545_kol_hareketi` → `kollariKaldir` · heykel entity (köylü
+kopyası) · boş recipe'ler.
+
+### Ortak altyapı çıkarıldı
+
+`kubbe` ve `hapis` aynı işi yapıyordu: blok koy, bir süre dursun,
+sonra kaldır. `_gecici_yapi.js` içinde toplandı — "sadece havaya koy,
+koyduğunu kaydet, süre dolunca geri al, bütçeye uy" mantığı artık tek
+yerde. `kubbe.js` 150 satırdan 55 satıra indi, davranışı değişmedi
+(testler doğruluyor).
+
+Test: 18/18 geçti (`kevin.mjs` yeni).
+
+---
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:

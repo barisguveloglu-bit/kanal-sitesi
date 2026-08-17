@@ -56,6 +56,12 @@ export const KOL_ESYALARI = [
      yetenege gecmek icin sekiz kez jest yapmak gerekirdi.      */
   ["pa:kol_dave",   "kasirga", "kubbe", "cekme", "isinlanma"],
 
+  /* KEVIN KOL -- Kevin1545 modundan alinan takim. Referansta
+     hapis calisiyordu ama dolu kutu oruyor ve geri almiyordu;
+     "kol koparma" ise @e ile parantez arasindaki bosluk yuzunden
+     hic calismiyordu.                                          */
+  ["pa:kol_kevin",  "hapis", "dondur"],
+
   // Tek yetenekli kollar
   ["pa:kol_halka",  "yildirim_halkasi"],
   ["pa:kol_simsek", "yon_simsegi"],

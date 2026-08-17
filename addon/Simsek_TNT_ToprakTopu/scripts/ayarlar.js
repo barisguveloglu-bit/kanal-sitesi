@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.5";
+export const SURUM = "v4.6";
 
 /* ---------------- Tetikleyici esyalar ---------------- */
 export const SIMSEK_ESYA = "minecraft:blaze_rod";     // baktigin yere simsek
@@ -666,6 +666,45 @@ export const KASIRGA_OYUNCU  = false; // oyunculari da savursun mu
 export const KUBBE_YARICAP = 4;
 export const KUBBE_SURE    = 200;   // tick (10 sn)
 export const KUBBE_BLOK    = "minecraft:barrier";
+
+/* ---------------- Hapis ----------------
+   Referans (Kevin1545):
+     execute positioned ^^^10 at @e[r=10,c=1] run
+       fill ~1 ~2 ~1 ~-1 ~ ~-1 iron_bars
+   Sozdizimi dogru (referansta nadir) ama DOLU 3x3x3 dolduruyor --
+   hedefin durdugu hucre dahil, yani kafes degil demir blogu.
+   Ustelik "keep" yok (orada ne varsa siliyor) ve geri almiyor.
+
+   Bizimki ici bos kabuk oruyor, sadece havaya koyuyor, sure
+   dolunca geri aliyor.
+
+   HAPIS_YARICAP 1 = 3x3 taban. 2 yaparsan 5x5 olur ama kafes o
+   kadar genis olunca hedef icinde dolasabiliyor.               */
+export const HAPIS_MENZIL  = 24;
+export const HAPIS_ACI     = 0.9;
+export const HAPIS_YARICAP = 1;     // taban yaricapi (1 = 3x3)
+export const HAPIS_YUKSEK  = 3;     // kac kat yuksek
+export const HAPIS_SURE    = 300;   // tick (15 sn)
+export const HAPIS_BLOK    = "minecraft:iron_bars";
+
+/* ---------------- Dondur ----------------
+   Referans (Kevin1545 "kol koparma"):
+     playanimation @e [r=10,c=1] animation.evoker.general a 999
+   "@e [r=..." arasindaki BOSLUK yuzunden hic calismiyor. Calissa
+   bile sadece poz oynatirdi; hedef poz icinde yurumeye devam
+   ederdi. Burasi pozu koruyup hedefi gercekten yerinde tutuyor.
+
+   DONDUR_YAVASLIK 5 = slowness VI, pratikte yerinden kimildamaz.
+   Referanstaki gibi 255 ve KALICI degil -- sure dolunca serbest.
+
+   Etki DONDUR_ARALIK'ta bir tazeleniyor; is yarida kesilirse
+   hedef saatlerce degil, en fazla bir aralik kadar kilitli kalir. */
+export const DONDUR_MENZIL   = 24;
+export const DONDUR_ACI      = 0.9;
+export const DONDUR_SURE     = 200;  // tick (10 sn)
+export const DONDUR_YAVASLIK = 5;    // slowness seviyesi
+export const DONDUR_ARALIK   = 20;   // etki kac tickte bir tazelensin
+export const DONDUR_ANIM     = "animation.evoker.general a 999";
 
 /* ---------------- Dunya yukseklik sinirlari ----------------
    heightRange okunamazsa bu tablo kullanilir.                      */
