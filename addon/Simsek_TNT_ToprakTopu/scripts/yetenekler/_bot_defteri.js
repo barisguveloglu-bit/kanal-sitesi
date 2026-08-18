@@ -43,8 +43,20 @@ import {
    bot varken tek elle oynamak zorunda kalirdin.
    ============================================================ */
 
-/* oyuncuId -> { botId, boyutId, durum, evcil } */
+/* oyuncuId -> [ { botId, boyutId, durum, evcil }, ... ]
+
+   v4.27'de tek bottan DIZIYE gecildi (BOT_TAVAN 1 -> 20).
+   Tek nesne birakilsaydi her yerde "hangi bot" sorusu cikardi;
+   dizi ile butun islemler "sahibin butun botlari" uzerinde
+   calisiyor: cagir bir tane EKLER, bekle/takip/geri HEPSINE
+   uygulanir. Kullanicinin zihnindeki model de bu -- botlar bir
+   ekip, tek tek yonetilen nesneler degil.                      */
 const defter = new Map();
+
+function listeAl(oyuncuId) {
+  const l = defter.get(oyuncuId);
+  return l || [];
+}
 
 /* oyuncuId -> bir sonraki tarama tick'i */
 const sonraki = new Map();
@@ -73,8 +85,8 @@ function yaz() {
   if (!kaliciMi()) return;
   try {
     const dizi = [];
-    for (const [oyuncuId, b] of defter) {
-      dizi.push([oyuncuId, b.botId, b.boyutId, b.durum]);
+    for (const [oyuncuId, liste] of defter) {
+      for (const b of liste) dizi.push([oyuncuId, b.botId, b.boyutId, b.durum]);
     }
     world.setDynamicProperty(BOT_KAYIT_ANAHTAR,
                              dizi.length === 0 ? undefined : JSON.stringify(dizi));
@@ -94,9 +106,12 @@ function oku() {
     if (typeof ham !== "string" || ham.length === 0) return;
     const dizi = JSON.parse(ham);
     if (!Array.isArray(dizi)) return;
+    let sayi = 0;
     for (const satir of dizi) {
       if (!Array.isArray(satir) || satir.length < 2) continue;
-      defter.set(String(satir[0]), {
+      const oyuncuId = String(satir[0]);
+      const liste = defter.get(oyuncuId) || [];
+      liste.push({
         botId: String(satir[1]),
         boyutId: satir[2],
         durum: satir[3] === "bekle" ? "bekle" : "takip",
@@ -105,8 +120,10 @@ function oku() {
            yeniden deneniyor.                                   */
         evcil: undefined
       });
+      defter.set(oyuncuId, liste);
+      sayi++;
     }
-    bilgiYaz("bot defteri okundu: " + defter.size + " bot.");
+    bilgiYaz("bot defteri okundu: " + sayi + " bot, " + defter.size + " sahip.");
   } catch (e) {
     hataYaz("bot.oku", e);
   }
@@ -150,9 +167,18 @@ function varligiBul(kayit) {
 
 /* ---------------- Sorgu ---------------- */
 
+/* Sahibin BUTUN botlari. Bos dizi doner, undefined degil --
+   cagiran her yerde null kontrolu yapmasin.                    */
+export function botlarAl(oyuncuId) {
+  oku();
+  return listeAl(oyuncuId);
+}
+
+/* Ilk bot. Durum raporu ve menu basligi gibi "tek bir ornek
+   yeter" yerlerde kullaniliyor.                                */
 export function botAl(oyuncuId) {
   oku();
-  return defter.get(oyuncuId);
+  return listeAl(oyuncuId)[0];
 }
 
 export function botVarMi() {
@@ -160,9 +186,25 @@ export function botVarMi() {
   return BOT_ACIK && defter.size > 0;
 }
 
-export function botSayisi() {
+/* Sahibin kac botu var. Argumansiz cagrilirsa dunyadaki toplam. */
+export function botSayisi(oyuncuId) {
   oku();
-  return defter.size;
+  if (oyuncuId !== undefined) return listeAl(oyuncuId).length;
+  let n = 0;
+  for (const liste of defter.values()) n += liste.length;
+  return n;
+}
+
+/* Kayitli varligi dunyada bulunanlarla eslestir. Donen dizi:
+   [{kayit, varlik}, ...]. Chunk yuklu degilse o bot atlanir ama
+   DEFTERDEN SILINMEZ -- geri gelince yine bizim.                */
+export function botVarliklari(oyuncuId) {
+  const cift = [];
+  for (const kayit of listeAl(oyuncuId)) {
+    const v = varligiBul(kayit);
+    if (v) cift.push({ kayit, varlik: v });
+  }
+  return cift;
 }
 
 /* Bir varligin sahibi kim? Varligin KENDI ozelliginden okunuyor.
@@ -218,32 +260,31 @@ export function botCagir(oyuncu) {
   oku();
   if (!BOT_ACIK) return { hata: "Bot kapali (ayarlar.js: BOT_ACIK)." };
 
-  const kayit = defter.get(oyuncu.id);
+  const liste = listeAl(oyuncu.id);
 
-  // Zaten varsa: dogurma, yanina getir
-  if (kayit) {
-    const v = varligiBul(kayit);
-    if (v) {
-      yanaGetir(v, oyuncu);
+  /* Olmus/kaybolmus kayitlari temizle. Chunk yuklu degilse
+     varlik BULUNAMAZ ama olmus da olmayabilir -- o yuzden
+     sadece defterde olup dunyada da gorunmeyenler degil,
+     GORUNENLER sayiliyor. Yani sayim eksik olabilir; bu
+     kasitli: olmeyen bir botu silmektense fazladan bir tane
+     dogurmak daha az zarar verir.                             */
+  const canli = botVarliklari(oyuncu.id);
+
+  // Tavandaysa yenisini dogurma, olanlari yanina getir
+  if (liste.length >= BOT_TAVAN) {
+    for (const { kayit, varlik } of canli) {
+      yanaGetir(varlik, oyuncu, 0);
       kayit.durum = "takip";
-      durumUygula(v, kayit);
-      yaz();
-      return { tasindi: true };
+      durumUygula(varlik, kayit);
     }
-    /* Kayit var ama varlik yok -- oldurulmus ya da chunk
-       yuklenmemis olabilir. Kaydi dusurup yenisini doguruyoruz;
-       aksi halde bot bir daha asla gelmezdi.                   */
-    defter.delete(oyuncu.id);
-  }
-
-  if (defter.size >= BOT_TAVAN * 1 && defter.has(oyuncu.id)) {
-    return { hata: "Zaten botun var." };
+    yaz();
+    return { tavan: true, tasinan: canli.length, toplam: liste.length };
   }
 
   /* DIKKAT -- burada varlikIste() YOK, bilerek.
 
-     Ilk yazilista varlikIste(1) vardi ve bot HIC dogmuyordu.
-     Sebep main.js'teki tick dongusu:
+     v4.22'de varlikIste(1) vardi ve bot HIC dogmuyordu. Sebep
+     main.js'teki tick dongusu:
 
          if (isler.length === 0) return;
          butceSifirla();
@@ -252,13 +293,12 @@ export function botCagir(oyuncu) {
      istek; o anda calisan bir is yoksa butce 0'da kaliyor ve
      spawn sonsuza kadar reddediliyordu.
 
-     Zaten butce dongu icinde tick basina ONLARCA sey doguran
-     yetenekler icin var (ok yagmuru, TNT yagmuru). Tek bir bot
-     bir kez doguyor ve zaten iki kapiya takili: BEKLEME (3 sn)
-     ve BOT_TAVAN (oyuncu basina 1).                            */
+     Butce tick basina ONLARCA sey doguran yetenekler icin var
+     (ok yagmuru, TNT yagmuru). Bot bir kez doguyor ve zaten iki
+     kapiya takili: BEKLEME (3 sn) ve BOT_TAVAN.               */
 
   let varlik;
-  const nokta = yanNokta(oyuncu, BOT_DOGUM_YAKIN);
+  const nokta = yanNokta(oyuncu, BOT_DOGUM_YAKIN, liste.length);
   try {
     varlik = oyuncu.dimension.spawnEntity(BOT_KIMLIK, nokta);
   } catch (e) {
@@ -280,47 +320,75 @@ export function botCagir(oyuncu) {
     durum: "takip",
     evcil
   };
-  defter.set(oyuncu.id, yeni);
+  liste.push(yeni);
+  defter.set(oyuncu.id, liste);
   durumUygula(varlik, yeni);
   yaz();
 
-  return { dogdu: true, evcil };
+  return { dogdu: true, evcil, toplam: liste.length, tavan: BOT_TAVAN };
 }
 
+/* Butun botlari yanina getirir (yenisini DOGURMAZ). */
+export function botYanaCagir(oyuncu) {
+  oku();
+  const canli = botVarliklari(oyuncu.id);
+  for (const { kayit, varlik } of canli) {
+    yanaGetir(varlik, oyuncu, 0);
+    kayit.durum = "takip";
+    durumUygula(varlik, kayit);
+  }
+  if (canli.length > 0) yaz();
+  return canli.length;
+}
+
+/* Butun botlari geri gonderir. Donen deger: kac tane silindi. */
 export function botGeri(oyuncu) {
   oku();
-  const kayit = defter.get(oyuncu.id);
-  if (!kayit) return false;
+  const liste = listeAl(oyuncu.id);
+  if (liste.length === 0) return 0;
 
-  const v = varligiBul(kayit);
-  if (v) {
-    try {
-      v.remove();
-    } catch (e) {
-      hataYaz("bot.remove", e);
+  let silinen = 0;
+  for (const kayit of liste) {
+    const v = varligiBul(kayit);
+    if (v) {
+      try {
+        v.remove();
+        silinen++;
+      } catch (e) {
+        hataYaz("bot.remove", e);
+      }
     }
   }
+
+  /* Varlik bulunamasa bile kayit DUSUYOR: "geri gonder" dedin,
+     defterde bot kalmamali. Chunk yuklenince sahipsiz bir bot
+     kalabilir; ona dokununca kendini yeniden baglar.          */
+  const vardi = liste.length;
   defter.delete(oyuncu.id);
   sonraki.delete(oyuncu.id);
   yaz();
-  return true;
+  return vardi;
 }
 
-/* ---------------- Durum: takip / bekle ---------------- */
+/* ---------------- Durum: takip / bekle ----------------
+   HEPSINE birden uygulaniyor. Botlar bir ekip.               */
 
 export function botDurum(oyuncu, durum) {
   oku();
-  const kayit = defter.get(oyuncu.id);
-  if (!kayit) return undefined;
+  const liste = listeAl(oyuncu.id);
+  if (liste.length === 0) return undefined;
 
-  kayit.durum = (durum === "bekle") ? "bekle" : "takip";
-  const v = varligiBul(kayit);
-  if (v) {
-    durumUygula(v, kayit);
-    ozellikYaz(v, BOT_DURUM_OZELLIK, kayit.durum);
+  const yeni = (durum === "bekle") ? "bekle" : "takip";
+  for (const kayit of liste) {
+    kayit.durum = yeni;
+    const v = varligiBul(kayit);
+    if (v) {
+      durumUygula(v, kayit);
+      ozellikYaz(v, BOT_DURUM_OZELLIK, yeni);
+    }
   }
   yaz();
-  return kayit.durum;
+  return yeni;
 }
 
 /* Varlik JSON'undaki olayi calistirir. "bekle" grubu hareket
@@ -338,7 +406,7 @@ function durumUygula(varlik, kayit) {
 
 /* ---------------- Isinlanma ---------------- */
 
-function yanNokta(oyuncu, uzaklik) {
+function yanNokta(oyuncu, uzaklik, indeks = 0) {
   const k = oyuncu.location;
   let yon;
   try {
@@ -346,25 +414,30 @@ function yanNokta(oyuncu, uzaklik) {
   } catch (e) {
     yon = { x: 0, y: 0, z: 1 };
   }
-  /* Bakis yonunun SAGINA koy: tam onune koyarsak nisani
-     kapatir, tam arkasina koyarsak gorunmez.                  */
-  const sag = { x: -yon.z, z: yon.x };
-  const u = Math.hypot(sag.x, sag.z) || 1;
+
+  /* Bakis yonunun SAGINA koy: tam onune koyarsak nisani kapatir,
+     tam arkasina koyarsak gorunmez.
+
+     INDEKS: yirmi bot ayni noktaya dogarsa ust uste binip
+     birbirini itiyor ve dagilana kadar tabletin fizigi bosuna
+     calisiyor. Her bot yay uzerinde bir adim yana konuyor.   */
+  const aci = Math.atan2(yon.z, yon.x) + (indeks * 0.7);
+  const r = uzaklik + (indeks * 0.35);
   return {
-    x: k.x + (sag.x / u) * uzaklik,
+    x: k.x + Math.cos(aci - Math.PI / 2) * r,
     y: k.y,
-    z: k.z + (sag.z / u) * uzaklik
+    z: k.z + Math.sin(aci - Math.PI / 2) * r
   };
 }
 
-function yanaGetir(varlik, oyuncu) {
+function yanaGetir(varlik, oyuncu, indeks = 0) {
+  const nokta = yanNokta(oyuncu, BOT_CAGIR_YAKIN, indeks);
   try {
-    varlik.teleport(yanNokta(oyuncu, BOT_CAGIR_YAKIN),
-                    { dimension: oyuncu.dimension });
+    varlik.teleport(nokta, { dimension: oyuncu.dimension });
   } catch (e) {
     /* Bazi surumlerde teleport secenek almiyor; secenegsiz dene */
     try {
-      varlik.teleport(yanNokta(oyuncu, BOT_CAGIR_YAKIN));
+      varlik.teleport(nokta);
     } catch (e2) {
       hataYaz("bot.yanaGetir", e2);
     }
@@ -373,7 +446,12 @@ function yanaGetir(varlik, oyuncu) {
 
 /* ---------------- Her tick ----------------
    Merkezi tick yoneticisinden cagriliyor. Defter bosken dongu
-   hic donmuyor -- iksir ve kalptekiyle ayni kural.            */
+   hic donmuyor -- iksir ve kalptekiyle ayni kural.
+
+   YIRMI BOT: tarama oyuncu basina BOT_TARAMA (20 tick) araliginda
+   ve botlarin hepsi ayni turda geziliyor. Yirmi getEntity + yirmi
+   mesafe hesabi saniyede bir -- olculebilir bir yuk degil. Asil
+   maliyet vanilla AI tarafinda, o da bizim elimizde degil.     */
 
 export function botTara(oyuncular) {
   if (!BOT_ACIK || defter.size === 0) return;
@@ -381,8 +459,8 @@ export function botTara(oyuncular) {
   const simdi = system.currentTick;
 
   for (const oyuncu of oyuncular) {
-    const kayit = defter.get(oyuncu.id);
-    if (!kayit) continue;
+    const liste = defter.get(oyuncu.id);
+    if (!liste || liste.length === 0) continue;
 
     const ne = sonraki.get(oyuncu.id) || 0;
     if (simdi < ne) continue;
@@ -390,48 +468,49 @@ export function botTara(oyuncular) {
 
     if (!gecerliMi(oyuncu)) continue;
 
-    const v = varligiBul(kayit);
-    if (!v) continue;              // chunk yuklu degil; defterden SILME
+    let indeks = 0;
+    for (const kayit of liste) {
+      const sira = indeks++;
 
-    // Bekle durumundayken kurtarma da yok: dur dedik, duracak
-    if (kayit.durum === "bekle") continue;
+      const v = varligiBul(kayit);
+      if (!v) continue;            // chunk yuklu degil; defterden SILME
 
-    /* Evcillestirme dunya yeniden yuklenince bilinmiyor olabilir;
-       bir kez daha denenip sonuc saklaniyor.                    */
-    if (kayit.evcil === undefined) {
-      kayit.evcil = evcillestir(v, oyuncu);
-      durumUygula(v, kayit);
-    }
+      // Bekle durumundayken kurtarma da yok: dur dedik, duracak
+      if (kayit.durum === "bekle") continue;
 
-    try {
-      const ayniBoyut = (v.dimension && oyuncu.dimension &&
-                         v.dimension.id === oyuncu.dimension.id);
-
-      if (!ayniBoyut) {
-        yanaGetir(v, oyuncu);
-        kayit.boyutId = oyuncu.dimension.id;
-        yaz();
-        continue;
+      /* Evcillestirme dunya yeniden yuklenince bilinmiyor
+         olabilir; bir kez daha denenip sonuc saklaniyor.      */
+      if (kayit.evcil === undefined) {
+        kayit.evcil = evcillestir(v, oyuncu);
+        durumUygula(v, kayit);
       }
 
-      const a = v.location, b = oyuncu.location;
-      const uzaklik = Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z);
+      try {
+        const ayniBoyut = (v.dimension && oyuncu.dimension &&
+                           v.dimension.id === oyuncu.dimension.id);
 
-      /* Vanilla takip calisiyorsa sadece "gercekten kayboldu"
-         durumunda karisiyoruz (24 blok). Calismiyorsa botun
-         yaninda kalmasinin tek yolu biziz (8 blok).            */
-      const esik = kayit.evcil ? BOT_KURTARMA_MENZIL : BOT_SCRIPT_MENZIL;
-      if (uzaklik > esik) yanaGetir(v, oyuncu);
-    } catch (e) {
-      hataYaz("bot.tara", e);
+        if (!ayniBoyut) {
+          yanaGetir(v, oyuncu, sira);
+          kayit.boyutId = oyuncu.dimension.id;
+          yaz();
+          continue;
+        }
+
+        const a = v.location, b = oyuncu.location;
+        const uzaklik = Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z);
+
+        /* Vanilla takip calisiyorsa sadece "gercekten kayboldu"
+           durumunda karisiyoruz (24 blok). Calismiyorsa botun
+           yaninda kalmasinin tek yolu biziz (8 blok).          */
+        const esik = kayit.evcil ? BOT_KURTARMA_MENZIL : BOT_SCRIPT_MENZIL;
+        if (uzaklik > esik) yanaGetir(v, oyuncu, sira);
+      } catch (e) {
+        hataYaz("bot.tara", e);
+      }
     }
   }
 }
 
-/* ---------------- Kayit denetimi ----------------
-   v3.5'te 11/11 ESYA sessizce kaydolmamisti; kolDenetimi() o
-   yuzden yazildi. Varlik kaydi daha kirilgan (behavior pack
-   etkin degilse hic yok), ayni denetim burada.                */
 /* Bot varligi oyunun kayit defterinde var mi?
 
    Bu, "bot neden gelmiyor" sorusunun en sik cevabi: behavior

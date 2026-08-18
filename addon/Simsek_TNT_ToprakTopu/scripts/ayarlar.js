@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.26";
+export const SURUM = "v4.27";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -1026,10 +1026,17 @@ export const IKSIR_LAZERI_SEC = true;
    burasi false yapilir; modun geri kalani hic etkilenmez. Yeni
    ve riskli bir alan oldugu icin bu anahtar bilerek var.
 
-   ---- Neden BOT_TAVAN 1 ----
-   Oyuncu basina tek bot. Ikincisi tick maliyetini ikiye katlar
-   ve "hangisi benimdi" karisikligi yaratir. Sonraki asamada
-   bot is yapmaya baslayinca yukseltmek daha kolay olur.
+   ---- BOT_TAVAN: 1 -> 20 (v4.27) ----
+   Asama 1'de tek bottu. Artik 20.
+
+   DURUST UYARI: 20 bot SCRIPT maliyetini pek artirmiyor -- blok
+   butcesi ORTAK, yani yirmi bot da 56 islem/tick'i paylasiyor,
+   toplam yuk sabit. Isler sadece yavaslar.
+
+   Asil maliyet VANILLA tarafinda: her bot yol bulan bir mob.
+   Yirmi mob birden pesinden kosarken tablet zorlanabilir ve bunu
+   biz olcemiyoruz (script disi). Tablette takilma olursa once
+   bot sayisini dusur, ayarlarla ugrasma.
 
    BOT_KURTARMA_MENZIL neden 24: vanilla follow_owner ~10 blokta
    yetisiyor. 24 "gercekten kaybolmus" demek; daha dusuk tutulursa
@@ -1052,7 +1059,7 @@ export const IKSIR_LAZERI_SEC = true;
    Ayrica bota DOKUNUNCA ayni secenekler menu olarak aciliyor.  */
 export const BOT_ACIK             = true;
 export const BOT_KIMLIK           = "pa:bot";
-export const BOT_TAVAN            = 1;    // oyuncu basina kac bot
+export const BOT_TAVAN            = 20;   // oyuncu basina kac bot
 export const BOT_KURTARMA_MENZIL  = 24;   // bu kadar uzaklasirsa isinlanir
 export const BOT_KURTARMA_YAKIN   = 2;    // isinlanirken oyuncuya kac blok uzaga
 export const BOT_TARAMA           = 20;   // kac tick'te bir mesafe olculsun
@@ -1085,6 +1092,87 @@ export const BOT_OLAY_BEKLE       = "pa:bekle";
      BOT_SCRIPT_MENZIL (8) vanilla takip YOKKEN, botun yaninda
        kalmasi icin. Daha kucuk cunku tek kurtaran o.           */
 export const BOT_SCRIPT_MENZIL    = 8;
+
+/* ============================================================
+   BOT ISLERI  --  Asama 2 (v4.27): odun topla, maden kaz
+
+   ---- NEDEN BOTUN ETRAFINDA CALISIYOR ----
+   Bedrock'ta yol bulma API'si yok: bota "su agaca git" denemiyor.
+   O yuzden bot KENDI etrafindaki bloklari isliyor. Sen ormana
+   yuruyorsun, bot pesinden geliyor (vanilla takip), "odun topla"
+   diyorsun, etrafindakini kesiyor. Referans modlar da tam olarak
+   boyle calisiyor -- botu yurutuyor gibi gorunen sey aslinda bu.
+
+   ---- ARAMA UCUZ OLMAK ZORUNDA ----
+   Yaricap 6'lik bir kutuda 2000+ blok var; her tick hepsini
+   okumak tableti oldururdu. Iki sey yapiliyor:
+
+     1. Offset listesi MODUL YUKLENIRKEN bir kez hesaplaniyor ve
+        mesafeye gore siralaniyor (once yakin bloklar).
+     2. Tarama IMLECLI: her tick butcenin verdigi kadar blok
+        okunuyor, kaldigi yerden devam ediyor. Butce bitince
+        sonraki tick'e sarkiyor.
+
+   ---- ODUN: GOVDE TAKIBI ----
+   Agac ararken kure taramak israf; govde DIKEY. Once bot
+   hizasinda yatay bir disk taraniyor, bir kutuk bulununca
+   "tirmanma" moduna geciliyor ve o sutun yukari dogru
+   kiriliyor. Gercek odun kesme de boyle.
+
+   ---- ESYA NEREYE GIDIYOR ----
+   Blok setType("air") ile kaldiriliyor; bu esya DUSURMEZ, o
+   yuzden karsiligi elle sahibin envanterine konuyor. Envanter
+   doluysa botun yanina dusuruluyor -- kaybolmasin.
+
+   Kutuk bloklarinin esya kimligi kendisiyle AYNI (oak_log ->
+   oak_log). Cevherlerde degil (iron_ore -> raw_iron), o yuzden
+   maden icin ayri bir eslesme tablosu var.                     */
+export const BOT_IS_ACIK      = true;
+export const BOT_IS_SURE      = 6000;  // is en fazla kac tick sursun (5 dk)
+export const BOT_IS_YARICAP   = 6;     // botun etrafinda kac blok
+export const BOT_ODUN_YUKSEK  = 12;    // govde takibinde en fazla kac blok yukari
+export const BOT_MADEN_DERIN  = 6;     // maden ararken kac blok asagi
+export const BOT_IS_BOT_BASI  = 8;     // tek tick'te tek bota en fazla kac islem
+
+/* Kutukler: esya kimligi blok kimligiyle ayni oldugu icin
+   tablo degil kume yetiyor. Yapraklara DOKUNULMUYOR -- agaci
+   kel birakmak yerine govdeyi aliyoruz.                        */
+export const BOT_ODUN_BLOKLARI = new Set([
+  "minecraft:oak_log", "minecraft:spruce_log", "minecraft:birch_log",
+  "minecraft:jungle_log", "minecraft:acacia_log", "minecraft:dark_oak_log",
+  "minecraft:mangrove_log", "minecraft:cherry_log",
+  "minecraft:stripped_oak_log", "minecraft:stripped_spruce_log",
+  "minecraft:stripped_birch_log", "minecraft:stripped_jungle_log",
+  "minecraft:stripped_acacia_log", "minecraft:stripped_dark_oak_log",
+  "minecraft:crimson_stem", "minecraft:warped_stem"
+]);
+
+/* Cevher -> DUSEN esya. Oyunun kendi kurallarina uyuluyor:
+   demir/bakir/altin ham cevher veriyor, komur/elmas/zumrut
+   dogrudan kendini, lapis ve redstone birden fazla adet.
+   Deepslate varyantlari da ayni seyi veriyor.                  */
+export const BOT_MADEN_BLOKLARI = new Map([
+  ["minecraft:coal_ore", "minecraft:coal"],
+  ["minecraft:deepslate_coal_ore", "minecraft:coal"],
+  ["minecraft:iron_ore", "minecraft:raw_iron"],
+  ["minecraft:deepslate_iron_ore", "minecraft:raw_iron"],
+  ["minecraft:copper_ore", "minecraft:raw_copper"],
+  ["minecraft:deepslate_copper_ore", "minecraft:raw_copper"],
+  ["minecraft:gold_ore", "minecraft:raw_gold"],
+  ["minecraft:deepslate_gold_ore", "minecraft:raw_gold"],
+  ["minecraft:diamond_ore", "minecraft:diamond"],
+  ["minecraft:deepslate_diamond_ore", "minecraft:diamond"],
+  ["minecraft:emerald_ore", "minecraft:emerald"],
+  ["minecraft:deepslate_emerald_ore", "minecraft:emerald"],
+  ["minecraft:lapis_ore", "minecraft:lapis_lazuli"],
+  ["minecraft:deepslate_lapis_ore", "minecraft:lapis_lazuli"],
+  ["minecraft:redstone_ore", "minecraft:redstone"],
+  ["minecraft:deepslate_redstone_ore", "minecraft:redstone"],
+  ["minecraft:lit_redstone_ore", "minecraft:redstone"],
+  ["minecraft:nether_gold_ore", "minecraft:gold_nugget"],
+  ["minecraft:quartz_ore", "minecraft:quartz"],
+  ["minecraft:ancient_debris", "minecraft:ancient_debris"]
+]);
 
 /* ---------------- Dondur ----------------
    Referans (Kevin1545 "kol koparma"):

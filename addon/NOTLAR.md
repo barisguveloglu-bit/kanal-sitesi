@@ -2704,6 +2704,84 @@ Test: **30/30**.
 
 ---
 
+## Aşama 37 — bot aşama 2: odun ve maden, 20 bot (v4.27)
+
+Bot takip etmeye başladı, sıra işe geldi. Ayrıca bot tavanı **1 → 20**.
+
+### Botlar neden kendi etrafını işliyor
+
+Bedrock'ta yol bulma API'si yok — bota *"şu ağaca git"* denemiyor. Bot
+**kendi etrafını** işliyor: sen ormana yürüyorsun, bot peşinden geliyor
+(vanilla takip), "odun" diyorsun, etrafındakini kesiyor. Referans
+modların "çalışan bot"u da tam olarak bu; yürüyor görünen şey aslında
+seni takip etmesi.
+
+### Arama ucuz olmak zorunda
+
+Yarıçap 6'lık kutuda 2000+ blok var; her tick hepsini okumak tableti
+öldürürdü. İki önlem:
+
+1. **Offset listeleri modül yüklenirken bir kez** hesaplanıyor ve
+   mesafeye göre sıralanıyor — bot önce dibindekini alıyor.
+2. **Tarama imleçli**: her tick bütçenin verdiği kadar blok okunuyor,
+   kaldığı yerden devam ediyor.
+
+**Odun için gövde takibi:** ağaç ararken küre taramak israf, gövde
+dikey. Bot hizasında yatay disk taranıyor; kütük bulununca "tırmanma"
+moduna geçilip o sütun yukarı kırılıyor. Yapraklara dokunulmuyor.
+
+**Maden için** aşağı ağırlıklı küre (`y −6 … +1`).
+
+### 20 bot tick yükünü artırmıyor
+
+Blok bütçesi **ortak**: yirmi bot da aynı 56 işlem/tick'i paylaşıyor.
+Bot sayısı işi *yavaşlatıyor*, yükü artırmıyor. Asıl maliyet vanilla
+tarafında (her bot yol bulan bir mob) ve onu biz ölçemiyoruz — tablette
+takılma olursa önce bot sayısını düşür.
+
+Botlar yay üzerinde doğuyor; yirmi bot aynı noktaya doğsa üst üste binip
+birbirini iterdi.
+
+### İş oyuncunun yuvasını yemiyor
+
+İş nesnesinin `oyuncuId`'si `"bot:"` önekli — merkezi yönetici onu ayrı
+kovada sayıyor, oyuncunun `AYNI_ANDA` (2) yuvası boş kalıyor. Kalp ve
+kafeslerde öğrenilen ders.
+
+### Testin yakaladığı gerçek kusur
+
+İlk yazılışta blok **önce kırılıyor**, sonra eşya verilmeye
+çalışılıyordu. `ItemStack` oluşturulamazsa (kimlik tablosunda yanlış
+varsa) blok gitmiş, eline hiçbir şey geçmemiş oluyordu — **bot cevheri
+yok ediyordu.** Sıra tersine çevrildi: eşya üretilemiyorsa blok
+kırılmıyor.
+
+Eşya envantere konuyor; envanter doluysa botun yanına bırakılıyor.
+Kütükler kendi eşyalarını veriyor, cevherler **düşen** eşyayı
+(`iron_ore → raw_iron`, `deepslate_diamond_ore → diamond`).
+
+### İkinci "paket ölür" hatası — ve `canli.mjs` yine yakaladı
+
+`ayarlar.js`'te yorum bloğunu erken kapattım; 51 dosyanın **hepsi**
+sözdizimi hatası verdi (hepsi `ayarlar.js`'i import ediyor). v4.26'da
+eklediğim `canli.mjs` bunu ilk çalıştırmada yakaladı. İki sürümde iki
+kez işe yaradı.
+
+### Komutlar
+
+```
+bot           bir bot daha çağır (tavan 20; tavandaysa hepsini yanına getirir)
+bot odun      botlar etrafındaki ağaçları keser
+bot maden     botlar etrafındaki cevheri kazar
+bot gel       hepsini yanına getir
+bot bekle / bot takip / bot geri
+```
+Hepsi menüde de var.
+
+Test: **30/30** (`bot.mjs` 17 bölüm).
+
+---
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:

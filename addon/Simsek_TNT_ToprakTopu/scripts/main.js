@@ -6,7 +6,7 @@ import {
   ESYASIZ_BAKIS_ESIGI, ESYASIZ_TUTMA, ESYASIZ_TARAMA,
   KOL_VER_ACIK, KOL_VER_ESIGI, KOL_VER_TUTMA, CIFT_EL_ACIK, AYNI_ANDA,
   MENU_DOKUNUSLA, BOT_KIMLIK, KALP_ADIM, KALP_TAVAN, BETA_GEREKLI,
-  SOHBET_ONEK
+  SOHBET_ONEK, BOT_TAVAN
 } from "./ayarlar.js";
 
 import {
@@ -72,6 +72,7 @@ import "./yetenekler/kalp_ekle.js";
 import "./yetenekler/kalp_sifirla.js";
 import "./yetenekler/bot_cagir.js";
 import "./yetenekler/bot_geri.js";
+import "./yetenekler/bot_is.js";
 
 /* DIKKAT -- SIRA ONEMLI.
    kollar.js var olan yeteneklere esya BAGLIYOR, yani bagladigi
@@ -101,7 +102,7 @@ import {
    defterleriyle ayni kalip.                                     */
 import {
   botTara, botVarMi, botDurum, botGeri, botAl, botunSahibi, botDenetimi,
-  botUnut, botKayitliMi
+  botUnut, botKayitliMi, botSayisi, botYanaCagir
 } from "./yetenekler/_bot_defteri.js";
 
 /* Gunes Yumrugu kaydi is listesinden bagimsiz bir Map'te; oyuncu
@@ -333,8 +334,23 @@ function menuEkleri(oyuncu) {
        Menu tabletteki TEK tek-dokunusluk yol, o yuzden bot
        kontrolleri buraya kondu.                                 */
     {
-      ad: botAl(oyuncu.id) ? "Bot: yanima gel" : "Bot cagir",
+      ad: "Bot cagir §8(" + botSayisi(oyuncu.id) + "/" + BOT_TAVAN + ")",
       calis() { yetenekTetikle(oyuncu, "bot_cagir"); }
+    },
+    {
+      ad: "Bot: odun topla",
+      calis() { yetenekTetikle(oyuncu, "bot_odun"); }
+    },
+    {
+      ad: "Bot: maden kaz",
+      calis() { yetenekTetikle(oyuncu, "bot_maden"); }
+    },
+    {
+      ad: "Bot: yanima gel",
+      calis() {
+        const n = botYanaCagir(oyuncu);
+        actionbarYaz(oyuncu, n > 0 ? "§a" + n + " bot yanina geldi" : "§eBotun yok.");
+      }
     },
     {
       ad: (botAl(oyuncu.id) || {}).durum === "bekle"
@@ -351,10 +367,11 @@ function menuEkleri(oyuncu) {
       }
     },
     {
-      ad: "Bot: geri gonder",
+      ad: "Bot: hepsini geri gonder",
       calis() {
-        actionbarYaz(oyuncu, botGeri(oyuncu)
-          ? "§8Bot geri gonderildi" : "§eBotun yok.");
+        const n = botGeri(oyuncu);
+        actionbarYaz(oyuncu, n > 0
+          ? "§8" + n + " bot geri gonderildi" : "§eBotun yok.");
       }
     },
 
@@ -947,7 +964,8 @@ function durumRaporu(oyuncu) {
                ? "§edenetim yok"
                : (botKayitli ? "§avarlik kayitli" : "§cvarlik KAYITLI DEGIL")) +
              " §8· " + (botKayit
-               ? "§aseninki var §7(" + botKayit.durum + ")"
+               ? "§a" + botSayisi(oyuncu.id) + "/" + BOT_TAVAN +
+                 " bot §7(" + botKayit.durum + ")"
                : "§7botun yok"));
 
   // Acik iksir ve kalan sure
@@ -973,6 +991,8 @@ sohbetKancalari({
   kollariVer: (oyuncu) => kollariVer(oyuncu),
   botDurum: (oyuncu, durum) => botDurum(oyuncu, durum),
   botGeri: (oyuncu) => botGeri(oyuncu),
+  botYanaCagir: (oyuncu) => botYanaCagir(oyuncu),
+  botSayisi: (oyuncu) => botSayisi(oyuncu.id),
   yetenek: (oyuncu, kimlik) => {
     const tanim = yetenekAl(kimlik);
     if (!tanim) return "§cBilinmeyen yetenek: " + kimlik;

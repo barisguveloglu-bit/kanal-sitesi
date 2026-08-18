@@ -153,13 +153,29 @@ export function komutCozumle(oyuncu, hamMetin) {
       const d = cagir("botDurum", oyuncu, "bekle");
       return { cevap: d ? "§eBot bekliyor." : "§eBotun yok. §7'bot' yaz." };
     }
-    if (alt === "takip" || alt === "gel" || alt === "pesim") {
+    if (alt === "takip" || alt === "pesim") {
       const d = cagir("botDurum", oyuncu, "takip");
-      return { cevap: d ? "§aBot pesinden geliyor." : "§eBotun yok. §7'bot' yaz." };
+      return { cevap: d ? "§aBotlar pesinden geliyor." : "§eBotun yok. §7'bot' yaz." };
+    }
+    if (alt === "gel" || alt === "yanima") {
+      const n = cagir("botYanaCagir", oyuncu);
+      return { cevap: n > 0 ? "§a" + n + " bot yanina geldi." : "§eBotun yok." };
+    }
+
+    /* ---- Asama 2 isleri ----
+       Bot KENDI etrafini isliyor (Bedrock'ta yol bulma API'si
+       yok). Yani once botla birlikte ormana/madene git, sonra
+       soyle.                                                   */
+    if (alt === "odun" || alt === "agac" || alt === "kes") {
+      return { cevap: cagir("yetenek", oyuncu, "bot_odun") };
+    }
+    if (alt === "maden" || alt === "kaz" || alt === "cevher") {
+      return { cevap: cagir("yetenek", oyuncu, "bot_maden") };
     }
     if (alt !== undefined) {
       return { cevap: "§cBilmedigim bot komutu: §7" + alt +
-                      " §8(bot / bot bekle / bot takip / bot geri)" };
+                      "\n§8bot · bot odun · bot maden · bot bekle · " +
+                      "bot takip · bot gel · bot geri" };
     }
     return { cevap: cagir("yetenek", oyuncu, "bot_cagir") };
   }
@@ -199,7 +215,9 @@ const YARDIM = [
   "§ecan sifirla§7 · eklenen kalpleri geri al",
   "§elazer§7 · goz lazeri at (once iksir ic)",
   "§ebot§7 · botu cagir / yanina getir",
-  "§ebot bekle§7 · §ebot takip§7 · §ebot geri",
+  "§ebot odun§7 · botlar etrafindaki agaclari keser",
+  "§ebot maden§7 · botlar etrafindaki cevheri kazar",
+  "§ebot bekle§7 · §ebot takip§7 · §ebot gel§7 · §ebot geri",
   "§ekol§7 · butun kollari al",
   "§eguc kapat§7 · acik iksiri kapat",
   "§edurum§7 · her sey calisiyor mu, tek bakista",
