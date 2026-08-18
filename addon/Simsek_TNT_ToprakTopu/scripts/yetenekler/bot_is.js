@@ -3,10 +3,14 @@ import * as api from "@minecraft/server";
 import { yetenekKaydet } from "./kayit.js";
 import { blokIste } from "../butce.js";
 import { hataYaz, gecerliMi, kollariIndir, actionbarYaz } from "../yardimcilar.js";
-import { botVarliklari, botSayisi } from "./_bot_defteri.js";
+import {
+  botVarliklari, botSayisi, cantayaKoy, cantaDolulugu
+} from "./_bot_defteri.js";
+import { teslimEtVeYaz } from "./bot_teslim.js";
 import {
   BOT_IS_ACIK, BOT_IS_SURE, BOT_IS_YARICAP, BOT_ODUN_YUKSEK, BOT_MADEN_DERIN,
-  BOT_IS_BOT_BASI, BOT_ODUN_BLOKLARI, BOT_MADEN_BLOKLARI, KORUNAN_KUME
+  BOT_IS_BOT_BASI, BOT_ODUN_BLOKLARI, BOT_MADEN_BLOKLARI, KORUNAN_KUME,
+  BOT_CANTA_TAVAN
 } from "../ayarlar.js";
 
 /* ============================================================
@@ -84,10 +88,10 @@ const ISLER = {
   }
 };
 
-/* ---------------- Esyayi sahibine ver ----------------
+/* ---------------- Esya ----------------
    setType("air") esya DUSURMEZ, o yuzden karsiligi elle
-   veriliyor. Envanter doluysa botun yanina birakiliyor --
-   sessizce yok olmasin.                                       */
+   uretiliyor ve EKIP CANTASINA konuyor. Envantere aktarma
+   bot_teslim.js'in isi.                                        */
 
 let esyaUyarisi = false;
 
@@ -106,33 +110,6 @@ function esyaHazirla(esyaKimligi) {
     }
     return undefined;
   }
-}
-
-function esyaVer(oyuncu, boyut, konum, yigin) {
-  if (!yigin) return false;
-
-  try {
-    const env = oyuncu.getComponent("minecraft:inventory");
-    const kap = env ? env.container : undefined;
-    if (kap && typeof kap.addItem === "function") {
-      const artan = kap.addItem(yigin);
-      // addItem dolu envanterde kalani dondurebiliyor
-      if (!artan) return true;
-      yigin = artan;
-    }
-  } catch (e) {
-    // Envanter okunamadi; asagida yere birakilacak
-  }
-
-  try {
-    if (typeof boyut.spawnItem === "function") {
-      boyut.spawnItem(yigin, konum);
-      return true;
-    }
-  } catch (e) {
-    hataYaz("bot_is.spawnItem", e);
-  }
-  return false;
 }
 
 /* ---------------- Tek botun durumu ---------------- */
@@ -255,11 +232,17 @@ function botIsi(oyuncu, tur) {
       if (raporlandi) return;
       raporlandi = true;
       try {
-        oyuncu.sendMessage(toplandi > 0
-          ? "§a" + botlar.length + " bot " + tanim.ad + " §7· toplam §f" +
-            toplandi + "§7 parca"
-          : "§eEtrafta " + (tur === "odun" ? "agac" : "cevher") +
+        if (toplandi === 0) {
+          oyuncu.sendMessage("§eEtrafta " + (tur === "odun" ? "agac" : "cevher") +
             " bulunamadi. §7Botla birlikte oraya git, sonra tekrar soyle.");
+          return;
+        }
+
+        /* "Topladiktan sonra bana versinler": is bitince teslim
+           OTOMATIK. Elle 'bot teslim' demek zorunda kalmayasin
+           diye; o komut is ortasinda ya da bot uzaktayken lazim. */
+        teslimEtVeYaz(oyuncu,
+          "§a" + botlar.length + " bot " + tanim.ad + " §7· getirdi: ");
       } catch (e) {
         hataYaz("bot_is.bitir", e);
       }
@@ -274,8 +257,17 @@ function botIsi(oyuncu, tur) {
    sey gecmez. Bu, esya kimligi tablosunda bir yanlis varsa
    verinin sessizce kaybolmasini engelliyor.                    */
 function kirBlok(blok, boyut, nokta, tip, tanim, oyuncu) {
-  const yigin = esyaHazirla(tanim.esya(tip));
-  if (!yigin) return false;
+  const esyaKimligi = tanim.esya(tip);
+
+  /* SIRA ONEMLI. Once esyanin uretilebildigi dogrulaniyor, sonra
+     blok kiriliyor. Ters olsaydi kimlik tablosundaki bir yanlis
+     blogu yok eder ve ele hicbir sey gecmezdi -- bot cevheri
+     patlatirdi. Test bu sirayi kilitliyor.                     */
+  if (!esyaHazirla(esyaKimligi)) return false;
+
+  /* Canta doluysa blogu KIRMA: yerinde dursun. Kirip
+     dusurseydik oyuncu farkinda olmadan birakip giderdi.      */
+  if (cantaDolulugu(oyuncu.id) >= BOT_CANTA_TAVAN) return false;
 
   try {
     blok.setType("minecraft:air");
@@ -283,7 +275,11 @@ function kirBlok(blok, boyut, nokta, tip, tanim, oyuncu) {
     hataYaz("bot_is.setType", e);
     return false;
   }
-  esyaVer(oyuncu, boyut, nokta, yigin);
+
+  /* v4.28: esya DOGRUDAN envantere gitmiyor, EKIP CANTASINA
+     giriyor ve is bitince topluca teslim ediliyor. Sebepleri
+     bot_teslim.js'in basinda.                                 */
+  cantayaKoy(oyuncu.id, esyaKimligi, 1);
   return true;
 }
 

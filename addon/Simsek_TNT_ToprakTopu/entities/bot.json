@@ -20,6 +20,87 @@
         "minecraft:movement": {
           "value": 0.0
         }
+      },
+      "pa:savas": {
+        "minecraft:attack": {
+          "damage": 5
+        },
+        "minecraft:behavior.melee_attack": {
+          "priority": 2,
+          "speed_multiplier": 1.4,
+          "track_target": true,
+          "reach_multiplier": 1.2
+        },
+        "minecraft:behavior.owner_hurt_target": {
+          "priority": 1,
+          "entity_types": [
+            {
+              "filters": {
+                "test": "is_family",
+                "subject": "other",
+                "operator": "!=",
+                "value": "pa_bot"
+              }
+            }
+          ]
+        },
+        "minecraft:behavior.owner_hurt_by_target": {
+          "priority": 1,
+          "entity_types": [
+            {
+              "filters": {
+                "test": "is_family",
+                "subject": "other",
+                "operator": "!=",
+                "value": "pa_bot"
+              }
+            }
+          ]
+        },
+        "minecraft:behavior.hurt_by_target": {
+          "priority": 2,
+          "entity_types": [
+            {
+              "filters": {
+                "test": "is_family",
+                "subject": "other",
+                "operator": "!=",
+                "value": "pa_bot"
+              }
+            }
+          ]
+        }
+      },
+      "pa:barisci": {},
+      "pa:tip0": {
+        "minecraft:variant": {
+          "value": 0
+        }
+      },
+      "pa:tip1": {
+        "minecraft:variant": {
+          "value": 1
+        }
+      },
+      "pa:tip2": {
+        "minecraft:variant": {
+          "value": 2
+        }
+      },
+      "pa:tip3": {
+        "minecraft:variant": {
+          "value": 3
+        }
+      },
+      "pa:tip4": {
+        "minecraft:variant": {
+          "value": 4
+        }
+      },
+      "pa:tip5": {
+        "minecraft:variant": {
+          "value": 5
+        }
       }
     },
     "components": {
@@ -30,8 +111,8 @@
         ]
       },
       "minecraft:health": {
-        "value": 20,
-        "max": 20
+        "value": 24,
+        "max": 24
       },
       "minecraft:collision_box": {
         "width": 0.6,
@@ -78,7 +159,7 @@
         "priority": 0
       },
       "minecraft:behavior.follow_owner": {
-        "priority": 3,
+        "priority": 4,
         "speed_multiplier": 1.2,
         "start_distance": 4,
         "stop_distance": 2
@@ -94,11 +175,68 @@
     },
     "events": {
       "minecraft:entity_spawned": {
-        "add": {
-          "component_groups": [
-            "pa:takip"
-          ]
-        }
+        "sequence": [
+          {
+            "add": {
+              "component_groups": [
+                "pa:takip",
+                "pa:savas"
+              ]
+            }
+          },
+          {
+            "randomize": [
+              {
+                "weight": 1,
+                "add": {
+                  "component_groups": [
+                    "pa:tip0"
+                  ]
+                }
+              },
+              {
+                "weight": 1,
+                "add": {
+                  "component_groups": [
+                    "pa:tip1"
+                  ]
+                }
+              },
+              {
+                "weight": 1,
+                "add": {
+                  "component_groups": [
+                    "pa:tip2"
+                  ]
+                }
+              },
+              {
+                "weight": 1,
+                "add": {
+                  "component_groups": [
+                    "pa:tip3"
+                  ]
+                }
+              },
+              {
+                "weight": 1,
+                "add": {
+                  "component_groups": [
+                    "pa:tip4"
+                  ]
+                }
+              },
+              {
+                "weight": 1,
+                "add": {
+                  "component_groups": [
+                    "pa:tip5"
+                  ]
+                }
+              }
+            ]
+          }
+        ]
       },
       "pa:evcillestir": {
         "add": {
@@ -128,6 +266,30 @@
         "add": {
           "component_groups": [
             "pa:bekle"
+          ]
+        }
+      },
+      "pa:savas_ac": {
+        "remove": {
+          "component_groups": [
+            "pa:barisci"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "pa:savas"
+          ]
+        }
+      },
+      "pa:savas_kapat": {
+        "remove": {
+          "component_groups": [
+            "pa:savas"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "pa:barisci"
           ]
         }
       }

@@ -6,7 +6,8 @@ import {
   BOT_ACIK, BOT_KIMLIK, BOT_TAVAN, BOT_KURTARMA_MENZIL, BOT_KURTARMA_YAKIN,
   BOT_TARAMA, BOT_CAGIR_YAKIN, BOT_DOGUM_YAKIN, BOT_KAYIT_ANAHTAR,
   BOT_SAHIP_OZELLIK, BOT_DURUM_OZELLIK, BOT_OLAY_TAKIP, BOT_OLAY_BEKLE,
-  BOT_SCRIPT_MENZIL
+  BOT_SCRIPT_MENZIL, BOT_CANTA_TAVAN, BOT_TESLIM_MENZIL,
+  BOT_SAVAS_VARSAYILAN, BOT_OLAY_SAVAS_AC, BOT_OLAY_SAVAS_KAPAT
 } from "../ayarlar.js";
 
 /* ============================================================
@@ -61,6 +62,76 @@ function listeAl(oyuncuId) {
 /* oyuncuId -> bir sonraki tarama tick'i */
 const sonraki = new Map();
 
+/* ---------------- Ekip cantasi ----------------
+   oyuncuId -> Map(esyaKimligi -> adet)
+
+   Botlarin topladigi seyler once buraya giriyor, sonra topluca
+   teslim ediliyor. Bot BASINA degil EKIP basina: yirmi ayri
+   canta ne kayitta ne oynanista bir sey kazandirir, sen zaten
+   tek bir yigin aliyorsun.                                     */
+const cantalar = new Map();
+
+/* oyuncuId -> savas acik mi */
+const savasDurumu = new Map();
+
+function cantaAl(oyuncuId) {
+  let c = cantalar.get(oyuncuId);
+  if (!c) { c = new Map(); cantalar.set(oyuncuId, c); }
+  return c;
+}
+
+export function cantaDolulugu(oyuncuId) {
+  let n = 0;
+  const c = cantalar.get(oyuncuId);
+  if (c) for (const adet of c.values()) n += adet;
+  return n;
+}
+
+/* Cantaya koy. Donen deger: gercekten kondu mu (tavan asilmadi). */
+export function cantayaKoy(oyuncuId, esyaKimligi, adet = 1) {
+  if (cantaDolulugu(oyuncuId) >= BOT_CANTA_TAVAN) return false;
+  const c = cantaAl(oyuncuId);
+  c.set(esyaKimligi, (c.get(esyaKimligi) || 0) + adet);
+  yaz();
+  return true;
+}
+
+export function cantaListesi(oyuncuId) {
+  const c = cantalar.get(oyuncuId);
+  return c ? [...c.entries()] : [];
+}
+
+export function cantaBosalt(oyuncuId) {
+  cantalar.delete(oyuncuId);
+  yaz();
+}
+
+/* ---------------- Savas anahtari ---------------- */
+
+export function savasAcikMi(oyuncuId) {
+  const d = savasDurumu.get(oyuncuId);
+  return (d === undefined) ? BOT_SAVAS_VARSAYILAN : d;
+}
+
+/* Butun botlara uygulanir. Donen deger: yeni durum.            */
+export function botSavas(oyuncu, acik) {
+  oku();
+  const yeni = (acik === undefined) ? !savasAcikMi(oyuncu.id) : !!acik;
+  savasDurumu.set(oyuncu.id, yeni);
+
+  for (const { varlik } of botVarliklari(oyuncu.id)) {
+    try {
+      if (typeof varlik.triggerEvent === "function") {
+        varlik.triggerEvent(yeni ? BOT_OLAY_SAVAS_AC : BOT_OLAY_SAVAS_KAPAT);
+      }
+    } catch (e) {
+      hataYaz("bot.savas", e);
+    }
+  }
+  yaz();
+  return yeni;
+}
+
 let tameUyarisi = false;
 
 /* ---------------- Kalicilik ---------------- */
@@ -80,16 +151,40 @@ function kaliciMi() {
 }
 
 /* Kayit bicimi kisa tutuluyor (dunya ozelliginin boyut siniri var):
-     [[oyuncuId, botId, boyutId, durum], ...]                     */
+     { b: [[oyuncuId, botId, boyutId, durum], ...],
+       c: { oyuncuId: "oak_log:12,raw_iron:3" },
+       s: { oyuncuId: 0|1 } }
+
+   Canta kimliklerinden "minecraft:" oneki atiliyor: yirmi botun
+   topladigi seyle kayit gereksiz yere sismesin.                */
+const ONEK = "minecraft:";
+
 function yaz() {
   if (!kaliciMi()) return;
   try {
-    const dizi = [];
+    const b = [];
     for (const [oyuncuId, liste] of defter) {
-      for (const b of liste) dizi.push([oyuncuId, b.botId, b.boyutId, b.durum]);
+      for (const k of liste) b.push([oyuncuId, k.botId, k.boyutId, k.durum]);
     }
+
+    const c = {};
+    for (const [oyuncuId, canta] of cantalar) {
+      if (canta.size === 0) continue;
+      const parcalar = [];
+      for (const [esya, adet] of canta) {
+        parcalar.push((esya.startsWith(ONEK) ? esya.slice(ONEK.length) : esya) +
+                      ":" + adet);
+      }
+      c[oyuncuId] = parcalar.join(",");
+    }
+
+    const sv = {};
+    for (const [oyuncuId, acik] of savasDurumu) sv[oyuncuId] = acik ? 1 : 0;
+
+    const bos = (b.length === 0 && Object.keys(c).length === 0 &&
+                 Object.keys(sv).length === 0);
     world.setDynamicProperty(BOT_KAYIT_ANAHTAR,
-                             dizi.length === 0 ? undefined : JSON.stringify(dizi));
+                             bos ? undefined : JSON.stringify({ b, c, s: sv }));
   } catch (e) {
     hataYaz("bot.yaz", e);
   }
@@ -104,8 +199,29 @@ function oku() {
   try {
     const ham = world.getDynamicProperty(BOT_KAYIT_ANAHTAR);
     if (typeof ham !== "string" || ham.length === 0) return;
-    const dizi = JSON.parse(ham);
-    if (!Array.isArray(dizi)) return;
+    const kayit = JSON.parse(ham);
+
+    /* v4.27 ve oncesi DUZ DIZI yaziyordu. Eski kaydi olan bir
+       dunya acilinca botlar kaybolmasin diye ikisi de okunuyor. */
+    const dizi = Array.isArray(kayit) ? kayit : (kayit.b || []);
+
+    if (kayit && !Array.isArray(kayit)) {
+      for (const [oyuncuId, metin] of Object.entries(kayit.c || {})) {
+        const canta = cantaAl(oyuncuId);
+        for (const parca of String(metin).split(",")) {
+          const i = parca.lastIndexOf(":");
+          if (i <= 0) continue;
+          const ad = parca.slice(0, i);
+          const adet = Number(parca.slice(i + 1));
+          if (!isFinite(adet) || adet <= 0) continue;
+          canta.set(ad.includes(":") ? ad : ONEK + ad, adet);
+        }
+      }
+      for (const [oyuncuId, acik] of Object.entries(kayit.s || {})) {
+        savasDurumu.set(oyuncuId, acik === 1 || acik === true);
+      }
+    }
+
     let sayi = 0;
     for (const satir of dizi) {
       if (!Array.isArray(satir) || satir.length < 2) continue;
@@ -323,6 +439,17 @@ export function botCagir(oyuncu) {
   liste.push(yeni);
   defter.set(oyuncu.id, liste);
   durumUygula(varlik, yeni);
+
+  /* Savas durumu EKIP capinda: sonradan dogan bot da ayni
+     ayarla gelsin, yoksa "kapattim ama yeni bot saldiriyor"
+     olurdu.                                                   */
+  try {
+    if (typeof varlik.triggerEvent === "function" && !savasAcikMi(oyuncu.id)) {
+      varlik.triggerEvent(BOT_OLAY_SAVAS_KAPAT);
+    }
+  } catch (e) {
+    hataYaz("bot.savasBaslangic", e);
+  }
   yaz();
 
   return { dogdu: true, evcil, toplam: liste.length, tavan: BOT_TAVAN };
@@ -564,6 +691,8 @@ export function botUnut(oyuncuId) {
 export function defteriUnut() {
   defter.clear();
   sonraki.clear();
+  cantalar.clear();
+  savasDurumu.clear();
   okundu = false;
   tameUyarisi = false;
 }

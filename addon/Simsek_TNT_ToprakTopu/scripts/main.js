@@ -72,6 +72,7 @@ import "./yetenekler/kalp_ekle.js";
 import "./yetenekler/kalp_sifirla.js";
 import "./yetenekler/bot_cagir.js";
 import "./yetenekler/bot_geri.js";
+import "./yetenekler/bot_teslim.js";
 import "./yetenekler/bot_is.js";
 
 /* DIKKAT -- SIRA ONEMLI.
@@ -102,7 +103,8 @@ import {
    defterleriyle ayni kalip.                                     */
 import {
   botTara, botVarMi, botDurum, botGeri, botAl, botunSahibi, botDenetimi,
-  botUnut, botKayitliMi, botSayisi, botYanaCagir
+  botUnut, botKayitliMi, botSayisi, botYanaCagir, botSavas, savasAcikMi,
+  cantaDolulugu
 } from "./yetenekler/_bot_defteri.js";
 
 /* Gunes Yumrugu kaydi is listesinden bagimsiz bir Map'te; oyuncu
@@ -344,6 +346,14 @@ function menuEkleri(oyuncu) {
     {
       ad: "Bot: maden kaz",
       calis() { yetenekTetikle(oyuncu, "bot_maden"); }
+    },
+    {
+      ad: "Bot: teslim al §8(" + cantaDolulugu(oyuncu.id) + ")",
+      calis() { yetenekTetikle(oyuncu, "bot_teslim"); }
+    },
+    {
+      ad: "Bot: savas " + (savasAcikMi(oyuncu.id) ? "KAPAT" : "AC"),
+      calis() { yetenekTetikle(oyuncu, "bot_savas"); }
     },
     {
       ad: "Bot: yanima gel",
@@ -974,6 +984,12 @@ function durumRaporu(oyuncu) {
     ? "§f" + kademe.ad + " §8· lazer icin egil + zipla"
     : "§7yok §8(ic, sonra 'lazer' yaz)"));
 
+  if (botKayit) {
+    satir.push("§7Bot cantasi: §f" + cantaDolulugu(oyuncu.id) +
+               " §7parca §8· savas " +
+               (savasAcikMi(oyuncu.id) ? "§cACIK" : "§7kapali"));
+  }
+
   const kalp = kalpAl(oyuncu.id);
   satir.push("§7Kalp: §f+" + kalp + " ek §8(toplam " + (10 + kalp) +
              ", tavan " + KALP_TAVAN + ")");
@@ -992,6 +1008,7 @@ sohbetKancalari({
   botDurum: (oyuncu, durum) => botDurum(oyuncu, durum),
   botGeri: (oyuncu) => botGeri(oyuncu),
   botYanaCagir: (oyuncu) => botYanaCagir(oyuncu),
+  botSavas: (oyuncu, acik) => botSavas(oyuncu, acik),
   botSayisi: (oyuncu) => botSayisi(oyuncu.id),
   yetenek: (oyuncu, kimlik) => {
     const tanim = yetenekAl(kimlik);

@@ -172,10 +172,23 @@ export function komutCozumle(oyuncu, hamMetin) {
     if (alt === "maden" || alt === "kaz" || alt === "cevher") {
       return { cevap: cagir("yetenek", oyuncu, "bot_maden") };
     }
+    if (alt === "teslim" || alt === "ver" || alt === "canta") {
+      return { cevap: cagir("yetenek", oyuncu, "bot_teslim") };
+    }
+    if (alt === "savas" || alt === "dov" || alt === "koru") {
+      const durum = parca[2];
+      const istenen = (durum === "ac" || durum === "acik") ? true
+                    : (durum === "kapat" || durum === "kapali") ? false
+                    : undefined;   // argumansiz = tersine cevir
+      const acik = cagir("botSavas", oyuncu, istenen);
+      return { cevap: acik
+        ? "§cBotlar savasa hazir. §7Sen vurunca onlar da saldirir."
+        : "§7Botlar barisci." };
+    }
     if (alt !== undefined) {
       return { cevap: "§cBilmedigim bot komutu: §7" + alt +
-                      "\n§8bot · bot odun · bot maden · bot bekle · " +
-                      "bot takip · bot gel · bot geri" };
+                      "\n§8bot · bot odun · bot maden · bot teslim · " +
+                      "bot savas · bot bekle · bot takip · bot gel · bot geri" };
     }
     return { cevap: cagir("yetenek", oyuncu, "bot_cagir") };
   }
@@ -217,6 +230,8 @@ const YARDIM = [
   "§ebot§7 · botu cagir / yanina getir",
   "§ebot odun§7 · botlar etrafindaki agaclari keser",
   "§ebot maden§7 · botlar etrafindaki cevheri kazar",
+  "§ebot teslim§7 · topladiklarini sana verir",
+  "§ebot savas§7 · kopek gibi: sen vurunca onlar da saldirir",
   "§ebot bekle§7 · §ebot takip§7 · §ebot gel§7 · §ebot geri",
   "§ekol§7 · butun kollari al",
   "§eguc kapat§7 · acik iksiri kapat",

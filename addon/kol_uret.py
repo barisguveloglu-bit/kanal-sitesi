@@ -323,19 +323,109 @@ BOT_ANA = (58, 110, 165)      # tulum mavisi
 BOT_TEN = (198, 138, 96)
 
 
+# Kac gorsel cesit. Yirmi bot birbirinin AYNISI olunca hangisine
+# ne soyledigin karisiyor; cesit sayesinde ayirt ediliyorlar.
+# minecraft:variant + render controller dizisi vanilla yontemi.
+BOT_CESIT = 6
+
+# Her cesit: sac, gomlek, pantolon. Ten hepsinde ayni --
+# ayirt edici olan KIYAFET, ekipteki rolleri degil.
+BOT_RENKLER = [
+    ((38, 32, 28),  (58, 110, 165), (48, 62, 96)),    # siyah sac, mavi
+    ((126, 78, 32), (176, 72, 60),  (72, 54, 44)),    # kahve sac, kirmizi
+    ((216, 188, 96),(86, 148, 82),  (60, 78, 54)),    # sari sac, yesil
+    ((60, 56, 60),  (150, 120, 60), (74, 62, 40)),    # gri sac, hardal
+    ((150, 60, 40), (120, 96, 168), (66, 56, 92)),    # kizil sac, mor
+    ((30, 30, 34),  (200, 200, 206),(90, 92, 100)),   # siyah sac, beyaz
+]
+BOT_TEN = (198, 146, 108)
+
+# Savas degerleri. Bunlar SADECE varlik JSON'una giriyor, script
+# okumuyor -- o yuzden ayarlar.js'te degil burada. Vanilla kurt 4
+# hasar veriyor; bot biraz daha sert ama zombiden (3) cok da
+# yukari degil ki yirmi bot her seyi bicmesin.
+BOT_HASAR = 5
+BOT_CAN = 24
+
+
 def bot_sunucu_varligi():
     """format_version 1.16.0: varliklar icin en genis desteklenen
-    surum ve hicbir deneysel ayar istemiyor. Esyalarda 1.21.0
-    kullaniyoruz cunku orada menu_category gerekiyordu; varlikta
-    boyle bir ihtiyac yok, eski ve saglam olan tercih edildi.
+    surum ve hicbir deneysel ayar istemiyor.
 
-    minecraft:tameable NEDEN VAR: follow_owner bir SAHIP ister ve
-    sahip ancak evcillestirmeyle atanir. Script tameable.tame()
-    cagiriyor. Kemikle de evcillesir -- yedek yol.
+    ---- SAVAS: KOPEK MODELI (v4.28) ----
+    Kullanicinin tarifi: "kopek evcillestirirsin ya, birine
+    vurdugun zaman ona saldiriyor". Vanilla kurdun kullandigi
+    UC davranis tam olarak bu:
 
-    pa:bekle grubu hareket hizini 0 yapiyor. "Dur" demenin en
-    saglam yolu bu: davranis hedefini kaldirmaya calismak
-    surumden surume degisiyor, hiz 0 her yerde ayni."""
+      owner_hurt_target     sahibi bir seye VURUNCA bot ona saldirir
+      owner_hurt_by_target  sahibine bir sey VURUNCA bot ona saldirir
+      hurt_by_target        botun kendisine vurana karsilik verir
+
+    Ucu de SAHIP ister; sahip tameable.tame() ile atandi ve takip
+    calistigina gore baglandi. Yani bu davranislar da baglanmali.
+
+    Botlar birbirini dovmesin diye hedef suzgecinde pa_bot ailesi
+    disarida. OYUNCULAR disarida DEGIL: "benim icin savassinlar"
+    denince arkadasinin da dahil olmasi bekleniyor.
+
+    Savas bir GRUP icinde, cunku kapatilabilmesi lazim -- ormanda
+    odun toplarken botun her koyuna saldirmasi istenmez. pa:savas
+    ve pa:barisci gruplari olaylarla degistiriliyor.
+
+    ---- CESITLER ----
+    minecraft:variant + component_group. entity_spawned olayinda
+    rastgele bir cesit ekleniyor; istemci tarafi query.variant ile
+    dokuyu seciyor.
+    """
+    gruplar = {
+        "pa:evcil": {"minecraft:is_tamed": {}},
+        "pa:takip": {"minecraft:movement": {"value": 0.32}},
+        # Hiz 0 = yerinde durur; AI hedefleriyle ugrasmaya gerek yok
+        "pa:bekle": {"minecraft:movement": {"value": 0.0}},
+
+        "pa:savas": {
+            "minecraft:attack": {"damage": BOT_HASAR},
+            "minecraft:behavior.melee_attack": {
+                "priority": 2,
+                "speed_multiplier": 1.4,
+                "track_target": True,
+                "reach_multiplier": 1.2,
+            },
+            # Sahibi bir seye vurdu -> bot da ona
+            "minecraft:behavior.owner_hurt_target": {
+                "priority": 1,
+                "entity_types": [{"filters": {
+                    "test": "is_family", "subject": "other",
+                    "operator": "!=", "value": "pa_bot",
+                }}],
+            },
+            # Sahibine vuruldu -> bot vurana
+            "minecraft:behavior.owner_hurt_by_target": {
+                "priority": 1,
+                "entity_types": [{"filters": {
+                    "test": "is_family", "subject": "other",
+                    "operator": "!=", "value": "pa_bot",
+                }}],
+            },
+            # Botun kendisine vuruldu -> karsilik verir
+            "minecraft:behavior.hurt_by_target": {
+                "priority": 2,
+                "entity_types": [{"filters": {
+                    "test": "is_family", "subject": "other",
+                    "operator": "!=", "value": "pa_bot",
+                }}],
+            },
+        },
+        # Bos grup: savas bilesenlerini kaldirmak icin
+        "pa:barisci": {},
+    }
+    for i in range(BOT_CESIT):
+        gruplar["pa:tip%d" % i] = {"minecraft:variant": {"value": i}}
+
+    # entity_spawned: takip + savas + rastgele cesit
+    cesit_secimi = [{"weight": 1, "add": {"component_groups": ["pa:tip%d" % i]}}
+                    for i in range(BOT_CESIT)]
+
     return {
         "format_version": "1.16.0",
         "minecraft:entity": {
@@ -346,15 +436,11 @@ def bot_sunucu_varligi():
                 "is_summonable": True,
                 "is_experimental": False,
             },
-            "component_groups": {
-                "pa:evcil": {"minecraft:is_tamed": {}},
-                "pa:takip": {"minecraft:movement": {"value": 0.32}},
-                # Hiz 0 = yerinde durur; AI hedefleriyle ugrasmaya gerek yok
-                "pa:bekle": {"minecraft:movement": {"value": 0.0}},
-            },
+            "component_groups": gruplar,
             "components": {
+                # pa_bot ailesi: botlarin birbirini dovmemesi buna bagli
                 "minecraft:type_family": {"family": ["pa_bot", "mob"]},
-                "minecraft:health": {"value": 20, "max": 20},
+                "minecraft:health": {"value": BOT_CAN, "max": BOT_CAN},
                 "minecraft:collision_box": {"width": 0.6, "height": 1.8},
                 "minecraft:physics": {},
                 "minecraft:pushable": {"is_pushable": True, "is_pushable_by_piston": True},
@@ -383,7 +469,7 @@ def bot_sunucu_varligi():
                 # Suda bogulmasin -- oncelik 0, her seyin onunde
                 "minecraft:behavior.float": {"priority": 0},
                 "minecraft:behavior.follow_owner": {
-                    "priority": 3,
+                    "priority": 4,
                     "speed_multiplier": 1.2,
                     "start_distance": 4,
                     "stop_distance": 2,
@@ -394,9 +480,14 @@ def bot_sunucu_varligi():
                 "minecraft:behavior.random_look_around": {"priority": 9},
             },
             "events": {
-                "minecraft:entity_spawned": {"add": {"component_groups": ["pa:takip"]}},
+                "minecraft:entity_spawned": {
+                    "sequence": [
+                        {"add": {"component_groups": ["pa:takip", "pa:savas"]}},
+                        {"randomize": cesit_secimi},
+                    ]
+                },
                 "pa:evcillestir": {"add": {"component_groups": ["pa:evcil"]}},
-                # Script bu iki olayi triggerEvent ile calistiriyor.
+                # Script bu olaylari triggerEvent ile calistiriyor.
                 # Adlar ayarlar.js'teki BOT_OLAY_* ile AYNI olmali.
                 "pa:takip": {
                     "remove": {"component_groups": ["pa:bekle"]},
@@ -406,32 +497,61 @@ def bot_sunucu_varligi():
                     "remove": {"component_groups": ["pa:takip"]},
                     "add": {"component_groups": ["pa:bekle"]},
                 },
+                "pa:savas_ac": {
+                    "remove": {"component_groups": ["pa:barisci"]},
+                    "add": {"component_groups": ["pa:savas"]},
+                },
+                "pa:savas_kapat": {
+                    "remove": {"component_groups": ["pa:savas"]},
+                    "add": {"component_groups": ["pa:barisci"]},
+                },
             },
         },
     }
 
 
 def bot_istemci_varligi():
-    """controller.render.default vanilla'da hazir; kendi render
-    controller'imizi yazmaya gerek yok.
+    """Cesit basina ayri doku. render controller query.variant ile
+    diziden seciyor -- vanilla'nin kendi yontemi (koyun rengi,
+    papagan turu hep boyle).
 
     spawn_egg renk ile veriliyor (doku degil): boylece yumurta
     ikonu icin ayri bir PNG ve atlas girdisi gerekmiyor."""
+    dokular = {"default": "textures/entity/bot0"}
+    dizi = []
+    for i in range(BOT_CESIT):
+        dokular["bot%d" % i] = "textures/entity/bot%d" % i
+        dizi.append("Texture.bot%d" % i)
+
     return {
         "format_version": "1.10.0",
         "minecraft:client_entity": {
             "description": {
                 "identifier": BOT_KIMLIK,
                 "materials": {"default": "entity_alphatest"},
-                "textures": {"default": "textures/entity/bot"},
+                "textures": dokular,
+                "arrays": {"textures": {"Array.cesitler": dizi}},
                 "geometry": {"default": "geometry.simsek_bot"},
-                "render_controllers": ["controller.render.default"],
+                "render_controllers": ["controller.render.simsek_bot"],
                 "spawn_egg": {"base_color": "#3a6ea5", "overlay_color": "#c68a60"},
                 "scripts": {"animate": ["yuru"]},
                 "animations": {"yuru": "animation.simsek_bot.yuru"},
             }
         },
     }
+
+
+BOT_RENDER = {
+    "format_version": "1.10.0",
+    "render_controllers": {
+        "controller.render.simsek_bot": {
+            "geometry": "Geometry.default",
+            "materials": [{"*": "Material.default"}],
+            # variant disiya tasarsa oyun cizemez; modu ile guvene aliniyor
+            "textures": ["Array.cesitler[query.variant]"],
+        }
+    },
+}
 
 
 # Insansi model: vanilla 64x64 skin duzeniyle AYNI UV.
@@ -507,47 +627,98 @@ BOT_ANIM = {
 }
 
 
-def bot_dokusu():
-    """64x64, vanilla skin duzeni. Yer tutucu: mavi tulum, ten
-    rengi kafa/kol. Goz satiri v4.19'da OLCULEN yer: y=12,
-    x=9,10 ve x=13,14 (kafanin on yuzu x=8..15, y=8..15).
+def bot_dokusu(cesit):
+    """64x64, vanilla skin duzeni. Gercek bir Minecraft skini ile
+    degistirmek istersen aynen uzerine yaz -- UV birebir ayni.
 
-    Gercek bir skin PNG'si ile degistirmek istersen aynen uzerine
-    yaz -- UV vanilla ile ayni."""
+    v4.28: yer tutucu duz renklerden GERCEK bir yuze gecildi.
+    Kafanin on yuzu (x=8..15, y=8..15) elle cizildi:
+
+        y= 8..10   sac (perce one dusuyor)
+        y=11       alin / kas cizgisi
+        y=12       GOZ  -- ak + bebek, v4.19'da olculen satir
+        y=13       burun golgesi
+        y=14       agiz
+        y=15       cene
+
+    Govdede yaka, kemer, kol agzi ve bot var; duz renk yerine
+    hafif golge ile hacim veriliyor. Ust katman (hat/jacket)
+    kullanilmiyor -- 20 bot ekranda oldugunda fazladan katman
+    tablette bosuna cizim.
+    """
+    sac, gomlek, pantolon = BOT_RENKLER[cesit % len(BOT_RENKLER)]
+    ten = BOT_TEN
     p = {}
 
-    def dikdortgen(x0, y0, en, boy, renk, koyu_kenar=True):
+    def kutu(x0, y0, en, boy, renk, kenar=True):
         for y in range(y0, y0 + boy):
             for x in range(x0, x0 + en):
                 k = 1.0
-                if koyu_kenar and (x == x0 or y == y0):
-                    k = 0.85
-                elif koyu_kenar and (x == x0 + en - 1 or y == y0 + boy - 1):
-                    k = 1.1
+                if kenar:
+                    if x == x0 or y == y0: k = 0.88
+                    elif x == x0 + en - 1 or y == y0 + boy - 1: k = 1.08
                 p[(x, y)] = golge(renk, k) + (255,)
 
-    # Kafa: 8x8'lik alti yuz, hepsi ten
-    dikdortgen(0, 8, 32, 8, BOT_TEN)
-    # Sac: kafanin ust seridi
-    dikdortgen(8, 8, 8, 3, (38, 32, 28), koyu_kenar=False)
-    dikdortgen(0, 0, 32, 8, (38, 32, 28))          # ust/alt kapaklar
+    # ---- KAFA ----
+    kutu(0, 8, 32, 8, ten)          # dort yan yuz
+    kutu(0, 0, 32, 8, sac)          # ust + alt kapak
 
-    # Govde 8x12 + kollar/bacaklar: tulum
-    dikdortgen(16, 16, 24, 16, BOT_ANA)
-    dikdortgen(40, 16, 16, 16, BOT_ANA)            # sag kol
-    dikdortgen(32, 48, 16, 16, BOT_ANA)            # sol kol
-    dikdortgen(0, 16, 16, 16, golge(BOT_ANA, 0.75))   # sag bacak
-    dikdortgen(16, 48, 16, 16, golge(BOT_ANA, 0.75))  # sol bacak
+    # Sac: yanlardan ve arkadan asagi iniyor, on tarafta perce
+    for x in range(0, 32):
+        for y in range(8, 11):
+            p[(x, y)] = golge(sac, 1.0 if (x + y) % 4 else 0.9) + (255,)
+    # On yuzde perce y=11'de sadece kenarlarda kalsin (alin acik)
+    for x in (8, 9, 14, 15):
+        p[(x, 11)] = golge(sac, 0.95) + (255,)
 
-    # Eller: kollarin alt ucu ten rengi
-    dikdortgen(40, 28, 16, 4, BOT_TEN, koyu_kenar=False)
-    dikdortgen(32, 60, 16, 4, BOT_TEN, koyu_kenar=False)
-
-    # Goz: v4.19'da olculen satir/sutunlar
+    # Kaslar
     for x in (9, 10, 13, 14):
-        p[(x, 12)] = (250, 250, 255, 255)
+        p[(x, 11)] = golge(sac, 0.7) + (255,)
+
+    # ---- GOZ (v4.19'da OLCULEN satir/sutunlar) ----
+    for x in (9, 14):
+        p[(x, 12)] = (246, 246, 250, 255)      # goz aki
     for x in (10, 13):
-        p[(x, 12)] = (24, 26, 40, 255)             # goz bebegi
+        p[(x, 12)] = (40, 58, 92, 255)         # goz bebegi (lacivert)
+
+    # Burun golgesi ve agiz
+    p[(11, 13)] = golge(ten, 0.86) + (255,)
+    p[(12, 13)] = golge(ten, 0.86) + (255,)
+    for x in (11, 12):
+        p[(x, 14)] = (108, 62, 52, 255)        # agiz
+
+    # ---- GOVDE ----
+    kutu(16, 16, 24, 16, gomlek)
+    kutu(40, 16, 16, 16, gomlek)               # sag kol
+    kutu(32, 48, 16, 16, gomlek)               # sol kol
+    kutu(0, 16, 16, 16, pantolon)              # sag bacak
+    kutu(16, 48, 16, 16, pantolon)             # sol bacak
+
+    # Yaka: govdenin ust seridi koyu
+    for x in range(16, 40):
+        p[(x, 16)] = golge(gomlek, 0.72) + (255,)
+        p[(x, 17)] = golge(gomlek, 0.82) + (255,)
+
+    # Kemer: govdenin alt ucu
+    for x in range(16, 40):
+        for y in (27, 28):
+            p[(x, y)] = golge(pantolon, 0.6) + (255,)
+
+    # Kol agzi + eller
+    for x0 in (40, 32):
+        y0 = 16 if x0 == 40 else 48
+        for x in range(x0, x0 + 16):
+            p[(x, y0 + 11)] = golge(gomlek, 0.7) + (255,)
+            for y in range(y0 + 12, y0 + 16):
+                p[(x, y)] = golge(ten, 1.0 if (x + y) % 5 else 0.93) + (255,)
+
+    # Botlar: bacaklarin alt ucu koyu
+    for x0, y0 in ((0, 16), (16, 48)):
+        for x in range(x0, x0 + 16):
+            for y in range(y0 + 12, y0 + 16):
+                p[(x, y)] = golge((52, 46, 44), 1.0 if (x + y) % 4 else 0.85) + (255,)
+
+    return p
 
     return p
 
@@ -946,7 +1117,10 @@ def main():
     yaz_json(os.path.join(RP, "entity/bot.entity.json"), bot_istemci_varligi())
     yaz_json(os.path.join(RP, "models/entity/simsek_bot.geo.json"), BOT_GEOMETRI)
     yaz_json(os.path.join(RP, "animations/simsek_bot.animation.json"), BOT_ANIM)
-    png_yaz(os.path.join(RP, "textures/entity/bot.png"), 64, 64, bot_dokusu())
+    yaz_json(os.path.join(RP, "render_controllers/simsek_bot.rc.json"), BOT_RENDER)
+    for i in range(BOT_CESIT):
+        png_yaz(os.path.join(RP, "textures/entity/bot%d.png" % i), 64, 64,
+                bot_dokusu(i))
     for liste, ad in ((en_us, BOT_AD), (tr_tr, BOT_TR)):
         liste.append("entity.%s.name=%s" % (BOT_KIMLIK, ad))
         liste.append("item.spawn_egg.entity.%s.name=%s Yumurtasi" % (BOT_KIMLIK, ad))
@@ -987,7 +1161,8 @@ def main():
     beklenen = set()
     # Bot dokusu KOLLAR/IKSIRLER listelerinde degil; elle ekleniyor
     # yoksa temizlik adimi her uretimde siler.
-    beklenen.add("bot")
+    for i in range(BOT_CESIT):
+        beklenen.add("bot%d" % i)
     for satir in KOLLAR:
         beklenen.add(satir[0])
     for kimlik, _ad, _sivi, goz, _gozRenk in IKSIRLER:
@@ -1011,9 +1186,9 @@ def main():
     if silinen:
         print("temizlendi: %d artik dosya" % silinen)
 
-    print("uretildi: %d kol, %d iksir, %d goz (lazer varyantiyla) -> %d esya + 1 bot varligi"
+    print("uretildi: %d kol, %d iksir, %d goz (lazer varyantiyla) -> %d esya + bot (%d cesit)"
           % (len(KOLLAR), len(IKSIRLER), len(IKSIRLER) * 2,
-             len(KOLLAR) + len(IKSIRLER) * 3))
+             len(KOLLAR) + len(IKSIRLER) * 3, BOT_CESIT))
 
 
 if __name__ == "__main__":

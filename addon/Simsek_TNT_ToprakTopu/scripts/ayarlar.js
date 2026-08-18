@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.27";
+export const SURUM = "v4.28";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -1133,6 +1133,48 @@ export const BOT_IS_YARICAP   = 6;     // botun etrafinda kac blok
 export const BOT_ODUN_YUKSEK  = 12;    // govde takibinde en fazla kac blok yukari
 export const BOT_MADEN_DERIN  = 6;     // maden ararken kac blok asagi
 export const BOT_IS_BOT_BASI  = 8;     // tek tick'te tek bota en fazla kac islem
+
+/* ============================================================
+   BOT CANTASI ve TESLIM  (v4.28)
+
+   Istek: "botlarin odun topladiktan sonra odunu bana vermeleri
+   lazim". v4.27'de esya zaten dogrudan envantere giriyordu ama
+   gorunmuyordu -- ne kadar topladigini ancak is bitince
+   ogreniyordun ve envanter doluysa sessizce yere dusuyordu.
+
+   Artik toplanan sey once EKIP CANTASINA giriyor, sonra topluca
+   teslim ediliyor:
+     - is bitince otomatik
+     - canta dolunca otomatik (kaybolmasin)
+     - "bot teslim" deyince elle
+
+   CANTA NEDEN BOT BASINA DEGIL EKIP BASINA: yirmi bot ayri ayri
+   canta tutsaydi hem kayit uzardi hem de "hangi bot ne tasiyor"
+   diye bir soru cikardi. Oynanista bir faydasi yok -- sen tek
+   bir yigin aliyorsun.
+
+   Kayit kisa tutuluyor: "minecraft:" oneki atiliyor, kalan
+   "oak_log:12,raw_iron:3" gibi duruyor.                        */
+export const BOT_CANTA_TAVAN  = 640;   // ekip cantasinda en fazla kac parca
+export const BOT_TESLIM_MENZIL = 32;   // bu mesafeden uzaktaki bot teslim edemez
+
+/* ============================================================
+   BOT SAVASI  (v4.28)
+
+   Istek: "kopek gibi olsun -- birine vurdugun zaman ona
+   saldiriyor". Vanilla kurdun kullandigi UC davranis:
+     owner_hurt_target     sen vurdun -> bot saldirir
+     owner_hurt_by_target  sana vuruldu -> bot saldirir
+     hurt_by_target        bota vuruldu -> karsilik verir
+
+   Ucu de varlik JSON'unda, pa:savas grubunda. Script sadece
+   grubu acip kapiyor (pa:savas_ac / pa:savas_kapat olaylari).
+
+   NEDEN KAPATILABILIR: ormanda odun toplarken botun her koyuna
+   saldirmasi istenmez. Varsayilan ACIK, kurtta da oyle.       */
+export const BOT_SAVAS_VARSAYILAN = true;
+export const BOT_OLAY_SAVAS_AC    = "pa:savas_ac";
+export const BOT_OLAY_SAVAS_KAPAT = "pa:savas_kapat";
 
 /* Kutukler: esya kimligi blok kimligiyle ayni oldugu icin
    tablo degil kume yetiyor. Yapraklara DOKUNULMUYOR -- agaci

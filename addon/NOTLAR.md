@@ -2782,6 +2782,87 @@ Test: **30/30** (`bot.mjs` 17 bölüm).
 
 ---
 
+## Aşama 38 — teslim, model, savaş (v4.28)
+
+Üç istek: *"odunu bana versinler"*, *"modelleri geliştir"*, *"köpek gibi
+savaşsınlar"*.
+
+### 1. Teslim — ekip çantası
+
+v4.27'de eşya zaten doğrudan envantere giriyordu, ama **görünmüyordu**:
+ne geldiğini iş bitince öğreniyordun, envanter doluysa sessizce yere
+düşüyordu.
+
+Artık toplanan şey önce **ekip çantasına** giriyor, sonra topluca teslim
+ediliyor:
+
+- iş bitince **otomatik**
+- `bot teslim` deyince elle
+- çanta dolunca blok **kırılmıyor** — yerinde duruyor (kırıp döksek fark
+  etmeden bırakıp giderdin)
+
+Çanta bot başına değil **ekip başına**: yirmi ayrı çanta ne kayıtta ne
+oynanışta bir şey kazandırır, sen tek bir yığın alıyorsun.
+
+**Teslim menzili 32 blok** — botu ormanda bırakıp evde eşya toplamak
+çalışma hissini bozardı. Ekipten en az bir bot yakında olmalı.
+
+Kayıt sıkıştırılıyor: `"minecraft:"` öneki atılıyor, `"oak_log:12,raw_iron:3"`
+gibi duruyor. Eski (v4.27) düz-dizi kaydı da okunuyor — dünyanı açınca
+botların kaybolmasın.
+
+### 2. Model
+
+Yer tutucu düz renklerden **gerçek bir yüze** geçildi. Kafanın ön yüzü
+(`x=8..15, y=8..15`) elle çizildi: saç + perçem, kaşlar, göz akı + bebek
+(v4.19'da ölçülen `y=12` satırı), burun gölgesi, ağız. Gövdede yaka,
+kemer, kol ağzı, eller, botlar.
+
+**6 görsel çeşit** eklendi — yirmi bot birbirinin aynısı olunca hangisine
+ne dediğin karışıyordu. `minecraft:variant` + component group, doğumda
+rastgele; istemci tarafı `query.variant` ile diziden doku seçiyor. Bu
+vanilla'nın kendi yöntemi (koyun rengi, papağan türü hep böyle).
+
+Yeni klasör `render_controllers/` — `paketle.sh`'a da eklendi (v4.22'de
+`entities/` unutulmuştu, aynı hatayı tekrarlamamak için).
+
+### 3. Savaş — köpek modeli
+
+Tarif aynen uygulandı: *"köpek evcilleştirirsin ya, birine vurduğun zaman
+ona saldırıyor"*. Vanilla kurdun **üç davranışı**:
+
+| davranış | ne yapar |
+|---|---|
+| `owner_hurt_target` | sen bir şeye vurunca bot ona saldırır |
+| `owner_hurt_by_target` | sana vurulunca bot vurana saldırır |
+| `hurt_by_target` | bota vurulunca karşılık verir |
+
+Üçü de `pa:savas` grubunda, `minecraft:attack` (5 hasar) ve
+`melee_attack` ile birlikte. Bot canı 24.
+
+**Botlar birbirini dövmüyor**: hedef süzgecinde `pa_bot` ailesi dışarıda.
+Oyuncular dışarıda **değil** — "benim için savaşsınlar" denince arkadaşın
+da dahil.
+
+**Kapatılabilir** (`bot savas`): ormanda odun toplarken botun her koyuna
+saldırması istenmez. Varsayılan açık, kurtta da öyle. Savaş kapalıyken
+**sonradan doğan bot da barışçı** geliyor — yoksa "kapattım ama yeni bot
+saldırıyor" olurdu.
+
+### Komutlar
+
+```
+bot teslim    topladıklarını sana verir
+bot savas     köpek modu aç/kapat (bot savas ac / bot savas kapat)
+```
+Menüde de var; menüde çanta doluluğu ve savaş durumu yazıyor. `durum`
+raporuna da eklendi.
+
+Test: **30/30** (`bot.mjs` 22 bölüm — çanta, teslim menzili, kayıt
+göçü, savaş grupları, çeşit dokuları).
+
+---
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:

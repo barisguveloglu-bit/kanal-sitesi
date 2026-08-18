@@ -7,13 +7,31 @@
         "default": "entity_alphatest"
       },
       "textures": {
-        "default": "textures/entity/bot"
+        "default": "textures/entity/bot0",
+        "bot0": "textures/entity/bot0",
+        "bot1": "textures/entity/bot1",
+        "bot2": "textures/entity/bot2",
+        "bot3": "textures/entity/bot3",
+        "bot4": "textures/entity/bot4",
+        "bot5": "textures/entity/bot5"
+      },
+      "arrays": {
+        "textures": {
+          "Array.cesitler": [
+            "Texture.bot0",
+            "Texture.bot1",
+            "Texture.bot2",
+            "Texture.bot3",
+            "Texture.bot4",
+            "Texture.bot5"
+          ]
+        }
       },
       "geometry": {
         "default": "geometry.simsek_bot"
       },
       "render_controllers": [
-        "controller.render.default"
+        "controller.render.simsek_bot"
       ],
       "spawn_egg": {
         "base_color": "#3a6ea5",
