@@ -2640,6 +2640,70 @@ Test: **29/29** (`sohbet.mjs`'e 12. bölüm).
 
 ---
 
+## Aşama 36 — "hiçbir şey çalışmıyor" (v4.26)
+
+> *"kanka modu bir kontrol et hiç bir şey çalışmıyor eğilip aşağıya
+> baktım kol bile gelmedi"*
+
+### Sebep: v4.24'teki beta denemesi
+
+v4.24'te manifest `"@minecraft/server": "2.0.0-beta"` istemişti. Sonuç:
+**script modülü hiç yüklenmedi ve paketin tamamı öldü** — kol yok, jest
+yok, menü yok, bot yok.
+
+Kullanıcının dünyasında **Beta API'ler açıktı**. Yani anahtar yetmiyor:
+istenen beta *sürümü* o yapıda bulunmuyor. Oyun `v26.44` / protokol
+`12168`; hangi beta sürümünü sunduğu dışarıdan bilinmiyor ve script hiç
+çalışmadığı için **içeriden de sorulamıyor** — modül yüklenmezse kod da
+yüklenmez, `durum` komutu bile yok.
+
+Git farkı, v4.23 (çalışan) ile v4.25 (ölü) arasında işlevsel tek bir
+değişiklik gösterdi:
+
+```
+-      "version": "2.0.0"
++      "version": "2.0.0-beta"
+```
+
+**Kararlı sürüme dönüldü.** Yanlış sürüm yazmanın cezası "özellik
+çalışmaz" değil "paket ölür" olduğu için bir daha körlemesine
+denenmeyecek.
+
+### İkinci hata: bir tırnak
+
+Düzeltmeyi yaparken `sohbet.js`'e fazladan bir `"` kaçtı. Tek karakter —
+ama JS ayrıştırılamayınca yine **paketin tamamı ölür**. Testler yakaladı
+(hepsi `main.js`'i import ediyor), ama bu tesadüf: hiçbir test bu satırı
+kullanmıyordu.
+
+### Kalıcı önlem: `canli.mjs`
+
+Yeni test dosyası, tam olarak "her şey ölü" hata sınıfını hedefliyor:
+
+1. **Her `.js` dosyası tek tek yükleniyor** — sözdizimi hatası varsa
+   hangi dosya olduğunu adıyla söylüyor.
+2. **Manifest oyunun reddetmeyeceği hâlde mi**: geçerli JSON, UUID
+   biçimleri, benzersizlik, `entry` dosyası gerçekten var mı, ve
+   bağımlılıklarda `-beta` **yok** mu.
+3. **`paketle.sh` bütün klasörleri zipliyor mu** (v4.22'de `entities/`
+   unutulmuştu, bot pakete hiç girmemişti).
+
+`bot.mjs`'teki beta testi de yön bağımsız hâle getirildi: artık "beta
+olsun" demiyor, **manifest ile `BETA_GEREKLI` aynı şeyi söylesin** diyor.
+
+### Sohbet komutları ne olacak
+
+Kararlı API'de `chatSend` yok, yani sohbete `bot` yazmak çalışmıyor.
+İki yol da kararlı:
+
+1. **Menü** — kola dokun, listeden seç (tablette en hızlısı)
+2. **`/scriptevent s:k bot`** — kısa takma ad eklendi (eskiden
+   `simsek:komut` yazmak gerekiyordu)
+
+Test: **30/30**.
+
+---
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:

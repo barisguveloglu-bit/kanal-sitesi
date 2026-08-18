@@ -4,32 +4,37 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.25";
+export const SURUM = "v4.26";
 
 /* ============================================================
-   DIKKAT -- BU PAKET ARTIK "BETA API'ler" ISTIYOR
+   BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
 
-   manifest.json'da @minecraft/server "2.0.0-beta" olarak
-   isteniyor. Dunya ayarlarindaki "Beta API'ler" anahtari ACIK
-   OLMAZSA script modulu HIC YUKLENMEZ ve paketin TAMAMI olur --
-   kollar, iksirler, bot, hepsi.
+   v4.24'te manifest'te @minecraft/server "2.0.0-beta" olarak
+   istendi. Sonuc: OYUNDA HICBIR SEY CALISMADI. Kollar gelmedi,
+   jestler islemedi, bot yok, menu yok -- yani script modulu hic
+   yuklenmedi ve paketin tamami oldu.
 
-   NEDEN: sohbet komutlari (world.beforeEvents.chatSend) yalnizca
-   beta modulunde var. v4.22'de kullanici dort kez "bot" yazdi ve
-   mesaj sohbete duz metin olarak dustu; sebep buydu. Ayarlardaki
-   aciklama da bunu soyluyor: "Eklenti paketlerinde API
-   modullerinin '-beta' surumlerini kullanin".
+   Kullanicinin dunyasinda "Beta API'ler" anahtari ACIKTI. Yani
+   anahtar yetmiyor: istenen beta SURUMU o yapida bulunmuyor.
+   Oyun v26.44 / protokol 12168; hangi beta surumunu sundugu
+   disaridan bilinmiyor ve script hic calismadigi icin ICERIDEN
+   de sorulamiyor (modul yuklenmezse kod da yuklenmez).
 
-   GERI ALMAK ISTERSEN: manifest.json'daki "2.0.0-beta" degerini
-   "2.0.0" yap. Sohbet komutlari kapanir, geri kalan her sey
-   (menu dahil) calismaya devam eder -- menu yolu bilerek
-   korundu, tek yol sohbet degil.
+   Yanlis surum yazmanin cezasi "ozellik calismaz" degil "paket
+   olur" oldugu icin BIR DAHA TAHMIN EDILMEYECEK. Kararli surume
+   donuldu:  @minecraft/server 2.0.0
 
-   @minecraft/server-ui BILEREK kararli (2.0.0) birakildi: menu
-   artik ana arayuz, onu da beta yuzeyine tasimanin bir faydasi
-   yok, riski var.
+   BUNUN MALIYETI: world.beforeEvents.chatSend yalnizca beta
+   modulunde var, yani sohbete "bot" yazmak calismiyor. Yerine
+   IKI yol var ve ikisi de kararli API'de:
+     1. MENU  -- kola dokun, listeden sec (tablette en hizlisi)
+     2. /scriptevent s:k bot   (kisa takma ad, asagida)
+
+   Beta'yi tekrar denemek istersek once o yapinin hangi beta
+   surumunu sundugunu OGRENMEK gerekiyor; kor deneme paketi
+   olduruyor.
    ============================================================ */
-export const BETA_GEREKLI = true;
+export const BETA_GEREKLI = false;
 
 /* ---------------- Tetikleyici esyalar ---------------- */
 export const SIMSEK_ESYA = "minecraft:blaze_rod";     // baktigin yere simsek

@@ -203,7 +203,7 @@ const YARDIM = [
   "§ekol§7 · butun kollari al",
   "§eguc kapat§7 · acik iksiri kapat",
   "§edurum§7 · her sey calisiyor mu, tek bakista",
-  "§8Calismazsa: /scriptevent simsek:komut can 10"
+  "§8Sohbet calismazsa: §7/scriptevent s:k can 10"
 ].join("\n");
 
 function cagir(ad, ...arg) {
@@ -285,7 +285,9 @@ function sohbeteAbone() {
 function scripteventeAbone() {
   return sistemOlayaAbone("scriptEventReceive", (olay) => {
     try {
-      if (olay.id !== "simsek:komut") return;
+      /* Iki kimlik de kabul: uzun olan okunakli, kisa olan
+         tablette yazilabilir. "s:k bot" 9 karakter.           */
+      if (olay.id !== "simsek:komut" && olay.id !== "s:k") return;
       const oyuncu = olay.sourceEntity;
       if (!oyuncu || oyuncu.typeId !== "minecraft:player") return;
 
