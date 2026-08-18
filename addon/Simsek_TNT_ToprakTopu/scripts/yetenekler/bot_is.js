@@ -2,15 +2,18 @@ import { system } from "@minecraft/server";
 import * as api from "@minecraft/server";
 import { yetenekKaydet } from "./kayit.js";
 import { blokIste } from "../butce.js";
-import { hataYaz, gecerliMi, kollariIndir, actionbarYaz } from "../yardimcilar.js";
 import {
-  botVarliklari, botSayisi, cantayaKoy, cantaDolulugu
+  hataYaz, gecerliMi, kollariIndir, actionbarYaz, parcacikAt
+} from "../yardimcilar.js";
+import {
+  botVarliklari, botSayisi, cantayaKoy, cantaDolulugu, botDurum, cantaKaydet
 } from "./_bot_defteri.js";
 import { teslimEtVeYaz } from "./bot_teslim.js";
 import {
   BOT_IS_ACIK, BOT_IS_SURE, BOT_IS_YARICAP, BOT_ODUN_YUKSEK, BOT_MADEN_DERIN,
   BOT_IS_BOT_BASI, BOT_ODUN_BLOKLARI, BOT_MADEN_BLOKLARI, KORUNAN_KUME,
-  BOT_CANTA_TAVAN
+  BOT_CANTA_TAVAN, BOT_IS_DURARAK, BOT_IS_MERKEZ_KAYMA, BOT_IS_PARCACIK,
+  BOT_IS_SES, BOT_IS_RAPOR_ARALIK, PARCACIK_TOPRAK
 } from "../ayarlar.js";
 
 /* ============================================================
@@ -143,6 +146,21 @@ function botIsi(oyuncu, tur) {
 
   let toplandi = 0;
   let raporlandi = false;
+  let sonRapor = system.currentTick;
+
+  /* Bot calisirken DURUYOR: hem imleci sifirlamiyor (yani
+     gercekten tariyor) hem de nerede calistigi belli oluyor.
+     Onceki durum saklaniyor, is bitince geri veriliyor.       */
+  let oncekiDurum;
+  if (BOT_IS_DURARAK) {
+    try {
+      const ilk = botVarliklari(oyuncu.id)[0];
+      oncekiDurum = ilk ? ilk.kayit.durum : "takip";
+      botDurum(oyuncu, "bekle");
+    } catch (e) {
+      hataYaz("bot_is.durdur", e);
+    }
+  }
 
   return {
     ad: "bot_" + tur,
@@ -161,12 +179,29 @@ function botIsi(oyuncu, tur) {
         if (!gecerliMi(b.varlik)) { b.bitti = true; continue; }
         calisan++;
 
-        // Bot yer degistirdiyse taramayi yeni konumdan basla
+        /* DIKKAT -- IMLEC SIFIRLAMA.
+
+           v4.30'a kadar burada "bot bir blok bile kimildadiysa
+           imleci sifirla" yaziyordu. Bot seni takip ettigi icin
+           SUREKLI kimildiyordu: imlec hep 0'a doeuyor, bot da
+           sadece en yakin ~8 offseti tekrar tekrar tariyordu.
+           Uzaktaki agaclara hic sira gelmiyor, canta bos
+           kaliyordu. Gercek oyunda goruelen hata buydu.
+
+           Artik iki sey var: bot ise baslayinca DURUYOR (asagida)
+           ve buradaki esik KAYDA DEGER kaymaya bakiyor -- fizik
+           itmesi ya da mob carpmasi taramayi bastan baslatmasin. */
         const m = merkezAl(b.varlik);
-        if (!b.merkez || b.merkez.x !== m.x || b.merkez.y !== m.y ||
-            b.merkez.z !== m.z) {
+        if (!b.merkez) {
           b.merkez = m;
           b.imlec = 0;
+        } else {
+          const kayma = Math.hypot(m.x - b.merkez.x, m.y - b.merkez.y,
+                                   m.z - b.merkez.z);
+          if (kayma > BOT_IS_MERKEZ_KAYMA) {
+            b.merkez = m;
+            b.imlec = 0;
+          }
         }
 
         let islem = 0;
@@ -224,6 +259,20 @@ function botIsi(oyuncu, tur) {
         }
       }
 
+      /* Ilerleme bildirimi: "calisiyor mu, duruyor mu" sorusunu
+         ortadan kaldiriyor. Kullanici bot calisirken hicbir sey
+         gormedigi icin bosuna kirildigini sanmisti.            */
+      if (BOT_IS_RAPOR_ARALIK > 0 && toplandi > 0 &&
+          system.currentTick - sonRapor >= BOT_IS_RAPOR_ARALIK) {
+        sonRapor = system.currentTick;
+        try {
+          actionbarYaz(oyuncu, "§b⛏ " + botlar.length + " bot " + tanim.ad +
+                       " §7· §f" + toplandi + "§7 parca");
+        } catch (e) {
+          hataYaz("bot_is.rapor", e);
+        }
+      }
+
       if (calisan === 0) return true;             // butun botlar bitti
       return false;
     },
@@ -231,6 +280,24 @@ function botIsi(oyuncu, tur) {
     bitir() {
       if (raporlandi) return;
       raporlandi = true;
+
+      // Calisirken durdurulmuslardi; takibe geri don
+      if (BOT_IS_DURARAK) {
+        try {
+          botDurum(oyuncu, oncekiDurum === "bekle" ? "bekle" : "takip");
+        } catch (e) {
+          hataYaz("bot_is.durumGeri", e);
+        }
+      }
+
+      /* Canta her blokta degil BURADA kaydediliyor: blok basina
+         setDynamicProperty + JSON.stringify cok pahaliydi.     */
+      try {
+        cantaKaydet();
+      } catch (e) {
+        hataYaz("bot_is.cantaKaydet", e);
+      }
+
       try {
         if (toplandi === 0) {
           oyuncu.sendMessage("§eEtrafta " + (tur === "odun" ? "agac" : "cevher") +
@@ -280,6 +347,29 @@ function kirBlok(blok, boyut, nokta, tip, tanim, oyuncu) {
      giriyor ve is bitince topluca teslim ediliyor. Sebepleri
      bot_teslim.js'in basinda.                                 */
   cantayaKoy(oyuncu.id, esyaKimligi, 1);
+
+  /* GORUNURLUK. Kullanici "botun onu yaptigini gormem gerek"
+     dedi: bot yaninda duruyor, agac uzakta sessizce kayboluyordu.
+     Kirilan blokta parcacik cikiyor ve ses caliniyor -- artik
+     nerede ne yapildigi belli.                                 */
+  if (BOT_IS_PARCACIK) {
+    try {
+      parcacikAt(boyut, PARCACIK_TOPRAK,
+                 { x: nokta.x + 0.5, y: nokta.y + 0.5, z: nokta.z + 0.5 });
+    } catch (e) {
+      // gorsel; oynanisi etkilemiyor
+    }
+  }
+  if (BOT_IS_SES) {
+    try {
+      if (typeof boyut.playSound === "function") {
+        boyut.playSound(BOT_IS_SES,
+                        { x: nokta.x + 0.5, y: nokta.y + 0.5, z: nokta.z + 0.5 });
+      }
+    } catch (e) {
+      // ses her surumde yok; sessiz gecilir
+    }
+  }
   return true;
 }
 

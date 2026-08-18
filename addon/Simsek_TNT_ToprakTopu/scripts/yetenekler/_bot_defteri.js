@@ -87,13 +87,23 @@ export function cantaDolulugu(oyuncuId) {
   return n;
 }
 
-/* Cantaya koy. Donen deger: gercekten kondu mu (tavan asilmadi). */
+/* Cantaya koy. Donen deger: gercekten kondu mu (tavan asilmadi).
+
+   DIKKAT -- BURADA yaz() YOK, bilerek.
+   v4.30'a kadar her blokta yaz() cagriliyordu: blok basina bir
+   JSON.stringify + setDynamicProperty. Bot saniyede onlarca blok
+   kirdigi icin bu, isin en pahali kismi olmustu. Artik kayit
+   TOPLU: is bitince cantaKaydet() cagriliyor.                  */
 export function cantayaKoy(oyuncuId, esyaKimligi, adet = 1) {
   if (cantaDolulugu(oyuncuId) >= BOT_CANTA_TAVAN) return false;
   const c = cantaAl(oyuncuId);
   c.set(esyaKimligi, (c.get(esyaKimligi) || 0) + adet);
-  yaz();
   return true;
+}
+
+/* Cantayi diske yaz. Is bitince ve teslimde cagriliyor. */
+export function cantaKaydet() {
+  yaz();
 }
 
 export function cantaListesi(oyuncuId) {

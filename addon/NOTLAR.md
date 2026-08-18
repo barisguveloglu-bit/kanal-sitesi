@@ -2992,6 +2992,76 @@ Test: **30/30**.
 
 ---
 
+## Aşama 41 — bot topluyor gibi yapıyordu (v4.31)
+
+> *"bot yanımda takılıyor ama bir yandan da odun kendi boşuna kırılıyor,
+> botun onu yapmasını görmem gerek"* + *"çantasına baktım sıfır, odun
+> olması gerekirken yok"*
+
+İki şikâyet, **tek sebep**.
+
+### Kök sebep: imleç her adımda sıfırlanıyordu
+
+```js
+// v4.30'a kadar:
+const m = merkezAl(b.varlik);
+if (!b.merkez || b.merkez.x !== m.x || ...) { b.merkez = m; b.imlec = 0; }
+```
+
+Tarama imleci, bot **bir blok bile kımıldayınca** sıfırlanıyordu. Bot
+seni takip ettiği için sürekli hareket halinde — yani imleç hep 0'a
+dönüyor ve bot **yalnızca en yakın ~8 offseti** tekrar tekrar tarıyordu
+(`BOT_IS_BOT_BASI = 8`).
+
+Sonuç tam olarak görülen şey:
+- Uzaktaki ağaçlara **hiç sıra gelmiyor** → çanta boş
+- Ara sıra dibindeki bir kütük kırılıyor → *"odun kendi kendine kırılıyor"*
+
+### Neden testler kaçırdı
+
+Testteki bot **hiç kımıldamıyordu**. `bot.mjs` 14. bölüm sabit bir botla
+ağacı kesiyor ve geçiyordu. Gerçek oyunda bot hiç durmuyor.
+
+Yeni 25. bölüm botu her tick oynatıyor ve ağacı taramanın **uzak ucuna**
+dikiyor. Eski kodla çalıştırıldığında birebir kullanıcının gördüğü sonucu
+veriyor:
+
+```
+✗ bot HAREKET EDERKEN de uzaktaki agaci kesti  ::  4 kutuk kaldi
+✗ odun gercekten teslim edildi                 ::  0 esya
+```
+
+### Çözüm: bot çalışırken duruyor
+
+`BOT_IS_DURARAK` — iş başlayınca botlar **duruyor**, iş bitince takibe
+dönüyor. Tek çözümle iki şikâyet birden kapanıyor:
+
+- **Toplama düzeldi**: duran botun imleci sıfırlanmıyor, tarama gerçekten
+  ilerliyor.
+- **Görünürlük düzeldi**: bot orada durup çalışıyor, nerede ne yaptığı
+  belli.
+
+Ayrıca imleç eşiği gevşetildi (`BOT_IS_MERKEZ_KAYMA = 3`): fizik itmesi
+veya mob çarpması taramayı baştan başlatmasın.
+
+### Görsel ve işitsel geri bildirim
+
+Kırılan blokta **parçacık** çıkıyor ve **ses** çalıyor. Ayrıca ilerleme
+actionbar'a yazılıyor (`BOT_IS_RAPOR_ARALIK`): *"⛏ 3 bot odun topluyor ·
+47 parça"*. Kullanıcı çalıştığını göremediği için boşuna kırıldığını
+sanmıştı.
+
+### Yan düzeltme: çanta artık her blokta diske yazılmıyor
+
+`cantayaKoy` her blokta `JSON.stringify` + `setDynamicProperty`
+çağırıyordu. Bot saniyede onlarca blok kırdığı için işin **en pahalı
+kısmı** olmuştu. Kayıt artık toplu: `cantaKaydet()` iş bitince ve
+teslimde.
+
+Test: **30/30** (`bot.mjs` 27 bölüm).
+
+---
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:

@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.30";
+export const SURUM = "v4.31";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -1133,6 +1133,45 @@ export const BOT_IS_YARICAP   = 6;     // botun etrafinda kac blok
 export const BOT_ODUN_YUKSEK  = 12;    // govde takibinde en fazla kac blok yukari
 export const BOT_MADEN_DERIN  = 6;     // maden ararken kac blok asagi
 export const BOT_IS_BOT_BASI  = 8;     // tek tick'te tek bota en fazla kac islem
+
+/* ============================================================
+   BOT CALISIRKEN DURUYOR  (v4.31)
+
+   v4.30'a kadar bot calisirken de SENI TAKIP EDIYORDU ve bu iki
+   sorun birden yaratiyordu:
+
+   1. HICBIR SEY TOPLANMIYORDU. Tarama imleci, bot her blok yer
+      degistirdiginde sifirlaniyordu. Bot pesinden kostugu icin
+      surekli hareket halinde -- yani imlec hep 0'a doeuyor ve
+      bot sadece EN YAKIN ~8 offseti tekrar tekrar tariyordu.
+      Uzaktaki agaclara hic sira gelmiyordu. Ara sira dibindeki
+      bir kutuk kirildigi icin "odun kendi kendine kiriliyor"
+      gibi gorunuyordu ama canta bos kaliyordu.
+
+   2. GORUNMUYORDU. Bot yaninda yuruyor, agac uzakta kiriliyor.
+      Kullanici "botun onu yaptigini gormem gerek" dedi -- hakli,
+      ortada calisan bir bot goruntusu yoktu.
+
+   Ikisinin de cozumu ayni: bot ise baslayinca DURUYOR, isi
+   bitince takibe geri donuyor. Duran bot hem imleci sifirlamiyor
+   (yani gercekten tariyor) hem de nerede calistigi belli oluyor.
+
+   BOT_IS_MERKEZ_KAYMA: durmasina ragmen bot birkac blok itilirse
+   (fizik, mob carpmasi) tarama bastan baslamasin. Ancak bu kadar
+   kayarsa yeniden merkezleniyor.                                */
+export const BOT_IS_DURARAK      = true;
+export const BOT_IS_MERKEZ_KAYMA = 3;    // bu kadar kayinca yeniden merkezle
+
+/* Calisirken gorsel geri bildirim. Blok kirilinca botun ve
+   blogun oldugu yerde parcacik cikiyor -- "bot calisiyor"
+   goruntusu icin. PARCACIK_TOPRAK bu pakette zaten kullaniliyor,
+   yani var oldugu biliniyor.                                    */
+export const BOT_IS_PARCACIK     = true;
+export const BOT_IS_SES          = "dig.wood";   // bos birakirsan ses yok
+
+/* Ilerleme bildirimi: kac blok kirdigini ara ara yazar ki
+   calistigi belli olsun. 0 = kapali.                            */
+export const BOT_IS_RAPOR_ARALIK = 100;  // tick
 
 /* ============================================================
    BOT CANTASI ve TESLIM  (v4.28)
