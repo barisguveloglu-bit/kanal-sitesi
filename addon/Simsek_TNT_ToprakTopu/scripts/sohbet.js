@@ -172,6 +172,15 @@ export function komutCozumle(oyuncu, hamMetin) {
     if (alt === "maden" || alt === "kaz" || alt === "cevher") {
       return { cevap: cagir("yetenek", oyuncu, "bot_maden") };
     }
+    /* ---- Ozel gucler (v4.29) ----
+       Botlar SENIN nisan aldigin yere atiyor; kendi bakislari
+       kullanilsaydi top sana gelirdi (look_at_player).        */
+    if (alt === "simsek" || alt === "yildirim") {
+      return { cevap: cagir("yetenek", oyuncu, "bot_simsek") };
+    }
+    if (alt === "top" || alt === "kil" || alt === "toprak") {
+      return { cevap: cagir("yetenek", oyuncu, "bot_top") };
+    }
     if (alt === "teslim" || alt === "ver" || alt === "canta") {
       return { cevap: cagir("yetenek", oyuncu, "bot_teslim") };
     }
@@ -187,8 +196,8 @@ export function komutCozumle(oyuncu, hamMetin) {
     }
     if (alt !== undefined) {
       return { cevap: "§cBilmedigim bot komutu: §7" + alt +
-                      "\n§8bot · bot odun · bot maden · bot teslim · " +
-                      "bot savas · bot bekle · bot takip · bot gel · bot geri" };
+                      "\n§8bot · bot odun · bot maden · bot teslim · bot simsek · " +
+                      "bot top · bot savas · bot bekle · bot takip · bot gel · bot geri" };
     }
     return { cevap: cagir("yetenek", oyuncu, "bot_cagir") };
   }
@@ -230,6 +239,8 @@ const YARDIM = [
   "§ebot§7 · botu cagir / yanina getir",
   "§ebot odun§7 · botlar etrafindaki agaclari keser",
   "§ebot maden§7 · botlar etrafindaki cevheri kazar",
+  "§ebot simsek§7 · baktigin yere simsek yagdirirlar",
+  "§ebot top§7 · baktigin yere kil topu atarlar",
   "§ebot teslim§7 · topladiklarini sana verir",
   "§ebot savas§7 · kopek gibi: sen vurunca onlar da saldirir",
   "§ebot bekle§7 · §ebot takip§7 · §ebot gel§7 · §ebot geri",

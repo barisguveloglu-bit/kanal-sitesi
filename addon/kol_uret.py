@@ -341,11 +341,14 @@ BOT_RENKLER = [
 BOT_TEN = (198, 146, 108)
 
 # Savas degerleri. Bunlar SADECE varlik JSON'una giriyor, script
-# okumuyor -- o yuzden ayarlar.js'te degil burada. Vanilla kurt 4
-# hasar veriyor; bot biraz daha sert ama zombiden (3) cok da
-# yukari degil ki yirmi bot her seyi bicmesin.
-BOT_HASAR = 5
-BOT_CAN = 24
+# okumuyor -- o yuzden ayarlar.js'te degil burada.
+#
+# v4.29'da kullanici istegiyle guclendirildi: 5 -> 7 hasar,
+# 24 -> 25 can. Karsilastirma: vanilla kurt 4 hasar / 8 can,
+# demir golem 21 hasar / 100 can. Bot ikisinin arasinda ve
+# yirmi tane olabildigi icin bilerek golemin cok altinda.
+BOT_HASAR = 7
+BOT_CAN = 25
 
 
 def bot_sunucu_varligi():

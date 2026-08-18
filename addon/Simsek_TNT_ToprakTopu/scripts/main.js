@@ -74,6 +74,7 @@ import "./yetenekler/bot_cagir.js";
 import "./yetenekler/bot_geri.js";
 import "./yetenekler/bot_teslim.js";
 import "./yetenekler/bot_is.js";
+import "./yetenekler/bot_guc.js";
 
 /* DIKKAT -- SIRA ONEMLI.
    kollar.js var olan yeteneklere esya BAGLIYOR, yani bagladigi
@@ -268,9 +269,17 @@ function yetenekTetikle(oyuncu, kimlikler) {
           continue;
         }
 
-        const is = tanim.olustur(oyuncu);
-        if (is) {
-          isEkle(is);
+        /* olustur() tek bir is ya da IS DIZISI donebilir.
+           Dizi v4.29'da lazim oldu: bot gucleri bot basina bir
+           is aciyor (bes bot = bes simsek isi). Tek tetikleme
+           sayiliyor, yani bekleme suresi bir kez isliyor.      */
+        const sonuc = tanim.olustur(oyuncu);
+        if (Array.isArray(sonuc)) {
+          for (const is of sonuc) {
+            if (is) { isEkle(is); acilan++; }
+          }
+        } else if (sonuc) {
+          isEkle(sonuc);
           acilan++;
         }
       } catch (e) {
@@ -346,6 +355,14 @@ function menuEkleri(oyuncu) {
     {
       ad: "Bot: maden kaz",
       calis() { yetenekTetikle(oyuncu, "bot_maden"); }
+    },
+    {
+      ad: "Bot: simsek yagdir",
+      calis() { yetenekTetikle(oyuncu, "bot_simsek"); }
+    },
+    {
+      ad: "Bot: kil topu at",
+      calis() { yetenekTetikle(oyuncu, "bot_top"); }
     },
     {
       ad: "Bot: teslim al §8(" + cantaDolulugu(oyuncu.id) + ")",

@@ -29,12 +29,16 @@ import { YAYILMA, KILIT_YAYILMA } from "../ayarlar.js";
 
 export function yagmurIsi(secenekler) {
   const {
-    ad, oyuncu, hedef, varlik, toplam, yukseklik, aralik, grup, halka, kilit
+    ad, oyuncu, hedef, varlik, toplam, yukseklik, aralik, grup, halka, kilit,
+    /* v4.29: botlar da bu isi kullaniyor. Botun kolu yok
+       (kolIndir false) ve is oyuncunun kovasinda degil
+       'bot:' kovasinda sayilmali (oyuncuId).            */
+    oyuncuId: isKovasi, kolIndir
   } = secenekler;
 
   const boyut = oyuncu.dimension;
   const sinir = yukseklikAraligi(boyut);
-  const oyuncuId = oyuncu.id;
+  const oyuncuId = isKovasi || oyuncu.id;
 
   // Her dogumda yeni nesne uretmek yerine tek nesneyi yeniden kullan
   const nokta = { x: 0, y: 0, z: 0 };
@@ -101,7 +105,7 @@ export function yagmurIsi(secenekler) {
     },
 
     bitir() {
-      kollariIndir(oyuncu);
+      if (kolIndir !== false) kollariIndir(oyuncu);
     }
   };
 }

@@ -2863,6 +2863,81 @@ göçü, savaş grupları, çeşit dokuları).
 
 ---
 
+## Aşama 39 — bot özel güçleri (v4.29)
+
+İstek: *"aynen benim gibi şimşek yağdırabilsin ve kil topu atabilsin"*
++ bot 7 hasar / 25 can.
+
+### Hedefi sen veriyorsun
+
+Bota "şunu vur" demenin bir yolu yok. Botun **kendi bakışı kullanılamaz**:
+`look_at_player` yüzünden bot sürekli sana bakıyor — top doğrudan sana
+gelirdi.
+
+Çözüm: **nişan senin.** Baktığın nokta (ya da kilitlendiğin varlık)
+hesaplanıyor, botlar oraya atıyor. *"Aynen benim gibi"* tam olarak bu —
+senin yaptığın işi senin nişanınla yapıyorlar.
+
+### Kod kopyalanmadı
+
+Şimşek için `_yagmur.js`'teki `yagmurIsi`, top için `toprak_topu.js`'teki
+iş fabrikası kullanılıyor. İkincisi bunun için **dışarı açıldı**
+(`topIsi(atan, seçenek)`): "atan"ın sağlaması gereken tek şey
+`dimension · id · getViewDirection() · getHeadLocation()` — oyuncu da bot
+da bunlara sahip. 250 satırlık optimize edilmiş kodu (delta önbelleği,
+bütçe sayımı, çarpma kontrolü) kopyalamak yerine parametrelendirildi.
+
+Yeni seçenekler: `yon` (botun kendi bakışı yerine), `oyuncuId`
+(`"bot:"` kovası), `kolIndir` (botun kolu yok).
+
+### Testin yakaladığı iki gerçek kusur
+
+**1. Nişan kendi botlarına kilitleniyordu.** Bot önünde dururken "şimşek"
+deyince kilit **kendi botuna** takılıyordu — hem botların güçlerinde hem
+**oyuncunun kendi `yon_simsegi`'nde**. Bot da bir varlık ve koninin tam
+ortasında duruyor. Tek yerde çözüldü: `koniHedefleri` artık
+`KILIT_ATLA_TIPLER` kümesindekileri atlıyor. Yani ne sen kendi botuna
+yıldırım indiriyorsun ne botlar birbirine.
+
+**2. `getHeadLocation` yoksa iş sessizce hiç açılmıyordu.** "Hiçbir şey
+olmadı" sınıfından bir hata. `yardimcilar.js`'e `basKonumu()` eklendi:
+`getHeadLocation` varsa onu, yoksa ayak konumu + göz yüksekliği.
+
+### Tavanlar
+
+| güç | tavan | neden |
+|---|---|---|
+| şimşek | 5 bot | varlık doğurma, ucuz |
+| kil topu | 3 bot | blok yazan iş; 20 tanesi ortalığı kullanılmaz yapardı |
+
+Bütçe ortak olduğu için tablet ölmez — ama her top saniyelerce
+sürünürdü. Şimşek **oyunculara vurmuyor** (`BOT_SIMSEK_OYUNCU = false`):
+yıldırım yangın çıkarıyor ve alan etkisi var, botun kendi kararıyla
+arkadaşına yıldırım indirmesi istenmez.
+
+### Çoklu iş
+
+`olustur()` artık **iş dizisi** de dönebiliyor — beş bot = beş iş, ama
+tek tetikleme sayılıyor (bekleme süresi bir kez işliyor).
+
+### Güçlendirme
+
+`BOT_HASAR` 5 → **7**, `BOT_CAN` 24 → **25**. Karşılaştırma: vanilla
+kurt 4 hasar / 8 can, demir golem 21 / 100. Bot ikisinin arasında ve
+yirmi tane olabildiği için bilerek golemin çok altında.
+
+### Komutlar
+
+```
+bot simsek    baktığın yere şimşek yağdırırlar
+bot top       baktığın yere kil topu atarlar
+```
+Menüde de var.
+
+Test: **30/30** (`bot.mjs` 24 bölüm).
+
+---
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:

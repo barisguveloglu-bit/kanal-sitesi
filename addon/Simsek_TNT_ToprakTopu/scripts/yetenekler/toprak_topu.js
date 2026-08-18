@@ -3,7 +3,7 @@ import { yetenekKaydet } from "./kayit.js";
 import { blokIste } from "../butce.js";
 import {
   hataYaz, gecerliMi, kollariIndir, yukseklikAraligi,
-  kureNoktalari, kureAnahtar
+  kureNoktalari, kureAnahtar, basKonumu
 } from "../yardimcilar.js";
 import {
   TOP_ESYA, TOP_YARICAP, TOP_HIZ, TOP_ARALIK, TOP_MENZIL,
@@ -113,22 +113,35 @@ function patlat(boyut, poz) {
   }
 }
 
-yetenekKaydet({
-  kimlik: "toprak_topu",
-  ad: "Toprak Topu",
-  esya: TOP_ESYA,
-  esyasiz: true,
-  sira: 50,
+/* ============================================================
+   TOP ISI -- disari acildi (v4.29)
 
-  olustur(oyuncu) {
+   Botlar da toprak topu atabilsin diye is fabrikasi ATAN'dan
+   bagimsiz hale getirildi. "atan" olmasi gereken tek sey:
+     dimension · id · getViewDirection() · getHeadLocation()
+   Oyuncu da bot varligi da bunlarin hepsine sahip.
+
+   Ikinci arguman istege bagli:
+     yon        atanin bakisi yerine BU yone at (bot nisani)
+     oyuncuId   isin hangi kovada sayilacagi ("bot:" oneki)
+     kolIndir   bitince kol animasyonu oynatilsin mi (bota anlamsiz)
+
+   250 satirlik optimize edilmis kodu kopyalamak yerine
+   parametrelendirmek tercih edildi: delta onbellegi, butce
+   sayimi ve carpma kontrolu tek yerde kalsin.
+   ============================================================ */
+export function topIsi(atan, secenek) {
+  const oyuncu = atan;
+  const ayarlar = secenek || {};
+  {
     const boyut = oyuncu.dimension;
     const sinir = yukseklikAraligi(boyut);
     const oyuncuId = oyuncu.id;
 
     let yon, poz;
     try {
-      yon = oyuncu.getViewDirection();
-      const bas = oyuncu.getHeadLocation();
+      yon = ayarlar.yon || oyuncu.getViewDirection();
+      const bas = basKonumu(oyuncu);
       // Kendini vurmamak icin biraz ileriden baslat
       poz = {
         x: bas.x + yon.x * (TOP_YARICAP + 2),
@@ -137,7 +150,7 @@ yetenekKaydet({
       };
     } catch (e) {
       hataYaz("toprak_topu.baslangic", e);
-      kollariIndir(oyuncu);
+      if (ayarlar.kolIndir !== false) kollariIndir(oyuncu);
       return undefined;
     }
 
@@ -240,8 +253,8 @@ yetenekKaydet({
     }
 
     return {
-      ad: "toprak_topu",
-      oyuncuId: oyuncuId,
+      ad: ayarlar.ad || "toprak_topu",
+      oyuncuId: ayarlar.oyuncuId || oyuncuId,
 
       calis() {
         // 1) Bekleyen yazimlar varsa once onlari bitir
@@ -293,8 +306,20 @@ yetenekKaydet({
       },
 
       bitir() {
-        kollariIndir(oyuncu);
+        if (ayarlar.kolIndir !== false) kollariIndir(oyuncu);
       }
     };
+  }
+}
+
+yetenekKaydet({
+  kimlik: "toprak_topu",
+  ad: "Toprak Topu",
+  esya: TOP_ESYA,
+  esyasiz: true,
+  sira: 50,
+
+  olustur(oyuncu) {
+    return topIsi(oyuncu);
   }
 });

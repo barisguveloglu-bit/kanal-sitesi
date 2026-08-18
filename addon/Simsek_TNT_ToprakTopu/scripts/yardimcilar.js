@@ -1,7 +1,7 @@
 import { world, system } from "@minecraft/server";
 import {
   HATA_SOHBETE, HATA_SOHBET_ARALIK, ANIM_KALDIR, ANIM_INDIR, YUKSEKLIK_TABLO,
-  PARCACIK_ACIK, SARSINTI_ACIK
+  PARCACIK_ACIK, SARSINTI_ACIK, KILIT_ATLA_TIPLER
 } from "./ayarlar.js";
 
 /* ============================================================
@@ -308,6 +308,12 @@ export function koniHedefleri(oyuncu, secenek) {
       if (!gecerliMi(varlik)) continue;
       if (varlik.typeId === "minecraft:player" && !secenek.oyuncuDahil) continue;
 
+      /* Botlar nisana TAKILMAZ. Bot onunde dururken "simsek"
+         deyince kilit ona kilitleniyordu -- kendi botuna
+         yildirim indiriyordun. Gerekirse secenek.botDahil ile
+         acilabilir.                                            */
+      if (KILIT_ATLA_TIPLER.has(varlik.typeId) && !secenek.botDahil) continue;
+
       const k = varlik.location;
       const dx = k.x - merkez.x, dy = k.y - merkez.y, dz = k.z - merkez.z;
       const uzaklik = Math.sqrt(dx * dx + dy * dy + dz * dz);
@@ -349,6 +355,31 @@ export function kilitliHedef(oyuncu, secenek) {
 
 /* Varligin GUNCEL konumu, varlik kaybolduysa undefined.
    Kilitli hedef kacarken pesinden gitmek icin.                   */
+/* Bas (goz) konumu. getHeadLocation her varlik turunde ve her
+   surumde garantili degil; yoksa ayak konumuna goz yuksekligi
+   ekleniyor.
+
+   v4.29'da ogrenildi: bot toprak topu atarken getHeadLocation
+   patlayinca is SESSIZCE hic acilmiyordu -- "hicbir sey olmadi"
+   sinifindan bir hata. Yedek yol o yuzden var.                */
+export function basKonumu(varlik, gozYuksekligi = 1.62) {
+  try {
+    if (typeof varlik.getHeadLocation === "function") {
+      const b = varlik.getHeadLocation();
+      if (b && typeof b.x === "number") return b;
+    }
+  } catch (e) {
+    // asagidaki yedek yol
+  }
+  try {
+    const k = varlik.location;
+    return { x: k.x, y: k.y + gozYuksekligi, z: k.z };
+  } catch (e) {
+    hataYaz("basKonumu", e);
+    return undefined;
+  }
+}
+
 export function varlikKonumu(varlik) {
   try {
     if (!gecerliMi(varlik)) return undefined;

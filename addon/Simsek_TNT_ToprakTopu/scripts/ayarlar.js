@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.28";
+export const SURUM = "v4.29";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -1173,6 +1173,53 @@ export const BOT_TESLIM_MENZIL = 32;   // bu mesafeden uzaktaki bot teslim edeme
    NEDEN KAPATILABILIR: ormanda odun toplarken botun her koyuna
    saldirmasi istenmez. Varsayilan ACIK, kurtta da oyle.       */
 export const BOT_SAVAS_VARSAYILAN = true;
+
+/* ============================================================
+   BOT OZEL GUCLERI  (v4.29)
+
+   Istek: "aynen benim gibi simsek yagdirabilsin ve kil topu
+   atabilsin".
+
+   ---- BOTLAR SENIN NISAN ALDIGIN YERE ATIYOR ----
+   Bota "sunu vur" demenin bir yolu yok: bot kendi bakisini
+   oyuncuya cevirip duruyor (look_at_player). Botun kendi
+   bakisini kullansaydik top DOGRUDAN SANA gelirdi.
+
+   O yuzden hedefi SEN veriyorsun: nisan aldigin nokta (ya da
+   kilitlendigin varlik) hesaplaniyor, botlar oraya atiyor.
+   "Aynen benim gibi" tam olarak bu -- senin yaptigin seyi
+   senin nisaninla yapiyorlar.
+
+   ---- NEDEN TAVAN VAR ----
+   Yirmi bot birden toprak topu atsa yirmi tane blok yazan is
+   acilir. Blok butcesi ortak oldugu icin tablet olmez ama her
+   top saniyeler suren bir yavaslamayla ucar ve ortalik
+   kullanilmaz hale gelir. Simsek daha ucuz (varlik dogurma),
+   tavani daha yuksek.
+
+   ---- SIMSEK OYUNCULARA VURMUYOR ----
+   Yildirim yangin cikariyor ve alan etkisi var. Botun kendi
+   kararyla arkadasina yildirim indirmesi istenmez; oyunculari
+   sen vurursun. Savas modundan BAGIMSIZ olarak kapali.       */
+/* Nisan alma (koniHedefleri / kilitliHedef) bu tipleri ATLAR.
+
+   v4.29'da gercek bir kusur cikti: bot onunde dururken "simsek"
+   dediginde kilit KENDI BOTUNA takiliyordu -- hem oyuncunun
+   yon_simsegi'nde hem botlarin kendi guclerinde. Bot da bir
+   varlik ve koninin tam ortasinda duruyor.
+
+   Cozum tek yerde: nisan sistemi botlari gormezden geliyor.
+   Yani ne sen kendi botuna yildirim indiriyorsun ne de botlar
+   birbirine. Botu gercekten vurmak istersen elle vurabilirsin;
+   nisan yardimi onu secmiyor, o kadar.                        */
+export const KILIT_ATLA_TIPLER = new Set(["pa:bot"]);
+
+export const BOT_GUC_ACIK      = true;
+export const BOT_TOP_TAVAN     = 3;    // ayni anda kac bot top atsin
+export const BOT_SIMSEK_TAVAN  = 5;    // ayni anda kac bot simsek yagdirsin
+export const BOT_SIMSEK_SAYISI = 4;    // bot basina kac yildirim
+export const BOT_GUC_MENZIL    = 60;   // botun nisan alabilecegi en uzak nokta
+export const BOT_SIMSEK_OYUNCU = false; // bot yildirimi oyunculara da vursun mu
 export const BOT_OLAY_SAVAS_AC    = "pa:savas_ac";
 export const BOT_OLAY_SAVAS_KAPAT = "pa:savas_kapat";
 
