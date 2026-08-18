@@ -514,47 +514,45 @@ def bot_sunucu_varligi():
 
 
 def bot_istemci_varligi():
-    """Cesit basina ayri doku. render controller query.variant ile
-    diziden seciyor -- vanilla'nin kendi yontemi (koyun rengi,
-    papagan turu hep boyle).
+    """DIKKAT -- BURAYA DOKUNMA.
 
-    spawn_egg renk ile veriliyor (doku degil): boylece yumurta
-    ikonu icin ayri bir PNG ve atlas girdisi gerekmiyor."""
-    dokular = {"default": "textures/entity/bot0"}
-    dizi = []
-    for i in range(BOT_CESIT):
-        dokular["bot%d" % i] = "textures/entity/bot%d" % i
-        dizi.append("Texture.bot%d" % i)
+    v4.28'de cesit basina ayri doku denendi: client entity'de
+    "arrays" tanimi, ozel bir render controller ve
+    Array.cesitler[query.variant] ifadesi. Yapi belgelere uygundu
+    ama OYUNDA BOT HIC CIZILMEDI -- gorunmez oldu, davranisi
+    calismaya devam etti (takip ediyor, odun topluyor, savasiyor).
+    Yani sunucu tarafi saglamdi, kirilan sey CIZIM yoluydu.
 
+    v4.30'da v4.27'nin CALISAN kurulumuna donuldu:
+      - vanilla controller.render.default
+      - tek doku: textures/entity/bot
+
+    Kaybedilen tek sey botlarin birbirinden renkle ayrilmasi.
+    Detayli doku (gercek yuz, kiyafet, kemer, botlar) DURUYOR --
+    asil gorsel iyilestirme oydu.
+
+    CESITLERI TEKRAR DENEMEK ISTERSEK: sunucu tarafindaki
+    pa:tipN gruplari ve minecraft:variant bilerek BIRAKILDI, yani
+    is yalnizca bu dosyayi ve bir render controller'i yeniden
+    yazmak. Ama once TEK cesitle denenmeli: gorunmezlik SESSIZ
+    bir hata, hicbir test yakalayamiyor.
+    """
     return {
         "format_version": "1.10.0",
         "minecraft:client_entity": {
             "description": {
                 "identifier": BOT_KIMLIK,
                 "materials": {"default": "entity_alphatest"},
-                "textures": dokular,
-                "arrays": {"textures": {"Array.cesitler": dizi}},
+                "textures": {"default": "textures/entity/bot"},
                 "geometry": {"default": "geometry.simsek_bot"},
-                "render_controllers": ["controller.render.simsek_bot"],
+                # Vanilla controller: v4.27'de calisiyordu
+                "render_controllers": ["controller.render.default"],
                 "spawn_egg": {"base_color": "#3a6ea5", "overlay_color": "#c68a60"},
                 "scripts": {"animate": ["yuru"]},
                 "animations": {"yuru": "animation.simsek_bot.yuru"},
             }
         },
     }
-
-
-BOT_RENDER = {
-    "format_version": "1.10.0",
-    "render_controllers": {
-        "controller.render.simsek_bot": {
-            "geometry": "Geometry.default",
-            "materials": [{"*": "Material.default"}],
-            # variant disiya tasarsa oyun cizemez; modu ile guvene aliniyor
-            "textures": ["Array.cesitler[query.variant]"],
-        }
-    },
-}
 
 
 # Insansi model: vanilla 64x64 skin duzeniyle AYNI UV.
@@ -1120,10 +1118,7 @@ def main():
     yaz_json(os.path.join(RP, "entity/bot.entity.json"), bot_istemci_varligi())
     yaz_json(os.path.join(RP, "models/entity/simsek_bot.geo.json"), BOT_GEOMETRI)
     yaz_json(os.path.join(RP, "animations/simsek_bot.animation.json"), BOT_ANIM)
-    yaz_json(os.path.join(RP, "render_controllers/simsek_bot.rc.json"), BOT_RENDER)
-    for i in range(BOT_CESIT):
-        png_yaz(os.path.join(RP, "textures/entity/bot%d.png" % i), 64, 64,
-                bot_dokusu(i))
+    png_yaz(os.path.join(RP, "textures/entity/bot.png"), 64, 64, bot_dokusu(0))
     for liste, ad in ((en_us, BOT_AD), (tr_tr, BOT_TR)):
         liste.append("entity.%s.name=%s" % (BOT_KIMLIK, ad))
         liste.append("item.spawn_egg.entity.%s.name=%s Yumurtasi" % (BOT_KIMLIK, ad))
@@ -1164,8 +1159,7 @@ def main():
     beklenen = set()
     # Bot dokusu KOLLAR/IKSIRLER listelerinde degil; elle ekleniyor
     # yoksa temizlik adimi her uretimde siler.
-    for i in range(BOT_CESIT):
-        beklenen.add("bot%d" % i)
+    beklenen.add("bot")
     for satir in KOLLAR:
         beklenen.add(satir[0])
     for kimlik, _ad, _sivi, goz, _gozRenk in IKSIRLER:
@@ -1189,9 +1183,9 @@ def main():
     if silinen:
         print("temizlendi: %d artik dosya" % silinen)
 
-    print("uretildi: %d kol, %d iksir, %d goz (lazer varyantiyla) -> %d esya + bot (%d cesit)"
+    print("uretildi: %d kol, %d iksir, %d goz (lazer varyantiyla) -> %d esya + bot"
           % (len(KOLLAR), len(IKSIRLER), len(IKSIRLER) * 2,
-             len(KOLLAR) + len(IKSIRLER) * 3, BOT_CESIT))
+             len(KOLLAR) + len(IKSIRLER) * 3))
 
 
 if __name__ == "__main__":

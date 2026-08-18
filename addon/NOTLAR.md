@@ -2938,6 +2938,60 @@ Test: **30/30** (`bot.mjs` 24 bölüm).
 
 ---
 
+## Aşama 40 — bot görünmez oldu (v4.30)
+
+> *"bot gözükmüyor hallet onu ama diğer işleri de yapıyor onda sıkıntı yok"*
+
+### Teşhis: sunucu sağlam, çizim kırık
+
+Bot takip ediyor, odun topluyor, savaşıyor, doğuyor — yani **davranış
+tarafı çalışıyor**. Görünmeyen tek şey çizim. Bu, hatayı ikiye böldü ve
+yarısını eledi: sorun `entities/bot.json`'da değil, **resource pack'in
+çizim yolunda**.
+
+Zaman çizelgesi kesin: **v4.27'de bot görünüyordu** (kullanıcının
+ekran görüntüsü var). **v4.28'de görünmez oldu** — o sürümde çizim
+yolunu değiştirdim:
+
+```
+v4.27:  render_controllers: ["controller.render.default"]
+        textures: { default: "textures/entity/bot" }
+
+v4.28:  render_controllers: ["controller.render.simsek_bot"]
+        arrays: { textures: { "Array.cesitler": [...6 doku...] } }
+        textures: ["Array.cesitler[query.variant]"]
+```
+
+Yapı belgelere uygundu (vanilla köylü/koyun aynı kalıbı kullanıyor) ama
+oyunda çizim hiç olmadı. Hangi parçanın reddedildiğini **oyun içi
+denemeden bilemem** ve tahminle bir tur daha kaybetmek istemiyorum.
+
+### Karar: kanıtlanmış yola dön
+
+v4.27'nin çalışan kurulumuna dönüldü. **Kaybedilen tek şey botların
+birbirinden renkle ayrılması.** Asıl görsel iyileştirme — gerçek yüz,
+saç, kıyafet, kemer, eller, botlar — **duruyor**; o dokunun kendisiydi,
+çeşit mekanizması değil.
+
+Sunucu tarafındaki `pa:tipN` grupları ve `minecraft:variant` **bilerek
+bırakıldı**: çeşitleri tekrar denemek istersek iş yalnızca client
+entity'yi ve bir render controller'ı yazmak. Ama o denemeyi **tek
+çeşitle** yapmak lazım — görünmezlik sessiz bir hata.
+
+### Testin dürüst sınırı
+
+`bot.mjs` 22. bölüm artık çizim yolunu **kilitliyor**: vanilla
+controller mi, `arrays` yok mu, doku PNG'si diskte mi, geometri hâlâ
+bizim modelimiz mi.
+
+Ama açıkça yazdım: **bu test görünürlüğü sınayamaz.** Çizim oyunun işi;
+buradan yapılabilecek tek şey "çalıştığı bilinen yapıyı koru" demek.
+`canli.mjs`'ten de `render_controllers` klasör kontrolü kaldırıldı.
+
+Test: **30/30**.
+
+---
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:
