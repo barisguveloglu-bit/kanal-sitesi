@@ -8,7 +8,8 @@ import {
 } from "./_bot_defteri.js";
 import {
   ILKEL_ACIK, ILKEL_TAVAN, ILKEL_BESLI, ILKEL_ADLAR, ILKEL_OZELLIK,
-  ILKEL_AURA_OYUNCU, BOT_KIMLIK, BOT_TAVAN, BOT_TARAMA
+  ILKEL_AURA_OYUNCU, ILKEL_KORUMA, BOT_OLAY_SAVAS_AC,
+  BOT_TAVAN, BOT_TARAMA, botTuruMu
 } from "../ayarlar.js";
 
 /* ============================================================
@@ -145,7 +146,7 @@ export function ilkelCagir(oyuncu, anahtar) {
     return { hata: t.ad + " zaten yanında (" + mevcut + "/" + ILKEL_TAVAN + ")." };
   }
 
-  const sonuc = botCagir(oyuncu);
+  const sonuc = botCagir(oyuncu, t.kimlik);
   if (sonuc.hata) return sonuc;
 
   /* DIKKAT -- botCagir'in "tavan" alani IKI ANLAMDA kullaniliyor:
@@ -165,17 +166,14 @@ export function ilkelCagir(oyuncu, anahtar) {
                                    : { hata: "Üye dönüşümü başarısız." };
 }
 
-/* Var olan bir botu ilkel uyeye cevirir. */
+/* Dogan varligi uye olarak ISARETLER.
+
+   v4.34'te burada triggerEvent ile bilesen grubu ekleniyordu;
+   v4.35'te her uye kendi varligi oldugu icin istatistikleri
+   zaten varlik JSON'unda. Geriye kimlik ve isim kaldi.        */
 export function ilkelYap(varlik, anahtar) {
   const t = tanim(anahtar);
   if (!t) return false;
-
-  try {
-    if (typeof varlik.triggerEvent === "function") varlik.triggerEvent(t.olay);
-  } catch (e) {
-    hataYaz("ilkel.triggerEvent", e);
-    return false;
-  }
 
   try {
     if (typeof varlik.setDynamicProperty === "function") {
@@ -186,11 +184,22 @@ export function ilkelYap(varlik, anahtar) {
        ama script tarafi onu tanimaz. Adi yine de takilsin.    */
   }
 
-  /* Isim etiketi: bes uyeyi ayirt etmenin RISKSIZ yolu. Ayri
-     doku denemek yok -- v4.28'de bot dokusuna dokununca bot
-     tamamen gorunmez olmustu.                                 */
+  /* Koruma gorevi: ekip savasi kapali olsa bile bu bes uye
+     savasa hazir doguyor. Isleri bu.                          */
+  if (ILKEL_KORUMA) {
+    try {
+      if (typeof varlik.triggerEvent === "function") {
+        varlik.triggerEvent(BOT_OLAY_SAVAS_AC);
+      }
+    } catch (e) {
+      hataYaz("ilkel.koruma", e);
+    }
+  }
+
+  /* Isim etiketi rutbeyle: kim kimin ustu, bakinca belli olsun.
+       [1] Ilkel Savasci Okazor · Ekip Lideri                   */
   try {
-    varlik.nameTag = "§6" + t.ad;
+    varlik.nameTag = "§6[" + t.rutbe + "] §f" + t.ad + " §7· " + t.unvan;
   } catch (e) {
     // Isim takilamadi; oynanis etkilenmiyor
   }
@@ -224,7 +233,7 @@ function dusmanMi(varlik, sahipId) {
   try {
     if (!gecerliMi(varlik)) return false;
     if (varlik.id === sahipId) return false;
-    if (varlik.typeId === BOT_KIMLIK) return false;        // ekip arkadasi
+    if (botTuruMu(varlik.typeId)) return false;             // ekip arkadasi
     if (varlik.typeId === "minecraft:item" ||
         varlik.typeId === "minecraft:xp_orb") return false;
     if (varlik.typeId === "minecraft:player") return ILKEL_AURA_OYUNCU;
@@ -285,7 +294,7 @@ function olaylariKur() {
       const bot = olay.damagingEntity;
       const kurban = olay.hitEntity;
       if (!bot || !kurban) return;
-      if (bot.typeId !== BOT_KIMLIK) return;
+      if (!botTuruMu(bot.typeId)) return;
       botVurdu(bot, kurban, system.currentTick);
     } catch (e) {
       hataYaz("ilkel.entityHitEntity", e);
@@ -295,7 +304,7 @@ function olaylariKur() {
   const hasar = olayaAbone("entityHurt", (olay) => {
     try {
       const bot = olay.hurtEntity;
-      if (!bot || bot.typeId !== BOT_KIMLIK) return;
+      if (!bot || !botTuruMu(bot.typeId)) return;
       botVuruldu(bot);
     } catch (e) {
       hataYaz("ilkel.entityHurt", e);
@@ -435,13 +444,21 @@ yetenekKaydet({
   }
 });
 
-/* Hangi uye eksik? Menude "cagir"a bastikca sirayla gelsinler. */
+/* Hangi uye eksik? RUTBE SIRASIYLA: once lider, sonra asagi
+   dogru. Menude "cagir"a bastikca ekip yukaridan kuruluyor.   */
 function sonrakiEksik(oyuncuId) {
   const var_ = new Set(ilkelListesi(oyuncuId));
-  for (const anahtar of ILKEL_BESLI.keys()) {
+  for (const anahtar of rutbeSirasi()) {
     if (!var_.has(anahtar)) return anahtar;
   }
   return undefined;
+}
+
+/* Uyeler rutbeye gore sirali (1 = lider). Menu, rapor ve
+   "sonraki eksik" hep bunu kullaniyor -- sira tek yerde.      */
+export function rutbeSirasi() {
+  return [...ILKEL_BESLI.keys()]
+    .sort((a, b) => ILKEL_BESLI.get(a).rutbe - ILKEL_BESLI.get(b).rutbe);
 }
 
 /* Uyenin ne yaptigini tek satirda anlat. Ezberlemek zorunda

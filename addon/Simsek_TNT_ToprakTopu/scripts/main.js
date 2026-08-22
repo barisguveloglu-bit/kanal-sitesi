@@ -7,7 +7,7 @@ import {
   KOL_VER_ACIK, KOL_VER_ESIGI, KOL_VER_TUTMA, CIFT_EL_ACIK, AYNI_ANDA,
   MENU_DOKUNUSLA, BOT_KIMLIK, KALP_ADIM, KALP_TAVAN, BETA_GEREKLI,
   SOHBET_ONEK, BOT_TAVAN, DERIN_HEDEFLER, DERIN_VARSAYILAN,
-  DONDUR_GIRDI_KILIT, ILKEL_BESLI, ILKEL_ACIK
+  DONDUR_GIRDI_KILIT, ILKEL_BESLI, ILKEL_ACIK, botTuruMu
 } from "./ayarlar.js";
 
 import {
@@ -107,7 +107,7 @@ import {
 import {
   botTara, botVarMi, botDurum, botGeri, botAl, botunSahibi, botDenetimi,
   botUnut, botKayitliMi, botSayisi, botYanaCagir, botSavas, savasAcikMi,
-  cantaDolulugu
+  cantaDolulugu, eksikBotTurleri
 } from "./yetenekler/_bot_defteri.js";
 
 /* Gunes Yumrugu kaydi is listesinden bagimsiz bir Map'te; oyuncu
@@ -124,7 +124,7 @@ import {
 /* Ilkel Besli de ayni kalibi kullaniyor: hangi uye cagrilacagi
    once yaziliyor, sonra yetenek tetikleniyor.                  */
 import {
-  ilkelHedefSec, ilkelHedefUnut, ilkelListesi, ilkelAdCoz, ozetle
+  ilkelHedefSec, ilkelHedefUnut, ilkelListesi, ilkelAdCoz, ozetle, rutbeSirasi
 } from "./yetenekler/bot_ilkel.js";
 
 /* ============================================================
@@ -415,10 +415,14 @@ function derinBaslat(oyuncu, anahtar, adet) {
 function ilkelMenusu(oyuncu) {
   const yaninda = new Set(ilkelListesi(oyuncu.id));
   const liste = [];
-  for (const [anahtar, t] of ILKEL_BESLI) {
+  /* RUTBE SIRASINDA: lider ustte. Sira bot_ilkel.js'ten
+     geliyor, burada elle yazilmiyor.                          */
+  for (const anahtar of rutbeSirasi()) {
+    const t = ILKEL_BESLI.get(anahtar);
     liste.push({
       anahtar,
-      ad: (yaninda.has(anahtar) ? "§a✔ " : "") + t.ad +
+      ad: (yaninda.has(anahtar) ? "§a✔ " : "") + "§6[" + t.rutbe + "] §f" +
+          t.ad + " §7· " + t.unvan +
           " §8" + t.can + " can · " + t.hasar + " hasar\n§8" + ozetle(anahtar)
     });
   }
@@ -431,7 +435,7 @@ function ilkelMenusu(oyuncu) {
       calis() {
         /* Bes ayri tetikleme bekleme suresine takilirdi; hepsi
            tek seferde, dogrudan.                              */
-        for (const anahtar of ILKEL_BESLI.keys()) ilkelBaslat(oyuncu, anahtar);
+        for (const anahtar of rutbeSirasi()) ilkelBaslat(oyuncu, anahtar);
       }
     }]);
 
@@ -1061,7 +1065,9 @@ olayaAbone("playerInteractWithEntity", (olay) => {
     const oyuncu = olay.player;
     const hedef = olay.target;
     if (!oyuncu || !hedef) return;
-    if (hedef.typeId !== BOT_KIMLIK) return;
+    /* v4.35: Ilkel Besli ayri varliklar. Sadece pa:bot'a
+       bakilsaydi Okazor'a dokununca menu acilmazdi.           */
+    if (!botTuruMu(hedef.typeId)) return;
 
     /* Baskasinin botuna dokunmak bir sey yapmasin. Sahip
        varligin KENDI ozelliginde; dunya kaydi silinse bile
@@ -1175,6 +1181,12 @@ function durumRaporu(oyuncu) {
   satir.push("§7Iksir: " + (kademe
     ? "§f" + kademe.ad + " §8· lazer icin egil + zipla"
     : "§7yok §8(ic, sonra 'lazer' yaz)"));
+
+  const eksikTur = eksikBotTurleri();
+  if (eksikTur && eksikTur.length > 0) {
+    satir.push("§cKAYITSIZ varlik: §f" + eksikTur.join(", ") +
+               " §8(o uyeler cagrilamaz)");
+  }
 
   const ilkeller = ilkelListesi(oyuncu.id);
   if (ilkeller.length > 0) {

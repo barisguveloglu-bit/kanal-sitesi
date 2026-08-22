@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.34";
+export const SURUM = "v4.35";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -1374,7 +1374,8 @@ export const ILKEL_TAVAN = 1;    // her isimden kac tane olabilir
 export const ILKEL_BESLI = new Map([
   ["kajaros", {
     ad: "İlkel Muhafız Kajaros",
-    olay: "pa:ilkel_kajaros",
+    kimlik: "pa:kajaros",
+    rutbe: 2, unvan: "Muhafız Komutanı",
     can: 1750, hasar: 23,
     /* "Isabet aldiginda kendisini 20 HP iyilestirir" --
        VURULUNCA, vurunca degil.                              */
@@ -1389,7 +1390,8 @@ export const ILKEL_BESLI = new Map([
   }],
   ["miskel", {
     ad: "İlkel Sihirbaz Miskel",
-    olay: "pa:ilkel_miskel",
+    kimlik: "pa:miskel",
+    rutbe: 4, unvan: "Savaş Büyücüsü",
     can: 1300, hasar: 14,
     vurulunca: 40,
     /* "Korluk XVI (6 sn) VEYA Solgunluk VII (4 sn)" -- ikisinden
@@ -1401,7 +1403,8 @@ export const ILKEL_BESLI = new Map([
   }],
   ["harkos", {
     ad: "İlkel Suikastçı Harkos",
-    olay: "pa:ilkel_harkos",
+    kimlik: "pa:harkos",
+    rutbe: 5, unvan: "Gölge Çırağı",
     can: 1300, hasar: 13,
     /* "Pasif olarak zamanla canini iyilestirir (tik basina
        0,5 HP)". Tarama 20 tick'te bir donuyor, yani her
@@ -1410,7 +1413,8 @@ export const ILKEL_BESLI = new Map([
   }],
   ["raxxan", {
     ad: "İlkel Zihin Bükücü Raxxan",
-    olay: "pa:ilkel_raxxan",
+    kimlik: "pa:raxxan",
+    rutbe: 3, unvan: "Gölge Ustası",
     can: 1000, hasar: 15,
     /* "30 blok civarindaki oyunculara Bulanti V" -> civardaki
        DUSMANLARA. Sahibi ve ekip arkadaslari disarida.        */
@@ -1422,7 +1426,8 @@ export const ILKEL_BESLI = new Map([
   }],
   ["okazor", {
     ad: "İlkel Savaşçı Okazor",
-    olay: "pa:ilkel_okazor",
+    kimlik: "pa:okazor",
+    rutbe: 1, unvan: "Ekip Lideri",
     can: 1200, hasar: 50,
     /* "4 saniyelik araliklarla ust uste 3 kez vurmayi
        basarirsa cani tamamen yenilenir."                     */
@@ -1435,6 +1440,14 @@ export const ILKEL_BESLI = new Map([
    ozellik degil eziyet olurdu. Vurus efektleri bundan bagimsiz
    -- oraya kimi vuracagina SEN karar veriyorsun.             */
 export const ILKEL_AURA_OYUNCU = false;
+
+/* "Bunlar beni ozel koruyanlar, bunlar ekip."
+   Normal botlarin savasi kapatilabiliyor (ormanda odun
+   toplarken her koyune saldirmasin diye). Ilkel Besli'nin isi
+   BU: koruma. O yuzden ekip savasi kapali olsa bile bu bes uye
+   savasa hazir doguyor. Elle "bot savas kapat" dersen yine
+   susarlar -- bu bir baslangic durumu, kilit degil.           */
+export const ILKEL_KORUMA = true;
 
 /* Turkce yazimlar -> anahtar. Sohbet komutu icin.            */
 export const ILKEL_ADLAR = new Map([
@@ -1449,6 +1462,26 @@ export const ILKEL_ADLAR = new Map([
    Dunya kaydina eklemedik: kayit bicimi degisince eski
    dunyalar okunamaz olurdu (v4.27'de bir kez yasandi).       */
 export const ILKEL_OZELLIK = "simsek:ilkel";
+
+/* ---------------- BUTUN BOT TURLERI ----------------  (v4.35)
+
+   v4.34'te Ilkel Besli pa:bot'un bilesen gruplariydi, yani
+   "bot mu?" sorusunun cevabi tek kimlikti. Kullanici bes ayri
+   SKIN gonderince bes ayri VARLIK olmak zorunda kaldilar (bir
+   varligin tek dokusu olur; cesitli doku icin gereken ozel
+   render controller v4.28'de botu gorunmez yapmisti).
+
+   Bu liste ILKEL_BESLI'den TURETILIYOR, elle yazilmiyor. Yeni
+   bir uye eklenip buraya eklenmeyi unutsaydi: bot menusu
+   acilmaz, nisan ona kilitlenir, botlar birbirini doverdi.    */
+export const BOT_KIMLIKLER = new Set([BOT_KIMLIK]);
+for (const t of ILKEL_BESLI.values()) {
+  if (t.kimlik) BOT_KIMLIKLER.add(t.kimlik);
+}
+
+export function botTuruMu(tip) {
+  return BOT_KIMLIKLER.has(tip);
+}
 
 export const BOT_SAVAS_VARSAYILAN = true;
 
@@ -1490,7 +1523,11 @@ export const BOT_SAVAS_VARSAYILAN = true;
    Yani ne sen kendi botuna yildirim indiriyorsun ne de botlar
    birbirine. Botu gercekten vurmak istersen elle vurabilirsin;
    nisan yardimi onu secmiyor, o kadar.                        */
-export const KILIT_ATLA_TIPLER = new Set(["pa:bot"]);
+/* v4.35: elle "pa:bot" yaziliydi; Ilkel Besli ayri varliklara
+   tasininca nisan ONLARA kilitlenmeye basladi -- yani kendi
+   Okazor'una yildirim indiriyordun. Liste artik butun bot
+   turlerinden turetiliyor.                                    */
+export const KILIT_ATLA_TIPLER = new Set(BOT_KIMLIKLER);
 
 export const BOT_GUC_ACIK      = true;
 export const BOT_TOP_TAVAN     = 3;    // ayni anda kac bot top atsin

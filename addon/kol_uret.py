@@ -361,18 +361,46 @@ BOT_CAN = 25
 #   menzilli   : ok atar (shooter + ranged_attack)
 #   sicrar     : leap_at_target (Harkos'un "havada zipla"si)
 #   hiz        : movement degeri
+# rutbe: 1 = lider. Okazor'un 1'i ve Harkos'un 5'i KULLANICININ
+# kararı, degistirilmeyecek. Aradaki uc sira bana birakildi.
 ILKEL = [
     ("kajaros", "Ilkel Muhafiz Kajaros",      1750, 23,
-     dict(ittirilmez=True, olcek=1.15, hiz=0.30)),
+     dict(ittirilmez=True, olcek=1.15, hiz=0.30, rutbe=2)),
     ("miskel",  "Ilkel Sihirbaz Miskel",      1300, 14,
-     dict(menzilli=True, olcek=1.0, hiz=0.30)),
+     dict(menzilli=True, olcek=1.0, hiz=0.30, rutbe=4)),
     ("harkos",  "Ilkel Suikastci Harkos",     1300, 13,
-     dict(sicrar=True, olcek=0.95, hiz=0.42)),
+     dict(sicrar=True, olcek=0.95, hiz=0.42, rutbe=5)),
     ("raxxan",  "Ilkel Zihin Bukucu Raxxan",  1000, 15,
-     dict(ittirilmez=True, olcek=1.05, hiz=0.32)),
+     dict(ittirilmez=True, olcek=1.05, hiz=0.32, rutbe=3)),
     ("okazor",  "Ilkel Savasci Okazor",       1200, 50,
-     dict(ittirilmez=True, olcek=1.25, hiz=0.34)),
+     dict(ittirilmez=True, olcek=1.25, hiz=0.34, rutbe=1)),
 ]
+
+# Kullanicinin gonderdigi skin dosyalari (64x64, tek katman).
+# Bot geometrisi zaten oyuncu skin duzeninde: kafa 0,0 / govde
+# 16,16 / sag kol 40,16 / sol kol 32,48 / sag bacak 0,16 / sol
+# bacak 16,48. Yani bu skinler dogrudan oturuyor, donusturmeye
+# gerek yok.
+#
+# ESLESTIRMEYI DEGISTIRMEK: sadece bu tablodaki dosya adini
+# degistir ve kol_uret.py'yi tekrar calistir.
+ILKEL_SKIN = {
+    "okazor":  "228e7f78-image.png",   # siyah + altin vurgu -> lider
+    "kajaros": "1ee88523-image.png",   # gri migferli asker -> muhafiz
+    "raxxan":  "6e1e30e1-image.png",   # siyah maske, beyaz isaret -> zihin bukucu
+    "miskel":  "9837eeac-image.png",   # acik cubbe -> sihirbaz
+    "harkos":  "84013466-image.png",   # migfersiz genc yuz -> en alt rutbe
+}
+ILKEL_SKIN_KAYNAK = "/root/.claude/uploads/e51da4d9-22bc-53d5-b9b6-e97d8e6ccf11"
+
+# Turkce gorunen adlar (JSON'da ASCII tutuluyor, dil dosyasinda degil)
+ILKEL_TR = {
+    "okazor":  "İlkel Savaşçı Okazor",
+    "kajaros": "İlkel Muhafız Kajaros",
+    "raxxan":  "İlkel Zihin Bükücü Raxxan",
+    "miskel":  "İlkel Sihirbaz Miskel",
+    "harkos":  "İlkel Suikastçı Harkos",
+}
 
 
 def ilkel_gruplari():
@@ -416,21 +444,82 @@ def ilkel_gruplari():
     return gruplar
 
 
-def ilkel_olaylari():
-    """Bir uyeye gecis: digerlerini CIKAR, bunu EKLE.
+def ilkel_varliklari():
+    """Bes uyenin SUNUCU varliklari.
 
-    Cikarma sart -- yoksa iki uyenin health bileseni ust uste
-    biner ve hangisinin gecerli oldugu belirsizlesir."""
-    hepsi = ["pa:ilkel_" + a for a, _, _, _, _ in ILKEL]
-    olaylar = {}
-    for anahtar, _ad, _can, _hasar, _sec in ILKEL:
-        olaylar["pa:ilkel_" + anahtar] = {
-            "remove": {"component_groups": hepsi},
-            "add": {"component_groups": ["pa:ilkel_" + anahtar]},
+    ---- NEDEN AYRI VARLIK (v4.35) ----
+    v4.34'te besi de pa:bot'un bilesen gruplariydi. Kullanici bes
+    ayri SKIN gonderince bu yetmedi: bir varligin tek istemci
+    tanimi, tek dokusu vardir. Cesitlere gore doku secmek icin
+    "arrays + query.variant" ozel render controller'i gerekiyor
+    -- v4.28'de tam o denendi ve BOT GORUNMEZ OLDU (bkz.
+    bot_istemci_varligi'ndaki not).
+
+    O yuzden yol degistirildi: her uye kendi varligi, kendi
+    istemci tanimi, KENDI TEK DOKUSU. Cizim yolu botunkiyle
+    birebir ayni -- controller.render.default + tek texture.
+    Yani calistigi bilinen kurulum bes kez tekrarlaniyor,
+    calismadigi bilinen kurulum hic kullanilmiyor.
+
+    Riski de dar: bes uyenin cizimi bozulsa bile NORMAL BOT
+    etkilenmez, cunku onun dosyalarina dokunulmadi.
+
+    Geri kalan her sey pa:bot'tan geliyor (aile, evcillestirme,
+    takip, savas, yerden toplama) -- yani defter, canta, teslim,
+    odun/maden ve derin tarama bu bes uyede de calisiyor.        """
+    import copy
+    varliklar = {}
+    temel = bot_sunucu_varligi()
+    gruplar = ilkel_gruplari()
+
+    for anahtar, ad, _can, _hasar, sec in ILKEL:
+        v = copy.deepcopy(temel)
+        govde = v["minecraft:entity"]
+        govde["description"]["identifier"] = "pa:" + anahtar
+
+        # Uyenin istatistikleri TEMEL bilesen olarak giriyor;
+        # grup olarak degil, cunku bu varlik zaten o uye.
+        govde["components"].update(gruplar["pa:ilkel_" + anahtar])
+
+        # Cesit gruplari anlamsiz: her uyenin tek gorunumu var.
+        for i in range(BOT_CESIT):
+            govde["component_groups"].pop("pa:tip%d" % i, None)
+        dogum = govde["events"]["minecraft:entity_spawned"]["sequence"]
+        govde["events"]["minecraft:entity_spawned"]["sequence"] = [
+            adim for adim in dogum if "randomize" not in adim
+        ]
+
+        varliklar[anahtar] = v
+    return varliklar
+
+
+def ilkel_istemci_varliklari():
+    """Bes uyenin ISTEMCI tanimlari.
+
+    DIKKAT: burada da ozel render controller YOK. Botunkiyle
+    ayni: controller.render.default + tek doku. Tek fark doku
+    dosyasinin adi.                                              """
+    tanimlar = {}
+    for anahtar, ad, _can, _hasar, sec in ILKEL:
+        tanimlar[anahtar] = {
+            "format_version": "1.10.0",
+            "minecraft:client_entity": {
+                "description": {
+                    "identifier": "pa:" + anahtar,
+                    "materials": {"default": "entity_alphatest"},
+                    "textures": {"default": "textures/entity/ilkel_" + anahtar},
+                    "geometry": {"default": "geometry.simsek_bot"},
+                    "render_controllers": ["controller.render.default"],
+                    "spawn_egg": {
+                        "base_color": "#4a1010",
+                        "overlay_color": "#d8b040",
+                    },
+                    "scripts": {"animate": ["yuru"]},
+                    "animations": {"yuru": "animation.simsek_bot.yuru"},
+                }
+            },
         }
-    # Normale don
-    olaylar["pa:ilkel_kapat"] = {"remove": {"component_groups": hepsi}}
-    return olaylar
+    return tanimlar
 
 
 def bot_sunucu_varligi():
@@ -507,8 +596,8 @@ def bot_sunucu_varligi():
     for i in range(BOT_CESIT):
         gruplar["pa:tip%d" % i] = {"minecraft:variant": {"value": i}}
 
-    # Ilkel Besli: ayni varligin bes ozel hali (v4.34)
-    gruplar.update(ilkel_gruplari())
+    # v4.35: Ilkel Besli artik AYRI VARLIK (her birinin kendi
+    # skini olsun diye). Bilesen gruplari buradan cikti.
 
     # entity_spawned: takip + savas + rastgele cesit
     cesit_secimi = [{"weight": 1, "add": {"component_groups": ["pa:tip%d" % i]}}
@@ -618,8 +707,6 @@ def bot_sunucu_varligi():
                     "remove": {"component_groups": ["pa:savas"]},
                     "add": {"component_groups": ["pa:barisci"]},
                 },
-                # Ilkel Besli gecisleri (v4.34)
-                **ilkel_olaylari(),
             },
         },
     }
@@ -1228,12 +1315,36 @@ def main():
     # ---- Bot (v4.22) ----
     yaz_json(os.path.join(BP, "entities/bot.json"), bot_sunucu_varligi())
     yaz_json(os.path.join(RP, "entity/bot.entity.json"), bot_istemci_varligi())
+
+    # ---- Ilkel Besli: bes ayri varlik, bes ayri skin (v4.35) ----
+    import shutil
+    for anahtar, veri in ilkel_varliklari().items():
+        yaz_json(os.path.join(BP, "entities/ilkel_%s.json" % anahtar), veri)
+    for anahtar, veri in ilkel_istemci_varliklari().items():
+        yaz_json(os.path.join(RP, "entity/ilkel_%s.entity.json" % anahtar), veri)
+    for anahtar, dosya in ILKEL_SKIN.items():
+        kaynak = os.path.join(ILKEL_SKIN_KAYNAK, dosya)
+        hedef = os.path.join(RP, "textures/entity/ilkel_%s.png" % anahtar)
+        if os.path.exists(kaynak):
+            os.makedirs(os.path.dirname(hedef), exist_ok=True)
+            shutil.copyfile(kaynak, hedef)
+        elif not os.path.exists(hedef):
+            # Skin bulunamadi: sessiz kalma, yoksa uye mor-siyah cizilir
+            print("UYARI: %s skini bulunamadi (%s)" % (anahtar, kaynak))
     yaz_json(os.path.join(RP, "models/entity/simsek_bot.geo.json"), BOT_GEOMETRI)
     yaz_json(os.path.join(RP, "animations/simsek_bot.animation.json"), BOT_ANIM)
     png_yaz(os.path.join(RP, "textures/entity/bot.png"), 64, 64, bot_dokusu(0))
     for liste, ad in ((en_us, BOT_AD), (tr_tr, BOT_TR)):
         liste.append("entity.%s.name=%s" % (BOT_KIMLIK, ad))
         liste.append("item.spawn_egg.entity.%s.name=%s Yumurtasi" % (BOT_KIMLIK, ad))
+
+    # Ilkel Besli: rutbe sirasinda, adinda rutbesiyle (v4.35)
+    for anahtar, ad, _can, _hasar, sec in sorted(ILKEL, key=lambda u: u[4]["rutbe"]):
+        etiket = "[%d] %s" % (sec["rutbe"], ILKEL_TR.get(anahtar, ad))
+        for liste in (en_us, tr_tr):
+            liste.append("entity.pa:%s.name=%s" % (anahtar, etiket))
+            liste.append("item.spawn_egg.entity.pa:%s.name=%s Yumurtasi"
+                         % (anahtar, ILKEL_TR.get(anahtar, ad)))
 
     yaz_json(os.path.join(RP, "models/entity/simsek_goz.geo.json"), GOZ_GEOMETRI)
     yaz_json(os.path.join(RP, "models/entity/simsek_kol.geo.json"), GEOMETRI)
@@ -1272,6 +1383,9 @@ def main():
     # Bot dokusu KOLLAR/IKSIRLER listelerinde degil; elle ekleniyor
     # yoksa temizlik adimi her uretimde siler.
     beklenen.add("bot")
+    # Ilkel Besli dokulari da listelerde degil (v4.35)
+    for _anahtar, _ad, _can, _hasar, _sec in ILKEL:
+        beklenen.add("ilkel_" + _anahtar)
     for satir in KOLLAR:
         beklenen.add(satir[0])
     for kimlik, _ad, _sivi, goz, _gozRenk in IKSIRLER:

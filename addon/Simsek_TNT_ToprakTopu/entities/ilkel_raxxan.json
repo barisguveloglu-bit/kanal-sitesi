@@ -2,7 +2,7 @@
   "format_version": "1.16.0",
   "minecraft:entity": {
     "description": {
-      "identifier": "pa:bot",
+      "identifier": "pa:raxxan",
       "is_spawnable": true,
       "is_summonable": true,
       "is_experimental": false
@@ -71,37 +71,7 @@
           ]
         }
       },
-      "pa:barisci": {},
-      "pa:tip0": {
-        "minecraft:variant": {
-          "value": 0
-        }
-      },
-      "pa:tip1": {
-        "minecraft:variant": {
-          "value": 1
-        }
-      },
-      "pa:tip2": {
-        "minecraft:variant": {
-          "value": 2
-        }
-      },
-      "pa:tip3": {
-        "minecraft:variant": {
-          "value": 3
-        }
-      },
-      "pa:tip4": {
-        "minecraft:variant": {
-          "value": 4
-        }
-      },
-      "pa:tip5": {
-        "minecraft:variant": {
-          "value": 5
-        }
-      }
+      "pa:barisci": {}
     },
     "components": {
       "minecraft:type_family": {
@@ -111,8 +81,8 @@
         ]
       },
       "minecraft:health": {
-        "value": 25,
-        "max": 25
+        "value": 1000,
+        "max": 1000
       },
       "minecraft:collision_box": {
         "width": 0.6,
@@ -183,6 +153,15 @@
       },
       "minecraft:behavior.random_look_around": {
         "priority": 9
+      },
+      "minecraft:attack": {
+        "damage": 15
+      },
+      "minecraft:scale": {
+        "value": 1.05
+      },
+      "minecraft:knockback_resistance": {
+        "value": 1.0
       }
     },
     "events": {
@@ -195,58 +174,6 @@
                 "pa:savas"
               ]
             }
-          },
-          {
-            "randomize": [
-              {
-                "weight": 1,
-                "add": {
-                  "component_groups": [
-                    "pa:tip0"
-                  ]
-                }
-              },
-              {
-                "weight": 1,
-                "add": {
-                  "component_groups": [
-                    "pa:tip1"
-                  ]
-                }
-              },
-              {
-                "weight": 1,
-                "add": {
-                  "component_groups": [
-                    "pa:tip2"
-                  ]
-                }
-              },
-              {
-                "weight": 1,
-                "add": {
-                  "component_groups": [
-                    "pa:tip3"
-                  ]
-                }
-              },
-              {
-                "weight": 1,
-                "add": {
-                  "component_groups": [
-                    "pa:tip4"
-                  ]
-                }
-              },
-              {
-                "weight": 1,
-                "add": {
-                  "component_groups": [
-                    "pa:tip5"
-                  ]
-                }
-              }
-            ]
           }
         ]
       },

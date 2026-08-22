@@ -8,7 +8,7 @@ import {
   BOT_SAHIP_OZELLIK, BOT_DURUM_OZELLIK, BOT_OLAY_TAKIP, BOT_OLAY_BEKLE,
   BOT_SCRIPT_MENZIL, BOT_CANTA_TAVAN, BOT_TESLIM_MENZIL,
   BOT_SAVAS_VARSAYILAN, BOT_OLAY_SAVAS_AC, BOT_OLAY_SAVAS_KAPAT,
-  BOT_YERDEN_TOPLA
+  BOT_YERDEN_TOPLA, BOT_KIMLIKLER
 } from "../ayarlar.js";
 
 /* ============================================================
@@ -369,8 +369,13 @@ function varligiBul(kayit) {
 
   try {
     const boyut = world.getDimension(kayit.boyutId || "minecraft:overworld");
-    for (const v of boyut.getEntities({ type: BOT_KIMLIK })) {
-      if (v.id === kayit.botId) return v;
+    /* Butun bot turleri taraniyor: Ilkel Besli ayri varliklar
+       (v4.35). Sadece pa:bot'a bakilsaydi Okazor'un kaydi
+       "chunk yuklu degil" sanilir, kurtarma hic calismazdi.   */
+    for (const tip of BOT_KIMLIKLER) {
+      for (const v of boyut.getEntities({ type: tip })) {
+        if (v.id === kayit.botId) return v;
+      }
     }
   } catch (e) {
     hataYaz("bot.varligiBul", e);
@@ -469,7 +474,9 @@ function evcillestir(varlik, oyuncu) {
 
 /* ---------------- Dogurma ---------------- */
 
-export function botCagir(oyuncu) {
+/* kimlik: hangi bot turu dogsun. Bos birakilirsa normal bot.
+   Ilkel Besli kendi varliklarini boyle doguruyor (v4.35).     */
+export function botCagir(oyuncu, kimlik = BOT_KIMLIK) {
   oku();
   if (!BOT_ACIK) return { hata: "Bot kapali (ayarlar.js: BOT_ACIK)." };
 
@@ -513,11 +520,11 @@ export function botCagir(oyuncu) {
   let varlik;
   const nokta = yanNokta(oyuncu, BOT_DOGUM_YAKIN, liste.length);
   try {
-    varlik = oyuncu.dimension.spawnEntity(BOT_KIMLIK, nokta);
+    varlik = oyuncu.dimension.spawnEntity(kimlik, nokta);
   } catch (e) {
     hataYaz("bot.spawnEntity", e);
     return {
-      hata: "Bot varligi oyuna kayitli degil (" + BOT_KIMLIK + "). " +
+      hata: "Bot varligi oyuna kayitli degil (" + kimlik + "). " +
             "Behavior pack etkin mi?"
     };
   }
@@ -787,6 +794,27 @@ export function botKayitliMi() {
   } catch (e) {
     return false;
   }
+}
+
+/* Kayitli OLMAYAN bot turleri. Bos dizi = hepsi tamam,
+   undefined = denetim yapilamadi.
+
+   v4.35'te alti tur var (bot + bes ilkel uye); biri kaydolmazsa
+   o uye cagrildiginda spawnEntity patliyor ve sebebi ancak
+   Content Log'da goruluyordu. Durum raporu artik bunu sohbete
+   basiyor.                                                     */
+export function eksikBotTurleri() {
+  const EntityTypes = api.EntityTypes;
+  if (!EntityTypes || typeof EntityTypes.get !== "function") return undefined;
+  const eksik = [];
+  for (const tip of BOT_KIMLIKLER) {
+    try {
+      if (EntityTypes.get(tip) === undefined) eksik.push(tip);
+    } catch (e) {
+      eksik.push(tip);
+    }
+  }
+  return eksik;
 }
 
 export function botDenetimi() {

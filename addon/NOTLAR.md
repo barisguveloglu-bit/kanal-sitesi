@@ -3325,6 +3325,78 @@ Test: **33/33** (yeni `ilkel.mjs`, 12 bölüm).
 
 ---
 
+## v4.35 — Beş skin, beş varlık, bir rütbe zinciri
+
+Kullanıcı beş adet 64×64 skin gönderdi ve "bunlar beni özel koruyanlar,
+bunlar ekip" dedi. Ayrıca rütbe istedi: **Okazor lider, Harkos en alt** —
+bu ikisi kullanıcının kararı, değiştirilemez. Aradaki üç sıra bana bırakıldı.
+
+### Rütbe sıralaması
+
+| # | üye | ünvan | gerekçe |
+|---|---|---|---|
+| 1 | **Okazor** | Ekip Lideri | kullanıcı kararı |
+| 2 | **Kajaros** | Muhafız Komutanı | 1750 can (en yüksek), geri itilmez — lideri koruyan duvar |
+| 3 | **Raxxan** | Gölge Ustası | görünmezlik + 30 bloklu zihin aurası; psikolojik harp |
+| 4 | **Miskel** | Savaş Büyücüsü | menzilli destek, uzmanlık sınıfı |
+| 5 | **Harkos** | Gölge Çırağı | kullanıcı kararı — en düşük hasar (13), en hızlı |
+
+Rütbe isim etiketinde görünüyor (`[2] İlkel Muhafız Kajaros · Muhafız
+Komutanı`), menü rütbe sırasında diziliyor ve "çağır"a bastıkça ekip
+**yukarıdan aşağı** kuruluyor.
+
+### Neden beş ayrı varlık oldular
+
+v4.34'te beşi de `pa:bot`'un bileşen gruplarıydı. Beş ayrı **skin** gelince
+bu yetmedi: **bir varlığın tek istemci tanımı, tek dokusu vardır.** Çeşide
+göre doku seçmek `arrays` + `query.variant` + özel render controller
+gerektiriyor — v4.28'de tam o denendi ve **bot görünmez oldu**, sebebini
+bulmak üç sürüm aldı.
+
+Bu yüzden yol değiştirildi: **her üye kendi varlığı, kendi istemci tanımı,
+kendi tek dokusu.** Çizim yolu botunkiyle birebir aynı
+(`controller.render.default` + tek texture) — yani çalıştığı bilinen kurulum
+beş kez tekrarlanıyor, çalışmadığı bilinen kurulum hiç kullanılmıyor.
+
+Riski de dar: beşinin çizimi bozulsa bile **normal bot etkilenmez**, onun
+dosyalarına dokunulmadı.
+
+Skinler doğrudan kullanılabildi çünkü bot geometrisi zaten oyuncu skin
+düzeninde: kafa 0,0 · gövde 16,16 · sağ kol 40,16 · sol kol 32,48 · sağ
+bacak 0,16 · sol bacak 16,48.
+
+### Eşleştirme (değiştirmek kolay)
+
+`kol_uret.py:ILKEL_SKIN` tablosunda dosya adını değiştirip üreteci tekrar
+çalıştırmak yeterli.
+
+### Kimlik artık çoğul
+
+`BOT_KIMLIK` tek başına yetmiyor; `BOT_KIMLIKLER` **`ILKEL_BESLI`'den
+türetiliyor**, elle yazılmıyor. Bunu unutmak sinsi olurdu: bot menüsü
+açılmaz, **nişan kendi Okazor'una kilitlenir**, botlar birbirini döverdi.
+`KILIT_ATLA_TIPLER` de artık bu kümeden geliyor.
+
+Defter tarafı: `botCagir(oyuncu, kimlik)`, boyut taraması altı türü de
+geziyor, `eksikBotTurleri()` kayıtsız varlıkları durum raporuna basıyor.
+
+### Koruma görevi
+
+"Bunlar beni özel koruyanlar" — ekip savaşı kapalı olsa bile bu beş üye
+**savaşa hazır doğuyor** (`ILKEL_KORUMA`). Elle "bot savaş kapat" dersen
+yine susarlar; bu bir başlangıç durumu, kilit değil.
+
+### `canli.mjs` bölüm 4: her varlığın çizimi tam mı
+
+Yeni varlık = yeni sessiz hata riski. Artık `entities/` altındaki her
+varlık için sınanıyor: istemci tanımı var mı, kimlikler aynı mı, dokusu
+gerçekten diskte mi, geometrisi tanımlı mı, **özel render controller
+kullanmıyor mu**. v4.28'in hatası bir daha sessizce geçemez.
+
+Test: **33/33** (`ilkel.mjs` 13 bölüm, `canli.mjs` 4 bölüm).
+
+---
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:
