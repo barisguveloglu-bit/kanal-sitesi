@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.41";
+export const SURUM = "v4.42";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -1378,8 +1378,15 @@ export const BOT_YERDEN_TOPLA = true;
    canla dolasiyordu. Ayni kural IYILESME miktarlari icin de
    gecerli -- onlar da kaynakta "HP" diye yaziliydi.
 
-   HASARA DOKUNULMADI: kaynakta "23 Hasar" yaziyor, "23 HP"
-   degil. O ayri bir karar.                                   */
+   HASAR DA AYNI KURALA GIRDI (v4.42): kaynaktaki "23 Hasar" da
+   kalp cinsindenmis, o da ikiye katlandi.
+
+     23 hasar  -> 46 HP  = 23 kalp / vurus
+     50 hasar  -> 100 HP = 50 kalp / vurus   <- Okazor
+
+   Okazor'un tek vurusu normal bir oyuncuyu (10 kalp) bes kez
+   oldurur, kalp tavanindaki bir oyuncuyu (110 kalp) uc vuruste
+   bitirir. Bilincli: sayilar kullanicinin listesinden.        */
 export const ILKEL_ACIK  = true;
 export const ILKEL_TAVAN = 1;    // her isimden kac tane olabilir
 
@@ -1410,7 +1417,7 @@ export const ILKEL_BESLI = new Map([
     ad: "İlkel Muhafız Kajaros",
     kimlik: "pa:kajaros",
     rutbe: 3, unvan: "Muhafız Komutanı",
-    can: 3500, hasar: 23,
+    can: 3500, hasar: 46,
     /* "Isabet aldiginda kendisini 20 HP iyilestirir" --
        VURULUNCA, vurunca degil. 20 KALP = 40 HP (v4.41).     */
     vurulunca: 40,
@@ -1426,7 +1433,7 @@ export const ILKEL_BESLI = new Map([
     ad: "İlkel Sihirbaz Miskel",
     kimlik: "pa:miskel",
     rutbe: 2, unvan: "Baş Büyücü",
-    can: 2600, hasar: 14,
+    can: 2600, hasar: 28,
     vurulunca: 80,
     /* Iyilesme 40 KALP = 80 HP (v4.41).
        "Korluk XVI (6 sn) VEYA Solgunluk VII (4 sn)" -- ikisinden
@@ -1440,7 +1447,7 @@ export const ILKEL_BESLI = new Map([
     ad: "İlkel Suikastçı El-Harkos",
     kimlik: "pa:harkos",
     rutbe: 5, unvan: "Gölge Çırağı",
-    can: 2600, hasar: 13,
+    can: 2600, hasar: 26,
     /* "Pasif olarak zamanla canini iyilestirir (tik basina
        0,5 HP)". 0,5 KALP = 1 HP (v4.41). Tarama 20 tick'te bir
        donuyor, yani her taramada 20 HP = 10 kalp.             */
@@ -1450,7 +1457,7 @@ export const ILKEL_BESLI = new Map([
     ad: "İlkel Zihin Bükücü Raxxan",
     kimlik: "pa:raxxan",
     rutbe: 4, unvan: "Gölge Ajanı",
-    can: 2000, hasar: 15,
+    can: 2000, hasar: 30,
     /* "30 blok civarindaki oyunculara Bulanti V" -> civardaki
        DUSMANLARA. Sahibi ve ekip arkadaslari disarida.        */
     aura: { menzil: 30, efekt: ["nausea", 100, 4] },
@@ -1464,7 +1471,7 @@ export const ILKEL_BESLI = new Map([
     ad: "İlkel Savaşçı Okazor",
     kimlik: "pa:okazor",
     rutbe: 1, unvan: "Ekip Lideri",
-    can: 2400, hasar: 50,
+    can: 2400, hasar: 100,
     /* "4 saniyelik araliklarla ust uste 3 kez vurmayi
        basarirsa cani tamamen yenilenir."                     */
     seri: { adet: 3, pencere: 80 }

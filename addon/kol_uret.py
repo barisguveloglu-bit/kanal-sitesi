@@ -373,24 +373,31 @@ BOT_CAN = 25
 # Ilk surumde sayilar oldugu gibi girilmisti, yani herkes
 # yarim canla dolasiyordu.
 #
-# HASARA DOKUNULMADI: kaynakta "23 Hasar" yaziyor, "23 HP"
-# degil. Hasar da kalp cinsindense burasi da ikiye katlanmali
-# -- ama bu ayri bir karar, kullaniciya soruldu.
+# HASAR DA IKIYE KATLANDI (v4.42, kullanici karari): kaynaktaki
+# "23 Hasar" da kalp cinsindenmis.
+#
+#   listede    buraya    oyunda
+#   23 hasar   46        23 kalp / vurus
+#   50 hasar   100       50 kalp / vurus  <- Okazor
+#
+# Yani Okazor'un tek vurusu 50 kalp goturuyor: normal bir
+# oyuncuyu (10 kalp) bes kez, kalp tavanindaki bir oyuncuyu
+# (110 kalp) uc vuruste bitirir.
 #
 # rutbe: 1 = lider. Siranin TAMAMI kullanicinin karari (v4.36):
 #   1 Okazor  2 Miskel  3 Kajaros  4 Raxxan  5 Harkos
 # Bu ekipte buyu askeri rutbenin ustunde -- Miskel, 1750 canli
 # Kajaros'un amiri. Can sirasiyla ortusmemesi bilincli.
 ILKEL = [
-    ("kajaros", "Ilkel Muhafiz Kajaros",      3500, 23,
+    ("kajaros", "Ilkel Muhafiz Kajaros",      3500, 46,
      dict(ittirilmez=True, olcek=1.15, hiz=0.30, rutbe=3)),
-    ("miskel",  "Ilkel Sihirbaz Miskel",      2600, 14,
+    ("miskel",  "Ilkel Sihirbaz Miskel",      2600, 28,
      dict(menzilli=True, olcek=1.0, hiz=0.30, rutbe=2)),
-    ("harkos",  "Ilkel Suikastci El-Harkos",  2600, 13,
+    ("harkos",  "Ilkel Suikastci El-Harkos",  2600, 26,
      dict(sicrar=True, olcek=0.95, hiz=0.42, rutbe=5)),
-    ("raxxan",  "Ilkel Zihin Bukucu Raxxan",  2000, 15,
+    ("raxxan",  "Ilkel Zihin Bukucu Raxxan",  2000, 30,
      dict(ittirilmez=True, olcek=1.05, hiz=0.32, rutbe=4)),
-    ("okazor",  "Ilkel Savasci Okazor",       2400, 50,
+    ("okazor",  "Ilkel Savasci Okazor",       2400, 100,
      dict(ittirilmez=True, olcek=1.25, hiz=0.34, rutbe=1)),
 ]
 

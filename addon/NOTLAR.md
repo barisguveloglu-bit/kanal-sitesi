@@ -3588,6 +3588,27 @@ elle yazılıyordu. Artık manifest'ten okunuyor. Sürüm bilgisi üç yerde
 
 ---
 
+## v4.42 — Hasarlar da kalp cinsinden
+
+Kaynaktaki "23 Hasar" da kalp demekmiş. Aynı kural, ikiye katlandı:
+
+| üye | hasar (HP) | **kalp/vuruş** |
+|---|---|---|
+| Okazor | 100 | **50** |
+| Kajaros | 46 | 23 |
+| Raxxan | 30 | 15 |
+| Miskel | 28 | 14 |
+| El-Harkos | 26 | 13 |
+
+**Okazor'un tek vuruşu 50 kalp.** Normal bir oyuncuyu (10 kalp) beş kez
+öldürür; kalp tavanındaki bir oyuncuyu (110 kalp) üç vuruşta bitirir.
+Bilinçli — sayılar kullanıcının listesinden ve o liste patron listesiydi.
+
+Bununla İlkel Beşli'nin bütün sayıları kaynakla birebir aynı hâle geldi:
+can, hasar, iyileşme, efekt seviyesi, süre.
+
+---
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:
