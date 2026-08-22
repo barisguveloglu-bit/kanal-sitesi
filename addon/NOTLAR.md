@@ -3546,6 +3546,48 @@ paketin geride kaldığı tek bakışta belli oluyor.
 
 ---
 
+## v4.41 — Canlar kalp cinsindenmiş, hepsi ikiye katlandı
+
+Kaynak listedeki "1750 HP" aslında **1750 KALP** demekmiş. Minecraft'ta
+1 kalp = 2 HP olduğu için dosyaya iki katı yazılması gerekiyordu; ilk
+sürümde sayılar olduğu gibi girilmişti, yani **herkes yarım canla
+dolaşıyordu.**
+
+| üye | önce | şimdi | oyunda görünen |
+|---|---|---|---|
+| Kajaros | 1750 HP | **3500 HP** | 1750 kalp |
+| Miskel | 1300 | **2600** | 1300 kalp |
+| El-Harkos | 1300 | **2600** | 1300 kalp |
+| Okazor | 1200 | **2400** | 1200 kalp |
+| Raxxan | 1000 | **2000** | 1000 kalp |
+
+Aynı kural **iyileşme miktarları** için de geçerli — onlar da kaynakta
+"HP" diye yazılıydı: Kajaros +20→**40**, Miskel +40→**80**, Raxxan'ın ani
+iyileşmesi +100→**200**, Harkos'un tik başına 0,5→**1**.
+
+**Hasara dokunulmadı:** kaynakta "23 Hasar" yazıyor, "23 HP" değil.
+
+### İki hata, ikisi de yakalandı
+
+1. **Sıralı `replace` birbirini yedi.** `20→40` sonra `40→80` yapınca
+   Kajaros'un yeni 40'ı da 80 oldu: Kajaros 80, Miskel 40 — ters. Çıktıyı
+   tabloya basınca görüldü. Ders: aynı dosyada zincirleme değiştirme
+   yaparken önceki adımın çıktısı sonrakinin girdisi olabiliyor.
+2. **Üreteci çalıştırmayı unuttum.** `kol_uret.py` güncellendi ama varlık
+   JSON'ları eski kaldı. `ilkel.mjs` bölüm 1 tam bunun için yazılmıştı ve
+   yakaladı: *"JSON 1750 / ayar 3500"*.
+
+Testlerdeki rakamlar da artık `ayarlar.js`'ten **türetiliyor** — elle
+yazılsaydı bu tur sessizce eski rakamı sınamaya devam ederdi.
+
+### `paketle.sh`: dosya adı da sürümden
+
+Paketin içi v4.41'di ama dosya adı `SimsekTNT_v440.mcaddon` diyordu — `S=`
+elle yazılıyordu. Artık manifest'ten okunuyor. Sürüm bilgisi üç yerde
+(dosya adı, paket adı, açılış satırı) ve üçü de **tek kaynaktan**.
+
+---
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:
