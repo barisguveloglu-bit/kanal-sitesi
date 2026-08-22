@@ -3428,6 +3428,20 @@ Test: **33/33** (`ilkel.mjs` 13 bölüm + hiyerarşi bekçisi).
 
 ---
 
+## v4.37 — El-Harkos
+
+Kullanıcı bildirdi: **tam adı El-Harkos**, "Harkos" kısaltması. Görünen ad
+güncellendi (isim etiketi, menü, dil dosyası, yumurta adı); sohbette
+`el-harkos`, `elharkos`, `el` ve kısaltma `harkos` — hepsi aynı üyeye
+gidiyor.
+
+**Varlık kimliği `pa:harkos` olarak KALDI.** Kimliği değiştirmek mevcut
+dünyalarda doğmuş El-Harkos'u "bilinmeyen varlık" yapardı; doku dosyası ve
+bot kayıtları da ona bağlı. **Ad bir görünüm, kimlik bir sözleşme** — test
+bu ayrımı da kilitliyor.
+
+---
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:

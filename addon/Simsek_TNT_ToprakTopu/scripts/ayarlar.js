@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.36";
+export const SURUM = "v4.37";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -1421,7 +1421,7 @@ export const ILKEL_BESLI = new Map([
     ]
   }],
   ["harkos", {
-    ad: "İlkel Suikastçı Harkos",
+    ad: "İlkel Suikastçı El-Harkos",
     kimlik: "pa:harkos",
     rutbe: 5, unvan: "Gölge Çırağı",
     can: 1300, hasar: 13,
@@ -1472,7 +1472,13 @@ export const ILKEL_KORUMA = true;
 export const ILKEL_ADLAR = new Map([
   ["kajaros", "kajaros"], ["muhafiz", "kajaros"], ["kajaross", "kajaros"],
   ["miskel", "miskel"], ["sihirbaz", "miskel"], ["buyucu", "miskel"],
-  ["harkos", "harkos"], ["suikastci", "harkos"], ["suikast", "harkos"],
+  /* El-Harkos tam adi, Harkos kisaltmasi. Ikisi de yaziliyor.
+     Anahtar "harkos" olarak KALDI: varlik kimligi (pa:harkos),
+     doku dosyasi ve kayitlar ona bagli. Kimligi degistirmek,
+     mevcut dunyalarda dogmus El-Harkos'u "bilinmeyen varlik"
+     yapardi -- ad bir GORUNUM, kimlik bir SOZLESME.           */
+  ["harkos", "harkos"], ["elharkos", "harkos"], ["el-harkos", "harkos"],
+  ["el", "harkos"], ["suikastci", "harkos"], ["suikast", "harkos"],
   ["raxxan", "raxxan"], ["zihin", "raxxan"], ["bukucu", "raxxan"],
   ["okazor", "okazor"], ["savasci", "okazor"]
 ]);

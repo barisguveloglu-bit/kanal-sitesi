@@ -66,5 +66,5 @@ entity.pa:kajaros.name=[3] İlkel Muhafız Kajaros
 item.spawn_egg.entity.pa:kajaros.name=İlkel Muhafız Kajaros Yumurtasi
 entity.pa:raxxan.name=[4] İlkel Zihin Bükücü Raxxan
 item.spawn_egg.entity.pa:raxxan.name=İlkel Zihin Bükücü Raxxan Yumurtasi
-entity.pa:harkos.name=[5] İlkel Suikastçı Harkos
-item.spawn_egg.entity.pa:harkos.name=İlkel Suikastçı Harkos Yumurtasi
+entity.pa:harkos.name=[5] İlkel Suikastçı El-Harkos
+item.spawn_egg.entity.pa:harkos.name=İlkel Suikastçı El-Harkos Yumurtasi

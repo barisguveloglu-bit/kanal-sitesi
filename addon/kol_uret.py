@@ -370,7 +370,7 @@ ILKEL = [
      dict(ittirilmez=True, olcek=1.15, hiz=0.30, rutbe=3)),
     ("miskel",  "Ilkel Sihirbaz Miskel",      1300, 14,
      dict(menzilli=True, olcek=1.0, hiz=0.30, rutbe=2)),
-    ("harkos",  "Ilkel Suikastci Harkos",     1300, 13,
+    ("harkos",  "Ilkel Suikastci El-Harkos",  1300, 13,
      dict(sicrar=True, olcek=0.95, hiz=0.42, rutbe=5)),
     ("raxxan",  "Ilkel Zihin Bukucu Raxxan",  1000, 15,
      dict(ittirilmez=True, olcek=1.05, hiz=0.32, rutbe=4)),
@@ -401,7 +401,7 @@ ILKEL_TR = {
     "kajaros": "İlkel Muhafız Kajaros",
     "raxxan":  "İlkel Zihin Bükücü Raxxan",
     "miskel":  "İlkel Sihirbaz Miskel",
-    "harkos":  "İlkel Suikastçı Harkos",
+    "harkos":  "İlkel Suikastçı El-Harkos",
 }
 
 
