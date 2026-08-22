@@ -3609,6 +3609,27 @@ can, hasar, iyileşme, efekt seviyesi, süre.
 
 ---
 
+## Tablet ölçümü: 20 bot sorunsuz
+
+Uzun süredir açık olan soru kapandı. Kullanıcı tablette denedi:
+**20 botun hepsi aynı anda yanındayken hiç takılma yaşanmadı.**
+
+Bu, `BOT_TAVAN = 20`'nin bir tavan değil bir **tercih** olduğunu gösteriyor
+— sayı v4.27'de "önce güvenli bir yerden başlayalım" diye seçilmişti,
+ölçüme dayanmıyordu.
+
+Neden şaşırtıcı değil: bot sayısı **tick yükünü artırmıyor**. Blok bütçesi
+(`TICK_BLOK_BUTCESI = 56`) tüm oyuncular ve botlar arasında paylaşılıyor,
+yani yirmi bot çalışınca iş daha yavaş bitiyor ama tick maliyeti sabit
+kalıyor. Ölçülebilir tek artan yük vanilla AI tarafında (yol bulma), o da
+motorun içinde ve bizim elimizde değil.
+
+Not: ölçüm botlar **takip ederken** yapıldı. Yirmi bot aynı anda derin
+tarama yaparken ya da dövüşürken ayrıca denenmeli — özellikle İlkel Beşli,
+`melee_attack` + hedef takibi yüzünden normal bottan pahalı.
+
+---
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:
