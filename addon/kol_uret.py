@@ -361,20 +361,36 @@ BOT_CAN = 25
 #   menzilli   : ok atar (shooter + ranged_attack)
 #   sicrar     : leap_at_target (Harkos'un "havada zipla"si)
 #   hiz        : movement degeri
+# ---- CANLAR KALP DEGIL HP OLARAK YAZILIR (v4.41) ----
+# Kaynak listedeki "1750 HP" aslinda 1750 KALP demekmis
+# (kullanici bildirdi). Minecraft'ta 1 kalp = 2 HP oldugu icin
+# buraya iki kati yaziliyor:
+#
+#   listede        buraya      oyunda gorunen
+#   1750 "HP"  ->  3500    ->  1750 kalp
+#   1300       ->  2600    ->  1300 kalp
+#
+# Ilk surumde sayilar oldugu gibi girilmisti, yani herkes
+# yarim canla dolasiyordu.
+#
+# HASARA DOKUNULMADI: kaynakta "23 Hasar" yaziyor, "23 HP"
+# degil. Hasar da kalp cinsindense burasi da ikiye katlanmali
+# -- ama bu ayri bir karar, kullaniciya soruldu.
+#
 # rutbe: 1 = lider. Siranin TAMAMI kullanicinin karari (v4.36):
 #   1 Okazor  2 Miskel  3 Kajaros  4 Raxxan  5 Harkos
 # Bu ekipte buyu askeri rutbenin ustunde -- Miskel, 1750 canli
 # Kajaros'un amiri. Can sirasiyla ortusmemesi bilincli.
 ILKEL = [
-    ("kajaros", "Ilkel Muhafiz Kajaros",      1750, 23,
+    ("kajaros", "Ilkel Muhafiz Kajaros",      3500, 23,
      dict(ittirilmez=True, olcek=1.15, hiz=0.30, rutbe=3)),
-    ("miskel",  "Ilkel Sihirbaz Miskel",      1300, 14,
+    ("miskel",  "Ilkel Sihirbaz Miskel",      2600, 14,
      dict(menzilli=True, olcek=1.0, hiz=0.30, rutbe=2)),
-    ("harkos",  "Ilkel Suikastci El-Harkos",  1300, 13,
+    ("harkos",  "Ilkel Suikastci El-Harkos",  2600, 13,
      dict(sicrar=True, olcek=0.95, hiz=0.42, rutbe=5)),
-    ("raxxan",  "Ilkel Zihin Bukucu Raxxan",  1000, 15,
+    ("raxxan",  "Ilkel Zihin Bukucu Raxxan",  2000, 15,
      dict(ittirilmez=True, olcek=1.05, hiz=0.32, rutbe=4)),
-    ("okazor",  "Ilkel Savasci Okazor",       1200, 50,
+    ("okazor",  "Ilkel Savasci Okazor",       2400, 50,
      dict(ittirilmez=True, olcek=1.25, hiz=0.34, rutbe=1)),
 ]
 

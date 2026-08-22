@@ -16,7 +16,17 @@ set -e
 K="$(cd "$(dirname "$0")" && pwd)"
 BP="Simsek_TNT_ToprakTopu"
 RP="Simsek_Kol_Kaynak"
-S="v440"
+# Dosya adindaki surum de manifest'ten TURETILIYOR (v4.41).
+# Elle yaziliyordu ve bir kez ayristi: paketin ici v4.41'di ama
+# dosya adi SimsekTNT_v440.mcaddon diyordu. Hangi dosyanin yeni
+# oldugunu ad'dan anlayamamak, bu is akisindaki en sinir bozucu
+# hata sinifi (bkz. v4.40 notu).
+S="v$(python3 -c "
+import json
+d = json.load(open('$K/$BP/manifest.json'))
+v = d['header']['version']
+print('%d%d' % (v[0], v[1]))
+")"
 
 # ---- PAKET ADINA SURUMU YAZ ----
 # Neden: Bedrock'ta davranis paketi ile kaynak paketi AYRI iki
