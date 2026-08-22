@@ -3442,6 +3442,31 @@ bu ayrımı da kilitliyor.
 
 ---
 
+## v4.38 — Skin eşleştirmesi tahmindi, tutmadı
+
+Kullanıcı beş skini tek mesajda gönderdi, kimin kim olduğunu söylemedi.
+v4.35'te eşleştirmeyi **ben tahmin ettim** (renk ve havaya bakarak). Oyunda
+çağırınca çıktı: gri miğferli asker **Kajaros değil, El-Harkos**'muş.
+
+Ders şu: **skin bir görünüş değil kimlik.** Tahmin edilmez, sorulur. Kalan
+dördü artık tabloda açıkça `? tahmin` diye işaretli; sadece El-Harkos
+`ONAYLI`.
+
+### `onizle_ilkel.py` — eşleştirme tablosu
+
+Kullanıcının doğrulamak için oyuna girip tek tek çağırması gerekiyordu.
+Artık gerekmiyor: bu betik her üyenin **atanmış** skinini oyuncu skin
+düzeninden ön görünüme çevirip rütbe + ünvan + onay durumuyla tek bir PNG'ye
+diziyor.
+
+Rütbe ve adlar `ayarlar.js`'ten **okunuyor**, betiğe elle yazılmıyor —
+yoksa tablo kodla birlikte bayatlardı.
+
+Eşleştirmeyi düzeltmek: `kol_uret.py:ILKEL_SKIN` içinde dosya adını
+değiştir, üreteci çalıştır.
+
+---
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:

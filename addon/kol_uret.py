@@ -386,12 +386,21 @@ ILKEL = [
 #
 # ESLESTIRMEYI DEGISTIRMEK: sadece bu tablodaki dosya adini
 # degistir ve kol_uret.py'yi tekrar calistir.
+#
+# ---- ESLESTIRME KULLANICI ONAYINA TABI ----
+# v4.35'te bu tabloyu BEN TAHMIN ETTIM (skinlerin rengine ve
+# havasina bakarak). Tahmin tutmadi: kullanici oyunda cagirinca
+# "bu Kajaros degil, El-Harkos" dedi. Ders: skin bir GORUNUS
+# degil KIMLIK; tahmin edilmez, sorulur.
+#
+# ONAYLI = kullanici oyunda gorup dogruladi
+# tahmin  = hala benim tahminim, degisebilir
 ILKEL_SKIN = {
-    "okazor":  "228e7f78-image.png",   # siyah + altin vurgu -> lider
-    "kajaros": "1ee88523-image.png",   # gri migferli asker -> muhafiz
-    "raxxan":  "6e1e30e1-image.png",   # siyah maske, beyaz isaret -> zihin bukucu
-    "miskel":  "9837eeac-image.png",   # acik cubbe -> sihirbaz
-    "harkos":  "84013466-image.png",   # migfersiz genc yuz -> en alt rutbe
+    "harkos":  "1ee88523-image.png",   # ONAYLI (kullanici bildirdi)
+    "okazor":  "228e7f78-image.png",   # tahmin
+    "miskel":  "9837eeac-image.png",   # tahmin
+    "kajaros": "84013466-image.png",   # tahmin
+    "raxxan":  "6e1e30e1-image.png",   # tahmin
 }
 ILKEL_SKIN_KAYNAK = "/root/.claude/uploads/e51da4d9-22bc-53d5-b9b6-e97d8e6ccf11"
 
