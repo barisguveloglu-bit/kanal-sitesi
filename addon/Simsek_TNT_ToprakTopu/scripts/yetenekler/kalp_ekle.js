@@ -5,8 +5,8 @@ import { KALP_ADIM, KALP_TAVAN, PARCACIK_IYILES } from "../ayarlar.js";
 
 /* KALP EKLE -- kalp SAYISINI kalici olarak buyutur.
 
-   can_verme ile karistirma:
-     can_verme  bos kalpleri doldurur  (iyilestirme, gecici)
+   Iyilestirme ile karistirma:
+     iksirler   bos kalpleri doldurur  (yenilenme, 300 sn)
      kalp_ekle  yeni kalp ekler        (kalici, birikir)
 
    Her kullanimda KALP_ADIM (10) kalp, KALP_TAVAN'a (100) kadar.

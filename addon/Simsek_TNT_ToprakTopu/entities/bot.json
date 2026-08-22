@@ -164,6 +164,18 @@
         "start_distance": 4,
         "stop_distance": 2
       },
+      "minecraft:inventory": {
+        "inventory_size": 16,
+        "private": true
+      },
+      "minecraft:behavior.pickup_items": {
+        "priority": 5,
+        "max_dist": 6,
+        "goal_radius": 1.5,
+        "speed_multiplier": 1.3,
+        "pickup_based_on_chance": false,
+        "can_pickup_any_item": true
+      },
       "minecraft:behavior.look_at_player": {
         "priority": 8,
         "look_distance": 8,

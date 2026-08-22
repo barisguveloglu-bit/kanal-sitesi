@@ -11,20 +11,11 @@
     "kol_simsek": {
       "textures": "textures/item/kol_simsek"
     },
-    "kol_alan": {
-      "textures": "textures/item/kol_alan"
-    },
-    "kol_top": {
-      "textures": "textures/item/kol_top"
-    },
     "kol_savur": {
       "textures": "textures/item/kol_savur"
     },
     "kol_ucus": {
       "textures": "textures/item/kol_ucus"
-    },
-    "kol_can": {
-      "textures": "textures/item/kol_can"
     },
     "kol_ors": {
       "textures": "textures/item/kol_ors"
@@ -43,9 +34,6 @@
     },
     "kol_boralo": {
       "textures": "textures/item/kol_boralo"
-    },
-    "kol_golge": {
-      "textures": "textures/item/kol_golge"
     },
     "iksir_nitroksin": {
       "textures": "textures/item/iksir_nitroksin"

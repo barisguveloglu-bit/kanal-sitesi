@@ -51,8 +51,16 @@ export const KOL_ESYALARI = [
      envanterde bir yer kapliyor, hepsi ayni listede.
 
      Kalp eklemenin asil yolu artik SOHBET: "can 10". Menudeki
-     yer ikinci yol.                                            */
-  ["pa:kol_toprak", "can_verme", "toprak_topu", "yon_simsegi", "ors",
+     yer ikinci yol.
+
+     v4.33: CAN VERME CIKARILDI. Gerekcesi kullanicinin kendi
+     sozu: "zaten hem kalp ekleme var, hem iksir icince onun 4-5
+     kati sureyle yenilenme geliyor -- artik gereksizlesti."
+     Dogru tespit: can_verme 10 saniyelik yenilenme veriyordu,
+     iksirler 300 saniye veriyor ve kalp ekleme KALICI. Bir
+     yetenegin uc ayri karsiligi olmasi, jest sirasini uzatmak
+     disinda bir sey yapmiyordu.                                */
+  ["pa:kol_toprak", "toprak_topu", "yon_simsegi", "ors",
                     "toprak_ucus", "toprak_duvar", "meteor", "guclu_tnt",
                     "kalp_ekle", "kalp_sifirla"],
 
@@ -81,23 +89,28 @@ export const KOL_ESYALARI = [
   /* BORALO KOL -- Boralo Mod V2'den alinan takim. O mod 1148
      dosya ve 2054 satir script; en iyi iki fikri alindi.
      "Mob Picker" adina ragmen sadece oyuncu yakaliyordu, burada
-     tersi yapildi.                                             */
-  ["pa:kol_boralo", "yakala", "coklu_simsek"],
+     tersi yapildi.
 
-  /* GOLGE KOL -- "En Iyi BoraLo Modu V15"ten alinan takim.
-     3018 dosya, 809 komut, hic script yok. Iceriginin cogu
-     zaten aldigimiz kaliplarin tekrariydi; gercekten yeni olan
-     iki sey buraya kondu.                                     */
-  ["pa:kol_golge",  "ok_yagmuru", "sarsinti"],
+     v4.33: GOLGE KOLU BURAYA KATILDI (kullanici istegi). Ikisi
+     de ayni kaynaktan geliyordu (BoraLo modlari) ve ikisi de iki
+     yetenekliydi; envanterde iki yer kaplamalari icin bir sebep
+     yoktu. Dort yetenek tek kolda, menuden tek dokunusla.      */
+  ["pa:kol_boralo", "yakala", "coklu_simsek", "ok_yagmuru", "sarsinti"],
 
-  // Tek yetenekli kollar
-  ["pa:kol_halka",  "yildirim_halkasi"],
+  /* Tek yetenekli kollar.
+
+     v4.33'te DORT KOL KALDIRILDI -- hepsi "kol israfi" kuralinin
+     geregi:
+       pa:kol_can    -> can_verme yetenegi tamamen silindi
+       pa:kol_alan   -> alan_simsegi Yildirim Halkasi koluna gecti
+       pa:kol_top    -> toprak_topu zaten Toprak Kol'da vardi
+       pa:kol_golge  -> yetenekleri Boralo Kolu'na gecti
+     Hicbir YETENEK kaybolmadi (can_verme haric, o bilerek);
+     sadece envanterdeki esya sayisi 15'ten 11'e indi.          */
+  ["pa:kol_halka",  "yildirim_halkasi", "alan_simsegi"],
   ["pa:kol_simsek", "yon_simsegi"],
-  ["pa:kol_alan",   "alan_simsegi"],
-  ["pa:kol_top",    "toprak_topu"],
   ["pa:kol_savur",  "savur"],
   ["pa:kol_ucus",   "ucus"],
-  ["pa:kol_can",    "can_verme"],
   ["pa:kol_ors",    "ors"]
 ];
 

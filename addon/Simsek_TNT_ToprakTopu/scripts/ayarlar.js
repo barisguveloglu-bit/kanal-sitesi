@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.32";
+export const SURUM = "v4.33";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -268,37 +268,23 @@ export const METEOR_YUKSEK  = 24;   // kac blok yukaridan dussun (0 = anlik)
 export const METEOR_INIS    = 2.0;  // yere bu kadar yaklasinca patlar
 export const METEOR_TAVAN   = 80;   // govde bu kadar tick'te inmezse zorla patlat
 
-/* ---------------- Can verme ----------------
-   Referans mod bunu "effect @s health_boost 100000 255" diye
-   yapiyordu: sadece kendine, sonsuza kadar, 255 seviye. Yani
-   olumsuzluk. Bizimki cevredeki DOSTLARI da iyilestiriyor,
-   suresi belli ve seviyeler makul.
+/* ---------------- Can verme: KALDIRILDI (v4.33) ----------------
+   CAN_* ayarlari ve can_verme yetenegi tamamen silindi.
 
-   Dusmanlar disarida birakiliyor -- yoksa saldiran zombiyi de
-   iyilestirirsin. Liste eksik kalabilir; yeni bir dusman gorursen
-   buraya ekle.                                                    */
-export const CAN_YARICAP = 12;   // kac blokluk cevre iyilessin
-export const CAN_SURE    = 200;  // rejenerasyon/kalkan suresi (tick)
-export const CAN_REJEN   = 1;    // regeneration seviyesi
-export const CAN_KALKAN  = 1;    // absorption seviyesi
-export const CAN_ANLIK   = 2;    // instant_health seviyesi
-export const CAN_TAVAN   = 24;   // en fazla kac varlik iyilestirilsin
+   Gerekce kullanicinin kendi sozu: "zaten hem kalp ekleme var,
+   hem de iksir icince onun 4-5 kati sureyle yenilenme geliyor;
+   artik gereksizlesti."
 
-export const CAN_DUSMAN = new Set([
-  "minecraft:zombie", "minecraft:husk", "minecraft:drowned",
-  "minecraft:zombie_villager", "minecraft:zombie_pigman",
-  "minecraft:skeleton", "minecraft:stray", "minecraft:wither_skeleton",
-  "minecraft:bogged", "minecraft:creeper", "minecraft:spider",
-  "minecraft:cave_spider", "minecraft:enderman", "minecraft:endermite",
-  "minecraft:silverfish", "minecraft:witch", "minecraft:slime",
-  "minecraft:magma_cube", "minecraft:blaze", "minecraft:ghast",
-  "minecraft:phantom", "minecraft:guardian", "minecraft:elder_guardian",
-  "minecraft:shulker", "minecraft:vindicator", "minecraft:evocation_illager",
-  "minecraft:pillager", "minecraft:ravager", "minecraft:vex",
-  "minecraft:piglin", "minecraft:piglin_brute", "minecraft:hoglin",
-  "minecraft:zoglin", "minecraft:warden", "minecraft:breeze",
-  "minecraft:creaking", "minecraft:wither", "minecraft:ender_dragon"
-]);
+   Rakamlar da onu dogruluyordu:
+     can_verme  ->  200 tick (10 sn) yenilenme
+     iksirler   -> 6000 tick (300 sn) yenilenme
+     kalp ekle  -> KALICI ek kalp
+   Ayni ihtiyacin uc karsiligi vardi; en zayifi olan gitti.
+
+   Not: bu blokta bir de CAN_DUSMAN (dusman mob listesi) vardi.
+   Baska hicbir yerde kullanilmadigi icin o da silindi; dusman
+   ayrimi gerekirse geri eklenir.                                */
+
 
 /* ---------------- Ors yagdir ----------------
    Referans: "execute @s^^^6 /setblock ~~10~ anvil" -- tek ors,
@@ -913,10 +899,14 @@ export const HAPIS_KAYIT_ANAHTAR = "simsek:kafesler";
 /* ============================================================
    KALP EKLEME
 
-   "Can verme" ile KARISTIRMA -- ikisi ayri is:
+   Iyilestirme ile KARISTIRMA -- ikisi ayri is:
 
-     can_verme  -> bos kalpleri DOLDURUR (iyilestirme, gecici)
+     iksirler   -> bos kalpleri DOLDURUR (yenilenme, 300 sn)
      kalp_ekle  -> kalp SAYISINI buyutur (kalici, birikir)
+
+   (v4.33'e kadar burada ucuncu bir yol vardi: can_verme. 10
+   saniyelik yenilenme veriyordu, yani iksirin otuzda biri --
+   kaldirildi.)
 
    Bedrock'ta maksimum can health_boost efektiyle buyutuluyor:
 
@@ -1326,6 +1316,20 @@ export const BOT_TESLIM_MENZIL = 32;   // bu mesafeden uzaktaki bot teslim edeme
 
    NEDEN KAPATILABILIR: ormanda odun toplarken botun her koyuna
    saldirmasi istenmez. Varsayilan ACIK, kurtta da oyle.       */
+/* ---------------- Yerden esya toplama (v4.33) ----------------
+   Bot varlik JSON'unda behavior.pickup_items tasiyor: yerdeki
+   esyayi kendisi alip kendi kutusuna koyuyor, botTara() da o
+   kutuyu ekip cantasina bosaltiyor.
+
+   Fikir uc referans modun ortak yaninden geldi: hepsinde
+   karakterler koylu klonuydu ve koyluler yerdeki esyayi toplar.
+   Onlarda bu bir YAN ETKIYDI; burada bilincli bir ozellik --
+   sen blok kirarken dusen esyayi bot topluyor.
+
+   Kapatmak icin false yeter; varlik JSON'undaki bilesen kalir
+   ama esya botun kutusunda birikir (ve teslimde gelmez).       */
+export const BOT_YERDEN_TOPLA = true;
+
 export const BOT_SAVAS_VARSAYILAN = true;
 
 /* ============================================================
@@ -1429,6 +1433,46 @@ export const BOT_MADEN_BLOKLARI = new Map([
 
    Etki DONDUR_ARALIK'ta bir tazeleniyor; is yarida kesilirse
    hedef saatlerce degil, en fazla bir aralik kadar kilitli kalir. */
+/* ---- GIRDI KILIDI (v4.33, "zaman durdur" fikri) ----
+   Uc referans modun ucunde de zaman_durdur.mcfunction vardi:
+
+     inputpermission set @a movement disabled
+     inputpermission set @a camera disabled
+     inputpermission set @s movement enabled
+     inputpermission set @s camera enabled
+
+   Fikir iyi: slowness bir oyuncuyu YAVASLATIR ama durdurmaz,
+   inputpermission gercekten kilitler. Uygulamasi ise tehlikeli:
+
+     1. SURESIZ. Acan komut var, kapatan AYRI bir komut. Unutursan
+        ya da dunyadan cikarsan oyuncu sonsuza kadar kilitli
+        kalir -- kurtaran tek sey ikinci komutu bulmak.
+     2. @a -- dunyadaki HERKES, mesafe suzgeci yok.
+     3. Kamerayi da kapatiyor: kilitli oyuncu etrafina bile
+        bakamiyor, ekran donmus gibi duruyor.
+
+   Buradaki hali: sadece NISAN ALDIGIN hedefe, DONDUR_SURE
+   kadar, bitir()'de kesin serbest birakarak. Kamera acik
+   kaliyor (bakabilirsin, yurumezsin) -- istersen asagidan ac.
+
+   SON EMNIYET: dunyaya girerken herkesin girdisi aciliyor
+   (main.js, playerSpawn). Script tam kilitliyken cokerse bile
+   oyuncu bir daha girdiginde serbest kalir. Referansta bu yok.  */
+export const DONDUR_GIRDI_KILIT  = true;   // oyuncuyu gercekten durdur
+export const DONDUR_KAMERA_KILIT = false;  // bakisi da kilitle (sert)
+
+/* DIKKAT: bu ayar olmadan yukaridaki kilit OLU KODDU.
+
+   koniHedefleri() oyunculari varsayilan olarak ATLIYOR
+   (secenek.oyuncuDahil). Dondur bu secenegi gecmiyordu, yani
+   hedef HIC oyuncu olamiyordu -- girdi kilidi de hicbir zaman
+   calismazdi. Test yazilirken ortaya cikti.
+
+   Dondur icin oyuncu dahil OLMALI: donduracak sey zaten
+   karsindaki oyuncu. Zombiyi durdurmak icin kilide gerek yok,
+   slowness yetiyor.                                            */
+export const DONDUR_OYUNCU = true;
+
 export const DONDUR_MENZIL   = 24;
 export const DONDUR_ACI      = 0.9;
 export const DONDUR_SURE     = 200;  // tick (10 sn)

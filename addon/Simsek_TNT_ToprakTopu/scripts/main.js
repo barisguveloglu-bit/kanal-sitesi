@@ -6,7 +6,8 @@ import {
   ESYASIZ_BAKIS_ESIGI, ESYASIZ_TUTMA, ESYASIZ_TARAMA,
   KOL_VER_ACIK, KOL_VER_ESIGI, KOL_VER_TUTMA, CIFT_EL_ACIK, AYNI_ANDA,
   MENU_DOKUNUSLA, BOT_KIMLIK, KALP_ADIM, KALP_TAVAN, BETA_GEREKLI,
-  SOHBET_ONEK, BOT_TAVAN, DERIN_HEDEFLER, DERIN_VARSAYILAN
+  SOHBET_ONEK, BOT_TAVAN, DERIN_HEDEFLER, DERIN_VARSAYILAN,
+  DONDUR_GIRDI_KILIT
 } from "./ayarlar.js";
 
 import {
@@ -44,7 +45,6 @@ import "./yetenekler/savur.js";
 import "./yetenekler/ucus.js";
 import "./yetenekler/guclu_tnt.js";
 import "./yetenekler/meteor.js";
-import "./yetenekler/can_verme.js";
 import "./yetenekler/ors.js";
 import "./yetenekler/buz_adam.js";
 import "./yetenekler/toprak_ucus.js";
@@ -913,6 +913,29 @@ olayaAbone("playerLeave", (olay) => {
    calismamis demektir.                                            */
 olayaAbone("playerSpawn", (olay) => {
   if (!olay.initialSpawn) return;
+
+  /* ---- SON EMNIYET: girdi kilidini AC ----  (v4.33)
+
+     "Dondur" oyuncularda inputpermission ile gercek bir kilit
+     kuruyor ve bitir() onu her durumda aciyor. Ama script tam
+     kilitliyken CORSE (ya da paket kaldirilirsa) kilit dunyada
+     kalir ve oyuncu bir daha kimildayamaz -- geri almanin oyun
+     ici yolu da yoktur.
+
+     Fikri aldigimiz referans modlarda tam bu vardi: acan komut
+     bir dosyada, kapatan baska dosyada, arada hicbir emniyet
+     yok. Bu satir o kapiyi kapatiyor: dunyaya her girisde
+     herkes serbest baslar. Kilitli degilsen zaten hicbir sey
+     yapmiyor.                                                  */
+  if (DONDUR_GIRDI_KILIT) {
+    try {
+      olay.player.runCommand("inputpermission set @s movement enabled");
+      olay.player.runCommand("inputpermission set @s camera enabled");
+    } catch (e) {
+      // Komut eski surumlerde yok; kilit de kurulamamis demektir
+    }
+  }
+
   if (!OLCUM_SOHBETE && !HATA_SOHBETE) return;
   try {
     const eksik = kayitliKollar();

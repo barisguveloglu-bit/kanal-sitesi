@@ -7,7 +7,8 @@ import {
   BOT_TARAMA, BOT_CAGIR_YAKIN, BOT_DOGUM_YAKIN, BOT_KAYIT_ANAHTAR,
   BOT_SAHIP_OZELLIK, BOT_DURUM_OZELLIK, BOT_OLAY_TAKIP, BOT_OLAY_BEKLE,
   BOT_SCRIPT_MENZIL, BOT_CANTA_TAVAN, BOT_TESLIM_MENZIL,
-  BOT_SAVAS_VARSAYILAN, BOT_OLAY_SAVAS_AC, BOT_OLAY_SAVAS_KAPAT
+  BOT_SAVAS_VARSAYILAN, BOT_OLAY_SAVAS_AC, BOT_OLAY_SAVAS_KAPAT,
+  BOT_YERDEN_TOPLA
 } from "../ayarlar.js";
 
 /* ============================================================
@@ -114,6 +115,79 @@ export function cantaListesi(oyuncuId) {
 export function cantaBosalt(oyuncuId) {
   cantalar.delete(oyuncuId);
   yaz();
+}
+
+/* ---------------- Yerden toplama ----------------  (v4.33)
+
+   Bot varlik JSON'unda minecraft:behavior.pickup_items tasiyor:
+   yerde duran esyayi kendisi gidip aliyor ve KENDI kutusuna
+   koyuyor. Buradaki is o kutuyu bosaltip ekip cantasina
+   aktarmak.
+
+   NEDEN AKTARILIYOR: yoksa iki ayri depo olurdu -- botun kutusu
+   ve ekip cantasi. "bot teslim" dedigin zaman botun kutusundaki
+   sey gelmezdi, sen de aldigini sanip birakip giderdin. Tek
+   kapi: her sey cantaya girer, teslim cantayi bosaltir.
+
+   FIKIR NEREDEN GELDI: uc referans modun ortak yani, butun
+   karakterlerin koylu klonu olmasiydi. Koyluler yerdeki esyayi
+   toplar; o modlarda bu bir YAN ETKIYDI (koyluyu kopyalayinca
+   geldi, kimse istememisti). Burada bilincli: sen blok kirarken
+   yere dusen seyi bot topluyor.                                */
+
+let kutuUyarisi = false;
+
+/* Bir botun kutusunu cantaya bosaltir. Donen deger: kac parca.  */
+function kutuyuBosalt(varlik, oyuncuId) {
+  let alinan = 0;
+  let kap;
+  try {
+    const env = varlik.getComponent("minecraft:inventory");
+    kap = env ? env.container : undefined;
+  } catch (e) {
+    kap = undefined;
+  }
+  if (!kap || typeof kap.getItem !== "function") {
+    if (!kutuUyarisi) {
+      kutuUyarisi = true;
+      bilgiYaz("bot: envanter bileseni okunamadi; yerden topladigi " +
+               "esya cantaya aktarilamiyor (kendi kutusunda kalir).");
+    }
+    return 0;
+  }
+
+  const boyut = (typeof kap.size === "number") ? kap.size : 0;
+  for (let i = 0; i < boyut; i++) {
+    let esya;
+    try {
+      esya = kap.getItem(i);
+    } catch (e) {
+      continue;
+    }
+    if (!esya) continue;
+
+    const adet = esya.amount || 1;
+    /* Canta doluysa esyayi botun kutusunda BIRAK. Silmek
+       oyuncunun malini yok etmek olurdu.                       */
+    if (!cantayaKoy(oyuncuId, esya.typeId, adet)) break;
+
+    try {
+      kap.setItem(i, undefined);
+    } catch (e) {
+      /* Silinemedi: cantaya da girdi, kutuda da duruyor -- yani
+         esya KOPYALANMIS olurdu. Geri al.
+
+         Geri alma cantayaKoy ile yapilamaz: o tavan dolduysa
+         hicbir sey yapmadan doner ve kopya kalirdi.            */
+      const c = cantaAl(oyuncuId);
+      const kalan = (c.get(esya.typeId) || 0) - adet;
+      if (kalan > 0) c.set(esya.typeId, kalan);
+      else c.delete(esya.typeId);
+      continue;
+    }
+    alinan += adet;
+  }
+  return alinan;
 }
 
 /* ---------------- Savas anahtari ---------------- */
@@ -605,12 +679,30 @@ export function botTara(oyuncular) {
 
     if (!gecerliMi(oyuncu)) continue;
 
+    /* Kutu bosaltma kayit gerektiriyor ama tarama saniyede bir
+       donuyor: her turda yaz() cagirmak bosuna. Sadece
+       GERCEKTEN bir sey aktarildiysa yaziliyor.                */
+    let yazBekliyor = false;
+
     let indeks = 0;
     for (const kayit of liste) {
       const sira = indeks++;
 
       const v = varligiBul(kayit);
       if (!v) continue;            // chunk yuklu degil; defterden SILME
+
+      /* Yerden topladiklarini cantaya aktar. BEKLE kontrolunun
+         USTUNDE: duran bot da esya topluyor (pickup_items hiz
+         gerektirmiyor, yanina dusen seyi alir) ve derin tarama
+         boyunca butun botlar "bekle" durumunda -- asagida olsa
+         is boyunca hic bosaltilmazdi.                          */
+      if (BOT_YERDEN_TOPLA) {
+        try {
+          if (kutuyuBosalt(v, oyuncu.id) > 0) yazBekliyor = true;
+        } catch (e) {
+          hataYaz("bot.kutuyuBosalt", e);
+        }
+      }
 
       // Bekle durumundayken kurtarma da yok: dur dedik, duracak
       if (kayit.durum === "bekle") continue;
@@ -645,6 +737,8 @@ export function botTara(oyuncular) {
         hataYaz("bot.tara", e);
       }
     }
+
+    if (yazBekliyor) yaz();
   }
 }
 

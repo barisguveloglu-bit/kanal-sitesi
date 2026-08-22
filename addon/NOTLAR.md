@@ -3166,6 +3166,94 @@ Test: **31/31** (`derin.mjs` 15 bölüm).
 
 ---
 
+## v4.33 — Kol temizliği + üç moddan iki fikir
+
+### Kaldırılanlar (kullanıcı isteği)
+
+| kol | ne oldu |
+|---|---|
+| `pa:kol_can` | **can_verme yeteneği tamamen silindi** |
+| `pa:kol_alan` | `alan_simsegi` → Yıldırım Halkası Kolu'na |
+| `pa:kol_top` | `toprak_topu` zaten Toprak Kol'daydı |
+| `pa:kol_golge` | iki yeteneği de Boralo Kolu'na |
+
+**15 kol → 11 kol.** Gölge Kolu'nun gerekçesi kullanıcının kendi sözüydü:
+"gölge kolunun yeteneklerini boralo koluna ekle" — ikisi de aynı kaynaktan
+(BoraLo modları) geliyordu ve ikisi de iki yetenekliydi.
+
+**can_verme neden tamamen gitti:** "zaten hem kalp ekleme var, hem iksir
+içince onun 4-5 katı süreyle yenilenme geliyor". Rakamlar doğruluyor:
+
+```
+can_verme  ->  200 tick (10 sn) yenilenme
+iksirler   -> 6000 tick (300 sn) yenilenme
+kalp ekle  -> KALICI ek kalp
+```
+
+Aynı ihtiyacın üç karşılığı vardı; en zayıfı gitti. `CAN_*` ayarları ve
+`CAN_DUSMAN` listesi de silindi.
+
+**Yetenek kaybı yok** (can_verme hariç, o bilerek). `temizlik.mjs` bunu
+kilitliyor: kollara bağlı her kimlik gerçek bir yetenek olmalı ve
+kaldırılan kolların yetenekleri başka bir kola geçmiş olmalı.
+
+### Silerken yapılan hata
+
+`find -name "*kol_top*" -delete` — **`kol_toprak` dosyalarını da sildi.**
+Üretici hepsini geri yazdığı için kalıcı zarar olmadı ama test artık bu
+tuzağı bekliyor: "kol_toprak SİLİNMEDİ (kol_top temizliğine kurban
+gitmedi)".
+
+### Üç moddan alınan iki fikir
+
+Üç mod da **CraftyCraft** ile üretilmiş (`Bilemiyorum` ve `YeniBoraLoV3`
+neredeyse birebir aynı, ~10.5k satır ortak kod; `naber`'in BH/RP klasörleri
+ters isimlendirilmiş ve manifest'inde `1.0.0-beta` gametest bağımlılığı var
+— paketi bir kez öldüren tuzağın aynısı). Mantık `.mcfunction` dosyalarında,
+scriptler sadece `runCommand("function ...")` sarmalayıcısı. İki fikir
+alındı:
+
+**1. `zaman_durdur.mcfunction` → `dondur` gerçek kilit kazandı**
+
+```
+inputpermission set @a movement disabled
+inputpermission set @a camera disabled
+```
+
+Tespit doğru: slowness bir oyuncuyu **yavaşlatır ama durdurmaz**,
+`inputpermission` gerçekten kilitler. Uygulaması tehlikeliydi:
+
+- **süresiz** — açan komut ayrı, kapatan ayrı dosyada; unutursan oyuncu
+  sonsuza kadar kilitli
+- `@a` — dünyadaki herkes, mesafe süzgeci yok
+- kamerayı da kapatıyor: kilitli oyuncu etrafına bile bakamıyor
+
+Bizde: sadece nişan aldığın hedefe, `DONDUR_SURE` kadar, `bitir()`'de kesin
+serbest (iş yarıda kesilse de — test bunu ayrıca sınıyor). Kamera açık
+kalıyor. **Son emniyet:** dünyaya her girişte `inputpermission ... enabled`
+— script tam kilitliyken çökse bile oyuncu serbest başlar.
+
+**Test yazarken çıkan gerçek hata:** `koniHedefleri()` oyuncuları
+varsayılan olarak atlıyor ve `dondur` `oyuncuDahil` geçmiyordu — yani girdi
+kilidi **ölü koddu**, hedef hiçbir zaman oyuncu olamazdı. `DONDUR_OYUNCU`
+eklendi.
+
+**2. Köylü klonlarından → bot yerdeki eşyayı topluyor**
+
+Üç modun ortak yanı bütün karakterlerin köylü klonu olmasıydı; köylüler
+`minecraft:behavior.pickup_items` taşır. Onlarda bu bir **yan etkiydi**
+(köylüyü kopyalayınca geldi). Burada bilinçli: bot yere düşen eşyayı alıyor,
+`botTara()` da botun kutusunu ekip çantasına boşaltıyor.
+
+Neden aktarılıyor: yoksa iki ayrı depo olurdu ve "bot teslim" dediğinde
+botun kutusundaki gelmezdi. Sıra `çantaya koy → kutudan sil`; silme
+başarısız olursa çanta geri alınıyor, yoksa **eşya kopyalanırdı** (test
+bunu da sınıyor).
+
+Test: **32/32** (yeni `temizlik.mjs`).
+
+---
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:

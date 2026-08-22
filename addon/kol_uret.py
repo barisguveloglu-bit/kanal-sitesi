@@ -27,18 +27,14 @@ KOLLAR = [
     ("kol_toprak", "cok",                "Toprak Kol",            (24, 22, 20),    (198, 138, 90)),
     ("kol_halka",  "yildirim_halkasi", "Yildirim Halkasi Kolu", (86, 148, 232),  (214, 236, 255)),
     ("kol_simsek", "yon_simsegi",      "Simsek Kolu",           (233, 196, 66),  (255, 246, 190)),
-    ("kol_alan",   "alan_simsegi",     "Alan Simsegi Kolu",     (72, 196, 190),  (198, 248, 244)),
-    ("kol_top",    "toprak_topu",      "Toprak Topu Kolu",      (134, 96, 62),   (186, 152, 112)),
     ("kol_savur",  "savur",            "Savurma Kolu",          (140, 96, 200),  (214, 190, 250)),
     ("kol_ucus",   "ucus",             "Ucus Kolu",             (120, 190, 236), (226, 246, 255)),
-    ("kol_can",    "can_verme",        "Can Verme Kolu",        (214, 96, 148),  (255, 200, 226)),
     ("kol_ors",    "ors",              "Ors Kolu",              (118, 118, 128), (206, 210, 222)),
     ("kol_buz",    "buz_adam",         "Buz Kol",               (126, 190, 200), (196, 232, 238)),
     ("kol_dave",   "kasirga",          "Dave Kolu",             (96, 108, 76),   (176, 200, 140)),
     ("kol_kevin",  "hapis",            "Kevin Kolu",            (108, 112, 120), (188, 194, 204)),
     ("kol_gunes",  "isin_topu",        "Gunes Kolu",            (232, 168, 40),  (255, 232, 150)),
-    ("kol_boralo", "yakala",           "Boralo Kolu",           (74, 60, 96),    (168, 142, 210)),
-    ("kol_golge",  "ok_yagmuru",       "Golge Kolu",            (38, 36, 48),    (120, 116, 140)),
+    ("kol_boralo", "cok",              "Boralo Kolu",           (74, 60, 96),    (168, 142, 210)),
 ]
 
 # Turkce gorunen adlar (dil dosyasi icin; JSON'da ASCII tutuluyor)
@@ -46,18 +42,14 @@ TR_AD = {
     "kol_toprak": "Toprak Kol",
     "kol_halka":  "Yıldırım Halkası Kolu",
     "kol_simsek": "Şimşek Kolu",
-    "kol_alan":   "Alan Şimşeği Kolu",
-    "kol_top":    "Toprak Topu Kolu",
     "kol_savur":  "Savurma Kolu",
     "kol_ucus":   "Uçuş Kolu",
-    "kol_can":    "Can Verme Kolu",
     "kol_ors":    "Örs Kolu",
     "kol_buz":    "Buz Kol",
     "kol_dave":   "Dave Kolu",
     "kol_kevin":  "Kevin Kolu",
     "kol_gunes":  "Güneş Kolu",
     "kol_boralo": "Boralo Kolu",
-    "kol_golge":  "Gölge Kolu",
 }
 
 # BEKLEME = 60 tick = 3 sn. Esya beklemesi bununla ayni tutuluyor ki
@@ -327,6 +319,8 @@ BOT_TEN = (198, 138, 96)
 # ne soyledigin karisiyor; cesit sayesinde ayirt ediliyorlar.
 # minecraft:variant + render controller dizisi vanilla yontemi.
 BOT_CESIT = 6
+BOT_KUTU = 16          # botun kendi kutusu (yerden topladigi buraya duser)
+BOT_TOPLA_MENZIL = 6   # kac blok oteden esya alsin
 
 # Her cesit: sac, gomlek, pantolon. Ten hepsinde ayni --
 # ayirt edici olan KIYAFET, ekipteki rolleri degil.
@@ -476,6 +470,31 @@ def bot_sunucu_varligi():
                     "speed_multiplier": 1.2,
                     "start_distance": 4,
                     "stop_distance": 2,
+                },
+                # ---- YERDEN ESYA TOPLAMA (v4.33) ----
+                # Fikir uc referans modun ortak varligindan geldi:
+                # hepsinde karakterler koylu klonuydu ve koyluler
+                # yerdeki esyayi behavior.pickup_items ile aliyor.
+                # Onlarda bu bir yan etkiydi (koyluyu kopyalayinca
+                # geldi); burada BILINCLI: sen blok kirinca yere
+                # dusen esyayi bot topluyor ve ekip cantasina
+                # aktariliyor (_bot_defteri.js:cantayaAktar).
+                #
+                # inventory SART: pickup_items alacagi yeri
+                # burada buluyor. private=True -> oyuncu botun
+                # kutusunu acamaz; esya cantaya script ile giriyor,
+                # yoksa iki ayri depo olurdu.
+                "minecraft:inventory": {
+                    "inventory_size": BOT_KUTU,
+                    "private": True,
+                },
+                "minecraft:behavior.pickup_items": {
+                    "priority": 5,
+                    "max_dist": BOT_TOPLA_MENZIL,
+                    "goal_radius": 1.5,
+                    "speed_multiplier": 1.3,
+                    "pickup_based_on_chance": False,
+                    "can_pickup_any_item": True,
                 },
                 "minecraft:behavior.look_at_player": {
                     "priority": 8, "look_distance": 8, "probability": 0.4
