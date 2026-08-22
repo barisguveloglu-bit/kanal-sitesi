@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.31";
+export const SURUM = "v4.32";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -1172,6 +1172,121 @@ export const BOT_IS_SES          = "dig.wood";   // bos birakirsan ses yok
 /* Ilerleme bildirimi: kac blok kirdigini ara ara yazar ki
    calistigi belli olsun. 0 = kapali.                            */
 export const BOT_IS_RAPOR_ARALIK = 100;  // tick
+
+/* ============================================================
+   DERIN TARAMA  (v4.32)
+
+   Istek: "madenlerde 10 dakika boyunca kazim yapsin... Elmas
+   getir dedigimde... elmasin olmasi cok dusuk... ardindan
+   cesitli yerlere baksin... verdigim zorluga gore is dakikasi
+   artsin... yanimda odun var odun topla dedigimde hemen yapar
+   ama Elmas bul 64 tane dedigimde is dakikasi artsin."
+
+   Normal "bot maden" ile FARKI uc tane:
+
+   1. HEDEFI VAR. "elmas 64" dersen bot 64 elmas bulana kadar
+      calisir. Normal is sadece sureye bakar, ne buldugu onemli
+      degildir.
+
+   2. SURE ZORLUKTAN CIKAR. Elle girilmiyor, hesaplaniyor:
+        sure = TABAN + adet * zorluk * PARCA_TICK   (EN_UZUN'a kadar)
+      Yani "odun 64" bir buçuk dakika, "elmas 64" sekiz buçuk
+      dakika, "netherit 64" tam on dakika surer. Istenen adet
+      ERKEN bulunursa is HEMEN biter -- sure bir TAVAN, zorunlu
+      bir bekleme degil.
+
+   3. DURAK DURAK GEZER. Normal is botun durdugu yeri tarar ve
+      biter. Derin tarama bir daireyi bitirince BIR SONRAKI
+      DURAGA gecer: altin acili sarmal uzerinde yana, ve
+      cevherin gercek Y seviyesine dogru asagi. Yani bot
+      gercekten madene iniyor ve yol ustundeki komuru, demiri
+      de topluyor.
+
+   ---- NEDEN ISINLANIYOR ----
+   Bedrock'ta yol bulma API'si YOK (bkz. _bot_defteri.js).
+   Bota "su magaraya yuru" denemez. Duraga isinlanmak bunun tek
+   calisan karsiligi. Varis noktasi tas doluysa iki blok
+   aciliyor -- madenci zaten tunel kazar.
+
+   ---- Y SEVIYELERI ----
+   1.18 sonrasi dagilima gore, cevherin EN SIK bulundugu yukseklik.
+   Bot bu seviyeye tek hamlede degil DERIN_Y_ADIM'lik basamaklarla
+   iniyor; boylece inis yolundaki cevherleri de goruyor.
+   Zumrut sadece dag biyomunda cikar, kuvars ve ancient_debris
+   sadece Nether'da: o boyutta degilsen bot bos doner ve bunu
+   soyler -- uydurma yapmiyor.                                   */
+export const DERIN_ACIK        = true;
+export const DERIN_TABAN_SURE  = 1200;   // her iste en az bu kadar (1 dk)
+export const DERIN_EN_UZUN     = 12000;  // tavan: 10 dakika
+export const DERIN_PARCA_TICK  = 20;     // adet * zorluk * bu = ek sure
+export const DERIN_VARSAYILAN  = 64;     // adet soylenmezse
+export const DERIN_ADET_TAVAN  = 640;    // canta tavaniyla ayni
+
+export const DERIN_YARICAP     = 7;      // bir duraktaki tarama yaricapi
+export const DERIN_DERINLIK    = 4;      // durakta kac blok asagi/yukari
+export const DERIN_DURAK_ADIM  = 14;     // duraklar arasi yatay mesafe
+export const DERIN_DURAK_TAVAN = 60;     // en fazla kac durak gezilsin
+export const DERIN_DURAK_SURE  = 400;    // bir durakta en fazla kac tick
+export const DERIN_Y_ADIM      = 16;     // durak basina en fazla kac blok in
+export const DERIN_ISINLA      = true;   // duraga isinlansin mi
+export const DERIN_TUNEL       = true;   // varis noktasi doluysa 2 blok ac
+export const DERIN_DONUS       = true;   // is bitince yanina donsun
+export const DERIN_YOL_USTU    = true;   // yolda rastladigi cevheri de al
+export const DERIN_RAPOR       = 200;    // ilerleme bildirimi araligi (tick)
+
+/* Isinlanirken bu bloklarin ustune inme: bot 25 canli, lav
+   onu oldurur ve cantasi da yaninda gider.                     */
+export const DERIN_TEHLIKELI = new Set([
+  "minecraft:lava", "minecraft:flowing_lava", "minecraft:fire",
+  "minecraft:soul_fire", "minecraft:magma", "minecraft:campfire"
+]);
+
+/* Turkce ad -> hedef.
+     esya    : cantaya girecek esya kimligi (odun icin ozel)
+     zorluk  : sure carpani. Ne kadar nadirse o kadar buyuk.
+     y       : cevherin en sik bulundugu yukseklik (yoksa inme yok)
+     boyut   : sadece bu boyutta cikar (yoksa her yerde)
+     odun    : true ise kutuk kumesi kullanilir, cevher tablosu degil
+
+   Zorluk degerleri oyunun kendi dagilimindan: komur her yerde,
+   elmas dar bir bantta ve seyrek, ancient_debris en zoru.       */
+export const DERIN_HEDEFLER = new Map([
+  ["odun",     { ad: "odun",     esya: "minecraft:oak_log",     zorluk: 0.4,
+                 odun: true }],
+  ["komur",    { ad: "komur",    esya: "minecraft:coal",        zorluk: 0.6, y: 50 }],
+  ["bakir",    { ad: "bakir",    esya: "minecraft:raw_copper",  zorluk: 1,   y: 48 }],
+  ["demir",    { ad: "demir",    esya: "minecraft:raw_iron",    zorluk: 1.2, y: 16 }],
+  ["kuvars",   { ad: "kuvars",   esya: "minecraft:quartz",      zorluk: 1.5, y: 20,
+                 boyut: "minecraft:nether" }],
+  ["redstone", { ad: "redstone", esya: "minecraft:redstone",    zorluk: 2,   y: -58 }],
+  ["lapis",    { ad: "lapis",    esya: "minecraft:lapis_lazuli", zorluk: 2.5, y: 0 }],
+  ["altin",    { ad: "altin",    esya: "minecraft:raw_gold",    zorluk: 3,   y: -16 }],
+  ["elmas",    { ad: "elmas",    esya: "minecraft:diamond",     zorluk: 7,   y: -59 }],
+  ["zumrut",   { ad: "zumrut",   esya: "minecraft:emerald",     zorluk: 8,   y: 100 }],
+  ["netherit", { ad: "netherit", esya: "minecraft:ancient_debris", zorluk: 10, y: 15,
+                 boyut: "minecraft:nether" }],
+  /* Hedef soylenmezse: ne cikarsa. Sadece sure hesabi icin
+     zorlugu var, sayimda BUTUN cevherler sayilir.              */
+  ["maden",    { ad: "maden",    esya: undefined,               zorluk: 1.5, y: -16 }]
+]);
+
+/* Kullanicinin yazabilecegi butun yazimlar -> DERIN_HEDEFLER
+   anahtari. Sadelestirilmis (kucuk harf, Turkce harfsiz) hali.  */
+export const DERIN_ADLAR = new Map([
+  ["odun", "odun"], ["agac", "odun"], ["kutuk", "odun"], ["tahta", "odun"],
+  ["komur", "komur"], ["coal", "komur"],
+  ["bakir", "bakir"], ["copper", "bakir"],
+  ["demir", "demir"], ["iron", "demir"],
+  ["kuvars", "kuvars"], ["quartz", "kuvars"],
+  ["redstone", "redstone"], ["kizil", "redstone"], ["kirmizitas", "redstone"],
+  ["lapis", "lapis"], ["lacivert", "lapis"], ["lazuli", "lapis"],
+  ["altin", "altin"], ["gold", "altin"],
+  ["elmas", "elmas"], ["diamond", "elmas"], ["pirlanta", "elmas"],
+  ["zumrut", "zumrut"], ["emerald", "zumrut"],
+  ["netherit", "netherit"], ["netherite", "netherit"], ["debris", "netherit"],
+  ["moloz", "netherit"], ["ancient", "netherit"],
+  ["maden", "maden"], ["cevher", "maden"], ["hepsi", "maden"], ["nevarsa", "maden"]
+]);
 
 /* ============================================================
    BOT CANTASI ve TESLIM  (v4.28)

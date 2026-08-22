@@ -6,7 +6,7 @@ import {
   ESYASIZ_BAKIS_ESIGI, ESYASIZ_TUTMA, ESYASIZ_TARAMA,
   KOL_VER_ACIK, KOL_VER_ESIGI, KOL_VER_TUTMA, CIFT_EL_ACIK, AYNI_ANDA,
   MENU_DOKUNUSLA, BOT_KIMLIK, KALP_ADIM, KALP_TAVAN, BETA_GEREKLI,
-  SOHBET_ONEK, BOT_TAVAN
+  SOHBET_ONEK, BOT_TAVAN, DERIN_HEDEFLER, DERIN_VARSAYILAN
 } from "./ayarlar.js";
 
 import {
@@ -74,6 +74,7 @@ import "./yetenekler/bot_cagir.js";
 import "./yetenekler/bot_geri.js";
 import "./yetenekler/bot_teslim.js";
 import "./yetenekler/bot_is.js";
+import "./yetenekler/bot_derin.js";
 import "./yetenekler/bot_guc.js";
 
 /* DIKKAT -- SIRA ONEMLI.
@@ -111,6 +112,13 @@ import {
 /* Gunes Yumrugu kaydi is listesinden bagimsiz bir Map'te; oyuncu
    cikinca o da temizlenmeli.                                    */
 import { yumrukUnut } from "./yetenekler/yumruk.js";
+
+/* Derin tarama hedefi yetenek cercevesinden GECMIYOR (olustur()
+   parametre almiyor), ayri bir Map'te bekliyor. Menu ve sohbet
+   once hedefi yaziyor, sonra yetenegi tetikliyor.               */
+import {
+  derinHedefSec, derinHedefUnut, hedefCoz, derinSure, adetKirp
+} from "./yetenekler/bot_derin.js";
 
 /* ============================================================
    MERKEZI TICK YONETICISI
@@ -314,6 +322,81 @@ function kolBasligi(esyaKimligi) {
 
 /* Menunun altina eklenen yardimci dugmeler. Tek yetenekli kolda
    menuyu anlamli kilan sey bunlar.                             */
+/* ============================================================
+   DERIN TARAMA MENUSU  (v4.32)
+
+   NEDEN MENU: hedef vermek bir SAYI ve bir CEVHER ADI istiyor,
+   yani yazmak gerekiyor. Sohbet komutlari kararli API'de
+   calismiyor (chatSend "Beta APIs" istiyor) ve tablette
+   /scriptevent yazmak eziyet. Menu tek dokunusluk yol.
+
+   Sohbete yazabilenler icin "bot elmas 64" da duruyor; ikisi
+   ayni kapiya cikiyor.
+
+   Liste ayarlardan URETILIYOR, elle yazilmiyor: ayarlar.js'e
+   yeni bir cevher eklenince menude kendiliginden cikiyor ve
+   sure de dogru gosteriliyor.                                  */
+function derinMenusu(oyuncu) {
+  const liste = [];
+  for (const [anahtar, tanim] of DERIN_HEDEFLER) {
+    const adet = DERIN_VARSAYILAN;
+    const dk = (derinSure(tanim, adet) / 1200).toFixed(1);
+    liste.push({
+      anahtar,
+      adet,
+      ad: adet + " " + tanim.ad + " §8· en fazla " + dk + " dk" +
+          (tanim.boyut ? " §8(" + tanim.boyut.replace("minecraft:", "") + ")" : "")
+    });
+  }
+
+  /* "4 tane 64'luk demir" ornegi: dort yigin isteyen kisayol. */
+  const dortYigin = [
+    { anahtar: "demir", adet: 256 },
+    { anahtar: "elmas", adet: 128 },
+    { anahtar: "komur", adet: 256 }
+  ];
+  for (const s of dortYigin) {
+    const tanim = DERIN_HEDEFLER.get(s.anahtar);
+    if (!tanim) continue;
+    const dk = (derinSure(tanim, s.adet) / 1200).toFixed(1);
+    liste.push({
+      anahtar: s.anahtar,
+      adet: s.adet,
+      ad: s.adet + " " + tanim.ad + " §8(" + (s.adet / 64) + " yigin) · " +
+          dk + " dk"
+    });
+  }
+
+  const acildi = menuAc(oyuncu, "§bDerin tarama §7· ne getirsinler?",
+    liste, -1,
+    (i) => derinBaslat(oyuncu, liste[i].anahtar, liste[i].adet),
+    []);
+
+  if (!acildi) {
+    /* Menu yoksa sessiz kalma: varsayilanla baslat ve nasil
+       hedef verilecegini soyle.                                */
+    actionbarYaz(oyuncu, "§7Menu yok; varsayilan derin tarama basliyor");
+    derinBaslat(oyuncu, "maden", DERIN_VARSAYILAN);
+  }
+}
+
+/* Hedefi yaz, sonra yetenegi tetikle. Iki adim ayri cunku
+   yetenek cercevesi olustur()'a parametre gecirmiyor.          */
+function derinBaslat(oyuncu, anahtar, adet) {
+  derinHedefSec(oyuncu.id, anahtar, adet);
+  if (yetenekTetikle(oyuncu, "bot_derin")) return undefined;
+
+  /* Tetiklenemedi: bekleyen hedefi BIRAKMA, yoksa bir sonraki
+     "bot_derin" tetiklemesi yanlis hedefle calisirdi.          */
+  derinHedefUnut(oyuncu.id);
+  const kalan = kalanBekleme(oyuncu.id);
+  const mesaj = kalan > 0
+    ? "§7Derin tarama §8· §c" + (kalan / 20).toFixed(1) + " sn bekle"
+    : "§7Derin tarama §8· §caktif isin dolu (" + AYNI_ANDA + ")";
+  actionbarYaz(oyuncu, mesaj);
+  return mesaj;
+}
+
 function menuEkleri(oyuncu) {
   return [
     {
@@ -355,6 +438,10 @@ function menuEkleri(oyuncu) {
     {
       ad: "Bot: maden kaz",
       calis() { yetenekTetikle(oyuncu, "bot_maden"); }
+    },
+    {
+      ad: "Bot: DERIN TARAMA §8(hedefli)",
+      calis() { derinMenusu(oyuncu); }
     },
     {
       ad: "Bot: simsek yagdir",
@@ -808,6 +895,7 @@ olayaAbone("playerLeave", (olay) => {
   kademeUnut(olay.playerId);
   yumrukUnut(olay.playerId);
   botUnut(olay.playerId);
+  derinHedefUnut(olay.playerId);
 
   // Oyuncunun butun isleri durdurulmali, sadece birincisi degil
   const acikIsler = oyuncununIsleri.get(olay.playerId);
@@ -1027,6 +1115,18 @@ sohbetKancalari({
   botYanaCagir: (oyuncu) => botYanaCagir(oyuncu),
   botSavas: (oyuncu, acik) => botSavas(oyuncu, acik),
   botSayisi: (oyuncu) => botSayisi(oyuncu.id),
+
+  /* "bot elmas 64" -> derin tarama. Ad cozulemezse hedef
+     listesi yaziliyor; sessiz kalmak yerine ne yazilabilecegini
+     soylemek.                                                  */
+  derin: (oyuncu, anahtar, adet) => {
+    const hedef = hedefCoz(anahtar);
+    if (!hedef) {
+      return "§cBilmedigim hedef: §7" + anahtar + "\n§8" +
+             [...DERIN_HEDEFLER.keys()].join(" · ");
+    }
+    return derinBaslat(oyuncu, anahtar, adetKirp(adet));
+  },
   yetenek: (oyuncu, kimlik) => {
     const tanim = yetenekAl(kimlik);
     if (!tanim) return "§cBilinmeyen yetenek: " + kimlik;
@@ -1041,12 +1141,18 @@ sohbetKancalari({
 });
 sohbetKur();
 
-/* Beta modulu isteniyor. Buraya gelebildiysek zaten yuklenmis
-   demektir (yuklenmeseydi script hic calismazdi); satir yine de
-   Content Log'da hangi yuzeyde oldugumuzu belli etsin diye var. */
-bilgiYaz("API: @minecraft/server 2.0.0-BETA isteniyor -- dunya " +
-         "ayarlarinda 'Beta API'ler' ACIK olmali. Kapatirsan paket " +
-         "hic yuklenmez (manifest'te 2.0.0 yaparak geri alinabilir).");
+/* Hangi API yuzeyindeyiz, Content Log'da belli olsun.
+
+   v4.31'e kadar burada "2.0.0-BETA isteniyor" YAZIYORDU ama
+   BETA_GEREKLI v4.25'te false'a alinmisti -- yani satir yanlis
+   bilgi veriyordu. Artik ayardan okunuyor: ikisi bir daha
+   ayrisamaz.                                                    */
+bilgiYaz(BETA_GEREKLI
+  ? "API: @minecraft/server 2.0.0-BETA isteniyor -- dunya ayarlarinda " +
+    "'Beta API'ler' ACIK olmali, yoksa paket HIC yuklenmez."
+  : "API: @minecraft/server 2.0.0 (kararli). Beta API ayari gerekmiyor; " +
+    "sohbet komutlari (chatSend) sadece Beta acikken calisir, menu ve " +
+    "/scriptevent her durumda calisir.");
 
 bilgiYaz(
   SURUM + " yuklendi | yetenek: " + tumYetenekler().length +

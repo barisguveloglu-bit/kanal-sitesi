@@ -53,7 +53,7 @@ const ItemStack = api.ItemStack;
    sonra baksin. Sirali olmasaydi rastgele bir blok kirip
    yanindakini atlardi ve "calisiyor" hissi kaybolurdu.        */
 
-function offsetler(yaricap, altY, ustY) {
+export function offsetler(yaricap, altY, ustY) {
   const liste = [];
   for (let dx = -yaricap; dx <= yaricap; dx++) {
     for (let dz = -yaricap; dz <= yaricap; dz++) {
@@ -317,30 +317,36 @@ function botIsi(oyuncu, tur) {
   };
 }
 
-/* Blogu kirar ve esyayi verir. true = gercekten kirildi.
+/* Blogu kirar ve esyayi cantaya koyar.
+
+   DONEN DEGER: cantaya giren ESYA KIMLIGI (dogru), kirilmadiysa
+   undefined. v4.32'de bool degildi artik string donuyor: derin
+   tarama "kac ELMAS buldum" diye sayiyor, "kac blok kirdim"
+   diye degil. Cagiran yerlerin hepsi dogruluk sinamasi yapiyor,
+   yani string de bool gibi calisiyor.
 
    SIRA ONEMLI: once esya olusturuluyor. Olusturulamiyorsa blok
    KIRILMIYOR -- aksi halde bot cevheri yok eder ve eline hicbir
    sey gecmez. Bu, esya kimligi tablosunda bir yanlis varsa
    verinin sessizce kaybolmasini engelliyor.                    */
-function kirBlok(blok, boyut, nokta, tip, tanim, oyuncu) {
+export function kirBlok(blok, boyut, nokta, tip, tanim, oyuncu) {
   const esyaKimligi = tanim.esya(tip);
 
   /* SIRA ONEMLI. Once esyanin uretilebildigi dogrulaniyor, sonra
      blok kiriliyor. Ters olsaydi kimlik tablosundaki bir yanlis
      blogu yok eder ve ele hicbir sey gecmezdi -- bot cevheri
      patlatirdi. Test bu sirayi kilitliyor.                     */
-  if (!esyaHazirla(esyaKimligi)) return false;
+  if (!esyaHazirla(esyaKimligi)) return undefined;
 
   /* Canta doluysa blogu KIRMA: yerinde dursun. Kirip
      dusurseydik oyuncu farkinda olmadan birakip giderdi.      */
-  if (cantaDolulugu(oyuncu.id) >= BOT_CANTA_TAVAN) return false;
+  if (cantaDolulugu(oyuncu.id) >= BOT_CANTA_TAVAN) return undefined;
 
   try {
     blok.setType("minecraft:air");
   } catch (e) {
     hataYaz("bot_is.setType", e);
-    return false;
+    return undefined;
   }
 
   /* v4.28: esya DOGRUDAN envantere gitmiyor, EKIP CANTASINA
@@ -370,27 +376,28 @@ function kirBlok(blok, boyut, nokta, tip, tanim, oyuncu) {
       // ses her surumde yok; sessiz gecilir
     }
   }
-  return true;
+  return esyaKimligi;
 }
 
-/* Govde takibi icin: noktadaki blok hedefse kir. */
-function blokKir(boyut, nokta, tanim, oyuncu) {
+/* Govde takibi icin: noktadaki blok hedefse kir.
+   Donen deger kirBlok ile ayni: esya kimligi ya da undefined. */
+export function blokKir(boyut, nokta, tanim, oyuncu) {
   let blok;
   try {
     blok = boyut.getBlock(nokta);
   } catch (e) {
-    return false;
+    return undefined;
   }
-  if (!blok) return false;
+  if (!blok) return undefined;
 
   let tip;
   try {
     tip = blok.typeId;
   } catch (e) {
-    return false;
+    return undefined;
   }
-  if (!tanim.hedefMi(tip)) return false;
-  if (KORUNAN_KUME.has(tip)) return false;
+  if (!tanim.hedefMi(tip)) return undefined;
+  if (KORUNAN_KUME.has(tip)) return undefined;
 
   return kirBlok(blok, boyut, nokta, tip, tanim, oyuncu);
 }

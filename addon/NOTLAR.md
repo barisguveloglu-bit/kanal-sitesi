@@ -3062,6 +3062,110 @@ Test: **30/30** (`bot.mjs` 27 bölüm).
 
 ---
 
+## v4.32 — Derin tarama
+
+> "Madenlerde 10 dakika boyunca kazım yapsın... Elmas getir dediğimde
+> veya başka bir zorlu maden getir dediğimde... 10 dakika boyunca madende
+> tarama yapsın ardından çeşitli yerlere baksın... verdiğim zorluğa göre
+> işin dakikası artsın; yanımda odun var 'odun topla' dediğimde hemen
+> yapar ama 'elmas bul 64 tane' veya '4 tane 64'lük demir topla'
+> dediğimde iş dakikası artsın... ben bu adam gerçekten yapıyor hissini
+> versin."
+
+Yeni dosya: `yetenekler/bot_derin.js`. Normal `bot maden` duruyor;
+derin tarama **onun yerine değil yanına** geldi.
+
+### 1. Süre elle girilmiyor, zorluktan hesaplanıyor
+
+```
+süre = DERIN_TABAN_SURE + adet × zorluk × DERIN_PARCA_TICK   (tavan: 10 dk)
+```
+
+Zorluk katsayıları `ayarlar.js:DERIN_HEDEFLER` içinde, oyunun kendi
+cevher dağılımından çıktı:
+
+| istek | süre |
+|---|---|
+| 64 odun | 1.4 dk |
+| 64 demir | 2.3 dk |
+| 256 demir ("4 tane 64'lük") | 6.1 dk |
+| 64 elmas | 8.5 dk |
+| 64 netherit | 10.0 dk (tavan) |
+
+**Süre bir tavan, zorunlu bekleme değil.** 64 elmas 3. dakikada
+bulunursa iş 3. dakikada biter. Test bunu kilitliyor (bölüm 5).
+
+### 2. Durak durak arıyor ("çeşitli yerlere baksın")
+
+Bir tarama küresi bitince bot **bir sonraki durağa** gidiyor:
+
+- **yatay:** altın açılı sarmal (`durakNo × 2.39996` radyan, yarıçap
+  `DURAK_ADIM × √durakNo`). Düzgün daire aynı yerleri üst üste tarar;
+  altın açı noktaları birbirine en uzak dağıtır.
+- **dikey:** cevherin gerçek Y seviyesine doğru `DERIN_Y_ADIM`'lık
+  basamaklarla. Tek hamlede inmiyor — iniş yolundaki kömürü, demiri de
+  topluyor.
+- **botlar ayrı yöne gidiyor:** her botun sarmalı `sıra × 2π/n` kadar
+  dönük başlıyor. Beş bot beş ayrı koridor tarıyor.
+
+Işınlanma kullanılıyor çünkü **Bedrock'ta yol bulma API'si yok** —
+bota "şu mağaraya yürü" denemiyor. Varış noktası taş doluysa iki blok
+açılıyor (madenci zaten tünel kazar), lav varsa o durak atlanıyor.
+
+### Yakalanan hata: bot dibindeki elmasa bakmadan gidiyordu
+
+İlk sürümde sarmal 1'den başlıyordu, yani bot işe başlar başlamaz 14
+blok öteye ışınlanıyordu. Test bunu yakaladı: etraf baştan başa elmas,
+bot **sıfır** getirdi. Artık **durak 0 = botun durduğu yer** — önce
+dibindeki alınıyor, sonra sarmal açılıyor (`bot_is.js`'teki offset
+sıralamasının aynı mantığı).
+
+### 3. İş boyunca "bekle", sonunda geri dönüyor
+
+Durum "takip" kalsaydı `botTara()` botu `BOT_KURTARMA_MENZIL`'de
+yakalayıp yanına ışınlardı ve bot madene bir türlü inemezdi. İş boyunca
+"bekle", bitince `botYanaCagir()` — "gitti, çalıştı, geri döndü" hissi
+de buradan geliyor. Dönüş teslim menzili için de şart.
+
+### Komut: kullanıcının ağzından
+
+```
+bot elmas               → 64 elmas
+bot elmas 64            → 64 elmas
+bot 64 tane elmas       → 64 elmas
+bot 4 tane 64luk demir  → 256 demir   (sayılar ÇARPILIR)
+bot demir 4x64          → 256 demir
+bot derin               → ne cevher çıkarsa
+bot odun 64             → hedefli odun
+bot odun / bot maden    → ESKİ hızlı iş (derin tarama değil)
+```
+
+Ayrım şu: **sayı ya da "derin" kelimesi varsa hedeflidir.** Kullanıcının
+kendi cümlesi de böyleydi. Türkçe ek yutuluyor ("elması" → elmas).
+
+Yazmak istemeyene **menü**: kola dokun → "Bot: DERIN TARAMA". Liste
+`ayarlar.js`'ten üretiliyor, elle yazılmıyor — yeni cevher eklenince
+menüde kendiliğinden çıkıyor ve süresi de doğru görünüyor.
+
+### Sahte iş yok
+
+- Netherit/kuvars Overworld'de istenirse iş **başlamıyor**, sebebi
+  yazılıyor. On dakika boş kazmaktansa doğruyu söylemek.
+- Hiçbir şey bulunamazsa "y=... seviyesine yakın bir yerden başlat"
+  deniyor; uydurma sonuç üretilmiyor.
+- Yol üstündeki başka cevherler de çantaya giriyor ama **hedefe
+  sayılmıyor**.
+
+### Yan düzeltme
+
+`main.js` açılışta "2.0.0-BETA isteniyor" yazıyordu; `BETA_GEREKLI`
+v4.25'te `false` olmuştu, yani satır **yanlış bilgi veriyordu**. Artık
+ayardan okunuyor.
+
+Test: **31/31** (`derin.mjs` 15 bölüm).
+
+---
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:

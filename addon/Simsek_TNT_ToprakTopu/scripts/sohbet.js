@@ -1,6 +1,8 @@
 import { world } from "@minecraft/server";
 import { bilgiYaz, hataYaz, sistemOlayaAbone } from "./yardimcilar.js";
-import { SOHBET_ACIK, SOHBET_ONEK, KALP_ADIM, KALP_TAVAN } from "./ayarlar.js";
+import {
+  SOHBET_ACIK, SOHBET_ONEK, KALP_ADIM, KALP_TAVAN, DERIN_ADLAR
+} from "./ayarlar.js";
 
 /* ============================================================
    SOHBET KOMUTLARI  --  "aramizda bir dil"
@@ -139,6 +141,15 @@ export function komutCozumle(oyuncu, hamMetin) {
   if (ad === "bot") {
     const alt = parca[1];
 
+    /* ---- Derin tarama (v4.32) ----
+       EN BASTA bakiliyor: "bot odun" hizli istir ama "bot odun
+       64" bir HEDEFTIR, ikisi ayni koda gitmemeli. Ayrinti
+       derinIstekCoz'de.                                        */
+    const derin = derinIstekCoz(parca.slice(1));
+    if (derin) {
+      return { cevap: cagir("derin", oyuncu, derin.anahtar, derin.adet) };
+    }
+
     /* Geri gonderme BEKLEME suresine takilmiyor: bu bir guc
        degil, guvenlik cikisi. Bot ayak altinda dolasiyorsa ya
        da bir yere sikismissa 3 saniye beklemek sinir bozucu.
@@ -196,7 +207,8 @@ export function komutCozumle(oyuncu, hamMetin) {
     }
     if (alt !== undefined) {
       return { cevap: "§cBilmedigim bot komutu: §7" + alt +
-                      "\n§8bot · bot odun · bot maden · bot teslim · bot simsek · " +
+                      "\n§8bot · bot odun · bot maden · bot elmas 64 · bot derin · " +
+                      "bot teslim · bot simsek · " +
                       "bot top · bot savas · bot bekle · bot takip · bot gel · bot geri" };
     }
     return { cevap: cagir("yetenek", oyuncu, "bot_cagir") };
@@ -230,6 +242,99 @@ export function komutCozumle(oyuncu, hamMetin) {
   return undefined;   // komut degil
 }
 
+/* ============================================================
+   DERIN TARAMA ISTEGI COZUMLEME  (v4.32)
+
+   Kullanicinin agzindan cikan seyi oldugu gibi anlamaya
+   calisiyor. Hepsi calisan girdiler:
+
+     bot elmas              -> 64 elmas (varsayilan adet)
+     bot elmas 64           -> 64 elmas
+     bot 64 tane elmas      -> 64 elmas
+     bot 4 tane 64luk demir -> 256 demir   (sayilar CARPILIR)
+     bot demir 4x64         -> 256 demir
+     bot derin              -> ne cevher cikarsa (varsayilan)
+     bot odun 64            -> 64 odun (hedefli)
+
+   AMA:
+     bot odun / bot maden   -> ESKI hizli is, derin tarama DEGIL
+
+   Ayrim su: sayi ya da "derin" kelimesi varsa hedeflidir. "bot
+   odun" dedigin an yanindaki agaclari kessin istiyorsun, "bot
+   odun 64" dedigin an bir HEDEF veriyorsun. Kullanicinin
+   kendi cumlesi de boyleydi: "odun topla dedigimde hemen yapar
+   ama elmas bul 64 tane dedigimde is dakikasi artsin."
+
+   Donen deger: {anahtar, adet} ya da undefined (= derin tarama
+   istegi degil, alt komutlara devam et).                      */
+
+/* Turkce ek yutucu: "elmasi", "demiri", "elmastan" da tutsun.
+   Sadece 4 harften uzun anahtarlarda onek eslesmesi yapiliyor;
+   kisa anahtarlarda ("odun") yanlis eslesme riski var.        */
+function hedefAdiBul(kelime) {
+  const tam = DERIN_ADLAR.get(kelime);
+  if (tam) return tam;
+  for (const [ad, anahtar] of DERIN_ADLAR) {
+    if (ad.length >= 5 && kelime.startsWith(ad)) return anahtar;
+  }
+  return undefined;
+}
+
+/* Sayilari gormezden gelinecek dolgu kelimeler. Kullanici
+   "4 tane 64luk demir topla" diye yaziyor; "tane" ve "topla"
+   ayristirmayi bozmamali.                                     */
+const DOLGU = new Set([
+  "tane", "adet", "tanesi", "getir", "bul", "topla", "kaz", "ara",
+  "tarama", "tara", "yap", "bana", "lutfen", "hemen", "git"
+]);
+
+export function derinIstekCoz(parcalar) {
+  let anahtar;
+  let carpim;                 // bulunan sayilarin carpimi
+  let derinKelimesi = false;
+
+  for (const ham of parcalar) {
+    if (!ham) continue;
+    if (ham === "derin") { derinKelimesi = true; continue; }
+    if (DOLGU.has(ham)) continue;
+
+    /* "4x64" / "4*64" -> 256. Kullanici "4 tane 64'luk" yerine
+       kisayolu da yazabilsin.                                  */
+    const c = ham.match(/^(\d+)[x*](\d+)$/);
+    if (c) {
+      carpim = (carpim === undefined ? 1 : carpim) * Number(c[1]) * Number(c[2]);
+      continue;
+    }
+
+    /* Basi rakam olan her sey sayi sayiliyor: "64", "64luk",
+       "64'luk" sadelestirilmis hali dahil.                     */
+    if (/^\d/.test(ham)) {
+      const n = parseInt(ham, 10);
+      if (isFinite(n) && n > 0) {
+        carpim = (carpim === undefined ? 1 : carpim) * n;
+      }
+      continue;
+    }
+
+    if (!anahtar) {
+      const bulunan = hedefAdiBul(ham);
+      if (bulunan) anahtar = bulunan;
+    }
+  }
+
+  const sayiVar = carpim !== undefined;
+
+  /* "derin" dendiyse hedef soylenmese de calisir. */
+  if (derinKelimesi) return { anahtar: anahtar || "maden", adet: carpim };
+
+  if (!anahtar) return undefined;
+
+  /* odun/maden SAYISIZ soylenmisse eski hizli is calissin. */
+  if (!sayiVar && (anahtar === "odun" || anahtar === "maden")) return undefined;
+
+  return { anahtar, adet: carpim };
+}
+
 const YARDIM = [
   "§6--- Simsek komutlari ---",
   "§ecan 10§7 · 10 kalp ekle (tavan " + KALP_TAVAN + ")",
@@ -239,6 +344,9 @@ const YARDIM = [
   "§ebot§7 · botu cagir / yanina getir",
   "§ebot odun§7 · botlar etrafindaki agaclari keser",
   "§ebot maden§7 · botlar etrafindaki cevheri kazar",
+  "§ebot elmas 64§7 · DERIN TARAMA: durak durak arar, madene iner",
+  "§ebot 4 tane 64luk demir§7 · sayilar carpilir (256 demir)",
+  "§ebot derin§7 · hedefsiz derin tarama (ne cikarsa)",
   "§ebot simsek§7 · baktigin yere simsek yagdirirlar",
   "§ebot top§7 · baktigin yere kil topu atarlar",
   "§ebot teslim§7 · topladiklarini sana verir",
