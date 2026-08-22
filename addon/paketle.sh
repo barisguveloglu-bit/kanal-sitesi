@@ -16,7 +16,30 @@ set -e
 K="$(cd "$(dirname "$0")" && pwd)"
 BP="Simsek_TNT_ToprakTopu"
 RP="Simsek_Kol_Kaynak"
-S="v439"
+S="v440"
+
+# ---- PAKET ADINA SURUMU YAZ ----
+# Neden: Bedrock'ta davranis paketi ile kaynak paketi AYRI iki
+# pakettir ve dunyaya ayri ayri uygulanir. Biri guncellenip
+# digeri eski kalirsa ortaya "isimler dogru ama skinler yanlis"
+# gibi anlasilmaz bir durum cikiyor -- v4.39'da tam bu yasandi
+# ve dosyada hata var sanildi.
+#
+# Artik surum paketin ADINDA: dunya ayarlarindaki paket
+# listesine bakinca hangi surumun etkin oldugu okunuyor.
+# Ad manifest'teki SURUMDEN uretiliyor, elle yazilmiyor.
+python3 - "$K" <<'PYEOF'
+import json, sys, os, re
+kok = sys.argv[1]
+for yol, taban in (("Simsek_TNT_ToprakTopu", "Simsek TNT ve Toprak Topu"),
+                   ("Simsek_Kol_Kaynak", "Simsek Kol Gorunumleri")):
+    p = os.path.join(kok, yol, "manifest.json")
+    d = json.load(open(p, encoding="utf-8"))
+    s = d["header"]["version"]
+    d["header"]["name"] = "%s v%d.%d" % (taban, s[0], s[1])
+    json.dump(d, open(p, "w", encoding="utf-8"), indent=2, ensure_ascii=False)
+    print("  ad:", d["header"]["name"])
+PYEOF
 
 rm -f "$K"/SimsekTNT_*.mcpack "$K"/SimsekKol_*.mcpack "$K"/SimsekTNT_*.mcaddon
 rm -f "$K"/*_v3.mcpack "$K"/Simsek_TNT_v3.mcaddon

@@ -3506,6 +3506,46 @@ Dokular değişmediği için paket yeniden kurulmasına gerek yok: v4.39 son hâ
 
 ---
 
+## v4.40 — Sürüm artık paketin adında
+
+Kullanıcı v4.39'dan sonra "sorun hâlâ düzelmedi, isimler yanlış" dedi.
+Paketin içi **kontrol edildi ve doğruydu** — beş dokunun md5'i onaylanan
+eşleştirmeyle birebir aynı. Yani hata dosyada değil, **oyunun hangi paketi
+yüklediğindeydi.**
+
+### Kök sebep: iki ayrı paket, ayrı ayrı güncelleniyor
+
+Bedrock'ta davranış paketi (script, isimler) ile kaynak paketi (skinler)
+**ayrı iki pakettir** ve dünyaya ayrı ayrı uygulanır. Biri güncellenip
+diğeri eski kalırsa ortaya anlaşılmaz bir tablo çıkıyor:
+
+| belirti | sebep |
+|---|---|
+| isimler doğru, **skinler yanlış** | kaynak paketi eski |
+| isimler de yanlış | davranış paketi de eski |
+
+Bunu dışarıdan görmenin bir yolu yoktu — paket listesinde ikisi de aynı
+adla duruyordu.
+
+### Çözüm
+
+`paketle.sh` artık paketlemeden önce `header.name`'i **manifest'teki
+sürümden** üretiyor:
+
+```
+Simsek TNT ve Toprak Topu v4.40
+Simsek Kol Gorunumleri v4.40
+```
+
+Dünya ayarlarındaki paket listesine bakınca hangi sürümün etkin olduğu
+okunuyor. Ad elle yazılmıyor, sürümden geliyor — yani bir daha ayrışamaz.
+
+Ayrıca dünyaya girerken zaten basılan `[SimsekTNT v4.40] yuklendi` satırı
+davranış paketinin sürümünü söylüyor. İkisi birlikte bakılınca hangi
+paketin geride kaldığı tek bakışta belli oluyor.
+
+---
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:
