@@ -3254,6 +3254,77 @@ Test: **32/32** (yeni `temizlik.mjs`).
 
 ---
 
+## v4.34 — İlkel Beşli
+
+Kullanıcı bir boss listesi getirdi (İlkel Beşli) ve "bunlar benim kişisel
+botlarım olacak" dedi. Yani beş **düşman**, beş **müttefik** oldu.
+
+### Çeviri kuralı
+
+| | |
+|---|---|
+| **sayılar** | AYNEN korundu — can, hasar, iyileşme miktarı, efekt seviyesi, süre |
+| **hedefler** | TERS çevrildi — "oyuncuya Yavaşlık III" → botun **vurduğu şeye** |
+
+Kendi botun seni körleştirseydi bu bir özellik değil ceza olurdu. Raxxan'ın
+"30 blok civarındaki oyunculara Bulantı V"i de civardaki **düşmanlara**
+gidiyor; sahip ve ekip arkadaşları dışarıda (`ILKEL_AURA_OYUNCU`).
+
+### Üyeler
+
+| üye | can/hasar | script tarafı |
+|---|---|---|
+| Kajaros | 1750 / 23 | vurulunca +20 can · vurduğuna Yavaşlık III + Bulantı III + Körlük III (7,5 sn) |
+| Miskel | 1300 / 14 | vurulunca +40 can · vurduğuna Körlük XVI (6 sn) **veya** Solgunluk VII (4 sn) |
+| Harkos | 1300 / 13 | tik başına 0,5 HP pasif iyileşme |
+| Raxxan | 1000 / 15 | 30 blokta düşmana Bulantı V · ara ara görünmezlik · %10 ihtimalle +100 can |
+| Okazor | 1200 / 50 | 4 sn'lik pencerede 3 üst üste vuruş → can tamamen dolar |
+
+### Neden ayrı varlık değil
+
+Beşi de `pa:bot`'un **bileşen grupları**. Böyle olunca defter, çanta,
+teslim, odun/maden, derin tarama, savaş anahtarı — hepsi olduğu gibi
+çalışıyor. Kajaros da odun toplar, Harkos da derin tarama yapar. Ayrı varlık
+yapsaydık `_bot_defteri.js` baştan yazılırdı ve "bot varlığı kayıtlı değil"
+hatası beş katına çıkardı.
+
+**Varlık JSON'unda** (kol_uret.py): can, hasar, ölçek, geri itilme
+bağışıklığı (Kajaros/Raxxan/Okazor), Miskel'in ok atması
+(`shooter` + `ranged_attack`), Harkos'un sıçraması (`leap_at_target`).
+**Script'te** (bot_ilkel.js): vuruşa/hasara bağlı her şey, pasif iyileşme,
+aura, Okazor'un serisi.
+
+### Görünüş
+
+Beş üye de normal bot gibi çizilir; farkı **boyu ve ismi** (`nameTag`).
+Ayrı doku denemedim — v4.28'de bot dokusuna dokununca bot tamamen görünmez
+olmuştu ve sebebini bulmak üç sürüm aldı.
+
+### Yakalanan hata: `botCagir`'ın `tavan` alanı iki anlamda
+
+```js
+başarıda       { dogdu: true, ..., tavan: BOT_TAVAN }   // sayı, bilgi
+tavan dolunca  { tavan: true, ... }                     // bayrak
+```
+
+`if (sonuc.tavan)` başarılı çağrıyı da yakalıyordu: bot doğuyor ama
+"tavandasın" hatası dönüyordu. Doğru sınama `dogdu`.
+
+### Denge notu
+
+Bunlar patron sayıları: Okazor 50 hasar vuruyor (demir golem 21), Kajaros
+1750 can taşıyor (ender ejderi 200). Yanında bir tanesi bile oyunu
+kolaylaştırır — bilinçli bir tercih, sayılar kullanıcının verdiği listeden.
+`ILKEL_TAVAN` (isim başına kaç tane) ve `ILKEL_ACIK` ile ayarlanabilir.
+
+Komut: `bot ilkel` (sıradaki eksik üye) · `bot kajaros` · `bot suikastci`.
+Menü: kola dokun → "Bot: İLKEL BEŞLİ" → listede kimin ne yaptığı yazıyor,
+"Hepsini çağır" düğmesi de var.
+
+Test: **33/33** (yeni `ilkel.mjs`, 12 bölüm).
+
+---
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:

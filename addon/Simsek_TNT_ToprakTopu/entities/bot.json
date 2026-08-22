@@ -101,6 +101,108 @@
         "minecraft:variant": {
           "value": 5
         }
+      },
+      "pa:ilkel_kajaros": {
+        "minecraft:health": {
+          "value": 1750,
+          "max": 1750
+        },
+        "minecraft:attack": {
+          "damage": 23
+        },
+        "minecraft:movement": {
+          "value": 0.3
+        },
+        "minecraft:scale": {
+          "value": 1.15
+        },
+        "minecraft:knockback_resistance": {
+          "value": 1.0
+        }
+      },
+      "pa:ilkel_miskel": {
+        "minecraft:health": {
+          "value": 1300,
+          "max": 1300
+        },
+        "minecraft:attack": {
+          "damage": 14
+        },
+        "minecraft:movement": {
+          "value": 0.3
+        },
+        "minecraft:scale": {
+          "value": 1.0
+        },
+        "minecraft:shooter": {
+          "def": "minecraft:arrow"
+        },
+        "minecraft:behavior.ranged_attack": {
+          "priority": 2,
+          "burst_shots": 1,
+          "charge_charged_trigger": 0.0,
+          "charge_shoot_trigger": 2,
+          "attack_interval_min": 1,
+          "attack_interval_max": 2,
+          "attack_radius": 20
+        }
+      },
+      "pa:ilkel_harkos": {
+        "minecraft:health": {
+          "value": 1300,
+          "max": 1300
+        },
+        "minecraft:attack": {
+          "damage": 13
+        },
+        "minecraft:movement": {
+          "value": 0.42
+        },
+        "minecraft:scale": {
+          "value": 0.95
+        },
+        "minecraft:behavior.leap_at_target": {
+          "priority": 3,
+          "target_dist": 5,
+          "yd": 0.55,
+          "must_be_on_ground": false
+        }
+      },
+      "pa:ilkel_raxxan": {
+        "minecraft:health": {
+          "value": 1000,
+          "max": 1000
+        },
+        "minecraft:attack": {
+          "damage": 15
+        },
+        "minecraft:movement": {
+          "value": 0.32
+        },
+        "minecraft:scale": {
+          "value": 1.05
+        },
+        "minecraft:knockback_resistance": {
+          "value": 1.0
+        }
+      },
+      "pa:ilkel_okazor": {
+        "minecraft:health": {
+          "value": 1200,
+          "max": 1200
+        },
+        "minecraft:attack": {
+          "damage": 50
+        },
+        "minecraft:movement": {
+          "value": 0.34
+        },
+        "minecraft:scale": {
+          "value": 1.25
+        },
+        "minecraft:knockback_resistance": {
+          "value": 1.0
+        }
       }
     },
     "components": {
@@ -302,6 +404,97 @@
         "add": {
           "component_groups": [
             "pa:barisci"
+          ]
+        }
+      },
+      "pa:ilkel_kajaros": {
+        "remove": {
+          "component_groups": [
+            "pa:ilkel_kajaros",
+            "pa:ilkel_miskel",
+            "pa:ilkel_harkos",
+            "pa:ilkel_raxxan",
+            "pa:ilkel_okazor"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "pa:ilkel_kajaros"
+          ]
+        }
+      },
+      "pa:ilkel_miskel": {
+        "remove": {
+          "component_groups": [
+            "pa:ilkel_kajaros",
+            "pa:ilkel_miskel",
+            "pa:ilkel_harkos",
+            "pa:ilkel_raxxan",
+            "pa:ilkel_okazor"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "pa:ilkel_miskel"
+          ]
+        }
+      },
+      "pa:ilkel_harkos": {
+        "remove": {
+          "component_groups": [
+            "pa:ilkel_kajaros",
+            "pa:ilkel_miskel",
+            "pa:ilkel_harkos",
+            "pa:ilkel_raxxan",
+            "pa:ilkel_okazor"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "pa:ilkel_harkos"
+          ]
+        }
+      },
+      "pa:ilkel_raxxan": {
+        "remove": {
+          "component_groups": [
+            "pa:ilkel_kajaros",
+            "pa:ilkel_miskel",
+            "pa:ilkel_harkos",
+            "pa:ilkel_raxxan",
+            "pa:ilkel_okazor"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "pa:ilkel_raxxan"
+          ]
+        }
+      },
+      "pa:ilkel_okazor": {
+        "remove": {
+          "component_groups": [
+            "pa:ilkel_kajaros",
+            "pa:ilkel_miskel",
+            "pa:ilkel_harkos",
+            "pa:ilkel_raxxan",
+            "pa:ilkel_okazor"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "pa:ilkel_okazor"
+          ]
+        }
+      },
+      "pa:ilkel_kapat": {
+        "remove": {
+          "component_groups": [
+            "pa:ilkel_kajaros",
+            "pa:ilkel_miskel",
+            "pa:ilkel_harkos",
+            "pa:ilkel_raxxan",
+            "pa:ilkel_okazor"
           ]
         }
       }

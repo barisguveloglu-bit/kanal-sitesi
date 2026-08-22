@@ -344,6 +344,94 @@ BOT_TEN = (198, 146, 108)
 BOT_HASAR = 7
 BOT_CAN = 25
 
+# ---------------- ILKEL BESLI (v4.34) ----------------
+# Kullanicinin getirdigi boss listesi. Orada bunlar SANA saldiran
+# bes patrondu; burada SENIN yaninda dovusuyorlar. Sayilar aynen
+# korundu, hedefleri ters cevrildi: debuff'lar oyuncuya degil
+# botun VURDUGU seye gidiyor.
+#
+# Bunlar ayri bir VARLIK degil, pa:bot'un bilesen gruplari.
+# Sebep: boyle yapinca defter, canta, teslim, odun/maden, derin
+# tarama -- hepsi oldugu gibi calisiyor. Ayri varlik yapsaydik
+# _bot_defteri.js bastan yazilirdi.
+#
+# alan: (anahtar, gorunen ad, can, hasar, secenekler)
+#   ittirilmez : knockback_resistance 1.0
+#   olcek      : minecraft:scale
+#   menzilli   : ok atar (shooter + ranged_attack)
+#   sicrar     : leap_at_target (Harkos'un "havada zipla"si)
+#   hiz        : movement degeri
+ILKEL = [
+    ("kajaros", "Ilkel Muhafiz Kajaros",      1750, 23,
+     dict(ittirilmez=True, olcek=1.15, hiz=0.30)),
+    ("miskel",  "Ilkel Sihirbaz Miskel",      1300, 14,
+     dict(menzilli=True, olcek=1.0, hiz=0.30)),
+    ("harkos",  "Ilkel Suikastci Harkos",     1300, 13,
+     dict(sicrar=True, olcek=0.95, hiz=0.42)),
+    ("raxxan",  "Ilkel Zihin Bukucu Raxxan",  1000, 15,
+     dict(ittirilmez=True, olcek=1.05, hiz=0.32)),
+    ("okazor",  "Ilkel Savasci Okazor",       1200, 50,
+     dict(ittirilmez=True, olcek=1.25, hiz=0.34)),
+]
+
+
+def ilkel_gruplari():
+    """Bes uyenin bilesen gruplari. Her biri cani, hasari ve
+    dovus stilini degistiriyor; geri kalan her sey (takip, canta,
+    is yapma) normal bottan geliyor."""
+    gruplar = {}
+    for anahtar, _ad, can, hasar, sec in ILKEL:
+        g = {
+            "minecraft:health": {"value": can, "max": can},
+            "minecraft:attack": {"damage": hasar},
+            "minecraft:movement": {"value": sec.get("hiz", 0.32)},
+            "minecraft:scale": {"value": sec.get("olcek", 1.0)},
+        }
+        if sec.get("ittirilmez"):
+            # Listede "geri itilmeye bagisikli" yazan uyeler
+            g["minecraft:knockback_resistance"] = {"value": 1.0}
+        if sec.get("menzilli"):
+            # Miskel mermi atar. Vanilla ok kullaniliyor: yeni bir
+            # mermi varligi yapmak yeni bir kayit riski demek.
+            g["minecraft:shooter"] = {"def": "minecraft:arrow"}
+            g["minecraft:behavior.ranged_attack"] = {
+                "priority": 2,
+                "burst_shots": 1,
+                "charge_charged_trigger": 0.0,
+                "charge_shoot_trigger": 2,
+                "attack_interval_min": 1,
+                "attack_interval_max": 2,
+                "attack_radius": 20,
+            }
+        if sec.get("sicrar"):
+            # "Havada kisa mesafe ziplama": vanilla ornumcek/ocelot
+            # bunu leap_at_target ile yapiyor.
+            g["minecraft:behavior.leap_at_target"] = {
+                "priority": 3,
+                "target_dist": 5,
+                "yd": 0.55,
+                "must_be_on_ground": False,
+            }
+        gruplar["pa:ilkel_" + anahtar] = g
+    return gruplar
+
+
+def ilkel_olaylari():
+    """Bir uyeye gecis: digerlerini CIKAR, bunu EKLE.
+
+    Cikarma sart -- yoksa iki uyenin health bileseni ust uste
+    biner ve hangisinin gecerli oldugu belirsizlesir."""
+    hepsi = ["pa:ilkel_" + a for a, _, _, _, _ in ILKEL]
+    olaylar = {}
+    for anahtar, _ad, _can, _hasar, _sec in ILKEL:
+        olaylar["pa:ilkel_" + anahtar] = {
+            "remove": {"component_groups": hepsi},
+            "add": {"component_groups": ["pa:ilkel_" + anahtar]},
+        }
+    # Normale don
+    olaylar["pa:ilkel_kapat"] = {"remove": {"component_groups": hepsi}}
+    return olaylar
+
 
 def bot_sunucu_varligi():
     """format_version 1.16.0: varliklar icin en genis desteklenen
@@ -418,6 +506,9 @@ def bot_sunucu_varligi():
     }
     for i in range(BOT_CESIT):
         gruplar["pa:tip%d" % i] = {"minecraft:variant": {"value": i}}
+
+    # Ilkel Besli: ayni varligin bes ozel hali (v4.34)
+    gruplar.update(ilkel_gruplari())
 
     # entity_spawned: takip + savas + rastgele cesit
     cesit_secimi = [{"weight": 1, "add": {"component_groups": ["pa:tip%d" % i]}}
@@ -527,6 +618,8 @@ def bot_sunucu_varligi():
                     "remove": {"component_groups": ["pa:savas"]},
                     "add": {"component_groups": ["pa:barisci"]},
                 },
+                # Ilkel Besli gecisleri (v4.34)
+                **ilkel_olaylari(),
             },
         },
     }

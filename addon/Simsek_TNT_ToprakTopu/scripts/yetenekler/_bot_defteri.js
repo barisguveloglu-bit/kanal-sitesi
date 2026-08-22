@@ -190,6 +190,19 @@ function kutuyuBosalt(varlik, oyuncuId) {
   return alinan;
 }
 
+/* ---------------- Ilkel Besli kancasi ----------------
+   bot_ilkel.js buraya bir bakim fonksiyonu birakiyor; tarama
+   dongusu her botta onu cagiriyor.
+
+   NEDEN KANCA: bu dosya bot_ilkel.js'i import EDEMEZ -- o dosya
+   zaten burayi import ediyor, dairesel olurdu. Sohbet ve iksir
+   kancalarindaki kalibin aynisi.                              */
+let ilkelBakim;
+
+export function ilkelKancasi(fn) {
+  ilkelBakim = (typeof fn === "function") ? fn : undefined;
+}
+
 /* ---------------- Savas anahtari ---------------- */
 
 export function savasAcikMi(oyuncuId) {
@@ -536,7 +549,10 @@ export function botCagir(oyuncu) {
   }
   yaz();
 
-  return { dogdu: true, evcil, toplam: liste.length, tavan: BOT_TAVAN };
+  /* varlik da doniyor: Ilkel Besli dogan botu hemen bir uyeye
+     ceviriyor (bot_ilkel.js). Kimligi tekrar aramak yerine
+     buradan almasi hem ucuz hem kesin.                        */
+  return { dogdu: true, evcil, toplam: liste.length, tavan: BOT_TAVAN, varlik };
 }
 
 /* Butun botlari yanina getirir (yenisini DOGURMAZ). */
@@ -701,6 +717,17 @@ export function botTara(oyuncular) {
           if (kutuyuBosalt(v, oyuncu.id) > 0) yazBekliyor = true;
         } catch (e) {
           hataYaz("bot.kutuyuBosalt", e);
+        }
+      }
+
+      /* Ilkel Besli bakimi: Harkos'un pasif iyilesmesi,
+         Raxxan'in aurasi ve gizlenmesi. BEKLE kontrolunun
+         USTUNDE -- duran bir Harkos da iyilesmeli.            */
+      if (ilkelBakim) {
+        try {
+          ilkelBakim(v, oyuncu);
+        } catch (e) {
+          hataYaz("bot.ilkelBakim", e);
         }
       }
 

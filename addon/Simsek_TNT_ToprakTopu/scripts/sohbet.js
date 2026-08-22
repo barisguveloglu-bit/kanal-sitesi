@@ -1,7 +1,7 @@
 import { world } from "@minecraft/server";
 import { bilgiYaz, hataYaz, sistemOlayaAbone } from "./yardimcilar.js";
 import {
-  SOHBET_ACIK, SOHBET_ONEK, KALP_ADIM, KALP_TAVAN, DERIN_ADLAR
+  SOHBET_ACIK, SOHBET_ONEK, KALP_ADIM, KALP_TAVAN, DERIN_ADLAR, ILKEL_ADLAR
 } from "./ayarlar.js";
 
 /* ============================================================
@@ -192,6 +192,17 @@ export function komutCozumle(oyuncu, hamMetin) {
     if (alt === "top" || alt === "kil" || alt === "toprak") {
       return { cevap: cagir("yetenek", oyuncu, "bot_top") };
     }
+    /* ---- Ilkel Besli (v4.34) ----
+         bot ilkel            -> siradaki eksik uye
+         bot kajaros          -> o uye
+         bot suikastci        -> harkos                        */
+    if (alt === "ilkel" || alt === "besli" || alt === "patron") {
+      return { cevap: cagir("ilkel", oyuncu, parca[2]) };
+    }
+    if (alt !== undefined && ILKEL_ADLAR.has(alt)) {
+      return { cevap: cagir("ilkel", oyuncu, alt) };
+    }
+
     if (alt === "teslim" || alt === "ver" || alt === "canta") {
       return { cevap: cagir("yetenek", oyuncu, "bot_teslim") };
     }
@@ -207,7 +218,7 @@ export function komutCozumle(oyuncu, hamMetin) {
     }
     if (alt !== undefined) {
       return { cevap: "§cBilmedigim bot komutu: §7" + alt +
-                      "\n§8bot · bot odun · bot maden · bot elmas 64 · bot derin · " +
+                      "\n§8bot · bot odun · bot maden · bot elmas 64 · bot derin · bot ilkel · " +
                       "bot teslim · bot simsek · " +
                       "bot top · bot savas · bot bekle · bot takip · bot gel · bot geri" };
     }
@@ -347,6 +358,8 @@ const YARDIM = [
   "§ebot elmas 64§7 · DERIN TARAMA: durak durak arar, madene iner",
   "§ebot 4 tane 64luk demir§7 · sayilar carpilir (256 demir)",
   "§ebot derin§7 · hedefsiz derin tarama (ne cikarsa)",
+  "§ebot ilkel§7 · Ilkel Besli'den siradaki uyeyi cagir",
+  "§ebot kajaros§7 · §ebot miskel§7 · §ebot harkos§7 · §ebot raxxan§7 · §ebot okazor",
   "§ebot simsek§7 · baktigin yere simsek yagdirirlar",
   "§ebot top§7 · baktigin yere kil topu atarlar",
   "§ebot teslim§7 · topladiklarini sana verir",

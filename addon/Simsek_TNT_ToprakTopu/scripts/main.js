@@ -7,7 +7,7 @@ import {
   KOL_VER_ACIK, KOL_VER_ESIGI, KOL_VER_TUTMA, CIFT_EL_ACIK, AYNI_ANDA,
   MENU_DOKUNUSLA, BOT_KIMLIK, KALP_ADIM, KALP_TAVAN, BETA_GEREKLI,
   SOHBET_ONEK, BOT_TAVAN, DERIN_HEDEFLER, DERIN_VARSAYILAN,
-  DONDUR_GIRDI_KILIT
+  DONDUR_GIRDI_KILIT, ILKEL_BESLI, ILKEL_ACIK
 } from "./ayarlar.js";
 
 import {
@@ -75,6 +75,7 @@ import "./yetenekler/bot_geri.js";
 import "./yetenekler/bot_teslim.js";
 import "./yetenekler/bot_is.js";
 import "./yetenekler/bot_derin.js";
+import "./yetenekler/bot_ilkel.js";
 import "./yetenekler/bot_guc.js";
 
 /* DIKKAT -- SIRA ONEMLI.
@@ -119,6 +120,12 @@ import { yumrukUnut } from "./yetenekler/yumruk.js";
 import {
   derinHedefSec, derinHedefUnut, hedefCoz, derinSure, adetKirp
 } from "./yetenekler/bot_derin.js";
+
+/* Ilkel Besli de ayni kalibi kullaniyor: hangi uye cagrilacagi
+   once yaziliyor, sonra yetenek tetikleniyor.                  */
+import {
+  ilkelHedefSec, ilkelHedefUnut, ilkelListesi, ilkelAdCoz, ozetle
+} from "./yetenekler/bot_ilkel.js";
 
 /* ============================================================
    MERKEZI TICK YONETICISI
@@ -397,6 +404,57 @@ function derinBaslat(oyuncu, anahtar, adet) {
   return mesaj;
 }
 
+/* ============================================================
+   ILKEL BESLI MENUSU  (v4.34)
+
+   Bes uye tek tek cagriliyor; listede kimin ne yaptigi da
+   yaziyor. Ezberlemek zorunda kalma diye ozet ayarlardan
+   URETILIYOR -- yeni bir uye eklenirse menude kendiliginden
+   dogru gorunur.
+   ============================================================ */
+function ilkelMenusu(oyuncu) {
+  const yaninda = new Set(ilkelListesi(oyuncu.id));
+  const liste = [];
+  for (const [anahtar, t] of ILKEL_BESLI) {
+    liste.push({
+      anahtar,
+      ad: (yaninda.has(anahtar) ? "§a✔ " : "") + t.ad +
+          " §8" + t.can + " can · " + t.hasar + " hasar\n§8" + ozetle(anahtar)
+    });
+  }
+
+  const acildi = menuAc(oyuncu, "§6İlkel Beşli §7· kimi çağırayım?",
+    liste, -1,
+    (i) => ilkelBaslat(oyuncu, liste[i].anahtar),
+    [{
+      ad: "Hepsini çağır",
+      calis() {
+        /* Bes ayri tetikleme bekleme suresine takilirdi; hepsi
+           tek seferde, dogrudan.                              */
+        for (const anahtar of ILKEL_BESLI.keys()) ilkelBaslat(oyuncu, anahtar);
+      }
+    }]);
+
+  if (!acildi) ilkelBaslat(oyuncu);
+}
+
+function ilkelBaslat(oyuncu, anahtar) {
+  if (!ILKEL_ACIK) {
+    actionbarYaz(oyuncu, "§cİlkel Beşli kapalı (ILKEL_ACIK).");
+    return undefined;
+  }
+  if (anahtar) ilkelHedefSec(oyuncu.id, anahtar);
+  if (yetenekTetikle(oyuncu, "bot_ilkel")) return undefined;
+
+  ilkelHedefUnut(oyuncu.id);
+  const kalan = kalanBekleme(oyuncu.id);
+  const mesaj = kalan > 0
+    ? "§7İlkel Beşli §8· §c" + (kalan / 20).toFixed(1) + " sn bekle"
+    : "§7İlkel Beşli §8· §caktif işin dolu (" + AYNI_ANDA + ")";
+  actionbarYaz(oyuncu, mesaj);
+  return mesaj;
+}
+
 function menuEkleri(oyuncu) {
   return [
     {
@@ -442,6 +500,11 @@ function menuEkleri(oyuncu) {
     {
       ad: "Bot: DERIN TARAMA §8(hedefli)",
       calis() { derinMenusu(oyuncu); }
+    },
+    {
+      ad: "Bot: İLKEL BEŞLİ §8(" + ilkelListesi(oyuncu.id).length + "/" +
+          ILKEL_BESLI.size + ")",
+      calis() { ilkelMenusu(oyuncu); }
     },
     {
       ad: "Bot: simsek yagdir",
@@ -896,6 +959,7 @@ olayaAbone("playerLeave", (olay) => {
   yumrukUnut(olay.playerId);
   botUnut(olay.playerId);
   derinHedefUnut(olay.playerId);
+  ilkelHedefUnut(olay.playerId);
 
   // Oyuncunun butun isleri durdurulmali, sadece birincisi degil
   const acikIsler = oyuncununIsleri.get(olay.playerId);
@@ -1112,6 +1176,13 @@ function durumRaporu(oyuncu) {
     ? "§f" + kademe.ad + " §8· lazer icin egil + zipla"
     : "§7yok §8(ic, sonra 'lazer' yaz)"));
 
+  const ilkeller = ilkelListesi(oyuncu.id);
+  if (ilkeller.length > 0) {
+    satir.push("§7İlkel Beşli: §6" + ilkeller.length + "/" + ILKEL_BESLI.size +
+               " §8" + ilkeller.map((a) => ILKEL_BESLI.get(a).ad.split(" ").pop())
+                                .join(", "));
+  }
+
   if (botKayit) {
     satir.push("§7Bot cantasi: §f" + cantaDolulugu(oyuncu.id) +
                " §7parca §8· savas " +
@@ -1142,6 +1213,16 @@ sohbetKancalari({
   /* "bot elmas 64" -> derin tarama. Ad cozulemezse hedef
      listesi yaziliyor; sessiz kalmak yerine ne yazilabilecegini
      soylemek.                                                  */
+  /* "bot kajaros" / "bot ilkel" -> Ilkel Besli. */
+  ilkel: (oyuncu, kelime) => {
+    const anahtar = kelime ? ilkelAdCoz(kelime) : undefined;
+    if (kelime && !anahtar) {
+      return "§cBilmedigim uye: §7" + kelime + "\n§8" +
+             [...ILKEL_BESLI.keys()].join(" · ");
+    }
+    return ilkelBaslat(oyuncu, anahtar);
+  },
+
   derin: (oyuncu, anahtar, adet) => {
     const hedef = hedefCoz(anahtar);
     if (!hedef) {

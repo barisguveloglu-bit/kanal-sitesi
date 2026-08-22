@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.33";
+export const SURUM = "v4.34";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -1329,6 +1329,126 @@ export const BOT_TESLIM_MENZIL = 32;   // bu mesafeden uzaktaki bot teslim edeme
    Kapatmak icin false yeter; varlik JSON'undaki bilesen kalir
    ama esya botun kutusunda birikir (ve teslimde gelmez).       */
 export const BOT_YERDEN_TOPLA = true;
+
+/* ============================================================
+   ILKEL BESLI  (v4.34)
+
+   Kullanicinin getirdigi liste bes PATRONDU: sana saldiran,
+   seni korlestiren, kendini iyilestiren bes dusman. Istek
+   "bunlar benim kisisel botlarim olacak" oldu -- yani ayni
+   guclerle ama SENIN yaninda.
+
+   ---- NE DEGISTI, NE DEGISMEDI ----
+   Sayilarin hicbirine dokunulmadi: canlar, hasarlar, iyilesme
+   miktarlari, efekt seviyeleri ve sureleri listedekiyle birebir
+   ayni. Degisen tek sey HEDEF: listede "oyuncuya Yavaslik III
+   verir" yazan yerlerde artik botun VURDUGU seye veriliyor.
+   Kendi botun seni korlestirseydi ozellik degil ceza olurdu.
+
+   ---- NEDEN AYRI VARLIK DEGIL ----
+   Besi de pa:bot'un bilesen GRUPLARI. Boyle olunca defter,
+   canta, teslim, odun/maden, derin tarama, savas anahtari --
+   hepsi oldugu gibi calisiyor. Ayri varlik yapsaydik
+   _bot_defteri.js bastan yazilirdi ve "bot varligi kayitli
+   degil" hatasi bes katina cikardi.
+
+   ---- DENGE ----
+   Bunlar patron sayilari: Okazor 50 hasar vuruyor (vanilla
+   demir golem 21), Kajaros 1750 can tasiyor (ender ejderi 200).
+   Yani yaninda bir tanesi bile oyunu kolaylastirir. Bilincli
+   bir tercih: sen istedin, sayilar senin verdigin listeden.
+   Zor gelirse ILKEL_TAVAN'i dusur ya da ILKEL_ACIK'i kapat.
+
+   ---- GORUNUS ----
+   Bes uye de normal bot gibi cizilir, sadece BOYU ve ISMI
+   farklidir (nameTag). Ayri doku vermek istemedim: v4.28'de
+   bot dokusuna dokunulunca bot tamamen gorunmez olmustu ve
+   sebebini bulmak uc surum aldi. Isim etiketi risksiz ve
+   ayirt etmek icin yeterli.                                  */
+export const ILKEL_ACIK  = true;
+export const ILKEL_TAVAN = 1;    // her isimden kac tane olabilir
+
+/* Uye tanimlari. can/hasar/olcek VARLIK JSON'unda (kol_uret.py:
+   ILKEL); burada script tarafinin bilmesi gerekenler var.
+   Ikisinin ayni seyi soyledigini ilkel.mjs sinliyor.          */
+export const ILKEL_BESLI = new Map([
+  ["kajaros", {
+    ad: "İlkel Muhafız Kajaros",
+    olay: "pa:ilkel_kajaros",
+    can: 1750, hasar: 23,
+    /* "Isabet aldiginda kendisini 20 HP iyilestirir" --
+       VURULUNCA, vurunca degil.                              */
+    vurulunca: 20,
+    /* "Oyuncuya 7,5 saniyeligine Yavaslik III, Bulanti III ve
+       Korluk III" -> artik VURDUGU seye.                     */
+    vurusEfekt: [
+      ["slowness", 150, 2],
+      ["nausea", 150, 2],
+      ["blindness", 150, 2]
+    ]
+  }],
+  ["miskel", {
+    ad: "İlkel Sihirbaz Miskel",
+    olay: "pa:ilkel_miskel",
+    can: 1300, hasar: 14,
+    vurulunca: 40,
+    /* "Korluk XVI (6 sn) VEYA Solgunluk VII (4 sn)" -- ikisinden
+       biri, her vuruste yazi tura. Solgunluk = wither.        */
+    vurusEfektSecim: [
+      [["blindness", 120, 15]],
+      [["wither", 80, 6]]
+    ]
+  }],
+  ["harkos", {
+    ad: "İlkel Suikastçı Harkos",
+    olay: "pa:ilkel_harkos",
+    can: 1300, hasar: 13,
+    /* "Pasif olarak zamanla canini iyilestirir (tik basina
+       0,5 HP)". Tarama 20 tick'te bir donuyor, yani her
+       taramada 10 can -- ayni hiz.                            */
+    tikIyilesme: 0.5
+  }],
+  ["raxxan", {
+    ad: "İlkel Zihin Bükücü Raxxan",
+    olay: "pa:ilkel_raxxan",
+    can: 1000, hasar: 15,
+    /* "30 blok civarindaki oyunculara Bulanti V" -> civardaki
+       DUSMANLARA. Sahibi ve ekip arkadaslari disarida.        */
+    aura: { menzil: 30, efekt: ["nausea", 100, 4] },
+    /* "Rastgele anlarda gorunmez olma" */
+    gizlenme: { sans: 0.15, sure: 120 },
+    /* "Kendini tek seferde 100 HP iyilestirme sansi" */
+    ansizinIyilesme: { sans: 0.1, miktar: 100 }
+  }],
+  ["okazor", {
+    ad: "İlkel Savaşçı Okazor",
+    olay: "pa:ilkel_okazor",
+    can: 1200, hasar: 50,
+    /* "4 saniyelik araliklarla ust uste 3 kez vurmayi
+       basarirsa cani tamamen yenilenir."                     */
+    seri: { adet: 3, pencere: 80 }
+  }]
+]);
+
+/* Raxxan'in aurasi OYUNCULARA da vursun mu. Varsayilan HAYIR:
+   yaninda oynayan arkadasini surekli mide bulantisinda tutmak
+   ozellik degil eziyet olurdu. Vurus efektleri bundan bagimsiz
+   -- oraya kimi vuracagina SEN karar veriyorsun.             */
+export const ILKEL_AURA_OYUNCU = false;
+
+/* Turkce yazimlar -> anahtar. Sohbet komutu icin.            */
+export const ILKEL_ADLAR = new Map([
+  ["kajaros", "kajaros"], ["muhafiz", "kajaros"], ["kajaross", "kajaros"],
+  ["miskel", "miskel"], ["sihirbaz", "miskel"], ["buyucu", "miskel"],
+  ["harkos", "harkos"], ["suikastci", "harkos"], ["suikast", "harkos"],
+  ["raxxan", "raxxan"], ["zihin", "raxxan"], ["bukucu", "raxxan"],
+  ["okazor", "okazor"], ["savasci", "okazor"]
+]);
+
+/* Botun ilkel kimligi VARLIGIN kendi ozelliginde duruyor.
+   Dunya kaydina eklemedik: kayit bicimi degisince eski
+   dunyalar okunamaz olurdu (v4.27'de bir kez yasandi).       */
+export const ILKEL_OZELLIK = "simsek:ilkel";
 
 export const BOT_SAVAS_VARSAYILAN = true;
 
