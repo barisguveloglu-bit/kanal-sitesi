@@ -396,11 +396,22 @@ ILKEL = [
 # ONAYLI = kullanici oyunda gorup dogruladi
 # tahmin  = hala benim tahminim, degisebilir
 ILKEL_SKIN = {
-    "harkos":  "1ee88523-image.png",   # ONAYLI (kullanici bildirdi)
-    "okazor":  "228e7f78-image.png",   # tahmin
-    "miskel":  "9837eeac-image.png",   # tahmin
-    "kajaros": "84013466-image.png",   # tahmin
-    "raxxan":  "6e1e30e1-image.png",   # tahmin
+    "harkos":  "1ee88523-image.png",
+    "raxxan":  "84013466-image.png",
+    "miskel":  "6e1e30e1-image.png",
+    "okazor":  "228e7f78-image.png",
+    "kajaros": "9837eeac-image.png",
+}
+
+# Hangi eslestirmeyi kullanici DOGRULADI. Tek kaynak burasi;
+# onizleme betigi (onizle_ilkel.py) de burayi okuyor, yoksa
+# "onayli mi tahmin mi" iki yerde yazili olur ve ayrisirdi.
+ILKEL_SKIN_ONAY = {
+    "harkos":  True,    # v4.38: "bu kajaros degil, el-harkos"
+    "raxxan":  True,    # v4.39: "kajaros'tan raxxan'a, bu"
+    "miskel":  True,    # v4.39: "raxxan olarak adlandirilan kisi aslinda miskel"
+    "okazor":  False,   # son iki skin: hangisi hangisi, sorulacak
+    "kajaros": False,
 }
 ILKEL_SKIN_KAYNAK = "/root/.claude/uploads/e51da4d9-22bc-53d5-b9b6-e97d8e6ccf11"
 

@@ -3467,6 +3467,24 @@ değiştir, üreteci çalıştır.
 
 ---
 
+## v4.39 — Miskel ve Raxxan da onaylandı
+
+Kullanıcı iki düzeltme birden verdi:
+
+- "Raxxan olarak adlandırılan kişi aslında **Miskel**"
+- "Kajaros'tan Raxxan'a, **bu**" (o an Kajaros'ta duran skin)
+
+Kalan iki skin (Okazor ↔ Kajaros) hâlâ tahmin — ikisi de iki yuvaya
+sığdığı için artık düz bir ya/ya da.
+
+### Onay durumu tek kaynağa taşındı
+
+`kol_uret.py:ILKEL_SKIN_ONAY`. Önizleme betiği de artık orayı **okuyor**;
+önce iki ayrı yerde tutuluyordu ve "tablo onaylı derken üretici tahmin
+der, kimse fark etmez" durumu vardı.
+
+---
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:
