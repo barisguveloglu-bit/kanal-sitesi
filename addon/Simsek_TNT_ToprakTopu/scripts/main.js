@@ -427,17 +427,17 @@ function ilkelMenusu(oyuncu) {
     });
   }
 
+  /* "HEPSINI CAGIR" DUGMESI KALDIRILDI  (v4.36)
+
+     Kullanicinin sozu: "bir anda 5 tanesi de gelmesin, tek tek
+     aralarindan secerim." Hakli -- bes patronu ayni anda
+     yanina dizmek hem ekibi siradanlastiriyor hem de kimin ne
+     yaptigini gormeni engelliyor. Uye secmek artik bilincli
+     bir karar: menuden birini sec, o gelir.                   */
   const acildi = menuAc(oyuncu, "§6İlkel Beşli §7· kimi çağırayım?",
     liste, -1,
     (i) => ilkelBaslat(oyuncu, liste[i].anahtar),
-    [{
-      ad: "Hepsini çağır",
-      calis() {
-        /* Bes ayri tetikleme bekleme suresine takilirdi; hepsi
-           tek seferde, dogrudan.                              */
-        for (const anahtar of rutbeSirasi()) ilkelBaslat(oyuncu, anahtar);
-      }
-    }]);
+    []);
 
   if (!acildi) ilkelBaslat(oyuncu);
 }

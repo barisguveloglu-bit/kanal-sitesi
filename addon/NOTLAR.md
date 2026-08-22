@@ -3397,6 +3397,37 @@ Test: **33/33** (`ilkel.mjs` 13 bölüm, `canli.mjs` 4 bölüm).
 
 ---
 
+## v4.36 — Hiyerarşi kesinleşti
+
+Dört seçenek sunuldu, kullanıcı beşincisini seçti:
+
+| # | üye | ünvan | can |
+|---|---|---|---|
+| 1 | **Okazor** | Ekip Lideri | 1200 |
+| 2 | **Miskel** | Baş Büyücü | 1300 |
+| 3 | **Kajaros** | Muhafız Komutanı | 1750 |
+| 4 | **Raxxan** | Gölge Ajanı | 1000 |
+| 5 | **Harkos** | Gölge Çırağı | 1300 |
+
+Bu ekipte **büyü askerî rütbenin üstünde**: Miskel, ekibin en canlı üyesi
+olan Kajaros'un amiri. Rütbe can/hasar sırasıyla **kasten örtüşmüyor** —
+rütbe bir görev sırası, güç sıralaması değil. Test bunu ayrıca kilitliyor
+("rütbe, can sıralamasından bağımsız"), yani ileride biri "canına göre
+dizelim" diye düzeltmeye kalkarsa patlar.
+
+### "Hepsini çağır" kaldırıldı
+
+> "bir anda 5 tanesi de gelmesin tek tek aralarından seçerim"
+
+Haklı: beş patronu aynı anda yan yana dizmek hem ekibi sıradanlaştırıyor
+hem kimin ne yaptığını görmeni engelliyor. Üye seçmek artık bilinçli bir
+karar — menüden birini seç, o gelir. `bot ilkel` komutu da sıradaki eksik
+üyeyi getiriyor, hepsini değil.
+
+Test: **33/33** (`ilkel.mjs` 13 bölüm + hiyerarşi bekçisi).
+
+---
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:

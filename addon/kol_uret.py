@@ -361,17 +361,19 @@ BOT_CAN = 25
 #   menzilli   : ok atar (shooter + ranged_attack)
 #   sicrar     : leap_at_target (Harkos'un "havada zipla"si)
 #   hiz        : movement degeri
-# rutbe: 1 = lider. Okazor'un 1'i ve Harkos'un 5'i KULLANICININ
-# kararı, degistirilmeyecek. Aradaki uc sira bana birakildi.
+# rutbe: 1 = lider. Siranin TAMAMI kullanicinin karari (v4.36):
+#   1 Okazor  2 Miskel  3 Kajaros  4 Raxxan  5 Harkos
+# Bu ekipte buyu askeri rutbenin ustunde -- Miskel, 1750 canli
+# Kajaros'un amiri. Can sirasiyla ortusmemesi bilincli.
 ILKEL = [
     ("kajaros", "Ilkel Muhafiz Kajaros",      1750, 23,
-     dict(ittirilmez=True, olcek=1.15, hiz=0.30, rutbe=2)),
+     dict(ittirilmez=True, olcek=1.15, hiz=0.30, rutbe=3)),
     ("miskel",  "Ilkel Sihirbaz Miskel",      1300, 14,
-     dict(menzilli=True, olcek=1.0, hiz=0.30, rutbe=4)),
+     dict(menzilli=True, olcek=1.0, hiz=0.30, rutbe=2)),
     ("harkos",  "Ilkel Suikastci Harkos",     1300, 13,
      dict(sicrar=True, olcek=0.95, hiz=0.42, rutbe=5)),
     ("raxxan",  "Ilkel Zihin Bukucu Raxxan",  1000, 15,
-     dict(ittirilmez=True, olcek=1.05, hiz=0.32, rutbe=3)),
+     dict(ittirilmez=True, olcek=1.05, hiz=0.32, rutbe=4)),
     ("okazor",  "Ilkel Savasci Okazor",       1200, 50,
      dict(ittirilmez=True, olcek=1.25, hiz=0.34, rutbe=1)),
 ]

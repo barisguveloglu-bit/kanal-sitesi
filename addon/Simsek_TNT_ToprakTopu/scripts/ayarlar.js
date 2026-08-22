@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.35";
+export const SURUM = "v4.36";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -1368,6 +1368,25 @@ export const BOT_YERDEN_TOPLA = true;
 export const ILKEL_ACIK  = true;
 export const ILKEL_TAVAN = 1;    // her isimden kac tane olabilir
 
+/* ---------------- HIYERARSI ----------------  (v4.36)
+
+   Sirayi KULLANICI belirledi:
+
+     1  Okazor   Ekip Lideri        (basindan beri sabit)
+     2  Miskel   Bas Buyucu
+     3  Kajaros  Muhafiz Komutani
+     4  Raxxan   Golge Ajani
+     5  Harkos   Golge Ciragi       (basindan beri sabit)
+
+   Yani bu ekipte BUYU askeri rutbenin ustunde: Miskel, 1750
+   canli Kajaros'un amiri. Can/hasar sirasiyla ozellikle
+   ORTUSMUYOR ve bu bilincli -- rutbe bir GOREV sirasi, guc
+   siralamasi degil.
+
+   DIKKAT: sayilari "rutbeye uydurmak" icin degistirme. Canlar
+   ve hasarlar kullanicinin getirdigi patron listesinden
+   birebir geliyor; rutbe onlardan bagimsiz bir katman.        */
+
 /* Uye tanimlari. can/hasar/olcek VARLIK JSON'unda (kol_uret.py:
    ILKEL); burada script tarafinin bilmesi gerekenler var.
    Ikisinin ayni seyi soyledigini ilkel.mjs sinliyor.          */
@@ -1375,7 +1394,7 @@ export const ILKEL_BESLI = new Map([
   ["kajaros", {
     ad: "İlkel Muhafız Kajaros",
     kimlik: "pa:kajaros",
-    rutbe: 2, unvan: "Muhafız Komutanı",
+    rutbe: 3, unvan: "Muhafız Komutanı",
     can: 1750, hasar: 23,
     /* "Isabet aldiginda kendisini 20 HP iyilestirir" --
        VURULUNCA, vurunca degil.                              */
@@ -1391,7 +1410,7 @@ export const ILKEL_BESLI = new Map([
   ["miskel", {
     ad: "İlkel Sihirbaz Miskel",
     kimlik: "pa:miskel",
-    rutbe: 4, unvan: "Savaş Büyücüsü",
+    rutbe: 2, unvan: "Baş Büyücü",
     can: 1300, hasar: 14,
     vurulunca: 40,
     /* "Korluk XVI (6 sn) VEYA Solgunluk VII (4 sn)" -- ikisinden
@@ -1414,7 +1433,7 @@ export const ILKEL_BESLI = new Map([
   ["raxxan", {
     ad: "İlkel Zihin Bükücü Raxxan",
     kimlik: "pa:raxxan",
-    rutbe: 3, unvan: "Gölge Ustası",
+    rutbe: 4, unvan: "Gölge Ajanı",
     can: 1000, hasar: 15,
     /* "30 blok civarindaki oyunculara Bulanti V" -> civardaki
        DUSMANLARA. Sahibi ve ekip arkadaslari disarida.        */
