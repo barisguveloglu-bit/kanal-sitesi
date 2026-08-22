@@ -3483,6 +3483,27 @@ sığdığı için artık düz bir ya/ya da.
 önce iki ayrı yerde tutuluyordu ve "tablo onaylı derken üretici tahmin
 der, kimse fark etmez" durumu vardı.
 
+**Yamanın kendisi ilk denemede sessizce tutmadı** — `str.replace` eşleşmedi
+ve dosya değişmeden geri yazıldı, tablo eski etiketleri göstermeye devam
+etti. Artık `assert` var: eşleşmezse patlıyor. (Aynı ders, üçüncü kez:
+sessizce hiçbir şey yapmayan kod, hata veren koddan beterdir.)
+
+### Eşleştirme tamamlandı
+
+| # | üye | skin | durum |
+|---|---|---|---|
+| 1 | Okazor | siyah kapüşon + altın kuşak | ONAYLI |
+| 2 | Miskel | siyah/beyaz maske | ONAYLI |
+| 3 | Kajaros | beyaz başlık + kahve göğüs | ONAYLI |
+| 4 | Raxxan | miğfersiz, kahve saç | ONAYLI |
+| 5 | El-Harkos | gri miğferli asker | ONAYLI |
+
+Beş tahminden **üçü yanlıştı**. `kol_uret.py`'deki tabloya "bu tabloyu
+değiştirme, renklere bakıp düzeltmeye kalkma" notu düşüldü — tam o hata
+yapılmıştı.
+
+Dokular değişmediği için paket yeniden kurulmasına gerek yok: v4.39 son hâli.
+
 ---
 
 ## Bekleyen işler

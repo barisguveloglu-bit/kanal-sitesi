@@ -18,6 +18,18 @@ import os, json, re
 RP = "/home/user/kanal-sitesi/addon/Simsek_Kol_Kaynak"
 AYAR = "/home/user/kanal-sitesi/addon/Simsek_TNT_ToprakTopu/scripts/ayarlar.js"
 
+def onay_tablosu():
+    """kol_uret.py:ILKEL_SKIN_ONAY sozlugunu okur."""
+    metin = open("/home/user/kanal-sitesi/addon/kol_uret.py",
+                 encoding="utf-8").read()
+    blok = metin[metin.index("ILKEL_SKIN_ONAY = {"):]
+    blok = blok[:blok.index("}")]
+    bulunan = {a: (d == "True")
+               for a, d in re.findall(r'"(\w+)":\s*(True|False)', blok)}
+    assert len(bulunan) == 5, "onay tablosu okunamadi: %r" % bulunan
+    return bulunan
+
+
 def uyeler():
     """ayarlar.js'ten rutbe + ad oku. Elle yazmak, kodla
     ayrismaya davetiye cikarirdi."""
@@ -60,7 +72,10 @@ def main():
     kucuk = ImageFont.truetype(F + ".ttf", 13)
     mini = ImageFont.truetype(F + ".ttf", 11)
 
-    ONAYLI = {"harkos"}
+    # Onay durumu TEK KAYNAKTAN: kol_uret.py:ILKEL_SKIN_ONAY.
+    # Burada elle liste tutuldugunda tablo "onayli" derken uretici
+    # "tahmin" der ve kimse fark etmez -- bir kez oldu.
+    ONAYLI = {a for a, v in onay_tablosu().items() if v}
 
     for i, (anahtar, (rutbe, ad, unvan)) in enumerate(liste):
         x0 = i * GENIS

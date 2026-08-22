@@ -387,11 +387,17 @@ ILKEL = [
 # ESLESTIRMEYI DEGISTIRMEK: sadece bu tablodaki dosya adini
 # degistir ve kol_uret.py'yi tekrar calistir.
 #
-# ---- ESLESTIRME KULLANICI ONAYINA TABI ----
+# ---- ESLESTIRME ARTIK TAMAMEN ONAYLI ----
 # v4.35'te bu tabloyu BEN TAHMIN ETTIM (skinlerin rengine ve
-# havasina bakarak). Tahmin tutmadi: kullanici oyunda cagirinca
-# "bu Kajaros degil, El-Harkos" dedi. Ders: skin bir GORUNUS
-# degil KIMLIK; tahmin edilmez, sorulur.
+# havasina bakarak). Bes tahminden UCU yanlisti:
+#   El-Harkos'u Kajaros sandim
+#   Miskel'i Raxxan sandim
+#   Raxxan'i Kajaros sandim
+# Ders: skin bir GORUNUS degil KIMLIK; tahmin edilmez, sorulur.
+#
+# Bu tabloyu DEGISTIRME. Renklere bakip "su daha cok lider
+# duruyor" diye duzeltmeye kalkma -- tam olarak o hata
+# yapilmisti. Kullanici bes uyeyi de tek tek dogruladi.
 #
 # ONAYLI = kullanici oyunda gorup dogruladi
 # tahmin  = hala benim tahminim, degisebilir
@@ -410,8 +416,8 @@ ILKEL_SKIN_ONAY = {
     "harkos":  True,    # v4.38: "bu kajaros degil, el-harkos"
     "raxxan":  True,    # v4.39: "kajaros'tan raxxan'a, bu"
     "miskel":  True,    # v4.39: "raxxan olarak adlandirilan kisi aslinda miskel"
-    "okazor":  False,   # son iki skin: hangisi hangisi, sorulacak
-    "kajaros": False,
+    "okazor":  True,    # v4.39: "ikisi de olduğu yerde kalsin, ikisi de dogru"
+    "kajaros": True,
 }
 ILKEL_SKIN_KAYNAK = "/root/.claude/uploads/e51da4d9-22bc-53d5-b9b6-e97d8e6ccf11"
 
