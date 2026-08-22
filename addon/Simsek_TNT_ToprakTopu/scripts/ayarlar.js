@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.42";
+export const SURUM = "v4.43";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -1016,7 +1016,11 @@ export const IKSIR_LAZERI_SEC = true;
    burasi false yapilir; modun geri kalani hic etkilenmez. Yeni
    ve riskli bir alan oldugu icin bu anahtar bilerek var.
 
-   ---- BOT_TAVAN: 1 -> 20 (v4.27) ----
+   ---- BOT_TAVAN: 1 -> 20 (v4.27) -> 30 (v4.43) ----
+   20 sayisi ihtiyata dayaniyordu, olcume degil. Tablette
+   denendi: yirmi bot birden yaninda dolasirken HIC takilma
+   yok. Sasirtici degil -- bot sayisi tick yukunu artirmiyor,
+   blok butcesi paylasiliyor. 30'a cikarildi.
    Asama 1'de tek bottu. Artik 20.
 
    DURUST UYARI: 20 bot SCRIPT maliyetini pek artirmiyor -- blok
@@ -1049,7 +1053,7 @@ export const IKSIR_LAZERI_SEC = true;
    Ayrica bota DOKUNUNCA ayni secenekler menu olarak aciliyor.  */
 export const BOT_ACIK             = true;
 export const BOT_KIMLIK           = "pa:bot";
-export const BOT_TAVAN            = 20;   // oyuncu basina kac bot
+export const BOT_TAVAN            = 30;   // oyuncu basina kac bot
 export const BOT_KURTARMA_MENZIL  = 24;   // bu kadar uzaklasirsa isinlanir
 export const BOT_KURTARMA_YAKIN   = 2;    // isinlanirken oyuncuya kac blok uzaga
 export const BOT_TARAMA           = 20;   // kac tick'te bir mesafe olculsun

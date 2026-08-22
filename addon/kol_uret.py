@@ -337,12 +337,17 @@ BOT_TEN = (198, 146, 108)
 # Savas degerleri. Bunlar SADECE varlik JSON'una giriyor, script
 # okumuyor -- o yuzden ayarlar.js'te degil burada.
 #
-# v4.29'da kullanici istegiyle guclendirildi: 5 -> 7 hasar,
-# 24 -> 25 can. Karsilastirma: vanilla kurt 4 hasar / 8 can,
-# demir golem 21 hasar / 100 can. Bot ikisinin arasinda ve
-# yirmi tane olabildigi icin bilerek golemin cok altinda.
-BOT_HASAR = 7
-BOT_CAN = 25
+# v4.29: 5 -> 7 hasar, 24 -> 25 can.
+# v4.43: ikisi de IKIYE KATLANDI (14 hasar / 50 can).
+# Karsilastirma: vanilla kurt 4 hasar / 8 can, demir golem
+# 21 hasar / 100 can. Bot artik golemin canininin yarisinda
+# ama ondan daha sert vuruyor -- otuz tane olabildigi icin
+# bu bilincli bir guc tercihi.
+# v4.43: kullanici istegi -- "botlar artik guclendi", ikisi de
+# ikiye katlandi. Kalp cinsinden: 25 can = 12,5 kalp,
+# 7 hasar = 3,5 kalp/vurus.
+BOT_HASAR = 14   # =  7 kalp / vurus
+BOT_CAN = 50     # = 25 kalp
 
 # ---------------- ILKEL BESLI (v4.34) ----------------
 # Kullanicinin getirdigi boss listesi. Orada bunlar SANA saldiran
@@ -443,6 +448,11 @@ ILKEL_SKIN_ONAY = {
     "kajaros": True,
 }
 ILKEL_SKIN_KAYNAK = "/root/.claude/uploads/e51da4d9-22bc-53d5-b9b6-e97d8e6ccf11"
+
+# NORMAL botun skini (Ilkel Besli'den ayri). Kullanici v4.43'te
+# gonderdi: "botlar artik guclendigi icin gorunumu bu sekilde
+# olacak". Ilkel Besli'nin kendi skinleri var, onlara dokunmuyor.
+BOT_SKIN = "61d145cb-image.png"
 
 # Turkce gorunen adlar (JSON'da ASCII tutuluyor, dil dosyasinda degil)
 ILKEL_TR = {
@@ -1384,7 +1394,18 @@ def main():
             print("UYARI: %s skini bulunamadi (%s)" % (anahtar, kaynak))
     yaz_json(os.path.join(RP, "models/entity/simsek_bot.geo.json"), BOT_GEOMETRI)
     yaz_json(os.path.join(RP, "animations/simsek_bot.animation.json"), BOT_ANIM)
-    png_yaz(os.path.join(RP, "textures/entity/bot.png"), 64, 64, bot_dokusu(0))
+    # Normal botun skini de kullanicidan geliyor (v4.43).
+    # Uretilen doku (bot_dokusu) YEDEK olarak duruyor: dosya
+    # yoksa eski gorunum ciziliyor, bot mor-siyah kalmiyor.
+    bot_skin = os.path.join(ILKEL_SKIN_KAYNAK, BOT_SKIN)
+    bot_hedef = os.path.join(RP, "textures/entity/bot.png")
+    if os.path.exists(bot_skin):
+        os.makedirs(os.path.dirname(bot_hedef), exist_ok=True)
+        shutil.copyfile(bot_skin, bot_hedef)
+    else:
+        print("UYARI: bot skini bulunamadi (%s), uretilen doku kullaniliyor"
+              % bot_skin)
+        png_yaz(bot_hedef, 64, 64, bot_dokusu(0))
     for liste, ad in ((en_us, BOT_AD), (tr_tr, BOT_TR)):
         liste.append("entity.%s.name=%s" % (BOT_KIMLIK, ad))
         liste.append("item.spawn_egg.entity.%s.name=%s Yumurtasi" % (BOT_KIMLIK, ad))

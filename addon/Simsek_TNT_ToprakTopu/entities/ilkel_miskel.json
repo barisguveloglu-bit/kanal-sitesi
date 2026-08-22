@@ -23,7 +23,7 @@
       },
       "pa:savas": {
         "minecraft:attack": {
-          "damage": 7
+          "damage": 14
         },
         "minecraft:behavior.melee_attack": {
           "priority": 2,

@@ -3630,6 +3630,41 @@ tarama yaparken ya da dövüşürken ayrıca denenmeli — özellikle İlkel Be�
 
 ---
 
+## v4.43 — Normal botlar da güçlendi
+
+Tablet ölçümü 20 botun sorunsuz olduğunu gösterince kullanıcı üç şey
+istedi:
+
+| | önce | şimdi |
+|---|---|---|
+| **tavan** | 20 bot | **30 bot** |
+| **can** | 25 HP (12,5 kalp) | **50 HP (25 kalp)** |
+| **hasar** | 7 HP (3,5 kalp) | **14 HP (7 kalp)** |
+
+Karşılaştırma: vanilla kurt 4 hasar / 8 can, demir golem 21 hasar /
+100 can. Bot artık golemin yarı canında ama **ondan sert vuruyor** —
+otuz tane olabildiği için bilinçli bir güç tercihi.
+
+### Normal botun da kendi skini var
+
+Kullanıcı ayrı bir 64×64 skin gönderdi: koyu kafa, koyu kırmızı gövde.
+**İlkel Beşli'ye dokunulmadı** — onların kendi skinleri duruyor.
+
+Üretilen prosedürel doku (`bot_dokusu`) **yedek olarak bırakıldı**: skin
+dosyası bulunamazsa eski görünüm çiziliyor, bot mor-siyah kalmıyor.
+
+Test buna iki kontrol ekledi: normal botun skini İlkel Beşli'nin
+hiçbiriyle **aynı olmamalı** (yanlış dosya kopyalansa kimse fark etmezdi)
+ve gerçek bir dosya olmalı, yer tutucu değil.
+
+### `bot.mjs` bölüm 24 kaynaktan türetiliyor
+
+`hasar 7` ve `can 25` elle yazılıydı; v4.43'te ikisi de değişince test
+bozuldu. Artık `kol_uret.py`'den okunuyor — aynı ders, bu turda dördüncü
+kez.
+
+---
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:
