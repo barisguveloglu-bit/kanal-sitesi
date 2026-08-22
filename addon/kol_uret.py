@@ -449,6 +449,54 @@ ILKEL_SKIN_ONAY = {
 }
 ILKEL_SKIN_KAYNAK = "/root/.claude/uploads/e51da4d9-22bc-53d5-b9b6-e97d8e6ccf11"
 
+# ---- ELLE CIZILMIS KOL DOKULARI ----
+# kimlik -> kaynak dosya. Bos birakilan kollar uretilen (yer
+# tutucu) dokuyla kaliyor.
+#
+# Dosya OYUNCU SKIN duzeninde 64x64 olmali: kol modelimizin
+# tek kubu var ve UV'si (40,16) -- yani vanilla skinin SAG KOL
+# bolgesi. Kullanicinin gonderdigi dosya tam oraya oturdu,
+# donusturmeye gerek kalmadi.
+KOL_SKIN = {
+    "kol_toprak": "5564eeb5-image.png",
+}
+
+
+def kol_skin_uygula(kimlik):
+    """Kolun dokusunu elle cizilmis dosyayla degistirir.
+
+    Iki sey yaziliyor:
+      entity/<kol>.png  3B kolun dokusu (dosya oldugu gibi)
+      item/<kol>.png    envanter ikonu -- ayni dosyanin ON YUZU
+                        (44,20 4x12) 16x16 ikona ortalanarak
+
+    Ikon neden turetiliyor: uretilen ikon duz renkti ve elde
+    tutulan kolla alakasi yoktu. Ayni dokudan turetilince
+    envanterdeki resim ile eldeki kol AYNI seye benziyor.       """
+    dosya = KOL_SKIN.get(kimlik)
+    if not dosya:
+        return False
+    kaynak = os.path.join(ILKEL_SKIN_KAYNAK, dosya)
+    if not os.path.exists(kaynak):
+        print("UYARI: %s dokusu bulunamadi (%s), uretilen kullaniliyor"
+              % (kimlik, kaynak))
+        return False
+
+    import shutil
+    shutil.copyfile(kaynak, os.path.join(RP, "textures/entity", kimlik + ".png"))
+
+    # Ikon: PIL varsa turet, yoksa uretilen ikon kalsin
+    try:
+        from PIL import Image
+    except ImportError:
+        return True
+    skin = Image.open(kaynak).convert("RGBA")
+    ikon = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
+    ikon.alpha_composite(skin.crop((44, 20, 48, 32)), (6, 2))
+    ikon.save(os.path.join(RP, "textures/item", kimlik + ".png"))
+    return True
+
+
 # NORMAL botun skini (Ilkel Besli'den ayri). Kullanici v4.43'te
 # gonderdi: "botlar artik guclendigi icin gorunumu bu sekilde
 # olacak". Ilkel Besli'nin kendi skinleri var, onlara dokunmuyor.
@@ -1338,6 +1386,13 @@ def main():
         png_yaz(os.path.join(RP, "textures/entity", kimlik + ".png"), 64, 64, doku)
         png_yaz(os.path.join(RP, "textures/item", kimlik + ".png"), 16, 16,
                 esya_ikonu(ana, vurgu))
+
+        # ---- Elle cizilmis kol dokusu varsa uretileni EZ ----
+        # Uretilen dokular yer tutucu (renk var, cizim yok).
+        # Kullanici gercek bir doku gonderirse o kullaniliyor;
+        # gondermediklerinde uretilen hali duruyor, yani hicbir
+        # kol mor-siyah kalmiyor.
+        kol_skin_uygula(kimlik)
 
         dokular[kimlik] = {"textures": "textures/item/" + kimlik}
 

@@ -3665,6 +3665,37 @@ kez.
 
 ---
 
+## v4.44 — Toprak Kol'un gerçek dokusu
+
+Kullanıcı elle çizilmiş bir doku gönderdi. İncelendiğinde **birebir
+oturduğu** görüldü:
+
+- 64×64, oyuncu skin düzeninde
+- boyalı bölge: `40..55 × 16..31` (vanilla skinin **sağ kol** kutusu)
+- kol modelimizin tek küpü de tam orada: `uv (40,16)`, `size 4×12×4`
+
+Modelin örneklediği **altı yüzün altısı da dolu** — üst, alt ve dört yan.
+Dönüştürmeye gerek kalmadı, dosya olduğu gibi kullanıldı. (Dosyada bir de
+sol kol bölgesi var; modelimiz onu kullanmıyor, zararsız duruyor.)
+
+### Envanter ikonu da aynı dokudan
+
+Üretilen ikon düz renkti ve elde tutulan kolla alakası yoktu. Artık aynı
+dosyanın **ön yüzü** (`44,20` 4×12) 16×16 ikona ortalanıyor — envanterdeki
+resim ile eldeki kol aynı şeye benziyor.
+
+### Üretilen dokular yedek olarak duruyor
+
+`KOL_SKIN` tablosunda karşılığı olmayan kollar eski (yer tutucu) dokuyla
+kalıyor. Yani yeni doku eklemek tek satır, eklememek de bir şeyi bozmuyor —
+hiçbir kol mor-siyah kalmıyor.
+
+`kol2.mjs`'e beş kontrol eklendi; en önemlisi **hiçbir kol dokusuz
+kalmamalı** — bir kolun dokusu eksik olsa oyunda saydam çizilirdi ve
+hiçbir test yakalamazdı.
+
+---
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:
@@ -3679,7 +3710,9 @@ Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:
    optimizasyonuyla çözülmüyor — sayı/oynanış kararı gerekiyor.
 6. **Kalan yetenekler.** Mermi varlığı (`pa:ucur123_bullet` benzeri),
    `@minecraft/server-ui` seçim menüsü, yetenek başına ayrı bekleme süresi.
-7. **Kol dokuları.** `textures/` altındakiler hâlâ üretilmiş yer tutucu; her
-   kolun rengi farklı ama çizim değil. Aynı adlarla değiştirmen yeterli.
+7. **Kol dokuları.** 11 kolun **1'i** gerçek çizim (Toprak Kol, v4.44);
+   kalan 10'u hâlâ üretilmiş yer tutucu — rengi farklı ama çizim değil.
+   Yenisini eklemek: dosyayı gönder, `kol_uret.py:KOL_SKIN` tablosuna bir
+   satır ekle, üreteci çalıştır.
 8. **Oyunda denenmedi.** Attachable'ın gerçekten doğru çizildiği ve
    `scriptevent` köprüsünün tablette çalıştığı henüz görülmedi.
