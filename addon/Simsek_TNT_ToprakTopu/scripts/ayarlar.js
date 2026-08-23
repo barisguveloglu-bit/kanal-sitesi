@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.54";
+export const SURUM = "v4.55";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -1486,7 +1486,21 @@ export const ILKEL_BESLI = new Map([
     ad: "İlkel Zihin Bükücü Raxxan",
     kimlik: "pa:raxxan",
     rutbe: 4, unvan: "Gölge Ajanı",
-    can: 2000, hasar: 30,
+    /* ---- 1,5 KAT GUCLENDIRILDI (v4.55) ----
+       Kullanicinin tespiti: "El-Harkos en alt rutbe ama
+       Raxxan'dan daha guclu." Dogruydu -- Harkos 2600 can
+       tasirken Golge Ajani 2000'de kalmisti, yani rutbe 4,
+       rutbe 5'in altindaydi.
+
+       Cozum de kullanicinin: hepsini 1,5 ile carp.
+         can    2000 -> 3000   (1500 kalp)
+         hasar    30 ->   45   (22,5 kalp)
+         ani iyilesme 200 -> 300 (150 kalp)
+
+       IHTIMALLER CARPILMADI (gizlenme %15, ani iyilesme %10):
+       onlar guc degil SIKLIK. 1,5 ile carpmak yetenegin
+       karakterini degistirirdi, sayisini degil.              */
+    can: 3000, hasar: 45,
     /* Golge Ajani: ekibin en az canlisi, hayatta kalmasi
        goze gorunmemekten geciyor. Hiz II ile kacip
        konumlaniyor, Gece Gorusu ile karanlikta calisiyor.
@@ -1499,7 +1513,7 @@ export const ILKEL_BESLI = new Map([
     gizlenme: { sans: 0.15, sure: 120 },
     /* "Kendini tek seferde 100 HP iyilestirme sansi"
        100 KALP = 200 HP (v4.41).                              */
-    ansizinIyilesme: { sans: 0.1, miktar: 200 }
+    ansizinIyilesme: { sans: 0.1, miktar: 300 }
   }],
   ["okazor", {
     ad: "İlkel Savaşçı Okazor",

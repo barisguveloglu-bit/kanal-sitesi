@@ -390,7 +390,10 @@ ILKEL = [
      dict(menzilli=True, olcek=1.0, hiz=0.30, rutbe=2)),
     ("harkos",  "Ilkel Suikastci El-Harkos",  2600, 26,
      dict(sicrar=True, olcek=0.95, hiz=0.42, rutbe=5)),
-    ("raxxan",  "Ilkel Zihin Bukucu Raxxan",  2000, 30,
+    # v4.55: 1,5 kat guclendirildi (2000/30 -> 3000/45).
+    # Sebep kullanicinin tespiti: en alt rutbedeki El-Harkos
+    # 2600 can tasirken Golge Ajani 2000'de kaliyordu.
+    ("raxxan",  "Ilkel Zihin Bukucu Raxxan",  3000, 45,
      dict(ittirilmez=True, olcek=1.05, hiz=0.32, rutbe=4)),
     ("okazor",  "Ilkel Savasci Okazor",       2400, 100,
      dict(ittirilmez=True, olcek=1.25, hiz=0.34, rutbe=1)),
