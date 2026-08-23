@@ -1384,81 +1384,100 @@ def dismont_kurali():
 
 
 def dismont_cevher_dokusu():
-    """Dismont cevheri. Kullanicinin tarifi (v4.51):
+    """Dismont cevheri (v4.52 -- ikinci deneme).
 
-      "Elmasa gore daha cok solgun renklerde, siyaha yakin ama
-       tam siyah da degil. Bazi yerlerinde elmas renklerinden
-       sinirlari isiklar olsun. Ele gecirilmis, bozulmus bir
-       maden havasi vermek istedim."
+    ---- ILK DENEME NEDEN KOTUYDU ----
+    v4.51'de elmas rengini HAFIZADAN yazdim: (94,219,214).
+    Kullanici begenmedi ve hakliydi -- oyle bir renk oyunda
+    yok. Vanilla dokular indirilip piksel piksel okundu, artik
+    her deger OLCULMUS:
 
-    Tarifin uc parcasi ve karsiliklari:
+      elmas esyasi (Diamond_JE3_BE3.png)
+        #4aedd9  (74,237,217)   ana elmas
+        #20c5b5  (32,197,181)   ara ton
+        #a1fbe8  (161,251,232)  parlak
+        #145e53  (20,94,83)     elmasin EN KOYU tonu
+        #11727a  (17,114,122)   koyu teal
 
-      "siyaha yakin ama tam siyah degil"
-          taban (34,33,40) -- morumsu koyu gri, mutlak siyah
-          DEGIL. Mutlak siyah oyunda delik gibi gorunur ve
-          etrafindaki tastan ayirt edilmez.
+      deepslate elmas cevheri
+        #313136 #252529 #3c3c42  taban grileri
+        #3d5455 #506e70          orada elmasin soldurulmus hali
 
-      "elmas renklerinden SINIRLARI isiklar"
-          kristallerin ICI koyu, KENARI elmas rengi. Vanilla
-          elmas (94,219,214); burada soldurulmus hali
-          (122,168,170). Yani elmas orada ama sadece kenarda
-          kalmis -- "ele gecirilmis maden" hissi tam olarak
-          bundan cikiyor.
+    ---- TARIF NASIL KARSILANDI ----
+    "siyaha yakin ama tam siyah degil"
+        taban artik UYDURMA degil: deepslate'in kendi grileri
+        (#252529 - #3c3c42). Oyunda derinde bu tasin yaninda
+        duracagi icin ayni aileden olmasi dogru.
 
-      "bozulmus havasi"
-          curuk lekeleri: tabandan biraz daha koyu ve yesile
-          calan benekler, duzensiz dagilmis.
+    "elmas renklerinden SINIRLARI isiklar"
+        kristalin ICI #145e53 -- elmasin kendi en koyu tonu.
+        KENARI #20c5b5, isik alan kenar #4aedd9, tepe noktasi
+        #a1fbe8. Yani elmas orada ama ici sonmus, sadece
+        sinirlari isiyor.
 
-    Sekil ASCII olarak yaziliyor cunku 256 pikseli tek tek
-    yazmak okunmaz olurdu; boyle bakinca kristallerin nerede
-    oldugu goz ile gorunuyor ve degistirmesi kolay."""
+    "bozulmus, ele gecirilmis maden havasi"
+        curuk lekeleri yesile calan koyu benekler.
+
+    ---- ILK DENEMEDEN FARKI ----
+    Onceki doku SOLUKTU: hem taban hem kristal birbirine yakin
+    tonlardaydi, 16 pikselde ayirt edilmiyor ve camur gibi
+    duruyordu. Simdi kontrast gercek elmasin kontrasti; koyu
+    taban ustunde parlak kenar 16 pikselde de okunuyor.
+    Isik ust-sol'dan: kenarlarin ust ve sol tarafi parlak, alt
+    ve sag tarafi ara ton -- vanilla dokularin kurali bu."""
     sekil = [
         "................",
-        "...++...........",
-        "..+oo+......++..",
-        "..+oo*+....+oo+.",
-        "...+oo+....+o*+.",
-        "....++......++..",
+        "...lll..........",
+        "..lddddm...lll..",
+        "..lddddm..lddlm.",
+        "...lddm...ldddm.",
+        "....mm.....lddm.",
+        "............mm..",
         "................",
-        "......++........",
-        ".....+oo+.......",
-        ".....+o*o+......",
-        "......+oo+......",
-        ".......++.......",
-        "................",
-        "..++............",
-        ".+o*+...........",
-        "..++............",
+        "....llll........",
+        "...lddddLm......",
+        "...ldddddm......",
+        "....lddddm......",
+        ".....mmm........",
+        "..lll...........",
+        "..lddm..........",
+        "...mm...........",
     ]
-    # Curuk lekeleri: kristallerin arasina dagilmis, duzensiz.
-    curuk = [(9, 1), (13, 6), (14, 7), (1, 6), (2, 7), (12, 9),
-             (13, 10), (3, 10), (2, 11), (8, 13), (9, 14), (7, 15),
-             (14, 2), (0, 3), (11, 13), (5, 4)]
+    # Tepe noktalari: kristalin en cok isik alan tek pikseli.
+    parlak = [(3, 2), (12, 3), (5, 9)]
+    # Curuk lekeleri: "bozulmus maden" hissi.
+    curuk = [(9, 1), (14, 7), (1, 7), (13, 10), (2, 11), (8, 13),
+             (10, 14), (7, 15), (0, 4), (15, 12), (6, 6), (11, 8)]
 
-    TABAN = (34, 33, 40)          # morumsu koyu gri
-    CURUK = (24, 27, 25)          # yesile calan, daha koyu
-    CEKIRDEK = (22, 20, 30)       # kristalin ICI: en koyu
-    KENAR = (122, 168, 170)       # SOLDURULMUS elmas
-    ISIK = (176, 214, 212)        # kenardaki parlak nokta
+    TABAN     = (49, 49, 54)     # #313136  deepslate ana gri
+    TABAN_KOY = (37, 37, 41)     # #252529  koyu benek
+    TABAN_ACK = (60, 60, 66)     # #3c3c42  acik benek
+    CURUK     = (33, 38, 33)     # yesile calan bozulma
+    ICI       = (20, 94, 83)     # #145e53  elmasin en koyu tonu
+    KENAR     = (32, 197, 181)   # #20c5b5
+    ISIK      = (74, 237, 217)   # #4aedd9  ANA ELMAS RENGI
+    TEPE      = (161, 251, 232)  # #a1fbe8
 
     px = {}
     for x in range(16):
         for y in range(16):
-            # Duzensiz benek: tek bir duz renk plastik gorunuyor
-            k = 0.84 + ((x * 7 + y * 13) % 6) * 0.04
-            px[(x, y)] = golge(TABAN, k) + (255,)
+            n = (x * 7 + y * 13) % 6
+            px[(x, y)] = (TABAN_KOY if n < 2 else
+                          TABAN_ACK if n > 4 else TABAN) + (255,)
     for (cx, cy) in curuk:
-        k = 0.9 + ((cx + cy) % 3) * 0.07
-        px[(cx, cy)] = golge(CURUK, k) + (255,)
+        px[(cx, cy)] = CURUK + (255,)
     for y, satir in enumerate(sekil):
         for x, c in enumerate(satir):
-            if c == "o":
-                px[(x, y)] = CEKIRDEK + (255,)
-            elif c == "+":
-                k = 0.88 + ((x + y) % 3) * 0.06
-                px[(x, y)] = golge(KENAR, k) + (255,)
-            elif c == "*":
+            if c == "d":
+                px[(x, y)] = ICI + (255,)
+            elif c == "m":
+                px[(x, y)] = KENAR + (255,)
+            elif c == "l":
                 px[(x, y)] = ISIK + (255,)
+            elif c == "L":
+                px[(x, y)] = TEPE + (255,)
+    for (bx, by) in parlak:
+        px[(bx, by)] = TEPE + (255,)
     return px
 
 
