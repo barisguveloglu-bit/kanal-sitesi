@@ -59,10 +59,20 @@ export const KOL_ESYALARI = [
      Dogru tespit: can_verme 10 saniyelik yenilenme veriyordu,
      iksirler 300 saniye veriyor ve kalp ekleme KALICI. Bir
      yetenegin uc ayri karsiligi olmasi, jest sirasini uzatmak
-     disinda bir sey yapmiyordu.                                */
+     disinda bir sey yapmiyordu.
+
+     v4.54: BORALO KOLU BURAYA KATILDI (kullanici istegi).
+     Yakala, Coklu Simsek, Ok Yagmuru ve Sarsinti buraya geldi;
+     pa:kol_boralo kaldirildi. Toprak Kol artik 16 yetenekli.
+
+     SIRA ONEMLI: dort yetenek kalp ikilisinin ONUNE konuldu.
+     Menu listeyi bu sirayla ciziyor ve kalp yetenekleri en son
+     kullanilanlar -- asil yolu zaten sohbet ("can 10").
+     Dovus yetenekleri ustte, bakim yetenekleri altta.          */
   ["pa:kol_toprak", "toprak_topu", "yon_simsegi", "yildirim_halkasi",
                     "alan_simsegi", "savur", "ors",
                     "toprak_ucus", "toprak_duvar", "meteor", "guclu_tnt",
+                    "yakala", "coklu_simsek", "ok_yagmuru", "sarsinti",
                     "kalp_ekle", "kalp_sifirla"],
 
   /* BUZ KOL -- dondurma takimi. */
@@ -86,17 +96,6 @@ export const KOL_ESYALARI = [
      atis kendi runInterval'ini aciyor, oyuncu cikinca durmuyor
      ve durumlari oyuncu ADIYLA tutuyordu.                     */
   ["pa:kol_gunes",  "isin_topu", "yumruk"],
-
-  /* BORALO KOL -- Boralo Mod V2'den alinan takim. O mod 1148
-     dosya ve 2054 satir script; en iyi iki fikri alindi.
-     "Mob Picker" adina ragmen sadece oyuncu yakaliyordu, burada
-     tersi yapildi.
-
-     v4.33: GOLGE KOLU BURAYA KATILDI (kullanici istegi). Ikisi
-     de ayni kaynaktan geliyordu (BoraLo modlari) ve ikisi de iki
-     yetenekliydi; envanterde iki yer kaplamalari icin bir sebep
-     yoktu. Dort yetenek tek kolda, menuden tek dokunusla.      */
-  ["pa:kol_boralo", "yakala", "coklu_simsek", "ok_yagmuru", "sarsinti"],
 
   /* Tek yetenekli kollar.
 
