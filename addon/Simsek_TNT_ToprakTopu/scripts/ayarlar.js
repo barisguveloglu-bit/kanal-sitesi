@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.46";
+export const SURUM = "v4.47";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -1480,6 +1480,62 @@ export const ILKEL_BESLI = new Map([
        basarirsa cani tamamen yenilenir."                     */
     seri: { adet: 3, pencere: 80 }
   }]
+]);
+
+/* ============================================================
+   MISKEL'IN SAVAS MODU  (v4.47)
+
+   Kullanici bildirdi: "Miskel digerlerine gore etkisiz kaliyor,
+   mob'a saldirttim." Bakinca sebep tek degil, UC ayri sey ust
+   uste binmis:
+
+   1) MENZILLI OLMAK HASARI YUTUYORDU.
+      Miskel'in varlik JSON'unda minecraft:shooter var, mermisi
+      vanilla ok. Bedrock'ta okun hasari ATICININ attack.damage
+      degerinden BAGIMSIZ -- ok kendi sabit hasarini vurur
+      (~2-4 HP). Yani ayarlarda yazan 28 hasar oynanista HIC
+      kullanilmiyordu: Miskel vurus basina ~2 kalp verirken
+      Okazor 50 kalp veriyordu. "Etkisiz kaliyor" tam olarak bu.
+
+   2) IMZA YETENEGI HIC CALISMIYORDU.
+      Korluk/Solgunluk entityHitEntity olayina bagliydi; o olay
+      sadece YAKIN DOVUS vurusunda tetikleniyor. Menzilli bir
+      varlik neredeyse hic yakin dovuse girmiyor, yani Miskel'in
+      "Korluk XVI veya Solgunluk VII" yetenegi pratikte olu
+      koddu -- moba karsi da, oyuncuya karsi da.
+
+   3) YAZI TURANIN YARISI MOBA ISLEMIYORDU.
+      Iki secenekten biri Korluk. Korluk moblarda hicbir sey
+      yapmiyor (sadece oyuncunun ekranini karartiyor). Yani
+      calissa bile yarisi bosa gidiyordu.
+
+   ---- COZUM ----
+   projectileHitEntity olayina abone olundu: Miskel'in oku bir
+   seye degdiginde hem ekstra hasar biniyor hem imza yetenegi
+   tetikleniyor. Boylece menzilli olmak artik bir CEZA degil.
+
+   Hasar "esitleniyor", uydurulmuyor: 28 zaten kullanicinin
+   listesinden gelen sayi. Okun kendi hasari dusuluyor ki
+   toplam 28'i gecmesin.                                       */
+export const ILKEL_OK_HASARI = true;
+
+/* Vanilla okun kendi hasari. Zorluk ve hiza gore 2-4 HP
+   arasinda oynuyor; ortalama aliniyor. Tam deger API'den
+   okunamiyor -- olay hasar miktarini vermiyor.                */
+export const ILKEL_OK_TABAN = 4;
+
+/* Moblarda hicbir sey yapmayan efektler.
+   Bunlar oyuncuya karsi cok etkili (ekran kararir, ekran
+   dalgalanir) ama bir zombi icin yok hukmunde. Iki secenekli
+   yeteneklerde (Miskel) hedef oyuncu DEGILSE bu efektlerden
+   ibaret olan secenek eleniyor -- boylece moba karsi her
+   zaman ise yarayan taraf cikiyor.
+
+   DIKKAT: bu liste efektleri SILMIYOR, sadece SECIMDE eliyor.
+   Kajaros gibi hepsini birden veren uyeler etkilenmiyor;
+   onlarin listesinde zaten Yavaslik da var.                   */
+export const MOBA_ISLEMEYEN_EFEKTLER = new Set([
+  "blindness", "nausea", "darkness", "hunger", "mining_fatigue"
 ]);
 
 /* Raxxan'in aurasi OYUNCULARA da vursun mu. Varsayilan HAYIR:

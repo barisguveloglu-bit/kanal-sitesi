@@ -9,7 +9,8 @@ import {
 import {
   ILKEL_ACIK, ILKEL_TAVAN, ILKEL_BESLI, ILKEL_ADLAR, ILKEL_OZELLIK,
   ILKEL_AURA_OYUNCU, ILKEL_KORUMA, BOT_OLAY_SAVAS_AC,
-  BOT_TAVAN, BOT_TARAMA, botTuruMu
+  BOT_TAVAN, BOT_TARAMA, botTuruMu,
+  ILKEL_OK_HASARI, ILKEL_OK_TABAN, MOBA_ISLEMEYEN_EFEKTLER
 } from "../ayarlar.js";
 
 /* ============================================================
@@ -248,7 +249,19 @@ function dusmanMi(varlik, sahipId) {
 /* Okazor'un serisi: botId -> [vurus tick'leri] */
 const seriler = new Map();
 
-/* Bot BIR SEYE vurdu. */
+/* Bu efekt listesi bir MOBA bir sey yapar mi?
+   Sadece Korluk/Bulanti gibi "ekran efektlerinden" olusan bir
+   liste zombiye karsi yok hukmunde.                          */
+function moblaraIsler(liste) {
+  for (const [ad] of liste) {
+    if (!MOBA_ISLEMEYEN_EFEKTLER.has(ad)) return true;
+  }
+  return false;
+}
+
+/* Bot BIR SEYE vurdu. Menzilli uyelerde bu ok degdiginde de
+   cagriliyor (v4.47) -- oncesinde sadece yakin dovus vardi ve
+   Miskel'in imza yetenegi hic tetiklenmiyordu.               */
 function botVurdu(bot, kurban, simdikiTick) {
   const anahtar = ilkelKimligi(bot);
   if (!anahtar) return;
@@ -258,10 +271,25 @@ function botVurdu(bot, kurban, simdikiTick) {
   if (t.vurusEfekt) efektVer(kurban, t.vurusEfekt);
 
   /* Miskel: iki secenekten biri. Listede "VEYA" yaziyordu,
-     yani her vuruste yazi tura.                              */
+     yani her vuruste yazi tura.
+
+     v4.47 -- YAZI TURA ARTIK HEDEFE BAKIYOR. Secenekten biri
+     Korluk XVI: oyuncuya karsi yikici, moba karsi hicbir sey.
+     Hedef oyuncu degilse moba islemeyen secenekler eleniyor,
+     yani zombi her zaman Solgunluk yiyor. Oyuncuya karsi yazi
+     tura AYNEN duruyor -- listedeki "VEYA" orada anlamli.    */
   if (t.vurusEfektSecim) {
-    const i = Math.floor(Math.random() * t.vurusEfektSecim.length);
-    efektVer(kurban, t.vurusEfektSecim[i]);
+    let secenekler = t.vurusEfektSecim;
+    let oyuncuMu = false;
+    try { oyuncuMu = kurban.typeId === "minecraft:player"; } catch (e) { /* tipi okunamadi */ }
+    if (!oyuncuMu) {
+      const isleyen = secenekler.filter(moblaraIsler);
+      /* Hicbiri islemiyorsa eski davranisa donuluyor: bos liste
+         "efekt yok" demek olurdu, o da bir gerileme.           */
+      if (isleyen.length > 0) secenekler = isleyen;
+    }
+    const i = Math.floor(Math.random() * secenekler.length);
+    efektVer(kurban, secenekler[i]);
   }
 
   /* Okazor: "4 saniyelik araliklarla ust uste 3 kez vurmayi
@@ -284,6 +312,63 @@ function botVuruldu(bot) {
   if (!anahtar) return;
   const t = tanim(anahtar);
   if (t.vurulunca) iyilestir(bot, t.vurulunca);
+}
+
+/* ---------------- Menzilli vurus (v4.47) ----------------
+
+   Okun hedefi mesru mu? Ok gecerken sahibine ya da ekip
+   arkadasina degebilir; ekstra hasar oraya BINMEMELI.
+
+   dusmanMi() burada KULLANILMIYOR bilerek: o fonksiyon
+   ILKEL_AURA_OYUNCU'ya bakip oyunculari eliyor, cunku yanindaki
+   arkadasini surekli bulantida tutmamak icin yazilmisti. Ama
+   Miskel'in asil parladigi yer gercek bir OYUNCUYA karsi
+   dovusmek. Burada sadece sahip ve ekip disarida.             */
+function okHedefiMi(kurban, sahipId) {
+  try {
+    if (!gecerliMi(kurban)) return false;
+    if (sahipId && kurban.id === sahipId) return false;
+    if (botTuruMu(kurban.typeId)) return false;
+    if (kurban.typeId === "minecraft:item" ||
+        kurban.typeId === "minecraft:xp_orb") return false;
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+/* Botun attigi mermi bir seye degdi.
+
+   Bedrock'ta okun hasari aticinin attack.damage'inden bagimsiz
+   sabit bir sayi. Miskel'in ayarlardaki 28 hasari bu yuzden
+   oynanista hic kullanilmiyordu. Aradaki farki burada
+   kapatiyoruz -- sayiyi UYDURMUYORUZ, ayardakine ESITLIYORUZ.
+
+   Hasar cinsi "magic": buyucu icin dogru olan bu ve zirhtan
+   etkilenmiyor. Zirhli bir hedefe karsi Miskel'in yine
+   etkisiz kalmasi ayni sorunun tekrari olurdu.                */
+function okVurdu(bot, kurban, simdikiTick) {
+  const anahtar = ilkelKimligi(bot);
+  if (!anahtar) return;
+  const t = tanim(anahtar);
+
+  if (!okHedefiMi(kurban, botunSahibi(bot))) return;
+
+  if (ILKEL_OK_HASARI && typeof t.hasar === "number") {
+    const ek = Math.max(0, t.hasar - ILKEL_OK_TABAN);
+    if (ek > 0) {
+      try {
+        kurban.applyDamage(ek, { cause: "magic", damagingEntity: bot });
+      } catch (e) {
+        /* applyDamage secenekleri bazi surumlerde farkli.
+           Sade cagriyi dene; o da olmazsa efektler yine gecerli. */
+        try { kurban.applyDamage(ek); } catch (e2) { /* hasar binmedi */ }
+      }
+    }
+  }
+
+  /* Imza yetenegi: yakin dovusteki ile ayni yol. */
+  botVurdu(bot, kurban, simdikiTick);
 }
 
 let olayUyarisi = false;
@@ -310,6 +395,31 @@ function olaylariKur() {
       hataYaz("ilkel.entityHurt", e);
     }
   });
+
+  /* Menzilli uyelerin (Miskel) tek vurus yolu bu olay.
+     Yoksa Miskel yine ok atar, ama oku sadece vanilla hasarini
+     verir ve imza yetenegi tetiklenmez -- yani v4.46'daki
+     "etkisiz kaliyor" durumuna geri doner. Sessiz kalmamali.  */
+  const mermi = olayaAbone("projectileHitEntity", (olay) => {
+    try {
+      const bot = olay.source;
+      if (!bot || !botTuruMu(bot.typeId)) return;
+      const bilgi = (typeof olay.getEntityHit === "function")
+        ? olay.getEntityHit() : undefined;
+      const kurban = bilgi && bilgi.entity;
+      if (!kurban) return;                  // bloga carpti, varliga degil
+      okVurdu(bot, kurban, system.currentTick);
+    } catch (e) {
+      hataYaz("ilkel.projectileHitEntity", e);
+    }
+  });
+
+  if (!mermi) {
+    hataYaz("ilkel.mermi", new Error(
+      "projectileHitEntity yok. Miskel ok atmaya devam eder ama " +
+      "oku sadece vanilla hasarini verir (~2 kalp) ve Korluk/" +
+      "Solgunluk tetiklenmez."));
+  }
 
   if ((!vurus || !hasar) && !olayUyarisi) {
     olayUyarisi = true;
@@ -469,7 +579,13 @@ export function ozetle(anahtar) {
   const p = [];
   if (t.vurulunca) p.push("vurulunca +" + t.vurulunca + " can");
   if (t.vurusEfekt) p.push("vurdugunu yavaslatir/kor eder");
-  if (t.vurusEfektSecim) p.push("vurdugunu kor eder ya da soldurur");
+  if (t.vurusEfektSecim) {
+    /* v4.47: oku artik tam hasarini tasiyor ve moba karsi hep
+       ise yarayan tarafi seciyor. Menude de boyle yaziyor ki
+       "neden zayif" sorusu bir daha sorulmasin.               */
+    p.push(ILKEL_OK_HASARI ? "oku tam hasar vurur · oyuncuyu kor eder, mobu soldurur"
+                           : "vurdugunu kor eder ya da soldurur");
+  }
   if (t.tikIyilesme) p.push("surekli kendini iyilestirir");
   if (t.aura) p.push(t.aura.menzil + " blokta dusmani bulandirir");
   if (t.gizlenme) p.push("ara ara gorunmez olur");
