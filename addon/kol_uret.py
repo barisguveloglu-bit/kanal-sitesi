@@ -25,11 +25,7 @@ RP = "/home/user/kanal-sitesi/addon/Simsek_Kol_Kaynak"
 # buraya kolun ana yetenegi yaziliyor.
 KOLLAR = [
     ("kol_toprak", "cok",                "Toprak Kol",            (24, 22, 20),    (198, 138, 90)),
-    ("kol_halka",  "yildirim_halkasi", "Yildirim Halkasi Kolu", (86, 148, 232),  (214, 236, 255)),
-    ("kol_simsek", "yon_simsegi",      "Simsek Kolu",           (233, 196, 66),  (255, 246, 190)),
-    ("kol_savur",  "savur",            "Savurma Kolu",          (140, 96, 200),  (214, 190, 250)),
     ("kol_ucus",   "ucus",             "Ucus Kolu",             (120, 190, 236), (226, 246, 255)),
-    ("kol_ors",    "ors",              "Ors Kolu",              (118, 118, 128), (206, 210, 222)),
     ("kol_buz",    "buz_adam",         "Buz Kol",               (126, 190, 200), (196, 232, 238)),
     ("kol_dave",   "kasirga",          "Dave Kolu",             (96, 108, 76),   (176, 200, 140)),
     ("kol_kevin",  "hapis",            "Kevin Kolu",            (108, 112, 120), (188, 194, 204)),
@@ -40,11 +36,7 @@ KOLLAR = [
 # Turkce gorunen adlar (dil dosyasi icin; JSON'da ASCII tutuluyor)
 TR_AD = {
     "kol_toprak": "Toprak Kol",
-    "kol_halka":  "Yıldırım Halkası Kolu",
-    "kol_simsek": "Şimşek Kolu",
-    "kol_savur":  "Savurma Kolu",
     "kol_ucus":   "Uçuş Kolu",
-    "kol_ors":    "Örs Kolu",
     "kol_buz":    "Buz Kol",
     "kol_dave":   "Dave Kolu",
     "kol_kevin":  "Kevin Kolu",

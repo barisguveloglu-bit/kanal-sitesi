@@ -60,7 +60,8 @@ export const KOL_ESYALARI = [
      iksirler 300 saniye veriyor ve kalp ekleme KALICI. Bir
      yetenegin uc ayri karsiligi olmasi, jest sirasini uzatmak
      disinda bir sey yapmiyordu.                                */
-  ["pa:kol_toprak", "toprak_topu", "yon_simsegi", "ors",
+  ["pa:kol_toprak", "toprak_topu", "yon_simsegi", "yildirim_halkasi",
+                    "alan_simsegi", "savur", "ors",
                     "toprak_ucus", "toprak_duvar", "meteor", "guclu_tnt",
                     "kalp_ekle", "kalp_sifirla"],
 
@@ -105,13 +106,22 @@ export const KOL_ESYALARI = [
        pa:kol_alan   -> alan_simsegi Yildirim Halkasi koluna gecti
        pa:kol_top    -> toprak_topu zaten Toprak Kol'da vardi
        pa:kol_golge  -> yetenekleri Boralo Kolu'na gecti
-     Hicbir YETENEK kaybolmadi (can_verme haric, o bilerek);
-     sadece envanterdeki esya sayisi 15'ten 11'e indi.          */
-  ["pa:kol_halka",  "yildirim_halkasi", "alan_simsegi"],
-  ["pa:kol_simsek", "yon_simsegi"],
-  ["pa:kol_savur",  "savur"],
-  ["pa:kol_ucus",   "ucus"],
-  ["pa:kol_ors",    "ors"]
+
+     v4.46'da DORT KOL DAHA KALDIRILDI. Gerekce kullanicidan ve
+     REFERANS MODDAN geliyor: "Simsek kolu diye bir sey yok
+     zaten, o tamamen Toprak Kol'un guclerine ait; ayni sekilde
+     Yildirim Halkasi, savurma, bir de ors -- bunlar ayri kollar
+     degil, Toprak Kol'un gucunde goruluyor."
+
+       pa:kol_simsek -> yon_simsegi ZATEN Toprak Kol'daydi (kopya)
+       pa:kol_ors    -> ors ZATEN Toprak Kol'daydi (kopya)
+       pa:kol_halka  -> yildirim_halkasi + alan_simsegi Toprak'a gecti
+       pa:kol_savur  -> savur Toprak'a gecti
+
+     Ikisi tamamen gereksizdi (ayni yetenek iki esyada), diger
+     ikisinin yetenekleri tasindi. Envanterdeki esya sayisi
+     11'den 7'ye indi, kaybolan yetenek YOK.                    */
+  ["pa:kol_ucus",   "ucus"]
 ];
 
 for (const satir of KOL_ESYALARI) {

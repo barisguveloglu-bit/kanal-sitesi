@@ -5,20 +5,8 @@
     "kol_toprak": {
       "textures": "textures/item/kol_toprak"
     },
-    "kol_halka": {
-      "textures": "textures/item/kol_halka"
-    },
-    "kol_simsek": {
-      "textures": "textures/item/kol_simsek"
-    },
-    "kol_savur": {
-      "textures": "textures/item/kol_savur"
-    },
     "kol_ucus": {
       "textures": "textures/item/kol_ucus"
-    },
-    "kol_ors": {
-      "textures": "textures/item/kol_ors"
     },
     "kol_buz": {
       "textures": "textures/item/kol_buz"

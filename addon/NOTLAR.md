@@ -3735,6 +3735,59 @@ dosyadan geldiği için yuva seçimi yanlış olsa ikisi de aynı kolu gösterir
 
 ---
 
+## v4.46 — Dört kol daha gitti: 11 → 7
+
+Gerekçe kullanıcıdan ve **referans moddan** geldi:
+
+> "Şimşek kolu diye bir şey yok zaten, o tamamen Toprak Kol'un güçlerine
+> ait; aynı şekilde Yıldırım Halkası, savurma, bir de örs — bunlar ayrı
+> kollar değil, Toprak Kol'un gücünde görebiliyoruz."
+
+| kaldırılan | ne oldu |
+|---|---|
+| `pa:kol_simsek` | `yon_simsegi` **zaten** Toprak Kol'daydı — tam kopya |
+| `pa:kol_ors` | `ors` **zaten** Toprak Kol'daydı — tam kopya |
+| `pa:kol_halka` | `yildirim_halkasi` + `alan_simsegi` Toprak'a geçti |
+| `pa:kol_savur` | `savur` Toprak'a geçti |
+
+**İkisi tamamen gereksizmiş** — aynı yetenek iki ayrı eşyada duruyordu.
+Kaybolan yetenek yok; Toprak Kol artık 12 yetenek taşıyor:
+
+```
+toprak topu · yön şimşeği · yıldırım halkası · alan şimşeği · savurma ·
+örs · toprak uçuş · toprak duvar · meteor · güçlü TNT · kalp ekle/sıfırla
+```
+
+Silme sırasında bu sefer **glob kullanılmadı** — v4.33'te
+`find -name "*kol_top*"` `kol_toprak` dosyalarını da silmişti. Dosya adları
+tek tek yazıldı.
+
+### Beş test dosyası kol dizilimine bağlıydı
+
+Bu tur asıl iş buydu. `dave.mjs`, `dort.mjs`, `menu.mjs`, `ciftel.mjs` ve
+`kol2.mjs` "şu kolu eline al, zıpla" diyordu — yani **yeteneği kol
+üzerinden** tetikliyorlardı. Kol kalkınca testler yanlış yeteneği ölçmeye
+başladı (yetenek çalışıyor, test başka yere bakıyor).
+
+Üçü artık yeteneği **doğrudan kimliğiyle** çalıştırıyor:
+
+```js
+const isler = [].concat(yetenekAl("ors").olustur(o) || []);
+// merkezi döngüyü taklit et: bütçeSıfırla + çalış + bitir
+```
+
+`dave.mjs`'te iki bölüm iş **ortasında** dünyayı değiştiriyordu (hedef
+kaçıyor, hedef ölüyor); onlar için `isBaslat` / `isSur` ayrıldı.
+
+Diğer ikisinde gözlenen şey değişti: kaldırılan Örs Kolu yerine Uçuş Kolu
+kullanılıyor, o blok yazmadığı için "kaç örs düştü" yerine "levitation
+efekti verildi mi" bakılıyor.
+
+Ders: **testi yeteneğe bağla, eşyaya değil.** Eşya düzeni bu depoda üç kez
+değişti, yetenekler yerinde durdu.
+
+---
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:
@@ -3749,8 +3802,8 @@ Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:
    optimizasyonuyla çözülmüyor — sayı/oynanış kararı gerekiyor.
 6. **Kalan yetenekler.** Mermi varlığı (`pa:ucur123_bullet` benzeri),
    `@minecraft/server-ui` seçim menüsü, yetenek başına ayrı bekleme süresi.
-7. **Kol dokuları.** 11 kolun **2'si** gerçek çizim (Toprak ve Buz Kol);
-   kalan 9'u hâlâ üretilmiş yer tutucu — rengi farklı ama çizim değil.
+7. **Kol dokuları.** 7 kolun **2'si** gerçek çizim (Toprak ve Buz Kol);
+   kalan 5'i hâlâ üretilmiş yer tutucu — rengi farklı ama çizim değil.
    Yenisini eklemek: dosyayı gönder, `kol_uret.py:KOL_SKIN` tablosuna bir
    satır ekle, üreteci çalıştır.
 8. **Oyunda denenmedi.** Attachable'ın gerçekten doğru çizildiği ve
