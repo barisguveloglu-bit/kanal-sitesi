@@ -1,12 +1,12 @@
 {
   "format_version": 2,
   "header": {
-    "name": "Simsek TNT ve Toprak Topu v4.55",
+    "name": "Simsek TNT ve Toprak Topu v4.56",
     "description": "36 yetenek, 6 kol, 6 guc iksiri, 30 bota kadar bot (25 kalp, 7 kalp vurus) + ILKEL BESLI: Okazor (lider), Miskel, Kajaros, Raxxan, El-Harkos -- her birinin kendi skini, rutbesi ve patron gucleri var. Tek tek cagrilirlar. Toprak Kol 12 yetenek tasiyor: kola DOKUN, menuden sec, calissin.",
     "uuid": "43a967b7-88e7-4607-a7b1-4ed1394cecb9",
     "version": [
       4,
-      55,
+      56,
       0
     ],
     "min_engine_version": [
@@ -21,7 +21,7 @@
       "uuid": "2f5eed9b-3416-4ab7-b01a-d6174c6f969d",
       "version": [
         4,
-        55,
+        56,
         0
       ]
     },
@@ -32,7 +32,7 @@
       "entry": "scripts/main.js",
       "version": [
         4,
-        55,
+        56,
         0
       ]
     }

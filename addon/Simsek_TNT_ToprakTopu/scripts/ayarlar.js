@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.55";
+export const SURUM = "v4.56";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -1486,21 +1486,30 @@ export const ILKEL_BESLI = new Map([
     ad: "İlkel Zihin Bükücü Raxxan",
     kimlik: "pa:raxxan",
     rutbe: 4, unvan: "Gölge Ajanı",
-    /* ---- 1,5 KAT GUCLENDIRILDI (v4.55) ----
+    /* ---- GUCLENDIRILDI (v4.55, v4.56'da ayarlandi) ----
        Kullanicinin tespiti: "El-Harkos en alt rutbe ama
        Raxxan'dan daha guclu." Dogruydu -- Harkos 2600 can
        tasirken Golge Ajani 2000'de kalmisti, yani rutbe 4,
        rutbe 5'in altindaydi.
 
-       Cozum de kullanicinin: hepsini 1,5 ile carp.
-         can    2000 -> 3000   (1500 kalp)
-         hasar    30 ->   45   (22,5 kalp)
-         ani iyilesme 200 -> 300 (150 kalp)
+       Cozum de kullanicinin: carpani uygula.
+       v4.55'te 1,5 idi; kullanici "bir tik dusur ama cok da
+       dusurme" deyince 1,4'e cekildi (v4.56).
+
+         can    2000 -> 2800   (1400 kalp)
+         hasar    30 ->   42   (21 kalp)
+         ani iyilesme 200 -> 280 (140 kalp)
+
+       DIKKAT -- TABAN 2600'DUR, DAHA ASAGI INMEZ. Golge
+       Ciragi El-Harkos 2600 can tasiyor; Raxxan onun ustunde
+       kalmak zorunda, sebebi zaten bu degisiklik. 1,3 (2600)
+       esitlik olurdu, altisi geriye donus.
 
        IHTIMALLER CARPILMADI (gizlenme %15, ani iyilesme %10):
-       onlar guc degil SIKLIK. 1,5 ile carpmak yetenegin
-       karakterini degistirirdi, sayisini degil.              */
-    can: 3000, hasar: 45,
+       onlar guc degil SIKLIK. Carpmak yetenegin karakterini
+       degistirirdi, sayisini degil. Ayni sebeple aura menzili
+       (30 blok) ve gizlenme suresi (6 sn) de duruyor.        */
+    can: 2800, hasar: 42,
     /* Golge Ajani: ekibin en az canlisi, hayatta kalmasi
        goze gorunmemekten geciyor. Hiz II ile kacip
        konumlaniyor, Gece Gorusu ile karanlikta calisiyor.
@@ -1513,7 +1522,7 @@ export const ILKEL_BESLI = new Map([
     gizlenme: { sans: 0.15, sure: 120 },
     /* "Kendini tek seferde 100 HP iyilestirme sansi"
        100 KALP = 200 HP (v4.41).                              */
-    ansizinIyilesme: { sans: 0.1, miktar: 300 }
+    ansizinIyilesme: { sans: 0.1, miktar: 280 }
   }],
   ["okazor", {
     ad: "İlkel Savaşçı Okazor",
