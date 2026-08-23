@@ -1198,6 +1198,242 @@ TUTUS_ANIM = {
 
 
 # ------------------------------------------------------------------ png
+# ============================================================
+# DISMONT TASI ve MEZAR TASI  (v4.50) -- paketin ILK bloklari
+#
+# Bugune kadar bu pakette hic ozel BLOK yoktu, sadece esya ve
+# varlik vardi. Blok baska bir kayit yolu: blocks/ (BP),
+# terrain_texture.json + blocks.json (RP) ve cevher icin
+# ganimet tablosu. Dordu birden olmadan blok ya gorunmez ya
+# mor-siyah cikar ya da kirinca hicbir sey dusurmez.
+#
+# format_version 1.21.0 secildi: kararli blok bicimi. v3.6'da
+# esyalarda 1.16.100 kullanilmis ve "Holiday Creator Features"
+# deneysel ayarina bagimli cikmisti; o hata tekrarlanmiyor.
+DISMONT_ESYA = "dismont"
+DISMONT_ESYA_TR = "Dismont Taşı"
+DISMONT_CEVHER = "dismont_cevheri"
+DISMONT_CEVHER_TR = "Dismont Cevheri"
+MEZAR_BLOK = "mezar_tasi"
+MEZAR_BLOK_TR = "Mezar Taşı"
+
+# Cevherin bulundugu derinlik. Elmasla ayni sevide ama cok daha
+# seyrek: "elmas gibi ama bulmasi asiri zor" (kullanici).
+DISMONT_Y_ALT = -64
+DISMONT_Y_UST = -48
+DISMONT_OBEK = 2          # bir damarda kac blok (elmas 4-8)
+DISMONT_DENEME = 1        # parca basina kac damar denenir
+
+
+def dismont_cevher_blogu():
+    """Tastaki cevher. Sadece demir kazma ve ustu kirabiliyor --
+    elmas seviyesinde bir maden hissi icin."""
+    return {
+        "format_version": "1.21.0",
+        "minecraft:block": {
+            "description": {
+                "identifier": "pa:" + DISMONT_CEVHER,
+                "menu_category": {"category": "nature"},
+            },
+            "components": {
+                "minecraft:material_instances": {
+                    "*": {"texture": DISMONT_CEVHER, "render_method": "opaque"}
+                },
+                "minecraft:destructible_by_mining": {"seconds_to_destroy": 4.5},
+                "minecraft:destructible_by_explosion": {"explosion_resistance": 15},
+                "minecraft:map_color": "#2b1b3a",
+                "minecraft:light_emission": 2,
+                "minecraft:loot": "loot_tables/blocks/%s.json" % DISMONT_CEVHER,
+            },
+        },
+    }
+
+
+def mezar_tasi_blogu():
+    """El-Harkos'un mezarinin duvari.
+
+    KIRILABILIR olmasi SART: kurtarma yolu "10 dismont ile
+    mezara kazmak" ve o yol playerBreakBlock ile calisiyor.
+    Kirilmaz bir blok tutsagi sonsuza kadar iceride birakirdi --
+    referans modlarin caresiz kalici etkisinin ta kendisi.
+
+    Ama kolay da degil: tasi olmayan biri kirdiginda script
+    blogu geri koyuyor (asa.js), yani sure kaybi yasiyor."""
+    return {
+        "format_version": "1.21.0",
+        "minecraft:block": {
+            "description": {
+                "identifier": "pa:" + MEZAR_BLOK,
+                "menu_category": {"category": "construction"},
+            },
+            "components": {
+                "minecraft:material_instances": {
+                    "*": {"texture": MEZAR_BLOK, "render_method": "opaque"}
+                },
+                "minecraft:destructible_by_mining": {"seconds_to_destroy": 3},
+                # Patlamaya dayanikli: TNT ile mezar acilmasin,
+                # anahtar dismont tasi olsun.
+                "minecraft:destructible_by_explosion": {"explosion_resistance": 1200},
+                "minecraft:map_color": "#141018",
+            },
+        },
+    }
+
+
+def dismont_esyasi():
+    return {
+        "format_version": "1.21.0",
+        "minecraft:item": {
+            "description": {
+                "identifier": "pa:" + DISMONT_ESYA,
+                "menu_category": {"category": "items"},
+            },
+            "components": {
+                "minecraft:icon": {"texture": DISMONT_ESYA},
+                "minecraft:display_name": {"value": "Dismont Tasi"},
+                "minecraft:max_stack_size": 64,
+            },
+        },
+    }
+
+
+def dismont_ganimeti():
+    """Cevher kirilinca 1 dismont tasi dusuyor.
+
+    Ganimet tablosu OLMADAN blok kendini dusuruyor (yani
+    cevheri) -- o zaman "10 tane topla" mekanigi anlamsizlasir
+    cunku blok yeniden koyulup kirilabilirdi."""
+    return {
+        "pools": [{
+            "rolls": 1,
+            "entries": [{
+                "type": "item",
+                "name": "pa:" + DISMONT_ESYA,
+                "weight": 1,
+            }],
+        }]
+    }
+
+
+def dismont_ozelligi():
+    """Dunyada cevher olusumu (feature)."""
+    return {
+        "format_version": "1.21.0",
+        "minecraft:ore_feature": {
+            "description": {"identifier": "pa:dismont_ore_feature"},
+            "count": DISMONT_OBEK,
+            "replace_rules": [{
+                "places_block": "pa:" + DISMONT_CEVHER,
+                "may_replace": [
+                    {"name": "minecraft:stone"},
+                    {"name": "minecraft:deepslate"},
+                    {"name": "minecraft:tuff"},
+                ],
+            }],
+        },
+    }
+
+
+def dismont_kurali():
+    """Ozelligi dunya uretimine BAGLAYAN kural.
+
+    DIKKAT -- bu sadece YENI URETILEN parcalarda calisiyor.
+    Zaten gezdigin bolgede dismont cikmaz; uzaga gitmek ya da
+    yeni dunya acmak gerekiyor. Bedrock'ta bunun caresi yok,
+    komutla da sonradan eklenemiyor."""
+    return {
+        "format_version": "1.21.0",
+        "minecraft:feature_rules": {
+            "description": {
+                "identifier": "pa:dismont_ore_rule",
+                "places_feature": "pa:dismont_ore_feature",
+            },
+            "conditions": {
+                "placement_pass": "underground_pass",
+                "minecraft:biome_filter": [
+                    {"test": "has_biome_tag", "operator": "==", "value": "overworld"}
+                ],
+            },
+            "distribution": {
+                "iterations": DISMONT_DENEME,
+                "scatter_chance": 18,          # yuzde: asiri seyrek
+                "x": {"distribution": "uniform",
+                      "extent": [0, 16]},
+                "z": {"distribution": "uniform",
+                      "extent": [0, 16]},
+                "y": {"distribution": "uniform",
+                      "extent": [DISMONT_Y_ALT, DISMONT_Y_UST]},
+            },
+        },
+    }
+
+
+def dismont_cevher_dokusu():
+    """Koyu tas + mor kristal benekleri. YER TUTUCU: kullanici
+    kendi dokusunu gonderirse uzerine yazilir (kollarda oldugu
+    gibi)."""
+    tas = (58, 54, 66)
+    px = {}
+    for x in range(16):
+        for y in range(16):
+            k = 0.82 + ((x * 7 + y * 13) % 5) * 0.045
+            px[(x, y)] = golge(tas, k) + (255,)
+    # Kristal benekleri: mor, parlak cekirdek
+    benek = [(3, 4), (4, 3), (4, 4), (5, 5), (10, 9), (11, 10),
+             (10, 10), (11, 11), (7, 12), (8, 12), (12, 4), (11, 4)]
+    for (bx, by) in benek:
+        px[(bx, by)] = (146, 76, 214, 255)
+    for (bx, by) in [(4, 4), (11, 10), (8, 12)]:
+        px[(bx, by)] = (206, 158, 255, 255)
+    return px
+
+
+def mezar_tasi_dokusu():
+    """Neredeyse siyah, catlakli tas. Asa dokusunun rengiyle
+    ayni aileden (kullanicinin cizdigi asa (8,10,15))."""
+    ana = (26, 24, 32)
+    px = {}
+    for x in range(16):
+        for y in range(16):
+            k = 0.85 + ((x * 5 + y * 11) % 4) * 0.05
+            px[(x, y)] = golge(ana, k) + (255,)
+    for (cx, cy) in [(2, 1), (2, 2), (3, 3), (3, 4), (4, 5), (9, 2), (9, 3),
+                     (10, 4), (10, 5), (11, 6), (5, 10), (6, 11), (6, 12),
+                     (13, 9), (13, 10), (12, 11)]:
+        px[(cx, cy)] = (10, 9, 14, 255)
+    return px
+
+
+def dismont_esya_dokusu():
+    """Kesilmis kristal: mor, ortasi parlak."""
+    px = {}
+    sekil = [
+        "......xx........",
+        ".....xoox.......",
+        "....xoooox......",
+        "...xooOOoox.....",
+        "..xooOOOOoox....",
+        "..xoOOOOOOox....",
+        "...xoOOOOox.....",
+        "....xoOOox......",
+        "....xooOox......",
+        ".....xoox.......",
+        ".....xoox.......",
+        "......xx........",
+        "................",
+        "................",
+        "................",
+        "................",
+    ]
+    renk = {"x": (58, 26, 92, 255), "o": (128, 62, 194, 255),
+            "O": (196, 148, 255, 255)}
+    for y, satir in enumerate(sekil):
+        for x, c in enumerate(satir):
+            if c in renk:
+                px[(x, y)] = renk[c]
+    return px
+
+
 def png_yaz(yol, en, boy, pikseller):
     """pikseller: (x, y) -> (r, g, b, a) sozlugu. Yoksa saydam."""
     os.makedirs(os.path.dirname(yol), exist_ok=True)
@@ -1575,6 +1811,64 @@ def main():
             liste.append("item.pa:%s.name=%s" % (skimlik, sad))
             liste.append("item.pa:%s=%s" % (skimlik, sad))
 
+    # ---- Dismont tasi ve mezar tasi (v4.50) ----
+    # Paketin ILK bloklari. Dort ayri kayit gerekiyor ve biri
+    # eksikse blok ya gorunmez ya mor-siyah cikar:
+    #   1) blocks/*.json           (BP) -- blogun kendisi
+    #   2) blocks.json             (RP) -- hangi dokuyu kullanacagi
+    #   3) terrain_texture.json    (RP) -- doku adi -> dosya yolu
+    #   4) loot_tables/            (BP) -- kirinca ne dusecegi
+    yaz_json(os.path.join(BP, "blocks", DISMONT_CEVHER + ".json"),
+             dismont_cevher_blogu())
+    yaz_json(os.path.join(BP, "blocks", MEZAR_BLOK + ".json"),
+             mezar_tasi_blogu())
+    yaz_json(os.path.join(BP, "items", DISMONT_ESYA + ".json"), dismont_esyasi())
+    yaz_json(os.path.join(BP, "loot_tables/blocks", DISMONT_CEVHER + ".json"),
+             dismont_ganimeti())
+    yaz_json(os.path.join(BP, "features/dismont_ore_feature.json"),
+             dismont_ozelligi())
+    yaz_json(os.path.join(BP, "feature_rules/dismont_ore_rule.json"),
+             dismont_kurali())
+
+    png_yaz(os.path.join(RP, "textures/blocks", DISMONT_CEVHER + ".png"),
+            16, 16, dismont_cevher_dokusu())
+    png_yaz(os.path.join(RP, "textures/blocks", MEZAR_BLOK + ".png"),
+            16, 16, mezar_tasi_dokusu())
+    png_yaz(os.path.join(RP, "textures/item", DISMONT_ESYA + ".png"),
+            16, 16, dismont_esya_dokusu())
+    dokular[DISMONT_ESYA] = {"textures": "textures/item/" + DISMONT_ESYA}
+
+    yaz_json(os.path.join(RP, "textures/terrain_texture.json"), {
+        "resource_pack_name": "simsek_kol",
+        "texture_name": "atlas.terrain",
+        "padding": 8,
+        "num_mip_levels": 4,
+        "texture_data": {
+            DISMONT_CEVHER: {"textures": "textures/blocks/" + DISMONT_CEVHER},
+            MEZAR_BLOK: {"textures": "textures/blocks/" + MEZAR_BLOK},
+        },
+    })
+    # blocks.json: blogun hangi terrain dokusunu kullandigi.
+    # material_instances zaten doku adini soyluyor ama bu dosya
+    # olmadan bazi surumlerde blok mor-siyah cikiyor -- ikisi
+    # birlikte yazilinca iki yolda da dogru.
+    yaz_json(os.path.join(RP, "blocks.json"), {
+        "format_version": [1, 1, 0],
+        "pa:" + DISMONT_CEVHER: {
+            "textures": DISMONT_CEVHER, "sound": "stone"
+        },
+        "pa:" + MEZAR_BLOK: {
+            "textures": MEZAR_BLOK, "sound": "stone"
+        },
+    })
+
+    for liste, adlar in ((en_us, (DISMONT_ESYA_TR, DISMONT_CEVHER_TR, MEZAR_BLOK_TR)),
+                         (tr_tr, (DISMONT_ESYA_TR, DISMONT_CEVHER_TR, MEZAR_BLOK_TR))):
+        liste.append("item.pa:%s.name=%s" % (DISMONT_ESYA, adlar[0]))
+        liste.append("item.pa:%s=%s" % (DISMONT_ESYA, adlar[0]))
+        liste.append("tile.pa:%s.name=%s" % (DISMONT_CEVHER, adlar[1]))
+        liste.append("tile.pa:%s.name=%s" % (MEZAR_BLOK, adlar[2]))
+
     yaz_json(os.path.join(RP, "models/entity/simsek_bot.geo.json"), BOT_GEOMETRI)
     yaz_json(os.path.join(RP, "animations/simsek_bot.animation.json"), BOT_ANIM)
     # Normal botun skini de kullanicidan geliyor (v4.43).
@@ -1649,6 +1943,8 @@ def main():
     # kendine giriyor, elle eklemek gerekmiyor.
     for _skimlik, _sad, _skaynak in ILKEL_SILAHLAR.values():
         beklenen.add(_skimlik)
+    # Dismont tasi da hicbir listede degil (v4.50)
+    beklenen.add(DISMONT_ESYA)
     for satir in KOLLAR:
         beklenen.add(satir[0])
     for kimlik, _ad, _sivi, goz, _gozRenk in IKSIRLER:

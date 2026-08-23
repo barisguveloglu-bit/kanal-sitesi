@@ -82,6 +82,9 @@
     },
     "ilkel_asa": {
       "textures": "textures/item/ilkel_asa"
+    },
+    "dismont": {
+      "textures": "textures/item/dismont"
     }
   }
 }

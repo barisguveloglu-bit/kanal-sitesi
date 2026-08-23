@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.49";
+export const SURUM = "v4.50";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -1259,6 +1259,12 @@ export const DERIN_HEDEFLER = new Map([
   ["zumrut",   { ad: "zumrut",   esya: "minecraft:emerald",     zorluk: 8,   y: 100 }],
   ["netherit", { ad: "netherit", esya: "minecraft:ancient_debris", zorluk: 10, y: 15,
                  boyut: "minecraft:nether" }],
+  /* Dismont: "elmas gibi ama bulmasi asiri zor" (v4.50).
+     Zorlugu netheritin ustunde -- yani derin tarama bunu
+     istedigin an tavan sureye (DERIN_EN_UZUN) dayaniyor.
+     Bilincli: mezar anahtarinin kolay bulunmasi zinciri
+     anlamsiz kilardi.                                        */
+  ["dismont",  { ad: "dismont taşı", esya: "pa:dismont",     zorluk: 14,  y: -59 }],
   /* Hedef soylenmezse: ne cikarsa. Sadece sure hesabi icin
      zorlugu var, sayimda BUTUN cevherler sayilir.              */
   ["maden",    { ad: "maden",    esya: undefined,               zorluk: 1.5, y: -16 }]
@@ -1267,6 +1273,7 @@ export const DERIN_HEDEFLER = new Map([
 /* Kullanicinin yazabilecegi butun yazimlar -> DERIN_HEDEFLER
    anahtari. Sadelestirilmis (kucuk harf, Turkce harfsiz) hali.  */
 export const DERIN_ADLAR = new Map([
+  ["dismont", "dismont"], ["dismonttasi", "dismont"], ["dismont tasi", "dismont"],
   ["odun", "odun"], ["agac", "odun"], ["kutuk", "odun"], ["tahta", "odun"],
   ["komur", "komur"], ["coal", "komur"],
   ["bakir", "bakir"], ["copper", "bakir"],
@@ -1466,6 +1473,10 @@ export const ILKEL_BESLI = new Map([
        onu tamamliyor. Ustadindan (Raxxan) bir kademe yavas --
        rutbe farki sayilarda da gorunsun.                     */
     pasif: [["speed", 0, 0], ["jump_boost", 0, 2]],
+    /* Asa zinciri (v4.50). Sayilar SERSEM ve MEZAR ayarlarindan
+       geliyor; burada sadece "bu uyede var" yaziyor. Baska bir
+       uyeye vermek istenirse tek satir.                       */
+    asa: true,
     /* "Pasif olarak zamanla canini iyilestirir (tik basina
        0,5 HP)". 0,5 KALP = 1 HP (v4.41). Tarama 20 tick'te bir
        donuyor, yani her taramada 20 HP = 10 kalp.             */
@@ -1504,6 +1515,77 @@ export const ILKEL_BESLI = new Map([
     seri: { adet: 3, pencere: 80 }
   }]
 ]);
+
+/* ============================================================
+   EL-HARKOS'UN ASASI  (v4.50)
+
+   Kullanici modu bulamadi ama yetenegi adim adim anlatti:
+
+     "Elinde tuttugu asayi el hareketi yapar gibi havaya
+      kaldiriyor. 2-3 kere vurdugunda karsidaki kisi bir anda
+      yere duser, yerde kalir, hareket edemez ama kafasini
+      cevirebilir. Yerdeyken asayi bir kez daha kaldirdiginda
+      bir mezar gibi bir yapi acilir, o karakteri alir.
+      Kurtulmak icin dismont tasi gerekiyor, 10 tane."
+
+   Uc asamali bir zincir: VUR -> SERSEMLET -> MEZAR -> (kurtarma)
+
+   ---- "HAREKET EDEMEZ AMA KAFASINI CEVIREBILIR" ----
+   Bu cumle tam olarak bizim dondur yetenegimizin ayari:
+     inputpermission movement disabled   (hareket kilitli)
+     inputpermission camera  enabled     (kamera serbest)
+   v4.33'te uc referans moddan alinip duzeltilmisti; ayni
+   mekanizma burada yeniden kullaniliyor, ikinci kopya yok.
+
+   ---- NEDEN YENI BIR KOL YOK ----
+   Kullanicinin kurali: "her seyi kol yapma, kol israfini
+   onle." Bu zincir El-Harkos'un YETENEGI, senin bir kolun
+   degil -- tetigi onun vurusu. Kol istenirse tek satirla
+   kollar.js'e eklenir.                                        */
+
+/* Kac vurusta yere serilir. Kullanici "2 kere veya 3 kere"
+   dedi; ortasi degil ALTI aliniyor -- 3'e cikarsa "vurdum
+   vurdum olmadi" hissi verir, 2 ise cok cabuk. 3 secildi
+   cunku Okazor'un serisi de 3 ve ayni his zaten kurulu.       */
+export const SERSEM_VURUS = 3;
+
+/* Vuruslarin ARALIKSIZ olmasi lazim: pencere disinda kalanlar
+   dusuyor. Okazor'un serisiyle ayni kalip.                    */
+export const SERSEM_PENCERE = 80;      // 4 saniye
+
+/* Yerde ne kadar kalir. Mezar acilmazsa bu sure sonunda
+   kendiliginden kalkiyor -- referans modlarin en can sikici
+   huyu suresiz etkiydi, ona donulmuyor.                       */
+export const SERSEM_SURE = 200;        // 10 saniye
+
+/* Yerde yatiyor hissi. Girdi kilidi oyuncuyu tutuyor ama
+   MOBLARDA inputpermission yok; onlari yavaslik tutuyor.      */
+export const SERSEM_YAVASLIK = 255;
+export const SERSEM_KOR = false;       // gorsun: "kafasini cevirebilir"
+
+/* ---------------- MEZAR ----------------
+   Sersemlemis hedefe bir vurus daha gelirse mezar aciliyor.
+   Yani zincir: 3 vurus -> yere duser -> 4. vurus -> mezar.   */
+export const MEZAR_ACIK = true;
+export const MEZAR_YARICAP = 1;        // ic bosluk (3x3 taban)
+export const MEZAR_YUKSEK = 3;
+export const MEZAR_BLOK = "pa:mezar_tasi";
+
+/* Mezar SURESIZ: kendiliginden acilmiyor, anahtar gerekiyor.
+   Hapis kafesiyle ayni felsefe. Dunya ozelligine kaydediliyor,
+   dunyadan cikip girsen de duruyor.                           */
+export const MEZAR_KAYIT_ANAHTAR = "simsek:mezarlar";
+export const MEZAR_TAVAN = 8;          // ayni anda kac mezar
+
+/* ---------------- DISMONT TASI ----------------
+   "Elmas gibi ama bulmasi asiri zor bir maden, adi dismont
+   tasi. 10 tane ile mezara kazarsam aciliyor."
+
+   Mezari acmak icin envanterinde bu kadar tas GEREKIYOR ve
+   acinca harcaniyor.                                          */
+export const DISMONT_ESYA = "pa:dismont";
+export const DISMONT_CEVHER = "pa:dismont_cevheri";
+export const MEZAR_ANAHTAR_ADET = 10;
 
 /* ============================================================
    SINIF OZELLIKLERI ve BALTA  (v4.48)
@@ -1763,6 +1845,10 @@ export const BOT_ODUN_BLOKLARI = new Set([
    dogrudan kendini, lapis ve redstone birden fazla adet.
    Deepslate varyantlari da ayni seyi veriyor.                  */
 export const BOT_MADEN_BLOKLARI = new Map([
+  /* Dismont cevheri (v4.50). Kendi blogumuz, o yuzden tek
+     varyanti var -- vanilla cevherlerin deepslate ikizi
+     olmasinin sebebi dunya uretimi, bizimki tek blok.        */
+  ["pa:dismont_cevheri", "pa:dismont"],
   ["minecraft:coal_ore", "minecraft:coal"],
   ["minecraft:deepslate_coal_ore", "minecraft:coal"],
   ["minecraft:iron_ore", "minecraft:raw_iron"],

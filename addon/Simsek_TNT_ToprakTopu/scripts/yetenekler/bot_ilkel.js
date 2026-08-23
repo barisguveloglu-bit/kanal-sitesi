@@ -6,13 +6,14 @@ import {
 import {
   botCagir, botVarliklari, botSayisi, botunSahibi, ilkelKancasi
 } from "./_bot_defteri.js";
+import { asaVurusu, asaUnut } from "./asa.js";
 import {
   ILKEL_ACIK, ILKEL_TAVAN, ILKEL_BESLI, ILKEL_ADLAR, ILKEL_OZELLIK,
   ILKEL_AURA_OYUNCU, ILKEL_KORUMA, BOT_OLAY_SAVAS_AC,
   BOT_TAVAN, BOT_TARAMA, botTuruMu,
   ILKEL_OK_HASARI, ILKEL_OK_TABAN, MOBA_ISLEMEYEN_EFEKTLER,
   ILKEL_PASIF_ACIK, ILKEL_PASIF_SURE, ILKEL_PASIF_PARCACIK,
-  ilkelSilahi, ILKEL_SILAH_TAZELE
+  ilkelSilahi, ILKEL_SILAH_TAZELE, SERSEM_VURUS
 } from "../ayarlar.js";
 
 /* ============================================================
@@ -350,6 +351,17 @@ function botVurdu(bot, kurban, simdikiTick) {
   if (!anahtar) return;
   const t = tanim(anahtar);
 
+  /* El-Harkos'un asasi (v4.50): 3 vurus -> yere serer,
+     yerdekine bir vurus daha -> mezar. Zincirin tamami
+     asa.js'te; burada sadece tetigi var.                     */
+  if (t.asa) {
+    try {
+      asaVurusu(bot, kurban, simdikiTick);
+    } catch (e) {
+      hataYaz("ilkel.asa", e);
+    }
+  }
+
   // Kajaros: sabit efekt listesi
   if (t.vurusEfekt) efektVer(kurban, t.vurusEfekt);
 
@@ -584,6 +596,7 @@ ilkelKancasi(bakim);
 /* Bot geri gonderilince serisi de unutulsun. */
 export function ilkelUnut(botId) {
   seriler.delete(botId);
+  asaUnut(botId);
 }
 
 /* ---------------- Yetenek kaydi ----------------
@@ -701,6 +714,7 @@ export function ozetle(anahtar) {
   if (t.aura) p.push(t.aura.menzil + " blokta dusmani bulandirir");
   if (t.gizlenme) p.push("ara ara gorunmez olur");
   if (t.seri) p.push(t.seri.adet + " ust uste vurursa cani dolar");
+  if (t.asa) p.push(SERSEM_VURUS + " vuruşta yere serer, sonra mezara gömer");
   /* Sinif ozellikleri (v4.48). Adlari ayardan degil buradan
      okunuyor cunku ayarda oyunun efekt kimligi var; menude
      Turkcesi lazim. Listede olmayan bir efekt eklenirse

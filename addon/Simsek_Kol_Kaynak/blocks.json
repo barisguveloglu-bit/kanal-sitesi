@@ -1,0 +1,15 @@
+{
+  "format_version": [
+    1,
+    1,
+    0
+  ],
+  "pa:dismont_cevheri": {
+    "textures": "dismont_cevheri",
+    "sound": "stone"
+  },
+  "pa:mezar_tasi": {
+    "textures": "mezar_tasi",
+    "sound": "stone"
+  }
+}

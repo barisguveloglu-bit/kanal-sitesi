@@ -20,6 +20,7 @@ import {
 } from "./butce.js";
 
 import { menuAc, menuKullanilabilir } from "./menu.js";
+import { asaTara } from "./yetenekler/asa.js";
 
 /* Sohbet komutlari ("can 10", "lazer"...). Bu dosya main.js'i
    import etmiyor; komutlarin calistiracagi fonksiyonlar kanca
@@ -75,6 +76,7 @@ import "./yetenekler/bot_geri.js";
 import "./yetenekler/bot_teslim.js";
 import "./yetenekler/bot_is.js";
 import "./yetenekler/bot_derin.js";
+import "./yetenekler/asa.js";
 import "./yetenekler/bot_ilkel.js";
 import "./yetenekler/bot_guc.js";
 
@@ -222,6 +224,14 @@ system.runInterval(() => {
       } catch (e) {
         hataYaz("botTara", e);
       }
+    }
+    /* El-Harkos'un sersemlettikleri (v4.50). Suresi dolani
+       serbest birakiyor -- kilit hep cift, suresiz etki yok.
+       Defteri bosken hicbir sey yapmiyor.                     */
+    try {
+      asaTara();
+    } catch (e) {
+      hataYaz("asaTara", e);
     }
   }
 
