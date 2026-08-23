@@ -1217,12 +1217,25 @@ DISMONT_CEVHER_TR = "Dismont Cevheri"
 MEZAR_BLOK = "mezar_tasi"
 MEZAR_BLOK_TR = "Mezar Taşı"
 
-# Cevherin bulundugu derinlik. Elmasla ayni sevide ama cok daha
-# seyrek: "elmas gibi ama bulmasi asiri zor" (kullanici).
+# ---- DENGE SAYILARI: KULLANICININ SECIMI (v4.51) ----
+# Ikisi de tek tek soruldu ve secildi. TAHMIN DEGIL, KARAR --
+# "dengeleyeyim" diye degistirme; degisecekse kullaniciya
+# sorulur. Testler ikisini de kilitliyor.
+#
+#   kirilma  6 sn   = elmas cevherinin IKI KATI
+#   siklik   %8, damar 1 blok  = "efsanevi"
+#
+# %8 ve tek blok ne demek: parca basina 0.08 blok. Mezari bir
+# kez acmak icin gereken 10 tas ~125 parca (yaklasik 2000x2000
+# blokluk alan) demek. Kendin kazarak bulmak neredeyse
+# imkansiz; botun derin taramasi bu yuzden hedef listesine
+# eklendi (ayarlar.js:DERIN_HEDEFLER, zorluk 14).
 DISMONT_Y_ALT = -64
 DISMONT_Y_UST = -48
-DISMONT_OBEK = 2          # bir damarda kac blok (elmas 4-8)
+DISMONT_OBEK = 1          # bir damarda kac blok (elmas 4-8)
 DISMONT_DENEME = 1        # parca basina kac damar denenir
+DISMONT_SANS = 8          # yuzde: parcalarin kacinda cikacak
+DISMONT_KIRILMA = 6.0     # saniye (elmas cevheri 3)
 
 
 def dismont_cevher_blogu():
@@ -1239,7 +1252,9 @@ def dismont_cevher_blogu():
                 "minecraft:material_instances": {
                     "*": {"texture": DISMONT_CEVHER, "render_method": "opaque"}
                 },
-                "minecraft:destructible_by_mining": {"seconds_to_destroy": 4.5},
+                "minecraft:destructible_by_mining": {
+                    "seconds_to_destroy": DISMONT_KIRILMA
+                },
                 "minecraft:destructible_by_explosion": {"explosion_resistance": 15},
                 "minecraft:map_color": "#2b1b3a",
                 "minecraft:light_emission": 2,
@@ -1356,7 +1371,7 @@ def dismont_kurali():
             },
             "distribution": {
                 "iterations": DISMONT_DENEME,
-                "scatter_chance": 18,          # yuzde: asiri seyrek
+                "scatter_chance": DISMONT_SANS,
                 "x": {"distribution": "uniform",
                       "extent": [0, 16]},
                 "z": {"distribution": "uniform",
@@ -1369,22 +1384,81 @@ def dismont_kurali():
 
 
 def dismont_cevher_dokusu():
-    """Koyu tas + mor kristal benekleri. YER TUTUCU: kullanici
-    kendi dokusunu gonderirse uzerine yazilir (kollarda oldugu
-    gibi)."""
-    tas = (58, 54, 66)
+    """Dismont cevheri. Kullanicinin tarifi (v4.51):
+
+      "Elmasa gore daha cok solgun renklerde, siyaha yakin ama
+       tam siyah da degil. Bazi yerlerinde elmas renklerinden
+       sinirlari isiklar olsun. Ele gecirilmis, bozulmus bir
+       maden havasi vermek istedim."
+
+    Tarifin uc parcasi ve karsiliklari:
+
+      "siyaha yakin ama tam siyah degil"
+          taban (34,33,40) -- morumsu koyu gri, mutlak siyah
+          DEGIL. Mutlak siyah oyunda delik gibi gorunur ve
+          etrafindaki tastan ayirt edilmez.
+
+      "elmas renklerinden SINIRLARI isiklar"
+          kristallerin ICI koyu, KENARI elmas rengi. Vanilla
+          elmas (94,219,214); burada soldurulmus hali
+          (122,168,170). Yani elmas orada ama sadece kenarda
+          kalmis -- "ele gecirilmis maden" hissi tam olarak
+          bundan cikiyor.
+
+      "bozulmus havasi"
+          curuk lekeleri: tabandan biraz daha koyu ve yesile
+          calan benekler, duzensiz dagilmis.
+
+    Sekil ASCII olarak yaziliyor cunku 256 pikseli tek tek
+    yazmak okunmaz olurdu; boyle bakinca kristallerin nerede
+    oldugu goz ile gorunuyor ve degistirmesi kolay."""
+    sekil = [
+        "................",
+        "...++...........",
+        "..+oo+......++..",
+        "..+oo*+....+oo+.",
+        "...+oo+....+o*+.",
+        "....++......++..",
+        "................",
+        "......++........",
+        ".....+oo+.......",
+        ".....+o*o+......",
+        "......+oo+......",
+        ".......++.......",
+        "................",
+        "..++............",
+        ".+o*+...........",
+        "..++............",
+    ]
+    # Curuk lekeleri: kristallerin arasina dagilmis, duzensiz.
+    curuk = [(9, 1), (13, 6), (14, 7), (1, 6), (2, 7), (12, 9),
+             (13, 10), (3, 10), (2, 11), (8, 13), (9, 14), (7, 15),
+             (14, 2), (0, 3), (11, 13), (5, 4)]
+
+    TABAN = (34, 33, 40)          # morumsu koyu gri
+    CURUK = (24, 27, 25)          # yesile calan, daha koyu
+    CEKIRDEK = (22, 20, 30)       # kristalin ICI: en koyu
+    KENAR = (122, 168, 170)       # SOLDURULMUS elmas
+    ISIK = (176, 214, 212)        # kenardaki parlak nokta
+
     px = {}
     for x in range(16):
         for y in range(16):
-            k = 0.82 + ((x * 7 + y * 13) % 5) * 0.045
-            px[(x, y)] = golge(tas, k) + (255,)
-    # Kristal benekleri: mor, parlak cekirdek
-    benek = [(3, 4), (4, 3), (4, 4), (5, 5), (10, 9), (11, 10),
-             (10, 10), (11, 11), (7, 12), (8, 12), (12, 4), (11, 4)]
-    for (bx, by) in benek:
-        px[(bx, by)] = (146, 76, 214, 255)
-    for (bx, by) in [(4, 4), (11, 10), (8, 12)]:
-        px[(bx, by)] = (206, 158, 255, 255)
+            # Duzensiz benek: tek bir duz renk plastik gorunuyor
+            k = 0.84 + ((x * 7 + y * 13) % 6) * 0.04
+            px[(x, y)] = golge(TABAN, k) + (255,)
+    for (cx, cy) in curuk:
+        k = 0.9 + ((cx + cy) % 3) * 0.07
+        px[(cx, cy)] = golge(CURUK, k) + (255,)
+    for y, satir in enumerate(sekil):
+        for x, c in enumerate(satir):
+            if c == "o":
+                px[(x, y)] = CEKIRDEK + (255,)
+            elif c == "+":
+                k = 0.88 + ((x + y) % 3) * 0.06
+                px[(x, y)] = golge(KENAR, k) + (255,)
+            elif c == "*":
+                px[(x, y)] = ISIK + (255,)
     return px
 
 
