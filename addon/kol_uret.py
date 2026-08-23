@@ -457,9 +457,22 @@ ILKEL_SKIN_KAYNAK = "/root/.claude/uploads/e51da4d9-22bc-53d5-b9b6-e97d8e6ccf11"
 # tek kubu var ve UV'si (40,16) -- yani vanilla skinin SAG KOL
 # bolgesi. Kullanicinin gonderdigi dosya tam oraya oturdu,
 # donusturmeye gerek kalmadi.
+# Deger: (dosya, yuva). Yuva "sag" ya da "sol".
+#
+# NEDEN YUVA: kullanici bir skin dosyasina IKI AYRI kol
+# ciziyor -- sag kol yuvasina toprak, sol kol yuvasina buz.
+# Bizim kol modelimizin tek kubu var ve hep (40,16)
+# ornekliyor, yani sol yuvadaki kol oraya TASINMALI.
 KOL_SKIN = {
-    "kol_toprak": "5564eeb5-image.png",
+    "kol_toprak": ("fa85d183-image.png", "sag"),
+    "kol_buz":    ("fa85d183-image.png", "sol"),
 }
+
+# Oyuncu skininde kol kutularinin basladigi nokta.
+# Ikisinin IC duzeni ayni (ust, alt, dogu, on, bati, arka),
+# sadece baslangic noktalari farkli -- o yuzden 16x16'lik blogu
+# oldugu gibi tasimak yetiyor.
+KOL_YUVA = {"sag": (40, 16), "sol": (32, 48)}
 
 
 def kol_skin_uygula(kimlik):
@@ -473,26 +486,35 @@ def kol_skin_uygula(kimlik):
     Ikon neden turetiliyor: uretilen ikon duz renkti ve elde
     tutulan kolla alakasi yoktu. Ayni dokudan turetilince
     envanterdeki resim ile eldeki kol AYNI seye benziyor.       """
-    dosya = KOL_SKIN.get(kimlik)
-    if not dosya:
+    kayit = KOL_SKIN.get(kimlik)
+    if not kayit:
         return False
+    dosya, yuva = kayit
     kaynak = os.path.join(ILKEL_SKIN_KAYNAK, dosya)
     if not os.path.exists(kaynak):
         print("UYARI: %s dokusu bulunamadi (%s), uretilen kullaniliyor"
               % (kimlik, kaynak))
         return False
 
-    import shutil
-    shutil.copyfile(kaynak, os.path.join(RP, "textures/entity", kimlik + ".png"))
-
-    # Ikon: PIL varsa turet, yoksa uretilen ikon kalsin
     try:
         from PIL import Image
     except ImportError:
-        return True
+        print("UYARI: PIL yok, %s icin uretilen doku kullaniliyor" % kimlik)
+        return False
+
     skin = Image.open(kaynak).convert("RGBA")
+    kx, ky = KOL_YUVA[yuva]
+
+    # Kol blogunu HEP (40,16)'ya tasi: modelimiz orayi ornekliyor.
+    # Sag yuvadan geliyorsa bu bir kopyalama, sol yuvadan
+    # geliyorsa gercek bir tasima.
+    doku = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
+    doku.alpha_composite(skin.crop((kx, ky, kx + 16, ky + 16)), (40, 16))
+    doku.save(os.path.join(RP, "textures/entity", kimlik + ".png"))
+
+    # Ikon: ayni kolun ON YUZU (tasima sonrasi 44,20 4x12)
     ikon = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
-    ikon.alpha_composite(skin.crop((44, 20, 48, 32)), (6, 2))
+    ikon.alpha_composite(doku.crop((44, 20, 48, 32)), (6, 2))
     ikon.save(os.path.join(RP, "textures/item", kimlik + ".png"))
     return True
 

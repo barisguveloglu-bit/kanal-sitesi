@@ -3696,6 +3696,45 @@ hiçbir test yakalamazdı.
 
 ---
 
+## v4.45 — Bir dosyada iki kol
+
+Kullanıcı ikinci bir doku gönderdi ve içinde **iki ayrı kol** vardı:
+
+| skin yuvası | içerik |
+|---|---|
+| sağ kol `(40,16)` | toprak |
+| sol kol `(32,48)` | **buz** |
+
+(Önceki dosyada iki yuva da toprakmış — buz ilk kez geldi.)
+
+### Yuva taşıma
+
+Kol modelimizin tek küpü var ve hep `(40,16)` örneklıyor. Sol yuvadaki kol
+oraya **taşınmalı**, yoksa oyunda saydam çizilir. `KOL_SKIN` artık
+`(dosya, yuva)` alıyor:
+
+```python
+"kol_toprak": ("fa85d183-image.png", "sag"),
+"kol_buz":    ("fa85d183-image.png", "sol"),
+```
+
+İki yuvanın **iç düzeni aynı** (üst, alt, doğu, ön, batı, arka) — sadece
+başlangıç noktaları farklı. O yüzden 16×16'lık bloğu olduğu gibi taşımak
+yetiyor, yüz yüze eşleme gerekmiyor.
+
+### Test artık pikselleri okuyor
+
+Önceki tur "dosya yer tutucudan büyük mü" diye bakıyordu — zayıf bir
+kontrol. Şimdi `(40,16) 16×16` bölgesinin gerçekten **dolu** olduğu
+sınanıyor (`python3` ile, Node'da PNG çözücü yok). Taşıma atlansaydı bölge
+boş kalır, kol oyunda saydam çizilir ve dosya boyutuna bakan test bunu
+asla yakalayamazdı.
+
+Bir kontrol daha: iki kolun dokusu **birbirinden farklı olmalı**. İkisi tek
+dosyadan geldiği için yuva seçimi yanlış olsa ikisi de aynı kolu gösterirdi.
+
+---
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:
@@ -3710,8 +3749,8 @@ Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:
    optimizasyonuyla çözülmüyor — sayı/oynanış kararı gerekiyor.
 6. **Kalan yetenekler.** Mermi varlığı (`pa:ucur123_bullet` benzeri),
    `@minecraft/server-ui` seçim menüsü, yetenek başına ayrı bekleme süresi.
-7. **Kol dokuları.** 11 kolun **1'i** gerçek çizim (Toprak Kol, v4.44);
-   kalan 10'u hâlâ üretilmiş yer tutucu — rengi farklı ama çizim değil.
+7. **Kol dokuları.** 11 kolun **2'si** gerçek çizim (Toprak ve Buz Kol);
+   kalan 9'u hâlâ üretilmiş yer tutucu — rengi farklı ama çizim değil.
    Yenisini eklemek: dosyayı gönder, `kol_uret.py:KOL_SKIN` tablosuna bir
    satır ekle, üreteci çalıştır.
 8. **Oyunda denenmedi.** Attachable'ın gerçekten doğru çizildiği ve
