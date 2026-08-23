@@ -1222,8 +1222,12 @@ MEZAR_BLOK_TR = "Mezar Taşı"
 # "dengeleyeyim" diye degistirme; degisecekse kullaniciya
 # sorulur. Testler ikisini de kilitliyor.
 #
-#   kirilma  6 sn   = elmas cevherinin IKI KATI
+#   kirilma  15 sn  = elmas cevherinin BES KATI  (v4.53)
 #   siklik   %8, damar 1 blok  = "efsanevi"
+#
+# Kirilma once 6 sn secilmisti; kullanici oynayip 15 istedi.
+# Yani bu sayi iki kez KARARLASTIRILDI, bir kez de gozden
+# gecirildi -- degistirilecekse yine sorulur.
 #
 # %8 ve tek blok ne demek: parca basina 0.08 blok. Mezari bir
 # kez acmak icin gereken 10 tas ~125 parca (yaklasik 2000x2000
@@ -1235,7 +1239,7 @@ DISMONT_Y_UST = -48
 DISMONT_OBEK = 1          # bir damarda kac blok (elmas 4-8)
 DISMONT_DENEME = 1        # parca basina kac damar denenir
 DISMONT_SANS = 8          # yuzde: parcalarin kacinda cikacak
-DISMONT_KIRILMA = 6.0     # saniye (elmas cevheri 3)
+DISMONT_KIRILMA = 15.0    # saniye (elmas cevheri 3)
 
 
 def dismont_cevher_blogu():
