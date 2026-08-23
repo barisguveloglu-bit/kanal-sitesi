@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.48";
+export const SURUM = "v4.49";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -1544,26 +1544,41 @@ export const ILKEL_PASIF_SURE = BOT_TARAMA * 6;
    kaliyor -- onlar bir sey OLDUGUNU haber veriyor.            */
 export const ILKEL_PASIF_PARCACIK = false;
 
-/* ---------------- BALTA ----------------
-   Kullanici elle cizip gonderdi: "bunlar genel olarak ilkel
-   beslinin tamamında olsun". Bes uyenin de ana elinde ayni
-   balta duruyor.
+/* ---------------- SILAHLAR ----------------
+   v4.48: kullanici bir balta cizip gonderdi, "bunlar genel
+          olarak ilkel beslinin tamamında olsun".
+   v4.49: El-Harkos'un asasini gonderdi -- "bu normalde de
+          zaten el-harkos'un elinde bulunan bir esyaydi".
+          Yani silah artik UYEYE OZEL; balta varsayilan.
 
    HASAR TASIMIYOR, bilincli: Bedrock'ta mobun elindeki silah
-   vurusuna eklenir. Balta hasar tasisaydi bes uyenin hasari da
+   vurusuna eklenir. Silah hasar tasisaydi uyelerin hasari da
    sessizce artardi -- o sayilar kullanicinin listesinden geliyor
-   ve testler onlari kilitliyor. Balta bir GORUNUM.
+   ve testler onlari kilitliyor. Silah bir GORUNUM.
 
    Elde tutulmasi iki parcali: varlik JSON'unda equippable +
    geometride "rightItem" kemigi (kol_uret.py), ele koyma
-   burada script tarafinda. Ikisi de olmadan gorunmuyor.       */
-export const ILKEL_BALTA = "pa:ilkel_balta";
+   burada script tarafinda. Ikisi de olmadan gorunmuyor.
+
+   DIKKAT: bu esleme kol_uret.py:ILKEL_SILAH ile AYNI olmali --
+   orada varligin equippable.accepted_items'i, burada ele
+   konulan esya var. Ayrisirlarsa silah ele konulmaz ve hicbir
+   hata gorunmez. ilkel.mjs ikisini karsilastiriyor.           */
+export const ILKEL_SILAH_VARSAYILAN = "pa:ilkel_balta";
+
+export const ILKEL_SILAH = new Map([
+  ["harkos", "pa:ilkel_asa"]
+]);
+
+export function ilkelSilahi(anahtar) {
+  return ILKEL_SILAH.get(anahtar) || ILKEL_SILAH_VARSAYILAN;
+}
 
 /* Her taramada elin bos olup olmadigina bakilsin mi. Dunya
-   yeniden yuklenince ya da balta bir sekilde dusunce kendi
-   kendine geri geliyor. Kapatirsan balta sadece cagirma aninda
+   yeniden yuklenince ya da silah bir sekilde dusunce kendi
+   kendine geri geliyor. Kapatirsan silah sadece cagirma aninda
    veriliyor.                                                  */
-export const ILKEL_BALTA_TAZELE = true;
+export const ILKEL_SILAH_TAZELE = true;
 
 /* ============================================================
    MISKEL'IN SAVAS MODU  (v4.47)

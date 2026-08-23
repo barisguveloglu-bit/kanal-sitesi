@@ -12,7 +12,7 @@ import {
   BOT_TAVAN, BOT_TARAMA, botTuruMu,
   ILKEL_OK_HASARI, ILKEL_OK_TABAN, MOBA_ISLEMEYEN_EFEKTLER,
   ILKEL_PASIF_ACIK, ILKEL_PASIF_SURE, ILKEL_PASIF_PARCACIK,
-  ILKEL_BALTA, ILKEL_BALTA_TAZELE
+  ilkelSilahi, ILKEL_SILAH_TAZELE
 } from "../ayarlar.js";
 
 /* ============================================================
@@ -133,11 +133,14 @@ function efektVer(hedef, liste, secenek) {
   }
 }
 
-/* ---------------- Balta (v4.48) ----------------
+/* ---------------- Silah (v4.48, v4.49) ----------------
 
-   "Bunlar genel olarak Ilkel Besli'nin tamaminda olsun."
+   v4.48: "Bunlar genel olarak Ilkel Besli'nin tamaminda olsun."
+   v4.49: "Bu normalde de zaten El-Harkos'un elinde bulunan bir
+          esyaydi." Yani silah uyeye ozel: El-Harkos asa,
+          digerleri balta.
 
-   Uc parca birden gerekiyor, biri eksikse balta gorunmuyor:
+   Uc parca birden gerekiyor, biri eksikse silah gorunmuyor:
      1) varlik JSON'unda minecraft:equippable  (kol_uret.py)
      2) geometride "rightItem" kemigi          (kol_uret.py)
      3) esyanin ele konmasi                    (burasi)
@@ -147,7 +150,7 @@ function efektVer(hedef, liste, secenek) {
    degisiyor ve testten gecmiyor. Burada tek satir, sinanabilir
    ve dunya yeniden yuklenince kendi kendine tazeleniyor.      */
 
-let baltaUyarisi = false;
+let silahUyarisi = false;
 
 function eldekiEsya(varlik) {
   try {
@@ -159,9 +162,14 @@ function eldekiEsya(varlik) {
   }
 }
 
-/* Baltayi ana ele koyar. Zaten duruyorsa dokunmuyor -- her
-   taramada yeni ItemStack uretmek bosuna is olurdu.           */
-export function baltaVer(varlik) {
+/* Uyenin silahini ana ele koyar. Zaten duruyorsa dokunmuyor --
+   her taramada yeni ItemStack uretmek bosuna is olurdu.
+
+   Hangi silah oldugu ANAHTARDAN geliyor, varliktan degil:
+   boylece esleme tek yerde (ayarlar.js:ILKEL_SILAH).          */
+export function silahVer(varlik, anahtar) {
+  const silah = ilkelSilahi(anahtar || ilkelKimligi(varlik));
+  if (!silah) return false;
   let bilesen;
   try {
     bilesen = varlik.getComponent("minecraft:equippable");
@@ -169,27 +177,27 @@ export function baltaVer(varlik) {
     bilesen = undefined;
   }
   if (!bilesen || typeof bilesen.setEquipment !== "function") {
-    if (!baltaUyarisi) {
-      baltaUyarisi = true;
-      hataYaz("ilkel.balta", new Error(
-        "minecraft:equippable bulunamadi. Ilkel Besli baltasiz " +
+    if (!silahUyarisi) {
+      silahUyarisi = true;
+      hataYaz("ilkel.silah", new Error(
+        "minecraft:equippable bulunamadi. Ilkel Besli silahsiz " +
         "dovusur; guclerinin hicbiri etkilenmez."));
     }
     return false;
   }
 
   const simdiki = eldekiEsya(varlik);
-  if (simdiki && simdiki.typeId === ILKEL_BALTA) return true;
+  if (simdiki && simdiki.typeId === silah) return true;
 
   try {
-    bilesen.setEquipment("Mainhand", new ItemStack(ILKEL_BALTA, 1));
+    bilesen.setEquipment("Mainhand", new ItemStack(silah, 1));
     return true;
   } catch (e) {
-    if (!baltaUyarisi) {
-      baltaUyarisi = true;
+    if (!silahUyarisi) {
+      silahUyarisi = true;
       /* En olasi sebep: kaynak paket etkin degil ya da eski
          surumu etkin, yani esya oyunun defterinde yok.        */
-      hataYaz("ilkel.balta", e);
+      hataYaz("ilkel.silah", e);
     }
     return false;
   }
@@ -265,11 +273,11 @@ export function ilkelYap(varlik, anahtar) {
     }
   }
 
-  /* Balta ve sinif ozellikleri dogar dogmaz (v4.48). Ikisi de
+  /* Silah ve sinif ozellikleri dogar dogmaz (v4.48). Ikisi de
      bakim() taramasinda tazeleniyor; buradaki cagri sadece "ilk
      karede zaten oyle gorunsun" icin -- bir tarama beklemek
      uyeyi bos elle dogurmak olurdu.                           */
-  baltaVer(varlik);
+  silahVer(varlik, anahtar);
   pasifVer(varlik, t);
 
   /* Isim etiketi rutbeyle: kim kimin ustu, bakinca belli olsun.
@@ -535,8 +543,8 @@ function bakim(varlik, oyuncu) {
   // Sinifina gore surekli efektler (v4.48)
   pasifVer(varlik, t);
 
-  /* Balta dustuyse ya da dunya yeniden yuklendiyse geri koy. */
-  if (ILKEL_BALTA_TAZELE) baltaVer(varlik);
+  /* Silah dustuyse ya da dunya yeniden yuklendiyse geri koy. */
+  if (ILKEL_SILAH_TAZELE) silahVer(varlik, anahtar);
 
   // Harkos: pasif iyilesme
   if (t.tikIyilesme) iyilestir(varlik, t.tikIyilesme * BOT_TARAMA);

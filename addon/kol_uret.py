@@ -516,19 +516,40 @@ def kol_skin_uygula(kimlik):
 # olacak". Ilkel Besli'nin kendi skinleri var, onlara dokunmuyor.
 BOT_SKIN = "61d145cb-image.png"
 
-# ---- ILKEL BESLI'NIN BALTASI (v4.48) ----
-# Kullanici elle cizip gonderdi: "bunlar genel olarak ilkel
-# beslinin tamaminda olsun". Bes uyenin de elinde ayni balta.
+# ---- ILKEL BESLI'NIN SILAHLARI (v4.48, v4.49'da uyeye ozel) ----
+# Dokular kullanicinin elle cizdikleri.
+#
+# v4.48: tek balta, besinin de elinde ("bunlar genel olarak
+#        ilkel beslinin tamaminda olsun").
+# v4.49: kullanici El-Harkos'un asasini gonderdi ("bu normalde
+#        de zaten el-harkos'un elinde bulunan bir esyaydi").
+#        Yani silah artik UYEYE OZEL; balta varsayilan kaldi.
 #
 # HASAR BILESENI BILEREK YOK. Bedrock'ta elde silah tasimak
-# mobun vurusuna eklenir; balta hasar tasisaydi bes uyenin de
-# hasari sessizce artardi. O sayilar kullanicinin listesinden
-# geliyor ve ayarlar.js ile testler onlari kilitliyor -- balta
-# bir GORUNUM, bir denge degisikligi degil. Hasar degismesi
-# istenirse ILKEL tablosundaki sayi degisir, balta degil.
-ILKEL_BALTA = "ilkel_balta"
-ILKEL_BALTA_TR = "İlkel Baltası"
-ILKEL_BALTA_KAYNAK = "6893255b-image.png"
+# mobun vurusuna eklenir; silah hasar tasisaydi uyelerin hasari
+# sessizce artardi. O sayilar kullanicinin listesinden geliyor
+# ve ayarlar.js ile testler onlari kilitliyor -- silah bir
+# GORUNUM, bir denge degisikligi degil. Hasar degismesi
+# istenirse ILKEL tablosundaki sayi degisir, silah degil.
+#
+# anahtar -> (esya kimligi, Turkce ad, kaynak dosya)
+ILKEL_SILAHLAR = {
+    "balta": ("ilkel_balta", "İlkel Baltası", "6893255b-image.png"),
+    "asa":   ("ilkel_asa", "El-Harkos'un Asası", "14b8762c-image.png"),
+}
+
+# Kim neyi tasiyor. Burada YAZMAYAN herkes varsayilani tasiyor.
+# Tek kaynak burasi: ayarlar.js'teki esleme de bunu yansitiyor
+# ve ilkel.mjs ikisinin ayni seyi soyledigini sinliyor.
+ILKEL_SILAH = {
+    "harkos": "asa",
+}
+ILKEL_SILAH_VARSAYILAN = "balta"
+
+
+def ilkel_silahi(anahtar):
+    """Uyenin tasidigi silahin (kimlik, ad, kaynak) uclusu."""
+    return ILKEL_SILAHLAR[ILKEL_SILAH.get(anahtar, ILKEL_SILAH_VARSAYILAN)]
 
 # Turkce gorunen adlar (JSON'da ASCII tutuluyor, dil dosyasinda degil)
 ILKEL_TR = {
@@ -585,15 +606,15 @@ def ilkel_gruplari():
         g["minecraft:equippable"] = {
             "slots": [{
                 "slot": "slot.weapon.mainhand",
-                "accepted_items": ["pa:" + ILKEL_BALTA],
+                "accepted_items": ["pa:" + ilkel_silahi(anahtar)[0]],
             }]
         }
         gruplar["pa:ilkel_" + anahtar] = g
     return gruplar
 
 
-def ilkel_balta_esyasi():
-    """Bes uyenin elindeki balta.
+def ilkel_silah_esyasi(kimlik, ad):
+    """Bir uyenin elindeki silah.
 
     Envanterde de gorunuyor (menu_category equipment) cunku
     yumurtayla elle deneme yapabilmek isteniyor -- ayni sebeple
@@ -602,16 +623,16 @@ def ilkel_balta_esyasi():
         "format_version": "1.21.0",
         "minecraft:item": {
             "description": {
-                "identifier": "pa:" + ILKEL_BALTA,
+                "identifier": "pa:" + kimlik,
                 "menu_category": {"category": "equipment"},
             },
             "components": {
-                "minecraft:icon": {"texture": ILKEL_BALTA},
-                "minecraft:display_name": {"value": "Ilkel Baltasi"},
+                "minecraft:icon": {"texture": kimlik},
+                "minecraft:display_name": {"value": ad},
                 "minecraft:max_stack_size": 1,
                 "minecraft:hand_equipped": True,
                 "minecraft:allow_off_hand": False,
-                # DIKKAT: minecraft:damage YOK. Bkz. ILKEL_BALTA notu.
+                # DIKKAT: minecraft:damage YOK. Bkz. ILKEL_SILAHLAR notu.
             },
         },
     }
@@ -1535,23 +1556,24 @@ def main():
         elif not os.path.exists(hedef):
             # Skin bulunamadi: sessiz kalma, yoksa uye mor-siyah cizilir
             print("UYARI: %s skini bulunamadi (%s)" % (anahtar, kaynak))
-    # ---- Ilkel Besli'nin baltasi (v4.48) ----
-    # Doku kullanicinin elle cizdigi dosya. Uretilen yedegi YOK:
-    # yer tutucu bir balta cizmek "sahte icerik" olurdu, eksigi
-    # rapor etmek dogrusu (deponun kurali).
-    yaz_json(os.path.join(BP, "items", ILKEL_BALTA + ".json"),
-             ilkel_balta_esyasi())
-    balta_kaynak = os.path.join(ILKEL_SKIN_KAYNAK, ILKEL_BALTA_KAYNAK)
-    balta_hedef = os.path.join(RP, "textures/item", ILKEL_BALTA + ".png")
-    if os.path.exists(balta_kaynak):
-        os.makedirs(os.path.dirname(balta_hedef), exist_ok=True)
-        shutil.copyfile(balta_kaynak, balta_hedef)
-    elif not os.path.exists(balta_hedef):
-        print("UYARI: ilkel baltasi dokusu bulunamadi (%s)" % balta_kaynak)
-    dokular[ILKEL_BALTA] = {"textures": "textures/item/" + ILKEL_BALTA}
-    for liste in (en_us, tr_tr):
-        liste.append("item.pa:%s.name=%s" % (ILKEL_BALTA, ILKEL_BALTA_TR))
-        liste.append("item.pa:%s=%s" % (ILKEL_BALTA, ILKEL_BALTA_TR))
+    # ---- Ilkel Besli'nin silahlari (v4.48, v4.49) ----
+    # Dokular kullanicinin elle cizdigi dosyalar. Uretilen yedek
+    # YOK: yer tutucu bir silah cizmek "sahte icerik" olurdu,
+    # eksigi rapor etmek dogrusu (deponun kurali).
+    for _sanahtar, (skimlik, sad, skaynak) in ILKEL_SILAHLAR.items():
+        yaz_json(os.path.join(BP, "items", skimlik + ".json"),
+                 ilkel_silah_esyasi(skimlik, sad))
+        s_kaynak = os.path.join(ILKEL_SKIN_KAYNAK, skaynak)
+        s_hedef = os.path.join(RP, "textures/item", skimlik + ".png")
+        if os.path.exists(s_kaynak):
+            os.makedirs(os.path.dirname(s_hedef), exist_ok=True)
+            shutil.copyfile(s_kaynak, s_hedef)
+        elif not os.path.exists(s_hedef):
+            print("UYARI: %s dokusu bulunamadi (%s)" % (skimlik, s_kaynak))
+        dokular[skimlik] = {"textures": "textures/item/" + skimlik}
+        for liste in (en_us, tr_tr):
+            liste.append("item.pa:%s.name=%s" % (skimlik, sad))
+            liste.append("item.pa:%s=%s" % (skimlik, sad))
 
     yaz_json(os.path.join(RP, "models/entity/simsek_bot.geo.json"), BOT_GEOMETRI)
     yaz_json(os.path.join(RP, "animations/simsek_bot.animation.json"), BOT_ANIM)
@@ -1619,11 +1641,14 @@ def main():
     # Ilkel Besli dokulari da listelerde degil (v4.35)
     for _anahtar, _ad, _can, _hasar, _sec in ILKEL:
         beklenen.add("ilkel_" + _anahtar)
-    # Balta da hicbir listede degil (v4.48). Bu satir unutuldugunda
-    # temizlik adimi baltayi HER uretimde siliyordu: esya yaziliyor,
-    # atlas kaydi kaliyor, dosya gidiyor -- yani oyunda "bilinmeyen
-    # esya". Bir kez yasandi, testi 5e bolumunde.
-    beklenen.add(ILKEL_BALTA)
+    # Silahlar da hicbir listede degil (v4.48). Bu satir
+    # unutuldugunda temizlik adimi baltayi HER uretimde
+    # siliyordu: esya yaziliyor, atlas kaydi kaliyor, dosya
+    # gidiyor -- yani oyunda "bilinmeyen esya". Bir kez yasandi,
+    # testi 5e bolumunde. Dongu: yeni silah eklenince kendi
+    # kendine giriyor, elle eklemek gerekmiyor.
+    for _skimlik, _sad, _skaynak in ILKEL_SILAHLAR.values():
+        beklenen.add(_skimlik)
     for satir in KOLLAR:
         beklenen.add(satir[0])
     for kimlik, _ad, _sivi, goz, _gozRenk in IKSIRLER:

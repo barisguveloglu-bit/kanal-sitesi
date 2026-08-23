@@ -79,6 +79,9 @@
     },
     "ilkel_balta": {
       "textures": "textures/item/ilkel_balta"
+    },
+    "ilkel_asa": {
+      "textures": "textures/item/ilkel_asa"
     }
   }
 }
