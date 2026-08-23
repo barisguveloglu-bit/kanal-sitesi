@@ -516,6 +516,20 @@ def kol_skin_uygula(kimlik):
 # olacak". Ilkel Besli'nin kendi skinleri var, onlara dokunmuyor.
 BOT_SKIN = "61d145cb-image.png"
 
+# ---- ILKEL BESLI'NIN BALTASI (v4.48) ----
+# Kullanici elle cizip gonderdi: "bunlar genel olarak ilkel
+# beslinin tamaminda olsun". Bes uyenin de elinde ayni balta.
+#
+# HASAR BILESENI BILEREK YOK. Bedrock'ta elde silah tasimak
+# mobun vurusuna eklenir; balta hasar tasisaydi bes uyenin de
+# hasari sessizce artardi. O sayilar kullanicinin listesinden
+# geliyor ve ayarlar.js ile testler onlari kilitliyor -- balta
+# bir GORUNUM, bir denge degisikligi degil. Hasar degismesi
+# istenirse ILKEL tablosundaki sayi degisir, balta degil.
+ILKEL_BALTA = "ilkel_balta"
+ILKEL_BALTA_TR = "İlkel Baltası"
+ILKEL_BALTA_KAYNAK = "6893255b-image.png"
+
 # Turkce gorunen adlar (JSON'da ASCII tutuluyor, dil dosyasinda degil)
 ILKEL_TR = {
     "okazor":  "İlkel Savaşçı Okazor",
@@ -563,8 +577,44 @@ def ilkel_gruplari():
                 "yd": 0.55,
                 "must_be_on_ground": False,
             }
+        # ---- BALTA TASIYABILSIN (v4.48) ----
+        # minecraft:equippable olmadan script tarafinda
+        # EquippableComponent bulunmuyor, yani balta ele
+        # konulamiyor. Sadece ana el tanimli: bes uyenin zirh
+        # giymesi istenmiyor, kendi skinleri var.
+        g["minecraft:equippable"] = {
+            "slots": [{
+                "slot": "slot.weapon.mainhand",
+                "accepted_items": ["pa:" + ILKEL_BALTA],
+            }]
+        }
         gruplar["pa:ilkel_" + anahtar] = g
     return gruplar
+
+
+def ilkel_balta_esyasi():
+    """Bes uyenin elindeki balta.
+
+    Envanterde de gorunuyor (menu_category equipment) cunku
+    yumurtayla elle deneme yapabilmek isteniyor -- ayni sebeple
+    varliklar da is_spawnable.                                  """
+    return {
+        "format_version": "1.21.0",
+        "minecraft:item": {
+            "description": {
+                "identifier": "pa:" + ILKEL_BALTA,
+                "menu_category": {"category": "equipment"},
+            },
+            "components": {
+                "minecraft:icon": {"texture": ILKEL_BALTA},
+                "minecraft:display_name": {"value": "Ilkel Baltasi"},
+                "minecraft:max_stack_size": 1,
+                "minecraft:hand_equipped": True,
+                "minecraft:allow_off_hand": False,
+                # DIKKAT: minecraft:damage YOK. Bkz. ILKEL_BALTA notu.
+            },
+        },
+    }
 
 
 def ilkel_varliklari():
@@ -798,6 +848,13 @@ def bot_sunucu_varligi():
                     "speed_multiplier": 1.3,
                     "pickup_based_on_chance": False,
                     "can_pickup_any_item": True,
+                    # v4.48: topladigi seyi ELINE ALMASIN.
+                    # Varsayilan davranista mob buldugu kilici/
+                    # baltayi eline geciriyor -- Ilkel Besli'nin
+                    # baltasi boylece ilk odun parcasinda
+                    # degisirdi. Toplananin yeri zaten kutu;
+                    # oradan ekip cantasina aktariliyor.
+                    "can_pickup_to_hand_or_equipment": False,
                 },
                 "minecraft:behavior.look_at_player": {
                     "priority": 8, "look_distance": 8, "probability": 0.4
@@ -915,6 +972,23 @@ BOT_GEOMETRI = {
                 {"name": "leftLeg", "parent": "body", "pivot": [2, 12, 0], "cubes": [
                     {"origin": [0, 0, -2], "size": [4, 12, 4], "uv": [16, 48]},
                 ]},
+                # ---- ELDEKI ESYANIN CIZILDIGI YER (v4.48) ----
+                # KUPU YOK, sadece bir tutamak noktasi. Oyun mobun
+                # ana elindeki esyayi "rightItem" adli kemige
+                # ciziyor; kemik yoksa esya hic gorunmuyor.
+                #
+                # Ad ve pivot TAHMIN DEGIL: Dave1545 modundaki
+                # oyuncu bicimli varliktan olculdu (pa_dave1545.json,
+                # rightItem parent rightArm pivot [-6,15,1]) -- o mod
+                # tablette calisiyor.
+                #
+                # Kupsuz kemik cizime hicbir sey EKLEMIYOR, yani
+                # v4.28'deki "bot gorunmez oldu" riski burada yok:
+                # o kaza ozel render controller + variant dizisi
+                # yuzundendi, kemik yuzunden degil. Render
+                # controller'a dokunulmadi.
+                {"name": "rightItem", "parent": "rightArm",
+                 "pivot": [-6, 15, 1]},
             ],
         }
     ],
@@ -1461,6 +1535,24 @@ def main():
         elif not os.path.exists(hedef):
             # Skin bulunamadi: sessiz kalma, yoksa uye mor-siyah cizilir
             print("UYARI: %s skini bulunamadi (%s)" % (anahtar, kaynak))
+    # ---- Ilkel Besli'nin baltasi (v4.48) ----
+    # Doku kullanicinin elle cizdigi dosya. Uretilen yedegi YOK:
+    # yer tutucu bir balta cizmek "sahte icerik" olurdu, eksigi
+    # rapor etmek dogrusu (deponun kurali).
+    yaz_json(os.path.join(BP, "items", ILKEL_BALTA + ".json"),
+             ilkel_balta_esyasi())
+    balta_kaynak = os.path.join(ILKEL_SKIN_KAYNAK, ILKEL_BALTA_KAYNAK)
+    balta_hedef = os.path.join(RP, "textures/item", ILKEL_BALTA + ".png")
+    if os.path.exists(balta_kaynak):
+        os.makedirs(os.path.dirname(balta_hedef), exist_ok=True)
+        shutil.copyfile(balta_kaynak, balta_hedef)
+    elif not os.path.exists(balta_hedef):
+        print("UYARI: ilkel baltasi dokusu bulunamadi (%s)" % balta_kaynak)
+    dokular[ILKEL_BALTA] = {"textures": "textures/item/" + ILKEL_BALTA}
+    for liste in (en_us, tr_tr):
+        liste.append("item.pa:%s.name=%s" % (ILKEL_BALTA, ILKEL_BALTA_TR))
+        liste.append("item.pa:%s=%s" % (ILKEL_BALTA, ILKEL_BALTA_TR))
+
     yaz_json(os.path.join(RP, "models/entity/simsek_bot.geo.json"), BOT_GEOMETRI)
     yaz_json(os.path.join(RP, "animations/simsek_bot.animation.json"), BOT_ANIM)
     # Normal botun skini de kullanicidan geliyor (v4.43).
@@ -1527,6 +1619,11 @@ def main():
     # Ilkel Besli dokulari da listelerde degil (v4.35)
     for _anahtar, _ad, _can, _hasar, _sec in ILKEL:
         beklenen.add("ilkel_" + _anahtar)
+    # Balta da hicbir listede degil (v4.48). Bu satir unutuldugunda
+    # temizlik adimi baltayi HER uretimde siliyordu: esya yaziliyor,
+    # atlas kaydi kaliyor, dosya gidiyor -- yani oyunda "bilinmeyen
+    # esya". Bir kez yasandi, testi 5e bolumunde.
+    beklenen.add(ILKEL_BALTA)
     for satir in KOLLAR:
         beklenen.add(satir[0])
     for kimlik, _ad, _sivi, goz, _gozRenk in IKSIRLER:

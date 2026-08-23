@@ -209,6 +209,15 @@
               ]
             }
           ]
+        },
+        {
+          "name": "rightItem",
+          "parent": "rightArm",
+          "pivot": [
+            -6,
+            15,
+            1
+          ]
         }
       ]
     }

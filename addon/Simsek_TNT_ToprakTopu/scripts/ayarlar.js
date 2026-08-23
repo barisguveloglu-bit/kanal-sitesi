@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.47";
+export const SURUM = "v4.48";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -1422,6 +1422,11 @@ export const ILKEL_BESLI = new Map([
     kimlik: "pa:kajaros",
     rutbe: 3, unvan: "Muhafız Komutanı",
     can: 3500, hasar: 46,
+    /* Muhafiz Komutani: ekibin kalkani. En cok cani o tasiyor,
+       en cok darbeyi de o yiyor -- Direnc II hasarin %40'ini
+       kesiyor. Ates bagisikligi "muhafiz" isinin parcasi:
+       lav basinda duran o olsun.                              */
+    pasif: [["resistance", 0, 1], ["fire_resistance", 0, 0]],
     /* "Isabet aldiginda kendisini 20 HP iyilestirir" --
        VURULUNCA, vurunca degil. 20 KALP = 40 HP (v4.41).     */
     vurulunca: 40,
@@ -1439,6 +1444,10 @@ export const ILKEL_BESLI = new Map([
     rutbe: 2, unvan: "Baş Büyücü",
     can: 2600, hasar: 28,
     vurulunca: 80,
+    /* Bas Buyucu: kendini yenileyen tek uye. Kullanicinin
+       ornegi buydu ("yenilenme 2 falan"). Menzilli oldugu
+       icin az darbe yiyor ama yedigi zaman toparlansin.      */
+    pasif: [["regeneration", 0, 1], ["resistance", 0, 0]],
     /* Iyilesme 40 KALP = 80 HP (v4.41).
        "Korluk XVI (6 sn) VEYA Solgunluk VII (4 sn)" -- ikisinden
        biri, her vuruste yazi tura. Solgunluk = wither.        */
@@ -1452,6 +1461,11 @@ export const ILKEL_BESLI = new Map([
     kimlik: "pa:harkos",
     rutbe: 5, unvan: "Gölge Çırağı",
     can: 2600, hasar: 26,
+    /* Golge Ciragi: en alt rutbe, en hizli ayak. Sicrama
+       yetenegi varlik JSON'unda (leap_at_target); Ziplama III
+       onu tamamliyor. Ustadindan (Raxxan) bir kademe yavas --
+       rutbe farki sayilarda da gorunsun.                     */
+    pasif: [["speed", 0, 0], ["jump_boost", 0, 2]],
     /* "Pasif olarak zamanla canini iyilestirir (tik basina
        0,5 HP)". 0,5 KALP = 1 HP (v4.41). Tarama 20 tick'te bir
        donuyor, yani her taramada 20 HP = 10 kalp.             */
@@ -1462,6 +1476,11 @@ export const ILKEL_BESLI = new Map([
     kimlik: "pa:raxxan",
     rutbe: 4, unvan: "Gölge Ajanı",
     can: 2000, hasar: 30,
+    /* Golge Ajani: ekibin en az canlisi, hayatta kalmasi
+       goze gorunmemekten geciyor. Hiz II ile kacip
+       konumlaniyor, Gece Gorusu ile karanlikta calisiyor.
+       Ciragindan (Harkos) bir kademe hizli.                  */
+    pasif: [["speed", 0, 1], ["night_vision", 0, 0]],
     /* "30 blok civarindaki oyunculara Bulanti V" -> civardaki
        DUSMANLARA. Sahibi ve ekip arkadaslari disarida.        */
     aura: { menzil: 30, efekt: ["nausea", 100, 4] },
@@ -1476,11 +1495,75 @@ export const ILKEL_BESLI = new Map([
     kimlik: "pa:okazor",
     rutbe: 1, unvan: "Ekip Lideri",
     can: 2400, hasar: 100,
+    /* Ekip Lideri: onden giren. Guc I vurusunu buyutuyor,
+       Direnc I ayakta tutuyor. Direnci Kajaros'unkinden DUSUK
+       -- tank o degil, lider o.                              */
+    pasif: [["strength", 0, 0], ["resistance", 0, 0]],
     /* "4 saniyelik araliklarla ust uste 3 kez vurmayi
        basarirsa cani tamamen yenilenir."                     */
     seri: { adet: 3, pencere: 80 }
   }]
 ]);
+
+/* ============================================================
+   SINIF OZELLIKLERI ve BALTA  (v4.48)
+
+   Istek: "bunların hani sınıfı var ya -- biri gölge muhafızı,
+   biri çırağı -- bunların yeteneklerine göre özellikler versin,
+   yenilenme 2 falan."
+
+   Her uyenin ILKEL_BESLI kaydinda artik bir `pasif` alani var:
+   kendine surekli verdigi efektler. Unvanindan turetildi, tek
+   tek yukarida yaziyor. Ozet:
+
+     1 Okazor    Ekip Lideri         Guc I     + Direnc I
+     2 Miskel    Bas Buyucu          Yenilenme II + Direnc I
+     3 Kajaros   Muhafiz Komutani    Direnc II + Ates Bagisikligi
+     4 Raxxan    Golge Ajani         Hiz II    + Gece Gorusu
+     5 Harkos    Golge Ciragi        Hiz I     + Ziplama III
+
+   RUTBE SAYILARDA DA GORUNSUN diye iki cift bilincli
+   kademelendi: Raxxan (ajan) Harkos'tan (cirak) bir kademe
+   hizli, Kajaros (tank) Okazor'dan (lider) bir kademe direncli.
+
+   AMPLIFIER KURALI (depoda her yerde ayni): gorunen seviye
+   eksi bir. "Yenilenme II" -> amplifier 1. Sureler 0 yazili
+   cunku ILKEL_PASIF_SURE'den geliyor -- iki yerde yazili sure
+   ayrisirdi.                                                  */
+export const ILKEL_PASIF_ACIK = true;
+
+/* Efekt suresi. Tarama BOT_TARAMA (20 tick) araliginda donuyor;
+   suresi ondan UZUN olmali, yoksa iki tarama arasinda efekt
+   dusup bot bir an savunmasiz kalir. Alti kat pay birakildi:
+   tarama bir kez atlansa bile kesinti olmuyor.                */
+export const ILKEL_PASIF_SURE = BOT_TARAMA * 6;
+
+/* Pasifler parcacik CIKARMIYOR. Bes uye yaninda dururken
+   surekli parlayan efekt bulutu hem gozu yoruyor hem bosuna
+   parcacik. Vurusa bagli efektler (Korluk, Solgunluk) gorunur
+   kaliyor -- onlar bir sey OLDUGUNU haber veriyor.            */
+export const ILKEL_PASIF_PARCACIK = false;
+
+/* ---------------- BALTA ----------------
+   Kullanici elle cizip gonderdi: "bunlar genel olarak ilkel
+   beslinin tamamında olsun". Bes uyenin de ana elinde ayni
+   balta duruyor.
+
+   HASAR TASIMIYOR, bilincli: Bedrock'ta mobun elindeki silah
+   vurusuna eklenir. Balta hasar tasisaydi bes uyenin hasari da
+   sessizce artardi -- o sayilar kullanicinin listesinden geliyor
+   ve testler onlari kilitliyor. Balta bir GORUNUM.
+
+   Elde tutulmasi iki parcali: varlik JSON'unda equippable +
+   geometride "rightItem" kemigi (kol_uret.py), ele koyma
+   burada script tarafinda. Ikisi de olmadan gorunmuyor.       */
+export const ILKEL_BALTA = "pa:ilkel_balta";
+
+/* Her taramada elin bos olup olmadigina bakilsin mi. Dunya
+   yeniden yuklenince ya da balta bir sekilde dusunce kendi
+   kendine geri geliyor. Kapatirsan balta sadece cagirma aninda
+   veriliyor.                                                  */
+export const ILKEL_BALTA_TAZELE = true;
 
 /* ============================================================
    MISKEL'IN SAVAS MODU  (v4.47)

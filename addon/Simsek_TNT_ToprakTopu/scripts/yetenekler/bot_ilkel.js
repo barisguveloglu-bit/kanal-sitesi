@@ -1,4 +1,4 @@
-import { system } from "@minecraft/server";
+import { system, ItemStack } from "@minecraft/server";
 import { yetenekKaydet } from "./kayit.js";
 import {
   hataYaz, gecerliMi, kollariIndir, actionbarYaz, olayaAbone
@@ -10,7 +10,9 @@ import {
   ILKEL_ACIK, ILKEL_TAVAN, ILKEL_BESLI, ILKEL_ADLAR, ILKEL_OZELLIK,
   ILKEL_AURA_OYUNCU, ILKEL_KORUMA, BOT_OLAY_SAVAS_AC,
   BOT_TAVAN, BOT_TARAMA, botTuruMu,
-  ILKEL_OK_HASARI, ILKEL_OK_TABAN, MOBA_ISLEMEYEN_EFEKTLER
+  ILKEL_OK_HASARI, ILKEL_OK_TABAN, MOBA_ISLEMEYEN_EFEKTLER,
+  ILKEL_PASIF_ACIK, ILKEL_PASIF_SURE, ILKEL_PASIF_PARCACIK,
+  ILKEL_BALTA, ILKEL_BALTA_TAZELE
 } from "../ayarlar.js";
 
 /* ============================================================
@@ -115,15 +117,81 @@ function tamDoldur(varlik) {
   }
 }
 
-function efektVer(hedef, liste) {
+function efektVer(hedef, liste, secenek) {
   if (!liste) return;
+  const parcacik = (secenek && secenek.parcacik !== undefined)
+    ? secenek.parcacik : true;
+  const sureSecenek = secenek && secenek.sure;
   for (const [ad, sure, seviye] of liste) {
     try {
-      hedef.addEffect(ad, sure, { amplifier: seviye, showParticles: true });
+      hedef.addEffect(ad, sureSecenek || sure,
+                      { amplifier: seviye, showParticles: parcacik });
     } catch (e) {
       /* Efekt adi bu surumde yoksa digerleri yine verilsin --
          hepsini birden dusurmek gereksiz.                     */
     }
+  }
+}
+
+/* ---------------- Balta (v4.48) ----------------
+
+   "Bunlar genel olarak Ilkel Besli'nin tamaminda olsun."
+
+   Uc parca birden gerekiyor, biri eksikse balta gorunmuyor:
+     1) varlik JSON'unda minecraft:equippable  (kol_uret.py)
+     2) geometride "rightItem" kemigi          (kol_uret.py)
+     3) esyanin ele konmasi                    (burasi)
+
+   Ele koyma NEDEN script tarafinda: equipment ganimet tablosu
+   da yapardi ama onun yuvaya dagitim kurali surumden surume
+   degisiyor ve testten gecmiyor. Burada tek satir, sinanabilir
+   ve dunya yeniden yuklenince kendi kendine tazeleniyor.      */
+
+let baltaUyarisi = false;
+
+function eldekiEsya(varlik) {
+  try {
+    const e = varlik.getComponent("minecraft:equippable");
+    if (!e || typeof e.getEquipment !== "function") return undefined;
+    return e.getEquipment("Mainhand");
+  } catch (e) {
+    return undefined;
+  }
+}
+
+/* Baltayi ana ele koyar. Zaten duruyorsa dokunmuyor -- her
+   taramada yeni ItemStack uretmek bosuna is olurdu.           */
+export function baltaVer(varlik) {
+  let bilesen;
+  try {
+    bilesen = varlik.getComponent("minecraft:equippable");
+  } catch (e) {
+    bilesen = undefined;
+  }
+  if (!bilesen || typeof bilesen.setEquipment !== "function") {
+    if (!baltaUyarisi) {
+      baltaUyarisi = true;
+      hataYaz("ilkel.balta", new Error(
+        "minecraft:equippable bulunamadi. Ilkel Besli baltasiz " +
+        "dovusur; guclerinin hicbiri etkilenmez."));
+    }
+    return false;
+  }
+
+  const simdiki = eldekiEsya(varlik);
+  if (simdiki && simdiki.typeId === ILKEL_BALTA) return true;
+
+  try {
+    bilesen.setEquipment("Mainhand", new ItemStack(ILKEL_BALTA, 1));
+    return true;
+  } catch (e) {
+    if (!baltaUyarisi) {
+      baltaUyarisi = true;
+      /* En olasi sebep: kaynak paket etkin degil ya da eski
+         surumu etkin, yani esya oyunun defterinde yok.        */
+      hataYaz("ilkel.balta", e);
+    }
+    return false;
   }
 }
 
@@ -196,6 +264,13 @@ export function ilkelYap(varlik, anahtar) {
       hataYaz("ilkel.koruma", e);
     }
   }
+
+  /* Balta ve sinif ozellikleri dogar dogmaz (v4.48). Ikisi de
+     bakim() taramasinda tazeleniyor; buradaki cagri sadece "ilk
+     karede zaten oyle gorunsun" icin -- bir tarama beklemek
+     uyeyi bos elle dogurmak olurdu.                           */
+  baltaVer(varlik);
+  pasifVer(varlik, t);
 
   /* Isim etiketi rutbeyle: kim kimin ustu, bakinca belli olsun.
        [1] Ilkel Savasci Okazor · Ekip Lideri                   */
@@ -441,10 +516,27 @@ olaylariKur();
    Tarama BOT_TARAMA (20 tick) araliginda donuyor. Harkos'un
    "tik basina 0,5 HP"si burada 20 x 0.5 = 10 can oluyor, yani
    listedeki hizin AYNISI.                                    */
+/* Sinif ozellikleri (v4.48): unvanina gore surekli kendine
+   verdigi efektler. Sure ayardan geliyor ve taramadan uzun --
+   iki tarama arasinda dusup uye savunmasiz kalmasin.          */
+function pasifVer(varlik, t) {
+  if (!ILKEL_PASIF_ACIK || !t || !t.pasif) return;
+  efektVer(varlik, t.pasif, {
+    sure: ILKEL_PASIF_SURE,
+    parcacik: ILKEL_PASIF_PARCACIK
+  });
+}
+
 function bakim(varlik, oyuncu) {
   const anahtar = ilkelKimligi(varlik);
   if (!anahtar) return;
   const t = tanim(anahtar);
+
+  // Sinifina gore surekli efektler (v4.48)
+  pasifVer(varlik, t);
+
+  /* Balta dustuyse ya da dunya yeniden yuklendiyse geri koy. */
+  if (ILKEL_BALTA_TAZELE) baltaVer(varlik);
 
   // Harkos: pasif iyilesme
   if (t.tikIyilesme) iyilestir(varlik, t.tikIyilesme * BOT_TARAMA);
@@ -571,6 +663,17 @@ export function rutbeSirasi() {
     .sort((a, b) => ILKEL_BESLI.get(a).rutbe - ILKEL_BESLI.get(b).rutbe);
 }
 
+/* Pasif efektlerin menude gorunen adlari. */
+const PASIF_TR = {
+  resistance: "Direnç",
+  fire_resistance: "Ateş Bağışıklığı",
+  regeneration: "Yenilenme",
+  strength: "Güç",
+  speed: "Hız",
+  jump_boost: "Zıplama",
+  night_vision: "Gece Görüşü"
+};
+
 /* Uyenin ne yaptigini tek satirda anlat. Ezberlemek zorunda
    kalma diye.                                                */
 export function ozetle(anahtar) {
@@ -590,5 +693,15 @@ export function ozetle(anahtar) {
   if (t.aura) p.push(t.aura.menzil + " blokta dusmani bulandirir");
   if (t.gizlenme) p.push("ara ara gorunmez olur");
   if (t.seri) p.push(t.seri.adet + " ust uste vurursa cani dolar");
+  /* Sinif ozellikleri (v4.48). Adlari ayardan degil buradan
+     okunuyor cunku ayarda oyunun efekt kimligi var; menude
+     Turkcesi lazim. Listede olmayan bir efekt eklenirse
+     kimligiyle yaziliyor -- sessizce dusmesin.               */
+  if (ILKEL_PASIF_ACIK && t.pasif) {
+    const romen = ["I", "II", "III", "IV", "V"];
+    p.push(t.pasif
+      .map(([ad, , sv]) => (PASIF_TR[ad] || ad) + " " + (romen[sv] || sv + 1))
+      .join(", "));
+  }
   return p.join(" · ");
 }

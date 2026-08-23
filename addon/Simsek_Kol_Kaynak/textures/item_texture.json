@@ -76,6 +76,9 @@
     },
     "goz_mavi_lazer": {
       "textures": "textures/item/goz_mavi_lazer"
+    },
+    "ilkel_balta": {
+      "textures": "textures/item/ilkel_balta"
     }
   }
 }
