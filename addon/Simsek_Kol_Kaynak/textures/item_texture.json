@@ -74,6 +74,24 @@
     "goz_mavi_lazer": {
       "textures": "textures/item/goz_mavi_lazer"
     },
+    "iksir_staroxine": {
+      "textures": "textures/item/iksir_staroxine"
+    },
+    "goz_yildiz": {
+      "textures": "textures/item/goz_yildiz"
+    },
+    "goz_yildiz_lazer": {
+      "textures": "textures/item/goz_yildiz_lazer"
+    },
+    "iksir_element": {
+      "textures": "textures/item/iksir_element"
+    },
+    "goz_element": {
+      "textures": "textures/item/goz_element"
+    },
+    "goz_element_lazer": {
+      "textures": "textures/item/goz_element_lazer"
+    },
     "ilkel_balta": {
       "textures": "textures/item/ilkel_balta"
     },

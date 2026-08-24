@@ -9,7 +9,8 @@ import {
   LAZER_KALINLIK, LAZER_SURE, LAZER_ADIM, LAZER_TAVAN, LAZER_OYUNCU,
   PARCACIK_LAZER,
   LAZER_MENZIL, DUVAR_DELME_ACIK, DUVAR_DELME_YARICAP,
-  DUVAR_DELME_TAVAN, KORUNAN_KUME
+  DUVAR_DELME_TAVAN, KORUNAN_KUME,
+  LAZER_DONDUR_SURE, LAZER_DONDUR_SEVIYE
 } from "../ayarlar.js";
 
 /* GOZ LAZERI -- Nitroksin'in ikonik yetenegi.
@@ -130,6 +131,17 @@ yetenekKaydet({
         if (ayar.zehir) {
           try {
             h.varlik.addEffect("poison", 120, { amplifier: 1 });
+          } catch (e) {
+            /* efekt verilemedi; hasar zaten gitti */
+          }
+        }
+        /* Element: dondurma. Referanstaki "donma" esyasi
+           gorunmezlik + Yavaslik 249 veriyordu ve SURESIZDI --
+           fikir iyi, uygulama kaliciydi. Burada sureli.      */
+        if (ayar.dondur) {
+          try {
+            h.varlik.addEffect("slowness", LAZER_DONDUR_SURE,
+                               { amplifier: LAZER_DONDUR_SEVIYE });
           } catch (e) {
             /* efekt verilemedi; hasar zaten gitti */
           }

@@ -2,17 +2,17 @@
   "format_version": "1.21.0",
   "minecraft:item": {
     "description": {
-      "identifier": "pa:goz_kan_lazer",
+      "identifier": "pa:goz_element_lazer",
       "menu_category": {
         "category": "equipment"
       }
     },
     "components": {
       "minecraft:icon": {
-        "texture": "goz_kan_lazer"
+        "texture": "goz_element_lazer"
       },
       "minecraft:display_name": {
-        "value": "Kanlı Göz (Lazer)"
+        "value": "Element Gözü (lazer)"
       },
       "minecraft:max_stack_size": 1,
       "minecraft:wearable": {

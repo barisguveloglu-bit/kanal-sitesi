@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.61";
+export const SURUM = "v4.62";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -772,8 +772,82 @@ export const KADEMELER = [
       /* v4.16 buff: her seyden biraz: su alti paketi de var */
       ["conduit_power", 0]
     ]
+  },
+  /* ============================================================
+     v4.62 -- IKI YENI IKSIR, IKI YENI REFERANS MODDAN
+
+     Kaynaklar: "best StarOxine mod" ve "Element Iksiri modu V2".
+     Kullanici: "guzel fikirleri alalim ve amacini degistirmeden
+     yapalim." Yani ikisi de KENDI kimliginde kaldi, sadece
+     bizim sisteme oturtuldu ve kusurlari ayiklandi.
+     ============================================================ */
+  {
+    kimlik: "staroxine",
+    ad: "StarOxine",
+    renk: [0.96, 0.88, 0.55],       // altin-yildiz
+    sure: 6000,
+    goz: "pa:goz_yildiz",
+    lazerGoz: "pa:goz_yildiz_lazer",
+    ozet: "Koruma",
+    lazer: { hasar: 10 },
+    /* Referansta gozun verdigi efektler: health_boost,
+       night_vision, resistance -- ucu de I seviyesinde.
+       Kimligi KORUMA, o yuzden burada da o.
+
+       Grinoksin'den farki bilincli:
+         Grinoksin  hasari GERI KAZANMA (regeneration 3)
+         StarOxine  hasari HIC ALMAMA   (resistance 4)
+       Ikisi de "dayaniklilik" ama ayri yollar; birbirinin
+       kopyasi olmasinlar diye boyle ayrildi.                */
+    efektler: [
+      ["resistance",      4],   // UZMAN: Grinoksin 3
+      ["health_boost",    3],
+      ["fire_resistance", 0],
+      ["absorption",      3],
+      ["regeneration",    1],   // Grinoksin 3 -- orada uzman
+      ["strength",        1],
+      ["speed",           1],
+      ["night_vision",    0],
+      /* Yildiz kimligi: yuksekten dususte yavaslama */
+      ["slow_falling",    0]
+    ]
+  },
+  {
+    kimlik: "element",
+    ad: "Element",
+    renk: [0.43, 0.88, 0.84],       // buz-turkuaz
+    sure: 6000,
+    goz: "pa:goz_element",
+    lazerGoz: "pa:goz_element_lazer",
+    ozet: "Element ve dondurma",
+    /* Referansin en ozgun fikri "donma": kafaya takilan bir
+       esya gorunmezlik + yavaslik veriyordu. Uygulamasi
+       bozuktu -- seviye 249 ve SURESIZ, yani referans modlarin
+       o meshur "caresi olmayan kalici etki" huyu.
+
+       Fikir alindi, kusur ayiklandi: lazer VURDUGUNU
+       donduruyor, sureli.                                    */
+    lazer: { hasar: 9, dondur: true },
+    efektler: [
+      ["water_breathing", 0],
+      ["conduit_power",   0],
+      ["fire_resistance", 0],
+      ["haste",           3],
+      ["resistance",      2],
+      ["speed",           2],
+      ["absorption",      2],
+      ["night_vision",    0],
+      /* Element kimligi: her ortamda ayakta kal */
+      ["regeneration",    1]
+    ]
   }
 ];
+
+/* Element lazerinin dondurma suresi ve siddeti. Referanstaki
+   seviye 249 + suresiz DEGIL: sureli ve makul. Suresiz etki bu
+   depoda dorduncu kez reddediliyor.                          */
+export const LAZER_DONDUR_SURE = 100;   // 5 saniye
+export const LAZER_DONDUR_SEVIYE = 3;   // Yavaslik IV
 
 /* Kademe -> iksir esyasi eslesmesi generator ile ayni sirada
    uretiliyor: pa:iksir_<kimlik>                                  */

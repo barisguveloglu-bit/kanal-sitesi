@@ -112,6 +112,13 @@ def esya(kimlik, ad):
 # Referanstan gelen iki yeni iksir: redoksin, firenoksin.
 # v4.18: orman_atesi (referansta forest_fire) cikarildi -- "her seyden
 # orta" bir kimlik degil, hicbir durumda tercih sebebi olmuyordu.
+# ---- GOZ ZIRHI (v4.62) ----
+# "7 dis boslugunu doldursun, 10 tane var ya" -> 7 simge.
+# Zirh cubugunda 1 simge = 2 puan, yani 7 simge = 14 puan.
+# Referans modlar 7 YAZIYOR ama o 3,5 simge ediyor; burada
+# kullanicinin TARIFI esas alindi. Tek sayi, tek yerde.
+GOZ_ZIRH = 14
+
 IKSIRLER = [
     ("nitroksin",   "Nitroksin",   (236, 240, 248), "goz_beyaz",    (245, 248, 255)),
     ("grinoksin",   "Grinoksin",   (96, 214, 110),  "goz_yesil",    (150, 255, 160)),
@@ -119,6 +126,11 @@ IKSIRLER = [
     ("firenoksin",  "Firenoksin",  (240, 130, 40),  "goz_ates",     (255, 190, 90)),
     ("kan_iksiri",  "Kan Iksiri",  (140, 20, 28),   "goz_kan",      (220, 50, 50)),
     ("hiperoksin",  "Hiperoksin",  (70, 150, 240),  "goz_mavi",     (140, 210, 255)),
+    # ---- v4.62: iki yeni iksir, iki yeni referans moddan ----
+    # StarOxine  (best StarOxine mod)  -> koruma uzmani
+    # Element    (Element Iksiri V2)   -> element uzmani, lazeri dondurur
+    ("staroxine",   "StarOxine",   (245, 225, 140), "goz_yildiz",   (255, 245, 190)),
+    ("element",     "Element",     (110, 225, 215), "goz_element",  (200, 252, 248)),
 ]
 
 # Her gozun bir de LAZER varyanti var: lazer atarken kisa sureligine
@@ -129,10 +141,14 @@ IKSIR_TR = {
     "nitroksin": "Nitroksin", "grinoksin": "Grinoksin",
     "redoksin": "Redoksin", "firenoksin": "Firenoksin",
     "kan_iksiri": "Kan İksiri", "hiperoksin": "Hiperoksin",
+    "staroxine": "StarOxine", "element": "Element İksiri",
 }
 GOZ_TR = {
     "goz_beyaz": "Beyaz Göz", "goz_yesil": "Yeşil Göz",
     "goz_kirmizi": "Kırmızı Göz", "goz_ates": "Ateş Gözü",
+    "goz_yildiz": "Yıldız Gözü", "goz_element": "Element Gözü",
+    "goz_yildiz_lazer": "Yıldız Gözü (lazer)",
+    "goz_element_lazer": "Element Gözü (lazer)",
     "goz_kan": "Kanlı Göz", "goz_mavi": "Mavi Göz",
     "goz_beyaz_lazer": "Beyaz Göz (Lazer)", "goz_yesil_lazer": "Yeşil Göz (Lazer)",
     "goz_kirmizi_lazer": "Kırmızı Göz (Lazer)", "goz_ates_lazer": "Ateş Gözü (Lazer)",
@@ -192,8 +208,28 @@ def goz_esyasi(kimlik, ad):
                 "minecraft:icon": {"texture": kimlik},
                 "minecraft:display_name": {"value": ad},
                 "minecraft:max_stack_size": 1,
-                "minecraft:wearable": {"slot": "slot.armor.head"},
-                "minecraft:armor": {"protection": 0},
+                # ---- ZIRH (v4.62) ----
+                # Kullanici: "gozu 7 dis boslugunu doldursun,
+                # hani 10 tane var ya, 7 tanesini doldursun."
+                #
+                # Zirh cubugu 10 SIMGE, 20 zirh PUANI gosteriyor;
+                # yani bir simge 2 puan. 7 simge = 14 puan.
+                #
+                # DIKKAT -- iki referans mod da "protection": 7
+                # yaziyor, ama o 7 PUAN yani 3,5 simge. Yani
+                # onlarinki kullanicinin tarif ettigi seyin
+                # yarisi. Burada TARIF esas alindi; referansi
+                # birebir istersen bu sayiyi 7 yap.
+                #
+                # Kiyas: elmas kask 3 puan. 14 puan cok yuksek --
+                # ama bu iksirler zaten tanri seviyesi ve gozu
+                # takmanin bir bedeli yok, o yuzden kullanicinin
+                # istedigi gibi.
+                "minecraft:wearable": {
+                    "slot": "slot.armor.head",
+                    "protection": GOZ_ZIRH,
+                },
+                "minecraft:armor": {"protection": GOZ_ZIRH},
                 "minecraft:allow_off_hand": False,
             },
         },
