@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.62";
+export const SURUM = "v4.63";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -784,7 +784,9 @@ export const KADEMELER = [
   {
     kimlik: "staroxine",
     ad: "StarOxine",
-    renk: [0.96, 0.88, 0.55],       // altin-yildiz
+    /* v4.63: referansin kendi ikonundan olculdu -- (255,223,76).
+       Onceki [0.96,0.88,0.55] hatirdan yazilmis soluk bir altindi. */
+    renk: [1.0, 0.87, 0.30],        // altin-yildiz
     sure: 6000,
     goz: "pa:goz_yildiz",
     lazerGoz: "pa:goz_yildiz_lazer",
@@ -815,7 +817,11 @@ export const KADEMELER = [
   {
     kimlik: "element",
     ad: "Element",
-    renk: [0.43, 0.88, 0.84],       // buz-turkuaz
+    /* v4.63: referansin goz dokusundan olculdu. Element'in iki
+       gozu AYRI: buz (56,225,255) ve ates (255,178,0). Icme
+       parlamasi tek renk alabildigi icin buz tarafi secildi --
+       lazerin isi dondurmak, kimligi o tasiyor. */
+    renk: [0.22, 0.88, 1.0],        // buz-turkuaz
     sure: 6000,
     goz: "pa:goz_element",
     lazerGoz: "pa:goz_element_lazer",

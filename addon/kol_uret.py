@@ -119,6 +119,9 @@ def esya(kimlik, ad):
 # kullanicinin TARIFI esas alindi. Tek sayi, tek yerde.
 GOZ_ZIRH = 14
 
+# GOZ RENGI iki bicimde yazilabilir:
+#   (r, g, b)              -> iki goz de ayni renk
+#   ((r,g,b), (r,g,b))     -> sol goz / sag goz ayri (bkz. goz_renkleri)
 IKSIRLER = [
     ("nitroksin",   "Nitroksin",   (236, 240, 248), "goz_beyaz",    (245, 248, 255)),
     ("grinoksin",   "Grinoksin",   (96, 214, 110),  "goz_yesil",    (150, 255, 160)),
@@ -129,9 +132,30 @@ IKSIRLER = [
     # ---- v4.62: iki yeni iksir, iki yeni referans moddan ----
     # StarOxine  (best StarOxine mod)  -> koruma uzmani
     # Element    (Element Iksiri V2)   -> element uzmani, lazeri dondurur
-    ("staroxine",   "StarOxine",   (245, 225, 140), "goz_yildiz",   (255, 245, 190)),
-    ("element",     "Element",     (110, 225, 215), "goz_element",  (200, 252, 248)),
+    #
+    # v4.63: asagidaki renkler artik TAHMIN DEGIL. Referans modlarin
+    # kaynak paketleri acildi, dokular piksel sayilarak olculdu
+    # (bkz. kaynak_doku/NEREDEN.md). Onceki degerler hatirdan
+    # yazilmisti ve ikisi de yanlisti:
+    #   StarOxine  (245,225,140) soluk altin  ->  gercegi doygun sari
+    #   Element    (110,225,215) tek turkuaz  ->  gercegi IKI AYRI GOZ
+    ("staroxine",   "StarOxine",   (255, 223, 76),  "goz_yildiz",   (255, 245, 0)),
+    # Element'in kimligi cift element: bir goz buz, obur goz ates.
+    # Referansin goz dokusu da lazeri de boyle ciziliyordu.
+    ("element",     "Element",     (56, 225, 255),  "goz_element",
+     ((56, 225, 255), (255, 178, 0))),
 ]
+
+# ---- Referans modlardan gelen iksir ikonlari (v4.63) ----
+# kimlik -> kaynak_doku/ altindaki dosya adi. Dosya varsa uretilen
+# sise ikonu yerine O kopyalanir; yoksa uretilene dusulur ve paket
+# yine calisir. Kollarin elle cizilmis dokularindaki kalibin ayni.
+DOKU_KAYNAK = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                           "kaynak_doku")
+IKSIR_DOKU = {
+    "staroxine": "iksir_staroxine.png",
+    "element":   "iksir_element.png",
+}
 
 # Her gozun bir de LAZER varyanti var: lazer atarken kisa sureligine
 # ona geciliyor. Referansta da boyleydi (pa:beyaz_goz -> beyaz_goz_lazer),
@@ -570,6 +594,31 @@ def kol_skin_uygula(kimlik):
     ikon = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
     ikon.alpha_composite(doku.crop((44, 20, 48, 32)), (6, 2))
     ikon.save(os.path.join(RP, "textures/item", kimlik + ".png"))
+    return True
+
+
+def iksir_dokusu_kopyala(kimlik, hedef):
+    """Referans moddan cikarilan iksir ikonunu pakete kopyalar.
+
+    Doner: kopyalandi mi. False donerse cagiran uretilen siseyi
+    cizer -- yani kaynak_doku/ silinse bile paket calisir, sadece
+    ikonlar yer tutucuya doner.
+
+    PIL GEREKMIYOR: dosya zaten dogru boyutta ve bicimde, oldugu
+    gibi kopyalaniyor. Kucultme bir kereye mahsus yapildi ve
+    sonucu kaynak_doku/ altinda duruyor (bkz. NEREDEN.md) --
+    her uretimde yeniden hesaplanacak bir sey degil.
+    """
+    dosya = IKSIR_DOKU.get(kimlik)
+    if not dosya:
+        return False
+    kaynak = os.path.join(DOKU_KAYNAK, dosya)
+    if not os.path.exists(kaynak):
+        print("UYARI: iksir_%s icin kaynak doku yok (%s), uretilen kullaniliyor"
+              % (kimlik, kaynak))
+        return False
+    import shutil
+    shutil.copyfile(kaynak, hedef)
     return True
 
 
@@ -1863,26 +1912,44 @@ GOZ_SATIR   = 12
 GOZ_SUTUNLAR = ((9, 10), (13, 14))
 
 
-def _goz_ciz(renk, alfa=255):
+def goz_renkleri(gozRenk):
+    """IKSIRLER'deki goz rengini HER ZAMAN iki renge cevirir.
+
+    (r,g,b)            -> ayni renk iki kez
+    ((r,g,b),(r,g,b))  -> oldugu gibi
+
+    Neden: Element iksirinin bir gozu buz, obur gozu ates (v4.63,
+    referans moddan olculdu). Tek renk varsayimi tabloya gomulu
+    olsaydi bunun icin her cagri yerini elle degistirmek gerekirdi.
+    """
+    return tuple(gozRenk) if isinstance(gozRenk[0], (tuple, list)) \
+        else (tuple(gozRenk), tuple(gozRenk))
+
+
+def _goz_ciz(gozRenk, satir=None, alfa=255):
     """Goz kaplamasi: sadece goz satiri, her gozde iki piksel.
 
     Dis hat YOK, hale YOK -- ikisi de yuzu bant gibi kaplayip
     gozluk gorunumu yaratiyordu.
+
+    GOZ_SUTUNLAR sirasiyla renkler eslesir: ilk renk x=9,10
+    (doku uzayinda SOL goz), ikincisi x=13,14.
     """
     p = {}
-    for sol, sag in GOZ_SUTUNLAR:
+    y = GOZ_SATIR if satir is None else satir
+    for (sol, sag), renk in zip(GOZ_SUTUNLAR, goz_renkleri(gozRenk)):
         for x in (sol, sag):
-            p[(x, GOZ_SATIR)] = renk + (alfa,)
+            p[(x, y)] = tuple(renk) + (alfa,)
     return p
 
 
-def goz_dokusu(renk):
+def goz_dokusu(gozRenk):
     """64x64 kafa dokusu. Yalnizca goz satiri boyanir, gerisi
     TAMAMEN SAYDAM kalir -- skin'in yuzu ve goz bebegi gorunur."""
-    return _goz_ciz(renk)
+    return _goz_ciz(gozRenk)
 
 
-def lazer_goz_dokusu(renk):
+def lazer_goz_dokusu(gozRenk):
     """Lazer atarken kullanilan parlak varyant.
 
     Ayni iki piksellik goz, ama beyaza cekilmis; ustelik bir
@@ -1893,12 +1960,13 @@ def lazer_goz_dokusu(renk):
     sac/kas oluyor (bizimkinde y=11 sac), parlama orada kaybolur.
     ALTI ise duz ten (y=13), isik orada gorunur.
     """
-    parlak = tuple(min(255, int(c + (255 - c) * 0.65)) for c in renk)
-    p = _goz_ciz(parlak)
+    parlaklar = tuple(
+        tuple(min(255, int(c + (255 - c) * 0.65)) for c in renk)
+        for renk in goz_renkleri(gozRenk)
+    )
+    p = _goz_ciz(parlaklar)
     # Bir satir asagi: yanaga vuran isik
-    for sol, sag in GOZ_SUTUNLAR:
-        for x in (sol, sag):
-            p[(x, GOZ_SATIR + 1)] = parlak + (255,)
+    p.update(_goz_ciz(parlaklar, GOZ_SATIR + 1))
     return p
 
 
@@ -1959,8 +2027,12 @@ def main():
     for kimlik, ad, sivi, goz, gozRenk in IKSIRLER:
         yaz_json(os.path.join(BP, "items", "iksir_" + kimlik + ".json"),
                  iksir_esyasi(kimlik, ad))
-        png_yaz(os.path.join(RP, "textures/item", "iksir_" + kimlik + ".png"),
-                16, 16, iksir_ikonu(sivi))
+        # Referans moddan gelen gercek ikon varsa onu kopyala,
+        # yoksa uretilen siseye dus. Kopyalama sessiz olmasin:
+        # dosyayi silen biri bunu paketi acmadan gormeli.
+        iksir_png = os.path.join(RP, "textures/item", "iksir_" + kimlik + ".png")
+        if not iksir_dokusu_kopyala(kimlik, iksir_png):
+            png_yaz(iksir_png, 16, 16, iksir_ikonu(sivi))
         dokular["iksir_" + kimlik] = {"textures": "textures/item/iksir_" + kimlik}
 
         # Normal goz + lazer varyanti
@@ -1970,8 +2042,10 @@ def main():
                      goz_esyasi(ad2, GOZ_TR[ad2]))
             yaz_json(os.path.join(RP, "attachables", ad2 + ".json"), goz_attachable(ad2))
             png_yaz(os.path.join(RP, "textures/entity", ad2 + ".png"), 64, 64, doku)
+            # Envanter ikonu tek renkli bir kol silueti: cift renkli
+            # gozlerde ilk renk (Element'te buz) temsil ediyor.
             png_yaz(os.path.join(RP, "textures/item", ad2 + ".png"), 16, 16,
-                    esya_ikonu(gozRenk, (255, 255, 255)))
+                    esya_ikonu(goz_renkleri(gozRenk)[0], (255, 255, 255)))
             dokular[ad2] = {"textures": "textures/item/" + ad2}
 
             for liste in (en_us, tr_tr):
