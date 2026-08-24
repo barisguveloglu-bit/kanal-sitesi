@@ -383,6 +383,29 @@ BOT_CAN = 50     # = 25 kalp
 #   1 Okazor  2 Miskel  3 Kajaros  4 Raxxan  5 Harkos
 # Bu ekipte buyu askeri rutbenin ustunde -- Miskel, 1750 canli
 # Kajaros'un amiri. Can sirasiyla ortusmemesi bilincli.
+# ---- SALDIRGANLIK (v4.60) ----
+# Kullanici: "bana zombi vurdugunda ilk algilamadi, vurmadilar;
+# ikincide algiladilar sonra vurmaya basladilar."
+#
+# Sebebi net: Ilkel Besli'de HIC hedef arama davranisi yoktu.
+# Ellerindeki tek sey TEPKIYDI --
+#   owner_hurt_by_target : sahibi vurulunca
+#   owner_hurt_target    : sahibinin vurduguna
+#   hurt_by_target       : kendisi vurulunca
+# Yani ilk darbeyi yiyene kadar dusmanin varligindan haberleri
+# yoktu. Kullanicinin gordugu gecikme tam olarak bu.
+#
+# NORMAL BOTA EKLENMIYOR, bilincli: v4.22'de "ormanda odun
+# toplarken her koyune saldirmasin" diye kasitli birakilmisti.
+# Ilkel Besli'nin isi ise koruma; ayrim burada.
+#
+# SADECE "monster" AILESI: koyun, inek, koylu, at guvende.
+# Bir koruma ekibinin ciftligini dagitmasi ozellik degil zarar.
+ILKEL_AV_YARICAP  = 20     # kac blok icinde dusman arasin
+ILKEL_AV_TARAMA   = 4      # kac tick'te bir taransin (varsayilan 10)
+ILKEL_AV_UNUTMA   = 200    # gozden kaybolunca kac tick kovalasin
+ILKEL_SALDIRI_HIZ = 1.6    # melee_attack hizi (normal bot 1.4)
+
 ILKEL = [
     ("kajaros", "Ilkel Muhafiz Kajaros",      3500, 46,
      dict(ittirilmez=True, olcek=1.15, hiz=0.30, rutbe=3)),
@@ -693,6 +716,39 @@ def ilkel_varliklari():
         # Uyenin istatistikleri TEMEL bilesen olarak giriyor;
         # grup olarak degil, cunku bu varlik zaten o uye.
         govde["components"].update(gruplar["pa:ilkel_" + anahtar])
+
+        # ---- SALDIRGANLIK (v4.60) ----
+        # Bu blok SADECE Ilkel Besli'ye giriyor; normal bot
+        # tepkisel kaliyor.
+        savas = govde["component_groups"].get("pa:savas")
+        if savas is not None:
+            savas["minecraft:behavior.nearest_attackable_target"] = {
+                "priority": 1,
+                "within_radius": ILKEL_AV_YARICAP,
+                "must_see": True,
+                "must_see_forget_ticks": ILKEL_AV_UNUTMA,
+                "reselect_targets": True,
+                "scan_interval": ILKEL_AV_TARAMA,
+                "entity_types": [{
+                    "filters": {
+                        "test": "is_family", "subject": "other",
+                        "value": "monster",
+                    },
+                    "max_dist": ILKEL_AV_YARICAP,
+                }],
+            }
+            m = savas.get("minecraft:behavior.melee_attack")
+            if m is not None:
+                m["speed_multiplier"] = ILKEL_SALDIRI_HIZ
+                m["track_target"] = True
+        # within_radius tek basina yetmiyor: takip menzili
+        # follow_range'den geliyor ve varsayilani daha dar.
+        # Ikisi ayrisirsa bot 20 blokta hedefi SECIYOR ama
+        # 16'da unutuyor -- sinsi bir "bazen kovaliyor" hatasi.
+        govde["components"]["minecraft:follow_range"] = {
+            "value": ILKEL_AV_YARICAP,
+            "max": ILKEL_AV_YARICAP,
+        }
 
         # Cesit gruplari anlamsiz: her uyenin tek gorunumu var.
         for i in range(BOT_CESIT):
