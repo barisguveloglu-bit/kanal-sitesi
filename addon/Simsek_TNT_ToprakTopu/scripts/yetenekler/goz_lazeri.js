@@ -3,7 +3,7 @@ import { yetenekKaydet } from "./kayit.js";
 import { blokIste } from "../butce.js";
 import { kademeAl, lazerGozuAc, lazerGozuKapat } from "./iksirler.js";
 import {
-  hataYaz, gecerliMi, kollariIndir, actionbarYaz, parcacikAt
+  hataYaz, bilgiYaz, gecerliMi, kollariIndir, actionbarYaz, parcacikAt
 } from "../yardimcilar.js";
 import {
   LAZER_KALINLIK, LAZER_SURE, LAZER_ADIM, LAZER_TAVAN, LAZER_OYUNCU,
@@ -17,7 +17,8 @@ import {
   LAZER_HASAR, LAZER_BIRAKILAN_CAN, LAZER_TEPKI_HASARI,
   LAZER_ZIRH_ACIK, LAZER_ZIRH_KALAN,
   LAZER_VURUS_ARALIK, LAZER_CIZIM_ARALIK,
-  LAZER_KALKAN_KIR, LAZER_KALKAN_SURESI, LAZER_KALKAN_ESYALARI
+  LAZER_KALKAN_KIR, LAZER_KALKAN_SURESI, LAZER_KALKAN_ESYALARI,
+  LAZER_POZ_ACIK, LAZER_POZ_ADI
 } from "../ayarlar.js";
 
 /* ============================================================
@@ -257,6 +258,48 @@ function cananCek(varlik) {
     varlik.applyDamage(LAZER_HASAR, { cause: "fire" });
   } catch (e) {
     hataYaz("goz_lazeri.cananCek", e);
+  }
+}
+
+
+/* Lazer pozu: kollar one, govde hafif one egik.
+
+   Animasyonun kendisi kaynak pakette (kol_uret.py
+   lazer_animasyonu). Oyuncunun istemci varligina kaydedilmesi
+   GEREKMIYOR -- playAnimation tek seferlik oynatiyor.
+   Referans da ayni yolu kullaniyor, ama komutla:
+     playanimation @s animation.pa_yeni_haraket.nitroksin_lazer
+
+   Once API deneniyor, olmazsa komuta dusuluyor. Ikisi de
+   yoksa sessizce geciliyor: poz gorsel, lazer onsuz da
+   calisiyor -- paket olmuyor.                                */
+let pozUyarisi = false;
+
+function lazerPozu(oyuncu) {
+  if (!LAZER_POZ_ACIK) return;
+
+  try {
+    if (typeof oyuncu.playAnimation === "function") {
+      oyuncu.playAnimation(LAZER_POZ_ADI);
+      return;
+    }
+  } catch (e) {
+    /* API var ama oynatamadi: komutu deneyelim */
+  }
+
+  try {
+    if (typeof oyuncu.runCommand === "function") {
+      oyuncu.runCommand("playanimation @s " + LAZER_POZ_ADI);
+      return;
+    }
+  } catch (e) {
+    /* komut da olmadi */
+  }
+
+  if (!pozUyarisi) {
+    pozUyarisi = true;
+    bilgiYaz("Lazer pozu oynatilamiyor (playAnimation ve playanimation " +
+             "komutu yok). Lazer normal calisiyor, sadece poz eksik.");
   }
 }
 
@@ -511,8 +554,9 @@ yetenekKaydet({
       return vuran;
     }
 
-    /* ---- Gorunum: goz parlar, isin cizilir ---- */
+    /* ---- Gorunum: goz parlar, poz alinir, isin cizilir ---- */
     lazerGozuAc(oyuncu, kademe);
+    lazerPozu(oyuncu);
 
     const bitisTick = system.currentTick + LAZER_SURE;
     let sonrakiVurus = system.currentTick;      // ilki HEMEN

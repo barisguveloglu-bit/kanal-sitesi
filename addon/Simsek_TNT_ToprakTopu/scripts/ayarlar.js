@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.69";
+export const SURUM = "v4.70";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -927,6 +927,21 @@ export const LAZER_BIRAKILAN_CAN = 1;
    vurus hissi, geri tepme ve mobun sana donmesi icin.
    Gercek is cani dogrudan yazmakla yapiliyor.               */
 export const LAZER_TEPKI_HASARI = 1;
+
+/* ---- LAZER POZU (v4.70) ----
+   Kullanici: "goz lazeri attiginda ellerim one dogru... ayrica
+   birazcik beden tarafim birazcik egilsin, her goz lazeri
+   attigimda bu sekilde olsun."
+
+   Poz kaynak pakette uretiliyor (kol_uret.py lazer_animasyonu);
+   burada sadece ADI ve anahtari var. Animasyonun UZUNLUGU
+   LAZER_SURE ile ayni olmali -- uretecdeki LAZER_ANIM_TICK
+   bunun ikizi ve test ikisini karsilastiriyor.
+
+   Kapatmak istersen LAZER_POZ_ACIK = false: lazer aynen
+   calisir, sadece poz olmaz.                                 */
+export const LAZER_POZ_ACIK = true;
+export const LAZER_POZ_ADI  = "animation.simsek.goz_lazeri";
 
 /* ---- ZIRHI ERIT (v4.69) ----
    Kullanici: "patron cildirdi, full buyulu elmas zirhli...

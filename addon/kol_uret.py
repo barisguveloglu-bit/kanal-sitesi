@@ -996,6 +996,98 @@ def ilkel_istemci_varliklari():
     return tanimlar
 
 
+# ============================================================
+# GOZ LAZERI POZU  (v4.70)
+#
+# Kullanici: "goz lazeri attiginda ellerim one dogru, yukariya
+# dogru degil, gorseldeki gibi degil, birazcik one dogru
+# yapsin. Ayrica birazcik beden tarafim birazcik egilsin."
+#
+# ---- REFERANSTA BU VAR VE OKUNDU ----
+# BoraLo Nitroksin Mod, lazer fonksiyonunun son satirinda
+# oyuncuya bir poz oynatiyor:
+#   playanimation @s animation.pa_yeni_haraket.nitroksin_lazer
+# Animasyonun kendisi (pa_yeni_haraket.animation.json):
+#   body     0 -> [20, 0, 0]
+#   head  -2.5 -> [-25, 0, 0] -> [-20, 0, 0]
+#   leftArm  0 -> [-136.1, -32.4,  29.2]
+#   rightArm 0 -> [-133.1,  27.1, -23.1]
+#
+# Yani onlarin kollari YUKARI ve GERIYE kalkiyor (kullanicinin
+# gonderdigi gorseldeki poz). Kullanici bunu istemedigini
+# soyledi: "yukariya dogru degil, gorseldeki gibi degil".
+#
+# ---- BIZIM POZ ----
+# Kol X ekseninde -90 tam yatay ONE demek. Referansin -136'si
+# yataydan 46 derece daha geriye, yani yukari. Biz -82
+# kullaniyoruz: yataydan biraz asagida, "one uzatilmis" hali.
+# Z ekseninde kucuk bir aci kollari govdeden ayiriyor, yoksa
+# dirsekler bedene giriyor.
+#
+# Govde 20 degil 14: "birazcik egilsin" dendi.
+#
+# BAS NEDEN TERS DONUYOR: govde one egilince kafa da onunla
+# geliyor ve oyuncu yere bakiyormus gibi duruyor. Lazer ise
+# getViewDirection()'i takip ediyor, yani nisan degismiyor --
+# goruntu ile isin ayrisiyordu. Bas govdenin tam TERSI kadar
+# donduruluyor, ikisi birbirini goturuyor.
+# ============================================================
+LAZER_ANIM_ADI    = "animation.simsek.goz_lazeri"
+LAZER_ANIM_GOVDE  = 14      # derece, one egilme
+LAZER_ANIM_KOL_X  = -82     # -90 = tam yatay one
+LAZER_ANIM_KOL_Z  = 9       # govdeden ayirma acisi
+LAZER_ANIM_GIRIS  = 0.2     # poza girme suresi (saniye)
+LAZER_ANIM_CIKIS  = 0.3     # cikma suresi (saniye)
+
+# Isin suresiyle AYNI olmali. ayarlar.js'te LAZER_SURE = 510.
+# Iki yerde yazili bir sayi -- test ikisinin esitligini
+# kilitliyor (bu depoda dorduncu kez ayni ders).
+LAZER_ANIM_TICK   = 510
+
+
+def lazer_animasyonu():
+    """Goz lazeri atarken oyuncunun aldigi poz.
+
+    playAnimation() ile oynatiliyor; oyuncunun istemci
+    varligina ya da bir animasyon denetleyicisine KAYDEDILMESI
+    gerekmiyor -- tek seferlik calisiyor. Referans da boyle
+    yapiyor (playanimation @s ...).
+
+    Poz sonunda notr'a donuyor: donmeseydi isin bitince oyuncu
+    kollari havada donmus kalirdi.                             """
+    uzunluk = round(LAZER_ANIM_TICK / 20.0, 3)
+    gir = LAZER_ANIM_GIRIS
+    cik = round(uzunluk - LAZER_ANIM_CIKIS, 3)
+
+    def kanal(poz):
+        # notr -> poz -> (tut) -> notr
+        return {
+            "rotation": {
+                "0.0": [0, 0, 0],
+                str(gir): poz,
+                str(cik): poz,
+                str(uzunluk): [0, 0, 0],
+            }
+        }
+
+    return {
+        "format_version": "1.8.0",
+        "animations": {
+            LAZER_ANIM_ADI: {
+                "loop": False,
+                "animation_length": uzunluk,
+                "bones": {
+                    "body":     kanal([LAZER_ANIM_GOVDE, 0, 0]),
+                    # Govdenin tersi: bakis yonu goruntuyle ayrismasin
+                    "head":     kanal([-LAZER_ANIM_GOVDE, 0, 0]),
+                    "rightArm": kanal([LAZER_ANIM_KOL_X, 0, -LAZER_ANIM_KOL_Z]),
+                    "leftArm":  kanal([LAZER_ANIM_KOL_X, 0, LAZER_ANIM_KOL_Z]),
+                },
+            }
+        },
+    }
+
+
 def bot_sunucu_varligi():
     """format_version 1.16.0: varliklar icin en genis desteklenen
     surum ve hicbir deneysel ayar istemiyor.
@@ -2535,6 +2627,8 @@ def main():
     yaz_json(os.path.join(RP, "models/entity/simsek_goz.geo.json"), GOZ_GEOMETRI)
     yaz_json(os.path.join(RP, "models/entity/simsek_kol.geo.json"), GEOMETRI)
     yaz_json(os.path.join(RP, "animations/simsek_kol_tutus.animation.json"), TUTUS_ANIM)
+    yaz_json(os.path.join(RP, "animations/goz_lazeri.animation.json"),
+             lazer_animasyonu())
     # DIKKAT -- BURAYA DOKUNMA.
 
     #    v4.3'te bu baslik referansa uydurulmustu (resource_pack_name
