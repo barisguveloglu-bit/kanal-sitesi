@@ -275,15 +275,31 @@ GOZ_GEOMETRI = {
             "bones": [
                 # Kol modelindeki ile ayni kural: kemik adi oyuncu
                 # iskeletindekiyle ayni olmali ki kafaya otursun.
+                #
+                # ---- v4.64: INFLATE GITTI, YERINE 0.2 ONE KAYMA ----
+                # Onceki hal: origin z=-4 + "inflate": 0.52.
+                # Inflate kutuyu MERKEZDEN disari geriyor, yani
+                # dokuyu de geriyor: kayma merkeze uzaklikla
+                # buyuyor. Duz iki piksellik gozde bu gorunmuyordu
+                # (0.07 satir), ama goz artik HALELI ve SACAKLI --
+                # gerilme dogrudan halede bozulma olarak cikiyor.
+                # Ustelik 0.52 yuzden yarim piksel one duruyor,
+                # yumusak bir isik orada "havada asili" duruyor.
+                #
+                # Referans (best StarOxine mod) inflate KULLANMIYOR:
+                # kafayla ayni boy kutuyu z ekseninde 0.2 one
+                # kaydiriyor (origin [-4, 24, -4.2]). Kaydirma
+                # gerdirmiyor, sadece tasiyor. Arka ve yan yuzler
+                # kafanin icinde kaliyor ama o bolgeler dokuda
+                # TAMAMEN SAYDAM, yani hicbir sey cizilmiyor.
                 {
                     "name": "Head",
                     "pivot": [0, 24, 0],
                     "cubes": [
                         {
-                            "origin": [-4, 24, -4],
+                            "origin": [-4, 24, -4.2],
                             "size": [8, 8, 8],
                             "uv": [0, 0],
-                            "inflate": 0.52,
                         }
                     ],
                 }
@@ -296,16 +312,37 @@ GOZ_GEOMETRI = {
 def goz_attachable(kimlik):
     """Referanstan alinan kritik satir: parent_setup ile
     helmet_layer_visible = 0 -- yoksa kaskin kendisi de cizilir ve
-    goz kaskin altinda kalir."""
+    goz kaskin altinda kalir.
+
+    ---- v4.64: MALZEME "armor" DEGIL "entity_alphablend" ----
+    Bu bir gorsel tercih degil, ZORUNLULUK. "armor" malzemesi
+    ALPHA TEST yapiyor: bir piksel ya tam opak ya tam saydam,
+    aradaki degerler KESILIP ATILIYOR. Goz artik yumusak bir
+    hale ve saydamligi azalan sacaklar tasiyor; alpha test
+    altinda o pikseller hic cizilmez ve goz eskisi gibi duz iki
+    kareye doner -- ustelik hicbir hata vermeden.
+
+    entity_alphablend gercek harmanlama yapiyor. Referans
+    (best StarOxine mod) da tam olarak bunu kullaniyor:
+      "materials": { "default": "entity_alphablend" }
+    Element modu "armor" kullaniyor ama onun dokusunda ara ton
+    yok, o yuzden farki gormemis.
+
+    enchanted dokusu da referanstaki gibi ACTOR glint: bu bir
+    esya degil, vucuda giyilen bir sey. Onceki "item" yolu
+    buyulenmis gorunumde yanlis dokuyu ariyordu.               """
     return {
         "format_version": "1.10.0",
         "minecraft:attachable": {
             "description": {
                 "identifier": "pa:" + kimlik,
-                "materials": {"default": "armor", "enchanted": "armor_enchanted"},
+                "materials": {
+                    "default": "entity_alphablend",
+                    "enchanted": "armor_enchanted",
+                },
                 "textures": {
                     "default": "textures/entity/" + kimlik,
-                    "enchanted": "textures/misc/enchanted_item_glint",
+                    "enchanted": "textures/misc/enchanted_actor_glint",
                 },
                 "geometry": {"default": "geometry.simsek_goz"},
                 "scripts": {"parent_setup": "variable.helmet_layer_visible = 0.0;"},
@@ -1899,17 +1936,73 @@ def iksir_ikonu(renk):
 # Sutunlar zaten dogruydu: x=9,10 (sag goz) ve x=13,14 (sol goz).
 # Sadece satir iki asagidaydi.
 #
-# NOT (kaplama neden tam oturuyor): attachable kutusu inflate 0.52
-# ile buyutulmus, bu da dokuyu kutu MERKEZINDEN disari doguru
-# geriyor. Kayma merkeze olan uzakligla artiyor: y=14 icin 0.33
-# satir (gorunur), y=12 icin 0.07 satir (gorunmez). Yani dogru
-# satira gecince esneme sorunu da kendiliginden kayboluyor.
+# NOT: v4.63'e kadar attachable kutusu inflate 0.52 ile
+# buyutulmustu ve doku hafifce geriliyordu. v4.64'te inflate
+# kaldirildi (bkz. GOZ_GEOMETRI), gerilme diye bir sey kalmadi.
 #
 # SKIN DEGISTIRIRSEN: gozun hangi satirda oldugunu say (kafanin
 # ust kenari y=8) ve asagidaki tek sayiyi degistir. Baska hicbir
 # yere dokunma.
 GOZ_SATIR   = 12
 GOZ_SUTUNLAR = ((9, 10), (13, 14))
+
+
+# ============================================================
+# GOZ KAPLAMASI -- v4.64, REFERANS TEKNIGI
+#
+# Kullanici: "bu modda yapilan gozler gibi, yani kullanilan
+# kodlar gibi gozler yapmani istiyorum ayni sekilde ki eksik
+# kalmasin."
+#
+# Iki referans modun gozleri de acilip olculdu. Ikisi de AYNI
+# fikri kuruyor, sadece farkli yollardan:
+#
+#   best StarOxine mod
+#     doku 1920x1920 (64'un 30 kati), geometri texture_width 64
+#     -> yani duzen 64'lukken DOSYA 30 kat cozunurluklu.
+#     Cizim: gozun yerinde DOLU bir dikdortgen, ustunden ALEV
+#     GIBI SACAKLAR yukseliyor, cevresinde yumusak bir HALE.
+#     malzeme: entity_alphablend (halenin ara tonlari icin sart)
+#     kutu:    kafayla ayni boy, z=-4.2 (inflate YOK)
+#
+#   Element Iksiri modu V2
+#     6x4'luk DUZ bir levha, texture_width 6 / height 5,
+#     inflate 1. Cizim ayni fikir: dolu dikdortgen + ustunden
+#     yukselen buz kristali (sol goz) ve alev (sag goz).
+#
+# Ortak nokta ve asil fikir su:
+#   GOZ = dolu cekirdek + ustunden yukselen sacak + hale
+# Bizde v4.63'e kadar sadece "dolu cekirdek" vardi: goz basina
+# iki piksel, hale yok, sacak yok. Eksik olan buydu.
+#
+# BIZIM UYARLAMAMIZ (neden birebir kopya degil):
+#   - Cekirdegin YERI degismedi. GOZ_SATIR/GOZ_SUTUNLAR bizim
+#     skinimize gore olculmustu; referansin gozu kendi skinine
+#     gore 3 satir asagida. Yeri kopyalasak goz yanaga kayardi
+#     (v4.18'de tam bu hata yasandi).
+#   - Referansin dokusu 30 kat (1920x1920 = 15 MB ekran karti
+#     bellegi, TEK doku icin). Bizde 16 goz dokusu var; 30 kat
+#     240 MB eder, tablette kabul edilemez. 8 kat secildi.
+#   - Referansin duzeni "levha" degil "kafa kutusu" olani
+#     alindi: levha yandan bakinca kayboluyor.
+#
+# GOZ_OLCEK tek sayi: buyutmek/kucultmek icin sadece burayi
+# degistir. Bellek maliyeti: 16 doku x (64*OLCEK)^2 x 4 bayt.
+#   OLCEK 4  ->  4 MB    kaba sacak
+#   OLCEK 8  -> 16 MB    su anki secim
+#   OLCEK 16 -> 67 MB    tablette riskli
+# ============================================================
+GOZ_OLCEK = 8
+GOZ_DOKU  = 64 * GOZ_OLCEK          # 512x512
+
+# Asagidakiler ALT PIKSEL cinsinden (1 Minecraft pikseli =
+# GOZ_OLCEK alt piksel). Oranlar referanstan olculdu:
+# cekirdegin ustunde ~1 MC piksel sacak, ~0.4 MC piksel hale.
+GOZ_HALE   = 5                      # halenin yariCapi
+GOZ_HALE_YATAY = 1.9                # hale yatayda bu kat DAHA DAR
+GOZ_SACAK  = GOZ_OLCEK + 1          # en uzun sacagin boyu
+GOZ_SACAK_ADET = 5                  # goz basina sacak sayisi
+GOZ_KIVILCIM = 2                    # sacaklarin ustundeki kopuk zerre
 
 
 def goz_renkleri(gozRenk):
@@ -1926,47 +2019,211 @@ def goz_renkleri(gozRenk):
         else (tuple(gozRenk), tuple(gozRenk))
 
 
-def _goz_ciz(gozRenk, satir=None, alfa=255):
-    """Goz kaplamasi: sadece goz satiri, her gozde iki piksel.
+def _uretec(tohum):
+    """Kucuk, DETERMINIST sozde-rastgele uretec.
 
-    Dis hat YOK, hale YOK -- ikisi de yuzu bant gibi kaplayip
-    gozluk gorunumu yaratiyordu.
+    Neden random modulu degil: sacaklarin yeri her uretimde ayni
+    cikmali. Aksi halde `python3 kol_uret.py` her kosuda 16
+    dokuyu degistirir, git farki surekli kirlenir ve testin bayt
+    karsilastirmasi anlamsizlasir. Python'un hash()'i de surec
+    basina rastgeleleniyor -- crc32 oyle degil, sabit.        """
+    durum = zlib.crc32(tohum.encode("utf-8")) & 0x7FFFFFFF
+
+    def sonraki(n):
+        nonlocal durum
+        durum = (durum * 1103515245 + 12345) & 0x7FFFFFFF
+        return durum % n if n > 0 else 0
+
+    return sonraki
+
+
+def _kat(p, x, y, renk, alfa):
+    """Bir alt pikseli boyar; ustuste gelenlerde EN PARLAK olan
+    kazanir. Toplama yapilmiyor: sacak halenin ustunden gecerken
+    alfa 255'i asip tasmasin, kenarlar kirlenmesin."""
+    if alfa <= 0:
+        return
+    alfa = min(255, int(alfa))
+    eski = p.get((x, y))
+    if eski and eski[3] >= alfa:
+        return
+    p[(x, y)] = tuple(renk) + (alfa,)
+
+
+def _goz_govdesi(p, x0, x1, y0, y1, renk, tohum, guc=1.0):
+    """TEK bir gozu cizer: cekirdek + hale + yukselen sacaklar.
+
+    x0..x1 / y0..y1 ALT PIKSEL cinsinden cekirdegin siniri
+    (x1, y1 disarida). Referansin (best StarOxine mod) gozunun
+    piksel piksel cozulmus hali:
+
+        .##..##.     <- kopuk kivilcimlar
+        ###.###.     <- sacaklar
+        ###.####     <- CEKIRDEK
+        .#...#..     <- alta sizan isik
+
+    guc: lazer varyantinda 1'den buyuk -- sacaklar uzuyor,
+    hale genisliyor. Sekil ayni kaliyor ki iki varyant ayni
+    goz gibi dursun, farkli bir goz gibi degil.               """
+    rast = _uretec(tohum)
+    # Ust kenar parlatmasi 0.45 iken KOYU renklerde (Kan
+    # Iksiri) gozun ortasindan gecen beyaz bir cizgi gibi
+    # duruyordu -- acik renklerde sorun yoktu, o yuzden
+    # once fark edilmedi. 0.26 her renkte "isik yukari
+    # tasiyor" hissini veriyor, cizgi olusturmuyor.
+    parlak = tuple(min(255, int(c + (255 - c) * 0.26)) for c in renk)
+
+    # ---- 1. Cekirdek: tam opak, UST KENARI biraz daha parlak ----
+    # Isik yukari dogru tasiyor gibi dursun diye ust kenar
+    # parlatildi. Once ORTA sutun parlatilmisti; o, gozun tam
+    # ortasindan gecen dikey bir cizgi olarak goruluyordu.
+    for y in range(y0, y1):
+        ust = (y - y0) < max(1, (y1 - y0) // 8)
+        for x in range(x0, x1):
+            _kat(p, x, y, parlak if ust else renk, 255)
+
+    # ---- 2. Hale: cekirdege uzakligiyla sonen yumusak isik ----
+    # entity_alphablend olmadan bu tamamen kayboluyor (alpha
+    # test ara tonlari kesiyor) -- malzeme notuna bak.
+    #
+    # YATAYDA DAHA DAR (dx * GOZ_HALE_YATAY). Sebep: iki goz
+    # arasinda sadece 2 MC pikseli var (x=11,12). Daire seklinde
+    # bir hale o araligi dolduruyor ve iki goz TEK BIR VIZOR
+    # gibi gorunuyordu -- v4.18'de "gozluk gibi durdu" diye
+    # kaldirilan seyin aynisi. Yatayi kisaltinca aradaki bosluk
+    # aciliyor, isik yukari-asagi yayilmaya devam ediyor.
+    yari = GOZ_HALE * guc
+    tara = int(yari) + 1
+    for y in range(y0 - tara, y1 + tara):
+        for x in range(x0 - tara, x1 + tara):
+            if x0 <= x < x1 and y0 <= y < y1:
+                continue
+            dx = 0 if x0 <= x < x1 else (x0 - x if x < x0 else x - x1 + 1)
+            dy = 0 if y0 <= y < y1 else (y0 - y if y < y0 else y - y1 + 1)
+            uzak = ((dx * GOZ_HALE_YATAY) ** 2 + dy * dy) ** 0.5
+            if uzak > yari:
+                continue
+            _kat(p, x, y, renk, 200 * (1 - uzak / (yari + 1.0)) ** 1.7)
+
+    # ---- 3. Sacaklar: cekirdegin USTUNDEN yukselen diller ----
+    # Referansta gozun kimligini tasiyan kisim bu.
+    #
+    # Ilk denemede hepsi ayni kalinlikta ve esit arali cikti,
+    # CIT KAZIGI gibi duruyordu. Referansin sacaklari hem boyca
+    # hem kalinlikca farkli, bazilari dibinde birlesiyor. Uc sey
+    # degisken: yer, boy, taban kalinligi.
+    genis = x1 - x0
+    for i in range(GOZ_SACAK_ADET):
+        # Esit dagit, sonra kaydir -- tamamen rastgele yer
+        # secmek bir yana kumelenip obur yani bos birakiyordu.
+        sx = x0 + int((i + 0.5) * genis / GOZ_SACAK_ADET) + rast(3) - 1
+        sx = max(x0, min(x1 - 1, sx))
+        boy = int(GOZ_SACAK * (0.35 + rast(70) / 100.0) * guc)
+        taban = 1 + (1 if rast(3) == 0 else 0)     # cogu ince, bazisi kalin
+        for k in range(boy):
+            y = y0 - 1 - k
+            oran = k / float(max(1, boy))
+            kalin = int(round(taban * (1 - oran)))
+            alfa = 255 * (1 - oran) ** 1.25
+            for dx in range(-kalin, kalin + 1):
+                # Sacaklar CEKIRDEGIN RENGINDE. Once uclari
+                # parlatilmisti ve hepsi beyazimsi cikiyordu --
+                # referansta sacaklar cekirdekle ayni renkte,
+                # sadece incelip saydamlasiyorlar.
+                _kat(p, sx + dx, y, renk, alfa)
+
+    # ---- 4. Kivilcimlar: sacaklardan kopmus zerreler ----
+    for _ in range(GOZ_KIVILCIM):
+        kx = x0 + rast(max(1, genis))
+        ky = y0 - int(GOZ_SACAK * guc) - rast(max(1, GOZ_OLCEK // 2))
+        _kat(p, kx, ky, renk, 200)
+        if GOZ_OLCEK >= 8:
+            _kat(p, kx + 1, ky, renk, 130)
+
+    # ---- 5. Alta sizan isik ----
+    # Referansta da var. Neden asagi: goz satirinin USTU bizim
+    # skinimizde sac (y=11), isik orada kayboluyor; ALTI duz
+    # ten (y=13), isik orada gorunuyor.
+    derin = max(1, int(GOZ_OLCEK * 0.4 * guc))
+    for y in range(y1, y1 + derin):
+        oran = (y - y1) / float(derin)
+        for x in range(x0 + 1, x1 - 1):
+            _kat(p, x, y, renk, 150 * (1 - oran) ** 1.5)
+
+
+def _goz_ciz(gozRenk, tohum, guc=1.0):
+    """Iki gozu de cizip alt piksel sozlugunu dondurur.
 
     GOZ_SUTUNLAR sirasiyla renkler eslesir: ilk renk x=9,10
-    (doku uzayinda SOL goz), ikincisi x=13,14.
+    (doku uzayinda SOL goz), ikincisi x=13,14. Element iksirinin
+    bir gozu buz, obur gozu ates -- bu yuzden goz basina ayri.
     """
     p = {}
-    y = GOZ_SATIR if satir is None else satir
-    for (sol, sag), renk in zip(GOZ_SUTUNLAR, goz_renkleri(gozRenk)):
-        for x in (sol, sag):
-            p[(x, y)] = tuple(renk) + (alfa,)
+    for i, ((sol, sag), renk) in enumerate(
+            zip(GOZ_SUTUNLAR, goz_renkleri(gozRenk))):
+        _goz_govdesi(
+            p,
+            sol * GOZ_OLCEK, (sag + 1) * GOZ_OLCEK,
+            GOZ_SATIR * GOZ_OLCEK, (GOZ_SATIR + 1) * GOZ_OLCEK,
+            renk, tohum + ":" + str(i), guc,
+        )
     return p
 
 
-def goz_dokusu(gozRenk):
-    """64x64 kafa dokusu. Yalnizca goz satiri boyanir, gerisi
-    TAMAMEN SAYDAM kalir -- skin'in yuzu ve goz bebegi gorunur."""
-    return _goz_ciz(gozRenk)
+def goz_dokusu(gozRenk, tohum):
+    """Kafa dokusu (GOZ_DOKU x GOZ_DOKU). Yalnizca gozun cevresi
+    boyanir, gerisi TAMAMEN SAYDAM kalir -- skin'in yuzu altta
+    gorunmeye devam eder."""
+    return _goz_ciz(gozRenk, tohum, 1.0)
 
 
-def lazer_goz_dokusu(gozRenk):
-    """Lazer atarken kullanilan parlak varyant.
+def lazer_goz_dokusu(gozRenk, tohum):
+    """Lazer atarken kisa sureligine gecilen parlak varyant.
 
-    Ayni iki piksellik goz, ama beyaza cekilmis; ustelik bir
-    satir ASAGI da tasiyor, yani isik yanaga vurmus gibi duruyor.
-    Yuzun geri kalanina yine dokunmuyor -- bant olusmuyor.
-
-    Neden asagi, yukari degil: goz satirinin USTU cogu skin'de
-    sac/kas oluyor (bizimkinde y=11 sac), parlama orada kaybolur.
-    ALTI ise duz ten (y=13), isik orada gorunur.
-    """
+    AYNI goz, "sesi acilmis" hali: renk beyaza cekilmis,
+    sacaklar uzamis, hale genislemis. Tohum ayni -- sacaklar
+    ayni yerde duruyor, yoksa lazer aninda goz bambaska bir
+    goze donusmus gibi zipliyordu.                             """
+    # Beyaza cekme 0.6 iken butun gozler ayni krem rengine
+    # dusuyordu -- lazer aninda hangi iksiri ictigin
+    # anlasilmiyordu. 0.32 rengi koruyor, guc (sacak boyu ve
+    # hale genisligi) farki zaten "acildi" hissini veriyor.
     parlaklar = tuple(
-        tuple(min(255, int(c + (255 - c) * 0.65)) for c in renk)
+        tuple(min(255, int(c + (255 - c) * 0.32)) for c in renk)
         for renk in goz_renkleri(gozRenk)
     )
-    p = _goz_ciz(parlaklar)
-    # Bir satir asagi: yanaga vuran isik
-    p.update(_goz_ciz(parlaklar, GOZ_SATIR + 1))
+    return _goz_ciz(parlaklar, tohum, 1.8)
+
+
+def goz_ikonu(gozRenk):
+    """Gozun ENVANTER ikonu: 16x16, iki goz.
+
+    v4.63'e kadar burada esya_ikonu() cagriliyordu, yani 16
+    gozun hepsi envanterde RENKLI BIR KOL olarak goruluyordu --
+    hangisi hangi iksirin gozu, ancak adindan anlasiliyordu.
+
+    Referansin ikonu (dy_staroxine_goz.png) piksel piksel
+    cozuldu, iki 3x2 blok:
+        y= 9  ....###..###....
+        y=10  ....###..###....
+    Ayni duzen alindi; ustune bizim gozumuzun kimligi olan
+    yumusak hale bir piksellik halka olarak eklendi.          """
+    p = {}
+    renkler = goz_renkleri(gozRenk)
+    for bx, renk in zip((4, 9), renkler):
+        # Cekirdek: referanstaki 3x2 blogun aynisi
+        for y in (9, 10):
+            for x in range(bx, bx + 3):
+                p[(x, y)] = tuple(renk) + (255,)
+        # Ustunde iki sacak, altinda bir sizinti.
+        # HALE YOK ve YANLARA HICBIR SEY YOK: 16x16'da bir
+        # piksellik yan hale bile iki gozu birlestirip tek bir
+        # vizor cubugu haline getiriyor (dokuda da ayni tuzak
+        # vardi, GOZ_HALE_YATAY notuna bak).
+        p[(bx, 8)] = tuple(renk) + (210,)
+        p[(bx + 2, 8)] = tuple(renk) + (150,)
+        for x in range(bx, bx + 3):
+            p[(x, 11)] = tuple(renk) + (95,)
     return p
 
 
@@ -2035,17 +2292,18 @@ def main():
             png_yaz(iksir_png, 16, 16, iksir_ikonu(sivi))
         dokular["iksir_" + kimlik] = {"textures": "textures/item/iksir_" + kimlik}
 
-        # Normal goz + lazer varyanti
-        for ad2, doku in ((goz, goz_dokusu(gozRenk)),
-                          (goz + "_lazer", lazer_goz_dokusu(gozRenk))):
+        # Normal goz + lazer varyanti.
+        # Tohum IKI VARYANTTA DA ayni (goz kimligi): sacaklar ayni
+        # yerde dursun, lazer aninda goz baska bir goze donusmesin.
+        for ad2, doku in ((goz, goz_dokusu(gozRenk, goz)),
+                          (goz + "_lazer", lazer_goz_dokusu(gozRenk, goz))):
             yaz_json(os.path.join(BP, "items", ad2 + ".json"),
                      goz_esyasi(ad2, GOZ_TR[ad2]))
             yaz_json(os.path.join(RP, "attachables", ad2 + ".json"), goz_attachable(ad2))
-            png_yaz(os.path.join(RP, "textures/entity", ad2 + ".png"), 64, 64, doku)
-            # Envanter ikonu tek renkli bir kol silueti: cift renkli
-            # gozlerde ilk renk (Element'te buz) temsil ediyor.
+            png_yaz(os.path.join(RP, "textures/entity", ad2 + ".png"),
+                    GOZ_DOKU, GOZ_DOKU, doku)
             png_yaz(os.path.join(RP, "textures/item", ad2 + ".png"), 16, 16,
-                    esya_ikonu(goz_renkleri(gozRenk)[0], (255, 255, 255)))
+                    goz_ikonu(gozRenk))
             dokular[ad2] = {"textures": "textures/item/" + ad2}
 
             for liste in (en_us, tr_tr):
