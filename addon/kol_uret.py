@@ -601,14 +601,30 @@ def ilkel_gruplari():
                 "yd": 0.55,
                 "must_be_on_ground": False,
             }
-        # ---- BALTA TASIYABILSIN (v4.48) ----
-        # minecraft:equippable olmadan script tarafinda
-        # EquippableComponent bulunmuyor, yani balta ele
-        # konulamiyor. Sadece ana el tanimli: bes uyenin zirh
-        # giymesi istenmiyor, kendi skinleri var.
+        # ---- SILAH ELDE (v4.48, v4.59'da DUZELTILDI) ----
+        #
+        # v4.48'de yalniz minecraft:equippable yazilmisti ve
+        # yuvasi "slot.weapon.mainhand" metniydi. OYUNDA HIC
+        # CALISMADI: bu bilesen yuvayi SAYI olarak bekliyor
+        # (kutu yuva indeksi), metin verilince bilesen
+        # ayristirilamiyor. Sonuc: script tarafinda
+        # getComponent("minecraft:equippable") undefined
+        # donuyor, silah ele hic konulmuyor ve tek belirti
+        # Content Log'a dusen bir satir oluyor.
+        #
+        # Asil yol minecraft:equipment: vanilla zombiye kilic
+        # veren mekanizma bu. Ganimet tablosu doguşta calisiyor,
+        # script gerektirmiyor, dunya yeniden yuklenince de
+        # duruyor.
+        g["minecraft:equipment"] = {
+            "table": "loot_tables/equipment/ilkel_%s.json" % anahtar
+        }
+        # equippable YINE duruyor ama artik dogru bicimde:
+        # script tarafindaki tazeleme yolu (silah duserse geri
+        # koyma) buna bagli.
         g["minecraft:equippable"] = {
             "slots": [{
-                "slot": "slot.weapon.mainhand",
+                "slot": 0,
                 "accepted_items": ["pa:" + ilkel_silahi(anahtar)[0]],
             }]
         }
@@ -1892,6 +1908,20 @@ def main():
         elif not os.path.exists(hedef):
             # Skin bulunamadi: sessiz kalma, yoksa uye mor-siyah cizilir
             print("UYARI: %s skini bulunamadi (%s)" % (anahtar, kaynak))
+    # Her uyenin DONANIM ganimet tablosu (v4.59). Vanilla
+    # zombinin kilic almasiyla ayni yol; dogusta calisiyor.
+    for _anahtar, _ad, _c, _h, _sec in ILKEL:
+        yaz_json(os.path.join(BP, "loot_tables/equipment",
+                              "ilkel_%s.json" % _anahtar),
+                 {"pools": [{
+                     "rolls": 1,
+                     "entries": [{
+                         "type": "item",
+                         "name": "pa:" + ilkel_silahi(_anahtar)[0],
+                         "weight": 1,
+                     }],
+                 }]})
+
     # ---- Ilkel Besli'nin silahlari (v4.48, v4.49) ----
     # Dokular kullanicinin elle cizdigi dosyalar. Uretilen yedek
     # YOK: yer tutucu bir silah cizmek "sahte icerik" olurdu,

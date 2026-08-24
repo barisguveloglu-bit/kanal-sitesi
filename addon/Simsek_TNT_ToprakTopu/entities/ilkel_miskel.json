@@ -173,10 +173,13 @@
         "attack_interval_max": 2,
         "attack_radius": 20
       },
+      "minecraft:equipment": {
+        "table": "loot_tables/equipment/ilkel_miskel.json"
+      },
       "minecraft:equippable": {
         "slots": [
           {
-            "slot": "slot.weapon.mainhand",
+            "slot": 0,
             "accepted_items": [
               "pa:ilkel_balta"
             ]

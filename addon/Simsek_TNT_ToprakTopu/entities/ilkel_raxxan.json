@@ -164,10 +164,13 @@
       "minecraft:knockback_resistance": {
         "value": 1.0
       },
+      "minecraft:equipment": {
+        "table": "loot_tables/equipment/ilkel_raxxan.json"
+      },
       "minecraft:equippable": {
         "slots": [
           {
-            "slot": "slot.weapon.mainhand",
+            "slot": 0,
             "accepted_items": [
               "pa:ilkel_balta"
             ]

@@ -152,6 +152,9 @@ function efektVer(hedef, liste, secenek) {
    ve dunya yeniden yuklenince kendi kendine tazeleniyor.      */
 
 let silahUyarisi = false;
+/* Son cagrilan uyeye silahi konulabildi mi. Cagirma mesaji
+   bunu okuyor.                                              */
+let sonSilah = false;
 
 function eldekiEsya(varlik) {
   try {
@@ -278,7 +281,12 @@ export function ilkelYap(varlik, anahtar) {
      bakim() taramasinda tazeleniyor; buradaki cagri sadece "ilk
      karede zaten oyle gorunsun" icin -- bir tarama beklemek
      uyeyi bos elle dogurmak olurdu.                           */
-  silahVer(varlik, anahtar);
+  /* Silah sonucu SAKLANIYOR: cagirma mesajinda bildiriliyor.
+     v4.48-v4.58 arasi silah oyunda hic gorunmedi ve tek
+     belirtisi Content Log'a dusen bir satirdi -- kullanici
+     "gorunmuyor" dedi, sebebini gormesi imkansizdi.
+     Artik cagirir cagirmaz yaziyor.                          */
+  sonSilah = silahVer(varlik, anahtar);
   pasifVer(varlik, t);
 
   /* Isim etiketi rutbeyle: kim kimin ustu, bakinca belli olsun.
@@ -652,9 +660,13 @@ yetenekKaydet({
         oyuncu.sendMessage("§c" + sonuc.hata);
       } else {
         const t = tanim(secilen);
+        const silahSatiri = sonSilah
+          ? "§8silahı elinde"
+          : "§c⚠ silahı ele konulamadı §8(kaynak paket eski olabilir)";
         oyuncu.sendMessage(
           "§6⚔ §f" + t.ad + "§7 yanında. §8" + t.can + " can · " +
           t.hasar + " hasar\n§7" + ozetle(secilen) +
+          "\n" + silahSatiri +
           "\n§8Yanındakiler: " + (ilkelListesi(oyuncu.id).length) + "/" +
           ILKEL_BESLI.size);
       }

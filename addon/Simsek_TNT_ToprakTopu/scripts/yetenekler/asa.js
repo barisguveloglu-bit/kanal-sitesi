@@ -1,10 +1,14 @@
-import { system } from "@minecraft/server";
-import { hataYaz, gecerliMi, olayaAbone, parcacikAt, varlikKonumu } from "../yardimcilar.js";
+import { system, world } from "@minecraft/server";
+import {
+  hataYaz, gecerliMi, olayaAbone, parcacikAt, varlikKonumu, actionbarYaz
+} from "../yardimcilar.js";
+import { botunSahibi } from "./_bot_defteri.js";
 import {
   mezarEkle, mezariBul, mezarSil, tavanDoldu
 } from "./_mezar_defteri.js";
 import {
   SERSEM_VURUS, SERSEM_PENCERE, SERSEM_SURE, SERSEM_YAVASLIK, SERSEM_KOR,
+  SERSEM_CIVILE, SERSEM_GUCSUZ, ASA_BILDIR,
   MEZAR_ACIK, MEZAR_YARICAP, MEZAR_YUKSEK, MEZAR_BLOK,
   DISMONT_ESYA, MEZAR_ANAHTAR_ADET,
   DONDUR_GIRDI_KILIT, DONDUR_KAMERA_KILIT
@@ -43,6 +47,39 @@ import {
      - mezar acilinca                -> serbest
      - hedef gecersizlesince (oldu)  -> kayit dusuyor
    ============================================================ */
+
+/* ---------------- Sahibe bildirim ----------------  (v4.59)
+
+   Kullanici oyunda denedi ve "yere sermesini goremedim" dedi.
+   Hakliydi: mobda girdi kilidi yok, yavaslik da disaridan
+   gorunmuyor -- zincir CALISSA BILE hicbir belirtisi yoktu.
+
+   Artik her adim actionbar'a dusuyor. Boylece "calismiyor" ile
+   "calisiyor ama gorunmuyor" birbirinden ayrilabiliyor; hangi
+   adimda takildigi tek bakista belli.                        */
+function sahibeYaz(bot, metin) {
+  if (!ASA_BILDIR) return;
+  try {
+    const id = botunSahibi(bot);
+    if (!id) return;
+    /* ONCE getAllPlayers: aradigimiz sey bir OYUNCU ve bu yol
+       her surumde kesin calisiyor. world.getEntity oyuncu
+       kimligiyle her yerde ayni davranmiyor -- bota once onu
+       sorunca bildirim sessizce dusuyordu.                    */
+    let oyuncu;
+    try {
+      oyuncu = world.getAllPlayers().find((p) => p.id === id);
+    } catch (e) {
+      oyuncu = undefined;
+    }
+    if (!oyuncu && typeof world.getEntity === "function") {
+      oyuncu = world.getEntity(id);
+    }
+    if (oyuncu) actionbarYaz(oyuncu, metin);
+  } catch (e) {
+    /* Bildirim gonderilemedi: yetenegin kendisi etkilenmiyor. */
+  }
+}
 
 /* ---------------- Vurus sayaci ---------------- */
 
@@ -94,8 +131,28 @@ function sersemlet(kurban) {
   }
   girdiKilidi(kurban, false);
 
+  /* MOBLARI CIVILEME (v4.59). Oyuncuyu inputpermission
+     tutuyor ama mobda oyle bir sey yok; yavaslik 255 bile
+     yerinde duran bir Warden'in VURMASINI engellemiyor --
+     kullanici tam bunu gordu.
+
+     Cozum: dustugu noktayi kaydet, her taramada oraya geri
+     isinla. Yurumeye calisiyor, yerinden oynayamiyor.        */
+  let nokta;
+  try { nokta = varlikKonumu(kurban); } catch (e) { nokta = undefined; }
+
+  /* Ustelik vurusu da islemesin: Gucsuzluk yakin dovus
+     hasarini dusuruyor. "Yerde yatan adam" vurmamali.        */
+  if (SERSEM_GUCSUZ) {
+    try {
+      kurban.addEffect("weakness", SERSEM_SURE,
+                       { amplifier: SERSEM_GUCSUZ, showParticles: false });
+    } catch (e) { /* efekt yoksa gecilir */ }
+  }
+
   sersemler.set(kurban.id, {
     varlik: kurban,
+    nokta: nokta,
     bitis: system.currentTick + SERSEM_SURE
   });
 
@@ -115,6 +172,7 @@ export function ayilt(kurbanId) {
   if (gecerliMi(v)) {
     girdiKilidi(v, true);
     try { v.removeEffect("slowness"); } catch (e) { /* onemsiz */ }
+    try { v.removeEffect("weakness"); } catch (e) { /* onemsiz */ }
   }
   return true;
 }
@@ -125,7 +183,24 @@ export function asaTara() {
   const simdi = system.currentTick;
   for (const [id, kayit] of sersemler) {
     if (!gecerliMi(kayit.varlik)) { sersemler.delete(id); continue; }
-    if (simdi >= kayit.bitis) ayilt(id);
+    if (simdi >= kayit.bitis) { ayilt(id); continue; }
+
+    /* Civileme: dustugu noktaya geri. Oyuncuda gerek yok,
+       onu girdi kilidi zaten tutuyor -- ustune isinlanma
+       eklemek kamerayi sarsardi.                             */
+    if (!SERSEM_CIVILE || !kayit.nokta) continue;
+    if (kayit.varlik.typeId === "minecraft:player") continue;
+    try {
+      const s = varlikKonumu(kayit.varlik);
+      const dx = s.x - kayit.nokta.x, dz = s.z - kayit.nokta.z;
+      /* Kucuk kaymalar icin isinlanma cagirmiyoruz: her
+         taramada teleport hem pahali hem titretiyor.         */
+      if (dx * dx + dz * dz > 0.25) {
+        kayit.varlik.teleport(kayit.nokta);
+      }
+    } catch (e) {
+      /* Isinlanamadi: yavaslik ve gucsuzluk yine gecerli. */
+    }
   }
 }
 
@@ -225,8 +300,10 @@ export function asaVurusu(bot, kurban, simdikiTick) {
   if (sersemler.has(kurban.id)) {
     if (mezarAc(kurban)) {
       vuruslar.delete(bot.id);
+      sahibeYaz(bot, "§8⚰ §fMezar açıldı §7· El-Harkos gömdü");
       return "mezar";
     }
+    sahibeYaz(bot, "§8⚰ §7Mezar açılamadı §8(yer dolu ya da tavan)");
     return "sersem";
   }
 
@@ -236,9 +313,14 @@ export function asaVurusu(bot, kurban, simdikiTick) {
 
   if (liste.length >= SERSEM_VURUS) {
     vuruslar.set(bot.id, []);
-    return sersemlet(kurban) ? "sersem" : "yok";
+    if (sersemlet(kurban)) {
+      sahibeYaz(bot, "§3⬤ §fYere serildi §7· bir vuruş daha = mezar");
+      return "sersem";
+    }
+    return "yok";
   }
   vuruslar.set(bot.id, liste);
+  sahibeYaz(bot, "§3⬤ §7El-Harkos §f" + liste.length + "§7/" + SERSEM_VURUS);
   return "sayiyor";
 }
 

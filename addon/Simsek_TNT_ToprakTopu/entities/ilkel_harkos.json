@@ -167,10 +167,13 @@
         "yd": 0.55,
         "must_be_on_ground": false
       },
+      "minecraft:equipment": {
+        "table": "loot_tables/equipment/ilkel_harkos.json"
+      },
       "minecraft:equippable": {
         "slots": [
           {
-            "slot": "slot.weapon.mainhand",
+            "slot": 0,
             "accepted_items": [
               "pa:ilkel_asa"
             ]

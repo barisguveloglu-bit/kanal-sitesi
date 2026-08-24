@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.56";
+export const SURUM = "v4.59";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -1585,6 +1585,32 @@ export const SERSEM_SURE = 200;        // 10 saniye
    MOBLARDA inputpermission yok; onlari yavaslik tutuyor.      */
 export const SERSEM_YAVASLIK = 255;
 export const SERSEM_KOR = false;       // gorsun: "kafasini cevirebilir"
+
+/* ---- OYUNDA ORTAYA CIKAN EKSIK (v4.59) ----
+   Kullanici Warden'a denedi: "yere sermesini goremedim, hala
+   ona vuruyordu." Sebep tek degil:
+
+   1) inputpermission SADECE OYUNCUDA var. Mobda yok, yani
+      moblar icin geriye yalniz yavaslik kaliyordu -- yavaslik
+      da yerinde duran bir mobun VURMASINI engellemiyor.
+   2) Zincirin hicbir belirtisi yoktu. Calissa bile disaridan
+      gorunmuyordu, yani "olmadi" ile "oldu ama gorunmedi"
+      ayirt edilemiyordu.
+
+   CIVILE: dustugu nokta kaydediliyor, taramada oraya geri
+   isinlaniyor. Yurumeye calisiyor, yerinden oynayamiyor.
+   Oyuncuya uygulanMIYOR -- onu zaten girdi kilidi tutuyor,
+   ustune isinlanma eklemek kamerayi sarsardi.
+
+   GUCSUZ: Gucsuzluk yakin dovus hasarini dusuruyor. "Yerde
+   yatan adam" vurmamali. 255 = pratikte sifir hasar.        */
+export const SERSEM_CIVILE = true;
+export const SERSEM_GUCSUZ = 255;
+
+/* Zincirin her adimi actionbar'a dussun mu. Acik olmasi
+   BILINCLI: bu yetenegin yarisi mobda gorunmuyor ve kullanici
+   ne olup bittigini baska turlu anlayamiyor.                */
+export const ASA_BILDIR = true;
 
 /* ---------------- MEZAR ----------------
    Sersemlemis hedefe bir vurus daha gelirse mezar aciliyor.
