@@ -226,12 +226,40 @@ def goz_esyasi(kimlik, ad):
         "minecraft:item": {
             "description": {
                 "identifier": "pa:" + kimlik,
-                "menu_category": {"category": "equipment"},
+                # ---- v4.65: GOZ ARTIK YARATICI MENUDE YOK ----
+                # Kullanici: "gozleri ayri bir esya yapma, iksiri
+                # ictigimizde otomatik olarak takilsin, yani ayri
+                # bir sey olmasin."
+                #
+                # Goz ZATEN iksir icilince otomatik takiliyordu
+                # (iksirler.js gozTak). Sikayet edilen sey onun
+                # YARATICI MENUDE de ayri bir esya olarak durmasi:
+                # 16 goz (8 iksir x normal/lazer) listeyi sisiriyor
+                # ve "elle takilan bir zirh" gibi duruyordu. Oysa
+                # goz bir esya degil, iksirin gorunumu.
+                #
+                # "none" = yaratici menude gosterme. Esya KAYITLI
+                # kalmaya devam ediyor, sadece listede cikmiyor;
+                # script setEquipment ile takmaya devam ediyor.
+                #
+                # "none" TAHMIN DEGIL: best StarOxine mod tam bu
+                # isi boyle yapiyor -- dy:slazer, dy:sun_lazer,
+                # dy:hipnoz_gozu, dy:staroxine_ozeligi ve
+                # dy:staroxine_menu esyalarinin hepsi
+                # {"category": "none"} ile gizlenmis. Yani
+                # calisan bir modda kanitli.
+                #
+                # (Element modu gizlemiyor, gozlerini helmet
+                # grubuna koyuyor -- iki referans burada ayrisiyor,
+                # StarOxine'inki dogru olan.)
+                "menu_category": {"category": "none"},
             },
             "components": {
                 "minecraft:icon": {"texture": kimlik},
                 "minecraft:display_name": {"value": ad},
                 "minecraft:max_stack_size": 1,
+                # ---- YARATICI MENUDE YOK (v4.65) ----
+                # Bkz. yukaridaki description.menu_category notu.
                 # ---- ZIRH (v4.62) ----
                 # Kullanici: "gozu 7 dis boslugunu doldursun,
                 # hani 10 tane var ya, 7 tanesini doldursun."

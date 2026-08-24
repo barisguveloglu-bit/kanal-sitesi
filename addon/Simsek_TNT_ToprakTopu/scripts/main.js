@@ -470,7 +470,40 @@ function ilkelBaslat(oyuncu, anahtar) {
 }
 
 function menuEkleri(oyuncu) {
-  return [
+  const ekler = [];
+
+  /* ---- GOZ LAZERI (v4.65) ----
+     Sadece lazerli bir kademe ACIKKEN gorunuyor; iksir icmemisken
+     menuyu sisirmesin. Ustteki lazerModu notunda anlatilan hatanin
+     tabletteki tek-dokunusluk cozumu bu.
+
+     Dokununca hem MODU aciyor hem HEMEN atiyor: "ac" ve "at" iki
+     ayri dokunus olsaydi ilk atisi yapmak uc hareket ederdi.    */
+  const kademe = lazerliKademe(oyuncu.id);
+  if (kademe) {
+    const acik = lazerModu.has(oyuncu.id);
+    ekler.push({
+      ad: acik ? "§e⚡ Goz Lazeri §a· ACIK §8(kapat)"
+               : "§e⚡ Goz Lazeri §8(ac ve at)",
+      calis() {
+        if (lazerModu.has(oyuncu.id)) {
+          lazerModunuKapat(oyuncu);
+          actionbarYaz(oyuncu, "§8⚡ Goz Lazeri kapandi §7· kol yetenegin geri geldi");
+          return;
+        }
+        lazerModunuAc(oyuncu, true);
+        if (!yetenekTetikle(oyuncu, "goz_lazeri")) {
+          const kalan = kalanBekleme(oyuncu.id);
+          actionbarYaz(oyuncu, "§6⚡ §eGoz Lazeri acik §8· egil+zipla" +
+                       (kalan > 0 ? " §c" + (kalan / 20).toFixed(1) + " sn" : ""));
+        } else {
+          actionbarYaz(oyuncu, "§6⚡ §eGoz Lazeri acik §8· egil+zipla = lazer");
+        }
+      }
+    });
+  }
+
+  ekler.push(
     {
       ad: "Butun kollari al",
       calis() { kollariVer(oyuncu); }
@@ -587,7 +620,9 @@ function menuEkleri(oyuncu) {
           : "§eTavandasin (" + KALP_TAVAN + " ek kalp)");
       }
     }
-  ];
+  );
+
+  return ekler;
 }
 
 const girisKuruldu = olayaAbone("itemUse", (olay) => {
@@ -751,62 +786,86 @@ function secimAl(oyuncuId) {
 }
 
 /* ============================================================
-   IKSIR ICINCE LAZER SECILI GELSIN
+   LAZER MODU  --  "goz taktiysan egil+zipla lazer atar"
 
-   v4.20'de yasanan hata: iksir icip "lazer atayim" diye
-   egil + zipla yapilinca ETRAFA YILDIRIM yagdi.
+   ---- HATANIN HIKAYESI ----
+   v4.20: iksir icip "lazer atayim" diye egil + zipla yapilinca
+   ETRAFA YILDIRIM yagdi. Teshis: lazer bozuk degil, ULASILAMIYOR.
+   Esyasiz jest sirasinda Goz Lazeri 21. sirada, sifirinci sira
+   ise Yildirim Halkasi. Secim hic degistirilmediyse sifirinci
+   calisir.
 
-   Lazer bozuk degildi -- ULASILAMIYORDU. Esyasiz jest sirasinda
-   34 yetenek var, Goz Lazeri 21. sirada ve sifirinci sira
-   Yildirim Halkasi (etrafina yildirim yagdiran yetenek). Secim
-   hic degistirilmediyse sifirinci calisiyor. Lazere ulasmak
-   icin 21 kez "egil + yukari bak + bekle" gerekiyordu.
+   v4.20'deki cozum: icince ESYASIZ SECIMI lazere kaydir.
 
-   Referansta boyle bir sorun yok cunku orada lazer bir ESYA:
-   iksiri icince goz takiliyor ve lazer elinin altinda oluyor.
-   Bizdeki karsiligi bu: icince secim lazere gecer, iksir
-   bitince eski secimine donersin.
+   v4.65: kullanici ayni hatayi UC SURUM daha bildirdi. Cozum
+   eksikmis ve nedeni su:
+
+     Elde KOL varsa esyasiz secime HIC BAKILMIYOR.
+     esyasizOyuncu() once eldeki kola bakiyor; kol varsa onun
+     secili yetenegi calisiyor ve genel siraya dusulmuyor.
+
+   Kullanici oyunu Toprak Kol elindeyken oynuyor. Toprak Kol'un
+   listesi: toprak_topu, yon_simsegi, YILDIRIM_HALKASI,
+   ALAN_SIMSEGI, ... COKLU_SIMSEK. Yani icince secim dogru yere
+   kaydiriliyordu ama o secim hic okunmuyordu; kolun yetenegi
+   calisiyordu ve o yeteneklerin ucu yildirim yagdiriyor.
+
+   Simulasyonda dogrulandi: elde Toprak Kol + iksir + egil/zipla
+   -> toprak_topu calisiyor, goz_lazeri degil.
+
+   ---- YENI COZUM ----
+   Indeksle oynamak birakildi. Artik acik bir MOD var:
+
+     Lazer modu ACIKKEN egil+zipla HER ZAMAN lazer atar --
+     elde ne oldugu fark etmez.
+
+   Mod iksir icilince kendiliginden aciliyor (referansin
+   "gozu taktiysan lazer sendedir" mantigi; kullanici:
+   "adamlar o sekilde olsun"), kademe bitince kapaniyor,
+   ve her kolun menusunden tek dokunusla acilip kapaniyor.
+
+   Neden menu: bu depoda ayni tuzaga ucuncu dususumuz.
+   Bot da jest sirasinin sonundaydi ve ulasilamiyordu (v4.23),
+   cozum menuye koymak olmustu. Lazer icin de ayni yol.
    ============================================================ */
 
-// oyuncuId -> iksirden onceki secim indeksi
-const lazerOncesiSecim = new Map();
+// Lazer modu acik olan oyuncular
+const lazerModu = new Set();
 
-function lazerSecimiAc(oyuncu) {
-  try {
-    const sira = esyasizSira();
-    const i = sira.findIndex((t) => t.kimlik === "goz_lazeri");
-    if (i < 0) return;
+export function lazerModundaMi(oyuncuId) {
+  return lazerModu.has(oyuncuId);
+}
 
-    const simdiki = secimAl(oyuncu.id);
-    if (simdiki === i) return;                 // zaten lazerdeydi
+/* Oyuncunun O ANKI kademesi lazer atabiliyor mu.
+   Menu girdisi bunu soruyor: iksir icilmemisken ya da lazersiz
+   bir kademe aktifken satiri hic gostermiyoruz.               */
+function lazerliKademe(oyuncuId) {
+  const k = kademeAl(oyuncuId);
+  return (k && k.lazer) ? k : undefined;
+}
 
-    lazerOncesiSecim.set(oyuncu.id, simdiki);
-    esyasizSecim.set(oyuncu.id, i);
-    actionbarYaz(oyuncu, "§6» §eGoz Lazeri §8(egil + zipla)");
-  } catch (e) {
-    hataYaz("lazerSecimiAc", e);
+function lazerModunuAc(oyuncu, sessiz) {
+  lazerModu.add(oyuncu.id);
+  if (!sessiz) {
+    actionbarYaz(oyuncu, "§6⚡ §eGoz Lazeri acik §8· egil+zipla = lazer " +
+                 "§7(kola dokun, menuden kapat)");
   }
 }
 
-function lazerSecimiBirak(oyuncu) {
-  try {
-    const onceki = lazerOncesiSecim.get(oyuncu.id);
-    lazerOncesiSecim.delete(oyuncu.id);
-    if (onceki === undefined) return;
-
-    /* Oyuncu iksirliyken secimi ELLE degistirdiyse ona dokunma --
-       kendi sectigi seyi geri almak sinir bozucu olur.          */
-    const sira = esyasizSira();
-    const lazer = sira.findIndex((t) => t.kimlik === "goz_lazeri");
-    if (secimAl(oyuncu.id) !== lazer) return;
-
-    esyasizSecim.set(oyuncu.id, onceki);
-  } catch (e) {
-    hataYaz("lazerSecimiBirak", e);
-  }
+function lazerModunuKapat(oyuncu) {
+  lazerModu.delete(oyuncu.id);
 }
 
-iksirKancalari({ lazerSec: lazerSecimiAc, lazerBirak: lazerSecimiBirak });
+/* Iksir kancalari. lazerSec iksir icilince, lazerBirak kademe
+   bitince ya da elle kapatilinca geliyor (iksirler.js).        */
+iksirKancalari({
+  lazerSec(oyuncu) {
+    try { lazerModunuAc(oyuncu); } catch (e) { hataYaz("lazerSec", e); }
+  },
+  lazerBirak(oyuncu) {
+    try { lazerModunuKapat(oyuncu); } catch (e) { hataYaz("lazerBirak", e); }
+  }
+});
 
 function esyasizTara() {
   if (++esyasizSayac < ESYASIZ_TARAMA) return;
@@ -882,6 +941,23 @@ function esyasizOyuncu(oyuncu, sira) {
     if (simdiZipliyor !== oncekiZipliyor) esyasizZipla.set(id, simdiZipliyor);
 
     if (simdiZipliyor && !oncekiZipliyor) {
+      /* ---- LAZER MODU HER SEYIN ONUNDE (v4.65) ----
+         Acikken elde ne oldugu fark etmeksizin lazer atilir.
+         Asagidaki kol dalina HIC girilmiyor -- hatanin sebebi
+         tam olarak oraya girilmesiydi: iksir icilse bile Toprak
+         Kol'un secili yetenegi (cogu zaman bir yildirim
+         yetenegi) calisiyordu.                                 */
+      if (lazerModu.has(id)) {
+        if (!yetenekTetikle(oyuncu, "goz_lazeri")) {
+          const kalan = kalanBekleme(id);
+          if (kalan > 0) {
+            actionbarYaz(oyuncu, "§7Goz Lazeri §8· §c" +
+                         (kalan / 20).toFixed(1) + " sn");
+          }
+        }
+        return;
+      }
+
       /* Elde kol varsa KOLUN yetenegi calisir -- "kolu takinca o
          guce sahip olursun" mantigi. Kolda birden fazla yetenek
          varsa (Toprak Kol) o kolun SECILI olani calisir.
@@ -967,6 +1043,7 @@ olayaAbone("playerLeave", (olay) => {
   esyasizTutma.delete(olay.playerId);
   esyasizSecim.delete(olay.playerId);
   esyasizZipla.delete(olay.playerId);
+  lazerModu.delete(olay.playerId);
   kolVerTutma.delete(olay.playerId);
   kolSecim.delete(olay.playerId);
   kademeUnut(olay.playerId);

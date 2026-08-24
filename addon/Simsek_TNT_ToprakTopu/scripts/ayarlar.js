@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.64";
+export const SURUM = "v4.65";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -1063,10 +1063,33 @@ export const SOHBET_ONEK = "";     // "" = oneksiz. "!" yazarsan "!can 10"
      && query.is_using_item
    Yani iksiri icip GOZU takinca lazer zaten elinin altinda.
 
-   Bizde karsiligi: iksir icilince esyasiz jest secimi otomatik
-   olarak Goz Lazeri'ne gecer. Icersin, egil + zipla, lazer.
-   Iksir bitince secim eski haline doner -- yildirim atmak
-   isteyen biri iksir yuzunden secimini kaybetmesin.            */
+   ---- v4.20'DEKI COZUM EKSIKTI (v4.65'te anlasildi) ----
+   O sürümde "iksir icilince ESYASIZ SECIMI lazere kaydir"
+   yapilmisti. Kullanici ayni hatayi UC SURUM daha bildirdi:
+   "goz lazerini atmaya calistigimda etrafta simsek yagiyordu."
+
+   Sebep: ELDE KOL VARSA esyasiz secime HIC BAKILMIYOR.
+   main.js/esyasizOyuncu once eldeki kola bakiyor; kol varsa
+   onun secili yetenegi calisiyor. Kullanici Toprak Kol
+   elindeyken oynuyor ve o kolun listesinde uc tane yildirim
+   yetenegi var (yildirim_halkasi, alan_simsegi, coklu_simsek).
+   Yani secim dogru yere kaydiriliyordu ama okunmuyordu.
+
+   Simulasyonda dogrulandi: elde Toprak Kol + iksir + egil/zipla
+   -> toprak_topu calisiyor, goz_lazeri degil.
+
+   ---- YENI COZUM: LAZER MODU ----
+   Indeksle oynamak birakildi. Bu ayar artik sunu aciyor:
+
+     Iksir icilince LAZER MODU aciliyor. Acikken egil+zipla
+     HER ZAMAN lazer atar -- elde ne oldugu fark etmez.
+     Kademe bitince kendiliginden kapaniyor.
+     Her kolun menusunde "⚡ Goz Lazeri" satiri var; tek
+     dokunusla hem aciliyor hem atiyor, tekrar dokununca
+     kapaniyor ve kolun yetenegi geri geliyor.
+
+   false yaparsan mod kendiliginden acilmaz; menuden elle
+   acilmaya devam eder.                                        */
 export const IKSIR_LAZERI_SEC = true;
 
 /* ============================================================
