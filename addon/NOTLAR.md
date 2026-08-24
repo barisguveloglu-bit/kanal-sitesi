@@ -3912,6 +3912,58 @@ anlatan bir örnekmiş. Sayı denge için serbest.
 
 ---
 
+## v4.77 — Menzil 14 → 17
+
+v4.73'te yazılan şart doldu: *"14 bloktan başlıyoruz çünkü çok uzun bir model
+kutusu görünürlük sınırı sorunu çıkarabilir; tablette sorun çıkmazsa tek
+satırla büyütüyoruz."* İki sürüm boyunca 14 blokluk kutu (224 birim) oyunda
+sorunsuz çizildi.
+
+Sayı **iki yerde**: `ayarlar.js:LAZER_MENZIL` (hasar + delme yürüyüşü) ve
+`kol_uret.py:LAZER_ISIN_MENZIL` (ışın modelinin boyu). `doku.mjs` eşitliği
+kilitliyor — ayrışırlarsa ışın gördüğünden başka yerde vurur.
+
+Görünürlük kutusu zaten bu sayıdan türüyor: `38 × 21` blok.
+
+### Testler iki gerçek şeyi yakaladı
+
+**1. `duvardel.mjs` yanlış sınırı ölçüyormuş.** `DUVAR_DELME_TAVAN` bir
+*taramanın* tavanı, atışın toplamı değil — ışın her yarım saniyede listeyi
+sıfırdan kuruyor. Menzil 14 iken toplam tesadüfen tam 140 çıkıyordu ve
+kontrol geçiyordu; 17'de 171 oldu ve kırıldı. Kod doğruydu.
+
+Doğru sınır **geometrik**: düz duvarda delik 3×3'lük bir tünel, boyu menzil
++ iki uç → `9 × 19 = 171`. Ölçülen tam 171, yani ışın tünelin tamamını açıyor
+ve bir blok fazlasını açmıyor. Tek tick'te patlamayı engelleyen şey tavan
+değil **blok bütçesi**, o da ayrıca sınanıyor. Bir de alt sınır eklendi:
+deliğin menzilin **sonuna kadar** ulaştığı — yoksa yürüyüş sessizce kısalsa
+üst sınır yine geçerdi.
+
+**2. Küre ışının ucunu kırpıyormuş.** Hedef taraması bir küre
+(`getEntities({maxDistance})`), asıl süzgeç ise izdüşüm. Yarıçap tam
+`LAZER_MENZIL` olunca ışının **ucundaki** hedefler küreye sığmıyor:
+
+```
+menzilin ucunda, ışından LAZER_KALINLIK kadar yanda duran hedefin
+merkeze uzaklığı  sqrt(MENZİL² + KALINLIK²) > MENZİL
+```
+
+Yani geçerli hedef daha izdüşüme gelmeden eleniyordu. Tam 17 bloktaki hedef,
+göz onun 0,6 blok üstünde olduğu için bile küre dışına düşüyordu. Oyunda
+"ışın üzerinde ama vurmuyor" diye görünürdü. Yarıçapa `LAZER_KALINLIK` kadar
+pay verildi; küre artık kesinlikle yetiyor, eleme işini izdüşüm yapıyor.
+
+Bu hata 14 blokta da vardı, sadece kimse tam sınırda denemedi.
+
+### Ne pahalılaştı (bilerek kabul edildi)
+
+* Hedef taraması bir küre: `(17/14)³ = 1,79` kat hacim, yarım saniyede bir.
+* Delme yoklaması 14 yerine 17 okuma, her biri 1 blok bütçesi. Vuruş
+  tick'inde 56'nın 17'si yoklamaya gidiyor; aradaki dokuz tick'te bütçe tam,
+  o yüzden delme hızında hissedilir fark yok.
+
+---
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:

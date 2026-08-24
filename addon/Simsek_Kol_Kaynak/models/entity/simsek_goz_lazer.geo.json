@@ -6,8 +6,8 @@
         "identifier": "geometry.simsek_goz_lazer",
         "texture_width": 64,
         "texture_height": 64,
-        "visible_bounds_width": 32,
-        "visible_bounds_height": 18,
+        "visible_bounds_width": 38,
+        "visible_bounds_height": 21,
         "visible_bounds_offset": [
           0,
           1,
@@ -54,12 +54,12 @@
               "origin": [
                 1,
                 26.5,
-                -228.2
+                -276.2
               ],
               "size": [
                 2,
                 2,
-                224
+                272
               ],
               "uv": {
                 "north": {
@@ -128,12 +128,12 @@
               "origin": [
                 -3,
                 26.5,
-                -228.2
+                -276.2
               ],
               "size": [
                 2,
                 2,
-                224
+                272
               ],
               "uv": {
                 "north": {

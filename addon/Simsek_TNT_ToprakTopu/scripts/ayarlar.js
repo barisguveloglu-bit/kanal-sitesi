@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.76";
+export const SURUM = "v4.77";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -548,8 +548,29 @@ export const IKSIR_TAZELEME = 40;   // kac tick'te bir efektler yenilensin
    14 bloktan basliyoruz cunku cok uzun bir model kutusu
    Bedrock'ta gorunurluk siniri sorunu cikarabilir; tablette
    sorun cikmazsa tek satirla buyutuyoruz (ve isin da onunla
-   birlikte uzuyor).                                          */
-export const LAZER_MENZIL = 14;
+   birlikte uzuyor).
+
+   ---- v4.77: 14 -> 17 ----
+   Ustteki "tablette sorun cikmazsa buyutuyoruz" sarti doldu.
+   Kullanici: "lazer menzili 14 bloktu ya, onu 17 yap; bir kac
+   surumdur alistik, alistigimiza gore bunu yapalim."
+
+   14 blokluk kutu (224 birim) oyunda sorunsuz cizildi -- iki
+   surum boyunca denendi, gorunurluk elemesi yasanmadi. 17
+   blok 272 birim ediyor, %21 daha uzun. Gorunurluk kutusu
+   zaten bu sayidan turedigi icin (kol_uret.py
+   goz_lazer_geometrisi) onunla birlikte buyuyor.
+
+   NE PAHALILASTI (bilerek kabul edildi):
+     - Hedef taramasi bir KURE: (17/14)^3 = 1,79 kat hacim.
+       Yarim saniyede bir donuyor, kalabalik yerde daha cok
+       varlik suzuluyor. Suzgec ucuz (nokta carpimi), asil
+       maliyet getEntities cagrisinda.
+     - Delme yoklamasi 14 yerine 17 okuma; her biri 1 blok
+       butcesi. Vurus tickinde 56'nin 17'si yoklamaya gidiyor
+       (once 14'tu). Aradaki dokuz tickte butce tam, o yuzden
+       delme hizinda hissedilir fark yok.                     */
+export const LAZER_MENZIL = 17;
 
 /* ---------------- Lazerle duvar delme ----------------
    Referansta duvar kirma YOK. Aranan tek "wall" gecen yer

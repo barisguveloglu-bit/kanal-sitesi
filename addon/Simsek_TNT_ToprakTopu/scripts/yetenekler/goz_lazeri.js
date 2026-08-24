@@ -507,9 +507,28 @@ yetenekKaydet({
     /* ---- Hedef bulma: bir tarama, sonra isina izdusum ---- */
       let yakin;
       try {
+        /* ---- KURE, ISININ UCUNU KIRPMAMALI (v4.77) ----
+           Bu tarama bir KURE; asil suzgec ise asagidaki
+           izdusum (ileri <= LAZER_MENZIL ve sapma <=
+           LAZER_KALINLIK). Kurenin yaricapi tam LAZER_MENZIL
+           olursa isinin UCUNDAKI hedefler kureye SIGMIYOR:
+
+             menzilin ucunda, isindan LAZER_KALINLIK kadar
+             yanda duran bir hedefin merkeze uzakligi
+             sqrt(MENZIL^2 + KALINLIK^2) > MENZIL
+
+           Yani gecerli hedef daha izdusume gelmeden eleniyor.
+           Menzil 17'ye cikinca test bunu yakaladi: tam 17
+           bloktaki hedef vurulmuyordu -- goz hedefin 0,6 blok
+           ustunde oldugu icin bile kure disina dusuyordu.
+           Oyunda "isin uzerinde ama vurmuyor" diye gorunurdu.
+
+           Kalinlik kadar pay veriliyor: kure kesinlikle
+           yetiyor, gerisini izdusum eliyor. Bedeli sadece
+           birkac fazla varlik suzmek.                        */
         yakin = boyut.getEntities({
           location: bas,
-          maxDistance: LAZER_MENZIL,
+          maxDistance: LAZER_MENZIL + LAZER_KALINLIK,
           excludeTypes: ["minecraft:item", "minecraft:xp_orb"]
         });
       } catch (e) {

@@ -397,7 +397,10 @@ GOZ_GEOMETRI = {
 # acilardan eleniyor olmali. Bizde isin boyuna gore
 # hesaplaniyor.
 # ============================================================
-LAZER_ISIN_MENZIL = 14      # blok -- ayarlar.js LAZER_MENZIL ile AYNI olmali
+# v4.77: 14 -> 17. ayarlar.js LAZER_MENZIL ile AYNI olmali;
+# doku.mjs iki sayinin esitligini kilitliyor. Ayrisirsa isin
+# gordugunden baska yerde vurur (ya da tersi).
+LAZER_ISIN_MENZIL = 17      # blok
 LAZER_ISIN_KALIN  = 2       # birim, kesit (2x2 = kare)
 LAZER_ISIN_UV     = [0, 20] # dokuda duz renk yamasinin yeri (64'luk uzay)
 
