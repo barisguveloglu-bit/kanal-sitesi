@@ -3964,6 +3964,52 @@ Bu hata 14 blokta da vardı, sadece kimse tam sınırda denemedi.
 
 ---
 
+## v4.78 — Bütün iksir efektlerine +1 seviye
+
+Kullanıcı: *"iksirlerin büyüleri var ya, onlara 1+ buff ekle... sana göre
+güçlü sayılabileceklere ekleme, diğerlerine ekle."*
+
+**44 satır arttı, 22 satır atlandı.** Atlananların ikisinin de somut sebebi
+var — "güçlü" derken kastedilen tam olarak bunlar:
+
+### 1. Seviyesiz efektler
+
+`night_vision`, `fire_resistance`, `water_breathing`, `conduit_power`,
+`invisibility`, `slow_falling`, `saturation` — bunların oyunda **seviyesi
+yok.** Sayıyı büyütmek sadece roma rakamını değiştirir: ekranda "Ateşe
+Dayanıklılık II" yazar ve oyunda hiçbir şey yapmaz. Tek etkisi kullanıcıyı
+yanıltmak olurdu; deponun "sahte içerik yasak" kuralı burada da geçiyor.
+
+### 2. Dayanıklılık 3 ve üzeri
+
+Bedrock'ta Dayanıklılık seviye başına **%20** hasar düşürüyor ve seviye V
+(amplifier 4) **tam dokunulmazlık** demek — void, açlık ve `/kill` dışında
+hiçbir şey değdirmiyor.
+
+StarOxine'in kimliği tam olarak bu; kullanıcı onu *"hasarı hiç almama"* diye
+istemişti ve amplifier zaten 4'te. Grinoksin 3'ten 4'e çıksa **ikinci bir
+dokunulmaz iksir** olurdu ve StarOxine'in varlık sebebi kalmazdı. Dayanıklılık
+bu yüzden 3'te duruyor (%80 indirim).
+
+### Uzmanlar da arttı — bilerek
+
+Toplu bir +1'de en kolay kaybedilen şey uzmanlık düzeni: sadece zayıfları
+büyütürsen herkes uzmanla aynı seviyeye çıkar ve iksirler birbirinin aynısı
+olur. O yüzden Redoksin'in vuruşu 4 → 5, Grinoksin'in canları 4 → 5 da arttı;
+**aradaki fark korundu.**
+
+`iksir.mjs` bölüm 8 üç kuralı kilitliyor: seviyesiz efektler 0'da mı,
+dokunulmazlık tek iksirde mi, uzmanlık düzeni ayakta mı. Denge sayılarının
+büyüklüğünü sınamıyor — o kullanıcının kararı.
+
+### Bir not: amplifier ≠ görünen seviye
+
+Tablodaki sayı **amplifier**; oyunda görünen seviye bunun **bir fazlası.**
+`["strength", 3]` ekranda "Kuvvet IV" yazar. Kullanıcının ekran görüntüsü
+bunu birebir doğruladı.
+
+---
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:

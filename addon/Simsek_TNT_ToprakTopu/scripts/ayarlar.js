@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.77";
+export const SURUM = "v4.78";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -761,7 +761,46 @@ export const PARCACIK_LAZER = "minecraft:endrod";
 
    LAZER: menzil ARTIK HEPSINDE AYNI (LAZER_MENZIL). Sadece
    hasar ve yan etki iksire gore degisiyor -- "hangisi daha uzagi
-   vuruyor" diye dusunmek zorunda kalma.                        */
+   vuruyor" diye dusunmek zorunda kalma.
+
+   ============================================================
+   v4.78 -- HEPSINE +1 SEVIYE
+
+   Kullanici: "iksirlerin buyuleri var ya, onlara 1+ buff ekle...
+   sana gore guclu sayilabileceklere ekleme, digerlerine ekle."
+
+   Asagidaki sayilar AMPLIFIER; oyunda gorunen seviye bunun
+   BIR FAZLASI. Yani ["strength", 3] ekranda "Kuvvet IV" yazar.
+   Kullanicinin ekran goruntusu bunu birebir dogruladi.
+
+   44 satir arttirildi. IKI SEY ATLANDI, ikisinin de sebebi
+   somut:
+
+   1. SEVIYESIZ EFEKTLER -- night_vision, fire_resistance,
+      water_breathing, conduit_power, invisibility,
+      slow_falling, saturation.
+      Bunlarin oyunda seviyesi YOK. Sayiyi buyutmek sadece
+      roma rakamini degistirir, oyunda hicbir sey yapmaz:
+      "Atese Dayaniklilik II" yazar ve tek etkisi seni
+      yaniltmak olur. Sahte icerik uretmiyoruz.
+
+   2. DAYANIKLILIK 3 ve uzeri.
+      Bedrock'ta Dayaniklilik seviye basina %20 hasar
+      dusuruyor ve seviye V (amplifier 4) TAM DOKUNULMAZLIK
+      demek -- void, aclik ve /kill disinda hicbir sey
+      degdirmiyor.
+
+      StarOxine'in kimligi tam olarak bu; kullanici onu
+      "hasari HIC ALMAMA" diye istemisti ve amplifier 4 zaten
+      orada. Grinoksin 3'ten 4'e cikarsa IKINCI bir dokunulmaz
+      iksir olur ve StarOxine'in varlik sebebi kalmaz.
+      Dayaniklilik bu yuzden 3'te duruyor (= %80 indirim).
+
+   UZMANLAR DA ARTTI, bilerek: Redoksin'in vurusu 4 -> 5,
+   Grinoksin'in canlari 4 -> 5. Sadece zayiflari buyutseydik
+   herkes uzmanla ayni seviyeye cikardi ve "hangi iksir ne
+   icin" duzeni cokerdi. Aradaki FARK korundu.
+   ============================================================ */
 export const KADEMELER = [
   {
     kimlik: "nitroksin",
@@ -775,12 +814,12 @@ export const KADEMELER = [
     /* Referans: speed 0, jump_boost 0, strength 0, resistance 0,
        instant_health 0.  Bizde hiz/ziplama UZMANI.             */
     efektler: [
-      ["speed",        3],   // referans 0
-      ["jump_boost",   3],   // referans 0
-      ["strength",     2],
-      ["resistance",   1],
-      ["haste",        1],
-      ["absorption",   2],
+      ["speed",        4],   // referans 0
+      ["jump_boost",   4],   // referans 0
+      ["strength",     3],
+      ["resistance",   2],
+      ["haste",        2],
+      ["absorption",   3],
       ["night_vision", 0],
       /* v4.16 buff: ziplama kimligini tamamliyor -- yuksekten atlayip yavas iniyorsun */
       ["slow_falling", 0]
@@ -799,11 +838,11 @@ export const KADEMELER = [
        geliyor. Bizde ayakta kalma UZMANI.                      */
     efektler: [
       ["resistance",   3],
-      ["regeneration", 3],
-      ["absorption",   4],
-      ["health_boost", 4],
-      ["strength",     1],
-      ["speed",        1],
+      ["regeneration", 4],
+      ["absorption",   5],
+      ["health_boost", 5],
+      ["strength",     2],
+      ["speed",        2],
       ["night_vision", 0],
       /* v4.16 buff: dayaniklilik: suda da bogulmuyorsun */
       ["water_breathing", 0]
@@ -821,11 +860,11 @@ export const KADEMELER = [
     /* Referans: regeneration 0, speed 0, strength 0.
        Bizde vurus ve kazma UZMANI.                             */
     efektler: [
-      ["strength",     4],   // referans 0
-      ["haste",        4],
-      ["speed",        2],
-      ["regeneration", 1],
-      ["absorption",   1],
+      ["strength",     5],   // referans 0
+      ["haste",        5],
+      ["speed",        3],
+      ["regeneration", 2],
+      ["absorption",   2],
       ["night_vision", 0],
       /* v4.16 buff: kazarken acikmiyorsun */
       ["saturation", 0]
@@ -844,14 +883,14 @@ export const KADEMELER = [
        Bizde ates UZMANI -- lazeri de yakiyor.                  */
     efektler: [
       ["fire_resistance", 0],
-      ["strength",        3],
-      ["speed",           3],
-      ["resistance",      2],
-      ["regeneration",    1],
-      ["absorption",      2],
+      ["strength",        4],
+      ["speed",           4],
+      ["resistance",      3],
+      ["regeneration",    2],
+      ["absorption",      3],
       ["night_vision",    0],
       /* v4.16 buff: ates blogu yumusatir gibi: daha hizli kazma (Redoksin 4 ile hala uzman) */
-      ["haste", 2]
+      ["haste", 3]
     ]
   },
   {
@@ -866,11 +905,11 @@ export const KADEMELER = [
     /* Referansta yok, bizim. Lazeri verdigi hasarin bir kismini
        CANA CEVIRIYOR -- vampir kimligi.                        */
     efektler: [
-      ["strength",     4],
-      ["absorption",   4],
-      ["regeneration", 2],
-      ["haste",        2],
-      ["speed",        1],
+      ["strength",     5],
+      ["absorption",   5],
+      ["regeneration", 3],
+      ["haste",        3],
+      ["speed",        2],
       ["night_vision", 0],
       /* v4.16 buff: vampir kimligi: goze gorunmuyorsun */
       ["invisibility", 0]
@@ -892,13 +931,13 @@ export const KADEMELER = [
          dayaniklilik 2 < Grinoksin 3
        Yani "ne yapacagimi bilmiyorum" iksiri.                  */
     efektler: [
-      ["speed",           2],
-      ["strength",        3],
-      ["resistance",      2],
-      ["regeneration",    2],
-      ["jump_boost",      2],
-      ["absorption",      3],
-      ["haste",           2],
+      ["speed",           3],
+      ["strength",        4],
+      ["resistance",      3],
+      ["regeneration",    3],
+      ["jump_boost",      3],
+      ["absorption",      4],
+      ["haste",           3],
       ["fire_resistance", 0],
       ["night_vision",    0],
       /* v4.16 buff: her seyden biraz: su alti paketi de var */
@@ -935,12 +974,12 @@ export const KADEMELER = [
        kopyasi olmasinlar diye boyle ayrildi.                */
     efektler: [
       ["resistance",      4],   // UZMAN: Grinoksin 3
-      ["health_boost",    3],
+      ["health_boost",    4],
       ["fire_resistance", 0],
-      ["absorption",      3],
-      ["regeneration",    1],   // Grinoksin 3 -- orada uzman
-      ["strength",        1],
-      ["speed",           1],
+      ["absorption",      4],
+      ["regeneration",    2],   // Grinoksin 3 -- orada uzman
+      ["strength",        2],
+      ["speed",           2],
       ["night_vision",    0],
       /* Yildiz kimligi: yuksekten dususte yavaslama */
       ["slow_falling",    0]
@@ -970,13 +1009,13 @@ export const KADEMELER = [
       ["water_breathing", 0],
       ["conduit_power",   0],
       ["fire_resistance", 0],
-      ["haste",           3],
-      ["resistance",      2],
-      ["speed",           2],
-      ["absorption",      2],
+      ["haste",           4],
+      ["resistance",      3],
+      ["speed",           3],
+      ["absorption",      3],
       ["night_vision",    0],
       /* Element kimligi: her ortamda ayakta kal */
-      ["regeneration",    1]
+      ["regeneration",    2]
     ]
   }
 ];
