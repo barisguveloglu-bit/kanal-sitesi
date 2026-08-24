@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.72";
+export const SURUM = "v4.73";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -532,7 +532,24 @@ export const IKSIR_TAZELEME = 40;   // kac tick'te bir efektler yenilensin
    farkli uzaga gidiyordu (10/14/18/22/28 blok) ve "hangisi daha
    uzagi vuruyor" diye dusunmek gerekiyordu. Artik tek sayi;
    iksirler sadece HASAR ve YAN ETKI ile ayriliyor.            */
-export const LAZER_MENZIL = 22;      // hepsi icin ortak menzil
+/* ---- MENZIL (v4.73) ----
+   Kullanici: "mesafe uzun olsun ki gayet iyi olsun... 12
+   blokluk da okey de yani 14'ten baslayalim."
+
+   Bu sayi ARTIK IKI ISI birden yapiyor:
+     - lazerin kac blokta hasar verdigi
+     - ISIN MODELININ kac blok uzadigi (kol_uret.py
+       LAZER_ISIN_MENZIL bunun ikizi, test esitligi kilitliyor)
+
+   Ikisi bilerek bagli: isin 14 blok gorunup 22 blokta
+   vursaydi 18 bloktaki bir seye nisan alinca isin ona
+   ULASMIYOR gorunur ama olurdu. Gordugun neyse vurdugun o.
+
+   14 bloktan basliyoruz cunku cok uzun bir model kutusu
+   Bedrock'ta gorunurluk siniri sorunu cikarabilir; tablette
+   sorun cikmazsa tek satirla buyutuyoruz (ve isin da onunla
+   birlikte uzuyor).                                          */
+export const LAZER_MENZIL = 14;
 
 /* ---------------- Lazerle duvar delme ----------------
    Referansta duvar kirma YOK. Aranan tek "wall" gecen yer
@@ -567,11 +584,24 @@ export const LAZER_KALINLIK = 1.4;   // isindan kac blok sapma vurulur
    0,5 sn + 25 sn = 25,5 sn = 510 tick.                       */
 export const LAZER_SURE     = 510;   // 25,5 saniye
 export const LAZER_VURUS_ARALIK = 10;  // her yarim saniyede bir vurur
-export const LAZER_CIZIM_ARALIK = 4;   // parcacik her 4 tickte
-export const LAZER_ADIM     = 1.5;   // parcacik kac blokta bir
+export const LAZER_CIZIM_ARALIK = 8;   // parcacik her 8 tickte
+export const LAZER_ADIM     = 3.0;   // parcacik kac blokta bir (model asil gorsel)
 export const LAZER_TAVAN    = 10;    // tek atista en fazla kac hedef
 export const LAZER_OYUNCU   = true;  // oyunculara da vursun mu
-export const PARCACIK_LAZER = "minecraft:basic_flame_particle";
+/* ---- v4.73: ALEV DEGIL KIVILCIM ----
+   Lazer parcacigi basic_flame_particle idi. Kullanici ekran
+   goruntusu gonderdi: oyuncu YANIYORMUS gibi duruyordu, cunku
+   1,5 blok arayla 15 alev, her 4 tickte yeniden, 25 saniye
+   boyunca -- yaklasik 1900 alev parcacigi.
+
+   Isin artik bir MODEL (bkz. LAZER_MENZIL notu ve
+   kol_uret.py isin_kutulari). Parcacik ikincil kaldi ve tek
+   isi var: BIRINCI SAHISTA da bir sey gorunsun. Kafaya bagli
+   model birinci sahista cizilmiyor -- F5'e basmadan kendi
+   isinini goremezsin, parcacik o bosluğu dolduruyor.
+
+   endrod: kucuk beyaz kivilcim, ates gostermiyor.            */
+export const PARCACIK_LAZER = "minecraft:endrod";
 
 /* Her kademe: kimlik, ad, sure, verilen efektler, goz esyasi.
    Efekt suresi TAZELEME'den uzun tutuluyor ki iki tazeleme

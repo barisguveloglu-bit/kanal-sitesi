@@ -337,6 +337,118 @@ GOZ_GEOMETRI = {
 }
 
 
+# ============================================================
+# ISIN GEOMETRISI  (v4.73)
+#
+# Kullanici: "goz lazerini partikul seklinde atiyor, onu cok
+# sevemedim... gozumden gorseldeki gibi lazer atsin, ben goz
+# lazerini KARE olarak algiladim, gozden cikan sey kare
+# seklinde uzayip gidiyor."
+#
+# Onceki hal: minecraft:basic_flame_particle, 1,5 blok arayla,
+# her 4 tickte yeniden. Yani isin degil ALEV BULUTU -- 25
+# saniyede ~1900 alev parcacigi. Ekran goruntusunde oyuncu
+# yaniyormus gibi duruyordu.
+#
+# ---- REFERANS BUNU MODELLE YAPIYOR ----
+# Element Iksiri modu V2, geometry.pa_element_lazer (dosyadan
+# CANLI okundu, hatirdan degil):
+#   kemik Head, pivot [0, 24, 1.225]
+#     origin [-3, 25, -134.775]  size [2, 1, 134]
+#     origin [ 1, 25, -134.775]  size [2, 1, 134]
+# Yani parcacik degil, kafa kemigine bagli IKI UZUN KUTU.
+# Kafa donunce isin de donuyor; tick basina sifir maliyet.
+#
+# ---- ISININ YERI TAHMIN DEGIL ----
+# Referansin kutulari x -3..-1 ve x 1..3.
+# Bizim goz sutunlarimiz GOZ_SUTUNLAR = ((9,10),(13,14)),
+# skin uzayinda. Kafa kubu origin x -4, size 8, uv [0,0]:
+# on yuz skin x 8..15'e dusuyor ve skin x'i model x'in TERSI
+# yonunde artiyor (onden bakinca +x seyircinin SOLU):
+#     model_x_sol_kenar(sx) = 12 - sx
+#   sx 9,10 -> model x 1..3
+#   sx 13,14 -> model x -3..-1
+# Referansla BIREBIR AYNI. Iki bagimsiz hesap ayni yeri
+# gosteriyor -- isinin yatay yeri dogru.
+#
+# YUKSEKLIK FARKLI: referansinki y 25..26, yani CENE hizasi.
+# Bizim goz satirimiz GOZ_SATIR = 12; ayni cevrimle
+#     model_y_ust(sy) = 40 - sy  ->  sy 12 icin 27..28
+# Isin gozun ORTASINA oturtuluyor: origin y 26.5, size 2.
+# Boylece kesit 2x2 -- kullanicinin istedigi KARE.
+#
+# UZUNLUK: LAZER_MENZIL bloktan turuyor (1 blok = 16 birim).
+# Cok uzun kutu Bedrock'ta gorunurluk siniri sorunu
+# cikarabilir, o yuzden kullaniciyla 14 bloktan baslamaya
+# karar verildi.
+#
+# GORUNURLUK KUTUSU: referans width 16 / height 4 yazmis --
+# 8,4 bloklik isin icin bile KUCUK, yani onlarinki bazi
+# acilardan eleniyor olmali. Bizde isin boyuna gore
+# hesaplaniyor.
+# ============================================================
+LAZER_ISIN_MENZIL = 14      # blok -- ayarlar.js LAZER_MENZIL ile AYNI olmali
+LAZER_ISIN_KALIN  = 2       # birim, kesit (2x2 = kare)
+LAZER_ISIN_UV     = [0, 20] # dokuda duz renk yamasinin yeri (64'luk uzay)
+
+
+def isin_kutulari():
+    """Iki goz isini: model uzayinda kutu tanimlari."""
+    uzun = LAZER_ISIN_MENZIL * 16
+    k = LAZER_ISIN_KALIN
+    # Goz satirinin ORTASI: skin sy=GOZ_SATIR -> model y 40-sy
+    ust = 40 - GOZ_SATIR                     # 28
+    orta = ust - 0.5                         # 27.5, satirin ortasi
+    y0 = orta - k / 2.0                      # 26.5
+    # Kafanin ON yuzu: GOZ_GEOMETRI'deki kutunun origin z'si
+    on = -4.2
+    z0 = on - uzun
+
+    kutular = []
+    for i, (sol, sag) in enumerate(GOZ_SUTUNLAR):
+        # skin sutunu -> model x.
+        # Bir skin sutunu sx, model x araligi [11-sx, 12-sx].
+        # Kafa kenarlariyla sinandi:
+        #   sx=8  -> [3, 4]    (on yuzun sol kenari, +x)
+        #   sx=15 -> [-4, -3]  (sag kenar, -x)
+        # Ilk yazimda 12-sx kullanilmisti ve isin BIR BIRIM
+        # kaymisti: cikan [2,4] / [-2,0], referansin [1,3] /
+        # [-3,-1] degerleriyle tutmuyordu. Referansla
+        # karsilastirmasak fark edilmezdi.
+        x_dusuk = 11 - sag                   # daha kucuk model x
+        x_yuksek = 12 - sol                  # daha buyuk model x
+        genis = x_yuksek - x_dusuk           # bitisik iki sutun -> 2
+        # Kesit KARE olsun: genislik zaten 2, kalinligi da 2
+        kutular.append({
+            "origin": [x_dusuk, round(y0, 3), round(z0, 3)],
+            "size": [genis, k, uzun],
+            # Her yuz ayni duz renk yamasina bakiyor. Kutu-UV
+            # bu kadar uzun bir kutuda dokuyu her yuze farkli
+            # gerdirir; yuz basina UV ile hepsi tek renkte.
+            "uv": {
+                yuz: {"uv": [LAZER_ISIN_UV[0] + i * 2, LAZER_ISIN_UV[1]],
+                      "uv_size": [2, 2]}
+                for yuz in ("north", "south", "east", "west", "up", "down")
+            },
+        })
+    return kutular
+
+
+def goz_lazer_geometrisi():
+    """Goz kaplamasi + iki isin. Sadece _lazer varyanti kullaniyor."""
+    import copy
+    g = copy.deepcopy(GOZ_GEOMETRI)
+    tanim = g["minecraft:geometry"][0]
+    tanim["description"]["identifier"] = "geometry.simsek_goz_lazer"
+    # Isin bu kadar uzunken gorunurluk kutusu da buyumeli,
+    # yoksa kafa ekran kenarina gelince model TAMAMEN eleniyor.
+    tanim["description"]["visible_bounds_width"] = LAZER_ISIN_MENZIL * 2 + 4
+    tanim["description"]["visible_bounds_height"] = LAZER_ISIN_MENZIL + 4
+    tanim["description"]["visible_bounds_offset"] = [0, 1, 0]
+    tanim["bones"][0]["cubes"].extend(isin_kutulari())
+    return g
+
+
 def goz_attachable(kimlik):
     """Referanstan alinan kritik satir: parent_setup ile
     helmet_layer_visible = 0 -- yoksa kaskin kendisi de cizilir ve
@@ -372,7 +484,15 @@ def goz_attachable(kimlik):
                     "default": "textures/entity/" + kimlik,
                     "enchanted": "textures/misc/enchanted_actor_glint",
                 },
-                "geometry": {"default": "geometry.simsek_goz"},
+                # Lazer varyanti ISINLI geometriyi kullaniyor:
+                # ayni goz kaplamasi + kafadan cikan iki uzun
+                # kutu. Normal goz sade geometride kaliyor,
+                # yoksa iksir icer icmez isin cikardi.
+                "geometry": {
+                    "default": ("geometry.simsek_goz_lazer"
+                                if kimlik.endswith("_lazer")
+                                else "geometry.simsek_goz")
+                },
                 "scripts": {"parent_setup": "variable.helmet_layer_visible = 0.0;"},
                 "render_controllers": ["controller.render.armor"],
             }
@@ -2443,7 +2563,25 @@ def lazer_goz_dokusu(gozRenk, tohum):
         tuple(min(255, int(c + (255 - c) * 0.32)) for c in renk)
         for renk in goz_renkleri(gozRenk)
     )
-    return _goz_ciz(parlaklar, tohum, 1.8)
+    p = _goz_ciz(parlaklar, tohum, 1.8)
+
+    # ---- ISIN RENK YAMASI (v4.73) ----
+    # Isin kutularinin her yuzu LAZER_ISIN_UV noktasindaki
+    # 2x2'lik duz renge bakiyor. Doku 512x512 ama UV uzayi
+    # 64'luk, yani yama GOZ_OLCEK katinda cizilmeli.
+    #
+    # Renk gozun parlak hali: isin hangi iksirse onun renginde
+    # cikiyor. Element'in iki modu icin sol/sag isin ayri renk
+    # oluyor -- iki goz zaten ayri renkte.
+    ux, uy = LAZER_ISIN_UV
+    for i, renk in enumerate(parlaklar):
+        # Iki goz iki ayri 2x2 yama: sol goz UV'de solda.
+        gx = (ux + i * 2) * GOZ_OLCEK
+        gy = uy * GOZ_OLCEK
+        for yy in range(gy, gy + 2 * GOZ_OLCEK):
+            for xx in range(gx, gx + 2 * GOZ_OLCEK):
+                p[(xx, yy)] = tuple(renk) + (255,)
+    return p
 
 
 def goz_ikonu(gozRenk):
@@ -2701,6 +2839,8 @@ def main():
                          % (anahtar, ILKEL_TR.get(anahtar, ad)))
 
     yaz_json(os.path.join(RP, "models/entity/simsek_goz.geo.json"), GOZ_GEOMETRI)
+    yaz_json(os.path.join(RP, "models/entity/simsek_goz_lazer.geo.json"),
+             goz_lazer_geometrisi())
     yaz_json(os.path.join(RP, "models/entity/simsek_kol.geo.json"), GEOMETRI)
     yaz_json(os.path.join(RP, "animations/simsek_kol_tutus.animation.json"), TUTUS_ANIM)
     yaz_json(os.path.join(RP, "animations/goz_lazeri.animation.json"),
