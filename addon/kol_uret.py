@@ -434,6 +434,29 @@ LAZER_ISIN_UV     = [0, 20] # dokuda duz renk yamasinin yeri (64'luk uzay)
 # Element'in turkuazi referansin (0,255,243) tonuna gidiyor.
 LAZER_ISIN_DOYGUN = 2.6     # doygunluk kazanci (1.0 = degistirme)
 
+# ---- IKI KIRMIZI AYNI RENGE DUSUYORDU (v4.76) ----
+# Kullanici: "Kan ve Redoksin kirmizi olsunlar ama farkli
+# kirmizi turu olsun."
+#
+# Sebep matematiksel: iki gozun de TONU birebir ayni.
+#     Redoksin  goz (255, 96, 96)
+#     Kan       goz (220, 50, 50)
+# Ikisinde de yesil ve mavi kanallar ESIT, yani ikisi de saf
+# kirmizi tonunda -- sadece aciklik/doygunluk farkliydi.
+# isin_rengi() doygunlugu tavana cekince o fark siliniyor ve
+# ikisi de (255, 0, 0) oluyor. Hicbir doygunlastirma bunlari
+# ayiramaz; ayirmak icin TON vermek gerekiyor.
+#
+# GOZLERE DOKUNULMADI: onlar zaten birbirinden farkli iki
+# kirmizi ve kullanici gozleri begendi. Ayrisan tek yer isin.
+#
+# Secilen iki ton, birbirinden VE Firenoksin'in turuncusundan
+# (255, 155, 0) uzak duracak sekilde secildi:
+LAZER_ISIN_RENK = {
+    "goz_kirmizi": (255, 24, 0),    # Redoksin: parlak al -- atese bir tik
+    "goz_kan":     (205, 0, 48),    # Kan: koyu bordo -- morumsu tarafa
+}
+
 # ---- PARLAKLIK: dunya isigini bypass et ----
 # Doygunluk rengi DUZELTIYOR ama %45 golgelemeyi kaldirmiyor.
 # Hicbir doku degeri bunu kapatamaz: 255'in ustune cikilamiyor.
@@ -2710,8 +2733,13 @@ def goz_dokusu(gozRenk, tohum):
     return _goz_ciz(gozRenk, tohum, 1.0)
 
 
-def lazer_goz_dokusu(gozRenk, tohum):
+def lazer_goz_dokusu(gozRenk, tohum, kimlik=None):
     """Lazer atarken kisa sureligine gecilen parlak varyant.
+
+    kimlik: gozun adi ("goz_kan" gibi). Yalnizca LAZER_ISIN_RENK
+    aramasinda kullaniliyor -- iki kirmizinin ayrilmasi icin.
+    Verilmezse tohum kullaniliyor (cagiran taraf ikisine de ayni
+    degeri veriyor).
 
     AYNI goz, "sesi acilmis" hali: renk beyaza cekilmis,
     sacaklar uzamis, hale genislemis. Tohum ayni -- sacaklar
@@ -2746,13 +2774,21 @@ def lazer_goz_dokusu(gozRenk, tohum):
     # maskesi sayiyor, saydamlik degil. Dusuk alfa = cok
     # parlama. Yama gozun UV alanindan UZAKTA (0,20), yani
     # bu alfa gozun kendisini etkilemiyor.
+    #
+    # ELLE VERILEN RENK (v4.76): iki kirmizinin tonu birebir
+    # ayni oldugu icin doygunlastirma onlari ayni renge
+    # dusuruyordu. LAZER_ISIN_RENK'te karsiligi olan gozler
+    # hesaplanmis rengi degil o degeri kullaniyor.
+    # Tek gozluk override iki isini da boyar; iki gozu ayri
+    # renk olan tek iksir Element ve onun bir karsiligi yok.
     ux, uy = LAZER_ISIN_UV
     isin_alfa = LAZER_ISIN_ALFA if LAZER_ISIN_PARLAK else 255
+    elle = LAZER_ISIN_RENK.get(kimlik if kimlik is not None else tohum)
     for i, ham in enumerate(goz_renkleri(gozRenk)):
         # Iki goz iki ayri 2x2 yama: sol goz UV'de solda.
         gx = (ux + i * 2) * GOZ_OLCEK
         gy = uy * GOZ_OLCEK
-        yama = isin_rengi(ham) + (isin_alfa,)
+        yama = (elle if elle is not None else isin_rengi(ham)) + (isin_alfa,)
         for yy in range(gy, gy + 2 * GOZ_OLCEK):
             for xx in range(gx, gx + 2 * GOZ_OLCEK):
                 p[(xx, yy)] = yama
@@ -2860,7 +2896,7 @@ def main():
         # Tohum IKI VARYANTTA DA ayni (goz kimligi): sacaklar ayni
         # yerde dursun, lazer aninda goz baska bir goze donusmesin.
         for ad2, doku in ((goz, goz_dokusu(gozRenk, goz)),
-                          (goz + "_lazer", lazer_goz_dokusu(gozRenk, goz))):
+                          (goz + "_lazer", lazer_goz_dokusu(gozRenk, goz, goz))):
             yaz_json(os.path.join(BP, "items", ad2 + ".json"),
                      goz_esyasi(ad2, GOZ_TR[ad2]))
             yaz_json(os.path.join(RP, "attachables", ad2 + ".json"), goz_attachable(ad2))

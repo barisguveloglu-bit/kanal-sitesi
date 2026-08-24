@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.75";
+export const SURUM = "v4.76";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -610,8 +610,13 @@ export const DUVAR_DELME_TAVAN   = 140;  // tek taramada en fazla kac blok
    Ustune kullanicinin "gucu artir" istegi: 10 -> 6 vurus.
    6 vurus x yarim saniye = 3 SANIYE odaklanma. Hala
    "zorlaniyor" ama artik gercekten kiriliyor.
-   ONCEKI SAYI KULLANICININ KENDI SAYISIYDI (10). Geri
-   istersen tek satir: asagidaki 6'lari 10 yap.              */
+
+   SAYI SERBEST: v4.76'da kullanici acikladi -- "orda ornek
+   verdim, illa oyle demedim ki; Minecraft'ta kirilmasi zor
+   blok ya, 10 taneyi kirabiliyor, icraati vermeye
+   calistim." Yani asil istek "sert bloklari da deliyor"
+   hissi; 10 bir olcu birimi degil. Denge icin serbestce
+   oynatilabilir.                                            */
 export const LAZER_SERT_ACIK = true;
 export const LAZER_DELME_SERT = new Map([
   ["minecraft:obsidian",            6],

@@ -3877,6 +3877,41 @@ klasörün içindeki her şey alınıyor.
 
 ---
 
+## v4.76 — İki kırmızı ayrıldı
+
+v4.75'in doygunlaştırması Redoksin ile Kan İksiri'nin ışınlarını **aynı**
+renge düşürdü. Sebep matematiksel:
+
+```
+Redoksin  göz (255, 96, 96)
+Kan       göz (220, 50, 50)
+```
+
+İkisinde de yeşil ve mavi kanallar **eşit**, yani ikisi de saf kırmızı
+tonunda — aralarındaki fark sadece açıklık/doygunluk. Doygunluk tavana
+çekilince o fark siliniyor ve ikisi de `(255, 0, 0)` oluyor. Hiçbir
+doygunlaştırma bunları ayıramaz; ayırmak için **ton** vermek gerekiyor.
+
+`LAZER_ISIN_RENK` tablosu bu iki gözün ışın rengini elle veriyor:
+
+| iksir | ışın | ne |
+|---|---|---|
+| Redoksin | `(255, 24, 0)` | parlak al, ateşe bir tık |
+| Kan İksiri | `(205, 0, 48)` | koyu bordo, morumsu tarafa |
+
+Firenoksin'in turuncusuna `(255, 155, 0)` kaçmayacak kadar uzak seçildi;
+`doku.mjs` üçünün de birbirinden ayrı kaldığını sınıyor. Renkler **elle**
+verildiği için biri silinirse sessizce eski hâline dönerdi — test onu
+yakalar.
+
+Gözlere dokunulmadı: onlar zaten birbirinden farklı iki kırmızı.
+
+Ayrıca kullanıcı obsidyen sayısını netleştirdi: *"orda örnek verdim, illa
+öyle demedim ki."* 10, ölçü birimi değil — sert blokları da deliyor hissini
+anlatan bir örnekmiş. Sayı denge için serbest.
+
+---
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:
