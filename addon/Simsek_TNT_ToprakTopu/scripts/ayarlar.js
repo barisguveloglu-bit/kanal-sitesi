@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.73";
+export const SURUM = "v4.74";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -566,7 +566,49 @@ export const LAZER_MENZIL = 14;
        sadece varliklara vuruyor                               */
 export const DUVAR_DELME_ACIK   = true;
 export const DUVAR_DELME_YARICAP = 1;    // delik yaricapi (1 = 3x3)
-export const DUVAR_DELME_TAVAN   = 60;   // tek atista en fazla kac blok
+export const DUVAR_DELME_TAVAN   = 60;   // tek taramada en fazla kac blok
+
+/* ============================================================
+   SERT BLOKLAR  --  "obsidyende birazcik zorlansin"  (v4.74)
+
+   Kullanici: "yeri delsin obsidyene kadar, obsidyende birazcik
+   zorlansin ama bayagi; odaklandigim yere, baktigim obsidyen
+   blogunA gore yavas yavas kirilsin. Bunun tamamini
+   kirabilmek icin 10 dusun -- birine odaklandiysan 10 kere
+   lazer atmam gerekiyor."
+
+   Asagidaki bloklar TEK VURUSTA kirilmiyor: her isin vurusunda
+   sayaclari bir azaliyor, sifira inince kiriliyor.
+
+   ISIN her LAZER_VURUS_ARALIK tickte (yarim saniye) bir
+   vuruyor, yani 10 vurus = 5 SANIYE ayni bloga bakmak.
+   "Yavas yavas kirilsin" tarifi bu.
+
+   SADECE ISININ TAM ORTASINDAKI blok sayilir: 3x3 delikteki
+   dokuz obsidyeni birden yontmak "odaklanma" olmazdi.
+   Kenardaki sert bloklar oldugu gibi kaliyor, delik onlarin
+   arasindan geciyor.
+
+   BAKISINI CEKERSEN IYILESIYOR: LAZER_SERT_UNUTMA tick boyunca
+   dokunulmayan blogun sayaci siliniyor. Yani obsidyeni delmek
+   icin gercekten UZERINDE DURMAN gerekiyor; bir bakip
+   kacmak ise yaramiyor.                                       */
+export const LAZER_SERT_ACIK = true;
+export const LAZER_DELME_SERT = new Map([
+  ["minecraft:obsidian",           10],   // kullanicinin sayisi
+  ["minecraft:crying_obsidian",    10],
+  ["minecraft:respawn_anchor",     10],
+  ["minecraft:enchanting_table",   10],   // obsidyen tabanli
+  ["minecraft:ender_chest",        10],
+  ["minecraft:ancient_debris",     10],
+  ["minecraft:netherite_block",    12],
+  ["minecraft:reinforced_deepslate", 14],
+]);
+export const LAZER_SERT_UNUTMA = 200;     // 10 sn dokunulmazsa sifirlanir
+/* Her vurusta blogun uzerinde bir kivilcim: kac vurus kaldigini
+   gormenin baska yolu yok, oyunun kirilma catlagi script'ten
+   cizilemiyor.                                                */
+export const LAZER_SERT_PARCACIK = "minecraft:critical_hit_emitter";
 
 export const LAZER_KALINLIK = 1.4;   // isindan kac blok sapma vurulur
 /* ---- ISIN SURESI (v4.69) ----

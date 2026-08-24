@@ -18,7 +18,9 @@ import {
   LAZER_ZIRH_ACIK, LAZER_ZIRH_KALAN,
   LAZER_VURUS_ARALIK, LAZER_CIZIM_ARALIK,
   LAZER_KALKAN_KIR, LAZER_KALKAN_SURESI, LAZER_KALKAN_ESYALARI,
-  LAZER_POZ_ACIK, LAZER_POZ_ADI
+  LAZER_POZ_ACIK, LAZER_POZ_ADI,
+  LAZER_SERT_ACIK, LAZER_DELME_SERT, LAZER_SERT_UNUTMA,
+  LAZER_SERT_PARCACIK
 } from "../ayarlar.js";
 
 /* ============================================================
@@ -304,6 +306,62 @@ function lazerPozu(oyuncu) {
 }
 
 
+/* ============================================================
+   SERT BLOK DEFTERI  (v4.74)
+
+   Kullanici: "obsidyende birazcik zorlansin... birine
+   odaklandiysan 10 kere lazer atmam gerekiyor."
+
+   Konum -> { kalan, tick }. Isin her vurdugunda kalan bir
+   azaliyor; sifira inince blok kiriliyor.
+
+   NEDEN MODUL DUZEYINDE: iki ayri lazer atisi ayni obsidyeni
+   yontabilsin diye. Is icinde tutulsaydi isin her kapanisinda
+   ilerleme sifirlanir ve blok asla kirilmazdi.
+
+   IYILESME: LAZER_SERT_UNUTMA tick dokunulmayan kayit
+   siliniyor. Yani "bak-kac-bak" ile obsidyen delinmiyor,
+   gercekten uzerinde durman gerekiyor.                       */
+const sertHasar = new Map();
+
+function sertAnahtar(boyut, x, y, z) {
+  return (boyut && boyut.id ? boyut.id : "?") + ":" + x + "," + y + "," + z;
+}
+
+/* Eskimis kayitlari at. Her vurusta cagriliyor; defter kucuk
+   kaldigi surece bedava.                                     */
+function sertTemizle(simdi) {
+  if (sertHasar.size === 0) return;
+  for (const [k, v] of sertHasar) {
+    if (simdi - v.tick > LAZER_SERT_UNUTMA) sertHasar.delete(k);
+  }
+}
+
+/* Bir sert bloga vurur. Donen: kirildi mi. */
+function sertVur(boyut, blok, x, y, z, gereken, simdi) {
+  const k = sertAnahtar(boyut, x, y, z);
+  const kayit = sertHasar.get(k);
+  const kalan = (kayit ? kayit.kalan : gereken) - 1;
+
+  if (kalan <= 0) {
+    sertHasar.delete(k);
+    try { blok.setType("minecraft:air"); } catch (e) { return false; }
+    return true;
+  }
+
+  sertHasar.set(k, { kalan, tick: simdi });
+  /* Kac vurus kaldigini gostermenin baska yolu yok: oyunun
+     kirilma catlagini script cizemiyor.                      */
+  try {
+    parcacikAt(boyut, LAZER_SERT_PARCACIK,
+               { x: x + 0.5, y: y + 0.5, z: z + 0.5 });
+  } catch (e) {
+    /* parcacik yoksa onemli degil */
+  }
+  return false;
+}
+
+
 const BUZ_KABUGU = (() => {
   const n = [];
   const r = LAZER_BUZ_YARICAP, h = LAZER_BUZ_YUKSEK;
@@ -571,27 +629,41 @@ yetenekKaydet({
 
        Nokta listesi bir kez hesaplaniyor; her tick butcenin izin
        verdigi kadari deliniyor.                                 */
-    const delinecek = [];
-    if (DUVAR_DELME_ACIK) {
+    /* ---- v4.74: DELME ARTIK ISINLA BIRLIKTE DONUYOR ----
+       v4.69'da isin sureli hale gelip supurulebilir olunca bu
+       liste GERIDE KALDI: bir kez, ILK bakis yonunden
+       hesaplaniyordu. Yani isini cevirsen bile delik hep ilk
+       baktigin yerde aciliyordu. Simdi her vurus tickinde
+       O ANKI bakistan yeniden hesaplaniyor.
+
+       Merkez cizgi AYRI tutuluyor: sert bloklar (obsidyen)
+       yalnizca isinin tam ortasindayken yontuluyor.
+       "Odaklandigim yer" bu demek; 3x3 delikteki dokuz
+       obsidyeni birden yontmak odaklanma olmazdi.            */
+    function delmeListesi(b, y) {
+      const liste = [];
+      if (!DUVAR_DELME_ACIK) return liste;
       const r = DUVAR_DELME_YARICAP;
-      for (let d = 1; d <= LAZER_MENZIL && delinecek.length < DUVAR_DELME_TAVAN; d++) {
-        const mx = bas.x + yon.x * d;
-        const my = bas.y + yon.y * d;
-        const mz = bas.z + yon.z * d;
+      for (let d = 1; d <= LAZER_MENZIL && liste.length < DUVAR_DELME_TAVAN; d++) {
+        const mx = Math.floor(b.x + y.x * d);
+        const my = Math.floor(b.y + y.y * d);
+        const mz = Math.floor(b.z + y.z * d);
         for (let ox = -r; ox <= r; ox++) {
           for (let oy = -r; oy <= r; oy++) {
             for (let oz = -r; oz <= r; oz++) {
-              if (delinecek.length >= DUVAR_DELME_TAVAN) break;
-              delinecek.push({
-                x: Math.floor(mx) + ox,
-                y: Math.floor(my) + oy,
-                z: Math.floor(mz) + oz
+              if (liste.length >= DUVAR_DELME_TAVAN) break;
+              liste.push({
+                x: mx + ox, y: my + oy, z: mz + oz,
+                merkez: (ox === 0 && oy === 0 && oz === 0)
               });
             }
           }
         }
       }
+      return liste;
     }
+
+    let delinecek = [];
 
     let delIndeks = 0;
     let delinen = 0;
@@ -664,6 +736,12 @@ yetenekKaydet({
               } catch (e) {
                 hataYaz("goz_lazeri.isinVur", e);
               }
+              /* Delme listesi de O ANKI bakistan tazeleniyor.
+                 Onceki parti bitmediyse dusuyor -- onemli olan
+                 SIMDI baktigin yer.                          */
+              delinecek = delmeListesi(b, y);
+              delIndeks = 0;
+              sertTemizle(simdi);
               if (simdi >= sonBildirim) {
                 sonBildirim = simdi + 10;
                 const kalan = ((bitisTick - simdi) / 20).toFixed(1);
@@ -686,6 +764,19 @@ yetenekKaydet({
                komut blogu... Yoksa dunyani ve esyalarini
                kaybedersin.                                     */
             if (KORUNAN_KUME.has(b.typeId)) continue;
+
+            /* SERT BLOK: tek vurusta gitmiyor. Sayaci azalt,
+               sifira inince kir. Sadece isinin TAM ORTASINDA
+               olan blok sayiliyor -- kenardakiler oldugu gibi
+               kaliyor ve delik onlarin arasindan geciyor.     */
+            const gereken = LAZER_SERT_ACIK
+              ? LAZER_DELME_SERT.get(b.typeId) : undefined;
+            if (gereken) {
+              if (!n.merkez) continue;
+              if (sertVur(boyut, b, n.x, n.y, n.z, gereken, simdi)) delinen++;
+              continue;
+            }
+
             b.setType("minecraft:air");
             delinen++;
           } catch (e) {
