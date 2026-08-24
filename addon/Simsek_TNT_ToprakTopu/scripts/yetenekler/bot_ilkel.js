@@ -181,13 +181,21 @@ export function silahVer(varlik, anahtar) {
     bilesen = undefined;
   }
   if (!bilesen || typeof bilesen.setEquipment !== "function") {
+    /* v4.61 -- BU ARTIK BIR HATA DEGIL.
+       v4.59'da asil yol minecraft:equipment ganimet tablosuna
+       tasindi; silah DOGUSTA veriliyor ve script'e ihtiyaci yok.
+       EquippableComponent ozel varliklarda bulunmayabiliyor --
+       o zaman script silahi ne koyabiliyor NE DE OKUYABILIYOR.
+       "Konulamadi" demek yaniltici olurdu: silah muhtemelen
+       elinde, sadece buradan gorulemiyor.                     */
     if (!silahUyarisi) {
       silahUyarisi = true;
       hataYaz("ilkel.silah", new Error(
-        "minecraft:equippable bulunamadi. Ilkel Besli silahsiz " +
-        "dovusur; guclerinin hicbiri etkilenmez."));
+        "minecraft:equippable script tarafinda yok. Silah dogusta " +
+        "ganimet tablosuyla veriliyor; tazeleme (dusen silahi geri " +
+        "koyma) calismayacak."));
     }
-    return false;
+    return "okunamadi";
   }
 
   const simdiki = eldekiEsya(varlik);
@@ -199,8 +207,9 @@ export function silahVer(varlik, anahtar) {
   } catch (e) {
     if (!silahUyarisi) {
       silahUyarisi = true;
-      /* En olasi sebep: kaynak paket etkin degil ya da eski
-         surumu etkin, yani esya oyunun defterinde yok.        */
+      /* Buraya dusmek GERCEK bir sorun: esya oyunun defterinde
+         yok demek, yani davranis paketi etkin degil ya da eski
+         surumu etkin.                                          */
       hataYaz("ilkel.silah", e);
     }
     return false;
@@ -660,9 +669,14 @@ yetenekKaydet({
         oyuncu.sendMessage("§c" + sonuc.hata);
       } else {
         const t = tanim(secilen);
-        const silahSatiri = sonSilah
-          ? "§8silahı elinde"
-          : "§c⚠ silahı ele konulamadı §8(kaynak paket eski olabilir)";
+        /* Uc ayri durum, uc ayri cumle. v4.60'ta ikisi tek
+           satirda toplanmisti ve "konulamadi" yaziyordu --
+           oysa silah dogusta ganimet tablosuyla veriliyor,
+           script sadece OKUYAMIYOR. Yaniltici bir uyariydi. */
+        const silahSatiri =
+          sonSilah === true      ? "§8silahı elinde" :
+          sonSilah === "okunamadi" ? "§8silahı doğuşta verildi" :
+          "§c⚠ silah eşyası bulunamadı §8(davranış paketi eski olabilir)";
         oyuncu.sendMessage(
           "§6⚔ §f" + t.ad + "§7 yanında. §8" + t.can + " can · " +
           t.hasar + " hasar\n§7" + ozetle(secilen) +
