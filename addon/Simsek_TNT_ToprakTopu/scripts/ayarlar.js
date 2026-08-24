@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.68";
+export const SURUM = "v4.69";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -552,7 +552,22 @@ export const DUVAR_DELME_YARICAP = 1;    // delik yaricapi (1 = 3x3)
 export const DUVAR_DELME_TAVAN   = 60;   // tek atista en fazla kac blok
 
 export const LAZER_KALINLIK = 1.4;   // isindan kac blok sapma vurulur
-export const LAZER_SURE     = 10;    // isin kac tick gorunur kalsin
+/* ---- ISIN SURESI (v4.69) ----
+   Kullanici: "lazer kac saniye tutabiliyorum onu da soyleyebilir
+   misin, uzatalim onu, en azindan bir 25 saniye daha ekleyelim."
+
+   ONCEKI CEVAP: hic tutamiyordun. Lazer TEK ATISTI ve bu sayi
+   (10 tick = yarim saniye) yalnizca isinin ne kadar GORUNUR
+   kalacagiydi; hasar bir kez veriliyordu.
+
+   Simdi gercek bir sureli isin: acik kaldigi surece her
+   LAZER_VURUS_ARALIK tickte yeniden tariyor ve vuruyor, her
+   tick oyuncunun O ANKI bakisindan cikiyor (supurebiliyorsun).
+
+   0,5 sn + 25 sn = 25,5 sn = 510 tick.                       */
+export const LAZER_SURE     = 510;   // 25,5 saniye
+export const LAZER_VURUS_ARALIK = 10;  // her yarim saniyede bir vurur
+export const LAZER_CIZIM_ARALIK = 4;   // parcacik her 4 tickte
 export const LAZER_ADIM     = 1.5;   // parcacik kac blokta bir
 export const LAZER_TAVAN    = 10;    // tek atista en fazla kac hedef
 export const LAZER_OYUNCU   = true;  // oyunculara da vursun mu
@@ -891,23 +906,55 @@ export const LAZER_DONDUR_SEVIYE = 3;   // Yavaslik IV
    LAZER_BIRAKILAN_CAN'i 0 yap, tek satir.
    ============================================================ */
 
-/* Ham hasar. Zirhsiz bir oyuncu (20 can) bunu kaldiramaz;
-   zirhliyi zaten asagidaki tavan hallediyor.                 */
-export const LAZER_HASAR = 60;
+/* Ham hasar.
+
+   v4.69: 60 -> 200. "patron cildirdi" istegi.
+
+   Can TAVANI zaten zirhtan bagimsiz olarak yarim kalp
+   birakiyor, yani bu sayinin isi tavanin YETISEMEDIGI yer:
+     - EMILIM (absorption) kalpleri. Onlar minecraft:health'in
+       disinda; tavan onlara dokunamiyor, ham hasar yiyor.
+       Emilim IV = 16 ek kalp = 32 can; %80 zirh indirimiyle
+       200 hasar 40 gecirir, yani emilimi de siyiriyor.
+     - Zirhsiz/az canli hedefleri dogrudan oldurmek.          */
+export const LAZER_HASAR = 200;
 
 /* Vurustan sonra hedefte birakilan can. 1 puan = YARIM KALP.
    0 yaparsan lazer oldurur.                                  */
 export const LAZER_BIRAKILAN_CAN = 1;
 
-/* ---- ZIRHI YARILA ----
-   "elmas zirhinin tumunu yari canina indirsin": dort parcanin
-   da dayanikliligi en az yarisina iniyor.
+/* Sabitleme dalinda verilen kucuk hasar. Isi OLDURMEK degil;
+   vurus hissi, geri tepme ve mobun sana donmesi icin.
+   Gercek is cani dogrudan yazmakla yapiliyor.               */
+export const LAZER_TEPKI_HASARI = 1;
 
-   ZATEN yarisindan fazla yipranmis bir parca ONARILMIYOR --
-   daha kotu olan hangisiyse o kaliyor. Yoksa lazer bazen
-   dusmanin zirhini TAMIR ederdi.                            */
+/* ---- ZIRHI ERIT (v4.69) ----
+   Kullanici: "patron cildirdi, full buyulu elmas zirhli...
+   onlarin neredeyse tum canina goturSun, yani elmas bir kilic
+   ile bir defa vurdugunda tum hepsi ayni anda kirilsin."
+
+   v4.68'de dayaniklik YARIYA iniyordu (LAZER_ZIRH_ORAN = 0.5).
+   Artik BITME NOKTASINA iniyor: her parcada bu kadar puan
+   kaliyor. Bir elmas kilic vurusu zirha 1-2 puan yipranma
+   bindirdigi icin dort parca da AYNI ANDA kiriliyor.
+
+   ---- BUYULER NEDEN ONEMSIZ ----
+   Kullanici "buyu isini sen hallet" dedi. Cevap: bu yol
+   buyuye BAGISIK.
+     Unbreaking  oyunun kendi yipranma zarina etki eder;
+                 biz durability.damage'i DOGRUDAN yaziyoruz,
+                 zar atilmiyor.
+     Koruma      gelen HASARI azaltir, dayanikligi degil.
+     Mending     tecrube kuresi ister, lazer sirasinda yok.
+   Yani full buyulu elmas set ile ciplak elmas set arasinda
+   bu etki bakimindan hicbir fark yok. Olculecek bir sey de
+   yok -- degeri dogrudan yaziyoruz.
+
+   ZATEN daha yipranmis bir parca ONARILMIYOR: daha kotu olan
+   hangisiyse o kaliyor. Yoksa lazer dusmanin zirhini TAMIR
+   ederdi.                                                    */
 export const LAZER_ZIRH_ACIK = true;
-export const LAZER_ZIRH_ORAN = 0.5;   // kalan dayaniklilik orani
+export const LAZER_ZIRH_KALAN = 1;   // parca basina kalan dayaniklik puani
 
 /* ---- KALKANI PARCALA ----
    "kalkan tuttugu zaman da o da 1-2 saniye icinde parcalansin"

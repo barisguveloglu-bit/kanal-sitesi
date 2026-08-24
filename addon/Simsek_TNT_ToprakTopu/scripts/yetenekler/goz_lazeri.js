@@ -14,8 +14,9 @@ import {
   LAZER_MODLARI, LAZER_MOD_VARSAYILAN,
   LAZER_BUZ_ACIK, LAZER_BUZ_BLOK, LAZER_BUZ_SURE,
   LAZER_BUZ_YARICAP, LAZER_BUZ_YUKSEK, LAZER_BUZ_TAVAN,
-  LAZER_HASAR, LAZER_BIRAKILAN_CAN,
-  LAZER_ZIRH_ACIK, LAZER_ZIRH_ORAN,
+  LAZER_HASAR, LAZER_BIRAKILAN_CAN, LAZER_TEPKI_HASARI,
+  LAZER_ZIRH_ACIK, LAZER_ZIRH_KALAN,
+  LAZER_VURUS_ARALIK, LAZER_CIZIM_ARALIK,
   LAZER_KALKAN_KIR, LAZER_KALKAN_SURESI, LAZER_KALKAN_ESYALARI
 } from "../ayarlar.js";
 
@@ -55,7 +56,7 @@ const ZIRH_YUVALARI = ["Head", "Chest", "Legs", "Feet"];
    yapip setEquipment ile GERI YAZMAZSAN hicbir sey olmaz;
    sessizce calisir gorunur. Bu tuzak bu depoda daha once
    silahta yasandi (v4.59).                                   */
-function esyayiYipranmis(varlik, yuva, oran) {
+function esyayiYipranmis(varlik, yuva, kalanPuan) {
   let bilesen;
   try {
     bilesen = varlik.getComponent("minecraft:equippable");
@@ -80,7 +81,10 @@ function esyayiYipranmis(varlik, yuva, oran) {
   }
   if (!day || typeof day.maxDurability !== "number") return false;
 
-  const hedefHasar = Math.floor(day.maxDurability * (1 - oran));
+  /* Kalan dayanikligi kalanPuan'a cek. Buyulere bagisik:
+     durability.damage DOGRUDAN yaziliyor, oyunun yipranma
+     zari (Unbreaking) hic atilmiyor.                        */
+  const hedefHasar = Math.max(0, day.maxDurability - kalanPuan);
   /* ZATEN daha yipranmissa DOKUNMA. Yoksa lazer dusmanin
      zirhini TAMIR ederdi -- sessiz ve tersine calisan bir
      hata olurdu.                                             */
@@ -95,13 +99,16 @@ function esyayiYipranmis(varlik, yuva, oran) {
   }
 }
 
-/* Dort zirh parcasinin dayanikligini yariya indirir.
-   Donen deger: kac parca etkilendi.                          */
+/* Dort zirh parcasinin dayanikligini bitme noktasina ceker.
+   Donen deger: kac parca etkilendi.
+
+   Sonuc: elmas kilicla tek vurus dort parcayi da AYNI ANDA
+   kiriyor -- kullanicinin istedigi bu.                      */
 function zirhiYarila(varlik) {
   let n = 0;
   for (const yuva of ZIRH_YUVALARI) {
     try {
-      if (esyayiYipranmis(varlik, yuva, LAZER_ZIRH_ORAN)) n++;
+      if (esyayiYipranmis(varlik, yuva, LAZER_ZIRH_KALAN)) n++;
     } catch (e) {
       hataYaz("goz_lazeri.zirhiYarila", e);
     }
@@ -154,23 +161,100 @@ function kalkaniKir(varlik) {
   }
 }
 
-/* Hedefin canini LAZER_BIRAKILAN_CAN'a ceker.
+/* Hedefin canini LAZER_BIRAKILAN_CAN'a sabitler.
 
-   NEDEN HASAR SAYISIYLA DEGIL: Bedrock'ta zirh indirimi zirh
+   ---- BURADA GERCEK BIR CELISKI VAR (v4.69) ----
+   Kullanici iki sey istedi:
+     "lazerin gucunu daha da guclendirelim" (ham hasar 200)
+     "kalp kalma isi de ayni olsun"        (yarim kalp kalsin)
+
+   Ikisi ayni anda olmuyor: 200 hasar full elmas setli bir
+   oyuncuyu (20 can) ZATEN olduruyor, yani yarim kalp kalmiyor.
+   Simulasyonda birebir goruldu: 200 hasar -> 0 can.
+
+   Cozum: hasari degil DURUMU kural yapmak.
+
+     can yarim kalpten YUKSEKSE  -> yarim kalbe SABITLENIR,
+                                    olmez. Tepki icin kucuk
+                                    bir hasar veriliyor
+                                    (vurus hissi, geri tepme,
+                                    mobun sana donmesi).
+     can zaten yarim kalpTEYSE   -> LAZER_HASAR ile BITIRILIR.
+
+   Sonuc: ilk vurus soyuyor ve yarim kalple birakiyor; isini
+   uzerinde TUTMAYA devam edersen bir sonraki vurus (yarim
+   saniye sonra) olduruyor. Yani hem "yarim kalp kalsin" hem
+   "cok daha guclu" ayni anda saglaniyor.
+
+   NEDEN HASAR HESABIYLA DEGIL: Bedrock'ta zirh indirimi zirh
    puani + toughness + Koruma buyusune bagli ve hangi formulun
-   gecerli oldugunu OLCMEDEN bilemeyiz. Bu depoda olculmeyen
-   sayi yazilmiyor. Vurustan SONRA cani okuyup cekmek zirhtan
-   bagimsiz olarak ayni sonucu veriyor.
+   gecerli oldugunu OLCMEDEN bilemeyiz. Cani DOGRUDAN yazmak
+   buyuye de formule de bagisik.
 
-   Sadece ASAGI ceker: zaten daha az cani olani iyilestirmez. */
+   EMILIM (absorption) ayrica siliniyor: o kalpler
+   minecraft:health'in DISINDA duruyor, can yazmak onlara
+   dokunmuyordu. Full buyulu bir patronun emilimi olmasa da
+   olurdu diye degil -- "neredeyse tum canina goturSun"
+   istegi ancak boyle tutuyor.                                */
 function cananCek(varlik) {
-  if (LAZER_BIRAKILAN_CAN <= 0) return;    // 0 = lazer oldursun
+  if (LAZER_BIRAKILAN_CAN <= 0) {
+    /* 0 = "lazer oldursun": kural kapali, tam hasar. */
+    try {
+      varlik.applyDamage(LAZER_HASAR, { cause: "fire" });
+    } catch (e) {
+      hataYaz("goz_lazeri.cananCek", e);
+    }
+    return;
+  }
+
+  let can;
   try {
-    const can = varlik.getComponent("minecraft:health");
-    if (!can || typeof can.setCurrentValue !== "function") return;
-    if (typeof can.currentValue !== "number") return;
-    if (can.currentValue <= LAZER_BIRAKILAN_CAN) return;
-    can.setCurrentValue(LAZER_BIRAKILAN_CAN);
+    can = varlik.getComponent("minecraft:health");
+  } catch (e) {
+    can = undefined;
+  }
+
+  /* Can bileseni okunamiyorsa elimizdeki tek arac hasar. */
+  if (!can || typeof can.currentValue !== "number" ||
+      typeof can.setCurrentValue !== "function") {
+    try {
+      varlik.applyDamage(LAZER_HASAR, { cause: "fire" });
+    } catch (e) {
+      hataYaz("goz_lazeri.cananCek", e);
+    }
+    return;
+  }
+
+  /* Emilim kalpleri can bileseninin disinda: ayrica silinmeli */
+  try {
+    varlik.removeEffect("absorption");
+  } catch (e) {
+    /* efekt yoksa ya da silinemiyorsa devam */
+  }
+
+  const onceki = can.currentValue;
+
+  if (onceki > LAZER_BIRAKILAN_CAN) {
+    /* SOY VE SABITLE: olmuyor, yarim kalple kaliyor. */
+    try {
+      varlik.applyDamage(LAZER_TEPKI_HASARI, { cause: "fire" });
+    } catch (e) {
+      /* tepki hasari verilemedi; sabitleme yine de yapilacak */
+    }
+    try {
+      if (can.currentValue > LAZER_BIRAKILAN_CAN) {
+        can.setCurrentValue(LAZER_BIRAKILAN_CAN);
+      }
+    } catch (e) {
+      hataYaz("goz_lazeri.cananCek", e);
+    }
+    return;
+  }
+
+  /* ZATEN yarim kalpte: bitir. Isini uzerinde tutmaya devam
+     edersen bu dal yarim saniye sonra calisiyor.            */
+  try {
+    varlik.applyDamage(LAZER_HASAR, { cause: "fire" });
   } catch (e) {
     hataYaz("goz_lazeri.cananCek", e);
   }
@@ -288,129 +372,153 @@ yetenekKaydet({
       return undefined;
     }
 
-    /* ---- Hedef bulma: TEK tarama, sonra isina izdusum ---- */
-    let yakin;
-    try {
-      yakin = boyut.getEntities({
-        location: bas,
-        maxDistance: LAZER_MENZIL,
-        excludeTypes: ["minecraft:item", "minecraft:xp_orb"]
-      });
-    } catch (e) {
-      hataYaz("goz_lazeri.getEntities", e);
-      yakin = [];
-    }
+    /* ============================================================
+       SUREKLI ISIN  (v4.69)
 
-    const vurulanlar = [];
-    for (const varlik of yakin) {
-      try {
-        if (varlik.id === oyuncu.id) continue;          // kendimize asla
-        if (!gecerliMi(varlik)) continue;
-        if (varlik.typeId === "minecraft:player" && !LAZER_OYUNCU) continue;
+       Kullanici: "lazer kac saniye tutabiliyorum onu da
+       soyleyebilir misin, uzatalim onu, en azindan bir 25
+       saniye daha ekleyelim."
 
-        const k = varlik.location;
-        const dx = k.x - bas.x, dy = k.y - bas.y, dz = k.z - bas.z;
+       Cevap: v4.68'e kadar HIC tutamiyordun. Lazer TEK ATISTI;
+       LAZER_SURE = 10 tick yalnizca isinin ne kadar GORUNUR
+       kalacagiydi (yarim saniye), hasar bir kez veriliyordu.
 
-        // Isin uzerindeki izdusum: ne kadar ILERIDE
-        const ileri = dx * yon.x + dy * yon.y + dz * yon.z;
-        if (ileri < 0 || ileri > LAZER_MENZIL) continue;
+       Artik gercek bir sureli isin:
+         - LAZER_SURE boyunca acik kaliyor
+         - her LAZER_VURUS_ARALIK tickte YENIDEN tariyor ve
+           vuruyor
+         - her tick oyuncunun O ANKI bakisindan cikiyor, yani
+           isini SUPUREBILIYORSUN
 
-        // Isina dik uzaklik: ne kadar YANDA
-        const sapmaKare = (dx * dx + dy * dy + dz * dz) - ileri * ileri;
-        if (sapmaKare > LAZER_KALINLIK * LAZER_KALINLIK) continue;
-
-        vurulanlar.push({ varlik, ileri });
-      } catch (e) {
-        hataYaz("goz_lazeri.izdusum", e);
-      }
-    }
-
-    // Tavan asilirsa en YAKINDAKILER vurulsun, rastgele degil
-    vurulanlar.sort((a, b) => a.ileri - b.ileri);
-
-    let vuran = 0;
+       Tarama her tick DEGIL araliklarla: 25 saniye boyunca
+       her tick getEntities cagirmak tablette en pahali sey
+       olurdu. Ayni sebeple parcacik da araliklarla ciziliyor.
+       ============================================================ */
+    /* Bunlar isin OMRU boyunca birikiyor, her vurusta degil:
+       buz kafesi bir kez oruluyor, kalkan bir kez isaretlenip
+       bir kez kiriliyor. Sureli isinda her vurus tickinde
+       yeniden ormek tablette blok butcesini yerdi.          */
     const buzNoktalari = [];
-    const kalkanlar = [];        // { varlik } -- 1-2 sn sonra kirilacak
-    for (const h of vurulanlar) {
-      if (vuran >= LAZER_TAVAN) break;
+    const kalkanlar = [];
+    let buzKuruldu = false;
+
+    function isinVur(bas, yon) {
+    /* ---- Hedef bulma: bir tarama, sonra isina izdusum ---- */
+      let yakin;
       try {
-        /* 1. GERCEK VURUS. Vurus hissi, geri tepme ve olum
-              sahipligi bundan geliyor; zirhsiz hedefi bu tek
-              basina oldurur.                                  */
-        h.varlik.applyDamage(LAZER_HASAR, {
-          cause: "fire",
-          damagingEntity: oyuncu
+        yakin = boyut.getEntities({
+          location: bas,
+          maxDistance: LAZER_MENZIL,
+          excludeTypes: ["minecraft:item", "minecraft:xp_orb"]
         });
-
-        /* 2. ZIRHI YARILA -- "elmas zirhinin tumunu yari
-              canina indirsin"                                 */
-        if (LAZER_ZIRH_ACIK) zirhiYarila(h.varlik);
-
-        /* 3. KALKANI ISARETLE. Hemen kirilmiyor: dayanikligi
-              bitme noktasina cekiliyor, gercek kirilma asagida
-              LAZER_KALKAN_SURESI sonra.                       */
-        if (LAZER_KALKAN_KIR && kalkaniHazirla(h.varlik)) {
-          kalkanlar.push(h.varlik);
-        }
-
-        /* 4. CAN TAVANI -- "yarim kalplik cani kalsin"
-              Hasar sayisiyla tutturulamaz (zirh indirimi
-              formulu olculmedi), o yuzden vurustan SONRA
-              okunup cekiliyor. Zirh ne olursa olsun sonuc
-              ayni.                                            */
-        cananCek(h.varlik);
-
-        /* ---- Element buz modu ---- */
-        if (ayar.dondur) {
-          try {
-            h.varlik.addEffect("slowness", LAZER_DONDUR_SURE,
-                               { amplifier: LAZER_DONDUR_SEVIYE });
-          } catch (e) {
-            /* efekt verilemedi; hasar zaten gitti */
-          }
-        }
-        /* ---- Element ates modu ---- */
-        if (ayar.ates) {
-          try {
-            h.varlik.setOnFire(4, true);
-          } catch (e) {
-            /* setOnFire bazi surumlerde yok; hasar zaten verildi */
-          }
-        }
-        /* Buz kafesi: noktalar burada TOPLANIYOR, blok koyma
-           isi asagida butceyle yapiliyor -- vurus dongusunde
-           blok koymak tek tick'te onlarca setType demek.     */
-        if (ayar.buzKafes && LAZER_BUZ_ACIK &&
-            buzNoktalari.length < LAZER_BUZ_TAVAN) {
-          try {
-            const k = h.varlik.location;
-            const tx = Math.floor(k.x), ty = Math.floor(k.y), tz = Math.floor(k.z);
-            for (const n of BUZ_KABUGU) {
-              if (buzNoktalari.length >= LAZER_BUZ_TAVAN) break;
-              buzNoktalari.push({ x: tx + n.x, y: ty + n.y, z: tz + n.z });
-            }
-          } catch (e) {
-            hataYaz("goz_lazeri.buzKafes", e);
-          }
-        }
-        vuran++;
       } catch (e) {
-        hataYaz("goz_lazeri.applyDamage", e);
+        hataYaz("goz_lazeri.getEntities", e);
+        yakin = [];
       }
+
+      const vurulanlar = [];
+      for (const varlik of yakin) {
+        try {
+          if (varlik.id === oyuncu.id) continue;          // kendimize asla
+          if (!gecerliMi(varlik)) continue;
+          if (varlik.typeId === "minecraft:player" && !LAZER_OYUNCU) continue;
+
+          const k = varlik.location;
+          const dx = k.x - bas.x, dy = k.y - bas.y, dz = k.z - bas.z;
+
+          // Isin uzerindeki izdusum: ne kadar ILERIDE
+          const ileri = dx * yon.x + dy * yon.y + dz * yon.z;
+          if (ileri < 0 || ileri > LAZER_MENZIL) continue;
+
+          // Isina dik uzaklik: ne kadar YANDA
+          const sapmaKare = (dx * dx + dy * dy + dz * dz) - ileri * ileri;
+          if (sapmaKare > LAZER_KALINLIK * LAZER_KALINLIK) continue;
+
+          vurulanlar.push({ varlik, ileri });
+        } catch (e) {
+          hataYaz("goz_lazeri.izdusum", e);
+        }
+      }
+
+      // Tavan asilirsa en YAKINDAKILER vurulsun, rastgele degil
+      vurulanlar.sort((a, b) => a.ileri - b.ileri);
+
+      let vuran = 0;
+      for (const h of vurulanlar) {
+        if (vuran >= LAZER_TAVAN) break;
+        try {
+          /* 1. ZIRHI ERIT -- "elmas zirhinin tumunu... elmas
+                bir kilic ile bir defa vurdugunda tum hepsi
+                ayni anda kirilsin"                              */
+          if (LAZER_ZIRH_ACIK) zirhiYarila(h.varlik);
+
+          /* 2. KALKANI ISARETLE. Hemen kirilmiyor: dayanikligi
+                bitme noktasina cekiliyor, gercek kirilma asagida
+                LAZER_KALKAN_SURESI sonra. Ayni kalkan iki kez
+                isaretlenmesin -- isin sureli, ayni hedefe
+                defalarca vuruyor.                               */
+          if (LAZER_KALKAN_KIR && !kalkanlar.includes(h.varlik) &&
+              kalkaniHazirla(h.varlik)) {
+            kalkanlar.push(h.varlik);
+          }
+
+          /* 3. CAN. Vurus hasari da burada: yarim kalpten
+                yuksekse SOYUP SABITLIYOR, zaten yarim kalpteyse
+                BITIRIYOR. Gerekcesi cananCek'in basinda.        */
+          cananCek(h.varlik);
+
+          /* ---- Element buz modu ---- */
+          if (ayar.dondur) {
+            try {
+              h.varlik.addEffect("slowness", LAZER_DONDUR_SURE,
+                                 { amplifier: LAZER_DONDUR_SEVIYE });
+            } catch (e) {
+              /* efekt verilemedi; hasar zaten gitti */
+            }
+          }
+          /* ---- Element ates modu ---- */
+          if (ayar.ates) {
+            try {
+              h.varlik.setOnFire(4, true);
+            } catch (e) {
+              /* setOnFire bazi surumlerde yok; hasar zaten verildi */
+            }
+          }
+          /* Buz kafesi: noktalar burada TOPLANIYOR, blok koyma
+             isi asagida butceyle yapiliyor -- vurus dongusunde
+             blok koymak tek tick'te onlarca setType demek.     */
+          if (ayar.buzKafes && LAZER_BUZ_ACIK && !buzKuruldu &&
+              buzNoktalari.length < LAZER_BUZ_TAVAN) {
+            try {
+              const k = h.varlik.location;
+              const tx = Math.floor(k.x), ty = Math.floor(k.y), tz = Math.floor(k.z);
+              for (const n of BUZ_KABUGU) {
+                if (buzNoktalari.length >= LAZER_BUZ_TAVAN) break;
+                buzNoktalari.push({ x: tx + n.x, y: ty + n.y, z: tz + n.z });
+              }
+              buzKuruldu = true;
+            } catch (e) {
+              hataYaz("goz_lazeri.buzKafes", e);
+            }
+          }
+          vuran++;
+        } catch (e) {
+          hataYaz("goz_lazeri.applyDamage", e);
+        }
+      }
+
+
+      return vuran;
     }
 
     /* ---- Gorunum: goz parlar, isin cizilir ---- */
     lazerGozuAc(oyuncu, kademe);
 
     const bitisTick = system.currentTick + LAZER_SURE;
-    let cizildi = false;
-
-    try {
-      actionbarYaz(oyuncu, "§c⚡ " + kademe.ad + " lazeri §7· " +
-                   vuran + " hedef · " + LAZER_HASAR + " hasar");
-    } catch (e) {
-      hataYaz("goz_lazeri.actionbar", e);
-    }
+    let sonrakiVurus = system.currentTick;      // ilki HEMEN
+    let sonrakiCizim = 0;
+    let toplamVuran = 0;
+    let sonBildirim = 0;
 
     /* ---- Duvar delme ----
        Isin boyunca onune cikan bloklari deliyor. Referansta bu
@@ -456,8 +564,13 @@ yetenekKaydet({
             kapali bir alanda bu sel demek.                  */
     /* Kalkan kirilma zamani. Aninda kirmiyoruz: oyuncu
        kalkanin kirmiziya donup parcalandigini gorsun.       */
+    /* DIKKAT: kalkanlar listesi is CALISIRKEN doluyor (isinVur
+       icinde), yaratilis aninda BOS. "kalkanKirildi = kalkanlar
+       .length === 0" diye baslatilirsa bayrak hep true baslar
+       ve kalkan hicbir zaman kirilmez -- sureli isina gecerken
+       tam bu oldu, testi yazmasak fark edilmezdi.            */
     const kalkanTick = system.currentTick + LAZER_KALKAN_SURESI;
-    let kalkanKirildi = kalkanlar.length === 0;
+    let kalkanKirildi = false;
 
     let buzIndeks = 0;
     const konanBuz = [];
@@ -469,16 +582,51 @@ yetenekKaydet({
       oyuncuId: oyuncu.id,
 
       calis() {
-        /* Isin parcaciklari bir kez ciziliyor; her tick cizmek
-           tablette bosuna yuk. Isin zaten anlik bir sey.        */
-        if (!cizildi) {
-          cizildi = true;
-          for (let d = 1; d <= LAZER_MENZIL; d += LAZER_ADIM) {
-            parcacikAt(boyut, PARCACIK_LAZER, {
-              x: bas.x + yon.x * d,
-              y: bas.y + yon.y * d,
-              z: bas.z + yon.z * d
-            });
+        const simdi = system.currentTick;
+        const suruyor = simdi < bitisTick && gecerliMi(oyuncu);
+
+        /* ---- Isin acikken: her tick O ANKI bakistan cikar ----
+           Boylece isini supurebiliyorsun. Oyuncu gecersizse
+           (ciktiysa/oldiyse) isin hemen kesiliyor.            */
+        if (suruyor) {
+          let b, y;
+          try {
+            b = oyuncu.getHeadLocation();
+            y = oyuncu.getViewDirection();
+          } catch (e) {
+            b = undefined;
+          }
+
+          if (b) {
+            /* Cizim araliklarla: 25 saniye boyunca her tick
+               15 parcacik atmak tablette bosuna yuk.        */
+            if (simdi >= sonrakiCizim) {
+              sonrakiCizim = simdi + LAZER_CIZIM_ARALIK;
+              for (let d = 1; d <= LAZER_MENZIL; d += LAZER_ADIM) {
+                parcacikAt(boyut, PARCACIK_LAZER, {
+                  x: b.x + y.x * d,
+                  y: b.y + y.y * d,
+                  z: b.z + y.z * d
+                });
+              }
+            }
+
+            /* Vurus da araliklarla: her tick getEntities
+               cagirmak 25 saniyede 500 tarama ederdi.       */
+            if (simdi >= sonrakiVurus) {
+              sonrakiVurus = simdi + LAZER_VURUS_ARALIK;
+              try {
+                toplamVuran += isinVur(b, y);
+              } catch (e) {
+                hataYaz("goz_lazeri.isinVur", e);
+              }
+              if (simdi >= sonBildirim) {
+                sonBildirim = simdi + 10;
+                const kalan = ((bitisTick - simdi) / 20).toFixed(1);
+                actionbarYaz(oyuncu, "§c⚡ " + kademe.ad + " lazeri §7· " +
+                             toplamVuran + " vurus · §8" + kalan + " sn");
+              }
+            }
           }
         }
         /* Duvar delme: butce kadar, sonrakine devrederek */
@@ -504,7 +652,7 @@ yetenekKaydet({
         /* Kalkan: sure dolunca kir. Is BITMIYOR -- kalkan
            kirilmadan cikarsak isaretledigimiz kalkan bir
            daha asla kirilmazdi.                             */
-        if (!kalkanKirildi) {
+        if (!kalkanKirildi && kalkanlar.length > 0) {
           if (system.currentTick < kalkanTick) return false;
           for (const v of kalkanlar) kalkaniKir(v);
           kalkanKirildi = true;
