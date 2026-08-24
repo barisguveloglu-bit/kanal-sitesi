@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.67";
+export const SURUM = "v4.68";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -639,7 +639,7 @@ export const KADEMELER = [
     goz: "pa:goz_beyaz",
     lazerGoz: "pa:goz_beyaz_lazer",
     ozet: "Hiz ve ziplama",
-    lazer: { hasar: 9, savur: true },
+    lazer: {},
     /* Referans: speed 0, jump_boost 0, strength 0, resistance 0,
        instant_health 0.  Bizde hiz/ziplama UZMANI.             */
     efektler: [
@@ -662,7 +662,7 @@ export const KADEMELER = [
     goz: "pa:goz_yesil",
     lazerGoz: "pa:goz_yesil_lazer",
     ozet: "Dayaniklilik",
-    lazer: { hasar: 8, zehir: true },
+    lazer: {},
     /* Referansta HIC EFEKT YOK -- icince sadece parlama ve goz
        geliyor. Bizde ayakta kalma UZMANI.                      */
     efektler: [
@@ -685,7 +685,7 @@ export const KADEMELER = [
     goz: "pa:goz_kirmizi",
     lazerGoz: "pa:goz_kirmizi_lazer",
     ozet: "Saldiri ve kazma",
-    lazer: { hasar: 13, sersem: true },
+    lazer: {},
     /* Referans: regeneration 0, speed 0, strength 0.
        Bizde vurus ve kazma UZMANI.                             */
     efektler: [
@@ -707,7 +707,7 @@ export const KADEMELER = [
     goz: "pa:goz_ates",
     lazerGoz: "pa:goz_ates_lazer",
     ozet: "Ates",
-    lazer: { hasar: 10, ates: true },
+    lazer: {},
     /* Referans: fire_resistance 0, speed 0, strength 0.
        Bizde ates UZMANI -- lazeri de yakiyor.                  */
     efektler: [
@@ -730,7 +730,7 @@ export const KADEMELER = [
     goz: "pa:goz_kan",
     lazerGoz: "pa:goz_kan_lazer",
     ozet: "Vampir",
-    lazer: { hasar: 12, canCal: true },
+    lazer: {},
     /* Referansta yok, bizim. Lazeri verdigi hasarin bir kismini
        CANA CEVIRIYOR -- vampir kimligi.                        */
     efektler: [
@@ -752,7 +752,7 @@ export const KADEMELER = [
     goz: "pa:goz_mavi",
     lazerGoz: "pa:goz_mavi_lazer",
     ozet: "Her seyden biraz",
-    lazer: { hasar: 11, hiz: true },
+    lazer: {},
     /* ARTIK "EN GUCLU" DEGIL. Her alandan biraz veriyor ama
        hicbirinde uzmanini gecmiyor:
          hiz 2  < Nitroksin 3
@@ -791,7 +791,7 @@ export const KADEMELER = [
     goz: "pa:goz_yildiz",
     lazerGoz: "pa:goz_yildiz_lazer",
     ozet: "Koruma",
-    lazer: { hasar: 10, kalkan: true },
+    lazer: {},
     /* Referansta gozun verdigi efektler: health_boost,
        night_vision, resistance -- ucu de I seviyesinde.
        Kimligi KORUMA, o yuzden burada da o.
@@ -833,7 +833,7 @@ export const KADEMELER = [
 
        Fikir alindi, kusur ayiklandi: lazer VURDUGUNU
        donduruyor, sureli.                                    */
-    lazer: { hasar: 9, modlu: "element" },
+    lazer: { modlu: "element" },
     efektler: [
       ["water_breathing", 0],
       ["conduit_power",   0],
@@ -856,50 +856,70 @@ export const LAZER_DONDUR_SURE = 100;   // 5 saniye
 export const LAZER_DONDUR_SEVIYE = 3;   // Yavaslik IV
 
 /* ============================================================
-   LAZER KIMLIKLERI  (v4.67)
+   LAZER  --  v4.68: SADECE VURUR, AMA COK SERT VURUR
 
-   Kullanici: "goz lazerinde gozun rengine gore, o iksirin
-   rengine gore lazer atiyor... element iksirinde hem bu hem
-   ates var ya, atesi olarak ayarladigimiz zaman karsidaki kisi
-   yanmaya basliyor, buz haline cevirirsek karsidaki kisi
-   yavaslik aliyor ve etrafi buz blogu ile kaplaniyor."
+   Kullanici: "bunlar sey vermesin kanka, sadece hasar versin,
+   ekstra bir sey vermesin; element iksiri 2 secenegi olacak,
+   onda sadece... yani bunlari kaldir ama lazeri sadece vurmak
+   icin ekle. Ayrica goz lazerini guclendir: full elmas setli
+   birinin elmas zirhinin tumunu yari canina indirsin... ayrica
+   elmas setli o kisinin yarim kalplik cani kalsin... kalkan
+   tuttugu zaman da o da 1-2 saniye icinde parcalansin."
 
-   ---- REFERANS ARASTIRMASI: ORADA BOYLE BIR SEY YOK ----
-   Uc arsivin hepsi acildi (BoraLo Nitroksin Mod, best StarOxine
-   mod, Element Iksiri modu V2). Nitroksin modunda bes ayri
-   lazer fonksiyonu var -- lazerat1, firelazer, Bloodylazer,
-   grinoxsinlazer, hiperlazer -- ve BESI DE BIREBIR AYNI:
+   v4.67'de her iksirin lazerine ayri bir kimlik verilmisti
+   (savur / zehir / sersem / ates / canCal / hiz / kalkan).
+   Kullanici hepsinin kaldirilmasini istedi: lazer bir yetenek
+   dagitici degil, bir SILAH. Tek istisna Element'in iki modu.
 
-     effect @s instant_health 1 4
-     execute @s^^^2 /damage @e[r=2,c=1] 6 fire
-     execute @s^^^4 /damage @e[r=4,c=1] 6 fire
-     execute @s^^^6 /damage @e[r=6,c=1] 6 fire
-     execute @s^^^8 /damage @e[r=8,c=1] 6 fire
+   ---- "YARIM KALP" NASIL GARANTI EDILIYOR ----
+   Hasar sayisiyla tutturulamaz. Bedrock'ta zirh indirimi
+   zirh puani + toughness + Koruma buyusune bagli; hangi
+   formulun gecerli oldugunu OLCMEDEN bilemeyiz ve bu depoda
+   olculmeyen sayi yazilmiyor.
 
-   Tek fark hangi goz esyasinin takildigi. Ayni sekilde
-   *_goz_lazer_effect dosyalarinin dordu de ayni bes buff'i
-   veriyor. StarOxine'inki hasar bile vermiyor (dy_slazer
-   sadece bir ayakkabi esyasi takiyor). Element modunun
-   "donma"si ise gorunmezlik + Yavaslik 249 ve SURESIZ.
+   O yuzden is ikiye bolundu:
+     1. GERCEK VURUS: applyDamage(LAZER_HASAR). Vurus hissi,
+        geri tepme ve olum sahipligi bundan geliyor. Zirhsiz
+        bir hedefi bu tek basina oldurur.
+     2. TAVAN: vurustan sonra hedefin cani okunur; hala
+        LAZER_BIRAKILAN_CAN'dan yuksekse oraya CEKILIR.
+        Zirh ne olursa olsun sonuc ayni: yarim kalp.
 
-   Yani lazerin iksire gore degismesi REFERANSTAN GELMIYOR,
-   kullanicinin fikri. Alinacak bir sey olmadigi icin sifirdan
-   tasarlandi -- ama kimlikler iksirlerin KENDI kimliginden
-   turetildi, uydurma degil.
-
-   Her iksirin lazeri artik kendi karakterini tasiyor:
-     Nitroksin   savur     saf itis, geri firlatir
-     Grinoksin   zehir     zehirler (vanilla zehir oldurmez)
-     Redoksin    sersem    en yuksek hasar + bulanti
-     Firenoksin  ates      yakar
-     Kan Iksiri  canCal    verdigin hasarin ucte biri sana doner
-     Hiperoksin  hiz       vurunca SANA hiz verir
-     StarOxine   kalkan    vurunca SANA emilim verir
-     Element     modlu     iki mod, menuden degistirilir
+   Bu, lazerin zirhli bir hedefi OLDURMEDIGI anlamina geliyor
+   -- yarim kalple birakiyor, isini kendin bitiriyorsun.
+   Kullanicinin tarifi birebir bu. Oldurmesini istersen
+   LAZER_BIRAKILAN_CAN'i 0 yap, tek satir.
    ============================================================ */
 
-/* Element'in iki modu. Kullanicinin tarifi birebir:
-   ates -> karsidaki yanar, buz -> yavaslar ve buz kaplanir. */
+/* Ham hasar. Zirhsiz bir oyuncu (20 can) bunu kaldiramaz;
+   zirhliyi zaten asagidaki tavan hallediyor.                 */
+export const LAZER_HASAR = 60;
+
+/* Vurustan sonra hedefte birakilan can. 1 puan = YARIM KALP.
+   0 yaparsan lazer oldurur.                                  */
+export const LAZER_BIRAKILAN_CAN = 1;
+
+/* ---- ZIRHI YARILA ----
+   "elmas zirhinin tumunu yari canina indirsin": dort parcanin
+   da dayanikliligi en az yarisina iniyor.
+
+   ZATEN yarisindan fazla yipranmis bir parca ONARILMIYOR --
+   daha kotu olan hangisiyse o kaliyor. Yoksa lazer bazen
+   dusmanin zirhini TAMIR ederdi.                            */
+export const LAZER_ZIRH_ACIK = true;
+export const LAZER_ZIRH_ORAN = 0.5;   // kalan dayaniklilik orani
+
+/* ---- KALKANI PARCALA ----
+   "kalkan tuttugu zaman da o da 1-2 saniye icinde parcalansin"
+
+   Aninda silinmiyor: once dayanikligi bitme noktasina
+   cekiliyor (oyuncu esya cubugunda kirmiziya dondugunu
+   goruyor), sonra bu sure dolunca gercekten kiriliyor.
+   Aninda yok olsa "kalkanim nereye gitti" olurdu.           */
+export const LAZER_KALKAN_KIR = true;
+export const LAZER_KALKAN_SURESI = 30;   // 1,5 saniye
+export const LAZER_KALKAN_ESYALARI = new Set(["minecraft:shield"]);
+
 export const LAZER_MODLARI = new Map([
   ["element", [
     { kimlik: "buz",  ad: "Buz",  ek: { dondur: true, buzKafes: true } },

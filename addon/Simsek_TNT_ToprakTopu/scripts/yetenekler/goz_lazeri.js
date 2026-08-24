@@ -14,9 +14,9 @@ import {
   LAZER_MODLARI, LAZER_MOD_VARSAYILAN,
   LAZER_BUZ_ACIK, LAZER_BUZ_BLOK, LAZER_BUZ_SURE,
   LAZER_BUZ_YARICAP, LAZER_BUZ_YUKSEK, LAZER_BUZ_TAVAN,
-  LAZER_HIZ_SURE, LAZER_HIZ_SEVIYE,
-  LAZER_KALKAN_SURE, LAZER_KALKAN_SEVIYE,
-  LAZER_SERSEM_SURE, LAZER_SAVUR_GUC
+  LAZER_HASAR, LAZER_BIRAKILAN_CAN,
+  LAZER_ZIRH_ACIK, LAZER_ZIRH_ORAN,
+  LAZER_KALKAN_KIR, LAZER_KALKAN_SURESI, LAZER_KALKAN_ESYALARI
 } from "../ayarlar.js";
 
 /* ============================================================
@@ -38,6 +38,145 @@ const modSecim = new Map();     // oyuncuId -> mod kimligi
    Ici bos olmasi sart: dolu olsaydi hedef blogun icinde kalir
    ve BOGULARAK olurdu. Istenen sey hapsetmek, oldurmek degil;
    hasari zaten lazer veriyor.                                */
+/* ============================================================
+   LAZERIN UC SERT ETKISI  (v4.68)
+
+   Kullanici: "full elmas setli birinin elmas zirhinin tumunu
+   yari canina indirsin... elmas setli o kisinin yarim kalplik
+   cani kalsin... kalkan tuttugu zaman da o da 1-2 saniye
+   icinde parcalansin."
+   ============================================================ */
+
+const ZIRH_YUVALARI = ["Head", "Chest", "Legs", "Feet"];
+
+/* Bir esyanin dayanikligini oranla. Donen deger: degisti mi.
+
+   DIKKAT -- getEquipment KOPYA veriyor. Uzerinde degisiklik
+   yapip setEquipment ile GERI YAZMAZSAN hicbir sey olmaz;
+   sessizce calisir gorunur. Bu tuzak bu depoda daha once
+   silahta yasandi (v4.59).                                   */
+function esyayiYipranmis(varlik, yuva, oran) {
+  let bilesen;
+  try {
+    bilesen = varlik.getComponent("minecraft:equippable");
+  } catch (e) {
+    return false;
+  }
+  if (!bilesen || typeof bilesen.getEquipment !== "function") return false;
+
+  let esya;
+  try {
+    esya = bilesen.getEquipment(yuva);
+  } catch (e) {
+    return false;
+  }
+  if (!esya) return false;
+
+  let day;
+  try {
+    day = esya.getComponent("minecraft:durability");
+  } catch (e) {
+    return false;
+  }
+  if (!day || typeof day.maxDurability !== "number") return false;
+
+  const hedefHasar = Math.floor(day.maxDurability * (1 - oran));
+  /* ZATEN daha yipranmissa DOKUNMA. Yoksa lazer dusmanin
+     zirhini TAMIR ederdi -- sessiz ve tersine calisan bir
+     hata olurdu.                                             */
+  if (day.damage >= hedefHasar) return false;
+
+  try {
+    day.damage = hedefHasar;
+    bilesen.setEquipment(yuva, esya);      // geri yazmadan olmuyor
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+/* Dort zirh parcasinin dayanikligini yariya indirir.
+   Donen deger: kac parca etkilendi.                          */
+function zirhiYarila(varlik) {
+  let n = 0;
+  for (const yuva of ZIRH_YUVALARI) {
+    try {
+      if (esyayiYipranmis(varlik, yuva, LAZER_ZIRH_ORAN)) n++;
+    } catch (e) {
+      hataYaz("goz_lazeri.zirhiYarila", e);
+    }
+  }
+  return n;
+}
+
+/* Elinde kalkan varsa dayanikligini bitme noktasina ceker.
+   Donen deger: kalkan bulundu mu (kirilma isi cagirana ait). */
+function kalkaniHazirla(varlik) {
+  let bulundu = false;
+  for (const yuva of ["Offhand", "Mainhand"]) {
+    try {
+      const bilesen = varlik.getComponent("minecraft:equippable");
+      if (!bilesen || typeof bilesen.getEquipment !== "function") return false;
+      const esya = bilesen.getEquipment(yuva);
+      if (!esya || !LAZER_KALKAN_ESYALARI.has(esya.typeId)) continue;
+
+      const day = esya.getComponent("minecraft:durability");
+      if (day && typeof day.maxDurability === "number") {
+        day.damage = Math.max(day.damage, day.maxDurability - 1);
+        bilesen.setEquipment(yuva, esya);
+      }
+      bulundu = true;
+    } catch (e) {
+      hataYaz("goz_lazeri.kalkaniHazirla", e);
+    }
+  }
+  return bulundu;
+}
+
+/* Isaretlenen kalkani gercekten kirar (yuvadan siler). */
+function kalkaniKir(varlik) {
+  if (!gecerliMi(varlik)) return;
+  for (const yuva of ["Offhand", "Mainhand"]) {
+    try {
+      const bilesen = varlik.getComponent("minecraft:equippable");
+      if (!bilesen || typeof bilesen.getEquipment !== "function") return;
+      const esya = bilesen.getEquipment(yuva);
+      if (!esya || !LAZER_KALKAN_ESYALARI.has(esya.typeId)) continue;
+      bilesen.setEquipment(yuva, undefined);
+      try {
+        varlik.dimension.playSound("random.break", varlik.location);
+      } catch (e) {
+        /* ses her surumde yok; kalkan zaten kirildi */
+      }
+    } catch (e) {
+      hataYaz("goz_lazeri.kalkaniKir", e);
+    }
+  }
+}
+
+/* Hedefin canini LAZER_BIRAKILAN_CAN'a ceker.
+
+   NEDEN HASAR SAYISIYLA DEGIL: Bedrock'ta zirh indirimi zirh
+   puani + toughness + Koruma buyusune bagli ve hangi formulun
+   gecerli oldugunu OLCMEDEN bilemeyiz. Bu depoda olculmeyen
+   sayi yazilmiyor. Vurustan SONRA cani okuyup cekmek zirhtan
+   bagimsiz olarak ayni sonucu veriyor.
+
+   Sadece ASAGI ceker: zaten daha az cani olani iyilestirmez. */
+function cananCek(varlik) {
+  if (LAZER_BIRAKILAN_CAN <= 0) return;    // 0 = lazer oldursun
+  try {
+    const can = varlik.getComponent("minecraft:health");
+    if (!can || typeof can.setCurrentValue !== "function") return;
+    if (typeof can.currentValue !== "number") return;
+    if (can.currentValue <= LAZER_BIRAKILAN_CAN) return;
+    can.setCurrentValue(LAZER_BIRAKILAN_CAN);
+  } catch (e) {
+    hataYaz("goz_lazeri.cananCek", e);
+  }
+}
+
+
 const BUZ_KABUGU = (() => {
   const n = [];
   const r = LAZER_BUZ_YARICAP, h = LAZER_BUZ_YUKSEK;
@@ -190,32 +329,38 @@ yetenekKaydet({
     vurulanlar.sort((a, b) => a.ileri - b.ileri);
 
     let vuran = 0;
-    let calinanCan = 0;
     const buzNoktalari = [];
+    const kalkanlar = [];        // { varlik } -- 1-2 sn sonra kirilacak
     for (const h of vurulanlar) {
       if (vuran >= LAZER_TAVAN) break;
       try {
-        h.varlik.applyDamage(ayar.hasar, { cause: "fire" });
+        /* 1. GERCEK VURUS. Vurus hissi, geri tepme ve olum
+              sahipligi bundan geliyor; zirhsiz hedefi bu tek
+              basina oldurur.                                  */
+        h.varlik.applyDamage(LAZER_HASAR, {
+          cause: "fire",
+          damagingEntity: oyuncu
+        });
 
-        if (ayar.ates) {
-          try {
-            h.varlik.setOnFire(4, true);
-          } catch (e) {
-            /* setOnFire bazi surumlerde yok; hasar zaten verildi */
-          }
+        /* 2. ZIRHI YARILA -- "elmas zirhinin tumunu yari
+              canina indirsin"                                 */
+        if (LAZER_ZIRH_ACIK) zirhiYarila(h.varlik);
+
+        /* 3. KALKANI ISARETLE. Hemen kirilmiyor: dayanikligi
+              bitme noktasina cekiliyor, gercek kirilma asagida
+              LAZER_KALKAN_SURESI sonra.                       */
+        if (LAZER_KALKAN_KIR && kalkaniHazirla(h.varlik)) {
+          kalkanlar.push(h.varlik);
         }
-        /* Grinoksin: zehir. Vanilla zehir OLDURMEZ (1 canda
-           birakir), yani hapsedip eritme etkisi.               */
-        if (ayar.zehir) {
-          try {
-            h.varlik.addEffect("poison", 120, { amplifier: 1 });
-          } catch (e) {
-            /* efekt verilemedi; hasar zaten gitti */
-          }
-        }
-        /* Element: dondurma. Referanstaki "donma" esyasi
-           gorunmezlik + Yavaslik 249 veriyordu ve SURESIZDI --
-           fikir iyi, uygulama kaliciydi. Burada sureli.      */
+
+        /* 4. CAN TAVANI -- "yarim kalplik cani kalsin"
+              Hasar sayisiyla tutturulamaz (zirh indirimi
+              formulu olculmedi), o yuzden vurustan SONRA
+              okunup cekiliyor. Zirh ne olursa olsun sonuc
+              ayni.                                            */
+        cananCek(h.varlik);
+
+        /* ---- Element buz modu ---- */
         if (ayar.dondur) {
           try {
             h.varlik.addEffect("slowness", LAZER_DONDUR_SURE,
@@ -224,42 +369,17 @@ yetenekKaydet({
             /* efekt verilemedi; hasar zaten gitti */
           }
         }
-        /* Redoksin: bulanti. Vanilla bulanti MOBLARA islemiyor
-           (MOBA_ISLEMEYEN_EFEKTLER), o yuzden mobda yavaslikla
-           karsiliyoruz -- "sersemledi" hissi ikisinde de var. */
-        if (ayar.sersem) {
+        /* ---- Element ates modu ---- */
+        if (ayar.ates) {
           try {
-            const oyuncuMu = h.varlik.typeId === "minecraft:player";
-            h.varlik.addEffect(oyuncuMu ? "nausea" : "slowness",
-                               LAZER_SERSEM_SURE, { amplifier: 1 });
+            h.varlik.setOnFire(4, true);
           } catch (e) {
-            /* efekt verilemedi; hasar zaten gitti */
+            /* setOnFire bazi surumlerde yok; hasar zaten verildi */
           }
         }
-        /* Nitroksin: geri savurur. Isin yonunde itiyoruz --
-           vurdugun sey senden UZAGA gidiyor.                  */
-        if (ayar.savur) {
-          try {
-            if (typeof h.varlik.applyKnockback === "function") {
-              h.varlik.applyKnockback(
-                { x: yon.x * LAZER_SAVUR_GUC, z: yon.z * LAZER_SAVUR_GUC },
-                LAZER_SAVUR_GUC * 0.4);
-            } else if (typeof h.varlik.applyImpulse === "function") {
-              h.varlik.applyImpulse({
-                x: yon.x * LAZER_SAVUR_GUC * 0.4,
-                y: 0.35,
-                z: yon.z * LAZER_SAVUR_GUC * 0.4
-              });
-            }
-          } catch (e) {
-            /* itilemedi (oyuncuya applyImpulse islemiyor);
-               hasar zaten gitti                              */
-          }
-        }
-        /* Element buz modu: hedefin etrafina gecici kabuk.
-           Noktalar burada TOPLANIYOR, blok koyma isi asagida
-           butceyle yapiliyor -- vurus dongusunde blok koymak
-           tek tick'te onlarca setType demek olurdu.          */
+        /* Buz kafesi: noktalar burada TOPLANIYOR, blok koyma
+           isi asagida butceyle yapiliyor -- vurus dongusunde
+           blok koymak tek tick'te onlarca setType demek.     */
         if (ayar.buzKafes && LAZER_BUZ_ACIK &&
             buzNoktalari.length < LAZER_BUZ_TAVAN) {
           try {
@@ -274,37 +394,8 @@ yetenekKaydet({
           }
         }
         vuran++;
-        calinanCan += ayar.canCal ? Math.floor(ayar.hasar / 3) : 0;
       } catch (e) {
         hataYaz("goz_lazeri.applyDamage", e);
-      }
-    }
-
-    /* Kan Iksiri: verdigin hasarin bir kismi sana can olarak
-       doner. Referansta yok, kan kimligini tamamlamak icin.   */
-    if (calinanCan > 0) {
-      try {
-        oyuncu.addEffect("instant_health", 1, { amplifier: calinanCan - 1 });
-      } catch (e) {
-        hataYaz("goz_lazeri.canCal", e);
-      }
-    }
-
-    /* Hiperoksin ve StarOxine'in lazeri KARSIYA degil SANA bir
-       sey veriyor -- ikisinin de kimligi saldiri degil.
-       Sadece GERCEKTEN vurduysan: bosa atisin odulu olmasin. */
-    if (vuran > 0) {
-      if (ayar.hiz) {
-        try {
-          oyuncu.addEffect("speed", LAZER_HIZ_SURE,
-                           { amplifier: LAZER_HIZ_SEVIYE });
-        } catch (e) { hataYaz("goz_lazeri.hiz", e); }
-      }
-      if (ayar.kalkan) {
-        try {
-          oyuncu.addEffect("absorption", LAZER_KALKAN_SURE,
-                           { amplifier: LAZER_KALKAN_SEVIYE });
-        } catch (e) { hataYaz("goz_lazeri.kalkan", e); }
       }
     }
 
@@ -316,7 +407,7 @@ yetenekKaydet({
 
     try {
       actionbarYaz(oyuncu, "§c⚡ " + kademe.ad + " lazeri §7· " +
-                   vuran + " hedef · " + ayar.hasar + " hasar");
+                   vuran + " hedef · " + LAZER_HASAR + " hasar");
     } catch (e) {
       hataYaz("goz_lazeri.actionbar", e);
     }
@@ -363,6 +454,11 @@ yetenekKaydet({
             ona dokunulmaz.
          3. Blok packed_ice: normal buz eriyip SU birakiyor,
             kapali bir alanda bu sel demek.                  */
+    /* Kalkan kirilma zamani. Aninda kirmiyoruz: oyuncu
+       kalkanin kirmiziya donup parcalandigini gorsun.       */
+    const kalkanTick = system.currentTick + LAZER_KALKAN_SURESI;
+    let kalkanKirildi = kalkanlar.length === 0;
+
     let buzIndeks = 0;
     const konanBuz = [];
     let buzKalkmaTick = 0;
@@ -403,6 +499,15 @@ yetenekKaydet({
           } catch (e) {
             hataYaz("goz_lazeri.duvarDel", e);
           }
+        }
+
+        /* Kalkan: sure dolunca kir. Is BITMIYOR -- kalkan
+           kirilmadan cikarsak isaretledigimiz kalkan bir
+           daha asla kirilmazdi.                             */
+        if (!kalkanKirildi) {
+          if (system.currentTick < kalkanTick) return false;
+          for (const v of kalkanlar) kalkaniKir(v);
+          kalkanKirildi = true;
         }
 
         /* Buz kafesini or: butce kadar, sonrakine devrederek */
