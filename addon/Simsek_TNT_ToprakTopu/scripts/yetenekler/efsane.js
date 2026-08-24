@@ -5,12 +5,13 @@ import {
   hataYaz, bilgiYaz, gecerliMi, kollariIndir, actionbarYaz
 } from "../yardimcilar.js";
 import {
-  baconKodla, koordinatiHarfle, sgaTarlasi, sgaGenislik
+  baconKodla, koordinatiHarfle, sgaBlok, rakamHarfle
 } from "./_sifre.js";
 import {
   EFSANE_ACIK, EFSANE_BLOK, EFSANE_MESALE, EFSANE_ZEMIN,
   EFSANE_SGA_BLOK, EFSANE_BACON_A, EFSANE_BACON_B,
-  EFSANE_TABAN, EFSANE_YAZI, EFSANE_DURAK_SAYISI,
+  EFSANE_TABAN, EFSANE_YAZI, EFSANE_SATIR_HARF, EFSANE_TOHUM,
+  EFSANE_DURAK_SAYISI,
   EFSANE_ADIM_X, EFSANE_ADIM_Z,
   EFSANE_IZ_ACIK, EFSANE_IZ_ADET, EFSANE_IZ_EN, EFSANE_IZ_BOY,
   EFSANE_IZ_DERIN, EFSANE_IZ_UZAK, EFSANE_KAYIT_ANAHTAR
@@ -120,9 +121,9 @@ function duragiPlanla(merkez, taban, sonrakiNokta, sonMu) {
   /* --- SGA yazisi: yapinin ONUNDE (+z), ortalanmis ---
      Zemin once doseniyor ki harfler cimenin ustunde degil
      bir meydanda dursun.                                    */
-  const tarla = sgaTarlasi(EFSANE_YAZI);
+  const tarla = sgaBlok(EFSANE_YAZI, EFSANE_SATIR_HARF);
   const sgaZ = merkez.z + yari + 3;
-  const sgaX = merkez.x - Math.floor(sgaGenislik(EFSANE_YAZI) / 2);
+  const sgaX = merkez.x - Math.floor(tarla.en / 2);
   for (let dy = -1; dy <= tarla.boy; dy++) {
     for (let dx = -1; dx <= tarla.en; dx++) {
       noktalar.push({
@@ -140,7 +141,12 @@ function duragiPlanla(merkez, taban, sonrakiNokta, sonMu) {
 
   /* --- Baconian bandi: SGA'nin arkasinda, tek sira ---
      Son durakta koordinat yok; onun yerine bitis sozu.     */
-  const yuk = sonMu ? "SON" : koordinatiHarfle(sonrakiNokta.x, sonrakiNokta.z);
+  /* Son durakta koordinat degil TOHUM: cozen kisi elinde bir
+     seed'le kaliyor ve aratinca Giant Alex efsanesi cikiyor.
+     Bkz. ayarlar.js EFSANE_TOHUM.                            */
+  const yuk = sonMu
+    ? rakamHarfle(EFSANE_TOHUM)
+    : koordinatiHarfle(sonrakiNokta.x, sonrakiNokta.z);
   const kod = baconKodla(yuk);
   const bandZ = sgaZ + tarla.boy + 2;
   const bandX = merkez.x - Math.floor(kod.length / 2);
@@ -273,7 +279,7 @@ yetenekKaydet({
               " §8(buyu masasi dili)",
             "§8· §7Bacon bandi: §f" + plan.kod.length + " blok §8-> §f" + plan.yuk,
             sonMu
-              ? "§8· §7Bu SON durak."
+              ? "§8· §7Bu SON durak §8· tohum: §f" + EFSANE_TOHUM
               : "§8· §7Sonraki durak: §f" + sonraki.x + ", " + sonraki.z +
                 " §8(yazitta sifreli)"
           ];

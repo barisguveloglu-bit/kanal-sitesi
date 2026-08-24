@@ -103,6 +103,38 @@ export function harfiSayi(harfler) {
   return negatif ? -sayi : sayi;
 }
 
+/* ---------------- UZUN SAYILAR ----------------
+   sayiyiHarfle() sayiyi once Number'a ceviriyor. Bir TOHUM
+   22 haneli ve JavaScript'in guvenli tam sayi siniri 2^53
+   (16 hane) -- yani sayiyi Number olarak tutmak son haneleri
+   BOZUYOR.
+
+   Testte birebir goruldu:
+     girdi  7778749381209293789578
+     cikan  777874938120929300      <- son haneler ucmus
+
+   Tohum bir sayi degil bir DIZI: basamak basamak cevriliyor,
+   hicbir yerde Number'a ugramiyor.                          */
+export function rakamHarfle(basamaklar) {
+  let cikti = "";
+  for (const ch of String(basamaklar)) {
+    const d = ch.charCodeAt(0) - 48;
+    if (d < 0 || d > 9) continue;
+    cikti += RAKAM_HARF[d];
+  }
+  return cikti;
+}
+
+export function harfRakam(harfler) {
+  let cikti = "";
+  for (const ch of String(harfler).toUpperCase()) {
+    const d = RAKAM_HARF.indexOf(ch);
+    if (d < 0) return "";
+    cikti += String(d);
+  }
+  return cikti;
+}
+
 /* Koordinati Baconian'a hazir harf dizisine cevirir. */
 export function koordinatiHarfle(x, z) {
   return sayiyiHarfle(x) + AYIRAC + sayiyiHarfle(z);
@@ -145,6 +177,80 @@ export function sgaTarlasi(metin, aralik = 1) {
   return {
     en: Math.max(0, x0 - aralik),
     boy: SGA_BOY,
+    noktalar
+  };
+}
+
+/* ---------------- Turkce harfleri katlama ----------------
+   SGA'da yalniz A-Z var. Turkce metin oldugu gibi yazilirsa
+   C, G, I, O, S, U harfleri SESSIZCE DUSER ve cumlede delik
+   acilir -- yazit da cozulemez hale gelir.
+
+   O yuzden once katlaniyor. Cozecek kisi "COZEMEDI" gorup
+   "cozemedi" diye okuyacak; Turkce bilen biri icin sorun degil.
+   Buyuk I / kucuk i ayrimi da burada bitiyor.               */
+const TR_KATLAMA = new Map([
+  ["Ç", "C"], ["Ğ", "G"], ["İ", "I"], ["Ö", "O"], ["Ş", "S"], ["Ü", "U"],
+  ["ç", "C"], ["ğ", "G"], ["ı", "I"], ["ö", "O"], ["ş", "S"], ["ü", "U"],
+]);
+
+export function sgaKatla(metin) {
+  let cikti = "";
+  for (const ch of String(metin)) {
+    const k = TR_KATLAMA.get(ch);
+    cikti += (k !== undefined) ? k : ch.toUpperCase();
+  }
+  return cikti;
+}
+
+/* ---------------- Cok satirli SGA ----------------
+   Her harf SGA_BOY + aralik blok genislik yiyor. Uzun bir
+   cumle tek satirda yuzlerce blok eder ve okunmaz; kelime
+   sinirindan satirlara boluyoruz.
+
+   satirHarf: bir satira en fazla kac HARF (bosluk dahil).   */
+export function sgaSatirlar(metin, satirHarf = 14) {
+  const kelimeler = sgaKatla(metin).split(/\s+/).filter((k) => k.length > 0);
+  const satirlar = [];
+  let simdiki = "";
+  for (const k of kelimeler) {
+    if (simdiki.length === 0) {
+      simdiki = k;
+    } else if (simdiki.length + 1 + k.length <= satirHarf) {
+      simdiki += " " + k;
+    } else {
+      satirlar.push(simdiki);
+      simdiki = k;
+    }
+    /* Tek basina satiri asan kelime: oldugu gibi biraksin,
+       ortadan bolmek yaziti okunmaz yapar.                  */
+    while (simdiki.length > satirHarf) {
+      satirlar.push(simdiki.slice(0, satirHarf));
+      simdiki = simdiki.slice(satirHarf);
+    }
+  }
+  if (simdiki.length > 0) satirlar.push(simdiki);
+  return satirlar;
+}
+
+/* Cok satirli metni tek bir bit haritasina cevirir.
+   satirAra: satirlar arasi bos blok sayisi.                 */
+export function sgaBlok(metin, satirHarf = 14, aralik = 1, satirAra = 3) {
+  const satirlar = sgaSatirlar(metin, satirHarf);
+  const noktalar = [];
+  let enGenis = 0;
+  satirlar.forEach((satir, i) => {
+    const t = sgaTarlasi(satir, aralik);
+    const yKay = i * (SGA_BOY + satirAra);
+    enGenis = Math.max(enGenis, t.en);
+    for (const n of t.noktalar) noktalar.push({ x: n.x, y: n.y + yKay });
+  });
+  return {
+    satirlar,
+    en: enGenis,
+    boy: satirlar.length === 0
+      ? 0
+      : satirlar.length * (SGA_BOY + satirAra) - satirAra,
     noktalar
   };
 }

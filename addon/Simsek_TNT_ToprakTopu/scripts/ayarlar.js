@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.71";
+export const SURUM = "v4.72";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -2510,9 +2510,39 @@ export const EFSANE_BACON_B = "minecraft:coal_block";         // Bacon "B"
    blogu olmaz ve piramit tepesi duz biter.                   */
 export const EFSANE_TABAN = 11;
 
-/* SGA katmaninin metni: cozunce IKINCI sifrenin adi cikiyor.
-   Kisa tutuluyor -- her harf 8 blok genislik yiyor.          */
-export const EFSANE_YAZI = "BACON";
+/* ---- SGA katmaninin metni ----
+   Kullanici: "yazacagin kelimeyi daha korkutucu bir seye
+   donusturelim; Mojang'in bile ugrasamadigi bir dunya,
+   onlar cozemezse biz hic cozemeyiz gibi bir mesaj biraksin."
+
+   Sectigi metin bu. Buurokratik dil bilincli: "silindi",
+   "kayit yok" -- birinin bunu GIZLEMEYE calistigini ima
+   ediyor, ki creepypasta'da en urpertici olan bu.
+
+   Son iki kelime ANAHTAR BACON: ikinci sifrenin adi.
+   Kullanici "ipucu var" dedi -- ipucu olmadan bandi cozmek
+   neredeyse imkansiz olurdu ve arkadaslari gunlerce bosa
+   ugrasirdi.
+
+   Turkce harfler otomatik katlaniyor (C->C, I->I ...), SGA'da
+   yalniz A-Z var. Metin uzun oldugu icin SATIRLARA bolunuyor
+   (sgaBlok); tek satir olsaydi 400 blok genisliginde bir serit
+   olurdu ve kimse okuyamazdi.                                */
+export const EFSANE_YAZI = "MOJANG BU TOHUMU SILDI KAYIT YOK ANAHTAR BACON";
+export const EFSANE_SATIR_HARF = 14;   // satir basina en fazla harf
+
+/* ---- SON DURAGIN YUKU: BIR TOHUM ----
+   Kullanici "son durakta sahte seed" dedi.
+
+   Secilen sayi GIANT ALEX'IN GERCEK TOHUMU. Sebep: cozen kisi
+   elinde bir seed'le kaliyor, aratiyor, ve karsisina Giant
+   Alex efsanesi cikiyor -- yazitin "Mojang bu tohumu sildi"
+   sozu birdenbire bir yere oturuyor. Uydurma bir sayi bu
+   kapanisi vermezdi.
+
+   Degistirmek istersen tek satir; sadece RAKAM olmali
+   (harfe cevrilip Baconian'a giriyor).                       */
+export const EFSANE_TOHUM = "7778749381209293789578";
 
 /* Zincir: kac durak ve duraklar arasi adim.
    Adim buyuk secildi ki arkadaslarin gercekten yola ciksin. */
