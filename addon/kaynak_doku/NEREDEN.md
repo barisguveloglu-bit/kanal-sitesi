@@ -96,3 +96,23 @@ piksel). Eksik olan buydu.
   bizimki zaten çalışıyor ve ikinci bir attachable'ın aynı gözü iki kez
   çizme riski var. Çalışan bir şeyi tahminle değiştirmedik.
 - **Düz levha geometrisi** (Element modu). Yandan bakınca kayboluyor.
+
+---
+
+# `ascii_sga.png` — Standard Galactic Alphabet (v4.71)
+
+Minecraft'ın **büyü masasında** kullandığı alfabe. Tom Hall'ın 1990'daki
+Commander Keen oyunları için yarattığı harfler; Mojang Beta 1.9'da oyuna
+koymuş. Bu dosya oyunun **kendi font atlası** — 128×128, 16×16 hücre,
+her harf 8×8 piksel, ASCII yerleşimi (`A` = 65 → satır 4, sütun 1).
+
+Kaynak: `InventivetalentDev/minecraft-assets`, 1.16.5,
+`assets/minecraft/textures/font/ascii_sga.png`
+
+**Neden indirildi:** harfleri hatırdan çizmek şifreyi çözülemez hâle
+getirirdi. İnternetteki SGA tablosuyla oynayan biri bizim uydurma
+harflerimizi tanıyamazdı. Bu dosya oyunun kendisinden geldiği için
+yazıt gerçekten çözülebilir.
+
+`kol_uret.py` bu atlastan `scripts/yetenekler/_sga.js` dosyasını
+üretiyor — 26 harfin 8×8 bit haritası. Elle yazılmıyor.

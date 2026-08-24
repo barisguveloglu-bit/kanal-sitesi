@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.70";
+export const SURUM = "v4.71";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -2455,3 +2455,78 @@ export const YUKSEKLIK_TABLO = {
   "minecraft:nether":    { min: 0,   max: 127 },
   "minecraft:the_end":   { min: 0,   max: 255 }
 };
+
+
+/* ============================================================
+   EFSANE YAPISI  (v4.71)
+
+   Kullanici: "bu modu kurduktan sonra arkadaslarimla beraber
+   oynayabilecegim bir dunya acarsam, beni bir efsane gibi
+   zannetsinler diye bir tane lapisten piramit, etrafina da
+   kiziltas mesalesi, yaninda da bizim secegimiz dillerden bir
+   tanesi olsun ama bu diller gercekten cozmek icin ugrastirici
+   dillerden olsun."
+
+   Sectikleri: iki katmanli sifre (SGA -> Baconian) ve
+   KOORDINAT ZINCIRI (yaziti cozunce bir sonraki durak cikiyor).
+
+   ---- ZINCIR NASIL KURULUYOR ----
+   Duraklar ONCEDEN belirleniyor, hepsi ayni anda INSA
+   EDILMIYOR. Sebep teknik: Bedrock sadece YUKLU chunk'lari
+   isliyor; 400 blok oteye blok koymak denense getBlock
+   undefined donerdi ve yapi yarim kalirdi.
+
+   Onun yerine: ilk durak nereye kurulursa zincirin tamami
+   ORADAN turetiliyor (sabit adimlarla). Her durak kendi
+   yazitinda BIR SONRAKININ koordinatini tasiyor. Sonraki
+   duraga gidip orada yeniden "efsane kur" dendiginde o durak
+   dikiliyor. Yani koordinat once YAZILIYOR, sonra gidilip
+   dogrulaniyor -- arkadaslarin icin de senin icin de ayni.
+
+   ---- KATMANLAR ----
+   SGA yazisi   yerdeki harf tarlasi, gercek bir kelime.
+                Cozunce ikinci sifrenin ADINI soyluyor.
+   Bacon bandi  iki cesit bloktan serit, harf basina bes blok.
+                Cozunce koordinat cikiyor.
+   Ayrintili gerekce _sifre.js'in basinda.
+
+   ---- GIANT ALEX GONDERMESI ----
+   Kullanici efsaneleri inceletiyor; Giant Alex'in lore'unda
+   yurudugu yerde 3x2x2'lik CUKURLAR birakiyor. Duraklarin
+   cevresine o cukurlardan serpistiriliyor: arkadaslarin once
+   cukurlari bulup "burada bir sey var" diyor, sonra yapiyi.
+   ============================================================ */
+export const EFSANE_ACIK = true;
+
+/* Yapi malzemeleri */
+export const EFSANE_BLOK    = "minecraft:lapis_block";        // piramit
+export const EFSANE_MESALE  = "minecraft:redstone_torch";     // cevre
+export const EFSANE_ZEMIN   = "minecraft:polished_blackstone";
+export const EFSANE_SGA_BLOK = "minecraft:gold_block";        // SGA harfleri
+export const EFSANE_BACON_A = "minecraft:quartz_block";       // Bacon "A"
+export const EFSANE_BACON_B = "minecraft:coal_block";         // Bacon "B"
+
+/* Piramit taban kenari. TEK SAYI olmali: cift sayida merkez
+   blogu olmaz ve piramit tepesi duz biter.                   */
+export const EFSANE_TABAN = 11;
+
+/* SGA katmaninin metni: cozunce IKINCI sifrenin adi cikiyor.
+   Kisa tutuluyor -- her harf 8 blok genislik yiyor.          */
+export const EFSANE_YAZI = "BACON";
+
+/* Zincir: kac durak ve duraklar arasi adim.
+   Adim buyuk secildi ki arkadaslarin gercekten yola ciksin. */
+export const EFSANE_DURAK_SAYISI = 3;
+export const EFSANE_ADIM_X = 420;
+export const EFSANE_ADIM_Z = 260;
+
+/* Giant Alex ayak izleri: durak cevresine serpistirilen
+   3x2x2 cukurlar. Lore'dan birebir olcu.                     */
+export const EFSANE_IZ_ACIK   = true;
+export const EFSANE_IZ_ADET   = 6;
+export const EFSANE_IZ_EN     = 2;   // genislik
+export const EFSANE_IZ_BOY    = 3;   // uzunluk
+export const EFSANE_IZ_DERIN  = 2;   // derinlik
+export const EFSANE_IZ_UZAK   = 22;  // merkezden kac blok oteye
+
+export const EFSANE_KAYIT_ANAHTAR = "simsek:efsane";

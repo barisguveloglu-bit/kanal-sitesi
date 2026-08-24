@@ -534,6 +534,15 @@ function menuEkleri(oyuncu) {
   }
 
   ekler.push(
+    /* ---- EFSANE YAPISI (v4.71) ----
+       Jest sirasinda 270. sirada; oraya ulasmak icin onlarca
+       kez "egil + yukari bak" gerekirdi. Bot ve goz lazerinde
+       ayni tuzaga dusulmustu -- menu tabletteki tek
+       tek-dokunusluk yol.                                    */
+    {
+      ad: "§b◆ Efsane yapisi kur",
+      calis() { yetenekTetikle(oyuncu, "efsane_yapisi"); }
+    },
     {
       ad: "Butun kollari al",
       calis() { kollariVer(oyuncu); }

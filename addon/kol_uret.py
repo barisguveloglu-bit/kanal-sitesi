@@ -1045,6 +1045,82 @@ LAZER_ANIM_CIKIS  = 0.3     # cikma suresi (saniye)
 LAZER_ANIM_TICK   = 510
 
 
+# ============================================================
+# STANDARD GALACTIC ALPHABET  (v4.71)
+#
+# Minecraft'in BUYU MASASINDA kullandigi alfabe. Kullanici
+# efsane yapisinin yazitinda bunu istedi.
+#
+# Harfler HATIRDAN CIZILMEDI: oyunun kendi font atlasi
+# (kaynak_doku/ascii_sga.png, 128x128, 16x16 hucre, harf basina
+# 8x8 piksel, ASCII yerlesimi) okunup bit haritasina ceviriliyor.
+#
+# Neden onemli: uydurma harflerle yazit COZULEMEZ olurdu.
+# Internetteki SGA tablosuyla ugrasacak biri bizim cizdigimiz
+# seyi tanimaz. Atlas oyunun kendisinden geldigi icin yazit
+# gercekten cozulebiliyor.
+#
+# Uretilen dosya: scripts/yetenekler/_sga.js
+# ============================================================
+SGA_ATLAS = os.path.join(DOKU_KAYNAK, "ascii_sga.png")
+SGA_BOY = 8          # harf basina piksel (atlastan geliyor)
+
+
+def sga_bitleri():
+    """Atlastan 26 harfin bit haritasini okur.
+
+    Donen: {"A": ["..##....", ...8 satir...], ...}
+    Atlas yoksa bos sozluk -- efsane yaziti kapanir, paket
+    calismaya devam eder.                                     """
+    if not os.path.exists(SGA_ATLAS):
+        print("UYARI: %s yok, SGA yaziti uretilemiyor" % SGA_ATLAS)
+        return {}
+    try:
+        from PIL import Image
+    except ImportError:
+        print("UYARI: PIL yok, SGA yaziti uretilemiyor")
+        return {}
+
+    im = Image.open(SGA_ATLAS).convert("RGBA")
+    px = im.load()
+    harfler = {}
+    for i in range(26):
+        c = chr(ord("A") + i)
+        k = ord(c)
+        sx, sy = (k % 16) * SGA_BOY, (k // 16) * SGA_BOY
+        satirlar = []
+        for y in range(SGA_BOY):
+            satirlar.append("".join(
+                "#" if px[sx + x, sy + y][3] > 60 else "."
+                for x in range(SGA_BOY)))
+        harfler[c] = satirlar
+    return harfler
+
+
+def sga_modulu():
+    """_sga.js: 26 harfin bit haritasi, script tarafi icin."""
+    harfler = sga_bitleri()
+    satir = []
+    satir.append("/* URETILEN DOSYA -- ELLE DUZENLEME.")
+    satir.append("   Kaynak: kaynak_doku/ascii_sga.png (Minecraft'in kendi")
+    satir.append("   buyu masasi fontu). Ureten: kol_uret.py sga_modulu().")
+    satir.append("")
+    satir.append("   Her harf %d satir, her satir %d karakter:" % (SGA_BOY, SGA_BOY))
+    satir.append("   '#' = blok konur, '.' = bos.")
+    satir.append("")
+    satir.append("   Harfler hatirdan cizilmedi -- uydurma harflerle yazit")
+    satir.append("   COZULEMEZ olurdu. Bkz. kaynak_doku/NEREDEN.md.        */")
+    satir.append("export const SGA_BOY = %d;" % SGA_BOY)
+    satir.append("")
+    satir.append("export const SGA = {")
+    for c in sorted(harfler):
+        ic = ", ".join('"%s"' % r for r in harfler[c])
+        satir.append('  %s: [%s],' % (c, ic))
+    satir.append("};")
+    satir.append("")
+    return "\n".join(satir)
+
+
 def lazer_animasyonu():
     """Goz lazeri atarken oyuncunun aldigi poz.
 
@@ -2629,6 +2705,12 @@ def main():
     yaz_json(os.path.join(RP, "animations/simsek_kol_tutus.animation.json"), TUTUS_ANIM)
     yaz_json(os.path.join(RP, "animations/goz_lazeri.animation.json"),
              lazer_animasyonu())
+
+    # SGA harfleri script tarafina (efsane yaziti icin)
+    _sga_yol = os.path.join(BP, "scripts/yetenekler/_sga.js")
+    os.makedirs(os.path.dirname(_sga_yol), exist_ok=True)
+    with open(_sga_yol, "w", encoding="utf-8") as f:
+        f.write(sga_modulu())
     # DIKKAT -- BURAYA DOKUNMA.
 
     #    v4.3'te bu baslik referansa uydurulmustu (resource_pack_name
