@@ -1,12 +1,12 @@
 {
   "format_version": 2,
   "header": {
-    "name": "Simsek Kol Gorunumleri v4.65",
+    "name": "Simsek Kol Gorunumleri v4.66",
     "description": "Kol/iksir/goz ikonlari ve 3B kol gorunumu. Bu paket ETKIN DEGILSE esyalar calisir ama gorunmez.",
     "uuid": "be7dc576-029b-44fe-b116-5b6789493d01",
     "version": [
       4,
-      65,
+      66,
       0
     ],
     "min_engine_version": [
@@ -21,7 +21,7 @@
       "uuid": "499fac05-1d05-46e7-8920-d0379e9b9eed",
       "version": [
         4,
-        65,
+        66,
         0
       ]
     }

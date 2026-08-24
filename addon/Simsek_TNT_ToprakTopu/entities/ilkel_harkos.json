@@ -11,20 +11,13 @@
       "pa:evcil": {
         "minecraft:is_tamed": {}
       },
-      "pa:takip": {
-        "minecraft:movement": {
-          "value": 0.32
-        }
-      },
+      "pa:takip": {},
       "pa:bekle": {
         "minecraft:movement": {
           "value": 0.0
         }
       },
       "pa:savas": {
-        "minecraft:attack": {
-          "damage": 14
-        },
         "minecraft:behavior.melee_attack": {
           "priority": 2,
           "speed_multiplier": 1.6,

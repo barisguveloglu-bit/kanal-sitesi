@@ -867,6 +867,46 @@ def ilkel_varliklari():
         # grup olarak degil, cunku bu varlik zaten o uye.
         govde["components"].update(gruplar["pa:ilkel_" + anahtar])
 
+        # ---- v4.66: BILESEN GRUPLARI ISTATISTIGI EZIYORDU ----
+        # Kullanici: "Okazor 50 kalp vurdugunu soyledin ama
+        # iskeleti IKI vuruslta oldurdu, tek vuruslta olmesi
+        # gerekiyordu, verdigin bilgi ile oyundaki hasar
+        # uyusmuyor."
+        #
+        # Haklıydi. Bu varliklar NORMAL BOT'un govdesinin
+        # kopyasi (yukaridaki deepcopy) ve normal botun
+        # gruplari da birlikte geliyor:
+        #
+        #   components         : minecraft:attack  damage 100  <- uyenin
+        #   pa:savas grubu     : minecraft:attack  damage 14   <- botun
+        #   pa:takip grubu     : minecraft:movement 0.32       <- botun
+        #
+        # Bedrock'ta bir bilesen grubu EKLENINCE icindekiler
+        # temel bilesenlerin USTUNE yaziliyor. Yani uye savasa
+        # girer girmez hasari 14'e (7 kalp) dusuyordu; ustelik
+        # saldirganlik hedefi de (v4.60) pa:savas icinde, yani
+        # "saldirgan olmak" ile "zayif olmak" ayni anda geliyordu.
+        #
+        # Iskelet 20 can: 14 hasar oldurmuyor (6 can kaliyor),
+        # ikinci vurus olduruyor. Kullanicinin gordugu tam bu.
+        # 100 hasarla tek vuruslta olurdu.
+        #
+        # Ayni sey hizda: pa:takip herkesi 0.32'ye esitliyordu,
+        # yani El-Harkos'un 0.42'si ve Raxxan'in "hizli golge
+        # ajani" kimligi takipteyken yok oluyordu.
+        #
+        # KURAL: uyenin ISTATISTIGI neyse o gecerlidir; hicbir
+        # grup onu golgeleyemez. Sadece pa:bekle'nin movement 0
+        # kaliyor -- o bir istatistik degil, DURUM ("bekle"
+        # demek "kimildama" demek).
+        for grup, ic in govde.get("component_groups", {}).items():
+            if grup == "pa:bekle":
+                continue
+            for bilesen in ("minecraft:attack", "minecraft:health",
+                            "minecraft:movement"):
+                if bilesen in ic and bilesen in govde["components"]:
+                    del ic[bilesen]
+
         # ---- SALDIRGANLIK (v4.60) ----
         # Bu blok SADECE Ilkel Besli'ye giriyor; normal bot
         # tepkisel kaliyor.
