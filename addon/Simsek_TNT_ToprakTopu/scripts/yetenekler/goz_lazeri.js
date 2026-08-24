@@ -10,8 +10,85 @@ import {
   PARCACIK_LAZER,
   LAZER_MENZIL, DUVAR_DELME_ACIK, DUVAR_DELME_YARICAP,
   DUVAR_DELME_TAVAN, KORUNAN_KUME,
-  LAZER_DONDUR_SURE, LAZER_DONDUR_SEVIYE
+  LAZER_DONDUR_SURE, LAZER_DONDUR_SEVIYE,
+  LAZER_MODLARI, LAZER_MOD_VARSAYILAN,
+  LAZER_BUZ_ACIK, LAZER_BUZ_BLOK, LAZER_BUZ_SURE,
+  LAZER_BUZ_YARICAP, LAZER_BUZ_YUKSEK, LAZER_BUZ_TAVAN,
+  LAZER_HIZ_SURE, LAZER_HIZ_SEVIYE,
+  LAZER_KALKAN_SURE, LAZER_KALKAN_SEVIYE,
+  LAZER_SERSEM_SURE, LAZER_SAVUR_GUC
 } from "../ayarlar.js";
+
+/* ============================================================
+   LAZER MODU SECIMI  (v4.67)
+
+   Element iksirinin lazeri iki turlu: buz ve ates. Kullanici:
+   "atesi olarak ayarladigimiz zaman karsidaki kisi yanmaya
+   basliyor, buz haline cevirirsek karsidaki kisi yavaslik
+   aliyor ve etrafi buz blogu ile kaplaniyor."
+
+   Secim OYUNCU BASINA tutuluyor ve kolun menusunden
+   degistiriliyor. Sadece modu olan kademelerde gorunuyor --
+   digerlerinde menuye satir eklenmiyor.                     */
+const modSecim = new Map();     // oyuncuId -> mod kimligi
+
+/* Buz kafesinin sekli: hedefin etrafinda ici BOS bir kabuk.
+   Bir kez hesaplaniyor -- her atista yeniden uretmek bosuna.
+
+   Ici bos olmasi sart: dolu olsaydi hedef blogun icinde kalir
+   ve BOGULARAK olurdu. Istenen sey hapsetmek, oldurmek degil;
+   hasari zaten lazer veriyor.                                */
+const BUZ_KABUGU = (() => {
+  const n = [];
+  const r = LAZER_BUZ_YARICAP, h = LAZER_BUZ_YUKSEK;
+  for (let x = -r; x <= r; x++) {
+    for (let z = -r; z <= r; z++) {
+      for (let y = 0; y <= h; y++) {
+        const kenar = Math.abs(x) === r || Math.abs(z) === r;
+        if (kenar || y === 0 || y === h) n.push({ x, y, z });
+      }
+    }
+  }
+  return n;
+})();
+
+export function lazerModlari(kademe) {
+  if (!kademe || !kademe.lazer || !kademe.lazer.modlu) return undefined;
+  return LAZER_MODLARI.get(kademe.lazer.modlu);
+}
+
+export function lazerModuAl(oyuncuId, kademe) {
+  const liste = lazerModlari(kademe);
+  if (!liste) return undefined;
+  const secili = modSecim.get(oyuncuId);
+  return liste.find((m) => m.kimlik === secili) ||
+         liste.find((m) => m.kimlik === LAZER_MOD_VARSAYILAN) ||
+         liste[0];
+}
+
+/* Sirayla gecer ve yeni modu dondurur (menu bunu kullaniyor). */
+export function lazerModuDegistir(oyuncuId, kademe) {
+  const liste = lazerModlari(kademe);
+  if (!liste) return undefined;
+  const simdiki = lazerModuAl(oyuncuId, kademe);
+  const i = liste.indexOf(simdiki);
+  const yeni = liste[(i + 1) % liste.length];
+  modSecim.set(oyuncuId, yeni.kimlik);
+  return yeni;
+}
+
+export function lazerModuUnut(oyuncuId) {
+  modSecim.delete(oyuncuId);
+}
+
+/* Kademenin lazer ayari + secili modun eklentileri.
+   Ayarlar tablosuna DOKUNULMUYOR: yeni bir nesne uretiliyor,
+   yoksa mod degistikce ayarlar.js'teki sabit kirlenirdi.    */
+function lazerAyari(oyuncuId, kademe) {
+  const mod = lazerModuAl(oyuncuId, kademe);
+  if (!mod) return kademe.lazer;
+  return Object.assign({}, kademe.lazer, mod.ek, { modAdi: mod.ad });
+}
 
 /* GOZ LAZERI -- Nitroksin'in ikonik yetenegi.
 
@@ -60,7 +137,7 @@ yetenekKaydet({
     }
 
     const boyut = oyuncu.dimension;
-    const ayar = kademe.lazer;
+    const ayar = lazerAyari(oyuncu.id, kademe);
 
     let bas, yon;
     try {
@@ -114,6 +191,7 @@ yetenekKaydet({
 
     let vuran = 0;
     let calinanCan = 0;
+    const buzNoktalari = [];
     for (const h of vurulanlar) {
       if (vuran >= LAZER_TAVAN) break;
       try {
@@ -146,6 +224,55 @@ yetenekKaydet({
             /* efekt verilemedi; hasar zaten gitti */
           }
         }
+        /* Redoksin: bulanti. Vanilla bulanti MOBLARA islemiyor
+           (MOBA_ISLEMEYEN_EFEKTLER), o yuzden mobda yavaslikla
+           karsiliyoruz -- "sersemledi" hissi ikisinde de var. */
+        if (ayar.sersem) {
+          try {
+            const oyuncuMu = h.varlik.typeId === "minecraft:player";
+            h.varlik.addEffect(oyuncuMu ? "nausea" : "slowness",
+                               LAZER_SERSEM_SURE, { amplifier: 1 });
+          } catch (e) {
+            /* efekt verilemedi; hasar zaten gitti */
+          }
+        }
+        /* Nitroksin: geri savurur. Isin yonunde itiyoruz --
+           vurdugun sey senden UZAGA gidiyor.                  */
+        if (ayar.savur) {
+          try {
+            if (typeof h.varlik.applyKnockback === "function") {
+              h.varlik.applyKnockback(
+                { x: yon.x * LAZER_SAVUR_GUC, z: yon.z * LAZER_SAVUR_GUC },
+                LAZER_SAVUR_GUC * 0.4);
+            } else if (typeof h.varlik.applyImpulse === "function") {
+              h.varlik.applyImpulse({
+                x: yon.x * LAZER_SAVUR_GUC * 0.4,
+                y: 0.35,
+                z: yon.z * LAZER_SAVUR_GUC * 0.4
+              });
+            }
+          } catch (e) {
+            /* itilemedi (oyuncuya applyImpulse islemiyor);
+               hasar zaten gitti                              */
+          }
+        }
+        /* Element buz modu: hedefin etrafina gecici kabuk.
+           Noktalar burada TOPLANIYOR, blok koyma isi asagida
+           butceyle yapiliyor -- vurus dongusunde blok koymak
+           tek tick'te onlarca setType demek olurdu.          */
+        if (ayar.buzKafes && LAZER_BUZ_ACIK &&
+            buzNoktalari.length < LAZER_BUZ_TAVAN) {
+          try {
+            const k = h.varlik.location;
+            const tx = Math.floor(k.x), ty = Math.floor(k.y), tz = Math.floor(k.z);
+            for (const n of BUZ_KABUGU) {
+              if (buzNoktalari.length >= LAZER_BUZ_TAVAN) break;
+              buzNoktalari.push({ x: tx + n.x, y: ty + n.y, z: tz + n.z });
+            }
+          } catch (e) {
+            hataYaz("goz_lazeri.buzKafes", e);
+          }
+        }
         vuran++;
         calinanCan += ayar.canCal ? Math.floor(ayar.hasar / 3) : 0;
       } catch (e) {
@@ -160,6 +287,24 @@ yetenekKaydet({
         oyuncu.addEffect("instant_health", 1, { amplifier: calinanCan - 1 });
       } catch (e) {
         hataYaz("goz_lazeri.canCal", e);
+      }
+    }
+
+    /* Hiperoksin ve StarOxine'in lazeri KARSIYA degil SANA bir
+       sey veriyor -- ikisinin de kimligi saldiri degil.
+       Sadece GERCEKTEN vurduysan: bosa atisin odulu olmasin. */
+    if (vuran > 0) {
+      if (ayar.hiz) {
+        try {
+          oyuncu.addEffect("speed", LAZER_HIZ_SURE,
+                           { amplifier: LAZER_HIZ_SEVIYE });
+        } catch (e) { hataYaz("goz_lazeri.hiz", e); }
+      }
+      if (ayar.kalkan) {
+        try {
+          oyuncu.addEffect("absorption", LAZER_KALKAN_SURE,
+                           { amplifier: LAZER_KALKAN_SEVIYE });
+        } catch (e) { hataYaz("goz_lazeri.kalkan", e); }
       }
     }
 
@@ -209,6 +354,20 @@ yetenekKaydet({
     let delinen = 0;
     const _koord = { x: 0, y: 0, z: 0 };
 
+    /* ---- Buz kafesi (Element'in buz modu) ----
+       Uc kural, ucu de bilincli:
+         1. SADECE HAVANIN yerine konur. Oyuncunun evini buza
+            cevirmek felaket olurdu.
+         2. Kaldirirken sadece BIZIM koydugumuz ve HALA buz
+            olan bloklar silinir. Araya biri bir sey koyduysa
+            ona dokunulmaz.
+         3. Blok packed_ice: normal buz eriyip SU birakiyor,
+            kapali bir alanda bu sel demek.                  */
+    let buzIndeks = 0;
+    const konanBuz = [];
+    let buzKalkmaTick = 0;
+    let buzSokIndeks = 0;
+
     return {
       ad: "goz_lazeri",
       oyuncuId: oyuncu.id,
@@ -243,6 +402,43 @@ yetenekKaydet({
             delinen++;
           } catch (e) {
             hataYaz("goz_lazeri.duvarDel", e);
+          }
+        }
+
+        /* Buz kafesini or: butce kadar, sonrakine devrederek */
+        while (buzIndeks < buzNoktalari.length) {
+          if (blokIste(2) < 2) return false;
+          const n = buzNoktalari[buzIndeks++];
+          try {
+            _koord.x = n.x; _koord.y = n.y; _koord.z = n.z;
+            const b = boyut.getBlock(_koord);
+            if (!b || !b.isAir) continue;      // sadece havaya
+            b.setType(LAZER_BUZ_BLOK);
+            konanBuz.push({ x: n.x, y: n.y, z: n.z });
+          } catch (e) {
+            hataYaz("goz_lazeri.buzOr", e);
+          }
+          if (buzIndeks === buzNoktalari.length) {
+            buzKalkmaTick = system.currentTick + LAZER_BUZ_SURE;
+          }
+        }
+
+        /* Sure dolunca sok. Is BITMIYOR: kafes kalkana kadar
+           surer, yoksa dunyada kalici buz birakirdik.        */
+        if (konanBuz.length > 0) {
+          if (system.currentTick < buzKalkmaTick) return false;
+          while (buzSokIndeks < konanBuz.length) {
+            if (blokIste(2) < 2) return false;
+            const n = konanBuz[buzSokIndeks++];
+            try {
+              _koord.x = n.x; _koord.y = n.y; _koord.z = n.z;
+              const b = boyut.getBlock(_koord);
+              /* Sadece HALA bizim buzumuzse: araya giren bir
+                 seyi silmiyoruz.                             */
+              if (b && b.typeId === LAZER_BUZ_BLOK) b.setType("minecraft:air");
+            } catch (e) {
+              hataYaz("goz_lazeri.buzSok", e);
+            }
           }
         }
 

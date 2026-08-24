@@ -23,7 +23,7 @@
       },
       "pa:savas": {
         "minecraft:attack": {
-          "damage": 14
+          "damage": 50
         },
         "minecraft:behavior.melee_attack": {
           "priority": 2,
@@ -111,8 +111,8 @@
         ]
       },
       "minecraft:health": {
-        "value": 50,
-        "max": 50
+        "value": 80,
+        "max": 80
       },
       "minecraft:collision_box": {
         "width": 0.6,

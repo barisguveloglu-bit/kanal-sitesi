@@ -461,8 +461,23 @@ BOT_TEN = (198, 146, 108)
 # v4.43: kullanici istegi -- "botlar artik guclendi", ikisi de
 # ikiye katlandi. Kalp cinsinden: 25 can = 12,5 kalp,
 # 7 hasar = 3,5 kalp/vurus.
-BOT_HASAR = 14   # =  7 kalp / vurus
-BOT_CAN = 50     # = 25 kalp
+# ---- NORMAL BOTUN GUCU (v4.67) ----
+# Kullanici: "normal botlari, ilkel besli disindaki normal
+# botlari canini 40 yapalim, vuruslari da 25 olsun... yani cani
+# 40 KALP, goturmesi de yani vuruslari da 25 olsun."
+#
+# Birim KALP olarak verildi, Bedrock CAN PUANI istiyor:
+# 1 kalp = 2 can puani.
+#
+#   can    40 kalp -> 80 puan   (eskiden 25 kalp / 50 puan)
+#   hasar  25 kalp -> 50 puan   (eskiden  7 kalp / 14 puan)
+#
+# Kiyas: Ilkel Besli'nin lideri Okazor 50 kalp vuruyor, yani
+# normal bot onun tam yarisi. Vanilla olculer: iskelet/zombi
+# 10 kalp, warden 250 kalp -- normal bot artik iskeleti tek
+# vuruslta oldurur.
+BOT_HASAR = 50   # = 25 kalp / vurus
+BOT_CAN = 80     # = 40 kalp
 
 # ---------------- ILKEL BESLI (v4.34) ----------------
 # Kullanicinin getirdigi boss listesi. Orada bunlar SANA saldiran

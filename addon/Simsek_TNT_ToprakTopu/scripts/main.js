@@ -96,6 +96,13 @@ import {
   iksirTara, iksirAktifMi, kademeUnut, iksirSayisi, iksirKancalari, kademeAl
 } from "./yetenekler/iksirler.js";
 
+/* Lazer modu (Element'in buz/ates secimi). Modul yukaridaki
+   yan etkili import satirinda zaten calisti; bu sadece adli
+   erisim, yukleme sirasini degistirmiyor.                    */
+import {
+  lazerModlari, lazerModuAl, lazerModuDegistir, lazerModuUnut
+} from "./yetenekler/goz_lazeri.js";
+
 /* Kalpler de is listesine GIRMIYOR -- kalici oldugu icin oyuncunun
    iki is yuvasindan birini sonsuza kadar tutardi. Defter ayri,
    buradan sadece tazeleme cagriliyor.                            */
@@ -501,6 +508,29 @@ function menuEkleri(oyuncu) {
         }
       }
     });
+
+    /* ---- ELEMENT: BUZ / ATES ---- (v4.67)
+       Kullanici: "element iksirinde hem bu hem ates var ya,
+       atesi olarak ayarladigimiz zaman karsidaki yanmaya
+       basliyor, buz haline cevirirsek yavaslik aliyor ve
+       etrafi buz blogu ile kaplaniyor."
+
+       Satir SADECE modu olan kademede cikiyor; obur yedi
+       iksirde menu sismiyor.                                */
+    const modlar = lazerModlari(kademe);
+    if (modlar && modlar.length > 1) {
+      const simdiki = lazerModuAl(oyuncu.id, kademe);
+      ekler.push({
+        ad: "§b❄ Lazer modu: §f" + simdiki.ad + " §8(degistir)",
+        calis() {
+          const yeni = lazerModuDegistir(oyuncu.id, kademe);
+          actionbarYaz(oyuncu, "§b❄ §fLazer modu: §b" + yeni.ad +
+                       (yeni.kimlik === "buz"
+                         ? " §8· yavaslatir ve buza gomer"
+                         : " §8· yakar"));
+        }
+      });
+    }
   }
 
   ekler.push(
@@ -1044,6 +1074,7 @@ olayaAbone("playerLeave", (olay) => {
   esyasizSecim.delete(olay.playerId);
   esyasizZipla.delete(olay.playerId);
   lazerModu.delete(olay.playerId);
+  lazerModuUnut(olay.playerId);
   kolVerTutma.delete(olay.playerId);
   kolSecim.delete(olay.playerId);
   kademeUnut(olay.playerId);

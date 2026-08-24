@@ -8,7 +8,7 @@ import {
   BOT_SAHIP_OZELLIK, BOT_DURUM_OZELLIK, BOT_OLAY_TAKIP, BOT_OLAY_BEKLE,
   BOT_SCRIPT_MENZIL, BOT_CANTA_TAVAN, BOT_TESLIM_MENZIL,
   BOT_SAVAS_VARSAYILAN, BOT_OLAY_SAVAS_AC, BOT_OLAY_SAVAS_KAPAT,
-  BOT_YERDEN_TOPLA, BOT_KIMLIKLER
+  BOT_YERDEN_TOPLA, BOT_KIMLIKLER, BOT_OLAY_EVCIL, BOT_EVCIL_DENEME
 } from "../ayarlar.js";
 
 /* ============================================================
@@ -450,24 +450,102 @@ function ozellikYaz(varlik, ad, deger) {
 }
 
 /* ---------------- Evcillestirme ----------------
-   follow_owner'in calismasi icin botun bir SAHIBI olmali.     */
+   follow_owner'in calismasi icin botun bir SAHIBI olmali.
+
+   ---- v4.67: BURADA IKI HATA VARDI ----
+   Kullanici: "ilkel besli hareket etmiyor, beni takip etmiyorlar
+   sadece yanima isinlaniyorlar."
+
+   1. tame() BIR BOOLEAN DONDURUYOR ve biz onu hic okumuyorduk:
+
+        t.tame(oyuncu);
+        return true;        // <- basarisiz olsa da "oldu" diyorduk
+
+      @minecraft/server 2.0.0'in resmi tanimi (index.d.ts):
+        tame(player: Player): boolean
+        "Returns true if the entity was tamed."
+      Tahmin degil, paket cekilip okundu.
+
+      Sonucu okumayinca kayit.evcil hep true oluyordu ve
+      kurtarma esigi "vanilla takip calisiyor" varsayimiyla
+      24 bloga (BOT_KURTARMA_MENZIL) ayarlaniyordu. Yani bot
+      yerinde duruyor, 24 blok uzaklasinca isinlaniyordu --
+      sikayetin birebir tarifi.
+
+   2. minecraft:is_tamed HIC EKLENMIYORDU. Varlik JSON'unda
+      "pa:evcillestir" olayi var ve pa:evcil grubunu (yani
+      is_tamed'i) ekliyor, ama script bu olayi hicbir yerde
+      tetiklemiyordu. durumUygula sadece takip/bekle
+      tetikliyor.
+
+   Ikisi de tek basina follow_owner'i olduruyor.
+
+   ---- SIMDI ----
+   Uc adim, ucu de sonucu DOGRULANIYOR:
+     olay      pa:evcillestir  -> is_tamed bileseni
+     tame()    sahibi atar     -> donen deger okunuyor
+     dogrula   isTamed / tamedToPlayerId ile teyit
+
+   Yeni dogan varligin bilesenleri ayni tick'te hazir
+   olmayabiliyor; bu yuzden basarisizlik KALICI sayilmiyor,
+   sonraki taramalarda tekrar deneniyor (bkz. botTara).     */
 function evcillestir(varlik, oyuncu) {
+  /* is_tamed bileseni: olayla eklenir. tame()'den bagimsiz,
+     o yuzden once ve ayri.                                  */
   try {
-    const t = varlik.getComponent("minecraft:tameable");
-    if (t && typeof t.tame === "function") {
-      t.tame(oyuncu);
-      return true;
+    if (typeof varlik.triggerEvent === "function") {
+      varlik.triggerEvent(BOT_OLAY_EVCIL);
     }
   } catch (e) {
-    hataYaz("bot.evcillestir", e);
+    // Olay yoksa paket olmesin; tame() tek basina da yeter
   }
+
+  try {
+    const t = varlik.getComponent("minecraft:tameable");
+    if (!t) return false;
+
+    if (typeof t.tame === "function") {
+      const sonuc = t.tame(oyuncu);
+      /* Eski surumler undefined donebilir: o zaman "hayir"
+         demek yerine asagidaki dogrulamaya birakiyoruz.     */
+      if (sonuc === false) return false;
+    }
+
+    /* DOGRULAMA -- asil cevap bu. tame() true dese bile
+       gercekten sahiplenildi mi diye varliga soruyoruz.     */
+    if (typeof t.isTamed === "boolean") return t.isTamed;
+    if (t.tamedToPlayerId !== undefined) return t.tamedToPlayerId === oyuncu.id;
+
+    /* Ne isTamed ne tamedToPlayerId var: eski API. tame()
+       patlamadiysa olmus sayiyoruz.                          */
+    return typeof t.tame === "function";
+  } catch (e) {
+    hataYaz("bot.evcillestir", e);
+    return false;
+  }
+}
+
+/* Evcillestirme kac kez denendi (botId -> deneme sayisi).
+   Sinirsiz denemek her taramada bir API cagrisi demek;
+   bir yerden sonra vazgecip script takibine geciyoruz.      */
+const evcilDeneme = new Map();
+
+function evcilDene(varlik, oyuncu, botId) {
+  if (evcillestir(varlik, oyuncu)) {
+    evcilDeneme.delete(botId);
+    return true;
+  }
+
+  const n = (evcilDeneme.get(botId) || 0) + 1;
+  evcilDeneme.set(botId, n);
+  if (n < BOT_EVCIL_DENEME) return undefined;   // sonraki taramada yine dene
 
   if (!tameUyarisi) {
     tameUyarisi = true;
-    bilgiYaz("BOT: tameable.tame() kullanilamadi. Vanilla takip " +
-             "(follow_owner) calismayacak; bot SCRIPT TAKIBIYLE " +
-             "yurutulecek -- " + BOT_SCRIPT_MENZIL + " bloktan " +
-             "uzaklasinca yanina isinlanir.");
+    bilgiYaz("BOT: sahiplendirme " + BOT_EVCIL_DENEME + " denemede " +
+             "tutmadi. Vanilla takip (follow_owner) calismayacak; " +
+             "bot SCRIPT TAKIBIYLE yurutulecek -- " + BOT_SCRIPT_MENZIL +
+             " bloktan uzaklasinca yanina isinlanir.");
   }
   return false;
 }
@@ -530,7 +608,10 @@ export function botCagir(oyuncu, kimlik = BOT_KIMLIK) {
   }
   if (!varlik) return { hata: "Bot dogurulamadi." };
 
-  const evcil = evcillestir(varlik, oyuncu);
+  /* v4.67: yeni dogan varligin bilesenleri ayni tick'te
+     hazir olmayabiliyor. undefined = 'daha belli degil',
+     botTara sonraki taramalarda tekrar deniyor.        */
+  const evcil = evcilDene(varlik, oyuncu, varlik.id);
   ozellikYaz(varlik, BOT_SAHIP_OZELLIK, oyuncu.id);
   ozellikYaz(varlik, BOT_DURUM_OZELLIK, "takip");
 
@@ -743,9 +824,20 @@ export function botTara(oyuncular) {
 
       /* Evcillestirme dunya yeniden yuklenince bilinmiyor
          olabilir; bir kez daha denenip sonuc saklaniyor.      */
-      if (kayit.evcil === undefined) {
-        kayit.evcil = evcillestir(v, oyuncu);
-        durumUygula(v, kayit);
+      if (kayit.evcil === undefined || kayit.evcil === false) {
+        /* v4.67: false da tekrar deneniyor. Eskiden sadece
+           undefined denenirdi ve evcillestir() HEP true
+           dondugu icin bu dal hic calismazdi.
+
+           Basarili olunca durum yeniden uygulaniyor: is_tamed
+           eklendikten sonra pa:takip grubunun tazelenmesi
+           follow_owner'i uyandiriyor.                        */
+        const onceki = kayit.evcil;
+        kayit.evcil = evcilDene(v, oyuncu, kayit.botId);
+        if (kayit.evcil === true && onceki !== true) {
+          durumUygula(v, kayit);
+          yazBekliyor = true;
+        }
       }
 
       try {

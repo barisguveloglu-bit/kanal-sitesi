@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.66";
+export const SURUM = "v4.67";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -639,7 +639,7 @@ export const KADEMELER = [
     goz: "pa:goz_beyaz",
     lazerGoz: "pa:goz_beyaz_lazer",
     ozet: "Hiz ve ziplama",
-    lazer: { hasar: 9 },
+    lazer: { hasar: 9, savur: true },
     /* Referans: speed 0, jump_boost 0, strength 0, resistance 0,
        instant_health 0.  Bizde hiz/ziplama UZMANI.             */
     efektler: [
@@ -685,7 +685,7 @@ export const KADEMELER = [
     goz: "pa:goz_kirmizi",
     lazerGoz: "pa:goz_kirmizi_lazer",
     ozet: "Saldiri ve kazma",
-    lazer: { hasar: 13 },
+    lazer: { hasar: 13, sersem: true },
     /* Referans: regeneration 0, speed 0, strength 0.
        Bizde vurus ve kazma UZMANI.                             */
     efektler: [
@@ -752,7 +752,7 @@ export const KADEMELER = [
     goz: "pa:goz_mavi",
     lazerGoz: "pa:goz_mavi_lazer",
     ozet: "Her seyden biraz",
-    lazer: { hasar: 11 },
+    lazer: { hasar: 11, hiz: true },
     /* ARTIK "EN GUCLU" DEGIL. Her alandan biraz veriyor ama
        hicbirinde uzmanini gecmiyor:
          hiz 2  < Nitroksin 3
@@ -791,7 +791,7 @@ export const KADEMELER = [
     goz: "pa:goz_yildiz",
     lazerGoz: "pa:goz_yildiz_lazer",
     ozet: "Koruma",
-    lazer: { hasar: 10 },
+    lazer: { hasar: 10, kalkan: true },
     /* Referansta gozun verdigi efektler: health_boost,
        night_vision, resistance -- ucu de I seviyesinde.
        Kimligi KORUMA, o yuzden burada da o.
@@ -833,7 +833,7 @@ export const KADEMELER = [
 
        Fikir alindi, kusur ayiklandi: lazer VURDUGUNU
        donduruyor, sureli.                                    */
-    lazer: { hasar: 9, dondur: true },
+    lazer: { hasar: 9, modlu: "element" },
     efektler: [
       ["water_breathing", 0],
       ["conduit_power",   0],
@@ -854,6 +854,85 @@ export const KADEMELER = [
    depoda dorduncu kez reddediliyor.                          */
 export const LAZER_DONDUR_SURE = 100;   // 5 saniye
 export const LAZER_DONDUR_SEVIYE = 3;   // Yavaslik IV
+
+/* ============================================================
+   LAZER KIMLIKLERI  (v4.67)
+
+   Kullanici: "goz lazerinde gozun rengine gore, o iksirin
+   rengine gore lazer atiyor... element iksirinde hem bu hem
+   ates var ya, atesi olarak ayarladigimiz zaman karsidaki kisi
+   yanmaya basliyor, buz haline cevirirsek karsidaki kisi
+   yavaslik aliyor ve etrafi buz blogu ile kaplaniyor."
+
+   ---- REFERANS ARASTIRMASI: ORADA BOYLE BIR SEY YOK ----
+   Uc arsivin hepsi acildi (BoraLo Nitroksin Mod, best StarOxine
+   mod, Element Iksiri modu V2). Nitroksin modunda bes ayri
+   lazer fonksiyonu var -- lazerat1, firelazer, Bloodylazer,
+   grinoxsinlazer, hiperlazer -- ve BESI DE BIREBIR AYNI:
+
+     effect @s instant_health 1 4
+     execute @s^^^2 /damage @e[r=2,c=1] 6 fire
+     execute @s^^^4 /damage @e[r=4,c=1] 6 fire
+     execute @s^^^6 /damage @e[r=6,c=1] 6 fire
+     execute @s^^^8 /damage @e[r=8,c=1] 6 fire
+
+   Tek fark hangi goz esyasinin takildigi. Ayni sekilde
+   *_goz_lazer_effect dosyalarinin dordu de ayni bes buff'i
+   veriyor. StarOxine'inki hasar bile vermiyor (dy_slazer
+   sadece bir ayakkabi esyasi takiyor). Element modunun
+   "donma"si ise gorunmezlik + Yavaslik 249 ve SURESIZ.
+
+   Yani lazerin iksire gore degismesi REFERANSTAN GELMIYOR,
+   kullanicinin fikri. Alinacak bir sey olmadigi icin sifirdan
+   tasarlandi -- ama kimlikler iksirlerin KENDI kimliginden
+   turetildi, uydurma degil.
+
+   Her iksirin lazeri artik kendi karakterini tasiyor:
+     Nitroksin   savur     saf itis, geri firlatir
+     Grinoksin   zehir     zehirler (vanilla zehir oldurmez)
+     Redoksin    sersem    en yuksek hasar + bulanti
+     Firenoksin  ates      yakar
+     Kan Iksiri  canCal    verdigin hasarin ucte biri sana doner
+     Hiperoksin  hiz       vurunca SANA hiz verir
+     StarOxine   kalkan    vurunca SANA emilim verir
+     Element     modlu     iki mod, menuden degistirilir
+   ============================================================ */
+
+/* Element'in iki modu. Kullanicinin tarifi birebir:
+   ates -> karsidaki yanar, buz -> yavaslar ve buz kaplanir. */
+export const LAZER_MODLARI = new Map([
+  ["element", [
+    { kimlik: "buz",  ad: "Buz",  ek: { dondur: true, buzKafes: true } },
+    { kimlik: "ates", ad: "Ateş", ek: { ates: true } }
+  ]]
+]);
+export const LAZER_MOD_VARSAYILAN = "buz";
+
+/* ---- BUZ KAFESI ----
+   Dondurulan hedefin etrafina gecici bir kabuk oruluyor.
+
+   BLOK NEDEN packed_ice: normal buz ERIYOR ve yerinde SU
+   birakiyor. Oyuncunun evinin ortasinda kafes acilirsa
+   sel basardi. packed_ice erimiyor.
+
+   Kabuk SADECE HAVANIN yerine konuyor ve sure dolunca
+   yalnizca BIZIM koydugumuz bloklar kaldiriliyor -- araya
+   giren bir sey silinmiyor. Kabuk ici bos, yani hedef
+   bogulmuyor; sadece kapali kaliyor.                        */
+export const LAZER_BUZ_ACIK    = true;
+export const LAZER_BUZ_BLOK    = "minecraft:packed_ice";
+export const LAZER_BUZ_SURE    = 120;  // 6 saniye
+export const LAZER_BUZ_YARICAP = 1;    // 3x3 kabuk
+export const LAZER_BUZ_YUKSEK  = 2;    // iki blok boyunda
+export const LAZER_BUZ_TAVAN   = 80;   // tek atista en fazla kac blok
+
+/* Lazerin SANA verdigi kisa destekler (hiz / kalkan) */
+export const LAZER_HIZ_SURE     = 100;
+export const LAZER_HIZ_SEVIYE   = 2;
+export const LAZER_KALKAN_SURE  = 120;
+export const LAZER_KALKAN_SEVIYE = 1;
+export const LAZER_SERSEM_SURE  = 100;
+export const LAZER_SAVUR_GUC    = 1.6;
 
 /* Kademe -> iksir esyasi eslesmesi generator ile ayni sirada
    uretiliyor: pa:iksir_<kimlik>                                  */
@@ -1176,6 +1255,16 @@ export const BOT_DURUM_OZELLIK    = "simsek:durum";   // "takip" | "bekle"
    ile calistiriyor; JSON'daki "events" bolumuyle AYNI olmali.  */
 export const BOT_OLAY_TAKIP       = "pa:takip";
 export const BOT_OLAY_BEKLE       = "pa:bekle";
+
+/* v4.67: is_tamed bilesenini ekleyen olay. Varlik JSON'unda
+   hep vardi ama script onu HIC tetiklemiyordu -- follow_owner'in
+   calismamasinin iki sebebinden biri buydu.                    */
+export const BOT_OLAY_EVCIL       = "pa:evcillestir";
+
+/* Yeni dogan varligin bilesenleri ayni tick'te hazir
+   olmayabiliyor; sahiplendirme bu kadar tarama boyunca
+   tekrar deneniyor, sonra script takibine dusuluyor.          */
+export const BOT_EVCIL_DENEME     = 5;
 
 /* Vanilla follow_owner bir SAHIP ister; sahip tameable.tame()
    ile atanir. O cagri her surumde ayni sekilde olmayabilir, o
