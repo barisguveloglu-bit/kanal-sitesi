@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.74";
+export const SURUM = "v4.75";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -566,7 +566,15 @@ export const LAZER_MENZIL = 14;
        sadece varliklara vuruyor                               */
 export const DUVAR_DELME_ACIK   = true;
 export const DUVAR_DELME_YARICAP = 1;    // delik yaricapi (1 = 3x3)
-export const DUVAR_DELME_TAVAN   = 60;   // tek taramada en fazla kac blok
+/* v4.75: 60 -> 140.
+   60 iken liste isinin ancak ilk UC blogunu kapsiyordu (her
+   adim 3x3x3 = 27 nokta yiyor) ve o uc blok genelde HAVA
+   oldugu icin butun butce bosluga gidiyordu. Artik yalnizca
+   DOLU merkezler listeye giriyor (bkz. goz_lazeri.js
+   delmeListesi), yani bu sayi dogrudan "kac blok DERINE
+   girebilir"e karsilik geliyor: 140 / 27 ~ 5 blok kalinliginda
+   duvar, tek vurusta.                                        */
+export const DUVAR_DELME_TAVAN   = 140;  // tek taramada en fazla kac blok
 
 /* ============================================================
    SERT BLOKLAR  --  "obsidyende birazcik zorlansin"  (v4.74)
@@ -593,16 +601,27 @@ export const DUVAR_DELME_TAVAN   = 60;   // tek taramada en fazla kac blok
    dokunulmayan blogun sayaci siliniyor. Yani obsidyeni delmek
    icin gercekten UZERINDE DURMAN gerekiyor; bir bakip
    kacmak ise yaramiyor.                                       */
+/* ---- v4.75: "obsidyen kirilmiyor, lazerin gucunu artir" ----
+   ASIL SEBEP SAYILAR DEGILDI: delme listesi isinin ancak ilk
+   uc blogunu kapsiyordu ve o uc blok genelde hava oldugu icin
+   birkac blok oteki obsidyene HIC vurus gitmiyordu. O hata
+   goz_lazeri.js delmeListesi() icinde duzeltildi.
+
+   Ustune kullanicinin "gucu artir" istegi: 10 -> 6 vurus.
+   6 vurus x yarim saniye = 3 SANIYE odaklanma. Hala
+   "zorlaniyor" ama artik gercekten kiriliyor.
+   ONCEKI SAYI KULLANICININ KENDI SAYISIYDI (10). Geri
+   istersen tek satir: asagidaki 6'lari 10 yap.              */
 export const LAZER_SERT_ACIK = true;
 export const LAZER_DELME_SERT = new Map([
-  ["minecraft:obsidian",           10],   // kullanicinin sayisi
-  ["minecraft:crying_obsidian",    10],
-  ["minecraft:respawn_anchor",     10],
-  ["minecraft:enchanting_table",   10],   // obsidyen tabanli
-  ["minecraft:ender_chest",        10],
-  ["minecraft:ancient_debris",     10],
-  ["minecraft:netherite_block",    12],
-  ["minecraft:reinforced_deepslate", 14],
+  ["minecraft:obsidian",            6],
+  ["minecraft:crying_obsidian",     6],
+  ["minecraft:respawn_anchor",      6],
+  ["minecraft:enchanting_table",    6],   // obsidyen tabanli
+  ["minecraft:ender_chest",         6],
+  ["minecraft:ancient_debris",      6],
+  ["minecraft:netherite_block",     8],
+  ["minecraft:reinforced_deepslate", 10],
 ]);
 export const LAZER_SERT_UNUTMA = 200;     // 10 sn dokunulmazsa sifirlanir
 /* Her vurusta blogun uzerinde bir kivilcim: kac vurus kaldigini
@@ -988,8 +1007,16 @@ export const LAZER_DONDUR_SEVIYE = 3;   // Yavaslik IV
        disinda; tavan onlara dokunamiyor, ham hasar yiyor.
        Emilim IV = 16 ek kalp = 32 can; %80 zirh indirimiyle
        200 hasar 40 gecirir, yani emilimi de siyiriyor.
-     - Zirhsiz/az canli hedefleri dogrudan oldurmek.          */
-export const LAZER_HASAR = 200;
+     - Zirhsiz/az canli hedefleri dogrudan oldurmek.
+
+   v4.75: 200 -> 500. "lazerin gucunu artir, bayagi guclu
+   olsun." Zirhli oyuncuda gorunen fark YOK -- orada isi
+   yapan can tavani, ham hasar degil. Fark su iki yerde:
+     - Emilim IV (32 ek can) artik %80 zirh indiriminden
+       sonra bile TEK VURUSTA siliniyor (500 x 0,2 = 100).
+     - Ejderha, wither, demir golem gibi buyuk canli moblar
+       tavana takilmadan tek vurusta gidiyor.                */
+export const LAZER_HASAR = 500;
 
 /* Vurustan sonra hedefte birakilan can. 1 puan = YARIM KALP.
    0 yaparsan lazer oldurur.                                  */

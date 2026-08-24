@@ -640,22 +640,80 @@ yetenekKaydet({
        yalnizca isinin tam ortasindayken yontuluyor.
        "Odaklandigim yer" bu demek; 3x3 delikteki dokuz
        obsidyeni birden yontmak odaklanma olmazdi.            */
+    /* ---- v4.75: OBSIDYEN NEDEN HIC KIRILMIYORDU ----
+       Kullanici: "delme olayini daha iyi yap, obsidyen
+       kirilmiyor."  Sebep sayilardaydi, sabirsizlikta degil.
+
+       Onceki hali HER d adiminda, blogun DOLU olup olmadigina
+       bakmadan 3x3x3 = 27 nokta ekliyordu. DUVAR_DELME_TAVAN
+       60'ti:
+           d=1 -> 27,  d=2 -> 54,  d=3 -> tavan
+       Yani liste isinin ancak ILK UC BLOGUNU kapsiyordu.
+       Ustelik oyuncunun onundeki o uc blok genelde HAVA;
+       hava blogu dongude "continue" ile atlaniyor ama listede
+       YERI TUTUYORDU. Sonuc: acik alanda 60 slotun 60'i havaya
+       gidiyor, dort blok oteki obsidyene HIC SIRA GELMIYORDU.
+
+       Bakisini duvara YAPISTIRIRSAN calisiyordu -- kullanici
+       obsidyene birkac blok uzaktan bakip "kirilmiyor" dedigi
+       icin dogru rapor.
+
+       Iki duzeltme:
+         1. Merkez blok DOLU degilse o adim listeye hic
+            girmiyor. Butce artik gercek duvarlara harcaniyor.
+         2. Ayni blok iki kez girmiyor. Capraz bakista ardisik
+            d adimlari ayni blogA dusebiliyor; obsidyen sayaci
+            tek vuruşta iki kere azalirdi, yani 10 vurus 5'e
+            inerdi -- kullanicinin verdigi sayi bozulurdu.
+       "merkez" olan kayit her zaman kazaniyor: sert bloklar
+       yalnizca merkezdeyken yontuluyor.                       */
+    const _delKoord = { x: 0, y: 0, z: 0 };
+
     function delmeListesi(b, y) {
       const liste = [];
       if (!DUVAR_DELME_ACIK) return liste;
       const r = DUVAR_DELME_YARICAP;
+      const gorulen = new Map();          // "x,y,z" -> liste indeksi
       for (let d = 1; d <= LAZER_MENZIL && liste.length < DUVAR_DELME_TAVAN; d++) {
         const mx = Math.floor(b.x + y.x * d);
         const my = Math.floor(b.y + y.y * d);
         const mz = Math.floor(b.z + y.z * d);
+
+        /* Merkez bos ise bu adim atlaniyor: havaya delik
+           acilmiyor ve butce yenmiyor.
+
+           YOKLAMA DA BUTCEDEN ODENIYOR: getBlock bedava
+           degil ve isin boyunca en fazla LAZER_MENZIL tane
+           yapiliyor. Odemeseydi tick basina blok islemi
+           butceyi 14 asardi -- duvardel testi bunu yakaladi
+           (70/56). Butce biterse liste kisa kaliyor, sonraki
+           vurus tickinde kaldigi yerden devam ediyor.       */
+        if (blokIste(1) < 1) break;
+        let merkezBlok;
+        try {
+          _delKoord.x = mx; _delKoord.y = my; _delKoord.z = mz;
+          merkezBlok = boyut.getBlock(_delKoord);
+        } catch (e) {
+          continue;                       // yuklenmemis chunk
+        }
+        if (!merkezBlok || merkezBlok.isAir) continue;
+
         for (let ox = -r; ox <= r; ox++) {
           for (let oy = -r; oy <= r; oy++) {
             for (let oz = -r; oz <= r; oz++) {
               if (liste.length >= DUVAR_DELME_TAVAN) break;
-              liste.push({
-                x: mx + ox, y: my + oy, z: mz + oz,
-                merkez: (ox === 0 && oy === 0 && oz === 0)
-              });
+              const x = mx + ox, yy = my + oy, z = mz + oz;
+              const merkez = (ox === 0 && oy === 0 && oz === 0);
+              const k = x + "," + yy + "," + z;
+              const eski = gorulen.get(k);
+              if (eski !== undefined) {
+                /* Zaten var: sadece "merkez" bilgisi
+                   yukseltilebilir, yeni kayit acilmaz.      */
+                if (merkez) liste[eski].merkez = true;
+                continue;
+              }
+              gorulen.set(k, liste.length);
+              liste.push({ x, y: yy, z, merkez });
             }
           }
         }

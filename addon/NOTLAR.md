@@ -3788,6 +3788,95 @@ değişti, yetenekler yerinde durdu.
 
 ---
 
+## v4.75 — Işının rengi ölçüldü, obsidyen niye kırılmadığı bulundu
+
+Kullanıcı oyun içi ekran görüntüsüyle referansı yan yana koydu: *"bizimki
+birazcık daha soluk gibi geldi."*
+
+### Ölçüm: renk değil, iki ayrı sorun
+
+Ekran görüntüsünde ışın dört ayrı yatay taramada **aynı** değeri verdi:
+`(79, 101, 115)`. Bizim doku ise `(176, 224, 255)`.
+
+```
+ 79/176 = 0,449     101/224 = 0,451     115/255 = 0,451
+```
+
+Üçü de **%45**. Yani ışın dünya ışığıyla gölgeleniyor — ve bu ekran
+görüntüsü *güpegündüz* çekildi, karanlıktan değil. Hiçbir doku değeri bunu
+kapatamaz: 255'in üstüne çıkılamıyor.
+
+### Referansın dokusu canlı okundu
+
+`Element İksiri modu V2` → `textures/entity/pamobile/pa_element_lazer.png`:
+
+| renk | piksel |
+|---|---|
+| `(0, 0, 0, 0)` | 3692 |
+| `(0, 255, 243)` | 280 |
+| `(255, 98, 0)` | 124 |
+
+İkisi de **tam doygun**. Bizimki ise gözün *beyaza çekilmiş* halinden
+alınıyordu (0,32 oranında). Beyazlatma gözde doğru — "göz açıldı" hissini o
+veriyor — ama ışında doygunluğu öldürüp griye yaklaştırıyor; gölgelenince
+de gri-mavi çıkıyor. Ölçülen `(79, 101, 115)` tam olarak bu.
+
+### İki düzeltme
+
+1. **Doygunluk** (`isin_rengi`): ton korunuyor, doygunluk `2,6` katına
+   çıkıp tavana dayanıyor, en parlak kanal 255'e çekiliyor. Beyaz göz beyaz
+   kalıyor — doygunluğu zaten ~0 ve sıfırın katı sıfır.
+2. **Parlama**: ışın kutuları kendi kemiğine (`isin`) alındı ve o kemiğe
+   `entity_emissive` verildi. Malzeme render denetleyicisinde kemik başına
+   veriliyor, aynı kemikteki iki kutuya iki malzeme verilemiyor.
+
+Göze uygulanamaz: gözün halesi ve saçakları ara alfa değerleriyle yumuşuyor,
+`entity_emissive` altında o ara değerler saydamlık değil **parlaklık**
+sayılır — hale opak parlayan bir leke olur, yani v4.18'de temizlenen
+"gözlük" hatası geri gelir.
+
+Depo tarihi özel render denetleyicisine karşı uyarıyor (v4.28'de bot üç
+sürüm boyunca görünmez kaldı). O yüzden denetleyici vanilla
+`controller.render.armor` ile birebir aynı; tek fark `materials` dizisine
+eklenen ikinci satır. Geri dönüş yolu tek satır: `LAZER_ISIN_PARLAK = False`.
+
+### Obsidyen: sorun sabırsızlık değil, sayılardaydı
+
+*"Obsidyen kırılmıyor."* Eski `delmeListesi` her `d` adımında, bloğun dolu
+olup olmadığına **bakmadan** 3×3×3 = 27 nokta ekliyordu ve tavan 60'tı:
+
+```
+d=1 -> 27     d=2 -> 54     d=3 -> tavan
+```
+
+Liste ışının ancak **ilk üç bloğunu** kapsıyordu. Üstelik oyuncunun
+önündeki o üç blok genelde hava; hava bloğu döngüde atlanıyor ama listede
+**yerini tutuyordu**. Açık alanda 60 slotun 60'ı havaya gidiyor, dört blok
+ötedeki obsidyene hiç sıra gelmiyordu. Duvara burnunu dayarsan çalışıyordu
+— kullanıcı birkaç blok uzaktan baktığı için doğru rapor.
+
+Testlerin kör noktası: bütün delme senaryolarında dünya baştan aşağı
+doluydu, yani burnunun dibindeki blok zaten obsidyendi. `lazer_delme.mjs`
+bölüm 7 artık **havanın arkasındaki** obsidyeni sınıyor.
+
+Düzeltme: merkez blok dolu değilse o adım listeye hiç girmiyor, aynı blok
+iki kez girmiyor (yoksa sayaç tek vuruşta iki kere azalırdı), yoklama
+okuması da bütçeden ödeniyor — `duvardel.mjs` bunu 70/56 diye yakaladı.
+
+### `paketle.sh` liste tutmayı bıraktı
+
+Dosyanın kendi DİKKAT notu *"yeni klasör eklersen buraya da ekle"* diyordu
+ve tam olarak o unutulmuştu:
+
+* BP `.mcpack`'te yok: `blocks`, `features`, `feature_rules`, `loot_tables`
+* RP `.mcpack`'te yok: `blocks.json`, `render_controllers`
+
+`.mcaddon` klasörün tamamını zipliyor, o yüzden oradaki paketler sağlamdı;
+sorun yalnızca **tek başına** kurulan `.mcpack`'lerdeydi. Artık liste yok,
+klasörün içindeki her şey alınıyor.
+
+---
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:

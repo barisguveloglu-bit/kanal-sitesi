@@ -5,9 +5,9 @@
 #   SimsekTNT_v34.mcaddon  -> ikisi birden, tek dosyada
 # Kullanim: sh addon/paketle.sh
 #
-# DIKKAT: yeni bir KLASOR eklersen asagidaki zip satirlarina da
-# ekle. v4.22'de bot varligi (entities/ ve entity/) unutulsaydi
-# pakete hic girmeyecekti ve oyunda "bot kayitli degil" derdi.
+# v4.75'ten beri klasor listesi TUTULMUYOR: zip her iki paketin
+# icindekilerin tamamini aliyor. Onceki hali elle listeliyordu ve
+# dort klasor listede unutulmustu (bkz. asagidaki not).
 #
 # DIKKAT: kol esyalarinin IKONU ve 3B GORUNUMU resource pack'te.
 # Sadece behavior pack kurulursa esyalar calisir ama mor-siyah
@@ -54,9 +54,21 @@ PYEOF
 rm -f "$K"/SimsekTNT_*.mcpack "$K"/SimsekKol_*.mcpack "$K"/SimsekTNT_*.mcaddon
 rm -f "$K"/*_v3.mcpack "$K"/Simsek_TNT_v3.mcaddon
 
-(cd "$K/$BP" && zip -r -X "$K/SimsekTNT_$S.mcpack" manifest.json pack_icon.png scripts items entities >/dev/null)
-(cd "$K/$RP" && zip -r -X "$K/SimsekKol_$S.mcpack" \
-    manifest.json pack_icon.png animations models attachables textures texts entity >/dev/null)
+# ---- ICERIK ARTIK ELLE YAZILMIYOR (v4.75) ----
+# Ustteki DIKKAT notu "yeni klasor eklersen buraya da ekle"
+# diyordu ve tam olarak o unutuldu -- birden fazla kez:
+#   BP .mcpack'te yok:  blocks, features, feature_rules, loot_tables
+#   RP .mcpack'te yok:  blocks.json, render_controllers
+# .mcaddon klasorun tamamini zipledigi icin oradaki paketler
+# saglamdi; sorun yalnizca TEK BASINA kurulan .mcpack'lerdeydi
+# ve "bazen calisiyor bazen calismiyor" gibi gorunuyordu.
+#
+# Cozum: liste tutma, klasorun ICINDEKI her seyi al. Uretim
+# artiklari (__pycache__, gizli dosyalar) disarida.
+(cd "$K/$BP" && zip -r -X "$K/SimsekTNT_$S.mcpack" . \
+    -x '__pycache__/*' '*/__pycache__/*' '.*' '*/.*' >/dev/null)
+(cd "$K/$RP" && zip -r -X "$K/SimsekKol_$S.mcpack" . \
+    -x '__pycache__/*' '*/__pycache__/*' '.*' '*/.*' >/dev/null)
 (cd "$K" && zip -r -X "$K/SimsekTNT_$S.mcaddon" "$BP" "$RP" >/dev/null)
 
 echo "Olusturuldu:"

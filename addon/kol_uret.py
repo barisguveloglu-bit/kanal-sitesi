@@ -112,12 +112,18 @@ def esya(kimlik, ad):
 # Referanstan gelen iki yeni iksir: redoksin, firenoksin.
 # v4.18: orman_atesi (referansta forest_fire) cikarildi -- "her seyden
 # orta" bir kimlik degil, hicbir durumda tercih sebebi olmuyordu.
-# ---- GOZ ZIRHI (v4.62) ----
+# ---- GOZ ZIRHI (v4.62, v4.75'te 7 -> 8,5 simge) ----
 # "7 dis boslugunu doldursun, 10 tane var ya" -> 7 simge.
 # Zirh cubugunda 1 simge = 2 puan, yani 7 simge = 14 puan.
 # Referans modlar 7 YAZIYOR ama o 3,5 simge ediyor; burada
 # kullanicinin TARIFI esas alindi. Tek sayi, tek yerde.
-GOZ_ZIRH = 14
+#
+# v4.75: "zirh barinda 10 tanesinden 7 yapmistik ya, onu 8,5
+# olsun yapabiliyorsan" -> 8,5 simge x 2 puan = 17 puan.
+# YARIM SIMGE OLUYOR: zirh cubugu yarim simge cizebiliyor
+# (tek sayilar hep yarim gosterir), o yuzden 8,5 tam olarak
+# ciziliyor. 10 simgeye 1,5 simge kaldi.
+GOZ_ZIRH = 17
 
 # GOZ RENGI iki bicimde yazilabilir:
 #   (r, g, b)              -> iki goz de ayni renk
@@ -267,6 +273,10 @@ def goz_esyasi(kimlik, ad):
                 # Zirh cubugu 10 SIMGE, 20 zirh PUANI gosteriyor;
                 # yani bir simge 2 puan. 7 simge = 14 puan.
                 #
+                # v4.75'te kullanici 8,5 simge istedi -> 17 puan.
+                # Tek sayi oldugu icin cubukta son simge YARIM
+                # ciziliyor; "8,5" birebir goruluyor.
+                #
                 # DIKKAT -- iki referans mod da "protection": 7
                 # yaziyor, ama o 7 PUAN yani 3,5 simge. Yani
                 # onlarinki kullanicinin tarif ettigi seyin
@@ -391,6 +401,99 @@ LAZER_ISIN_MENZIL = 14      # blok -- ayarlar.js LAZER_MENZIL ile AYNI olmali
 LAZER_ISIN_KALIN  = 2       # birim, kesit (2x2 = kare)
 LAZER_ISIN_UV     = [0, 20] # dokuda duz renk yamasinin yeri (64'luk uzay)
 
+# ============================================================
+# ISININ RENGI  --  "bizimki birazcik soluk gibi geldi" (v4.75)
+#
+# ---- OLCUM, TAHMIN DEGIL ----
+# Kullanicinin oyun ici ekran goruntusu, dort ayri yatay
+# taramada AYNI degeri verdi:      (79, 101, 115)
+# Bizim Hiperoksin isin yamasi:    (176, 224, 255)
+#     79/176 = 0,449   101/224 = 0,451   115/255 = 0,451
+# Yani isin dokunun TAM %45'inde ciziliyor -- dunya isigi
+# varligi golgeliyor. Ekran goruntusu GUPEGUNDUZ cekildi,
+# yani karanliktan degil, cizim boyle.
+#
+# ---- REFERANSIN DOKUSU CANLI OKUNDU ----
+# "Element Iksiri modu V2" (iyimisin.mcaddon),
+# textures/entity/pamobile/pa_element_lazer.png, 64x64:
+#     (0, 0, 0, 0)      3692 piksel   (bos)
+#     (0, 255, 243)      280 piksel   <- BUZ isini
+#     (255, 98, 0)       124 piksel   <- ATES isini
+# Ikisi de TAM DOYGUN. Hicbiri beyaza cekilmemis.
+#
+# Bizimki neden soluktu: isin yamasi gozun "beyaza cekilmis"
+# halinden (0,32 oraninda) aliniyordu. Beyaza cekmek gozde
+# dogru -- "goz acildi" hissini o veriyor -- ama isinda
+# doygunlugu oldurup griye yaklastiriyor. Golgelenince de
+# gri-mavi cikiyor: olculen (79, 101, 115) tam olarak bu.
+#
+# Cozum referansin yaptigi: isin gozun DOYGUN hali.
+# Doygunluk carpanla artiyor, tavana carpinca duruyor --
+# boylece Nitroksin'in BEYAZ gozu beyaz kaliyor (doygunlugu
+# zaten sifira yakin), Hiperoksin'in mavisi tam maviye,
+# Element'in turkuazi referansin (0,255,243) tonuna gidiyor.
+LAZER_ISIN_DOYGUN = 2.6     # doygunluk kazanci (1.0 = degistirme)
+
+# ---- PARLAKLIK: dunya isigini bypass et ----
+# Doygunluk rengi DUZELTIYOR ama %45 golgelemeyi kaldirmiyor.
+# Hicbir doku degeri bunu kapatamaz: 255'in ustune cikilamiyor.
+# Tek gercek cozum malzeme -- "entity_emissive" dokunun alfa
+# kanalini PARLAKLIK maskesi olarak kullaniyor ve pikseli
+# dunya isigindan bagimsiz ciziyor. Alfa DUSTUKCE daha cok
+# parliyor; "_alpha" ekli surumun aksine piksel yine de tam
+# opak kaliyor, yani isin saydamlasmiyor.
+#
+# GOZE UYGULANAMAZ: gozun halesi ve sacaklari ara alfa
+# degerleriyle yumusuyor (bkz. goz_dokusu). entity_emissive
+# altinda o ara degerler saydamlik degil PARLAKLIK sayilir --
+# hale opak parlayan bir leke olur, yani v4.18'de temizlenen
+# "gozluk" hatasi geri gelir. O yuzden isin AYRI BIR KEMIGE
+# alindi ve malzeme kemik basina veriliyor (kendi render
+# denetleyicimiz). Goz kemigi eskisi gibi entity_alphablend.
+#
+# REFERANS BUNU YAPMIYOR: Element modu duz "armor" kullaniyor,
+# yani onun isini da golgeleniyor. Kullanicinin gonderdigi
+# parlak turkuaz gorsel bir OYUN ICI kare degil, islenmis bir
+# animasyon karesi. Yani burasi referansi GECIYOR.
+#
+# KAPATMA: LAZER_ISIN_PARLAK = False -> isin yine Head
+# kemiginde, tek malzeme, ozel render denetleyicisi yok.
+# Tablette goz kaybolursa tek satirlik donus yolu budur.
+LAZER_ISIN_PARLAK  = True
+LAZER_ISIN_ALFA    = 64          # dusuk alfa = cok parlama
+LAZER_ISIN_KEMIK   = "isin"
+LAZER_ISIN_MALZEME = "entity_emissive"
+LAZER_ISIN_DENETIM = "controller.render.simsek_goz_lazer"
+
+
+def isin_rengi(renk):
+    """Goz renginin ISIN icin doygunlastirilmis hali.
+
+    HSV'ye cevirip S'yi LAZER_ISIN_DOYGUN kati yapiyor (1.0'da
+    kesiliyor), V'yi tavana cekiyor. TON degismiyor: hangi
+    iksiri ictigin isinin renginden yine anlasiliyor.
+
+    Beyaz goz beyaz kaliyor cunku doygunlugu ~0; sifirin kati
+    yine sifir. Bu bilincli -- Nitroksin'in isini maviye
+    donseydi kimlik karisirdi.                                 """
+    r, g, b = (max(0, min(255, int(c))) for c in renk)
+    maks, mins = max(r, g, b), min(r, g, b)
+    if maks == 0:
+        return (0, 0, 0)
+    s = (maks - mins) / maks
+    yeni_s = min(1.0, s * LAZER_ISIN_DOYGUN)
+    # V tavana: en parlak kanal 255 olsun
+    c_ = 255.0 * yeni_s
+    m = 255.0 - c_
+    fark = maks - mins
+    if fark == 0:
+        return (255, 255, 255)
+    # Tonu koru: kanallarin BIRBIRINE gore siralamasi ve
+    # aradaki oran aynen tasiniyor.
+    def tasi(k):
+        return int(round(m + c_ * ((k - mins) / fark)))
+    return (tasi(r), tasi(g), tasi(b))
+
 
 def isin_kutulari():
     """Iki goz isini: model uzayinda kutu tanimlari."""
@@ -445,8 +548,57 @@ def goz_lazer_geometrisi():
     tanim["description"]["visible_bounds_width"] = LAZER_ISIN_MENZIL * 2 + 4
     tanim["description"]["visible_bounds_height"] = LAZER_ISIN_MENZIL + 4
     tanim["description"]["visible_bounds_offset"] = [0, 1, 0]
-    tanim["bones"][0]["cubes"].extend(isin_kutulari())
+
+    if not LAZER_ISIN_PARLAK:
+        # Eski duzen: isin gozle ayni kemikte, tek malzeme.
+        tanim["bones"][0]["cubes"].extend(isin_kutulari())
+        return g
+
+    # ---- ISIN AYRI KEMIKTE (v4.75) ----
+    # Malzeme render denetleyicisinde KEMIK BASINA veriliyor;
+    # ayni kemikteki iki kutuya iki ayri malzeme verilemiyor.
+    # Isin kendi kemigine alindi ki gozun yumusak halesi
+    # entity_alphablend'de kalsin, isin entity_emissive'e gecsin.
+    #
+    # Kemik Head'in COCUGU: kafa donunce isin de donuyor,
+    # eskisi gibi. Kutu koordinatlari mutlak model uzayinda
+    # zaten -- pivot [0,24,0] ile hicbir sey kaymiyor.
+    kafa = tanim["bones"][0]["name"]
+    tanim["bones"].append({
+        "name": LAZER_ISIN_KEMIK,
+        "parent": kafa,
+        "pivot": [0, 24, 0],
+        "cubes": isin_kutulari(),
+    })
     return g
+
+
+def goz_lazer_denetleyicisi():
+    """Isin kemigine AYRI malzeme veren render denetleyicisi.
+
+    DIKKAT -- deponun kendi tarihi uyariyor: v4.31'de ozel bir
+    render denetleyicisi botu UC SURUM boyunca gorunmez yapti.
+    O yuzden buradaki denetleyici vanilla controller.render.armor
+    ile BIREBIR ayni; tek fark materials dizisine eklenen ikinci
+    satir.
+
+    materials dizisi SIRAYLA uygulaniyor: once "*" butun
+    kemiklere Material.default veriyor, sonra "isin" satiri
+    sadece o kemigin uzerine yaziyor. Goz kemigi hic
+    etkilenmiyor.                                              """
+    return {
+        "format_version": "1.10.0",
+        "render_controllers": {
+            LAZER_ISIN_DENETIM: {
+                "geometry": "Geometry.default",
+                "materials": [
+                    {"*": "Material.default"},
+                    {LAZER_ISIN_KEMIK: "Material.isin"},
+                ],
+                "textures": ["Texture.default"],
+            }
+        },
+    }
 
 
 def goz_attachable(kimlik):
@@ -471,15 +623,22 @@ def goz_attachable(kimlik):
     enchanted dokusu da referanstaki gibi ACTOR glint: bu bir
     esya degil, vucuda giyilen bir sey. Onceki "item" yolu
     buyulenmis gorunumde yanlis dokuyu ariyordu.               """
+    lazerli = kimlik.endswith("_lazer")
+    # Isin kemigi icin AYRI malzeme: goz harmanlamada kalirken
+    # isin dunya isigini bypass ediyor (bkz. LAZER_ISIN_PARLAK).
+    malzemeler = {
+        "default": "entity_alphablend",
+        "enchanted": "armor_enchanted",
+    }
+    if lazerli and LAZER_ISIN_PARLAK:
+        malzemeler["isin"] = LAZER_ISIN_MALZEME
+
     return {
         "format_version": "1.10.0",
         "minecraft:attachable": {
             "description": {
                 "identifier": "pa:" + kimlik,
-                "materials": {
-                    "default": "entity_alphablend",
-                    "enchanted": "armor_enchanted",
-                },
+                "materials": malzemeler,
                 "textures": {
                     "default": "textures/entity/" + kimlik,
                     "enchanted": "textures/misc/enchanted_actor_glint",
@@ -490,11 +649,14 @@ def goz_attachable(kimlik):
                 # yoksa iksir icer icmez isin cikardi.
                 "geometry": {
                     "default": ("geometry.simsek_goz_lazer"
-                                if kimlik.endswith("_lazer")
-                                else "geometry.simsek_goz")
+                                if lazerli else "geometry.simsek_goz")
                 },
                 "scripts": {"parent_setup": "variable.helmet_layer_visible = 0.0;"},
-                "render_controllers": ["controller.render.armor"],
+                "render_controllers": [
+                    LAZER_ISIN_DENETIM
+                    if (lazerli and LAZER_ISIN_PARLAK)
+                    else "controller.render.armor"
+                ],
             }
         },
     }
@@ -2573,14 +2735,27 @@ def lazer_goz_dokusu(gozRenk, tohum):
     # Renk gozun parlak hali: isin hangi iksirse onun renginde
     # cikiyor. Element'in iki modu icin sol/sag isin ayri renk
     # oluyor -- iki goz zaten ayri renkte.
+    #
+    # ---- v4.75: YAMA ARTIK "parlaklar"DAN GELMIYOR ----
+    # Beyaza cekilmis renk gozde dogru, isinda soluk. Isin
+    # gozun DOYGUN halini kullaniyor (bkz. isin_rengi ve
+    # ustundeki olcum notu). Kaynak da parlaklar degil,
+    # gozun HAM rengi -- yoksa beyazlatma iki kez binerdi.
+    #
+    # ALFA: entity_emissive dokunun alfasini parlaklik
+    # maskesi sayiyor, saydamlik degil. Dusuk alfa = cok
+    # parlama. Yama gozun UV alanindan UZAKTA (0,20), yani
+    # bu alfa gozun kendisini etkilemiyor.
     ux, uy = LAZER_ISIN_UV
-    for i, renk in enumerate(parlaklar):
+    isin_alfa = LAZER_ISIN_ALFA if LAZER_ISIN_PARLAK else 255
+    for i, ham in enumerate(goz_renkleri(gozRenk)):
         # Iki goz iki ayri 2x2 yama: sol goz UV'de solda.
         gx = (ux + i * 2) * GOZ_OLCEK
         gy = uy * GOZ_OLCEK
+        yama = isin_rengi(ham) + (isin_alfa,)
         for yy in range(gy, gy + 2 * GOZ_OLCEK):
             for xx in range(gx, gx + 2 * GOZ_OLCEK):
-                p[(xx, yy)] = tuple(renk) + (255,)
+                p[(xx, yy)] = yama
     return p
 
 
@@ -2845,6 +3020,10 @@ def main():
     yaz_json(os.path.join(RP, "animations/simsek_kol_tutus.animation.json"), TUTUS_ANIM)
     yaz_json(os.path.join(RP, "animations/goz_lazeri.animation.json"),
              lazer_animasyonu())
+    if LAZER_ISIN_PARLAK:
+        yaz_json(os.path.join(RP, "render_controllers",
+                              "goz_lazer.render_controllers.json"),
+                 goz_lazer_denetleyicisi())
 
     # SGA harfleri script tarafina (efsane yaziti icin)
     _sga_yol = os.path.join(BP, "scripts/yetenekler/_sga.js")
