@@ -37,6 +37,53 @@ RP = "/home/user/kanal-sitesi/addon/Simsek_Kol_Kaynak"
 #   geometry.humanoid.customSlim  Alex modeli (3 piksel kol)
 # Bizim skinimiz klasik 64x64 duzeninde ve kollari 4 piksel,
 # yani "custom".
+# ---- OYUNCU MODELI PAKETI (v4.90) ----
+# Kullanici: "ama kanka bunu yapiyorlar mobilde nasil yapiyorlar...
+# tum yontemleri bul... bir tane mod yuklemistim sen orada var
+# demistin, onu yapacagiz, kararliyim."
+#
+# HAKLIYDI. Yontem SKIN degil, OYUNCU ISTEMCI TANIMINI EZMEK.
+# Kanit uydurma degil: kullanicinin daha once yukledigi DORT
+# pakette de ayni sey var --
+#   ses/Boralo Mod V2, boralo_canli/YeniBoraLoV3_RP,
+#   yeni_modlar/GuneyLo_Nitroxin, yeni_modlar/DistortedB
+# Hepsi entity/player.entity.json'u eziyor ve sunu yapiyor:
+#
+#   geometry:        "elharkos": "geometry.elharkos"      <- EK model
+#   pre_animation:   variable.elharkos =
+#                      query.get_equipped_item_name('main_hand') == 'elharkos';
+#   render_controllers: {"controller.render.elharkos": "variable.elharkos"}
+#
+# Yani ELDEKI ESYAYA gore oyuncuya FAZLADAN bir geometri
+# ciziliyor. Resmi istemcide, mobilde calisiyor -- kullanici bu
+# paketleri kendi tabletinde calistirdi.
+#
+# Bizim farkimiz: onlar asa/silah EKLIYOR, biz GOVDEYI
+# DEGISTIRIYORUZ. Bunun icin bir adim daha gerekiyor: vanilla
+# ucuncu sahis denetleyicisini KAPATMAK
+#   "...&& !variable.o_sey"
+# yoksa oyuncunun kendi bedeni O Sey'in icinde kalirdi.
+#
+# DIKKAT -- BU PAKET AYRI TUTULUYOR. Iki sebep:
+#   1. player.entity.json'u ezen IKI paket ayni anda calisamaz;
+#      ustteki kazanir. Kullanici referans modlardan birini de
+#      acarsa biri digerini bastirir -- ayri paket olunca
+#      hangisinin kapanacagi TEK dokunusla secilebiliyor.
+#   2. Dosya oyunun surumune bagli (icinde vanilla animasyon
+#      adlari var). Bozarsa sadece bu paket kapatilir, modun
+#      geri kalani calismaya devam eder.
+OMP = "/home/user/kanal-sitesi/addon/Simsek_Oyuncu_Modeli"
+OMP_TABAN = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                         "oyuncu_modeli_taban")
+OMP_UUID_BAS = "c1f0a4d7-9b62-4f8e-9a31-2d6b8f4c7e05"
+OMP_UUID_MOD = "6e2b91c4-3d57-4a10-8f7d-b53e19a06c88"
+# Esyanin kimligi. get_equipped_item_name AD ALANINI ATIYOR
+# (belgede ve referans paketlerde boyle: 'pa:ilkel_asa' -> 'ilkel_asa'),
+# o yuzden molang'de karsilastirilan metin ON EKSIZ.
+MASKE_ESYA = "o_sey_maskesi"
+MASKE_TR   = "O Şey Maskesi"
+MASKE_EN   = "That Thing Mask"
+
 SKP = "/home/user/kanal-sitesi/addon/Simsek_Skin"
 SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 SKIN_PAKET_AD = "Şimşek Skinleri"
@@ -2358,6 +2405,162 @@ def o_sey_kilik_varligi():
     }
 
 
+def oyuncu_modeli_paketi(surum):
+    """OYUNCUNUN KENDI MODELINI O SEY YAPAN paket.
+
+    Taban dosya (oyuncu_modeli_taban/player.entity.json) vanilla
+    oyuncu tanimidir; referans paketten alinip onlarin kendi
+    ekleri TEMIZLENEREK saklandi. Elle yazilmadi -- icinde
+    ~70 satir vanilla molang ve ~70 animasyon adi var, biri
+    kaysa oyuncu cizimi bozulurdu.
+
+    Buraya eklenen SADECE dort sey:
+      1. geometry.o_sey  + dokusu
+      2. variable.o_sey  (elde ya da yan elde maske var mi)
+      3. controller.render.o_sey
+      4. vanilla ucuncu sahis denetleyicisine "&& !variable.o_sey"
+
+    Dorduncusu kritik: onsuz oyuncunun kendi bedeni O Sey'in
+    icinde kalirdi.                                              """
+    import copy, shutil
+    taban = os.path.join(OMP_TABAN, "player.entity.json")
+    if not os.path.exists(taban):
+        print("UYARI: oyuncu modeli tabani yok (%s), paket uretilmedi" % taban)
+        return False
+
+    with open(taban, encoding="utf-8") as f:
+        v = json.load(f)
+    d = v["minecraft:client_entity"]["description"]
+
+    # 1. Ek geometri ve doku
+    d.setdefault("geometry", {})["o_sey"] = "geometry.o_sey"
+    d.setdefault("textures", {})["o_sey"] = "textures/entity/" + SEY_DOKU
+
+    # 2. Tetik. IKI yuva da sinaniyor: yan el ana eli bos birakir
+    #    ama her surumde ayni davranmayabilir; ana el kesin
+    #    calisiyor (referans paketlerin hepsi onu kullaniyor).
+    tetik = ("variable.o_sey = query.get_equipped_item_name('main_hand') == '%s'"
+             " || query.get_equipped_item_name('off_hand') == '%s';"
+             % (MASKE_ESYA, MASKE_ESYA))
+    d["scripts"]["pre_animation"].append(tetik)
+
+    # 3. + 4. Denetleyiciler
+    yeni_rc = []
+    for kayit in d["render_controllers"]:
+        if isinstance(kayit, dict):
+            kayit = copy.deepcopy(kayit)
+            for ad in list(kayit):
+                # Ucuncu sahis (ve izleyici hali): donusukken KAPAT
+                if "third_person" in ad:
+                    kayit[ad] = kayit[ad] + " && !variable.o_sey"
+        yeni_rc.append(kayit)
+    # Kendi denetleyicimiz EN SONA: sira cizim sirasi.
+    yeni_rc.append({
+        "controller.render.o_sey":
+            "variable.o_sey && !variable.is_first_person && !variable.map_face_icon"
+    })
+    d["render_controllers"] = yeni_rc
+
+    # 5. Fazladan dort kolun salinimi. Vanilla oyuncu
+    #    animasyonlari head/body/rightArm/leftArm/rightLeg/leftLeg
+    #    kemiklerini adiyla suruyor -- bizim model o adlari
+    #    kullandigi icin yuruyus BEDAVA geliyor. Yatay dort kol
+    #    vanilla'da olmadigi icin kendi animasyonumuz gerekiyor.
+    d["animations"]["o_sey_kollar"] = "animation.o_sey.yuru"
+    d["scripts"]["animate"].append({"o_sey_kollar": "variable.o_sey"})
+
+    yaz_json(os.path.join(OMP, "entity/player.entity.json"), v)
+
+    # Denetleyici: referans paketteki sp_m_bobby_gun'in BIREBIR
+    # ayni bicimi.
+    yaz_json(os.path.join(OMP, "render_controllers/o_sey.render_controllers.json"), {
+        "format_version": "1.8.0",
+        "render_controllers": {
+            "controller.render.o_sey": {
+                "geometry": "Geometry.o_sey",
+                "textures": ["Texture.o_sey"],
+                "materials": [{"*": "Material.default"}],
+            }
+        },
+    })
+
+    # Paket KENDI KENDINE YETSIN: geometri, doku ve animasyon
+    # burada da duruyor. Ana kaynak paketi kapatilsa bile
+    # donusum calisir; ustelik iki kopya da URETILDIGI icin
+    # ayrisma ihtimali yok.
+    yaz_json(os.path.join(OMP, "models/entity/o_sey.geo.json"), o_sey_geometrisi())
+    yaz_json(os.path.join(OMP, "animations/o_sey.animation.json"), SEY_ANIM)
+    kaynak_doku = os.path.join(RP, "textures/entity/%s.png" % SEY_DOKU)
+    hedef_doku = os.path.join(OMP, "textures/entity/%s.png" % SEY_DOKU)
+    if os.path.exists(kaynak_doku):
+        os.makedirs(os.path.dirname(hedef_doku), exist_ok=True)
+        shutil.copyfile(kaynak_doku, hedef_doku)
+
+    yaz_json(os.path.join(OMP, "manifest.json"), {
+        "format_version": 2,
+        "header": {
+            "name": "Şimşek Oyuncu Modeli (O Şey)",
+            "description": ("Maskeyi eline al, O Şey ol. AYRI paket: "
+                            "player.entity.json'u ezen baska bir paketle "
+                            "birlikte calismaz, sorun cikarsa yalniz bunu kapat."),
+            "uuid": OMP_UUID_BAS,
+            "version": surum,
+            "min_engine_version": [1, 20, 0],
+        },
+        "modules": [{
+            "type": "resources",
+            "uuid": OMP_UUID_MOD,
+            "version": surum,
+        }],
+    })
+    png_yaz(os.path.join(OMP, "pack_icon.png"), 64, 64, paket_ikonu((10, 10, 13)))
+    return True
+
+
+def maske_esyasi():
+    """Donusumu tetikleyen esya.
+
+    Bir SILAH degil, bir ANAHTAR: hasari yok, dayanikliligi yok.
+    Yan ele de konabiliyor (allow_off_hand) -- boylece ana elin
+    bos kalir ve kilic/kazma kullanmaya devam edersin.          """
+    return {
+        "format_version": "1.21.0",
+        "minecraft:item": {
+            "description": {
+                "identifier": "pa:" + MASKE_ESYA,
+                "menu_category": {"category": "equipment"},
+            },
+            "components": {
+                "minecraft:icon": {"texture": MASKE_ESYA},
+                "minecraft:display_name": {"value": MASKE_TR},
+                "minecraft:max_stack_size": 1,
+                "minecraft:hand_equipped": True,
+                # Yan el: ana el bos kalsin diye. Molang tetigi
+                # iki yuvayi da sinliyor.
+                "minecraft:allow_off_hand": True,
+            },
+        },
+    }
+
+
+def maske_ikonu():
+    """Esya ikonu: O Sey dokusunun KENDI YUZU.
+
+    Uydurma bir cizim degil -- modelin kafasinin on yuzu
+    (uv 8,8 - 15,15) buyutulup ikon yapiliyor. Skin degisirse
+    ikon da kendiliginden degisir.                              """
+    try:
+        from PIL import Image
+    except ImportError:
+        return None
+    kaynak = os.path.join(RP, "textures/entity/%s.png" % SEY_DOKU)
+    if not os.path.exists(kaynak):
+        return None
+    im = Image.open(kaynak).convert("RGBA")
+    yuz = im.crop((8, 8, 16, 16)).resize((16, 16), Image.NEAREST)
+    return yuz
+
+
 def o_sey_kilik_istemci_varligi():
     """Kilik ile O Sey AYNI geometriyi ve AYNI dokuyu kullaniyor:
     ikisinin ayrisma ihtimali yok, cunku iki dosya degil ayni
@@ -3650,6 +3853,22 @@ def main():
     yaz_json(os.path.join(BP, "entities/o_sey_kilik.json"), o_sey_kilik_varligi())
     yaz_json(os.path.join(RP, "entity/o_sey_kilik.entity.json"),
              o_sey_kilik_istemci_varligi())
+
+    # ---- MASKE + OYUNCU MODELI PAKETI (v4.90) ----
+    # Asil donusum: oyuncunun KENDI modeli degisiyor.
+    yaz_json(os.path.join(BP, "items/%s.json" % MASKE_ESYA), maske_esyasi())
+    _mk = maske_ikonu()
+    if _mk is not None:
+        _my = os.path.join(RP, "textures/item/%s.png" % MASKE_ESYA)
+        os.makedirs(os.path.dirname(_my), exist_ok=True)
+        _mk.save(_my)
+    dokular[MASKE_ESYA] = {"textures": "textures/item/" + MASKE_ESYA}
+    for liste, ad in ((en_us, MASKE_EN), (tr_tr, MASKE_TR)):
+        liste.append("item.pa:%s.name=%s" % (MASKE_ESYA, ad))
+        liste.append("item.pa:%s=%s" % (MASKE_ESYA, ad))
+    _surum = json.load(open(os.path.join(BP, "manifest.json"),
+                            encoding="utf-8"))["header"]["version"]
+    oyuncu_modeli_paketi(_surum)
     yaz_json(os.path.join(RP, "models/entity/o_sey.geo.json"), o_sey_geometrisi())
     yaz_json(os.path.join(RP, "animations/o_sey.animation.json"), SEY_ANIM)
     _sey_doku = o_sey_dokusu(SEY_SKIN_KAYNAK)
@@ -3970,6 +4189,8 @@ def main():
     # temizlik adimi her uretimde siliyor ve varlik mor-siyah
     # ciziliyor -- ayni tuzak dorduncu kez.
     beklenen.add(SEY_DOKU)
+    # v4.90: maskenin ikonu da hicbir listede degil
+    beklenen.add(MASKE_ESYA)
     # Silahlar da hicbir listede degil (v4.48). Bu satir
     # unutuldugunda temizlik adimi baltayi HER uretimde
     # siliyordu: esya yaziliyor, atlas kaydi kaliyor, dosya

@@ -4767,6 +4767,132 @@ sahte varlığın `teleport()`'una **rotation** kaydı.
 
 ---
 
+## Aşama — gerçek oyuncu modeli: yöntem bulundu (v4.90)
+
+Kullanıcı v4.89'un kılık çözümüne razı olmadı ve haklıydı:
+
+> *"ama kanka bunu yapıyorlar mobilde nasıl yapıyorlar… bir tane mod
+> yüklemiştim sen orada var demiştin, onu yapacağız, kararlıyım. Elimizden
+> gelen tüm yolları deneyeceğiz."*
+
+**Yöntem var, ve kanıtı kullanıcının kendi yüklediği modların içindeydi.**
+
+### Yöntem: `player.entity.json`'u ezmek
+
+Skin paketi değil — **oyuncunun istemci tanımı**. Dört ayrı referans pakette
+aynı üçlü kalıp bulundu:
+
+| paket | ne ekliyor |
+|---|---|
+| `ses/Boralo Mod V2` | `geometry.sp_m_bobby_gun` |
+| `boralo_canli/YeniBoraLoV3_RP` | `geometry.elharkos`, `geometry.dirt_staff` |
+| `yeni_modlar/GuneyLo_Nitroxin` | üç ayrı lazer geometrisi |
+| `yeni_modlar/DistortedB` | aynısı |
+
+Kalıp:
+
+```jsonc
+// 1. ek geometri
+"geometry": { "default": "geometry.humanoid.custom", "elharkos": "geometry.elharkos" }
+
+// 2. tetik — pre_animation
+"variable.elharkos = query.get_equipped_item_name('main_hand') == 'elharkos';"
+
+// 3. çizim
+"render_controllers": [ … , { "controller.render.elharkos": "variable.elharkos" } ]
+```
+
+Bunlar **resmî istemcide, tablette çalışıyor** — kullanıcı bu paketleri kendi
+cihazında çalıştırdı. Yani "mobilde nasıl yapıyorlar" sorusunun cevabı bu.
+
+### Bizim farkımız: bir adım daha gerekiyordu
+
+Referans paketler oyuncuya **bir şey ekliyor** (asa, silah). Biz **gövdeyi
+değiştiriyoruz**, dolayısıyla vanilla üçüncü şahıs denetleyicisini
+**kapatmak** zorundayız:
+
+```
+"controller.render.player.third_person": "… && !variable.o_sey"
+```
+
+Bu satır olmadan oyuncunun kendi bedeni O Şey'in içinde kalırdı — "iki
+bedenli" görünürdün ve sebebi tabletten anlaşılmazdı. Test bunu ayrıca
+tutuyor: **üçüncü şahıs denetleyicilerinin hepsi** kapatılmış olmalı (izleyici
+varyantı dâhil).
+
+Birinci şahıs **ellenmedi**: kendi kolunu görmeye devam etmelisin.
+
+### Ad alanı tuzağı
+
+`query.get_equipped_item_name` **ad alanını atıyor** — belgede yazıyor ve
+referans paketler de öyle kullanıyor (`'elharkos'`, `'m_bobby_gun'`,
+`'dirt_staff'`). Eşya `pa:o_sey_maskesi` ama molang `o_sey_maskesi` görüyor.
+`'pa:'` yazılsaydı koşul **hiç tutmazdı** ve oyunda "maskeyi aldım ama bir şey
+olmuyor" derdin. Test bunu kilitliyor.
+
+### Taban dosya elle yazılmadı
+
+`player.entity.json` içinde ~70 satır vanilla molang ve ~70 animasyon adı var;
+biri kaysa oyuncu çizimi bozulur. Taban referans paketten alındı, **onların
+kendi ekleri temizlendi** (`oyuncu_modeli_taban/`), üreteç sadece dört şey
+ekliyor. Test referans eklerinin sızmadığını da sınıyor — sızsaydı bizde
+olmayan dokuları arardı.
+
+### Ayrı paket — bilinçli
+
+`Simsek_Oyuncu_Modeli` **ayrı bir kaynak paketi**. İki sebep:
+
+1. `player.entity.json`'u ezen **iki paket aynı anda çalışamaz**; üstteki
+   kazanır. Kullanıcı referans modlardan birini de açarsa biri diğerini
+   bastırır — ayrı paket olunca hangisinin kapanacağı tek dokunuşla seçilir.
+2. Dosya oyunun sürümüne bağlı. Bozarsa yalnız bu paket kapatılır, modun geri
+   kalanı çalışmaya devam eder.
+
+Paket **kendi kendine yetiyor**: geometri, doku ve animasyon içinde de var
+(ikisi de üretiliyor, ayrışamazlar — test bayt bayt karşılaştırıyor).
+
+### Yürüyüş bedava geldi
+
+Vanilla oyuncu animasyonları `head/body/rightArm/leftArm/rightLeg/leftLeg`
+kemiklerini **adıyla** sürüyor. Modelimiz o adları kullandığı için yürüyüş,
+saldırı, eğilme hepsi kendiliğinden çalışıyor. Yatay dört kol vanilla'da
+olmadığı için onlara kendi animasyonumuz bağlandı, `variable.o_sey` ile
+kapılı.
+
+### Tetik: maske
+
+`pa:o_sey_maskesi` — bir silah değil, bir **anahtar**: hasarı yok,
+dayanıklılığı yok. `allow_off_hand` açık, yani **yan ele** koyabilirsin ve ana
+elin boş kalır. Molang iki yuvayı da sınıyor. İkonu uydurma değil: O Şey
+dokusunun **kendi yüzü** (uv 8,8–15,15) büyütülüyor, skin değişirse ikon da
+değişir.
+
+### Eski yol silinmedi
+
+v4.89'un **kılığı duruyor**. Bu paket çakışırsa ya da oyunun sürümü tutmazsa
+geri dönülecek yol o. Kullanıcı "elimizden gelen tüm yolları deneyeceğiz"
+dedi; iki yol da elde.
+
+### Denenen ve elenen yollar
+
+| yol | neden olmadı |
+|---|---|
+| **Skin paketine özel geometri** | Mojang kaldırdı; `skins.json` sadece `humanoid.custom`/`customSlim` kabul ediyor. Yazmak paketin tamamını içeri aktarılamaz hale getirip **birinci skini de** götürebilirdi |
+| **Script'ten oyuncu modeli** | `@minecraft/server`'da öyle bir API yok |
+| **Attachable ile gövde** | Oyuncunun kendi bedeni içeride kalıyor; z-fighting (kollar tam aynı yerde) |
+| **Kılık varlığı** (v4.89) | Çalışıyor ama görünmezlik gerektiriyor, elindeki eşya havada süzülüyor — **yedek olarak duruyor** |
+| **`player.entity.json` ezmek** | ✅ **bu** |
+
+### Test — `oyuncu_modeli.mjs` (8 bölüm)
+
+Taban vanilla mı · ek geometri/doku bağlı mı ve pakette mi · tetik ad alansız
+mı ve iki yuvayı da sınıyor mu · **üçüncü şahıs denetleyicilerinin hepsi**
+kapatılmış mı, birinci şahıs ellenmemiş mi · dört kol animasyonda mı ve vanilla
+kemik adları korunmuş mu · maske eşyası doğru mu (atlas kaydı + temizlik
+listesi dâhil) · paket ayrı ve UUID'ler benzersiz mi · eski yol duruyor mu.
+
+---
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:

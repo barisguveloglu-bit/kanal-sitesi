@@ -92,6 +92,9 @@
     "goz_element_lazer": {
       "textures": "textures/item/goz_element_lazer"
     },
+    "o_sey_maskesi": {
+      "textures": "textures/item/o_sey_maskesi"
+    },
     "ilkel_balta": {
       "textures": "textures/item/ilkel_balta"
     },

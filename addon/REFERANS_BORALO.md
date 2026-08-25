@@ -81,7 +81,7 @@ ve *mekanik fikirler*. Her fikir Bedrock'a yeniden yazılıyor.
 | **8 özel boyut** (Blood Sky, Paradox, Codeman's Universe…) | Bedrock'ta custom dimension **script'ten yapılamaz**. Nether/End'i yeniden temalamak dışında yolu yok |
 | **8 özel biyom** | boyutlara bağlı; ayrıca biyom eklemek deneysel ayar istiyor |
 | **`mpm url @p <skin>`** | MorePlayerModels'e bağlı, Bedrock'ta oyuncu skini script'ten değiştirilemez |
-| **Oyuncu modelini değiştirmek** (altı kollu skin vb.) | Mojang skin paketlerinde **özel geometriyi kaldırdı**; `skins.json` yalnızca `geometry.humanoid.custom` / `customSlim` kabul ediyor. Dolaşan "4D skin"ler Marketplace imzalı ya da yamalı istemci istiyor. **Çözümümüz KILIK** (v4.89): oyuncu görünmez olur, yerine varlık çizilir |
+| **Skin paketiyle özel geometri** | Mojang kaldırdı; `skins.json` yalnızca `geometry.humanoid.custom` / `customSlim` kabul ediyor. Dolaşan "4D skin"ler Marketplace imzalı ya da yamalı istemci istiyor |
 | **`cast ebwizardry:petrify`** | Wizardry modunun büyü sistemi; taşa çevirmeyi biz kendi yolumuzla yaptık |
 | **Java `/fill`, `/setblock` zincirleri** | Bedrock'ta çalışır ama bütçesiz; biz iş kuyruğuna çeviriyoruz |
 | **Özel GUI** (`GuiReinforcedDirtArmGUI`) | Bedrock'ta form API'si var ama Java GUI'si taşınmaz; menümüz zaten var |
@@ -117,6 +117,23 @@ effect @p clear boralo_mod:fallen
 ```
 summon boralo_mod:bobby_bot_steve ~ ~ ~ {Owner:"<oyuncu>"}
 ```
+
+**Oyuncunun kendi modelini değiştirmek** (v4.90'da çözüldü — referansın en değerli tekniği)
+
+Bu modun Bedrock paketleri `entity/player.entity.json`'u **eziyor** ve elindeki
+eşyaya göre oyuncuya fazladan geometri çizdiriyor. Dört pakette de aynı kalıp:
+
+```jsonc
+"geometry":    { "elharkos": "geometry.elharkos" }
+"pre_animation": "variable.elharkos = query.get_equipped_item_name('main_hand') == 'elharkos';"
+"render_controllers": [ { "controller.render.elharkos": "variable.elharkos" } ]
+```
+
+`get_equipped_item_name` **ad alanını atıyor** (`pa:x` → `x`) — bu tuzağa
+düşülürse koşul hiç tutmaz. Gövdeyi *değiştirmek* için bir adım daha gerekiyor:
+vanilla `third_person` denetleyicilerini `&& !variable.X` ile kapatmak.
+
+Bizde: `Simsek_Oyuncu_Modeli` paketi, taban dosya `oyuncu_modeli_taban/`.
 
 **Java model sınıfları — nasıl okunuyor** (v4.88'de kuruldu)
 
