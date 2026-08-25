@@ -1085,7 +1085,7 @@ def ilkel_taban_hasar(anahtar, hasar):
     Silahsiz kalirsa (birisi asasini alirsa) vurusu tabana
     duser -- bu dogru davranis, asa gercekten bir silah.     """
     silah_kimlik, _ad, _kaynak = ilkel_silahi(anahtar)
-    ek = ASA_HASAR if silah_kimlik == "ilkel_asa" else 0
+    ek = SILAH_HASARI.get(silah_kimlik, 0)
     return max(1, hasar - ek)
 
 
@@ -1157,11 +1157,30 @@ def ilkel_gruplari():
     return gruplar
 
 
-# Asanin oyuncunun elindeki vurus hasari (v4.83).
-# Kullanici: "normal vurusu da 14+ olsun."
-# 14 hasar = 7 KALP: elmas kilicin (7) iki kati.
-# ayarlar.js:ASA_HASAR bunun ikizi; test esitligi kilitliyor.
+# ---- SILAHLARIN VURUS HASARI (v4.83, v4.84) ----
+# Ikisi de bir sure "tamamen olu esya"ydi: minecraft:damage
+# bilesenleri yoktu, yani oyuncunun elinde YUMRUK kadar
+# vuruyorlardi (1 hasar). Kullanici ikisini de ayri ayri
+# bildirdi.
+#
+#   ASA   14 hasar =  7 kalp  (elmas kilicin iki kati)
+#   BALTA 16 hasar =  8 kalp  (netherite baltanin 1,6 kati)
+#
+# ayarlar.js'teki ikizleri var; test esitligi kilitliyor.
+#
+# DIKKAT -- BU SAYILAR MOBUN VURUSUNA EKLENIYOR. Bedrock'ta
+# elde tutulan esyanin damage'i taban vurusun USTUNE biniyor.
+# O yuzden varlik JSON'una yazilan sayi ILKEL tablosundakinden
+# silahin hasari kadar DUSUK (bkz. ilkel_taban_hasar).
 ASA_HASAR = 14
+BALTA_HASAR = 16
+
+# esya kimligi -> vurus hasari. Silahsiz bir uye eklenirse
+# burada yazmaz ve tabani oldugu gibi kalir.
+SILAH_HASARI = {
+    "ilkel_asa": ASA_HASAR,
+    "ilkel_balta": BALTA_HASAR,
+}
 
 
 def ilkel_silah_esyasi(kimlik, ad):
@@ -1196,10 +1215,30 @@ def ilkel_silah_esyasi(kimlik, ad):
         "minecraft:hand_equipped": True,
         "minecraft:allow_off_hand": False,
     }
-    if kimlik == "ilkel_asa":
-        bilesenler["minecraft:damage"] = ASA_HASAR
-        # Dayaniklilik YOK: bir patron asasi kullanildikca
+    if kimlik in SILAH_HASARI:
+        bilesenler["minecraft:damage"] = SILAH_HASARI[kimlik]
+        # Dayaniklilik YOK: patron silahi kullanildikca
         # kirilmamali. Bileseni hic yazmamak "sonsuz" demek.
+
+    # ---- BALTA GERCEKTEN BALTA OLSUN (v4.84) ----
+    # Kullanici "tamamen olu bir esya" dedi ve hasar tek
+    # eksigi degildi: balta ODUN DA KESMIYORDU, cunku
+    # minecraft:digger bileseni yoktu. Elinde balta gibi
+    # duran ama agaca vurunca yumruk kadar is goren bir sey.
+    #
+    # Hizlar netherite baltadan (9) bir tik yukari. Asaya
+    # kazma yetenegi VERILMEDI: o bir silah degil, bir asa.
+    if kimlik == "ilkel_balta":
+        bilesenler["minecraft:digger"] = {
+            "use_efficiency": True,
+            "destroy_speeds": [
+                # Yazim Microsoft belgelerindeki ornekle BIREBIR:
+                # {"speed": 6, "block": {"tags": "query.any_tag('wood')"}}
+                # 'wood' etiketi kutuk ve tahtayi birden kapsiyor.
+                {"block": {"tags": "query.any_tag('wood')"},
+                 "speed": 12},
+            ],
+        }
 
     return {
         "format_version": "1.21.0",

@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.83";
+export const SURUM = "v4.84";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -2266,6 +2266,39 @@ export const ASA_ESYA = "pa:ilkel_asa";
    yaziyor (kol_uret.py:ASA_HASAR); burasi testlerin ve menu
    metninin okudugu ikiz.                                      */
 export const ASA_HASAR = 14;
+
+/* ---- BALTA DA OLU BIR ESYAYDI (v4.84) ----
+   Kullanici: "ilkel baltada da ayni sorunlar... onda da ayni
+   sey var, yani tamamen olu bir esya. 16+ hasar vursun."
+
+   Hakliydi ve asadan bir eksigi daha vardi: baltanin
+   minecraft:digger bileseni de yoktu, yani ODUN BILE
+   KESMIYORDU. Elinde balta gibi duran ama agaca vurunca
+   yumruk kadar is goren bir sey.
+
+   16 hasar = 8 KALP. Netherite balta 10; bu onun 1,6 kati.
+   Asadan (14) yuksek olmasi bilincli: asanin gucu sayida
+   degil ZINCIRINDE (yere ser + mezar).
+
+   DORT UYE TASIYOR: Kajaros, Miskel, Raxxan, Okazor. Elde
+   tutulan silahin hasari mobun vurusuna EKLENDIGI icin
+   dordunun de varlik JSON'undaki tabani 16 dusuruldu --
+   oyunda gorulen sayi ILKEL_BESLI'deki sayinin AYNISI kaldi.
+   Bu hesap kol_uret.py:ilkel_taban_hasar'da, tek yerde.     */
+export const BALTA_HASAR = 16;
+
+/* Esya kimligi -> vurus hasari. ilkel.mjs bu tabloyu
+   kullanarak "taban + silah = ayardaki sayi" diye siniyor;
+   yeni bir silah eklenip buraya yazilmazsa test hemen
+   yakalar.                                                  */
+export const SILAH_HASARI = new Map([
+  [ASA_ESYA, ASA_HASAR],
+  ["pa:ilkel_balta", BALTA_HASAR],
+]);
+
+export function silahHasari(esyaKimligi) {
+  return SILAH_HASARI.get(esyaKimligi) || 0;
+}
 
 /* Her taramada elin bos olup olmadigina bakilsin mi. Dunya
    yeniden yuklenince ya da silah bir sekilde dusunce kendi

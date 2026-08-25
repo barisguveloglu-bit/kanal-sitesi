@@ -4230,6 +4230,50 @@ olduğunu (≥10) kontrol ediyor.
 
 ---
 
+## v4.84 — Balta da ölü bir eşyaydı
+
+Kullanıcı: *"ilkel baltada da aynı sorunlar… onda da aynı şey var, yani
+tamamen ölü bir eşya. 16+ hasar vursun."*
+
+Haklıydı ve baltanın asadan **bir eksiği daha** vardı:
+
+| eksik | sonuç |
+|---|---|
+| `minecraft:damage` yok | oyuncunun elinde vuruşu **yumruk kadardı (1)** |
+| `minecraft:digger` yok | **odun bile kesmiyordu** — balta gibi duran, ağaca vurunca yumruk kadar iş gören bir şey |
+
+İkisi de düzeltildi: **16 hasar (8 kalp)** — netherite baltanın 1,6 katı — ve
+`query.any_tag('wood')` üzerinden gerçek balta kazma hızı. Yazım Microsoft
+belgelerindeki örnekle birebir; komponent 1.20.30+ gerektiriyor, bizim
+`format_version` 1.21.0 karşılıyor.
+
+Asaya kazma yeteneği **verilmedi**: o bir silah, alet değil. Baltanın
+asadan (14) sert olması da bilinçli — asanın gücü sayıda değil **zincirinde**
+(yere ser + mezar).
+
+### Dört taşıyıcının sayısı kaymadı
+
+Balta Kajaros, Miskel, Raxxan ve Okazor'un elinde. Elde tutulan silahın
+hasarı mobun vuruşuna eklendiği için tabanları 16 düşürüldü:
+
+| üye | taban | + balta | = oyunda |
+|---|---|---|---|
+| Okazor | 84 | 16 | **100** |
+| Kajaros | 30 | 16 | **46** |
+| Raxxan | 26 | 16 | **42** |
+| Miskel | 12 | 16 | **28** |
+| El-Harkos | 14 | 14 (asa) | **28** |
+
+Hesap `kol_uret.py:ilkel_taban_hasar()`'da, tek yerde ve artık `SILAH_HASARI`
+tablosundan geneller. `ayarlar.js:silahHasari()` aynı tablonun ikizi.
+
+Testin bekçisi de değişti: eski kural *"silahta hiç hasar olmasın"*dı, yeni
+kural daha sıkı — **silahın hasarı ayardaki tabloda yazıyor olmalı.** Tabloya
+yazılmayan bir silaha hasar verilirse üyenin vuruşu sessizce şişer; korunan
+şey bu. Ayrıca her üye için "silahsız da ciddi mi" (taban ≥ 10) kontrolü var.
+
+---
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:
