@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.87";
+export const SURUM = "v4.88";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -2701,7 +2701,33 @@ export const ILKEL_OZELLIK = "simsek:ilkel";
    Bu liste ILKEL_BESLI'den TURETILIYOR, elle yazilmiyor. Yeni
    bir uye eklenip buraya eklenmeyi unutsaydi: bot menusu
    acilmaz, nisan ona kilitlenir, botlar birbirini doverdi.    */
-export const BOT_KIMLIKLER = new Set([BOT_KIMLIK]);
+/* ---------------- O SEY ("That Thing") ----------------  (v4.88)
+
+   Kullanici: "bunu yapabilir miyiz yani 6 tane kolu var bir tane
+   daha bedeni var... kendi skinimize gore detaylica bir arastirma
+   yap en iyisini yapmani istiyorum."
+
+   Model turkishminecraftlegends'in "That Thing"i. Geometrisi
+   referans modun jar'indan BYTECODE ile cozuldu (tahmin degil,
+   bkz. kol_uret.py: o_sey_geometrisi, jar_model_coz.py). Dokusu KENDI SKINIMIZ
+   (UzakAkraba_skin.png) -- istenen buydu.
+
+   Neden Ilkel Besli'ye eklenmedi: o liste kullanicinin tek tek
+   dogruladigi BES kisi. O Sey onlardan biri degil, ayri bir
+   efsane. Kimlik ayri, sayilari ayri; ama govdesi yine pa:bot
+   govdesi, yani defter/canta/teslim/bekle hepsi calisiyor.
+
+   Sayilar kol_uret.py'deki ikizleriyle esit olmali -- o_sey.mjs
+   ikisini karsilastiriyor.                                    */
+export const SEY_ACIK   = true;
+export const SEY_KIMLIK = "pa:o_sey";
+export const SEY_AD     = "O Şey";
+export const SEY_TAVAN  = 1;      // tek tane; kalabalik degil, efsane
+export const SEY_CAN    = 4400;   // 2200 kalp
+export const SEY_HASAR  = 60;     // 30 kalp / vurus
+export const SEY_BOY    = 2.75;   // blok -- carpisma kutusu boyu
+
+export const BOT_KIMLIKLER = new Set([BOT_KIMLIK, SEY_KIMLIK]);
 for (const t of ILKEL_BESLI.values()) {
   if (t.kimlik) BOT_KIMLIKLER.add(t.kimlik);
 }

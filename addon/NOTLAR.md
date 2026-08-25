@@ -4464,6 +4464,146 @@ seçilirken o dosyaya bakılır.
 
 ---
 
+## Aşama — O Şey ("That Thing"): altı kol, iki beden (v4.88)
+
+Kullanıcı: *"bunu yapabilir miyiz yani 6 tane kolu var bir tane daha bedeni var,
+detaylıca incele **kendi skinimize göre** detaylıca bir araştırma yap en iyisini
+yapmanı istiyorum."*
+
+Yapılabildi. Depoda **altıncı** özel varlık: `pa:o_sey`.
+
+### Geometri hafızadan değil, bytecode'dan çıkarıldı
+
+Kullanıcının kuralı: *"göl hafızandan yaparsan belki yanlış çıkabilir, bunu daha
+önceden yaşadık."* O yüzden referans modun jar'ı açıldı,
+
+```
+net.memir.boralo.mod.entity.EntityTRMCThatThing$Modelthatthingturkishmcl
+```
+
+sınıfı `javap -c -p` ile söküldü ve **bytecode'dan** çözüldü
+(`addon/jar_model_coz.py`). Java 1.12 `ModelRenderer` çağrıları:
+
+| çağrı | anlamı |
+|---|---|
+| `func_78793_a(FFF)` | `setRotationPoint` |
+| `ModelBox.<init>(…IIFFFIIIFZ)` | `addBox(u, v, x, y, z, w, h, d, ölçek, ayna)` |
+| `func_78792_a` | `addChild` |
+| `setRotationAngle(…FFF)` | kemik açısı (radyan) |
+
+Çıkan tablo — **14 kemik, 15 kutu**, doku 64×64 yani **düz oyuncu skini**:
+
+| kemik | pivot (Java) | kutu + boyut | uv |
+|---|---|---|---|
+| Head | 0, −12, 0 | −4,−8,−4 + 8×8×8 | 0,0 |
+| Body | 0, 0, 0 | −4,0,−2 + 8×**6**×4 | 16,16 |
+| Body | | −4,−12,−2 + 8×**12**×4 | 16,32 ← **ikinci beden** |
+| RightArm | −5, 2, 0 | −3,−2,−2 + 4×12×4 | 40,16 |
+| LeftArm | 5, 2, 0 | −1,−2,−2 + 4×12×4 | 32,48 |
+| RightLeg | −1.9, 12, 0 | −2,−6,−2 + 4×**18**×4 | 0,16 |
+| LeftLeg | 1.9, 12, 0 | −2,−6,−2 + 4×**18**×4 | 0,42 |
+| Left/RightMiddleArm | ±5, −3, 0 | çocuk kemik, **Z = ∓90°** | |
+| Left/RightUpperArm | ±5, −9, 0 | çocuk kemik, **Z = ∓90°** | |
+
+Tasarımın özeti: gövde 12 değil **18** uzun (6 alt + 12 üst), bacaklar 12 değil
+**18** uzun, kafa 12 birim yukarıda, dört fazladan kol ±90° döndürüldüğü için
+**yanlara yatay** çıkıyor. Toplam boy 44 birim = **2,75 blok**.
+
+### Java → Bedrock çevirisi de ölçüldü
+
+İki motorun veri uzayı arasındaki bağ tahmin edilmedi, **vanilla insansı
+modelin iki sürümü karşılaştırıldı**:
+
+```
+Java  ModelBiped.bipedRightArm : pivot(−5, 2, 0)  kutu(−3,−2,−2) → mutlak x[−8,−4] y[0,12]
+Bedrock rightArm               : pivot[−5, 22, 0] origin[−8, 12, −2]
+```
+
+Yani **x aynı · z aynı · uv aynı**, tek fark `y = 24 − y`.
+
+### Dönme işareti: iki bağımsız ölçüm
+
+Tek belirsiz nokta Bedrock'un `rotation` işaretiydi. İkisi de ölçüldü:
+
+1. **Tek tanık.** Elimizdeki Bedrock BoraLo paketindeki `dirt_staff.geo.json`
+   (elde tutulan asa). Düz okumada asa **ayakların altına** (y ≈ −8) düşüyor,
+   ters okumada **el hizasına** (y ≈ +8) oturuyor.
+2. **Toplu ölçüm.** Elimizdeki bütün Bedrock paketlerindeki **1184 dönmüş küp**
+   iki işaretle de döndürülüp ele olan uzaklığı ölçüldü:
+   **948 küp ters okumayı, 236 küp düz okumayı** destekledi.
+
+Sonuç kuralı: **dosyadaki `rotation` değeri, matematiksel sağ-el dönüşünün
+tersi.** Kural:
+
+```
+bedrock_dosya = [ −rx_java, +ry_java, +rz_java ]
+```
+
+Z'de çift olumsuzlama olduğu için Java'daki sayı **aynen** geçiyor (−90 sol,
++90 sağ). Doğrulama: dönmüş kutunun varacağı yer ayrıca **elle de** hesaplandı,
+ikisi tutuyor — kollar `x[3,15]` ve `x[−15,−3]`, yani gövdenin **dışına**.
+
+### Doku: kendi skinimizden türetildi (ve türetilmek zorundaydı)
+
+Model, oyuncu skininin **ikinci katman** (ceket/pantolon kaplaması) alanlarını
+örnekliyor:
+
+| ne | uv | skinimizde |
+|---|---|---|
+| üst beden | 16,32 | **0/384 dolu piksel** |
+| sağ bacağın alt 6 satırı | y 32–37 | **0/256** |
+| sol bacağın tamamı | 0,42 | **0/256** |
+
+`skin_uret.py` ikinci katmanı **bilerek** boş bırakıyor (*"aynı renkle
+doldurunca karakter şişmiş görünüyor"*). Yani doku olduğu gibi kullanılsaydı O
+Şey'in **üst bedeni ve sol bacağı oyunda görünmez** olurdu — ve sebebi hiç
+anlaşılmazdı.
+
+`kol_uret.py:o_sey_dokusu()` birinci katmanı bu alanlara kopyalıyor. Hiçbir renk
+elle yazılmıyor: skin değişirse doku kendiliğinden doğru kalır. Üst beden alt
+bedenin aynısı oluyor — *"bir tane daha bedeni var"* tam olarak bu.
+
+### Yürüyüş
+
+Yatay kollar **Y ekseninde** sallanıyor, X'te değil: ±90° dönmüş bir kol X'te
+sallansaydı kendi uzun ekseni etrafında döner, yani hiçbir şey olmazdı.
+Referans mod da Y kullanıyor (`field_78796_g = rotateAngleY`). Test bunu
+kilitliyor.
+
+### Gövde yine `pa:bot` gövdesi
+
+İlkel Beşli'de kurulan yolun aynısı: `botCagir` ile doğuyor, dolayısıyla defter,
+çanta, teslim, takip, bekle, savaş — hepsi çalışıyor. Yeni bir defter yazılmadı.
+v4.66 dersi de uygulandı: bileşen gruplarından `attack/health/movement`
+siliniyor, yoksa savaşa girer girmez normal bot sayılarına düşerdi.
+
+**Yeni kol açılmadı.** Kullanıcının kuralı: *"her şeyi kol yapma, kol israfını
+önle."* Menüde tek satır.
+
+### İlkel Beşli'ye karışmadı
+
+O liste kullanıcının **tek tek doğruladığı** beş kişi. O Şey ayrı bir efsane:
+kendi kimliği, kendi sayıları. Test `ILKEL_BESLI.size === 5` diye tutuyor.
+
+### Test — `o_sey.mjs` (8 bölüm)
+
+Kilitlenenler: altı kolun varlığı · dönüşün **uygulandığı** (4×12 kutu 12×4
+oluyor) · kolların gövdenin **dışına** baktığı · iki bedenin üst üste olduğu ·
+bacakların 18 uzun olduğu · çarpışma kutusunun model boyuyla aynı olduğu ·
+**hiçbir yüzün tamamen saydam olmadığı** (PNG elle çözülüyor, dışarı bağımlılık
+yok) · ayarlar.js ile varlık JSON'unun aynı şeyi söylediği · bileşen
+gruplarının istatistiği ezmediği · yatay kolların Y'de sallandığı · ve
+**ulaşılabilirlik** (v4.83 dersi: "çalışıyor mu" ile "ulaşılabiliyor mu" ayrı
+iki soru — kayıt → import → menü satırı zincirinin tamamı sınanıyor).
+
+### Oyunda bakılacak tek şey
+
+`SEY_KOL_ACI` (kol_uret.py). Dört fazladan kol gövdenin **içine** bakıyorsa
+işareti ters çevir, başka hiçbir yere dokunma. Ölçüm ters işareti 948'e 236
+destekliyor ama bu bir olasılık, kanıt değil.
+
+---
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:

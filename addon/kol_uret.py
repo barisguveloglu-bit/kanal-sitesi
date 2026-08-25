@@ -1927,6 +1927,331 @@ BOT_ANIM = {
 }
 
 
+# ================================================================
+#  O SEY  ("That Thing" / turkishminecraftlegends)      v4.88
+# ================================================================
+# Kullanici: "bunu yapabilir miyiz yani 6 tane kolu var bir tane
+# daha bedeni var... kendi skinimize gore detaylica bir arastirma
+# yap en iyisini yapmani istiyorum."
+#
+# ---- SAYILAR NEREDEN GELDI ----
+# TAHMIN YOK. Referans modun (ZabriStudios v2.1) jar'i acildi,
+#   net.memir.boralo.mod.entity.EntityTRMCThatThing
+#     $Modelthatthingturkishmcl
+# sinifi javap -c ile sokuldu ve BYTECODE'dan cozuldu
+# (scratchpad/trmc_coz.py). Java 1.12 ModelRenderer cagrilari:
+#   func_78793_a  = setRotationPoint
+#   ModelBox<init>= addBox(u, v, x, y, z, w, h, d, olcek, ayna)
+#   func_78792_a  = addChild
+#
+# Cikan Java tablosu (doku 64x64 = DUZ OYUNCU SKINI):
+#
+#   kemik           pivot          kutu(rel)+boyut       uv
+#   Head            0,-12,0        -4,-8,-4 + 8x8x8      0,0
+#   Body            0,0,0          -4,0,-2  + 8x6x4      16,16
+#   Body            0,0,0          -4,-12,-2+ 8x12x4     16,32   <- IKINCI BEDEN
+#   RightArm        -5,2,0         -3,-2,-2 + 4x12x4     40,16
+#   LeftArm          5,2,0         -1,-2,-2 + 4x12x4     32,48
+#   RightLeg        -1.9,12,0      -2,-6,-2 + 4x18x4     0,16    <- 18 UZUN
+#   LeftLeg          1.9,12,0      -2,-6,-2 + 4x18x4     0,42
+#   LeftMiddleArm    5,-3,0        (cocuk LeftArm_r1, Z=-90)
+#   LeftUpperArm     5,-9,0        (cocuk LeftArm_r2, Z=-90)
+#   RightMiddleArm  -5,-3,0        (cocuk RightArm_r2, Z=+90)
+#   RightUpperArm   -5,-9,0        (cocuk RightArm_r1, Z=+90)
+#
+# Tasarim ozeti: govde 18 uzun (6 alt + 12 UST), bacaklar 18
+# uzun, kafa 12 birim yukarida ve dort fazladan kol +-90 donuk
+# oldugu icin YANLARA YATAY cikiyor. Toplam boy 44 birim = 2,75
+# blok.
+#
+# ---- JAVA -> BEDROCK CEVIRISI ----
+# Iki motorun veri uzayi arasindaki bagi TAHMIN ETMEDIK, vanilla
+# insansi modelin iki surumunu KARSILASTIRDIK:
+#   Java  ModelBiped.bipedRightArm : pivot(-5,2,0) kutu(-3,-2,-2)
+#                                    -> mutlak x[-8,-4] y[0,12]
+#   Bedrock rightArm               : pivot[-5,22,0] origin[-8,12,-2]
+# Yani:  x AYNI · z AYNI · uv AYNI · y = 24 - y   (tek fark)
+#
+# ---- DONME ISARETI (olculdu, tahmin edilmedi) ----
+# Bedrock dosyasindaki "rotation" degeri, matematiksel sag-el
+# donusunun TERSI. Iki bagimsiz olcum:
+#   1) boralo_canli/.../dirt_staff.geo.json -- elde tutulan asa.
+#      Duz okumada asa ayaklarin ALTINA (y ~ -8) dusuyor; ters
+#      okumada tam el hizasina (y ~ +8) oturuyor.
+#   2) Elimizdeki BUTUN Bedrock paketlerindeki donmus kupler
+#      (1184 adet) iki isaretle de dondurulup ele olan uzakligi
+#      olculdu: 948 kup ters okumayi, 236 duz okumayi destekledi.
+# Sonuc kurali:  bedrock_dosya = [-rx_java, +ry_java, +rz_java]
+# Z icin cift olumsuzlama oldugu icin Java'daki sayi AYNEN
+# geciyor (-90 sol, +90 sag). Asagidaki origin degerleri bu
+# kuralla hesaplandi ve donmus kutunun varacagi yer AYRICA elle
+# de hesaplanip karsilastirildi (ikisi tutuyor).
+# Doku kaynagi KENDI SKINIMIZ: kullanicinin istegi buydu
+# ("kendi skinimize gore"). skin_uret.py'nin urettigi dosya.
+SEY_SKIN_KAYNAK = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                               "UzakAkraba_skin.png")
+SEY_KIMLIK = "pa:o_sey"
+SEY_AD     = "That Thing"
+SEY_TR     = "O Şey"
+SEY_DOKU   = "o_sey"
+SEY_CAN    = 4400      # 2200 kalp -- Ilkel Besli'nin en sertinden ustte
+SEY_HASAR  = 60        # 30 kalp / vurus
+SEY_HIZ    = 0.36
+SEY_BOY    = 2.75      # blok (44 birim / 16)
+SEY_EN     = 0.9
+
+# Fazladan kollarin acisi. TEK BELIRSIZ SAYI BU: oyunda kollar
+# govdenin ICINE dogru bakiyorsa isareti ters cevir, baska hicbir
+# yere dokunma.
+SEY_KOL_ACI = 90
+
+
+def o_sey_geometrisi():
+    """6 kollu, cift bedenli govde. Kemik adlari vanilla insansi
+    duzeninde (head/body/rightArm/...) -- yuruyus animasyonumuz
+    dogrudan oturuyor.
+
+    Fazladan dort kol iki katmanli: disardaki kemik SWING icin
+    (Java da onu donduruyordu, Y ekseninde), icerideki `_r` kemik
+    kolu yatay yapan sabit +-90 donusu tasiyor.                  """
+    def yatay_kol(ad, taban_ad, pivot_y, kutu_y, sag):
+        """Bir fazladan kol cifti: tasiyici kemik + donuk cocuk."""
+        isaret = SEY_KOL_ACI if sag else -SEY_KOL_ACI
+        x = -5 if sag else 5
+        cx = -4 if sag else 4
+        org_x = -7 if sag else 3
+        uv = [40, 16] if sag else [32, 48]
+        return [
+            {"name": ad, "parent": "body", "pivot": [x, pivot_y, 0]},
+            {"name": taban_ad, "parent": ad, "pivot": [cx, pivot_y, 0],
+             "rotation": [0, 0, isaret],
+             "cubes": [{"origin": [org_x, kutu_y, -2],
+                        "size": [4, 12, 4], "uv": uv}]},
+        ]
+
+    kemikler = [
+        # ---- GOVDE: iki kup ust uste = "bir tane daha beden" ----
+        # alt kup 6 uzun (16,16 = normal govde bolgesi)
+        # ust kup 12 uzun (16,32 = govde KAPLAMA bolgesi)
+        {"name": "body", "pivot": [0, 24, 0], "cubes": [
+            {"origin": [-4, 18, -2], "size": [8, 6, 4], "uv": [16, 16]},
+            {"origin": [-4, 24, -2], "size": [8, 12, 4], "uv": [16, 32]},
+        ]},
+        # Kafa 12 birim yukarida: ust bedenin tepesinde
+        {"name": "head", "parent": "body", "pivot": [0, 36, 0], "cubes": [
+            {"origin": [-4, 36, -4], "size": [8, 8, 8], "uv": [0, 0]},
+        ]},
+        # ---- ALT (normal) KOL CIFTI: bel hizasinda sarkiyor ----
+        {"name": "rightArm", "parent": "body", "pivot": [-5, 22, 0], "cubes": [
+            {"origin": [-8, 12, -2], "size": [4, 12, 4], "uv": [40, 16]},
+        ]},
+        {"name": "leftArm", "parent": "body", "pivot": [5, 22, 0], "cubes": [
+            {"origin": [4, 12, -2], "size": [4, 12, 4], "uv": [32, 48]},
+        ]},
+        # ---- BACAKLAR: 12 degil 18 uzun ----
+        {"name": "rightLeg", "parent": "body", "pivot": [-1.9, 12, 0], "cubes": [
+            {"origin": [-3.9, 0, -2], "size": [4, 18, 4], "uv": [0, 16]},
+        ]},
+        {"name": "leftLeg", "parent": "body", "pivot": [1.9, 12, 0], "cubes": [
+            {"origin": [-0.1, 0, -2], "size": [4, 18, 4], "uv": [0, 42]},
+        ]},
+    ]
+    # ---- DORT FAZLADAN KOL ----
+    # orta cift  y=27 · ust cift y=33
+    kemikler += yatay_kol("rightMiddleArm", "rightArm_r2", 27, 16, True)
+    kemikler += yatay_kol("rightUpperArm",  "rightArm_r1", 33, 22, True)
+    kemikler += yatay_kol("leftMiddleArm",  "leftArm_r1",  27, 16, False)
+    kemikler += yatay_kol("leftUpperArm",   "leftArm_r2",  33, 22, False)
+
+    return {
+        "format_version": "1.12.0",
+        "minecraft:geometry": [{
+            "description": {
+                "identifier": "geometry.o_sey",
+                "texture_width": 64,
+                "texture_height": 64,
+                # Kollar +-15 birime uzaniyor: gorunur kutu genis
+                # olmali, yoksa yandan bakinca kirpiliyor.
+                "visible_bounds_width": 3,
+                "visible_bounds_height": 3.5,
+                "visible_bounds_offset": [0, 1.5, 0],
+            },
+            "bones": kemikler,
+        }],
+    }
+
+
+# Yuruyus. Alt kol/bacak ciftleri normal botunkiyle ayni (X
+# ekseni). Fazladan dort kol YATAY oldugu icin onlarin salinimi
+# Y ekseninde -- referans mod da tam olarak boyle yapiyor
+# (func_78087_a icinde field_78796_g = rotateAngleY yaziyor).
+_SEY_FAZ = "math.cos(query.modified_distance_moved * 38.17%s) * %d * query.modified_move_speed"
+SEY_ANIM = {
+    "format_version": "1.8.0",
+    "animations": {
+        "animation.o_sey.yuru": {
+            "loop": True,
+            "bones": {
+                "rightLeg":       {"rotation": [_SEY_FAZ % ("", 40), 0, 0]},
+                "leftLeg":        {"rotation": [_SEY_FAZ % (" + 180", 40), 0, 0]},
+                "rightArm":       {"rotation": [_SEY_FAZ % (" + 180", 30), 0, 0]},
+                "leftArm":        {"rotation": [_SEY_FAZ % ("", 30), 0, 0]},
+                # Yatay kollar: Y ekseninde, ust ve orta cift ters faz
+                "rightUpperArm":  {"rotation": [0, _SEY_FAZ % (" + 180", 22), 0]},
+                "leftMiddleArm":  {"rotation": [0, _SEY_FAZ % (" + 180", 22), 0]},
+                "leftUpperArm":   {"rotation": [0, _SEY_FAZ % ("", 22), 0]},
+                "rightMiddleArm": {"rotation": [0, _SEY_FAZ % ("", 22), 0]},
+            },
+        }
+    },
+}
+
+
+def o_sey_dokusu(kaynak_yol):
+    """Kendi skinimizden (UzakAkraba_skin.png) O Sey dokusu uretir.
+
+    ---- NEDEN AYRI DOSYA GEREKIYOR ----
+    Modelin ornekledigi UC bolge oyuncu skininin IKINCI KATMAN
+    (ceket/pantolon kaplamasi) alanina dusuyor:
+
+        ust beden   uv(16,32)  -> govde KAPLAMASI
+        bacak alti  y 32..37   -> sag bacak KAPLAMASI
+        sol bacak   uv(0,42)   -> bacak KAPLAMA alani
+
+    skin_uret.py ikinci katmani BILEREK bos birakiyor ("ayni
+    renkle doldurunca karakter sismis gorunuyor"). Olculdu:
+    kaplama bolgelerinde dolu piksel sayisi 0/384, 0/256, 0/256.
+    Yani doku oldugu gibi kullanilsaydi O Sey'in UST BEDENI ve
+    SOL BACAGI oyunda GORUNMEZ olurdu.
+
+    Cozum: birinci katmani bu alanlara kopyalamak. Ust beden alt
+    bedenin aynisi oluyor -- "bir tane daha beden" tam olarak bu.
+
+    Skin degisirse burasi kendiliginde dogru kalir: hicbir renk
+    elle yazilmiyor, hepsi kaynaktan kopyalaniyor.               """
+    try:
+        from PIL import Image
+    except ImportError:
+        print("UYARI: PIL yok, O Sey dokusu uretilemedi")
+        return None
+    if not os.path.exists(kaynak_yol):
+        print("UYARI: O Sey icin skin bulunamadi (%s)" % kaynak_yol)
+        return None
+
+    im = Image.open(kaynak_yol).convert("RGBA")
+    if im.size != (64, 64):
+        print("UYARI: O Sey skini 64x64 degil (%s), atlaniyor" % (im.size,))
+        return None
+
+    def kopyala(kaynak, hedef, en, boy):
+        im.paste(im.crop((kaynak[0], kaynak[1],
+                          kaynak[0] + en, kaynak[1] + boy)), hedef)
+
+    # 1) UST BEDEN: govde blogunun tamami kaplama alanina
+    #    (24 genis x 16 yuksek = ust serit + dort yan yuz)
+    kopyala((16, 16), (16, 32), 24, 16)
+
+    # 2) SAG BACAK 18 uzun: yan yuzler y=20..37. Kaynakta 20..31
+    #    var; 32..37 icin 20..25 tekrarlaniyor (12'lik periyot).
+    kopyala((0, 20), (0, 32), 16, 6)
+
+    # 3) SOL BACAK bastan asagi kaplama alaninda (uv 0,42):
+    #    ust serit 4 satir, sonra 18 satir yan yuz.
+    kopyala((16, 48), (0, 42), 16, 4)      # ust/alt kapak
+    kopyala((16, 52), (0, 46), 16, 12)     # yan yuzler 46..57
+    kopyala((16, 52), (0, 58), 16, 6)      # 58..63 tekrar
+
+    return im
+
+
+def o_sey_varligi():
+    """Sunucu varligi. Ilkel Besli ile AYNI yol: normal botun
+    govdesi kopyalanip istatistikleri degistiriliyor. Boylece
+    defter, canta, teslim, takip, bekle -- hepsi calisiyor.
+
+    v4.66 dersi burada da gecerli: bilesen gruplari temel
+    bilesenleri EZIYOR. attack/health/movement gruplardan
+    siliniyor, yoksa savasa girer girmez normal bot sayilarina
+    dusuyor.                                                     """
+    import copy
+    v = copy.deepcopy(bot_sunucu_varligi())
+    govde = v["minecraft:entity"]
+    govde["description"]["identifier"] = SEY_KIMLIK
+
+    govde["components"]["minecraft:health"] = {"value": SEY_CAN, "max": SEY_CAN}
+    govde["components"]["minecraft:attack"] = {"damage": SEY_HASAR}
+    govde["components"]["minecraft:movement"] = {"value": SEY_HIZ}
+    govde["components"]["minecraft:knockback_resistance"] = {"value": 1.0}
+    # Carpisma kutusu modelin gercek boyu: 44 birim = 2,75 blok.
+    # Yanlis birakilirsa iki blokluk deliklerden gecip duvarin
+    # icinde kaliyor.
+    govde["components"]["minecraft:collision_box"] = {
+        "width": SEY_EN, "height": SEY_BOY}
+    govde["components"]["minecraft:follow_range"] = {
+        "value": ILKEL_AV_YARICAP, "max": ILKEL_AV_YARICAP}
+
+    for grup, ic in govde.get("component_groups", {}).items():
+        if grup == "pa:bekle":
+            continue
+        for bilesen in ("minecraft:attack", "minecraft:health",
+                        "minecraft:movement"):
+            ic.pop(bilesen, None)
+
+    # Saldirganlik: Ilkel Besli'nin aynisi, sadece "monster"
+    # ailesine. Koyun, inek, koylu guvende.
+    savas = govde["component_groups"].get("pa:savas")
+    if savas is not None:
+        savas["minecraft:behavior.nearest_attackable_target"] = {
+            "priority": 1,
+            "within_radius": ILKEL_AV_YARICAP,
+            "must_see": True,
+            "must_see_forget_ticks": ILKEL_AV_UNUTMA,
+            "reselect_targets": True,
+            "scan_interval": ILKEL_AV_TARAMA,
+            "entity_types": [{
+                "filters": {"test": "is_family", "subject": "other",
+                            "value": "monster"},
+                "max_dist": ILKEL_AV_YARICAP,
+            }],
+        }
+        m = savas.get("minecraft:behavior.melee_attack")
+        if m is not None:
+            m["speed_multiplier"] = ILKEL_SALDIRI_HIZ
+            m["track_target"] = True
+
+    # Tek gorunumu var: cesit gruplari ve rastgele secim anlamsiz
+    for i in range(BOT_CESIT):
+        govde["component_groups"].pop("pa:tip%d" % i, None)
+    dogum = govde["events"]["minecraft:entity_spawned"]["sequence"]
+    govde["events"]["minecraft:entity_spawned"]["sequence"] = [
+        adim for adim in dogum if "randomize" not in adim
+    ]
+    return v
+
+
+def o_sey_istemci_varligi():
+    """Ozel render controller YOK -- v4.28'de bot tam o yuzden
+    gorunmez olmustu. controller.render.default + tek doku.     """
+    return {
+        "format_version": "1.10.0",
+        "minecraft:client_entity": {
+            "description": {
+                "identifier": SEY_KIMLIK,
+                "materials": {"default": "entity_alphatest"},
+                "textures": {"default": "textures/entity/" + SEY_DOKU},
+                "geometry": {"default": "geometry.o_sey"},
+                "render_controllers": ["controller.render.default"],
+                "spawn_egg": {
+                    "base_color": "#0a0a0d",     # skinin govde siyahi
+                    "overlay_color": "#4aedd9",  # skinin damar turkuazi
+                },
+                "scripts": {"animate": ["yuru"]},
+                "animations": {"yuru": "animation.o_sey.yuru"},
+            }
+        },
+    }
+
+
 def bot_dokusu(cesit):
     """64x64, vanilla skin duzeni. Gercek bir Minecraft skini ile
     degistirmek istersen aynen uzerine yaz -- UV birebir ayni.
@@ -3176,6 +3501,22 @@ def main():
         elif not os.path.exists(hedef):
             # Skin bulunamadi: sessiz kalma, yoksa uye mor-siyah cizilir
             print("UYARI: %s skini bulunamadi (%s)" % (anahtar, kaynak))
+
+    # ---- O Sey: 6 kol + cift beden (v4.88) ----
+    yaz_json(os.path.join(BP, "entities/o_sey.json"), o_sey_varligi())
+    yaz_json(os.path.join(RP, "entity/o_sey.entity.json"), o_sey_istemci_varligi())
+    yaz_json(os.path.join(RP, "models/entity/o_sey.geo.json"), o_sey_geometrisi())
+    yaz_json(os.path.join(RP, "animations/o_sey.animation.json"), SEY_ANIM)
+    _sey_doku = o_sey_dokusu(SEY_SKIN_KAYNAK)
+    _sey_hedef = os.path.join(RP, "textures/entity/%s.png" % SEY_DOKU)
+    if _sey_doku is not None:
+        os.makedirs(os.path.dirname(_sey_hedef), exist_ok=True)
+        _sey_doku.save(_sey_hedef)
+    elif not os.path.exists(_sey_hedef):
+        print("UYARI: O Sey dokusu uretilemedi -- varlik mor-siyah cizilir")
+    for liste, ad in ((en_us, SEY_AD), (tr_tr, SEY_TR)):
+        liste.append("entity.%s.name=%s" % (SEY_KIMLIK, ad))
+        liste.append("item.spawn_egg.entity.%s.name=%s Yumurtası" % (SEY_KIMLIK, ad))
     # Her uyenin DONANIM ganimet tablosu (v4.59). Vanilla
     # zombinin kilic almasiyla ayni yol; dogusta calisiyor.
     for _anahtar, _ad, _c, _h, _sec in ILKEL:
@@ -3421,6 +3762,10 @@ def main():
     # Ilkel Besli dokulari da listelerde degil (v4.35)
     for _anahtar, _ad, _can, _hasar, _sec in ILKEL:
         beklenen.add("ilkel_" + _anahtar)
+    # O Sey'in dokusu de hicbir listede degil (v4.88). Unutulursa
+    # temizlik adimi her uretimde siliyor ve varlik mor-siyah
+    # ciziliyor -- ayni tuzak dorduncu kez.
+    beklenen.add(SEY_DOKU)
     # Silahlar da hicbir listede degil (v4.48). Bu satir
     # unutuldugunda temizlik adimi baltayi HER uretimde
     # siliyordu: esya yaziliyor, atlas kaydi kaliyor, dosya

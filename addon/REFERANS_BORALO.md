@@ -43,6 +43,7 @@ ve *mekanik fikirler*. Her fikir Bedrock'a yeniden yazılıyor.
 | Resetting Sword | v4.86 | `gamemode spectator` + alan temizliği |
 | Taşa çevirme | v4.86 | süreli + Freedom Stone ile kırılır |
 | Silah sistemi | v4.87 | 6 silah, mermi + bekleme + ışın taraması |
+| **O Şey** (That Thing) | v4.88 | 6 kol + çift beden; geometri jar'ın bytecode'undan çözüldü, doku kendi skinimizden türetildi |
 | Hiperoksin ailesi | v4.x | iksir hiyerarşisi bu moddan doğdu |
 | Bobby Bot | v4.22+ | bizim bot sisteminin atası |
 | Toprak Kol | v3.x | `reinforced_arm` |
@@ -71,7 +72,7 @@ ve *mekanik fikirler*. Her fikir Bedrock'a yeniden yazılıyor.
 | **Realm Stone**'lar (7 tane) | her biri bir varlığı çağırıyor; bot sistemi hazır |
 | **Bloody Altar** | çok bloklu yapı + ritüel; efsane yapısı kodumuz benzer |
 | **74 `.nbt` yapısı** | Bedrock `.mcstructure` istiyor, format farklı — elle yeniden çizmek gerekir |
-| **178 varlık** | teknik olarak hepsi mümkün (İlkel Beşli beş tanesini yaptı), ama her biri: skin + varlık JSON + istemci tanımı + davranış |
+| **178 varlık** | teknik olarak hepsi mümkün (İlkel Beşli beşini, O Şey altıncısını yaptı) ve model artık **elle ölçülmüyor** — `trmc_coz.py` sınıfın bytecode'unu okuyup geometriyi çıkarıyor. Her biri yine: doku + varlık JSON + istemci tanımı + davranış |
 
 ### 🔴 Zor ya da imkânsız
 
@@ -115,6 +116,31 @@ effect @p clear boralo_mod:fallen
 ```
 summon boralo_mod:bobby_bot_steve ~ ~ ~ {Owner:"<oyuncu>"}
 ```
+
+**Java model sınıfları — nasıl okunuyor** (v4.88'de kuruldu)
+
+Modun 178 varlığının modeli `ModelBase` alt sınıflarında, kurucu içinde
+gömülü. `javap -c -p <sınıf>` çıktısındaki çağrılar:
+
+| çağrı | anlamı |
+|---|---|
+| `func_78793_a(FFF)` | `setRotationPoint(x, y, z)` |
+| `ModelBox.<init>(…IIFFFIIIFZ)` | `addBox(u, v, x, y, z, w, h, d, ölçek, ayna)` |
+| `func_78792_a` | `addChild` |
+| `func_78795_f/78796_g/78808_h` | `rotateAngleX / Y / Z` (radyan) |
+| `func_78087_a` | `setRotationAngles` — yürüyüş animasyonu |
+
+Çözücü betik: **`addon/jar_model_coz.py`**. **Yeni bir varlık taşınacaksa
+sınıfın adını verip aynı betiği çalıştırmak yeterli** — model elle
+ölçülmüyor, hafızadan yazılmıyor.
+
+**Java → Bedrock çevirisi** (ölçüldü, bkz. `NOTLAR.md` v4.88)
+```
+konum   : x aynı · z aynı · uv aynı · y = 24 - y
+dönme   : bedrock_dosya = [ -rx_java, +ry_java, +rz_java ]
+```
+Bedrock'un `rotation` değeri matematiksel sağ-el dönüşünün TERSİ; bu
+elimizdeki paketlerdeki 1184 dönmüş küp üzerinde ölçüldü (948'e 236).
 
 **Silahlar** — hepsinin iskeleti aynı:
 ```

@@ -8,7 +8,7 @@ import {
   MENU_DOKUNUSLA, BOT_KIMLIK, KALP_ADIM, KALP_TAVAN, BETA_GEREKLI,
   SOHBET_ONEK, BOT_TAVAN, DERIN_HEDEFLER, DERIN_VARSAYILAN,
   DONDUR_GIRDI_KILIT, ILKEL_BESLI, ILKEL_ACIK, botTuruMu,
-  KILIC_ESYA
+  KILIC_ESYA, SEY_ACIK, SEY_AD, SEY_TAVAN
 } from "./ayarlar.js";
 
 import {
@@ -83,6 +83,7 @@ import "./yetenekler/bot_is.js";
 import "./yetenekler/bot_derin.js";
 import "./yetenekler/asa.js";
 import "./yetenekler/bot_ilkel.js";
+import "./yetenekler/o_sey.js";
 import "./yetenekler/bot_guc.js";
 
 /* DIKKAT -- SIRA ONEMLI.
@@ -140,6 +141,10 @@ import {
 import {
   ilkelHedefSec, ilkelHedefUnut, ilkelListesi, ilkelAdCoz, ozetle, rutbeSirasi
 } from "./yetenekler/bot_ilkel.js";
+
+/* O Sey ayri bir efsane, Ilkel Besli'nin uyesi degil -- ama
+   govdesi yine pa:bot govdesi (v4.88).                        */
+import { seySayisi } from "./yetenekler/o_sey.js";
 
 /* ============================================================
    MERKEZI TICK YONETICISI
@@ -516,6 +521,23 @@ function ilkelBaslat(oyuncu, anahtar) {
   return mesaj;
 }
 
+/* O Sey. Ilkel Besli'nin kalibinin aynisi -- tek fark secilecek
+   uye olmamasi: tek bir varlik var.                            */
+function seyBaslat(oyuncu) {
+  if (!SEY_ACIK) {
+    actionbarYaz(oyuncu, "§c" + SEY_AD + " kapalı (SEY_ACIK).");
+    return undefined;
+  }
+  if (yetenekTetikle(oyuncu, "o_sey")) return undefined;
+
+  const kalan = kalanBekleme(oyuncu.id);
+  const mesaj = kalan > 0
+    ? "§7" + SEY_AD + " §8· §c" + (kalan / 20).toFixed(1) + " sn bekle"
+    : "§7" + SEY_AD + " §8· §caktif işin dolu (" + AYNI_ANDA + ")";
+  actionbarYaz(oyuncu, mesaj);
+  return mesaj;
+}
+
 function menuEkleri(oyuncu) {
   const ekler = [];
 
@@ -631,6 +653,10 @@ function menuEkleri(oyuncu) {
       ad: "Bot: İLKEL BEŞLİ §8(" + ilkelListesi(oyuncu.id).length + "/" +
           ILKEL_BESLI.size + ")",
       calis() { ilkelMenusu(oyuncu); }
+    },
+    {
+      ad: "Bot: §fO ŞEY§r §8(6 kol · " + seySayisi(oyuncu.id) + "/" + SEY_TAVAN + ")",
+      calis() { seyBaslat(oyuncu); }
     },
     {
       ad: "Bot: simsek yagdir",
