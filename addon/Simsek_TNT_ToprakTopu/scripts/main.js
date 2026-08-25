@@ -8,7 +8,8 @@ import {
   MENU_DOKUNUSLA, BOT_KIMLIK, KALP_ADIM, KALP_TAVAN, BETA_GEREKLI,
   SOHBET_ONEK, BOT_TAVAN, DERIN_HEDEFLER, DERIN_VARSAYILAN,
   DONDUR_GIRDI_KILIT, ILKEL_BESLI, ILKEL_ACIK, botTuruMu,
-  KILIC_ESYA, SEY_ACIK, SEY_AD, SEY_TAVAN
+  KILIC_ESYA, SEY_ACIK, SEY_AD, SEY_TAVAN,
+  ZIRH_ACIK, ZIRH_MODLAR, ZIRH_PARCALAR, ZIRH_KORUMA
 } from "./ayarlar.js";
 
 import {
@@ -26,6 +27,14 @@ import { disTara } from "./yetenekler/disler.js";
 import { kilicKullan, kilicTara, kilicUnut } from "./yetenekler/kilic.js";
 import { tasTara, tasUnut } from "./yetenekler/tas.js";
 import { silahKullan, silahTara, silahUnut, silahiBul } from "./yetenekler/silahlar.js";
+
+/* Zirh Yukseltmesi (v4.91): takimi giyen oyuncuya secili modun
+   efektlerini veriyor. Kendi defteri var, is listesine girmiyor
+   -- kalp ve donusum defterlerindeki sebeple.                  */
+import {
+  zirhTara, zirhUnutOyuncu, modAl, modYaz, modListesi, takimVarMi,
+  takimParcalari
+} from "./yetenekler/zirh.js";
 
 /* Sohbet komutlari ("can 10", "lazer"...). Bu dosya main.js'i
    import etmiyor; komutlarin calistiracagi fonksiyonlar kanca
@@ -245,7 +254,10 @@ system.runInterval(() => {
   /* Donusum de oyuncu listesi istiyor; getAllPlayers yine TEK
      kez cagriliyor. Defter bosken kapiya hic girilmiyor.      */
   const kilikVar = donusukSayisi() > 0;
-  if (iksirVar || kalpVar || botVar || kilikVar) {
+  /* Zirh taramasi HER ZAMAN calismali: "takimi giydim ama bir
+     sey olmuyor" durumu ancak boyle onlenir. Kendi icinde
+     ucuz -- oyuncu takim giymiyorsa hemen donuyor.            */
+  if (iksirVar || kalpVar || botVar || kilikVar || ZIRH_ACIK) {
     let oyuncular;
     try {
       oyuncular = world.getAllPlayers();
@@ -281,6 +293,13 @@ system.runInterval(() => {
         donusumTara(oyuncular);
       } catch (e) {
         hataYaz("donusumTara", e);
+      }
+    }
+    if (ZIRH_ACIK) {
+      try {
+        zirhTara(oyuncular);
+      } catch (e) {
+        hataYaz("zirhTara", e);
       }
     }
   }
@@ -560,6 +579,67 @@ function seyBaslat(oyuncu) {
   return mesaj;
 }
 
+/* ZIRH YUKSELTMESI MENUSU  (v4.91)
+
+   Referans mod (Ionstrike / Max Steel) tek takim + bircok mod
+   olarak kurulmus; bizde de oyle. Ozet metinleri ayarlar.js'ten
+   URETILIYOR, burada elle yazilmiyor -- yeni bir mod eklenirse
+   menude kendiliginden dogru gorunur.                          */
+function zirhMenusu(oyuncu) {
+  if (!ZIRH_ACIK) {
+    actionbarYaz(oyuncu, "§cZırh Yükseltmesi kapalı (ZIRH_ACIK).");
+    return undefined;
+  }
+  const liste = modListesi(oyuncu.id);
+  const parca = takimParcalari(oyuncu);
+  const tam = parca === ZIRH_PARCALAR.length;
+
+  const dugmeler = liste.map((m) => ({
+    anahtar: m.anahtar,
+    ad: (m.secili ? "§a✔ " : "") + "§f" + m.ad +
+        "\n§8" + m.ozet
+  }));
+
+  /* Takim eksikse SEBEBI yazilsin. "Modu sectim ama hicbir sey
+     olmuyor" bu paketteki en pahali hata sinifi (v4.83 dersi:
+     calisiyor mu != ulasilabiliyor mu).                        */
+  const baslik = tam
+    ? "§b⛨ Zırh Yükseltmesi §7· mod seç"
+    : "§b⛨ Zırh Yükseltmesi §8(" + parca + "/" + ZIRH_PARCALAR.length +
+      " parça) §7· §emodlar için tam takım gerek";
+
+  const acildi = menuAc(oyuncu, baslik, dugmeler, -1,
+    (i) => zirhModSec(oyuncu, dugmeler[i].anahtar), []);
+
+  if (!acildi) {
+    /* Menu yoksa (server-ui kapali) sirayla ilerlet: tabletten
+       yine de mod degistirilebilsin.                           */
+    const simdiki = modAl(oyuncu.id);
+    const sira = liste.map((m) => m.anahtar);
+    const i = sira.indexOf(simdiki);
+    zirhModSec(oyuncu, sira[(i + 1) % sira.length]);
+  }
+  return undefined;
+}
+
+function zirhModSec(oyuncu, anahtar) {
+  if (!modYaz(oyuncu.id, anahtar)) return;
+  const t = ZIRH_MODLAR.get(anahtar);
+  const parca = takimParcalari(oyuncu);
+  const tam = parca === ZIRH_PARCALAR.length;
+  try {
+    oyuncu.sendMessage(
+      "§b⛨ §fZırh Yükseltmesi §7· §f" + t.ad + "\n§8" + t.ozet +
+      "\n§8kaynak: ionstrike/" + t.kaynak +
+      (tam ? "" : "\n§eTam takım gerek §8(" + parca + "/" +
+        ZIRH_PARCALAR.length + ") — parçalar yine " + ZIRH_KORUMA +
+        " zırh puanı veriyor"));
+  } catch (e) {
+    hataYaz("zirh.mesaj", e);
+  }
+  kollariIndir(oyuncu);
+}
+
 function menuEkleri(oyuncu) {
   const ekler = [];
 
@@ -697,6 +777,13 @@ function menuEkleri(oyuncu) {
         ? "§8☗ §fİNSAN HALİNE DÖN"
         : "§8☗ §fO ŞEY'E DÖNÜŞ §8(kendi bedenin)",
       calis() { yetenekTetikle(oyuncu, "donusum"); }
+    },
+    /* v4.91: Ionstrike/Max Steel'den tasinan takim. Zirh puani
+       esyanin kendi bileseninden; buradaki secim MODUN
+       gucleri.                                                 */
+    {
+      ad: "⛨ Zırh Yükseltmesi §8(" + (ZIRH_MODLAR.get(modAl(oyuncu.id)) || {}).ad + ")",
+      calis() { zirhMenusu(oyuncu); }
     },
     {
       ad: "Bot: simsek yagdir",
@@ -1221,6 +1308,7 @@ olayaAbone("playerLeave", (olay) => {
   tasUnut(olay.playerId);
   silahUnut(olay.playerId);
   donusumUnutOyuncu(olay.playerId);
+  zirhUnutOyuncu(olay.playerId);
 
   // Oyuncunun butun isleri durdurulmali, sadece birincisi degil
   const acikIsler = oyuncununIsleri.get(olay.playerId);

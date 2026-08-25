@@ -4893,6 +4893,116 @@ listesi dâhil) · paket ayrı ve UUID'ler benzersiz mi · eski yol duruyor mu.
 
 ---
 
+## Aşama — Zırh Yükseltmesi: Ionstrike / Max Steel (v4.91)
+
+Kullanıcı yeni bir jar yükledi:
+
+> *"bu modda bazı şeylerini alacağız alınabilir olan şeylerini ve ekstra kostüm
+> olarak takılabilir şekilde yani **zırh olarak takılabilir** bu şekilde
+> ayarlayacağız… adı şu olsun **zırh yükseltmesi** olsun."*
+
+### Kaynak: bu sefer bytecode çözmek gerekmedi
+
+`mod.jar` = **`ionstrike` v1.0.0** (Bionic), bir **Palladium** eklentisi ve
+yükleyicisi **`lowcodefml`** — yani **derlenmiş sınıf yok, her şey JSON**.
+BoraLo'da `javap` ile bytecode çözmek gerekmişti; burada sayılar doğrudan
+`data/ionstrike/palladium/powers/*.json` içinde yazılı.
+
+Konusu **Max Steel**: tek takım, birçok mod. Bizde de öyle kuruldu.
+
+Tam taşınabilirlik listesi ayrı dosyada: **`REFERANS_IONSTRIKE.md`** (BoraLo
+notuyla aynı düzen — jar bir daha yüklenmesin diye).
+
+### Dört giyilebilir parça
+
+`pa:zirh_bas` · `pa:zirh_govde` · `pa:zirh_bacak` · `pa:zirh_ayak`
+
+Zırh puanı **uydurulmadı**: `base_mode` `generic.armor +20` veriyor ve vanilla
+netherite takımı da tam 20 puan — yani referansın tabanı netherite seviyesi.
+Dağılım netherite ile aynı: **3 / 8 / 6 / 3**. Dayanıklılık yok (patron
+silahlarındaki karar: bir yükseltme kullandıkça kırılmamalı).
+
+Görünüm modun kendi `ionstrike_new.png` dosyası — **64×64 oyuncu skini
+düzeninde**, yani bizim modellerimizin kullandığı düzenin aynısı,
+dönüştürmeye gerek kalmadı.
+
+Çizim yolu **göz sistemimizle birebir aynı**: `controller.render.armor` + tek
+doku. Özel render controller'a girilmedi — v4.28'de tam o denendi ve bot
+görünmez oldu.
+
+Kemik adları **vanilla oyuncununkiyle aynı** (`head`, `body`, `rightArm`…);
+attachable oyuncunun kemiklerine adıyla yapışıyor, ad kayarsa parça havada
+durur. Test bunu tutuyor.
+
+**Bot UV'si ölçüldü, tahmin edilmedi:** 4×12×4 bir bacağın yan yüzleri `v+4`
+satırından başlar ve 12 satır sürer (sağ bacak 20–31). Alt 6 satır 26–31. 4×6×4
+bir kutunun bandı 4+6=10 satır, yani `uv (0,22)` yazınca yan yüzleri tam
+26–31'e oturuyor.
+
+### Dokuz mod — sayılar modun kendi JSON'undan
+
+| bizim mod | kaynak | referansın sayısı |
+|---|---|---|
+| Temel | `base_mode` | armor +20 · toughness +15 · fall +10 |
+| Güç | `strength_mode` | **attack_damage +15** · armor +30 |
+| Hız | `speed_mode` | movement +1 · attack_speed +5 · destroy +5 |
+| Uçuş | `flight_mode` | space_breath · 3× bağışıklık |
+| Gizlilik | `stealth_mode` | invisibility · armor +20 |
+| Isı | `heat_mode` | armor +25 · ışın 20 · ateş bağışıklığı |
+| Dalış | `scuba_mode` | swim_speed +5 |
+| Keşif | `recon_mode` | entity_glow · vibrate |
+| Titan | `titan_mode` | armor +80 · toughness +75 · **attack +80** |
+
+### İki motor aynı şeyi söylemiyor — çeviri açıkça yazılı
+
+Referans Java'da **attribute** veriyor; Bedrock'ta oyuncuya script'ten
+attribute verilemiyor, elde **efekt** var. Her satırın karşılığı
+`ayarlar.js: ZIRH_MODLAR` içinde yazılı:
+
+```
+Güç I = +3 hasar          ->  +15 = Güç V        (BİREBİR)
+                          ->  +80 = Güç XXVII    (+81, en yakın)
+Direnç %20/seviye         ->  zırh+tokluk Bedrock formülünde zaten
+                              %80'de tavan yapıyor -> Direnç IV
+movement +1               ->  oyuncunun taban hızının 11 KATI. Bedrock'ta
+                              oynanamaz hale gelir; niyet ("çok hızlı")
+                              Hız V ile karşılandı — TEK yaklaşık satır
+armor_toughness           ->  Bedrock'ta özel eşyaya verilemiyor,
+                              Direnç ile karşılandı
+```
+
+Bu bir *dengeleme* değil, bir **çeviri** — ve nerede birebir tutmadığı da
+yazılı.
+
+### Test sayıları jar'ın kendisiyle karşılaştırıyor
+
+`zirh.mjs`'in 6. bölümü **jar diskteyse** `powers/*.json`'u açıp okuyor:
+`base_mode` gerçekten +20 mi, `strength_mode` gerçekten +15 mi, `titan_mode`
+gerçekten +80 mi, ve **her modun kaynak dosyası modun içinde var mı**. Yani
+"hafızadan yazdım" ihtimali sınanabilir bir şeye dönüştü.
+
+Ayrıca: yarım takım mod vermiyor ama zırh puanı yine geliyor · yanlış yuvadaki
+parça sayılmıyor · efekt parçacıkları kapalı (dokuz efekt açıkken oyuncu
+yürüyen bir parçacık bulutuna dönüyordu) · efekt süresi taramadan uzun · mod
+seçimi dünya özelliğine yazılıyor ve yeniden yüklenince okunuyor · hiçbir mod
+Direnç V (=%100 bağışıklık) vermiyor.
+
+**131 kontrol, hepsi geçiyor.**
+
+### Beşinci kez aynı tuzak
+
+`zirh_suit.png` `textures/entity/` altında ve üretecin temizlik adımı listede
+olmayan her şeyi siliyor. İlk üretimde **doku kopyalandı ve aynı koşuda
+silindi** — oyunda zırh mor-siyah çıkardı. `beklenen.add(ZIRH_DOKU)` eklendi;
+test artık bu satırın varlığını da tutuyor.
+
+### Yeni kol açılmadı
+
+Kullanıcının kuralı: *"her şeyi kol yapma, kol israfını önle."* Menüde tek
+satır: **"⛨ Zırh Yükseltmesi (mod)"**.
+
+---
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:

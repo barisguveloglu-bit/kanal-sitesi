@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.90";
+export const SURUM = "v4.91";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -2786,6 +2786,129 @@ export const DONUSUM_KAYIT_ANAHTAR = "simsek:kilikler";
 /* Kilik oyuncunun tam konumunda duruyor. Y kaydirmasi YOK:
    modelin ayaklari y=0'da (bkz. o_sey_geometrisi).            */
 export const DONUSUM_Y_KAYMA   = 0;
+
+/* ============================================================
+   ZIRH YUKSELTMESI  (Ionstrike / Max Steel)          v4.91
+
+   Kullanici: "bu modda alinabilir olan seylerini alacagiz ve
+   ZIRH olarak takilabilir sekilde ayarlayacagiz, adi zirh
+   yukseltmesi olsun."
+
+   ---- KAYNAK: mod.jar = ionstrike v1.0.0 (Bionic) ----
+   Palladium eklentisi, `lowcodefml` yani DERLENMIS SINIF YOK --
+   her sey JSON. Sayilar dogrudan okundu:
+       data/ionstrike/palladium/powers/<mod>.json
+   Bytecode cozmeye gerek kalmadi.
+
+   Mod TEK bir takim + bircok MOD (base, strength, speed,
+   flight, stealth, heat, scuba, recon, titan). Bizde de oyle:
+   takimi giy, modu menuden sec.
+
+   ---- IKI MOTOR AYNI SEYI SOYLEMIYOR ----
+   Referans Java'da ATTRIBUTE veriyor (generic.attack_damage
+   +15 gibi). Bedrock'ta oyuncuya script'ten attribute
+   verilemiyor; elde EFEKT var. O yuzden her satirin karsiligi
+   ASAGIDA ACIKCA yaziyor. Bu bir "dengeleme" degil, bir
+   CEVIRI -- ve nerede birebir tutmadigini da yaziyor.
+
+     Guc      : Guc I = +3 hasar. +15 -> Guc V   (BIREBIR)
+     Direnc   : seviye basina %20. Referansin zirh+toklugu
+                Bedrock formulunde zaten %80'de tavan yapiyor,
+                yani Direnc IV = tavan  (BIREBIR)
+     Hiz/Acele: seviye basina %20. Referansin "movement +1"i
+                oyuncunun taban hizinin 11 KATI -- Bedrock'ta
+                boyle bir sey oynanamaz hale gelir. Niyet
+                ("cok hizli") Hiz V ile karsilandi. TEK
+                YAKLASIK SATIR BU, bilerek.
+     Dusme    : referansta fall_resistance; Bedrock'ta dusme
+                hasarini kesen efekt Yavas Dusus.
+     Toklugun : Bedrock'ta ozel esyaya armor_toughness
+                verilemiyor -- Direnc ile karsilandi.
+
+   ---- ZIRH DEGERI ----
+   base_mode: generic.armor +20. Vanilla netherite takimi da
+   tam 20 puan, yani referansin tabani netherite seviyesi.
+   Dagilim netherite ile ayni (3/8/6/3) ve kol_uret.py:ZIRH
+   ile ESIT olmali -- zirh.mjs ikisini karsilastiriyor.       */
+export const ZIRH_ACIK     = true;
+export const ZIRH_ETIKET   = "pa:zirh_yukseltmesi";
+export const ZIRH_KORUMA   = 20;    // takimin toplami (netherite = 20)
+export const ZIRH_TARAMA   = 20;    // kac tick'te bir bakilsin
+export const ZIRH_SURE     = 120;   // efekt suresi (TARAMA x 6)
+export const ZIRH_KAYIT_ANAHTAR = "simsek:zirh";
+/* Takimin parcalari. kol_uret.py:ZIRH ile ayni sirada.       */
+export const ZIRH_PARCALAR = [
+  "pa:zirh_bas", "pa:zirh_govde", "pa:zirh_bacak", "pa:zirh_ayak"
+];
+/* Yarim takim ise yarariyor mu? HAYIR: referansta da takim
+   bir butun. Ama parcalar YINE DE zirh puani veriyor (esyanin
+   kendi bileseni), yani yarim giymek bosuna degil -- sadece
+   MOD gucleri gelmiyor.                                      */
+export const ZIRH_TAM_TAKIM_SART = true;
+
+/* mod anahtari -> {ad, ozet, efektler:[[ad, sure, seviye]]}
+   Efekt suresi ZIRH_SURE'den geliyor; listedeki sure alani
+   sadece bicim uyumu icin duruyor (efektVer kalibi).         */
+export const ZIRH_MODLAR = new Map([
+  ["temel", {
+    ad: "Temel", kaynak: "base_mode",
+    ozet: "armor +20 · toughness +15 · fall_resistance +10",
+    efektler: [["resistance", 0, 0], ["slow_falling", 0, 0]]
+  }],
+  ["guc", {
+    ad: "Güç", kaynak: "strength_mode",
+    ozet: "attack_damage +15 · armor +30 · destroy_speed +2",
+    /* +15 hasar = Guc V, BIREBIR. */
+    efektler: [["strength", 0, 4], ["resistance", 0, 1],
+               ["haste", 0, 0], ["slow_falling", 0, 0]]
+  }],
+  ["hiz", {
+    ad: "Hız", kaynak: "speed_mode",
+    ozet: "movement +1 · attack_speed +5 · destroy_speed +5 · step +2",
+    efektler: [["speed", 0, 4], ["haste", 0, 4], ["jump_boost", 0, 1]]
+  }],
+  ["ucus", {
+    ad: "Uçuş", kaynak: "flight_mode",
+    ozet: "space_breath · üç ayrı hasar bağışıklığı",
+    efektler: [["slow_falling", 0, 0], ["water_breathing", 0, 0],
+               ["fire_resistance", 0, 0], ["resistance", 0, 0]]
+  }],
+  ["gizlilik", {
+    ad: "Gizlilik", kaynak: "stealth_mode",
+    ozet: "invisibility · armor +20",
+    efektler: [["invisibility", 0, 0], ["speed", 0, 1],
+               ["resistance", 0, 0]]
+  }],
+  ["isi", {
+    ad: "Isı", kaynak: "heat_mode",
+    ozet: "armor +25 · ateş bağışıklığı · ışın 20 hasar",
+    efektler: [["fire_resistance", 0, 0], ["strength", 0, 2],
+               ["resistance", 0, 0]]
+  }],
+  ["dalis", {
+    ad: "Dalış", kaynak: "scuba_mode",
+    ozet: "swim_speed +5 · su altında nefes",
+    efektler: [["water_breathing", 0, 0], ["conduit_power", 0, 0],
+               ["night_vision", 0, 0]]
+  }],
+  ["kesif", {
+    ad: "Keşif", kaynak: "recon_mode",
+    ozet: "entity_glow · vibrate · armor +20",
+    efektler: [["night_vision", 0, 0], ["resistance", 0, 0],
+               ["speed", 0, 0]]
+  }],
+  ["titan", {
+    ad: "Titan", kaynak: "titan_mode",
+    ozet: "armor +80 · toughness +75 · attack +80 · reach +33",
+    /* Referansin en ust kademesi. Zirh+tokluk Bedrock
+       formulunde zaten %80 tavaninda -> Direnc IV.
+       +80 hasar: Guc seviye basina +3, 27 seviye = +81.     */
+    efektler: [["resistance", 0, 3], ["strength", 0, 26],
+               ["slow_falling", 0, 0], ["jump_boost", 0, 2]]
+  }]
+]);
+/* Ilk giyende hangi mod acik olsun. */
+export const ZIRH_VARSAYILAN_MOD = "temel";
 
 export const BOT_KIMLIKLER = new Set([BOT_KIMLIK, SEY_KIMLIK, SEY_KILIK_KIMLIK]);
 for (const t of ILKEL_BESLI.values()) {

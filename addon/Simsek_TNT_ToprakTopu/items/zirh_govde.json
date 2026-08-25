@@ -1,0 +1,29 @@
+{
+  "format_version": "1.21.0",
+  "minecraft:item": {
+    "description": {
+      "identifier": "pa:zirh_govde",
+      "menu_category": {
+        "category": "equipment"
+      }
+    },
+    "components": {
+      "minecraft:icon": {
+        "texture": "zirh_govde"
+      },
+      "minecraft:display_name": {
+        "value": "Zırh Yükseltmesi · Göğüslük"
+      },
+      "minecraft:max_stack_size": 1,
+      "minecraft:wearable": {
+        "slot": "slot.armor.chest",
+        "protection": 8
+      },
+      "minecraft:tags": {
+        "tags": [
+          "pa:zirh_yukseltmesi"
+        ]
+      }
+    }
+  }
+}

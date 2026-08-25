@@ -154,3 +154,21 @@ Aynı jar (`ZabriStudiosv2.21.12.2_2_1.jar`).
 | `mermi_kursun.png` | `textures/bullet1.png` (64×16 şerit → ilk 16×16 karesi) |
 | `mermi_altin.png` | `textures/rosite_bullet.png` |
 | `silah_bazuka.png` | **çizildi** — bazukanın modda tek parça dokusu yok, çok parçalı bir model (beton + kırmızı nokta). Modun kendi gri tonlarıyla 16×16 bir namlu çizildi. |
+
+## Ionstrike / Max Steel modu (v4.91)
+
+Kaynak: `mod.jar` — modid `ionstrike` v1.0.0, yapan **Bionic**.
+Palladium eklentisi (Java, `lowcodefml` = tamamen JSON, derlenmis
+sinif YOK). md5 `a0fee04d4ab2e14c89f381dcc298dbcd`.
+
+| bizdeki dosya | modun icindeki yol |
+|---|---|
+| `zirh_suit.png` | `assets/ionstrike/textures/entity/max_steel/ionstrike_new.png` |
+| `zirh_suit_parlama.png` | `assets/ionstrike/textures/entity/max_steel/base_glow.png` |
+
+Ikisi de 64x64 **oyuncu skini duzeninde** — bizim modellerimizin
+kullandigi duzenin aynisi, donusturmeye gerek kalmadi.
+
+Sayilar (zirh degerleri ve mod etkileri) `data/ionstrike/palladium/
+powers/*.json` dosyalarindan OKUNDU, uydurulmadi. Esleme tablosu
+`ayarlar.js: ZIRH_MODLAR` icinde satir satir yazili.

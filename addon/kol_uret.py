@@ -2405,6 +2405,191 @@ def o_sey_kilik_varligi():
     }
 
 
+# ================================================================
+#  ZIRH YUKSELTMESI  (Ionstrike / Max Steel)             v4.91
+# ================================================================
+# Kullanici: "bu modda bazi seylerini alacagiz, alinabilir olan
+# seylerini, ve ekstra kostum olarak takilabilir sekilde yani
+# ZIRH olarak takilabilir... adi zirh yukseltmesi olsun."
+#
+# ---- KAYNAK ----
+# mod.jar = `ionstrike` v1.0.0 (Bionic), Palladium eklentisi.
+# `lowcodefml` yani DERLENMIS SINIF YOK -- her sey JSON. Bu
+# yuzden bytecode cozmeye gerek kalmadi, sayilar dogrudan
+# okundu:  data/ionstrike/palladium/powers/*.json
+#
+# Modun kendisi Max Steel: TEK bir takim, bircok MOD (base,
+# strength, speed, flight, stealth, heat, scuba, recon, titan...).
+# Bizde de oyle: tek takim + menuden secilen mod.
+#
+# ---- ZIRH DEGERI NEREDEN ----
+# base_mode:  generic.armor +20 · armor_toughness +15
+# Vanilla netherite takimi da tam 20 zirh puani veriyor, yani
+# referansin tabani netherite seviyesi. Dagilim netherite ile
+# ayni: 3 / 8 / 6 / 3.
+#
+# TOKLUK (toughness) TASINAMIYOR: Bedrock'ta ozel esyaya
+# armor_toughness verilmiyor, oyle bir bilesen yok. Referansin
+# +15 toklugu bu yuzden MOD ETKISI olarak (Direnc) karsilaniyor
+# -- kayip degil, baska bir yoldan.
+ZIRH_DOKU = "zirh_suit"
+ZIRH_TR_TAKIM = "Zırh Yükseltmesi"
+
+# (anahtar, yuva, koruma, TR ad, EN ad, ikon bolgesi)
+# ikon bolgesi = 64x64 skin duzeninde hangi kare ikona gececek.
+# Uydurma cizim YOK: giydigin seyin kendi pikselleri.
+ZIRH = [
+    ("zirh_bas",   "slot.armor.head",  3, "Zırh Yükseltmesi · Başlık",
+     "Armor Upgrade Helmet",     (8, 8, 16, 16)),
+    ("zirh_govde", "slot.armor.chest", 8, "Zırh Yükseltmesi · Göğüslük",
+     "Armor Upgrade Chestplate", (20, 20, 28, 32)),
+    ("zirh_bacak", "slot.armor.legs",  6, "Zırh Yükseltmesi · Bacaklık",
+     "Armor Upgrade Leggings",   (4, 20, 12, 32)),
+    ("zirh_ayak",  "slot.armor.feet",  3, "Zırh Yükseltmesi · Bot",
+     "Armor Upgrade Boots",      (4, 26, 12, 32)),
+]
+
+
+def zirh_geometrisi(anahtar):
+    """Zirh parcasinin modeli.
+
+    KEMIK ADLARI VANILLA OYUNCUNUNKIYLE AYNI olmak zorunda:
+    attachable o adlarla oyuncunun kemiklerine yapisiyor. Ad
+    kayarsa parca havada durur.
+
+    UV'ler skin duzeninden; doku zaten oyuncu skini duzeninde
+    (Ionstrike'in kendi dosyasi, donusturulmedi).
+
+    SISIRME (inflate) degerleri vanilla zirhin mantigiyla:
+    ustteki katman altakinden buyuk olmali, yoksa z-cakismasi
+    (titreyen yuzeyler) olur. Bot bacakligin USTUNDE oldugu icin
+    daha cok sisiyor ve daha KISA bir kutuya biniyor.            """
+    def kup(org, boyut, uv, sis):
+        return {"origin": org, "size": boyut, "uv": uv, "inflate": sis}
+
+    if anahtar == "zirh_bas":
+        kemikler = [{"name": "head", "pivot": [0, 24, 0], "cubes": [
+            kup([-4, 24, -4], [8, 8, 8], [0, 0], 1.0)]}]
+    elif anahtar == "zirh_govde":
+        kemikler = [
+            {"name": "body", "pivot": [0, 24, 0], "cubes": [
+                kup([-4, 12, -2], [8, 12, 4], [16, 16], 1.01)]},
+            {"name": "rightArm", "pivot": [-5, 22, 0], "cubes": [
+                kup([-8, 12, -2], [4, 12, 4], [40, 16], 1.0)]},
+            {"name": "leftArm", "pivot": [5, 22, 0], "cubes": [
+                kup([4, 12, -2], [4, 12, 4], [32, 48], 1.0)]},
+        ]
+    elif anahtar == "zirh_bacak":
+        kemikler = [
+            {"name": "rightLeg", "pivot": [-1.9, 12, 0], "cubes": [
+                kup([-3.9, 0, -2], [4, 12, 4], [0, 16], 0.5)]},
+            {"name": "leftLeg", "pivot": [1.9, 12, 0], "cubes": [
+                kup([-0.1, 0, -2], [4, 12, 4], [16, 48], 0.5)]},
+        ]
+    else:  # zirh_ayak
+        # ALT 6 BIRIM. UV'si OLCULDU, tahmin degil:
+        # 4x12x4 bir bacagin yan yuzleri v+4 satirindan baslar ve
+        # 12 satir surer (sag bacak: 20..31). Alt 6 satir 26..31.
+        # 4x6x4 bir kutunun bandi 4+6=10 satir; uv (0,22) yazinca
+        # yan yuzleri tam 26..31'e oturuyor.
+        kemikler = [
+            {"name": "rightLeg", "pivot": [-1.9, 12, 0], "cubes": [
+                kup([-3.9, 0, -2], [4, 6, 4], [0, 22], 1.0)]},
+            {"name": "leftLeg", "pivot": [1.9, 12, 0], "cubes": [
+                kup([-0.1, 0, -2], [4, 6, 4], [16, 54], 1.0)]},
+        ]
+
+    return {
+        "format_version": "1.12.0",
+        "minecraft:geometry": [{
+            "description": {
+                "identifier": "geometry." + anahtar,
+                "texture_width": 64,
+                "texture_height": 64,
+                "visible_bounds_width": 2,
+                "visible_bounds_height": 3,
+                "visible_bounds_offset": [0, 1.5, 0],
+            },
+            "bones": kemikler,
+        }],
+    }
+
+
+def zirh_attachable(anahtar):
+    """Parcanin oyuncuya cizilmesi.
+
+    controller.render.armor + tek doku: GOZ SISTEMIMIZLE BIREBIR
+    AYNI kurulum, yani oyunda calistigi BILINEN yol. Ozel render
+    controller'a girilmedi -- v4.28'de tam o denendi ve bot
+    gorunmez oldu.                                               """
+    return {
+        "format_version": "1.10.0",
+        "minecraft:attachable": {
+            "description": {
+                "identifier": "pa:" + anahtar,
+                "materials": {
+                    "default": "armor",
+                    "enchanted": "armor_enchanted",
+                },
+                "textures": {
+                    "default": "textures/entity/" + ZIRH_DOKU,
+                    "enchanted": "textures/misc/enchanted_actor_glint",
+                },
+                "geometry": {"default": "geometry." + anahtar},
+                "render_controllers": ["controller.render.armor"],
+            }
+        },
+    }
+
+
+def zirh_esyasi(anahtar, yuva, koruma, ad):
+    """Giyilebilir parca.
+
+    Dayaniklilik YOK: bir yukseltme kullandikca kirilmamali
+    (patron silahlarindaki karar).                               """
+    return {
+        "format_version": "1.21.0",
+        "minecraft:item": {
+            "description": {
+                "identifier": "pa:" + anahtar,
+                "menu_category": {"category": "equipment"},
+            },
+            "components": {
+                "minecraft:icon": {"texture": anahtar},
+                "minecraft:display_name": {"value": ad},
+                "minecraft:max_stack_size": 1,
+                "minecraft:wearable": {"slot": yuva, "protection": koruma},
+                # Etiket: script "takim uzerinde mi" diye bakarken
+                # kimlikleri tek tek yazmak zorunda kalmasin.
+                "minecraft:tags": {"tags": ["pa:zirh_yukseltmesi"]},
+            },
+        },
+    }
+
+
+def zirh_ikonu(bolge):
+    """Ikon = giydigin seyin KENDI pikselleri.
+
+    Skin degisirse ikon da degisir; iki yerde cizim olmadigi icin
+    ayrisamazlar.                                                """
+    try:
+        from PIL import Image
+    except ImportError:
+        return None
+    kaynak = os.path.join(DOKU_KAYNAK, ZIRH_DOKU + ".png")
+    if not os.path.exists(kaynak):
+        return None
+    im = Image.open(kaynak).convert("RGBA")
+    parca = im.crop(bolge)
+    # 16x16'ya oturt: en-boy orani korunuyor, ortalaniyor.
+    en, boy = parca.size
+    k = min(16 // max(1, en), 16 // max(1, boy)) or 1
+    parca = parca.resize((en * k, boy * k), Image.NEAREST)
+    ikon = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
+    ikon.paste(parca, ((16 - parca.width) // 2, (16 - parca.height) // 2), parca)
+    return ikon
+
+
 def oyuncu_modeli_paketi(surum):
     """OYUNCUNUN KENDI MODELINI O SEY YAPAN paket.
 
@@ -3854,6 +4039,33 @@ def main():
     yaz_json(os.path.join(RP, "entity/o_sey_kilik.entity.json"),
              o_sey_kilik_istemci_varligi())
 
+    # ---- ZIRH YUKSELTMESI (v4.91) ----
+    # Ionstrike/Max Steel takimi: 4 giyilebilir parca + modun
+    # dokusu. Sayilar modun powers/*.json dosyalarindan.
+    _zs = os.path.join(DOKU_KAYNAK, ZIRH_DOKU + ".png")
+    if os.path.exists(_zs):
+        _zh = os.path.join(RP, "textures/entity/%s.png" % ZIRH_DOKU)
+        os.makedirs(os.path.dirname(_zh), exist_ok=True)
+        shutil.copyfile(_zs, _zh)
+    else:
+        print("UYARI: zirh dokusu yok (%s)" % _zs)
+    for _za, _zy, _zk, _ztr, _zen, _zb in ZIRH:
+        yaz_json(os.path.join(BP, "items/%s.json" % _za),
+                 zirh_esyasi(_za, _zy, _zk, _ztr))
+        yaz_json(os.path.join(RP, "attachables/%s.json" % _za),
+                 zirh_attachable(_za))
+        yaz_json(os.path.join(RP, "models/entity/%s.geo.json" % _za),
+                 zirh_geometrisi(_za))
+        _zi = zirh_ikonu(_zb)
+        if _zi is not None:
+            _ziy = os.path.join(RP, "textures/item/%s.png" % _za)
+            os.makedirs(os.path.dirname(_ziy), exist_ok=True)
+            _zi.save(_ziy)
+        dokular[_za] = {"textures": "textures/item/" + _za}
+        for liste, ad in ((en_us, _zen), (tr_tr, _ztr)):
+            liste.append("item.pa:%s.name=%s" % (_za, ad))
+            liste.append("item.pa:%s=%s" % (_za, ad))
+
     # ---- MASKE + OYUNCU MODELI PAKETI (v4.90) ----
     # Asil donusum: oyuncunun KENDI modeli degisiyor.
     yaz_json(os.path.join(BP, "items/%s.json" % MASKE_ESYA), maske_esyasi())
@@ -4191,6 +4403,13 @@ def main():
     beklenen.add(SEY_DOKU)
     # v4.90: maskenin ikonu da hicbir listede degil
     beklenen.add(MASKE_ESYA)
+    # v4.91: zirh parcalarinin ikonlari da listede degil
+    for _zk2, _zy2, _zp2, _zt2, _ze2, _zb2 in ZIRH:
+        beklenen.add(_zk2)
+    # ZIRHIN VARLIK DOKUSU da listede degil. Bir kez yasandi:
+    # doku kopyalandi, ayni kosuda temizlik adimi sildi ve zirh
+    # oyunda mor-siyah cikardi. Ayni tuzak besinci kez.
+    beklenen.add(ZIRH_DOKU)
     # Silahlar da hicbir listede degil (v4.48). Bu satir
     # unutuldugunda temizlik adimi baltayi HER uretimde
     # siliyordu: esya yaziliyor, atlas kaydi kaliyor, dosya
