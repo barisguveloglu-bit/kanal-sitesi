@@ -4074,6 +4074,83 @@ yazılmış mı (ikinci kayıt birincisini sessizce ezer).
 
 ---
 
+## v4.81 — Süreler uzadı, "yarım kalp" kuralı kalktı
+
+Üç değişiklik, hepsi kullanıcının isteği.
+
+### 1. Bütün iksirler 8 dakika
+
+Yedi iksir 6000 → 9600 tick. Hiperoksin zaten oradaydı.
+
+**Bunun bir bedeli var ve bilinçli:** Hiperoksin'in *tek* ayırt edici
+özelliği süresiydi. Tasarım notu aynen şöyleydi — *"hiçbir alanda uzman
+değil; farkı artık güçte değil süREDE."* O fark artık yok. Hiperoksin şu an
+"her şeyden biraz, ama artık daha uzun da değil" durumunda. Kullanıcıya
+bildirildi; ona yeni bir varlık sebebi vermek bekleyen iş.
+
+### 2. Lazer 25,5 → 30 saniye
+
+`LAZER_SURE` 510 → 600, `kol_uret.py:LAZER_ANIM_TICK` de 600. İki yerde
+yazılı bir sayı; test eşitliği kilitliyor.
+
+Bu değişiklik **sessiz bir kırılganlık** açığa çıkardı: üreteç
+`animation_length`'i `round(600/20, 3)` ile hesaplıyordu → Python `30.0`
+yazıyor, JavaScript `String(30)` = `"30"` arıyor. Son kare anahtarı `"30.0"`,
+aranan `"30"` — tutmuyor. **25,5 saniyeyken hiç görülmemişti**, çünkü `"25.5"`
+iki tarafta da aynı yazılıyor. Oyun ikisini de sayı olarak okuduğu için
+oyunda sorun çıkmazdı; ama son kareyi anahtardan arayan her şey bulamazdı.
+Üreteç artık tam sayıyı `int` yazıyor, test de anahtarları **sayı olarak**
+karşılaştırıyor.
+
+### 3. "Yarım kalp" tamamen kaldırıldı
+
+v4.68'den beri lazer zırhlı bir hedefi öldürmüyor, canını 1 puana
+**çekiyordu**. Kullanıcı kaldırdı: *"süreyi arttırdığımıza göre bunu tutmak
+gerçekten çok zor... o yüzden tamamen öldürsün."*
+
+Doğru karar, çünkü o kural **kendi kendini yiyordu**: ışın yarım saniyede bir
+vuruyor ve artık 30 saniye sürüyor — yani hedef 60 kez "yarım kalpte
+sabitleniyor" ve hiçbir zaman ölmüyordu. Kural kısa bir atışta anlamlıydı
+("soydum, işini kendin bitir"); süreli ışında tersine çalışıyordu.
+
+`cananCek()` 70 satırdan 8 satıra indi. `LAZER_BIRAKILAN_CAN` ve
+`LAZER_TEPKI_HASARI` silindi; testler ikisinin de `undefined` olduğunu
+kontrol ediyor ki eski dal sessizce geri sızmasın.
+
+**Emilim silme kaldı.** O kalpler `minecraft:health`'in dışında ve zırh
+indiriminden sonra 32 ek can bir vuruşu emebiliyor — iksirlerimizin hepsinde
+emilim var, yani onsuz iki oyuncu birbirini lazerle vuramazdı.
+
+### Kim kurtulur? (ölçüldü)
+
+Bedrock zırh formülü:
+
+```
+hasar × (1 − min(20, max(zirh/5, zirh − 4×hasar/(toughness+8))) / 25)
+```
+
+500 hasar o kadar büyük ki **toughness terimi eksiye düşüyor** — full
+netherite bile sadece `zirh/5 = 4` puan, yani %16 indirim veriyor:
+
+| adım | kalan hasar |
+|---|---|
+| ham | 500 |
+| zırh (%16) | 420 |
+| Koruma, EPF tavanı 20 (%80) | 84 |
+| Dayanıklılık IV (%80) | **16,8** |
+
+Yani en iyi vanilla kurulum bile vuruş başına ~17 yiyor ve ışın yarım
+saniyede bir vuruyor: 20 canlı bir oyuncu **bir saniyede** gidiyor.
+
+**Tek kurtuluş: Dayanıklılık V = tam dokunulmazlık** — yani kendi
+StarOxine'imiz. Vanilla'da hiçbir set/büyü birleşimi lazerden kurtarmıyor.
+
+Not: hasar türü `"fire"` seçili, bu **Ateş Koruması**'nı devreye sokuyor
+(EPF'de seviye başına +2, dört parça Ateş Koruması IV tek başına tavana
+ulaşır). Yukarıdaki 16,8 zaten o tavana göre hesaplandı — daha kötüsü yok.
+
+---
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:

@@ -14,7 +14,7 @@ import {
   LAZER_MODLARI, LAZER_MOD_VARSAYILAN,
   LAZER_BUZ_ACIK, LAZER_BUZ_BLOK, LAZER_BUZ_SURE,
   LAZER_BUZ_YARICAP, LAZER_BUZ_YUKSEK, LAZER_BUZ_TAVAN,
-  LAZER_HASAR, LAZER_BIRAKILAN_CAN, LAZER_TEPKI_HASARI,
+  LAZER_HASAR,
   LAZER_ZIRH_ACIK, LAZER_ZIRH_KALAN,
   LAZER_VURUS_ARALIK, LAZER_CIZIM_ARALIK,
   LAZER_KALKAN_KIR, LAZER_KALKAN_SURESI, LAZER_KALKAN_ESYALARI,
@@ -164,98 +164,40 @@ function kalkaniKir(varlik) {
   }
 }
 
-/* Hedefin canini LAZER_BIRAKILAN_CAN'a sabitler.
+/* Hedefe lazer vurusunu uygular.
 
-   ---- BURADA GERCEK BIR CELISKI VAR (v4.69) ----
-   Kullanici iki sey istedi:
-     "lazerin gucunu daha da guclendirelim" (ham hasar 200)
-     "kalp kalma isi de ayni olsun"        (yarim kalp kalsin)
+   ---- "YARIM KALP" KALDIRILDI (v4.81) ----
+   v4.68'den v4.80'e kadar burada bir CAN TAVANI vardi: vurustan
+   sonra hedefin cani okunuyor, yarim kalpten yuksekse oraya
+   CEKILIYORDU. Yani lazer zirhli bir hedefi oldurmuyordu.
 
-   Ikisi ayni anda olmuyor: 200 hasar full elmas setli bir
-   oyuncuyu (20 can) ZATEN olduruyor, yani yarim kalp kalmiyor.
-   Simulasyonda birebir goruldu: 200 hasar -> 0 can.
+   Kullanici kaldirdi: "lazerin cani yarim kalpte birakmasi
+   olayini tamamen kaldiriyoruz... o yuzden tamamen oldursun."
 
-   Cozum: hasari degil DURUMU kural yapmak.
+   Dogru karar. O kural KISA bir atista anlamliydi ("soydum,
+   isini kendin bitir") ama isin sureli hale gelince tersine
+   dondu: yarim saniyede bir vuruyor, yani hedef 60 kez
+   sabitleniyor ve HICBIR ZAMAN olmuyordu. Sureyi 30 saniyeye
+   cikarinca bu iyice sacmalasti.
 
-     can yarim kalpten YUKSEKSE  -> yarim kalbe SABITLENIR,
-                                    olmez. Tepki icin kucuk
-                                    bir hasar veriliyor
-                                    (vurus hissi, geri tepme,
-                                    mobun sana donmesi).
-     can zaten yarim kalpTEYSE   -> LAZER_HASAR ile BITIRILIR.
+   Geriye tek satir kaldi. Sonuc artik zirha bagli ve bu
+   bilincli: lazer zaten zirhi eritiyor (LAZER_ZIRH_ACIK) ve
+   kalkani kiriyor.
 
-   Sonuc: ilk vurus soyuyor ve yarim kalple birakiyor; isini
-   uzerinde TUTMAYA devam edersen bir sonraki vurus (yarim
-   saniye sonra) olduruyor. Yani hem "yarim kalp kalsin" hem
-   "cok daha guclu" ayni anda saglaniyor.
-
-   NEDEN HASAR HESABIYLA DEGIL: Bedrock'ta zirh indirimi zirh
-   puani + toughness + Koruma buyusune bagli ve hangi formulun
-   gecerli oldugunu OLCMEDEN bilemeyiz. Cani DOGRUDAN yazmak
-   buyuye de formule de bagisik.
-
-   EMILIM (absorption) ayrica siliniyor: o kalpler
-   minecraft:health'in DISINDA duruyor, can yazmak onlara
-   dokunmuyordu. Full buyulu bir patronun emilimi olmasa da
-   olurdu diye degil -- "neredeyse tum canina goturSun"
-   istegi ancak boyle tutuyor.                                */
+   EMILIM (absorption) HALA SILINIYOR: o kalpler
+   minecraft:health'in DISINDA duruyor ve hasar indiriminden
+   sonra 32 ek can bir vurusu emebiliyor. Emilim iksirlerimizin
+   hepsinde var, yani onsuz iki oyuncu birbirini lazerle
+   vuramazdi.                                                 */
 function cananCek(varlik) {
-  if (LAZER_BIRAKILAN_CAN <= 0) {
-    /* 0 = "lazer oldursun": kural kapali, tam hasar. */
-    try {
-      varlik.applyDamage(LAZER_HASAR, { cause: "fire" });
-    } catch (e) {
-      hataYaz("goz_lazeri.cananCek", e);
-    }
-    return;
-  }
-
-  let can;
-  try {
-    can = varlik.getComponent("minecraft:health");
-  } catch (e) {
-    can = undefined;
-  }
-
-  /* Can bileseni okunamiyorsa elimizdeki tek arac hasar. */
-  if (!can || typeof can.currentValue !== "number" ||
-      typeof can.setCurrentValue !== "function") {
-    try {
-      varlik.applyDamage(LAZER_HASAR, { cause: "fire" });
-    } catch (e) {
-      hataYaz("goz_lazeri.cananCek", e);
-    }
-    return;
-  }
-
-  /* Emilim kalpleri can bileseninin disinda: ayrica silinmeli */
+  /* Emilim kalpleri ayri bir havuz: hasardan once silinmezse
+     ilk vurusu onlar yiyor.                                  */
   try {
     varlik.removeEffect("absorption");
   } catch (e) {
     /* efekt yoksa ya da silinemiyorsa devam */
   }
 
-  const onceki = can.currentValue;
-
-  if (onceki > LAZER_BIRAKILAN_CAN) {
-    /* SOY VE SABITLE: olmuyor, yarim kalple kaliyor. */
-    try {
-      varlik.applyDamage(LAZER_TEPKI_HASARI, { cause: "fire" });
-    } catch (e) {
-      /* tepki hasari verilemedi; sabitleme yine de yapilacak */
-    }
-    try {
-      if (can.currentValue > LAZER_BIRAKILAN_CAN) {
-        can.setCurrentValue(LAZER_BIRAKILAN_CAN);
-      }
-    } catch (e) {
-      hataYaz("goz_lazeri.cananCek", e);
-    }
-    return;
-  }
-
-  /* ZATEN yarim kalpte: bitir. Isini uzerinde tutmaya devam
-     edersen bu dal yarim saniye sonra calisiyor.            */
   try {
     varlik.applyDamage(LAZER_HASAR, { cause: "fire" });
   } catch (e) {

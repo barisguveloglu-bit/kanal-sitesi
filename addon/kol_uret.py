@@ -1347,10 +1347,10 @@ LAZER_ANIM_KOL_Z  = 9       # govdeden ayirma acisi
 LAZER_ANIM_GIRIS  = 0.2     # poza girme suresi (saniye)
 LAZER_ANIM_CIKIS  = 0.3     # cikma suresi (saniye)
 
-# Isin suresiyle AYNI olmali. ayarlar.js'te LAZER_SURE = 510.
+# Isin suresiyle AYNI olmali. ayarlar.js LAZER_SURE = 600.
 # Iki yerde yazili bir sayi -- test ikisinin esitligini
 # kilitliyor (bu depoda dorduncu kez ayni ders).
-LAZER_ANIM_TICK   = 510
+LAZER_ANIM_TICK   = 600
 
 
 # ============================================================
@@ -1440,6 +1440,16 @@ def lazer_animasyonu():
     Poz sonunda notr'a donuyor: donmeseydi isin bitince oyuncu
     kollari havada donmus kalirdi.                             """
     uzunluk = round(LAZER_ANIM_TICK / 20.0, 3)
+    # TAM SAYIYSA int yaz: 600 tick = 30.0 saniye ve Python
+    # bunu "30.0" diye seri hale getiriyor, ama animation_length
+    # okunurken 30 oluyor. Kare ANAHTARI "30.0", aranan anahtar
+    # "30" -- ikisi ayrisiyor. Oyun ikisini de sayi olarak
+    # okuyor, yani oyunda sorun cikmiyor; ama son kareyi
+    # anahtardan arayan her sey (testimiz dahil) bulamiyor.
+    # 510 tick = 25,5 saniyeyken bu hic gorulmedi, cunku
+    # "25.5" iki tarafta da ayni yaziliyordu.
+    if uzunluk == int(uzunluk):
+        uzunluk = int(uzunluk)
     gir = LAZER_ANIM_GIRIS
     cik = round(uzunluk - LAZER_ANIM_CIKIS, 3)
 

@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.80";
+export const SURUM = "v4.81";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -669,7 +669,7 @@ export const LAZER_KALINLIK = 1.4;   // isindan kac blok sapma vurulur
    tick oyuncunun O ANKI bakisindan cikiyor (supurebiliyorsun).
 
    0,5 sn + 25 sn = 25,5 sn = 510 tick.                       */
-export const LAZER_SURE     = 510;   // 25,5 saniye
+export const LAZER_SURE     = 600;   // 30 saniye
 export const LAZER_VURUS_ARALIK = 10;  // her yarim saniyede bir vurur
 export const LAZER_CIZIM_ARALIK = 8;   // parcacik her 8 tickte
 export const LAZER_ADIM     = 3.0;   // parcacik kac blokta bir (model asil gorsel)
@@ -839,7 +839,7 @@ export const KADEMELER = [
     kimlik: "nitroksin",
     ad: "Nitroksin",
     renk: [1.0, 1.0, 1.0],          // beyaz
-    sure: 6000,                     // 5 dakika
+    sure: 9600,                     // 480 saniye (8 dakika)
     goz: "pa:goz_beyaz",
     lazerGoz: "pa:goz_beyaz_lazer",
     ozet: "Hiz ve ziplama",
@@ -866,7 +866,7 @@ export const KADEMELER = [
     kimlik: "grinoksin",
     ad: "Grinoksin",
     renk: [0.0, 1.0, 0.2],          // yesil
-    sure: 6000,
+    sure: 9600,
     goz: "pa:goz_yesil",
     lazerGoz: "pa:goz_yesil_lazer",
     ozet: "Dayaniklilik",
@@ -893,7 +893,7 @@ export const KADEMELER = [
     kimlik: "redoksin",
     ad: "Redoksin",
     renk: [0.8, 0.0, 0.0],          // kirmizi
-    sure: 6000,
+    sure: 9600,
     goz: "pa:goz_kirmizi",
     lazerGoz: "pa:goz_kirmizi_lazer",
     ozet: "Saldiri ve kazma",
@@ -919,7 +919,7 @@ export const KADEMELER = [
     kimlik: "firenoksin",
     ad: "Firenoksin",
     renk: [1.0, 0.45, 0.0],         // turuncu
-    sure: 6000,
+    sure: 9600,
     goz: "pa:goz_ates",
     lazerGoz: "pa:goz_ates_lazer",
     ozet: "Ates",
@@ -946,7 +946,7 @@ export const KADEMELER = [
     kimlik: "kan_iksiri",
     ad: "Kan Iksiri",
     renk: [0.45, 0.0, 0.05],        // koyu kirmizi
-    sure: 6000,
+    sure: 9600,
     goz: "pa:goz_kan",
     lazerGoz: "pa:goz_kan_lazer",
     ozet: "Vampir",
@@ -1015,7 +1015,7 @@ export const KADEMELER = [
     /* v4.63: referansin kendi ikonundan olculdu -- (255,223,76).
        Onceki [0.96,0.88,0.55] hatirdan yazilmis soluk bir altindi. */
     renk: [1.0, 0.87, 0.30],        // altin-yildiz
-    sure: 6000,
+    sure: 9600,
     goz: "pa:goz_yildiz",
     lazerGoz: "pa:goz_yildiz_lazer",
     ozet: "Koruma",
@@ -1054,7 +1054,7 @@ export const KADEMELER = [
        parlamasi tek renk alabildigi icin buz tarafi secildi --
        lazerin isi dondurmak, kimligi o tasiyor. */
     renk: [0.22, 0.88, 1.0],        // buz-turkuaz
-    sure: 6000,
+    sure: 9600,
     goz: "pa:goz_element",
     lazerGoz: "pa:goz_element_lazer",
     ozet: "Element ve dondurma",
@@ -1107,55 +1107,70 @@ export const LAZER_DONDUR_SEVIYE = 3;   // Yavaslik IV
    Kullanici hepsinin kaldirilmasini istedi: lazer bir yetenek
    dagitici degil, bir SILAH. Tek istisna Element'in iki modu.
 
-   ---- "YARIM KALP" NASIL GARANTI EDILIYOR ----
-   Hasar sayisiyla tutturulamaz. Bedrock'ta zirh indirimi
-   zirh puani + toughness + Koruma buyusune bagli; hangi
-   formulun gecerli oldugunu OLCMEDEN bilemeyiz ve bu depoda
-   olculmeyen sayi yazilmiyor.
+   ---- "YARIM KALP" KALDIRILDI (v4.81) ----
+   v4.68'den v4.80'e kadar lazer zirhli bir hedefi OLDURMUYOR,
+   yarim kalpte BIRAKIYORDU: vurustan sonra can okunuyor ve
+   LAZER_BIRAKILAN_CAN'a cekiliyordu.
 
-   O yuzden is ikiye bolundu:
-     1. GERCEK VURUS: applyDamage(LAZER_HASAR). Vurus hissi,
-        geri tepme ve olum sahipligi bundan geliyor. Zirhsiz
-        bir hedefi bu tek basina oldurur.
-     2. TAVAN: vurustan sonra hedefin cani okunur; hala
-        LAZER_BIRAKILAN_CAN'dan yuksekse oraya CEKILIR.
-        Zirh ne olursa olsun sonuc ayni: yarim kalp.
+   Kullanici kaldirdi: "lazerin cani yarim kalpte birakmasi
+   olayini tamamen kaldiriyoruz, cunku sureyi arttirdigimiza
+   gore bunu tutmak gercekten cok zor... o yuzden tamamen
+   oldursun."
 
-   Bu, lazerin zirhli bir hedefi OLDURMEDIGI anlamina geliyor
-   -- yarim kalple birakiyor, isini kendin bitiriyorsun.
-   Kullanicinin tarifi birebir bu. Oldurmesini istersen
-   LAZER_BIRAKILAN_CAN'i 0 yap, tek satir.
+   DOGRU KARAR, cunku o kural 30 saniyelik bir isinda anlamini
+   yitiriyordu: isin yarim saniyede bir vuruyor, yani hedef 60
+   kez "yarim kalpte sabitleniyor" ve hicbir zaman olmuyordu.
+   Kisa bir atista "isini kendin bitir" hissi veriyordu; sureli
+   isinda sadece olumsuz bir kilit oluyordu.
+
+   ARTIK: tek dal, tek satir -- applyDamage(LAZER_HASAR).
+   Sonuc zirha BAGLI, ve bu bilincli: modun geri kalani zaten
+   zirhi eritiyor (LAZER_ZIRH_ACIK) ve kalkani kiriyor.
+
+   ---- PEKI KIM KURTULUR? (olculdu, tahmin degil) ----
+   Bedrock zirh formulu:
+     hasar x (1 - min(20, max(zirh/5, zirh - 4*hasar/(toughness+8))) / 25)
+
+   500 hasar o kadar BUYUK ki toughness terimi eksiye dusuyor
+   ve full netherite bile yalnizca zirh/5 = 4 puan, yani %16
+   indirim veriyor:
+       500 -> 420
+   Koruma buyusu EPF ile: EPF 20'de kesiliyor (%80):
+       420 -> 84
+   Dayaniklilik IV (%80):
+       84 -> 16,8
+
+   Yani en iyi vanilla kurulum bile vurus basina ~17 hasar
+   yiyor ve isin YARIM SANIYEDE BIR vuruyor. 20 canli bir
+   oyuncu iki vurusta gidiyor.
+
+   TEK KURTULUS: Dayaniklilik V = TAM DOKUNULMAZLIK, yani
+   bizim StarOxine'imiz. Vanilla'da hicbir set/buyu birlesimi
+   lazerden kurtaramiyor.
+
+   DIKKAT -- hasar turu "fire" secili: bu, ATES KORUMASI
+   buyusunu devreye sokuyor (EPF'de seviye basina +2, yani
+   dort parca Ates Korumasi IV tavana tek basina ulasiyor).
+   Yukaridaki 16,8 zaten o tavana gore hesaplandi; daha
+   kotusu yok.
    ============================================================ */
 
-/* Ham hasar.
+/* Ham hasar. Artik TEK is yapan sayi bu -- can tavani
+   kalkti, sonucu bu sayi ve hedefin zirhi belirliyor.
 
-   v4.69: 60 -> 200. "patron cildirdi" istegi.
+     v4.69:  60 -> 200   ("patron cildirdi")
+     v4.75: 200 -> 500   ("gucu artir, bayagi guclu olsun")
 
-   Can TAVANI zaten zirhtan bagimsiz olarak yarim kalp
-   birakiyor, yani bu sayinin isi tavanin YETISEMEDIGI yer:
-     - EMILIM (absorption) kalpleri. Onlar minecraft:health'in
-       disinda; tavan onlara dokunamiyor, ham hasar yiyor.
-       Emilim IV = 16 ek kalp = 32 can; %80 zirh indirimiyle
-       200 hasar 40 gecirir, yani emilimi de siyiriyor.
-     - Zirhsiz/az canli hedefleri dogrudan oldurmek.
+   500 neden yetiyor: ustteki hesap. En iyi vanilla savunma
+   (netherite + Ates Korumasi IV + Dayaniklilik IV) vurus
+   basina 16,8 yiyor ve isin yarim saniyede bir vuruyor --
+   20 canli bir oyuncu bir saniyede gidiyor. Zirhsiz her sey
+   tek vuruste.
 
-   v4.75: 200 -> 500. "lazerin gucunu artir, bayagi guclu
-   olsun." Zirhli oyuncuda gorunen fark YOK -- orada isi
-   yapan can tavani, ham hasar degil. Fark su iki yerde:
-     - Emilim IV (32 ek can) artik %80 zirh indiriminden
-       sonra bile TEK VURUSTA siliniyor (500 x 0,2 = 100).
-     - Ejderha, wither, demir golem gibi buyuk canli moblar
-       tavana takilmadan tek vurusta gidiyor.                */
+   BUYUTMEK GEREKIRSE: o en iyi kurulumu TEK VURUSTA dusurmek
+   icin ~1200 lazim (16,8 -> 40). Simdilik gerek gorulmedi;
+   iki vurus zaten yarim saniye.                              */
 export const LAZER_HASAR = 500;
-
-/* Vurustan sonra hedefte birakilan can. 1 puan = YARIM KALP.
-   0 yaparsan lazer oldurur.                                  */
-export const LAZER_BIRAKILAN_CAN = 1;
-
-/* Sabitleme dalinda verilen kucuk hasar. Isi OLDURMEK degil;
-   vurus hissi, geri tepme ve mobun sana donmesi icin.
-   Gercek is cani dogrudan yazmakla yapiliyor.               */
-export const LAZER_TEPKI_HASARI = 1;
 
 /* ---- LAZER POZU (v4.70) ----
    Kullanici: "goz lazeri attiginda ellerim one dogru... ayrica
