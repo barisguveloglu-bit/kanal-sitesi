@@ -2128,6 +2128,32 @@ TAS_BLOK = "tas_heykel"
 TAS_BLOK_TR = "Taş Heykel"
 TAS_KIRILMA = 8.0                # saniye; Freedom Stone'suz kirilmasin
 
+# ---- SILAHLAR ve MERMILER (v4.87) ----
+# Kullanici: "silahla alakali olan tum seyleri al."
+# Referans: Zabri Studios BoraLo Mod (11 atesli silah).
+# Ayarlar tarafindaki ikizi ayarlar.js:SILAHLAR -- kimlikler
+# birebir ayni olmali, test esitligi kilitliyor.
+#
+# (esya kimligi, gorunen ad, hasar, kaynak doku)
+# hasar None ise minecraft:damage yazilmiyor: mermiler ve
+# tasima araclari silah degil.
+SILAHLAR = [
+    ("bazuka",          "Bazuka",             8, "silah_bazuka.png"),
+    ("pdw",             "PDW",                6, "silah_pdw.png"),
+    ("revolver",        "Revolver",           7, "silah_revolver.png"),
+    ("altin_revolver",  "Altın Revolver",     9, "silah_altin_revolver.png"),
+    ("sersem_silahi",   "Sersemletici",       3, "silah_sersem.png"),
+    ("cekim_silahi",    "Yerçekimi Silahı",   1, "silah_sersem.png"),
+]
+
+# Mermiler: yigilabilir, elde tutulmuyor, hasarsiz.
+MERMILER = [
+    ("roket",         "Roket",              "mermi_roket.png"),
+    ("sarjor",        "Şarjör",             "mermi_sarjor.png"),
+    ("kursun",        "Kurşun",             "mermi_kursun.png"),
+    ("altin_kursun",  "Altın Kurşun",       "mermi_altin.png"),
+]
+
 MEZAR_BLOK = "mezar_tasi"
 MEZAR_BLOK_TR = "Mezar Taşı"
 
@@ -3197,6 +3223,41 @@ def main():
     yaz_json(os.path.join(BP, "items", DISMONT_ESYA + ".json"), dismont_esyasi())
     yaz_json(os.path.join(BP, "loot_tables/blocks", DISMONT_CEVHER + ".json"),
              dismont_ganimeti())
+    # ---- SILAHLAR ve MERMILER (v4.87) ----
+    # Silah ELDE TUTULUYOR ve hasar tasiyor; mermi YIGILIYOR ve
+    # hasarsiz. Ikisini ayni fonksiyondan uretmek, "mermiyi
+    # eline alip vurmak" gibi sacma bir seye yol acmasin diye
+    # ayri parametrelerle yapiliyor.
+    for _kim, _ad, _hasar, _dosya in SILAHLAR:
+        yaz_json(os.path.join(BP, "items", _kim + ".json"),
+                 basit_esya(_kim, _ad, _hasar))
+        _h = os.path.join(RP, "textures/item", _kim + ".png")
+        if not kaynak_doku_kopyala(_dosya, _h):
+            png_yaz(_h, 16, 16, {(x, y): (120, 124, 130, 255)
+                                 for x in range(16) for y in range(16)})
+        dokular[_kim] = {"textures": "textures/item/" + _kim}
+
+    for _kim, _ad, _dosya in MERMILER:
+        yaz_json(os.path.join(BP, "items", _kim + ".json"), {
+            "format_version": "1.21.0",
+            "minecraft:item": {
+                "description": {
+                    "identifier": "pa:" + _kim,
+                    "menu_category": {"category": "items"},
+                },
+                "components": {
+                    "minecraft:icon": {"texture": _kim},
+                    "minecraft:display_name": {"value": _ad},
+                    "minecraft:max_stack_size": 64,
+                },
+            },
+        })
+        _h = os.path.join(RP, "textures/item", _kim + ".png")
+        if not kaynak_doku_kopyala(_dosya, _h):
+            png_yaz(_h, 16, 16, {(x, y): (180, 160, 90, 255)
+                                 for x in range(16) for y in range(16)})
+        dokular[_kim] = {"textures": "textures/item/" + _kim}
+
     # ---- YENI ESYALAR ve HEYKEL BLOGU (v4.86) ----
     yaz_json(os.path.join(BP, "blocks", TAS_BLOK + ".json"), tas_heykel_blogu())
     yaz_json(os.path.join(BP, "items", KILIC_ESYA + ".json"),
@@ -3274,7 +3335,9 @@ def main():
         liste.append("tile.pa:%s.name=%s" % (MEZAR_BLOK, adlar[2]))
         # v4.86'nin uc yeni adi
         liste.append("tile.pa:%s.name=%s" % (TAS_BLOK, TAS_BLOK_TR))
-        for _k, _a in ((KILIC_ESYA, KILIC_ESYA_TR), (TAS_ESYA, TAS_ESYA_TR)):
+        for _k, _a in ([(KILIC_ESYA, KILIC_ESYA_TR), (TAS_ESYA, TAS_ESYA_TR)] +
+                       [(k2, a2) for k2, a2, _h2, _d2 in SILAHLAR] +
+                       [(k3, a3) for k3, a3, _d3 in MERMILER]):
             liste.append("item.pa:%s.name=%s" % (_k, _a))
             liste.append("item.pa:%s=%s" % (_k, _a))
 
@@ -3375,6 +3438,12 @@ def main():
     # Ikinci kez yasandi; bu yuzden burada duruyor.
     beklenen.add(KILIC_ESYA)
     beklenen.add(TAS_ESYA)
+    # v4.87'nin silahlari ve mermileri. Ayni tuzak ucuncu kez:
+    # listeye yazilmayan her esya temizlik adiminda siliniyor.
+    for _sk, _sa, _sh, _sd in SILAHLAR:
+        beklenen.add(_sk)
+    for _mk, _ma, _md in MERMILER:
+        beklenen.add(_mk)
     for satir in KOLLAR:
         beklenen.add(satir[0])
     for kimlik, _ad, _sivi, goz, _gozRenk in IKSIRLER:

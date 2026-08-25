@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.86";
+export const SURUM = "v4.87";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -2243,6 +2243,134 @@ export const KILIC_TAVAN = 1331;        // guvenlik siniri
    SURELI: kilit hep cift (bkz. asa.js ayni kural).        */
 export const KILIC_IZLEYICI_SURE = 200; // 10 saniye
 export const KILIC_BEKLEME = 200;       // 10 saniye
+
+/* ============================================================
+   SILAH SISTEMI  (v4.87)
+
+   Kullanici: "silah sisteminin yani silahla alakali olan tum
+   seyleri al, bedrock'a uyumlu yap."
+
+   ---- REFERANSIN SILAHLARI (siniflardan cozuldu) ----
+   Zabri Studios BoraLo Mod'da 11 atesli silah var. Hepsinin
+   iskeleti AYNI:
+       esya + MERMI esyasi + bekleme + ses + carpma etkisi
+   Farklari sadece sayilar ve carpinca ne oldugu.
+
+   Ornekler (derlenmis siniflardan):
+     Bazooka   -> ItemBazookaMissile mermisi, carpinca
+                  world.createExplosion (func_72876_a)
+     PDW       -> ItemAdvancedMagazine tuketiyor, bosalinca
+                  ItemAdvancedMagazineEmpty birakiyor,
+                  "boralo_mod:pdw_reload" sesi
+     Revolver  -> ItemRevolverBullets, "goldenrevolver_shot"
+     Stun Gun  -> mermisiz; vurunca yatma animasyonu + yavaslik
+
+   ---- BEDROCK'A GECERKEN: MERMI VARLIGI YOK, ISIN VAR ----
+   Java'da her silah bir MERMI VARLIGI doguruyor ve o ucuyor.
+   Bedrock'ta bunu yapmak varlik butcesini yer (tick basina
+   dort varlik) ve her mermi bir varlik demek.
+
+   Bunun yerine ISIN TARAMASI: goz lazerinin ray yurüyüsünün
+   aynisi. Anlik, bedava, zaten calistigi bilinen kod. Mermi
+   ucusunu GORMEK icin izinde parcacik birakiliyor.
+
+   Tek istisna Bazuka: patlama carpma NOKTASINDA oluyor, yani
+   isin nereye degdiyse orada. Sonuc ayni, ucus animasyonu
+   yok -- kabul edilen tek kayip.
+
+   ---- MERMI GERCEKTEN TUKETILIYOR ----
+   Referansta da oyle. Mermisiz silah tetige basinca bos
+   tiklama sesi veriyor. "Sonsuz mermi" istersen ilgili
+   satirdaki mermi alanini undefined yap.
+   ============================================================ */
+export const SILAH_ACIK = true;
+/* Isin taramasinin adim boyu (blok). Kucultmek isabeti
+   artirir ama tarama sayisini da artirir.                  */
+export const SILAH_ADIM = 0.5;
+/* Isindan kac blok sapmadaki hedef vurulur. Goz lazerinde
+   1.4; silahlar daha keskin nisan aliyor.                  */
+export const SILAH_KALINLIK = 0.9;
+/* Parcacik izi: her kac blokta bir. */
+export const SILAH_IZ_ARALIK = 1.0;
+export const SILAH_IZ_PARCACIK = "minecraft:basic_smoke_particle";
+export const SILAH_TAVAN = 6;          // tek atista en fazla kac hedef
+
+/* Her silah: kimlik -> tanim.
+
+     esya      : elde tutulan silah
+     mermi     : tuketilen esya (undefined = mermisiz)
+     hasar     : dogrudan hasar
+     menzil    : blok
+     bekleme   : tick
+     patlama   : varsa carpma noktasinda patlama gucu
+     sersem    : varsa hedefi bu kadar tick kilitler
+     ceker     : true ise hedefi kendine ceker (yerçekimi)
+     delici    : true ise ilk hedefte durmaz, hepsini vurur
+
+   YENI SILAH EKLEMEK: buraya bir satir + kol_uret.py'deki
+   SILAHLAR tablosuna ayni kimlikle bir satir. Baska hicbir
+   yere dokunmak gerekmiyor.                                */
+export const SILAHLAR = new Map([
+  ["bazuka", {
+    ad: "Bazuka",
+    esya: "pa:bazuka",
+    mermi: "pa:roket",
+    hasar: 30,           // 15 kalp -- patlama ayrica vuruyor
+    menzil: 40,
+    bekleme: 60,         // 3 saniye
+    patlama: 4,          // vanilla TNT gucu
+    ses: "random.explode"
+  }],
+  ["pdw", {
+    ad: "PDW",
+    esya: "pa:pdw",
+    mermi: "pa:sarjor",
+    hasar: 10,           // 5 kalp
+    menzil: 32,
+    bekleme: 4,          // hizli: saniyede 5 atis
+    delici: true,        // sirali hedefleri delip geciyor
+    ses: "random.bow"
+  }],
+  ["revolver", {
+    ad: "Revolver",
+    esya: "pa:revolver",
+    mermi: "pa:kursun",
+    hasar: 20,           // 10 kalp
+    menzil: 36,
+    bekleme: 20,         // 1 saniye
+    ses: "random.bow"
+  }],
+  ["altin_revolver", {
+    ad: "Altın Revolver",
+    esya: "pa:altin_revolver",
+    mermi: "pa:altin_kursun",
+    hasar: 40,           // 20 kalp
+    menzil: 48,
+    bekleme: 30,
+    delici: true,
+    ses: "random.bow"
+  }],
+  ["sersem_silahi", {
+    ad: "Sersemletici",
+    esya: "pa:sersem_silahi",
+    mermi: undefined,    // mermisiz: bekleme uzun
+    hasar: 2,            // 1 kalp -- isi vurmak degil
+    menzil: 16,
+    bekleme: 100,        // 5 saniye
+    sersem: 120,         // 6 saniye kilit
+    ses: "random.orb"
+  }],
+  ["cekim_silahi", {
+    ad: "Yerçekimi Silahı",
+    esya: "pa:cekim_silahi",
+    mermi: undefined,
+    hasar: 0,            // hic hasar yok: tasima araci
+    menzil: 24,
+    bekleme: 30,
+    ceker: true,
+    ses: "random.orb"
+  }],
+]);
 
 /* ============================================================
    TASA CEVIRME  (v4.86)

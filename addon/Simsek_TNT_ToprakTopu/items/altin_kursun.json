@@ -1,0 +1,20 @@
+{
+  "format_version": "1.21.0",
+  "minecraft:item": {
+    "description": {
+      "identifier": "pa:altin_kursun",
+      "menu_category": {
+        "category": "items"
+      }
+    },
+    "components": {
+      "minecraft:icon": {
+        "texture": "altin_kursun"
+      },
+      "minecraft:display_name": {
+        "value": "Altın Kurşun"
+      },
+      "minecraft:max_stack_size": 64
+    }
+  }
+}

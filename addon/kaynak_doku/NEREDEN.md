@@ -138,3 +138,19 @@ mekanik fikirler; her biri Bedrock'a yeniden yazıldı.
 
 Modun kendi eşya adı Resetting Sword için `proximity_projection`; dokusunu
 `red_key.png` üzerinden bulduk (`models/item/proximity_projection.json`).
+
+## v4.87 — silah sistemi
+
+Aynı jar (`ZabriStudiosv2.21.12.2_2_1.jar`).
+
+| dosya | modun içindeki yolu |
+|---|---|
+| `silah_pdw.png` | `textures/blocks/pdw_memirzabri.png` |
+| `silah_revolver.png` | `textures/blocks/revolver_mz.png` |
+| `silah_altin_revolver.png` | `textures/blocks/goldenrevolver_mz.png` |
+| `silah_sersem.png` | `textures/items/stungun.png` |
+| `mermi_sarjor.png` | `textures/items/advancedmagazine.png` (32×32 → 16×16) |
+| `mermi_roket.png` | `textures/bm_missile_texture.png` (32×32 → 16×16) |
+| `mermi_kursun.png` | `textures/bullet1.png` (64×16 şerit → ilk 16×16 karesi) |
+| `mermi_altin.png` | `textures/rosite_bullet.png` |
+| `silah_bazuka.png` | **çizildi** — bazukanın modda tek parça dokusu yok, çok parçalı bir model (beton + kırmızı nokta). Modun kendi gri tonlarıyla 16×16 bir namlu çizildi. |

@@ -98,6 +98,36 @@
     "ilkel_asa": {
       "textures": "textures/item/ilkel_asa"
     },
+    "bazuka": {
+      "textures": "textures/item/bazuka"
+    },
+    "pdw": {
+      "textures": "textures/item/pdw"
+    },
+    "revolver": {
+      "textures": "textures/item/revolver"
+    },
+    "altin_revolver": {
+      "textures": "textures/item/altin_revolver"
+    },
+    "sersem_silahi": {
+      "textures": "textures/item/sersem_silahi"
+    },
+    "cekim_silahi": {
+      "textures": "textures/item/cekim_silahi"
+    },
+    "roket": {
+      "textures": "textures/item/roket"
+    },
+    "sarjor": {
+      "textures": "textures/item/sarjor"
+    },
+    "kursun": {
+      "textures": "textures/item/kursun"
+    },
+    "altin_kursun": {
+      "textures": "textures/item/altin_kursun"
+    },
     "resetting_sword": {
       "textures": "textures/item/resetting_sword"
     },

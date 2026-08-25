@@ -25,6 +25,7 @@ import { asaTara } from "./yetenekler/asa.js";
 import { disTara } from "./yetenekler/disler.js";
 import { kilicKullan, kilicTara, kilicUnut } from "./yetenekler/kilic.js";
 import { tasTara, tasUnut } from "./yetenekler/tas.js";
+import { silahKullan, silahTara, silahUnut, silahiBul } from "./yetenekler/silahlar.js";
 
 /* Sohbet komutlari ("can 10", "lazer"...). Bu dosya main.js'i
    import etmiyor; komutlarin calistiracagi fonksiyonlar kanca
@@ -274,6 +275,7 @@ system.runInterval(() => {
     disTara();
     kilicTara();
     tasTara();
+    silahTara();
   } catch (e) {
     hataYaz("taramalar", e);
   }
@@ -712,6 +714,16 @@ const girisKuruldu = olayaAbone("itemUse", (olay) => {
        Kol degil, kendi basina bir esya. Kol dallarindan ONCE
        bakiliyor cunku esyaninYetenekleri onu tanimaz ve
        asagidaki "liste yoksa cik" satirinda dusup giderdi.  */
+    /* ---- SILAHLAR (v4.87) ----
+       Kol degil, kendi baslarina esyalar. Kol dallarindan
+       ONCE bakiliyor: esyaninYetenekleri onlari tanimaz ve
+       asagidaki "liste yoksa cik" satirinda duserlerdi.
+       Kilic ile ayni kalip.                                */
+    if (silahiBul(esya.typeId)) {
+      silahKullan(oyuncu, esya.typeId);
+      return;
+    }
+
     if (esya.typeId === KILIC_ESYA) {
       const is = kilicKullan(oyuncu);
       if (is) isEkle(is);
@@ -1141,6 +1153,7 @@ olayaAbone("playerLeave", (olay) => {
   ilkelHedefUnut(olay.playerId);
   kilicUnut(olay.playerId);
   tasUnut(olay.playerId);
+  silahUnut(olay.playerId);
 
   // Oyuncunun butun isleri durdurulmali, sadece birincisi degil
   const acikIsler = oyuncununIsleri.get(olay.playerId);

@@ -1,0 +1,20 @@
+{
+  "format_version": "1.21.0",
+  "minecraft:item": {
+    "description": {
+      "identifier": "pa:sarjor",
+      "menu_category": {
+        "category": "items"
+      }
+    },
+    "components": {
+      "minecraft:icon": {
+        "texture": "sarjor"
+      },
+      "minecraft:display_name": {
+        "value": "Şarjör"
+      },
+      "minecraft:max_stack_size": 64
+    }
+  }
+}

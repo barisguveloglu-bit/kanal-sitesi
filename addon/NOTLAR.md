@@ -4400,6 +4400,70 @@ dışarı almanın maliyeti yok.
 
 ---
 
+## v4.87 — Silah sistemi
+
+Kullanıcı: *"silahla alakalı olan tüm şeyleri al, bedrock'a uyumlu yap."*
+
+Referansta **11 ateşli silah** var ve hepsinin iskeleti aynı:
+`eşya + mermi + bekleme + ses + çarpma etkisi`. Farkları sadece sayılar. O
+yüzden burada da **tek motor**, silahlar `ayarlar.js:SILAHLAR` tablosunda
+birer satır. Yeni silah eklemek = iki tabloya birer satır, başka hiçbir yere
+dokunmadan.
+
+| silah | hasar | menzil | bekleme | mermi | özel |
+|---|---|---|---|---|---|
+| Bazuka | 15 kalp | 40 | 3 sn | Roket | patlama (güç 4) |
+| PDW | 5 kalp | 32 | 0,2 sn | Şarjör | delici |
+| Revolver | 10 kalp | 36 | 1 sn | Kurşun | — |
+| Altın Revolver | 20 kalp | 48 | 1,5 sn | Altın Kurşun | delici |
+| Sersemletici | 1 kalp | 16 | 5 sn | — | 6 sn kilit |
+| Yerçekimi Silahı | 0 | 24 | 1,5 sn | — | hedefi çeker |
+
+### Mermi varlığı yok, ışın taraması var
+
+Java'da her silah uçan bir **mermi varlığı** doğuruyor. Bedrock'ta bu varlık
+bütçesini yer (tick başına dört) ve her atış bir varlık demek. Bunun yerine
+göz lazerinin ray yürüyüşünün aynısı: anlık, bedava, zaten çalıştığı bilinen
+kod. Uçuş hissi **parçacık iziyle** veriliyor.
+
+Tek kayıp: bazukanın roketi havada süzülmüyor, patlama doğrudan çarpma
+noktasında oluyor. Sonuç aynı.
+
+### Lazerin yerini almasın diye
+
+Test bir denge kuralı kilitliyor: **en sert silah, lazer hasarının beşte
+birinden az** olmalı; her silahın beklemesi olmalı; mermisiz silahların
+beklemesi uzun olmalı. Yoksa iksir sistemi anlamsızlaşırdı.
+
+Ayrıca ışın kendi botlarını vurmuyor, duvarın arkasındakini vurmuyor, delici
+olmayan silah ilk hedefte duruyor.
+
+### Göz lazerindeki hata burada tekrarlanmadı
+
+v4.77'de öğrenilmişti: küre yarıçapı tam menzil olursa ışının **ucundaki**
+hedefler küreye sığmıyor. Silah motoru baştan `menzil + kalınlık` yazıyor.
+
+---
+
+## Referans notu: `REFERANS_BORALO.md`
+
+Kullanıcı: *"bedrock yapılabilecekler diye bir liste aç… sen yapılabilecekleri
+tekrar tekrar bakma, tek bir not açacaksın o kadar."*
+
+`addon/REFERANS_BORALO.md` açıldı. İçinde:
+
+* modun künyesi ve md5'i (aynı jar iki kez yüklendi, ikisi de birebir aynı)
+* boyut rakamları — 6174 sınıf, 2598 doku, 178 varlık, 833 eşya, 103 efekt
+* **dört kova**: yapıldı / kolay / orta / zor–imkânsız
+* derlenmiş sınıflardan çıkarılmış **gerçek davranışlar** (Resetting Sword'ün
+  komutları, Stone Converterer'in zinciri, Fallen'ın skin komutu, Bobby Bot'un
+  summon satırı, silahların iskeleti)
+
+Artık jar'ı tekrar yüklemeye ve modu tekrar taramaya gerek yok; sıradaki iş
+seçilirken o dosyaya bakılır.
+
+---
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:
