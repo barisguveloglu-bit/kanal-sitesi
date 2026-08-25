@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.78";
+export const SURUM = "v4.79";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -764,42 +764,69 @@ export const PARCACIK_LAZER = "minecraft:endrod";
    vuruyor" diye dusunmek zorunda kalma.
 
    ============================================================
-   v4.78 -- HEPSINE +1 SEVIYE
+   v4.78 GERI ALINDI, v4.79 YERINE GECTI
 
-   Kullanici: "iksirlerin buyuleri var ya, onlara 1+ buff ekle...
-   sana gore guclu sayilabileceklere ekleme, digerlerine ekle."
+   v4.78'de butun efektlere +1 seviye verilmisti. Kullanici
+   denedi ve begenmedi: "su andaki surumun iksirlerini
+   sevmedim, yani verdigi gucleri sevmedim... eski iksirlerin
+   buyulerini bul, onlari + bir tane kendi secegin buyu ver."
 
+   DERS: toplu +1 aslinda hicbir sey degistirmiyor. Herkes
+   ayni oranda buyuyunce iksirler arasindaki fark aynen
+   kaliyor, sadece roma rakamlari sisiyor. Oynanista
+   hissedilen sey YENI BIR YETENEK, bir basamak daha yuksek
+   ayni yetenek degil.
+
+   Simdiki hal: seviyeler v4.77'deki gibi (birebir geri
+   alindi), ustune HER IKSIRE IKI EKLEME:
+
+     1. jump_boost 1 -- kullanici: "bence iksirleri Sicrama II,
+        bu tum[unde] de olsun." Zaten daha yuksegi olan
+        Nitroksin (3) ve Hiperoksin (2) korundu; digerlerine
+        yeni eklendi.
+
+     2. Bir tane SECILEN buyu. Olcu "sayiyi buyut" degil,
+        "bu iksirde EKSIK olan ve kimligine uyan sey":
+
+          Nitroksin   saturation       kosarken acikmasin
+          Grinoksin   fire_resistance  tankin tek acigi atesti
+          Redoksin    resistance 1     dovusuyor ama hasar
+                                       indirimi HIC yoktu
+          Firenoksin  health_boost 2   ates var, can yoktu
+          Kan Iksiri  saturation       suikastci beslenmeye
+                                       ara vermez
+          Hiperoksin  health_boost 1   "her seyden biraz" ama
+                                       ek candan hic yoktu
+          StarOxine   water_breathing  korumanin son acigi
+                                       bogulmakti
+          Element     slow_falling     dorduncu element: hava
+                                       (su/ates/toprak zaten var)
+
+   Yeni seviyeler UZMANLIK DUZENINE gore secildi:
+   health_boost'ta Grinoksin 4 > StarOxine 3 > Firenoksin 2 >
+   Hiperoksin 1; resistance'ta StarOxine 4 (dokunulmazlik)
+   > Grinoksin 3 > ... > Redoksin 1. Yeni gelen hicbir sey
+   uzmanini gecmiyor.
+
+   ---- DEGISMEYEN IKI KURAL ----
    Asagidaki sayilar AMPLIFIER; oyunda gorunen seviye bunun
-   BIR FAZLASI. Yani ["strength", 3] ekranda "Kuvvet IV" yazar.
-   Kullanicinin ekran goruntusu bunu birebir dogruladi.
+   BIR FAZLASI. ["strength", 3] ekranda "Kuvvet IV" yazar --
+   kullanicinin ekran goruntusu bunu birebir dogruladi.
+   Dolayisiyla jump_boost 1 = "Ziplama Arttirma II".
 
-   44 satir arttirildi. IKI SEY ATLANDI, ikisinin de sebebi
-   somut:
+   SEVIYESIZ EFEKTLER 0'da kalir: night_vision,
+   fire_resistance, water_breathing, conduit_power,
+   invisibility, slow_falling, saturation. Bunlarin oyunda
+   seviyesi yok; sayiyi buyutmek sadece roma rakamini
+   degistirir ve oyunda hicbir sey yapmaz. Sahte icerik
+   uretmiyoruz.
 
-   1. SEVIYESIZ EFEKTLER -- night_vision, fire_resistance,
-      water_breathing, conduit_power, invisibility,
-      slow_falling, saturation.
-      Bunlarin oyunda seviyesi YOK. Sayiyi buyutmek sadece
-      roma rakamini degistirir, oyunda hicbir sey yapmaz:
-      "Atese Dayaniklilik II" yazar ve tek etkisi seni
-      yaniltmak olur. Sahte icerik uretmiyoruz.
-
-   2. DAYANIKLILIK 3 ve uzeri.
-      Bedrock'ta Dayaniklilik seviye basina %20 hasar
-      dusuruyor ve seviye V (amplifier 4) TAM DOKUNULMAZLIK
-      demek -- void, aclik ve /kill disinda hicbir sey
-      degdirmiyor.
-
-      StarOxine'in kimligi tam olarak bu; kullanici onu
-      "hasari HIC ALMAMA" diye istemisti ve amplifier 4 zaten
-      orada. Grinoksin 3'ten 4'e cikarsa IKINCI bir dokunulmaz
-      iksir olur ve StarOxine'in varlik sebebi kalmaz.
-      Dayaniklilik bu yuzden 3'te duruyor (= %80 indirim).
-
-   UZMANLAR DA ARTTI, bilerek: Redoksin'in vurusu 4 -> 5,
-   Grinoksin'in canlari 4 -> 5. Sadece zayiflari buyutseydik
-   herkes uzmanla ayni seviyeye cikardi ve "hangi iksir ne
-   icin" duzeni cokerdi. Aradaki FARK korundu.
+   DOKUNULMAZLIK TEK IKSIRDE: Bedrock'ta Dayaniklilik seviye
+   basina %20 hasar dusuruyor ve seviye V (amplifier 4) TAM
+   DOKUNULMAZLIK demek -- void, aclik ve /kill disinda hicbir
+   sey degdirmiyor. Kullanici bunu SADECE StarOxine icin
+   istedi ("hasari hic almasin"). Baska bir iksir 4'e cikarsa
+   StarOxine'in varlik sebebi kalmaz.
    ============================================================ */
 export const KADEMELER = [
   {
@@ -814,15 +841,17 @@ export const KADEMELER = [
     /* Referans: speed 0, jump_boost 0, strength 0, resistance 0,
        instant_health 0.  Bizde hiz/ziplama UZMANI.             */
     efektler: [
-      ["speed",        4],   // referans 0
-      ["jump_boost",   4],   // referans 0
-      ["strength",     3],
-      ["resistance",   2],
-      ["haste",        2],
-      ["absorption",   3],
+      ["speed",        3],   // referans 0
+      ["jump_boost",   3],   // referans 0
+      ["strength",     2],
+      ["resistance",   1],
+      ["haste",        1],
+      ["absorption",   2],
       ["night_vision", 0],
       /* v4.16 buff: ziplama kimligini tamamliyor -- yuksekten atlayip yavas iniyorsun */
-      ["slow_falling", 0]
+      ["slow_falling", 0],
+      /* v4.79 secilen buyu: hiz uzmani kosarken acikmasin */
+      ["saturation",   0]
     ]
   },
   {
@@ -838,14 +867,18 @@ export const KADEMELER = [
        geliyor. Bizde ayakta kalma UZMANI.                      */
     efektler: [
       ["resistance",   3],
-      ["regeneration", 4],
-      ["absorption",   5],
-      ["health_boost", 5],
-      ["strength",     2],
-      ["speed",        2],
+      ["regeneration", 3],
+      ["absorption",   4],
+      ["health_boost", 4],
+      ["strength",     1],
+      ["speed",        1],
       ["night_vision", 0],
       /* v4.16 buff: dayaniklilik: suda da bogulmuyorsun */
-      ["water_breathing", 0]
+      ["water_breathing", 0],
+      /* v4.79: "Sicrama II tumunde olsun" */
+      ["jump_boost",   1],
+      /* v4.79 secilen buyu: tankin tek acigi atesti */
+      ["fire_resistance", 0]
     ]
   },
   {
@@ -860,14 +893,18 @@ export const KADEMELER = [
     /* Referans: regeneration 0, speed 0, strength 0.
        Bizde vurus ve kazma UZMANI.                             */
     efektler: [
-      ["strength",     5],   // referans 0
-      ["haste",        5],
-      ["speed",        3],
-      ["regeneration", 2],
-      ["absorption",   2],
+      ["strength",     4],   // referans 0
+      ["haste",        4],
+      ["speed",        2],
+      ["regeneration", 1],
+      ["absorption",   1],
       ["night_vision", 0],
       /* v4.16 buff: kazarken acikmiyorsun */
-      ["saturation", 0]
+      ["saturation",   0],
+      /* v4.79: "Sicrama II tumunde olsun" */
+      ["jump_boost",   1],
+      /* v4.79 secilen buyu: dovusen iksirin hasar indirimi yoktu */
+      ["resistance",   1]
     ]
   },
   {
@@ -883,14 +920,18 @@ export const KADEMELER = [
        Bizde ates UZMANI -- lazeri de yakiyor.                  */
     efektler: [
       ["fire_resistance", 0],
-      ["strength",        4],
-      ["speed",           4],
-      ["resistance",      3],
-      ["regeneration",    2],
-      ["absorption",      3],
-      ["night_vision",    0],
+      ["strength",     3],
+      ["speed",        3],
+      ["resistance",   2],
+      ["regeneration", 1],
+      ["absorption",   2],
+      ["night_vision", 0],
       /* v4.16 buff: ates blogu yumusatir gibi: daha hizli kazma (Redoksin 4 ile hala uzman) */
-      ["haste", 3]
+      ["haste",        2],
+      /* v4.79: "Sicrama II tumunde olsun" */
+      ["jump_boost",   1],
+      /* v4.79 secilen buyu: ates var, can yoktu */
+      ["health_boost", 2]
     ]
   },
   {
@@ -905,14 +946,18 @@ export const KADEMELER = [
     /* Referansta yok, bizim. Lazeri verdigi hasarin bir kismini
        CANA CEVIRIYOR -- vampir kimligi.                        */
     efektler: [
-      ["strength",     5],
-      ["absorption",   5],
-      ["regeneration", 3],
-      ["haste",        3],
-      ["speed",        2],
+      ["strength",     4],
+      ["absorption",   4],
+      ["regeneration", 2],
+      ["haste",        2],
+      ["speed",        1],
       ["night_vision", 0],
       /* v4.16 buff: vampir kimligi: goze gorunmuyorsun */
-      ["invisibility", 0]
+      ["invisibility", 0],
+      /* v4.79: "Sicrama II tumunde olsun" */
+      ["jump_boost",   1],
+      /* v4.79 secilen buyu: kan iksiri beslenmeye ara vermez */
+      ["saturation",   0]
     ]
   },
   {
@@ -931,17 +976,19 @@ export const KADEMELER = [
          dayaniklilik 2 < Grinoksin 3
        Yani "ne yapacagimi bilmiyorum" iksiri.                  */
     efektler: [
-      ["speed",           3],
-      ["strength",        4],
-      ["resistance",      3],
-      ["regeneration",    3],
-      ["jump_boost",      3],
-      ["absorption",      4],
-      ["haste",           3],
+      ["speed",        2],
+      ["strength",     3],
+      ["resistance",   2],
+      ["regeneration", 2],
+      ["jump_boost",   2],
+      ["absorption",   3],
+      ["haste",        2],
       ["fire_resistance", 0],
-      ["night_vision",    0],
+      ["night_vision", 0],
       /* v4.16 buff: her seyden biraz: su alti paketi de var */
-      ["conduit_power", 0]
+      ["conduit_power", 0],
+      /* v4.79 secilen buyu: her seyden biraz -- ek can eksikti */
+      ["health_boost", 1]
     ]
   },
   /* ============================================================
@@ -973,16 +1020,20 @@ export const KADEMELER = [
        Ikisi de "dayaniklilik" ama ayri yollar; birbirinin
        kopyasi olmasinlar diye boyle ayrildi.                */
     efektler: [
-      ["resistance",      4],   // UZMAN: Grinoksin 3
-      ["health_boost",    4],
+      ["resistance",   4],   // UZMAN: Grinoksin 3
+      ["health_boost", 3],
       ["fire_resistance", 0],
-      ["absorption",      4],
-      ["regeneration",    2],   // Grinoksin 3 -- orada uzman
-      ["strength",        2],
-      ["speed",           2],
-      ["night_vision",    0],
+      ["absorption",   3],
+      ["regeneration", 1],   // Grinoksin 3 -- orada uzman
+      ["strength",     1],
+      ["speed",        1],
+      ["night_vision", 0],
       /* Yildiz kimligi: yuksekten dususte yavaslama */
-      ["slow_falling",    0]
+      ["slow_falling", 0],
+      /* v4.79: "Sicrama II tumunde olsun" */
+      ["jump_boost",   1],
+      /* v4.79 secilen buyu: korumanin son acigi bogulmakti */
+      ["water_breathing", 0]
     ]
   },
   {
@@ -1007,15 +1058,19 @@ export const KADEMELER = [
     lazer: { modlu: "element" },
     efektler: [
       ["water_breathing", 0],
-      ["conduit_power",   0],
+      ["conduit_power", 0],
       ["fire_resistance", 0],
-      ["haste",           4],
-      ["resistance",      3],
-      ["speed",           3],
-      ["absorption",      3],
-      ["night_vision",    0],
+      ["haste",        3],
+      ["resistance",   2],
+      ["speed",        2],
+      ["absorption",   2],
+      ["night_vision", 0],
       /* Element kimligi: her ortamda ayakta kal */
-      ["regeneration",    2]
+      ["regeneration", 1],
+      /* v4.79: "Sicrama II tumunde olsun" */
+      ["jump_boost",   1],
+      /* v4.79 secilen buyu: dordüncu element: hava */
+      ["slow_falling", 0]
     ]
   }
 ];

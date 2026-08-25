@@ -4010,6 +4010,61 @@ bunu birebir doğruladı.
 
 ---
 
+## v4.79 — v4.78 geri alındı, yerine iksir başına bir yeni büyü
+
+Kullanıcı v4.78'i denedi ve beğenmedi: *"şu andaki sürümün iksirlerini
+sevmedim, yani verdiği güçleri sevmedim... eski iksirlerin büyülerini bul,
+onları + bir tane kendi seçeceğin büyü ver."*
+
+### Ders: toplu +1 aslında hiçbir şey değiştirmiyor
+
+Herkes aynı oranda büyüyünce iksirler arasındaki fark **aynen kalıyor**,
+sadece roma rakamları şişiyor. Oynanışta hissedilen şey **yeni bir yetenek**,
+bir basamak daha yüksek aynı yetenek değil. v4.78 tam olarak bu hataydı ve
+kullanıcı bunu ilk denemede fark etti.
+
+Seviyeler v4.77'deki hâline **birebir** döndü (`git show 1ed9d9f` üzerinden,
+yorumlarıyla birlikte). Üstüne her iksire iki ekleme geldi.
+
+### 1. Sıçrama II — hepsinde
+
+*"Bence iksirleri Sıçrama II, bu tüm[ünde] de olsun."* `jump_boost` amplifier
+1 (ekranda **"Zıplama Arttırma II"**). Zaten daha yükseği olan Nitroksin (3)
+ve Hiperoksin (2) korundu — buff isteğini downgrade'e çevirmek olurdu.
+
+### 2. Her iksire seçilmiş bir büyü
+
+Ölçü "sayıyı büyüt" değil, **"bu iksirde eksik olan ve kimliğine uyan şey"**:
+
+| iksir | seçilen | neden |
+|---|---|---|
+| Nitroksin | `saturation` | koşmak açlıktan yiyor; hız uzmanı acıkmasın |
+| Grinoksin | `fire_resistance` | tankın tek açığı ateşti |
+| Redoksin | `resistance 1` | dövüşüyor ama hasar indirimi **hiç** yoktu |
+| Firenoksin | `health_boost 2` | ateş var, can yoktu |
+| Kan İksiri | `saturation` | suikastçı beslenmeye ara vermez |
+| Hiperoksin | `health_boost 1` | "her şeyden biraz" ama ek candan hiç yoktu |
+| StarOxine | `water_breathing` | korumanın son açığı boğulmaktı |
+| Element | `slow_falling` | dördüncü element: **hava** (su/ateş/toprak zaten vardı) |
+
+Seviyeler uzmanlık düzenine göre seçildi: `health_boost`'ta Grinoksin 4 >
+StarOxine 3 > Firenoksin 2 > Hiperoksin 1; `resistance`'ta StarOxine 4
+(dokunulmazlık) > Grinoksin 3 > … > Redoksin 1. **Yeni gelen hiçbir şey
+uzmanını geçmiyor.**
+
+### Değişmeyen kurallar
+
+Seviyesiz efektler (`night_vision`, `fire_resistance`, `water_breathing`,
+`conduit_power`, `invisibility`, `slow_falling`, `saturation`) 0'da kalır —
+sayıyı büyütmek sadece roma rakamını değiştirir, oyunda hiçbir şey yapmaz.
+Dokunulmazlık (Dayanıklılık V) tek iksirde: StarOxine.
+
+`iksir.mjs` bölüm 8 bunları kilitliyor; ayrıca yeni: her iksirde Sıçrama var
+mı, seçilen büyüler duruyor mu, aynı efekt iki kez yazılmış mı (ikinci kayıt
+birincisini sessizce ezer).
+
+---
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:
