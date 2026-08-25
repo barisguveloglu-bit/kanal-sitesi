@@ -4,12 +4,16 @@
     1,
     0
   ],
-  "pa:dismont_cevheri": {
-    "textures": "dismont_cevheri",
+  "pa:freedom_stone_cevheri": {
+    "textures": "freedom_stone_cevheri",
     "sound": "stone"
   },
   "pa:mezar_tasi": {
     "textures": "mezar_tasi",
+    "sound": "stone"
+  },
+  "pa:tas_heykel": {
+    "textures": "tas_heykel",
     "sound": "stone"
   }
 }

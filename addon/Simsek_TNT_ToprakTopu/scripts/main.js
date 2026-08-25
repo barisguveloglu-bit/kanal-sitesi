@@ -7,7 +7,8 @@ import {
   KOL_VER_ACIK, KOL_VER_ESIGI, KOL_VER_TUTMA, CIFT_EL_ACIK, AYNI_ANDA,
   MENU_DOKUNUSLA, BOT_KIMLIK, KALP_ADIM, KALP_TAVAN, BETA_GEREKLI,
   SOHBET_ONEK, BOT_TAVAN, DERIN_HEDEFLER, DERIN_VARSAYILAN,
-  DONDUR_GIRDI_KILIT, ILKEL_BESLI, ILKEL_ACIK, botTuruMu
+  DONDUR_GIRDI_KILIT, ILKEL_BESLI, ILKEL_ACIK, botTuruMu,
+  KILIC_ESYA
 } from "./ayarlar.js";
 
 import {
@@ -22,6 +23,8 @@ import {
 import { menuAc, menuKullanilabilir } from "./menu.js";
 import { asaTara } from "./yetenekler/asa.js";
 import { disTara } from "./yetenekler/disler.js";
+import { kilicKullan, kilicTara, kilicUnut } from "./yetenekler/kilic.js";
+import { tasTara, tasUnut } from "./yetenekler/tas.js";
 
 /* Sohbet komutlari ("can 10", "lazer"...). Bu dosya main.js'i
    import etmiyor; komutlarin calistiracagi fonksiyonlar kanca
@@ -252,18 +255,27 @@ system.runInterval(() => {
         hataYaz("botTara", e);
       }
     }
-    /* El-Harkos'un sersemlettikleri (v4.50). Suresi dolani
-       serbest birakiyor -- kilit hep cift, suresiz etki yok.
-       Defteri bosken hicbir sey yapmiyor.                     */
-    try {
-      asaTara();
-      /* Okazor'un disleri kuyrukta bekliyor: butcenin izin
-         verdigi kadari her tick cikiyor. Kuyruk bosken
-         disTara hic donmuyor.                              */
-      disTara();
-    } catch (e) {
-      hataYaz("asaTara", e);
-    }
+  }
+
+  /* ---- BU TARAMALAR OYUNCU LISTESINE BAGLI DEGIL (v4.86) ----
+     v4.50'den beri asaTara() yukaridaki "iksir/kalp/bot var mi"
+     blogunun ICINDEYDI. Yani hicbir iksir icilmemis, hicbir bot
+     cagrilmamissa sersemlik SAYACI HIC ISLEMIYORDU -- kilit
+     acilmiyordu.
+
+     Yeni kilicin testi bunu yakaladi: izleyici modu suresi
+     dolmasina ragmen oyuncu izleyicide kaliyordu. Ayni sey
+     tasa cevrilenler icin de gecerliydi.
+
+     Dordu de kendi defterleri bosken HEMEN donuyor, yani
+     disariya almanin bir maliyeti yok. Dogru yer burasi.   */
+  try {
+    asaTara();
+    disTara();
+    kilicTara();
+    tasTara();
+  } catch (e) {
+    hataYaz("taramalar", e);
   }
 
   if (isler.length === 0) return;
@@ -696,6 +708,16 @@ const girisKuruldu = olayaAbone("itemUse", (olay) => {
     const esya = olay.itemStack;
     if (!oyuncu || !esya) return;
 
+    /* ---- RESETTING SWORD (v4.86) ----
+       Kol degil, kendi basina bir esya. Kol dallarindan ONCE
+       bakiliyor cunku esyaninYetenekleri onu tanimaz ve
+       asagidaki "liste yoksa cik" satirinda dusup giderdi.  */
+    if (esya.typeId === KILIC_ESYA) {
+      const is = kilicKullan(oyuncu);
+      if (is) isEkle(is);
+      return;
+    }
+
     /* Cok yetenekli kolda esyaya dokunmak da SECILI yetenegi
        calistirir; jestle ayni davransin diye.                    */
     const liste = esyaninYetenekleri(esya.typeId);
@@ -1117,6 +1139,8 @@ olayaAbone("playerLeave", (olay) => {
   botUnut(olay.playerId);
   derinHedefUnut(olay.playerId);
   ilkelHedefUnut(olay.playerId);
+  kilicUnut(olay.playerId);
+  tasUnut(olay.playerId);
 
   // Oyuncunun butun isleri durdurulmali, sadece birincisi degil
   const acikIsler = oyuncununIsleri.get(olay.playerId);

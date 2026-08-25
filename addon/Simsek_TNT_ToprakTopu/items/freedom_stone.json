@@ -2,17 +2,17 @@
   "format_version": "1.21.0",
   "minecraft:item": {
     "description": {
-      "identifier": "pa:dismont",
+      "identifier": "pa:freedom_stone",
       "menu_category": {
         "category": "items"
       }
     },
     "components": {
       "minecraft:icon": {
-        "texture": "dismont"
+        "texture": "freedom_stone"
       },
       "minecraft:display_name": {
-        "value": "Dismont Tasi"
+        "value": "Freedom Stone"
       },
       "minecraft:max_stack_size": 64
     }

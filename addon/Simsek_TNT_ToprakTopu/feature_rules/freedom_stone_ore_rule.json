@@ -2,8 +2,8 @@
   "format_version": "1.21.0",
   "minecraft:feature_rules": {
     "description": {
-      "identifier": "pa:dismont_ore_rule",
-      "places_feature": "pa:dismont_ore_feature"
+      "identifier": "pa:freedom_stone_ore_rule",
+      "places_feature": "pa:freedom_stone_ore_feature"
     },
     "conditions": {
       "placement_pass": "underground_pass",

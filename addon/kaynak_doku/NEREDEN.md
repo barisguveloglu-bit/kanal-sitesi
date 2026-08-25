@@ -116,3 +116,25 @@ yazıt gerçekten çözülebilir.
 
 `kol_uret.py` bu atlastan `scripts/yetenekler/_sga.js` dosyasını
 üretiyor — 26 harfin 8×8 bit haritası. Elle yazılmıyor.
+
+
+---
+
+## v4.86 — Zabri Studios BoraLo Mod'dan alınanlar
+
+Kaynak: `ZabriStudiosv2.21.12.2_2_1.jar` (modid `boralo_mod`, v2.1.0,
+Minecraft **Java** 1.12.2 Forge, MemirZabri Studios). Kullanıcı yükledi.
+
+Java modu — **kodu Bedrock'ta çalışmaz.** Alınan şeyler yalnızca dokular ve
+mekanik fikirler; her biri Bedrock'a yeniden yazıldı.
+
+| dosya | modun içindeki yolu | nerede kullanılıyor |
+|---|---|---|
+| `freedom_stone.png` | `textures/items/freedomstone.png` | Freedom Stone ikonu |
+| `resetting_sword.png` | `textures/blocks/red_key.png` | Resetting Sword ikonu |
+| `tas_donusturucu.png` | `textures/items/memirzabristoneconverter.png` | Taş Dönüştürücü ikonu |
+| `tas_kaplama.png` | `textures/stonelayerplayer.png` | taş heykel dokusunun kaynağı |
+| `tas_heykel.png` | yukarıdakinin yüz karesi (8,8)-(16,16), 16×16'ya ölçeklendi | heykel bloğu |
+
+Modun kendi eşya adı Resetting Sword için `proximity_projection`; dokusunu
+`red_key.png` üzerinden bulduk (`models/item/proximity_projection.json`).

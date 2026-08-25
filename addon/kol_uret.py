@@ -989,6 +989,23 @@ def kol_skin_uygula(kimlik):
     return True
 
 
+def kaynak_doku_kopyala(dosya, hedef):
+    """kaynak_doku/ altindaki bir dokuyu oldugu gibi pakete
+    kopyalar. Doner: kopyalandi mi.
+
+    False donerse cagiran taraf URETILEN dokuyu ciziyor -- yani
+    kaynak_doku/ silinse bile paket calisir, sadece o ikon yer
+    tutucuya doner. iksir_dokusu_kopyala ile ayni sozlesme,
+    sadece esleme tablosu olmadan.                            """
+    kaynak = os.path.join(DOKU_KAYNAK, dosya)
+    if not os.path.exists(kaynak):
+        print("UYARI: kaynak doku yok (%s), uretilen kullaniliyor" % kaynak)
+        return False
+    import shutil
+    shutil.copyfile(kaynak, hedef)
+    return True
+
+
 def iksir_dokusu_kopyala(kimlik, hedef):
     """Referans moddan cikarilan iksir ikonunu pakete kopyalar.
 
@@ -2075,10 +2092,42 @@ TUTUS_ANIM = {
 # format_version 1.21.0 secildi: kararli blok bicimi. v3.6'da
 # esyalarda 1.16.100 kullanilmis ve "Holiday Creator Features"
 # deneysel ayarina bagimli cikmisti; o hata tekrarlanmiyor.
-DISMONT_ESYA = "dismont"
-DISMONT_ESYA_TR = "Dismont Taşı"
-DISMONT_CEVHER = "dismont_cevheri"
-DISMONT_CEVHER_TR = "Dismont Cevheri"
+# ---- ADI DEGISTI: DISMONT -> FREEDOM STONE (v4.86) ----
+# Kullanici: "Freedom Stone bir yerden tanidik geldi degil mi?
+# Iste o bizim dismont tasi. Adini degistirecegim, Freedom
+# Stone olsun."
+#
+# Hakli: referans modun (Zabri Studios BoraLo Mod) kendi tasi
+# da tam olarak bu isi yapiyor -- tutsagi serbest birakiyor.
+# Dokusu da oradan alindi (kaynak_doku/freedom_stone.png).
+#
+# DIKKAT -- KIMLIK DEGISIYOR: eski dunyalarda yerlestirilmis
+# pa:dismont_cevheri bloklari ve envanterdeki pa:dismont
+# esyalari BILINMEYEN olur. Test dunyasi icin sorun degil;
+# gercek bir dunyada oynaniyorsa once cevherleri kirip
+# tasi almak gerekir.
+#
+# Kullanici "bizde sadece Freedom Stone olacak" dedi. Cevher
+# DURUYOR cunku tasin oyundaki TEK kaynagi o -- silinirse
+# mezardan kimse kurtulamaz. Ama artik ayri bir isim degil,
+# ayni ailenin parcasi: "Freedom Stone Cevheri".
+DISMONT_ESYA = "freedom_stone"
+DISMONT_ESYA_TR = "Freedom Stone"
+DISMONT_CEVHER = "freedom_stone_cevheri"
+DISMONT_CEVHER_TR = "Freedom Stone Cevheri"
+# ---- YENI ESYALAR (v4.86) ----
+# Ikisi de Zabri Studios BoraLo Mod'dan geldi; dokulari
+# kaynak_doku/ altinda duruyor (bkz. NEREDEN.md).
+KILIC_ESYA = "resetting_sword"
+KILIC_ESYA_TR = "Resetting Sword"
+KILIC_HASAR = 12                 # 6 kalp -- ayarlar.js ikizi
+TAS_ESYA = "tas_donusturucu"
+TAS_ESYA_TR = "Taş Dönüştürücü"
+TAS_HASAR = 6                    # 3 kalp -- ayarlar.js ikizi
+TAS_BLOK = "tas_heykel"
+TAS_BLOK_TR = "Taş Heykel"
+TAS_KIRILMA = 8.0                # saniye; Freedom Stone'suz kirilmasin
+
 MEZAR_BLOK = "mezar_tasi"
 MEZAR_BLOK_TR = "Mezar Taşı"
 
@@ -2164,6 +2213,63 @@ def mezar_tasi_blogu():
     }
 
 
+def tas_heykel_blogu():
+    """Tasa cevrilen kurbanin yerine konan blok (v4.86).
+
+    Mezar tasiyla AYNI KURALLAR: kirilabilir ama kolay degil,
+    patlamaya dayanikli. Kurtarma yolu Freedom Stone.
+
+    Neden patlamaya dayanikli: TNT ile heykeli kirip tutsagi
+    kurtarmak Freedom Stone mekanigini bosa cikarirdi -- mezar
+    tasinda ayni sebep yaziyor.                                """
+    return {
+        "format_version": "1.21.0",
+        "minecraft:block": {
+            "description": {
+                "identifier": "pa:" + TAS_BLOK,
+                "menu_category": {"category": "construction"},
+            },
+            "components": {
+                "minecraft:material_instances": {
+                    "*": {"texture": TAS_BLOK, "render_method": "opaque"}
+                },
+                "minecraft:destructible_by_mining": {
+                    "seconds_to_destroy": TAS_KIRILMA
+                },
+                "minecraft:destructible_by_explosion": {"explosion_resistance": 1200},
+                "minecraft:map_color": "#7a7a7a",
+            },
+        },
+    }
+
+
+def basit_esya(kimlik, ad, hasar=None, kategori="equipment"):
+    """Tek dokulu, elde tutulan bir esya (v4.86).
+
+    hasar verilirse minecraft:damage yaziliyor. Dayaniklilik
+    BILEREK yok: ikisi de patron esyasi, kullanildikca
+    kirilmamali (ilkel_silah_esyasi'nda ayni karar).         """
+    bilesenler = {
+        "minecraft:icon": {"texture": kimlik},
+        "minecraft:display_name": {"value": ad},
+        "minecraft:max_stack_size": 1,
+        "minecraft:hand_equipped": True,
+        "minecraft:allow_off_hand": False,
+    }
+    if hasar is not None:
+        bilesenler["minecraft:damage"] = hasar
+    return {
+        "format_version": "1.21.0",
+        "minecraft:item": {
+            "description": {
+                "identifier": "pa:" + kimlik,
+                "menu_category": {"category": kategori},
+            },
+            "components": bilesenler,
+        },
+    }
+
+
 def dismont_esyasi():
     return {
         "format_version": "1.21.0",
@@ -2174,7 +2280,7 @@ def dismont_esyasi():
             },
             "components": {
                 "minecraft:icon": {"texture": DISMONT_ESYA},
-                "minecraft:display_name": {"value": "Dismont Tasi"},
+                "minecraft:display_name": {"value": DISMONT_ESYA_TR},
                 "minecraft:max_stack_size": 64,
             },
         },
@@ -2204,7 +2310,7 @@ def dismont_ozelligi():
     return {
         "format_version": "1.21.0",
         "minecraft:ore_feature": {
-            "description": {"identifier": "pa:dismont_ore_feature"},
+            "description": {"identifier": "pa:freedom_stone_ore_feature"},
             "count": DISMONT_OBEK,
             "replace_rules": [{
                 "places_block": "pa:" + DISMONT_CEVHER,
@@ -2229,8 +2335,8 @@ def dismont_kurali():
         "format_version": "1.21.0",
         "minecraft:feature_rules": {
             "description": {
-                "identifier": "pa:dismont_ore_rule",
-                "places_feature": "pa:dismont_ore_feature",
+                "identifier": "pa:freedom_stone_ore_rule",
+                "places_feature": "pa:freedom_stone_ore_feature",
             },
             "conditions": {
                 "placement_pass": "underground_pass",
@@ -3091,17 +3197,45 @@ def main():
     yaz_json(os.path.join(BP, "items", DISMONT_ESYA + ".json"), dismont_esyasi())
     yaz_json(os.path.join(BP, "loot_tables/blocks", DISMONT_CEVHER + ".json"),
              dismont_ganimeti())
-    yaz_json(os.path.join(BP, "features/dismont_ore_feature.json"),
+    # ---- YENI ESYALAR ve HEYKEL BLOGU (v4.86) ----
+    yaz_json(os.path.join(BP, "blocks", TAS_BLOK + ".json"), tas_heykel_blogu())
+    yaz_json(os.path.join(BP, "items", KILIC_ESYA + ".json"),
+             basit_esya(KILIC_ESYA, KILIC_ESYA_TR, KILIC_HASAR))
+    yaz_json(os.path.join(BP, "items", TAS_ESYA + ".json"),
+             basit_esya(TAS_ESYA, TAS_ESYA_TR, TAS_HASAR))
+
+    # Dokular referanstan; yoksa duz bir yer tutucu ciziliyor.
+    for _kim, _dosya in ((KILIC_ESYA, "resetting_sword.png"),
+                         (TAS_ESYA, "tas_donusturucu.png")):
+        _hedef = os.path.join(RP, "textures/item", _kim + ".png")
+        if not kaynak_doku_kopyala(_dosya, _hedef):
+            png_yaz(_hedef, 16, 16,
+                    {(x, y): (150, 150, 150, 255)
+                     for x in range(16) for y in range(16)})
+        dokular[_kim] = {"textures": "textures/item/" + _kim}
+
+    _tas_hedef = os.path.join(RP, "textures/blocks", TAS_BLOK + ".png")
+    if not kaynak_doku_kopyala("tas_heykel.png", _tas_hedef):
+        png_yaz(_tas_hedef, 16, 16,
+                {(x, y): (122, 122, 122, 255)
+                 for x in range(16) for y in range(16)})
+
+    yaz_json(os.path.join(BP, "features/freedom_stone_ore_feature.json"),
              dismont_ozelligi())
-    yaz_json(os.path.join(BP, "feature_rules/dismont_ore_rule.json"),
+    yaz_json(os.path.join(BP, "feature_rules/freedom_stone_ore_rule.json"),
              dismont_kurali())
 
     png_yaz(os.path.join(RP, "textures/blocks", DISMONT_CEVHER + ".png"),
             16, 16, dismont_cevher_dokusu())
     png_yaz(os.path.join(RP, "textures/blocks", MEZAR_BLOK + ".png"),
             16, 16, mezar_tasi_dokusu())
-    png_yaz(os.path.join(RP, "textures/item", DISMONT_ESYA + ".png"),
-            16, 16, dismont_esya_dokusu())
+    # ---- IKON ARTIK REFERANSTAN (v4.86) ----
+    # Zabri Studios BoraLo Mod'un kendi freedomstone.png'si.
+    # Uretilen cizim yedekte duruyor: kaynak_doku/ silinse
+    # bile paket calisir.
+    _fs_hedef = os.path.join(RP, "textures/item", DISMONT_ESYA + ".png")
+    if not kaynak_doku_kopyala("freedom_stone.png", _fs_hedef):
+        png_yaz(_fs_hedef, 16, 16, dismont_esya_dokusu())
     dokular[DISMONT_ESYA] = {"textures": "textures/item/" + DISMONT_ESYA}
 
     yaz_json(os.path.join(RP, "textures/terrain_texture.json"), {
@@ -3112,6 +3246,7 @@ def main():
         "texture_data": {
             DISMONT_CEVHER: {"textures": "textures/blocks/" + DISMONT_CEVHER},
             MEZAR_BLOK: {"textures": "textures/blocks/" + MEZAR_BLOK},
+            TAS_BLOK: {"textures": "textures/blocks/" + TAS_BLOK},
         },
     })
     # blocks.json: blogun hangi terrain dokusunu kullandigi.
@@ -3126,6 +3261,9 @@ def main():
         "pa:" + MEZAR_BLOK: {
             "textures": MEZAR_BLOK, "sound": "stone"
         },
+        "pa:" + TAS_BLOK: {
+            "textures": TAS_BLOK, "sound": "stone"
+        },
     })
 
     for liste, adlar in ((en_us, (DISMONT_ESYA_TR, DISMONT_CEVHER_TR, MEZAR_BLOK_TR)),
@@ -3134,6 +3272,11 @@ def main():
         liste.append("item.pa:%s=%s" % (DISMONT_ESYA, adlar[0]))
         liste.append("tile.pa:%s.name=%s" % (DISMONT_CEVHER, adlar[1]))
         liste.append("tile.pa:%s.name=%s" % (MEZAR_BLOK, adlar[2]))
+        # v4.86'nin uc yeni adi
+        liste.append("tile.pa:%s.name=%s" % (TAS_BLOK, TAS_BLOK_TR))
+        for _k, _a in ((KILIC_ESYA, KILIC_ESYA_TR), (TAS_ESYA, TAS_ESYA_TR)):
+            liste.append("item.pa:%s.name=%s" % (_k, _a))
+            liste.append("item.pa:%s=%s" % (_k, _a))
 
     yaz_json(os.path.join(RP, "models/entity/simsek_bot.geo.json"), BOT_GEOMETRI)
     yaz_json(os.path.join(RP, "animations/simsek_bot.animation.json"), BOT_ANIM)
@@ -3223,8 +3366,15 @@ def main():
     # kendine giriyor, elle eklemek gerekmiyor.
     for _skimlik, _sad, _skaynak in ILKEL_SILAHLAR.values():
         beklenen.add(_skimlik)
-    # Dismont tasi da hicbir listede degil (v4.50)
+    # Freedom Stone da hicbir listede degil (v4.50, v4.86'da
+    # adi degisti)
     beklenen.add(DISMONT_ESYA)
+    # v4.86'nin iki yeni esyasi. BU SATIR UNUTULDUGUNDA tam da
+    # yukarida anlatilan sey oldu: esya yazildi, atlas kaydi
+    # kaldi, dosya silindi -- yani oyunda "bilinmeyen esya".
+    # Ikinci kez yasandi; bu yuzden burada duruyor.
+    beklenen.add(KILIC_ESYA)
+    beklenen.add(TAS_ESYA)
     for satir in KOLLAR:
         beklenen.add(satir[0])
     for kimlik, _ad, _sivi, goz, _gozRenk in IKSIRLER:

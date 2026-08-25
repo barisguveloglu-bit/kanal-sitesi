@@ -4335,6 +4335,71 @@ iyileştirdi.
 
 ---
 
+## v4.86 — Freedom Stone, Resetting Sword, taşa çevirme
+
+Üçü de Zabri Studios BoraLo Mod'dan (Java 1.12.2) geldi. **Kodu değil,
+fikri ve dokuları** aldık; her biri Bedrock'a yeniden yazıldı.
+
+### Dismont → Freedom Stone
+
+Kullanıcı: *"Freedom Stone bir yerden tanıdık geldi değil mi? İşte o bizim
+dismont taşı."* Haklıydı — referans modun kendi taşı da tam olarak aynı işi
+yapıyor: tutsağı serbest bırakıyor. Dokusu da oradan alındı.
+
+Cevher **duruyor**, çünkü taşın oyundaki tek kaynağı o; silinirse mezardan
+kimse kurtulamaz. Ama artık ayrı bir isim değil, aynı ailenin parçası:
+"Freedom Stone Cevheri".
+
+**Kimlik değişiyor:** eski dünyalarda yerleştirilmiş `pa:dismont_cevheri`
+blokları ve envanterdeki `pa:dismont` eşyaları *bilinmeyen* olur.
+
+### Resetting Sword — "admin yetkisi"
+
+Referansın derlenmiş sınıflarından çıkan komutlar:
+
+```
+gamemode spectator / gamemode survival
+fill ~5 ~5 ~5 ~-5 ~-5 ~-5 air
+```
+
+Yani kullanıcının hatırladığı "admin yetkisi" **izleyici modu**. Bedrock'a
+geçerken üç şey değişti:
+
+1. **`/fill` yok.** 1331 bloğu tek tick'te yazmak tableti dondururdu; silme
+   bir *iş* oldu, tick bütçesi kadar ilerliyor.
+2. **`KORUNAN_KUME` geçerli** — referansta koruma yok, kılıcı yanlış yerde
+   kullanan sandıklarını kaybediyor.
+3. **İzleyici modu süreli** ve **önceki modu hatırlıyor.** Referansta açan
+   komut ayrı, kapatan ayrı dosyadaydı; unutursan sonsuza kadar izleyici
+   kalırdın. Yaratıcı moddaki biri de survival'a düşmüyor.
+
+### Taşa çevirme
+
+Taş Dönüştürücü ile vurunca kurban heykel bloğuna dönüşüyor, kilitleniyor.
+Referanstan üç farkla:
+
+1. **Süre var** (30 sn) ve ikinci bir çıkış yolu var: **3 Freedom Stone.**
+   Referansın en can sıkıcı huyu süresiz etkiydi.
+2. **Zırha dokunmuyoruz.** Referans kurbanın zırhını çıkarıp yerine taş
+   kaplaması koyuyor; oyuncunun zırhını çalmak geri alınamaz bir hata olurdu.
+3. **Kilit `asa.js`'in makinesi** — ikinci bir kopya yazılmadı.
+
+### Testler iki gerçek hata buldu
+
+**1. Sandıklar aslında korunmuyormuş.** `KORUNAN_KUME`'nin üstündeki not
+yıllardır *"bedrock, sandık, komut bloğu delinmiyor"* diyordu ama **sandık o
+listede hiç yoktu.** Yani lazer duvar delerken sandıklar eşyalarıyla birlikte
+gidiyordu — tam da önlemek için yazılmış olan şey. Not doğruydu, liste
+eksikti. Eşya taşıyan 19 blok eklendi (sandık, fırın, huni, shulker…).
+
+**2. Taramalar oyuncu listesine bağlıydı.** `asaTara()` v4.50'den beri
+"iksir/kalp/bot var mı" bloğunun **içindeydi**: hiçbir iksir içilmemişse
+sersemlik sayacı hiç işlemiyor, kilit açılmıyordu. Kılıcın izleyici modu da
+aynı duvara çarptı. Dördü de kendi defterleri boşken hemen dönüyor, yani
+dışarı almanın maliyeti yok.
+
+---
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:

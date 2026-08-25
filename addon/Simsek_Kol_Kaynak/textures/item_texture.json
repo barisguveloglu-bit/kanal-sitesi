@@ -98,8 +98,14 @@
     "ilkel_asa": {
       "textures": "textures/item/ilkel_asa"
     },
-    "dismont": {
-      "textures": "textures/item/dismont"
+    "resetting_sword": {
+      "textures": "textures/item/resetting_sword"
+    },
+    "tas_donusturucu": {
+      "textures": "textures/item/tas_donusturucu"
+    },
+    "freedom_stone": {
+      "textures": "textures/item/freedom_stone"
     }
   }
 }

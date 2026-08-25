@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.85";
+export const SURUM = "v4.86";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -1274,7 +1274,39 @@ export const BOS_SISE   = "pa:bos_sise";
 
 /* ---------------- Korunan bloklar ----------------
    Toprak topu ve blok yazan diger yetenekler bunlara dokunmaz.     */
+/* ---- SANDIKLAR v4.86'DA EKLENDI ----
+   Ustteki notlar yillardir "bedrock, sandik, komut blogu
+   delinmiyor" diyordu ama SANDIK BU LISTEDE HIC YOKTU. Yani
+   lazer duvar delerken ve Resetting Sword sifirlarken
+   sandiklar esyalariyla birlikte gidiyordu -- tam da onlemek
+   icin yazilmis olan sey.
+
+   Yeni kilicin testi yakaladi: "sandik da KORUNAN kumede"
+   satiri kirmizi dondu. Not dogruydu, liste eksikti.
+
+   Esya TASIYAN her sey eklendi: sandiklar, firinlar, huniler,
+   damiticilar, shulker kutusu, kum tuzagi. Bunlarin icindeki
+   esyayi kaybettirmek geri alinamaz bir hata.              */
 export const KORUNAN_KUME = new Set([
+  "minecraft:chest",
+  "minecraft:trapped_chest",
+  "minecraft:ender_chest",
+  "minecraft:barrel",
+  "minecraft:shulker_box",
+  "minecraft:undyed_shulker_box",
+  "minecraft:hopper",
+  "minecraft:dropper",
+  "minecraft:dispenser",
+  "minecraft:furnace",
+  "minecraft:lit_furnace",
+  "minecraft:blast_furnace",
+  "minecraft:smoker",
+  "minecraft:brewing_stand",
+  "minecraft:beacon",
+  "minecraft:conduit",
+  "minecraft:lectern",
+  "minecraft:chiseled_bookshelf",
+  "minecraft:decorated_pot",
   "minecraft:bedrock",
   "minecraft:barrier",
   "minecraft:end_portal",
@@ -2165,9 +2197,89 @@ export const MEZAR_TAVAN = 8;          // ayni anda kac mezar
 
    Mezari acmak icin envanterinde bu kadar tas GEREKIYOR ve
    acinca harcaniyor.                                          */
-export const DISMONT_ESYA = "pa:dismont";
-export const DISMONT_CEVHER = "pa:dismont_cevheri";
+export const DISMONT_ESYA = "pa:freedom_stone";
+export const DISMONT_CEVHER = "pa:freedom_stone_cevheri";
 export const MEZAR_ANAHTAR_ADET = 10;
+
+/* ============================================================
+   RESETTING SWORD  (v4.86)
+
+   Kullanici: "hani bir tane modda inceleme yapmistik, admin
+   yetkisi veriyordu ya, onu da ekle."
+
+   ---- REFERANSIN KODUNDAN CIKARILDI, TAHMIN DEGIL ----
+   Zabri Studios BoraLo Mod'da bu esyanin adi Resetting Sword
+   (kod adi proximity_projection). Derlenmis siniflarindan
+   cikan komutlar:
+
+       gamemode spectator / gamemode survival
+       fill ~5 ~5 ~5 ~-5 ~-5 ~-5 air
+
+   Yani iki isi var:
+     1. Seni IZLEYICI moduna atip geri cikariyor  <- "admin
+        yetkisi" dedigin sey bu
+     2. Cevreyi 11x11x11 temizliyor
+
+   ---- BEDROCK'A GECERKEN NE DEGISTI ----
+   Java'da /fill dogrudan calisiyor. Bedrock'ta da calisir ama
+   biz KOMUT KULLANMIYORUZ: blok yazmak script tarafinda daha
+   guvenli ve TICK BUTCESINE giriyor. 11x11x11 = 1331 blok;
+   tek tickte yazilsa tablet donardi. Silme is kuyruguna
+   giriyor, butce kadar ilerliyor.
+
+   KORUNAN_KUME burada da gecerli: bedrock, sandik, komut
+   blogu silinmiyor. Referansta bu koruma YOK -- "reset"
+   kilicini yanlis yerde kullanan sandiklarini kaybediyor.
+   ============================================================ */
+export const KILIC_ACIK = true;
+export const KILIC_ESYA = "pa:resetting_sword";
+export const KILIC_HASAR = 12;          // 6 kalp
+/* Temizleme kupunun yaricapi. Referans 5 (11x11x11 = 1331). */
+export const KILIC_YARICAP = 5;
+export const KILIC_TAVAN = 1331;        // guvenlik siniri
+/* Izleyici modu ne kadar surer. Referansta suresizdi ve
+   kapatan komut ayri bir dosyadaydi -- unutursan oyuncu
+   sonsuza kadar izleyici kalirdi. Burada tek yerde ve
+   SURELI: kilit hep cift (bkz. asa.js ayni kural).        */
+export const KILIC_IZLEYICI_SURE = 200; // 10 saniye
+export const KILIC_BEKLEME = 200;       // 10 saniye
+
+/* ============================================================
+   TASA CEVIRME  (v4.86)
+
+   Kullanici: "tasa cevirme de olsun kanka."
+
+   ---- REFERANSIN MEKANIGI (siniflardan cozuldu) ----
+   Stone Converterer esyasiyla birine vurunca:
+     - kurbana "Stoned" efekti biniyor
+     - bulundugu yere bir HEYKEL BLOGU konuyor
+     - kurbanin zirh yuvalarina tas kaplamasi giydiriliyor
+       (yani tastan gorunuyor)
+     - efekt bitince blok kalkiyor, kurban serbest
+
+   ---- BIZDE NE FARKLI ----
+   1. SURESIZ DEGIL. Referansin en can sikici huyu suresiz
+      etkiydi; burada hem sure var hem de Freedom Stone ile
+      kirilabiliyor. Mezar sistemiyle ayni kural.
+   2. Zirh yuvasina kaplama giydirmiyoruz: oyuncunun zirhini
+      calmak geri alinamaz bir hata olurdu. Gorunum ISTEGE
+      BAGLI ve attachable ile yapiliyor (goz sisteminin ayni
+      teknigi) -- kafa yuvasi zaten bizim.
+   3. Kilit asa.js'in makinesini kullaniyor: oyuncuda
+      inputpermission, mobda civileme. Ikinci bir kopya
+      yazilmadi.
+   ============================================================ */
+export const TAS_ACIK = true;
+export const TAS_ESYA = "pa:tas_donusturucu";
+export const TAS_BLOK = "pa:tas_heykel";
+export const TAS_HASAR = 6;             // 3 kalp -- isi vurmak degil
+export const TAS_SURE = 600;            // 30 saniye
+export const TAS_BEKLEME = 100;         // 5 saniye
+/* Heykeli kirmak icin gereken Freedom Stone. Mezar 10
+   istiyor; heykel daha hafif bir etki, 3 yetiyor.         */
+export const TAS_ANAHTAR_ADET = 3;
+export const TAS_KAYIT_ANAHTAR = "simsek:heykeller";
+export const TAS_TAVAN = 8;             // ayni anda kac heykel
 
 /* ============================================================
    SINIF OZELLIKLERI ve BALTA  (v4.48)

@@ -4,11 +4,14 @@
   "padding": 8,
   "num_mip_levels": 4,
   "texture_data": {
-    "dismont_cevheri": {
-      "textures": "textures/blocks/dismont_cevheri"
+    "freedom_stone_cevheri": {
+      "textures": "textures/blocks/freedom_stone_cevheri"
     },
     "mezar_tasi": {
       "textures": "textures/blocks/mezar_tasi"
+    },
+    "tas_heykel": {
+      "textures": "textures/blocks/tas_heykel"
     }
   }
 }
