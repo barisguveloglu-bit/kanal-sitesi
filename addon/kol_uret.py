@@ -2590,6 +2590,237 @@ def zirh_ikonu(bolge):
     return ikon
 
 
+# ================================================================
+#  BEN 10  (AlienEvo)                                    v4.92
+# ================================================================
+# Kullanici: "ben 10 modu bu iste. Elmas kafayi, dort kolu, yuzen
+# ceneyi ve Ates topunu ekle SADECE."
+#
+# ---- KAYNAK ----
+# AlienEvo 1.1.3 (Habb & Stephen), Fabric + Palladium.
+# md5 18b2b7b17aa9b5d4efa794d3fbbfd7e4
+#
+# ---- BUYUK SANS: MODELLER ZATEN BEDROCK BICIMINDE ----
+# Mod GeckoLib kullaniyor ve GeckoLib Bedrock'un `.geo.json`
+# bicimini kullaniyor. Yani ne bytecode cozmek gerekti (BoraLo)
+# ne de elle cizmek. Dosyalar oldugu gibi okunuyor.
+#
+# ---- TEK DEGISIKLIK: KEMIK ADLARI ----
+# Modun butun modelleri ALTI KOK kemikten sarkiyor:
+#   armorHead · armorBody · armorLeftArm · armorRightArm
+#   armorLeftLeg · armorRightLeg
+# Bu Palladium'un oyuncu parcalarina baglama kurali. Bedrock'un
+# kurali ise oyuncunun KENDI kemik adlari. Altisini yeniden
+# adlandirinca butun agac (66 kemige kadar) vanilla oyuncu
+# animasyonlariyla suruluyor -- yuruyus, kol sallama, egilme
+# BEDAVA geliyor. Zirh Yukseltmesi'ndeki numaranin aynisi.
+#
+# ---- DOKULAR ----
+# Mod dokuyu katmanlara bolmus (skin / uniform / glow). Bedrock'ta
+# tek doku kullanilabildigi icin:
+#   skin katmani ana doku olarak aliniyor (uniform ve glow
+#   neredeyse bos -- olculdu: 0/16384 ve 2/16384)
+#   Ates Topu haric: onun ALEVI glow katmaninda, o yuzden taban +
+#   alev birlestirildi (kaynak_doku/ben_ates.png).
+BEN10_GEO = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                         "kaynak_geo")
+# Palladium kok kemigi -> Bedrock oyuncu kemigi
+BEN10_KEMIK = {
+    "armorHead":     "head",
+    "armorBody":     "body",
+    "armorLeftArm":  "leftArm",
+    "armorRightArm": "rightArm",
+    "armorLeftLeg":  "leftLeg",
+    "armorRightLeg": "rightLeg",
+}
+# Blockbench'in bos kok kemigi: cocugu yok, atiliyor.
+BEN10_ATILAN = {"bb_main"}
+
+# (anahtar, TR ad, EN ad, geo dosyalari, tur adi)
+BEN10 = [
+    ("ben_elmas",   "Elmas Kafa",  "Diamondhead",
+     ["ben_elmas"], "Petrosapien"),
+    ("ben_dortkol", "Dört Kol",    "Four Arms",
+     ["ben_dortkol", "ben_dortkol_kollar"], "Tetramand"),
+    ("ben_cene",    "Yüzen Çene",  "Ripjaws",
+     ["ben_cene"], "Piscciss Volann"),
+    ("ben_ates",    "Ateş Topu",   "Heatblast",
+     ["ben_ates"], "Pyronite"),
+]
+
+
+def ben10_geometrisi(anahtar, dosyalar):
+    """Modun `.geo.json`'unu oyuncu kemik adlarina cevirir.
+
+    Birden fazla dosya verilebiliyor: Dort Kol'un FAZLADAN IKI
+    KOLU ayri bir dosyada duruyor (tetramand_arms). O dosyada
+    kok kemikler BOS, sadece kol zincirleri var -- yani ikisini
+    birlestirmek cakisma yaratmiyor (kemik adlari da farkli:
+    forearm5/hand5 ile forearm/hand).
+
+    Kupler, uv'ler, donuslar, sisirmeler HIC ELLENMIYOR. Tek
+    dokunulan sey kemik ADLARI ve kimlik.                        """
+    kemikler = []
+    gorulen = set()
+    doku_en = doku_boy = 64
+    for i, dosya in enumerate(dosyalar):
+        yol = os.path.join(BEN10_GEO, dosya + ".geo.json")
+        if not os.path.exists(yol):
+            print("UYARI: %s geometrisi yok (%s)" % (anahtar, yol))
+            continue
+        with open(yol, encoding="utf-8") as f:
+            g = json.load(f)["minecraft:geometry"][0]
+        if i == 0:
+            d = g["description"]
+            doku_en = d.get("texture_width", 64)
+            doku_boy = d.get("texture_height", 64)
+        # ---- ONCE CAKISMALARI COZ ----
+        # Ates Topu ve Yuzen Cene'de zaten `head` adinda BIR
+        # KEMIK VAR. armorHead'i dogrudan `head` yapmak ikisini
+        # carpistiriyordu ve dolu olan kemik SESSIZCE
+        # dusuruluyordu -- yani yaratigin kafasi kayboluyordu.
+        # Cakisan kemik once yeniden adlandiriliyor.
+        hedefler = set(BEN10_KEMIK.values())
+        cakisan = {b["name"]: b["name"] + "_ic"
+                   for b in g["bones"] if b["name"] in hedefler}
+        if cakisan:
+            print("   %s: cakisan kemik yeniden adlandirildi -> %s"
+                  % (anahtar, ", ".join("%s=%s" % kv for kv in cakisan.items())))
+
+        for b in g["bones"]:
+            ad = b["name"]
+            if ad in BEN10_ATILAN:
+                continue
+            b = dict(b)
+            b["name"] = BEN10_KEMIK.get(cakisan.get(ad, ad), cakisan.get(ad, ad))
+            if b.get("parent") in cakisan:
+                b["parent"] = cakisan[b["parent"]]
+            if b.get("parent") in BEN10_ATILAN:
+                b.pop("parent", None)
+            elif b.get("parent") in BEN10_KEMIK:
+                b["parent"] = BEN10_KEMIK[b["parent"]]
+            # Ikinci dosyanin BOS kok kemikleri: birincide zaten
+            # var, tekrar yazmak Bedrock'ta "yinelenen kemik"
+            # hatasi verirdi.
+            if b["name"] in gorulen:
+                if b.get("cubes"):
+                    print("UYARI: %s icinde yinelenen DOLU kemik: %s"
+                          % (anahtar, b["name"]))
+                continue
+            gorulen.add(b["name"])
+            kemikler.append(b)
+
+    return {
+        "format_version": "1.12.0",
+        "minecraft:geometry": [{
+            "description": {
+                # Modun kendi kimlikleri BOZUK (tetramand'in
+                # kimligi "geometry.Diamondhead", piscciss'inki
+                # "geometry.unknown"). Kendi kimligimizi
+                # yaziyoruz -- yoksa dordu birbirini ezerdi.
+                "identifier": "geometry." + anahtar,
+                "texture_width": doku_en,
+                "texture_height": doku_boy,
+                "visible_bounds_width": 4,
+                "visible_bounds_height": 5,
+                "visible_bounds_offset": [0, 2, 0],
+            },
+            "bones": kemikler,
+        }],
+    }
+
+
+def ben10_ikonu(anahtar, geo):
+    """Ikon: yaratigin KENDI kafasinin on yuzu.
+
+    Uydurma cizim yok. Kafa kemigindeki ilk kupun uv'si
+    okunuyor ve o kare 16x16'ya buyutuluyor.                    """
+    try:
+        from PIL import Image
+    except ImportError:
+        return None
+    kaynak = os.path.join(DOKU_KAYNAK, anahtar + ".png")
+    if not os.path.exists(kaynak):
+        return None
+    im = Image.open(kaynak).convert("RGBA")
+
+    # Kafanin ALT AGACINDA kup ara: modellerin cogunda `head`
+    # kemigi BOS, kupler cocuklarinda (mask, jaw, top...).
+    kemikler = geo["minecraft:geometry"][0]["bones"]
+    cocuk = {}
+    for b in kemikler:
+        cocuk.setdefault(b.get("parent"), []).append(b)
+    sira, agac = ["head"], []
+    while sira:
+        ad = sira.pop(0)
+        for b in cocuk.get(ad, []):
+            agac.append(b)
+            sira.append(b["name"])
+    agac = [b for b in kemikler if b["name"] == "head"] + agac
+
+    kutu = None
+    for b in agac:
+        for kup in (b.get("cubes") or []):
+            uv = kup.get("uv")
+            boyut = kup.get("size")
+            if not boyut:
+                continue
+            w, h, d = [int(round(x)) for x in boyut]
+            if w <= 0 or h <= 0:
+                continue
+            if isinstance(uv, list):
+                aday = (uv[0] + d, uv[1] + d, uv[0] + d + w, uv[1] + d + h)
+            elif isinstance(uv, dict) and isinstance(uv.get("north"), dict):
+                # Per-face uv (Dort Kol boyle): on yuz dogrudan
+                # yazili, hesaplamaya gerek yok.
+                n = uv["north"]
+                ux, uy = n["uv"]
+                sw, sh = n.get("uv_size", [w, h])
+                aday = (int(ux), int(uy),
+                        int(ux + abs(sw)), int(uy + abs(sh)))
+                w, h = aday[2] - aday[0], aday[3] - aday[1]
+            else:
+                continue
+            if (aday[2] <= im.width and aday[3] <= im.height and
+                    aday[2] > aday[0] and aday[3] > aday[1]):
+                kutu = aday
+                break
+        if kutu:
+            break
+    if kutu is None:
+        return None
+    w, h = kutu[2] - kutu[0], kutu[3] - kutu[1]
+    yuz = im.crop(kutu)
+    k = max(1, min(16 // max(1, w), 16 // max(1, h)))
+    yuz = yuz.resize((w * k, h * k), Image.NEAREST)
+    ikon = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
+    ikon.paste(yuz, ((16 - yuz.width) // 2, (16 - yuz.height) // 2), yuz)
+    return ikon
+
+
+def ben10_esyasi(anahtar, ad):
+    """Omnitrix anahtari: bu esyayi eline al, o yaratik ol.
+
+    Silah degil -- hasari yok. Yan ele de konabiliyor ki ana
+    elin bos kalsin (maskedeki karar).                           """
+    return {
+        "format_version": "1.21.0",
+        "minecraft:item": {
+            "description": {
+                "identifier": "pa:" + anahtar,
+                "menu_category": {"category": "equipment"},
+            },
+            "components": {
+                "minecraft:icon": {"texture": anahtar},
+                "minecraft:display_name": {"value": ad},
+                "minecraft:max_stack_size": 1,
+                "minecraft:hand_equipped": True,
+                "minecraft:allow_off_hand": True,
+            },
+        },
+    }
+
+
 def oyuncu_modeli_paketi(surum):
     """OYUNCUNUN KENDI MODELINI O SEY YAPAN paket.
 
@@ -2620,6 +2851,11 @@ def oyuncu_modeli_paketi(surum):
     # 1. Ek geometri ve doku
     d.setdefault("geometry", {})["o_sey"] = "geometry.o_sey"
     d.setdefault("textures", {})["o_sey"] = "textures/entity/" + SEY_DOKU
+    # v4.92: Ben 10 yaratiklari. Ayni kalibin dort tekrari --
+    # her biri kendi geometrisi, kendi dokusu, kendi tetigi.
+    for _ba, _btr, _ben, _bdos, _btur in BEN10:
+        d["geometry"][_ba] = "geometry." + _ba
+        d["textures"][_ba] = "textures/entity/" + _ba
 
     # 2. Tetik. IKI yuva da sinaniyor: yan el ana eli bos birakir
     #    ama her surumde ayni davranmayabilir; ana el kesin
@@ -2628,6 +2864,17 @@ def oyuncu_modeli_paketi(surum):
              " || query.get_equipped_item_name('off_hand') == '%s';"
              % (MASKE_ESYA, MASKE_ESYA))
     d["scripts"]["pre_animation"].append(tetik)
+    for _ba, _btr, _ben, _bdos, _btur in BEN10:
+        d["scripts"]["pre_animation"].append(
+            "variable.%s = query.get_equipped_item_name('main_hand') == '%s'"
+            " || query.get_equipped_item_name('off_hand') == '%s';"
+            % (_ba, _ba, _ba))
+    # "Herhangi bir donusum acik mi": vanilla govdeyi kapatan
+    # kosul. Tek tek yazmak yerine TEK degisken -- yeni bir
+    # yaratik eklenince burasi kendiliginden dogru kaliyor.
+    d["scripts"]["pre_animation"].append(
+        "variable.donusuk = variable.o_sey" +
+        "".join(" || variable." + _b[0] for _b in BEN10) + ";")
 
     # 3. + 4. Denetleyiciler
     yeni_rc = []
@@ -2637,13 +2884,19 @@ def oyuncu_modeli_paketi(surum):
             for ad in list(kayit):
                 # Ucuncu sahis (ve izleyici hali): donusukken KAPAT
                 if "third_person" in ad:
-                    kayit[ad] = kayit[ad] + " && !variable.o_sey"
+                    kayit[ad] = kayit[ad] + " && !variable.donusuk"
         yeni_rc.append(kayit)
     # Kendi denetleyicimiz EN SONA: sira cizim sirasi.
     yeni_rc.append({
         "controller.render.o_sey":
             "variable.o_sey && !variable.is_first_person && !variable.map_face_icon"
     })
+    for _ba, _btr, _ben, _bdos, _btur in BEN10:
+        yeni_rc.append({
+            "controller.render." + _ba:
+                "variable.%s && !variable.is_first_person"
+                " && !variable.map_face_icon" % _ba
+        })
     d["render_controllers"] = yeni_rc
 
     # 5. Fazladan dort kolun salinimi. Vanilla oyuncu
@@ -2658,15 +2911,22 @@ def oyuncu_modeli_paketi(surum):
 
     # Denetleyici: referans paketteki sp_m_bobby_gun'in BIREBIR
     # ayni bicimi.
+    denetleyiciler = {
+        "controller.render.o_sey": {
+            "geometry": "Geometry.o_sey",
+            "textures": ["Texture.o_sey"],
+            "materials": [{"*": "Material.default"}],
+        }
+    }
+    for _ba, _btr, _ben, _bdos, _btur in BEN10:
+        denetleyiciler["controller.render." + _ba] = {
+            "geometry": "Geometry." + _ba,
+            "textures": ["Texture." + _ba],
+            "materials": [{"*": "Material.default"}],
+        }
     yaz_json(os.path.join(OMP, "render_controllers/o_sey.render_controllers.json"), {
         "format_version": "1.8.0",
-        "render_controllers": {
-            "controller.render.o_sey": {
-                "geometry": "Geometry.o_sey",
-                "textures": ["Texture.o_sey"],
-                "materials": [{"*": "Material.default"}],
-            }
-        },
+        "render_controllers": denetleyiciler,
     })
 
     # Paket KENDI KENDINE YETSIN: geometri, doku ve animasyon
@@ -2680,6 +2940,19 @@ def oyuncu_modeli_paketi(surum):
     if os.path.exists(kaynak_doku):
         os.makedirs(os.path.dirname(hedef_doku), exist_ok=True)
         shutil.copyfile(kaynak_doku, hedef_doku)
+    # Ben 10 yaratiklari (v4.92). Paket kendi kendine yetsin:
+    # geometri ve doku burada da duruyor, ikisi de URETILDIGI
+    # icin ayrisamazlar.
+    for _ba, _btr, _ben, _bdos, _btur in BEN10:
+        yaz_json(os.path.join(OMP, "models/entity/%s.geo.json" % _ba),
+                 ben10_geometrisi(_ba, _bdos))
+        _bk = os.path.join(DOKU_KAYNAK, _ba + ".png")
+        if os.path.exists(_bk):
+            _bh = os.path.join(OMP, "textures/entity/%s.png" % _ba)
+            os.makedirs(os.path.dirname(_bh), exist_ok=True)
+            shutil.copyfile(_bk, _bh)
+        else:
+            print("UYARI: %s dokusu yok (%s)" % (_ba, _bk))
 
     yaz_json(os.path.join(OMP, "manifest.json"), {
         "format_version": 2,
@@ -4078,6 +4351,24 @@ def main():
     for liste, ad in ((en_us, MASKE_EN), (tr_tr, MASKE_TR)):
         liste.append("item.pa:%s.name=%s" % (MASKE_ESYA, ad))
         liste.append("item.pa:%s=%s" % (MASKE_ESYA, ad))
+    # ---- BEN 10 (v4.92) ----
+    # Dort yaratik: esya + ikon. Modeller ve dokular oyuncu
+    # modeli paketine giriyor (asagida).
+    for _ba, _btr, _ben, _bdos, _btur in BEN10:
+        yaz_json(os.path.join(BP, "items/%s.json" % _ba),
+                 ben10_esyasi(_ba, _btr))
+        _bi = ben10_ikonu(_ba, ben10_geometrisi(_ba, _bdos))
+        if _bi is not None:
+            _biy = os.path.join(RP, "textures/item/%s.png" % _ba)
+            os.makedirs(os.path.dirname(_biy), exist_ok=True)
+            _bi.save(_biy)
+        else:
+            print("UYARI: %s ikonu uretilemedi" % _ba)
+        dokular[_ba] = {"textures": "textures/item/" + _ba}
+        for liste, ad in ((en_us, _ben), (tr_tr, _btr)):
+            liste.append("item.pa:%s.name=%s" % (_ba, ad))
+            liste.append("item.pa:%s=%s" % (_ba, ad))
+
     _surum = json.load(open(os.path.join(BP, "manifest.json"),
                             encoding="utf-8"))["header"]["version"]
     oyuncu_modeli_paketi(_surum)
@@ -4410,6 +4701,9 @@ def main():
     # doku kopyalandi, ayni kosuda temizlik adimi sildi ve zirh
     # oyunda mor-siyah cikardi. Ayni tuzak besinci kez.
     beklenen.add(ZIRH_DOKU)
+    # v4.92: Ben 10 ikonlari
+    for _bk3, _bt3, _be3, _bd3, _btr3 in BEN10:
+        beklenen.add(_bk3)
     # Silahlar da hicbir listede degil (v4.48). Bu satir
     # unutuldugunda temizlik adimi baltayi HER uretimde
     # siliyordu: esya yaziliyor, atlas kaydi kaliyor, dosya

@@ -12,12 +12,20 @@
       "textures": {
         "default": "textures/entity/steve",
         "cape": "textures/entity/cape_invisible",
-        "o_sey": "textures/entity/o_sey"
+        "o_sey": "textures/entity/o_sey",
+        "ben_elmas": "textures/entity/ben_elmas",
+        "ben_dortkol": "textures/entity/ben_dortkol",
+        "ben_cene": "textures/entity/ben_cene",
+        "ben_ates": "textures/entity/ben_ates"
       },
       "geometry": {
         "default": "geometry.humanoid.custom",
         "cape": "geometry.cape",
-        "o_sey": "geometry.o_sey"
+        "o_sey": "geometry.o_sey",
+        "ben_elmas": "geometry.ben_elmas",
+        "ben_dortkol": "geometry.ben_dortkol",
+        "ben_cene": "geometry.ben_cene",
+        "ben_ates": "geometry.ben_ates"
       },
       "scripts": {
         "scale": "0.9375",
@@ -99,7 +107,12 @@
           "v.tp_melee_spear_attack_arm_rotation_x = t.melee_spear_attack_raise_scale * 90.0 + t.melee_spear_attack_thrust_scale * -120.0 + t.melee_spear_attack_recover_scale * 30.0;",
           "v.tp_melee_spear_attack_item_rotation_x = t.melee_spear_attack_thrust_scale * 60.0 + t.melee_spear_attack_recover_scale * -60.0;",
           "v.tp_melee_spear_attack_attachable_position_z = (t.melee_spear_attack_thrust_scale * -0.15 + t.melee_spear_attack_recover_scale * 0.15) * v.melee_spear_java_to_bedrock_scale;",
-          "variable.o_sey = query.get_equipped_item_name('main_hand') == 'o_sey_maskesi' || query.get_equipped_item_name('off_hand') == 'o_sey_maskesi';"
+          "variable.o_sey = query.get_equipped_item_name('main_hand') == 'o_sey_maskesi' || query.get_equipped_item_name('off_hand') == 'o_sey_maskesi';",
+          "variable.ben_elmas = query.get_equipped_item_name('main_hand') == 'ben_elmas' || query.get_equipped_item_name('off_hand') == 'ben_elmas';",
+          "variable.ben_dortkol = query.get_equipped_item_name('main_hand') == 'ben_dortkol' || query.get_equipped_item_name('off_hand') == 'ben_dortkol';",
+          "variable.ben_cene = query.get_equipped_item_name('main_hand') == 'ben_cene' || query.get_equipped_item_name('off_hand') == 'ben_cene';",
+          "variable.ben_ates = query.get_equipped_item_name('main_hand') == 'ben_ates' || query.get_equipped_item_name('off_hand') == 'ben_ates';",
+          "variable.donusuk = variable.o_sey || variable.ben_elmas || variable.ben_dortkol || variable.ben_cene || variable.ben_ates;"
         ],
         "animate": [
           "root",
@@ -185,19 +198,31 @@
           "controller.render.player.first_person_spectator": "variable.is_first_person && query.is_spectator"
         },
         {
-          "controller.render.player.third_person_spectator": "!variable.is_first_person && !variable.map_face_icon && query.is_spectator && !variable.o_sey"
+          "controller.render.player.third_person_spectator": "!variable.is_first_person && !variable.map_face_icon && query.is_spectator && !variable.donusuk"
         },
         {
           "controller.render.player.first_person": "variable.is_first_person && !query.is_spectator"
         },
         {
-          "controller.render.player.third_person": "!variable.is_first_person && !variable.map_face_icon && !query.is_spectator && !variable.o_sey"
+          "controller.render.player.third_person": "!variable.is_first_person && !variable.map_face_icon && !query.is_spectator && !variable.donusuk"
         },
         {
           "controller.render.player.map": "variable.map_face_icon"
         },
         {
           "controller.render.o_sey": "variable.o_sey && !variable.is_first_person && !variable.map_face_icon"
+        },
+        {
+          "controller.render.ben_elmas": "variable.ben_elmas && !variable.is_first_person && !variable.map_face_icon"
+        },
+        {
+          "controller.render.ben_dortkol": "variable.ben_dortkol && !variable.is_first_person && !variable.map_face_icon"
+        },
+        {
+          "controller.render.ben_cene": "variable.ben_cene && !variable.is_first_person && !variable.map_face_icon"
+        },
+        {
+          "controller.render.ben_ates": "variable.ben_ates && !variable.is_first_person && !variable.map_face_icon"
         }
       ],
       "enable_attachables": true

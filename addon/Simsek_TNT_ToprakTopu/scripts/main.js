@@ -9,7 +9,8 @@ import {
   SOHBET_ONEK, BOT_TAVAN, DERIN_HEDEFLER, DERIN_VARSAYILAN,
   DONDUR_GIRDI_KILIT, ILKEL_BESLI, ILKEL_ACIK, botTuruMu,
   KILIC_ESYA, SEY_ACIK, SEY_AD, SEY_TAVAN,
-  ZIRH_ACIK, ZIRH_MODLAR, ZIRH_PARCALAR, ZIRH_KORUMA
+  ZIRH_ACIK, ZIRH_MODLAR, ZIRH_PARCALAR, ZIRH_KORUMA,
+  BEN10_ACIK, BEN10
 } from "./ayarlar.js";
 
 import {
@@ -35,6 +36,12 @@ import {
   zirhTara, zirhUnutOyuncu, modAl, modYaz, modListesi, takimVarMi,
   takimParcalari
 } from "./yetenekler/zirh.js";
+
+/* Ben 10 (v4.92): elindeki esyaya gore yaratik oluyorsun.
+   Gorunusu oyuncu modeli paketi ciziyor, gucleri bu modul.    */
+import {
+  ben10Tara, ben10Unut, elindekiYaratik, yaratikListesi
+} from "./yetenekler/ben10.js";
 
 /* Sohbet komutlari ("can 10", "lazer"...). Bu dosya main.js'i
    import etmiyor; komutlarin calistiracagi fonksiyonlar kanca
@@ -257,7 +264,7 @@ system.runInterval(() => {
   /* Zirh taramasi HER ZAMAN calismali: "takimi giydim ama bir
      sey olmuyor" durumu ancak boyle onlenir. Kendi icinde
      ucuz -- oyuncu takim giymiyorsa hemen donuyor.            */
-  if (iksirVar || kalpVar || botVar || kilikVar || ZIRH_ACIK) {
+  if (iksirVar || kalpVar || botVar || kilikVar || ZIRH_ACIK || BEN10_ACIK) {
     let oyuncular;
     try {
       oyuncular = world.getAllPlayers();
@@ -300,6 +307,13 @@ system.runInterval(() => {
         zirhTara(oyuncular);
       } catch (e) {
         hataYaz("zirhTara", e);
+      }
+    }
+    if (BEN10_ACIK) {
+      try {
+        ben10Tara(oyuncular);
+      } catch (e) {
+        hataYaz("ben10Tara", e);
       }
     }
   }
@@ -640,6 +654,49 @@ function zirhModSec(oyuncu, anahtar) {
   kollariIndir(oyuncu);
 }
 
+/* BEN 10 MENUSU  (v4.92)
+
+   Dort yaratik. Ozet metinleri ayarlar.js'ten URETILIYOR --
+   yeni bir yaratik eklenirse menude kendiliginden dogru
+   gorunur.                                                     */
+function ben10Menusu(oyuncu) {
+  if (!BEN10_ACIK) {
+    actionbarYaz(oyuncu, "§cBen 10 kapalı (BEN10_ACIK).");
+    return undefined;
+  }
+  const simdiki = elindekiYaratik(oyuncu);
+  const liste = yaratikListesi(oyuncu.id, simdiki);
+  const dugmeler = liste.map((y) => ({
+    anahtar: y.anahtar,
+    ad: (y.secili ? "§a✔ " : "") + "§f" + y.ad + " §8· " + y.tur +
+        "\n§8" + y.ozet
+  }));
+
+  const acildi = menuAc(oyuncu,
+    simdiki
+      ? "§a⌚ Ben 10 §7· şu an §f" + BEN10.get(simdiki).ad
+      : "§a⌚ Ben 10 §7· eşyayı §feline al§7, o yaratık ol",
+    dugmeler, -1, (i) => ben10Anlat(oyuncu, dugmeler[i].anahtar), []);
+
+  if (!acildi) ben10Anlat(oyuncu, liste[0].anahtar);
+  return undefined;
+}
+
+function ben10Anlat(oyuncu, anahtar) {
+  const t = BEN10.get(anahtar);
+  if (!t) return;
+  try {
+    oyuncu.sendMessage(
+      "§a⌚ §f" + t.ad + " §8(" + t.tur + ")\n§8" + t.ozet +
+      "\n§7Dönüşmek için §fpa:" + anahtar + "§7 eşyasını eline" +
+      " ya da yan eline al." +
+      "\n§8kaynak: alienevo/" + t.kaynak);
+  } catch (e) {
+    hataYaz("ben10.mesaj", e);
+  }
+  kollariIndir(oyuncu);
+}
+
 function menuEkleri(oyuncu) {
   const ekler = [];
 
@@ -784,6 +841,18 @@ function menuEkleri(oyuncu) {
     {
       ad: "⛨ Zırh Yükseltmesi §8(" + (ZIRH_MODLAR.get(modAl(oyuncu.id)) || {}).ad + ")",
       calis() { zirhMenusu(oyuncu); }
+    },
+    /* v4.92: Ben 10. Menu sadece BILGI veriyor -- donusum
+       esyayi ELINE ALMAKLA oluyor, cunku gorunusu suren molang
+       sorgusu (get_equipped_item_name) yalniz eli okuyabiliyor.
+       Menuden esya vermek yerine hangisinin ne yaptigini
+       yaziyoruz; ezberlemek zorunda kalma.                     */
+    {
+      ad: "⌚ Ben 10 §8(" +
+          (elindekiYaratik(oyuncu)
+            ? BEN10.get(elindekiYaratik(oyuncu)).ad
+            : "insan") + ")",
+      calis() { ben10Menusu(oyuncu); }
     },
     {
       ad: "Bot: simsek yagdir",
@@ -1309,6 +1378,7 @@ olayaAbone("playerLeave", (olay) => {
   silahUnut(olay.playerId);
   donusumUnutOyuncu(olay.playerId);
   zirhUnutOyuncu(olay.playerId);
+  ben10Unut(olay.playerId);
 
   // Oyuncunun butun isleri durdurulmali, sadece birincisi degil
   const acikIsler = oyuncununIsleri.get(olay.playerId);

@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.91";
+export const SURUM = "v4.92";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -2909,6 +2909,77 @@ export const ZIRH_MODLAR = new Map([
 ]);
 /* Ilk giyende hangi mod acik olsun. */
 export const ZIRH_VARSAYILAN_MOD = "temel";
+
+/* ============================================================
+   BEN 10  (AlienEvo)                                 v4.92
+
+   Kullanici: "ben 10 modu bu iste. Elmas kafayi, dort kolu,
+   yuzen ceneyi ve Ates topunu ekle SADECE."
+
+   ---- KAYNAK ----
+   AlienEvo 1.1.3 (Habb & Stephen), Fabric + Palladium.
+   Modelleri GeckoLib ile yapilmis, yani ZATEN `.geo.json` --
+   Bedrock bicimi. Ne bytecode cozmek gerekti ne elle cizmek.
+   Tek degisiklik kemik adlari (bkz. kol_uret.py:BEN10_KEMIK).
+
+   ---- NASIL CALISIYOR ----
+   Esyayi eline (ya da yan eline) al -> o yaratik OLUYORSUN.
+   Govdeyi oyuncu modeli paketi degistiriyor (v4.90'in
+   makinesi), guclerini bu dosyadaki tablo veriyor.
+
+   ---- SAYILAR ----
+   powers/<tur>.json dosyalarindan OKUNDU. Ceviri kurali
+   ZIRH_MODLAR'daki ile ayni; birebir tutmayan satirlar
+   asagida ACIKCA yaziyor:
+
+     Guc        seviye basina +3 hasar
+     Can Artisi seviye basina +4 CAN (2 kalp)  -> +20 can = V
+     Direnc     seviye basina %20
+     Yavaslik   seviye basina %15 (elmas ve dort kol AGIR)
+
+   TASINAMAYANLAR (Bedrock'ta karsiligi yok, uydurulmadi):
+     knockback_resistance +255  -> oyuncuya verilemiyor
+     freeze_immunity            -> boyle bir efekt yok
+     step_height / entity_reach -> ayarlanamiyor              */
+export const BEN10_ACIK   = true;
+export const BEN10_TARAMA = 20;    // kac tick'te bir bakilsin
+export const BEN10_SURE   = 120;   // efekt suresi (TARAMA x 6)
+
+export const BEN10 = new Map([
+  ["ben_elmas", {
+    ad: "Elmas Kafa", tur: "Petrosapien", kaynak: "petrosapien",
+    ozet: "armor +20 · attack +14 · max_health +20 · ağır",
+    /* +14 hasar 3'e tam bolunmuyor: Guc V = +15, en yakin.
+       max_health +20 = Can Artisi V, BIREBIR.               */
+    efektler: [["resistance", 0, 2], ["strength", 0, 4],
+               ["health_boost", 0, 4], ["slowness", 0, 1]]
+  }],
+  ["ben_dortkol", {
+    ad: "Dört Kol", tur: "Tetramand", kaynak: "tetramand",
+    ozet: "armor +60 · max_health +40 · attack +12.3 · ağır",
+    /* max_health +40 = Can Artisi X, BIREBIR.
+       attack +12.3 -> Guc IV (+12), neredeyse birebir.       */
+    efektler: [["resistance", 0, 3], ["strength", 0, 3],
+               ["health_boost", 0, 9], ["slowness", 0, 2],
+               ["jump_boost", 0, 0]]
+  }],
+  ["ben_cene", {
+    ad: "Yüzen Çene", tur: "Piscciss Volann", kaynak: "piscciss_volann",
+    ozet: "swim_speed +4 · destroy_speed +10 · attack +5",
+    efektler: [["water_breathing", 0, 0], ["conduit_power", 0, 0],
+               ["haste", 0, 4], ["strength", 0, 1],
+               ["resistance", 0, 1], ["slow_falling", 0, 0]]
+  }],
+  ["ben_ates", {
+    ad: "Ateş Topu", tur: "Pyronite", kaynak: "pyronite",
+    ozet: "ateş bağışıklığı · armor +12 · max_health +10 · ışın 9",
+    /* max_health +10: Can Artisi II = +12, III = +8'den daha
+       yakin degil (ikisi de 2 fark) -- yukari yuvarlandi.    */
+    efektler: [["fire_resistance", 0, 0], ["health_boost", 0, 2],
+               ["strength", 0, 0], ["resistance", 0, 0],
+               ["speed", 0, 0]]
+  }]
+]);
 
 export const BOT_KIMLIKLER = new Set([BOT_KIMLIK, SEY_KIMLIK, SEY_KILIK_KIMLIK]);
 for (const t of ILKEL_BESLI.values()) {

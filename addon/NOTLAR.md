@@ -5003,6 +5003,122 @@ satır: **"⛨ Zırh Yükseltmesi (mod)"**.
 
 ---
 
+## Aşama — Ben 10: dört yaratık (v4.92)
+
+Kullanıcı AlienEvo'yu yükledi:
+
+> *"ben 10 modu bu işte. **Elmas kafayı, dört kolu, yüzen çeneyi ve Ateş
+> topunu** ekle sadece."*
+
+Dördü de modda **türlerinin** adıyla duruyor — Ben 10'un kanon adlandırması:
+
+| istenen | Ben 10'daki adı | türü |
+|---|---|---|
+| Elmas Kafa | Diamondhead | **Petrosapien** |
+| Dört Kol | Four Arms | **Tetramand** |
+| Yüzen Çene | Ripjaws | **Piscciss Volann** |
+| Ateş Topu | Heatblast | **Pyronite** |
+
+Tam liste: **`REFERANS_BEN10.md`**.
+
+### Bu modun sürprizi: modeller zaten Bedrock biçiminde
+
+Mod **GeckoLib** kullanıyor, GeckoLib de Bedrock'un `.geo.json` biçimini
+kullanıyor. Yani:
+
+* BoraLo'da → bytecode çözmek gerekti
+* Ionstrike'ta → sayılar JSON'daydı ama model yoktu
+* **AlienEvo'da → hem sayılar hem modeller hazır**
+
+Küpler, uv'ler, dönüşler, şişirmeler **hiç ellenmedi**.
+
+### Tek değişiklik: kemik adları
+
+Modun bütün modelleri altı kök kemikten sarkıyor (Palladium'un oyuncu
+parçalarına bağlama kuralı):
+
+```
+armorHead · armorBody · armorLeftArm · armorRightArm · armorLeftLeg · armorRightLeg
+                              ↓
+head · body · leftArm · rightArm · leftLeg · rightLeg
+```
+
+Bunlar Bedrock'ta oyuncunun **kendi** kemik adları — Zırh Yükseltmesi'ndeki
+numaranın aynısı. Altısını yeniden adlandırınca bütün ağaç (66 kemiğe kadar)
+vanilla oyuncu animasyonlarıyla sürülüyor: yürüyüş, kol sallama, eğilme
+**bedava** geliyor.
+
+### İki sinsi hata — ikisi de üretim sırasında yakalandı
+
+**1. Kemik adı çakışması.** Ateş Topu ve Yüzen Çene'de zaten `head` adında bir
+kemik **var**. `armorHead`'i doğrudan `head` yapmak ikisini çarpıştırıyordu ve
+dedupe **dolu olanı** düşürüyordu — yani yaratığın kafası kayboluyordu.
+Üreteç uyarı bastı (`ben_ates içinde yinelenen DOLU kemik: head`), çözüm:
+çakışan kemik önce `head_ic`'e alınıyor, çocukları da ona bağlanıyor.
+
+**2. Kök kemik yinelenmesi.** Dört Kol'un **fazladan iki kolu ayrı bir
+dosyada** (`tetramand_arms_default`) ve o dosyada kök kemikler **boş**. Naif
+birleştirme "yinelenen kemik" üretirdi. Çözüm: boş yinelenen kök atlanıyor,
+dolu olanı atlarsa uyarı basılıyor.
+
+Sonuç ölçüldü: **küp sayısı kaynakla birebir** (62 / 53 / 44 / 51), altı kök
+kemik yerinde, yetim kemik yok, başıboş kök yok.
+
+### Bir yanlış alarm
+
+Test önce "hiçbir kemik `armor` ile başlamasın" diyordu ve Ateş Topu'ndaki
+`armorBodyHat`'e takıldı. Baktım: o kemik `armorBody`'nin **çocuğu** ve çıktıda
+doğru şekilde `body`'ye bağlanmış — yani oyuncunun gövde kemiği onu da sürüyor.
+Sorun testin kuralındaydı. Kural daraltıldı: yalnız **altı Palladium kök adı**
+kalmamalı; ayrıca "küpü olan başıboş kök kemik" denetimi eklendi (asıl tehlike
+oydu).
+
+### Dokular
+
+Mod dokuyu katmanlara bölmüş (`skin` / `uniform` / `glow`). Ölçüldü: `uniform`
+ve `glow` neredeyse boş (0/16384 ve 2/16384), `skin` ana doku. Tek istisna
+**Ateş Topu**: alevi `glow` katmanında ve mod sekiz kareyi sırayla oynatıyor.
+Bedrock'ta tek doku kullanılabildiği için ilk kare tabana bindirildi — alevsiz
+bırakmak karakteri "sönmüş" gösterirdi.
+
+### Nasıl dönüşülüyor
+
+Eşyayı **eline ya da yan eline al** — o yaratık oluyorsun. Görünüş v4.90'ın
+makinesinden (`player.entity.json` + `get_equipped_item_name`), güçler
+`ben10.js`'ten.
+
+Güç ve görünüş **aynı koşula** bağlı (elindeki eşya), bilerek: molang yalnız
+`main_hand`/`off_hand` okuyabildiği için görünüş zaten oraya bağlı. Güç başka
+bir şeye bağlansaydı "yaratık gibi görünüyorum ama gücüm yok" olurdu.
+
+### `variable.donusuk`
+
+Artık **beş biçim** var (O Şey + dört yaratık). Vanilla gövdeyi kapatan koşul
+tek değişkene toplandı:
+
+```
+variable.donusuk = variable.o_sey || variable.ben_elmas || ... ;
+"controller.render.player.third_person": "… && !variable.donusuk"
+```
+
+Test bu değişkenin **her biçimi saydığını** ayrıca tutuyor — biri unutulursa o
+yaratığa dönüşünce kendi bedenin içinde kalır ve sebebi görünmez.
+
+### Güç sayıları jar'la karşılaştırılıyor
+
+`ben10.mjs` (163 kontrol) modun kendi JSON'unu açıp okuyor. İki tanesi
+**birebir** tuttu:
+
+```
+Petrosapien max_health +20  ->  Can Artışı V   (+20)  ✓
+Tetramand   max_health +40  ->  Can Artışı X   (+40)  ✓
+```
+
+Taşınamayanlar açıkça yazılı: `knockback_resistance +255`, `freeze_immunity`,
+`step_height`, `entity_reach` — Bedrock'ta karşılığı yok, uydurulmadı.
+
+---
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:

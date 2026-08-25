@@ -11,6 +11,50 @@
           "*": "Material.default"
         }
       ]
+    },
+    "controller.render.ben_elmas": {
+      "geometry": "Geometry.ben_elmas",
+      "textures": [
+        "Texture.ben_elmas"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_dortkol": {
+      "geometry": "Geometry.ben_dortkol",
+      "textures": [
+        "Texture.ben_dortkol"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_cene": {
+      "geometry": "Geometry.ben_cene",
+      "textures": [
+        "Texture.ben_cene"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_ates": {
+      "geometry": "Geometry.ben_ates",
+      "textures": [
+        "Texture.ben_ates"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
     }
   }
 }

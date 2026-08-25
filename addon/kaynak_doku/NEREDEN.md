@@ -172,3 +172,40 @@ kullandigi duzenin aynisi, donusturmeye gerek kalmadi.
 Sayilar (zirh degerleri ve mod etkileri) `data/ionstrike/palladium/
 powers/*.json` dosyalarindan OKUNDU, uydurulmadi. Esleme tablosu
 `ayarlar.js: ZIRH_MODLAR` icinde satir satir yazili.
+
+## AlienEvo (Ben 10) modu (v4.92)
+
+Kaynak: `AlienEvo1.1.3fabric_1.jar` — modid `alienevo` v1.1.3,
+yapan **Habb & Stephen**. Fabric + Palladium, modelleri **GeckoLib**
+ile, yani ZATEN Bedrock `.geo.json` bicimi.
+md5 `18b2b7b17aa9b5d4efa794d3fbbfd7e4`.
+
+| bizdeki dosya | modun icindeki yol |
+|---|---|
+| `ben_elmas.png` | `.../models/aliens/alien_3/petrosapien_skin_default.png` |
+| `ben_dortkol.png` | `.../models/aliens/alien_6/tetramand_skin_default.png` |
+| `ben_cene.png` | `.../models/aliens/alien_8/piscciss_volann_skin_default.png` |
+| `ben_ates.png` | `alien_1/heatblast_default.png` + `heatblast_0_glow_default.png` **birlestirildi** |
+
+Ates Topu'nun ALEVI ayri bir katmanda ve modun kendisi sekiz kareyi
+sirayla oynatiyor. Bedrock'ta tek doku kullanilabildigi icin ilk kare
+tabana bindirildi -- alevsiz birakmak karakteri "sonmus" gosterirdi.
+
+`kaynak_geo/` altindaki modeller:
+
+| bizdeki dosya | modun icindeki yol |
+|---|---|
+| `ben_elmas.geo.json` | `geo/aliens/alien_3/petrosapien_default.geo.json` |
+| `ben_dortkol.geo.json` | `geo/aliens/alien_6/tetramand_default.geo.json` |
+| `ben_dortkol_kollar.geo.json` | `geo/aliens/alien_6/tetramand_arms_default.geo.json` |
+| `ben_cene.geo.json` | `geo/aliens/alien_8/piscciss_volann_default.geo.json` |
+| `ben_ates.geo.json` | `geo/aliens/alien_1/pyronite_default.geo.json` |
+
+Kupler, uv'ler, donusler HIC ELLENMEDI. Tek degisiklik kemik adlari
+(`armorHead` -> `head` vb.) ve kimlik -- modun kendi kimlikleri bozuk
+(`tetramand` dosyasinin kimligi `geometry.Diamondhead`, `piscciss`inki
+`geometry.unknown`).
+
+Guc sayilari `data/alienevo_aliens/palladium/powers/*.json` dosyalarindan
+OKUNDU. Esleme `ayarlar.js: BEN10` icinde satir satir yazili ve
+`ben10.mjs` testi sayilari jar ile karsilastiriyor.

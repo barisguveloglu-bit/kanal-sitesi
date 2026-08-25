@@ -107,6 +107,18 @@
     "o_sey_maskesi": {
       "textures": "textures/item/o_sey_maskesi"
     },
+    "ben_elmas": {
+      "textures": "textures/item/ben_elmas"
+    },
+    "ben_dortkol": {
+      "textures": "textures/item/ben_dortkol"
+    },
+    "ben_cene": {
+      "textures": "textures/item/ben_cene"
+    },
+    "ben_ates": {
+      "textures": "textures/item/ben_ates"
+    },
     "ilkel_balta": {
       "textures": "textures/item/ilkel_balta"
     },
