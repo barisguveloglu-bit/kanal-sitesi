@@ -4010,47 +4010,55 @@ bunu birebir doğruladı.
 
 ---
 
-## v4.79 — v4.78 geri alındı, yerine iksir başına bir yeni büyü
+## v4.80 — v4.78 geri alındı, yerine iksir başına **ikişer** yeni büyü
 
 Kullanıcı v4.78'i denedi ve beğenmedi: *"şu andaki sürümün iksirlerini
 sevmedim, yani verdiği güçleri sevmedim... eski iksirlerin büyülerini bul,
-onları + bir tane kendi seçeceğin büyü ver."*
+onları + kendi seçeceğin **farklı farklı** büyüler ekle."*
 
-### Ders: toplu +1 aslında hiçbir şey değiştirmiyor
+### İki ders, ikisi de aynı gün öğrenildi
 
-Herkes aynı oranda büyüyünce iksirler arasındaki fark **aynen kalıyor**,
-sadece roma rakamları şişiyor. Oynanışta hissedilen şey **yeni bir yetenek**,
-bir basamak daha yüksek aynı yetenek değil. v4.78 tam olarak bu hataydı ve
-kullanıcı bunu ilk denemede fark etti.
+**1. Toplu +1 aslında hiçbir şey değiştirmiyor.** Herkes aynı oranda
+büyüyünce iksirler arasındaki fark aynen kalıyor, sadece roma rakamları
+şişiyor. Oynanışta hissedilen şey **yeni bir yetenek**, bir basamak daha
+yüksek aynı yetenek değil.
+
+**2. Hepsine aynı yeni efekti vermek de aynı hata.** İlk düzeltmede hepsine
+`jump_boost` eklenmişti; kullanıcı "farklı farklı" diyerek tam olarak bunu
+işaret etti. Kaldırıldı — Firenoksin dışında (orada lav gölü aşmak için
+kendi gerekçesi var).
 
 Seviyeler v4.77'deki hâline **birebir** döndü (`git show 1ed9d9f` üzerinden,
-yorumlarıyla birlikte). Üstüne her iksire iki ekleme geldi.
+yorumlarıyla birlikte). Üstüne her iksire **iki** yeni efekt; her iksirin
+ikilisi kendine özel.
 
-### 1. Sıçrama II — hepsinde
-
-*"Bence iksirleri Sıçrama II, bu tüm[ünde] de olsun."* `jump_boost` amplifier
-1 (ekranda **"Zıplama Arttırma II"**). Zaten daha yükseği olan Nitroksin (3)
-ve Hiperoksin (2) korundu — buff isteğini downgrade'e çevirmek olurdu.
-
-### 2. Her iksire seçilmiş bir büyü
+### Seçilenler
 
 Ölçü "sayıyı büyüt" değil, **"bu iksirde eksik olan ve kimliğine uyan şey"**:
 
-| iksir | seçilen | neden |
+| iksir | yeni büyüler | neden |
 |---|---|---|
-| Nitroksin | `saturation` | koşmak açlıktan yiyor; hız uzmanı acıkmasın |
-| Grinoksin | `fire_resistance` | tankın tek açığı ateşti |
-| Redoksin | `resistance 1` | dövüşüyor ama hasar indirimi **hiç** yoktu |
-| Firenoksin | `health_boost 2` | ateş var, can yoktu |
-| Kan İksiri | `saturation` | suikastçı beslenmeye ara vermez |
-| Hiperoksin | `health_boost 1` | "her şeyden biraz" ama ek candan hiç yoktu |
-| StarOxine | `water_breathing` | korumanın son açığı boğulmaktı |
-| Element | `slow_falling` | dördüncü element: **hava** (su/ateş/toprak zaten vardı) |
+| Nitroksin | `saturation` + `conduit_power` | koşmak açlıktan yer; hız her yerde olsun, su altında da |
+| Grinoksin | `fire_resistance` + `slow_falling` | tankın iki açığı: ateş ve düşme |
+| Redoksin | `resistance 1` + `fire_resistance` | dövüşüyor ama hasar indirimi **hiç** yoktu; madenciyi lav öldürür |
+| Firenoksin | `health_boost 2` + `jump_boost 1` | ateş var can yok; nether'de lav gölünü aşmak |
+| Kan İksiri | `resistance 1` + `slow_falling` | sert vuruyor ama hiç indirimi yok; suikastçı yüksekten sessizce iner |
+| Hiperoksin | `health_boost 1` + `saturation` | "her şeyden biraz" ama ek candan hiç yoktu; 8 dakikalık iksirde açlık kesiyordu |
+| StarOxine | `water_breathing` + `haste 1` | korumanın son açığı boğulmaktı; tek yapamadığı iş kazmaktı |
+| Element | `slow_falling` + `strength 1` | **dördüncü element: hava** (su/ateş/toprak zaten vardı); elementin hiç vuruş gücü yoktu |
 
-Seviyeler uzmanlık düzenine göre seçildi: `health_boost`'ta Grinoksin 4 >
-StarOxine 3 > Firenoksin 2 > Hiperoksin 1; `resistance`'ta StarOxine 4
-(dokunulmazlık) > Grinoksin 3 > … > Redoksin 1. **Yeni gelen hiçbir şey
-uzmanını geçmiyor.**
+Tek tek efektler kesişebiliyor — `fire_resistance` hem tankın hem madencinin
+açığı — ama **hiçbir iki iksir aynı ikiliyi almıyor**, test bunu kilitliyor.
+
+Seviyeler uzmanlık düzenine göre seçildi; yeni gelen hiçbir şey kendi alanının
+uzmanını geçmiyor:
+
+```
+can      Grinoksin 4 > StarOxine 3 > Firenoksin 2 > Hiperoksin 1
+indirim  StarOxine 4 > Grinoksin 3 > ... > Redoksin/Kan 1
+kazma    Redoksin 4 > Element 3 > ... > StarOxine 1
+vuruş    Redoksin/Kan 4 > ... > Element 1
+```
 
 ### Değişmeyen kurallar
 
@@ -4059,9 +4067,10 @@ Seviyesiz efektler (`night_vision`, `fire_resistance`, `water_breathing`,
 sayıyı büyütmek sadece roma rakamını değiştirir, oyunda hiçbir şey yapmaz.
 Dokunulmazlık (Dayanıklılık V) tek iksirde: StarOxine.
 
-`iksir.mjs` bölüm 8 bunları kilitliyor; ayrıca yeni: her iksirde Sıçrama var
-mı, seçilen büyüler duruyor mu, aynı efekt iki kez yazılmış mı (ikinci kayıt
-birincisini sessizce ezer).
+`iksir.mjs` bölüm 8 hepsini kilitliyor: seviyesiz efektler temiz mi,
+dokunulmazlık tek iksirde mi, uzmanlık düzeni ayakta mı, seçilen 16 büyü
+duruyor mu, iki iksir aynı ikiliyi almış mı, aynı efekt bir iksirde iki kez
+yazılmış mı (ikinci kayıt birincisini sessizce ezer).
 
 ---
 
