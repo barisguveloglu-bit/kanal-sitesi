@@ -11,6 +11,7 @@ import {
   SERSEM_CIVILE, SERSEM_GUCSUZ, ASA_BILDIR,
   MEZAR_ACIK, MEZAR_YARICAP, MEZAR_YUKSEK, MEZAR_BLOK,
   DISMONT_ESYA, MEZAR_ANAHTAR_ADET,
+  ASA_OYUNCUDA, ASA_ESYA,
   DONDUR_GIRDI_KILIT, DONDUR_KAMERA_KILIT
 } from "../ayarlar.js";
 
@@ -60,6 +61,14 @@ import {
 function sahibeYaz(bot, metin) {
   if (!ASA_BILDIR) return;
   try {
+    /* v4.83: asayi OYUNCU tasiyorsa "sahip" onun kendisi.
+       botunSahibi() bir oyuncu icin bos doner ve bildirim
+       sessizce duserdi -- yani oyuncu zincirin isledigini
+       goremezdi.                                            */
+    if (bot && bot.typeId === "minecraft:player") {
+      actionbarYaz(bot, metin);
+      return;
+    }
     const id = botunSahibi(bot);
     if (!id) return;
     /* ONCE getAllPlayers: aradigimiz sey bir OYUNCU ve bu yol
@@ -295,12 +304,19 @@ export function mezariAc(boyut, mezar) {
 export function asaVurusu(bot, kurban, simdikiTick) {
   if (!gecerliMi(kurban)) return "yok";
 
+  /* v4.83: asayi oyuncu da tasiyabiliyor. Bildirimlerde
+     "El-Harkos gomdu" yazmak yanlis olurdu -- gomen sensin. */
+  let vuran = "El-Harkos";
+  try {
+    if (bot && bot.typeId === "minecraft:player") vuran = "Asa";
+  } catch (e) { /* tipi okunamadi: varsayilan kalsin */ }
+
   /* Zaten yerdeyse bu vurus MEZARI aciyor -- "yerdeyken asayi
      bir kez daha kaldirdiginda".                              */
   if (sersemler.has(kurban.id)) {
     if (mezarAc(kurban)) {
       vuruslar.delete(bot.id);
-      sahibeYaz(bot, "§8⚰ §fMezar açıldı §7· El-Harkos gömdü");
+      sahibeYaz(bot, "§8⚰ §fMezar açıldı §7· " + vuran + " gömdü");
       return "mezar";
     }
     sahibeYaz(bot, "§8⚰ §7Mezar açılamadı §8(yer dolu ya da tavan)");
@@ -320,7 +336,7 @@ export function asaVurusu(bot, kurban, simdikiTick) {
     return "yok";
   }
   vuruslar.set(bot.id, liste);
-  sahibeYaz(bot, "§3⬤ §7El-Harkos §f" + liste.length + "§7/" + SERSEM_VURUS);
+  sahibeYaz(bot, "§3⬤ §7" + vuran + " §f" + liste.length + "§7/" + SERSEM_VURUS);
   return "sayiyor";
 }
 
@@ -378,6 +394,50 @@ function dismontHarca(oyuncu, adet) {
   return adet - kalan;
 }
 
+/* ---------------- ASA OYUNCUNUN ELINDE ----------------  (v4.83)
+
+   Zincirin kendisi degismedi; sadece IKINCI bir tetik eklendi.
+   asaVurusu() sayaci vuranin kimligiyle tutuyor, yani oyuncu
+   da bot da ayni koddan geciyor.
+
+   VURANIN ELINE BAKILIYOR, envanterine degil: asayi cantada
+   tasimak yetmez, kullanman gerekir.                          */
+function asaTasiyorMu(varlik) {
+  try {
+    const e = varlik.getComponent("minecraft:equippable");
+    if (!e || typeof e.getEquipment !== "function") return false;
+    const esya = e.getEquipment("Mainhand");
+    return !!esya && esya.typeId === ASA_ESYA;
+  } catch (e) {
+    return false;
+  }
+}
+
+let oyuncuUyarisi = false;
+
+export function asaOyuncuKancasi() {
+  if (!ASA_OYUNCUDA) return;
+  const vurus = olayaAbone("entityHitEntity", (olay) => {
+    try {
+      const vuran = olay.damagingEntity;
+      const kurban = olay.hitEntity;
+      if (!vuran || !kurban) return;
+      if (vuran.typeId !== "minecraft:player") return;   // botun yolu ayri
+      if (!asaTasiyorMu(vuran)) return;
+      asaVurusu(vuran, kurban, system.currentTick);
+    } catch (e) {
+      hataYaz("asa.oyuncuVurusu", e);
+    }
+  });
+
+  if (!vurus && !oyuncuUyarisi) {
+    oyuncuUyarisi = true;
+    hataYaz("asa.oyuncuVurusu", new Error(
+      "entityHitEntity yok. Asa oyuncunun elinde zincir " +
+      "baslatamaz; El-Harkos'un kendi yolu etkilenmiyor."));
+  }
+}
+
 let kirmaUyarisi = false;
 
 export function asaKancalari() {
@@ -428,3 +488,4 @@ export function asaKancalari() {
 }
 
 asaKancalari();
+asaOyuncuKancasi();

@@ -4165,6 +4165,71 @@ dönüyor; kalabalık bir yerde takılma olursa ilk bakılacak yer burası.
 
 ---
 
+## v4.83 — Asa dört sürümdür neden çalışmıyordu
+
+Kullanıcı: *"El-Harkos'un asası var ya, o çalışmadığını öğrendim, valla 4
+sürümdür görüyorum bunun çalışmadığını."*
+
+### Zincir sağlamdı — oyuncuya hiç bağlanmamıştı
+
+`asa.mjs`'in altı bölümü de geçiyordu ve haklıydılar: 3 vuruş → yere serme →
+mezar → 10 dismont zinciri gerçekten çalışıyor. Ama tetik yolu tekti:
+
+```
+asaVurusu()  ←  botVurdu()  ←  ilkelKimligi(bot)
+```
+
+Yani tetiği **ancak beş üyeden biri** çekebiliyordu. Oysa asa yaratıldığı
+günden beri (v4.49) yaratıcı menüsünde `equipment` kategorisinde duruyor:
+oyuncu alabiliyor, eline takabiliyor, vurabiliyor — ve hiçbir şey olmuyordu.
+
+Üstelik eşyanın **`minecraft:damage` bileşeni de yoktu**, yani oyuncunun
+elinde vuruşu **yumruk kadardı (1 hasar)**.
+
+Ders: *"yetenek çalışıyor mu"* ile *"yeteneğe **ulaşılabiliyor** mu"* ayrı iki
+soru. Aynı ders v4.65'te de çıkmıştı — göz lazerine üç sürüm boyunca
+ulaşılamıyordu.
+
+### Düzeltme
+
+* `asa.js:asaOyuncuKancasi()` — ikinci bir `entityHitEntity` tetiği: vuran
+  oyuncuysa ve **elinde** asa varsa aynı zincir işliyor. Çantada taşımak
+  yetmiyor, kullanman gerekiyor.
+* `sahibeYaz()` artık vuran oyuncuysa doğrudan ona yazıyor — `botunSahibi()`
+  bir oyuncu için boş döner ve bildirim sessizce düşerdi.
+* Bildirim metinleri bağlama göre: gömen sensen "El-Harkos gömdü" yazmıyor.
+* Asaya `minecraft:damage: 14` verildi (kullanıcı: *"normal vuruşu da 14+
+  olsun"*) — **7 kalp**, elmas kılıcın iki katı. Dayanıklılık bileşeni yok:
+  patron asası kullanıldıkça kırılmamalı.
+
+### Testin bekçisi haklı çıktı — ama ters yönden
+
+`ilkel.mjs`'te şöyle bir kural vardı: *"silahta HİÇ hasar olmasın, çünkü elde
+tutulan eşyanın hasarı mobun vuruşuna eklenir ve üyenin sayısı sessizce
+şişer."*
+
+Doğrulandı — **Bedrock'ta gerçekten ekleniyor.** Yani asaya 14 vermek
+El-Harkos'u dokunulmadan 26'dan 40'a fırlatırdı; tam da bu depoda v4.66'da
+yaşanan "söylediğim sayı ile oyundaki sayı tutmuyor" hatasının aynısı.
+
+Çözüm sayıyı gizlemek değil, **açıkça bölmek**:
+
+| yer | değer |
+|---|---|
+| `ILKEL_BESLI` (kullanıcının gördüğü) | **28** = oyunda görülen toplam |
+| varlık JSON'u `minecraft:attack` | 14 = taban |
+| asa `minecraft:damage` | 14 |
+
+`ilkel_taban_hasar()` bu çıkarmayı yapıyor; test artık `taban + silah ===
+ayardaki sayı` diye kontrol ediyor, sadece JSON'a bakmıyor. Balta değişmedi
+(onu taşıyan dört üyenin sayısı varlık JSON'unda ve orada kalmalı).
+
+El-Harkos'un vuruşu böylece 13 → **14 kalp** oldu — kullanıcının istediği
+"14+". Asası alınırsa tabana düşüyor; test tabanın hâlâ ciddi bir sayı
+olduğunu (≥10) kontrol ediyor.
+
+---
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:

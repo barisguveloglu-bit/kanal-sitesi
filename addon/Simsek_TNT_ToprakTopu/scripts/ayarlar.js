@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.82";
+export const SURUM = "v4.83";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -1992,7 +1992,9 @@ export const ILKEL_BESLI = new Map([
     ad: "İlkel Suikastçı El-Harkos",
     kimlik: "pa:harkos",
     rutbe: 5, unvan: "Gölge Çırağı",
-    can: 2600, hasar: 26,
+    can: 2600, hasar: 28,   /* v4.83: 13 -> 14 kalp. Bu sayi OYUNDA
+                            GORULEN toplam; varlik JSON'unda 14 yaziyor
+                            ve elindeki asanin 14'u uzerine ekleniyor. */
     /* Golge Ciragi: en alt rutbe, en hizli ayak. Sicrama
        yetenegi varlik JSON'unda (leap_at_target); Ziplama III
        onu tamamliyor. Ustadindan (Raxxan) bir kademe yavas --
@@ -2229,6 +2231,41 @@ export const ILKEL_SILAH = new Map([
 export function ilkelSilahi(anahtar) {
   return ILKEL_SILAH.get(anahtar) || ILKEL_SILAH_VARSAYILAN;
 }
+
+/* ============================================================
+   ASA OYUNCUNUN ELINDE  (v4.83)
+
+   ---- DORT SURUMDUR CALISMAYAN SEY BUYDU ----
+   Kullanici: "El-Harkos'un asasi var ya, o calismadigini
+   ogrendim, valla 4 surumdur goruyorum bunun calismadigini."
+
+   Sebep: asa zinciri (3 vurus -> yere ser, 4. vurus -> mezar)
+   YALNIZCA bot_ilkel.js:botVurdu'dan cagriliyordu ve o da
+   ilkelKimligi(bot) istiyordu -- yani tetigi ancak BES UYEDEN
+   BIRI cekebiliyordu.
+
+   Ama asa yaratildigi gunden beri (v4.49) yaratici menusunde
+   "equipment" kategorisinde duruyor: oyuncu alabiliyor,
+   eline takabiliyor, vurabiliyor. Elinde HICBIR SEY yapmiyordu.
+   Ustelik esyanin minecraft:damage bileseni de yoktu, yani
+   vurusu YUMRUK kadardi (1 hasar).
+
+   Yani hata "zincir bozuk" degil, "zincir oyuncuya hic
+   baglanmamis"ti. Testler de bunu goremezdi: hepsi El-Harkos
+   uzerinden gidiyordu ve gecıyordu.
+
+   Artik iki tetik var, ikisi de ayni zinciri kullaniyor:
+     - El-Harkos vurunca      (bot_ilkel.js, eskisi gibi)
+     - OYUNCU asayla vurunca  (asa.js kancasi, yeni)
+   ============================================================ */
+export const ASA_OYUNCUDA = true;
+export const ASA_ESYA = "pa:ilkel_asa";
+/* Asanin normal vurus hasari. Kullanici: "normal vurusu da
+   14+ olsun." 14 hasar = 7 KALP, yani elmas kilicin (7) iki
+   kati, netherite kilicin (8) neredeyse iki kati. Sayi esyada
+   yaziyor (kol_uret.py:ASA_HASAR); burasi testlerin ve menu
+   metninin okudugu ikiz.                                      */
+export const ASA_HASAR = 14;
 
 /* Her taramada elin bos olup olmadigina bakilsin mi. Dunya
    yeniden yuklenince ya da silah bir sekilde dusunce kendi

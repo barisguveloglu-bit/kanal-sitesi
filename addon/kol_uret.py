@@ -859,7 +859,11 @@ ILKEL = [
      dict(ittirilmez=True, olcek=1.15, hiz=0.30, rutbe=3)),
     ("miskel",  "Ilkel Sihirbaz Miskel",      2600, 28,
      dict(menzilli=True, olcek=1.0, hiz=0.30, rutbe=2)),
-    ("harkos",  "Ilkel Suikastci El-Harkos",  2600, 26,
+    # v4.83: 26 -> 28. Kullanici: "normal vurusu da 14+ olsun."
+    # 28 hasar = 14 KALP. Bu sayi OYUNDA GORULEN TOPLAM; varlik
+    # JSON'una yazilan taban daha dusuk, cunku elindeki asanin
+    # hasari uzerine EKLENIYOR (bkz. ilkel_taban_hasar).
+    ("harkos",  "Ilkel Suikastci El-Harkos",  2600, 28,
      dict(sicrar=True, olcek=0.95, hiz=0.42, rutbe=5)),
     # v4.55: guclendirildi. Sebep kullanicinin tespiti: en alt
     # rutbedeki El-Harkos 2600 can tasirken Golge Ajani 2000'de
@@ -1060,6 +1064,31 @@ ILKEL_TR = {
 }
 
 
+def ilkel_taban_hasar(anahtar, hasar):
+    """Varlik JSON'una yazilacak minecraft:attack.damage.
+
+    ---- BEDROCK KURALI (v4.83'te olculdu) ----
+    Elde tutulan esyanin minecraft:damage'i mobun taban
+    vurusuna EKLENIYOR, yerine gecmiyor -- zombinin demir
+    kilicla daha sert vurmasinin sebebi bu.
+
+    v4.83'e kadar bu hic sorun degildi cunku silahlarin
+    HICBIRINDE damage yoktu; ilkel.mjs de "silahta hasar
+    olmasin" diye bir bekci tutuyordu. Asaya 14 hasar verilince
+    o bekci hakli cikti: dokunulmasaydi El-Harkos sessizce
+    26'dan 40'a firlardi.
+
+    Cozum sayilari gizlemek degil, ACIKCA bolmek: ILKEL
+    tablosundaki sayi OYUNDA GORULEN toplam, buradan cikan
+    sayi taban. Kullanicinin gordugu sayi hep tablodaki.
+
+    Silahsiz kalirsa (birisi asasini alirsa) vurusu tabana
+    duser -- bu dogru davranis, asa gercekten bir silah.     """
+    silah_kimlik, _ad, _kaynak = ilkel_silahi(anahtar)
+    ek = ASA_HASAR if silah_kimlik == "ilkel_asa" else 0
+    return max(1, hasar - ek)
+
+
 def ilkel_gruplari():
     """Bes uyenin bilesen gruplari. Her biri cani, hasari ve
     dovus stilini degistiriyor; geri kalan her sey (takip, canta,
@@ -1068,7 +1097,7 @@ def ilkel_gruplari():
     for anahtar, _ad, can, hasar, sec in ILKEL:
         g = {
             "minecraft:health": {"value": can, "max": can},
-            "minecraft:attack": {"damage": hasar},
+            "minecraft:attack": {"damage": ilkel_taban_hasar(anahtar, hasar)},
             "minecraft:movement": {"value": sec.get("hiz", 0.32)},
             "minecraft:scale": {"value": sec.get("olcek", 1.0)},
         }
@@ -1128,12 +1157,50 @@ def ilkel_gruplari():
     return gruplar
 
 
+# Asanin oyuncunun elindeki vurus hasari (v4.83).
+# Kullanici: "normal vurusu da 14+ olsun."
+# 14 hasar = 7 KALP: elmas kilicin (7) iki kati.
+# ayarlar.js:ASA_HASAR bunun ikizi; test esitligi kilitliyor.
+ASA_HASAR = 14
+
+
 def ilkel_silah_esyasi(kimlik, ad):
     """Bir uyenin elindeki silah.
 
     Envanterde de gorunuyor (menu_category equipment) cunku
     yumurtayla elle deneme yapabilmek isteniyor -- ayni sebeple
-    varliklar da is_spawnable.                                  """
+    varliklar da is_spawnable.
+
+    ---- ASA ARTIK GERCEK BIR SILAH (v4.83) ----
+    Kullanici: "El-Harkos'un asasi 4 surumdur calismiyor...
+    normal vurusu da 14+ olsun."
+
+    Iki ayri eksik vardi:
+      1. minecraft:damage YOKTU. Yani oyuncu asayi eline alip
+         vurdugunda hasari YUMRUK kadardi (1). "Silah bir
+         GORUNUM" notu bunu bilerek boyle birakmisti -- ama o
+         not El-Harkos'un elindeki silah icin dogruydu; onun
+         hasari zaten varlik JSON'undaki minecraft:attack'tan
+         geliyor ve esyanin sayisi oraya karismiyor.
+         Oyuncunun elinde ise esyanin sayisi TEK belirleyici.
+      2. Asa zinciri (yere serme + mezar) yalnizca bes uyeden
+         biri vurunca calisiyordu; oyuncuya hic bagli degildi.
+         O kisim asa.js:asaOyuncuKancasi ile eklendi.
+
+    BALTA DEGISMEDI: onun sayisi yok, cunku onu tasiyan dort
+    uyenin hasari varlik JSON'unda ve orada kalmali.           """
+    bilesenler = {
+        "minecraft:icon": {"texture": kimlik},
+        "minecraft:display_name": {"value": ad},
+        "minecraft:max_stack_size": 1,
+        "minecraft:hand_equipped": True,
+        "minecraft:allow_off_hand": False,
+    }
+    if kimlik == "ilkel_asa":
+        bilesenler["minecraft:damage"] = ASA_HASAR
+        # Dayaniklilik YOK: bir patron asasi kullanildikca
+        # kirilmamali. Bileseni hic yazmamak "sonsuz" demek.
+
     return {
         "format_version": "1.21.0",
         "minecraft:item": {
@@ -1141,14 +1208,7 @@ def ilkel_silah_esyasi(kimlik, ad):
                 "identifier": "pa:" + kimlik,
                 "menu_category": {"category": "equipment"},
             },
-            "components": {
-                "minecraft:icon": {"texture": kimlik},
-                "minecraft:display_name": {"value": ad},
-                "minecraft:max_stack_size": 1,
-                "minecraft:hand_equipped": True,
-                "minecraft:allow_off_hand": False,
-                # DIKKAT: minecraft:damage YOK. Bkz. ILKEL_SILAHLAR notu.
-            },
+            "components": bilesenler,
         },
     }
 

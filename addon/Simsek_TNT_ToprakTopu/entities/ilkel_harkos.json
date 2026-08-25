@@ -167,7 +167,7 @@
         "priority": 9
       },
       "minecraft:attack": {
-        "damage": 26
+        "damage": 14
       },
       "minecraft:scale": {
         "value": 0.95
