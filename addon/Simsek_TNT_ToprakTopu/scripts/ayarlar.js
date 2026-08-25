@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.92";
+export const SURUM = "v4.93";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -2945,8 +2945,23 @@ export const BEN10_ACIK   = true;
 export const BEN10_TARAMA = 20;    // kac tick'te bir bakilsin
 export const BEN10_SURE   = 120;   // efekt suresi (TARAMA x 6)
 
-export const BEN10 = new Map([
-  ["ben_elmas", {
+/* Bicimler: Ben 10'un kendi zaman cizgisi.
+     Prototip  ilk Omnitrix        (2005 dizisi)
+     Recal     yeniden ayarlanmis  (Alien Force)  <- modun "default"i
+     10K       Ben 10.000          (gelecek)
+   Uc bicim AYNI turun uc gorunumu: modun powers/<tur>.json
+   dosyasi da tek, yani gucleri de ayni. Gorunum farkli, guc
+   ayni -- referansta da oyle.                                */
+export const BEN10_BICIM = [
+  ["",       "Recal"],
+  ["_proto", "Prototip"],
+  ["_10k",   "10K"]
+];
+
+/* Turler ve gucleri. Bicimler asagida CARPILIYOR, elle
+   yazilmiyor -- kol_uret.py:BEN10_TABAN ile ayni sira.       */
+const BEN10_TABAN = [
+  ["elmas", {
     ad: "Elmas Kafa", tur: "Petrosapien", kaynak: "petrosapien",
     ozet: "armor +20 · attack +14 · max_health +20 · ağır",
     /* +14 hasar 3'e tam bolunmuyor: Guc V = +15, en yakin.
@@ -2954,7 +2969,7 @@ export const BEN10 = new Map([
     efektler: [["resistance", 0, 2], ["strength", 0, 4],
                ["health_boost", 0, 4], ["slowness", 0, 1]]
   }],
-  ["ben_dortkol", {
+  ["dortkol", {
     ad: "Dört Kol", tur: "Tetramand", kaynak: "tetramand",
     ozet: "armor +60 · max_health +40 · attack +12.3 · ağır",
     /* max_health +40 = Can Artisi X, BIREBIR.
@@ -2963,23 +2978,35 @@ export const BEN10 = new Map([
                ["health_boost", 0, 9], ["slowness", 0, 2],
                ["jump_boost", 0, 0]]
   }],
-  ["ben_cene", {
+  ["cene", {
     ad: "Yüzen Çene", tur: "Piscciss Volann", kaynak: "piscciss_volann",
     ozet: "swim_speed +4 · destroy_speed +10 · attack +5",
     efektler: [["water_breathing", 0, 0], ["conduit_power", 0, 0],
                ["haste", 0, 4], ["strength", 0, 1],
                ["resistance", 0, 1], ["slow_falling", 0, 0]]
   }],
-  ["ben_ates", {
+  ["ates", {
     ad: "Ateş Topu", tur: "Pyronite", kaynak: "pyronite",
     ozet: "ateş bağışıklığı · armor +12 · max_health +10 · ışın 9",
-    /* max_health +10: Can Artisi II = +12, III = +8'den daha
-       yakin degil (ikisi de 2 fark) -- yukari yuvarlandi.    */
+    /* max_health +10: Can Artisi II = +12 ve III = +8 esit
+       uzaklikta -- yukari yuvarlandi.                        */
     efektler: [["fire_resistance", 0, 0], ["health_boost", 0, 2],
                ["strength", 0, 0], ["resistance", 0, 0],
                ["speed", 0, 0]]
   }]
-]);
+];
+
+export const BEN10 = new Map();
+for (const [kisa, t] of BEN10_TABAN) {
+  for (const [son, bicimAd] of BEN10_BICIM) {
+    BEN10.set("ben_" + kisa + son, {
+      ad: t.ad + " · " + bicimAd,
+      taban: kisa, bicim: bicimAd,
+      tur: t.tur, kaynak: t.kaynak, ozet: t.ozet,
+      efektler: t.efektler
+    });
+  }
+}
 
 export const BOT_KIMLIKLER = new Set([BOT_KIMLIK, SEY_KIMLIK, SEY_KILIK_KIMLIK]);
 for (const t of ILKEL_BESLI.values()) {

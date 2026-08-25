@@ -1,0 +1,22 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:attachable": {
+    "description": {
+      "identifier": "pa:omnitrix_proto",
+      "materials": {
+        "default": "entity_alphatest",
+        "enchanted": "armor_enchanted"
+      },
+      "textures": {
+        "default": "textures/entity/omnitrix_proto",
+        "enchanted": "textures/misc/enchanted_actor_glint"
+      },
+      "geometry": {
+        "default": "geometry.omnitrix_proto"
+      },
+      "render_controllers": [
+        "controller.render.armor"
+      ]
+    }
+  }
+}

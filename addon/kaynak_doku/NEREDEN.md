@@ -209,3 +209,34 @@ Kupler, uv'ler, donusler HIC ELLENMEDI. Tek degisiklik kemik adlari
 Guc sayilari `data/alienevo_aliens/palladium/powers/*.json` dosyalarindan
 OKUNDU. Esleme `ayarlar.js: BEN10` icinde satir satir yazili ve
 `ben10.mjs` testi sayilari jar ile karsilastiriyor.
+
+### v4.93 — uc bicim, saatler, animasyonlar
+
+**Dokular artik KATMAN BIRLESTIRILEREK aliniyor.** v4.92'de yalniz `skin`
+katmani alinmisti ve `default` bicimde bu dogruydu -- ama `prototype` ve
+`10k` bicimlerinde KIYAFET `uniform` katmaninda duruyor (olculdu:
+petrosapien uniform_default 0 dolu piksel, uniform_prototype **1540**).
+Tek katman alininca o iki bicim DUZ RENK cikiyordu.
+
+Sira: `skin` -> `uniform` -> `glow` (govde, kiyafet, parlama).
+Ates Topu icin: `heatblast_<bicim>.png` -> `heatblast_0_glow_<bicim>.png`.
+
+Modeller: `geo/aliens/<klasor>/<tur>_<bicim>.geo.json`
+(+ Dort Kol icin `tetramand_arms_<bicim>.geo.json`).
+
+**Saatler** (`kaynak_geo/omnitrix_*.geo.json`):
+
+| bizdeki dosya | modun icindeki yol |
+|---|---|
+| `omnitrix_proto.geo.json` | `geo/prototype_omnitrix.geo.json` |
+| `omnitrix_proto.png` | `textures/models/prototype_omnitrix/prototype.png` |
+| `omnitrix_recal.geo.json` | `geo/recal_omnitrix.geo.json` |
+| `omnitrix_recal.png` | `textures/models/recal_omnitrix/recal.png` |
+
+10K saati ALINMADI: modun kendisi onun dokusunu Palladium'un dinamik doku
+sistemiyle uretiyor, hazir bir PNG yok. Uydurma bir ucuncu cizilmedi.
+
+**Animasyonlar** (`kaynak_anim/`): `petrosapien`, `ripjaws`, `prototype`,
+`recal_omnitrix`. Dosyalar OLDUGU GIBI kopyalandi -- bicimleri zaten Bedrock
+(`format_version 1.8.0`, GeckoLib oyle kullaniyor) ve hicbiri `armorX`
+kemiklerini surmuyor, yani kemik yeniden adlandirmamizdan etkilenmiyorlar.

@@ -1,0 +1,22 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:attachable": {
+    "description": {
+      "identifier": "pa:omnitrix_recal",
+      "materials": {
+        "default": "entity_alphatest",
+        "enchanted": "armor_enchanted"
+      },
+      "textures": {
+        "default": "textures/entity/omnitrix_recal",
+        "enchanted": "textures/misc/enchanted_actor_glint"
+      },
+      "geometry": {
+        "default": "geometry.omnitrix_recal"
+      },
+      "render_controllers": [
+        "controller.render.armor"
+      ]
+    }
+  }
+}

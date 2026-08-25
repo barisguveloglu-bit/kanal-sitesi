@@ -110,14 +110,44 @@
     "ben_elmas": {
       "textures": "textures/item/ben_elmas"
     },
+    "ben_elmas_proto": {
+      "textures": "textures/item/ben_elmas_proto"
+    },
+    "ben_elmas_10k": {
+      "textures": "textures/item/ben_elmas_10k"
+    },
     "ben_dortkol": {
       "textures": "textures/item/ben_dortkol"
+    },
+    "ben_dortkol_proto": {
+      "textures": "textures/item/ben_dortkol_proto"
+    },
+    "ben_dortkol_10k": {
+      "textures": "textures/item/ben_dortkol_10k"
     },
     "ben_cene": {
       "textures": "textures/item/ben_cene"
     },
+    "ben_cene_proto": {
+      "textures": "textures/item/ben_cene_proto"
+    },
+    "ben_cene_10k": {
+      "textures": "textures/item/ben_cene_10k"
+    },
     "ben_ates": {
       "textures": "textures/item/ben_ates"
+    },
+    "ben_ates_proto": {
+      "textures": "textures/item/ben_ates_proto"
+    },
+    "ben_ates_10k": {
+      "textures": "textures/item/ben_ates_10k"
+    },
+    "omnitrix_proto": {
+      "textures": "textures/item/omnitrix_proto"
+    },
+    "omnitrix_recal": {
+      "textures": "textures/item/omnitrix_recal"
     },
     "ilkel_balta": {
       "textures": "textures/item/ilkel_balta"

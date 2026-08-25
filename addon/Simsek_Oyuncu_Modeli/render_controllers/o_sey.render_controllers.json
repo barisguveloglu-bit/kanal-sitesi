@@ -23,10 +23,54 @@
         }
       ]
     },
+    "controller.render.ben_elmas_proto": {
+      "geometry": "Geometry.ben_elmas_proto",
+      "textures": [
+        "Texture.ben_elmas_proto"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_elmas_10k": {
+      "geometry": "Geometry.ben_elmas_10k",
+      "textures": [
+        "Texture.ben_elmas_10k"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
     "controller.render.ben_dortkol": {
       "geometry": "Geometry.ben_dortkol",
       "textures": [
         "Texture.ben_dortkol"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_dortkol_proto": {
+      "geometry": "Geometry.ben_dortkol_proto",
+      "textures": [
+        "Texture.ben_dortkol_proto"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_dortkol_10k": {
+      "geometry": "Geometry.ben_dortkol_10k",
+      "textures": [
+        "Texture.ben_dortkol_10k"
       ],
       "materials": [
         {
@@ -45,10 +89,54 @@
         }
       ]
     },
+    "controller.render.ben_cene_proto": {
+      "geometry": "Geometry.ben_cene_proto",
+      "textures": [
+        "Texture.ben_cene_proto"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_cene_10k": {
+      "geometry": "Geometry.ben_cene_10k",
+      "textures": [
+        "Texture.ben_cene_10k"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
     "controller.render.ben_ates": {
       "geometry": "Geometry.ben_ates",
       "textures": [
         "Texture.ben_ates"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_ates_proto": {
+      "geometry": "Geometry.ben_ates_proto",
+      "textures": [
+        "Texture.ben_ates_proto"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_ates_10k": {
+      "geometry": "Geometry.ben_ates_10k",
+      "textures": [
+        "Texture.ben_ates_10k"
       ],
       "materials": [
         {

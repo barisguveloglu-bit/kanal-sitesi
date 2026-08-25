@@ -2636,16 +2636,84 @@ BEN10_KEMIK = {
 # Blockbench'in bos kok kemigi: cocugu yok, atiliyor.
 BEN10_ATILAN = {"bb_main"}
 
+# ---- UC BICIM (v4.93) ----
+# Kullanici: "bunlarin da bir formlari daha varmis, bir baksana
+# icerisinde var mi, onlari da ekle."
+#
+# Vardi -- HER uzaylinin UC bicimi var ve bunlar Ben 10'un kendi
+# zaman cizgisi:
+#   prototype  ilk Omnitrix        (2005 dizisi)
+#   default    yeniden ayarlanmis  (Alien Force -- modun "recal"i)
+#   10k        Ben 10.000          (gelecekteki hali)
+#
+# Bicimler GERCEKTEN farkli: kup sayilari ve doku boyutlari
+# ayri (or. Dort Kol default 41 kup/128px, prototype 33 kup/64px).
+BEN10_BICIM = [
+    ("",       "Recal",    "Recal"),      # default
+    ("_proto", "Prototip", "Prototype"),
+    ("_10k",   "10K",      "10K"),
+]
+
+# (kisa ad, TR ad, EN ad, tur) -- bicimler yukaridaki tablodan
+# CARPILIYOR, elle yazilmiyor.
+BEN10_TABAN = [
+    ("elmas",   "Elmas Kafa", "Diamondhead", "Petrosapien"),
+    ("dortkol", "Dört Kol",   "Four Arms",   "Tetramand"),
+    ("cene",    "Yüzen Çene", "Ripjaws",     "Piscciss Volann"),
+    ("ates",    "Ateş Topu",  "Heatblast",   "Pyronite"),
+]
+
 # (anahtar, TR ad, EN ad, geo dosyalari, tur adi)
-BEN10 = [
-    ("ben_elmas",   "Elmas Kafa",  "Diamondhead",
-     ["ben_elmas"], "Petrosapien"),
-    ("ben_dortkol", "Dört Kol",    "Four Arms",
-     ["ben_dortkol", "ben_dortkol_kollar"], "Tetramand"),
-    ("ben_cene",    "Yüzen Çene",  "Ripjaws",
-     ["ben_cene"], "Piscciss Volann"),
-    ("ben_ates",    "Ateş Topu",   "Heatblast",
-     ["ben_ates"], "Pyronite"),
+BEN10 = []
+for _kisa, _tr, _en, _tur in BEN10_TABAN:
+    for _son, _btr, _ben in BEN10_BICIM:
+        _a = "ben_" + _kisa + _son
+        _dosyalar = [_a]
+        # Dort Kol'un FAZLADAN IKI KOLU her bicimde ayri dosyada
+        if _kisa == "dortkol":
+            _dosyalar.append(_a + "_kollar")
+        BEN10.append((_a, "%s · %s" % (_tr, _btr), "%s (%s)" % (_en, _ben),
+                      _dosyalar, _tur))
+
+# ---- OMNITRIX (v4.93) ----
+# Kullanici: "hani ben 10 saati var ya onun da modeli varsa onu
+# da ekle ki SAAT OLMALI sadece."
+#
+# Modun saat modelleri de ayni alti kok kemikten sarkiyor ve
+# kupleri x[3.5, 9.8] y[13.5, 17.0] araliginda -- yani ZATEN
+# SOL BILEK konumunda. Elinde tutunca bilegine ciziliyor,
+# ayrica bir yuva harcamiyor.
+#
+# 10K saati YOK: modun kendisi onun dokusunu Palladium'un
+# dinamik doku sistemiyle uretiyor, hazir bir PNG yok. Iki saat
+# aliniyor -- uydurma bir ucuncu cizilmedi.
+OMNITRIX = [
+    ("omnitrix_proto", "Omnitrix · Prototip", "Omnitrix (Prototype)"),
+    ("omnitrix_recal", "Omnitrix · Recal",    "Omnitrix (Recalibrated)"),
+]
+
+# ---- ANIMASYONLAR (v4.93) ----
+# Kullanici: "animasyon falan varsa her seyi ekle."
+#
+# Modun animasyonlari da Bedrock bicimi (format_version 1.8.0) --
+# GeckoLib oyle kullaniyor. Kemik adlarina bakildi: HICBIRI
+# armorX kemiklerini surmuyor, hepsi ic kemikleri suruyor. Yani
+# bizim yeniden adlandirmamizdan ETKILENMIYORLAR, oldugu gibi
+# kopyalaniyorlar.
+BEN10_ANIM = ["petrosapien", "ripjaws", "prototype", "recal_omnitrix"]
+BEN10_ANIM_KAYNAK = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                 "kaynak_anim")
+
+# Oyuncuya BAGLANAN animasyonlar: (animasyon adi, kosul molang)
+# Sadece KOSULU GUVENLE KURULABILENLER baglandi. Kalanlar
+# (kalkan, kilic, isirma...) paketin icinde duruyor ama bir
+# tetige bagli degil -- uydurma bir kosul yazmaktansa boyle.
+BEN10_ANIM_BAGLI = [
+    # Yuzen Cene yuzerken: modun kendi yuzme animasyonu, loop.
+    ("ripjaws_yavas", "animation.ripjaws.swim_slow",
+     "variable.ben_cene_ailesi && query.is_in_water && !query.is_sprinting"),
+    ("ripjaws_hizli", "animation.ripjaws.swim_fast",
+     "variable.ben_cene_ailesi && query.is_in_water && query.is_sprinting"),
 ]
 
 
@@ -2687,6 +2755,7 @@ def ben10_geometrisi(anahtar, dosyalar):
             print("   %s: cakisan kemik yeniden adlandirildi -> %s"
                   % (anahtar, ", ".join("%s=%s" % kv for kv in cakisan.items())))
 
+        yeniden = {}          # bu dosyada yeniden adlandirilanlar
         for b in g["bones"]:
             ad = b["name"]
             if ad in BEN10_ATILAN:
@@ -2699,14 +2768,24 @@ def ben10_geometrisi(anahtar, dosyalar):
                 b.pop("parent", None)
             elif b.get("parent") in BEN10_KEMIK:
                 b["parent"] = BEN10_KEMIK[b["parent"]]
+            # ---- YINELENEN KEMIK ----
             # Ikinci dosyanin BOS kok kemikleri: birincide zaten
-            # var, tekrar yazmak Bedrock'ta "yinelenen kemik"
-            # hatasi verirdi.
+            # var, atlaniyor.
+            #
+            # AMA DOLU olan bir kemik atlanamaz. Dort Kol 10K'da
+            # tam bu oldu: fazladan kollarin zinciri taban
+            # dosyayla AYNI adlari kullaniyor (forearm2, hand2,
+            # thumb2) ve ikisi de dolu. Atlansaydi 10K bicimi
+            # IKI KOLUNU KAYBEDERDI -- ustelik sessizce.
+            # Cozum: yeniden adlandir, cocuklarini da bagla.
             if b["name"] in gorulen:
-                if b.get("cubes"):
-                    print("UYARI: %s icinde yinelenen DOLU kemik: %s"
-                          % (anahtar, b["name"]))
-                continue
+                if not b.get("cubes"):
+                    continue
+                yeni_ad = "%s_ek%d" % (b["name"], i)
+                yeniden[b["name"]] = yeni_ad
+                b["name"] = yeni_ad
+            if b.get("parent") in yeniden:
+                b["parent"] = yeniden[b["parent"]]
             gorulen.add(b["name"])
             kemikler.append(b)
 
@@ -2821,6 +2900,35 @@ def ben10_esyasi(anahtar, ad):
     }
 
 
+def omnitrix_attachable(anahtar):
+    """Saat ELDE tutulunca BILEGE ciziliyor.
+
+    Modelin kupleri zaten x[3.5, 9.8] y[13.5, 17.0] araliginda,
+    yani sol bilek konumunda. Kemik adlari cevrildigi icin
+    (armorLeftArm -> leftArm) oyuncunun kol kemigine yapisiyor
+    ve kol sallandikca saat de sallaniyor.
+
+    Boylece bir ZIRH YUVASI harcanmiyor -- Zirh Yukseltmesi ile
+    cakismiyor.                                                  """
+    return {
+        "format_version": "1.10.0",
+        "minecraft:attachable": {
+            "description": {
+                "identifier": "pa:" + anahtar,
+                "materials": {"default": "entity_alphatest",
+                              "enchanted": "armor_enchanted"},
+                "textures": {
+                    "default": "textures/entity/" + anahtar,
+                    "enchanted": "textures/misc/enchanted_actor_glint",
+                },
+                "geometry": {"default": "geometry." + anahtar},
+                # Goz ve zirh sistemimizle ayni yol.
+                "render_controllers": ["controller.render.armor"],
+            }
+        },
+    }
+
+
 def oyuncu_modeli_paketi(surum):
     """OYUNCUNUN KENDI MODELINI O SEY YAPAN paket.
 
@@ -2906,6 +3014,31 @@ def oyuncu_modeli_paketi(surum):
     #    vanilla'da olmadigi icin kendi animasyonumuz gerekiyor.
     d["animations"]["o_sey_kollar"] = "animation.o_sey.yuru"
     d["scripts"]["animate"].append({"o_sey_kollar": "variable.o_sey"})
+
+    # ---- MODUN KENDI ANIMASYONLARI (v4.93) ----
+    # Dosyalar oldugu gibi kopyalaniyor: bicimleri zaten Bedrock
+    # (format_version 1.8.0) ve hicbiri armorX kemiklerini
+    # surmuyor, yani yeniden adlandirmamizdan etkilenmiyorlar.
+    for _an in BEN10_ANIM:
+        _ak = os.path.join(BEN10_ANIM_KAYNAK, _an + ".animation.json")
+        if os.path.exists(_ak):
+            shutil.copyfile(_ak, os.path.join(
+                OMP, "animations/%s.animation.json" % _an))
+        else:
+            print("UYARI: %s animasyonu yok" % _an)
+
+    # Bicim AILELERI: "Yuzen Cene'nin herhangi bir bicimi" gibi
+    # kosullar icin. Uc bicimi tek tek yazmak yerine tek
+    # degisken -- yeni bicim eklenirse kendiliginden dogru.
+    for _kisa, _tr2, _en2, _tur2 in BEN10_TABAN:
+        _uyeler = ["variable.ben_%s%s" % (_kisa, _son)
+                   for _son, _a1, _a2 in BEN10_BICIM]
+        d["scripts"]["pre_animation"].append(
+            "variable.ben_%s_ailesi = %s;" % (_kisa, " || ".join(_uyeler)))
+
+    for _ad, _anim, _kosul in BEN10_ANIM_BAGLI:
+        d["animations"][_ad] = _anim
+        d["scripts"]["animate"].append({_ad: _kosul})
 
     yaz_json(os.path.join(OMP, "entity/player.entity.json"), v)
 
@@ -4369,6 +4502,35 @@ def main():
             liste.append("item.pa:%s.name=%s" % (_ba, ad))
             liste.append("item.pa:%s=%s" % (_ba, ad))
 
+    # ---- OMNITRIX SAATLERI (v4.93) ----
+    for _oa, _otr, _oen in OMNITRIX:
+        yaz_json(os.path.join(BP, "items/%s.json" % _oa),
+                 ben10_esyasi(_oa, _otr))
+        _og = ben10_geometrisi(_oa, [_oa])
+        yaz_json(os.path.join(RP, "models/entity/%s.geo.json" % _oa), _og)
+        yaz_json(os.path.join(RP, "attachables/%s.json" % _oa),
+                 omnitrix_attachable(_oa))
+        _ok = os.path.join(DOKU_KAYNAK, _oa + ".png")
+        if os.path.exists(_ok):
+            _oh = os.path.join(RP, "textures/entity/%s.png" % _oa)
+            os.makedirs(os.path.dirname(_oh), exist_ok=True)
+            shutil.copyfile(_ok, _oh)
+            # Ikon: dokunun kendisi, 16x16'ya kucultulmus.
+            try:
+                from PIL import Image
+                _oi = Image.open(_ok).convert("RGBA").resize((16, 16), Image.NEAREST)
+                _oiy = os.path.join(RP, "textures/item/%s.png" % _oa)
+                os.makedirs(os.path.dirname(_oiy), exist_ok=True)
+                _oi.save(_oiy)
+            except ImportError:
+                pass
+        else:
+            print("UYARI: %s dokusu yok (%s)" % (_oa, _ok))
+        dokular[_oa] = {"textures": "textures/item/" + _oa}
+        for liste, ad in ((en_us, _oen), (tr_tr, _otr)):
+            liste.append("item.pa:%s.name=%s" % (_oa, ad))
+            liste.append("item.pa:%s=%s" % (_oa, ad))
+
     _surum = json.load(open(os.path.join(BP, "manifest.json"),
                             encoding="utf-8"))["header"]["version"]
     oyuncu_modeli_paketi(_surum)
@@ -4704,6 +4866,9 @@ def main():
     # v4.92: Ben 10 ikonlari
     for _bk3, _bt3, _be3, _bd3, _btr3 in BEN10:
         beklenen.add(_bk3)
+    # v4.93: Omnitrix saatleri (hem ikon hem varlik dokusu)
+    for _ok3, _ot3, _oe3 in OMNITRIX:
+        beklenen.add(_ok3)
     # Silahlar da hicbir listede degil (v4.48). Bu satir
     # unutuldugunda temizlik adimi baltayi HER uretimde
     # siliyordu: esya yaziliyor, atlas kaydi kaliyor, dosya
