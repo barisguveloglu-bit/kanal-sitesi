@@ -24,7 +24,16 @@
         "ben_cene_10k": "textures/entity/ben_cene_10k",
         "ben_ates": "textures/entity/ben_ates",
         "ben_ates_proto": "textures/entity/ben_ates_proto",
-        "ben_ates_10k": "textures/entity/ben_ates_10k"
+        "ben_ates_10k": "textures/entity/ben_ates_10k",
+        "zirh_mod_temel": "textures/entity/zirh_mod_temel",
+        "zirh_mod_guc": "textures/entity/zirh_mod_guc",
+        "zirh_mod_hiz": "textures/entity/zirh_mod_hiz",
+        "zirh_mod_ucus": "textures/entity/zirh_mod_ucus",
+        "zirh_mod_gizlilik": "textures/entity/zirh_mod_gizlilik",
+        "zirh_mod_isi": "textures/entity/zirh_mod_isi",
+        "zirh_mod_dalis": "textures/entity/zirh_mod_dalis",
+        "zirh_mod_kesif": "textures/entity/zirh_mod_kesif",
+        "zirh_mod_titan": "textures/entity/zirh_mod_titan"
       },
       "geometry": {
         "default": "geometry.humanoid.custom",
@@ -41,7 +50,16 @@
         "ben_cene_10k": "geometry.ben_cene_10k",
         "ben_ates": "geometry.ben_ates",
         "ben_ates_proto": "geometry.ben_ates_proto",
-        "ben_ates_10k": "geometry.ben_ates_10k"
+        "ben_ates_10k": "geometry.ben_ates_10k",
+        "zirh_mod_temel": "geometry.zirh_mod_temel",
+        "zirh_mod_guc": "geometry.zirh_mod_guc",
+        "zirh_mod_hiz": "geometry.zirh_mod_hiz",
+        "zirh_mod_ucus": "geometry.zirh_mod_ucus",
+        "zirh_mod_gizlilik": "geometry.zirh_mod_gizlilik",
+        "zirh_mod_isi": "geometry.zirh_mod_isi",
+        "zirh_mod_dalis": "geometry.zirh_mod_dalis",
+        "zirh_mod_kesif": "geometry.zirh_mod_kesif",
+        "zirh_mod_titan": "geometry.zirh_mod_titan"
       },
       "scripts": {
         "scale": "0.9375",
@@ -136,7 +154,16 @@
           "variable.ben_ates = query.get_equipped_item_name('main_hand') == 'ben_ates' || query.get_equipped_item_name('off_hand') == 'ben_ates';",
           "variable.ben_ates_proto = query.get_equipped_item_name('main_hand') == 'ben_ates_proto' || query.get_equipped_item_name('off_hand') == 'ben_ates_proto';",
           "variable.ben_ates_10k = query.get_equipped_item_name('main_hand') == 'ben_ates_10k' || query.get_equipped_item_name('off_hand') == 'ben_ates_10k';",
-          "variable.donusuk = variable.o_sey || variable.ben_elmas || variable.ben_elmas_proto || variable.ben_elmas_10k || variable.ben_dortkol || variable.ben_dortkol_proto || variable.ben_dortkol_10k || variable.ben_cene || variable.ben_cene_proto || variable.ben_cene_10k || variable.ben_ates || variable.ben_ates_proto || variable.ben_ates_10k;",
+          "variable.zirh_mod_temel = query.get_equipped_item_name('main_hand') == 'zirh_mod_temel' || query.get_equipped_item_name('off_hand') == 'zirh_mod_temel';",
+          "variable.zirh_mod_guc = query.get_equipped_item_name('main_hand') == 'zirh_mod_guc' || query.get_equipped_item_name('off_hand') == 'zirh_mod_guc';",
+          "variable.zirh_mod_hiz = query.get_equipped_item_name('main_hand') == 'zirh_mod_hiz' || query.get_equipped_item_name('off_hand') == 'zirh_mod_hiz';",
+          "variable.zirh_mod_ucus = query.get_equipped_item_name('main_hand') == 'zirh_mod_ucus' || query.get_equipped_item_name('off_hand') == 'zirh_mod_ucus';",
+          "variable.zirh_mod_gizlilik = query.get_equipped_item_name('main_hand') == 'zirh_mod_gizlilik' || query.get_equipped_item_name('off_hand') == 'zirh_mod_gizlilik';",
+          "variable.zirh_mod_isi = query.get_equipped_item_name('main_hand') == 'zirh_mod_isi' || query.get_equipped_item_name('off_hand') == 'zirh_mod_isi';",
+          "variable.zirh_mod_dalis = query.get_equipped_item_name('main_hand') == 'zirh_mod_dalis' || query.get_equipped_item_name('off_hand') == 'zirh_mod_dalis';",
+          "variable.zirh_mod_kesif = query.get_equipped_item_name('main_hand') == 'zirh_mod_kesif' || query.get_equipped_item_name('off_hand') == 'zirh_mod_kesif';",
+          "variable.zirh_mod_titan = query.get_equipped_item_name('main_hand') == 'zirh_mod_titan' || query.get_equipped_item_name('off_hand') == 'zirh_mod_titan';",
+          "variable.donusuk = variable.o_sey || variable.ben_elmas || variable.ben_elmas_proto || variable.ben_elmas_10k || variable.ben_dortkol || variable.ben_dortkol_proto || variable.ben_dortkol_10k || variable.ben_cene || variable.ben_cene_proto || variable.ben_cene_10k || variable.ben_ates || variable.ben_ates_proto || variable.ben_ates_10k || variable.zirh_mod_temel || variable.zirh_mod_guc || variable.zirh_mod_hiz || variable.zirh_mod_ucus || variable.zirh_mod_gizlilik || variable.zirh_mod_isi || variable.zirh_mod_dalis || variable.zirh_mod_kesif || variable.zirh_mod_titan;",
           "variable.ben_elmas_ailesi = variable.ben_elmas || variable.ben_elmas_proto || variable.ben_elmas_10k;",
           "variable.ben_dortkol_ailesi = variable.ben_dortkol || variable.ben_dortkol_proto || variable.ben_dortkol_10k;",
           "variable.ben_cene_ailesi = variable.ben_cene || variable.ben_cene_proto || variable.ben_cene_10k;",
@@ -283,6 +310,33 @@
         },
         {
           "controller.render.ben_ates_10k": "variable.ben_ates_10k && !variable.is_first_person && !variable.map_face_icon"
+        },
+        {
+          "controller.render.zirh_mod_temel": "variable.zirh_mod_temel && !variable.is_first_person && !variable.map_face_icon"
+        },
+        {
+          "controller.render.zirh_mod_guc": "variable.zirh_mod_guc && !variable.is_first_person && !variable.map_face_icon"
+        },
+        {
+          "controller.render.zirh_mod_hiz": "variable.zirh_mod_hiz && !variable.is_first_person && !variable.map_face_icon"
+        },
+        {
+          "controller.render.zirh_mod_ucus": "variable.zirh_mod_ucus && !variable.is_first_person && !variable.map_face_icon"
+        },
+        {
+          "controller.render.zirh_mod_gizlilik": "variable.zirh_mod_gizlilik && !variable.is_first_person && !variable.map_face_icon"
+        },
+        {
+          "controller.render.zirh_mod_isi": "variable.zirh_mod_isi && !variable.is_first_person && !variable.map_face_icon"
+        },
+        {
+          "controller.render.zirh_mod_dalis": "variable.zirh_mod_dalis && !variable.is_first_person && !variable.map_face_icon"
+        },
+        {
+          "controller.render.zirh_mod_kesif": "variable.zirh_mod_kesif && !variable.is_first_person && !variable.map_face_icon"
+        },
+        {
+          "controller.render.zirh_mod_titan": "variable.zirh_mod_titan && !variable.is_first_person && !variable.map_face_icon"
         }
       ],
       "enable_attachables": true

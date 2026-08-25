@@ -5119,6 +5119,78 @@ Taşınamayanlar açıkça yazılı: `knockback_resistance +255`, `freeze_immuni
 
 ---
 
+## Aşama — Max Steel dönüşümü: modun kendi takımları (v4.94)
+
+Kullanıcı v4.91'i oynadı ve eksiği buldu:
+
+> *"Max steel modlarda ayrı bir **dönüşüm** şeyi olması lazım, onun bir
+> derinine insene. Zırhı alıyorum tamam mı, dönüşüm aynı kalıyor, zırhla
+> beraber **tamamen aynı kalıyorum**. Ama ben modun incelemesini izlediğim
+> için biliyorum."*
+
+**Haklıydı.** v4.91'de zırh puan ve güç veriyordu ama görünüş tek bir takımdı;
+referansta ise **her modun kendi takımı** var.
+
+### Zincir çözüldü
+
+```
+powers/<mod>.json               -> abilities[].render_layer
+palladium/render_layers/*.json  -> geo + doku
+```
+
+Dokuz modun dokuzunun da modeli ve dokusu çıkarıldı — tam tablo
+`kaynak_doku/NEREDEN.md`'de. Modellerin hepsi aynı altı `armorX` kemiğinden
+sarkıyor, yani **Ben 10 dönüştürücüsünün aynısı çalıştı**. Isı ve HidroIsı
+modelleri fazladan bir `group` sarmalayıcı kökten sarkıyordu; o da atılanlar
+listesine eklendi.
+
+### Zırh Yükseltmesi'ne dokunulmadı
+
+Kullanıcının sözü: *"tamamen hiçbir şeyin değiştirmeden."* Zırh parçaları,
+20 puanı, etiketleri, menüsü **aynen duruyor** — test bunu ayrıca tutuyor
+(`zirh puanı değişmedi (20)`, `mod sayısı değişmedi (9)`).
+
+Dönüşüm **ayrı bir eşya**: her mod için bir **Çekirdek**. Eline (ya da yan
+eline) al → o modun takımına dönüşürsün **ve** o modun güçleri gelir. Zırhı
+da giyersen zırh puanı üstüne biner; ikisi çakışmıyor.
+
+Çekirdek varken **tam takım şartı aranmıyor** — dönüşümün kendisi zaten
+takımı giymiş olmak demek. Ve elindeki çekirdek **menüdeki seçimi eziyor**:
+görünüşün ne ise gücün de o olmalı.
+
+### Neden "elinde"
+
+Görünüşü süren molang sorgusu (`get_equipped_item_name`) yalnız
+`main_hand`/`off_hand` okuyabiliyor, zırh yuvalarını okuyamıyor. Güç de aynı
+koşula bağlandı — yoksa *"takım gibi görünüyorum ama gücüm yok"* olurdu. Ben
+10'da verilen kararın aynısı.
+
+### Dönüşüm çakması
+
+Referansta `transform_flash` bir `palladium:lightning_sparks` katmanı: **20
+kıvılcım, kalınlık 4, çekirdek rengi `#1AE2F0`** (camgöbeği). Bedrock
+karşılığı `minecraft:electric_spark_particle` — bakır kıvılcımı, aynı
+camgöbeği aile. Ayak/gövde/kafa hizasında **üç noktada** patlıyor; tek nokta
+gövdenin içinde kaybolup görünmüyordu.
+
+### Yanlış alarm — hata testteydi
+
+Test "çekirdeği elime aldım ama görmüyor" dedi. Baktım: sahte dünyanın zırh
+iskeleti **yalnız zırh yuvalarını** taklit ediyordu, `Mainhand`/`Offhand`
+her zaman boş dönüyordu. Kod doğruydu, **harness eksikti**. El yuvaları da
+eklendi.
+
+### Test
+
+`zirh.mjs` 263 kontrole çıktı. 8. bölüm dokuz modun her biri için: kendi
+modeli ve dokusu var mı · oyuncu modeline bağlı mı · tetiği ve denetleyicisi
+var mı · altı vanilla kemik yerinde mi · `group` sarmalayıcısı atılmış mı ·
+başıboş kök kemik var mı. Ayrıca **en az yedi ayrı görünüş** olduğunu sınıyor
+— hepsi aynı dokuyu kullansaydı şikâyet sürerdi. (Titan referansta taban
+takımı yeniden kullanıyor; o bilinçli.)
+
+---
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:

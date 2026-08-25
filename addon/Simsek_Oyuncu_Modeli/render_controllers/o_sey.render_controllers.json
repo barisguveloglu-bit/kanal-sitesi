@@ -143,6 +143,105 @@
           "*": "Material.default"
         }
       ]
+    },
+    "controller.render.zirh_mod_temel": {
+      "geometry": "Geometry.zirh_mod_temel",
+      "textures": [
+        "Texture.zirh_mod_temel"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.zirh_mod_guc": {
+      "geometry": "Geometry.zirh_mod_guc",
+      "textures": [
+        "Texture.zirh_mod_guc"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.zirh_mod_hiz": {
+      "geometry": "Geometry.zirh_mod_hiz",
+      "textures": [
+        "Texture.zirh_mod_hiz"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.zirh_mod_ucus": {
+      "geometry": "Geometry.zirh_mod_ucus",
+      "textures": [
+        "Texture.zirh_mod_ucus"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.zirh_mod_gizlilik": {
+      "geometry": "Geometry.zirh_mod_gizlilik",
+      "textures": [
+        "Texture.zirh_mod_gizlilik"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.zirh_mod_isi": {
+      "geometry": "Geometry.zirh_mod_isi",
+      "textures": [
+        "Texture.zirh_mod_isi"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.zirh_mod_dalis": {
+      "geometry": "Geometry.zirh_mod_dalis",
+      "textures": [
+        "Texture.zirh_mod_dalis"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.zirh_mod_kesif": {
+      "geometry": "Geometry.zirh_mod_kesif",
+      "textures": [
+        "Texture.zirh_mod_kesif"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.zirh_mod_titan": {
+      "geometry": "Geometry.zirh_mod_titan",
+      "textures": [
+        "Texture.zirh_mod_titan"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
     }
   }
 }

@@ -240,3 +240,36 @@ sistemiyle uretiyor, hazir bir PNG yok. Uydurma bir ucuncu cizilmedi.
 `recal_omnitrix`. Dosyalar OLDUGU GIBI kopyalandi -- bicimleri zaten Bedrock
 (`format_version 1.8.0`, GeckoLib oyle kullaniyor) ve hicbiri `armorX`
 kemiklerini surmuyor, yani kemik yeniden adlandirmamizdan etkilenmiyorlar.
+
+### v4.94 — Max Steel mod donusumleri
+
+Kullanici: "zirhi aliyorum, DONUSUM ayni kaliyor, tamamen ayni kaliyorum."
+Hakliydi: referansta her modun KENDI TAKIMI var ve Palladium onu
+`render_layer` ile oyuncunun uzerine ciziyor. Zincir cozuldu:
+
+```
+powers/<mod>.json           -> abilities[].render_layer
+palladium/render_layers/*.json -> geo + doku (bazen katmanli)
+```
+
+| mod | katman | model | doku (taban + parlama) |
+|---|---|---|---|
+| temel | `base_model` | `ionstrike_rebirth2` | `ionstrike_new` + `base_glow` |
+| guc | `strength_mode` | `strength_mode` | `strength_mode` + `_glow` |
+| hiz | `speed_suit2` | `ionstrike_speed_suit2` | `speed_suit2` + `_glow` |
+| ucus | `flight_mode_2` | `flight2_mode` | `flight_suit2` + `_glow` |
+| gizlilik | `stealth_mode_model` | `ionstrike_rebirth` | `stealth_suit` + `_glow` |
+| isi | `heat_mode` | `heat` | `heat_texture` + `heat_glow` |
+| dalis | `scuba_mode_model` | `ionstrike_scuba` | `scuba_texture` + `scuba_glow` |
+| kesif | `recon_mode_model` | `ionstrike_rebirth` | `recon_suit` + `recon_glow` |
+| titan | `titan` | `ionstrike_rebirth` | `ionstrike_new` + `base_glow` |
+
+Modeller `kaynak_geo/zirh_mod_*.geo.json`, dokular `kaynak_doku/zirh_mod_*.png`.
+Modellerin hepsi ayni alti `armorX` kemiginden sarkiyor, yani Ben 10
+donusturucusunun AYNISI calisti. Isi ve HidroIsi modelleri fazladan bir
+`group` sarmalayici kokten sarkiyordu -- o da atilanlar listesine eklendi.
+
+**Donusum caktisi**: referansta `render_layers/transform_flash.json` bir
+`palladium:lightning_sparks` katmani -- 20 kivilcim, kalinlik 4, cekirdek
+rengi `#1AE2F0` (camgobegi). Bedrock karsiligi
+`minecraft:electric_spark_particle` (bakir kivilcimi, ayni camgobegi aile).

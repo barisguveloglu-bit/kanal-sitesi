@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.93";
+export const SURUM = "v4.94";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -2909,6 +2909,39 @@ export const ZIRH_MODLAR = new Map([
 ]);
 /* Ilk giyende hangi mod acik olsun. */
 export const ZIRH_VARSAYILAN_MOD = "temel";
+
+/* ---------------- MOD DONUSUMU ----------------  (v4.94)
+
+   Kullanici: "Max steel modlarda ayri bir DONUSUM seyi olmasi
+   lazim... zirhi aliyorum, donusum ayni kaliyor."
+
+   HAKLIYDI. Referansta her modun KENDI TAKIMI var ve Palladium
+   onu render_layer ile oyuncunun uzerine ciziyor:
+     powers/<mod>.json -> abilities[].render_layer
+     render_layers/<katman>.json -> geo + doku
+   Dokuz modun dokuzunun da modeli ve dokusu cikarildi
+   (kol_uret.py: ZIRH_MOD).
+
+   ---- ZIRH YUKSELTMESI'NE DOKUNULMADI ----
+   Kullanici "hicbir seyi degistirmeden" dedi. Zirh parcalari,
+   puanlari, menusu aynen duruyor. Donusum AYRI bir esya:
+   her mod icin bir CEKIRDEK. Eline al -> o modun takimina
+   donusursun ve o modun gucleri gelir. Zirhi da giyersen zirh
+   puani ustune biner.
+
+   ---- NEDEN "ELINDE" ----
+   Gorunusu suren molang sorgusu (get_equipped_item_name)
+   yalniz main_hand/off_hand okuyabiliyor; zirh yuvalarini
+   okuyamiyor. Guc de ayni kosula bagli, yoksa "takim gibi
+   gorunuyorum ama gucum yok" olurdu (Ben 10'daki karar).      */
+export const ZIRH_CEKIRDEK_ONEK = "pa:zirh_mod_";
+
+/* Donusum caktisi. Referansta `transform_flash` bir
+   palladium:lightning_sparks katmani: 20 kivilcim, kalinlik 4,
+   cekirdek rengi #1AE2F0 (camgobegi). Bedrock'ta en yakin
+   vanilla parcacik bakir kivilcimi -- ayni camgobegi aile.   */
+export const ZIRH_CAKMA = "minecraft:electric_spark_particle";
+export const ZIRH_CAKMA_ACIK = true;
 
 /* ============================================================
    BEN 10  (AlienEvo)                                 v4.92

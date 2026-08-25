@@ -34,7 +34,7 @@ import { silahKullan, silahTara, silahUnut, silahiBul } from "./yetenekler/silah
    -- kalp ve donusum defterlerindeki sebeple.                  */
 import {
   zirhTara, zirhUnutOyuncu, modAl, modYaz, modListesi, takimVarMi,
-  takimParcalari
+  takimParcalari, elindekiCekirdek
 } from "./yetenekler/zirh.js";
 
 /* Ben 10 (v4.92): elindeki esyaya gore yaratik oluyorsun.
@@ -610,17 +610,24 @@ function zirhMenusu(oyuncu) {
 
   const dugmeler = liste.map((m) => ({
     anahtar: m.anahtar,
-    ad: (m.secili ? "§a✔ " : "") + "§f" + m.ad +
-        "\n§8" + m.ozet
+    ad: (m.anahtar === cekirdek ? "§b⚡ " : (m.secili ? "§a✔ " : "")) +
+        "§f" + m.ad + "\n§8" + m.ozet +
+        "\n§8dönüşüm: §7pa:zirh_mod_" + m.anahtar
   }));
 
   /* Takim eksikse SEBEBI yazilsin. "Modu sectim ama hicbir sey
      olmuyor" bu paketteki en pahali hata sinifi (v4.83 dersi:
      calisiyor mu != ulasilabiliyor mu).                        */
-  const baslik = tam
-    ? "§b⛨ Zırh Yükseltmesi §7· mod seç"
-    : "§b⛨ Zırh Yükseltmesi §8(" + parca + "/" + ZIRH_PARCALAR.length +
-      " parça) §7· §emodlar için tam takım gerek";
+  /* v4.94: elinde bir MOD CEKIRDEGI varsa tam takim sarti yok --
+     donusumun kendisi zaten takimi giymis olmak demek.        */
+  const cekirdek = elindekiCekirdek(oyuncu);
+  const baslik = cekirdek
+    ? "§b⚡ Max Steel §7· §f" + ZIRH_MODLAR.get(cekirdek).ad +
+      " §8(çekirdek elinde)"
+    : tam
+      ? "§b⛨ Zırh Yükseltmesi §7· mod seç"
+      : "§b⛨ Zırh Yükseltmesi §8(" + parca + "/" + ZIRH_PARCALAR.length +
+        " parça) §7· §emodlar için tam takım gerek §8ya da çekirdeği eline al";
 
   const acildi = menuAc(oyuncu, baslik, dugmeler, -1,
     (i) => zirhModSec(oyuncu, dugmeler[i].anahtar), []);
@@ -839,7 +846,9 @@ function menuEkleri(oyuncu) {
        esyanin kendi bileseninden; buradaki secim MODUN
        gucleri.                                                 */
     {
-      ad: "⛨ Zırh Yükseltmesi §8(" + (ZIRH_MODLAR.get(modAl(oyuncu.id)) || {}).ad + ")",
+      ad: "⛨ Zırh Yükseltmesi §8(" +
+          (ZIRH_MODLAR.get(elindekiCekirdek(oyuncu) || modAl(oyuncu.id)) || {}).ad +
+          (elindekiCekirdek(oyuncu) ? " §b⚡" : "") + ")",
       calis() { zirhMenusu(oyuncu); }
     },
     /* v4.92: Ben 10. Menu sadece BILGI veriyor -- donusum

@@ -1,8 +1,11 @@
 import { world, system } from "@minecraft/server";
-import { hataYaz, gecerliMi, actionbarYaz } from "../yardimcilar.js";
+import {
+  hataYaz, gecerliMi, actionbarYaz, eldekiEsya, parcacikAt
+} from "../yardimcilar.js";
 import {
   ZIRH_ACIK, ZIRH_PARCALAR, ZIRH_TAM_TAKIM_SART, ZIRH_MODLAR,
-  ZIRH_VARSAYILAN_MOD, ZIRH_TARAMA, ZIRH_SURE, ZIRH_KAYIT_ANAHTAR
+  ZIRH_VARSAYILAN_MOD, ZIRH_TARAMA, ZIRH_SURE, ZIRH_KAYIT_ANAHTAR,
+  ZIRH_CEKIRDEK_ONEK, ZIRH_CAKMA, ZIRH_CAKMA_ACIK
 } from "../ayarlar.js";
 
 /* ================================================================
@@ -69,12 +72,14 @@ export function zirhUnut() {
   modlar.clear();
   sonraki.clear();
   takimliydi.clear();
+  sonCekirdek.clear();
   okundu = false;
 }
 
 export function zirhUnutOyuncu(oyuncuId) {
   sonraki.delete(oyuncuId);
   takimliydi.delete(oyuncuId);
+  sonCekirdek.delete(oyuncuId);
   /* Mod SECIMI silinmiyor: oyuncu geri gelince ayni modda
      olsun. Kalp defteriyle ayni mantik.                      */
 }
@@ -132,6 +137,61 @@ export function takimVarMi(oyuncu) {
   return ZIRH_TAM_TAKIM_SART ? n === ZIRH_PARCALAR.length : n > 0;
 }
 
+/* ---------------- MOD CEKIRDEGI ----------------  (v4.94)
+
+   Elindeki (ya da yan elindeki) cekirdek hangi mod? Cekirdek
+   bir DONUSUM anahtari: gorunusu oyuncu modeli paketi
+   degistiriyor, gucleri burasi veriyor.
+
+   Cekirdek varken TAM TAKIM SARTI ARANMIYOR: donusumun kendisi
+   zaten "takimi giymis olmak" demek. Zirh parcalarini da
+   giyersen zirh PUANI ustune biner -- ikisi cakismiyor.       */
+export function elindekiCekirdek(oyuncu) {
+  const adaylar = [];
+  try {
+    const el = eldekiEsya(oyuncu);
+    if (el) adaylar.push(el.typeId);
+  } catch (e) { /* eli bos */ }
+  try {
+    const b = oyuncu.getComponent("minecraft:equippable");
+    if (b && typeof b.getEquipment === "function") {
+      for (const yuva of ["Mainhand", "Offhand"]) {
+        try {
+          const e = b.getEquipment(yuva);
+          if (e) adaylar.push(e.typeId);
+        } catch (e) { /* yuva okunamadi */ }
+      }
+    }
+  } catch (e) { /* bilesen yok */ }
+
+  for (const kimlik of adaylar) {
+    if (typeof kimlik !== "string") continue;
+    if (!kimlik.startsWith(ZIRH_CEKIRDEK_ONEK)) continue;
+    const mod = kimlik.slice(ZIRH_CEKIRDEK_ONEK.length);
+    if (ZIRH_MODLAR.has(mod)) return mod;
+  }
+  return undefined;
+}
+
+/* Donusum caktisi: referanstaki transform_flash'in karsiligi. */
+function cakma(oyuncu) {
+  if (!ZIRH_CAKMA_ACIK) return;
+  try {
+    const k = oyuncu.location;
+    /* Uc nokta: ayak, govde, kafa -- tek nokta govdenin
+       icinde kaybolup gorunmuyordu.                          */
+    for (const y of [0.2, 1.0, 1.8]) {
+      parcacikAt(oyuncu.dimension, ZIRH_CAKMA,
+                 { x: k.x, y: k.y + y, z: k.z });
+    }
+  } catch (e) {
+    hataYaz("zirh.cakma", e);
+  }
+}
+
+/* oyuncuId -> son bilinen cekirdek (caktı icin) */
+const sonCekirdek = new Map();
+
 /* ---------------- Tarama ---------------- */
 export function zirhTara(oyuncular) {
   if (!ZIRH_ACIK) return;
@@ -139,15 +199,42 @@ export function zirhTara(oyuncular) {
   const simdi = system.currentTick;
 
   for (const oyuncu of oyuncular) {
+    let cekirdek;
+    try {
+      cekirdek = elindekiCekirdek(oyuncu);
+    } catch (e) {
+      cekirdek = undefined;
+    }
+
+    /* Cekirdek degisti -> DONUSUM. Caktı ve mesaj burada.   */
+    const oncekiC = sonCekirdek.get(oyuncu.id);
+    if (oncekiC !== cekirdek) {
+      sonCekirdek.set(oyuncu.id, cekirdek);
+      if (cekirdek) {
+        cakma(oyuncu);
+        const t = ZIRH_MODLAR.get(cekirdek);
+        try {
+          actionbarYaz(oyuncu,
+            "§b⚡ §fMax Steel §8· §f" + (t ? t.ad : cekirdek) + " modu");
+        } catch (e) { /* mesaj onemli degil */ }
+      } else if (oncekiC !== undefined) {
+        cakma(oyuncu);
+        try {
+          actionbarYaz(oyuncu, "§7⚡ Dönüşüm çözüldü");
+        } catch (e) { /* mesaj onemli degil */ }
+      }
+      sonraki.set(oyuncu.id, 0);
+    }
+
     let takimli;
     try {
       takimli = takimVarMi(oyuncu);
     } catch (e) {
-      continue;
+      takimli = false;
     }
 
     const onceki = takimliydi.get(oyuncu.id);
-    if (onceki !== takimli) {
+    if (onceki !== takimli && !cekirdek) {
       takimliydi.set(oyuncu.id, takimli);
       /* Ilk taramada (onceki undefined) mesaj YOK: dunyaya
          girer girmez ekrana yazi dusmesin.                   */
@@ -160,12 +247,16 @@ export function zirhTara(oyuncular) {
         } catch (e) { /* mesaj onemli degil */ }
       }
     }
-    if (!takimli) continue;
+    /* Cekirdek varken tam takim SART DEGIL: donusumun kendisi
+       zaten takimi giymis olmak demek.                       */
+    if (!takimli && !cekirdek) continue;
 
     if (simdi < (sonraki.get(oyuncu.id) || 0)) continue;
     sonraki.set(oyuncu.id, simdi + ZIRH_TARAMA);
 
-    const t = ZIRH_MODLAR.get(modAl(oyuncu.id));
+    /* Elindeki cekirdek menudeki secimi EZIYOR: gorunusun ne
+       ise gucun de o olmali.                                 */
+    const t = ZIRH_MODLAR.get(cekirdek || modAl(oyuncu.id));
     if (!t) continue;
     for (const [ad, , seviye] of t.efektler) {
       try {

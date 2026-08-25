@@ -2433,6 +2433,55 @@ def o_sey_kilik_varligi():
 # +15 toklugu bu yuzden MOD ETKISI olarak (Direnc) karsilaniyor
 # -- kayip degil, baska bir yoldan.
 ZIRH_DOKU = "zirh_suit"
+
+# ---- MOD DONUSUMU (v4.94) ----
+# Kullanici: "Max steel modlarda ayri bir DONUSUM seyi olmasi
+# lazim... zirhi aliyorum, donusum ayni kaliyor, tamamen ayni
+# kaliyorum. Modun incelemesini izledigim icin biliyorum."
+#
+# HAKLIYDI. Referansta her modun KENDI TAKIMI var ve Palladium
+# onu `render_layer` ile oyuncunun uzerine ciziyor. Cozuldu:
+#   powers/<mod>.json -> abilities[].render_layer
+#   render_layers/<katman>.json -> geo + doku
+#
+# Cikan eslesme (okundu, tahmin degil):
+#   temel     base_model          ionstrike_rebirth2  + ionstrike_new
+#   guc       strength_mode       strength_mode       + strength_mode
+#   hiz       speed_suit2         ionstrike_speed_suit2 + speed_suit2
+#   ucus      flight_mode_2       flight2_mode        + flight_suit2
+#   gizlilik  stealth_mode_model  ionstrike_rebirth   + stealth_suit
+#   isi       heat_mode           heat                + heat_texture
+#   dalis     scuba_mode_model    ionstrike_scuba     + scuba_texture
+#   kesif     recon_mode_model    ionstrike_rebirth   + recon_suit
+#   titan     titan               ionstrike_rebirth   + ionstrike_new
+#
+# Modellerin hepsi ayni alti armorX kemiginden sarkiyor, yani
+# Ben 10 donusturucusunun AYNISI calisiyor.
+#
+# ---- NASIL VERILIYOR ----
+# Zirh Yukseltmesi'ne DOKUNULMADI (kullanici: "hicbir seyi
+# degistirmeden"). Her mod icin ayri bir CEKIRDEK esyasi var:
+# eline al -> o modun takimina donusursun VE o modun gucleri
+# gelir. Zirhi da giyersen zirh puani ustune biner.
+#
+# Gorunus v4.90'in makinesinden (player.entity.json), yani
+# Ben 10 ile birebir ayni yol.
+ZIRH_MODLAR_LISTE = [
+    ("temel",    "Temel"),
+    ("guc",      "Güç"),
+    ("hiz",      "Hız"),
+    ("ucus",     "Uçuş"),
+    ("gizlilik", "Gizlilik"),
+    ("isi",      "Isı"),
+    ("dalis",    "Dalış"),
+    ("kesif",    "Keşif"),
+    ("titan",    "Titan"),
+]
+# (anahtar, TR ad, EN ad, geo dosyalari, tur)  -- BEN10 ile ayni
+# bicim, cunku ayni makineye giriyor.
+ZIRH_MOD = [("zirh_mod_" + _m, "Çekirdek · " + _ad,
+             "Mode Core: " + _ad, ["zirh_mod_" + _m], "Max Steel")
+            for _m, _ad in ZIRH_MODLAR_LISTE]
 ZIRH_TR_TAKIM = "Zırh Yükseltmesi"
 
 # (anahtar, yuva, koruma, TR ad, EN ad, ikon bolgesi)
@@ -2634,7 +2683,11 @@ BEN10_KEMIK = {
     "armorRightLeg": "rightLeg",
 }
 # Blockbench'in bos kok kemigi: cocugu yok, atiliyor.
-BEN10_ATILAN = {"bb_main"}
+# Atilan SARMALAYICI kemikler: kupleri yok, sadece agaci
+# sariyorlar. Cocuklari koke tasiniyor.
+#   bb_main  Blockbench'in varsayilan koku
+#   group    Ionstrike'in Isi ve HidroIsi modellerindeki sarmalayici
+BEN10_ATILAN = {"bb_main", "group"}
 
 # ---- UC BICIM (v4.93) ----
 # Kullanici: "bunlarin da bir formlari daha varmis, bir baksana
@@ -2959,9 +3012,10 @@ def oyuncu_modeli_paketi(surum):
     # 1. Ek geometri ve doku
     d.setdefault("geometry", {})["o_sey"] = "geometry.o_sey"
     d.setdefault("textures", {})["o_sey"] = "textures/entity/" + SEY_DOKU
-    # v4.92: Ben 10 yaratiklari. Ayni kalibin dort tekrari --
-    # her biri kendi geometrisi, kendi dokusu, kendi tetigi.
-    for _ba, _btr, _ben, _bdos, _btur in BEN10:
+    # v4.92: Ben 10 yaratiklari + v4.94: Max Steel mod
+    # cekirdekleri. Ayni kalibin tekrari -- her biri kendi
+    # geometrisi, kendi dokusu, kendi tetigi.
+    for _ba, _btr, _ben, _bdos, _btur in BEN10 + ZIRH_MOD:
         d["geometry"][_ba] = "geometry." + _ba
         d["textures"][_ba] = "textures/entity/" + _ba
 
@@ -2972,7 +3026,7 @@ def oyuncu_modeli_paketi(surum):
              " || query.get_equipped_item_name('off_hand') == '%s';"
              % (MASKE_ESYA, MASKE_ESYA))
     d["scripts"]["pre_animation"].append(tetik)
-    for _ba, _btr, _ben, _bdos, _btur in BEN10:
+    for _ba, _btr, _ben, _bdos, _btur in BEN10 + ZIRH_MOD:
         d["scripts"]["pre_animation"].append(
             "variable.%s = query.get_equipped_item_name('main_hand') == '%s'"
             " || query.get_equipped_item_name('off_hand') == '%s';"
@@ -2982,7 +3036,7 @@ def oyuncu_modeli_paketi(surum):
     # yaratik eklenince burasi kendiliginden dogru kaliyor.
     d["scripts"]["pre_animation"].append(
         "variable.donusuk = variable.o_sey" +
-        "".join(" || variable." + _b[0] for _b in BEN10) + ";")
+        "".join(" || variable." + _b[0] for _b in BEN10 + ZIRH_MOD) + ";")
 
     # 3. + 4. Denetleyiciler
     yeni_rc = []
@@ -2999,7 +3053,7 @@ def oyuncu_modeli_paketi(surum):
         "controller.render.o_sey":
             "variable.o_sey && !variable.is_first_person && !variable.map_face_icon"
     })
-    for _ba, _btr, _ben, _bdos, _btur in BEN10:
+    for _ba, _btr, _ben, _bdos, _btur in BEN10 + ZIRH_MOD:
         yeni_rc.append({
             "controller.render." + _ba:
                 "variable.%s && !variable.is_first_person"
@@ -3051,7 +3105,7 @@ def oyuncu_modeli_paketi(surum):
             "materials": [{"*": "Material.default"}],
         }
     }
-    for _ba, _btr, _ben, _bdos, _btur in BEN10:
+    for _ba, _btr, _ben, _bdos, _btur in BEN10 + ZIRH_MOD:
         denetleyiciler["controller.render." + _ba] = {
             "geometry": "Geometry." + _ba,
             "textures": ["Texture." + _ba],
@@ -3076,7 +3130,7 @@ def oyuncu_modeli_paketi(surum):
     # Ben 10 yaratiklari (v4.92). Paket kendi kendine yetsin:
     # geometri ve doku burada da duruyor, ikisi de URETILDIGI
     # icin ayrisamazlar.
-    for _ba, _btr, _ben, _bdos, _btur in BEN10:
+    for _ba, _btr, _ben, _bdos, _btur in BEN10 + ZIRH_MOD:
         yaz_json(os.path.join(OMP, "models/entity/%s.geo.json" % _ba),
                  ben10_geometrisi(_ba, _bdos))
         _bk = os.path.join(DOKU_KAYNAK, _ba + ".png")
@@ -4487,7 +4541,7 @@ def main():
     # ---- BEN 10 (v4.92) ----
     # Dort yaratik: esya + ikon. Modeller ve dokular oyuncu
     # modeli paketine giriyor (asagida).
-    for _ba, _btr, _ben, _bdos, _btur in BEN10:
+    for _ba, _btr, _ben, _bdos, _btur in BEN10 + ZIRH_MOD:
         yaz_json(os.path.join(BP, "items/%s.json" % _ba),
                  ben10_esyasi(_ba, _btr))
         _bi = ben10_ikonu(_ba, ben10_geometrisi(_ba, _bdos))
@@ -4864,7 +4918,7 @@ def main():
     # oyunda mor-siyah cikardi. Ayni tuzak besinci kez.
     beklenen.add(ZIRH_DOKU)
     # v4.92: Ben 10 ikonlari
-    for _bk3, _bt3, _be3, _bd3, _btr3 in BEN10:
+    for _bk3, _bt3, _be3, _bd3, _btr3 in BEN10 + ZIRH_MOD:
         beklenen.add(_bk3)
     # v4.93: Omnitrix saatleri (hem ikon hem varlik dokusu)
     for _ok3, _ot3, _oe3 in OMNITRIX:

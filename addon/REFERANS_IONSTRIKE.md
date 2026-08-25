@@ -39,6 +39,8 @@ burada sayılar doğrudan `data/ionstrike/palladium/powers/*.json` içinde yazı
 | ne | sürüm | not |
 |---|---|---|
 | **Zırh Yükseltmesi** | v4.91 | 4 giyilebilir parça + 9 mod; sayılar `powers/*.json`'dan okundu |
+| **Mod dönüşümleri** | v4.94 | 9 modun **kendi takımı** (model + doku), `render_layers/*.json` zinciri çözülerek |
+| **Dönüşüm çakması** | v4.94 | `transform_flash` = lightning_sparks `#1AE2F0` → `electric_spark_particle` |
 
 ### 🟢 Kolay — altyapımız hazır
 
@@ -57,7 +59,7 @@ burada sayılar doğrudan `data/ionstrike/palladium/powers/*.json` içinde yazı
 
 | ne | zorluk |
 |---|---|
-| **Modun görünümü değişsin** | Her mod için ayrı takım dokusu var (40 adet). Ama bir eşya = bir attachable = bir doku; moda göre doku seçmek `arrays + query` isterdi — **v4.28'de tam o denendi ve bot görünmez oldu**. Yolu: her mod için ayrı eşya seti |
+| ~~Modun görünümü değişsin~~ | ✅ **v4.94'te yapıldı** — attachable yerine oyuncu modeli paketi (v4.90 makinesi) kullanıldı, `arrays + query` yoluna hiç girilmedi |
 | **Uçuş modu** | `heroic_flight_type` Palladium'a özel. Bizde `kol_ucus` var, üstüne kurulur |
 | **Ability wheel** (güç çarkı) | Palladium'un kendi arayüzü; bizim menümüz zaten bunu yapıyor |
 

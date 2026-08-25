@@ -143,6 +143,33 @@
     "ben_ates_10k": {
       "textures": "textures/item/ben_ates_10k"
     },
+    "zirh_mod_temel": {
+      "textures": "textures/item/zirh_mod_temel"
+    },
+    "zirh_mod_guc": {
+      "textures": "textures/item/zirh_mod_guc"
+    },
+    "zirh_mod_hiz": {
+      "textures": "textures/item/zirh_mod_hiz"
+    },
+    "zirh_mod_ucus": {
+      "textures": "textures/item/zirh_mod_ucus"
+    },
+    "zirh_mod_gizlilik": {
+      "textures": "textures/item/zirh_mod_gizlilik"
+    },
+    "zirh_mod_isi": {
+      "textures": "textures/item/zirh_mod_isi"
+    },
+    "zirh_mod_dalis": {
+      "textures": "textures/item/zirh_mod_dalis"
+    },
+    "zirh_mod_kesif": {
+      "textures": "textures/item/zirh_mod_kesif"
+    },
+    "zirh_mod_titan": {
+      "textures": "textures/item/zirh_mod_titan"
+    },
     "omnitrix_proto": {
       "textures": "textures/item/omnitrix_proto"
     },
