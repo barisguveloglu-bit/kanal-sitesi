@@ -39,10 +39,40 @@ RP = "/home/user/kanal-sitesi/addon/Simsek_Kol_Kaynak"
 # yani "custom".
 SKP = "/home/user/kanal-sitesi/addon/Simsek_Skin"
 SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
-SKIN_ANAHTAR = "uzak_akraba"
-SKIN_DOSYA  = "uzak_akraba.png"
 SKIN_PAKET_AD = "Şimşek Skinleri"
-SKIN_AD     = "Uzak Akraba"
+
+# ---- IKI SKIN (v4.89) ----
+# Kullanici: "2 tane skin yapman lazim, birincisini elleme,
+# ikincisini elle yani that thing halim."
+#
+# ---- ALTI KOL BIR SKIN OLAMIYOR ----
+# Denendi ve olmuyor: Mojang skin paketlerinde OZEL GEOMETRIYI
+# KALDIRDI (kotuye kullanildigi icin). Resmi istemcide skins.json
+# yalnizca iki degeri kabul ediyor:
+#     geometry.humanoid.custom      (Steve, 4 piksel kol)
+#     geometry.humanoid.customSlim  (Alex, 3 piksel kol)
+# Dolasan "4D skin" paketleri ya Marketplace imzali ya da yamali
+# istemci (LeviLauncher + Lib4dskin) istiyor. Ozel geometriyi
+# yine de yazmak paketin TAMAMINI ice aktarilamaz hale
+# getirebilirdi -- yani BIRINCI skini de gotururdu. Yazilmadi.
+#
+# O yuzden gercek donusum SKIN degil, KILIK: pa:o_sey_kilik
+# varligi (bkz. donusum.js). Buradaki ikinci skin onun DUZ
+# karsiligi -- ayni doku, normal oyuncu govdesinde.
+#
+# Ikinci skinin dokusu varliginkiyle BIREBIR ayni dosya: donusup
+# cikinca "ayni karakter" hissi bozulmasin. Test bayt bayt
+# karsilastiriyor.
+SKIN_LISTE = [
+    # (anahtar, dosya, TR ad, EN ad, kaynak)
+    ("uzak_akraba", "uzak_akraba.png", "Uzak Akraba", "Uzak Akraba",
+     "skin"),
+    ("o_sey", "uzak_akraba_o_sey.png", "Uzak Akraba · O Şey Formu",
+     "Uzak Akraba · That Thing Form", "o_sey"),
+]
+SKIN_ANAHTAR = SKIN_LISTE[0][0]        # eski adlar (testler icin)
+SKIN_DOSYA  = SKIN_LISTE[0][1]
+SKIN_AD     = SKIN_LISTE[0][2]
 # UUID'ler SABIT: her uretimde degisirse oyun paketi YENI sanip
 # eskisini birakiyor ve giyinme odasinda iki kopya oluyor.
 SKIN_UUID_BAS = "45f22ff1-d633-49d1-b5e9-f8870fe98200"
@@ -2258,6 +2288,88 @@ def o_sey_varligi():
     return v
 
 
+# ---- KILIK: OYUNCUNUN DONUSTUGU BEDEN (v4.89) ----
+# Kullanici: "buna donusebiliyor olmam lazim... skin olmalidir."
+#
+# SKIN OLARAK YAPILAMIYOR: Mojang skin paketlerinde ozel
+# geometriyi kaldirdi (bkz. SKIN_LISTE notu). Resmi istemcide bir
+# oyuncunun modeli DEGISTIRILEMEZ -- ne paketten, ne script'ten.
+#
+# Bedrock'ta gercekten calisan tek yol "kilik" (morph):
+#   1. oyuncu gorunmez olur
+#   2. yerine bu varlik ciziliyor
+#   3. her tick oyuncunun konumuna ve donusune isinlaniyor
+# Kendi bakisin birinci sahista degismiyor; F5'e basinca ve
+# BASKA OYUNCULAR icin O Sey gorunuyorsun.
+#
+# Bu varlik pa:o_sey'den AYRI olmak zorunda: o birisi savasan,
+# canli, hedef alinabilen bir bot. Kilik ise bir GORUNTU --
+# vurulamaz, itilemez, dusmez, ses cikarmaz, kimseyi hedef almaz.
+# Ayni varligi iki ise kosmak, botun savas davranislarini oyuncunun
+# uzerine yapistirmak olurdu.
+SEY_KILIK_KIMLIK = "pa:o_sey_kilik"
+
+
+def o_sey_kilik_varligi():
+    """Sadece GORUNTU. Yapay zeka yok, can yok, carpisma yok."""
+    return {
+        "format_version": "1.16.0",
+        "minecraft:entity": {
+            "description": {
+                "identifier": SEY_KILIK_KIMLIK,
+                # Yumurtasi YOK: bu bir oyuncak degil, donusumun
+                # parcasi. Envanteri kirletmesin.
+                "is_spawnable": False,
+                "is_summonable": True,
+                "is_experimental": False,
+            },
+            "components": {
+                # pa_bot ailesinde: botlarimiz ve Ilkel Besli
+                # kendi sahibinin kiligina saldirmasin.
+                "minecraft:type_family": {"family": ["pa_bot", "pa_kilik"]},
+                # Yercekimi ve carpisma KAPALI: konumu her tick
+                # script veriyor. Acik kalsaydi oyuncuyu iteleyip
+                # ikisi birlikte titrerdi.
+                "minecraft:physics": {"has_gravity": False,
+                                      "has_collision": False},
+                "minecraft:pushable": {"is_pushable": False,
+                                       "is_pushable_by_piston": False},
+                "minecraft:knockback_resistance": {"value": 1.0},
+                "minecraft:fire_immune": True,
+                "minecraft:damage_sensor": {
+                    "triggers": [{
+                        "cause": "all",
+                        "deals_damage": False,
+                    }],
+                },
+                "minecraft:health": {"value": 1, "max": 1},
+                # Carpisma kutusu MUMKUN OLAN EN KUCUK: cizimi
+                # etkilemiyor ama nisan almayi ve tikanmayi
+                # etkiliyor.
+                "minecraft:collision_box": {"width": 0.1, "height": 0.1},
+                "minecraft:can_climb": {},
+                # Dunya yeniden yuklenince kaybolmasin; temizligi
+                # donusum.js yapiyor.
+                "minecraft:persistent": {},
+                # Adi ustunde yazmasin, isaretlenmesin.
+                "minecraft:nameable": {"allow_name_tag_renaming": False},
+            },
+        },
+    }
+
+
+def o_sey_kilik_istemci_varligi():
+    """Kilik ile O Sey AYNI geometriyi ve AYNI dokuyu kullaniyor:
+    ikisinin ayrisma ihtimali yok, cunku iki dosya degil ayni
+    iki satir.                                                   """
+    t = o_sey_istemci_varligi()
+    d = t["minecraft:client_entity"]["description"]
+    d["identifier"] = SEY_KILIK_KIMLIK
+    # Yumurtasi yok -> yumurta rengi de anlamsiz
+    d.pop("spawn_egg", None)
+    return t
+
+
 def o_sey_istemci_varligi():
     """Ozel render controller YOK -- v4.28'de bot tam o yuzden
     gorunmez olmustu. controller.render.default + tek doku.     """
@@ -3534,6 +3646,10 @@ def main():
     # ---- O Sey: 6 kol + cift beden (v4.88) ----
     yaz_json(os.path.join(BP, "entities/o_sey.json"), o_sey_varligi())
     yaz_json(os.path.join(RP, "entity/o_sey.entity.json"), o_sey_istemci_varligi())
+    # Kilik (v4.89): donusumun bedeni. Ayni geometri, ayni doku.
+    yaz_json(os.path.join(BP, "entities/o_sey_kilik.json"), o_sey_kilik_varligi())
+    yaz_json(os.path.join(RP, "entity/o_sey_kilik.entity.json"),
+             o_sey_kilik_istemci_varligi())
     yaz_json(os.path.join(RP, "models/entity/o_sey.geo.json"), o_sey_geometrisi())
     yaz_json(os.path.join(RP, "animations/o_sey.animation.json"), SEY_ANIM)
     _sey_doku = o_sey_dokusu(SEY_SKIN_KAYNAK)
@@ -3795,14 +3911,15 @@ def main():
         "serialize_name": SKIN_SERI,
         "localization_name": SKIN_SERI,
         "skins": [{
-            "localization_name": SKIN_ANAHTAR,
+            "localization_name": _anahtar,
             # Klasik (Steve) model: skinimizin kollari 4 piksel.
+            # OZEL GEOMETRI YAZILAMIYOR -- bkz. SKIN_LISTE notu.
             "geometry": "geometry.humanoid.custom",
-            "texture": SKIN_DOSYA,
+            "texture": _dosya,
             # "paid" yazilirsa skin KILITLI gorunur -- sadece
             # Marketplace ortaklari icin.
             "type": "free",
-        }],
+        } for _anahtar, _dosya, _tr, _en, _kaynak in SKIN_LISTE],
     })
     os.makedirs(os.path.join(SKP, "texts"), exist_ok=True)
     yaz_json(os.path.join(SKP, "texts/languages.json"), ["en_US", "tr_TR"])
@@ -3813,12 +3930,21 @@ def main():
             #   skin.<serialize_name>.<localization_name>
             f.write("skinpack.%s=%s\n" % (SKIN_SERI, SKIN_PAKET_AD))
             f.write("skinpack.%s.by=Simsek TNT\n" % SKIN_SERI)
-            f.write("skin.%s.%s=%s\n" % (SKIN_SERI, SKIN_ANAHTAR, SKIN_AD))
-    if os.path.exists(SEY_SKIN_KAYNAK):
-        shutil.copyfile(SEY_SKIN_KAYNAK, os.path.join(SKP, SKIN_DOSYA))
-    else:
-        print("UYARI: skin bulunamadi (%s) -- once skin_uret.py calistir"
-              % SEY_SKIN_KAYNAK)
+            for _anahtar, _dosya, _tr, _en, _kaynak in SKIN_LISTE:
+                f.write("skin.%s.%s=%s\n" % (
+                    SKIN_SERI, _anahtar, _tr if dosya == "tr_TR.lang" else _en))
+    # Iki skinin de dokusu KOPYALANIYOR, yeniden cizilmiyor:
+    #   "skin"  -> skin_uret.py'nin urettigi oyuncu skini
+    #   "o_sey" -> varligin kullandigi doku (o_sey_dokusu)
+    # Ikincisi kasten AYNI dosya: donusup cikinca ayni karakter
+    # gorunsun. Iki yerde cizilse sessizce ayrisirlardi.
+    for _anahtar, _dosya, _tr, _en, _kaynak in SKIN_LISTE:
+        kaynak_yol = (SEY_SKIN_KAYNAK if _kaynak == "skin"
+                      else os.path.join(RP, "textures/entity/%s.png" % SEY_DOKU))
+        if os.path.exists(kaynak_yol):
+            shutil.copyfile(kaynak_yol, os.path.join(SKP, _dosya))
+        else:
+            print("UYARI: skin dokusu bulunamadi (%s)" % kaynak_yol)
     png_yaz(os.path.join(SKP, "pack_icon.png"), 64, 64, paket_ikonu((32, 197, 181)))
 
     os.makedirs(os.path.join(RP, "texts"), exist_ok=True)

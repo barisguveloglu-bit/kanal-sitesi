@@ -72,7 +72,7 @@ ve *mekanik fikirler*. Her fikir Bedrock'a yeniden yazılıyor.
 | **Realm Stone**'lar (7 tane) | her biri bir varlığı çağırıyor; bot sistemi hazır |
 | **Bloody Altar** | çok bloklu yapı + ritüel; efsane yapısı kodumuz benzer |
 | **74 `.nbt` yapısı** | Bedrock `.mcstructure` istiyor, format farklı — elle yeniden çizmek gerekir |
-| **178 varlık** | teknik olarak hepsi mümkün (İlkel Beşli beşini, O Şey altıncısını yaptı) ve model artık **elle ölçülmüyor** — `trmc_coz.py` sınıfın bytecode'unu okuyup geometriyi çıkarıyor. Her biri yine: doku + varlık JSON + istemci tanımı + davranış |
+| **178 varlık** | teknik olarak hepsi mümkün (İlkel Beşli beşini, O Şey altıncısını yaptı) ve model artık **elle ölçülmüyor** — `jar_model_coz.py` sınıfın bytecode'unu okuyup geometriyi çıkarıyor. Her biri yine: doku + varlık JSON + istemci tanımı + davranış |
 
 ### 🔴 Zor ya da imkânsız
 
@@ -81,6 +81,7 @@ ve *mekanik fikirler*. Her fikir Bedrock'a yeniden yazılıyor.
 | **8 özel boyut** (Blood Sky, Paradox, Codeman's Universe…) | Bedrock'ta custom dimension **script'ten yapılamaz**. Nether/End'i yeniden temalamak dışında yolu yok |
 | **8 özel biyom** | boyutlara bağlı; ayrıca biyom eklemek deneysel ayar istiyor |
 | **`mpm url @p <skin>`** | MorePlayerModels'e bağlı, Bedrock'ta oyuncu skini script'ten değiştirilemez |
+| **Oyuncu modelini değiştirmek** (altı kollu skin vb.) | Mojang skin paketlerinde **özel geometriyi kaldırdı**; `skins.json` yalnızca `geometry.humanoid.custom` / `customSlim` kabul ediyor. Dolaşan "4D skin"ler Marketplace imzalı ya da yamalı istemci istiyor. **Çözümümüz KILIK** (v4.89): oyuncu görünmez olur, yerine varlık çizilir |
 | **`cast ebwizardry:petrify`** | Wizardry modunun büyü sistemi; taşa çevirmeyi biz kendi yolumuzla yaptık |
 | **Java `/fill`, `/setblock` zincirleri** | Bedrock'ta çalışır ama bütçesiz; biz iş kuyruğuna çeviriyoruz |
 | **Özel GUI** (`GuiReinforcedDirtArmGUI`) | Bedrock'ta form API'si var ama Java GUI'si taşınmaz; menümüz zaten var |

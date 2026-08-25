@@ -1,0 +1,28 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "pa:o_sey_kilik",
+      "materials": {
+        "default": "entity_alphatest"
+      },
+      "textures": {
+        "default": "textures/entity/o_sey"
+      },
+      "geometry": {
+        "default": "geometry.o_sey"
+      },
+      "render_controllers": [
+        "controller.render.default"
+      ],
+      "scripts": {
+        "animate": [
+          "yuru"
+        ]
+      },
+      "animations": {
+        "yuru": "animation.o_sey.yuru"
+      }
+    }
+  }
+}

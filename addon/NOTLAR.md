@@ -4675,6 +4675,98 @@ taşıması.
 
 ---
 
+## Aşama — dönüşüm: oyuncu O Şey oluyor (v4.89)
+
+Kullanıcı v4.88'i oyunda denedi, ekran görüntüsü gönderdi (**geometri doğru
+çıktı** — altı kol dışarı bakıyor, çift beden yerinde, ölçülen dönme işareti
+tuttu) ve üç şey istedi:
+
+> *"keşke bir bot yapmasaydın… buna dönüşebiliyor olmam lazım. 2 tane skin
+> yapman lazım, birincisini elleme, ikincisini elle yani that thing halim.
+> Aynı geometriyi kullan fakat skin olmalıdır. 400 kalp biraz fazla olduğu
+> için 200 kalbe düşürüyorum."*
+
+### Altı kollu bir SKİN yapılamıyor — araştırıldı, uydurulmadı
+
+**Mojang skin paketlerinde özel geometriyi kaldırdı** (kötüye kullanıldığı
+için). Resmi istemcide `skins.json` yalnızca iki değeri kabul ediyor:
+
+```
+geometry.humanoid.custom      (Steve, 4 piksel kol)
+geometry.humanoid.customSlim  (Alex,  3 piksel kol)
+```
+
+Dolaşan "4D skin" paketleri ya **Marketplace imzalı** ya da **yamalı istemci**
+(LeviLauncher + Lib4dskin) istiyor. Script'ten de oyuncu modeli
+değiştirilemiyor — öyle bir API yok.
+
+Özel geometriyi yine de yazmak **paketin tamamını** içeri aktarılamaz hale
+getirebilirdi, yani **birinci skini de** götürürdü. Kullanıcı "birincisini
+elleme" dedi; yazılmadı. Test `geometry.json`'ın **olmadığını** kilitliyor.
+
+### Bedrock'ta gerçekten çalışan yol: KILIK
+
+```
+1. oyuncu görünmez olur          (invisibility, parçacıklar kapalı)
+2. yerine pa:o_sey_kilik çizilir  (aynı geometri, aynı doku)
+3. her tick oyuncunun konumuna ve yaw'ına ışınlanır
+```
+
+Birinci şahısta kendini zaten görmüyorsun; **F5'e basınca** ve **diğer
+oyuncular için** O Şey görünüyorsun. Yürümek, zıplamak, vurmak — hepsi hâlâ
+senin bedenin; kılık sadece üstüne çiziliyor.
+
+Kılık `pa:o_sey`'den **ayrı bir varlık** olmak zorundaydı: o birisi savaşan,
+canlı, hedef alınabilen bir bot. Aynı varlığı iki işe koşmak, botun savaş
+davranışlarını oyuncunun üstüne yapıştırmak olurdu. Kılık bir görüntü:
+yerçekimi kapalı, çarpışma kapalı, itilemez, hiç hasar almaz, **hiçbir yapay
+zekâ hedefi yok**, yumurtası yok.
+
+### Üç sinsi hata, üçü de testte
+
+| hata | oyunda nasıl görünürdü |
+|---|---|
+| görünmezlik tazelenmezse | oyuncu bir anda **iki bedenli** görünür (efekt ölünce, süre dolunca ve **süt içince** siliniyor — kalp sistemindeki dersin aynısı) |
+| kılık silinmezse | ortada duran bir O Şey kalır (oyuncu çıkınca, ölünce, dünya yeniden yüklenince) |
+| kılık itilebilirse | oyuncuyla birbirlerini iteler, ikisi de titrer |
+
+Ayrıca kılık kaybolursa (chunk boşaldı, biri `/kill` attı) dönüşüm **kendini
+bitiriyor** — görünmez ve bedensiz kalmak en kötü sonuç olurdu.
+
+**Bilinen sınır:** Bedrock'ta görünmez bir oyuncunun **elindeki eşya ve zırhı**
+yine çizilir. Elin doluyken havada süzülen bir kılıç görünür. Oyunun davranışı;
+menü mesajında yazıyor.
+
+### İki skin
+
+Skin paketinde artık iki skin var. **Birincisi ellenmedi** (test bunu ayrıca
+tutuyor). İkincisi "Uzak Akraba · O Şey Formu" ve dokusu **varlığınkiyle birebir
+aynı dosya** — dönüşüp çıkınca "aynı karakter" hissi bozulmasın diye. Test iki
+dosyayı bayt bayt karşılaştırıyor.
+
+Yani: kılık altı kollu gerçek dönüşüm; ikinci skin de sunucularda / kılık
+kapalıyken aynı karakterin düz hâli.
+
+### 400 → 200 kalp
+
+Kullanıcı denedi ve indirdi. `KALP_TAVAN` ve `KALP_TOPTAN` ikisi de **200**;
+test ikisinin **aynı** kalmasını tutuyor (ayrışırlarsa düğme tavana ulaştıramaz
+ve sebebi görünmez olur). `health_boost` seviyesi 99, motor sınırının (255)
+çok altında.
+
+### Test — `donusum.mjs` (8 bölüm)
+
+Görünmezlik + kılık doğuyor mu · her tick hizalanıyor mu · yaw veriliyor ama
+pitch verilmiyor mu (verilseydi gövde öne eğilirdi) · görünmezlik tazeleniyor mu ·
+aynı satır geri döndürüyor mu · kılık ortada kalıyor mu (çıkış, silinme, yeniden
+yükleme) · kılık gerçekten zararsız mı · O Şey ile **aynı geometri ve aynı doku**
+mu · ve ulaşılabilirlik.
+
+Harness'a iki şey eklendi: sahte oyuncuya `getRotation()`/`removeEffect()`,
+sahte varlığın `teleport()`'una **rotation** kaydı.
+
+---
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:

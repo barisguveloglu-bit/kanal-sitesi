@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.88";
+export const SURUM = "v4.89";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -1466,8 +1466,10 @@ export const HAPIS_KAYIT_ANAHTAR = "simsek:kafesler";
    sonerse kalpler bir anligina kaybolur ve can bari zıplar.     */
 export const KALP_ADIM     = 10;    // her kullanimda kac kalp eklensin
 
-/* ---- TAVAN 100 -> 400  (v4.88) ----
-   Kullanici: "bu skin ekstra olarak 400 kalp eklesin".
+/* ---- TAVAN 100 -> 400 -> 200  (v4.88, v4.89) ----
+   Kullanici once "400 kalp eklesin" dedi, denedi ve
+   "400 kalp biraz fazla oldugu icin 200 kalbe dusuruyorum".
+   Sayilar kullanicinin; dengelemek icin oynanmaz.
 
    ONCE DURUSTCE: Bedrock'ta bir oyuncunun SKININI script
    OKUYAMIYOR. "Bu skini giyince 400 kalp" diye bir kancaya
@@ -1476,17 +1478,19 @@ export const KALP_ADIM     = 10;    // her kullanimda kac kalp eklensin
    DUGMEYE baglandi: menudeki "Uzak Akraba: 400 kalp".
 
    Motor sinirinin altinda: health_boost seviye tavani 255,
-   o da 2 x (255+1) = 512 kalp. 400 sigiyor (seviye 199).
+   o da 2 x (255+1) = 512 kalp. 200 sigiyor (seviye 99).
 
-   BILINEN BEDEL: can bari ekranda satir satir sariliyor ve
-   410 kalpte okunamaz hale geliyor. Bu bir hata degil, oyunun
-   can barinin siniri. Kullaniciya soylendi; istegi acikti.
+   BILINEN BEDEL: can bari ekranda satir satir sariliyor.
+   410 kalpte okunamaz hale geliyordu -- kullanici denedi ve
+   210'a indirdi. Bu bir hata degil, oyunun can barinin siniri.
    Geri donus tek dokunus: "Kalpleri sifirla".                */
-export const KALP_TAVAN    = 400;   // en fazla kac EK kalp (normal 10 haric)
+export const KALP_TAVAN    = 200;   // en fazla kac EK kalp (normal 10 haric)
 
 /* Tek dokunusta tavana ciktaran miktar. KALP_ADIM ile ayni
-   olsaydi 400 kalp icin menuye 40 kez basmak gerekirdi.      */
-export const KALP_TOPTAN   = 400;
+   olsaydi 200 kalp icin menuye 20 kez basmak gerekirdi.
+   TAVAN ile ayni tutuluyor; ayrisirlarsa dugme tavana
+   ulastiramaz ve sebebi gorunmez.                            */
+export const KALP_TOPTAN   = 200;
 export const KALP_TAZELEME = 40;    // kac tick'te bir efekt yenilensin
 export const KALP_SURE     = 200;   // efekt suresi (TAZELEME x 5)
 export const KALP_DOLDUR   = true;  // eklenince can tam dolsun mu
@@ -2748,7 +2752,42 @@ export const SEY_CAN    = 4400;   // 2200 kalp
 export const SEY_HASAR  = 60;     // 30 kalp / vurus
 export const SEY_BOY    = 2.75;   // blok -- carpisma kutusu boyu
 
-export const BOT_KIMLIKLER = new Set([BOT_KIMLIK, SEY_KIMLIK]);
+/* ---------------- DONUSUM (KILIK) ----------------  (v4.89)
+
+   Kullanici: "buna donusebiliyor olmam lazim... 2 tane skin
+   yapman lazim, ikincisi that thing halim, ayni geometriyi
+   kullan fakat SKIN olmalidir."
+
+   ---- NEDEN SKIN DEGIL ----
+   Denendi ve olmuyor: Mojang skin paketlerinde OZEL GEOMETRIYI
+   KALDIRDI. Resmi istemcide skins.json sadece iki degeri kabul
+   ediyor (geometry.humanoid.custom / customSlim), yani alti
+   kollu bir govde SKIN olarak yuklenemiyor. Dolasan "4D skin"
+   paketleri ya Marketplace imzali ya da yamali istemci istiyor.
+   Script'ten de oyuncu modeli degistirilemiyor.
+
+   ---- BEDROCK'TA GERCEKTEN CALISAN YOL: KILIK ----
+     1. oyuncu gorunmez olur
+     2. yerine pa:o_sey_kilik ciziliyor
+     3. her tick oyuncunun konumuna ve donusune isinlaniyor
+   Birinci sahista kendini zaten gormuyorsun; F5'e basinca ve
+   BASKA OYUNCULAR icin O Sey gorunuyorsun.
+
+   ---- GORUNMEZLIK NEDEN TAZELENIYOR ----
+   Kalp sisteminin aynisi: efekt olunce, sure dolunca ve SUT
+   ICINCE siliniyor. Defter kaynak, efekt onun goruntusu.
+   Tazelenmezse oyuncu bir anda iki bedenli gorunur.            */
+export const DONUSUM_ACIK      = true;
+export const SEY_KILIK_KIMLIK  = "pa:o_sey_kilik";
+export const DONUSUM_TARAMA    = 1;    // kac tick'te bir konum guncellensin
+export const DONUSUM_TAZELEME  = 40;   // gorunmezlik kac tick'te bir yenilensin
+export const DONUSUM_SURE      = 200;  // efekt suresi (TAZELEME x 5)
+export const DONUSUM_KAYIT_ANAHTAR = "simsek:kilikler";
+/* Kilik oyuncunun tam konumunda duruyor. Y kaydirmasi YOK:
+   modelin ayaklari y=0'da (bkz. o_sey_geometrisi).            */
+export const DONUSUM_Y_KAYMA   = 0;
+
+export const BOT_KIMLIKLER = new Set([BOT_KIMLIK, SEY_KIMLIK, SEY_KILIK_KIMLIK]);
 for (const t of ILKEL_BESLI.values()) {
   if (t.kimlik) BOT_KIMLIKLER.add(t.kimlik);
 }

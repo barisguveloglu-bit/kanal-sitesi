@@ -85,6 +85,7 @@ import "./yetenekler/bot_derin.js";
 import "./yetenekler/asa.js";
 import "./yetenekler/bot_ilkel.js";
 import "./yetenekler/o_sey.js";
+import "./yetenekler/donusum.js";
 import "./yetenekler/bot_guc.js";
 
 /* DIKKAT -- SIRA ONEMLI.
@@ -146,6 +147,14 @@ import {
 /* O Sey ayri bir efsane, Ilkel Besli'nin uyesi degil -- ama
    govdesi yine pa:bot govdesi (v4.88).                        */
 import { seySayisi } from "./yetenekler/o_sey.js";
+
+/* Donusum (v4.89): oyuncu O Sey'in bedenini giyiyor. Kendi
+   defteri var, is listesine girmiyor -- kalp defterindeki
+   sebeple: kalici bir durum oyuncunun iki is yuvasindan
+   birini sonsuza kadar tutamaz.                              */
+import {
+  donusumTara, donusukMu, donusukSayisi, donusumUnutOyuncu
+} from "./yetenekler/donusum.js";
 
 /* ============================================================
    MERKEZI TICK YONETICISI
@@ -233,7 +242,10 @@ system.runInterval(() => {
   const iksirVar = iksirAktifMi();
   const kalpVar = kalpliVarMi();
   const botVar = botVarMi();
-  if (iksirVar || kalpVar || botVar) {
+  /* Donusum de oyuncu listesi istiyor; getAllPlayers yine TEK
+     kez cagriliyor. Defter bosken kapiya hic girilmiyor.      */
+  const kilikVar = donusukSayisi() > 0;
+  if (iksirVar || kalpVar || botVar || kilikVar) {
     let oyuncular;
     try {
       oyuncular = world.getAllPlayers();
@@ -260,6 +272,15 @@ system.runInterval(() => {
         botTara(oyuncular);
       } catch (e) {
         hataYaz("botTara", e);
+      }
+    }
+    /* HER TICK: kilik oyuncunun konumuna oturmali. Daha seyrek
+       calissaydi beden oyuncunun arkasindan surunurdu.        */
+    if (kilikVar) {
+      try {
+        donusumTara(oyuncular);
+      } catch (e) {
+        hataYaz("donusumTara", e);
       }
     }
   }
@@ -666,6 +687,16 @@ function menuEkleri(oyuncu) {
     {
       ad: "Bot: §fO ŞEY§r §8(6 kol · " + seySayisi(oyuncu.id) + "/" + SEY_TAVAN + ")",
       calis() { seyBaslat(oyuncu); }
+    },
+    /* v4.89: "buna donusebiliyor olmam lazim". Skin olarak
+       yapilamiyor (Mojang skin paketlerinde ozel geometriyi
+       kaldirdi), o yuzden KILIK: gorunmez ol, yerine O Sey
+       cizilsin. Ayni satir geri de donduruyor.                */
+    {
+      ad: donusukMu(oyuncu.id)
+        ? "§8☗ §fİNSAN HALİNE DÖN"
+        : "§8☗ §fO ŞEY'E DÖNÜŞ §8(kendi bedenin)",
+      calis() { yetenekTetikle(oyuncu, "donusum"); }
     },
     {
       ad: "Bot: simsek yagdir",
@@ -1189,6 +1220,7 @@ olayaAbone("playerLeave", (olay) => {
   kilicUnut(olay.playerId);
   tasUnut(olay.playerId);
   silahUnut(olay.playerId);
+  donusumUnutOyuncu(olay.playerId);
 
   // Oyuncunun butun isleri durdurulmali, sadece birincisi degil
   const acikIsler = oyuncununIsleri.get(olay.playerId);
