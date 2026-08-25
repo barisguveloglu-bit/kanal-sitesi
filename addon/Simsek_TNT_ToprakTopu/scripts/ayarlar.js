@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.81";
+export const SURUM = "v4.82";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -550,6 +550,11 @@ export const IKSIR_TAZELEME = 40;   // kac tick'te bir efektler yenilensin
    sorun cikmazsa tek satirla buyutuyoruz (ve isin da onunla
    birlikte uzuyor).
 
+   ---- v4.82: 17 -> 21 ----
+   Kullanici: "artik lazerin menzilini 21 blok yapalim."
+   17 blokluk kutu (272 birim) tablette denendi, gorunurluk
+   elemesi yasanmadi. 21 blok = 336 birim.
+
    ---- v4.77: 14 -> 17 ----
    Ustteki "tablette sorun cikmazsa buyutuyoruz" sarti doldu.
    Kullanici: "lazer menzili 14 bloktu ya, onu 17 yap; bir kac
@@ -562,7 +567,9 @@ export const IKSIR_TAZELEME = 40;   // kac tick'te bir efektler yenilensin
    goz_lazer_geometrisi) onunla birlikte buyuyor.
 
    NE PAHALILASTI (bilerek kabul edildi):
-     - Hedef taramasi bir KURE: (17/14)^3 = 1,79 kat hacim.
+     - Hedef taramasi bir KURE: yaricap her buyudugunde
+       hacim KUPUYLE artiyor. 14 -> 17 -> 21 zincirinde
+       toplam (21/14)^3 = 3,4 kat.
        Yarim saniyede bir donuyor, kalabalik yerde daha cok
        varlik suzuluyor. Suzgec ucuz (nokta carpimi), asil
        maliyet getEntities cagrisinda.
@@ -570,7 +577,7 @@ export const IKSIR_TAZELEME = 40;   // kac tick'te bir efektler yenilensin
        butcesi. Vurus tickinde 56'nin 17'si yoklamaya gidiyor
        (once 14'tu). Aradaki dokuz tickte butce tam, o yuzden
        delme hizinda hissedilir fark yok.                     */
-export const LAZER_MENZIL = 17;
+export const LAZER_MENZIL = 21;
 
 /* ---------------- Lazerle duvar delme ----------------
    Referansta duvar kirma YOK. Aranan tek "wall" gecen yer

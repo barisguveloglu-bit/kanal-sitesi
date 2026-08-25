@@ -4151,6 +4151,20 @@ ulaşır). Yukarıdaki 16,8 zaten o tavana göre hesaplandı — daha kötüsü 
 
 ---
 
+## v4.82 — Menzil 21 blok
+
+`LAZER_MENZIL` ve `kol_uret.py:LAZER_ISIN_MENZIL` 17 → 21. Işın kutusu 336
+birim, görünürlük kutusu 46 × 25 blok (ikisi de sayıdan türüyor).
+
+Ölçülen sonuçlar: hedef taraması tam 21 blokta hâlâ vuruyor, 23'te vurmuyor;
+delme tüneli `9 × 23 = 207` bloğa çıktı ve ışının sonuna kadar ulaşıyor.
+
+Maliyet: hedef taraması bir küre, yarıçap büyüdükçe hacim **küpüyle** artıyor.
+14 → 17 → 21 zincirinde toplam `(21/14)³ = 3,4 kat`. Yarım saniyede bir
+dönüyor; kalabalık bir yerde takılma olursa ilk bakılacak yer burası.
+
+---
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:
