@@ -18,6 +18,35 @@ import json, os, struct, zlib
 
 BP = "/home/user/kanal-sitesi/addon/Simsek_TNT_ToprakTopu"
 RP = "/home/user/kanal-sitesi/addon/Simsek_Kol_Kaynak"
+# ---- SKIN PAKETI (v4.88) ----
+# Kullanici: "bu yeni surume actigim zaman skin otomatik olarak
+# bana geliyor mu".
+#
+# CEVAP: davranis/kaynak paketi oyuncu skinini DEGISTIREMEZ --
+# Bedrock'ta script'ten skin atamanin yolu yok (referans mod bunu
+# Java'da `mpm url @p <skin>` ile yapiyordu, o komut MorePlayer-
+# Models'e bagli ve Bedrock'ta karsiligi yok).
+#
+# AMA Bedrock'un kendi SKIN PAKETI turu var: iceri aktarilinca
+# skin dogrudan Giyinme Odasi'na dusuyor, oradan tek dokunusla
+# secilebiliyor. Otomatik degil ama tek dokunus.
+#
+# Bicim tahmin degil: Microsoft'un "Skin Pack JSON Formatting and
+# Localization Reference" belgesinden alindi.
+#   geometry.humanoid.custom      Steve modeli (4 piksel kol)
+#   geometry.humanoid.customSlim  Alex modeli (3 piksel kol)
+# Bizim skinimiz klasik 64x64 duzeninde ve kollari 4 piksel,
+# yani "custom".
+SKP = "/home/user/kanal-sitesi/addon/Simsek_Skin"
+SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
+SKIN_ANAHTAR = "uzak_akraba"
+SKIN_DOSYA  = "uzak_akraba.png"
+SKIN_PAKET_AD = "Şimşek Skinleri"
+SKIN_AD     = "Uzak Akraba"
+# UUID'ler SABIT: her uretimde degisirse oyun paketi YENI sanip
+# eskisini birakiyor ve giyinme odasinda iki kopya oluyor.
+SKIN_UUID_BAS = "45f22ff1-d633-49d1-b5e9-f8870fe98200"
+SKIN_UUID_MOD = "8333e7a8-7e19-4736-b1f5-e5558a586b52"
 
 # kimlik, yetenek, gorunen ad, ana renk (r,g,b), vurgu rengi
 # NOT: "yetenek" sutunu sadece belge amacli; gercek eslesme
@@ -3742,6 +3771,55 @@ def main():
     # gri kare cikiyor ve hangi paket oldugunu ayirt etmek zor.
     for kok, renk in ((BP, (198, 62, 54)), (RP, (134, 96, 62))):
         png_yaz(os.path.join(kok, "pack_icon.png"), 64, 64, paket_ikonu(renk))
+
+    # ---- SKIN PAKETI (v4.88) ----
+    # Skin dosyasi skin_uret.py'nin urettigi UzakAkraba_skin.png.
+    # Burada kopyalaniyor, yeniden cizilmiyor: tek kaynak orasi.
+    surum = json.load(open(os.path.join(BP, "manifest.json"),
+                           encoding="utf-8"))["header"]["version"]
+    yaz_json(os.path.join(SKP, "manifest.json"), {
+        "format_version": 2,
+        "header": {
+            "name": SKIN_PAKET_AD,
+            "description": "Uzak Akraba -- Simsek TNT modunun oyuncu skini",
+            "uuid": SKIN_UUID_BAS,
+            "version": surum,
+        },
+        "modules": [{
+            "type": "skin_pack",
+            "uuid": SKIN_UUID_MOD,
+            "version": surum,
+        }],
+    })
+    yaz_json(os.path.join(SKP, "skins.json"), {
+        "serialize_name": SKIN_SERI,
+        "localization_name": SKIN_SERI,
+        "skins": [{
+            "localization_name": SKIN_ANAHTAR,
+            # Klasik (Steve) model: skinimizin kollari 4 piksel.
+            "geometry": "geometry.humanoid.custom",
+            "texture": SKIN_DOSYA,
+            # "paid" yazilirsa skin KILITLI gorunur -- sadece
+            # Marketplace ortaklari icin.
+            "type": "free",
+        }],
+    })
+    os.makedirs(os.path.join(SKP, "texts"), exist_ok=True)
+    yaz_json(os.path.join(SKP, "texts/languages.json"), ["en_US", "tr_TR"])
+    for dosya in ("en_US.lang", "tr_TR.lang"):
+        with open(os.path.join(SKP, "texts", dosya), "w", encoding="utf-8") as f:
+            # Anahtar bicimi belgeden:
+            #   skinpack.<serialize_name>
+            #   skin.<serialize_name>.<localization_name>
+            f.write("skinpack.%s=%s\n" % (SKIN_SERI, SKIN_PAKET_AD))
+            f.write("skinpack.%s.by=Simsek TNT\n" % SKIN_SERI)
+            f.write("skin.%s.%s=%s\n" % (SKIN_SERI, SKIN_ANAHTAR, SKIN_AD))
+    if os.path.exists(SEY_SKIN_KAYNAK):
+        shutil.copyfile(SEY_SKIN_KAYNAK, os.path.join(SKP, SKIN_DOSYA))
+    else:
+        print("UYARI: skin bulunamadi (%s) -- once skin_uret.py calistir"
+              % SEY_SKIN_KAYNAK)
+    png_yaz(os.path.join(SKP, "pack_icon.png"), 64, 64, paket_ikonu((32, 197, 181)))
 
     os.makedirs(os.path.join(RP, "texts"), exist_ok=True)
     yaz_json(os.path.join(RP, "texts/languages.json"), ["en_US", "tr_TR"])

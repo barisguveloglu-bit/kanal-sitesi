@@ -4604,6 +4604,77 @@ destekliyor ama bu bir olasılık, kanıt değil.
 
 ---
 
+## Aşama — skin paketi ve 400 kalp (v4.88)
+
+Kullanıcının iki sorusu ve bir isteği.
+
+### "Bu yeni sürümü açtığım zaman skin otomatik olarak bana geliyor mu?"
+
+**Hayır — ve gelemez.** Bedrock'ta davranış/kaynak paketi oyuncunun skinini
+değiştiremez; script'ten skin okumanın da atamanın da yolu yok. Referans mod
+bunu Java'da MorePlayerModels'in `mpm url @p <skin>` komutuyla yapıyordu;
+Bedrock'ta karşılığı yok (`REFERANS_BORALO.md`, "zor ya da imkânsız" kovası).
+
+O Şey'in skini pakette çünkü o bir **varlık dokusu** — varlık dokusu paketten
+gelir. Oyuncu skini gelmez; o oyuncunun profiline ait.
+
+Elde olan en yakın şey Bedrock'un kendi **skin paketi** türü: içeri aktarılınca
+skin Giyinme Odası'na düşer, oradan tek dokunuşla seçilir. Otomatik değil ama
+tek dokunuş.
+
+`Simsek_Skin/` açıldı, `kol_uret.py` üretiyor. Biçim tahmin edilmedi,
+Microsoft'un *"Skin Pack JSON Formatting and Localization Reference"*
+belgesinden alındı:
+
+```
+manifest.json  modules[0].type = "skin_pack"      (ayrı UUID)
+skins.json     geometry = "geometry.humanoid.custom"   (Steve, 4px kol)
+               type     = "free"     ("paid" yazılırsa skin KİLİTLİ görünür)
+texts/*.lang   skinpack.<serialize_name>=...
+               skin.<serialize_name>.<localization_name>=...
+```
+
+Anahtar biçimi kayarsa oyunda skinin **adı yerine anahtarı** görünür —
+tabletten sebebi anlaşılmayan bir hata. Test biçimin tamamını kilitliyor.
+
+Skin **kopyalanıyor, yeniden çizilmiyor**: tek kaynak `skin_uret.py`'nin
+ürettiği `UzakAkraba_skin.png`. Test iki dosyanın bayt bayt aynı olduğunu
+sınıyor — iki yerde çizilse sessizce ayrışırlardı.
+
+### "Yüklenebilir şekilde olsun, kolayca yükleyeyim"
+
+`.mcaddon` artık **üç paketi birden** taşıyor (`$BP $RP $SK`). Tek dosyaya
+dokun → mod + görünümler + skin, hepsi kurulur. Skin ayrıca tek başına da
+üretiliyor (`UzakAkraba_v488.mcpack`) — sadece skini isteyen onu kurar.
+
+### "Bu skin ekstra olarak 400 kalp eklesin"
+
+Skin okunamadığı için **"bu skini giyince" kancası kurulamıyor**. 400 kalp bir
+**düğmeye** bağlandı: menüde "Uzak Akraba: 400 kalp".
+
+`KALP_TAVAN` 100 → **400**, ve `KALP_TOPTAN = 400` eklendi — `KALP_ADIM` (10)
+ile aynı bırakılsaydı 400 kalp için menüye **40 kez** basmak gerekirdi.
+
+Yeni bir can mekaniği yazılmadı: `kalp_ekle` ile **aynı deftere** yazıyor, yani
+kalpler kalıcı (ölsen de, çıkıp girsen de, süt içsen de) ve "Kalpleri sıfırla"
+ikisini birden geri alıyor. Referans modların hatası tam buradaydı:
+`effect @s health_boost 100000 255` — çıkışı yoktu.
+
+Motor sınırı: `health_boost` seviye tavanı 255 → 2 × 256 = **512 kalp**. 400
+sığıyor (seviye 199). Test bunu ve "kalp sayısı çift olmalı" kuralını tutuyor.
+
+**Bilinen bedel:** can barı ekranda satır satır sarılıyor; 410 kalpte okunamaz
+hale geliyor. Bu bir hata değil, oyunun can barının sınırı — kullanıcıya
+söylendi, isteği açıktı, geri dönüş tek dokunuş.
+
+### Test — `skin_paketi.mjs` (6 bölüm)
+
+Skin paketi biçimi · dil anahtarları · skinin kaynakla birebir aynı olması ·
+400 kalbin motor sınırına uyması · ulaşılabilirlik · `.mcaddon`'ın üç paketi de
+taşıması.
+
+---
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:

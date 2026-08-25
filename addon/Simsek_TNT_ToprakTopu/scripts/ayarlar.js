@@ -1465,7 +1465,28 @@ export const HAPIS_KAYIT_ANAHTAR = "simsek:kafesler";
    KALP_SURE neden TAZELEME'nin katı: iki tazeleme arasinda efekt
    sonerse kalpler bir anligina kaybolur ve can bari zıplar.     */
 export const KALP_ADIM     = 10;    // her kullanimda kac kalp eklensin
-export const KALP_TAVAN    = 100;   // en fazla kac EK kalp (normal 10 haric)
+
+/* ---- TAVAN 100 -> 400  (v4.88) ----
+   Kullanici: "bu skin ekstra olarak 400 kalp eklesin".
+
+   ONCE DURUSTCE: Bedrock'ta bir oyuncunun SKININI script
+   OKUYAMIYOR. "Bu skini giyince 400 kalp" diye bir kancaya
+   baglanamiyor -- oyle bir API yok (referans mod bunu Java'da
+   MorePlayerModels ile yapiyordu). O yuzden 400 kalp bir
+   DUGMEYE baglandi: menudeki "Uzak Akraba: 400 kalp".
+
+   Motor sinirinin altinda: health_boost seviye tavani 255,
+   o da 2 x (255+1) = 512 kalp. 400 sigiyor (seviye 199).
+
+   BILINEN BEDEL: can bari ekranda satir satir sariliyor ve
+   410 kalpte okunamaz hale geliyor. Bu bir hata degil, oyunun
+   can barinin siniri. Kullaniciya soylendi; istegi acikti.
+   Geri donus tek dokunus: "Kalpleri sifirla".                */
+export const KALP_TAVAN    = 400;   // en fazla kac EK kalp (normal 10 haric)
+
+/* Tek dokunusta tavana ciktaran miktar. KALP_ADIM ile ayni
+   olsaydi 400 kalp icin menuye 40 kez basmak gerekirdi.      */
+export const KALP_TOPTAN   = 400;
 export const KALP_TAZELEME = 40;    // kac tick'te bir efekt yenilensin
 export const KALP_SURE     = 200;   // efekt suresi (TAZELEME x 5)
 export const KALP_DOLDUR   = true;  // eklenince can tam dolsun mu

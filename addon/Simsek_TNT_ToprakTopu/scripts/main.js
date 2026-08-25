@@ -75,6 +75,7 @@ import "./yetenekler/coklu_simsek.js";
 import "./yetenekler/ok_yagmuru.js";
 import "./yetenekler/sarsinti.js";
 import "./yetenekler/kalp_ekle.js";
+import "./yetenekler/kalp_toptan.js";
 import "./yetenekler/kalp_sifirla.js";
 import "./yetenekler/bot_cagir.js";
 import "./yetenekler/bot_geri.js";
@@ -612,6 +613,14 @@ function menuEkleri(oyuncu) {
     {
       ad: "Gucu kapat",
       calis() { yetenekTetikle(oyuncu, "guc_kapat"); }
+    },
+    /* v4.88: "bu skin ekstra olarak 400 kalp eklesin". Skin
+       okunamadigi icin (Bedrock'ta oyle bir API yok) 400 kalp
+       bir DUGME. Hemen ustunde duruyor ki 40 kez basmak
+       gerekmesin.                                                */
+    {
+      ad: "Uzak Akraba: §c400 kalp",
+      calis() { yetenekTetikle(oyuncu, "kalp_toptan"); }
     },
     /* Kalpler KALICI. Geri alinamayan kalici bir guc oyunu bozar
        (referans modlarin hatasi tam buydu), o yuzden iptali her

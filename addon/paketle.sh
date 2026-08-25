@@ -2,7 +2,8 @@
 # Paketleri uretir.
 #   SimsekTNT_v34.mcpack   -> behavior pack (TEK BASINA CALISIR)
 #   SimsekKol_v34.mcpack   -> resource pack (kol gorunumu + ikonlar)
-#   SimsekTNT_v34.mcaddon  -> ikisi birden, tek dosyada
+#   UzakAkraba_v34.mcpack  -> SKIN paketi (giyinme odasina duser)
+#   SimsekTNT_v34.mcaddon  -> UCU BIRDEN, tek dosyada
 # Kullanim: sh addon/paketle.sh
 #
 # v4.75'ten beri klasor listesi TUTULMUYOR: zip her iki paketin
@@ -16,6 +17,11 @@ set -e
 K="$(cd "$(dirname "$0")" && pwd)"
 BP="Simsek_TNT_ToprakTopu"
 RP="Simsek_Kol_Kaynak"
+# v4.88: skin paketi. Bedrock skin paketleri .mcaddon icinde de
+# ice aktariliyor, yani kullanici TEK dosyaya dokunuyor ve hem
+# mod hem skin kuruluyor. Ayrica tek basina da uretiliyor:
+# sadece skini isteyen biri onu kurar.
+SK="Simsek_Skin"
 # Dosya adindaki surum de manifest'ten TURETILIYOR (v4.41).
 # Elle yaziliyordu ve bir kez ayristi: paketin ici v4.41'di ama
 # dosya adi SimsekTNT_v440.mcaddon diyordu. Hangi dosyanin yeni
@@ -52,6 +58,7 @@ for yol, taban in (("Simsek_TNT_ToprakTopu", "Simsek TNT ve Toprak Topu"),
 PYEOF
 
 rm -f "$K"/SimsekTNT_*.mcpack "$K"/SimsekKol_*.mcpack "$K"/SimsekTNT_*.mcaddon
+rm -f "$K"/UzakAkraba_*.mcpack
 rm -f "$K"/*_v3.mcpack "$K"/Simsek_TNT_v3.mcaddon
 
 # ---- ICERIK ARTIK ELLE YAZILMIYOR (v4.75) ----
@@ -69,9 +76,12 @@ rm -f "$K"/*_v3.mcpack "$K"/Simsek_TNT_v3.mcaddon
     -x '__pycache__/*' '*/__pycache__/*' '.*' '*/.*' >/dev/null)
 (cd "$K/$RP" && zip -r -X "$K/SimsekKol_$S.mcpack" . \
     -x '__pycache__/*' '*/__pycache__/*' '.*' '*/.*' >/dev/null)
-(cd "$K" && zip -r -X "$K/SimsekTNT_$S.mcaddon" "$BP" "$RP" >/dev/null)
+(cd "$K/$SK" && zip -r -X "$K/UzakAkraba_$S.mcpack" . \
+    -x '__pycache__/*' '*/__pycache__/*' '.*' '*/.*' >/dev/null)
+(cd "$K" && zip -r -X "$K/SimsekTNT_$S.mcaddon" "$BP" "$RP" "$SK" >/dev/null)
 
 echo "Olusturuldu:"
-for f in "SimsekTNT_$S.mcpack" "SimsekKol_$S.mcpack" "SimsekTNT_$S.mcaddon"; do
+for f in "SimsekTNT_$S.mcpack" "SimsekKol_$S.mcpack" "UzakAkraba_$S.mcpack" \
+         "SimsekTNT_$S.mcaddon"; do
   echo "  $f  ($(du -h "$K/$f" | cut -f1))"
 done
