@@ -591,6 +591,13 @@ export function botCagir(oyuncu, kimlik = BOT_KIMLIK) {
      istek; o anda calisan bir is yoksa butce 0'da kaliyor ve
      spawn sonsuza kadar reddediliyordu.
 
+     v4.85 NOTU: o sira hatasi ARTIK DUZELDI -- butceSifirla()
+     tick'in basina alindi (Okazor'un disleri ayni duvara
+     carpinca kok duzeltildi). Yani buraya varlikIste()
+     eklemek artik teknik olarak mumkun. Yine de EKLENMEDI:
+     asagidaki sebep hala gecerli, bot bir kez doguyor ve
+     zaten iki kapiya takili.
+
      Butce tick basina ONLARCA sey doguran yetenekler icin var
      (ok yagmuru, TNT yagmuru). Bot bir kez doguyor ve zaten iki
      kapiya takili: BEKLEME (3 sn) ve BOT_TAVAN.               */

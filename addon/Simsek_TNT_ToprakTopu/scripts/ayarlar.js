@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.84";
+export const SURUM = "v4.85";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -2062,7 +2062,13 @@ export const ILKEL_BESLI = new Map([
     pasif: [["strength", 0, 0], ["resistance", 0, 0]],
     /* "4 saniyelik araliklarla ust uste 3 kez vurmayi
        basarirsa cani tamamen yenilenir."                     */
-    seri: { adet: 3, pencere: 80 }
+    seri: { adet: 3, pencere: 80 },
+    /* Evoker disleri (v4.85). Kullanici: "evoker Minecraft'ta
+       yerden tuzak cikartiyor ve ona denk gelirsen hasar
+       veriyor ya, iste o yetenegi Okazor'a verelim."
+       Sayilar DIS_* ayarlarindan geliyor; burada sadece
+       "bu uyede var" yaziyor -- asa ile birebir ayni kalip. */
+    disler: true
   }]
 ]);
 
@@ -2305,6 +2311,54 @@ export function silahHasari(esyaKimligi) {
    kendine geri geliyor. Kapatirsan silah sadece cagirma aninda
    veriliyor.                                                  */
 export const ILKEL_SILAH_TAZELE = true;
+
+/* ============================================================
+   OKAZOR'UN DISLERI  (v4.85)
+
+   Kullanici: "evoker Minecraft'ta yerden tuzak cikartiyor ve
+   ona denk gelirsen hasar veriyor ya, iste o yetenegi Okazor'a
+   verelim."
+
+   ---- VANILLA DAVRANISI (olculdu, tahmin degil) ----
+   Varlik kimligi Bedrock'ta minecraft:evocation_fang (Java'daki
+   evoker_fangs DEGIL). Hasari 6 ve ZIRHTAN ETKILENMIYOR --
+   sadece Koruma buyusu dusuruyor. Evoker'in kendi dizilimi de
+   iki turlu: hedef YAKINSA halka, uzaksa duz cizgi. Ikisi de
+   burada var.
+
+   ---- DOST ATESI GERCEK BIR RISK ----
+   Dogal olarak cikan disler illager'lara zarar vermiyor ama
+   OYUNCUNUN/SCRIPT'IN cikardigi disler HERKESI vuruyor --
+   seni de, botlarini da. Okazor senin tarafinda savastigi
+   icin bu kabul edilemezdi.
+
+   Cozum: dis konulmadan once o noktanin DIS_DOST_UZAK
+   yaricapinda bir dost (sen ya da herhangi bir bot) var mi
+   diye bakiliyor; varsa o dis hic cikmiyor. Kusursuz degil
+   (dis ciktiktan sonra icine yurüyebilirsin) ama disler bir
+   saniyeden kisa yasiyor.
+
+   ---- HER VURUSTA DEGIL ----
+   botVurdu her yakin dovus vurusunda calisiyor. Bekleme
+   olmasaydi Okazor saniyede iki kez sekiz dis cikarirdi;
+   hem gorsel kirlilik hem varlik butcesi felaketi.          */
+export const OKAZOR_DIS_ACIK = true;
+export const DIS_VARLIK   = "minecraft:evocation_fang";
+export const DIS_BEKLEME  = 100;   // 5 saniye (vurus basina degil)
+export const DIS_MENZIL   = 12;    // hedef bundan uzaksa hic cikmaz
+export const DIS_YAKIN    = 4;     // bu kadar yakinsa HALKA, uzaksa CIZGI
+export const DIS_CIZGI_ADET   = 8;
+export const DIS_CIZGI_ARALIK = 1.0;   // blok
+export const DIS_HALKA_ADET   = 8;
+export const DIS_HALKA_YARICAP = 2.5;
+/* Bir dostun bu kadar yakinindaki nokta ATLANIR. */
+export const DIS_DOST_UZAK = 2.5;
+/* Zemin ararken kac blok asagi bakilir. Disler havada
+   duramaz; saglam bir blogun ustune konuyor.               */
+export const DIS_ZEMIN_TARAMA = 4;
+/* Tek seferde en fazla kac dis (varlik butcesi de ayrica
+   sinirliyor).                                             */
+export const DIS_TAVAN = 10;
 
 /* ============================================================
    MISKEL'IN SAVAS MODU  (v4.47)

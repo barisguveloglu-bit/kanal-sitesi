@@ -21,6 +21,7 @@ import {
 
 import { menuAc, menuKullanilabilir } from "./menu.js";
 import { asaTara } from "./yetenekler/asa.js";
+import { disTara } from "./yetenekler/disler.js";
 
 /* Sohbet komutlari ("can 10", "lazer"...). Bu dosya main.js'i
    import etmiyor; komutlarin calistiracagi fonksiyonlar kanca
@@ -185,6 +186,25 @@ function isSil(indeks) {
 }
 
 system.runInterval(() => {
+  /* ---- BUTCE TICK'IN BASINDA SIFIRLANIYOR (v4.85) ----
+     v4.22'den beri butceSifirla() asagidaydi, "if
+     (isler.length === 0) return;" satirinin ALTINDA. Yani
+     butce yalnizca AKTIF IS varken doluyordu ve tick basindaki
+     TARAMALAR (bot isleri, disler) bos butceyle calisiyordu.
+
+     O gun bunun etrafindan dolanilmisti: _bot_defteri.js'te
+     "burada varlikIste() YOK, bilerek" notu tam bu yuzden
+     yazildi -- bot hic dogmuyordu.
+
+     Okazor'un disleri ayni duvara carpti: sekiz dis kuyruga
+     giriyor, hicbiri cikmiyordu. Etrafindan bir kez daha
+     dolanmak yerine kok duzeltildi.
+
+     Butce TICK BASINA bir kotadir; dogru yeri tick'in basi.
+     Simdi taramalar da isler de ayni havuzdan yiyor -- zaten
+     amaci buydu.                                             */
+  butceSifirla();
+
   // Esyasiz jest taramasi: aktif is olmasa da calismali
   if (ESYASIZ_ACIK) {
     try {
@@ -237,6 +257,10 @@ system.runInterval(() => {
        Defteri bosken hicbir sey yapmiyor.                     */
     try {
       asaTara();
+      /* Okazor'un disleri kuyrukta bekliyor: butcenin izin
+         verdigi kadari her tick cikiyor. Kuyruk bosken
+         disTara hic donmuyor.                              */
+      disTara();
     } catch (e) {
       hataYaz("asaTara", e);
     }
@@ -244,7 +268,9 @@ system.runInterval(() => {
 
   if (isler.length === 0) return;
 
-  butceSifirla();
+  /* butceSifirla() ARTIK BURADA DEGIL, tick'in basinda
+     (bkz. yukaridaki not). Buraya geri konursa taramalar
+     yine bos butceyle calisir.                            */
   olcumTickBasla();
 
   for (let i = isler.length - 1; i >= 0; i--) {

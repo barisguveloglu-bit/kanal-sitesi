@@ -4274,6 +4274,67 @@ yazılmayan bir silaha hasar verilirse üyenin vuruşu sessizce şişer; korunan
 
 ---
 
+## v4.85 — Okazor'un dişleri, ve tick bütçesinin yeri
+
+Kullanıcı: *"evoker Minecraft'ta yerden tuzak çıkartıyor ve ona denk gelirsen
+hasar veriyor ya, işte o yeteneği Okazor'a verelim."*
+
+### Vanilla dizilim, vanilla varlık
+
+Varlık kimliği Bedrock'ta `minecraft:evocation_fang` (Java'daki `evoker_fangs`
+**değil**). Hasarı 6 ve **zırhtan etkilenmiyor** — sadece Koruma büyüsü
+düşürüyor. Evoker'in kendi dizilimi de iki türlü ve ikisi de burada:
+
+* hedef **yakınsa** → etrafında **halka**
+* uzaksa → Okazor'dan hedefe **düz çizgi**
+
+Kendi diş varlığımızı yazmak yerine vanilla varlığı kullanıldı: yerden çıkma
+animasyonunu, sesini ve hasarını zaten taşıyor. Kendi çizim yolumuzu yazmanın
+bedeli v4.28'de görülmüştü (bot üç sürüm görünmez kaldı).
+
+### Dost ateşi gerçek bir riskti
+
+Doğal olarak çıkan dişler illager'lara zarar vermiyor ama **script'in
+çıkardığı dişler herkesi vuruyor** — seni de, botlarını da. Okazor senin
+tarafında savaştığı için bu kabul edilemezdi.
+
+Diş konulmadan önce o noktanın yakınında bir dost (sen ya da başka bir bot)
+var mı diye bakılıyor; varsa o diş hiç çıkmıyor. **Okazor'un kendisi listede
+değil** — ilk yazımda vardı ve halka dizilimini tamamen öldürüyordu: hedef
+yakınken halka Okazor'un da çemberine giriyor, bütün noktalar eleniyordu.
+Vanilla evoker de kendi halkasının içinde duruyor, dişin 6 hasarı onun 2400
+canında fark etmiyor.
+
+### Test bir mimari hata buldu: bütçe yanlış yerde sıfırlanıyormuş
+
+Sekiz diş tek tick'te doğuruluyordu ve hiçbiri çıkmıyordu. Sebep
+`main.js`'teki sıraydı:
+
+```
+if (isler.length === 0) return;
+butceSifirla();          ← taramaların ALTINDA
+```
+
+Bütçe yalnızca **aktif iş varken** doluyordu; tick başındaki taramalar
+(bot işleri, dişler) boş bütçeyle çalışıyordu.
+
+Bu tuzak zaten bir kez yaşanmıştı: `_bot_defteri.js`'teki *"burada
+`varlikIste()` YOK, bilerek"* notu v4.22'de tam bu yüzden yazıldı — bot hiç
+doğmuyordu. O gün etrafından dolanılmıştı.
+
+Bu sefer kök düzeltildi: **`butceSifirla()` tick'in başına alındı.** Bütçe
+tick başına bir kotadır; doğru yeri tick'in başı. Artık taramalar da işler de
+aynı havuzdan yiyor — zaten amacı buydu.
+
+### Yan fayda: dişler dalga halinde çıkıyor
+
+`TICK_VARLIK_BUTCESI = 4`, yani sekiz diş iki tick sürüyor. Sayıyı kısmak
+yerine kuyruğa alındı — ve bu **vanilla'ya daha yakın**: evoker'in dişleri de
+birbiri ardına, dalga halinde çıkıyor. Bütçe kısıtı burada görseli
+iyileştirdi.
+
+---
+
 ## Bekleyen işler
 
 Sıradaki aşamalarda yapılacaklar, henüz **yapılmadı**:

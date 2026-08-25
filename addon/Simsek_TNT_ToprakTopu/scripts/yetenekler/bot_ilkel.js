@@ -7,6 +7,7 @@ import {
   botCagir, botVarliklari, botSayisi, botunSahibi, ilkelKancasi
 } from "./_bot_defteri.js";
 import { asaVurusu, asaUnut } from "./asa.js";
+import { disleriCikar, dislerUnut } from "./disler.js";
 import {
   ILKEL_ACIK, ILKEL_TAVAN, ILKEL_BESLI, ILKEL_ADLAR, ILKEL_OZELLIK,
   ILKEL_AURA_OYUNCU, ILKEL_KORUMA, BOT_OLAY_SAVAS_AC,
@@ -379,6 +380,17 @@ function botVurdu(bot, kurban, simdikiTick) {
     }
   }
 
+  /* Okazor'un disleri (v4.85): yerden evoker disleri cikiyor.
+     Zincirin tamami disler.js'te; burada sadece tetigi var --
+     asa ile birebir ayni kalip.                             */
+  if (t.disler) {
+    try {
+      disleriCikar(bot, kurban);
+    } catch (e) {
+      hataYaz("ilkel.disler", e);
+    }
+  }
+
   // Kajaros: sabit efekt listesi
   if (t.vurusEfekt) efektVer(kurban, t.vurusEfekt);
 
@@ -614,6 +626,7 @@ ilkelKancasi(bakim);
 export function ilkelUnut(botId) {
   seriler.delete(botId);
   asaUnut(botId);
+  dislerUnut(botId);
 }
 
 /* ---------------- Yetenek kaydi ----------------
