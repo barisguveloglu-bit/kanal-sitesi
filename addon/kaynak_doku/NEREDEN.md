@@ -273,3 +273,39 @@ donusturucusunun AYNISI calisti. Isi ve HidroIsi modelleri fazladan bir
 `palladium:lightning_sparks` katmani -- 20 kivilcim, kalinlik 4, cekirdek
 rengi `#1AE2F0` (camgobegi). Bedrock karsiligi
 `minecraft:electric_spark_particle` (bakir kivilcimi, ayni camgobegi aile).
+
+
+## Fisk kahramanları (v4.96)
+
+`kahraman_*.png` dosyaları **birleştirilmiş** dokular — çizilmedi,
+modun kendi piksellerinden katman katman kurulduı.
+
+Kaynak: `FiskHeroes1.7.102.4.0.jar` →
+`assets/fiskheroes/textures/heroes/*.png` (hepsi 64×64, oyuncu derisi
+düzeninde).
+
+Birleştirme tarifi uydurulmadı: modun kendi
+`assets/fiskheroes/models/heroes/<ad>.json` dosyası
+`texture.renderLayer` (hangi katman hangi doku) ve `showModel` (hangi
+kemiği hangi katmanlar çizer) tablolarını veriyor. Kemik başına doku o
+iki tablodan türetildi. Betik bu klasörde: `kahraman_coz.py`.
+
+| çıktı | kaynak katmanlar |
+|---|---|
+| `kahraman_spectre.png` | `spectre_layer1` + `spectre_layer2` |
+| `kahraman_anti_monitor.png` | `anti_monitor_layer1/2/3` + `_lights` |
+| `kahraman_the_monitor.png` | `the_monitor_chest` + `_pants` + `_boots` |
+| `kahraman_martian_manhunter.png` | `martian_manhunter_layer1` + `_layer2` |
+| `kahraman_vision.png` | `vision_layer1` + `vision_layer2` |
+| `kahraman_iron_man_mk85.png` | `iron_man_mk85` + `_lights` |
+| `kahraman_shazam_dceu.png` | `shazam_dceu_layer1` + `_layer2` + `_lights` |
+| `kahraman_the_tick.png` | `the_tick_layer1` + `the_tick_layer2` |
+| `kahraman_harbinger.png` | `harbinger_chest` + `_pants` + `_boots` |
+
+**Işık katmanları (`_lights`) bindirildi ama PARLAMIYOR.** Bedrock'un
+oyuncu üstü attachable'ında emissive malzeme yok; rengi doğru, parlaması
+eksik. Uydurma değil — eksik.
+
+**Boş bölgeler bilerek boş.** Spectre'in kafa bölgesi %0 dolu, Shazam %6,
+The Monitor %19 — o kahramanların modda kaskı yok, oyuncunun kendi yüzü
+görünüyor. Attachable ile bu doğru davranış.

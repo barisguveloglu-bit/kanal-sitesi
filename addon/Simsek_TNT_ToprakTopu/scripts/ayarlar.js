@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.95";
+export const SURUM = "v4.96";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -3011,7 +3011,7 @@ export const ZIRH_MODLAR = new Map([
   }],
   ["isi", {
     ad: "Isı", kaynak: "heat_mode",
-    ozet: "ATEŞ IŞINI (20 hasar) · ateş bağışıklığı · direnç III",
+    ozet: "ATEŞ IŞINI (400 hasar) · ateş bağışıklığı · direnç III",
     /* kaynak: armor 25 · is_fire bagisikligi ·
        energy_beam 20 hasar / 30 blok / 5 sn yakma.
        v4.95: "isin 20 hasar" vaadi vardi, isin YOKTU.
@@ -3041,7 +3041,7 @@ export const ZIRH_MODLAR = new Map([
   }],
   ["titan", {
     ad: "Titan", kaynak: "titan_mode",
-    ozet: "TITAN LAZERİ (50 hasar) · güç XXVII (+81) · direnç IV · düşme hasarı yok",
+    ozet: "TITAN LAZERİ (1000 hasar) · güç XXVII (+81) · direnç IV · düşme hasarı yok",
     /* kaynak: armor 80 · toughness 75 · attack_damage 80 ·
        entity_reach 33 · knockback_resistance 10 ·
        titan_laser 50 hasar / 100 blok.
@@ -3054,6 +3054,234 @@ export const ZIRH_MODLAR = new Map([
                ["slow_falling", 0, 0], ["jump_boost", 0, 2]]
   }]
 ]);
+
+/* ================================================================
+   FISK'S SUPERHEROES -- DOKUZ KAHRAMAN                    v4.96
+
+   Kullanici dokuz isim verdi ve "varsa dokuzunu da aktar" dedi.
+   Dokuzu da modda VAR; dokuzu da aktarildi.
+
+   ---- KAYNAK: FISKHEROES 1.7.10 v2.4.0 ----
+   Palladium DEGIL -- Fisk'in kendi sistemi. Ama bizim icin
+   Palladium'dan bile kolay cikti, cunku:
+
+     1. Kahraman tanimlari data/heroes/<ad>.js -- duz okunabilir
+        JavaScript, butun sayilar acikta.
+     2. Gucler data/powers/<ad>.json -- duz JSON.
+     3. Modeller VANILLA INSANSI ISKELET. renderers/heroes'taki
+        showModel cagrisi kemikleri adiyla sayiyor:
+          "head", "headwear", "body", "rightArm", "leftArm",
+          "rightLeg", "leftLeg"
+        Bunlar Bedrock'un kendi kemik adlariyla BIREBIR AYNI.
+     4. Dokular 64x64, yani oyuncu derisi duzeni. Olculdu.
+
+   ---- NEDEN ATTACHABLE, OYUNCU MODELI DEGIL ----
+   Ben 10 ve Max Steel'de oyuncunun MODELI degistiriliyor
+   (v4.90 makinesi). Kahramanlarda bu YANLIS olurdu: dokuz
+   kahramanin ucunde (Spectre, Shazam, The Monitor) kaskin
+   dokusu YOK -- modda oyuncunun kendi yuzu gorunuyor.
+   Ozellikle olculdu: spectre'in kafa bolgesi %0 dolu,
+   shazam %6, the_monitor %19.
+
+   Modeli degistirseydik o kahramanlar KAFASIZ cizilirdi.
+   Attachable ise oyuncunun UZERINE ciziliyor: bos pikseller
+   oyuncunun kendi derisini gosteriyor -- modun yaptigi sey
+   tam olarak bu.
+
+   Yol zaten denenmis: Omnitrix saatleri (v4.93) elde tutulan
+   esyanin attachable'i ve oyuncunun BILEGINDE ciziliyor.
+
+   ---- SAYILAR NASIL CEVRILDI (kural, tahmin degil) ----
+   PUNCH_DAMAGE p : Fisk'te yumrugun MUTLAK hasari (vanilla
+                    yumruk 1). Bedrock'ta Guc seviye basina +3.
+                      amp = round((p - 1) / 3) - 1
+                    p=13 -> Guc IV -> 1+12 = 13, BIREBIR.
+                    ESITLIKTE ASAGI yuvarlanir. Tek yeri Iron
+                    Man Mk85 (8.5): Guc II -> 7, Guc III -> 10,
+                    ikisi de 1,5 uzakta. Asagiyi seciyoruz --
+                    kaynaktan FAZLA guc vermek, eksik vermekten
+                    daha kotu bir hata (olcemezsin, sadece
+                    dengeyi bozar).
+   SPRINT_SPEED s : op1 = carpan. Hiz seviye basina +%20.
+                      amp = max(0, round(s / 0.2) - 1)
+   JUMP_HEIGHT j  : j >= 1.5 -> Ziplama II, j >= 0.5 -> I
+   FALL_RESISTANCE: >= 5 -> Yavas Dusus (dusme hasarini keser)
+   fire_immunity  : Ates Direnci
+   water_breathing / BREATHE_SPACE : Su Altinda Nefes
+   near_invulnerability (mermi + ates + patlama bagisikligi)
+                  : Direnc IV -- tek efektle anlatilabilecek
+                    en yakin sey
+   damage_resistance EXPLOSION 0.5 : Direnc II
+   metal_skin     : Direnc III
+   regeneration   : Yenilenme I
+   invisibility   : Gorunmezlik
+   shadowform     : Gorunmezlik (golgeye karisma)
+
+   ---- ISINLAR: AYNI SANIYELIK HASAR ----
+   Fisk'in energy_projection ve charged_beam'i SUREKLI isin --
+   hasar HER TICK uygulaniyor. Bizim isinimiz TEK ATIS +
+   bekleme. Tek kural, istisnasiz:
+
+       tek atis hasari = kaynagin tick basina hasari
+                         x ISIN_BEKLEME (20 tick)
+
+   Boylece SANIYELIK hasar kaynakla ayni kaliyor. Ornek:
+   Vision'in charged_beam'i 7/tick -> 140/atis, bekleme 1 sn.
+
+   TEK ISTISNA lightning_cast (Shazam): o zaten SUREKLI degil,
+   tek seferlik bir carpma (cooldownTime 20). Hasari oldugu
+   gibi: 10.
+
+   ---- AKTARILAMAYANLAR (uydurulmadi, raporlaniyor) ----
+     projectile_immunity / arrow_catching . Bedrock'ta ok
+       bagisikligi efekti yok. Direnc kismen karsiliyor.
+     intangibility (Vision, MM)  . blok icinden gecme yok.
+     shape_shifting (MM)         . baska oyuncunun kiligina
+       girme yok.
+     size_manipulation (Anti-Monitor dev modu) . oyuncu
+       olcegi degistirilemiyor.
+     shield / forcefield (Anti-Monitor, Mk85) . kalkan
+       havuzu yok.
+     setDefaultScale 1.1         . attachable oyuncuyu
+       buyutemiyor.
+     potion_immunity (MM)        . efekt bagisikligi yok.
+   Ozet metinleri bunlari VAAT ETMIYOR.
+   ================================================================ */
+export const KAHRAMAN_ACIK  = true;
+export const KAHRAMAN_ONEK  = "pa:kahraman_";
+export const KAHRAMAN_TARAMA = 20;    // kac tick'te bir bakilsin
+export const KAHRAMAN_SURE   = 120;   // efekt suresi (TARAMA x 6)
+/* Donusum caktisi: mod cekirdeklerindekinin kardesi.        */
+export const KAHRAMAN_CAKMA  = "minecraft:electric_spark_particle";
+
+/* anahtar -> {ad, en, kaynak, tier, ozet, efektler, yetenekler}
+
+   "kaynak" modun kendi dosya adi: data/heroes/<kaynak>.js ve
+   models/heroes/<kaynak>.json. Test ikisinin de var oldugunu
+   ve sayilarin uydugunu sinliyor.                            */
+export const KAHRAMANLAR = new Map([
+  ["spectre", {
+    ad: "Spectre", en: "The Spectre", kaynak: "spectre", tier: 10,
+    ozet: "güç IV (13 hasar) · ışın 60 · ışınlanma · su altında nefes",
+    /* PUNCH 13 -> Guc IV | JUMP 1.0 -> Ziplama I
+       spirit_physiology: energy_projection 3/tick 10 blok,
+       teleportation 128 blok, leaping, water_breathing      */
+    efektler: [["strength", 0, 3], ["jump_boost", 0, 0],
+               ["water_breathing", 0, 0]],
+    yetenekler: ["kahraman_isin_spectre", "isinlanma"]
+  }],
+  ["anti_monitor", {
+    ad: "Anti-Monitor", en: "Anti-Monitor", kaynak: "anti_monitor", tier: 10,
+    ozet: "güç IV · ışın 180 · görünmezlik · uçuş · direnç II",
+    /* PUNCH 13 -> Guc IV | JUMP 1.5 -> Ziplama II
+       antimatter_physiology: charged_beam 9/tick 32 blok,
+       energy_projection 3/tick 10 blok, shadowform,
+       flight 0.18, projectile_immunity, water_breathing.
+       Dev modu (size_manipulation) ve kalkan aktarilamadi. */
+    efektler: [["strength", 0, 3], ["jump_boost", 0, 1],
+               ["water_breathing", 0, 0], ["resistance", 0, 1]],
+    yetenekler: ["kahraman_isin_anti_monitor", "ucus"]
+  }],
+  ["the_monitor", {
+    ad: "Monitor", en: "The Monitor", kaynak: "the_monitor", tier: 10,
+    ozet: "güç IV · ışın 60 · ışınlanma · çekme · direnç II",
+    /* PUNCH 13 -> Guc IV | JUMP 1.5 -> Ziplama II
+       cosmic_physiology: energy_projection 3/tick 10 blok,
+       telekinesis 10 blok, teleportation 128 blok,
+       projectile_immunity, water_breathing.
+       Telekinezi -> "cekme": ikisi de hedefi kendine
+       dogru tasiyor. Tam ayni degil, en yakini.            */
+    efektler: [["strength", 0, 3], ["jump_boost", 0, 1],
+               ["water_breathing", 0, 0], ["resistance", 0, 1]],
+    yetenekler: ["kahraman_isin_the_monitor", "isinlanma", "cekme"]
+  }],
+  ["martian_manhunter", {
+    ad: "Marslı Avcı", en: "Martian Manhunter",
+    kaynak: "martian_manhunter", tier: 8,
+    ozet: "güç III · görünmezlik · uçuş · su altında nefes · hız I",
+    /* PUNCH 9 -> Guc III | SPRINT 0.15 -> Hiz I
+       JUMP 1.5 -> Ziplama II
+       martian_physiology: controlled_flight 0.1/0.25,
+       invisibility, intangibility, shape_shifting,
+       potion_immunity, water_breathing, fire_weakness.
+       Gecirgenlik ve sekil degistirme aktarilamadi.        */
+    efektler: [["strength", 0, 2], ["speed", 0, 0],
+               ["jump_boost", 0, 1], ["invisibility", 0, 0],
+               ["water_breathing", 0, 0]],
+    yetenekler: ["ucus"]
+  }],
+  ["vision", {
+    ad: "Vision", en: "Vision", kaynak: "vision", tier: 9,
+    ozet: "güç III · zihin taşı ışını 140 · uçuş · ateş bağışıklığı",
+    /* PUNCH 11 -> Guc III | SPRINT 0.15 -> Hiz I
+       vibranium_physiology: fire_immunity,
+         damage_resistance EXPLOSION 0.5 -> Direnc II
+       mind_stone: charged_beam 7/tick 32 blok,
+         controlled_flight, intangibility (aktarilamadi)    */
+    efektler: [["strength", 0, 2], ["speed", 0, 0],
+               ["fire_resistance", 0, 0], ["resistance", 0, 1]],
+    yetenekler: ["kahraman_isin_vision", "ucus"]
+  }],
+  ["iron_man_mk85", {
+    ad: "Iron Man Mark 85", en: "Iron Man Mark 85",
+    kaynak: "iron_man_mk85", tier: 8,
+    ozet: "güç II · repulsor 140 · uçuş · yenilenme · ateş bağışıklığı · düşme hasarı yok",
+    /* PUNCH 8.5 -> Guc II | SPRINT 0.1 -> Hiz I
+       FALL_RESISTANCE 8 -> Yavas Dusus
+       mk85_nanites: charged_beam 7/tick 32 blok,
+         controlled_flight, fire_immunity, metal_skin
+         (-> Direnc III), regeneration, water_breathing.
+       Kalkan, bicak ve nanit donusumu aktarilamadi.        */
+    efektler: [["strength", 0, 1], ["speed", 0, 0],
+               ["fire_resistance", 0, 0], ["resistance", 0, 2],
+               ["regeneration", 0, 0], ["slow_falling", 0, 0],
+               ["water_breathing", 0, 0]],
+    yetenekler: ["kahraman_isin_iron_man_mk85", "ucus"]
+  }],
+  ["shazam_dceu", {
+    ad: "Shazam", en: "Shazam", kaynak: "shazam_dceu", tier: 9,
+    ozet: "güç III · yıldırım 10 · SÜPER HIZ (IV) · uçuş · ateş bağışıklığı",
+    /* PUNCH 10.5 -> Guc III | SPRINT 0.7 -> Hiz IV
+       JUMP 1.5 -> Ziplama II
+       divine_empowerment: lightning_cast 10 hasar 48 blok
+         (SUREKLI DEGIL, tek carpma -- carpan uygulanmiyor),
+         super_speed, controlled_flight, fire_immunity,
+         leaping, projectile_immunity.
+       Eternyum zayifligi aktarilmadi: kaynakta bir CEZA,
+       oyunda karsiligi olan bir madde yok.                 */
+    efektler: [["strength", 0, 2], ["speed", 0, 3],
+               ["jump_boost", 0, 1], ["fire_resistance", 0, 0]],
+    yetenekler: ["kahraman_isin_shazam_dceu", "ucus"]
+  }],
+  ["the_tick", {
+    ad: "The Tick", en: "The Tick", kaynak: "the_tick", tier: 8,
+    ozet: "güç III · direnç IV (neredeyse yenilmez) · ateş bağışıklığı · düşme hasarı yok · zıplama",
+    /* PUNCH 10 -> Guc III | SPRINT 0.2 -> Hiz I
+       JUMP 1.0 -> Ziplama I | FALL_RESISTANCE 8 -> Yavas Dusus
+       near_invulnerability: mermi + ates + patlama
+         bagisikligi -> tek efektle en yakini Direnc IV
+       leaping 1.5 -> Ziplama
+       Isini YOK: kaynakta da yok. Uydurulmadi.             */
+    efektler: [["strength", 0, 2], ["speed", 0, 0],
+               ["jump_boost", 0, 1], ["resistance", 0, 3],
+               ["fire_resistance", 0, 0], ["slow_falling", 0, 0]],
+    yetenekler: []
+  }],
+  ["harbinger", {
+    ad: "Harbinger", en: "Harbinger", kaynak: "harbinger", tier: 9,
+    ozet: "güç IV · ışın 60 · yerçekimi · ışınlanma · düşme hasarı yok",
+    /* PUNCH 12 -> Guc IV | SPRINT 0.10 -> Hiz I
+       FALL_RESISTANCE 11 -> Yavas Dusus
+       cosmic_empowerment: energy_projection 3/tick 10 blok,
+         gravity_manipulation 24 blok (-> "ucurma": ikisi de
+         hedefin yercekimini kaldiriyor), teleportation,
+         projectile_immunity                                */
+    efektler: [["strength", 0, 3], ["speed", 0, 0],
+               ["jump_boost", 0, 0], ["slow_falling", 0, 0]],
+    yetenekler: ["kahraman_isin_harbinger", "ucurma", "isinlanma"]
+  }]
+]);
+
 /* ---------------- MOD ISINLARI ----------------  (v4.95)
 
    Kaynakta uc mod pasif efektten fazlasini veriyor ve bizde
@@ -3074,15 +3302,30 @@ export const ZIRH_MODLAR = new Map([
 
    Ucuncusu ucus: o zaten var olan "ucus" yetenegine baglandi,
    yeni kod yazilmadi (bkz. ZIRH_MODLAR.ucus.yetenek).        */
+/* v4.96 -- AYNI SANIYELIK HASAR KURALI BURAYA DA UYGULANDI.
+
+   v4.95'te bu iki isinin hasari kaynaktaki sayiyla (20 ve 50)
+   BIREBIR alinmisti. Kahramanlari aktarirken fark edildi:
+   palladium:energy_beam de, Fisk'in energy_projection'i da
+   SUREKLI isin -- hasar HER TICK uygulaniyor. Bizim isinimiz
+   tek atis + 1 saniye bekleme, yani ayni sayiyi almak
+   kaynaktaki isini 20 KAT ZAYIFLATIYORDU.
+
+   Tek kural, istisnasiz (kahraman isinlariyla ayni):
+       tek atis = tick basina hasar x ZIRH_ISIN_BEKLEME
+   Boylece saniyelik hasar kaynakla ayni kaliyor.
+
+   "kaynakHasar" test icin duruyor: jar'daki JSON'la
+   karsilastirilip cevrimin dogru uygulandigi olculuyor.     */
 export const ZIRH_ISIN = new Map([
   ["zirh_isi_isini", {
     ad: "Ateş Işını", mod: "isi",
-    hasar: 20, menzil: 30, yakma: 5,
+    kaynakHasar: 20, hasar: 400, menzil: 30, yakma: 5,
     parcacik: "minecraft:basic_flame_particle"
   }],
   ["zirh_titan_lazeri", {
     ad: "Titan Lazeri", mod: "titan",
-    hasar: 50, menzil: 100, yakma: 0,
+    kaynakHasar: 50, hasar: 1000, menzil: 100, yakma: 0,
     parcacik: "minecraft:electric_spark_particle"
   }]
 ]);
@@ -3103,6 +3346,70 @@ export const ZIRH_ISIN_ADIM = 1.5;
 export const ZIRH_ISIN_BEKLEME = 20;   // tick
 
 /* Ilk giyende hangi mod acik olsun. */
+/* ---------------- KAHRAMAN ISINLARI ----------------  (v4.96)
+
+   Sayilar FiskHeroes'un kendi data/powers/*.json dosyalarindan.
+   Cevrim kurali KAHRAMANLAR basligindaki "AYNI SANIYELIK HASAR"
+   bolumunde: Fisk'in isini SUREKLI (tick basina hasar), bizimki
+   TEK ATIS + bekleme, o yuzden
+
+       tek atis = tick basina hasar x ZIRH_ISIN_BEKLEME (20)
+
+   Boylece saniyelik hasar kaynakla ayni. Menzil ve tur oldugu
+   gibi.
+
+   "kaynakHasar" ve "kaynakMenzil" alanlari TEST icin duruyor:
+   test jar'daki JSON'la karsilastirip cevrimin dogru
+   uygulandigini olcuyor -- "hafizadan yazdim" ihtimali
+   sinanabilir kalsin.                                        */
+export const KAHRAMAN_ISIN = new Map([
+  ["kahraman_isin_spectre", {
+    ad: "Ruh Işını", kahraman: "spectre", guc: "spirit_physiology",
+    tur: "energy_projection", kaynakHasar: 3, kaynakMenzil: 10,
+    hasar: 60, menzil: 10, yakma: 0,
+    parcacik: "minecraft:endrod"
+  }],
+  ["kahraman_isin_anti_monitor", {
+    ad: "Antimadde Patlaması", kahraman: "anti_monitor",
+    guc: "antimatter_physiology",
+    tur: "charged_beam", kaynakHasar: 9, kaynakMenzil: 32,
+    hasar: 180, menzil: 32, yakma: 0,
+    parcacik: "minecraft:basic_flame_particle"
+  }],
+  ["kahraman_isin_the_monitor", {
+    ad: "Kozmik Işın", kahraman: "the_monitor", guc: "cosmic_physiology",
+    tur: "energy_projection", kaynakHasar: 3, kaynakMenzil: 10,
+    hasar: 60, menzil: 10, yakma: 0,
+    parcacik: "minecraft:endrod"
+  }],
+  ["kahraman_isin_vision", {
+    ad: "Zihin Taşı Işını", kahraman: "vision", guc: "mind_stone",
+    tur: "charged_beam", kaynakHasar: 7, kaynakMenzil: 32,
+    hasar: 140, menzil: 32, yakma: 0,
+    parcacik: "minecraft:basic_flame_particle"
+  }],
+  ["kahraman_isin_iron_man_mk85", {
+    ad: "Repulsor", kahraman: "iron_man_mk85", guc: "mk85_nanites",
+    tur: "charged_beam", kaynakHasar: 7, kaynakMenzil: 32,
+    hasar: 140, menzil: 32, yakma: 0,
+    parcacik: "minecraft:electric_spark_particle"
+  }],
+  ["kahraman_isin_shazam_dceu", {
+    ad: "Şimşek", kahraman: "shazam_dceu", guc: "divine_empowerment",
+    /* TEK ISTISNA: lightning_cast SUREKLI DEGIL, tek seferlik
+       bir carpma (cooldownTime 20). Carpan uygulanmiyor.     */
+    tur: "lightning_cast", kaynakHasar: 10, kaynakMenzil: 48,
+    hasar: 10, menzil: 48, yakma: 0, surekliDegil: true,
+    parcacik: "minecraft:electric_spark_particle"
+  }],
+  ["kahraman_isin_harbinger", {
+    ad: "Kozmik Işın", kahraman: "harbinger", guc: "cosmic_empowerment",
+    tur: "energy_projection", kaynakHasar: 3, kaynakMenzil: 10,
+    hasar: 60, menzil: 10, yakma: 0,
+    parcacik: "minecraft:endrod"
+  }]
+]);
+
 export const ZIRH_VARSAYILAN_MOD = "temel";
 
 /* ---------------- MOD DONUSUMU ----------------  (v4.94)

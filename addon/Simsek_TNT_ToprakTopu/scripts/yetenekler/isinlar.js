@@ -1,17 +1,18 @@
 import { system } from "@minecraft/server";
 import { yetenekKaydet } from "./kayit.js";
 import { elindekiCekirdek } from "./zirh.js";
+import { elindekiKahraman } from "./kahraman.js";
 import {
   hataYaz, gecerliMi, actionbarYaz, kollariIndir, parcacikAt
 } from "../yardimcilar.js";
 import {
-  ZIRH_ISIN, ZIRH_ISIN_KALINLIK, ZIRH_ISIN_TAVAN,
+  ZIRH_ISIN, KAHRAMAN_ISIN, ZIRH_ISIN_KALINLIK, ZIRH_ISIN_TAVAN,
   ZIRH_ISIN_ADIM, ZIRH_ISIN_BEKLEME,
   LAZER_HASAR_SEBEP
 } from "../ayarlar.js";
 
 /* ============================================================
-   MOD ISINLARI                                       v4.95
+   ISINLAR -- MAX STEEL MODLARI + FISK KAHRAMANLARI    v4.96
 
    Kullanici: "cekirdek diye adlandirdigimiz seyler vaat
    ettikleri seyleri bence vermiyorlar."
@@ -20,8 +21,20 @@ import {
    yoktu:
      Isi   . "isin 20 hasar"   -> heat_mode/fire_beam_both
      Titan . 50 hasarlik lazer -> titan_mode/titan_laser
-   Sayilar ayarlar.js:ZIRH_ISIN icinde, hepsi kaynaktaki
-   palladium:energy_beam bloklarindan birebir.
+
+   v4.96'da yedi KAHRAMAN ISINI da buraya katildi (Spectre,
+   Anti-Monitor, Monitor, Vision, Iron Man Mk85, Shazam,
+   Harbinger). Iki kaynak, TEK motor: ikisi de "duz bir cizgi,
+   uzerindekilere vur" isi yapiyor ve ayri iki dosya iki farkli
+   isin davranisi demek olurdu.
+
+   Fark yalnizca KAPIDA: mod isini elindeki CEKIRDEGI, kahraman
+   isini elindeki KAHRAMAN esyasini istiyor. Tablodaki "mod" ya
+   da "kahraman" alani hangisi oldugunu soyluyor.
+
+   Sayilar ayarlar.js'te: ZIRH_ISIN (Ionstrike'in
+   palladium:energy_beam'leri) ve KAHRAMAN_ISIN (FiskHeroes'un
+   energy_projection / charged_beam / lightning_cast'leri).
 
    ---- NEDEN GOZ LAZERININ KODU KULLANILMADI ----
    Goz lazeri SURELI bir isin: 30 saniye acik kaliyor, duvar
@@ -125,12 +138,35 @@ function isinAt(oyuncu, t) {
   return vuran;
 }
 
+/* Isinin KAPISI: elinde ne olmali. Tabloda "mod" varsa mod
+   cekirdegi, "kahraman" varsa kahraman esyasi.
+
+   Kapi IKI KEZ sinaniyor. Esya baglanmasi (kollar.js) zaten
+   "onu tutuyorsan" demek, ama yetenek MENUDEN de secilebiliyor
+   -- o yoldan Titan lazerini Temel cekirdegiyle atmak mumkun
+   olurdu.                                                    */
+function kapiAcik(oyuncu, t) {
+  if (t.mod) {
+    let c;
+    try { c = elindekiCekirdek(oyuncu); } catch (e) { c = undefined; }
+    return { acik: c === t.mod, gerek: t.mod + " çekirdeği" };
+  }
+  let k;
+  try { k = elindekiKahraman(oyuncu); } catch (e) { k = undefined; }
+  return { acik: k === t.kahraman, gerek: t.kahraman };
+}
+
 /* Jest sirasi HER yetenekte benzersiz olmali (siraDenetimi
    bunu sinar): esit olsaydi menudeki sira import sirasina
-   kalirdi. Tabloyu tek tek numaralamak yerine 178'den
-   sayiyoruz -- yeni isin eklenince kendiliginden dogru.    */
-let _sira = 178;
-for (const [kimlik, t] of ZIRH_ISIN) {
+   kalirdi. Tabloyu tek tek numaralamak yerine sayiyoruz --
+   yeni isin eklenince kendiliginden dogru.
+
+   BASLANGIC 300: v4.95'te 178'den sayiliyordu ve dokuz isin
+   olunca 180 (Gucu Kapat) ile 185'e (Gunes Yumrugu) carpti.
+   Var olan yeteneklerin en yukarisi 270; 300 hepsinin
+   ustunde ve arada rahat yer var.                          */
+let _sira = 300;
+for (const [kimlik, t] of [...ZIRH_ISIN, ...KAHRAMAN_ISIN]) {
   yetenekKaydet({
     kimlik,
     ad: t.ad,
@@ -138,16 +174,11 @@ for (const [kimlik, t] of ZIRH_ISIN) {
     sira: _sira++,
 
     olustur(oyuncu) {
-      /* 1. Dogru cekirdek elinde mi? */
-      let cekirdek;
-      try {
-        cekirdek = elindekiCekirdek(oyuncu);
-      } catch (e) {
-        cekirdek = undefined;
-      }
-      if (cekirdek !== t.mod) {
+      /* 1. Dogru sey elinde mi? */
+      const kapi = kapiAcik(oyuncu, t);
+      if (!kapi.acik) {
         actionbarYaz(oyuncu,
-          "§c" + t.ad + " için §f" + t.mod + " §cçekirdeği elinde olmalı");
+          "§c" + t.ad + " için §f" + kapi.gerek + " §celinde olmalı");
         kollariIndir(oyuncu);
         return undefined;
       }

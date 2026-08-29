@@ -92,6 +92,33 @@
     "goz_element_lazer": {
       "textures": "textures/item/goz_element_lazer"
     },
+    "kahraman_spectre": {
+      "textures": "textures/item/kahraman_spectre"
+    },
+    "kahraman_anti_monitor": {
+      "textures": "textures/item/kahraman_anti_monitor"
+    },
+    "kahraman_the_monitor": {
+      "textures": "textures/item/kahraman_the_monitor"
+    },
+    "kahraman_martian_manhunter": {
+      "textures": "textures/item/kahraman_martian_manhunter"
+    },
+    "kahraman_vision": {
+      "textures": "textures/item/kahraman_vision"
+    },
+    "kahraman_iron_man_mk85": {
+      "textures": "textures/item/kahraman_iron_man_mk85"
+    },
+    "kahraman_shazam_dceu": {
+      "textures": "textures/item/kahraman_shazam_dceu"
+    },
+    "kahraman_the_tick": {
+      "textures": "textures/item/kahraman_the_tick"
+    },
+    "kahraman_harbinger": {
+      "textures": "textures/item/kahraman_harbinger"
+    },
     "o_sey_maskesi": {
       "textures": "textures/item/o_sey_maskesi"
     },

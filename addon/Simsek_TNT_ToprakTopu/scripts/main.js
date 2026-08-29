@@ -10,6 +10,7 @@ import {
   DONDUR_GIRDI_KILIT, ILKEL_BESLI, ILKEL_ACIK, botTuruMu,
   KILIC_ESYA, SEY_ACIK, SEY_AD, SEY_TAVAN,
   ZIRH_ACIK, ZIRH_MODLAR, ZIRH_CEKIRDEK_ONEK,
+  KAHRAMAN_ACIK, KAHRAMANLAR, KAHRAMAN_ONEK,
   BEN10_ACIK, BEN10
 } from "./ayarlar.js";
 
@@ -35,6 +36,12 @@ import { silahKullan, silahTara, silahUnut, silahiBul } from "./yetenekler/silah
 import {
   zirhTara, zirhUnutOyuncu, modListesi, elindekiCekirdek
 } from "./yetenekler/zirh.js";
+
+/* v4.96: Fisk kahramanlari. Zirh cekirdekleriyle AYNI kalip --
+   elindeki esya hem gorunusu hem gucleri belirliyor.        */
+import {
+  kahramanTara, kahramanUnutOyuncu, kahramanListesi, elindekiKahraman
+} from "./yetenekler/kahraman.js";
 
 /* Ben 10 (v4.92): elindeki esyaya gore yaratik oluyorsun.
    Gorunusu oyuncu modeli paketi ciziyor, gucleri bu modul.    */
@@ -102,10 +109,11 @@ import "./yetenekler/bot_ilkel.js";
 import "./yetenekler/o_sey.js";
 import "./yetenekler/donusum.js";
 import "./yetenekler/bot_guc.js";
-/* v4.95: mod cekirdeklerinin ISINLARI. zirh.js'ten
-   elindekiCekirdek'i kullaniyor, o yuzden ondan SONRA
-   gelmeli -- yukaridaki DIKKAT notunun ayni geregi.        */
-import "./yetenekler/zirh_isini.js";
+/* v4.95: mod cekirdeklerinin ISINLARI, v4.96'da kahraman
+   isinlari da ayni motora katildi. zirh.js ve kahraman.js'ten
+   "elindeki X" fonksiyonlarini kullaniyor, o yuzden onlardan
+   SONRA gelmeli -- yukaridaki DIKKAT notunun ayni geregi.   */
+import "./yetenekler/isinlar.js";
 
 /* DIKKAT -- SIRA ONEMLI.
    kollar.js var olan yeteneklere esya BAGLIYOR, yani bagladigi
@@ -310,6 +318,13 @@ system.runInterval(() => {
         zirhTara(oyuncular);
       } catch (e) {
         hataYaz("zirhTara", e);
+      }
+    }
+    if (KAHRAMAN_ACIK) {
+      try {
+        kahramanTara(oyuncular);
+      } catch (e) {
+        hataYaz("kahramanTara", e);
       }
     }
     if (BEN10_ACIK) {
@@ -670,6 +685,69 @@ function zirhBilgi(oyuncu, anahtar) {
   kollariIndir(oyuncu);
 }
 
+/* FISK KAHRAMANLARI MENUSU  (v4.96)
+
+   Zirh menusuyle AYNI is: hangi kahramanin ne verdigini
+   yaziyor, SECIM YAPMIYOR. Donusum esyayi ELINE ALMAKLA
+   oluyor.
+
+   Ozet ve kademe (tier) ayarlar.js'ten URETILIYOR, burada elle
+   yazilmiyor -- yeni bir kahraman eklenirse menude
+   kendiliginden dogru gorunur.                              */
+function kahramanMenusu(oyuncu) {
+  if (!KAHRAMAN_ACIK) {
+    actionbarYaz(oyuncu, "§cKahramanlar kapalı (KAHRAMAN_ACIK).");
+    return undefined;
+  }
+  const liste = kahramanListesi(oyuncu);
+  const elde = elindekiKahraman(oyuncu);
+
+  const dugmeler = liste.map((k) => ({
+    anahtar: k.anahtar,
+    ad: (k.elinde ? "§b★ " : "") + "§f" + k.ad +
+        " §8(kademe " + k.tier + ")\n§8" + k.ozet +
+        "\n§8kostüm: §7" + k.esya
+  }));
+
+  const baslik = elde
+    ? "§b★ Kahramanlar §7· §f" + KAHRAMANLAR.get(elde).ad +
+      " §8(kostüm elinde)"
+    : "§b★ Kahramanlar §7· §fkostümü eline al";
+
+  const acildi = menuAc(oyuncu, baslik, dugmeler, -1,
+    (i) => kahramanBilgi(oyuncu, dugmeler[i].anahtar), []);
+
+  if (!acildi) {
+    kahramanBilgi(oyuncu, elde || liste[0].anahtar);
+  }
+  return undefined;
+}
+
+/* Tek kahramanin ne verdigini sohbete yazar. Menude dokununca
+   ve menu yokken cagriliyor -- ikisinde de AYNI metin.       */
+function kahramanBilgi(oyuncu, anahtar) {
+  const t = KAHRAMANLAR.get(anahtar);
+  if (!t) return;
+  const elde = elindekiKahraman(oyuncu) === anahtar;
+  /* Yetenekler menude ayri satirlar olarak zaten cikiyor ama
+     BURADA da yazilmali: "kostumu aldim, simdi ne yapacagim"
+     sorusunun cevabi bir yerde durmali.                      */
+  const yetenekAdi = (t.yetenekler || [])
+    .map((y) => (yetenekAl(y) || {}).ad || y).join(" · ");
+  try {
+    oyuncu.sendMessage(
+      "§b★ §f" + t.ad + " §8(" + t.en + ")\n§8" + t.ozet +
+      "\n§8kaynak: fiskheroes/" + t.kaynak + " §8· kademe " + t.tier +
+      "\n§8kostüm: §7" + KAHRAMAN_ONEK + anahtar +
+      (yetenekAdi ? "\n§8yetenekler: §7" + yetenekAdi : "") +
+      (elde ? "\n§a✔ Şu an elinde — güçler açık."
+            : "\n§eKostümü eline al §8(dönüşüm ve güçler onunla geliyor)"));
+  } catch (e) {
+    hataYaz("kahraman.mesaj", e);
+  }
+  kollariIndir(oyuncu);
+}
+
 /* BEN 10 MENUSU  (v4.92)
 
    Dort yaratik. Ozet metinleri ayarlar.js'ten URETILIYOR --
@@ -863,6 +941,15 @@ function menuEkleri(oyuncu) {
             ? (ZIRH_MODLAR.get(elindekiCekirdek(oyuncu)) || {}).ad + " §b⚡"
             : "çekirdek yok") + ")",
       calis() { zirhMenusu(oyuncu); }
+    },
+    /* v4.96: Fisk kahramanlari. Ayni kalip -- menu BILGI
+       veriyor, donusum kostumu eline almakla oluyor.        */
+    {
+      ad: "★ Kahramanlar §8(" +
+          (elindekiKahraman(oyuncu)
+            ? (KAHRAMANLAR.get(elindekiKahraman(oyuncu)) || {}).ad + " §b★"
+            : "kostüm yok") + ")",
+      calis() { kahramanMenusu(oyuncu); }
     },
     /* v4.92: Ben 10. Menu sadece BILGI veriyor -- donusum
        esyayi ELINE ALMAKLA oluyor, cunku gorunusu suren molang
@@ -1400,6 +1487,7 @@ olayaAbone("playerLeave", (olay) => {
   silahUnut(olay.playerId);
   donusumUnutOyuncu(olay.playerId);
   zirhUnutOyuncu(olay.playerId);
+  kahramanUnutOyuncu(olay.playerId);
   ben10Unut(olay.playerId);
 
   // Oyuncunun butun isleri durdurulmali, sadece birincisi degil

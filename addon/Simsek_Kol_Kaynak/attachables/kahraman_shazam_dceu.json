@@ -1,0 +1,22 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:attachable": {
+    "description": {
+      "identifier": "pa:kahraman_shazam_dceu",
+      "materials": {
+        "default": "entity_alphatest",
+        "enchanted": "armor_enchanted"
+      },
+      "textures": {
+        "default": "textures/entity/kahraman_shazam_dceu",
+        "enchanted": "textures/misc/enchanted_actor_glint"
+      },
+      "geometry": {
+        "default": "geometry.kahraman_kostum"
+      },
+      "render_controllers": [
+        "controller.render.armor"
+      ]
+    }
+  }
+}

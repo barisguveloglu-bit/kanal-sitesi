@@ -1,6 +1,8 @@
 import { esyaBagla } from "./kayit.js";
 import { bilgiYaz, hataYaz, actionbarYaz } from "../yardimcilar.js";
-import { ZIRH_MODLAR, ZIRH_CEKIRDEK_ONEK } from "../ayarlar.js";
+import {
+  ZIRH_MODLAR, ZIRH_CEKIRDEK_ONEK, KAHRAMANLAR, KAHRAMAN_ONEK
+} from "../ayarlar.js";
 
 /* ============================================================
    KOL ESYALARI
@@ -147,6 +149,25 @@ for (const [mod, t] of ZIRH_MODLAR) {
   const esya = ZIRH_CEKIRDEK_ONEK + mod;
   CEKIRDEK_YETENEKLERI.push([esya, t.yetenek]);
   esyaBagla(esya, t.yetenek);
+}
+
+/* ---- FISK KAHRAMANLARI (v4.96) ----
+
+   Cekirdeklerle ayni kalip: kostum bir "kol" degil ama esya ->
+   yetenek eslemesi ayni defter. Yedi kahramanin isini, ucunun
+   isinlanmasi, ucunun ucusu var; The Tick'in HICBIR aktif
+   yetenegi yok cunku KAYNAKTA DA YOK -- ona uydurma bir sey
+   baglanmadi (near_invulnerability + leaping, ikisi de pasif).
+
+   Liste KAHRAMANLAR'dan turuyor: yeni bir kahraman eklenince
+   burasi kendiliginden dogru kalir.                         */
+export const KAHRAMAN_YETENEKLERI = [];
+for (const [anahtar, t] of KAHRAMANLAR) {
+  const esya = KAHRAMAN_ONEK + anahtar;
+  for (const y of t.yetenekler || []) {
+    KAHRAMAN_YETENEKLERI.push([esya, y]);
+    esyaBagla(esya, y);
+  }
 }
 
 /* Kisa addan tam kimlige. scriptevent koprusu bunu kullaniyor:

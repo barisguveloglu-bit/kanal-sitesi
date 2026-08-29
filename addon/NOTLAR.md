@@ -1,3 +1,104 @@
+# v4.96 — Fisk'in dokuz kahramanı
+
+Kullanıcı dokuz isim verdi ve *"varsa dokuzunu da aktar"* dedi. Dokuzu
+da modda vardı; dokuzu da aktarıldı: **The Spectre, Anti-Monitor, The
+Monitor, Martian Manhunter, Vision, Iron Man Mark 85, Shazam, The Tick,
+Harbinger.**
+
+Ayrıntılı döküm: [`REFERANS_FISK.md`](REFERANS_FISK.md).
+
+## Tabanı Palladium değil — ondan da kolay
+
+Kullanıcı sormuştu: *"tabanı ne bilmiyorum Palladium tabanlı mı
+bilmiyorum."* Değil. Fisk'in kendi sistemi, Minecraft 1.7.10. Ama:
+
+- kahraman tanımları `data/heroes/<ad>.js` — **düz okunabilir
+  JavaScript**, bütün sayılar açıkta
+- güçler `data/powers/<ad>.json` — düz JSON
+- modeller **vanilla insansı iskelet**, kemik adları
+  (`head`/`headwear`/`body`/`rightArm`/`leftArm`/`rightLeg`/`leftLeg`)
+  Bedrock'unkiyle birebir aynı
+- dokular **64×64**, yani oyuncu derisi düzeni
+
+Yani sayıların hiçbiri hafızadan yazılmadı; testler jar'la
+karşılaştırıyor.
+
+## Neden attachable, oyuncu modeli değil
+
+Ben 10 ve Max Steel'de oyuncunun **modelini** değiştiriyoruz. Burada bu
+**yanlış** olurdu — üç kahramanda kaskın dokusu yok, modda oyuncunun
+kendi yüzü görünüyor. Ölçüldü: Spectre'in kafa bölgesi **%0** dolu,
+Shazam **%6**, The Monitor **%19**. Modeli değiştirseydik o üçü
+**kafasız** çizilirdi.
+
+Attachable oyuncunun **üstüne** çiziyor, boş pikseller oyuncunun kendi
+derisini gösteriyor — modun yaptığı şey tam olarak bu. Yol zaten
+denenmişti: Omnitrix saatleri (v4.93) de elde tutulan eşyanın
+attachable'ı.
+
+## Dokular: yakalanan tuzak
+
+Birleştirme tarifi uydurulmadı — modun kendi `models/heroes/<ad>.json`'ı
+"hangi katman hangi doku" ve "hangi kemiği hangi katmanlar çizer"
+diyor; kemik başına doku o iki tablodan türetildi.
+
+**Tuzak:** kahramanların çoğunda o iki tablo **boş** ve
+`"parent": "fiskheroes:hero_basic"` üzerinden geliyor. Ebeveyni
+çözmeden birleştirince **dört kahraman 0 piksel** çıktı. Kalıtım
+çözüldü, dokuzu da doğru.
+
+## Işınlar: aynı saniyelik hasar (ve v4.95'in düzeltmesi)
+
+Fisk'in `energy_projection` ve `charged_beam`'i **sürekli** ışın —
+hasar **her tick** uygulanıyor. Bizimki tek atış + 1 saniye bekleme.
+Tek kural:
+
+```
+tek atış = kaynağın tick başına hasarı × 20 (bekleme)
+```
+
+Saniyelik hasar kaynakla aynı kalıyor. Tek istisna `lightning_cast`
+(Shazam): o zaten tek seferlik bir çarpma, hasarı olduğu gibi.
+
+**Bu kural Ionstrike ışınlarına da geriye dönük uygulandı.** v4.95'te
+Isı ışını 20, Titan lazeri 50 olarak alınmıştı — kaynağın sürekli
+ışınını **20 kat zayıflatıyordu**. Artık 400 ve 1000.
+
+Işın motoru tek: `yetenekler/isinlar.js` (eski `zirh_isini.js`). İki
+kaynak — Max Steel modları ve Fisk kahramanları — tek motoru
+paylaşıyor; fark yalnızca **kapıda**: biri elindeki çekirdeğe, öteki
+elindeki kostüme bakıyor.
+
+## Var olan yeteneklere bağlananlar
+
+Yeni kod yazmak yerine tested yetenekler kullanıldı:
+
+| kaynak | bizde |
+|---|---|
+| `controlled_flight` / `flight` | `ucus` |
+| `teleportation` | `isinlanma` |
+| `gravity_manipulation` | `ucurma` |
+| `telekinesis` | `cekme` (en yakını) |
+
+**The Tick'in hiçbir aktif yeteneği yok** — çünkü kaynakta da yok
+(`near_invulnerability` + `leaping`, ikisi de pasif). Ona uydurma bir
+şey bağlanmadı.
+
+## Aktarılamayanlar (uydurulmadı, raporlandı)
+
+`projectile_immunity`, `intangibility`, `shape_shifting`,
+`size_manipulation` (Anti-Monitor dev modu), `shield`/`forcefield`,
+`setDefaultScale(1.1)`, `potion_immunity`, Mk85'in bıçağı ve nanit
+dönüşümü, `_lights` katmanlarının **parlaması** (rengi doğru, emissive
+yok). Özet metinleri bunları vaat etmiyor.
+
+**Test:** `sim/kahraman.mjs` — 303 sınama, 8 bölüm. Sayılar jar'la
+karşılaştırılıyor; "kaynakta uçuş varsa uçuş yeteneği bağlı mı" gibi
+sorular da var (Max Steel'deki "uçuş modu uçmuyordu" hatasının tekrarı
+olmasın diye).
+
+---
+
 # v4.95 — Göz lazeri bekçiyi öldürüyor, çekirdekler vaat ettiğini veriyor
 
 Kullanıcı dört ayrı şey bildirdi; dördü de ölçüldü, tahmin edilmedi.
