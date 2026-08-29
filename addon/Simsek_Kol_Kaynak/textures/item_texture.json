@@ -92,18 +92,6 @@
     "goz_element_lazer": {
       "textures": "textures/item/goz_element_lazer"
     },
-    "zirh_bas": {
-      "textures": "textures/item/zirh_bas"
-    },
-    "zirh_govde": {
-      "textures": "textures/item/zirh_govde"
-    },
-    "zirh_bacak": {
-      "textures": "textures/item/zirh_bacak"
-    },
-    "zirh_ayak": {
-      "textures": "textures/item/zirh_ayak"
-    },
     "o_sey_maskesi": {
       "textures": "textures/item/o_sey_maskesi"
     },

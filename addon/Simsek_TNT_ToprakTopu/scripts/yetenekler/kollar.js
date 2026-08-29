@@ -1,5 +1,6 @@
 import { esyaBagla } from "./kayit.js";
 import { bilgiYaz, hataYaz, actionbarYaz } from "../yardimcilar.js";
+import { ZIRH_MODLAR, ZIRH_CEKIRDEK_ONEK } from "../ayarlar.js";
 
 /* ============================================================
    KOL ESYALARI
@@ -125,6 +126,27 @@ export const KOL_ESYALARI = [
 
 for (const satir of KOL_ESYALARI) {
   for (let i = 1; i < satir.length; i++) esyaBagla(satir[0], satir[i]);
+}
+
+/* ---- MOD CEKIRDEKLERI (v4.95) ----
+
+   Cekirdek bir "kol" degil ama esya -> yetenek eslemesi ayni
+   defter. Uc modun kaynakta pasif efektten fazlasi var:
+     Ucus  -> var olan "ucus" yetenegi (yeni kod yazilmadi)
+     Isi   -> zirh_isi_isini   (20 hasar, 30 blok)
+     Titan -> zirh_titan_lazeri (50 hasar, 100 blok)
+   Diger alti modun kaynakta boyle bir yetenegi YOK; onlara
+   uydurma bir sey baglanmadi.
+
+   Liste ZIRH_MODLAR'dan turuyor: yeni bir mod eklenip
+   "yetenek" alani yazilinca burasi kendiliginden dogru kalir.
+   Elle ikinci bir liste tutmak, ayrisan iki liste demekti.  */
+export const CEKIRDEK_YETENEKLERI = [];
+for (const [mod, t] of ZIRH_MODLAR) {
+  if (!t.yetenek) continue;
+  const esya = ZIRH_CEKIRDEK_ONEK + mod;
+  CEKIRDEK_YETENEKLERI.push([esya, t.yetenek]);
+  esyaBagla(esya, t.yetenek);
 }
 
 /* Kisa addan tam kimlige. scriptevent koprusu bunu kullaniyor:

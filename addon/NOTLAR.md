@@ -1,3 +1,122 @@
+# v4.95 — Göz lazeri bekçiyi öldürüyor, çekirdekler vaat ettiğini veriyor
+
+Kullanıcı dört ayrı şey bildirdi; dördü de ölçüldü, tahmin edilmedi.
+
+## 1. Göz lazeri: 359 vuruş, warden ölmedi
+
+**Kök sebep:** hasar türü `"fire"` idi. Bedrock'ta bekçi
+`minecraft:fire_immune` taşıyor ve ateş bağışıklığı bir *indirim*
+değil **tam sıfır**. 500 hasarlık ışın 359 kez vurdu, hedefin canı
+hiç düşmedi. Sayaç doğru sayıyordu; hasar hiç inmiyordu.
+
+Aynı tuzak bekçiye özel değildi: blaze, wither, wither iskeleti,
+magma küpü, strider, zombileşmiş piglin, ender ejderi — lazer bu
+listenin tamamına karşı etkisizdi.
+
+`ayarlar.js`'teki eski hesap ("500 → 420 → 84 → 16,8") doğruydu ama
+**yanlış soruya cevap veriyordu**: sorun zırh indirimi değil,
+bağışıklıktı.
+
+**Düzeltme:**
+- `LAZER_HASAR_SEBEP = "entityAttack"` — hiçbir vanilla varlık buna
+  bağışık değil.
+- `damagingEntity` = atan oyuncu. Bu ikinci, sessiz bir hatayı da
+  kapattı: `fire` sebebinde damagingEntity yoktu, yani öldürülen şey
+  "sebepsiz" ölüyordu ve **tecrübe/ganimet düşmüyordu**.
+- **Emilen vuruş sayacı**: her vuruştan sonra hedefin canı okunuyor.
+  Üst üste `LAZER_BAGISIKLIK_SINIR` (3) kez düşmezse ışın hedefi
+  doğrudan bitiriyor. Neden 3: vanilla dokunulmazlık penceresi 10
+  tick ve ışın da tam 10 tickte bir vuruyor, yani *tek* emilen vuruş
+  normal olabilir; üst üste üçü olamaz.
+
+Aynı hata `buz_mizragi.js`'te de vardı (`cause: "freezing"`,
+damagingEntity yok) — o da düzeltildi.
+
+**Test:** `sim/lazer_bagisik.mjs`. Eski kodla çalıştırıldığında
+"500 can kaldı / 60 vuruş" diyor — kullanıcının tarifinin birebir
+küçük ölçeği.
+
+## 2. Zırh menüsü hiç açılmıyordu (v4.94 regresyonu)
+
+`zirhMenusu()` içinde `const cekirdek` düğme listesinden **sonra**
+tanımlıydı, ama liste onu okuyordu. `const`'un geçici ölü bölgesi
+(TDZ) yüzünden menü her açılışta `ReferenceError` atıyordu.
+
+Hiçbir test yakalamamıştı çünkü sahte dünyada
+`@minecraft/server-ui` **yoktu**: `menuAc` modülü bulamayınca sessizce
+`false` dönüyor ve fonksiyonun gövdesine hiç girilmiyordu. Yani
+**menüyü açan tek bir test bile yoktu.**
+
+Artık `node_modules/@minecraft/server-ui` altında gerçek bir taklit
+var (`SIMSEK_MENU=1` ile açılıyor — kapalıyken `menu.mjs` ve
+`gunes.mjs`'in "modül yokken menü kendini kapatıyor mu" güvencesi
+aynen sınanıyor) ve `sim/zirh_menu.mjs` menüyü uçtan uca açıyor.
+
+## 3. Çekirdekler vaat ettiklerini vermiyordu
+
+İki ayrı hata vardı, ikisi de kaynakla karşılaştırılarak bulundu.
+
+**a) Direnç çok düşüktü.** Özetler "armor +20", "armor +80" diyordu;
+tablo Direnç I (%20) veriyordu. Bedrock zırh formülü (tokluk 15,
+10 hasarlık vuruş): zırh 20 → %73, zırh ≥25 → %80 (tavan). Yani
+kaynak en az %60-80 vaat ediyordu, biz %20 veriyorduk.
+Yeni eşleme: zırh 20-50 → Direnç III, zırh 80 (titan) → Direnç IV.
+
+**b) Yanlış/eksik efekt ve eksik yetenek.**
+- Uçuş modunda `fire_resistance` vardı; kaynakta ateş bağışıklığı
+  **Isı** modunda. Üstelik **Uçuş modu uçmuyordu.**
+- Dalış ve Keşif'te zırh vaadi vardı, direnç hiç yoktu.
+- Isı'nın özeti "ışın 20 hasar" diyordu; ortada ışın yoktu.
+- Titan'ın 50 hasarlık lazeri de yoktu.
+
+Üçü de artık gerçek yetenek:
+
+| mod | yetenek | kaynak |
+|---|---|---|
+| Uçuş | var olan `ucus` yeteneği | `flight_mode` (`flight_speed`/`launch`) |
+| Isı | `zirh_isi_isini` — 20 hasar, 30 blok, 5 sn yakma | `heat_mode/fire_beam_both` |
+| Titan | `zirh_titan_lazeri` — 50 hasar, 100 blok | `titan_mode/titan_laser` |
+
+Çekirdek eşyaları bu yeteneklere `kollar.js` üzerinden bağlı: eline
+al, eğil+zıpla, ışın çıkıyor.
+
+**Özet metinleri de değişti.** Eskiden Palladium özellik adlarının
+kopyasıydı ("armor +20 · toughness +15") — oyuncunun Bedrock'ta
+göremeyeceği şeyler. Artık gerçekten alınan şeyi yazıyor.
+
+**Aktarılamayanlar (uydurulmadı, raporlandı):** `entity_reach +33`,
+`knockback_resistance`, `entity_glow`, donma bağışıklığı,
+`attack_speed +5` — Bedrock'ta efekt karşılıkları yok. Özetler artık
+bunları vaat etmiyor.
+
+**Test:** `sim/zirh.mjs` 6b bölümü — özette yazan her şeyin efekt
+tablosunda karşılığı var mı, ve ışın sayıları kaynakla birebir mi.
+
+## 4. Giyilebilir zırh takımı kaldırıldı, menü bilgi verir oldu
+
+Kullanıcı: *"temel zırha ihtiyaç kalmadı... onu kaldır, ama çekirdek
+kısmını, temel zırhı, ekle"* ve *"menüden o modlara gerek kalmadı,
+yani seçebiliyorduk ya."*
+
+Haklıydı: v4.91'de takım tek yoldu (dört parçayı giy, menüden mod
+seç). v4.94'te çekirdek geldi ve iki yol yan yana yaşadı — çekirdek
+varken takım şartı es geçiliyor, menü seçimi de çekirdek tarafından
+eziliyordu. Yani menüden bir şey seçmek çoğu zaman **hiçbir şey
+yapmıyordu**.
+
+- **Kaldırıldı:** `ZIRH_PARCALAR` (4 giyilebilir parça), `ZIRH_KORUMA`,
+  `ZIRH_TAM_TAKIM_SART`, `takimVarMi()`, `takimParcalari()`,
+  `modAl()`, `modYaz()` ve dünyaya yazılan mod seçimi.
+- **Kaldı:** dokuz çekirdeğin hepsi — **Temel dâhil.**
+- Menü artık Ben 10 menüsüyle aynı işi yapıyor: hangi çekirdeğin ne
+  verdiğini yazıyor.
+
+`pa:zirh_bas/govde/bacak/ayak` artık kayıtlı değil; var olan
+dünyalarda o yığınlar kaybolur. O parçalar zaten yalnızca yaratıcı
+modundan alınabiliyordu.
+
+---
+
 # Simsek TNT ve Toprak Topu — geliştirme notları
 
 Minecraft **Bedrock** behavior pack. Sadece resmî `@minecraft/server` Script API

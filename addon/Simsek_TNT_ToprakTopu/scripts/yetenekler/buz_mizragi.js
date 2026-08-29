@@ -74,7 +74,15 @@ yetenekKaydet({
           if (!gecerliMi(varlik)) continue;
           if (varlik.typeId === "minecraft:player" && !MIZRAK_OYUNCU) continue;
 
-          varlik.applyDamage(MIZRAK_HASAR, { cause: "freezing" });
+          /* v4.95: "freezing" DEGIL. Goz lazerindeki bekci
+             hatasinin ikizi -- donma bagisikli varliklar
+             (strider, kar golemi, kutup ayisi) hasari TAM
+             yutuyordu, ustelik damagingEntity olmadigi icin
+             oldurme kimseye yazilmiyor, tecrube dusmuyordu.
+             Sogugun kendisi zaten ASAGIDAKI efektlerle
+             veriliyor; hasarin turu olmak zorunda degil.   */
+          varlik.applyDamage(MIZRAK_HASAR,
+                             { cause: "entityAttack", damagingEntity: oyuncu });
           varlik.addEffect("slowness", MIZRAK_ETKI, {
             amplifier: MIZRAK_YAVASLIK, showParticles: true
           });

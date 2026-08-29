@@ -1,33 +1,45 @@
-import { world, system } from "@minecraft/server";
+import { system } from "@minecraft/server";
 import {
   hataYaz, gecerliMi, actionbarYaz, eldekiEsya, parcacikAt
 } from "../yardimcilar.js";
 import {
-  ZIRH_ACIK, ZIRH_PARCALAR, ZIRH_TAM_TAKIM_SART, ZIRH_MODLAR,
-  ZIRH_VARSAYILAN_MOD, ZIRH_TARAMA, ZIRH_SURE, ZIRH_KAYIT_ANAHTAR,
+  ZIRH_ACIK, ZIRH_MODLAR, ZIRH_TARAMA, ZIRH_SURE,
   ZIRH_CEKIRDEK_ONEK, ZIRH_CAKMA, ZIRH_CAKMA_ACIK
 } from "../ayarlar.js";
 
 /* ================================================================
-   ZIRH YUKSELTMESI                                        v4.91
-
-   Kullanici: "bu modda alinabilir olan seylerini alacagiz ve ZIRH
-   olarak takilabilir sekilde ayarlayacagiz, adi zirh yukseltmesi
-   olsun."
+   MAX STEEL MOD CEKIRDEKLERI                              v4.95
 
    Kaynak: ionstrike (Max Steel) -- Palladium eklentisi, tamamen
    JSON. Sayilar powers/*.json'dan okundu; ceviri tablosu
    ayarlar.js:ZIRH_MODLAR icinde satir satir yazili.
 
    ---- BU DOSYA NE YAPIYOR ----
-   Tek is: TAKIMI GIYEN oyuncuya SECILI MODUN efektlerini
-   vermek. Zirh puani esyanin kendi bileseninden geliyor
-   (minecraft:wearable protection), script'e is dusmuyor.
+   Tek is: ELINDE MOD CEKIRDEGI OLAN oyuncuya o modun
+   efektlerini vermek.
+
+   ---- IKI KAPIDAN BIRE  (v4.95) ----
+   v4.91'de tek yol GIYILEBILIR TAKIMDI: dort parcayi giy,
+   menuden mod sec. v4.94'te CEKIRDEK geldi ve iki yol yan
+   yana yasadi -- cekirdek varken takim sarti es geciliyordu,
+   menu secimi de cekirdek tarafindan eziliyordu.
+
+   Kullanici ikisini de kapatti: "menuden o modlara gerek
+   kalmadi", "temel zirha ihtiyac kalmadi". Haklyidi -- iki
+   kapi ayni odaya aciliyordu ve hangisinin gecerli oldugunu
+   anlatmak icin her yerde bir "ama cekirdek varsa" dali
+   vardi.
+
+   ARTIK TEK KAYNAK: elindeki cekirdek. Menu secimi ve takim
+   kaldirildi; bu dosyada da mod DEFTERI kalmadi. Gorunusu
+   suren molang kosulu da (oyuncu modeli paketi) ayni seye
+   bakiyor, yani "takim gibi gorunuyorum ama gucum yok"
+   durumu artik yapisal olarak imkansiz.
 
    ---- NEDEN EFEKT TAZELENIYOR ----
    Kalp ve donusum sistemlerindeki dersin aynisi: efektler
    olunce, sure dolunca ve SUT ICINCE siliniyor. Kaynak
-   "uzerinde takim var mi" sorusu; efekt onun goruntusu.
+   "elinde cekirdek var mi" sorusu; efekt onun goruntusu.
    ZIRH_TARAMA'da bir yeniden veriliyor.
 
    ---- NEDEN IS LISTESINE GIRMIYOR ----
@@ -36,106 +48,28 @@ import {
    disarida.
    ================================================================ */
 
-/* oyuncuId -> mod anahtari. Kalici: dunya ozelligine yaziliyor. */
-const modlar = new Map();
 /* oyuncuId -> bir sonraki tazeleme tick'i */
 const sonraki = new Map();
-/* oyuncuId -> son bilinen "takim uzerinde mi" (mesaj icin) */
-const takimliydi = new Map();
-
-let okundu = false;
-function oku() {
-  if (okundu) return;
-  okundu = true;
-  try {
-    const ham = world.getDynamicProperty(ZIRH_KAYIT_ANAHTAR);
-    if (typeof ham !== "string" || ham.length === 0) return;
-    for (const [id, mod] of JSON.parse(ham)) {
-      if (ZIRH_MODLAR.has(mod)) modlar.set(id, mod);
-    }
-  } catch (e) {
-    hataYaz("zirh.oku", e);
-  }
-}
-
-function kaydet() {
-  try {
-    world.setDynamicProperty(ZIRH_KAYIT_ANAHTAR,
-                             JSON.stringify([...modlar.entries()]));
-  } catch (e) {
-    hataYaz("zirh.kaydet", e);
-  }
-}
 
 /* Testler ve dunya degisimi icin. */
 export function zirhUnut() {
-  modlar.clear();
   sonraki.clear();
-  takimliydi.clear();
   sonCekirdek.clear();
-  okundu = false;
 }
 
 export function zirhUnutOyuncu(oyuncuId) {
   sonraki.delete(oyuncuId);
-  takimliydi.delete(oyuncuId);
   sonCekirdek.delete(oyuncuId);
-  /* Mod SECIMI silinmiyor: oyuncu geri gelince ayni modda
-     olsun. Kalp defteriyle ayni mantik.                      */
 }
 
-export function modAl(oyuncuId) {
-  oku();
-  const m = modlar.get(oyuncuId);
-  return ZIRH_MODLAR.has(m) ? m : ZIRH_VARSAYILAN_MOD;
-}
+/* ---------------- GIYILEBILIR TAKIM YOK  (v4.95) ----------------
 
-export function modYaz(oyuncuId, mod) {
-  if (!ZIRH_MODLAR.has(mod)) return false;
-  oku();
-  modlar.set(oyuncuId, mod);
-  /* Hemen uygulansin: bir sonraki taramayi beklemek "sectim
-     ama bir sey olmadi" hissi verirdi.                       */
-  sonraki.set(oyuncuId, 0);
-  kaydet();
-  return true;
-}
+   takimParcalari() ve takimVarMi() buradaydi: dort zirh
+   yuvasini okuyup "tam takim uzerinde mi" diye bakiyorlardi.
+   Takim kaldirilinca ikisi de amacsiz kaldi. Gerekcesi
+   ayarlar.js'te (GIYILEBILIR TAKIM KALDIRILDI).
 
-/* ---------------- Takim uzerinde mi ----------------
-
-   DIKKAT -- getEquipment BIR KOPYA donuyor (v4.x dersi), ama
-   burada sadece OKUYORUZ, yazmiyoruz; kopya sorun degil.
-
-   Yuva adlari Bedrock'un EquipmentSlot degerleri. Esya
-   kimlikleri ayarlar.js'ten geliyor, burada elle yazilmiyor. */
-const YUVALAR = ["Head", "Chest", "Legs", "Feet"];
-
-export function takimParcalari(oyuncu) {
-  let bilesen;
-  try {
-    bilesen = oyuncu.getComponent("minecraft:equippable");
-  } catch (e) {
-    return 0;
-  }
-  if (!bilesen || typeof bilesen.getEquipment !== "function") return 0;
-
-  let adet = 0;
-  for (let i = 0; i < YUVALAR.length; i++) {
-    let esya;
-    try {
-      esya = bilesen.getEquipment(YUVALAR[i]);
-    } catch (e) {
-      continue;
-    }
-    if (esya && esya.typeId === ZIRH_PARCALAR[i]) adet++;
-  }
-  return adet;
-}
-
-export function takimVarMi(oyuncu) {
-  const n = takimParcalari(oyuncu);
-  return ZIRH_TAM_TAKIM_SART ? n === ZIRH_PARCALAR.length : n > 0;
-}
+   Artik tek soru elindeki CEKIRDEK -- asagida.               */
 
 /* ---------------- MOD CEKIRDEGI ----------------  (v4.94)
 
@@ -195,7 +129,6 @@ const sonCekirdek = new Map();
 /* ---------------- Tarama ---------------- */
 export function zirhTara(oyuncular) {
   if (!ZIRH_ACIK) return;
-  oku();
   const simdi = system.currentTick;
 
   for (const oyuncu of oyuncular) {
@@ -226,37 +159,15 @@ export function zirhTara(oyuncular) {
       sonraki.set(oyuncu.id, 0);
     }
 
-    let takimli;
-    try {
-      takimli = takimVarMi(oyuncu);
-    } catch (e) {
-      takimli = false;
-    }
-
-    const onceki = takimliydi.get(oyuncu.id);
-    if (onceki !== takimli && !cekirdek) {
-      takimliydi.set(oyuncu.id, takimli);
-      /* Ilk taramada (onceki undefined) mesaj YOK: dunyaya
-         girer girmez ekrana yazi dusmesin.                   */
-      if (onceki !== undefined) {
-        const t = ZIRH_MODLAR.get(modAl(oyuncu.id));
-        try {
-          actionbarYaz(oyuncu, takimli
-            ? "§b⛨ Zırh Yükseltmesi §8· §f" + (t ? t.ad : "") + " modu"
-            : "§7⛨ Zırh Yükseltmesi çıkarıldı");
-        } catch (e) { /* mesaj onemli degil */ }
-      }
-    }
-    /* Cekirdek varken tam takim SART DEGIL: donusumun kendisi
-       zaten takimi giymis olmak demek.                       */
-    if (!takimli && !cekirdek) continue;
+    /* v4.95: TEK KAYNAK CEKIRDEK. Once "tam takim uzerinde mi"
+       diye de bakiliyordu; takim kaldirildi. Cekirdek yoksa
+       guc de yok -- gorunusun ne ise gucun de o.             */
+    if (!cekirdek) continue;
 
     if (simdi < (sonraki.get(oyuncu.id) || 0)) continue;
     sonraki.set(oyuncu.id, simdi + ZIRH_TARAMA);
 
-    /* Elindeki cekirdek menudeki secimi EZIYOR: gorunusun ne
-       ise gucun de o olmali.                                 */
-    const t = ZIRH_MODLAR.get(cekirdek || modAl(oyuncu.id));
+    const t = ZIRH_MODLAR.get(cekirdek);
     if (!t) continue;
     for (const [ad, , seviye] of t.efektler) {
       try {
@@ -274,12 +185,29 @@ export function zirhTara(oyuncular) {
   }
 }
 
-/* Menu icin: mod listesi, siralamasi ayarlar.js'teki sira.   */
-export function modListesi(oyuncuId) {
-  const secili = modAl(oyuncuId);
+/* Menu icin: mod listesi, siralamasi ayarlar.js'teki sira.
+
+   v4.95: "secili" alani KALKTI. Menu artik secim yapmiyor,
+   hangi cekirdegin ne verdigini YAZIYOR. Alani birakmak
+   menude yanlis bir onay isareti cizerdi.
+
+   "elinde" alani onun yerine geldi: hangi satirin su an
+   uzerinde oldugunu gosteriyor.                             */
+export function modListesi(oyuncu) {
+  let cekirdek;
+  try {
+    cekirdek = elindekiCekirdek(oyuncu);
+  } catch (e) {
+    cekirdek = undefined;
+  }
   const liste = [];
   for (const [anahtar, t] of ZIRH_MODLAR) {
-    liste.push({ anahtar, secili: anahtar === secili, ad: t.ad, ozet: t.ozet });
+    liste.push({
+      anahtar, ad: t.ad, ozet: t.ozet,
+      elinde: anahtar === cekirdek,
+      esya: ZIRH_CEKIRDEK_ONEK + anahtar,
+      yetenek: t.yetenek
+    });
   }
   return liste;
 }

@@ -2487,16 +2487,28 @@ ZIRH_TR_TAKIM = "Zırh Yükseltmesi"
 # (anahtar, yuva, koruma, TR ad, EN ad, ikon bolgesi)
 # ikon bolgesi = 64x64 skin duzeninde hangi kare ikona gececek.
 # Uydurma cizim YOK: giydigin seyin kendi pikselleri.
-ZIRH = [
-    ("zirh_bas",   "slot.armor.head",  3, "Zırh Yükseltmesi · Başlık",
-     "Armor Upgrade Helmet",     (8, 8, 16, 16)),
-    ("zirh_govde", "slot.armor.chest", 8, "Zırh Yükseltmesi · Göğüslük",
-     "Armor Upgrade Chestplate", (20, 20, 28, 32)),
-    ("zirh_bacak", "slot.armor.legs",  6, "Zırh Yükseltmesi · Bacaklık",
-     "Armor Upgrade Leggings",   (4, 20, 12, 32)),
-    ("zirh_ayak",  "slot.armor.feet",  3, "Zırh Yükseltmesi · Bot",
-     "Armor Upgrade Boots",      (4, 26, 12, 32)),
-]
+# ---- GIYILEBILIR TAKIM KALDIRILDI  (v4.95) ----
+#
+# Kullanici: "iki surum oncesinde modlara donusebilmek icin
+# temel zirh gerekiyordu... sonra cekirdek kavrami geldi ve
+# artik temel zirha ihtiyac kalmadi... sadece yaratici
+# modundayken oradan zirhi giyebiliyorduk ya, temel zirhi --
+# onu kaldir, ama cekirdek kismini, temel zirhi, ekle."
+#
+# Yani: DORT GIYILEBILIR PARCA gidiyor, DOKUZ CEKIRDEK
+# (Temel dahil) kaliyor. Gerekcesi ayarlar.js'te uzun uzun
+# yazili; ozeti: takim bir kapiydi, arkasindaki her sey artik
+# cekirdekten geliyor.
+#
+# Liste BOS BIRAKILDI, silinmedi: asagidaki dongular ve
+# "beklenen ikonlar" denetimi ayni sekilde calissin, geri
+# eklemek gerekirse tek satir olsun.
+#
+# zirh_esyasi / zirh_ikonu / zirh_attachable fonksiyonlari da
+# duruyor -- zirh_geometrisi'ni MOD CEKIRDEKLERI kullaniyor,
+# digerleri onunla ayni bolumde ve silmek diffi buyutmekten
+# baska bir sey yapmazdi.
+ZIRH = []
 
 
 def zirh_geometrisi(anahtar):

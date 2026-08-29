@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.94";
+export const SURUM = "v4.95";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -1178,6 +1178,58 @@ export const LAZER_DONDUR_SEVIYE = 3;   // Yavaslik IV
    icin ~1200 lazim (16,8 -> 40). Simdilik gerek gorulmedi;
    iki vurus zaten yarim saniye.                              */
 export const LAZER_HASAR = 500;
+
+/* ---- HASAR TURU: "fire" DEGIL  (v4.95) ----
+
+   Kullanici: "goz lazerini bayagi denedim 359 vurus yaziyordu
+   bekci yani warden olmedi bile."
+
+   SEBEP OLCULDU, tahmin edilmedi: hasar turu "fire" idi ve
+   Bedrock'ta bekcinin (warden) varlik tanimi
+   minecraft:fire_immune tasiyor. Ates bagisikligi bir INDIRIM
+   degil, TAM SIFIR: 500 hasar da 5000 hasar da hicbir sey
+   yapmiyor. Sayac "359 vurus" diyordu cunku isin gercekten
+   vuruyordu; sadece hasar hic inmiyordu.
+
+   Ayni tuzak bekciye ozel degil: blaze, wither, wither
+   iskeleti, magma kubu, strider, zombilesmis piglin, ender
+   ejderi -- hepsi ates bagisikli. Yani lazer o listenin
+   TAMAMINA karsi isesizdi.
+
+   Ustteki zirh hesabi (fire -> Ates Korumasi buyusu) hala
+   dogru, ama yanlis soruya cevap veriyordu: sorun indirim
+   degil, bagisiklikti.
+
+   ARTIK "entityAttack" ve damagingEntity = ATAN OYUNCU:
+     - hicbir vanilla varlik entityAttack'e bagisik degil
+     - oldurme SAHIBI oyuncuya yaziliyor: tecrube ve ganimet
+       artik geliyor (fire'da damagingEntity yoktu, yani
+       oldurulen sey "sebepsiz" oluyordu ve tecrube dusmuyordu
+       -- bu ikinci, sessiz bir hataydi)
+     - Ates Korumasi artik tavani tek basina doldurmuyor;
+       en iyi vanilla kurulum vurus basina 16,8 degil daha
+       fazla yiyor, yani lazer zayiflamadi, GUCLENDI.         */
+export const LAZER_HASAR_SEBEP = "entityAttack";
+
+/* ---- EMILEN VURUS SAYACI  (v4.95) ----
+
+   Tur degistirmek bilinen bagisikliklari cozuyor ama kural
+   sunu ogretti: BIR TUR SECIP "artik tamamdir" demek hatanin
+   ta kendisiydi. Bu yuzden artik SONUCA bakiyoruz.
+
+   Her vurustan sonra hedefin cani okunuyor. Dusmediyse vurus
+   EMILMIS demektir. Ust uste bu kadar kez emilirse lazer
+   hedefi dogrudan bitiriyor.
+
+   Neden "ust uste" ve neden 1 degil: vanilla'da her varligin
+   vurus sonrasi 10 tick dokunulmazlik penceresi var ve isin
+   da tam 10 tickte bir vuruyor (LAZER_VURUS_ARALIK). Yani
+   TEK emilen vurus normal olabilir -- pencereye denk gelmistir.
+   Ust uste ucu ise pencereyle aciklanamaz: gercek bagisikliktir.
+
+   Can okunamayan hedeflerde (bileseni olmayan varliklar) bu
+   mekanizma HIC calismaz, eski davranis aynen surer.         */
+export const LAZER_BAGISIKLIK_SINIR = 3;
 
 /* ---- LAZER POZU (v4.70) ----
    Kullanici: "goz lazeri attiginda ellerim one dogru... ayrica
@@ -2832,81 +2884,224 @@ export const DONUSUM_Y_KAYMA   = 0;
    ile ESIT olmali -- zirh.mjs ikisini karsilastiriyor.       */
 export const ZIRH_ACIK     = true;
 export const ZIRH_ETIKET   = "pa:zirh_yukseltmesi";
-export const ZIRH_KORUMA   = 20;    // takimin toplami (netherite = 20)
 export const ZIRH_TARAMA   = 20;    // kac tick'te bir bakilsin
 export const ZIRH_SURE     = 120;   // efekt suresi (TARAMA x 6)
 export const ZIRH_KAYIT_ANAHTAR = "simsek:zirh";
-/* Takimin parcalari. kol_uret.py:ZIRH ile ayni sirada.       */
-export const ZIRH_PARCALAR = [
-  "pa:zirh_bas", "pa:zirh_govde", "pa:zirh_bacak", "pa:zirh_ayak"
-];
-/* Yarim takim ise yarariyor mu? HAYIR: referansta da takim
-   bir butun. Ama parcalar YINE DE zirh puani veriyor (esyanin
-   kendi bileseni), yani yarim giymek bosuna degil -- sadece
-   MOD gucleri gelmiyor.                                      */
-export const ZIRH_TAM_TAKIM_SART = true;
+
+/* ---- GIYILEBILIR TAKIM KALDIRILDI  (v4.95) ----
+
+   Kullanici: "iki surum oncesinde modlara donusebilmek icin
+   temel zirh gerekiyordu, onu sen eklemistin; sonra bir surum
+   sonra cekirdek kavrami geldi ve artik temel zirha ihtiyac
+   kalmadi diye dusunuyorum... sadece yaratici modundayken
+   oradan zirhi giyebiliyorduk ya, temel zirhi -- onu kaldir,
+   ama cekirdek kismini, temel zirhi, ekle."
+
+   DOGRU TESPIT. v4.91'de takim tek yoldu: dort parcayi giy,
+   sonra menuden mod sec. v4.94'te cekirdek geldi ve
+   ZIRH_TAM_TAKIM_SART cekirdek varken zaten es geciliyordu.
+   Yani takim bir kapiydi ve o kapinin arkasindaki her sey
+   artik baska bir kapidan geliyor. Kalan tek isi 20 zirh
+   puaniydi -- onu vanilla netherite de veriyor.
+
+   KALDIRILANLAR: ZIRH_PARCALAR (dort esya), ZIRH_KORUMA,
+   ZIRH_TAM_TAKIM_SART ve bunlara bagli takimVarMi /
+   takimParcalari.
+   KALANLAR: dokuz CEKIRDEGIN hepsi -- Temel dahil.
+
+   ---- ENVANTERDEKI PARCALAR ----
+   pa:zirh_bas / govde / bacak / ayak artik kayitli degil;
+   var olan dunyalarda o yigrinlar kaybolur. Kullanici
+   biliyordu: o parcalar zaten yalnizca yaratici modundan
+   alinabiliyordu, yani kimsenin emegi gitmiyor.              */
 
 /* mod anahtari -> {ad, ozet, efektler:[[ad, sure, seviye]]}
    Efekt suresi ZIRH_SURE'den geliyor; listedeki sure alani
    sadece bicim uyumu icin duruyor (efektVer kalibi).         */
+/* ---- v4.95: TABLO KAYNAKTAKI SAYILARLA YENIDEN OLCULDU ----
+
+   Kullanici: "cekirdek diye adlandirdigimiz seyler vaat
+   ettikleri seyleri bence vermiyorlar."
+
+   HAKLIYDI, ve olculdu. Iki ayri hata vardi:
+
+   1. DIRENC COK DUSUKTU. Ozetler "armor +20", "armor +80"
+      diyordu ama tablo Direnc I (%20) veriyordu. Bedrock zirh
+      formulu:
+        indirim = min(20, max(zirh/5, zirh - 4*hasar/(tokluk+8))) / 25
+      tokluk 15, zirh 20, 10 hasarlik vurus icin:
+        max(4, 20 - 40/23) = 18,26 -> 18,26/25 = %73
+      zirh 25 ve ustunde terim 20'yi asiyor ve %80 TAVANINA
+      dayaniyor. Yani kaynaktaki her mod en az %60-80 indirim
+      vaat ediyordu; biz %20 veriyorduk.
+
+      Direnc seviye basina %20. Esleme:
+        zirh 20-50 (sekiz mod) -> Direnc III (amp 2, %60)
+        zirh 80    (titan)     -> Direnc IV  (amp 3, %80)
+      Titan bilerek ayri: kaynakta 80/75, digerleri 20-30.
+      Direnc V (amp 4) TAM DOKUNULMAZLIK ve o StarOxine'e
+      ayrilmis -- buraya girmiyor.
+
+   2. YANLIS EFEKT, EKSIK EFEKT.
+      - Ucus modunda "fire_resistance" vardi; kaynakta ates
+        bagisikligi ISI modunda, ucusta DEGIL. Ucusun uc
+        bagisikligi: oksijen, donma, patlama.
+      - Dalis ve Kesif modlarinda zirh vaadi vardi ama
+        direnc hic yoktu (amp 0 = %20).
+      - Isi modunda "isin 20 hasar" yaziyordu; ortada isin
+        yoktu. Titan'in 50 hasarlik lazeri de yoktu. Ucus modu
+        UCMUYORDU. Ucu de artik gercek yetenek (asagida
+        "yetenek" alani).
+
+   ---- AKTARILAMAYANLAR (uydurulmadi, raporlaniyor) ----
+     entity_reach +33 (titan) . Bedrock'ta menzil efekti yok.
+     knockback_resistance     . efekt karsiligi yok.
+     entity_glow (kesif)      . Bedrock'ta parlama efekti yok;
+                                gece gorusu en yakin karsilik.
+     donma bagisikligi (ucus) . Bedrock'ta karsiligi yok.
+     attack_speed +5 (hiz)    . saldiri hizi efekti yok.
+   Bunlar ozetlerde ARTIK VAAT EDILMIYOR: ozet metinleri
+   Palladium ozellik adlarinin kopyasi olmaktan cikip
+   oyuncunun GERCEKTEN aldigi seyi yaziyor.                    */
 export const ZIRH_MODLAR = new Map([
   ["temel", {
     ad: "Temel", kaynak: "base_mode",
-    ozet: "armor +20 · toughness +15 · fall_resistance +10",
-    efektler: [["resistance", 0, 0], ["slow_falling", 0, 0]]
+    ozet: "direnç III · düşme hasarı yok",
+    /* kaynak: armor 20 · toughness 15 · fall_resistance 10 */
+    efektler: [["resistance", 0, 2], ["slow_falling", 0, 0]]
   }],
   ["guc", {
     ad: "Güç", kaynak: "strength_mode",
-    ozet: "attack_damage +15 · armor +30 · destroy_speed +2",
-    /* +15 hasar = Guc V, BIREBIR. */
-    efektler: [["strength", 0, 4], ["resistance", 0, 1],
+    ozet: "güç V (+15 hasar) · direnç III · acele I · düşme hasarı yok",
+    /* kaynak: attack_damage 15 · armor 30+20 · toughness 15 ·
+       destroy_speed 2 · fall_resistance 100.
+       +15 hasar = Guc V (seviye basina +3), BIREBIR.          */
+    efektler: [["strength", 0, 4], ["resistance", 0, 2],
                ["haste", 0, 0], ["slow_falling", 0, 0]]
   }],
   ["hiz", {
     ad: "Hız", kaynak: "speed_mode",
-    ozet: "movement +1 · attack_speed +5 · destroy_speed +5 · step +2",
-    efektler: [["speed", 0, 4], ["haste", 0, 4], ["jump_boost", 0, 1]]
+    ozet: "hız V · acele V · zıplama II · direnç III · düşme hasarı yok",
+    /* kaynak: movement_speed +1 · attack_speed 5 ·
+       destroy_speed 5 · step_height 2 · is_fall bagisikligi.
+       v4.95: is_fall bagisikligi EKSIKTI -- slow_falling geldi;
+       zirh 20 icin direnc de eksikti.                         */
+    efektler: [["speed", 0, 4], ["haste", 0, 4], ["jump_boost", 0, 1],
+               ["resistance", 0, 2], ["slow_falling", 0, 0]]
   }],
   ["ucus", {
     ad: "Uçuş", kaynak: "flight_mode",
-    ozet: "space_breath · üç ayrı hasar bağışıklığı",
+    ozet: "UÇUŞ · su altında nefes · direnç III · düşme hasarı yok",
+    /* kaynak: space_breath · oksijen/donma/patlama bagisikligi ·
+       armor 20 · flight_speed 1 (+ boost 3).
+       v4.95: fire_resistance KALDIRILDI -- kaynakta ates
+       bagisikligi ISI modunda. Yerine gercek ucus geldi.      */
+    yetenek: "ucus",
     efektler: [["slow_falling", 0, 0], ["water_breathing", 0, 0],
-               ["fire_resistance", 0, 0], ["resistance", 0, 0]]
+               ["resistance", 0, 2]]
   }],
   ["gizlilik", {
     ad: "Gizlilik", kaynak: "stealth_mode",
-    ozet: "invisibility · armor +20",
-    efektler: [["invisibility", 0, 0], ["speed", 0, 1],
-               ["resistance", 0, 0]]
+    ozet: "görünmezlik · direnç III · hız II",
+    /* kaynak: invisibility · armor 20 · isim gizleme.
+       Hiz BIZIM eklemem, kaynakta yok: gizlilik modunun sessiz
+       ve cabuk olmasi mantikli geldi. Ozet de oyle diyor.     */
+    efektler: [["invisibility", 0, 0], ["resistance", 0, 2],
+               ["speed", 0, 1]]
   }],
   ["isi", {
     ad: "Isı", kaynak: "heat_mode",
-    ozet: "armor +25 · ateş bağışıklığı · ışın 20 hasar",
-    efektler: [["fire_resistance", 0, 0], ["strength", 0, 2],
-               ["resistance", 0, 0]]
+    ozet: "ATEŞ IŞINI (20 hasar) · ateş bağışıklığı · direnç III",
+    /* kaynak: armor 25 · is_fire bagisikligi ·
+       energy_beam 20 hasar / 30 blok / 5 sn yakma.
+       v4.95: "isin 20 hasar" vaadi vardi, isin YOKTU.
+       Uydurma "strength 2" kaldirildi, yerine gercek isin.    */
+    yetenek: "zirh_isi_isini",
+    efektler: [["fire_resistance", 0, 0], ["resistance", 0, 2]]
   }],
   ["dalis", {
     ad: "Dalış", kaynak: "scuba_mode",
-    ozet: "swim_speed +5 · su altında nefes",
+    ozet: "su altında nefes · su gücü · gece görüşü · direnç III",
+    /* kaynak: swim_speed 5 · armor 20.
+       conduit_power su altinda hiz + gorus + nefes veriyor,
+       swim_speed'in en yakin karsiligi.
+       v4.95: direnc EKSIKTI (zirh 20 vaat ediliyordu).        */
     efektler: [["water_breathing", 0, 0], ["conduit_power", 0, 0],
-               ["night_vision", 0, 0]]
+               ["night_vision", 0, 0], ["resistance", 0, 2]]
   }],
   ["kesif", {
     ad: "Keşif", kaynak: "recon_mode",
-    ozet: "entity_glow · vibrate · armor +20",
-    efektler: [["night_vision", 0, 0], ["resistance", 0, 0],
+    ozet: "gece görüşü · direnç III · hız I",
+    /* kaynak: entity_glow · vibrate · armor 20.
+       entity_glow ve vibrate Bedrock'a AKTARILAMIYOR (efekt
+       karsiligi yok) -- ozet artik onlari vaat etmiyor.
+       v4.95: direnc amp 0 -> 2.                               */
+    efektler: [["night_vision", 0, 0], ["resistance", 0, 2],
                ["speed", 0, 0]]
   }],
   ["titan", {
     ad: "Titan", kaynak: "titan_mode",
-    ozet: "armor +80 · toughness +75 · attack +80 · reach +33",
-    /* Referansin en ust kademesi. Zirh+tokluk Bedrock
-       formulunde zaten %80 tavaninda -> Direnc IV.
-       +80 hasar: Guc seviye basina +3, 27 seviye = +81.     */
+    ozet: "TITAN LAZERİ (50 hasar) · güç XXVII (+81) · direnç IV · düşme hasarı yok",
+    /* kaynak: armor 80 · toughness 75 · attack_damage 80 ·
+       entity_reach 33 · knockback_resistance 10 ·
+       titan_laser 50 hasar / 100 blok.
+       Zirh+tokluk Bedrock formulunde %80 tavaninda -> Direnc IV.
+       +80 hasar: Guc seviye basina +3, 27 seviye = +81.
+       v4.95: lazer EKSIKTI. Menzil ve geri tepme direnci
+       aktarilamiyor, ozet artik onlari vaat etmiyor.          */
+    yetenek: "zirh_titan_lazeri",
     efektler: [["resistance", 0, 3], ["strength", 0, 26],
                ["slow_falling", 0, 0], ["jump_boost", 0, 2]]
   }]
 ]);
+/* ---------------- MOD ISINLARI ----------------  (v4.95)
+
+   Kaynakta uc mod pasif efektten fazlasini veriyor ve bizde
+   YOKTULAR -- kullanicinin "vaat ettiklerini vermiyorlar"
+   dedigi seyin somut karsiligi buydu.
+
+   Sayilar ionstrike/palladium/powers/*.json icindeki
+   palladium:energy_beam bloklarindan BIREBIR:
+
+     heat_mode  . fire_beam_both  damage 20 · max_distance 30
+                  · set_on_fire_seconds 5 · cause_fire false
+     titan_mode . titan_laser     damage 50 · max_distance 100
+                  · set_on_fire_seconds 0
+
+   cause_fire false OLDUGU GIBI korunuyor: isin blok
+   tutusturmuyor, sadece HEDEFI yakiyor. Aksi hâlde titan
+   lazeriyle 100 blokluk bir yangin hatti aciliyordu.
+
+   Ucuncusu ucus: o zaten var olan "ucus" yetenegine baglandi,
+   yeni kod yazilmadi (bkz. ZIRH_MODLAR.ucus.yetenek).        */
+export const ZIRH_ISIN = new Map([
+  ["zirh_isi_isini", {
+    ad: "Ateş Işını", mod: "isi",
+    hasar: 20, menzil: 30, yakma: 5,
+    parcacik: "minecraft:basic_flame_particle"
+  }],
+  ["zirh_titan_lazeri", {
+    ad: "Titan Lazeri", mod: "titan",
+    hasar: 50, menzil: 100, yakma: 0,
+    parcacik: "minecraft:electric_spark_particle"
+  }]
+]);
+
+/* Isinin YARICAPI: hedef bu kadar yakinsa isin uzerinde
+   sayilir. Goz lazeriyle ayni olcu (LAZER_KALINLIK) -- iki
+   isin da ayni el hissini vermeli.                          */
+export const ZIRH_ISIN_KALINLIK = 1.2;
+/* Tek atista en fazla kac hedef. Delici: onundekini gecip
+   arkadakine de vuruyor, kaynaktaki energy_beam gibi.       */
+export const ZIRH_ISIN_TAVAN = 8;
+/* Parcacik sikligi (blok). 100 blokluk titan lazerinde her
+   blokta parcacik atmak tek tickte 100 cagri demekti.       */
+export const ZIRH_ISIN_ADIM = 1.5;
+/* Bekleme: art arda basmak tek tuslu bir olum makinesi
+   olmasin. Kaynakta energy_beam basili tutuluyor; bizde
+   anlik atis + bekleme ayni sonucu veriyor.                 */
+export const ZIRH_ISIN_BEKLEME = 20;   // tick
+
 /* Ilk giyende hangi mod acik olsun. */
 export const ZIRH_VARSAYILAN_MOD = "temel";
 

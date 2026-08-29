@@ -9,7 +9,7 @@ import {
   SOHBET_ONEK, BOT_TAVAN, DERIN_HEDEFLER, DERIN_VARSAYILAN,
   DONDUR_GIRDI_KILIT, ILKEL_BESLI, ILKEL_ACIK, botTuruMu,
   KILIC_ESYA, SEY_ACIK, SEY_AD, SEY_TAVAN,
-  ZIRH_ACIK, ZIRH_MODLAR, ZIRH_PARCALAR, ZIRH_KORUMA,
+  ZIRH_ACIK, ZIRH_MODLAR, ZIRH_CEKIRDEK_ONEK,
   BEN10_ACIK, BEN10
 } from "./ayarlar.js";
 
@@ -33,8 +33,7 @@ import { silahKullan, silahTara, silahUnut, silahiBul } from "./yetenekler/silah
    efektlerini veriyor. Kendi defteri var, is listesine girmiyor
    -- kalp ve donusum defterlerindeki sebeple.                  */
 import {
-  zirhTara, zirhUnutOyuncu, modAl, modYaz, modListesi, takimVarMi,
-  takimParcalari, elindekiCekirdek
+  zirhTara, zirhUnutOyuncu, modListesi, elindekiCekirdek
 } from "./yetenekler/zirh.js";
 
 /* Ben 10 (v4.92): elindeki esyaya gore yaratik oluyorsun.
@@ -103,6 +102,10 @@ import "./yetenekler/bot_ilkel.js";
 import "./yetenekler/o_sey.js";
 import "./yetenekler/donusum.js";
 import "./yetenekler/bot_guc.js";
+/* v4.95: mod cekirdeklerinin ISINLARI. zirh.js'ten
+   elindekiCekirdek'i kullaniyor, o yuzden ondan SONRA
+   gelmeli -- yukaridaki DIKKAT notunun ayni geregi.        */
+import "./yetenekler/zirh_isini.js";
 
 /* DIKKAT -- SIRA ONEMLI.
    kollar.js var olan yeteneklere esya BAGLIYOR, yani bagladigi
@@ -593,68 +596,74 @@ function seyBaslat(oyuncu) {
   return mesaj;
 }
 
-/* ZIRH YUKSELTMESI MENUSU  (v4.91)
+/* MAX STEEL MOD MENUSU  (v4.95)
 
-   Referans mod (Ionstrike / Max Steel) tek takim + bircok mod
-   olarak kurulmus; bizde de oyle. Ozet metinleri ayarlar.js'ten
-   URETILIYOR, burada elle yazilmiyor -- yeni bir mod eklenirse
-   menude kendiliginden dogru gorunur.                          */
+   ---- ARTIK SECIM YAPMIYOR ----
+   v4.91-v4.94 arasinda buradan MOD SECILIYORDU. Kullanici
+   kaldirdi: "menuden o modlara gerek kalmadi, yani
+   secebiliyorduk ya."
+
+   Hakliydi: v4.94'te cekirdek geldi ve zirh.js zaten
+   "elindeki cekirdek menudeki secimi EZIYOR" diyordu. Yani
+   menuden bir sey secmek cogu zaman HICBIR SEY yapmiyordu --
+   calisir gorunup calismamak, bu paketteki en pahali hata
+   sinifi (v4.83 dersi).
+
+   Menu simdi Ben 10 menusuyle AYNI ISI yapiyor: hangi
+   cekirdegin ne verdigini yaziyor. Donusum cekirdegi ELINE
+   ALMAKLA oluyor, cunku gorunusu suren molang sorgusu
+   (get_equipped_item_name) yalniz eli okuyabiliyor.
+
+   Ozet metinleri ayarlar.js'ten URETILIYOR, burada elle
+   yazilmiyor -- yeni bir mod eklenirse menude kendiliginden
+   dogru gorunur.                                            */
 function zirhMenusu(oyuncu) {
   if (!ZIRH_ACIK) {
-    actionbarYaz(oyuncu, "§cZırh Yükseltmesi kapalı (ZIRH_ACIK).");
+    actionbarYaz(oyuncu, "§cMax Steel çekirdekleri kapalı (ZIRH_ACIK).");
     return undefined;
   }
-  const liste = modListesi(oyuncu.id);
-  const parca = takimParcalari(oyuncu);
-  const tam = parca === ZIRH_PARCALAR.length;
+  const liste = modListesi(oyuncu);
+  const cekirdek = elindekiCekirdek(oyuncu);
 
   const dugmeler = liste.map((m) => ({
     anahtar: m.anahtar,
-    ad: (m.anahtar === cekirdek ? "§b⚡ " : (m.secili ? "§a✔ " : "")) +
-        "§f" + m.ad + "\n§8" + m.ozet +
-        "\n§8dönüşüm: §7pa:zirh_mod_" + m.anahtar
+    ad: (m.elinde ? "§b⚡ " : "") + "§f" + m.ad + "\n§8" + m.ozet +
+        "\n§8çekirdek: §7" + m.esya
   }));
 
-  /* Takim eksikse SEBEBI yazilsin. "Modu sectim ama hicbir sey
-     olmuyor" bu paketteki en pahali hata sinifi (v4.83 dersi:
-     calisiyor mu != ulasilabiliyor mu).                        */
-  /* v4.94: elinde bir MOD CEKIRDEGI varsa tam takim sarti yok --
-     donusumun kendisi zaten takimi giymis olmak demek.        */
-  const cekirdek = elindekiCekirdek(oyuncu);
   const baslik = cekirdek
     ? "§b⚡ Max Steel §7· §f" + ZIRH_MODLAR.get(cekirdek).ad +
       " §8(çekirdek elinde)"
-    : tam
-      ? "§b⛨ Zırh Yükseltmesi §7· mod seç"
-      : "§b⛨ Zırh Yükseltmesi §8(" + parca + "/" + ZIRH_PARCALAR.length +
-        " parça) §7· §emodlar için tam takım gerek §8ya da çekirdeği eline al";
+    : "§b⚡ Max Steel §7· §fçekirdeği eline al";
 
+  /* Secim callback'i BOS: dokunmak sadece menuyu kapatir.
+     Yanlislikla bir sey degistirmesin diye bilerek boyle --
+     "sectim ama bir sey olmadi" hissi vermemek icin de
+     baslik ne yapilmasi gerektigini yaziyor.                */
   const acildi = menuAc(oyuncu, baslik, dugmeler, -1,
-    (i) => zirhModSec(oyuncu, dugmeler[i].anahtar), []);
+    (i) => zirhBilgi(oyuncu, dugmeler[i].anahtar), []);
 
   if (!acildi) {
-    /* Menu yoksa (server-ui kapali) sirayla ilerlet: tabletten
-       yine de mod degistirilebilsin.                           */
-    const simdiki = modAl(oyuncu.id);
-    const sira = liste.map((m) => m.anahtar);
-    const i = sira.indexOf(simdiki);
-    zirhModSec(oyuncu, sira[(i + 1) % sira.length]);
+    /* Menu yoksa (server-ui kapali) eldeki cekirdegi ya da
+       nasil alinacagini yaz: tabletten yine de ogrenilebilsin. */
+    zirhBilgi(oyuncu, cekirdek || liste[0].anahtar);
   }
   return undefined;
 }
 
-function zirhModSec(oyuncu, anahtar) {
-  if (!modYaz(oyuncu.id, anahtar)) return;
+/* Tek modun ne verdigini sohbete yazar. Menude dokununca ve
+   menu yokken cagriliyor -- ikisinde de AYNI metin.         */
+function zirhBilgi(oyuncu, anahtar) {
   const t = ZIRH_MODLAR.get(anahtar);
-  const parca = takimParcalari(oyuncu);
-  const tam = parca === ZIRH_PARCALAR.length;
+  if (!t) return;
+  const elde = elindekiCekirdek(oyuncu) === anahtar;
   try {
     oyuncu.sendMessage(
-      "§b⛨ §fZırh Yükseltmesi §7· §f" + t.ad + "\n§8" + t.ozet +
+      "§b⚡ §fMax Steel §7· §f" + t.ad + "\n§8" + t.ozet +
       "\n§8kaynak: ionstrike/" + t.kaynak +
-      (tam ? "" : "\n§eTam takım gerek §8(" + parca + "/" +
-        ZIRH_PARCALAR.length + ") — parçalar yine " + ZIRH_KORUMA +
-        " zırh puanı veriyor"));
+      "\n§8çekirdek: §7" + ZIRH_CEKIRDEK_ONEK + anahtar +
+      (elde ? "\n§a✔ Şu an elinde — güçler açık."
+            : "\n§eÇekirdeği eline al §8(dönüşüm ve güçler onunla geliyor)"));
   } catch (e) {
     hataYaz("zirh.mesaj", e);
   }
@@ -846,9 +855,13 @@ function menuEkleri(oyuncu) {
        esyanin kendi bileseninden; buradaki secim MODUN
        gucleri.                                                 */
     {
-      ad: "⛨ Zırh Yükseltmesi §8(" +
-          (ZIRH_MODLAR.get(elindekiCekirdek(oyuncu) || modAl(oyuncu.id)) || {}).ad +
-          (elindekiCekirdek(oyuncu) ? " §b⚡" : "") + ")",
+      /* v4.95: takim ve mod SECIMI kalkti; satir artik
+         "elinde ne var" diyor. Cekirdek yoksa mod adi da
+         yok -- olmayan bir secimi yazmak yaniltirdi.       */
+      ad: "⚡ Max Steel §8(" +
+          (elindekiCekirdek(oyuncu)
+            ? (ZIRH_MODLAR.get(elindekiCekirdek(oyuncu)) || {}).ad + " §b⚡"
+            : "çekirdek yok") + ")",
       calis() { zirhMenusu(oyuncu); }
     },
     /* v4.92: Ben 10. Menu sadece BILGI veriyor -- donusum

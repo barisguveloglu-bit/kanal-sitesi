@@ -14,7 +14,7 @@ import {
   LAZER_MODLARI, LAZER_MOD_VARSAYILAN,
   LAZER_BUZ_ACIK, LAZER_BUZ_BLOK, LAZER_BUZ_SURE,
   LAZER_BUZ_YARICAP, LAZER_BUZ_YUKSEK, LAZER_BUZ_TAVAN,
-  LAZER_HASAR,
+  LAZER_HASAR, LAZER_HASAR_SEBEP, LAZER_BAGISIKLIK_SINIR,
   LAZER_ZIRH_ACIK, LAZER_ZIRH_KALAN,
   LAZER_VURUS_ARALIK, LAZER_CIZIM_ARALIK,
   LAZER_KALKAN_KIR, LAZER_KALKAN_SURESI, LAZER_KALKAN_ESYALARI,
@@ -189,7 +189,28 @@ function kalkaniKir(varlik) {
    sonra 32 ek can bir vurusu emebiliyor. Emilim iksirlerimizin
    hepsinde var, yani onsuz iki oyuncu birbirini lazerle
    vuramazdi.                                                 */
-function cananCek(varlik) {
+/* Hedefin CANINI okur. Okunamiyorsa undefined -- bu bir hata
+   degil: her varligin minecraft:health bileseni yok (esya
+   cerceveleri, bazi eklenti varliklari). Okunamayan hedefte
+   emilim sayaci hic calismaz, eski davranis surer.          */
+function canDegeri(varlik) {
+  try {
+    const c = varlik.getComponent("minecraft:health");
+    if (!c) return undefined;
+    const v = c.currentValue;
+    return typeof v === "number" ? v : undefined;
+  } catch (e) {
+    return undefined;
+  }
+}
+
+/* varlikId -> ust uste kac vurus EMILDI (v4.95). Isin bitince
+   temizleniyor: sayac isin OMRUNE ait, kalici degil.        */
+const emilen = new Map();
+
+function emilenUnut() { emilen.clear(); }
+
+function cananCek(varlik, atan) {
   /* Emilim kalpleri ayri bir havuz: hasardan once silinmezse
      ilk vurusu onlar yiyor.                                  */
   try {
@@ -198,10 +219,68 @@ function cananCek(varlik) {
     /* efekt yoksa ya da silinemiyorsa devam */
   }
 
+  const oncekiCan = canDegeri(varlik);
+
   try {
-    varlik.applyDamage(LAZER_HASAR, { cause: "fire" });
+    /* v4.95: "fire" DEGIL. Bekci (warden) ve butun ates
+       bagisikli varliklar fire'i TAM SIFIRLIYORDU -- 359 vurus
+       hikayesinin sebebi buydu. damagingEntity de yeni:
+       oldurme sahibi oyuncuya yazilsin, tecrube ve ganimet
+       gelsin. Gerekcesi ayarlar.js:LAZER_HASAR_SEBEP.        */
+    varlik.applyDamage(LAZER_HASAR,
+                       { cause: LAZER_HASAR_SEBEP, damagingEntity: atan });
   } catch (e) {
-    hataYaz("goz_lazeri.cananCek", e);
+    /* Bazi surumlerde damagingEntity kabul edilmiyor ya da
+       atan gecersiz. Hasar DUSMESIN diye sebepsiz deneniyor;
+       sessizce vazgecmek "vurdum ama olmedi"nin ta kendisi.  */
+    try {
+      varlik.applyDamage(LAZER_HASAR, { cause: LAZER_HASAR_SEBEP });
+    } catch (e2) {
+      try {
+        varlik.applyDamage(LAZER_HASAR);
+      } catch (e3) {
+        hataYaz("goz_lazeri.cananCek", e3);
+      }
+    }
+  }
+
+  /* ---- Vurus gercekten indi mi? ----
+     Can okunamiyorsa karar veremeyiz; karisma.              */
+  if (oncekiCan === undefined) return;
+  const sonrakiCan = canDegeri(varlik);
+  if (sonrakiCan === undefined) return;
+
+  if (sonrakiCan < oncekiCan) {
+    emilen.delete(varlik.id);        // indi: sayac sifirlanir
+    return;
+  }
+
+  const sayi = (emilen.get(varlik.id) || 0) + 1;
+  emilen.set(varlik.id, sayi);
+  if (sayi < LAZER_BAGISIKLIK_SINIR) return;
+
+  /* Ust uste LAZER_BAGISIKLIK_SINIR kez emildi: dokunulmazlik
+     penceresiyle aciklanamaz, gercek bagisiklik. 500 hasarlik
+     bir isin zaten her seyi oldururdu -- bagisikligin arkasina
+     saklanmasin.
+
+     Cani dogrudan sifirlamak yerine kill() tercih ediliyor:
+     olum animasyonu, ganimet ve tecrube boyle geliyor.
+     kill() yoksa cana dusuluyor.                             */
+  emilen.delete(varlik.id);
+  try {
+    if (typeof varlik.kill === "function") {
+      varlik.kill();
+      return;
+    }
+  } catch (e) {
+    /* kill calismadi: cana duselim */
+  }
+  try {
+    const c = varlik.getComponent("minecraft:health");
+    if (c && typeof c.setCurrentValue === "function") c.setCurrentValue(0);
+  } catch (e) {
+    hataYaz("goz_lazeri.bagisiklik", e);
   }
 }
 
@@ -527,7 +606,7 @@ yetenekKaydet({
           /* 3. CAN. Vurus hasari da burada: yarim kalpten
                 yuksekse SOYUP SABITLIYOR, zaten yarim kalpteyse
                 BITIRIYOR. Gerekcesi cananCek'in basinda.        */
-          cananCek(h.varlik);
+          cananCek(h.varlik, oyuncu);
 
           /* ---- Element buz modu ---- */
           if (ayar.dondur) {
@@ -861,6 +940,10 @@ yetenekKaydet({
             hataYaz("goz_lazeri.bitirActionbar", e);
           }
         }
+        // Emilen-vurus sayaci ISININ omrune ait: burada
+        // silinmezse bir sonraki isin, oncekinin sayacini
+        // devralip hedefi haksiz yere aninda bitirirdi.
+        emilenUnut();
         // Goz normale donsun -- kademe hala devam ediyor
         lazerGozuKapat(oyuncu, kademe);
         kollariIndir(oyuncu);
