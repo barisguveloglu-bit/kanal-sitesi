@@ -13,6 +13,8 @@
         "default": "textures/entity/steve",
         "cape": "textures/entity/cape_invisible",
         "o_sey": "textures/entity/o_sey",
+        "zirh_mod_guc_matkap": "textures/entity/zirh_mod_guc_matkap",
+        "zirh_mod_titan_hale": "textures/entity/zirh_mod_titan_hale",
         "ben_elmas": "textures/entity/ben_elmas",
         "ben_elmas_proto": "textures/entity/ben_elmas_proto",
         "ben_elmas_10k": "textures/entity/ben_elmas_10k",
@@ -39,6 +41,8 @@
         "default": "geometry.humanoid.custom",
         "cape": "geometry.cape",
         "o_sey": "geometry.o_sey",
+        "zirh_mod_guc_matkap": "geometry.zirh_mod_guc_matkap",
+        "zirh_mod_titan_hale": "geometry.zirh_mod_titan_hale",
         "ben_elmas": "geometry.ben_elmas",
         "ben_elmas_proto": "geometry.ben_elmas_proto",
         "ben_elmas_10k": "geometry.ben_elmas_10k",
@@ -179,6 +183,9 @@
           },
           {
             "ripjaws_hizli": "variable.ben_cene_ailesi && query.is_in_water && query.is_sprinting"
+          },
+          {
+            "zirh_mod_guc_matkap": "variable.zirh_mod_guc"
           }
         ],
         "should_update_effects_offscreen": "1.0"
@@ -254,7 +261,8 @@
         "brushing": "animation.humanoid.brushing",
         "o_sey_kollar": "animation.o_sey.yuru",
         "ripjaws_yavas": "animation.ripjaws.swim_slow",
-        "ripjaws_hizli": "animation.ripjaws.swim_fast"
+        "ripjaws_hizli": "animation.ripjaws.swim_fast",
+        "zirh_mod_guc_matkap": "animation.drill_spin"
       },
       "render_controllers": [
         {
@@ -337,6 +345,12 @@
         },
         {
           "controller.render.zirh_mod_titan": "variable.zirh_mod_titan && !variable.is_first_person && !variable.map_face_icon"
+        },
+        {
+          "controller.render.zirh_mod_guc_matkap": "variable.zirh_mod_guc && !variable.is_first_person && !variable.map_face_icon"
+        },
+        {
+          "controller.render.zirh_mod_titan_hale": "variable.zirh_mod_titan && !variable.is_first_person && !variable.map_face_icon"
         }
       ],
       "enable_attachables": true

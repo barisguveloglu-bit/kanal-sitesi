@@ -242,6 +242,28 @@
           "*": "Material.default"
         }
       ]
+    },
+    "controller.render.zirh_mod_guc_matkap": {
+      "geometry": "Geometry.zirh_mod_guc_matkap",
+      "textures": [
+        "Texture.zirh_mod_guc_matkap"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.zirh_mod_titan_hale": {
+      "geometry": "Geometry.zirh_mod_titan_hale",
+      "textures": [
+        "Texture.zirh_mod_titan_hale"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
     }
   }
 }

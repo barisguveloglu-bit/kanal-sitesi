@@ -2482,6 +2482,83 @@ ZIRH_MODLAR_LISTE = [
 ZIRH_MOD = [("zirh_mod_" + _m, "Çekirdek · " + _ad,
              "Mode Core: " + _ad, ["zirh_mod_" + _m], "Max Steel")
             for _m, _ad in ZIRH_MODLAR_LISTE]
+# ---- MODLARIN EK KATMANLARI  (v4.97) ----
+#
+# Kullanici: "Max steel modunda su eksikleri gordum,
+# animasyonlar eklenmeli cunku modun kendisinde var,
+# referanstan bakarsin."
+#
+# BAKILDI. Modun TAMAMINDA tek bir animasyon dosyasi var:
+#   assets/ionstrike/animations/animation.drill_spin.json
+# Guc modunun kol MATKAPLARININ donusu. Bicimi zaten Bedrock
+# (format_version 1.8.0), donusturmeye gerek yok.
+#
+# Ama animasyonu ararken daha buyuk bir eksik cikti: her modun
+# BIRDEN COK render katmani var ve biz her modun yalnizca
+# ANA katmanini almisiz. Denetim (powers/*.json ->
+# palladium:render_layer):
+#
+#   guc    . exo_mode + DRILLS + transform_flash + strength_mode
+#   titan  . HALO + transform_flash + titan
+#   ucus   . steel_glow + thrusters + transform_flash + flight2
+#   dalis  . steel_glow + transform_flash + scuba2
+#   gizli  . steel_glow + glow_model + stealth_model
+#
+# Yani Guc modunun MATKAPLARI ve Titan'in HALESI hic
+# aktarilmamis. Ikisi de artik burada.
+#
+# ---- NEDEN AYRI KATMAN, TEK GEOMETRI DEGIL ----
+# Bedrock'ta bir geometrinin TEK dokusu olur. Matkabin dokusu
+# 256x256 (drill_mode.png), takimin dokusu da ayri bir
+# 256x256; halenin dokusu 64x64. Uc farkli doku tek
+# geometriye sigmiyor -- uv'leri yeniden hesaplamak gerekirdi.
+#
+# Onun yerine v4.90 makinesinin kendi yolu kullaniliyor:
+# ek katman KENDI geometrisi, KENDI dokusu ve KENDI render
+# denetleyicisiyle geliyor, ama tetigi ANA MODUN degiskeni.
+# Yani cekirdek elde oldugunda ikisi birden ciziliyor.
+#
+# ---- ALINMAYANLAR (uydurulmadi, raporlaniyor) ----
+#   exo_mode      . Guc modunun ikinci takimi; ana takimla
+#                   ayni bolgeleri kapliyor, uzerine binince
+#                   z-cakismasi yapiyor.
+#   steel_glow /  . emissive katmanlar. Bedrock'un oyuncu
+#   *_glow          modelinde parlama yok; rengi zaten ana
+#                   dokuya bindirildi (v4.94), parlamasi eksik.
+#   thrusters,    . parcacik/isik yayici katmanlar, model
+#   lightning       degil.
+#   transform_flash . donusum caktisi; bizde ZIRH_CAKMA
+#                     parcacigi olarak zaten var (v4.94).
+#
+# (mod anahtari, ek katman anahtari, geo dosyasi, animasyon)
+ZIRH_EK = [
+    ("guc",   "zirh_mod_guc_matkap",  "zirh_mod_guc_matkap",  "drill_spin"),
+    ("titan", "zirh_mod_titan_hale",  "zirh_mod_titan_hale",  None),
+]
+
+# Ek katmanlarin animasyonlari: dosya adi -> Bedrock kimligi.
+#
+# ---- BU DOSYA OLDUGU GIBI KOPYALANAMIYOR ----
+# Ben 10 animasyonlari oldugu gibi kopyalanabilmisti cunku
+# anahtarlari zaten "animation." ile basliyordu
+# (animation.ripjaws.swim_fast gibi). Ionstrike'inki OYLE
+# DEGIL: dosyanin icindeki anahtar duz "drill".
+#
+#   {"format_version":"1.8.0","animations":{"drill":{...}}}
+#
+# Bu GeckoLib'in kendi kurali; Bedrock'ta bir animasyonun
+# kimligi "animation." ile BASLAMAK ZORUNDA, yoksa oyun onu
+# hic tanimiyor ve animasyon SESSIZCE hic oynamiyor.
+#
+# (Modun kendi render_layer'i zaten "animation.drill_spin"
+# diye cagiriyor -- yani dogru ad bu, dosyadaki anahtar
+# eksik yazilmis.)
+#
+# O yuzden tek sey degistiriliyor: ANAHTAR. Kemikler, kare
+# zamanlari, donusler HIC ELLENMIYOR; test ikisini
+# karsilastiriyor.
+ZIRH_EK_ANIM = {"drill_spin": "animation.drill_spin"}
+
 ZIRH_TR_TAKIM = "Zırh Yükseltmesi"
 
 # (anahtar, yuva, koruma, TR ad, EN ad, ikon bolgesi)
@@ -2933,18 +3010,63 @@ BEN10_BICIM = [
     ("_10k",   "10K",      "10K"),
 ]
 
-# (kisa ad, TR ad, EN ad, tur) -- bicimler yukaridaki tablodan
-# CARPILIYOR, elle yazilmiyor.
+# ---- UZAYLI BOYUTLARI  (v4.97) ----
+#
+# Kullanici: "uzayli boyutlari daha buyuk olmasi gerekiyordu,
+# normal Steve boyutunda."
+#
+# HAKLIYDI ve sebebi bulundu. Modun her uzayli gucunde bir
+# palladium:size yetenegi var ve oyuncuyu O CARPANLA
+# buyutuyor:
+#     data/alienevo_aliens/palladium/powers/petrosapien.json
+#       "size_change": {"type": "palladium:size", "scale": 1.35}
+#
+# Biz modun `.geo.json`'unu HAM haliyle aliyorduk; o dosyalar
+# 1x oyuncu icin cizilmis ve carpan CIZIM SIRASINDA
+# uygulaniyor. Yani dosyayi dogru aktarmisiz ama carpani
+# kacirmisiz -- Dort Kol tam 2 KAT kucuk cikiyordu.
+#
+# Bedrock'ta oyuncu modelini calistirma aninda olceklemek yok
+# (query.model_scale oyunculara islemiyor), o yuzden carpan
+# GEOMETRIYE ISLENIYOR: her kup origin/size, her pivot ve her
+# sisirme carpanla carpiliyor. Sonuc birebir ayni sekil,
+# dogru boyda.
+#
+# Sayilar modun kendi JSON'undan, tahmin degil:
+#     Petrosapien      1.35
+#     Tetramand        2
+#     Piscciss Volann  1.17
+#     Pyronite         1.1
+#
+# DIKKAT -- CARPISMA KUTUSU BUYUMUYOR. Bedrock'ta oyuncunun
+# kutusu sabit (0.6 x 1.8). Yani Dort Kol iki kat gorunuyor
+# ama hala normal bir kapidan geciyor ve ates topunun
+# omzundan gecen ok ona degmiyor. Bu MOTOR SINIRI, eksik is
+# degil; NOTLAR'da yaziyor.
+#
+# (kisa ad, TR ad, EN ad, tur, olcek)
 BEN10_TABAN = [
-    ("elmas",   "Elmas Kafa", "Diamondhead", "Petrosapien"),
-    ("dortkol", "Dört Kol",   "Four Arms",   "Tetramand"),
-    ("cene",    "Yüzen Çene", "Ripjaws",     "Piscciss Volann"),
-    ("ates",    "Ateş Topu",  "Heatblast",   "Pyronite"),
+    ("elmas",   "Elmas Kafa", "Diamondhead", "Petrosapien",     1.35),
+    ("dortkol", "Dört Kol",   "Four Arms",   "Tetramand",       2.0),
+    ("cene",    "Yüzen Çene", "Ripjaws",     "Piscciss Volann", 1.17),
+    ("ates",    "Ateş Topu",  "Heatblast",   "Pyronite",        1.1),
 ]
+
+# tur adi -> modun kendi power dosyasi (test karsilastiriyor)
+BEN10_GUC_DOSYA = {
+    "Petrosapien":     "petrosapien",
+    "Tetramand":       "tetramand",
+    "Piscciss Volann": "piscciss_volann",
+    "Pyronite":        "pyronite",
+}
 
 # (anahtar, TR ad, EN ad, geo dosyalari, tur adi)
 BEN10 = []
-for _kisa, _tr, _en, _tur in BEN10_TABAN:
+# anahtar -> olcek (v4.97). Ayri bir sozluk cunku BEN10 demeti
+# bes elemanli ve onu genisletmek ALTI yerde dongu imzasi
+# degistirmek demekti.
+BEN10_OLCEK = {}
+for _kisa, _tr, _en, _tur, _olcek in BEN10_TABAN:
     for _son, _btr, _ben in BEN10_BICIM:
         _a = "ben_" + _kisa + _son
         _dosyalar = [_a]
@@ -2953,6 +3075,7 @@ for _kisa, _tr, _en, _tur in BEN10_TABAN:
             _dosyalar.append(_a + "_kollar")
         BEN10.append((_a, "%s · %s" % (_tr, _btr), "%s (%s)" % (_en, _ben),
                       _dosyalar, _tur))
+        BEN10_OLCEK[_a] = _olcek
 
 # ---- OMNITRIX (v4.93) ----
 # Kullanici: "hani ben 10 saati var ya onun da modeli varsa onu
@@ -3067,6 +3190,40 @@ def ben10_geometrisi(anahtar, dosyalar):
                 b["parent"] = yeniden[b["parent"]]
             gorulen.add(b["name"])
             kemikler.append(b)
+
+    # ---- OLCEK (v4.97) ----
+    # Modun palladium:size yetenegi oyuncuyu carpanla
+    # buyutuyor; `.geo.json` dosyalari 1x cizilmis. Bedrock'ta
+    # oyuncu modelini calistirma aninda olceklemek yok, o
+    # yuzden carpan GEOMETRIYE isleniyor.
+    #
+    # Neler carpiliyor: kup origin ve size, kemik pivot,
+    # sisirme (inflate). DONUSLER CARPILMIYOR -- aci olcekten
+    # bagimsiz; carpsaydik model burulurdu.
+    #
+    # UV'lere de DOKUNULMUYOR: doku ayni, sadece kaplandigi
+    # yuzey buyuyor.
+    olcek = BEN10_OLCEK.get(anahtar, 1.0)
+    if olcek != 1.0:
+        def _c(v):
+            return [round(x * olcek, 4) for x in v]
+        for b in kemikler:
+            if "pivot" in b:
+                b["pivot"] = _c(b["pivot"])
+            yeni_kupler = []
+            for k in b.get("cubes", []):
+                k = dict(k)
+                if "origin" in k:
+                    k["origin"] = _c(k["origin"])
+                if "size" in k:
+                    k["size"] = _c(k["size"])
+                if "pivot" in k:
+                    k["pivot"] = _c(k["pivot"])
+                if k.get("inflate"):
+                    k["inflate"] = round(k["inflate"] * olcek, 4)
+                yeni_kupler.append(k)
+            if yeni_kupler:
+                b["cubes"] = yeni_kupler
 
     return {
         "format_version": "1.12.0",
@@ -3238,6 +3395,13 @@ def oyuncu_modeli_paketi(surum):
     # 1. Ek geometri ve doku
     d.setdefault("geometry", {})["o_sey"] = "geometry.o_sey"
     d.setdefault("textures", {})["o_sey"] = "textures/entity/" + SEY_DOKU
+    # v4.97: modlarin EK KATMANLARI (Guc'un matkaplari,
+    # Titan'in halesi). Kendi geometrisi ve kendi dokusuyla
+    # geliyorlar cunku Bedrock'ta bir geometrinin tek dokusu
+    # olur ve uc katmanin uc ayri dokusu var.
+    for _em, _ek, _egeo, _eanim in ZIRH_EK:
+        d["geometry"][_ek] = "geometry." + _ek
+        d["textures"][_ek] = "textures/entity/" + _ek
     # v4.92: Ben 10 yaratiklari + v4.94: Max Steel mod
     # cekirdekleri. Ayni kalibin tekrari -- her biri kendi
     # geometrisi, kendi dokusu, kendi tetigi.
@@ -3285,6 +3449,16 @@ def oyuncu_modeli_paketi(surum):
                 "variable.%s && !variable.is_first_person"
                 " && !variable.map_face_icon" % _ba
         })
+    # Ek katmanin TETIGI ana modun degiskeni: cekirdek elde
+    # oldugunda ikisi birden ciziliyor. Kendi degiskeni
+    # OLMAMALI -- ayri bir tetik iki katmanin ayrisabilecegi
+    # anlamina gelirdi (matkaplar var, takim yok gibi).
+    for _em, _ek, _egeo, _eanim in ZIRH_EK:
+        yeni_rc.append({
+            "controller.render." + _ek:
+                "variable.zirh_mod_%s && !variable.is_first_person"
+                " && !variable.map_face_icon" % _em
+        })
     d["render_controllers"] = yeni_rc
 
     # 5. Fazladan dort kolun salinimi. Vanilla oyuncu
@@ -3310,7 +3484,7 @@ def oyuncu_modeli_paketi(surum):
     # Bicim AILELERI: "Yuzen Cene'nin herhangi bir bicimi" gibi
     # kosullar icin. Uc bicimi tek tek yazmak yerine tek
     # degisken -- yeni bicim eklenirse kendiliginden dogru.
-    for _kisa, _tr2, _en2, _tur2 in BEN10_TABAN:
+    for _kisa, _tr2, _en2, _tur2, _olc2 in BEN10_TABAN:
         _uyeler = ["variable.ben_%s%s" % (_kisa, _son)
                    for _son, _a1, _a2 in BEN10_BICIM]
         d["scripts"]["pre_animation"].append(
@@ -3319,6 +3493,20 @@ def oyuncu_modeli_paketi(surum):
     for _ad, _anim, _kosul in BEN10_ANIM_BAGLI:
         d["animations"][_ad] = _anim
         d["scripts"]["animate"].append({_ad: _kosul})
+
+    # v4.97: matkap donusu. Modda `animation_trigger: "drilling"`
+    # ile calisiyor; Bedrock'ta tetik yok, o yuzden CEKIRDEK
+    # ELDEYKEN surekli donuyor. Modda da matkaplar takimin
+    # gorunur bir parcasi ve "drills" yetenegi acikken
+    # donuyorlar -- surekli donmek yanlis bir sey gostermiyor.
+    for _em, _ek, _egeo, _eanim in ZIRH_EK:
+        if not _eanim:
+            continue
+        _anim_adi = ZIRH_EK_ANIM.get(_eanim)
+        if not _anim_adi:
+            continue
+        d["animations"][_ek] = _anim_adi
+        d["scripts"]["animate"].append({_ek: "variable.zirh_mod_" + _em})
 
     yaz_json(os.path.join(OMP, "entity/player.entity.json"), v)
 
@@ -3335,6 +3523,12 @@ def oyuncu_modeli_paketi(surum):
         denetleyiciler["controller.render." + _ba] = {
             "geometry": "Geometry." + _ba,
             "textures": ["Texture." + _ba],
+            "materials": [{"*": "Material.default"}],
+        }
+    for _em, _ek, _egeo, _eanim in ZIRH_EK:
+        denetleyiciler["controller.render." + _ek] = {
+            "geometry": "Geometry." + _ek,
+            "textures": ["Texture." + _ek],
             "materials": [{"*": "Material.default"}],
         }
     yaz_json(os.path.join(OMP, "render_controllers/o_sey.render_controllers.json"), {
@@ -3356,6 +3550,38 @@ def oyuncu_modeli_paketi(surum):
     # Ben 10 yaratiklari (v4.92). Paket kendi kendine yetsin:
     # geometri ve doku burada da duruyor, ikisi de URETILDIGI
     # icin ayrisamazlar.
+    for _em, _ek, _egeo, _eanim in ZIRH_EK:
+        # Ayni donusturucu: kemik adlari vanillaya cevriliyor,
+        # kupler/uv/donusler HIC ellenmiyor.
+        yaz_json(os.path.join(OMP, "models/entity/%s.geo.json" % _ek),
+                 ben10_geometrisi(_ek, [_egeo]))
+        _ekd = os.path.join(DOKU_KAYNAK, _ek + ".png")
+        if os.path.exists(_ekd):
+            _ekh = os.path.join(OMP, "textures/entity/%s.png" % _ek)
+            os.makedirs(os.path.dirname(_ekh), exist_ok=True)
+            shutil.copyfile(_ekd, _ekh)
+        else:
+            print("UYARI: %s dokusu yok (%s)" % (_ek, _ekd))
+        # Animasyon: modun kendi dosyasi OLDUGU GIBI kopyalaniyor.
+        if _eanim:
+            _eak = os.path.join(BEN10_ANIM_KAYNAK, _eanim + ".animation.json")
+            if os.path.exists(_eak):
+                with open(_eak, encoding="utf-8") as _f:
+                    _av = json.load(_f)
+                # Anahtari Bedrock kimligine cevir (gerekcesi
+                # ZIRH_EK_ANIM basliginda). Icerige dokunma.
+                _hedef_ad = ZIRH_EK_ANIM.get(_eanim)
+                if _hedef_ad and len(_av.get("animations", {})) == 1:
+                    _eski_ad = list(_av["animations"])[0]
+                    if _eski_ad != _hedef_ad:
+                        _av["animations"] = {_hedef_ad: _av["animations"][_eski_ad]}
+                        print("   %s: animasyon anahtari %s -> %s"
+                              % (_eanim, _eski_ad, _hedef_ad))
+                yaz_json(os.path.join(
+                    OMP, "animations/%s.animation.json" % _eanim), _av)
+            else:
+                print("UYARI: %s animasyonu yok" % _eanim)
+
     for _ba, _btr, _ben, _bdos, _btur in BEN10 + ZIRH_MOD:
         yaz_json(os.path.join(OMP, "models/entity/%s.geo.json" % _ba),
                  ben10_geometrisi(_ba, _bdos))

@@ -1,3 +1,108 @@
+# v4.97 — Uzaylı boyutları, Max Steel'in eksik katmanları ve tek animasyonu
+
+## 1. Uzaylı boyutları: çarpanı kaçırmışız
+
+Kullanıcı: *"uzaylı boyutları daha büyük olması gerekiyordu, normal
+Steve boyutunda."*
+
+Haklıydı ve sebebi bulundu. Modun **her uzaylı gücünde** bir
+`palladium:size` yeteneği var ve oyuncuyu o çarpanla büyütüyor:
+
+```json
+// data/alienevo_aliens/palladium/powers/petrosapien.json
+"size_change": { "type": "palladium:size", "scale": 1.35 }
+```
+
+Biz modun `.geo.json`'unu **ham** haliyle alıyorduk; o dosyalar 1× oyuncu
+için çizilmiş ve çarpan **çizim sırasında** uygulanıyor. Yani dosyayı
+doğru aktarmışız ama çarpanı kaçırmışız — **Dört Kol tam 2 kat küçük
+çıkıyordu.**
+
+| uzaylı | çarpan (modun JSON'undan) | önce | sonra |
+|---|---|---|---|
+| Elmas Kafa (Petrosapien) | 1.35 | 34.5 | 46.5 |
+| Dört Kol (Tetramand) | **2** | 32.1 | 64.2 |
+| Yüzen Çene (Piscciss Volann) | 1.17 | 67.6 | 79.1 |
+| Ateş Topu (Pyronite) | 1.1 | 41.5 | 45.6 |
+
+*(Steve = 32 birim.)*
+
+Bedrock'ta oyuncu modelini çalışma anında ölçeklemek yok, o yüzden çarpan
+**geometriye işleniyor**: her küp origin/size, her pivot ve her şişirme
+çarpanla çarpılıyor. **Dönüşler ve UV'ler çarpılmıyor** — açı ölçekten
+bağımsız, doku da aynı. Test her ikisinin de değişmediğini ölçüyor
+(çarpanı yanlış yere uygulamak modeli burardı ve hiçbir yükseklik ölçümü
+bunu yakalamazdı).
+
+**Çarpışma kutusu büyümüyor.** Bedrock'ta oyuncunun kutusu sabit
+(0.6 × 1.8). Dört Kol iki kat görünüyor ama hâlâ normal bir kapıdan
+geçiyor. Motor sınırı, eksik iş değil.
+
+Max Steel modları **ölçeklenmedi** — kaynakta onların `palladium:size`
+yeteneği yok. Test bunu da sınıyor.
+
+## 2. Max Steel: animasyon ararken daha büyüğü çıktı
+
+Kullanıcı: *"animasyonlar eklenmeli çünkü modun kendisinde var,
+referanstan bakarsın."*
+
+**Bakıldı.** Modun tamamında **tek bir animasyon dosyası** var:
+`animation.drill_spin.json` — Güç modunun kol matkaplarının dönüşü.
+
+Ama onu ararken daha büyük bir eksik çıktı. Her modun **birden çok
+render katmanı** var ve biz her modun yalnızca **ana** katmanını almışız:
+
+| mod | katmanlar | bizde eksik olan |
+|---|---|---|
+| Güç | exo_mode + **drills** + transform_flash + strength_mode | **matkaplar** |
+| Titan | **halo** + transform_flash + titan | **hale** |
+| Uçuş | steel_glow + thrusters + transform_flash + flight2 | (parlama/parçacık) |
+| Dalış | steel_glow + transform_flash + scuba2 | (parlama) |
+| Gizlilik | steel_glow + glow_model + stealth_model | (parlama) |
+
+Yani **Güç modunun matkapları** ve **Titan'ın halesi** hiç
+aktarılmamıştı. İkisi de artık var.
+
+**Neden ayrı katman:** Bedrock'ta bir geometrinin **tek** dokusu olur.
+Matkabın dokusu 256×256, takımın dokusu ayrı bir 256×256, halenin dokusu
+64×64. Üçü tek geometriye sığmıyor. Onun yerine ek katman kendi
+geometrisi, kendi dokusu ve kendi render denetleyicisiyle geliyor — ama
+**tetiği ana modun değişkeni**, yani çekirdek elde olduğunda ikisi
+birden çiziliyor. Ayrı bir tetik "matkaplar görünür, takım görünmez"
+demek olurdu.
+
+## 3. Animasyon olduğu gibi kopyalanamadı — ve testi bu yakaladı
+
+Ben 10 animasyonları olduğu gibi kopyalanabilmişti çünkü anahtarları
+zaten `animation.` ile başlıyordu. Ionstrike'ınki öyle değil:
+
+```json
+{"format_version":"1.8.0","animations":{"drill":{...}}}
+```
+
+Bu GeckoLib'in kuralı. **Bedrock'ta bir animasyonun kimliği `animation.`
+ile başlamak zorunda**, yoksa oyun onu hiç tanımıyor ve animasyon
+**sessizce hiç oynamıyor**. İlk yazdığımda `animation.drill_spin` diye
+bağlamıştım ama dosyanın içindeki anahtar `drill`'di — test
+karşılaştırıp yakaladı.
+
+(Modun kendi `render_layer`'ı da `animation.drill_spin` diye çağırıyor,
+yani doğru ad bu; dosyadaki anahtar eksik yazılmış.)
+
+Değiştirilen tek şey **anahtar**. Kemikler, kare zamanları, dönüşler ve
+döngü bayrağı birebir aynı — test ikisini karşılaştırıyor.
+
+## Alınmayanlar (uydurulmadı)
+
+`exo_mode` (Güç'ün ikinci takımı; ana takımla aynı bölgeleri kaplıyor,
+üst üste binince z-çakışması yapıyor), `steel_glow` ve `*_glow`
+katmanları (Bedrock'un oyuncu modelinde parlama yok — rengi zaten ana
+dokuya bindirilmişti, parlaması eksik), `thrusters`/`lightning`
+(parçacık yayıcı, model değil), `transform_flash` (bizde `ZIRH_CAKMA`
+parçacığı olarak zaten var).
+
+---
+
 # v4.96 — Fisk'in dokuz kahramanı
 
 Kullanıcı dokuz isim verdi ve *"varsa dokuzunu da aktar"* dedi. Dokuzu
