@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.98";
+export const SURUM = "v4.99";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -1311,7 +1311,19 @@ export const LAZER_BUZ_YARICAP = 1;    // 3x3 kabuk
 export const LAZER_BUZ_YUKSEK  = 2;    // iki blok boyunda
 export const LAZER_BUZ_TAVAN   = 80;   // tek atista en fazla kac blok
 
-/* Lazerin SANA verdigi kisa destekler (hiz / kalkan) */
+/* ---- KULLANILMAYAN AYARLAR  (v4.99 taramasinda bulundu) ----
+
+   Asagidaki alti satiri HICBIR KOD OKUMUYOR. Lazerin "sana
+   kisa destek ver" fikri tasarlanmis ama hic baglanmamis;
+   degeri degistirmek oyunda hicbir sey yapmiyor.
+
+   SILINMEDILER cunku niyet belli ve bir gun baglanabilir --
+   ama "ayar var, karsiligi yok" durumu tam olarak
+   kullanicinin "vaat ettiklerini vermiyorlar" dedigi seyin
+   kucuk hali. Baglanana kadar burada BOYLE duruyorlar ki
+   kimse bunlari acik saniip beklemesin.
+
+   Testte sayilari sabit: yenisi eklenirse tarama yakalar.  */
 export const LAZER_HIZ_SURE     = 100;
 export const LAZER_HIZ_SEVIYE   = 2;
 export const LAZER_KALKAN_SURE  = 120;
@@ -2883,10 +2895,8 @@ export const DONUSUM_Y_KAYMA   = 0;
    Dagilim netherite ile ayni (3/8/6/3) ve kol_uret.py:ZIRH
    ile ESIT olmali -- zirh.mjs ikisini karsilastiriyor.       */
 export const ZIRH_ACIK     = true;
-export const ZIRH_ETIKET   = "pa:zirh_yukseltmesi";
 export const ZIRH_TARAMA   = 20;    // kac tick'te bir bakilsin
 export const ZIRH_SURE     = 120;   // efekt suresi (TARAMA x 6)
-export const ZIRH_KAYIT_ANAHTAR = "simsek:zirh";
 
 /* ---- GIYILEBILIR TAKIM KALDIRILDI  (v4.95) ----
 
@@ -3055,6 +3065,66 @@ export const ZIRH_MODLAR = new Map([
   }]
 ]);
 
+
+/* ================================================================
+   CAN SAYACI  (Health Overlay)                            v4.99
+
+   Kaynak: HealthOverlay 8.0.0 (Terrails, MC 1.19+).
+   Kendi tarifi: "A simple renderer for colored hearts."
+
+   ---- ASIL OZELLIK AKTARILAMIYOR ----
+   Mod 10 kalpten fazlasini UST USTE SATIRLAR yerine TEK
+   SATIRDA, her 10 kalpte bir RENK DEGISTIREREK ciziyor.
+   Bu tamamen Java cizim kodu: 36 derlenmis sinif ve
+   `GuiGraphics` cagrilari. Dokulari (health.png,
+   absorption.png) BEYAZ maskeler -- rengi kod veriyor,
+   dosyada renk YOK. Olculdu.
+
+   Bedrock'ta oyuncu HUD'unun kalp cizimi ne script'ten ne de
+   kaynak paketten degistirilebiliyor; satir satir cizmeye
+   devam ediyor. Yani renkli kalpler aktarilamiyor --
+   uydurulmadi, raporlaniyor.
+
+   ---- AKTARILAN: KALP SAYACI ----
+   Modun ikinci ozelligi tasinabilir ve BURADA GERCEKTEN
+   GEREKLI: healthoverlay.options.heart_display_mode
+     off / always / on_change
+   Uc mod da aynen aktarildi.
+
+   Neden gerekli: KALP_TAVAN = 200, yani oyuncu 210 kalbe
+   kadar cikabiliyor. Bedrock bunu 21 SATIR kalp olarak
+   ciziyor ve ekranin yarisini kapliyor; kac canin kaldigini
+   saymak imkansiz.
+
+   ---- RENKLER BIZIM ----
+   Modun kendi renk dizileri (normalColors, poisonedColors...)
+   derlenmis sinifin icinde, metin olarak okunamiyor. Tahmin
+   etmek yerine kendi esiklerimizi koyduk: dolulukla degisen
+   uc renk. Modun renkleri DEGIL, bizim secimimiz.
+   ================================================================ */
+export const CAN_SAYACI_ACIK = true;
+/* "kapali" | "hep" | "degisince"
+   Modun off / always / on_change'inin karsiligi. Varsayilan
+   "degisince": actionbar'i lazer sayaci ve donusum mesajlari
+   da kullaniyor, surekli yazan bir sayac hepsinin ustune
+   binerdi.                                                  */
+export const CAN_SAYACI_MOD = "degisince";
+/* Kac tick'te bir bakilsin. */
+export const CAN_SAYACI_TARAMA = 10;
+/* "degisince" modunda degisimden sonra kac tick gorunsun. */
+export const CAN_SAYACI_SURE = 60;
+/* Baska bir sey actionbar'a yazdiktan sonra kac tick
+   SUSULSUN. Sayac konuskan bir sey degil; lazerin "359 vurus"
+   yazisinin ustune binmesi kullanicinin bildirdigi hatanin
+   ta kendisini gorunmez yapardi.                            */
+export const CAN_SAYACI_SESSIZLIK = 40;
+/* Doluluk esikleri -> renk. Modun renkleri DEGIL (okunamadi),
+   bizim secimimiz.                                          */
+export const CAN_SAYACI_RENKLER = [
+  [0.5, "§a"],   // yarisindan fazlasi: yesil
+  [0.25, "§e"],  // ceyreginden fazlasi: sari
+  [0.0, "§c"]    // altinda: kirmizi
+];
 
 /* ================================================================
    BEN 10 BECERI AGACI                                     v4.98
@@ -3509,7 +3579,6 @@ export const ZIRH_ISIN_ADIM = 1.5;
    anlik atis + bekleme ayni sonucu veriyor.                 */
 export const ZIRH_ISIN_BEKLEME = 20;   // tick
 
-/* Ilk giyende hangi mod acik olsun. */
 /* ---------------- KAHRAMAN ISINLARI ----------------  (v4.96)
 
    Sayilar FiskHeroes'un kendi data/powers/*.json dosyalarindan.
@@ -3574,7 +3643,6 @@ export const KAHRAMAN_ISIN = new Map([
   }]
 ]);
 
-export const ZIRH_VARSAYILAN_MOD = "temel";
 
 /* ---------------- MOD DONUSUMU ----------------  (v4.94)
 

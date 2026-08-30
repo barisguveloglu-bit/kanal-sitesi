@@ -1,6 +1,6 @@
 import { system } from "@minecraft/server";
 import {
-  hataYaz, gecerliMi, actionbarYaz, eldekiEsya, parcacikAt
+  hataYaz, actionbarYaz, eldekiEsya, parcacikAt
 } from "../yardimcilar.js";
 import {
   ZIRH_ACIK, ZIRH_MODLAR, ZIRH_TARAMA, ZIRH_SURE,

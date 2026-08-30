@@ -1,5 +1,5 @@
 import { system } from "@minecraft/server";
-import { hataYaz, actionbarYaz, eldekiEsya } from "../yardimcilar.js";
+import { actionbarYaz, eldekiEsya } from "../yardimcilar.js";
 import { BEN10_ACIK, BEN10_TARAMA, BEN10_SURE, BEN10 } from "../ayarlar.js";
 import { beceriEfektleri } from "./beceri.js";
 

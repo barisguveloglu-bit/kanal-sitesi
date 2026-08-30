@@ -1,8 +1,8 @@
-import { world, system } from "@minecraft/server";
+import { world } from "@minecraft/server";
 import { yetenekKaydet } from "./kayit.js";
 import { blokIste } from "../butce.js";
 import {
-  hataYaz, bilgiYaz, gecerliMi, kollariIndir, actionbarYaz
+  hataYaz, kollariIndir, actionbarYaz
 } from "../yardimcilar.js";
 import {
   baconKodla, koordinatiHarfle, sgaBlok, rakamHarfle

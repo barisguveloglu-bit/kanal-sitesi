@@ -4,7 +4,7 @@ import {
   hataYaz, gecerliMi, kollariIndir, actionbarYaz, olayaAbone
 } from "../yardimcilar.js";
 import {
-  botCagir, botVarliklari, botSayisi, botunSahibi, ilkelKancasi
+  botCagir, botVarliklari, botunSahibi, ilkelKancasi
 } from "./_bot_defteri.js";
 import { asaVurusu, asaUnut } from "./asa.js";
 import { disleriCikar, dislerUnut } from "./disler.js";

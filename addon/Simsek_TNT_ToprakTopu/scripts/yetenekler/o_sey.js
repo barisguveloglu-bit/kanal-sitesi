@@ -1,5 +1,5 @@
 import { yetenekKaydet } from "./kayit.js";
-import { hataYaz, kollariIndir, actionbarYaz } from "../yardimcilar.js";
+import { hataYaz, kollariIndir } from "../yardimcilar.js";
 import { botCagir, botVarliklari } from "./_bot_defteri.js";
 import {
   SEY_ACIK, SEY_KIMLIK, SEY_AD, SEY_TAVAN, SEY_CAN, SEY_HASAR, BOT_TAVAN

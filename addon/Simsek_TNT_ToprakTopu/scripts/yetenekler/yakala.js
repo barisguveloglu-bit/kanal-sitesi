@@ -1,4 +1,4 @@
-import { world, system } from "@minecraft/server";
+import { world } from "@minecraft/server";
 import { yetenekKaydet } from "./kayit.js";
 import {
   hataYaz, bilgiYaz, gecerliMi, kollariIndir, kilitliHedef, varlikKonumu,

@@ -5,13 +5,14 @@ import {
   OLCUM_SOHBETE, HATA_SOHBETE, ESYASIZ_ACIK, ESYASIZ_EGILME_SART,
   ESYASIZ_BAKIS_ESIGI, ESYASIZ_TUTMA, ESYASIZ_TARAMA,
   KOL_VER_ACIK, KOL_VER_ESIGI, KOL_VER_TUTMA, CIFT_EL_ACIK, AYNI_ANDA,
-  MENU_DOKUNUSLA, BOT_KIMLIK, KALP_ADIM, KALP_TAVAN, BETA_GEREKLI,
+  MENU_DOKUNUSLA, KALP_ADIM, KALP_TAVAN, BETA_GEREKLI,
   SOHBET_ONEK, BOT_TAVAN, DERIN_HEDEFLER, DERIN_VARSAYILAN,
   DONDUR_GIRDI_KILIT, ILKEL_BESLI, ILKEL_ACIK, botTuruMu,
   KILIC_ESYA, SEY_ACIK, SEY_AD, SEY_TAVAN,
   ZIRH_ACIK, ZIRH_MODLAR, ZIRH_CEKIRDEK_ONEK,
   KAHRAMAN_ACIK, KAHRAMANLAR, KAHRAMAN_ONEK,
   BECERI_ACIK, BECERI_AGACI, BECERI_TAVAN_KADEME,
+  CAN_SAYACI_ACIK,
   BEN10_ACIK, BEN10
 } from "./ayarlar.js";
 
@@ -47,8 +48,12 @@ import {
 /* v4.98: Ben 10 beceri agaci. Uzayli halindeyken oldurunce
    XP, kademe atlayinca yetenek puani.                       */
 import {
-  beceriXpVer, beceriListesi, beceriAc, beceriAl, gerekenXp
+  beceriXpVer, beceriListesi, beceriAc, beceriAl
 } from "./yetenekler/beceri.js";
+
+/* v4.99: can sayaci (Health Overlay). 210 kalpte vanilla
+   satirlari okunmaz oluyor.                                */
+import { canSayaciTara, canSayaciUnut } from "./yetenekler/can_sayaci.js";
 
 /* Ben 10 (v4.92): elindeki esyaya gore yaratik oluyorsun.
    Gorunusu oyuncu modeli paketi ciziyor, gucleri bu modul.    */
@@ -135,7 +140,7 @@ import {
 /* Iksirler de kendi dosyasinda kayit oluyor; buradan sadece
    tarama ve temizlik cagriliyor.                              */
 import {
-  iksirTara, iksirAktifMi, kademeUnut, iksirSayisi, iksirKancalari, kademeAl
+  iksirTara, iksirAktifMi, kademeUnut, iksirKancalari, kademeAl
 } from "./yetenekler/iksirler.js";
 
 /* Lazer modu (Element'in buz/ates secimi). Modul yukaridaki
@@ -282,7 +287,12 @@ system.runInterval(() => {
   /* Zirh taramasi HER ZAMAN calismali: "takimi giydim ama bir
      sey olmuyor" durumu ancak boyle onlenir. Kendi icinde
      ucuz -- oyuncu takim giymiyorsa hemen donuyor.            */
-  if (iksirVar || kalpVar || botVar || kilikVar || ZIRH_ACIK || BEN10_ACIK) {
+  /* v4.96 KAHRAMAN_ACIK, v4.99 CAN_SAYACI_ACIK da buraya
+     eklendi: kapida sayilmayan bir sistem, tek oyuncu
+     dunyasinda hicbir sey acik degilken SESSIZCE calismazdi
+     -- "calisiyor mu != ulasilabiliyor mu" (v4.83 dersi).  */
+  if (iksirVar || kalpVar || botVar || kilikVar || ZIRH_ACIK ||
+      BEN10_ACIK || KAHRAMAN_ACIK || CAN_SAYACI_ACIK) {
     let oyuncular;
     try {
       oyuncular = world.getAllPlayers();
@@ -332,6 +342,13 @@ system.runInterval(() => {
         kahramanTara(oyuncular);
       } catch (e) {
         hataYaz("kahramanTara", e);
+      }
+    }
+    if (CAN_SAYACI_ACIK) {
+      try {
+        canSayaciTara(oyuncular);
+      } catch (e) {
+        hataYaz("canSayaciTara", e);
       }
     }
     if (BEN10_ACIK) {
@@ -1661,6 +1678,7 @@ olayaAbone("playerLeave", (olay) => {
   donusumUnutOyuncu(olay.playerId);
   zirhUnutOyuncu(olay.playerId);
   kahramanUnutOyuncu(olay.playerId);
+  canSayaciUnut(olay.playerId);
   ben10Unut(olay.playerId);
 
   // Oyuncunun butun isleri durdurulmali, sadece birincisi degil

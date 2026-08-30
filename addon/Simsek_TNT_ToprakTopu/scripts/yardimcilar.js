@@ -201,7 +201,34 @@ export function ekraniSars(oyuncu, siddet, sure) {
   }
 }
 
-export function actionbarYaz(oyuncu, metin) {
+/* oyuncuId -> actionbar'a EN SON kim yazdi (tick).
+
+   v4.99: can sayaci eklenince gerekti. Actionbar'i cok sey
+   kullaniyor (lazer sayaci, donusum mesajlari, kademe
+   bildirimleri) ve surekli yazan bir sayac hepsinin ustune
+   binerdi. Sayac buraya bakip "az once baskasi yazmis"
+   diyorsa susuyor.
+
+   Sayac kendi yazisini burada KAYDETMIYOR (bkz.
+   actionbarYaz'in ikinci parametresi): yoksa kendi yazisini
+   "baskasi" sanip bir daha hic yazamazdi.                  */
+const sonActionbar = new Map();
+
+export function actionbarSonYazma(oyuncuId) {
+  return sonActionbar.get(oyuncuId) || -1e9;
+}
+
+export function actionbarUnut(oyuncuId) {
+  if (oyuncuId === undefined) sonActionbar.clear();
+  else sonActionbar.delete(oyuncuId);
+}
+
+export function actionbarYaz(oyuncu, metin, sayac = false) {
+  if (!sayac) {
+    try {
+      sonActionbar.set(oyuncu.id, system.currentTick);
+    } catch (e) { /* tick okunamadi, onemli degil */ }
+  }
   try {
     const ekran = oyuncu.onScreenDisplay;
     if (ekran && typeof ekran.setActionBar === "function") {

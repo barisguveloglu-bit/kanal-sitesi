@@ -1,8 +1,8 @@
 import { system } from "@minecraft/server";
 import { blokIste } from "../butce.js";
-import { hataYaz, gecerliMi, actionbarYaz, varlikKonumu } from "../yardimcilar.js";
+import { gecerliMi, actionbarYaz, varlikKonumu } from "../yardimcilar.js";
 import {
-  KILIC_ACIK, KILIC_ESYA, KILIC_YARICAP, KILIC_TAVAN,
+  KILIC_ACIK, KILIC_YARICAP, KILIC_TAVAN,
   KILIC_IZLEYICI_SURE, KILIC_BEKLEME, KORUNAN_KUME
 } from "../ayarlar.js";
 

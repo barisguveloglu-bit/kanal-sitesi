@@ -1,3 +1,89 @@
+# v4.99 — Can sayacı ve genel tarama
+
+## 1. Health Overlay: asıl özellik aktarılamıyor, sayaç aktarıldı
+
+**Aktarılamayan:** modun asıl işi 10 kalpten fazlasını üst üste satırlar
+yerine **tek satırda, her 10 kalpte renk değiştirerek** çizmek. Bu
+tamamen Java çizim kodu — 36 derlenmiş sınıf. Dokuları (`health.png`,
+`absorption.png`) **beyaz maske**: rengi kod veriyor, dosyada renk yok.
+Ölçüldü. Bedrock'ta oyuncu HUD'unun kalp çizimi ne script'ten ne kaynak
+paketten değiştirilebiliyor.
+
+**Aktarılan:** modun ikinci özelliği,
+`healthoverlay.options.heart_display_mode` (off / always / on_change).
+Üç mod da aynen geldi.
+
+**Neden gerçekten gerekli:** `KALP_TAVAN = 200`, yani 210 kalbe kadar
+çıkılabiliyor ve Bedrock bunu **21 satır kalp** olarak çiziyor.
+
+**Renkler bizim.** Modun renk dizileri (`normalColors`,
+`poisonedColors`…) derlenmiş sınıfın içinde, metin olarak okunamıyor.
+Tahmin etmek yerine kendi eşiklerimizi koyduk.
+
+**Sessiz olmak zorunda.** Actionbar'ı lazer sayacı, dönüşüm mesajları ve
+kademe bildirimleri de kullanıyor. Sayaç başka bir şey yazdıktan sonra 40
+tick susuyor — yoksa lazerin "359 vuruş" yazısını ezerdi, yani
+kullanıcının bildirdiği hatayı görünmez yapardı. İlk taramada da yazmıyor
+(zırh sistemindeki kuralın aynısı).
+
+## 2. Genel tarama — ve taramanın kendisinin sınanması
+
+Kullanıcı: *"genel olarak tüm bu şeyleri hallettikten sonra bir tarama
+yaptım, dosyalar içerisinde sorun varsa düzelt."*
+
+### Statik tarama işe yaramadı
+
+Önce `const`'un geçici ölü bölgesini (v4.94 hatası) statik olarak
+aramayı denedim: **44 şüpheli yer** çıktı, neredeyse hepsi yanlış alarm —
+iç kapsamlar, callback'ler ve `catch` parametreleri yüzünden.
+
+### Çalıştırarak tarama — ilk hâli de işe yaramadı
+
+`sim/tarama.mjs` yazdım: her yeteneği çalıştırıyor, her menüyü açıp her
+düğmesine basıyor. **v4.94 hatasını pack'e geri koyup denedim: yeşil
+yandı.**
+
+Sebep: `menu.js` seçim callback'ini `try/catch` içinde çağırıyor — doğru
+bir karar, bir düğmenin patlaması menüyü öldürmemeli. Yani istisna dışarı
+çıkmıyor, `hataYaz`'a düşüyor.
+
+### Üçüncü hâli çalışıyor
+
+Tarama artık **hata günlüğünü dinliyor**. Yeniden denendi:
+
+```
+✗ hicbir dugme HATA GUNLUGE dusurmedi
+  :: HATA @ menu.secildi: Cannot access 'cekirdek' before initialization
+```
+
+Yakalıyor.
+
+### Taramanın kapsamı
+
+| bölüm | ne |
+|---|---|
+| 1 | 55 yeteneğin hepsi çalıştırılıyor |
+| 2 | ana menünün 40 düğmesi + 5 alt menü, hepsinin her düğmesi |
+| 3 | 6 kolun menüsü |
+| 4 | 18 sohbet komutu (boş, bozuk ve olmayan dâhil) |
+| 5 | 600 tick, ortasında iki kez dönüşüm değiştirerek |
+| 6 | 492 ayar: `undefined` var mı, efekt seviyeleri motor sınırında mı, Direnç V sızmış mı |
+| 7 | ölü kod büyümüyor mu |
+
+### Bulunanlar ve yapılanlar
+
+- **18 kullanılmayan import** temizlendi.
+- **12 öksüz ayar** bulundu. Üçü bu sürümde benim bıraktığım artıktı
+  (`ZIRH_ETIKET`, `ZIRH_KAYIT_ANAHTAR`, `ZIRH_VARSAYILAN_MOD` — takım ve
+  mod seçimi kalkınca) — **silindi**. Kalan dokuzu önceden beri öksüz
+  (lazerin "sana kısa destek ver" ayarları hiç bağlanmamış); silinmediler
+  ama `ayarlar.js`'te **işaretlendiler** — "ayar var, karşılığı yok"
+  durumu kullanıcının şikâyetinin küçük hâli, kimse bunları açık sanmasın.
+- Tarama artık bu sayıları **sabitliyor**: yeni ölü kod eklenirse test
+  kırılır.
+
+---
+
 # v4.98 — Ben 10 beceri ağacı
 
 Kullanıcı: *"oyunda bu mod kurulduğunda yanda bir sekme açıyor ve orada
