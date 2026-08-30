@@ -2731,6 +2731,236 @@ def zirh_ikonu(bolge):
 
 
 # ================================================================
+#  TEKNOLOJI ZIRHLARI                                      v5.1
+#  ProjectE · Mekanism · Draconic Evolution
+# ================================================================
+# Kullanici: "bunlar direkt zirh modlari degil ama bizim
+# odaklanacagimiz sey bunlarin verdigi zirhlar, sadece onlari
+# alacagiz, hicbir seyi almayacagiz onlardan baska."
+#
+# Sayilarin nereden okundugu REFERANS_TEKNOLOJI.md'de sinif
+# adiyla yazili; ceviri kararlari ayarlar.js'te. Burasi yalniz
+# DOSYA URETIYOR.
+#
+# ---- UC AYRI GORUNUS YOLU, UC AYRI SEBEP ----
+#
+# ProjectE : modun kendi JAVA ZIRH KATMANLARI (64x32) var ve
+#            duzeni Bedrock'in zirh geometrisiyle birebir ayni.
+#            Dogrudan kullaniliyor; sol kol/bacak vanilla gibi
+#            AYNALANIYOR (mirror), cunku 64x32 duzende sol
+#            parcanin ayri pikselleri yok.
+#
+# Mekanism : model bir OBJ. Blockbench cikisi, yani KUTULARDAN
+#            olusuyor -> Bedrock'a birebir cevrildi
+#            (obj_coz.py). Dort 32x32 doku tek 64x64 atlasta.
+#
+# Draconic : model Blender'dan cikma SERBEST UCGEN AGI. Bedrock
+#            varlik geometrisi yalniz kutu kabul ediyor, yani
+#            giyilen model AKTARILAMIYOR. Gogusluk esya
+#            ikonuyla geliyor, attachable YOK. Uydurma bir
+#            model cizmek yerine eksik birakildi ve rapor
+#            edildi.
+TEKNOLOJI_ONEK = "pa:"
+
+# (parca, yuva, koruma) -- koruma ayarlar.js:TEKNOLOJI_KORUMA
+# ile AYNI olmak zorunda; test ikisini karsilastiriyor.
+TEKNOLOJI_PARCA = [
+    ("bas",   "slot.armor.head",  3, "Başlık",  "Helmet"),
+    ("govde", "slot.armor.chest", 8, "Göğüslük", "Chestplate"),
+    ("bacak", "slot.armor.legs",  6, "Pantolon", "Leggings"),
+    ("ayak",  "slot.armor.feet",  3, "Bot",     "Boots"),
+]
+
+# (anahtar, TR ad, EN ad, parcalar, gorunus)
+#   gorunus = "pe"    -> java zirh katmani (k1/k2)
+#             "meka"  -> obj'den cevrilmis geometri + atlas
+#             None    -> giyilen model yok (Draconic)
+TEKNOLOJI_TAKIM = [
+    ("pe_kara",      "Kara Madde",         "Dark Matter",
+     ["bas", "govde", "bacak", "ayak"], "pe"),
+    ("pe_kizil",     "Kızıl Madde",        "Red Matter",
+     ["bas", "govde", "bacak", "ayak"], "pe"),
+    ("pe_mucevher",  "Mücevher",           "Gem",
+     ["bas", "govde", "bacak", "ayak"], "pe"),
+    ("meka",         "MekaSuit",           "MekaSuit",
+     ["bas", "govde", "bacak", "ayak"], "meka"),
+    ("draco_wyvern",   "Wyvern Göğüslüğü",   "Wyvern Chestpiece",
+     ["govde"], None),
+    ("draco_draconic", "Draconic Göğüslüğü", "Draconic Chestpiece",
+     ["govde"], None),
+    ("draco_chaotic",  "Chaotic Göğüslüğü",  "Chaotic Chestpiece",
+     ["govde"], None),
+]
+
+# ProjectE: hangi parca hangi katmani kullaniyor. Java'nin
+# kurali; okundu, secilmedi:
+#   layer_1 -> baslik, gogusluk, bot
+#   layer_2 -> pantolon
+PE_KATMAN = {"bas": 1, "govde": 1, "bacak": 2, "ayak": 1}
+
+# Mekanism atlasi: dort 32x32 doku bir 64x64 karede.
+# (malzeme numarasi -> kaynak dosya, atlas ofseti)
+MEKA_ATLAS = {
+    "2": ("mekasuit_player",              0,  0),
+    "3": ("mekasuit_armor_body",         32,  0),
+    "4": ("mekasuit_armor_helmet",        0, 32),
+    "5": ("mekasuit_armor_exoskeleton",  32, 32),
+}
+MEKA_DOKU = "meka_suit"
+# Modun KENDI obj'si depoya alindi (kaynak_geo/mekasuit.obj) ve
+# uretim sirasinda cevriliyor -- onceden cevrilmis bir JSON
+# saklanmadi. Sebep: cevirinin kendisi denetlenebilir kalsin,
+# "bu sayilar nereden geldi" sorusunun cevabi dosyada dursun.
+MEKA_OBJ = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                        "kaynak_geo", "mekasuit.obj")
+
+
+def meka_geometrileri():
+    """MekaSuit'in dort parcasi, OBJ'den cevrilmis.
+
+    Cevirici obj_coz.py; nasil calistigi orada yazili. Burada
+    yalniz atlas yerlesimi veriliyor.
+
+    obj_coz yoksa (ya da obj dosyasi yoksa) BOS donuyor ve
+    uretim devam ediyor -- eksik bir dosya butun paketi
+    dusurmesin.                                              """
+    if not os.path.exists(MEKA_OBJ):
+        print("UYARI: mekasuit.obj yok (%s)" % MEKA_OBJ)
+        return {}
+    try:
+        from obj_coz import geometri_uret
+    except ImportError:
+        print("UYARI: obj_coz.py yok -- MekaSuit modeli uretilmedi")
+        return {}
+    harita = {m: (x, y, 32, 32) for m, (_, x, y) in MEKA_ATLAS.items()}
+    geo, atlanan = geometri_uret(MEKA_OBJ, harita, "meka_")
+    for ad, sebep in atlanan:
+        print("UYARI: mekasuit kutusu atlandi: %s -- %s" % (ad, sebep))
+    return geo
+
+
+def teknoloji_esyasi(takim, parca, yuva, koruma, ad):
+    """Giyilebilir zirh parcasi.
+
+    Dayaniklilik YOK: kaynakta da yok. ProjectE'nin
+    PEArmor.damageItem'i sabit 0 donduruyor (yani zirh hic
+    yipranmiyor), Mekanism ve Draconic enerjiyle calisiyor
+    ve dayanikliligi hic kullanmiyor.                        """
+    return {
+        "format_version": "1.21.0",
+        "minecraft:item": {
+            "description": {
+                "identifier": TEKNOLOJI_ONEK + takim + "_" + parca,
+                "menu_category": {"category": "equipment"},
+            },
+            "components": {
+                "minecraft:icon": {"texture": takim + "_" + parca},
+                "minecraft:display_name": {"value": ad},
+                "minecraft:max_stack_size": 1,
+                "minecraft:wearable": {"slot": yuva, "protection": koruma},
+                "minecraft:armor": {"protection": koruma},
+                # Etiket: script "teknoloji zirhi mi" diye
+                # bakarken kimlikleri tek tek yazmasin.
+                "minecraft:tags": {"tags": ["pa:teknoloji_zirhi"]},
+            },
+        },
+    }
+
+
+def teknoloji_pe_geometrisi(takim, parca):
+    """ProjectE parcasinin modeli -- JAVA ZIRH DUZENI (64x32).
+
+    Bu duzen `zirh_geometrisi`nin kullandigi 64x64 SKIN
+    duzeninden BASKA: sol kol ve sol bacagin ayri pikselleri
+    yok, sag olanin AYNASI cizilyor. Bedrock'ta bunun karsiligi
+    kutunun "mirror" alani.
+
+    Sisirme (inflate) vanillanin degerleriyle: pantolon 0.5,
+    otekiler 1.0. Ustteki katman altakinden buyuk olmali,
+    yoksa z-cakismasi (titreyen yuzey) olur.                 """
+    def kup(org, boyut, uv, sis, ayna=False):
+        k = {"origin": org, "size": boyut, "uv": uv, "inflate": sis}
+        if ayna:
+            k["mirror"] = True
+        return k
+
+    if parca == "bas":
+        kemikler = [{"name": "head", "pivot": [0, 24, 0], "cubes": [
+            kup([-4, 24, -4], [8, 8, 8], [0, 0], 1.0)]}]
+    elif parca == "govde":
+        kemikler = [
+            {"name": "body", "pivot": [0, 24, 0], "cubes": [
+                kup([-4, 12, -2], [8, 12, 4], [16, 16], 1.01)]},
+            {"name": "rightArm", "pivot": [-5, 22, 0], "cubes": [
+                kup([-8, 12, -2], [4, 12, 4], [40, 16], 1.0)]},
+            {"name": "leftArm", "pivot": [5, 22, 0], "cubes": [
+                kup([4, 12, -2], [4, 12, 4], [40, 16], 1.0, ayna=True)]},
+        ]
+    elif parca == "bacak":
+        kemikler = [
+            {"name": "body", "pivot": [0, 24, 0], "cubes": [
+                kup([-4, 12, -2], [8, 12, 4], [16, 16], 0.51)]},
+            {"name": "rightLeg", "pivot": [-1.9, 12, 0], "cubes": [
+                kup([-3.9, 0, -2], [4, 12, 4], [0, 16], 0.5)]},
+            {"name": "leftLeg", "pivot": [1.9, 12, 0], "cubes": [
+                kup([-0.1, 0, -2], [4, 12, 4], [0, 16], 0.5, ayna=True)]},
+        ]
+    else:   # ayak
+        # Bot vanilla Java'da BACAGIN TAMAMI kadar bir kutu:
+        # dokuda yalniz botun pikselleri var, ustu saydam.
+        # 6 birimlik kisa kutuya inmedik cunku o zaman
+        # dokunun UV'si kayardi (v4.91'de olculmustu).
+        kemikler = [
+            {"name": "rightLeg", "pivot": [-1.9, 12, 0], "cubes": [
+                kup([-3.9, 0, -2], [4, 12, 4], [0, 16], 1.0)]},
+            {"name": "leftLeg", "pivot": [1.9, 12, 0], "cubes": [
+                kup([-0.1, 0, -2], [4, 12, 4], [0, 16], 1.0, ayna=True)]},
+        ]
+
+    return {
+        "format_version": "1.12.0",
+        "minecraft:geometry": [{
+            "description": {
+                "identifier": "geometry." + takim + "_" + parca,
+                "texture_width": 64,
+                "texture_height": 32,
+                "visible_bounds_width": 2,
+                "visible_bounds_height": 3,
+                "visible_bounds_offset": [0, 1.5, 0],
+            },
+            "bones": kemikler,
+        }],
+    }
+
+
+def teknoloji_attachable(takim, parca, doku):
+    """Parcanin oyuncuya cizilmesi.
+
+    controller.render.armor + tek doku: goz ve zirh
+    yukseltmesindeki kurulumun AYNISI, yani oyunda calistigi
+    BILINEN yol. Ozel render controller'a girilmedi -- v4.28'de
+    tam o denendi ve bot gorunmez oldu.                      """
+    return {
+        "format_version": "1.10.0",
+        "minecraft:attachable": {
+            "description": {
+                "identifier": TEKNOLOJI_ONEK + takim + "_" + parca,
+                "materials": {
+                    "default": "armor",
+                    "enchanted": "armor_enchanted",
+                },
+                "textures": {
+                    "default": "textures/entity/" + doku,
+                    "enchanted": "textures/misc/enchanted_actor_glint",
+                },
+                "geometry": {"default": "geometry." + takim + "_" + parca},
+                "render_controllers": ["controller.render.armor"],
+            }
+        },
+    }
+
+
+# ================================================================
 #  WEAPONS OF MIRACLES  (Epic Fight eklentisi)             v5.0
 # ================================================================
 # Kaynak: WeaponsOfMiracles 2.0.176 (Reascer), Epic Fight uzerine
@@ -5211,6 +5441,76 @@ def main():
             liste.append("item.pa:%s.name=%s" % (_wad, ad))
             liste.append("item.pa:%s=%s" % (_wad, ad))
 
+    # ---- TEKNOLOJI ZIRHLARI (v5.1) ----
+    # ProjectE / Mekanism / Draconic. Uc ayri gorunus yolu var
+    # ve sebepleri TEKNOLOJI_TAKIM tablosunun basinda yazili.
+    _meka_geo = meka_geometrileri()
+    for _ta, _ttr, _ten, _tparcalar, _tgorunus in TEKNOLOJI_TAKIM:
+        # Giyilen dokunun kopyasi (takim basina bir kez).
+        if _tgorunus == "pe":
+            for _kat in (1, 2):
+                _pk = os.path.join(DOKU_KAYNAK, "%s_k%d.png" % (_ta, _kat))
+                if os.path.exists(_pk):
+                    _ph = os.path.join(RP, "textures/entity/%s_k%d.png"
+                                       % (_ta, _kat))
+                    os.makedirs(os.path.dirname(_ph), exist_ok=True)
+                    shutil.copyfile(_pk, _ph)
+                else:
+                    print("UYARI: %s katman %d yok (%s)" % (_ta, _kat, _pk))
+        elif _tgorunus == "meka":
+            _mk = os.path.join(DOKU_KAYNAK, MEKA_DOKU + ".png")
+            if os.path.exists(_mk):
+                _mh = os.path.join(RP, "textures/entity/%s.png" % MEKA_DOKU)
+                os.makedirs(os.path.dirname(_mh), exist_ok=True)
+                shutil.copyfile(_mk, _mh)
+            else:
+                print("UYARI: MekaSuit dokusu yok (%s)" % _mk)
+
+        for _tp, _tyuva, _tkoruma, _tptr, _tpen in TEKNOLOJI_PARCA:
+            if _tp not in _tparcalar:
+                continue
+            _tad = _ta + "_" + _tp
+            # Tek parcali takimda (Draconic) parca adi eklenmiyor:
+            # "Wyvern Goguslugu Gogusluk" olurdu.
+            _adtr = _ttr if len(_tparcalar) == 1 else _ttr + " " + _tptr
+            _aden = _ten if len(_tparcalar) == 1 else _ten + " " + _tpen
+            yaz_json(os.path.join(BP, "items/%s.json" % _tad),
+                     teknoloji_esyasi(_ta, _tp, _tyuva, _tkoruma, _adtr))
+
+            if _tgorunus == "pe":
+                yaz_json(os.path.join(RP, "models/entity/%s.geo.json" % _tad),
+                         teknoloji_pe_geometrisi(_ta, _tp))
+                yaz_json(os.path.join(RP, "attachables/%s.json" % _tad),
+                         teknoloji_attachable(
+                             _ta, _tp, "%s_k%d" % (_ta, PE_KATMAN[_tp])))
+            elif _tgorunus == "meka":
+                _g = _meka_geo.get(_tp)
+                if _g is not None:
+                    yaz_json(os.path.join(RP,
+                             "models/entity/%s.geo.json" % _tad), _g)
+                    yaz_json(os.path.join(RP, "attachables/%s.json" % _tad),
+                             teknoloji_attachable(_ta, _tp, MEKA_DOKU))
+                else:
+                    print("UYARI: %s geometrisi cevrilemedi" % _tad)
+            # _tgorunus None ise ATTACHABLE YOK: Draconic'in
+            # giyilen modeli serbest ucgen agi, Bedrock kutu
+            # istiyor. Uydurma model cizilmedi.
+
+            # Ikon: modun KENDI esya pikselleri, uretilmiyor.
+            _tik = os.path.join(DOKU_KAYNAK, _tad + ".png") \
+                if len(_tparcalar) > 1 else \
+                os.path.join(DOKU_KAYNAK, _ta + ".png")
+            if os.path.exists(_tik):
+                _tiy = os.path.join(RP, "textures/item/%s.png" % _tad)
+                os.makedirs(os.path.dirname(_tiy), exist_ok=True)
+                shutil.copyfile(_tik, _tiy)
+            else:
+                print("UYARI: %s ikonu yok (%s)" % (_tad, _tik))
+            dokular[_tad] = {"textures": "textures/item/" + _tad}
+            for liste, ad in ((en_us, _aden), (tr_tr, _adtr)):
+                liste.append("item.pa:%s.name=%s" % (_tad, ad))
+                liste.append("item.pa:%s=%s" % (_tad, ad))
+
     # ---- FISK KAHRAMANLARI (v4.96) ----
     # Dokuz kahraman: elde tutulan esya + oyuncunun USTUNE
     # cizilen attachable. Tek geometri, dokuz doku.
@@ -5669,6 +5969,17 @@ def main():
         beklenen.add(_sk)
     for _mk, _ma, _md in MERMILER:
         beklenen.add(_mk)
+    # v5.1: teknoloji zirhlarinin esyalari, ikonlari VE giyilen
+    # dokulari. Ayni tuzak altinci kez -- bu satir olmasa
+    # zirhlar her uretimde silinir, oyunda "bilinmeyen esya"
+    # olarak gorunurdu.
+    for _tk3, _tt3, _te3, _tp3, _tg3 in TEKNOLOJI_TAKIM:
+        for _tpp in _tp3:
+            beklenen.add(_tk3 + "_" + _tpp)
+        if _tg3 == "pe":
+            beklenen.add(_tk3 + "_k1")
+            beklenen.add(_tk3 + "_k2")
+    beklenen.add(MEKA_DOKU)
     for satir in KOLLAR:
         beklenen.add(satir[0])
     for kimlik, _ad, _sivi, goz, _gozRenk in IKSIRLER:

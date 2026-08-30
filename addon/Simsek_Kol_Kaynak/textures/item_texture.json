@@ -173,6 +173,63 @@
     "wom_netherite_greataxe": {
       "textures": "textures/item/wom_netherite_greataxe"
     },
+    "pe_kara_bas": {
+      "textures": "textures/item/pe_kara_bas"
+    },
+    "pe_kara_govde": {
+      "textures": "textures/item/pe_kara_govde"
+    },
+    "pe_kara_bacak": {
+      "textures": "textures/item/pe_kara_bacak"
+    },
+    "pe_kara_ayak": {
+      "textures": "textures/item/pe_kara_ayak"
+    },
+    "pe_kizil_bas": {
+      "textures": "textures/item/pe_kizil_bas"
+    },
+    "pe_kizil_govde": {
+      "textures": "textures/item/pe_kizil_govde"
+    },
+    "pe_kizil_bacak": {
+      "textures": "textures/item/pe_kizil_bacak"
+    },
+    "pe_kizil_ayak": {
+      "textures": "textures/item/pe_kizil_ayak"
+    },
+    "pe_mucevher_bas": {
+      "textures": "textures/item/pe_mucevher_bas"
+    },
+    "pe_mucevher_govde": {
+      "textures": "textures/item/pe_mucevher_govde"
+    },
+    "pe_mucevher_bacak": {
+      "textures": "textures/item/pe_mucevher_bacak"
+    },
+    "pe_mucevher_ayak": {
+      "textures": "textures/item/pe_mucevher_ayak"
+    },
+    "meka_bas": {
+      "textures": "textures/item/meka_bas"
+    },
+    "meka_govde": {
+      "textures": "textures/item/meka_govde"
+    },
+    "meka_bacak": {
+      "textures": "textures/item/meka_bacak"
+    },
+    "meka_ayak": {
+      "textures": "textures/item/meka_ayak"
+    },
+    "draco_wyvern_govde": {
+      "textures": "textures/item/draco_wyvern_govde"
+    },
+    "draco_draconic_govde": {
+      "textures": "textures/item/draco_draconic_govde"
+    },
+    "draco_chaotic_govde": {
+      "textures": "textures/item/draco_chaotic_govde"
+    },
     "kahraman_spectre": {
       "textures": "textures/item/kahraman_spectre"
     },

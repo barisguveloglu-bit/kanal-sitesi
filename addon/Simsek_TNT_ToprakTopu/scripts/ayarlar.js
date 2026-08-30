@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v5.0";
+export const SURUM = "v5.1";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -4450,3 +4450,296 @@ export const EFSANE_IZ_DERIN  = 2;   // derinlik
 export const EFSANE_IZ_UZAK   = 22;  // merkezden kac blok oteye
 
 export const EFSANE_KAYIT_ANAHTAR = "simsek:efsane";
+
+/* ================================================================
+   TEKNOLOJI ZIRHLARI                                       v5.1
+
+   Kullanici: "bunlar direkt zirh modlari degil ama bizim
+   odaklanacagimiz sey bunlarin verdigi zirhlar, sadece onlari
+   alacagiz, hicbir seyi almayacagiz onlardan baska. Ayrica
+   zirh verdigi ozellikler falan varsa alabildiklerini al,
+   Java ile Bedrock farkli oldugu icin alabildigini al."
+
+   Uc mod: ProjectE 1.21.1 · Mekanism 1.21.1 ·
+   Draconic Evolution 1.20.4.
+
+   ALINMAYANLAR: makine, kablo, enerji agi, EMC/donusturme,
+   modul esyalari, aletler, silahlar. Hicbiri.
+
+   Butun sayilar jar'larin BYTECODE'undan okundu. Nereden
+   okundugu REFERANS_TEKNOLOJI.md'de dosya/sinif adiyla
+   yazili -- bu dosyadaki her satirin oradan bir karsiligi var.
+
+   ---- MOD CEKIRDEKLERINDEN FARKI ----
+   Max Steel cekirdegi ELDE tutuluyor, cunku o bir DONUSUM:
+   oyuncunun kendi modeli degisiyor ve Molang zirh yuvasini
+   okuyamiyor (query.get_equipped_item_name yalniz el yuvalari).
+
+   Bunlar ZIRH. Gercekten giyiliyorlar, cunku:
+     - kaynakta da zirh yuvalarina giriyorlar,
+     - gorunusu attachable ciziyor (Molang'a gerek yok),
+     - script zirh yuvalarini equippable ile OKUYABILIYOR --
+       kisit yalniz Molang'da.
+   ================================================================ */
+export const TEKNOLOJI_ACIK   = true;
+export const TEKNOLOJI_TARAMA = 20;    // kac tick'te bir bakilsin
+export const TEKNOLOJI_SURE   = 120;   // efekt suresi (TARAMA x 6)
+export const TEKNOLOJI_ONEK   = "pa:";
+
+/* Yuva adlari Bedrock'in equippable bileseninde gectigi gibi.
+   Sira PARCALAR ile birebir: bas, govde, bacak, ayak.        */
+export const TEKNOLOJI_YUVALAR  = ["Head", "Chest", "Legs", "Feet"];
+export const TEKNOLOJI_PARCALAR = ["bas", "govde", "bacak", "ayak"];
+
+/* Zirh puani. UC MODDA DA AYNI dagilim cikti -- ProjectE
+   `DIAMOND_RESISTANCES` kullaniyor, MekaSuit `NETHERITE`
+   uzerinden okuyor, ikisi de 3/8/6/3 = 20. Tesaduf degil:
+   vanilla elmas ve netherite ayni dagilimi paylasiyor.       */
+export const TEKNOLOJI_KORUMA = { bas: 3, govde: 8, bacak: 6, ayak: 3 };
+
+/* ProjectE'nin PARCA ETKINLIGI (PEArmor.getPieceEffectiveness):
+   bot/baslik 0.2 · gogusluk/pantolon 0.3. Toplami 1.0, yani
+   tam takimda azaltma taban degere esit. Eksik parcayla
+   azaltma da eksik -- bu davranis aynen tasindi.             */
+export const TEKNOLOJI_ETKINLIK = { bas: 0.2, govde: 0.3, bacak: 0.3, ayak: 0.2 };
+
+/* ---- AZALTMA -> DIRENC ----
+   Bedrock'ta "yuzde su kadar az hasar al" diye bir bilesen yok;
+   olan sey Direnc efekti ve o SEVIYE BASINA %20 veriyor.
+
+   Donusum: seviye = floor(azaltma / 0.2), amp = seviye - 1.
+   Esitlik ASAGI yuvarlaniyor (v4.96'da konan kural: kaynaktan
+   FAZLASINI asla verme).
+
+   TAVAN Direnc IV (=%80). Direnc V (amp 4) bagisiklik demek ve
+   o StarOxine'e ayrilmis durumda -- teknoloji zirhi oyuncuyu
+   olumsuz yapmiyor.                                           */
+export const TEKNOLOJI_DIRENC_ADIM  = 0.2;
+export const TEKNOLOJI_DIRENC_TAVAN = 3;   // amp 3 = Direnc IV = %80
+
+/* ---- TAVANIN USTU: GERI KAZANIM ----
+   Kizil Madde ve Mucevher takimlari kaynakta %90 azaltiyor.
+   Direnc IV %80'de duruyor, aradaki %10 yalnizca Direnc V ile
+   verilebilirdi -- o da yasak.
+
+   Bos birakmak "vaat edilen verilmiyor" demek olurdu; v4.95'te
+   cekirdeklerde tam bu sikayet gelmisti. Onun yerine hasar
+   ALINDIKTAN SONRA geri kazandiriliyor:
+
+     geriKazanim = 1 - (1 - azaltma) / (1 - 0.80)
+
+   Kizil/Mucevher icin (1 - 0.10/0.20) = 0.5, yani alinan
+   hasarin yarisi geri veriliyor. Sonuc ham hasarin %10'u --
+   kaynagin tam olarak vaat ettigi sey.
+
+   Kara Madde'de azaltma zaten 0.80, geriKazanim 0 cikiyor ve
+   hicbir sey olmuyor.                                         */
+export const TEKNOLOJI_GERI_KAZANIM_ACIK = true;
+
+/* ---- KALKAN (Draconic) ----
+   Kaynakta kalkan bir enerji havuzu: dolu, harcanan, yavas
+   yavas dolan. Bedrock'ta en yakin sey Absorption -- ayni
+   sekilde harcaniyor ama KENDILIGINDEN dolmuyor.
+
+   Bu yuzden kalkan sabit araliklarla TAZELENIYOR, her taramada
+   degil. Aralik kaynagin kendi dolum suresinden hesaplandi:
+       kapasite / (kalkan_tazeleme + kapasite_modulu_tazeleme)
+   Wyvern  25 / (0.1 + 1.0)  = 22.7 sn -> 455 tick
+   Draconic 50 / (0.25 + 2.5) = 18.2 sn -> 364 tick
+   Chaotic 100 / (0.5 + 5.0)  = 18.2 sn -> 364 tick
+   Her taramada tazelenseydi zirh pratikte olumsuzluk olurdu.
+
+   HANGI MODULLER: gogusluk kendi basina hicbir sey vermiyor,
+   her sey takilan modulden geliyor ve kac tane taktigin sana
+   kalmis. Burada her kademenin KENDI kademesinden BIRER modul
+   takilmis kabul edildi (buyuk kalkan modulu DEGIL, sirasi
+   modul). Bu bir varsayim ve gizlenmiyor.                    */
+export const TEKNOLOJI_KALKAN_BIRIM = 4;   // Absorption amp basina can
+
+/* ---- OLMEZLIK (Draconic Undying) ----
+   Kaynak: olumcul hasarda oyuncuyu ayaga kaldiriyor, can ve
+   kalkan veriyor, bir sure dokunulmaz yapiyor, sonra uzun bir
+   sarj bekliyor. Sayilar undyingData(can, kalkan, kalkanSure,
+   sarjSure, enerji, dokunulmazlik) cagrisindan.               */
+export const TEKNOLOJI_OLMEZLIK_ACIK = true;
+
+/* ---- TAKIMLAR ----
+   anahtar  : esya kimliginin onu (pa:<anahtar>_<parca>)
+   parcalar : hangi zirh parcalari VAR. Draconic'te yalniz
+              "govde" -- 1.20.4'te dort parcali takim yok,
+              tek Moduler Gogusluk var. Uydurulmadi.
+   azaltma  : tam takim taban azaltmasi (0 = yok)
+   efektler : [ad, sure(0 = TEKNOLOJI_SURE), amp]
+   yetenek  : script tarafinda ek is (su an yalniz "ucus")    */
+export const TEKNOLOJI_TAKIMLAR = new Map([
+
+  /* ---------------- ProjectE ---------------- */
+  ["pe_kara", {
+    ad: "Kara Madde", mod: "ProjectE", kaynak: "projecte:dm_*",
+    parcalar: ["bas", "govde", "bacak", "ayak"],
+    /* DMArmor.getFullSetBaseReduction() = 0.8f */
+    azaltma: 0.80,
+    ozet: "tam takım: %80 hasar azaltma · 20 zırh",
+    efektler: []
+  }],
+  ["pe_kizil", {
+    ad: "Kızıl Madde", mod: "ProjectE", kaynak: "projecte:rm_*",
+    parcalar: ["bas", "govde", "bacak", "ayak"],
+    /* RMArmor.getFullSetBaseReduction() = 0.9f */
+    azaltma: 0.90,
+    ozet: "tam takım: %90 hasar azaltma · 20 zırh",
+    efektler: []
+  }],
+  ["pe_mucevher", {
+    ad: "Mücevher", mod: "ProjectE", kaynak: "projecte:gem_*",
+    parcalar: ["bas", "govde", "bacak", "ayak"],
+    /* GemArmorBase.getFullSetBaseReduction() = 0.9f */
+    azaltma: 0.90,
+    /* Parca yetenekleri (yalniz bu takimda var):
+         GemHelmet : can tazeleme + gece gorusu
+         GemChest  : otomatik doyurma + ates korumasi
+         GemLegs   : yavas inis
+         GemFeet   : dusme hasari yok + adim yardimi 0.4
+       Saldiri yetenekleri (doZap yildirimi, doExplode
+       patlamasi, yercekimi caktisi) ALINMADI: kaynakta
+       ayri bir tusla acilip kapaniyorlar, Bedrock'ta o tus
+       yok. Ozet de onlari vaat etmiyor.                     */
+    parcaEfektleri: {
+      bas:   [["regeneration", 0, 0], ["night_vision", 0, 0]],
+      govde: [["saturation", 0, 0], ["fire_resistance", 0, 0]],
+      bacak: [["slow_falling", 0, 0]],
+      ayak:  [["jump_boost", 0, 0]]
+    },
+    ozet: "tam takım: %90 hasar azaltma · 20 zırh · " +
+          "parça parça: can tazeleme, gece görüşü, doyma, " +
+          "ateş bağışıklığı, yavaş iniş, düşme hasarı yok",
+    efektler: []
+  }],
+
+  /* ---------------- Mekanism ---------------- */
+  ["meka", {
+    ad: "MekaSuit", mod: "Mekanism", kaynak: "mekanism:mekasuit_*",
+    parcalar: ["bas", "govde", "bacak", "ayak"],
+    /* mekasuit_absorption.json: destekli hasar turlerinde 1.0,
+       sonic_boom 0.75, "belirtilmemis" 1.0. Yani sarjliyken
+       takim hasari TAMAMEN yiyor.
+
+       %100 AKTARILMADI. Kaynakta bu ENERJIYE bagli: sarj
+       bitince sıradan bir netherite takimi oluyor. Bizde
+       enerji sistemi yok (modu almadik, zirhi aldik), yani
+       %100 verirsek "hic bitmeyen olumsuzluk" olurdu --
+       kaynakta olmayan bir sey. Tavan olan %80'de birakildi
+       ve ozet de %80 diyor.                                  */
+    azaltma: 0.80,
+    /* Ates/lav/sicak zemin ve dusme icin efekt karsiligi TAM:
+       fire_resistance ve slow_falling zaten %100 kesiyor --
+       kaynagin o hasar turleri icin verdiginin aynisi.       */
+    efektler: [
+      ["fire_resistance", 0, 0],   // in_fire · on_fire · lava · hot_floor
+      ["slow_falling", 0, 0],      // fall
+      ["night_vision", 0, 0],      // VisionEnhancement
+      ["water_breathing", 0, 0],   // ElectrolyticBreathing
+      ["conduit_power", 0, 0],     // HydrostaticRepulsor (su ici hiz)
+      ["saturation", 0, 0],        // NutritionalInjection
+      /* HydraulicPropulsion ULTRA: ziplama hizina +0.1*5.0 = 0.5.
+         Bedrock Ziplama seviye basina +0.1 -> 5 seviye -> amp 4. */
+      ["jump_boost", 0, 4],
+      /* LocomotiveBoosting ULTRA: yerde moveRelative(0.5/5) yani
+         tik basina +0.1 ileri IVME. Bedrock'ta ivme diye bir
+         efekt yok, Hiz dogrudan hizi carpiyor.
+
+         BU TEK TAHMINI DONUSUM. Otekilerin hepsi olculu bir
+         sayidan geliyor; bu, "gozle gorulur ama ucurmayan"
+         diye Hiz III'te birakildi.                            */
+      ["speed", 0, 2]
+    ],
+    /* GravitationalModulating: serbest ucus.                  */
+    yetenek: "ucus",
+    ozet: "%80 hasar azaltma · 20 zırh · UÇUŞ · ateş bağışıklığı · " +
+          "düşme hasarı yok · gece görüşü · su altında nefes · " +
+          "doyma · zıplama V · hız III"
+  }],
+
+  /* ---------------- Draconic Evolution ----------------
+     UC PARCA YOK, UC GOGUSLUK VAR. 1.20.4'te dort parcali
+     takim kaldirilmis; oyuna kayitli zirh esyasi tam olarak
+     wyvern/draconic/chaotic_chestpiece. Baslik/pantolon/bot
+     UYDURULMADI.
+
+     Zirh puani ucunde de ayni: ModularChestpiece kurucusu
+     ArmorMaterials.DIAMOND + CHESTPLATE = 8. Fark modullerden.
+
+     Hiz: MOVEMENT_SPEED'e yuzde ekleniyor, Bedrock Hiz'i da
+     seviye basina %20 -- birebir cevrilebiliyor.
+     Ziplama: onLivingJumpEvent -> push(0, 0.1*(1+p), 0), yani
+     ek DIKEY HIZ. Bedrock Ziplama da seviye basina +0.1.      */
+  ["draco_wyvern", {
+    ad: "Wyvern Göğüslüğü", mod: "Draconic Evolution",
+    kaynak: "draconicevolution:wyvern_chestpiece",
+    parcalar: ["govde"],
+    azaltma: 0,
+    /* hiz +%25 -> 1.25 seviye -> 1 -> amp 0
+       ziplama +%75 -> 0.1*1.75 = 0.175 -> 1.75 seviye -> amp 0 */
+    efektler: [["speed", 0, 0], ["jump_boost", 0, 0],
+               ["night_vision", 0, 0], ["saturation", 0, 0]],
+    kalkan: { can: 25, aralik: 455 },
+    olmezlik: { can: 6, kalkan: 25, dokunulmaz: 40, sarj: 2400 },
+    ozet: "8 zırh · 25 kalkan · ölmezlik (6 can) · hız I · " +
+          "zıplama I · gece görüşü · doyma"
+  }],
+  ["draco_draconic", {
+    ad: "Draconic Göğüslüğü", mod: "Draconic Evolution",
+    kaynak: "draconicevolution:draconic_chestpiece",
+    parcalar: ["govde"],
+    azaltma: 0,
+    /* hiz +%50 -> 2.5 -> 2 seviye -> amp 1
+       ziplama +%125 -> 0.1*2.25 = 0.225 -> 2.25 -> amp 1     */
+    efektler: [["speed", 0, 1], ["jump_boost", 0, 1],
+               ["saturation", 0, 0]],
+    /* flightData(elytra=true, creative=true, 2.0)             */
+    yetenek: "ucus",
+    kalkan: { can: 50, aralik: 364 },
+    olmezlik: { can: 12, kalkan: 50, dokunulmaz: 60, sarj: 1200 },
+    ozet: "8 zırh · 50 kalkan · UÇUŞ · ölmezlik (12 can) · " +
+          "hız II · zıplama II · doyma"
+  }],
+  ["draco_chaotic", {
+    ad: "Chaotic Göğüslüğü", mod: "Draconic Evolution",
+    kaynak: "draconicevolution:chaotic_chestpiece",
+    parcalar: ["govde"],
+    azaltma: 0,
+    /* hiz +%150 -> 7.5 -> 7 seviye -> amp 6
+       ziplama +%400 -> 0.1*5.0 = 0.5 -> 5 seviye -> amp 4    */
+    efektler: [["speed", 0, 6], ["jump_boost", 0, 4]],
+    /* flightData(elytra=true, creative=true, 3.5)             */
+    yetenek: "ucus",
+    kalkan: { can: 100, aralik: 364 },
+    olmezlik: { can: 20, kalkan: 100, dokunulmaz: 60, sarj: 900 },
+    ozet: "8 zırh · 100 kalkan · UÇUŞ · ölmezlik (20 can) · " +
+          "hız VII · zıplama V"
+  }]
+]);
+
+/* ---- AKTARILAMAYANLAR (ozetlerde vaat EDILMIYOR) ----
+   - Tokluk (toughness): Bedrock'ta ozel esyaya verilemiyor,
+     boyle bir bilesen yok. Uc takimda da kaybediliyor
+     (ProjectE 2.0 · MekaSuit 3.0 · Draconic 2.0).
+   - Geri tepme direnci: ayni sebep (0.1 / 0.2 / 0.25 / 0.1).
+   - Mucevher takiminin SALDIRI yetenekleri (yildirim,
+     patlama, yercekimi caktisi): kaynakta ayri bir tusla
+     aciliyor, Bedrock'ta o tus yok.
+   - MekaSuit'in donma/wither sogurmasi: Bedrock'ta karsilik
+     efekt yok.
+   - Draconic'in kismi dusme azaltmasi (ziplama x2 blok):
+     Bedrock'ta ya tam bagisiklik var ya hic; kismi yok.
+   - Draconic'in GIYILEN MODELI: kaynak modeli Blender'dan
+     cikma serbest ucgen agi, Bedrock varlik geometrisi yalniz
+     kutu kabul ediyor. Gogusluk esya ikonuyla geliyor,
+     uzerine cizilen model YOK.
+   - Adim yardimi (Mucevher botu 0.4, MekaSuit 2.0): Bedrock'ta
+     oyuncuya verilebilen bir adim yuksekligi yok.             */
+
+/* DUNYA KAYDI YOK -- bilerek. Cekirdek ve kahraman
+   defterlerinden farki bu: durumun kaynagi UZERINDEKI ZIRH,
+   yani oyunun kendi kaydi. Ayrica bir dunya ozelligi tutmak
+   iki dogruluk kaynagi yaratirdi ve ikisi ayrisirdi.        */

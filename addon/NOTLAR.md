@@ -1,3 +1,151 @@
+# v5.1 — Teknoloji zırhları: ProjectE, Mekanism, Draconic Evolution
+
+Kullanıcı üç jar attı ve kapsamı kendisi daralttı: *"bunlar direkt zırh
+modları değil ama bizim odaklanacağımız şey bunların verdiği zırhlar,
+sadece onları alacağız, hiçbir şeyi almayacağız onlardan başka. Ayrıca
+zırh verdiği özellikler falan varsa alabildiklerini al, Java ile Bedrock
+farklı olduğu için alabildiğini al."*
+
+Alınan: **19 zırh parçası**, 7 takım.
+Alınmayan: makineler, kablolar, enerji ağı, EMC/dönüştürme, modül
+eşyaları, aletler, silahlar. Hiçbiri.
+
+Sayıların nereden okunduğu: [`REFERANS_TEKNOLOJI.md`](REFERANS_TEKNOLOJI.md).
+
+## 1. Bunlar çekirdek değil, gerçekten giyilen zırh
+
+Max Steel çekirdeği **elde** tutuluyordu. Sebebi teknik: o bir *dönüşüm*
+ve görünüşü süren Molang sorgusu (`query.get_equipped_item_name`) yalnız
+el yuvalarını okuyabiliyor.
+
+Bunlarda dönüşüm yok. Görünüşü attachable çiziyor (Molang'a gerek yok) ve
+script zırh yuvalarını `equippable` ile rahatça okuyor — kısıt yalnız
+Molang'daydı. Kaynakta zırh, bizde de zırh.
+
+| takım | mod | parça | zırh |
+|---|---|---|---|
+| Kara Madde | ProjectE | 4 | 20 |
+| Kızıl Madde | ProjectE | 4 | 20 |
+| Mücevher | ProjectE | 4 | 20 |
+| MekaSuit | Mekanism | 4 | 20 |
+| Wyvern / Draconic / Chaotic Göğüslüğü | Draconic | 1'er | 8 |
+
+## 2. %90 azaltma: Direnç IV yetmiyordu, açık bırakılmadı
+
+ProjectE'nin Kızıl Madde ve Mücevher takımları kaynakta **%90** azaltıyor.
+Bedrock'ta "yüzde şu kadar az hasar al" diye bir bileşen yok; olan şey
+Direnç efekti ve o **seviye başına %20**. Tavan Direnç IV = %80; Direnç V
+bağışıklık demek ve StarOxine'e ayrılmış.
+
+Aradaki %10'u boş bırakmak, v4.95'teki *"çekirdekler vaat ettiklerini
+vermiyor"* şikâyetinin aynısı olurdu. Onun yerine hasar **alındıktan
+sonra geri kazandırılıyor**:
+
+```
+geriKazanım = 1 − (1 − azaltma) / (1 − 0.80)
+```
+
+Kızıl/Mücevher için 0.5 — alınan hasarın yarısı geri veriliyor, sonuç ham
+hasarın %10'u. Kara Madde'de azaltma zaten 0.80, formül tam 0 veriyor ve
+hiçbir şey olmuyor. Testte ölçülüyor.
+
+Eksik parçayla azaltma da eksik: ProjectE'nin `getPieceEffectiveness`
+kuralı (bot/başlık 0.2, göğüslük/pantolon 0.3) aynen taşındı. Yalnız
+göğüslük takılıysa Kara Madde 0.8 × 0.3 = %24 veriyor, biz %20 —
+**aşağı yuvarlandı**, kaynaktan fazlası asla verilmiyor.
+
+## 3. MekaSuit'in %100'ü bilerek alınmadı
+
+`mekasuit_absorption.json` 21 hasar türü için soğurma oranını **1.0**
+veriyor. Ama kaynakta bu **enerjiye bağlı**: şarj bitince sıradan bir
+netherite takımı. Bizde enerji sistemi yok (modu almadık, zırhı aldık),
+yani %100 verirsek *hiç bitmeyen bir ölümsüzlük* olurdu — kaynakta olmayan
+bir şey. Tavan %80'de bırakıldı ve özet de %80 diyor.
+
+Ateş/lav/sıcak zemin ve düşme için karşılık **tam**: `fire_resistance` ve
+`slow_falling` zaten %100 kesiyor, yani o hasar türlerinde kaynağın
+verdiğinin aynısı.
+
+## 4. MekaSuit'in modeli: 124 kutu, OBJ'den çevrildi
+
+`assets/mekanism/models/entity/mekasuit.obj` — "Made in Blockbench 4.3.1",
+yani **kutulardan** oluşuyor. Kutu olduğu için Bedrock'a birebir
+çevrilebildi: `obj_coz.py`. Dört ayrı 32×32 doku tek 64×64 atlasta
+birleştirildi, UV'ler ona göre kaydırıldı.
+
+İki şey ölçülerek bulundu, tahmin edilmedi:
+
+**Kutu çözümü.** İlk yazdığım "p0'a en yakın üç köşe kenardır" sezgisi
+124 kutunun 98'ini eledi. Uzun ince bir kutuda köşegen, uzun kenardan
+kısa olabiliyor. Doğru sınama: üç vektör birbirine **dik** olacak VE
+toplamları en uzak köşeye eşit olacak. Sonra 124/124.
+
+**X ekseni ters.** Blockbench'in OBJ çıkışı X'i çeviriyor. İlk çeviride
+`chest_left_arm` x = −9…−3.5'e düştü; vanilla sol kol +4…+8 olmalıydı.
+Ayna sarım yönünü de bozduğu için her yüzün köşe sırası da ters
+çevriliyor. Testte sabitlendi: aynayı geri açınca test düşüyor
+(denendi).
+
+Doğrulama yine **çizerek** yapıldı (`onizle_doku.py`, yüz yüz gerçek
+dokuyla): vizör, göğüs modülü, sırt egzo-iskeleti yerli yerinde.
+
+## 5. Draconic'te dört parçalı takım YOK — uydurulmadı
+
+1.20.4'te dört parça tek bir **Modüler Göğüslük**'e indirilmiş. Oyuna
+kayıtlı zırh eşyası tam olarak üç tane: `wyvern_chestpiece`,
+`draconic_chestpiece`, `chaotic_chestpiece`. Başlık/pantolon/bot yok, biz
+de uydurmadık. (Eski takımın ikonları jar'da hâlâ duruyor ama eşyaları
+yok — tuzak burada.)
+
+**Giyilen model de aktarılamadı.** Draconic'in göğüslük modeli Blender'dan
+çıkma *serbest üçgen ağı*; Bedrock varlık geometrisi yalnız kutu kabul
+ediyor. Göğüslükler modun kendi eşya ikonuyla geliyor, üzerine çizilen
+model yok. Bu bir eksik ve gizlenmedi — testte "Draconic'te giyilen model
+YOK" diye sabitli, biri uydurma bir model eklerse test düşer.
+
+Göğüslüklerin verdikleri modüllerden geliyor ve kaç modül taktığın sana
+kalmış. Her kademenin **kendi kademesinden birer** modül takılmış kabul
+edildi (büyük kalkan modülü değil, sıradan olan). Bu bir varsayım ve
+`ayarlar.js`'te öyle yazıyor.
+
+Kalkan Absorption'a çevrildi ama **her taramada tazelenmiyor** — aralık
+kaynağın kendi dolum süresinden hesaplandı (kapasite ÷ tazeleme hızı).
+Her saniye tazelenseydi zırh pratikte ölümsüzlük olurdu.
+
+## 6. Aktarılamayanlar (özetlerde vaat edilmiyor)
+
+- **Tokluk** (ProjectE 2.0 · MekaSuit 3.0 · Draconic 2.0) ve **geri tepme
+  direnci** (0.1 / 0.2 / 0.25 / 0.1): Bedrock'ta özel eşyaya verilemiyor.
+- Mücevher takımının **saldırı yetenekleri** (yıldırım, patlama, yerçekimi
+  çakması): kaynakta ayrı bir tuşla açılıyor, Bedrock'ta o tuş yok.
+- MekaSuit'in **donma/wither** soğurması: karşılık efekt yok.
+- Draconic'in **kısmi düşme azaltması**: Bedrock'ta ya tam bağışıklık var
+  ya hiç.
+- **Adım yardımı** (Mücevher botu 0.4, MekaSuit 2.0): oyuncuya
+  verilebilen bir adım yüksekliği yok.
+
+Tek **tahmini** dönüşüm: MekaSuit'in koşu hızlandırması. Kaynak
+`moveRelative` ile tik başına +0.1 **ivme** ekliyor; Bedrock'ta ivme diye
+bir efekt yok, Hız doğrudan hızı çarpıyor. "Gözle görülür ama uçurmayan"
+diye Hız III'te bırakıldı ve `ayarlar.js`'te öyle işaretlendi. Geri kalan
+her sayı ölçülü bir kaynaktan geliyor.
+
+## 7. Test: sayılar jar'ın bytecode'undan yeniden okunuyor
+
+`test/teknoloji.mjs` 9 bölüm. En önemlisi 7.: `javap` varsa ProjectE'nin
+azaltmaları (0.8/0.9/0.9), parça etkinlikleri (0.2/0.3), Mekanism'in
+`ArmorMaterials.NETHERITE` bağı ve ULTRA zıplaması (5.0f), Draconic'in
+kalkan kapasiteleri (25/50/100) ve zıplaması (4.0d) **yeniden okunup**
+`ayarlar.js` ile karşılaştırılıyor. Yani "hafızadan yazdım" ihtimali
+test edilebilir bir şeye dönüşüyor.
+
+Bir de v4.83 dersinin devamı: `can_sayaci.mjs`'in "tick kapısında
+sayılıyor mu" sınaması kapının **sonunda** olmayı arıyordu; teknoloji
+zırhı eklenince kalıp kaydı ve test yanlış alarm verdi. Artık konuma
+değil **üyeliğe** bakıyor.
+
+---
+
 # v5.0 — Weapons of Miracles: 27 silah + 63 dövüş animasyonu
 
 Kullanıcı iki jar attı: **Weapons of Miracles 2.0.176** ve **Epic Fight**

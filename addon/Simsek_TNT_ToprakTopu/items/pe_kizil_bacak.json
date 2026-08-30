@@ -1,0 +1,32 @@
+{
+  "format_version": "1.21.0",
+  "minecraft:item": {
+    "description": {
+      "identifier": "pa:pe_kizil_bacak",
+      "menu_category": {
+        "category": "equipment"
+      }
+    },
+    "components": {
+      "minecraft:icon": {
+        "texture": "pe_kizil_bacak"
+      },
+      "minecraft:display_name": {
+        "value": "Kızıl Madde Pantolon"
+      },
+      "minecraft:max_stack_size": 1,
+      "minecraft:wearable": {
+        "slot": "slot.armor.legs",
+        "protection": 6
+      },
+      "minecraft:armor": {
+        "protection": 6
+      },
+      "minecraft:tags": {
+        "tags": [
+          "pa:teknoloji_zirhi"
+        ]
+      }
+    }
+  }
+}

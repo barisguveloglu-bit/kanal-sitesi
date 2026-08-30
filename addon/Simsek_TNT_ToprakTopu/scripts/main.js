@@ -13,7 +13,8 @@ import {
   KAHRAMAN_ACIK, KAHRAMANLAR, KAHRAMAN_ONEK,
   BECERI_ACIK, BECERI_AGACI, BECERI_TAVAN_KADEME,
   CAN_SAYACI_ACIK, WOM_ACIK, WOM_SILAHLAR, WOM_ONEK,
-  BEN10_ACIK, BEN10
+  BEN10_ACIK, BEN10,
+  TEKNOLOJI_ACIK, TEKNOLOJI_TAKIMLAR, TEKNOLOJI_ONEK
 } from "./ayarlar.js";
 
 import {
@@ -58,6 +59,15 @@ import { canSayaciTara, canSayaciUnut } from "./yetenekler/can_sayaci.js";
 /* v5.0: WoM silahlarinin vurus animasyonlari (Epic Fight'tan
    cevrildi). Olay tabanli -- tick'te is yapmiyor.          */
 import { womDovusKur, womDovusUnut } from "./yetenekler/wom_dovus.js";
+
+/* v5.1: teknoloji zirhlari (ProjectE / Mekanism / Draconic).
+   Cekirdeklerden farki GERCEKTEN GIYILIYOR olmalari; tarama
+   zirh yuvalarini okuyor. Hasar sonrasi isi de var, o yuzden
+   ayrica bir kurulum (teknolojiKur) cagriliyor.             */
+import {
+  teknolojiTara, teknolojiUnut, teknolojiListesi, teknolojiKur,
+  takilanTakim
+} from "./yetenekler/teknoloji_zirh.js";
 
 /* Ben 10 (v4.92): elindeki esyaya gore yaratik oluyorsun.
    Gorunusu oyuncu modeli paketi ciziyor, gucleri bu modul.    */
@@ -296,7 +306,8 @@ system.runInterval(() => {
      dunyasinda hicbir sey acik degilken SESSIZCE calismazdi
      -- "calisiyor mu != ulasilabiliyor mu" (v4.83 dersi).  */
   if (iksirVar || kalpVar || botVar || kilikVar || ZIRH_ACIK ||
-      BEN10_ACIK || KAHRAMAN_ACIK || CAN_SAYACI_ACIK) {
+      BEN10_ACIK || KAHRAMAN_ACIK || CAN_SAYACI_ACIK ||
+      TEKNOLOJI_ACIK) {
     let oyuncular;
     try {
       oyuncular = world.getAllPlayers();
@@ -353,6 +364,13 @@ system.runInterval(() => {
         canSayaciTara(oyuncular);
       } catch (e) {
         hataYaz("canSayaciTara", e);
+      }
+    }
+    if (TEKNOLOJI_ACIK) {
+      try {
+        teknolojiTara(oyuncular);
+      } catch (e) {
+        hataYaz("teknolojiTara", e);
       }
     }
     if (BEN10_ACIK) {
@@ -760,6 +778,63 @@ function womBilgi(oyuncu, anahtar) {
   kollariIndir(oyuncu);
 }
 
+/* TEKNOLOJI ZIRHLARI MENUSU  (v5.1)
+
+   ProjectE / Mekanism / Draconic zirhlari. Cekirdek ve
+   kahraman menuleriyle ayni kalip: menu SECIM YAPMIYOR,
+   hangi takimin ne verdigini yaziyor. Fark su: bunlar
+   gercekten GIYILIYOR, o yuzden satirda "kac parcasi
+   uzerinde" de gorunuyor.                                  */
+function teknolojiMenusu(oyuncu) {
+  if (!TEKNOLOJI_ACIK) {
+    actionbarYaz(oyuncu, "§cTeknoloji zırhları kapalı (TEKNOLOJI_ACIK).");
+    return undefined;
+  }
+  const liste = teknolojiListesi(oyuncu);
+  const dugmeler = liste.map((t) => ({
+    anahtar: t.anahtar,
+    ad: (t.takili > 0 ? "§b⛨ " : "") + "§f" + t.ad +
+        " §8(" + t.mod + ")" +
+        "\n§8" + t.ozet +
+        "\n§8" + t.takili + "/" + t.parcalar.length + " parça üzerinde"
+  }));
+  const uzerinde = takilanTakim(oyuncu);
+  const baslik = uzerinde
+    ? "§b⛨ Teknoloji Zırhları §7· §f" +
+      (TEKNOLOJI_TAKIMLAR.get(uzerinde.anahtar) || {}).ad
+    : "§b⛨ Teknoloji Zırhları §7· §fzırhı giy";
+  const acildi = menuAc(oyuncu, baslik, dugmeler, -1,
+    (i) => teknolojiBilgi(oyuncu, dugmeler[i].anahtar), []);
+  if (!acildi) {
+    teknolojiBilgi(oyuncu,
+      (uzerinde && uzerinde.anahtar) || dugmeler[0].anahtar);
+  }
+  return undefined;
+}
+
+function teknolojiBilgi(oyuncu, anahtar) {
+  const t = TEKNOLOJI_TAKIMLAR.get(anahtar);
+  if (!t) return;
+  const uzerinde = takilanTakim(oyuncu);
+  const takili = uzerinde && uzerinde.anahtar === anahtar
+    ? uzerinde.parcalar.length : 0;
+  try {
+    oyuncu.sendMessage(
+      "§b⛨ §f" + t.ad + " §8(" + t.mod + ")" +
+      "\n§8" + t.ozet +
+      "\n§8kaynak: §7" + t.kaynak +
+      "\n§8parçalar: §7" +
+      t.parcalar.map((p) => TEKNOLOJI_ONEK + anahtar + "_" + p).join(", ") +
+      (takili >= t.parcalar.length
+        ? "\n§a✔ Tam takım üzerinde — hepsi açık."
+        : "\n§e" + takili + "/" + t.parcalar.length +
+          " parça üzerinde §8(takım gücü yalnız tam takımda)"));
+  } catch (e) {
+    hataYaz("teknoloji.mesaj", e);
+  }
+  kollariIndir(oyuncu);
+}
+
 /* FISK KAHRAMANLARI MENUSU  (v4.96)
 
    Zirh menusuyle AYNI is: hangi kahramanin ne verdigini
@@ -1154,6 +1229,17 @@ function menuEkleri(oyuncu) {
     {
       ad: "⚔ Silahlar §8(Weapons of Miracles · " + WOM_SILAHLAR.size + ")",
       calis() { womMenusu(oyuncu); }
+    },
+    /* v5.1: teknoloji zirhlari. Satirda uzerindeki takim
+       yaziyor -- "giydim ama bir sey olmuyor" sorusunun
+       cevabi menuye acmadan gorunsun.                      */
+    {
+      ad: "⛨ Teknoloji Zırhları §8(" +
+          (takilanTakim(oyuncu)
+            ? (TEKNOLOJI_TAKIMLAR.get(takilanTakim(oyuncu).anahtar) || {}).ad +
+              " §b⛨"
+            : "zırh yok") + ")",
+      calis() { teknolojiMenusu(oyuncu); }
     },
     /* v4.92: Ben 10. Menu sadece BILGI veriyor -- donusum
        esyayi ELINE ALMAKLA oluyor, cunku gorunusu suren molang
@@ -1689,6 +1775,15 @@ function esyasizOyuncu(oyuncu, sira) {
    olay yoksa sessizce kapaniyor.                            */
 womDovusKur();
 
+/* v5.1: teknoloji zirhlarinin hasar sonrasi isi (geri kazanim
+   ve olmezlik). entityHurt yoksa zirhlar YINE calisiyor --
+   efektler, direnc ve kalkan taramadan geliyor; yalniz bu iki
+   ozellik kapaniyor. O yuzden ayri bir uyari yaziliyor.       */
+if (TEKNOLOJI_ACIK && !teknolojiKur()) {
+  bilgiYaz("entityHurt yok: teknoloji zirhlarinin geri kazanimi ve " +
+           "olmezligi kapali. Zirh puani, efektler ve kalkan calisiyor.");
+}
+
 const beceriKuruldu = olayaAbone("entityDie", (olay) => {
   try {
     if (!BEN10_ACIK || !BECERI_ACIK) return;
@@ -1742,6 +1837,7 @@ olayaAbone("playerLeave", (olay) => {
   kahramanUnutOyuncu(olay.playerId);
   canSayaciUnut(olay.playerId);
   womDovusUnut(olay.playerId);
+  teknolojiUnut(olay.playerId);
   ben10Unut(olay.playerId);
 
   // Oyuncunun butun isleri durdurulmali, sadece birincisi degil
