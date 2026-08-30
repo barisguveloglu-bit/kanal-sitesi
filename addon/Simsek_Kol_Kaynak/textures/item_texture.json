@@ -230,32 +230,809 @@
     "draco_chaotic_govde": {
       "textures": "textures/item/draco_chaotic_govde"
     },
-    "kahraman_spectre": {
-      "textures": "textures/item/kahraman_spectre"
+    "mrv_adam_warlock__adam_warlock_powers": {
+      "textures": "textures/item/mrv_adam_warlock__adam_warlock_powers"
     },
-    "kahraman_anti_monitor": {
-      "textures": "textures/item/kahraman_anti_monitor"
+    "mrv_antman__antman_powers": {
+      "textures": "textures/item/mrv_antman__antman_powers"
     },
-    "kahraman_the_monitor": {
-      "textures": "textures/item/kahraman_the_monitor"
+    "mrv_antman__antman_civil_war_suit": {
+      "textures": "textures/item/mrv_antman__antman_civil_war_suit"
     },
-    "kahraman_martian_manhunter": {
-      "textures": "textures/item/kahraman_martian_manhunter"
+    "mrv_antman__antman_classic_suit": {
+      "textures": "textures/item/mrv_antman__antman_classic_suit"
     },
-    "kahraman_vision": {
-      "textures": "textures/item/kahraman_vision"
+    "mrv_antman__antman_quantumania_suit": {
+      "textures": "textures/item/mrv_antman__antman_quantumania_suit"
     },
-    "kahraman_iron_man_mk85": {
-      "textures": "textures/item/kahraman_iron_man_mk85"
+    "mrv_antman__antman_suit": {
+      "textures": "textures/item/mrv_antman__antman_suit"
     },
-    "kahraman_shazam_dceu": {
-      "textures": "textures/item/kahraman_shazam_dceu"
+    "mrv_antman__quantum_suit": {
+      "textures": "textures/item/mrv_antman__quantum_suit"
     },
-    "kahraman_the_tick": {
-      "textures": "textures/item/kahraman_the_tick"
+    "mrv_antman__wasp_emh_skin": {
+      "textures": "textures/item/mrv_antman__wasp_emh_skin"
     },
-    "kahraman_harbinger": {
-      "textures": "textures/item/kahraman_harbinger"
+    "mrv_antman__wasp_emh_suit": {
+      "textures": "textures/item/mrv_antman__wasp_emh_suit"
+    },
+    "mrv_antman__wasp_quantumania_suit": {
+      "textures": "textures/item/mrv_antman__wasp_quantumania_suit"
+    },
+    "mrv_antman__wasp_suit": {
+      "textures": "textures/item/mrv_antman__wasp_suit"
+    },
+    "mrv_antman__antman_civil_war_mask": {
+      "textures": "textures/item/mrv_antman__antman_civil_war_mask"
+    },
+    "mrv_antman__antman_classic_mask": {
+      "textures": "textures/item/mrv_antman__antman_classic_mask"
+    },
+    "mrv_antman__antman_mask": {
+      "textures": "textures/item/mrv_antman__antman_mask"
+    },
+    "mrv_antman__antman_quantumania_mask": {
+      "textures": "textures/item/mrv_antman__antman_quantumania_mask"
+    },
+    "mrv_antman__quantum_mask": {
+      "textures": "textures/item/mrv_antman__quantum_mask"
+    },
+    "mrv_antman__wasp_mask": {
+      "textures": "textures/item/mrv_antman__wasp_mask"
+    },
+    "mrv_antman__wasp_quantumania_mask": {
+      "textures": "textures/item/mrv_antman__wasp_quantumania_mask"
+    },
+    "mrv_black_panther__black_panther_powers": {
+      "textures": "textures/item/mrv_black_panther__black_panther_powers"
+    },
+    "mrv_black_panther__black_panther_basts_chosen_suit": {
+      "textures": "textures/item/mrv_black_panther__black_panther_basts_chosen_suit"
+    },
+    "mrv_black_panther__black_panther_emh_suit": {
+      "textures": "textures/item/mrv_black_panther__black_panther_emh_suit"
+    },
+    "mrv_black_panther__black_panther_killmonger_suit": {
+      "textures": "textures/item/mrv_black_panther__black_panther_killmonger_suit"
+    },
+    "mrv_black_panther__black_panther_shuri_suit": {
+      "textures": "textures/item/mrv_black_panther__black_panther_shuri_suit"
+    },
+    "mrv_black_panther__black_panther_suit": {
+      "textures": "textures/item/mrv_black_panther__black_panther_suit"
+    },
+    "mrv_black_panther__black_panther_basts_chosen_mask": {
+      "textures": "textures/item/mrv_black_panther__black_panther_basts_chosen_mask"
+    },
+    "mrv_black_panther__black_panther_emh_mask": {
+      "textures": "textures/item/mrv_black_panther__black_panther_emh_mask"
+    },
+    "mrv_black_panther__black_panther_killmonger_mask": {
+      "textures": "textures/item/mrv_black_panther__black_panther_killmonger_mask"
+    },
+    "mrv_black_panther__black_panther_mask": {
+      "textures": "textures/item/mrv_black_panther__black_panther_mask"
+    },
+    "mrv_black_panther__black_panther_shuri_mask": {
+      "textures": "textures/item/mrv_black_panther__black_panther_shuri_mask"
+    },
+    "mrv_black_widow__black_widow_powers": {
+      "textures": "textures/item/mrv_black_widow__black_widow_powers"
+    },
+    "mrv_black_widow__black_widow_avengers_suit": {
+      "textures": "textures/item/mrv_black_widow__black_widow_avengers_suit"
+    },
+    "mrv_black_widow__black_widow_winter_soldier_suit": {
+      "textures": "textures/item/mrv_black_widow__black_widow_winter_soldier_suit"
+    },
+    "mrv_black_widow__yelena_survivor_suit": {
+      "textures": "textures/item/mrv_black_widow__yelena_survivor_suit"
+    },
+    "mrv_black_widow__yelena_thunderbolts_suit": {
+      "textures": "textures/item/mrv_black_widow__yelena_thunderbolts_suit"
+    },
+    "mrv_captain_america__baron_zemo_avengers_emh_suit": {
+      "textures": "textures/item/mrv_captain_america__baron_zemo_avengers_emh_suit"
+    },
+    "mrv_captain_america__baron_zemo_suit": {
+      "textures": "textures/item/mrv_captain_america__baron_zemo_suit"
+    },
+    "mrv_captain_america__captain_america_avengers_suit": {
+      "textures": "textures/item/mrv_captain_america__captain_america_avengers_suit"
+    },
+    "mrv_captain_america__captain_america_brave_new_world_suit": {
+      "textures": "textures/item/mrv_captain_america__captain_america_brave_new_world_suit"
+    },
+    "mrv_captain_america__captain_america_civil_war_suit": {
+      "textures": "textures/item/mrv_captain_america__captain_america_civil_war_suit"
+    },
+    "mrv_captain_america__captain_america_emh_suit": {
+      "textures": "textures/item/mrv_captain_america__captain_america_emh_suit"
+    },
+    "mrv_captain_america__captain_america_endgame_suit": {
+      "textures": "textures/item/mrv_captain_america__captain_america_endgame_suit"
+    },
+    "mrv_captain_america__captain_america_first_avenger_suit": {
+      "textures": "textures/item/mrv_captain_america__captain_america_first_avenger_suit"
+    },
+    "mrv_captain_america__captain_america_infinity_war_suit": {
+      "textures": "textures/item/mrv_captain_america__captain_america_infinity_war_suit"
+    },
+    "mrv_captain_america__captain_america_suit": {
+      "textures": "textures/item/mrv_captain_america__captain_america_suit"
+    },
+    "mrv_captain_america__captain_america_winter_soldier_suit": {
+      "textures": "textures/item/mrv_captain_america__captain_america_winter_soldier_suit"
+    },
+    "mrv_captain_america__captain_carter_suit": {
+      "textures": "textures/item/mrv_captain_america__captain_carter_suit"
+    },
+    "mrv_captain_america__sam_wilson_suit": {
+      "textures": "textures/item/mrv_captain_america__sam_wilson_suit"
+    },
+    "mrv_captain_america__us_agent_black_suit": {
+      "textures": "textures/item/mrv_captain_america__us_agent_black_suit"
+    },
+    "mrv_captain_america__us_agent_suit": {
+      "textures": "textures/item/mrv_captain_america__us_agent_suit"
+    },
+    "mrv_captain_america__baron_zemo_avengers_emh_mask": {
+      "textures": "textures/item/mrv_captain_america__baron_zemo_avengers_emh_mask"
+    },
+    "mrv_captain_america__baron_zemo_mask": {
+      "textures": "textures/item/mrv_captain_america__baron_zemo_mask"
+    },
+    "mrv_captain_america__captain_america_avengers_helmet": {
+      "textures": "textures/item/mrv_captain_america__captain_america_avengers_helmet"
+    },
+    "mrv_captain_america__captain_america_brave_new_world_glasses": {
+      "textures": "textures/item/mrv_captain_america__captain_america_brave_new_world_glasses"
+    },
+    "mrv_captain_america__captain_america_brave_new_world_helmet": {
+      "textures": "textures/item/mrv_captain_america__captain_america_brave_new_world_helmet"
+    },
+    "mrv_captain_america__captain_america_civil_war_helmet": {
+      "textures": "textures/item/mrv_captain_america__captain_america_civil_war_helmet"
+    },
+    "mrv_captain_america__captain_america_emh_helmet": {
+      "textures": "textures/item/mrv_captain_america__captain_america_emh_helmet"
+    },
+    "mrv_captain_america__captain_america_endgame_helmet": {
+      "textures": "textures/item/mrv_captain_america__captain_america_endgame_helmet"
+    },
+    "mrv_captain_america__captain_america_first_avenger_helmet": {
+      "textures": "textures/item/mrv_captain_america__captain_america_first_avenger_helmet"
+    },
+    "mrv_captain_america__captain_america_helmet": {
+      "textures": "textures/item/mrv_captain_america__captain_america_helmet"
+    },
+    "mrv_captain_america__captain_america_winter_soldier_helmet": {
+      "textures": "textures/item/mrv_captain_america__captain_america_winter_soldier_helmet"
+    },
+    "mrv_captain_america__sam_wilson_glasses": {
+      "textures": "textures/item/mrv_captain_america__sam_wilson_glasses"
+    },
+    "mrv_captain_america__sam_wilson_helmet": {
+      "textures": "textures/item/mrv_captain_america__sam_wilson_helmet"
+    },
+    "mrv_captain_america__us_agent_black_helmet": {
+      "textures": "textures/item/mrv_captain_america__us_agent_black_helmet"
+    },
+    "mrv_captain_america__us_agent_helmet": {
+      "textures": "textures/item/mrv_captain_america__us_agent_helmet"
+    },
+    "mrv_cyclops__cyclops_powers": {
+      "textures": "textures/item/mrv_cyclops__cyclops_powers"
+    },
+    "mrv_cyclops__cyclops_suit": {
+      "textures": "textures/item/mrv_cyclops__cyclops_suit"
+    },
+    "mrv_cyclops__cyclops_glasses": {
+      "textures": "textures/item/mrv_cyclops__cyclops_glasses"
+    },
+    "mrv_daredevil__daredevil_powers": {
+      "textures": "textures/item/mrv_daredevil__daredevil_powers"
+    },
+    "mrv_daredevil__daredevil_black_suit": {
+      "textures": "textures/item/mrv_daredevil__daredevil_black_suit"
+    },
+    "mrv_daredevil__daredevil_born_again_season_2_suit": {
+      "textures": "textures/item/mrv_daredevil__daredevil_born_again_season_2_suit"
+    },
+    "mrv_daredevil__daredevil_born_again_suit": {
+      "textures": "textures/item/mrv_daredevil__daredevil_born_again_suit"
+    },
+    "mrv_daredevil__daredevil_she_hulk_suit": {
+      "textures": "textures/item/mrv_daredevil__daredevil_she_hulk_suit"
+    },
+    "mrv_daredevil__daredevil_suit": {
+      "textures": "textures/item/mrv_daredevil__daredevil_suit"
+    },
+    "mrv_daredevil__daredevil_tv_suit": {
+      "textures": "textures/item/mrv_daredevil__daredevil_tv_suit"
+    },
+    "mrv_daredevil__daredevil_yfns_suit": {
+      "textures": "textures/item/mrv_daredevil__daredevil_yfns_suit"
+    },
+    "mrv_daredevil__daredevil_black_mask": {
+      "textures": "textures/item/mrv_daredevil__daredevil_black_mask"
+    },
+    "mrv_daredevil__daredevil_born_again_mask": {
+      "textures": "textures/item/mrv_daredevil__daredevil_born_again_mask"
+    },
+    "mrv_daredevil__daredevil_born_again_season_2_mask": {
+      "textures": "textures/item/mrv_daredevil__daredevil_born_again_season_2_mask"
+    },
+    "mrv_daredevil__daredevil_mask": {
+      "textures": "textures/item/mrv_daredevil__daredevil_mask"
+    },
+    "mrv_daredevil__daredevil_she_hulk_mask": {
+      "textures": "textures/item/mrv_daredevil__daredevil_she_hulk_mask"
+    },
+    "mrv_daredevil__daredevil_tv_mask": {
+      "textures": "textures/item/mrv_daredevil__daredevil_tv_mask"
+    },
+    "mrv_daredevil__daredevil_yfns_mask": {
+      "textures": "textures/item/mrv_daredevil__daredevil_yfns_mask"
+    },
+    "mrv_deadpool__deadpool_powers": {
+      "textures": "textures/item/mrv_deadpool__deadpool_powers"
+    },
+    "mrv_deadpool__deadpool_suit": {
+      "textures": "textures/item/mrv_deadpool__deadpool_suit"
+    },
+    "mrv_deadpool__deadpool_mask": {
+      "textures": "textures/item/mrv_deadpool__deadpool_mask"
+    },
+    "mrv_dr_doom__dr_doom_powers": {
+      "textures": "textures/item/mrv_dr_doom__dr_doom_powers"
+    },
+    "mrv_dr_doom__dr_doom_demon_in_an_armor_suit": {
+      "textures": "textures/item/mrv_dr_doom__dr_doom_demon_in_an_armor_suit"
+    },
+    "mrv_dr_doom__dr_doom_emperor_suit": {
+      "textures": "textures/item/mrv_dr_doom__dr_doom_emperor_suit"
+    },
+    "mrv_dr_doom__dr_doom_suit": {
+      "textures": "textures/item/mrv_dr_doom__dr_doom_suit"
+    },
+    "mrv_dr_doom__dr_doom_demon_in_an_armor_mask": {
+      "textures": "textures/item/mrv_dr_doom__dr_doom_demon_in_an_armor_mask"
+    },
+    "mrv_dr_doom__dr_doom_emperor_mask": {
+      "textures": "textures/item/mrv_dr_doom__dr_doom_emperor_mask"
+    },
+    "mrv_dr_doom__dr_doom_mask": {
+      "textures": "textures/item/mrv_dr_doom__dr_doom_mask"
+    },
+    "mrv_dr_strange__dr_strange_cape": {
+      "textures": "textures/item/mrv_dr_strange__dr_strange_cape"
+    },
+    "mrv_dr_strange__dr_strange_suit": {
+      "textures": "textures/item/mrv_dr_strange__dr_strange_suit"
+    },
+    "mrv_falcon__falcon_suit": {
+      "textures": "textures/item/mrv_falcon__falcon_suit"
+    },
+    "mrv_falcon__falcon_glasses": {
+      "textures": "textures/item/mrv_falcon__falcon_glasses"
+    },
+    "mrv_fantastic_4__fantastic_4_2005_suit": {
+      "textures": "textures/item/mrv_fantastic_4__fantastic_4_2005_suit"
+    },
+    "mrv_fantastic_4__fantastic_4_2015_suit_reed": {
+      "textures": "textures/item/mrv_fantastic_4__fantastic_4_2015_suit_reed"
+    },
+    "mrv_fantastic_4__fantastic_4_2015_suit_sue": {
+      "textures": "textures/item/mrv_fantastic_4__fantastic_4_2015_suit_sue"
+    },
+    "mrv_fantastic_4__fantastic_4_2015_suit_johnny": {
+      "textures": "textures/item/mrv_fantastic_4__fantastic_4_2015_suit_johnny"
+    },
+    "mrv_fantastic_4__fantastic_4_2025_suit_reed": {
+      "textures": "textures/item/mrv_fantastic_4__fantastic_4_2025_suit_reed"
+    },
+    "mrv_fantastic_4__fantastic_4_2025_suit_sue": {
+      "textures": "textures/item/mrv_fantastic_4__fantastic_4_2025_suit_sue"
+    },
+    "mrv_fantastic_4__fantastic_4_2025_suit_johnny": {
+      "textures": "textures/item/mrv_fantastic_4__fantastic_4_2025_suit_johnny"
+    },
+    "mrv_fantastic_4__fantastic_4_black_suit": {
+      "textures": "textures/item/mrv_fantastic_4__fantastic_4_black_suit"
+    },
+    "mrv_fantastic_4__fantastic_4_suit": {
+      "textures": "textures/item/mrv_fantastic_4__fantastic_4_suit"
+    },
+    "mrv_galactus__galactus_powers": {
+      "textures": "textures/item/mrv_galactus__galactus_powers"
+    },
+    "mrv_galactus__galactus_suit": {
+      "textures": "textures/item/mrv_galactus__galactus_suit"
+    },
+    "mrv_galactus__galactus_mask": {
+      "textures": "textures/item/mrv_galactus__galactus_mask"
+    },
+    "mrv_gambit__gambit_powers": {
+      "textures": "textures/item/mrv_gambit__gambit_powers"
+    },
+    "mrv_gambit__gambit_age_of_apocalypse_cape": {
+      "textures": "textures/item/mrv_gambit__gambit_age_of_apocalypse_cape"
+    },
+    "mrv_gambit__gambit_age_of_apocalypse_suit": {
+      "textures": "textures/item/mrv_gambit__gambit_age_of_apocalypse_suit"
+    },
+    "mrv_gambit__gambit_suit": {
+      "textures": "textures/item/mrv_gambit__gambit_suit"
+    },
+    "mrv_gambit__gambit_vest": {
+      "textures": "textures/item/mrv_gambit__gambit_vest"
+    },
+    "mrv_ghost__ghost_powers": {
+      "textures": "textures/item/mrv_ghost__ghost_powers"
+    },
+    "mrv_ghost__ghost_suit": {
+      "textures": "textures/item/mrv_ghost__ghost_suit"
+    },
+    "mrv_ghost__ghost_mask": {
+      "textures": "textures/item/mrv_ghost__ghost_mask"
+    },
+    "mrv_ghost_rider__ghost_rider_powers": {
+      "textures": "textures/item/mrv_ghost_rider__ghost_rider_powers"
+    },
+    "mrv_ghost_rider__ghost_rider_agents_of_shield_suit": {
+      "textures": "textures/item/mrv_ghost_rider__ghost_rider_agents_of_shield_suit"
+    },
+    "mrv_ghost_rider__ghost_rider_suit": {
+      "textures": "textures/item/mrv_ghost_rider__ghost_rider_suit"
+    },
+    "mrv_groot__groot_powers": {
+      "textures": "textures/item/mrv_groot__groot_powers"
+    },
+    "mrv_guardians__guardians_suit": {
+      "textures": "textures/item/mrv_guardians__guardians_suit"
+    },
+    "mrv_gwenpool__gwenpool_powers": {
+      "textures": "textures/item/mrv_gwenpool__gwenpool_powers"
+    },
+    "mrv_gwenpool__gwenpool_black_suit": {
+      "textures": "textures/item/mrv_gwenpool__gwenpool_black_suit"
+    },
+    "mrv_gwenpool__gwenpool_suit": {
+      "textures": "textures/item/mrv_gwenpool__gwenpool_suit"
+    },
+    "mrv_gwenpool__gwenpool_black_mask": {
+      "textures": "textures/item/mrv_gwenpool__gwenpool_black_mask"
+    },
+    "mrv_gwenpool__gwenpool_mask": {
+      "textures": "textures/item/mrv_gwenpool__gwenpool_mask"
+    },
+    "mrv_hawkeye__hawkeye_powers": {
+      "textures": "textures/item/mrv_hawkeye__hawkeye_powers"
+    },
+    "mrv_hawkeye__hawkeye_suit": {
+      "textures": "textures/item/mrv_hawkeye__hawkeye_suit"
+    },
+    "mrv_hawkeye__kate_bishop_suit": {
+      "textures": "textures/item/mrv_hawkeye__kate_bishop_suit"
+    },
+    "mrv_hawkeye__ultimate_hawkeye_black_mask": {
+      "textures": "textures/item/mrv_hawkeye__ultimate_hawkeye_black_mask"
+    },
+    "mrv_hawkeye__ultimate_hawkeye_black_suit": {
+      "textures": "textures/item/mrv_hawkeye__ultimate_hawkeye_black_suit"
+    },
+    "mrv_hawkeye__ultimate_hawkeye_mask": {
+      "textures": "textures/item/mrv_hawkeye__ultimate_hawkeye_mask"
+    },
+    "mrv_hawkeye__ultimate_hawkeye_suit": {
+      "textures": "textures/item/mrv_hawkeye__ultimate_hawkeye_suit"
+    },
+    "mrv_hawkeye__hawkeye_mask": {
+      "textures": "textures/item/mrv_hawkeye__hawkeye_mask"
+    },
+    "mrv_hulk__hulk_powers": {
+      "textures": "textures/item/mrv_hulk__hulk_powers"
+    },
+    "mrv_iron_fist__iron_fist_powers": {
+      "textures": "textures/item/mrv_iron_fist__iron_fist_powers"
+    },
+    "mrv_iron_fist__iron_fist_rivals_suit": {
+      "textures": "textures/item/mrv_iron_fist__iron_fist_rivals_suit"
+    },
+    "mrv_iron_fist__iron_fist_suit": {
+      "textures": "textures/item/mrv_iron_fist__iron_fist_suit"
+    },
+    "mrv_iron_fist__iron_fist_mask": {
+      "textures": "textures/item/mrv_iron_fist__iron_fist_mask"
+    },
+    "mrv_iron_fist__iron_fist_rivals_mask": {
+      "textures": "textures/item/mrv_iron_fist__iron_fist_rivals_mask"
+    },
+    "mrv_ironman__ironman_avengers": {
+      "textures": "textures/item/mrv_ironman__ironman_avengers"
+    },
+    "mrv_ironman__ironman_mark2": {
+      "textures": "textures/item/mrv_ironman__ironman_mark2"
+    },
+    "mrv_ironman__ironman_mark20": {
+      "textures": "textures/item/mrv_ironman__ironman_mark20"
+    },
+    "mrv_ironman__ironman_mark2_frozen": {
+      "textures": "textures/item/mrv_ironman__ironman_mark2_frozen"
+    },
+    "mrv_ironman__ironman_mark3": {
+      "textures": "textures/item/mrv_ironman__ironman_mark3"
+    },
+    "mrv_ironman__ironman_mark4": {
+      "textures": "textures/item/mrv_ironman__ironman_mark4"
+    },
+    "mrv_ironman__ironman_mark50": {
+      "textures": "textures/item/mrv_ironman__ironman_mark50"
+    },
+    "mrv_ironman__ironman_mark6": {
+      "textures": "textures/item/mrv_ironman__ironman_mark6"
+    },
+    "mrv_ironman__ironman_mark7": {
+      "textures": "textures/item/mrv_ironman__ironman_mark7"
+    },
+    "mrv_ironman__ironman_super_hero_squad": {
+      "textures": "textures/item/mrv_ironman__ironman_super_hero_squad"
+    },
+    "mrv_jeff_the_land_shark__jeff_the_land_shark_powers": {
+      "textures": "textures/item/mrv_jeff_the_land_shark__jeff_the_land_shark_powers"
+    },
+    "mrv_johnny__johnny_powers": {
+      "textures": "textures/item/mrv_johnny__johnny_powers"
+    },
+    "mrv_loki__loki_powers": {
+      "textures": "textures/item/mrv_loki__loki_powers"
+    },
+    "mrv_loki__classic_loki_suit": {
+      "textures": "textures/item/mrv_loki__classic_loki_suit"
+    },
+    "mrv_loki__loki_suit": {
+      "textures": "textures/item/mrv_loki__loki_suit"
+    },
+    "mrv_loki__classic_loki_helmet": {
+      "textures": "textures/item/mrv_loki__classic_loki_helmet"
+    },
+    "mrv_loki__loki_helmet": {
+      "textures": "textures/item/mrv_loki__loki_helmet"
+    },
+    "mrv_luke_cage__luke_cage_powers": {
+      "textures": "textures/item/mrv_luke_cage__luke_cage_powers"
+    },
+    "mrv_luke_cage__luke_cage_suit": {
+      "textures": "textures/item/mrv_luke_cage__luke_cage_suit"
+    },
+    "mrv_mantis__mantis_powers": {
+      "textures": "textures/item/mrv_mantis__mantis_powers"
+    },
+    "mrv_mantis__mantis_suit": {
+      "textures": "textures/item/mrv_mantis__mantis_suit"
+    },
+    "mrv_mole__mole_powers": {
+      "textures": "textures/item/mrv_mole__mole_powers"
+    },
+    "mrv_moon_knight__moon_knight_powers": {
+      "textures": "textures/item/mrv_moon_knight__moon_knight_powers"
+    },
+    "mrv_moon_knight__moon_knight_black_suit": {
+      "textures": "textures/item/mrv_moon_knight__moon_knight_black_suit"
+    },
+    "mrv_moon_knight__moon_knight_blood_suit": {
+      "textures": "textures/item/mrv_moon_knight__moon_knight_blood_suit"
+    },
+    "mrv_moon_knight__moon_knight_classic_suit": {
+      "textures": "textures/item/mrv_moon_knight__moon_knight_classic_suit"
+    },
+    "mrv_moon_knight__moon_knight_magic_suit": {
+      "textures": "textures/item/mrv_moon_knight__moon_knight_magic_suit"
+    },
+    "mrv_moon_knight__moon_knight_rivals_suit": {
+      "textures": "textures/item/mrv_moon_knight__moon_knight_rivals_suit"
+    },
+    "mrv_moon_knight__moon_knight_symbiont_suit": {
+      "textures": "textures/item/mrv_moon_knight__moon_knight_symbiont_suit"
+    },
+    "mrv_moon_knight__mr_knight_suit": {
+      "textures": "textures/item/mrv_moon_knight__mr_knight_suit"
+    },
+    "mrv_moon_knight__western_moon_knight_suit": {
+      "textures": "textures/item/mrv_moon_knight__western_moon_knight_suit"
+    },
+    "mrv_moon_knight__moon_knight_black_mask": {
+      "textures": "textures/item/mrv_moon_knight__moon_knight_black_mask"
+    },
+    "mrv_moon_knight__moon_knight_blood_mask": {
+      "textures": "textures/item/mrv_moon_knight__moon_knight_blood_mask"
+    },
+    "mrv_moon_knight__moon_knight_classic_mask": {
+      "textures": "textures/item/mrv_moon_knight__moon_knight_classic_mask"
+    },
+    "mrv_moon_knight__moon_knight_magic_mask": {
+      "textures": "textures/item/mrv_moon_knight__moon_knight_magic_mask"
+    },
+    "mrv_moon_knight__moon_knight_rivals_mask": {
+      "textures": "textures/item/mrv_moon_knight__moon_knight_rivals_mask"
+    },
+    "mrv_moon_knight__moon_knight_symbiont_mask": {
+      "textures": "textures/item/mrv_moon_knight__moon_knight_symbiont_mask"
+    },
+    "mrv_moon_knight__mr_knight_mask": {
+      "textures": "textures/item/mrv_moon_knight__mr_knight_mask"
+    },
+    "mrv_moon_knight__western_moon_knight_mask": {
+      "textures": "textures/item/mrv_moon_knight__western_moon_knight_mask"
+    },
+    "mrv_ms_marvel__ms_marvel_suit": {
+      "textures": "textures/item/mrv_ms_marvel__ms_marvel_suit"
+    },
+    "mrv_ms_marvel__ms_marvel_mask": {
+      "textures": "textures/item/mrv_ms_marvel__ms_marvel_mask"
+    },
+    "mrv_muse__bullseye_suit": {
+      "textures": "textures/item/mrv_muse__bullseye_suit"
+    },
+    "mrv_muse__muse_suit": {
+      "textures": "textures/item/mrv_muse__muse_suit"
+    },
+    "mrv_muse__bullseye_mask": {
+      "textures": "textures/item/mrv_muse__bullseye_mask"
+    },
+    "mrv_muse__muse_mask": {
+      "textures": "textures/item/mrv_muse__muse_mask"
+    },
+    "mrv_punisher__punisher_classic_suit": {
+      "textures": "textures/item/mrv_punisher__punisher_classic_suit"
+    },
+    "mrv_punisher__punisher_daredevil_born_again_suit": {
+      "textures": "textures/item/mrv_punisher__punisher_daredevil_born_again_suit"
+    },
+    "mrv_punisher__punisher_suit": {
+      "textures": "textures/item/mrv_punisher__punisher_suit"
+    },
+    "mrv_punisher__punisher_thunderbolts_suit": {
+      "textures": "textures/item/mrv_punisher__punisher_thunderbolts_suit"
+    },
+    "mrv_red_guardian__red_guardian_powers": {
+      "textures": "textures/item/mrv_red_guardian__red_guardian_powers"
+    },
+    "mrv_red_guardian__red_guardian_suit": {
+      "textures": "textures/item/mrv_red_guardian__red_guardian_suit"
+    },
+    "mrv_red_guardian__red_guardian_helmet": {
+      "textures": "textures/item/mrv_red_guardian__red_guardian_helmet"
+    },
+    "mrv_reed__reed_powers": {
+      "textures": "textures/item/mrv_reed__reed_powers"
+    },
+    "mrv_rocket_raccoon__rocket_raccoon_powers": {
+      "textures": "textures/item/mrv_rocket_raccoon__rocket_raccoon_powers"
+    },
+    "mrv_rogue__rogue_powers": {
+      "textures": "textures/item/mrv_rogue__rogue_powers"
+    },
+    "mrv_rogue__rogue_suit": {
+      "textures": "textures/item/mrv_rogue__rogue_suit"
+    },
+    "mrv_scarlet_witch__scarlet_witch_powers": {
+      "textures": "textures/item/mrv_scarlet_witch__scarlet_witch_powers"
+    },
+    "mrv_scarlet_witch__scarlet_witch_mom_suit": {
+      "textures": "textures/item/mrv_scarlet_witch__scarlet_witch_mom_suit"
+    },
+    "mrv_scarlet_witch__scarlet_witch_suit": {
+      "textures": "textures/item/mrv_scarlet_witch__scarlet_witch_suit"
+    },
+    "mrv_sentry__sentry_powers": {
+      "textures": "textures/item/mrv_sentry__sentry_powers"
+    },
+    "mrv_sentry__sentry_suit": {
+      "textures": "textures/item/mrv_sentry__sentry_suit"
+    },
+    "mrv_shang_chi__shang_chi_powers": {
+      "textures": "textures/item/mrv_shang_chi__shang_chi_powers"
+    },
+    "mrv_shang_chi__shang_chi_suit": {
+      "textures": "textures/item/mrv_shang_chi__shang_chi_suit"
+    },
+    "mrv_silver_surfer__silver_surfer_powers": {
+      "textures": "textures/item/mrv_silver_surfer__silver_surfer_powers"
+    },
+    "mrv_silver_surfer__female_silver_surfer": {
+      "textures": "textures/item/mrv_silver_surfer__female_silver_surfer"
+    },
+    "mrv_silver_surfer__silver_surfer": {
+      "textures": "textures/item/mrv_silver_surfer__silver_surfer"
+    },
+    "mrv_spiderman__spiderman_powers": {
+      "textures": "textures/item/mrv_spiderman__spiderman_powers"
+    },
+    "mrv_spiderman__ghost_spider_suit": {
+      "textures": "textures/item/mrv_spiderman__ghost_spider_suit"
+    },
+    "mrv_spiderman__iron_spider_suit": {
+      "textures": "textures/item/mrv_spiderman__iron_spider_suit"
+    },
+    "mrv_spiderman__iron_spider_ucm_suit": {
+      "textures": "textures/item/mrv_spiderman__iron_spider_ucm_suit"
+    },
+    "mrv_spiderman__miles_morales_suit": {
+      "textures": "textures/item/mrv_spiderman__miles_morales_suit"
+    },
+    "mrv_spiderman__scarlet_spider_suit": {
+      "textures": "textures/item/mrv_spiderman__scarlet_spider_suit"
+    },
+    "mrv_spiderman__spiderman_2099_suit": {
+      "textures": "textures/item/mrv_spiderman__spiderman_2099_suit"
+    },
+    "mrv_spiderman__spiderman_classic_black_suit": {
+      "textures": "textures/item/mrv_spiderman__spiderman_classic_black_suit"
+    },
+    "mrv_spiderman__spiderman_classic_suit": {
+      "textures": "textures/item/mrv_spiderman__spiderman_classic_suit"
+    },
+    "mrv_spiderman__spiderman_future_foundation_suit": {
+      "textures": "textures/item/mrv_spiderman__spiderman_future_foundation_suit"
+    },
+    "mrv_spiderman__spiderman_raimi_suit": {
+      "textures": "textures/item/mrv_spiderman__spiderman_raimi_suit"
+    },
+    "mrv_spiderman__the_amazing_spiderman_2_suit": {
+      "textures": "textures/item/mrv_spiderman__the_amazing_spiderman_2_suit"
+    },
+    "mrv_spiderman__ultimate_spiderman_ucm_suit": {
+      "textures": "textures/item/mrv_spiderman__ultimate_spiderman_ucm_suit"
+    },
+    "mrv_spiderman__ghost_spider_mask": {
+      "textures": "textures/item/mrv_spiderman__ghost_spider_mask"
+    },
+    "mrv_spiderman__iron_spider_mask": {
+      "textures": "textures/item/mrv_spiderman__iron_spider_mask"
+    },
+    "mrv_spiderman__iron_spider_ucm_mask": {
+      "textures": "textures/item/mrv_spiderman__iron_spider_ucm_mask"
+    },
+    "mrv_spiderman__miles_morales_mask": {
+      "textures": "textures/item/mrv_spiderman__miles_morales_mask"
+    },
+    "mrv_spiderman__scarlet_spider_mask": {
+      "textures": "textures/item/mrv_spiderman__scarlet_spider_mask"
+    },
+    "mrv_spiderman__spiderman_2099_mask": {
+      "textures": "textures/item/mrv_spiderman__spiderman_2099_mask"
+    },
+    "mrv_spiderman__spiderman_classic_black_mask": {
+      "textures": "textures/item/mrv_spiderman__spiderman_classic_black_mask"
+    },
+    "mrv_spiderman__spiderman_classic_mask": {
+      "textures": "textures/item/mrv_spiderman__spiderman_classic_mask"
+    },
+    "mrv_spiderman__spiderman_future_foundation_mask": {
+      "textures": "textures/item/mrv_spiderman__spiderman_future_foundation_mask"
+    },
+    "mrv_spiderman__spiderman_raimi_mask": {
+      "textures": "textures/item/mrv_spiderman__spiderman_raimi_mask"
+    },
+    "mrv_spiderman__the_amazing_spiderman_2_mask": {
+      "textures": "textures/item/mrv_spiderman__the_amazing_spiderman_2_mask"
+    },
+    "mrv_spiderman__ultimate_spiderman_ucm_mask": {
+      "textures": "textures/item/mrv_spiderman__ultimate_spiderman_ucm_mask"
+    },
+    "mrv_squirrel_girl__squirrel_girl_powers": {
+      "textures": "textures/item/mrv_squirrel_girl__squirrel_girl_powers"
+    },
+    "mrv_squirrel_girl__squirrel_girl_suit": {
+      "textures": "textures/item/mrv_squirrel_girl__squirrel_girl_suit"
+    },
+    "mrv_squirrel_girl__squirrel_girl_ears": {
+      "textures": "textures/item/mrv_squirrel_girl__squirrel_girl_ears"
+    },
+    "mrv_starlord__starlord_suit": {
+      "textures": "textures/item/mrv_starlord__starlord_suit"
+    },
+    "mrv_starlord__starlord_mask": {
+      "textures": "textures/item/mrv_starlord__starlord_mask"
+    },
+    "mrv_sue__sue_powers": {
+      "textures": "textures/item/mrv_sue__sue_powers"
+    },
+    "mrv_super_soldier__super_soldier_powers": {
+      "textures": "textures/item/mrv_super_soldier__super_soldier_powers"
+    },
+    "mrv_taskmaster__taskmaster_suit": {
+      "textures": "textures/item/mrv_taskmaster__taskmaster_suit"
+    },
+    "mrv_taskmaster__taskmaster_mask": {
+      "textures": "textures/item/mrv_taskmaster__taskmaster_mask"
+    },
+    "mrv_thanos__thanos_powers": {
+      "textures": "textures/item/mrv_thanos__thanos_powers"
+    },
+    "mrv_thor__thor_powers": {
+      "textures": "textures/item/mrv_thor__thor_powers"
+    },
+    "mrv_thor__thor_comic_suit": {
+      "textures": "textures/item/mrv_thor__thor_comic_suit"
+    },
+    "mrv_thor__thor_galactus_suit": {
+      "textures": "textures/item/mrv_thor__thor_galactus_suit"
+    },
+    "mrv_thor__thor_infinity_war_suit": {
+      "textures": "textures/item/mrv_thor__thor_infinity_war_suit"
+    },
+    "mrv_thor__thor_love_and_thunder_suit": {
+      "textures": "textures/item/mrv_thor__thor_love_and_thunder_suit"
+    },
+    "mrv_thor__thor_ragnarok_suit": {
+      "textures": "textures/item/mrv_thor__thor_ragnarok_suit"
+    },
+    "mrv_thor__thor_suit": {
+      "textures": "textures/item/mrv_thor__thor_suit"
+    },
+    "mrv_thor__thor_comic_helmet": {
+      "textures": "textures/item/mrv_thor__thor_comic_helmet"
+    },
+    "mrv_thor__thor_galactus_helmet": {
+      "textures": "textures/item/mrv_thor__thor_galactus_helmet"
+    },
+    "mrv_thor__thor_helmet": {
+      "textures": "textures/item/mrv_thor__thor_helmet"
+    },
+    "mrv_thor__thor_love_and_thunder_helmet": {
+      "textures": "textures/item/mrv_thor__thor_love_and_thunder_helmet"
+    },
+    "mrv_thor__thor_ragnarok_helmet": {
+      "textures": "textures/item/mrv_thor__thor_ragnarok_helmet"
+    },
+    "mrv_venom__venom_powers": {
+      "textures": "textures/item/mrv_venom__venom_powers"
+    },
+    "mrv_vision__vision_powers": {
+      "textures": "textures/item/mrv_vision__vision_powers"
+    },
+    "mrv_white_tiger__white_tiger_hector_suit": {
+      "textures": "textures/item/mrv_white_tiger__white_tiger_hector_suit"
+    },
+    "mrv_white_tiger__white_tiger_suit": {
+      "textures": "textures/item/mrv_white_tiger__white_tiger_suit"
+    },
+    "mrv_white_tiger__white_tiger_hector_mask": {
+      "textures": "textures/item/mrv_white_tiger__white_tiger_hector_mask"
+    },
+    "mrv_white_tiger__white_tiger_mask": {
+      "textures": "textures/item/mrv_white_tiger__white_tiger_mask"
+    },
+    "mrv_winter_soldier__bucky_burns_infinity_war_suit": {
+      "textures": "textures/item/mrv_winter_soldier__bucky_burns_infinity_war_suit"
+    },
+    "mrv_winter_soldier__bucky_burns_thunderbolts_suit": {
+      "textures": "textures/item/mrv_winter_soldier__bucky_burns_thunderbolts_suit"
+    },
+    "mrv_winter_soldier__winter_soldier_rivals_suit": {
+      "textures": "textures/item/mrv_winter_soldier__winter_soldier_rivals_suit"
+    },
+    "mrv_winter_soldier__winter_soldier_suit": {
+      "textures": "textures/item/mrv_winter_soldier__winter_soldier_suit"
+    },
+    "mrv_wolverine__wolverine_powers": {
+      "textures": "textures/item/mrv_wolverine__wolverine_powers"
+    },
+    "mrv_wolverine__classic_wolverine_suit": {
+      "textures": "textures/item/mrv_wolverine__classic_wolverine_suit"
+    },
+    "mrv_wolverine__wolverine_2024_suit": {
+      "textures": "textures/item/mrv_wolverine__wolverine_2024_suit"
+    },
+    "mrv_wolverine__classic_wolverine_mask": {
+      "textures": "textures/item/mrv_wolverine__classic_wolverine_mask"
+    },
+    "mrv_wolverine__wolverine_2024_mask": {
+      "textures": "textures/item/mrv_wolverine__wolverine_2024_mask"
     },
     "o_sey_maskesi": {
       "textures": "textures/item/o_sey_maskesi"

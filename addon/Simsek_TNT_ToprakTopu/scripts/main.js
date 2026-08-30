@@ -10,7 +10,7 @@ import {
   DONDUR_GIRDI_KILIT, ILKEL_BESLI, ILKEL_ACIK, botTuruMu,
   KILIC_ESYA, SEY_ACIK, SEY_AD, SEY_TAVAN,
   ZIRH_ACIK, ZIRH_MODLAR, ZIRH_CEKIRDEK_ONEK,
-  KAHRAMAN_ACIK, KAHRAMANLAR, KAHRAMAN_ONEK,
+  MARVEL_ACIK, MARVEL_ONEK, MARVEL_GUCLER,
   BECERI_ACIK, BECERI_AGACI, BECERI_TAVAN_KADEME,
   CAN_SAYACI_ACIK, WOM_ACIK, WOM_SILAHLAR, WOM_ONEK,
   BEN10_ACIK, BEN10,
@@ -40,11 +40,12 @@ import {
   zirhTara, zirhUnutOyuncu, modListesi, elindekiCekirdek
 } from "./yetenekler/zirh.js";
 
-/* v4.96: Fisk kahramanlari. Zirh cekirdekleriyle AYNI kalip --
-   elindeki esya hem gorunusu hem gucleri belirliyor.        */
+/* v5.2: Marvel Project kahramanlari. Fisk KALDIRILDI.
+   Kalibi kaynagin kendisi: kostum ayakta, maske kafada, GUC
+   bacakta. Gucler bacaktaki esyaya bagli.                    */
 import {
-  kahramanTara, kahramanUnutOyuncu, kahramanListesi, elindekiKahraman
-} from "./yetenekler/kahraman.js";
+  marvelTara, marvelUnut, marvelListesi, guctekiKahraman, gucKumesi
+} from "./yetenekler/marvel.js";
 
 /* v4.98: Ben 10 beceri agaci. Uzayli halindeyken oldurunce
    XP, kademe atlayinca yetenek puani.                       */
@@ -135,8 +136,8 @@ import "./yetenekler/bot_ilkel.js";
 import "./yetenekler/o_sey.js";
 import "./yetenekler/donusum.js";
 import "./yetenekler/bot_guc.js";
-/* v4.95: mod cekirdeklerinin ISINLARI, v4.96'da kahraman
-   isinlari da ayni motora katildi. zirh.js ve kahraman.js'ten
+/* v4.95: mod cekirdeklerinin ISINLARI, v5.2'de Marvel
+   isinlari da ayni motora katildi. zirh.js ve marvel.js'ten
    "elindeki X" fonksiyonlarini kullaniyor, o yuzden onlardan
    SONRA gelmeli -- yukaridaki DIKKAT notunun ayni geregi.   */
 import "./yetenekler/isinlar.js";
@@ -301,12 +302,12 @@ system.runInterval(() => {
   /* Zirh taramasi HER ZAMAN calismali: "takimi giydim ama bir
      sey olmuyor" durumu ancak boyle onlenir. Kendi icinde
      ucuz -- oyuncu takim giymiyorsa hemen donuyor.            */
-  /* v4.96 KAHRAMAN_ACIK, v4.99 CAN_SAYACI_ACIK da buraya
+  /* v5.2 MARVEL_ACIK, v4.99 CAN_SAYACI_ACIK da buraya
      eklendi: kapida sayilmayan bir sistem, tek oyuncu
      dunyasinda hicbir sey acik degilken SESSIZCE calismazdi
      -- "calisiyor mu != ulasilabiliyor mu" (v4.83 dersi).  */
   if (iksirVar || kalpVar || botVar || kilikVar || ZIRH_ACIK ||
-      BEN10_ACIK || KAHRAMAN_ACIK || CAN_SAYACI_ACIK ||
+      BEN10_ACIK || MARVEL_ACIK || CAN_SAYACI_ACIK ||
       TEKNOLOJI_ACIK) {
     let oyuncular;
     try {
@@ -352,11 +353,11 @@ system.runInterval(() => {
         hataYaz("zirhTara", e);
       }
     }
-    if (KAHRAMAN_ACIK) {
+    if (MARVEL_ACIK) {
       try {
-        kahramanTara(oyuncular);
+        marvelTara(oyuncular);
       } catch (e) {
-        hataYaz("kahramanTara", e);
+        hataYaz("marvelTara", e);
       }
     }
     if (CAN_SAYACI_ACIK) {
@@ -835,65 +836,67 @@ function teknolojiBilgi(oyuncu, anahtar) {
   kollariIndir(oyuncu);
 }
 
-/* FISK KAHRAMANLARI MENUSU  (v4.96)
+/* MARVEL KAHRAMANLARI MENUSU  (v5.2)
 
-   Zirh menusuyle AYNI is: hangi kahramanin ne verdigini
-   yaziyor, SECIM YAPMIYOR. Donusum esyayi ELINE ALMAKLA
-   oluyor.
+   Zirh ve cekirdek menuleriyle AYNI is: hangi kahramanin ne
+   verdigini yaziyor, SECIM YAPMIYOR.
 
-   Ozet ve kademe (tier) ayarlar.js'ten URETILIYOR, burada elle
-   yazilmiyor -- yeni bir kahraman eklenirse menude
-   kendiliginden dogru gorunur.                              */
-function kahramanMenusu(oyuncu) {
-  if (!KAHRAMAN_ACIK) {
-    actionbarYaz(oyuncu, "§cKahramanlar kapalı (KAHRAMAN_ACIK).");
+   TEK TEK ESYA LISTELEMIYOR. Kaynakta 142 kostum ve 85 maske
+   var (Iron Man'in 10 zirhi, Kaptan Amerika'nin 15 kostumu);
+   hepsini menuye dokmek listeyi kullanilmaz yapardi. Menu
+   KAHRAMAN listeliyor, esya adlari zaten dil dosyasinda.
+
+   Ozet ayarlar.js'ten URETILIYOR, burada elle yazilmiyor.   */
+function marvelMenusu(oyuncu) {
+  if (!MARVEL_ACIK) {
+    actionbarYaz(oyuncu, "§cMarvel kahramanları kapalı (MARVEL_ACIK).");
     return undefined;
   }
-  const liste = kahramanListesi(oyuncu);
-  const elde = elindekiKahraman(oyuncu);
+  const liste = marvelListesi(oyuncu);
+  const guc = guctekiKahraman(oyuncu);
 
   const dugmeler = liste.map((k) => ({
     anahtar: k.anahtar,
-    ad: (k.elinde ? "§b★ " : "") + "§f" + k.ad +
-        " §8(kademe " + k.tier + ")\n§8" + k.ozet +
-        "\n§8kostüm: §7" + k.esya
+    ad: (k.gucTakili ? "§c✶ " : k.kostumTakili ? "§7✶ " : "") + "§f" + k.ad +
+        "\n§8" + k.ozet
   }));
 
-  const baslik = elde
-    ? "§b★ Kahramanlar §7· §f" + KAHRAMANLAR.get(elde).ad +
-      " §8(kostüm elinde)"
-    : "§b★ Kahramanlar §7· §fkostümü eline al";
+  const t = gucKumesi(guc);
+  const baslik = t
+    ? "§c✶ Marvel §7· §f" + t.ad + " §8(güç takılı)"
+    : "§c✶ Marvel §7· §fgüç eşyasını bacağına tak";
 
   const acildi = menuAc(oyuncu, baslik, dugmeler, -1,
-    (i) => kahramanBilgi(oyuncu, dugmeler[i].anahtar), []);
+    (i) => marvelBilgi(oyuncu, dugmeler[i].anahtar), []);
 
   if (!acildi) {
-    kahramanBilgi(oyuncu, elde || liste[0].anahtar);
+    marvelBilgi(oyuncu, (t && guc) || dugmeler[0].anahtar);
   }
   return undefined;
 }
 
 /* Tek kahramanin ne verdigini sohbete yazar. Menude dokununca
    ve menu yokken cagriliyor -- ikisinde de AYNI metin.       */
-function kahramanBilgi(oyuncu, anahtar) {
-  const t = KAHRAMANLAR.get(anahtar);
+function marvelBilgi(oyuncu, anahtar) {
+  const t = MARVEL_GUCLER.get(anahtar);
   if (!t) return;
-  const elde = elindekiKahraman(oyuncu) === anahtar;
-  /* Yetenekler menude ayri satirlar olarak zaten cikiyor ama
+  const takili = gucKumesi(guctekiKahraman(oyuncu)) === t;
+  /* Yetenekler menude ayri satirlar olarak da cikiyor ama
      BURADA da yazilmali: "kostumu aldim, simdi ne yapacagim"
      sorusunun cevabi bir yerde durmali.                      */
-  const yetenekAdi = (t.yetenekler || [])
-    .map((y) => (yetenekAl(y) || {}).ad || y).join(" · ");
+  const ekler = [];
+  if (t.yetenek) ekler.push((yetenekAl(t.yetenek) || {}).ad || t.yetenek);
+  if (t.isin) ekler.push((yetenekAl(t.isin) || {}).ad || t.isin);
   try {
     oyuncu.sendMessage(
-      "§b★ §f" + t.ad + " §8(" + t.en + ")\n§8" + t.ozet +
-      "\n§8kaynak: fiskheroes/" + t.kaynak + " §8· kademe " + t.tier +
-      "\n§8kostüm: §7" + KAHRAMAN_ONEK + anahtar +
-      (yetenekAdi ? "\n§8yetenekler: §7" + yetenekAdi : "") +
-      (elde ? "\n§a✔ Şu an elinde — güçler açık."
-            : "\n§eKostümü eline al §8(dönüşüm ve güçler onunla geliyor)"));
+      "§c✶ §f" + t.ad + "\n§8" + t.ozet +
+      "\n§8kaynak: Marvel Project Addon v3.0.1" +
+      "\n§8güç eşyası: §7" + MARVEL_ONEK + anahtar + "__" + anahtar + "_powers" +
+      (ekler.length ? "\n§8yetenekler: §7" + ekler.join(" · ") : "") +
+      (takili ? "\n§a✔ Güç bacağında — güçler açık."
+              : "\n§eGüç eşyasını bacağına tak §8(güçler onunla geliyor)"));
   } catch (e) {
-    hataYaz("kahraman.mesaj", e);
+    hataYaz("marvel.mesaj", e);
   }
   kollariIndir(oyuncu);
 }
@@ -1214,14 +1217,14 @@ function menuEkleri(oyuncu) {
             : "çekirdek yok") + ")",
       calis() { zirhMenusu(oyuncu); }
     },
-    /* v4.96: Fisk kahramanlari. Ayni kalip -- menu BILGI
-       veriyor, donusum kostumu eline almakla oluyor.        */
+    /* v5.2: Marvel kahramanlari. Ayni kalip -- menu BILGI
+       veriyor, gucler bacaktaki guc esyasiyla geliyor.       */
     {
-      ad: "★ Kahramanlar §8(" +
-          (elindekiKahraman(oyuncu)
-            ? (KAHRAMANLAR.get(elindekiKahraman(oyuncu)) || {}).ad + " §b★"
-            : "kostüm yok") + ")",
-      calis() { kahramanMenusu(oyuncu); }
+      ad: "✶ Marvel §8(" +
+          ((gucKumesi(guctekiKahraman(oyuncu)) || {}).ad
+            ? gucKumesi(guctekiKahraman(oyuncu)).ad + " §c✶"
+            : "güç yok") + ")",
+      calis() { marvelMenusu(oyuncu); }
     },
     /* v5.0: WoM silah katalogu. Menu bir sey SECMIYOR --
        silahlar envanterden aliniyor, bu liste "hangisi ne
@@ -1834,7 +1837,7 @@ olayaAbone("playerLeave", (olay) => {
   silahUnut(olay.playerId);
   donusumUnutOyuncu(olay.playerId);
   zirhUnutOyuncu(olay.playerId);
-  kahramanUnutOyuncu(olay.playerId);
+  marvelUnut(olay.playerId);
   canSayaciUnut(olay.playerId);
   womDovusUnut(olay.playerId);
   teknolojiUnut(olay.playerId);

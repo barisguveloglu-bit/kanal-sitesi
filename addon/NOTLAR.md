@@ -1,3 +1,112 @@
+# v5.2 — Marvel Project: Fisk gitti, 268 parça geldi
+
+Kullanıcı bir `.mcaddon` attı ve kapsamı net söyledi: *"bu sefer
+uğraşmana gerek kalmayacak çünkü bedrock üzerine kurulu. Eski
+kahramanları tamamen atıyoruz, Fisk modunu boş veriyoruz artık. Onun
+yerine bunu ekle, bunun tüm kahramanlarını."*
+
+Ayrıntılı döküm: [`REFERANS_MARVEL.md`](REFERANS_MARVEL.md).
+
+## 1. Bu sefer gerçekten kolaydı — ve bunun bir anlamı var
+
+Önceki beş sürümde kaynak ya Java bytecode'uydu (WoM, ProjectE,
+Mekanism, Draconic) ya Palladium JSON'u (Ionstrike, AlienEvo) ya da
+Blender mesh'i. Her seferinde çevirdik, ölçtük, çizip baktık.
+
+Marvel Project **zaten Bedrock**. Geometri, doku ve ikon doğrudan
+kullanılabiliyor; güçlerin kodu da okunabilir JavaScript (92 dosya,
+13.756 satır). Sonuç: bu sürümde **tek bir sayı bile tahmin edilmedi**.
+
+Çıkarma `marvel_coz.py` ile bir kez yapıldı, sonucu depoda
+(`marvel_tablo.py`, `kaynak_geo/marvel/`, `kaynak_doku/marvel/`).
+`kol_uret.py` moda hiç bakmıyor.
+
+## 2. Fisk gerçekten gitti
+
+"Yerine yenisini koydum" demek yetmiyordu. Silinenler: dokuz kahraman,
+yedi ışın, kostüm geometrisi, dokular, ikonlar, `kahraman.js`,
+`kaynak_doku/kahraman_coz.py`, `REFERANS_FISK.md`, `ayarlar.js`'teki 226
+satırlık blok, `main.js` menüsü ve `kollar.js` bağlamaları.
+
+`test/marvel.mjs`'in **1. bölümü kalıntı arıyor**: üretilen klasörlerde
+`kahraman` geçen dosya, `ayarlar.js`'te eski sabitler, dil dosyasında
+kalmış satır. Denedim — `textures/item/` altına sahte bir
+`kahraman_test.png` koyunca test düşüyor. Zaten bir gerçek kalıntı
+buldu: `models/entity/kahraman_kostum.geo.json`. Üretecin temizlik adımı
+`models/entity`'ye bakmıyordu.
+
+## 3. Üçlü kalıp korundu
+
+Kaynakta bir kahraman üç parçadan oluşuyor:
+
+| tür | yuva | ne taşıyor |
+|---|---|---|
+| kostüm | ayak | görünüş + zırh |
+| maske | kafa | görünüş + zırh |
+| güç | bacak | **yetenek** |
+
+Üçünü tek eşyada birleştirmek daha kolay olurdu ama modun dengesini
+bozardı: kostümü giyip gücü takmamak kaynakta geçerli bir seçim. 268
+parça: 142 kostüm, 85 maske, 41 güç, 54 kahraman.
+
+## 4. Çift alt çizgi
+
+Kimlik biçimi `pa:mrv_<kahraman>__<anahtar>`. Ayıraç çift, çünkü hem
+kahraman adında hem anahtarda tek alt çizgi var (`black_panther`,
+`ironman_mark50`).
+
+Bunu da denedim: ayıracı tek yapınca 54 kahraman **51'e** düşüyor,
+`black_panther_suit` "black" kahramanının eşyası sanılıyor ve 19
+kahramanın güç kümesi kayboluyor. Test dördünü de yakalıyor.
+
+Kazancı: **268 satırlık bir eşleme tablosunu iki yerde tutmak
+gerekmiyor** — kimlik kendi kahramanını söylüyor.
+
+## 5. On bir kahramanın güç eşyası yok, ve bu bir hata değil
+
+Iron Man, Doctor Strange, Falcon, Star-Lord, White Tiger, Taskmaster,
+Punisher, Winter Soldier, Ms. Marvel, Muse, Guardians — modda güç
+eşyaları **yok**, güçleri kostümün kendisinde.
+
+İlk yazdığımda `kollar.js` hepsine `mrv_<kahraman>__<kahraman>_powers`
+diye bir eşya bağlamıştı. O eşyalar üretilmiyordu; yani menüde görünen,
+envanterde olmayan satırlar. Test yakaladı:
+
+```
+✗ baglanan guc esyalarinin hepsi uretildi
+  :: pa:mrv_ironman__ironman_powers | pa:mrv_dr_strange__dr_strange_powers
+```
+
+Çözüm iki parçalı: `ayarlar.js`'te `gucKostumden` işareti, ve
+`guctekiKahraman` o kahramanlarda **ayaktaki kostüme** bakıyor.
+Uydurma bir güç eşyası üretmedik.
+
+## 6. Takma adın yönü
+
+Kaptan Amerika'nın güç eşyası kaynakta `super_soldier_powers`. İlk
+denemede hem `captain_america` hem `super_soldier` girdisini
+`MARVEL_GUCLER`'e koymuştum ve `MARVEL_TAKMA_AD` **ölü kaldı** — iki ad
+da kendi kümesini bulduğu için takma ad hiç çalışmadı. Test bunu da
+yakaladı (`gucKumesi("captain_america") === gucKumesi("super_soldier")`
+tutmuyordu).
+
+Artık yön tek: soldaki karşılığı olmayan ad, sağdaki gerçek güç kümesi.
+
+## 7. Aktarılamayanlar
+
+Duvar tırmanma (10 kahramanda `*_climb`), ağ sallanma/kanca, boy
+değiştirme (Ant-Man), faz geçişi, kuvvet alanı, portallar — hepsinin
+kaynakta kendi varlık sistemi var, Bedrock'ta oyuncuya efektle
+verilemiyor. Özetler bunları vaat etmiyor.
+
+Bir de görünüş varyantları: modun attachable'ları kendi varlık
+özelliklerine (`arathnido:SuitTexture0`) bakıp bir kostümün altı dokusu
+arasında geçiyor. O özellikler bizim pakette yok; render controller'lar
+`controller.render.armor`'a çevrildi (v4.28'de öğrenilen, çalıştığı
+bilinen yol) ve varsayılan doku alındı.
+
+---
+
 # v5.1 — Teknoloji zırhları: ProjectE, Mekanism, Draconic Evolution
 
 Kullanıcı üç jar attı ve kapsamı kendisi daralttı: *"bunlar direkt zırh

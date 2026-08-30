@@ -3161,217 +3161,115 @@ WOM_SERI = {
 }
 
 # ================================================================
-#  FISK'S SUPERHEROES -- DOKUZ KAHRAMAN                   v4.96
+#  MARVEL PROJECT                                        v5.2
 # ================================================================
-# Kullanici dokuz isim verdi: The Spectre, Anti-Monitor, The
-# Monitor, Martian Manhunter, Vision, Iron Man Mark 85, Shazam,
-# The Tick, Harbinger. "Varsa dokuzunu da aktar." Dokuzu da vardi.
+# Kullanici: "bir tane daha mod kurdum, bu sefer ugrasmana gerek
+# kalmayacak cunku bedrock uzerine kurulu. Eski kahramanlari
+# tamamen atiyoruz, Fisk modunu bos veriyoruz artik. Onun yerine
+# bunu ekle, bunun tum kahramanlarini."
 #
-# ---- KAYNAK: FiskHeroes 1.7.10 v2.4.0 ----
-# Palladium DEGIL, Fisk'in kendi sistemi. Ama aktarmasi
-# Palladium'dan bile kolay cikti:
-#   data/heroes/<ad>.js     duz okunabilir JS, sayilar acikta
-#   data/powers/<ad>.json   duz JSON
-#   models/heroes/<ad>.json doku -> render katmani eslemesi
-#   textures/heroes/*.png   64x64, yani OYUNCU DERISI duzeni
-# Modeller vanilla insansi iskelet ve kemik adlari
-# (head/headwear/body/rightArm/leftArm/rightLeg/leftLeg)
-# Bedrock'unkiyle BIREBIR ayni.
+# FISK GITTI: dokuz kahraman, kostum geometrisi, dokulari,
+# ikonlari ve kaynak_doku/kahraman_coz.py silindi.
 #
-# ---- DOKULAR NASIL BIRLESTIRILDI ----
-# Modun kendi models/heroes/<ad>.json'i "hangi render katmani
-# hangi dokuyu kullanir" ve "hangi kemigi hangi katmanlar cizer"
-# diyor. Kemik basina doku O IKI TABLODAN turetildi; tarif
-# uydurulmadi. Betik: kaynak_doku/kahraman_coz.py
+# ---- KAYNAK ----
+# Marvel Project Addon v3.0.1 (.mcaddon). BEDROCK paketi:
+# geometri, doku ve ikon DOGRUDAN kullanilabiliyor. Cikarma
+# marvel_coz.py'nin isi ve BIR KEZ yapildi; sonucu depoda:
+#     marvel_tablo.py         268 parcanin tablosu
+#     kaynak_geo/marvel/      geometriler
+#     kaynak_doku/marvel/     dokular ve ikonlar
+# Bu dosya moda hic bakmiyor, yalniz o uce bakiyor.
 #
-# ONEMLI TUZAK: kahramanlarin cogunda texture ve showModel BOS
-# ve "parent": "fiskheroes:hero_basic" uzerinden geliyor.
-# Ebeveyni cozmeden birlestirince DORT kahraman 0 piksel cikti.
-# Kalitim cozuldu.
+# ---- UCLU KALIP ----
+# Kaynagin kendi kalibi korundu:
+#     kostum -> ayak yuvasi (gorunus + zirh)
+#     maske  -> kafa yuvasi (gorunus + zirh)
+#     guc    -> bacak yuvasi (YETENEK, gorunusu yok)
 #
-# ---- NEDEN ATTACHABLE, OYUNCU MODELI DEGIL ----
-# Ben 10 ve Max Steel'de oyuncunun MODELI degistiriliyor.
-# Burada bu YANLIS olurdu: uc kahramanda (Spectre, Shazam,
-# The Monitor) kaskin dokusu YOK -- modda oyuncunun kendi yuzu
-# gorunuyor. Olculdu: spectre kafa bolgesi %0 dolu, shazam %6,
-# the_monitor %19. Modeli degistirseydik KAFASIZ cizilirlerdi.
-#
-# Attachable oyuncunun USTUNE ciziyor: bos pikseller oyuncunun
-# kendi derisini gosteriyor -- modun yaptigi sey tam olarak bu.
-# Yol denenmis: Omnitrix saatleri (v4.93) da elde tutulan
-# esyanin attachable'i.
-KAHRAMAN_ONEK = "kahraman_"
-# (anahtar, TR ad, EN ad)  -- ayarlar.js:KAHRAMANLAR ile AYNI
-# sirada ve ayni anahtarlarla; test ikisini karsilastiriyor.
-KAHRAMANLAR = [
-    ("spectre",           "Spectre",           "The Spectre"),
-    ("anti_monitor",      "Anti-Monitor",      "Anti-Monitor"),
-    ("the_monitor",       "Monitor",           "The Monitor"),
-    ("martian_manhunter", "Marslı Avcı",       "Martian Manhunter"),
-    ("vision",            "Vision",            "Vision"),
-    ("iron_man_mk85",     "Iron Man Mark 85",  "Iron Man Mark 85"),
-    ("shazam_dceu",       "Shazam",            "Shazam"),
-    ("the_tick",          "The Tick",          "The Tick"),
-    ("harbinger",         "Harbinger",         "Harbinger"),
-]
+# ---- RENDER CONTROLLER NEDEN DEGISTI ----
+# Modun attachable'lari kendi varlik ozelliklerine bakiyor
+# (`q.property('arathnido:SuitTexture0')`). O ozellikler bizim
+# pakette YOK; oyle birakilsa kostum hic cizilmezdi. Hepsi
+# `controller.render.armor`a cevrildi -- goz, zirh ve teknoloji
+# zirhlarinda calistigi BILINEN yol (v4.28 dersi: ozel render
+# controller denendi ve bot gorunmez oldu).
+# Bedeli: bir kostumun doku VARYANTLARI gelmiyor, varsayilan
+# doku geliyor. Gizlenmedi, NOTLAR.md'de yazili.
+MARVEL_ONEK = "mrv_"
+MARVEL_AYIRAC = "__"
+MARVEL_GEO_KAYNAK = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                 "kaynak_geo", "marvel")
+MARVEL_DOKU_KAYNAK = os.path.join(DOKU_KAYNAK, "marvel")
 
-# Tek geometri, dokuz doku. Kostumler ayni iskelet uzerinde
-# duruyor; her birine ayri bir geo dosyasi yazmak dokuz kopya
-# demek olurdu ve biri kaysa fark edilmezdi.
-KAHRAMAN_GEO = "kahraman_kostum"
+try:
+    from marvel_tablo import MARVEL_PARCA
+except ImportError:      # tablo yoksa uretim yine calissin
+    MARVEL_PARCA = []
+    print("UYARI: marvel_tablo.py yok -- Marvel parcalari uretilmedi")
 
 
-def kahraman_geometrisi():
-    """Kostumun modeli: vanilla oyuncu iskeletinin sisirilmis kopyasi.
+def marvel_kimlik(p):
+    """pa:mrv_<kahraman>__<anahtar> -- kimlik kendi kahramanini
+    soyluyor, boylece calisma zamani 268 satirlik bir esleme
+    tablosu tutmak zorunda kalmiyor.                          """
+    return MARVEL_ONEK + p["kahraman"] + MARVEL_AYIRAC + p["anahtar"]
 
-    KEMIK ADLARI VANILLA OYUNCUNUNKIYLE AYNI olmak zorunda --
-    attachable o adlarla oyuncunun kemiklerine yapisiyor. Ad
-    kayarsa kostum havada durur (v3.3 dersi: "kol_kok" adindaki
-    kok kemik yuzunden kol hic gorunmemisti).
 
-    UV'ler oyuncu derisi duzeninden, cunku dokular ZATEN o
-    duzende (modun kendi 64x64 dosyalari, donusturulmedi).
-
-    IKI KATMAN: ic kutu + dis kutu (sapka/ceket katmani).
-    Kahramanlarin cogu dis katmani kullaniyor -- olculdu:
-    harbinger sapka bolgesi %32 dolu, anti_monitor %21. Tek
-    katman cizseydik o pikseller kaybolurdu.
-
-    SISIRME: ust katman alttakinden BUYUK olmali, yoksa
-    z-cakismasi (titreyen yuzeyler) olur. Vanilla zirhin
-    mantiginin aynisi.
-
-    Bacaklar 0.1 birim ICERI cekildi (origin -3.9 / -0.1):
-    sisirilmis iki bacak tam bitisik olsaydi birbirine
-    girerdi.                                                    """
-    def kup(org, boyut, uv, sis):
-        return {"origin": org, "size": boyut, "uv": uv, "inflate": sis}
-
-    kemikler = [
-        {"name": "head", "pivot": [0, 24, 0], "cubes": [
-            kup([-4, 24, -4], [8, 8, 8], [0, 0], 1.0),
-            kup([-4, 24, -4], [8, 8, 8], [32, 0], 1.5)]},
-        {"name": "body", "pivot": [0, 24, 0], "cubes": [
-            kup([-4, 12, -2], [8, 12, 4], [16, 16], 1.01),
-            kup([-4, 12, -2], [8, 12, 4], [16, 32], 1.4)]},
-        {"name": "rightArm", "pivot": [-5, 22, 0], "cubes": [
-            kup([-8, 12, -2], [4, 12, 4], [40, 16], 1.0),
-            kup([-8, 12, -2], [4, 12, 4], [40, 32], 1.4)]},
-        {"name": "leftArm", "pivot": [5, 22, 0], "cubes": [
-            kup([4, 12, -2], [4, 12, 4], [32, 48], 1.0),
-            kup([4, 12, -2], [4, 12, 4], [48, 48], 1.4)]},
-        {"name": "rightLeg", "pivot": [-1.9, 12, 0], "cubes": [
-            kup([-3.9, 0, -2], [4, 12, 4], [0, 16], 0.5),
-            kup([-3.9, 0, -2], [4, 12, 4], [0, 32], 0.9)]},
-        {"name": "leftLeg", "pivot": [1.9, 12, 0], "cubes": [
-            kup([-0.1, 0, -2], [4, 12, 4], [16, 48], 0.5),
-            kup([-0.1, 0, -2], [4, 12, 4], [0, 48], 0.9)]},
-    ]
+def marvel_esyasi(p):
+    """Giyilebilir parca. Zirh puani, yuva ve dayaniklilik
+    MODUN KENDI esyasindan -- hicbiri yeniden hesaplanmadi.  """
+    ad = marvel_kimlik(p)
+    bilesenler = {
+        "minecraft:icon": {"texture": ad},
+        "minecraft:display_name": {"value": p["ad"]},
+        "minecraft:max_stack_size": 1,
+        "minecraft:wearable": {"slot": p["yuva"],
+                               "protection": p["koruma"]},
+        "minecraft:tags": {"tags": ["pa:marvel", "pa:marvel_" + p["tur"]]},
+    }
+    if p["koruma"]:
+        bilesenler["minecraft:armor"] = {"protection": p["koruma"]}
+    if p["dayaniklilik"]:
+        bilesenler["minecraft:durability"] = {
+            "max_durability": p["dayaniklilik"]}
     return {
-        "format_version": "1.12.0",
-        "minecraft:geometry": [{
+        "format_version": "1.21.0",
+        "minecraft:item": {
             "description": {
-                "identifier": "geometry." + KAHRAMAN_GEO,
-                "texture_width": 64,
-                "texture_height": 64,
-                "visible_bounds_width": 3,
-                "visible_bounds_height": 4,
-                "visible_bounds_offset": [0, 1.5, 0],
+                "identifier": "pa:" + ad,
+                "menu_category": {"category": "equipment"},
             },
-            "bones": kemikler,
-        }],
+            "components": bilesenler,
+        },
     }
 
 
-def kahraman_attachable(anahtar):
-    """Kostumu oyuncunun uzerine cizer.
+def marvel_attachable(p):
+    """Kostum/maskenin oyuncuya cizilmesi.
 
-    render_controllers KESINLIKLE controller.render.armor:
-    v4.28'de ozel bir render denetleyicisi botu UC SURUM
-    boyunca gorunmez yapmisti. Omnitrix saatleri de (v4.93)
-    ayni denetleyiciyi kullaniyor ve calisiyorlar.              """
-    ad = KAHRAMAN_ONEK + anahtar
+    Geometri kimligi cikarma sirasinda `geometry.mrv_*` olarak
+    yeniden adlandirildi: modun kendi adlari vanilla ve bizim
+    geometrilerle carpisabilirdi.                             """
+    ad = marvel_kimlik(p)
     return {
         "format_version": "1.10.0",
         "minecraft:attachable": {
             "description": {
                 "identifier": "pa:" + ad,
                 "materials": {
-                    "default": "entity_alphatest",
+                    "default": "armor",
                     "enchanted": "armor_enchanted",
                 },
                 "textures": {
                     "default": "textures/entity/" + ad,
                     "enchanted": "textures/misc/enchanted_actor_glint",
                 },
-                "geometry": {"default": "geometry." + KAHRAMAN_GEO},
+                "geometry": {"default": "geometry." + p["geo"]},
                 "render_controllers": ["controller.render.armor"],
             }
         },
     }
 
-
-def kahraman_esyasi(anahtar, ad):
-    """Kahraman esyasi: ELDE tutuluyor, giyilmiyor.
-
-    Neden elde: attachable elde tutulan esyayla da oyuncunun
-    govdesine ciziliyor (Omnitrix'te olculdu) ve boylece bir
-    ZIRH YUVASI harcanmiyor -- vanilla zirhini de giyebilirsin.
-
-    Dayaniklilik YOK, tek yigin: bir kostum kullanildikca
-    kirilmamali.                                                """
-    return {
-        "format_version": "1.21.0",
-        "minecraft:item": {
-            "description": {
-                "identifier": "pa:" + KAHRAMAN_ONEK + anahtar,
-                "menu_category": {"category": "equipment"},
-            },
-            "components": {
-                "minecraft:icon": {"texture": KAHRAMAN_ONEK + anahtar},
-                "minecraft:display_name": {"value": ad},
-                "minecraft:max_stack_size": 1,
-                "minecraft:tags": {"tags": ["pa:kahraman"]},
-            },
-        },
-    }
-
-
-def kahraman_ikonu(anahtar):
-    """Ikon = kahramanin KENDI pikselleri, uydurma cizim yok.
-
-    Once YUZ deneniyor (8,8..16,16 = kafanin on yuzu): bir
-    kahramani tanimanin en hizli yolu yuzu.
-
-    Ama uc kahramanda kask YOK ve o bolge bombos -- Spectre'de
-    %0. Bos bir ikon cizmek yerine GOGUS on yuzune duselen bir
-    yedek var; oradaki amblem (Shazam'in simsegi, Iron Man'in
-    reaktoru) zaten tanitici.                                   """
-    try:
-        from PIL import Image
-    except ImportError:
-        return None
-    kaynak = os.path.join(DOKU_KAYNAK, KAHRAMAN_ONEK + anahtar + ".png")
-    if not os.path.exists(kaynak):
-        return None
-    im = Image.open(kaynak).convert("RGBA")
-
-    def doluluk(kutu):
-        p = im.crop(kutu)
-        toplam = p.width * p.height
-        dolu = sum(1 for px in p.getdata() if px[3] > 8)
-        return dolu / toplam if toplam else 0.0
-
-    YUZ = (8, 8, 16, 16)          # kafanin on yuzu
-    GOGUS = (20, 20, 28, 32)      # govdenin on yuzu
-    kutu = YUZ if doluluk(YUZ) >= 0.25 else GOGUS
-    parca = im.crop(kutu)
-    en, boy = parca.size
-    k = max(1, min(16 // max(1, en), 16 // max(1, boy)))
-    parca = parca.resize((en * k, boy * k), Image.NEAREST)
-    ikon = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
-    ikon.paste(parca, ((16 - parca.width) // 2, (16 - parca.height) // 2), parca)
-    return ikon
 
 # ================================================================
 #  BEN 10  (AlienEvo)                                    v4.92
@@ -5511,35 +5409,57 @@ def main():
                 liste.append("item.pa:%s.name=%s" % (_tad, ad))
                 liste.append("item.pa:%s=%s" % (_tad, ad))
 
-    # ---- FISK KAHRAMANLARI (v4.96) ----
-    # Dokuz kahraman: elde tutulan esya + oyuncunun USTUNE
-    # cizilen attachable. Tek geometri, dokuz doku.
-    yaz_json(os.path.join(RP, "models/entity/%s.geo.json" % KAHRAMAN_GEO),
-             kahraman_geometrisi())
-    for _ka, _ktr, _ken in KAHRAMANLAR:
-        _kad = KAHRAMAN_ONEK + _ka
-        yaz_json(os.path.join(BP, "items/%s.json" % _kad),
-                 kahraman_esyasi(_ka, _ktr))
-        yaz_json(os.path.join(RP, "attachables/%s.json" % _kad),
-                 kahraman_attachable(_ka))
-        # Doku: kaynak_doku'dan BIREBIR kopya. Uretilmiyor --
-        # modun kendi pikselleri, sadece katmanlari birlestirildi.
-        _kk = os.path.join(DOKU_KAYNAK, _kad + ".png")
-        if os.path.exists(_kk):
-            _kh = os.path.join(RP, "textures/entity/%s.png" % _kad)
-            os.makedirs(os.path.dirname(_kh), exist_ok=True)
-            shutil.copyfile(_kk, _kh)
+    # ---- MARVEL PROJECT (v5.2) ----
+    # 268 parca: 142 kostum, 85 maske, 41 guc. Geometri ve doku
+    # modun kendisinden; hicbiri yeniden cizilmedi.
+    _mrv_geo_yazildi = set()
+    for _mp in MARVEL_PARCA:
+        _mad = MARVEL_ONEK + _mp["kahraman"] + MARVEL_AYIRAC + _mp["anahtar"]
+        yaz_json(os.path.join(BP, "items/%s.json" % _mad), marvel_esyasi(_mp))
+
+        # Guc esyasinin GORUNUSU yok (bacak yuvasinda duruyor,
+        # oyuncuya bir sey cizmiyor) -- kaynakta da oyle.
+        if _mp["tur"] != "guc" and _mp["geo"]:
+            if _mp["geo"] not in _mrv_geo_yazildi:
+                _mgk = os.path.join(MARVEL_GEO_KAYNAK,
+                                    _mp["geo"] + ".geo.json")
+                if os.path.exists(_mgk):
+                    _mgh = os.path.join(RP, "models/entity/%s.geo.json"
+                                        % _mp["geo"])
+                    os.makedirs(os.path.dirname(_mgh), exist_ok=True)
+                    shutil.copyfile(_mgk, _mgh)
+                    _mrv_geo_yazildi.add(_mp["geo"])
+                else:
+                    print("UYARI: %s geometrisi yok (%s)" % (_mad, _mgk))
+            if _mp["geo"] in _mrv_geo_yazildi:
+                yaz_json(os.path.join(RP, "attachables/%s.json" % _mad),
+                         marvel_attachable(_mp))
+            _mdk = os.path.join(MARVEL_DOKU_KAYNAK,
+                                _mp["anahtar"] + ".png")
+            if os.path.exists(_mdk):
+                _mdh = os.path.join(RP, "textures/entity/%s.png" % _mad)
+                os.makedirs(os.path.dirname(_mdh), exist_ok=True)
+                shutil.copyfile(_mdk, _mdh)
+            else:
+                print("UYARI: %s dokusu yok (%s)" % (_mad, _mdk))
+
+        # Ikon: modun KENDI esya pikselleri.
+        _mik = os.path.join(MARVEL_DOKU_KAYNAK,
+                            "ikon_" + _mp["anahtar"] + ".png")
+        if os.path.exists(_mik):
+            _miy = os.path.join(RP, "textures/item/%s.png" % _mad)
+            os.makedirs(os.path.dirname(_miy), exist_ok=True)
+            shutil.copyfile(_mik, _miy)
         else:
-            print("UYARI: %s dokusu yok (%s)" % (_kad, _kk))
-        _ki = kahraman_ikonu(_ka)
-        if _ki is not None:
-            _kiy = os.path.join(RP, "textures/item/%s.png" % _kad)
-            os.makedirs(os.path.dirname(_kiy), exist_ok=True)
-            _ki.save(_kiy)
-        dokular[_kad] = {"textures": "textures/item/" + _kad}
-        for liste, ad in ((en_us, _ken), (tr_tr, _ktr)):
-            liste.append("item.pa:%s.name=%s" % (_kad, ad))
-            liste.append("item.pa:%s=%s" % (_kad, ad))
+            print("UYARI: %s ikonu yok (%s)" % (_mad, _mik))
+        dokular[_mad] = {"textures": "textures/item/" + _mad}
+        # Ad tek: modun kendi ingilizce adi. TURKCEYE CEVRILMEDI
+        # -- "Iron Man Armor: Mark L" bir OZEL AD, cevirmek onu
+        # taninmaz yapardi. Arayuz metinleri Turkce, esya adlari
+        # kaynagin kendi adi.
+        for liste in (en_us, tr_tr):
+            liste.append("item.pa:%s.name=%s" % (_mad, _mp["ad"]))
+            liste.append("item.pa:%s=%s" % (_mad, _mp["ad"]))
 
     # ---- MASKE + OYUNCU MODELI PAKETI (v4.90) ----
     # Asil donusum: oyuncunun KENDI modeli degisiyor.
@@ -5938,11 +5858,12 @@ def main():
     # v5.0: WoM silah ikonlari da hicbir listede degil.
     for _wk3, _wt3, _we3, _wh3, _whz3, _wd3, _wn3 in WOM:
         beklenen.add(WOM_ONEK + _wk3)
-    # v4.96: kahraman ikonlari VE kostum dokulari. Ikisi de
+    # v5.2: Marvel ikonlari VE kostum dokulari. Ikisi de
     # hicbir listede degil; temizlik adimi listede olmayani
     # siliyor ve bu tuzaga daha once bes kez dusuldu.
-    for _kk3, _kt3, _ke3 in KAHRAMANLAR:
-        beklenen.add(KAHRAMAN_ONEK + _kk3)
+    for _mp3 in MARVEL_PARCA:
+        beklenen.add(MARVEL_ONEK + _mp3["kahraman"] + MARVEL_AYIRAC
+                     + _mp3["anahtar"])
     # v4.93: Omnitrix saatleri (hem ikon hem varlik dokusu)
     for _ok3, _ot3, _oe3 in OMNITRIX:
         beklenen.add(_ok3)
@@ -5986,6 +5907,45 @@ def main():
         beklenen.add("iksir_" + kimlik)
         beklenen.add(goz)
         beklenen.add(goz + "_lazer")
+
+    # v5.2: attachable'i olmayan artik GEOMETRILER de silinsin.
+    # Fisk kaldirilinca kahraman_kostum.geo.json diskte kaldi ve
+    # pakete girdi -- testte yakalandi. Geometriler esya adiyla
+    # eslesmedigi icin (bir geometri birden cok esyaya hizmet
+    # edebiliyor) ayri bir kume tutuluyor: SADECE bir
+    # attachable'in gosterdigi geometri kaliyor.
+    gecerliGeo = set()
+    _attDizin = os.path.join(RP, "attachables")
+    if os.path.isdir(_attDizin):
+        for _af in os.listdir(_attDizin):
+            if not _af.endswith(".json"):
+                continue
+            try:
+                _ad = json.load(open(os.path.join(_attDizin, _af),
+                                     encoding="utf-8"))
+            except Exception:
+                continue
+            _g = ((_ad.get("minecraft:attachable") or {}).get("description")
+                  or {}).get("geometry") or {}
+            for _gv in _g.values():
+                gecerliGeo.add(str(_gv).replace("geometry.", ""))
+    # Varliklarin (bot, O Sey, ilkel...) geometrileri attachable
+    # listesinde YOK ve silinmemeli: onlar entity JSON'larindan
+    # geliyor. Bu yuzden temizlik yalniz esya adiyla eslesen
+    # oneklere bakiyor.
+    _geoDizin = os.path.join(RP, "models/entity")
+    if os.path.isdir(_geoDizin):
+        for _gf in os.listdir(_geoDizin):
+            if not _gf.endswith(".geo.json"):
+                continue
+            _gad = _gf[:-len(".geo.json")]
+            if not (_gad.startswith("mrv_") or _gad.startswith("kahraman")
+                    or _gad.startswith("pe_") or _gad.startswith("meka_")):
+                continue
+            if _gad in gecerliGeo:
+                continue
+            os.remove(os.path.join(_geoDizin, _gf))
+            print("temizlendi (geometri): %s" % _gf)
 
     silinen = 0
     for klasor, uzanti in ((os.path.join(BP, "items"), ".json"),

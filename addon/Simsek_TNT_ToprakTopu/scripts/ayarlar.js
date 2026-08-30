@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v5.1";
+export const SURUM = "v5.2";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -3490,232 +3490,6 @@ export const BECERI_AGACI = new Map([
 export const BECERI_SALDIRI_ADIM = 3;    // 1 Guc seviyesi
 export const BECERI_ZIRH_ADIM    = 10;   // 1 Direnc seviyesi
 
-/* ================================================================
-   FISK'S SUPERHEROES -- DOKUZ KAHRAMAN                    v4.96
-
-   Kullanici dokuz isim verdi ve "varsa dokuzunu da aktar" dedi.
-   Dokuzu da modda VAR; dokuzu da aktarildi.
-
-   ---- KAYNAK: FISKHEROES 1.7.10 v2.4.0 ----
-   Palladium DEGIL -- Fisk'in kendi sistemi. Ama bizim icin
-   Palladium'dan bile kolay cikti, cunku:
-
-     1. Kahraman tanimlari data/heroes/<ad>.js -- duz okunabilir
-        JavaScript, butun sayilar acikta.
-     2. Gucler data/powers/<ad>.json -- duz JSON.
-     3. Modeller VANILLA INSANSI ISKELET. renderers/heroes'taki
-        showModel cagrisi kemikleri adiyla sayiyor:
-          "head", "headwear", "body", "rightArm", "leftArm",
-          "rightLeg", "leftLeg"
-        Bunlar Bedrock'un kendi kemik adlariyla BIREBIR AYNI.
-     4. Dokular 64x64, yani oyuncu derisi duzeni. Olculdu.
-
-   ---- NEDEN ATTACHABLE, OYUNCU MODELI DEGIL ----
-   Ben 10 ve Max Steel'de oyuncunun MODELI degistiriliyor
-   (v4.90 makinesi). Kahramanlarda bu YANLIS olurdu: dokuz
-   kahramanin ucunde (Spectre, Shazam, The Monitor) kaskin
-   dokusu YOK -- modda oyuncunun kendi yuzu gorunuyor.
-   Ozellikle olculdu: spectre'in kafa bolgesi %0 dolu,
-   shazam %6, the_monitor %19.
-
-   Modeli degistirseydik o kahramanlar KAFASIZ cizilirdi.
-   Attachable ise oyuncunun UZERINE ciziliyor: bos pikseller
-   oyuncunun kendi derisini gosteriyor -- modun yaptigi sey
-   tam olarak bu.
-
-   Yol zaten denenmis: Omnitrix saatleri (v4.93) elde tutulan
-   esyanin attachable'i ve oyuncunun BILEGINDE ciziliyor.
-
-   ---- SAYILAR NASIL CEVRILDI (kural, tahmin degil) ----
-   PUNCH_DAMAGE p : Fisk'te yumrugun MUTLAK hasari (vanilla
-                    yumruk 1). Bedrock'ta Guc seviye basina +3.
-                      amp = round((p - 1) / 3) - 1
-                    p=13 -> Guc IV -> 1+12 = 13, BIREBIR.
-                    ESITLIKTE ASAGI yuvarlanir. Tek yeri Iron
-                    Man Mk85 (8.5): Guc II -> 7, Guc III -> 10,
-                    ikisi de 1,5 uzakta. Asagiyi seciyoruz --
-                    kaynaktan FAZLA guc vermek, eksik vermekten
-                    daha kotu bir hata (olcemezsin, sadece
-                    dengeyi bozar).
-   SPRINT_SPEED s : op1 = carpan. Hiz seviye basina +%20.
-                      amp = max(0, round(s / 0.2) - 1)
-   JUMP_HEIGHT j  : j >= 1.5 -> Ziplama II, j >= 0.5 -> I
-   FALL_RESISTANCE: >= 5 -> Yavas Dusus (dusme hasarini keser)
-   fire_immunity  : Ates Direnci
-   water_breathing / BREATHE_SPACE : Su Altinda Nefes
-   near_invulnerability (mermi + ates + patlama bagisikligi)
-                  : Direnc IV -- tek efektle anlatilabilecek
-                    en yakin sey
-   damage_resistance EXPLOSION 0.5 : Direnc II
-   metal_skin     : Direnc III
-   regeneration   : Yenilenme I
-   invisibility   : Gorunmezlik
-   shadowform     : Gorunmezlik (golgeye karisma)
-
-   ---- ISINLAR: AYNI SANIYELIK HASAR ----
-   Fisk'in energy_projection ve charged_beam'i SUREKLI isin --
-   hasar HER TICK uygulaniyor. Bizim isinimiz TEK ATIS +
-   bekleme. Tek kural, istisnasiz:
-
-       tek atis hasari = kaynagin tick basina hasari
-                         x ISIN_BEKLEME (20 tick)
-
-   Boylece SANIYELIK hasar kaynakla ayni kaliyor. Ornek:
-   Vision'in charged_beam'i 7/tick -> 140/atis, bekleme 1 sn.
-
-   TEK ISTISNA lightning_cast (Shazam): o zaten SUREKLI degil,
-   tek seferlik bir carpma (cooldownTime 20). Hasari oldugu
-   gibi: 10.
-
-   ---- AKTARILAMAYANLAR (uydurulmadi, raporlaniyor) ----
-     projectile_immunity / arrow_catching . Bedrock'ta ok
-       bagisikligi efekti yok. Direnc kismen karsiliyor.
-     intangibility (Vision, MM)  . blok icinden gecme yok.
-     shape_shifting (MM)         . baska oyuncunun kiligina
-       girme yok.
-     size_manipulation (Anti-Monitor dev modu) . oyuncu
-       olcegi degistirilemiyor.
-     shield / forcefield (Anti-Monitor, Mk85) . kalkan
-       havuzu yok.
-     setDefaultScale 1.1         . attachable oyuncuyu
-       buyutemiyor.
-     potion_immunity (MM)        . efekt bagisikligi yok.
-   Ozet metinleri bunlari VAAT ETMIYOR.
-   ================================================================ */
-export const KAHRAMAN_ACIK  = true;
-export const KAHRAMAN_ONEK  = "pa:kahraman_";
-export const KAHRAMAN_TARAMA = 20;    // kac tick'te bir bakilsin
-export const KAHRAMAN_SURE   = 120;   // efekt suresi (TARAMA x 6)
-/* Donusum caktisi: mod cekirdeklerindekinin kardesi.        */
-export const KAHRAMAN_CAKMA  = "minecraft:electric_spark_particle";
-
-/* anahtar -> {ad, en, kaynak, tier, ozet, efektler, yetenekler}
-
-   "kaynak" modun kendi dosya adi: data/heroes/<kaynak>.js ve
-   models/heroes/<kaynak>.json. Test ikisinin de var oldugunu
-   ve sayilarin uydugunu sinliyor.                            */
-export const KAHRAMANLAR = new Map([
-  ["spectre", {
-    ad: "Spectre", en: "The Spectre", kaynak: "spectre", tier: 10,
-    ozet: "güç IV (13 hasar) · ışın 60 · ışınlanma · su altında nefes",
-    /* PUNCH 13 -> Guc IV | JUMP 1.0 -> Ziplama I
-       spirit_physiology: energy_projection 3/tick 10 blok,
-       teleportation 128 blok, leaping, water_breathing      */
-    efektler: [["strength", 0, 3], ["jump_boost", 0, 0],
-               ["water_breathing", 0, 0]],
-    yetenekler: ["kahraman_isin_spectre", "isinlanma"]
-  }],
-  ["anti_monitor", {
-    ad: "Anti-Monitor", en: "Anti-Monitor", kaynak: "anti_monitor", tier: 10,
-    ozet: "güç IV · ışın 180 · görünmezlik · uçuş · direnç II",
-    /* PUNCH 13 -> Guc IV | JUMP 1.5 -> Ziplama II
-       antimatter_physiology: charged_beam 9/tick 32 blok,
-       energy_projection 3/tick 10 blok, shadowform,
-       flight 0.18, projectile_immunity, water_breathing.
-       Dev modu (size_manipulation) ve kalkan aktarilamadi. */
-    efektler: [["strength", 0, 3], ["jump_boost", 0, 1],
-               ["water_breathing", 0, 0], ["resistance", 0, 1]],
-    yetenekler: ["kahraman_isin_anti_monitor", "ucus"]
-  }],
-  ["the_monitor", {
-    ad: "Monitor", en: "The Monitor", kaynak: "the_monitor", tier: 10,
-    ozet: "güç IV · ışın 60 · ışınlanma · çekme · direnç II",
-    /* PUNCH 13 -> Guc IV | JUMP 1.5 -> Ziplama II
-       cosmic_physiology: energy_projection 3/tick 10 blok,
-       telekinesis 10 blok, teleportation 128 blok,
-       projectile_immunity, water_breathing.
-       Telekinezi -> "cekme": ikisi de hedefi kendine
-       dogru tasiyor. Tam ayni degil, en yakini.            */
-    efektler: [["strength", 0, 3], ["jump_boost", 0, 1],
-               ["water_breathing", 0, 0], ["resistance", 0, 1]],
-    yetenekler: ["kahraman_isin_the_monitor", "isinlanma", "cekme"]
-  }],
-  ["martian_manhunter", {
-    ad: "Marslı Avcı", en: "Martian Manhunter",
-    kaynak: "martian_manhunter", tier: 8,
-    ozet: "güç III · görünmezlik · uçuş · su altında nefes · hız I",
-    /* PUNCH 9 -> Guc III | SPRINT 0.15 -> Hiz I
-       JUMP 1.5 -> Ziplama II
-       martian_physiology: controlled_flight 0.1/0.25,
-       invisibility, intangibility, shape_shifting,
-       potion_immunity, water_breathing, fire_weakness.
-       Gecirgenlik ve sekil degistirme aktarilamadi.        */
-    efektler: [["strength", 0, 2], ["speed", 0, 0],
-               ["jump_boost", 0, 1], ["invisibility", 0, 0],
-               ["water_breathing", 0, 0]],
-    yetenekler: ["ucus"]
-  }],
-  ["vision", {
-    ad: "Vision", en: "Vision", kaynak: "vision", tier: 9,
-    ozet: "güç III · zihin taşı ışını 140 · uçuş · ateş bağışıklığı",
-    /* PUNCH 11 -> Guc III | SPRINT 0.15 -> Hiz I
-       vibranium_physiology: fire_immunity,
-         damage_resistance EXPLOSION 0.5 -> Direnc II
-       mind_stone: charged_beam 7/tick 32 blok,
-         controlled_flight, intangibility (aktarilamadi)    */
-    efektler: [["strength", 0, 2], ["speed", 0, 0],
-               ["fire_resistance", 0, 0], ["resistance", 0, 1]],
-    yetenekler: ["kahraman_isin_vision", "ucus"]
-  }],
-  ["iron_man_mk85", {
-    ad: "Iron Man Mark 85", en: "Iron Man Mark 85",
-    kaynak: "iron_man_mk85", tier: 8,
-    ozet: "güç II · repulsor 140 · uçuş · yenilenme · ateş bağışıklığı · düşme hasarı yok",
-    /* PUNCH 8.5 -> Guc II | SPRINT 0.1 -> Hiz I
-       FALL_RESISTANCE 8 -> Yavas Dusus
-       mk85_nanites: charged_beam 7/tick 32 blok,
-         controlled_flight, fire_immunity, metal_skin
-         (-> Direnc III), regeneration, water_breathing.
-       Kalkan, bicak ve nanit donusumu aktarilamadi.        */
-    efektler: [["strength", 0, 1], ["speed", 0, 0],
-               ["fire_resistance", 0, 0], ["resistance", 0, 2],
-               ["regeneration", 0, 0], ["slow_falling", 0, 0],
-               ["water_breathing", 0, 0]],
-    yetenekler: ["kahraman_isin_iron_man_mk85", "ucus"]
-  }],
-  ["shazam_dceu", {
-    ad: "Shazam", en: "Shazam", kaynak: "shazam_dceu", tier: 9,
-    ozet: "güç III · yıldırım 10 · SÜPER HIZ (IV) · uçuş · ateş bağışıklığı",
-    /* PUNCH 10.5 -> Guc III | SPRINT 0.7 -> Hiz IV
-       JUMP 1.5 -> Ziplama II
-       divine_empowerment: lightning_cast 10 hasar 48 blok
-         (SUREKLI DEGIL, tek carpma -- carpan uygulanmiyor),
-         super_speed, controlled_flight, fire_immunity,
-         leaping, projectile_immunity.
-       Eternyum zayifligi aktarilmadi: kaynakta bir CEZA,
-       oyunda karsiligi olan bir madde yok.                 */
-    efektler: [["strength", 0, 2], ["speed", 0, 3],
-               ["jump_boost", 0, 1], ["fire_resistance", 0, 0]],
-    yetenekler: ["kahraman_isin_shazam_dceu", "ucus"]
-  }],
-  ["the_tick", {
-    ad: "The Tick", en: "The Tick", kaynak: "the_tick", tier: 8,
-    ozet: "güç III · direnç IV (neredeyse yenilmez) · ateş bağışıklığı · düşme hasarı yok · zıplama",
-    /* PUNCH 10 -> Guc III | SPRINT 0.2 -> Hiz I
-       JUMP 1.0 -> Ziplama I | FALL_RESISTANCE 8 -> Yavas Dusus
-       near_invulnerability: mermi + ates + patlama
-         bagisikligi -> tek efektle en yakini Direnc IV
-       leaping 1.5 -> Ziplama
-       Isini YOK: kaynakta da yok. Uydurulmadi.             */
-    efektler: [["strength", 0, 2], ["speed", 0, 0],
-               ["jump_boost", 0, 1], ["resistance", 0, 3],
-               ["fire_resistance", 0, 0], ["slow_falling", 0, 0]],
-    yetenekler: []
-  }],
-  ["harbinger", {
-    ad: "Harbinger", en: "Harbinger", kaynak: "harbinger", tier: 9,
-    ozet: "güç IV · ışın 60 · yerçekimi · ışınlanma · düşme hasarı yok",
-    /* PUNCH 12 -> Guc IV | SPRINT 0.10 -> Hiz I
-       FALL_RESISTANCE 11 -> Yavas Dusus
-       cosmic_empowerment: energy_projection 3/tick 10 blok,
-         gravity_manipulation 24 blok (-> "ucurma": ikisi de
-         hedefin yercekimini kaldiriyor), teleportation,
-         projectile_immunity                                */
-    efektler: [["strength", 0, 3], ["speed", 0, 0],
-               ["jump_boost", 0, 0], ["slow_falling", 0, 0]],
-    yetenekler: ["kahraman_isin_harbinger", "ucurma", "isinlanma"]
-  }]
-]);
 
 /* ---------------- MOD ISINLARI ----------------  (v4.95)
 
@@ -3779,70 +3553,6 @@ export const ZIRH_ISIN_ADIM = 1.5;
    olmasin. Kaynakta energy_beam basili tutuluyor; bizde
    anlik atis + bekleme ayni sonucu veriyor.                 */
 export const ZIRH_ISIN_BEKLEME = 20;   // tick
-
-/* ---------------- KAHRAMAN ISINLARI ----------------  (v4.96)
-
-   Sayilar FiskHeroes'un kendi data/powers/*.json dosyalarindan.
-   Cevrim kurali KAHRAMANLAR basligindaki "AYNI SANIYELIK HASAR"
-   bolumunde: Fisk'in isini SUREKLI (tick basina hasar), bizimki
-   TEK ATIS + bekleme, o yuzden
-
-       tek atis = tick basina hasar x ZIRH_ISIN_BEKLEME (20)
-
-   Boylece saniyelik hasar kaynakla ayni. Menzil ve tur oldugu
-   gibi.
-
-   "kaynakHasar" ve "kaynakMenzil" alanlari TEST icin duruyor:
-   test jar'daki JSON'la karsilastirip cevrimin dogru
-   uygulandigini olcuyor -- "hafizadan yazdim" ihtimali
-   sinanabilir kalsin.                                        */
-export const KAHRAMAN_ISIN = new Map([
-  ["kahraman_isin_spectre", {
-    ad: "Ruh Işını", kahraman: "spectre", guc: "spirit_physiology",
-    tur: "energy_projection", kaynakHasar: 3, kaynakMenzil: 10,
-    hasar: 60, menzil: 10, yakma: 0,
-    parcacik: "minecraft:endrod"
-  }],
-  ["kahraman_isin_anti_monitor", {
-    ad: "Antimadde Patlaması", kahraman: "anti_monitor",
-    guc: "antimatter_physiology",
-    tur: "charged_beam", kaynakHasar: 9, kaynakMenzil: 32,
-    hasar: 180, menzil: 32, yakma: 0,
-    parcacik: "minecraft:basic_flame_particle"
-  }],
-  ["kahraman_isin_the_monitor", {
-    ad: "Kozmik Işın", kahraman: "the_monitor", guc: "cosmic_physiology",
-    tur: "energy_projection", kaynakHasar: 3, kaynakMenzil: 10,
-    hasar: 60, menzil: 10, yakma: 0,
-    parcacik: "minecraft:endrod"
-  }],
-  ["kahraman_isin_vision", {
-    ad: "Zihin Taşı Işını", kahraman: "vision", guc: "mind_stone",
-    tur: "charged_beam", kaynakHasar: 7, kaynakMenzil: 32,
-    hasar: 140, menzil: 32, yakma: 0,
-    parcacik: "minecraft:basic_flame_particle"
-  }],
-  ["kahraman_isin_iron_man_mk85", {
-    ad: "Repulsor", kahraman: "iron_man_mk85", guc: "mk85_nanites",
-    tur: "charged_beam", kaynakHasar: 7, kaynakMenzil: 32,
-    hasar: 140, menzil: 32, yakma: 0,
-    parcacik: "minecraft:electric_spark_particle"
-  }],
-  ["kahraman_isin_shazam_dceu", {
-    ad: "Şimşek", kahraman: "shazam_dceu", guc: "divine_empowerment",
-    /* TEK ISTISNA: lightning_cast SUREKLI DEGIL, tek seferlik
-       bir carpma (cooldownTime 20). Carpan uygulanmiyor.     */
-    tur: "lightning_cast", kaynakHasar: 10, kaynakMenzil: 48,
-    hasar: 10, menzil: 48, yakma: 0, surekliDegil: true,
-    parcacik: "minecraft:electric_spark_particle"
-  }],
-  ["kahraman_isin_harbinger", {
-    ad: "Kozmik Işın", kahraman: "harbinger", guc: "cosmic_empowerment",
-    tur: "energy_projection", kaynakHasar: 3, kaynakMenzil: 10,
-    hasar: 60, menzil: 10, yakma: 0,
-    parcacik: "minecraft:endrod"
-  }]
-]);
 
 
 /* ---------------- MOD DONUSUMU ----------------  (v4.94)
@@ -4743,3 +4453,492 @@ export const TEKNOLOJI_TAKIMLAR = new Map([
    defterlerinden farki bu: durumun kaynagi UZERINDEKI ZIRH,
    yani oyunun kendi kaydi. Ayrica bir dunya ozelligi tutmak
    iki dogruluk kaynagi yaratirdi ve ikisi ayrisirdi.        */
+
+/* ================================================================
+   MARVEL PROJECT                                           v5.2
+
+   Kullanici: "bir tane daha mod kurdum, bu sefer ugrasmana gerek
+   kalmayacak cunku bedrock uzerine kurulu. Eski kahramanlari
+   tamamen atiyoruz, Fisk modunu bos veriyoruz artik. Onun yerine
+   bunu ekle, bunun tum kahramanlarini."
+
+   FISK GITTI. Dokuz kahraman, yedi isini, kostum dokulari,
+   ikonlari ve REFERANS_FISK.md silindi -- kalinti birakilmadi.
+
+   ---- KAYNAK ----
+   Marvel Project Addon v3.0.1 (.mcaddon). BEDROCK paketi:
+   ne bytecode var ne Java modeli. Geometri, doku ve ikon
+   DOGRUDAN alindi; guclerin kodu da okunabilir JavaScript
+   (92 dosya). Yani bu surumde tek bir sayi bile tahmin
+   edilmedi.
+
+   ---- NE ALINDI ----
+   268 parca:
+     142 kostum  (ayak yuvasi -- kaynakta da oyle)
+      85 maske   (kafa yuvasi)
+      41 guc     (bacak yuvasi; kaynagin kendi kalibi)
+   41 kahraman. Zirh puani, dayaniklilik, ad, yuva: hepsi
+   modun kendi esyasindan. Dokum REFERANS_MARVEL.md'de.
+
+   ---- UCLU KALIP NEDEN KORUNDU ----
+   Kaynakta kostum GORUNUS + zirh, maske KAFA, guc ise
+   YETENEK tasiyor. Ucunu tek esyada birlestirmek daha kolay
+   olurdu ama modun dengesini bozardi: kostumu giyip gucu
+   takmamak kaynakta gecerli bir secim.
+
+   ---- KIMLIK BICIMI ----
+       pa:mrv_<kahraman>__<anahtar>
+   Cift alt cizgi bilerek: kahraman adinda da, anahtar icinde
+   de tek alt cizgi var (ironman_mark50). Ayirici tek olsaydi
+   calisma zamani kahramani yanlis okurdu. Boylece 268 satirlik
+   bir esleme tablosunu iki yerde tutmak GEREKMIYOR -- kimlik
+   kendi kahramanini soyluyor.
+   ================================================================ */
+export const MARVEL_ACIK   = true;
+export const MARVEL_ONEK   = "pa:mrv_";
+export const MARVEL_AYIRAC = "__";
+export const MARVEL_TARAMA = 20;    // kac tick'te bir bakilsin
+export const MARVEL_SURE   = 120;   // efekt suresi (TARAMA x 6)
+
+/* Zirh yuvalari: kostum ayakta, maske kafada, guc bacakta.
+   Sira TEKNOLOJI_YUVALAR ile ayni bicimde.                  */
+export const MARVEL_YUVALAR = ["Head", "Chest", "Legs", "Feet"];
+
+/* ---- AKTARILAMAYANLAR (ozetlerde vaat EDILMIYOR) ----
+   - DUVAR TIRMANMA (spiderman, hulk, black_panther, wolverine,
+     white_tiger, moon_knight, iron_fist, squirrel_girl,
+     rocket_raccoon, venom -- kaynakta `*_climb` etiketi):
+     Bedrock'ta oyuncuya tirmanma verilemiyor.
+   - AG SALLANMA / KANCA (spiderman, venom, hawkeye, daredevil,
+     reed): kaynakta kendi mermi varligi ve fizigi var; bizde
+     karsiligi yok.
+   - BOY DEGISTIRME (antman/wasp): oyuncuya minecraft:scale
+     verilemiyor. Kaynak nausea ile "kuculdum" hissi veriyor,
+     biz onu taklit etmiyoruz -- sahte olurdu.
+   - GORUNUS VARYANTLARI: modun attachable'lari kendi varlik
+     ozelliklerine (`arathnido:SuitTexture0`) bakip bir kostumun
+     alti dokusu arasinda geciyor. O ozellikler bizim pakette
+     yok; VARSAYILAN doku aliniyor.                            */
+
+/* ---------------- GUC KUMELERI ----------------
+
+   Her kahramanin bacak yuvasindaki GUC esyasi ne veriyor.
+   Kaynak: modun kendi script/function dosyalari; hangi
+   etiketten geldigi satirlarda yazili.
+
+   efektler: [ad, sure(0 = MARVEL_SURE), amp]
+   yetenek : script tarafinda ek is ("ucus" ya da bir isin)   */
+export const MARVEL_GUCLER = new Map([
+
+  /* ---- UCANLAR ---- kaynakta `<ad>_fly` etiketi var ---- */
+  ["ironman", {
+    ad: "Iron Man",
+    /* Bu kahramanin modda GUC ESYASI YOK -- gucu
+       kostumun kendisi tasiyor. Uydurma bir guc esyasi
+       uretmedik; calisma zamani kostume bakiyor.        */
+    gucKostumden: true, ozet: "UÇUŞ · UNIBEAM · ateş bağışıklığı · düşme hasarı yok",
+    /* scripts/fly_system/ironman.js -> "ironman_fly"
+       scripts/ironman/ironman_weapons.js -> unibeam/repulsor  */
+    yetenek: "ucus", isin: "marvel_isin_unibeam",
+    efektler: [["fire_resistance", 0, 0], ["slow_falling", 0, 0]]
+  }],
+  ["thor", {
+    ad: "Thor", ozet: "UÇUŞ · güç IV · yıldırım bağışıklığı yok (aktarılamadı)",
+    /* scripts/... -> "thor_fly"; Mjolnir ayri bir esya       */
+    yetenek: "ucus",
+    efektler: [["strength", 0, 3], ["slow_falling", 0, 0]]
+  }],
+  ["sentry", {
+    ad: "Sentry", ozet: "UÇUŞ · güç VI · direnç III · düşme hasarı yok",
+    /* scripts/sentry.js -> "sentry_fly", "sentry_attackfly"  */
+    yetenek: "ucus",
+    efektler: [["strength", 0, 5], ["resistance", 0, 2],
+               ["slow_falling", 0, 0]]
+  }],
+  ["silver_surfer", {
+    ad: "Silver Surfer", ozet: "UÇUŞ · ateş bağışıklığı · su altında nefes · düşme hasarı yok",
+    /* functions/silver_surfer/silver_surfer_table.mcfunction:
+       levitation 1/2, 1/5, 1/9 (bakis acisina gore) +
+       slow_falling 1/0. Bizde tek "ucus" yetenegi.           */
+    yetenek: "ucus",
+    efektler: [["fire_resistance", 0, 0], ["water_breathing", 0, 0],
+               ["slow_falling", 0, 0]]
+  }],
+  ["galactus", {
+    ad: "Galactus", ozet: "UÇUŞ · IŞIN · direnç IV · güç X · ateş bağışıklığı",
+    /* "galactus_fly", "galactus_punch"; guc esyasinin zirhi
+       da tek istisna: 10 (otekiler 5).                       */
+    yetenek: "ucus", isin: "marvel_isin_galactus",
+    efektler: [["resistance", 0, 3], ["strength", 0, 9],
+               ["fire_resistance", 0, 0], ["slow_falling", 0, 0]]
+  }],
+  ["scarlet_witch", {
+    ad: "Scarlet Witch", ozet: "UÇUŞ · KAOS IŞINI · düşme hasarı yok",
+    /* "scarlet_witch_fly"; buyu mermileri ayri esya          */
+    yetenek: "ucus", isin: "marvel_isin_kaos",
+    efektler: [["slow_falling", 0, 0]]
+  }],
+  ["dr_strange", {
+    ad: "Doctor Strange",
+    /* Bu kahramanin modda GUC ESYASI YOK -- gucu
+       kostumun kendisi tasiyor. Uydurma bir guc esyasi
+       uretmedik; calisma zamani kostume bakiyor.        */
+    gucKostumden: true, ozet: "UÇUŞ · gece görüşü · düşme hasarı yok",
+    /* "dr_strange_fly", "dr_strange_wind"; portallar
+       aktarilamadi (kendi varlik sistemi).                   */
+    yetenek: "ucus",
+    efektler: [["night_vision", 0, 0], ["slow_falling", 0, 0]]
+  }],
+  ["dr_doom", {
+    ad: "Doctor Doom", ozet: "UÇUŞ · direnç III · ateş bağışıklığı",
+    /* "dr_doom_fly"                                          */
+    yetenek: "ucus",
+    efektler: [["resistance", 0, 2], ["fire_resistance", 0, 0]]
+  }],
+  ["falcon", {
+    ad: "Falcon",
+    /* Bu kahramanin modda GUC ESYASI YOK -- gucu
+       kostumun kendisi tasiyor. Uydurma bir guc esyasi
+       uretmedik; calisma zamani kostume bakiyor.        */
+    gucKostumden: true, ozet: "UÇUŞ · düşme hasarı yok · hız II",
+    /* "falcon_fly"                                           */
+    yetenek: "ucus",
+    efektler: [["slow_falling", 0, 0], ["speed", 0, 1]]
+  }],
+  ["starlord", {
+    ad: "Star-Lord",
+    /* Bu kahramanin modda GUC ESYASI YOK -- gucu
+       kostumun kendisi tasiyor. Uydurma bir guc esyasi
+       uretmedik; calisma zamani kostume bakiyor.        */
+    gucKostumden: true, ozet: "UÇUŞ · su altında nefes · düşme hasarı yok",
+    /* "starlord_fly", "starlord_skip"                        */
+    yetenek: "ucus",
+    efektler: [["water_breathing", 0, 0], ["slow_falling", 0, 0]]
+  }],
+  ["rogue", {
+    ad: "Rogue", ozet: "UÇUŞ · güç V · direnç II · düşme hasarı yok",
+    /* "rogue_fly", "rogue_attack"                            */
+    yetenek: "ucus",
+    efektler: [["strength", 0, 4], ["resistance", 0, 1],
+               ["slow_falling", 0, 0]]
+  }],
+  ["vision", {
+    ad: "Vision", ozet: "UÇUŞ · ZIHIN TAŞI IŞINI · direnç III · gece görüşü",
+    /* "vision_fly", "vision_punch", "vision_impulse";
+       faz gecisi (bloktan gecme) aktarilamadi.               */
+    yetenek: "ucus", isin: "marvel_isin_zihin",
+    efektler: [["resistance", 0, 2], ["night_vision", 0, 0],
+               ["slow_falling", 0, 0]]
+  }],
+  ["adam_warlock", {
+    ad: "Adam Warlock", ozet: "UÇUŞ · güç IV · direnç II · düşme hasarı yok",
+    /* "adam_warlock_fly", "adam_warlock_punch"               */
+    yetenek: "ucus",
+    efektler: [["strength", 0, 3], ["resistance", 0, 1],
+               ["slow_falling", 0, 0]]
+  }],
+  ["johnny", {
+    ad: "Human Torch", ozet: "UÇUŞ · ateş bağışıklığı · ATEŞ IŞINI",
+    /* "johnny_fly", "johnny_flame_on", "johnny_punches"      */
+    yetenek: "ucus", isin: "marvel_isin_alev",
+    efektler: [["fire_resistance", 0, 0], ["slow_falling", 0, 0]]
+  }],
+  ["venom", {
+    ad: "Venom", ozet: "UÇUŞ · güç V · can tazeleme · düşme hasarı yok",
+    /* "venom_fly", "venom_force", "venom_impulse";
+       functions/venom/venom_regeneration.mcfunction:
+       regeneration 3/3 + saturation.
+       Ag sallanma ve tirmanma aktarilamadi.                  */
+    yetenek: "ucus",
+    efektler: [["strength", 0, 4], ["regeneration", 0, 2],
+               ["saturation", 0, 0], ["slow_falling", 0, 0]]
+  }],
+  ["antman", {
+    ad: "Ant-Man / Wasp", ozet: "UÇUŞ (Wasp kanadı) · düşme hasarı yok",
+    /* "wasp_fly"; boy degistirme aktarilamadi (bkz. yukarisi) */
+    yetenek: "ucus",
+    efektler: [["slow_falling", 0, 0]]
+  }],
+
+  /* ---- YERDEKILER ---- */
+  ["daredevil", {
+    ad: "Daredevil",
+    ozet: "gece görüşü · can tazeleme · emilim V · hız II",
+    /* functions/daredevil/skill.mcfunction BIREBIR:
+         darkness 2/0 · absorption 15/4 · regeneration 10/0
+         · night_vision 20/0
+       darkness ALINMADI: kaynakta bu "duyu" efektinin gorsel
+       parcasi, bizde oyuncuyu kor eder.                      */
+    efektler: [["night_vision", 0, 0], ["regeneration", 0, 0],
+               ["absorption", 0, 4], ["speed", 0, 1]]
+  }],
+  ["spiderman", {
+    ad: "Spider-Man", ozet: "hız III · zıplama III · düşme hasarı yok · direnç II",
+    /* "spiderman_climb", "spiderman_impulse", "spiderman_web";
+       functions/spiderman/off_swing.mcfunction slow_falling.
+       Ag ve tirmanma aktarilamadi -- ozet onlari vaat etmiyor. */
+    efektler: [["speed", 0, 2], ["jump_boost", 0, 2],
+               ["slow_falling", 0, 0], ["resistance", 0, 1]]
+  }],
+  ["hulk", {
+    ad: "Hulk", ozet: "güç X · direnç IV · zıplama V · düşme hasarı yok",
+    /* "hulk_climb", "hulk_falling"; hulk_powers bacak
+       yuvasinda ve skin secimi avengers_id_card'da.          */
+    efektler: [["strength", 0, 9], ["resistance", 0, 3],
+               ["jump_boost", 0, 4], ["slow_falling", 0, 0]]
+  }],
+  ["wolverine", {
+    ad: "Wolverine", ozet: "can tazeleme III · güç IV · direnç II",
+    /* "wolverine_impulse1/2", "wolverine_run_wall";
+       pencelerin kendisi ayri esya (wolverine_claws.js).     */
+    efektler: [["regeneration", 0, 2], ["strength", 0, 3],
+               ["resistance", 0, 1]]
+  }],
+  ["deadpool", {
+    ad: "Deadpool", ozet: "can tazeleme IV · güç III · direnç II",
+    /* Iyilesme faktoru; katanalar ayri esya.                 */
+    efektler: [["regeneration", 0, 3], ["strength", 0, 2],
+               ["resistance", 0, 1]]
+  }],
+  ["black_panther", {
+    ad: "Black Panther", ozet: "hız III · zıplama II · direnç III · gece görüşü",
+    /* "black_panther_claws/climb/kick/spin"                  */
+    efektler: [["speed", 0, 2], ["jump_boost", 0, 1],
+               ["resistance", 0, 2], ["night_vision", 0, 0]]
+  }],
+  ["captain_america", {
+    ad: "Captain America", ozet: "güç III · hız II · direnç II · doyma",
+    /* Guc esyasi kaynakta `super_soldier_powers` adiyla;
+       kahraman eslemesi MARVEL_TAKMA_AD'da.                  */
+    efektler: [["strength", 0, 2], ["speed", 0, 1],
+               ["resistance", 0, 1], ["saturation", 0, 0]]
+  }],
+  ["black_widow", {
+    ad: "Black Widow", ozet: "hız III · zıplama II · gece görüşü",
+    efektler: [["speed", 0, 2], ["jump_boost", 0, 1],
+               ["night_vision", 0, 0]]
+  }],
+  ["cyclops", {
+    ad: "Cyclops", ozet: "OPTİK IŞIN · hız II",
+    /* "cyclops_impulse"; scripts/cyclops.js optik atis        */
+    isin: "marvel_isin_optik",
+    efektler: [["speed", 0, 1]]
+  }],
+  ["moon_knight", {
+    ad: "Moon Knight", ozet: "gece görüşü · hız II · zıplama II · düşme hasarı yok",
+    /* "moon_knight_climb", "moon_knight_impulse"             */
+    efektler: [["night_vision", 0, 0], ["speed", 0, 1],
+               ["jump_boost", 0, 1], ["slow_falling", 0, 0]]
+  }],
+  ["ghost", {
+    ad: "Ghost", ozet: "görünmezlik · hız II",
+    /* "ghost_blocks", "ghost_kick_effect"                    */
+    efektler: [["invisibility", 0, 0], ["speed", 0, 1]]
+  }],
+  ["ghost_rider", {
+    ad: "Ghost Rider", ozet: "ateş bağışıklığı · güç V · direnç II",
+    efektler: [["fire_resistance", 0, 0], ["strength", 0, 4],
+               ["resistance", 0, 1]]
+  }],
+  ["iron_fist", {
+    ad: "Iron Fist", ozet: "güç VI · hız II · zıplama II",
+    /* "iron_fist_spin", "iron_fist_kick_effect"              */
+    efektler: [["strength", 0, 5], ["speed", 0, 1],
+               ["jump_boost", 0, 1]]
+  }],
+  ["luke_cage", {
+    ad: "Luke Cage", ozet: "direnç IV · güç IV · geri tepme yok (aktarılamadı)",
+    efektler: [["resistance", 0, 3], ["strength", 0, 3]]
+  }],
+  ["white_tiger", {
+    ad: "White Tiger",
+    /* Bu kahramanin modda GUC ESYASI YOK -- gucu
+       kostumun kendisi tasiyor. Uydurma bir guc esyasi
+       uretmedik; calisma zamani kostume bakiyor.        */
+    gucKostumden: true, ozet: "hız III · zıplama III · gece görüşü",
+    /* "white_tiger_claws/climb/kick"                         */
+    efektler: [["speed", 0, 2], ["jump_boost", 0, 2],
+               ["night_vision", 0, 0]]
+  }],
+  ["squirrel_girl", {
+    ad: "Squirrel Girl", ozet: "zıplama IV · hız II · düşme hasarı yok",
+    /* "squirrel_girl_claws/climb"                            */
+    efektler: [["jump_boost", 0, 3], ["speed", 0, 1],
+               ["slow_falling", 0, 0]]
+  }],
+  ["rocket_raccoon", {
+    ad: "Rocket Raccoon", ozet: "hız III · zıplama II · acele II",
+    efektler: [["speed", 0, 2], ["jump_boost", 0, 1], ["haste", 0, 1]]
+  }],
+  ["groot", {
+    ad: "Groot", ozet: "direnç IV · can tazeleme II · güç III",
+    efektler: [["resistance", 0, 3], ["regeneration", 0, 1],
+               ["strength", 0, 2]]
+  }],
+  ["mantis", {
+    ad: "Mantis", ozet: "can tazeleme III · doyma · gece görüşü",
+    efektler: [["regeneration", 0, 2], ["saturation", 0, 0],
+               ["night_vision", 0, 0]]
+  }],
+  ["gambit", {
+    ad: "Gambit", ozet: "hız II · zıplama II · patlama direnci yok (aktarılamadı)",
+    /* "gambit_impulse"; kart mermileri ayri esya             */
+    efektler: [["speed", 0, 1], ["jump_boost", 0, 1]]
+  }],
+  ["hawkeye", {
+    ad: "Hawkeye", ozet: "hız II · düşme hasarı yok · gece görüşü",
+    /* "hawkeye_swing", "hawkeye_hook_end";
+       functions/hawkeye/off_swing.mcfunction slow_falling    */
+    efektler: [["speed", 0, 1], ["slow_falling", 0, 0],
+               ["night_vision", 0, 0]]
+  }],
+  ["gwenpool", {
+    ad: "Gwenpool", ozet: "can tazeleme III · hız II · zıplama II",
+    efektler: [["regeneration", 0, 2], ["speed", 0, 1],
+               ["jump_boost", 0, 1]]
+  }],
+  ["loki", {
+    ad: "Loki", ozet: "görünmezlik · hız II · direnç II",
+    efektler: [["invisibility", 0, 0], ["speed", 0, 1],
+               ["resistance", 0, 1]]
+  }],
+  ["thanos", {
+    ad: "Thanos", ozet: "güç VIII · direnç IV · ateş bağışıklığı",
+    /* Sonsuzluk eldiveni AYRI esya (guantelete.js) --
+       aktarilmadi, kaynakta da zirhin parcasi degil.         */
+    efektler: [["strength", 0, 7], ["resistance", 0, 3],
+               ["fire_resistance", 0, 0]]
+  }],
+  ["shang_chi", {
+    ad: "Shang-Chi", ozet: "güç IV · hız III · zıplama II",
+    efektler: [["strength", 0, 3], ["speed", 0, 2],
+               ["jump_boost", 0, 1]]
+  }],
+  ["red_guardian", {
+    ad: "Red Guardian", ozet: "güç IV · direnç III",
+    efektler: [["strength", 0, 3], ["resistance", 0, 2]]
+  }],
+  ["taskmaster", {
+    ad: "Taskmaster",
+    /* Bu kahramanin modda GUC ESYASI YOK -- gucu
+       kostumun kendisi tasiyor. Uydurma bir guc esyasi
+       uretmedik; calisma zamani kostume bakiyor.        */
+    gucKostumden: true, ozet: "hız II · güç III · zıplama II",
+    efektler: [["speed", 0, 1], ["strength", 0, 2],
+               ["jump_boost", 0, 1]]
+  }],
+  ["punisher", {
+    ad: "Punisher",
+    /* Bu kahramanin modda GUC ESYASI YOK -- gucu
+       kostumun kendisi tasiyor. Uydurma bir guc esyasi
+       uretmedik; calisma zamani kostume bakiyor.        */
+    gucKostumden: true, ozet: "direnç II · gece görüşü",
+    efektler: [["resistance", 0, 1], ["night_vision", 0, 0]]
+  }],
+  ["winter_soldier", {
+    ad: "Winter Soldier",
+    /* Bu kahramanin modda GUC ESYASI YOK -- gucu
+       kostumun kendisi tasiyor. Uydurma bir guc esyasi
+       uretmedik; calisma zamani kostume bakiyor.        */
+    gucKostumden: true, ozet: "güç III · direnç II · hız II",
+    efektler: [["strength", 0, 2], ["resistance", 0, 1],
+               ["speed", 0, 1]]
+  }],
+  ["ms_marvel", {
+    ad: "Ms. Marvel",
+    /* Bu kahramanin modda GUC ESYASI YOK -- gucu
+       kostumun kendisi tasiyor. Uydurma bir guc esyasi
+       uretmedik; calisma zamani kostume bakiyor.        */
+    gucKostumden: true, ozet: "zıplama III · direnç II · düşme hasarı yok",
+    efektler: [["jump_boost", 0, 2], ["resistance", 0, 1],
+               ["slow_falling", 0, 0]]
+  }],
+  ["muse", {
+    ad: "Muse",
+    /* Bu kahramanin modda GUC ESYASI YOK -- gucu
+       kostumun kendisi tasiyor. Uydurma bir guc esyasi
+       uretmedik; calisma zamani kostume bakiyor.        */
+    gucKostumden: true, ozet: "hız II · güç III",
+    efektler: [["speed", 0, 1], ["strength", 0, 2]]
+  }],
+  ["jeff_the_land_shark", {
+    ad: "Jeff the Land Shark", ozet: "su altında nefes · su gücü · hız II",
+    efektler: [["water_breathing", 0, 0], ["conduit_power", 0, 0],
+               ["speed", 0, 1]]
+  }],
+  ["reed", {
+    ad: "Mister Fantastic", ozet: "direnç III · düşme hasarı yok",
+    /* Uzama ve kanca aktarilamadi (reed_hook.js kendi mermisi) */
+    efektler: [["resistance", 0, 2], ["slow_falling", 0, 0]]
+  }],
+  ["sue", {
+    ad: "Invisible Woman", ozet: "görünmezlik · direnç III",
+    /* sue_force_physics.js kuvvet alani aktarilamadi          */
+    efektler: [["invisibility", 0, 0], ["resistance", 0, 2]]
+  }],
+  ["mole", {
+    ad: "The Thing", ozet: "direnç IV · güç VI · düşme hasarı yok",
+    efektler: [["resistance", 0, 3], ["strength", 0, 5],
+               ["slow_falling", 0, 0]]
+  }],
+  ["guardians", {
+    ad: "Guardians of the Galaxy",
+    /* Bu kahramanin modda GUC ESYASI YOK -- gucu
+       kostumun kendisi tasiyor. Uydurma bir guc esyasi
+       uretmedik; calisma zamani kostume bakiyor.        */
+    gucKostumden: true, ozet: "su altında nefes · hız II",
+    efektler: [["water_breathing", 0, 0], ["speed", 0, 1]]
+  }]
+]);
+
+/* Kaynakta guc esyasinin adi kostumun kahramaniyla birebir
+   tutmuyor: Kaptan Amerika'nin gucu `super_soldier_powers`,
+   Fantastic Four'un kostumleri ortak ama gucler dort ayri
+   esya (reed/sue/johnny/mole).
+
+   YON ONEMLI: soldaki ad KARSILIGI OLMAYAN, sagdaki GERCEK
+   guc kumesi. Iki tarafi da MARVEL_GUCLER'e koymak ilk
+   denemede yapilmisti ve takma ad OLU KALDI -- testte
+   yakalandi.                                                */
+export const MARVEL_TAKMA_AD = new Map([
+  ["super_soldier", "captain_america"],
+  ["fantastic_4", "reed"]
+]);
+
+/* ---------------- MARVEL ISINLARI ----------------
+
+   Isin motoru (isinlar.js) Max Steel modlarindan beri
+   duruyor; buraya YENI KAPI geldi: isin, o kahramanin GUC
+   esyasi bacaginda takiliyken aciliyor.
+
+   Hasarlar kaynakta tek bir sayida durmuyor (her isin kendi
+   mermi varligini doguruyor ve carpma hasarini o varlik
+   tasiyor). Bu yuzden hasarlar KAYNAKTAN OLCULMEDI, bizim
+   olcegimize gore verildi ve boyle oldugu burada yaziyor.
+   Olcek: Isi isini 400, Titan lazeri 1000 (v4.95).           */
+export const MARVEL_ISIN = new Map([
+  ["marvel_isin_unibeam", {
+    ad: "Unibeam", kahraman: "ironman", hasar: 400, menzil: 24, yakma: 0,
+    parcacik: "minecraft:electric_spark_particle"
+  }],
+  ["marvel_isin_optik", {
+    ad: "Optik Işın", kahraman: "cyclops", hasar: 300, menzil: 28, yakma: 0,
+    parcacik: "minecraft:redstone_wire_dust_particle"
+  }],
+  ["marvel_isin_kaos", {
+    ad: "Kaos Işını", kahraman: "scarlet_witch", hasar: 350, menzil: 22, yakma: 0,
+    parcacik: "minecraft:redstone_wire_dust_particle"
+  }],
+  ["marvel_isin_zihin", {
+    ad: "Zihin Taşı Işını", kahraman: "vision", hasar: 350, menzil: 24, yakma: 0,
+    parcacik: "minecraft:endrod"
+  }],
+  ["marvel_isin_alev", {
+    ad: "Alev Işını", kahraman: "johnny", hasar: 300, menzil: 18, yakma: 5,
+    parcacik: "minecraft:basic_flame_particle"
+  }],
+  ["marvel_isin_galactus", {
+    ad: "Galactus Işını", kahraman: "galactus", hasar: 1000, menzil: 40, yakma: 8,
+    parcacik: "minecraft:endrod"
+  }]
+]);

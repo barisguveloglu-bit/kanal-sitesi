@@ -1,0 +1,118 @@
+{
+ "format_version": "1.12.0",
+ "minecraft:geometry": [
+  {
+   "description": {
+    "identifier": "geometry.mrv_captain_america_first_avenger_helmet",
+    "texture_width": 128,
+    "texture_height": 128,
+    "visible_bounds_width": 4,
+    "visible_bounds_height": 4.5,
+    "visible_bounds_offset": [
+     0,
+     1.75,
+     0
+    ]
+   },
+   "bones": [
+    {
+     "name": "root",
+     "pivot": [
+      0,
+      0,
+      0
+     ]
+    },
+    {
+     "name": "rotation",
+     "parent": "root",
+     "pivot": [
+      0,
+      0,
+      0
+     ]
+    },
+    {
+     "name": "waist",
+     "parent": "rotation",
+     "pivot": [
+      0,
+      12,
+      0
+     ]
+    },
+    {
+     "name": "body",
+     "parent": "waist",
+     "pivot": [
+      0,
+      24,
+      0
+     ]
+    },
+    {
+     "name": "head",
+     "parent": "body",
+     "pivot": [
+      0,
+      24,
+      0
+     ],
+     "cubes": [
+      {
+       "origin": [
+        -4.5,
+        25.5,
+        -4.5
+       ],
+       "size": [
+        9,
+        7,
+        9
+       ],
+       "inflate": -0.25,
+       "uv": [
+        0,
+        0
+       ]
+      },
+      {
+       "origin": [
+        -2.75,
+        28,
+        -5.35
+       ],
+       "size": [
+        5,
+        5,
+        1
+       ],
+       "inflate": -1.05,
+       "uv": [
+        0,
+        54
+       ]
+      },
+      {
+       "origin": [
+        -4.5,
+        23.5,
+        -4.5
+       ],
+       "size": [
+        9,
+        3,
+        9
+       ],
+       "inflate": -0.3,
+       "uv": [
+        0,
+        16
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

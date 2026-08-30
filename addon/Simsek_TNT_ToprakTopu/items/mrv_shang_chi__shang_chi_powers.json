@@ -1,0 +1,33 @@
+{
+  "format_version": "1.21.0",
+  "minecraft:item": {
+    "description": {
+      "identifier": "pa:mrv_shang_chi__shang_chi_powers",
+      "menu_category": {
+        "category": "equipment"
+      }
+    },
+    "components": {
+      "minecraft:icon": {
+        "texture": "mrv_shang_chi__shang_chi_powers"
+      },
+      "minecraft:display_name": {
+        "value": "Protection [Activate: Place in Leg Slot]"
+      },
+      "minecraft:max_stack_size": 1,
+      "minecraft:wearable": {
+        "slot": "slot.armor.legs",
+        "protection": 5
+      },
+      "minecraft:tags": {
+        "tags": [
+          "pa:marvel",
+          "pa:marvel_guc"
+        ]
+      },
+      "minecraft:armor": {
+        "protection": 5
+      }
+    }
+  }
+}

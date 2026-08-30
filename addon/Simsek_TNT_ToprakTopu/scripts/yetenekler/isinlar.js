@@ -1,18 +1,18 @@
 import { system } from "@minecraft/server";
 import { yetenekKaydet } from "./kayit.js";
 import { elindekiCekirdek } from "./zirh.js";
-import { elindekiKahraman } from "./kahraman.js";
+import { guctekiKahraman, gucKumesi } from "./marvel.js";
 import {
   hataYaz, gecerliMi, actionbarYaz, kollariIndir, parcacikAt
 } from "../yardimcilar.js";
 import {
-  ZIRH_ISIN, KAHRAMAN_ISIN, ZIRH_ISIN_KALINLIK, ZIRH_ISIN_TAVAN,
+  ZIRH_ISIN, MARVEL_ISIN, ZIRH_ISIN_KALINLIK, ZIRH_ISIN_TAVAN,
   ZIRH_ISIN_ADIM, ZIRH_ISIN_BEKLEME,
   LAZER_HASAR_SEBEP
 } from "../ayarlar.js";
 
 /* ============================================================
-   ISINLAR -- MAX STEEL MODLARI + FISK KAHRAMANLARI    v4.96
+   ISINLAR -- MAX STEEL MODLARI + MARVEL KAHRAMANLARI  v5.2
 
    Kullanici: "cekirdek diye adlandirdigimiz seyler vaat
    ettikleri seyleri bence vermiyorlar."
@@ -22,19 +22,22 @@ import {
      Isi   . "isin 20 hasar"   -> heat_mode/fire_beam_both
      Titan . 50 hasarlik lazer -> titan_mode/titan_laser
 
-   v4.96'da yedi KAHRAMAN ISINI da buraya katildi (Spectre,
-   Anti-Monitor, Monitor, Vision, Iron Man Mk85, Shazam,
-   Harbinger). Iki kaynak, TEK motor: ikisi de "duz bir cizgi,
-   uzerindekilere vur" isi yapiyor ve ayri iki dosya iki farkli
-   isin davranisi demek olurdu.
+   v4.96'da yedi FiskHeroes isini buraya katilmisti. v5.2'de
+   Fisk TAMAMEN kaldirildi (kullanici: "eski kahramanlari
+   tamamen atiyoruz") ve yerine ALTI MARVEL ISINI geldi:
+   Unibeam, Optik Isin, Kaos Isini, Zihin Tasi Isini, Alev
+   Isini, Galactus Isini.
 
-   Fark yalnizca KAPIDA: mod isini elindeki CEKIRDEGI, kahraman
-   isini elindeki KAHRAMAN esyasini istiyor. Tablodaki "mod" ya
-   da "kahraman" alani hangisi oldugunu soyluyor.
+   Iki kaynak, TEK motor: ikisi de "duz bir cizgi, uzerindekilere
+   vur" isi yapiyor ve ayri iki dosya iki farkli isin davranisi
+   demek olurdu.
+
+   Fark yalnizca KAPIDA: mod isini ELDEKI cekirdegi, Marvel
+   isini BACAKTAKI guc esyasini istiyor. Tablodaki "mod" ya da
+   "kahraman" alani hangisi oldugunu soyluyor.
 
    Sayilar ayarlar.js'te: ZIRH_ISIN (Ionstrike'in
-   palladium:energy_beam'leri) ve KAHRAMAN_ISIN (FiskHeroes'un
-   energy_projection / charged_beam / lightning_cast'leri).
+   palladium:energy_beam'leri) ve MARVEL_ISIN.
 
    ---- NEDEN GOZ LAZERININ KODU KULLANILMADI ----
    Goz lazeri SURELI bir isin: 30 saniye acik kaliyor, duvar
@@ -138,8 +141,8 @@ function isinAt(oyuncu, t) {
   return vuran;
 }
 
-/* Isinin KAPISI: elinde ne olmali. Tabloda "mod" varsa mod
-   cekirdegi, "kahraman" varsa kahraman esyasi.
+/* Isinin KAPISI: uzerinde ne olmali. Tabloda "mod" varsa
+   ELDEKI mod cekirdegi, "kahraman" varsa BACAKTAKI guc esyasi.
 
    Kapi IKI KEZ sinaniyor. Esya baglanmasi (kollar.js) zaten
    "onu tutuyorsan" demek, ama yetenek MENUDEN de secilebiliyor
@@ -151,9 +154,17 @@ function kapiAcik(oyuncu, t) {
     try { c = elindekiCekirdek(oyuncu); } catch (e) { c = undefined; }
     return { acik: c === t.mod, gerek: t.mod + " çekirdeği" };
   }
+  /* v5.2: Marvel isini ELDE degil BACAKTA aranıyor -- kaynakta
+     da guc esyasi bacak yuvasinda. Takma adi (Kaptan
+     Amerika -> super_soldier) gucKumesi cozuyor, burada
+     kahraman adi dogrudan karsilastiriliyor ve takma ad da
+     kabul ediliyor.                                          */
   let k;
-  try { k = elindekiKahraman(oyuncu); } catch (e) { k = undefined; }
-  return { acik: k === t.kahraman, gerek: t.kahraman };
+  try { k = guctekiKahraman(oyuncu); } catch (e) { k = undefined; }
+  const t2 = gucKumesi(k);
+  const uyar = k === t.kahraman ||
+               (t2 !== undefined && t2 === gucKumesi(t.kahraman));
+  return { acik: uyar, gerek: t.kahraman + " gücü" };
 }
 
 /* Jest sirasi HER yetenekte benzersiz olmali (siraDenetimi
@@ -166,7 +177,7 @@ function kapiAcik(oyuncu, t) {
    Var olan yeteneklerin en yukarisi 270; 300 hepsinin
    ustunde ve arada rahat yer var.                          */
 let _sira = 300;
-for (const [kimlik, t] of [...ZIRH_ISIN, ...KAHRAMAN_ISIN]) {
+for (const [kimlik, t] of [...ZIRH_ISIN, ...MARVEL_ISIN]) {
   yetenekKaydet({
     kimlik,
     ad: t.ad,

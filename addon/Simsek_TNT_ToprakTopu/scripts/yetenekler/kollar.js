@@ -1,7 +1,7 @@
 import { esyaBagla } from "./kayit.js";
 import { bilgiYaz, hataYaz, actionbarYaz } from "../yardimcilar.js";
 import {
-  ZIRH_MODLAR, ZIRH_CEKIRDEK_ONEK, KAHRAMANLAR, KAHRAMAN_ONEK
+  ZIRH_MODLAR, ZIRH_CEKIRDEK_ONEK, MARVEL_GUCLER, MARVEL_ONEK
 } from "../ayarlar.js";
 
 /* ============================================================
@@ -151,21 +151,36 @@ for (const [mod, t] of ZIRH_MODLAR) {
   esyaBagla(esya, t.yetenek);
 }
 
-/* ---- FISK KAHRAMANLARI (v4.96) ----
+/* ---- MARVEL KAHRAMANLARI (v5.2) ----
 
-   Cekirdeklerle ayni kalip: kostum bir "kol" degil ama esya ->
-   yetenek eslemesi ayni defter. Yedi kahramanin isini, ucunun
-   isinlanmasi, ucunun ucusu var; The Tick'in HICBIR aktif
-   yetenegi yok cunku KAYNAKTA DA YOK -- ona uydurma bir sey
-   baglanmadi (near_invulnerability + leaping, ikisi de pasif).
+   Cekirdeklerle ayni kalip: guc esyasi bir "kol" degil ama
+   esya -> yetenek eslemesi ayni defter.
 
-   Liste KAHRAMANLAR'dan turuyor: yeni bir kahraman eklenince
+   Baglanan esya GUC esyasi (bacak yuvasi), kostum degil --
+   kaynakta da yetenegi tasiyan o. Guc kumesinin "yetenek"
+   (ucus) ve "isin" alanlari varsa baglaniyor; ikisi de yoksa
+   kahramanin aktif yetenegi YOKTUR ve ona uydurma bir sey
+   BAGLANMIYOR (The Tick'te ogrenilen kural).
+
+   Liste MARVEL_GUCLER'den turuyor: yeni bir kahraman eklenince
    burasi kendiliginden dogru kalir.                         */
-export const KAHRAMAN_YETENEKLERI = [];
-for (const [anahtar, t] of KAHRAMANLAR) {
-  const esya = KAHRAMAN_ONEK + anahtar;
-  for (const y of t.yetenekler || []) {
-    KAHRAMAN_YETENEKLERI.push([esya, y]);
+export const MARVEL_YETENEKLERI = [];
+for (const [anahtar, t] of MARVEL_GUCLER) {
+  /* GUC ESYASI OLMAYAN kahramanlar (Iron Man, Doctor Strange,
+     Falcon...) burada ATLANIYOR: onlara bagli olmayan bir esya
+     kimligi yazsaydik menude "var gorunen, envanterde olmayan"
+     bir esya cikardi. Testte yakalandi -- once tam oyle
+     olmustu.
+
+     Yeteneklerini yine kullanabiliyorlar: isinlarin kapisi
+     (isinlar.js:kapiAcik) guctekiKahraman'a bakiyor ve o,
+     gucKostumden isaretli kahramanlarda AYAKTAKI kostume
+     bakiyor.                                                */
+  if (t.gucKostumden) continue;
+  const esya = MARVEL_ONEK + anahtar + "__" + anahtar + "_powers";
+  for (const y of [t.yetenek, t.isin]) {
+    if (!y) continue;
+    MARVEL_YETENEKLERI.push([esya, y]);
     esyaBagla(esya, y);
   }
 }

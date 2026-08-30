@@ -1,0 +1,312 @@
+{
+ "format_version": "1.12.0",
+ "minecraft:geometry": [
+  {
+   "description": {
+    "identifier": "geometry.mrv_gambit_vest",
+    "texture_width": 128,
+    "texture_height": 128,
+    "visible_bounds_width": 5,
+    "visible_bounds_height": 5.5,
+    "visible_bounds_offset": [
+     0,
+     2.25,
+     0
+    ]
+   },
+   "bones": [
+    {
+     "name": "root",
+     "pivot": [
+      0,
+      0,
+      0
+     ]
+    },
+    {
+     "name": "leftLeg",
+     "parent": "root",
+     "pivot": [
+      2,
+      12,
+      0
+     ],
+     "cubes": [
+      {
+       "origin": [
+        0,
+        4,
+        -2
+       ],
+       "size": [
+        4,
+        8,
+        4
+       ],
+       "inflate": 0.15,
+       "uv": [
+        16,
+        50
+       ]
+      }
+     ]
+    },
+    {
+     "name": "ll",
+     "parent": "leftLeg",
+     "pivot": [
+      2,
+      6,
+      0
+     ]
+    },
+    {
+     "name": "rightLeg",
+     "parent": "root",
+     "pivot": [
+      -2,
+      12,
+      0
+     ],
+     "cubes": [
+      {
+       "origin": [
+        -4,
+        4,
+        -2
+       ],
+       "size": [
+        4,
+        8,
+        4
+       ],
+       "inflate": 0.15,
+       "uv": [
+        0,
+        50
+       ]
+      }
+     ]
+    },
+    {
+     "name": "rl",
+     "parent": "rightLeg",
+     "pivot": [
+      -2,
+      6,
+      0
+     ]
+    },
+    {
+     "name": "waist",
+     "parent": "root",
+     "pivot": [
+      0,
+      12,
+      0
+     ]
+    },
+    {
+     "name": "body",
+     "parent": "waist",
+     "pivot": [
+      0,
+      24,
+      0
+     ],
+     "cubes": [
+      {
+       "origin": [
+        -4.5,
+        11.5,
+        -2.5
+       ],
+       "size": [
+        9,
+        13,
+        5
+       ],
+       "uv": [
+        32,
+        0
+       ]
+      }
+     ]
+    },
+    {
+     "name": "leftArm",
+     "parent": "body",
+     "pivot": [
+      5,
+      22,
+      0
+     ],
+     "cubes": [
+      {
+       "origin": [
+        4,
+        18,
+        -2
+       ],
+       "size": [
+        4,
+        6,
+        4
+       ],
+       "inflate": 0.275,
+       "uv": [
+        60,
+        28
+       ]
+      }
+     ]
+    },
+    {
+     "name": "la",
+     "parent": "leftArm",
+     "pivot": [
+      6,
+      18,
+      0
+     ],
+     "cubes": [
+      {
+       "origin": [
+        4,
+        14,
+        -2
+       ],
+       "size": [
+        4,
+        4,
+        4
+       ],
+       "inflate": 0.25,
+       "uv": [
+        0,
+        62
+       ]
+      },
+      {
+       "origin": [
+        3.5,
+        13,
+        -2.5
+       ],
+       "size": [
+        5,
+        2,
+        5
+       ],
+       "inflate": -0.1,
+       "uv": [
+        52,
+        50
+       ]
+      }
+     ]
+    },
+    {
+     "name": "leftItem",
+     "parent": "la",
+     "pivot": [
+      6,
+      15,
+      1
+     ]
+    },
+    {
+     "name": "rightArm",
+     "parent": "body",
+     "pivot": [
+      -5,
+      22,
+      0
+     ],
+     "cubes": [
+      {
+       "origin": [
+        -8,
+        18,
+        -2
+       ],
+       "size": [
+        4,
+        6,
+        4
+       ],
+       "inflate": 0.275,
+       "uv": [
+        60,
+        0
+       ]
+      }
+     ]
+    },
+    {
+     "name": "ra",
+     "parent": "rightArm",
+     "pivot": [
+      -6,
+      18,
+      0
+     ],
+     "cubes": [
+      {
+       "origin": [
+        -8,
+        14,
+        -2
+       ],
+       "size": [
+        4,
+        4,
+        4
+       ],
+       "inflate": 0.25,
+       "uv": [
+        60,
+        10
+       ]
+      },
+      {
+       "origin": [
+        -8.5,
+        13,
+        -2.5
+       ],
+       "size": [
+        5,
+        2,
+        5
+       ],
+       "inflate": -0.1,
+       "uv": [
+        32,
+        50
+       ]
+      }
+     ]
+    },
+    {
+     "name": "rightSleeve2",
+     "parent": "ra",
+     "pivot": [
+      -7,
+      18,
+      0
+     ]
+    },
+    {
+     "name": "head",
+     "parent": "body",
+     "pivot": [
+      0,
+      24,
+      0
+     ]
+    }
+   ]
+  }
+ ]
+}

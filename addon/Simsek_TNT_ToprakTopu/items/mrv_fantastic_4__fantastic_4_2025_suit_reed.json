@@ -1,0 +1,33 @@
+{
+  "format_version": "1.21.0",
+  "minecraft:item": {
+    "description": {
+      "identifier": "pa:mrv_fantastic_4__fantastic_4_2025_suit_reed",
+      "menu_category": {
+        "category": "equipment"
+      }
+    },
+    "components": {
+      "minecraft:icon": {
+        "texture": "mrv_fantastic_4__fantastic_4_2025_suit_reed"
+      },
+      "minecraft:display_name": {
+        "value": "Fantastic 4: First Steps Suit (Reed)"
+      },
+      "minecraft:max_stack_size": 1,
+      "minecraft:wearable": {
+        "slot": "slot.armor.feet",
+        "protection": 16
+      },
+      "minecraft:tags": {
+        "tags": [
+          "pa:marvel",
+          "pa:marvel_kostum"
+        ]
+      },
+      "minecraft:armor": {
+        "protection": 16
+      }
+    }
+  }
+}
