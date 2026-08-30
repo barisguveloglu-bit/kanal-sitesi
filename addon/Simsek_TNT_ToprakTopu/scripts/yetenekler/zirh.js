@@ -86,7 +86,8 @@ export function elindekiCekirdek(oyuncu) {
     /* eldekiEsya ESYAYI degil KIMLIGINI donduruyor. Once
        `.typeId` aliniyordu; o hep undefined'di ve bu yol
        hicbir sey katmiyordu -- asagidaki equippable yolu
-       maskeliyordu. v5.0'da wom_dovus testinde yakalandi. */
+       maskeliyordu. v5.0'da yakalandi (o test WoM ile
+       birlikte kaldirildi, ders duruyor). */
     const kimlik = eldekiEsya(oyuncu);
     if (kimlik) adaylar.push(kimlik);
   } catch (e) { /* eli bos */ }

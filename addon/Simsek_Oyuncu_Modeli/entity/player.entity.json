@@ -185,7 +185,7 @@
             "ripjaws_hizli": "variable.ben_cene_ailesi && query.is_in_water && query.is_sprinting"
           },
           {
-            "zirh_mod_guc_matkap": "variable.zirh_mod_guc"
+            "zirh_mod_guc_matkap": "variable.zirh_mod_guc && q.property('pa:matkap')"
           }
         ],
         "should_update_effects_offscreen": "1.0"
@@ -347,7 +347,7 @@
           "controller.render.zirh_mod_titan": "variable.zirh_mod_titan && !variable.is_first_person && !variable.map_face_icon"
         },
         {
-          "controller.render.zirh_mod_guc_matkap": "variable.zirh_mod_guc && !variable.is_first_person && !variable.map_face_icon"
+          "controller.render.zirh_mod_guc_matkap": "variable.zirh_mod_guc && !variable.is_first_person && !variable.map_face_icon && q.property('pa:matkap')"
         },
         {
           "controller.render.zirh_mod_titan_hale": "variable.zirh_mod_titan && !variable.is_first_person && !variable.map_face_icon"

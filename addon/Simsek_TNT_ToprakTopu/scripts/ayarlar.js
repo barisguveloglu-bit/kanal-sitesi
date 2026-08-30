@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v5.7";
+export const SURUM = "v5.8";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -3290,7 +3290,9 @@ export const ZIRH_MODLAR = new Map([
   }],
   ["guc", {
     ad: "Güç", kaynak: "strength_mode",
-    ozet: "güç X (+30 hasar) · direnç IV · acele II · düşme hasarı yok",
+    /* v5.8: matkap artik otomatik degil, buradan aciliyor. */
+    yetenekler: ["zirh_matkap"],
+    ozet: "güç X (+30 hasar) · direnç IV · acele II · MATKAP (menüden aç) · düşme hasarı yok",
     /* kaynak: attack_damage 15 · armor 30+20 · toughness 15 ·
        destroy_speed 2 · fall_resistance 100.
        +15 hasar = Guc V (seviye basina +3), BIREBIR.          */
@@ -3374,206 +3376,41 @@ export const ZIRH_MODLAR = new Map([
 ]);
 
 
-/* ================================================================
-   WEAPONS OF MIRACLES                                      v5.0
+/* ---- WEAPONS OF MIRACLES KALDIRILDI  (v5.8) ----
 
-   Kaynak: WeaponsOfMiracles 2.0.176 (Reascer), Epic Fight
-   uzerine kurulu NeoForge modu.
+   Kullanici: "animasyon tarafinda gene bozulmalar var. En
+   iyisi onun ekledigi silahlar ve animasyonlari tum
+   dosyalardan hangi dosyalarda varsa silelim tamamiyla...
+   belli ki basaramiyoruz."
 
-   ---- SAYILAR JSON'DA DEGIL, BYTECODE'DA ----
-   Bu mod oncekilerden farkli: hasar/dayaniklilik sayilari
-   derlenmis Java'nin icinde. Ama okunabilir -- `javap` ile
-   ayristirildi:
+   v5.5'te olculebilen her sey duzelmisti (180'i asan kare
+   sicramasi 147 -> 0, ara deger hatasi 350 -> 7 derece) ama
+   OYUNDA hala bozuktu. Yani elimdeki olcutler yetmiyordu:
+   duzelttigim seyler gercekten bozuktu, ama gorunen bozukluk
+   baska bir yerden geliyordu ve onu bulamadim.
 
-     WOMItems.class static{} : "agony" -> lambda$static$N
-     BootstrapMethods        : lambda'yi cozuyor
-     lambda govdesi          : Rarity.RARE, durability(2135)
-     AgonySpearItem.class    : ldc 5.0f (hasar), -2.0f (hiz)
+   KALDIRILANLAR: WOM_ACIK, WOM_ONEK, WOM_SILAHLAR (27 silah),
+   WOM_DOVUS_ACIK, WOM_ANIM_ONEK, WOM_SERI_UNUTMA, WOM_SERI
+   (63 animasyon) ve bunlara bagli her sey --
+   yetenekler/wom_dovus.js, kaynak_anim/ef_cevir.py,
+   kaynak_anim/wom_dovus.animation.json, 27 esya, 27 ikon,
+   REFERANS_WOM.md, test/wom.mjs, test/wom_dovus.mjs.
 
-   Hicbir sayi tahmin edilmedi. Test jar diskteyken YENIDEN
-   cikarip bu tabloyla karsilastiriyor.
+   ---- ENVANTERDEKI SILAHLAR ----
+   pa:wom_* artik kayitli degil; var olan dunyalarda o yiginlar
+   kaybolur. Silahlar yalnizca yaratici modundan alinabiliyordu,
+   yani kimsenin emegi gitmiyor -- v4.95'te zirh parcalari
+   kaldirilirken de ayni durum vardi.
 
-   ---- JAVA -> BEDROCK HASARI ----
-   Java'da esyanin sayisi bir DEGISTIRICI (taban yumruk 1
-   ustune biner); Bedrock'ta minecraft:damage TOPLAM. O yuzden
-   uretecte +1 ekleniyor (elmas kilicta olculdu: Java +6,
-   Bedrock 7).
+   ---- NE OGRENILDI, NEREDE DURUYOR ----
+   Cevirinin butun dersleri NOTLAR.md v5.5 bolumunde duruyor
+   (euler dal atlamasi, Root'un dusurulmesi, iskelet
+   hiyerarsisi, katman cakismasi). Kod gitti, olcum kalmadi;
+   bilgi kaldi. Ayni isi bir gun tekrar denersek oradan
+   baslanir.
 
-   ---- AKTARILAMAYAN: SALDIRI HIZI ----
-   Java'da her silahin bir attack_speed degistiricisi var
-   (-0.25'ten -2.9'a; buyuk silahlar yavas). Bedrock'ta esya
-   basina saldiri hizi bileseni YOK. Sayilar burada DURUYOR
-   (kaynak belgesi ve bir gun karsiligi cikarsa hazir olsun)
-   ama oyunda karsiligi yok -- ozet metinleri vaat etmiyor.
-
-   3B modeller de aktarilamadi: .obj/.mtl ucgen agi, Bedrock
-   kutu tabanli .geo.json istiyor. Ikonlar modun kendi
-   pikselleri.
-   ================================================================ */
-export const WOM_ACIK = true;
-export const WOM_ONEK = "pa:wom_";
-
-/* anahtar -> {ad, en, hasar (Bedrock), javaHasar, javaHiz,
-                dayaniklilik, nadirlik}
-   "hasar" oyunda gecerli olan sayi; "javaHasar" kaynaktaki
-   degistirici. Ikisi de duruyor cunku test ikisinin
-   iliskisini (bedrock = java + 1) sinliyor.                 */
-export const WOM_SILAHLAR = new Map([
-  ["agony", { ad: "Izdırap", en: "Agony",
-    hasar: 6, javaHasar: 5.0, javaHiz: -2.0,
-    dayaniklilik: 2135, nadirlik: "RARE" }],
-  ["antitheus", { ad: "Antitheus", en: "Antitheus",
-    hasar: 8, javaHasar: 7.0, javaHiz: -2.1,
-    dayaniklilik: 6666, nadirlik: "EPIC" }],
-  ["blackstar", { ad: "Kara Yıldız", en: "Blackstar",
-    hasar: 9, javaHasar: 8.0, javaHiz: -2.7,
-    dayaniklilik: 2135, nadirlik: "RARE" }],
-  ["ender_blaster", { ad: "Ender Tabancası", en: "Ender Blaster",
-    hasar: 7, javaHasar: 6.0, javaHiz: -0.55,
-    dayaniklilik: 4735, nadirlik: "EPIC" }],
-  ["evil_tachi", { ad: "Kötü Ôdachi", en: "Evil Ôdachi",
-    hasar: 8, javaHasar: 7.0, javaHiz: -2.8,
-    dayaniklilik: 1635, nadirlik: "RARE" }],
-  ["gesetz", { ad: "Gesetz", en: "Gesetz",
-    hasar: 4, javaHasar: 3.0, javaHiz: -2.5,
-    dayaniklilik: 4157, nadirlik: "RARE" }],
-  ["herrscher", { ad: "Herrscher", en: "Herrscher",
-    hasar: 6, javaHasar: 5.0, javaHiz: -2.25,
-    dayaniklilik: 1582, nadirlik: "RARE" }],
-  ["hollow_longsword", { ad: "Kof Uzun Kılıç", en: "Hollow Longsword",
-    hasar: 7, javaHasar: 6.0, javaHiz: -2.6,
-    dayaniklilik: 875, nadirlik: "RARE" }],
-  ["jabberwocky", { ad: "Pençeli Eldiven", en: "Clawed Gauntlet",
-    hasar: 6, javaHasar: 5.0, javaHiz: -0.25,
-    dayaniklilik: 782, nadirlik: "RARE" }],
-  ["moonless", { ad: "Aysız", en: "Moonless",
-    hasar: 7, javaHasar: 6.0, javaHiz: -2.3,
-    dayaniklilik: 2135, nadirlik: "EPIC" }],
-  ["napoleon", { ad: "Napoleon", en: "Napoleon",
-    hasar: 7, javaHasar: 6.0, javaHiz: -2.5,
-    dayaniklilik: 2135, nadirlik: "EPIC" }],
-  ["nova", { ad: "Nova", en: "Nova",
-    hasar: 5, javaHasar: 4.0, javaHiz: -2.4,
-    dayaniklilik: 2135, nadirlik: "RARE" }],
-  ["orbit", { ad: "Yörünge", en: "Orbit",
-    hasar: 8, javaHasar: 7.0, javaHiz: -2.3,
-    dayaniklilik: 2135, nadirlik: "RARE" }],
-  ["ruine", { ad: "Ruine", en: "Ruine",
-    hasar: 7, javaHasar: 6.2, javaHiz: -2.45,
-    dayaniklilik: 2135, nadirlik: "RARE" }],
-  ["satsujin", { ad: "Satsujin", en: "Satsujin",
-    hasar: 7, javaHasar: 6.0, javaHiz: -1.8,
-    dayaniklilik: 2135, nadirlik: "EPIC" }],
-  ["solar", { ad: "Güneş", en: "Solar",
-    hasar: 9, javaHasar: 8.0, javaHiz: -2.9,
-    dayaniklilik: 2135, nadirlik: "EPIC" }],
-  ["tormented_mind", { ad: "Azap", en: "Torment",
-    hasar: 9, javaHasar: 8.0, javaHiz: -2.7,
-    dayaniklilik: 2135, nadirlik: "RARE" }],
-  ["wooden_staff", { ad: "Tahta Asa", en: "Wooden Staff",
-    hasar: 2, javaHasar: 1.0, javaHiz: -2.5,
-    dayaniklilik: 59, nadirlik: "COMMON" }],
-  ["stone_staff", { ad: "Taş Asa", en: "Stone Staff",
-    hasar: 3, javaHasar: 2.0, javaHiz: -2.5,
-    dayaniklilik: 131, nadirlik: "COMMON" }],
-  ["iron_staff", { ad: "Demir Asa", en: "Iron Staff",
-    hasar: 4, javaHasar: 3.0, javaHiz: -2.5,
-    dayaniklilik: 250, nadirlik: "COMMON" }],
-  ["golden_staff", { ad: "Altın Asa", en: "Golden Staff",
-    hasar: 2, javaHasar: 1.0, javaHiz: -2.5,
-    dayaniklilik: 32, nadirlik: "COMMON" }],
-  ["diamond_staff", { ad: "Elmas Asa", en: "Diamond Staff",
-    hasar: 5, javaHasar: 4.0, javaHiz: -2.5,
-    dayaniklilik: 1561, nadirlik: "COMMON" }],
-  ["netherite_staff", { ad: "Netherite Asa", en: "Netherite Staff",
-    hasar: 6, javaHasar: 5.0, javaHiz: -2.5,
-    dayaniklilik: 2031, nadirlik: "COMMON" }],
-  ["iron_greataxe", { ad: "Demir Balyoz Balta", en: "Iron Greataxe",
-    hasar: 10, javaHasar: 9.0, javaHiz: -2.5,
-    dayaniklilik: 250, nadirlik: "COMMON" }],
-  ["golden_greataxe", { ad: "Altın Balyoz Balta", en: "Golden Greataxe",
-    hasar: 8, javaHasar: 7.0, javaHiz: -2.5,
-    dayaniklilik: 32, nadirlik: "COMMON" }],
-  ["diamond_greataxe", { ad: "Elmas Balyoz Balta", en: "Diamond Greataxe",
-    hasar: 11, javaHasar: 10.0, javaHiz: -2.5,
-    dayaniklilik: 1561, nadirlik: "COMMON" }],
-  ["netherite_greataxe", { ad: "Netherite Balyoz", en: "Netherite Greataxe",
-    hasar: 12, javaHasar: 11.0, javaHiz: -2.5,
-    dayaniklilik: 2031, nadirlik: "COMMON" }],
-]);
-
-/* ================================================================
-   DOVUS ANIMASYONLARI  (Epic Fight / WoM)                  v5.0
-
-   Kullanici (once): "bir tane dovus modu buldum, ek
-   animasyonlar ekliyor, bunu da kullanabiliriz sanirim."
-
-   ---- CEVRILDILER, KOPYALANMADILAR ----
-   Epic Fight animasyonlari Bedrock bicimi degil: eklem basina
-   4x4 DONUSUM MATRISI, kendi iskeletinde. Bedrock ise kemik
-   basina euler DERECE istiyor, vanilla oyuncu kemiklerinde.
-
-   Cevirici kaynak_anim/ef_cevir.py; nasil calistigi orada ve
-   kol_uret.py:WOM_SERI basliginda uzun uzun yazili. Ozeti:
-   baglama pozundan delta, kol zincirini carpma, matris ->
-   euler, Bedrock'un ters isaret kurali.
-
-   ---- SILAH -> VURUS SERISI UYDURMA DEGIL ----
-   WoM'un kendi animasyonlari ZATEN silah adiyla:
-   solar_auto_1..4, katana_auto_1..3, torment_auto_1..4.
-   Eslesme modun kendi adlandirmasindan.
-
-   WoM'da kendi serisi olmayan uc silah ailesi (balyoz
-   baltalar, pencelieldiven, kof uzun kilic) Epic Fight'in TUR
-   serisine baglandi: axe_auto, fist_auto, longsword_auto.
-
-   ---- AKTARILAMAYAN ----
-   DIRSEK BUKULMESI. Epic Fight'in kolu dort kemikli bir
-   zincir (Shoulder->Arm->Elbow->Hand), Bedrock'un oyuncu
-   kolu TEK kemik. Zincir carpiliyor, yani kolun GENEL YONU
-   dogru ama dirsek bukulmesi yok.
-
-   OYUNCU KILIDI. Epic Fight saldiri boyunca oyuncuyu
-   kilitliyor (hareket edemiyorsun). Bedrock'ta script'ten
-   oyuncu girdisini kilitlemek yok; animasyon normal hareketin
-   USTUNE oynuyor.
-   ================================================================ */
-export const WOM_DOVUS_ACIK = true;
-export const WOM_ANIM_ONEK = "animation.wom.";
-/* Seri kac tick sonra basa doner. Epic Fight'ta combo
-   penceresi var; bu onun karsiligi. 60 tick = 3 saniye.    */
-export const WOM_SERI_UNUTMA = 60;
-
-/* silah -> vurus serisi (sirayla oynar, sonra basa doner) */
-export const WOM_SERI = new Map([
-  ["agony", ["agony_auto_1", "agony_auto_2", "agony_auto_3", "agony_auto_4"]],
-  ["antitheus", ["antitheus_auto_1", "antitheus_auto_2", "antitheus_auto_3", "antitheus_auto_4"]],
-  ["blackstar", ["blackstar_basic_attack_1", "blackstar_basic_attack_2", "blackstar_basic_attack_3", "blackstar_basic_attack_4"]],
-  ["diamond_greataxe", ["axe_auto1", "axe_auto2"]],
-  ["diamond_staff", ["staff_auto_1", "staff_auto_2", "staff_auto_3"]],
-  ["ender_blaster", ["enderblaster_onehand_auto_1", "enderblaster_onehand_auto_2", "enderblaster_onehand_auto_3", "enderblaster_onehand_auto_4"]],
-  ["evil_tachi", ["katana_auto_1", "katana_auto_2", "katana_auto_3"]],
-  ["gesetz", ["gezets_auto_1", "gezets_auto_2", "gezets_auto_3"]],
-  ["golden_greataxe", ["axe_auto1", "axe_auto2"]],
-  ["golden_staff", ["staff_auto_1", "staff_auto_2", "staff_auto_3"]],
-  ["herrscher", ["herrscher_auto_1", "herrscher_auto_2", "herrscher_auto_3"]],
-  ["hollow_longsword", ["longsword_auto1", "longsword_auto2", "longsword_auto3"]],
-  ["iron_greataxe", ["axe_auto1", "axe_auto2"]],
-  ["iron_staff", ["staff_auto_1", "staff_auto_2", "staff_auto_3"]],
-  ["jabberwocky", ["fist_auto1", "fist_auto2", "fist_auto3"]],
-  ["moonless", ["moonless_auto_1", "moonless_auto_2", "moonless_auto_3"]],
-  ["napoleon", ["napoleon_auto_1", "napoleon_auto_2", "napoleon_auto_3", "napoleon_auto_4"]],
-  ["netherite_greataxe", ["axe_auto1", "axe_auto2"]],
-  ["netherite_staff", ["staff_auto_1", "staff_auto_2", "staff_auto_3"]],
-  ["nova", ["nova_attack_1", "nova_attack_2", "nova_attack_3", "nova_attack_4"]],
-  ["orbit", ["orbit_attack_1", "orbit_attack_2", "orbit_attack_3", "orbit_attack_4"]],
-  ["ruine", ["ruine_auto_1", "ruine_auto_2", "ruine_auto_3", "ruine_auto_4"]],
-  ["satsujin", ["katana_auto_1", "katana_auto_2", "katana_auto_3"]],
-  ["solar", ["solar_auto_1", "solar_auto_2", "solar_auto_3", "solar_auto_4"]],
-  ["stone_staff", ["staff_auto_1", "staff_auto_2", "staff_auto_3"]],
-  ["tormented_mind", ["torment_auto_1", "torment_auto_2", "torment_auto_3", "torment_auto_4"]],
-  ["wooden_staff", ["staff_auto_1", "staff_auto_2", "staff_auto_3"]],
-]);
+   Animasyon TARAYICISI (test/anim_tara.py) duruyor ve kalan
+   animasyonlari taramaya devam ediyor -- o WoM'a ozel degildi.  */
 
 /* ================================================================
    CAN SAYACI  (Health Overlay)                            v4.99
@@ -3889,6 +3726,33 @@ export const ZIRH_ISIN_BEKLEME = 20;   // tick
    okuyamiyor. Guc de ayni kosula bagli, yoksa "takim gibi
    gorunuyorum ama gucum yok" olurdu (Ben 10'daki karar).      */
 export const ZIRH_CEKIRDEK_ONEK = "pa:zirh_mod_";
+
+/* ---- ACILABILIR KATMANLAR  (v5.8) ----
+
+   Kullanici: "Max steel modunda guc modunu actigin zaman
+   direkt elimde matkap oluyor; normalde matkap icin
+   yetenekler kismi var ya, agac seklinde, tek tek
+   acabiliyorsun. Ben oyle biliyorum."
+
+   HAKLIYDI. Kaynakta olculdu -- strength_mode.json:
+       "gui_display_type": "tree"
+       drill_hands: palladium:tool_hands,
+                    list_index 1, hidden_in_bar FALSE
+   Yani matkap modun YETENEK BARINDA 1 numarali slot; oyuncu
+   acip kapatiyor. (drilling 0, exo_render 2, armour 8 --
+   hepsi ayni bar.) Biz "cekirdek eldeyse hep cizili"
+   yapmisiz, o yuzden elde beliriveriyordu.
+
+   Artik bir VARLIK OZELLIGI: script aciyor, kaynak paket
+   q.property ile okuyup ciziyor. Varsayilan KAPALI.
+
+   Neden dinamik ozellik degil de varlik ozelligi: kaynak
+   paketin (gorunusun) okuyabildigi tek kanal bu. Marvel
+   Project de ayni yolu kullaniyor (27 ozellik, ayni bicim).  */
+export const ZIRH_KATMAN_ACIK = true;
+export const ZIRH_MATKAP_OZELLIK = "pa:matkap";
+export const ZIRH_MATKAP_MOD = "guc";
+export const ZIRH_MATKAP_SIRA = 400;
 
 /* Donusum caktisi. Referansta `transform_flash` bir
    palladium:lightning_sparks katmani: 20 kivilcim, kalinlik 4,

@@ -2622,11 +2622,38 @@ ZIRH_MOD = [("zirh_mod_" + _m, "Çekirdek · " + _ad,
 #   transform_flash . donusum caktisi; bizde ZIRH_CAKMA
 #                     parcacigi olarak zaten var (v4.94).
 #
-# (mod anahtari, ek katman anahtari, geo dosyasi, animasyon)
+# ---- MATKAP NEDEN ARTIK ACILARAK GELIYOR  (v5.8) ----
+# Kullanici: "Max steel modunda guc modunu actigin zaman direkt
+# elimde matkap oluyor; normalde matkap icin yetenekler kismi
+# var ya, agac seklinde, tek tek acabiliyorsun."
+#
+# HAKLIYDI, ve kaynakta olculdu. strength_mode.json:
+#     "gui_display_type": "tree"
+#     drill_hands  -> tur palladium:tool_hands
+#                     list_index 1, hidden_in_bar FALSE
+# Yani matkap modun YETENEK BARINDA 1 numarali slot: oyuncu
+# acip kapatiyor. Digerleri de oyle -- drilling 0, exo_render 2,
+# armour 8. Biz "cekirdek eldeyse hep cizili" yapmisiz.
+#
+# Duzeltme: ek katmanin dorduncu alani bir VARLIK OZELLIGI.
+# Doluysa katman yalniz o ozellik acikken ciziliyor; bosaysa
+# eskisi gibi (Titan halesi oyle -- kaynakta onun bar slotu
+# yok, takimin ayrilmaz parcasi).
+#
+# (mod anahtari, ek katman anahtari, geo dosyasi, animasyon, ozellik)
 ZIRH_EK = [
-    ("guc",   "zirh_mod_guc_matkap",  "zirh_mod_guc_matkap",  "drill_spin"),
-    ("titan", "zirh_mod_titan_hale",  "zirh_mod_titan_hale",  None),
+    ("guc",   "zirh_mod_guc_matkap",  "zirh_mod_guc_matkap",  "drill_spin",
+     "pa:matkap"),
+    ("titan", "zirh_mod_titan_hale",  "zirh_mod_titan_hale",  None, None),
 ]
+
+# Ek katman ozellikleri -> BP oyuncu varligindaki tanim.
+# Bicim Marvel Project'in kendi player.json'undan alindi
+# (27 ozellik, hepsi ayni sekilde) -- calistigi BILINIYOR.
+ZIRH_EK_OZELLIKLER = {
+    ozellik: {"type": "bool", "default": False, "client_sync": True}
+    for _m, _k, _g, _a, ozellik in ZIRH_EK if ozellik
+}
 
 # Ek katmanlarin animasyonlari: dosya adi -> Bedrock kimligi.
 #
@@ -3052,205 +3079,17 @@ def teknoloji_attachable(takim, parca, doku):
     }
 
 
-# ================================================================
-#  WEAPONS OF MIRACLES  (Epic Fight eklentisi)             v5.0
-# ================================================================
-# Kaynak: WeaponsOfMiracles 2.0.176 (Reascer), Epic Fight uzerine
-# kurulu bir NeoForge modu.
+# ---- WEAPONS OF MIRACLES KALDIRILDI  (v5.8) ----
+# Kullanici: "animasyon tarafinda gene bozulmalar var. En iyisi
+# onun ekledigi silahlar ve animasyonlari tum dosyalardan hangi
+# dosyalarda varsa silelim tamamiyla."
 #
-# ---- SAYILAR NEREDEN ----
-# Bu modun sayilari JSON'da DEGIL, derlenmis Java icinde. Ama
-# okunabilir: `javap` ile bytecode ayristirildi.
+# Kaldirilanlar: WOM tablosu (27 silah), wom_esyasi(), WOM_RENK,
+# WOM_ANIM_DOSYA/ONEK, WOM_SERI (63 animasyon) ve uretim
+# dongusu. Gerekcesi ayarlar.js'te uzun uzun yazili.
 #
-#   reascer/wom/world/item/WOMItems.class
-#     static{} blogu:  "agony" -> InvokeDynamic -> lambda$static$N
-#     BootstrapMethods tablosu o lambda'yi cozuyor
-#     lambda govdesi:  Rarity.RARE, durability(2135),
-#                      AgonySpearItem.createWeaponAttributes()
-#   reascer/wom/world/item/AgonySpearItem.class
-#     createWeaponAttributes():  ldc 5.0f (hasar), ldc -2.0f (hiz)
-#
-# Yani hicbir sayi tahmin edilmedi; hepsi jar'dan cikarildi ve
-# test jar diskteyken YENIDEN cikarip karsilastiriyor.
-#
-# Balta ve asalar kademe formuluyle:
-#   Greataxe: hasar = 7.0 + kademe bonusu
-#   Staff:    hasar = 1.0 + kademe bonusu
-#   (vanilla bonus: tahta 0, tas 1, demir 2, elmas 3, altin 0,
-#    netherite 4 -- GreataxeItem/StaffItem.class icinde okundu)
-#
-# ---- JAVA HASARI -> BEDROCK HASARI ----
-# Java'da esyanin sayisi bir DEGISTIRICI: oyuncunun taban
-# yumruk hasari 1 ve esya onun ustune biniyor. Bedrock'ta
-# minecraft:damage TOPLAM hasar. O yuzden
-#     bedrock = java + 1
-# (elmas kilic: Java +6, Bedrock 7 -- olculdu, birebir uyuyor.)
-#
-# ---- AKTARILAMAYAN ----
-# SALDIRI HIZI. Java'da her silahin bir attack_speed
-# degistiricisi var (-2.0'dan -2.9'a). Bedrock'ta esya basina
-# saldiri hizi bileseni YOK; oyunun kendi vurus temposu
-# sabit. Sayilar tabloda DURUYOR (kaynak belgesi olsun ve bir
-# gun karsiligi cikarsa hazir olsun) ama oyunda karsiligi yok.
-# Ozet metinleri saldiri hizi VAAT ETMIYOR.
-#
-# 3B modeller de aktarilamiyor: .obj/.mtl ucgen agi, Bedrock
-# ise kutu tabanli .geo.json istiyor. Ikonlar (32x32) modun
-# kendi pikselleri, oldugu gibi.
-#
-# (anahtar, TR ad, EN ad, java hasar, java hiz, dayaniklilik, nadirlik)
-WOM_ONEK = "wom_"
-WOM = [
-    ("agony",              "Izdırap",            "Agony",              5.0, -2.0,  2135, "RARE"),
-    ("antitheus",          "Antitheus",          "Antitheus",          7.0, -2.1,  6666, "EPIC"),
-    ("blackstar",          "Kara Yıldız",        "Blackstar",          8.0, -2.7,  2135, "RARE"),
-    ("ender_blaster",      "Ender Tabancası",    "Ender Blaster",      6.0, -0.55, 4735, "EPIC"),
-    ("evil_tachi",         "Kötü Ôdachi",        "Evil Ôdachi",        7.0, -2.8,  1635, "RARE"),
-    ("gesetz",             "Gesetz",             "Gesetz",             3.0, -2.5,  4157, "RARE"),
-    ("herrscher",          "Herrscher",          "Herrscher",          5.0, -2.25, 1582, "RARE"),
-    ("hollow_longsword",   "Kof Uzun Kılıç",     "Hollow Longsword",   6.0, -2.6,   875, "RARE"),
-    ("jabberwocky",        "Pençeli Eldiven",    "Clawed Gauntlet",    5.0, -0.25,  782, "RARE"),
-    ("moonless",           "Aysız",              "Moonless",           6.0, -2.3,  2135, "EPIC"),
-    ("napoleon",           "Napoleon",           "Napoleon",           6.0, -2.5,  2135, "EPIC"),
-    ("nova",               "Nova",               "Nova",               4.0, -2.4,  2135, "RARE"),
-    ("orbit",              "Yörünge",            "Orbit",              7.0, -2.3,  2135, "RARE"),
-    ("ruine",              "Ruine",              "Ruine",              6.2, -2.45, 2135, "RARE"),
-    ("satsujin",           "Satsujin",           "Satsujin",           6.0, -1.8,  2135, "EPIC"),
-    ("solar",              "Güneş",              "Solar",              8.0, -2.9,  2135, "EPIC"),
-    ("tormented_mind",     "Azap",               "Torment",            8.0, -2.7,  2135, "RARE"),
-    # ---- kademe silahlari (formul yukarida) ----
-    ("wooden_staff",       "Tahta Asa",          "Wooden Staff",       1.0, -2.5,    59, "COMMON"),
-    ("stone_staff",        "Taş Asa",            "Stone Staff",        2.0, -2.5,   131, "COMMON"),
-    ("iron_staff",         "Demir Asa",          "Iron Staff",         3.0, -2.5,   250, "COMMON"),
-    ("golden_staff",       "Altın Asa",          "Golden Staff",       1.0, -2.5,    32, "COMMON"),
-    ("diamond_staff",      "Elmas Asa",          "Diamond Staff",      4.0, -2.5,  1561, "COMMON"),
-    ("netherite_staff",    "Netherite Asa",      "Netherite Staff",    5.0, -2.5,  2031, "COMMON"),
-    ("iron_greataxe",      "Demir Balyoz Balta", "Iron Greataxe",      9.0, -2.5,   250, "COMMON"),
-    ("golden_greataxe",    "Altın Balyoz Balta", "Golden Greataxe",    7.0, -2.5,    32, "COMMON"),
-    ("diamond_greataxe",   "Elmas Balyoz Balta", "Diamond Greataxe",  10.0, -2.5,  1561, "COMMON"),
-    ("netherite_greataxe", "Netherite Balyoz",   "Netherite Greataxe",11.0, -2.5,  2031, "COMMON"),
-]
-
-# Nadirlik -> Bedrock'ta gorunen ad rengi. Bedrock'ta esya
-# nadirligi diye bir bilesen yok; ADIN RENGIYLE anlatiyoruz.
-WOM_RENK = {"COMMON": "§f", "UNCOMMON": "§a", "RARE": "§b", "EPIC": "§d"}
-
-
-def wom_esyasi(anahtar, tr_ad, java_hasar, dayaniklilik, nadirlik):
-    """WoM silahi.
-
-    ---- HASAR ----
-    Java'da esyanin sayisi bir DEGISTIRICI (taban yumruk 1
-    ustune biner); Bedrock'ta minecraft:damage TOPLAM hasar.
-    O yuzden +1. Elmas kilicta olculdu: Java +6, Bedrock 7.
-
-    ---- DAYANIKLILIK ----
-    Modun kendi sayisi, oldugu gibi. Bizim patron silahlarinda
-    dayaniklilik YOK (kirilmasinlar diye) ama bunlar patron
-    silahi degil, kazanilan silahlar -- modda da kiriliyorlar.
-
-    ---- SALDIRI HIZI YOK ----
-    Bedrock'ta esya basina saldiri hizi bileseni yok. Sayi
-    tabloda duruyor ama oyunda karsiligi yok; ozet de vaat
-    etmiyor.                                                   """
-    return {
-        "format_version": "1.21.0",
-        "minecraft:item": {
-            "description": {
-                "identifier": "pa:" + WOM_ONEK + anahtar,
-                "menu_category": {"category": "equipment"},
-            },
-            "components": {
-                "minecraft:icon": {"texture": WOM_ONEK + anahtar},
-                "minecraft:display_name": {
-                    "value": WOM_RENK.get(nadirlik, "§f") + tr_ad},
-                "minecraft:max_stack_size": 1,
-                "minecraft:hand_equipped": True,
-                "minecraft:allow_off_hand": False,
-                "minecraft:damage": int(round(java_hasar)) + 1,
-                "minecraft:durability": {"max_durability": dayaniklilik},
-            },
-        },
-    }
-
-
-# ---- DOVUS ANIMASYONLARI  (Epic Fight / WoM)             v5.0
-#
-# Kullanici (once): "bir tane dovus modu buldum, ek animasyonlar
-# ekliyor, bunu da kullanabiliriz sanirim."
-#
-# ---- CEVRILDILER, KOPYALANMADILAR ----
-# Epic Fight ve WoM animasyonlari Bedrock bicimi DEGIL:
-#   Epic Fight : eklem basina kare zamanlari + her karede 4x4
-#                DONUSUM MATRISI, kendi iskeletinde
-#                (Root/Torso/Chest/Shoulder_R/Arm_R/Elbow_R...)
-#   Bedrock    : kemik basina euler DERECE, vanilla oyuncu
-#                kemiklerinde (head/body/rightArm/...)
-#
-# Cevirici: kaynak_anim/ef_cevir.py. Yaptigi is:
-#   1. Baglama pozunu (armature) cikarip DELTA aliyor
-#        D(t) = bind^-1 · L(t)
-#      Delta olmadan her kemik dinlenme pozu kadar kayiyordu.
-#   2. Bedrock'un kolu TEK kemik, Epic Fight'inki zincir
-#      (Shoulder->Arm->Elbow->Hand). Zincirin deltalari
-#      carpiliyor: rightArm = D(Shoulder_R)·D(Arm_R).
-#      DIRSEK BUKULMESI KAYBOLUYOR -- Bedrock'ta onu tasiyacak
-#      kemik yok. Aktarilan sey kolun GENEL YONU.
-#   3. Matris -> euler XYZ derece.
-#   4. Bedrock kurali: dosyadaki deger matematiksel donusun
-#      TERSI (bu depoda v4.88'de olculdu).
-#
-# ---- YAKALANAN HATA ----
-# Ilk cevrimde bacaklar kilic sallamada ~50 derece donuyordu.
-# Sebep: Epic Fight'ta Thigh_R, Root'un cocugu (Torso'nun
-# KARDESI); Bedrock'ta rightLeg, body'nin COCUGU. Yani govde
-# donusu bacaklara mirasla gecip IKI KEZ uygulaniyordu.
-# Duzeltme: bacagin deltasindan govdeninki cikariliyor.
-#
-# ---- DOGRULAMA ----
-# Sayilarin makul gorunmesi yetmedi; cevrilen pozlar
-# scratchpad/onizle_poz.py ile ciziLdi ve gercek bir kilic
-# savurusu / mizrak hamlesi olduklari GORULDU. Ben 10
-# dokularindaki dersin aynisi.
-#
-# ---- SILAH -> VURUS SERISI ----
-# WoM'un kendi animasyonlari ZATEN silah adiyla:
-# solar_auto_1..4, katana_auto_1..3, torment_auto_1..4...
-# Yani eslesme uydurma degil, modun kendi adlandirmasi.
-# WoM'da kendi serisi olmayan silahlar (balyoz baltalar,
-# pencelieldiven, kof uzun kilic) Epic Fight'in TUR serisine
-# baglandi (axe_auto, fist_auto, longsword_auto).
-WOM_ANIM_DOSYA = "wom_dovus"
-WOM_ANIM_ONEK = "animation.wom."
-WOM_SERI = {
-    "agony": ["agony_auto_1", "agony_auto_2", "agony_auto_3", "agony_auto_4"],
-    "antitheus": ["antitheus_auto_1", "antitheus_auto_2", "antitheus_auto_3", "antitheus_auto_4"],
-    "blackstar": ["blackstar_basic_attack_1", "blackstar_basic_attack_2", "blackstar_basic_attack_3", "blackstar_basic_attack_4"],
-    "diamond_greataxe": ["axe_auto1", "axe_auto2"],
-    "diamond_staff": ["staff_auto_1", "staff_auto_2", "staff_auto_3"],
-    "ender_blaster": ["enderblaster_onehand_auto_1", "enderblaster_onehand_auto_2", "enderblaster_onehand_auto_3", "enderblaster_onehand_auto_4"],
-    "evil_tachi": ["katana_auto_1", "katana_auto_2", "katana_auto_3"],
-    "gesetz": ["gezets_auto_1", "gezets_auto_2", "gezets_auto_3"],
-    "golden_greataxe": ["axe_auto1", "axe_auto2"],
-    "golden_staff": ["staff_auto_1", "staff_auto_2", "staff_auto_3"],
-    "herrscher": ["herrscher_auto_1", "herrscher_auto_2", "herrscher_auto_3"],
-    "hollow_longsword": ["longsword_auto1", "longsword_auto2", "longsword_auto3"],
-    "iron_greataxe": ["axe_auto1", "axe_auto2"],
-    "iron_staff": ["staff_auto_1", "staff_auto_2", "staff_auto_3"],
-    "jabberwocky": ["fist_auto1", "fist_auto2", "fist_auto3"],
-    "moonless": ["moonless_auto_1", "moonless_auto_2", "moonless_auto_3"],
-    "napoleon": ["napoleon_auto_1", "napoleon_auto_2", "napoleon_auto_3", "napoleon_auto_4"],
-    "netherite_greataxe": ["axe_auto1", "axe_auto2"],
-    "netherite_staff": ["staff_auto_1", "staff_auto_2", "staff_auto_3"],
-    "nova": ["nova_attack_1", "nova_attack_2", "nova_attack_3", "nova_attack_4"],
-    "orbit": ["orbit_attack_1", "orbit_attack_2", "orbit_attack_3", "orbit_attack_4"],
-    "ruine": ["ruine_auto_1", "ruine_auto_2", "ruine_auto_3", "ruine_auto_4"],
-    "satsujin": ["katana_auto_1", "katana_auto_2", "katana_auto_3"],
-    "solar": ["solar_auto_1", "solar_auto_2", "solar_auto_3", "solar_auto_4"],
-    "stone_staff": ["staff_auto_1", "staff_auto_2", "staff_auto_3"],
-    "tormented_mind": ["torment_auto_1", "torment_auto_2", "torment_auto_3", "torment_auto_4"],
-    "wooden_staff": ["staff_auto_1", "staff_auto_2", "staff_auto_3"],
-}
+# Cevirinin dersleri NOTLAR.md v5.5'te duruyor; kod gitti,
+# bilgi kaldi.
 
 # ================================================================
 #  MAHOU TSUKAI  (Buyucu)                                v5.4
@@ -3544,6 +3383,10 @@ def marvel_oyuncu_varligi():
                 "is_spawnable": False,
                 "is_summonable": False,
                 "is_experimental": False,
+                # v5.8: acilabilir katmanlarin anahtarlari
+                # (matkap). Script setProperty ile aciyor,
+                # kaynak paket q.property ile okuyor.
+                "properties": ZIRH_EK_OZELLIKLER,
             },
             "component_groups": gruplar,
             "components": MARVEL_OYUNCU_BILESEN,
@@ -4065,7 +3908,7 @@ def oyuncu_modeli_paketi(surum):
     # Titan'in halesi). Kendi geometrisi ve kendi dokusuyla
     # geliyorlar cunku Bedrock'ta bir geometrinin tek dokusu
     # olur ve uc katmanin uc ayri dokusu var.
-    for _em, _ek, _egeo, _eanim in ZIRH_EK:
+    for _em, _ek, _egeo, _eanim, _eoz in ZIRH_EK:
         d["geometry"][_ek] = "geometry." + _ek
         d["textures"][_ek] = "textures/entity/" + _ek
     # v4.92: Ben 10 yaratiklari + v4.94: Max Steel mod
@@ -4119,12 +3962,13 @@ def oyuncu_modeli_paketi(surum):
     # oldugunda ikisi birden ciziliyor. Kendi degiskeni
     # OLMAMALI -- ayri bir tetik iki katmanin ayrisabilecegi
     # anlamina gelirdi (matkaplar var, takim yok gibi).
-    for _em, _ek, _egeo, _eanim in ZIRH_EK:
-        yeni_rc.append({
-            "controller.render." + _ek:
-                "variable.zirh_mod_%s && !variable.is_first_person"
-                " && !variable.map_face_icon" % _em
-        })
+    for _em, _ek, _egeo, _eanim, _eoz in ZIRH_EK:
+        _kosul = ("variable.zirh_mod_%s && !variable.is_first_person"
+                  " && !variable.map_face_icon" % _em)
+        if _eoz:
+            # v5.8: katman ayrica ACILMIS olmali (matkap).
+            _kosul += " && q.property('%s')" % _eoz
+        yeni_rc.append({"controller.render." + _ek: _kosul})
     d["render_controllers"] = yeni_rc
 
     # 5. Fazladan dort kolun salinimi. Vanilla oyuncu
@@ -4165,14 +4009,17 @@ def oyuncu_modeli_paketi(surum):
     # ELDEYKEN surekli donuyor. Modda da matkaplar takimin
     # gorunur bir parcasi ve "drills" yetenegi acikken
     # donuyorlar -- surekli donmek yanlis bir sey gostermiyor.
-    for _em, _ek, _egeo, _eanim in ZIRH_EK:
+    for _em, _ek, _egeo, _eanim, _eoz in ZIRH_EK:
         if not _eanim:
             continue
         _anim_adi = ZIRH_EK_ANIM.get(_eanim)
         if not _anim_adi:
             continue
         d["animations"][_ek] = _anim_adi
-        d["scripts"]["animate"].append({_ek: "variable.zirh_mod_" + _em})
+        _akosul = "variable.zirh_mod_" + _em
+        if _eoz:
+            _akosul += " && q.property('%s')" % _eoz
+        d["scripts"]["animate"].append({_ek: _akosul})
 
     yaz_json(os.path.join(OMP, "entity/player.entity.json"), v)
 
@@ -4191,7 +4038,7 @@ def oyuncu_modeli_paketi(surum):
             "textures": ["Texture." + _ba],
             "materials": [{"*": "Material.default"}],
         }
-    for _em, _ek, _egeo, _eanim in ZIRH_EK:
+    for _em, _ek, _egeo, _eanim, _eoz in ZIRH_EK:
         denetleyiciler["controller.render." + _ek] = {
             "geometry": "Geometry." + _ek,
             "textures": ["Texture." + _ek],
@@ -4216,7 +4063,7 @@ def oyuncu_modeli_paketi(surum):
     # Ben 10 yaratiklari (v4.92). Paket kendi kendine yetsin:
     # geometri ve doku burada da duruyor, ikisi de URETILDIGI
     # icin ayrisamazlar.
-    for _em, _ek, _egeo, _eanim in ZIRH_EK:
+    for _em, _ek, _egeo, _eanim, _eoz in ZIRH_EK:
         # Ayni donusturucu: kemik adlari vanillaya cevriliyor,
         # kupler/uv/donusler HIC ellenmiyor.
         yaz_json(os.path.join(OMP, "models/entity/%s.geo.json" % _ek),
@@ -5652,38 +5499,6 @@ def main():
             liste.append("item.pa:%s.name=%s" % (_za, ad))
             liste.append("item.pa:%s=%s" % (_za, ad))
 
-    # ---- DOVUS ANIMASYONLARI (v5.0) ----
-    # Cevrilmis dosya oldugu gibi kopyalaniyor; cevrimi
-    # kaynak_anim/ef_cevir.py yapti (gerekcesi WOM_SERI
-    # basliginda).
-    _wanim = os.path.join(BEN10_ANIM_KAYNAK, WOM_ANIM_DOSYA + ".animation.json")
-    if os.path.exists(_wanim):
-        _wh = os.path.join(RP, "animations/%s.animation.json" % WOM_ANIM_DOSYA)
-        os.makedirs(os.path.dirname(_wh), exist_ok=True)
-        shutil.copyfile(_wanim, _wh)
-    else:
-        print("UYARI: dovus animasyonlari yok (%s)" % _wanim)
-
-    # ---- WEAPONS OF MIRACLES (v5.0) ----
-    # 27 silah. Sayilar jar'in bytecode'undan cikarildi
-    # (gerekcesi WOM tablosunun basinda); ikonlar modun kendi
-    # pikselleri, 32x32'ye indirildi.
-    for _wa, _wtr, _wen, _wh, _whz, _wd, _wn in WOM:
-        _wad = WOM_ONEK + _wa
-        yaz_json(os.path.join(BP, "items/%s.json" % _wad),
-                 wom_esyasi(_wa, _wtr, _wh, _wd, _wn))
-        _wk = os.path.join(DOKU_KAYNAK, _wad + ".png")
-        if os.path.exists(_wk):
-            _wy = os.path.join(RP, "textures/item/%s.png" % _wad)
-            os.makedirs(os.path.dirname(_wy), exist_ok=True)
-            shutil.copyfile(_wk, _wy)
-        else:
-            print("UYARI: %s ikonu yok (%s)" % (_wad, _wk))
-        dokular[_wad] = {"textures": "textures/item/" + _wad}
-        for liste, ad in ((en_us, _wen), (tr_tr, _wtr)):
-            liste.append("item.pa:%s.name=%s" % (_wad, ad))
-            liste.append("item.pa:%s=%s" % (_wad, ad))
-
     # ---- TEKNOLOJI ZIRHLARI (v5.1) ----
     # ProjectE / Mekanism / Draconic. Uc ayri gorunus yolu var
     # ve sebepleri TEKNOLOJI_TAKIM tablosunun basinda yazili.
@@ -6241,9 +6056,6 @@ def main():
     # v4.92: Ben 10 ikonlari
     for _bk3, _bt3, _be3, _bd3, _btr3 in BEN10 + ZIRH_MOD:
         beklenen.add(_bk3)
-    # v5.0: WoM silah ikonlari da hicbir listede degil.
-    for _wk3, _wt3, _we3, _wh3, _whz3, _wd3, _wn3 in WOM:
-        beklenen.add(WOM_ONEK + _wk3)
     # v5.2: Marvel ikonlari VE kostum dokulari. Ikisi de
     # hicbir listede degil; temizlik adimi listede olmayani
     # siliyor ve bu tuzaga daha once bes kez dusuldu.
@@ -6339,6 +6151,18 @@ def main():
             os.remove(os.path.join(_geoDizin, _gf))
             print("temizlendi (geometri): %s" % _gf)
 
+    # ---- ANIMASYONLAR NEDEN OTOMATIK SILINMIYOR  (v5.8) ----
+    # WoM kaldirilinca wom_dovus.animation.json diskte kalmisti
+    # -- v5.2'deki kahraman_kostum.geo.json tuzaginin aynisi.
+    # Ilk cozumum "beklenen animasyon listesi disindakini sil"
+    # oldu ve ONU YAZAR YAZMAZ simsek_kol.animation.json'i
+    # sildi: o dosya URETILMIYOR, elle yazilmis ve depoda
+    # commit'li. Yani kural, korumasi gereken seyi yok etti.
+    #
+    # Uretecin bilmedigi bir dosyayi silmesi yanlis. Artik
+    # animasyon TARAYICISI bakiyor (test/anim_tara.py): bir
+    # animasyon dosyasi ne kaynakta var ne de kimse ona
+    # basvuruyorsa HATA veriyor. Silme karari insanin.
     silinen = 0
     for klasor, uzanti in ((os.path.join(BP, "items"), ".json"),
                            (os.path.join(RP, "attachables"), ".json"),

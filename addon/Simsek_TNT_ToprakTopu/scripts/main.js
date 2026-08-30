@@ -12,11 +12,12 @@ import {
   ZIRH_ACIK, ZIRH_MODLAR, ZIRH_CEKIRDEK_ONEK,
   MARVEL_ACIK, MARVEL_ONEK, MARVEL_GUCLER,
   BECERI_ACIK, BECERI_AGACI, BECERI_TAVAN_KADEME,
-  CAN_SAYACI_ACIK, WOM_ACIK, WOM_SILAHLAR, WOM_ONEK,
+  CAN_SAYACI_ACIK,
   BEN10_ACIK, BEN10,
   TEKNOLOJI_ACIK, TEKNOLOJI_TAKIMLAR, TEKNOLOJI_ONEK,
   MAHOU_ACIK, MAHOU_BUYULER, MAHOU_ESYALAR, MAHOU_MANA_TAVAN,
-  VILTRUMITE_ACIK, VILTRUMITE_YETENEKLER, VILT_MOD, VILT_INDIRIM
+  VILTRUMITE_ACIK, VILTRUMITE_YETENEKLER, VILT_MOD, VILT_INDIRIM,
+  ZIRH_KATMAN_ACIK
 } from "./ayarlar.js";
 
 import {
@@ -63,6 +64,11 @@ import {
   mahouTara, mahouUnut, mahouListesi, manaOku, elindekiBuyu
 } from "./yetenekler/mahou.js";
 
+/* v5.8: acilabilir zirh katmanlari (matkap). Yetenegi kendi
+   dosyasinda kaydediyor; buradan yalniz "cekirdek elden
+   cikinca katmani kapat" tazelemesi cagriliyor.            */
+import { katmanTazele } from "./yetenekler/zirh_katman.js";
+
 /* v5.6: ViltrumiteCore -> SADECE Temel zirh. On yetenegi
    kendi dosyalarinda kaydediyor (import edilmesi yeterli);
    burada iki sey daha var: hasar kancasi (viltrumiteKur) ve
@@ -81,10 +87,6 @@ import {
 /* v4.99: can sayaci (Health Overlay). 210 kalpte vanilla
    satirlari okunmaz oluyor.                                */
 import { canSayaciTara, canSayaciUnut } from "./yetenekler/can_sayaci.js";
-
-/* v5.0: WoM silahlarinin vurus animasyonlari (Epic Fight'tan
-   cevrildi). Olay tabanli -- tick'te is yapmiyor.          */
-import { womDovusKur, womDovusUnut } from "./yetenekler/wom_dovus.js";
 
 /* v5.1: teknoloji zirhlari (ProjectE / Mekanism / Draconic).
    Cekirdeklerden farki GERCEKTEN GIYILIYOR olmalari; tarama
@@ -398,6 +400,16 @@ system.runInterval(() => {
         canSayaciTara(oyuncular);
       } catch (e) {
         hataYaz("canSayaciTara", e);
+      }
+    }
+    if (ZIRH_KATMAN_ACIK) {
+      /* Cekirdek elden cikinca acik katman kapansin. */
+      for (const _o of oyuncular) {
+        try {
+          katmanTazele(_o);
+        } catch (e) {
+          hataYaz("katmanTazele", e);
+        }
       }
     }
     if (TEKNOLOJI_ACIK) {
@@ -789,52 +801,6 @@ function zirhBilgi(oyuncu, anahtar) {
   kollariIndir(oyuncu);
 }
 
-/* WEAPONS OF MIRACLES MENUSU  (v5.0)
-
-   Kahraman ve cekirdek menuleriyle AYNI is: hangi silahin ne
-   verdigini yaziyor. Bir sey SECMIYOR -- silah zaten
-   envanterden aliniyor, menu bir katalog.
-
-   Nadirlige gore siralanmiyor: tabloda kaynaktaki sira var ve
-   o sira anlamli (once benzersiz silahlar, sonra kademe
-   silahlari).                                                */
-function womMenusu(oyuncu) {
-  if (!WOM_ACIK) {
-    actionbarYaz(oyuncu, "§cWoM silahlari kapali (WOM_ACIK).");
-    return undefined;
-  }
-  const RENK = { COMMON: "§f", UNCOMMON: "§a", RARE: "§b", EPIC: "§d" };
-  const dugmeler = [];
-  for (const [anahtar, t] of WOM_SILAHLAR) {
-    dugmeler.push({
-      anahtar,
-      ad: (RENK[t.nadirlik] || "§f") + t.ad +
-          "\n§8" + t.hasar + " hasar · " + t.dayaniklilik + " dayanıklılık" +
-          "\n§8" + WOM_ONEK + anahtar
-    });
-  }
-  const acildi = menuAc(oyuncu,
-    "§6⚔ Weapons of Miracles §7· " + WOM_SILAHLAR.size + " silah",
-    dugmeler, -1, (i) => womBilgi(oyuncu, dugmeler[i].anahtar), []);
-  if (!acildi) womBilgi(oyuncu, dugmeler[0].anahtar);
-  return undefined;
-}
-
-function womBilgi(oyuncu, anahtar) {
-  const t = WOM_SILAHLAR.get(anahtar);
-  if (!t) return;
-  try {
-    oyuncu.sendMessage(
-      "§6⚔ §f" + t.ad + " §8(" + t.en + ")" +
-      "\n§8" + t.hasar + " hasar · " + t.dayaniklilik + " dayanıklılık · " +
-      t.nadirlik.toLowerCase() +
-      "\n§8eşya: §7" + WOM_ONEK + anahtar +
-      "\n§8kaynak: wom/" + anahtar + " §8(java hasarı " + t.javaHasar + ")");
-  } catch (e) {
-    hataYaz("wom.mesaj", e);
-  }
-  kollariIndir(oyuncu);
-}
 
 /* TEKNOLOJI ZIRHLARI MENUSU  (v5.1)
 
@@ -1379,13 +1345,6 @@ function menuEkleri(oyuncu) {
             ? gucKumesi(guctekiKahraman(oyuncu)).ad + " §c✶"
             : "güç yok") + ")",
       calis() { marvelMenusu(oyuncu); }
-    },
-    /* v5.0: WoM silah katalogu. Menu bir sey SECMIYOR --
-       silahlar envanterden aliniyor, bu liste "hangisi ne
-       veriyor" sorusunun cevabi.                            */
-    {
-      ad: "⚔ Silahlar §8(Weapons of Miracles · " + WOM_SILAHLAR.size + ")",
-      calis() { womMenusu(oyuncu); }
     },
     /* v5.4: Mahou Tsukai. Satirda MANA yaziyor -- buyunun
        neden calismadigini menuye girmeden gorebilesin.     */
@@ -1942,10 +1901,6 @@ function esyasizOyuncu(oyuncu, sira) {
    OLDUREN OYUNCU MU: olay.damageSource.damagingEntity. Goz
    lazeri v4.95'te bunu vermeye baslamisti; oncesinde
    "sebepsiz" olumler XP de vermezdi.                        */
-/* WoM dovus animasyonlari: kendi kurulumunu kendi yapiyor,
-   olay yoksa sessizce kapaniyor.                            */
-womDovusKur();
-
 /* v5.1: teknoloji zirhlarinin hasar sonrasi isi (geri kazanim
    ve olmezlik). entityHurt yoksa zirhlar YINE calisiyor --
    efektler, direnc ve kalkan taramadan geliyor; yalniz bu iki
@@ -2015,7 +1970,6 @@ olayaAbone("playerLeave", (olay) => {
   boyUnut(olay.playerId);
   mahouUnut(olay.playerId);
   canSayaciUnut(olay.playerId);
-  womDovusUnut(olay.playerId);
   teknolojiUnut(olay.playerId);
   ben10Unut(olay.playerId);
   viltrumiteUnutOyuncu(olay.playerId);

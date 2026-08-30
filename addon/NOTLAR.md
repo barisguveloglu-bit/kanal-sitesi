@@ -1,3 +1,111 @@
+# v5.8 — WoM kaldırıldı, matkap artık menüden açılıyor
+
+## 1. Weapons of Miracles tamamen kaldırıldı
+
+Kullanıcı: *"animasyon tarafında gene bozulmalar var. En iyisi onun eklediği
+silahlar ve animasyonları tüm dosyalardan hangi dosyalarda varsa silelim
+tamamıyla… belli ki başaramıyoruz."*
+
+v5.5'te **ölçülebilen her şey** düzelmişti — 180'i aşan kare sıçraması 147→0,
+ara değer hatası 350°→7°, önizleme temiz. Ama **oyunda hâlâ bozuktu.** Yani
+elimdeki ölçütler yetmiyordu: düzelttiğim şeyler gerçekten bozuktu, ama görünen
+bozukluk başka bir yerden geliyordu ve onu bulamadım.
+
+Silinenler: `WOM_*` ayarları (27 silah, 63 animasyon), `wom_dovus.js`,
+`kaynak_anim/ef_cevir.py`, `kaynak_anim/wom_dovus.animation.json`, 27 eşya,
+27 ikon, 27 kaynak doku, `REFERANS_WOM.md`, `test/wom.mjs`,
+`test/wom_dovus.mjs`, menü satırı, `anim_tara.py`'deki WOM özel çözümlemesi.
+
+**Ne öğrenildi, nerede duruyor:** çevirinin bütün dersleri `NOTLAR.md` v5.5
+bölümünde (euler dal atlaması, Root'un düşürülmesi, iskelet hiyerarşisi, katman
+çakışması). Kod gitti, bilgi kaldı.
+
+Envanterdeki `pa:wom_*` yığınları kaybolur — yalnızca yaratıcı modundan
+alınabiliyorlardı, v4.95'te zırh parçalarında da aynı durum vardı.
+
+## 2. Kendi temizlik kuralım, koruması gereken şeyi sildi
+
+`animations/` klasörü üretecin temizlik listesinde **yoktu**, yani
+`wom_dovus.animation.json` silinse bile pakette kalırdı — v5.2'deki
+`kahraman_kostum.geo.json` tuzağının aynısı.
+
+"Beklenen liste dışındakini sil" kuralını yazdım ve **yazar yazmaz**
+`simsek_kol.animation.json`'ı sildi. O dosya üretilmiyor — elle yazılmış ve
+depoda commit'li. Kural, korumak için yazıldığı şeyi yok etti.
+
+Geri aldım ve otomatik silmeyi kaldırdım. Üretecin bilmediği bir dosyayı
+silmesi yanlış. Karar insanın; ama dosya sessizce yaşamasın diye denetim
+**tarayıcıya** taşındı: bir animasyon dosyasındaki animasyonların *hiçbiri*
+kullanılmıyorsa HATA.
+
+Bu denetim hemen üç gerçek artık dosya buldu — Ben 10'dan kalma
+`petrosapien` (10), `prototype` (13), `recal_omnitrix` (8): 31 animasyon,
+hiçbiri oyuncu varlığına kayıtlı değil, hiçbiri script'ten oynatılmıyor,
+v4.x'ten beri öyle. **Silmedim** — istenen WoM'du, bunlar Ben 10 içeriği ve
+ileride bağlanabilir. Listede duruyorlar; yeni bir artık dosya eklenirse
+denetim yine kırmızı yanar.
+
+## 3. Matkap artık direkt elde değil
+
+Kullanıcı: *"Max steel modunda güç modunu açtığın zaman direkt elimde matkap
+oluyor; normalde matkap için yetenekler kısmı var ya, ağaç şeklinde, tek tek
+açabiliyorsun. Ben öyle biliyorum."*
+
+**Doğru biliyormuş, ölçüldü.** `strength_mode.json`:
+
+```
+"gui_display_type": "tree"
+drill_hands: palladium:tool_hands, list_index 1, hidden_in_bar FALSE
+```
+
+Yani matkap modun **yetenek barında 1 numaralı slot** — oyuncu açıp kapatıyor.
+(`drilling` 0, `exo_render` 2, `armour` 8 — hepsi aynı bar.) Ağaçta **8 kilitli
+yetenek** var. Biz "çekirdek eldeyse hep çizili" yapmışız.
+
+Artık bir **varlık özelliği**: `pa:matkap`, varsayılan **kapalı**. Script açıyor
+(`setProperty`), görünüş `q.property('pa:matkap')` ile okuyup çiziyor.
+
+Neden dinamik özellik değil: kaynak paketin (görünüşün) script'ten haber
+alabildiği tek kanal bu — `setDynamicProperty` molang'dan okunamıyor. Marvel
+Project de aynı yolu kullanıyor (27 özellik, aynı biçim).
+
+Çekirdek elden çıkınca katman kapanıyor; yoksa Güç'ü bırakıp başka moda geçince
+matkap açık kalırdı.
+
+**Özellik yoksa** (`setProperty` her sürümde yok) matkap kapalı kalıyor ve bir
+kez bilgi yazılıyor. Bilerek: eski "hep açık" davranışına dönmek kullanıcının
+şikayet ettiği şeye geri dönmek olurdu.
+
+Test 5. bölümü gerçek bir kusur buldu: tek seferlik özellik tespiti önbelleğe
+alınınca yazma yolu korumasız kalıyordu ve `TypeError` düşüyordu. Önbellek
+artık yalnız **kullanıcıya mesaj** için; güvenlik her çağrıda.
+
+## 4. Modda aldığımızdan çok daha fazlası var
+
+Bu işi yaparken ionstrike'ın tamamı tarandı: **modda 25'ten fazla güç var, biz
+9'unu almışız.** Alınmayan gerçek modlar:
+
+| mod | adı | yetenek |
+|---|---|---|
+| `super_mode` | Super Mode | 16 (6 attribute, 1 energy_beam) |
+| `size_mode` | Size Mode | 14 (boy değiştirme) |
+| `clone_mode` | Clone mode | 13 (klonlar) |
+| `hydroheat` | Hydro Heat Mode | 16 (**2 energy_beam**) |
+| `ion_power` | Takonian | 14 (energy_beam, trail, aim) |
+| `nova` | Nova Ring | 20 (3 damage_immunity) |
+| `cannon_mode` | Cannon mode | 10 (damage_immunity) |
+| `camo_mode` | Camo Mode | 10 (9 render_layer) |
+| `turbo_lash` | Turbo Lash | 1 (energy_beam) |
+| `turbo_sword` / `steeless_sword` | kılıçlar | 1'er |
+
+Ayrıca beş **birleşim** modu (`flight_stealth`, `scuba_flight`,
+`scuba_stealth`, `strength_stealth`, `speed_stealth`) — bunlar zaten aldığımız
+iki modun birlikte açık hâli.
+
+Bu port bir sonraki sürümün işi; envanter burada duruyor ki unutulmasın.
+
+---
+
 # v5.7 — "2 tane niye şey var ya": atlanan altı pasif
 
 Kullanıcı ekran görüntüsü attı: Temel moddayken yalnız **iki** efekt görünüyor —
