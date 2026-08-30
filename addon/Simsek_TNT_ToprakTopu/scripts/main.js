@@ -12,7 +12,7 @@ import {
   ZIRH_ACIK, ZIRH_MODLAR, ZIRH_CEKIRDEK_ONEK,
   KAHRAMAN_ACIK, KAHRAMANLAR, KAHRAMAN_ONEK,
   BECERI_ACIK, BECERI_AGACI, BECERI_TAVAN_KADEME,
-  CAN_SAYACI_ACIK,
+  CAN_SAYACI_ACIK, WOM_ACIK, WOM_SILAHLAR, WOM_ONEK,
   BEN10_ACIK, BEN10
 } from "./ayarlar.js";
 
@@ -54,6 +54,10 @@ import {
 /* v4.99: can sayaci (Health Overlay). 210 kalpte vanilla
    satirlari okunmaz oluyor.                                */
 import { canSayaciTara, canSayaciUnut } from "./yetenekler/can_sayaci.js";
+
+/* v5.0: WoM silahlarinin vurus animasyonlari (Epic Fight'tan
+   cevrildi). Olay tabanli -- tick'te is yapmiyor.          */
+import { womDovusKur, womDovusUnut } from "./yetenekler/wom_dovus.js";
 
 /* Ben 10 (v4.92): elindeki esyaya gore yaratik oluyorsun.
    Gorunusu oyuncu modeli paketi ciziyor, gucleri bu modul.    */
@@ -709,6 +713,53 @@ function zirhBilgi(oyuncu, anahtar) {
   kollariIndir(oyuncu);
 }
 
+/* WEAPONS OF MIRACLES MENUSU  (v5.0)
+
+   Kahraman ve cekirdek menuleriyle AYNI is: hangi silahin ne
+   verdigini yaziyor. Bir sey SECMIYOR -- silah zaten
+   envanterden aliniyor, menu bir katalog.
+
+   Nadirlige gore siralanmiyor: tabloda kaynaktaki sira var ve
+   o sira anlamli (once benzersiz silahlar, sonra kademe
+   silahlari).                                                */
+function womMenusu(oyuncu) {
+  if (!WOM_ACIK) {
+    actionbarYaz(oyuncu, "§cWoM silahlari kapali (WOM_ACIK).");
+    return undefined;
+  }
+  const RENK = { COMMON: "§f", UNCOMMON: "§a", RARE: "§b", EPIC: "§d" };
+  const dugmeler = [];
+  for (const [anahtar, t] of WOM_SILAHLAR) {
+    dugmeler.push({
+      anahtar,
+      ad: (RENK[t.nadirlik] || "§f") + t.ad +
+          "\n§8" + t.hasar + " hasar · " + t.dayaniklilik + " dayanıklılık" +
+          "\n§8" + WOM_ONEK + anahtar
+    });
+  }
+  const acildi = menuAc(oyuncu,
+    "§6⚔ Weapons of Miracles §7· " + WOM_SILAHLAR.size + " silah",
+    dugmeler, -1, (i) => womBilgi(oyuncu, dugmeler[i].anahtar), []);
+  if (!acildi) womBilgi(oyuncu, dugmeler[0].anahtar);
+  return undefined;
+}
+
+function womBilgi(oyuncu, anahtar) {
+  const t = WOM_SILAHLAR.get(anahtar);
+  if (!t) return;
+  try {
+    oyuncu.sendMessage(
+      "§6⚔ §f" + t.ad + " §8(" + t.en + ")" +
+      "\n§8" + t.hasar + " hasar · " + t.dayaniklilik + " dayanıklılık · " +
+      t.nadirlik.toLowerCase() +
+      "\n§8eşya: §7" + WOM_ONEK + anahtar +
+      "\n§8kaynak: wom/" + anahtar + " §8(java hasarı " + t.javaHasar + ")");
+  } catch (e) {
+    hataYaz("wom.mesaj", e);
+  }
+  kollariIndir(oyuncu);
+}
+
 /* FISK KAHRAMANLARI MENUSU  (v4.96)
 
    Zirh menusuyle AYNI is: hangi kahramanin ne verdigini
@@ -1096,6 +1147,13 @@ function menuEkleri(oyuncu) {
             ? (KAHRAMANLAR.get(elindekiKahraman(oyuncu)) || {}).ad + " §b★"
             : "kostüm yok") + ")",
       calis() { kahramanMenusu(oyuncu); }
+    },
+    /* v5.0: WoM silah katalogu. Menu bir sey SECMIYOR --
+       silahlar envanterden aliniyor, bu liste "hangisi ne
+       veriyor" sorusunun cevabi.                            */
+    {
+      ad: "⚔ Silahlar §8(Weapons of Miracles · " + WOM_SILAHLAR.size + ")",
+      calis() { womMenusu(oyuncu); }
     },
     /* v4.92: Ben 10. Menu sadece BILGI veriyor -- donusum
        esyayi ELINE ALMAKLA oluyor, cunku gorunusu suren molang
@@ -1627,6 +1685,10 @@ function esyasizOyuncu(oyuncu, sira) {
    OLDUREN OYUNCU MU: olay.damageSource.damagingEntity. Goz
    lazeri v4.95'te bunu vermeye baslamisti; oncesinde
    "sebepsiz" olumler XP de vermezdi.                        */
+/* WoM dovus animasyonlari: kendi kurulumunu kendi yapiyor,
+   olay yoksa sessizce kapaniyor.                            */
+womDovusKur();
+
 const beceriKuruldu = olayaAbone("entityDie", (olay) => {
   try {
     if (!BEN10_ACIK || !BECERI_ACIK) return;
@@ -1679,6 +1741,7 @@ olayaAbone("playerLeave", (olay) => {
   zirhUnutOyuncu(olay.playerId);
   kahramanUnutOyuncu(olay.playerId);
   canSayaciUnut(olay.playerId);
+  womDovusUnut(olay.playerId);
   ben10Unut(olay.playerId);
 
   // Oyuncunun butun isleri durdurulmali, sadece birincisi degil

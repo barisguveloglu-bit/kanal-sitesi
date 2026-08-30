@@ -1,0 +1,26 @@
+{
+  "format_version": "1.21.0",
+  "minecraft:item": {
+    "description": {
+      "identifier": "pa:wom_herrscher",
+      "menu_category": {
+        "category": "equipment"
+      }
+    },
+    "components": {
+      "minecraft:icon": {
+        "texture": "wom_herrscher"
+      },
+      "minecraft:display_name": {
+        "value": "§bHerrscher"
+      },
+      "minecraft:max_stack_size": 1,
+      "minecraft:hand_equipped": true,
+      "minecraft:allow_off_hand": false,
+      "minecraft:damage": 6,
+      "minecraft:durability": {
+        "max_durability": 1582
+      }
+    }
+  }
+}

@@ -83,8 +83,12 @@ export function zirhUnutOyuncu(oyuncuId) {
 export function elindekiCekirdek(oyuncu) {
   const adaylar = [];
   try {
-    const el = eldekiEsya(oyuncu);
-    if (el) adaylar.push(el.typeId);
+    /* eldekiEsya ESYAYI degil KIMLIGINI donduruyor. Once
+       `.typeId` aliniyordu; o hep undefined'di ve bu yol
+       hicbir sey katmiyordu -- asagidaki equippable yolu
+       maskeliyordu. v5.0'da wom_dovus testinde yakalandi. */
+    const kimlik = eldekiEsya(oyuncu);
+    if (kimlik) adaylar.push(kimlik);
   } catch (e) { /* eli bos */ }
   try {
     const b = oyuncu.getComponent("minecraft:equippable");

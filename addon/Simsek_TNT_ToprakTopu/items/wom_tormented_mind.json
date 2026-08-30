@@ -1,0 +1,26 @@
+{
+  "format_version": "1.21.0",
+  "minecraft:item": {
+    "description": {
+      "identifier": "pa:wom_tormented_mind",
+      "menu_category": {
+        "category": "equipment"
+      }
+    },
+    "components": {
+      "minecraft:icon": {
+        "texture": "wom_tormented_mind"
+      },
+      "minecraft:display_name": {
+        "value": "§bAzap"
+      },
+      "minecraft:max_stack_size": 1,
+      "minecraft:hand_equipped": true,
+      "minecraft:allow_off_hand": false,
+      "minecraft:damage": 9,
+      "minecraft:durability": {
+        "max_durability": 2135
+      }
+    }
+  }
+}

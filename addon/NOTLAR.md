@@ -1,3 +1,99 @@
+# v5.0 — Weapons of Miracles: 27 silah + 63 dövüş animasyonu
+
+Kullanıcı iki jar attı: **Weapons of Miracles 2.0.176** ve **Epic Fight**
+(üzerine kurulu olduğu dövüş sistemi). İkisi de aktarıldı.
+
+Ayrıntılı döküm: [`REFERANS_WOM.md`](REFERANS_WOM.md).
+
+## 1. Sayılar bu sefer JSON'da değil — bytecode'da
+
+Önceki modlarda (Ionstrike, AlienEvo, FiskHeroes) sayılar düz JSON ya da
+okunabilir JavaScript'ti. WoM'unkiler **derlenmiş Java'nın içinde**.
+
+Ama okunabilir. `javap` ile bytecode ayrıştırıldı:
+
+```
+WOMItems.class  static{} : "agony" → InvokeDynamic → lambda$static$N
+                BootstrapMethods   : lambda'yı çözüyor
+                lambda gövdesi     : Rarity.RARE, durability(2135)
+AgonySpearItem.class
+                createWeaponAttributes(): ldc 5.0f · ldc -2.0f
+```
+
+Kademe silahları formülle: `Greataxe = 7 + kademe`, `Staff = 1 + kademe`.
+
+**Test 27/27 silahı jar'dan yeniden çıkarıp karşılaştırıyor** — yani
+"hafızadan yazdım" ihtimali burada da sınanabilir.
+
+`bedrock = java + 1`: Java'da eşyanın sayısı bir değiştirici, Bedrock'ta
+toplam. Elmas kılıçta ölçüldü.
+
+## 2. Animasyonlar kopyalanmadı, çevrildi
+
+| | Epic Fight | Bedrock |
+|---|---|---|
+| veri | eklem başına **4×4 dönüşüm matrisi** | kemik başına **euler derece** |
+| iskelet | Root/Torso/Chest/Shoulder_R/Arm_R/Elbow_R… | head/body/rightArm/… |
+
+Çevirici `kaynak_anim/ef_cevir.py`: bağlama pozundan delta, kol zincirini
+çarpma, matris → euler, Bedrock'un ters işaret kuralı (v4.88'de ölçülen).
+
+**63 animasyon**, 7848 kare, 242 KB.
+
+### Yakalanan hata
+
+İlk çevrimde kılıç sallamada **bacaklar ~50° dönüyordu**. Sebep: Epic
+Fight'ta `Thigh_R`, `Root`'un çocuğu — `Torso`'nun **kardeşi**;
+Bedrock'ta `rightLeg`, `body`'nin **çocuğu**. Gövde dönüşü bacaklara
+mirasla geçip **iki kez** uygulanıyordu.
+
+### Doğrulama: çizmeden emin olunmadı
+
+Sayıların makul görünmesi yetmedi. Pozlar `onizle_poz.py` ile çizildi.
+**İlk çizici işe yaramadı** — kutuların sınır dikdörtgenini çiziyordu,
+dönmüş bir kolu dönmemişten ayırt edemiyordu. Gerçek yüz çizimine
+geçirildi; ancak o zaman pozların gerçek kılıç savuruşu olduğu görüldü.
+
+## 3. Silah → vuruş serisi eşlemesi uydurma değil
+
+WoM'un kendi animasyonları **zaten silah adıyla**: `solar_auto_1..4`,
+`katana_auto_1..3`, `torment_auto_1..4`. Arka arkaya vurunca sırayla
+oynuyorlar, 3 saniye vurmazsan başa dönüyor (Epic Fight'ın kombo
+penceresinin karşılığı).
+
+Kendi serisi olmayan üç aile Epic Fight'ın **tür** serisine bağlandı:
+balyoz baltalar → `axe_auto`, pençeli eldiven → `fist_auto`, kof uzun
+kılıç → `longsword_auto`.
+
+## 4. Test üç dosyada gizli bir hata buldu
+
+`wom_dovus.js` yazarken:
+
+```js
+const e = eldekiEsya(oyuncu);
+kimlik = e && e.typeId;        // ← e ZATEN kimlik, .typeId undefined
+```
+
+`eldekiEsya` eşyayı değil **kimliğini** döndürüyor. Test yakaladı.
+
+Aynı hata **`zirh.js` ve `kahraman.js`'te de vardı** — ama orada
+zararsızdı: o dosyalarda ikinci bir yol (`equippable` bileşeni) var ve
+bozuk ilk yolu maskeliyordu. Yani o iki dosyada ilk yol **hiçbir şey
+katmıyordu**. Üçü de düzeltildi.
+
+## Aktarılamayanlar (uydurulmadı)
+
+Saldırı hızı (Bedrock'ta eşya başına bileşen yok), dirsek bükülmesi
+(Bedrock'un kolu tek kemik), oyuncu kilidi (script'ten girdi
+kilitlenemiyor), 3B silah modelleri (`.obj` üçgen ağı), **Epic Fight'ın
+kendisi** (stamina, skill ağacı, parry — 1530 derlenmiş sınıflık bir
+dövüş sistemi; aktarılan şey animasyonları).
+
+WoM'daki **takı ve zırh parçaları** aktarılmadı: kullanıcı "zırh modları
+da buldum, bunları ekledikten sonra atacam" dedi.
+
+---
+
 # v4.99 — Can sayacı ve genel tarama
 
 ## 1. Health Overlay: asıl özellik aktarılamıyor, sayaç aktarıldı

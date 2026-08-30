@@ -92,6 +92,87 @@
     "goz_element_lazer": {
       "textures": "textures/item/goz_element_lazer"
     },
+    "wom_agony": {
+      "textures": "textures/item/wom_agony"
+    },
+    "wom_antitheus": {
+      "textures": "textures/item/wom_antitheus"
+    },
+    "wom_blackstar": {
+      "textures": "textures/item/wom_blackstar"
+    },
+    "wom_ender_blaster": {
+      "textures": "textures/item/wom_ender_blaster"
+    },
+    "wom_evil_tachi": {
+      "textures": "textures/item/wom_evil_tachi"
+    },
+    "wom_gesetz": {
+      "textures": "textures/item/wom_gesetz"
+    },
+    "wom_herrscher": {
+      "textures": "textures/item/wom_herrscher"
+    },
+    "wom_hollow_longsword": {
+      "textures": "textures/item/wom_hollow_longsword"
+    },
+    "wom_jabberwocky": {
+      "textures": "textures/item/wom_jabberwocky"
+    },
+    "wom_moonless": {
+      "textures": "textures/item/wom_moonless"
+    },
+    "wom_napoleon": {
+      "textures": "textures/item/wom_napoleon"
+    },
+    "wom_nova": {
+      "textures": "textures/item/wom_nova"
+    },
+    "wom_orbit": {
+      "textures": "textures/item/wom_orbit"
+    },
+    "wom_ruine": {
+      "textures": "textures/item/wom_ruine"
+    },
+    "wom_satsujin": {
+      "textures": "textures/item/wom_satsujin"
+    },
+    "wom_solar": {
+      "textures": "textures/item/wom_solar"
+    },
+    "wom_tormented_mind": {
+      "textures": "textures/item/wom_tormented_mind"
+    },
+    "wom_wooden_staff": {
+      "textures": "textures/item/wom_wooden_staff"
+    },
+    "wom_stone_staff": {
+      "textures": "textures/item/wom_stone_staff"
+    },
+    "wom_iron_staff": {
+      "textures": "textures/item/wom_iron_staff"
+    },
+    "wom_golden_staff": {
+      "textures": "textures/item/wom_golden_staff"
+    },
+    "wom_diamond_staff": {
+      "textures": "textures/item/wom_diamond_staff"
+    },
+    "wom_netherite_staff": {
+      "textures": "textures/item/wom_netherite_staff"
+    },
+    "wom_iron_greataxe": {
+      "textures": "textures/item/wom_iron_greataxe"
+    },
+    "wom_golden_greataxe": {
+      "textures": "textures/item/wom_golden_greataxe"
+    },
+    "wom_diamond_greataxe": {
+      "textures": "textures/item/wom_diamond_greataxe"
+    },
+    "wom_netherite_greataxe": {
+      "textures": "textures/item/wom_netherite_greataxe"
+    },
     "kahraman_spectre": {
       "textures": "textures/item/kahraman_spectre"
     },
