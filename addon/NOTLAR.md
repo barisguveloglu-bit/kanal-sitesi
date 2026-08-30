@@ -1,3 +1,105 @@
+# v5.3 — Kahraman mekanikleri ve animasyon taraması
+
+Kullanıcı beni düzeltti ve haklıydı:
+
+> *"Duvar tırmanma, ağ sallanma, boy değiştirme, faz geçişi, kuvvet alanı,
+> portallar... bunları almayacaksan zaten kahraman diye bir şey kalmıyor,
+> kostüm oluyor. Kahramanda özellik denilen bir şey kalmıyorsa o kahraman
+> değil, normal insandır, normal bir oyuncudur."*
+
+v5.2'de bunlara *"Bedrock'ta oyuncuya efektle verilemiyor"* demiştim.
+Cümle doğruydu ama **yanıltıcıydı**: mod bunları efektle değil **script'le**
+yapıyor, ve mod zaten Bedrock. Yani aktarılabilirler. Aktarıldılar.
+
+## 1. Sekiz mekanik, hepsi kaynağın kendi sayılarıyla
+
+| mekanik | kaynak satırı | değer |
+|---|---|---|
+| tırmanma | `black_panther.js:72` | ×0.5 |
+| ağ sallanma | `spiderman/swing.js:42` | ×3.5, çengel menzili 72 |
+| süzülme | `swing.js:159,165` | ×1, dikey −0.1 |
+| atılma | `swing.js:218` | ×4 |
+| sıçrayış | `swing.js:189` | ×8 |
+| faz geçişi | `ghost/ghost.js:24` | (bkz. aşağıda) |
+| kuvvet alanı | `sue_force_physics.js:3-13` | 12/16/4/3/2/10, yavaşlık amp 1 |
+| boy değiştirme | `entities/player.json` | 0.05 / 1.0 / 5.0 |
+
+22 kahramana dağıldı: tırmanma 10, atılma 13, ağ 5, sıçrayış 3, faz 2,
+kuvvet alanı 1, geçit 1, boy 1.
+
+İtme biçimi de kaynağınkiyle aynı:
+`applyKnockback(dx, dz, hypot(dx,dz), dy)`. `applyImpulse` oyuncularda
+işlemiyor — bunu bu depo v4.x'te ölçmüştü, mod da her yerde
+`applyKnockback` kullanıyor.
+
+## 2. Depoda ilk kez bir BP oyuncu varlığı var
+
+Bedrock'ta oyuncunun **ölçeğini script değiştiremiyor**; yalnız bileşen
+grubu değiştirebiliyor. Ant-Man'in boy değiştirmesi için
+`Simsek_TNT_ToprakTopu/entities/player.json` üretiliyor: 22 vanilla
+bileşen + 3 ölçek grubu + 3 olay.
+
+`components` bloğu **modun kendi dosyasından birebir** alındı (1979 bayt).
+Elle yazmadım: eksik bir bileşen oyuncuyu bozar ve hatası çok geç anlaşılır.
+Modun `player.json`'u 272 KB ve 612 olay taşıyor; bize yalnız üç ölçek
+grubu lazımdı, gerisi başka kahramanların makinesi.
+
+Bu, `canli.mjs`'in "her sunucu varlığının istemci tanımı olmalı" kuralını
+düşürdü. Kural doğru ama bu varlık onun dışında: oyuncunun istemci tanımı
+ayrı bir pakette (`Simsek_Oyuncu_Modeli`, v4.90 kararı) ve BP tanımımız
+oyuncuyu yeniden **çizmiyor**. İstisna teste yazıldı, ayrıca korunuyor:
+o paketin gerçekten var olduğu ve BP tanımının çizim bileşeni taşımadığı
+sınanıyor.
+
+## 3. İki yerde kaynaktan saptım — ikisi de yazılı
+
+- **Faz geçişi**: kaynak önce geri (×−1) sonra ileri (×2.5) itiyor, yani
+  duvarın içinden geçirmiyor, hızla geçip gidiyor. Bedrock'ta salt itme
+  duvarda takılıyor; bizimki duvarın **ötesindeki ilk boş yere ışınlıyor**.
+  Kaynağın itme çarpanını sabit olarak bile yazmadım — ölü bir sabit
+  "aktarıldı" izlenimi verirdi.
+- **Portal**: kaynakta iki ucu olan gerçek bir varlık (384 satır, kendi
+  varlığı ve iki uç arası taşıma). Bizdeki tek atışlık. Adı bu yüzden
+  "portal" değil **"geçit"**.
+
+## 4. Animasyon taraması: bir gerçek bulgu
+
+Kullanıcı *"animasyonlara çok önem veriyorum"* dedi, ben de taramayı
+kalıcı teste çevirdim (`test/animasyon.mjs`). Dokuz şeye bakıyor: JSON
+geçerliliği, `animation.` öneki, aynı pakette çift kimlik, iki paket
+arasında **ayrışmış** kimlik, tanımsız animasyon, `scripts.animate`'te
+tanımsız kısa ad, kare biçimleri, `animation_length` aşımı ve **animasyonun
+yazdığı kemiğin modelde olup olmadığı**.
+
+Son madde gerçek bir bulgu verdi:
+
+```
+animation.simsek_kol.birinci_sahis: modelde OLMAYAN kemige yaziyor: rightitem
+```
+
+**Altı kolun tutuş animasyonu dört sürümdür hiçbir şey yapmıyormuş.**
+`geometry.simsek_kol`de `rightitem` diye bir kemik yok (kemikler:
+`RightArm`, `kol`). Eski yorum *"referans mod da aynen böyle gönderiyor ve
+çalışıyor"* diyordu; referans modda da çalışmıyormuş, sadece kimse bakmamış.
+
+Ölü kodu sildim. **Kemiği eklemedim**: eklemek animasyonu canlandırır ve
+kolun duruşu değişir — bu görsel bir değişiklik ve bu depoda görsel
+değişiklikler görülmeden yapılmıyor. Ölçülmüş değerler `kol_uret.py`'de
+yorumda duruyor.
+
+Tarayıcının kendisi de üç kez yanlış alarm verdi ve düzeltildi: Bedrock'un
+`{"vector":[...], "easing":...}` kare biçimini bilmiyordu (805 sahte hata),
+oyuncu varlığının **bütün** geometrilerine değil yalnız `default`ına
+bakıyordu (4 sahte hata), ve WOM serisini kaba bir regex'le okuyordu
+(69 sahte uyarı). Tarayıcı da test edilmesi gereken bir koddur.
+
+Kalan 35 "şüphe" bozukluk değil: kaynak modlardan gelen ve henüz
+bağlanmamış animasyonlar (Diamondhead kalkanı/kılıcı, Omnitrix çevirmeleri,
+Ripjaws ısırığı). Kullanıcı *"kütüphanelerden ödün verme"* dediği için
+silinmediler; yalnız sayıları teste sabitlendi ki sessizce artmasınlar.
+
+---
+
 # v5.2 — Marvel Project: Fisk gitti, 268 parça geldi
 
 Kullanıcı bir `.mcaddon` attı ve kapsamı net söyledi: *"bu sefer

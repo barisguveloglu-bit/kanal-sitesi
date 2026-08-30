@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v5.2";
+export const SURUM = "v5.3";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -4580,6 +4580,7 @@ export const MARVEL_GUCLER = new Map([
   }],
   ["dr_strange", {
     ad: "Doctor Strange",
+    mekanikler: ["gecit"],
     /* Bu kahramanin modda GUC ESYASI YOK -- gucu
        kostumun kendisi tasiyor. Uydurma bir guc esyasi
        uretmedik; calisma zamani kostume bakiyor.        */
@@ -4607,6 +4608,7 @@ export const MARVEL_GUCLER = new Map([
   }],
   ["starlord", {
     ad: "Star-Lord",
+    mekanikler: ["sicrayis"],
     /* Bu kahramanin modda GUC ESYASI YOK -- gucu
        kostumun kendisi tasiyor. Uydurma bir guc esyasi
        uretmedik; calisma zamani kostume bakiyor.        */
@@ -4623,7 +4625,8 @@ export const MARVEL_GUCLER = new Map([
                ["slow_falling", 0, 0]]
   }],
   ["vision", {
-    ad: "Vision", ozet: "UÇUŞ · ZIHIN TAŞI IŞINI · direnç III · gece görüşü",
+    ad: "Vision",
+    mekanikler: ["atilma", "faz"], ozet: "UÇUŞ · ZIHIN TAŞI IŞINI · direnç III · gece görüşü",
     /* "vision_fly", "vision_punch", "vision_impulse";
        faz gecisi (bloktan gecme) aktarilamadi.               */
     yetenek: "ucus", isin: "marvel_isin_zihin",
@@ -4631,7 +4634,8 @@ export const MARVEL_GUCLER = new Map([
                ["slow_falling", 0, 0]]
   }],
   ["adam_warlock", {
-    ad: "Adam Warlock", ozet: "UÇUŞ · güç IV · direnç II · düşme hasarı yok",
+    ad: "Adam Warlock",
+    mekanikler: ["sicrayis"], ozet: "UÇUŞ · güç IV · direnç II · düşme hasarı yok",
     /* "adam_warlock_fly", "adam_warlock_punch"               */
     yetenek: "ucus",
     efektler: [["strength", 0, 3], ["resistance", 0, 1],
@@ -4644,7 +4648,8 @@ export const MARVEL_GUCLER = new Map([
     efektler: [["fire_resistance", 0, 0], ["slow_falling", 0, 0]]
   }],
   ["venom", {
-    ad: "Venom", ozet: "UÇUŞ · güç V · can tazeleme · düşme hasarı yok",
+    ad: "Venom",
+    mekanikler: ["tirmanma", "sallanma", "atilma"], ozet: "UÇUŞ · güç V · can tazeleme · düşme hasarı yok",
     /* "venom_fly", "venom_force", "venom_impulse";
        functions/venom/venom_regeneration.mcfunction:
        regeneration 3/3 + saturation.
@@ -4654,7 +4659,8 @@ export const MARVEL_GUCLER = new Map([
                ["saturation", 0, 0], ["slow_falling", 0, 0]]
   }],
   ["antman", {
-    ad: "Ant-Man / Wasp", ozet: "UÇUŞ (Wasp kanadı) · düşme hasarı yok",
+    ad: "Ant-Man / Wasp",
+    mekanikler: ["boy"], ozet: "UÇUŞ (Wasp kanadı) · düşme hasarı yok",
     /* "wasp_fly"; boy degistirme aktarilamadi (bkz. yukarisi) */
     yetenek: "ucus",
     efektler: [["slow_falling", 0, 0]]
@@ -4663,6 +4669,7 @@ export const MARVEL_GUCLER = new Map([
   /* ---- YERDEKILER ---- */
   ["daredevil", {
     ad: "Daredevil",
+    mekanikler: ["sallanma", "atilma"],
     ozet: "gece görüşü · can tazeleme · emilim V · hız II",
     /* functions/daredevil/skill.mcfunction BIREBIR:
          darkness 2/0 · absorption 15/4 · regeneration 10/0
@@ -4673,7 +4680,8 @@ export const MARVEL_GUCLER = new Map([
                ["absorption", 0, 4], ["speed", 0, 1]]
   }],
   ["spiderman", {
-    ad: "Spider-Man", ozet: "hız III · zıplama III · düşme hasarı yok · direnç II",
+    ad: "Spider-Man",
+    mekanikler: ["tirmanma", "sallanma", "atilma"], ozet: "hız III · zıplama III · düşme hasarı yok · direnç II",
     /* "spiderman_climb", "spiderman_impulse", "spiderman_web";
        functions/spiderman/off_swing.mcfunction slow_falling.
        Ag ve tirmanma aktarilamadi -- ozet onlari vaat etmiyor. */
@@ -4681,14 +4689,16 @@ export const MARVEL_GUCLER = new Map([
                ["slow_falling", 0, 0], ["resistance", 0, 1]]
   }],
   ["hulk", {
-    ad: "Hulk", ozet: "güç X · direnç IV · zıplama V · düşme hasarı yok",
+    ad: "Hulk",
+    mekanikler: ["tirmanma", "sicrayis"], ozet: "güç X · direnç IV · zıplama V · düşme hasarı yok",
     /* "hulk_climb", "hulk_falling"; hulk_powers bacak
        yuvasinda ve skin secimi avengers_id_card'da.          */
     efektler: [["strength", 0, 9], ["resistance", 0, 3],
                ["jump_boost", 0, 4], ["slow_falling", 0, 0]]
   }],
   ["wolverine", {
-    ad: "Wolverine", ozet: "can tazeleme III · güç IV · direnç II",
+    ad: "Wolverine",
+    mekanikler: ["tirmanma", "atilma"], ozet: "can tazeleme III · güç IV · direnç II",
     /* "wolverine_impulse1/2", "wolverine_run_wall";
        pencelerin kendisi ayri esya (wolverine_claws.js).     */
     efektler: [["regeneration", 0, 2], ["strength", 0, 3],
@@ -4701,7 +4711,8 @@ export const MARVEL_GUCLER = new Map([
                ["resistance", 0, 1]]
   }],
   ["black_panther", {
-    ad: "Black Panther", ozet: "hız III · zıplama II · direnç III · gece görüşü",
+    ad: "Black Panther",
+    mekanikler: ["tirmanma", "atilma"], ozet: "hız III · zıplama II · direnç III · gece görüşü",
     /* "black_panther_claws/climb/kick/spin"                  */
     efektler: [["speed", 0, 2], ["jump_boost", 0, 1],
                ["resistance", 0, 2], ["night_vision", 0, 0]]
@@ -4719,19 +4730,22 @@ export const MARVEL_GUCLER = new Map([
                ["night_vision", 0, 0]]
   }],
   ["cyclops", {
-    ad: "Cyclops", ozet: "OPTİK IŞIN · hız II",
+    ad: "Cyclops",
+    mekanikler: ["atilma"], ozet: "OPTİK IŞIN · hız II",
     /* "cyclops_impulse"; scripts/cyclops.js optik atis        */
     isin: "marvel_isin_optik",
     efektler: [["speed", 0, 1]]
   }],
   ["moon_knight", {
-    ad: "Moon Knight", ozet: "gece görüşü · hız II · zıplama II · düşme hasarı yok",
+    ad: "Moon Knight",
+    mekanikler: ["tirmanma", "atilma"], ozet: "gece görüşü · hız II · zıplama II · düşme hasarı yok",
     /* "moon_knight_climb", "moon_knight_impulse"             */
     efektler: [["night_vision", 0, 0], ["speed", 0, 1],
                ["jump_boost", 0, 1], ["slow_falling", 0, 0]]
   }],
   ["ghost", {
-    ad: "Ghost", ozet: "görünmezlik · hız II",
+    ad: "Ghost",
+    mekanikler: ["faz", "atilma"], ozet: "görünmezlik · hız II",
     /* "ghost_blocks", "ghost_kick_effect"                    */
     efektler: [["invisibility", 0, 0], ["speed", 0, 1]]
   }],
@@ -4741,7 +4755,8 @@ export const MARVEL_GUCLER = new Map([
                ["resistance", 0, 1]]
   }],
   ["iron_fist", {
-    ad: "Iron Fist", ozet: "güç VI · hız II · zıplama II",
+    ad: "Iron Fist",
+    mekanikler: ["tirmanma", "atilma"], ozet: "güç VI · hız II · zıplama II",
     /* "iron_fist_spin", "iron_fist_kick_effect"              */
     efektler: [["strength", 0, 5], ["speed", 0, 1],
                ["jump_boost", 0, 1]]
@@ -4752,6 +4767,7 @@ export const MARVEL_GUCLER = new Map([
   }],
   ["white_tiger", {
     ad: "White Tiger",
+    mekanikler: ["tirmanma", "atilma"],
     /* Bu kahramanin modda GUC ESYASI YOK -- gucu
        kostumun kendisi tasiyor. Uydurma bir guc esyasi
        uretmedik; calisma zamani kostume bakiyor.        */
@@ -4761,13 +4777,15 @@ export const MARVEL_GUCLER = new Map([
                ["night_vision", 0, 0]]
   }],
   ["squirrel_girl", {
-    ad: "Squirrel Girl", ozet: "zıplama IV · hız II · düşme hasarı yok",
+    ad: "Squirrel Girl",
+    mekanikler: ["tirmanma"], ozet: "zıplama IV · hız II · düşme hasarı yok",
     /* "squirrel_girl_claws/climb"                            */
     efektler: [["jump_boost", 0, 3], ["speed", 0, 1],
                ["slow_falling", 0, 0]]
   }],
   ["rocket_raccoon", {
-    ad: "Rocket Raccoon", ozet: "hız III · zıplama II · acele II",
+    ad: "Rocket Raccoon",
+    mekanikler: ["tirmanma"], ozet: "hız III · zıplama II · acele II",
     efektler: [["speed", 0, 2], ["jump_boost", 0, 1], ["haste", 0, 1]]
   }],
   ["groot", {
@@ -4781,12 +4799,14 @@ export const MARVEL_GUCLER = new Map([
                ["night_vision", 0, 0]]
   }],
   ["gambit", {
-    ad: "Gambit", ozet: "hız II · zıplama II · patlama direnci yok (aktarılamadı)",
+    ad: "Gambit",
+    mekanikler: ["atilma"], ozet: "hız II · zıplama II · patlama direnci yok (aktarılamadı)",
     /* "gambit_impulse"; kart mermileri ayri esya             */
     efektler: [["speed", 0, 1], ["jump_boost", 0, 1]]
   }],
   ["hawkeye", {
-    ad: "Hawkeye", ozet: "hız II · düşme hasarı yok · gece görüşü",
+    ad: "Hawkeye",
+    mekanikler: ["sallanma", "atilma"], ozet: "hız II · düşme hasarı yok · gece görüşü",
     /* "hawkeye_swing", "hawkeye_hook_end";
        functions/hawkeye/off_swing.mcfunction slow_falling    */
     efektler: [["speed", 0, 1], ["slow_falling", 0, 0],
@@ -4867,12 +4887,14 @@ export const MARVEL_GUCLER = new Map([
                ["speed", 0, 1]]
   }],
   ["reed", {
-    ad: "Mister Fantastic", ozet: "direnç III · düşme hasarı yok",
+    ad: "Mister Fantastic",
+    mekanikler: ["sallanma"], ozet: "direnç III · düşme hasarı yok",
     /* Uzama ve kanca aktarilamadi (reed_hook.js kendi mermisi) */
     efektler: [["resistance", 0, 2], ["slow_falling", 0, 0]]
   }],
   ["sue", {
-    ad: "Invisible Woman", ozet: "görünmezlik · direnç III",
+    ad: "Invisible Woman",
+    mekanikler: ["kuvvet_alani"], ozet: "görünmezlik · direnç III",
     /* sue_force_physics.js kuvvet alani aktarilamadi          */
     efektler: [["invisibility", 0, 0], ["resistance", 0, 2]]
   }],
@@ -4942,3 +4964,96 @@ export const MARVEL_ISIN = new Map([
     parcacik: "minecraft:endrod"
   }]
 ]);
+
+/* ================================================================
+   MARVEL MEKANIKLERI                                       v5.3
+
+   Kullanici hakliydi ve duzeltmem gerekti:
+
+     "duvar tirmanma, ag sallanma, boy degistirme, faz gecisi,
+      kuvvet alani, portallar... bunlari almayacaksan zaten
+      kahraman diye bir sey kalmiyor, kostum oluyor. Kahramanda
+      ozellik denilen bir sey kalmiyorsa o kahraman degil,
+      normal insandir."
+
+   v5.2'de bunlara "Bedrock'ta oyuncuya EFEKTLE verilemiyor"
+   demistim. Cumle dogruydu ama YANILTICIYDI: mod bunlari
+   efektle degil SCRIPT'le yapiyor ve mod zaten Bedrock. Yani
+   aktarilabilirler. Aktarildilar.
+
+   ---- SAYILAR NEREDEN ----
+   Hepsi modun kendi script dosyalarindan, satir satir:
+     bp/scripts/black_panther.js:72        tirmanma  x0.5
+     bp/scripts/spiderman/swing.js:19      cengel menzili 72
+     bp/scripts/spiderman/swing.js:42      sallanma cekisi x3.5
+     bp/scripts/spiderman/swing.js:159     suzulme x1, dikey -0.1
+     bp/scripts/spiderman/swing.js:175     atilma x2
+     bp/scripts/spiderman/swing.js:189     sicrayis x8
+     bp/scripts/spiderman/swing.js:218     hamle x4
+     bp/scripts/ghost/ghost.js:10,24       faz: geri x-1, ileri x2.5
+     bp/scripts/sue_force_physics.js:3-13  kuvvet alani sabitleri
+     bp/entities/player.json               boy: 0.05 / 1.0 / 5.0
+
+   ---- ITME NEDEN applyKnockback ----
+   applyImpulse OYUNCULARDA islemiyor (cekme.js'te v4.x'te
+   olculmustu); modun kendisi de her yerde applyKnockback
+   kullaniyor. Ayni cagri bicimi korundu:
+       applyKnockback(dx, dz, hypot(dx, dz), dy)
+   ================================================================ */
+export const MARVEL_MEKANIK_ACIK = true;
+
+/* Tirmanma: cömelme + duvara bakma + havada olma. Kaynakta
+   durum makinesi bir ANIMASYON DENETLEYICISINDE duruyor ve
+   etiket ekleyip cikariyor; script de etikete bakip itiyor.
+   Bizde durum makinesi script'te -- ayni kosullar, tek yerde.  */
+export const MARVEL_TIRMANMA_GUC    = 0.5;   // black_panther.js:72
+export const MARVEL_TIRMANMA_MENZIL = 1.6;   // duvar kac blok otede
+export const MARVEL_TIRMANMA_TARAMA = 2;     // kac tick'te bir
+
+/* Sallanma: bakisla bir noktaya cengel at, oraya dogru cek.  */
+export const MARVEL_CENGEL_MENZIL = 72;      // swing.js:19
+export const MARVEL_SALLANMA_GUC  = 3.5;     // swing.js:42
+export const MARVEL_SALLANMA_TICK = 30;      // kac tick cekilsin
+export const MARVEL_SUZULME_GUC   = 1.0;     // swing.js:159
+export const MARVEL_SUZULME_DIKEY = -0.1;    // swing.js:165
+
+export const MARVEL_ATILMA_GUC  = 4.0;       // swing.js:218
+export const MARVEL_SICRAYIS_GUC = 8.0;      // swing.js:189
+
+/* Faz gecisi: kaynakta once GERI (x-1) sonra ILERI (x2.5)
+   itiyor -- yani duvarin icinden gecirmiyor, hizla gecip
+   gidiyor. Bizde duvarin OTESINDEKI ilk bos yere isinlanma
+   var, cunku salt itme Bedrock'ta duvarda takiliyor.
+   Fark BURADA yaziyor, gizlenmedi.                            */
+export const MARVEL_FAZ_MENZIL = 6;          // kac blok otesine
+/* Kaynagin itme carpani (ghost.js:24 -> x2.5) BURADA
+   KULLANILMIYOR ve bilerek yazilmadi: bizimki itmiyor,
+   isinliyor. Olu bir sabit birakmak "aktarildi" izlenimi
+   verirdi.                                                    */
+
+/* Kuvvet alani (Invisible Woman): sue_force_physics.js       */
+export const MARVEL_ALAN_YARICAP     = 12;   // ATTRACT_RADIUS
+export const MARVEL_ALAN_HASAR_MENZIL = 16;  // MAX_DAMAGE_DISTANCE
+export const MARVEL_ALAN_EN_YAKIN    = 4;    // MIN_PULL_DISTANCE
+export const MARVEL_ALAN_HIZ         = 3;    // MAGNET_SPEED_I
+export const MARVEL_ALAN_HASAR       = 2;    // DAMAGE_AMOUNT
+export const MARVEL_ALAN_HASAR_ARA   = 10;   // DAMAGE_INTERVAL_TICKS
+export const MARVEL_ALAN_YAVASLIK    = 1;    // SLOWNESS_AMPLIFIER
+export const MARVEL_ALAN_YAVASLIK_SURE = 20; // SLOWNESS_DURATION_TICKS
+export const MARVEL_ALAN_SURE        = 100;  // alan kac tick acik kalsin
+
+/* Portal (Doctor Strange): kaynakta iki ucu olan gercek bir
+   varlik. Bizde tek atislik isinlanma -- baktigin yerdeki ILK
+   GUVENLI noktaya. Iki uclu portal ayri bir varlik sistemi
+   ister ve o kadari alinmadi; ozet de "portal" demiyor,
+   "gecit" diyor.                                              */
+export const MARVEL_GECIT_MENZIL = 48;
+
+/* Boy degistirme (Ant-Man / Wasp): entities/player.json'daki
+   bilesen gruplari. Degerler modun kendi dosyasindan.         */
+export const MARVEL_BOY_OLAY = {
+  kucuk:    "pa:boy_kucuk",
+  normal:   "pa:boy_normal",
+  buyuk:    "pa:boy_buyuk"
+};
+export const MARVEL_BOY_OLCEK = { kucuk: 0.05, normal: 1.0, buyuk: 5.0 };

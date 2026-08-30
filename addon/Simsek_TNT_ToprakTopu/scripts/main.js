@@ -47,6 +47,14 @@ import {
   marvelTara, marvelUnut, marvelListesi, guctekiKahraman, gucKumesi
 } from "./yetenekler/marvel.js";
 
+/* v5.3: kahramanlarin MEKANIKLERI -- tirmanma, sallanma,
+   atilma, sicrayis, faz, kuvvet alani, gecit, boy.
+   Tirmanma SUREKLI oldugu icin taramaya giriyor; otekiler
+   yetenek olarak kayitli ve menuden/jestle tetikleniyor.    */
+import {
+  tirmanmaTara, tirmanmaUnut, boyUnut
+} from "./yetenekler/marvel_mekanik.js";
+
 /* v4.98: Ben 10 beceri agaci. Uzayli halindeyken oldurunce
    XP, kademe atlayinca yetenek puani.                       */
 import {
@@ -358,6 +366,14 @@ system.runInterval(() => {
         marvelTara(oyuncular);
       } catch (e) {
         hataYaz("marvelTara", e);
+      }
+      /* Tirmanma AYRI: comelme + duvar + bakis her tick
+         degisebiliyor, guc taramasinin 20 tick'lik araligi
+         cok yavas kalirdi.                                  */
+      try {
+        tirmanmaTara(oyuncular);
+      } catch (e) {
+        hataYaz("tirmanmaTara", e);
       }
     }
     if (CAN_SAYACI_ACIK) {
@@ -1838,6 +1854,8 @@ olayaAbone("playerLeave", (olay) => {
   donusumUnutOyuncu(olay.playerId);
   zirhUnutOyuncu(olay.playerId);
   marvelUnut(olay.playerId);
+  tirmanmaUnut(olay.playerId);
+  boyUnut(olay.playerId);
   canSayaciUnut(olay.playerId);
   womDovusUnut(olay.playerId);
   teknolojiUnut(olay.playerId);

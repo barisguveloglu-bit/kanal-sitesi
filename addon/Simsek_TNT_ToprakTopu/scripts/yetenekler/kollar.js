@@ -164,6 +164,19 @@ for (const [mod, t] of ZIRH_MODLAR) {
 
    Liste MARVEL_GUCLER'den turuyor: yeni bir kahraman eklenince
    burasi kendiliginden dogru kalir.                         */
+/* Mekanik adi -> yetenek kimligi. Tirmanma BURADA YOK:
+   surekli bir durum, tetiklenen bir yetenek degil (merkezi
+   tick'ten taraniyor).                                        */
+const MARVEL_MEKANIK_YETENEK = {
+  sallanma: "marvel_sallanma",
+  atilma: "marvel_atilma",
+  sicrayis: "marvel_sicrayis",
+  faz: "marvel_faz",
+  kuvvet_alani: "marvel_kuvvet_alani",
+  gecit: "marvel_gecit",
+  boy: "marvel_boy"
+};
+
 export const MARVEL_YETENEKLERI = [];
 for (const [anahtar, t] of MARVEL_GUCLER) {
   /* GUC ESYASI OLMAYAN kahramanlar (Iron Man, Doctor Strange,
@@ -178,7 +191,11 @@ for (const [anahtar, t] of MARVEL_GUCLER) {
      bakiyor.                                                */
   if (t.gucKostumden) continue;
   const esya = MARVEL_ONEK + anahtar + "__" + anahtar + "_powers";
-  for (const y of [t.yetenek, t.isin]) {
+  /* v5.3: mekanikler de bagli. Kaynakta bunlar kahramanin
+     ASIL ozelligi -- kullanicinin dedigi gibi, onlar olmayinca
+     "kahraman degil kostum" kaliyor.                         */
+  const mekYetenek = (t.mekanikler || []).map((m) => MARVEL_MEKANIK_YETENEK[m]);
+  for (const y of [t.yetenek, t.isin, ...mekYetenek]) {
     if (!y) continue;
     MARVEL_YETENEKLERI.push([esya, y]);
     esyaBagla(esya, y);

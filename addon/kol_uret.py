@@ -811,16 +811,10 @@ def attachable(kimlik):
                     "enchanted": "textures/misc/enchanted_item_glint",
                 },
                 "geometry": {"default": "geometry.simsek_kol"},
-                "animations": {
-                    "tutus_birinci": "animation.simsek_kol.birinci_sahis",
-                    "tutus_ucuncu": "animation.simsek_kol.ucuncu_sahis",
-                },
-                "scripts": {
-                    "animate": [
-                        {"tutus_birinci": "c.is_first_person"},
-                        {"tutus_ucuncu": "!c.is_first_person"},
-                    ]
-                },
+                # v5.3: TUTUS ANIMASYONU KALDIRILDI. Var olmayan
+                # bir kemige (rightitem) yaziyordu, yani dort
+                # surumdur hicbir sey yapmiyordu. Gerekcesi
+                # TUTUS_ANIM'in eski yerinde uzun uzun yazili.
                 "render_controllers": ["controller.render.item_default"],
             }
         },
@@ -3215,6 +3209,112 @@ def marvel_kimlik(p):
     return MARVEL_ONEK + p["kahraman"] + MARVEL_AYIRAC + p["anahtar"]
 
 
+# ---- OYUNCU VARLIGI: BOY DEGISTIRME  (v5.3) ----
+# Kullanici: "boy degistirme... bunlari almayacaksan zaten
+# kahraman diye bir sey kalmiyor."
+#
+# Bedrock'ta oyuncunun OLCEGINI script degistiremiyor; yalniz
+# BILESEN GRUBU degistirebiliyor. Bu yuzden depoda ilk kez bir
+# BP oyuncu varligi var.
+#
+# ---- BILESENLER NEREDEN ----
+# `components` blogu vanilla oyuncunun kendi bilesen kumesi;
+# Marvel modunun bp/entities/player.json dosyasindan BIREBIR
+# alindi (1979 bayt, 23 bilesen). Elle yazilmadi -- eksik bir
+# bilesen oyuncuyu bozar ve hatasi cok gec anlasilir.
+#
+# ---- NEDEN MODUN TAMAMI ALINMADI ----
+# Modun player.json'u 272 KB ve 612 olay tasiyor (kendi 385
+# bilesen grubu). Bize yalniz UC olcek grubu lazim; gerisi
+# baska kahramanlarin makinesi ve bizde karsiligi yok.
+#
+# Olcekler modun kendi dosyasindan:
+#   antman:small -> scale 0.05, carpisma kutusu 0.6 x 0.6
+#   antman:big   -> scale 5.0,  carpisma kutusu 0.6 x 1.8
+MARVEL_OYUNCU_BILESEN = {
+    "minecraft:experience_reward": {
+        "on_death": "Math.Min(query.player_level * 7, 100)"},
+    "minecraft:type_family": {"family": ["player"]},
+    "minecraft:is_hidden_when_invisible": {},
+    "minecraft:loot": {"table": "loot_tables/empty.json"},
+    "minecraft:collision_box": {"width": 0.6, "height": 1.8},
+    "minecraft:can_climb": {},
+    "minecraft:movement": {"value": 0.1},
+    "minecraft:hurt_on_condition": {"damage_conditions": [{
+        "filters": {"test": "in_lava", "subject": "self",
+                    "operator": "==", "value": True},
+        "cause": "lava", "damage_per_tick": 4}]},
+    "minecraft:attack": {"damage": 1},
+    "minecraft:exhaustion_values": {
+        "heal": 6, "jump": 0.05, "sprint_jump": 0.2, "mine": 0.005,
+        "attack": 0.1, "damage": 0.1, "walk": 0.0, "sprint": 0.1,
+        "swim": 0.01},
+    "minecraft:player.saturation": {"value": 5, "max": 20},
+    "minecraft:player.exhaustion": {"value": 0, "max": 20},
+    "minecraft:player.level": {"value": 0, "max": 24791},
+    "minecraft:player.experience": {"value": 0, "max": 1},
+    "minecraft:breathable": {"total_supply": 15, "suffocate_time": -1,
+                             "inhale_time": 3.75, "generates_bubbles": False},
+    "minecraft:nameable": {"always_show": True,
+                           "allow_name_tag_renaming": False},
+    "minecraft:physics": {"push_towards_closest_space": True},
+    "minecraft:pushable": {"is_pushable": False, "is_pushable_by_piston": True},
+    "minecraft:insomnia": {"days_until_insomnia": 3},
+    "minecraft:rideable": {
+        "seat_count": 2, "family_types": ["parrot_tame"],
+        "pull_in_entities": True,
+        "seats": [
+            {"position": [0.4, -0.2, -0.1], "min_rider_count": 0,
+             "max_rider_count": 0, "lock_rider_rotation": 0},
+            {"position": [-0.4, -0.2, -0.1], "min_rider_count": 1,
+             "max_rider_count": 2, "lock_rider_rotation": 0}]},
+    "minecraft:conditional_bandwidth_optimization": {},
+    "minecraft:block_climber": {},
+}
+
+# (olay, grup, olcek, kutu eni, kutu boyu) -- ayarlar.js
+# MARVEL_BOY_OLCEK ile AYNI olmak zorunda; test karsilastiriyor.
+MARVEL_BOY = [
+    ("pa:boy_normal", "pa_boy_normal", 1.0,  0.6, 1.8),
+    ("pa:boy_kucuk",  "pa_boy_kucuk",  0.05, 0.6, 0.6),
+    ("pa:boy_buyuk",  "pa_boy_buyuk",  5.0,  0.6, 1.8),
+]
+
+
+def marvel_oyuncu_varligi():
+    """BP oyuncu varligi -- yalniz boy degistirme icin.
+
+    format_version 1.18.20: modun kendi dosyasindaki surum.
+    Daha yenisi denenmedi cunku bu surumun tablette calistigi
+    BILINIYOR (mod calisiyor).                                 """
+    gruplar = {}
+    olaylar = {}
+    adlar = [g for _, g, _, _, _ in MARVEL_BOY]
+    for olay, grup, olcek, en, boy in MARVEL_BOY:
+        gruplar[grup] = {
+            "minecraft:scale": {"value": olcek},
+            "minecraft:collision_box": {"width": en, "height": boy},
+        }
+        olaylar[olay] = {
+            "add": {"component_groups": [grup]},
+            "remove": {"component_groups": [g for g in adlar if g != grup]},
+        }
+    return {
+        "format_version": "1.18.20",
+        "minecraft:entity": {
+            "description": {
+                "identifier": "minecraft:player",
+                "is_spawnable": False,
+                "is_summonable": False,
+                "is_experimental": False,
+            },
+            "component_groups": gruplar,
+            "components": MARVEL_OYUNCU_BILESEN,
+            "events": olaylar,
+        },
+    }
+
+
 def marvel_esyasi(p):
     """Giyilebilir parca. Zirh puani, yuva ve dayaniklilik
     MODUN KENDI esyasindan -- hicbiri yeniden hesaplanmadi.  """
@@ -4157,22 +4257,30 @@ GEOMETRI = {
     ],
 }
 
-# rightitem kemigi bu modelde yok; animasyon etkisiz kaliyor. Referans
-# mod da aynen boyle gonderiyor ve calisiyor, o yuzden birebir korundu.
-TUTUS_ANIM = {
-    "format_version": "1.10.0",
-    "animations": {
-        "animation.simsek_kol.ucuncu_sahis": {
-            "loop": True,
-            "bones": {"rightitem": {"position": [0, 22, 5], "rotation": [90, 0, 90]}},
-        },
-        "animation.simsek_kol.birinci_sahis": {
-            "loop": True,
-            "bones": {"rightitem": {"position": [-5, 35, -5.5], "rotation": [0, 0, 180]}},
-        },
-    },
-}
-
+# ---- TUTUS ANIMASYONU KALDIRILDI  (v5.3) ----
+#
+# Kullanici: "gene animasyon tarafinda tum animasyonlar icin
+# genel bir tarama yapmani istiyorum, bozukluk cikarsa haber et."
+#
+# TARAMA BUNU BULDU. `animation.simsek_kol.*` `rightitem` adli
+# bir kemige yaziyordu; `geometry.simsek_kol`de oyle bir kemik
+# YOK (kemikler: RightArm, kol). Yani animasyon hicbir zaman
+# CALISMADI -- alti kolun tamaminda, dort surumdur.
+#
+# Eski yorum "referans mod da aynen boyle gonderiyor ve
+# calisiyor" diyordu; referans modda da calismiyormus, sadece
+# kimse bakmamis.
+#
+# NEDEN SILINDI, NEDEN KEMIK EKLENMEDI:
+# Kemigi eklemek animasyonu CANLANDIRIR ve kolun durusu
+# degisir. Bu gorsel bir degisiklik ve bu depoda gorsel
+# degisiklikler GORULMEDEN yapilmiyor. Olu kodu silmek hicbir
+# seyi degistirmiyor; canlandirmak degistirir ve once tablette
+# bakilmasi gerek.
+#
+# Olculmus degerler kaybolmasin diye burada duruyor:
+#   ucuncu_sahis  position [0, 22, 5]     rotation [90, 0, 90]
+#   birinci_sahis position [-5, 35, -5.5] rotation [0, 0, 180]
 
 # ------------------------------------------------------------------ png
 # ============================================================
@@ -5409,6 +5517,13 @@ def main():
                 liste.append("item.pa:%s.name=%s" % (_tad, ad))
                 liste.append("item.pa:%s=%s" % (_tad, ad))
 
+    # ---- OYUNCU VARLIGI (v5.3) ----
+    # Depoda ILK KEZ bir BP oyuncu varligi var; tek sebebi
+    # Ant-Man'in boy degistirmesi (Bedrock'ta olcek yalniz
+    # bilesen grubuyla degisiyor). Gerekcesi tanimin basinda.
+    yaz_json(os.path.join(BP, "entities/player.json"),
+             marvel_oyuncu_varligi())
+
     # ---- MARVEL PROJECT (v5.2) ----
     # 268 parca: 142 kostum, 85 maske, 41 guc. Geometri ve doku
     # modun kendisinden; hicbiri yeniden cizilmedi.
@@ -5730,7 +5845,6 @@ def main():
     yaz_json(os.path.join(RP, "models/entity/simsek_goz_lazer.geo.json"),
              goz_lazer_geometrisi())
     yaz_json(os.path.join(RP, "models/entity/simsek_kol.geo.json"), GEOMETRI)
-    yaz_json(os.path.join(RP, "animations/simsek_kol_tutus.animation.json"), TUTUS_ANIM)
     yaz_json(os.path.join(RP, "animations/goz_lazeri.animation.json"),
              lazer_animasyonu())
     if LAZER_ISIN_PARLAK:
