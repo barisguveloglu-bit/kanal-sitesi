@@ -1,3 +1,83 @@
+# v4.98 — Ben 10 beceri ağacı
+
+Kullanıcı: *"oyunda bu mod kurulduğunda yanda bir sekme açıyor ve orada
+bir skill seçilebiliyor, ekstra yeteneklerini arttırabiliyoruz; onun için
+de bir menü olduğunu gördüm, onları da ekle."*
+
+O sekme **Palladium'un yetenek ekranı**. Modun kendi dosyalarından
+çıkarıldı — hiçbiri uydurma.
+
+## Ağaç nereden geldi
+
+| ne | nerede |
+|---|---|
+| düğümler | `data/alienevo_aliens/palladium/powers/<tür>.json` → gizli olmayan, `gui_position` taşıyan her yetenek |
+| ön koşul | `conditions.unlocking` → `palladium:ability_unlocked` |
+| ücret | `conditions.unlocking` → `palladium:scoreboard_score_buyable.score` |
+| istatistik etkisi | `palladium:attribute_modifier` → `attack_damage` / `armor` / `armor_toughness` / `swim_speed` |
+| **düğüm adları** | `assets/alienevo/lang/tr_tr.json` — **zaten Türkçe**, çevrilmedi |
+| XP kuralı | `data/alienevo/kubejs_scripts/xp.js` |
+
+**44 düğüm** (tür başına 11), üç dal hâlinde. Adlar modun kendi metni:
+"Kristalokinezi: Mermiler", "Sonik Patlama", "Su Girdabı", "Pyrokinezi:
+Ateş Nefesi"…
+
+## Seviye ve puan — sayılar modun betiğinden
+
+`xp.js` birebir:
+
+```js
+xpToAdd = Math.round(entityMaxHealth * 0.425)
+maxXp   = currentLevel === 0 ? 100 : 100 * currentLevel
+if (currentLevel >= 10) { ... }        // tavan kademe
+```
+
+Uzaylı hâlindeyken bir canlıyı öldürünce **o uzaylının** XP'si artıyor.
+Her kademe **+1 yetenek puanı**. Tavan 10.
+
+**Tür başına ayrı**, biçim başına değil: Prototip Elmas Kafa'yla
+kazandığın puanı 10K'da harcıyorsun — modda da öyle (`Petrosapien.Level`,
+`Tetramand.Level`…).
+
+## İstatistik yükseltmeleri: neden toplanıp bir kez çevriliyor
+
+Ağaçtaki artışlar küçük (`+1 saldırı`, `+2 savunma`). Bedrock'ta Güç
+seviye başına **+3**, Direnç seviye başına **%20**. Tek tek çevirseydik
+üç kez "+1 saldırı" almak **hiçbir şey** vermezdi (her biri
+`round(1/3) = 0`).
+
+O yüzden açılan düğümlerin katkıları **toplanıp bir kez** çevriliyor.
+Test bunu ölçüyor: Dört Kol'un iki `+4` saldırı düğümü açılınca
+`+8 → Güç II` çıkmalı.
+
+## Menü
+
+Ben 10 menüsünün altına **★ Beceriler** satırı geldi:
+
+- Elinde yaratık varsa **doğrudan o türün ağacını** açıyor — tablette
+  "hangi tür?" diye ikinci bir soru fazladan bir dokunuş demekti.
+- Elinde yoksa önce tür seçtiriyor.
+- Her düğüm: `✔` açık · `◆` alınabilir (ücreti yazıyor) · `✖` kilitli
+  (**sebebi yazıyor** — hangi ön koşul eksik ya da kaç puan gerek).
+
+Başlıkta kademe, puan ve XP/eşik duruyor.
+
+## XP kancası
+
+`entityDie` olayına abone olunuyor; öldüren oyuncu uzaylı hâlindeyse XP
+gidiyor. Olay her sürümde yok — `olayaAbone` eksik olayda paketi
+öldürmüyor, sadece bu özelliği kapatıp uyarı düşüyor (bot_ilkel dersi).
+
+Öldüren oyuncuyu `damageSource.damagingEntity`'den okuyor. **v4.95'te göz
+lazerine `damagingEntity` eklenmişti** — öncesinde "sebepsiz" ölümler XP
+de vermezdi.
+
+**Test:** `sim/beceri.mjs` — 279 sınama, 7 bölüm. Ağacın her düğümü modun
+JSON'uyla karşılaştırılıyor (ön koşul, ücret, miktar, ağaçtaki yer) ve XP
+formülü modun betiğinden regex'le doğrulanıyor.
+
+---
+
 # v4.97 — Uzaylı boyutları, Max Steel'in eksik katmanları ve tek animasyonu
 
 ## 1. Uzaylı boyutları: çarpanı kaçırmışız

@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v4.97";
+export const SURUM = "v4.98";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -3054,6 +3054,170 @@ export const ZIRH_MODLAR = new Map([
                ["slow_falling", 0, 0], ["jump_boost", 0, 2]]
   }]
 ]);
+
+
+/* ================================================================
+   BEN 10 BECERI AGACI                                     v4.98
+
+   Kullanici: "oyunda bu mod kuruldugunda yanda bir sekme
+   aciyor ve orada bir skill secilebiliyor, ekstra
+   yeteneklerini arttirabiliyoruz; onun icin de bir menu
+   oldugunu gordum, onlari da ekle."
+
+   O sekme Palladium'un YETENEK EKRANI. Modun kendi
+   dosyalarindan cikarildi -- hicbiri uydurma:
+
+     data/alienevo_aliens/palladium/powers/<tur>.json
+       . gizli olmayan, gui_position tasiyan her yetenek bir
+         AGAC DUGUMU
+       . conditions.unlocking icindeki
+           palladium:ability_unlocked  -> ONKOSUL dugum
+           palladium:scoreboard_score_buyable -> UCRET (puan)
+       . palladium:attribute_modifier olanlar bir ISTATISTIK
+         yukseltmesi (attack_damage / armor / armor_toughness /
+         swim_speed)
+     assets/alienevo/lang/tr_tr.json
+       . dugum adlari ZATEN TURKCE, cevrilmedi -- modun kendi
+         metni ("Kristalokinezi: Mermiler", "Sonik Patlama"...)
+
+   ---- SEVIYE VE PUAN (data/alienevo/kubejs_scripts/xp.js) ----
+   Uzayli halindeyken bir canliyi oldurunce o uzaylinin XP'si
+   artiyor:
+       xp += round(hedefin_maks_cani * 0.425)
+   Kademe atlama esigi:
+       gereken = kademe == 0 ? 100 : 100 * kademe
+   Her kademe +1 YETENEK PUANI veriyor, tavan kademe 10.
+   Sayilarin hepsi o dosyadan; carpan da esik formulu de
+   birebir.
+
+   ---- UC DAL ----
+   gui_position agacin seklini veriyor: orta dal (x=0) ve iki
+   yan dal (x<0, x>0), her biri kendi onkosul zinciriyle. Ilk
+   dugum BEDAVA (ucret 0), gerisi birer puan.
+
+   ---- ISTATISTIK YUKSELTMELERI NASIL CEVRILIYOR ----
+   Kucuk artislar tek tek seviyeye cevrilemez: Bedrock'ta Guc
+   seviye basina +3, Direnc seviye basina %20. O yuzden acilan
+   dugumlerin katkilari TOPLANIP bir kez ceviriliyor
+   (beceri.js:beceriEfektleri). Boylece "+1 saldiri" ucuncu
+   kez alindiginda gercekten bir seviye kazandiriyor.
+   ================================================================ */
+export const BECERI_ACIK = true;
+export const BECERI_KAYIT_ANAHTAR = "simsek:beceri";
+/* xp.js: xpToAdd = Math.round(entityMaxHealth * 0.425) */
+export const BECERI_XP_CARPAN = 0.425;
+/* xp.js: maxXp = currentLevel === 0 ? 100 : 100 * currentLevel */
+export const BECERI_XP_TABAN = 100;
+/* xp.js: if (currentLevel >= 10) { ... return; } */
+export const BECERI_TAVAN_KADEME = 10;
+
+export const BECERI_AGACI = new Map([
+  ["elmas", [
+    { anahtar: "spikes_unlock", ad: "Kristal Kontrolü: Dikenler", dal: -1.5, derinlik: 1.5,
+      gerek: "attack_upgrade", ucret: 1, etki: null },
+    { anahtar: "attack_upgrade2", ad: "Saldırı §a+1", dal: -1.5, derinlik: 2.5,
+      gerek: "spikes_unlock", ucret: 1, etki: ["saldiri", 1] },
+    { anahtar: "attack_upgrade", ad: "Saldırı §a+1", dal: -1, derinlik: 1,
+      gerek: "shards_unlock", ucret: 1, etki: ["saldiri", 1] },
+    { anahtar: "shards_unlock", ad: "Kristalokinezi: Mermiler", dal: -0.5, derinlik: 0.5,
+      gerek: null, ucret: 1, etki: null },
+    { anahtar: "creation_unlock", ad: "Kristalokinezi", dal: 0, derinlik: 1,
+      gerek: null, ucret: 0, etki: null },
+    { anahtar: "health_upgrade", ad: "Dayanıklılık §a+5", dal: 0, derinlik: 2,
+      gerek: "creation_unlock", ucret: 1, etki: ["zirh", 5] },
+    { anahtar: "spike_circle_unlock", ad: "Kristalokinezi: Dikenler", dal: 0, derinlik: 3,
+      gerek: "health_upgrade", ucret: 1, etki: null },
+    { anahtar: "pillar_unlock", ad: "Kristalokinezi: Sütun", dal: 0.5, derinlik: 0.5,
+      gerek: null, ucret: 1, etki: null },
+    { anahtar: "defense_upgrade_1", ad: "Savunma §a+2", dal: 1, derinlik: 1,
+      gerek: "pillar_unlock", ucret: 1, etki: ["zirh", 2] },
+    { anahtar: "battlemode_unlock", ad: "Savaş Modu", dal: 1.5, derinlik: 1.5,
+      gerek: "defense_upgrade_1", ucret: 1, etki: null },
+    { anahtar: "defense_upgrade_2", ad: "Savunma §a+2", dal: 1.5, derinlik: 2.5,
+      gerek: "battlemode_unlock", ucret: 1, etki: ["zirh", 1] },
+  ]],
+  ["dortkol", [
+    { anahtar: "block_unlock", ad: "Blok", dal: -1.5, derinlik: 1.5,
+      gerek: "defense_upgrade_1", ucret: 1, etki: null },
+    { anahtar: "defense_upgrade_2", ad: "Dayanıklılık §a+6", dal: -1.5, derinlik: 2.5,
+      gerek: "block_unlock", ucret: 1, etki: ["zirh", 6] },
+    { anahtar: "defense_upgrade_1", ad: "Dayanıklılık §a+6", dal: -1, derinlik: 1,
+      gerek: "leap_unlock", ucret: 1, etki: ["zirh", 6] },
+    { anahtar: "leap_unlock", ad: "Sıçra", dal: -0.5, derinlik: 0.5,
+      gerek: null, ucret: 1, etki: null },
+    { anahtar: "boulder_unlock", ad: "Kaya Fırlatma", dal: 0, derinlik: 1,
+      gerek: null, ucret: 0, etki: null },
+    { anahtar: "attack_upgrade_1", ad: "Saldırı §a+4", dal: 0, derinlik: 2,
+      gerek: "boulder_unlock", ucret: 1, etki: ["saldiri", 4] },
+    { anahtar: "tornado_unlock", ad: "Kanca Kasırgası", dal: 0, derinlik: 3,
+      gerek: "attack_upgrade_1", ucret: 1, etki: null },
+    { anahtar: "sonic_clap_unlock", ad: "Sonik Patlama", dal: 0.5, derinlik: 0.5,
+      gerek: null, ucret: 1, etki: null },
+    { anahtar: "attack_upgrade_2", ad: "Saldırı §a+4", dal: 1, derinlik: 1,
+      gerek: "sonic_clap_unlock", ucret: 1, etki: ["saldiri", 4] },
+    { anahtar: "climb_unlock", ad: "Yüzey Tırmanışı", dal: 1.5, derinlik: 1.5,
+      gerek: "attack_upgrade_2", ucret: 1, etki: null },
+    { anahtar: "slam_unlock", ad: "Sismik Darbe", dal: 1.5, derinlik: 2.5,
+      gerek: "climb_unlock", ucret: 1, etki: null },
+  ]],
+  ["cene", [
+    { anahtar: "slash_unlock", ad: "Kamçı Vuruşu", dal: -1.5, derinlik: 1.5,
+      gerek: "attack_upgrade", ucret: 1, etki: null },
+    { anahtar: "climb_unlock", ad: "Yüzey Tırmanışı", dal: -1.5, derinlik: 2.5,
+      gerek: "slash_unlock", ucret: 1, etki: null },
+    { anahtar: "attack_upgrade", ad: "Saldırı §a+1", dal: -1, derinlik: 1,
+      gerek: "leap_unlock", ucret: 1, etki: ["saldiri", 1] },
+    { anahtar: "leap_unlock", ad: "Sıçrama", dal: -0.5, derinlik: 0.5,
+      gerek: null, ucret: 1, etki: null },
+    { anahtar: "bite_unlock", ad: "Isır", dal: 0, derinlik: 1,
+      gerek: null, ucret: 0, etki: null },
+    { anahtar: "attack_upgrade_1", ad: "Saldırı §a+1", dal: 0, derinlik: 2,
+      gerek: "bite_unlock", ucret: 1, etki: ["saldiri", 1] },
+    { anahtar: "tail_slam_unlock", ad: "Kuyruk Savurusu", dal: 0, derinlik: 3,
+      gerek: "attack_upgrade_1", ucret: 1, etki: null },
+    { anahtar: "aqua_jet_unlock", ad: "Su Jeti", dal: 0.5, derinlik: 0.5,
+      gerek: null, ucret: 1, etki: null },
+    { anahtar: "swim_upgrade_1", ad: "Yüzme Hızı §a+1", dal: 1, derinlik: 1,
+      gerek: "aqua_jet_unlock", ucret: 1, etki: ["yuzme", 1] },
+    { anahtar: "water_vortex_unlock", ad: "Su Girdabı", dal: 1.5, derinlik: 1.5,
+      gerek: "swim_upgrade_1", ucret: 1, etki: null },
+    { anahtar: "wave_unlock", ad: "Gelgit Dalgası", dal: 1.5, derinlik: 2.5,
+      gerek: "water_vortex_unlock", ucret: 1, etki: null },
+  ]],
+  ["ates", [
+    { anahtar: "fire_breath_unlock", ad: "Pyrokinezi: Ateş Nefesi", dal: -1.5, derinlik: 1.5,
+      gerek: "defense_upgrade_1", ucret: 1, etki: null },
+    { anahtar: "defense_upgrade_2", ad: "Savunma §a+4", dal: -1.5, derinlik: 2.5,
+      gerek: "fire_breath_unlock", ucret: 1, etki: ["zirh", 4] },
+    { anahtar: "defense_upgrade_1", ad: "Savunma §a+4", dal: -1, derinlik: 1,
+      gerek: "heat_absorption_unlock", ucret: 1, etki: ["zirh", 4] },
+    { anahtar: "heat_absorption_unlock", ad: "Pyrokinezi: Isı Emilimi", dal: -0.5, derinlik: 0.5,
+      gerek: null, ucret: 1, etki: null },
+    { anahtar: "fire_ball_unlock", ad: "Pyrokinezi: Alev Topu", dal: 0, derinlik: 1,
+      gerek: null, ucret: 0, etki: null },
+    { anahtar: "attack_upgrade_1", ad: "Saldırı §a+2", dal: 0, derinlik: 2,
+      gerek: "fire_ball_unlock", ucret: 1, etki: ["saldiri", 2] },
+    { anahtar: "tornado_unlock", ad: "Pyrokinezi: Hortum", dal: 0, derinlik: 3,
+      gerek: "attack_upgrade_1", ucret: 1, etki: null },
+    { anahtar: "pyro_leap_unlock", ad: "Pyrokinezi: Ateşle Taşıma", dal: 0.5, derinlik: 0.5,
+      gerek: null, ucret: 1, etki: null },
+    { anahtar: "attack_upgrade_2", ad: "Saldırı §a+2", dal: 1, derinlik: 1,
+      gerek: "pyro_leap_unlock", ucret: 1, etki: ["saldiri", 3] },
+    { anahtar: "pyro_surf_unlock", ad: "Pyrokinezi: Sörf Yapma", dal: 1.5, derinlik: 1.5,
+      gerek: "attack_upgrade_2", ucret: 1, etki: null },
+    { anahtar: "health_upgrade_1", ad: "Dayanıklılık §a+5", dal: 1.5, derinlik: 2.5,
+      gerek: "pyro_surf_unlock", ucret: 1, etki: ["zirh", 5] },
+  ]],
+]);
+
+/* Istatistik cevrimi. Bedrock adimlari:
+     Guc    seviye basina +3 hasar
+     Direnc seviye basina %20
+   Zirh puani -> direnc: Max Steel modlarindaki olcumun aynisi
+   (zirh 20-30 ~ %60-80). Burada artislar kucuk oldugu icin
+   her 10 zirh puani bir Direnc seviyesi sayiliyor.           */
+export const BECERI_SALDIRI_ADIM = 3;    // 1 Guc seviyesi
+export const BECERI_ZIRH_ADIM    = 10;   // 1 Direnc seviyesi
 
 /* ================================================================
    FISK'S SUPERHEROES -- DOKUZ KAHRAMAN                    v4.96

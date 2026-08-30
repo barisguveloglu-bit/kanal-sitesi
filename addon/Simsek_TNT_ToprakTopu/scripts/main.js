@@ -11,6 +11,7 @@ import {
   KILIC_ESYA, SEY_ACIK, SEY_AD, SEY_TAVAN,
   ZIRH_ACIK, ZIRH_MODLAR, ZIRH_CEKIRDEK_ONEK,
   KAHRAMAN_ACIK, KAHRAMANLAR, KAHRAMAN_ONEK,
+  BECERI_ACIK, BECERI_AGACI, BECERI_TAVAN_KADEME,
   BEN10_ACIK, BEN10
 } from "./ayarlar.js";
 
@@ -42,6 +43,12 @@ import {
 import {
   kahramanTara, kahramanUnutOyuncu, kahramanListesi, elindekiKahraman
 } from "./yetenekler/kahraman.js";
+
+/* v4.98: Ben 10 beceri agaci. Uzayli halindeyken oldurunce
+   XP, kademe atlayinca yetenek puani.                       */
+import {
+  beceriXpVer, beceriListesi, beceriAc, beceriAl, gerekenXp
+} from "./yetenekler/beceri.js";
 
 /* Ben 10 (v4.92): elindeki esyaya gore yaratik oluyorsun.
    Gorunusu oyuncu modeli paketi ciziyor, gucleri bu modul.    */
@@ -766,14 +773,136 @@ function ben10Menusu(oyuncu) {
         "\n§8" + y.ozet
   }));
 
+  /* v4.98: BECERI AGACI. Modda yandaki sekme; bizde menunun
+     altindaki satir. Elinde yaratik varsa DOGRUDAN o turun
+     agacini aciyor -- "hangi tur" diye ikinci bir soru
+     sormak tablette fazladan bir dokunus demekti.          */
+  const ekler = [];
+  if (BECERI_ACIK) {
+    if (simdiki) {
+      const t = BEN10.get(simdiki);
+      const d = beceriAl(oyuncu.id, t.taban);
+      ekler.push({
+        ad: "§b★ Beceriler §8· §f" + t.ad.split(" · ")[0] +
+            " §8(kademe " + d.kademe + " · " + d.puan + " puan)",
+        calis() { beceriMenusu(oyuncu, t.taban); }
+      });
+    } else {
+      /* Elinde yaratik yoksa once TUR secilecek. */
+      ekler.push({
+        ad: "§b★ Beceriler §8(hangi tür?)",
+        calis() { beceriTurMenusu(oyuncu); }
+      });
+    }
+  }
+
   const acildi = menuAc(oyuncu,
     simdiki
       ? "§a⌚ Ben 10 §7· şu an §f" + BEN10.get(simdiki).ad
       : "§a⌚ Ben 10 §7· eşyayı §feline al§7, o yaratık ol",
-    dugmeler, -1, (i) => ben10Anlat(oyuncu, dugmeler[i].anahtar), []);
+    dugmeler, -1, (i) => ben10Anlat(oyuncu, dugmeler[i].anahtar), ekler);
 
   if (!acildi) ben10Anlat(oyuncu, liste[0].anahtar);
   return undefined;
+}
+
+/* BEN 10 BECERI AGACI MENUSU  (v4.98)
+
+   Kullanici: "yanda bir sekme aciyor ve orada bir skill
+   secilebiliyor, ekstra yeteneklerini arttirabiliyoruz."
+
+   Agacin kendisi ayarlar.js:BECERI_AGACI ve modun kendi
+   dosyalarindan cikarildi. Bu ekran onu GOSTERIYOR ve
+   dokununca dugumu aciyor.
+
+   Dugumler UC DAL halinde: modun gui_position'i sol/orta/sag
+   diyor, biz de o sirayla diziyoruz -- agacin sekli tabletin
+   duz listesinde de okunabilsin.                            */
+function beceriTurMenusu(oyuncu) {
+  const dugmeler = [];
+  for (const [taban] of BECERI_AGACI) {
+    /* Turun adi BEN10 tablosundan: iki yerde yazmayalim. */
+    let ad = taban;
+    for (const [, t] of BEN10) {
+      if (t.taban === taban) { ad = t.ad.split(" · ")[0] + " §8(" + t.tur + ")"; break; }
+    }
+    const d = beceriAl(oyuncu.id, taban);
+    dugmeler.push({
+      taban,
+      ad: "§f" + ad + "\n§8kademe " + d.kademe + "/" + BECERI_TAVAN_KADEME +
+          " · " + d.puan + " puan · " + d.acik.length + " beceri açık"
+    });
+  }
+  const acildi = menuAc(oyuncu, "§b★ Beceriler §7· tür seç",
+    dugmeler, -1, (i) => beceriMenusu(oyuncu, dugmeler[i].taban), []);
+  if (!acildi && dugmeler.length) beceriMenusu(oyuncu, dugmeler[0].taban);
+  return undefined;
+}
+
+function beceriMenusu(oyuncu, taban) {
+  if (!BECERI_ACIK) {
+    actionbarYaz(oyuncu, "§cBeceriler kapalı (BECERI_ACIK).");
+    return undefined;
+  }
+  const { durum, dugumler, gereken } = beceriListesi(oyuncu.id, taban);
+  if (!dugumler.length) {
+    actionbarYaz(oyuncu, "§cBu türün beceri ağacı yok.");
+    return undefined;
+  }
+
+  const dugmeler = dugumler.map((n) => {
+    const isaret = n.acik ? "§a✔ " : (n.alinabilir ? "§e◆ " : "§8✖ ");
+    const alt = n.acik
+      ? "§8açık"
+      : (n.alinabilir
+          ? "§e" + (n.ucret ? n.ucret + " puan · dokun ve al" : "ücretsiz · dokun ve al")
+          : "§8" + n.sebep);
+    return { anahtar: n.anahtar, ad: isaret + "§f" + n.ad + "\n" + alt };
+  });
+
+  let ad = taban;
+  for (const [, t] of BEN10) {
+    if (t.taban === taban) { ad = t.ad.split(" · ")[0]; break; }
+  }
+  const tavanda = durum.kademe >= BECERI_TAVAN_KADEME;
+  const baslik = "§b★ " + ad + " §8· kademe " + durum.kademe + "/" +
+    BECERI_TAVAN_KADEME + " §7· §f" + durum.puan + " puan\n§8" +
+    (tavanda ? "en üst kademe" : durum.xp + "/" + gereken + " XP");
+
+  const acildi = menuAc(oyuncu, baslik, dugmeler, -1,
+    (i) => beceriSec(oyuncu, taban, dugmeler[i].anahtar), []);
+
+  if (!acildi) {
+    /* Menu yoksa (server-ui kapali) durumu yaz: tabletten
+       yine de ne oldugu gorulebilsin.                       */
+    try {
+      oyuncu.sendMessage(
+        "§b★ §f" + ad + " §8· kademe " + durum.kademe + "/" +
+        BECERI_TAVAN_KADEME + " · " + durum.puan + " puan\n§8" +
+        dugumler.filter((n) => n.acik).map((n) => n.ad).join(", ") ||
+        "§8henüz beceri açılmadı");
+    } catch (e) {
+      hataYaz("beceri.mesaj", e);
+    }
+  }
+  return undefined;
+}
+
+function beceriSec(oyuncu, taban, anahtar) {
+  const sonuc = beceriAc(oyuncu.id, taban, anahtar);
+  try {
+    if (sonuc.olur) {
+      oyuncu.sendMessage("§a★ §fAçıldı: " + sonuc.dugum.ad +
+        (sonuc.dugum.etki
+          ? "\n§8bu bir istatistik yükseltmesi — dönüştüğünde etkisi gelir"
+          : "\n§8kaynak: alienevo/" + taban));
+    } else {
+      oyuncu.sendMessage("§7★ " + sonuc.sebep);
+    }
+  } catch (e) {
+    hataYaz("beceri.sec", e);
+  }
+  kollariIndir(oyuncu);
 }
 
 function ben10Anlat(oyuncu, anahtar) {
@@ -1468,6 +1597,50 @@ function esyasizOyuncu(oyuncu, sira) {
 /* ============================================================
    OYUNCU OLAYLARI
    ============================================================ */
+
+/* ---- BECERI XP (v4.98) ----
+
+   Modun kurali (data/alienevo/kubejs_scripts/xp.js): UZAYLI
+   HALINDEYKEN bir canliyi oldurunce o uzaylinin XP'si artiyor.
+   Carpan ve esik formulu ayarlar.js'te, ikisi de o dosyadan.
+
+   entityDie her surumde YOK; olayaAbone eksik olayda paketi
+   oldurmuyor, sadece bu ozelligi kapatiyor (bot_ilkel dersi).
+
+   OLDUREN OYUNCU MU: olay.damageSource.damagingEntity. Goz
+   lazeri v4.95'te bunu vermeye baslamisti; oncesinde
+   "sebepsiz" olumler XP de vermezdi.                        */
+const beceriKuruldu = olayaAbone("entityDie", (olay) => {
+  try {
+    if (!BEN10_ACIK || !BECERI_ACIK) return;
+    const kaynak = olay.damageSource;
+    const vuran = kaynak && kaynak.damagingEntity;
+    if (!vuran || vuran.typeId !== "minecraft:player") return;
+    /* Kendi olumun XP vermez. */
+    if (olay.deadEntity && olay.deadEntity.id === vuran.id) return;
+
+    const yaratik = elindekiYaratik(vuran);
+    if (!yaratik) return;
+    const t = BEN10.get(yaratik);
+    if (!t) return;
+
+    let maksCan = 0;
+    try {
+      const c = olay.deadEntity.getComponent("minecraft:health");
+      maksCan = (c && (c.effectiveMax || c.defaultValue)) || 0;
+    } catch (e) {
+      maksCan = 0;
+    }
+    if (maksCan <= 0) return;
+    beceriXpVer(vuran, t.taban, maksCan);
+  } catch (e) {
+    hataYaz("beceri.entityDie", e);
+  }
+});
+if (!beceriKuruldu) {
+  bilgiYaz("entityDie yok: Ben 10 beceri agaci XP toplamiyor. " +
+           "Agac yine acilabilir ama puan yalniz elle verilebilir.");
+}
 
 olayaAbone("playerLeave", (olay) => {
   esyasizTutma.delete(olay.playerId);

@@ -1,6 +1,7 @@
 import { system } from "@minecraft/server";
 import { hataYaz, actionbarYaz, eldekiEsya } from "../yardimcilar.js";
 import { BEN10_ACIK, BEN10_TARAMA, BEN10_SURE, BEN10 } from "../ayarlar.js";
+import { beceriEfektleri } from "./beceri.js";
 
 /* ================================================================
    BEN 10 -- YARATIK OLMAK                                 v4.92
@@ -100,7 +101,20 @@ export function ben10Tara(oyuncular) {
     sonraki.set(oyuncu.id, simdi + BEN10_TARAMA);
 
     const t = BEN10.get(anahtar);
-    for (const [ad, , seviye] of t.efektler) {
+    /* v4.98: acilmis BECERI dugumlerinin katkisi. Agac TURE
+       ait (t.taban), bicime degil -- Prototip'le kazandigin
+       puani 10K'da harciyorsun, modda da oyle.
+
+       Katkilar taban tablonun USTUNE biniyor: ayni efekt iki
+       kez veriliyorsa Bedrock yuksek seviyeyi tutuyor, o
+       yuzden once taban sonra beceri sirasi dogru.          */
+    let ekEfektler = [];
+    try {
+      ekEfektler = beceriEfektleri(oyuncu.id, t.taban);
+    } catch (e) {
+      /* beceri defteri okunamadi: taban efektler yine gitsin */
+    }
+    for (const [ad, , seviye] of t.efektler.concat(ekEfektler)) {
       try {
         oyuncu.addEffect(ad, BEN10_SURE, {
           amplifier: seviye,
