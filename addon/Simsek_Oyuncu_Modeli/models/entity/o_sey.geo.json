@@ -16,6 +16,23 @@
       },
       "bones": [
         {
+          "name": "waist",
+          "pivot": [
+            0,
+            12,
+            0
+          ],
+          "parent": "root"
+        },
+        {
+          "name": "root",
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
           "name": "body",
           "pivot": [
             0,
@@ -55,7 +72,8 @@
                 32
               ]
             }
-          ]
+          ],
+          "parent": "waist"
         },
         {
           "name": "head",
@@ -140,7 +158,7 @@
         },
         {
           "name": "rightLeg",
-          "parent": "body",
+          "parent": "root",
           "pivot": [
             -1.9,
             12,
@@ -167,7 +185,7 @@
         },
         {
           "name": "leftLeg",
-          "parent": "body",
+          "parent": "root",
           "pivot": [
             1.9,
             12,

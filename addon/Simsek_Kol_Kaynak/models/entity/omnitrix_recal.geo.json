@@ -16,12 +16,30 @@
       },
       "bones": [
         {
-          "name": "head",
+          "name": "waist",
+          "pivot": [
+            0,
+            12,
+            0
+          ],
+          "parent": "root"
+        },
+        {
+          "name": "root",
           "pivot": [
             0,
             0,
             0
           ]
+        },
+        {
+          "name": "head",
+          "pivot": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
         },
         {
           "name": "body",
@@ -29,7 +47,8 @@
             0,
             0,
             0
-          ]
+          ],
+          "parent": "waist"
         },
         {
           "name": "rightArm",
@@ -37,7 +56,8 @@
             -5,
             -2,
             0
-          ]
+          ],
+          "parent": "body"
         },
         {
           "name": "leftArm",
@@ -45,7 +65,8 @@
             5,
             22,
             0
-          ]
+          ],
+          "parent": "body"
         },
         {
           "name": "recal_omnitrix",
@@ -1752,7 +1773,8 @@
             -1.9,
             12,
             0
-          ]
+          ],
+          "parent": "root"
         },
         {
           "name": "leftLeg",
@@ -1760,7 +1782,8 @@
             1.9,
             12,
             0
-          ]
+          ],
+          "parent": "root"
         }
       ]
     }

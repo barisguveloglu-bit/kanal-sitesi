@@ -16,12 +16,30 @@
       },
       "bones": [
         {
+          "name": "waist",
+          "pivot": [
+            0,
+            12,
+            0
+          ],
+          "parent": "root"
+        },
+        {
+          "name": "root",
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
           "name": "head",
           "pivot": [
             0.0,
             34.8346,
             0.5863
-          ]
+          ],
+          "parent": "body"
         },
         {
           "name": "head2",
@@ -982,7 +1000,8 @@
             5.85,
             31.59,
             0.0
-          ]
+          ],
+          "parent": "body"
         },
         {
           "name": "shoulder3",
@@ -1434,7 +1453,8 @@
             -5.85,
             31.59,
             0.0
-          ]
+          ],
+          "parent": "body"
         },
         {
           "name": "shoulder2",
@@ -2125,7 +2145,8 @@
                 }
               }
             }
-          ]
+          ],
+          "parent": "waist"
         },
         {
           "name": "tail_1",
@@ -2595,7 +2616,8 @@
                 }
               }
             }
-          ]
+          ],
+          "parent": "root"
         },
         {
           "name": "left_legr",
@@ -2814,7 +2836,8 @@
                 }
               }
             }
-          ]
+          ],
+          "parent": "root"
         },
         {
           "name": "right_legr",

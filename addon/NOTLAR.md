@@ -1,3 +1,193 @@
+# v5.5 — "Karakter bildiğin dans ediyor": dövüş animasyonları onarıldı
+
+Kullanıcı iki ekran görüntüsü attı: uzuvlar gövdeden kopmuş, havada
+dağılmış. *"Bu nedir ya, düzelt bunu lütfen, sadece bunu düzelt."*
+Epic Fight ve WeaponsOfMiracles jar'larının orijinallerini de yolladı
+*"ki farklar netleşsin"*.
+
+Üç ayrı hata vardı, üçü de aynı görüntüyü üretiyordu. Hiçbiri tahminle
+bulunmadı — hepsi ölçüldü.
+
+## 1. Asıl sebep: Euler dal atlaması
+
+Bedrock kareler arasını **her eksen için ayrı ve düz** geçiyor. Euler
+ayrıştırması ise süreksiz: aynı dönüş hem `[179.71, 72.66, 179.87]` hem
+`[-179.85, 65.95, 177.82]` diye yazılabilir. Gerçek fark **0.4 derece**,
+ama Bedrock birinciden ikinciye düz gidiyor: **359.6 derecelik savrulma**.
+
+v5.4 dosyasında ölçüldü: 7470 kare geçişinin
+
+| | sayı |
+|---|---|
+| 90 dereceden büyük sıçrama | 363 |
+| 180 dereceden büyük | 147 |
+| 270 dereceden büyük | 90 |
+| en kötüsü | saniyede **7049 derece** |
+
+Dans buydu. `euler_surekli()` her karede iki eşdeğer çözümden
+(`(x, y, z)` ve `(x+180, 180−y, z+180)` — ikisinin aynı matrisi verdiği
+3000 rastgele dönüşle doğrulandı, hata 0.0) öncekine yakın olanı seçip
+360'ın katlarıyla kaydırıyor. Sonuç: **180'i aşan sıçrama 0**.
+
+## 2. Root atılıyordu
+
+Çevirici Epic Fight'ın `Root` eklemini hiç okumuyordu. 63 animasyonun
+**60'ında** Root ekseninde 20 dereceden fazla, en çok **88.8 derecelik**
+bir gövde dönüşü var — savurarak dönen vuruşlar.
+
+Kafa ve bacaklar Root'un çocuğu oldukları için onu **dengeleyen** ters
+dönüşler taşıyor. Ölçüldü: `axe_auto1`'de Root Y = −60.3 iken Head
+Y = +58.6. Root atılınca dengeleme ortada kalıyor ve kafa 113 derece
+savruluyordu.
+
+## 3. `GOVDE_CIKAR` ters yönde çalışıyordu
+
+v5.0'ın yorumu *"Bedrock'ta rightLeg, body'nin çocuğu"* diyordu. Değil.
+Marvel Project'in 46 oyuncu modeli ölçüldü, hepsinde aynı:
+
+```
+root  (0,0,0)
+ ├ waist (0,12,0)
+ │   └ body (0,24,0)
+ │       ├ head     (0,24,0)
+ │       ├ rightArm (-5,22,0)
+ │       └ leftArm  (5,22,0)
+ ├ rightLeg (-2,12,0)
+ └ leftLeg  (2,12,0)
+```
+
+Bacaklar `body`'nin **kardeşi**. Epic Fight'ta da öyle (`Thigh_R`,
+`Root`'un çocuğu). Yani çıkarılacak bir şey yoktu; çıkarma bacaklara
+gövdenin tersini **ekliyordu**.
+
+İki iskelet aynı yapıda çıkınca eşleme bire bir oldu:
+`Root→root`, `Torso→waist`, `Chest→body`, `Head→head`,
+`Shoulder·Arm→kol`, `Thigh·Leg→bacak`. Katlama yok, çıkarma yok.
+
+## 4. Önizleme yalan söylüyordu
+
+`onizle_poz.py` bacakları `body`'nin çocuğu çiziyordu — yani çevirinin
+**aynı yanlışını** doğruluyordu. Bu yüzden hatayı hiç yakalayamadı.
+Ayrıca kareler arasını çizmiyordu, sadece anahtar kareleri; dans tam da
+aralarda oluyordu. İkisi de düzeltildi: gerçek 8 kemikli iskelet ve
+Bedrock'un yaptığı düz ara değer.
+
+Önce Root'u `body`'ye katlamayı denedim. Sayılar temizdi, önizleme
+yalanladı: `body`'nin dönme merkezi **boyun**, `root`'unki **ayak**.
+Gövdeyi boyundan döndürünce torso kafanın altından kayıyor — düzeltmeye
+çalıştığımız görüntünün aynısı. Görmeden anlaşılmazdı.
+
+## 5. Kaynakta iki tuhaflık, ikisi de ölçüyle bulundu
+
+**Kombo devamı.** Kaynak animasyonlar bir seri: `auto_2`, `auto_1`'in
+bitirdiği açıdan başlıyor. 63 animasyonun yalnız 12'si root'u sıfıra
+yakın başlatıyor, **15'i 90 dereceden fazla dönmüş** başlatıyor
+(`orbit_attack_1`: 173 derece). Epic Fight'ta sorun değil — varlık zaten
+oraya dönmüş. Bedrock'ta oyuncunun yönü kameranın, yani 173 derece bir
+anda dönmek demek.
+
+**Eksen düzeni.** `longsword_auto1/2/3` Root'u Y-yukarı düzeninde
+taşıyor, bağlama pozu Z-yukarı. Ölçüldü: o üç dosyada `D(Root)·e_y` =
+`(0, −0.1, −1.0)` — **sabit** ve 95 derece yatmış; diğer 60 dosyada
+`e_y`'ye yakın. Sabit olması bunun animasyon içeriği değil eksen düzeni
+olduğunu söylüyor. Root katlanınca karakter yatıyordu.
+
+İkisi de root'un **soldan çarpılan sabit bir çarpanı**. `D(Root,t₀)⁻¹`
+ile çarpmak ikisini birden götürüyor: sabit sadeleşiyor, animasyonun
+kendi dönüşü duruyor. Eşik yok, tahmin yok. Önce eşikli bir "eksen
+düzeltmesi" yazmıştım; sıfırlama onu tamamen kapsayınca sildim —
+çalışmayan ayar bırakmıyoruz.
+
+## 6. Katman çakışması
+
+Bedrock `playAnimation` çıktısını vanilla animasyonların **üstüne
+ekliyor**: `move.arms`, `attack.rotations`, `bob`, `holding`, `sneaking`.
+Vuruş animasyonu tam da vanilla vuruşla aynı anda oynadığı için iki
+hareket toplanıyordu.
+
+`override_previous_animation: true` bu animasyonun **yazdığı** kemikleri
+toplamak yerine değiştiriyor, yazmadıklarına dokunmuyor. Referans
+paketlerde 87 animasyon böyle yapıyor — aralarında bu depoya zaten
+aktardığımız Ben 10 modunun tam gövde pozları.
+
+## 7. Modellerin yarısında iskelet yoktu
+
+Kendi ürettiğimiz 23 modelde (Ben 10 uzaylıları, omnitrix) **hiç ebeveyn
+yoktu**; 11'inde (zırh modları, O Şey) bacaklar `body`'nin çocuğuydu.
+Gövde dönünce kafa ve kollar yerinde kalıyordu — kopmanın öteki yarısı.
+
+`kol_uret.py:insan_hiyerarsisi()` tek yerde onarıyor, çünkü geometri
+dosyaları altı ayrı yerden yazılıyor. Yalnız **sapmayı** düzeltiyor:
+kaynak modların bilerek kurduğu özel bağlar (Marvel'in `rotation`
+kemiği, 10 modelde) olduğu gibi kalıyor.
+
+Bu da bir tuzak çıkardı: **Elmas Kafa'da zaten `root` adında bir kemik
+var** — kafadaki kristal, `head`'in çocuğu, 3 küp. Onu iskelet kökü
+sanıp gövdeyi ona bağladım ve bütün vücut kafadan sarktı. Aynı tuzak
+`head`/`body` için `BEN10_KEMIK` tarafında zaten çözülmüştü. Ölçüt:
+gerçek iskelet kökü ebeveynsiz ve küpsüzdür; öyle değilse `_ic` ekiyle
+yeniden adlandırılıp çocukları yeni ada bağlanıyor.
+
+Sonuç: 74 insansı modelin **74'ü** doğru hiyerarşide, döngü yok, eksik
+ata yok.
+
+## 8. Yay sıklaştırma
+
+Kaynak kareler arasında 100 dereceyi geçen dönüşler var (`agony_auto_4`:
+Root 0.083 saniyede 118 derece). Epic Fight arasını **kuaterniyonla**
+geçiyor, Bedrock euler eksenlerini tek tek düz birleştiriyor. 170
+derecelik bir yayda iki yol çok ayrılıyor: uzuv doğru yere varıyor ama
+**yanlış yoldan**.
+
+Artık ara değeri biz hesaplıyoruz (kaynağın kendi yöntemiyle, slerp) ve
+çıktı karelerini yay 45 dereceyi geçmeyecek kadar sıklaştırıyoruz.
+7848 kare → 9927 kare. Depolama sorun değil — kullanıcının açık kuralı.
+
+## 9. Ölçülen sonuç
+
+| | v5.4 | v5.5 |
+|---|---|---|
+| 180 dereceyi aşan kare sıçraması | 147 | **0** |
+| ara değer hatası > 30 derece | 177 | **0** |
+| ara değer hatası > 10 derece | 225 | **0** |
+| en kötü ara değer hatası | 350° | **7°** |
+| root taşıyan animasyon | 0 | 63 |
+| doğru hiyerarşideki insansı model | 40/74 | **74/74** |
+
+## 10. Testler
+
+`wom_dovus.mjs`'e dört denetim eklendi: ardışık kareler arasında 180
+dereceyi aşan sıçrama yok · hepsi `override_previous_animation` ile ·
+root ilk karede sıfır · kemik adları vanilla iskeletin tamamından.
+
+`anim_tara.py` (bütün paketi tarayan kalıcı tarayıcı) iki denetim
+kazandı: kare sıçraması ve insansı iskelet düzeni.
+
+**Tam tur istisnası**: `drill_spin` bilerek 0 → −360 dönüyor (loop,
+0.25 saniyede bir tur). Yani büyük sıçrama tek başına hata değil. Ayrımı
+ölçen kural: gerçek tam tur **tek eksende**, **tam 360'ın katı**, öteki
+iki eksen **sabit**. Dal atlamasında hepsi oynuyor ve tur tam çıkmıyor.
+Kural v5.4 dosyasında sınandı: 147 bozuk geçişin **147'sini** yakalıyor,
+`drill_spin`'in 2 gerçek turuna dokunmuyor.
+
+Testler bozuk v5.4 verisiyle **geri koşuldu**: 147 hata veriyor,
+düzeltilmiş veriyle 0. Yani gerçekten bu hatayı bekliyorlar.
+
+## 11. Ne yapılmadı
+
+- Epic Fight'ın `hold_*` / `walk_*` / `run_*` / `*_aim_*` setleri hâlâ
+  alınmadı (jar'da 62 `living` + 121 `combat` dosya var; v5.0 yalnız
+  saldırı kombolarını almıştı). Kullanıcı *"sadece bunu düzelt"* dediği
+  için bu sürümde açılmadı.
+- Dirsek bükülmesi hâlâ kayıp: Bedrock'ta kolu taşıyan tek kemik var,
+  Epic Fight'ta zincir (`Shoulder → Arm → Elbow → Hand`). Aktarılan şey
+  kolun genel yönü.
+- Root'un **ötelemesi** alınmıyor (en çok 15 blok —
+  `blackstar_basic_attack_4` bir atılış). Bedrock'ta oyuncunun yerini
+  oyun belirliyor; modeli kaydırmak karakteri gövdesinden ayırırdı.
+
+---
+
 # v5.4 — Mahou Tsukai: mana, 16 eşya, 20 büyü
 
 Kullanıcı: *"bir tane daha mod buldum, bunu da ekle aynı şekilde...

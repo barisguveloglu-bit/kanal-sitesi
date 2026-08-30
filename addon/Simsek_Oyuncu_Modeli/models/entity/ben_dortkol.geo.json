@@ -16,6 +16,23 @@
       },
       "bones": [
         {
+          "name": "waist",
+          "pivot": [
+            0,
+            12,
+            0
+          ],
+          "parent": "root"
+        },
+        {
+          "name": "root",
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
           "name": "head",
           "pivot": [
             0.0,
@@ -292,7 +309,8 @@
                 }
               }
             }
-          ]
+          ],
+          "parent": "body"
         },
         {
           "name": "eyes_r",
@@ -789,7 +807,8 @@
                 }
               }
             }
-          ]
+          ],
+          "parent": "waist"
         },
         {
           "name": "chest",
@@ -1069,7 +1088,8 @@
                 }
               }
             }
-          ]
+          ],
+          "parent": "root"
         },
         {
           "name": "ll_r",
@@ -1395,7 +1415,8 @@
                 }
               }
             }
-          ]
+          ],
+          "parent": "root"
         },
         {
           "name": "ll_r2",
@@ -1796,7 +1817,8 @@
                 }
               }
             }
-          ]
+          ],
+          "parent": "body"
         },
         {
           "name": "forearm5",
@@ -2356,7 +2378,8 @@
                 }
               }
             }
-          ]
+          ],
+          "parent": "body"
         },
         {
           "name": "forearm2",

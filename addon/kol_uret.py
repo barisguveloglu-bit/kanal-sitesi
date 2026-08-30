@@ -152,8 +152,106 @@ TR_AD = {
 # oyuncu ekranda donen bekleme gostergesini gorsun.
 BEKLEME_SN = 3.0
 
+# ---------------------------------------------------------------
+#  INSANSI ISKELET DUZENI (v5.5)
+#
+#  Bedrock oyuncusunun gercek kemik agaci OLCULDU (Marvel
+#  Project'in 46 oyuncu modeli, hepsinde ayni; pivotlar da):
+#
+#      root  (0,0,0)
+#        |- waist (0,12,0)
+#        |    \- body (0,24,0)
+#        |         |- head     (0,24,0)
+#        |         |- rightArm (-5,22,0)
+#        |         \- leftArm  (5,22,0)
+#        |- rightLeg (-2,12,0)
+#        \- leftLeg  (2,12,0)
+#
+#  Bizim urettigimiz modellerde iki sapma vardi:
+#    * Ben 10 uzaylilari ve omnitrix: HIC ebeveyn yok, alti
+#      kemik de kok seviyesinde. Govde donunce kafa ve kollar
+#      yerinde kaliyor -- yani "uzuvlar govdeden kopuyor".
+#    * zirh_mod_* ve o_sey: bacaklar body'nin cocugu. Degil;
+#      root'un cocugu. Govde donusu bacaklara da geciyordu.
+#
+#  Duzeltme yalniz SAPMAYI onariyor: ebeveyni None olan ya da
+#  bacaklarda yanlislikla "body" olan kemikler duzeltiliyor.
+#  Kaynak modlarin bilerek kurdugu ozel baglar (Marvel'in
+#  "rotation" kemigi gibi) OLDUGU GIBI birakiliyor -- onlarin
+#  kendi animasyonlari o baglara gore yazilmis.
+#
+#  Tek yerde duruyor cunku geometri dosyalari altı ayri
+#  yerden yaziliyor; her birine ayri eklemek unutulmaya acik.
+# ---------------------------------------------------------------
+INSAN_EBEVEYN = {
+    "waist": "root", "body": "waist", "head": "body",
+    "rightArm": "body", "leftArm": "body",
+    "rightLeg": "root", "leftLeg": "root",
+}
+INSAN_PIVOT = {"root": [0, 0, 0], "waist": [0, 12, 0]}
+INSAN_GEREK = ("body", "head", "rightArm", "leftArm",
+               "rightLeg", "leftLeg")
+
+
+def insan_hiyerarsisi(veri):
+    """Insansi geometrilerde eksik/yanlis ebeveynleri onarir."""
+    if not isinstance(veri, dict):
+        return veri
+    for g in veri.get("minecraft:geometry", []) or []:
+        kemikler = g.get("bones")
+        if not isinstance(kemikler, list):
+            continue
+        adlar = {b.get("name"): b for b in kemikler if isinstance(b, dict)}
+        if not all(k in adlar for k in INSAN_GEREK):
+            continue
+        # ---- AD CAKISMASI ----
+        # Elmas Kafa'da zaten `root` adinda bir kemik var:
+        # kafadaki KRISTAL (head'in cocugu, 3 kup). Onu iskelet
+        # koku sanip govdeyi ona bagladigimda butun vucut
+        # kafadan sarkti. Ayni tuzak `head`/`body` icin
+        # BEN10_KEMIK tarafinda zaten cozulmustu.
+        #
+        # Olcut: gercek iskelet koku EBEVEYNSIZ ve KUPSUZDUR.
+        # Oyle degilse kemik `_ic` ekiyle yeniden adlandirilip
+        # cocuklari yeni ada baglaniyor.
+        for ek in ("root", "waist"):
+            b = adlar.get(ek)
+            if b is not None and (b.get("parent") or b.get("cubes")):
+                yeni_ad = ek + "_ic"
+                while yeni_ad in adlar:
+                    yeni_ad += "_ic"
+                for c in kemikler:
+                    if isinstance(c, dict) and c.get("parent") == ek:
+                        c["parent"] = yeni_ad
+                b["name"] = yeni_ad
+                adlar[yeni_ad] = b
+                del adlar[ek]
+                print("   %s: cakisan kemik yeniden adlandirildi -> %s=%s"
+                      % (g.get("description", {}).get("identifier", "?"),
+                         ek, yeni_ad))
+        # Eksik root/waist'i ekle (kutusuz, yalniz donus tasir)
+        for ek in ("root", "waist"):
+            if ek not in adlar:
+                yeni = {"name": ek, "pivot": list(INSAN_PIVOT[ek])}
+                if ek == "waist":
+                    yeni["parent"] = "root"
+                kemikler.insert(0, yeni)
+                adlar[ek] = yeni
+        for ad, dogru in INSAN_EBEVEYN.items():
+            b = adlar.get(ad)
+            if b is None:
+                continue
+            simdi = b.get("parent")
+            if simdi is None or (ad in ("rightLeg", "leftLeg")
+                                 and simdi == "body"):
+                b["parent"] = dogru
+    return veri
+
+
 def yaz_json(yol, veri):
     os.makedirs(os.path.dirname(yol), exist_ok=True)
+    if yol.endswith(".geo.json") or "/models/entity/" in yol.replace("\\", "/"):
+        veri = insan_hiyerarsisi(veri)
     with open(yol, "w", encoding="utf-8") as f:
         json.dump(veri, f, indent=2, ensure_ascii=False)
         f.write("\n")

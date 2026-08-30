@@ -62,35 +62,86 @@ Epic Fight ve WoM animasyonları Bedrock biçimi **değil**:
 | | Epic Fight | Bedrock |
 |---|---|---|
 | veri | eklem başına 4×4 dönüşüm matrisi | kemik başına euler derece |
-| iskelet | Root/Torso/Chest/Shoulder_R/Arm_R/Elbow_R/Hand_R… | head/body/rightArm/… |
+| ara değer | kuaterniyon (slerp) | her eksen ayrı, **düz** |
 
 Çevirici: [`kaynak_anim/ef_cevir.py`](kaynak_anim/ef_cevir.py)
 
-1. Bağlama pozundan (armature) **delta**: `D(t) = bind⁻¹ · L(t)`.
-   Delta olmadan her kemik dinlenme pozu kadar kayıyordu.
-2. Bedrock'un kolu **tek kemik**, Epic Fight'ınki zincir. Zincirin
-   deltaları çarpılıyor: `rightArm = D(Shoulder_R)·D(Arm_R)`.
-3. Matris → euler XYZ derece.
-4. Bedrock kuralı: dosyadaki değer matematiksel dönüşün **tersi**
+### İskeletler aynı yapıda (v5.5'te ölçüldü)
+
+Epic Fight (`assets/epicfight/animmodels/entity/biped.json`) ve Bedrock
+oyuncusu (`geometry.humanoid.custom`; Marvel Project'in 46 oyuncu modeli
+birebir bunu yansıtıyor):
+
+```
+Epic Fight                     Bedrock
+Root                           root  (0,0,0)
+ ├ Thigh_R → Leg_R              ├ rightLeg (-2,12,0)
+ ├ Thigh_L → Leg_L              ├ leftLeg  (2,12,0)
+ └ Torso                        └ waist (0,12,0)
+    └ Chest                        └ body (0,24,0)
+       ├ Head                         ├ head     (0,24,0)
+       ├ Shoulder_R → Arm_R           ├ rightArm (-5,22,0)
+       └ Shoulder_L → Arm_L           └ leftArm  (5,22,0)
+```
+
+Eşleme **bire bir**. Tek istisna kol: Bedrock'ta tek kemik, Epic
+Fight'ta zincir — deltaları çarpılıyor (`rightArm = D(Shoulder_R)·D(Arm_R)`),
+**dirsek bükülmesi kayboluyor**, aktarılan şey kolun genel yönü.
+
+### Adımlar
+
+1. Bağlama pozundan **delta**: `D(t) = bind⁻¹ · L(t)`. Animasyon kendi
+   `armature`'ını taşıyorsa (63 dosyanın 55'i) o kullanılıyor — Epic
+   Fight de öyle yapıyor.
+2. `root` ilk kareye göre **sıfırlanıyor** (kombo devamı + eksen düzeni;
+   gerekçesi `NOTLAR.md` v5.5 §5).
+3. Zincir çarpımı, sonra matris → euler.
+4. **Süreklilik**: iki eşdeğer euler çözümünden öncekine yakın olanı
+   seçilip 360'ın katlarıyla kaydırılıyor.
+5. **Yay sıklaştırma**: iki kare arası gerçek dönüş 45 dereceyi geçerse
+   araya kaynaktan (slerp'le) örnek ekleniyor.
+6. Bedrock kuralı: dosyadaki değer matematiksel dönüşün **tersi**
    (bu depoda v4.88'de ölçüldü).
+7. `override_previous_animation: true` — vanilla `move.arms` /
+   `attack.rotations` üstüne eklenmesin diye.
 
-### Yakalanan hata
+### v5.0–v5.4'te neden bozuktu
 
-İlk çevrimde kılıç sallamada bacaklar **~50° dönüyordu**. Sebep: Epic
-Fight'ta `Thigh_R`, `Root`'un çocuğu (`Torso`'nun **kardeşi**);
-Bedrock'ta `rightLeg`, `body`'nin **çocuğu**. Gövde dönüşü bacaklara
-mirasla geçip **iki kez** uygulanıyordu. Düzeltme: bacağın deltasından
-gövdeninki çıkarılıyor.
+Kullanıcının ekran görüntüsü: *"karakter bildiğin dans ediyor"*, uzuvlar
+gövdeden kopmuş. Üç hata, üçü de ölçüldü:
+
+1. **Euler dal atlaması.** 7470 kare geçişinin 147'si 180 dereceden
+   büyük sıçrıyordu (en kötüsü saniyede 7049 derece). Aynı dönüşün iki
+   yazılışı arasında gerçek fark 0.4 derece, Bedrock'un düz geçişi
+   359.6 derece.
+2. **Root atılıyordu.** 63 animasyonun 60'ında 20 dereceden fazla gövde
+   dönüşü var (en çok 88.8). Kafa ve bacaklar onu dengeleyen ters
+   dönüşler taşıdığı için Root gidince kafa 113 derece savruluyordu.
+3. **Bacaklardan gövde çıkarılıyordu.** Yorum *"Bedrock'ta rightLeg,
+   body'nin çocuğu"* diyordu — değil, `root`'un çocuğu, `body`'nin
+   **kardeşi**. Çıkarma bacaklara gövdenin tersini ekliyordu.
 
 ### Doğrulama
 
-Sayıların makul görünmesi yetmedi — çevrilen pozlar
-`scratchpad/onizle_poz.py` ile **çizildi** ve gerçek bir kılıç savuruşu /
-mızrak hamlesi oldukları görüldü. (İlk çizici sınır kutusu çiziyordu ve
-hiçbir şeyi doğrulamıyordu; gerçek yüz çizimine geçirildi.)
+Sayıların makul görünmesi yetmedi — pozlar `scratchpad/onizle_poz.py`
+ile **çizildi**. Önizleyicinin kendisi de v5.5'te düzeltildi: bacakları
+`body`'nin çocuğu çiziyordu, yani çevirinin **aynı yanlışını**
+doğruluyordu; ve kareler arasını çizmiyordu, dans tam da orada oluyordu.
 
-**63 animasyon**, 7848 kare, 242 KB. Tekrar eden kareler atıldı — Bedrock
-araları kendisi yumuşatıyor.
+Root'u `body`'ye katlama denemesini yalnızca önizleme yakaladı: sayılar
+temizdi ama `body`'nin dönme merkezi **boyun**, `root`'unki **ayak** —
+gövde kafanın altından kayıyordu.
+
+| | v5.4 | v5.5 |
+|---|---|---|
+| 180'i aşan kare sıçraması | 147 | **0** |
+| ara değer hatası > 30° | 177 | **0** |
+| en kötü ara değer hatası | 350° | **7°** |
+| kare | 7848 | 9927 |
+
+**63 animasyon**, 9927 kare. Kalıcı denetim: `sim/wom_dovus.mjs` (4 yeni
+sınama) ve `sim/anim_tara.py` (kare sıçraması + iskelet düzeni). İkisi de
+bozuk v5.4 verisiyle geri koşuldu — 147 hata veriyorlar.
 
 ## Silah → seri eşlemesi uydurma değil
 
