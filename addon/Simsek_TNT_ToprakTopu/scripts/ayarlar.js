@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v5.5";
+export const SURUM = "v5.6";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -2973,85 +2973,329 @@ export const ZIRH_SURE     = 120;   // efekt suresi (TARAMA x 6)
    Bunlar ozetlerde ARTIK VAAT EDILMIYOR: ozet metinleri
    Palladium ozellik adlarinin kopyasi olmaktan cikip
    oyuncunun GERCEKTEN aldigi seyi yaziyor.                    */
+/* ================================================================
+   VILTRUMITE CORE  ->  TEMEL ZIRH                          v5.6
+
+   Kullanici: "Max Steel modundaki temel zirh var ya, bu mod
+   SADECE temel zirhla birlestirilecek, diger hicbir seyle
+   degil... cunku ben temel zirhin zayif oldugunu dusunuyorum."
+
+   HAKLIYDI. v4.95'te olculen tabloda Temel'in tek sahip oldugu
+   sey Direnc III + slow_falling'di; diger sekiz modun HEPSI
+   ayni ikilinin ustune bir sey koyuyordu. Temel, adi ustunde,
+   tabandi.
+
+   ---- KAYNAK ----
+   viltrumitecore 1.8.1 (baranhan123), Forge. Invincible
+   dizisindeki Viltrumite irki. Sayilar iki yerden okundu:
+     * ViltrumiteCoreConfig  -> bytecode varsayilanlari
+     * ViltrumiteAbilities   -> modun KENDI tooltip metinleri
+       (yuzdeler orada yaziyor: "%200 of your base attack
+       damage", "%175", "%70", "4 seconds"...)
+   Yani hicbir sayi uydurulmadi; her biri asagida nereden
+   geldigiyle birlikte yazili.
+
+   ---- NEDEN SADECE TEMEL ----
+   Kullanicinin acik sarti. Kapi tek yerde: viltrumiteVar()
+   elindeki cekirdegin VILT_MOD oldugunu soruyor. Yetenekler
+   menuden de secilebildigi icin kapi yetenegin KENDI icinde
+   (Marvel mekaniklerindeki kalibin aynisi).
+   ================================================================ */
+export const VILTRUMITE_ACIK = true;
+
+/* Hangi mod cekirdegi Viltrumite gucu veriyor. TEK deger --
+   iki yerde tutulsa ayrisirdi.                                */
+export const VILT_MOD = "temel";
+
+/* PlayerStatsMixin.onInitStatTracker: STAT_BASE_DAMAGE = 19.0f
+   Butun vurus yetenekleri bunun YUZDESI olarak taniml.        */
+export const VILT_TEMEL_HASAR = 19;
+
+/* ViltrumiteCoreConfig varsayilanlari (bytecode):
+     damageReductionPercent = 97.0f
+     damageIgnoreThreshold  = 0.5f
+     punchBlockDropChance   = 40.0f
+     dashBlockDropChance    = 40.0f
+     spaceLimitY            = 1500.0d                          */
+export const VILT_INDIRIM      = 97;
+export const VILT_ESIK         = 0.5;
+export const VILT_BLOK_DUSME   = 40;
+/* spaceLimitY = 1500 ALINMADI: modun ucus tavani. Bedrock
+   dunyasinin tavani zaten 320, yani 1500 hicbir zaman
+   yakalanmayacak bir sayi olurdu -- calismayan ayar
+   birakmiyoruz.                                              */
+
+/* ---- %97 INDIRIM BEDROCK'A NASIL SIGIYOR ----
+   Direnc seviye basina %20, tavan amp 3 (Direnc IV = %80);
+   amp 4 (tam bagisiklik) StarOxine'e ayrilmis, oraya
+   girilmiyor. Yani efektle en fazla %80 verilebiliyor.
+
+   Kalan %17 hasar olayindan GERI KAZANDIRILIYOR -- teknoloji
+   zirhlarindaki geri kazanim kalibinin aynisi (o da entityHurt
+   sonrasi can ekliyor ve yeni bir hasar olayi uretmiyor).
+
+   Oran turetildi, tahmin degil: Direnc IV altinda oyuncuya
+   ham hasarin (1 - 0.80)'i geliyor; biz (1 - 0.97) kalmasini
+   istiyoruz.
+       geri = gelen x (1 - (1 - 0.97) / (1 - 0.80))
+            = gelen x (1 - 0.15) = gelen x 0.85                */
+export const VILT_DIRENC = 3;          // amp 3 = Direnc IV
+export const VILT_GERI_ORAN =
+  1 - (1 - VILT_INDIRIM / 100) / (1 - (VILT_DIRENC + 1) * 0.2);
+
+/* Efekt tazelemesi ICIN AYRI AYAR YOK: Temel'in Direnc IV'u
+   zirh.js'in kendi ZIRH_SURE/ZIRH_TARAMA dongusunden geliyor,
+   ikinci bir sayi tutmak ayrisan iki olcu demekti.            */
+
+/* ---- YETENEKLER ----
+   On iki yetenegin ONU aktarildi. Her satirin "kaynak" alani
+   modun kendi yetenek kimligi, "tooltip" alani ise sayinin
+   MODUN KENDI CUMLESINDEN geldigini gosteriyor.
+
+   Bekleme sureleri modun tooltip'lerinden saniye olarak
+   okunup tick'e cevrildi (x20).
+
+   "sira" alani jest sirasindaki yeri: 380'den basliyor
+   (Mahou 340-359'da, Marvel mekanikleri 320-327'de).         */
+export const VILTRUMITE_YETENEKLER = new Map([
+  ["vilt_yumruk", {
+    ad: "Sonik Yumruk", kaynak: "viltrumite:punch", sira: 380,
+    /* "deals 200% of your base attack damage. If you strike
+        while flying this damage can scale up to 500%." */
+    carpan: 2.0, ucusCarpan: 5.0,
+    bekleme: 20,            // "Cooldown: 1s"
+    menzil: 6, koniAci: 45, firlatma: 3.0, dikey: 1.2,
+    /* "instantly breaks blocks in a huge cone ahead of you" */
+    kirmaMenzil: 5,
+    parcacik: "minecraft:huge_explosion_emitter"
+  }],
+  ["vilt_darbe", {
+    ad: "Ölümcül Darbe", kaynak: "viltrumite:chop", sira: 381,
+    /* "deals 175% of your base attack damage instantly...
+        bleeding for 4 seconds... additional 175% damage over
+        time which equals to 43.75% damage every second." */
+    carpan: 1.75, kanamaCarpan: 1.75, kanamaSure: 80,
+    kanamaAra: 20,          // saniyede bir tik -> %43.75
+    bekleme: 0, menzil: 4, koniAci: 60,
+    parcacik: "minecraft:redstone_wandering_trail_particle"
+  }],
+  ["vilt_gok_gurultusu", {
+    ad: "Gök Gürültüsü", kaynak: "viltrumite:thunderclap", sira: 382,
+    /* "massive cone-shaped shockwave... launches targets
+        caught inside high into the air." Hasar sayisi
+        tooltip'te YOK -- kaynakta da yalniz firlatma var,
+        o yuzden hasar da verilmiyor (uydurulmadi).       */
+    hasar: 0, bekleme: 0, menzil: 10, koniAci: 70,
+    firlatma: 2.0, dikey: 2.5,
+    parcacik: "minecraft:knockback_roar_particle"
+  }],
+  ["vilt_yaylim", {
+    ad: "Yaylım Ateşi", kaynak: "viltrumite:barrage", sira: 383,
+    /* "Hold the key to unleash a relentless series of rapid
+        punches." Cooldown 4s, Duration 4s (Max).
+       Tek yumrugun hasari tooltip'te yok. Seri, Sonik
+       Yumrugun yerine gecmemeli: tek vurus kasten KUCUK
+       tutuldu (temel hasarin dortte biri), toplami 4
+       saniyede 20 vurus x 4.75 = 95 -- ucarken atilan tek
+       Sonik Yumrukla ayni. Boylece iki yetenek birbirinin
+       kopyasi olmuyor.                                   */
+    carpan: 0.25, vurusAra: 4, sure: 80, bekleme: 80,
+    menzil: 5, koniAci: 50,
+    parcacik: "minecraft:critical_hit_emitter"
+  }],
+  ["vilt_atilim", {
+    ad: "Atılım", kaynak: "viltrumite:dash", sira: 384,
+    /* "Dash forward at extreme speed and smash through
+        blocks and enemies in your path." Cooldown 1s. */
+    guc: 4.0, dikey: 0.4, bekleme: 20, carpan: 1.0,
+    menzil: 4, kirmaMenzil: 2,
+    parcacik: "minecraft:dragon_breath_trail"
+  }],
+  ["vilt_savunma", {
+    ad: "Savunma Duruşu", kaynak: "viltrumite:block", sira: 385,
+    /* "Absorbs 70% of all damage taken from the direction you
+        are facing." Cooldown 3s, Duration 2s (Max).
+       %70 emme, %97'nin USTUNE binmiyor -- ikisi de ayni
+       hasari azaltiyor. Savunma sirasinda geri kazanim
+       oranini %97'den %99.1'e cikariyor:
+           1 - (1-0.97) x (1-0.70) = 0.991                */
+    emme: 0.70, sure: 40, bekleme: 60
+  }],
+  ["vilt_kavra", {
+    ad: "Kavra ve Taşı", kaynak: "viltrumite:grab", sira: 386,
+    /* "Grab a living entity standing right in front of you by
+        the throat and carry them through the air. Toggle
+        again to release." Cooldown yok. */
+    menzil: 4, tutusMesafe: 2, sure: 600
+  }],
+  ["vilt_kilit", {
+    ad: "Hedef Kilidi", kaynak: "viltrumite:lock", sira: 387,
+    /* "Lock your focus onto a living target and track their
+        every move... disables if the target moves too far away
+        or breaks line of sight." */
+    menzil: 32, kopmaMenzil: 48, sure: 600, tarama: 2
+  }],
+  ["vilt_hiz", {
+    ad: "Süper Hız", kaynak: "viltrumite:speed", sira: 388,
+    /* "Gain immense movement speed while on the ground.
+        Cannot be activated or used while flying." */
+    seviye: 4, sure: 600
+  }],
+  ["vilt_firlayis", {
+    ad: "Hızlı Kalkış", kaynak: "viltrumite:fast_takeoff", sira: 389,
+    /* "Press Sneak and Double Jump to instantly launch
+        yourself high into the sky." */
+    dikey: 3.0
+  }]
+]);
+
+/* ---- AKTARILAMAYANLAR (uydurulmadi, raporlaniyor) ----
+
+   viltrumite:supersonic_flight (Cruise Flight)
+       Temel zirh ZATEN ucuyor: asagida ZIRH_MODLAR["temel"]
+       yetenek listesine var olan "ucus" yetenegi eklendi,
+       yeni kod yazilmadi. Ama modun "maksimum hizin %60'inda
+       BLOKTAN GECME" ve "asiri isinma" kisimlari Bedrock'ta
+       karsiliksiz: ucus bir efekt, hiz esigi okunamiyor.
+
+   viltrumite:speed_lock (Speed Lock)
+       "Maksimum hizinin %20'sinin ustundeyken ucus hizini
+       kilitle." Bizim ucusumuz efekt tabanli; ne anlik hiz
+       okunabiliyor ne de kilitlenebiliyor. Karsiligi YOK.
+
+   Ayrica alinamayanlar:
+     * punch/dash blok kirma KONISI 40 blok degil: blokIste()
+       butcesi var (AYNI_ANDA=2). kirmaMenzil kasten kucuk.
+     * damageIgnoreThreshold ham hasara bakiyor; bizde olay
+       Direnc'ten SONRAKI hasari veriyor, ham hasar geri
+       hesaplaniyor (viltrumite.js'te yazili).
+     * Modun kendi HUD'i, yetenek carki ve NPC dogurucusu
+       alinmadi -- bu depoda menu zaten var.                  */
+
+
+/* ---- DIGER SEKIZ MOD IKI KATINA CIKARILDI  (v5.6) ----
+
+   Kullanici: "temel gelen ozellikler fazla guclu olursa diger
+   zirhlarin gucunu iki kat daha arttir, bu tamamen senin
+   kararin."
+
+   FAZLA GUCLU OLDU. Temel artik %97 hasar indirimi, ucus ve
+   on yetenek tasiyor; digerlerinin en zengini (Titan) tek bir
+   lazer + Direnc IV'tu. Karar: ikiye katlaniyor.
+
+   ---- "IKI KAT" NE DEMEK, TEK TEK ----
+   Bedrock efektlerinde seviye = amplifier + 1 ve etki seviyeyle
+   DOGRUSAL. Bir efektin gucunu ikiye katlamak icin:
+       yeni_amp = 2 x eski_amp + 1
+   (orn. Guc V = amp 4 = +15 hasar -> amp 9 = Guc X = +30)
+
+   Isinlarin hasari dogrudan x2 (ZIRH_ISIN tablosunda).
+
+   ---- IKIYE KATLANAMAYAN IKI SEY ----
+   1. DIRENC. III (%60) iki kati %120 ederdi; boyle bir sey
+      yok. Tavan Direnc IV (%80, amp 3) -- amp 4 tam
+      bagisiklik ve StarOxine'e ayrilmis, bu depo kurali.
+      Sekiz modun hepsi III -> IV'e cikti; Titan zaten IV'tu,
+      oldugu yerde kaldi. Yani direnc "iki kat" degil
+      TAVANA cikti; ozetler de oyle yaziyor.
+   2. SEVIYESIZ EFEKTLER. invisibility, water_breathing,
+      night_vision, fire_resistance, conduit_power,
+      slow_falling -- acik ya da kapali, ara degeri yok.
+      Bunlar aynen kaldi.                                     */
 export const ZIRH_MODLAR = new Map([
   ["temel", {
     ad: "Temel", kaynak: "base_mode",
-    ozet: "direnç III · düşme hasarı yok",
-    /* kaynak: armor 20 · toughness 15 · fall_resistance 10 */
-    efektler: [["resistance", 0, 2], ["slow_falling", 0, 0]]
+    ozet: "VILTRUMITE · %97 hasar indirimi · uçuş · 10 yetenek · düşme hasarı yok",
+    /* kaynak: armor 20 · toughness 15 · fall_resistance 10
+       + viltrumitecore 1.8.1 (v5.6). Kullanicinin sarti:
+       "bu mod SADECE temel zirhla birlestirilecek".
+
+       Direnc III degil IV: %97 indirimin efektle verilebilen
+       kismi (gerekcesi VILTRUMITE CORE basliginda). Kalan
+       %17 hasar olayindan geri kazandiriliyor.
+
+       Ucus BURADAN geliyor: modun Cruise Flight'i icin yeni
+       kod yazilmadi, var olan "ucus" yetenegi listeye
+       eklendi.                                              */
+    efektler: [["resistance", 0, VILT_DIRENC], ["slow_falling", 0, 0]],
+    /* Tek yetenek yerine LISTE: Viltrumite on yetenek
+       getiriyor, tek alana sigmiyor. Digerlerinin "yetenek"
+       alani oldugu gibi duruyor -- kollar.js ikisini de
+       okuyor.                                               */
+    yetenekler: ["ucus", ...VILTRUMITE_YETENEKLER.keys()]
   }],
   ["guc", {
     ad: "Güç", kaynak: "strength_mode",
-    ozet: "güç V (+15 hasar) · direnç III · acele I · düşme hasarı yok",
+    ozet: "güç X (+30 hasar) · direnç IV · acele II · düşme hasarı yok",
     /* kaynak: attack_damage 15 · armor 30+20 · toughness 15 ·
        destroy_speed 2 · fall_resistance 100.
        +15 hasar = Guc V (seviye basina +3), BIREBIR.          */
-    efektler: [["strength", 0, 4], ["resistance", 0, 2],
-               ["haste", 0, 0], ["slow_falling", 0, 0]]
+    efektler: [["strength", 0, 9], ["resistance", 0, 3],
+               ["haste", 0, 1], ["slow_falling", 0, 0]]
   }],
   ["hiz", {
     ad: "Hız", kaynak: "speed_mode",
-    ozet: "hız V · acele V · zıplama II · direnç III · düşme hasarı yok",
+    ozet: "hız X · acele X · zıplama IV · direnç IV · düşme hasarı yok",
     /* kaynak: movement_speed +1 · attack_speed 5 ·
        destroy_speed 5 · step_height 2 · is_fall bagisikligi.
        v4.95: is_fall bagisikligi EKSIKTI -- slow_falling geldi;
        zirh 20 icin direnc de eksikti.                         */
-    efektler: [["speed", 0, 4], ["haste", 0, 4], ["jump_boost", 0, 1],
-               ["resistance", 0, 2], ["slow_falling", 0, 0]]
+    efektler: [["speed", 0, 9], ["haste", 0, 9], ["jump_boost", 0, 3],
+               ["resistance", 0, 3], ["slow_falling", 0, 0]]
   }],
   ["ucus", {
     ad: "Uçuş", kaynak: "flight_mode",
-    ozet: "UÇUŞ · su altında nefes · direnç III · düşme hasarı yok",
+    ozet: "UÇUŞ · su altında nefes · direnç IV · düşme hasarı yok",
     /* kaynak: space_breath · oksijen/donma/patlama bagisikligi ·
        armor 20 · flight_speed 1 (+ boost 3).
        v4.95: fire_resistance KALDIRILDI -- kaynakta ates
        bagisikligi ISI modunda. Yerine gercek ucus geldi.      */
     yetenek: "ucus",
     efektler: [["slow_falling", 0, 0], ["water_breathing", 0, 0],
-               ["resistance", 0, 2]]
+               ["resistance", 0, 3]]
   }],
   ["gizlilik", {
     ad: "Gizlilik", kaynak: "stealth_mode",
-    ozet: "görünmezlik · direnç III · hız II",
+    ozet: "görünmezlik · direnç IV · hız IV",
     /* kaynak: invisibility · armor 20 · isim gizleme.
        Hiz BIZIM eklemem, kaynakta yok: gizlilik modunun sessiz
        ve cabuk olmasi mantikli geldi. Ozet de oyle diyor.     */
-    efektler: [["invisibility", 0, 0], ["resistance", 0, 2],
-               ["speed", 0, 1]]
+    efektler: [["invisibility", 0, 0], ["resistance", 0, 3],
+               ["speed", 0, 3]]
   }],
   ["isi", {
     ad: "Isı", kaynak: "heat_mode",
-    ozet: "ATEŞ IŞINI (400 hasar) · ateş bağışıklığı · direnç III",
+    ozet: "ATEŞ IŞINI (800 hasar) · ateş bağışıklığı · direnç IV",
     /* kaynak: armor 25 · is_fire bagisikligi ·
        energy_beam 20 hasar / 30 blok / 5 sn yakma.
        v4.95: "isin 20 hasar" vaadi vardi, isin YOKTU.
        Uydurma "strength 2" kaldirildi, yerine gercek isin.    */
     yetenek: "zirh_isi_isini",
-    efektler: [["fire_resistance", 0, 0], ["resistance", 0, 2]]
+    efektler: [["fire_resistance", 0, 0], ["resistance", 0, 3]]
   }],
   ["dalis", {
     ad: "Dalış", kaynak: "scuba_mode",
-    ozet: "su altında nefes · su gücü · gece görüşü · direnç III",
+    ozet: "su altında nefes · su gücü · gece görüşü · direnç IV",
     /* kaynak: swim_speed 5 · armor 20.
        conduit_power su altinda hiz + gorus + nefes veriyor,
        swim_speed'in en yakin karsiligi.
        v4.95: direnc EKSIKTI (zirh 20 vaat ediliyordu).        */
     efektler: [["water_breathing", 0, 0], ["conduit_power", 0, 0],
-               ["night_vision", 0, 0], ["resistance", 0, 2]]
+               ["night_vision", 0, 0], ["resistance", 0, 3]]
   }],
   ["kesif", {
     ad: "Keşif", kaynak: "recon_mode",
-    ozet: "gece görüşü · direnç III · hız I",
+    ozet: "gece görüşü · direnç IV · hız II",
     /* kaynak: entity_glow · vibrate · armor 20.
        entity_glow ve vibrate Bedrock'a AKTARILAMIYOR (efekt
        karsiligi yok) -- ozet artik onlari vaat etmiyor.
        v4.95: direnc amp 0 -> 2.                               */
-    efektler: [["night_vision", 0, 0], ["resistance", 0, 2],
-               ["speed", 0, 0]]
+    efektler: [["night_vision", 0, 0], ["resistance", 0, 3],
+               ["speed", 0, 1]]
   }],
   ["titan", {
     ad: "Titan", kaynak: "titan_mode",
-    ozet: "TITAN LAZERİ (1000 hasar) · güç XXVII (+81) · direnç IV · düşme hasarı yok",
+    ozet: "TITAN LAZERİ (2000 hasar) · güç LIV (+162) · direnç IV · zıplama VI · düşme hasarı yok",
     /* kaynak: armor 80 · toughness 75 · attack_damage 80 ·
        entity_reach 33 · knockback_resistance 10 ·
        titan_laser 50 hasar / 100 blok.
@@ -3060,8 +3304,8 @@ export const ZIRH_MODLAR = new Map([
        v4.95: lazer EKSIKTI. Menzil ve geri tepme direnci
        aktarilamiyor, ozet artik onlari vaat etmiyor.          */
     yetenek: "zirh_titan_lazeri",
-    efektler: [["resistance", 0, 3], ["strength", 0, 26],
-               ["slow_falling", 0, 0], ["jump_boost", 0, 2]]
+    efektler: [["resistance", 0, 3], ["strength", 0, 53],
+               ["slow_falling", 0, 0], ["jump_boost", 0, 5]]
   }]
 ]);
 
@@ -3529,12 +3773,12 @@ export const BECERI_ZIRH_ADIM    = 10;   // 1 Direnc seviyesi
 export const ZIRH_ISIN = new Map([
   ["zirh_isi_isini", {
     ad: "Ateş Işını", mod: "isi",
-    kaynakHasar: 20, hasar: 400, menzil: 30, yakma: 5,
+    kaynakHasar: 20, hasar: 800, menzil: 30, yakma: 5,
     parcacik: "minecraft:basic_flame_particle"
   }],
   ["zirh_titan_lazeri", {
     ad: "Titan Lazeri", mod: "titan",
-    kaynakHasar: 50, hasar: 1000, menzil: 100, yakma: 0,
+    kaynakHasar: 50, hasar: 2000, menzil: 100, yakma: 0,
     parcacik: "minecraft:electric_spark_particle"
   }]
 ]);
@@ -3553,6 +3797,7 @@ export const ZIRH_ISIN_ADIM = 1.5;
    olmasin. Kaynakta energy_beam basili tutuluyor; bizde
    anlik atis + bekleme ayni sonucu veriyor.                 */
 export const ZIRH_ISIN_BEKLEME = 20;   // tick
+
 
 
 /* ---------------- MOD DONUSUMU ----------------  (v4.94)

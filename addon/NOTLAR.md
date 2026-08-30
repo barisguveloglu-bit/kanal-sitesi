@@ -1,3 +1,114 @@
+# v5.6 — ViltrumiteCore, sadece Temel zırha
+
+Kullanıcı: *"bu mod **sadece** temel zırhla birleştirilecek, diğer hiçbir
+şekilde başka bir şeyle değil… çünkü ben temel zırhın zayıf olduğunu
+düşünüyorum."*
+
+Ayrıntılı döküm: [`REFERANS_VILTRUMITE.md`](REFERANS_VILTRUMITE.md).
+
+## 1. Temel gerçekten zayıftı
+
+v4.95'te ölçülen tabloda Temel'in tek sahip olduğu şey `Direnç III +
+slow_falling`'di. Diğer sekiz modun **hepsi** aynı ikilinin üstüne bir şey
+koyuyordu — ışın, uçuş, görünmezlik, su gücü. Temel, adı üstünde, tabandı.
+Kullanıcının tespiti doğruydu.
+
+## 2. Sayılar yine hafızadan değil
+
+Modda yapılandırma dosyası yok. İki kaynak okundu:
+
+- **bytecode** — `ViltrumiteCoreConfig` kurucusu: `damageReductionPercent
+  97.0f`, `damageIgnoreThreshold 0.5f`, `punch/dashBlockDropChance 40.0f`,
+  `spaceLimitY 1500.0d`; `PlayerStatsMixin.onInitStatTracker`:
+  `STAT_BASE_DAMAGE 19.0f`.
+- **modun kendi tooltip'leri** — yüzdeler orada yazıyor: *"200% of your base
+  attack damage… up to 500%"*, *"175%… 43.75% every second"*, *"Absorbs 70%"*.
+
+Yani on yeteneğin her sayısı, kaynağın hangi cümlesinden geldiğiyle birlikte
+`ayarlar.js`'te duruyor.
+
+## 3. %97 indirim Bedrock'a nasıl sığdı
+
+Sığmıyor: Direnç tavanı `amp 3` (%80), `amp 4` tam bağışıklık ve StarOxine'e
+ayrılmış. Kalan kısım hasar olayından geri kazandırılıyor — teknoloji
+zırhlarındaki kalıbın aynısı.
+
+Oran **türetildi**, elle yazılmadı:
+
+```
+geri = gelen × (1 − (1 − 0.97) / (1 − 0.80)) = gelen × 0.85
+```
+
+Test tersinden ölçüyor: `1 − (1−0.80)×(1−0.85) = 0.97`. Davranış da ölçülüyor:
+100 ham hasarda oyuncuya net **3 hasar** kalıyor; Savunma Duruşu açıkken
+**0.90**.
+
+## 4. Test kendi kendini yalanladı, kod değil
+
+İlk yazdığımda sınama "0.00 hasar" gösteriyordu. Sebep koddaki bir hata
+değildi: `entityHurt` bir **sonra** olayı — oyun canı zaten düşürmüş oluyor,
+kanca yalnızca geri ekliyor. Mock canı 20'de bırakıp kancayı çağırıyordu,
+`canEkle` tavana takılıyordu. **Sınama yanlıştı.** Hasar önce uygulanacak
+şekilde düzeltildi ve gerekçesi testin içine yazıldı.
+
+## 5. "Sadece Temel" bir yorum satırı değil
+
+Kullanıcının şartı liste olarak değil **davranış** olarak sınanıyor: Titan
+çekirdeği elindeyken on yeteneğin onu da reddediyor mu. Kapı tek yerde
+(`viltrumiteVar`), çünkü yetenekler menüden de seçilebiliyor — Marvel
+mekaniklerindeki kalıbın aynısı.
+
+Üç kasıtlı bozmayla doğrulandı: kapıyı kaldırınca, geri kazanım oranını elle
+yazınca, bir yeteneği Titan'a da bağlayınca — üçünde de test kırmızı yandı.
+
+## 6. Diğer sekiz zırh iki katına çıktı
+
+Kullanıcı bu kararı bana bırakmıştı: *"fazla güçlü olursa diğer zırhların
+gücünü iki kat daha arttır, bu tamamen senin kararın."* Fazla güçlü oldu.
+
+Bedrock'ta seviye = `amplifier + 1` ve etki doğrusal, yani
+`yeni_amp = 2 × eski_amp + 1`. Güç V → **Güç X**, Hız V → **Hız X**, Titan'ın
+Güç XXVII'si → **LIV (+162)**, ışınlar **×2** (800 ve 2000).
+
+**İki şey ikiye katlanamadı ve bu gizlenmiyor:**
+
+1. **Direnç** — III'ün iki katı %120 ederdi. Tavana (IV, %80) çıktı. Yani
+   "iki kat" değil "tavan".
+2. **Seviyesiz efektler** — görünmezlik, su altında nefes, gece görüşü, ateş
+   bağışıklığı, su gücü, düşme hasarı. Açık ya da kapalı, ara değeri yok.
+
+Bunun bir sonucu var: **artık Titan, Temel'den daha dirençli değil.** İkisi de
+Direnç IV. `zirh.mjs`'te bunu sınayan satır (eskiden `titan > temel`)
+silinmedi, yeni gerçeği sınayacak şekilde güncellendi — ve yanına Temel'in
+net indiriminin gerçekten %97 olduğunu ölçen bir satır eklendi.
+
+Aynı şey 6. bölümdeki "sayılar kaynakla birebir" sınamaları için de yapıldı:
+"tam iki kat" sınamasına çevrildiler, yani kazara değişirse yine yakalanır.
+
+## 7. Aktarılamayanlar
+
+- **`speed_lock`** ve **Cruise Flight'ın bloktan geçme / aşırı ısınma
+  parçaları** — uçuşumuz efekt tabanlı, anlık hız okunamıyor.
+- **`spaceLimitY = 1500`** — Bedrock tavanı zaten 320. Çalışmayan ayar
+  bırakmıyoruz, alınmadı.
+- **Savunma'nın yön şartı** — `entityHurt` hasarın geldiği yönü vermiyor.
+  Bizde savunma her yönden koruyor; özet de öyle yazıyor.
+- **Blok kırma konisinin boyutu** — `blokIste()` bütçesi var, koni kasten
+  küçük.
+
+**Hedef Kilidi** aktarıldı ama bir kaydı var: Bedrock'ta kamerayı döndürmenin
+tek yolu `teleport(konum, { facingLocation })`. Marvel modu da aynı çağrıyı
+kullanıyor. Tablette takılma yapıp yapmadığı denenmeli.
+
+## 8. Bilinen sınır
+
+`entityHurt` bir *sonra* olayı. Tek seferde canını sıfıra indiren çok büyük bir
+vuruşta geri kazanım yetişmeyebilir. Teknoloji zırhlarının `olmezlik`'i tam da
+bunun için var ve aynı yolu kullanıyor, yani yol denenmiş — ama Viltrumite'ta
+ölçülmedi. Tablette bakılacak tek nokta bu.
+
+---
+
 # v5.5 — "Karakter bildiğin dans ediyor": dövüş animasyonları onarıldı
 
 Kullanıcı iki ekran görüntüsü attı: uzuvlar gövdeden kopmuş, havada

@@ -15,7 +15,8 @@ import {
   CAN_SAYACI_ACIK, WOM_ACIK, WOM_SILAHLAR, WOM_ONEK,
   BEN10_ACIK, BEN10,
   TEKNOLOJI_ACIK, TEKNOLOJI_TAKIMLAR, TEKNOLOJI_ONEK,
-  MAHOU_ACIK, MAHOU_BUYULER, MAHOU_ESYALAR, MAHOU_MANA_TAVAN
+  MAHOU_ACIK, MAHOU_BUYULER, MAHOU_ESYALAR, MAHOU_MANA_TAVAN,
+  VILTRUMITE_ACIK, VILTRUMITE_YETENEKLER, VILT_MOD, VILT_INDIRIM
 } from "./ayarlar.js";
 
 import {
@@ -61,6 +62,15 @@ import {
 import {
   mahouTara, mahouUnut, mahouListesi, manaOku, elindekiBuyu
 } from "./yetenekler/mahou.js";
+
+/* v5.6: ViltrumiteCore -> SADECE Temel zirh. On yetenegi
+   kendi dosyalarinda kaydediyor (import edilmesi yeterli);
+   burada iki sey daha var: hasar kancasi (viltrumiteKur) ve
+   kanama sayaci (kanamaTara).                               */
+import {
+  viltrumiteKur, kanamaTara, viltrumiteUnutOyuncu,
+  viltrumiteListesi, viltrumiteVar
+} from "./yetenekler/viltrumite.js";
 
 /* v4.98: Ben 10 beceri agaci. Uzayli halindeyken oldurunce
    XP, kademe atlayinca yetenek puani.                       */
@@ -323,7 +333,7 @@ system.runInterval(() => {
      -- "calisiyor mu != ulasilabiliyor mu" (v4.83 dersi).  */
   if (iksirVar || kalpVar || botVar || kilikVar || ZIRH_ACIK ||
       BEN10_ACIK || MARVEL_ACIK || CAN_SAYACI_ACIK ||
-      TEKNOLOJI_ACIK || MAHOU_ACIK) {
+      TEKNOLOJI_ACIK || MAHOU_ACIK || VILTRUMITE_ACIK) {
     let oyuncular;
     try {
       oyuncular = world.getAllPlayers();
@@ -402,6 +412,15 @@ system.runInterval(() => {
         mahouTara(oyuncular);
       } catch (e) {
         hataYaz("mahouTara", e);
+      }
+    }
+    /* Kanama defteri BOSKEN hic donmuyor (kanamaTara icinde
+       ilk satir) -- kalp defterindeki kural.                */
+    if (VILTRUMITE_ACIK) {
+      try {
+        kanamaTara();
+      } catch (e) {
+        hataYaz("kanamaTara", e);
       }
     }
     if (BEN10_ACIK) {
@@ -893,6 +912,56 @@ function mahouMenusu(oyuncu) {
   return undefined;
 }
 
+/* VILTRUMITE MENUSU  (v5.6)
+
+   On yetenek TEK cekirdege bagli (Temel). Menu SECIM
+   YAPMIYOR -- hangi yetenegin modun hangi cumlesinden
+   geldigini ve neyi vaat ettigini yaziyor. Baslikta
+   "elinde mi" duruyor: "bastim ama olmuyor" sorusunun
+   cevabi menuye girmeden gorunsun (Mahou'daki mana ile
+   ayni sebep).                                              */
+function viltrumiteMenusu(oyuncu) {
+  if (!VILTRUMITE_ACIK) {
+    actionbarYaz(oyuncu, "§cViltrumite kapalı (VILTRUMITE_ACIK).");
+    return undefined;
+  }
+  const acik = viltrumiteVar(oyuncu);
+  const dugmeler = viltrumiteListesi().map((anahtar) => {
+    const t = VILTRUMITE_YETENEKLER.get(anahtar);
+    return {
+      anahtar,
+      ad: "§f" + t.ad + "\n§8" + t.kaynak +
+          (t.bekleme ? " §8· " + (t.bekleme / 20) + " sn bekleme" : "")
+    };
+  });
+  const baslik = "§9⚡ Viltrumite §7· §fTemel çekirdek §8(" +
+    (acik ? "§aelinde§8" : "§celinde değil§8") + ") §7· %" +
+    VILT_INDIRIM + " hasar indirimi";
+  const acildi = menuAc(oyuncu, baslik, dugmeler, -1,
+    (i) => viltrumiteBilgi(oyuncu, dugmeler[i].anahtar), []);
+  if (!acildi) viltrumiteBilgi(oyuncu, dugmeler[0].anahtar);
+  return undefined;
+}
+
+function viltrumiteBilgi(oyuncu, anahtar) {
+  const t = VILTRUMITE_YETENEKLER.get(anahtar);
+  if (!t) return;
+  try {
+    oyuncu.sendMessage(
+      "§9⚡ §f" + t.ad +
+      "\n§8kaynak: viltrumitecore 1.8.1 §7" + t.kaynak +
+      "\n§8çekirdek: §7" + ZIRH_CEKIRDEK_ONEK + VILT_MOD +
+      (t.carpan ? "\n§8hasar: §7temel hasarın %" +
+        Math.round(t.carpan * 100) +
+        (t.ucusCarpan ? " §8(uçarken %" +
+          Math.round(t.ucusCarpan * 100) + ")" : "") : "") +
+      (t.bekleme ? "\n§8bekleme: §7" + (t.bekleme / 20) + " sn" : "") +
+      "\n§eTemel çekirdeği eline al, sonra menüden tetikle.");
+  } catch (e) {
+    hataYaz("viltrumite.mesaj", e);
+  }
+}
+
 function mahouBilgi(oyuncu, anahtar) {
   const t = MAHOU_BUYULER.get(anahtar) || MAHOU_ESYALAR.get(anahtar);
   if (!t) return;
@@ -1316,6 +1385,13 @@ function menuEkleri(oyuncu) {
       ad: "✦ Mahou Tsukai §8(" + manaOku(oyuncu) + " mana" +
           (elindekiBuyu(oyuncu) ? " §9✦" : "") + ")",
       calis() { mahouMenusu(oyuncu); }
+    },
+    /* v5.6: Viltrumite. Satirda cekirdegin elinde olup
+       olmadigi yaziyor -- butun yeteneklerin tek kapisi o. */
+    {
+      ad: "⚡ Viltrumite §8(Temel · " + VILTRUMITE_YETENEKLER.size +
+          " yetenek" + (viltrumiteVar(oyuncu) ? " §a✔§8" : "") + ")",
+      calis() { viltrumiteMenusu(oyuncu); }
     },
     /* v5.1: teknoloji zirhlari. Satirda uzerindeki takim
        yaziyor -- "giydim ama bir sey olmuyor" sorusunun
@@ -1871,6 +1947,11 @@ if (TEKNOLOJI_ACIK && !teknolojiKur()) {
            "olmezligi kapali. Zirh puani, efektler ve kalkan calisiyor.");
 }
 
+/* v5.6: Viltrumite hasar kancasi. Kendi uyarisini kendi
+   yaziyor (indirim orani mesajda geciyor), o yuzden burada
+   ikinci bir bilgiYaz yok.                                   */
+if (VILTRUMITE_ACIK) viltrumiteKur();
+
 const beceriKuruldu = olayaAbone("entityDie", (olay) => {
   try {
     if (!BEN10_ACIK || !BECERI_ACIK) return;
@@ -1929,6 +2010,7 @@ olayaAbone("playerLeave", (olay) => {
   womDovusUnut(olay.playerId);
   teknolojiUnut(olay.playerId);
   ben10Unut(olay.playerId);
+  viltrumiteUnutOyuncu(olay.playerId);
 
   // Oyuncunun butun isleri durdurulmali, sadece birincisi degil
   const acikIsler = oyuncununIsleri.get(olay.playerId);

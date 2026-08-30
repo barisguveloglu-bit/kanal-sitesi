@@ -145,10 +145,21 @@ for (const satir of KOL_ESYALARI) {
    Elle ikinci bir liste tutmak, ayrisan iki liste demekti.  */
 export const CEKIRDEK_YETENEKLERI = [];
 for (const [mod, t] of ZIRH_MODLAR) {
-  if (!t.yetenek) continue;
+  /* Tek "yetenek" ya da coklu "yetenekler". Temel v5.6'da
+     Viltrumite'in on yetenegini + ucusu tasiyor, tek alana
+     sigmiyordu; digerlerinin tek alani oldugu gibi duruyor.
+     Ikisini de okumak, iki ayri liste tutmaktan iyi.        */
+  const liste = [];
+  if (t.yetenek) liste.push(t.yetenek);
+  if (Array.isArray(t.yetenekler)) {
+    for (const y of t.yetenekler) if (liste.indexOf(y) === -1) liste.push(y);
+  }
+  if (liste.length === 0) continue;
   const esya = ZIRH_CEKIRDEK_ONEK + mod;
-  CEKIRDEK_YETENEKLERI.push([esya, t.yetenek]);
-  esyaBagla(esya, t.yetenek);
+  for (const y of liste) {
+    CEKIRDEK_YETENEKLERI.push([esya, y]);
+    esyaBagla(esya, y);
+  }
 }
 
 /* ---- MARVEL KAHRAMANLARI (v5.2) ----
