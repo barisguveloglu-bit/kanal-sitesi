@@ -1,3 +1,64 @@
+# v5.7 — "2 tane niye şey var ya": atlanan altı pasif
+
+Kullanıcı ekran görüntüsü attı: Temel moddayken yalnız **iki** efekt görünüyor —
+Dayanıklılık IV ve Yavaş Düşme. *"Çeşitlilik dediğin… temel moddayken bile 4
+tane olur mesela, diğerleri nerede? Bunun açıklamasını bekliyorum senden."*
+
+## Açıklama: haklıydı, ben eksik aktarmışım
+
+Ekrandaki iki ikon tabloyla birebir uyuşuyor — yani kod bozuk değildi. Ama
+v5.6'da modun yalnız **yeteneklerini** aktarmışım; **pasiflerini** atlamışım.
+Jar'da altı tane daha vardı, her biri ayrı bir mixin:
+
+| kaynak | ne yapıyor |
+|---|---|
+| `EntityFireMixin.makeViltrumiteFireImmune` → `true` | ateş bağışıklığı |
+| `EntityFreezeMixin.viltrumiteInfiniteAir` → `getMaxAirSupply()` | hava bitmiyor |
+| `PlayerStatsMixin.reduceExhaustion` → `× 0.005f` | açlık 200 kat yavaş |
+| `PlayerStatsMixin.onTick` → `heal(getHealFactor())` | tick başına 1 can |
+| `LivingEntityStatsMixin.rejectDebuffs` → `HARMFUL` reddi | zararlı etki bağışıklığı |
+| `PlayerFreezeMixin.viltrumiteCannotFreeze` → `false` | donma bağışıklığı |
+
+v5.6'da aktarılan %97 indirim ve %0.5 eşiği zaten **ikon üretmiyor** (script
+kancası), o yüzden ekranda görünmüyorlardı. Ama bu altısı asıl eksikti.
+
+**Temel'in efekt sayısı 2 → 6.**
+
+## İkisi neden efekt değil script
+
+- **Zararlı etki bağışıklığı** — Bedrock script API'sinde *"bu efekt zararlı mı"*
+  diye bir soru yok (Java'daki `MobEffectCategory` karşılığı yok). Liste
+  `VILT_ZARARLI_EFEKTLER` içinde **açıkça** yazılı ve tek tek siliniyor. Test iki
+  yönden bakıyor: listede yanlışlıkla faydalı bir efekt var mı, ve Temel kendi
+  verdiği bir efekti bir saniye sonra siliyor mu.
+- **Yenilenme** — kaynak her tick `healFactor` (1.0) kadar iyileştiriyor.
+  `regeneration` efektinin Bedrock'taki aralığını (`50 >> amp` mi, `50/(amp+1)`
+  mi) bu ortamda **ölçemiyorum**; tick başına 1 can gibi kesin bir sayıyı tahmine
+  dayalı bir `amp`'e bırakmak istemedim. İş script'te, kaynakla birebir; efekt
+  yalnızca **gösterge**. Çakışmıyorlar, can tavanda kesiliyor.
+
+Tarama her tick dönmüyor (bütçe), geçen tick sayısıyla **çarpılıyor** — ortalama
+hız kaynakla aynı kalıyor. Işın lazerlerindeki *"saniyelik hasar aynı kalsın"*
+kuralının aynısı.
+
+## Aktarılamayan: donma bağışıklığı
+
+`viltrumiteCannotFreeze`'in Bedrock'ta ne efekti var ne de script'ten
+okunabiliyor — powder snow donması bir efekt değil. Özet bunu **vaat etmiyor**;
+test de vaat etmediğini sınıyor, yani biri sonradan sessizce yazamaz.
+
+## Testler
+
+`viltrumite.mjs` 9. bölüm kazandı. Üç kasıtlı bozmayla doğrulandı:
+
+| bozma | testin dediği |
+|---|---|
+| zararlı efekt silmeyi kapat | `✗ zehir silindi` · `✗ solma silindi` |
+| iyileşmeyi tick ile çarpma | `✗ ilk taramada tarama aralığı kadar iyileşme :: 1 can / 10 tick` |
+| `regeneration`'ı zararlı listesine koy | `✗ Temel kendi verdiği efekti silmiyor` |
+
+---
+
 # v5.6 — ViltrumiteCore, sadece Temel zırha
 
 Kullanıcı: *"bu mod **sadece** temel zırhla birleştirilecek, diğer hiçbir

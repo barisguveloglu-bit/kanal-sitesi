@@ -10,6 +10,7 @@ import {
 import {
   VILTRUMITE_ACIK, VILT_MOD, VILT_TEMEL_HASAR, VILT_INDIRIM,
   VILT_ESIK, VILT_BLOK_DUSME, VILT_DIRENC, VILT_GERI_ORAN,
+  VILT_YENILENME, VILT_PASIF_TARAMA, VILT_ZARARLI_EFEKTLER,
   VILTRUMITE_YETENEKLER, LAZER_HASAR_SEBEP
 } from "../ayarlar.js";
 
@@ -698,6 +699,67 @@ yetenekKaydet({
 
 
 /* ================================================================
+   PASIF TARAMA  (v5.7)
+
+   Kullanici: "temel zirh halindeyken 2 tane niye sey var ya,
+   cesitlilik dedigin... digerleri nerede."
+
+   Haklyidi: v5.6'da yalniz yetenekler aktarilmisti, modun
+   PASIFLERI atlanmisti. Alti pasifin dordu dogrudan efekte
+   cevrildi (ayarlar.js:ZIRH_MODLAR["temel"]); ikisinin
+   Bedrock'ta efekt karsiligi YOK ve burada yapiliyor:
+
+     1. rejectDebuffs -- Bedrock script API'sinde "bu efekt
+        zararli mi" sorusu yok, o yuzden liste ayarlar.js'te
+        acikca yazili ve burada tek tek siliniyor.
+     2. onTick heal -- kaynak her tick getHealFactor() kadar
+        iyilestiriyor. Tarama her tick donmuyor (butce), o
+        yuzden aradaki tick sayisiyla CARPILIYOR: ortalama hiz
+        kaynakla ayni kaliyor. Isin lazerlerdeki "saniyelik
+        hasar ayni kalsin" kuralinin aynisi.
+   ================================================================ */
+/* oyuncuId -> bir sonraki tarama tick'i */
+const pasifSonraki = new Map();
+
+export function pasifUnut(oyuncuId) {
+  if (oyuncuId === undefined) pasifSonraki.clear();
+  else pasifSonraki.delete(oyuncuId);
+}
+
+export function viltrumiteTara(oyuncular) {
+  if (!VILTRUMITE_ACIK) return;
+  const simdi = system.currentTick;
+  for (const oyuncu of oyuncular) {
+    const hazir = pasifSonraki.get(oyuncu.id) || 0;
+    if (simdi < hazir) continue;
+    /* Gecen tick sayisi: ilk taramada hazir=0 oldugu icin
+       tarama araligi kadar sayiliyor, yoksa dunyaya girer
+       girmez binlerce tick'lik iyilesme verilirdi.          */
+    const gecen = hazir === 0 ? VILT_PASIF_TARAMA
+                              : Math.min(VILT_PASIF_TARAMA * 4,
+                                         simdi - hazir + VILT_PASIF_TARAMA);
+    pasifSonraki.set(oyuncu.id, simdi + VILT_PASIF_TARAMA);
+
+    if (!viltrumiteVar(oyuncu)) continue;
+
+    /* ---- 1. ZARARLI ETKI BAGISIKLIGI ---- */
+    for (const ad of VILT_ZARARLI_EFEKTLER) {
+      try {
+        if (typeof oyuncu.getEffect !== "function") break;
+        if (oyuncu.getEffect(ad)) oyuncu.removeEffect(ad);
+      } catch (e) {
+        /* Bu surumde o efekt adi yoksa digerleri devam etsin --
+           hepsini birden dusurmek gereksiz (bot_ilkel dersi). */
+      }
+    }
+
+    /* ---- 2. YENILENME ---- */
+    canEkle(oyuncu, VILT_YENILENME * gecen);
+  }
+}
+
+
+/* ================================================================
    HASAR KANCASI: %97 indirim + %0.5 esik + savunma
 
    Direnc IV efektle %80 veriyor; kalan buradan geri
@@ -774,6 +836,7 @@ export function viltrumiteKur() {
 
 /* Oyuncu cikinca butun defterlerden dus. */
 export function viltrumiteUnutOyuncu(oyuncuId) {
+  pasifUnut(oyuncuId);
   yumrukSarj.delete(oyuncuId);
   yaylimSarj.delete(oyuncuId);
   atilimSarj.delete(oyuncuId);
@@ -783,6 +846,7 @@ export function viltrumiteUnutOyuncu(oyuncuId) {
 }
 
 export function viltrumiteUnut() {
+  pasifUnut();
   yumrukSarj.clear();
   yaylimSarj.clear();
   atilimSarj.clear();

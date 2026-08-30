@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v5.6";
+export const SURUM = "v5.7";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -3043,6 +3043,60 @@ export const VILT_DIRENC = 3;          // amp 3 = Direnc IV
 export const VILT_GERI_ORAN =
   1 - (1 - VILT_INDIRIM / 100) / (1 - (VILT_DIRENC + 1) * 0.2);
 
+/* ---- PASIFLER  (v5.7'de eklendi) ----
+
+   Kullanici: "temel zirh halindeyken 2 tane niye sey var ya,
+   cesitlilik dedigin... temel moddayken bile 4 tane olur
+   mesela, digerleri nerede."
+
+   HAKLIYDI. v5.6'da yalniz YETENEKLERI aktarmisim; modun
+   PASIFLERINI atlamisim. Jar'da alti tane daha var, hepsi
+   ayri bir mixin:
+
+     LivingEntityStatsMixin.rejectDebuffs
+         MobEffectCategory.HARMFUL olan her efekt REDDEDILIYOR
+     EntityFireMixin.makeViltrumiteFireImmune -> true
+     EntityFreezeMixin.viltrumiteInfiniteAir
+         getMaxAirSupply() donduruyor, yani hava bitmiyor
+     PlayerFreezeMixin.viltrumiteCannotFreeze -> false
+     PlayerStatsMixin.onTick
+         can < maks iken her tick getHealFactor() kadar iyilesme
+         (STAT_HEAL_FACTOR varsayilani 1.0f -> tick basina 1 can)
+     PlayerStatsMixin.reduceExhaustion
+         yorgunluk x 0.005f -- aclik 200 kat yavas iniyor       */
+
+/* Tick basina iyilesme. Kaynakta STAT_HEAL_FACTOR = 1.0f.     */
+export const VILT_YENILENME = 1.0;
+
+/* Yenilenme EFEKTI yalniz GOSTERGE: oyuncu bir sey oldugunu
+   gorsun diye veriliyor, isi script yapiyor. Sebep: Bedrock'un
+   regeneration araligini (50 >> amp mi, 50/(amp+1) mi) bu
+   ortamda OLCEMIYORUM ve tick basina 1 can gibi kesin bir
+   sayiyi tahmine dayali bir amp'e emanet etmek istemedim.
+   Script tarafi kaynakla birebir; efekt fazladan iyilestirse
+   bile can tavanda kesiliyor, yani sonucu degistirmiyor.      */
+export const VILT_YENILENME_AMP = 5;
+
+/* Aclik: kaynakta yorgunluk x 0.005 (200 kat yavas). Bedrock'ta
+   "yorgunluk carpani" diye bir sey yok; saturation aclik
+   inmesini durduruyor -- en yakin karsilik, TAM esdegeri
+   degil.                                                       */
+
+/* Pasif taramasi. Zararli efekti silmek ve iyilesmek icin
+   ZIRH_TARAMA (20 tick) fazla seyrek: yarim saniyede bir
+   bakiliyor.                                                   */
+export const VILT_PASIF_TARAMA = 10;
+
+/* Reddedilen efektler. Bedrock script API'sinde "bu efekt
+   zararli mi" diye bir soru YOK (Java'daki MobEffectCategory
+   karsiligi yok), o yuzden liste ACIKCA yaziliyor. Vanilla'nin
+   zararli saydiklari.                                          */
+export const VILT_ZARARLI_EFEKTLER = [
+  "slowness", "mining_fatigue", "instant_damage", "nausea",
+  "blindness", "hunger", "weakness", "poison", "wither",
+  "levitation", "fatal_poison", "darkness"
+];
+
 /* Efekt tazelemesi ICIN AYRI AYAR YOK: Temel'in Direnc IV'u
    zirh.js'in kendi ZIRH_SURE/ZIRH_TARAMA dongusunden geliyor,
    ikinci bir sayi tutmak ayrisan iki olcu demekti.            */
@@ -3205,7 +3259,8 @@ export const VILTRUMITE_YETENEKLER = new Map([
 export const ZIRH_MODLAR = new Map([
   ["temel", {
     ad: "Temel", kaynak: "base_mode",
-    ozet: "VILTRUMITE · %97 hasar indirimi · uçuş · 10 yetenek · düşme hasarı yok",
+    ozet: "VILTRUMITE · %97 hasar indirimi · zararlı etki bağışıklığı · " +
+          "yenilenme · ateş + nefes + tokluk · uçuş · 10 yetenek",
     /* kaynak: armor 20 · toughness 15 · fall_resistance 10
        + viltrumitecore 1.8.1 (v5.6). Kullanicinin sarti:
        "bu mod SADECE temel zirhla birlestirilecek".
@@ -3217,7 +3272,16 @@ export const ZIRH_MODLAR = new Map([
        Ucus BURADAN geliyor: modun Cruise Flight'i icin yeni
        kod yazilmadi, var olan "ucus" yetenegi listeye
        eklendi.                                              */
-    efektler: [["resistance", 0, VILT_DIRENC], ["slow_falling", 0, 0]],
+    /* v5.7: alti pasif daha (gerekcesi yukarida "PASIFLER").
+       Ates ve hava kaynakta AYRI birer mixin; ikisi de
+       Bedrock'ta dogrudan efekt karsiligi olan tek iki pasif.
+       Yenilenme gosterge, isi script yapiyor.                */
+    efektler: [["resistance", 0, VILT_DIRENC],
+               ["slow_falling", 0, 0],
+               ["fire_resistance", 0, 0],
+               ["water_breathing", 0, 0],
+               ["saturation", 0, 0],
+               ["regeneration", 0, VILT_YENILENME_AMP]],
     /* Tek yetenek yerine LISTE: Viltrumite on yetenek
        getiriyor, tek alana sigmiyor. Digerlerinin "yetenek"
        alani oldugu gibi duruyor -- kollar.js ikisini de

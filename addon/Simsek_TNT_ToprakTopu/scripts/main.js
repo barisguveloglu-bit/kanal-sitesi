@@ -68,7 +68,7 @@ import {
    burada iki sey daha var: hasar kancasi (viltrumiteKur) ve
    kanama sayaci (kanamaTara).                               */
 import {
-  viltrumiteKur, kanamaTara, viltrumiteUnutOyuncu,
+  viltrumiteKur, kanamaTara, viltrumiteTara, viltrumiteUnutOyuncu,
   viltrumiteListesi, viltrumiteVar
 } from "./yetenekler/viltrumite.js";
 
@@ -421,6 +421,14 @@ system.runInterval(() => {
         kanamaTara();
       } catch (e) {
         hataYaz("kanamaTara", e);
+      }
+      /* Pasifler: zararli etki bagisikligi ve yenilenme.
+         Efekte cevrilebilenler zirhTara'dan geliyor, bu ikisinin
+         Bedrock'ta efekt karsiligi yok.                        */
+      try {
+        viltrumiteTara(oyuncular);
+      } catch (e) {
+        hataYaz("viltrumiteTara", e);
       }
     }
     if (BEN10_ACIK) {
