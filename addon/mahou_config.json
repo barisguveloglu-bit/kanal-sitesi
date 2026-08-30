@@ -1,0 +1,1794 @@
+{
+ "ACCEPTABLE_PLAGIARISM": {
+  "tur": "doubleconfig",
+  "varsayilan": "0.4"
+ },
+ "ACTIVE_MAGIC_CIRCLE_REPLACEMENT_TIME": {
+  "tur": "intconfig",
+  "varsayilan": "201"
+ },
+ "ALARM_ACTION_BAR_MESSAGES": {
+  "tur": "booleanconfig",
+  "varsayilan": "0"
+ },
+ "ALARM_BARRIER_CYCLE": {
+  "tur": "intconfig",
+  "varsayilan": "20"
+ },
+ "ALARM_BARRIER_MANA_COST": {
+  "tur": "intconfig",
+  "varsayilan": "1"
+ },
+ "ALARM_BARRIER_MANA_CYCLE": {
+  "tur": "intconfig",
+  "varsayilan": "10"
+ },
+ "ALARM_BARRIER_RADIUS": {
+  "tur": "intconfig",
+  "varsayilan": "10"
+ },
+ "ALCHEMICAL_EXCHANGE_BLOCK_CYCLE": {
+  "tur": "intconfig",
+  "varsayilan": "20"
+ },
+ "ALCHEMICAL_EXCHANGE_HEIGHT": {
+  "tur": "intconfig",
+  "varsayilan": "5"
+ },
+ "ALCHEMICAL_EXCHANGE_MANA_COST": {
+  "tur": "intconfig",
+  "varsayilan": "16"
+ },
+ "ALCHEMICAL_MOVING_FLUID_CLASS": {
+  "tur": "stringlistconfig",
+  "varsayilan": "0"
+ },
+ "ARMOR_STANDS_IMMUNE": {
+  "tur": "booleanconfig",
+  "varsayilan": "1"
+ },
+ "ASCENSION_BLOCK_CYCLE": {
+  "tur": "intconfig",
+  "varsayilan": "4"
+ },
+ "ASCENSION_SCROLL_MANA_COST": {
+  "tur": "intconfig",
+  "varsayilan": "30"
+ },
+ "ATTUNED_DIAMOND_CAPACITY": {
+  "tur": "intconfig",
+  "varsayilan": "10000"
+ },
+ "ATTUNED_EMERALD_CAPACITY": {
+  "tur": "intconfig",
+  "varsayilan": "5000"
+ },
+ "AUTHORITY_BLOCK_RESISTANCE_LIMIT": {
+  "tur": "intconfig",
+  "varsayilan": "45"
+ },
+ "AUTHORITY_BREAK_SLOW_DOWN_FACTOR": {
+  "tur": "doubleconfig",
+  "varsayilan": "0.5"
+ },
+ "AUTHORITY_DAMAGE_TO_OTHER": {
+  "tur": "doubleconfig",
+  "varsayilan": "3.0"
+ },
+ "AUTHORITY_DAMAGE_TO_SELF": {
+  "tur": "doubleconfig",
+  "varsayilan": "1.5"
+ },
+ "AUTHORITY_DROPS_BLOCKS": {
+  "tur": "booleanconfig",
+  "varsayilan": "1"
+ },
+ "AUTHORITY_MANA_COST": {
+  "tur": "intconfig",
+  "varsayilan": "900"
+ },
+ "AUTHORITY_NORMAL_SLOW_DOWN_FACTOR": {
+  "tur": "doubleconfig",
+  "varsayilan": "0.875"
+ },
+ "AUTHORITY_SPEED_MULTIPLIER": {
+  "tur": "doubleconfig",
+  "varsayilan": "1.8"
+ },
+ "AUTHORITY_TIME": {
+  "tur": "intconfig",
+  "varsayilan": "400"
+ },
+ "BLACK_FLAME_DAMAGE": {
+  "tur": "doubleconfig",
+  "varsayilan": "1"
+ },
+ "BLACK_FLAME_DEATH_AGE": {
+  "tur": "intconfig",
+  "varsayilan": "6"
+ },
+ "BLACK_FLAME_DEBUFF_TIME": {
+  "tur": "intconfig",
+  "varsayilan": "180"
+ },
+ "BLACK_FLAME_IGNITION_TICKS": {
+  "tur": "intconfig",
+  "varsayilan": "1"
+ },
+ "BLACK_FLAME_MANA_COST": {
+  "tur": "intconfig",
+  "varsayilan": "300"
+ },
+ "BLACK_FLAME_RANGE_FROM_USER": {
+  "tur": "intconfig",
+  "varsayilan": "30"
+ },
+ "BLACK_FLAME_TIME": {
+  "tur": "intconfig",
+  "varsayilan": "100"
+ },
+ "BLACK_FLAME_UPDATE_TICKS": {
+  "tur": "intconfig",
+  "varsayilan": "1"
+ },
+ "BLEEDING_FROM_DAGGER_ONLY": {
+  "tur": "booleanconfig",
+  "varsayilan": "0"
+ },
+ "BLOOD_CIRCLE_SOLID_ONLY": {
+  "tur": "booleanconfig",
+  "varsayilan": "1"
+ },
+ "BUTTERFLY_EFFECT_BLOCK_LIMIT": {
+  "tur": "intconfig",
+  "varsayilan": "4"
+ },
+ "BUTTERFLY_EFFECT_CHUNK_LIMIT": {
+  "tur": "intconfig",
+  "varsayilan": "40"
+ },
+ "BUTTERFLY_EFFECT_DURATION": {
+  "tur": "intconfig",
+  "varsayilan": "400"
+ },
+ "BUTTERFLY_EFFECT_MANA_COST": {
+  "tur": "intconfig",
+  "varsayilan": "100"
+ },
+ "BUTTERFLY_EFFECT_SINGLE_USE": {
+  "tur": "booleanconfig",
+  "varsayilan": "0"
+ },
+ "BUTTERFLY_EFFECT_VISIBLE_TO_OTHERS": {
+  "tur": "booleanconfig",
+  "varsayilan": "0"
+ },
+ "CALIBURN_FUN_REQUIRED": {
+  "tur": "booleanconfig",
+  "varsayilan": "0"
+ },
+ "CALIBURN_MORGAN_ABILITY_MANA_COST": {
+  "tur": "intconfig",
+  "varsayilan": "300"
+ },
+ "CATALYST_EXCHANGE_BLOCK_CYCLE": {
+  "tur": "intconfig",
+  "varsayilan": "4"
+ },
+ "CATALYST_EXCHANGE_MANA_COST": {
+  "tur": "intconfig",
+  "varsayilan": "50"
+ },
+ "CHAIN_VOLUME": {
+  "tur": "doubleconfig",
+  "varsayilan": "2.0"
+ },
+ "CHARACTER_RATIO_POINTS": {
+  "tur": "intconfig",
+  "varsayilan": "10"
+ },
+ "CHARACTER_SCORE_FACTOR": {
+  "tur": "doubleconfig",
+  "varsayilan": "0.01"
+ },
+ "CHRONAL_EXCHANGE_BLOCK_CYCLE": {
+  "tur": "intconfig",
+  "varsayilan": "20"
+ },
+ "CHRONAL_EXCHANGE_MANA_GAIN_LOSS": {
+  "tur": "intconfig",
+  "varsayilan": "10"
+ },
+ "CHUNK_PACKET_REPLIES_ENABLED": {
+  "tur": "booleanconfig",
+  "varsayilan": "1"
+ },
+ "CLAIRVOYANCE_MANA_COST": {
+  "tur": "intconfig",
+  "varsayilan": "220"
+ },
+ "CLAIRVOYANCE_RANGE": {
+  "tur": "intconfig",
+  "varsayilan": "30"
+ },
+ "CLAIRVOYANCE_TIME": {
+  "tur": "intconfig",
+  "varsayilan": "1200"
+ },
+ "CLARENT_ATTACK_CAP": {
+  "tur": "intconfig",
+  "varsayilan": "500000"
+ },
+ "CLARENT_BLACKLIST_TOGGLE": {
+  "tur": "booleanconfig",
+  "varsayilan": "1"
+ },
+ "CLARENT_DECREASE_PER_BLOCKING_TICK": {
+  "tur": "doubleconfig",
+  "varsayilan": "0.02"
+ },
+ "CLARENT_DURABILITY": {
+  "tur": "intconfig",
+  "varsayilan": "1500"
+ },
+ "CLARENT_MANA_PER_DAMAGE": {
+  "tur": "doubleconfig",
+  "varsayilan": "0.02"
+ },
+ "CLARENT_STORED_FACTOR": {
+  "tur": "doubleconfig",
+  "varsayilan": "0.5"
+ },
+ "CLARENT_UNBREAKABLE": {
+  "tur": "booleanconfig",
+  "varsayilan": "1"
+ },
+ "CLARENT_WOUND_DAMAGE": {
+  "tur": "doubleconfig",
+  "varsayilan": "0.2"
+ },
+ "CLARENT_WOUND_DAMAGE_HITS": {
+  "tur": "intconfig",
+  "varsayilan": "3"
+ },
+ "CLARENT_WOUND_TICKS": {
+  "tur": "intconfig",
+  "varsayilan": "600"
+ },
+ "CONTRACT_BLOCK_CYCLE": {
+  "tur": "intconfig",
+  "varsayilan": "4"
+ },
+ "CONTRACT_MANA_COST": {
+  "tur": "intconfig",
+  "varsayilan": "10"
+ },
+ "CONTRACT_RADIUS": {
+  "tur": "intconfig",
+  "varsayilan": "10"
+ },
+ "CREATIVE_IGNORES_MANA_COSTS": {
+  "tur": "booleanconfig",
+  "varsayilan": "1"
+ },
+ "CREATIVE_MODE_SPELLS": {
+  "tur": "booleanconfig",
+  "varsayilan": "0"
+ },
+ "DAMAGE_EXCHANGE_CAP": {
+  "tur": "intconfig",
+  "varsayilan": "5"
+ },
+ "DAMAGE_EXCHANGE_MANA_COST": {
+  "tur": "intconfig",
+  "varsayilan": "40"
+ },
+ "DAMAGE_EXCHANGE_MANA_GAIN": {
+  "tur": "intconfig",
+  "varsayilan": "20"
+ },
+ "DAMAGE_EXCHANGE_REDUCE_TO": {
+  "tur": "doubleconfig",
+  "varsayilan": "1"
+ },
+ "DAMAGE_REPLICATION_MANA_COST": {
+  "tur": "intconfig",
+  "varsayilan": "160"
+ },
+ "DEATH_COLLECTION_DRAIN_PER_SOUL": {
+  "tur": "doubleconfig",
+  "varsayilan": "1"
+ },
+ "DEATH_COLLECTION_MANA_COST": {
+  "tur": "intconfig",
+  "varsayilan": "400"
+ },
+ "DEATH_COLLECTION_MAX": {
+  "tur": "doubleconfig",
+  "varsayilan": "1.0E7"
+ },
+ "DEATH_COLLECTION_NEGATIVE_REGEN_PUNISHMENT": {
+  "tur": "booleanconfig",
+  "varsayilan": "1"
+ },
+ "DEATH_COLLECTION_RANGE_FROM_USER": {
+  "tur": "intconfig",
+  "varsayilan": "10"
+ },
+ "DEATH_COLLECTION_REVIVE_VALUE": {
+  "tur": "doubleconfig",
+  "varsayilan": "12.0"
+ },
+ "DEATH_COLLECTION_SOUL_VALUE_MOB": {
+  "tur": "doubleconfig",
+  "varsayilan": "0.25"
+ },
+ "DEATH_COLLECTION_SOUL_VALUE_PLAYER": {
+  "tur": "doubleconfig",
+  "varsayilan": "1"
+ },
+ "DEATH_COLLECTION_TIME": {
+  "tur": "intconfig",
+  "varsayilan": "600"
+ },
+ "DISABLE_EMRYS": {
+  "tur": "booleanconfig",
+  "varsayilan": "0"
+ },
+ "DISPLACEMENT_BARRIER_CYCLE": {
+  "tur": "intconfig",
+  "varsayilan": "4"
+ },
+ "DISPLACEMENT_BARRIER_MANA_COST": {
+  "tur": "intconfig",
+  "varsayilan": "1"
+ },
+ "DISPLACEMENT_BARRIER_MANA_CYCLE": {
+  "tur": "intconfig",
+  "varsayilan": "5"
+ },
+ "DISPLACEMENT_BARRIER_RADIUS": {
+  "tur": "intconfig",
+  "varsayilan": "11"
+ },
+ "DRAIN_LIFE_AFFECTED_LIMIT": {
+  "tur": "intconfig",
+  "varsayilan": "100000"
+ },
+ "DRAIN_LIFE_BARRIER_CYCLE": {
+  "tur": "intconfig",
+  "varsayilan": "20"
+ },
+ "DRAIN_LIFE_BARRIER_MANA_COST": {
+  "tur": "intconfig",
+  "varsayilan": "5"
+ },
+ "DRAIN_LIFE_BARRIER_MANA_CYCLE": {
+  "tur": "intconfig",
+  "varsayilan": "1"
+ },
+ "DRAIN_LIFE_BARRIER_RADIUS": {
+  "tur": "intconfig",
+  "varsayilan": "10"
+ },
+ "DRAIN_LIFE_DAMAGE": {
+  "tur": "doubleconfig",
+  "varsayilan": "2.0"
+ },
+ "DRAIN_LIFE_ENTITY_BLACKLIST": {
+  "tur": "stringlistconfig",
+  "varsayilan": "0"
+ },
+ "DRAIN_LIFE_HEAL_FACTOR": {
+  "tur": "doubleconfig",
+  "varsayilan": "0.5"
+ },
+ "DRAIN_LIFE_IGNORE_HUNGER": {
+  "tur": "booleanconfig",
+  "varsayilan": "0"
+ },
+ "DRAIN_LIFE_MANA_REGEN": {
+  "tur": "intconfig",
+  "varsayilan": "1"
+ },
+ "DRAIN_LIFE_PUNISH_RESIST": {
+  "tur": "doubleconfig",
+  "varsayilan": "1.8"
+ },
+ "DURABILITY_EXCHANGE_BLACKLIST": {
+  "tur": "stringlistconfig",
+  "varsayilan": "0"
+ },
+ "DURABILITY_EXCHANGE_BLOCK_CYCLE": {
+  "tur": "intconfig",
+  "varsayilan": "20"
+ },
+ "DURABILITY_EXCHANGE_EFFICIENCY": {
+  "tur": "doubleconfig",
+  "varsayilan": "1"
+ },
+ "DURABILITY_EXCHANGE_MANA_GAIN_CAP": {
+  "tur": "intconfig",
+  "varsayilan": "10"
+ },
+ "EMRYS_BOLT_FIRE": {
+  "tur": "booleanconfig",
+  "varsayilan": "0"
+ },
+ "EMRYS_DAMAGE_FOCUSED_PER_SECOND": {
+  "tur": "doubleconfig",
+  "varsayilan": "4.0"
+ },
+ "EMRYS_DAMAGE_ZAP": {
+  "tur": "doubleconfig",
+  "varsayilan": "1.5"
+ },
+ "EMRYS_MANA_COST_FOCUSED": {
+  "tur": "intconfig",
+  "varsayilan": "200"
+ },
+ "EMRYS_MANA_COST_PASSIVE": {
+  "tur": "intconfig",
+  "varsayilan": "80"
+ },
+ "EMRYS_MAX_RANGE": {
+  "tur": "intconfig",
+  "varsayilan": "22"
+ },
+ "ENCLOSURE_BARRIER_CYCLE": {
+  "tur": "intconfig",
+  "varsayilan": "20"
+ },
+ "ENCLOSURE_BARRIER_MANA_COST": {
+  "tur": "intconfig",
+  "varsayilan": "20"
+ },
+ "ENCLOSURE_BARRIER_RADIUS": {
+  "tur": "intconfig",
+  "varsayilan": "5"
+ },
+ "EQUIVALENT_DISPLACEMENT_BLOCK_CYCLE": {
+  "tur": "intconfig",
+  "varsayilan": "4"
+ },
+ "EQUIVALENT_DISPLACEMENT_DIMENSIONAL_TRAVEL": {
+  "tur": "booleanconfig",
+  "varsayilan": "1"
+ },
+ "EQUIVALENT_DISPLACEMENT_MANA_COST": {
+  "tur": "intconfig",
+  "varsayilan": "60"
+ },
+ "EQUIVALENT_DISPLACEMENT_MAX_DISTANCE": {
+  "tur": "doubleconfig",
+  "varsayilan": "-1.0"
+ },
+ "EQUIVALENT_DISPLACEMENT_RECEIVE_COOLDOWN": {
+  "tur": "intconfig",
+  "varsayilan": "40"
+ },
+ "FAE_SPAWN_RATE": {
+  "tur": "doubleconfig",
+  "varsayilan": "1"
+ },
+ "FALLEN_DOWN_BEAM_DAMAGE": {
+  "tur": "doubleconfig",
+  "varsayilan": "2.0"
+ },
+ "FALLEN_DOWN_BEAM_GROWTH": {
+  "tur": "doubleconfig",
+  "varsayilan": "0.12"
+ },
+ "FALLEN_DOWN_BEAM_MANA_SCALED_DAMAGE": {
+  "tur": "doubleconfig",
+  "varsayilan": "0"
+ },
+ "FALLEN_DOWN_BEAM_TARGET_HEALTH_PERCENTAGE_DAMAGE": {
+  "tur": "doubleconfig",
+  "varsayilan": "0.05"
+ },
+ "FALLEN_DOWN_BLOCK_BREAK_PER_TICK": {
+  "tur": "intconfig",
+  "varsayilan": "800"
+ },
+ "FALLEN_DOWN_MANA_COST": {
+  "tur": "intconfig",
+  "varsayilan": "2000"
+ },
+ "FALLEN_DOWN_RADIUS": {
+  "tur": "intconfig",
+  "varsayilan": "30"
+ },
+ "FAMILIARS_GARDEN_MANA_COST": {
+  "tur": "intconfig",
+  "varsayilan": "200"
+ },
+ "FAMILIARS_GARDEN_RANGE": {
+  "tur": "intconfig",
+  "varsayilan": "7"
+ },
+ "FAMILIARS_GARDEN_TIME": {
+  "tur": "intconfig",
+  "varsayilan": "1200"
+ },
+ "FAMILIAR_ACTION_BAR_MESSAGES": {
+  "tur": "booleanconfig",
+  "varsayilan": "0"
+ },
+ "FAMILIAR_CHUNKLOADS": {
+  "tur": "booleanconfig",
+  "varsayilan": "1"
+ },
+ "FAMILIAR_HEALTH": {
+  "tur": "intconfig",
+  "varsayilan": "10"
+ },
+ "FAMILIAR_OUCH_CHANCE": {
+  "tur": "doubleconfig",
+  "varsayilan": "0.3"
+ },
+ "FAMILIAR_REPORT_SURROUNDINGS_TIME": {
+  "tur": "intconfig",
+  "varsayilan": "400"
+ },
+ "FAY_SIGHT_MANA_COST": {
+  "tur": "intconfig",
+  "varsayilan": "100"
+ },
+ "FAY_SIGHT_TIME": {
+  "tur": "intconfig",
+  "varsayilan": "600"
+ },
+ "FIRST_SORCERY_DURABILITY": {
+  "tur": "intconfig",
+  "varsayilan": "50"
+ },
+ "FOG_PROJECTOR_MAX_RADIUS": {
+  "tur": "doubleconfig",
+  "varsayilan": "30.0"
+ },
+ "GAMESTAGES_ENABLED": {
+  "tur": "booleanconfig",
+  "varsayilan": "0"
+ },
+ "GANDR_BLACK_PARTICLES_HIT": {
+  "tur": "intconfig",
+  "varsayilan": "150"
+ },
+ "GANDR_CLOUD_DURATION": {
+  "tur": "intconfig",
+  "varsayilan": "200"
+ },
+ "GANDR_DAMAGE_FACTOR": {
+  "tur": "doubleconfig",
+  "varsayilan": "0.009999999776482582"
+ },
+ "GANDR_DAMAGE_SCALES": {
+  "tur": "booleanconfig",
+  "varsayilan": "1"
+ },
+ "GANDR_EFFECT_BLACKLIST": {
+  "tur": "stringlistconfig",
+  "varsayilan": "0"
+ },
+ "GANDR_HIT_RADIUS": {
+  "tur": "doubleconfig",
+  "varsayilan": "6.0"
+ },
+ "GANDR_MANA_COST_FACTOR": {
+  "tur": "doubleconfig",
+  "varsayilan": "0.05"
+ },
+ "GANDR_MANA_SCALES": {
+  "tur": "booleanconfig",
+  "varsayilan": "1"
+ },
+ "GANDR_MAX_DAMAGE": {
+  "tur": "doubleconfig",
+  "varsayilan": "1000.0"
+ },
+ "GANDR_MIN_DAMAGE": {
+  "tur": "doubleconfig",
+  "varsayilan": "5.0"
+ },
+ "GANDR_RED_PARTICLES_HIT": {
+  "tur": "intconfig",
+  "varsayilan": "40"
+ },
+ "GANDR_RED_PARTICLES_LAUNCH": {
+  "tur": "intconfig",
+  "varsayilan": "25"
+ },
+ "GANDR_SPEED": {
+  "tur": "doubleconfig",
+  "varsayilan": "1"
+ },
+ "GEAS_MANA_COST": {
+  "tur": "intconfig",
+  "varsayilan": "30"
+ },
+ "GEAS_MAX_MANA_REGEN": {
+  "tur": "doubleconfig",
+  "varsayilan": "1.0E7"
+ },
+ "GLOBAL_LOOK_RANGE": {
+  "tur": "intconfig",
+  "varsayilan": "100"
+ },
+ "GRAVITY_BARRIER_CYCLE": {
+  "tur": "intconfig",
+  "varsayilan": "1"
+ },
+ "GRAVITY_BARRIER_FACTOR": {
+  "tur": "doubleconfig",
+  "varsayilan": "1.4"
+ },
+ "GRAVITY_BARRIER_MANA_COST": {
+  "tur": "intconfig",
+  "varsayilan": "1"
+ },
+ "GRAVITY_BARRIER_MANA_CYCLE": {
+  "tur": "intconfig",
+  "varsayilan": "2"
+ },
+ "GRAVITY_BARRIER_MAX": {
+  "tur": "doubleconfig",
+  "varsayilan": "5.0E7"
+ },
+ "GRAVITY_BARRIER_RADIUS": {
+  "tur": "intconfig",
+  "varsayilan": "10"
+ },
+ "HEAVENS_CUP_DURATION": {
+  "tur": "intconfig",
+  "varsayilan": "1200"
+ },
+ "HEAVENS_CUP_MANA_COST": {
+  "tur": "intconfig",
+  "varsayilan": "2"
+ },
+ "HEAVENS_CUP_MAX_ITERS": {
+  "tur": "intconfig",
+  "varsayilan": "10"
+ },
+ "HEAVENS_CUP_NETWORK_DISTANCE": {
+  "tur": "intconfig",
+  "varsayilan": "30"
+ },
+ "HEAVENS_CUP_START_DISTANCE": {
+  "tur": "intconfig",
+  "varsayilan": "20"
+ },
+ "IMMUNITY_EXCHANGE_MANA_COST": {
+  "tur": "intconfig",
+  "varsayilan": "400"
+ },
+ "IMMUNITY_EXCHANGE_TIME": {
+  "tur": "intconfig",
+  "varsayilan": "1200"
+ },
+ "INSIGHT_MANA_COST": {
+  "tur": "intconfig",
+  "varsayilan": "320"
+ },
+ "INSIGHT_TIME": {
+  "tur": "intconfig",
+  "varsayilan": "1200"
+ },
+ "KODOKU_ARMOR_FACTOR": {
+  "tur": "doubleconfig",
+  "varsayilan": "0"
+ },
+ "KODOKU_ARMOR_FACTOR_MOB": {
+  "tur": "doubleconfig",
+  "varsayilan": "0"
+ },
+ "KODOKU_CONFUSE_CHANCE": {
+  "tur": "doubleconfig",
+  "varsayilan": "0.01"
+ },
+ "KODOKU_FIRE_CHANCE": {
+  "tur": "doubleconfig",
+  "varsayilan": "0.1"
+ },
+ "KODOKU_GLOW_CHANCE": {
+  "tur": "doubleconfig",
+  "varsayilan": "0.02"
+ },
+ "KODOKU_HEALTH_FACTOR": {
+  "tur": "doubleconfig",
+  "varsayilan": "0.1"
+ },
+ "KODOKU_HEALTH_FACTOR_MOB": {
+  "tur": "doubleconfig",
+  "varsayilan": "0.1"
+ },
+ "KODOKU_HOP_CHANCE": {
+  "tur": "doubleconfig",
+  "varsayilan": "0.08"
+ },
+ "KODOKU_HUNGER_CHANCE": {
+  "tur": "doubleconfig",
+  "varsayilan": "0.15"
+ },
+ "KODOKU_LOOT_DIVISOR": {
+  "tur": "intconfig",
+  "varsayilan": "10"
+ },
+ "KODOKU_MISFORTUNE_AGGRO_CHANCE": {
+  "tur": "doubleconfig",
+  "varsayilan": "4.0E-4"
+ },
+ "KODOKU_MISFORTUNE_DROP_CHANCE": {
+  "tur": "doubleconfig",
+  "varsayilan": "7.142857142857143E-5"
+ },
+ "KODOKU_MISFORTUNE_LIGHTNING_CHANCE": {
+  "tur": "doubleconfig",
+  "varsayilan": "2.0E-5"
+ },
+ "KODOKU_MISFORTUNE_TRIP_CHANCE": {
+  "tur": "doubleconfig",
+  "varsayilan": "4.0E-5"
+ },
+ "KODOKU_SPLASH_CHANCE": {
+  "tur": "doubleconfig",
+  "varsayilan": "0.05"
+ },
+ "KODOKU_TELEPORT_CHANCE": {
+  "tur": "doubleconfig",
+  "varsayilan": "0.08"
+ },
+ "KODOKU_TOOL_BREAK_DIVISOR": {
+  "tur": "intconfig",
+  "varsayilan": "10"
+ },
+ "LEY_AFFECTS_MANA": {
+  "tur": "booleanconfig",
+  "varsayilan": "1"
+ },
+ "LEY_BLACKLIST": {
+  "tur": "booleanconfig",
+  "varsayilan": "1"
+ },
+ "LEY_DIMENSION_LIST": {
+  "tur": "stringlistconfig",
+  "varsayilan": "0"
+ },
+ "LEY_DISTANCE": {
+  "tur": "intconfig",
+  "varsayilan": "300"
+ },
+ "LEY_ELYTRA_LIMITED_TO_FAY_SIGHT": {
+  "tur": "booleanconfig",
+  "varsayilan": "0"
+ },
+ "LEY_FACTOR": {
+  "tur": "doubleconfig",
+  "varsayilan": "0.01"
+ },
+ "LEY_FLAT": {
+  "tur": "booleanconfig",
+  "varsayilan": "0"
+ },
+ "LEY_OFFSET": {
+  "tur": "intconfig",
+  "varsayilan": "0"
+ },
+ "LEY_PUNISHMENT": {
+  "tur": "intconfig",
+  "varsayilan": "-1"
+ },
+ "LEY_RENDER_HEIGHT": {
+  "tur": "intconfig",
+  "varsayilan": "70"
+ },
+ "LEY_RUNES": {
+  "tur": "booleanconfig",
+  "varsayilan": "1"
+ },
+ "MAGIC_CIRCLES": {
+  "tur": "stringlistconfig",
+  "varsayilan": "0"
+ },
+ "MAGIC_DAMAGES_PLAYER": {
+  "tur": "booleanconfig",
+  "varsayilan": "0"
+ },
+ "MAGIC_DAMAGE_FLAT": {
+  "tur": "booleanconfig",
+  "varsayilan": "1"
+ },
+ "MAGIC_DAMAGE_GENERIC": {
+  "tur": "booleanconfig",
+  "varsayilan": "1"
+ },
+ "MAGIC_DAMAGE_VALUE": {
+  "tur": "doubleconfig",
+  "varsayilan": "1"
+ },
+ "MAGIC_RUNES": {
+  "tur": "stringlistconfig",
+  "varsayilan": "0"
+ },
+ "MANA_ADDED_SCALING_REGEN_PER_TICK": {
+  "tur": "doubleconfig",
+  "varsayilan": "0"
+ },
+ "MANA_CIRCUIT_CAPACITY": {
+  "tur": "intconfig",
+  "varsayilan": "100000"
+ },
+ "MANA_CIRCUIT_MAGITECH_CAPACITY": {
+  "tur": "intconfig",
+  "varsayilan": "100000"
+ },
+ "MANA_CIRCUIT_RANGE": {
+  "tur": "intconfig",
+  "varsayilan": "10"
+ },
+ "MANA_INCREASE": {
+  "tur": "intconfig",
+  "varsayilan": "1"
+ },
+ "MANA_INCREASE_LOG_PUNISHMENT": {
+  "tur": "booleanconfig",
+  "varsayilan": "0"
+ },
+ "MANA_INCREASE_PUNISHMENT_FACTOR": {
+  "tur": "doubleconfig",
+  "varsayilan": "0"
+ },
+ "MANA_RECOVERY_SLEEP": {
+  "tur": "doubleconfig",
+  "varsayilan": "0.5"
+ },
+ "MANA_REGEN_HUNGER_FACTOR": {
+  "tur": "doubleconfig",
+  "varsayilan": "1"
+ },
+ "MANA_REGEN_PER_GEAS": {
+  "tur": "doubleconfig",
+  "varsayilan": "3.0"
+ },
+ "MANA_REGEN_PER_TICK": {
+  "tur": "intconfig",
+  "varsayilan": "1"
+ },
+ "MANA_UP_COUNTER": {
+  "tur": "intconfig",
+  "varsayilan": "100"
+ },
+ "MANA_UP_COUNTER_MAX": {
+  "tur": "intconfig",
+  "varsayilan": "100"
+ },
+ "MANA_UP_COUNTER_RATIO": {
+  "tur": "doubleconfig",
+  "varsayilan": "0"
+ },
+ "MARBLE_DIMENSION": {
+  "tur": "intconfig",
+  "varsayilan": "-1"
+ },
+ "MARBLE_DIMENSION_DURABILITY": {
+  "tur": "intconfig",
+  "varsayilan": "3"
+ },
+ "MARBLE_DIMENSION_SPAWN_CHANCE": {
+  "tur": "doubleconfig",
+  "varsayilan": "0.8"
+ },
+ "MARBLE_DIMENSION_SPAWN_RATE": {
+  "tur": "intconfig",
+  "varsayilan": "13"
+ },
+ "MARBLE_MANA_COST": {
+  "tur": "intconfig",
+  "varsayilan": "4000"
+ },
+ "MARBLE_MOB_BLACKLIST": {
+  "tur": "stringlistconfig",
+  "varsayilan": "0"
+ },
+ "MAX_MANA_CAP": {
+  "tur": "intconfig",
+  "varsayilan": "200000"
+ },
+ "MENTAL_DISPLACEMENT_MANA_COST": {
+  "tur": "intconfig",
+  "varsayilan": "300"
+ },
+ "MENTAL_DISPLACEMENT_RANGE": {
+  "tur": "intconfig",
+  "varsayilan": "20"
+ },
+ "MORGAN_ADULT_INCREASE": {
+  "tur": "doubleconfig",
+  "varsayilan": "0.2"
+ },
+ "MORGAN_CALIBURN_POWER_COOLDOWN": {
+  "tur": "intconfig",
+  "varsayilan": "600"
+ },
+ "MORGAN_CHILD_INCREASE": {
+  "tur": "doubleconfig",
+  "varsayilan": "1"
+ },
+ "MORGAN_HEAL_FACTOR": {
+  "tur": "intconfig",
+  "varsayilan": "30"
+ },
+ "MORGAN_MAX_BALL_RANGE": {
+  "tur": "intconfig",
+  "varsayilan": "15"
+ },
+ "MORGAN_RAGE_TIME": {
+  "tur": "intconfig",
+  "varsayilan": "120"
+ },
+ "MORGAN_SPIKE_RANGE": {
+  "tur": "intconfig",
+  "varsayilan": "30"
+ },
+ "MORGAN_UPGRADE_MANA_COST": {
+  "tur": "intconfig",
+  "varsayilan": "400"
+ },
+ "MYSTIC_CODE_ENCHANT_BLACKLIST": {
+  "tur": "stringlistconfig",
+  "varsayilan": "0"
+ },
+ "MYSTIC_EYES_MANA_COST": {
+  "tur": "intconfig",
+  "varsayilan": "320"
+ },
+ "MYSTIC_EYES_RANGE_FROM_LOOK_VEC": {
+  "tur": "intconfig",
+  "varsayilan": "4"
+ },
+ "MYSTIC_EYES_RANGE_FROM_USER": {
+  "tur": "intconfig",
+  "varsayilan": "5"
+ },
+ "MYSTIC_EYES_TIME": {
+  "tur": "intconfig",
+  "varsayilan": "600"
+ },
+ "MYSTIC_STAFF_AOE_DELAY": {
+  "tur": "intconfig",
+  "varsayilan": "3"
+ },
+ "MYSTIC_STAFF_AOE_FACTOR": {
+  "tur": "doubleconfig",
+  "varsayilan": "0.004"
+ },
+ "MYSTIC_STAFF_AOE_MANA_COST": {
+  "tur": "intconfig",
+  "varsayilan": "600"
+ },
+ "MYSTIC_STAFF_AOE_SCALES": {
+  "tur": "booleanconfig",
+  "varsayilan": "1"
+ },
+ "MYSTIC_STAFF_AOE_SCALING_MANA": {
+  "tur": "doubleconfig",
+  "varsayilan": "0"
+ },
+ "MYSTIC_STAFF_AOE_SIZE": {
+  "tur": "intconfig",
+  "varsayilan": "4"
+ },
+ "MYSTIC_STAFF_BEAM_BLOCK_WHITELIST": {
+  "tur": "stringlistconfig",
+  "varsayilan": "0"
+ },
+ "MYSTIC_STAFF_BEAM_DAMAGE_ACCELERATION": {
+  "tur": "doubleconfig",
+  "varsayilan": "1.5"
+ },
+ "MYSTIC_STAFF_BEAM_DAMAGE_FACTOR": {
+  "tur": "doubleconfig",
+  "varsayilan": "0.001"
+ },
+ "MYSTIC_STAFF_BEAM_DAMAGE_SCALES": {
+  "tur": "booleanconfig",
+  "varsayilan": "1"
+ },
+ "MYSTIC_STAFF_BEAM_MANA_PER_TICK": {
+  "tur": "intconfig",
+  "varsayilan": "500"
+ },
+ "MYSTIC_STAFF_BEAM_MAX_BLOCK_BREAK_PER_TICK": {
+  "tur": "intconfig",
+  "varsayilan": "90"
+ },
+ "MYSTIC_STAFF_BEAM_SCALING_MANA": {
+  "tur": "doubleconfig",
+  "varsayilan": "0"
+ },
+ "MYSTIC_STAFF_BIG_FACTOR": {
+  "tur": "doubleconfig",
+  "varsayilan": "0.012"
+ },
+ "MYSTIC_STAFF_BIG_MANA_COST": {
+  "tur": "intconfig",
+  "varsayilan": "5000"
+ },
+ "MYSTIC_STAFF_BIG_RAIN": {
+  "tur": "booleanconfig",
+  "varsayilan": "1"
+ },
+ "MYSTIC_STAFF_BIG_SCALES": {
+  "tur": "booleanconfig",
+  "varsayilan": "1"
+ },
+ "MYSTIC_STAFF_BIG_SIZE": {
+  "tur": "intconfig",
+  "varsayilan": "30"
+ },
+ "MYSTIC_STAFF_SCALING_MANA": {
+  "tur": "doubleconfig",
+  "varsayilan": "0"
+ },
+ "MYSTIC_STAFF_SUMMON_MANA_COST": {
+  "tur": "intconfig",
+  "varsayilan": "100"
+ },
+ "MYSTIC_STAFF_WORLD_DAMAGE": {
+  "tur": "booleanconfig",
+  "varsayilan": "1"
+ },
+ "NOBU_ADJUSTMENT_TICKS_PER_DEGREE": {
+  "tur": "doubleconfig",
+  "varsayilan": "0.5"
+ },
+ "NOBU_AOE_FACTOR": {
+  "tur": "doubleconfig",
+  "varsayilan": "0.5"
+ },
+ "NOBU_AOE_HIT": {
+  "tur": "doubleconfig",
+  "varsayilan": "-1.0"
+ },
+ "NOBU_AUTONOMOUS_LIFE_TICKS": {
+  "tur": "intconfig",
+  "varsayilan": "600"
+ },
+ "NOBU_BULLET_DAMAGE": {
+  "tur": "doubleconfig",
+  "varsayilan": "8.0"
+ },
+ "NOBU_CIRCLE_RADIUS": {
+  "tur": "doubleconfig",
+  "varsayilan": "15.0"
+ },
+ "NOBU_DISTANCE_REQUIREMENT": {
+  "tur": "doubleconfig",
+  "varsayilan": "200.0"
+ },
+ "NOBU_DRUM_VOLUME": {
+  "tur": "doubleconfig",
+  "varsayilan": "10.0"
+ },
+ "NOBU_DURABILITY": {
+  "tur": "intconfig",
+  "varsayilan": "10000"
+ },
+ "NOBU_ENABLED": {
+  "tur": "booleanconfig",
+  "varsayilan": "1"
+ },
+ "NOBU_FIRE_SQUAD": {
+  "tur": "stringlistconfig",
+  "varsayilan": null
+ },
+ "NOBU_FIRING_LINE_SPACE": {
+  "tur": "doubleconfig",
+  "varsayilan": "20.0"
+ },
+ "NOBU_IS_UNBREAKABLE": {
+  "tur": "booleanconfig",
+  "varsayilan": "0"
+ },
+ "NOBU_MANA_PER_CONSTRUCT": {
+  "tur": "intconfig",
+  "varsayilan": "40"
+ },
+ "NOBU_MANA_PER_SHOT": {
+  "tur": "intconfig",
+  "varsayilan": "20"
+ },
+ "NOBU_MAX_GUNS": {
+  "tur": "intconfig",
+  "varsayilan": "20"
+ },
+ "NOBU_MAX_SPAWN_HEIGHT": {
+  "tur": "doubleconfig",
+  "varsayilan": "12.0"
+ },
+ "NOBU_PERSONAL_DRUM": {
+  "tur": "booleanconfig",
+  "varsayilan": "1"
+ },
+ "NOBU_PITCH_INCREMENT": {
+  "tur": "doubleconfig",
+  "varsayilan": "15.0"
+ },
+ "NOBU_POWER_DAMAGE_FACTOR": {
+  "tur": "doubleconfig",
+  "varsayilan": "0.4000000059604645"
+ },
+ "NOBU_RECOIL_TIME": {
+  "tur": "intconfig",
+  "varsayilan": "3"
+ },
+ "NOBU_SPAWN_AND_FIRE_FREQ": {
+  "tur": "intconfig",
+  "varsayilan": "2"
+ },
+ "ONE_LIFE": {
+  "tur": "booleanconfig",
+  "varsayilan": "0"
+ },
+ "ORDERED_DISPLACEMENT_BLOCK_CYCLE": {
+  "tur": "intconfig",
+  "varsayilan": "4"
+ },
+ "ORDERED_DISPLACEMENT_MANA_COST": {
+  "tur": "intconfig",
+  "varsayilan": "40"
+ },
+ "ORDERED_DISPLACEMENT_RADIUS": {
+  "tur": "intconfig",
+  "varsayilan": "20"
+ },
+ "ORDERED_DISPLACEMENT_RECEIVE_COOLDOWN": {
+  "tur": "intconfig",
+  "varsayilan": "15"
+ },
+ "PLAGIARISM_NEW_WORD_WEIGHT": {
+  "tur": "doubleconfig",
+  "varsayilan": "0.5"
+ },
+ "PLAGIARISM_SIMILAR_WORD_COUNT_WEIGHT": {
+  "tur": "doubleconfig",
+  "varsayilan": "0.5"
+ },
+ "POSSESS_ENTITY_MANA_COST": {
+  "tur": "intconfig",
+  "varsayilan": "200"
+ },
+ "POWER_CONSOLIDATION_ATTACK_CAP": {
+  "tur": "intconfig",
+  "varsayilan": "5000000"
+ },
+ "POWER_CONSOLIDATION_CALIBURN_BLACKLIST_TOGGLE": {
+  "tur": "booleanconfig",
+  "varsayilan": "1"
+ },
+ "POWER_CONSOLIDATION_DURABILITY": {
+  "tur": "intconfig",
+  "varsayilan": "1000"
+ },
+ "POWER_CONSOLIDATION_FEAR_BLACKLIST": {
+  "tur": "stringlistconfig",
+  "varsayilan": "0"
+ },
+ "POWER_CONSOLIDATION_FEAR_RADIUS": {
+  "tur": "intconfig",
+  "varsayilan": "15"
+ },
+ "POWER_CONSOLIDATION_FOG_RADIUS": {
+  "tur": "doubleconfig",
+  "varsayilan": "8.0"
+ },
+ "POWER_CONSOLIDATION_LAKE_CYCLE": {
+  "tur": "intconfig",
+  "varsayilan": "20"
+ },
+ "POWER_CONSOLIDATION_LAKE_MANA_COST": {
+  "tur": "intconfig",
+  "varsayilan": "30"
+ },
+ "POWER_CONSOLIDATION_LAKE_RADIUS": {
+  "tur": "intconfig",
+  "varsayilan": "12"
+ },
+ "POWER_CONSOLIDATION_LAKE_THRESHHOLD": {
+  "tur": "intconfig",
+  "varsayilan": "150"
+ },
+ "POWER_CONSOLIDATION_NERF_FACTOR": {
+  "tur": "doubleconfig",
+  "varsayilan": "0.6"
+ },
+ "POWER_CONSOLIDATION_PROJECTIONS_ALLOWED": {
+  "tur": "booleanconfig",
+  "varsayilan": "0"
+ },
+ "POWER_CONSOLIDATION_PULL_RADIUS": {
+  "tur": "intconfig",
+  "varsayilan": "20"
+ },
+ "POWER_CONSOLIDATION_RETRO_FOG_FIX": {
+  "tur": "booleanconfig",
+  "varsayilan": "0"
+ },
+ "POWER_CONSOLIDATION_SMITE_RADIUS": {
+  "tur": "intconfig",
+  "varsayilan": "30"
+ },
+ "POWER_CONSOLIDATION_SWEEP_LOOK_RADIUS": {
+  "tur": "intconfig",
+  "varsayilan": "3"
+ },
+ "POWER_CONSOLIDATION_SWEEP_RADIUS": {
+  "tur": "intconfig",
+  "varsayilan": "6"
+ },
+ "POWER_CONSOLIDATION_SWORD_MANA_COST": {
+  "tur": "intconfig",
+  "varsayilan": "5000"
+ },
+ "POWER_CONSOLIDATION_UNSOCKETS_APOTH_GEMS": {
+  "tur": "booleanconfig",
+  "varsayilan": "1"
+ },
+ "PROJECTILE_DISPLACEMENT_MANA_COST": {
+  "tur": "intconfig",
+  "varsayilan": "50"
+ },
+ "PROJECTION_ANVIL_CANCEL": {
+  "tur": "booleanconfig",
+  "varsayilan": "0"
+ },
+ "PROJECTION_BLACKLIST": {
+  "tur": "stringlistconfig",
+  "varsayilan": "0"
+ },
+ "PROJECTION_DURABILITY_FACTOR": {
+  "tur": "intconfig",
+  "varsayilan": "5"
+ },
+ "PROJECTION_DURABILITY_FLAT": {
+  "tur": "booleanconfig",
+  "varsayilan": "1"
+ },
+ "PROJECTION_ENCHANTMENT_BLACKLIST": {
+  "tur": "stringlistconfig",
+  "varsayilan": "0"
+ },
+ "PROJECTION_EXPLICIT_WHITELIST": {
+  "tur": "stringlistconfig",
+  "varsayilan": "0"
+ },
+ "PROJECTION_IS_BLACKLIST": {
+  "tur": "booleanconfig",
+  "varsayilan": "1"
+ },
+ "PROJECTION_MANA_COST": {
+  "tur": "intconfig",
+  "varsayilan": "1000"
+ },
+ "PROJECTOR_CONTINUES_ROTATE_WHEN_OFF": {
+  "tur": "booleanconfig",
+  "varsayilan": "0"
+ },
+ "PROJECTOR_DEFAULT_ROTATION_SPEED": {
+  "tur": "doubleconfig",
+  "varsayilan": "1"
+ },
+ "PROJECTOR_OFFSET_CAP": {
+  "tur": "doubleconfig",
+  "varsayilan": "60.0"
+ },
+ "PROJECTOR_SIZE_CAP": {
+  "tur": "doubleconfig",
+  "varsayilan": "100.0"
+ },
+ "PROTECTIVE_DISPLACEMENT_MANA_COST": {
+  "tur": "intconfig",
+  "varsayilan": "50"
+ },
+ "PROXIMITY_PROJECTION_DURABILITY": {
+  "tur": "intconfig",
+  "varsayilan": "30"
+ },
+ "PROXIMITY_PROJECTION_MANA_COST": {
+  "tur": "intconfig",
+  "varsayilan": "160"
+ },
+ "PUNCTUATION_RATIO_POINTS": {
+  "tur": "intconfig",
+  "varsayilan": "400"
+ },
+ "PUNCTUATION_SCORE_FACTOR": {
+  "tur": "doubleconfig",
+  "varsayilan": "0.01"
+ },
+ "REAL_WORD_POINTS": {
+  "tur": "intconfig",
+  "varsayilan": "4"
+ },
+ "RECALL_FAMILIAR_MANA_COST": {
+  "tur": "intconfig",
+  "varsayilan": "20"
+ },
+ "REPLICA_ATTACK_MANA_COST": {
+  "tur": "intconfig",
+  "varsayilan": "30"
+ },
+ "REPLICA_ATTACK_RANGE": {
+  "tur": "doubleconfig",
+  "varsayilan": "8.0"
+ },
+ "REPLICA_BANNED_DAMAGE_TYPES": {
+  "tur": "stringlistconfig",
+  "varsayilan": "0"
+ },
+ "REPLICA_BASE_DAMAGE": {
+  "tur": "doubleconfig",
+  "varsayilan": "4.0"
+ },
+ "REPLICA_COVER_MOVE_RANGE": {
+  "tur": "doubleconfig",
+  "varsayilan": "20.0"
+ },
+ "REPLICA_DISABLED": {
+  "tur": "booleanconfig",
+  "varsayilan": "0"
+ },
+ "REPLICA_DURABILITY": {
+  "tur": "intconfig",
+  "varsayilan": "10000"
+ },
+ "REPLICA_IS_UNBREAKABLE": {
+  "tur": "booleanconfig",
+  "varsayilan": "1"
+ },
+ "REPLICA_MAX_DAMAGE": {
+  "tur": "doubleconfig",
+  "varsayilan": "5000000.0"
+ },
+ "REPLICA_SHOCKWAVE_COOLDOWN": {
+  "tur": "intconfig",
+  "varsayilan": "50"
+ },
+ "REPLICA_TELEPORT_CROSS_DIMENSION": {
+  "tur": "booleanconfig",
+  "varsayilan": "1"
+ },
+ "REPLICA_TELEPORT_FRIEND_RANGE": {
+  "tur": "doubleconfig",
+  "varsayilan": "6.0"
+ },
+ "REPLICA_TELEPORT_LIFE": {
+  "tur": "intconfig",
+  "varsayilan": "140"
+ },
+ "REPLICA_TELEPORT_MANA_COST": {
+  "tur": "intconfig",
+  "varsayilan": "300"
+ },
+ "REPLICA_TELEPORT_MAX_DISTANCE": {
+  "tur": "doubleconfig",
+  "varsayilan": "-1.0"
+ },
+ "REPLICA_TELEPORT_START_TELEPORTING": {
+  "tur": "intconfig",
+  "varsayilan": "110"
+ },
+ "REPLICA_TELEPORT_STOP_TELEPORTING": {
+  "tur": "intconfig",
+  "varsayilan": "120"
+ },
+ "RETRIBUTION_BLACKLIST": {
+  "tur": "stringlistconfig",
+  "varsayilan": "0"
+ },
+ "RETRIBUTION_MANA_CHARGED_PER_PERCENT": {
+  "tur": "booleanconfig",
+  "varsayilan": "0"
+ },
+ "RETRIBUTION_MANA_PER_DIFFERENCE": {
+  "tur": "intconfig",
+  "varsayilan": "40"
+ },
+ "REVERSION_EYES_MANA_COST": {
+  "tur": "intconfig",
+  "varsayilan": "410"
+ },
+ "REVERSION_EYES_RANGE_FROM_LOOK_VEC": {
+  "tur": "intconfig",
+  "varsayilan": "4"
+ },
+ "REVERSION_EYES_RANGE_FROM_USER": {
+  "tur": "intconfig",
+  "varsayilan": "10"
+ },
+ "REVERSION_EYES_TIME": {
+  "tur": "intconfig",
+  "varsayilan": "600"
+ },
+ "RHONGOMYNIAD_MANA_COST": {
+  "tur": "intconfig",
+  "varsayilan": "300"
+ },
+ "RHONGOMYNIAD_MAX_SMITES": {
+  "tur": "intconfig",
+  "varsayilan": "10"
+ },
+ "RHONGOMYNIAD_NERF_FACTOR": {
+  "tur": "doubleconfig",
+  "varsayilan": "0.6"
+ },
+ "RHONGOMYNIAD_RANGE": {
+  "tur": "intconfig",
+  "varsayilan": "20"
+ },
+ "RHONGOMYNIAD_RESPECT_IMMUNE": {
+  "tur": "booleanconfig",
+  "varsayilan": "0"
+ },
+ "RHONGOMYNIAD_SPEED_FACTOR": {
+  "tur": "doubleconfig",
+  "varsayilan": "1.4"
+ },
+ "RHO_AIAS_KILL_DEBUG": {
+  "tur": "booleanconfig",
+  "varsayilan": "0"
+ },
+ "RHO_AIAS_KILL_RANGE": {
+  "tur": "intconfig",
+  "varsayilan": "30"
+ },
+ "RHO_AIAS_LIFE": {
+  "tur": "intconfig",
+  "varsayilan": "1200"
+ },
+ "RHO_AIAS_MANA_COST": {
+  "tur": "intconfig",
+  "varsayilan": "300"
+ },
+ "RHO_AIAS_SNEAK_BOOP": {
+  "tur": "booleanconfig",
+  "varsayilan": "1"
+ },
+ "RIPPER_COOLDOWN": {
+  "tur": "intconfig",
+  "varsayilan": "800"
+ },
+ "RIPPER_DAMAGE": {
+  "tur": "doubleconfig",
+  "varsayilan": "2.5"
+ },
+ "RIPPER_DAMAGE_BONUS_FROM_BEHIND": {
+  "tur": "doubleconfig",
+  "varsayilan": "6.0"
+ },
+ "RIPPER_DAMAGE_BONUS_SCALES_WITH_MANA": {
+  "tur": "booleanconfig",
+  "varsayilan": "0"
+ },
+ "RIPPER_DURABILITY": {
+  "tur": "intconfig",
+  "varsayilan": "1200"
+ },
+ "RIPPER_FOG_DISTANCE": {
+  "tur": "intconfig",
+  "varsayilan": "5"
+ },
+ "RIPPER_FOG_MANA_COST": {
+  "tur": "intconfig",
+  "varsayilan": "200"
+ },
+ "RIPPER_FOG_RANGE": {
+  "tur": "intconfig",
+  "varsayilan": "20"
+ },
+ "RIPPER_GIVES_INVIS": {
+  "tur": "booleanconfig",
+  "varsayilan": "1"
+ },
+ "RIPPER_INVIS_COOLDOWN": {
+  "tur": "intconfig",
+  "varsayilan": "40"
+ },
+ "RIPPER_INVIS_MANA_COST": {
+  "tur": "intconfig",
+  "varsayilan": "0"
+ },
+ "RIPPER_MANA_COST": {
+  "tur": "intconfig",
+  "varsayilan": "800"
+ },
+ "RIPPER_MOVEMENT_SPEED": {
+  "tur": "doubleconfig",
+  "varsayilan": "0.05"
+ },
+ "RIPPER_SPEED": {
+  "tur": "doubleconfig",
+  "varsayilan": "3.0"
+ },
+ "RULE_BREAKER_DURABILITY": {
+  "tur": "intconfig",
+  "varsayilan": "40"
+ },
+ "RULE_BREAKER_DURATION": {
+  "tur": "intconfig",
+  "varsayilan": "800"
+ },
+ "RULE_BREAKER_MANA_COST": {
+  "tur": "intconfig",
+  "varsayilan": "5000"
+ },
+ "RULE_BREAKER_RANGE": {
+  "tur": "intconfig",
+  "varsayilan": "20"
+ },
+ "SCRYING_BLOCK_CYCLE": {
+  "tur": "intconfig",
+  "varsayilan": "4"
+ },
+ "SCRYING_DURATION": {
+  "tur": "intconfig",
+  "varsayilan": "1200"
+ },
+ "SCRYING_MANA_COST": {
+  "tur": "intconfig",
+  "varsayilan": "50"
+ },
+ "SCRY_NON_PLAYERS": {
+  "tur": "booleanconfig",
+  "varsayilan": "1"
+ },
+ "SELECTIVE_DISPLACEMENT_COOLDOWN": {
+  "tur": "intconfig",
+  "varsayilan": "60"
+ },
+ "SELECTIVE_DISPLACEMENT_MANA_COST": {
+  "tur": "intconfig",
+  "varsayilan": "900"
+ },
+ "SELECTIVE_DISPLACEMENT_RANGE": {
+  "tur": "intconfig",
+  "varsayilan": "40"
+ },
+ "SELECTIVE_DISPLACEMENT_TIME": {
+  "tur": "intconfig",
+  "varsayilan": "1200"
+ },
+ "SMITE_VOLUME": {
+  "tur": "doubleconfig",
+  "varsayilan": "1"
+ },
+ "SPACE_RATIO_POINTS": {
+  "tur": "intconfig",
+  "varsayilan": "1000"
+ },
+ "SPACE_SCORE_FACTOR": {
+  "tur": "doubleconfig",
+  "varsayilan": "0.001"
+ },
+ "SPATIAL_DISORIENTATION_AIR_RESISTANCE": {
+  "tur": "booleanconfig",
+  "varsayilan": "0"
+ },
+ "SPATIAL_DISORIENTATION_AOE_RADIUS": {
+  "tur": "doubleconfig",
+  "varsayilan": "4.0"
+ },
+ "SPATIAL_DISORIENTATION_MANA_COST": {
+  "tur": "intconfig",
+  "varsayilan": "100"
+ },
+ "SPATIAL_DISORIENTATION_MANA_COST_AOE": {
+  "tur": "intconfig",
+  "varsayilan": "20"
+ },
+ "SPATIAL_DISORIENTATION_MANA_COST_ST": {
+  "tur": "intconfig",
+  "varsayilan": "200"
+ },
+ "SPATIAL_DISORIENTATION_SPEED": {
+  "tur": "doubleconfig",
+  "varsayilan": "7.0"
+ },
+ "SPATIAL_NO_AIR_RESISTANCE_TIME_LIMIT": {
+  "tur": "intconfig",
+  "varsayilan": "60"
+ },
+ "SPELL_BLACKLIST": {
+  "tur": "stringlistconfig",
+  "varsayilan": "0"
+ },
+ "STRENGTHENING_CAP": {
+  "tur": "intconfig",
+  "varsayilan": "50"
+ },
+ "STRENGTHENING_ITEM_BLACKLIST": {
+  "tur": "stringlistconfig",
+  "varsayilan": "0"
+ },
+ "STRENGTHENING_MANA_COST": {
+  "tur": "intconfig",
+  "varsayilan": "50"
+ },
+ "SUMMON_FAMILIAR_MANA_COST": {
+  "tur": "intconfig",
+  "varsayilan": "200"
+ },
+ "SWAP_FAMILIAR_MANA_COST": {
+  "tur": "intconfig",
+  "varsayilan": "40"
+ },
+ "SWAP_TWO_THINGS": {
+  "tur": "stringlistconfig",
+  "varsayilan": null
+ },
+ "TANGIBLE_BARRIER_CYCLE": {
+  "tur": "intconfig",
+  "varsayilan": "20"
+ },
+ "TANGIBLE_BARRIER_MANA_COST": {
+  "tur": "intconfig",
+  "varsayilan": "1"
+ },
+ "TANGIBLE_BARRIER_MANA_CYCLE": {
+  "tur": "intconfig",
+  "varsayilan": "3"
+ },
+ "TANGIBLE_BARRIER_RADIUS": {
+  "tur": "intconfig",
+  "varsayilan": "10"
+ },
+ "TREASURY_PROJECTION_ALLOW_ALL": {
+  "tur": "booleanconfig",
+  "varsayilan": "0"
+ },
+ "TREASURY_PROJECTION_AOE_COOLDOWN": {
+  "tur": "intconfig",
+  "varsayilan": "4"
+ },
+ "TREASURY_PROJECTION_AOE_MANA_COST": {
+  "tur": "intconfig",
+  "varsayilan": "120"
+ },
+ "TREASURY_PROJECTION_AOE_MAX_SPAWNS": {
+  "tur": "doubleconfig",
+  "varsayilan": "3.0"
+ },
+ "TREASURY_PROJECTION_AOE_SWORDS_PER_SPAWN": {
+  "tur": "doubleconfig",
+  "varsayilan": "5.0"
+ },
+ "TREASURY_PROJECTION_BLACKLIST": {
+  "tur": "stringlistconfig",
+  "varsayilan": "0"
+ },
+ "TREASURY_PROJECTION_CHAINS_COOLDOWN": {
+  "tur": "intconfig",
+  "varsayilan": "10"
+ },
+ "TREASURY_PROJECTION_CHAINS_COUNT": {
+  "tur": "intconfig",
+  "varsayilan": "16"
+ },
+ "TREASURY_PROJECTION_CHAINS_DAMAGE": {
+  "tur": "doubleconfig",
+  "varsayilan": "1"
+ },
+ "TREASURY_PROJECTION_CHAINS_MANA_COST": {
+  "tur": "intconfig",
+  "varsayilan": "120"
+ },
+ "TREASURY_PROJECTION_COOLDOWN": {
+  "tur": "intconfig",
+  "varsayilan": "10"
+ },
+ "TREASURY_PROJECTION_COOLDOWN_INCREASE_PER_SWORD": {
+  "tur": "doubleconfig",
+  "varsayilan": "1"
+ },
+ "TREASURY_PROJECTION_COOLDOWN_MIN": {
+  "tur": "doubleconfig",
+  "varsayilan": "3.0"
+ },
+ "TREASURY_PROJECTION_DENY_ALL": {
+  "tur": "booleanconfig",
+  "varsayilan": "0"
+ },
+ "TREASURY_PROJECTION_DESPAWN_AFTER_LAND": {
+  "tur": "booleanconfig",
+  "varsayilan": "0"
+ },
+ "TREASURY_PROJECTION_DISTANCE": {
+  "tur": "intconfig",
+  "varsayilan": "20"
+ },
+ "TREASURY_PROJECTION_ENDER_CHEST_ONLY": {
+  "tur": "booleanconfig",
+  "varsayilan": "0"
+ },
+ "TREASURY_PROJECTION_GAUNTLET_MANA_COST": {
+  "tur": "intconfig",
+  "varsayilan": "120"
+ },
+ "TREASURY_PROJECTION_INCREASE_REQUIRES_UNIQUE": {
+  "tur": "booleanconfig",
+  "varsayilan": "1"
+ },
+ "TREASURY_PROJECTION_MIN_DISTANCE": {
+  "tur": "intconfig",
+  "varsayilan": "8"
+ },
+ "TREASURY_PROJECTION_SCROLL_MANA_COST": {
+  "tur": "intconfig",
+  "varsayilan": "1000"
+ },
+ "TREASURY_PROJECTION_SPEED": {
+  "tur": "doubleconfig",
+  "varsayilan": "30.0"
+ },
+ "TREASURY_PROJECTION_SPEED_INCREASE_PER_SWORD": {
+  "tur": "doubleconfig",
+  "varsayilan": "1"
+ },
+ "TREASURY_PROJECTION_SPEED_MIN": {
+  "tur": "doubleconfig",
+  "varsayilan": "10.0"
+ },
+ "TREASURY_PROJECTION_WHITELIST": {
+  "tur": "stringlistconfig",
+  "varsayilan": "0"
+ },
+ "WEAPON_SHOOTER_DAMAGE_MULTIPLIER": {
+  "tur": "doubleconfig",
+  "varsayilan": "1"
+ },
+ "WEAPON_SHOOTER_DURABILITY": {
+  "tur": "intconfig",
+  "varsayilan": "30"
+ },
+ "WEAPON_SHOOTER_MANA_COST": {
+  "tur": "intconfig",
+  "varsayilan": "100"
+ },
+ "WEAPON_SHOOTER_PROJECTILE_SPEED": {
+  "tur": "doubleconfig",
+  "varsayilan": "3.0"
+ },
+ "WILLIAM_CREATION_COST": {
+  "tur": "doubleconfig",
+  "varsayilan": "500.0"
+ },
+ "WILLIAM_MAX_PAGES": {
+  "tur": "intconfig",
+  "varsayilan": "100"
+ },
+ "WILLIAM_NEARBY_MANA_FACTOR": {
+  "tur": "doubleconfig",
+  "varsayilan": "0.01"
+ },
+ "WILLIAM_NEARBY_MANA_RANGE": {
+  "tur": "intconfig",
+  "varsayilan": "30"
+ },
+ "WILLIAM_PERSONAL_MANA_FACTOR": {
+  "tur": "doubleconfig",
+  "varsayilan": "0.01"
+ },
+ "WILLIAM_PLETHORA_FREQUENCY": {
+  "tur": "intconfig",
+  "varsayilan": "100"
+ },
+ "WILLIAM_THEATER_RANGE": {
+  "tur": "intconfig",
+  "varsayilan": "40"
+ },
+ "WORD_SCORE_FACTOR": {
+  "tur": "doubleconfig",
+  "varsayilan": "2.0E-5"
+ }
+}

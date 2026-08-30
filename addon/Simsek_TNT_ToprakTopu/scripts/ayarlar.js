@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v5.3";
+export const SURUM = "v5.4";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -5057,3 +5057,325 @@ export const MARVEL_BOY_OLAY = {
   buyuk:    "pa:boy_buyuk"
 };
 export const MARVEL_BOY_OLCEK = { kucuk: 0.05, normal: 1.0, buyuk: 5.0 };
+
+/* ================================================================
+   MAHOU TSUKAI  (Büyücü)                                   v5.4
+
+   Kullanici: "bir tane daha mod buldum, bunu da ekle aynı
+   şekilde... kalıcı olarak aktar."
+
+   ---- KAYNAK ----
+   mahoutsukai 1.21.1 v1.36.27. Sayilarin TAMAMI modun kendi
+   yapilandirmasindan:
+       stepsword/mahoutsukai/config/MTConfig$Server.class
+   448 ayar `intconfig/doubleconfig/booleanconfig` cagrilariyla
+   tanimli; mahou_coz.py bytecode'u okuyup her ayarin
+   VARSAYILAN degerini cikardi (mahou_config.json). Asagidaki
+   her sayinin oradan bir karsiligi var ve test ikisini
+   karsilastiriyor.
+
+   ---- MANA ----
+   Modun kalbi. Bizde de kalbi: her buyunun bir bedeli var ve
+   manan yoksa buyu CALISMIYOR. Bedelller kaynagin kendi
+   sayilari -- Gandr 5 (en az), Fallen Down 2000, Projection
+   1000. Yani ucuz buyu cok, pahali buyu az kullanilir; modun
+   dengesi bu.
+
+   ---- NE ALINMADI (ozetler vaat etmiyor) ----
+   - BUYU CEMBERLERI: modun asil arayuzu yere cizilen cember
+     (blok deseni + ritel). Bedrock'ta blok deseni okuyup
+     ritüel calistirmak ayri bir sistem; buyuler bizde
+     PARSOMENI TUTUP tetikleniyor.
+   - BUYUYEN KILICLAR: Caliburn/Clarent/Morgan kaynakta bir
+     ritüelle guclenıyor (POWER_CONSOLIDATION_SWORD_MANA_COST
+     5000, gol esigi 150). Ritüel sistemi alinmadi, kiliclar
+     TABAN gucleriyle geliyor.
+   - FAMILYA (familiar), GERCEKLIK MERMERI (reality marble) ve
+     KADEH (grail): kendi boyutlari ve varliklari var.
+   - William: modda 2B IKONU YOK (builtin/entity ile
+     ciziliyor), bu yuzden ALINMADI. Uydurma ikon cizilmedi.
+   ================================================================ */
+export const MAHOU_ACIK   = true;
+export const MAHOU_ONEK   = "pa:mahou_";
+export const MAHOU_TARAMA = 20;
+
+/* ---- MANA (MTConfig$Server) ----
+   MANA_REGEN_PER_TICK 1 · MAX_MANA_CAP 200000
+   MANA_RECOVERY_SLEEP 0.5 (uyurken carpan)
+
+   TAVAN 200000 kaynakta oyuncunun ULASABILECEGI en yuksek
+   deger; baslangic degil. Baslangic modda 0 ve ritüellerle
+   artiyor (MANA_INCREASE 1). Ritüel sistemi alinmadigi icin
+   baslangici BASLANGIC_MANA yaptik ve bu sayinin kaynakta
+   karsiligi YOK -- uydurma olmasin diye burada yaziyor.     */
+export const MAHOU_MANA_TAVAN     = 200000;  // MAX_MANA_CAP
+export const MAHOU_MANA_TICK      = 1;       // MANA_REGEN_PER_TICK
+export const MAHOU_BASLANGIC_MANA = 2000;    // bizim secimimiz
+export const MAHOU_KAYIT_ANAHTAR  = "simsek:mahou";
+
+/* ---- ESYALAR ----
+   (anahtar, TR ad, EN ad, java hasar modifier, dayaniklilik)
+   java hasar -> Bedrock: +1 (WoM'daki olculmus kural).
+   `null` hasar = silah degil, alet/odak.
+
+   Tier/hasar kaynak siniflarindan:
+     Caliburn/Clarent/Morgan  GrowSwordItem(Tiers.IRON, 3.0f)
+     RuleBreaker              SwordItem(Tiers.IRON)  -> +5
+     TheRipper                RIPPER_DAMAGE 2.5
+     Nobu                     NOBU_BULLET_DAMAGE 8.0
+     Dagger/Hammer            ItemBase -- hasar bileseni YOK
+   Dayaniklilik:
+     CLARENT_DURABILITY 1500 · NOBU_DURABILITY 10000
+     RIPPER_DURABILITY 1200 · POWER_CONSOLIDATION_DURABILITY 1000 */
+export const MAHOU_ESYALAR = new Map([
+  ["caliburn", {
+    ad: "Caliburn", en: "Caliburn", hasar: 3, dayaniklilik: 1000,
+    ozet: "kutsal kılıç · taban güç (büyüme ritüeli aktarılmadı)"
+  }],
+  ["clarent", {
+    ad: "Clarent", en: "Clarent", hasar: 3, dayaniklilik: 1500,
+    /* CLARENT_WOUND_TICKS 600 · CLARENT_WOUND_DAMAGE 0.2
+       CLARENT_WOUND_DAMAGE_HITS 3                          */
+    yetenek: "mahou_yara",
+    ozet: "ihanet kılıcı · YARA (3 vuruşta 600 tik kanama)"
+  }],
+  ["morgan", {
+    ad: "Morgan", en: "Morgan", hasar: 3, dayaniklilik: 1000,
+    /* MORGAN_HEAL_FACTOR 30 · MORGAN_RAGE_TIME 120          */
+    yetenek: "mahou_ofke",
+    ozet: "cadı kılıcı · ÖFKE (120 tik) · vuruşta can çalar"
+  }],
+  ["rule_breaker", {
+    ad: "Rule Breaker", en: "Rule Breaker", hasar: 5, dayaniklilik: 1000,
+    yetenek: "mahou_kural_kirici",
+    ozet: "büyü bozan hançer · hedefin bütün etkilerini siler"
+  }],
+  ["rhongomyniad", {
+    ad: "Rhongomyniad", en: "Rhongomyniad", hasar: 3, dayaniklilik: 1000,
+    /* RHONGOMYNIAD_RANGE 20 · MAX_SMITES 10 · MANA_COST 300 */
+    yetenek: "mahou_kutsal_mizrak", mana: 300,
+    ozet: "kutsal mızrak · 20 blokta 10 yıldırım (300 mana)"
+  }],
+  ["theripper", {
+    ad: "The Ripper", en: "The Ripper", hasar: 2.5, dayaniklilik: 1200,
+    /* RIPPER_DAMAGE 2.5 · ARKADAN +6.0 · FOG_RANGE 20
+       RIPPER_FOG_MANA_COST 200 · RIPPER_COOLDOWN 800        */
+    yetenek: "mahou_sis", mana: 200,
+    ozet: "karanlık hançer · SİS (20 blok, 200 mana) · arkadan +6 hasar"
+  }],
+  ["nobu", {
+    ad: "Nobu", en: "Nobu", hasar: 8, dayaniklilik: 10000,
+    /* NOBU_BULLET_DAMAGE 8.0 · NOBU_MANA_PER_SHOT 20        */
+    ozet: "ateşli silah · 8 hasar (top çağırma ritüeli aktarılmadı)"
+  }],
+  ["staff_emrys", {
+    ad: "Emrys", en: "Emrys", hasar: null, dayaniklilik: 1000,
+    /* EMRYS_MAX_RANGE 22 · DAMAGE_FOCUSED_PER_SECOND 4.0
+       EMRYS_MANA_COST_FOCUSED 200                           */
+    yetenek: "mahou_yildirim_asasi", mana: 200,
+    ozet: "yıldırım asası · 22 blok · saniyede 4 hasar (200 mana)"
+  }],
+  ["mystic_staff", {
+    ad: "Patlayıcı Mana Asası", en: "Mystic Staff", hasar: null,
+    dayaniklilik: 1000,
+    /* MYSTIC_STAFF_SUMMON_MANA_COST 100 · BIG_SIZE 30       */
+    yetenek: "mahou_mana_patlamasi", mana: 100,
+    ozet: "mana yoğunlaştırma asası · patlayan ışın (100 mana)"
+  }],
+  ["spatial_staff", {
+    ad: "Uzamsal Karışıklık Asası", en: "Spatial Disorientation Staff",
+    hasar: null, dayaniklilik: 1000,
+    /* SPATIAL_DISORIENTATION_SPEED 7.0 · AOE_RADIUS 4.0
+       MANA_COST 100                                          */
+    yetenek: "mahou_savrul", mana: 100,
+    ozet: "baktığını fırlatır · hız 7 · 4 blok alan (100 mana)"
+  }],
+  ["treasury_projection_gauntlet", {
+    ad: "Hazine Yansıtma Eldiveni", en: "Treasury Projection Gauntlet",
+    hasar: null, dayaniklilik: 1000,
+    /* TREASURY_PROJECTION_SCROLL_MANA_COST 1000              */
+    yetenek: "mahou_hazine", mana: 1000,
+    ozet: "silah yağmuru (1000 mana)"
+  }],
+  ["dagger", {
+    ad: "Hançer", en: "Dagger", hasar: null, dayaniklilik: null,
+    ozet: "kan çemberi hançeri · alet (kaynakta da hasarı yok)"
+  }],
+  ["hammer", {
+    ad: "Çekiç", en: "Hammer", hasar: null, dayaniklilik: null,
+    ozet: "ritüel çekici · alet (kaynakta da hasarı yok)"
+  }],
+  ["kodoku", {
+    ad: "Kodoku", en: "Kodoku", hasar: null, dayaniklilik: null,
+    ozet: "sempatik büyü kavanozu"
+  }],
+  ["attuned_diamond", {
+    ad: "Uyumlu Elmas", en: "Attuned Diamond", hasar: null,
+    dayaniklilik: null, ozet: "mana odağı"
+  }],
+  ["attuned_emerald", {
+    ad: "Uyumlu Zümrüt", en: "Attuned Emerald", hasar: null,
+    dayaniklilik: null, ozet: "mana odağı"
+  }]
+]);
+
+/* ---- BUYULER (parsomenler) ----
+   Hepsi PARSOMEN esyasi; tutup tetikliyorsun. Mana bedelleri
+   kaynagin kendi ayarlarindan, yanlarinda ayar adi yazili.
+
+   efektler: [ad, sure, amp]  -- sure kaynagin kendi tik degeri
+   yetenek : script tarafinda is yapan buyuler                */
+export const MAHOU_BUYULER = new Map([
+  ["fay_gorusu", {
+    ad: "Fay Görüşü", en: "Scroll of Fay Sight",
+    mana: 100,        // FAY_SIGHT_MANA_COST
+    /* FAY_SIGHT_TIME 600 */
+    efektler: [["night_vision", 600, 0]],
+    ozet: "600 tik gece görüşü (100 mana)"
+  }],
+  ["icgoru", {
+    ad: "İçgörü", en: "Scroll of the Mystic Eyes of Insight",
+    mana: 320,        // INSIGHT_MANA_COST
+    /* INSIGHT_TIME 1200. Kaynakta hedefin zayifligini
+       gosteriyor; Bedrock'ta karsiligi PARLAMA -- yakindaki
+       canlilar gorunur oluyor.                              */
+    yetenek: "mahou_icgoru",
+    ozet: "1200 tik: yakındaki canlılar parlar (320 mana)"
+  }],
+  ["kehanet", {
+    ad: "Kehanet", en: "Scroll of the Mystic Eyes of Clairvoyance",
+    mana: 220,        // CLAIRVOYANCE_MANA_COST
+    /* CLAIRVOYANCE_TIME 1200 · CLAIRVOYANCE_RANGE 30        */
+    efektler: [["night_vision", 1200, 0], ["speed", 1200, 0]],
+    ozet: "1200 tik gece görüşü + hız (220 mana)"
+  }],
+  ["baglama", {
+    ad: "Bağlama Gözleri", en: "Scroll of the Mystic Eyes of Binding",
+    mana: 320,        // MYSTIC_EYES_MANA_COST
+    /* MYSTIC_EYES_TIME 600 · RANGE_FROM_USER 5             */
+    yetenek: "mahou_baglama",
+    ozet: "5 blokta baktığını 600 tik dondurur (320 mana)"
+  }],
+  ["guclendirme", {
+    ad: "Güçlendirme", en: "Scroll of Strengthening",
+    mana: 50,         // STRENGTHENING_MANA_COST
+    /* STRENGTHENING_CAP 50 -- kaynakta ESYAYI guclendiriyor;
+       Bedrock'ta esya gucu degistirilemiyor, o yuzden
+       OYUNCUYU gucledirıyor ve ozet de oyle diyor.          */
+    efektler: [["strength", 600, 1]],
+    ozet: "600 tik güç II (50 mana) · kaynakta eşyayı güçlendirir"
+  }],
+  ["bagisiklik_takasi", {
+    ad: "Bağışıklık Takası", en: "Scroll of Immunity Exchange",
+    mana: 400,        // IMMUNITY_EXCHANGE_MANA_COST
+    /* IMMUNITY_EXCHANGE_TIME 1200 */
+    efektler: [["resistance", 1200, 2], ["fire_resistance", 1200, 0]],
+    ozet: "1200 tik direnç III + ateş bağışıklığı (400 mana)"
+  }],
+  ["gizlenme", {
+    ad: "Varlık Gizleme", en: "Scroll of Presence Concealment",
+    mana: 100,
+    /* Kaynakta ayri bir mana ayari YOK; Fay Sight ile ayni
+       kademede duruyor ve 100 alindi. Bu TEK tahmini bedel
+       ve boyle oldugu burada yaziyor.                       */
+    efektler: [["invisibility", 600, 0]],
+    ozet: "600 tik görünmezlik (100 mana · bedeli tahmini)"
+  }],
+  ["gandr", {
+    ad: "Gandr", en: "Scroll of Gandr",
+    mana: 5,          // GANDR_MIN_DAMAGE ile ayni olcek
+    /* GANDR_MIN_DAMAGE 5.0 · MAX_DAMAGE 1000.0
+       GANDR_HIT_RADIUS 6.0 · CLOUD_DURATION 200            */
+    yetenek: "mahou_gandr",
+    ozet: "kara mermi · 5-1000 hasar · 6 blok alan (5 mana)"
+  }],
+  ["kara_alev", {
+    ad: "Kara Alev Gözleri", en: "Scroll of the Mystic Eyes of the Black Flame",
+    mana: 300,        // BLACK_FLAME_MANA_COST
+    /* BLACK_FLAME_RANGE_FROM_USER 30 · TIME 100
+       BLACK_FLAME_DEBUFF_TIME 180                          */
+    yetenek: "mahou_kara_alev",
+    ozet: "30 blokta kara alev · 100 tik yanma (300 mana)"
+  }],
+  ["dusus", {
+    ad: "Düşüş", en: "Scroll of Fallen Down",
+    mana: 2000,       // FALLEN_DOWN_MANA_COST
+    /* FALLEN_DOWN_BEAM_DAMAGE 2.0 · RADIUS 30
+       TARGET_HEALTH_PERCENTAGE_DAMAGE 0.05                 */
+    yetenek: "mahou_dusus",
+    ozet: "30 blokluk yıkım ışını · +%5 can hasarı (2000 mana)"
+  }],
+  ["rho_aias", {
+    ad: "Rho Aias", en: "Scroll of Rho Aias",
+    mana: 300,        // RHO_AIAS_MANA_COST
+    /* RHO_AIAS_LIFE 1200 */
+    efektler: [["absorption", 1200, 4], ["resistance", 1200, 1]],
+    ozet: "1200 tik kalkan (emilim V + direnç II) (300 mana)"
+  }],
+  ["can_emme_siniri", {
+    ad: "Can Emme Sınırı", en: "Scroll of the Boundary of Drain Life",
+    mana: 5,          // DRAIN_LIFE_BARRIER_MANA_COST
+    /* DRAIN_LIFE_BARRIER_RADIUS 10 · DAMAGE 2.0
+       HEAL_FACTOR 0.5 · BARRIER_CYCLE 20                   */
+    yetenek: "mahou_can_emme",
+    ozet: "10 blokta 2 hasar, yarısı sana can olur (5 mana/çevrim)"
+  }],
+  ["yercekimi_siniri", {
+    ad: "Yerçekimi Sınırı", en: "Scroll of the Gravity Boundary",
+    mana: 1,          // GRAVITY_BARRIER_MANA_COST
+    /* GRAVITY_BARRIER_RADIUS 10 · FACTOR 1.4 · CYCLE 1     */
+    yetenek: "mahou_yercekimi",
+    ozet: "10 blokta canlıları yere çeker (1 mana/çevrim)"
+  }],
+  ["alarm_siniri", {
+    ad: "Alarm Sınırı", en: "Scroll of the Alarm Boundary",
+    mana: 1,          // ALARM_BARRIER_MANA_COST
+    /* ALARM_BARRIER_RADIUS 10 · CYCLE 20                   */
+    yetenek: "mahou_alarm",
+    ozet: "10 blokta canlıları parlatır (1 mana/çevrim)"
+  }],
+  ["yer_degistirme", {
+    ad: "Zihinsel Yer Değiştirme", en: "Scroll of Mental Displacement",
+    mana: 300,        // MENTAL_DISPLACEMENT_MANA_COST
+    /* MENTAL_DISPLACEMENT_RANGE 20 */
+    yetenek: "mahou_yer_degistir",
+    ozet: "20 blokta baktığınla yer değiştirir (300 mana)"
+  }],
+  ["uzamsal_karisiklik", {
+    ad: "Uzamsal Karışıklık", en: "Scroll of Spatial Disorientation",
+    mana: 100,        // SPATIAL_DISORIENTATION_MANA_COST
+    /* SPEED 7.0 · AOE_RADIUS 4.0 */
+    yetenek: "mahou_savrul",
+    ozet: "4 blok alandakileri 7 hızla fırlatır (100 mana)"
+  }],
+  ["yukselis", {
+    ad: "Yükseliş", en: "Scroll of Ascension",
+    mana: 30,         // ASCENSION_SCROLL_MANA_COST
+    /* ASCENSION_BLOCK_CYCLE 4 */
+    yetenek: "mahou_yukselis",
+    ozet: "seni yukarı kaldırır (30 mana)"
+  }],
+  ["olum_toplama", {
+    ad: "Ölüm Toplama Gözleri", en: "Scroll of the Mystic Eyes of Death Collection",
+    mana: 400,        // DEATH_COLLECTION_MANA_COST
+    /* DEATH_COLLECTION_TIME 600 · RANGE_FROM_USER 10
+       SOUL_VALUE_MOB 0.25 · REVIVE_VALUE 12.0              */
+    yetenek: "mahou_olum_toplama",
+    ozet: "600 tik: 10 blokta ölen her canlı sana can verir (400 mana)"
+  }],
+  ["kelebek_etkisi", {
+    ad: "Kelebek Etkisi", en: "Scroll of the Butterfly Effect",
+    mana: 100,        // BUTTERFLY_EFFECT_MANA_COST
+    /* BUTTERFLY_EFFECT_DURATION 400 */
+    efektler: [["speed", 400, 1], ["jump_boost", 400, 1],
+               ["slow_falling", 400, 0]],
+    ozet: "400 tik hız II + zıplama II + düşme hasarı yok (100 mana)"
+  }],
+  ["hasar_takasi", {
+    ad: "Hasar Takası", en: "Scroll of Damage Exchange",
+    mana: 40,         // DAMAGE_EXCHANGE_MANA_COST
+    /* DAMAGE_EXCHANGE_CAP 5 · REDUCE_TO 1 · MANA_GAIN 20   */
+    efektler: [["resistance", 600, 3]],
+    ozet: "600 tik direnç IV (40 mana)"
+  }]
+]);

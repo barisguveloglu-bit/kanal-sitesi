@@ -230,6 +230,114 @@
     "draco_chaotic_govde": {
       "textures": "textures/item/draco_chaotic_govde"
     },
+    "mahou_caliburn": {
+      "textures": "textures/item/mahou_caliburn"
+    },
+    "mahou_clarent": {
+      "textures": "textures/item/mahou_clarent"
+    },
+    "mahou_morgan": {
+      "textures": "textures/item/mahou_morgan"
+    },
+    "mahou_rule_breaker": {
+      "textures": "textures/item/mahou_rule_breaker"
+    },
+    "mahou_rhongomyniad": {
+      "textures": "textures/item/mahou_rhongomyniad"
+    },
+    "mahou_theripper": {
+      "textures": "textures/item/mahou_theripper"
+    },
+    "mahou_nobu": {
+      "textures": "textures/item/mahou_nobu"
+    },
+    "mahou_staff_emrys": {
+      "textures": "textures/item/mahou_staff_emrys"
+    },
+    "mahou_mystic_staff": {
+      "textures": "textures/item/mahou_mystic_staff"
+    },
+    "mahou_spatial_staff": {
+      "textures": "textures/item/mahou_spatial_staff"
+    },
+    "mahou_treasury_projection_gauntlet": {
+      "textures": "textures/item/mahou_treasury_projection_gauntlet"
+    },
+    "mahou_dagger": {
+      "textures": "textures/item/mahou_dagger"
+    },
+    "mahou_hammer": {
+      "textures": "textures/item/mahou_hammer"
+    },
+    "mahou_kodoku": {
+      "textures": "textures/item/mahou_kodoku"
+    },
+    "mahou_attuned_diamond": {
+      "textures": "textures/item/mahou_attuned_diamond"
+    },
+    "mahou_attuned_emerald": {
+      "textures": "textures/item/mahou_attuned_emerald"
+    },
+    "mahou_fay_gorusu": {
+      "textures": "textures/item/mahou_fay_gorusu"
+    },
+    "mahou_icgoru": {
+      "textures": "textures/item/mahou_icgoru"
+    },
+    "mahou_kehanet": {
+      "textures": "textures/item/mahou_kehanet"
+    },
+    "mahou_baglama": {
+      "textures": "textures/item/mahou_baglama"
+    },
+    "mahou_guclendirme": {
+      "textures": "textures/item/mahou_guclendirme"
+    },
+    "mahou_bagisiklik_takasi": {
+      "textures": "textures/item/mahou_bagisiklik_takasi"
+    },
+    "mahou_gizlenme": {
+      "textures": "textures/item/mahou_gizlenme"
+    },
+    "mahou_gandr": {
+      "textures": "textures/item/mahou_gandr"
+    },
+    "mahou_kara_alev": {
+      "textures": "textures/item/mahou_kara_alev"
+    },
+    "mahou_dusus": {
+      "textures": "textures/item/mahou_dusus"
+    },
+    "mahou_rho_aias": {
+      "textures": "textures/item/mahou_rho_aias"
+    },
+    "mahou_can_emme_siniri": {
+      "textures": "textures/item/mahou_can_emme_siniri"
+    },
+    "mahou_yercekimi_siniri": {
+      "textures": "textures/item/mahou_yercekimi_siniri"
+    },
+    "mahou_alarm_siniri": {
+      "textures": "textures/item/mahou_alarm_siniri"
+    },
+    "mahou_yer_degistirme": {
+      "textures": "textures/item/mahou_yer_degistirme"
+    },
+    "mahou_uzamsal_karisiklik": {
+      "textures": "textures/item/mahou_uzamsal_karisiklik"
+    },
+    "mahou_yukselis": {
+      "textures": "textures/item/mahou_yukselis"
+    },
+    "mahou_olum_toplama": {
+      "textures": "textures/item/mahou_olum_toplama"
+    },
+    "mahou_kelebek_etkisi": {
+      "textures": "textures/item/mahou_kelebek_etkisi"
+    },
+    "mahou_hasar_takasi": {
+      "textures": "textures/item/mahou_hasar_takasi"
+    },
     "mrv_adam_warlock__adam_warlock_powers": {
       "textures": "textures/item/mrv_adam_warlock__adam_warlock_powers"
     },

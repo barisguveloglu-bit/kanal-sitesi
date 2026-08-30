@@ -14,7 +14,8 @@ import {
   BECERI_ACIK, BECERI_AGACI, BECERI_TAVAN_KADEME,
   CAN_SAYACI_ACIK, WOM_ACIK, WOM_SILAHLAR, WOM_ONEK,
   BEN10_ACIK, BEN10,
-  TEKNOLOJI_ACIK, TEKNOLOJI_TAKIMLAR, TEKNOLOJI_ONEK
+  TEKNOLOJI_ACIK, TEKNOLOJI_TAKIMLAR, TEKNOLOJI_ONEK,
+  MAHOU_ACIK, MAHOU_BUYULER, MAHOU_ESYALAR, MAHOU_MANA_TAVAN
 } from "./ayarlar.js";
 
 import {
@@ -54,6 +55,12 @@ import {
 import {
   tirmanmaTara, tirmanmaUnut, boyUnut
 } from "./yetenekler/marvel_mekanik.js";
+
+/* v5.4: Mahou Tsukai. Mana modun kalbi -- merkezi tick'ten
+   tazeleniyor, buyulerin bedeli oradan iniyor.             */
+import {
+  mahouTara, mahouUnut, mahouListesi, manaOku, elindekiBuyu
+} from "./yetenekler/mahou.js";
 
 /* v4.98: Ben 10 beceri agaci. Uzayli halindeyken oldurunce
    XP, kademe atlayinca yetenek puani.                       */
@@ -316,7 +323,7 @@ system.runInterval(() => {
      -- "calisiyor mu != ulasilabiliyor mu" (v4.83 dersi).  */
   if (iksirVar || kalpVar || botVar || kilikVar || ZIRH_ACIK ||
       BEN10_ACIK || MARVEL_ACIK || CAN_SAYACI_ACIK ||
-      TEKNOLOJI_ACIK) {
+      TEKNOLOJI_ACIK || MAHOU_ACIK) {
     let oyuncular;
     try {
       oyuncular = world.getAllPlayers();
@@ -388,6 +395,13 @@ system.runInterval(() => {
         teknolojiTara(oyuncular);
       } catch (e) {
         hataYaz("teknolojiTara", e);
+      }
+    }
+    if (MAHOU_ACIK) {
+      try {
+        mahouTara(oyuncular);
+      } catch (e) {
+        hataYaz("mahouTara", e);
       }
     }
     if (BEN10_ACIK) {
@@ -852,6 +866,53 @@ function teknolojiBilgi(oyuncu, anahtar) {
   kollariIndir(oyuncu);
 }
 
+/* MAHOU TSUKAI MENUSU  (v5.4)
+
+   Yirmi buyu ve on alti esya. Menu SECIM YAPMIYOR: hangi
+   parsomenin ne yaptigini ve KAC MANA istedigini yaziyor.
+   Basligta oyuncunun manasi duruyor -- "neden calismadi"
+   sorusunun cevabi menuye girmeden gorunsun.               */
+function mahouMenusu(oyuncu) {
+  if (!MAHOU_ACIK) {
+    actionbarYaz(oyuncu, "§cMahou Tsukai kapalı (MAHOU_ACIK).");
+    return undefined;
+  }
+  const liste = mahouListesi(oyuncu);
+  const mana = manaOku(oyuncu);
+  const dugmeler = liste.map((b) => ({
+    anahtar: b.anahtar,
+    ad: (b.elinde ? "§9✦ " : "") + "§f" + b.ad +
+        (b.mana ? " §8(" + b.mana + " mana)" : "") +
+        "\n§8" + b.ozet
+  }));
+  const acildi = menuAc(oyuncu,
+    "§9✦ Mahou Tsukai §7· §f" + mana + " mana §8(tavan " +
+    MAHOU_MANA_TAVAN + ")",
+    dugmeler, -1, (i) => mahouBilgi(oyuncu, dugmeler[i].anahtar), []);
+  if (!acildi) mahouBilgi(oyuncu, dugmeler[0].anahtar);
+  return undefined;
+}
+
+function mahouBilgi(oyuncu, anahtar) {
+  const t = MAHOU_BUYULER.get(anahtar) || MAHOU_ESYALAR.get(anahtar);
+  if (!t) return;
+  const buyuMu = MAHOU_BUYULER.has(anahtar);
+  try {
+    oyuncu.sendMessage(
+      "§9✦ §f" + t.ad + " §8(" + t.en + ")" +
+      "\n§8" + t.ozet +
+      "\n§8kaynak: mahoutsukai 1.21.1 v1.36.27" +
+      "\n§8eşya: §7pa:mahou_" + anahtar +
+      (t.mana ? "\n§8mana: §7" + t.mana + " §8· sende: §7" + manaOku(oyuncu)
+              : "") +
+      (buyuMu ? "\n§eParşömeni eline al, sonra menüden tetikle."
+              : "\n§eEşyayı eline al."));
+  } catch (e) {
+    hataYaz("mahou.mesaj", e);
+  }
+  kollariIndir(oyuncu);
+}
+
 /* MARVEL KAHRAMANLARI MENUSU  (v5.2)
 
    Zirh ve cekirdek menuleriyle AYNI is: hangi kahramanin ne
@@ -1248,6 +1309,13 @@ function menuEkleri(oyuncu) {
     {
       ad: "⚔ Silahlar §8(Weapons of Miracles · " + WOM_SILAHLAR.size + ")",
       calis() { womMenusu(oyuncu); }
+    },
+    /* v5.4: Mahou Tsukai. Satirda MANA yaziyor -- buyunun
+       neden calismadigini menuye girmeden gorebilesin.     */
+    {
+      ad: "✦ Mahou Tsukai §8(" + manaOku(oyuncu) + " mana" +
+          (elindekiBuyu(oyuncu) ? " §9✦" : "") + ")",
+      calis() { mahouMenusu(oyuncu); }
     },
     /* v5.1: teknoloji zirhlari. Satirda uzerindeki takim
        yaziyor -- "giydim ama bir sey olmuyor" sorusunun
@@ -1856,6 +1924,7 @@ olayaAbone("playerLeave", (olay) => {
   marvelUnut(olay.playerId);
   tirmanmaUnut(olay.playerId);
   boyUnut(olay.playerId);
+  mahouUnut(olay.playerId);
   canSayaciUnut(olay.playerId);
   womDovusUnut(olay.playerId);
   teknolojiUnut(olay.playerId);

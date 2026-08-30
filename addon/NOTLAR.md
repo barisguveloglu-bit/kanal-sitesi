@@ -1,3 +1,70 @@
+# v5.4 — Mahou Tsukai: mana, 16 eşya, 20 büyü
+
+Kullanıcı: *"bir tane daha mod buldum, bunu da ekle aynı şekilde...
+kalıcı olarak aktar."*
+
+Ayrıntılı döküm: [`REFERANS_MAHOU.md`](REFERANS_MAHOU.md).
+
+## 1. 448 ayar, tek bir tahmin
+
+`mahoutsukai 1.21.1 v1.36.27`'nin bütün sayıları tek bir sınıfta duruyor:
+`MTConfig$Server`. 448 ayarı `intconfig`/`doubleconfig`/`booleanconfig`
+çağrılarıyla tanımlıyor. `mahou_coz.py` bytecode'u okuyup her ayarın
+varsayılanını çıkardı, `mahou_config.json` olarak depoya girdi ve test
+otuzdan fazlasını oradan geri okuyup karşılaştırıyor.
+
+**Tek tahmini sayı**: Varlık Gizleme büyüsünün 100 manası — kaynakta o
+büyünün ayrı bir mana ayarı yok. Özette *"bedeli tahmini"* yazıyor ve test
+bu ibarenin orada kaldığını sınıyor, yani biri sessizce silemiyor.
+
+## 2. Mana modun kalbi, bizde de öyle
+
+Modda her büyünün bedeli var ve manan yoksa büyü çalışmıyor. Bunu
+almasaydık yirmi büyü yirmi bedava düğmeye dönerdi.
+
+Bedeller kaynağın kendi ayarları: Gandr 5, Yükseliş 30, Fay Görüşü 100,
+Kehanet 220, Kara Alev 300, İçgörü 320, Ölüm Toplama 400, **Düşüş 2000**.
+Yani ucuz büyü çok, pahalı büyü az kullanılır — modun dengesi bu.
+
+Yarım ödeme yok: ya bedelin tamamı iner ya hiçbir şey olmaz.
+
+## 3. Test yine gerçek bir hata buldu
+
+`manaYaz` ilk yazımda `setDynamicProperty` yoksa `hataYaz` çağırıyordu.
+Tarama testi yakaladı:
+
+```
+✗ hicbir yetenek HATA GUNLUGE dusurmedi
+  :: HATA @ mahou.manaYaz: oyuncu.setDynamicProperty is not a function
+```
+
+Bu sessiz bir felaket olurdu: Content Log saniyede üç kez, **her oyuncu
+için** dolardı ve gerçek hatalar içinde kaybolurdu. Artık eksiklik bir kez
+ölçülüyor, bir kez bildiriliyor, mana bellekteki deftere düşüyor.
+
+Bir de ikinci kez aynı tuzağa düştüm ve test yakaladı: The Ripper'ın
+hasarı tam **2.5** ve testi JS'in `Math.round`'uyla yazmıştım (2.5 → 3),
+üreteç ise Python'unkiyle (2.5 → 2). Hata kodda değil **testteydi** —
+v4.96'da konan kural açık: **eşitlik aşağı yuvarlanır**, kaynaktan
+fazlasını asla verme. Iron Man Mk85'te de tam bu olmuştu.
+
+## 4. Ne alınmadı
+
+- **Büyü çemberleri** — modun asıl arayüzü yere çizilen çember. Bedrock'ta
+  blok deseni okuyup ritüel çalıştırmak ayrı bir sistem; büyüler bizde
+  parşömeni tutup tetikleniyor.
+- **Büyüyen kılıçlar** — Caliburn/Clarent/Morgan bir ritüelle güçleniyor
+  (tavan 5.000.000 hasar). Ritüel yok, kılıçlar taban güçleriyle geliyor.
+- **Familya, Gerçeklik Mermeri, Kadeh** — kendi boyutları var.
+- **William** — modda 2B ikonu yok (`builtin/entity` ile çiziliyor), yani
+  alınacak piksel yok. Uydurma ikon çizmek yerine aktarılmadı; test bunun
+  böyle kaldığını sabitliyor.
+
+Parşömenlerin hepsi tek ikonu paylaşıyor — **kaynakta da öyle**, 45 büyü
+için 45 ikon yok. Farklı görünsünler diye ikon uydurmadık.
+
+---
+
 # v5.3 — Kahraman mekanikleri ve animasyon taraması
 
 Kullanıcı beni düzeltti ve haklıydı:

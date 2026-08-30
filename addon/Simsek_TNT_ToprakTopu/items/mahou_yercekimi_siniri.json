@@ -1,0 +1,26 @@
+{
+  "format_version": "1.21.0",
+  "minecraft:item": {
+    "description": {
+      "identifier": "pa:mahou_yercekimi_siniri",
+      "menu_category": {
+        "category": "equipment"
+      }
+    },
+    "components": {
+      "minecraft:icon": {
+        "texture": "mahou_yercekimi_siniri"
+      },
+      "minecraft:display_name": {
+        "value": "Yerçekimi Sınırı Parşömeni"
+      },
+      "minecraft:max_stack_size": 1,
+      "minecraft:tags": {
+        "tags": [
+          "pa:mahou",
+          "pa:mahou_buyu"
+        ]
+      }
+    }
+  }
+}

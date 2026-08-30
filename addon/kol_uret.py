@@ -3155,6 +3155,145 @@ WOM_SERI = {
 }
 
 # ================================================================
+#  MAHOU TSUKAI  (Buyucu)                                v5.4
+# ================================================================
+# Kullanici: "bir tane daha mod buldum, bunu da ekle aynı
+# şekilde... kalıcı olarak aktar."
+#
+# ---- KAYNAK ----
+# mahoutsukai 1.21.1 v1.36.27. Sayilar modun KENDI
+# yapilandirmasindan (MTConfig$Server, 448 ayar); cikarma
+# mahou_coz.py'nin isi ve sonucu depoda (mahou_config.json).
+#
+# ---- BUYULER TEK DOKUYU PAYLASIYOR ----
+# Modda butun parsomenler `spell_scroll.png` kullaniyor --
+# 45 buyu icin 45 ayri ikon YOK. Bizde de oyle: yirmi
+# parsomen tek ikonla geliyor. Farkli gorunsunler diye ikon
+# UYDURMADIK; ayirt edici sey esyanin ADI ve menudeki ozeti.
+#
+# ---- WILLIAM ALINMADI ----
+# Modda 2B ikonu yok (builtin/entity ile ciziliyor), yani
+# alinacak piksel yok. Uydurma ikon cizmek yerine
+# aktarilmadi ve NOTLAR.md'de yazili.
+MAHOU_ONEK = "mahou_"
+MAHOU_DOKU_KAYNAK = os.path.join(DOKU_KAYNAK, "mahou")
+MAHOU_PARSOMEN_DOKU = "spell_scroll"
+
+# (anahtar, TR ad, EN ad, java hasar modifier|None, dayaniklilik|None)
+# ayarlar.js:MAHOU_ESYALAR ile AYNI olmak zorunda; test
+# ikisini karsilastiriyor.
+MAHOU_ESYA = [
+    ("caliburn", "Caliburn", "Caliburn", 3, 1000),
+    ("clarent", "Clarent", "Clarent", 3, 1500),
+    ("morgan", "Morgan", "Morgan", 3, 1000),
+    ("rule_breaker", "Rule Breaker", "Rule Breaker", 5, 1000),
+    ("rhongomyniad", "Rhongomyniad", "Rhongomyniad", 3, 1000),
+    ("theripper", "The Ripper", "The Ripper", 2.5, 1200),
+    ("nobu", "Nobu", "Nobu", 8, 10000),
+    ("staff_emrys", "Emrys", "Emrys", None, 1000),
+    ("mystic_staff", "Patlayıcı Mana Asası",
+     "Mystic Staff of Explosive Mana Condensation", None, 1000),
+    ("spatial_staff", "Uzamsal Karışıklık Asası",
+     "Mystic Staff of Spatial Disorientation", None, 1000),
+    ("treasury_projection_gauntlet", "Hazine Yansıtma Eldiveni",
+     "Treasury Projection Gauntlet", None, 1000),
+    ("dagger", "Hançer", "Dagger", None, None),
+    ("hammer", "Çekiç", "Hammer", None, None),
+    ("kodoku", "Kodoku", "Kodoku", None, None),
+    ("attuned_diamond", "Uyumlu Elmas", "Attuned Diamond", None, None),
+    ("attuned_emerald", "Uyumlu Zümrüt", "Attuned Emerald", None, None),
+]
+
+# (anahtar, TR ad, EN ad) -- hepsi ayni parsomen ikonunu
+# kullaniyor (kaynakta da oyle).
+MAHOU_BUYU = [
+    ("fay_gorusu", "Fay Görüşü Parşömeni", "Scroll of Fay Sight"),
+    ("icgoru", "İçgörü Parşömeni", "Scroll of the Mystic Eyes of Insight"),
+    ("kehanet", "Kehanet Parşömeni",
+     "Scroll of the Mystic Eyes of Clairvoyance"),
+    ("baglama", "Bağlama Parşömeni",
+     "Scroll of the Mystic Eyes of Binding"),
+    ("guclendirme", "Güçlendirme Parşömeni", "Scroll of Strengthening"),
+    ("bagisiklik_takasi", "Bağışıklık Takası Parşömeni",
+     "Scroll of Immunity Exchange"),
+    ("gizlenme", "Varlık Gizleme Parşömeni",
+     "Scroll of Presence Concealment"),
+    ("gandr", "Gandr Parşömeni", "Scroll of Gandr"),
+    ("kara_alev", "Kara Alev Parşömeni",
+     "Scroll of the Mystic Eyes of the Black Flame"),
+    ("dusus", "Düşüş Parşömeni", "Scroll of Fallen Down"),
+    ("rho_aias", "Rho Aias Parşömeni", "Scroll of Rho Aias"),
+    ("can_emme_siniri", "Can Emme Sınırı Parşömeni",
+     "Scroll of the Boundary of Drain Life"),
+    ("yercekimi_siniri", "Yerçekimi Sınırı Parşömeni",
+     "Scroll of the Gravity Boundary"),
+    ("alarm_siniri", "Alarm Sınırı Parşömeni",
+     "Scroll of the Alarm Boundary"),
+    ("yer_degistirme", "Zihinsel Yer Değiştirme Parşömeni",
+     "Scroll of Mental Displacement"),
+    ("uzamsal_karisiklik", "Uzamsal Karışıklık Parşömeni",
+     "Scroll of Spatial Disorientation"),
+    ("yukselis", "Yükseliş Parşömeni", "Scroll of Ascension"),
+    ("olum_toplama", "Ölüm Toplama Parşömeni",
+     "Scroll of the Mystic Eyes of Death Collection"),
+    ("kelebek_etkisi", "Kelebek Etkisi Parşömeni",
+     "Scroll of the Butterfly Effect"),
+    ("hasar_takasi", "Hasar Takası Parşömeni", "Scroll of Damage Exchange"),
+]
+
+
+def mahou_esyasi(anahtar, tr_ad, hasar, dayaniklilik):
+    """Mahou esyasi.
+
+    Hasar Java'da DEGISTIRICI, Bedrock'ta TOPLAM -> +1
+    (WoM'da olculmus kural). `hasar` None ise silah degil,
+    alet/odak: hasar bileseni HIC yazilmiyor -- kaynakta da
+    yok.                                                     """
+    bilesenler = {
+        "minecraft:icon": {"texture": MAHOU_ONEK + anahtar},
+        "minecraft:display_name": {"value": tr_ad},
+        "minecraft:max_stack_size": 1,
+        "minecraft:tags": {"tags": ["pa:mahou", "pa:mahou_esya"]},
+    }
+    if hasar is not None:
+        bilesenler["minecraft:hand_equipped"] = True
+        bilesenler["minecraft:allow_off_hand"] = False
+        bilesenler["minecraft:damage"] = int(round(hasar)) + 1
+    if dayaniklilik:
+        bilesenler["minecraft:durability"] = {"max_durability": dayaniklilik}
+    return {
+        "format_version": "1.21.0",
+        "minecraft:item": {
+            "description": {
+                "identifier": "pa:" + MAHOU_ONEK + anahtar,
+                "menu_category": {"category": "equipment"},
+            },
+            "components": bilesenler,
+        },
+    }
+
+
+def mahou_parsomeni(anahtar, tr_ad):
+    """Buyu parsomeni. Silah degil: hasar ve dayaniklilik YOK,
+    tutulup tetikleniyor.                                     """
+    return {
+        "format_version": "1.21.0",
+        "minecraft:item": {
+            "description": {
+                "identifier": "pa:" + MAHOU_ONEK + anahtar,
+                "menu_category": {"category": "equipment"},
+            },
+            "components": {
+                "minecraft:icon": {"texture": MAHOU_ONEK + anahtar},
+                "minecraft:display_name": {"value": tr_ad},
+                "minecraft:max_stack_size": 1,
+                "minecraft:tags": {"tags": ["pa:mahou", "pa:mahou_buyu"]},
+            },
+        },
+    }
+
+
+# ================================================================
 #  MARVEL PROJECT                                        v5.2
 # ================================================================
 # Kullanici: "bir tane daha mod kurdum, bu sefer ugrasmana gerek
@@ -5517,6 +5656,41 @@ def main():
                 liste.append("item.pa:%s.name=%s" % (_tad, ad))
                 liste.append("item.pa:%s=%s" % (_tad, ad))
 
+    # ---- MAHOU TSUKAI (v5.4) ----
+    # 16 esya + 20 parsomen. Ikonlar modun kendi pikselleri;
+    # parsomenlerin hepsi tek ikonu paylasiyor (kaynakta da).
+    for _ma, _mtr, _men, _mh, _md in MAHOU_ESYA:
+        _mad = MAHOU_ONEK + _ma
+        yaz_json(os.path.join(BP, "items/%s.json" % _mad),
+                 mahou_esyasi(_ma, _mtr, _mh, _md))
+        _mk = os.path.join(MAHOU_DOKU_KAYNAK, _ma + ".png")
+        if os.path.exists(_mk):
+            _my = os.path.join(RP, "textures/item/%s.png" % _mad)
+            os.makedirs(os.path.dirname(_my), exist_ok=True)
+            shutil.copyfile(_mk, _my)
+        else:
+            print("UYARI: %s ikonu yok (%s)" % (_mad, _mk))
+        dokular[_mad] = {"textures": "textures/item/" + _mad}
+        for liste, ad in ((en_us, _men), (tr_tr, _mtr)):
+            liste.append("item.pa:%s.name=%s" % (_mad, ad))
+            liste.append("item.pa:%s=%s" % (_mad, ad))
+
+    _mps = os.path.join(MAHOU_DOKU_KAYNAK, MAHOU_PARSOMEN_DOKU + ".png")
+    for _ba, _btr, _ben in MAHOU_BUYU:
+        _bad = MAHOU_ONEK + _ba
+        yaz_json(os.path.join(BP, "items/%s.json" % _bad),
+                 mahou_parsomeni(_ba, _btr))
+        if os.path.exists(_mps):
+            _by = os.path.join(RP, "textures/item/%s.png" % _bad)
+            os.makedirs(os.path.dirname(_by), exist_ok=True)
+            shutil.copyfile(_mps, _by)
+        else:
+            print("UYARI: parsomen ikonu yok (%s)" % _mps)
+        dokular[_bad] = {"textures": "textures/item/" + _bad}
+        for liste, ad in ((en_us, _ben), (tr_tr, _btr)):
+            liste.append("item.pa:%s.name=%s" % (_bad, ad))
+            liste.append("item.pa:%s=%s" % (_bad, ad))
+
     # ---- OYUNCU VARLIGI (v5.3) ----
     # Depoda ILK KEZ bir BP oyuncu varligi var; tek sebebi
     # Ant-Man'in boy degistirmesi (Bedrock'ta olcek yalniz
@@ -6015,6 +6189,12 @@ def main():
             beklenen.add(_tk3 + "_k1")
             beklenen.add(_tk3 + "_k2")
     beklenen.add(MEKA_DOKU)
+    # v5.4: Mahou esyalari ve parsomenleri. Ayni tuzak
+    # yedinci kez -- listede olmayan her sey siliniyor.
+    for _mk4, _mt4, _me4, _mh4, _md4 in MAHOU_ESYA:
+        beklenen.add(MAHOU_ONEK + _mk4)
+    for _bk4, _bt4, _be4 in MAHOU_BUYU:
+        beklenen.add(MAHOU_ONEK + _bk4)
     for satir in KOLLAR:
         beklenen.add(satir[0])
     for kimlik, _ad, _sivi, goz, _gozRenk in IKSIRLER:
