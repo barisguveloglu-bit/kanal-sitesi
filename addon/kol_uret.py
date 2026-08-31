@@ -6496,8 +6496,15 @@ def main():
             if not _gf.endswith(".geo.json"):
                 continue
             _gad = _gf[:-len(".geo.json")]
+            # v6.2: `kns_` de listeye girdi. Girmeseydi Konsey
+            # geometrileri temizlikten MUAF kalirdi -- ve tam
+            # oyle oldu: parcalar `kol_*`ten `kolluk_*`e yeniden
+            # adlandirilinca 14 eski `.geo.json` pakette KALDI.
+            # Atlasta ve dil dosyasinda yoklardi (o yuzden oyunda
+            # gorunmezlerdi) ama pakete giriyorlardi.
             if not (_gad.startswith("mrv_") or _gad.startswith("kahraman")
-                    or _gad.startswith("pe_") or _gad.startswith("meka_")):
+                    or _gad.startswith("pe_") or _gad.startswith("meka_")
+                    or _gad.startswith("kns_")):
                 continue
             if _gad in gecerliGeo:
                 continue
