@@ -136,6 +136,10 @@ KOLLAR = [
     ("kol_dave",   "kasirga",          "Dave Kolu",             (96, 108, 76),   (176, 200, 140)),
     ("kol_kevin",  "hapis",            "Kevin Kolu",            (108, 112, 120), (188, 194, 204)),
     ("kol_gunes",  "isin_topu",        "Gunes Kolu",            (232, 168, 40),  (255, 232, 150)),
+    # KANLI KOL (v6.7) -- Bobby1545 Mod V3'ten. Renkler
+    # OLCULDU: kaynagin pa_blood_arm dokusunda yumruk
+    # #E58D3F/#FF0303, dikenler #390808/#210003.
+    ("kol_kanli",  "kanli",            "Kanli Kol",             (57, 8, 8),      (255, 3, 3)),
 ]
 
 # Turkce gorunen adlar (dil dosyasi icin; JSON'da ASCII tutuluyor)
@@ -146,6 +150,7 @@ TR_AD = {
     "kol_dave":   "Dave Kolu",
     "kol_kevin":  "Kevin Kolu",
     "kol_gunes":  "Güneş Kolu",
+    "kol_kanli":  "Kanlı Kol",
 }
 
 # BEKLEME = 60 tick = 3 sn. Esya beklemesi bununla ayni tutuluyor ki
@@ -893,7 +898,7 @@ def goz_attachable(kimlik):
 
 
 # ---------------------------------------------------------- attachable
-def attachable(kimlik):
+def attachable(kimlik, geometri="geometry.simsek_kol"):
     tam = "pa:" + kimlik
     return {
         "format_version": "1.10.0",
@@ -908,7 +913,7 @@ def attachable(kimlik):
                     "default": "textures/entity/" + kimlik,
                     "enchanted": "textures/misc/enchanted_item_glint",
                 },
-                "geometry": {"default": "geometry.simsek_kol"},
+                "geometry": {"default": geometri},
                 # v5.3: TUTUS ANIMASYONU KALDIRILDI. Var olmayan
                 # bir kemige (rightitem) yaziyordu, yani dort
                 # surumdur hicbir sey yapmiyordu. Gerekcesi
@@ -4747,6 +4752,78 @@ GEOMETRI = {
     ],
 }
 
+# ---- KANLI KOL GEOMETRISI  (v6.7) ----
+#
+# ---- ONCE YANLIS YAPTIM, KULLANICI EKRAN GORUNTUSU GONDERDI ----
+# Ilk denemede Kanli Kol'u depodaki diger alti kol gibi bir KOL
+# KAPLAMASI yaptim: kirmizi bir kol, uzerinde dikenler. Kaynagin
+# modelini "tutulan bir prop, oyuncunun koluyla hareket etmez"
+# diye eledim. YANLISTI.
+#
+# Kaynagin modelinin kok kemikleri OLCULDU:
+#     rightArm  pivot [-5, 22, 0]
+#     leftArm   pivot [ 5, 22, 0]
+# Bunlar oyuncu iskeletindeki kol kemiklerinin TAM pivotlari.
+# Bedrock ayni adli kemikleri esliyor, yani model oyuncunun IKI
+# koluna birden baglaniyor ve iki kol da normal sekilde hareket
+# ediyor. Cocuk kemiklerin adlari (leftArm3, head2, bone...)
+# karmakarisik ama onemli degil -- baglanmayi yalniz kok
+# kemikler yapiyor.
+#
+# Kanli Kol boylece kaynaktaki gibi: iki uzun ince kirmizi kol,
+# uclarinda 7x7x7 turuncu-kanli yumruklar. Elle cizdigim kol
+# kaplamasi ATILDI; model ve doku kaynaktan OLDUGU GIBI geliyor.
+KANLI_GEO_KAYNAK = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "kaynak_geo", "kanli")
+
+
+def kanli_geometrisi():
+    """Kaynagin 1.10.0 modelini 1.12.0 bicimine cevirir.
+
+    Kemiklere DOKUNULMUYOR: kok kemik adlari (rightArm/leftArm)
+    baglanmanin ta kendisi, degistirilirse model oyuncunun
+    koluna hic oturmaz. Yalnizca kabuk degisiyor:
+      {"geometry.X": {...}}  ->  {"minecraft:geometry": [...]}
+    ve `texturewidth` -> `texture_width`.
+
+    Neden ceviriyoruz: depodaki tarayici (anim_tara.py) ve
+    temizlik adimi modern bicimi okuyor. Eski bicimde birakmak
+    modeli denetimin DISINDA birakirdi.                        """
+    kaynak = os.path.join(KANLI_GEO_KAYNAK, "blood_arm.json")
+    if not os.path.exists(kaynak):
+        print("UYARI: Kanli Kol modeli yok (%s)" % kaynak)
+        return None
+    with open(kaynak, encoding="utf-8") as f:
+        ham = json.load(f)
+    eski = None
+    for anahtar, deger in ham.items():
+        if anahtar.startswith("geometry.") and isinstance(deger, dict):
+            eski = deger
+            break
+    if eski is None:
+        print("UYARI: Kanli Kol modelinde geometri govdesi yok")
+        return None
+    return {
+        "format_version": "1.12.0",
+        "minecraft:geometry": [
+            {
+                "description": {
+                    "identifier": "geometry.simsek_kol_kanli",
+                    "texture_width": eski.get("texturewidth", 64),
+                    "texture_height": eski.get("textureheight", 64),
+                    # Model oyuncunun iki yanina birden tasiyor;
+                    # gorunur kutu dar birakilirsa uzaktan
+                    # bakinca yumruklar KIRPILIR.
+                    "visible_bounds_width": 6,
+                    "visible_bounds_height": 5,
+                    "visible_bounds_offset": [0, 1, 0],
+                },
+                "bones": eski.get("bones", []),
+            }
+        ],
+    }
+
+
 # ---- TUTUS ANIMASYONU KALDIRILDI  (v5.3) ----
 #
 # Kullanici: "gene animasyon tarafinda tum animasyonlar icin
@@ -5329,6 +5406,39 @@ def buz_dokusu():
     return p
 
 
+KANLI_KAYNAK = os.path.join(DOKU_KAYNAK, "kanli")
+
+# Kaynagin (Bobby1545 Mod V3) kendi paleti. OLCULDU, secilmedi:
+#   yumruk  #E58D3F / #E59947   (turuncu et)
+#   kan     #FF0303            (taze kan)
+#   diken   #390808 / #210003 / #45080C  (pihtilasmis kan)
+# Kaynagin (Bobby1545 Mod V3) OLCULEN paleti. Doku artik
+# kaynaktan oldugu gibi geliyor; bu sabitler yalnizca esya
+# ikonunun yer tutucusu ve KOLLAR tablosu icin duruyor.
+#   yumruk  #E58D3F / #E59947   turuncu et
+#   kan     #FF0303             taze kan
+#   diken   #390808 / #210003   pihtilasmis kan
+KANLI_ET   = (229, 141, 63)
+KANLI_KAN  = (255, 3, 3)
+KANLI_KOYU = (57, 8, 8)
+
+
+def kanli_dokusu_kopyala(hedef):
+    """Kaynagin doku dosyasini oldugu gibi pakete kopyalar.
+
+    Ilk denemede kolu ELLE ciziyordum (olculen paletle). Model
+    kaynagin kendi modeli olunca elle cizim anlamsizlasti:
+    kaynagin uv'leri kaynagin dokusunu bekliyor, baska bir doku
+    yumruklari ve kollari yanlis yerden ornekler.             """
+    kaynak = os.path.join(KANLI_KAYNAK, "blood_arm.png")
+    if not os.path.exists(kaynak):
+        print("UYARI: Kanli Kol dokusu yok (%s)" % kaynak)
+        return False
+    import shutil
+    shutil.copyfile(kaynak, hedef)
+    return True
+
+
 def varlik_dokusu(ana, vurgu):
     """64x64. Vanilla sag kol UV bolgesi (40,16)-(55,31) doldurulur.
 
@@ -5790,17 +5900,38 @@ def main():
 
     for kimlik, _yetenek, ad, ana, vurgu in KOLLAR:
         yaz_json(os.path.join(BP, "items", kimlik + ".json"), esya(kimlik, ad))
-        yaz_json(os.path.join(RP, "attachables", kimlik + ".json"), attachable(kimlik))
+        # Kanli Kol'un kendi geometrisi var (dikenler); digerleri
+        # geometry.simsek_kol'u paylasiyor.
+        _geo = ("geometry.simsek_kol_kanli" if kimlik == "kol_kanli"
+                else "geometry.simsek_kol")
+        yaz_json(os.path.join(RP, "attachables", kimlik + ".json"),
+                 attachable(kimlik, _geo))
 
         if kimlik == "kol_toprak":
             doku = toprak_dokusu()
         elif kimlik == "kol_buz":
             doku = buz_dokusu()
+        elif kimlik == "kol_kanli":
+            # Yer tutucu: kaynak doku yoksa kol yine gorunsun.
+            doku = varlik_dokusu(ana, vurgu)
         else:
             doku = varlik_dokusu(ana, vurgu)
         png_yaz(os.path.join(RP, "textures/entity", kimlik + ".png"), 64, 64, doku)
         png_yaz(os.path.join(RP, "textures/item", kimlik + ".png"), 16, 16,
                 esya_ikonu(ana, vurgu))
+        # Kanli Kol'un dokusu kaynagin KENDI dokusu: model de
+        # kaynagin modeli, uv'ler o dokuyu bekliyor.
+        if kimlik == "kol_kanli":
+            kanli_dokusu_kopyala(os.path.join(RP, "textures/entity",
+                                              kimlik + ".png"))
+        # Kanli Kol'un ikonu kaynagin KENDI ikonu (kirmizi capraz
+        # diken). Uretilen ikon kolun on yuzunden turuyor ve
+        # cizdirilince siyah bir zeminde tek kirmizi cizgi
+        # cikiyordu -- envanterde neye baktigini anlamak zordu.
+        if kimlik == "kol_kanli":
+            kaynak_doku_kopyala(os.path.join("kanli", "blood_ikon.png"),
+                                os.path.join(RP, "textures/item",
+                                             kimlik + ".png"))
 
         # ---- Elle cizilmis kol dokusu varsa uretileni EZ ----
         # Uretilen dokular yer tutucu (renk var, cizim yok).
@@ -6497,6 +6628,10 @@ def main():
     yaz_json(os.path.join(RP, "models/entity/simsek_goz_lazer.geo.json"),
              goz_lazer_geometrisi())
     yaz_json(os.path.join(RP, "models/entity/simsek_kol.geo.json"), GEOMETRI)
+    _kanli_geo = kanli_geometrisi()
+    if _kanli_geo is not None:
+        yaz_json(os.path.join(RP, "models/entity/simsek_kol_kanli.geo.json"),
+                 _kanli_geo)
     yaz_json(os.path.join(RP, "animations/goz_lazeri.animation.json"),
              lazer_animasyonu())
     if LAZER_ISIN_PARLAK:

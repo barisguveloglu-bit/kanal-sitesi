@@ -20,6 +20,9 @@
     "kol_gunes": {
       "textures": "textures/item/kol_gunes"
     },
+    "kol_kanli": {
+      "textures": "textures/item/kol_kanli"
+    },
     "iksir_nitroksin": {
       "textures": "textures/item/iksir_nitroksin"
     },

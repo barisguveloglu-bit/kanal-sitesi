@@ -1,3 +1,122 @@
+# v6.7 — Kanlı Kol
+
+Kullanıcı iki mod gönderdi (**Falen Mod V2** ve **Bobby1545 Mod V3**) ve
+*"özellikle kanlı kolu istiyorum"* dedi. Kanlı Kol Bobby1545'te: `pa_blood_arm_*`,
+sekiz eşya.
+
+## Önce yanlış yaptım
+
+Kanlı Kol'u depodaki diğer altı kol gibi bir **kol kaplaması** yaptım —
+kırmızı bir kol, üzerinde dikenler. Kaynağın modelini *"tutulan bir prop,
+oyuncunun koluyla hareket etmez"* diye eledim.
+
+Kullanıcı **ekran görüntüsü gönderdi**: Kanlı Kol bir kol kaplaması değil,
+**iki dev turuncu-kanlı yumruk**, ince kırmızı kolların ucunda.
+
+Modelin kök kemikleri ölçüldü:
+
+```
+rightArm  pivot [-5, 22, 0]
+leftArm   pivot [ 5, 22, 0]
+```
+
+Bunlar oyuncu iskeletindeki kol kemiklerinin **tam pivotları**. Bedrock aynı
+adlı kemikleri eşliyor, yani model oyuncunun **iki koluna birden** bağlanıyor
+ve kollar normal hareket ediyor. Çocuk kemiklerin adları (`leftArm3`, `head2`,
+`bone`…) karmakarışık ama önemsiz — bağlanmayı yalnız kök kemikler yapıyor.
+
+Elle çizdiğim kol atıldı. **Model, doku ve ikon kaynaktan olduğu gibi geliyor**
+(sadece 1.10.0 kabuğu 1.12.0'a çevrildi; kemiklere dokunulmadı — test bunu
+bayt bayt karşılaştırıyor).
+
+## Kaynakta sekiz eşya, bizde bir kol
+
+Kaynak her yetenek için ayrı bir eşya veriyor ve "Aktif Et"e basınca yedisini
+birden envantere dolduruyor. Bizde tek eşya, yetenekler menüden seçiliyor.
+
+| kaynak | bizde |
+|---|---|
+| Herkese Örs Yağdır | **`kanli_ors`** — yeni |
+| Ulti Şimşek | **`kanli_simsek`** — yeni |
+| Meteor | `meteor` (zaten vardı) |
+| Süper Meteor | `guclu_tnt` (zaten vardı) |
+| Baya Yıldırım | `yon_simsegi` (zaten vardı) |
+| Kendini Uçur | `toprak_ucus` (zaten vardı) |
+| Aktif Et / Kapat | gerek yok — kol tek eşya |
+
+Aynı iki şeyi ikinci kez yazmak, iki ayrı yerde bozulacak tek bir mantık
+demekti.
+
+### İki yeni yetenek neden yeni
+
+**Kanlı Örs** — bizdeki `ors` *nişan aldığın tek noktaya* yağıyor; bu
+**menzildeki her varlığın** tepesine. Kaynak beş katlı bir örs sütunu
+(`fill ~~15~ ~~11~`) döküyor, biz tek örs bırakıyoruz ve sadece **hava olan
+yere** koyuyoruz — kimsenin evi delinmiyor.
+
+**Ulti Şimşek** — bizdeki `coklu_simsek` en yakın N taneyi vuruyor ve çok
+yakındakini atlıyor; bu **hepsini** vuruyor, dibindekini de. Kaynak
+(`execute at @e run summon lightning_bolt`) bütün dünyayı vuruyor ve hepsini
+**tek tick'te** doğuruyor; bizde 40 blok menzil var ve yıldırımlar tick'e
+yayılıyor.
+
+## Kaynaktan almadığım tek şey
+
+Kaynağın **"Kapat"** eşyası şunu çağırıyor:
+
+```
+"run_command": {"command": ["function Envanteri_Sil", "function Blood_Arm_Sil"]}
+```
+
+`Envanteri_Sil.mcfunction` tek satır:
+
+```
+clear @s
+```
+
+**Kolu kapatmak oyuncunun bütün envanterini siliyor.** Bu depoda eşya
+kaybettiren hiçbir şey yok — alınmadı, ve `kanli.mjs` 4. bölüm bunun bir daha
+yanlışlıkla girmemesi için `clear @` arayan bir denetim tutuyor (yorumları
+temizleyerek — ilk halinde kendi gerekçe yazımı "envanter silen kod" diye
+raporlamıştı).
+
+## Kol sayısı bekçisi 6'dan 7'ye
+
+Altı ayrı test *"yeni kol açılmadı (6 kol)"* diye tutuyordu — v4.33 ve
+v4.46'da dörder kol kaldırıldığı için konmuş bir "kol israfı" bekçisi. Kanlı
+Kol kullanıcının açık isteği olduğu için sayı **bilerek** yediye çıktı;
+bekçi çalışmaya devam ediyor. `kol2.mjs`'in "her kol aynı geometriyi
+kullanır" denetimi de gevşetilmedi — Kanlı Kol'un kendi modeli **adıyla**
+istisna yazıldı.
+
+## Kasten kırıp doğrulandı
+
+| kırılan | düşen test |
+|---|---|
+| kök kemik `rightArm` → `kol_kok` (v3.3 hatası) | "kök kemikler OYUNCU KOLLARI" + 2 tane |
+| oyuncu muafiyeti kaldırıldı | "oyuncular vurulmuyor" |
+| menzil 40 → 9999 (kaynak gibi) | "MENZİL DIŞINDAKİ vurulmadı" + 3 tane |
+| kayıtsız bir yeteneğe bağlandı | "kayıt defterinde" + 1 tane |
+| `blokIste` sonucu yok sayıldı | "örs blok bütçesini soruyor" |
+
+## İki modda başka neler var
+
+**Bobby1545 Mod V3** — 88 eşya, 77 attachable, 272 fonksiyon. Kollar:
+`dirt_arm` (8), `improved_dirt_arm` (3), **`long_dirt_arm` (9)**,
+`ice_arm` (7), `blood_arm` (8), `fallen_arm` (7), `glowing_arm` (2).
+Ayrıca `mob_picker`, `dirt_conventer`, `stone_conventer`, `knightrider`,
+`stune_gun`, `lightning_stick`, Bobby'nin üç skini (normal/angry/hasta).
+
+**Falen Mod V2** — 29 eşya. `void_sword/axe/pickaxe/shovel/multitool`,
+`ender_sword`, `univers_sword`, `enigma`, `bloodskyavi`, **kurban zırhı**
+(kask/zırh/pantolon/bot), `falen_isiligi`, `dirt_fallen`.
+
+Not: `pa_blood_arm_*`'ın **sekiz modeli de birbirinin aynı** (normalize edilip
+karşılaştırıldı), sekiz animasyonu da aynı, iki dokusu arasında **tek piksel**
+fark var. Yani kaynak sekiz kez kopyalamış; bizde bir model, bir doku.
+
+---
+
 # v6.6 — Tabela, sis ve müzik
 
 Üç iş: efsane yazısı yerden **dikili tabelaya**, `/fog` komutu **skinin

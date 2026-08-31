@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v6.6";
+export const SURUM = "v6.7";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -5016,6 +5016,76 @@ export const COKLU_MUAF = [
   "minecraft:xp_orb",
   "minecraft:lightning_bolt"
 ];
+
+
+/* ================================================================
+   KANLI KOL                                                v6.7
+
+   Kaynak: Bobby1545 Mod (V3). Kullanici ekran goruntusu de
+   gonderdi: iki dev turuncu-kanli yumruk, ince kirmizi kollarin
+   ucunda. Model ve doku kaynagin kendisi (kok kemikleri
+   rightArm/leftArm oldugu icin oyuncunun IKI koluna birden
+   baglaniyor).
+
+   ---- KAYNAKTAKI SEKIZ ESYA -> BIR KOL ----
+   Kaynak her yetenek icin AYRI bir esya veriyor ve "Aktif Et"e
+   basinca yedisini birden envanterine dolduruyor. Bizde tek
+   esya var, yetenekler menuden secliyor -- depodaki alti kolun
+   duzeni bu.
+
+   ---- KAYNAKTAN ALINMAYAN TEK SEY ----
+   "Kapat" esyasi `Envanteri_Sil` fonksiyonunu cagiriyor ve o
+   fonksiyon tek satir: `clear @s`. Yani kolu kapatmak
+   OYUNCUNUN BUTUN ENVANTERINI SILIYOR. Bu depoda esya
+   kaybettiren hicbir sey yok; alinmadi.
+
+   ---- IKI YENI YETENEK ----
+   Kanli Ors  : kaynagin `Anvil_Cokert`i. Bizdeki `ors` TEK bir
+                noktaya yagiyor (nisan aldigin yere); bu ise
+                MENZILDEKI HER VARLIGIN tepesine. Farkli sey.
+   Ulti Simsek: kaynagin `Ulti_Simsek`i, `execute at @e run
+                summon lightning_bolt`. Bizdeki `coklu_simsek`
+                en yakin COKLU_HEDEF taneyi vuruyor ve cok
+                yakindakini atliyor; bu hepsini vuruyor.
+
+   Kaynaktaki digerleri bizde ZATEN vardi ve yeniden
+   yazilmadi: Meteor -> meteor, Super Meteor -> guclu_tnt,
+   Kendini Ucur -> toprak_ucus, Baya Yildirim -> yon_simsegi.
+   ================================================================ */
+export const KANLI_ACIK = true;
+
+/* Menzil: kaynakta menzil YOK (butun dunya). Tablette butun
+   dunyaya yildirim indirmek oyunu kilitler.                  */
+export const KANLI_MENZIL = 40;
+export const KANLI_MUAF = [
+  "minecraft:item",
+  "minecraft:xp_orb",
+  "minecraft:lightning_bolt",
+  "minecraft:arrow",
+  "minecraft:falling_block"
+];
+/* Kaynak `type=!player` diyor: oyunculari vurmuyor. Ayni
+   kaldi -- arkadasiyla oynayan biri yanlislikla herkesi
+   yakmasin.                                                  */
+export const KANLI_OYUNCU_VUR = false;
+
+/* Ors: kaynak `fill ~~15~ ~~11~ anvil keep` diyor, yani her
+   hedefin 11-15 blok ustune bes katli bir ors sutunu. Bes ors
+   ust uste dusen bir varligi kesin olduruyor; biz tek ors
+   birakiyoruz ve YUKSEKLIGI koruyoruz.                       */
+export const KANLI_ORS_YUKSEK = 12;
+export const KANLI_ORS_BLOK = "minecraft:anvil";
+export const KANLI_ORS_ARALIK = 2;
+
+/* Simsek: her hedef arasi bekleme. Kaynak hepsini TEK TICK'te
+   dogurluyor; 30 varlik varsa o tick kilitleniyor.           */
+export const KANLI_SIMSEK_ARALIK = 2;
+
+/* Ekran sarsintisi: kaynak `camerashake add @a 3` diyor, yani
+   dunyadaki HERKESI sarsiyor -- olayla ilgisi olmayan
+   oyuncular dahil. Bizde yalniz vuran kisi sarsiliyor.       */
+export const KANLI_SARSINTI = 1.4;
+export const KANLI_SARSINTI_SURE = 0.6;
 
 
 /* ---------------- Icme parlamasi ----------------

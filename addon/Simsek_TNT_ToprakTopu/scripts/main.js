@@ -195,6 +195,10 @@ import "./yetenekler/efsane.js";
 import { efsaneMuzikTara } from "./yetenekler/efsane_muzik.js";
 /* v6.6: skinin renginde ozel sis. */
 import { sisAc, sisKapat } from "./yetenekler/sis.js";
+/* v6.7: Kanli Kol -- Bobby1545 Mod V3. DIKKAT: kollar.js'ten
+   ONCE gelmeli, yoksa kol yetenekleri kayitli olmayan bir
+   kimlige baglanir. */
+import "./yetenekler/kanli.js";
 /* v6.3: Konsey silahlari ve Ay Isigi Asasi'nin sarkisi. */
 import "./yetenekler/konsey_silah.js";
 /* v4.95: mod cekirdeklerinin ISINLARI, v5.2'de Marvel

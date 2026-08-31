@@ -125,7 +125,28 @@ export const KOL_ESYALARI = [
      Ikisi tamamen gereksizdi (ayni yetenek iki esyada), diger
      ikisinin yetenekleri tasindi. Envanterdeki esya sayisi
      11'den 7'ye indi, kaybolan yetenek YOK.                    */
-  ["pa:kol_ucus",   "ucus"]
+  ["pa:kol_ucus",   "ucus"],
+
+  /* KANLI KOL (v6.7) -- Bobby1545 Mod V3'ten.
+
+     Kaynakta her yetenek AYRI bir esya ve "Aktif Et"e basinca
+     yedisi birden envanterine doluyor. Bizde tek esya, menuden
+     seciliyor -- alti kolun duzeni bu.
+
+     Alti yetenegin IKISI yeni (kanli_ors, kanli_simsek);
+     digerleri bizde ZATEN vardi ve yeniden yazilmadi:
+       kaynak Meteor        -> meteor
+       kaynak Super Meteor  -> guclu_tnt
+       kaynak Kendini Ucur  -> toprak_ucus
+       kaynak Baya Yildirim -> yon_simsegi
+     Ayni iki seyi iki kez yazmak, iki ayri yerde bozulacak tek
+     bir mantik demekti.
+
+     KAYNAKTAN ALINMAYAN: "Kapat" esyasi `Envanteri_Sil`
+     cagiriyor ve o fonksiyon tek satir -- `clear @s`. Yani
+     kolu kapatmak butun envanteri siliyor.                  */
+  ["pa:kol_kanli",  "kanli_ors", "kanli_simsek", "meteor",
+                    "guclu_tnt", "yon_simsegi", "toprak_ucus"]
 ];
 
 for (const satir of KOL_ESYALARI) {
