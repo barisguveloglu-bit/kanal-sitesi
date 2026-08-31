@@ -1,3 +1,95 @@
+# v7.4.1 — Çizici artık Blockbuster'ı da okuyor
+
+Kullanıcı: *"hani bu modelleri çizen var ya, onunla bununla değiştir, bunun
+içinde çalışsınlar… ikisini de birlikte kullan, birleşmiş teknoloji gibi bir
+şey yap. Bana şaşırdıklarını söyle."*
+
+Paket **değişmedi** — bu sürüm sadece alet tarafı. Üç dosya depoya girdi:
+
+| dosya | ne |
+|---|---|
+| `ciz_kemik.py` | Bedrock geometrisini kemik dönüşleriyle çizen çizici (v7.3'te kolları birbirine geçmiş gösteren hata buradaydı) |
+| `ciz_bb.py` | Blockbuster `model.json` → Bedrock kemikleri |
+| `birlestir.py` | ikisini **tek sahnede** birleştiren gösteri |
+
+## Dönüşüm tahmin edilmedi, kaynaktan okundu
+
+`ModelCustomRenderer.applyTransform` ve `ModelParser.createRenderer`:
+
+```java
+rotationPointX = translate[0]
+rotationPointY = parent.isEmpty() ? -translate[1] + 24 : -translate[1]
+rotationPointZ = -translate[2]
+rotateAngleX   = +rotate[0]
+rotateAngleY   = -rotate[1]
+rotateAngleZ   = -rotate[2]
+// matris yığını: önce Rz, sonra Ry, sonra Rx  →  noktaya XYZ
+
+ax = 1 - anchor[0];  ay = anchor[1];  az = anchor[2]
+addBox(-ax*w, -ay*h, -az*d, w, h, d)
+```
+
+## Şaşırtan sonuç: iki işaret değişimi birbirini götürüyor
+
+Java model uzayı Y-aşağı ve Z-ters, Bedrock Y-yukarı. Aradaki çevrim X
+ekseni etrafında 180°:
+
+```
+Xb = Xj        Yb = 24 − Yj        Zb = −Zj
+```
+
+Bu çevrim altında `Rx` aynen kalır, `Ry` ve `Rz` **işaret değiştirir**. Ama
+renderer zaten Y ve Z açılarını **negatifleyerek** yazıyordu. İkisi
+birbirini götürüyor:
+
+> **Blockbuster `rotate` üçlüsü = Bedrock `rotation` üçlüsü.**
+> Hiçbir dönüşüm yapmadan, olduğu gibi.
+
+Sıra da aynı: kaynağın matris yığını `Rz·Ry·Rx` yani noktaya **XYZ**, bizim
+v7.3'te Bedrock için **ölçtüğümüz** sırayla aynı. İki bağımsız yerden aynı
+sözleşme çıktı.
+
+## Kanıt: Blockbuster'ın Steve'i vanilla oyuncunun ta kendisi
+
+`ciz_bb.kontrol()` her koşuda çevrilen kutuları Bedrock vanilla değerleriyle
+karşılaştırıyor. Altı uzuv, altısı da tutuyor:
+
+```
+body       [-4, 12, -2] [8, 12, 4]
+head       [-4, 24, -4] [8,  8, 8]
+right_arm  [-8, 12, -2] [4, 12, 4]
+left_arm   [ 4, 12, -2] [4, 12, 4]
+right_leg  [-4,  0, -2] [4, 12, 4]
+left_leg   [ 0,  0, -2] [4, 12, 4]
+```
+
+Kollarda 0,001 sapma var: kaynağın verisinde `anchor` **0.1666** yazılı,
+1/6 = 0.16666… değil. Yani sapma **kaynağın yuvarlaması**, çevrimin değil.
+Tolerans 0,01 ve gerekçesi dosyada yazılı.
+
+## Birleşme
+
+`ciz(…, dokular={kemik: (görüntü, TW, TH)})` eklendi: bir kemik ve altındaki
+her şey kendi dokusundan örnekleniyor. Gerekçe — Bedrock'ta bir geometrinin
+tek dokusu olur, ama tek sahnede iki ayrı şey birleştiriyoruz. İkisini ayrı
+çizip üst üste bindirmek **yanlış** olurdu: derinlik sıralaması bozulur,
+arkadaki öne çıkardı.
+
+`birlestir.py` şunu çiziyor: **iskelet ve poz Blockbuster'dan, kollar bizim
+`geometry.simsek_kol_kanli`'mızdan, deri oyuncunun kendi skininden, kanlı kol
+dokusu kaynağın kendi 256×256'sından** — hepsi tek sahnede. Kanlı kol
+Blockbuster'ın `t_pose`'unda yatay açılıyor, `dabbing`'inde tek kol havaya
+kalkıyor. Yani kaynağın poz verisi bizim uzvumuzu **gerçekten sürüyor**.
+
+Kanlı kolun kök kemikleri atılmadı, sadece ebeveyn verildi. Blockbuster'ın
+steve'inde kol pivotu x=∓6, bizde ∓5 — bir birim fark, kaynağın kendi
+tercihi. Küpleri kaydırmak modeli **değiştirmek** olurdu.
+
+## Jar depoya girmedi
+
+20 MB ve GPL-3.0 başka bir eserin ikilisi. `ciz_bb.py` ve `birlestir.py`
+model yolunu **argüman** alıyor; kullanıcı jar'ı açtığı yeri veriyor.
+
 # v7.4 — Duruş sistemi (Blockbuster'ın bizdeki hâli)
 
 Kullanıcı: *"bak kanka bu en önemlisi skin yapmakta, bunu genelde çok
