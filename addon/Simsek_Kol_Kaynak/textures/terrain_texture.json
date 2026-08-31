@@ -12,6 +12,9 @@
     },
     "tas_heykel": {
       "textures": "textures/blocks/tas_heykel"
+    },
+    "kns_dusmus_blok": {
+      "textures": "textures/blocks/kns_dusmus_blok"
     }
   }
 }

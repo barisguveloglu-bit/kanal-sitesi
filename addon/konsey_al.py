@@ -117,6 +117,12 @@ PARCALAR = [
 # (`klezy_el_hareketi_default` gibi). Kimlik dosyadan OKUNUYOR,
 # tahmin edilmiyor.
 
+# Dusmus Blogu'nun dokusu: esya degil BLOK dokusu, o yuzden
+# PARCALAR listesinde degil (orada model+ikon da araniyor).
+BLOK_DOKULARI = [
+    ("dusmus_blok", BL, "textures/blocks/dragon_fallen_block.png"),
+]
+
 SESLER = [
     ("silah_biyo",  CM, "sounds/klezy_bio_gun_shot.ogg"),
     ("silah_bobby", CM, "sounds/klezy_bobby_gun_shot.ogg"),
@@ -225,6 +231,14 @@ def cikar(taban):
                 eksik.append("%s (%s): %s" % (ad, is_ad, h))
             else:
                 sayac[is_ad] += 1
+    for ad, paket, yol in BLOK_DOKULARI:
+        rp = kok(paket, "resource")
+        y = os.path.join(rp, yol) if rp else ""
+        if os.path.exists(y):
+            shutil.copyfile(y, os.path.join(DOKU_HEDEF, "kns_" + ad + ".png"))
+            sayac["doku"] += 1
+        else:
+            eksik.append("%s (blok dokusu): %s" % (ad, yol))
     for ad, paket, yol in SESLER:
         rp = kok(paket, "resource")
         y = os.path.join(rp, yol) if rp else ""

@@ -3497,6 +3497,9 @@ KONSEY_DOKU_KAYNAK = os.path.join(DOKU_KAYNAK, "konsey")
 KONSEY_IKON_KAYNAK = os.path.join(DOKU_KAYNAK, "konsey_ikon")
 KONSEY_SES_KAYNAK = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                  "kaynak_ses", "konsey")
+# Dusmus Blogu: virusun kaynagi. Kimlik ve doku adi tek yerde.
+DUSMUS_BLOK = "pa:kns_dusmus_blok"
+DUSMUS_BLOK_DOKU = "kns_dusmus_blok"
 
 # (anahtar, TR ad, tur, yuva, koruma, dayaniklilik, hasar)
 #   tur: kostum · deri · maske · kolluk · asa · alet · zirh
@@ -3561,7 +3564,17 @@ KONSEY = [
 
 def konsey_esyasi(t):
     """Giyilebilir ya da elde tutulan parca. Butun sayilar
-    kaynagin kendi esya JSON'undan.                          """
+    kaynagin kendi esya JSON'undan.
+
+    ---- DUSMUS ASAMALARI MENUDE YOK  (v6.4) ----
+    Kullanici: "sen fallen'i bir zirh olarak eklemissin, zirh
+    olmayacak, bir blok olacak."
+
+    Haklıydi. Dort asama GIYILECEK bir takim degil, bir DURUM:
+    bloga basinca ustune geliyor. Menude durursa "1000 koruma"
+    bedava bir zirh olur. Menu kategorisi kaldirildi -- esya
+    duruyor (durum makinesi onu yuvaya koyuyor) ama yaratici
+    envanterinde gorunmuyor. Menude gorunen tek sey BLOK.  """
     anahtar, ad, tur, yuva, koruma, dayaniklilik, hasar = t
     kimlik = KONSEY_ONEK + anahtar
     bilesenler = {
@@ -3582,14 +3595,60 @@ def konsey_esyasi(t):
         bilesenler["minecraft:damage"] = hasar
     if dayaniklilik:
         bilesenler["minecraft:durability"] = {"max_durability": dayaniklilik}
+    tanim = {"identifier": "pa:" + kimlik}
+    if tur != "dusmus":
+        tanim["menu_category"] = {"category": "equipment"}
     return {
         "format_version": "1.21.0",
         "minecraft:item": {
-            "description": {
-                "identifier": "pa:" + kimlik,
-                "menu_category": {"category": "equipment"},
-            },
+            "description": tanim,
             "components": bilesenler,
+        },
+    }
+
+
+def dusmus_blogu():
+    """Dusmus Blogu -- virusun kaynagi.
+
+    Kullanici: "fallen bir blok, ustune ciktigimiz zaman dort
+    asamadan olusuyor; dorde geldikten sonra bedenden cikmayan
+    bir zirha donusuyor. Tek zaafi ates."
+
+    Bilesenler kaynagin kendi blogundan (BoraLo:
+    blocks/dragon_fallen_block.json) -- kirilma suresi 3 sn,
+    patlama direnci 3, surtunme 0.4, isik 4, yanabilir.
+    Degistirilen tek sey ad alani ve doku adi.
+
+    `tag:wood` KORUNDU: kaynakta var ve baltayla kirilmasini
+    sagliyor -- ayrica YANABILIR olmasinin gerekcesi de o.
+    Virusun ates zaafiyla tutarli.                           """
+    return {
+        "format_version": "1.21.0",
+        "minecraft:block": {
+            "description": {
+                "identifier": DUSMUS_BLOK,
+                "menu_category": {"category": "construction"},
+            },
+            "components": {
+                "minecraft:destructible_by_mining": {"seconds_to_destroy": 3.0},
+                "minecraft:destructible_by_explosion": {
+                    "explosion_resistance": 3.0},
+                "minecraft:friction": 0.4,
+                "minecraft:flammable": {"catch_chance_modifier": 5,
+                                        "destroy_chance_modifier": 20},
+                "minecraft:map_color": "#5B2C82",
+                "minecraft:light_dampening": 0,
+                "minecraft:light_emission": 4,
+                "minecraft:collision_box": {"origin": [-8.0, 0.0, -8.0],
+                                            "size": [16.0, 16.0, 16.0]},
+                "minecraft:selection_box": {"origin": [-8.0, 0.0, -8.0],
+                                            "size": [16.0, 16.0, 16.0]},
+                "tag:wood": {},
+                "minecraft:material_instances": {
+                    "*": {"texture": DUSMUS_BLOK_DOKU,
+                          "render_method": "opaque"}
+                },
+            },
         },
     }
 
@@ -6019,6 +6078,36 @@ def main():
             liste.append("item.pa:%s.name=%s" % (_kad, _kt[1]))
             liste.append("item.pa:%s=%s" % (_kad, _kt[1]))
 
+    # ---- DUSMUS BLOGU (v6.4) ----
+    # Virusun kaynagi. Blok dokusu kaynak paketten; blok
+    # tanimi kaynagin kendi JSON'undan (yalniz ad alani ve
+    # doku adi degisti).
+    yaz_json(os.path.join(BP, "blocks/%s.json" % DUSMUS_BLOK_DOKU),
+             dusmus_blogu())
+    _dbk = os.path.join(KONSEY_DOKU_KAYNAK, DUSMUS_BLOK_DOKU + ".png")
+    if os.path.exists(_dbk):
+        _dbh = os.path.join(RP, "textures/blocks/%s.png" % DUSMUS_BLOK_DOKU)
+        os.makedirs(os.path.dirname(_dbh), exist_ok=True)
+        shutil.copyfile(_dbk, _dbh)
+        # Bloklarin dokusu ESYA atlasindan degil TERRAIN
+        # atlasindan geliyor -- ayri iki dosya (blocks.json ve
+        # terrain_texture.json) ve ikisi de yazilmazsa blok
+        # mor-siyah cikar.
+        #
+        # DIKKAT -- BU IKI DOSYA ASAGIDA TEK YERDE YAZILIYOR.
+        # Ilk yazdigimda burada AYRICA yaziyordum ve asagidaki
+        # yazim benimkini eziyordu. Ters sirada olsaydi BEN
+        # onlari ezerdim ve Freedom Stone cevheri, mezar tasi
+        # ve tas heykel mor-siyah kalirdi. Test yakaladi.
+        # Simdi yalnizca kumeye ekleniyor.
+        _dusmus_blok_var = True
+    else:
+        _dusmus_blok_var = False
+        print("UYARI: Dusmus Blogu dokusu yok (%s)" % _dbk)
+    for _l in (en_us, tr_tr):
+        _l.append("tile.%s.name=Düşmüş Bloğu" % DUSMUS_BLOK)
+        _l.append("tile.%s=Düşmüş Bloğu" % DUSMUS_BLOK)
+
     # ---- KONSEY SESLERI (v6.3) ----
     # Kaynak paketin kendi `.ogg` dosyalari. Uc tanesinden
     # ikisi silahlarin atis sesi, biri Ay Isigi Asasi'nin
@@ -6245,33 +6334,38 @@ def main():
         png_yaz(_fs_hedef, 16, 16, dismont_esya_dokusu())
     dokular[DISMONT_ESYA] = {"textures": "textures/item/" + DISMONT_ESYA}
 
+    # ---- BLOK KAYITLARI TEK YERDE ----
+    # Uc vanilla blogumuz + (varsa) Dusmus Blogu. Iki ayri
+    # yerde yazilirsa biri otekini eziyor; bir kez oldu.
+    _terrain = {
+        DISMONT_CEVHER: {"textures": "textures/blocks/" + DISMONT_CEVHER},
+        MEZAR_BLOK: {"textures": "textures/blocks/" + MEZAR_BLOK},
+        TAS_BLOK: {"textures": "textures/blocks/" + TAS_BLOK},
+    }
+    _bloklar = {
+        "format_version": [1, 1, 0],
+        "pa:" + DISMONT_CEVHER: {"textures": DISMONT_CEVHER, "sound": "stone"},
+        "pa:" + MEZAR_BLOK: {"textures": MEZAR_BLOK, "sound": "stone"},
+        "pa:" + TAS_BLOK: {"textures": TAS_BLOK, "sound": "stone"},
+    }
+    if _dusmus_blok_var:
+        _terrain[DUSMUS_BLOK_DOKU] = {
+            "textures": "textures/blocks/" + DUSMUS_BLOK_DOKU}
+        _bloklar[DUSMUS_BLOK] = {"textures": DUSMUS_BLOK_DOKU,
+                                 "sound": "wood"}
+
     yaz_json(os.path.join(RP, "textures/terrain_texture.json"), {
         "resource_pack_name": "simsek_kol",
         "texture_name": "atlas.terrain",
         "padding": 8,
         "num_mip_levels": 4,
-        "texture_data": {
-            DISMONT_CEVHER: {"textures": "textures/blocks/" + DISMONT_CEVHER},
-            MEZAR_BLOK: {"textures": "textures/blocks/" + MEZAR_BLOK},
-            TAS_BLOK: {"textures": "textures/blocks/" + TAS_BLOK},
-        },
+        "texture_data": _terrain,
     })
     # blocks.json: blogun hangi terrain dokusunu kullandigi.
     # material_instances zaten doku adini soyluyor ama bu dosya
     # olmadan bazi surumlerde blok mor-siyah cikiyor -- ikisi
     # birlikte yazilinca iki yolda da dogru.
-    yaz_json(os.path.join(RP, "blocks.json"), {
-        "format_version": [1, 1, 0],
-        "pa:" + DISMONT_CEVHER: {
-            "textures": DISMONT_CEVHER, "sound": "stone"
-        },
-        "pa:" + MEZAR_BLOK: {
-            "textures": MEZAR_BLOK, "sound": "stone"
-        },
-        "pa:" + TAS_BLOK: {
-            "textures": TAS_BLOK, "sound": "stone"
-        },
-    })
+    yaz_json(os.path.join(RP, "blocks.json"), _bloklar)
 
     for liste, adlar in ((en_us, (DISMONT_ESYA_TR, DISMONT_CEVHER_TR, MEZAR_BLOK_TR)),
                          (tr_tr, (DISMONT_ESYA_TR, DISMONT_CEVHER_TR, MEZAR_BLOK_TR))):

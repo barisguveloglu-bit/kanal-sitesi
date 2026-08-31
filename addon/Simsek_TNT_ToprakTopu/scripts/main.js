@@ -16,6 +16,7 @@ import {
   BEN10_ACIK, BEN10,
   KONSEY_ACIK,
   DISMONT_ESYA,
+  DUSMUS_ACIK, DUSMUS_CAKMAK,
   TEKNOLOJI_ACIK, TEKNOLOJI_TAKIMLAR, TEKNOLOJI_ONEK,
   MAHOU_ACIK, MAHOU_BUYULER, MAHOU_ESYALAR, MAHOU_MANA_TAVAN,
   VILTRUMITE_ACIK, VILTRUMITE_YETENEKLER, VILT_MOD, VILT_INDIRIM,
@@ -115,6 +116,7 @@ import { konseyTara, konseyUnut } from "./yetenekler/konsey.js";
 import {
   konseySilahTara, konseySilahUnut, konseySilahKir
 } from "./yetenekler/konsey_silah.js";
+import { dusmusTara, dusmusUnut, dusmusAtesle } from "./yetenekler/dusmus.js";
 
 /* Sohbet komutlari ("can 10", "lazer"...). Bu dosya main.js'i
    import etmiyor; komutlarin calistiracagi fonksiyonlar kanca
@@ -480,6 +482,15 @@ system.runInterval(() => {
         ben10Tara(oyuncular);
       } catch (e) {
         hataYaz("ben10Tara", e);
+      }
+    }
+    /* v6.4: Dusmus virusu. Blok kontrolu ve dort asama; ayni
+       `oyuncular` listesi.                                  */
+    if (DUSMUS_ACIK) {
+      try {
+        dusmusTara(oyuncular);
+      } catch (e) {
+        hataYaz("dusmusTara", e);
       }
     }
     /* v6.2: Konsey kostumleri. Ayni `oyuncular` listesi --
@@ -1604,6 +1615,17 @@ const girisKuruldu = olayaAbone("itemUse", (olay) => {
       return;
     }
 
+    /* ---- CAKMAK: DUSMUS VIRUSUNUN TEK ZAAFI (v6.4) ----
+       Kullanici: "tek zaafi ates, cakmak ile yaktiginizda ayni
+       dort asamadan ama bu sefer normale donuyorsunuz."
+
+       Yanmayi beklemiyoruz: cakmagi KULLANMAK dogrudan
+       tetikliyor. Kurban degilsen dokunmuyor, cakmak normal
+       isine devam ediyor.                                   */
+    if (esya.typeId === DUSMUS_CAKMAK && dusmusAtesle(oyuncu)) {
+      return;
+    }
+
     if (silahiBul(esya.typeId)) {
       silahKullan(oyuncu, esya.typeId);
       return;
@@ -2108,6 +2130,7 @@ olayaAbone("playerLeave", (olay) => {
   ben10Unut(olay.playerId);
   konseyUnut(olay.playerId);
   konseySilahUnut(olay.playerId);
+  dusmusUnut(olay.playerId);
   viltrumiteUnutOyuncu(olay.playerId);
 
   // Oyuncunun butun isleri durdurulmali, sadece birincisi degil

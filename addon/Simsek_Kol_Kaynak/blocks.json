@@ -15,5 +15,9 @@
   "pa:tas_heykel": {
     "textures": "tas_heykel",
     "sound": "stone"
+  },
+  "pa:kns_dusmus_blok": {
+    "textures": "kns_dusmus_blok",
+    "sound": "wood"
   }
 }

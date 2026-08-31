@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v6.3";
+export const SURUM = "v6.4";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -4624,6 +4624,76 @@ export const KONSEY_ASA_SESI = new Map([
 ]);
 /* Sarki uzun; ust uste binmesin diye bekleme.                */
 export const KONSEY_SES_BEKLEME = 400;   // 20 sn
+
+/* ============================================================
+   DUSMUS VIRUSU  (Fallen)                                v6.4
+
+   Kullanici duzeltti: "sen fallen'i bir zirh olarak
+   eklemissin, zirh olmayacak bir BLOK olacak. Ustune
+   ciktigimiz zaman dort asamadan olusuyor; dorde geldikten
+   sonra otomatik olarak bedenden CIKMAYAN bir zirha
+   donusuyor. Fallen temel olarak VIRUS gibi bir sey, tek
+   zaafi ATES: cakmakla yaktiginizda ayni dort asamadan ama
+   bu sefer normale donuyorsunuz."
+
+   ---- KAYNAKTA NE VAR, NE YOK ----
+   BoraLo'nun `fallen.js`'i blogu ve dort asamayi yapiyor
+   (bes tick'te bir altindaki bloga bakiyor). AMA:
+     - kaynakta 4. asama KALICI DEGIL: blogun ustunden
+       inince her sey siliniyor
+     - kaynakta ATES CARESI YOK -- iki paketin butun
+       script'leri, fonksiyonlari ve varlik JSON'lari
+       tarandi, tek bir iz yok
+   Ikisi de kullanicinin tarifi. Uydurma degil, ISTENEN
+   davranis -- ve nereden geldigi burada yaziyor.
+
+   ---- EN ONEMLI FARK: ZIRHIN GERI VERILIYOR ----
+   Kaynak kurbanin dort zirh yuvasini da SILIYOR
+   (`replaceitem ... air`). Bu depoda esya kaybettiren hicbir
+   sey yok. Bulasmadan ONCE dort yuvadaki gercek zirhin
+   deftere yaziliyor, iyilesince aynen geri takiliyor.
+   Defter DUNYA OZELLIGINDE duruyor: dunyadan cikip girsen de
+   zirhin kayip degil.
+   ============================================================ */
+export const DUSMUS_ACIK    = true;
+export const DUSMUS_BLOK    = "pa:kns_dusmus_blok";
+export const DUSMUS_TARAMA  = 5;    // kac tick'te bir bakilsin (kaynakla ayni)
+/* Asama araligi: kaynakta 2 saniye (40 tick). Dort asama =
+   6 saniyede tam yozlasma.                                   */
+export const DUSMUS_ASAMA_ARA = 40;
+export const DUSMUS_ASAMA_SAYISI = 4;
+/* Asama -> hangi parca hangi yuvaya. Kaynagin kendi sirasi
+   (fallen.js): her asama IKI yuva degistiriyor, dorduncude
+   dordu birden.                                              */
+export const DUSMUS_ASAMALAR = [
+  { parca: "pa:kns_dusmus_1", yuvalar: ["Chest", "Head"],
+    yazi: "§5§lDÜŞMÜŞ: §fDönüşmeye başladın..." },
+  { parca: "pa:kns_dusmus_2", yuvalar: ["Chest", "Legs"],
+    yazi: "§d§lDÜŞMÜŞ: §fBedenin ağırlaşıyor..." },
+  { parca: "pa:kns_dusmus_3", yuvalar: ["Chest", "Feet"],
+    yazi: "§5§lDÜŞMÜŞ: §fKaranlık seni yutuyor!" },
+  { parca: "pa:kns_dusmus_4", yuvalar: ["Head", "Chest", "Legs", "Feet"],
+    yazi: "§4§lDÜŞMÜŞ: §fTAM YOZLAŞMA" }
+];
+/* Dorduncu asamada verilen korluk. Kaynakta `blindness 99999
+   255`; bizde de surekli ama iyilesince kaldiriliyor.        */
+export const DUSMUS_KORLUK = true;
+/* ---- ATES CARESI ----
+   Cakmakla yakinca (ya da alev alinca) tersine dort asama.
+   Kaynakta yok; kullanicinin tarifi.                         */
+export const DUSMUS_CAKMAK  = "minecraft:flint_and_steel";
+export const DUSMUS_ATES_TICK = 20;  // bu kadar yanmak tetikliyor
+/* ---- IYILESTIKTEN SONRA KISA BAGISIKLIK ----
+   Ates carasini yazdiktan sonra testte goruldu: kurban
+   iyilesiyor ama HALA BLOGUN USTUNDE oldugu icin ayni tarama
+   turunda yeniden bulasiyor ve dort asama bastan basliyor.
+   Yani ates hicbir ise yaramiyordu.
+
+   Bu pencere kadar bagisik kaliyor -- blogun ustunden inmeye
+   yetecek kadar. Kaynakta boyle bir sey yok cunku kaynakta
+   ates caresi de yok.                                       */
+export const DUSMUS_BAGISIKLIK = 100;   // 5 saniye
+export const DUSMUS_KAYIT_ANAHTAR = "simsek:dusmus";
 
 export const BOT_KIMLIKLER = new Set([BOT_KIMLIK, SEY_KIMLIK, SEY_KILIK_KIMLIK]);
 for (const t of ILKEL_BESLI.values()) {

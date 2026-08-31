@@ -1,3 +1,83 @@
+# v6.4 — Düşmüş artık zırh değil, **virüs**
+
+Kullanıcı düzeltti: *"sen fallen'ı bir zırh olarak eklemişsin, zırh olmayacak
+bir BLOK olacak. Üstüne çıktığımız zaman dört aşamadan oluşuyor; dörde
+geldikten sonra otomatik olarak bedenden ÇIKMAYAN bir zırha dönüşüyor. Temel
+olarak VİRÜS gibi bir şey, tek zaafı ATEŞ."*
+
+Haklıydı. v6.2'de dört aşamayı **giyilebilir zırh** olarak eklemiştim —
+menüden alınıp takılan bir takım. Yanlıştı: onlar bir takım değil, bir
+**durum**.
+
+## Ne değişti
+
+| | v6.2 | v6.4 |
+|---|---|---|
+| dört aşama | yaratıcı menüsünde, giyilebilir | **menüde yok** — durum makinesi takıyor |
+| kaynak | yok | **Düşmüş Bloğu** (menüde) |
+| 4. aşama | takıp çıkarabilirsin | **kalıcı**, elle çıkarsan geri giyiliyor |
+| çıkış | çıkar, bitti | **sadece ateş** |
+
+## Kaynakta ne var, ne yok
+
+BoraLo'nun `fallen.js`'i bloğu ve dört aşamayı yapıyor. **Ama:**
+
+- kaynakta **4. aşama kalıcı değil** — bloğun üstünden inince her şey siliniyor
+- kaynakta **ateş çaresi yok** — iki paketin bütün script'leri, `.mcfunction`'ları
+  ve varlık JSON'ları tarandı, tek bir iz yok
+
+İkisi de kullanıcının tarifi. Uydurma değil, **istenen davranış** — ve nereden
+geldiği hem `ayarlar.js`'te hem burada yazılı.
+
+## Zırhın kaybolmuyor
+
+Kaynak kurbanın dört zırh yuvasını da **siliyor** (`replaceitem ... air`). Bu
+depoda eşya kaybettiren hiçbir şey yok. Bulaşmadan **önce** dört yuvadaki
+gerçek zırh deftere yazılıyor, iyileşince **aynen** geri takılıyor. Defter
+dünya özelliğinde: dünyadan çıkıp girsen de zırhın kayıp değil.
+
+Testin en önemli bölümü bu: elmas miğfer + netherite göğüslük + demir pantolon
++ altın bot ile bulaşıp iyileşince **dördü de geri geliyor**. `zirhiGeriVer`
+çağrısını yorum satırı yaptım — yakalandı.
+
+## Yol boyunca çıkan **dört** şey
+
+**1. Her tick blok okuyordum.** Üç test birden düştü: `ciftel` ve `duvardel`
+*"57 / 56"* (tick başına blok tavanı aşıldı), `iksir` *"hiçbir blok
+okunmadı/yazılmadı :: 40 okuma"*. Hiç Düşmüş bloğu olmayan bir dünyada bile
+sürekli blok okuyordum. Deponun kuralı açık: **defter boşken hiç dönme.**
+Çözüm: blok konulduğunda deftere yazılıyor, kırıldığında siliniyor — tarama
+artık **tek bir `getBlock` bile yapmıyor**, oyuncunun tam sayı konumunu
+defterle karşılaştırıyor.
+*Sınır:* `/setblock` veya yapı ile konan blok deftere girmez; elle konan çalışır.
+
+**2. `blocks.json`'ı eziyordum.** Kendi yazıcımı ayrı koymuştum; alttaki yazım
+benimkini eziyordu. **Ters sırada olsaydı ben onları ezerdim** ve Freedom Stone
+cevheri, mezar taşı ve taş heykel mor-siyah kalırdı. Artık dört blok tek yerde.
+
+**3. Ateş işe yaramıyordu.** Kurban iyileşiyor ama **hâlâ bloğun üstünde**
+olduğu için aynı tarama turunda yeniden bulaşıyordu. 5 saniyelik bağışıklık
+penceresi eklendi — kaçacak kadar, kalıcı kalkan değil.
+
+**4. `dusmusUnut()` dünya kaydını temizlemiyordu.** Sadece belleği siliyor ve
+`okundu`yu sıfırlıyordu; bir sonraki tarama **eski kaydı geri okuyup kurbanları
+diriltiyordu**. Testte görüldü: iyileşen oyuncunun zırhı bir önceki turun boş
+zırhıyla değişiyordu.
+
+Bu arada testin kendisi de bir kez yanlıştı: arınma ~120 tick, bağışıklık 100
+tick, testim 225 tick koşuyordu — yani arınmadan sonra bağışıklığın da
+bitmesini bekleyip kurbanı bloğa yeniden bastırıyordum. Kod doğruydu, ölçüm
+yanlıştı.
+
+## Doğrulama
+
+- `sim/kos.sh` — **67 dosya, hepsi geçti** (`dusmus.mjs` yeni)
+- `sim/anim_tara.py` — **HATA 0**
+- İki bilerek bozma: zırh geri verme şoklandı · 4. aşama kalıcı olmaktan
+  çıkarıldı — **ikisi de yakalandı**
+
+---
+
 # v6.3 — Düşmüş koruması 750, Biyo/Bobby silahı, Ay Işığı şarkısı
 
 Kullanıcı: *"koruma 1000 pratikte dokunulmaz olduğu için bunu birazcık aşağı

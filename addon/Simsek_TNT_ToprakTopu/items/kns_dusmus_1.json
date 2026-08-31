@@ -2,10 +2,7 @@
   "format_version": "1.21.0",
   "minecraft:item": {
     "description": {
-      "identifier": "pa:kns_dusmus_1",
-      "menu_category": {
-        "category": "equipment"
-      }
+      "identifier": "pa:kns_dusmus_1"
     },
     "components": {
       "minecraft:icon": {
