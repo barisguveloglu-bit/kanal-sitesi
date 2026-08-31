@@ -1,0 +1,32 @@
+{
+  "format_version": "1.21.0",
+  "minecraft:item": {
+    "description": {
+      "identifier": "pa:kns_earl_capa",
+      "menu_category": {
+        "category": "equipment"
+      }
+    },
+    "components": {
+      "minecraft:icon": {
+        "texture": "kns_earl_capa"
+      },
+      "minecraft:display_name": {
+        "value": "Earl Çapası"
+      },
+      "minecraft:max_stack_size": 1,
+      "minecraft:tags": {
+        "tags": [
+          "pa:konsey",
+          "pa:konsey_alet"
+        ]
+      },
+      "minecraft:hand_equipped": true,
+      "minecraft:glint": true,
+      "minecraft:damage": 11,
+      "minecraft:durability": {
+        "max_durability": 600
+      }
+    }
+  }
+}

@@ -3452,6 +3452,167 @@ def marvel_attachable(p):
 
 
 # ================================================================
+#  KONSEY  (CodeMan / Astra Studios + BoraLo / Dragon Studios)
+#                                                        v6.2
+# ================================================================
+# Kullanici: "yeni boralo notlari buldum, bunlardan alabildigimizi
+# alalim, esya dahil her sey."
+#
+# ---- BUNLAR ZATEN BEDROCK ----
+# Onceki BoraLo bir JAVA moduydu (REFERANS_BORALO.md) ve
+# modellerini bytecode'dan cozmek gerekmisti. Bu ikisi
+# `.mcaddon`: `.geo.json` 1.12.0, dokular PNG, animasyonlar
+# 1.8.0. Donusturme yok -- konsey_al.py tasiyor, burasi
+# paketliyor.
+#
+# ---- NEDEN MARVEL'IN MAKINESI ----
+# Kaynagin tekniği ile bizimki AYNI: giyilebilir bir esya +
+# attachable + oyuncuya gorunmezlik. Marvel kostumlerinde de
+# oyle. O yuzden `konsey_esyasi` ile `konsey_attachable`
+# `marvel_*` ikizlerinin ayni kalibi; ayri tutulmalarinin tek
+# sebebi kimlik uretimi (Marvel'de kahraman__parca, burada duz
+# ad).
+#
+# ---- SAYILAR KAYNAGIN KENDI ESYA JSON'UNDAN ----
+# Hicbiri yeniden hesaplanmadi. Asalarin hasari 24-62, Earl
+# aletleri 11-21, giyilebilirlerin korumasi 7 ve dayanikliligi
+# 200/600.
+#
+# DIKKAT -- DUSMUS PARCALARININ KORUMASI 1000. Kaynakta bu bir
+# CEZA durumu: void_multitool kurbana giydiriyor ve kurban zaten
+# kimildayamiyor, yani 1000 koruma "kurban donuk kalsin" demek.
+# Bizde esya menuden alinabildigi icin ONU GIYEN DOKUNULMAZ
+# olur. Sayi kaynaktakiyle BIREBIR birakildi ve durum burada
+# yaziyor -- kullanici karari.
+KONSEY_ONEK = "kns_"
+KONSEY_GEO_KAYNAK = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                 "kaynak_geo", "konsey")
+KONSEY_DOKU_KAYNAK = os.path.join(DOKU_KAYNAK, "konsey")
+KONSEY_IKON_KAYNAK = os.path.join(DOKU_KAYNAK, "konsey_ikon")
+
+# (anahtar, TR ad, tur, yuva, koruma, dayaniklilik, hasar)
+#   tur: kostum · deri · maske · kolluk · asa · alet · zirh
+#        silah · dusmus
+KONSEY = [
+    ("okazor",            "Okazor",                        "kostum",   "head", 7,  200,  0),
+    ("miskel",            "Miskel",                        "kostum",   "head", 7,  200,  0),
+    ("kajaros",           "Kajaros",                       "kostum",   "head", 7,  200,  0),
+    ("harkos",            "Harkos",                        "kostum",   "head", 7,  200,  0),
+    ("raxxan",            "Raxxan",                        "kostum",   "head", 7,  200,  0),
+    ("codeman",           "CodeMan",                       "kostum",   "head", 7,  200,  0),
+    ("deri_toprak",       "Toprak Derisi",                 "deri",     "head", 7,  200,  0),
+    ("deri_dusmus",       "Düşmüş Derisi",                 "deri",     "head", 7,  200,  0),
+    ("deri_tas",          "Taş Derisi",                    "deri",     "head", 7,  200,  0),
+    ("deri_zehir",        "Zehir Derisi",                  "deri",     "head", 7,  200,  0),
+    ("maske_kemik",       "Kemik Maskesi",                 "maske",    "head", 7,  200,  0),
+    ("maske_deadmau5",    "Deadmau5",                      "maske",    "chest", 7,  200,  0),
+    ("maske_redmau5",     "Redmau5",                       "maske",    "chest", 7,  200,  0),
+    ("maske_kanli",       "Kanlı Deadmau5",                "maske",    "chest", 7,  200,  0),
+    ("kolluk_toprak_ince",   "Toprak Kol (İnce)",             "kolluk",      "chest", 7,  200,  0),
+    ("kolluk_toprak_kalin",  "Toprak Kol (Kalın)",            "kolluk",      "chest", 7,  200,  0),
+    ("kolluk_guclu_ince",    "Güçlendirilmiş Kol (İnce)",     "kolluk",      "chest", 7,  200,  0),
+    ("kolluk_guclu_kalin",   "Güçlendirilmiş Kol (Kalın)",    "kolluk",      "chest", 7,  200,  0),
+    ("kolluk_dusmus_ince",   "Düşmüş Kol (İnce)",             "kolluk",      "chest", 7,  200,  0),
+    ("kolluk_dusmus_kalin",  "Düşmüş Kol (Kalın)",            "kolluk",      "chest", 7,  200,  0),
+    ("kolluk_bobby",         "Bobby1545'in Kolları",          "kolluk",      "chest", 7,  200,  0),
+    ("kolluk_bobby_buz",     "Bobby1545 · Buz+Toprak",        "kolluk",      "chest", 7,  200,  0),
+    ("kolluk_bobby_kanli",   "Bobby1545 · Kanlı",             "kolluk",      "chest", 7,  200,  0),
+    ("kolluk_bobby_kum",     "Bobby1545 · Sarı Kum",          "kolluk",      "chest", 7,  200,  0),
+    ("kolluk_boralo_anna",   "BoraLo · Anna+Toprak",          "kolluk",      "chest", 7,  200,  0),
+    ("kolluk_boralo_kanli",  "BoraLo · Kanlı",                "kolluk",      "chest", 7,  200,  0),
+    ("kolluk_boralo_kum",    "BoraLo · Güçlendirilmiş Kum",   "kolluk",      "chest", 7,  200,  0),
+    ("kolluk_chris_kanli",   "Chris1545 · Kanlı",             "kolluk",      "chest", 7,  200,  0),
+    ("asa_kemikcagiran",  "Kemik Çağıran Asa",             "asa",      "", 0,  600, 62),
+    ("asa_ayisigi",       "Ay Işığı Asası",                "asa",      "", 0,  600, 42),
+    ("asa_vurucu",        "Vurucu Asa",                    "asa",      "", 0,  600, 25),
+    ("asa_golge",         "Gölge Asası",                   "asa",      "", 0,  600, 24),
+    ("asa_yeralti",       "Yeraltı Asası",                 "asa",      "", 0,  600, 29),
+    ("asa_harkos",        "Harkos'un Asası",               "asa",      "", 0,  600, 24),
+    ("asa_sihirli_ok",    "Sihirli Ok Asası",              "asa",      "", 0,  600, 62),
+    ("earl_kilic",        "Earl Kılıcı",                   "alet",     "", 0,  600, 21),
+    ("earl_balta",        "Earl Baltası",                  "alet",     "", 0,  600, 19),
+    ("earl_kazma",        "Earl Kazması",                  "alet",     "", 0,  600, 14),
+    ("earl_kurek",        "Earl Küreği",                   "alet",     "", 0,  600, 12),
+    ("earl_capa",         "Earl Çapası",                   "alet",     "", 0,  600, 11),
+    ("olubuyucu_baslik",  "Ölü Büyücü Başlığı",            "zirh",     "head", 7,  200,  0),
+    ("olubuyucu_govde",   "Ölü Büyücü Zırhı",              "zirh",     "chest", 7,  200,  0),
+    ("olubuyucu_bacak",   "Ölü Büyücü Pantolonu",          "zirh",     "legs", 7,  200,  0),
+    ("olubuyucu_bot",     "Ölü Büyücü Botu",               "zirh",     "feet", 7,  200,  0),
+    ("guczirhi_baslik",   "Güç Zırhı Başlığı",             "zirh",     "head", 7,  200,  0),
+    ("guczirhi_govde",    "Güç Zırhı",                     "zirh",     "chest", 7,  200,  0),
+    ("guczirhi_bacak",    "Güç Zırhı Pantolonu",           "zirh",     "legs", 7,  200,  0),
+    ("guczirhi_bot",      "Güç Zırhı Botu",                "zirh",     "feet", 7,  200,  0),
+    ("silah_biyo",        "Biyo Silah",                    "silah",    "", 0,    0,  0),
+    ("silah_bobby",       "Bobby Silahı",                  "silah",    "", 0,    0,  0),
+    ("dusmus_1",          "Düşmüş · 1. Aşama",             "dusmus",   "chest", 1000, 9999,  0),
+    ("dusmus_2",          "Düşmüş · 2. Aşama",             "dusmus",   "chest", 1000, 9999,  0),
+    ("dusmus_3",          "Düşmüş · 3. Aşama",             "dusmus",   "chest", 1000, 9999,  0),
+    ("dusmus_4",          "Düşmüş · 4. Aşama",             "dusmus",   "chest", 1000, 9999,  0),
+]
+
+
+def konsey_esyasi(t):
+    """Giyilebilir ya da elde tutulan parca. Butun sayilar
+    kaynagin kendi esya JSON'undan.                          """
+    anahtar, ad, tur, yuva, koruma, dayaniklilik, hasar = t
+    kimlik = KONSEY_ONEK + anahtar
+    bilesenler = {
+        "minecraft:icon": {"texture": kimlik},
+        "minecraft:display_name": {"value": ad},
+        "minecraft:max_stack_size": 1,
+        "minecraft:tags": {"tags": ["pa:konsey", "pa:konsey_" + tur]},
+    }
+    if yuva:
+        bilesenler["minecraft:wearable"] = {
+            "slot": "slot.armor." + yuva, "protection": koruma}
+        bilesenler["minecraft:armor"] = {"protection": koruma}
+    else:
+        # Elde tutulanlar: asalar, aletler, silahlar.
+        bilesenler["minecraft:hand_equipped"] = True
+        bilesenler["minecraft:glint"] = True
+    if hasar:
+        bilesenler["minecraft:damage"] = hasar
+    if dayaniklilik:
+        bilesenler["minecraft:durability"] = {"max_durability": dayaniklilik}
+    return {
+        "format_version": "1.21.0",
+        "minecraft:item": {
+            "description": {
+                "identifier": "pa:" + kimlik,
+                "menu_category": {"category": "equipment"},
+            },
+            "components": bilesenler,
+        },
+    }
+
+
+def konsey_attachable(t):
+    """Parcanin oyuncuya cizilmesi. Geometri kimligi cikarma
+    sirasinda `geometry.kns_*` olarak yeniden adlandirildi --
+    kaynagin `klezy_*` adlari bizim ad alanimiz degil.        """
+    anahtar, ad, tur, yuva, koruma, dayaniklilik, hasar = t
+    kimlik = KONSEY_ONEK + anahtar
+    return {
+        "format_version": "1.10.0",
+        "minecraft:attachable": {
+            "description": {
+                "identifier": "pa:" + kimlik,
+                "materials": {
+                    "default": "armor",
+                    "enchanted": "armor_enchanted",
+                },
+                "textures": {
+                    "default": "textures/entity/" + kimlik,
+                    "enchanted": "textures/misc/enchanted_actor_glint",
+                },
+                "geometry": {"default": "geometry." + kimlik},
+                "render_controllers": ["controller.render.armor"],
+            }
+        },
+    }
+
+
+# ================================================================
 #  BEN 10  (AlienEvo)                                    v4.92
 # ================================================================
 # Kullanici: "ben 10 modu bu iste. Elmas kafayi, dort kolu, yuzen
@@ -5801,6 +5962,55 @@ def main():
             liste.append("item.pa:%s.name=%s" % (_mad, _mp["ad"]))
             liste.append("item.pa:%s=%s" % (_mad, _mp["ad"]))
 
+    # ---- KONSEY (v6.2) ----
+    # 54 parca: 6 Konsey kostumu, 4 deri, 4 maske, 14 kol,
+    # 7 asa, 5 Earl aleti, 8 zirh, 2 silah, 4 Dusmus asamasi.
+    # Geometri, doku ve ikon kaynak eklentilerin kendisinden;
+    # hicbiri yeniden cizilmedi.
+    for _kt in KONSEY:
+        _kad = KONSEY_ONEK + _kt[0]
+        yaz_json(os.path.join(BP, "items/%s.json" % _kad), konsey_esyasi(_kt))
+
+        _kgk = os.path.join(KONSEY_GEO_KAYNAK, _kad + ".geo.json")
+        if os.path.exists(_kgk):
+            # KOPYALANMIYOR, yaz_json ile YAZILIYOR: o yol
+            # insan_hiyerarsisi()'nden geciyor. Kaynak paketler
+            # zirh kaligini kullaniyor (`waist` ebeveynsiz,
+            # bacaklar `body`nin cocugu); bizim 48 Marvel
+            # kostumumuz ise root -> waist -> body kaligini
+            # kullaniyor ve anim_tara.py onu bekliyor. v5.4'te
+            # "uzuvlar govdeden kopmus" hatasinin yarisi tam
+            # buydu -- duz kopyalasaydik on bir modelde geri
+            # gelirdi (tarayici yakaladi).
+            with open(_kgk, encoding="utf-8") as _kgf:
+                _kgd = json.load(_kgf)
+            yaz_json(os.path.join(RP, "models/entity/%s.geo.json" % _kad),
+                     _kgd)
+            yaz_json(os.path.join(RP, "attachables/%s.json" % _kad),
+                     konsey_attachable(_kt))
+        else:
+            print("UYARI: %s geometrisi yok (%s)" % (_kad, _kgk))
+
+        _kdk = os.path.join(KONSEY_DOKU_KAYNAK, _kad + ".png")
+        if os.path.exists(_kdk):
+            _kdh = os.path.join(RP, "textures/entity/%s.png" % _kad)
+            os.makedirs(os.path.dirname(_kdh), exist_ok=True)
+            shutil.copyfile(_kdk, _kdh)
+        else:
+            print("UYARI: %s dokusu yok (%s)" % (_kad, _kdk))
+
+        _kik = os.path.join(KONSEY_IKON_KAYNAK, _kad + ".png")
+        if os.path.exists(_kik):
+            _kiy = os.path.join(RP, "textures/item/%s.png" % _kad)
+            os.makedirs(os.path.dirname(_kiy), exist_ok=True)
+            shutil.copyfile(_kik, _kiy)
+        else:
+            print("UYARI: %s ikonu yok (%s)" % (_kad, _kik))
+        dokular[_kad] = {"textures": "textures/item/" + _kad}
+        for liste in (en_us, tr_tr):
+            liste.append("item.pa:%s.name=%s" % (_kad, _kt[1]))
+            liste.append("item.pa:%s=%s" % (_kad, _kt[1]))
+
     # ---- MASKE + OYUNCU MODELI PAKETI (v4.90) ----
     # Asil donusum: oyuncunun KENDI modeli degisiyor.
     yaz_json(os.path.join(BP, "items/%s.json" % MASKE_ESYA), maske_esyasi())
@@ -6200,6 +6410,11 @@ def main():
     for _mp3 in MARVEL_PARCA:
         beklenen.add(MARVEL_ONEK + _mp3["kahraman"] + MARVEL_AYIRAC
                      + _mp3["anahtar"])
+    # v6.2: Konsey parcalari da hicbir listede degil -- bu satir
+    # unutulsaydi temizlik adimi 54 dosyayi HER uretimde
+    # silerdi (silahlarda bir kez yasandi).
+    for _kt3 in KONSEY:
+        beklenen.add(KONSEY_ONEK + _kt3[0])
     # v4.93: Omnitrix saatleri (hem ikon hem varlik dokusu)
     for _ok3, _ot3, _oe3 in OMNITRIX:
         beklenen.add(_ok3)

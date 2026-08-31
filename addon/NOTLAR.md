@@ -1,3 +1,97 @@
+# v6.2 — CodeMan + yeni BoraLo: 54 parça
+
+Kullanıcı: *"yeni boralo notları buldum, bunlardan alabildiğimizi alalım, eşya
+dahil her şey."*
+
+## Bu ikisi Java değil — **Bedrock eklentisi**
+
+Önceki BoraLo bir Java moduydu (`REFERANS_BORALO.md`) ve modellerini bytecode'dan
+çözmek gerekmişti. Bunlar `.mcaddon`: `.geo.json` 1.12.0, dokular PNG,
+animasyonlar 1.8.0. **Dönüştürme yok** — `konsey_al.py` taşıyor, `kol_uret.py`
+paketliyor.
+
+| paket | ad alanı | içerik |
+|---|---|---|
+| Astra Studios CodeMan V1 | `klezy:` | 65 eşya · 67 model · 90 attachable · 24 animasyon · 4 ses |
+| BoraLo Mod V1 Beta | `dragon:` | 16 eşya · 13 model · 1 blok · 14 script |
+
+## Alınan 54 parça
+
+| ne | kaç | not |
+|---|---|---|
+| **Konsey kostümü** | 6 | Okazor · Miskel · Kajaros · Harkos · Raxxan · CodeMan — bunlar `LORE.md`'deki **kendi karakterlerimiz** |
+| Deri | 4 | Toprak · Düşmüş · Taş · Zehir |
+| Maske | 4 | Deadmau5 · Redmau5 · Kanlı Deadmau5 · Kemik |
+| Kolluk | 14 | toprak/güçlendirilmiş/düşmüş + Bobby1545, BoraLo, Chris1545 çeşitleri |
+| Asa | 7 | hasar 24–62 |
+| Earl aleti | 5 | kılıç 21 · balta 19 · kazma 14 · kürek 12 · çapa 11 |
+| Zırh | 8 | Ölü Büyücü ×4 · Güç Zırhı ×4 |
+| Silah | 2 | Biyo Silah · Bobby Silahı |
+| Düşmüş aşaması | 4 | BoraLo'nun 4 kademeli yozlaşması |
+
+Sayıların hepsi kaynak eklentinin **kendi eşya JSON'undan**; `sim/konsey.mjs`
+hepsini oradan doğruluyor.
+
+## Kostüm üç parçadan oluşuyor
+
+Kaynağın tekniği bizimkiyle aynı: **giyilebilir eşya + attachable + oyuncuya
+görünmezlik**. Üçü de olmadan çalışmıyor — üçüncüsü olmazsa oyuncu kendi
+derisiyle kostümün içinden görünür.
+
+Hangi parçanın gizlediği **uydurulmadı**: kaynakta her biri için bir
+`<ad>_effect.mcfunction` var, tam 14 tane. Kemik Maskesi ve kolluklar listede
+**yok** — onlar oyuncunun üstüne biniyor, yerine geçmiyor; görünmezlik
+verseydik kolsuz bir hayalet olurdun. Test bu listeyi kaynak klasörle
+karşılaştırıyor.
+
+## Yol boyunca çıkan üç şey
+
+**1. Tarayıcı 18 hata yakaladı — ve haklıydı.** Kaynak paketler zırh kalıbını
+kullanıyor (`waist` ebeveynsiz, bacaklar `body`nin çocuğu). Bizim 48 Marvel
+kostümümüz `root → waist → body` kalıbını kullanıyor ve `anim_tara.py` onu
+bekliyor — v5.4'teki *"uzuvlar gövdeden kopmuş"* hatasının yarısı tam buydu.
+Düz kopyalasaydık 11 modelde geri gelirdi. Çözüm: `shutil.copyfile` yerine
+`yaz_json`, çünkü o yol zaten `insan_hiyerarsisi()`'nden geçiyor.
+
+**2. `kol_*` adları bir testi tetikledi.** `o_sey.mjs` ve üç test daha
+`kol_uret.py`'de kaç tane `("kol_...` satırı olduğunu sayıyor — kural
+*"her şeyi kol yapma"*. Kol kostümlerine `kol_` demek testi yanlış yere
+düşürüyordu. Testi zayıflatmak yerine **adları `kolluk_` yaptım**; kural
+yerinde kaldı.
+
+**3. Dil dosyalarında başka bir eklentinin artıkları var.** İki paketin de
+`en_US.lang`'inde yüzlerce `pa:` satırı duruyor (PA-Fridge, PA-Shark,
+PA-Pizza…) — başka bir eklentiden kopyalanmış. **`pa:` bizim ad alanımız**;
+o satırları almak kendi eşya adlarımızı ezerdi. Adlar `konsey_al.py`'deki
+tablodan geliyor, dil dosyası hiç okunmadı. Test bunu ayrıca kontrol ediyor.
+
+## DİKKAT — Düşmüş parçalarının koruması 1000
+
+Kaynakta bu bir **ceza** durumu: `void_multitool` kurbana giydiriyor ve kurban
+zaten kımıldayamıyor, yani 1000 koruma "kurban donuk kalsın" demek. Bizde eşya
+menüden alınabildiği için **onu giyen dokunulmaz olur.** Sayı kaynaktakiyle
+birebir bırakıldı ve durum hem burada hem `kol_uret.py`'de yazılı — kısılması
+kullanıcı kararı.
+
+## Alınmayanlar ve sebepleri
+
+| ne | neden |
+|---|---|
+| `modders` | YouTube tanıtım sahnesi (armor stand + başlıklar), oyun mekaniği değil |
+| El hareketi eşyaları (4) | şimşek, toprak, yamult **bizde zaten var** — aynı yeteneğin ikinci kopyası olurdu |
+| `mob_picker` · `stone_converter` · `void_multitool` · `dirt_arm` · `bot_caller` · `kevin1545_sword` mekanikleri | hepsinin karşılığı bizde **var** (`hapis.js`, `tas.js`, Toprak Kol, bot sistemi, `isinlanma.js`, kafes) |
+| `zaman` (gece/gündüz) | küçük bir yardımcı, bizde `_yagmur.js` benzeri yapı zaten var |
+| `entity_0_zombies` · `konsey_animation` varlıkları | kaynağın kendi sahne kurulumu |
+
+## Doğrulama
+
+- `sim/kos.sh` — **66 dosya, hepsi geçti** (`konsey.mjs` yeni)
+- `sim/anim_tara.py` — **HATA 0** (18 hatadan sonra)
+- Bilerek bozma: görünmezlik listesine uydurma bir parça ekledim — **yakalandı**
+- Render: 16 parça önden çizildi, hepsi doğru
+
+---
+
 # v6.1 — Ben 10: ek formlar + aktif saldırılar
 
 Kullanıcı: *"ikisini de yapalım. Referanstan bakmaman için dosyayı tekrardan

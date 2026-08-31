@@ -14,6 +14,7 @@ import {
   BECERI_ACIK, BECERI_AGACI, BECERI_TAVAN_KADEME,
   CAN_SAYACI_ACIK,
   BEN10_ACIK, BEN10,
+  KONSEY_ACIK,
   TEKNOLOJI_ACIK, TEKNOLOJI_TAKIMLAR, TEKNOLOJI_ONEK,
   MAHOU_ACIK, MAHOU_BUYULER, MAHOU_ESYALAR, MAHOU_MANA_TAVAN,
   VILTRUMITE_ACIK, VILTRUMITE_YETENEKLER, VILT_MOD, VILT_INDIRIM,
@@ -109,6 +110,7 @@ import {
 import {
   ben10Tara, ben10Unut, elindekiYaratik, yaratikListesi
 } from "./yetenekler/ben10.js";
+import { konseyTara, konseyUnut } from "./yetenekler/konsey.js";
 
 /* Sohbet komutlari ("can 10", "lazer"...). Bu dosya main.js'i
    import etmiyor; komutlarin calistiracagi fonksiyonlar kanca
@@ -459,6 +461,15 @@ system.runInterval(() => {
         ben10Tara(oyuncular);
       } catch (e) {
         hataYaz("ben10Tara", e);
+      }
+    }
+    /* v6.2: Konsey kostumleri. Ayni `oyuncular` listesi --
+       getAllPlayers yine tek kez cagriliyor.                */
+    if (KONSEY_ACIK) {
+      try {
+        konseyTara(oyuncular);
+      } catch (e) {
+        hataYaz("konseyTara", e);
       }
     }
   }
@@ -2053,6 +2064,7 @@ olayaAbone("playerLeave", (olay) => {
   canSayaciUnut(olay.playerId);
   teknolojiUnut(olay.playerId);
   ben10Unut(olay.playerId);
+  konseyUnut(olay.playerId);
   viltrumiteUnutOyuncu(olay.playerId);
 
   // Oyuncunun butun isleri durdurulmali, sadece birincisi degil

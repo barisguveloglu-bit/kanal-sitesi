@@ -1061,6 +1061,168 @@
     "mrv_wolverine__wolverine_2024_mask": {
       "textures": "textures/item/mrv_wolverine__wolverine_2024_mask"
     },
+    "kns_okazor": {
+      "textures": "textures/item/kns_okazor"
+    },
+    "kns_miskel": {
+      "textures": "textures/item/kns_miskel"
+    },
+    "kns_kajaros": {
+      "textures": "textures/item/kns_kajaros"
+    },
+    "kns_harkos": {
+      "textures": "textures/item/kns_harkos"
+    },
+    "kns_raxxan": {
+      "textures": "textures/item/kns_raxxan"
+    },
+    "kns_codeman": {
+      "textures": "textures/item/kns_codeman"
+    },
+    "kns_deri_toprak": {
+      "textures": "textures/item/kns_deri_toprak"
+    },
+    "kns_deri_dusmus": {
+      "textures": "textures/item/kns_deri_dusmus"
+    },
+    "kns_deri_tas": {
+      "textures": "textures/item/kns_deri_tas"
+    },
+    "kns_deri_zehir": {
+      "textures": "textures/item/kns_deri_zehir"
+    },
+    "kns_maske_kemik": {
+      "textures": "textures/item/kns_maske_kemik"
+    },
+    "kns_maske_deadmau5": {
+      "textures": "textures/item/kns_maske_deadmau5"
+    },
+    "kns_maske_redmau5": {
+      "textures": "textures/item/kns_maske_redmau5"
+    },
+    "kns_maske_kanli": {
+      "textures": "textures/item/kns_maske_kanli"
+    },
+    "kns_kolluk_toprak_ince": {
+      "textures": "textures/item/kns_kolluk_toprak_ince"
+    },
+    "kns_kolluk_toprak_kalin": {
+      "textures": "textures/item/kns_kolluk_toprak_kalin"
+    },
+    "kns_kolluk_guclu_ince": {
+      "textures": "textures/item/kns_kolluk_guclu_ince"
+    },
+    "kns_kolluk_guclu_kalin": {
+      "textures": "textures/item/kns_kolluk_guclu_kalin"
+    },
+    "kns_kolluk_dusmus_ince": {
+      "textures": "textures/item/kns_kolluk_dusmus_ince"
+    },
+    "kns_kolluk_dusmus_kalin": {
+      "textures": "textures/item/kns_kolluk_dusmus_kalin"
+    },
+    "kns_kolluk_bobby": {
+      "textures": "textures/item/kns_kolluk_bobby"
+    },
+    "kns_kolluk_bobby_buz": {
+      "textures": "textures/item/kns_kolluk_bobby_buz"
+    },
+    "kns_kolluk_bobby_kanli": {
+      "textures": "textures/item/kns_kolluk_bobby_kanli"
+    },
+    "kns_kolluk_bobby_kum": {
+      "textures": "textures/item/kns_kolluk_bobby_kum"
+    },
+    "kns_kolluk_boralo_anna": {
+      "textures": "textures/item/kns_kolluk_boralo_anna"
+    },
+    "kns_kolluk_boralo_kanli": {
+      "textures": "textures/item/kns_kolluk_boralo_kanli"
+    },
+    "kns_kolluk_boralo_kum": {
+      "textures": "textures/item/kns_kolluk_boralo_kum"
+    },
+    "kns_kolluk_chris_kanli": {
+      "textures": "textures/item/kns_kolluk_chris_kanli"
+    },
+    "kns_asa_kemikcagiran": {
+      "textures": "textures/item/kns_asa_kemikcagiran"
+    },
+    "kns_asa_ayisigi": {
+      "textures": "textures/item/kns_asa_ayisigi"
+    },
+    "kns_asa_vurucu": {
+      "textures": "textures/item/kns_asa_vurucu"
+    },
+    "kns_asa_golge": {
+      "textures": "textures/item/kns_asa_golge"
+    },
+    "kns_asa_yeralti": {
+      "textures": "textures/item/kns_asa_yeralti"
+    },
+    "kns_asa_harkos": {
+      "textures": "textures/item/kns_asa_harkos"
+    },
+    "kns_asa_sihirli_ok": {
+      "textures": "textures/item/kns_asa_sihirli_ok"
+    },
+    "kns_earl_kilic": {
+      "textures": "textures/item/kns_earl_kilic"
+    },
+    "kns_earl_balta": {
+      "textures": "textures/item/kns_earl_balta"
+    },
+    "kns_earl_kazma": {
+      "textures": "textures/item/kns_earl_kazma"
+    },
+    "kns_earl_kurek": {
+      "textures": "textures/item/kns_earl_kurek"
+    },
+    "kns_earl_capa": {
+      "textures": "textures/item/kns_earl_capa"
+    },
+    "kns_olubuyucu_baslik": {
+      "textures": "textures/item/kns_olubuyucu_baslik"
+    },
+    "kns_olubuyucu_govde": {
+      "textures": "textures/item/kns_olubuyucu_govde"
+    },
+    "kns_olubuyucu_bacak": {
+      "textures": "textures/item/kns_olubuyucu_bacak"
+    },
+    "kns_olubuyucu_bot": {
+      "textures": "textures/item/kns_olubuyucu_bot"
+    },
+    "kns_guczirhi_baslik": {
+      "textures": "textures/item/kns_guczirhi_baslik"
+    },
+    "kns_guczirhi_govde": {
+      "textures": "textures/item/kns_guczirhi_govde"
+    },
+    "kns_guczirhi_bacak": {
+      "textures": "textures/item/kns_guczirhi_bacak"
+    },
+    "kns_guczirhi_bot": {
+      "textures": "textures/item/kns_guczirhi_bot"
+    },
+    "kns_silah_biyo": {
+      "textures": "textures/item/kns_silah_biyo"
+    },
+    "kns_silah_bobby": {
+      "textures": "textures/item/kns_silah_bobby"
+    },
+    "kns_dusmus_1": {
+      "textures": "textures/item/kns_dusmus_1"
+    },
+    "kns_dusmus_2": {
+      "textures": "textures/item/kns_dusmus_2"
+    },
+    "kns_dusmus_3": {
+      "textures": "textures/item/kns_dusmus_3"
+    },
+    "kns_dusmus_4": {
+      "textures": "textures/item/kns_dusmus_4"
+    },
     "o_sey_maskesi": {
       "textures": "textures/item/o_sey_maskesi"
     },

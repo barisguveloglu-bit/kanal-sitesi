@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v6.1";
+export const SURUM = "v6.2";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -4497,6 +4497,62 @@ export const BEN10_ISIN = new Map([
     kaynakHasar: 3, hasar: 60, menzil: 10, yakma: 0,
     parcacik: "minecraft:snowflake_particle"
   }]
+]);
+
+/* ============================================================
+   KONSEY  (CodeMan / Astra Studios + BoraLo / Dragon Studios)
+                                                        v6.2
+
+   Kullanici: "yeni boralo notlari buldum, bunlardan
+   alabildigimizi alalim, esya dahil her sey."
+
+   ---- 54 PARCA ----
+   6 Konsey kostumu (Okazor · Miskel · Kajaros · Harkos ·
+   Raxxan · CodeMan -- bunlar LORE.md'deki KENDI
+   karakterlerimiz), 4 deri, 4 maske, 14 kol, 7 asa, 5 Earl
+   aleti, 8 zirh parcasi, 2 silah, 4 Dusmus asamasi.
+
+   Sayilar (hasar, koruma, dayaniklilik) kaynagin kendi esya
+   JSON'undan; tablo kol_uret.py:KONSEY'de.
+
+   ---- BU DOSYANIN TUTTUGU TEK SEY: GORUNMEZLIK ----
+   Kaynagin teknigi: giyilebilir esya + attachable + OYUNCUYA
+   GORUNMEZLIK. Ucu birden olmadan kostum calismiyor -- oyuncu
+   kendi derisiyle kostumun icinden gorunur.
+
+   Hangi parcanin gorunmezlik verdigi UYDURULMADI: kaynak
+   pakette her biri icin bir `<ad>_effect.mcfunction` var ve
+   icinde tek satir:
+       effect @e[hasitem={item=klezy:X,location=slot.armor.head}]
+              invisibility 1 0 true
+   O ondort dosya asagidaki liste. Kemik Maskesi ve kollar
+   LISTEDE YOK -- onlar oyuncunun ustune BINIYOR, yerine
+   gecmiyor.                                                  */
+export const KONSEY_ACIK   = true;
+export const KONSEY_TARAMA = 20;    // kac tick'te bir bakilsin
+/* Efekt suresi taramadan UZUN: tam taramada bitse, iki tarama
+   arasinda bir kare gorunur olurdun.                         */
+export const KONSEY_SURE   = 60;
+export const KONSEY_ONEK   = "kns_";
+
+/* Giyince oyuncuyu gizleyen parcalar (kaynakta `_effect`
+   dosyasi olanlar). Yuva da yazili: gorunmezlik yalniz DOGRU
+   yuvada takiliyken verilmeli.                               */
+export const KONSEY_GORUNMEZ = new Map([
+  ["kns_okazor",          "Head"],
+  ["kns_miskel",          "Head"],
+  ["kns_kajaros",         "Head"],
+  ["kns_harkos",          "Head"],
+  ["kns_raxxan",          "Head"],
+  ["kns_codeman",         "Head"],
+  ["kns_deri_toprak",     "Head"],
+  ["kns_deri_dusmus",     "Head"],
+  ["kns_deri_tas",        "Head"],
+  ["kns_deri_zehir",      "Head"],
+  ["kns_guczirhi_baslik", "Head"],
+  ["kns_maske_deadmau5",  "Chest"],
+  ["kns_maske_redmau5",   "Chest"],
+  ["kns_maske_kanli",     "Chest"]
 ]);
 
 export const BOT_KIMLIKLER = new Set([BOT_KIMLIK, SEY_KIMLIK, SEY_KILIK_KIMLIK]);
