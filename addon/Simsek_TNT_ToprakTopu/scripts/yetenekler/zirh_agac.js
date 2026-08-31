@@ -2,7 +2,7 @@ import { world } from "@minecraft/server";
 import { hataYaz } from "../yardimcilar.js";
 import {
   ZIRH_AGAC_ACIK, ZIRH_AGAC_ANAHTAR, ZIRH_AGAC_KOK, ZIRH_AGAC_BEDEL,
-  ZIRH_CARK_XP, ZIRH_MODLAR, ZIRH_CEKIRDEK_ONEK, ZIRH_AGAC_EBEVEYN
+  ZIRH_CARK_XP, ZIRH_MODLAR, ZIRH_CEKIRDEK_ONEK
 } from "../ayarlar.js";
 
 /* ================================================================
@@ -121,14 +121,6 @@ export function modSec(oyuncu, mod) {
 export function modAcikMi(oyuncuId, mod) {
   if (!ZIRH_AGAC_ACIK) return true;
   if (mod === ZIRH_AGAC_KOK) return true;
-  /* ---- BIRLESIM MODLARI  (v6.0) ----
-     Kaynakta bunlarin cekirdegi YOK: iki modu birlestirerek
-     giriliyor. O yuzden ucret de yok -- IKI EBEVEYN de
-     acikken kendiliginden acik sayiliyor.                  */
-  const ebeveyn = ZIRH_AGAC_EBEVEYN.get(mod);
-  if (ebeveyn) {
-    return ebeveyn.every((e) => modAcikMi(oyuncuId, e));
-  }
   yukle();
   const kume = defter.get(oyuncuId);
   return !!kume && kume.has(mod);
@@ -145,11 +137,6 @@ export function acikModlar(oyuncuId) {
   const kume = defter.get(oyuncuId);
   const liste = [ZIRH_AGAC_KOK];
   if (kume) for (const m of kume) if (m !== ZIRH_AGAC_KOK) liste.push(m);
-  /* Birlesimler defterde DURMUYOR (satin alinmiyorlar);
-     ebeveynlerinden turuyorlar. Listeye burada giriyorlar. */
-  for (const m of ZIRH_AGAC_EBEVEYN.keys()) {
-    if (modAcikMi(oyuncuId, m) && liste.indexOf(m) === -1) liste.push(m);
-  }
   return liste;
 }
 
@@ -162,17 +149,6 @@ export function modAc(oyuncu, mod) {
   if (!ZIRH_MODLAR.has(mod)) return { tamam: false, sebep: "Böyle bir mod yok" };
   if (mod === ZIRH_AGAC_KOK) {
     return { tamam: false, sebep: "Temel zaten açık (ağacın kökü)" };
-  }
-  const ebv = ZIRH_AGAC_EBEVEYN.get(mod);
-  if (ebv) {
-    /* Birlesim modu satin ALINMIYOR: iki ebeveyni de acinca
-       kendiliginden geliyor -- kaynakta da oyle.            */
-    const eksik = ebv.filter((e) => !modAcikMi(oyuncu.id, e))
-      .map((e) => (ZIRH_MODLAR.get(e) || {}).ad || e);
-    return { tamam: false,
-             sebep: eksik.length
-               ? "Önce şunlar açılmalı: " + eksik.join(" + ")
-               : "Zaten açık (iki mod da açık)" };
   }
   yukle();
   if (modAcikMi(oyuncu.id, mod)) {
@@ -256,7 +232,6 @@ export function agacListesi(oyuncu) {
       kok: anahtar === ZIRH_AGAC_KOK,
       acik: modAcikMi(oyuncu.id, anahtar),
       bedel: ZIRH_AGAC_BEDEL.get(anahtar) || null,
-      ebeveyn: ZIRH_AGAC_EBEVEYN.get(anahtar) || null,
       esya: ZIRH_CEKIRDEK_ONEK + anahtar
     });
   }

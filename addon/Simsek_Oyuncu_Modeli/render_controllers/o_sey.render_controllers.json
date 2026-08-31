@@ -243,50 +243,6 @@
         }
       ]
     },
-    "controller.render.zirh_mod_ucus_gizlilik": {
-      "geometry": "Geometry.zirh_mod_ucus_gizlilik",
-      "textures": [
-        "Texture.zirh_mod_ucus_gizlilik"
-      ],
-      "materials": [
-        {
-          "*": "Material.default"
-        }
-      ]
-    },
-    "controller.render.zirh_mod_dalis_ucus": {
-      "geometry": "Geometry.zirh_mod_dalis_ucus",
-      "textures": [
-        "Texture.zirh_mod_dalis_ucus"
-      ],
-      "materials": [
-        {
-          "*": "Material.default"
-        }
-      ]
-    },
-    "controller.render.zirh_mod_dalis_gizlilik": {
-      "geometry": "Geometry.zirh_mod_dalis_gizlilik",
-      "textures": [
-        "Texture.zirh_mod_dalis_gizlilik"
-      ],
-      "materials": [
-        {
-          "*": "Material.default"
-        }
-      ]
-    },
-    "controller.render.zirh_mod_guc_gizlilik": {
-      "geometry": "Geometry.zirh_mod_guc_gizlilik",
-      "textures": [
-        "Texture.zirh_mod_guc_gizlilik"
-      ],
-      "materials": [
-        {
-          "*": "Material.default"
-        }
-      ]
-    },
     "controller.render.zirh_mod_guc_matkap": {
       "geometry": "Geometry.zirh_mod_guc_matkap",
       "textures": [

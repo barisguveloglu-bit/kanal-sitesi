@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v6.0";
+export const SURUM = "v5.9";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -3359,69 +3359,6 @@ export const ZIRH_MODLAR = new Map([
     efektler: [["night_vision", 0, 0], ["resistance", 0, 3],
                ["speed", 0, 1]]
   }],
-  /* ---- BIRLESIM MODLARI  (v6.0) ----
-
-     Kullanici: "bes birlesim modu... varsa ekle ama guclerinin
-     olup olmadigina bak, varsa birebir ozellikleri ile ayni
-     olmaya calis."
-
-     BAKILDI: bes degil DORT. speed_stealth.json modun
-     kendisinde 0 BAYT. Kalan dordunun hepsinde gercek guc var.
-
-     Her satirin yorumunda kaynagin OLCULEN degerleri duruyor.
-     Cevrim kurallari oncekilerle ayni:
-       armor 20-50 -> Direnc IV (v5.6'da tavana cikarildi)
-       fall_resistance -> slow_falling
-       swim_speed  -> conduit_power
-       space_breath / oksijen bagisikligi -> water_breathing
-       attack_damage -> Guc (seviye basina +3), v5.6 katlamasiyla
-     Aktarilamayanlar satirin altinda YAZILI, ozette vaat
-     EDILMIYOR.                                               */
-  ["ucus_gizlilik", {
-    ad: "Uçuş + Gizlilik", kaynak: "flight_stealth",
-    ozet: "UÇUŞ · görünmezlik · su altında nefes · direnç IV · düşme hasarı yok",
-    /* kaynak: invisibility · armor 20 · toughness 15 ·
-       space_breath · oksijen/donma bagisikligi ·
-       patlama+dusme bagisikligi · flight.
-       AKTARILAMAYAN: donma ve patlama bagisikligi (Bedrock'ta
-       efekt karsiligi yok -- ucus modunda da oyleydi).       */
-    yetenekler: ["ucus"],
-    efektler: [["invisibility", 0, 0], ["water_breathing", 0, 0],
-               ["resistance", 0, 3], ["slow_falling", 0, 0]]
-  }],
-  ["dalis_ucus", {
-    ad: "Dalış + Uçuş", kaynak: "scuba_flight",
-    ozet: "UÇUŞ · su gücü · su altında nefes · direnç IV · düşme hasarı yok",
-    /* kaynak: swim_speed +5 · water_breathing · armor 20 ·
-       toughness 15 · fall_resistance +200 · flight.
-       fall_resistance 200 kaynaktaki EN YUKSEK dusme direnci;
-       Bedrock'ta slow_falling'in kademesi yok, ayni efekt.   */
-    yetenekler: ["ucus"],
-    efektler: [["conduit_power", 0, 0], ["water_breathing", 0, 0],
-               ["resistance", 0, 3], ["slow_falling", 0, 0]]
-  }],
-  ["dalis_gizlilik", {
-    ad: "Dalış + Gizlilik", kaynak: "scuba_stealth",
-    ozet: "görünmezlik · su gücü · su altında nefes · direnç IV",
-    /* kaynak: invisibility · swim_speed +5 · water_breathing ·
-       armor 20 · toughness 15. Dusme direnci YOK -- o yuzden
-       slow_falling de yok (kaynakta olmayani vermiyoruz).    */
-    efektler: [["invisibility", 0, 0], ["conduit_power", 0, 0],
-               ["water_breathing", 0, 0], ["resistance", 0, 3]]
-  }],
-  ["guc_gizlilik", {
-    ad: "Güç + Gizlilik", kaynak: "strength_stealth",
-    ozet: "güç X (+30 hasar) · görünmezlik · direnç IV · düşme hasarı yok",
-    /* kaynak: invisibility · armor 30+20 · toughness 15 ·
-       attack_damage +15 · fall_resistance +100 · dual_wielding ·
-       scale base 2 / entity_reach 2 / knockback 2.
-       +15 hasar -> Guc V; v5.6 katlamasiyla Guc X (+30).
-       AKTARILAMAYAN: cift elle kullanim, menzil ve geri tepme
-       olcegi (Guc modunda da alinmamisti -- Bedrock'ta
-       karsiligi yok).                                        */
-    efektler: [["strength", 0, 9], ["invisibility", 0, 0],
-               ["resistance", 0, 3], ["slow_falling", 0, 0]]
-  }],
   ["titan", {
     ad: "Titan", kaynak: "titan_mode",
     ozet: "TITAN LAZERİ (2000 hasar) · güç LIV (+162) · direnç IV · zıplama VI · düşme hasarı yok",
@@ -3846,21 +3783,6 @@ export const ZIRH_AGAC_KOK = "temel";
 /* mod -> kaynaktaki cekirdek esyasinin adi. Bizim esyamiz
    ZIRH_CEKIRDEK_ONEK + mod; bu tablo yalnizca KAYNAKTAKI adi
    tutuyor, testte jar'la karsilastirilabilsin diye.          */
-/* ---- BIRLESIM MODLARININ ACILMASI ----
-   Kaynakta bunlarin CEKIRDEGI YOK: iki modun birlestirilmesiyle
-   giriliyorlar (`superpower add ionstrike:<birlesim>`) ve
-   `return_*` yetenekleriyle iki ebeveynden birine donuluyor.
-   Yani sart "iki ebeveyni de acmis olmak".
-
-   Bizde de oyle: ucreti yok, IKI EBEVEYN de acikken
-   kendiliginden acik sayiliyor.                              */
-export const ZIRH_AGAC_EBEVEYN = new Map([
-  ["ucus_gizlilik",   ["ucus", "gizlilik"]],
-  ["dalis_ucus",      ["dalis", "ucus"]],
-  ["dalis_gizlilik",  ["dalis", "gizlilik"]],
-  ["guc_gizlilik",    ["guc", "gizlilik"]],
-]);
-
 export const ZIRH_AGAC_BEDEL = new Map([
   ["isi",      "heat_core"],
   ["titan",    "titan_core"],

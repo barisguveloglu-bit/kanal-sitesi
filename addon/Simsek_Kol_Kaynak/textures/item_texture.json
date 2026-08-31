@@ -1127,18 +1127,6 @@
     "zirh_mod_titan": {
       "textures": "textures/item/zirh_mod_titan"
     },
-    "zirh_mod_ucus_gizlilik": {
-      "textures": "textures/item/zirh_mod_ucus_gizlilik"
-    },
-    "zirh_mod_dalis_ucus": {
-      "textures": "textures/item/zirh_mod_dalis_ucus"
-    },
-    "zirh_mod_dalis_gizlilik": {
-      "textures": "textures/item/zirh_mod_dalis_gizlilik"
-    },
-    "zirh_mod_guc_gizlilik": {
-      "textures": "textures/item/zirh_mod_guc_gizlilik"
-    },
     "omnitrix_proto": {
       "textures": "textures/item/omnitrix_proto"
     },

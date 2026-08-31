@@ -2558,26 +2558,6 @@ ZIRH_DOKU = "zirh_suit"
 #
 # Gorunus v4.90'in makinesinden (player.entity.json), yani
 # Ben 10 ile birebir ayni yol.
-# ---- BIRLESIM MODLARI  (v6.0) ----
-# Kullanici: "bes birlesim modu... boyle bir mod varsa ekle,
-# ama guclerinin olup olmadigina bir bakmani istiyorum."
-#
-# BAKILDI. Bes degil DORT: speed_stealth.json modun kendisinde
-# 0 BAYT, yani o mod yok. Kalan dordunun hepsinde gercek guc
-# var (olculdu, REFERANS_MAXSTEEL_AGAC.md'de satir satir).
-#
-# Kaynakta bunlara CEKIRDEK yok: iki modun birlestirilmesiyle
-# giriliyor (`superpower add ionstrike:<birlesim>`), cikarken
-# de `return_*` yetenekleri iki ebeveynden birine donduruyor.
-# Bizde de oyle: agacta ucreti YOK, IKI EBEVEYN de acikken
-# kendiliginden aciliyor (ayarlar.js:ZIRH_AGAC_EBEVEYN).
-#
-# Geometri ve doku KOPYA (kaynakta da oyle -- var olan dokuz
-# modun geometrileri de birebir kopyalanmisti):
-#   ucus_gizlilik     flight2_mode.geo.json  duostrike/flight_stealth.png
-#   dalis_ucus        scuba_flight.geo.json  duostrike/scuba_flight.png
-#   dalis_gizlilik    scuba_stealth.geo.json duostrike/scuba_stealth.png
-#   guc_gizlilik      strength2.geo.json     duostrike/strength_stealth.png
 ZIRH_MODLAR_LISTE = [
     ("temel",    "Temel"),
     ("guc",      "Güç"),
@@ -2588,10 +2568,6 @@ ZIRH_MODLAR_LISTE = [
     ("dalis",    "Dalış"),
     ("kesif",    "Keşif"),
     ("titan",    "Titan"),
-    ("ucus_gizlilik",    "Uçuş + Gizlilik"),
-    ("dalis_ucus",       "Dalış + Uçuş"),
-    ("dalis_gizlilik",   "Dalış + Gizlilik"),
-    ("guc_gizlilik",     "Güç + Gizlilik"),
 ]
 # (anahtar, TR ad, EN ad, geo dosyalari, tur)  -- BEN10 ile ayni
 # bicim, cunku ayni makineye giriyor.
