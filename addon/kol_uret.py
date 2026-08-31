@@ -136,9 +136,10 @@ KOLLAR = [
     ("kol_dave",   "kasirga",          "Dave Kolu",             (96, 108, 76),   (176, 200, 140)),
     ("kol_kevin",  "hapis",            "Kevin Kolu",            (108, 112, 120), (188, 194, 204)),
     ("kol_gunes",  "isin_topu",        "Gunes Kolu",            (232, 168, 40),  (255, 232, 150)),
-    # KANLI KOL (v6.7) -- Bobby1545 Mod V3'ten. Renkler
-    # OLCULDU: kaynagin pa_blood_arm dokusunda yumruk
-    # #E58D3F/#FF0303, dikenler #390808/#210003.
+    # KANLI KOL (v6.7; model v7.3'te chris1545'e gecti).
+    # Buradaki iki renk yalnizca YER TUTUCU: hem model hem doku
+    # kaynaktan geldigi icin uretilen kol dokusu hemen eziliyor.
+    # Yine de dogru olculer: kan #FF0303, pihti #390808.
     ("kol_kanli",  "kanli",            "Kanli Kol",             (57, 8, 8),      (255, 3, 3)),
 ]
 
@@ -5138,51 +5139,102 @@ GEOMETRI = {
 # uclarinda 7x7x7 turuncu-kanli yumruklar. Elle cizdigim kol
 # kaplamasi ATILDI; model ve doku kaynaktan OLDUGU GIBI geliyor.
 KANLI_GEO_KAYNAK = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), "kaynak_geo", "kanli")
+    os.path.dirname(os.path.abspath(__file__)), "kaynak_geo", "konsey")
+
+# ---- MODEL BOBBY'DEN CHRIS'E GECTI  (v7.3) ----
+#
+# Kullanici gercek Kanli Kol'un ekran goruntusunu gonderdi:
+# parlak kirmizi, BOGUMLU zincir kollar, uclarinda DISLI pence.
+# v6.7'de kullandigimiz `blood_arm` (Bobby1545 Mod V3) o degil --
+# o duz kirmizi kollarin ucunda turuncu yumruk.
+#
+# Aranan model depoda ZATEN vardi: `kns_kolluk_chris_kanli`
+# (Code-Man paketi, chris1545s_red_bloody_arms), v6.2'den beri
+# ama yalnizca gogus yuvasina takilan bir SUS esyasi olarak.
+# Yetenekler Kanli Kol'da, gorunum orada duruyordu.
+#
+# Kullanici "2 kol birbirine gecmis gibi" dedi. OLCTUM: model
+# dogru, benim cizicimin donus isareti tersti (bkz. ciz_kemik.py
+# docstring'i). Dort duzen olculdu:
+#     XYZ isaret-1 -> kollar 7.2 birim CAKISIYOR   (cizicinin eski hali)
+#     XYZ isaret+1 -> sag x -13.1..-1.9, sol +1.9..+13.1, CAKISMA YOK
+# Bedrock pozitif acilarla XYZ sirasinda donduruyor. Model
+# duzeltilmedi cunku BOZUK DEGILDI.
+KANLI_GEO_DOSYA = "kns_kolluk_chris_kanli.geo.json"
+
+# Kaynagin hiyerarsisi:  waist -> body -> rightArm -> bone (33 kup)
+#                                     -> leftArm  -> bone3 (33 kup)
+# Zirh olarak calisiyor ama biz bunu ELDE TUTULAN bir esya
+# olarak takiyoruz. Bedrock attachable kemiklerini ADINA gore
+# oyuncu iskeletine esliyor: `body` de bir oyuncu kemigi. Kol
+# kemikleri `body`nin ALTINDA kalirsa govde donusu bir kez
+# `body`den bir kez de kolun kendisinden gelir -- iki kat.
+#
+# Bu yuzden kupsuz/donussuz ust kemikler ATILIYOR ve
+# rightArm/leftArm KOK kemik yapiliyor: v6.7'de baglandigi
+# kanitlanmis duzen bu. Pivotlar Bedrock'ta MUTLAK oldugu icin
+# ve atilan kemiklerde donus OLMADIGI icin durus hic degismiyor.
+KANLI_ATILAN = ("waist", "body")
 
 
 def kanli_geometrisi():
-    """Kaynagin 1.10.0 modelini 1.12.0 bicimine cevirir.
+    """Chris'in kanli kol modelini `geometry.simsek_kol_kanli` yapar.
 
-    Kemiklere DOKUNULMUYOR: kok kemik adlari (rightArm/leftArm)
-    baglanmanin ta kendisi, degistirilirse model oyuncunun
-    koluna hic oturmaz. Yalnizca kabuk degisiyor:
-      {"geometry.X": {...}}  ->  {"minecraft:geometry": [...]}
-    ve `texturewidth` -> `texture_width`.
-
-    Neden ceviriyoruz: depodaki tarayici (anim_tara.py) ve
-    temizlik adimi modern bicimi okuyor. Eski bicimde birakmak
-    modeli denetimin DISINDA birakirdi.                        """
-    kaynak = os.path.join(KANLI_GEO_KAYNAK, "blood_arm.json")
+    Kupsuz ve donussuz ust kemikler (waist/body) atilir, kol
+    kemikleri koke cikar. Atilacak kemikte KUP ya da DONUS
+    varsa is iptal: sessizce geometri kaybetmektense Kanli Kol
+    hic uretilmesin, temizlik adimi eksigi zaten bagirir.     """
+    kaynak = os.path.join(KANLI_GEO_KAYNAK, KANLI_GEO_DOSYA)
     if not os.path.exists(kaynak):
         print("UYARI: Kanli Kol modeli yok (%s)" % kaynak)
         return None
     with open(kaynak, encoding="utf-8") as f:
         ham = json.load(f)
-    eski = None
-    for anahtar, deger in ham.items():
-        if anahtar.startswith("geometry.") and isinstance(deger, dict):
-            eski = deger
-            break
-    if eski is None:
+    govde = (ham.get("minecraft:geometry") or [None])[0]
+    if not isinstance(govde, dict):
         print("UYARI: Kanli Kol modelinde geometri govdesi yok")
         return None
+    kemikler = [dict(k) for k in govde.get("bones", [])]
+    atilacak = set()
+    for k in kemikler:
+        if k.get("name") not in KANLI_ATILAN:
+            continue
+        if k.get("cubes") or k.get("rotation"):
+            print("UYARI: Kanli Kol'da '%s' kemigi bos degil, model "
+                  "atlandi" % k.get("name"))
+            return None
+        atilacak.add(k["name"])
+    kalan = []
+    for k in kemikler:
+        if k.get("name") in atilacak:
+            continue
+        if k.get("parent") in atilacak:
+            k.pop("parent", None)          # kok kemik: oyuncu koluna esler
+        kalan.append(k)
+    if not any(k.get("name") in ("rightArm", "leftArm") for k in kalan):
+        print("UYARI: Kanli Kol'da kol kok kemigi yok, model atlandi")
+        return None
+    tanim = govde.get("description", {})
     return {
         "format_version": "1.12.0",
         "minecraft:geometry": [
             {
                 "description": {
                     "identifier": "geometry.simsek_kol_kanli",
-                    "texture_width": eski.get("texturewidth", 64),
-                    "texture_height": eski.get("textureheight", 64),
-                    # Model oyuncunun iki yanina birden tasiyor;
-                    # gorunur kutu dar birakilirsa uzaktan
-                    # bakinca yumruklar KIRPILIR.
+                    # Doku 256x256 ama uv uzayi 32x32: kaynak
+                    # sekiz kat cozunurlukte cizmis. Bu ikisi
+                    # kaynaktan OLDUGU GIBI gelmeli, yoksa
+                    # uv'ler kayar.
+                    "texture_width": tanim.get("texture_width", 32),
+                    "texture_height": tanim.get("texture_height", 32),
+                    # Kollar x ekseninde +-13.1 birime kadar
+                    # uzaniyor (OLCULDU). 6 blok = +-48 birim,
+                    # uzaktan bakinca pence kirpilmaz.
                     "visible_bounds_width": 6,
                     "visible_bounds_height": 5,
-                    "visible_bounds_offset": [0, 1, 0],
+                    "visible_bounds_offset": [0, 1.5, 0],
                 },
-                "bones": eski.get("bones", []),
+                "bones": kalan,
             }
         ],
     }
@@ -5770,8 +5822,6 @@ def buz_dokusu():
     return p
 
 
-KANLI_KAYNAK = os.path.join(DOKU_KAYNAK, "kanli")
-
 # Kaynagin (Bobby1545 Mod V3) kendi paleti. OLCULDU, secilmedi:
 #   yumruk  #E58D3F / #E59947   (turuncu et)
 #   kan     #FF0303            (taze kan)
@@ -5782,6 +5832,14 @@ KANLI_KAYNAK = os.path.join(DOKU_KAYNAK, "kanli")
 #   yumruk  #E58D3F / #E59947   turuncu et
 #   kan     #FF0303             taze kan
 #   diken   #390808 / #210003   pihtilasmis kan
+# ---- v7.3: DOKU DA CHRIS'IN ----
+# Model chris'e gecti; uv'ler chris'in dokusunu bekliyor.
+# Bobby'nin `blood_arm.png`i (64x64, turuncu yumruk) burada
+# kullanilsaydi pencelerin disleri dokunun bos kosesinden
+# ornekleneceginden kollar duz renk cikardi.
+KANLI_DOKU_DOSYA = "kns_kolluk_chris_kanli.png"
+KANLI_IKON_DOSYA = os.path.join("konsey_ikon", "kns_kolluk_chris_kanli.png")
+
 KANLI_ET   = (229, 141, 63)
 KANLI_KAN  = (255, 3, 3)
 KANLI_KOYU = (57, 8, 8)
@@ -5794,7 +5852,7 @@ def kanli_dokusu_kopyala(hedef):
     kaynagin kendi modeli olunca elle cizim anlamsizlasti:
     kaynagin uv'leri kaynagin dokusunu bekliyor, baska bir doku
     yumruklari ve kollari yanlis yerden ornekler.             """
-    kaynak = os.path.join(KANLI_KAYNAK, "blood_arm.png")
+    kaynak = os.path.join(DOKU_KAYNAK, "konsey", KANLI_DOKU_DOSYA)
     if not os.path.exists(kaynak):
         print("UYARI: Kanli Kol dokusu yok (%s)" % kaynak)
         return False
@@ -6293,7 +6351,7 @@ def main():
         # cizdirilince siyah bir zeminde tek kirmizi cizgi
         # cikiyordu -- envanterde neye baktigini anlamak zordu.
         if kimlik == "kol_kanli":
-            kaynak_doku_kopyala(os.path.join("kanli", "blood_ikon.png"),
+            kaynak_doku_kopyala(KANLI_IKON_DOSYA,
                                 os.path.join(RP, "textures/item",
                                              kimlik + ".png"))
 

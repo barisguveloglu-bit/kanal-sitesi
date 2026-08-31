@@ -1,3 +1,91 @@
+# v7.3 — Kanlı Kol'un gerçek modeli (chris1545)
+
+## Sorun
+
+Kullanıcı gerçek Kanlı Kol'un ekran görüntüsünü gönderdi: **parlak kırmızı,
+boğumlu zincir kollar, uçlarında dişli pençe.** v6.7'de taktığımız model o
+değildi — Bobby1545 Mod V3'ün `blood_arm`ı, düz kırmızı kolların ucunda
+turuncu yumruk.
+
+Aranan model **depoda zaten vardı**: `kns_kolluk_chris_kanli` (Code-Man
+paketi, `chris1545s_red_bloody_arms`), v6.2'den beri. Ama yalnızca göğüs
+yuvasına takılan bir **süs eşyası** olarak duruyordu — yetenekler Kanlı
+Kol'daydı, görünüm orada.
+
+## "2 kol birbirine geçmiş gibi" — model değil, çizicim yanlıştı
+
+Kullanıcı modellemenin bozuk göründüğünü söyledi. **Ölçtüm.** Kemik
+dönüşleri uygulandıktan sonra kolların x aralığı, dört Euler düzeninde:
+
+```
+XYZ işaret −1  sağ −3,6..7,5   sol −7,5..3,6   ORTAK 7,2 birim
+XYZ işaret +1  sağ −13,1..−1,9 sol  1,9..13,1  ORTAK 0
+ZYX işaret −1  sağ −12,9..−2,9 sol  2,9..12,9  ORTAK 0
+ZYX işaret +1  sağ −2,9..7,4   sol −7,4..2,9   ORTAK 5,7
+```
+
+Bedrock açıları **pozitif** işaretle, **XYZ** sırasında uyguluyor. Benim
+çizicim (`ciz_kemik.py`) negatif uyguluyordu — kolları birbirinin içine
+sokan şey oydu. **Model bozuk değildi, düzeltilmedi.** Çizici düzeltildi ve
+ölçüm docstring'ine yazıldı. Mutant Halim de düzeltilmiş çiziciyle yeniden
+çizdirildi (yanlış bir model göndermediğimden emin olmak için) — sorun yok.
+
+## Tek gerçek değişiklik: `waist`/`body` atıldı
+
+Kaynağın hiyerarşisi:
+
+```
+waist → body → rightArm → bone  (33 küp)
+              → leftArm  → bone3 (33 küp)
+```
+
+Kaynak bunu **zırh** olarak takıyor, biz **elde tutulan** eşya olarak
+takıyoruz. Bedrock attachable kemiklerini **adına göre** oyuncu iskeletine
+eşliyor ve `body` de bir oyuncu kemiği: kol kemikleri onun altında kalırsa
+gövde dönüşü bir kez `body`den bir kez kolun kendisinden gelir — **iki kat.**
+
+Bu yüzden `waist`/`body` atılıp `rightArm`/`leftArm` **kök kemik** yapıldı;
+v6.7'de bağlandığı kanıtlanmış düzen bu. Pivotlar Bedrock'ta **mutlak**
+olduğu ve atılan kemiklerde dönüş **olmadığı** için duruş hiç değişmiyor.
+
+Üretici, atılacak kemikte küp ya da dönüş bulursa **işi iptal ediyor**:
+sessizce geometri kaybetmektense Kanlı Kol hiç üretilmesin, temizlik adımı
+eksiği zaten bağırır.
+
+## Doku ve ikon da kaynağın
+
+66 küpün uv'si kaynağın dokusunu bekliyor. Bobby'nin 64×64 `blood_arm.png`i
+bırakılsaydı pençelerin dişleri dokunun boş köşesinden örneklenir, kollar
+düz renk çıkardı.
+
+- doku: `kns_kolluk_chris_kanli.png` — **256×256, uv uzayı 32×32.** Kaynak
+  sekiz kat çözünürlükte çizmiş; ikisi de kaynaktan olduğu gibi geliyor,
+  `texture_width` 64 yazılsaydı bütün uv'ler yarıya kayardı.
+- ikon: `konsey_ikon/kns_kolluk_chris_kanli.png` — iki dişli kırmızı kol.
+  Bobby'nin ikonu iki düz kırmızı çubuktu, artık modeli anlatmıyordu.
+
+Yetenekler, menü, ayarlar **hiç değişmedi**: altı yetenek (`kanli_ors`,
+`kanli_simsek`, `meteor`, `guclu_tnt`, `yon_simsegi`, `toprak_ucus`) aynı
+duruyor. Değişen yalnızca kolun neye benzediği.
+
+## Denetim
+
+`kanli.mjs` kaynağa göre yeniden yazıldı ve **ölçüye** bağlandı:
+
+- sağ kolun tamamı x<0'da, sol kolun tamamı x>0'da, aralarında 3,8 birim
+  boşluk — kullanıcının şikâyet ettiği şey artık bir iddia
+- `waist`/`body` gerçekten boştu (küp yok, dönüş yok) — atmak güvenliydi
+- kalan kemikler kaynaktan bit bit aynı, 66 küp
+- uv uzayı kaynağın uzayı
+- doku ve ikon kaynak dosyalarıyla **bayt bayt** aynı
+
+**Kasten bozuldu:** paketteki dönüşler terslendiğinde üç ölçüm de düştü
+(`boşluk −15,3`). Test çalışıyor.
+
+Bobby'nin `kaynak_doku/kanli/` ve `kaynak_geo/kanli/` arşivi **silinmedi** —
+o modda hâlâ alınmamış kollar var (`long_dirt_arm`, `ice_arm`, `fallen_arm`,
+`glowing_arm`), kaynak duruyor.
+
 # v7.2 — Mutant Halim ve Zaman Saati
 
 ## Mutant Halim
