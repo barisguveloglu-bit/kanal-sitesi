@@ -1,3 +1,60 @@
+# v6.2b — Efsane yapısı oyunda hiç çalışmıyormuş
+
+Kullanıcı: *"efsane yapısı çalışıyor mu diye bir kontrol eder misin acaba"*
+
+**İyi ki sordun.** Yapının kendisi kusursuz çalışıyor — 45 sınama, hepsi geçiyor:
+şifre gidiş-dönüş, SGA harfleri, koordinat zinciri, piramidin örülmesi, Bacon
+bandının çözülünce doğru koordinatı vermesi. Ama **oyunda hiç kurulamıyordu.**
+
+## Sebep: tek bir eksik import
+
+`scripts/yetenekler/efsane.js` **hiçbir yerden import edilmiyordu.** Ne
+`main.js`'te vardı ne başka bir dosyada. Yani içindeki `yetenekKaydet`
+**hiç çalışmıyordu.**
+
+Menüdeki *"◆ Efsane yapısı kur"* satırı duruyordu; bastığında
+`yetenekTetikle(oyuncu, "efsane_yapisi")` çağrılıyor ve **kayıtlı olmayan bir
+yeteneği** arıyordu. Hiçbir şey olmuyordu, hata da vermiyordu.
+
+Kanıt — `main.js` tek başına yüklendiğinde:
+
+```
+kayitli yetenek sayisi: 158
+efsane_yapisi kayitli mi: false
+```
+
+## Testten nasıl kaçtı
+
+`efsane.mjs` dosyayı **kendisi** import ediyordu:
+
+```js
+const efs = await import("./pack/yetenekler/efsane.js");
+```
+
+O import yeteneği kaydediyordu. Yani test *"çalışıyor mu"*yu ölçüyordu,
+*"ulaşılabiliyor mu"*yu değil — **v4.83'te öğrenilen dersin aynısı**, bu kez
+kendi testimizde.
+
+## Düzeltme
+
+`main.js`'e import satırı eklendi (sıra önemli: `kollar.js`'ten önce).
+`efsane.mjs`'e **7. bölüm** eklendi:
+
+- yetenek kayıt defterinde mi
+- `main.js` dosyayı import ediyor mu ← **asıl yakalayan bu**
+- menüde satır var mı ve doğru yeteneği mi çağırıyor
+- satır `menuEkleri()`'nin **gövdesinde** mi
+- `menuEkleri()` gerçekten menüye veriliyor mu
+- `EFSANE_ACIK` ayarı var mı ve dosya ona bakıyor mu
+
+İki kez bilerek bozdum: import satırını sildim → **yakalandı**.
+
+Bu arada testin ilk hâli kendi yorumuma takıldı: `indexOf("Efsane yapisi kur")`
+yeni yazdığım yorum metnini buluyordu. Konum karşılaştırması yerine
+`menuEkleri()`'nin gövdesi ayrılıp içinde aranıyor artık.
+
+---
+
 # v6.2 — CodeMan + yeni BoraLo: 54 parça
 
 Kullanıcı: *"yeni boralo notları buldum, bunlardan alabildiğimizi alalım, eşya

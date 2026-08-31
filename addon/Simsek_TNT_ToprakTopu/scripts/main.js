@@ -172,6 +172,19 @@ import "./yetenekler/bot_ilkel.js";
 import "./yetenekler/o_sey.js";
 import "./yetenekler/donusum.js";
 import "./yetenekler/bot_guc.js";
+/* v6.2 -- BU SATIR EKSIKTI VE EFSANE YAPISI HIC CALISMIYORDU.
+   efsane.js hicbir yerden import edilmiyordu; yani icindeki
+   yetenekKaydet CAGRILMIYORDU. Menude "Efsane yapisi kur"
+   satiri duruyordu ama bastigin sey kayitli olmayan bir
+   yetenegi tetikliyordu -- hicbir sey olmuyordu.
+
+   Testten KACMISTI cunku efsane.mjs dosyayi KENDISI import
+   ediyor ve o import yetenegi kaydediyordu. Yani test
+   "calisiyor mu"yu olcuyordu, "ulasilabiliyor mu"yu degil.
+   v4.83'te ogrenilen ders tam buydu; efsane.mjs'e 7. bolum
+   eklendi (kanit: main.js tek basina yuklendiginde kayitli
+   yetenek 158 taneydi ve efsane_yapisi ICLERINDE YOKTU).   */
+import "./yetenekler/efsane.js";
 /* v4.95: mod cekirdeklerinin ISINLARI, v5.2'de Marvel
    isinlari da ayni motora katildi. zirh.js ve marvel.js'ten
    "elindeki X" fonksiyonlarini kullaniyor, o yuzden onlardan
