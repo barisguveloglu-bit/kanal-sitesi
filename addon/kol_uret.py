@@ -3478,11 +3478,24 @@ def marvel_attachable(p):
 #
 # ---- DOKULAR ----
 # Mod dokuyu katmanlara bolmus (skin / uniform / glow). Bedrock'ta
-# tek doku kullanilabildigi icin:
-#   skin katmani ana doku olarak aliniyor (uniform ve glow
-#   neredeyse bos -- olculdu: 0/16384 ve 2/16384)
-#   Ates Topu haric: onun ALEVI glow katmaninda, o yuzden taban +
-#   alev birlestirildi (kaynak_doku/ben_ates.png).
+# bir geometri TEK doku kullanabildigi icin katmanlar
+# birlestiriliyor -- bu isi ben10_al.py yapiyor, burada hazir
+# PNG okunuyor.
+#
+# v4.92'DE YANLIS OLCULMUSTU. O zaman "uniform ve glow neredeyse
+# bos -- 0/16384" yazmistim ve sadece `skin` katmanini almistim.
+# Olcum SADECE `default` bicimi icin dogruymus; Prototip ve 10K
+# bicimlerinde uniform katmani DOLU:
+#     tetramand_uniform_10k       2267/4096  (%55)
+#     tetramand_skin_10k           960/4096  (%23)
+#     piscciss_volann_uniform_10k 1275/4096  (%31)
+#     petrosapien_uniform_10k     1625/16384 (%10)
+# Yani Dort Kol'un 10K bicimi dokusunun yarisindan cogunu
+# kaybediyordu. v6.0'da uc bicimin de dokusu yeniden uretildi.
+#
+# Ates Topu DOKUNULMADI: onun katmanlari sekiz kareli bir alev
+# animasyonu (heatblast_#I_glow) ve v4.92'de elle birlestirilmisti;
+# yeniden uretmek gorunumunu degistirirdi.
 BEN10_GEO = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                          "kaynak_geo")
 # Palladium kok kemigi -> Bedrock oyuncu kemigi
@@ -3499,7 +3512,13 @@ BEN10_KEMIK = {
 # sariyorlar. Cocuklari koke tasiniyor.
 #   bb_main  Blockbench'in varsayilan koku
 #   group    Ionstrike'in Isi ve HidroIsi modellerindeki sarmalayici
-BEN10_ATILAN = {"bb_main", "group"}
+#   armorLeftBoot / armorRightBoot  (v6.0)
+#            Palladium'un COT yuvasi. Kroma Tasi, Yanki Yanki ve
+#            Devasaur'da var ama UCUNDE DE BOS -- kupu da yok,
+#            cocugu da yok (olculdu). Bedrock'ta oyuncunun ayri
+#            bir cizme kemigi olmadigi icin atiliyor; dolu
+#            olsalardi bacaga baglanmalari gerekirdi.
+BEN10_ATILAN = {"bb_main", "group", "armorLeftBoot", "armorRightBoot"}
 
 # ---- UC BICIM (v4.93) ----
 # Kullanici: "bunlarin da bir formlari daha varmis, bir baksana
@@ -3553,20 +3572,79 @@ BEN10_BICIM = [
 # omzundan gecen ok ona degmiyor. Bu MOTOR SINIRI, eksik is
 # degil; NOTLAR'da yaziyor.
 #
-# (kisa ad, TR ad, EN ad, tur, olcek)
+# ---- ALINMAYAN UZAYLILAR (v6.0) ----
+#
+# Kullanici: "ben 10'den almadigimiz uzaylilari ve formlari
+# eklemeyi dusunuyorum... uzaylilarin guclerini birebir yapmaya
+# calisacagiz."
+#
+# Modda 23 guc dosyasi var. Bunlardan:
+#   4  zaten alinmisti (asagidaki ilk dort satir)
+#   16 alindi (bu surum)
+#   1  ALINAMADI: kryptonian -- MODELI YOK. Gucleri tanimli ama
+#      hicbir render_layer'i yok, jar'da tek bir kryptonian
+#      modeli ya da dokusu bulunmuyor. Uydurma bir model
+#      cizilmedi.
+#   2  yardimci dosya (pyronite_absorb, galvanic_rod) -- ilki
+#      bos, ikincisi Yukseltme'nin ayri bir bicimi.
+#
+# "nucleonix" guc dosyasinin modeli `alien_60/atomix` --
+# dosya adi ile guc adi tutmuyor, render_layer'dan okundu.
+#
+# BICIMLER HER UZAYLIDA UC TANE DEGIL. Modun ilk on bir
+# uzaylisinda uc bicim (default/prototype/10k) var; alien_34,
+# 60, 100, 101 ve afomni'nin bes uzaylisinda TEK model var.
+# Olmayan bicim UYDURULMADI.
+#
+# (kisa ad, TR ad, EN ad, tur, olcek, bicim sayisi, ek dosya sayisi)
 BEN10_TABAN = [
-    ("elmas",   "Elmas Kafa", "Diamondhead", "Petrosapien",     1.35),
-    ("dortkol", "Dört Kol",   "Four Arms",   "Tetramand",       2.0),
-    ("cene",    "Yüzen Çene", "Ripjaws",     "Piscciss Volann", 1.17),
-    ("ates",    "Ateş Topu",  "Heatblast",   "Pyronite",        1.1),
+    # -- v4.92'de alinanlar --
+    ("elmas",     "Elmas Kafa",   "Diamondhead",  "Petrosapien",         1.35, 3, 0),
+    ("dortkol",   "Dört Kol",     "Four Arms",    "Tetramand",           2.0,  3, 0),
+    ("cene",      "Yüzen Çene",   "Ripjaws",      "Piscciss Volann",     1.17, 3, 0),
+    ("ates",      "Ateş Topu",    "Heatblast",    "Pyronite",            1.1,  3, 0),
+    # -- v6.0'da alinanlar: uc bicimli --
+    ("vahsi",     "Vahşi Sırtlan", "Wildmutt",    "Vulpimancer",         1.0,  3, 0),
+    ("xlr",       "Şimşek Hız",   "XLR8",         "Kineceleran",         1.1,  3, 0),
+    ("gri",       "Gri Madde",    "Grey Matter",  "Galvan",              0.25, 3, 0),
+    # Sinek Suratli'nin arka bacaklari ve kanatlari ayri
+    # dosyalarda (ben10_al.py atlasa aldi) -- iki ek dosya.
+    ("sinek",     "Sinek Suratlı", "Stinkfly",    "Lepidopterran",       1.0,  3, 2),
+    ("yukseltme", "Yükseltme",    "Upgrade",      "Galvanic Mechamorph", 1.4,  3, 0),
+    ("hayalet",   "Hayalet",      "Ghostfreak",   "Ectonurite",          1.3,  3, 0),
+    ("gulle",     "Gülle",        "Cannonbolt",   "Arburian Pelarota",   1.33, 3, 0),
+    # -- v6.0'da alinanlar: tek bicimli --
+    ("jet",       "Jet Işını",    "Jetray",       "Aerophibian",         1.0,  1, 0),
+    ("atomik",    "Atomik",       "Atomix",       "Nucleonix",           3.3,  1, 0),
+    ("ejder",     "Ejderha",      "Dragonoid",    "Dragonoid",           8.7,  1, 0),
+    ("astro",     "Astro Bot",    "Astrobot",     "Astrobot",            0.55, 1, 0),
+    ("bataklik",  "Bataklık Ateşi", "Swampfire",  "Methanosian",         1.7,  1, 0),
+    ("buz",       "Büyük Üşütük", "Big Chill",    "Necrofriggian",       1.0,  1, 0),
+    ("yanki",     "Yankı Yankı",  "Echo Echo",    "Sonorosian",          0.5,  1, 0),
+    ("devasa",    "Devasaur",     "Humungousaur", "Vaxasaurian",         2.8,  1, 0),
 ]
 
 # tur adi -> modun kendi power dosyasi (test karsilastiriyor)
 BEN10_GUC_DOSYA = {
-    "Petrosapien":     "petrosapien",
-    "Tetramand":       "tetramand",
-    "Piscciss Volann": "piscciss_volann",
-    "Pyronite":        "pyronite",
+    "Petrosapien":         "petrosapien",
+    "Tetramand":           "tetramand",
+    "Piscciss Volann":     "piscciss_volann",
+    "Pyronite":            "pyronite",
+    "Vulpimancer":         "vulpimancer",
+    "Kineceleran":         "kineceleran",
+    "Galvan":              "galvan",
+    "Lepidopterran":       "lepidopterran",
+    "Galvanic Mechamorph": "galvanic_mechamorph",
+    "Ectonurite":          "ectonurite",
+    "Arburian Pelarota":   "arburian_pelarota",
+    "Aerophibian":         "aerophibian",
+    "Nucleonix":           "nucleonix",
+    "Dragonoid":           "dragonoid",
+    "Astrobot":            "astrobot",
+    "Methanosian":         "methanosian",
+    "Necrofriggian":       "necrofriggian",
+    "Sonorosian":          "sonorosian",
+    "Vaxasaurian":         "vaxasaurian",
 }
 
 # (anahtar, TR ad, EN ad, geo dosyalari, tur adi)
@@ -3575,15 +3653,20 @@ BEN10 = []
 # bes elemanli ve onu genisletmek ALTI yerde dongu imzasi
 # degistirmek demekti.
 BEN10_OLCEK = {}
-for _kisa, _tr, _en, _tur, _olcek in BEN10_TABAN:
-    for _son, _btr, _ben in BEN10_BICIM:
+for _kisa, _tr, _en, _tur, _olcek, _bsayi, _eksayi in BEN10_TABAN:
+    for _son, _btr, _ben in BEN10_BICIM[:_bsayi]:
         _a = "ben_" + _kisa + _son
         _dosyalar = [_a]
         # Dort Kol'un FAZLADAN IKI KOLU her bicimde ayri dosyada
         if _kisa == "dortkol":
             _dosyalar.append(_a + "_kollar")
-        BEN10.append((_a, "%s · %s" % (_tr, _btr), "%s (%s)" % (_en, _ben),
-                      _dosyalar, _tur))
+        # Sinek Suratli'nin arka bacaklari ve kanatlari
+        _dosyalar += ["%s_ek%d" % (_a, _i) for _i in range(_eksayi)]
+        # Tek bicimli uzaylida bicim adi ASILMIYOR: "Jet Isini ·
+        # Recal" diye bir sey yok, modda tek model var.
+        _tam = "%s · %s" % (_tr, _btr) if _bsayi > 1 else _tr
+        _tamen = "%s (%s)" % (_en, _ben) if _bsayi > 1 else _en
+        BEN10.append((_a, _tam, _tamen, _dosyalar, _tur))
         BEN10_OLCEK[_a] = _olcek
 
 # ---- OMNITRIX (v4.93) ----
@@ -3774,13 +3857,25 @@ def ben10_ikonu(anahtar, geo):
     cocuk = {}
     for b in kemikler:
         cocuk.setdefault(b.get("parent"), []).append(b)
-    sira, agac = ["head"], []
-    while sira:
-        ad = sira.pop(0)
-        for b in cocuk.get(ad, []):
-            agac.append(b)
-            sira.append(b["name"])
-    agac = [b for b in kemikler if b["name"] == "head"] + agac
+
+    def alt_agac(kok):
+        sira, agac = [kok], []
+        while sira:
+            ad = sira.pop(0)
+            for b in cocuk.get(ad, []):
+                agac.append(b)
+                sira.append(b["name"])
+        return [b for b in kemikler if b["name"] == kok] + agac
+
+    # v6.0: Gulle'nin (Cannonbolt) `head` kemigi TAMAMEN BOS --
+    # kafasi govdenin icinde cizilmis, ayri bir kemigi yok.
+    # Bos ciktisinda govdeye, o da bossa butun modele bakiliyor;
+    # yoksa ikon uretilemiyordu ve esya mor-siyah kalirdi.
+    agac = alt_agac("head")
+    if not any(b.get("cubes") for b in agac):
+        agac = alt_agac("body")
+    if not any(b.get("cubes") for b in agac):
+        agac = kemikler
 
     kutu = None
     for b in agac:
@@ -3994,9 +4089,9 @@ def oyuncu_modeli_paketi(surum):
     # Bicim AILELERI: "Yuzen Cene'nin herhangi bir bicimi" gibi
     # kosullar icin. Uc bicimi tek tek yazmak yerine tek
     # degisken -- yeni bicim eklenirse kendiliginden dogru.
-    for _kisa, _tr2, _en2, _tur2, _olc2 in BEN10_TABAN:
+    for _kisa, _tr2, _en2, _tur2, _olc2, _bs2, _es2 in BEN10_TABAN:
         _uyeler = ["variable.ben_%s%s" % (_kisa, _son)
-                   for _son, _a1, _a2 in BEN10_BICIM]
+                   for _son, _a1, _a2 in BEN10_BICIM[:_bs2]]
         d["scripts"]["pre_animation"].append(
             "variable.ben_%s_ailesi = %s;" % (_kisa, " || ".join(_uyeler)))
 

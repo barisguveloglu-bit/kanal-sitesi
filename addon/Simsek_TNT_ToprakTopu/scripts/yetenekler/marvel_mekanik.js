@@ -1,6 +1,7 @@
 import { system } from "@minecraft/server";
 import { yetenekKaydet } from "./kayit.js";
 import { guctekiKahraman, gucKumesi } from "./marvel.js";
+import { elindekiYaratik } from "./ben10.js";
 import {
   hataYaz, gecerliMi, actionbarYaz, kollariIndir, parcacikAt,
   yukseklikAraligi, basKonumu
@@ -14,7 +15,7 @@ import {
   MARVEL_ALAN_HIZ, MARVEL_ALAN_HASAR, MARVEL_ALAN_HASAR_ARA,
   MARVEL_ALAN_YAVASLIK, MARVEL_ALAN_YAVASLIK_SURE, MARVEL_ALAN_SURE,
   MARVEL_GECIT_MENZIL, MARVEL_BOY_OLAY, MARVEL_BOY_OLCEK,
-  LAZER_HASAR_SEBEP
+  LAZER_HASAR_SEBEP, BEN10
 } from "../ayarlar.js";
 
 /* ================================================================
@@ -49,13 +50,31 @@ import {
 
 /* ---------------- ortak yardimcilar ---------------- */
 
-/* Kahramanin bu mekanigi var mi? */
+/* Oyuncunun su anki halinde bu mekanik var mi?
+
+   IKI KAYNAK (v6.0). Once Marvel kahramani, sonra elindeki Ben
+   10 yaratigi. Ikisi de ayni alani kullaniyor: `mekanikler`.
+
+   Neden ayni motor: AlienEvo'nun uzaylilarinda da duvar
+   tirmanma (Vahsi Sirtlan, Gri Madde, Dort Kol, Yuzen Cene),
+   faz gecisi (Hayalet, Yukseltme, Bataklik Atesi, Buyuk Usutuk)
+   ve suzulme var -- olculdu, powers/*.json icinde
+   `alienevo:wall_climb`, `palladium:intangibility` ve
+   `alienevo:elytra_flight` olarak duruyor. Bunlari ikinci kez
+   yazmanin anlami yoktu; kapi genisletildi.
+
+   Iki tarafta da ayni mekanik varsa BIRI YETIYOR -- Marvel'de
+   bulunca Ben 10'a bakilmiyor.                              */
 function mekanikVar(oyuncu, mekanik) {
-  let k;
-  try { k = guctekiKahraman(oyuncu); } catch (e) { return false; }
-  const t = gucKumesi(k);
-  if (!t || !t.mekanikler) return false;
-  return t.mekanikler.indexOf(mekanik) !== -1;
+  try {
+    const t = gucKumesi(guctekiKahraman(oyuncu));
+    if (t && t.mekanikler && t.mekanikler.indexOf(mekanik) !== -1) return true;
+  } catch (e) { /* Marvel kapali ya da kahraman yok */ }
+  try {
+    const y = BEN10.get(elindekiYaratik(oyuncu));
+    if (y && y.mekanikler && y.mekanikler.indexOf(mekanik) !== -1) return true;
+  } catch (e) { /* Ben 10 kapali ya da yaratik yok */ }
+  return false;
 }
 
 /* Modun her yerde kullandigi itme. dx/dz yatay, dy dikey. */

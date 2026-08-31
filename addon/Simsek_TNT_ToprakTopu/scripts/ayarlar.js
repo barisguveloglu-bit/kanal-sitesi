@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v5.9";
+export const SURUM = "v6.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -3891,6 +3891,9 @@ const BEN10_TABAN = [
   ["dortkol", {
     ad: "Dört Kol", tur: "Tetramand", kaynak: "tetramand",
     ozet: "armor +60 · max_health +40 · attack +12.3 · ağır",
+    /* v6.0: kaynakta bu turun `wall_climb` yetenegi de var
+       (powers/tetramand.json) -- v4.92'de atlanmisti. */
+    mekanikler: ["tirmanma"],
     /* max_health +40 = Can Artisi X, BIREBIR.
        attack +12.3 -> Guc IV (+12), neredeyse birebir.       */
     efektler: [["resistance", 0, 3], ["strength", 0, 3],
@@ -3900,6 +3903,9 @@ const BEN10_TABAN = [
   ["cene", {
     ad: "Yüzen Çene", tur: "Piscciss Volann", kaynak: "piscciss_volann",
     ozet: "swim_speed +4 · destroy_speed +10 · attack +5",
+    /* v6.0: kaynakta bu turun `wall_climb` yetenegi de var
+       (powers/piscciss_volann.json) -- v4.92'de atlanmisti. */
+    mekanikler: ["tirmanma"],
     efektler: [["water_breathing", 0, 0], ["conduit_power", 0, 0],
                ["haste", 0, 4], ["strength", 0, 1],
                ["resistance", 0, 1], ["slow_falling", 0, 0]]
@@ -3912,16 +3918,177 @@ const BEN10_TABAN = [
     efektler: [["fire_resistance", 0, 0], ["health_boost", 0, 2],
                ["strength", 0, 0], ["resistance", 0, 0],
                ["speed", 0, 0]]
-  }]
+  }],
+
+  /* ============================================================
+     v6.0'DA EKLENEN ON BES UZAYLI
+
+     Kullanici: "ben 10'den almadigimiz uzaylilari ve formlari
+     eklemeyi dusunuyorum... uzaylilarin guclerini birebir
+     yapmaya calisacagiz."
+
+     ---- SAYILAR TURETILDI, YAZILMADI ----
+     Her satir `powers/<tur>.json` dosyasindan hesaplandi.
+     Cevirinin kurallari (hepsi zaten bu dosyada tanimliydi,
+     yenisi UYDURULMADI):
+
+       Direnc  : Java zirh formulu (bkz. bu dosyada "DIRENC COK
+                 DUSUKTU" notu, satir ~2939). 10 hasarlik
+                 referans vurus, tavan Direnc IV.
+       Guc     : seviye basina +3 hasar, esitlikte ASAGI
+       Can     : seviye basina +4 can, esitlikte ASAGI
+       Hiz     : Palladium'un movement_speed'i oyuncunun taban
+                 hizina (0.1) orani; Hiz seviye basina %20.
+                 TAVAN Hiz V -- kaynaktaki +1.65 taban hizin 16
+                 KATI ve Bedrock'ta oynanmaz. Ayni gerekce
+                 zirh tablosunda da yaziyor.
+       Acele   : destroy_speed / 2, tavan Acele V
+       Ziplama : leaping / 0.3
+       Yenilenme: kaynagin `healing` yetenegi tick basina X can
+                 veriyor; Bedrock'ta Yenilenme I = 50 tick'te 1
+                 can, her seviye yariya iniyor.
+
+     ---- HANGI DURUM SAYILDI ----
+     Kaynakta bir ozelligin uc hali var: kosulsuz, beceri
+     agacindan ACILAN, ve bir moda basiliyken GECICI. Ilk
+     ikisi sayildi (ikisi de KALICI), ucuncunun POZITIFLERI de
+     sayildi -- bizde o modlari acip kapayan bir dugme yok,
+     yaratik "acik" geliyor. Gecici CEZALAR sayilmadi: Gulle'nin
+     yuvarlanirken donan hizi ya da Hayalet'in fazdayken
+     kaybettigi hasar, bizde hic girmedigimiz bir durumun
+     bedeli olurdu.
+
+     ---- TASINAMAYANLAR (uydurulmadi) ----
+       flight_speed          Bedrock'ta pasif ucus efekti yok.
+                             Ucan yaratiklara "suzulme"
+                             mekanigi verildi (Marvel'den).
+       freeze_immunity       Bedrock'ta donma bagisikligi yok
+       is_projectile/explosion bagisikligi  efekti yok
+       knockback_resistance  oyuncuya verilemiyor
+       step_height, entity_gravity, entity_reach  ayarlanamiyor
+
+     ---- ALINMAYAN IKI TUR ----
+       Kryptonian    MODELI YOK. Guc dosyasi var ama jar'da
+                     tek bir modeli/dokusu yok, render_layer'i
+                     bos. Uydurma model cizilmedi.
+       Crystalsapien MODU BITMEMIS. Modelini aldik ama guc
+                     dosyasinda tek is yapan satir
+                     `say Under Construction`. Gucsuz bir
+                     yaratik kostumden ibaret olurdu.
+     ============================================================ */
+  ["vahsi", {
+    ad: "Vahşi Sırtlan", tur: "Vulpimancer", kaynak: "vulpimancer",
+    ozet: "direnç III · güç III · hız III · acele V · yavaş düşüş · gece görüşü",
+    mekanikler: ["tirmanma"],
+    efektler: [["resistance", 0, 2], ["strength", 0, 2], ["speed", 0, 2], ["haste", 0, 4], ["slow_falling", 0, 0], ["night_vision", 0, 0]]
+  }],
+  ["xlr", {
+    ad: "Şimşek Hız", tur: "Kineceleran", kaynak: "kineceleran",
+    ozet: "direnç II · güç II · hız V · acele II · yavaş düşüş · tokluk",
+    efektler: [["resistance", 0, 1], ["strength", 0, 1], ["speed", 0, 4], ["haste", 0, 1], ["slow_falling", 0, 0], ["saturation", 0, 0]]
+  }],
+  ["gri", {
+    ad: "Gri Madde", tur: "Galvan", kaynak: "galvan",
+    ozet: "direnç IV · güç II · hız V · zıplama IV · su solunumu · yavaş düşüş",
+    mekanikler: ["tirmanma", "suzulme"],
+    efektler: [["resistance", 0, 3], ["strength", 0, 1], ["speed", 0, 4], ["jump_boost", 0, 3], ["water_breathing", 0, 0], ["slow_falling", 0, 0]]
+  }],
+  ["sinek", {
+    ad: "Sinek Suratlı", tur: "Lepidopterran", kaynak: "lepidopterran",
+    ozet: "direnç II · güç II · yavaş düşüş",
+    mekanikler: ["suzulme"],
+    efektler: [["resistance", 0, 1], ["strength", 0, 1], ["slow_falling", 0, 0]]
+  }],
+  ["yukseltme", {
+    ad: "Yükseltme", tur: "Galvanic Mechamorph", kaynak: "galvanic_mechamorph",
+    ozet: "direnç II · güç IV · su solunumu · yavaş düşüş · ateş direnci · yenilenme IV · tokluk",
+    mekanikler: ["faz", "suzulme"],
+    efektler: [["resistance", 0, 1], ["strength", 0, 3], ["water_breathing", 0, 0], ["slow_falling", 0, 0], ["fire_resistance", 0, 0], ["regeneration", 0, 3], ["saturation", 0, 0]]
+  }],
+  ["hayalet", {
+    ad: "Hayalet", tur: "Ectonurite", kaynak: "ectonurite",
+    ozet: "direnç II · güç II · su solunumu · yavaş düşüş · yenilenme II",
+    mekanikler: ["faz", "suzulme"],
+    efektler: [["resistance", 0, 1], ["strength", 0, 1], ["water_breathing", 0, 0], ["slow_falling", 0, 0], ["regeneration", 0, 1]]
+  }],
+  ["gulle", {
+    ad: "Gülle", tur: "Arburian Pelarota", kaynak: "arburian_pelarota",
+    ozet: "direnç III · güç II · can artışı V · hız I · yavaş düşüş",
+    efektler: [["resistance", 0, 2], ["strength", 0, 1], ["health_boost", 0, 4], ["speed", 0, 0], ["slow_falling", 0, 0]]
+  }],
+  ["jet", {
+    bicim: 1,
+    ad: "Jet Işını", tur: "Aerophibian", kaynak: "aerophibian",
+    ozet: "direnç I · güç II · su solunumu · kanal gücü · yavaş düşüş",
+    mekanikler: ["suzulme"],
+    efektler: [["resistance", 0, 0], ["strength", 0, 1], ["water_breathing", 0, 0], ["conduit_power", 0, 0], ["slow_falling", 0, 0]]
+  }],
+  ["atomik", {
+    bicim: 1,
+    ad: "Atomik", tur: "Nucleonix", kaynak: "nucleonix",
+    ozet: "direnç IV · güç 33 · can artışı 20 · yavaş düşüş · yenilenme III",
+    mekanikler: ["suzulme"],
+    efektler: [["resistance", 0, 3], ["strength", 0, 32], ["health_boost", 0, 19], ["slow_falling", 0, 0], ["regeneration", 0, 2]]
+  }],
+  ["ejder", {
+    bicim: 1,
+    ad: "Ejderha", tur: "Dragonoid", kaynak: "dragonoid",
+    ozet: "yavaş düşüş · ateş direnci",
+    mekanikler: ["suzulme"],
+    efektler: [["slow_falling", 0, 0], ["fire_resistance", 0, 0]]
+  }],
+  ["astro", {
+    bicim: 1,
+    ad: "Astro Bot", tur: "Astrobot", kaynak: "astrobot",
+    ozet: "yavaş düşüş",
+    mekanikler: ["sicrayis"],
+    efektler: [["slow_falling", 0, 0]]
+  }],
+  ["bataklik", {
+    bicim: 1,
+    ad: "Bataklık Ateşi", tur: "Methanosian", kaynak: "methanosian",
+    ozet: "direnç II · güç III · can artışı II · yavaş düşüş · ateş direnci · yenilenme I",
+    mekanikler: ["faz", "suzulme"],
+    efektler: [["resistance", 0, 1], ["strength", 0, 2], ["health_boost", 0, 1], ["slow_falling", 0, 0], ["fire_resistance", 0, 0], ["regeneration", 0, 0]]
+  }],
+  ["buz", {
+    bicim: 1,
+    ad: "Büyük Üşütük", tur: "Necrofriggian", kaynak: "necrofriggian",
+    ozet: "direnç II · güç II · yavaş düşüş",
+    mekanikler: ["faz", "suzulme"],
+    efektler: [["resistance", 0, 1], ["strength", 0, 1], ["slow_falling", 0, 0]]
+  }],
+  ["yanki", {
+    bicim: 1,
+    ad: "Yankı Yankı", tur: "Sonorosian", kaynak: "sonorosian",
+    ozet: "direnç IV · güç II · hız II · zıplama II · yavaş düşüş",
+    mekanikler: ["suzulme"],
+    efektler: [["resistance", 0, 3], ["strength", 0, 1], ["speed", 0, 1], ["jump_boost", 0, 1], ["slow_falling", 0, 0]]
+  }],
+  ["devasa", {
+    bicim: 1,
+    ad: "Devasaur", tur: "Vaxasaurian", kaynak: "vaxasaurian",
+    ozet: "direnç IV · güç X · can artışı X · yavaş düşüş · ateş direnci",
+    efektler: [["resistance", 0, 3], ["strength", 0, 9], ["health_boost", 0, 9], ["slow_falling", 0, 0], ["fire_resistance", 0, 0]]
+  }],
 ];
 
+/* BICIM SAYISI HER UZAYLIDA UC DEGIL (v6.0). Modun ilk on bir
+   uzaylisinda uc model var; alien_34/60/100/101 ve afomni'nin
+   uzaylilarinda TEK model var. Olmayan bir bicim uydurulmadi --
+   `bicim: 1` yazan satir tek modelle geliyor ve adina bicim
+   eklenmiyor ("Jet Isini · Recal" diye bir sey yok).
+   kol_uret.py:BEN10_TABAN'daki bicim sayisiyla AYNI olmali;
+   ben10.mjs ikisini karsilastiriyor.                          */
 export const BEN10 = new Map();
 for (const [kisa, t] of BEN10_TABAN) {
-  for (const [son, bicimAd] of BEN10_BICIM) {
+  const kac = t.bicim || BEN10_BICIM.length;
+  for (const [son, bicimAd] of BEN10_BICIM.slice(0, kac)) {
     BEN10.set("ben_" + kisa + son, {
-      ad: t.ad + " · " + bicimAd,
-      taban: kisa, bicim: bicimAd,
+      ad: kac > 1 ? t.ad + " · " + bicimAd : t.ad,
+      taban: kisa, bicim: kac > 1 ? bicimAd : "",
       tur: t.tur, kaynak: t.kaynak, ozet: t.ozet,
+      mekanikler: t.mekanikler || [],
       efektler: t.efektler
     });
   }

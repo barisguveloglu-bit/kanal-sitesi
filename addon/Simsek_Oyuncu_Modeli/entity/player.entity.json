@@ -27,6 +27,35 @@
         "ben_ates": "textures/entity/ben_ates",
         "ben_ates_proto": "textures/entity/ben_ates_proto",
         "ben_ates_10k": "textures/entity/ben_ates_10k",
+        "ben_vahsi": "textures/entity/ben_vahsi",
+        "ben_vahsi_proto": "textures/entity/ben_vahsi_proto",
+        "ben_vahsi_10k": "textures/entity/ben_vahsi_10k",
+        "ben_xlr": "textures/entity/ben_xlr",
+        "ben_xlr_proto": "textures/entity/ben_xlr_proto",
+        "ben_xlr_10k": "textures/entity/ben_xlr_10k",
+        "ben_gri": "textures/entity/ben_gri",
+        "ben_gri_proto": "textures/entity/ben_gri_proto",
+        "ben_gri_10k": "textures/entity/ben_gri_10k",
+        "ben_sinek": "textures/entity/ben_sinek",
+        "ben_sinek_proto": "textures/entity/ben_sinek_proto",
+        "ben_sinek_10k": "textures/entity/ben_sinek_10k",
+        "ben_yukseltme": "textures/entity/ben_yukseltme",
+        "ben_yukseltme_proto": "textures/entity/ben_yukseltme_proto",
+        "ben_yukseltme_10k": "textures/entity/ben_yukseltme_10k",
+        "ben_hayalet": "textures/entity/ben_hayalet",
+        "ben_hayalet_proto": "textures/entity/ben_hayalet_proto",
+        "ben_hayalet_10k": "textures/entity/ben_hayalet_10k",
+        "ben_gulle": "textures/entity/ben_gulle",
+        "ben_gulle_proto": "textures/entity/ben_gulle_proto",
+        "ben_gulle_10k": "textures/entity/ben_gulle_10k",
+        "ben_jet": "textures/entity/ben_jet",
+        "ben_atomik": "textures/entity/ben_atomik",
+        "ben_ejder": "textures/entity/ben_ejder",
+        "ben_astro": "textures/entity/ben_astro",
+        "ben_bataklik": "textures/entity/ben_bataklik",
+        "ben_buz": "textures/entity/ben_buz",
+        "ben_yanki": "textures/entity/ben_yanki",
+        "ben_devasa": "textures/entity/ben_devasa",
         "zirh_mod_temel": "textures/entity/zirh_mod_temel",
         "zirh_mod_guc": "textures/entity/zirh_mod_guc",
         "zirh_mod_hiz": "textures/entity/zirh_mod_hiz",
@@ -55,6 +84,35 @@
         "ben_ates": "geometry.ben_ates",
         "ben_ates_proto": "geometry.ben_ates_proto",
         "ben_ates_10k": "geometry.ben_ates_10k",
+        "ben_vahsi": "geometry.ben_vahsi",
+        "ben_vahsi_proto": "geometry.ben_vahsi_proto",
+        "ben_vahsi_10k": "geometry.ben_vahsi_10k",
+        "ben_xlr": "geometry.ben_xlr",
+        "ben_xlr_proto": "geometry.ben_xlr_proto",
+        "ben_xlr_10k": "geometry.ben_xlr_10k",
+        "ben_gri": "geometry.ben_gri",
+        "ben_gri_proto": "geometry.ben_gri_proto",
+        "ben_gri_10k": "geometry.ben_gri_10k",
+        "ben_sinek": "geometry.ben_sinek",
+        "ben_sinek_proto": "geometry.ben_sinek_proto",
+        "ben_sinek_10k": "geometry.ben_sinek_10k",
+        "ben_yukseltme": "geometry.ben_yukseltme",
+        "ben_yukseltme_proto": "geometry.ben_yukseltme_proto",
+        "ben_yukseltme_10k": "geometry.ben_yukseltme_10k",
+        "ben_hayalet": "geometry.ben_hayalet",
+        "ben_hayalet_proto": "geometry.ben_hayalet_proto",
+        "ben_hayalet_10k": "geometry.ben_hayalet_10k",
+        "ben_gulle": "geometry.ben_gulle",
+        "ben_gulle_proto": "geometry.ben_gulle_proto",
+        "ben_gulle_10k": "geometry.ben_gulle_10k",
+        "ben_jet": "geometry.ben_jet",
+        "ben_atomik": "geometry.ben_atomik",
+        "ben_ejder": "geometry.ben_ejder",
+        "ben_astro": "geometry.ben_astro",
+        "ben_bataklik": "geometry.ben_bataklik",
+        "ben_buz": "geometry.ben_buz",
+        "ben_yanki": "geometry.ben_yanki",
+        "ben_devasa": "geometry.ben_devasa",
         "zirh_mod_temel": "geometry.zirh_mod_temel",
         "zirh_mod_guc": "geometry.zirh_mod_guc",
         "zirh_mod_hiz": "geometry.zirh_mod_hiz",
@@ -158,6 +216,35 @@
           "variable.ben_ates = query.get_equipped_item_name('main_hand') == 'ben_ates' || query.get_equipped_item_name('off_hand') == 'ben_ates';",
           "variable.ben_ates_proto = query.get_equipped_item_name('main_hand') == 'ben_ates_proto' || query.get_equipped_item_name('off_hand') == 'ben_ates_proto';",
           "variable.ben_ates_10k = query.get_equipped_item_name('main_hand') == 'ben_ates_10k' || query.get_equipped_item_name('off_hand') == 'ben_ates_10k';",
+          "variable.ben_vahsi = query.get_equipped_item_name('main_hand') == 'ben_vahsi' || query.get_equipped_item_name('off_hand') == 'ben_vahsi';",
+          "variable.ben_vahsi_proto = query.get_equipped_item_name('main_hand') == 'ben_vahsi_proto' || query.get_equipped_item_name('off_hand') == 'ben_vahsi_proto';",
+          "variable.ben_vahsi_10k = query.get_equipped_item_name('main_hand') == 'ben_vahsi_10k' || query.get_equipped_item_name('off_hand') == 'ben_vahsi_10k';",
+          "variable.ben_xlr = query.get_equipped_item_name('main_hand') == 'ben_xlr' || query.get_equipped_item_name('off_hand') == 'ben_xlr';",
+          "variable.ben_xlr_proto = query.get_equipped_item_name('main_hand') == 'ben_xlr_proto' || query.get_equipped_item_name('off_hand') == 'ben_xlr_proto';",
+          "variable.ben_xlr_10k = query.get_equipped_item_name('main_hand') == 'ben_xlr_10k' || query.get_equipped_item_name('off_hand') == 'ben_xlr_10k';",
+          "variable.ben_gri = query.get_equipped_item_name('main_hand') == 'ben_gri' || query.get_equipped_item_name('off_hand') == 'ben_gri';",
+          "variable.ben_gri_proto = query.get_equipped_item_name('main_hand') == 'ben_gri_proto' || query.get_equipped_item_name('off_hand') == 'ben_gri_proto';",
+          "variable.ben_gri_10k = query.get_equipped_item_name('main_hand') == 'ben_gri_10k' || query.get_equipped_item_name('off_hand') == 'ben_gri_10k';",
+          "variable.ben_sinek = query.get_equipped_item_name('main_hand') == 'ben_sinek' || query.get_equipped_item_name('off_hand') == 'ben_sinek';",
+          "variable.ben_sinek_proto = query.get_equipped_item_name('main_hand') == 'ben_sinek_proto' || query.get_equipped_item_name('off_hand') == 'ben_sinek_proto';",
+          "variable.ben_sinek_10k = query.get_equipped_item_name('main_hand') == 'ben_sinek_10k' || query.get_equipped_item_name('off_hand') == 'ben_sinek_10k';",
+          "variable.ben_yukseltme = query.get_equipped_item_name('main_hand') == 'ben_yukseltme' || query.get_equipped_item_name('off_hand') == 'ben_yukseltme';",
+          "variable.ben_yukseltme_proto = query.get_equipped_item_name('main_hand') == 'ben_yukseltme_proto' || query.get_equipped_item_name('off_hand') == 'ben_yukseltme_proto';",
+          "variable.ben_yukseltme_10k = query.get_equipped_item_name('main_hand') == 'ben_yukseltme_10k' || query.get_equipped_item_name('off_hand') == 'ben_yukseltme_10k';",
+          "variable.ben_hayalet = query.get_equipped_item_name('main_hand') == 'ben_hayalet' || query.get_equipped_item_name('off_hand') == 'ben_hayalet';",
+          "variable.ben_hayalet_proto = query.get_equipped_item_name('main_hand') == 'ben_hayalet_proto' || query.get_equipped_item_name('off_hand') == 'ben_hayalet_proto';",
+          "variable.ben_hayalet_10k = query.get_equipped_item_name('main_hand') == 'ben_hayalet_10k' || query.get_equipped_item_name('off_hand') == 'ben_hayalet_10k';",
+          "variable.ben_gulle = query.get_equipped_item_name('main_hand') == 'ben_gulle' || query.get_equipped_item_name('off_hand') == 'ben_gulle';",
+          "variable.ben_gulle_proto = query.get_equipped_item_name('main_hand') == 'ben_gulle_proto' || query.get_equipped_item_name('off_hand') == 'ben_gulle_proto';",
+          "variable.ben_gulle_10k = query.get_equipped_item_name('main_hand') == 'ben_gulle_10k' || query.get_equipped_item_name('off_hand') == 'ben_gulle_10k';",
+          "variable.ben_jet = query.get_equipped_item_name('main_hand') == 'ben_jet' || query.get_equipped_item_name('off_hand') == 'ben_jet';",
+          "variable.ben_atomik = query.get_equipped_item_name('main_hand') == 'ben_atomik' || query.get_equipped_item_name('off_hand') == 'ben_atomik';",
+          "variable.ben_ejder = query.get_equipped_item_name('main_hand') == 'ben_ejder' || query.get_equipped_item_name('off_hand') == 'ben_ejder';",
+          "variable.ben_astro = query.get_equipped_item_name('main_hand') == 'ben_astro' || query.get_equipped_item_name('off_hand') == 'ben_astro';",
+          "variable.ben_bataklik = query.get_equipped_item_name('main_hand') == 'ben_bataklik' || query.get_equipped_item_name('off_hand') == 'ben_bataklik';",
+          "variable.ben_buz = query.get_equipped_item_name('main_hand') == 'ben_buz' || query.get_equipped_item_name('off_hand') == 'ben_buz';",
+          "variable.ben_yanki = query.get_equipped_item_name('main_hand') == 'ben_yanki' || query.get_equipped_item_name('off_hand') == 'ben_yanki';",
+          "variable.ben_devasa = query.get_equipped_item_name('main_hand') == 'ben_devasa' || query.get_equipped_item_name('off_hand') == 'ben_devasa';",
           "variable.zirh_mod_temel = query.get_equipped_item_name('main_hand') == 'zirh_mod_temel' || query.get_equipped_item_name('off_hand') == 'zirh_mod_temel';",
           "variable.zirh_mod_guc = query.get_equipped_item_name('main_hand') == 'zirh_mod_guc' || query.get_equipped_item_name('off_hand') == 'zirh_mod_guc';",
           "variable.zirh_mod_hiz = query.get_equipped_item_name('main_hand') == 'zirh_mod_hiz' || query.get_equipped_item_name('off_hand') == 'zirh_mod_hiz';",
@@ -167,11 +254,26 @@
           "variable.zirh_mod_dalis = query.get_equipped_item_name('main_hand') == 'zirh_mod_dalis' || query.get_equipped_item_name('off_hand') == 'zirh_mod_dalis';",
           "variable.zirh_mod_kesif = query.get_equipped_item_name('main_hand') == 'zirh_mod_kesif' || query.get_equipped_item_name('off_hand') == 'zirh_mod_kesif';",
           "variable.zirh_mod_titan = query.get_equipped_item_name('main_hand') == 'zirh_mod_titan' || query.get_equipped_item_name('off_hand') == 'zirh_mod_titan';",
-          "variable.donusuk = variable.o_sey || variable.ben_elmas || variable.ben_elmas_proto || variable.ben_elmas_10k || variable.ben_dortkol || variable.ben_dortkol_proto || variable.ben_dortkol_10k || variable.ben_cene || variable.ben_cene_proto || variable.ben_cene_10k || variable.ben_ates || variable.ben_ates_proto || variable.ben_ates_10k || variable.zirh_mod_temel || variable.zirh_mod_guc || variable.zirh_mod_hiz || variable.zirh_mod_ucus || variable.zirh_mod_gizlilik || variable.zirh_mod_isi || variable.zirh_mod_dalis || variable.zirh_mod_kesif || variable.zirh_mod_titan;",
+          "variable.donusuk = variable.o_sey || variable.ben_elmas || variable.ben_elmas_proto || variable.ben_elmas_10k || variable.ben_dortkol || variable.ben_dortkol_proto || variable.ben_dortkol_10k || variable.ben_cene || variable.ben_cene_proto || variable.ben_cene_10k || variable.ben_ates || variable.ben_ates_proto || variable.ben_ates_10k || variable.ben_vahsi || variable.ben_vahsi_proto || variable.ben_vahsi_10k || variable.ben_xlr || variable.ben_xlr_proto || variable.ben_xlr_10k || variable.ben_gri || variable.ben_gri_proto || variable.ben_gri_10k || variable.ben_sinek || variable.ben_sinek_proto || variable.ben_sinek_10k || variable.ben_yukseltme || variable.ben_yukseltme_proto || variable.ben_yukseltme_10k || variable.ben_hayalet || variable.ben_hayalet_proto || variable.ben_hayalet_10k || variable.ben_gulle || variable.ben_gulle_proto || variable.ben_gulle_10k || variable.ben_jet || variable.ben_atomik || variable.ben_ejder || variable.ben_astro || variable.ben_bataklik || variable.ben_buz || variable.ben_yanki || variable.ben_devasa || variable.zirh_mod_temel || variable.zirh_mod_guc || variable.zirh_mod_hiz || variable.zirh_mod_ucus || variable.zirh_mod_gizlilik || variable.zirh_mod_isi || variable.zirh_mod_dalis || variable.zirh_mod_kesif || variable.zirh_mod_titan;",
           "variable.ben_elmas_ailesi = variable.ben_elmas || variable.ben_elmas_proto || variable.ben_elmas_10k;",
           "variable.ben_dortkol_ailesi = variable.ben_dortkol || variable.ben_dortkol_proto || variable.ben_dortkol_10k;",
           "variable.ben_cene_ailesi = variable.ben_cene || variable.ben_cene_proto || variable.ben_cene_10k;",
-          "variable.ben_ates_ailesi = variable.ben_ates || variable.ben_ates_proto || variable.ben_ates_10k;"
+          "variable.ben_ates_ailesi = variable.ben_ates || variable.ben_ates_proto || variable.ben_ates_10k;",
+          "variable.ben_vahsi_ailesi = variable.ben_vahsi || variable.ben_vahsi_proto || variable.ben_vahsi_10k;",
+          "variable.ben_xlr_ailesi = variable.ben_xlr || variable.ben_xlr_proto || variable.ben_xlr_10k;",
+          "variable.ben_gri_ailesi = variable.ben_gri || variable.ben_gri_proto || variable.ben_gri_10k;",
+          "variable.ben_sinek_ailesi = variable.ben_sinek || variable.ben_sinek_proto || variable.ben_sinek_10k;",
+          "variable.ben_yukseltme_ailesi = variable.ben_yukseltme || variable.ben_yukseltme_proto || variable.ben_yukseltme_10k;",
+          "variable.ben_hayalet_ailesi = variable.ben_hayalet || variable.ben_hayalet_proto || variable.ben_hayalet_10k;",
+          "variable.ben_gulle_ailesi = variable.ben_gulle || variable.ben_gulle_proto || variable.ben_gulle_10k;",
+          "variable.ben_jet_ailesi = variable.ben_jet;",
+          "variable.ben_atomik_ailesi = variable.ben_atomik;",
+          "variable.ben_ejder_ailesi = variable.ben_ejder;",
+          "variable.ben_astro_ailesi = variable.ben_astro;",
+          "variable.ben_bataklik_ailesi = variable.ben_bataklik;",
+          "variable.ben_buz_ailesi = variable.ben_buz;",
+          "variable.ben_yanki_ailesi = variable.ben_yanki;",
+          "variable.ben_devasa_ailesi = variable.ben_devasa;"
         ],
         "animate": [
           "root",
@@ -318,6 +420,93 @@
         },
         {
           "controller.render.ben_ates_10k": "variable.ben_ates_10k && !variable.is_first_person && !variable.map_face_icon"
+        },
+        {
+          "controller.render.ben_vahsi": "variable.ben_vahsi && !variable.is_first_person && !variable.map_face_icon"
+        },
+        {
+          "controller.render.ben_vahsi_proto": "variable.ben_vahsi_proto && !variable.is_first_person && !variable.map_face_icon"
+        },
+        {
+          "controller.render.ben_vahsi_10k": "variable.ben_vahsi_10k && !variable.is_first_person && !variable.map_face_icon"
+        },
+        {
+          "controller.render.ben_xlr": "variable.ben_xlr && !variable.is_first_person && !variable.map_face_icon"
+        },
+        {
+          "controller.render.ben_xlr_proto": "variable.ben_xlr_proto && !variable.is_first_person && !variable.map_face_icon"
+        },
+        {
+          "controller.render.ben_xlr_10k": "variable.ben_xlr_10k && !variable.is_first_person && !variable.map_face_icon"
+        },
+        {
+          "controller.render.ben_gri": "variable.ben_gri && !variable.is_first_person && !variable.map_face_icon"
+        },
+        {
+          "controller.render.ben_gri_proto": "variable.ben_gri_proto && !variable.is_first_person && !variable.map_face_icon"
+        },
+        {
+          "controller.render.ben_gri_10k": "variable.ben_gri_10k && !variable.is_first_person && !variable.map_face_icon"
+        },
+        {
+          "controller.render.ben_sinek": "variable.ben_sinek && !variable.is_first_person && !variable.map_face_icon"
+        },
+        {
+          "controller.render.ben_sinek_proto": "variable.ben_sinek_proto && !variable.is_first_person && !variable.map_face_icon"
+        },
+        {
+          "controller.render.ben_sinek_10k": "variable.ben_sinek_10k && !variable.is_first_person && !variable.map_face_icon"
+        },
+        {
+          "controller.render.ben_yukseltme": "variable.ben_yukseltme && !variable.is_first_person && !variable.map_face_icon"
+        },
+        {
+          "controller.render.ben_yukseltme_proto": "variable.ben_yukseltme_proto && !variable.is_first_person && !variable.map_face_icon"
+        },
+        {
+          "controller.render.ben_yukseltme_10k": "variable.ben_yukseltme_10k && !variable.is_first_person && !variable.map_face_icon"
+        },
+        {
+          "controller.render.ben_hayalet": "variable.ben_hayalet && !variable.is_first_person && !variable.map_face_icon"
+        },
+        {
+          "controller.render.ben_hayalet_proto": "variable.ben_hayalet_proto && !variable.is_first_person && !variable.map_face_icon"
+        },
+        {
+          "controller.render.ben_hayalet_10k": "variable.ben_hayalet_10k && !variable.is_first_person && !variable.map_face_icon"
+        },
+        {
+          "controller.render.ben_gulle": "variable.ben_gulle && !variable.is_first_person && !variable.map_face_icon"
+        },
+        {
+          "controller.render.ben_gulle_proto": "variable.ben_gulle_proto && !variable.is_first_person && !variable.map_face_icon"
+        },
+        {
+          "controller.render.ben_gulle_10k": "variable.ben_gulle_10k && !variable.is_first_person && !variable.map_face_icon"
+        },
+        {
+          "controller.render.ben_jet": "variable.ben_jet && !variable.is_first_person && !variable.map_face_icon"
+        },
+        {
+          "controller.render.ben_atomik": "variable.ben_atomik && !variable.is_first_person && !variable.map_face_icon"
+        },
+        {
+          "controller.render.ben_ejder": "variable.ben_ejder && !variable.is_first_person && !variable.map_face_icon"
+        },
+        {
+          "controller.render.ben_astro": "variable.ben_astro && !variable.is_first_person && !variable.map_face_icon"
+        },
+        {
+          "controller.render.ben_bataklik": "variable.ben_bataklik && !variable.is_first_person && !variable.map_face_icon"
+        },
+        {
+          "controller.render.ben_buz": "variable.ben_buz && !variable.is_first_person && !variable.map_face_icon"
+        },
+        {
+          "controller.render.ben_yanki": "variable.ben_yanki && !variable.is_first_person && !variable.map_face_icon"
+        },
+        {
+          "controller.render.ben_devasa": "variable.ben_devasa && !variable.is_first_person && !variable.map_face_icon"
         },
         {
           "controller.render.zirh_mod_temel": "variable.zirh_mod_temel && !variable.is_first_person && !variable.map_face_icon"

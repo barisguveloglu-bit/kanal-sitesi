@@ -1,3 +1,98 @@
+# v6.0 — Ben 10: on beş uzaylı daha
+
+Kullanıcı: *"ben 10'den almadığımız uzaylıları ve formları eklemeyi
+düşünüyorum... unutma ki uzaylıların güçlerini birebir yapmaya çalışacağız."*
+
+## Ne geldi
+
+**4 uzaylı → 19 uzaylı, 12 kayıt → 41 kayıt.**
+
+Yedi tanesi üç biçimli (Vahşi Sırtlan, Şimşek Hız, Gri Madde, Sinek Suratlı,
+Yükseltme, Hayalet, Gülle), sekiz tanesi tek modelli (Jet Işını, Atomik,
+Ejderha, Astro Bot, Bataklık Ateşi, Büyük Üşütük, Yankı Yankı, Devasaur).
+
+Sayılar `powers/<tür>.json` dosyalarından **hesaplandı**, yazılmadı — kural
+tablosu `REFERANS_BEN10.md`'de.
+
+## İki tür ALINAMADI, ikisinin de sebebi var
+
+| tür | neden |
+|---|---|
+| **Kryptonian** | Güç dosyası dolu ama jar'da **modeli yok** — tek bir `.geo.json`, doku ya da `render_layer` bile yok. Uydurma model çizilmedi. |
+| **Crystalsapien** (Chromastone) | Modeli var, ama **modun kendisi bitmemiş**: güç dosyasında iş yapan tek satır `say Under Construction`. Güçsüz bir yaratık kostümden ibaret olurdu. |
+
+İkisi de `sim/ben10.mjs` 1. bölümde **sınanıyor**. Testin tuttuğu şey
+"almadık" değil, *"gerçekten alınamaz mıydı"*.
+
+## Yol boyunca çıkan üç şey
+
+### 1. Eski dördünün dokusu EKSİKMİŞ
+
+v4.92'de "uniform ve glow katmanları neredeyse boş — ölçüldü: 0/16384"
+yazmıştım ve sadece `skin` katmanını almıştım. **O ölçüm sadece `default`
+biçimi için doğruymuş.**
+
+```
+tetramand_uniform_10k        2267/4096   (%55)   <- alınmıyordu
+tetramand_skin_10k            960/4096   (%23)   <- alınan buydu
+piscciss_volann_uniform_10k  1275/4096   (%31)
+petrosapien_uniform_10k      1625/16384  (%10)
+```
+
+Dört Kol'un 10K biçimi dokusunun **yarısından çoğunu kaybediyordu.** Elmas
+Kafa, Dört Kol ve Yüzen Çene'nin dokuları üç biçimde de yeniden üretildi.
+
+Ateş Topu'na dokunulmadı: onun katmanları sekiz kareli bir alev animasyonu
+ve v4.92'de elle birleştirilmişti; yeniden üretmek görünümünü değiştirirdi.
+
+### 2. Sinek Suratlı'nın kanatları ayrı dokudaydı
+
+Kanatlar (`wings_#UNIFORM.png`) gövdeden **ayrı bir dosya**. Bedrock'ta bir
+geometri tek doku kullanıyor. Çözüm: doku **atlasa** alındı — kanat dokusu
+gövdenin sağına yapıştırıldı, kanat UV'leri 64 piksel kaydırıldı, tuval
+128×64 oldu. Yandan render'la doğrulandı.
+
+### 3. Marvel mekanikleri Ben 10'a da açıldı
+
+Modda **`wall_climb`, `intangibility`, `elytra_flight`** zaten vardı —
+bizim `tirmanma` / `faz` / `suzulme` mekaniklerimizin tam karşılığı.
+`mekanikVar()` genişletildi: önce Marvel kahramanına, sonra elindeki
+uzaylıya bakıyor.
+
+Bu arada ortaya çıktı ki **Dört Kol ile Yüzen Çene'nin de** kaynakta
+`wall_climb`'i varmış — v4.92'de atlanmış. İkisine de eklendi.
+
+## Ne gelmedi
+
+**Aktif saldırı yetenekleri.** Ejderha'nın ateş topu (10 hasar), Astro
+Bot'un yumruğu (7/10) ve lazeri (10), Büyük Üşütük'ün buz nefesi (3),
+Yükseltme'nin enerji ışını — sayıları okundu, `REFERANS_BEN10.md`'de
+yazıyor, ama aktarılmadı. Ejderha ile Astro Bot'un tablodaki güçlerinin
+zayıf görünmesinin sebebi bu: kaynakta da güçleri saldırılarında.
+
+**Modun kendi animasyonları.** Yeni uzaylıların `.animation.json`'ları
+alınmadı. WoM dersinden sonra kural şu: bir tetiğe **güvenle**
+bağlanamayan animasyon pakete girmiyor. Gövdeleri vanilla oyuncu
+animasyonlarıyla sürülüyor — dört uzaylıyı çalıştıran şey de buydu.
+
+## Dikkat: üç uzaylı çok büyük
+
+Ejderha **8.7×** (~20 blok), Atomik **3.3×**, Devasaur **2.8×**. Model o
+kadar büyüyor ama **çarpışma kutusu 1.8 blokta kalıyor** — kaynak mod bunu
+`pehkui` ile çözüyor, Bedrock'ta karşılığı yok. Sayılar modun kendi
+JSON'undan; küçültmek uydurmak olurdu.
+
+## Doğrulama
+
+- `sim/kos.sh` — hepsi geçti (71 dosya)
+- `sim/anim_tara.py` — **HATA 0**
+- İki bilerek bozma denemesi: yanlış ölçek ve uydurma biçim — **ikisi de
+  yakalandı**
+- Ön render: `ben10_yeni.png` (önden 29 model), yandan Sinek Suratlı ve
+  Büyük Üşütük
+
+---
+
 # v5.9 — Yetenek ağacı kaynaktakiyle aynı
 
 Kullanıcı iki şey sordu:

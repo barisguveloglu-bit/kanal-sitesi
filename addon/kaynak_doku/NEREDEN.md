@@ -180,26 +180,77 @@ yapan **Habb & Stephen**. Fabric + Palladium, modelleri **GeckoLib**
 ile, yani ZATEN Bedrock `.geo.json` bicimi.
 md5 `18b2b7b17aa9b5d4efa794d3fbbfd7e4`.
 
-| bizdeki dosya | modun icindeki yol |
+**v6.0'dan beri `ben10_al.py` uretiyor** -- tablo o dosyada, burada
+ozeti var. `#U` = bicim (`default` / `prototype` / `10k`).
+
+| bizdeki dosya | modun icindeki katmanlar (ALTTAN USTE) |
 |---|---|
-| `ben_elmas.png` | `.../models/aliens/alien_3/petrosapien_skin_default.png` |
-| `ben_dortkol.png` | `.../models/aliens/alien_6/tetramand_skin_default.png` |
-| `ben_cene.png` | `.../models/aliens/alien_8/piscciss_volann_skin_default.png` |
-| `ben_ates.png` | `alien_1/heatblast_default.png` + `heatblast_0_glow_default.png` **birlestirildi** |
+| `ben_elmas*.png` | `alien_3/petrosapien_skin_#U` + `_uniform_#U` + `_glow_#U` |
+| `ben_dortkol*.png` | `alien_6/tetramand_skin_#U` + `_uniform_#U` + `_glow_#U` |
+| `ben_cene*.png` | `alien_8/piscciss_volann_skin_#U` + `_uniform_#U` + `_glow_#U` |
+| `ben_ates*.png` | `alien_1/heatblast_default` + `heatblast_0_glow_default` **elle birlestirildi (v4.92)** |
+| `ben_vahsi*.png` | `alien_2/vulpimancer_skin_#U` + `_uniform_#U` |
+| `ben_xlr*.png` | `alien_4/kineceleran_skin_#U` + `_uniform_#U` + `_glow_#U` |
+| `ben_gri*.png` | `alien_5/galvan_skin_#U` + `_uniform_#U` + `_glow_#U` |
+| `ben_sinek*.png` | `alien_7/lepidopterran_uniform_#U` + `_skin_#U` + `_glow_#U` + **atlas:** `wings_#U` |
+| `ben_yukseltme*.png` | `alien_9/galvanic_mechamorph_#U` + `_glow_#U` |
+| `ben_hayalet*.png` | `alien_10/ectonurite_skin_0_#U` + `_glow_#U` |
+| `ben_gulle*.png` | `alien_11/arburian_pelarota_#U` + `_glow_#U` |
+| `ben_jet.png` | `alien_34/aerophibian` + `_glow` |
+| `ben_atomik.png` | `alien_60/atomix` + `atomix_glow_0` |
+| `ben_ejder.png` | `alien_100/dragonoid` + `_glow` |
+| `ben_astro.png` | `alien_101/astrobot` + `_glow` |
+| `ben_bataklik.png` | `afomni:.../methanosian/methanosian` |
+| `ben_buz.png` | `afomni:.../necrofriggian/necrofriggian_0` + `_glow` |
+| `ben_yanki.png` | `afomni:.../sonorosian/sonorosian` + `_glow` |
+| `ben_devasa.png` | `afomni:.../vaxasaurian/vaxasaurian` |
+
+Katman sirasi **render_layer JSON'undan okundu**, tahmin degil -- Sinek
+Suratli'da `uniform` ALTTA, `skin` USTTE; otekilerde tersi.
 
 Ates Topu'nun ALEVI ayri bir katmanda ve modun kendisi sekiz kareyi
 sirayla oynatiyor. Bedrock'ta tek doku kullanilabildigi icin ilk kare
 tabana bindirildi -- alevsiz birakmak karakteri "sonmus" gosterirdi.
+O dosya v6.0'da YENIDEN URETILMEDI (elle birlestirilmisti).
+
+**v4.92'DEKI OLCUM HATASI.** O zaman "uniform ve glow neredeyse bos --
+0/16384" yazmistim ve sadece `skin` katmanini almistim. Olcum SADECE
+`default` bicimi icin dogruymus; `prototype` ve `10k` bicimlerinde
+uniform katmani dolu (`tetramand_uniform_10k` %55, `piscciss_uniform_10k`
+%31). Dort Kol'un 10K bicimi dokusunun yarisindan cogunu kaybediyordu.
+v6.0'da uc bicimin de dokusu yeniden uretildi.
+
+**Sinek Suratli'nin kanatlari ATLASA alindi.** Kanat dokusu govdeden
+ayri bir dosya; Bedrock'ta bir geometri tek doku kullaniyor. Kanat
+dokusu govdenin SAGINA yapistirildi (tuval 64 -> 128 genis) ve kanat
+UV'leri 64 piksel kaydirildi.
 
 `kaynak_geo/` altindaki modeller:
 
 | bizdeki dosya | modun icindeki yol |
 |---|---|
-| `ben_elmas.geo.json` | `geo/aliens/alien_3/petrosapien_default.geo.json` |
-| `ben_dortkol.geo.json` | `geo/aliens/alien_6/tetramand_default.geo.json` |
-| `ben_dortkol_kollar.geo.json` | `geo/aliens/alien_6/tetramand_arms_default.geo.json` |
-| `ben_cene.geo.json` | `geo/aliens/alien_8/piscciss_volann_default.geo.json` |
-| `ben_ates.geo.json` | `geo/aliens/alien_1/pyronite_default.geo.json` |
+| `ben_elmas*.geo.json` | `geo/aliens/alien_3/petrosapien_#U.geo.json` |
+| `ben_dortkol*.geo.json` | `geo/aliens/alien_6/tetramand_#U.geo.json` |
+| `ben_dortkol*_kollar.geo.json` | `geo/aliens/alien_6/tetramand_arms_#U.geo.json` |
+| `ben_cene*.geo.json` | `geo/aliens/alien_8/piscciss_volann_#U.geo.json` |
+| `ben_ates*.geo.json` | `geo/aliens/alien_1/pyronite_#U.geo.json` |
+| `ben_vahsi*.geo.json` | `geo/aliens/alien_2/vulpimancer_#U.geo.json` |
+| `ben_xlr*.geo.json` | `geo/aliens/alien_4/kineceleran_#U.geo.json` |
+| `ben_gri*.geo.json` | `geo/aliens/alien_5/galvan_#U.geo.json` |
+| `ben_sinek*.geo.json` | `geo/aliens/alien_7/lepidopterran_#U.geo.json` |
+| `ben_sinek*_ek0.geo.json` | `geo/aliens/alien_7/lepidopterran_legs_#U.geo.json` |
+| `ben_sinek*_ek1.geo.json` | `geo/aliens/alien_7/lepidopterran_wings.geo.json` (UV'si kaydirildi) |
+| `ben_yukseltme*.geo.json` | `geo/aliens/alien_9/galvanic_mechamorph_#U.geo.json` |
+| `ben_hayalet*.geo.json` | `geo/aliens/alien_10/ectonurite_#U.geo.json` |
+| `ben_gulle*.geo.json` | `geo/aliens/alien_11/arburian_pelarota_#U.geo.json` |
+| `ben_jet.geo.json` | `geo/aliens/alien_34/aerophibian.geo.json` |
+| `ben_atomik.geo.json` | `geo/aliens/alien_60/atomix.geo.json` |
+| `ben_ejder.geo.json` | `geo/aliens/alien_100/dragonoid.geo.json` |
+| `ben_astro.geo.json` | `geo/aliens/alien_101/astrobot.geo.json` |
+| `ben_bataklik.geo.json` | `afomni:geo/methanosian.geo.json` |
+| `ben_buz.geo.json` | `afomni:geo/necrofriggian.geo.json` |
+| `ben_yanki.geo.json` | `afomni:geo/sonorosian.geo.json` |
+| `ben_devasa.geo.json` | `afomni:geo/vaxasaurian.geo.json` |
 
 Kupler, uv'ler, donusler HIC ELLENMEDI. Tek degisiklik kemik adlari
 (`armorHead` -> `head` vb.) ve kimlik -- modun kendi kimlikleri bozuk

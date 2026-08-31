@@ -1100,6 +1100,93 @@
     "ben_ates_10k": {
       "textures": "textures/item/ben_ates_10k"
     },
+    "ben_vahsi": {
+      "textures": "textures/item/ben_vahsi"
+    },
+    "ben_vahsi_proto": {
+      "textures": "textures/item/ben_vahsi_proto"
+    },
+    "ben_vahsi_10k": {
+      "textures": "textures/item/ben_vahsi_10k"
+    },
+    "ben_xlr": {
+      "textures": "textures/item/ben_xlr"
+    },
+    "ben_xlr_proto": {
+      "textures": "textures/item/ben_xlr_proto"
+    },
+    "ben_xlr_10k": {
+      "textures": "textures/item/ben_xlr_10k"
+    },
+    "ben_gri": {
+      "textures": "textures/item/ben_gri"
+    },
+    "ben_gri_proto": {
+      "textures": "textures/item/ben_gri_proto"
+    },
+    "ben_gri_10k": {
+      "textures": "textures/item/ben_gri_10k"
+    },
+    "ben_sinek": {
+      "textures": "textures/item/ben_sinek"
+    },
+    "ben_sinek_proto": {
+      "textures": "textures/item/ben_sinek_proto"
+    },
+    "ben_sinek_10k": {
+      "textures": "textures/item/ben_sinek_10k"
+    },
+    "ben_yukseltme": {
+      "textures": "textures/item/ben_yukseltme"
+    },
+    "ben_yukseltme_proto": {
+      "textures": "textures/item/ben_yukseltme_proto"
+    },
+    "ben_yukseltme_10k": {
+      "textures": "textures/item/ben_yukseltme_10k"
+    },
+    "ben_hayalet": {
+      "textures": "textures/item/ben_hayalet"
+    },
+    "ben_hayalet_proto": {
+      "textures": "textures/item/ben_hayalet_proto"
+    },
+    "ben_hayalet_10k": {
+      "textures": "textures/item/ben_hayalet_10k"
+    },
+    "ben_gulle": {
+      "textures": "textures/item/ben_gulle"
+    },
+    "ben_gulle_proto": {
+      "textures": "textures/item/ben_gulle_proto"
+    },
+    "ben_gulle_10k": {
+      "textures": "textures/item/ben_gulle_10k"
+    },
+    "ben_jet": {
+      "textures": "textures/item/ben_jet"
+    },
+    "ben_atomik": {
+      "textures": "textures/item/ben_atomik"
+    },
+    "ben_ejder": {
+      "textures": "textures/item/ben_ejder"
+    },
+    "ben_astro": {
+      "textures": "textures/item/ben_astro"
+    },
+    "ben_bataklik": {
+      "textures": "textures/item/ben_bataklik"
+    },
+    "ben_buz": {
+      "textures": "textures/item/ben_buz"
+    },
+    "ben_yanki": {
+      "textures": "textures/item/ben_yanki"
+    },
+    "ben_devasa": {
+      "textures": "textures/item/ben_devasa"
+    },
     "zirh_mod_temel": {
       "textures": "textures/item/zirh_mod_temel"
     },
