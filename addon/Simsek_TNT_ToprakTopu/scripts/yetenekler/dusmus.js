@@ -1,12 +1,16 @@
 import { system, world, ItemStack } from "@minecraft/server";
 import {
-  hataYaz, bilgiYaz, gecerliMi, actionbarYaz, parcacikAt, varlikKonumu,
-  olayaAbone
+  hataYaz, bilgiYaz, gecerliMi, actionbarYaz, baslikYaz, parcacikAt,
+  varlikKonumu, olayaAbone
 } from "../yardimcilar.js";
+import { sohbetDinleyiciEkle, sadelestir } from "../sohbet.js";
 import {
   DUSMUS_ACIK, DUSMUS_BLOK, DUSMUS_TARAMA, DUSMUS_ASAMA_ARA,
   DUSMUS_ASAMA_SAYISI, DUSMUS_ASAMALAR, DUSMUS_KORLUK,
-  DUSMUS_ATES_TICK, DUSMUS_BAGISIKLIK, DUSMUS_KAYIT_ANAHTAR
+  DUSMUS_ATES_TICK, DUSMUS_BAGISIKLIK, DUSMUS_KAYIT_ANAHTAR,
+  DUSMUS_SECILME_SURE, DUSMUS_SECILME_BASLIK, DUSMUS_SECILME_ALT,
+  DUSMUS_YEMIN_YONERGE, DUSMUS_YEMIN, DUSMUS_ASKER_BASLIK,
+  DUSMUS_ASKER_MESAJ, DUSMUS_YEMIN_TEKRAR
 } from "../ayarlar.js";
 
 /* ================================================================
@@ -24,6 +28,10 @@ import {
                 DONUYOR (kaynakta da oyle).
      dusmus     4. asama. KALICI -- blogun ustunden inmek
                 kurtarmiyor. Tek cikis ates.
+     secilmis   4. asamada DUSMUS_SECILME_SURE kadar dayandi.
+                Korluk kalkiyor, ekrana "SECILDIN" yaziliyor ve
+                sohbete YEMIN dusuyor.
+     asker      yemini yazdi. Son durum.
      ariniyor   ates degdi, asamalar TERSINE isliyor.
 
    ---- ZIRHIN KAYBOLMUYOR ----
@@ -272,6 +280,47 @@ function arindir(oyuncu, kayit) {
   } catch (e) { /* onemsiz */ }
 }
 
+/* Dorduncu asamada dayanan oyuncu SECILIYOR: korluk kalkiyor,
+   ekrana buyuk yazi dusuyor, sohbete yemin yaziliyor.       */
+function sec(oyuncu, kayit) {
+  kayit.durum = "secilmis";
+  kayit.secilmeTick = undefined;
+  kayit.yeminTick = system.currentTick + DUSMUS_YEMIN_TEKRAR;
+  korlukVer(oyuncu, false);          // karanlik gecti
+  yaz();
+  try {
+    baslikYaz(oyuncu, DUSMUS_SECILME_BASLIK, DUSMUS_SECILME_ALT);
+    oyuncu.sendMessage(DUSMUS_YEMIN_YONERGE);
+    parcacikAt(oyuncu.dimension, "minecraft:totem_particle",
+               varlikKonumu(oyuncu));
+  } catch (e) {
+    hataYaz("dusmus.sec", e);
+  }
+}
+
+/* Yemin edildi mi? sohbet.js'in dinleyicisinden cagriliyor.
+   Donen deger: mesaj sohbete DUSMESIN mi.                   */
+export function dusmusYemin(oyuncu, metin) {
+  const kayit = defter.get(oyuncu.id);
+  if (!kayit || kayit.durum !== "secilmis") return false;
+  /* Karsilastirma sadelestirilmis: buyuk/kucuk harf ve Turkce
+     sapkalar onemli degil. Tabletten yazan biri icin harfi
+     harfine eslesme eziyet olurdu.                          */
+  if (sadelestir(metin) !== sadelestir(DUSMUS_YEMIN)) return false;
+  kayit.durum = "asker";
+  kayit.yeminTick = undefined;
+  yaz();
+  try {
+    baslikYaz(oyuncu, DUSMUS_ASKER_BASLIK, DUSMUS_ASKER_MESAJ);
+    oyuncu.sendMessage(DUSMUS_ASKER_MESAJ);
+    parcacikAt(oyuncu.dimension, "minecraft:totem_particle",
+               varlikKonumu(oyuncu));
+  } catch (e) {
+    hataYaz("dusmus.yemin", e);
+  }
+  return true;                       // yemin herkesin sohbetine dusmesin
+}
+
 /* Ates degdi mi: yaniyorsa ya da cakmak kullandiysa. */
 function yaniyorMu(oyuncu) {
   try {
@@ -370,18 +419,49 @@ export function dusmusTara(oyuncular) {
            kurtarmiyor; tek cikis ates.                      */
         kayit.durum = "dusmus";
         korlukVer(oyuncu, true);
+        /* Dorduncu asama bir SON degil bir ESIK: bu tick'ten
+           itibaren DUSMUS_SECILME_SURE kadar dayanirsa
+           seciliyor.                                        */
+        kayit.secilmeTick = simdi + DUSMUS_SECILME_SURE;
       }
       yaz();
       continue;
     }
 
     if (kayit.durum === "dusmus") {
+      /* Dunya kaydinda secilmeTick YOK (defter yalniz durum,
+         asama ve zirhi tasiyor -- ozelligin boyut siniri var).
+         Cikip giren kurban bu satir olmadan SONSUZA KADAR
+         secilemezdi. Eksikse sayac bastan basliyor.         */
+      if (kayit.secilmeTick === undefined) {
+        kayit.secilmeTick = simdi + DUSMUS_SECILME_SURE;
+      }
+      /* Dayandi mi? Dayandiysa karanlik geciyor.            */
+      if (simdi >= kayit.secilmeTick) {
+        sec(oyuncu, kayit);
+        continue;
+      }
       /* Kalici: parcalar uzerinde kalsin. Biri cikardiysa
          (ya da olup dirildiyse) yeniden giydiriliyor --
          "bedenden cikmayan zirh" tam olarak bu.             */
       if (simdi < kayit.sonrakiTick) continue;
       kayit.sonrakiTick = simdi + DUSMUS_ASAMA_ARA;
       asamayiGiy(oyuncu, DUSMUS_ASAMA_SAYISI - 1);
+      continue;
+    }
+
+    if (kayit.durum === "secilmis" || kayit.durum === "asker") {
+      /* Parcalar hala bedende ve hala cikmiyor. */
+      if (simdi < kayit.sonrakiTick) continue;
+      kayit.sonrakiTick = simdi + DUSMUS_ASAMA_ARA;
+      asamayiGiy(oyuncu, DUSMUS_ASAMA_SAYISI - 1);
+      /* Yemin yonergesi kaybolmasin: secilmis ama henuz
+         yemin etmemis olana araliklarla tekrarlaniyor.     */
+      if (kayit.durum === "secilmis" &&
+          (kayit.yeminTick === undefined || simdi >= kayit.yeminTick)) {
+        kayit.yeminTick = simdi + DUSMUS_YEMIN_TEKRAR;
+        try { oyuncu.sendMessage(DUSMUS_YEMIN_YONERGE); } catch (e) { /* */ }
+      }
       continue;
     }
 
@@ -433,4 +513,11 @@ if (DUSMUS_ACIK) {
    yapiyor).                                                  */
 export function dusmusBlokEkle(boyutId, x, y, z) {
   bloklar.set(blokAnahtar(boyutId, x, y, z), true);
+}
+
+/* Yemin dinleyicisi. sohbet.js'in TEK chatSend aboneligine
+   takiliyor -- ikinci bir abonelik acmak `cancel` yarisina yol
+   acardi.                                                     */
+if (DUSMUS_ACIK) {
+  sohbetDinleyiciEkle(dusmusYemin);
 }

@@ -52,6 +52,25 @@ export function sohbetKancalari(k) {
   kancalar = k || {};
 }
 
+/* ---- NORMAL SOHBETI DINLEYENLER  (v6.5) ----
+   `komutCozumle` yalnizca KOMUTLARI taniyor; duz cumleler ona
+   takilmadan geciyor. Dusmus yemini gibi seyler icin duz
+   cumleyi de gormek gerekiyor.
+
+   Neden ayri bir chatSend aboneligi acilmadi: iki abone ayni
+   olayin `cancel` alanini paylasir ve hangisinin kazandigi
+   siraya kalir. Tek abone var, dinleyiciler ona takiliyor.
+
+   Dinleyici `true` dondurursa mesaj sohbete DUSMEZ (yemin
+   herkesin ekranina yazilmasin diye).                        */
+const dinleyiciler = [];
+
+export function sohbetDinleyiciEkle(fn) {
+  if (typeof fn === "function") dinleyiciler.push(fn);
+}
+
+export function sohbetDinleyiciUnut() { dinleyiciler.length = 0; }
+
 const TR_HARF = {
   "ç": "c", "ğ": "g", "ı": "i", "İ": "i", "ö": "o", "ş": "s", "ü": "u",
   "Ç": "c", "Ğ": "g", "I": "i", "Ö": "o", "Ş": "s", "Ü": "u"
@@ -424,7 +443,18 @@ function sohbeteAbone() {
         const oyuncu = e.sender;
         if (!oyuncu) return;
         const sonuc = komutCozumle(oyuncu, e.message);
-        if (!sonuc) return;         // komut degil: normal sohbet olarak gitsin
+        if (!sonuc) {
+          /* Komut degil. Dinleyicilere sor; biri sahiplenirse
+             mesaj sohbete dusmez.                            */
+          for (const d of dinleyiciler) {
+            try {
+              if (d(oyuncu, e.message)) { e.cancel = true; return; }
+            } catch (hata) {
+              hataYaz("sohbet.dinleyici", hata);
+            }
+          }
+          return;                   // normal sohbet olarak gitsin
+        }
 
         e.cancel = true;            // komut satiri sohbete dusmesin
 

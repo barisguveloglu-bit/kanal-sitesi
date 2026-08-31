@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v6.4";
+export const SURUM = "v6.5";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -4693,6 +4693,38 @@ export const DUSMUS_ATES_TICK = 20;  // bu kadar yanmak tetikliyor
    yetecek kadar. Kaynakta boyle bir sey yok cunku kaynakta
    ates caresi de yok.                                       */
 export const DUSMUS_BAGISIKLIK = 100;   // 5 saniye
+
+/* ---- SECILME VE YEMIN  (v6.5) ----
+   Kullanici: "dort asamadayken uzun sure kalirsak korluk
+   gitsin, ekrana 'Yucelerin Yucesi tarafindan secildin, artik
+   secilmis oyunculardan bir tanesisin' yazsin. Sohbet ekranina
+   da bir yemin yazdiralim; onu yazarsa 'artik tam anlamiyla
+   bir asker oldun' desin."
+
+   Yani dorduncu asama bir SON degil, bir ESIK: dayanirsan
+   karanlik geciyor ve seciliyorsun.
+
+   ---- YEMIN NASIL KARSILASTIRILIYOR ----
+   sohbet.js:sadelestir ile: kucuk harf + Turkce harfler ASCII
+   karsiligi + fazla bosluklar tek. Yani "Yücelerin" de
+   "yucelerin" de kabul. Tabletten yazan biri icin buyuk/kucuk
+   harf ve sapkalarla ugrasmak eziyet olurdu.                */
+export const DUSMUS_SECILME_SURE = 1200;   // 60 sn, 4. asamada
+export const DUSMUS_SECILME_BASLIK = "§5§lSEÇİLDİN";
+export const DUSMUS_SECILME_ALT =
+  "§fYücelerin Yücesi tarafından seçildin — artık seçilmiş " +
+  "oyunculardan birisin";
+/* Sohbete yazilan yonerge ve beklenen yemin. */
+export const DUSMUS_YEMIN_YONERGE =
+  "§5§lYEMİN §7— aşağıdaki satırı sohbete yaz:\n" +
+  "§f  Yücelerin Yücesine and olsun karanlıkta yürürüm";
+export const DUSMUS_YEMIN =
+  "Yücelerin Yücesine and olsun karanlıkta yürürüm";
+export const DUSMUS_ASKER_BASLIK = "§4§lASKER";
+export const DUSMUS_ASKER_MESAJ =
+  "§a§lArtık tam anlamıyla bir asker oldun.";
+/* Yemin yonergesi kac tick'te bir tekrarlansin (kaybolmasin). */
+export const DUSMUS_YEMIN_TEKRAR = 400;    // 20 sn
 export const DUSMUS_KAYIT_ANAHTAR = "simsek:dusmus";
 
 export const BOT_KIMLIKLER = new Set([BOT_KIMLIK, SEY_KIMLIK, SEY_KILIK_KIMLIK]);

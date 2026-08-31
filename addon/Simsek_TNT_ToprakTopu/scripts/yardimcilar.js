@@ -245,6 +245,44 @@ export function actionbarYaz(oyuncu, metin, sayac = false) {
   }
 }
 
+/* Ekranin ORTASINA buyuk yazi (title) + alt yazi.       v6.5
+
+   Actionbar'dan farki: bu duruyor ve okunuyor. Aninda gecen
+   bir bilgi degil, ANIN kendisi icin -- "secildin" gibi.
+
+   `setTitle` bazi surumlerde yok ve bazilarinda alt basligi
+   ayri bir cagri istiyor. Ikisi de denenip, olmazsa
+   actionbar'a dusuluyor; oradan da olmazsa sohbete. Yani
+   mesaj HER surumde bir yere ulasiyor.                       */
+export function baslikYaz(oyuncu, baslik, altBaslik) {
+  try {
+    const ekran = oyuncu.onScreenDisplay;
+    if (ekran && typeof ekran.setTitle === "function") {
+      if (altBaslik) {
+        try {
+          ekran.setTitle(baslik, { subtitle: altBaslik });
+          return;
+        } catch (e) {
+          /* Eski imza: alt baslik ayri cagri. */
+          ekran.setTitle(baslik);
+          if (typeof ekran.updateSubtitle === "function") {
+            ekran.updateSubtitle(altBaslik);
+          }
+          return;
+        }
+      }
+      ekran.setTitle(baslik);
+      return;
+    }
+  } catch (e) {
+    /* Title yoksa asagi dusuyoruz. */
+  }
+  actionbarYaz(oyuncu, baslik);
+  if (altBaslik) {
+    try { oyuncu.sendMessage(altBaslik); } catch (e) { /* onemsiz */ }
+  }
+}
+
 /* Elde tutulan esyanin tipini dondurur, yoksa undefined.
    slot verilmezse sag el ("Mainhand"); sol el icin "Offhand".
    EquippableComponent bazi surumlerde farkli davraniyor, o yuzden

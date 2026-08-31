@@ -1,3 +1,77 @@
+# v6.5 — Seçilme ve yemin
+
+Kullanıcı: *"4 aşamadayken uzun süre kalırsak o şekilde körlük gitsin, ekrana
+'Yücelerin Yücesi tarafından seçildin, artık seçilmiş oyunculardan bir
+tanesisin' yazsın. Sohbet ekranına da bir tane yemin yazdıralım, onu yazarsa
+'artık tam anlamıyla bir asker oldun' desin."*
+
+Düşmüş durum makinesine **iki durum daha** eklendi. Dördüncü aşama artık bir
+son değil bir **eşik**.
+
+## Akış
+
+```
+yozlaşıyor (1-3) ──► düşmüş (4) ──60 sn dayan──► seçilmiş ──yemini yaz──► asker
+     │                   │                          │                       │
+   bloktan in        ATEŞ ◄──────────────────────────┴───────────────────────┘
+     ▼                   ▼
+   kurtuldun         arınıyor (4 aşama tersine)
+```
+
+| durum | ne oluyor |
+|---|---|
+| `düşmüş` | 4. aşama, **kör**. `DUSMUS_SECILME_SURE` (1200 tick = 60 sn) sayacı başlıyor. |
+| `seçilmiş` | **Körlük kalkıyor.** Ekrana `§5§lSEÇİLDİN` + *"Yücelerin Yücesi tarafından seçildin — artık seçilmiş oyunculardan birisin"*. Sohbete yemin düşüyor, yazmayana 20 sn'de bir tekrarlanıyor. |
+| `asker` | Yemini yazdı. Ekrana `§4§lASKER` + *"Artık tam anlamıyla bir asker oldun."* |
+
+Yemin: **"Yücelerin Yücesine and olsun karanlıkta yürürüm"**
+
+Karşılaştırma `sadelestir()` ile: büyük/küçük harf ve Türkçe harfler önemsiz —
+tabletten yazan biri için harfi harfine eşleşme eziyet olurdu. Yemin satırı
+sohbete **düşmüyor** (`e.cancel`), böylece yanındaki oyuncu kopyalayamıyor.
+
+## Seçilmek bir ödül değil
+
+Hastalığın ilerlemesi. Dört parça bedende kalmaya devam ediyor, elle
+çıkarılan geri giyiliyor, ve **tek çıkış hâlâ ateş**. Asker de çakmakla
+arınabiliyor ve gerçek zırhını aynen geri alıyor.
+
+## İki teknik ekleme
+
+**`sohbet.js` dinleyici defteri.** Yemini duymak için `chatSend`'e ikinci bir
+abone açmak gerekiyordu — ama iki abonenin `e.cancel` üstünde yarışması
+sessiz bir hata kaynağı. Onun yerine **var olan tek abone** dinleyici listesi
+taşıyor: `komutCozumle` "bu komut değil" derse sıra dinleyicilere geliyor,
+biri sahiplenirse mesaj iptal ediliyor.
+
+**`yardimcilar.js: baslikYaz()`.** Üç kademeli düşüş:
+`setTitle(baslik, {subtitle})` → `setTitle` + `updateSubtitle` → aksiyon
+çubuğu + sohbet. Sürüm ne olursa olsun yazı ekrana düşüyor.
+
+## Testte yakalanan hata
+
+`secilmeTick` **dünya kaydında tutulmuyor** (defter yalnız durum, aşama ve
+zırhı taşıyor — dinamik özelliğin boyut sınırı var). Yani dünyadan çıkıp
+giren bir kurban **sonsuza kadar** 4. aşamada kalırdı: sessiz bir ölü uç.
+Artık sayaç eksikse baştan başlıyor. Test `7d` bunu ölçüyor — kaydı elle
+düşürüp geri okutuyor.
+
+## Kasten kırıp doğrulandı
+
+| kırılan | düşen test |
+|---|---|
+| `sohbetDinleyiciEkle(dusmusYemin)` yorum satırı | "YEMİN sohbetten geçti (dinleyici BAĞLI)" + 5 tane daha |
+| `sec()` içinden `korlukVer(…, false)` | "KÖRLÜK KALKTI" |
+| `secilmeTick === undefined` koruması | "sayaç baştan başladı ve SEÇİLDİ" |
+| süre kontrolü (`simdi` yazıldı) | "süre dolmadan SEÇİLMİYOR" + 11 tane |
+| yemin metni karşılaştırması | "yanlış satır yemin sayılmıyor" + 3 tane |
+
+Yazılıp bağlanmamış kod bu depoda iki kez çıktı (`efsane.js` import
+edilmemişti, `konseySilahKir` hiç çağrılmıyordu). Bu yüzden yemin testi
+`dusmusYemin`'i doğrudan çağırmıyor — **gerçek sohbet borusundan** geçiriyor.
+
+---
+
 # v6.4 — Düşmüş artık zırh değil, **virüs**
 
 Kullanıcı düzeltti: *"sen fallen'ı bir zırh olarak eklemişsin, zırh olmayacak
