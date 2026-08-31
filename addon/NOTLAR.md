@@ -1,3 +1,78 @@
+# v6.0 — Birleşim modları: beş değil dört
+
+Kullanıcı: *"Artı beş birleşim modu (uçuş+gizlilik, dalış+uçuş, güç+gizlilik…)
+— böyle bir mod varsa ekle ama güçlerinin olup olmadığını bir bakmanı
+istiyorum; eğer varsa ekle, birebir özellikleri ile aynı olmaya çalış."*
+
+## Baktım: beş değil dört
+
+`speed_stealth.json` modun kendisinde **0 bayt**. Yani o mod yok — dosya var,
+içi boş. Kalan **dördünün hepsinde gerçek güç var**:
+
+| bizde | kaynak | ölçülen özellikler |
+|---|---|---|
+| Uçuş + Gizlilik | `flight_stealth` | görünmezlik, zırh 20 + tokluk 15, uzay nefesi, oksijen/donma/patlama/düşme bağışıklığı, uçuş |
+| Dalış + Uçuş | `scuba_flight` | yüzme +5, su altında nefes, zırh 20 + tokluk 15, düşme direnci **200**, uçuş |
+| Dalış + Gizlilik | `scuba_stealth` | görünmezlik, yüzme +5, su altında nefes, zırh 20 + tokluk 15 |
+| Güç + Gizlilik | `strength_stealth` | görünmezlik, zırh 30+20 + tokluk 15, saldırı **+15**, düşme direnci 100, çift elle, ölçek 2 |
+
+Çevrim kuralları öncekilerle aynı: zırh 20–50 → Direnç IV, `fall_resistance` →
+`slow_falling`, `swim_speed` → `conduit_power`, uzay nefesi/oksijen → su altında
+nefes, `attack_damage +15` → Güç V, **v5.6 katlamasıyla Güç X (+30)**.
+
+**Aktarılamayanlar** (özet bunları vaat etmiyor): donma ve patlama bağışıklığı
+(Bedrock'ta efekt karşılığı yok — uçuş modunda da öyleydi), çift elle kullanım,
+menzil ve geri tepme ölçeği (Güç modunda da alınmamıştı).
+
+## Ağaçtaki yerleri: çekirdek yok, ebeveyn var
+
+Kaynakta bu dördünün **çekirdeği yok**. İki modun birleştirilmesiyle giriliyor
+(`superpower add ionstrike:<birleşim>`) ve `return_*` yetenekleriyle iki
+ebeveynden birine dönülüyor — her dosyanın kendi komutları hangi iki moddan
+doğduğunu söylüyor.
+
+Bizde de öyle: ücreti yok, **iki ebeveyni de açıkken kendiliğinden açılıyor**.
+Satın alınmaya çalışılırsa menü hangi modların eksik olduğunu yazıyor.
+
+Geometri ve doku kaynaktan **kopya** (var olan dokuz modda da öyleydi;
+karşılaştırdım, piksel birebir — md5 farkı yalnızca PNG kodlaması):
+
+```
+ucus_gizlilik    flight2_mode.geo.json   duostrike/flight_stealth.png
+dalis_ucus       scuba_flight.geo.json   duostrike/scuba_flight.png
+dalis_gizlilik   scuba_stealth.geo.json  duostrike/scuba_stealth.png
+guc_gizlilik     strength2.geo.json      duostrike/strength_stealth.png
+```
+
+**Toplam mod: 9 → 13.**
+
+## Testler
+
+`zirh_agac.mjs` 6b bölümü kazandı ve kaynağı okuyarak sınıyor: `speed_stealth`
+gerçekten boş mu, her birleşimin ebeveynleri kaynaktaki `return_*` komutlarından
+okunan iki modla aynı mı, zırh değeri Direnç IV'e çevrilmiş mi, görünmezlik
+kaynakta varsa verilmiş / yoksa verilmemiş mi, saldırı tam iki katı mı.
+
+İki kasıtlı bozmayla doğrulandı:
+
+| bozma | testin dediği |
+|---|---|
+| ebeveyni yanlış yaz | `✗ dalis_gizlilik: ebeveynler kaynaktakiyle ayni :: dalis+hiz vs dalis+gizlilik` |
+| görünmezliği düşür | `✗ dalis_gizlilik: gorunmezlik VAR -> verilmis :: false` |
+
+`zirh.mjs` ve `oyuncu_modeli.mjs`'in "mod sayısı 9" sabitleri **13**'e
+güncellendi — silinmedi, sayı neden 13 olduğu (dört birleşim, boş
+`speed_stealth`) yorumda yazıyor.
+
+## Sırada
+
+Geriye tek başına duran modlar kaldı: Super Mode, Hydro Heat, Takonian, Size,
+Nova, Clone, Cannon, Turbo Lash. Hepsinin sayıları
+`REFERANS_MAXSTEEL_AGAC.md`'de hazır; ağaç tarafı da hazır — tabloya eklenen mod
+menüde kilitli beliriyor ve çekirdeğiyle açılıyor.
+
+---
+
 # v5.9 — Yetenek ağacı kaynaktakiyle aynı
 
 Kullanıcı iki şey sordu:
