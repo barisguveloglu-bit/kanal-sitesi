@@ -1,7 +1,8 @@
 import { system, ItemStack } from "@minecraft/server";
 import { yetenekKaydet } from "./kayit.js";
 import {
-  hataYaz, gecerliMi, kollariIndir, actionbarYaz, olayaAbone
+  hataYaz, gecerliMi, kollariIndir, actionbarYaz, olayaAbone,
+  parcacikAt
 } from "../yardimcilar.js";
 import {
   botCagir, botVarliklari, botunSahibi, ilkelKancasi
@@ -10,6 +11,7 @@ import { asaVurusu, asaUnut } from "./asa.js";
 import { disleriCikar, dislerUnut } from "./disler.js";
 import {
   ILKEL_ACIK, ILKEL_TAVAN, ILKEL_BESLI, ILKEL_ADLAR, ILKEL_OZELLIK,
+  ILKEL_ISIN_ACIK, ILKEL_ISIN_KALINLIK, ILKEL_ISIN_ADIM, ILKEL_ISIN_TAVAN,
   ILKEL_AURA_OYUNCU, ILKEL_KORUMA, BOT_OLAY_SAVAS_AC,
   BOT_TAVAN, BOT_TARAMA, botTuruMu,
   ILKEL_OK_HASARI, ILKEL_OK_TABAN, MOBA_ISLEMEYEN_EFEKTLER,
@@ -576,6 +578,100 @@ function pasifVer(varlik, t) {
   });
 }
 
+/* uyeId -> bir sonraki isinin en erken tick'i. isinlar.js'teki
+   `bekleme` haritasiyla ayni kalip.                          */
+const isinBekleme = new Map();
+
+/* ---------------- UYE ISINI  (v6.8) ----------------
+   Kullanicinin gonderdigi "Ust Konsey" komut listesi:
+     execute ... positioned ^^^10 run particle <parcacik>
+     execute ... positioned ^^^10 run damage @e[r=10,c=1] 2
+
+   Kaynak `^^^10` diyor: aticinin BAKTIGI yon. Bot bakmiyor --
+   `getViewDirection` moblarda guvenilir degil. O yuzden cizgi
+   HEDEFE dogru cekiliyor: goruntu ayni, nisan daha dogru.
+
+   isinlar.js'in motoru kullanilmadi cunku orasi OYUNCUNUN
+   isini: kapi kontrolu, bekleme mesaji, kollariIndir, jest
+   sirasi... Hicbiri bir mobda yok. Ortak olan tek sey "cizgi
+   ciz, uzerindekine vur" ve o on satir.                     */
+function isinAt(varlik, t, oyuncuId, simdikiTick) {
+  const bekle = isinBekleme.get(varlik.id) || 0;
+  if (simdikiTick < bekle) return;
+
+  let bas, hedefler;
+  try {
+    bas = varlik.location;
+    hedefler = varlik.dimension.getEntities({
+      location: bas,
+      maxDistance: t.isin.menzil,
+      excludeTypes: ["minecraft:item", "minecraft:xp_orb"]
+    });
+  } catch (e) {
+    return;
+  }
+
+  /* En yakin DUSMAN nisan alinir. Ekip arkadasina ya da
+     sahibine ates edilmez -- `dusmanMi` zaten bunu ayiriyor
+     ve okVurdu'da da ayni suzgec var.                       */
+  let hedef, enYakin = Infinity;
+  for (const v of hedefler) {
+    try {
+      if (!gecerliMi(v)) continue;
+      if (!dusmanMi(v, oyuncuId)) continue;
+      const k = v.location;
+      const d = Math.hypot(k.x - bas.x, k.y - bas.y, k.z - bas.z);
+      if (d < enYakin) { enYakin = d; hedef = v; }
+    } catch (e) { /* varlik gitti */ }
+  }
+  if (!hedef) return;
+
+  isinBekleme.set(varlik.id, simdikiTick + t.isin.bekleme);
+
+  /* Cizim: govde yuksekliginden hedefe. */
+  let yon;
+  try {
+    const h = hedef.location;
+    const dx = h.x - bas.x, dy = (h.y + 1) - (bas.y + 1), dz = h.z - bas.z;
+    const boy = Math.hypot(dx, dy, dz) || 1;
+    yon = { x: dx / boy, y: dy / boy, z: dz / boy };
+    for (let d = 1; d <= enYakin; d += ILKEL_ISIN_ADIM) {
+      parcacikAt(varlik.dimension, t.isin.parcacik, {
+        x: bas.x + yon.x * d, y: bas.y + 1 + yon.y * d, z: bas.z + yon.z * d
+      });
+    }
+  } catch (e) {
+    /* parcacik cikmadi: isin gorunmez ama vurur */
+  }
+
+  /* Cizgi uzerindekiler. Kaynak `r=10,c=1` diyor: tek hedef. */
+  const vurulanlar = [];
+  for (const v of hedefler) {
+    try {
+      if (!gecerliMi(v) || !dusmanMi(v, oyuncuId)) continue;
+      const k = v.location;
+      const dx = k.x - bas.x, dy = k.y - (bas.y + 1), dz = k.z - bas.z;
+      const ileri = dx * yon.x + dy * yon.y + dz * yon.z;
+      if (ileri < 0 || ileri > t.isin.menzil) continue;
+      const sapmaKare = (dx * dx + dy * dy + dz * dz) - ileri * ileri;
+      if (sapmaKare > ILKEL_ISIN_KALINLIK * ILKEL_ISIN_KALINLIK) continue;
+      vurulanlar.push({ varlik: v, ileri });
+    } catch (e) { /* varlik gitti */ }
+  }
+  vurulanlar.sort((a, b) => a.ileri - b.ileri);
+
+  let vuran = 0;
+  for (const h of vurulanlar) {
+    if (vuran >= ILKEL_ISIN_TAVAN) break;
+    try {
+      h.varlik.applyDamage(t.isin.hasar, { damagingEntity: varlik });
+      vuran++;
+    } catch (e) {
+      hataYaz("ilkel.isin", e);
+    }
+  }
+}
+
 function bakim(varlik, oyuncu) {
   const anahtar = ilkelKimligi(varlik);
   if (!anahtar) return;
@@ -589,6 +685,15 @@ function bakim(varlik, oyuncu) {
 
   // Harkos: pasif iyilesme
   if (t.tikIyilesme) iyilestir(varlik, t.tikIyilesme * BOT_TARAMA);
+
+  /* Okazor: Kirmizi Guc, Kajaros: Ates Gucu (v6.8) */
+  if (ILKEL_ISIN_ACIK && t.isin) {
+    try {
+      isinAt(varlik, t, oyuncu.id, system.currentTick);
+    } catch (e) {
+      hataYaz("ilkel.isinAt", e);
+    }
+  }
 
   // Raxxan: gizlenme, ansizin iyilesme, bulanti aurasi
   if (t.gizlenme && Math.random() < t.gizlenme.sans) {

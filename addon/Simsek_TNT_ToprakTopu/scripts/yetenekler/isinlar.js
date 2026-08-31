@@ -6,8 +6,9 @@ import { guctekiKahraman, gucKumesi } from "./marvel.js";
 import {
   hataYaz, gecerliMi, actionbarYaz, kollariIndir, parcacikAt
 } from "../yardimcilar.js";
+import { eldekiEsya } from "../yardimcilar.js";
 import {
-  ZIRH_ISIN, MARVEL_ISIN, BEN10_ISIN, BEN10,
+  ZIRH_ISIN, MARVEL_ISIN, BEN10_ISIN, KOL_ISIN, BEN10,
   ZIRH_ISIN_KALINLIK, ZIRH_ISIN_TAVAN,
   ZIRH_ISIN_ADIM, ZIRH_ISIN_BEKLEME,
   LAZER_HASAR_SEBEP
@@ -135,6 +136,18 @@ function isinAt(oyuncu, t) {
           /* setOnFire bazi surumlerde yok; hasar zaten gitti */
         }
       }
+      /* v6.8: buz isininin "doldurma"si. Kaynak
+         `effect @e[r=10,c=1] slowness 255 255` diyor -- seviye
+         255 ve geri alan hicbir sey yok. Sure sinirli, seviye
+         Buz Adam'inkiyle ayni.                              */
+      if (t.yavaslik !== undefined) {
+        try {
+          h.varlik.addEffect("slowness", t.yavaslikSure,
+                             { amplifier: t.yavaslik, showParticles: true });
+        } catch (e) {
+          /* efekt yoksa hasar yine gitti */
+        }
+      }
       vuran++;
     } catch (e) {
       hataYaz("zirh_isini.hasar", e);
@@ -151,6 +164,14 @@ function isinAt(oyuncu, t) {
    -- o yoldan Titan lazerini Temel cekirdegiyle atmak mumkun
    olurdu.                                                    */
 function kapiAcik(oyuncu, t) {
+  /* v6.8: DORDUNCU kapi turu -- ELDEKI KOL. Kaynak komutlari
+     `hasitem={item=lever,location=slot.weapon.mainhand}` ile
+     kapiyi kaldiraca bagliyordu; bizde o kolun kendisi.     */
+  if (t.kol) {
+    let e;
+    try { e = eldekiEsya(oyuncu); } catch (hata) { e = undefined; }
+    return { acik: e === t.kol, gerek: "o kol" };
+  }
   /* v6.1: ucuncu kapi turu -- ELDEKI BEN 10 YARATIGI.
      Kapi TABAN adina bakiyor, bicime degil: Prototip/Recal/10K
      ayni turun uc gorunumu ve modda gucleri tek dosyada.     */
@@ -190,7 +211,8 @@ function kapiAcik(oyuncu, t) {
    Var olan yeteneklerin en yukarisi 270; 300 hepsinin
    ustunde ve arada rahat yer var.                          */
 let _sira = 300;
-for (const [kimlik, t] of [...ZIRH_ISIN, ...MARVEL_ISIN, ...BEN10_ISIN]) {
+for (const [kimlik, t] of [...ZIRH_ISIN, ...MARVEL_ISIN, ...BEN10_ISIN,
+                           ...KOL_ISIN]) {
   yetenekKaydet({
     kimlik,
     ad: t.ad,

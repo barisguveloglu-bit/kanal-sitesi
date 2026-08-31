@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v6.7";
+export const SURUM = "v6.8";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -2080,6 +2080,21 @@ export const ILKEL_BESLI = new Map([
        kesiyor. Ates bagisikligi "muhafiz" isinin parcasi:
        lav basinda duran o olsun.                              */
     pasif: [["resistance", 0, 1], ["fire_resistance", 0, 0]],
+    /* ---- ATES ISINI  (v6.8) ----
+       Kullanicinin "Ust Konsey" listesinden:
+         execute ... positioned ^^^10 run particle
+           minecraft:mobflame_single              (^^^1..^^^10)
+         execute ... positioned ^^^10 run damage @e[r=10,c=1] 2
+       Kajaros'a verildi: ates bagisikligi zaten onda ("lav
+       basinda duran o olsun"), ates isini da onun olsun.
+       Yakma suresi kaynakta YOK; hasar ates hasari degil, o
+       yuzden yakma da eklenmedi -- uydurma sayi girmemek
+       icin.                                                  */
+    isin: {
+      ad: "Ateş Gücü", hasar: 2, menzil: 10,
+      parcacik: "minecraft:mobflame_single",
+      bekleme: 60
+    },
     /* "Isabet aldiginda kendisini 20 HP iyilestirir" --
        VURULUNCA, vurunca degil. 20 KALP = 40 HP (v4.41).     */
     vurulunca: 40,
@@ -2184,6 +2199,18 @@ export const ILKEL_BESLI = new Map([
     /* "4 saniyelik araliklarla ust uste 3 kez vurmayi
        basarirsa cani tamamen yenilenir."                     */
     seri: { adet: 3, pencere: 80 },
+    /* ---- KIRMIZI GUC ISINI  (v6.8) ----
+       Kullanicinin gonderdigi "Ust Konsey" komut listesinden:
+         execute ... positioned ^^^10 run particle
+           minecraft:redstone_ore_dust_particle   (^^^1..^^^10)
+         execute ... positioned ^^^10 run damage @e[r=10,c=1] 2
+       Lidere verildi: listedeki adi "Kirmizi Guc" ve rutbe 1
+       olan tek uye o.                                        */
+    isin: {
+      ad: "Kırmızı Güç", hasar: 2, menzil: 10,
+      parcacik: "minecraft:redstone_ore_dust_particle",
+      bekleme: 60
+    },
     /* Evoker disleri (v4.85). Kullanici: "evoker Minecraft'ta
        yerden tuzak cikartiyor ve ona denk gelirsen hasar
        veriyor ya, iste o yetenegi Okazor'a verelim."
@@ -2523,6 +2550,25 @@ export const TAS_TAVAN = 8;             // ayni anda kac heykel
    eksi bir. "Yenilenme II" -> amplifier 1. Sureler 0 yazili
    cunku ILKEL_PASIF_SURE'den geliyor -- iki yerde yazili sure
    ayrisirdi.                                                  */
+/* ---- UYE ISINLARI  (v6.8) ----
+   Iki uyenin (Okazor, Kajaros) `isin` alani var: dusmana
+   nisan alip duz bir cizgide vuruyorlar. Kaynak komutlari
+   `^^^10` diyordu, yani aticinin BAKTIGI yon; bot bakmiyor,
+   o yuzden hedefe dogru cizgi cekiliyor.
+
+   Kaynak bunlari her tick calisan komut bloklariyla
+   yapiyordu; burasi BOT_TARAMA (20 tick) araliginda donuyor
+   ve ustune bir de bekleme var -- yoksa iki uye yaninda
+   duran hicbir sey hayatta kalmazdi.                        */
+export const ILKEL_ISIN_ACIK = true;
+/* Cizgi kalinligi: hedefe giden dogruya bu kadar yakin olan
+   vurulur. isinlar.js'teki ZIRH_ISIN_KALINLIK ile ayni fikir. */
+export const ILKEL_ISIN_KALINLIK = 1.2;
+/* Kac parcacik: menzil boyunca her bu kadar blokta bir. */
+export const ILKEL_ISIN_ADIM = 1;
+/* Tek atista en fazla kac hedef. Kaynak `c=1` diyor. */
+export const ILKEL_ISIN_TAVAN = 1;
+
 export const ILKEL_PASIF_ACIK = true;
 
 /* Efekt suresi. Tarama BOT_TARAMA (20 tick) araliginda donuyor;
@@ -6115,6 +6161,51 @@ export const MARVEL_TAKMA_AD = new Map([
    tasiyor). Bu yuzden hasarlar KAYNAKTAN OLCULMEDI, bizim
    olcegimize gore verildi ve boyle oldugu burada yaziyor.
    Olcek: Isi isini 400, Titan lazeri 1000 (v4.95).           */
+/* ================================================================
+   KOL ISINLARI                                             v6.8
+
+   Kullanici bir komut listesi gonderdi. Ice-Man'in buz saldirisi
+   orada dokuz ayri satirdi:
+     execute at @a[hasitem={item=lever,...}] run particle
+       minecraft:cauldron_explosion_emitter ^^^2
+     ... ayni satir ^^^3, ^^^4 ... ^^^10 icin dokuz kez
+     execute ... positioned ^^^10 run damage @e[r=10,c=1] 3
+     execute ... positioned ^^^10 run effect @e[r=10,c=1] slowness 255 255
+
+   Yani: on blokluk bir parcacik cizgisi, ucundakine hasar ve
+   agir yavaslik. Bizde ZATEN bir isin motoru var (isinlar.js);
+   dokuz satir tek tabloya indi.
+
+   ---- KAYNAKTAN ALINMAYAN SATIR ----
+     execute at @a[...] run effect @p clear
+   Kaynak bunu koymus cunku kendi isini KENDINE de deger
+   (`@e` ayirt etmiyor). Bizim motorda atici zaten haric --
+   ve `effect @p clear` oyuncunun ictigi iksiri de silerdi.
+   Ayni tuzagi ucurma.js'te de reddetmistik (orada
+   `effect @s clear` yaziyordu).
+
+   ---- NEDEN AYRI TABLO ----
+   ZIRH_ISIN cekirdege, MARVEL_ISIN bacaktaki guce, BEN10_ISIN
+   eldeki yaratiga bakiyor. Bu ELDEKI KOLA bakiyor -- dorduncu
+   kapi turu. Motor ayni, kapi farkli.                        */
+export const KOL_ISIN = new Map([
+  ["buz_isini", {
+    ad: "Buz Işını", kol: "pa:kol_buz",
+    /* Kaynak `damage @e[r=10,c=1] 3` diyor: 3 hasar, TEK
+       hedef (c=1). Menzil ^^^10.                            */
+    hasar: 3, menzil: 10, yakma: 0,
+    parcacik: "minecraft:cauldron_explosion_emitter",
+    /* Kaynagin "doldurma" satiri: slowness 255 255. Seviye
+       255 motor sinirinda ama pratikte KALICI felc -- kaynakta
+       geri alan hicbir sey de yok. Yamultmada ayni sayiyla
+       ayni karari vermistik: sure sinirli tutuluyor.
+
+       Buz Adam'in yavasligiyla ayni seviyede (BUZ_YAVASLIK),
+       iki buz yetenegi ayni sertlikte olsun.                */
+    yavaslik: BUZ_YAVASLIK, yavaslikSure: BUZ_SURE
+  }]
+]);
+
 export const MARVEL_ISIN = new Map([
   ["marvel_isin_unibeam", {
     ad: "Unibeam", kahraman: "ironman", hasar: 400, menzil: 24, yakma: 0,

@@ -80,8 +80,12 @@ export const KOL_ESYALARI = [
                     "yakala", "coklu_simsek", "ok_yagmuru", "sarsinti",
                     "kalp_ekle", "kalp_sifirla"],
 
-  /* BUZ KOL -- dondurma takimi. */
-  ["pa:kol_buz",    "buz_adam", "buz_mizragi"],
+  /* BUZ KOL -- dondurma takimi.
+
+     v6.8: BUZ ISINI eklendi. Kullanicinin gonderdigi Ice-Man
+     komut listesinden; kaynakta dokuz ayri parcacik satiri +
+     bir hasar + bir yavaslik satiriydi, bizde tek yetenek.  */
+  ["pa:kol_buz",    "buz_adam", "buz_mizragi", "buz_isini"],
 
   /* DAVE KOL -- Dave1545 modundan alinan takim. Dordu de orada
      tek satirlik komutlardi ve dordunun de sozdizimi ya da

@@ -1,3 +1,96 @@
+# v6.8 — Komut listesinden üç ışın
+
+Kullanıcı bir komut listesi gönderdi (Ice-Man / Üst Konsey / Kırmızı Güç /
+efektler) ve *"bunlardan hangilerini ekleyelim ya da hepsini ekleyelim mi"*
+diye sordu. Hepsi tek tek depoda arandı.
+
+## Listenin çoğu zaten vardı
+
+| komut | bizdeki |
+|---|---|
+| `effect @p levitation 1 2` (uçma) | `ucus`, `toprak_ucus` |
+| `effect @e[r=10,c=1] levitation 1 2` (uçurma) | `ucurma` |
+| `playanimation ... animation.fox.sleep m 250` | `yamult` |
+| `effect @e slowness 255 255` (doldurma) | `dondur`, `buz_adam` |
+| `playanimation ... holding_spyglass` | `ANIM_KALDIR` |
+| `effect @p strength/speed/night_vision/...` | 8 iksir kademesi |
+
+`ucurma.js` ve `yamult.js` zaten **aynı referanstan** gelmiş — o komutlar
+dosyaların başlığında yazılı.
+
+## Üç ışın gerçekten yeniydi
+
+| ışın | kaynak | nereye |
+|---|---|---|
+| **Buz Işını** | `cauldron_explosion_emitter` ×9 + `damage 3` + `slowness 255` | **Buz Kol** |
+| **Ateş Gücü** | `mobflame_single` ×10 + `damage 2` | **Kajaros** |
+| **Kırmızı Güç** | `redstone_ore_dust_particle` ×10 + `damage 2` | **Okazor** |
+
+Kaynakta Ice-Man'in buz saldırısı **dokuz ayrı satırdı** (`^^^2` … `^^^10`,
+her mesafe için bir komut) artı bir hasar artı bir yavaşlık satırı. Bizde
+`isinlar.js` motoru zaten var — dokuz satır **tek tablo satırına** indi.
+
+Motora iki ekleme yapıldı, çatal açılmadı:
+- **Dördüncü kapı türü: `kol`.** ZIRH_ISIN çekirdeğe, MARVEL_ISIN bacaktaki
+  güce, BEN10_ISIN eldeki yaratığa bakıyordu; bu **eldeki kola** bakıyor.
+  Kaynak kapıyı `hasitem={item=lever}` ile kaldıraca bağlamıştı.
+- **`yavaslik` alanı** — kaynağın "doldurma" satırı.
+
+İlkel Beşli ışınları `bakim()` içinde, `t.aura` ile aynı kalıpta. `^^^10`
+atıcının *baktığı* yön demek; bot bakmıyor (`getViewDirection` moblarda
+güvenilir değil), o yüzden çizgi **hedefe** çekiliyor — görüntü aynı, nişan
+daha doğru.
+
+## Kaynaktan almadıklarım
+
+**`effect @p clear`** — kaynak bunu koymuş çünkü kendi ışını kendine de
+değiyor (`@e` ayırt etmiyor). Bizim motorda atıcı zaten hariç, ve o satır
+oyuncunun içtiği iksiri de silerdi. Aynı tuzağı `ucurma.js`'te bir kez
+reddetmişiz (orada `effect @s clear` yazıyordu).
+
+**`slowness 255 255`** — 255 motor sınırında (yasal) ama geri alan hiçbir şey
+yok, yani kalıcı felç. Yamultmada aynı sayıyla aynı kararı vermiştik: seviye
+korundu, **süre sınırlı**.
+
+**`/gamemode spectator` + `/gamemode survival`** (duvardan geçme) — kullanıcı
+"ekleme" dedi. Geri dönüş sabit survival: creative'deysen modunu
+kaybediyorsun.
+
+**`strength/jump_boost 255 255`** — kullanıcı "ekleme" dedi. Amplifier 255
+her şeyi tek vuruşta öldürür, `jump_boost 255` inişte öldürür. İksirler
+bunları ölçülü kademelerle zaten veriyor.
+
+## Kendi hatam: ayarlar.js'i sildim
+
+Sürüm çıkarırken şunu yazdım:
+
+```python
+io.open(a, "w").write(io.open(a).read())
+```
+
+Python önce `open(a, "w")`'yi değerlendiriyor — dosya **okunmadan önce
+sıfırlanıyor**. `ayarlar.js` 6558 satırdan 0'a düştü, 69 test çöktü ve paket
+596K'dan 504K'ya indi. Git'ten geri alınıp v6.8 ayarları yeniden uygulandı;
+okuma ve yazma artık ayrı iki satır. **Paket boyutu bunu ele veren şeydi** —
+testler zaten kırmızıydı ama küçülen paket "dosya kayboldu" diyordu.
+
+## Kasten kırıp doğrulandı
+
+| kırılan | düşen test |
+|---|---|
+| `yavaslik` etkisi kaldırıldı | "yavaşlık da bindi" + 1 tane |
+| kol kapısı hep açık | "BAŞKA kol elindeyken atmıyor" |
+| `slowness 255` + sonsuz süre | "yavaşlık SÜRESİ sınırlı" |
+| İlkel ışını yazıldı ama atılmıyor | "bot_ilkel.js ışını ATIYOR" |
+| `dusmanMi` süzgeci kaldırıldı | "hedef süzgecinden dusmanMi geçiyor" |
+
+Bir kırma **yakalanmadı** ve testin kendisi yanlış çıktı: "başka kol
+elindeyken atmıyor" satırı geçiyordu ama sebebi kapı değil, ilk atışın
+**bekleme süresi**ydi. Beklemeyi geçirip, ayrıca "doğru kol elindeyken yine
+atıyor" satırı eklendi — yoksa o satır "hiç atmıyor" ile de geçerdi.
+
+---
+
 # v6.7 — Kanlı Kol
 
 Kullanıcı iki mod gönderdi (**Falen Mod V2** ve **Bobby1545 Mod V3**) ve
