@@ -195,6 +195,9 @@ import "./yetenekler/efsane.js";
 import { efsaneMuzikTara } from "./yetenekler/efsane_muzik.js";
 /* v6.6: skinin renginde ozel sis. */
 import { sisAc, sisKapat } from "./yetenekler/sis.js";
+/* v7.1: Void takimi -- Falen Mod V2. Vurus kancasi ve
+   Void bulasmasi. */
+import { voidTara, voidUnut } from "./yetenekler/void.js";
 /* v6.7: Kanli Kol -- Bobby1545 Mod V3. DIKKAT: kollar.js'ten
    ONCE gelmeli, yoksa kol yetenekleri kayitli olmayan bir
    kimlige baglanir. */
@@ -516,6 +519,12 @@ system.runInterval(() => {
       efsaneMuzikTara(oyuncular);
     } catch (e) {
       hataYaz("efsaneMuzikTara", e);
+    }
+    /* v7.1: Void bulasmasi. Defter bosken tek satirda cikiyor. */
+    try {
+      voidTara(oyuncular);
+    } catch (e) {
+      hataYaz("voidTara", e);
     }
   }
 
@@ -2164,6 +2173,7 @@ olayaAbone("playerLeave", (olay) => {
   konseyUnut(olay.playerId);
   konseySilahUnut(olay.playerId);
   dusmusUnut(olay.playerId);
+  voidUnut(olay.playerId);
   viltrumiteUnutOyuncu(olay.playerId);
 
   // Oyuncunun butun isleri durdurulmali, sadece birincisi degil

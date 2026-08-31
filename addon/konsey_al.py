@@ -150,7 +150,28 @@ PARCALAR += [
     ("kurban_zirh",     FL, "kurban_zirh"),
     ("kurban_pantolon", FL, "kurban_patalon"),   # kaynakta "patalon"
     ("kurban_bot",      FL, "kurbanlar_botu"),
+    # -- Void takimi ve kilicler (v7.1) --
+    # DIKKAT: bunlarin 3B MODELI YOK. Kaynakta yalnizca 16x16
+    # ikon var; oyunda duz bir esya olarak duruyorlar (kilic
+    # zaten oyle gorunur). "geo yok / doku yok" diye rapor
+    # edilmeleri normal -- DUZ listesinde yaziyorlar.
+    ("void_kilic",      FL, "void_sword"),
+    ("void_balta",      FL, "void_axe"),
+    ("void_kazma",      FL, "void_pickaxe"),
+    ("void_kurek",      FL, "void_shovel"),
+    ("void_alet",       FL, "voidmultitool"),
+    ("ender_kilic",     FL, "ender_sword"),
+    ("evren_kilic",     FL, "univers_sword"),
+    ("trb_kilic",       FL, "trb1545_sword"),
+    # -- Kafaya takilan iki parca: bunlarin modeli VAR --
+    ("void_migfer",     FL, "voidol"),
+    ("enigma",          FL, "enigma"),
 ]
+
+# 3B modeli olmayan, yalnizca ikonu olan parcalar. Bunlar icin
+# "geo yok" bir EKSIK degil, beklenen durum.
+DUZ = {"void_kilic", "void_balta", "void_kazma", "void_kurek",
+       "void_alet", "ender_kilic", "evren_kilic", "trb_kilic"}
 
 BLOK_DOKULARI = [
     ("dusmus_blok", BL, "textures/blocks/dragon_fallen_block.png"),
@@ -281,9 +302,15 @@ def cikar(taban):
 
     sayac = {"geo": 0, "doku": 0, "ikon": 0, "ses": 0}
     eksik = []
+    duz_sayisi = 0
     for ad, paket, kaynak in PARCALAR:
-        for is_ad, islev in (("geo", geo_tasi), ("doku", doku_tasi),
-                             ("ikon", ikon_tasi)):
+        # Duz parcalarda 3B model ve varlik dokusu ARANMAZ:
+        # kaynakta yok ve olmamasi dogru. Yalnizca ikon.
+        isler = (("ikon", ikon_tasi),) if ad in DUZ else (
+            ("geo", geo_tasi), ("doku", doku_tasi), ("ikon", ikon_tasi))
+        if ad in DUZ:
+            duz_sayisi += 1
+        for is_ad, islev in isler:
             h = islev(paket, kaynak, ad)
             if h:
                 eksik.append("%s (%s): %s" % (ad, is_ad, h))
@@ -308,6 +335,7 @@ def cikar(taban):
 
     print("geo: %(geo)d   doku: %(doku)d   ikon: %(ikon)d   ses: %(ses)d"
           % sayac)
+    print("duz (yalniz ikon): %d" % duz_sayisi)
     if eksik:
         print("EKSIK (%d):" % len(eksik))
         for e in eksik:

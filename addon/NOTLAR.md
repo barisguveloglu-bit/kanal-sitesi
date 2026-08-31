@@ -1,3 +1,91 @@
+# v7.1 — Void takımı
+
+Kullanıcı dosyayı **tekrar gönderdi**: *"canlı olarak bakmanı istedim ki
+referanstan bakarak birazcık riskli oluyor."* Doğru karardı — aşağıdaki üç şey
+ancak dosyaların kendisinde görülüyor. (Yükleme md5'i öncekiyle birebir aynı
+çıktı, yani not defterim doğruymuş; ama mekanikleri hiç açmamıştım.)
+
+## On eşya
+
+| eşya | hasar | dayanıklılık | mekanik (kaynaktan) |
+|---|---|---|---|
+| Void Kılıcı | **255** | 600 | — |
+| Void Baltası | 5 | 600 | 35 blok kazar |
+| Void Kazması | 5 | 600 | 8 blok kazar |
+| Void Küreği | 4 | 600 | 11 blok kazar |
+| Void Çoklu Alet | 5 | 600 | **vurduğunu Void'e çevirir** |
+| Ender Kılıcı | 1 | 600 | **vurduğunu fırlatır** |
+| Evren Kılıcı | 15 | 600 | sağ tık: kendini uçur |
+| Trb1545 Kılıcı | 12 | 600 | sağ tık: 5 yıldırım |
+| Void Miğferi | — | 200 | kafa, koruma 7 |
+| Enigma | — | 200 | kafa, koruma 7 |
+
+Sekizinin **3B modeli yok**, sadece 16×16 ikonu — kaynakta da öyle, bir kılıç
+zaten düz bir eşya olarak görünür. `KONSEY_DUZ` kümesi bunu yazıyor; olmasa
+üreteç her üretimde "geometri yok" diye uyarır ve `konsey.mjs` "model eksik"
+derdi — oysa eksik bir şey yok.
+
+## Canlı okumanın ortaya çıkardığı üç şey
+
+### 1. Void Çoklu Alet kaynakta eşya siliyor
+
+`Void.mcfunction` **tek satır**:
+
+```
+replaceitem entity @a slot.armor.head 1 sp:voidol 1 0
+  {"item_lock":{"mode":"lock_in_slot"}}
+```
+
+Üç ayrı sorun:
+- **`@a`** — vurduğun kişi değil, **dünyadaki herkes**.
+- **`replaceitem`** kafadaki miğferi **yok ediyor**. Netherite miğferin varsa gidiyor.
+- **`lock_in_slot`** — çıkaramıyorsun. Tek çıkış `clear @a sp:voidol`, o da yine herkesi kurtarıyor.
+
+Bizimki: yalnız **vurduğuna** bulaşıyor, eski miğferi deftere yazılıyor,
+30 saniye sonra **aynen geri takılıyor**. Düşmüş virüsünde kurulan kalıbın
+aynısı. Çıkarmaya çalışırsan geri giydiriliyor — `lock_in_slot`'un karşılığı,
+ama **süreli**.
+
+### 2. Ender Kılıcı 400 blok yukarı ışınlıyor
+
+```
+execute positioned ^^^2 run tp @e[r=10,c=1] ~~400~
+```
+
+400 blok düşüş kesin ölüm, üstelik `@e` **atıcıyı ve evcil hayvanını da**
+kapsıyor. Bizde 24 blok, yumuşak düşüş, ve yalnız vurulan fırlıyor —
+fırlatma bir **saldırı**, infaz değil.
+
+### 3. Void Kılıcı 255 hasar — bu kaldı
+
+Kaynakta gerçekten 255 (Bedrock'un tavanı). Netherite kılıç 8, bu depodaki en
+güçlü eşya 62. **Değiştirmedim.** Düşmüş'ün 1000 korumasını düşürmüştük çünkü
+o *kalıcı bir durumdu* (giyen dokunulmaz oluyordu); bu ise elde tutulan bir
+kılıç — kullanan onu bilerek seçiyor. Beğenmezsen tablodan tek satır.
+
+## Testte bulunan kendi boşluğum
+
+Vuruş kancasını kasten kırdığımda (bulaştırma satırını kapattım) **test yine
+geçti** — yalnızca `olayaAbone("entityHurt"` var mı diye bakıyordu. Abone hâlâ
+oradaydı, yaptığı iş yoktu. Artık sahte dünyada **gerçek bir vuruş**
+tetikleniyor ve üç şey ölçülüyor: Void bulaşıyor mu, Ender fırlatıyor mu,
+başka bir silahla hiçbir şey olmuyor mu.
+
+Aynı sınıftan bir boşluk v6.9'da da çıkmıştı. Statik `includes()` kontrolü
+"kod yazılmış mı"yı ölçüyor, "kod çalışıyor mu"yu değil.
+
+## Kasten kırıp doğrulandı
+
+| kırılan | düşen test |
+|---|---|
+| eski miğfer deftere yazılmıyor | "NETHERITE MİĞFER geri geldi" |
+| Void miğferi eskisi diye yazılıyor | "Void takana bulaşınca geri TAKILMIYOR" |
+| atıcı da fırlatılıyor | "KENDİNİ fırlatmıyor" |
+| fırlatma 24 → 400 blok | "kaynağın 400 bloğundan çok daha alçak" |
+| vuruş kancası bulaştırmıyor | "Void Çoklu Alet ile VURUNCA bulaşıyor" + 1 |
+
+---
+
 # v7.0 — Kurban Zırhı
 
 Kullanıcı: *"hepsinden, ilk öncelikle kurban zırhından başla."*

@@ -1,0 +1,32 @@
+{
+  "format_version": "1.21.0",
+  "minecraft:item": {
+    "description": {
+      "identifier": "pa:kns_void_kazma",
+      "menu_category": {
+        "category": "equipment"
+      }
+    },
+    "components": {
+      "minecraft:icon": {
+        "texture": "kns_void_kazma"
+      },
+      "minecraft:display_name": {
+        "value": "Void Kazması"
+      },
+      "minecraft:max_stack_size": 1,
+      "minecraft:tags": {
+        "tags": [
+          "pa:konsey",
+          "pa:konsey_alet"
+        ]
+      },
+      "minecraft:hand_equipped": true,
+      "minecraft:glint": true,
+      "minecraft:damage": 5,
+      "minecraft:durability": {
+        "max_durability": 600
+      }
+    }
+  }
+}

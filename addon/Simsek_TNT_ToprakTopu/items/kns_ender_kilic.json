@@ -1,0 +1,32 @@
+{
+  "format_version": "1.21.0",
+  "minecraft:item": {
+    "description": {
+      "identifier": "pa:kns_ender_kilic",
+      "menu_category": {
+        "category": "equipment"
+      }
+    },
+    "components": {
+      "minecraft:icon": {
+        "texture": "kns_ender_kilic"
+      },
+      "minecraft:display_name": {
+        "value": "Ender Kılıcı"
+      },
+      "minecraft:max_stack_size": 1,
+      "minecraft:tags": {
+        "tags": [
+          "pa:konsey",
+          "pa:konsey_silah"
+        ]
+      },
+      "minecraft:hand_equipped": true,
+      "minecraft:glint": true,
+      "minecraft:damage": 1,
+      "minecraft:durability": {
+        "max_durability": 600
+      }
+    }
+  }
+}

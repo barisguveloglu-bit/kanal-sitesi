@@ -1238,6 +1238,36 @@
     "kns_kurban_bot": {
       "textures": "textures/item/kns_kurban_bot"
     },
+    "kns_void_kilic": {
+      "textures": "textures/item/kns_void_kilic"
+    },
+    "kns_void_balta": {
+      "textures": "textures/item/kns_void_balta"
+    },
+    "kns_void_kazma": {
+      "textures": "textures/item/kns_void_kazma"
+    },
+    "kns_void_kurek": {
+      "textures": "textures/item/kns_void_kurek"
+    },
+    "kns_void_alet": {
+      "textures": "textures/item/kns_void_alet"
+    },
+    "kns_ender_kilic": {
+      "textures": "textures/item/kns_ender_kilic"
+    },
+    "kns_evren_kilic": {
+      "textures": "textures/item/kns_evren_kilic"
+    },
+    "kns_trb_kilic": {
+      "textures": "textures/item/kns_trb_kilic"
+    },
+    "kns_void_migfer": {
+      "textures": "textures/item/kns_void_migfer"
+    },
+    "kns_enigma": {
+      "textures": "textures/item/kns_enigma"
+    },
     "o_sey_maskesi": {
       "textures": "textures/item/o_sey_maskesi"
     },

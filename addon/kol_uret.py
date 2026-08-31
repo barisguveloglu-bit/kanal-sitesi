@@ -3617,7 +3617,39 @@ KONSEY = [
     ("kurban_zirh",       "Kurban Zırh",                   "zirh",     "chest", 7,  200,  0),
     ("kurban_pantolon",   "Kurban Pantolon",               "zirh",     "legs", 7,  200,  0),
     ("kurban_bot",        "Kurbanlar Botu",                "zirh",     "feet", 7,  200,  0),
+    # ---- VOID TAKIMI VE KILICLER  (v7.1, Falen Mod V2) ----
+    # Butun sayilar kaynagin esya JSON'undan OLCULDU. Bunlarin
+    # 3B modeli YOK, yalnizca ikonu var (KONSEY_DUZ).
+    #
+    # VOID KILICI'NIN 255 HASARI KAYNAKTAKI GIBI BIRAKILDI.
+    # Karsilastirma: netherite kilic 8, bu depodaki en guclu
+    # esya 62 (Sihirli Ok Asasi). 255 Bedrock'un tavani.
+    # Dusmus'un 1000 korumasini dusurmustuk cunku o KALICI bir
+    # DURUMDU (giyen dokunulmaz oluyordu); bu ise elde tutulan
+    # bir kilic -- kullanan kisi onu bilerek seciyor. Yine de
+    # tek satir: begenmezsen tablodan degistirilir.
+    ("void_kilic",        "Void Kılıcı",                   "silah",    "", 0, 600, 255),
+    ("void_balta",        "Void Baltası",                  "alet",     "", 0, 600,   5),
+    ("void_kazma",        "Void Kazması",                  "alet",     "", 0, 600,   5),
+    ("void_kurek",        "Void Küreği",                   "alet",     "", 0, 600,   4),
+    ("void_alet",         "Void Çoklu Alet",               "alet",     "", 0, 600,   5),
+    # Ender Kilici kaynakta 1 hasar veriyor: isi vurusu degil,
+    # vurdugunu FIRLATMASI (asagida, ender_kilic yetenegi).
+    ("ender_kilic",       "Ender Kılıcı",                  "silah",    "", 0, 600,   1),
+    ("evren_kilic",       "Evren Kılıcı",                  "silah",    "", 0, 600,  15),
+    ("trb_kilic",         "Trb1545 Kılıcı",                "silah",    "", 0, 600,  12),
+    # Kafaya takilan iki parca. Sayilari Kurban zirhiyla ayni.
+    ("void_migfer",       "Void Miğferi",                  "zirh",     "head", 7, 200, 0),
+    ("enigma",            "Enigma",                        "zirh",     "head", 7, 200, 0),
 ]
+
+# 3B modeli olmayan, yalnizca ikonu olan parcalar. Kaynakta da
+# oyle: bir kilic zaten duz bir esya olarak gorunur. Bu kume
+# olmadan uretec her uretimde "geometri yok" diye uyarir ve
+# konsey.mjs "model eksik" der -- oysa eksik bir sey yok.
+# konsey_al.py:DUZ ile AYNI kalmali.
+KONSEY_DUZ = {"void_kilic", "void_balta", "void_kazma", "void_kurek",
+              "void_alet", "ender_kilic", "evren_kilic", "trb_kilic"}
 
 
 # Kaynagin `minecraft:knockback_resistance` degerleri. Tabloya
@@ -3627,6 +3659,8 @@ KONSEY = [
 KONSEY_ITME = {
     "kurban_kask": 0.75, "kurban_zirh": 0.75,
     "kurban_pantolon": 0.75, "kurban_bot": 0.75,
+    # Void Migferi ve Enigma da kaynakta 0.75 tasiyor.
+    "void_migfer": 0.75, "enigma": 0.75,
 }
 
 
@@ -6236,7 +6270,11 @@ def main():
         yaz_json(os.path.join(BP, "items/%s.json" % _kad), konsey_esyasi(_kt))
 
         _kgk = os.path.join(KONSEY_GEO_KAYNAK, _kad + ".geo.json")
-        if os.path.exists(_kgk):
+        if _kt[0] in KONSEY_DUZ:
+            # Duz esya: 3B modeli yok, olmamasi dogru. Uyari
+            # yazilmiyor ki gercek eksikler gurultude kaybolmasin.
+            pass
+        elif os.path.exists(_kgk):
             # KOPYALANMIYOR, yaz_json ile YAZILIYOR: o yol
             # insan_hiyerarsisi()'nden geciyor. Kaynak paketler
             # zirh kaligini kullaniyor (`waist` ebeveynsiz,
@@ -6256,7 +6294,9 @@ def main():
             print("UYARI: %s geometrisi yok (%s)" % (_kad, _kgk))
 
         _kdk = os.path.join(KONSEY_DOKU_KAYNAK, _kad + ".png")
-        if os.path.exists(_kdk):
+        if _kt[0] in KONSEY_DUZ:
+            pass
+        elif os.path.exists(_kdk):
             _kdh = os.path.join(RP, "textures/entity/%s.png" % _kad)
             os.makedirs(os.path.dirname(_kdh), exist_ok=True)
             shutil.copyfile(_kdk, _kdh)

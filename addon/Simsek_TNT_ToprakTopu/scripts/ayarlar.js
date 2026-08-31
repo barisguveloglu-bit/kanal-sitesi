@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.0";
+export const SURUM = "v7.1";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -5108,6 +5108,61 @@ export const COKLU_MUAF = [
    yazilmadi: Meteor -> meteor, Super Meteor -> guclu_tnt,
    Kendini Ucur -> toprak_ucus, Baya Yildirim -> yon_simsegi.
    ================================================================ */
+/* ================================================================
+   VOID TAKIMI                                              v7.1
+
+   Kaynak: Falen Mod V2 (Trb1545). Kullanici dosyayi tekrar
+   gonderdi: "canli olarak bakmani istedim ki referanstan
+   bakarak birazcik riskli oluyor." Dogru karar -- asagidaki
+   uc sey ancak dosyalarin kendisinde goruluyor.
+
+   ---- 1. VOID COKLU ALET: KAYNAKTAKI HALI ESYA SILIYOR ----
+   `Void.mcfunction` tek satir:
+     replaceitem entity @a slot.armor.head 1 sp:voidol 1 0
+       {"item_lock":{"mode":"lock_in_slot"}}
+   Uc ayri sorun:
+     a) `@a` -- vurdugun kisi degil, DUNYADAKI HERKES.
+     b) `replaceitem` kafadaki migferi YOK EDIYOR. Elmas
+        migferin varsa gidiyor.
+     c) `lock_in_slot` -- cikaramiyorsun. Tek cikis
+        `Herkesi_Void_Kurtae` (= `clear @a sp:voidol`), o da
+        yine HERKESI kurtariyor.
+   Bizimki: yalniz VURDUGUNA bulasiyor, eski migferi deftere
+   yaziliyor ve arinca AYNEN geri takiliyor. Dusmus virusunde
+   kurulan kalibin aynisi.
+
+   ---- 2. ENDER KILICI 400 BLOK YUKARI ISINLIYOR ----
+   `RasgeleRp.mcfunction`:
+     execute positioned ^^^2 run tp @e[r=10,c=1] ~~400~
+   400 blok dusus kesin olum ve `@e` oyuncuyu da, evcil
+   hayvanini da kapsiyor. Bizde yukseklik sinirli ve dusen
+   yavas dusuyor -- firlatma bir SALDIRI, infaz degil.
+
+   ---- 3. VOID KILICI 255 HASAR ----
+   Kaynakta gercekten 255 (Bedrock'un tavani). Netherite
+   kilic 8, bu depodaki en guclu esya 62. Degistirilmedi;
+   gerekcesi KONSEY tablosunda yaziyor.
+   ================================================================ */
+export const VOID_ACIK = true;
+
+/* Void Coklu Alet: vurdugunu Void'e cevirir. */
+export const VOID_ALET = "pa:kns_void_alet";
+export const VOID_MIGFER = "pa:kns_void_migfer";
+/* Bulasma suresi. Kaynakta sure YOK -- kalici, tek cikisi
+   baska bir esyayla temizlemek. Bizde kendiliginden geciyor
+   ve gecince eski migfer geri geliyor.                      */
+export const VOID_SURE = 600;              // 30 saniye
+export const VOID_TARAMA = 20;
+export const VOID_KAYIT_ANAHTAR = "simsek:void";
+export const VOID_MESAJ = "§5§lVOID §7— miğferin 30 saniye sonra geri gelecek";
+
+/* Ender Kilici: vurdugunu firlatir. */
+export const ENDER_KILIC = "pa:kns_ender_kilic";
+/* Kaynak 400 blok diyor -- kesin olum. Bu yukseklikten dusen
+   hasar aliyor ama olmuyor, ustelik yumusak dusus veriliyor. */
+export const ENDER_FIRLATMA = 24;          // blok
+export const ENDER_YUMUSAK = 200;          // slow_falling tick
+
 export const KANLI_ACIK = true;
 
 /* Menzil: kaynakta menzil YOK (butun dunya). Tablette butun
