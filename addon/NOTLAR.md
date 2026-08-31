@@ -1,3 +1,142 @@
+# v7.4 — Duruş sistemi (Blockbuster'ın bizdeki hâli)
+
+Kullanıcı: *"bak kanka bu en önemlisi skin yapmakta, bunu genelde çok
+kullanıyorlar… ilk önce mantığını anla, sonra kodlarına bak, ardından bizim
+versiyonumuzu ekle."*
+
+## Önce mantık okundu, tahmin edilmedi
+
+Jar açıldı (Blockbuster 2.7.3-1.20.4; içinde Metamorph, MCLib, Aperture,
+Chameleon da var) ve **1529 sınıf CFR ile çözüldü**. Çıkan model tamamı
+[`REFERANS_BLOCKBUSTER.md`](REFERANS_BLOCKBUSTER.md) dosyasında. Özet:
+
+- `Model` = adlı kutular (`limbs`) + duruşlar (`poses`)
+- `ModelPose` = `{kemik: ModelTransform}`; `ModelTransform` = translate /
+  rotate / scale, **dönüş sırası `MatrixUtils.RotationOrder.XYZ`** — bizim
+  v7.3'te Bedrock için ölçtüğümüz sırayla aynı çıktı
+- `CustomMorph` = model + skin + `currentPose` + `currentPoseOnSneak`
+- `BodyPart` = bir uzva **başka bir görünüş** takmak
+- `EntityUtils.getPose` = uçuyorsa `flying`, binekteyse `riding`, sinsiyse
+  `sneaking`, değilse `standing`; özel duruş hepsini ezer
+
+McHorse'un GitHub'ından çekilemedi: bu oturumda GitHub erişimi yalnızca
+bizim depoya açık. Zaten gerekmedi — elimizdeki jar 1.12.2'nin 1.20.4
+portu, McHorse'un deposunda o hâli yok. **Kullanıcının çalıştırdığı kod
+buydu ve okunan da o oldu.**
+
+## Bizim versiyon: `DURUSLAR`
+
+`kol_uret.py` içinde tek tablo. Bir satır = bir duruş:
+
+```python
+("bagli_eller", "Bağlı Eller", (150, 122, 74), {
+    "durus_sag_kol": {"don": [25, 0, 35]},
+    "durus_sol_kol": {"don": [25, 0, -35]},
+}),
+```
+
+Alan adları kaynağın `ModelTransform`'uyla birebir: `don` (rotate),
+`kaydir` (translate), `olcek` (scale). Yeni duruş **bir satır**.
+
+Gelen beş duruş: **Bağlı Eller · Eller Yukarı · Kavuşuk Kollar ·
+T Duruşu · Selam**.
+
+## Üç karar, üçü de gerekçeli
+
+### 1. Dönüş animasyona değil GEOMETRİYE pişiriliyor
+
+İlk aklıma gelen her duruş için bir `.animation.json` yazmaktı.
+**Yapılmadı.** Bedrock animasyonlarındaki dönüş işareti/sırası ayrı bir
+sözleşme ve burada **ölçemiyorum** — yanlış işaret kolları ters çevirir ve
+bunu ancak tablette görürdük. Geometrideki sözleşme ise v7.3'te ölçüldü
+(pozitif açı, XYZ). Yeni mekanizma icat etmek yerine ölçülmüş olan
+kullanıldı.
+
+### 2. Kol kemikleri yeniden adlandırılıyor, gövde adlandırılmıyor
+
+Vanilla animasyonlar kemikleri **adına göre** sürüyor. Kollar `rightArm`/
+`leftArm` kalsaydı vanilla salınım duruşun üstüne biner, poz durmazdı.
+`durus_sag_kol`/`durus_sol_kol` adlarını hiçbir vanilla animasyon tanımaz.
+
+Buna karşılık `head`, `body`, `rightLeg`, `leftLeg` **vanilla adlarını
+koruyor** — yürüyüş ve kafa çevirme bedava gelmeye devam ediyor. Kaynakta
+bunun karşılığı morph'un vanilla modeli tamamen değiştirmesi; bizde yarısı
+vanilla kalıyor ve bu bir kayıp değil, kazanç.
+
+### 3. Doku yok — oyuncunun kendi derisi
+
+Render denetleyicisi `Texture.default` diyor. Kendi dokumuzu yazsaydık
+herkes aynı görünürdü; duruşun bütün anlamı **kendi skininle** poz vermek.
+Skin değişince duruş da değişir.
+
+## Tetik: elde eşya (başka yolu yok)
+
+Bedrock'ta script istemci tarafına (molang'a) bir şey yazamaz — yani
+"menüden poz seç" **doğrudan mümkün değil**. İstemcinin görebildiği tek
+oyuncuya özel işaret elde tutulan eşya, ve depodaki bütün görünüşler
+(O Şey, Ben 10, Max Steel çekirdekleri) zaten bu tetikle çalışıyor.
+
+Her duruşun kendi taşı var, **yan ele de giriyor** — bağlı eller
+duruşundayken ana elde kılıç durmasın diye.
+
+`variable.donusuk`'e dahil edildiler: duruş açıkken vanilla beden
+kapanıyor, yoksa iki gövde üst üste çizilirdi.
+
+### `riding` neden yok
+
+Kaynağın önceliğinde var ama bu depoda binmeyi soran **kanıtlanmış** bir
+molang sorgusu yok. Taban dosyada geçen sorgular ölçüldü: `is_gliding` ve
+`is_swimming` **var**, `is_riding` **yok**. Var olduğunu varsayıp yazsaydım
+ve yanlış olsaydı ifade derlenmez, oyuncunun çizimi komple bozulurdu.
+Kanıtsız bir sorgu için alınacak risk değil — testte her sorgunun kanıtı
+yazılı, kanıtsız sorgu eklenirse test düşer.
+
+## Denetim — duruşlar ELLERİN YERİYLE ölçülüyor
+
+"Dosya var" demek duruşun doğru olduğunu söylemez. `durus.mjs` her duruşun
+el uçlarını kemik zinciriyle hesaplıyor ve **duruşun ne olduğunu** iddia
+ediyor:
+
+```
+bagli_eller    sag(-0.6,14.0,-4.2) sol(0.6,14.0,-4.2)   bilekler bitişik, gövdenin önünde
+eller_yukari   sag(-7.5,31.7, 0.0) sol(7.5,31.7, 0.0)   iki el de kafanın üstünde
+kavusuk        sag( 4.4,19.0,-5.7) sol(-2.3,19.4,-6.2)  kollar çapraz
+t_durusu       sag(-15.0,23.0,0.0) sol(15.0,23.0,0.0)   omuz hizasında yatay
+selam          sag(-9.1,31.2, 0.0) sol(6.0,12.0, 0.0)   sağ yukarı, sol yanda
+```
+
+Duruş tablosu **testte elle yazılmadı**, `kol_uret.py`'den okunuyor: yeni
+duruş eklenip ölçütü yazılmazsa test bunu söylüyor.
+
+**Kasten bozuldu, üçü de yakalandı:**
+
+| bozma | sonuç |
+|---|---|
+| kol kemiğini `rightArm`'a geri döndür | ✗ vanilla kol adları YOK |
+| `bagli_eller`'in Z dönüşünü tersle | ✗ bilekler bitişik (aralık 22) |
+| denetleyiciye kendi dokumuzu koy | ✗ dokusu Texture.default |
+
+İlk denemede test **çöktü** (kemik yok → `undefined.cubes`) ve 4–6.
+bölümler hiç çalışmadı — yani o güvenceler bir daha sınanmadı. Sessiz yeşil
+kadar tehlikeli. `el()` artık `null` dönüyor, hata temiz düşüyor.
+
+## Bilinen sınırlar (gizlenmiyor)
+
+- Kopya `geometry.humanoid.custom` (geniş/Steve kolları). İnce (Alex) skin
+  kullanan biri duruş açıkken kollarını 1 piksel kalın görür.
+  `Simsek_Skin/skins.json` zaten `humanoid.custom` diyor.
+- Dış katmanlar (`hat`, `jacket`, pantolon) her zaman çiziliyor; vanilla'nın
+  `variable.helmet_layer_visible` gibi ayarları uygulanmıyor.
+- Duruş taşı elde göründüğü için eşyanın kendisi de çiziliyor.
+- Duruşlar arası **geçiş yok** — kaynaktaki `PoseAnimation` alınmadı.
+
+## Alınmayan (istenince devam)
+
+`BodyPart` — bir uzva başka bir görünüş takmak, yani kullanıcının
+"bir kol mu ekleyeceğim" dediği şey. Mekanizma **kanıtlı**: Kanlı Kol
+tam olarak bunu yapıyor (kendi geometrisi oyuncunun `rightArm`/`leftArm`
+kemiklerine adıyla bağlanıyor). Eksik olan tek şey tablo.
+
 # v7.3 — Kanlı Kol'un gerçek modeli (chris1545)
 
 ## Sorun

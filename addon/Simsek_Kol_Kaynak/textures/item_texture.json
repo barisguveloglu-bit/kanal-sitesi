@@ -1274,6 +1274,21 @@
     "o_sey_maskesi": {
       "textures": "textures/item/o_sey_maskesi"
     },
+    "durus_bagli_eller": {
+      "textures": "textures/item/durus_bagli_eller"
+    },
+    "durus_eller_yukari": {
+      "textures": "textures/item/durus_eller_yukari"
+    },
+    "durus_kavusuk": {
+      "textures": "textures/item/durus_kavusuk"
+    },
+    "durus_t_durusu": {
+      "textures": "textures/item/durus_t_durusu"
+    },
+    "durus_selam": {
+      "textures": "textures/item/durus_selam"
+    },
     "ben_elmas": {
       "textures": "textures/item/ben_elmas"
     },

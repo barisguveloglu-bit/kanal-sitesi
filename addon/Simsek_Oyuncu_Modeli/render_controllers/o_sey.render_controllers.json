@@ -748,6 +748,61 @@
           "*": "Material.default"
         }
       ]
+    },
+    "controller.render.durus_bagli_eller": {
+      "geometry": "Geometry.durus_bagli_eller",
+      "textures": [
+        "Texture.default"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.durus_eller_yukari": {
+      "geometry": "Geometry.durus_eller_yukari",
+      "textures": [
+        "Texture.default"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.durus_kavusuk": {
+      "geometry": "Geometry.durus_kavusuk",
+      "textures": [
+        "Texture.default"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.durus_t_durusu": {
+      "geometry": "Geometry.durus_t_durusu",
+      "textures": [
+        "Texture.default"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.durus_selam": {
+      "geometry": "Geometry.durus_selam",
+      "textures": [
+        "Texture.default"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
     }
   }
 }

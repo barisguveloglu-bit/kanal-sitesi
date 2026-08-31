@@ -898,6 +898,221 @@ def goz_attachable(kimlik):
     }
 
 
+
+# ==================== DURUS (POZ) SISTEMI  (v7.4) ====================
+#
+# ---- NEREDEN GELDI ----
+# Kullanici Blockbuster'i (McHorse) gonderdi: "bu en onemlisi
+# skin yapmakta, bunu genelde cok kullaniyorlar, once mantigini
+# anla sonra kodlarina bak, ardindan bizim versiyonumuzu ekle."
+# Jar acildi, 1529 sinif CFR ile cozuldu ve mantik OKUNDU
+# (tahmin edilmedi). Ozet:
+#
+#   Model      -> `limbs` (adli kutular: size/texture/anchor/parent)
+#                 + `poses` (duruslar)
+#   ModelPose  -> {kemik: ModelTransform} + carpisma kutusu olcusu
+#   ModelTransform -> translate / rotate / scale
+#                 (mchorse.blockbuster.api.ModelTransform, ve donus
+#                  sirasi MatrixUtils.RotationOrder.XYZ -- bizim
+#                  v7.3'te OLCTUGUMUZ sirayla ayni)
+#   CustomMorph -> model + skin + currentPose + currentPoseOnSneak
+#   BodyPart   -> baska bir gorunusun bir UZVA takilmasi
+#   EntityUtils.getPose -> ucuyorsa "flying", binekteyse "riding",
+#                 sinsiyse "sneaking", degilse "standing";
+#                 ozel bir duruş secildiyse o hepsini eziyor.
+#
+# ---- BEDROCK'TA NE YAPILABILIR, NE YAPILAMAZ ----
+# Blockbuster bir GUI'de canli poz veriyor. Bedrock'ta script
+# istemci tarafina (molang'a) bir sey yazamaz, yani "menuden poz
+# sec" DOGRUDAN mumkun degil. Istemcinin gorebildigi tek oyuncuya
+# ozel isaret ELDEKI ESYA (query.get_equipped_item_name) --
+# depodaki butun gorunusler zaten bu tetikle calisiyor.
+#
+# ---- DONUS ANIMASYONA DEGIL GEOMETRIYE PISIRILIYOR ----
+# Ilk aklima gelen her duruş icin bir .animation.json yazmakti.
+# YAPILMADI: Bedrock animasyonlarindaki donus isareti/sirasi
+# ayri bir sozlesme ve BURADA OLCEMIYORUM -- yanlis isaret
+# kollari ters cevirir ve bunu ancak tablette gorurduk.
+# Geometrideki donus sozlesmesi ise v7.3'te OLCULDU (pozitif
+# aci, XYZ sirasi). O yuzden her duruş kendi GEOMETRISINE
+# pisiriliyor: yeni bir mekanizma yok, olculmus olan kullanildi.
+#
+# ---- KOL KEMIKLERI NEDEN YENIDEN ADLANDIRILIYOR ----
+# Vanilla animasyonlar kemikleri ADINA gore suruyor. Kollar
+# `rightArm`/`leftArm` kalsaydi vanilla salinim bizim duruşumuzun
+# USTUNE binerdi. `durus_sag_kol`/`durus_sol_kol` adlarini hicbir
+# vanilla animasyon tanimaz -- duruş sabit kalir. Buna karsilik
+# head/body/bacaklar VANILLA ADLARINI KORUYOR: yuruyus ve kafa
+# cevirme bedava gelmeye devam ediyor.
+#
+# ---- DOKU: OYUNCUNUN KENDI DERISI ----
+# Ayri doku YOK. Render denetleyicisi `Texture.default` diyor,
+# yani oyuncunun kendi skini. Skin degisince duruş da degisir.
+#
+# ---- SINIR (bilerek, gizlenmeden) ----
+# Kopya `geometry.humanoid.custom` (genis/Steve kollari). Ince
+# (Alex) skin kullanan biri duruş acikken kollarini 1 piksel
+# kalin gorur. Simsek_Skin/skins.json zaten `humanoid.custom`
+# diyor, yani bu depodaki skin icin dogru olan bu.
+DURUS_ACIK = True
+
+# Vanilla oyuncu modelinin kopyasi. Kemik adlari ve olculer
+# depodaki INSAN_EBEVEYN/INSAN_PIVOT ile ayni yerden geliyor;
+# uv'ler 64x64 skin duzeninin standart bolgeleri ve DOGRULANDI:
+# oyuncunun kendi derisiyle cizdirildi, yuz kafanin on yuzune,
+# govde desenleri govdeye dustu (yanlis uv karmakarisik bir
+# sonuc verirdi, tanidik bir sonuc degil).
+DURUS_GOVDE = [
+    # (ad, ebeveyn, pivot, kup_origin, kup_olcu, uv, sisme)
+    ("root",       None,       [0, 0, 0],    None, None, None, 0),
+    ("waist",      "root",     [0, 12, 0],   None, None, None, 0),
+    ("body",       "waist",    [0, 24, 0],   [-4, 12, -2], [8, 12, 4], [16, 16], 0),
+    ("jacket",     "body",     [0, 24, 0],   [-4, 12, -2], [8, 12, 4], [16, 32], 0.25),
+    ("head",       "body",     [0, 24, 0],   [-4, 24, -4], [8, 8, 8],  [0, 0],   0),
+    ("hat",        "head",     [0, 24, 0],   [-4, 24, -4], [8, 8, 8],  [32, 0],  0.5),
+    ("rightLeg",   "root",     [-1.9, 12, 0], [-3.9, 0, -2], [4, 12, 4], [0, 16], 0),
+    ("rightPants", "rightLeg", [-1.9, 12, 0], [-3.9, 0, -2], [4, 12, 4], [0, 32], 0.25),
+    ("leftLeg",    "root",     [1.9, 12, 0],  [-0.1, 0, -2], [4, 12, 4], [16, 48], 0),
+    ("leftPants",  "leftLeg",  [1.9, 12, 0],  [-0.1, 0, -2], [4, 12, 4], [0, 48],  0.25),
+]
+
+# Duruş VERILEBILEN kemikler: vanilla adlari birakiliyor ki
+# vanilla salinim bunlara ULASAMASIN.
+DURUS_KOL = [
+    # (bizim ad, kilif adi, pivot, kup_origin, kol_uv, kilif_uv)
+    ("durus_sag_kol", "durus_sag_kilif", [-5, 22, 0], [-8, 12, -2], [40, 16], [40, 32]),
+    ("durus_sol_kol", "durus_sol_kilif", [5, 22, 0],  [4, 12, -2],  [32, 48], [48, 48]),
+]
+
+# ---- DURUŞ TABLOSU ----
+# Bir satir = bir duruş. Blockbuster'in ModelTransform'u ile ayni
+# uc alan: don (rotate) / kaydir (translate) / olcek (scale).
+# Aci DERECE, sira XYZ, isaret POZITIF -- v7.3'te olculdu.
+#
+# Acilar goz karariyla yazilmadi: her duruş icin EL UCUNUN
+# dustugu nokta hesaplandi (bkz. NOTLAR.md v7.4).
+DURUSLAR = [
+    # (kimlik, Turkce ad, ikon rengi, {kemik: {"don"/"kaydir"/"olcek"}})
+    ("bagli_eller", "Bağlı Eller", (150, 122, 74), {
+        # Bilekler govdenin ONUNDE bulusuyor: sag el (-0,6, 14,0, -4,2),
+        # sol el (0,6, 14,0, -4,2) -- aralik 1,2 birim, yani bitisik.
+        "durus_sag_kol": {"don": [25, 0, 35]},
+        "durus_sol_kol": {"don": [25, 0, -35]},
+    }),
+    ("eller_yukari", "Eller Yukarı", (208, 66, 66), {
+        # Bobby'nin gorselindeki duruş: iki kol da yukari, hafif disa.
+        "durus_sag_kol": {"don": [0, 0, -160]},
+        "durus_sol_kol": {"don": [0, 0, 160]},
+    }),
+    ("kavusuk", "Kavuşuk Kollar", (92, 108, 140), {
+        # Gogus onunde kavusmus kollar: biri otekinin ustunde.
+        "durus_sag_kol": {"don": [15, 0, 78], "kaydir": [0, -1, -3]},
+        "durus_sol_kol": {"don": [15, 0, -78], "kaydir": [0, 1, -4]},
+    }),
+    ("t_durusu", "T Duruşu", (120, 190, 120), {
+        # Blockbuster'in kendi `t_pose`u: iki kol tam yatay.
+        "durus_sag_kol": {"don": [0, 0, -90]},
+        "durus_sol_kol": {"don": [0, 0, 90]},
+    }),
+    ("selam", "Selam", (200, 168, 90), {
+        # Tek kol yukari, oteki yanda.
+        "durus_sag_kol": {"don": [0, 0, -150]},
+        "durus_sol_kol": {},
+    }),
+]
+
+DURUS_ONEK = "durus_"
+
+
+def durus_kemikleri(poz):
+    """Bir duruşun kemik listesi: govde vanilla adlarini korur,
+    kollar bizim adlarimizi tasir ve duruş DONUSU pisirilmis
+    gelir.                                                      """
+    kemikler = []
+    for ad, ebeveyn, pivot, orij, olcu, uv, sis in DURUS_GOVDE:
+        k = {"name": ad, "pivot": list(pivot)}
+        if ebeveyn:
+            k["parent"] = ebeveyn
+        if orij is not None:
+            kup = {"origin": list(orij), "size": list(olcu), "uv": list(uv)}
+            if sis:
+                kup["inflate"] = sis
+            k["cubes"] = [kup]
+        kemikler.append(k)
+    for ad, kilif, pivot, orij, uv, kuv in DURUS_KOL:
+        d = poz.get(ad, {})
+        temel = {"name": ad, "parent": "body", "pivot": list(pivot)}
+        if d.get("don"):
+            temel["rotation"] = list(d["don"])
+        # `kaydir` kupun yerini oynatiyor; Bedrock geometrisinde
+        # kemigin "translate" alani YOK, o yuzden kupun origin'ine
+        # ekleniyor. Sonuc ayni, ve tek sozlesmede kaliyoruz.
+        kay = d.get("kaydir") or [0, 0, 0]
+        yer = [orij[i] + kay[i] for i in range(3)]
+        temel["cubes"] = [{"origin": yer, "size": [4, 12, 4], "uv": list(uv)}]
+        kemikler.append(temel)
+        kemikler.append({
+            "name": kilif, "parent": ad, "pivot": list(pivot),
+            "cubes": [{"origin": yer, "size": [4, 12, 4],
+                       "uv": list(kuv), "inflate": 0.25}],
+        })
+    return kemikler
+
+
+def durus_geometrisi(kimlik, poz):
+    """Bir duruşun tam geometrisi. Oyuncunun KENDI derisiyle
+    cizilecegi icin uv uzayi 64x64 (skin duzeni).              """
+    return {
+        "format_version": "1.12.0",
+        "minecraft:geometry": [{
+            "description": {
+                "identifier": "geometry." + DURUS_ONEK + kimlik,
+                "texture_width": 64,
+                "texture_height": 64,
+                "visible_bounds_width": 3,
+                "visible_bounds_height": 3,
+                "visible_bounds_offset": [0, 1.5, 0],
+            },
+            "bones": durus_kemikleri(poz),
+        }],
+    }
+
+
+def durus_esyasi(kimlik, ad):
+    """Duruş tasi: bir SILAH degil, bir ANAHTAR (maske_esyasi ile
+    ayni kalip). Yan ele de girebiliyor -- ana el bos kalsin diye,
+    ki bagli eller duruşunda elinde kilic durmasin.             """
+    return {
+        "format_version": "1.21.0",
+        "minecraft:item": {
+            "description": {
+                "identifier": "pa:" + DURUS_ONEK + kimlik,
+                "menu_category": {"category": "equipment"},
+            },
+            "components": {
+                "minecraft:icon": {"texture": DURUS_ONEK + kimlik},
+                "minecraft:display_name": {"value": "Duruş · " + ad},
+                "minecraft:max_stack_size": 1,
+                "minecraft:hand_equipped": True,
+                "minecraft:allow_off_hand": True,
+            },
+        },
+    }
+
+
+def durus_ikonu(renk):
+    """16x16 ikon: bir insan silueti. Duruşlar birbirinden RENKLE
+    ayriliyor; sekil ayni cunku hepsi ayni sey -- bir duruş."""
+    p = {}
+    govde = [(x, y) for y in range(6, 12) for x in range(6, 10)]
+    kafa = [(x, y) for y in range(2, 6) for x in range(6, 10)]
+    bacak = [(x, y) for y in range(12, 15) for x in (6, 7, 8, 9)]
+    kol = [(x, y) for y in range(6, 11) for x in (4, 5, 10, 11)]
+    for nokta, k in ((kafa, 1.15), (govde, 1.0), (bacak, 0.8), (kol, 0.9)):
+        for xy in nokta:
+            p[xy] = golge(renk, k) + (255,)
+    return p
+
 # ---------------------------------------------------------- attachable
 def attachable(kimlik, geometri="geometry.simsek_kol"):
     tam = "pa:" + kimlik
@@ -4693,6 +4908,13 @@ def oyuncu_modeli_paketi(surum):
     for _ba, _btr, _ben, _bdos, _btur in BEN10 + ZIRH_MOD:
         d["geometry"][_ba] = "geometry." + _ba
         d["textures"][_ba] = "textures/entity/" + _ba
+    # ---- DURUŞLAR (v7.4) ----
+    # Doku YOK: her duruş `Texture.default` ile, yani oyuncunun
+    # KENDI derisiyle ciziliyor. Bu Blockbuster'daki "skin"in
+    # karsiligi -- orada da poz modelin dokusunu degistirmiyor.
+    if DURUS_ACIK:
+        for _dk, _dad, _dr, _dp in DURUSLAR:
+            d["geometry"][DURUS_ONEK + _dk] = ("geometry." + DURUS_ONEK + _dk)
 
     # 2. Tetik. IKI yuva da sinaniyor: yan el ana eli bos birakir
     #    ama her surumde ayni davranmayabilir; ana el kesin
@@ -4706,12 +4928,40 @@ def oyuncu_modeli_paketi(surum):
             "variable.%s = query.get_equipped_item_name('main_hand') == '%s'"
             " || query.get_equipped_item_name('off_hand') == '%s';"
             % (_ba, _ba, _ba))
+    # Duruş tetigi ayni kalip. AYRICA kaynagin kendi onceligi
+    # taklit ediliyor: mchorse.metamorph.api.EntityUtils.getPose
+    # ucarken "flying" donuyor, yani ozel duruş o sirada
+    # GECERSIZ. Bizde de oyle -- yoksa oyuncu kanat acmis halde
+    # T duruşunda donardi.
+    #
+    # NEDEN "riding" YOK: kaynagin listesinde var ama bu depoda
+    # binmeyi soran KANITLANMIS bir molang sorgusu yok. Taban
+    # dosyada (vanilla player.entity.json) gecen sorgular
+    # olculdu: is_gliding ve is_swimming VAR, is_riding YOK.
+    # Var oldugunu VARSAYIP yazsaydim ve yanlis olsaydi ifade
+    # derlenmez, oyuncunun cizimi komple bozulurdu. Kanitli
+    # olmayan bir sorgu icin alinacak risk degil.
+    if DURUS_ACIK:
+        for _dk, _dad, _dr, _dp in DURUSLAR:
+            _dt = DURUS_ONEK + _dk
+            d["scripts"]["pre_animation"].append(
+                "variable.%s = (query.get_equipped_item_name('main_hand') == '%s'"
+                " || query.get_equipped_item_name('off_hand') == '%s')"
+                " && !query.is_gliding && !query.is_swimming;"
+                % (_dt, _dt, _dt))
     # "Herhangi bir donusum acik mi": vanilla govdeyi kapatan
     # kosul. Tek tek yazmak yerine TEK degisken -- yeni bir
     # yaratik eklenince burasi kendiliginden dogru kaliyor.
+    # Duruşlar da buraya giriyor: duruş acikken oyuncunun kendi
+    # bedeni ciziliyor olsaydi POZ VERILMIS kopyanin icinde
+    # kalirdi -- iki govde ust uste. Kaynakta bunun karsiligi
+    # morph'un vanilla modeli tamamen degistirmesi.
+    _durus_degiskenleri = ([DURUS_ONEK + _d[0] for _d in DURUSLAR]
+                           if DURUS_ACIK else [])
     d["scripts"]["pre_animation"].append(
         "variable.donusuk = variable.o_sey" +
-        "".join(" || variable." + _b[0] for _b in BEN10 + ZIRH_MOD) + ";")
+        "".join(" || variable." + _b[0] for _b in BEN10 + ZIRH_MOD) +
+        "".join(" || variable." + _v for _v in _durus_degiskenleri) + ";")
 
     # 3. + 4. Denetleyiciler
     yeni_rc = []
@@ -4733,6 +4983,12 @@ def oyuncu_modeli_paketi(surum):
             "controller.render." + _ba:
                 "variable.%s && !variable.is_first_person"
                 " && !variable.map_face_icon" % _ba
+        })
+    for _dv in _durus_degiskenleri:
+        yeni_rc.append({
+            "controller.render." + _dv:
+                "variable.%s && !variable.is_first_person"
+                " && !variable.map_face_icon" % _dv
         })
     # Ek katmanin TETIGI ana modun degiskeni: cekirdek elde
     # oldugunda ikisi birden ciziliyor. Kendi degiskeni
@@ -4820,6 +5076,16 @@ def oyuncu_modeli_paketi(surum):
             "textures": ["Texture." + _ek],
             "materials": [{"*": "Material.default"}],
         }
+    # Duruşun dokusu OYUNCUNUN KENDISI: `Texture.default` taban
+    # dosyada zaten oyuncunun derisine bagli. Kendi dokumuzu
+    # yazsaydik herkes ayni gorunurdu -- duruşun butun anlami
+    # kendi skininle poz vermek.
+    for _dv in _durus_degiskenleri:
+        denetleyiciler["controller.render." + _dv] = {
+            "geometry": "Geometry." + _dv,
+            "textures": ["Texture.default"],
+            "materials": [{"*": "Material.default"}],
+        }
     yaz_json(os.path.join(OMP, "render_controllers/o_sey.render_controllers.json"), {
         "format_version": "1.8.0",
         "render_controllers": denetleyiciler,
@@ -4830,6 +5096,10 @@ def oyuncu_modeli_paketi(surum):
     # donusum calisir; ustelik iki kopya da URETILDIGI icin
     # ayrisma ihtimali yok.
     yaz_json(os.path.join(OMP, "models/entity/o_sey.geo.json"), o_sey_geometrisi())
+    for _dk, _dad, _dr, _dp in (DURUSLAR if DURUS_ACIK else []):
+        yaz_json(os.path.join(OMP, "models/entity/%s%s.geo.json"
+                              % (DURUS_ONEK, _dk)),
+                 durus_geometrisi(_dk, _dp))
     yaz_json(os.path.join(OMP, "animations/o_sey.animation.json"), SEY_ANIM)
     kaynak_doku = os.path.join(RP, "textures/entity/%s.png" % SEY_DOKU)
     hedef_doku = os.path.join(OMP, "textures/entity/%s.png" % SEY_DOKU)
@@ -6809,6 +7079,24 @@ def main():
     for liste, ad in ((en_us, MASKE_EN), (tr_tr, MASKE_TR)):
         liste.append("item.pa:%s.name=%s" % (MASKE_ESYA, ad))
         liste.append("item.pa:%s=%s" % (MASKE_ESYA, ad))
+    # ---- DURUŞ TASLARI (v7.4) ----
+    # Blockbuster'in poz sistemi. Esya + ikon burada; geometri ve
+    # denetleyici oyuncu modeli paketinde (asagida) -- cunku duruş
+    # oyuncunun KENDI modelini degistiriyor, elde tutulan bir
+    # gorunum degil.
+    if DURUS_ACIK:
+        for _dk, _dad, _drenk, _dpoz in DURUSLAR:
+            _dtam = DURUS_ONEK + _dk
+            yaz_json(os.path.join(BP, "items/%s.json" % _dtam),
+                     durus_esyasi(_dk, _dad))
+            png_yaz(os.path.join(RP, "textures/item/%s.png" % _dtam),
+                    16, 16, durus_ikonu(_drenk))
+            dokular[_dtam] = {"textures": "textures/item/" + _dtam}
+            en_us.append("item.pa:%s.name=Pose · %s" % (_dtam, _dk))
+            en_us.append("item.pa:%s=Pose · %s" % (_dtam, _dk))
+            tr_tr.append("item.pa:%s.name=Duruş · %s" % (_dtam, _dad))
+            tr_tr.append("item.pa:%s=Duruş · %s" % (_dtam, _dad))
+
     # ---- BEN 10 (v4.92) ----
     # Dort yaratik: esya + ikon. Modeller ve dokular oyuncu
     # modeli paketine giriyor (asagida).
@@ -7213,6 +7501,11 @@ def main():
     beklenen.add(SAAT_ESYA)
     # v4.90: maskenin ikonu da hicbir listede degil
     beklenen.add(MASKE_ESYA)
+    # Duruş taslari: eklenmezse temizlik adimi her calismada
+    # ikonlarini siler (v7.2'de mutant dokusunda tam bunu yasadik).
+    if DURUS_ACIK:
+        for _dk4, _dad4, _dr4, _dp4 in DURUSLAR:
+            beklenen.add(DURUS_ONEK + _dk4)
     # v4.91: zirh parcalarinin ikonlari da listede degil
     for _zk2, _zy2, _zp2, _zt2, _ze2, _zb2 in ZIRH:
         beklenen.add(_zk2)
