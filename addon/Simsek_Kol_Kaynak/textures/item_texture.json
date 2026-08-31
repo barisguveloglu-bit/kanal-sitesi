@@ -1187,6 +1187,51 @@
     "ben_devasa": {
       "textures": "textures/item/ben_devasa"
     },
+    "ben_gri_zirh": {
+      "textures": "textures/item/ben_gri_zirh"
+    },
+    "ben_gri_zirh_proto": {
+      "textures": "textures/item/ben_gri_zirh_proto"
+    },
+    "ben_gri_zirh_10k": {
+      "textures": "textures/item/ben_gri_zirh_10k"
+    },
+    "ben_gri_uzuv": {
+      "textures": "textures/item/ben_gri_uzuv"
+    },
+    "ben_gri_uzuv_proto": {
+      "textures": "textures/item/ben_gri_uzuv_proto"
+    },
+    "ben_gri_uzuv_10k": {
+      "textures": "textures/item/ben_gri_uzuv_10k"
+    },
+    "ben_gri_takim": {
+      "textures": "textures/item/ben_gri_takim"
+    },
+    "ben_gri_takim_proto": {
+      "textures": "textures/item/ben_gri_takim_proto"
+    },
+    "ben_gri_takim_10k": {
+      "textures": "textures/item/ben_gri_takim_10k"
+    },
+    "ben_gulle_top": {
+      "textures": "textures/item/ben_gulle_top"
+    },
+    "ben_gulle_top_proto": {
+      "textures": "textures/item/ben_gulle_top_proto"
+    },
+    "ben_gulle_top_10k": {
+      "textures": "textures/item/ben_gulle_top_10k"
+    },
+    "ben_yukseltme_cubuk": {
+      "textures": "textures/item/ben_yukseltme_cubuk"
+    },
+    "ben_yukseltme_cubuk_proto": {
+      "textures": "textures/item/ben_yukseltme_cubuk_proto"
+    },
+    "ben_yukseltme_cubuk_10k": {
+      "textures": "textures/item/ben_yukseltme_cubuk_10k"
+    },
     "zirh_mod_temel": {
       "textures": "textures/item/zirh_mod_temel"
     },

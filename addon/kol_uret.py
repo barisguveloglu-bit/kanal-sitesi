@@ -3622,7 +3622,48 @@ BEN10_TABAN = [
     ("buz",       "Büyük Üşütük", "Big Chill",    "Necrofriggian",       1.0,  1, 0),
     ("yanki",     "Yankı Yankı",  "Echo Echo",    "Sonorosian",          0.5,  1, 0),
     ("devasa",    "Devasaur",     "Humungousaur", "Vaxasaurian",         2.8,  1, 0),
+    # -- v6.1'de alinanlar: EK FORMLAR --
+    # Kaynakta bunlar bir TUSLA gecilen haller ve gecince hem
+    # gorunus hem nitelik degisiyor. Bizde tus yok, her form
+    # ayri esya -- butun Ben 10 sistemi zaten boyle.
+    ("gri_zirh",  "Gri Madde · Zırh",  "Grey Matter (Armor)", "Galvan",       0.25, 3, 1),
+    ("gri_uzuv",  "Gri Madde · Uzuv",  "Grey Matter (Limbs)", "Galvan",       1.25, 3, 1),
+    ("gri_takim", "Gri Madde · Takım", "Grey Matter (Suit)",  "Galvan",       1.65, 3, 0),
+    ("gulle_top", "Gülle · Top",       "Cannonbolt (Ball)",   "Arburian Pelarota", 1.3699, 3, 0),
+    ("yukseltme_cubuk", "Yükseltme · Çubuk", "Upgrade (Rod)", "Galvanic Rod", 0.8,  3, 0),
 ]
+
+# ---- OLCEK HANGI YETENEKTEN GELIYOR (v6.1) ----
+# Modun `palladium:size` yetenekleri her zaman kosulsuz degil:
+# Gri Madde'nin uzuvlu (x5) ve takimli (x6.6) halleri ile
+# Gulle'nin top hali (x1.03) BIR TUSA BASILIYKEN geciyor ve
+# kosullari `unlocking` altinda duruyor (Palladium'un kendi
+# tuhafligi -- olculdu).
+#
+# Kosul agacini genel olarak cozmek yerine hangi satirin hangi
+# yetenekten geldigi BURADA yaziyor; ben10.mjs bu adi jar'da
+# arayip olcegi karsilastiriyor. Yazmayan satir kosulsuz
+# `size_change`i (ya da hic yoksa 1.0) kullaniyor.
+# ---- IKI OLCEK CARPILIYOR, BIRI OTEKINI EZMIYOR ----
+# Ilk denemede uzuvlu Gri Madde 149, takimli 186 birim cikti
+# (9 ve 11.6 BLOK). Sebep: kosullu olcegi tek basina almistim.
+#
+# Kaynakta iki `palladium:size` AYNI ANDA acik ve pehkui
+# bunlari CARPIYOR. Kanit modun kendi icinde: Devasaur'un
+# `size_change` 2.8 ve `size_change_grow` 2.3. Grow BUYUME
+# demek; ezseydi 2.3 < 2.8 oldugu icin oyuncuyu KUCULTURDU.
+# Carpim 6.44 veriyor -- dizideki Ultimate Humungousaur.
+#
+# Dogru sayilar:
+#   Gri Madde uzuvlu  0.25 x 5    = 1.25
+#   Gri Madde takimli 0.25 x 6.6  = 1.65
+#   Gulle top hali    1.33 x 1.03 = 1.3699
+# (carpan, taban)  -- ben10.mjs ikisini de jar'da ariyor
+BEN10_BOY_YETENEK = {
+    "gri_uzuv":  ("size_change_limbs", "size_change"),
+    "gri_takim": ("size_change_suit",  "size_change"),
+    "gulle_top": ("size_change_ball",  "size_change"),
+}
 
 # tur adi -> modun kendi power dosyasi (test karsilastiriyor)
 BEN10_GUC_DOSYA = {
@@ -3645,6 +3686,8 @@ BEN10_GUC_DOSYA = {
     "Necrofriggian":       "necrofriggian",
     "Sonorosian":          "sonorosian",
     "Vaxasaurian":         "vaxasaurian",
+    # Yukseltme'nin cubugu modda AYRI bir guc dosyasi.
+    "Galvanic Rod":        "galvanic_rod",
 }
 
 # (anahtar, TR ad, EN ad, geo dosyalari, tur adi)

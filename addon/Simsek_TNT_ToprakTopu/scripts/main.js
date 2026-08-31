@@ -175,6 +175,10 @@ import "./yetenekler/bot_guc.js";
    "elindeki X" fonksiyonlarini kullaniyor, o yuzden onlardan
    SONRA gelmeli -- yukaridaki DIKKAT notunun ayni geregi.   */
 import "./yetenekler/isinlar.js";
+/* v6.1: Ben 10 saldirilari. ben10.js'ten "elindeki yaratik"
+   fonksiyonunu kullaniyor, o yuzden ondan SONRA gelmeli --
+   ayni DIKKAT geregi.                                        */
+import "./yetenekler/ben10_saldiri.js";
 
 /* DIKKAT -- SIRA ONEMLI.
    kollar.js var olan yeteneklere esya BAGLIYOR, yani bagladigi

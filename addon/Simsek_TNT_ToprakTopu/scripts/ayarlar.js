@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v6.0";
+export const SURUM = "v6.1";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -3988,10 +3988,20 @@ const BEN10_TABAN = [
     efektler: [["resistance", 0, 1], ["strength", 0, 1], ["speed", 0, 4], ["haste", 0, 1], ["slow_falling", 0, 0], ["saturation", 0, 0]]
   }],
   ["gri", {
+    /* v6.1 DUZELTME. v6.0'da bu satirda Direnc IV ve Guc II
+       vardi; o sayilar `armor +56` ile `attack +7`den geliyordu
+       ve ONLAR CIPLAK GALVAN'IN DEGIL, zirhinin/uzuvlarinin/
+       takiminin sayilariymis (powers/galvan.json: armor_defense
+       galvan_armor'a, suit_armor galvan_suit'e bagli).
+
+       Formlar ayri esya olunca sayilar da yerine gitti: ciplak
+       Gri Madde modun kendisinde de ZAYIF -- zirhi yok, ustelik
+       `max_health -10` yiyor (Bedrock'ta negatif can artisi
+       verilemiyor, o ceza TASINAMADI).                       */
     ad: "Gri Madde", tur: "Galvan", kaynak: "galvan",
-    ozet: "direnç IV · güç II · hız V · zıplama IV · su solunumu · yavaş düşüş",
+    ozet: "hız V · zıplama IV · su solunumu · yavaş düşüş",
     mekanikler: ["tirmanma", "suzulme"],
-    efektler: [["resistance", 0, 3], ["strength", 0, 1], ["speed", 0, 4], ["jump_boost", 0, 3], ["water_breathing", 0, 0], ["slow_falling", 0, 0]]
+    efektler: [["speed", 0, 4], ["jump_boost", 0, 3], ["water_breathing", 0, 0], ["slow_falling", 0, 0]]
   }],
   ["sinek", {
     ad: "Sinek Suratlı", tur: "Lepidopterran", kaynak: "lepidopterran",
@@ -4071,6 +4081,59 @@ const BEN10_TABAN = [
     ozet: "direnç IV · güç X · can artışı X · yavaş düşüş · ateş direnci",
     efektler: [["resistance", 0, 3], ["strength", 0, 9], ["health_boost", 0, 9], ["slow_falling", 0, 0], ["fire_resistance", 0, 0]]
   }],
+
+  /* ============================================================
+     v6.1'DE EKLENEN BES EK FORM
+
+     Kullanici: "aldiklarimizin ek formlarina... hepsinin modeli
+     jar'da var."
+
+     Bunlar kaynakta bir TUSLA gecilen haller. Gecince hem
+     gorunus hem NITELIK degisiyor -- yani ayri bir gucler
+     kumesi, sadece baska bir kilik degil. Bizde tus yok, her
+     form ayri esya (butun Ben 10 sistemi zaten boyle).
+
+     Hangi hâlde hangi kosullu yetenegin acik oldugu
+     powers/galvan.json'dan okundu:
+       galvan_armor  -> armor +20 · flight_speed 1
+       galvan_limbs  -> armor +10 · attack +2      · x5
+       galvan_suit   -> armor +24 · attack +5 · ates bagisikligi
+                        · knockback 255 · can cezasi YOK · x6.6
+       ball_roll     -> tokluk +10                 · x1.03
+     Cubuk AYRI bir guc dosyasi (powers/galvanic_rod.json).
+     ============================================================ */
+  ["gri_zirh", {
+    ad: "Gri Madde · Zırh", tur: "Galvan", kaynak: "galvan",
+    ozet: "direnç III · hız V · zıplama IV · su solunumu · yavaş düşüş",
+    mekanikler: ["tirmanma", "suzulme"],
+    efektler: [["resistance", 0, 2], ["speed", 0, 4], ["jump_boost", 0, 3], ["water_breathing", 0, 0], ["slow_falling", 0, 0]]
+  }],
+  ["gri_uzuv", {
+    ad: "Gri Madde · Uzuv", tur: "Galvan", kaynak: "galvan",
+    ozet: "direnç I · güç I · hız V · zıplama IV · su solunumu · yavaş düşüş",
+    mekanikler: ["tirmanma", "suzulme"],
+    efektler: [["resistance", 0, 0], ["strength", 0, 0], ["speed", 0, 4], ["jump_boost", 0, 3], ["water_breathing", 0, 0], ["slow_falling", 0, 0]]
+  }],
+  ["gri_takim", {
+    ad: "Gri Madde · Takım", tur: "Galvan", kaynak: "galvan",
+    ozet: "direnç IV · güç II · hız V · zıplama IV · su solunumu · yavaş düşüş · ateş direnci",
+    mekanikler: ["tirmanma", "suzulme"],
+    efektler: [["resistance", 0, 3], ["strength", 0, 1], ["speed", 0, 4], ["jump_boost", 0, 3], ["water_breathing", 0, 0], ["slow_falling", 0, 0], ["fire_resistance", 0, 0]]
+  }],
+  ["gulle_top", {
+    /* Top halinin GUCLERI Gulle ile ayni: tek fark tokluk
+       +10 -> +20 ve o Bedrock formulunde bir Direnc seviyesi
+       kaydirmiyor (ikisi de Direnc III). Fark GORUNUSTE ve
+       BOYUTTA: x1.33 -> x1.03, ayri model.                  */
+    ad: "Gülle · Top", tur: "Arburian Pelarota", kaynak: "arburian_pelarota",
+    ozet: "direnç III · güç II · can artışı V · hız I · yavaş düşüş",
+    efektler: [["resistance", 0, 2], ["strength", 0, 1], ["health_boost", 0, 4], ["speed", 0, 0], ["slow_falling", 0, 0]]
+  }],
+  ["yukseltme_cubuk", {
+    ad: "Yükseltme · Çubuk", tur: "Galvanic Rod", kaynak: "galvanic_rod",
+    ozet: "direnç II · güç I · yavaş düşüş · ateş direnci",
+    efektler: [["resistance", 0, 1], ["strength", 0, 0], ["slow_falling", 0, 0], ["fire_resistance", 0, 0]]
+  }],
 ];
 
 /* BICIM SAYISI HER UZAYLIDA UC DEGIL (v6.0). Modun ilk on bir
@@ -4093,6 +4156,348 @@ for (const [kisa, t] of BEN10_TABAN) {
     });
   }
 }
+
+/* ============================================================
+   BEN 10 SALDIRILARI                                    v6.1
+
+   Kullanici: "aktif saldirilari da bitirelim... referanstan
+   bakmaman icin dosyayi tekrardan atacagim."
+
+   Sayilar jar'dan YENIDEN okundu (md5 18b2b7b1...), referans
+   dosyasindan degil. Her satirin `kaynak` alani modun kendi
+   yetenek adi; ben10_saldiri.mjs o adi jar'da arayip sayiyi
+   karsilastiriyor.
+
+   ---- UC TUR, TEK MOTOR ----
+   Modda ~15 ayri yetenek turu var ama Bedrock'ta ucune
+   iniyorlar:
+
+     mermi   ucan mermi. palladium:projectile ve
+             alienevo:custom_projectile.
+     alan    anlik cevre hasari. alienevo:aoe_damage,
+             sonic_clap, explosion, astro_punch_damage,
+             astro_laser_damage, roll_damage.
+     atilma  itme. alienevo:motion, motion_dash, charge_leap,
+             vax_leap, astrojump, roll_leap.
+
+   ---- HASAR CEVRILMEDI ----
+   Java'da `Damage: 25` de Bedrock'ta applyDamage(25) de ayni
+   olcek (yarim kalp basina 1). Isinlardaki x20 kurali BURAYA
+   GIRMIYOR: o kural SUREKLI isinlar icindi (her tick hasar),
+   bunlar TEK VURUS.
+
+   ---- MENZIL TAVANI ----
+   Kaynakta mermi menzili = hiz x Lifetime ve Java'da bu bir
+   TAVAN, mermi zaten bir yere carpip duruyor. Duz alinsaydi
+   Kaya Firlatma 630, Nukleer Top 300 blok tarardi -- bizim
+   mermimiz script'le ilerliyor ve her tick onunu tariyor,
+   yani 630 blok = 300 tick surekli tarama. BEN10_MERMI_TAVAN
+   ile 64 blokta kesiliyor; kesilen satirlarda kaynagin kendi
+   sayisi `kaynakMenzil` olarak duruyor.
+
+   ---- `hasarKaynak: "oyuncu"` ----
+   Iki mermide (Yukseltme ve Devasaur'un super yumrugu) modda
+   Damage alani YOK, `damage_from_player: true` var: hasar
+   oyuncunun saldiri niteliginden geliyor. O da turun kendi
+   attack_damage'i -- tablodaki sayi oradan.
+
+   ---- ALINMAYAN IKI ISIN ----
+   Yukseltme'nin `upgrade_beam`i ile Cubuk'un `lightning_beam`i
+   HASAR TASIMIYOR (energy_beams/*.json dosyalari yalnizca
+   renk/boy; hasar yetenekte yaziyor ve o iki yetenekte
+   `damage` alani yok). Gorsel/islevsel isinlar -- uydurma
+   hasar verilmedi.
+   ============================================================ */
+export const BEN10_SALDIRI_ACIK = true;
+/* Iki atis arasi en az bekleme (tick). Kaynakta her yetenegin
+   kendi cooldown'i yok; Palladium tusa basili tutmaya gore
+   calisiyor. Bizde tek deger -- isinlardaki ile ayni el
+   hissi.                                                     */
+export const BEN10_SALDIRI_BEKLEME = 20;
+/* Mermi menzil tavani (blok). Gerekce yukarida.              */
+export const BEN10_MERMI_TAVAN = 64;
+/* Mermi her tick kac blok ilerlesin. Kaynaktaki `velocity`
+   Java'nin blok/tick'i ile ayni olcek, dogrudan kullaniliyor;
+   bu yalniz TAVAN -- 5'ten hizli mermi duvarin icinden gecer
+   (bir tick'te 5 blok atlar).                                */
+export const BEN10_MERMI_HIZ_TAVAN = 2.5;
+/* Bir alan saldirisinda en fazla kac hedef islensin. Supernova
+   15 blok yariçapta; tavansiz bir kalabalikta tek atis yuzlerce
+   varlik dolasirdi.                                          */
+export const BEN10_ALAN_TAVAN = 24;
+/* Jest sirasi buradan sayilmaya baslar. Var olanlarin en
+   yukarisi 400 (zirh matkabi); 420 hepsinin ustunde.         */
+export const BEN10_SALDIRI_SIRA = 420;
+
+export const BEN10_SALDIRI = new Map([
+  ["ben_sald_elmas_diamond_shards_base", {
+   ad: "Elmas Şarapneli", yaratik: "elmas", tur: "mermi",
+   kaynak: "diamond_shards_base", hasar: 7, hiz: 2, menzil: 64,
+   yaricap: 0.8, kaynakMenzil: 200
+  }],
+  ["ben_sald_elmas_shield_damage", {
+   ad: "Kalkan Vuruşu", yaratik: "elmas", tur: "alan",
+   kaynak: "shield_damage", hasar: 4, yaricap: 1.75
+  }],
+  ["ben_sald_elmas_sonic_boom_knockback", {
+   ad: "Sonik Alkış", yaratik: "elmas", tur: "alan",
+   kaynak: "sonic_boom_knockback", hasar: 0, yaricap: 5,
+   itme: 2.5
+  }],
+  ["ben_sald_dortkol_boulder_projectile", {
+   ad: "Kaya Fırlatma", yaratik: "dortkol", tur: "mermi",
+   kaynak: "boulder_projectile", hasar: 25, hiz: 2.1, menzil: 64,
+   yaricap: 1.5, patlama: 0.7, blokKirar: true, kaynakMenzil: 630
+  }],
+  ["ben_sald_dortkol_sonic_boom_projectile", {
+   ad: "Sonik Yumruk", yaratik: "dortkol", tur: "mermi",
+   kaynak: "sonic_boom_projectile", hasar: 10, hiz: 4, menzil: 40,
+   yaricap: 3, itme: 4
+  }],
+  ["ben_sald_dortkol_sonic_boom_knockback", {
+   ad: "Sonik Alkış", yaratik: "dortkol", tur: "alan",
+   kaynak: "sonic_boom_knockback", hasar: 0, yaricap: 5, itme: 3
+  }],
+  ["ben_sald_dortkol_tetramand_spin_damage", {
+   ad: "Dönme Savurması", yaratik: "dortkol", tur: "alan",
+   kaynak: "tetramand_spin_damage", hasar: 10, yaricap: 5
+  }],
+  ["ben_sald_dortkol_fall_damage", {
+   ad: "Yer Çarpması", yaratik: "dortkol", tur: "alan",
+   kaynak: "fall_damage", hasar: 10, yaricap: 5, patlama: 2.5
+  }],
+  ["ben_sald_dortkol_leap", {
+   ad: "Sıçrayış", yaratik: "dortkol", tur: "atilma",
+   kaynak: "leap", guc: 2
+  }],
+  ["ben_sald_cene_bite_pro", {
+   ad: "Isırık", yaratik: "cene", tur: "mermi",
+   kaynak: "bite_pro", hasar: 20, hiz: 1.2, menzil: 4.2,
+   yaricap: 2.5
+  }],
+  ["ben_sald_cene_aqua_damage", {
+   ad: "Su Jeti", yaratik: "cene", tur: "alan",
+   kaynak: "aqua_damage", hasar: 6, yaricap: 2.5, itisGuc: 3
+  }],
+  ["ben_sald_cene_tail_damage", {
+   ad: "Kuyruk Savurma", yaratik: "cene", tur: "alan",
+   kaynak: "tail_damage", hasar: 10, yaricap: 2.5
+  }],
+  ["ben_sald_cene_tornado_damage", {
+   ad: "Su Girdabı", yaratik: "cene", tur: "alan",
+   kaynak: "tornado_damage", hasar: 3, yaricap: 5
+  }],
+  ["ben_sald_cene_slash_damage", {
+   ad: "Pençe", yaratik: "cene", tur: "alan",
+   kaynak: "slash_damage", hasar: 8, yaricap: 3
+  }],
+  ["ben_sald_cene_leap", {
+   ad: "Sıçrayış", yaratik: "cene", tur: "atilma", kaynak: "leap",
+   guc: 1.5
+  }],
+  ["ben_sald_ates_fire_ball", {
+   ad: "Ateş Topu", yaratik: "ates", tur: "mermi",
+   kaynak: "fire_ball", hasar: 12, hiz: 2, menzil: 64,
+   yaricap: 1.3, patlama: 0.7, yakma: 5, kaynakMenzil: 120
+  }],
+  ["ben_sald_ates_firebreath_pro_knockback", {
+   ad: "Ateş Nefesi", yaratik: "ates", tur: "mermi",
+   kaynak: "firebreath_pro_knockback", hasar: 5, hiz: 1.2,
+   menzil: 12, yaricap: 0.5, yakma: 5, itme: 0.5
+  }],
+  ["ben_sald_ates_supernova_damage", {
+   ad: "Süpernova", yaratik: "ates", tur: "alan",
+   kaynak: "supernova_damage", hasar: 100, yaricap: 15, yakma: 5
+  }],
+  ["ben_sald_ates_pyronite_tornado_damage", {
+   ad: "Ateş Girdabı", yaratik: "ates", tur: "alan",
+   kaynak: "pyronite_tornado_damage", hasar: 6, yaricap: 5,
+   yakma: 5
+  }],
+  ["ben_sald_ates_leap", {
+   ad: "Sıçrayış", yaratik: "ates", tur: "atilma", kaynak: "leap",
+   guc: 1.7
+  }],
+  ["ben_sald_vahsi_bite_pro", {
+   ad: "Isırık", yaratik: "vahsi", tur: "mermi",
+   kaynak: "bite_pro", hasar: 21, hiz: 1.2, menzil: 3.6,
+   yaricap: 1.2
+  }],
+  ["ben_sald_vahsi_quill_barrage", {
+   ad: "Diken Yağmuru", yaratik: "vahsi", tur: "mermi",
+   kaynak: "quill_barrage", hasar: 10, hiz: 2, menzil: 64,
+   yaricap: 1, kaynakMenzil: 200
+  }],
+  ["ben_sald_vahsi_leap", {
+   ad: "Sıçrayış", yaratik: "vahsi", tur: "atilma",
+   kaynak: "leap", guc: 2.5
+  }],
+  ["ben_sald_xlr_dash_dam_5", {
+   ad: "Tekme Atılışı", yaratik: "xlr", tur: "alan",
+   kaynak: "dash_dam_5", hasar: 18, yaricap: 1, itisGuc: 5
+  }],
+  ["ben_sald_xlr_tornado_damage", {
+   ad: "Kasırga", yaratik: "xlr", tur: "alan",
+   kaynak: "tornado_damage", hasar: 3, yaricap: 5, itisGuc: 1.5
+  }],
+  ["ben_sald_xlr_motion_damage", {
+   ad: "Yumruk Yağmuru", yaratik: "xlr", tur: "alan",
+   kaynak: "motion_damage", hasar: 15, yaricap: 1
+  }],
+  ["ben_sald_gri_tongue_pro", {
+   ad: "Dil Atışı", yaratik: "gri", tur: "mermi",
+   kaynak: "tongue_pro", hasar: 4, hiz: 4, menzil: 8,
+   yaricap: 0.5
+  }],
+  ["ben_sald_gri_leap", {
+   ad: "Sıçrayış", yaratik: "gri", tur: "atilma", kaynak: "leap",
+   guc: 2
+  }],
+  ["ben_sald_sinek_slime_beam", {
+   ad: "Balçık Işını", yaratik: "sinek", tur: "mermi",
+   kaynak: "slime_beam", hasar: 6, hiz: 1, menzil: 10,
+   yaricap: 0.5
+  }],
+  ["ben_sald_sinek_toxic_breath", {
+   ad: "Zehirli Nefes", yaratik: "sinek", tur: "mermi",
+   kaynak: "toxic_breath", hasar: 1, hiz: 1.7, menzil: 51,
+   yaricap: 0.5
+  }],
+  ["ben_sald_yukseltme_super_punch_projectile", {
+   ad: "Süper Yumruk", yaratik: "yukseltme", tur: "mermi",
+   kaynak: "super_punch_projectile", hasar: 13, hiz: 3,
+   menzil: 12, yaricap: 1, itme: 2.5, hasarKaynak: "oyuncu"
+  }],
+  ["ben_sald_yukseltme_cubuk_lightning_shot", {
+   ad: "Yıldırım Atışı", yaratik: "yukseltme_cubuk", tur: "mermi",
+   kaynak: "lightning_shot", hasar: 5, hiz: 2, menzil: 40,
+   yaricap: 0.5, yakma: 3
+  }],
+  ["ben_sald_yukseltme_cubuk_lightning_throw", {
+   ad: "Yıldırım Fırlatma", yaratik: "yukseltme_cubuk",
+   tur: "mermi", kaynak: "lightning_throw", hasar: 10, hiz: 3,
+   menzil: 64, yaricap: 1, kaynakMenzil: 300
+  }],
+  ["ben_sald_hayalet_tentacle_pro", {
+   ad: "Dokunaç", yaratik: "hayalet", tur: "mermi",
+   kaynak: "tentacle_pro", hasar: 15, hiz: 0.3, menzil: 4.5,
+   yaricap: 1.2
+  }],
+  ["ben_sald_hayalet_shadow_strike_damage", {
+   ad: "Gölge Vuruşu", yaratik: "hayalet", tur: "alan",
+   kaynak: "shadow_strike_damage", hasar: 10, yaricap: 2.5,
+   itisGuc: 0.9
+  }],
+  ["ben_sald_gulle_motion_damage_dash", {
+   ad: "Yuvarlanma Çarpması", yaratik: "gulle", tur: "alan",
+   kaynak: "motion_damage_dash", hasar: 22, yaricap: 1.5,
+   itisGuc: 2.5
+  }],
+  ["ben_sald_gulle_damage_slam", {
+   ad: "Yer Çarpması", yaratik: "gulle", tur: "alan",
+   kaynak: "damage_slam", hasar: 18, yaricap: 4
+  }],
+  ["ben_sald_gulle_motion_damage", {
+   ad: "Top Vuruşu", yaratik: "gulle", tur: "alan",
+   kaynak: "motion_damage", hasar: 10, yaricap: 1
+  }],
+  ["ben_sald_gulle_top_motion_damage_dash", {
+   ad: "Yuvarlanma Çarpması", yaratik: "gulle_top", tur: "alan",
+   kaynak: "motion_damage_dash", hasar: 22, yaricap: 1.5,
+   itisGuc: 2.5
+  }],
+  ["ben_sald_gulle_top_damage_slam", {
+   ad: "Yer Çarpması", yaratik: "gulle_top", tur: "alan",
+   kaynak: "damage_slam", hasar: 18, yaricap: 4
+  }],
+  ["ben_sald_atomik_nuke_winner", {
+   ad: "Nükleer Top", yaratik: "atomik", tur: "mermi",
+   kaynak: "nuke_winner", hasar: 250, hiz: 3, menzil: 64,
+   yaricap: 1.3, patlama: 6, blokKirar: true, yakma: 5,
+   kaynakMenzil: 300
+  }],
+  ["ben_sald_ejder_fire_ball", {
+   ad: "Ateş Topu", yaratik: "ejder", tur: "mermi",
+   kaynak: "fire_ball", hasar: 10, hiz: 2.3, menzil: 64,
+   yaricap: 0.5, patlama: 0.6, blokKirar: true, yakma: 5,
+   kaynakMenzil: 138
+  }],
+  ["ben_sald_ejder_firebreath_pro_knockback", {
+   ad: "Ateş Nefesi", yaratik: "ejder", tur: "mermi",
+   kaynak: "firebreath_pro_knockback", hasar: 3, hiz: 3,
+   menzil: 60, yaricap: 0.5, yakma: 5, itme: 0.3
+  }],
+  ["ben_sald_astro_punch_ability_ground", {
+   ad: "Astro Yumruk", yaratik: "astro", tur: "alan",
+   kaynak: "punch_ability_ground", hasar: 7, yaricap: 2.75
+  }],
+  ["ben_sald_astro_punch_ability_air", {
+   ad: "Havada Yumruk", yaratik: "astro", tur: "alan",
+   kaynak: "punch_ability_air", hasar: 10, yaricap: 2
+  }],
+  ["ben_sald_astro_astro_laser_damage", {
+   ad: "Astro Lazer", yaratik: "astro", tur: "alan",
+   kaynak: "astro_laser_damage", hasar: 10, yaricap: 0.5,
+   yukseklik: 10
+  }],
+  ["ben_sald_astro_laser_jump", {
+   ad: "Astro Sıçrayış", yaratik: "astro", tur: "atilma",
+   kaynak: "laser_jump", guc: 0.65
+  }],
+  ["ben_sald_bataklik_fire_ball", {
+   ad: "Ateş Topu", yaratik: "bataklik", tur: "mermi",
+   kaynak: "fire_ball", hasar: 10, hiz: 2, menzil: 64,
+   yaricap: 1.3, patlama: 0.7, yakma: 5, kaynakMenzil: 120
+  }],
+  ["ben_sald_bataklik_dual_beam_pro", {
+   ad: "Çifte Alev", yaratik: "bataklik", tur: "mermi",
+   kaynak: "dual_beam_pro", hasar: 4, hiz: 1.2, menzil: 12,
+   yaricap: 0.5, yakma: 5
+  }],
+  ["ben_sald_buz_ice_shards", {
+   ad: "Buz Parçası", yaratik: "buz", tur: "mermi",
+   kaynak: "ice_shards", hasar: 10, hiz: 2, menzil: 60,
+   yaricap: 1
+  }],
+  ["ben_sald_yanki_scream", {
+   ad: "Çığlık", yaratik: "yanki", tur: "mermi", kaynak: "scream",
+   hasar: 5, hiz: 1, menzil: 10, yaricap: 2
+  }],
+  ["ben_sald_yanki_wall_of_sound_scream", {
+   ad: "Ses Duvarı", yaratik: "yanki", tur: "mermi",
+   kaynak: "wall_of_sound_scream", hasar: 7, hiz: 1, menzil: 10,
+   yaricap: 2
+  }],
+  ["ben_sald_devasa_super_punch_projectile", {
+   ad: "Süper Yumruk", yaratik: "devasa", tur: "mermi",
+   kaynak: "super_punch_projectile", hasar: 30, hiz: 3, menzil: 6,
+   yaricap: 1, itme: 1.5, hasarKaynak: "oyuncu"
+  }],
+  ["ben_sald_devasa_tail_spin_damage", {
+   ad: "Kuyruk Savurma", yaratik: "devasa", tur: "alan",
+   kaynak: "tail_spin_damage", hasar: 10, yaricap: 5
+  }],
+]);
+
+/* Ben 10 ISINLARI. Isinlar surekli oldugu icin ZIRH_ISIN ile
+   AYNI kural: tek atis = tick basina hasar x
+   ZIRH_ISIN_BEKLEME. Motor da ayni (isinlar.js) -- ucuncu bir
+   kapi turu eklendi, yeni dosya acilmadi.
+
+   Ates Topu'nun isini v4.92'den beri ozette VAAT EDILIYORDU
+   ("isin 9") ama ortada yoktu; v6.1'de gercekten geldi.     */
+export const BEN10_ISIN = new Map([
+  ["ben_isin_ates", {
+    ad: "Ateş Işını", yaratik: "ates", kaynak: "dual_beam_pro",
+    kaynakHasar: 9, hasar: 180, menzil: 15, yakma: 6,
+    parcacik: "minecraft:basic_flame_particle"
+  }],
+  ["ben_isin_buz", {
+    ad: "Buz Nefesi", yaratik: "buz", kaynak: "ice_breath",
+    kaynakHasar: 3, hasar: 60, menzil: 10, yakma: 0,
+    parcacik: "minecraft:snowflake_particle"
+  }]
+]);
 
 export const BOT_KIMLIKLER = new Set([BOT_KIMLIK, SEY_KIMLIK, SEY_KILIK_KIMLIK]);
 for (const t of ILKEL_BESLI.values()) {

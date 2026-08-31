@@ -73,7 +73,7 @@ Dönüştürücü: `kol_uret.py: ben10_geometrisi()`.
 | **Yankı Yankı** (Echo Echo) | Sonorosian | 0.5 | 1 | v6.0 |
 | **Devasaur** (Humungousaur) | Vaxasaurian | 2.8 | 1 | v6.0 |
 
-**19 tür, 41 kayıt.** Modun ilk on bir uzaylısında üç biçim
+**20 tür, 56 kayıt** (v6.1'de beş ek form ×3 biçim). Modun ilk on bir uzaylısında üç biçim
 (Recal / Prototip / 10K) var; `alien_34/60/100/101` ve `afomni`nin
 uzaylılarında tek model var — olmayan biçim **uydurulmadı**.
 
@@ -191,20 +191,59 @@ taban hızının **16 katı**. Aynı gerekçe zırh tablosunda da yazılı
 | `step_height` · `entity_gravity` · `entity_reach` | ayarlanamıyor |
 | `size` (çarpışma kutusu) | **model büyüyor, kutu büyümüyor** — Bedrock'ta oyuncunun kutusu sabit (0.6 × 1.8) |
 
-### Aktif yetenekleri henüz alınmayanlar
+### v6.1: aktif saldırılar geldi
 
-Bunların modelleri ve pasif güçleri geldi, **saldırı yetenekleri
-gelmedi** — sayılar okundu, aktarılmadı:
+**54 saldırı + 2 ışın.** Tablo `ayarlar.js: BEN10_SALDIRI` ve
+`BEN10_ISIN`; her satırın `kaynak` alanı modun kendi yetenek adı,
+`sim/ben10_saldiri.mjs` o adı jar'da arayıp sayıyı karşılaştırıyor.
 
-| yaratık | kaynaktaki yetenek | sayılar |
+Modda ~15 ayrı yetenek türü var; Bedrock'ta üçe iniyorlar:
+
+| tür | kaç | kaynaktaki karşılıkları |
 |---|---|---|
-| **Ejderha** | ateş topu · ateş nefesi | 10 hasar / patlama 0.6 · 3 hasar / 5 sn ateş |
-| **Astro Bot** | astro yumruk · havada yumruk · lazer | 7 hasar / 2.75 yarıçap · 10 / 2 · 10 / 10 blok |
-| **Büyük Üşütük** | buz nefesi | 3 hasar |
-| **Yükseltme** | enerji ışını | `alienevo:upgrade_beam` |
+| **mermi** | 24 | `projectile` · `custom_projectile` |
+| **alan** | 24 | `aoe_damage` · `sonic_clap` · `explosion` · `astro_punch_damage` · `astro_laser_damage` · `roll_damage` |
+| **atılma** | 6 | `motion` · `motion_dash` · `charge_leap` · `vax_leap` · `astrojump` |
 
-Ejderha ve Astro Bot'un tablodaki güçleri **bu yüzden zayıf** — kaynakta
-da öyle, güçleri saldırılarında.
+**Hasar çevrilmedi:** Java'da `Damage: 25` de Bedrock'ta `applyDamage(25)`
+de aynı ölçek. Işınlardaki ×20 kuralı buraya girmiyor — o kural *sürekli*
+ışınlar içindi, bunlar tek vuruş.
+
+**Menzil tavanı 64 blok.** Kaynakta menzil `hız × Lifetime` ve Java'da bu
+bir tavan (mermi zaten çarpıp duruyor). Düz alınsaydı Kaya Fırlatma 630,
+Nükleer Top 300 blok tarardı. Kesilen satırlarda kaynağın kendi sayısı
+`kaynakMenzil` olarak duruyor.
+
+**İki mermide hasar oyuncudan:** Yükseltme ve Devasaur'un süper
+yumruğunda `Damage` alanı yok, `damage_from_player: true` var. Tablodaki
+sayı türün kendi `attack_damage`ı ve satır `hasarKaynak: "oyuncu"`
+işaretli.
+
+**Alınmayan iki ışın:** Yükseltme'nin `upgrade_beam`i ile Çubuk'un
+`lightning_beam`i hasar taşımıyor (`energy_beams/*.json` yalnızca renk/boy;
+hasar yetenekte ve o ikisinde `damage` alanı yok). Uydurma hasar verilmedi.
+
+**Ateş Topu'nun ışını:** v4.92'den beri özet "ışın 9" vaat ediyordu ama
+ortada ışın yoktu. v6.1'de geldi (9 × 20 = 180, 15 blok), Büyük Üşütük'ün
+buz nefesiyle birlikte (3 × 20 = 60, 10 blok).
+
+### v6.1: beş ek form
+
+| form | kaynak | ölçek | ne değişiyor |
+|---|---|---|---|
+| **Gri Madde · Zırh** | `galvan_armor` | 0.25 | armor +20 · uçuş |
+| **Gri Madde · Uzuv** | `galvan_limbs` | 0.25 × 5 = **1.25** | armor +10 · saldırı +2 |
+| **Gri Madde · Takım** | `galvan_suit` | 0.25 × 6.6 = **1.65** | armor +24 · saldırı +5 · ateş bağışıklığı |
+| **Gülle · Top** | `ball_roll` | 1.33 × 1.03 = **1.37** | tokluk +10 |
+| **Yükseltme · Çubuk** | ayrı güç dosyası | 0.8 | armor +16 · saldırı +4 |
+
+**İki `palladium:size` aynı anda açıksa pehkui bunları ÇARPIYOR.** Kanıtı
+modun kendi içinde: Devasaur'un `size_change` 2.8 ve `size_change_grow`
+2.3 — "grow" büyüme demek, ezseydi oyuncuyu küçültürdü.
+
+**Grey Matter'ın tabanı v6.0'da yanlıştı:** Direnç IV ve Güç II vardı, o
+sayılar `armor +56` / `attack +7`den geliyordu ve onlar çıplak Galvan'ın
+değil zırhının/takımının sayılarıymış. Formlar ayrılınca yerine gitti.
 
 ### Dikkat: üç uzaylı ÇOK büyük
 

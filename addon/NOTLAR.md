@@ -1,3 +1,112 @@
+# v6.1 — Ben 10: ek formlar + aktif saldırılar
+
+Kullanıcı: *"ikisini de yapalım. Referanstan bakmaman için dosyayı tekrardan
+atacağım, referans da bazen yanlış bilgi verebiliyor o yüzden."*
+
+Haklı bir tedbir. Jar'ı tekrar açtım (md5 `18b2b7b1…`, öncekiyle **aynı**) ve
+bütün sayıları oradan yeniden okudum. `sim/ben10_saldiri.mjs` de referansa
+değil **jar'a** bakıyor: 54 satırın her biri modun kendi yetenek adıyla
+gösteriliyor ve sayısı orada doğrulanıyor.
+
+## 1. Beş ek form
+
+| form | kaynak | ölçek | ne değişiyor |
+|---|---|---|---|
+| **Gri Madde · Zırh** | `galvan_armor` | 0.25 | armor +20 · uçuş (jetpack + kanat + kask) |
+| **Gri Madde · Uzuv** | `galvan_limbs` | 1.25 | armor +10 · saldırı +2 |
+| **Gri Madde · Takım** | `galvan_suit` | 1.65 | armor +24 · saldırı +5 · ateş bağışıklığı |
+| **Gülle · Top** | `ball_roll` | 1.37 | tokluk +10 (Direnç seviyesi kaymıyor) |
+| **Yükseltme · Çubuk** | ayrı güç dosyası | 0.8 | armor +16 · saldırı +4 · yıldırım |
+
+Üç biçimle 15 yeni kayıt. **41 → 56.**
+
+### İki ölçek ÇARPILIYOR
+
+İlk denemede uzuvlu Gri Madde **149**, takımlı **186** birim çıktı (9 ve 11.6
+blok). Koşullu ölçeği tek başına almıştım.
+
+Kaynakta iki `palladium:size` aynı anda açık ve pehkui bunları **çarpıyor.**
+Kanıt modun kendi içinde: Devasaur'un `size_change` 2.8 ve `size_change_grow`
+2.3. "Grow" büyüme demek; ezseydi 2.3 < 2.8 olduğu için oyuncuyu **küçültürdü.**
+
+Doğrusu `0.25 × 6.6 = 1.65` → 2.90 blok. Render bunu yakaladı.
+
+### Grey Matter'ın tabanı v6.0'da YANLIŞTI
+
+v6.0'da Gri Madde satırında Direnç IV ve Güç II vardı. O sayılar `armor +56` ve
+`attack +7`den geliyordu ve onlar **çıplak Galvan'ın değil**, zırhının /
+uzuvlarının / takımının sayılarıymış. Formlar ayrı eşya olunca yerine gitti:
+çıplak Gri Madde modun kendisinde de zayıf.
+
+(`max_health −10` cezası taşınamadı — Bedrock'ta negatif can artışı yok.)
+
+## 2. Elli dört aktif saldırı + iki ışın
+
+Modda ~15 ayrı yetenek türü var; Bedrock'ta üçe iniyorlar:
+
+| tür | kaç | kaynaktaki karşılıkları |
+|---|---|---|
+| **mermi** | 24 | `projectile`, `custom_projectile` |
+| **alan** | 24 | `aoe_damage`, `sonic_clap`, `explosion`, `astro_punch_damage`, `astro_laser_damage`, `roll_damage` |
+| **atılma** | 6 | `motion`, `motion_dash`, `charge_leap`, `vax_leap`, `astrojump` |
+
+Örnekler (hepsi jar'dan): Kaya Fırlatma 25 hasar + patlama · Süpernova 100 hasar
+15 blok · Nükleer Top 250 hasar patlama 6 · Isırık 21 · Yuvarlanma Çarpması 22 ·
+Tekme Atılışı 18 + itme 5 · Astro Lazer 10 (dikey silindir, 10 blok).
+
+**Hasar çevrilmedi.** Java'da `Damage: 25` de Bedrock'ta `applyDamage(25)` de
+aynı ölçek. Işınlardaki ×20 kuralı buraya girmiyor — o kural *sürekli* ışınlar
+içindi, bunlar tek vuruş.
+
+### Ateş Topu'nun ışını nihayet var
+
+v4.92'den beri özet "ışın 9" **vaat ediyordu** ama ortada ışın yoktu. Şimdi
+gerçekten geldi (9 × 20 = 180, 15 blok), Büyük Üşütük'ün buz nefesiyle birlikte
+(3 × 20 = 60, 10 blok). İkisi de mevcut ışın motoruna bağlandı — yeni dosya
+açılmadı, üçüncü bir kapı türü eklendi.
+
+### Menzil tavanı
+
+Kaynakta mermi menzili `hız × Lifetime` ve Java'da bu bir **tavan** — mermi
+zaten bir yere çarpıp duruyor. Düz alınsaydı Kaya Fırlatma 630, Nükleer Top 300
+blok tarardı; bizim mermimiz script'le ilerliyor ve her tick önünü tarıyor.
+64 blokta kesiliyor, kaynağın kendi sayısı `kaynakMenzil` olarak duruyor.
+
+### Marvel mekanikleri Ben 10'a açıldı
+
+`wall_climb` / `intangibility` / `elytra_flight` / `astrojump` modda zaten
+vardı; `mekanikVar()` artık önce Marvel kahramanına, sonra elindeki uzaylıya
+bakıyor.
+
+## Alınmayan iki ışın
+
+Yükseltme'nin `upgrade_beam`i ile Çubuk'un `lightning_beam`i **hasar
+taşımıyor** — `energy_beams/*.json` dosyaları yalnızca renk/boy, hasar
+yetenekte yazıyor ve o ikisinde `damage` alanı yok. Uydurma hasar verilmedi.
+
+## Yol boyunca çıkan iki hata
+
+**1. Mermi işi sonsuza kadar asılı kalabiliyordu.** Patlama bütçesi doluysa
+"bir tick daha bekle" diyordu ve bütçe hiç açılmazsa iş kuyrukta kalırdı.
+Artık `BEN10_SALDIRI_BEKLEME` kadar deneyip vazgeçiyor.
+
+**2. Testin kendisi yanlıştı.** Mermi döngüsünde tick ilerletmiyordum, yani
+bütçe hiç yenilenmiyordu. Test "mermi durmuyor" diyordu; durmayan test'ti.
+
+**3. Tarayıcı boş ayar yakaladı.** `BEN10_MERMI_TAVAN` yalnızca tabloyu
+üretirken kullanılıyordu, çalışma anında değil. Artık motorda da uygulanıyor —
+tablo elle düzenlenirse 630 bloka kadar tarayan bir mermi çıkardı.
+
+## Doğrulama
+
+- `sim/kos.sh` — **65 dosya, hepsi geçti** (`ben10_saldiri.mjs` yeni)
+- `sim/anim_tara.py` — **HATA 0**
+- İki bilerek bozma: bir hasar sayısını değiştirdim, kapıyı kaldırdım —
+  **ikisi de yakalandı**
+- Render: beş ek form önden ve yandan çizildi; ölçek hatası orada görüldü
+
+---
+
 # v6.0 — Ben 10: on beş uzaylı daha
 
 Kullanıcı: *"ben 10'den almadığımız uzaylıları ve formları eklemeyi

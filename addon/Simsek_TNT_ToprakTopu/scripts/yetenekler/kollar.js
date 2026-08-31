@@ -1,7 +1,8 @@
 import { esyaBagla } from "./kayit.js";
 import { bilgiYaz, hataYaz, actionbarYaz } from "../yardimcilar.js";
 import {
-  ZIRH_MODLAR, ZIRH_CEKIRDEK_ONEK, MARVEL_GUCLER, MARVEL_ONEK
+  ZIRH_MODLAR, ZIRH_CEKIRDEK_ONEK, MARVEL_GUCLER, MARVEL_ONEK,
+  BEN10, BEN10_SALDIRI, BEN10_ISIN
 } from "../ayarlar.js";
 
 /* ============================================================
@@ -210,6 +211,48 @@ for (const [anahtar, t] of MARVEL_GUCLER) {
     if (!y) continue;
     MARVEL_YETENEKLERI.push([esya, y]);
     esyaBagla(esya, y);
+  }
+}
+
+/* ---- BEN 10 YARATIKLARI (v6.1) ----
+
+   Cekirdek ve kahraman esyalariyla ayni kalip. Bagli olan sey
+   YARATIK ESYASI: elinde tutunca o yaratik oluyorsun, gucleri
+   de o esyada.
+
+   Liste ELLE YAZILMIYOR -- BEN10_SALDIRI ile BEN10_ISIN'daki
+   `yaratik` alani TABAN adi, esya adlari da o tabandan turuyor
+   (ben_<taban>, ben_<taban>_proto, ben_<taban>_10k). Yani
+   uc bicimin de ayni yetenekleri var; modda da oyle, cunku
+   powers dosyasi tur basina tek.
+
+   Mekanikler de bagli: kaynakta duvar tirmanma, faz gecisi ve
+   suzulme o yaratigin ASIL ozelligi. Marvel'de ogrenilen
+   kural -- onlar olmayinca "kahraman degil kostum" kaliyor.  */
+export const BEN10_YETENEKLERI = [];
+{
+  const tabanaYetenek = new Map();
+  const ekle = (taban, y) => {
+    if (!tabanaYetenek.has(taban)) tabanaYetenek.set(taban, []);
+    const l = tabanaYetenek.get(taban);
+    if (l.indexOf(y) === -1) l.push(y);
+  };
+  for (const [kimlik, t] of BEN10_SALDIRI) ekle(t.yaratik, kimlik);
+  for (const [kimlik, t] of BEN10_ISIN) ekle(t.yaratik, kimlik);
+  for (const [, t] of BEN10) {
+    for (const m of (t.mekanikler || [])) {
+      /* Tirmanma BURADA YOK: surekli bir durum, tetiklenen bir
+         yetenek degil (merkezi tick'ten taraniyor). Marvel
+         tarafinda da oyle.                                   */
+      const y = MARVEL_MEKANIK_YETENEK[m];
+      if (y) ekle(t.taban, y);
+    }
+  }
+  for (const [esya, t] of BEN10) {
+    for (const y of (tabanaYetenek.get(t.taban) || [])) {
+      BEN10_YETENEKLERI.push(["pa:" + esya, y]);
+      esyaBagla("pa:" + esya, y);
+    }
   }
 }
 

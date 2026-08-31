@@ -1,12 +1,14 @@
 import { system } from "@minecraft/server";
 import { yetenekKaydet } from "./kayit.js";
 import { elindekiCekirdek } from "./zirh.js";
+import { elindekiYaratik } from "./ben10.js";
 import { guctekiKahraman, gucKumesi } from "./marvel.js";
 import {
   hataYaz, gecerliMi, actionbarYaz, kollariIndir, parcacikAt
 } from "../yardimcilar.js";
 import {
-  ZIRH_ISIN, MARVEL_ISIN, ZIRH_ISIN_KALINLIK, ZIRH_ISIN_TAVAN,
+  ZIRH_ISIN, MARVEL_ISIN, BEN10_ISIN, BEN10,
+  ZIRH_ISIN_KALINLIK, ZIRH_ISIN_TAVAN,
   ZIRH_ISIN_ADIM, ZIRH_ISIN_BEKLEME,
   LAZER_HASAR_SEBEP
 } from "../ayarlar.js";
@@ -149,6 +151,17 @@ function isinAt(oyuncu, t) {
    -- o yoldan Titan lazerini Temel cekirdegiyle atmak mumkun
    olurdu.                                                    */
 function kapiAcik(oyuncu, t) {
+  /* v6.1: ucuncu kapi turu -- ELDEKI BEN 10 YARATIGI.
+     Kapi TABAN adina bakiyor, bicime degil: Prototip/Recal/10K
+     ayni turun uc gorunumu ve modda gucleri tek dosyada.     */
+  if (t.yaratik) {
+    let taban;
+    try {
+      const y = BEN10.get(elindekiYaratik(oyuncu));
+      taban = y ? y.taban : undefined;
+    } catch (e) { taban = undefined; }
+    return { acik: taban === t.yaratik, gerek: t.yaratik + " yaratığı" };
+  }
   if (t.mod) {
     let c;
     try { c = elindekiCekirdek(oyuncu); } catch (e) { c = undefined; }
@@ -177,7 +190,7 @@ function kapiAcik(oyuncu, t) {
    Var olan yeteneklerin en yukarisi 270; 300 hepsinin
    ustunde ve arada rahat yer var.                          */
 let _sira = 300;
-for (const [kimlik, t] of [...ZIRH_ISIN, ...MARVEL_ISIN]) {
+for (const [kimlik, t] of [...ZIRH_ISIN, ...MARVEL_ISIN, ...BEN10_ISIN]) {
   yetenekKaydet({
     kimlik,
     ad: t.ad,

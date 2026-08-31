@@ -144,6 +144,53 @@ UZAYLILAR = {
     "ben_devasa": dict(uc=False,
         geo=AF + "/geo/vaxasaurian.geo.json",
         doku=[AF + "/textures/models/vaxasaurian/vaxasaurian.png"]),
+    # ---- EK FORMLAR (v6.1) ----
+    # Kullanici: "aldiklarimizin ek formlarina... hepsinin modeli
+    # jar'da var."
+    #
+    # Bunlar AYRI GORUNUS + AYRI GUC. Kaynakta bir tusla geciliyor
+    # ve gecince nitelikleri degisiyor (olculdu, powers/galvan.json
+    # ve powers/galvanic_rod.json):
+    #
+    #   Gri Madde ciplak   armor  0 (+5 tokluk) · can -10 · x0.25
+    #   Gri Madde zirhli   armor +20 · ucus 1              · x0.25
+    #   Gri Madde uzuvlu   armor +10 · saldiri +2          · x5
+    #   Gri Madde takimli  armor +24 · saldiri +5 · ates bagisikligi
+    #                      · geri tepme 255 · can cezasi YOK · x6.6
+    #   Gulle top hali     tokluk +10                      · x1.03
+    #   Yukseltme cubuk    armor +16 · saldiri +4          · x0.8
+    #
+    # Bizde tus yok, her form AYRI ESYA -- zaten butun Ben 10
+    # sistemi boyle calisiyor.
+    "ben_gri_zirh": dict(uc=True,
+        geo=u("geo/aliens/alien_5/galvan_#U.geo.json"),
+        ek_geo=[dict(geo=u("geo/aliens/alien_5/galvan_armor_#U.geo.json"),
+                     doku=[u("textures/models/aliens/alien_5/armor/galvan_armor_#U.png"),
+                           u("textures/models/aliens/alien_5/armor/galvan_armor_glow_#U.png")])],
+        doku=[u("textures/models/aliens/alien_5/galvan_skin_#U.png"),
+              u("textures/models/aliens/alien_5/galvan_uniform_#U.png"),
+              u("textures/models/aliens/alien_5/galvan_glow_#U.png")]),
+    "ben_gri_uzuv": dict(uc=True,
+        geo=u("geo/aliens/alien_5/galvan_limbs_body_#U.geo.json"),
+        ek_geo=[dict(geo=u("geo/aliens/alien_5/galvan_limbs.geo.json"),
+                     doku=[u("textures/models/aliens/alien_5/galvan_limbs.png")])],
+        doku=[u("textures/models/aliens/alien_5/galvan_skin_#U.png"),
+              u("textures/models/aliens/alien_5/galvan_uniform_#U.png"),
+              u("textures/models/aliens/alien_5/galvan_glow_#U.png")]),
+    # Takim modeli TEK dosya ama dokusu uc bicimde -- geo yolunda
+    # `_#U` olmadigi icin ucunde de ayni model, ayri doku.
+    "ben_gri_takim": dict(uc=True,
+        geo=u("geo/aliens/alien_5/galvan_suit.geo.json"),
+        doku=[u("textures/models/aliens/alien_5/suit/galvan_suit_#U.png"),
+              u("textures/models/aliens/alien_5/suit/galvan_suit_glow_#U.png")]),
+    "ben_gulle_top": dict(uc=True,
+        geo=u("geo/aliens/alien_11/arburian_pelarota_ball.geo.json"),
+        doku=[u("textures/models/aliens/alien_11/arburian_pelarota_#U.png"),
+              u("textures/models/aliens/alien_11/arburian_pelarota_glow_#U.png")]),
+    "ben_yukseltme_cubuk": dict(uc=True,
+        geo=u("geo/aliens/alien_9/galvanic_rod_#U.geo.json"),
+        doku=[u("textures/models/aliens/alien_9/rod/galvanic_rod_#U.png"),
+              u("textures/models/aliens/alien_9/rod/galvanic_rod_glow_#U.png")]),
 }
 
 # ---- ONCEDEN ALINMIS DORDU: SADECE DOKU TAZELEMESI ----
@@ -244,7 +291,8 @@ def cikar(kok):
                 ham = json.load(f)
             g0 = ham["minecraft:geometry"][0]["description"]
             en = int(g0.get("texture_width", 64))
-            boy = int(g0.get("texture_height", 64))
+            boy0 = int(g0.get("texture_height", 64))   # govdenin KENDI boyu
+            boy = boy0                                  # atlas tuvalinin boyu
 
             # ---- ATLAS ----
             # Kendi dokusu olan ek parcalar (Sinek Suratli'nin
@@ -292,11 +340,19 @@ def cikar(kok):
                 sayac["geo"] += 1
 
             kats = [k.replace("#U", modun) for k in t["doku"]]
-            im, n = birlestir(kats, en, boy, kok)
+            # ---- GOVDE KENDI BOYUNDA BIRLESTIRILIYOR ----
+            # Atlas tuvali ek parcaya gore UZAYABILIYOR (Gri
+            # Madde'nin uzuvlari 32 boyunda, govdesi 16). Govde
+            # dokusunu tuvalin boyuna gore birlestirseydik
+            # 16'lik doku 32'ye GERILIRDI ve model kayardi --
+            # ilk denemede tam bu oldu, render'da goruldu.
+            # UV'ler mutlak piksel oldugu icin govdenin kendi
+            # boyunda kalmasi dogru olan.
+            im, n = birlestir(kats, en, boy0, kok)
             if n == 0:
                 eksik.append(kats[0])
                 continue
-            if imlec > en:
+            if imlec > en or boy > boy0:
                 genis = Image.new("RGBA", (imlec, boy), (0, 0, 0, 0))
                 genis.paste(im, (0, 0))
                 for dx, ekkats, eken, ekboy in atlas:
