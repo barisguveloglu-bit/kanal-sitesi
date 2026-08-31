@@ -1226,6 +1226,18 @@
     "kns_dusmus_4": {
       "textures": "textures/item/kns_dusmus_4"
     },
+    "kns_kurban_kask": {
+      "textures": "textures/item/kns_kurban_kask"
+    },
+    "kns_kurban_zirh": {
+      "textures": "textures/item/kns_kurban_zirh"
+    },
+    "kns_kurban_pantolon": {
+      "textures": "textures/item/kns_kurban_pantolon"
+    },
+    "kns_kurban_bot": {
+      "textures": "textures/item/kns_kurban_bot"
+    },
     "o_sey_maskesi": {
       "textures": "textures/item/o_sey_maskesi"
     },

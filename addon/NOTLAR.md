@@ -1,3 +1,76 @@
+# v7.0 — Kurban Zırhı
+
+Kullanıcı: *"hepsinden, ilk öncelikle kurban zırhından başla."*
+Kaynak: **Falen Mod V2 (Trb1545)**.
+
+## Dört parça, bütün sayılar ölçüldü
+
+| parça | yuva | koruma | dayanıklılık | itme direnci |
+|---|---|---|---|---|
+| Kurban Kask | head | 7 | 200 | 0.75 |
+| Kurban Zırh | chest | 7 | 200 | 0.75 |
+| Kurban Pantolon | legs | 7 | 200 | 0.75 |
+| Kurbanlar Botu | feet | 7 | 200 | 0.75 |
+
+Toplam **28 koruma** — netherite takımının (3+6+8+3 = 20) üstünde. Ama
+dayanıklılığı 200, yani netherite'in (407-555) yarısından az. Kaynağın
+dengesi bu: **sert ama çabuk kırılıyor.** Değiştirmedim.
+
+## Üçüncü kaynak paket
+
+`konsey_al.py` iki eklentiye (CodeMan, BoraLo) sabitlenmişti: `kok()` içinde
+elle yazılmış iki yol, `onek()` içinde iki önek. Üçüncüsü için **`PAKETLER`
+sözlüğüne** çevrildi — joker + önek, paket başına bir satır. Dördüncüsü artık
+tek satır.
+
+Bir de eski geometri biçimi desteği eklendi: Falen'in modelleri
+`{"geometry.X": {...}}` (1.10.0) ve ölçüler `texturewidth` diye yazılı.
+Kabuk çevriliyor, **kemiklere dokunulmuyor** — zırh kemikleri
+(`head`/`body`/`rightArm`…) oyuncu iskeletiyle **adıyla** eşleşiyor,
+değiştirilirse parça vücuda hiç oturmaz ve hiçbir hata görünmez (v3.3'te
+kollarda tam bu olmuştu).
+
+## "kns_" öneki neden Falen parçalarında da var
+
+Önek başta "Konsey" demekti ama artık üç ayrı modun giyilebilir parçalarının
+ortak ad alanı: kostümler, deriler, kolluklar, maskeler ve zırhlar hepsi
+orada. Ayrı bir önek açmak temizlik adımında ikinci bir izin listesi,
+`temizlik.mjs`'te ikinci bir sayaç ve `kol_uret.py`'de ikinci bir tablo
+demekti — üçü de aynı şeyi yapan iki kopya.
+
+## İtme direnci ayrı bir sözlükte
+
+`KONSEY` tablosuna sekizinci alan eklemek **58 satırın hepsini** değiştirmek
+demekti; itme direnci yalnız Kurban zırhında var, `KONSEY_ITME` sözlüğünde
+duruyor. Test hem dördünde **olduğunu** hem de diğer 54'te **olmadığını**
+ölçüyor.
+
+## Kaynakta ölçülen tuhaflık
+
+Üç parça (zırh/pantolon/bot) **aynı dokuyu paylaşıyor** — md5'leri aynı.
+Yalnız kaskın kendi dokusu var. Bu bir hata değil, kaynağın kendi düzeni;
+test kayıt altına aldı ki ileride "doku yanlış kopyalanmış" diye yanlış teşhis
+konmasın.
+
+## Testte bulunan gerçek boşluk
+
+Korumayı 7'den 9'a çıkararak kasten kırdığımda **hiçbir test düşmedi.**
+`konsey.mjs` korumayı yalnızca *Düşmüş muafiyeti* için okuyordu; normal
+parçalarda hiç karşılaştırmıyordu — **54 parça boyunca açık duran bir
+boşluk.** Artık her parçanın koruması kaynakla birebir karşılaştırılıyor
+(kaynak onu `minecraft:wearable.protection` ya da `minecraft:armor.protection`
+altında tutabiliyor, ikisine de bakılıyor).
+
+## Kasten kırıp doğrulandı
+
+| kırılan | düşen test |
+|---|---|
+| pantolonun itme direnci silindi | "kurban_pantolon: itme direnci 0.75" |
+| bot `feet` yerine `legs` yuvasına | "yuva birebir" + 3 tane |
+| koruma 7 → 9 | "koruma birebir" + 1 (bu satır bu sürümde eklendi) |
+
+---
+
 # v6.9 — Code-Man listesi
 
 İkinci komut listesi (Code-Man). Yine çoğu vardı; **üçü** yeniydi.

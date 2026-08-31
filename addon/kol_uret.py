@@ -3604,7 +3604,30 @@ KONSEY = [
     ("dusmus_2",          "Düşmüş · 2. Aşama",             "dusmus",   "chest", 750, 9999,  0),
     ("dusmus_3",          "Düşmüş · 3. Aşama",             "dusmus",   "chest", 750, 9999,  0),
     ("dusmus_4",          "Düşmüş · 4. Aşama",             "dusmus",   "chest", 750, 9999,  0),
+    # ---- KURBAN ZIRHI  (v7.0, Falen Mod V2 / Trb1545) ----
+    # Butun sayilar kaynagin kendi esya JSON'undan OLCULDU:
+    #   minecraft:armor.protection        7   (dort parcada da)
+    #   minecraft:durability.max          200
+    #   minecraft:knockback_resistance    0.75
+    # Dort parca toplam 28 koruma: netherite takimi (3+6+8+3=20)
+    # ustunde. Kaynak boyle yazmis, degistirilmedi -- ama
+    # dayanikliligi 200, yani netherite'in (407-555) yarisindan
+    # az. Kaynagin dengesi bu: sert ama cabuk kiriliyor.
+    ("kurban_kask",       "Kurban Kask",                   "zirh",     "head", 7,  200,  0),
+    ("kurban_zirh",       "Kurban Zırh",                   "zirh",     "chest", 7,  200,  0),
+    ("kurban_pantolon",   "Kurban Pantolon",               "zirh",     "legs", 7,  200,  0),
+    ("kurban_bot",        "Kurbanlar Botu",                "zirh",     "feet", 7,  200,  0),
 ]
+
+
+# Kaynagin `minecraft:knockback_resistance` degerleri. Tabloya
+# sekizinci alan eklemek 58 satirin hepsini degistirmek
+# demekti; yalniz Kurban zirhinda var, ayri bir sozlukte
+# duruyor. Deger 0.0-1.0: 0.75 = itmenin dortte ucu kesiliyor.
+KONSEY_ITME = {
+    "kurban_kask": 0.75, "kurban_zirh": 0.75,
+    "kurban_pantolon": 0.75, "kurban_bot": 0.75,
+}
 
 
 def konsey_esyasi(t):
@@ -3640,6 +3663,9 @@ def konsey_esyasi(t):
         bilesenler["minecraft:damage"] = hasar
     if dayaniklilik:
         bilesenler["minecraft:durability"] = {"max_durability": dayaniklilik}
+    if anahtar in KONSEY_ITME:
+        bilesenler["minecraft:knockback_resistance"] = {
+            "value": KONSEY_ITME[anahtar]}
     tanim = {"identifier": "pa:" + kimlik}
     if tur != "dusmus":
         tanim["menu_category"] = {"category": "equipment"}

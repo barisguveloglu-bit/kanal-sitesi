@@ -1,7 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""CodeMan (Astra Studios) ve BoraLo (Dragon Studios) BEDROCK
-eklentilerinden model, doku, animasyon ve ses cikarir.
+"""CodeMan (Astra Studios), BoraLo (Dragon Studios) ve Falen
+(Trb1545) BEDROCK eklentilerinden model, doku, animasyon ve ses
+cikarir.
+
+---- NEDEN "kns_" ONEKI FALEN PARCALARINDA DA VAR ----
+Onek basta "Konsey" demekti ama artik uc ayri modun GIYILEBILIR
+PARCALARININ ortak ad alani: kostumler, deriler, kolluklar,
+maskeler ve zirhlar hepsi orada. Ayri bir onek acmak temizlik
+adiminda ikinci bir izin listesi, temizlik.mjs'te ikinci bir
+sayac ve kol_uret.py'de ikinci bir tablo demekti -- ucu de ayni
+seyi yapan iki kopya.
 
 Kullanici: "yeni boralo notlari buldum, bunlardan alabildigimizi
 alalim, esya dahil her sey."
@@ -42,6 +51,16 @@ ANIM_HEDEF = os.path.join(BURASI, "kaynak_anim", "konsey")
 
 CM = "cm"        # CodeMan  (klezy)
 BL = "bl"        # BoraLo   (dragon)
+FL = "fl"        # Falen    (sp)
+
+# Her paket: (acilmis klasoru bulan joker, dosya adi oneki)
+# "{tur}" yerine "resource" ya da "behavior" geliyor.
+# Joker sart: klasor adlarinda bosluk ve renk kodu (§) var.
+PAKETLER = {
+    CM: ("cm/*mod_{tur}_pack",                        "klezy_"),
+    BL: ("bl/ac_BoraLoModV1Beta/*BETA_{tur}_pack",    "dragon_"),
+    FL: ("fl/*Falen*_{tur}_pack",                     "sp_"),
+}
 
 # ---- ALINAN PARCALAR ----
 # (bizim kisa ad, paket, kaynak dosya adi)
@@ -119,6 +138,20 @@ PARCALAR = [
 
 # Dusmus Blogu'nun dokusu: esya degil BLOK dokusu, o yuzden
 # PARCALAR listesinde degil (orada model+ikon da araniyor).
+# -- Falen (Trb1545): Kurban zirhi --
+# Dort parca, hepsi protection 7 ve knockback_resistance 0.75.
+# UC PARCA AYNI DOKUYU PAYLASIYOR (zirh/pantolon/bot; olculdu,
+# md5 ayni); yalniz kaskin kendi dokusu var. Kaynakta dort ayri
+# dosya olarak duruyor, bizde de dort ayri kopya kaliyor --
+# tek dosyaya indirmek uv'leri ayni oldugu icin mumkun ama
+# ilerde biri degistirilirse digerleri sessizce degisirdi.
+PARCALAR += [
+    ("kurban_kask",     FL, "kurban_kask"),
+    ("kurban_zirh",     FL, "kurban_zirh"),
+    ("kurban_pantolon", FL, "kurban_patalon"),   # kaynakta "patalon"
+    ("kurban_bot",      FL, "kurbanlar_botu"),
+]
+
 BLOK_DOKULARI = [
     ("dusmus_blok", BL, "textures/blocks/dragon_fallen_block.png"),
 ]
@@ -134,17 +167,14 @@ def kok(paket, tur):
     """Acilmis paketin ilgili klasoru. Klasor adlarinda bosluk
     ve renk kodu (§) var, o yuzden joker ile bulunuyor."""
     import glob
-    if paket == CM:
-        kalip = os.path.join(TABAN, "cm", "*mod_" + tur + "_pack")
-    else:
-        kalip = os.path.join(TABAN, "bl", "ac_BoraLoModV1Beta",
-                             "*BETA_" + tur + "_pack")
-    bulunan = [d for d in glob.glob(kalip) if os.path.isdir(d)]
+    kalip, _ = PAKETLER[paket]
+    bulunan = [d for d in glob.glob(
+        os.path.join(TABAN, kalip.format(tur=tur))) if os.path.isdir(d)]
     return bulunan[0] if bulunan else None
 
 
 def onek(paket):
-    return "klezy_" if paket == CM else "dragon_"
+    return PAKETLER[paket][1]
 
 
 def geo_tasi(paket, kaynak, hedefAd):
@@ -158,9 +188,37 @@ def geo_tasi(paket, kaynak, hedefAd):
         return "model yok: " + yol
     with open(yol, encoding="utf-8") as f:
         d = json.load(f)
-    if "minecraft:geometry" not in d:
-        return "eski geometri bicimi"
-    g = d["minecraft:geometry"][0]
+    if "minecraft:geometry" in d:
+        g = d["minecraft:geometry"][0]
+    else:
+        # ---- ESKI (1.10.0) BICIM ----
+        # Falen'in modelleri {"geometry.X": {...}} seklinde ve
+        # olculer `texturewidth`/`textureheight` diye yazili.
+        # Kabuk cevriliyor, KEMIKLERE DOKUNULMUYOR: zirh
+        # kemikleri (head/body/rightArm...) oyuncu iskeletiyle
+        # ADIYLA eslesiyor, degistirilirse parca vucuda hic
+        # oturmaz.
+        govde = None
+        for anahtar, deger in d.items():
+            if anahtar.startswith("geometry.") and isinstance(deger, dict):
+                govde = deger
+                break
+        if govde is None:
+            return "geometri govdesi yok"
+        g = {
+            "description": {
+                "identifier": "geometry.gecici",
+                "texture_width": govde.get("texturewidth", 64),
+                "texture_height": govde.get("textureheight", 64),
+            },
+            "bones": govde.get("bones", []),
+        }
+        for a, b in (("visible_bounds_width", "visible_bounds_width"),
+                     ("visible_bounds_height", "visible_bounds_height"),
+                     ("visible_bounds_offset", "visible_bounds_offset")):
+            if a in govde:
+                g["description"][b] = govde[a]
+        d = {"format_version": "1.12.0"}
     g["description"]["identifier"] = "geometry.kns_" + hedefAd
     # Doku olculeri bazi dosyalarda ondalik (64.0) yazili.
     for a in ("texture_width", "texture_height"):
