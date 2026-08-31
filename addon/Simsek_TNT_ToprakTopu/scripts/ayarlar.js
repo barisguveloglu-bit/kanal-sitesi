@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v6.8";
+export const SURUM = "v6.9";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -223,6 +223,16 @@ export const SAVUR_OYUNCU   = true; // oyunculari da savursun mu
 
 /* ---------------- Ucus ----------------
    Levitation efekti kullaniliyor: guvenli, ucuz ve stabil API.   */
+/* ---- UCUS AURASI  (v6.9) ----
+   Kullanicinin Code-Man listesinden:
+     particle minecraft:raid_omen_ambient ~~1~
+     particle minecraft:raid_omen_ambient ~~2~
+   Yani oyuncunun bir ve iki blok ustunde bir parcacik. Kaynak
+   bunu her tick calistiriyordu; `raid_omen_ambient` zaten
+   SUREKLI bir yayici (ambient), tek dogurmak yetiyor.       */
+export const UCUS_PARCACIK = "minecraft:raid_omen_ambient";
+export const UCUS_PARCACIK_YUKSEK = [1, 2];
+
 export const UCUS_SURE      = 140;  // tick (140 = 7 saniye)
 export const UCUS_SIDDET    = 2;    // levitation seviyesi (0-9)
 export const UCUS_YUMUSAK   = 200;  // bitince kac tick yavas dusme
@@ -6190,7 +6200,7 @@ export const MARVEL_TAKMA_AD = new Map([
    kapi turu. Motor ayni, kapi farkli.                        */
 export const KOL_ISIN = new Map([
   ["buz_isini", {
-    ad: "Buz Işını", kol: "pa:kol_buz",
+    ad: "Buz Işını", elde: "pa:kol_buz",
     /* Kaynak `damage @e[r=10,c=1] 3` diyor: 3 hasar, TEK
        hedef (c=1). Menzil ^^^10.                            */
     hasar: 3, menzil: 10, yakma: 0,
@@ -6203,6 +6213,54 @@ export const KOL_ISIN = new Map([
        Buz Adam'in yavasligiyla ayni seviyede (BUZ_YAVASLIK),
        iki buz yetenegi ayni sertlikte olsun.                */
     yavaslik: BUZ_YAVASLIK, yavaslikSure: BUZ_SURE
+  }],
+
+  /* ---- CODE-MAN: SIYAH GUC  (v6.9) ----
+     Kullanicinin Code-Man listesinden. Listede IKI ayri isim
+     altinda ama AYNI sey:
+       "Siyah Guc Saldirisi"  particle evoker_spell ^^^20
+       "Ahtapot Kol Saldirisi" particle evoker_spell ^^^5/10/15/20
+     ikisinin de hasari `damage @e[r=10,c=1] 2` ve menzili 20.
+     Tek yetenek yazildi; ikisini ayri ayri yazmak ayni seyin
+     iki kopyasi olurdu.
+
+     Kaynak parcacigi DORT noktaya koyuyor (5, 10, 15, 20);
+     bizim motor menzil boyunca surekli ciziyor -- isin kesik
+     kesik degil, duz bir cizgi.
+
+     KAPI: Code-Man KOSTUMU (kafada). Kaynak kapiyi kaldiraca
+     bagliyordu; bizde o karakterin kendi kostumu var
+     (v6.2'de CodeMan modundan gelmisti).                    */
+  ["codeman_isini", {
+    ad: "Siyah Güç", kafa: "pa:kns_codeman",
+    hasar: 2, menzil: 20, yakma: 0,
+    parcacik: "minecraft:evoker_spell",
+    /* Listedeki "tahta dugme alinca ekran siyah olsun" satiri:
+         camera @p fade time 0.1 0.1 0.1 color 0 0 0
+       Ayri bir dugmeye baglamak yerine SIYAH GUCE baglandi --
+       karanlik saldirinin kendi flasi olsun. Sayilar
+       kaynaktaki gibi.                                      */
+    karart: [0, 0, 0], karartSure: [0.1, 0.1, 0.1]
+  }],
+
+  /* ---- SIMSEK KILICI  (v6.9) ----
+     Kullanici: "Code-man Simsek Kilic ozelligi sadece bu Demir
+     kilicla calisir digerleri salterle!"
+       execute at @a[hasitem={item=iron_sword,...}] run
+         execute at @p run summon lightning_bolt ^^^10
+     ve "8 kere tekrarla".
+
+     Bu tablodaki tek satir ki HASAR VERMIYOR: isi yildirimlar
+     yapiyor. Kaynakta da oyle.                              */
+  ["simsek_kilici", {
+    ad: "Şimşek Kılıcı", elde: "minecraft:iron_sword",
+    hasar: 0, menzil: 10, yakma: 0,
+    parcacik: undefined,          // kaynakta parcacik yok
+    /* Kaynak sekiz kez `summon lightning_bolt ^^^10` diyor --
+       hepsi AYNI noktaya. Sekizi de tek noktaya dusurmek bir
+       yildirimdan farksiz gorunur; kucuk bir yayilma veriliyor
+       ki sekizi de gorunsun.                                */
+    simsek: 8, simsekYayilma: 2.5
   }]
 ]);
 

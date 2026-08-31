@@ -1,3 +1,108 @@
+# v6.9 — Code-Man listesi
+
+İkinci komut listesi (Code-Man). Yine çoğu vardı; **üçü** yeniydi.
+
+## Zaten vardı
+
+| komut | bizdeki |
+|---|---|
+| `effect @p levitation 1 2 true` | `ucus` |
+| `playanimation ... holding_spyglass` | `ANIM_KALDIR` |
+| `damage @e[r=10,c=1] 2` (^^^10) | v6.8'de gelen ışın motoru |
+| `effect @e slowness 255 255` (doldurma) | `dondur`, `buz_isini` |
+| `camera @p fade ... color` | `parlat()` (iksir parlaması) |
+
+## Yeni olan üçü
+
+### Siyah Güç — Code-Man kostümüne bağlı
+
+Listede **iki ayrı isim altında ama aynı şey**:
+
+```
+"Siyah Güç Saldırısı"    particle evoker_spell ^^^20
+"Ahtapot Kol Saldırısı"  particle evoker_spell ^^^5 / ^^^10 / ^^^15 / ^^^20
+```
+
+İkisinin de hasarı `damage @e[r=10,c=1] 2`, menzili 20. Tek yetenek yazıldı —
+ikisini ayrı ayrı yazmak aynı şeyin iki kopyası olurdu.
+
+Kaynak parçacığı **dört noktaya** koyuyor; bizim motor menzil boyunca sürekli
+çiziyor, ışın kesik kesik değil.
+
+**Kapı: Code-Man kostümü** (kafada). Kaynak kapıyı kaldıraca bağlıyordu; o
+kostüm bizde v6.2'den beri var (`pa:kns_codeman`).
+
+Listedeki *"tahta düğme alınca ekran siyah olsun"* satırı
+(`camera @p fade time 0.1 0.1 0.1 color 0 0 0`) ayrı bir düğmeye değil
+**Siyah Güç'e** bağlandı — karanlık saldırının kendi flaşı olsun.
+
+### Şimşek Kılıcı — vanilla demir kılıç
+
+Kullanıcı: *"sadece bu Demir kılıçla çalışır diğerleri şalterle!"*
+
+```
+execute at @a[hasitem={item=iron_sword,...}] run
+  execute at @p run summon lightning_bolt ^^^10        (8 kere tekrarla)
+```
+
+Tablodaki **tek hasarsız satır** — işi yıldırımlar yapıyor, kaynakta da öyle.
+Kapı alanının adı bu yüzden `kol` değil **`elde`** oldu: burada vanilla bir
+eşya duruyor, "kol" adı tabloya bakan birini yanıltırdı.
+
+Kaynak sekizini de **aynı noktaya** döküyor; tek noktaya düşen sekiz yıldırım
+bir yıldırımdan farksız görünür, küçük bir yayılma verildi.
+
+### Uçuş aurası
+
+```
+particle minecraft:raid_omen_ambient ~~1~
+particle minecraft:raid_omen_ambient ~~2~
+```
+
+Kaynak bunu her tick çalıştırıyordu. `raid_omen_ambient` zaten **sürekli bir
+yayıcı** (ambient) — tek doğurmak yetiyor, her tick parçacık doğurmanın
+tablette bedeli var.
+
+## Alınmayanlar
+
+**`gamemode creative @p`** ("Hile Moduna Geçme") — geçen sürümde
+`/gamemode spectator` için verilen kararın aynısı. Sessizce oyun modunu
+değiştiriyor.
+
+**`effect @p clear`** — üçüncü kez geldi, üçüncü kez alınmadı. Kaynak kendi
+ışını kendine değdiği için koymuş; bizde atıcı zaten hariç ve o satır
+oyuncunun içtiği iksiri de silerdi.
+
+## Testin yakaladığı gerçek hata
+
+`simsekDusur()` sekiz yıldırımı **tek çağrıda** doğuruyordu ve varlık bütçesi
+dördüncüde doluyordu — kaynağın vaat ettiği sekizden **dördü** düşüyordu.
+Test yakaladı (`sekiz yildirim dustu :: 4 yildirim`). Işın anlık bir yetenek;
+yalnızca yıldırımlı olanı artık iş döndürüp kalanı tick tick tamamlıyor.
+
+## Kasten kırıp doğrulandı
+
+| kırılan | düşen test |
+|---|---|
+| yıldırım artığı bırakılıyor | "sekiz yıldırım düştü" → 4 |
+| kostüm kapısı hep açık | "kostüm YOKKEN atmıyor" |
+| karartma rengi 0-255 aralığında | "renk 0.0-1.0 aralığında" + 1 |
+| `simsek: 8` → `1` | "sekiz yıldırım" + 2 |
+| uçuş aurası çizilmiyor | "uçuş GERÇEKTEN aura çıkarıyor" + 1 |
+| kol kapısı hep açık | "BAŞKA kol elindeyken atmıyor" |
+| `dusmanMi` süzgeci | "hedef süzgecinden dusmanMi geçiyor" |
+
+**İki kırma önce yakalanmıyordu** ve ikisi de testin kendi boşluğuydu:
+Siyah Güç'ü hiç *çalıştıran* bölüm yoktu (tablodaki alana bakmak, kodun ona
+baktığını ölçmüyor), ve uçuş aurası `includes("UCUS_PARCACIK")` ile statik
+kontrol ediliyordu — sabit hâlâ import edildiği için aurayı kapattığımda test
+yine geçiyordu. İkisi de artık **çalıştırılarak** ölçülüyor.
+
+Bir de kendi ölçüm hatam: aurayı kafa hizasıyla karşılaştırmıştım; `~` varlığın
+konumu, yani **ayak** hizası (sahte dünyada `location = kafa - 1.62`).
+
+---
+
 # v6.8 — Komut listesinden üç ışın
 
 Kullanıcı bir komut listesi gönderdi (Ice-Man / Üst Konsey / Kırmızı Güç /

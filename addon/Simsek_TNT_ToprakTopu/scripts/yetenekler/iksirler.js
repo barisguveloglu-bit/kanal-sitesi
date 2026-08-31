@@ -2,7 +2,7 @@ import * as api from "@minecraft/server";
 import { system } from "@minecraft/server";
 import { iksirKaydet, iksirinKademesi, tumIksirler } from "./kayit.js";
 import {
-  hataYaz, bilgiYaz, gecerliMi, olayaAbone, actionbarYaz
+  hataYaz, bilgiYaz, gecerliMi, olayaAbone, actionbarYaz, ekraniBoya
 } from "../yardimcilar.js";
 import { KADEMELER, IKSIR_TAZELEME, IKSIR_ONEK,
   PARLAMA_ACIK, PARLAMA_GIRIS, PARLAMA_TUT, PARLAMA_CIKIS,
@@ -210,25 +210,12 @@ function efektSil(oyuncu, kademe) {
 
    camera komutu eski surumlerde yok; bir kez uyarilip sessizce
    geciliyor. Parlama tamamen gorsel, olmamasi oynanisi bozmuyor. */
-let parlamaUyarisi = false;
-
+/* v6.9: govde yardimcilar.js'e tasindi (ekraniBoya). Code-Man'in
+   siyah guc saldirisi da ayni komutu istiyor; iki kopya iki ayri
+   yerde bozulacak tek bir mantik demekti.                     */
 function parlat(oyuncu, kademe) {
   if (!PARLAMA_ACIK) return;
-  const r = kademe.renk;
-  if (!r || r.length < 3) return;
-
-  try {
-    oyuncu.runCommand(
-      "camera @s fade time " + PARLAMA_GIRIS + " " + PARLAMA_TUT + " " +
-      PARLAMA_CIKIS + " color " + r[0] + " " + r[1] + " " + r[2]
-    );
-  } catch (e) {
-    if (!parlamaUyarisi) {
-      parlamaUyarisi = true;
-      bilgiYaz("Icme parlamasi cizilemiyor (camera komutu yok mu?): " +
-               (e && e.message ? e.message : e) + ". Gorsel eksik, oynanis normal.");
-    }
-  }
+  ekraniBoya(oyuncu, kademe.renk, PARLAMA_GIRIS, PARLAMA_TUT, PARLAMA_CIKIS);
 }
 
 export function iksirIc(oyuncu, kademe) {

@@ -182,6 +182,40 @@ export function parcacikAt(boyut, tip, konum) {
   }
 }
 
+let boyamaUyarisi = false;
+
+/* Ekrani bir renge boyayip acar (camera fade).
+
+   v6.9'da iksirler.js'ten BURAYA tasindi: Code-Man'in siyah
+   guc saldirisi da ayni komutu istiyor ve ikinci bir kopya
+   iki ayri yerde bozulacak tek bir mantik demekti.
+
+   Renk 0.0-1.0 araliginda. Referans bazi yerlerde 0-255
+   yaziyordu ve o durumda ekran kendi rengi yerine BEYAZ
+   parliyordu -- sinir burada aciklikla yazili.
+
+   camera komutu eski surumlerde yok; bir kez uyarilip
+   sessizce geciliyor. Tamamen gorsel, olmamasi oynanisi
+   bozmuyor.                                                 */
+export function ekraniBoya(oyuncu, renk, giris, tut, cikis) {
+  if (!renk || renk.length < 3) return false;
+  const kirp = (n) => Math.max(0, Math.min(1, Number(n) || 0));
+  try {
+    oyuncu.runCommand(
+      "camera @s fade time " + giris + " " + tut + " " + cikis +
+      " color " + kirp(renk[0]) + " " + kirp(renk[1]) + " " + kirp(renk[2])
+    );
+    return true;
+  } catch (e) {
+    if (!boyamaUyarisi) {
+      boyamaUyarisi = true;
+      bilgiYaz("Ekran boyanamiyor (camera komutu yok mu?): " +
+               (e && e.message ? e.message : e) + ". Gorsel eksik, oynanis normal.");
+    }
+    return false;
+  }
+}
+
 let sarsintiUyarisi = false;
 
 /* Ekran sarsintisi. Script API'sinde karsiligi yok, komut sart.

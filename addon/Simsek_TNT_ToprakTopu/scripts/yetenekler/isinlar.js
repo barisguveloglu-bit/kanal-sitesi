@@ -1,12 +1,13 @@
 import { system } from "@minecraft/server";
 import { yetenekKaydet } from "./kayit.js";
+import { varlikIste } from "../butce.js";
 import { elindekiCekirdek } from "./zirh.js";
 import { elindekiYaratik } from "./ben10.js";
 import { guctekiKahraman, gucKumesi } from "./marvel.js";
 import {
-  hataYaz, gecerliMi, actionbarYaz, kollariIndir, parcacikAt
+  hataYaz, gecerliMi, actionbarYaz, kollariIndir, parcacikAt,
+  eldekiEsya, ekraniBoya, yukseklikAraligi
 } from "../yardimcilar.js";
-import { eldekiEsya } from "../yardimcilar.js";
 import {
   ZIRH_ISIN, MARVEL_ISIN, BEN10_ISIN, KOL_ISIN, BEN10,
   ZIRH_ISIN_KALINLIK, ZIRH_ISIN_TAVAN,
@@ -61,6 +62,49 @@ import {
 /* oyuncuId + isin -> bir sonraki atisin en erken tick'i */
 const bekleme = new Map();
 
+/* isinAt'in birakip gittigi yildirim artigi. Isin ANLIK bir
+   yetenek; yalniz yildirimli olanlar is dondurup kalani
+   tamamliyor.                                              */
+let sonSimsek;
+
+/* Isinin ucuna yildirim dusurur (v6.9, Simsek Kilici).
+
+   Kaynak sekiz kez `summon lightning_bolt ^^^10` diyor --
+   sekizi de AYNI noktaya. Tek noktaya dusen sekiz yildirim
+   bir yildirimdan farksiz gorunur, o yuzden kucuk bir
+   yayilma veriliyor.
+
+   Butceden geciyor: sekiz varlik tek tick'te dogurmak
+   tableti sarsiyor ve butun varlik dogurma isleri ayni
+   defterden geciyor.                                       */
+function simsekDusur(oyuncu, t, bas, yon, adet) {
+  const boyut = oyuncu.dimension;
+  const sinir = yukseklikAraligi(boyut);
+  const uc = {
+    x: bas.x + yon.x * t.menzil,
+    y: bas.y + yon.y * t.menzil,
+    z: bas.z + yon.z * t.menzil
+  };
+  const yay = t.simsekYayilma || 0;
+  let dusen = 0;
+  for (let i = 0; i < adet; i++) {
+    if (varlikIste(1) === 0) break;          // butce dolu
+    const nokta = {
+      x: uc.x + (Math.random() * 2 - 1) * yay,
+      y: uc.y,
+      z: uc.z + (Math.random() * 2 - 1) * yay
+    };
+    if (nokta.y < sinir.min || nokta.y > sinir.max) continue;
+    try {
+      boyut.spawnEntity("minecraft:lightning_bolt", nokta);
+      dusen++;
+    } catch (e) {
+      hataYaz("isin.simsek", e);
+    }
+  }
+  return dusen;
+}
+
 function isinAt(oyuncu, t) {
   let bas, yon;
   try {
@@ -71,9 +115,11 @@ function isinAt(oyuncu, t) {
     return 0;
   }
 
-  /* ---- Cizim: isin gorunsun ---- */
+  /* ---- Cizim: isin gorunsun ----
+     v6.9: parcacik ISTEGE BAGLI. Simsek Kilici'nin kaynakta
+     parcacigi yok, isi yildirimlar yapiyor.                */
   try {
-    for (let d = 1; d <= t.menzil; d += ZIRH_ISIN_ADIM) {
+    for (let d = 1; t.parcacik && d <= t.menzil; d += ZIRH_ISIN_ADIM) {
       parcacikAt(oyuncu.dimension, t.parcacik, {
         x: bas.x + yon.x * d,
         y: bas.y + yon.y * d,
@@ -118,6 +164,30 @@ function isinAt(oyuncu, t) {
   }
   /* Tavan asilirsa EN YAKINDAKILER vurulsun, rastgele degil. */
   vurulanlar.sort((a, b) => a.ileri - b.ileri);
+
+  /* v6.9: Simsek Kilici'nin siyah guc flasi ve yildirimlari.
+     Ikisi de hedef bulunmasa BILE olmali: kaynak da hedefe
+     bakmadan yildirimi doguruyor ve ekrani karartiyor.     */
+  if (t.karart) {
+    ekraniBoya(oyuncu, t.karart, t.karartSure[0], t.karartSure[1],
+               t.karartSure[2]);
+  }
+  /* Yildirimlar TICK'E YAYILIYOR. Ilk yazdigimda hepsi tek
+     cagridaydi ve butce dorduncude doluyordu: kaynagin vaat
+     ettigi sekiz yildirimdan DORDU dusuyordu. Test yakaladi
+     ("sekiz yildirim dustu :: 4 yildirim"). Kalanlar isin
+     isinden sonra tick tick tamamlaniyor.                   */
+  if (t.simsek) {
+    const dusen = simsekDusur(oyuncu, t, bas, yon, t.simsek);
+    sonSimsek = { kalan: t.simsek - dusen, bas, yon };
+  } else {
+    sonSimsek = undefined;
+  }
+
+  /* Hasari 0 olan isin (Simsek Kilici) vurmuyor: isi
+     yildirimlar yapiyor. applyDamage(0) bos bir cagri
+     olurdu.                                               */
+  if (t.hasar <= 0) return 0;
 
   let vuran = 0;
   for (const h of vurulanlar) {
@@ -164,13 +234,26 @@ function isinAt(oyuncu, t) {
    -- o yoldan Titan lazerini Temel cekirdegiyle atmak mumkun
    olurdu.                                                    */
 function kapiAcik(oyuncu, t) {
-  /* v6.8: DORDUNCU kapi turu -- ELDEKI KOL. Kaynak komutlari
-     `hasitem={item=lever,location=slot.weapon.mainhand}` ile
-     kapiyi kaldiraca bagliyordu; bizde o kolun kendisi.     */
-  if (t.kol) {
+  /* v6.8: DORDUNCU kapi turu -- ELDEKI ESYA. Kaynak komutlari
+     `hasitem={item=...,location=slot.weapon.mainhand}` ile
+     kapiyi ELDEKINE bagliyordu; biz de oyle yapiyoruz.
+
+     v6.9: alan adi `kol` degil `elde` -- Simsek Kilici vanilla
+     bir DEMIR KILIC istiyor, kol degil. Ad "kol" kalsaydi
+     tabloya bakan biri oraya vanilla esya yazilabilecegini
+     bilemezdi.                                              */
+  if (t.elde) {
     let e;
     try { e = eldekiEsya(oyuncu); } catch (hata) { e = undefined; }
-    return { acik: e === t.kol, gerek: "o kol" };
+    return { acik: e === t.elde, gerek: t.gerek || "o eşya elinde" };
+  }
+  /* v6.9: BESINCI kapi turu -- KAFADAKI kostum. Code-Man'in
+     siyah gucu onun kostumunu isterken, Marvel isinlari
+     BACAKTAKI guc esyasini istiyor: ayni fikir, baska yuva. */
+  if (t.kafa) {
+    let e;
+    try { e = eldekiEsya(oyuncu, "Head"); } catch (hata) { e = undefined; }
+    return { acik: e === t.kafa, gerek: t.gerek || "o kostüm" };
   }
   /* v6.1: ucuncu kapi turu -- ELDEKI BEN 10 YARATIGI.
      Kapi TABAN adina bakiyor, bicime degil: Prototip/Recal/10K
@@ -249,7 +332,26 @@ for (const [kimlik, t] of [...ZIRH_ISIN, ...MARVEL_ISIN, ...BEN10_ISIN,
         /* mesaj onemli degil */
       }
       kollariIndir(oyuncu);
-      return undefined;      // anlik yetenek
+
+      /* Butce yuzunden dusemeyen yildirimlar kaldiysa is
+         donduruluyor ve tick tick tamamlaniyor. Diger butun
+         isinlar ANLIK: bu dal yalniz `simsek` alani olan
+         satirda calisiyor.                                  */
+      const artik = sonSimsek;
+      sonSimsek = undefined;
+      if (!artik || artik.kalan <= 0) return undefined;
+
+      let kalan = artik.kalan;
+      return {
+        ad: kimlik,
+        oyuncuId: oyuncu.id,
+        calis() {
+          if (kalan <= 0) return true;
+          const kondu = simsekDusur(oyuncu, t, artik.bas, artik.yon, kalan);
+          kalan -= kondu;
+          return kalan <= 0;
+        }
+      };
     }
   });
 }
