@@ -4,8 +4,9 @@ import {
 } from "../yardimcilar.js";
 import {
   ZIRH_ACIK, ZIRH_MODLAR, ZIRH_TARAMA, ZIRH_SURE,
-  ZIRH_CEKIRDEK_ONEK, ZIRH_CAKMA, ZIRH_CAKMA_ACIK
+  ZIRH_CEKIRDEK_ONEK, ZIRH_CAKMA, ZIRH_CAKMA_ACIK, ZIRH_AGAC_ACIK
 } from "../ayarlar.js";
+import { modAcikMi, secilenMod } from "./zirh_agac.js";
 
 /* ================================================================
    MAX STEEL MOD CEKIRDEKLERI                              v4.95
@@ -137,11 +138,25 @@ export function zirhTara(oyuncular) {
   const simdi = system.currentTick;
 
   for (const oyuncu of oyuncular) {
+    /* ---- MOD NEREDEN GELIYOR  (v5.9) ----
+       Kaynakta cekirdek bir kez HARCANIYOR ve mod
+       `mode_select` carkindan seciliyor -- yani "elinde ne
+       var" modu belirlemiyor. Bizde de oyle.
+
+       Elindeki cekirdek yine de okunuyor ama yalniz bir
+       KISAYOL olarak: acilmis bir modun cekirdegini eline
+       alirsan o moda geciyorsun. Acilmamissa asagidaki agac
+       kapisi uyariyor.                                      */
     let cekirdek;
     try {
       cekirdek = elindekiCekirdek(oyuncu);
     } catch (e) {
       cekirdek = undefined;
+    }
+    if (!cekirdek || (ZIRH_AGAC_ACIK && !modAcikMi(oyuncu.id, cekirdek))) {
+      /* Elde acilmis bir cekirdek yok: SECILI moda dus. */
+      const s2 = ZIRH_AGAC_ACIK ? secilenMod(oyuncu.id) : undefined;
+      if (s2 && !cekirdek) cekirdek = s2;
     }
 
     /* Cekirdek degisti -> DONUSUM. Caktı ve mesaj burada.   */
@@ -168,6 +183,19 @@ export function zirhTara(oyuncular) {
        diye de bakiliyordu; takim kaldirildi. Cekirdek yoksa
        guc de yok -- gorunusun ne ise gucun de o.             */
     if (!cekirdek) continue;
+
+    /* ---- AGAC KAPISI  (v5.9) ----
+       Kaynakta mod, cekirdegi ODEYEREK aciliyor
+       (base_mode.json -> palladium:item_buyable). Acilmamis
+       bir modun cekirdegini tasimak guc VERMEZ; once menuden
+       acilmasi gerekiyor. Temel agacin koku, hep acik.      */
+    if (ZIRH_AGAC_ACIK && !modAcikMi(oyuncu.id, cekirdek)) {
+      try {
+        actionbarYaz(oyuncu, "§7⚿ Bu mod kilitli §8· menüden aç " +
+                     "§8(çekirdek harcanır)");
+      } catch (e) { /* mesaj onemli degil */ }
+      continue;
+    }
 
     if (simdi < (sonraki.get(oyuncu.id) || 0)) continue;
     sonraki.set(oyuncu.id, simdi + ZIRH_TARAMA);

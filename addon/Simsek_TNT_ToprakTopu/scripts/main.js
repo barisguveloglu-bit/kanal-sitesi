@@ -17,7 +17,7 @@ import {
   TEKNOLOJI_ACIK, TEKNOLOJI_TAKIMLAR, TEKNOLOJI_ONEK,
   MAHOU_ACIK, MAHOU_BUYULER, MAHOU_ESYALAR, MAHOU_MANA_TAVAN,
   VILTRUMITE_ACIK, VILTRUMITE_YETENEKLER, VILT_MOD, VILT_INDIRIM,
-  ZIRH_KATMAN_ACIK
+  ZIRH_KATMAN_ACIK, ZIRH_AGAC_ACIK, ZIRH_AGAC_BEDEL, ZIRH_CARK_XP
 } from "./ayarlar.js";
 
 import {
@@ -63,6 +63,13 @@ import {
 import {
   mahouTara, mahouUnut, mahouListesi, manaOku, elindekiBuyu
 } from "./yetenekler/mahou.js";
+
+/* v5.9: Max Steel yetenek agaci. Kaynakta her mod cekirdegi
+   ODEYEREK aciliyor (base_mode.json -> item_buyable); bizde
+   cekirdek elde tutulan bir anahtardi, yani agac yoktu.    */
+import {
+  modAc, carkAc, modSec, modAcikMi, carkAlindiMi, agacListesi
+} from "./yetenekler/zirh_agac.js";
 
 /* v5.8: acilabilir zirh katmanlari (matkap). Yetenegi kendi
    dosyasinda kaydediyor; buradan yalniz "cekirdek elden
@@ -756,11 +763,21 @@ function zirhMenusu(oyuncu) {
   const liste = modListesi(oyuncu);
   const cekirdek = elindekiCekirdek(oyuncu);
 
-  const dugmeler = liste.map((m) => ({
-    anahtar: m.anahtar,
-    ad: (m.elinde ? "§b⚡ " : "") + "§f" + m.ad + "\n§8" + m.ozet +
-        "\n§8çekirdek: §7" + m.esya
-  }));
+  /* v5.9: agac durumu satirda gorunuyor -- "kilitli mi, nasil
+     acilir" sorusunun cevabi menuye girmeden okunabilsin.   */
+  const agac = agacListesi(oyuncu);
+  const durum = new Map(agac.map((a) => [a.anahtar, a]));
+  const dugmeler = liste.map((m) => {
+    const a = durum.get(m.anahtar) || {};
+    const isaret = a.kok ? "§a✔ " : (a.acik ? "§a✔ " : "§c⚿ ");
+    const kuyruk = a.kok ? "\n§8ağacın kökü · hep açık"
+      : (a.acik ? "\n§8açık" : "\n§eKilitli — seç, çekirdek harcanır");
+    return {
+      anahtar: m.anahtar,
+      ad: isaret + (m.elinde ? "§b⚡ " : "") + "§f" + m.ad +
+          "\n§8" + m.ozet + "\n§8çekirdek: §7" + m.esya + kuyruk
+    };
+  });
 
   const baslik = cekirdek
     ? "§b⚡ Max Steel §7· §f" + ZIRH_MODLAR.get(cekirdek).ad +
@@ -771,8 +788,25 @@ function zirhMenusu(oyuncu) {
      Yanlislikla bir sey degistirmesin diye bilerek boyle --
      "sectim ama bir sey olmadi" hissi vermemek icin de
      baslik ne yapilmasi gerektigini yaziyor.                */
+  /* Kaynaktaki `mode_select` dugumu: 30 XP kademesi. Menude
+     kendi satiri var, cunku bir DUGUM -- modlarin arasina
+     karistirmak agacin seklini bozardi.                     */
+  if (ZIRH_AGAC_ACIK) {
+    dugmeler.push({
+      anahtar: "__cark",
+      ad: (carkAlindiMi(oyuncu.id) ? "§a✔ " : "§c⚿ ") +
+          "§fMod Çarkı\n§8kaynakta mode_select · " + ZIRH_CARK_XP +
+          " XP kademesi" +
+          (carkAlindiMi(oyuncu.id) ? "\n§8açık" : "\n§eKilitli — seç, XP harcanır")
+    });
+  }
+
+  /* Secim artik BIR SEY YAPIYOR: kilitli bir modu secmek onu
+     ACIYOR (cekirdegi harcayarak) -- kaynaktaki item_buyable
+     dugumunun karsiligi. Acik bir modu secmek yine bilgi
+     veriyor.                                                */
   const acildi = menuAc(oyuncu, baslik, dugmeler, -1,
-    (i) => zirhBilgi(oyuncu, dugmeler[i].anahtar), []);
+    (i) => zirhAgacSec(oyuncu, dugmeler[i].anahtar), []);
 
   if (!acildi) {
     /* Menu yoksa (server-ui kapali) eldeki cekirdegi ya da
@@ -780,6 +814,49 @@ function zirhMenusu(oyuncu) {
     zirhBilgi(oyuncu, cekirdek || liste[0].anahtar);
   }
   return undefined;
+}
+
+/* Menuden bir mod secilince: kilitliyse AC, degilse bilgi ver. */
+function zirhAgacSec(oyuncu, anahtar) {
+  if (anahtar === "__cark") {
+    const c = carkAc(oyuncu);
+    actionbarYaz(oyuncu, c.tamam
+      ? "§a⚿ Mod Çarkı açıldı §8(" + ZIRH_CARK_XP + " XP harcandı)"
+      : "§7⚿ " + c.sebep);
+    return;
+  }
+  if (!ZIRH_AGAC_ACIK) {
+    zirhBilgi(oyuncu, anahtar);
+    return;
+  }
+  /* Acik bir modu secmek onu ETKINLESTIRIYOR -- kaynaktaki
+     mode_select carkinin isi. Cekirdek harcandigi icin
+     "elinde tut" artik gecerli bir yol degil.               */
+  if (modAcikMi(oyuncu.id, anahtar)) {
+    const sec = modSec(oyuncu, anahtar);
+    const t2 = ZIRH_MODLAR.get(anahtar);
+    actionbarYaz(oyuncu, sec.tamam
+      ? "§b⚡ " + (t2 ? t2.ad : anahtar) + " §fmodu seçildi"
+      : "§7⚡ " + sec.sebep);
+    zirhBilgi(oyuncu, anahtar);
+    return;
+  }
+  const sonuc = modAc(oyuncu, anahtar);
+  const t = ZIRH_MODLAR.get(anahtar);
+  if (sonuc.tamam) {
+    actionbarYaz(oyuncu, "§a⚿ " + (t ? t.ad : anahtar) +
+                 " §fmodu kalıcı açıldı");
+    try {
+      oyuncu.sendMessage(
+        "§a⚿ §f" + (t ? t.ad : anahtar) + " §7modu açıldı." +
+        "\n§8Çekirdek harcandı — kaynaktaki gibi (palladium:item_buyable" +
+        (ZIRH_AGAC_BEDEL.get(anahtar)
+          ? ", ionstrike:" + ZIRH_AGAC_BEDEL.get(anahtar) : "") + ")." +
+        "\n§8Artık çekirdeği taşımana gerek yok.");
+    } catch (e) { /* mesaj onemli degil */ }
+  } else {
+    actionbarYaz(oyuncu, "§7⚿ " + sonuc.sebep);
+  }
 }
 
 /* Tek modun ne verdigini sohbete yazar. Menude dokununca ve

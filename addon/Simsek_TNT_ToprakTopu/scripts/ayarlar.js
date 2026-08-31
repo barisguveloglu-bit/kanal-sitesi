@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v5.8";
+export const SURUM = "v5.9";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -3726,6 +3726,74 @@ export const ZIRH_ISIN_BEKLEME = 20;   // tick
    okuyamiyor. Guc de ayni kosula bagli, yoksa "takim gibi
    gorunuyorum ama gucum yok" olurdu (Ben 10'daki karar).      */
 export const ZIRH_CEKIRDEK_ONEK = "pa:zirh_mod_";
+
+/* ================================================================
+   MAX STEEL YETENEK AGACI                                  v5.9
+
+   Kullanici: "yetenek agaclarini dikkatlice hepsinin
+   aldiklarimiz dahil teker teker bak, bizim yetenek agacimiz
+   ile ayni olmasini istiyorum, bu modun yetenek agaci ile."
+
+   ---- KAYNAKTAKI AGAC (olculdu) ----
+   Butun gucler `gui_display_type: "tree"`. Kok `base_mode`;
+   diger modlar ORADAN, CEKIRDEK ODEYEREK aciliyor:
+
+       base_mode/heat_mode   -> palladium:item_buyable
+                                { item: ionstrike:heat_core, amount: 1 }
+
+   base_mode agacinin tamami (24 dugum) tarandi; mod -> bedel:
+
+       isi       heat_core        gizlilik  stealth_core
+       boyut     shrink_core      dalis     hydro_core
+       titan     titan_core       ucus      flight_core
+       guc       strength_core    kamuflaj  memory_core
+       hiz       speed_core       top       cannon_core
+       kesif     recon_core       klon      clone_core
+
+   Iki dugum XP ile aliniyor:
+       mode_select (mod carki)  -> 30 XP kademesi
+       turbo_bike               -> 40 XP kademesi
+
+   ---- BIZDE NEYIN DEGISTIGI ----
+   Bizde cekirdek ELDE TUTULAN bir anahtardi: birakinca guc
+   gidiyordu, yani agac YOKTU. Kaynakta cekirdek bir kez
+   HARCANIYOR ve mod KALICI aciliyor; sonra mod carkindan
+   seciliyor.
+
+   Artik ayni: cekirdegi eline al, menuden "Aç" de -- cekirdek
+   HARCANIR, mod kalici acilir. Acildiktan sonra cekirdegi
+   tasimana gerek yok, menuden seciyorsun.
+
+   ---- TEMEL NEDEN BEDAVA ----
+   Kaynakta base_mode agacin KOKU; satin alinacak bir dugum
+   degil. Bizde de oyle: Temel bastan acik.
+
+   ---- MOD CARKI 30 XP ----
+   Kaynaktaki `mode_select` dugumu 30 XP kademesi. Bizde menu
+   zaten var; o yuzden XP ucreti MOD SECIMINI acmaya konuldu.
+   Yani ilk modunu actiktan sonra secim yapabilmek icin bir
+   kez 30 kademe odiyorsun -- kaynaktaki sirayla ayni.        */
+export const ZIRH_AGAC_ACIK = true;
+export const ZIRH_AGAC_ANAHTAR = "simsek:zirh_agac";
+/* Kaynaktaki mode_select dugumunun bedeli. */
+export const ZIRH_CARK_XP = 30;
+/* Kaynakta base_mode agacin koku -- bedava. */
+export const ZIRH_AGAC_KOK = "temel";
+
+/* mod -> kaynaktaki cekirdek esyasinin adi. Bizim esyamiz
+   ZIRH_CEKIRDEK_ONEK + mod; bu tablo yalnizca KAYNAKTAKI adi
+   tutuyor, testte jar'la karsilastirilabilsin diye.          */
+export const ZIRH_AGAC_BEDEL = new Map([
+  ["isi",      "heat_core"],
+  ["titan",    "titan_core"],
+  ["guc",      "strength_core"],
+  ["hiz",      "speed_core"],
+  ["kesif",    "recon_core"],
+  ["gizlilik", "stealth_core"],
+  ["dalis",    "hydro_core"],
+  ["ucus",     "flight_core"],
+]);
+
 
 /* ---- ACILABILIR KATMANLAR  (v5.8) ----
 

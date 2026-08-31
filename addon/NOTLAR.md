@@ -1,3 +1,109 @@
+# v5.9 — Yetenek ağacı kaynaktakiyle aynı
+
+Kullanıcı iki şey sordu:
+1. *"bunların hangisinde özellik var? Çünkü mod hepsinde birer birer özellik
+   olmaz değil mi? Olanları al lütfen."*
+2. *"Yetenek ağaçlarını dikkatlice, hepsinin — aldıklarımız dahil — teker teker
+   bak; bizim yetenek ağacımız ile aynı olmasını istiyorum, bu modun yetenek
+   ağacı ile."*
+
+## 1. Haklıydı: hepsinde özellik yok
+
+37 gücün hepsi tarandı ve yetenekleri **görsel** (render_layer, hide_body_part,
+name_change, animation_timer, trail) ile **gerçek** (attribute_modifier,
+energy_beam, damage_immunity, invisibility, ölçek/efekt komutları) diye ayrıldı.
+
+| mod | gerçek özellik | karar |
+|---|---|---|
+| Super Mode | **11** — zırh 40, tokluk 20, saldırı +10, geri tepme direnci 10, lazer 15/30, patlama+düşme bağışıklığı | al |
+| Hydro Heat | **11** — zırh 25, **iki ışın** (ateş 15/30 yakma 5, buz 20/30), ateş+donma bağışıklığı | al |
+| Strength Stealth | **11** — zırh 30+20, saldırı +15, görünmezlik, düşme direnci 100 | al |
+| Flight Stealth | **12** — görünmezlik, uzay nefesi, donma/patlama/düşme bağışıklığı | al |
+| Takonian (`ion_power`) | 9 — ion_blast 5/30, patlama, enerji çubuğu | al |
+| Scuba Flight / Stealth | 8'er — yüzme +5, düşme direnci 200 | al |
+| Size Mode | 7 — zırh 20, düşme direnci 100, büyü/küçül | al |
+| Nova Ring | 7 — yıldırım/donma/oksijen bağışıklığı, uzay nefesi | al |
+| Clone mode | 6 — zırh 20, minyon doğurma | al |
+| Cannon mode | 4 — zırh 40, dört bağışıklık, boyut 1.5 | al |
+| Turbo Lash | 1 — ışın 5/30 | al (silah) |
+| **Camo Mode** | **0** — 9 render_layer, 1 komut | **alma** |
+| **turbo_sword / steeless_sword** | 1'er — yalnız eşya tak/çıkar komutu | **alma** |
+| **speed_stealth** | dosya **0 bayt** — modda boş | **alma** |
+
+Yani üç tanesi gerçekten boş çıktı. Kalanların bütün sayıları çıkarıldı ve
+`REFERANS_MAXSTEEL_AGAC.md`'ye yazıldı.
+
+## 2. Ağaç: kaynakta ne var
+
+Bütün güçler `gui_display_type: "tree"`. Kök **`base_mode`**; diğer modlar
+oradan, **kendi çekirdeği ödenerek** açılıyor:
+
+```
+base_mode/heat_mode -> palladium:item_buyable
+                       { item: ionstrike:heat_core, amount: 1 }
+```
+
+`base_mode` ağacının 24 düğümü tarandı — 12 modun bedeli bir çekirdek, iki
+düğüm XP ile alınıyor:
+
+| düğüm | bedel |
+|---|---|
+| ısı · titan · güç · hız · keşif · gizlilik · dalış · uçuş | kendi çekirdeği ×1 |
+| boyut · klon · top · kamuflaj | shrink/clone/cannon/memory çekirdeği ×1 |
+| `mode_select` (mod çarkı) | **30 XP kademesi** |
+| `turbo_bike` | 40 XP kademesi |
+
+## 3. Bizde neyin değiştiği
+
+Bizde çekirdek **elde tutulan bir anahtardı**: bırakınca güç gidiyordu, yani
+ağaç *yoktu*. Kaynakta çekirdek bir kez **harcanıyor** ve mod **kalıcı**
+açılıyor; sonra mod çarkından seçiliyor.
+
+Artık aynı:
+
+- Çekirdeği eline al → menüden seç → **çekirdek harcanır**, mod kalıcı açılır.
+- Açık bir modu seçmek onu **etkinleştirir** (kaynaktaki `mode_select`).
+- Açılmamış bir modun çekirdeğini taşımak **güç vermez** — menüden açman gerek.
+- **Temel** ağacın kökü, baştan açık (kaynakta `base_mode` satın alınacak bir
+  düğüm değil).
+- Mod Çarkı ayrı bir düğüm, **30 XP** — kaynaktaki bedelin aynısı.
+
+Defter dünya dinamik özelliğinde; script yeniden yüklenince açık modlar duruyor.
+
+## 4. İki kez kendi kısıtımı uydurup test yakaladı
+
+**Birincisi:** "moda geçmek için önce Mod Çarkı gerek" diye yazmıştım.
+Kaynakta öyle değil — `base_mode` ağacında her modun kendi düğümü bir `command`
+ve düğümü açmak zaten o moda geçiriyor; `mode_select` ayrı bir düğüm ve işi
+**hızlı geçiş**. Benim kısıtımla ilk çekirdeğini harcayan oyuncu 30 XP bulana
+kadar hiçbir moda giremiyordu. Kaldırıldı.
+
+**İkincisi:** çekirdek harcanınca `zirhTara` hâlâ "çekirdek elde" istiyordu,
+yani harcayan oyuncunun elinde hiçbir şey kalmıyordu. Mod artık **seçili
+moddan** geliyor; elde tutmak yalnızca bir kısayol.
+
+## 5. Testlerin savunduğu eski sözleşme
+
+`zirh.mjs`'in *"çekirdeği bırakınca güç gidiyor"* satırı artık **yanlış** —
+kaynakta öyle bir kural yok, bizim uydurduğumuz bir kısıttı. Silinmedi, yeni
+gerçeği sınayacak şekilde yazıldı: *seçili mod varken el boş olsa da güç durur;
+seçim de yoksa hiçbir şey gelmez.* Aynısı `zirh_menu.mjs`'in *"hiçbir satırda ✔
+yok, çünkü seçim yok"* satırı için de yapıldı — artık ✔ = açık, ⚿ = kilitli.
+
+`test/zirh_agac.mjs` (7 bölüm) bizim ağacı **kaynağın JSON'uyla** karşılaştırıyor:
+her modun bedeli aynı çekirdek mi, `mode_select` gerçekten 30 XP mi, `base_mode`
+satın alınamıyor mu. İki kasıtlı bozmayla doğrulandı (bedeli yanlış yaz →
+`✗ dalis: scuba_core vs hydro_core`; çekirdeği harcama → `✗ çekirdek HARCANDI`).
+
+## 6. Sırada
+
+Yukarıdaki 11 modun sayıları çıkarıldı ama **henüz aktarılmadı** — her biri
+kendi takım geometrisi ve dokusu isteyecek (v4.94'teki işin aynısı). Ağaç
+tarafı hazır: yeni bir mod `ZIRH_MODLAR` ve `ZIRH_AGAC_BEDEL`'e eklendiği anda
+menüde kilitli olarak beliriyor ve çekirdeğiyle açılıyor.
+
+---
+
 # v5.8 — WoM kaldırıldı, matkap artık menüden açılıyor
 
 ## 1. Weapons of Miracles tamamen kaldırıldı
