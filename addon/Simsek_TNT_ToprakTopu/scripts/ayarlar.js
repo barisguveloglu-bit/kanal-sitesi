@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.1";
+export const SURUM = "v7.2";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -5143,6 +5143,66 @@ export const COKLU_MUAF = [
    kilic 8, bu depodaki en guclu esya 62. Degistirilmedi;
    gerekcesi KONSEY tablosunda yaziyor.
    ================================================================ */
+/* ================================================================
+   ZAMAN SAATI                                              v7.2
+
+   Kaynak: "Zaman Saati Ifsa" (f.a. eymoxa). Bu, elimize gecen
+   komut listelerinin aksine GERCEK script tasiyan bir eklenti;
+   bes modu var ve modlar egilerek acilan bir menuden seciliyor.
+
+   ---- KAYNAKTAKI IKI KILITLENME ----
+   1. SAATE ALINAN OYUNCU DUNYA YENIDEN YUKLENINCE ORADA KALIYOR.
+      Kaynak hedefi y=-500'e isinliyor ve eski konumunu YALNIZ
+      bellekteki bir Map'te tutuyor (`saatteOlanlar`). Dunya
+      kapanip acilinca o Map bosaliyor: kurban yerin 500 blok
+      altinda, korlukle, hareketi kapali, geri donus bilgisi
+      YOK. Kalici bir kilitlenme. Bizde kayit DUNYA OZELLIGINDE
+      ve ustune bir de sure siniri var.
+   2. `saatteOlanlar` OYUNCU BASINA DEGIL, GENEL. Kaynakta
+      `if (saatteOlanlar.size > 0)` deniyor ve sirali ilk kurban
+      birakiliyor -- yani iki kisi saatteyse hangisini
+      birakacagini SECEMIYORSUN. Bizde defter saati tutana
+      bagli.
+
+   ---- ALINMAYAN UCUNCU SATIR ----
+      hedefEntity.runCommand("effect @s clear")
+   Kurbani birakirken BUTUN efektlerini siliyor -- ictigi iksir
+   dahil. Bu kalibi ucuncu kez reddediyoruz (ucurma.js,
+   kanli kol, Code-Man listesi).
+
+   ---- KAYNAKTAN AYNEN ALINANLAR ----
+   Bes modun kendisi, telekinezin "yakala sonra firlat" iki
+   asamasi, 15 blokluk menzil, 4 blok onde tutma.            */
+export const SAAT_ACIK = true;
+export const SAAT_ESYA = "pa:zaman_saati";
+
+/* Zamani durdur: kaynak `slowness 999 255` + `jump_boost 999`
+   + inputpermission kapali diyor. 999 SANIYE, yani ~16 dakika,
+   ve tek cikisi "Zamani Ac" modu. Bizde sure sinirli: saati
+   tutan cikarsa ya da unutursa dunya sonsuza kadar donmuyor. */
+export const SAAT_DONDURMA_SURE = 600;     // 30 sn
+export const SAAT_DONDURMA_SEVIYE = 255;   // kaynaktaki gibi
+
+/* Telekinez: kaynagin sayilari. */
+export const SAAT_TELEKINEZ_MENZIL = 15;
+export const SAAT_TELEKINEZ_ONDE = 4;      // kac blok onde tutuluyor
+export const SAAT_TELEKINEZ_FIRLAT = 15;
+/* Kaynak hedefi HER IKI TICK'te bir yeniden isinliyor ve bunu
+   yaparken `dimension.getEntities()` cagiriyor -- SUZGECSIZ,
+   yani boyuttaki her varlik saniyede on kez taraniyor. Tablette
+   bunun bedeli var. Bizde hedef dogrudan kimlikle tutuluyor. */
+export const SAAT_TELEKINEZ_ARALIK = 2;
+
+/* Saate alma. Kaynak y=-500 diyor; dunya tabani -64 oldugu icin
+   orasi bosluk. Sure siniri kaynakta YOK.                    */
+export const SAAT_HAPIS_Y = -500;
+export const SAAT_HAPIS_SURE = 1200;       // 60 sn
+export const SAAT_HAPIS_TARAMA = 20;
+export const SAAT_KAYIT_ANAHTAR = "simsek:zaman_saati";
+
+/* Zamani geri al: kaynak `time add -500`. */
+export const SAAT_GERI_TICK = -500;
+
 export const VOID_ACIK = true;
 
 /* Void Coklu Alet: vurdugunu Void'e cevirir. */

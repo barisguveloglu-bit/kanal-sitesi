@@ -95,6 +95,9 @@
     "goz_element_lazer": {
       "textures": "textures/item/goz_element_lazer"
     },
+    "zaman_saati": {
+      "textures": "textures/item/zaman_saati"
+    },
     "pe_kara_bas": {
       "textures": "textures/item/pe_kara_bas"
     },

@@ -2367,6 +2367,255 @@ def o_sey_dokusu(kaynak_yol):
     return im
 
 
+# ============================================================
+# MUTANT HALIM                                          v7.2
+#
+# Kullanici: "that thing Halim vardi ya, bir de MUTANT Halim
+# olsun ekstra olarak" ve nasil yapildigina dair uc ornek
+# gonderdi (Mutant Boralo / Catalina / Great Master --
+# Chameleon modunun Metamorph kaliplari).
+#
+# ---- ORNEKLER OLCULDU ----
+# Uc modelin de iskeleti AYNI, govdeleri farkli:
+#   Anchor -> Body2 -> Torso -> BodyUpper -> kollar
+#   Body2 -> Head,  Body2 -> bacaklar (iki parcali)
+# Poz verisinde ortak olan sey:
+#   Anchor  SX/SY/SZ 0.7    butun govde %70'e olceklenmis
+#   RightArm/LeftArm  Y:46  kollar one-asagi sarkiyor
+#   Torso   Y:-28..+9       govde one egilmis (kambur)
+#   Fist kemikleri 7 kup    yumruklar govdenin en detayli yeri
+# Cizdirilince siluet net: kambur, dev omuz, yere sarkan koca
+# yumruk, kisa kalin bacak.
+#
+# ---- NEDEN KAYNAK MODELLER DOGRUDAN ALINMADI ----
+# Ucu de BASKA karakterler (Boralo, Catalina, Great Master) ve
+# kendi dokularini tasiyor. Halim bizim; kullanicinin istedigi
+# de "Halim'in mutant hali". O yuzden ORANLAR ve DURUS
+# orneklerden, KIMLIK (alti kol, palet) O Sey'den geliyor.
+#
+# ---- NEDEN KEMIK ADLARI KAYNAKTAKI GIBI DEGIL ----
+# Kaynak `Anchor/Torso/BodyUpper` kullaniyor; bizim yuruyus
+# animasyonumuz (`animation.o_sey.yuru`) vanilla adlari
+# (body/head/rightArm/leftLeg...) oynatiyor. Kaynagin adlarini
+# alsaydik model yuruyusun hicbir kemigini tanimazdi ve
+# HAREKETSIZ dururdu -- hicbir hata da gorunmezdi. O Sey'de
+# ayni karar zaten verilmisti.
+MUTANT_KIMLIK = "pa:o_sey_mutant"
+MUTANT_AD     = "Mutant That Thing"
+MUTANT_TR     = "Mutant Halim"
+MUTANT_DOKU   = "o_sey_mutant"
+# O Sey'in bir buçuk kati: 4400 -> 6600 (3300 kalp).
+MUTANT_CAN    = 6600
+MUTANT_HASAR  = 90         # 45 kalp / vurus  (O Sey 60)
+MUTANT_HIZ    = 0.30       # daha agir (O Sey 0.36)
+MUTANT_BOY    = 3.4        # blok (54 birim / 16)
+MUTANT_EN     = 1.4        # omuzlar cok genis
+
+
+def mutant_geometrisi():
+    """Mutant Halim. O Sey'in alti kolu duruyor; govde
+    orneklerdeki mutant oranlarinda.
+
+    ---- KULLANICI DUZELTTI: KAMBUR DEGIL ----
+    Ilk denemede yaratigi kambur yaptim -- kafayi omuzlarin
+    arasina gomup govdeyi one egdim. Kullanici Mutant Boralo'nun
+    ekran goruntusunu gonderdi: yaratik DIK duruyor, kafa
+    govdenin tepesinde normal yerinde, ve asil ozellik
+    KOLLARIN UZUNLUGU -- omuzdan basliyor, dizin ALTINA kadar
+    iniyor, ucunda koca koyu yumruklar var.
+
+    Kaynagin poz verisi de bunu soyluyordu ama yanlis okumusum:
+    `RightArm:{Y:46}` kolu one-asagi sarkitiyor, `Torso` donusu
+    ise govdeyi egmiyor, KOLLARI ONE aciyor.
+
+    Olculer (birim, 16 = 1 blok):
+      bacak alt   0..12    kalin
+      bacak ust  12..22
+      kalca      22..30    14 genis
+      gogus      30..44    18 genis
+      kafa       44..54    normal boy, TEPEDE
+      kollar     42..10    otuz iki birim -- dizin altina iner
+      yumruk      2..10    koca
+    Toplam 54 birim = 3,4 blok.                                """
+
+    def uzun_kol(ad, yumruk_ad, sag, uv, yumruk_uv):
+        """Mutantin imzasi: omuzdan dizin altina inen kalin kol
+        ve ucunda koca yumruk.
+
+        Disardaki kemik SWING icin (yuruyus animasyonu onu
+        donduruyor), yumruk kemigi kolun ucuna asili."""
+        omuz = 42
+        dip = 10
+        kalin = 7
+        x = -9 if sag else 9
+        org_x = (-9 - kalin) if sag else 9
+        return [
+            {"name": ad, "parent": "body", "pivot": [x, omuz, 0],
+             "cubes": [{"origin": [org_x, dip, -3.5],
+                        "size": [kalin, omuz - dip, 7], "uv": uv}]},
+            {"name": yumruk_ad, "parent": ad, "pivot": [x, dip, 0],
+             "cubes": [{"origin": [org_x - 1.5, dip - 8, -5],
+                        "size": [kalin + 3, 8, 10], "uv": yumruk_uv}]},
+        ]
+
+    def yatay_kol(ad, taban_ad, pivot_y, sag, uv):
+        """Fazladan kol cifti -- O Sey'deki kalibin AYNISI:
+        disardaki kemik swing icin, icerideki +-90 donusu
+        tasiyor. Mutantta daha kalin."""
+        isaret = SEY_KOL_ACI if sag else -SEY_KOL_ACI
+        x = -8 if sag else 8
+        cx = -7 if sag else 7
+        org_x = -13 if sag else 7
+        return [
+            {"name": ad, "parent": "body", "pivot": [x, pivot_y, 0]},
+            {"name": taban_ad, "parent": ad, "pivot": [cx, pivot_y, 0],
+             "rotation": [0, 0, isaret],
+             "cubes": [{"origin": [org_x, pivot_y - 14, -3],
+                        "size": [6, 14, 6], "uv": uv}]},
+        ]
+
+    kemikler = [
+        # ---- GOVDE: kalca + gogus, ikisi de DIK ----
+        # Ornekteki gibi iki parcali: alt bant dar, gogus genis.
+        {"name": "body", "pivot": [0, 30, 0], "cubes": [
+            {"origin": [-7, 22, -4], "size": [14, 8, 8], "uv": [16, 16]},
+            {"origin": [-9, 30, -5], "size": [18, 14, 9], "uv": [16, 32]},
+        ]},
+        # ---- KAFA: govdenin TEPESINDE, normal yerinde ----
+        # Boyun yok ama kafa gomulu de degil.
+        {"name": "head", "parent": "body", "pivot": [0, 44, 0], "cubes": [
+            {"origin": [-5, 44, -5], "size": [10, 10, 10], "uv": [0, 0]},
+        ]},
+        # ---- BACAKLAR: kalin, iki parcali ----
+        {"name": "rightLeg", "parent": "body", "pivot": [-4, 22, 0], "cubes": [
+            {"origin": [-8, 12, -3.5], "size": [7, 10, 7], "uv": [0, 16]},
+            {"origin": [-8, 0, -3.5], "size": [7, 12, 7], "uv": [0, 16]},
+        ]},
+        {"name": "leftLeg", "parent": "body", "pivot": [4, 22, 0], "cubes": [
+            {"origin": [1, 12, -3.5], "size": [7, 10, 7], "uv": [0, 42]},
+            {"origin": [1, 0, -3.5], "size": [7, 12, 7], "uv": [0, 42]},
+        ]},
+    ]
+    # ---- ANA KOL CIFTI: mutantin imzasi ----
+    kemikler += uzun_kol("rightArm", "rightFist", True, [40, 16], [40, 16])
+    kemikler += uzun_kol("leftArm", "leftFist", False, [32, 48], [32, 48])
+    # ---- DORT FAZLADAN KOL (Halim'in kimligi) ----
+    kemikler += yatay_kol("rightMiddleArm", "rightArm_r2", 34, True, [40, 16])
+    kemikler += yatay_kol("rightUpperArm",  "rightArm_r1", 41, True, [40, 16])
+    kemikler += yatay_kol("leftMiddleArm",  "leftArm_r1",  34, False, [32, 48])
+    kemikler += yatay_kol("leftUpperArm",   "leftArm_r2",  41, False, [32, 48])
+
+    return {
+        "format_version": "1.12.0",
+        "minecraft:geometry": [{
+            "description": {
+                "identifier": "geometry.o_sey_mutant",
+                "texture_width": 64,
+                "texture_height": 64,
+                "visible_bounds_width": 4,
+                "visible_bounds_height": 4.5,
+                "visible_bounds_offset": [0, 2, 0],
+            },
+            "bones": kemikler,
+        }],
+    }
+
+
+# ---- ZAMAN SAATI  (v7.2) ----
+# Kaynak: "Zaman Saati Ifsa" (f.a. eymoxa). Esya duz: modeli
+# yok, 16x16 ikonu var. Ikon kaynagin KENDI ikonu.
+SAAT_ESYA = "zaman_saati"
+SAAT_TR   = "Zaman Saati"
+SAAT_EN   = "Time Watch"
+
+
+def saat_esyasi():
+    """Zaman Saati. Kaynakta dayaniklilik ve hasar YOK: elde
+    tutulan, sag tiklanan bir alet. Bes modu script tarafinda
+    (yetenekler/zaman_saati.js).                               """
+    return {
+        "format_version": "1.21.0",
+        "minecraft:item": {
+            "description": {
+                "identifier": "pa:" + SAAT_ESYA,
+                "menu_category": {"category": "equipment"},
+            },
+            "components": {
+                "minecraft:icon": {"texture": SAAT_ESYA},
+                "minecraft:display_name": {"value": SAAT_TR},
+                "minecraft:max_stack_size": 1,
+                "minecraft:hand_equipped": True,
+                "minecraft:glint": True,
+            },
+        },
+    }
+
+
+def mutant_dokusu(kaynak_yol):
+    """Mutant Halim'in dokusu. O Sey'in KENDI dokusundan
+    turetiliyor -- uydurma bir doku degil, Halim'in paletinin
+    mutasyona ugramis hali.
+
+    ---- NEDEN TURETILIYOR, OLDUGU GIBI ALINMIYOR ----
+    Ilk denemede mutanti dogrudan o_sey.png ile cizdirdim ve
+    yaratik SIYAH BIR KUTLE cikti: o doku %95,6 siyaha yakin
+    (olculdu, v6.6). Ince bir govdede sorun degil, ama mutantin
+    govdesi uc kat genis -- siluetin okunmasi icin vurgunun
+    daha cok yer kaplamasi gerekiyor.
+
+    Yapilan is olculebilir:
+      1. Siyaha yakin pikseller HAFIFCE aciliyor (mutasyonun
+         damarlari zeminin uzerinde secilsin).
+      2. Turkuaz vurgu (#20C5B5 ailesi) parlatiliyor.
+      3. Zemine seyrek turkuaz DAMARLAR isleniyor -- desen
+         deterministik (piksel koordinatindan turuyor), yani
+         her uretimde ayni cikiyor.
+    Palet DEGISMIYOR: yeni renk uydurulmuyor, var olan iki ton
+    kullaniliyor.                                              """
+    try:
+        from PIL import Image
+    except ImportError:
+        print("UYARI: PIL yok, mutant dokusu uretilemedi")
+        return None
+    if not os.path.exists(kaynak_yol):
+        print("UYARI: O Sey dokusu yok (%s), mutant dokusu atlandi"
+              % kaynak_yol)
+        return None
+
+    im = Image.open(kaynak_yol).convert("RGBA")
+    en, boy = im.size
+    cikti = Image.new("RGBA", (en, boy), (0, 0, 0, 0))
+    gp = im.load()
+    cp = cikti.load()
+    VURGU = (32, 197, 181)        # #20C5B5 -- olculen ana vurgu
+    PARLAK = (74, 237, 217)       # #4AEDD9 -- olculen acik ton
+
+    for y2 in range(boy):
+        for x2 in range(en):
+            r, g, b, a = gp[x2, y2]
+            if a < 40:
+                continue
+            parlaklik = (r + g + b) / 3.0
+            if parlaklik < 40:
+                # Zemin: hafifce aciliyor ki uzerindeki damar
+                # secilsin. Damarlar deterministik bir desende.
+                if (x2 * 5 + y2 * 3) % 17 == 0:
+                    cp[x2, y2] = VURGU + (255,)
+                elif (x2 * 3 + y2 * 7) % 29 == 0:
+                    cp[x2, y2] = PARLAK + (255,)
+                else:
+                    k = 1.6
+                    cp[x2, y2] = (min(255, int(r * k) + 6),
+                                  min(255, int(g * k) + 8),
+                                  min(255, int(b * k) + 9), 255)
+            else:
+                # Vurgu tonlari: parlatiliyor.
+                cp[x2, y2] = (min(255, int(r * 1.25)),
+                              min(255, int(g * 1.25)),
+                              min(255, int(b * 1.25)), 255)
+    return cikti
+
+
 def o_sey_varligi():
     """Sunucu varligi. Ilkel Besli ile AYNI yol: normal botun
     govdesi kopyalanip istatistikleri degistiriliyor. Boylece
@@ -2452,6 +2701,61 @@ def o_sey_varligi():
 # Ayni varligi iki ise kosmak, botun savas davranislarini oyuncunun
 # uzerine yapistirmak olurdu.
 SEY_KILIK_KIMLIK = "pa:o_sey_kilik"
+
+
+def mutant_varligi():
+    """Mutant Halim'in sunucu varligi. O Sey'in AYNI yolu:
+    govdesi kopyalanip sayilari degistiriliyor -- boylece
+    defter, canta, teslim, takip, bekle hepsi calisiyor.
+
+    v4.66 dersi burada da gecerli: bilesen gruplari temel
+    bilesenleri EZIYOR, o yuzden attack/health/movement
+    gruplardan siliniyor.                                      """
+    import copy
+    v = copy.deepcopy(o_sey_varligi())
+    govde = v["minecraft:entity"]
+    govde["description"]["identifier"] = MUTANT_KIMLIK
+    govde["components"]["minecraft:health"] = {
+        "value": MUTANT_CAN, "max": MUTANT_CAN}
+    govde["components"]["minecraft:attack"] = {"damage": MUTANT_HASAR}
+    govde["components"]["minecraft:movement"] = {"value": MUTANT_HIZ}
+    # Carpisma kutusu modelin GERCEK olculeri. Yanlis birakilirsa
+    # duvarin icinde kaliyor (O Sey'de bu bir kez yasandi).
+    govde["components"]["minecraft:collision_box"] = {
+        "width": MUTANT_EN, "height": MUTANT_BOY}
+    for grup, ic in govde.get("component_groups", {}).items():
+        if grup == "pa:bekle":
+            continue
+        for bilesen in ("minecraft:attack", "minecraft:health",
+                        "minecraft:movement"):
+            ic.pop(bilesen, None)
+    return v
+
+
+def mutant_istemci_varligi():
+    """Ozel render controller YOK -- v4.28'de bot tam o yuzden
+    gorunmez olmustu."""
+    return {
+        "format_version": "1.10.0",
+        "minecraft:client_entity": {
+            "description": {
+                "identifier": MUTANT_KIMLIK,
+                "materials": {"default": "entity_alphatest"},
+                "textures": {"default": "textures/entity/" + MUTANT_DOKU},
+                "geometry": {"default": "geometry.o_sey_mutant"},
+                "render_controllers": ["controller.render.default"],
+                "spawn_egg": {
+                    "base_color": "#16303a",     # mutant zemini
+                    "overlay_color": "#4aedd9",  # damar turkuazi
+                },
+                # Yuruyus animasyonu O SEY ile AYNI: kemik adlari
+                # bilerek vanilla duzeninde tutuldu, yoksa model
+                # hareketsiz kalirdi.
+                "scripts": {"animate": ["yuru"]},
+                "animations": {"yuru": "animation.o_sey.yuru"},
+            }
+        },
+    }
 
 
 def o_sey_kilik_varligi():
@@ -6064,6 +6368,21 @@ def main():
     # ---- O Sey: 6 kol + cift beden (v4.88) ----
     yaz_json(os.path.join(BP, "entities/o_sey.json"), o_sey_varligi())
     yaz_json(os.path.join(RP, "entity/o_sey.entity.json"), o_sey_istemci_varligi())
+    # ---- ZAMAN SAATI (v7.2) ----
+    yaz_json(os.path.join(BP, "items/%s.json" % SAAT_ESYA), saat_esyasi())
+    _saat_ikon = os.path.join(RP, "textures/item/%s.png" % SAAT_ESYA)
+    os.makedirs(os.path.dirname(_saat_ikon), exist_ok=True)
+    if not kaynak_doku_kopyala("pa_zaman_saati.png", _saat_ikon):
+        print("UYARI: Zaman Saati ikonu yok -- esya mor-siyah cikar")
+    dokular[SAAT_ESYA] = {"textures": "textures/item/" + SAAT_ESYA}
+    for _l, _ad in ((en_us, SAAT_EN), (tr_tr, SAAT_TR)):
+        _l.append("item.pa:%s.name=%s" % (SAAT_ESYA, _ad))
+        _l.append("item.pa:%s=%s" % (SAAT_ESYA, _ad))
+
+    # ---- MUTANT HALIM (v7.2) ----
+    yaz_json(os.path.join(BP, "entities/o_sey_mutant.json"), mutant_varligi())
+    yaz_json(os.path.join(RP, "entity/o_sey_mutant.entity.json"),
+             mutant_istemci_varligi())
     # Kilik (v4.89): donusumun bedeni. Ayni geometri, ayni doku.
     yaz_json(os.path.join(BP, "entities/o_sey_kilik.json"), o_sey_kilik_varligi())
     yaz_json(os.path.join(RP, "entity/o_sey_kilik.entity.json"),
@@ -6483,6 +6802,8 @@ def main():
                             encoding="utf-8"))["header"]["version"]
     oyuncu_modeli_paketi(_surum)
     yaz_json(os.path.join(RP, "models/entity/o_sey.geo.json"), o_sey_geometrisi())
+    yaz_json(os.path.join(RP, "models/entity/o_sey_mutant.geo.json"),
+             mutant_geometrisi())
     yaz_json(os.path.join(RP, "animations/o_sey.animation.json"), SEY_ANIM)
     _sey_doku = o_sey_dokusu(SEY_SKIN_KAYNAK)
     _sey_hedef = os.path.join(RP, "textures/entity/%s.png" % SEY_DOKU)
@@ -6491,9 +6812,24 @@ def main():
         _sey_doku.save(_sey_hedef)
     elif not os.path.exists(_sey_hedef):
         print("UYARI: O Sey dokusu uretilemedi -- varlik mor-siyah cizilir")
+    # ---- MUTANT HALIM DOKUSU (v7.2) ----
+    # O Sey'in dokusundan TURETILIYOR; kaynak dosya orada
+    # duruyor, ayri bir doku dosyasi tutulmuyor.
+    _mut_doku = mutant_dokusu(_sey_hedef)
+    _mut_hedef = os.path.join(RP, "textures/entity/%s.png" % MUTANT_DOKU)
+    if _mut_doku is not None:
+        os.makedirs(os.path.dirname(_mut_hedef), exist_ok=True)
+        _mut_doku.save(_mut_hedef)
+    elif not os.path.exists(_mut_hedef):
+        print("UYARI: Mutant dokusu uretilemedi -- varlik mor-siyah cizilir")
+
     for liste, ad in ((en_us, SEY_AD), (tr_tr, SEY_TR)):
         liste.append("entity.%s.name=%s" % (SEY_KIMLIK, ad))
         liste.append("item.spawn_egg.entity.%s.name=%s Yumurtası" % (SEY_KIMLIK, ad))
+    for liste, ad in ((en_us, MUTANT_AD), (tr_tr, MUTANT_TR)):
+        liste.append("entity.%s.name=%s" % (MUTANT_KIMLIK, ad))
+        liste.append("item.spawn_egg.entity.%s.name=%s Yumurtası"
+                     % (MUTANT_KIMLIK, ad))
     # Her uyenin DONANIM ganimet tablosu (v4.59). Vanilla
     # zombinin kilic almasiyla ayni yol; dogusta calisiyor.
     for _anahtar, _ad, _c, _h, _sec in ILKEL:
@@ -6810,6 +7146,13 @@ def main():
     # temizlik adimi her uretimde siliyor ve varlik mor-siyah
     # ciziliyor -- ayni tuzak dorduncu kez.
     beklenen.add(SEY_DOKU)
+    # v7.2: Mutant Halim. Bu satir olmadan temizlik adimi
+    # dokuyu HER uretimde siliyordu -- varlik yaziliyor,
+    # doku gidiyor, mutant mor-siyah cikiyordu.
+    beklenen.add(MUTANT_DOKU)
+    # v7.2: Zaman Saati ikonu. Bu satir olmadan temizlik
+    # adimi ikonu her uretimde siliyor.
+    beklenen.add(SAAT_ESYA)
     # v4.90: maskenin ikonu da hicbir listede degil
     beklenen.add(MASKE_ESYA)
     # v4.91: zirh parcalarinin ikonlari da listede degil

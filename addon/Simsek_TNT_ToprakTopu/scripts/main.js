@@ -17,6 +17,7 @@ import {
   KONSEY_ACIK,
   DISMONT_ESYA,
   DUSMUS_ACIK, DUSMUS_CAKMAK,
+  SAAT_ACIK, SAAT_ESYA,
   TEKNOLOJI_ACIK, TEKNOLOJI_TAKIMLAR, TEKNOLOJI_ONEK,
   MAHOU_ACIK, MAHOU_BUYULER, MAHOU_ESYALAR, MAHOU_MANA_TAVAN,
   VILTRUMITE_ACIK, VILTRUMITE_YETENEKLER, VILT_MOD, VILT_INDIRIM,
@@ -198,6 +199,10 @@ import { sisAc, sisKapat } from "./yetenekler/sis.js";
 /* v7.1: Void takimi -- Falen Mod V2. Vurus kancasi ve
    Void bulasmasi. */
 import { voidTara, voidUnut } from "./yetenekler/void.js";
+/* v7.2: Zaman Saati -- bes mod, egilerek menuden seciliyor. */
+import {
+  saatTara, saatUnut, saatCalistir, saatModu, saatModuSec, MOD_ADLARI
+} from "./yetenekler/zaman_saati.js";
 /* v6.7: Kanli Kol -- Bobby1545 Mod V3. DIKKAT: kollar.js'ten
    ONCE gelmeli, yoksa kol yetenekleri kayitli olmayan bir
    kimlige baglanir. */
@@ -525,6 +530,13 @@ system.runInterval(() => {
       voidTara(oyuncular);
     } catch (e) {
       hataYaz("voidTara", e);
+    }
+    /* v7.2: Zaman Saati. Iki defter de bosken tek satirda
+       cikiyor -- telekinez tutulan ve saatteki kurban.      */
+    try {
+      saatTara(oyuncular);
+    } catch (e) {
+      hataYaz("saatTara", e);
     }
   }
 
@@ -1341,6 +1353,43 @@ function ben10Anlat(oyuncu, anahtar) {
   kollariIndir(oyuncu);
 }
 
+/* Zaman Saati'nin mod menusu (v7.2).
+
+   Kaynak ActionFormData'yi DOGRUDAN kuruyor; bizde menu.js
+   var ve modul yoksa kendini kapatiyor (menuKullanilabilir).
+   Ayni yolu kullanmak, menu modulunun olmadigi surumlerde
+   paketin olmemesini saglıyor.                              */
+function saatMenusuAc(oyuncu) {
+  const secili = saatModu(oyuncu.id);
+  const liste = MOD_ADLARI.map((ad, i) => ({
+    ad: (i === secili ? "§a▸ " : "§7") + ad,
+    calis() {
+      saatModuSec(oyuncu.id, i);
+      actionbarYaz(oyuncu, "§6⌚ §f" + ad + " §8· sağ tık ile kullan");
+    }
+  }));
+  liste.push({
+    ad: "§c✕ Modu kapat",
+    calis() {
+      saatModuSec(oyuncu.id, undefined);
+      actionbarYaz(oyuncu, "§7⌚ Mod kapatıldı");
+    }
+  });
+  const acildi = menuAc(oyuncu, "§b⌚ Zaman Saati",
+                        liste.map((x) => x.ad), -1,
+                        (i) => { if (liste[i]) liste[i].calis(); });
+  if (!acildi) {
+    /* Menu modulu yoksa saat yine kullanilabilir olmali:
+       modlar sirayla donuyor. "Kilit hep cift".            */
+    const simdiki = saatModu(oyuncu.id);
+    const yeni = (simdiki === undefined || simdiki >= MOD_ADLARI.length - 1)
+      ? 0 : simdiki + 1;
+    saatModuSec(oyuncu.id, yeni);
+    actionbarYaz(oyuncu, "§6⌚ §f" + MOD_ADLARI[yeni] + " §8· menü yok, sırayla");
+  }
+}
+
+
 function menuEkleri(oyuncu) {
   const ekler = [];
 
@@ -1665,6 +1714,28 @@ const girisKuruldu = olayaAbone("itemUse", (olay) => {
        tetikliyor. Kurban degilsen dokunmuyor, cakmak normal
        isine devam ediyor.                                   */
     if (esya.typeId === DUSMUS_CAKMAK && dusmusAtesle(oyuncu)) {
+      return;
+    }
+
+    /* ---- ZAMAN SAATI (v7.2) ----
+       Kaynak: egilerek sag tik MENUYU aciyor, normal sag tik
+       SECILI modu calistiriyor. Ayni yol korundu -- tablette
+       tek esyada bes yetenek icin en kisa yol bu.
+
+       Mod secilmemisken normal basis hicbir sey yapmiyor;
+       kaynak da oyle davraniyor ve sebebini yaziyor.        */
+    if (SAAT_ACIK && esya.typeId === SAAT_ESYA) {
+      if (oyuncu.isSneaking) {
+        saatMenusuAc(oyuncu);
+        return;
+      }
+      const mod = saatModu(oyuncu.id);
+      if (mod === undefined) {
+        actionbarYaz(oyuncu,
+          "§6⌚ §fMod seç: §eeğil §fve sağ tıkla");
+        return;
+      }
+      saatCalistir(oyuncu, mod);
       return;
     }
 
@@ -2174,6 +2245,7 @@ olayaAbone("playerLeave", (olay) => {
   konseySilahUnut(olay.playerId);
   dusmusUnut(olay.playerId);
   voidUnut(olay.playerId);
+  saatUnut(olay.playerId);
   viltrumiteUnutOyuncu(olay.playerId);
 
   // Oyuncunun butun isleri durdurulmali, sadece birincisi degil

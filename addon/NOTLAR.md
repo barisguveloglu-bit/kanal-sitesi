@@ -1,3 +1,139 @@
+# v7.2 — Mutant Halim ve Zaman Saati
+
+## Mutant Halim
+
+Kullanıcı: *"that thing Halim vardı ya, bir de mutant Halim olsun ekstra
+olarak"* ve nasıl yapıldığına dair üç örnek gönderdi — Chameleon modunun
+Metamorph kalıpları: **Mutant Boralo, Mutant Catalina, Mutant Great Master**.
+
+Chameleon ve "en__nemlisi" (aslında **Blockbuster**) Java modları, doğrudan
+kullanılamaz. Ama arşivdeki modeller **Bedrock biçiminde** (`.geo.json` +
+`.animation.json`) — okunabildiler.
+
+### Örnekler ölçüldü
+
+Üçünün iskeleti aynı, gövdeleri farklı:
+`Anchor → Body2 → Torso → BodyUpper → kollar`. Poz verisinde ortak olan:
+`Anchor` %70 ölçek, `RightArm/LeftArm Y:46`, yumruk kemikleri 7 küp.
+
+### Önce yanlış yaptım
+
+Yaratığı **kambur** kurdum — kafayı omuzların arasına gömüp gövdeyi öne
+eğdim. Kullanıcı Mutant Boralo'nun ekran görüntüsünü gönderdi: yaratık **dik
+duruyor**, kafa gövdenin tepesinde normal yerinde, ve asıl özellik
+**kolların uzunluğu** — omuzdan başlayıp dizin altına iniyor, ucunda koca
+koyu yumruklar.
+
+Kaynağın poz verisi bunu zaten söylüyordu ama yanlış okumuşum: `Torso`
+dönüşü gövdeyi eğmiyor, **kolları öne açıyor**.
+
+Yeniden kuruldu (birim, 16 = 1 blok):
+
+```
+bacak  0..22   iki parçalı, kalın
+kalça 22..30   14 geniş
+göğüs 30..44   18 geniş
+kafa  44..54   TEPEDE
+kollar 42..10  otuz iki birim — dizin altına iner
+yumruk  2..10  koca
+```
+
+3,38 blok. O Şey 2,75. Altı kol duruyor — Halim'in kimliği o.
+
+### Neden kaynak modeller doğrudan alınmadı
+
+Üçü de **başka karakterler** (Boralo, Catalina, Great Master) ve kendi
+dokularını taşıyor. Halim bizim. **Oranlar ve duruş** örneklerden,
+**kimlik** (altı kol, palet) O Şey'den geliyor.
+
+### Neden kemik adları kaynaktaki gibi değil
+
+Kaynak `Anchor/Torso/BodyUpper` kullanıyor; bizim yürüyüş animasyonumuz
+(`animation.o_sey.yuru`) vanilla adları oynatıyor. Kaynağın adlarını
+alsaydık model yürüyüşün hiçbir kemiğini tanımaz ve **hareketsiz** dururdu —
+hiçbir hata da görünmezdi.
+
+### Doku türetildi, uydurulmadı
+
+Mutantı önce doğrudan `o_sey.png` ile çizdirdim: **siyah bir kütle** çıktı.
+O doku %95,6 siyaha yakın (v6.6'da ölçülmüştü) — ince bir gövdede sorun
+değil ama mutantın gövdesi üç kat geniş. Doku O Şey'inkinden türetiliyor:
+zemin hafifçe açılıyor, turkuaz vurgu parlatılıyor, deterministik bir
+desende damarlar işleniyor. **Palet değişmiyor** — yeni renk uydurulmadı.
+
+Bir de temizlik adımı dokuyu her üretimde siliyordu (`beklenen` listesinde
+yoktu) — v6.2'deki ders, ters yönden.
+
+---
+
+## Zaman Saati
+
+Kaynak: **"Zaman Saati İfşa" (f.a. eymoxa)**. Elimize geçen komut
+listelerinin aksine bu **gerçek script** taşıyor. Beş mod, eğilerek açılan
+menüden seçiliyor:
+
+| mod | ne yapıyor |
+|---|---|
+| ⏳ Zamanı Durdur | herkesin hareketi kilitlenir, moblar donar |
+| 🔓 Zamanı Aç | çözer |
+| ⏮ Zamanı Geri Al | `time add -500` — sadece dünya vakti |
+| 🔮 Telekinez | hedefi yakala, 4 blok önde tut, tekrar bas 15 blok fırlat |
+| ⌚ Oyuncuyu Saate Al | hedefi y=-500'e hapset, tekrar bas geri getir |
+
+### Kaynaktaki kalıcı kilitlenme
+
+Saate alınan oyuncunun eski konumu **yalnız bellekteki bir Map'te**
+tutuluyor. Dünya kapanıp açılınca o Map boşalıyor: kurban yerin 500 blok
+altında, körlükle, hareketi kapalı ve **geri dönüş bilgisi yok.** Kurtuluş
+yok.
+
+Bizde kayıt **dünya özelliğinde** ve üstüne **60 saniye sınırı** var: saati
+tutan çıkıp gitse bile kurban geri geliyor.
+
+İkinci sorun: kaynağın defteri oyuncu başına değil **genel** —
+`saatteOlanlar.size > 0` deyip sıralı ilkini bırakıyor, yani iki kişi
+saatteyse hangisini bırakacağını seçemiyorsun. Bizde defter saati **tutana**
+bağlı.
+
+### Testin bulduğu kendi hatam
+
+İlk yazdığımda `cikar()` kaydı **önce siliyor, sonra kurbanı arıyordu**.
+Test gösterdi: dünya yeniden yüklendikten sonra kurban bulunamayınca kayıt
+gidiyor ve kurban y=-500'de kalıyor — **kaynağın kilitlenmesini başka bir
+yoldan geri getirmişim.** Artık bulunamazsa kayıt duruyor ve sonraki
+taramada tekrar deneniyor.
+
+### Alınmayan satır
+
+```
+hedefEntity.runCommand("effect @s clear")
+```
+
+Kurbanı bırakırken **bütün** efektlerini siliyor — içtiği iksir dahil. Bu
+kalıbı dördüncü kez reddediyoruz (ucurma.js, Kanlı Kol, Code-Man listesi,
+şimdi burası). Yalnız bizim verdiklerimiz kaldırılıyor.
+
+Bir de kaynak telekinez hedefini her iki tick'te `dimension.getEntities()`
+ile arıyor — **süzgeçsiz**, yani boyuttaki her varlık saniyede on kez
+taranıyor. Bizde hedef doğrudan kimlikle tutuluyor.
+
+## Kasten kırıp doğrulandı
+
+| kırılan | düşen test |
+|---|---|
+| süre sınırı kaldırıldı (kaynaktaki gibi) | "süre dolunca kurban kendiliğinden geri geldi" + 2 |
+| kayıt dünyaya yazılmıyor | "eski konum DÜNYA ÖZELLİĞİNDE" + 2 |
+| kafa gövdeye gömüldü (kambur) | "kafa gövdenin TEPESİNDE" + 1 |
+| mutant O Şey'den zayıf | "canı O Şey'den fazla" |
+
+## Bu yüklemelerde olmayan şey
+
+Kullanıcı chris1545'in özelleştirilmiş Kanlı Kol'undan söz etti — **bu üç
+dosyada yok.** Bizde v6.2'den beri `kns_kolluk_chris_kanli` var ama o bir
+kolluk görünümü, çalışan bir kol değil.
+
+---
+
 # v7.1 — Void takımı
 
 Kullanıcı dosyayı **tekrar gönderdi**: *"canlı olarak bakmanı istedim ki
