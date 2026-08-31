@@ -1,0 +1,35 @@
+{
+  "format_version": "1.20.20",
+  "sound_definitions": {
+    "kns.silah_biyo": {
+      "category": "player",
+      "sounds": [
+        {
+          "name": "sounds/konsey/kns_silah_biyo",
+          "stream": true,
+          "volume": 1.0
+        }
+      ]
+    },
+    "kns.silah_bobby": {
+      "category": "player",
+      "sounds": [
+        {
+          "name": "sounds/konsey/kns_silah_bobby",
+          "stream": true,
+          "volume": 1.0
+        }
+      ]
+    },
+    "kns.asa_ayisigi": {
+      "category": "player",
+      "sounds": [
+        {
+          "name": "sounds/konsey/kns_asa_ayisigi",
+          "stream": true,
+          "volume": 1.0
+        }
+      ]
+    }
+  }
+}

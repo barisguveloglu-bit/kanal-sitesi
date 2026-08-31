@@ -3478,17 +3478,25 @@ def marvel_attachable(p):
 # aletleri 11-21, giyilebilirlerin korumasi 7 ve dayanikliligi
 # 200/600.
 #
-# DIKKAT -- DUSMUS PARCALARININ KORUMASI 1000. Kaynakta bu bir
-# CEZA durumu: void_multitool kurbana giydiriyor ve kurban zaten
-# kimildayamiyor, yani 1000 koruma "kurban donuk kalsin" demek.
-# Bizde esya menuden alinabildigi icin ONU GIYEN DOKUNULMAZ
-# olur. Sayi kaynaktakiyle BIREBIR birakildi ve durum burada
-# yaziyor -- kullanici karari.
+# ---- DUSMUS PARCALARI: 1000 -> 750  (v6.3) ----
+# Kaynakta koruma 1000 ve orada bu bir CEZA durumu:
+# void_multitool kurbana giydiriyor, kurban zaten kimildayamiyor,
+# yani 1000 "kurban donuk kalsin" demek. Bizde esya menuden
+# alinabildigi icin onu giyen PRATIKTE DOKUNULMAZ oluyordu.
+#
+# Kullanici: "koruma 1000 pratikte dokunulmaz oldugu icin bunu
+# birazcik asagi dogru cekelim, en iyisi 750 olsun."
+#
+# Tek degistirilen sayi bu. Digerlerinin hepsi kaynaktakiyle
+# birebir ve konsey.mjs onlari jar'la karsilastiriyor -- bu
+# satir testte AYRICA muaf tutuluyor ve gerekcesi yaziyor.
 KONSEY_ONEK = "kns_"
 KONSEY_GEO_KAYNAK = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                  "kaynak_geo", "konsey")
 KONSEY_DOKU_KAYNAK = os.path.join(DOKU_KAYNAK, "konsey")
 KONSEY_IKON_KAYNAK = os.path.join(DOKU_KAYNAK, "konsey_ikon")
+KONSEY_SES_KAYNAK = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                 "kaynak_ses", "konsey")
 
 # (anahtar, TR ad, tur, yuva, koruma, dayaniklilik, hasar)
 #   tur: kostum · deri · maske · kolluk · asa · alet · zirh
@@ -3544,10 +3552,10 @@ KONSEY = [
     ("guczirhi_bot",      "Güç Zırhı Botu",                "zirh",     "feet", 7,  200,  0),
     ("silah_biyo",        "Biyo Silah",                    "silah",    "", 0,    0,  0),
     ("silah_bobby",       "Bobby Silahı",                  "silah",    "", 0,    0,  0),
-    ("dusmus_1",          "Düşmüş · 1. Aşama",             "dusmus",   "chest", 1000, 9999,  0),
-    ("dusmus_2",          "Düşmüş · 2. Aşama",             "dusmus",   "chest", 1000, 9999,  0),
-    ("dusmus_3",          "Düşmüş · 3. Aşama",             "dusmus",   "chest", 1000, 9999,  0),
-    ("dusmus_4",          "Düşmüş · 4. Aşama",             "dusmus",   "chest", 1000, 9999,  0),
+    ("dusmus_1",          "Düşmüş · 1. Aşama",             "dusmus",   "chest", 750, 9999,  0),
+    ("dusmus_2",          "Düşmüş · 2. Aşama",             "dusmus",   "chest", 750, 9999,  0),
+    ("dusmus_3",          "Düşmüş · 3. Aşama",             "dusmus",   "chest", 750, 9999,  0),
+    ("dusmus_4",          "Düşmüş · 4. Aşama",             "dusmus",   "chest", 750, 9999,  0),
 ]
 
 
@@ -6010,6 +6018,35 @@ def main():
         for liste in (en_us, tr_tr):
             liste.append("item.pa:%s.name=%s" % (_kad, _kt[1]))
             liste.append("item.pa:%s=%s" % (_kad, _kt[1]))
+
+    # ---- KONSEY SESLERI (v6.3) ----
+    # Kaynak paketin kendi `.ogg` dosyalari. Uc tanesinden
+    # ikisi silahlarin atis sesi, biri Ay Isigi Asasi'nin
+    # sarkisi.
+    #
+    # DIKKAT: kaynagin `sound_definitions.json` dosyasi BOS --
+    # yani mod bu sesleri hic CALMIYOR, dosyalar oylece
+    # duruyordu. Tanimlari biz yaziyoruz.
+    _sesler = {}
+    for _sk, _sad in (("kns_silah_biyo", "kns.silah_biyo"),
+                      ("kns_silah_bobby", "kns.silah_bobby"),
+                      ("kns_asa_ayisigi", "kns.asa_ayisigi")):
+        _sy = os.path.join(KONSEY_SES_KAYNAK, _sk + ".ogg")
+        if not os.path.exists(_sy):
+            print("UYARI: %s sesi yok (%s)" % (_sk, _sy))
+            continue
+        _sh = os.path.join(RP, "sounds/konsey/%s.ogg" % _sk)
+        os.makedirs(os.path.dirname(_sh), exist_ok=True)
+        shutil.copyfile(_sy, _sh)
+        _sesler[_sad] = {
+            "category": "player",
+            "sounds": [{"name": "sounds/konsey/" + _sk,
+                        "stream": True, "volume": 1.0}],
+        }
+    if _sesler:
+        yaz_json(os.path.join(RP, "sounds/sound_definitions.json"),
+                 {"format_version": "1.20.20",
+                  "sound_definitions": _sesler})
 
     # ---- MASKE + OYUNCU MODELI PAKETI (v4.90) ----
     # Asil donusum: oyuncunun KENDI modeli degisiyor.

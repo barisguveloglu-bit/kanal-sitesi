@@ -1,3 +1,70 @@
+# v6.3 — Düşmüş koruması 750, Biyo/Bobby silahı, Ay Işığı şarkısı
+
+Kullanıcı: *"koruma 1000 pratikte dokunulmaz olduğu için bunu birazcık aşağı
+doğru çekelim, en iyisi 750 olsun"* + *"bunu da hallet kankam, iznini
+veriyorum."*
+
+## 1. Düşmüş koruması 1000 → 750
+
+Tek bilerek değiştirilen sayı. Diğer 50 parçanın hepsi kaynakla birebir ve
+`konsey.mjs` onları jar'la karşılaştırıyor — bu satır testte **ayrıca muaf
+tutuluyor** ve gerekçesi orada yazıyor, ki "sapma yok" iddiası yalan olmasın.
+Muafiyet 750'yi bekliyor: 900 yazıp denedim, yakalandı.
+
+## 2. Silahlar gerçekten çalışıyor
+
+Kaynağı yeniden okuyunca **önceki söylediğim yanlıştı**: `bobbygunshot1` boş
+değil, **hiç yok**. Silahların işini yapan şey mermilerinin çarpma
+fonksiyonu:
+
+| kaynak fonksiyon | ne yapıyor |
+|---|---|
+| `biogunyap1` | kurbanı etiketle · hareket/kamera/eğilme kapat · kafaya `toxic_skin` · görünmezlik |
+| `bobbygundirt1` | aynısı, deri `dirt` |
+
+Yani ikisi de *"vurduğunu dondurup başka bir şeye çevir"* — `tas.js`'in işinin
+aynısı. Kurallar oradan devralındı:
+
+**Süre var ve iki çıkış yolu var.** Kaynağın `invisibility 99999 255` +
+`item_lock` kombinasyonu kurbanı **kalıcı** hapsediyor. Bizde 30 saniye, ya da
+Freedom Stone — taş ve mezarla aynı anahtar, *"kilit hep çift"*.
+
+**Eşya kaybı yok.** Kaynak kurbanın kafasındakini siliyor
+(`replaceitem ... slot.armor.head 1 air`). Bizde deri **yalnız kafa yuvası
+boşsa** takılıyor; doluysa görünüm atlanıyor, etki yine uygulanıyor ve vurana
+sebebi yazılıyor. Serbest kalınca **yalnız bizim taktığımız** parça çıkarılıyor.
+
+## 3. Ay Işığı Asası'nın şarkısı
+
+Burada da düzeltmem var: `moonlightstaffsong1` **boş dosya değil, hiç yok.**
+Eşya `function moonlightstaffsong1` çağırıyor ve o çağrı boşluğa gidiyor —
+modun kendisinde şarkı hiç çalmıyor. Ses dosyası ise pakette duruyor.
+
+Üç `.ogg` de alındı ve `sound_definitions.json` **biz yazdık** (kaynağınki
+boştu, yani sesler hiç tanımlı değildi). Uydurma değil — kaynağın
+bağlayamadığı kendi dosyası.
+
+## Yol boyunca çıkan iki şey
+
+**1. Freedom Stone kaçışını yazıp bağlamamışım.** `konseySilahKir()` duruyordu
+ama `main.js`'ten hiç çağrılmıyordu — **efsane.js tuzağının aynısı, aynı
+oturumda ikinci kez.** `tarama.mjs` "kullanılmayan ithal" diye yakaladı.
+`itemUse`'a bağlandı; şoklayıp denedim, test yakaladı.
+
+**2. `canli.mjs` "eksik: sounds" dedi** ve bir an paketleme hatası sandım.
+Değilmiş — `paketle.sh` zaten klasörün tamamını alıyor, paketler bayattı.
+Yeniden paketleyince geçti. *Testin ne dediğini okumak, ne demek istediğini
+varsaymaktan iyi.*
+
+## Doğrulama
+
+- `sim/kos.sh` — **66 dosya, hepsi geçti**
+- `sim/anim_tara.py` — **HATA 0**
+- İki bilerek bozma: Freedom Stone kaçışı şoklandı · Düşmüş koruması 900
+  yapıldı — **ikisi de yakalandı**
+
+---
+
 # v6.2b — Efsane yapısı oyunda hiç çalışmıyormuş
 
 Kullanıcı: *"efsane yapısı çalışıyor mu diye bir kontrol eder misin acaba"*

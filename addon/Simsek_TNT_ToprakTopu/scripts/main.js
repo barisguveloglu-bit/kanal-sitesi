@@ -15,6 +15,7 @@ import {
   CAN_SAYACI_ACIK,
   BEN10_ACIK, BEN10,
   KONSEY_ACIK,
+  DISMONT_ESYA,
   TEKNOLOJI_ACIK, TEKNOLOJI_TAKIMLAR, TEKNOLOJI_ONEK,
   MAHOU_ACIK, MAHOU_BUYULER, MAHOU_ESYALAR, MAHOU_MANA_TAVAN,
   VILTRUMITE_ACIK, VILTRUMITE_YETENEKLER, VILT_MOD, VILT_INDIRIM,
@@ -111,6 +112,9 @@ import {
   ben10Tara, ben10Unut, elindekiYaratik, yaratikListesi
 } from "./yetenekler/ben10.js";
 import { konseyTara, konseyUnut } from "./yetenekler/konsey.js";
+import {
+  konseySilahTara, konseySilahUnut, konseySilahKir
+} from "./yetenekler/konsey_silah.js";
 
 /* Sohbet komutlari ("can 10", "lazer"...). Bu dosya main.js'i
    import etmiyor; komutlarin calistiracagi fonksiyonlar kanca
@@ -185,6 +189,8 @@ import "./yetenekler/bot_guc.js";
    eklendi (kanit: main.js tek basina yuklendiginde kayitli
    yetenek 158 taneydi ve efsane_yapisi ICLERINDE YOKTU).   */
 import "./yetenekler/efsane.js";
+/* v6.3: Konsey silahlari ve Ay Isigi Asasi'nin sarkisi. */
+import "./yetenekler/konsey_silah.js";
 /* v4.95: mod cekirdeklerinin ISINLARI, v5.2'de Marvel
    isinlari da ayni motora katildi. zirh.js ve marvel.js'ten
    "elindeki X" fonksiyonlarini kullaniyor, o yuzden onlardan
@@ -485,6 +491,15 @@ system.runInterval(() => {
         hataYaz("konseyTara", e);
       }
     }
+  }
+
+  /* v6.3: Konsey silahinin kurbanlari. Oyuncu listesine BAGLI
+     DEGIL -- kurban bir mob da olabilir ve suresi yine dolmali.
+     Defter bosken hic donmiyor.                              */
+  try {
+    konseySilahTara();
+  } catch (e) {
+    hataYaz("konseySilahTara", e);
   }
 
   /* ---- BU TARAMALAR OYUNCU LISTESINE BAGLI DEGIL (v4.86) ----
@@ -1575,6 +1590,20 @@ const girisKuruldu = olayaAbone("itemUse", (olay) => {
        ONCE bakiliyor: esyaninYetenekleri onlari tanimaz ve
        asagidaki "liste yoksa cik" satirinda duserlerdi.
        Kilic ile ayni kalip.                                */
+    /* ---- FREEDOM STONE ILE KURTULMA (v6.3) ----
+       Konsey silahi seni dondurdugunde tek cikis yolun sure
+       degil: Freedom Stone'u kullanmak da kirıyor. Tas ve
+       mezar sistemiyle AYNI anahtar esyasi, ayni kural --
+       "kilit hep cift".
+
+       Kol dallarindan ONCE bakiliyor: Freedom Stone bir kol
+       degil ve asagidaki "liste yoksa cik" satirinda duserdi.
+       Kurban degilsen dokunmuyor, esya normal isine devam
+       ediyor.                                               */
+    if (esya.typeId === DISMONT_ESYA && konseySilahKir(oyuncu)) {
+      return;
+    }
+
     if (silahiBul(esya.typeId)) {
       silahKullan(oyuncu, esya.typeId);
       return;
@@ -2078,6 +2107,7 @@ olayaAbone("playerLeave", (olay) => {
   teknolojiUnut(olay.playerId);
   ben10Unut(olay.playerId);
   konseyUnut(olay.playerId);
+  konseySilahUnut(olay.playerId);
   viltrumiteUnutOyuncu(olay.playerId);
 
   // Oyuncunun butun isleri durdurulmali, sadece birincisi degil

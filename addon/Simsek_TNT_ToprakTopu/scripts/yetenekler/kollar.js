@@ -2,7 +2,8 @@ import { esyaBagla } from "./kayit.js";
 import { bilgiYaz, hataYaz, actionbarYaz } from "../yardimcilar.js";
 import {
   ZIRH_MODLAR, ZIRH_CEKIRDEK_ONEK, MARVEL_GUCLER, MARVEL_ONEK,
-  BEN10, BEN10_SALDIRI, BEN10_ISIN
+  BEN10, BEN10_SALDIRI, BEN10_ISIN,
+  KONSEY_SILAH, KONSEY_ASA_SESI
 } from "../ayarlar.js";
 
 /* ============================================================
@@ -254,6 +255,29 @@ export const BEN10_YETENEKLERI = [];
       esyaBagla("pa:" + esya, y);
     }
   }
+}
+
+/* ---- KONSEY SILAHLARI VE AY ISIGI ASASI (v6.3) ----
+
+   Kaynakta iki silahin mermisi carpinca kurbani donduruyor
+   (`biogunyap1` / `bobbygundirt1`), Ay Isigi Asasi'nin ses
+   dosyasi ise pakette duruyor ama modun kendisi hic calmiyor.
+   Ucu de birer YETENEK oldu; burasi onlari kendi esyalarina
+   bagliyor.
+
+   Liste ELLE YAZILMIYOR: ayarlar.js'teki iki tablodan
+   tureniyor -- yeni bir silah eklenince burasi kendiliginden
+   dogru kalir.                                              */
+export const KONSEY_SILAH_YETENEKLERI = [];
+for (const [esya] of KONSEY_SILAH) {
+  const y = "kns_atis_" + esya.replace("kns_silah_", "");
+  KONSEY_SILAH_YETENEKLERI.push(["pa:" + esya, y]);
+  esyaBagla("pa:" + esya, y);
+}
+for (const [esya] of KONSEY_ASA_SESI) {
+  const y = "kns_sarki_" + esya.replace("kns_asa_", "");
+  KONSEY_SILAH_YETENEKLERI.push(["pa:" + esya, y]);
+  esyaBagla("pa:" + esya, y);
 }
 
 /* Kisa addan tam kimlige. scriptevent koprusu bunu kullaniyor:

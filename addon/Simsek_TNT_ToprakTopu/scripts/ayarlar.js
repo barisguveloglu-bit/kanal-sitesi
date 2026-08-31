@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v6.2";
+export const SURUM = "v6.3";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -4554,6 +4554,76 @@ export const KONSEY_GORUNMEZ = new Map([
   ["kns_maske_redmau5",   "Chest"],
   ["kns_maske_kanli",     "Chest"]
 ]);
+
+/* ============================================================
+   KONSEY SILAHLARI VE ASA SESI                          v6.3
+
+   Kullanici: "Biyo Silah'in 'vurdugunu zehirli yap'i bizde
+   zaten var... Ay Isigi'nin sesi de pakette duruyor. Bunu da
+   hallet kankam, iznini veriyorum."
+
+   ---- KAYNAKTA GERCEKTEN NE VAR ----
+   Iki silahin da MERMISI carpinca bir fonksiyon cagiriyor
+   (entities/klezy_bio_gun_bullet.json -> `biogunyap1`):
+
+     biogunyap1     tag toxic1 · hareket/kamera/egilme KAPALI
+                    · kafaya klezy:toxic_skin · gorunmezlik
+     bobbygundirt1  ayni sey, deri `dirt1`
+
+   Yani ikisi de "vurdugunu DONDURUP baska bir seye cevir".
+   Bu tam olarak tas.js'in isi -- oradaki kurallar burada da
+   gecerli.
+
+   `bobbygunshot1` ve `moonlightstaffsong1` fonksiyonlari
+   kaynakta BOS dosyalar; ses dosyasi pakette duruyor ama
+   modun kendisi HIC CALMIYOR. Ay Isigi'nin sesini biz
+   bagliyoruz -- uydurma degil, kaynagin BAGLAMADIGI kendi
+   dosyasi; kullanici acikca istedi.
+
+   ---- BIZDE UC SEY FARKLI, ucu de tas.js'ten devralindi ----
+   1. SURE VAR ve IKI cikis yolu var: sure doluyor ya da
+      Freedom Stone ile kiriliyor. Kaynagin `invisibility
+      99999 255` + `item_lock` kombinasyonu kurbani KALICI
+      olarak hapsediyor.
+   2. ESYA KAYBI YOK. Kaynak kurbanin kafasindakini SILIYOR
+      (`replaceitem ... slot.armor.head 1 air`). Bizde deri
+      YALNIZ kafa yuvasi BOSSA takiliyor; doluysa gorunum
+      atlaniyor, etki yine uygulaniyor. Bu depoda esya
+      kaybettiren hicbir sey yok.
+   3. GORUNMEZLIK 255 DEGIL. Kaynak kurbani tamamen siliyor
+      ve derinin kendisi de gorunmuyordu; bizde deri
+      GORUNSUN diye konsey.js'in normal gorunmezligi
+      yetiyor.
+   ============================================================ */
+export const KONSEY_SILAH_ACIK   = true;
+export const KONSEY_SILAH_MENZIL = 32;   // nisan menzili (blok)
+export const KONSEY_SILAH_SURE   = 600;  // 30 sn -- TAS_SURE ile ayni
+export const KONSEY_SILAH_BEKLEME = 100; // 5 sn  -- TAS_BEKLEME ile ayni
+export const KONSEY_SILAH_TAVAN  = 8;    // ayni anda kac kurban
+
+/* esya -> ne yaptigi. `deri` kurbanin kafasina takilan parca,
+   `etki` ek efekt (Biyo Silah zehirliyor -- adi bunu vaat
+   ediyor ve kaynakta deri zaten `toxic`).                    */
+export const KONSEY_SILAH = new Map([
+  ["kns_silah_biyo", {
+    ad: "Biyo Silah", kaynak: "biogunyap1",
+    deri: "pa:kns_deri_zehir", ses: "kns.silah_biyo",
+    etki: [["poison", KONSEY_SILAH_SURE, 1]]
+  }],
+  ["kns_silah_bobby", {
+    ad: "Bobby Silahı", kaynak: "bobbygundirt1",
+    deri: "pa:kns_deri_toprak", ses: "kns.silah_bobby",
+    etki: []
+  }]
+]);
+
+/* Ay Isigi Asasi: kaynakta ses DOSYASI var, calan kod yok.
+   Menzili yok -- calan sey bir sarki, silah degil.           */
+export const KONSEY_ASA_SESI = new Map([
+  ["kns_asa_ayisigi", { ad: "Ay Işığı Asası", ses: "kns.asa_ayisigi" }]
+]);
+/* Sarki uzun; ust uste binmesin diye bekleme.                */
+export const KONSEY_SES_BEKLEME = 400;   // 20 sn
 
 export const BOT_KIMLIKLER = new Set([BOT_KIMLIK, SEY_KIMLIK, SEY_KILIK_KIMLIK]);
 for (const t of ILKEL_BESLI.values()) {
