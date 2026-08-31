@@ -14,7 +14,9 @@ import {
   EFSANE_DURAK_SAYISI,
   EFSANE_ADIM_X, EFSANE_ADIM_Z,
   EFSANE_IZ_ACIK, EFSANE_IZ_ADET, EFSANE_IZ_EN, EFSANE_IZ_BOY,
-  EFSANE_IZ_DERIN, EFSANE_IZ_UZAK, EFSANE_KAYIT_ANAHTAR
+  EFSANE_IZ_DERIN, EFSANE_IZ_UZAK, EFSANE_KAYIT_ANAHTAR,
+  EFSANE_TABELA_AYAK, EFSANE_TABELA_UZAK, EFSANE_TABELA_CERCEVE,
+  EFSANE_TABELA_DIREK, EFSANE_TABELA_MEYDAN
 } from "../ayarlar.js";
 
 /* ============================================================
@@ -118,29 +120,23 @@ function duragiPlanla(merkez, taban, sonrakiNokta, sonMu) {
     });
   }
 
-  /* --- SGA yazisi: yapinin ONUNDE (+z), ortalanmis ---
-     Zemin once doseniyor ki harfler cimenin ustunde degil
-     bir meydanda dursun.                                    */
-  const tarla = sgaBlok(EFSANE_YAZI, EFSANE_SATIR_HARF);
-  const sgaZ = merkez.z + yari + 3;
-  const sgaX = merkez.x - Math.floor(tarla.en / 2);
-  for (let dy = -1; dy <= tarla.boy; dy++) {
-    for (let dx = -1; dx <= tarla.en; dx++) {
-      noktalar.push({
-        x: sgaX + dx, y: merkez.y - 1, z: sgaZ + dy,
-        blok: EFSANE_ZEMIN
-      });
-    }
-  }
-  for (const n of tarla.noktalar) {
-    noktalar.push({
-      x: sgaX + n.x, y: merkez.y - 1, z: sgaZ + n.y,
-      blok: EFSANE_SGA_BLOK
-    });
-  }
+  /* --- YAZIT: DIKILI TABELA (v6.6) ---
+     Kullanici: "o kadar yaziyi neden yere yazdin, bloklarla
+     tabela yapsaydin ya."
 
-  /* --- Baconian bandi: SGA'nin arkasinda, tek sira ---
-     Son durakta koordinat yok; onun yerine bitis sozu.     */
+     Yazit 116x41 blok. Yere serilince yerden bakan hicbir sey
+     goremiyordu -- ancak ucarak okunuyordu. Ayni harf tarlasi
+     artik DIKEY duruyor: XZ duzleminden XY duzlemine gecti.
+
+     Panelin ic duzeni (asagidan yukari):
+       0            Bacon bandi
+       1            bosluk
+       2..2+boy-1   SGA satirlari   (satir 0 EN USTTE)
+     Cevrede 1 blok cerceve, altinda ayaklar, onunde meydan.  */
+  const tarla = sgaBlok(EFSANE_YAZI, EFSANE_SATIR_HARF);
+
+  /* Bandin yuku once hesaplaniyor: panel genisligi hem
+     yaziya hem banda yetmeli.                               */
   /* Son durakta koordinat degil TOHUM: cozen kisi elinde bir
      seed'le kaliyor ve aratinca Giant Alex efsanesi cikiyor.
      Bkz. ayarlar.js EFSANE_TOHUM.                            */
@@ -148,19 +144,105 @@ function duragiPlanla(merkez, taban, sonrakiNokta, sonMu) {
     ? rakamHarfle(EFSANE_TOHUM)
     : koordinatiHarfle(sonrakiNokta.x, sonrakiNokta.z);
   const kod = baconKodla(yuk);
-  const bandZ = sgaZ + tarla.boy + 2;
-  const bandX = merkez.x - Math.floor(kod.length / 2);
-  for (let i = -1; i <= kod.length; i++) {
+
+  const icEn  = Math.max(tarla.en, kod.length) + 2;   // yanlarda birer bosluk
+  const icBoy = tarla.boy + 2;                        // bacon + bosluk
+  const icX0  = merkez.x - Math.floor(icEn / 2);
+  /* Ayak yuksekligi PIRAMIDE gore: ayarki deger yalnizca bir
+     ALT SINIR. Cizdirince goruldu ki panel alcak kalinca
+     piramit (tepesi merkez.y + yari) Bacon bandinin tam
+     onune geliyor ve bandin orta ~11 blogunu KAPATIYOR --
+     yani sifre cozulemez hale geliyordu. Panel piramidin
+     tepesini iki blok asiyor.
+
+     Ayari degil piramidi olcmenin sebebi: EFSANE_TABAN
+     buyutulurse bu hata sessizce geri gelirdi.             */
+  const ayak  = Math.max(EFSANE_TABELA_AYAK, yari + 2);
+  const icY0  = merkez.y + ayak;                     // en alt ic sira
+  /* Tabela piramidin KUZEYINDE (-z). Iki sebep, ikisi de
+     olculdu:
+
+     1) OKUNURLUK. Bedrock'ta kuzey -z'dir ve KUZEYE BAKAN
+        birinin sagi dogudur (+x). Yani harfler soldan saga
+        ancak kuzeye bakan bir okuyucuda dogru dizilir.
+        Tabelayi guneye koysaydik okuyan kisi guneye bakar
+        ve butun yazi AYNALANIRDI -- sifre okunmaz olurdu.
+     2) KOMPOZISYON. Ilk halinde tabela piramidin onune
+        geliyordu ve 120x50'lik levha 11 bloklu piramidi
+        TAMAMEN kapatiyordu (cizdirilince goruldu). Kuzeye
+        alinca piramit onde, tabela arkasinda bir fon
+        oluyor.                                              */
+  const panelZ = merkez.z - yari - EFSANE_TABELA_UZAK;
+
+  /* 1) Panel arkaligi: once tamami doseniyor, harfler
+        uzerine yaziliyor (sonraki nokta oncekini eziyor). */
+  for (let dy = 0; dy < icBoy; dy++) {
+    for (let dx = 0; dx < icEn; dx++) {
+      noktalar.push({
+        x: icX0 + dx, y: icY0 + dy, z: panelZ, blok: EFSANE_ZEMIN
+      });
+    }
+  }
+
+  /* 2) Cerceve: panelin dort bir yani. */
+  for (let dx = -1; dx <= icEn; dx++) {
+    noktalar.push({ x: icX0 + dx, y: icY0 - 1, z: panelZ,
+                    blok: EFSANE_TABELA_CERCEVE });
+    noktalar.push({ x: icX0 + dx, y: icY0 + icBoy, z: panelZ,
+                    blok: EFSANE_TABELA_CERCEVE });
+  }
+  for (let dy = -1; dy <= icBoy; dy++) {
+    noktalar.push({ x: icX0 - 1, y: icY0 + dy, z: panelZ,
+                    blok: EFSANE_TABELA_CERCEVE });
+    noktalar.push({ x: icX0 + icEn, y: icY0 + dy, z: panelZ,
+                    blok: EFSANE_TABELA_CERCEVE });
+  }
+
+  /* 3) Ayaklar: uc direk, panelin altindan yere. Tabela
+        cimenin ustunde asili durmasin.                     */
+  /* Dort direk, esit araliklarla. Tam ORTAYA bir direk
+     konmuyor: orasi piramidin arkasina denk geliyor ve
+     gorunmuyor -- gorunmeyen bir direk sadece blok yer.   */
+  for (const ax of [icX0, icX0 + Math.floor(icEn / 3),
+                    icX0 + Math.floor(icEn * 2 / 3), icX0 + icEn - 1]) {
+    for (let ay = merkez.y - 1; ay < icY0 - 1; ay++) {
+      noktalar.push({ x: ax, y: ay, z: panelZ,
+                      blok: EFSANE_TABELA_DIREK });
+    }
+  }
+
+  /* 4) Meydan: tabelanin onunde birkac sira zemin. Yere
+        serilen sey artik YAZI degil, sadece zemin.         */
+  for (let dz = 1; dz <= EFSANE_TABELA_MEYDAN; dz++) {
+    for (let dx = -1; dx <= icEn; dx++) {
+      /* +z yonu: tabela ile piramidin ARASI, yani okuyucunun
+         durdugu taraf.                                      */
+      noktalar.push({ x: icX0 + dx, y: merkez.y - 1, z: panelZ + dz,
+                      blok: EFSANE_ZEMIN });
+    }
+  }
+
+  /* 5) SGA harfleri. tarla.noktalar'da y ASAGI dogru artiyor
+        (satir 0 = ilk satir); panelde satir 0 EN USTTE
+        olmali, o yuzden y TERSLENIYOR. Terslemeyi unutmak
+        yaziyi bas asagi cevirir ve sifre okunmaz olur.      */
+  const yaziTaban = icY0 + 2;
+  const yaziX0 = merkez.x - Math.floor(tarla.en / 2);
+  for (const n of tarla.noktalar) {
     noktalar.push({
-      x: bandX + i, y: merkez.y - 1, z: bandZ - 1, blok: EFSANE_ZEMIN
-    });
-    noktalar.push({
-      x: bandX + i, y: merkez.y - 1, z: bandZ + 1, blok: EFSANE_ZEMIN
+      x: yaziX0 + n.x,
+      y: yaziTaban + (tarla.boy - 1 - n.y),
+      z: panelZ,
+      blok: EFSANE_SGA_BLOK
     });
   }
+
+  /* 6) Baconian bandi: panelin en alt ic sirasi. Soldan saga
+        okunuyor -- cozucu icin duzlem degismedi, x hala x.  */
+  const bandX = merkez.x - Math.floor(kod.length / 2);
   for (let i = 0; i < kod.length; i++) {
     noktalar.push({
-      x: bandX + i, y: merkez.y - 1, z: bandZ,
+      x: bandX + i, y: icY0, z: panelZ,
       blok: kod[i] === "A" ? EFSANE_BACON_A : EFSANE_BACON_B
     });
   }

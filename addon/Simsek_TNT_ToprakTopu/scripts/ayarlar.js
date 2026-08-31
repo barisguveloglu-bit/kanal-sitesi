@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v6.5";
+export const SURUM = "v6.6";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -5201,6 +5201,72 @@ export const EFSANE_IZ_DERIN  = 2;   // derinlik
 export const EFSANE_IZ_UZAK   = 22;  // merkezden kac blok oteye
 
 export const EFSANE_KAYIT_ANAHTAR = "simsek:efsane";
+
+/* ---- YAZIT ARTIK YERDE DEGIL: DIKILI TABELA ----      v6.6
+   Kullanici: "o kadar yaziyi neden yere yazdin, yani
+   bloklarla tabela yapsaydin ya."
+
+   Haklıydı. Yazit alani OLCULDU: 116 blok genisliginde,
+   41 blok yuksekliginde. Yere serilince 4756 bloklu bir
+   HALI oluyor ve yerden bakan hicbir sey goremiyor -- ancak
+   ucarak okunuyordu. Ayni harfler DIKEY durunca yapinin
+   onunde 116x41'lik bir levha oluyor ve yurudukce
+   okunabiliyor.
+
+   Ayni harfler, ayni sifre, ayni blok sayisi -- yalniz
+   duzlem degisti (XZ -> XY).                                */
+export const EFSANE_TABELA_AYAK = 4;    // panelin yerden yuksekligi
+export const EFSANE_TABELA_UZAK = 4;    // piramit kenarindan kac blok onde
+export const EFSANE_TABELA_CERCEVE = "minecraft:polished_blackstone_bricks";
+export const EFSANE_TABELA_DIREK   = "minecraft:polished_blackstone_bricks";
+/* Tabelanin dibindeki meydan: tabela cimenin ustunde asili
+   durmasin. Yazi degil, sadece zemin -- yere serilen sey
+   yaziysa okunmuyor, meydan ise yapiyi tamamliyor.          */
+export const EFSANE_TABELA_MEYDAN = 3;  // tabelanin onunde kac sira zemin
+
+/* ---- UC DURAGI DA GORENE MUZIK ----                    v6.6
+   Kullanici: "bir tane muzik dosyasi yukledim, bunun bir
+   dakikalik kismini alalim; benim efsane yapisinin ucunu de
+   gordukten sonra bu bir dakikalik kisim calmaya baslasin."
+
+   Kaynak 7:34'luk parca. Alinan kisim 4:10 - 5:10: parcanin
+   ENERJI PROFILI olculdu, 4:10'da bir sessizlesme (breakdown)
+   var ve 4:14'ten itibaren parcanin en yuksek enerjili
+   dakikasi geliyor. Yani kesit sessizlikten baslayip patliyor
+   -- "ucunu de buldun" anina uyan tek yer orasi. Basta 0.4 sn
+   acilma, sonda 2.5 sn kapanma var ki kesim duyulmasin.     */
+export const EFSANE_MUZIK_ACIK = true;
+export const EFSANE_MUZIK_SES = "simsek.efsane_muzik";
+export const EFSANE_MUZIK_TARAMA = 20;   // her saniyede bir bak
+/* Bir duragi "gordum" saymak icin kac blok yakina gelmeli.
+   Yapi 116 blok genisliginde; 64 blok icinde olan onun
+   onunde duruyordur.                                        */
+export const EFSANE_MUZIK_MENZIL = 64;
+export const EFSANE_MUZIK_BASLIK = "§b§lEFSANE TAMAMLANDI";
+export const EFSANE_MUZIK_ALT =
+  "§fUc duragi da buldun.";
+export const EFSANE_MUZIK_KAYIT_ANAHTAR = "simsek:efsane_muzik";
+
+/* ---- OZEL SIS: SKININ RENGI ----                       v6.6
+   Kullanici: "/fog @a push minecraft:fog_hell 12 havayi
+   kirmiziya cevirmeye yariyormus, biz bunu benim skinimin
+   rengine cevirelim -- mavi mi bilmiyorum ama."
+
+   OLCULDU, tahmin edilmedi. Simsek_Skin/uzak_akraba.png
+   64x64, 1632 dolu piksel:
+     %95,6  siyaha yakin  (#0A0A0D, #060608, #16181B)
+     %1,8   #145E53   koyu turkuaz
+     %1,6   #20C5B5   ana vurgu  <-- skinin RENGI bu
+     %0,9   #4AEDD9   acik turkuaz
+     %0,2   #8CD2FF   acik mavi
+   Yani mavi degil TURKUAZ (H=174). Siyah sisi kimse goremez;
+   sisin rengi vurgu tonu oldu.
+
+   Bu sabitler kol_uret.py'nin yazdigi fogs/*.json ile AYNI
+   kalmali -- tek kaynak orasi, burasi komutu yazdirmak icin. */
+export const SIS_KIMLIK = "pa:sis_simsek";
+export const SIS_KIMLIK_HAFIF = "pa:sis_simsek_hafif";
+export const SIS_ETIKET = "12";        // /fog ... push <kimlik> <etiket>
 
 /* ================================================================
    TEKNOLOJI ZIRHLARI                                       v5.1

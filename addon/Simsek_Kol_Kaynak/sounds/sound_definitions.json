@@ -30,6 +30,16 @@
           "volume": 1.0
         }
       ]
+    },
+    "simsek.efsane_muzik": {
+      "category": "music",
+      "sounds": [
+        {
+          "name": "sounds/efsane/efsane_muzik",
+          "stream": true,
+          "volume": 1.0
+        }
+      ]
     }
   }
 }

@@ -191,6 +191,10 @@ import "./yetenekler/bot_guc.js";
    eklendi (kanit: main.js tek basina yuklendiginde kayitli
    yetenek 158 taneydi ve efsane_yapisi ICLERINDE YOKTU).   */
 import "./yetenekler/efsane.js";
+/* v6.6: uc duragi da gorene bir dakikalik muzik. */
+import { efsaneMuzikTara } from "./yetenekler/efsane_muzik.js";
+/* v6.6: skinin renginde ozel sis. */
+import { sisAc, sisKapat } from "./yetenekler/sis.js";
 /* v6.3: Konsey silahlari ve Ay Isigi Asasi'nin sarkisi. */
 import "./yetenekler/konsey_silah.js";
 /* v4.95: mod cekirdeklerinin ISINLARI, v5.2'de Marvel
@@ -501,6 +505,13 @@ system.runInterval(() => {
       } catch (e) {
         hataYaz("konseyTara", e);
       }
+    }
+    /* v6.6: Efsane muzigi. Zincir kurulmamissa tek satirda
+       cikiyor -- ayni `oyuncular` listesi.                  */
+    try {
+      efsaneMuzikTara(oyuncular);
+    } catch (e) {
+      hataYaz("efsaneMuzikTara", e);
     }
   }
 
@@ -1383,6 +1394,24 @@ function menuEkleri(oyuncu) {
     {
       ad: "§b◆ Efsane yapisi kur",
       calis() { yetenekTetikle(oyuncu, "efsane_yapisi"); }
+    },
+    /* ---- SIS (v6.6) ----
+       Kullanici fog_hell komutunu bulmustu; rengi skininki
+       oldu. Menuye alinmasinin sebebi tablette komut
+       yazmanin eziyet olmasi -- ayrica ayarlar boylece
+       gercekten OKUNUYOR (oksuz ayar denetimi bunu
+       yakalamisti).                                        */
+    {
+      ad: "§b☁ Sis: §fac",
+      calis() { sisAc(oyuncu, false); }
+    },
+    {
+      ad: "§b☁ Sis: §7hafif",
+      calis() { sisAc(oyuncu, true); }
+    },
+    {
+      ad: "§8☁ Sis: kapat",
+      calis() { sisKapat(oyuncu); }
     },
     {
       ad: "Butun kollari al",

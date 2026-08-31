@@ -1,3 +1,151 @@
+# v6.6 — Tabela, sis ve müzik
+
+Üç iş: efsane yazısı yerden **dikili tabelaya**, `/fog` komutu **skinin
+rengine**, ve üç durağı da görene **bir dakikalık müzik**.
+
+---
+
+## 1. "O kadar yazıyı neden yere yazdın?"
+
+Kullanıcı haklıydı. Yazıt alanı **ölçüldü: 116 blok geniş, 41 blok yüksek.**
+Yere serilince 4756 bloklu bir *halı* oluyordu ve yerden bakan hiçbir şey
+göremiyordu — ancak uçarak okunuyordu.
+
+Aynı harfler artık **dikey**: XZ düzleminden XY düzlemine geçti. Aynı şifre,
+aynı blok sayısı, sadece düzlem değişti.
+
+| | v6.5 | v6.6 |
+|---|---|---|
+| yazıt | yerde, 116×41 halı | **dikili panel**, 120×43 |
+| Bacon bandı | yerde ayrı şerit | panelin **en alt iç sırası** |
+| çerçeve | yok | 1 blok cilalı karataş tuğla |
+| ayak | yok | **4 direk** |
+| okunma | ancak uçarak | yürürken |
+
+### Çizdirmeden görülmeyen iki hata
+
+**Piramidi tamamen kapatıyordu.** İlk hâlinde tabela piramidin *önündeydi*
+(+z) ve 120×50'lik levha 11 bloklu piramidi bütünüyle gizliyordu. Çizdirince
+görüldü. Tabela **kuzeye** (-z) alındı: piramit önde, tabela arkasında bir fon.
+
+**Yazı aynalanacaktı.** Bedrock'ta kuzey -z'dir ve **kuzeye bakanın sağı
+doğudur** (+x). Yani harfler soldan sağa ancak kuzeye bakan bir okuyucuda
+doğru dizilir. Tabela güneye konsaydı bütün yazı ters okunurdu ve şifre
+çözülemezdi.
+
+**Bacon bandını piramit kapatıyordu.** Panel alçak kalınca piramidin tepesi
+(y+5) bandın (y+4) tam önüne geliyor ve **bandın orta 11 bloğunu**
+gizliyordu — yani şifre çözülemez hale geliyordu. Ayak yüksekliği artık
+ayardan değil **piramitten** hesaplanıyor (`max(ayar, yarı + 2)`); böylece
+`EFSANE_TABAN` büyütülürse hata sessizce geri gelmiyor.
+
+### Test tabelayı geri okuyor
+
+"Blok sayısı doğru" testi bu üç hatanın **üçünü de** geçerdi. Onun yerine
+altın bloklar SGA tablosuyla harfe geri çevriliyor:
+
+```
+TABELADAN GERİ OKUNAN: ["MOJANG BU","TOHUMU SILDI","KAYIT YOK","ANAHTAR BACON"]
+```
+
+Baş aşağı çevirince `["???V??R ?????", ...]`, aynalayınca `["    ?? ??????", ...]`
+çıkıyor — ikisi de testte düşüyor.
+
+---
+
+## 2. Sis: mavi değil **turkuaz**
+
+Kullanıcı: *"benim skinimin rengine çevirelim — mavi mi bilmiyorum ama."*
+
+**Ölçüldü, tahmin edilmedi.** `Simsek_Skin/uzak_akraba.png`, 64×64,
+1632 dolu piksel:
+
+| renk | piksel | oran | ton |
+|---|---|---|---|
+| #0A0A0D / #060608 / #16181B | 1558 | **%95,6** | siyaha yakın |
+| #145E53 | 30 | %1,8 | 171° koyu turkuaz |
+| **#20C5B5** | 26 | %1,6 | **174° ana vurgu** |
+| #4AEDD9 | 14 | %0,9 | 173° açık turkuaz |
+| #8CD2FF | 4 | %0,2 | 203° açık mavi |
+
+Yani **mavi değil turkuaz.** Skinin %95'i siyah ama siyah bir sisi kimse
+göremez, o yüzden sis vurgu tonu oldu.
+
+İki yoğunluk: `pa:sis_simsek` (fog_hell gibi boğucu, 2→30 blok) ve
+`pa:sis_simsek_hafif` (8→90 blok).
+
+### Testim önce yanlış ölçtü
+
+İlk hâli "en çok kullanılan doygun renk" diyordu ve **#145E53'ü** (30 piksel)
+seçip #20C5B5'i (26 piksel) eliyordu. İkisi de skinde var; ilki **gölge**
+tonu, ikincisi **taban** ton. Piksel sanatında gölge her zaman tabandan biraz
+daha çok kullanılır — yani o ölçü sistematik olarak gölgeyi seçer ve sis
+çamurlu çıkar. Test artık doğru soruyu soruyor: rengin skinde **gerçekten var
+olduğunu** ve vurgu **ailesinden** olduğunu ölçüyor.
+
+### Ayarlar yalan söylüyordu
+
+İlk hâlinde yalnızca `fogs/*.json` yazılıyordu ve komutu elle yazmak
+gerekiyordu. **Öksüz ayar denetimi yakaladı:** `SIS_KIMLIK`,
+`SIS_KIMLIK_HAFIF`, `SIS_ETIKET` tanımlıydı ama hiçbir yerde okunmuyordu.
+Üstelik tablette komut yazmak zaten eziyet. Sis artık kol menüsünde üç satır:
+**aç / hafif / kapat**.
+
+Komutları yine de yazmak istersen:
+
+```
+/fog @a push pa:sis_simsek "12"
+/fog @a push pa:sis_simsek_hafif "12"
+/fog @a remove "12"
+```
+
+---
+
+## 3. Üç durağı da görene müzik
+
+Kaynak 7:34'lük parça. **Kesit elle seçilmedi:** parça saniye saniye ölçüldü.
+
+```
+4:10  ▁▁▁      sessizleşme (breakdown)
+4:14  ████████ parçanın EN YÜKSEK enerjili dakikası başlıyor
+5:10  ────     kesim
+```
+
+Alınan kısım **4:10 – 5:10**: sessizlikten başlayıp patlıyor — "üçünü de
+buldun" anına uyan tek yer orası. Başta 0.4 sn açılma, sonda 2.5 sn kapanma
+var ki kesim duyulmasın. 60.000 sn, stereo 44.1 kHz, 1,1 MB Vorbis,
+`category: "music"` (oyunun kendi müziğini susturuyor).
+
+Üç durak bir **bit maskesinde** tutuluyor; hepsi dolunca ekrana
+`§b§lEFSANE TAMAMLANDI` düşüyor ve müzik çalıyor. Sonra maske yerine **-1**
+yazılıyor: maskeyi `TAMAM` olarak bırakmak, dünyaya **her girişte** müziğin
+baştan çalması demekti.
+
+Tarama tek blok bile okumuyor — durak koordinatları zincirden zaten
+hesaplanabiliyor. Düşmüş'te `getBlock` üç testi birden düşürmüştü.
+
+---
+
+## Kasten kırıp doğrulandı
+
+| kırılan | düşen test |
+|---|---|
+| harf y'sini terslemeyi kaldır | "TABELA GERİ OKUNUYOR" → `???V??R ?????` |
+| harf x'ini aynala | "TABELA GERİ OKUNUYOR" → `    ?? ??????` |
+| ayağı piramide göre hesaplama | "Bacon bandını piramit KAPATMIYOR" → 3 blok |
+| tabelayı güneye koy | "tabela piramidin KUZEYİNDE" → z = 9 |
+| "çaldı" işaretini (-1) kaldır | "durum artık 'çaldı'" + 1 tane |
+| `maske === TAMAM` → `maske !== 0` | "iki yetmiyor" + 5 tane |
+
+## Bekleyen
+
+**Kanlı Kol.** Depoda `kns_kolluk_bobby_kanli`, `kns_kolluk_boralo_kanli` ve
+`kns_kolluk_chris_kanli` **görünüm** olarak duruyor (v6.2'de BoraLo'dan
+geldi) — ama çalışan bir kol değil, sadece kolluk. Toprak Kol gibi yetenekli
+bir Kanlı Kol için bulduğun modu bekliyorum.
+
+---
+
 # v6.5 — Seçilme ve yemin
 
 Kullanıcı: *"4 aşamadayken uzun süre kalırsak o şekilde körlük gitsin, ekrana

@@ -3495,8 +3495,48 @@ KONSEY_GEO_KAYNAK = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                  "kaynak_geo", "konsey")
 KONSEY_DOKU_KAYNAK = os.path.join(DOKU_KAYNAK, "konsey")
 KONSEY_IKON_KAYNAK = os.path.join(DOKU_KAYNAK, "konsey_ikon")
-KONSEY_SES_KAYNAK = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                 "kaynak_ses", "konsey")
+SES_KAYNAK = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                          "kaynak_ses")
+KONSEY_SES_KAYNAK = os.path.join(SES_KAYNAK, "konsey")
+
+
+# Skinden OLCULEN vurgu rengi. Gerekcesi ve olcum dokumu
+# asagida, sis dosyalarinin yazildigi yerde.
+SIS_RENK      = "#20C5B5"   # ana vurgu (skinde %1,6)
+SIS_RENK_KOYU = "#145E53"   # koyu ton  (skinde %1,8) -- su altinda
+
+
+def sis_tanimi(kimlik, bas, bit):
+    """Bedrock sis tanimi.
+
+    Bedrock'ta bir sis girdisinde TEK renk var: yakin/uzak
+    gecisi yok, yalnizca fog_start ve fog_end. O yuzden
+    olculen uc tonu bir gecise yayamiyoruz; ana vurgu
+    seciliyor, su altinda koyu ton kullaniliyor (su zaten
+    karartiyor, acik turkuaz orada yikaniyor).
+
+    render_distance_type "fixed": blok cinsinden sabit
+    mesafe. "render" olsaydi sisin kalinligi oyuncunun
+    goruntuleme mesafesi ayarina gore degisirdi -- yani
+    tablette bambaska, bilgisayarda bambaska gorunurdu.
+    """
+    def _k(renk, b, e):
+        return {"fog_start": b, "fog_end": e, "fog_color": renk,
+                "render_distance_type": "fixed"}
+    return {
+        "format_version": "1.16.100",
+        "minecraft:fog_settings": {
+            "description": {"identifier": kimlik},
+            "distance": {
+                "air":            _k(SIS_RENK, bas, bit),
+                "weather":        _k(SIS_RENK, bas, bit * 0.8),
+                "water":          _k(SIS_RENK_KOYU, 0.5, bit * 0.25),
+                "lava":           _k("#FF3300", 0.0, 3.0),
+                "lava_resistance": _k("#FF9900", 0.0, 8.0),
+                "powder_snow":    _k(SIS_RENK, 0.0, 2.0),
+            },
+        },
+    }
 # Dusmus Blogu: virusun kaynagi. Kimlik ve doku adi tek yerde.
 DUSMUS_BLOK = "pa:kns_dusmus_blok"
 DUSMUS_BLOK_DOKU = "kns_dusmus_blok"
@@ -6132,10 +6172,56 @@ def main():
             "sounds": [{"name": "sounds/konsey/" + _sk,
                         "stream": True, "volume": 1.0}],
         }
+    # ---- EFSANE MUZIGI (v6.6) ----
+    # Kullanicinin yukledigi 7:34'luk parcanin 4:10-5:10 arasi.
+    # Kesit ELLE secilmedi: parca saniye saniye olculdu, 4:10'da
+    # bir sessizlesme ve hemen ardindan parcanin en yuksek
+    # enerjili dakikasi var. Basta 0.4 sn acilma, sonda 2.5 sn
+    # kapanma -- kesim duyulmasin diye.
+    #
+    # category "music": oyunun kendi muzigini susturuyor,
+    # yoksa iki parca ust uste calardi.
+    _my = os.path.join(SES_KAYNAK, "efsane_muzik.ogg")
+    if os.path.exists(_my):
+        _mh = os.path.join(RP, "sounds/efsane/efsane_muzik.ogg")
+        os.makedirs(os.path.dirname(_mh), exist_ok=True)
+        shutil.copyfile(_my, _mh)
+        _sesler["simsek.efsane_muzik"] = {
+            "category": "music",
+            "sounds": [{"name": "sounds/efsane/efsane_muzik",
+                        "stream": True, "volume": 1.0}],
+        }
+    else:
+        print("UYARI: efsane muzigi yok (%s)" % _my)
+
     if _sesler:
         yaz_json(os.path.join(RP, "sounds/sound_definitions.json"),
                  {"format_version": "1.20.20",
                   "sound_definitions": _sesler})
+
+    # ---- OZEL SIS: SKININ RENGI (v6.6) ----
+    # Kullanici: "/fog @a push minecraft:fog_hell 12 havayi
+    # kirmiziya cevirmeye yariyormus, biz bunu benim skinimin
+    # rengine cevirelim -- mavi mi bilmiyorum ama."
+    #
+    # RENK OLCULDU, tahmin edilmedi. Simsek_Skin/uzak_akraba.png
+    # 64x64, 1632 dolu piksel sayildi:
+    #   %95,6  siyaha yakin (#0A0A0D / #060608 / #16181B)
+    #   %1,8   #145E53   koyu turkuaz
+    #   %1,6   #20C5B5   ana vurgu  <-- skinin RENGI bu
+    #   %0,9   #4AEDD9   acik turkuaz
+    #   %0,2   #8CD2FF   acik mavi
+    # Yani mavi degil TURKUAZ (H=174). Siyah bir sisi kimse
+    # goremez; sisin rengi vurgu tonu oldu.
+    #
+    # Iki yogunluk yaziliyor: fog_hell kadar bogucu olan ve
+    # yalnizca havayi boyayan hafif olani. Tek bir yogunluk
+    # yazip "ya tutmazsa" demek yerine ikisi de duruyor.
+    for _sk, _sad, _bas, _bit in (
+            ("sis_simsek",       "Simsek Sisi",        2.0, 30.0),
+            ("sis_simsek_hafif", "Simsek Sisi (hafif)", 8.0, 90.0)):
+        yaz_json(os.path.join(RP, "fogs/%s.json" % _sk),
+                 sis_tanimi("pa:" + _sk, _bas, _bit))
 
     # ---- MASKE + OYUNCU MODELI PAKETI (v4.90) ----
     # Asil donusum: oyuncunun KENDI modeli degisiyor.
