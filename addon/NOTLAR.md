@@ -1,3 +1,99 @@
+# v7.4.2 — Çizici artık Blockbench `.bbmodel` de okuyor
+
+Kullanıcı Blockbench öğreniyor: *"dosyasını bulmak için araştırma yapman
+gerekiyor, sende yap lütfen… mantığını anladıktan sonra da çizici ile
+birleştir."*
+
+Paket **değişmedi** — yine alet tarafı. Yeni: `bbmodel.py`,
+[`REFERANS_BLOCKBENCH.md`](REFERANS_BLOCKBENCH.md), ve `ciz_kemik.yukle()`
+artık `.bbmodel` de yiyor.
+
+## Dosya nasıl bulundu
+
+Resmî wiki açıkça şunu diyor:
+
+> *"There is no complete specification of the JSON format at this point in
+> time… it is recommended to look at example .bbmodel files and to examine
+> the Blockbench source code."*
+
+O yüzden spec değil **kaynak** okundu (`JannisX11/blockbench`, master):
+`js/formats/bbmodel.js`, `js/formats/bedrock/bedrock.js`,
+`js/outliner/outliner.js`. Dosya yolunu bulmak iki adım sürdü —
+`js/io/formats/…` 404 verdi, formatlar `js/formats/` altında ve Bedrock
+kodeki kendi alt klasöründe (`js/formats/bedrock/bedrock.js`).
+
+## Çevrim: tek bir ayna
+
+`compileGroup` + `compileCube`'dan olduğu gibi:
+
+```
+bone.pivot[0]    *= -1
+bone.rotation[0] *= -1 ;  rotation[1] *= -1          (Z aynen)
+cube.origin[0]    = -(origin[0] + size[0])
+```
+
+Blockbuster'daki `24 − Y` çevrimi burada **yok** — o Java entity uzayına
+özeldi. Blockbench'in Bedrock kipi zaten Y-yukarı çalışıyor. Fark sadece X.
+
+Sonuç: **çevrim kendi tersi.** Kaynakta `parseCube` da `compileCube` ile
+aynı formülleri kullanıyor, ters çevrilmişini değil. O yüzden `cevir_pivot`
+ve `cevir_donus` birer kez yazıldı, iki yönde de çağrılıyor.
+
+## Denetim: 344 geometri, sıfır fark
+
+Depodaki **her** `.geo.json` `.bbmodel`'e çevrilip geri okundu:
+
+```
+TAM gidiş-dönüş: 344 | FARKLI: 0
+```
+
+Yolda iki gerçek şey yakalandı:
+
+**1. `uv_rotation` düşüyordu.** İlk yazımda yüz başına `uv`/`uv_size`
+taşınıyordu ama `uv_rotation` ve `material_instance` taşınmıyordu. Tarama
+13 modelde farkı gösterdi — kaynağın `uv_rotation: 180` dediği yüzler
+sessizce düz dönüyordu. Test olmasa hiçbir şey bağırmazdı, dokular sadece
+yanlış dururdu.
+
+**2. Kusur testin kendisindeydi.** Kalan 9 fark kayan nokta gürültüsüydü
+(`3.0000000000000018` vs `3.0`). Karşılaştırma 4 haneye yuvarlıyordu ve
+`0.00625` tam yuvarlama sınırına düştüğü için iki farklı sonuç veriyordu.
+Yuvarlama atıldı, tolerans kondu.
+
+## Gidiş-dönüş tek başına YETMEZ
+
+Çevrim kendi tersi olduğu için X aynalamasını **iki yerden birden** silsem
+gidiş-dönüş yine tutardı — test yeşil yanar, bütün modeller aynalanmış
+olurdu. O yüzden kaynağın formülüne karşı tek bir sabit ölçüt eklendi:
+
+```
+bedrock.js / parseCube:  from[0] = -(from[0] + size[0])
+Bedrock küpü origin[-8,12,-2] size[4,12,4]  →  from[0] = -(-8+4) = 4
+```
+
+**Kasten bozuldu:** X aynalaması iki yönden de silindi.
+
+| denetim | sonuç |
+|---|---|
+| gidiş-dönüş | ✓ **hâlâ geçiyor** (simetrik hatayı göremez) |
+| mutlak ölçüt | ✗ `from [-8,12,-2]`, beklenen `[4,12,-2]` |
+
+Bir testin ne yakaladığından çok **ne yakalayamadığını** bilmek gerekiyor.
+
+## Sürüm tuzağı
+
+`format_version` 5.0 (Ekim 2025) grupları `outliner`'dan ayırdı. Ama
+`outliner.js:loadJSON` içinde hâlâ *"Legacy group support"* dalı duruyor:
+iç içe grup biçimi güncel Blockbench tarafından **hâlâ** okunuyor. Biz
+`"4.5"` + iç içe yazıyoruz — yeni Blockbench de açar, eski de. 5.0'ın yeni
+şeklini yazsaydık eski sürümlerde dosya hiç açılmazdı.
+
+## Doku dosyanın içinde
+
+`.bbmodel`'e doku `data:image/png;base64,…` olarak gömülüyor. Yani
+Blockbench'te dosyayı açınca model **dokulu** geliyor, ayrıca png aramak
+gerekmiyor. `ciz_kemik.yukle("x.bbmodel")` de tek argümanla çalışıyor.
+
 # v7.4.1 — Çizici artık Blockbuster'ı da okuyor
 
 Kullanıcı: *"hani bu modelleri çizen var ya, onunla bununla değiştir, bunun

@@ -31,7 +31,25 @@ def don(p, aci, pivot):
     c,s = math.cos(rz), math.sin(rz); x,y = x*c - y*s, x*s + y*c
     return (x+pivot[0], y+pivot[1], z+pivot[2])
 
-def yukle(geoYol, dokuYol, kimlik=None):
+def yukle(geoYol, dokuYol=None, kimlik=None):
+    """Bedrock .geo.json, eski 1.10.0 bicimi VE Blockbench
+    .bbmodel -- ucu de ayni cizicinin agzina giriyor.
+
+    .bbmodel'de doku dosyanin ICINDE (data: URI) durabiliyor;
+    o zaman `dokuYol` gerekmiyor. Kullanici Blockbench'te
+    ne cizdiyse, kaydettigi tek dosyayi buraya verip
+    goruntuleyebiliyor.                                     """
+    if geoYol.endswith(".bbmodel"):
+        import bbmodel
+        kemikler,TW,TH,gomulu=bbmodel.oku(geoYol)
+        if dokuYol:
+            tex=Image.open(dokuYol).convert("RGBA")
+        elif gomulu:
+            import io as _io
+            tex=Image.open(_io.BytesIO(gomulu)).convert("RGBA")
+        else:
+            raise ValueError("%s icinde doku yok, dokuYol ver" % geoYol)
+        return kemikler,TW,TH,tex
     d=json.load(open(geoYol))
     if "minecraft:geometry" in d:
         g=[x for x in d["minecraft:geometry"] if kimlik is None or
