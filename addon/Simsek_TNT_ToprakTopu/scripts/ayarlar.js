@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.5";
+export const SURUM = "v7.6";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -587,6 +587,11 @@ export const IKSIR_TAZELEME = 40;   // kac tick'te bir efektler yenilensin
        butcesi. Vurus tickinde 56'nin 17'si yoklamaya gidiyor
        (once 14'tu). Aradaki dokuz tickte butce tam, o yuzden
        delme hizinda hissedilir fark yok.                     */
+/* v7.6: Nitroksin'in yeni yetenegi -- dusme hasari bagisikligi.
+   Kapatilirsa iksir eski haline doner, baska hicbir sey
+   etkilenmez. */
+export const NITROKSIN_DUSME_BAGISIK = true;
+
 export const LAZER_MENZIL = 21;
 
 /* ---------------- Lazerle duvar delme ----------------
@@ -863,9 +868,33 @@ export const KADEMELER = [
     lazer: {},
     /* Referans: speed 0, jump_boost 0, strength 0, resistance 0,
        instant_health 0.  Bizde hiz/ziplama UZMANI.             */
+    /* ---- v7.6 GUCLENDIRME ----
+       Kullanici: "nitroksin... onun da gucsuz oldugunu
+       dusunuyorum artik."
+
+       v4.78'in dersi burada gecerli: BUTUN efektlere +1
+       vermek denendi ve kullanici BEGENMEDI -- herkes ayni
+       oranda buyuyunce iksirler arasindaki fark aynen kaliyor,
+       sadece roma rakamlari sisiyor. O yuzden bu sefer:
+
+         1. YALNIZ KENDI UZMANLIGI buyudu (hiz ve ziplama 3->4).
+            Baska hicbir efekte dokunulmadi; strength 2,
+            resistance 1, haste 1, absorption 2 aynen duruyor.
+            Yani uzmanlik duzeni bozulmadi -- Nitroksin zaten
+            hizin uzmaniydi, sadece daha uzman oldu.
+         2. YENI BIR YETENEK geldi: DUSME HASARI YOK
+            (bkz. iksirler.js:nitroksinDusme). Sayi degil,
+            oynamada hissedilen yeni bir sey.
+
+       DUSME NEDEN: Nitroksin ziplama uzmani. Ziplama III ile
+       atladiginda dusus hasarini KENDI yeteneginden yiyordun.
+       `slow_falling` bunu hafifletiyordu ama Grinoksin ve Kan
+       Iksiri'nde de var -- yani Nitroksin'e ait degildi.
+       Dusme bagisikligi TEK IKSIRDE, tipki tam dokunulmazligin
+       yalniz StarOxine'de olmasi gibi.                       */
     efektler: [
-      ["speed",        3],   // referans 0
-      ["jump_boost",   3],   // referans 0
+      ["speed",        4],   // referans 0 · v7.6: 3 -> 4
+      ["jump_boost",   4],   // referans 0 · v7.6: 3 -> 4
       ["strength",     2],
       ["resistance",   1],
       ["haste",        1],
@@ -5183,10 +5212,35 @@ export const SAAT_ESYA = "pa:zaman_saati";
 export const SAAT_DONDURMA_SURE = 600;     // 30 sn
 export const SAAT_DONDURMA_SEVIYE = 255;   // kaynaktaki gibi
 
-/* Telekinez: kaynagin sayilari. */
-export const SAAT_TELEKINEZ_MENZIL = 15;
-export const SAAT_TELEKINEZ_ONDE = 4;      // kac blok onde tutuluyor
-export const SAAT_TELEKINEZ_FIRLAT = 15;
+/* ---- TELEKINEZ  (kaynagin sayilari, v7.6'da guclendirildi) ----
+   Kullanici: "zaman saati telekinezisi var ya, onu daha da
+   guclendirebilir misin acaba."
+
+   Kaynak: menzil 15, onde 4, firlat 15, HASAR YOK. Yani hedefi
+   kaldirip firlatiyordun ve hedef hicbir sey hissetmiyordu --
+   yalnizca yer degistiriyordu. Guclendirme iki yonlu:
+
+     1. SAYILAR   menzil 15->25, firlat 15->30, onde 4->5
+     2. YENI IS   tutmak artik EZIYOR, firlatmak VURUYOR
+
+   Ikincisi bilincli: v4.78'in dersi "toplu +1 hicbir sey
+   degistirmiyor, hissedilen sey YENI BIR YETENEK". Menzili
+   buyutmek tek basina ayni yetenegi biraz uzaga tasirdi.
+
+   FIRLATMA HALA INFAZ DEGIL: slow_falling duruyor (Ender
+   Kilici'nda verilen ayni karar). Hedef vurulur ama dusus
+   hasariyla ayrica oldurulmez -- oldurmek isteyen zaten
+   vurabilir.                                                  */
+export const SAAT_TELEKINEZ_MENZIL = 25;
+export const SAAT_TELEKINEZ_ONDE = 5;      // kac blok onde tutuluyor
+export const SAAT_TELEKINEZ_FIRLAT = 30;
+/* Firlatma carpmasi. LAZER_HASAR (500) ile kiyaslanmasin: lazer
+   bir infaz silahi, bu bir kontrol yetenegi. */
+export const SAAT_TELEKINEZ_HASAR = 60;
+/* Havada tutarken her taramada verilen ezme hasari. Kucuk
+   tutuluyor: SAAT_TELEKINEZ_ARALIK 2 tick, yani saniyede 10
+   kez -- 4 hasar saniyede 40 eder, on saniyede 400. */
+export const SAAT_TELEKINEZ_EZME = 4;
 /* Kaynak hedefi HER IKI TICK'te bir yeniden isinliyor ve bunu
    yaparken `dimension.getEntities()` cagiriyor -- SUZGECSIZ,
    yani boyuttaki her varlik saniyede on kez taraniyor. Tablette

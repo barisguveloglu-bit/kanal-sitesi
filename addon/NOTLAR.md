@@ -1,3 +1,94 @@
+# v7.6 — Telekinezi ve Nitroksin güçlendirildi
+
+Kullanıcı: *"zaman saati telekinezisi var ya, onu daha da güçlendirebilir
+misin acaba. Nitroksin, ikisini de aynı şekilde güçlendir, onun da güçsüz
+olduğunu düşünüyorum artık."*
+
+## Önce depodaki dersi okudum
+
+`ayarlar.js`'te v4.78 yazılı duruyor:
+
+> Bütün efektlere +1 verilmişti. Kullanıcı denedi ve beğenmedi.
+> **Ders: toplu +1 aslında hiçbir şey değiştirmiyor.** Herkes aynı oranda
+> büyüyünce iksirler arasındaki fark aynen kalıyor, sadece roma rakamları
+> şişiyor. Oynanışta hissedilen şey **yeni bir yetenek**, bir basamak daha
+> yüksek aynı yetenek değil.
+
+O yüzden ikisinde de aynı yöntem: **kendi alanında bir basamak + gerçekten
+yeni bir iş.**
+
+## Telekinezi
+
+Kaynakta menzil 15, fırlat 15, **hasar yok** — hedefi kaldırıp fırlatıyordun
+ve hedef hiçbir şey hissetmiyordu, yalnızca yer değiştiriyordu.
+
+| | önce | sonra |
+|---|---|---|
+| menzil | 15 | **25** |
+| fırlatma | 15 | **30** |
+| önde tutma | 4 | **5** |
+| tutarken | — | **ezme 4 hasar** (her 2 tick) |
+| fırlatınca | — | **çarpma 60 hasar** |
+
+**Ezme** yeni bir iş: havada tutmak artık zararsız değil. Yeni bir tarama
+döngüsü açmıyor — zaten orada dönülüyor, bedava.
+
+Hasar **saatçiye** yazılıyor (`damagingEntity`) ki beceri XP'si ve ölüm
+mesajı doğru kişiye gitsin — göz lazerinde v4.95'te öğrenilen aynı ders.
+
+**Fırlatma hâlâ infaz değil:** `slow_falling` duruyor. Hedef vurulur ama
+üstüne bir de düşüş hasarıyla öldürülmez. Öldürmek isteyen zaten vurabilir.
+
+## Nitroksin
+
+Sayılar **yalnızca kendi uzmanlığında** büyüdü:
+
+```
+speed       3 → 4
+jump_boost  3 → 4
+strength 2, resistance 1, haste 1, absorption 2   ← DOKUNULMADI
+```
+
+Yani uzmanlık düzeni bozulmadı; Nitroksin zaten hızın uzmanıydı, sadece
+daha uzman oldu.
+
+**Yeni yetenek: düşme hasarı yok.** Neden tam bu — Nitroksin zıplama uzmanı
+ve Zıplama V ile attığın zıplamanın bedelini **kendi yeteneğinden**
+ödüyordun. `slow_falling` bunu hafifletiyor ama Grinoksin ve Kan İksiri'nde
+de var; Nitroksin'e ait bir şey değildi.
+
+Hasar Bedrock'ta **iptal edilemiyor** (`entityHurt` cancelable değil), o
+yüzden geri veriliyor — teknoloji zırhlarında ve Viltrumite'ta kullanılan
+aynı kalıp. Verilen şifa yeni bir `entityHurt` üretmiyor, döngü yok.
+
+**Yalnız düşme.** Void, açlık, lav, vuruş hâlâ öldürür — tam dokunulmazlık
+sadece StarOxine'de, o kural bozulmadı.
+
+## Denetim
+
+Takım "hepsi geçti" dedi ve bu **tek başına hiçbir şey söylemiyordu** — yeni
+kod hiç çalıştırılmamıştı. İki bölüm yazıldı ve ikisi de kodu **gerçekten
+koşturuyor**:
+
+`mutant_saat.mjs` — hedef yakalanıyor, tarama döndürülüyor, alınan hasarlar
+deftere yazılıyor: 5 vuruş × 4 ezme, 1 vuruş × 60 çarpma, hasarın saatçiye
+yazıldığı, ve slow_falling'in hâlâ verildiği.
+
+`iksir.mjs` — iksirsizken düşme hasarı duruyor; Nitroksin içilince geri
+veriliyor; can tavanı aşılmıyor; **lav/açlık/void/vuruş geri verilmiyor**;
+Grinoksin'de bağışıklık yok; ve uzmanlık düzeni ile StarOxine'in tekelinin
+bozulmadığı.
+
+**Kasten bozuldu, ikisi de yakalandı:**
+
+| bozma | düşen |
+|---|---|
+| `cause !== "fall"` şartı kaldırıldı | lav, açlık, void, vuruş — dördü birden |
+| ezme hasarı kapatıldı | ezme uygulandı + hasar saatçiye yazıldı |
+
+İlkinde dikkat çeken şey: bağışıklık **daha güçlü** hâle geldiği hâlde test
+düştü. Sınırlar da en az yetenek kadar korunuyor.
+
 # v7.5 — Kanlı Kol'un omurgası uzadı + kolsuz skin
 
 Kullanıcı iki şey istedi: *"chris kolunu birazcık daha uzat, omurgasını

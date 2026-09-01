@@ -5,6 +5,7 @@ import {
 import {
   SAAT_ACIK, SAAT_DONDURMA_SURE, SAAT_DONDURMA_SEVIYE,
   SAAT_TELEKINEZ_MENZIL, SAAT_TELEKINEZ_ONDE, SAAT_TELEKINEZ_FIRLAT,
+  SAAT_TELEKINEZ_HASAR, SAAT_TELEKINEZ_EZME,
   SAAT_TELEKINEZ_ARALIK, SAAT_HAPIS_Y, SAAT_HAPIS_SURE, SAAT_HAPIS_TARAMA,
   SAAT_KAYIT_ANAHTAR, SAAT_GERI_TICK
 } from "../ayarlar.js";
@@ -216,8 +217,24 @@ function telekinez(oyuncu) {
         z: k.z + yon.z * SAAT_TELEKINEZ_FIRLAT
       }, { dimension: oyuncu.dimension });
       try { hedef.removeEffect("levitation"); } catch (e) { /* */ }
+      /* v7.6: CARPMA HASARI. Kaynakta firlatma hicbir sey
+         hissettirmiyordu -- hedef yalniz yer degistiriyordu.
+         Vuran OYUNCU olarak yaziliyor ki beceri XP'si ve olum
+         mesaji dogru kisiye gitsin (goz lazerinde v4.95'te
+         ogrenilen ayni ders).                              */
+      if (SAAT_TELEKINEZ_HASAR > 0) {
+        try {
+          hedef.applyDamage(SAAT_TELEKINEZ_HASAR,
+                            { cause: "entityAttack", damagingEntity: oyuncu });
+        } catch (e) {
+          /* damagingEntity kabul edilmezse sebepsiz uygula --
+             hasar kaybolmasin. */
+          try { hedef.applyDamage(SAAT_TELEKINEZ_HASAR); } catch (e2) { /* */ }
+        }
+      }
       /* Yumusak dusus: firlatma bir saldiri, infaz degil --
-         Ender Kilici'nda verilen ayni karar.                */
+         Ender Kilici'nda verilen ayni karar. Carpma hasari
+         VAR ama ustune bir de dusus hasariyla oldurulmuyor. */
       hedef.addEffect("slow_falling", 200,
                       { amplifier: 0, showParticles: false });
     } catch (e) {
@@ -390,6 +407,18 @@ export function saatTara(oyuncular) {
           y: k.y + yon.y * SAAT_TELEKINEZ_ONDE + 2,
           z: k.z + yon.z * SAAT_TELEKINEZ_ONDE
         }, { dimension: oyuncu.dimension });
+        /* v7.6: EZME. Havada tutmak artik zararsiz degil.
+           Kucuk ama surekli: her taramada (2 tick) uygulaniyor.
+           Yeni bir tarama DONGUSU acmiyor -- zaten burada
+           donuyoruz, bu yuzden bedava.                      */
+        if (SAAT_TELEKINEZ_EZME > 0) {
+          try {
+            hedef.applyDamage(SAAT_TELEKINEZ_EZME,
+                              { cause: "entityAttack", damagingEntity: oyuncu });
+          } catch (e) {
+            try { hedef.applyDamage(SAAT_TELEKINEZ_EZME); } catch (e2) { /* */ }
+          }
+        }
       } catch (e) { tutulan.delete(oyuncu.id); }
     }
   }

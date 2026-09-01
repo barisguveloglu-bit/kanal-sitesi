@@ -6,7 +6,7 @@ import {
 } from "../yardimcilar.js";
 import { KADEMELER, IKSIR_TAZELEME, IKSIR_ONEK,
   PARLAMA_ACIK, PARLAMA_GIRIS, PARLAMA_TUT, PARLAMA_CIKIS,
-  IKSIR_LAZERI_SEC
+  IKSIR_LAZERI_SEC, NITROKSIN_DUSME_BAGISIK
 } from "../ayarlar.js";
 
 /* ============================================================
@@ -291,6 +291,56 @@ function icmeyiIsle(oyuncu, esya, nereden) {
    O yuzden main.js kancayi buraya birakiyor.                   */
 let kancalar = {};
 
+/* ================================================================
+   NITROKSIN: DUSME HASARI YOK  (v7.6)
+
+   Kullanici "nitroksin de gucsuz" dedi. v4.78'de butun
+   efektlere +1 verilmis ve BEGENILMEMISTI -- ders: hissedilen
+   sey yeni bir yetenek, ayni yetenegin bir basamak yukarisi
+   degil. O yuzden sayilar yalniz KENDI uzmanliginda buyudu
+   (hiz/ziplama 3->4) ve yanina bu YENI yetenek geldi.
+
+   NEDEN TAM BU: Nitroksin ziplama uzmani ve Ziplama V ile
+   attigin ziplamanin bedelini KENDI yeteneginden oduyordun.
+   `slow_falling` bunu hafifletiyor ama Grinoksin ve Kan
+   Iksiri'nde de var; Nitroksin'e ait bir sey degildi.
+
+   NASIL: hasar IPTAL EDILEMIYOR (Bedrock script API'sinde
+   entityHurt iptal edilebilir degil). Onun yerine hasar geri
+   VERILIYOR -- teknoloji zirhlarinda ve Viltrumite'ta
+   kullanilan ayni kalip. Verilen SIFA yeni bir entityHurt
+   uretmiyor, yani dongu yok.
+
+   YALNIZ DUSME: `cause === "fall"`. Void, aclik, lav hala
+   oldurur -- tam dokunulmazlik SADECE StarOxine'de.
+   ================================================================ */
+export function nitroksinDusme(olay) {
+  if (!NITROKSIN_DUSME_BAGISIK) return false;
+  const oyuncu = olay ? olay.hurtEntity : undefined;
+  if (!oyuncu || oyuncu.typeId !== "minecraft:player") return false;
+  const kaynak = olay.damageSource;
+  if (!kaynak || kaynak.cause !== "fall") return false;
+
+  const kademe = kademeAl(oyuncu.id);
+  if (!kademe || kademe.kimlik !== "nitroksin") return false;
+
+  const gelen = typeof olay.damage === "number" ? olay.damage : 0;
+  if (!(gelen > 0)) return false;
+  try {
+    const can = oyuncu.getComponent("minecraft:health");
+    if (!can) return false;
+    /* Tavani asmayacak kadar geri ver: fazlasi sessizce
+       kaybolurdu ama "iyilestim" hissi yanlis olurdu. */
+    const hedef = Math.min(can.effectiveMax, can.currentValue + gelen);
+    can.setCurrentValue(hedef);
+  } catch (e) {
+    hataYaz("nitroksin.dusme", e);
+    return false;
+  }
+  return true;
+}
+
+
 export function iksirKancalari(k) {
   kancalar = k || {};
 }
@@ -321,6 +371,24 @@ const basKuruldu = olayaAbone("itemUse", (olay) => {
     hataYaz("itemUse.iksir", e);
   }
 });
+
+/* Dusme bagisikligi kendi olayina abone. Kalip bu dosyanin
+   kendi itemUse abonelikleriyle ayni: olay yoksa PAKET OLMUYOR,
+   yalnizca bu ozellik kapaniyor ve sebebi yaziliyor
+   (bot_ilkel dersi).                                        */
+if (NITROKSIN_DUSME_BAGISIK) {
+  const dusmeKuruldu = olayaAbone("entityHurt", (olay) => {
+    try {
+      nitroksinDusme(olay);
+    } catch (e) {
+      hataYaz("iksir.entityHurt", e);
+    }
+  });
+  if (!dusmeKuruldu) {
+    bilgiYaz("entityHurt yok: Nitroksin'in dusme bagisikligi kapali. " +
+             "Iksirin geri kalani (hiz/ziplama V) aynen calisiyor.");
+  }
+}
 
 if (!tamKuruldu && !basKuruldu) {
   bilgiYaz("KRITIK: ne itemCompleteUse ne itemUse kuruldu, iksirler calismaz.");
