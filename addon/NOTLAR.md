@@ -1,3 +1,88 @@
+# v7.5 — Kanlı Kol'un omurgası uzadı + kolsuz skin
+
+Kullanıcı iki şey istedi: *"chris kolunu birazcık daha uzat, omurgasını
+birazcık daha uzat, bir tık kısa oldu gibi"* ve *"ben kolluyum ya skinde,
+onu kolsuz hale getirebilir misin — çünkü bu kanlı kollar bir garip
+oluyor."*
+
+## Omurga uzatıldı, pençe uzatılmadı
+
+Önce **ölçüldü** — kolun neresi ne (kemik `bone`/`bone3`, yerel y ekseni):
+
+```
+19,57 .. 31,90   OMURGA  3,25×1,30×2,60 zincir baklaları
+                         + aralarında 0,65'lik bağlantılar
+31,90 .. 38,43   PENÇE   5,85×1,30×7,80 avuç,
+                         5,85×5,20×5,85 yumruk, 0,65'lik dişler
+```
+
+Omuz ucu yerel `y = 19,575`; dönüşten sonra dünyada `(-3,0, 25,4)` yani omuz
+eklemi. **Uzatma o uçtan** yapılıyor — pivotun öteki yanından yapılsaydı kol
+gövdenin *içine* doğru büyürdü.
+
+**Pençe ölçeklenmiyor, sadece öteleniyor.** Ölçekleseydik dişler ve yumruk
+da uzardı; kullanıcının dediği "omurga kısa", pençe değil. Pençenin oranları
+kaynaktaki gibi kaldı.
+
+`KANLI_UZATMA = 1.20` — tek sabit. Kol 18,85 → **21,32** birim.
+
+Dört seçenek (1.00 / 1.15 / 1.30 / 1.45) oyuncu gövdesiyle birlikte
+çizdirildi; 1,45'te pençe ayak hizasının altına iniyordu, 1,20 seçildi.
+
+## Kolsuz skin
+
+Bu bizim buluşumuz değil, **kaynağın şartı**. Code-Man paketinin dil
+dosyasından, olduğu gibi:
+
+> `bobby1545's Red Bloody Arms`
+> `(Kolun Düzgün Çalışması İçin Skininizin Kolsuz Olması Lazımdır!)`
+
+`skin_uret.py` artık iki dosya üretiyor: normal skin ve kol pikselleri
+**saydam** olan sürüm. Kol kutuları (`SAG_KOL_KUTU`, `SOL_KOL_KUTU`) tek
+yerde yazılı ve ikisine de oradan gidiyor — iki ayrı listede tutulsaydı biri
+değişip öteki kalırdı. İkinci katman (kol kaplamaları) bu betik tarafından
+zaten çizilmiyor ama kolsuz sürümde yine de siliniyor: ileride biri kaplama
+eklerse kolsuz skin sessizce kollu olurdu.
+
+Kolu **modelden çıkarmak mümkün değil** — `skins.json` yalnızca
+`humanoid.custom` / `customSlim` kabul ediyor. Kol kutusu modelde duruyor,
+sadece görünmüyor.
+
+Giyinme Odası'nda artık üç skin var: **Uzak Akraba · O Şey Formu ·
+Kolsuz**.
+
+## Denetim
+
+`kanli.mjs` "kemikler kaynaktan hiç değişmeden geldi" diyordu ve bu
+değişiklikte **haklı olarak düştü**. Yerine "nasıl değişmesi gerektiğini"
+iddia eden ölçümler yazıldı:
+
+| kontrol | sonuç |
+|---|---|
+| omurga tam k katı gerildi | 32 küp |
+| pençe UZAMADI, yalnızca ötelendi | 34 küp |
+| x/z ve uv'ye hiç dokunulmadı | ✓ |
+| küp sayısı aynı kaldı | 66 |
+| kol gerçekten uzadı | 18,85 → 21,32 |
+| iki kol çakışmıyor | boşluk 3,3 |
+
+Sabitler (`KANLI_UZATMA`, `KANLI_OMUZ_UC`, `KANLI_PENCE_SINIR`) testte elle
+yazılmadı, **üreteçten okunuyor** — yoksa sabit değişince test eski değeri
+doğrular ve hiçbir şey söylemez.
+
+**Kasten bozuldu:** pençe de ölçeklenecek şekilde değiştirildi →
+`✗ pençe UZAMADI` düştü, `✓ omurga tam k katı gerildi` ayakta kaldı. Yani
+iki iddia gerçekten birbirinden bağımsız.
+
+`skin_paketi.mjs`'e 7. bölüm eklendi: kolsuz sürümde kol bölgesinde **0 opak
+piksel**, kol **dışında** değişen piksel de **0** — yani "kolsuz" sürüm
+sessizce başka bir skin olmuş değil. Kol kutuları oraya da elle yazılmadı,
+`skin_uret.py`'den okunuyor.
+
+Ayrıca "iki skin tanımlı" kontrolü sabit **2** yazıyordu ve üçüncü skinle
+düştü. Sayı artık `SKIN_LISTE`'den okunuyor; ilk ikisinin **yeri** hâlâ
+kilitli, o kullanıcının açık isteğiydi.
+
 # v7.4.2 — Çizici artık Blockbench `.bbmodel` de okuyor
 
 Kullanıcı Blockbench öğreniyor: *"dosyasını bulmak için araştırma yapman

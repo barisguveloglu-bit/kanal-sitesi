@@ -13,6 +13,12 @@
       "geometry": "geometry.humanoid.custom",
       "texture": "uzak_akraba_o_sey.png",
       "type": "free"
+    },
+    {
+      "localization_name": "kolsuz",
+      "geometry": "geometry.humanoid.custom",
+      "texture": "uzak_akraba_kolsuz.png",
+      "type": "free"
     }
   ]
 }

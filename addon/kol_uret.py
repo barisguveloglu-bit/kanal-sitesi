@@ -116,6 +116,13 @@ SKIN_LISTE = [
      "skin"),
     ("o_sey", "uzak_akraba_o_sey.png", "Uzak Akraba · O Şey Formu",
      "Uzak Akraba · That Thing Form", "o_sey"),
+    # v7.5: Kanli Kol takarken normal kollar altta kalip garip
+    # duruyordu. Kaynak modun kendi uyarisi da bunu istiyor:
+    # "Kolun Duzgun Calismasi Icin Skininizin Kolsuz Olmasi
+    # Lazimdir!" (Code-Man paketi, dil dosyasindan aynen).
+    # Ayni skin, kol pikselleri saydam.
+    ("kolsuz", "uzak_akraba_kolsuz.png", "Uzak Akraba · Kolsuz",
+     "Uzak Akraba · Armless", "kolsuz"),
 ]
 SKIN_ANAHTAR = SKIN_LISTE[0][0]        # eski adlar (testler icin)
 SKIN_DOSYA  = SKIN_LISTE[0][1]
@@ -5446,6 +5453,49 @@ KANLI_GEO_DOSYA = "kns_kolluk_chris_kanli.geo.json"
 # ve atilan kemiklerde donus OLMADIGI icin durus hic degismiyor.
 KANLI_ATILAN = ("waist", "body")
 
+# ---- OMURGA UZATMA  (v7.5) ----
+# Kullanici: "chris kolunu birazcik daha uzat, omurgasini
+# birazcik daha uzat, bir tik kisa oldu gibi."
+#
+# OLCULDU (kemik `bone`/`bone3`in yerel y ekseni):
+#     19,57 .. 31,90   OMURGA -- 3,25x1,30x2,60 zincir baklalari
+#                      ve aralarindaki 0,65'lik baglantilar
+#     31,90 .. 38,43   PENCE  -- 5,85x1,30x7,80 avuc,
+#                      5,85x5,20x5,85 yumruk, 0,65'lik disler
+#
+# Omuz ucu yerel y=19,575; donusten sonra dunyada (-3,0, 25,4),
+# yani omuz eklemi. Uzatma O UCTAN yapiliyor -- pivotun oteki
+# yanindan yapilsaydi kol govdenin ICINE dogru buyurdu.
+#
+# PENCE OLCEKLENMIYOR, sadece oteleniyor. Olcekleseydik disler
+# ve yumruk da uzardi; kullanicinin dedigi "omurga kisa",
+# pence degil. Pencenin oranlari kaynaktaki gibi kaliyor.
+KANLI_UZATMA = 1.20        # 1.0 = kaynaktaki hali
+KANLI_OMUZ_UC = 19.575     # uzatmanin sabit ucu (yerel y)
+KANLI_PENCE_SINIR = 31.9   # bunun ustu pence, alti omurga
+
+
+def kanli_omurgayi_uzat(kemikler, k=None):
+    """Omurgayi gerdirir, penceyi oldugu gibi oteler."""
+    k = KANLI_UZATMA if k is None else k
+    if abs(k - 1.0) < 1e-9:
+        return kemikler
+    kayma = (KANLI_PENCE_SINIR - KANLI_OMUZ_UC) * (k - 1.0)
+    for b in kemikler:
+        for c in b.get("cubes", []):
+            y = c["origin"][1]
+            if y < KANLI_PENCE_SINIR:
+                c["origin"][1] = KANLI_OMUZ_UC + (y - KANLI_OMUZ_UC) * k
+                c["size"][1] = c["size"][1] * k
+                if c.get("pivot"):
+                    c["pivot"][1] = (KANLI_OMUZ_UC
+                                     + (c["pivot"][1] - KANLI_OMUZ_UC) * k)
+            else:
+                c["origin"][1] = y + kayma
+                if c.get("pivot"):
+                    c["pivot"][1] = c["pivot"][1] + kayma
+    return kemikler
+
 
 def kanli_geometrisi():
     """Chris'in kanli kol modelini `geometry.simsek_kol_kanli` yapar.
@@ -5484,6 +5534,7 @@ def kanli_geometrisi():
     if not any(k.get("name") in ("rightArm", "leftArm") for k in kalan):
         print("UYARI: Kanli Kol'da kol kok kemigi yok, model atlandi")
         return None
+    kalan = kanli_omurgayi_uzat(kalan)
     tanim = govde.get("description", {})
     return {
         "format_version": "1.12.0",
@@ -7461,8 +7512,12 @@ def main():
     # Ikincisi kasten AYNI dosya: donusup cikinca ayni karakter
     # gorunsun. Iki yerde cizilse sessizce ayrisirlardi.
     for _anahtar, _dosya, _tr, _en, _kaynak in SKIN_LISTE:
-        kaynak_yol = (SEY_SKIN_KAYNAK if _kaynak == "skin"
-                      else os.path.join(RP, "textures/entity/%s.png" % SEY_DOKU))
+        if _kaynak == "skin":
+            kaynak_yol = SEY_SKIN_KAYNAK
+        elif _kaynak == "kolsuz":
+            kaynak_yol = SEY_SKIN_KAYNAK.replace(".png", "_kolsuz.png")
+        else:
+            kaynak_yol = os.path.join(RP, "textures/entity/%s.png" % SEY_DOKU)
         if os.path.exists(kaynak_yol):
             shutil.copyfile(kaynak_yol, os.path.join(SKP, _dosya))
         else:

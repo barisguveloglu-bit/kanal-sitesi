@@ -46,6 +46,9 @@ from kol_uret import GOZ_SATIR, GOZ_SUTUNLAR, png_yaz, golge
 
 CIKTI = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                      "UzakAkraba_skin.png")
+# Kanli Kol icin kolsuz surum (v7.5). Ayni skin, kollari
+# saydam.
+CIKTI_KOLSUZ = CIKTI.replace(".png", "_kolsuz.png")
 
 # ---- Palet ----
 # Code-Man'in siyahi kadar koyu ama tam siyah degil: mutlak
@@ -65,14 +68,39 @@ GOZ       = (140, 210, 255)   # Hiperoksin'in goz rengi
 # (x1, y1, x2, y2) dahil. Ikinci katman (sapka/ceket/kol
 # kaplamalari) BOS birakiliyor: ayni renkle doldurulunca
 # karakter sismis gorunuyor.
+# ---- KOLLAR AYRI TUTULUYOR  (v7.5) ----
+# Kullanici: "ben kolluyum ya skinde, onu kolsuz hale
+# getirebilir misin, iki kolu da olmayan sekilde -- cunku bu
+# kanli kollar bir garip oluyor."
+#
+# Kaynak modun KENDI uyarisi da bunu soyluyor; Code-Man
+# paketinin dil dosyasindan, oldugu gibi:
+#   "bobby1545's Red Bloody Arms
+#    (Kolun Duzgun Calismasi Icin Skininizin Kolsuz Olmasi
+#     Lazimdir!)"
+# Yani kolsuz skin bizim bulusumuz degil, kaynagin sarti.
+#
+# Kol kutulari BURADA tek kez yazili ve hem normal skine hem
+# de kolsuz surume ayni yerden gidiyor. Iki ayri listede
+# tutulsaydi biri degisip oteki kalirdi.
+SAG_KOL_KUTU = [(44, 16, 47, 19),  (48, 16, 51, 19),  (40, 20, 55, 31)]
+SOL_KOL_KUTU = [(36, 48, 39, 51),  (40, 48, 43, 51),  (32, 52, 47, 63)]
+
+# Ikinci katman (kol kaplamalari). Bu betik onlari zaten
+# CIZMIYOR, ama kolsuz surumde yine de siliniyor: ileride
+# birisi kaplama eklerse kolsuz skin sessizce kollu olurdu.
+SAG_KOL_KAPLAMA = [(44, 32, 47, 35), (48, 32, 51, 35), (40, 36, 55, 47)]
+SOL_KOL_KAPLAMA = [(52, 48, 55, 51), (56, 48, 59, 51), (48, 52, 63, 63)]
+
+KOL_BOLGELERI = (SAG_KOL_KUTU + SOL_KOL_KUTU
+                 + SAG_KOL_KAPLAMA + SOL_KOL_KAPLAMA)
+
 BIRINCI_KATMAN = [
     (8, 0, 15, 7),     (16, 0, 23, 7),    (0, 8, 31, 15),     # kafa
     (4, 16, 7, 19),    (8, 16, 11, 19),   (0, 20, 15, 31),    # sag bacak
     (20, 16, 27, 19),  (28, 16, 35, 19),  (16, 20, 39, 31),   # govde
-    (44, 16, 47, 19),  (48, 16, 51, 19),  (40, 20, 55, 31),   # sag kol
     (20, 48, 23, 51),  (24, 48, 27, 51),  (16, 52, 31, 63),   # sol bacak
-    (36, 48, 39, 51),  (40, 48, 43, 51),  (32, 52, 47, 63),   # sol kol
-]
+] + SAG_KOL_KUTU + SOL_KOL_KUTU
 
 # Gorunen on yuzler -- damarlar buraya ciziliyor.
 GOVDE_ON   = (20, 20)   # 8 genis, 12 yuksek
@@ -197,9 +225,28 @@ def skin():
     return px
 
 
+def kolsuz(px):
+    """Kol piksellerini SAYDAM yapar (silmez, saydamlar).
+
+    Bedrock skinlerde alfasi sifir piksel cizilmiyor; kol
+    kutusu modelde duruyor ama gorunmuyor. Kolu modelden
+    cikarmak MUMKUN DEGIL -- skins.json yalniz
+    humanoid.custom / customSlim kabul ediyor (bkz.
+    kol_uret.py:SKIN_LISTE notu).                          """
+    p = dict(px)
+    for (x1, y1, x2, y2) in KOL_BOLGELERI:
+        for x in range(x1, x2 + 1):
+            for y in range(y1, y2 + 1):
+                p.pop((x, y), None)
+    return p
+
+
 def main():
-    png_yaz(CIKTI, 64, 64, skin())
+    temel = skin()
+    png_yaz(CIKTI, 64, 64, temel)
     print("uretildi:", CIKTI)
+    png_yaz(CIKTI_KOLSUZ, 64, 64, kolsuz(temel))
+    print("uretildi:", CIKTI_KOLSUZ)
     print("goz satiri:", GOZ_SATIR, "sutunlar:", GOZ_SUTUNLAR)
     print()
     print("Minecraft'a eklemek icin:")
