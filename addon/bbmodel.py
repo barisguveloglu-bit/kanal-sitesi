@@ -58,7 +58,24 @@ def cevir_pivot(p):
 
 
 def cevir_donus(r):
-    """Donus: X ve Y isaret degistirir, Z aynen. Kendi tersi."""
+    """Donus: X ve Y isaret degistirir, Z aynen. Kendi tersi.
+
+    ---- NEDEN Z DEGIL DE X/Y ----
+    Saf bir X aynasi olsaydi matematik Y ve Z'yi negatiflemeyi
+    soylerdi, X'i degil. Kaynak tam TERSINI yapiyor
+    (bedrock.js compileGroup: rotation[0] ve rotation[1]).
+    Sebep: aradaki fark yalniz ayna DEGIL -- Blockbench iceride
+    Three.js sozlesmesiyle, Bedrock kendi sozlesmesiyle
+    donduruyor. Ikisinin bileskesi bu.
+
+    ---- BURADAN CIKAN UYARI ----
+    Blockbench uzayindaki kemikleri DOGRUDAN ciz_kemik.ciz()'e
+    verme. Cizici Bedrock donus sozlesmesini uyguluyor; ham
+    Blockbench sayilarini ona vermek ikisini karistirmak olur.
+    Bir kere denedim: O Sey'in dort yatay kolu 8 birim yana ve
+    2 birim yukari kaydi, ama govde/bacaklar dogru durdugu
+    icin resim "makul" gorunuyordu -- olcmesem fark etmezdim.
+    Once `oku()` ile cevir, sonra ciz.                        """
     return [-r[0], -r[1], r[2]]
 
 
