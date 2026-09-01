@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.7";
+export const SURUM = "v7.8";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -6422,7 +6422,91 @@ export const MARVEL_TAKMA_AD = new Map([
    ZIRH_ISIN cekirdege, MARVEL_ISIN bacaktaki guce, BEN10_ISIN
    eldeki yaratiga bakiyor. Bu ELDEKI KOLA bakiyor -- dorduncu
    kapi turu. Motor ayni, kapi farkli.                        */
+/* ================== WILL1545 KILICI  (v7.8) ==================
+   Kullanicinin komut listesinden. Kaynak komutlar (komut
+   bloguyla calisiyor) OLDUGU GIBI:
+
+     isinlanma  execute at @a[hasitem={item=golden_sword,
+                location=slot.weapon.mainhand}] run tp @p ^^^+8
+     ucma       ... run effect @p levitation 1 2
+     parcacik   ... run execute positioned ^^^3..^^^8 run
+                particle minecraft:redstone_ore_dust_particle
+     hasar      ... run execute positioned ^^^8 run
+                damage @e[r=10,c=1] 2
+     yatirma    playanimation @p animation.player.sleeping x 1 "0"
+     duzelme    playanimation @p animation.humanoid.base_pose ...
+
+   ---- GORUNUM: VANILLA ALTIN KILIC ----
+   Kullanici "gorunum altin kilic ile ayni" dedi. Kendi ikonumuzu
+   CIZMEDIK -- cizilen sey "benzer" olurdu, "ayni" degil. Esya
+   dogrudan vanilla `golden_sword` doku anahtarini gosteriyor.
+   Bunun sarti: BIZ o anahtari kendi item_texture.json'umuzda
+   TANIMLAMAYACAGIZ, yoksa vanilla dokusunu ezeriz. Test bunu
+   kilitliyor.
+
+   ---- DAYANIKLILIK ----
+   Netherite kilic 2031. Kullanici "5,5 kati olsun" dedi:
+       2031 x 5,5 = 11170,5  ->  11171
+   Hasar DEGISMEDI: kullanici yalniz dayanikliligi istedi,
+   gorunum ve gerisi altin kilicin kendisi (altin kilic 4). */
+export const WILL_ACIK        = true;
+export const WILL_KILIC       = "pa:will_kilic";
+/* Dayaniklilik ELLE YAZILMIYOR, HESAPLANIYOR. Ilk yazimda
+   11171 sabit yazilmisti ve WILL_NETHERITE/WILL_KAT hicbir
+   yerde okunmuyordu -- tarama.mjs'in "oksuz ayar" bekcisi
+   ucunu birden yakaladi. Sabit yazmak ayrica sinsi: kat
+   degistiginde sayi degismezdi ve kimse fark etmezdi.
+   2031 x 5,5 = 11170,5 -> 11171                            */
+export const WILL_NETHERITE   = 2031;    // netherite kilicin dayanikliligi
+export const WILL_KAT         = 5.5;     // kullanicinin istedigi kat
+export const WILL_DAYANIKLILIK = Math.ceil(WILL_NETHERITE * WILL_KAT);
+export const WILL_HASAR       = 4;       // altin kilicin kendisi
+
+/* Isinlanma: kaynak `tp @p ^^^+8`. Sekiz blok ILERI, bakis
+   dogrultusunda. Kaynakta engel kontrolu YOK -- duvarin icine
+   isinlanabiliyorsun. Bizde guvenli yer araniyor (ISIN_ADIM
+   ile ayni kalip), cunku duvara gomulmek olum demek.        */
+export const WILL_ISIN_MESAFE = 8;
+export const WILL_ISIN_BEKLEME = 20;   // kaynagin "onay gecikme suresi: 20"
+
+/* Ucma: kaynak `effect @p levitation 1 2`. Bir tick, seviye 3
+   -- yani kisa bir sicrayis, ucus degil. Aynen alindi.      */
+export const WILL_UCUS_SURE   = 1;
+export const WILL_UCUS_SIDDET = 2;
+
+/* Yatirma: kaynak iki animasyonu ust uste biniyor
+   (player.sleeping + agent.move) ve geri donus
+   humanoid.base_pose. Bizde hedefe uygulaniyor, kendine
+   degil -- kaynakta @p vardi, yani komutu calistiran.       */
+export const WILL_YATIR_MENZIL = 10;
+export const WILL_YATIR_SURE   = 100;   // 5 sn sonra kendiliginden duzelir
+export const WILL_YATIR_ANIM   = "animation.player.sleeping";
+export const WILL_YATIR_DUZEL  = "animation.humanoid.base_pose";
+
+/* Gogusteki kan: kaynak ayni parcacigi UC KEZ yaziyor
+   ("daha belirgin olsun diye"). Bizde tek cagri, sayi
+   ayarda -- uc satiri kopyalamak yerine.                    */
+export const WILL_KAN_PARCACIK = "minecraft:redstone_ore_dust_particle";
+export const WILL_KAN_KAT      = 3;     // kac kez basilsin
+export const WILL_KAN_YUKSEK   = 1.2;   // ~ ~1.2 ~
+export const WILL_KAN_ARALIK   = 10;    // kac tick'te bir (kaynakta surekli)
+
 export const KOL_ISIN = new Map([
+  /* ---- WILL1545 KILICININ KAN ISINI  (v7.8) ----
+     Kaynak parcacigi ^^^3'ten ^^^8'e kadar AYRI AYRI komutlarla
+     ve farkli "onay gecikme" sureleriyle basiyor (5, 10, 20,
+     30, 40 ve uc tane 25). Yani elle yapilmis bir zamanlama:
+     parcaciklar sirayla ileri gidiyor.
+
+     Bizim motor menzil boyunca SUREKLI ciziyor -- ayni gorunum,
+     sekiz ayri komut blogu olmadan. Hasar da kaynagin kendi
+     satiri: `damage @e[r=10,c=1] 2` yani 2 hasar, TEK hedef.  */
+  ["will_isini", {
+    ad: "Kan Işını", elde: WILL_KILIC,
+    hasar: 2, menzil: 8, yakma: 0,
+    parcacik: WILL_KAN_PARCACIK
+  }],
+
   ["buz_isini", {
     ad: "Buz Işını", elde: "pa:kol_buz",
     /* Kaynak `damage @e[r=10,c=1] 3` diyor: 3 hasar, TEK

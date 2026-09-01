@@ -5636,6 +5636,62 @@ DISMONT_CEVHER_TR = "Freedom Stone Cevheri"
 # ---- YENI ESYALAR (v4.86) ----
 # Ikisi de Zabri Studios BoraLo Mod'dan geldi; dokulari
 # kaynak_doku/ altinda duruyor (bkz. NEREDEN.md).
+# ---- WILL1545 KILICI  (v7.8) ----
+# Kullanicinin komut listesinden. "Gorunum altin kilic ile
+# ayni fakat dayaniklilik netherite kilicin 5,5 kati olsun."
+#
+# GORUNUM: kendi ikonumuz CIZILMEDI. Cizilen sey "benzer"
+# olurdu, "ayni" degil. Esya dogrudan VANILLA `golden_sword`
+# doku anahtarini gosteriyor. Sarti: o anahtari kendi
+# item_texture.json'umuzda TANIMLAMAYACAGIZ, yoksa vanilla
+# dokusunu ezeriz -- bu yuzden asagida `dokular` sozlugune
+# EKLENMIYOR ve test bunu kilitliyor.
+#
+# DAYANIKLILIK: netherite kilic 2031; 2031 x 5,5 = 11170,5.
+# Yukari yuvarlandi.
+# HASAR: 4, yani altin kilicin kendisi. Kullanici yalniz
+# dayanikliligi istedi.
+WILL_ESYA = "will_kilic"
+WILL_ESYA_TR = "Will1545 Kılıcı"
+WILL_ESYA_EN = "Will1545's Sword"
+WILL_DOKU = "golden_sword"      # VANILLA anahtari, bizim degil
+WILL_HASAR = 4
+WILL_NETHERITE = 2031           # netherite kilicin dayanikliligi
+WILL_KAT = 5.5                  # kullanicinin istedigi kat
+WILL_DAYANIKLILIK = 11171       # 2031 * 5,5
+
+
+def will_kilici():
+    return {
+        "format_version": "1.21.0",
+        "minecraft:item": {
+            "description": {
+                "identifier": "pa:" + WILL_ESYA,
+                "menu_category": {"category": "equipment"},
+            },
+            "components": {
+                # Vanilla dokusu -- kendi anahtarimizi yazmiyoruz.
+                "minecraft:icon": {"texture": WILL_DOKU},
+                "minecraft:display_name": {"value": WILL_ESYA_TR},
+                "minecraft:max_stack_size": 1,
+                "minecraft:hand_equipped": True,
+                "minecraft:allow_off_hand": False,
+                "minecraft:damage": WILL_HASAR,
+                "minecraft:durability": {"max_durability": WILL_DAYANIKLILIK},
+                # Onarilabilsin: 11171 vurus sonunda kirilan bir
+                # kilicin tamir yolu olmali.
+                "minecraft:repairable": {
+                    "repair_items": [{
+                        "items": ["minecraft:gold_ingot"],
+                        "repair_amount": "context.other->query.remaining_durability + 0.05 * context.other->query.max_durability"
+                    }]
+                },
+                "minecraft:glint": True,
+            },
+        },
+    }
+
+
 KILIC_ESYA = "resetting_sword"
 KILIC_ESYA_TR = "Resetting Sword"
 KILIC_HASAR = 12                 # 6 kalp -- ayarlar.js ikizi
@@ -7322,6 +7378,14 @@ def main():
 
     # ---- YENI ESYALAR ve HEYKEL BLOGU (v4.86) ----
     yaz_json(os.path.join(BP, "blocks", TAS_BLOK + ".json"), tas_heykel_blogu())
+    # Will1545 Kilici (v7.8). DOKU KAYDI YOK: vanilla
+    # `golden_sword` anahtarini kullaniyor, kendi anahtarimizi
+    # yazsak vanilla dokusunu ezerdik.
+    yaz_json(os.path.join(BP, "items", WILL_ESYA + ".json"), will_kilici())
+    for _l, _a in ((en_us, WILL_ESYA_EN), (tr_tr, WILL_ESYA_TR)):
+        _l.append("item.pa:%s.name=%s" % (WILL_ESYA, _a))
+        _l.append("item.pa:%s=%s" % (WILL_ESYA, _a))
+
     yaz_json(os.path.join(BP, "items", KILIC_ESYA + ".json"),
              basit_esya(KILIC_ESYA, KILIC_ESYA_TR, KILIC_HASAR))
     yaz_json(os.path.join(BP, "items", TAS_ESYA + ".json"),
@@ -7612,6 +7676,7 @@ def main():
     # kaldi, dosya silindi -- yani oyunda "bilinmeyen esya".
     # Ikinci kez yasandi; bu yuzden burada duruyor.
     beklenen.add(KILIC_ESYA)
+    beklenen.add(WILL_ESYA)
     beklenen.add(TAS_ESYA)
     # v4.87'nin silahlari ve mermileri. Ayni tuzak ucuncu kez:
     # listeye yazilmayan her esya temizlik adiminda siliniyor.

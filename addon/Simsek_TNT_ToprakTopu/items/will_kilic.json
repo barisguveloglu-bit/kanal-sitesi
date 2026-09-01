@@ -1,0 +1,37 @@
+{
+  "format_version": "1.21.0",
+  "minecraft:item": {
+    "description": {
+      "identifier": "pa:will_kilic",
+      "menu_category": {
+        "category": "equipment"
+      }
+    },
+    "components": {
+      "minecraft:icon": {
+        "texture": "golden_sword"
+      },
+      "minecraft:display_name": {
+        "value": "Will1545 Kılıcı"
+      },
+      "minecraft:max_stack_size": 1,
+      "minecraft:hand_equipped": true,
+      "minecraft:allow_off_hand": false,
+      "minecraft:damage": 4,
+      "minecraft:durability": {
+        "max_durability": 11171
+      },
+      "minecraft:repairable": {
+        "repair_items": [
+          {
+            "items": [
+              "minecraft:gold_ingot"
+            ],
+            "repair_amount": "context.other->query.remaining_durability + 0.05 * context.other->query.max_durability"
+          }
+        ]
+      },
+      "minecraft:glint": true
+    }
+  }
+}

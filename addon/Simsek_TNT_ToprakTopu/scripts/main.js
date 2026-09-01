@@ -146,6 +146,7 @@ import "./yetenekler/meteor.js";
 import "./yetenekler/ors.js";
 import "./yetenekler/buz_adam.js";
 import "./yetenekler/toprak_ucus.js";
+import { willTara } from "./yetenekler/will_kilic.js";
 import "./yetenekler/can_ver.js";
 import "./yetenekler/ucurma.js";
 import "./yetenekler/yamult.js";
@@ -531,6 +532,14 @@ system.runInterval(() => {
       voidTara(oyuncular);
     } catch (e) {
       hataYaz("voidTara", e);
+    }
+    /* v7.8: Will1545 Kilicinin gogus kani. Kilici tutan yoksa
+       dongu bedava. KENDI try'i var -- void'inkine binseydi
+       buradaki bir hata "voidTara" diye raporlanirdi.       */
+    try {
+      willTara(oyuncular);
+    } catch (e) {
+      hataYaz("willTara", e);
     }
     /* v7.2: Zaman Saati. Iki defter de bosken tek satirda
        cikiyor -- telekinez tutulan ve saatteki kurban.      */

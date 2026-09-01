@@ -1,3 +1,98 @@
+# v7.8 — Will1545 Kılıcı
+
+Kullanıcının komut listesi. Kaynak komutlar komut bloğuyla çalışıyor ve
+hepsi aynı kapıyı kullanıyor: `@a[hasitem={item=golden_sword,
+location=slot.weapon.mainhand}]`.
+
+## Eşya
+
+> *"görünüm altın kılıç ile aynı fakat dayanıklılık ... netherite kılıç 5,5
+> katı olsun"*
+
+**Görünüm:** kendi ikonumuz **çizilmedi**. Çizilen şey "benzer" olurdu,
+"aynı" değil. Eşya doğrudan vanilla `golden_sword` doku anahtarını
+gösteriyor. Şartı: o anahtarı kendi `item_texture.json`'umuzda
+**tanımlamayacağız**, yoksa vanilla dokusunu ezeriz. Test ikisini de
+kilitliyor.
+
+**Dayanıklılık:** netherite kılıç 2031 → `Math.ceil(2031 × 5.5)` = **11171**.
+İlk yazımda 11171 sabit yazılmıştı; `tarama.mjs` bunu yakaladı (aşağıda).
+
+**Hasar 4** — altın kılıcın kendisi. Kullanıcı yalnız dayanıklılığı istedi.
+11171 vuruşluk bir kılıcın tamir yolu olsun diye `repairable` de eklendi
+(altın külçe).
+
+## Dört yetenek
+
+| bizde | kaynak komutu |
+|---|---|
+| **Kılıçla Işınlanma** | `tp @p ^^^+8` |
+| **Kılıçla Sıçrayış** | `effect @p levitation 1 2` |
+| **Kan Işını** | `particle ... ^^^3..^^^8` + `damage @e[r=10,c=1] 2` |
+| **Yere Serme** | `playanimation @p animation.player.sleeping` |
+| göğüs kanı (pasif) | `particle ... ~ ~1.2 ~` ×3 |
+
+**Kan Işını ayrı yazılmadı.** `ayarlar.js:KOL_ISIN`'e tek satır olarak
+eklendi ve v6.8'den beri duran ışın motorunu kullanıyor. Kaynak parçacığı
+`^^^3`'ten `^^^8`'e kadar sekiz ayrı komut bloğuyla ve elle ayarlanmış
+gecikmelerle (5, 10, 20, 30, 40 ve üç tane 25) basıyor; bizim motor menzil
+boyunca sürekli çiziyor — aynı görünüm, sekiz komut bloğu olmadan.
+
+Göğüs kanı için kaynak aynı satırı **üç kez** yazıyor ("daha belirgin olsun
+diye"). Bizde tek döngü, sayı ayarda.
+
+## Kaynaktan alınmayan dört şey
+
+**1. Kapı.** Kaynak vanilla `golden_sword`'a bakıyor — o kılıcı tutan
+**herkes** ışınlanır. Bizde kapı kendi eşyamız.
+
+**2. Duvar koruması.** `tp @p ^^^+8` engel bakmıyor: duvarın içine ışınlanıp
+sıkışıyorsun. Bizde sekizden geriye doğru ilk **boş** yer aranıyor.
+
+**3. Yatırma yönü.** Kaynak `@p` diyor, yani komutu **çalıştıranı**
+yatırıyor. Bir silahın kendini yatırması anlamsız — bizde hedef yatıyor.
+
+**4. Kalkma.** Kaynakta geri dönüş elle (`base_pose` komutunu kendin
+çalıştıracaksın). Bizde 5 sn sonra kendiliğinden kalkıyor — Zaman Saati'nde
+öğrenilen ders: geri getirmeyi kullanıcıya bırakırsan hedef sonsuza kadar
+öyle kalır.
+
+## `tarama.mjs` iki gerçek kusur buldu
+
+Kod bittiğinde takım geçmedi — **öksüz ayar bekçisi** dört sabit yakaladı:
+
+- **`WILL_ISIN_BEKLEME` tanımlanmış ama hiç kullanılmamış.** Kaynağın kendi
+  *"Onay Gecikme süresi : 20"*'si. Işınlanma en çok kötüye kullanılabilen
+  yetenek (duvardan geçme) ve beklemesiz bırakmak yanlıştı. Eklendi.
+- **`WILL_NETHERITE` ve `WILL_KAT` okunmuyordu**, çünkü dayanıklılık 11171
+  diye **sabit** yazılmıştı. Sinsi taraf şu: katı değiştirsen sayı
+  değişmezdi. Artık `Math.ceil(WILL_NETHERITE * WILL_KAT)` ile hesaplanıyor.
+- `WILL_KILIC_DOKU` script tarafında hiç gerekmiyordu, kaldırıldı.
+
+Ayrıca `willTara` ilk yazımda `voidTara`'nın `try` bloğuna girmişti — oradaki
+bir hata *"voidTara"* diye raporlanırdı. Kendi bloğuna alındı.
+
+## Denetim
+
+`will.mjs` — beş bölüm, yetenekler **gerçekten çalıştırılıyor**: ışınlanma
+tam 8,00 blok ileri, üst üste basınca bekletiyor, bekleme dolunca yine
+çalışıyor, önü duvarla kapalıyken **duvarın içine girmiyor** (x=3.5'te
+duruyor).
+
+**Kasten bozuldu, ikisi de yakalandı:**
+
+| bozma | düşen |
+|---|---|
+| duvar kontrolü kaldırıldı | `duvarın İÇİNE ışınlanmadı` — x=8.5'e girdi |
+| `WILL_KAT` 5.5 → 3.0 | `ayarlar da aynı sayıyı veriyor` — 6093 |
+
+İkincisi önemli: dayanıklılık sabit yazılı kalsaydı bu bozma **hiçbir şey
+düşürmezdi**.
+
+Ve bir kez daha aynı tuzağa düştüm: `hasitem|golden_sword` kontrolü **kendi
+yorumuma** takıldı — yorumda kaynağın komutunu alıntılıyorum. (Aynısını
+v7.7'de `health_boost` ile yaşamıştım.) Test artık yorumları soyup arıyor.
+
 # v7.7 — Anna Kolu
 
 Kullanıcı: *"Anna1545 Kolu'nu ekleyelim önce, bu sonra bu animasyon."*
