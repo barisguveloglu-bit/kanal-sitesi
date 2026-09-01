@@ -1,3 +1,98 @@
+# v7.7 — Anna Kolu
+
+Kullanıcı: *"Anna1545 Kolu'nu ekleyelim önce, bu sonra bu animasyon."*
+
+## Kaynağın Anna'sı ve neden olduğu gibi alınmadı
+
+fear1545'in kol modunda Anna1545 Arm'in yetenekleri: **şimşek · uçma ·
+uçurma · can verme**. Can vermenin tamamı şu iki satır:
+
+```mcfunction
+effect @s health_boost 100000 255 true
+effect @s instant_health 1 255
+```
+
+Yani **kendine sınırsız can.** Üçü birden alınmadı, üçünün de gerekçesi
+depoda yazılı:
+
+| kaynakta | neden alınmadı |
+|---|---|
+| şimşek | `yon_simsegi` **zaten Toprak Kol'da** |
+| uçma | `toprak_ucus` zaten Toprak Kol'da, ayrıca `pa:kol_ucus` var |
+| can verme (kendine) | `can_verme` **v4.33'te silinmişti** — kullanıcının kendi sözü: *"zaten hem kalp ekleme var, hem iksir içince onun 4-5 katı süreyle yenilenme geliyor; artık gereksizleşti."* |
+
+Şimşek ve uçmayı koymak, v4.33 ve v4.46'da **sekiz kolu** kaldırmamıza sebep
+olan "kol israfı" kuralını çiğnemek olurdu.
+
+## Yön değişti: can vermek **başkasına**
+
+Depoda hiçbir şey **başka bir varlığı** iyileştirmiyor. Arandı:
+
+```
+kalp_ekle   -> kendine, kalıcı kalp
+iksirler    -> kendine, uzun yenilenme
+bot_ilkel   -> botun KENDİ pasif iyileşmesi
+```
+
+Anna'nın adı zaten *can VERME*. Yönü çevirince hem kaynağın kimliği
+korunuyor hem de silinen yeteneğin kopyası olmuyor — gerçek bir boşluk
+doluyor.
+
+**`can_ver`**: baktığın konideki dostların canını dolduruyor (20 can),
+üstüne 10 sn Yenilenme III ve 5 sn Emme. Yenilenme süresi bilerek kısa —
+iksirler 6000 tick veriyor, bu onun yerine geçmesin.
+
+### Düşmanı iyileştirmiyor
+
+Bedrock'ta "bu varlık bana dost mu" diye sorulamıyor; evcilleştirme sahibi
+script'ten okunmuyor. Sorulabilen tek şey **tür**. O yüzden düşman listesi
+değil **izin listesi** kullanıldı (23 tür): yeni bir düşman mob çıktığında
+liste eskimesin, o mob kendiliğinden dışarıda kalsın.
+
+Kola ikinci yetenek olarak **`ucurma`** bağlandı — kaynağın listesinde var ve
+bugüne kadar **hiçbir kolda değildi**, yalnız eşyasız jest sırasındaydı.
+Artık bir evi de var.
+
+**Görünüm:** renkler uydurulmadı, depodaki `kns_kolluk_boralo_anna`
+dokusundan ölçüldü — `#699190` turkuaz (138 px, gövde) ve `#966C4A` toprak
+(52 px, damar). Modun kendi Anna dokusu alınmadı: o 2560×1931 bulanık bir
+**taş bloğu**, kol dokusu değil.
+
+## Yolda çıkan üç şey
+
+**`sira: 145` çakıştı.** Viltrumite'ın kubbesiyle aynı numaraydı;
+`viltrumite.mjs` ve `ben10_saldiri.mjs` ikisi birden bağırdı. 141'e alındı —
+`ucurma`nın (140) hemen yanına, menüde yan yana dursunlar diye.
+
+**"7 kol" bekçisi dört testte düştü** ve bu **doğru davranış**. O sayı
+kasten elle tutuluyor: *"sayı elle tutuluyor ki yeni kol SESSİZCE
+eklenemesin."* İlk içgüdüm sayıyı tablodan okutmaktı — **yapmadım**,
+otomatikleştirmek bekçiyi öldürürdü. Elle 8'e çıkarıldı ve gerekçesi
+yazıldı, tıpkı v6.7'de Kanlı Kol için yapıldığı gibi.
+
+**Testin kendisi iki kez yanılttı.** İlk yazımda:
+
+- hedefleri `(0,0,0)`'a koymuştum, bakış konisinin dışındaydılar → test
+  "iyileşmedi" diyordu ama yetenek doğru çalışıyordu
+- `health_boost` kontrolü `kod.includes("health_boost")` idi ve **kendi
+  yorumuma** takıldı; metin araması yorumla kodu ayırt etmiyor. Artık
+  `addEffect("health_boost"` çağrısının kendisi aranıyor.
+- sahte oyuncuda `runCommand` yoktu; `yetenekTetikle` önce `kollariKaldir()`
+  çağırıyor, o da `playanimation` çalıştırıyor — orada patlayınca yetenek
+  **hiç çağrılmıyordu**
+
+Üçünde de kusur testteydi, kodda değil. Yetenek doğrudan çağrılınca baştan
+beri çalışıyordu (4 → 20 can).
+
+## Denetim
+
+`anna.mjs` — dört bölüm, yetenek **gerçekten çalıştırılıyor**: kurt 4→20,
+köylü 6→20, tavan aşılmıyor, yenilenme ve emme veriliyor, süre iksirlerden
+kısa. Zombi 3'te ve Warden 100'de **kalıyor**, efekt bile almıyorlar.
+
+**Kasten bozuldu:** dost süzgeci kaldırıldı → zombi 20'ye, Warden 120'ye
+çıktı, üç kontrol birden düştü.
+
 # v7.6 — Telekinezi ve Nitroksin güçlendirildi
 
 Kullanıcı: *"zaman saati telekinezisi var ya, onu daha da güçlendirebilir

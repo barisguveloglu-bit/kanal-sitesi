@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.6";
+export const SURUM = "v7.7";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -295,6 +295,61 @@ export const METEOR_TAVAN   = 80;   // govde bu kadar tick'te inmezse zorla patl
    Baska hicbir yerde kullanilmadigi icin o da silindi; dusman
    ayrimi gerekirse geri eklenir.                                */
 
+
+/* ---------------- CAN VERME  (v7.7, Anna Kolu) ----------------
+   Kullanici "Anna1545 Kolu'nu ekleyelim" dedi. Kaynakta
+   (fear1545'in kol modu) Anna'nin ayirt edici yetenegi
+   `can verme`:
+       effect @s health_boost 100000 255 true
+       effect @s instant_health 1 255
+   Yani KENDINE sinirsiz can. Bu bize UYMUYOR ve sebebi
+   depoda yazili: v4.33'te can_verme tam da bu yuzden
+   SILINMISTI --
+
+     "zaten hem kalp ekleme var, hem iksir icince onun 4-5
+      kati sureyle yenilenme geliyor; artik gereksizlesti."
+
+   O karar hala dogru. Ayni yetenegi geri koymak "kol israfi"
+   kuralini da cignerdi (v4.33 ve v4.46'da SEKIZ kol tam bu
+   yuzden kaldirildi).
+
+   ---- O YUZDEN YON DEGISTI: BASKASINA ----
+   Depoda hicbir sey BASKA bir varligi iyilestirmiyor. Arandi:
+     kalp_ekle      -> kendine, kalici kalp
+     iksirler       -> kendine, uzun yenilenme
+     bot_ilkel      -> botun KENDI pasif iyilesmesi
+   Yani "baskasini iyilestirmek" gercek bir bosluk. Anna'nin
+   kimligi (can VERME) tam oraya oturuyor ve silinen yetenegin
+   kopyasi olmuyor.
+
+   DUSMANLARI IYILESTIRMEZ: hedefin kime ait oldugu
+   sorulamiyor ama TURU sorulabiliyor. Dusman listesi yerine
+   IZIN listesi kullaniliyor -- yeni bir dusman mob eklenirse
+   liste eskimesin diye. Oyuncular, evcil hayvanlar, koy
+   halki ve bizim botlarimiz.                                */
+export const CAN_VER_MENZIL = 16;
+export const CAN_VER_ACI    = 0.7;   // bakis konisi (ucurma ile ayni olcek)
+export const CAN_VER_TAVAN  = 8;     // en fazla kac hedef
+export const CAN_VER_MIKTAR = 20;    // dogrudan doldurulan can
+/* Yenilenme SURESI ozellikle kisa: iksirler 6000 tick veriyor,
+   bu onun yerine gecmesin. Anlik bir yardim, kalici bir guc
+   degil. */
+export const CAN_VER_SURE   = 200;   // 10 sn yenilenme
+export const CAN_VER_SIDDET = 2;     // Yenilenme III
+export const CAN_VER_KALKAN = 100;   // 5 sn emme (absorption)
+/* Kendini de iyilestirir mi. Kaynakta SADECE kendini
+   iyilestiriyordu; bizde tam tersi asil is, kendi ikincil. */
+export const CAN_VER_KENDINE = true;
+/* IZIN listesi -- bunlar disindaki hicbir sey iyilesmez. */
+export const CAN_VER_DOSTLAR = [
+  "minecraft:player", "minecraft:villager_v2", "minecraft:villager",
+  "minecraft:wandering_trader", "minecraft:iron_golem", "minecraft:snow_golem",
+  "minecraft:wolf", "minecraft:cat", "minecraft:ocelot", "minecraft:parrot",
+  "minecraft:horse", "minecraft:donkey", "minecraft:mule", "minecraft:llama",
+  "minecraft:cow", "minecraft:sheep", "minecraft:pig", "minecraft:chicken",
+  "minecraft:rabbit", "minecraft:fox", "minecraft:axolotl", "minecraft:allay",
+  "pa:bot"
+];
 
 /* ---------------- Ors yagdir ----------------
    Referans: "execute @s^^^6 /setblock ~~10~ anvil" -- tek ors,

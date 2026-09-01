@@ -148,6 +148,16 @@ KOLLAR = [
     # kaynaktan geldigi icin uretilen kol dokusu hemen eziliyor.
     # Yine de dogru olculer: kan #FF0303, pihti #390808.
     ("kol_kanli",  "kanli",            "Kanli Kol",             (57, 8, 8),      (255, 3, 3)),
+    # ANNA KOLU (v7.7) -- fear1545'in kol modundan gelen isim.
+    # Renkler UYDURULMADI: depodaki `kns_kolluk_boralo_anna`
+    # dokusundan OLCULDU (BoraLo'nun "Anna + Toprak" kolluk
+    # susu). Baskin iki renk:
+    #     #699190 turkuaz (138 px) -- govde
+    #     #966C4A toprak  ( 52 px) -- damar deseni
+    # Modun kendi Anna dokusu ALINMADI: o 2560x1931 bulanik
+    # bir TAS BLOGU, kol dokusu degil (bkz.
+    # REFERANS_BORALO_KOL_V2.md).
+    ("kol_anna",   "can_ver",          "Anna Kolu",             (105, 145, 144), (150, 108, 74)),
 ]
 
 # Turkce gorunen adlar (dil dosyasi icin; JSON'da ASCII tutuluyor)
@@ -159,6 +169,7 @@ TR_AD = {
     "kol_kevin":  "Kevin Kolu",
     "kol_gunes":  "Güneş Kolu",
     "kol_kanli":  "Kanlı Kol",
+    "kol_anna":   "Anna Kolu",
 }
 
 # BEKLEME = 60 tick = 3 sn. Esya beklemesi bununla ayni tutuluyor ki

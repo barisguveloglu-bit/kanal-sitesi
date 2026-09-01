@@ -106,6 +106,27 @@ export const KOL_ESYALARI = [
      ve durumlari oyuncu ADIYLA tutuyordu.                     */
   ["pa:kol_gunes",  "isin_topu", "yumruk"],
 
+  /* ANNA KOLU (v7.7). Kaynak: fear1545'in "En Iyi BoraLo Kol
+     Modu V2" -- oradaki Anna1545 Arm'in yetenekleri simsek,
+     ucma, ucurma, can verme.
+
+     UCU ALINMADI cunku "kol israfi" kuralina takiliyor
+     (v4.33 ve v4.46'da SEKIZ kol tam bu yuzden kaldirildi):
+       simsek -> yon_simsegi ZATEN Toprak Kol'da
+       ucma   -> toprak_ucus ZATEN Toprak Kol'da, ayrica
+                 pa:kol_ucus var
+     Ikisini de buraya koymak, kaldirdigimiz kollarin
+     aynisini yeniden yapmak olurdu.
+
+     KALAN IKISI Anna'ya kimligini veriyor:
+       can_ver -> BASKASINI iyilestirmek. Depoda bunu yapan
+                  baska hicbir sey yok (kalp_ekle kendine,
+                  iksirler kendine, bot_ilkel botun pasifi).
+       ucurma  -> kaynagin listesinde var ve bugune kadar
+                  HICBIR KOLDA degildi; yalniz esyasiz jest
+                  sirasindaydi. Artik bir evi de var.        */
+  ["pa:kol_anna",   "can_ver", "ucurma"],
+
   /* Tek yetenekli kollar.
 
      v4.33'te DORT KOL KALDIRILDI -- hepsi "kol israfi" kuralinin

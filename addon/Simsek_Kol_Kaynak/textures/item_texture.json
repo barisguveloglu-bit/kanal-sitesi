@@ -23,6 +23,9 @@
     "kol_kanli": {
       "textures": "textures/item/kol_kanli"
     },
+    "kol_anna": {
+      "textures": "textures/item/kol_anna"
+    },
     "iksir_nitroksin": {
       "textures": "textures/item/iksir_nitroksin"
     },

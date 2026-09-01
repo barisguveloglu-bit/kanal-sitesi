@@ -146,6 +146,7 @@ import "./yetenekler/meteor.js";
 import "./yetenekler/ors.js";
 import "./yetenekler/buz_adam.js";
 import "./yetenekler/toprak_ucus.js";
+import "./yetenekler/can_ver.js";
 import "./yetenekler/ucurma.js";
 import "./yetenekler/yamult.js";
 import "./yetenekler/toprak_duvar.js";
