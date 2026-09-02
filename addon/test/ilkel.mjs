@@ -1213,6 +1213,73 @@ console.log("=== VURUS YETENEKLERI: bes uyenin imzasi tetikleniyor mu ===");
      pasif). Onu "bozuk" saymamak icin ayri yaziliyor.       */
   kontrol("  raxxan'in vurusa bagli yetenegi zaten yok (pasif uye)",
           true, "aura + gizlenme, bakim() taramasindan");
+
+  /* ---- KULLANICININ OYUNDA YASADIGI DURUM (v7.9.7) ----
+     "Uye vuruyor ama ozel bir sey olmuyor."
+
+     Sebep bulundu: uyenin kimligi YALNIZCA varliga yazilan
+     bir dinamik ozellikte tutuluyordu. O yazma oyunda
+     tutmayinca ilkelKimligi() undefined donuyor, botVurdu()
+     ILK SATIRINDA cikiyor ve butun imza yetenekleri hicbir
+     belirti vermeden oluyordu.
+
+     Burada o durum BIREBIR taklit ediliyor: varligin dinamik
+     ozelligi hem yazilamiyor hem okunamiyor. Kimlik artik
+     TUR ADINDAN (pa:okazor -> okazor) turetildigi icin
+     yetenekler calismaya devam etmeli.
+
+     Eski kodla bu bolum uc uyede de "kimlik=undefined,
+     efekt YOK, varlik 0, can 100" veriyordu -- yani tam
+     olarak kullanicinin tarif ettigi sey.                  */
+  for (const anahtar of ["okazor", "harkos", "kajaros"]) {
+    const D = dunyaKur();
+    const o = oyuncuKur(D.boyut, { x: 0, y: 0, z: 1 }, { x: 0.5, y: 65.62, z: 0.5 });
+    o.id = "ozelliksiz_" + anahtar; o.typeId = "minecraft:player";
+    _durum.oyuncular = [o]; _durum.boyut = D.boyut;
+    _durum.varliklar = D.sayac.varliklar;
+    defter.defteriUnut();
+    _durum.ozellikler.delete(ayar.BOT_KAYIT_ANAHTAR);
+    /* Dinamik ozellik yok: yazma ATIYOR, okuma undefined. */
+    const eskiDogur = D.boyut.spawnEntity;
+    D.boyut.spawnEntity = (tip, poz) => {
+      const v = eskiDogur.call(D.boyut, tip, poz);
+      if (v) {
+        v.setDynamicProperty = () => { throw new Error("dynamic property yok"); };
+        v.getDynamicProperty = () => undefined;
+      }
+      return v;
+    };
+    sus(); ilkel.ilkelCagir(o, anahtar); ac();
+    const bot = D.sayac.varliklar.find((v) => v.typeId === "pa:" + anahtar);
+    kontrol("  " + anahtar + ": ozellik yokken de kimlik OKUNUYOR",
+            ilkel.ilkelKimligi(bot) === anahtar,
+            String(ilkel.ilkelKimligi(bot)));
+    let can = 100;
+    bot.getComponent = (a) => a === "minecraft:health"
+      ? { get currentValue() { return can; }, effectiveMax: 2400,
+          setCurrentValue(v) { can = v; return true; } } : undefined;
+    const ef = [];
+    const kb = {
+      id: "kb", typeId: "minecraft:zombie", isValid: true,
+      location: { x: bot.location.x + 2, y: bot.location.y, z: bot.location.z },
+      addEffect(a) { ef.push(a); return true; },
+      applyDamage: () => true, teleport: () => true,
+      removeEffect: () => true, getComponent: () => undefined
+    };
+    D.boyut._varliklar = [bot, kb];
+    const once = D.sayac.dogan.length;
+    sus();
+    for (let i = 0; i < 4; i++) {
+      vurusTetikle({ damagingEntity: bot, hitEntity: kb });
+      tickIlerlet(15);
+    }
+    tickIlerlet(60);
+    ac();
+    kontrol("    ve yetenegi CALISIYOR",
+            ef.length > 0 || (D.sayac.dogan.length - once) > 0 || can > 100,
+            "efekt=" + ([...new Set(ef)].join(",") || "yok") +
+            " varlik=" + (D.sayac.dogan.length - once) + " can=" + can);
+  }
 }
 
 console.log("");

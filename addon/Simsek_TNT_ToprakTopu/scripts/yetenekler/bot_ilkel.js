@@ -10,7 +10,7 @@ import {
 import { asaVurusu, asaUnut } from "./asa.js";
 import { disleriCikar, dislerUnut } from "./disler.js";
 import {
-  ILKEL_ACIK, ILKEL_TAVAN, ILKEL_BESLI, ILKEL_ADLAR, ILKEL_OZELLIK,
+  ILKEL_ACIK, ILKEL_TAVAN, ILKEL_BESLI, ILKEL_ADLAR, ILKEL_OZELLIK, ILKEL_TURDEN,
   ILKEL_ISIN_ACIK, ILKEL_ISIN_KALINLIK, ILKEL_ISIN_ADIM, ILKEL_ISIN_TAVAN,
   ILKEL_AURA_OYUNCU, ILKEL_KORUMA, BOT_OLAY_SAVAS_AC,
   BOT_TAVAN, BOT_TARAMA, botTuruMu,
@@ -64,6 +64,30 @@ import {
    degistirmemek icin (v4.27'de bir kez eski dunyalar
    okunamaz olmustu).                                          */
 export function ilkelKimligi(varlik) {
+  /* ---- 1) TUR ADINDAN (v7.9.7) ----
+     Uyeler v4.35'ten beri AYRI varliklar: pa:okazor,
+     pa:miskel, pa:harkos, pa:raxxan, pa:kajaros. Yani turun
+     kendisi ZATEN kimlik ve okumak icin hicbir API cagrisi
+     gerekmiyor -- typeId her zaman var.
+
+     BU YOL ONCE DENENIYOR cunku eskiden TEK yol dinamik
+     ozellikti ve o yazma tutmayinca uyenin butun yetenekleri
+     sessizce oluyordu. Kullanici oyunda tam bunu gordu:
+     "uye vuruyor ama ozel bir sey olmuyor."                 */
+  try {
+    const tip = varlik.typeId;
+    if (typeof tip === "string") {
+      const a = ILKEL_TURDEN.get(tip);
+      if (a) return a;
+    }
+  } catch (e) {
+    /* typeId okunamadi (varlik gitmis olabilir): ozellige dus */
+  }
+
+  /* ---- 2) DINAMIK OZELLIK (yedek) ----
+     Tur eslesmezse hala ozellige bakiliyor: ileride bir uye
+     baska bir varliga bindirilirse ya da eski bir dunyada
+     tur adi degismisse yol acik kalsin.                     */
   try {
     if (typeof varlik.getDynamicProperty !== "function") return undefined;
     const a = varlik.getDynamicProperty(ILKEL_OZELLIK);

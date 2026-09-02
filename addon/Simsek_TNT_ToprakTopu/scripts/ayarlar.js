@@ -4948,6 +4948,23 @@ for (const t of ILKEL_BESLI.values()) {
   if (t.kimlik) BOT_KIMLIKLER.add(t.kimlik);
 }
 
+/* Varlik turu -> ilkel uye anahtari.  "pa:okazor" -> "okazor"
+
+   NEDEN VAR (v7.9.7): uyenin kimligi eskiden YALNIZCA varliga
+   yazilan bir dinamik ozellikte (simsek:ilkel) tutuluyordu.
+   O yazma tutmazsa ilkelKimligi() bos doner, bakim() ve
+   botVurdu() ilk satirinda cikar ve uyenin BUTUN yetenekleri
+   sessizce olur -- kullanicinin oyunda yasadigi tam buydu:
+   "uye vuruyor ama ozel bir sey olmuyor."
+
+   Oysa uyeler v4.35'ten beri AYRI VARLIKLAR. Turun kendisi
+   zaten kimlik; okumak icin hicbir API cagrisi gerekmiyor,
+   sadece typeId. Dinamik ozellik artik YEDEK.                */
+export const ILKEL_TURDEN = new Map();
+for (const [anahtar, t] of ILKEL_BESLI) {
+  if (t.kimlik) ILKEL_TURDEN.set(t.kimlik, anahtar);
+}
+
 export function botTuruMu(tip) {
   return BOT_KIMLIKLER.has(tip);
 }
