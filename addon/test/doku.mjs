@@ -133,7 +133,19 @@ for (const k of ["nitroksin", "hiperoksin"]) {
    kol_uret.py: GOZ_SATIR = 12, GOZ_SUTUNLAR = ((9,10),(13,14)) */
 const GOZ_SATIR = 12;
 const SOL = [9, 10], SAG = [13, 14];
-const OLCEK = 8;                 // kol_uret.py GOZ_OLCEK
+/* OLCEK kol_uret.py'den OKUNUYOR, elle yazilmiyor.
+
+   v7.13'te olcek 8'den 12'ye cikinca burasi dustu ve iyi ki
+   dustu -- ama sebebi gercek bir hata degil, BURADAKI kopyaydi.
+   Ayni sinif hata skin_uret.py'de yasanmisti: GOZ_SATIR elle
+   yazilinca iksir gozu iki satir havada kalmisti (v4.2, iki
+   surum surdu). Sayinin tek kaynagi ureteci. */
+const OLCEK = (() => {
+  const m = /^GOZ_OLCEK\s*=\s*(\d+)/m.exec(
+    readFileSync(KOK + "/kol_uret.py", "utf8"));
+  if (!m) { console.log("  ✗ kol_uret.py'de GOZ_OLCEK bulunamadi"); process.exit(1); }
+  return +m[1];
+})();
 const DOKU = 64 * OLCEK;
 
 const TUM_GOZLER = ["goz_beyaz", "goz_yesil", "goz_kirmizi", "goz_ates",

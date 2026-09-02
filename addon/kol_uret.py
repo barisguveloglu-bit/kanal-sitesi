@@ -102,7 +102,7 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # tureniyor -- ayrisabilecekleri bir yer kalmadi.
 #
 # YENI SURUM CIKARIRKEN: yalnizca asagidaki satiri degistir.
-SURUM_NO = (7, 12, 0)
+SURUM_NO = (7, 13, 0)
 
 SURUM_METIN = "%d.%d.%d" % SURUM_NO
 SURUM_ETIKET = "v" + SURUM_METIN
@@ -7299,14 +7299,31 @@ GOZ_SUTUNLAR = ((9, 10), (13, 14))
 #   OLCEK 8  -> 16 MB    su anki secim
 #   OLCEK 16 -> 67 MB    tablette riskli
 # ============================================================
-GOZ_OLCEK = 8
-GOZ_DOKU  = 64 * GOZ_OLCEK          # 512x512
+# v7.13: 8 -> 12. Kullanici "gorsel olarak sonuk kaliyor,
+# biraz daha ugras" dedi ve deneme render'larinda alev
+# dillerinin 8'de KOSELI kaldigi goruldu -- bir dilin tabani
+# ancak 1-2 alt piksel oluyordu, incelme kademesi yoktu.
+#   OLCEK  8 -> 512x512, 16 doku =  16 MB
+#   OLCEK 12 -> 768x768, 16 doku =  36 MB   <- su anki
+#   OLCEK 16 -> 1024x1024        =  67 MB   (dosyanin kendi
+#                                            notu: tablette riskli)
+# Depolama sorun degil (kullanicinin kurali: grafik detayindan
+# odun verme) ama EKRAN KARTI BELLEGI oyle degil; 12 ikisinin
+# arasinda duruyor.
+GOZ_OLCEK = 12
+GOZ_DOKU  = 64 * GOZ_OLCEK          # 768x768
 
 # Asagidakiler ALT PIKSEL cinsinden (1 Minecraft pikseli =
 # GOZ_OLCEK alt piksel). Oranlar referanstan olculdu:
 # cekirdegin ustunde ~1 MC piksel sacak, ~0.4 MC piksel hale.
-GOZ_HALE   = 5                      # halenin yariCapi
-GOZ_HALE_YATAY = 1.9                # hale yatayda bu kat DAHA DAR
+# Hale ve sacak OLCEK'e ORANTILI. Sabit sayi olsalardi
+# cozunurluk artinca goze gore KUCULURLERDI -- yani daha
+# detayli ama daha sonuk bir goz cikardi, tam tersi istendigi
+# halde.
+GOZ_HALE   = max(3, int(GOZ_OLCEK * 0.62))   # halenin yaricapi
+# 1.9 -> 2.6: OLCEK 12'de hale buyudu ve iki gozun arasini
+# doldurdu. Yatay daralma da onunla birlikte artmali.
+GOZ_HALE_YATAY = 2.6                # hale yatayda bu kat DAHA DAR
 GOZ_SACAK  = GOZ_OLCEK + 1          # en uzun sacagin boyu
 GOZ_SACAK_ADET = 5                  # goz basina sacak sayisi
 GOZ_KIVILCIM = 2                    # sacaklarin ustundeki kopuk zerre
@@ -7357,50 +7374,65 @@ def _kat(p, x, y, renk, alfa):
     p[(x, y)] = tuple(renk) + (alfa,)
 
 
+def _karis(a, b, o):
+    """Iki renk arasinda dogrusal gecis (o: 0..1)."""
+    o = 0.0 if o < 0 else (1.0 if o > 1 else o)
+    return tuple(int(round(a[i] + (b[i] - a[i]) * o)) for i in range(3))
+
+
 def _goz_govdesi(p, x0, x1, y0, y1, renk, tohum, guc=1.0):
-    """TEK bir gozu cizer: cekirdek + hale + yukselen sacaklar.
+    """TEK bir gozu cizer.
+
+    ---- v7.13: BASTAN CIZILDI ----
+    Kullanici: "iksirleri ictikten sonra gozlerde alev gibi bir
+    sey yaniyordu ya, onu daha detayli yap; diger guclere gore
+    biraz sonuk kaliyor gorsel olarak."
+
+    Hakliydi ve render'a bakinca sebebi tek tek goruldu:
+      1. Cekirdek DUZ bir levhaydi -- tek renk, ic yapi yok.
+         Yanan bir goz degil, renkli bir cikartma gibi duruyordu.
+      2. Sacaklar cekirdegin ustunde 1-2 alt piksellik CIKINTI
+         kadardi ve ayni renkte oldugu icin ust kenara
+         karisiyordu. Alev degil, tirtikli kenar.
+      3. Hale cok zayifti, altta skinin koyu pikselleri yiyordu.
+      4. Kivilcimlar KOPUK iki noktaydi -- alevle bagi yok,
+         toz gibi duruyordu.
+      5. Sicak merkez yoktu. Gercek bir alevde ic beyaza yakin,
+         renk KENARDA olur; burada her yer ayni tondaydi.
+
+    Simdiki katmanlar (asagidan yukari cizilme sirasi):
+        0 dis hale -> 1 cekirdek (radyal + dikey gecisli)
+        2 ic turbulans -> 3 alev dilleri (savrulan, sivri)
+        4 kor izi -> 5 alta sizan isik
 
     x0..x1 / y0..y1 ALT PIKSEL cinsinden cekirdegin siniri
-    (x1, y1 disarida). Referansin (best StarOxine mod) gozunun
-    piksel piksel cozulmus hali:
-
-        .##..##.     <- kopuk kivilcimlar
-        ###.###.     <- sacaklar
-        ###.####     <- CEKIRDEK
-        .#...#..     <- alta sizan isik
-
-    guc: lazer varyantinda 1'den buyuk -- sacaklar uzuyor,
-    hale genisliyor. Sekil ayni kaliyor ki iki varyant ayni
-    goz gibi dursun, farkli bir goz gibi degil.               """
+    (x1, y1 disarida).
+    guc: lazer varyantinda 1'den buyuk -- diller uzuyor, hale
+    genisliyor, merkez daha cok beyazliyor. Sekil ayni kaliyor
+    ki iki varyant ayni goz gibi dursun.                      """
     rast = _uretec(tohum)
-    # Ust kenar parlatmasi 0.45 iken KOYU renklerde (Kan
-    # Iksiri) gozun ortasindan gecen beyaz bir cizgi gibi
-    # duruyordu -- acik renklerde sorun yoktu, o yuzden
-    # once fark edilmedi. 0.26 her renkte "isik yukari
-    # tasiyor" hissini veriyor, cizgi olusturmuyor.
-    parlak = tuple(min(255, int(c + (255 - c) * 0.26)) for c in renk)
+    genis = x1 - x0
+    boy_c = y1 - y0
+    mx = (x0 + x1 - 1) / 2.0
+    my = (y0 + y1 - 1) / 2.0
 
-    # ---- 1. Cekirdek: tam opak, UST KENARI biraz daha parlak ----
-    # Isik yukari dogru tasiyor gibi dursun diye ust kenar
-    # parlatildi. Once ORTA sutun parlatilmisti; o, gozun tam
-    # ortasindan gecen dikey bir cizgi olarak goruluyordu.
-    for y in range(y0, y1):
-        ust = (y - y0) < max(1, (y1 - y0) // 8)
-        for x in range(x0, x1):
-            _kat(p, x, y, parlak if ust else renk, 255)
+    # Uc tonlu kademe: soguk kenar -> renk -> sicak merkez.
+    # Beyaza gitme orani GUCE bagli: lazer varyantinda merkez
+    # daha cok beyazlıyor, "sesi acilmis" hissi oradan geliyor.
+    # 0.52 fazlaydi: goz_ates ve lazer varyanti KREM RENGI
+    # cikiyordu, ates olduklari okunmuyordu (render, deneme 1).
+    # Renk kimligi cekirdekte kalmali, beyaz yalniz merkezde.
+    sicak = _karis(renk, (255, 255, 255), min(0.62, 0.34 * guc))
+    soguk = _karis(renk, (0, 0, 0), 0.30)
 
-    # ---- 2. Hale: cekirdege uzakligiyla sonen yumusak isik ----
-    # entity_alphablend olmadan bu tamamen kayboluyor (alpha
-    # test ara tonlari kesiyor) -- malzeme notuna bak.
-    #
-    # YATAYDA DAHA DAR (dx * GOZ_HALE_YATAY). Sebep: iki goz
-    # arasinda sadece 2 MC pikseli var (x=11,12). Daire seklinde
-    # bir hale o araligi dolduruyor ve iki goz TEK BIR VIZOR
-    # gibi gorunuyordu -- v4.18'de "gozluk gibi durdu" diye
-    # kaldirilan seyin aynisi. Yatayi kisaltinca aradaki bosluk
-    # aciliyor, isik yukari-asagi yayilmaya devam ediyor.
+    # ---- 0. DIS HALE ----
+    # Once ciziliyor ki ustune gelen her sey onu ezsin.
+    # YATAYDA DAHA DAR (GOZ_HALE_YATAY). Sebep: iki goz arasinda
+    # 2 MC pikseli var; daire hale o araligi doldurunca iki goz
+    # TEK BIR VIZOR gibi goruluyor -- v4.18'de "gozluk gibi
+    # durdu" diye kaldirilan seyin aynisi.
     yari = GOZ_HALE * guc
-    tara = int(yari) + 1
+    tara = int(yari) + 2
     for y in range(y0 - tara, y1 + tara):
         for x in range(x0 - tara, x1 + tara):
             if x0 <= x < x1 and y0 <= y < y1:
@@ -7410,52 +7442,154 @@ def _goz_govdesi(p, x0, x1, y0, y1, renk, tohum, guc=1.0):
             uzak = ((dx * GOZ_HALE_YATAY) ** 2 + dy * dy) ** 0.5
             if uzak > yari:
                 continue
-            _kat(p, x, y, renk, 200 * (1 - uzak / (yari + 1.0)) ** 1.7)
+            o = uzak / (yari + 1.0)
+            # Hale de renk kaymali: dibinde sicak, ucunda soguk.
+            # Tepe alfa 235 iken iki goz ARASI (x=11,12) 154'e
+            # cikiyordu ve doku.mjs'in "iki gozu birlestirmiyor"
+            # satiri dustu -- sinir 150. Bu, v4.18'de "gozluk
+            # gibi durdu" diye kaldirilan seyin ta kendisi.
+            # Tepe alfa dusuruldu; yayilim yukari-asagi devam
+            # ediyor cunku daralma yalniz YATAYDA.
+            _kat(p, x, y, _karis(sicak, soguk, o ** 0.7),
+                 200 * (1 - o) ** 1.7)
 
-    # ---- 3. Sacaklar: cekirdegin USTUNDEN yukselen diller ----
-    # Referansta gozun kimligini tasiyan kisim bu.
+    # ---- 1. CEKIRDEK: kimlik bandi + sicak tepe ----
     #
-    # Ilk denemede hepsi ayni kalinlikta ve esit arali cikti,
-    # CIT KAZIGI gibi duruyordu. Referansin sacaklari hem boyca
-    # hem kalinlikca farkli, bazilari dibinde birlesiyor. Uc sey
-    # degisken: yer, boy, taban kalinligi.
-    genis = x1 - x0
+    # ---- BURADA BIR GERILEME YASANDI, TEST YAKALADI ----
+    # Ilk yazimda cekirdegin TAMAMI merkezden kenara beyaza
+    # giden bir gecisti. doku.mjs dustu:
+    #   "goz_element sol goz cekirdegi olculen renkte
+    #    -> 92,230,255 != 56,225,255"
+    # Yani gozun rengi artik ictigin iksirin rengi DEGILDI.
+    # O renkler referans modlardan olculmustu; gozun kimligi o.
+    # Ayrica lazer varyanti da beyaza kaciyordu ("lazeri
+    # rengini koruyor" satiri, beyazlik 0.54 / 0.18).
+    #
+    # Cozum kural haline getirildi: cekirdegin ORTA BANDI
+    # iksirin rengidir, DOKUNULMAZ. Isi ve doku yalniz ust ve
+    # alt kenarda -- ki alev zaten tepeden cikiyor, orasi
+    # fiziksel olarak da daha sicak.
+    bant_ust = y0 + boy_c * 0.32
+    bant_alt = y1 - boy_c * 0.32
+    for y in range(y0, y1):
+        kimlik = bant_ust <= y < bant_alt
+        yukari = 1.0 - (y - y0) / max(1.0, boy_c - 1.0)   # 1 ust, 0 alt
+        # Banda uzaklik: gecis ani olmasin, kenara dogru acilsin.
+        d_bant = 0.0 if kimlik else (
+            (bant_ust - y) / max(1.0, boy_c * 0.32) if y < bant_ust
+            else (y - bant_alt + 1) / max(1.0, boy_c * 0.32))
+        for x in range(x0, x1):
+            if kimlik:
+                _kat(p, x, y, renk, 255)
+                continue
+            dxn = abs(x - mx) / max(1.0, genis / 2.0)
+            # Kenarlarda daha az isi: alev ORTADAN yukselir.
+            o = min(1.0, d_bant) * (1.0 - 0.45 * dxn)
+            hedef = sicak if yukari > 0.5 else soguk
+            _kat(p, x, y, _karis(renk, hedef, 0.55 * o), 255)
+
+    # ---- 2. IC TURBULANS ----
+    # Cekirdekte birkac koyu/parlak hucre: alev ic ice
+    # kivriliyor gibi dursun. Az sayida ve KUCUK -- fazlasi
+    # gozu kirli gosteriyor.
+    hucre = max(2, genis // 3)
+    for _ in range(hucre):
+        hx = x0 + rast(max(1, genis))
+        hy = y0 + rast(max(1, boy_c))
+        # Yaricap kucuk ve karisim zayif: deneme 1'de hucreler
+        # YUVARLAK NOKTA olarak goruluyordu (goz_element'te
+        # acikca). Doku olmali, benek degil.
+        r = 1 + rast(max(1, GOZ_OLCEK // 6))
+        koyu = rast(2) == 0
+        for yy in range(hy - r, hy + r + 1):
+            for xx in range(hx - r, hx + r + 1):
+                if not (x0 <= xx < x1 and y0 <= yy < y1):
+                    continue
+                # Kimlik bandi dokunulmaz (yukaridaki nota bak).
+                if bant_ust <= yy < bant_alt:
+                    continue
+                d = ((xx - hx) ** 2 + (yy - hy) ** 2) ** 0.5
+                if d > r:
+                    continue
+                o = 1.0 - d / (r + 0.001)
+                eski = p.get((xx, yy))
+                taban = eski[:3] if eski else renk
+                c = _karis(taban, soguk if koyu else sicak, 0.22 * o)
+                p[(xx, yy)] = tuple(c) + (255,)
+
+    # ---- 3. ALEV DILLERI ----
+    # Eski hali: esit arali, duz yukari, cekirdek renginde,
+    # GOZ_OLCEK+1 boyunda -- yani cekirdegin ustunde bir tirtik.
+    # Yenisi: daha uzun, SAVRULAN (her adimda yana kayiyor),
+    # sivrilen ve UCU BEYAZLASAN diller. Ortadakiler en uzun:
+    # alev ortadan yukselir, kenarlardan degil.
     for i in range(GOZ_SACAK_ADET):
-        # Esit dagit, sonra kaydir -- tamamen rastgele yer
-        # secmek bir yana kumelenip obur yani bos birakiyordu.
         sx = x0 + int((i + 0.5) * genis / GOZ_SACAK_ADET) + rast(3) - 1
         sx = max(x0, min(x1 - 1, sx))
-        boy = int(GOZ_SACAK * (0.35 + rast(70) / 100.0) * guc)
-        taban = 1 + (1 if rast(3) == 0 else 0)     # cogu ince, bazisi kalin
+        # Ortadan uzakliga gore kisalma: kenardaki diller kisa.
+        orta = 1.0 - abs(sx - mx) / max(1.0, genis / 2.0)
+        boy = int(GOZ_SACAK * guc * (0.55 + 1.05 * orta)
+                  * (0.75 + rast(50) / 100.0))
+        # ONDALIK birakiliyor: int() ile kirpilinca hem OLCEK 8
+        # hem 12 ayni "1" degerini veriyordu, yani cozunurluk
+        # artmasina ragmen diller INCELMIS gibi goruluyordu --
+        # deneme 3'te sac teli gibi ciktilar. Cizim zaten
+        # ondalik kalinlikla calisiyor (kalin/gk).
+        taban = GOZ_OLCEK * (0.15 + 0.11 * orta)
+        # 0.45 -> 0.28: fazla savrulan dil alev degil SAC TELI
+        # gibi okunuyordu (render, deneme 3).
+        savrul = (rast(3) - 1) * 0.28      # dilin egilme yonu
+        x_kay = 0.0
         for k in range(boy):
             y = y0 - 1 - k
-            oran = k / float(max(1, boy))
-            kalin = int(round(taban * (1 - oran)))
-            alfa = 255 * (1 - oran) ** 1.25
-            for dx in range(-kalin, kalin + 1):
-                # Sacaklar CEKIRDEGIN RENGINDE. Once uclari
-                # parlatilmisti ve hepsi beyazimsi cikiyordu --
-                # referansta sacaklar cekirdekle ayni renkte,
-                # sadece incelip saydamlasiyorlar.
-                _kat(p, sx + dx, y, renk, alfa)
+            o = k / float(max(1, boy))
+            x_kay += savrul * (0.25 + o)    # yukari ciktikca daha cok savrul
+            kalin = taban * (1.0 - o) ** 0.8
+            # Uc beyazlasiyor: alevin sicak ucu.
+            c = _karis(renk, sicak, o ** 1.4)
+            alfa = 255 * (1 - o) ** 1.15
+            gk = int(round(kalin))
+            for dx in range(-gk, gk + 1):
+                kenar = abs(dx) / (kalin + 0.001)
+                _kat(p, int(round(sx + x_kay)) + dx, y,
+                     _karis(c, soguk, 0.35 * kenar),
+                     alfa * (1 - 0.45 * kenar))
 
-    # ---- 4. Kivilcimlar: sacaklardan kopmus zerreler ----
-    for _ in range(GOZ_KIVILCIM):
+    # ---- 4. KOR IZI ----
+    # Eski hali iki kopuk noktaydi ve toz gibi duruyordu.
+    # Yenisi: dillerin devami gibi yukari suzulen, kuculerek
+    # sonen zerreler. Ayni sutunda basliyorlar ki alevden
+    # KOPMUS olduklari okunsun.
+    # Deneme 1'de zerreler GOZ_OLCEK//10 yaricapli DOLU
+    # dairelerdi ve patlamis misir gibi duruyordu. Kivilcim
+    # tek alt piksel olmali; cokluk sayida gelir, buyuklukten
+    # degil. Sayi artti, boyut 1'e indi, alfa dustu.
+    # *4 fazlaydi: korlar gozun ustunde KAR TANESI gibi bir
+    # tabaka olusturuyordu (render, deneme 2). Kivilcim seyrek
+    # olur; cokluk hissi yukselerek SONMEKTEN gelir.
+    for _ in range(GOZ_KIVILCIM * 2):
         kx = x0 + rast(max(1, genis))
-        ky = y0 - int(GOZ_SACAK * guc) - rast(max(1, GOZ_OLCEK // 2))
-        _kat(p, kx, ky, renk, 200)
-        if GOZ_OLCEK >= 8:
-            _kat(p, kx + 1, ky, renk, 130)
+        ky = y0 - int(GOZ_SACAK * guc * 0.75) - rast(max(1, GOZ_OLCEK))
+        n = 2 + rast(4)
+        for j in range(n):
+            yy = ky - j * max(1, GOZ_OLCEK // 3) - rast(2)
+            xx = kx + (rast(3) - 1)
+            _kat(p, xx, yy, _karis(sicak, renk, j / float(n)),
+                 150 * (1 - j / float(n + 0.6)) ** 2.2)
 
-    # ---- 5. Alta sizan isik ----
-    # Referansta da var. Neden asagi: goz satirinin USTU bizim
-    # skinimizde sac (y=11), isik orada kayboluyor; ALTI duz
-    # ten (y=13), isik orada gorunuyor.
-    derin = max(1, int(GOZ_OLCEK * 0.4 * guc))
+    # ---- 5. ALTA SIZAN ISIK ----
+    # Neden asagi: goz satirinin USTU bizim skinimizde sac
+    # (y=11), isik orada kayboluyor; ALTI duz ten (y=13).
+    # v7.13'te derinlesti ve KENARLARI daralan bir huzme oldu --
+    # eskisi duz bir serit halinde "lekelenmis" duruyordu.
+    derin = max(2, int(GOZ_OLCEK * 0.85 * guc))
     for y in range(y1, y1 + derin):
-        oran = (y - y1) / float(derin)
-        for x in range(x0 + 1, x1 - 1):
-            _kat(p, x, y, renk, 150 * (1 - oran) ** 1.5)
+        o = (y - y1) / float(derin)
+        daralt = int(round(o * genis * 0.28))
+        for x in range(x0 + daralt, x1 - daralt):
+            kenar = abs(x - mx) / max(1.0, genis / 2.0)
+            _kat(p, x, y, _karis(renk, soguk, 0.25 + 0.35 * o),
+                 170 * (1 - o) ** 1.35 * (1 - 0.4 * kenar))
 
 
 def _goz_ciz(gozRenk, tohum, guc=1.0):

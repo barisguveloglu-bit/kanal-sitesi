@@ -1,3 +1,100 @@
+# v7.13.0 — İksir gözü baştan çizildi
+
+Kullanıcı: *"iksirleri içtikten sonra gözlerde alev gibi bir şey yanıyordu ya,
+onu daha detaylı yap... diğer güçlere göre biraz sönük kalıyor görsel olarak."*
+Sonra da: *"yapabildiğin en detaylı iksir içilmiş gözü... dışarıdan bakıldığında
+'bu adam ne' denilsin, ama bu süreçte de hata yapmamaya dikkat et."*
+
+Haklıydı ve render'a bakınca sebebi tek tek görüldü:
+
+1. **Çekirdek düz bir levhaydı** — tek renk, iç yapı yok. Yanan bir göz değil,
+   renkli bir çıkartma gibi duruyordu.
+2. **Saçaklar 1-2 alt piksellik çıkıntıydı** ve aynı renkte oldukları için üst
+   kenara karışıyorlardı. Alev değil, tırtıklı kenar.
+3. **Hale çok zayıftı**, altta skinin koyu pikselleri yiyordu.
+4. **Kıvılcımlar kopuk iki noktaydı** — alevle bağı yok, toz gibi.
+5. **Sıcak merkez yoktu.** Gerçek bir alevde iç beyaza yakın, renk kenardadır.
+
+## Yeni katmanlar
+
+`dış hale → çekirdek (kimlik bandı + sıcak tepe) → iç türbülans →
+alev dilleri (savrulan, ucu beyazlaşan) → kor izi → alta sızan huzme`
+
+Çözünürlük **8 → 12** (512² → 768²). Hale ve saçak boyu artık ölçeğe
+**orantılı** — sabit sayı olsalardı çözünürlük artınca göze göre küçülürlerdi,
+yani "daha detaylı ama daha sönük" bir göz çıkardı.
+
+## Testler üç gerçek gerilemeyi yakaladı
+
+Bunlar benim yeni çizimimin kırdığı **ölçülmüş güvencelerdi**:
+
+| düşen satır | ne olmuştu |
+|---|---|
+| `goz_element sol göz çekirdeği ölçülen renkte` | `92,230,255 != 56,225,255` — gözün rengi artık **içtiğin iksirin rengi değildi**. O renkler referans modlardan ölçülmüştü, gözün kimliği o. |
+| `iki gözü birleştirmiyor` | boşluk alfası 154 (sınır 150). İki göz **tek bir vizör** gibi birleşiyordu — v4.18'de *"gözlük gibi durdu"* diye kaldırılan şeyin aynısı. |
+| `lazeri rengini koruyor` | beyazlık 0.54 / 0.18 — bütün iksirlerin lazeri aynı kreme dönüyordu. |
+
+Üçü de düzeltildi ve düzeltme bir **kurala** dönüştü:
+
+> **Çekirdeğin orta bandı iksirin rengidir, dokunulmaz.** Isı ve doku yalnız üst
+> ve alt kenarda — ki alev zaten tepeden çıkıyor, orası fiziksel olarak da daha
+> sıcak.
+
+Testi gevşetmedim; çizimi kurala uydurdum.
+
+## `doku.mjs`'te bir kopya vardı
+
+Ölçek 8'den 12'ye çıkınca `doku.mjs` düştü — ama sebebi gerçek bir hata değil,
+**oradaki elle yazılmış `const OLCEK = 8`**'di. Artık `kol_uret.py`'den
+okunuyor. Aynı sınıf hata `skin_uret.py`'de yaşanmıştı: `GOZ_SATIR` elle
+yazılınca iksir gözü iki satır havada kalmıştı (v4.2, iki sürüm sürdü).
+
+## Dört render, üçü yanlıştı
+
+| deneme | render ne gösterdi |
+|---|---|
+| 1 | Kor izleri **patlamış mısır** gibi dolu daireler; merkez krem rengine kaçtı, ateş olduğu okunmuyordu |
+| 2 | Korlar **kar tanesi tabakası** gibi yoğundu |
+| 3 | Diller **saç teli** gibi inceldi — `int()` kırpması yüzünden ölçek 8 ve 12 aynı "1" kalınlığı veriyordu |
+| 4-5 | Oturdu |
+
+## Animasyon: ölçüldü, **yapılmadı** — sebebi rakamlarda
+
+Asıl "bu adam ne" dedirtecek şey hareket. Bedrock'ta yolu var: render
+controller'da `Array.textures` + molang indeksi (`math.floor(query.life_time * N)`);
+pozitif indeksler dizi boyunca **kendiliğinden sarıyor**.
+
+Ama bellek matematiği yolu kapatıyor. Doku ölçüldü:
+
+```
+768x768 = 589.824 piksel  ·  boyalı: 1.721  (%0,29)
+İSRAF: %99,71
+```
+
+Göz kaplaması, skinle aynı düzende **tam boy** bir doku ama sadece göz bölgesi
+boyalı. Bu düzende animasyon:
+
+| kare | bellek |
+|---|---|
+| bugün (0 kare) | 36 MB |
+| 4 kare | **144 MB** |
+| 8 kare | **288 MB** |
+
+Tablette kabul edilemez. **Çözüm belli ama yapısal:** göz kaplaması kendi küçük
+UV'sine taşınırsa (256×128 saf göz sanatı) 8 kare **16 MB** eder — yani
+bugünkünden *daha ucuz*, hem de daha yüksek çözünürlükte.
+
+**Yapılmadı** çünkü bu, göz geometrisinin UV'sini değiştirmek demek ve v4.2'de
+tam orada iki sürüm süren sessiz bir hata yaşandı. Kullanıcı bu turda
+*"hata yapmamaya dikkat et"* dedi; doğrulaması tablette olan yapısal bir
+değişikliği oturumun sonunda körlemesine yapmak o cümleye aykırı olurdu.
+
+**Riski düşüren yol var ve kayıtlı:** mevcut kaplamaya dokunmadan, üstüne
+**ikinci bir animasyonlu katman** eklenir. Yanlış hizalanırsa göz yine
+çalışır — sadece alevler kayar ve düzeltilir. Karar kullanıcının.
+
+---
+
 # v7.12.0 — Bobby1545'in Kanlı Kolu + Ucube Dünya dosyası
 
 Kullanıcı: *"sadece chris1545'in kanlı kolu var, Bobby1545'inde kanlı kolu
