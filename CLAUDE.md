@@ -21,14 +21,33 @@ yapmadan önce o dosyayı oku — karakterler, güçler ve efsane orada tanıml�
 - İçerik değişince `LORE.md` ile `data.js` senkron kalmalı.
 - Arayüz metinleri **Türkçe**.
 - Kod içindeki değişken ve fonksiyon isimleri de Türkçe (mevcut düzene uy).
-- **Sitede hiç kullanıcı verisi toplanmıyor.** Form yok, giriş yok, çerez yok.
+- **Sitede hiç kullanıcı verisi toplanmıyor.** Form yok, giriş yok, çerez yok,
+  sunucu yok, analitik yok, dış servise giden hiçbir istek yok.
   Soru-cevap YouTube yorumlarında yapılıyor; site sadece oraya yönlendiriyor.
   Buraya backend eklemeden önce iki kez düşün — sadeliği bilinçli bir tercih.
 
+  **Tek istisna ve neden istisna:** `app.js` spoiler kapaklarının açık/kapalı
+  hâlini `localStorage`'da tutuyor (`tercihOku` / `tercihYaz`). Bu *veri
+  toplama değil*: hiçbir şey ziyaretçinin tarayıcısından çıkmıyor, kimse
+  okuyamıyor, çerez başlığı gönderilmiyor. Olmasaydı okuduğun her spoiler
+  sayfayı yenileyince yeniden kapanırdı. İkisi de `try/catch` içinde, çünkü
+  gizli sekmede `localStorage` erişimi istisna atıyor.
+  Sınır şu: **ziyaretçinin kendi tarayıcısında kalan bir tercih serbest,
+  ziyaretçi hakkında toplanan bir bilgi değil.**
+
 ## Bekleyen işler
 
-`LORE.md` dosyasının sonundaki "Açık Uçlar" bölümüne bak — irade kademelerinin
-son hâli, derebeyi isimleri ve zaman çizelgesi henüz netleşmedi.
+Burada eskiden `LORE.md`'nin sonundaki "Açık Uçlar" bölümü gösteriliyordu.
+**O bölüm artık yok** (adı "9. Kapatılan Diğer Uçlar" olmuş) ve orada bekleyen
+üç konunun ikisi kapanmış. v7.9.3 taramasında tek tek bakıldı:
+
+- **İrade kademeleri — kapandı.** Beş kademe hem `LORE.md` "3. İrade Sistemi"
+  bölümünde hem `data.js` içindeki `IRADE_KADEMELERI` listesinde ve ikisi
+  birbiriyle uyumlu: Kırılgan · Zayıf · Dirençli · Güçlü · Kanlı Göz İradesi.
+- **Derebeyi isimleri — kapandı.** Üç komutan (Nemesis · Teşup · Ahriman) ve
+  `IL_DEREBEYLERI` listesindeki 81 ilin 81'i de adlandırılmış, boş kayıt yok.
+- **Zaman çizelgesi — HÂLÂ AÇIK.** Ne `LORE.md`'de ne `data.js`'te bir
+  kronoloji var. Olayların sırası hiçbir yerde yazılı değil.
 
 ## Denetim sonrası eklenen kurallar
 

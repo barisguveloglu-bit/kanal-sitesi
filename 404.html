@@ -6,7 +6,7 @@
   <meta name="robots" content="noindex">
   <title>Kayıt bulunamadı — Kanlı Göz</title>
   <meta name="theme-color" content="#0a0a0c">
-  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/kanal-sitesi/assets/favicon.svg" type="image/svg+xml">
   <!--
     Bu sayfanın stili bilerek dosyanın içinde.
     404, sitede olmayan HERHANGİ bir adreste açılabiliyor; dışarıdan
@@ -53,6 +53,18 @@
     a:focus-visible, .dugme:focus-visible {
       outline:2px solid var(--kan-parlak); outline-offset:2px;
     }
+    /* Tam menu. Diger sayfalardaki <nav class="menu"> ile ayni
+       baglantilar; stili burada cunku bu dosya bilerek kendi
+       kendine yetiyor (yukaridaki nota bak). */
+    nav.menu {
+      display:flex; flex-wrap:wrap; gap:6px 18px; justify-content:center;
+      margin-top:32px; padding-top:22px; border-top:1px solid var(--line);
+    }
+    nav.menu a {
+      color:var(--text-3); text-decoration:none; font-size:.86rem;
+      transition:color .18s;
+    }
+    nav.menu a:hover { color:var(--text); }
     @media (prefers-reduced-motion: reduce) { * { animation:none !important; transition:none !important; } }
   </style>
 </head>
@@ -65,11 +77,35 @@
       Aradığın kayıt silinmiş, adı değişmiş ya da adres yanlış yazılmış olabilir.
       Arşivin girişinden devam edebilirsin.
     </p>
+    <!--
+      YOLLAR KÖK-MUTLAK, göreli değil.
+      Bu sayfa sitede olmayan HERHANGİ bir adreste açılıyor. Bağlantılar
+      göreli olsaydı, 404 iç bir adreste (örn. /kanal-sitesi/eski/yok.html)
+      açıldığında "index.html" o klasörde aranır ve o da 404 verirdi —
+      yani kaçış yolu olmazdı. Site kökü /kanal-sitesi/ (canonical ve
+      sitemap.xml de bunu söylüyor); özel alan adı yok.
+    -->
     <div class="dugmeler">
-      <a class="dugme birincil" href="index.html">Arşive dön</a>
-      <a class="dugme" href="karakterler.html">Karakterler</a>
-      <a class="dugme" href="efsane.html">Efsane</a>
+      <a class="dugme birincil" href="/kanal-sitesi/">Arşive dön</a>
+      <a class="dugme" href="/kanal-sitesi/karakterler.html">Karakterler</a>
+      <a class="dugme" href="/kanal-sitesi/efsane.html">Efsane</a>
     </div>
+
+    <!--
+      TAM MENÜ. Önce yalnızca üstteki üç düğme vardı; buradan
+      irade / mafya / icraatler / soru-cevap sayfalarına geçilemiyordu.
+      CLAUDE.md kuralı: menü her HTML'de elle yazılı, yeni sayfa
+      eklenince BURASI da güncellenecek.
+    -->
+    <nav class="menu" aria-label="Site menüsü">
+      <a href="/kanal-sitesi/">Ana Sayfa</a>
+      <a href="/kanal-sitesi/karakterler.html">Karakterler</a>
+      <a href="/kanal-sitesi/irade.html">İrade Sistemi</a>
+      <a href="/kanal-sitesi/efsane.html">Kanlı Göz Efsanesi</a>
+      <a href="/kanal-sitesi/mafya.html">Mafya Haritası</a>
+      <a href="/kanal-sitesi/icraatler.html">İcraatler</a>
+      <a href="/kanal-sitesi/soru-cevap.html">Soru &amp; Cevap</a>
+    </nav>
   </main>
 </body>
 </html>
