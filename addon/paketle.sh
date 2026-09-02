@@ -78,7 +78,25 @@ rm -f "$K"/*_v3.mcpack "$K"/Simsek_TNT_v3.mcaddon
 (cd "$K" && zip -r -X "$K/Simsek_$S.mcaddon" "$BP" "$RP" "$SK" "$OM" >/dev/null)
 
 echo "Olusturuldu:"
+echo "  KUR:  Simsek_$S.mcaddon   <-- normalde SADECE bunu kur"
 for f in "Simsek_${S}_Mod.mcpack" "Simsek_${S}_Gorunum.mcpack" "Simsek_${S}_Skin.mcpack" \
          "Simsek_${S}_OyuncuModeli.mcpack" "Simsek_$S.mcaddon"; do
   echo "  $f  ($(du -h "$K/$f" | cut -f1))"
 done
+echo
+# ---- KOPYA UYARISI  (v7.10.0) ----
+# Kullanici oyunda "skin gorunumleri kopya saptandi" uyarisi
+# aldi. Sebebi olculdu: .mcaddon dort paketi de tasiyor, yani
+# skin paketi ONUN ICINDE de var; tek basina uretilen
+# Simsek_..._Skin.mcpack ile UUID'leri ve surumu BIREBIR AYNI
+# (45f22ff1-... / 8333e7a8-...). Ikisi birden ice aktarilinca
+# oyun ayni paketi iki kez kuruyor ve kopya diyor.
+#
+# UUID'lerin sabit olmasi kasitli (bkz. kol_uret.py
+# SKIN_UUID_BAS): her uretimde degisseydi giyinme odasinda her
+# surumden bir kopya birikirdi. Yani cozum UUID degistirmek
+# degil, DOGRU DOSYAYI kurmak.
+echo "DIKKAT: .mcaddon skin paketini de iceriyor."
+echo "  Ikisini birden kurma -> oyun 'kopya' der (ayni UUID)."
+echo "  Sadece skini isteyen Simsek_${S}_Skin.mcpack'i kurar."
+echo "  Yeni surumden once ESKI surumun paketlerini sil."
