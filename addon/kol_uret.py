@@ -102,7 +102,7 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # tureniyor -- ayrisabilecekleri bir yer kalmadi.
 #
 # YENI SURUM CIKARIRKEN: yalnizca asagidaki satiri degistir.
-SURUM_NO = (7, 11, 0)
+SURUM_NO = (7, 12, 0)
 
 SURUM_METIN = "%d.%d.%d" % SURUM_NO
 SURUM_ETIKET = "v" + SURUM_METIN
@@ -198,6 +198,11 @@ KOLLAR = [
     # bir TAS BLOGU, kol dokusu degil (bkz.
     # REFERANS_BORALO_KOL_V2.md).
     ("kol_anna",   "can_ver",          "Anna Kolu",             (105, 145, 144), (150, 108, 74)),
+    # BOBBY KANLI KOL (v7.12). Renkler yer tutucu -- model de
+    # doku da kaynaktan geliyor, uretilen doku hemen eziliyor.
+    # Yine de dogru olculer: kaynagin (Bobby1545 Mod V3) kendi
+    # paletinden, turuncu et #E58D3F ve pihti #390808.
+    ("kol_kanli_bobby", "ors",          "Bobby Kanli Kol",       (57, 8, 8),      (229, 141, 63)),
 ]
 
 # Turkce gorunen adlar (dil dosyasi icin; JSON'da ASCII tutuluyor)
@@ -210,6 +215,7 @@ TR_AD = {
     "kol_gunes":  "Güneş Kolu",
     "kol_kanli":  "Kanlı Kol",
     "kol_anna":   "Anna Kolu",
+    "kol_kanli_bobby": "Bobby Kanlı Kol",
 }
 
 # BEKLEME = 60 tick = 3 sn. Esya beklemesi bununla ayni tutuluyor ki
@@ -5952,6 +5958,39 @@ KANLI_GEO_DOSYA = "kns_kolluk_chris_kanli.geo.json"
 # ve atilan kemiklerde donus OLMADIGI icin durus hic degismiyor.
 KANLI_ATILAN = ("waist", "body")
 
+# ---- BOBBY1545'IN KANLI KOLU  (v7.12) ----
+# Kullanici: "sadece chris1545'in kanli kolu var, Bobby1545'in
+# de kanli kolu vardi, hatirlarsan, onu da ekle."
+#
+# Hakli ve dosya bunu dogruluyor: `kns_kolluk_bobby_kanli`
+# v6.2'den beri depoda duruyor (Code-Man paketi,
+# `bobby1545s_red_bloody_arms`) ama yalnizca gogus yuvasina
+# takilan bir SUS esyasi olarak. v6.7'de Kanli Kol'un modeli
+# oydu; v7.3'te model chris'e gecti ve Bobby'nin kolu
+# gorunumden ibaret kaldi.
+#
+# ---- BUGUNKU DURUMUN OLCUMU ----
+# Su anki "Kanli Kol" aslinda bir MELEZ: yetenekleri
+# Bobby1545 Mod V3'ten (kollar.js'te yaziyor), modeli ve dokusu
+# chris1545'ten. Yani Bobby'nin kolu eksik degildi -- ikiye
+# bolunmustu. Bu surum onu geri topluyor: kendi modeli, kendi
+# dokusu, kendi yetenek seti.
+#
+# Iki modelin ISKELETI AYNI (olculdu):
+#   bobby : waist -> body -> rightArm -> bone  (16 kup) 64x64
+#   chris : waist -> body -> rightArm -> bone  (33 kup) 32x32
+# Yani ayni donusturucu ikisinde de calisiyor.
+KANLI_BOBBY_GEO_DOSYA = "kns_kolluk_bobby_kanli.geo.json"
+KANLI_BOBBY_DOKU_DOSYA = "kns_kolluk_bobby_kanli.png"
+KANLI_BOBBY_IKON_DOSYA = os.path.join("konsey_ikon",
+                                      "kns_kolluk_bobby_kanli.png")
+# Bobby'nin kolu UZATILMIYOR. Omurga uzatmasi (KANLI_UZATMA ve
+# arkadaslari) chris'in ZINCIR BAKLALI omurgasi olculerek
+# hesaplandi; Bobby'ninki duz kollarin ucunda yumruk. Ayni
+# sayilari ona uygulamak, olculmemis bir seyi olculmus gibi
+# gostermek olurdu.
+KANLI_BOBBY_UZAT = False
+
 # ---- OMURGA UZATMA  (v7.5) ----
 # Kullanici: "chris kolunu birazcik daha uzat, omurgasini
 # birazcik daha uzat, bir tik kisa oldu gibi."
@@ -5996,22 +6035,31 @@ def kanli_omurgayi_uzat(kemikler, k=None):
     return kemikler
 
 
-def kanli_geometrisi():
-    """Chris'in kanli kol modelini `geometry.simsek_kol_kanli` yapar.
+def kanli_geometrisi(dosya=None, kimlik="geometry.simsek_kol_kanli",
+                    uzat=True, ad="Kanli Kol"):
+    """Kanli kol modelini oyuncu koluna baglanacak hale getirir.
 
     Kupsuz ve donussuz ust kemikler (waist/body) atilir, kol
     kemikleri koke cikar. Atilacak kemikte KUP ya da DONUS
-    varsa is iptal: sessizce geometri kaybetmektense Kanli Kol
-    hic uretilmesin, temizlik adimi eksigi zaten bagirir.     """
-    kaynak = os.path.join(KANLI_GEO_KAYNAK, KANLI_GEO_DOSYA)
+    varsa is iptal: sessizce geometri kaybetmektense kol
+    hic uretilmesin, temizlik adimi eksigi zaten bagirir.
+
+    v7.12'de PARAMETRELESTI: iki kanli kol var (chris ve
+    bobby) ve iskeletleri ayni. Ikinci bir kopya yazilsaydi
+    biri duzelip oteki bozulurdu.
+      dosya  : kaynak .geo.json (varsayilan chris)
+      kimlik : uretilen geometri adi
+      uzat   : omurga uzatmasi uygulansin mi -- YALNIZ chris
+               icin olculdu, bkz. KANLI_BOBBY_UZAT              """
+    kaynak = os.path.join(KANLI_GEO_KAYNAK, dosya or KANLI_GEO_DOSYA)
     if not os.path.exists(kaynak):
-        print("UYARI: Kanli Kol modeli yok (%s)" % kaynak)
+        print("UYARI: %s modeli yok (%s)" % (ad, kaynak))
         return None
     with open(kaynak, encoding="utf-8") as f:
         ham = json.load(f)
     govde = (ham.get("minecraft:geometry") or [None])[0]
     if not isinstance(govde, dict):
-        print("UYARI: Kanli Kol modelinde geometri govdesi yok")
+        print("UYARI: %s modelinde geometri govdesi yok" % ad)
         return None
     kemikler = [dict(k) for k in govde.get("bones", [])]
     atilacak = set()
@@ -6019,8 +6067,8 @@ def kanli_geometrisi():
         if k.get("name") not in KANLI_ATILAN:
             continue
         if k.get("cubes") or k.get("rotation"):
-            print("UYARI: Kanli Kol'da '%s' kemigi bos degil, model "
-                  "atlandi" % k.get("name"))
+            print("UYARI: %s'da '%s' kemigi bos degil, model "
+                  "atlandi" % (ad, k.get("name")))
             return None
         atilacak.add(k["name"])
     kalan = []
@@ -6031,16 +6079,16 @@ def kanli_geometrisi():
             k.pop("parent", None)          # kok kemik: oyuncu koluna esler
         kalan.append(k)
     if not any(k.get("name") in ("rightArm", "leftArm") for k in kalan):
-        print("UYARI: Kanli Kol'da kol kok kemigi yok, model atlandi")
+        print("UYARI: %s'da kol kok kemigi yok, model atlandi" % ad)
         return None
-    kalan = kanli_omurgayi_uzat(kalan)
+    kalan = kanli_omurgayi_uzat(kalan, None if uzat else 1.0)
     tanim = govde.get("description", {})
     return {
         "format_version": "1.12.0",
         "minecraft:geometry": [
             {
                 "description": {
-                    "identifier": "geometry.simsek_kol_kanli",
+                    "identifier": kimlik,
                     # Doku 256x256 ama uv uzayi 32x32: kaynak
                     # sekiz kat cozunurlukte cizmis. Bu ikisi
                     # kaynaktan OLDUGU GIBI gelmeli, yoksa
@@ -7598,8 +7646,11 @@ def main():
         yaz_json(os.path.join(BP, "items", kimlik + ".json"), esya(kimlik, ad))
         # Kanli Kol'un kendi geometrisi var (dikenler); digerleri
         # geometry.simsek_kol'u paylasiyor.
-        _geo = ("geometry.simsek_kol_kanli" if kimlik == "kol_kanli"
-                else "geometry.simsek_kol")
+        # Iki kanli kolun da KENDI geometrisi var (dikenler /
+        # yumruklar); digerleri geometry.simsek_kol'u paylasiyor.
+        _geo = {"kol_kanli": "geometry.simsek_kol_kanli",
+                "kol_kanli_bobby": "geometry.simsek_kol_kanli_bobby"}.get(
+                    kimlik, "geometry.simsek_kol")
         yaz_json(os.path.join(RP, "attachables", kimlik + ".json"),
                  attachable(kimlik, _geo))
 
@@ -7620,12 +7671,24 @@ def main():
         if kimlik == "kol_kanli":
             kanli_dokusu_kopyala(os.path.join(RP, "textures/entity",
                                               kimlik + ".png"))
+        elif kimlik == "kol_kanli_bobby":
+            # Bobby'nin dokusu da KAYNAGIN kendi dokusu: model
+            # onun modeli, uv'ler o dokuyu bekliyor. Chris'in
+            # dokusu buraya konsaydi yumruklar dokunun bos
+            # kosesinden ornekleneceginden duz renk cikardi.
+            kaynak_doku_kopyala(
+                os.path.join("konsey", KANLI_BOBBY_DOKU_DOSYA),
+                os.path.join(RP, "textures/entity", kimlik + ".png"))
         # Kanli Kol'un ikonu kaynagin KENDI ikonu (kirmizi capraz
         # diken). Uretilen ikon kolun on yuzunden turuyor ve
         # cizdirilince siyah bir zeminde tek kirmizi cizgi
         # cikiyordu -- envanterde neye baktigini anlamak zordu.
         if kimlik == "kol_kanli":
             kaynak_doku_kopyala(KANLI_IKON_DOSYA,
+                                os.path.join(RP, "textures/item",
+                                             kimlik + ".png"))
+        elif kimlik == "kol_kanli_bobby":
+            kaynak_doku_kopyala(KANLI_BOBBY_IKON_DOSYA,
                                 os.path.join(RP, "textures/item",
                                              kimlik + ".png"))
 
@@ -8487,6 +8550,15 @@ def main():
     if _kanli_geo is not None:
         yaz_json(os.path.join(RP, "models/entity/simsek_kol_kanli.geo.json"),
                  _kanli_geo)
+    # Bobby'nin kolu: ayni donusturucu, baska kaynak, UZATMA YOK.
+    _bobby_geo = kanli_geometrisi(KANLI_BOBBY_GEO_DOSYA,
+                                  "geometry.simsek_kol_kanli_bobby",
+                                  uzat=KANLI_BOBBY_UZAT,
+                                  ad="Bobby Kanli Kol")
+    if _bobby_geo is not None:
+        yaz_json(os.path.join(RP,
+                              "models/entity/simsek_kol_kanli_bobby.geo.json"),
+                 _bobby_geo)
     yaz_json(os.path.join(RP, "animations/goz_lazeri.animation.json"),
              lazer_animasyonu())
     if LAZER_ISIN_PARLAK:

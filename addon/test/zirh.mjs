@@ -556,8 +556,8 @@ console.log("=== 7. ULASILABILIYOR MU ===");
      "yeni kol sessizce eklenmesin".
      Anna kol israfi degil: tek yetenegi (can_ver) BASKASINI
      iyilestiriyor ve depoda bunu yapan baska hicbir sey yok.  */
-kontrol("izinsiz kol acilmadi (8 kol)",
-          (uretec.match(/^\s*\("kol_\w+",/gm) || []).length === 8);
+kontrol("izinsiz kol acilmadi (9 kol)",
+          (uretec.match(/^\s*\("kol_\w+",/gm) || []).length === 9);
 
   for (const dosya of ["en_US.lang", "tr_TR.lang"]) {
     const metin = readFileSync(RP + "/texts/" + dosya, "utf8");

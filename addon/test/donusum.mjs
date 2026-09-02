@@ -455,8 +455,8 @@ console.log("=== 8. ULASILABILIYOR MU ===");
      "yeni kol sessizce eklenmesin".
      Anna kol israfi degil: tek yetenegi (can_ver) BASKASINI
      iyilestiriyor ve depoda bunu yapan baska hicbir sey yok.  */
-kontrol("izinsiz kol acilmadi (8 kol)",
-          (uretec.match(/^\s*\("kol_\w+",/gm) || []).length === 8);
+kontrol("izinsiz kol acilmadi (9 kol)",
+          (uretec.match(/^\s*\("kol_\w+",/gm) || []).length === 9);
 }
 
 console.log("");

@@ -19,6 +19,11 @@ yapmadan önce o dosyayı oku — karakterler, güçler ve efsane orada tanıml�
 
 - Yeni karakter/güç/kademe eklerken **HTML'e dokunma** — `data.js` yeterli.
 - İçerik değişince `LORE.md` ile `data.js` senkron kalmalı.
+  **Tek istisna: `LORE.md`'nin sonundaki `EK-A · UCUBE DÜNYA DOSYASI`.**
+  Orası sitenin kurgusu değil — eklentideki *Uzak Akraba* karakterinin
+  Minecraft Creepypasta wiki'sinden gelen hikayesi, kaynak bağlantılarıyla.
+  `data.js`'e **bilerek** yansıtılmıyor ve sitede görünmüyor; iki evrenin
+  karışmaması için ayrı tutuluyor. Senkron kuralı 1–9 arası bölümler için.
 - Arayüz metinleri **Türkçe**.
 - Kod içindeki değişken ve fonksiyon isimleri de Türkçe (mevcut düzene uy).
 - **Sitede hiç kullanıcı verisi toplanmıyor.** Form yok, giriş yok, çerez yok,

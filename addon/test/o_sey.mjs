@@ -372,7 +372,7 @@ console.log("=== 8. ULASILABILIYOR MU ===");
      "yeni kol sessizce eklenmesin".
      Anna kol israfi degil: tek yetenegi (can_ver) BASKASINI
      iyilestiriyor ve depoda bunu yapan baska hicbir sey yok.  */
-kontrol("izinsiz kol acilmadi (8 kol)", kollar === 8, kollar + " kol");
+kontrol("izinsiz kol acilmadi (9 kol)", kollar === 9, kollar + " kol");
 }
 
 console.log("");

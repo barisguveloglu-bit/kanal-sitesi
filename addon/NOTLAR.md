@@ -1,3 +1,121 @@
+# v7.12.0 — Bobby1545'in Kanlı Kolu + Ucube Dünya dosyası
+
+Kullanıcı: *"sadece chris1545'in kanlı kolu var, Bobby1545'inde kanlı kolu
+vardı hatırlarsan, onu da ekle... ayrışması için yani yetenekleri birebir
+[olmasın], Toprak Kol'dan bazı özelliklerini ekle."*
+
+## Önce ölçüm: bugünkü Kanlı Kol bir **melez**miş
+
+Kullanıcı haklıydı ve dosya bunu doğruluyor — ama beklediğimden farklı bir
+şekilde. `kns_kolluk_bobby_kanli` v6.2'den beri depoda duruyor (Code-Man
+paketi, `bobby1545s_red_bloody_arms`), yalnızca göğüs yuvasına takılan bir
+**süs eşyası** olarak.
+
+Asıl mesele şu: bugünkü `pa:kol_kanli`'nin **yetenekleri Bobby1545 Mod
+V3'ten** geliyor (`kollar.js`'te yazılı), ama v7.3'te **modeli ve dokusu
+chris1545'e geçti**. Yani Bobby'nin kolu eksik değildi — **ikiye bölünmüştü**:
+görünümü bir yerde, yetenekleri başka yerde. Bu sürüm onu geri topluyor.
+
+## Ayrışma üç yerde birden
+
+| | chris1545 | Bobby1545 |
+|---|---|---|
+| model | boğumlu zincir, dişli pençe · **66 küp** | düz kol, turuncu-kanlı yumruk · **32 küp** |
+| doku | `kns_kolluk_chris_kanli.png` (32×32 uv) | `kns_kolluk_bobby_kanli.png` (64×64 uv) |
+| yetenek | kanlı örs · kanlı şimşek · meteor · güçlü TNT · yön şimşeği · toprak uçuş | örs · savur · sarsıntı · yakala · yıldırım halkası |
+
+**Çakışma sıfır.** İki kol yan yana durunca aynı menüyü açmıyor.
+
+Yetenek seçimi modelden geliyor: Bobby'nin kolları **düz ve ucunda yumruk**
+var. Yumruk kolu bir **darbe** kolu — hepsi temas ve sarsıntı işi. chris'inki
+boğumlu ve ucunda pençe: menzil ve çağırma işi.
+
+**Açık not — kol israfı kuralı.** Beş yeteneğin beşi de Toprak Kol'da var ve
+v4.46'da dört kol tam bu yüzden kaldırılmıştı. Ama üstteki Kanlı Kol'un da
+altı yeteneğinin dördü Toprak Kol'dan; yani *"kanlı kol = Toprak Kol'un
+seçilmiş güçlerinin kendi gövdesiyle taşınması"* kalıbı zaten kurulu.
+Kaldırılan kollardan farkı: bunun **kendi modeli, kendi dokusu ve kendi
+teması** var; onlar tek yetenekli kopyalardı. Yine de seçim kullanıcının.
+
+## Omurga uzatması **uygulanmadı** — bilerek
+
+v7.5'te chris'in omurgası uzatılmıştı; ölçüler **onun zincir baklalarından**
+hesaplanmıştı (`KANLI_UZATMA` ve arkadaşları). Bobby'ninki düz kolların
+ucunda yumruk. Aynı sayıları ona uygulamak, **ölçülmemiş bir şeyi ölçülmüş
+gibi göstermek** olurdu. `KANLI_BOBBY_UZAT = False` ve test bunu kaynak
+dosyayla karşılaştırarak kilitliyor.
+
+Dönüştürücü (`kanli_geometrisi`) parametreleştirildi: iki kolun iskeleti aynı
+(`waist → body → rightArm → bone`), ikinci bir kopya yazılsaydı biri düzelip
+öteki bozulurdu.
+
+## Sahte dünyada bir ölçüm boşluğu bulundu
+
+`kol.mjs` yeni kol için **"hiçbir şey yapmıyor ✗"** dedi. Kod doğruydu.
+
+Bobby'nin ilk yeteneği `ors`, o da `hedefBul()` kullanıyor. `hedefBul` önce
+`getBlockFromViewDirection` deniyor — **sahte oyuncuda o metot yoktu** — ve
+"bakış yönünde `MENZIL` blok ileri" diye geri çekiliyor. `MENZIL = 150`.
+Sahte dünyada y<64 taş olduğu için ışın **düz zeminin altına** düşüyor ve örs
+taşın içine konmaya çalışılıp hiçbir şey olmuyordu. Gerçek oyunda ışın birkaç
+blok ötede yere çarpar.
+
+Sahte oyuncuya **ışın izi eklendi**. Bu, `hedefBul` kullanan bütün
+yetenekleri ölçülebilir yaptı — sadece bu kolu değil.
+
+**Ama düzeltme ikinci bir hata doğurdu:** `dort.mjs` bu sefer *"ors tick
+başına 602 blok işlemi yapıyor, tavan 56"* diye düştü. Orsun kendisi tick
+başına 2 işlem yapıyor; 600'ü **benim ışın izimin okumasıydı**. Yani sahte
+dünyanın ölçüm aracı, yine sahte dünyanın başka bir parçası yüzünden yanlış
+ölçüyordu. Sayan (`getBlock`) ve saymayan (`_blokOku`) okuma ayrıldı —
+ışın izi gerçek motorda da blok bütçesinden harcamıyor.
+
+*Dördüncü kez aynı ders: hata kodda değil ölçümdeydi.* (anna.mjs'te kurban
+koni dışında, kol.mjs'te kurbanın `applyImpulse`'u yok, dave'de itme
+sayılmıyor, şimdi bu.)
+
+## `kanli.mjs` 7. bölüm — 6 mutasyon, 6'sı da yakalandı
+
+| bozma | sonuç |
+|---|---|
+| Bobby'nin yetenekleri chris'le aynı olsun | ✓ |
+| Bobby chris'in geometrisini kullansın | ✓ |
+| Bobby'nin dokusu chris'inki olsun | ✓ |
+| Bobby'ye de omurga uzatması uygulansın | ✓ |
+| Bobby'nin bir yeteneğinde yazım hatası | ✓ |
+| Bobby'nin kolu kaldırılsın | ✓ |
+
+Altı **elle tutulan "8 kol" sayacı** da 9'a çekildi (`ben10`, `donusum`,
+`zirh`, `o_sey`, `kol_takas`, `temizlik`). Bunlar bilerek elle tutuluyor:
+yeni bir kol **sessizce** açılmasın diye.
+
+## Renderdan gelen not
+
+Bobby'nin kollarında **ince gri çubuklar** var — `origin [3.56, 35.6, 2.52]
+size [5.67, 0.63, 0.63]` gibi, `[0,0,-22.5]` dönüşlü, ucunda küçük bir başlık.
+Bunlar **kaynağın kendi modelinde var**, bizim eklediğimiz bir şey değil.
+Oyunda yanlış görünürlerse o küpler atılabilir; v7.3'ün kuralı gereği model
+**bozuk olduğu ölçülmeden** düzeltilmiyor.
+
+## `LORE.md` — EK-A · Ucube Dünya Dosyası
+
+Kullanıcı: *"LORE.md'ye yaz, kaynak bağlantılarıyla birlikte, senin kaynak
+hikayesi ile karışmasın diye özel bir adlandırma yap."*
+
+Wiki taramasının sonucu (Uzak Akraba'nın **Freak World**'de tutulduğu) artık
+`LORE.md`'nin sonunda, sekiz alt bölüm ve yedi kaynak bağlantısıyla yazılı.
+
+**Ayrım üç kere söyleniyor:** dosyanın başındaki uyarı bloğunda, `EK-A`
+başlığının altındaki kutuda, ve `CLAUDE.md`'de. Kural şu — 1–9 arası bölümler
+**Kanlı Göz evreni** (Kameracı Barış, site içeriği); EK-A **ayrı bir evren**
+(Uzak Akraba, wiki kaynaklı), `data.js`'e **yansıtılmıyor** ve sitede
+görünmüyor.
+
+`CLAUDE.md`'deki "LORE.md ile data.js senkron kalmalı" kuralına bu istisna
+**açıkça yazıldı** — sessiz bir ihlal olarak kalmasın diye.
+
+---
+
 # v7.11.0 — Kuruyan Ağaç
 
 Kullanıcı ikinci bir mod gönderdi: *"alınabilecekleri bana sormadan al."*

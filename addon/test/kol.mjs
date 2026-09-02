@@ -42,8 +42,13 @@ for (const [esya, ad, beklenen] of KOLLAR) {
      yapmamalari DOGRU davranis. Kurban koymadan sinamak
      "kol calismiyor" demek olurdu -- anna.mjs'te tam bu hata
      yapilmisti.                                              */
-  if (["pa:kol_buz", "pa:kol_kanli", "pa:kol_anna", "pa:kol_kevin",
-       "pa:kol_dave", "pa:kol_gunes"].includes(esya)) {
+  /* v7.12: Bobby Kanli Kol da bu listede. Ilk yetenegi `ors`
+     ve o `hedefBul` kullaniyor -- onunde kimse yoksa hicbir sey
+     yapmamasi DOGRU davranis. Kurban koymadan sinandiginda
+     "hicbir sey" yaziyordu; kod dogruydu, OLCUM eksikti.
+     anna.mjs'te ayni hata bir kez yapilmisti.               */
+  if (["pa:kol_buz", "pa:kol_kanli", "pa:kol_kanli_bobby", "pa:kol_anna",
+       "pa:kol_kevin", "pa:kol_dave", "pa:kol_gunes"].includes(esya)) {
     const u = Math.hypot(0.8, -0.3, 0);
     /* Kurbanin applyImpulse'u YOKTU ve bu bir OLCUM BOSLUGUYDU:
        Kasirga'nin (Dave Kol'un ilk yetenegi) tek gorunur etkisi

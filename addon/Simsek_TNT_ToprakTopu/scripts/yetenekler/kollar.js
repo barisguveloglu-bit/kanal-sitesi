@@ -178,7 +178,47 @@ export const KOL_ESYALARI = [
      cagiriyor ve o fonksiyon tek satir -- `clear @s`. Yani
      kolu kapatmak butun envanteri siliyor.                  */
   ["pa:kol_kanli",  "kanli_ors", "kanli_simsek", "meteor",
-                    "guclu_tnt", "yon_simsegi", "toprak_ucus"]
+                    "guclu_tnt", "yon_simsegi", "toprak_ucus"],
+
+  /* BOBBY KANLI KOL (v7.12).
+
+     Kullanici: "sadece chris1545'in kanli kolu var, Bobby1545'in
+     de kanli kolu vardi, onu da ekle... ayrismasi icin
+     yetenekleri birebir [olmasin], Toprak Kol'dan bazi
+     ozelliklerini ekle."
+
+     ---- ONCE OLCUM: BUGUNKU KANLI KOL BIR MELEZ ----
+     Ustteki satirin yetenekleri Bobby1545 Mod V3'ten geliyor
+     (yukaridaki notta yaziyor), ama v7.3'te modeli ve dokusu
+     chris1545'e gecti. Yani Bobby'nin kolu eksik degildi --
+     ikiye bolunmustu, gorunumu bir yerde yetenekleri baska
+     yerdeydi. Burasi onu geri topluyor.
+
+     ---- CAKISMA SIFIR ----
+     Ustteki alti yetenegin HICBIRI bu satirda yok. Iki kanli
+     kol yan yana durunca ayni menuyu acmiyor.
+
+     ---- NEDEN BUNLAR ----
+     Kaynak modelin kollari DUZ ve uclarinda YUMRUK var
+     (chris'inki bogumlu zincir, ucunda disli pence). Yumruk
+     kolu bir DARBE kolu: hepsi temas ve sarsinti isi.
+       ors              tek noktaya ors -- chris'te ALAN hali var
+       savur            onundekini iter, yumrugun isi
+       sarsinti         carpmanin ekranda hissedilmesi
+       yakala           yumruk kavrar
+       yildirim_halkasi etrafinda halka -- chris'te YONLU var
+
+     ---- ACIK NOT: KOL ISRAFI KURALI ----
+     Bes yetenegin besi de Toprak Kol'da VAR. v4.46'da dort kol
+     tam bu yuzden kaldirilmisti. Ustteki Kanli Kol'un da alti
+     yeteneginin dordu Toprak Kol'dan; yani "kanli kol =
+     Toprak Kol'un secilmis guclerinin kendi govdesiyle
+     tasinmasi" kalibi zaten kurulu ve burasi ona uyuyor.
+     Kaldirilan kollardan farki: bunun KENDI modeli, KENDI
+     dokusu ve kendi temasi var; onlar tek yetenekli kopyalardi.
+     Yine de secim kullanicinindir -- istenirse tek satir. */
+  ["pa:kol_kanli_bobby", "ors", "savur", "sarsinti", "yakala",
+                         "yildirim_halkasi"]
 ];
 
 for (const satir of KOL_ESYALARI) {

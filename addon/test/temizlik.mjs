@@ -186,8 +186,8 @@ console.log("=== 4. HICBIR YETENEK SAHIPSIZ KALMADI ===");
      "yeni kol sessizce eklenmesin".
      Anna kol israfi degil: tek yetenegi (can_ver) BASKASINI
      iyilestiriyor ve depoda bunu yapan baska hicbir sey yok.  */
-kontrol("kol sayisi 8 (Anna Kolu eklendi)",
-          kollar.KOL_ESYALARI.length === 8,
+kontrol("kol sayisi 9 (v7.12: Bobby Kanli Kol eklendi)",
+          kollar.KOL_ESYALARI.length === 9,
           kollar.KOL_ESYALARI.length + " kol");
 }
 

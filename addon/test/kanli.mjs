@@ -444,5 +444,97 @@ console.log("=== 6. ULASILABILIYOR MU ===");
 }
 
 console.log("");
+console.log("=== 7. IKI KANLI KOL AYRISIYOR (v7.12) ===");
+{
+  /* Kullanici: "sadece chris1545'in kanli kolu var, Bobby1545'in
+     de kanli kolu vardi, onu da ekle... ayrismasi icin
+     yetenekleri birebir [olmasin]."
+
+     Ayrisma UC yerde birden olmali; biri kayarsa iki kol
+     birbirinin kopyasina doner ve kimse fark etmez:
+       1) yetenek listeleri  2) geometri  3) doku            */
+  const kollar = await import("./pack/yetenekler/kollar.js");
+  const chris = kollar.KOL_ESYALARI.find((r) => r[0] === "pa:kol_kanli");
+  const bobby = kollar.KOL_ESYALARI.find((r) => r[0] === "pa:kol_kanli_bobby");
+  kontrol("iki kanli kol da kayitli", !!chris && !!bobby);
+
+  const cy = new Set(chris.slice(1));
+  const by = bobby.slice(1);
+  const ortak = by.filter((y) => cy.has(y));
+  /* ASIL SATIR BU. Cakisma olsaydi iki kol yan yana ayni
+     menuyu acardi.                                         */
+  kontrol("yetenekleri HIC cakismiyor", ortak.length === 0,
+          ortak.join(", ") || "0 ortak");
+  kontrol("Bobby'nin kolu bos degil", by.length >= 3, by.length + " yetenek");
+
+  /* Ikisinin de yetenekleri GERCEKTEN kayitli olmali --
+     yazim hatasi olan bir kimlik sessizce hicbir sey yapar
+     (v4.83 dersi: "calisiyor mu" ile "ulasilabiliyor mu"
+     ayri iki soru).                                        */
+  const kayit = await import("./pack/yetenekler/kayit.js");
+  const tum = new Set(kayit.tumYetenekler().map((y) => y.kimlik));
+  const yok = [...chris.slice(1), ...by].filter((y) => !tum.has(y));
+  kontrol("iki kolun butun yetenekleri kayitli", yok.length === 0,
+          yok.join(", ") || "hepsi var");
+
+  /* ---- GEOMETRI ---- */
+  const cg = oku(RP + "/attachables/kol_kanli.json")["minecraft:attachable"]
+    .description.geometry.default;
+  const bg = oku(RP + "/attachables/kol_kanli_bobby.json")["minecraft:attachable"]
+    .description.geometry.default;
+  kontrol("geometriler farkli", cg !== bg, cg + " / " + bg);
+  kontrol("ikisi de kendi modelini gosteriyor",
+          cg === "geometry.simsek_kol_kanli" &&
+          bg === "geometry.simsek_kol_kanli_bobby");
+  kontrol("iki model dosyasi da uretilmis",
+          existsSync(RP + "/models/entity/simsek_kol_kanli.geo.json") &&
+          existsSync(RP + "/models/entity/simsek_kol_kanli_bobby.geo.json"));
+
+  /* Kup sayilari OLCULDU, kaynaklarindan geliyor:
+     chris 33+33, bobby 16+16. Ayni cikarlarsa biri otekinin
+     dosyasindan uretilmis demektir.                        */
+  const kup = (y) => {
+    const g = oku(y)["minecraft:geometry"][0].bones;
+    return g.reduce((n, b) => n + (b.cubes || []).length, 0);
+  };
+  const ck = kup(RP + "/models/entity/simsek_kol_kanli.geo.json");
+  const bk = kup(RP + "/models/entity/simsek_kol_kanli_bobby.geo.json");
+  kontrol("modeller ayni degil (kup sayilari)", ck !== bk, ck + " / " + bk);
+
+  /* ---- DOKU ---- */
+  /* Ikisi de KAYNAGININ kendi dokusu. Chris'in dokusu
+     Bobby'nin modeline verilseydi yumruklar dokunun bos
+     kosesinden orneklenir ve duz renk cikardi.             */
+  const cd = readFileSync(RP + "/textures/entity/kol_kanli.png");
+  const bd = readFileSync(RP + "/textures/entity/kol_kanli_bobby.png");
+  kontrol("dokular farkli", Buffer.compare(cd, bd) !== 0,
+          cd.length + " / " + bd.length + " bayt");
+  const kaynak = readFileSync(
+    KOK + "/kaynak_doku/konsey/kns_kolluk_bobby_kanli.png");
+  kontrol("Bobby'nin dokusu KAYNAGIN dokusuyla birebir",
+          Buffer.compare(kaynak, bd) === 0, kaynak.length + " bayt");
+
+  /* ---- OMURGA UZATMASI YALNIZ CHRIS'E AIT ---- */
+  /* v7.5'te chris'in omurgasi uzatildi; olculer ONUN zincir
+     baklalarindan hesaplandi. Ayni sayilari Bobby'ye
+     uygulamak olculmemis bir seyi olculmus gibi gostermek
+     olurdu. Kaynak dosyayla karsilastiriliyor: Bobby'nin
+     kuplerinin y'leri DEGISMEMIS olmali.                   */
+  const yList = (y, ad) => {
+    const g = oku(y)["minecraft:geometry"][0].bones
+      .find((b) => b.name === ad);
+    return (g.cubes || []).map((c) => c.origin[1]).sort((a, b) => a - b);
+  };
+  const ham = yList(KOK + "/kaynak_geo/konsey/kns_kolluk_bobby_kanli.geo.json",
+                    "bone");
+  const bizim = yList(RP + "/models/entity/simsek_kol_kanli_bobby.geo.json",
+                      "bone");
+  kontrol("Bobby'nin omurgasi UZATILMAMIS (kaynakla ayni)",
+          JSON.stringify(ham) === JSON.stringify(bizim),
+          ham.length + " kup, y'ler " +
+          (JSON.stringify(ham) === JSON.stringify(bizim) ? "ayni" : "DEGISMIS"));
+}
+
+console.log("");
 console.log(hata ? ">>> SORUN VAR" : ">>> Kanli Kol calisiyor");
 process.exit(hata ? 1 : 0);

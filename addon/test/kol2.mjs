@@ -247,15 +247,23 @@ console.log("=== 5. DOSYA TUTARLILIGI ===");
 
     const att = oku(RP + "/attachables/" + dosya)["minecraft:attachable"].description;
     if (att.identifier !== tam) sorunlar.push("attachable kimligi");
-    /* Alti kol tek geometriyi paylasiyor. Kanli Kol'un KENDI
-       modeli var: kaynagin (Bobby1545 Mod V3) iki dev yumruklu
-       modeli, kok kemikleri rightArm/leftArm oldugu icin
-       oyuncunun iki koluna birden baglaniyor. Bu bir istisna
-       ve ACIKCA yazili -- "herhangi bir geometri olur"a
-       gevsetilseydi bir kolun modeli yanlislikla degisince
-       hicbir test fark etmezdi.                              */
-    const beklenenGeo = (tam === "pa:kol_kanli")
-      ? "geometry.simsek_kol_kanli" : "geometry.simsek_kol";
+    /* Yedi kol tek geometriyi paylasiyor. IKI kanli kolun
+       KENDI modeli var ve ikisi de kaynagindan geliyor:
+         pa:kol_kanli       chris1545 -- bogumlu zincir kollar,
+                            uclarinda disli pence (33 kup)
+         pa:kol_kanli_bobby Bobby1545 -- duz kollar, uclarinda
+                            turuncu-kanli yumruk (16 kup)
+       Ikisinin de kok kemikleri rightArm/leftArm oldugu icin
+       oyuncunun iki koluna birden baglaniyorlar.
+
+       Istisnalar TEK TEK yazili -- "herhangi bir geometri
+       olur"a gevsetilseydi bir kolun modeli yanlislikla
+       degisince hicbir test fark etmezdi.                   */
+    const GEO_ISTISNA = {
+      "pa:kol_kanli": "geometry.simsek_kol_kanli",
+      "pa:kol_kanli_bobby": "geometry.simsek_kol_kanli_bobby",
+    };
+    const beklenenGeo = GEO_ISTISNA[tam] || "geometry.simsek_kol";
     if (att.geometry.default !== beklenenGeo) sorunlar.push("geometri adi");
     if (att.textures.default !== "textures/entity/" + kisa) sorunlar.push("doku yolu");
 

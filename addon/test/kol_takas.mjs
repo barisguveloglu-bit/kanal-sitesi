@@ -111,7 +111,7 @@ console.log("=== 1. KAYIT VE BAGLANTI ===");
   /* YENI KOL ACILMADI: "kol israfi" kurali. Sahne Toprak
      Kol'un kendi cikisi, ayri bir kol degil.                 */
   kontrol("  yeni kol ACILMADI (8 kol duruyor)",
-          kollar.KOL_ESYALARI.length === 8, kollar.KOL_ESYALARI.length + " kol");
+          kollar.KOL_ESYALARI.length === 9, kollar.KOL_ESYALARI.length + " kol");
   /* Isaret esyasi `kol_` ile BASLAMAMALI: baslasaydi kol
      sayaclari (kol2.mjs, temizlik.mjs) 9 gorurdu ve ikisi de
      hakli olurdu -- bu bir kol degil.                        */

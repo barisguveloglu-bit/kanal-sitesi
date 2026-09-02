@@ -25,16 +25,26 @@ export function dunyaKur(sinir = { min: -64, max: 319 }) {
   const boyut = {
     id: "minecraft:overworld",
     heightRange: { min: sinir.min, max: sinir.max },
-    getBlock(loc) {
-      sayac.getBlock++;
-      const x = Math.floor(loc.x), y = Math.floor(loc.y), z = Math.floor(loc.z);
+    /* SAYMADAN okuma. Yalniz sahte dunyanin KENDI ic isleri
+       icin -- su an tek kullanani isin izi
+       (getBlockFromViewDirection).
+
+       NEDEN AYRI: isin izi gercek motorda blok butcesinden
+       harcamiyor, bir arama. Sayan getBlock uzerinden
+       yurutuldugunde dort.mjs "ors tick basina 602 blok islemi
+       yapiyor, tavan 56" diye dustu -- oysa orsun kendisi
+       tick basina 2 islem yapiyor, 600'u benim izimin okumasiydi.
+       Yani sahte dunyanin olcum araci, yine sahte dunyanin
+       baska bir parcasi yuzunden yanlis olcuyordu.           */
+    _blokOku(x, y, z) {
       if (y < sinir.min || y > sinir.max) {
-        sayac.istisna++;
         const e = new Error("LocationOutOfWorldBoundariesError");
         e.name = "LocationOutOfWorldBoundariesError";
         throw e;
       }
-      blokSay();
+      return boyut._blokNesnesi(x, y, z);
+    },
+    _blokNesnesi(x, y, z) {
       const k = anah(x, y, z);
       return {
         get typeId() { return bloklar.has(k) ? bloklar.get(k) : varsayilan(y); },
@@ -47,6 +57,18 @@ export function dunyaKur(sinir = { min: -64, max: 319 }) {
         },
         location: { x, y, z }
       };
+    },
+    getBlock(loc) {
+      sayac.getBlock++;
+      const x = Math.floor(loc.x), y = Math.floor(loc.y), z = Math.floor(loc.z);
+      if (y < sinir.min || y > sinir.max) {
+        sayac.istisna++;
+        const e = new Error("LocationOutOfWorldBoundariesError");
+        e.name = "LocationOutOfWorldBoundariesError";
+        throw e;
+      }
+      blokSay();
+      return boyut._blokNesnesi(x, y, z);
     },
     /* boyut._varliklar doldurulursa taramalar onu gorur.
 
@@ -203,6 +225,40 @@ export function oyuncuKur(boyut, bakis, bas) {
       return { x: bakis.x / u, y: bakis.y / u, z: bakis.z / u };
     },
     getHeadLocation: () => ({ x: bas.x, y: bas.y, z: bas.z }),
+    /* ---- ISIN IZI  (v7.12'de eklendi) ----
+       Bu YOKTU ve bir OLCUM BOSLUGUYDU. yardimcilar.js'teki
+       hedefBul() once bunu deniyor, yoksa "bakis yonunde
+       MENZIL blok ileri" diye geri cekiliyor. MENZIL 150.
+       Sahte dunyada y<64 tas oldugu icin isin duz zeminin
+       ALTINA dusuyor ve `ors` gibi yetenekler orsu tasin icine
+       koymaya calisip hicbir sey yapmiyordu. Gercek oyunda
+       isin birkac blok otede yere carpar.
+
+       Yani ors bozuk degildi, sahte dunya eksikti -- kol.mjs
+       "Bobby Kanli Kol hicbir sey yapmiyor" diyordu.
+       (Ayni sinif hata: anna.mjs'te kurban koni disinda,
+       kol.mjs'te kurbanin applyImpulse'u yok, dave'de itme
+       sayilmiyor. Dordu de olcumdeydi.)
+
+       Basit adim adim yurutme: gercek motorun DDA'si degil ama
+       "ilk dolu blogu bul" davranisi ayni.                    */
+    getBlockFromViewDirection(secenek) {
+      const uzak = (secenek && secenek.maxDistance) || 100;
+      const y = this.getViewDirection();
+      const b = this.getHeadLocation();
+      for (let t = 0.25; t <= uzak; t += 0.25) {
+        const n = { x: b.x + y.x * t, y: b.y + y.y * t, z: b.z + y.z * t };
+        let blok;
+        try {
+          blok = boyut._blokOku(Math.floor(n.x), Math.floor(n.y),
+                                Math.floor(n.z));
+        } catch (e) {
+          return undefined;               // dunya sinirinin disi
+        }
+        if (blok && !blok.isAir) return { block: blok, face: "Up" };
+      }
+      return undefined;
+    },
     runCommand(k) { (this._komutlar = this._komutlar || []).push(k); return { successCount: 1 }; },
     applyImpulse: () => true,
     _elde: undefined,
