@@ -1,3 +1,121 @@
+# v7.15.0 — İksir Aurası: özel parçacık sistemi
+
+Kullanıcı: *"parçacıkla başlayalım, aynı odağı ver, en detaylısını yap,
+internetten araştırabilirsin, şu ana kadarki en detaylı bu olsun."*
+
+## Neden parçacık, neden doku değil
+
+Göz kaplaması v7.14'te 832×832'ye çıktı — ama oyunda kafa ekranda 20-30
+piksel. Birkaç blok öteden o detayın **tamamı** tek bir parlak lekeye
+dönüyor. Uzaktan okunan üç şey var: **siluet, renk, hareket.** Eksik olan
+üçüncüsüydü.
+
+## Neden vanilla parçacık değil
+
+Depo bugüne kadar yalnız vanilla parçacık kimlikleri kullandı
+(`parcacikAt` → `spawnParticle`). Vanillada renk, boy, ömür, hareket,
+doku — hiçbiri ayarlanamıyor. Sekiz iksirin sekiz ayrı rengi var ve
+hiçbiri vanilla paletinde yok.
+
+Bu, deponun **Bedrock'un kendi parçacık sistemini ilk kez yazması**.
+Şema resmî belgeden alındı (`bedrock.dev/docs/stable/Particles`),
+ezberden yazılmadı.
+
+## Üç katman, 24 dosya
+
+| katman | ne yapıyor |
+|---|---|
+| **kor** | kafadan yükselen, yükselirken **yavaşlayan** zerreler — uzaktan görünen şey bu |
+| **hale** | kafanın etrafında yavaş süzülen puslu kabuk (yalnız küre **yüzeyinden**) |
+| **patlama** | iksir **içildiği an** bir kez; kıvılcımlar dışarı fırlıyor, yerçekimiyle düşüyor, yere çarpınca sönüyor |
+
+8 iksir × 3 tür = **24 parçacık dosyası**, hepsi `kol_uret.py`'de üretiliyor.
+
+## Kullanılan bileşenler ve neden
+
+- `emitter_shape_sphere` — kafanın etrafından çıkış; halede `surface_only`
+  ki içini doldurmasın, kabuk gibi dursun
+- `particle_initial_speed` **molang** — her zerre farklı hızda
+- `particle_initial_spin` — zerreler takla atıyor
+- `particle_motion_dynamic` — yukarı kaldırma **+ yüksek sürtünme**:
+  korlar yükselirken yavaşlıyor. Sürtünme olmasaydı gökyüzüne fırlarlardı.
+- `particle_motion_collision` — patlama yere çarpınca sönüyor, havada
+  asılı kalmıyor
+- `billboard.uv.flipbook` — **her zerre kendi 4 karelik animasyonunu
+  oynatıyor**; `stretch_to_lifetime` ile animasyon zerrenin ömrüne yayılıyor,
+  yani kısa ömürlü hızlı söner
+- `appearance_tinting.gradient` — ömür boyunca renk geçişi:
+  sıcak beyaz → iksir rengi → sönme
+- `face_camera_mode: direction_y` + `derive_from_velocity` — kıvılcım
+  **gittiği yöne** bakıyor, çizgi halinde uzuyor, disk gibi durmuyor
+
+## Doku gri, renk tinting'den
+
+Sprite yaprağı 128×128, **4 satır × 4 kare**: kor · hale · kıvılcım · kül.
+Gri tonlu — renk `particle_appearance_tinting` ile **çarpılarak** geliyor,
+yani **tek doku sekiz iksire de hizmet ediyor**.
+
+Renkler uydurulmadı: `IKSIRLER` tablosundaki **göz renkleri**. Gözünde yanan
+renk ne ise etrafında uçuşan da o. Element'in **iki** rengi var (buz + ateş,
+v4.63'te referanstan ölçüldü) ve gradyan **ikisini de** taşıyor — yani en
+güzel aura kendiliğinden onun oluyor.
+
+## Eşleşme tablosu YOK
+
+Parçacık adı doğrudan `kademe.kimlik`'ten kuruluyor: `pa:aura_kor_<kimlik>`.
+İkinci bir tablo tutulsaydı yeni bir iksir eklenince biri güncellenip öteki
+unutulurdu. İki listenin (üreteçteki `IKSIRLER`, scriptteki `KADEMELER`) aynı
+kalmasını `aura.mjs` kilitliyor.
+
+## `aura.mjs` — 15 mutasyon, 15'i de yakalandı
+
+| bozma | neden tehlikeli |
+|---|---|
+| flipbook doku sınırını aşsın (`max_frame` 5) | zerre **boş UV** örnekler ve görünmez olur — **hiçbir hata mesajı çıkmaz** |
+| malzeme `particles_blend` olsun | toplamalı harman gider, gece karanlıkta aura da kararır |
+| gradyan rengi elle yazılsın | aura gözle ayrışır |
+| son alfa 1 olsun | zerre sönmeden **aniden** yok olur |
+| kor aşağı gitsin | — |
+| patlamanın çarpışması kalksın | kıvılcımlar yerin içinden geçer |
+| hale `surface_only` olmasın | kabuk olmaktan çıkar |
+| boy zerrenin yaşına bağlı olmasın | küçülmeden yok olur |
+| Element'in ikinci rengi düşsün | onun aurası diğerlerinden ayrışmaz |
+| doku yolu yanlış olsun | mor-siyah kare |
+| `AURA_ACIK` kapısı kalksın | ayar yalan söyler |
+| ad elle bir tablodan gelsin | yeni iksirde sessizce kayar |
+| aura tazelemeden **sonraya** kaysın | saniyede bir çıkar, kesik kesik görünür |
+| her tick çıksın | pahalı, üstelik zerreler üst üste binip tek bulut olur |
+| içilince patlama çıkmasın | — |
+
+**Sonuncusu ilk denemede kaçtı.** Test `/auraPatlat\(oyuncu, kademe\)/`
+arıyordu ve regex fonksiyonun **tanımını** yakalıyordu
+(`export function auraPatlat(oyuncu, kademe)`). Yani satır *"kod yazılmış
+mı"*yı ölçüyordu, *"kod çalışıyor mu"*yu değil — aynı sınıf boşluk v6.9 ve
+v7.1'de de yaşanmıştı.
+
+Düzeltme: metin araması atıldı, **iksir gerçekten içiliyor**. Sahte dünyada
+`iksirIc` çağrılıyor, 40 tick ilerletiliyor ve parçacıkların kimliği,
+sayısı, ritmi ve **y yüksekliği** ölçülüyor.
+
+## Benzetim: dosyadan okunup çizildi
+
+Oyunu çalıştıramıyorum, ama parçacık dosyasındaki sayılar belirli bir
+hareketi tarif ediyor ve o hareket benzetilebiliyor. `aura_benzet.py`
+dosyayı okuyup fiziği (başlangıç hızı, ivme, sürtünme, ömür, boy eğrisi,
+gradyan) uyguluyor ve kareler çiziyor.
+
+**İlk benzetim yanlıştı:** billboard `size` **yarı-genişlik**, ben yarıçapı
+3 katına çizmiştim — hale kafadan büyük görünüyordu. Düzeltilince ölçü
+oturdu: korlar kafanın (0,5 blok) yaklaşık altıda biri, patlama ~1,5 blok
+yayılıyor.
+
+## Maliyet
+
+Her tick değil: kor `AURA_ARALIK` (6 tick), hale `AURA_HALE_ARALIK`
+(14 tick). `PARCACIK_ACIK` kapalıysa hiçbiri çizilmiyor.
+
+---
+
 # v7.14.0 — Göz çözünürlüğü 832
 
 Kullanıcı: *"768 × 768 yerine 780 × 780 yapabilir misin, maliyetli bir şey

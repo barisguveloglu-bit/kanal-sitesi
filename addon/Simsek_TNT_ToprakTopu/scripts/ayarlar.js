@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.14.0";
+export const SURUM = "v7.15.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -925,6 +925,53 @@ export const PARCACIK_LAZER = "minecraft:endrod";
    istedi ("hasari hic almasin"). Baska bir iksir 4'e cikarsa
    StarOxine'in varlik sebebi kalmaz.
    ============================================================ */
+/* ================================================================
+   IKSIR AURASI                                            v7.15
+
+   Kullanici: "parcacikla baslayalim, en detaylisini yap."
+
+   ---- NEDEN ----
+   Goz kaplamasi v7.14'te 832x832'ye cikti ama oyunda kafa
+   ekranda 20-30 piksel: birkac blok oteden o detayin tamami
+   tek bir lekeye donuyor. Uzaktan okunan uc sey var --
+   siluet, renk, HAREKET. Eksik olan ucuncusuydu.
+
+   ---- UC KATMAN ----
+   kor     : kafadan yukselen, yukselirken yavaslayan zerreler
+   hale    : kafanin etrafinda yavas suzulen puslu kabuk
+   patlama : iksir ICILDIGI an bir kez, kivilcimlar disari
+
+   Parcaciklarin kendisi kol_uret.py'de uretiliyor (24 dosya =
+   8 iksir x 3 tur). Renkler UYDURULMADI: gozun rengi ne ise
+   auranin rengi de o.
+
+   ---- KIMLIK ESLEMESI: TABLO YOK ----
+   Parcacik adi dogrudan kademe.kimlik'ten kuruluyor:
+       pa:aura_kor_<kimlik>
+   Ikinci bir eslesme tablosu TUTULMUYOR; tutulsaydi yeni bir
+   iksir eklenince biri guncellenip oteki unutulurdu. Iki
+   listenin ayni kalmasini aura.mjs kilitliyor.
+
+   ---- MALIYET ----
+   Her tick degil: AURA_ARALIK tick'te bir. Hale daha da
+   seyrek, cunku omru uzun ve ust uste birikiyor. PARCACIK_ACIK
+   kapaliysa hicbiri cizilmiyor -- tablette parcacik pahaliya
+   gelebiliyor ve o anahtar bu yuzden var.                  */
+export const AURA_ACIK = true;
+export const AURA_ONEK = "pa:aura_";
+/* Kac tick'te bir kor cikacak. 6 = saniyede ~3 kez.
+   Her tick cikarsa hem pahali hem de zerreler ust uste
+   binip tek bir bulut gorunuyor. */
+export const AURA_ARALIK = 6;
+/* Hale daha seyrek: omru 1.6-2.8 saniye, yani sik cikarsa
+   kafanin etrafi doluyor. */
+export const AURA_HALE_ARALIK = 14;
+/* getHeadLocation goz hizasini veriyor; aura biraz USTTEN
+   ciksin ki yuzu kapatmasin. */
+export const AURA_KAFA_Y = 0.32;
+/* Patlamanin ciktigi yukseklik (icildigi an, gogus hizasi). */
+export const AURA_PATLAMA_Y = -0.2;
+
 export const KADEMELER = [
   {
     kimlik: "nitroksin",

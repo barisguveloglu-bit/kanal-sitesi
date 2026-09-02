@@ -14,7 +14,7 @@ run_command kullaniyor, ikisi de deneysel ayar gerektiriyor. Bizim
 esyalarimiz kararli formatta (asagidaki esya() aciklamasina bak).
 """
 
-import json, os, re, struct, zlib
+import json, math, os, re, struct, zlib
 
 BP = "/home/user/kanal-sitesi/addon/Simsek_TNT_ToprakTopu"
 RP = "/home/user/kanal-sitesi/addon/Simsek_Kol_Kaynak"
@@ -102,7 +102,7 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # tureniyor -- ayrisabilecekleri bir yer kalmadi.
 #
 # YENI SURUM CIKARIRKEN: yalnizca asagidaki satiri degistir.
-SURUM_NO = (7, 14, 0)
+SURUM_NO = (7, 15, 0)
 
 SURUM_METIN = "%d.%d.%d" % SURUM_NO
 SURUM_ETIKET = "v" + SURUM_METIN
@@ -6495,6 +6495,320 @@ def dismont_kurali():
 
 
 # ============================================================
+#  IKSIR AURASI -- OZEL PARCACIK SISTEMI              v7.15
+#
+#  Kullanici: "parcacikla baslayalim, en detaylisini yap."
+#
+#  ---- NEDEN PARCACIK, NEDEN DOKU DEGIL ----
+#  Goz kaplamasi v7.14'te 832x832'ye cikti ama oyunda kafa
+#  ekranda 20-30 piksel: birkac blok oteden o detayin TAMAMI
+#  tek bir parlak lekeye donuyor. Uzaktan okunan uc sey var --
+#  siluet, renk, HAREKET. Eksik olan ucuncusuydu.
+#
+#  ---- NEDEN VANILLA PARCACIK DEGIL ----
+#  Depo bugune kadar yalniz vanilla parcacik kimlikleri
+#  kullandi (parcacikAt -> spawnParticle). Vanillada renk, boy,
+#  omur, hareket, doku -- hicbiri ayarlanamiyor. Sekiz iksirin
+#  sekiz ayri rengi var ve hicbiri vanilla paletinde yok.
+#
+#  Bedrock'un KENDI parcacik sistemi bunlarin hepsini veriyor
+#  (resmi belge: bedrock.dev/docs/stable/Particles). Kullanilan
+#  bilesenler ve neden:
+#    emitter_shape_sphere        kafanin etrafindan cikis
+#    particle_initial_speed      molang -> her zerre farkli hizda
+#    particle_initial_spin       zerreler TAKLA atiyor
+#    particle_motion_dynamic     yukari kaldirma + surtunme:
+#                                korlar yukselirken YAVASLIYOR
+#    billboard.uv.flipbook       her zerre KENDI 4 karelik
+#                                animasyonunu oynatiyor
+#    appearance_tinting.gradient omur boyunca renk gecisi:
+#                                sicak beyaz -> iksir rengi -> sonme
+#    particle_lifetime_expression her zerre farkli omurde
+#
+#  ---- DOKU GRI, RENK TINTING'DEN ----
+#  Sprite'lar gri tonlu; renk `particle_appearance_tinting` ile
+#  CARPILARAK geliyor. Tek doku sekiz iksire de hizmet ediyor.
+#  Renkler UYDURULMADI: IKSIRLER tablosundaki goz renkleri --
+#  yani gozunde yanan renk ne ise etrafinda ucusan da o.
+#
+#  ---- ELEMENT IKSIRI ----
+#  Onun iki goz rengi var (buz + ates, v4.63'te referanstan
+#  olculdu). Gradyan IKISINI de tasiyor: beyaz -> buz -> ates ->
+#  sonme. Yani en guzel aura kendiliginden onun oluyor.
+# ============================================================
+AURA_DOKU = "iksir_aura"
+AURA_DOKU_BOY = 128           # 4x4 hucre, her hucre 32x32
+AURA_HUCRE = 32
+# Satirlar: 0 kor, 1 hale, 2 kivilcim, 3 kul. Her satir 4
+# karelik bir animasyon (flipbook step_UV [32,0]).
+AURA_SATIR = {"kor": 0, "hale": 1, "kivilcim": 2, "kul": 3}
+
+
+def _aura_zar(x, y, tuz):
+    """Sprite'lar icin sabit sozde-rastgele. Lineer ifade
+    KAFES uretiyor (bkz. _agac_zar notu -- ayni ders)."""
+    h = (x * 374761393 + y * 668265263 + tuz * 2246822519) & 0xFFFFFFFF
+    h = (h ^ (h >> 13)) * 1274126177 & 0xFFFFFFFF
+    return (h ^ (h >> 16)) & 0xFF
+
+
+def _aura_sprite(p, hx, hy, tur, kare):
+    """Tek bir 32x32 hucreyi cizer. GRI TONLU: renk oyunda
+    tinting ile geliyor, doku yalniz SEKLI ve YUMUSAKLIGI
+    tasiyor.  kare 0..3 -- omur boyunca oynayan animasyon."""
+    O = AURA_HUCRE
+    m = (O - 1) / 2.0
+    o = kare / 3.0                      # 0 taze, 1 sonmus
+
+    if tur == "kor":
+        # Sicak cekirdek + duzensiz kenar. Sonerken cekirdek
+        # kuculuyor, kenar dagiliyor.
+        cekirdek = O * (0.30 - 0.18 * o)
+        dis = O * (0.44 - 0.10 * o)
+        for y in range(O):
+            for x in range(O):
+                d = ((x - m) ** 2 + (y - m) ** 2) ** 0.5
+                gurultu = (_aura_zar(x // 2, y // 2, 7 + kare) / 255.0 - 0.5) * O * 0.10
+                dd = d + gurultu
+                if dd > dis:
+                    continue
+                if dd <= cekirdek:
+                    a, g = 255, 255
+                else:
+                    t = (dd - cekirdek) / max(0.001, dis - cekirdek)
+                    a = int(255 * (1 - t) ** 1.5)
+                    g = int(255 * (1 - 0.45 * t))
+                p[(hx + x, hy + y)] = (g, g, g, max(0, min(255, a)))
+
+    elif tur == "hale":
+        # Yumusak kure, nefes alir gibi buyuyup kuculuyor.
+        yari = O * (0.34 + 0.08 * math.sin(kare / 4.0 * 2 * math.pi))
+        for y in range(O):
+            for x in range(O):
+                d = ((x - m) ** 2 + (y - m) ** 2) ** 0.5
+                if d > yari:
+                    continue
+                a = int(190 * (1 - d / yari) ** 2.2)
+                if a <= 0:
+                    continue
+                p[(hx + x, hy + y)] = (255, 255, 255, a)
+
+    elif tur == "kivilcim":
+        # Dikey cizgi. Karelerde UZUYOR, sonra ortasindan
+        # kopuyor -- ates kivilcimi boyle davraniyor.
+        uzun = O * (0.18 + 0.24 * o)
+        kalin = max(0.6, O * (0.055 - 0.028 * o))
+        kopuk = o > 0.62
+        for y in range(O):
+            for x in range(O):
+                dy, dx = abs(y - m), abs(x - m)
+                if dy > uzun or dx > kalin:
+                    continue
+                if kopuk and dy < uzun * 0.30:
+                    continue                       # ortasi koptu
+                a = int(255 * (1 - dy / max(0.001, uzun)) ** 1.3
+                        * (1 - dx / max(0.001, kalin)) ** 0.8)
+                if a <= 0:
+                    continue
+                p[(hx + x, hy + y)] = (255, 255, 255, a)
+
+    else:  # kul
+        # Duzensiz, kucuk, donuk pul. Isik vermiyor.
+        yari = O * (0.17 - 0.05 * o)
+        for y in range(O):
+            for x in range(O):
+                d = ((x - m) ** 2 + (y - m) ** 2) ** 0.5
+                gurultu = (_aura_zar(x, y, 31 + kare) / 255.0 - 0.5) * O * 0.14
+                if d + gurultu > yari:
+                    continue
+                g = 150 + _aura_zar(x, y, 61) % 60
+                p[(hx + x, hy + y)] = (g, g, g, int(150 * (1 - o * 0.6)))
+
+
+def aura_dokusu():
+    """128x128, 4 satir x 4 kare. Gri tonlu -- renk tinting'den."""
+    p = {}
+    for tur, satir in AURA_SATIR.items():
+        for kare in range(4):
+            _aura_sprite(p, kare * AURA_HUCRE, satir * AURA_HUCRE, tur, kare)
+    return p
+
+
+def _aura_renk(renk, alfa):
+    return [round(renk[0] / 255.0, 4), round(renk[1] / 255.0, 4),
+            round(renk[2] / 255.0, 4), round(alfa, 4)]
+
+
+def _aura_gradyan(renkler):
+    """Omur boyunca renk. Sicak beyaz -> iksir rengi -> (varsa
+    ikinci renk) -> sonme. Zerre dogdugu anda en sicak, sonra
+    rengini aliyor, sonra sonuyor. Alev boyle davranir."""
+    ilk = tuple(renkler[0])
+    beyaz = tuple(min(255, int(c + (255 - c) * 0.75)) for c in ilk)
+    g = {"0.0": _aura_renk(beyaz, 1.0), "0.18": _aura_renk(ilk, 1.0)}
+    if len(renkler) > 1 and tuple(renkler[1]) != ilk:
+        g["0.55"] = _aura_renk(tuple(renkler[1]), 0.92)
+        koyu = tuple(int(c * 0.32) for c in renkler[1])
+    else:
+        g["0.55"] = _aura_renk(ilk, 0.92)
+        koyu = tuple(int(c * 0.32) for c in ilk)
+    g["0.82"] = _aura_renk(koyu, 0.5)
+    g["1.0"] = _aura_renk(koyu, 0.0)
+    return g
+
+
+def _aura_uv(tur):
+    """Her zerre kendi 4 karelik animasyonunu oynatiyor.
+    stretch_to_lifetime: animasyon zerrenin OMRUNE yayiliyor --
+    kisa omurlu hizli soner, uzun omurlu yavas."""
+    return {
+        "texturewidth": AURA_DOKU_BOY,
+        "textureheight": AURA_DOKU_BOY,
+        "flipbook": {
+            "base_UV": [0, AURA_SATIR[tur] * AURA_HUCRE],
+            "size_UV": [AURA_HUCRE, AURA_HUCRE],
+            "step_UV": [AURA_HUCRE, 0],
+            "frames_per_second": 8,
+            "max_frame": 4,
+            "stretch_to_lifetime": True,
+            "loop": False,
+        },
+    }
+
+
+def _aura_govde(kimlik, tur, bilesenler):
+    return {
+        "format_version": "1.10.0",
+        "particle_effect": {
+            "description": {
+                "identifier": "pa:aura_%s_%s" % (tur, kimlik),
+                "basic_render_parameters": {
+                    # particles_add = TOPLAMALI harman: zerreler
+                    # ust uste gelince parliyor ve dunya
+                    # isigindan bagimsiz cikiyor.
+                    "material": "particles_add",
+                    "texture": "textures/particle/" + AURA_DOKU,
+                },
+            },
+            "components": bilesenler,
+        },
+    }
+
+
+_AURA_OMUR = "variable.particle_age / variable.particle_lifetime"
+
+
+def aura_kor(kimlik, renkler):
+    """KOR -- kafadan yukselen, yukselirken YAVASLAYAN zerreler.
+    Auranin ana parcasi; uzaktan gorunen sey bu."""
+    return _aura_govde(kimlik, "kor", {
+        "minecraft:emitter_rate_instant": {"num_particles": 7},
+        "minecraft:emitter_lifetime_once": {"active_time": 0.25},
+        "minecraft:emitter_shape_sphere": {
+            "offset": [0, 0, 0], "radius": 0.30,
+            "surface_only": False, "direction": "outwards"},
+        "minecraft:particle_initial_speed":
+            "0.25 + variable.particle_random_1 * 0.45",
+        "minecraft:particle_initial_spin": {
+            "rotation": "variable.particle_random_2 * 360",
+            "rotation_rate": "(variable.particle_random_3 - 0.5) * 260"},
+        "minecraft:particle_lifetime_expression": {
+            "max_lifetime": "0.85 + variable.particle_random_4 * 0.9"},
+        "minecraft:particle_motion_dynamic": {
+            # Yukari kaldirma + yuksek surtunme: zerre firlayip
+            # yavasliyor, sonra suzuluyor.
+            "linear_acceleration": [0, 1.55, 0],
+            "linear_drag_coefficient": 2.2,
+            "rotation_drag_coefficient": 0.9},
+        "minecraft:particle_appearance_billboard": {
+            # Boy omur boyunca KUCULUYOR, her zerre farkli
+            # buyuklukte doguyor.
+            "size": [
+                "(0.035 + variable.particle_random_1 * 0.045) * (1 - " + _AURA_OMUR + " * 0.75)",
+                "(0.035 + variable.particle_random_1 * 0.045) * (1 - " + _AURA_OMUR + " * 0.75)"],
+            "face_camera_mode": "rotate_xyz",
+            "uv": _aura_uv("kor")},
+        "minecraft:particle_appearance_tinting": {
+            "color": {"gradient": _aura_gradyan(renkler),
+                      "interpolant": _AURA_OMUR}},
+    })
+
+
+def aura_hale(kimlik, renkler):
+    """HALE -- kafanin etrafinda yavas suzulen puslu zerreler.
+    "Bu adamin etrafinda bir sey var" hissini veren katman."""
+    return _aura_govde(kimlik, "hale", {
+        "minecraft:emitter_rate_instant": {"num_particles": 4},
+        "minecraft:emitter_lifetime_once": {"active_time": 0.25},
+        "minecraft:emitter_shape_sphere": {
+            "offset": [0, 0, 0], "radius": 0.55,
+            # Yalniz YUZEYDEN: kafanin etrafinda bir kabuk gibi
+            # dursun, icini doldurmasin.
+            "surface_only": True, "direction": "outwards"},
+        "minecraft:particle_initial_speed":
+            "0.04 + variable.particle_random_1 * 0.10",
+        "minecraft:particle_lifetime_expression": {
+            "max_lifetime": "1.6 + variable.particle_random_2 * 1.2"},
+        "minecraft:particle_motion_dynamic": {
+            "linear_acceleration": [0, 0.32, 0],
+            "linear_drag_coefficient": 1.1},
+        "minecraft:particle_appearance_billboard": {
+            "size": [
+                "(0.05 + variable.particle_random_3 * 0.06) * (1 - " + _AURA_OMUR + " * 0.55)",
+                "(0.05 + variable.particle_random_3 * 0.06) * (1 - " + _AURA_OMUR + " * 0.55)"],
+            "face_camera_mode": "lookat_xyz",
+            "uv": _aura_uv("hale")},
+        "minecraft:particle_appearance_tinting": {
+            "color": {"gradient": _aura_gradyan(renkler),
+                      "interpolant": _AURA_OMUR}},
+    })
+
+
+def aura_patlama(kimlik, renkler):
+    """PATLAMA -- iksir ICILDIGI an bir kez. Kivilcimlar disari
+    firliyor, yercekimiyle dusuyor, yere carpinca sonuyor."""
+    return _aura_govde(kimlik, "patlama", {
+        "minecraft:emitter_rate_instant": {"num_particles": 46},
+        "minecraft:emitter_lifetime_once": {"active_time": 0.4},
+        "minecraft:emitter_shape_sphere": {
+            "offset": [0, 0, 0], "radius": 0.12,
+            "surface_only": False, "direction": "outwards"},
+        "minecraft:particle_initial_speed":
+            "1.7 + variable.particle_random_1 * 2.3",
+        "minecraft:particle_initial_spin": {
+            "rotation": "variable.particle_random_2 * 360",
+            "rotation_rate": "(variable.particle_random_3 - 0.5) * 420"},
+        "minecraft:particle_lifetime_expression": {
+            "max_lifetime": "0.45 + variable.particle_random_4 * 0.55"},
+        "minecraft:particle_motion_dynamic": {
+            # Yercekimi: kivilcimlar yukselip DUSUYOR.
+            "linear_acceleration": [0, -3.4, 0],
+            "linear_drag_coefficient": 0.9},
+        # Yere carpinca sonsun -- havada asili kalmasin.
+        "minecraft:particle_motion_collision": {
+            "enabled": True, "collision_radius": 0.02,
+            "expire_on_contact": True},
+        "minecraft:particle_appearance_billboard": {
+            "size": [
+                "0.02 + variable.particle_random_1 * 0.02",
+                "(0.07 + variable.particle_random_1 * 0.09) * (1 - " + _AURA_OMUR + " * 0.6)"],
+            # Kivilcim GITTIGI YONE bakiyor: cizgi halinde
+            # uzuyor, disk gibi durmuyor.
+            "face_camera_mode": "direction_y",
+            "direction": {"mode": "derive_from_velocity",
+                          "min_speed_threshold": 0.02},
+            "uv": _aura_uv("kivilcim")},
+        "minecraft:particle_appearance_tinting": {
+            "color": {"gradient": _aura_gradyan(renkler),
+                      "interpolant": _AURA_OMUR}},
+    })
+
+
+AURA_TURLERI = (("kor", aura_kor), ("hale", aura_hale),
+                ("patlama", aura_patlama))
+
+
+# ============================================================
 #  KURUYAN AGAC                                        v7.11
 #
 #  LORE.md'nin MERKEZINDEKI nesne bugune kadar oyunda yoktu.
@@ -8587,6 +8901,27 @@ def main():
              dismont_ozelligi())
     yaz_json(os.path.join(BP, "feature_rules/freedom_stone_ore_rule.json"),
              dismont_kurali())
+    # ---- IKSIR AURASI (v7.15) ----
+    # Her iksir icin uc parcacik: kor (yukselen), hale (puslu
+    # kabuk), patlama (icildigi an). Renkler IKSIRLER
+    # tablosundaki GOZ renkleri -- gozunde yanan renk ne ise
+    # etrafinda ucusan da o. Element'in iki rengi de gradyana
+    # giriyor.
+    _aura_yol = os.path.join(RP, "particles")
+    os.makedirs(_aura_yol, exist_ok=True)
+    _aura_sayi = 0
+    for _ik, _iad, _irenk, _igoz, _igozrenk in IKSIRLER:
+        _renkler = goz_renkleri(_igozrenk)
+        for _tur, _uret in AURA_TURLERI:
+            yaz_json(os.path.join(_aura_yol,
+                                  "aura_%s_%s.particle.json" % (_tur, _ik)),
+                     _uret(_ik, _renkler))
+            _aura_sayi += 1
+    png_yaz(os.path.join(RP, "textures/particle", AURA_DOKU + ".png"),
+            AURA_DOKU_BOY, AURA_DOKU_BOY, aura_dokusu())
+    print("uretildi: %d aura parcacigi (%d iksir x %d tur)"
+          % (_aura_sayi, len(IKSIRLER), len(AURA_TURLERI)))
+
     yaz_json(os.path.join(BP, "features/kuruyan_agac_feature.json"),
              kuruyan_agac_ozelligi())
     yaz_json(os.path.join(BP, "feature_rules/kuruyan_agac_rule.json"),

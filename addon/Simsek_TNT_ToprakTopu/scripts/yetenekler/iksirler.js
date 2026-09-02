@@ -2,11 +2,14 @@ import * as api from "@minecraft/server";
 import { system } from "@minecraft/server";
 import { iksirKaydet, iksirinKademesi, tumIksirler } from "./kayit.js";
 import {
-  hataYaz, bilgiYaz, gecerliMi, olayaAbone, actionbarYaz, ekraniBoya
+  hataYaz, bilgiYaz, gecerliMi, olayaAbone, actionbarYaz, ekraniBoya,
+  parcacikAt
 } from "../yardimcilar.js";
 import { KADEMELER, IKSIR_TAZELEME, IKSIR_ONEK,
   PARLAMA_ACIK, PARLAMA_GIRIS, PARLAMA_TUT, PARLAMA_CIKIS,
-  IKSIR_LAZERI_SEC, NITROKSIN_DUSME_BAGISIK
+  IKSIR_LAZERI_SEC, NITROKSIN_DUSME_BAGISIK,
+  AURA_ACIK, AURA_ONEK, AURA_ARALIK, AURA_HALE_ARALIK,
+  AURA_KAFA_Y, AURA_PATLAMA_Y
 } from "../ayarlar.js";
 
 /* ============================================================
@@ -235,6 +238,7 @@ export function iksirIc(oyuncu, kademe) {
   gozTak(oyuncu, kademe);
   efektVer(oyuncu, kademe);
   parlat(oyuncu, kademe);
+  auraPatlat(oyuncu, kademe);
 
   try {
     oyuncu.sendMessage(
@@ -400,6 +404,37 @@ if (!tamKuruldu && !basKuruldu) {
    Merkezi tick yoneticisinden cagriliyor. Hicbir oyuncu iksir
    icmemisse Map bos, dongu hic donmuyor -- bedava.             */
 
+/* ---- AURA (v7.15) ----
+
+   Parcacik adi kademe.kimlik'ten kuruluyor; ikinci bir tablo
+   YOK (bkz. ayarlar.js AURA bolumu).
+
+   Kafanin konumu getHeadLocation ile aliniyor, oyuncunun
+   location'i degil: location AYAK hizasi, aura orada ciksaydi
+   zerreler bacaklardan yukselirdi.
+
+   Hepsi try/catch icinde ve parcacikAt zaten kendi uyarisini
+   bir kez basip susuyor: parcacik cizilemese bile iksir
+   calismaya devam etmeli. Gorsel eksik, oynanis normal.     */
+function auraAt(oyuncu, kademe, tur, yukseklik) {
+  if (!AURA_ACIK) return false;
+  try {
+    const bas = oyuncu.getHeadLocation();
+    parcacikAt(oyuncu.dimension, AURA_ONEK + tur + "_" + kademe.kimlik, {
+      x: bas.x, y: bas.y + yukseklik, z: bas.z
+    });
+    return true;
+  } catch (e) {
+    hataYaz("aura." + tur, e);
+    return false;
+  }
+}
+
+/* Iksir icildigi an bir kez. Disari acilan kivilcimlar. */
+export function auraPatlat(oyuncu, kademe) {
+  return auraAt(oyuncu, kademe, "patlama", AURA_PATLAMA_Y);
+}
+
 export function iksirTara(oyuncular) {
   if (durumlar.size === 0) return;
 
@@ -422,6 +457,18 @@ export function iksirTara(oyuncular) {
       if (IKSIR_LAZERI_SEC) kancaCagir("lazerBirak", oyuncu);
       actionbarYaz(oyuncu, "§8" + d.kademe.ad + " bitti");
       continue;
+    }
+
+    /* AURA -- tazelemeden AYRI ritimde.
+
+       Tazeleme IKSIR_TAZELEME tick'te bir (efektleri yeniler);
+       aura ondan cok daha sik olmali, yoksa zerreler kesik
+       kesik cikar. O yuzden asagidaki iki blok `continue`nin
+       USTUNDE duruyor -- tazeleme sirasi gelmese de aura
+       cikiyor.                                              */
+    if (simdi % AURA_ARALIK === 0) auraAt(oyuncu, d.kademe, "kor", AURA_KAFA_Y);
+    if (simdi % AURA_HALE_ARALIK === 0) {
+      auraAt(oyuncu, d.kademe, "hale", AURA_KAFA_Y);
     }
 
     if (simdi < d.sonrakiTazeleme) continue;
