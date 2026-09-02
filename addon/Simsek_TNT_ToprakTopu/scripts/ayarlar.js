@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.9.8";
+export const SURUM = "v7.9.9";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -2842,6 +2842,32 @@ export const DIS_ZEMIN_TARAMA = 4;
 /* Tek seferde en fazla kac dis (varlik butcesi de ayrica
    sinirliyor).                                             */
 export const DIS_TAVAN = 10;
+
+/* ---- DISLER: YEDEK YOL  (v7.9.9) ----
+   Oyunda su hata alindi:
+     disler.spawn: Invalid value passed to argument [0].
+     'minecraft:evocation_fang' is not a valid entity type.
+
+   Yani spawnEntity o varligi kabul etmiyor. DOGRU KIMLIGI
+   TAHMIN ETMIYORUM -- bu depoda kanitlanmamis kimlik yazmak
+   yasak; yazsam ve yine tutmasa ayni hata baska bir adla
+   donerdi.
+
+   Onun yerine: disler.js oyuna SORUYOR (EntityTypes.get).
+   Kabul ediliyorsa vanilla dis varligi kullaniliyor (eskisi
+   gibi). Kabul edilmiyorsa AYNI ISI kendimiz yapiyoruz --
+   her dis noktasinda parcacik + hasar. Oynanis ayni: yerden
+   bir sey cikiyor ve ustundekini isiriyor.
+
+   Hasar UYDURULMADI: vanilla evoker disi 6 hasar veriyor
+   (3 kalp) ve yedek de onu veriyor ki iki yol arasinda
+   guc farki olmasin.                                        */
+export const DIS_YEDEK_HASAR    = 6;
+export const DIS_YEDEK_YARICAP  = 1.2;   // dis noktasinin kac blok cevresi
+/* Tek seferlik parcacik (`_particle` ile biten). Emitter
+   DEGIL: v7.9.1'de sonmeyen ates dersi.                     */
+export const DIS_YEDEK_PARCACIK = "minecraft:redstone_ore_dust_particle";
+export const DIS_YEDEK_ADET     = 6;     // dis basina kac zerre
 
 /* ============================================================
    MISKEL'IN SAVAS MODU  (v4.47)

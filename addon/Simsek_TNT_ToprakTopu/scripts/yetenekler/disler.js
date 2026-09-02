@@ -1,9 +1,13 @@
+import * as api from "@minecraft/server";
 import { system, world } from "@minecraft/server";
 import { varlikIste } from "../butce.js";
-import { hataYaz, gecerliMi, varlikKonumu } from "../yardimcilar.js";
+import {
+  hataYaz, bilgiYaz, gecerliMi, varlikKonumu, parcacikHalkasi
+} from "../yardimcilar.js";
 import { botunSahibi, botVarliklari } from "./_bot_defteri.js";
 import {
   OKAZOR_DIS_ACIK, DIS_VARLIK, DIS_BEKLEME, DIS_MENZIL, DIS_YAKIN,
+  DIS_YEDEK_HASAR, DIS_YEDEK_YARICAP, DIS_YEDEK_PARCACIK, DIS_YEDEK_ADET,
   DIS_CIZGI_ADET, DIS_CIZGI_ARALIK, DIS_HALKA_ADET, DIS_HALKA_YARICAP,
   DIS_DOST_UZAK, DIS_ZEMIN_TARAMA, DIS_TAVAN, botTuruMu
 } from "../ayarlar.js";
@@ -56,22 +60,135 @@ export function dislerUnut(botId) {
 
 /* Merkezi tick'ten cagriliyor (main.js). Kuyruk bosken hic
    donmiyor -- kalp/bot taramalariyla ayni kural.            */
+/* ---------------- DIS VARLIGI VAR MI  (v7.9.9) ----------------
+   Oyunda su hata alindi:
+     disler.spawn: Invalid value passed to argument [0].
+     'minecraft:evocation_fang' is not a valid entity type.
+
+   Yani spawnEntity bu varligi kabul etmiyor. DOGRU KIMLIGI
+   TAHMIN ETMIYORUZ. Onun yerine oyuna SORULUYOR; kabul
+   etmiyorsa ayni isi kendimiz yapiyoruz (asagida).
+
+   Cevap BIR KEZ okunuyor ve saklaniyor: her diste sormak hem
+   bosuna hem de hatayi tekrar tekrar gunluge dokerdi -- oyunda
+   olan da buydu.                                              */
+let disVarligiVar;
+
+function disVarligiSinali() {
+  if (disVarligiVar !== undefined) return disVarligiVar;
+  disVarligiVar = false;
+  try {
+    const EntityTypes = api.EntityTypes;
+    if (EntityTypes && typeof EntityTypes.get === "function") {
+      disVarligiVar = !!EntityTypes.get(DIS_VARLIK);
+    } else {
+      /* EntityTypes yoksa denemeye deger: spawnEntity yine de
+         calisiyor olabilir. Basarisiz olursa asagida yedege
+         gecilir.                                              */
+      disVarligiVar = true;
+    }
+  } catch (e) {
+    disVarligiVar = false;
+  }
+  if (!disVarligiVar) {
+    bilgiYaz("Okazor'un disleri: '" + DIS_VARLIK + "' bu surumde " +
+             "dogurulamiyor. Disler artik parcacik + hasar olarak " +
+             "cikiyor (ayni hasar: " + DIS_YEDEK_HASAR + ").");
+  }
+  return disVarligiVar;
+}
+
+/* Yedek dis: varlik yerine parcacik + cevresine hasar.
+   Oynanis ayni -- yerden bir sey cikiyor ve ustundekini
+   isiriyor. Hasar vanilla disin verdigiyle AYNI tutuldu ki
+   iki yol arasinda guc farki olmasin.                        */
+function yedekDis(d) {
+  parcacikHalkasi(d.boyut, DIS_YEDEK_PARCACIK, d.yer,
+                  DIS_YEDEK_ADET, 0.45);
+  let yakin;
+  try {
+    yakin = d.boyut.getEntities({
+      location: d.yer,
+      maxDistance: DIS_YEDEK_YARICAP,
+      excludeTypes: ["minecraft:item", "minecraft:xp_orb"]
+    });
+  } catch (e) {
+    return;
+  }
+  /* DOST ELEMESI.
+     Noktanin KENDISI kuyruga girerken zaten dostVar() ile
+     suzulmustu; ama yedek yol HASARI simdi veriyor ve o
+     aradan geçen surede biri oraya yurumus olabilir. O yuzden
+     hedefler burada bir daha eleniyor:
+       - sahip (sen)
+       - butun bot turleri (Ilkel Besli dahil, botTuruMu)
+     Vanilla disin kendisi de sahibine vurmuyor; davranis ayni
+     kalsin diye.                                             */
+  let sahipId;
+  try { sahipId = botunSahibi(d.botId); } catch (e) { sahipId = undefined; }
+  for (const v of yakin) {
+    try {
+      if (!gecerliMi(v)) continue;
+      if (v.id === d.botId) continue;                 // kendini isirmasin
+      if (sahipId && v.id === sahipId) continue;      // sahibi
+      if (botTuruMu(v.typeId)) continue;              // ekip arkadasi
+      /* `cause` ZORUNLU: yoksa "Native variant type conversion
+         failed" aliniyor -- v7.9.9'da isinda tam bu yasandi. */
+      v.applyDamage(DIS_YEDEK_HASAR, { cause: "entityAttack" });
+    } catch (e) {
+      /* tek bir hedef vurulamadi; digerleri devam etsin */
+    }
+  }
+}
+
 export function disTara() {
   if (kuyruk.length === 0) return;
+  /* Sinal HER DONGUDE yeniden okunuyor, dongunun BASINDA bir
+     kez degil. Sebebi olculdu: bir salvoda sekiz dis var ve
+     ilk dis dogurulamayinca `disVarligiVar` false'a cekiliyor
+     -- ama dongu basinda alinmis eski deger elde kaldigi icin
+     kalan yedi dis de tek tek deneniyor ve tek tek atiyordu.
+     Testte dort dogurma denemesi sayildi; olmasi gereken bir.  */
   while (kuyruk.length > 0) {
     if (varlikIste(1) < 1) return;          // butce doldu, sonraki tick
     const d = kuyruk.shift();
+    if (!disVarligiSinali()) {
+      try {
+        yedekDis(d);
+      } catch (e) {
+        hataYaz("disler.yedek", e);
+      }
+      continue;
+    }
     try {
       d.boyut.spawnEntity(DIS_VARLIK, d.yer);
     } catch (e) {
-      /* Varlik dogmadi: kimlik yok ya da parca yuklu degil.
-         Bir kere bildir, kuyrugun kalanini bosalt -- ayni
-         hata her dis icin tekrarlanmasin.                  */
+      /* Varlik dogmadi. Bir kere bildir ve KALICI olarak
+         yedege gec -- eskiden kuyruk bosaltilip birakiliyordu,
+         yani her vuruste yeniden denenip yeniden hata
+         yaziliyordu (oyunda gorulen spam buydu) ve disler hic
+         cikmiyordu.                                          */
       hataYaz("disler.spawn", e);
-      kuyruk.length = 0;
-      return;
+      disVarligiVar = false;
+      bilgiYaz("Okazor'un disleri yedek yola gecti " +
+               "(parcacik + " + DIS_YEDEK_HASAR + " hasar).");
+      /* Basarisiz disi KUYRUGA GERI KOY, burada yedekDis()
+         cagirma. Ikisi de ayni isi yapardi ama geri koymanin
+         iki ustunlugu var:
+           1. Tek yol kaliyor -- yedege gecis mantigi bir
+              yerde duruyor, iki yerde degil.
+           2. Bir sonraki donguda `disVarligiVar` artik false
+              oldugu icin bu dis de yedekten cikiyor; hicbir
+              dis DUSMUYOR. Eskiden catch icinde ayrica
+              cagrilmasaydi tam bu dis kaybolurdu.          */
+      kuyruk.unshift(d);
     }
   }
+}
+
+/* Testler ve dunya degisimi icin: sinali unut. */
+export function disVarligiUnut() {
+  disVarligiVar = undefined;
 }
 
 /* Bu noktanin yakininda bir DOST var mi?

@@ -237,6 +237,164 @@ console.log("\n=== 7. MENZIL ve TAVAN ===");
           disler(D).length + " / " + ayar.DIS_TAVAN);
 }
 
+console.log("\n=== 8. YEDEK YOL: DIS VARLIGI YOKKEN ===");
+{
+  /* KULLANICI OYUNDA BUNU ALDI:
+       disler.spawn: Invalid value passed to argument [0].
+       'minecraft:evocation_fang' is not a valid entity type.
+     Yani spawnEntity o varligi kabul etmiyor ve Okazor'un
+     disleri HIC cikmiyordu; ustelik her vuruste yeniden
+     deneniyor ve gunluge yeniden hata yaziliyordu.
+
+     Dogru kimlik TAHMIN EDILMEDI. Bunun yerine oyuna
+     soruluyor; kabul etmiyorsa ayni is parcacik + hasar ile
+     yapiliyor. Bu bolum O YOLU sinliyor -- oyunda calisacak
+     olan bu.                                                */
+  const { D, bot } = kur("d8");
+  dis.disVarligiUnut();
+  /* Oyun varligi TANIMIYOR: EntityTypes bos donuyor ve
+     spawnEntity atiyor. Ikisi birden, cunku gercekte de
+     ikisi birden oluyor.                                    */
+  _durum.kayitliVarliklar.delete(ayar.DIS_VARLIK);
+  const eskiDogur = D.boyut.spawnEntity;
+  D.boyut.spawnEntity = (tip, poz) => {
+    if (tip === ayar.DIS_VARLIK) {
+      throw new Error("'" + tip + "' is not a valid entity type");
+    }
+    return eskiDogur.call(D.boyut, tip, poz);
+  };
+
+  const uzak = ayar.DIS_YAKIN + 4;
+  let hasar = 0;
+  const kurban = kurbanYap("k8", D.boyut, bot.location.x + uzak, bot.location.z);
+  kurban.applyDamage = (n) => { hasar += n; return true; };
+  D.boyut._varliklar = [bot, kurban];
+
+  const parcacikOnce = (D.sayac.parcacik || []).length;
+  vur(bot, kurban);
+
+  kontrol("varlik dogurulamiyor ama dis YINE DE isliyor", hasar > 0,
+          "kurbana " + hasar + " hasar");
+  kontrol("  hasar vanilla disle AYNI kuvvette",
+          hasar >= ayar.DIS_YEDEK_HASAR,
+          "dis basina " + ayar.DIS_YEDEK_HASAR);
+  kontrol("  parcacik cikti (gorunuyor)",
+          (D.sayac.parcacik || []).length > parcacikOnce,
+          ((D.sayac.parcacik || []).length - parcacikOnce) + " zerre");
+  /* Parcacik EMITTER olmamali -- v7.9.1'deki sonmeyen ates. */
+  kontrol("  parcacik tek seferlik (_emitter degil)",
+          !/_emitter$/.test(ayar.DIS_YEDEK_PARCACIK),
+          ayar.DIS_YEDEK_PARCACIK);
+
+  /* Ikinci vurus: bir daha DENEMEMELI, dogrudan yedekten
+     gitmeli. Eskiden her vuruste yeniden deneyip yeniden hata
+     yaziyordu -- kullanicinin ekraninda gordugu spam buydu.
+
+     SPAM AYRICA OLCULUYOR: hasarin gitmesi yetmiyor, "hata
+     bir daha yazilmasin" ayri bir guvence. Ilk yazimda yalniz
+     hasara bakiyordum ve kalici gecisi kaldirmak testi
+     dusurmedi -- cunku hata yine yaziliyor ama hasar da
+     veriliyordu. Bozma denemesi bunu gosterdi.              */
+  const hasarOnce = hasar;
+  /* SPAM SAYACI SOHBET GUNLUGUNDEN okunuyor, console.warn'dan
+     DEGIL: vur() kendi icinde sus() cagirip console.warn'i
+     eziyor, yani oraya kurulan bir yakalayici sessizce
+     devre disi kaliyor. Ilk yazimda tam bu oldu ve bozma
+     denemesi "yakalanmadi" dedi -- kod degil olcum
+     bozuktu.                                                */
+  _durum.sohbet.length = 0;
+  tickIlerlet(ayar.DIS_BEKLEME + 5);
+  vur(bot, kurban);
+  kontrol("  ikinci vurusta da isliyor (kalici olarak yedekte)",
+          hasar > hasarOnce, hasarOnce + " -> " + hasar);
+  const tekrar = _durum.sohbet.filter((u) => String(u).includes("disler.spawn"));
+  kontrol("  ve hatayi TEKRAR yazmiyor (gunluk spam'i yok)",
+          tekrar.length === 0, tekrar.length + " tekrar uyari");
+
+  D.boyut.spawnEntity = eskiDogur;
+  _durum.kayitliVarliklar.add(ayar.DIS_VARLIK);
+  dis.disVarligiUnut();
+}
+
+console.log("\n=== 9. IKINCI IHTIMAL: TUR KAYITLI AMA DOGURULAMIYOR ===");
+{
+  /* Yukaridaki bolumde EntityTypes "yok" diyordu ve spawnEntity
+     hic denenmiyordu. Oyunda IKINCI bir ihtimal daha var: tur
+     KAYITLI gorunur ama spawnEntity yine de reddeder (ornegin
+     summonable degilse). O zaman catch dali calisir ve KALICI
+     yedege gecis orada devreye girer.
+
+     Bu ayri bir yol ve ayri sinaniyor: ilk yazimda yoktu,
+     bozma denemesinde "kalici gecisi kaldir" hicbir seyi
+     dusurmedi -- cunku o satira hic ugranmiyordu. Yani
+     eksik olan kod degil, SENARYOYDU.                       */
+  const { D, bot } = kur("d9");
+  dis.disVarligiUnut();
+  /* Tur KAYITLI kalsin (EntityTypes evet desin) ama dogurma
+     ATSIN.                                                  */
+  const eskiDogur = D.boyut.spawnEntity;
+  let deneme = 0;
+  D.boyut.spawnEntity = (tip, poz) => {
+    if (tip === ayar.DIS_VARLIK) {
+      deneme++;
+      throw new Error("'" + tip + "' is not a valid entity type");
+    }
+    return eskiDogur.call(D.boyut, tip, poz);
+  };
+
+  const uzak = ayar.DIS_YAKIN + 4;
+  let hasar = 0;
+  const kurban = kurbanYap("k9", D.boyut, bot.location.x + uzak, bot.location.z);
+  kurban.applyDamage = (n) => { hasar += n; return true; };
+  D.boyut._varliklar = [bot, kurban];
+
+  vur(bot, kurban);
+  kontrol("dogurma atinca yedege GECIYOR (hasar yine gidiyor)", hasar > 0,
+          "hasar " + hasar + ", " + deneme + " dogurma denemesi");
+  /* AYNI SALVODA da bir daha denememeli. Bir salvo sekiz dis;
+     sinal dongu basinda bir kez okunsaydi ilk hatadan sonra
+     kalan yedi dis de tek tek denenir ve tek tek atardi --
+     olculdu, dort denemeydi. Dogrusu BIR.                    */
+  kontrol("  ayni salvoda bir daha DENEMIYOR", deneme === 1,
+          deneme + " deneme");
+
+  const denemeOnce = deneme;
+  const hasarOnce = hasar;
+  /* KAC DIS ISLENDI: her yedek dis DIS_YEDEK_ADET zerre
+     atiyor, yani zerre sayisi / adet = islenen dis sayisi.
+     Bu olcum, hasardan daha keskin: kurban yalnizca birkac
+     disin yaninda duruyor, o yuzden "bir dis dustu" hasara
+     yansimayabiliyor -- zerreye yansiyor.                  */
+  /* YALNIZ DIS ZERRELERI sayiliyor. Okazor'un isini de ayni
+     kirmizi tozu atiyor ("Kirmizi Guc") ve ham sayim ikisini
+     karistiriyordu -- ilk olcumde 10,67 gibi tam olmayan bir
+     sayi cikti ve sebebi buydu. Disler YERDE (y = zemin),
+     isin govde yuksekliginde; ayrim bu.                     */
+  const disZerresi = (D) => (D.sayac.parcacik || [])
+    .filter((z) => z.tip === ayar.DIS_YEDEK_PARCACIK && Math.abs(z.y - AYAK) < 0.01)
+    .length / ayar.DIS_YEDEK_ADET;
+  const ilkSalvoDis = disZerresi(D);
+  (D.sayac.parcacik || []).length = 0;
+  tickIlerlet(ayar.DIS_BEKLEME + 5);
+  vur(bot, kurban);
+  const ikinciSalvoDis = disZerresi(D);
+  /* Ikinci salvo tamamen yedekten gidiyor, yani "tam" salvo.
+     Birincisi gecisi de iceriyor; gecisde bir dis DUSMEMELI. */
+  kontrol("  gecis sirasinda hicbir dis DUSMUYOR",
+          ilkSalvoDis === ikinciSalvoDis,
+          ilkSalvoDis + " dis (gecis) / " + ikinciSalvoDis + " dis (yedek)");
+  /* ASIL GUVENCE: ikinci vuruste BIR DAHA DENEMEMELI.
+     Denerse her vuruste yeniden atar ve gunluge yeniden hata
+     yazar -- kullanicinin ekraninda gordugu spam buydu.     */
+  kontrol("  ikinci vuruste BIR DAHA denemiyor (kalici yedek)",
+          deneme === denemeOnce, denemeOnce + " -> " + deneme + " deneme");
+  kontrol("  ama dis yine isliyor", hasar > hasarOnce,
+          hasarOnce + " -> " + hasar);
+
+  D.boyut.spawnEntity = eskiDogur;
+  dis.disVarligiUnut();
+}
+
 console.log("");
 console.log(hata ? ">>> SORUN VAR" : ">>> Okazor'un disleri calisiyor");
 process.exit(hata ? 1 : 0);

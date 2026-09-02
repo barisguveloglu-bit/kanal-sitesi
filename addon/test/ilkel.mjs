@@ -31,8 +31,12 @@ const BP = KOK + "/Simsek_TNT_ToprakTopu";
 /* Bes uye ayri varlik (v4.35): sahte dunyanin varlik kayit
    defterine hepsi girmeli, yoksa spawnEntity reddediyor --
    gercek oyunda da oyle.                                     */
+/* Dis varligi da kayitli: bu dosya Okazor'un ASIL yolunu
+   (vanilla dis varligi) sinliyor. Varlik YOKKEN devreye giren
+   yedek yol disler.mjs'in 8. bolumunde ayrica sinaniyor --
+   oyunda calisan o.                                          */
 varlikKaydet("pa:bot", "pa:kajaros", "pa:miskel", "pa:harkos",
-             "pa:raxxan", "pa:okazor");
+             "pa:raxxan", "pa:okazor", "minecraft:evocation_fang");
 
 /* Silahlar birer ESYA (v4.48): oyunun esya defterine kayitli
    olmadan ItemStack uretilemiyor -- gercek oyunda da oyle,
@@ -1280,6 +1284,45 @@ console.log("=== VURUS YETENEKLERI: bes uyenin imzasi tetikleniyor mu ===");
             "efekt=" + ([...new Set(ef)].join(",") || "yok") +
             " varlik=" + (D.sayac.dogan.length - once) + " can=" + can);
   }
+}
+
+console.log("");
+console.log("=== ISIN HASARI: 'cause' verilmezse OYUN ATIYOR ===");
+{
+  /* KULLANICI OYUNDA BUNU ALDI, on kez ust uste:
+       ilkel.isin: Native variant type conversion failed
+
+     Sebep: applyDamage'in secenek nesnesinin BIRDEN FAZLA turu
+     var (normal hasar / mermi hasari). `cause` verilmezse
+     yerel baglayici hangi turu bekledigini secemiyor ve
+     donusum patliyor -- yani isin HIC hasar vermiyordu.
+
+     Tahmin degil, OLCUM: depodaki secenekli 14 applyDamage
+     cagrisinin 13'unde `cause` vardi ve calisiyorlardi;
+     olmayan TEK cagri buydu ve hata veren de tam buydu.
+
+     Bu sinama kaynak metnine bakiyor, cunku sahte dunya
+     `cause` eksikligine aldirmaz -- gercek oyun aldiriyor ve
+     olcmemiz gereken sey o.                                 */
+  const ham = readFileSync(KOK +
+    "/Simsek_TNT_ToprakTopu/scripts/yetenekler/bot_ilkel.js", "utf8");
+  const kod = ham.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
+  const cagrilar = [];
+  for (const m of kod.matchAll(/applyDamage\(/g)) {
+    let i = m.index + m[0].length, d = 1, j = i;
+    while (d > 0 && j < kod.length) {
+      if (kod[j] === "(") d++;
+      else if (kod[j] === ")") d--;
+      j++;
+    }
+    cagrilar.push(kod.slice(i, j - 1));
+  }
+  const secenekli = cagrilar.filter((a) => a.includes("{"));
+  const causesiz = secenekli.filter((a) => !a.includes("cause"));
+  kontrol("secenekli applyDamage cagrilarinin HEPSINDE cause var",
+          causesiz.length === 0,
+          causesiz.map((a) => a.split("\n").join(" ").slice(0, 60)).join(" | ") ||
+          secenekli.length + " cagri");
 }
 
 console.log("");

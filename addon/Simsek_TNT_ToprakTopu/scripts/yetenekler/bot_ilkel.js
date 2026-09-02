@@ -710,7 +710,20 @@ function isinAt(varlik, t, oyuncuId, simdikiTick) {
   for (const h of vurulanlar) {
     if (vuran >= ILKEL_ISIN_TAVAN) break;
     try {
-      h.varlik.applyDamage(t.isin.hasar, { damagingEntity: varlik });
+      /* `cause` ZORUNLU. Oyunda su hata aliniyordu:
+             ilkel.isin: Native variant type conversion failed
+         Sebep: applyDamage'in secenek nesnesinin BIRDEN FAZLA
+         turu var (normal hasar / mermi hasari). `cause`
+         verilmezse yerel baglayici hangi turu bekledigini
+         secemiyor ve donusum patliyor.
+
+         Tahmin degil, OLCUM: depodaki secenekli 14
+         applyDamage cagrisinin 13'unde `cause` var ve
+         calisiyorlar; olmayan TEK cagri buydu ve hata veren
+         de tam buydu. "entityAttack" buz_mizragi.js ile
+         zaman_saati.js'te calistigi gorulmus deger.        */
+      h.varlik.applyDamage(t.isin.hasar,
+                           { cause: "entityAttack", damagingEntity: varlik });
       vuran++;
     } catch (e) {
       hataYaz("ilkel.isin", e);
