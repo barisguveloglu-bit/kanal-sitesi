@@ -14,7 +14,7 @@ run_command kullaniyor, ikisi de deneysel ayar gerektiriyor. Bizim
 esyalarimiz kararli formatta (asagidaki esya() aciklamasina bak).
 """
 
-import json, os, struct, zlib
+import json, os, re, struct, zlib
 
 BP = "/home/user/kanal-sitesi/addon/Simsek_TNT_ToprakTopu"
 RP = "/home/user/kanal-sitesi/addon/Simsek_Kol_Kaynak"
@@ -86,7 +86,47 @@ MASKE_EN   = "That Thing Mask"
 
 SKP = "/home/user/kanal-sitesi/addon/Simsek_Skin"
 SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
-SKIN_PAKET_AD = "Şimşek Skinleri"
+# ==================== SURUM: TEK KAYNAK  (v7.9.8) ====================
+#
+# ---- NEDEN BOYLE OLDU ----
+# Kullanici tablette dort paketi yan yana gordu ve soramadi:
+# "bu dogru surum mu?" Hakliydi. Manifest surumu v7.9'da ELLE
+# [7,9,0] yazilmis ve YEDI SURUM boyunca bir daha
+# dokunulmamisti -- 7.9.1'den 7.9.7'ye kadar hepsi oyunda
+# AYNI gorunuyordu (v7.9.0). Ustelik ad da ayri bir yerde
+# "... v7.9" diye yaziliydi, yani iki numara vardi ve ikisi de
+# yanlisti.
+#
+# Simdi TEK kaynak burasi. Dort manifest, dort paket adi,
+# ayarlar.js'teki SURUM ve .mcpack dosya adlari hepsi bundan
+# tureniyor -- ayrisabilecekleri bir yer kalmadi.
+#
+# YENI SURUM CIKARIRKEN: yalnizca asagidaki satiri degistir.
+SURUM_NO = (7, 9, 8)
+
+SURUM_METIN = "%d.%d.%d" % SURUM_NO
+SURUM_ETIKET = "v" + SURUM_METIN
+
+# ---- PAKET ADLARI ----
+# Kullanici: "surum adlarini basitlestir, cok fazla kafami
+# yormak istemiyorum, zaten test yapiyorum."
+# Dordu de AYNI onekle basliyor (listede yan yana duruyorlar),
+# surum ADIN ICINDE (tek bakista goruluyor) ve arkasindaki tek
+# kelime ne oldugunu soyluyor. Aciklamalar da kisaltildi:
+# oncekiler tablette yarida kesiliyordu.
+PAKET_ONEK = "Şimşek " + SURUM_METIN + " · "
+PAKETLER = {
+    "bp":   (PAKET_ONEK + "Mod",
+             "Yetenekler, kollar, iksirler, botlar. Ana paket."),
+    "rp":   (PAKET_ONEK + "Görünüm",
+             "İkonlar ve 3B kol görünümü. Bu paket kapalıysa eşyalar çalışır ama görünmez."),
+    "omp":  (PAKET_ONEK + "Oyuncu Modeli",
+             "Maskeyi eline al, O Şey ol. Ayrı paket: oyuncu modelini ezen başka bir paketle birlikte çalışmaz."),
+    "skin": (PAKET_ONEK + "Skin",
+             "Uzak Akraba ve diğer skinler."),
+}
+
+SKIN_PAKET_AD = PAKETLER["skin"][0]
 
 # ---- IKI SKIN (v4.89) ----
 # Kullanici: "2 tane skin yapman lazim, birincisini elleme,
@@ -5623,10 +5663,8 @@ def oyuncu_modeli_paketi(surum):
     yaz_json(os.path.join(OMP, "manifest.json"), {
         "format_version": 2,
         "header": {
-            "name": "Şimşek Oyuncu Modeli (O Şey)",
-            "description": ("Maskeyi eline al, O Şey ol. AYRI paket: "
-                            "player.entity.json'u ezen baska bir paketle "
-                            "birlikte calismaz, sorun cikarsa yalniz bunu kapat."),
+            "name": PAKETLER["omp"][0],
+            "description": PAKETLER["omp"][1],
             "uuid": OMP_UUID_BAS,
             "version": surum,
             "min_engine_version": [1, 20, 0],
@@ -7154,7 +7192,47 @@ def esya_ikonu(ana, vurgu):
 
 
 # ------------------------------------------------------------------ ana
+def manifestleri_yaz():
+    """BP ve RP manifestlerini SURUM_NO'dan yazar.
+
+    Bu ikisi eskiden ELLE tutuluyordu ve tam bu yuzden kacti:
+    v7.9'da [7,9,0] yazildi, yedi surum boyunca guncellenmedi
+    ve kullanici oyunda dordunu de ayni gordu.
+
+    UUID'ler ve modul yapisi AYNEN korunuyor -- degisen yalnizca
+    ad, aciklama ve surum. UUID degisseydi oyun paketi YENI bir
+    paket sayar ve kullanicinin dunyasindaki kurulum kopardi.  """
+    for kok, anahtar in ((BP, "bp"), (RP, "rp")):
+        yol = os.path.join(kok, "manifest.json")
+        d = json.load(open(yol, encoding="utf-8"))
+        d["header"]["name"] = PAKETLER[anahtar][0]
+        d["header"]["description"] = PAKETLER[anahtar][1]
+        d["header"]["version"] = list(SURUM_NO)
+        for m in d.get("modules", []):
+            m["version"] = list(SURUM_NO)
+        yaz_json(yol, d)
+
+
+def surumu_scripte_yaz():
+    """ayarlar.js'teki SURUM satirini SURUM_NO'ya esitler.
+
+    Oyun ici surum yazisi ile paket surumu ayrisamasin diye:
+    ikisi de buradan geliyor.                                 """
+    yol = os.path.join(BP, "scripts/ayarlar.js")
+    metin = open(yol, encoding="utf-8").read()
+    yeni, n = re.subn(r'export const SURUM = "[^"]*";',
+                      'export const SURUM = "%s";' % SURUM_ETIKET,
+                      metin, count=1)
+    if n != 1:
+        print("UYARI: ayarlar.js'te SURUM satiri bulunamadi.")
+        return
+    if yeni != metin:
+        open(yol, "w", encoding="utf-8").write(yeni)
+
+
 def main():
+    manifestleri_yaz()
+    surumu_scripte_yaz()
     dokular = {}
     en_us, tr_tr = [], []
 
@@ -8052,8 +8130,8 @@ def main():
     yaz_json(os.path.join(SKP, "manifest.json"), {
         "format_version": 2,
         "header": {
-            "name": SKIN_PAKET_AD,
-            "description": "Uzak Akraba -- Simsek TNT modunun oyuncu skini",
+            "name": PAKETLER["skin"][0],
+            "description": PAKETLER["skin"][1],
             "uuid": SKIN_UUID_BAS,
             "version": surum,
         },

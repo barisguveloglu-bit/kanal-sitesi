@@ -308,18 +308,25 @@ console.log("=== 7. AYRI PAKET, KURULABILIR ===");
 
   /* Aciklama CAKISMAYI soylemeli: player.entity.json'u ezen
      iki paket ayni anda calisamaz, ustteki kazanir.          */
+  /* v7.9.8: aciklamalar KISALTILDI (tablette kesiliyorlardi),
+     "sorun cikarsa yalniz bunu kapat" cumlesi dustu. Uyarinin
+     KENDISI duruyor ve olculen o.                            */
   kontrol("aciklamada cakisma uyarisi var",
-          /kapat|birlikte calismaz/i.test(man.header.description),
+          /birlikte çalışmaz|birlikte calismaz|ezen/i.test(man.header.description),
           man.header.description.slice(0, 60) + "...");
 
   const betik = readFileSync(KOK + "/paketle.sh", "utf8");
   kontrol("mcaddon bu paketi de iceriyor",
           /mcaddon" "\$BP" "\$RP" "\$SK" "\$OM"/.test(betik));
+  /* v7.9.8: dosya adlari sadelesti ve TAM surumu tasiyor
+     (Simsek_v7.9.8_OyuncuModeli.mcpack). Ad artik elle
+     yazilmiyor, manifest surumunden TURETILIYOR -- boylece
+     bir sonraki surumde bu test yine kirilmaz.              */
   kontrol("tek basina da uretiliyor",
-          betik.includes("OyuncuModeli_$S.mcpack"));
-  const surum = "v" + man.header.version[0] + "" + man.header.version[1];
-  kontrol("uretilmis: OyuncuModeli_" + surum + ".mcpack",
-          existsSync(KOK + "/OyuncuModeli_" + surum + ".mcpack"));
+          betik.includes("_OyuncuModeli.mcpack"));
+  const surum = "v" + man.header.version.join(".");
+  const omDosya = "Simsek_" + surum + "_OyuncuModeli.mcpack";
+  kontrol("uretilmis: " + omDosya, existsSync(KOK + "/" + omDosya));
 }
 
 console.log("");

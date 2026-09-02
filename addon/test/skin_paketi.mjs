@@ -223,12 +223,17 @@ console.log("=== 6. TEK DOSYAYLA KURULUM ===");
   const betik = readFileSync(KOK + "/paketle.sh", "utf8");
   kontrol("mcaddon skin paketini de iceriyor",
           /mcaddon" "\$BP" "\$RP" "\$SK"/.test(betik));
+  /* v7.9.8: dosya adlari sadelesti ve TAM surumu tasiyor.
+     Onceden ad "%d%d" ile uretiliyordu, yani 7.9.0 ile 7.9.7
+     ayni dosya adini aliyordu ve kullanici hangisini
+     indirdigini ayirt edemiyordu. Ad artik manifest
+     surumunden TURETILIYOR -- sonraki surumde kirilmasin. */
   kontrol("skin ayrica tek basina da uretiliyor",
-          betik.includes("UzakAkraba_$S.mcpack"));
+          betik.includes("_Skin.mcpack"));
 
-  const surum = "v" + man.header.version[0] + "" + man.header.version[1];
-  for (const d of ["SimsekTNT_" + surum + ".mcaddon",
-                   "UzakAkraba_" + surum + ".mcpack"]) {
+  const surum = "v" + man.header.version.join(".");
+  for (const d of ["Simsek_" + surum + ".mcaddon",
+                   "Simsek_" + surum + "_Skin.mcpack"]) {
     kontrol("uretilmis: " + d, existsSync(KOK + "/" + d));
   }
 }

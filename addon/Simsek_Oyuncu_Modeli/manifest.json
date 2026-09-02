@@ -1,13 +1,13 @@
 {
   "format_version": 2,
   "header": {
-    "name": "Şimşek Oyuncu Modeli (O Şey)",
-    "description": "Maskeyi eline al, O Şey ol. AYRI paket: player.entity.json'u ezen baska bir paketle birlikte calismaz, sorun cikarsa yalniz bunu kapat.",
+    "name": "Şimşek 7.9.8 · Oyuncu Modeli",
+    "description": "Maskeyi eline al, O Şey ol. Ayrı paket: oyuncu modelini ezen başka bir paketle birlikte çalışmaz.",
     "uuid": "c1f0a4d7-9b62-4f8e-9a31-2d6b8f4c7e05",
     "version": [
       7,
       9,
-      0
+      8
     ],
     "min_engine_version": [
       1,
@@ -22,7 +22,7 @@
       "version": [
         7,
         9,
-        0
+        8
       ]
     }
   ]

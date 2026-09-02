@@ -120,7 +120,9 @@ console.log("=== 3. PAKETLENEN KLASORLER EKSIKSIZ ===");
 
   /* Paketin adindaki surum manifest'ten turetiliyor.         */
   const man = JSON.parse(readFileSync(join(BP, "manifest.json"), "utf8"));
-  const S = "v" + man.header.version[0] + "" + man.header.version[1];
+  /* v7.9.8: dosya adi artik TAM surumu tasiyor. Onceden
+     "%d%d" idi ve 7.9.0 ile 7.9.7 ayni adi aliyordu. */
+  const S = "v" + man.header.version.join(".");
 
   const zipIcerik = (dosya) => {
     try {
@@ -130,8 +132,8 @@ console.log("=== 3. PAKETLENEN KLASORLER EKSIKSIZ ===");
   };
 
   for (const [paket, klasor] of [
-    ["SimsekTNT_" + S + ".mcpack", BP],
-    ["SimsekKol_" + S + ".mcpack", RP],
+    ["Simsek_" + S + "_Mod.mcpack", BP],
+    ["Simsek_" + S + "_Gorunum.mcpack", RP],
   ]) {
     const icerik = zipIcerik(paket);
     kontrol("paket uretilmis: " + paket, icerik !== undefined);
@@ -149,7 +151,7 @@ console.log("=== 3. PAKETLENEN KLASORLER EKSIKSIZ ===");
   /* .mcaddon ikisini birden tasiyor: kullanici genelde bunu
      kuruyor, en kritik paket bu.                             */
   {
-    const icerik = zipIcerik("SimsekTNT_" + S + ".mcaddon");
+    const icerik = zipIcerik("Simsek_" + S + ".mcaddon");
     kontrol("mcaddon uretilmis", icerik !== undefined);
     if (icerik) {
       const kume = new Set(icerik);

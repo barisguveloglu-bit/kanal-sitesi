@@ -36,33 +36,23 @@ S="v$(python3 -c "
 import json
 d = json.load(open('$K/$BP/manifest.json'))
 v = d['header']['version']
-print('%d%d' % (v[0], v[1]))
+# v7.9.8: YAMA NUMARASI da adda. Onceden '%d%d' idi, yani
+# 7.9.0 ile 7.9.7 ayni dosya adini aliyordu ("v79") ve
+# kullanici hangisini indirdigini ayirt edemiyordu.
+print('%d.%d.%d' % (v[0], v[1], v[2]))
 ")"
 
-# ---- PAKET ADINA SURUMU YAZ ----
-# Neden: Bedrock'ta davranis paketi ile kaynak paketi AYRI iki
-# pakettir ve dunyaya ayri ayri uygulanir. Biri guncellenip
-# digeri eski kalirsa ortaya "isimler dogru ama skinler yanlis"
-# gibi anlasilmaz bir durum cikiyor -- v4.39'da tam bu yasandi
-# ve dosyada hata var sanildi.
-#
-# Artik surum paketin ADINDA: dunya ayarlarindaki paket
-# listesine bakinca hangi surumun etkin oldugu okunuyor.
-# Ad manifest'teki SURUMDEN uretiliyor, elle yazilmiyor.
-python3 - "$K" <<'PYEOF'
-import json, sys, os, re
-kok = sys.argv[1]
-for yol, taban in (("Simsek_TNT_ToprakTopu", "Simsek TNT ve Toprak Topu"),
-                   ("Simsek_Kol_Kaynak", "Simsek Kol Gorunumleri")):
-    p = os.path.join(kok, yol, "manifest.json")
-    d = json.load(open(p, encoding="utf-8"))
-    s = d["header"]["version"]
-    d["header"]["name"] = "%s v%d.%d" % (taban, s[0], s[1])
-    json.dump(d, open(p, "w", encoding="utf-8"), indent=2, ensure_ascii=False)
-    print("  ad:", d["header"]["name"])
-PYEOF
+# ---- PAKET ADLARI ARTIK BURADA YAZILMIYOR (v7.9.8) ----
+# Burasi eskiden manifest'teki adi "<taban> v%d.%d" diye YENIDEN
+# yaziyordu. Iki sorun vardi:
+#   1. Yama numarasi dusuyordu: 7.9.1'den 7.9.7'ye kadar butun
+#      surumler oyunda "v7.9" gorunuyordu.
+#   2. Ad IKI yerden geliyordu (kol_uret.py ve burasi) ve
+#      buradaki digerini eziyordu.
+# Artik tek kaynak kol_uret.py'deki SURUM_NO/PAKETLER.
 
 rm -f "$K"/SimsekTNT_*.mcpack "$K"/SimsekKol_*.mcpack "$K"/SimsekTNT_*.mcaddon
+rm -f "$K"/Simsek_*.mcpack "$K"/Simsek_*.mcaddon
 rm -f "$K"/UzakAkraba_*.mcpack "$K"/OyuncuModeli_*.mcpack
 rm -f "$K"/*_v3.mcpack "$K"/Simsek_TNT_v3.mcaddon
 
@@ -77,18 +67,18 @@ rm -f "$K"/*_v3.mcpack "$K"/Simsek_TNT_v3.mcaddon
 #
 # Cozum: liste tutma, klasorun ICINDEKI her seyi al. Uretim
 # artiklari (__pycache__, gizli dosyalar) disarida.
-(cd "$K/$BP" && zip -r -X "$K/SimsekTNT_$S.mcpack" . \
+(cd "$K/$BP" && zip -r -X "$K/Simsek_${S}_Mod.mcpack" . \
     -x '__pycache__/*' '*/__pycache__/*' '.*' '*/.*' >/dev/null)
-(cd "$K/$RP" && zip -r -X "$K/SimsekKol_$S.mcpack" . \
+(cd "$K/$RP" && zip -r -X "$K/Simsek_${S}_Gorunum.mcpack" . \
     -x '__pycache__/*' '*/__pycache__/*' '.*' '*/.*' >/dev/null)
-(cd "$K/$SK" && zip -r -X "$K/UzakAkraba_$S.mcpack" . \
+(cd "$K/$SK" && zip -r -X "$K/Simsek_${S}_Skin.mcpack" . \
     -x '__pycache__/*' '*/__pycache__/*' '.*' '*/.*' >/dev/null)
-(cd "$K/$OM" && zip -r -X "$K/OyuncuModeli_$S.mcpack" . \
+(cd "$K/$OM" && zip -r -X "$K/Simsek_${S}_OyuncuModeli.mcpack" . \
     -x '__pycache__/*' '*/__pycache__/*' '.*' '*/.*' >/dev/null)
-(cd "$K" && zip -r -X "$K/SimsekTNT_$S.mcaddon" "$BP" "$RP" "$SK" "$OM" >/dev/null)
+(cd "$K" && zip -r -X "$K/Simsek_$S.mcaddon" "$BP" "$RP" "$SK" "$OM" >/dev/null)
 
 echo "Olusturuldu:"
-for f in "SimsekTNT_$S.mcpack" "SimsekKol_$S.mcpack" "UzakAkraba_$S.mcpack" \
-         "OyuncuModeli_$S.mcpack" "SimsekTNT_$S.mcaddon"; do
+for f in "Simsek_${S}_Mod.mcpack" "Simsek_${S}_Gorunum.mcpack" "Simsek_${S}_Skin.mcpack" \
+         "Simsek_${S}_OyuncuModeli.mcpack" "Simsek_$S.mcaddon"; do
   echo "  $f  ($(du -h "$K/$f" | cut -f1))"
 done
