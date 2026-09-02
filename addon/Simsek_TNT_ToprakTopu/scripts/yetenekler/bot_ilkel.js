@@ -268,13 +268,35 @@ export function ilkelYap(varlik, anahtar) {
   const t = tanim(anahtar);
   if (!t) return false;
 
+  /* KIMLIK: sessizce kaybolamaz.
+
+     Eskiden bu blok basarisizligi YUTUYORDU ve yorumu bile
+     sonucu kabulleniyordu ("script tarafi onu tanimaz").
+     Yutulan sey sunun ta kendisiydi: kimlik yazilamazsa
+     ilkelKimligi() undefined doner, bakim() ve botVurdu()
+     ILK SATIRINDA cikar, ve uyenin BUTUN yetenekleri --
+     isin, asa, disler, seri, pasifler, aura -- hicbir belirti
+     vermeden olur. Kullanicinin gorebilecegi tek sey "hicbir
+     sey olmuyor" olurdu; nitekim oyle oldu.
+
+     Iki degisiklik:
+       1. Yazma DOGRULANIYOR (geri okunuyor)
+       2. Tutmazsa SESSIZ KALINMIYOR                          */
+  let kimlikYazildi = false;
   try {
     if (typeof varlik.setDynamicProperty === "function") {
       varlik.setDynamicProperty(ILKEL_OZELLIK, anahtar);
+      kimlikYazildi = (ilkelKimligi(varlik) === anahtar);
     }
   } catch (e) {
-    /* Ozellik yazilamadi: bot yine guclu (bilesen grubu tuttu)
-       ama script tarafi onu tanimaz. Adi yine de takilsin.    */
+    hataYaz("ilkel.kimlikYaz", e);
+  }
+  if (!kimlikYazildi) {
+    hataYaz("ilkel.kimlik", new Error(
+      anahtar + " icin kimlik ozelligi (" + ILKEL_OZELLIK + ") " +
+      "yazilamadi ya da geri okunamadi. Uye doguyor ve dovusuyor " +
+      "ama SCRIPT ONU TANIMIYOR: isin, asa, disler, seri ve " +
+      "pasiflerin HICBIRI calismaz."));
   }
 
   /* Koruma gorevi: ekip savasi kapali olsa bile bu bes uye

@@ -1141,6 +1141,81 @@ console.log("=== 13. HEPSI BIR ANDA GELMIYOR ===");
 }
 
 console.log("");
+console.log("=== VURUS YETENEKLERI: bes uyenin imzasi tetikleniyor mu ===");
+{
+  /* Kullanici: "yetenekleri hicbir zaman kullanilamiyor, mesela
+     birine vuruyorum... ozel yetenekler atamistik, onlar
+     olmuyor."
+
+     Genel tarama bu yolu HIC kapsamamisti: 128 mutasyonun
+     hicbiri botVurdu()'ya dokunmadi, cunku o yol
+     entityHitEntity olayindan geciyor ve hicbir test o olayi
+     tetiklemiyordu. Uyelerin IMZA yetenekleri tam olarak orada.
+
+     ZEMIN ONEMLI: Okazor'un disleri yerden cikiyor ve
+     zeminBul() yalnizca DIS_ZEMIN_TARAMA (4) blok asagi
+     bakiyor. Ilk yazimda botu y~89'a koymustum, altinda 25
+     blok bosluk vardi ve "Okazor hicbir sey yapmiyor" cikti.
+     Kod dogruydu, bot havada duruyordu. O yuzden burada
+     herkes YERDE (sahte dunyada zemin y=64).                */
+  /* HER UYENIN KENDI IMZASI AYRI SINANIYOR.
+
+     Ilk yazimda tek bir "bir sey oldu mu" sorusu vardi ve
+     Okazor'un DISLERINI silmek testi dusurmedi: serisi
+     (can dolumu) tek basina "bir sey" sayiliyordu. Yani
+     iki yetenekten biri olse fark edilmezdi. Bozma denemesi
+     bunu gosterdi.                                          */
+  const beklenen = [
+    ["okazor",  "disler + seri", (r) => r.varlik > 0 && r.can > 100],
+    ["miskel",  "vurus efekti (yazi tura)", (r) => r.efekt.length > 0],
+    ["harkos",  "asa vurusu", (r) => r.efekt.length > 0],
+    ["kajaros", "vurus efekti", (r) => r.efekt.length > 0]
+  ];
+  for (const [anahtar, ne, olcut] of beklenen) {
+    const D = dunyaKur();
+    const o = oyuncuKur(D.boyut, { x: 0, y: 0, z: 1 }, { x: 0.5, y: 65.62, z: 0.5 });
+    o.id = "vurus_" + anahtar; o.typeId = "minecraft:player";
+    _durum.oyuncular = [o]; _durum.boyut = D.boyut;
+    _durum.varliklar = D.sayac.varliklar;
+    defter.defteriUnut();
+    _durum.ozellikler.delete(ayar.BOT_KAYIT_ANAHTAR);
+    sus(); ilkel.ilkelCagir(o, anahtar); ac();
+    const bot = D.sayac.varliklar.find((v) => v.typeId === "pa:" + anahtar);
+
+    let can = 100;
+    bot.getComponent = (a) => a === "minecraft:health"
+      ? { get currentValue() { return can; }, effectiveMax: 2400,
+          setCurrentValue(v) { can = v; return true; } } : undefined;
+    const efektler = [];
+    const kurban = {
+      id: "kurban", typeId: "minecraft:zombie", isValid: true,
+      location: { x: bot.location.x + 2, y: bot.location.y, z: bot.location.z },
+      addEffect(a) { efektler.push(a); return true; },
+      applyDamage: () => true, teleport: () => true, removeEffect: () => true,
+      getComponent: () => undefined
+    };
+    D.boyut._varliklar = [bot, kurban];
+    const dogumOnce = D.sayac.dogan.length;
+    sus();
+    for (let i = 0; i < 4; i++) {
+      vurusTetikle({ damagingEntity: bot, hitEntity: kurban });
+      tickIlerlet(15);
+    }
+    tickIlerlet(60);
+    ac();
+    const sonuc = { efekt: [...new Set(efektler)],
+                    varlik: D.sayac.dogan.length - dogumOnce, can };
+    kontrol("  " + anahtar + ": " + ne, olcut(sonuc),
+            "efekt=" + (sonuc.efekt.join(",") || "yok") +
+            " varlik=" + sonuc.varlik + " can=" + sonuc.can);
+  }
+  /* Raxxan'in vurusa bagli yetenegi YOK (aura ve gizlenme
+     pasif). Onu "bozuk" saymamak icin ayri yaziliyor.       */
+  kontrol("  raxxan'in vurusa bagli yetenegi zaten yok (pasif uye)",
+          true, "aura + gizlenme, bakim() taramasindan");
+}
+
+console.log("");
 console.log("=== ISIN GUCU: Okazor ve Kajaros gercekten atiyor mu ===");
 {
   /* v7.9.3 genel taramasinda ILKEL_ISIN_ACIK'i false yaptim ve
