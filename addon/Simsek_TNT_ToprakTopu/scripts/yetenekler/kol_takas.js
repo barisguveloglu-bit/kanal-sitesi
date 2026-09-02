@@ -2,7 +2,8 @@ import * as api from "@minecraft/server";
 import { world, system } from "@minecraft/server";
 import { yetenekKaydet } from "./kayit.js";
 import {
-  hataYaz, gecerliMi, actionbarYaz, kollariIndir, parcacikAt, eldekiEsya
+  hataYaz, gecerliMi, actionbarYaz, kollariIndir, parcacikAt,
+  parcacikHalkasi, eldekiEsya
 } from "../yardimcilar.js";
 import {
   KOL_TAKAS_ACIK, KOL_TAKAS_KAYNAK, KOL_TAKAS_HEDEF, KOL_TAKAS_ISARET,
@@ -192,25 +193,6 @@ function dogur(oyuncu, tip, nokta) {
   } catch (e) {
     hataYaz("kol_takas.dogur(" + tip + ")", e);
     return null;
-  }
-}
-
-/* Omuzun cevresine kucuk bir kan halkasi.
-
-   NEDEN HALKA VE NEDEN SAYILI: ilk surumde tek bir
-   `mobflame_emitter` atiyordum. Emitter tek seferlik bir puf
-   degil, surekli alev pusluren bir KAYNAK -- oyuncunun
-   yaninda boyundan buyuk, sonmeyen bir alev sutunu dikildi.
-   Simdi atilan sey `_particle` ile biten tek seferlik bir toz
-   ve KAC TANE oldugu burada belli: kendiliginden buyuyemez. */
-function kanHalkasi(boyut, merkez) {
-  for (let i = 0; i < KOL_TAKAS_PARCACIK_ADET; i++) {
-    const a = (i / KOL_TAKAS_PARCACIK_ADET) * Math.PI * 2;
-    parcacikAt(boyut, KOL_TAKAS_PARCACIK, {
-      x: merkez.x + Math.cos(a) * KOL_TAKAS_PARCACIK_YARICAP,
-      y: merkez.y,
-      z: merkez.z + Math.sin(a) * KOL_TAKAS_PARCACIK_YARICAP
-    });
   }
 }
 
@@ -409,7 +391,8 @@ yetenekKaydet({
         }
 
         sesCal(oyuncu, KOL_TAKAS_SES_TAKIL);
-        kanHalkasi(oyuncu.dimension, yeni.varis);
+        parcacikHalkasi(oyuncu.dimension, KOL_TAKAS_PARCACIK, yeni.varis,
+                        KOL_TAKAS_PARCACIK_ADET, KOL_TAKAS_PARCACIK_YARICAP);
         actionbarYaz(oyuncu, "Kanlı Kol takıldı.");
         bitti = true;
         return true;

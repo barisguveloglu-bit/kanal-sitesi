@@ -395,7 +395,21 @@ export const PARCACIK_ACIK = true;
 export const SARSINTI_ACIK = true;
 
 export const PARCACIK_PATLAMA = "minecraft:huge_explosion_emitter";
-export const PARCACIK_ATES    = "minecraft:mobflame_emitter";
+/* PARCACIK_ATES SILINDI  (v7.9.2). Degeri
+   "minecraft:mobflame_emitter" idi ve IKI YERDE AYNI HATAYA
+   yol acti: kanli kol takilirken ve O Sey'e donusurken
+   oyuncunun yaninda boyundan buyuk, SONMEYEN bir alev sutunu
+   dikiliyordu. Kullanicinin sozu: "hiç utanmayan bir ateş."
+
+   Sebep adinda yaziyordu: `_emitter` tek seferlik bir puf
+   degil, SUREKLI puskuren bir KAYNAK. Bir kez cagirmak
+   yetiyordu.
+
+   Geri koyma. Tek seferlik bir efekt istiyorsan
+   yardimcilar.js'teki parcacikHalkasi() ile `_particle` biten
+   bir tip kullan -- kac tane atildigi cagiran tarafta belli
+   olsun. Kardesleri (PATLAMA, BUZ, IYILES, TOPRAK, LAZER)
+   duruyor ve kullaniliyor; sorun cikaran yalniz buydu.       */
 export const PARCACIK_BUZ     = "minecraft:snowflake_particle";
 export const PARCACIK_IYILES  = "minecraft:heart_particle";
 export const PARCACIK_TOPRAK  = "minecraft:crop_growth_emitter";
@@ -2990,6 +3004,68 @@ export const DONUSUM_KAYIT_ANAHTAR = "simsek:kilikler";
 /* Kilik oyuncunun tam konumunda duruyor. Y kaydirmasi YOK:
    modelin ayaklari y=0'da (bkz. o_sey_geometrisi).            */
 export const DONUSUM_Y_KAYMA   = 0;
+
+/* ---------------- KILIK GECIKMESI  (v7.9.2) ----------------
+   Kullanici: "sağa veya sola döndüğüm zaman ya da ani
+   hareketlerde çok yavaş kalıyor... bildiğin arkamdan geliyor
+   yani... benimle aynı derecede koşamıyor."
+
+   ---- TESHIS: HATA SCRIPTTE DEGIL ----
+   Kilik ZATEN HER TICK hizalaniyor (donusum.mjs bunu olcuyor
+   ve geciyor). Sorun sunlarin toplami:
+
+     1. BIR TICK'LIK KACINILMAZ GECIKME. Script tick N'de
+        oyuncunun konumunu OKUYUP kiligi oraya koyuyor; oyuncu
+        o tick icinde zaten ilerlemis oluyor. Kosarken
+        ~0,28 blok/tick, yani bir tam adim geride.
+     2. ISTEMCI YUMUSATMASI. Bedrock varliklari konum
+        guncellemeleri ARASINDA lerp'leyerek ciziyor. Yani
+        mukemmel senkron bile birkac tick geriden geliyormus
+        GIBI GORUNUYOR. Bu, script'ten kapatilamayan bir cizim
+        davranisi.
+
+   ---- COZUM: KILIGI ONUNE KOY ----
+   Konum yerine KONUM + HIZ x ONDELEME veriliyor. Istemci
+   yumusatmasini bitirdiginde varlik tam oyuncunun uzerinde
+   oluyor. Ayni sey donus icin de yapiliyor: acisal hiz
+   (bu tick'in yaw'i eksi onceki tick'inki) ileri tasiniyor --
+   "saga sola donunce geride kaliyor" tam bu.
+
+   ---- TAVANLAR NEDEN VAR ----
+   Onceleme carpim demek: bir sekilde firlatilirsan (ucurma,
+   telekinez, TNT) hizin bir anda buyur ve kilik metrelerce
+   ileri firlardi. Tavanlar bunu kesiyor -- en kotu ihtimalde
+   onceleme devre disi kalir, yani ESKI davranis.
+
+   ---- OLCULMEDI, AYARLANABILIR ----
+   Bu sayilar tablette DENENMEDI: istemci yumusatmasinin kac
+   tick oldugunu buradan olcemiyorum. Baslangic degerleri
+   makul bir tahmin ve ikisi de tek satirda ayarlanabiliyor.
+   Kilik ONE GECIYOR gorunuyorsa dusur, hala geride kaliyorsa
+   yukselt. 0 yazarsan onceleme tamamen kapanir.              */
+export const KILIK_ONDELEME       = 2;    // kac tick ileri (konum)
+export const KILIK_ONDELEME_TAVAN = 1.5;  // en fazla kac blok ileri
+export const KILIK_DONUS_ONDELEME = 1.5;  // kac tick ileri (yaw)
+export const KILIK_DONUS_TAVAN    = 50;   // en fazla kac derece ileri
+
+/* ---- DONUSUM PARCACIGI ----
+   Ilk surumde PARCACIK_ATES kullaniliyordu ve kullanici
+   tablette gordu: donusurken cikan alev SONMUYORDU.
+   `mobflame_EMITTER` tek seferlik bir puf degil, surekli
+   puskuren bir kaynak.
+
+   Yerine `endrod`: `_particle`/`endrod` gibi tek seferlik
+   tipler kendiliginden buyumuyor. UYDURULMADI -- bu tip
+   depoda PARCACIK_LAZER olarak zaten kullaniliyor ve
+   calistigi gorulmus.
+
+   ALEV YERINE KIVILCIM oldu. Tek seferlik bir ALEV parcacigi
+   (basic_flame_particle) muhtemelen var ama BU DEPODA
+   KANITLANMADI; taninmayan bir tip sessizce hicbir sey
+   cizmez. Kanitli olani sectim; ates sart derse denenebilir. */
+export const DONUSUM_PARCACIK         = PARCACIK_LAZER;
+export const DONUSUM_PARCACIK_ADET    = 12;
+export const DONUSUM_PARCACIK_YARICAP = 0.6;
 
 /* ============================================================
    ZIRH YUKSELTMESI  (Ionstrike / Max Steel)          v4.91

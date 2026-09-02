@@ -1,11 +1,14 @@
 import { world, system } from "@minecraft/server";
 import { yetenekKaydet } from "./kayit.js";
 import {
-  hataYaz, gecerliMi, actionbarYaz, kollariIndir, parcacikAt
+  hataYaz, gecerliMi, actionbarYaz, kollariIndir, parcacikHalkasi
 } from "../yardimcilar.js";
 import {
   DONUSUM_ACIK, SEY_KILIK_KIMLIK, DONUSUM_TAZELEME, DONUSUM_SURE,
-  DONUSUM_KAYIT_ANAHTAR, DONUSUM_Y_KAYMA, SEY_AD, PARCACIK_ATES
+  DONUSUM_KAYIT_ANAHTAR, DONUSUM_Y_KAYMA, SEY_AD,
+  DONUSUM_PARCACIK, DONUSUM_PARCACIK_ADET, DONUSUM_PARCACIK_YARICAP,
+  KILIK_ONDELEME, KILIK_ONDELEME_TAVAN,
+  KILIK_DONUS_ONDELEME, KILIK_DONUS_TAVAN
 } from "../ayarlar.js";
 
 /* ================================================================
@@ -175,7 +178,8 @@ export function donus(oyuncu) {
   gorunmezVer(oyuncu);
   hizala(oyuncu, kilik);
   try {
-    parcacikAt(oyuncu.dimension, PARCACIK_ATES, oyuncu.location);
+    parcacikHalkasi(oyuncu.dimension, DONUSUM_PARCACIK, oyuncu.location,
+                    DONUSUM_PARCACIK_ADET, DONUSUM_PARCACIK_YARICAP);
   } catch (e) {
     hataYaz("donusum.parcacik", e);
   }
@@ -207,24 +211,84 @@ export function donusumUnutOyuncu(oyuncuId) {
   kiligiSil(k.kilikId);
 }
 
+/* Iki aci arasindaki EN KISA fark, -180..180.
+   Duz cikarma yanlis olurdu: 350 dereceden 10 dereceye donmek
+   +20 derecelik kucuk bir donus ama duz cikarma -340 der ve
+   kilik ters yone firlardi.                                  */
+function aciFarki(yeni, eski) {
+  return ((yeni - eski + 540) % 360) - 180;
+}
+
+function hizAl(oyuncu) {
+  try {
+    const h = oyuncu.getVelocity ? oyuncu.getVelocity() : undefined;
+    if (!h || typeof h.x !== "number" || typeof h.z !== "number") return null;
+    return h;
+  } catch (e) {
+    return null;
+  }
+}
+
 /* Kiligi oyuncunun uzerine oturt. Yalniz GOVDE donusu (y)
    veriliyor: modelin kafa kemigi vanilla bakis animasyonuna
-   bagli degil, yani x'i vermek govdeyi one egerdi.           */
-function hizala(oyuncu, kilik) {
+   bagli degil, yani x'i vermek govdeyi one egerdi.
+
+   ---- ONDELEME  (v7.9.2) ----
+   Kullanici: "bildiğin arkamdan geliyor... benimle aynı
+   derecede koşamıyor." Kilik ZATEN her tick hizalaniyordu;
+   gecikme iki yerden geliyor: script tick N'de okudugu konumu
+   veriyor (oyuncu o tick icinde ilerledi) ve istemci varliklari
+   guncellemeler ARASINDA yumusatarak ciziyor.
+
+   Bu yuzden kiligi oyuncunun BULUNDUGU yere degil, GIDECEGI
+   yere koyuyoruz: konum + hiz x onceleme. Ayni sey yaw icin de
+   yapiliyor -- "saga sola donunce geride kaliyor" tam o.
+
+   Onceleme YALNIZ YATAY (x/z). Y bilerek disarida: ziplamada
+   hiz tepe noktasinda isaret degistiriyor, dikey onceleme
+   kiligi once havaya firlatir sonra yere gomerdi. Yatay
+   hareket zaten sikayetin konusu.                            */
+function hizala(oyuncu, kilik, oncekiYaw) {
   try {
     const d = oyuncu.getRotation();
+    const k = oyuncu.location;
+    let ix = 0, iz = 0;
+
+    const h = KILIK_ONDELEME > 0 ? hizAl(oyuncu) : null;
+    if (h) {
+      ix = h.x * KILIK_ONDELEME;
+      iz = h.z * KILIK_ONDELEME;
+      /* TAVAN: firlatilinca (ucurma, telekinez, TNT) hiz bir
+         anda buyuyor. Kesilmeseydi kilik metrelerce ileri
+         giderdi. Tavana carpinca en kotu ihtimal ONCEKI
+         davranis -- yani hata degil, geri cekilme.           */
+      const uzunluk = Math.sqrt(ix * ix + iz * iz);
+      if (uzunluk > KILIK_ONDELEME_TAVAN) {
+        const o = KILIK_ONDELEME_TAVAN / uzunluk;
+        ix *= o; iz *= o;
+      }
+    }
+
+    let yaw = d.y;
+    if (typeof oncekiYaw === "number" && KILIK_DONUS_ONDELEME > 0) {
+      let fark = aciFarki(d.y, oncekiYaw) * KILIK_DONUS_ONDELEME;
+      if (fark > KILIK_DONUS_TAVAN) fark = KILIK_DONUS_TAVAN;
+      else if (fark < -KILIK_DONUS_TAVAN) fark = -KILIK_DONUS_TAVAN;
+      yaw = d.y + fark;
+    }
+
     kilik.teleport({
-      x: oyuncu.location.x,
-      y: oyuncu.location.y + DONUSUM_Y_KAYMA,
-      z: oyuncu.location.z
+      x: k.x + ix,
+      y: k.y + DONUSUM_Y_KAYMA,
+      z: k.z + iz
     }, {
       dimension: oyuncu.dimension,
-      rotation: { x: 0, y: d.y },
+      rotation: { x: 0, y: yaw },
       keepVelocity: false
     });
-    return true;
+    return d.y;
   } catch (e) {
-    return false;
+    return undefined;
   }
 }
 
@@ -261,7 +325,9 @@ export function donusumTara(oyuncular) {
       continue;
     }
 
-    hizala(oyuncu, kilik);
+    /* Onceki tick'in yaw'i onceleme icin lazim; kiligin kendi
+       defterinde duruyor ki oyuncu basina ayri olsun.        */
+    k.sonYaw = hizala(oyuncu, kilik, k.sonYaw);
 
     if (simdi >= (sonraki.get(oyuncu.id) || 0)) {
       gorunmezVer(oyuncu);

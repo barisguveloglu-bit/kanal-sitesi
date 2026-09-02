@@ -197,6 +197,33 @@ let boyamaUyarisi = false;
    camera komutu eski surumlerde yok; bir kez uyarilip
    sessizce geciliyor. Tamamen gorsel, olmamasi oynanisi
    bozmuyor.                                                 */
+/* Bir noktanin cevresine YATAY HALKA seklinde parcacik.
+
+   ---- NEDEN VAR: "HIC UTANMAYAN ATES"  (v7.9.2) ----
+   Kullanici tablette gordu: kanli kola gecerken ve O Sey'e
+   donusurken yaninda boyundan buyuk, SONMEYEN bir alev sutunu
+   dikiliyordu. Sebep `minecraft:mobflame_emitter` -- adindaki
+   `_emitter` tek seferlik bir puf degil, SUREKLI puskuren bir
+   KAYNAK demek. Bir kez cagirmak yetiyordu, kendi kendine
+   buyuyordu.
+
+   Buradaki cozum iki yonlu:
+     1. `_particle` ile biten TEK SEFERLIK tipler kullaniliyor
+     2. KAC TANE atildigi cagiran tarafta belli -- efekt
+        kendiliginden buyuyemez
+   Tek bir zerre gorunmuyor, o yuzden halka.                  */
+export function parcacikHalkasi(boyut, tip, merkez, adet, yaricap) {
+  if (!PARCACIK_ACIK) return;
+  for (let i = 0; i < adet; i++) {
+    const a = (i / adet) * Math.PI * 2;
+    parcacikAt(boyut, tip, {
+      x: merkez.x + Math.cos(a) * yaricap,
+      y: merkez.y,
+      z: merkez.z + Math.sin(a) * yaricap
+    });
+  }
+}
+
 export function ekraniBoya(oyuncu, renk, giris, tut, cikis) {
   if (!renk || renk.length < 3) return false;
   const kirp = (n) => Math.max(0, Math.min(1, Number(n) || 0));
