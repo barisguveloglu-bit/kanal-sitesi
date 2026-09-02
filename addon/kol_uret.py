@@ -102,7 +102,7 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # tureniyor -- ayrisabilecekleri bir yer kalmadi.
 #
 # YENI SURUM CIKARIRKEN: yalnizca asagidaki satiri degistir.
-SURUM_NO = (7, 13, 0)
+SURUM_NO = (7, 14, 0)
 
 SURUM_METIN = "%d.%d.%d" % SURUM_NO
 SURUM_ETIKET = "v" + SURUM_METIN
@@ -7299,19 +7299,33 @@ GOZ_SUTUNLAR = ((9, 10), (13, 14))
 #   OLCEK 8  -> 16 MB    su anki secim
 #   OLCEK 16 -> 67 MB    tablette riskli
 # ============================================================
-# v7.13: 8 -> 12. Kullanici "gorsel olarak sonuk kaliyor,
-# biraz daha ugras" dedi ve deneme render'larinda alev
+# v7.13: 8 -> 12, sonra kullanici istegiyle 13.
+# Once 8'den 12'ye cikildi: deneme render'larinda alev
 # dillerinin 8'de KOSELI kaldigi goruldu -- bir dilin tabani
 # ancak 1-2 alt piksel oluyordu, incelme kademesi yoktu.
-#   OLCEK  8 -> 512x512, 16 doku =  16 MB
-#   OLCEK 12 -> 768x768, 16 doku =  36 MB   <- su anki
-#   OLCEK 16 -> 1024x1024        =  67 MB   (dosyanin kendi
-#                                            notu: tablette riskli)
+#
+#   OLCEK  8 ->  512x512, 16 doku =  16 MB
+#   OLCEK 12 ->  768x768           =  36 MB
+#   OLCEK 13 ->  832x832           =  42 MB   <- su anki
+#   OLCEK 16 -> 1024x1024          =  67 MB   (tablette riskli)
+#
 # Depolama sorun degil (kullanicinin kurali: grafik detayindan
-# odun verme) ama EKRAN KARTI BELLEGI oyle degil; 12 ikisinin
-# arasinda duruyor.
-GOZ_OLCEK = 12
-GOZ_DOKU  = 64 * GOZ_OLCEK          # 768x768
+# odun verme) ama EKRAN KARTI BELLEGI oyle degil.
+#
+# ---- NEDEN 13, NEDEN 780 DEGIL ----
+# Kullanici "768 yerine 780x780 yapabilir misin" dedi. Yapilmadi
+# ve sebebi bayt degil, HIZALAMA:
+#     780 / 64 = 12.1875   ondalik
+# Goz cekirdegi x 109.6875..134.0625'e dusuyor, yani kenar bir
+# dokunun ORTASINDA bitiyor. Oyun orayi orneklerken kenarda
+# yarim yanan bulanik bir sutun cikiyor -- v4.2'de iki surum
+# suren hatanin ayni sinifi. Ustelik mipmap: 768 ikiye 8 kez
+# tam bolunuyor, 780 yalnizca 2 kez; uzaktan goz bozuluyor.
+#
+# 780'in ustundeki ilk TAM BOLUNEN sayi 832 (13x64). Istegin
+# ruhu -- daha buyuk bir goz -- boylece bozmadan karsilandi.
+GOZ_OLCEK = 13
+GOZ_DOKU  = 64 * GOZ_OLCEK          # 832x832
 
 # Asagidakiler ALT PIKSEL cinsinden (1 Minecraft pikseli =
 # GOZ_OLCEK alt piksel). Oranlar referanstan olculdu:

@@ -1,3 +1,53 @@
+# v7.14.0 — Göz çözünürlüğü 832
+
+Kullanıcı: *"768 × 768 yerine 780 × 780 yapabilir misin, maliyetli bir şey
+yapma ama gönlümde kalır bu istek benim."*
+
+## 780 yapılmadı — sebep bayt değil, hizalama
+
+Bellek farkı zaten önemsizdi (%3). Sorun başkaydı:
+
+```
+768 / 64 = 12,0000   tam
+780 / 64 = 12,1875   ONDALIK
+832 / 64 = 13,0000   tam
+```
+
+Göz `GOZ_SATIR = 12` ve `GOZ_SUTUNLAR = ((9,10),(13,14))` ile sabit. 780'de
+çekirdek `x 109,6875 .. 134,0625`'e düşüyor — yani gözün kenarı bir dokunun
+**ortasında** bitiyor. Oyun orayı örneklerken kenarda yarım yanan bulanık bir
+sütun çıkar. Bu, v4.2'de iki sürüm boyunca fark edilmeyen hatanın aynı sınıfı.
+
+Üstüne mipmap: **768 ikiye 8 kez** tam bölünüyor, **780 yalnızca 2 kez** —
+uzaktan bakınca göz bozulur.
+
+## 832 yapıldı — isteğin ruhu, bozmadan
+
+780'in üstündeki ilk tam bölünen sayı **832** (13 × 64). Kullanıcıya önce
+ölçüm gösterildi, sonra onayıyla uygulandı.
+
+| | 768 (v7.13) | **832 (v7.14)** |
+|---|---|---|
+| ölçek | 12 alt piksel / MC px | **13** |
+| göz çekirdeği | 24 × 12 | **26 × 13** |
+| boyalı alan | 76 × 57 | **84 × 61** |
+| boyalı piksel | 1.721 | **2.094** (+%22) |
+| ekran kartı (16 doku) | 36 MB | **42 MB** |
+| diskte (16 doku) | 92 KB | **113 KB** |
+
+Hizalama doğrulandı — göz sütunlarının hepsi tam sayıya oturuyor:
+`x=9 → 117,0 · x=11 → 143,0 · x=13 → 169,0 · y=12 → 156,0`
+
+Ölçülen çekirdek renkleri de yerinde: `goz_element (56,225,255)`,
+`goz_yildiz (255,245,0)` — 89 testin hepsi geçiyor.
+
+**Neden fark ediyor:** alev dillerinin kalınlığı `GOZ_OLCEK` ile orantılı
+(`0,15 + 0,11 × orta`), yani 12'de 1,8–3,1 alt pikselken 13'te 2,0–3,4 oluyor.
+Hale yarıçapı da orantılı (`GOZ_OLCEK × 0,62`): 7 → 8. Yani sadece dosya
+büyümedi, **çizimin kendisi bir kademe daha ince**.
+
+---
+
 # v7.13.0 — İksir gözü baştan çizildi
 
 Kullanıcı: *"iksirleri içtikten sonra gözlerde alev gibi bir şey yanıyordu ya,
