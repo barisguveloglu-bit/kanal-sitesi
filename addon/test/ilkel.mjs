@@ -1141,5 +1141,47 @@ console.log("=== 13. HEPSI BIR ANDA GELMIYOR ===");
 }
 
 console.log("");
+console.log("=== ISIN GUCU: Okazor ve Kajaros gercekten atiyor mu ===");
+{
+  /* v7.9.3 genel taramasinda ILKEL_ISIN_ACIK'i false yaptim ve
+     hicbir test dusmedi: Okazor'un "Kirmizi Guc"u ile
+     Kajaros'un "Ates Gucu"nun ATTIGI hic olculmemisti. Ikisi de
+     bu iki uyenin imza yetenegi -- sessizce kapanabiliyordu. */
+  kontrol("ILKEL_ISIN_ACIK (varsayilan)", ayar.ILKEL_ISIN_ACIK === true,
+          String(ayar.ILKEL_ISIN_ACIK));
+
+  for (const [anahtar, ad] of [["okazor", "Kırmızı Güç"], ["kajaros", "Ateş Gücü"]]) {
+    const { D, o } = kur("isin_" + anahtar);
+    sus(); ilkel.ilkelCagir(o, anahtar); ac();
+    const bot = botu(D);
+    /* DUSMAN lazim: isin en yakin dusmani nisan aliyor, kimse
+       yoksa hic atmamasi DOGRU davranis. Kurulumu eksik
+       birakmak "isin calismiyor" goruntusu verirdi.          */
+    let vurulan = 0;
+    const dusman = {
+      id: "dusman", typeId: "minecraft:zombie", isValid: true,
+      location: { x: bot.location.x + 4, y: bot.location.y, z: bot.location.z },
+      applyDamage() { vurulan++; return true; },
+      addEffect: () => true, getComponent: () => undefined
+    };
+    D.boyut._varliklar = [bot, dusman];
+    /* ISIN BEKLEMESI VARLIK KIMLIGINE GORE tutuluyor ve sahte
+       dunya her kur()'da varlik adlarini "e1"den yeniden
+       basliyor. Aradaki tick'i ilerletmezsek IKINCI uye
+       BIRINCININ beklemesini miras aliyor ve "isin atmiyor"
+       gorunuyor -- ilk yazimda Kajaros tam boyle "bozuk"
+       ciktı. Kod dogruydu, kurulum carpisiyordu.            */
+    sus();
+    tickIlerlet(200);
+    defter.botTara([o]); tickIlerlet(ayar.BOT_TARAMA + 1); defter.botTara([o]);
+    ac();
+    const zerre = (D.sayac.parcacik || []).length;
+    kontrol("  " + anahtar + " isin atiyor (" + ad + ")",
+            vurulan > 0 || zerre > 0,
+            "hasar=" + vurulan + " parcacik=" + zerre);
+  }
+}
+
+console.log("");
 console.log(hata ? ">>> SORUN VAR" : ">>> Ilkel Besli calisiyor");
 process.exit(hata ? 1 : 0);
