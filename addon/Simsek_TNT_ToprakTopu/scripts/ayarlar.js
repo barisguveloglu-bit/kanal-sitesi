@@ -7077,9 +7077,22 @@ export const KOL_TAKAS_KOL_BOYU = 0.75;   // dusen kol modelinin boyu (12 birim)
 export const KOL_TAKAS_OMUZ_Y = KOL_TAKAS_OMUZ_BOY - KOL_TAKAS_KOL_BOYU;
 export const KOL_TAKAS_OMUZ_X = 0.35;   // omuzlarin govde merkezine uzakligi
 
-/* Kollar yerde kac tick beklesin. Sahnenin nefes aldigi yer:
-   dusme ~20 tick suruyor, sonra bu kadar kolsuz duruyorsun.   */
-export const KOL_TAKAS_YERDE = 30;
+/* Kollar dogduktan kac tick sonra kanli kol gelsin.
+
+   HESAP (kullanici "1-2 saniyelik yerde kalsin" dedi):
+     ~7 tick   kollar 0,6 blok duser ve yere oturur
+     0,4 sn    dusus animasyonu -- yere degdigi anda bitiyor
+     kalan     kollar YERDE YATIYOR
+   36 - 8 = 28 tick = 1,4 saniye yatiyorlar; ustune kanli kolun
+   gelis suresi (~14 tick) de ekleniyor, yani toplam ~2,1 sn
+   yerde goruluyorlar.
+
+   ILK SURUMDE 30'DU ve animasyon 1,0 saniyeydi: kol yere
+   degdikten sonra 13 tick daha donmeye devam ediyordu.
+   Kullanici tablette gordu. Animasyon 0,4'e indi, burasi
+   36'ya cikti -- ikisi birlikte "yere birakilmis kol"
+   goruntusunu veriyor.                                       */
+export const KOL_TAKAS_YERDE = 36;
 
 /* ---- Kanli kol nasil geliyor ----
    Yorungeyi script veriyor (varligin yercekimi kapali). Her
@@ -7104,6 +7117,28 @@ export const KOL_TAKAS_TAVAN = 200;
    kullaniliyor; "mob.zombie.remedy" vanilla donusum sesi.     */
 export const KOL_TAKAS_SES_DUSUS = "random.break";
 export const KOL_TAKAS_SES_TAKIL = "mob.zombie.remedy";
+
+/* ---- PARCACIKLAR ----
+   KANLI KOL TAKILIRKEN ATES DEGIL KAN.
+
+   Ilk surumde PARCACIK_ATES kullandim. Kullanici tablette
+   gordu ve hakliydi: "hic utanmayan bir ates". Sebep adinda
+   yaziyor -- `mobflame_EMITTER` tek seferlik bir puf degil,
+   SUREKLI alev pusluren bir KAYNAK. Oyuncunun yaninda
+   boyundan buyuk bir alev sutunu dikildi ve sonmedi.
+   donusum.js'te bilincli olarak orada (O Sey'e donusurken
+   buyuk alev isteniyor); buraya yanlislikla geldi.
+
+   Yerine kirmizi TOZ: `_particle` ile biten, yani tek
+   seferlik. Uydurulmadi -- will_kilic.js'te kan icin zaten
+   bu kullaniliyor ve calistigi gorulmus.                     */
+export const KOL_TAKAS_PARCACIK = "minecraft:redstone_ore_dust_particle";
+
+/* Tek bir toz zerresi gorunmuyor. Omuzun cevresine kucuk bir
+   halka seklinde bu kadar tane atiliyor -- SAYISI SINIRLI,
+   emitter'in aksine kendiliginden buyumuyor.                 */
+export const KOL_TAKAS_PARCACIK_ADET = 8;
+export const KOL_TAKAS_PARCACIK_YARICAP = 0.35;
 
 /* Sahne yarida kalirsa (oyun kapandi, script yeniden yuklendi)
    dogmus varliklar YERINDE KALIR -- `persistent` bilesenleri

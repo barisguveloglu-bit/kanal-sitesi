@@ -1489,36 +1489,57 @@ def takas_istemci_varligi(kimlik, doku, animasyon):
 # molang sorgularinin hangisinin bu baglamda derlendigini
 # BURADA olcemiyorum ve yanlis bir sorgu varligin cizimini
 # komple bozar (v7.4'te ayni sebeple `is_riding` yazilmamisti).
-# Anahtar kare her surumde ayni sekilde calisiyor.
 #
-# `dusus` neden DONGU DEGIL: kol dusup yere yattiktan sonra
-# donmeye devam etseydi yerde firil firil donen bir kol
-# kalirdi. `hold_on_last_frame` son kareyi -- yani YATMIS
-# kolu -- tutuyor. Sure (1,0 sn) dusme suresine yakin secildi:
-# ~1,4 blokluk bir dususe kabaca bu kadar zaman gidiyor.
-TAKAS_ANIMASYON = {
-    "format_version": "1.8.0",
-    "animations": {
-        "animation.kol_dusen.dusus": {
-            "loop": "hold_on_last_frame",
-            "animation_length": 1.0,
-            "bones": {
-                "kol": {
-                    "rotation": {
-                        "0.0": [0, 0, 0],
-                        "0.5": [55, 40, 25],
-                        "1.0": [90, 65, 8],
-                    },
-                    # Yere yatinca kupun yarisi topragin icine
-                    # girmesin: yatik kol artik 4 birim kalin,
-                    # yani merkezi 2 birim yukarida olmali.
-                    "position": {
-                        "0.0": [0, 0, 0],
-                        "1.0": [0, 2, 0],
-                    },
+# ---- DONUS ISARETI BILINMIYOR AMA ONEMLI DEGIL ----
+# Bedrock ANIMASYONLARINDAKI donus isaretini burada
+# olcemiyorum (v7.4'te duruslarin geometriye pisirilmesinin
+# sebebi buydu). Burada sorun degil, cunku X ekseninde 90
+# derece IKI YONDE DE kolu yatiriyor -- fark yalnizca hangi
+# yone uzandigi. Olculdu: her iki isarette de kupun y araligi
+# -2..+2 birim. Yani asagidaki +2'lik kaldirma iki durumda da
+# dogru. Tahmin edilen bir sey yok.
+#
+# ---- SURE DUSMEYE UYDURULDU  (v7.9 duzeltmesi) ----
+# Ilk surumde animasyon 1,0 saniyeydi ama kollar yalnizca 0,6
+# blok dusuyor, yani ~7 tick'te yere degiyorlar. Kullanici
+# tablette gordu: kol yere degdikten sonra 13 tick daha
+# donmeye devam ediyordu. Sure 0,4 saniyeye indi -- kol tam
+# indigi anda oturuyor.
+#
+# ---- YERDE NASIL DURUYOR ----
+# Kullanici: "Toprak kolun eni kac onun yarisini dusun sanki
+# yere birakilmis." Kolun eni 4 birim; yatinca merkezi
+# yerden 2 birim yukarida olmali, yoksa yarisi topragin
+# icinde kalir. `position` alanindaki +2 tam bu.
+#
+# SAG VE SOL AYRI: ayni animasyonu ikisine de verseydim iki
+# kol yere BIREBIR ayni acida duserdi, kopya gibi gorunurdu.
+# Yalnizca son yaw ayna simetrik (+25 / -25); dusus ayni.
+def _takas_dusus(yon):
+    return {
+        "loop": "hold_on_last_frame",
+        "animation_length": 0.4,
+        "bones": {
+            "kol": {
+                "rotation": {
+                    "0.0": [0, 0, 0],
+                    "0.2": [50, 18 * yon, 12 * yon],
+                    "0.4": [90, 25 * yon, 0],
+                },
+                "position": {
+                    "0.0": [0, 0, 0],
+                    "0.4": [0, 2, 0],
                 },
             },
         },
+    }
+
+
+TAKAS_ANIMASYON = {
+    "format_version": "1.8.0",
+    "animations": {
+        "animation.kol_dusen.dusus_sag": _takas_dusus(1),
+        "animation.kol_dusen.dusus_sol": _takas_dusus(-1),
         "animation.kol_gelen.suzul": {
             "loop": True,
             "animation_length": 2.0,
@@ -7282,15 +7303,16 @@ def main():
                     "adlandirildiysa TAKAS_KAYNAK_KOL/TAKAS_HEDEF_KOL da "
                     "guncellenmeli -- yoksa sahne oyunda mor-siyah cikar."
                     % _tgerek)
-        for _tk, _tayna, _tdoku in ((TAKAS_DUSEN_SAG, False, TAKAS_KAYNAK_KOL),
-                                    (TAKAS_DUSEN_SOL, True, TAKAS_KAYNAK_KOL)):
+        for _tk, _tayna, _tdoku, _tanim in (
+                (TAKAS_DUSEN_SAG, False, TAKAS_KAYNAK_KOL, "dusus_sag"),
+                (TAKAS_DUSEN_SOL, True, TAKAS_KAYNAK_KOL, "dusus_sol")):
             _tg = takas_dusen_geometrisi(_tk, _tayna)
             yaz_json(os.path.join(BP, "entities/%s.json" % _tk),
                      takas_varligi(_tk, True))
             yaz_json(os.path.join(RP, "models/entity/%s.geo.json" % _tk), _tg)
             yaz_json(os.path.join(RP, "entity/%s.entity.json" % _tk),
                      takas_istemci_varligi(_tk, _tdoku,
-                                           "animation.kol_dusen.dusus"))
+                                           "animation.kol_dusen." + _tanim))
         _tgelen = takas_gelen_geometrisi()
         if _tgelen is None:
             print("UYARI: kanli geometri yok, %s uretilmedi "
