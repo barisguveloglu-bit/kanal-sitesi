@@ -430,8 +430,15 @@ console.log("=== 13. BETA API BILDIRIMI (v4.24) ===");
   kontrol("server-ui KARARLI birakildi (menu ana arayuz)",
           !/-beta$/.test(arayuz.version), arayuz.version);
 
+  /* v7.10: karsilastirma TAM olmali. Onceden sondaki ".0"
+     kirpiliyordu (surum elle yazilirken "7.9.0" manifest'e,
+     "v7.9" ayarlar'a yaziliyordu). v7.9.8'de tek kaynaga
+     gecildi: SURUM_ETIKET her zaman UC sayiyi tasiyor. Kirpma
+     kaldi ve ilk x.y.0 surumunde (7.10.0) manifest "v7.10"a
+     donusup ayardaki "v7.10.0" ile tutmadi. Kirpmak zaten
+     yanlisti: 7.10.0 ile 7.1 ayni metne inebiliyordu.        */
   kontrol("manifest surumu ayarlardaki SURUM ile ayni",
-          "v" + man.header.version.join("."). replace(/\.0$/, "") === ayar.SURUM,
+          "v" + man.header.version.join(".") === ayar.SURUM,
           "manifest " + man.header.version.join(".") + " / ayar " + ayar.SURUM);
 }
 

@@ -102,7 +102,7 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # tureniyor -- ayrisabilecekleri bir yer kalmadi.
 #
 # YENI SURUM CIKARIRKEN: yalnizca asagidaki satiri degistir.
-SURUM_NO = (7, 9, 9)
+SURUM_NO = (7, 10, 0)
 
 SURUM_METIN = "%d.%d.%d" % SURUM_NO
 SURUM_ETIKET = "v" + SURUM_METIN
@@ -7850,11 +7850,14 @@ def main():
 
     _surum = json.load(open(os.path.join(BP, "manifest.json"),
                             encoding="utf-8"))["header"]["version"]
-    oyuncu_modeli_paketi(_surum)
-    yaz_json(os.path.join(RP, "models/entity/o_sey.geo.json"), o_sey_geometrisi())
-    yaz_json(os.path.join(RP, "models/entity/o_sey_mutant.geo.json"),
-             mutant_geometrisi())
-    yaz_json(os.path.join(RP, "animations/o_sey.animation.json"), SEY_ANIM)
+    # ---- SIRA ONEMLI  (v7.10'da duzeltildi) ----
+    # oyuncu_modeli_paketi() O Sey dokusunu RP'den OMP'ye
+    # KOPYALIYOR. Doku asagida uretiliyordu, yani kopya her
+    # zaman BIR ONCEKI uretimin dokusuydu ve iki paket sessizce
+    # ayrisiyordu. Doku degismedigi surece kimse fark etmiyordu;
+    # skin degisince oyuncu_modeli.mjs'in "doku ana paketle
+    # BIREBIR ayni" satiri dustu ve sebep buymus.
+    # Doku ARTIK KOPYADAN ONCE uretiliyor.
     _sey_doku = o_sey_dokusu(SEY_SKIN_KAYNAK)
     _sey_hedef = os.path.join(RP, "textures/entity/%s.png" % SEY_DOKU)
     if _sey_doku is not None:
@@ -7862,6 +7865,12 @@ def main():
         _sey_doku.save(_sey_hedef)
     elif not os.path.exists(_sey_hedef):
         print("UYARI: O Sey dokusu uretilemedi -- varlik mor-siyah cizilir")
+
+    oyuncu_modeli_paketi(_surum)
+    yaz_json(os.path.join(RP, "models/entity/o_sey.geo.json"), o_sey_geometrisi())
+    yaz_json(os.path.join(RP, "models/entity/o_sey_mutant.geo.json"),
+             mutant_geometrisi())
+    yaz_json(os.path.join(RP, "animations/o_sey.animation.json"), SEY_ANIM)
     # ---- MUTANT HALIM DOKUSU (v7.2) ----
     # O Sey'in dokusundan TURETILIYOR; kaynak dosya orada
     # duruyor, ayri bir doku dosyasi tutulmuyor.

@@ -1,3 +1,126 @@
+# v7.10.0 — Uzak Akraba'nın hasarı
+
+Kullanıcı skinin hikâyeyi taşımasını istedi:
+
+> *"benim karakter biliyorsun ki hapsedildi ... normale göre daha zayıf
+> olması gerekiyor zamanında chris1545 tarafından boralo zehirlenmiş ve bir
+> ay boyunca yarım şekilde kalmıştı zaten dosyayı incelersin nasıl yarım
+> kaldığını görebiliyorsun sonra tam vücut haline kavuştu ... o gözdeki
+> detayları bana da ekle yani ben bayağı bir hasar almış şekilde olayım"*
+
+Skin bir görünüş değil, kimlik (v4.38). O yüzden hiçbir iz "hasarlı dursun"
+diye serpiştirilmedi; her birinin dosyada bir dayanağı var.
+
+## Beş cümle, beş iz
+
+| istek | ize dönüşen şey | dayanağı |
+|---|---|---|
+| hapsedildi | bilek + ayak bileğinde **pranga halkası** | — |
+| bir ay yarım kaldı | **kavuşma izi** (dikiş) | `KOL_BOLGELERI` — kolsuz sürümde silinen bölgenin ta kendisi |
+| boralo zehiri (chris1545) | damarların bir kısmı **kırmızı** | `kns_kolluk_chris_kanli.png` ölçüldü |
+| daha zayıf | turkuaz **söndü** | yeni bir şey eklenmedi, olan azaltıldı |
+| bayağı hasar | sırtta kırbaç izleri, yüzde çatlak | — |
+| "o gözdeki detaylar" | hale · saçak · alta sızan ışık | `kol_uret.py:goz_dokusu()` anatomisi |
+
+**Zehir rengi uydurulmadı.** chris1545'in kanlı kol dokusunda en çok
+kullanılan üç opak renk sayıldı: `(73,0,0)` 13710 px, `(186,9,9)` 10078 px,
+`(142,0,0)` 9359 px. Zehir, onu getiren kolun rengini taşıyor — bugün taktığı
+Kanlı Kol da aynı doku. `skin_hasar.mjs` bu sayımı **tekrar yapıyor**: palet
+elle değiştirilirse satır düşüyor.
+
+**Kavuşma izi tahmin edilmedi.** Kullanıcı "dosyayı incelersin nasıl yarım
+kaldığını görebiliyorsun" dedi ve dosya bunu gerçekten söylüyor: kolsuz
+sürümde silinen bölge `KOL_BOLGELERI`. Dikiş tam o bölgenin üst kenarına
+çiziliyor, gövdede de karşısına. Koordinat elle yazılmıyor, kutulardan
+türetiliyor.
+
+**Turkuaz 70 pikselden 29'a indi** ama sıfırlanmadı — sıfırlansaydı karakter
+kendi rengini kaybederdi. Test iki tarafı da tutuyor (`< 70` ve `>= 20`).
+
+**Göz çekirdeği yerinden oynatılmadı.** `GOZ_SATIR`/`GOZ_SUTUNLAR` hâlâ
+`kol_uret.py`'den import ediliyor. v4.2'de bunlar elle yazılmıştı ve iksir göz
+kaplaması iki sürüm boyunca havada durmuştu. Detaylar çekirdeğin *çevresine*
+eklendi; çekirdek ikisinde de turkuaz kaldı (zehir gövdeyi aldı, ışığını
+almadı) — ayrıca iki çekirdek ayrışsaydı iksir kaplaması takılınca fark
+ortadan kalkardı.
+
+## İlk render yanlıştı, ikisi de düzeltildi
+
+Görsel değişiklik render edilmeden gönderilmiyor. İlki iki şeyi gösterdi:
+
+1. **Göz 4×3 olmuştu.** Hale çekirdeğin yanlarına da taşıyordu; 8 piksel
+   genişliğindeki yüzün yarısını kaplıyor, göz değil pencere gibi duruyordu.
+   Hale üst/alt iki piksele indirildi, tek yanda bir parıltı bırakıldı.
+2. **Pranga leke gibiydi.** Palette metal tonu yoktu; en açık nötr `GRI` ve o
+   da tabandan ancak 12 birim ayrılıyor. `DEMIR`/`DEMIR_KOY` `GRI`'nin nötr
+   açılmış hâli olarak türetildi (yeni renk seçilmedi). Gölge satırı önce
+   `DAHA_KOYU` kullanıyordu — o taban renklerinden biri, yani halka delik
+   delik görünüyordu ve sayılamıyordu da.
+
+Ayrıca **dikiş bütün gövdeyi dolaşıyordu**, yaka gibi duruyordu. Kol gövdenin
+*yanından* takılıyor: iz artık iki yan yüzün tamamı + ön/arka yüzlerin dış
+iki sütunu. Gövde şeridinin düzeni (24 piksel: `0-3 sağ yan | 4-11 ön |
+12-15 sol yan | 16-23 arka`) kodda yazılı.
+
+## Yol boyunca çıkan iki gerçek hata
+
+**1. OMP'nin O Şey dokusu bir üretim geriydi.** `oyuncu_modeli_paketi()`
+dokuyu RP'den kopyalıyor ama doku *ondan sonra* üretiliyordu. Yani OMP her
+zaman **bir önceki** üretimin dokusunu taşıyordu. Doku değişmediği sürece
+kimse fark etmiyordu; skin değişince `oyuncu_modeli.mjs`'in "doku ana paketle
+BİREBİR aynı" satırı düştü ve sebep buymuş. Doku artık kopyadan önce
+üretiliyor. — *Testin yakaladığı, kimsenin aramadığı bir hata.*
+
+**2. `bot.mjs` sürüm karşılaştırması sondaki `.0`'ı kırpıyordu.** Sürüm elle
+yazılırken (manifest `7.9.0`, ayarlar `v7.9`) doğruydu; v7.9.8'de tek kaynağa
+geçildi ve `SURUM_ETIKET` artık her zaman üç sayı taşıyor. İlk `x.y.0`
+sürümünde (7.10.0) manifest `v7.10`'a inip ayardaki `v7.10.0` ile tutmadı.
+Kırpmak zaten yanlıştı: `7.10.0` ile `7.1` aynı metne inebiliyordu.
+
+## `skin_hasar.mjs` — 11 mutasyon, 11'i de yakalandı
+
+Bir korumanın çalıştığının tek kanıtı onu bilerek bozmak:
+
+| bozma | sonuç |
+|---|---|
+| zehir rengi elle değiştirildi (142→140) | ✓ |
+| pranga yalnız ön yüze çizildi | ✓ |
+| gövdedeki kavuşma izi silindi | ✓ |
+| dikiş bütün gövdeyi dolaştı (yaka) | ✓ |
+| göz çekirdeği bir satır kaydı (v4.2 hatası) | ✓ |
+| göz detayları hiç çizilmedi | ✓ |
+| turkuazın tamamı zehre çevrildi | ✓ |
+| sırt yeniden boşaltıldı | ✓ |
+| `GOZ_SATIR` elle yazıldı | ✓ |
+| desen satırından bir karakter düştü | ✓ (üreteç düşüyor) |
+| kolsuz sürümde kollar silinmedi | ✓ |
+
+Üçüncüsü **ilk denemede kaçtı**: "gövdede omuz izi var mı" bütün şeride
+bakıyordu ve şeridin arka yüzüne sırt yara izleri de çiziliyor — aynı
+renkte. Yani omuz izi silindiği hâlde satır geçiyordu. Ölçüm gövdenin **yan
+yüzlerine** daraltıldı; oraya başka hiçbir desen çizmiyor. *Yine hata kodda
+değil ölçümdeydi.*
+
+Ayrıca `damar_ciz()` artık desen satırının genişliğini **kontrol ediyor**.
+Bir karakter eksik kalınca desen sessizce kayıyor ve sebebi ancak render'a
+bakınca anlaşılıyordu.
+
+## Kendiliğinden gelenler
+
+- **O Şey formu** dokusunu skinden türetiyor (`o_sey_dokusu`), yani hasar
+  oraya da geçti — ayrı iş yok.
+- **Kolsuz sürüm**de omuz izi duruyor (iz gövdede, kolda değil): yarım
+  kaldığı ay oradan okunuyor.
+- **Mutant Hâlim** dokusu O Şey'den türediği için o da güncellendi.
+
+## Açık kalan
+
+Bu hikâye beati **`LORE.md`'de yazılı değil** — Uzak Akraba, zehir, Boralo,
+hapis, "yarım" kelimelerinin hiçbiri geçmiyor. Kendi başıma canon yazmadım;
+kullanıcı isterse `LORE.md` + `data.js` birlikte güncellenir.
+
+---
+
 # v7.8 — Will1545 Kılıcı
 
 Kullanıcının komut listesi. Kaynak komutlar komut bloğuyla çalışıyor ve

@@ -35,6 +35,51 @@ surdu.
 Skin'in kendi gozu de turkuaz: iksir icilmediginde bile
 "gozunde bir sey var" hissi kaliyor, icince rengi degisiyor.
 
+---- HASAR: KARAKTERIN KENDI HIKAYESI  (v7.10) ----
+Kullanici skinin hikayeyi tasimasini istedi, kendi sozleriyle:
+
+  "hapsedildi ... normale gore daha zayif olmasi gerekiyor
+   zamaninda chris1545 tarafindan boralo zehirlenmis ve bir ay
+   boyunca yarim sekilde kalmisti zaten dosyayi incelersin nasil
+   yarim kaldigini gorebiliyorsun sonra tam vucut haline kavustu
+   ... o gozdeki detaylari bana da ekle yani ben bayagi bir
+   hasar almis sekilde olayim"
+
+Bes cumle, bes ayri iz. Hicbiri "hasarli dursun" diye
+serpistirilmedi; her birinin dosyada bir dayanagi var:
+
+  1. HAPSEDILDI   -> bilek ve ayak bileginde PRANGA halkasi.
+     Halka seridin TAMAMINA ciziliyor (dort yuz birden), yoksa
+     yandan bakinca kayboluyor. Demir icin yeni renk
+     uydurulmadi, paletteki GRI/DAHA_KOYU kullanildi.
+
+  2. BIR AY YARIM KALDI -> KAVUSMA IZI. Nereye cizilecegi
+     tahmin edilmedi: kullanici "dosyayi incelersin nasil yarim
+     kaldigini gorebiliyorsun" dedi ve dosya bunu gercekten
+     soyluyor -- kolsuz surumde silinen bolge KOL_BOLGELERI.
+     Dikis tam o bolgenin ust kenarina, govdede de karsisina
+     ciziliyor. Kutular tek yerde yazili, iz onlardan turetiliyor.
+
+  3. BORALO ZEHIRI (chris1545) -> damarlarin bir kismi kirmizi.
+     Renk OLCULDU, uydurulmadi: chris1545'in kanli kol dokusunda
+     (kns_kolluk_chris_kanli.png, 256x256) en cok kullanilan uc
+     opak renk sayildi -- (73,0,0) 13710, (186,9,9) 10078,
+     (142,0,0) 9359 piksel. Yani zehir, onu getiren kolun
+     rengini tasiyor; bugun taktigi Kanli Kol da ayni doku.
+
+  4. DAHA ZAYIF -> turkuaz damarlar SONDU. Parlak kademe
+     (DAMAR_ISK) govdede artik yok, orta kademe seyreldi,
+     gogsun ortasindaki hat KIRILDI. Yeni bir sey eklenmedi;
+     olan azaltildi -- "zayif" tam olarak bu.
+
+  5. BAYAGI HASAR -> sirtta kirbac izleri, yuzde catlak.
+     Sirt bugune kadar bombostu; hikayenin yazilacak yeri orasi.
+
+  + O GOZDEKI DETAYLAR -> asagida, goz_detaylari().
+
+Sirt/yuz izleri disinda hicbiri serbest cizim degil; kutulardan
+ve olculmus renklerden turetiliyor.
+
 Calistirmak icin:  python3 skin_uret.py
 """
 
@@ -63,6 +108,45 @@ DAMAR_KOY = (20, 94, 83)      # #145e53  elmasin en koyu tonu
 DAMAR     = (32, 197, 181)    # #20c5b5
 DAMAR_ISK = (74, 237, 217)    # #4aedd9  ana elmas
 GOZ       = (140, 210, 255)   # Hiperoksin'in goz rengi
+
+
+def kaynastir(a, b, oran):
+    """Iki rengi karistirir.
+
+    Yara/hale gibi ARA tonlar icin yeni renk UYDURULMUYOR:
+    palette zaten olan iki renkten hesaplaniyor. Boylece palet
+    degisirse turevleri de kendiliginden degisiyor."""
+    return tuple(int(round(a[i] + (b[i] - a[i]) * oran)) for i in range(3))
+
+
+# ---- ZEHIR  (v7.10) ----
+# "chris1545 tarafindan boralo zehirlenmis."
+# OLCULDU, uydurulmadi: chris1545'in kanli kol dokusunda
+# (Simsek_Kol_Kaynak/textures/entity/kns_kolluk_chris_kanli.png)
+# en cok kullanilan uc OPAK renk sayildi:
+#     (73,0,0) 13710 px   (186,9,9) 10078 px   (142,0,0) 9359 px
+# Turkuazin kademelendigi gibi bunlar da koyu -> orta -> parlak
+# diziliyor. Zehir, onu getiren kolun rengini tasiyor.
+ZEHIR_KOY = (73, 0, 0)
+ZEHIR     = (142, 0, 0)
+ZEHIR_ISK = (186, 9, 9)
+
+# Yara dokusu: ten ile zehir arasi. Ayri bir renk secilmedi.
+YARA      = kaynastir(KOYU, ZEHIR_KOY, 0.55)
+YARA_ACIK = kaynastir(KOYU, ZEHIR, 0.55)
+
+# Demir (pranga). Palette metal tonu YOKTU: en acik notr GRI ve
+# o da tabandan ancak 12 birim ayrilıyor, yani pranga govdeye
+# karisip lekeye donuyordu (v7.10 ilk render'inda tam bu
+# goruldu). Yeni renk secilmedi, GRI notr olarak acildi.
+DEMIR     = kaynastir(GRI, (255, 255, 255), 0.27)
+DEMIR_KOY = kaynastir(GRI, (255, 255, 255), 0.12)
+
+# Gozun cevresi -- bkz. goz_detaylari().
+GOZ_HALE   = kaynastir(KOYU, GOZ, 0.30)
+GOZ_SACAK  = kaynastir(KOYU, GOZ, 0.58)
+GOZ_KHALE  = kaynastir(KOYU, ZEHIR, 0.45)      # zehirli gozun halesi
+GOZ_KSACAK = kaynastir(KOYU, ZEHIR_ISK, 0.72)
 
 # ---- 64x64 oyuncu skini duzeni ----
 # (x1, y1, x2, y2) dahil. Ikinci katman (sapka/ceket/kol
@@ -95,12 +179,26 @@ SOL_KOL_KAPLAMA = [(52, 48, 55, 51), (56, 48, 59, 51), (48, 52, 63, 63)]
 KOL_BOLGELERI = (SAG_KOL_KUTU + SOL_KOL_KUTU
                  + SAG_KOL_KAPLAMA + SOL_KOL_KAPLAMA)
 
-BIRINCI_KATMAN = [
-    (8, 0, 15, 7),     (16, 0, 23, 7),    (0, 8, 31, 15),     # kafa
-    (4, 16, 7, 19),    (8, 16, 11, 19),   (0, 20, 15, 31),    # sag bacak
-    (20, 16, 27, 19),  (28, 16, 35, 19),  (16, 20, 39, 31),   # govde
-    (20, 48, 23, 51),  (24, 48, 27, 51),  (16, 52, 31, 63),   # sol bacak
-] + SAG_KOL_KUTU + SOL_KOL_KUTU
+# Govde ve bacaklar da kutu kutu adlandirildi (v7.10): hasar
+# izleri bu kutulardan TURETILIYOR, ayri koordinat yazilmiyor.
+# Her uclu ayni sirada: ust kapak, alt kapak, dort yuzu birden
+# tasiyan SERIT. Izler hep seride ciziliyor -- yalniz on yuze
+# cizilen bir halka yandan bakinca kayboluyor.
+KAFA_KUTU      = [(8, 0, 15, 7),    (16, 0, 23, 7),   (0, 8, 31, 15)]
+SAG_BACAK_KUTU = [(4, 16, 7, 19),   (8, 16, 11, 19),  (0, 20, 15, 31)]
+GOVDE_KUTU     = [(20, 16, 27, 19), (28, 16, 35, 19), (16, 20, 39, 31)]
+SOL_BACAK_KUTU = [(20, 48, 23, 51), (24, 48, 27, 51), (16, 52, 31, 63)]
+
+BIRINCI_KATMAN = (KAFA_KUTU + SAG_BACAK_KUTU + GOVDE_KUTU
+                  + SOL_BACAK_KUTU + SAG_KOL_KUTU + SOL_KOL_KUTU)
+
+# Izlerin dayandigi tek kaynak. Elle koordinat yazilmiyor:
+# yukaridaki listeler degisirse burasi da degisir.
+SAG_KOL_UST,   _, SAG_KOL_SERIT   = SAG_KOL_KUTU
+SOL_KOL_UST,   _, SOL_KOL_SERIT   = SOL_KOL_KUTU
+_,             _, GOVDE_SERIT     = GOVDE_KUTU
+_,             _, SAG_BACAK_SERIT = SAG_BACAK_KUTU
+_,             _, SOL_BACAK_SERIT = SOL_BACAK_KUTU
 
 # Gorunen on yuzler -- damarlar buraya ciziliyor.
 GOVDE_ON   = (20, 20)   # 8 genis, 12 yuksek
@@ -109,6 +207,7 @@ SOL_KOL_DIS = (44, 52)
 SAG_KOL_ON  = (44, 20)  # onden bakinca gorunen yuz
 SOL_KOL_ON  = (36, 52)
 KAFA_ON    = (8, 8)
+GOVDE_ARKA = (32, 20)   # v7.10'a kadar BOMBOStu
 
 
 def taban():
@@ -124,103 +223,342 @@ def taban():
     return px
 
 
-def damar_ciz(px, kok, desen, renkler):
+def damar_ciz(px, kok, desen, renkler, en=None):
     """ASCII desen govdeye basiliyor. Sekli gozle gormek
     piksel listesinden cok daha kolay -- dismont dokusunda da
-    ayni yol kullanildi."""
+    ayni yol kullanildi.
+
+    `en` verilirse her satirin uzunlugu KONTROL EDILIYOR. Bir
+    satirda tek karakter eksik/fazla olunca desen sessizce
+    kayiyor ve sebebi ancak render'a bakinca anlasiliyor
+    (v7.10'da tam bunun icin eklendi)."""
     ox, oy = kok
     for j, satir in enumerate(desen):
+        if en is not None and len(satir) != en:
+            raise ValueError("desen satiri %d: %d karakter, %d bekleniyordu "
+                             "(%r)" % (j, len(satir), en, satir))
         for i, c in enumerate(satir):
             if c in renkler:
                 px[(ox + i, oy + j)] = renkler[c] + (255,)
 
 
+def serit_ciz(px, kutu, satirlar, boya):
+    """Bir SERIDIN belirli satirlarini bastan sona boyar.
+
+    Satirlar kutunun UST kenarina gore sayiliyor, mutlak y
+    olarak degil: kutu yer degistirirse iz de birlikte gider.
+    `boya(i, j)` None dondururse o piksele dokunulmuyor."""
+    x1, y1, x2, y2 = kutu
+    for j in satirlar:
+        y = y1 + j
+        if not (y1 <= y <= y2):
+            continue
+        for x in range(x1, x2 + 1):
+            renk = boya(x - x1, j)
+            if renk:
+                px[(x, y)] = renk + (255,)
+
+
+# ---- 2. BIR AY YARIM KALDI: KAVUSMA IZI ----
+# Kolun koptugu yer TAHMIN EDILMIYOR: kolsuz surumde silinen
+# bolge KOL_BOLGELERI, onun ust kenari da kol seridinin ilk
+# satirlari. Iz oradan turetiliyor.
+DIKIS_SATIR = (0, 1)
+
+
+def kavusma_izi(px):
+    """Kollarin geri takildigi dikis + govdedeki karsiligi.
+
+    Iki satir, cunku tek satir oyunda omuz kivriminda kayboluyor
+    (kol seridinin ilk satiri yukari bakan yuze cok yakin).
+    Govde tarafinda iz seridin TAMAMINA gidiyor: kol yalniz onden
+    takilmadi."""
+    def dikis(i, j):
+        # Bir dolu bir bos: duz cizgi "boyanmis" duruyor, kesikli
+        # olan dikis gibi okunuyor.
+        if (i + j) % 2:
+            return None
+        return YARA_ACIK if (i // 2) % 3 == 0 else YARA
+
+    for serit in (SAG_KOL_SERIT, SOL_KOL_SERIT):
+        serit_ciz(px, serit, DIKIS_SATIR, dikis)
+
+    # Govde tarafi: iz gogsu bastan basa GECMEMELI, kol govdenin
+    # YANINDAN takiliyor. Ilk render'da butun serit boyanmisti ve
+    # yaka gibi duruyordu.
+    #
+    # 24 piksellik govde seridinin duzeni (Bedrock/Java klasik):
+    #   0-3   sag yan | 4-11  on | 12-15 sol yan | 16-23 arka
+    # Iz iki yan yuzun TAMAMI + on/arka yuzlerin dis iki sutunu.
+    def omuz(i, j):
+        yan = i < 4 or 12 <= i < 16
+        dis = i in (4, 5, 10, 11, 16, 17, 22, 23)
+        return dikis(i, j) if (yan or dis) else None
+
+    serit_ciz(px, GOVDE_SERIT, DIKIS_SATIR, omuz)
+
+    # Kolun UST kapagi: kesit. Kol oradan koptu, orasi tamamen
+    # yara dokusu.
+    for ust in (SAG_KOL_UST, SOL_KOL_UST):
+        serit_ciz(px, ust, range(4),
+                  lambda i, j: YARA_ACIK if (i + j) % 3 == 0 else YARA)
+
+
+# ---- 1. HAPSEDILDI: PRANGA ----
+# Bilek/ayak bilegi halkasi. Serit 12 satir; 8-9 el ve ayagin
+# hemen ustu.
+PRANGA_SATIR = (8, 9)
+TAHRIS_SATIR = (10,)
+
+
+def pranga(px):
+    """Dort uzuvda da demir halka + altinda tahris izi.
+
+    Demir icin yeni renk uydurulmadi: paletteki GRI ve
+    DAHA_KOYU. Halka DAMARLARIN USTUNE ciziliyor -- turkuaz hat
+    demirin altinda kesiliyor, istenen bu."""
+    def demir(i, j):
+        # Ust satir halkanin isik alan yuzu, alt satir golgesi;
+        # perc delikleri dortte bir.
+        # Iki ton da SADECE prangada kullaniliyor; tabanda
+        # gecmiyorlar. Halkanin tamami boylece sayilabiliyor --
+        # golge satirinda DAHA_KOYU kullanildiginda o pikseller
+        # tabandan ayirt edilemiyordu ve halka delik delik
+        # gorunuyordu.
+        if j == PRANGA_SATIR[0]:
+            return DEMIR_KOY if i % 4 == 0 else DEMIR   # perc deligi
+        return DEMIR if i % 4 == 2 else DEMIR_KOY       # golge
+
+    def tahris(i, j):
+        return ZEHIR_KOY if i % 5 == 1 else None
+
+    for serit in (SAG_KOL_SERIT, SOL_KOL_SERIT,
+                  SAG_BACAK_SERIT, SOL_BACAK_SERIT):
+        serit_ciz(px, serit, PRANGA_SATIR, demir)
+        serit_ciz(px, serit, TAHRIS_SATIR, tahris)
+
+
+# ---- "O GOZDEKI DETAYLAR" ----
+def goz_detaylari(px):
+    """Goz kaplamasinin anatomisi 64x64'e indiriliyor.
+
+    kol_uret.py'deki goz_dokusu() dort kat ciziyor: dolu
+    cekirdek, ustunden yukselen sacak, cevredeki hale, altina
+    sizan isik. Skinde bugune kadar SADECE cekirdek vardi --
+    goz basina iki piksel. Iksir icilmediginde goz olu
+    duruyordu; kullanicinin "o gozdeki detaylari bana da ekle"
+    dedigi eksik buydu.
+
+    64x64'te alt piksel yok, o yuzden dort kat dort KOMSU
+    piksele iniyor. Sira kaplamadakiyle ayni: once hale, sonra
+    sacak ve sizinti, cekirdek EN SON (uzerine hicbir sey
+    binmemeli).
+
+    Satir/sutun yine kol_uret.py'den geliyor. Elle yazilan tek
+    sayi yok -- v4.2'de goz iki satir kaymisti ve iki surum
+    boyunca sebebi anlasilmamisti.
+
+    ZEHIRLI GOZ: GOZ_SUTUNLAR[0] (dosyanin kendi adlandirmasiyla
+    "sol goz") kanli hale tasiyor, obur goz temiz. CekirDEKLERIN
+    IKISI DE turkuaz kaliyor: zehir govdeyi aldi, isigini
+    almadi. Ayrica iksir goz kaplamasi cekirdegin uzerine
+    biniyor; iki gozun cekirdegi ayrilsaydi kaplama takilinca
+    ortadan kalkardi."""
+    for i, (sol, sag) in enumerate(GOZ_SUTUNLAR):
+        zehirli = (i == 0)
+        hale = GOZ_KHALE if zehirli else GOZ_HALE
+        sacak = GOZ_KSACAK if zehirli else GOZ_SACAK
+
+        # 3. hale -- cekirdegin USTU ve ALTI.
+        #    Ilk denemede yanlara da tasiyordu: goz 4x3 oluyor,
+        #    8 piksel genisligindeki yuzun yarisini kapliyordu ve
+        #    goz degil pencere gibi duruyordu.
+        for x in (sol, sag):
+            for y in (GOZ_SATIR - 1, GOZ_SATIR + 1):
+                px[(x, y)] = hale + (255,)
+        #    Tek yanda bir parilti: iki yana da konunca goz
+        #    genisliyor, tek yanda kalinca hacim veriyor.
+        px[(sol - 1, GOZ_SATIR)] = hale + (255,)
+
+        # 2. sacak -- USTTEN yukseliyor
+        px[(sol, GOZ_SATIR - 1)] = sacak + (255,)
+
+        # 5. alta sizan isik -- kaplamada da asagi siziyor,
+        #    cunku gozun ustu sac, alti duz ten.
+        px[(sag, GOZ_SATIR + 1)] = sacak + (255,)
+
+        # 1. cekirdek EN SON
+        for x in (sol, sag):
+            px[(x, GOZ_SATIR)] = GOZ + (255,)
+
+
 def skin():
     px = taban()
-    R = {"o": DAMAR_KOY, "x": DAMAR, "X": DAMAR_ISK}
+    # Turkuaz kademe + zehir kademesi + yara dokusu + demir.
+    # Buyuk harf = parlak, kucuk = orta, "o"/"q" = koyu.
+    R = {"o": DAMAR_KOY, "x": DAMAR, "X": DAMAR_ISK,
+         "q": ZEHIR_KOY, "Q": ZEHIR, "!": ZEHIR_ISK,
+         "-": YARA, "=": YARA_ACIK}
+
+    # ---- IZLER DAMARLARDAN ONCE ----
+    # Zehir dikisten SIZIYOR: dikis altta kalirsa damar deseni
+    # onun uzerinden gecebiliyor. Pranga ise en sonda, cunku o
+    # damari KESMELI.
+    kavusma_izi(px)
 
     # ---- YUZ ----
     # Code-Man'in yuzu sirtiyor. Bunda AGIZ YOK -- kullanicinin
     # hikayesinde o "uzak duran" taraf; sirtan bir yuz yanlis
     # karakteri anlatirdi. Geriye sadece gozler kaliyor.
+    #
+    # v7.10: yuze catlak geldi. Bilerek ASIMETRIK ve goz
+    # sutunlarindan uzak: simetrik olsaydi alt satirdaki iki iz
+    # AGIZ gibi okunurdu, goz sutunlarina girseydi iksir goz
+    # kaplamasinin altinda ezilirdi.
     yuz = [
+        "=.......",
+        "-.......",
+        "=.......",
+        "-.......",
         "........",
         "........",
-        "..o..o..",
-        "........",
-        "........",
-        "........",
-        "........",
-        "........",
+        ".......=",
+        "......-.",
     ]
-    damar_ciz(px, KAFA_ON, yuz, R)
+    damar_ciz(px, KAFA_ON, yuz, R, en=8)
 
-    # Gozler EN SON, cunku uzerine hicbir sey binmemeli.
-    # Satir ve sutunlar kol_uret.py'den geliyor.
-    for sol, sag in GOZ_SUTUNLAR:
-        for x in (sol, sag):
-            px[(x, GOZ_SATIR)] = GOZ + (255,)
+    # "O gozdeki detaylar" -- hale, sacak, sizinti, cekirdek.
+    goz_detaylari(px)
 
     # ---- GOVDE ----
-    # Ortadan asagi inen bir hat, gogsun ustunde catallaniyor.
-    # Code-Man'in damar deseninin ayni fikri, baska cizim.
+    # Eski desen: ortadan asagi inen KESINTISIZ bir hat, gogsun
+    # ustunde catallaniyordu.
+    #
+    # v7.10'da ayni desen ama:
+    #   - parlak kademe (X) govdeden TAMAMEN kalkti  -> zayifladi
+    #   - gogsun ortasindaki hat KIRILDI (5. satir)   -> zayifladi
+    #   - omuzlardan (0-2. satir, iki kenar) zehir giriyor ve
+    #     asagi indikce turkuazi yiyor: ust yari onun, alt yari
+    #     zehrin.
+    # Yani "daha zayif" icin yeni bir sey eklenmedi, olan
+    # azaltildi.
     govde = [
-        "..o..o..",
-        ".ox..xo.",
+        "........",
+        "q.o..o.q",
+        ".qx..xq.",
         "..X..X..",
         "...xx...",
-        "...XX...",
-        "...xx...",
-        "..x..x..",
-        ".o....o.",
-        "..o..o..",
-        "........",
-        "...oo...",
+        "...x!...",
+        "..x..Q..",
+        ".o....q.",
+        "..o..q..",
+        "...x....",
+        "...oq...",
         "........",
     ]
-    damar_ciz(px, GOVDE_ON, govde, R)
+    damar_ciz(px, GOVDE_ON, govde, R, en=8)
+
+    # ---- SIRT ----
+    # v7.10'a kadar BOMBOStu. "Bayagi hasar almis" en okunakli
+    # burada duruyor: sirt tek parca, deseni bolen bir sey yok.
+    # Izler capraz ve DUZENSIZ -- duzenli olsaydi giysi deseni
+    # gibi gorunurdu.
+    sirt = [
+        "........",
+        "=..=...=",
+        ".=-..-=.",
+        "..=-.=..",
+        ".=..-=..",
+        "=..=...=",
+        "..=..-=.",
+        ".=-....=",
+        "...=-...",
+        "..=...=.",
+        "....-...",
+        "........",
+    ]
+    damar_ciz(px, GOVDE_ARKA, sirt, R, en=8)
 
     # ---- KOLLAR ----
     # Dis yuzlerde ince birer hat: karakter yandan da okunuyor.
-    kol = [
-        "..o.",
-        ".ox.",
+    #
+    # v7.10: iki kol artik AYNALANMIYOR, ayri yazili. Sebebi
+    # hikaye: zehiri getiren el birdi, ikisi ayni derecede
+    # zehirlenmedi. SAG kol agir, SOL kol hafif. Ust iki satir
+    # bos birakildi -- orasi kavusma dikisi.
+    kol_sag = [
+        "....",
+        "....",
+        ".qx.",
+        ".!x.",
+        ".x..",
+        ".q..",
+        "..Q.",
+        "..!.",
+        "..x.",
+        "..q.",
+        "..Q.",
+        "....",
+    ]
+    damar_ciz(px, SAG_KOL_DIS, kol_sag, R, en=4)
+
+    kol_sol = [
+        "....",
+        "....",
         ".xX.",
         ".Xx.",
         ".x..",
         ".o..",
-        "..o.",
+        "..q.",
         "..x.",
         "..X.",
         "..x.",
-        "..o.",
+        "..q.",
         "....",
     ]
-    damar_ciz(px, SAG_KOL_DIS, kol, R)
     # Sol kolda desen AYNALANIYOR, yoksa iki kol birebir ayni
     # duruyor ve goze carpiyor.
-    kol_ayna = ["".join(reversed(s)) for s in kol]
-    damar_ciz(px, SOL_KOL_DIS, kol_ayna, R)
+    damar_ciz(px, SOL_KOL_DIS, ["".join(reversed(r)) for r in kol_sol], R,
+              en=4)
 
     # ON yuzlere de ince bir iz: karakter cogu zaman ONDEN
     # goruluyor ve sadece dis yuze cizince kollar bombos
     # kaliyordu (ilk onizlemede tam bu goruldu).
-    kol_on = [
+    kol_on_sag = [
+        "....",
+        "....",
+        "..q.",
+        "..!.",
+        "..q.",
+        "....",
+        ".Q..",
+        ".q..",
+        ".!..",
+        "....",
+        "....",
+        "....",
+    ]
+    kol_on_sol = [
+        "....",
         "....",
         "..o.",
         "..x.",
         "..X.",
         "..x.",
         "..o.",
-        "....",
-        ".o..",
+        ".q..",
         ".x..",
         ".X..",
-        ".o..",
+        ".q..",
         "....",
     ]
-    damar_ciz(px, SAG_KOL_ON, kol_on, R)
-    damar_ciz(px, SOL_KOL_ON, ["".join(reversed(s)) for s in kol_on], R)
+    damar_ciz(px, SAG_KOL_ON, kol_on_sag, R, en=4)
+    damar_ciz(px, SOL_KOL_ON, ["".join(reversed(r)) for r in kol_on_sol], R,
+              en=4)
+
+    # ---- PRANGA EN SON ----
+    # Damarlarin USTUNE geliyor: demir turkuaz hatti kesmeli.
+    pranga(px)
 
     return px
 
