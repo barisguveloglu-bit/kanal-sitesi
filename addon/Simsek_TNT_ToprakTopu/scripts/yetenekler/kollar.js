@@ -78,7 +78,14 @@ export const KOL_ESYALARI = [
                     "alan_simsegi", "savur", "ors",
                     "toprak_ucus", "toprak_duvar", "meteor", "guclu_tnt",
                     "yakala", "coklu_simsek", "ok_yagmuru", "sarsinti",
-                    "kalp_ekle", "kalp_sifirla"],
+                    "kalp_ekle", "kalp_sifirla",
+   /* v7.9: KANLI KOLA GEC -- yetenek degil, bir SAHNE.
+      Listenin EN SONUNA konuldu cunku bu bir dovus ya da bakim
+      yetenegi degil, Toprak Kol'dan CIKIS. Ustteki on alti
+      yetenek "bu kolla ne yapabilirim", bu ise "bu kolu
+      birakiyorum". Yeni bir KOL acilmadi -- kol israfini onleme
+      kurali; sahne zaten Toprak Kol'un kendi sonu.            */
+                    "kol_takas"],
 
   /* BUZ KOL -- dondurma takimi.
 

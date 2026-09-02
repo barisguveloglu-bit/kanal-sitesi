@@ -1,0 +1,28 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "pa:kol_dusen_sol",
+      "materials": {
+        "default": "entity_alphatest"
+      },
+      "textures": {
+        "default": "textures/entity/kol_toprak"
+      },
+      "geometry": {
+        "default": "geometry.kol_dusen_sol"
+      },
+      "render_controllers": [
+        "controller.render.default"
+      ],
+      "scripts": {
+        "animate": [
+          "oyna"
+        ]
+      },
+      "animations": {
+        "oyna": "animation.kol_dusen.dusus"
+      }
+    }
+  }
+}

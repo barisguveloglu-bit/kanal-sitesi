@@ -1292,6 +1292,9 @@
     "durus_selam": {
       "textures": "textures/item/durus_selam"
     },
+    "takas_isareti": {
+      "textures": "textures/item/takas_isareti"
+    },
     "ben_elmas": {
       "textures": "textures/item/ben_elmas"
     },

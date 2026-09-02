@@ -1042,10 +1042,14 @@ DURUSLAR = [
 DURUS_ONEK = "durus_"
 
 
-def durus_kemikleri(poz):
-    """Bir duruşun kemik listesi: govde vanilla adlarini korur,
-    kollar bizim adlarimizi tasir ve duruş DONUSU pisirilmis
-    gelir.                                                      """
+def durus_govde_kemikleri():
+    """DURUS_GOVDE'nin kemik listesi -- KOLLAR HARIC.
+
+    v7.9'da ayri bir fonksiyon oldu cunku kol takasi animasyonu
+    tam olarak bunu istiyor: KOLSUZ bir oyuncu govdesi. Iki yerde
+    iki kopya govde listesi tutmak, bir gun ayrisacak iki liste
+    demekti -- duruşun govdesi degisince kolsuz hâli de degismeli.
+    """
     kemikler = []
     for ad, ebeveyn, pivot, orij, olcu, uv, sis in DURUS_GOVDE:
         k = {"name": ad, "pivot": list(pivot)}
@@ -1057,6 +1061,14 @@ def durus_kemikleri(poz):
                 kup["inflate"] = sis
             k["cubes"] = [kup]
         kemikler.append(k)
+    return kemikler
+
+
+def durus_kemikleri(poz):
+    """Bir duruşun kemik listesi: govde vanilla adlarini korur,
+    kollar bizim adlarimizi tasir ve duruş DONUSU pisirilmis
+    gelir.                                                      """
+    kemikler = durus_govde_kemikleri()
     for ad, kilif, pivot, orij, uv, kuv in DURUS_KOL:
         d = poz.get(ad, {})
         temel = {"name": ad, "parent": "body", "pivot": list(pivot)}
@@ -1130,6 +1142,398 @@ def durus_ikonu(renk):
         for xy in nokta:
             p[xy] = golge(renk, k) + (255,)
     return p
+
+
+# ==================== KOL TAKASI ANIMASYONU  (v7.9) ====================
+#
+# ---- KULLANICI NE ISTEDI ----
+# "Toprak kollar yere dusuyor ikisi de ayni sekilde yani sag ve
+#  sol kol ardindan kanli kol ortaya cikiyor... Toprak kol yere
+#  dusuyor ardindan kanli kol geliyor ve takilmis oluyor."
+#
+# ---- BU DEPODAKI ILK SINEMATIK ----
+# Simdiye kadarki butun yetenekler ANLIK. Bu ise EVRELERI olan,
+# birkac saniye suren bir sahne. O yuzden yeni bir mekanizma
+# icat etmek yerine, calistigi GORULMUS uc parca birlestirildi:
+#
+#   yere dusen kol   -> pa:o_sey_kilik kalibi (sahte varlik)
+#   varlik animasyon -> bot.entity.json'daki scripts.animate
+#                       (attachable'da CALISMAYAN sey burada
+#                        calisiyor -- v5.3'te kaldirilan olu
+#                        attachable animasyonu bu yuzden geri
+#                        getirilmedi)
+#   oyuncuyu kolsuz  -> durus sisteminin govdesi tek basina
+#      cizmek           (DURUS_GOVDE zaten DURUS_KOL'dan ayri)
+#
+# ---- NEDEN KOLSUZ GOVDE ----
+# v7.5'te kullanici kolsuz skin istemisti: "bu kanli kollar bir
+# garip oluyor, kolsuz nasil gorunecegine bakalim." Ama SKIN
+# script'ten degistirilemiyor. Elde tutulan ISARET esyasi ise
+# istemciye gecen tek isaret (query.get_equipped_item_name) --
+# OMP'deki 75 geometrinin hepsi bununla calisiyor. Yani kollar
+# dustugu anda oyuncu gercekten kolsuz ciziliyor.
+KOL_TAKAS_ACIK = True
+
+# Elde tutulan ISARET. Bir silah degil, bir anahtar (durus
+# taslariyla ayni kalip). Sahne bitince yok ediliyor.
+# ADI BILEREK `kol_` ILE BASLAMIYOR. Ilk denemede
+# "kol_dusuyor" yazdim ve depodaki IKI koruma birden dustu:
+# kol2.mjs "8 kol esyasi var" dedi 9 buldu, temizlik.mjs
+# "items/ klasoru kollar.js ile ayni" dedi 9/8 gordu. Ikisi de
+# HAKLIYDI -- bu bir KOL DEGIL, sahnenin gecici tasi. Sayaci
+# 9'a cekmek korumayi kor etmek olurdu; dogru olan adi
+# duzeltmek.
+TAKAS_ISARET   = "takas_isareti"
+# Kolsuz govde geometrisi ISARETLE AYNI ADI tasiyor: OMP'nin
+# tetigi `variable.<ad> = get_equipped_item_name(...) == '<ad>'`
+# kalibinda, iki ad ayrissa degisken hic dogru olmaz.
+TAKAS_GOVDE    = TAKAS_ISARET
+
+# Ucu de sahte varlik: yapay zeka yok, vurulamiyor, itilemiyor.
+TAKAS_DUSEN_SAG = "kol_dusen_sag"
+TAKAS_DUSEN_SOL = "kol_dusen_sol"
+TAKAS_GELEN     = "kol_gelen"
+
+# Sahnenin iki ucu. Bunlar KOLLAR tablosundaki kimlikler ve
+# varlik dokulari da ayni adi tasiyor (attachable() `textures/
+# entity/<kimlik>` diyor). Uretimde ikisinin de tabloda oldugu
+# DENETLENIYOR: biri yeniden adlandirilirsa uretim sikayet etsin,
+# oyunda mor-siyah bir kup cikmasin.
+TAKAS_KAYNAK_KOL = "kol_toprak"
+TAKAS_HEDEF_KOL  = "kol_kanli"
+
+
+def takas_dusen_geometrisi(kimlik, ayna):
+    """Yere dusen toprak kol.
+
+    Kup GEOMETRI'den (simsek_kol) TURETILIYOR, elle yazilmiyor:
+    Toprak Kol'un olcusu degisirse dusen kol da degissin.
+
+    IKI FARK var ve ikisinin de sebebi bu artik bir ATTACHABLE
+    degil, bagimsiz bir VARLIK olmasi:
+
+      1. Kup y=0..12'ye tasiniyor. Varligin carpisma kutusu
+         orijininde (0,0,0) ve yercekimi ACIK; model orijinin
+         ALTINA sarksaydi kol yere inince toprağın icinde
+         kalirdi.
+      2. `inflate` DUSTU. Sismenin tek isi skinin kolunun
+         uzerini kapatmakti; altta bir skin yok.
+
+    `ayna` sol kol icin: ayni kup, dokusu X'te cevrilmis.
+    Bedrock'ta bunun alani `mirror` ve depoda zaten kullaniliyor
+    (kns_deri_dusmus.geo.json).                                 """
+    import copy
+    kaynak = GEOMETRI["minecraft:geometry"][0]
+    kup = None
+    for k in kaynak["bones"]:
+        if k.get("cubes"):
+            kup = copy.deepcopy(k["cubes"][0])
+            break
+    if kup is None:
+        return None
+    olcu = kup["size"]
+    kup["origin"] = [-olcu[0] / 2.0, 0, -olcu[2] / 2.0]
+    kup.pop("inflate", None)
+    if ayna:
+        kup["mirror"] = True
+    return {
+        "format_version": "1.12.0",
+        "minecraft:geometry": [{
+            "description": {
+                "identifier": "geometry." + kimlik,
+                "texture_width": kaynak["description"]["texture_width"],
+                "texture_height": kaynak["description"]["texture_height"],
+                "visible_bounds_width": 2,
+                "visible_bounds_height": 2,
+                "visible_bounds_offset": [0, 1, 0],
+            },
+            "bones": [{"name": "kol", "pivot": [0, 0, 0], "cubes": [kup]}],
+        }],
+    }
+
+
+def _takas_don(p, aci):
+    """Bir noktayi ORIJIN etrafinda dondurur.
+
+    Sozlesme v7.3'te OLCULDU ve ciz_kemik.don()'da yaziyor:
+    POZITIF aci, XYZ sirasi. Tahmin degil -- yanlis isaret
+    denenip kollarin ic ice gectigi GORULEREK bulundu.
+
+    Cizer buraya IMPORT EDILMIYOR: uretici cizim kutuphanesine
+    (PIL vb.) bagimli olmamali. Onun yerine ayni olcum burada
+    on iki satirda tekrarlaniyor ve kaynagi yaziyor.          """
+    import math
+    x, y, z = p
+    rx, ry, rz = [math.radians(a) for a in aci]
+    c, sn = math.cos(rx), math.sin(rx); y, z = y * c - z * sn, y * sn + z * c
+    c, sn = math.cos(ry), math.sin(ry); x, z = x * c + z * sn, -x * sn + z * c
+    c, sn = math.cos(rz), math.sin(rz); x, y = x * c - y * sn, x * sn + y * c
+    return (x, y, z)
+
+
+def takas_gelen_geometrisi():
+    """Havadan gelen kanli kol.
+
+    kanli_geometrisi()'nin SAG kolundan (33 kup) turetiliyor.
+    Kemik kendi pivotu etrafinda DONUK geldigi icin (v7.3'te
+    olculen [0,90,-175]), donusu bozmadan tasimanin tek yolu
+    pivotu VE butun kuplerin origin'ini AYNI vektorle kaydirmak
+    -- bu kati bir oteleme, donus aynen kalir.
+
+    Pivot orijine tasiniyor. Modelin y=0'in altina sarkmasi
+    onemli degil: bu varligin yercekimi KAPALI, konumunu her
+    tick script veriyor (o_sey_kilik gibi). Yere hic degmiyor,
+    yani gomulme sorunu yok -- ve donus merkezi tam olarak
+    script'in koydugu nokta oluyor.                            """
+    import copy
+    kaynak = kanli_geometrisi()
+    if kaynak is None:
+        return None
+    g = kaynak["minecraft:geometry"][0]
+    # Sag kol: ebeveyni `rightArm` olan, kupu olan kemik.
+    kemik = None
+    for k in g["bones"]:
+        if k.get("parent") == "rightArm" and k.get("cubes"):
+            kemik = copy.deepcopy(k)
+            break
+    if kemik is None:
+        return None
+    kay = [-kemik["pivot"][i] for i in range(3)]
+    kemik["pivot"] = [0, 0, 0]
+    kemik.pop("parent", None)
+    kemik["name"] = "kol"
+    for c in kemik["cubes"]:
+        c["origin"] = [c["origin"][i] + kay[i] for i in range(3)]
+
+    # ---- DONUS SONRASI MERKEZLEME ----
+    # Pivotu orijine tasimak YETMIYOR. Kemik [0,90,-175] donuk
+    # geliyor; donusten SONRA kolun kutlesi orijinin epey
+    # disinda kaliyor -- olculdu: merkez (-3,66 / -8,28 / -1,95)
+    # birim, yani YARIM BLOK asagida ve yana kacik. Script kolu
+    # omza koydugunda kol omuzda degil, omzun yarim blok
+    # altinda gorunurdu.
+    #
+    # Duzeltme: pivot VE butun kupler AYNI vektorle kaydirilinca
+    # donmus sonuc da tam o kadar kayiyor. Ispati bir satir --
+    # donus p -> R(p - pivot) + pivot; ikisini de q kadar
+    # kaydirinca R(p+q - (pivot+q)) + pivot+q = R(p-pivot)+pivot+q.
+    #
+    # PIVOTU KAYDIRMAYI ATLAMAK ILK DENEMEDE HATA OLDU: yalniz
+    # kupleri kaydirdim, merkez (-3,66/-8,28/-1,95)'ten
+    # (-4,88/-16,70/-5,61)'e gitti -- yani DAHA KOTU oldu.
+    # Sebep tam da bu: kupleri tek basina kaydirmak, donusten
+    # sonra R(q) kadar kaydiriyor, q kadar degil. Olcum yapmasam
+    # "duzelttim" deyip gecerdim.
+    #
+    # Sayi ELLE YAZILMIYOR, her uretimde yeniden olculuyor:
+    # kaynak model degisirse duzeltme de kendiliginden degisir.
+    kose = []
+    for c in kemik["cubes"]:
+        o, b = c["origin"], c["size"]
+        for dx in (0, 1):
+            for dy in (0, 1):
+                for dz in (0, 1):
+                    kose.append(_takas_don(
+                        (o[0] + dx * b[0], o[1] + dy * b[1], o[2] + dz * b[2]),
+                        kemik["rotation"]))
+    merkez = [(min(k[i] for k in kose) + max(k[i] for k in kose)) / 2.0
+              for i in range(3)]
+    kemik["pivot"] = [round(-merkez[i], 4) for i in range(3)]
+    for c in kemik["cubes"]:
+        c["origin"] = [round(c["origin"][i] - merkez[i], 4) for i in range(3)]
+    return {
+        "format_version": "1.12.0",
+        "minecraft:geometry": [{
+            "description": {
+                "identifier": "geometry." + TAKAS_GELEN,
+                "texture_width": g["description"]["texture_width"],
+                "texture_height": g["description"]["texture_height"],
+                "visible_bounds_width": 3,
+                "visible_bounds_height": 3,
+                "visible_bounds_offset": [0, 0, 0],
+            },
+            "bones": [kemik],
+        }],
+    }
+
+
+def kolsuz_geometrisi():
+    """Oyuncunun KOLSUZ govdesi. durus_govde_kemikleri() ile
+    ayni kaynaktan, yani durusun govdesi degisince burasi da
+    kendiliginden degisir.
+
+    Doku YOK: render denetleyicisi `Texture.default` diyor, yani
+    oyuncunun kendi derisi. Duruslarda ogrenilen kalip.        """
+    return {
+        "format_version": "1.12.0",
+        "minecraft:geometry": [{
+            "description": {
+                "identifier": "geometry." + TAKAS_GOVDE,
+                "texture_width": 64,
+                "texture_height": 64,
+                "visible_bounds_width": 3,
+                "visible_bounds_height": 3,
+                "visible_bounds_offset": [0, 1.5, 0],
+            },
+            "bones": durus_govde_kemikleri(),
+        }],
+    }
+
+
+def takas_isaret_esyasi():
+    """Isaret tasi. durus_esyasi() ile ayni kalip.
+
+    `menu_category` BILEREK "equipment" birakildi. Bu esyanin
+    yaratici menude gorunmesine gerek yok ama "gizli esya"nin
+    dogru alan degerini TAHMIN ETMIYORUM: yanlis bir kategori
+    esyayi oyunun kayit defterinden dusurur ve o zaman sahne hic
+    baslamaz (v3.5'te 11 esya tam boyle sessizce kaydolmamisti).
+    Menude fazladan bir satir, calismayan bir sahneden iyidir.
+    """
+    return {
+        "format_version": "1.21.0",
+        "minecraft:item": {
+            "description": {
+                "identifier": "pa:" + TAKAS_ISARET,
+                "menu_category": {"category": "equipment"},
+            },
+            "components": {
+                "minecraft:icon": {"texture": TAKAS_ISARET},
+                "minecraft:display_name": {"value": "Kol Takası (geçici)"},
+                "minecraft:max_stack_size": 1,
+                "minecraft:hand_equipped": True,
+                "minecraft:allow_off_hand": True,
+            },
+        },
+    }
+
+
+def takas_isaret_ikonu():
+    """16x16: dusen bir kol. Solgun -- bu esya bir odul degil,
+    sahnenin gecici bir parcasi."""
+    p = {}
+    renk = (120, 96, 72)
+    for y in range(3, 13):
+        for x in range(6, 10):
+            p[(x, y)] = golge(renk, 1.0 if (y % 3) else 0.8) + (255,)
+    for x in range(4, 12):
+        p[(x, 14)] = golge(renk, 0.5) + (255,)   # yer cizgisi
+    return p
+
+
+def takas_varligi(kimlik, yercekimi):
+    """Sahnenin sahte varliklari. o_sey_kilik_varligi() kalibi:
+    yapay zeka yok, vurulamaz, itilemez, isimlendirilemez.
+
+    TEK FARK yercekimi. Dusen kollar icin ACIK -- dusmeyi
+    motorun kendisi yapsin, script her tick konum vermeye
+    calismasin (o hem pahali hem de yalpalar). Gelen kanli kol
+    icin KAPALI: onun yolu bir yorunge, script veriyor.
+
+    `is_spawnable: False` -- bunlar oyuncak degil, sahnenin
+    parcasi; envanteri yumurta ile kirletmesinler.             """
+    return {
+        "format_version": "1.16.0",
+        "minecraft:entity": {
+            "description": {
+                "identifier": "pa:" + kimlik,
+                "is_spawnable": False,
+                "is_summonable": True,
+                "is_experimental": False,
+            },
+            "components": {
+                # pa_kilik ailesinde: botlarimiz ve Ilkel Besli
+                # sahnenin parcalarina saldirmasin.
+                "minecraft:type_family": {"family": ["pa_bot", "pa_kilik"]},
+                "minecraft:physics": {"has_gravity": bool(yercekimi),
+                                      "has_collision": False},
+                "minecraft:pushable": {"is_pushable": False,
+                                       "is_pushable_by_piston": False},
+                "minecraft:knockback_resistance": {"value": 1.0},
+                "minecraft:fire_immune": True,
+                "minecraft:damage_sensor": {
+                    "triggers": [{"cause": "all", "deals_damage": False}],
+                },
+                "minecraft:health": {"value": 1, "max": 1},
+                "minecraft:collision_box": {"width": 0.1, "height": 0.1},
+                # Dunya yeniden yuklenince kaybolmasin; temizligi
+                # kol_takas.js yapiyor (donusum.js'teki kalip).
+                "minecraft:persistent": {},
+                "minecraft:nameable": {"allow_name_tag_renaming": False},
+            },
+        },
+    }
+
+
+def takas_istemci_varligi(kimlik, doku, animasyon):
+    """Gorunum. o_sey_kilik.entity.json ile ayni: tek geometri,
+    tek doku, vanilla render denetleyicisi, bir animasyon."""
+    return {
+        "format_version": "1.10.0",
+        "minecraft:client_entity": {
+            "description": {
+                "identifier": "pa:" + kimlik,
+                "materials": {"default": "entity_alphatest"},
+                "textures": {"default": "textures/entity/" + doku},
+                "geometry": {"default": "geometry." + kimlik},
+                "render_controllers": ["controller.render.default"],
+                "scripts": {"animate": ["oyna"]},
+                "animations": {"oyna": animasyon},
+            },
+        },
+    }
+
+
+# ---- SAHNE ANIMASYONLARI ----
+# Ikisi de MOLANG KULLANMIYOR, sadece anahtar kare. Sebep:
+# molang sorgularinin hangisinin bu baglamda derlendigini
+# BURADA olcemiyorum ve yanlis bir sorgu varligin cizimini
+# komple bozar (v7.4'te ayni sebeple `is_riding` yazilmamisti).
+# Anahtar kare her surumde ayni sekilde calisiyor.
+#
+# `dusus` neden DONGU DEGIL: kol dusup yere yattiktan sonra
+# donmeye devam etseydi yerde firil firil donen bir kol
+# kalirdi. `hold_on_last_frame` son kareyi -- yani YATMIS
+# kolu -- tutuyor. Sure (1,0 sn) dusme suresine yakin secildi:
+# ~1,4 blokluk bir dususe kabaca bu kadar zaman gidiyor.
+TAKAS_ANIMASYON = {
+    "format_version": "1.8.0",
+    "animations": {
+        "animation.kol_dusen.dusus": {
+            "loop": "hold_on_last_frame",
+            "animation_length": 1.0,
+            "bones": {
+                "kol": {
+                    "rotation": {
+                        "0.0": [0, 0, 0],
+                        "0.5": [55, 40, 25],
+                        "1.0": [90, 65, 8],
+                    },
+                    # Yere yatinca kupun yarisi topragin icine
+                    # girmesin: yatik kol artik 4 birim kalin,
+                    # yani merkezi 2 birim yukarida olmali.
+                    "position": {
+                        "0.0": [0, 0, 0],
+                        "1.0": [0, 2, 0],
+                    },
+                },
+            },
+        },
+        "animation.kol_gelen.suzul": {
+            "loop": True,
+            "animation_length": 2.0,
+            "bones": {
+                "kol": {
+                    "rotation": {
+                        "0.0": [0, 0, 0],
+                        "1.0": [0, 180, 0],
+                        "2.0": [0, 360, 0],
+                    },
+                },
+            },
+        },
+    },
+}
 
 # ---------------------------------------------------------- attachable
 def attachable(kimlik, geometri="geometry.simsek_kol"):
@@ -4933,6 +5337,12 @@ def oyuncu_modeli_paketi(surum):
     if DURUS_ACIK:
         for _dk, _dad, _dr, _dp in DURUSLAR:
             d["geometry"][DURUS_ONEK + _dk] = ("geometry." + DURUS_ONEK + _dk)
+    # ---- KOLSUZ GOVDE (v7.9) ----
+    # Kol takasi sirasinda oyuncu KOLSUZ ciziliyor. Duruslarla
+    # ayni yol: geometri + tetik + denetleyici. Dokusu da yok --
+    # oyuncunun kendi derisi.
+    if KOL_TAKAS_ACIK:
+        d["geometry"][TAKAS_GOVDE] = "geometry." + TAKAS_GOVDE
 
     # 2. Tetik. IKI yuva da sinaniyor: yan el ana eli bos birakir
     #    ama her surumde ayni davranmayabilir; ana el kesin
@@ -4974,12 +5384,28 @@ def oyuncu_modeli_paketi(surum):
     # bedeni ciziliyor olsaydi POZ VERILMIS kopyanin icinde
     # kalirdi -- iki govde ust uste. Kaynakta bunun karsiligi
     # morph'un vanilla modeli tamamen degistirmesi.
+    # Kolsuz govde tetigi. Ayni kalip, ayni iki yuva.
+    # `is_gliding`/`is_swimming` istisnasi da AYNI sebeple var:
+    # kanat acmis ya da yuzerken vanilla animasyon kollari
+    # suruyor, kolsuz govdede surecek kol yok ve oyuncu garip
+    # bir sekilde donardi.
+    if KOL_TAKAS_ACIK:
+        d["scripts"]["pre_animation"].append(
+            "variable.%s = (query.get_equipped_item_name('main_hand') == '%s'"
+            " || query.get_equipped_item_name('off_hand') == '%s')"
+            " && !query.is_gliding && !query.is_swimming;"
+            % (TAKAS_GOVDE, TAKAS_ISARET, TAKAS_ISARET))
     _durus_degiskenleri = ([DURUS_ONEK + _d[0] for _d in DURUSLAR]
                            if DURUS_ACIK else [])
+    # Kolsuz govde de `donusuk`e giriyor: girmeseydi oyuncunun
+    # KENDI bedeni (kollariyla birlikte) kolsuz kopyanin icinde
+    # cizilirdi -- yani kollar hic dusmemis gorunurdu.
+    _takas_degiskenleri = [TAKAS_GOVDE] if KOL_TAKAS_ACIK else []
     d["scripts"]["pre_animation"].append(
         "variable.donusuk = variable.o_sey" +
         "".join(" || variable." + _b[0] for _b in BEN10 + ZIRH_MOD) +
-        "".join(" || variable." + _v for _v in _durus_degiskenleri) + ";")
+        "".join(" || variable." + _v for _v in _durus_degiskenleri) +
+        "".join(" || variable." + _v for _v in _takas_degiskenleri) + ";")
 
     # 3. + 4. Denetleyiciler
     yeni_rc = []
@@ -5002,7 +5428,7 @@ def oyuncu_modeli_paketi(surum):
                 "variable.%s && !variable.is_first_person"
                 " && !variable.map_face_icon" % _ba
         })
-    for _dv in _durus_degiskenleri:
+    for _dv in _durus_degiskenleri + _takas_degiskenleri:
         yeni_rc.append({
             "controller.render." + _dv:
                 "variable.%s && !variable.is_first_person"
@@ -5098,7 +5524,7 @@ def oyuncu_modeli_paketi(surum):
     # dosyada zaten oyuncunun derisine bagli. Kendi dokumuzu
     # yazsaydik herkes ayni gorunurdu -- duruşun butun anlami
     # kendi skininle poz vermek.
-    for _dv in _durus_degiskenleri:
+    for _dv in _durus_degiskenleri + _takas_degiskenleri:
         denetleyiciler["controller.render." + _dv] = {
             "geometry": "Geometry." + _dv,
             "textures": ["Texture.default"],
@@ -5118,6 +5544,9 @@ def oyuncu_modeli_paketi(surum):
         yaz_json(os.path.join(OMP, "models/entity/%s%s.geo.json"
                               % (DURUS_ONEK, _dk)),
                  durus_geometrisi(_dk, _dp))
+    if KOL_TAKAS_ACIK:
+        yaz_json(os.path.join(OMP, "models/entity/%s.geo.json" % TAKAS_GOVDE),
+                 kolsuz_geometrisi())
     yaz_json(os.path.join(OMP, "animations/o_sey.animation.json"), SEY_ANIM)
     kaynak_doku = os.path.join(RP, "textures/entity/%s.png" % SEY_DOKU)
     hedef_doku = os.path.join(OMP, "textures/entity/%s.png" % SEY_DOKU)
@@ -6834,6 +7263,49 @@ def main():
     yaz_json(os.path.join(RP, "entity/o_sey_kilik.entity.json"),
              o_sey_kilik_istemci_varligi())
 
+    # ---- KOL TAKASI SAHNESI (v7.9) ----
+    # Uc sahte varlik: iki dusen toprak kol + gelen kanli kol.
+    # Geometriler ELLE YAZILMIYOR, var olan modellerden
+    # turetiliyor -- Toprak Kol ya da Kanli Kol degisirse sahne
+    # de kendiliginden degisir.
+    #
+    # `kol_gelen` KANLI GEOMETRIYE bagli: kaynak dosya yoksa
+    # kanli_geometrisi() None doner. O durumda varligi yine de
+    # yazmak, oyunda mor-siyah bir kup demekti; onun yerine
+    # EKSIK OLDUGU RAPOR EDILIYOR (uydurma icerik yasak).
+    if KOL_TAKAS_ACIK:
+        _kol_kimlikleri = set(_k[0] for _k in KOLLAR)
+        for _tgerek in (TAKAS_KAYNAK_KOL, TAKAS_HEDEF_KOL):
+            if _tgerek not in _kol_kimlikleri:
+                raise SystemExit(
+                    "kol takasi: '%s' KOLLAR tablosunda yok. Kol yeniden "
+                    "adlandirildiysa TAKAS_KAYNAK_KOL/TAKAS_HEDEF_KOL da "
+                    "guncellenmeli -- yoksa sahne oyunda mor-siyah cikar."
+                    % _tgerek)
+        for _tk, _tayna, _tdoku in ((TAKAS_DUSEN_SAG, False, TAKAS_KAYNAK_KOL),
+                                    (TAKAS_DUSEN_SOL, True, TAKAS_KAYNAK_KOL)):
+            _tg = takas_dusen_geometrisi(_tk, _tayna)
+            yaz_json(os.path.join(BP, "entities/%s.json" % _tk),
+                     takas_varligi(_tk, True))
+            yaz_json(os.path.join(RP, "models/entity/%s.geo.json" % _tk), _tg)
+            yaz_json(os.path.join(RP, "entity/%s.entity.json" % _tk),
+                     takas_istemci_varligi(_tk, _tdoku,
+                                           "animation.kol_dusen.dusus"))
+        _tgelen = takas_gelen_geometrisi()
+        if _tgelen is None:
+            print("UYARI: kanli geometri yok, %s uretilmedi "
+                  "(sahnenin son evresi eksik kalir)." % TAKAS_GELEN)
+        else:
+            yaz_json(os.path.join(BP, "entities/%s.json" % TAKAS_GELEN),
+                     takas_varligi(TAKAS_GELEN, False))
+            yaz_json(os.path.join(RP, "models/entity/%s.geo.json" % TAKAS_GELEN),
+                     _tgelen)
+            yaz_json(os.path.join(RP, "entity/%s.entity.json" % TAKAS_GELEN),
+                     takas_istemci_varligi(TAKAS_GELEN, TAKAS_HEDEF_KOL,
+                                           "animation.kol_gelen.suzul"))
+        yaz_json(os.path.join(RP, "animations/kol_takas.animation.json"),
+                 TAKAS_ANIMASYON)
+
     # ---- ZIRH YUKSELTMESI (v4.91) ----
     # Ionstrike/Max Steel takimi: 4 giyilebilir parca + modun
     # dokusu. Sayilar modun powers/*.json dosyalarindan.
@@ -7214,6 +7686,20 @@ def main():
             en_us.append("item.pa:%s=Pose · %s" % (_dtam, _dk))
             tr_tr.append("item.pa:%s.name=Duruş · %s" % (_dtam, _dad))
             tr_tr.append("item.pa:%s=Duruş · %s" % (_dtam, _dad))
+
+    # ---- KOL TAKASI ISARETI (v7.9) ----
+    # Sahne suresince ana elde duran gecici tas. Elde OLMASI,
+    # istemcinin oyuncuyu kolsuz cizmesinin TEK sebebi.
+    if KOL_TAKAS_ACIK:
+        yaz_json(os.path.join(BP, "items/%s.json" % TAKAS_ISARET),
+                 takas_isaret_esyasi())
+        png_yaz(os.path.join(RP, "textures/item/%s.png" % TAKAS_ISARET),
+                16, 16, takas_isaret_ikonu())
+        dokular[TAKAS_ISARET] = {"textures": "textures/item/" + TAKAS_ISARET}
+        en_us.append("item.pa:%s.name=Arm Swap (temporary)" % TAKAS_ISARET)
+        en_us.append("item.pa:%s=Arm Swap (temporary)" % TAKAS_ISARET)
+        tr_tr.append("item.pa:%s.name=Kol Takası (geçici)" % TAKAS_ISARET)
+        tr_tr.append("item.pa:%s=Kol Takası (geçici)" % TAKAS_ISARET)
 
     # ---- BEN 10 (v4.92) ----
     # Dort yaratik: esya + ikon. Modeller ve dokular oyuncu
@@ -7636,6 +8122,9 @@ def main():
     if DURUS_ACIK:
         for _dk4, _dad4, _dr4, _dp4 in DURUSLAR:
             beklenen.add(DURUS_ONEK + _dk4)
+    # v7.9: kol takasi isaretinin ikonu da hicbir listede degil
+    if KOL_TAKAS_ACIK:
+        beklenen.add(TAKAS_ISARET)
     # v4.91: zirh parcalarinin ikonlari da listede degil
     for _zk2, _zy2, _zp2, _zt2, _ze2, _zb2 in ZIRH:
         beklenen.add(_zk2)

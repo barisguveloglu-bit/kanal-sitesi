@@ -803,6 +803,17 @@
           "*": "Material.default"
         }
       ]
+    },
+    "controller.render.takas_isareti": {
+      "geometry": "Geometry.takas_isareti",
+      "textures": [
+        "Texture.default"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
     }
   }
 }

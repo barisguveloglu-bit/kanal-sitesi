@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.8";
+export const SURUM = "v7.9";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -7013,3 +7013,105 @@ export const MAHOU_BUYULER = new Map([
     ozet: "600 tik direnç IV (40 mana)"
   }]
 ]);
+
+/* ============================================================
+   KOL TAKASI ANIMASYONU  (v7.9)
+
+   Kullanicinin tarif ettigi sahne:
+     "Toprak kollar yere dusuyor ikisi de ayni sekilde yani sag
+      ve sol kol ardindan kanli kol ortaya cikiyor... Toprak kol
+      yere dusuyor ardindan kanli kol geliyor ve takilmis oluyor."
+
+   ---- BU DEPODAKI ILK SINEMATIK ----
+   Butun yetenekler simdiye kadar ANLIK calisiyordu. Bu, evreleri
+   olan ve birkac saniye suren bir sahne. Yeni bir mekanizma
+   ICAT EDILMEDI; calistigi gorulmus uc parca birlestirildi:
+     - sahte varlik           -> pa:o_sey_kilik kalibi
+     - varlik uzerinde anim.  -> bot.entity.json scripts.animate
+     - oyuncuyu kolsuz cizmek -> durus sisteminin govdesi
+   Attachable animasyonu KULLANILMADI: v5.3'te olmayan bir kemige
+   yazan bir tanesi kaldirilmisti ve dort surumdur hicbir sey
+   yapmiyordu. Belirsiz olan tek yol oydu, ona hic girilmedi.
+
+   ---- GUVENLIK ANAHTARI ----
+   Sahne tablette kotu davranirsa (varlik ortada kalirsa, kolsuz
+   govde bozuk cizilirse) TEK SATIRLA kapatilir; modun geri kalani
+   etkilenmez. Botta ogrenilen kalip.                            */
+export const KOL_TAKAS_ACIK = true;
+
+/* Sahnenin iki ucu. Ikisi de kollar.js'teki gercek esyalar.    */
+export const KOL_TAKAS_KAYNAK = "pa:kol_toprak";
+export const KOL_TAKAS_HEDEF  = "pa:kol_kanli";
+
+/* Sahne suresince ana elde duran GECICI isaret.
+
+   NEDEN VAR: script istemciye (molang'a) bir sey yazamiyor.
+   Istemcinin gorebildigi oyuncuya ozel tek isaret ELDEKI ESYA
+   (query.get_equipped_item_name) -- oyuncu modeli paketindeki
+   75 gorunusun hepsi bu tetikle calisiyor. Yani "kollarim su an
+   yok" bilgisini istemciye gecirmenin tek yolu bu tas.         */
+export const KOL_TAKAS_ISARET = "pa:takas_isareti";
+
+/* Sahnenin uc sahte varligi. */
+export const KOL_TAKAS_DUSEN_SAG = "pa:kol_dusen_sag";
+export const KOL_TAKAS_DUSEN_SOL = "pa:kol_dusen_sol";
+export const KOL_TAKAS_GELEN     = "pa:kol_gelen";
+
+/* ---- Kollar nereden dusuyor ----
+   OMUZ_Y OLCULDU, goz karariyla yazilmadi. Oyuncunun omzu
+   ayagindan 1,35 blok yukarida (vanilla iskelette rightArm
+   pivotu y=22 birim = 1,375 blok). Dusen kol modeli ise kendi
+   orijininden YUKARI dogru 12 birim = 0,75 blok uzuyor
+   (kol_dusen geometrisi y=0..12'de duruyor -- yercekimi acik
+   oldugu icin model orijinin altina sarkamaz).
+
+   Yani kolun UST ucunun omza gelmesi icin varlik omuzdan
+   0,75 blok ASAGIYA dogurulmali:  1,35 - 0,75 = 0,60
+
+   ELDE 0,60 YAZILMIYOR, HESAPLANIYOR: gelen kanli kol da omza
+   gidiyor ve o GERCEK omuz yuksekligini istiyor (modeli kendi
+   orijininde merkezli). Iki yerde iki sabit tutsaydik biri
+   degisince oteki sessizce yanlis kalirdi.                    */
+export const KOL_TAKAS_OMUZ_BOY = 1.35;   // omzun ayaktan yuksekligi
+export const KOL_TAKAS_KOL_BOYU = 0.75;   // dusen kol modelinin boyu (12 birim)
+export const KOL_TAKAS_OMUZ_Y = KOL_TAKAS_OMUZ_BOY - KOL_TAKAS_KOL_BOYU;
+export const KOL_TAKAS_OMUZ_X = 0.35;   // omuzlarin govde merkezine uzakligi
+
+/* Kollar yerde kac tick beklesin. Sahnenin nefes aldigi yer:
+   dusme ~20 tick suruyor, sonra bu kadar kolsuz duruyorsun.   */
+export const KOL_TAKAS_YERDE = 30;
+
+/* ---- Kanli kol nasil geliyor ----
+   Yorungeyi script veriyor (varligin yercekimi kapali). Her
+   tick omza dogru KOL_TAKAS_GELIS_HIZ blok yaklasiyor;
+   KOL_TAKAS_VARIS'ten yakina gelince takilmis sayiliyor.
+
+   HIZ ve YUKSEKLIK birlikte secildi: 6 blokluk yol, tick basina
+   0,45 blok -> ~14 tick (0,7 saniye). Daha yavas olsaydi sahne
+   sunerdi, daha hizli olsaydi kol hic gorunmeden inerdi.      */
+export const KOL_TAKAS_GELIS_YUKSEK = 6;
+export const KOL_TAKAS_GELIS_HIZ    = 0.45;
+export const KOL_TAKAS_VARIS        = 0.6;
+
+/* GUVENLIK TAVANI. Takilan bir varlik ya da hic gelmeyen bir
+   varis sahneyi sonsuza kadar acik tutmasin -- bu tick sayisi
+   asilinca is kendini bitiriyor ve bitir() her seyi toparliyor.
+   200 tick = 10 saniye; sahnenin tamami ~3 saniye.            */
+export const KOL_TAKAS_TAVAN = 200;
+
+/* Sesler. UYDURULMADI: ikisi de vanilla kimlik ve depoda
+   calistigi gorulmus olanlardan. "random.break" goz_lazeri.js'te
+   kullaniliyor; "mob.zombie.remedy" vanilla donusum sesi.     */
+export const KOL_TAKAS_SES_DUSUS = "random.break";
+export const KOL_TAKAS_SES_TAKIL = "mob.zombie.remedy";
+
+/* Sahne yarida kalirsa (oyun kapandi, script yeniden yuklendi)
+   dogmus varliklar YERINDE KALIR -- `persistent` bilesenleri
+   var. Kimlikleri dunya ozelligine yaziliyor ve sonraki
+   kullanimda taranip siliniyor. donusum.js'teki kalibin aynisi.
+
+   SINIRI DURUSTCE: oyuncu yetenegi bir daha hic kullanmazsa
+   temizlik de hic calismaz. donusum.js'te de boyle. Sahne
+   varliklarinin vurulamaz ve carpismasiz olmasi bu durumu
+   zararsiz kiliyor -- yerde duran bir goruntu kaliyor.        */
+export const KOL_TAKAS_KAYIT_ANAHTAR = "simsek:kol_takas";

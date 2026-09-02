@@ -148,6 +148,7 @@ import "./yetenekler/buz_adam.js";
 import "./yetenekler/toprak_ucus.js";
 import { willTara } from "./yetenekler/will_kilic.js";
 import "./yetenekler/can_ver.js";
+import "./yetenekler/kol_takas.js";
 import "./yetenekler/ucurma.js";
 import "./yetenekler/yamult.js";
 import "./yetenekler/toprak_duvar.js";

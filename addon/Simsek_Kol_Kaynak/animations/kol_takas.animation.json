@@ -1,0 +1,67 @@
+{
+  "format_version": "1.8.0",
+  "animations": {
+    "animation.kol_dusen.dusus": {
+      "loop": "hold_on_last_frame",
+      "animation_length": 1.0,
+      "bones": {
+        "kol": {
+          "rotation": {
+            "0.0": [
+              0,
+              0,
+              0
+            ],
+            "0.5": [
+              55,
+              40,
+              25
+            ],
+            "1.0": [
+              90,
+              65,
+              8
+            ]
+          },
+          "position": {
+            "0.0": [
+              0,
+              0,
+              0
+            ],
+            "1.0": [
+              0,
+              2,
+              0
+            ]
+          }
+        }
+      }
+    },
+    "animation.kol_gelen.suzul": {
+      "loop": true,
+      "animation_length": 2.0,
+      "bones": {
+        "kol": {
+          "rotation": {
+            "0.0": [
+              0,
+              0,
+              0
+            ],
+            "1.0": [
+              0,
+              180,
+              0
+            ],
+            "2.0": [
+              0,
+              360,
+              0
+            ]
+          }
+        }
+      }
+    }
+  }
+}
