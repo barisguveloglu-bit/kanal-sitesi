@@ -1,0 +1,54 @@
+{
+  "format_version": "1.21.0",
+  "minecraft:tree_feature": {
+    "description": {
+      "identifier": "pa:kuruyan_agac_feature"
+    },
+    "fancy_trunk": {
+      "trunk_height": {
+        "base": 9,
+        "variance": 8,
+        "scale": 0.618
+      },
+      "trunk_width": 1,
+      "trunk_block": "pa:kuruyan_kutuk",
+      "branches": {
+        "slope": 0.381,
+        "density": 1,
+        "min_altitude_factor": 0.2
+      },
+      "width_scale": 1,
+      "foliage_altitude_factor": 0.3
+    },
+    "fancy_canopy": {
+      "height": 2,
+      "radius": 2,
+      "leaf_block": "pa:kuruyan_yaprak"
+    },
+    "base_block": [
+      "minecraft:dirt",
+      "minecraft:grass_block",
+      "minecraft:podzol",
+      "minecraft:coarse_dirt"
+    ],
+    "may_grow_on": [
+      "minecraft:dirt",
+      "minecraft:grass_block",
+      "minecraft:podzol",
+      "minecraft:coarse_dirt"
+    ],
+    "may_replace": [
+      "minecraft:air",
+      "minecraft:leaves",
+      "minecraft:leaves2",
+      "minecraft:short_grass",
+      "minecraft:tallgrass"
+    ],
+    "may_grow_through": [
+      "minecraft:dirt",
+      "minecraft:grass_block",
+      "minecraft:short_grass",
+      "minecraft:tallgrass"
+    ]
+  }
+}

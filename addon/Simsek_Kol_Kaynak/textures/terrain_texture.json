@@ -13,6 +13,12 @@
     "tas_heykel": {
       "textures": "textures/blocks/tas_heykel"
     },
+    "kuruyan_kutuk": {
+      "textures": "textures/blocks/kuruyan_kutuk"
+    },
+    "kuruyan_yaprak": {
+      "textures": "textures/blocks/kuruyan_yaprak"
+    },
     "kns_dusmus_blok": {
       "textures": "textures/blocks/kns_dusmus_blok"
     }

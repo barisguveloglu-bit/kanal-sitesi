@@ -1,3 +1,99 @@
+# v7.11.0 — Kuruyan Ağaç
+
+Kullanıcı ikinci bir mod gönderdi: *"alınabilecekleri bana sormadan al."*
+Aldığım tek şey bir teknik oldu, ama karşılığında `LORE.md`'nin **merkezindeki
+nesne** ilk kez oyuna girdi.
+
+## Neden bu
+
+`LORE.md` "2. Unutulan Efsane — Kuruyan Ağaç" bölümü hikâyenin taşıyıcısı:
+
+> Upuzun bir ağaç vardı. Her nesilde Kanlı Göz'ü taşıyan kişi kendi ismini o
+> ağaca yazdırıyordu... Ağaç kuruduktan sonra isimler yazılamaz oldu ve
+> efsane tamamen kayboldu.
+
+Ve nasıl kuruduğu, vakayinameden: 1730'da keresteciler gövdeden **bal gibi bir
+sıvı** aktığını görüyor, "baldan tatlı" diyorlar; 1735'te sıvı kesiliyor,
+bakımsızlıktan **ağaç kuruyor**.
+
+Bugüne kadar bu ağacın oyunda hiçbir karşılığı yoktu.
+
+## Teknik nereden geldi
+
+"BoraLo MOD V5+" paketinde (Bobbykardeşler) `codeman_tree` diye **çalışan** bir
+`minecraft:tree_feature` var. İskeleti ölçüldü — `fancy_trunk`
+(`trunk_height {base, variance, scale}`, `branches {slope, density,
+min_altitude_factor}`), `fancy_canopy` (`height`, `radius`, `leaf_block`),
+`base_block`. Alınan **sadece bu iskelet**; bloklar, sayılar ve ağacın kendisi
+bizim.
+
+## Kanonla uyumlu üç karar
+
+1. **Ağaç kuru.** Gövde uzun (`base 9`, `variance 8`), tepe küçük
+   (`height 2`, `radius 2`). Yemyeşil bir ağaç hikâyeyi yalanlardı.
+2. **Yaprak kırılınca hiçbir şey düşmüyor — fidan yok.** Ganimet havuzu
+   bilerek boş. *"Ağaç kuruduktan sonra isimler yazılamaz oldu... efsane
+   tamamen kayboldu."* Yeniden dikilebilen bir ağaç o cümleyi yalanlardı.
+   Yani boş havuz eksik değil, **kanonun kendisi**.
+3. **Gövdede kazınmış izler ve kurumuş bal var** — ikisi de LORE'dan.
+
+Renkler uydurulmadı: `KOLLAR` tablosundaki Toprak Kol çifti `(24,22,20)` ve
+`(198,138,90)` ölçülü değerler; kuru odun, oluk, kazık ve bal hepsi o ikisinden
+**hesaplanıyor**.
+
+## Render dört kez çekildi, üçü yanlıştı
+
+Görsel değişiklik render edilmeden gönderilmiyor — ve iyi ki.
+
+| deneme | render ne gösterdi | düzeltme |
+|---|---|---|
+| 1 | Kazık izleri 10-12 piksel uzunluktaydı: gövde **raflı dolap** gibi. Yaprak `(x*7+y*11)%9` ile üretiliyordu: **çapraz çizgili kumaş**. | Lineer ifade atıldı, yerine karıştırma yapan `_agac_zar()` hash'i geldi. İz uzunluğu 2-4'e indi. |
+| 2 | Bal `(166,128,79)` çıktı — gövdenin `(83,61,44)` **tam iki katı**: gövdeye saplanmış **altın külçe**. İki tane ve iki piksel genişti, bloklar yan yana gelince ızgara yapıyordu. | Tek iz, tek piksel, renk gövdeye doğru çekildi → `(126,96,62)`. |
+| 3 | Kazık izleri düz çizgi üzerinde dizilmişti: **tuğla duvar**. | Her izin y'si bir piksel oynatıldı, satır sayısı 4→3, kazık rengi 0.62→0.46. |
+| 4 | Kabuk gibi duruyor. | — |
+
+Aynı ders `goz.js`'te zaten yazılıydı (mulberry32 notu): **lineer ifadeler
+kafes üretir.** Dört sürüm sonra aynı tuzağa yeniden düşülmüş.
+
+## `agac.mjs` — 11 mutasyon, 11'i de yakalandı
+
+| bozma | sonuç |
+|---|---|
+| yaprak `opaque` çizilsin (saydam yerler siyah çıkar) | ✓ |
+| yapraktan fidan düşsün (kanon bozulur) | ✓ |
+| gövde bloğu vanilla meşe olsun | ✓ |
+| ağaç yeraltında üretilsin | ✓ |
+| biyom süzgeci kaynağın bozuk hâli (`any_of: []`) | ✓ |
+| `scatter_chance` 0 (hiç üremez) | ✓ |
+| yaprak deseni lineer kafese dönsün | ✓ |
+| Türkçe ad yazılmasın | ✓ |
+| `terrain_texture` kaydı silinsin (mor-siyah blok) | ✓ |
+| tepe büyüsün — yemyeşil ağaç | ✓ |
+| cevher kaynağın bozuk hâli (`places_block: null`) | ✓ |
+
+Sondaki iki satır kaynağın **kendi hatalarını** tutuyor: o pakette cevher
+özelliği `"places_block": null` ve `"may_replace": []` yazıyor, kuralında da
+`"biome_filter": [{"any_of": []}]` var — **iki kez ölü**, o cevherler oyunda
+hiç oluşmuyor. Aynı hata bize sonradan girmesin diye artık kilitli.
+
+Yedinci satır (kafes denetimi) da ilginç: "lineer desen" gözle görülür ama
+iddiayla yakalamak zor. Ölçü şu — lineer ifadenin imzası **her satırda aynı
+sayıda saydam piksel** olmasıdır. Test satır ve sütun farklarına bakıyor.
+
+## Alınmayanlar
+
+- **Biyom ezmesi.** Üç biyom dosyasının `identifier`'ı vanilla adı
+  (`forest`, `taiga`, `birch_forest`) — yeni biyom değil, **üstüne yazma**.
+  Paketi kuran herkesin bütün dünyası değişiyor.
+- **NPC dialogue.** Gerçek bir konuşma ağacı var ama botumuzun zaten menüsü
+  var; ikincisi "kol israfını önle" kuralının blok hâli olurdu.
+- **179 tarifin 175'i boş** (`{}`). Paketin kendi uyarısı doğruymuş:
+  *"Bu mod tam yetişmedi."*
+
+Ayrıntı: `REFERANS_BORALO_V5.md`.
+
+---
+
 # v7.10.0 — Uzak Akraba'nın hasarı
 
 Kullanıcı skinin hikâyeyi taşımasını istedi:

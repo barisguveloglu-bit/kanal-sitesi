@@ -16,6 +16,14 @@
     "textures": "tas_heykel",
     "sound": "stone"
   },
+  "pa:kuruyan_kutuk": {
+    "textures": "kuruyan_kutuk",
+    "sound": "wood"
+  },
+  "pa:kuruyan_yaprak": {
+    "textures": "kuruyan_yaprak",
+    "sound": "grass"
+  },
   "pa:kns_dusmus_blok": {
     "textures": "kns_dusmus_blok",
     "sound": "wood"

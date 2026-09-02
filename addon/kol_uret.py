@@ -102,7 +102,7 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # tureniyor -- ayrisabilecekleri bir yer kalmadi.
 #
 # YENI SURUM CIKARIRKEN: yalnizca asagidaki satiri degistir.
-SURUM_NO = (7, 10, 0)
+SURUM_NO = (7, 11, 0)
 
 SURUM_METIN = "%d.%d.%d" % SURUM_NO
 SURUM_ETIKET = "v" + SURUM_METIN
@@ -6446,6 +6446,364 @@ def dismont_kurali():
     }
 
 
+# ============================================================
+#  KURUYAN AGAC                                        v7.11
+#
+#  LORE.md'nin MERKEZINDEKI nesne bugune kadar oyunda yoktu.
+#  "Unutulan Efsane -- Kuruyan Agac" bolumu, ozetle:
+#
+#    Upuzun bir agac vardi. Her nesilde Kanli Goz'u tasiyan
+#    kisi kendi ismini o agaca YAZDIRIYORDU. Isimler ust uste
+#    birikiyor, efsane boylece kusaktan kusaga aktariliyordu.
+#    Agac kuruduktan sonra isimler yazilamaz oldu ve efsane
+#    tamamen kayboldu.
+#
+#  Ve nasil kurudugu (vakayiname):
+#    1730 -- keresteciler govdeden BAL GIBI bir sivi aktigini
+#            gorur, tadarlar: baldan tatli.
+#    1735 -- sivi kesilir, ilgi biter, bakimsizliktan agac kurur.
+#
+#  ---- TEKNIK NEREDEN GELDI ----
+#  "BoraLo MOD V5+" paketinde (Bobbykardesler) `codeman_tree`
+#  diye CALISAN bir tree_feature var; yapisi olculdu:
+#      fancy_trunk  : trunk_height {base, variance, scale},
+#                     trunk_width, branches {slope, density,
+#                     min_altitude_factor}, width_scale,
+#                     foliage_altitude_factor
+#      fancy_canopy : height, radius, leaf_block
+#      base_block   : uzerinde bitebilecegi bloklar
+#  Ayni iskelet, bizim bloklarimiz ve bizim sayilarimizla.
+#  (O pakette cevher ozelligi de var ama CALISMIYOR:
+#   "places_block": null ve "may_replace": [] -- yani hicbir sey
+#   koymuyor, hicbir seyin yerine de gecmiyor. Kopyalanmadi.)
+#
+#  ---- KANONLA UYUMLU UC KARAR ----
+#  1. Agac KURU. Govde uzun, tepe kucuk: fancy_canopy 2 yuksek
+#     2 yaricap. Yemyesil bir agac hikayeyi yalanlardi.
+#  2. Yaprak KIRILINCA HICBIR SEY DUSMUYOR -- fidan yok.
+#     "Agac kuruduktan sonra isimler yazilamaz oldu": yeniden
+#     dikilebilseydi efsane kaybolmazdi. Yani fidanin olmamasi
+#     eksik degil, kanonun kendisi.
+#  3. Govdede KAZINMIS izler ve BAL lekeleri var (bkz. doku).
+#
+#  RENKLER OLCULDU, secilmedi: KOLLAR tablosundaki Toprak Kol
+#  cifti (24,22,20) ve (198,138,90). Kuru odun ikisinin
+#  arasindan, bal ise acik tondan turetiliyor.
+# ============================================================
+AGAC_KUTUK = "kuruyan_kutuk"
+AGAC_YAPRAK = "kuruyan_yaprak"
+AGAC_KUTUK_TR = "Kuruyan Ağacın Gövdesi"
+AGAC_YAPRAK_TR = "Kuruyan Ağacın Yaprağı"
+
+# Govde: uzun. base+variance vanilla "fancy" mesenin uzerinde --
+# LORE "upuzun bir agac" diyor.
+AGAC_BOY_TABAN = 9
+AGAC_BOY_SAPMA = 8
+# 0.618 altin oranin eslenigi; vanilla fancy agacinin da,
+# olculen codeman_tree'nin de kullandigi deger.
+AGAC_BOY_OLCEK = 0.618
+AGAC_DAL_EGIM = 0.381
+AGAC_DAL_SIKLIK = 1
+AGAC_DAL_ALT = 0.2
+# Tepe: KUCUK. Kuru bir agacin yapragi az kalir.
+AGAC_TEPE_BOY = 2
+AGAC_TEPE_YARICAP = 2
+# Dunyada ne siklikta. Yuzde; dismont 8 kullaniyor. Bu bir
+# EFSANE, o yuzden daha nadir -- ama bulunamayacak kadar degil.
+AGAC_DENEME = 1
+AGAC_SANS = 2
+AGAC_KIRILMA = 4.0        # saniye (vanilla mese kutugu 2)
+
+
+def _agac_renkleri():
+    """Toprak Kol'un OLCULEN iki renginden turetilen kuru odun
+    kademesi. Elle secilen tek bir deger yok."""
+    koyu, acik = (24, 22, 20), (198, 138, 90)
+
+    def kar(a, b, o):
+        return tuple(int(round(a[i] + (b[i] - a[i]) * o)) for i in range(3))
+
+    return {
+        "govde":  kar(koyu, acik, 0.34),   # kuru odun
+        "oluk":   kar(koyu, acik, 0.18),   # kabuk oluklari
+        # Kazik izi cok parlak olunca govde TUGLA duvar gibi
+        # gorunuyordu (render). 0.62 -> 0.46.
+        "kazik":  kar(koyu, acik, 0.46),   # KAZINMIS iz
+        # Bal da parlaktı: govdeye saplanmis altin kulce gibi
+        # duruyordu. Once acik tona, sonra govdeye dogru
+        # cekildi -- KURUMUS bal, taze degil.
+        # OLCULDU: ilk iki denemede bal (166,128,79) cikti, yani
+        # govdenin (83,61,44) TAM IKI KATI parlak -- oyunda
+        # govdeye saplanmis altin kulce gibi goruluyordu.
+        # Kurumus bal govdeden yalnizca biraz acik olmali.
+        "bal":    kar(kar(koyu, acik, 0.34),
+                      kar(acik, (255, 214, 120), 0.5), 0.30),
+        "yaprak": kar(koyu, acik, 0.44),
+        "yaprak_koyu": kar(koyu, acik, 0.26),
+    }
+
+
+def _agac_zar(x, y, tuz):
+    """Tohumlu, dagilimi duzgun sozde-rastgele (0..255).
+
+    NEDEN LINEER DEGIL: ilk cizimde desen `(x*7 + y*11) % 9`
+    gibi lineer bir ifadeyle uretilmisti. Render'a bakinca
+    goruldu -- lineer ifade kafes uretiyor: yaprak CAPRAZ
+    CIZGILI bir kumas, govde de duzgun raflar gibi cikti.
+    Ayni ders goz.js'te de yazili (mulberry32 notu).
+    Burada karistirma yapan bir hash var; sonuc yine SABIT
+    (tohum ayni) ama kafes yok."""
+    h = (x * 374761393 + y * 668265263 + tuz * 2246822519) & 0xFFFFFFFF
+    h = (h ^ (h >> 13)) * 1274126177 & 0xFFFFFFFF
+    return (h ^ (h >> 16)) & 0xFF
+
+
+def kuruyan_kutuk_dokusu():
+    """Kuru kabuk + KAZINMIS isimler + govdeden inen bal izi.
+
+    Isimler harf harf cizilmiyor: 16x16'da okunakli harf zaten
+    cikmaz. Yerine KISA, kirik, duzensiz kazik izleri var --
+    uzaktan "bir seyler yazilmis" hissi veriyor, yakindan da
+    yalan soylemiyor.
+
+    Ilk denemede izler 10-12 piksel uzunluktaydi ve govde
+    RAFLI bir dolap gibi goruldu (render). Iz uzunlugu 2-4'e
+    indirildi, satirlar kaydirildi, altlarina golge kondu."""
+    r = _agac_renkleri()
+    p = {}
+    # ---- Kabuk: duzensiz genislikte dikey oluklar ----
+    for x in range(16):
+        derin = _agac_zar(x, 0, 11) % 5          # sutun basina sabit
+        for y in range(16):
+            n = _agac_zar(x, y // 2, 3) % 9
+            if derin < 2 and n < 5:
+                p[(x, y)] = r["oluk"] + (255,)
+            elif n == 8:
+                p[(x, y)] = r["kazik"] + (255,)   # tek tek acik lif
+            else:
+                p[(x, y)] = r["govde"] + (255,)
+
+    # ---- Kazinmis isimler: kisa, kirik, ust uste ----
+    # Uc "satir", her satirda birkac kisa cizik. Nesiller ust
+    # uste yazmis -- duzenli degil, birikmis.
+    for satir, (y, tuz) in enumerate(((2, 41), (7, 97), (12, 173))):
+        x = _agac_zar(satir, 0, 5) % 3
+        while x < 15:
+            boy = 2 + _agac_zar(x, y, tuz) % 3       # 2-4 piksel
+            # Y'yi bir piksel oynat: izler DUZ CIZGI uzerinde
+            # dizilince govde tugla duvari gibi goruluyordu.
+            yy = min(15, y + _agac_zar(x, satir, tuz) % 2)
+            for i in range(boy):
+                if x + i > 15:
+                    break
+                p[(x + i, yy)] = r["kazik"] + (255,)
+                if yy + 1 < 16:
+                    p[(x + i, yy + 1)] = r["oluk"] + (255,)  # cukur golgesi
+            x += boy + 1 + _agac_zar(x + 1, y, tuz) % 3      # duzensiz bosluk
+
+    # ---- Bal: catlaktan ASAGI inen iz ----
+    # Nokta nokta degil, akmis. LORE: govdeden bal gibi bir sivi
+    # akiyordu, 1735'te kesildi -- yani kurumus bir iz.
+    # TEK iz, TEK piksel genis. Iki tane ve iki piksel genisken
+    # govdeye saplanmis altin kulceler gibi goruluyordu; ustelik
+    # bloklar yan yana gelince desen izgara yapiyordu.
+    x0, y0, boy = 12, 4, 5
+    for k in range(boy):
+        y = y0 + k
+        if y > 15:
+            break
+        p[(x0, y)] = r["bal"] + (255,)
+    return p
+
+
+def kuruyan_yaprak_dokusu():
+    """Seyrek, kurumus yaprak. Bosluklar SAYDAM birakiliyor --
+    doku alpha_test ile ciziliyor, yani kuru bir tepe delik
+    delik gorunuyor.
+
+    Ilk denemede bosluklar lineer bir ifadeyle secilmisti ve
+    CAPRAZ CIZGILI bir kumas gibi goruldu (render). Artik
+    hash'le seciliyor ve bosluklar OBEK halinde: tek tek delik
+    degil, dokulmus yaprak kumeleri."""
+    r = _agac_renkleri()
+    p = {}
+    for x in range(16):
+        for y in range(16):
+            # Iki olcekli gurultu: kaba obek + ince doku.
+            kaba = _agac_zar(x // 3, y // 3, 61)
+            ince = _agac_zar(x, y, 137)
+            if kaba < 70 or ince < 45:
+                continue                      # saydam bosluk
+            p[(x, y)] = (r["yaprak_koyu"] if ince > 190
+                         else r["yaprak"]) + (255,)
+    return p
+
+
+def kuruyan_kutuk_blogu():
+    return {
+        "format_version": "1.21.0",
+        "minecraft:block": {
+            "description": {
+                "identifier": "pa:" + AGAC_KUTUK,
+                "menu_category": {"category": "nature"},
+            },
+            "components": {
+                "minecraft:material_instances": {
+                    "*": {"texture": AGAC_KUTUK, "render_method": "opaque"}
+                },
+                "minecraft:destructible_by_mining": {
+                    "seconds_to_destroy": AGAC_KIRILMA
+                },
+                "minecraft:destructible_by_explosion": {
+                    "explosion_resistance": 6
+                },
+                "minecraft:map_color": "#5a4a3a",
+                "minecraft:flammable": {
+                    "catch_chance_modifier": 5,
+                    "destroy_chance_modifier": 20,
+                },
+                "minecraft:loot": "loot_tables/blocks/%s.json" % AGAC_KUTUK,
+            },
+        },
+    }
+
+
+def kuruyan_yaprak_blogu():
+    """alpha_test: dokudaki saydam pikseller delik olarak
+    ciziliyor. opaque yazilsaydi saydam yerler SIYAH cikardi."""
+    return {
+        "format_version": "1.21.0",
+        "minecraft:block": {
+            "description": {
+                "identifier": "pa:" + AGAC_YAPRAK,
+                "menu_category": {"category": "nature"},
+            },
+            "components": {
+                "minecraft:material_instances": {
+                    "*": {"texture": AGAC_YAPRAK,
+                          "render_method": "alpha_test"}
+                },
+                "minecraft:destructible_by_mining": {"seconds_to_destroy": 0.2},
+                "minecraft:destructible_by_explosion": {
+                    "explosion_resistance": 0.2
+                },
+                "minecraft:map_color": "#6b5638",
+                "minecraft:flammable": {
+                    "catch_chance_modifier": 30,
+                    "destroy_chance_modifier": 60,
+                },
+                "minecraft:light_dampening": 1,
+                "minecraft:loot": "loot_tables/blocks/%s.json" % AGAC_YAPRAK,
+            },
+        },
+    }
+
+
+def kuruyan_kutuk_ganimeti():
+    return {
+        "pools": [{
+            "rolls": 1,
+            "entries": [{"type": "item", "name": "pa:" + AGAC_KUTUK,
+                         "weight": 1}],
+        }]
+    }
+
+
+def kuruyan_yaprak_ganimeti():
+    """BOS havuz -- yaprak kirilinca HICBIR SEY dusmuyor.
+
+    Fidan yok. LORE: "Agac kuruduktan sonra isimler yazilamaz
+    oldu ... efsane tamamen kayboldu." Yeniden dikilebilen bir
+    agac o cumleyi yalanlardi. Yani bu eksik degil, kanon."""
+    return {"pools": []}
+
+
+def kuruyan_agac_ozelligi():
+    return {
+        "format_version": "1.21.0",
+        "minecraft:tree_feature": {
+            "description": {"identifier": "pa:kuruyan_agac_feature"},
+            "fancy_trunk": {
+                "trunk_height": {
+                    "base": AGAC_BOY_TABAN,
+                    "variance": AGAC_BOY_SAPMA,
+                    "scale": AGAC_BOY_OLCEK,
+                },
+                "trunk_width": 1,
+                "trunk_block": "pa:" + AGAC_KUTUK,
+                "branches": {
+                    "slope": AGAC_DAL_EGIM,
+                    "density": AGAC_DAL_SIKLIK,
+                    "min_altitude_factor": AGAC_DAL_ALT,
+                },
+                "width_scale": 1,
+                "foliage_altitude_factor": 0.3,
+            },
+            "fancy_canopy": {
+                "height": AGAC_TEPE_BOY,
+                "radius": AGAC_TEPE_YARICAP,
+                "leaf_block": "pa:" + AGAC_YAPRAK,
+            },
+            "base_block": [
+                "minecraft:dirt",
+                "minecraft:grass_block",
+                "minecraft:podzol",
+                "minecraft:coarse_dirt",
+            ],
+            "may_grow_on": [
+                "minecraft:dirt",
+                "minecraft:grass_block",
+                "minecraft:podzol",
+                "minecraft:coarse_dirt",
+            ],
+            "may_replace": [
+                "minecraft:air",
+                "minecraft:leaves",
+                "minecraft:leaves2",
+                "minecraft:short_grass",
+                "minecraft:tallgrass",
+            ],
+            "may_grow_through": [
+                "minecraft:dirt",
+                "minecraft:grass_block",
+                "minecraft:short_grass",
+                "minecraft:tallgrass",
+            ],
+        },
+    }
+
+
+def kuruyan_agac_kurali():
+    """DIKKAT -- dismont cevherindeki uyarinin aynisi: bu yalniz
+    YENI URETILEN parcalarda calisiyor. Zaten gezdigin bolgede
+    agac cikmaz; uzaga gitmek ya da yeni dunya acmak gerekiyor.
+    Bedrock'ta bunun caresi yok."""
+    return {
+        "format_version": "1.21.0",
+        "minecraft:feature_rules": {
+            "description": {
+                "identifier": "pa:kuruyan_agac_rule",
+                "places_feature": "pa:kuruyan_agac_feature",
+            },
+            "conditions": {
+                # Agac YUZEYE cikiyor, cevher gibi yeraltina degil.
+                "placement_pass": "surface_pass",
+                "minecraft:biome_filter": [
+                    {"test": "has_biome_tag", "operator": "==",
+                     "value": "overworld"}
+                ],
+            },
+            "distribution": {
+                "iterations": AGAC_DENEME,
+                "scatter_chance": AGAC_SANS,
+                "x": {"distribution": "uniform", "extent": [0, 16]},
+                "z": {"distribution": "uniform", "extent": [0, 16]},
+                "y": "q.heightmap(v.worldx, v.worldz)",
+            },
+        },
+    }
+
+
 def dismont_cevher_dokusu():
     """Dismont cevheri (v4.52 -- ikinci deneme).
 
@@ -7936,6 +8294,18 @@ def main():
     yaz_json(os.path.join(BP, "items", DISMONT_ESYA + ".json"), dismont_esyasi())
     yaz_json(os.path.join(BP, "loot_tables/blocks", DISMONT_CEVHER + ".json"),
              dismont_ganimeti())
+    # ---- Kuruyan Agac (v7.11) ----
+    # Ayni dort kayit: blok, ganimet, doku (asagida) ve
+    # blocks.json/terrain_texture (asagida). Yaprak ganimeti
+    # BILEREK bos -- fidan yok, bkz. kuruyan_yaprak_ganimeti().
+    yaz_json(os.path.join(BP, "blocks", AGAC_KUTUK + ".json"),
+             kuruyan_kutuk_blogu())
+    yaz_json(os.path.join(BP, "blocks", AGAC_YAPRAK + ".json"),
+             kuruyan_yaprak_blogu())
+    yaz_json(os.path.join(BP, "loot_tables/blocks", AGAC_KUTUK + ".json"),
+             kuruyan_kutuk_ganimeti())
+    yaz_json(os.path.join(BP, "loot_tables/blocks", AGAC_YAPRAK + ".json"),
+             kuruyan_yaprak_ganimeti())
     # ---- SILAHLAR ve MERMILER (v4.87) ----
     # Silah ELDE TUTULUYOR ve hasar tasiyor; mermi YIGILIYOR ve
     # hasarsiz. Ikisini ayni fonksiyondan uretmek, "mermiyi
@@ -8006,11 +8376,19 @@ def main():
              dismont_ozelligi())
     yaz_json(os.path.join(BP, "feature_rules/freedom_stone_ore_rule.json"),
              dismont_kurali())
+    yaz_json(os.path.join(BP, "features/kuruyan_agac_feature.json"),
+             kuruyan_agac_ozelligi())
+    yaz_json(os.path.join(BP, "feature_rules/kuruyan_agac_rule.json"),
+             kuruyan_agac_kurali())
 
     png_yaz(os.path.join(RP, "textures/blocks", DISMONT_CEVHER + ".png"),
             16, 16, dismont_cevher_dokusu())
     png_yaz(os.path.join(RP, "textures/blocks", MEZAR_BLOK + ".png"),
             16, 16, mezar_tasi_dokusu())
+    png_yaz(os.path.join(RP, "textures/blocks", AGAC_KUTUK + ".png"),
+            16, 16, kuruyan_kutuk_dokusu())
+    png_yaz(os.path.join(RP, "textures/blocks", AGAC_YAPRAK + ".png"),
+            16, 16, kuruyan_yaprak_dokusu())
     # ---- IKON ARTIK REFERANSTAN (v4.86) ----
     # Zabri Studios BoraLo Mod'un kendi freedomstone.png'si.
     # Uretilen cizim yedekte duruyor: kaynak_doku/ silinse
@@ -8027,12 +8405,18 @@ def main():
         DISMONT_CEVHER: {"textures": "textures/blocks/" + DISMONT_CEVHER},
         MEZAR_BLOK: {"textures": "textures/blocks/" + MEZAR_BLOK},
         TAS_BLOK: {"textures": "textures/blocks/" + TAS_BLOK},
+        AGAC_KUTUK: {"textures": "textures/blocks/" + AGAC_KUTUK},
+        AGAC_YAPRAK: {"textures": "textures/blocks/" + AGAC_YAPRAK},
     }
     _bloklar = {
         "format_version": [1, 1, 0],
         "pa:" + DISMONT_CEVHER: {"textures": DISMONT_CEVHER, "sound": "stone"},
         "pa:" + MEZAR_BLOK: {"textures": MEZAR_BLOK, "sound": "stone"},
         "pa:" + TAS_BLOK: {"textures": TAS_BLOK, "sound": "stone"},
+        # Kuruyan Agac (v7.11). Sesler odun/yaprak: tas sesi
+        # cikan bir agac govdesi yanlis olurdu.
+        "pa:" + AGAC_KUTUK: {"textures": AGAC_KUTUK, "sound": "wood"},
+        "pa:" + AGAC_YAPRAK: {"textures": AGAC_YAPRAK, "sound": "grass"},
     }
     if _dusmus_blok_var:
         _terrain[DUSMUS_BLOK_DOKU] = {
@@ -8061,6 +8445,8 @@ def main():
         liste.append("tile.pa:%s.name=%s" % (MEZAR_BLOK, adlar[2]))
         # v4.86'nin uc yeni adi
         liste.append("tile.pa:%s.name=%s" % (TAS_BLOK, TAS_BLOK_TR))
+        liste.append("tile.pa:%s.name=%s" % (AGAC_KUTUK, AGAC_KUTUK_TR))
+        liste.append("tile.pa:%s.name=%s" % (AGAC_YAPRAK, AGAC_YAPRAK_TR))
         for _k, _a in ([(KILIC_ESYA, KILIC_ESYA_TR), (TAS_ESYA, TAS_ESYA_TR)] +
                        [(k2, a2) for k2, a2, _h2, _d2 in SILAHLAR] +
                        [(k3, a3) for k3, a3, _d3 in MERMILER]):
