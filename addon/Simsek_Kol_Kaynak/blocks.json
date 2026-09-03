@@ -24,6 +24,18 @@
     "textures": "kuruyan_yaprak",
     "sound": "grass"
   },
+  "pa:kupa_earl": {
+    "textures": "kupa_earl",
+    "sound": "wood"
+  },
+  "pa:kupa_entity303": {
+    "textures": "kupa_entity303",
+    "sound": "wood"
+  },
+  "pa:kupa_wyne": {
+    "textures": "kupa_wyne",
+    "sound": "wood"
+  },
   "pa:kns_dusmus_blok": {
     "textures": "kns_dusmus_blok",
     "sound": "wood"

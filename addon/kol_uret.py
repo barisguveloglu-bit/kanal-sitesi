@@ -102,7 +102,7 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # tureniyor -- ayrisabilecekleri bir yer kalmadi.
 #
 # YENI SURUM CIKARIRKEN: yalnizca asagidaki satiri degistir.
-SURUM_NO = (7, 24, 0)
+SURUM_NO = (7, 25, 0)
 
 SURUM_METIN = "%d.%d.%d" % SURUM_NO
 SURUM_ETIKET = "v" + SURUM_METIN
@@ -7481,6 +7481,708 @@ AURA_TURLERI = tuple((_t, _AURA_HEPSI[_t]) for _t in AURA_URETILEN)
 
 
 # ============================================================
+#  KUPALAR -- ASILI/KAZIKLI GANIMETLER              v7.25
+#
+#  Kullanici: "hani ölmüş Steve'ler, kafası asılmış şeyler var
+#  ya -- ben skinler göndersem onları onlarla değiştirebilir
+#  misin? Mesela ben Herobrine asıyorum, havalılık. Ben tek
+#  başıma Null'u öldürdüm, bir nevi racon gibi."
+#
+#  ---- FIKIR NEREDEN, DOKU NEREDEN ----
+#  Fikir Horror Element Mod 1.6.2'den (REFERANS_HORROR.md).
+#  Ondan alinan tek sey OLCU ve DURUS: kazigin kalinligi,
+#  kafanin kazikta ne kadar yukarida durdugu, carmihin kollari
+#  ne kadar actigi. Modun KENDI DOKULARI ALINMADI -- gerek de
+#  yok: kupanin dokusu kullanicinin gonderdigi SKIN.
+#
+#  ---- NEDEN DOKU ISLEMEYE HIC GEREK YOK ----
+#  Kaynak mod her kafa icin alti ayri 16x16 yuz dokusu
+#  tutuyor (face_, derriere_, droite_, gauche_, dessus_,
+#  coup_). Biz o yola girmiyoruz.
+#
+#  Bedrock'un KUTU UV'si (box uv) bir kupun alti yuzunu tek
+#  bir baslangic noktasindan kendisi diziyor. 8x8x8 bir kup
+#  icin uv [0,0] ve 64x64 bir dokuda dizilim su:
+#      ust [8,0] · alt [16,0] · sag [0,8] · on [8,8]
+#      sol [16,8] · arka [24,8]
+#  Bu, oyuncu skininin KAFA duzeninin ta kendisi. Yani skini
+#  hic kesmeden, hic donusturmeden, oldugu gibi dokuya
+#  koyuyoruz ve kafa dogru ciziliyor. Govde, kollar ve bacaklar
+#  icin de ayni sey gecerli (asagidaki SKIN_KUTULARI).
+#
+#  Kaynak modun yaptigindan daha az is, daha az dosya.
+#
+#  ---- SEMA DOGRULANDI, TAHMIN EDILMEDI ----
+#  Depoda bugune kadar OZEL GEOMETRILI blok hic yapilmadi
+#  (alti blogun altisi da tam kup). O yuzden sema resmi
+#  belgeden okundu:
+#    - minecraft:geometry, RP'deki bir geometri kimligini
+#      isaret ediyor
+#    - 1.21.80'den itibaren minecraft:geometry ve
+#      minecraft:material_instances IKISI BIRDEN yazilmak
+#      zorunda
+#    - material_instances "geometri dosyasindaki yuz ya da
+#      material_instance ADLARINI" esliyor; yani kupun bir
+#      yuzune "material_instance": "odun" yazip burada "odun"
+#      diye bir doku tanimlayabiliyoruz
+#    - blok modeli 16x16x16'yi ASABILIYOR: sinir 30x30x30 ve
+#      her eksende en az 1 piksel taban kupun icinde kalmali
+#  Kaynak: learn.microsoft.com minecraft creator, block
+#  components (geometry + material_instances) ve
+#  "Advanced Block Visuals: Sizing and Culling".
+# ============================================================
+KUPA_ONEK = "kupa_"
+KUPA_SKIN_KLASOR = "kupa_skinleri"
+
+# Kupanin bicimleri.
+KUPA_KAZIK = "kazik"        # kafa, kazigin ucunda
+KUPA_CARMIH = "carmih"      # tam govde, carmihta
+KUPA_ASILI = "asili"        # tam govde, daragacinda ipte
+KUPA_SIS = "sis"            # tam govde, kazik icinden gecmis
+
+# (kimlik, ad, racon, bicim, skin dosyasi)
+#
+# YENI KUPA EKLEMEK = BU LISTEYE BIR SATIR. Geometri, blok,
+# doku, dil kaydi ve yaratici menu girisi hepsi buradan
+# tureniyor. Kullanici skinleri tek tek gonderdigi icin
+# (arama cubugunda tek tek buluyor) bu liste bilerek boyle:
+# her yeni skin tek satir.
+KUPALAR = [
+    ("earl", "Earl",
+     "Seni bulmak kolay oldu, öldürmek de.",
+     KUPA_KAZIK, "earl.png"),
+    ("entity303", "Entity303",
+     "Kendisini hacker sanan biri. Bana karşı hiçbir şey "
+     "yapamadı. Sonu da bu.",
+     KUPA_CARMIH, "entity303.png"),
+    # Bicimi kullanici bana birakti. Raconu tuzak uzerine
+    # kurulu oldugu icin kendi kazigina gecmis govde secildi.
+    ("ferguson", "Ferguson",
+     "Beni tuzağına çekti, ama bir tuzağa düşen o oldu.",
+     KUPA_SIS, "ferguson.png"),
+    # Bicimi kullanici bana birakti. "Saklanamadi" + kotu
+    # gulus -> daragaci.
+    ("wyne", "Wyne",
+     "Benden saklanamadı, sonu da hiç iyi bitmedi. HAHAHAHAHA",
+     KUPA_ASILI, "wyne.png"),
+]
+
+# 64x64 skin duzeni: kutu UV baslangici ve kutu olcusu.
+# Elle yazilan tek sayi burasi ve vanilla oyuncu modelinden
+# geliyor -- degistirilecek bir sey degil, oyunun kendi duzeni.
+SKIN_KUTULARI = {
+    "kafa":     ((0, 0),   (8, 8, 8)),
+    "govde":    ((16, 16), (8, 12, 4)),
+    "sag_kol":  ((40, 16), (4, 12, 4)),
+    "sol_kol":  ((32, 48), (4, 12, 4)),
+    "sag_bacak": ((0, 16),  (4, 12, 4)),
+    "sol_bacak": ((16, 48), (4, 12, 4)),
+}
+
+# 64x64 skinin IKINCI KATMANI (sapka/ceket/kolluk/pacha).
+# ---- BUNU KULLANICI YAKALADI ----
+# Ilk surumde sadece birinci katman ciziliyordu. Kullanici
+# "entity303 pek olmamis, cubbeli olmasi lazim arkasi" dedi.
+# Olculdu: entity303.png'nin SAPKA bolgesinde 339 dolu piksel
+# var -- cubbenin kukuletasi tam orada. Birinci katman tek
+# basina cizilince o katman yok sayiliyordu.
+#
+# Sisme (inflate) degerleri vanilla oyuncu modelinden:
+# sapka 0.5, geri kalan 0.25. Olcek uygulanan modelde bu
+# degerler de olceklenmeli, yoksa kucuk govdede kalin bir
+# kabuk gibi durur.
+SKIN_UST_KUTULARI = {
+    "kafa":      ((32, 0),  0.5),
+    "govde":     ((16, 32), 0.25),
+    "sag_kol":   ((40, 32), 0.25),
+    "sol_kol":   ((48, 48), 0.25),
+    "sag_bacak": ((0, 32),  0.25),
+    "sol_bacak": ((0, 48),  0.25),
+}
+
+# Kazik/carmih odunu ve daragaci ipi icin ayri dokular.
+KUPA_ODUN_DOKU = "kupa_odun"
+KUPA_IP_DOKU = "kupa_ip"
+
+
+def _kupa_yuz_uv(uv, olcu):
+    """KUTU UV'yi YUZ YUZ UV'ye ceviriyor.
+
+    ---- NEDEN GEREKLI: OLCULDU ----
+    Kutu UV'de bir yuzun doku dikdortgeni KUPUN OLCUSUNDEN
+    tureniyor. Yani kupu kucultursen doku da kayiyor. Carmih
+    tam olarak bunu gerektiriyor: tam boy bir oyuncu 32 birim,
+    blok geometrisinin ust siniri 30 birim (belge: "30x30x30"),
+    ustune bir de kafanin ustunde direk gorunmesi lazim.
+    Olculdu: 1.0 olcekte carmih 36 birim genis ve 30 birim
+    yuksek cikiyordu -- oyun bunu yuklemezdi. Render de
+    gosterdi: hac govdenin arkasinda tamamen kayboluyordu.
+
+    Yuz yuz UV'de dikdortgen ELLE yaziliyor, kup olcusuyle
+    bagi kalmiyor. Boylece kupu 0.8'e kuculturken doku
+    VANILLA SKIN DUZENINDE kaliyor.
+
+    Alt/ust yuzun V'si NEGATIF: kutu UV'de o iki yuz dikey
+    ters duruyor, Blockbench'in cevirisi de boyle. Yan dort
+    yuz (yuzun kendisi dahil) bundan etkilenmiyor."""
+    u, v = uv
+    W, H, D = olcu
+    return {
+        "north": {"uv": [u + D,         v + D], "uv_size": [W,  H]},
+        "south": {"uv": [u + 2*D + W,   v + D], "uv_size": [W,  H]},
+        "west":  {"uv": [u,             v + D], "uv_size": [D,  H]},
+        "east":  {"uv": [u + D + W,     v + D], "uv_size": [D,  H]},
+        "up":    {"uv": [u + D,         v + D], "uv_size": [W, -D]},
+        "down":  {"uv": [u + D + W,     v + D], "uv_size": [W, -D]},
+    }
+
+
+def _kupa_kup(kutu_adi, kok, dondur=None, olcek=1.0, uv_ust=None):
+    """SKIN_KUTULARI'ndan bir parcayi kup olarak kuruyor.
+
+    kok = (x merkezi, y TABANI, z merkezi).
+
+    UV elle yazilmiyor, kutu adindan geliyor. olcek 1.0 ise
+    kutu UV kullaniliyor -- vanilla oyuncu modelinin ta
+    kendisi, kanitlanmis yol. olcek 1.0 DEGILSE kutu UV
+    kayardi, o yuzden yuz yuz UV'ye geciliyor."""
+    (u, v), olcu = SKIN_KUTULARI[kutu_adi]
+    if uv_ust is not None:
+        u, v = uv_ust
+    en, boy, derin = olcu
+    e, b, d = en * olcek, boy * olcek, derin * olcek
+    kup = {
+        "origin": [kok[0] - e / 2.0, kok[1], kok[2] - d / 2.0],
+        "size": [e, b, d],
+    }
+    if olcek == 1.0:
+        kup["uv"] = [u, v]
+    else:
+        kup["uv"] = _kupa_yuz_uv((u, v), olcu)
+    if dondur:
+        kup["pivot"] = list(dondur[0])
+        kup["rotation"] = list(dondur[1])
+    return kup
+
+
+def _kupa_parca(kutu_adi, kok, dondur=None, olcek=1.0):
+    """Bir govde parcasinin IKI kupu: taban katman + ikinci
+    katman. Liste donduruyor cunku her parca iki kup.
+
+    Ikinci katman HER ZAMAN yaziliyor, skinde dolu olup
+    olmadigina bakilmadan: render_method alpha_test, yani
+    saydam piksel zaten cizilmiyor. Ayni sey vanilla oyuncu
+    modelinde de boyle."""
+    kupler = [_kupa_kup(kutu_adi, kok, dondur, olcek)]
+    if kutu_adi in SKIN_UST_KUTULARI:
+        uv2, sis = SKIN_UST_KUTULARI[kutu_adi]
+        ust = _kupa_kup(kutu_adi, kok, dondur, olcek, uv_ust=uv2)
+        ust["inflate"] = sis * olcek
+        kupler.append(ust)
+    return kupler
+
+
+def _kupa_odun(kok, olcu, ad="odun"):
+    """Kazik/carmih kirisi. Skinden DEGIL, kendi dokusundan:
+    material_instance adi geometride yaziyor."""
+    return {
+        "origin": [kok[0], kok[1], kok[2]],
+        "size": list(olcu),
+        "uv": [0, 0],
+        "material_instance": ad,
+    }
+
+
+def kupa_kazik_geometrisi(kimlik):
+    """KAZIKLI KAFA -- 16 birimlik taban kupa TAM oturuyor.
+
+    Kazik kafanin icinden GECIYOR ve ustunden 2 birim
+    cikiyor: "kaziga oturtulmus" degil "kaziga gecirilmis"
+    okunsun diye. Kaynak moddaki impaled_head de boyle.
+
+    Olcek 1.0: 8x8x8 kafa + 18 birim kazik = 8x18x8, sinirin
+    (30x30x30) cok altinda. Kuculmeye gerek yok, o yuzden
+    kutu UV -- vanilla kafanin birebir aynisi."""
+    return {
+        "format_version": "1.16.0",
+        "minecraft:geometry": [{
+            "description": {
+                "identifier": "geometry." + KUPA_ONEK + kimlik,
+                "texture_width": 64, "texture_height": 64,
+                # Gorunurluk kutusu: model 18 birime cikiyor.
+                "visible_bounds_width": 2,
+                "visible_bounds_height": 2.5,
+                "visible_bounds_offset": [0, 1, 0],
+            },
+            "bones": [{
+                "name": "kupa",
+                "pivot": [0, 0, 0],
+                "cubes": [
+                    # Kazik: yerden yukari, kafanin icinden gecip
+                    # 2 birim disari cikiyor.
+                    _kupa_odun([7, 0, 7], [2, 18, 2]),
+                # Kafa: 8..16 arasi, yani taban kupun ust yarisi.
+                # Ikinci katman (sapka/kukuleta) da geliyor.
+                ] + _kupa_parca("kafa", (8, 8, 8)),
+            }],
+        }],
+    }
+
+
+# Carmihtaki govdenin olcegi. 1.0 OLAMAZ, sebebi olculdu:
+#   tam boy oyuncu            32 birim
+#   + kafanin ustunde direk  + 3 birim
+#   = 35 > 30 (blok sinirı)
+# 0.8'de 25.6 + 3.4 = 29 birim, siniri gecmiyor. Kollar da
+# 1.0'da 36 birim aciliyordu, 0.8'de 22.4.
+KUPA_CARMIH_OLCEK = 0.8
+
+
+def kupa_carmih_geometrisi(kimlik):
+    """CARMIH -- tam govde, kollar iki yana ACIK.
+
+    ---- BU BICIM RENDER EDILEREK KURULDU ----
+    Ilk deneme (v7.25 taslagi) render'da su uc hatayi verdi:
+      1. X genisligi 36 birim -- oyun sinirini asiyordu
+      2. Kollar TERS donmustu: el omuzda, omuz disarida.
+         Sebep: kol kupu pivotun USTUNDE duruyordu, oysa
+         oyuncu modelinde kol omuzdan ASAGI iner; kutu UV'de
+         kupun ust yuzu omuz, alt yuzu el.
+      3. Hac govdenin ARKASINDA tamamen kayboluyordu -- ne
+         kiris ne direk goruluyordu, "carmih" hic okunmuyordu.
+    Uçu de burada duzeltildi.
+
+    Kollar YATAY: kol kupu omuzdan asagi iner (dy -12..0),
+    Z ekseninde ±90 donunce el DISARI gidiyor.
+
+    Kirisin uclari ellerin 3 birim otesine tasiyor ve direk
+    kafanin 3 birim ustune cikiyor -- hac ancak boyle
+    okunuyor (render'la bakildi)."""
+    s = KUPA_CARMIH_OLCEK
+    ORTA_X, ORTA_Z = 8.0, 8.0
+    # Dikey yerlesim: bacak 12s, govde 12s, kafa 8s.
+    BACAK_UST = 12 * s
+    GOVDE_UST = BACAK_UST + 12 * s
+    KAFA_UST = GOVDE_UST + 8 * s
+    OMUZ_Y = GOVDE_UST - 1.5 * s          # kol donus ekseni
+    DIREK_UST = KAFA_UST + 3.0            # kafanin ustunde gorunen pay
+    # Hac govdenin ARKASINDA: govde z ORTA_Z±2s, hac ondan geride.
+    HAC_Z = ORTA_Z + 2 * s
+    HAC_DERIN = 3 * s
+    KIRIS_YARI = 14 * s + 3.0             # el ucu + 3 birim tasma
+    # Kiris kollarin TAM ALTINDA duruyor, arkasinda degil.
+    # Render'la olculdu: arkasindayken kollar onu tamamen
+    # ortuyordu, geriye 0.4 birimlik bir cizgi kaliyordu ve
+    # hac okunmuyordu. Altina alininca butun genisligi
+    # gorunuyor ve kollar kirisin uzerine yatiyor.
+    KIRIS_BOY = 3 * s
+    KIRIS_ALT = OMUZ_Y - 2 * s - KIRIS_BOY
+    return {
+        "format_version": "1.16.0",
+        "minecraft:geometry": [{
+            "description": {
+                "identifier": "geometry." + KUPA_ONEK + kimlik,
+                "texture_width": 64, "texture_height": 64,
+                "visible_bounds_width": 2.5,
+                "visible_bounds_height": 2.5,
+                "visible_bounds_offset": [0, 0.9, 0],
+            },
+            "bones": [{
+                "name": "kupa",
+                "pivot": [0, 0, 0],
+                "cubes": [
+                    # ---- HAC ----
+                    # Dikey direk: yerden kafanin ustune.
+                    _kupa_odun([ORTA_X - 1.5 * s, 0, HAC_Z],
+                               [3 * s, DIREK_UST, HAC_DERIN]),
+                    # Yatay kiris: uclari ellerin otesine tasiyor.
+                    _kupa_odun([ORTA_X - KIRIS_YARI, KIRIS_ALT, HAC_Z],
+                               [2 * KIRIS_YARI, KIRIS_BOY, HAC_DERIN]),
+
+                # ---- GOVDE ----
+                # Her parca IKI kup: taban + ikinci katman
+                # (cubbe/kukuleta orada duruyor).
+                ]
+                + _kupa_parca("kafa", (ORTA_X, GOVDE_UST, ORTA_Z),
+                              olcek=s)
+                + _kupa_parca("govde", (ORTA_X, BACAK_UST, ORTA_Z),
+                              olcek=s)
+                # Kollar: kup omuzdan ASAGI iniyor (kok_y =
+                # OMUZ_Y - 12s), pivot omuzda, Z'de ±90.
+                + _kupa_parca("sag_kol",
+                              (ORTA_X - 2 * s, OMUZ_Y - 12 * s, ORTA_Z),
+                              dondur=((ORTA_X - 2 * s, OMUZ_Y, ORTA_Z),
+                                      (0, 0, -90)),
+                              olcek=s)
+                + _kupa_parca("sol_kol",
+                              (ORTA_X + 2 * s, OMUZ_Y - 12 * s, ORTA_Z),
+                              dondur=((ORTA_X + 2 * s, OMUZ_Y, ORTA_Z),
+                                      (0, 0, 90)),
+                              olcek=s)
+                # Bacaklar bitisik, duz asagi.
+                + _kupa_parca("sag_bacak", (ORTA_X - 2 * s, 0, ORTA_Z),
+                              olcek=s)
+                + _kupa_parca("sol_bacak", (ORTA_X + 2 * s, 0, ORTA_Z),
+                              olcek=s),
+            }],
+        }],
+    }
+
+
+def _kupa_govde(s, taban_y, orta_x=8.0, orta_z=8.0, dondur=None):
+    """KOLLARI ASAGI SARKAN tam govde: bacak + govde + kafa +
+    iki kol, hepsi ikinci katmanlariyla.
+
+    Carmih bunu KULLANMIYOR, bilerek: orada kollar dondugu
+    icin omuz ekseni ve kupun pivota gore yeri bambaska
+    hesaplaniyor. Ikisini tek fonksiyonda birlestirmek
+    hesabi ikisi icin de okunmaz hale getirirdi; ikisi de
+    ayri ayri render edilip goz ile dogrulandi.
+
+    taban_y = ayak tabaninin y'si.
+
+    dondur BUTUN parcalara ayni pivot/aciyla uygulaniyor:
+    govdeyi tek parca gibi egmek icin. Ayri bir kemik
+    yapilmadi, cunku o zaman 30 birim denetimi eksik kalirdi
+    -- olcum kup donusune bakiyor, kemik donusune degil."""
+    bacak_ust = taban_y + 12 * s
+    govde_ust = bacak_ust + 12 * s
+    kup = []
+    kup += _kupa_parca("kafa", (orta_x, govde_ust, orta_z), dondur=dondur, olcek=s)
+    kup += _kupa_parca("govde", (orta_x, bacak_ust, orta_z), dondur=dondur, olcek=s)
+    # Kollar govdenin yaninda, ust hizasi govde ustu (vanilla).
+    kup += _kupa_parca("sag_kol", (orta_x - 6 * s, govde_ust - 12 * s,
+                                   orta_z), dondur=dondur, olcek=s)
+    kup += _kupa_parca("sol_kol", (orta_x + 6 * s, govde_ust - 12 * s,
+                                   orta_z), dondur=dondur, olcek=s)
+    kup += _kupa_parca("sag_bacak", (orta_x - 2 * s, taban_y, orta_z),
+                       dondur=dondur, olcek=s)
+    kup += _kupa_parca("sol_bacak", (orta_x + 2 * s, taban_y, orta_z),
+                       dondur=dondur, olcek=s)
+    return kup, govde_ust + 8 * s      # ikinci deger: kafanin tepesi
+
+
+# Daragacindaki govdenin olcegi. Yukaridan asagi hesap:
+#   direk tepesi         29.0  (sinir 30)
+#   daragaci kolu         3.0
+#   ip                    3.0
+#   ayaklar yerden        2.5   (sallaniyor, yere degmiyor)
+#   -> govdeye kalan     20.5 birim, tam boy 32 -> olcek 0.64
+KUPA_ASILI_OLCEK = 0.64
+
+
+def kupa_asili_geometrisi(kimlik):
+    """DARAGACI -- govde boynundan ipte sallaniyor.
+
+    Ayaklar YERE DEGMIYOR (2.5 birim bosluk): degseydi
+    "asilmis" degil "duruyor" okunurdu.
+
+    Direk arkada, daragaci kolu tepeden ONE uzaniyor, ip o
+    kolun ucundan kafanin tepesine iniyor.
+
+    Govde ipin baglandigi noktadan YANA EGIK. Render'la
+    bakildi: dik duran govde "asilmis" degil "diregin
+    yaninda duruyor" gibi okunuyordu. Egiklik ipin ucundan
+    donuyor -- goz govdeyi tasiyan seyin ip oldugunu boyle
+    anliyor."""
+    s = KUPA_ASILI_OLCEK
+    ORTA_X, ORTA_Z = 8.0, 8.0
+    TABAN_Y = 2.5
+    # Once EGIK OLMAYAN hali kuruluyor: kafanin tepesi
+    # boylece bulunuyor, egim de tam o noktadan -- ipin
+    # baglandigi yerden -- donuyor.
+    _duz, KAFA_UST = _kupa_govde(s, TABAN_Y, ORTA_X, ORTA_Z)
+    EGIM = 7.0                             # derece
+    kupler = _kupa_govde(s, TABAN_Y, ORTA_X, ORTA_Z,
+                         dondur=((ORTA_X, KAFA_UST, ORTA_Z),
+                                 (0, 0, EGIM)))[0]
+    DIREK_UST = 29.0
+    KOL_ALT = DIREK_UST - 3.0             # daragaci kolunun alti
+    DIREK_Z = 13.0                        # direk govdenin arkasinda
+    hac = [
+        # Dikey direk.
+        _kupa_odun([ORTA_X - 1.5, 0, DIREK_Z], [3, DIREK_UST, 3]),
+        # Daragaci kolu: tepeden govdenin uzerine uzaniyor.
+        _kupa_odun([ORTA_X - 1.5, KOL_ALT, ORTA_Z - 0.5],
+                   [3, 3, DIREK_Z + 3 - (ORTA_Z - 0.5)]),
+        # Ip: kolun ucundan kafanin tepesine. Kalinligi 2
+        # birim -- 1 birimde render'da neredeyse gorunmuyordu.
+        _kupa_odun([ORTA_X - 1, KAFA_UST, ORTA_Z - 1],
+                   [2, KOL_ALT - KAFA_UST, 2], ad="ip"),
+    ]
+    return {
+        "format_version": "1.16.0",
+        "minecraft:geometry": [{
+            "description": {
+                "identifier": "geometry." + KUPA_ONEK + kimlik,
+                "texture_width": 64, "texture_height": 64,
+                "visible_bounds_width": 2,
+                "visible_bounds_height": 2.5,
+                "visible_bounds_offset": [0, 0.9, 0],
+            },
+            "bones": [{"name": "kupa", "pivot": [0, 0, 0],
+                       "cubes": hac + kupler}],
+        }],
+    }
+
+
+# Kaziga gecmis govdenin olcegi. Kazik kafanin ustunden
+# cikacagi icin tepede pay lazim:
+#   kazik tepesi 29.0, kafanin ustunde 2 birim gorunsun,
+#   govde yerden 4 birim yukarida (kaziga surunmus) ->
+#   32*olcek = 29 - 2 - 4 = 23 -> olcek 0.71
+KUPA_SIS_OLCEK = 0.71
+
+
+def kupa_sis_geometrisi(kimlik):
+    """KAZIGA GECMIS TAM GOVDE -- Earl'un kazigi kafaya, bu
+    butun govdeye geciyor.
+
+    Kazik yerden baslayip govdenin ICINDEN gecip kafanin 2
+    birim ustunden cikiyor. Govde yerden 4 birim yukarida:
+    kaziga surunup kalmis, ayaklari bosta."""
+    s = KUPA_SIS_OLCEK
+    ORTA_X, ORTA_Z = 8.0, 8.0
+    TABAN_Y = 4.0
+    kupler, KAFA_UST = _kupa_govde(s, TABAN_Y, ORTA_X, ORTA_Z)
+    KAZIK_UST = KAFA_UST + 2.0
+    kazik = [_kupa_odun([ORTA_X - 1, 0, ORTA_Z - 1],
+                        [2, KAZIK_UST, 2])]
+    return {
+        "format_version": "1.16.0",
+        "minecraft:geometry": [{
+            "description": {
+                "identifier": "geometry." + KUPA_ONEK + kimlik,
+                "texture_width": 64, "texture_height": 64,
+                "visible_bounds_width": 2,
+                "visible_bounds_height": 2.5,
+                "visible_bounds_offset": [0, 0.9, 0],
+            },
+            "bones": [{"name": "kupa", "pivot": [0, 0, 0],
+                       "cubes": kazik + kupler}],
+        }],
+    }
+
+
+# Ikinci katmanin doku uzerindeki yerleri (temizlik icin).
+KUPA_UST_BOLGE = {
+    "kafa":      (32, 0, 32, 16),
+    "govde":     (16, 32, 24, 16),
+    "sag_kol":   (40, 32, 16, 16),
+    "sol_kol":   (48, 48, 16, 16),
+    "sag_bacak": (0, 32, 16, 16),
+    "sol_bacak": (0, 48, 16, 16),
+}
+
+# Bir yuzun "gurultu" sayilma esigi: komsu piksel farkinin
+# ortalamasi. Olculdu (bu depodaki dort skin uzerinde):
+#     ferguson bozuk yuzler   88.8 .. 96.2
+#     entity303 en yuksek     55.9   (gercek cizim)
+#     wyne en yuksek          40.2
+#     earl en yuksek          25.5
+# 70 ikisinin tam ortasinda, iki yana da genis pay birakiyor.
+#
+# ---- NEDEN "AYRI RENK SAYISI" DEGIL ----
+# Ilk olcum ayri renk / dolu piksel oraniydi. O olcum
+# earl.png'nin govdesini de gurultu sandi: govde alti 32
+# pikselde 28 ayri renk, ama o gurultu degil YUMUSAK BIR
+# GECIS. Renk sayisi gecisle gurultuyu ayirt edemiyor;
+# komsu farki ayirt ediyor, cunku gecişte komsu pikseller
+# birbirine yakin, gurultude degil.
+KUPA_GURULTU_ESIGI = 70.0
+
+
+def _kupa_komsu_fark(px, x, y, en, boy):
+    """Bir doku dikdortgeninde komsu piksel farkinin
+    ortalamasi. Saydam piksel hesaba katilmiyor."""
+    toplam = 0.0
+    sayi = 0
+    for j in range(boy):
+        for i in range(en):
+            a = px[x + i, y + j]
+            if a[3] < 40:
+                continue
+            for di, dj in ((1, 0), (0, 1)):
+                if i + di >= en or j + dj >= boy:
+                    continue
+                b = px[x + i + di, y + j + dj]
+                if b[3] < 40:
+                    continue
+                toplam += sum(abs(a[k] - b[k]) for k in range(3)) / 3.0
+                sayi += 1
+    return toplam / sayi if sayi else 0.0
+
+
+def _kupa_yuz_dikdortgenleri(uv, olcu):
+    """Kutu UV'nin alti yuzunun doku dikdortgenleri."""
+    u, v = uv
+    W, H, D = olcu
+    return {"ust": (u + D, v, W, D), "alt": (u + D + W, v, W, D),
+            "on": (u + D, v + D, W, H),
+            "arka": (u + 2 * D + W, v + D, W, H),
+            "bati": (u, v + D, D, H),
+            "dogu": (u + D + W, v + D, D, H)}
+
+
+def kupa_skin_denetle(kaynak, hedef, bicim):
+    """Skini kopyalarken IKI is yapiyor:
+      1. ikinci katmandaki gurultuyu siliyor
+      2. TABAN katmanda bicimin gercekten cizdigi yuzlerde
+         gurultu varsa BILDIRIYOR -- o skin kullanilmaz
+
+    ---- NEDEN VAR: OLCULDU ----
+    ferguson.png render edildiginde govdenin uzerinde
+    gokkusagi gibi rastgele renkli kutular cikti. Olculdu:
+    o skinin sol kolu ve sol bacagi tamamen gurultu (komsu
+    piksel farki 89-96), kafasinin ve govdesinin bir kismi
+    da oyle. Yani dosya bozuk gelmis. Karsilastirma icin
+    entity303.png'nin en "hareketli" yuzu 55.9.
+
+    Bozuk skin SESSIZCE GECMIYOR: cagiran taraf bunu
+    kullaniciya bildiriyor ve o kupa uretilmiyor. Yarim
+    yamalak bir kupa uretmek, eksik oldugunu soylemekten
+    kotudur.
+
+    PIL yoksa skin oldugu gibi kopyalaniyor ve uyari
+    basiliyor -- depodaki oteki doku isleri de boyle."""
+    import shutil
+    try:
+        from PIL import Image
+    except ImportError:
+        print("UYARI: PIL yok, kupa skini denetlenmeden kopyalandi")
+        shutil.copyfile(kaynak, hedef)
+        return [], []
+    im = Image.open(kaynak).convert("RGBA")
+    px = im.load()
+
+    # 1) ikinci katman: gurultulu bolgeyi sil
+    silinen = []
+    for ad, (x0, y0, en, boy) in sorted(KUPA_UST_BOLGE.items()):
+        dolu = sum(1 for j in range(boy) for i in range(en)
+                   if px[x0 + i, y0 + j][3] > 40)
+        if dolu < 16:
+            continue
+        if _kupa_komsu_fark(px, x0, y0, en, boy) > KUPA_GURULTU_ESIGI:
+            for j in range(boy):
+                for i in range(en):
+                    px[x0 + i, y0 + j] = (0, 0, 0, 0)
+            silinen.append(ad)
+
+    # 2) taban katman: bicimin CIZDIGI kutulari denetle
+    kullanilan = (["kafa"] if bicim == KUPA_KAZIK
+                  else list(SKIN_KUTULARI.keys()))
+    bozuk = []
+    for kutu in kullanilan:
+        uv, olcu = SKIN_KUTULARI[kutu]
+        for yon, (x, y, en, boy) in _kupa_yuz_dikdortgenleri(uv, olcu).items():
+            dolu = sum(1 for j in range(boy) for i in range(en)
+                       if px[x + i, y + j][3] > 40)
+            if dolu < 16:
+                continue
+            f = _kupa_komsu_fark(px, x, y, en, boy)
+            if f > KUPA_GURULTU_ESIGI:
+                bozuk.append("%s.%s(%.0f)" % (kutu, yon, f))
+    if not bozuk:
+        im.save(hedef)
+    return silinen, bozuk
+
+
+def kupa_ip_dokusu():
+    """Daragaci ipi: 16x16 kendir rengi, burgulu.
+    Lineer ifade kafes uretir -- karistirici hash."""
+    p = {}
+    for y in range(16):
+        for x in range(16):
+            h = (x * 2654435761 + y * 40503) & 0xFFFFFFFF
+            h = (h ^ (h >> 15)) * 2246822519 & 0xFFFFFFFF
+            z = (h ^ (h >> 13)) & 0xFF
+            # Burgu: capraz seritler ipi ip yapan sey.
+            burgu = ((x + y) % 4) < 2
+            t = 150 + (z % 26) + (18 if burgu else -18)
+            t = max(0, min(255, t))
+            p[(x, y)] = (t, int(t * 0.82), int(t * 0.52), 255)
+    return p
+
+
+def kupa_odun_dokusu():
+    """Kazik ve carmih odunu: 16x16 koyu, catlakli ahsap.
+    Lineer ifade KAFES uretiyor (bu depoda uc kez yasandi),
+    o yuzden karistirici hash."""
+    p = {}
+    for y in range(16):
+        for x in range(16):
+            h = (x * 374761393 + y * 668265263) & 0xFFFFFFFF
+            h = (h ^ (h >> 13)) * 1274126177 & 0xFFFFFFFF
+            z = (h ^ (h >> 16)) & 0xFF
+            # Dikey damar: odun lifi yukari gider.
+            damar = (x * 7 + (z >> 5)) % 5 == 0
+            t = 58 + (z % 22) - (12 if damar else 0)
+            p[(x, y)] = (t, int(t * 0.72), int(t * 0.48), 255)
+    return p
+
+
+def kupa_blogu(kimlik, ad, bicim):
+    """Kupanin blok tanimi.
+
+    minecraft:geometry ve minecraft:material_instances IKISI
+    BIRDEN yaziliyor -- 1.21.80'den beri zorunlu (belge).
+
+    "*" skinin kendisi, "odun" ise kazik/kiris. Geometride o
+    kuplerin material_instance alani "odun" diyor; belgedeki
+    "Tuna Roll" ornegindeki kalibin aynisi."""
+    return {
+        "format_version": "1.21.0",
+        "minecraft:block": {
+            "description": {
+                "identifier": "pa:" + KUPA_ONEK + kimlik,
+                "menu_category": {"category": "equipment"},
+            },
+            "components": {
+                "minecraft:geometry": {
+                    "identifier": "geometry." + KUPA_ONEK + kimlik,
+                },
+                "minecraft:material_instances": {
+                    "*": {
+                        "texture": KUPA_ONEK + kimlik,
+                        # alpha_test: skinin ikinci katmani
+                        # (sapka/ceket) saydam pikseller
+                        # tasiyor; opaque olsaydi onlar SIYAH
+                        # cikardi.
+                        "render_method": "alpha_test",
+                    },
+                    "odun": {
+                        "texture": KUPA_ODUN_DOKU,
+                        "render_method": "opaque",
+                    },
+                    # "ip" YALNIZ daragacinda var. Kullanmayan
+                    # bicimlere yazilmiyor: tanimli ama hicbir
+                    # yuzun istemedigi bir malzeme, ileride
+                    # "bu neden burada" sorusu doguruyor.
+                    **({"ip": {"texture": KUPA_IP_DOKU,
+                               "render_method": "opaque"}}
+                       if bicim == KUPA_ASILI else {}),
+                },
+                # Kupa DEKOR: carpisma kutusu yok, icinden
+                # gecilebiliyor. Carpisma olsaydi carmih iki
+                # blokluk gorunmez bir duvar olurdu.
+                "minecraft:collision_box": False,
+                "minecraft:selection_box": {
+                    "origin": [-8, 0, -8], "size": [16, 16, 16],
+                },
+                "minecraft:destructible_by_mining": {
+                    "seconds_to_destroy": 0.6
+                },
+                "minecraft:destructible_by_explosion": {
+                    "explosion_resistance": 2
+                },
+                "minecraft:light_dampening": 0,
+                "minecraft:map_color": "#6b1414",
+            },
+        },
+    }
+
+
+# ============================================================
 #  KURUYAN AGAC                                        v7.11
 #
 #  LORE.md'nin MERKEZINDEKI nesne bugune kadar oyunda yoktu.
@@ -9514,6 +10216,64 @@ def main():
              kuruyan_kutuk_ganimeti())
     yaz_json(os.path.join(BP, "loot_tables/blocks", AGAC_YAPRAK + ".json"),
              kuruyan_yaprak_ganimeti())
+    # ---- KUPALAR (v7.25) ----
+    # Her kupa DORT dosya: blok (BP), geometri (RP), doku (RP,
+    # kullanicinin skini) ve dil kaydi. Besincisi ortak: kazik
+    # odunu dokusu, hepsi onu paylasiyor.
+    #
+    # Skin dosyasi yoksa o kupa SESSIZCE ATLANMIYOR -- uyari
+    # basiliyor. "Sahte icerik uretme, eksigi rapor et" kurali.
+    _kupa_uretilen = []
+    _kupa_geo = {KUPA_KAZIK: kupa_kazik_geometrisi,
+                 KUPA_CARMIH: kupa_carmih_geometrisi,
+                 KUPA_ASILI: kupa_asili_geometrisi,
+                 KUPA_SIS: kupa_sis_geometrisi}
+    for _kk, _kad, _krac, _kbic, _kskin in KUPALAR:
+        _ky = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                           KUPA_SKIN_KLASOR, _kskin)
+        if not os.path.exists(_ky):
+            print("UYARI: kupa skini yok, atlandi: %s (%s)" % (_kad, _ky))
+            continue
+        if _kbic not in _kupa_geo:
+            print("UYARI: bilinmeyen kupa bicimi '%s' (%s)" % (_kbic, _kad))
+            continue
+        _kim = KUPA_ONEK + _kk
+        yaz_json(os.path.join(BP, "blocks", _kim + ".json"),
+                 kupa_blogu(_kk, _kad, _kbic))
+        yaz_json(os.path.join(RP, "models/blocks", _kim + ".geo.json"),
+                 _kupa_geo[_kbic](_kk))
+        # Skin OLCUSU/DUZENI degismeden kopyalaniyor: kutu UV
+        # zaten oyuncu skin duzenine oturuyor. Tek dokunulan
+        # sey ikinci katmandaki gurultu (bkz kupa_skin_temizle).
+        _kh = os.path.join(RP, "textures/blocks", _kim + ".png")
+        os.makedirs(os.path.dirname(_kh), exist_ok=True)
+        _silinen, _bozuk = kupa_skin_denetle(_ky, _kh, _kbic)
+        if _silinen:
+            print("   %s: ikinci katman gurultusu silindi -> %s"
+                  % (_kad, ", ".join(_silinen)))
+        if _bozuk:
+            # Skin bozuk: dosya yolda bozulmus ya da eksik
+            # gelmis. Kupa URETILMIYOR -- bozuk bir kupa
+            # gondermektense eksigi soylemek dogru.
+            print("UYARI: %s kupasi URETILMEDI, skin bozuk. "
+                  "Gurultulu yuzler: %s" % (_kad, ", ".join(_bozuk)))
+            if os.path.exists(_kh):
+                os.remove(_kh)
+            for _artik in (os.path.join(BP, "blocks", _kim + ".json"),
+                           os.path.join(RP, "models/blocks",
+                                        _kim + ".geo.json")):
+                if os.path.exists(_artik):
+                    os.remove(_artik)
+            continue
+        _kupa_uretilen.append((_kk, _kad, _krac, _kbic))
+    if _kupa_uretilen:
+        png_yaz(os.path.join(RP, "textures/blocks", KUPA_ODUN_DOKU + ".png"),
+                16, 16, kupa_odun_dokusu())
+    if any(_b == KUPA_ASILI for _, _, _, _b in _kupa_uretilen):
+        png_yaz(os.path.join(RP, "textures/blocks", KUPA_IP_DOKU + ".png"),
+                16, 16, kupa_ip_dokusu())
+    print("uretildi: %d kupa" % len(_kupa_uretilen))
+
     # ---- SILAHLAR ve MERMILER (v4.87) ----
     # Silah ELDE TUTULUYOR ve hasar tasiyor; mermi YIGILIYOR ve
     # hasarsiz. Ikisini ayni fonksiyondan uretmek, "mermiyi
@@ -9667,6 +10427,20 @@ def main():
         "pa:" + AGAC_KUTUK: {"textures": AGAC_KUTUK, "sound": "wood"},
         "pa:" + AGAC_YAPRAK: {"textures": AGAC_YAPRAK, "sound": "grass"},
     }
+    # Kupalar: her birinin dokusu KENDI skini, hepsi ayni odun
+    # dokusunu paylasiyor.
+    for _kk, _kad, _krac, _kbic in _kupa_uretilen:
+        _kim = KUPA_ONEK + _kk
+        _terrain[_kim] = {"textures": "textures/blocks/" + _kim}
+        # Ses: kazik ve carmih ahsap.
+        _bloklar["pa:" + _kim] = {"textures": _kim, "sound": "wood"}
+    if _kupa_uretilen:
+        _terrain[KUPA_ODUN_DOKU] = {
+            "textures": "textures/blocks/" + KUPA_ODUN_DOKU}
+    if any(_b == KUPA_ASILI for _, _, _, _b in _kupa_uretilen):
+        _terrain[KUPA_IP_DOKU] = {
+            "textures": "textures/blocks/" + KUPA_IP_DOKU}
+
     if _dusmus_blok_var:
         _terrain[DUSMUS_BLOK_DOKU] = {
             "textures": "textures/blocks/" + DUSMUS_BLOK_DOKU}
@@ -9696,6 +10470,23 @@ def main():
         liste.append("tile.pa:%s.name=%s" % (TAS_BLOK, TAS_BLOK_TR))
         liste.append("tile.pa:%s.name=%s" % (AGAC_KUTUK, AGAC_KUTUK_TR))
         liste.append("tile.pa:%s.name=%s" % (AGAC_YAPRAK, AGAC_YAPRAK_TR))
+        # ---- KUPALAR ----
+        # Ad ve RACON TEK SATIRDA.
+        #
+        # ---- ILK YAZILISI YANLISTI, TEST YAKALADI ----
+        # Once "%s§r\n§7§o%s" yaziliyordu, yani racon alt
+        # satira. .lang bicimi bunu KALDIRMIYOR: her satir bir
+        # "anahtar=deger" cifti, satir sonu degeri bitiriyor.
+        # Uretilen dosyada racon anahtarsiz oksuz bir satir
+        # olarak kaliyordu -- oyun onu okumaz, yani racon
+        # kaybolurdu. Depoda baska hicbir yerde .lang'da \n
+        # yok; olan tek yer buydu ve yanlisti.
+        #
+        # Ayirac §8· ; racon §7 gri §o italik. Ad §r ile
+        # kapaniyor ki adin rengi raconu boyamasin.
+        for _kk, _kad, _krac, _kbic in _kupa_uretilen:
+            liste.append("tile.pa:%s%s.name=%s§r §8· §7§o%s"
+                         % (KUPA_ONEK, _kk, _kad, _krac))
         for _k, _a in ([(KILIC_ESYA, KILIC_ESYA_TR), (TAS_ESYA, TAS_ESYA_TR)] +
                        [(k2, a2) for k2, a2, _h2, _d2 in SILAHLAR] +
                        [(k3, a3) for k3, a3, _d3 in MERMILER]):

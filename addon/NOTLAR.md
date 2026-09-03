@@ -1,3 +1,155 @@
+# v7.25.0 — Kupalar: kazık, çarmıh, darağacı
+
+Kullanıcı: *"Hani ölmüş Steve'ler, kafası asılmış şeyler var ya
+— ben skinler göndersem onları onlarla değiştirebilir misin?
+Mesela ben Herobrine asıyorum, havalılık. Ben tek başıma Null'u
+öldürdüm, bir nevi racon gibi."*
+
+Fikir Horror Element Mod 1.6.2'den (`REFERANS_HORROR.md`).
+Ondan alınan tek şey **ölçü ve duruş**; dokuları alınmadı, gerek
+de yok: kupanın dokusu kullanıcının gönderdiği skinin kendisi.
+
+## Ne geldi
+
+| kupa | biçim | racon |
+|---|---|---|
+| Earl | kazık — kafa kazığın ucunda | *"Seni bulmak kolay oldu, öldürmek de."* |
+| Entity303 | çarmıh — tam gövde, kollar açık | *"Kendisini hacker sanan biri…"* |
+| Wyne | darağacı — gövde ipte sallanıyor | *"Benden saklanamadı… HAHAHAHAHA"* |
+
+Biçimlerden ikisini (çarmıh, darağacı) kullanıcı bana bıraktı.
+Dördüncü bir biçim daha yazıldı ama **kullanılmıyor**: `sis`
+(kazık tüm gövdeden geçiyor) — Ferguson için hazırlanmıştı,
+skini bozuk geldiği için üretilmedi (aşağıda).
+
+**Yeni kupa eklemek = `KUPALAR` listesine bir satır.** Geometri,
+blok, doku, dil kaydı ve yaratıcı menü girişi hepsi oradan
+türüyor.
+
+## Doku işlemeye hiç gerek yok — neden
+
+Kaynak mod her kafa için **altı ayrı 16×16 yüz dokusu** tutuyor
+(`face_`, `derriere_`, `droite_`…). Biz o yola girmedik.
+
+Bedrock'un kutu UV'si 8×8×8 bir küpü `uv [0,0]`'dan şöyle
+diziyor: üst `[8,0]` · alt `[16,0]` · sağ `[0,8]` · ön `[8,8]` ·
+sol `[16,8]` · arka `[24,8]`. Bu, oyuncu skininin **kafa
+düzeninin ta kendisi**. Yani skin hiç kesilmeden, hiç
+dönüştürülmeden doku olarak konuyor. Kaynak modun yaptığından
+daha az iş, daha az dosya.
+
+## 1. ÇARMIH OYUNA HİÇ YÜKLENMEZDİ — render yakaladı
+
+İlk taslak render edildiğinde üç hata birden çıktı:
+
+1. **X genişliği 36 birimdi.** Bedrock blok modelinin sınırı
+   30×30×30. Tam boy bir oyuncu zaten 32 birim; kolları yatay
+   açınca 36 oluyor. Kod çalışıyordu, JSON geçerliydi, testler
+   yeşildi — **oyun bunu yüklemezdi.**
+2. **Kollar tersti.** El omuzda, omuz dışarıdaydı. Sebep: kol
+   küpü pivotun *üstünde* duruyordu, oysa oyuncu modelinde kol
+   omuzdan **aşağı** iner (kutu UV'de küpün üst yüzü omuz, alt
+   yüzü el).
+3. **Haç gövdenin arkasında tamamen kayboluyordu.** Ne kiriş ne
+   direk görünüyordu; "çarmıh" hiç okunmuyordu.
+
+Üçü de düzeltildi. Ölçek 0.8'e indirildi (32×0.8 + kafanın
+üstünde 3 birim direk = 29 ≤ 30), kiriş kolların **altına**
+alındı, direk kafanın 3 birim üstüne çıkarıldı.
+
+**Ölçeği düşürmek kutu UV'yi kaydırıyor** (kutu UV'de doku
+dikdörtgeni küpün ölçüsünden türüyor). O yüzden ölçek 1.0
+değilse **yüz yüz UV**'ye geçiliyor: dikdörtgen elle yazılıyor,
+küp ölçüsüyle bağı kalmıyor. Kazıkta ölçek 1.0 olduğu için orada
+kutu UV kalıyor — kanıtlanmış yol.
+
+## 2. CÜBBE KAYBOLUYORDU — kullanıcı yakaladı
+
+Kullanıcı: *"Entity303 pek olmamış, cübbeli olması lazım
+arkası."* Sebep: model skinin **yalnız birinci katmanını**
+çiziyordu. Ölçüldü: `entity303.png`'nin şapka bölgesinde 339
+dolu piksel var — cübbenin kukuletası tam orada.
+
+İkinci katman (şapka/ceket/kolluk/paça) eklendi, vanilla
+oyuncu modelindeki şişme değerleriyle (şapka 0.5, gerisi 0.25;
+ölçekle birlikte ölçekleniyor).
+
+## 3. BOZUK SKİN — Ferguson üretilmedi
+
+`ferguson.png` render edildiğinde gövdenin üzerinde gökkuşağı
+gibi rastgele renkli kutular çıktı. Ölçüldü: sol kolu ve sol
+bacağı tamamen gürültü, kafasının ve gövdesinin bir kısmı da
+öyle. Oyunun **hiç çizmediği** köşe bölgeleri bile dolu — yani
+dosya kullanılmayan alanları çöple dolu bir yerden gelmiş.
+
+**Ayrım ölçüsü:** komşu piksel farkının ortalaması.
+
+| skin | en yüksek yüz |
+|---|---|
+| ferguson (bozuk) | **96.2** |
+| entity303 | 55.9 |
+| wyne | 40.2 |
+| earl | 25.5 |
+
+Eşik 70 — iki tarafa da geniş pay.
+
+İlk denenen ölçü "ayrı renk / dolu piksel" oranıydı ve
+**yanlıştı**: `earl.png`'nin gövde altını da gürültü sandı (32
+pikselde 28 ayrı renk), oysa orası gürültü değil **yumuşak bir
+geçiş**. Renk sayısı geçişle gürültüyü ayırt edemiyor; komşu
+farkı ayırt ediyor, çünkü geçişte komşu pikseller birbirine
+yakın, gürültüde değil.
+
+Bozuk skin **sessizce geçmiyor**: kupa üretilmiyor, artık
+dosyalar siliniyor ve ekrana sebebiyle birlikte UYARI basılıyor.
+Yarım yamalak bir kupa üretmek, eksik olduğunu söylemekten
+kötüdür.
+
+## 4. RACON DİL DOSYASINDAN DÜŞÜYORDU — test yakaladı
+
+İlk yazılışta racon `ad§r\n§7§o racon` diye yazılıyordu, yani
+alt satıra. **`.lang` biçimi bunu kaldırmıyor:** her satır bir
+`anahtar=değer` çifti, satır sonu değeri bitiriyor. Üretilen
+dosyada racon anahtarsız öksüz bir satır olarak kalıyordu —
+oyun onu hiç okumaz, racon kaybolurdu. Depoda başka hiçbir
+yerde `.lang`'da `\n` yok; olan tek yer buydu.
+
+Ad ve racon tek satıra alındı: `Earl§r §8· §7§oSeni bulmak…`
+Test artık iki şeyi birden tutuyor: raconun adla aynı satırda
+olduğunu **ve** dil dosyasında hiç anahtarsız satır olmadığını.
+
+## Test
+
+`test/kupa.mjs` (93. dosya). Sekiz madde, hepsi **üretilen
+dosyalardan** ölçülüyor — kaynak koddan değil, çünkü sabit doğru
+olup da yazılmamış olabilir:
+
+30×30×30 sınırı · taban küpte en az 1 piksel · geometry ve
+material_instances ikisi birden · malzeme adlarının iki yönlü
+eşleşmesi · ikinci katmanın çizilmesi · bozuk skinin
+reddedilmesi · ölçek 1.0 değilse yüz yüz UV · raconun dil
+dosyasında olması.
+
+Sekiz mutasyonla sınandı, sekizi de yakalandı: kirişi 30 birimi
+aşacak kadar uzatmak, ikinci katmanı kapatmak, raconu alt satıra
+düşürmek, bozuk skini geçirmek, kesirli ölçüde kutu UV
+kullanmak, `ip` malzemesini tanımsız bırakmak, geometri
+kimliğini kaydırmak, şişmeyi sıfırlamak.
+
+## Bekleyen
+
+- **Ferguson** — skin bozuk geldi, yenisi lazım. Biçimi hazır
+  (`sis`: kazık tüm gövdeden geçiyor, kafanın 2 birim üstünden
+  çıkıyor), racon hazır (*"Beni tuzağına çekti, ama bir tuzağa
+  düşen o oldu."*). Temiz dosya gelince tek satır.
+- Kullanıcı skinleri **tek tek** gönderiyor (isim karışıklığı
+  olmasın diye, kendi sözü). Her yeni skin = `KUPALAR`'a bir
+  satır.
+- Kupa yönü: blok şu an hep kuzeye bakıyor.
+  `minecraft:placement_direction` ile oyuncuya döndürülebilir,
+  ama durum-yön eşlemesi tablette doğrulanmadan yazılmadı.
+
+
 # v7.24.0 — Genel tarama: 5 sızıntı, 1 kör koruma, 17 ölü kod
 
 Kullanıcı: *"Genel bir tarama yap, bozulan hata veya ölü kod

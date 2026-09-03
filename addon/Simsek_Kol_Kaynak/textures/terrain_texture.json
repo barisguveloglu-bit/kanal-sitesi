@@ -19,6 +19,21 @@
     "kuruyan_yaprak": {
       "textures": "textures/blocks/kuruyan_yaprak"
     },
+    "kupa_earl": {
+      "textures": "textures/blocks/kupa_earl"
+    },
+    "kupa_entity303": {
+      "textures": "textures/blocks/kupa_entity303"
+    },
+    "kupa_wyne": {
+      "textures": "textures/blocks/kupa_wyne"
+    },
+    "kupa_odun": {
+      "textures": "textures/blocks/kupa_odun"
+    },
+    "kupa_ip": {
+      "textures": "textures/blocks/kupa_ip"
+    },
     "kns_dusmus_blok": {
       "textures": "textures/blocks/kns_dusmus_blok"
     }
