@@ -107,14 +107,27 @@ class _MolangMath:
         return abs(v)
 
 
-def molang(ifade, r, yas, omur):
+def molang(ifade, r, yas, omur, er=None, hiz=(0.0, 0.0, 0.0)):
+    """r  = zerrenin dort rastgelesi
+       er = YAYIMIN dort rastgelesi (bir puftaki zerrelerde AYNI)
+       hiz = oyuncunun hizi, blok/tick (script MolangVariableMap
+             ile veriyor; burada elle konuyor)"""
     if isinstance(ifade, (int, float)):
         return float(ifade)
     s = str(ifade)
-    for i in range(1, 5):
-        s = s.replace("variable.particle_random_%d" % i, repr(r[i - 1]))
+    # SIRA ONEMLI: once ORAN, sonra ciplak particle_age. Ters
+    # sirada "variable.particle_age / variable.particle_lifetime"
+    # once bolunur ve oran ifadesi bir daha eslesmez.
     s = s.replace("variable.particle_age / variable.particle_lifetime",
                   repr(yas / omur if omur else 0))
+    s = s.replace("variable.particle_lifetime", repr(omur))
+    s = s.replace("variable.particle_age", repr(yas))
+    for i in range(1, 5):
+        s = s.replace("variable.particle_random_%d" % i, repr(r[i - 1]))
+        s = s.replace("variable.emitter_random_%d" % i,
+                      repr((er or [0.5] * 4)[i - 1]))
+    for eksen, v in zip("xyz", hiz):
+        s = s.replace("variable.hiz." + eksen, repr(float(v)))
     return float(eval(s, {"__builtins__": {}}, {"math": _MolangMath}))
 
 
@@ -129,7 +142,8 @@ def gradyan(g, t):
     return d[-1][1]
 
 
-def zerreler(ad, tick_araligi, toplam_tick=90, tohum=11):
+def zerreler(ad, tick_araligi, toplam_tick=90, tohum=11,
+             hiz=(0.0, 0.0, 0.0)):
     """Oyundaki gibi SUREKLI yayim: her tick_araligi tick'te bir
     yeni yayim. Son karedeki canli zerreler donuyor."""
     c = json.load(open(RP + "/particles/%s.particle.json" % ad))["particle_effect"]["components"]
@@ -139,7 +153,10 @@ def zerreler(ad, tick_araligi, toplam_tick=90, tohum=11):
     hiz_i = c["minecraft:particle_initial_speed"]
     omur_i = c["minecraft:particle_lifetime_expression"]["max_lifetime"]
     mot = c["minecraft:particle_motion_dynamic"]
-    ivme = [float(v) for v in mot["linear_acceleration"]]
+    # v7.18: ivme artik Molang ("variable.hiz.x * 68"). Hiz
+    # sabit oldugundan bir kez cozuluyor.
+    ivme = [molang(v, [0.5] * 4, 0, 1, hiz=hiz)
+            for v in mot["linear_acceleration"]]
     surt = float(mot.get("linear_drag_coefficient", 0))
     bb = c["minecraft:particle_appearance_billboard"]
     grad = c["minecraft:particle_appearance_tinting"]["color"]["gradient"]
@@ -150,6 +167,10 @@ def zerreler(ad, tick_araligi, toplam_tick=90, tohum=11):
     canli = []
     for t in range(toplam_tick):
         if t % tick_araligi == 0:
+            # Yayimin kendi rastgeleleri: o puftaki butun
+            # zerrelerde AYNI. Alevin toptan kabarip toptan
+            # sonmesi bundan geliyor.
+            er = [rnd.random() for _ in range(4)]
             for _ in range(n):
                 r = [rnd.random() for _ in range(4)]
                 u, v = rnd.random(), rnd.random()
@@ -160,7 +181,7 @@ def zerreler(ad, tick_araligi, toplam_tick=90, tohum=11):
                 h = molang(hiz_i, r, 0, 1)
                 canli.append({"p": [yon[0] * rr, yon[1] * rr, yon[2] * rr],
                               "v": [yon[0] * h, yon[1] * h, yon[2] * h],
-                              "r": r, "yas": 0.0,
+                              "r": r, "er": er, "yas": 0.0,
                               "omur": molang(omur_i, r, 0, 1),
                               "aci": molang(spin.get("rotation", 0), r, 0, 1),
                               "aciv": molang(spin.get("rotation_rate", 0),
@@ -204,15 +225,30 @@ def _goz_yerleri():
     return satir, eval(sut, {"__builtins__": {}}, {})
 
 
-def sprite(satir, kare, renk, en_px, boy_px, aci):
+def kare_sec(fb, yas, omur):
+    """Hangi karenin cizilecegi. IKI AYRI BICIM var ve
+    karistirilirsa onizleme oyunla ayrisir:
+
+    DONGULU (loop + fps): kare = yas * fps, KARE SAYISINA gore
+    mod. Zerrenin omrunden bagimsiz, sararak.
+
+    SURECLI (stretch_to_lifetime): animasyon omre yayiliyor ve
+    bir kez oynuyor -- son karede duruyor."""
+    n = int(fb["max_frame"])
+    if fb.get("loop") and not fb.get("stretch_to_lifetime"):
+        return int(yas * float(fb["frames_per_second"])) % n
+    return min(n - 1, int((yas / omur if omur else 0) * n))
+
+
+def sprite(satir_px, kare, renk, en_px, boy_px, aci, hucre):
     """Zerrenin GERCEK gorunusu: atlastan dogru hucre, tinting
     ile renklendirilmis, gercek boya olceklenmis, gercek acida
     dondurulmus.  v7.17 oncesi burasi daire ciziyordu."""
     global ATLAS
     if ATLAS is None:
         ATLAS = Image.open(RP + "/textures/particle/iksir_aura.png").convert("RGBA")
-    H = 32
-    h = ATLAS.crop((kare * H, satir * H, kare * H + H, satir * H + H))
+    H = hucre
+    h = ATLAS.crop((kare * H, satir_px, kare * H + H, satir_px + H))
     # particle_appearance_tinting: RGB de alfa da CARPILIYOR.
     r, g, b, a = h.split()
     h = Image.merge("RGBA", (
@@ -246,7 +282,7 @@ def _ekle(hedef, s, px, py):
     hedef.paste(ImageChops.add(bolge, tile), (x0, y0))
 
 
-def sahne(aura=True):
+def sahne(aura=True, hiz=(0.0, 0.0, 0.0)):
     kar = karakter()
     W, H = kar.width + 8 * O, kar.height + 10 * O
     im = Image.new("RGB", (W, H), (9, 10, 14))
@@ -277,6 +313,8 @@ def sahne(aura=True):
     for ad, aralik, capalar, kayma in (
             ("aura_hale_" + IKSIR, 14, [(hx, hy)], kafa_y),
             ("aura_kor_" + IKSIR, 6, [(hx, hy)], kafa_y),
+            ("aura_gozkor_" + IKSIR,
+             int(_ayar("GOZ_KOR_ARALIK", 26)), goz_capa, 0.0),
             ("aura_gozalev_" + IKSIR,
              int(_ayar("GOZ_ALEV_ARALIK", 4)), goz_capa, 0.0)):
         yol = RP + "/particles/%s.particle.json" % ad
@@ -284,24 +322,43 @@ def sahne(aura=True):
             continue
         for i, (cx, cy) in enumerate(capalar):
             # Her capa AYRI tohum: iki goz ayni alevi yakmasin.
-            canli, bb, grad = zerreler(ad, aralik, tohum=11 + i * 97)
-            satir = bb["uv"]["flipbook"]["base_UV"][1] // 32
+            canli, bb, grad = zerreler(ad, aralik, tohum=11 + i * 97,
+                                       hiz=hiz)
+            # Script zerreyi ILERIDE doguruyor (ayarlar.js
+            # ILERI KAYDIRMA); onizleme de aynisini yapmali,
+            # yoksa iki taraf ayrisir.
+            onden = _ayar("GOZ_ALEV_ONDEN" if "goz" in ad else "AURA_ONDEN",
+                          0.0)
+            fb = bb["uv"]["flipbook"]
+            hucre = int(fb["size_UV"][0])
+            satir_px = int(fb["base_UV"][1])
             for z in canli:
                 o = z["yas"] / z["omur"]
                 renk = gradyan(grad, o)
-                en = molang(bb["size"][0], z["r"], z["yas"], z["omur"])
-                boy = molang(bb["size"][1], z["r"], z["yas"], z["omur"])
+                en = molang(bb["size"][0], z["r"], z["yas"], z["omur"],
+                            z["er"], hiz)
+                boy = molang(bb["size"][1], z["r"], z["yas"], z["omur"],
+                             z["er"], hiz)
                 if en <= 0 or boy <= 0:
                     continue
                 # size = zerrenin BLOK cinsinden TAM olcusu
                 # (bedrock.dev: "the x/y size of the billboard"),
                 # yaricapi degil. Ilk cizimde yaricap sandim ve
                 # zerreler iki kat buyuk cikti.
-                s = sprite(satir, min(3, int(o * 4)), renk,
-                           en * BLOK, boy * BLOK, z["aci"])
+                s = sprite(satir_px, kare_sec(fb, z["yas"], z["omur"]),
+                           renk, en * BLOK, boy * BLOK, z["aci"], hucre)
+                # OYUNCUNUN CERCEVESINDE ciziliyor. Ilk
+                # cizimde zerreler dunya cercevesinde konuldu
+                # ve "kosuyor" karesinde aura adamdan kopup
+                # saga akiyor gorundu -- oysa oyuncu da ayni
+                # yone ayni hizla gidiyor. Ekranda gorunen
+                # sey FARK: zerre ne kadar GERI kaliyor.
+                # Zerre dogdugundan beri oyuncu hiz*20*yas
+                # blok yol aldi; o kadar cikariliyor.
+                kay = [h * 20.0 * (z["yas"] - onden) for h in hiz]
                 _ekle(kat, s,
-                      cx + z["p"][0] * BLOK,
-                      cy - (z["p"][1] + kayma) * BLOK)
+                      cx + (z["p"][0] - kay[0]) * BLOK,
+                      cy - (z["p"][1] - kay[1] + kayma) * BLOK)
     return ImageChops.add(im, kat)          # particles_add
 
 

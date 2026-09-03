@@ -44,7 +44,7 @@
         ],
         "face_camera_mode": "lookat_y",
         "uv": {
-          "texturewidth": 128,
+          "texturewidth": 256,
           "textureheight": 128,
           "flipbook": {
             "base_UV": [
@@ -59,8 +59,8 @@
               32,
               0
             ],
+            "max_frame": 8,
             "frames_per_second": 8,
-            "max_frame": 4,
             "stretch_to_lifetime": true,
             "loop": false
           }

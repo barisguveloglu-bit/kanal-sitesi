@@ -1,3 +1,161 @@
+# v7.18.0 — Alev canlandı
+
+Kullanıcı: *"alev canlı olsun — bir büyüsün bir küçülsün, evet
+tam anlamışsın. Başka eklenebilecek şey var mı?"*
+
+Beş şey eklendi. Hepsi Bedrock'un belgelenmiş parçacık
+bileşenleriyle; hiçbiri tahmin değil.
+
+## 1. Kareler artık bir DÖNGÜ, ölüm eğrisi değil (en büyük fark)
+
+v7.17'de dört kare vardı ve `stretch_to_lifetime: true` ile
+zerrenin **ömrüne yayılıyordu**: yani her alev dili hayatı
+boyunca **bir kez** kısalıyordu. Kırpışmıyordu. Kullanıcının
+"canlı değil" dediği şey tam buydu.
+
+Şimdi **8 kare** ve `loop: true` + sabit fps. Kareler bir
+süreç değil bir **devir**: boy ve karın, kare sayısına tam
+oturan bir sinüsle gidip geliyor —
+
+    açı = 2·π·kare / kare_sayısı
+
+Bu şart: son kare ilk kareye pürüzsüz bağlanmalı, yoksa
+flipbook başa sardığında alev bir zıplıyor. Sinüs periyodik
+olduğu için bu kendiliğinden sağlanıyor.
+
+Sönme işi buradan çıktı, iki yere devredildi: renk gradyanı ve
+boy eğrisi. Böylece alev **sönerken bile kırpışmaya devam
+ediyor**.
+
+Hız neden satıra göre farklı (`AURA_DONGU`): göz alevi küçük ve
+yakın, hızlı kırpışmalı (32 fps / 8 kare = saniyede 4 tur);
+kafa aurası büyük ve uzak, aynı hızda titrek bir gürültü gibi
+duruyor (20 fps = saniyede 2.5 tur).
+
+**Sessiz tuzak:** `stretch_to_lifetime` açıkken fps'in hiçbir
+etkisi yok (belge: *"overrides the base frames_per_second"*).
+İkisi birden yazılırsa döngü ayarı sessizce yok sayılır. Test
+bunu ayrıca tutuyor.
+
+## 2. Üç ayrı ölçekte büyüyüp küçülme
+
+Tek bir eğri canlı göstermiyor — şişip inen bir balon olur.
+Göz alevinin boyu artık **üç eğrinin çarpımı**:
+
+| eğri | ne sıklıkta | ne veriyor |
+|---|---|---|
+| zarf `sin(t·180)` | ömür boyunca 1 kez | yoktan doğup yoğa gitme |
+| nefes `sin(yaş·1150)` | saniyede ~3.2 | alevin kendi kırpışması |
+| püf `emitter_random_1` | her yayımda 1 kez | toptan kabarıp sönme |
+
+Nefesin **fazı her zerrede farklı** (`particle_random_2 · 360`).
+Aynı olsaydı bütün alevler aynı anda büyüyüp küçülür, tek bir
+nabız gibi dururdu. Ayrı fazda olunca kümenin içinde sürekli
+birileri büyüyüp birileri küçülüyor — yanan bir şey böyle
+görünüyor.
+
+`emitter_random_1` bir yayımdaki **bütün** zerrelerde aynı;
+zerre bazında rastgelelik bunu vermez, çünkü ortalaması hep
+aynı çıkar.
+
+## 3. Alev oyuncunun hızını miras alıyor
+
+`spawnParticle` zerreyi dünyaya bırakıyor ve zerre oyuncunun
+hızını almıyordu: koşarken alev yüzde değil **arkada bir
+kuyruk** gibi kalıyordu.
+
+`MolangVariableMap.setVector3("hiz", …)` ile hız Molang'a
+geçiriliyor, `linear_acceleration` da `a = d · v_oyuncu`
+yazıyor. `particle_motion_dynamic`'in denklemi
+`dv/dt = a − d·v` olduğundan denge hızı `v = a/d`, yani zerre
+oyuncunun hızına **yakınsıyor**. `getVelocity` blok/**tick**
+veriyor, parçacık hızları blok/**saniye** — aradaki 20 katı
+katsayıda.
+
+**Ama yakınsama anında değil**, ve bunu önizlemede ölçtük:
+
+    gecikme(t) = V · (1 − e^(−d·t)) / d
+
+Koşarken V = 5.6 blok/sn, göz alevinde d = 3.4, ömür ~0.45 sn
+→ ortalama **0.8 blok** geride. Kafa 0.5 blok. Yani hız mirası
+tek başına yetmiyor.
+
+Tam çözümün yolu zerreye **başlangıç hızı** vermek
+(`particle_initial_speed`'in vektör biçimi). Şema iki belgede
+de listelenmiş ama **hiçbiri o biçimin emitter yönüyle nasıl
+birleştiğini söylemiyor** — tanımadığım bir şemayı bütün göz
+alevinin üzerine kurmadım.
+
+Onun yerine ölçülebilir olan yapıldı: zerre nasıl olsa geride
+kalacaksa **ileride doğsun**. `GOZ_ALEV_ONDEN` / `AURA_ONDEN`
+"kaç saniyelik yol kadar ileri" demek ve yukarıdaki ortalama
+gecikmenin **%60'ı**. Neden tamamı değil: fazla düzeltilirse
+alev oyuncunun **önünde** koşar, o daha kötü görünür. Geride
+kalan bir alev doğal, önde giden bir alev yanlış.
+
+Duruyorken hız sıfır — yani bu satırların hiçbir etkisi yok.
+
+**Kalan sınır, açıkça:** dünyaya bırakılan bir parçacık
+oyuncuyu kusursuz takip edemez. Bedrock'un bunun için verdiği
+şey `emitter_local_space`, o da parçacığın bir **varlığa
+bağlı** olmasını istiyor; `spawnParticle` bunu yapamıyor. Tam
+koşuda alev hâlâ biraz geride kalacak.
+
+## 4. Gözden düşen köz
+
+Yeni tür `pa:aura_gozkor_<iksir>` — ~1.3 saniyede bir, göz
+başına tek zerre, aşağı süzülüyor, yere/duvara değince sönüyor.
+
+İki işi var: yukarı akışı **kırıyor** (her şey aynı yöne
+giderse bir çeşme gibi durur, ateş gibi değil) ve yüze
+**dikey** bir iz ekliyor — uzaktan alevlerin hepsi tek bir
+lekeye dönüşüyor, aşağı düşen bir iz o lekeden ayrı okunuyor.
+
+Kıvılcım satırını paylaşıyor (patlamayla aynı sprite): köz
+dikey bir çizgi, ikinci bir doku çizmenin anlamı yok. Test
+artık "türler farklı satırlarda olsun" demiyor — **doğru**
+satırda olsun diyor, ki paylaşım bilerek yapılabilsin.
+
+## 5. Duvarın içinde yanmıyor
+
+Göz alevine `particle_motion_collision` + `expire_on_contact`.
+Duvara burnunu dayayınca alev duvarın içinde kalmıyor.
+
+## Yapılıp da eklenmeyenler
+
+- **Duman.** Additive harmanda koyu bir şey görünmez;
+  `particles_alpha` ile ayrı bir dosya gerekirdi. Buz/element
+  iksirinde duman yanlış olurdu ve istenen şey alevdi.
+- **`particle_initial_speed` vektör biçimi.** Yukarıda anlatıldı.
+- **`emitter_local_space`.** Varlığa bağlı emitter istiyor.
+
+## Testler
+
+`aura.mjs`'e iki yeni bölüm: **3b** (döngü mü süreç mi) ve
+5. bölüme nefes/püf/hız/köz ölçümleri. Doku ölçüsü ve dosya
+sayıları artık **üreteçten okunuyor** — v7.18'de kare sayısı
+4→8 olunca doku 128→256 genişledi ve elle yazılmış "128x128"
+bayatladı.
+
+Sahte API'ye `MolangVariableMap`, sahte dünyaya `getVelocity`
+ve `spawnParticle`'ın üçüncü argümanı eklendi.
+
+Sekiz mutasyonun sekizi de yakalandı:
+1. döngü kapatıldı → 3b düştü
+2. `stretch` + `loop` aynı anda açıldı (sessiz tuzak) → düştü
+3. nefes kaldırıldı → düştü
+4. nefesin fazı her zerrede aynı yapıldı → düştü
+5. hız katsayısı 20 yerine 8 → düştü
+6. script hızı Molang'a geçirmedi → düştü (dosyada ifade duruyor,
+   değişkeni koyan yer script; koymazsa Molang 0 sayar ve
+   **hiçbir hata çıkmaz**)
+7. ileri kaydırma kaldırıldı → düştü
+8. köz çağrısı silindi → düştü
+
+91 testin 91'i geçiyor.
+
+---
+
 # v7.17.0 — Göz alevi: parçacıkla, ve auranın şekli düzeldi
 
 Kullanıcı v7.16.0'ı oyunda denedi. İki şey söyledi:

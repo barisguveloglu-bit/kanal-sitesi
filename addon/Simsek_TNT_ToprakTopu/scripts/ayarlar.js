@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.17.0";
+export const SURUM = "v7.18.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -1008,6 +1008,43 @@ export const GOZ_ALEV_YAN = 0.115;
    UZERINDEN ciksin (ve birinci sahista ekranin ortasinda
    durmasin) diye biraz yukaridan. */
 export const GOZ_ALEV_Y = 0.1;
+/* Gozden dusen koz kac tick'te bir. 26 = ~1.3 saniyede bir,
+   goz basina tek zerre. Sik olsaydi gozyasi gibi akardi;
+   amac yukari akisi ARA SIRA kirmak.                        */
+export const GOZ_KOR_ARALIK = 26;
+/* Zerreye oyuncunun hizi verilsin mi (MolangVariableMap).
+   Kapaliysa alev yerinde yaniyor ve kosarken geride kaliyor --
+   yani v7.17 davranisi. API'de MolangVariableMap yoksa bu
+   ayar acik olsa bile kendiliginden devre disi kaliyor.     */
+export const AURA_HIZ_MIRASI = true;
+/* ---- ILERI KAYDIRMA: KAC SANIYELIK YOL ----
+
+   Hiz mirasi tek basina yetmiyor ve nedeni olculebilir.
+   particle_motion_dynamic'in denklemi dv/dt = a - d*v; ivmeyi
+   a = d*V yazinca zerre oyuncunun hizina YAKINSIYOR ama
+   ANINDA degil. Geri kalma:
+        gecikme(t) = V * (1 - e^(-d*t)) / d
+   Kosarken V = 5.6 blok/sn. Goz alevinde d = 3.4, omur ~0.45
+   sn: zerre omru boyunca ORTALAMA 0.144 saniyelik yol kadar
+   geride kaliyor -- yani 0.8 blok. Kafa 0.5 blok. Yani alev
+   yuzden kopuyor.
+
+   Tam duzeltmenin yolu zerreye BASLANGIC HIZI vermek
+   (particle_initial_speed'in vektor bicimi) ama belgenin
+   hicbiri o bicimin emitter yonuyle nasil birlestigini
+   soylemiyor -- ve tanimadigim bir semayi butun goz alevinin
+   uzerine kurmak istemiyorum.
+
+   Onun yerine olculebilir olani yapiyoruz: zerre nasil olsa
+   geride kalacaksa, ILERIDE dogsun. Asagidaki sayilar "kac
+   saniyelik yol kadar ileri" demek ve yukaridaki ortalama
+   gecikmenin %60'i. Neden tamami degil: fazla duzeltilirse
+   alev oyuncunun ONUNDE kosar, o daha kotu gorunur. Geride
+   kalan bir alev dogal, onde giden bir alev yanlis.
+
+   Duruyorken hiz sifir, yani bu satirlarin hicbir etkisi yok. */
+export const GOZ_ALEV_ONDEN = 0.09;
+export const AURA_ONDEN = 0.18;
 
 export const KADEMELER = [
   {

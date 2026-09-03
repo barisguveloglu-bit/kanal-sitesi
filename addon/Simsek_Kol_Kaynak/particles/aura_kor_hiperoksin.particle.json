@@ -35,21 +35,21 @@
       },
       "minecraft:particle_motion_dynamic": {
         "linear_acceleration": [
-          0,
-          1.55,
-          0
+          "variable.hiz.x * 44.0",
+          "variable.hiz.y * 44.0 + 1.55",
+          "variable.hiz.z * 44.0"
         ],
         "linear_drag_coefficient": 2.2,
         "rotation_drag_coefficient": 0.9
       },
       "minecraft:particle_appearance_billboard": {
         "size": [
-          "(0.13 + variable.particle_random_1 * 0.08) * (1 - variable.particle_age / variable.particle_lifetime * 0.62)",
-          "(0.18 + variable.particle_random_1 * 0.11) * (1 - variable.particle_age / variable.particle_lifetime * 0.62)"
+          "(0.13 + variable.particle_random_1 * 0.08) * (1 - variable.particle_age / variable.particle_lifetime * 0.62) * (1 + 0.14 * math.sin(variable.particle_age * 760 + variable.particle_random_2 * 360))",
+          "(0.18 + variable.particle_random_1 * 0.11) * (1 - variable.particle_age / variable.particle_lifetime * 0.62) * (1 + 0.14 * math.sin(variable.particle_age * 760 + variable.particle_random_2 * 360))"
         ],
         "face_camera_mode": "lookat_y",
         "uv": {
-          "texturewidth": 128,
+          "texturewidth": 256,
           "textureheight": 128,
           "flipbook": {
             "base_UV": [
@@ -64,10 +64,10 @@
               32,
               0
             ],
-            "frames_per_second": 8,
-            "max_frame": 4,
-            "stretch_to_lifetime": true,
-            "loop": false
+            "max_frame": 8,
+            "frames_per_second": 20,
+            "loop": true,
+            "stretch_to_lifetime": false
           }
         }
       },

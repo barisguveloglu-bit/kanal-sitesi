@@ -104,8 +104,15 @@ export function dunyaKur(sinir = { min: -64, max: 319 }) {
       (sayac.ses = sayac.ses || []).push({ ad, poz, sec, nasil: "boyut" });
       return true;
     },
-    spawnParticle(tip, poz) {
-      (sayac.parcacik = sayac.parcacik || []).push({ tip, x: poz.x, y: poz.y, z: poz.z });
+    /* molang: v7.18'de eklendi. Kaydediliyor cunku goz
+       alevinin oyuncunun HIZINI aldigi tek yer burasi ve
+       "gecirdim" demek yetmiyor -- gecen degerin dogru olmasi
+       gerekiyor.                                            */
+    spawnParticle(tip, poz, molang) {
+      (sayac.parcacik = sayac.parcacik || []).push({
+        tip, x: poz.x, y: poz.y, z: poz.z,
+        molang: molang ? molang._deger : undefined
+      });
     },
     createExplosion(poz, guc) { sayac.patlama.push({ x: poz.x, y: poz.y, z: poz.z, guc }); return true; },
     spawnEntity(tip, poz) {
@@ -225,6 +232,11 @@ export function oyuncuKur(boyut, bakis, bas) {
       return { x: bakis.x / u, y: bakis.y / u, z: bakis.z / u };
     },
     getHeadLocation: () => ({ x: bas.x, y: bas.y, z: bas.z }),
+    /* Blok/TICK -- gercek API'nin birimi bu. Testler bunu
+       degistirip alevin hizi mirasladigini sinayabilsin diye
+       yazilabilir bir alan (_hiz) uzerinden okunuyor.       */
+    _hiz: { x: 0, y: 0, z: 0 },
+    getVelocity() { return { x: this._hiz.x, y: this._hiz.y, z: this._hiz.z }; },
     /* ---- ISIN IZI  (v7.12'de eklendi) ----
        Bu YOKTU ve bir OLCUM BOSLUGUYDU. yardimcilar.js'teki
        hedefBul() once bunu deniyor, yoksa "bakis yonunde

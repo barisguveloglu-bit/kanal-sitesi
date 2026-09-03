@@ -102,7 +102,7 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # tureniyor -- ayrisabilecekleri bir yer kalmadi.
 #
 # YENI SURUM CIKARIRKEN: yalnizca asagidaki satiri degistir.
-SURUM_NO = (7, 17, 0)
+SURUM_NO = (7, 18, 0)
 
 SURUM_METIN = "%d.%d.%d" % SURUM_NO
 SURUM_ETIKET = "v" + SURUM_METIN
@@ -6657,8 +6657,15 @@ def dismont_kurali():
 #  sonme. Yani en guzel aura kendiliginden onun oluyor.
 # ============================================================
 AURA_DOKU = "iksir_aura"
-AURA_DOKU_BOY = 128           # 4x4 hucre, her hucre 32x32
 AURA_HUCRE = 32
+# v7.18: 4 kare -> 8 kare. Kullanici: "alev canli olsun, bir
+# buyusun bir kuculsun". Dort kare bir alevin OLUM egrisiydi
+# (tazeden sonmeye); sekiz kare bir DONGU -- alev yasarken
+# defalarca kirpisiyor.  Depolama sorun degil (acik kural),
+# ekran karti icin 256x128 = 128 KB, onemsiz.
+AURA_KARE = 8
+AURA_DOKU_EN = AURA_HUCRE * AURA_KARE          # 256
+AURA_DOKU_BOY = 128           # 4 satir x 32
 # Satirlar: 0 kor, 1 hale, 2 kivilcim, 3 alev. Her satir 4
 # karelik bir animasyon (flipbook step_UV [32,0]).
 # v7.17: 3. satir "kul"du ama OLU idi -- hicbir parcacik
@@ -6666,6 +6673,34 @@ AURA_HUCRE = 32
 # 128x128 (ikinin kuvveti) kaldi, dort satirin dordu de
 # kullaniliyor.
 AURA_SATIR = {"kor": 0, "hale": 1, "kivilcim": 2, "alev": 3}
+
+# ---- HANGI SATIR DONGULU, KAC KARE/SN (v7.18) ----
+#
+# Bu ayrim bu surumun cekirdegi. Iki ayri oynatma bicimi var:
+#
+#  stretch_to_lifetime  Animasyon zerrenin OMRUNE yayiliyor ve
+#                       BIR KEZ oynuyor. Kareler bir SUREC
+#                       anlatmali (taze -> sonuk). Kivilcim ve
+#                       hale boyle: kivilcim uzayip kopuyor,
+#                       hale acilip dagiliyor.
+#
+#  loop + fps           Animasyon zerrenin omrunden BAGIMSIZ,
+#                       saniyede N kare, ve basa SARIYOR. Kareler
+#                       bir DONGU olmali; "sonuk" bir kare
+#                       olamaz, cunku ondan sonra yine 0. kare
+#                       geliyor ve alev birden dirilmis gorunur.
+#                       Alev ve kor boyle.
+#
+# v7.17'de dordu de stretch'ti: yani her alev dili omru boyunca
+# BIR KEZ kisaliyordu. Kullanicinin gordugu "canli degil" tam
+# buydu. Sonme isi artik yalniz iki yerde: renk gradyani ve boy
+# egrisi. Sekil ise DURMADAN kirpisiyor.
+#
+# Hiz neden farkli: goz alevi kucuk ve yakin, hizli kirpismasi
+# gerekiyor (32/8 = saniyede 4 tur). Kafa aurasi buyuk ve uzak,
+# ayni hizda kirpisirsa titrek bir gurultu gibi duruyor
+# (20/8 = saniyede 2.5 tur).
+AURA_DONGU = {"alev": 32, "kor": 20}
 
 
 def _aura_zar(x, y, tuz):
@@ -6677,7 +6712,7 @@ def _aura_zar(x, y, tuz):
 
 
 def _alev_dili(p, hx, hy, kare, uc_ust, karin_en, egim, tuz,
-               parlak=1.0, kare_sayi=4):
+               parlak=1.0, kare_sayi=None, dongu=True):
     """ALEV DILI. Bir hucreye tek bir alev dili cizer.
 
     ---- NEDEN YUVARLAK DEGIL (v7.17) ----
@@ -6693,30 +6728,55 @@ def _alev_dili(p, hx, hy, kare, uc_ust, karin_en, egim, tuz,
     Ucu de sondurmek gerekiyor: alevin ucu saydamdir, orasi
     doldurulursa sivrilik kayboluyor ve sekil damlaya donuyor.
 
-    ---- KAREler ----
-    kare 0 taze, kare 3 sonmek uzere. stretch_to_lifetime ile
-    bu dortlu zerrenin OMRUNE yayiliyor: her zerre dogar,
-    yukselir, kisalir, soner.  Kullanicinin istedigi "bir
-    buyuyup bir kuculme" iki yerden geliyor -- buradaki sekil
-    ve billboard'daki boy egrisi.
+    ---- NEDEN DONGU, NEDEN OLUM EGRISI DEGIL (v7.18) ----
+    Kullanici: "alev canli olsun -- bir buyusun bir kuculsun".
+    v7.17'de kareler bir OLUM egrisiydi: kare 0 taze, kare 3
+    sonmus, ve stretch_to_lifetime ile bu dortlu zerrenin
+    omrune yayiliyordu. Yani her alev dili omru boyunca BIR KEZ
+    kisaliyordu -- kirpismiyordu.
+
+    Simdi kareler bir DONGU. Boy ve karin, kare sayisina TAM
+    oturan bir sinus ile gidip geliyor:
+        aci = 2*pi*kare / kare_sayi
+    Bu sart: son kare ilk kareye PURUZSUZ baglanmali, yoksa
+    flipbook basa sardiginda alev bir zipliyor. Sinus periyodik
+    oldugu icin bu kendiliginden saglaniyor.
+
+    Sonme isi artik buradan CIKTI; iki yere devredildi:
+      - renk gradyani (sicak beyaz -> renk -> sonme)
+      - billboard boy egrisi (buyuyup kuculme)
+    Boylece alev sonerken bile KIRPISMAYA devam ediyor.
     """
+    if kare_sayi is None:
+        kare_sayi = AURA_KARE
     O = AURA_HUCRE
     m = (O - 1) / 2.0
-    o = kare / float(kare_sayi - 1)          # 0 taze .. 1 sonuyor
-    yt = O * (uc_ust + 0.34 * o)             # uc asagi cekiliyor
+    aci = 2 * math.pi * kare / float(kare_sayi)
+
+    if dongu:
+        # Boy ve karin GIDIP GELIYOR, sonmuyor. Ikisi ayri
+        # fazda: alev uzarken incelip kisalirken sismali,
+        # yoksa butun sekil nefes alan bir balon gibi duruyor.
+        yt = O * (uc_ust + 0.075 * (1 + math.sin(aci + tuz * 0.21)))
+        R = O * karin_en * (1.0 + 0.12 * math.sin(aci + 1.9))
+        solma = 1.0
+    else:
+        o = kare / float(kare_sayi - 1)   # 0 taze .. 1 sonuyor
+        yt = O * (uc_ust + 0.34 * o)
+        R = O * karin_en * (1.0 - 0.36 * o)
+        solma = 1.0 - 0.48 * o
     yc = O * 0.72                            # karin: hep ayni yerde
-    R = O * karin_en * (1.0 - 0.36 * o)
     if yc - yt < 2.0 or R < 1.0:
         return
-    solma = (1.0, 0.94, 0.78, 0.52)[min(kare, 3)]
     # Ucun hangi yana yattigi: kareden kareye degisiyor, yani
     # tek bir zerre bile omru boyunca SALINIYOR.
-    yon = math.sin(kare * 2.1 + tuz * 0.37)
+    yon = math.sin(aci + tuz * 0.37)
     # Ikinci, daha DAR bir yatiklik: yalniz en uc kisma etki
     # ediyor ve ters yone gidebiliyor. Tek yatiklikla dilin
     # bir kenari DUZ bir diyagonal cikiyordu -- kagit kulahi
     # gibi. Iki yatiklik ust uste gelince uc KIVRILIYOR.
-    kivrim = math.sin(kare * 3.7 + tuz * 0.91 + 1.3)
+    # Iki kat frekans: yine periyodik, yani dongu bozulmuyor.
+    kivrim = math.sin(2 * aci + tuz * 0.91 + 1.3)
 
     for y in range(O):
         if y < yt:
@@ -6784,7 +6844,8 @@ def _aura_sprite(p, hx, hy, tur, kare):
     tasiyor.  kare 0..3 -- omur boyunca oynayan animasyon."""
     O = AURA_HUCRE
     m = (O - 1) / 2.0
-    o = kare / 3.0                      # 0 taze, 1 sonmus
+    o = kare / float(AURA_KARE - 1)     # 0 taze, 1 sonmus
+    aci = 2 * math.pi * kare / float(AURA_KARE)
 
     if tur == "kor":
         # Auranin ana parcasi: kafadan yukselen alev dilleri.
@@ -6803,7 +6864,7 @@ def _aura_sprite(p, hx, hy, tur, kare):
         # Puslu bir TUTAM -- kure degil. Kure de baloncuk
         # gorunuyordu; bu yukari dogru inceliyor ve kenari
         # duzensiz.
-        yari_x = O * (0.19 + 0.03 * math.sin(kare / 4.0 * 2 * math.pi))
+        yari_x = O * (0.19 + 0.03 * math.sin(aci))
         yari_y = yari_x * 1.75
         cy = m + O * 0.06
         for y in range(O):
@@ -6844,10 +6905,10 @@ def _aura_sprite(p, hx, hy, tur, kare):
 
 
 def aura_dokusu():
-    """128x128, 4 satir x 4 kare. Gri tonlu -- renk tinting'den."""
+    """256x128, 4 satir x 8 kare. Gri tonlu -- renk tinting'den."""
     p = {}
     for tur, satir in AURA_SATIR.items():
-        for kare in range(4):
+        for kare in range(AURA_KARE):
             _aura_sprite(p, kare * AURA_HUCRE, satir * AURA_HUCRE, tur, kare)
     return p
 
@@ -6882,21 +6943,37 @@ def _aura_gradyan(renkler, koyulma=0.32):
 
 
 def _aura_uv(tur):
-    """Her zerre kendi 4 karelik animasyonunu oynatiyor.
-    stretch_to_lifetime: animasyon zerrenin OMRUNE yayiliyor --
-    kisa omurlu hizli soner, uzun omurlu yavas."""
+    """Her zerre kendi karelerini oynatiyor. IKI AYRI BICIM var
+    ve hangisinin secildigi AURA_DONGU'ye bagli (oradaki uzun
+    notu oku -- bu surumun cekirdegi orasi).
+
+    DONGULU (alev, kor): saniyede N kare, basa sararak. Zerre
+    yasadigi surece kirpisiyor.
+
+    SURECLI (hale, kivilcim): animasyon zerrenin OMRUNE
+    yayiliyor ve bir kez oynuyor -- kareler bir sureci
+    anlatiyor, dongu degil."""
+    fb = {
+        "base_UV": [0, AURA_SATIR[tur] * AURA_HUCRE],
+        "size_UV": [AURA_HUCRE, AURA_HUCRE],
+        "step_UV": [AURA_HUCRE, 0],
+        "max_frame": AURA_KARE,
+    }
+    if tur in AURA_DONGU:
+        fb["frames_per_second"] = AURA_DONGU[tur]
+        fb["loop"] = True
+        # stretch_to_lifetime fps'i EZIYOR (belge: "overrides the
+        # base frames_per_second"). Acik birakilirsa dongu
+        # ayarinin hicbir etkisi olmaz -- sessizce.
+        fb["stretch_to_lifetime"] = False
+    else:
+        fb["frames_per_second"] = 8
+        fb["stretch_to_lifetime"] = True
+        fb["loop"] = False
     return {
-        "texturewidth": AURA_DOKU_BOY,
+        "texturewidth": AURA_DOKU_EN,
         "textureheight": AURA_DOKU_BOY,
-        "flipbook": {
-            "base_UV": [0, AURA_SATIR[tur] * AURA_HUCRE],
-            "size_UV": [AURA_HUCRE, AURA_HUCRE],
-            "step_UV": [AURA_HUCRE, 0],
-            "frames_per_second": 8,
-            "max_frame": 4,
-            "stretch_to_lifetime": True,
-            "loop": False,
-        },
+        "flipbook": fb,
     }
 
 
@@ -6920,6 +6997,68 @@ def _aura_govde(kimlik, tur, bilesenler):
 
 
 _AURA_OMUR = "variable.particle_age / variable.particle_lifetime"
+
+
+def _aura_nefes(hiz, tuz):
+    """YUKSEK FREKANSLI boy titremesi (v7.18).
+
+    Boy egrisindeki math.sin(omur * 180) zerrenin omru boyunca
+    BIR KEZ tepe yapiyor -- yavas bir zarf. Alevin canli
+    gorunmesi icin bunun UZERINE hizli bir titreme gerekiyor.
+
+    Faz her zerrede farkli (particle_random_2 * 360): yoksa
+    butun alevler AYNI ANDA buyuyup kuculur ve tek bir nabiz
+    gibi durur. Ayri fazda olunca kumesin icinde surekli
+    birileri buyuyup birileri kuculuyor -- yanan bir sey boyle
+    gorunuyor.
+
+    hiz: derece/saniye. 1150 ~ saniyede 3.2 kez."""
+    return ("(1 + %.2f * math.sin(variable.particle_age * %d"
+            " + variable.particle_random_%d * 360))" % (0.14, hiz, tuz))
+
+
+# Her YAYIMIN kendi olcegi. emitter_random_1 bir yayimdaki
+# butun zerrelerde AYNI: yani bir "puf" toptan buyuk, sonraki
+# toptan kucuk cikiyor. Alev boyle KABARIP SONUYOR; zerre
+# bazinda rastgelelik bunu vermiyor, cunku ortalamasi hep ayni.
+_AURA_PUF = "(0.85 + variable.emitter_random_1 * 0.3)"
+
+
+def _aura_suruklen(surtunme, yukari):
+    """Zerre OYUNCUYLA BIRLIKTE gitsin diye ivme.
+
+    ---- SORUN ----
+    spawnParticle zerreyi dunyaya birakiyor; zerre oyuncunun
+    hizini MIRAS ALMIYOR. Kosarken her yeni alev bir onceki
+    yerine degil daha ileriye doguyor, eskiler geride
+    kaliyordu: yani alev yuzde degil ARKADA bir kuyruk gibi
+    duruyordu.
+
+    ---- COZUM ----
+    particle_motion_dynamic'in denklemi:  dv/dt = a - d*v
+    Denge hizi  v = a/d.  Yani ivmeyi  a = d * v_oyuncu  yazarsak
+    zerrenin hizi oyuncunun hizina YAKINSIYOR. Yakinsama suresi
+    1/d (goz alevinde 1/3.4 = 0.29 sn) -- yani alev once biraz
+    geri kaliyor, sonra yetisiyor. Gercek atesin yaptigi da tam
+    bu.
+
+    variable.hiz script tarafindan MolangVariableMap ile
+    veriliyor. Verilmezse Molang tanimsiz degiskeni 0 sayar ve
+    davranis v7.17'deki gibi olur -- yani bu ekleme hicbir
+    kosulda zerreleri kaybettirmiyor.
+
+    getVelocity BLOK/TICK veriyor, parcacik hizlari BLOK/SANIYE:
+    aradaki 20 kati burada carpiliyor.
+
+    ---- DENENMEYEN YOL ----
+    particle_initial_speed'in VEKTOR bicimi de var ama belge
+    "emitter sekli ile nasil birlestigini" soylemiyor. Bilmedigim
+    bir sema yazip zerreleri tamamen kaybetmektense, tipini
+    zaten kullandigim ve calistigini gordugum alani kullandim."""
+    kat = 20.0 * surtunme
+    return ["variable.hiz.x * %.1f" % kat,
+            "variable.hiz.y * %.1f + %s" % (kat, yukari),
+            "variable.hiz.z * %.1f" % kat]
 
 
 def aura_kor(kimlik, renkler):
@@ -6953,8 +7092,9 @@ def aura_kor(kimlik, renkler):
             "max_lifetime": "0.85 + variable.particle_random_4 * 0.9"},
         "minecraft:particle_motion_dynamic": {
             # Yukari kaldirma + yuksek surtunme: zerre firlayip
-            # yavasliyor, sonra suzuluyor.
-            "linear_acceleration": [0, 1.55, 0],
+            # yavasliyor, sonra suzuluyor. v7.18: ustune
+            # oyuncunun hizi (bkz. _aura_suruklen).
+            "linear_acceleration": _aura_suruklen(2.2, "1.55"),
             "linear_drag_coefficient": 2.2,
             "rotation_drag_coefficient": 0.9},
         "minecraft:particle_appearance_billboard": {
@@ -6974,8 +7114,8 @@ def aura_kor(kimlik, renkler):
             #  alev degil KIVILCIM IZI. Dis oran 1.38'e indi,
             #  gorunen oran ~2.2 oldu.
             "size": [
-                "(0.13 + variable.particle_random_1 * 0.08) * (1 - " + _AURA_OMUR + " * 0.62)",
-                "(0.18 + variable.particle_random_1 * 0.11) * (1 - " + _AURA_OMUR + " * 0.62)"],
+                "(0.13 + variable.particle_random_1 * 0.08) * (1 - " + _AURA_OMUR + " * 0.62) * " + _aura_nefes(760, 2),
+                "(0.18 + variable.particle_random_1 * 0.11) * (1 - " + _AURA_OMUR + " * 0.62) * " + _aura_nefes(760, 2)],
             # lookat_y: kameraya bakiyor ama YALNIZ Y ekseninde
             # doniyor -- yani yukarisi her zaman yukarisi.
             # lookat_xyz olsaydi yukaridan bakildiginda alev
@@ -7100,7 +7240,15 @@ def aura_gozalev(kimlik, renkler):
     gozun onunde asili kaliyor. Kafa aurasinda (kor) surtunme
     2.2, cunku orada zerrelerin yukselmesi isteniyor.
     """
-    ol = "(0.25 + 0.75 * math.sin(" + _AURA_OMUR + " * 180))"
+    # Uc egri UST USTE (v7.18):
+    #   zarf   omur boyunca bir kez: yoktan dogup yoga gitme
+    #   nefes  saniyede ~3.2 kez: alevin kendi kirpismasi
+    #   puf    her yayimda bir kez: alevin kabarip sonmesi
+    # Ucu de kullanicinin "bir buyusun bir kuculsun"unun ayri
+    # bir olcegi. Yalniz zarf olsaydi alev bir kez sisip inen
+    # bir balon olurdu.
+    ol = ("(0.25 + 0.75 * math.sin(" + _AURA_OMUR + " * 180)) * "
+          + _aura_nefes(1150, 2) + " * " + _AURA_PUF)
     return _aura_govde(kimlik, "gozalev", {
         "minecraft:emitter_rate_instant": {"num_particles": 2},
         "minecraft:emitter_lifetime_once": {"active_time": 0.15},
@@ -7118,9 +7266,15 @@ def aura_gozalev(kimlik, renkler):
             # Kisa: gozun onunde birikmesinler.
             "max_lifetime": "0.30 + variable.particle_random_4 * 0.30"},
         "minecraft:particle_motion_dynamic": {
-            "linear_acceleration": [0, 1.05, 0],
+            "linear_acceleration": _aura_suruklen(3.4, "1.05"),
             "linear_drag_coefficient": 3.4,
             "rotation_drag_coefficient": 1.2},
+        # Duvara burnunu dayayinca alev duvarin ICINDE yanmasin.
+        # collision_radius kucuk: alevin GORUNEN dili zaten
+        # zerrenin yarisi kadar.
+        "minecraft:particle_motion_collision": {
+            "enabled": True, "collision_radius": 0.02,
+            "expire_on_contact": True},
         "minecraft:particle_appearance_billboard": {
             # Onizlemede ilk olcu (0.07-0.11 x 0.13-0.21) yuzu
             # KAPATTI: alevin boyu kafanin yarisi kadar cikti ve
@@ -7141,8 +7295,62 @@ def aura_gozalev(kimlik, renkler):
     })
 
 
+def aura_gozkor(kimlik, renkler):
+    """GOZDEN DUSEN KOZ -- seyrek, tek tek, asagi. v7.18
+
+    ---- NEDEN ----
+    Alev yukari gider; yanan bir sey ayrica ASAGI da birakir.
+    Gozden ara sira kopan bir koz iki sey yapiyor:
+      1. Yukari akisi kiriyor. Her sey ayni yone giderse goz
+         bir cesme gibi duruyor, ates gibi degil.
+      2. Yuze DIKEY bir cizgi ekliyor. Uzaktan alevlerin
+         hepsi tek bir lekeye donusuyor (v7.15'in dersi);
+         asagi dusen bir iz o lekeden AYRI okunuyor.
+
+    Seyrek olmasi sart -- surekli aksaydi gozyasi gibi olurdu.
+    ayarlar.js'te GOZ_KOR_ARALIK bunu tutuyor.
+
+    Kivilcim satirini kullaniyor (patlamayla ayni sprite): koz
+    dikey bir cizgi, kendi dokusuna gerek yok. direction_y +
+    derive_from_velocity ile GITTIGI YONE bakiyor, yani
+    duserken uzuyor."""
+    return _aura_govde(kimlik, "gozkor", {
+        "minecraft:emitter_rate_instant": {"num_particles": 1},
+        "minecraft:emitter_lifetime_once": {"active_time": 0.1},
+        "minecraft:emitter_shape_sphere": {
+            "offset": [0, 0, 0], "radius": 0.02,
+            "surface_only": False, "direction": "outwards"},
+        "minecraft:particle_initial_speed":
+            "0.02 + variable.particle_random_1 * 0.06",
+        "minecraft:particle_lifetime_expression": {
+            "max_lifetime": "0.55 + variable.particle_random_2 * 0.5"},
+        "minecraft:particle_motion_dynamic": {
+            # Yercekimi ama ZAYIF: gercek yercekimi (-3.4,
+            # patlamada oyle) kozu bir kursun gibi indiriyordu.
+            # Koz agir degil, SUZULEREK dusuyor.
+            "linear_acceleration": _aura_suruklen(1.4, "-1.15"),
+            "linear_drag_coefficient": 1.4},
+        "minecraft:particle_motion_collision": {
+            "enabled": True, "collision_radius": 0.015,
+            "expire_on_contact": True},
+        "minecraft:particle_appearance_billboard": {
+            "size": [
+                "0.012 + variable.particle_random_3 * 0.010",
+                "(0.05 + variable.particle_random_3 * 0.05) * (1 - "
+                + _AURA_OMUR + " * 0.55)"],
+            "face_camera_mode": "direction_y",
+            "direction": {"mode": "derive_from_velocity",
+                          "min_speed_threshold": 0.01},
+            "uv": _aura_uv("kivilcim")},
+        "minecraft:particle_appearance_tinting": {
+            "color": {"gradient": _aura_gradyan(renkler, koyulma=0.6),
+                      "interpolant": _AURA_OMUR}},
+    })
+
+
 AURA_TURLERI = (("kor", aura_kor), ("hale", aura_hale),
-                ("patlama", aura_patlama), ("gozalev", aura_gozalev))
+                ("patlama", aura_patlama), ("gozalev", aura_gozalev),
+                ("gozkor", aura_gozkor))
 
 
 # ============================================================
@@ -9266,7 +9474,7 @@ def main():
                      _uret(_ik, _renkler))
             _aura_sayi += 1
     png_yaz(os.path.join(RP, "textures/particle", AURA_DOKU + ".png"),
-            AURA_DOKU_BOY, AURA_DOKU_BOY, aura_dokusu())
+            AURA_DOKU_EN, AURA_DOKU_BOY, aura_dokusu())
     print("uretildi: %d aura parcacigi (%d iksir x %d tur)"
           % (_aura_sayi, len(IKSIRLER), len(AURA_TURLERI)))
 

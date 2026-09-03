@@ -35,21 +35,26 @@
       },
       "minecraft:particle_motion_dynamic": {
         "linear_acceleration": [
-          0,
-          1.05,
-          0
+          "variable.hiz.x * 68.0",
+          "variable.hiz.y * 68.0 + 1.05",
+          "variable.hiz.z * 68.0"
         ],
         "linear_drag_coefficient": 3.4,
         "rotation_drag_coefficient": 1.2
       },
+      "minecraft:particle_motion_collision": {
+        "enabled": true,
+        "collision_radius": 0.02,
+        "expire_on_contact": true
+      },
       "minecraft:particle_appearance_billboard": {
         "size": [
-          "(0.050 + variable.particle_random_1 * 0.028) * (0.25 + 0.75 * math.sin(variable.particle_age / variable.particle_lifetime * 180))",
-          "(0.078 + variable.particle_random_1 * 0.044) * (0.25 + 0.75 * math.sin(variable.particle_age / variable.particle_lifetime * 180))"
+          "(0.050 + variable.particle_random_1 * 0.028) * (0.25 + 0.75 * math.sin(variable.particle_age / variable.particle_lifetime * 180)) * (1 + 0.14 * math.sin(variable.particle_age * 1150 + variable.particle_random_2 * 360)) * (0.85 + variable.emitter_random_1 * 0.3)",
+          "(0.078 + variable.particle_random_1 * 0.044) * (0.25 + 0.75 * math.sin(variable.particle_age / variable.particle_lifetime * 180)) * (1 + 0.14 * math.sin(variable.particle_age * 1150 + variable.particle_random_2 * 360)) * (0.85 + variable.emitter_random_1 * 0.3)"
         ],
         "face_camera_mode": "lookat_y",
         "uv": {
-          "texturewidth": 128,
+          "texturewidth": 256,
           "textureheight": 128,
           "flipbook": {
             "base_UV": [
@@ -64,10 +69,10 @@
               32,
               0
             ],
-            "frames_per_second": 8,
-            "max_frame": 4,
-            "stretch_to_lifetime": true,
-            "loop": false
+            "max_frame": 8,
+            "frames_per_second": 32,
+            "loop": true,
+            "stretch_to_lifetime": false
           }
         }
       },
