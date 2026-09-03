@@ -124,14 +124,44 @@ print(json.dumps({
   "govde_orta_dikissiz": not any(orta),
   "goz_satir": sk.GOZ_SATIR,
   "goz_sutunlar": [list(t) for t in sk.GOZ_SUTUNLAR],
-  "goz_cekirdek": [[renk(skin, x, sk.GOZ_SATIR) == tuple(sk.GOZ)
-                    for x in t] for t in sk.GOZ_SUTUNLAR],
+  # SAG goz (indeks 1) temiz: cekirdeginin ikisi de GOZ renginde.
+  "goz_saglam": [renk(skin, x, sk.GOZ_SATIR) == tuple(sk.GOZ)
+                 for x in sk.GOZ_SUTUNLAR[1]],
+  # SOL goz (indeks 0) yarali: biri olu, oteki yarim.
+  "goz_olu": renk(skin, sk.GOZ_SUTUNLAR[0][0], sk.GOZ_SATIR)
+             == tuple(sk.GOZ_OLU),
+  "goz_yarim": renk(skin, sk.GOZ_SUTUNLAR[0][1], sk.GOZ_SATIR)
+               == tuple(sk.GOZ_YARIM),
+  # Yarik gozun USTUNDEN geliyor; en usttekі TAZE (en parlak).
+  "goz_yarik_taze": renk(skin, sk.GOZ_SUTUNLAR[0][0], sk.GOZ_SATIR - 2)
+                    == tuple(sk.ZEHIR_ISK),
+  "goz_yarik_alt": renk(skin, sk.GOZ_SUTUNLAR[0][0], sk.GOZ_SATIR - 1)
+                   == tuple(sk.YARA_ACIK),
+  # Asagi sizan iz.
+  "goz_sizinti": renk(skin, sk.GOZ_SUTUNLAR[0][0], sk.GOZ_SATIR + 1)
+                 == tuple(sk.ZEHIR_KOY),
+  # Boyun prangasi: kafa seridinin SON satiri bastan basa demir.
+  "boyun_demir": sum(
+      1 for x in range(sk.KAFA_SERIT[0], sk.KAFA_SERIT[2] + 1)
+      if renk(skin, x, sk.KAFA_SERIT[3]) in (tuple(sk.DEMIR),
+                                             tuple(sk.DEMIR_KOY))),
+  "boyun_genislik": sk.KAFA_SERIT[2] - sk.KAFA_SERIT[0] + 1,
+  # Kirbac izleri: bacak seridinin pranga USTU satirlari.
+  "bacak_iz": sum(
+      1 for x in range(sk.SAG_BACAK_SERIT[0], sk.SAG_BACAK_SERIT[2] + 1)
+      for y in range(sk.SAG_BACAK_SERIT[1] + 2, sk.SAG_BACAK_SERIT[1] + 8)
+      if renk(skin, x, y) in (tuple(sk.YARA), tuple(sk.YARA_ACIK))),
   "goz_hale": [[renk(skin, t[0], sk.GOZ_SATIR - 1) is not None,
                 renk(skin, t[1], sk.GOZ_SATIR + 1) is not None]
                for t in sk.GOZ_SUTUNLAR],
-  "goz_zehirli_hale": renk(skin, sk.GOZ_SUTUNLAR[0][0], sk.GOZ_SATIR - 1)
+  # v7.23: olcum noktasi DEGISTI. Eskiden gozun USTUNDEKI sacak
+  # pikseline bakiliyordu; yarali gozde o pikselin uzerine artik
+  # YARIK biniyor, yani "zehirli mi" sorusu orada
+  # sorulamiyor. Alta sizan isik (sag sutun, alt satir) hem iki
+  # gozde de var hem de yaranin altinda kalmiyor.
+  "goz_zehirli_hale": renk(skin, sk.GOZ_SUTUNLAR[0][1], sk.GOZ_SATIR + 1)
                       == tuple(sk.GOZ_KSACAK),
-  "goz_temiz_hale": renk(skin, sk.GOZ_SUTUNLAR[1][0], sk.GOZ_SATIR - 1)
+  "goz_temiz_hale": renk(skin, sk.GOZ_SUTUNLAR[1][1], sk.GOZ_SATIR + 1)
                     == tuple(sk.GOZ_SACAK),
   "turkuaz": sum(sayim[k] for k in turkuaz),
   "zehir": sum(sayim[k] for k in zehir),
@@ -203,10 +233,33 @@ console.log("=== 4. GOZ: CEKIRDEK YERINDE, DETAYLAR EKLENDI ===");
 {
   /* v4.2 dersi: goz iki satir kayinca iksir goz kaplamasi
      havada duruyor ve sebebi hic anlasilmiyor.                */
-  kontrol("cekirdek GOZ_SATIR/GOZ_SUTUNLAR'da ve GOZ renginde",
-          olc.goz_cekirdek.every((c) => c.every(Boolean)),
+  /* ---- BIR GOZUNDEN YARALI (v7.23) ----
+     Kullanici: "mesela bir gozunden yarali, yeni hasar almis
+     halim o sekilde olacak."
+
+     Buradaki olcum v7.23'te DEGISTI, gevsemedi: eskiden
+     "dort cekirdegin dordu de GOZ renginde" deniyordu. Artik
+     SAG goz o kurala uyuyor, SOL goz uc ayri sartla
+     tutuluyor. Yani ayni yerde uc kat daha fazla sey
+     olculuyor.
+
+     v4.2 dersi hala gecerli: goz iki satir kayinca iksir goz
+     kaplamasi havada duruyor ve sebebi hic anlasilmiyor. O
+     yuzden konum yine GOZ_SATIR/GOZ_SUTUNLAR'dan geliyor. */
+  kontrol("SAGLAM goz yerinde ve GOZ renginde",
+          olc.goz_saglam.every(Boolean),
           "satir " + olc.goz_satir + " sutun " +
           JSON.stringify(olc.goz_sutunlar));
+  /* Iki piksel AYRI: ikisi de olu olsaydi goz kapali gorunurdu
+     -- istenen "kor" degil "YARALI".                        */
+  kontrol("yarali gozun bir pikseli SONMUS", olc.goz_olu);
+  kontrol("oteki pikseli YARIM yaniyor", olc.goz_yarim);
+  /* "YENI hasar": taze bir yara govdedeki eski izlerden parlak
+     olmali. Hepsi ayni tonda olsaydi bu da eskilerden biri
+     gibi okunurdu.                                          */
+  kontrol("yarik TAZE (en parlak kirmizi, ustte)", olc.goz_yarik_taze);
+  kontrol("yarigin alti daha sonuk", olc.goz_yarik_alt);
+  kontrol("gozden asagi iz siziyor", olc.goz_sizinti);
   /* "o gozdeki detaylari bana da ekle": kaplamadaki hale,
      sacak ve alta sizan isik artik skinde de var.            */
   kontrol("her gozde hale/sacak ve alt sizinti var",
@@ -214,6 +267,23 @@ console.log("=== 4. GOZ: CEKIRDEK YERINDE, DETAYLAR EKLENDI ===");
   kontrol("bir goz zehirli, oteki temiz",
           olc.goz_zehirli_hale && olc.goz_temiz_hale,
           "zehirli " + olc.goz_zehirli_hale + " / temiz " + olc.goz_temiz_hale);
+
+  /* ---- BOYUN PRANGASI (v7.23) ----
+     Dort uzvunda halka olup boynu serbest kalan bir tutsak
+     olmaz. Halka kafa seridinin son satirinda ve BASTAN SONA
+     gidiyor -- yarim bir halka takilmis degil, kapali.     */
+  kontrol("boyunda demir halka VAR ve kapali",
+          olc.boyun_demir === olc.boyun_genislik,
+          olc.boyun_demir + "/" + olc.boyun_genislik + " piksel");
+
+  /* ---- KIRBAC IZLERI (v7.23) ----
+     Sirtta vardi, bacaklarda yoktu. Iki yonlu sinir: yoksa
+     bacak bombos, cok olursa giysi deseni gibi okunuyor
+     (sirt deseninde ayni ders yazili).                     */
+  kontrol("bacaklarda kirbac izi var", olc.bacak_iz >= 4,
+          olc.bacak_iz + " piksel");
+  kontrol("izler DESEN gibi degil (seyrek)", olc.bacak_iz <= 30,
+          olc.bacak_iz + " piksel");
 }
 
 console.log("");

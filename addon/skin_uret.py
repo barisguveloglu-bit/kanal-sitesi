@@ -142,6 +142,14 @@ YARA_ACIK = kaynastir(KOYU, ZEHIR, 0.55)
 DEMIR     = kaynastir(GRI, (255, 255, 255), 0.27)
 DEMIR_KOY = kaynastir(GRI, (255, 255, 255), 0.12)
 
+# ---- SONMUS GOZ  (v7.23) ----
+# Kullanici: "bir gozunden yarali, yeni hasar almis halim."
+# Yeni renk UYDURULMADI: gozun kendi rengi zehre dogru
+# cekildi. Iki kademe var cunku goz TAMAMEN sonmedi --
+# birinde isik bitti, otekinde titriyor.
+GOZ_OLU    = kaynastir(GOZ, ZEHIR_KOY, 0.72)
+GOZ_YARIM  = kaynastir(GOZ, ZEHIR_KOY, 0.38)
+
 # Gozun cevresi -- bkz. goz_detaylari().
 GOZ_HALE   = kaynastir(KOYU, GOZ, 0.30)
 GOZ_SACAK  = kaynastir(KOYU, GOZ, 0.58)
@@ -392,6 +400,137 @@ def goz_detaylari(px):
             px[(x, GOZ_SATIR)] = GOZ + (255,)
 
 
+# ---- 4. BIR GOZUNDEN YARALI  (v7.23) ----
+# Kullanici: "hasar almis halim... mesela bir gozunden yarali,
+# yeni hasar almis halim o sekilde olacak."
+#
+# ---- NEDEN CEKIRDEK ARTIK AYRILIYOR ----
+# v7.10'da iki gozun cekirdegi de bilerek turkuaz birakilmisti
+# ve gerekcesi yaziliydi: "iksir goz kaplamasi cekirdegin
+# uzerine biniyor; iki gozun cekirdegi ayrilsaydi kaplama
+# takilinca ortadan kalkardi."
+#
+# O gerekce YANLIS DEGIL ama TAM DEGILDI: kaplama yalniz iksir
+# ACIKKEN biniyor. Iksir icilmedigi zamanlarda -- yani vaktin
+# cogunda -- gozler skinden okunuyor ve fark orada goruluyor.
+# Yani kaybedilen sey "iksirliyken iki goz ayni gorunur";
+# kazanilan sey "iksirsizken bir gozu sonmus". Kullanicinin
+# istedigi ikincisi.
+#
+# ---- HANGI GOZ ----
+# GOZ_SUTUNLAR[0] -- zaten kanli haleyi tasiyan goz. Yara ikinci
+# bir yere degil, hasarin ZATEN oldugu yere biniyor; iki ayri
+# gozu yaralamak "iki kez dovulmus" gibi okunurdu.
+YARA_SIZINTI = 2          # gozden asagi kac piksel siziyor
+
+
+def goz_yarasi(px):
+    """Sonmus goz + kastan gecen yarik + asagi sizan iz.
+
+    goz_detaylari()'ndan SONRA cagriliyor: hale ve sacak alta
+    kaliyor, yara ustune biniyor. Ters sirada cizilseydi hale
+    yarayi orterdi."""
+    sol, sag = GOZ_SUTUNLAR[0]
+
+    # Kastan gecen yarik -- gozun USTUNDEN geliyor, yani darbe
+    # yukaridan. Iki piksel: tek piksel yara degil ben gibi
+    # duruyor.
+    # Ustteki piksel ZEHIR_ISK, alttaki YARA_ACIK. Kullanicinin
+    # sozu "YENI hasar almis halim" -- taze bir yara govdedeki
+    # eski izlerden daha parlak olur. Butun izler ayni tonda
+    # olsaydi bu yara da eskilerden biri gibi okunurdu.
+    px[(sol, GOZ_SATIR - 2)] = ZEHIR_ISK + (255,)
+    px[(sol, GOZ_SATIR - 1)] = YARA_ACIK + (255,)
+
+    # Cekirdek. IKI PIKSEL AYRI: biri olu, oteki yarim. Ikisi de
+    # olu olsaydi goz kapali gorunurdu -- istenen "kor" degil
+    # "YARALI".
+    px[(sol, GOZ_SATIR)] = GOZ_OLU + (255,)
+    px[(sag, GOZ_SATIR)] = GOZ_YARIM + (255,)
+
+    # Asagi sizan iz. Yanaktan iniyor, gozun ALTINDAN degil
+    # KENARINDAN: tam altindan inseydi gozyasi gibi okunurdu.
+    for n in range(1, YARA_SIZINTI + 1):
+        px[(sol, GOZ_SATIR + n)] = (ZEHIR_KOY if n == 1
+                                    else YARA) + (255,)
+
+
+# ---- 5. BOYUN PRANGASI  (v7.23) ----
+# Bilek ve ayak bileginde halka vardi, boyunda yoktu. Hapsedilen
+# birinin dort uzvu baglanip boynu serbest kalmaz.
+#
+# Kafanin serit kutusunun SON satiri: kafanin alt kenari, yani
+# boyun hizasi. Sayi elle yazilmiyor, kutunun boyundan
+# hesaplaniyor -- kutu degisirse halka da birlikte gider.
+KAFA_SERIT = KAFA_KUTU[2]
+
+
+def boyun_prangasi(px):
+    """Kafanin dibinde demir halka. pranga()'nin `demir`
+    boyasiyla AYNI desen: ayni zindanin ayni demiri."""
+    x1, y1, x2, y2 = KAFA_SERIT
+    son = y2 - y1                      # seridin son satiri
+
+    def demir_boyun(i, j):
+        # Bilek prangasindan KOYU. Sebep olcum: bilek halkasi iki
+        # satir (isik + golge), bu tek satir. Ayni parlak tonu tek
+        # satira koyunca halka demir gibi degil BEYAZ BIR BANT
+        # gibi okunuyordu -- ilk render'da yuzun altinda atki
+        # gibi duruyordu. Simdi taban koyu, parilti dortte bir.
+        return DEMIR if i % 4 == 1 else DEMIR_KOY
+
+    serit_ciz(px, KAFA_SERIT, (son,), demir_boyun)
+
+
+# ---- 6. KIRBAC IZLERI  (v7.23) ----
+# Sirtta zaten vardi; bacaklarda ve govdenin YAN yuzlerinde
+# yoktu. Onden bakinca hasar govde deseninden ibaret kaliyordu.
+#
+# Izler sozde-rastgele ama SABIT: her uretimde ayni yere
+# dusuyorlar. Lineer bir ifade (i*3+j*5)%7 gibi bir sey
+# KAFES uretiyor -- bu depoda uc kez yasandi (agac dokusu,
+# aura sprite'i, goz). O yuzden karistirici bir hash.
+def _iz_zar(x, y, tuz):
+    h = (x * 374761393 + y * 668265263 + tuz * 2246822519) & 0xFFFFFFFF
+    h = (h ^ (h >> 13)) * 1274126177 & 0xFFFFFFFF
+    return (h ^ (h >> 16)) & 0xFF
+
+
+def kirbac_izleri(px):
+    """Bacaklara ve govdenin yan yuzlerine seyrek izler.
+
+    SEYREK olmasi sart: yogun olunca giysi deseni gibi
+    okunuyor (sirt deseninde ayni ders yazili). Yaklasik her
+    besinci piksel."""
+    # Bacaklar -- prangann USTU. Pranga 8-9, tahris 10; izler
+    # 2..7 arasinda kaliyor ki demirle carpismasin.
+    for tuz, serit in ((11, SAG_BACAK_SERIT), (23, SOL_BACAK_SERIT)):
+        def iz(i, j, _t=tuz):
+            z = _iz_zar(i, j, _t)
+            if z > 226:
+                return YARA_ACIK
+            if z > 198:
+                return YARA
+            return None
+        serit_ciz(px, serit, range(2, 8), iz)
+
+    # Govdenin YAN yuzleri. Serit duzeni (Bedrock/Java klasik):
+    #   0-3 sag yan | 4-11 on | 12-15 sol yan | 16-23 arka
+    # On ve arkaya dokunulmuyor: onun deseni damar_ciz ile
+    # ayrica yaziliyor, ustune iz basmak ikisini de bozar.
+    def yan_iz(i, j):
+        if not (i < 4 or 12 <= i < 16):
+            return None
+        z = _iz_zar(i, j, 37)
+        if z > 222:
+            return YARA_ACIK
+        if z > 192:
+            return YARA
+        return None
+
+    serit_ciz(px, GOVDE_SERIT, range(2, 11), yan_iz)
+
+
 def skin():
     px = taban()
     # Turkuaz kademe + zehir kademesi + yara dokusu + demir.
@@ -429,6 +568,9 @@ def skin():
 
     # "O gozdeki detaylar" -- hale, sacak, sizinti, cekirdek.
     goz_detaylari(px)
+    # ...ve v7.23: bir gozun sonmus hali. SONRA cagriliyor,
+    # yoksa hale yaranin uzerine biner.
+    goz_yarasi(px)
 
     # ---- GOVDE ----
     # Eski desen: ortadan asagi inen KESINTISIZ bir hat, gogsun
@@ -556,9 +698,12 @@ def skin():
     damar_ciz(px, SOL_KOL_ON, ["".join(reversed(r)) for r in kol_on_sol], R,
               en=4)
 
-    # ---- PRANGA EN SON ----
-    # Damarlarin USTUNE geliyor: demir turkuaz hatti kesmeli.
+    # ---- IZLER, SONRA DEMIR ----
+    # Kirbac izleri damarlarin ustune, demir de izlerin ustune.
+    # Sira onemli: demir en sert sey, hicbir sey onu kesmiyor.
+    kirbac_izleri(px)
     pranga(px)
+    boyun_prangasi(px)
 
     return px
 

@@ -1,3 +1,109 @@
+# v7.23.0 — Skin: bir gözünden yaralı, daha ağır hasar
+
+Kullanıcı: *"Hasar almış hâlim, yani kollu olan — onu birazcık
+daha hasar almış hâlini yapabilir misin? Mesela bir gözünden
+yaralı, yeni hasar almış hâlim o şekilde olacak."*
+
+## 1. Bir gözünden yaralı — merkez
+
+Çekirdeğin iki pikseli **ayrıldı**: biri sönmüş (`GOZ_OLU`),
+öteki yarım yanıyor (`GOZ_YARIM`). İkisi de sönük olsaydı göz
+kapalı görünürdü — istenen "kör" değil **yaralı**.
+
+Gözün **üstünden** gelen yarık: darbe yukarıdan. Üstteki piksel
+en parlak kırmızı (`ZEHIR_ISK`), altındaki sönük (`YARA_ACIK`).
+Sebebi kullanıcının kendi sözü: *"YENİ hasar almış hâlim."*
+Taze bir yara gövdedeki eski izlerden parlak olur; hepsi aynı
+tonda olsaydı bu da eskilerden biri gibi okunurdu.
+
+Gözden aşağı sızan iz yanaktan iniyor, tam altından değil —
+tam altından inseydi gözyaşı gibi okunurdu.
+
+**Yeni renk uydurulmadı:** gözün kendi rengi zehre doğru
+çekildi (`kaynastir(GOZ, ZEHIR_KOY, ...)`).
+
+### v7.10'da yazılı bir karar bilerek bozuldu
+
+O sürümde iki gözün çekirdeği de bilerek turkuaz bırakılmıştı
+ve gerekçesi yazılıydı: *"iksir göz kaplaması çekirdeğin
+üzerine biniyor; iki gözün çekirdeği ayrılsaydı kaplama
+takılınca ortadan kalkardı."*
+
+Gerekçe **yanlış değildi ama tam değildi**: kaplama yalnız
+iksir açıkken biniyor. İksir içilmediği zamanlarda — vaktin
+çoğunda — gözler skinden okunuyor. Kaybedilen: "iksirliyken iki
+göz aynı görünür." Kazanılan: "iksirsizken bir gözü sönmüş."
+Kullanıcının istediği ikincisi.
+
+Yara **zaten kanlı haleyi taşıyan** göze bindi. İkinci bir
+gözü yaralamak "iki kez dövülmüş" gibi okunurdu.
+
+## 2. Boyun prangası
+
+Dört uzvunda halka olup boynu serbest kalan bir tutsak olmaz.
+Kanon dayanağı EK-A A.4 (hapsedildi). Halka kafa şerit
+kutusunun son satırında — sayı elle yazılmıyor, kutunun
+boyundan hesaplanıyor.
+
+**Bilek prangasından koyu**, ve bu ölçülerek karar verildi:
+bilek halkası iki satır (ışık + gölge), bu tek satır. Aynı
+parlak tonu tek satıra koyunca demir gibi değil **beyaz bir
+bant** gibi okunuyordu — ilk render'da yüzün altında atkı gibi
+duruyordu.
+
+## 3. Kırbaç izleri
+
+Sırtta vardı, bacaklarda ve gövdenin **yan** yüzlerinde yoktu;
+önden bakınca hasar gövde deseninden ibaret kalıyordu.
+
+Ön ve arkaya dokunulmadı: onların deseni `damar_ciz` ile ayrıca
+yazılıyor, üstüne iz basmak ikisini de bozar.
+
+İzler sözde-rastgele ama sabit. **Lineer bir ifade kullanılmadı**
+— `(i*3+j*5)%7` gibi bir şey kafes üretiyor ve bu depoda üç kez
+yaşandı (ağaç dokusu, aura sprite'ı, göz). Karıştırıcı hash.
+
+Seyreklik iki yönlü sınırlı: yoksa bacak bomboş, çok olursa
+giysi deseni gibi okunuyor.
+
+## 4. Test sıkılaştı, gevşemedi
+
+`skin_hasar.mjs` 4. bölümü eskiden tek şey ölçüyordu: "dört
+çekirdeğin dördü de GOZ renginde." Artık sağlam göz o kurala
+uyuyor **ve** yaralı göz altı ayrı şartla tutuluyor (sönmüş
+piksel, yarım piksel, taze yarık, sönük alt, sızıntı, konum).
+Aynı yerde üç kat daha fazla ölçüm var.
+
+Bir ölçüm noktası taşındı: "bir göz zehirli, öteki temiz"
+kontrolü gözün **üstündeki** saçak pikseline bakıyordu; yaralı
+gözde o pikselin üzerine artık yarık biniyor. Alta sızan ışığa
+taşındı — hem iki gözde de var, hem yaranın altında kalmıyor.
+
+Beş mutasyonun beşi de yakalandı:
+1. yaralı göz sağlama döndürüldü → düştü
+2. yarık tazelikten çıkarıldı (eski izlerle aynı ton) → düştü
+3. boyun prangası yarım bırakıldı → düştü
+4. kırbaç izleri kaldırıldı → düştü
+5. izler desen gibi yoğunlaştırıldı → düştü
+
+## 5. EK-A'ya yazılmadı — bilerek
+
+`LORE.md` EK-A'nın kuralı net: *"Buradaki her iddianın kaynak
+bağlantısı var. Bağlantısı olmayan bir şey buraya yazılmaz."*
+
+Yaralı göz **kullanıcının isteği**, wiki kanonunda yok. Boyun
+prangası ve kırbaç izleri A.4'teki hapsedilmeye dayanıyor ama
+onlar da wiki'de tek tek geçmiyor. Üçü de jeneratörün
+yorumlarında "kullanıcının isteği" olarak kayıtlı; kanon gibi
+gösterilmedi.
+
+O Şey ve kolsuz sürümler bu skinden türediği için hasarı
+kendiliğinden aldılar.
+
+91 testin 91'i geçiyor.
+
+---
+
 # v7.22.0 — Lazer menzili 21 → 24 blok
 
 Kullanıcı: *"Lazerin menzili kaçtı, kaç bloktu en son? Onu
