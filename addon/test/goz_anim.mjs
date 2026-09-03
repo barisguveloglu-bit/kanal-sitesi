@@ -1,4 +1,23 @@
 /* GOZ ANIMASYONU -- MEKANIZMA DENEMESI               v7.16
+   SONUC (v7.17): DENEME BASARISIZ, ANAHTAR KAPATILDI.
+
+   Kullanici v7.16.0'i oyunda denedi: "goz titremiyor". Yani
+   render denetleyici + doku dizisi + query.life_time yolu da
+   attachable uzerinde CALISMIYOR -- v5.3'teki "attachable
+   animasyonlari calismiyor" olcumunun yanina yazilan IKINCI
+   olculmus gercek.
+
+   Bu dosya SILINMEDI, cunku iki isi var:
+     1. Deneme kapaliyken ARTIGI kalmadigini kanitliyor
+        (asagidaki "DENEME KAPALI" bolumu).
+     2. Birisi ayni fikri tekrar denerse -- GOZ_ANIM_DENEME'ye
+        bir goz adi yazmak yeter -- eski kanitlarin hepsi
+        oldugu yerde duruyor ve yeniden calisiyor.
+
+   Hareket artik dokudan degil PARCACIKTAN geliyor: v7.17 goz
+   alevi (bkz. aura.mjs "GOZ ALEVI"). Parcaciklarin calistigini
+   kullanici oyunda gordu.
+
 
    ---- NEDEN DENEME, NEDEN TAM SURUM DEGIL ----
    Bu depoda v5.3'te OLCULMUS bir gercek var: ATTACHABLE
@@ -21,7 +40,7 @@
       gibi ziplar (ayni ders lazer varyantinda v4.73'te
       yazili).                                                */
 
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync, existsSync, readdirSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 
 const KOK = new URL("..", import.meta.url).pathname.replace(/\/$/, "");
@@ -45,11 +64,63 @@ const KARE = say("GOZ_ANIM_KARE");
 const HIZ = say("GOZ_ANIM_HIZ");
 const DENETIM = (/^GOZ_ANIM_DENETIM\s*=\s*"([^"]+)"/m.exec(URETEC) || [])[1];
 
-console.log("=== 1. DENEME TEK GOZDE, KALANLAR KONTROL GRUBU ===");
 const TUM = ["goz_beyaz", "goz_yesil", "goz_kirmizi", "goz_ates",
              "goz_kan", "goz_mavi", "goz_yildiz", "goz_element"];
+
+if (!DENEME) {
+  /* ---- DENEME KAPALI: ARTIK KALMAMIS OLMALI ----
+     Bir anahtari kapatmak yetmez; kapanmanin GERCEKTEN her
+     seyi geri aldigini olcmek gerekiyor. Uc ayri artik
+     birakabilirdi ve ucu de sessizce zarar verirdi:
+       - gozlerde olmayan bir denetleyiciye referans kalirsa
+         goz HIC CIZILMEZ (mor-siyah bile degil, yok)
+       - kare dokulari diskte kalirsa ekran kartinda bosuna
+         3 x 832x832 (~8 MB) yer tutar
+       - denetleyici dosyasi kalirsa bot.mjs'in izin listesi
+         onu gecirir ve kimse fark etmez                    */
+  console.log("=== DENEME KAPALI (v7.17): MEKANIZMA CALISMIYOR ===");
+  kontrol("anahtar kapali (GOZ_ANIM_DENEME = None)",
+          /^GOZ_ANIM_DENEME = None\s*$/m.test(URETEC));
+  /* Mekanizmanin KAYDI duruyor: bir daha denenmesin diye. */
+  kontrol("mekanizma kodu SILINMEMIS (basarisizligin kaydi)",
+          /def goz_anim_denetleyicisi\(\):/.test(URETEC) &&
+          /Array\.kareler/.test(URETEC));
+
+  let kotu = [], fazla = [], artikDoku = [];
+  for (const g of TUM) {
+    const d = oku(RP + "/attachables/" + g + ".json")["minecraft:attachable"].description;
+    if (d.render_controllers[0] !== "controller.render.armor") kotu.push(g);
+    if (Object.keys(d.textures).length !== 2) fazla.push(g);
+    for (let n = 1; n < 8; n++) {
+      if (existsSync(RP + "/textures/entity/" + g + "_k" + n + ".png")) {
+        artikDoku.push(g + "_k" + n);
+      }
+    }
+  }
+  kontrol("sekiz gozun sekizi de vanilla denetleyicide",
+          kotu.length === 0, kotu.join(", ") || TUM.length + " goz");
+  kontrol("hicbir gozde fazladan doku bildirimi yok",
+          fazla.length === 0, fazla.join(", ") || "default + enchanted");
+  kontrol("kare dokulari diskten SILINMIS",
+          artikDoku.length === 0, artikDoku.join(", ") || "artik yok");
+  kontrol("denetleyici dosyasi da silinmis",
+          !existsSync(RP + "/render_controllers/goz_anim.render_controllers.json"));
+
+  /* Yerini alan sey GERCEKTEN duruyor mu: hareket artik goz
+     alevi parcaciklarindan geliyor. Bu satir olmasaydi
+     "temizledik" demek "vazgectik" demek olurdu.           */
+  const alev = readdirSync(RP + "/particles")
+    .filter((f) => f.startsWith("aura_gozalev_"));
+  kontrol("yerini goz alevi parcaciklari aldi", alev.length === 8,
+          alev.length + " dosya");
+
+  console.log("");
+  console.log(hata ? ">>> SORUN VAR" : ">>> deneme kapali, artigi kalmamis");
+  process.exit(hata ? 1 : 0);
+}
+
+console.log("=== 1. DENEME TEK GOZDE, KALANLAR KONTROL GRUBU ===");
 {
-  kontrol("deneme bir goze bagli", !!DENEME, String(DENEME));
   kontrol("denenen goz gercek bir goz", TUM.includes(DENEME), DENEME);
   /* Tek satirla kapanabilmeli. */
   kontrol("tek anahtarla kapanabiliyor (GOZ_ANIM_DENEME = None)",

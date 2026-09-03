@@ -28,6 +28,15 @@ uzaktan NE KATTIGI goze gorunsun.
 2. Ondan da onceki denemede yaricapi ayrica 3 ile carpmistim;
    hale kafadan buyuk gorunuyordu.
 Ikisi de kodda degil OLCUMDEYDI. Bu depoda dorduncu kez.
+
+---- UCUNCU OLCUM HATASI (v7.17'de bulundu) ----
+Bu cizer zerreleri DAIRE ciziyordu (ImageDraw.ellipse). Yani
+sprite'in seklini hic gostermiyordu: doku ne olursa olsun
+onizlemede yuvarlak cikiyordu. Kullanici oyunda "baloncuk gibi
+duruyor" dedi ve onizleme buna hicbir zaman itiraz edemezdi --
+CUNKU KENDISI DE DAIRE CIZIYORDU. Simdi gercek doku okunuyor,
+gercek kare secilip gercek boyda ve gercek acida yapistiriliyor.
+Ders yine ayni: kusur olcumdeydi.
 """
 import json, math, os, random, sys
 from PIL import Image, ImageDraw, ImageChops
@@ -66,10 +75,36 @@ def karakter():
     b = t.resize((16 * O, 32 * O), Image.NEAREST)
     # Goz kaplamasi: kafanin on yuzu skinde (8,8)-(15,15),
     # kaplamada O katinda ayni yer. Tuvalde kafa (4,0).
-    goz = Image.open(RP + "/textures/entity/goz_element.png").convert("RGBA")
+    # DORDUNCU OLCUM HATASI (v7.17'de bulundu): burasi
+    # goz_element.png'yi ELLE aciyordu. GOZ degiskeni
+    # hesaplaniyor ama hic kullanilmiyordu -- yani hangi iksir
+    # istenirse istensin onizlemede ELEMENT gozu ciziliyordu.
+    goz = Image.open(RP + "/textures/entity/%s.png" % GOZ).convert("RGBA")
     kesit = goz.crop((8 * O, 8 * O, 16 * O, 16 * O))
     b.alpha_composite(kesit, (4 * O, 0))
     return b
+
+
+class _MolangMath:
+    """Molang'in math.* fonksiyonlari DERECE aliyor, radyan
+    degil (bedrock.dev/docs/stable/MoLang). Python'unki radyan.
+    Bu ayrimi cevirmeden benzetim yanlis sonuc verir -- goz
+    alevinin boy egrisi math.sin(t*180) ile yaziliyor."""
+    @staticmethod
+    def sin(d):
+        return math.sin(math.radians(d))
+
+    @staticmethod
+    def cos(d):
+        return math.cos(math.radians(d))
+
+    @staticmethod
+    def floor(v):
+        return math.floor(v)
+
+    @staticmethod
+    def abs(v):
+        return abs(v)
 
 
 def molang(ifade, r, yas, omur):
@@ -80,7 +115,7 @@ def molang(ifade, r, yas, omur):
         s = s.replace("variable.particle_random_%d" % i, repr(r[i - 1]))
     s = s.replace("variable.particle_age / variable.particle_lifetime",
                   repr(yas / omur if omur else 0))
-    return float(eval(s, {"__builtins__": {}}, {}))
+    return float(eval(s, {"__builtins__": {}}, {"math": _MolangMath}))
 
 
 def gradyan(g, t):
@@ -108,6 +143,7 @@ def zerreler(ad, tick_araligi, toplam_tick=90, tohum=11):
     surt = float(mot.get("linear_drag_coefficient", 0))
     bb = c["minecraft:particle_appearance_billboard"]
     grad = c["minecraft:particle_appearance_tinting"]["color"]["gradient"]
+    spin = c.get("minecraft:particle_initial_spin", {})
 
     rnd = random.Random(tohum)
     dt = 1 / 20.0
@@ -125,7 +161,10 @@ def zerreler(ad, tick_araligi, toplam_tick=90, tohum=11):
                 canli.append({"p": [yon[0] * rr, yon[1] * rr, yon[2] * rr],
                               "v": [yon[0] * h, yon[1] * h, yon[2] * h],
                               "r": r, "yas": 0.0,
-                              "omur": molang(omur_i, r, 0, 1)})
+                              "omur": molang(omur_i, r, 0, 1),
+                              "aci": molang(spin.get("rotation", 0), r, 0, 1),
+                              "aciv": molang(spin.get("rotation_rate", 0),
+                                             r, 0, 1)})
         yeni = []
         for z in canli:
             z["yas"] += dt
@@ -134,9 +173,77 @@ def zerreler(ad, tick_araligi, toplam_tick=90, tohum=11):
             for i in range(3):
                 z["v"][i] += (ivme[i] - surt * z["v"][i]) * dt
                 z["p"][i] += z["v"][i] * dt
+            z["aci"] += z["aciv"] * dt
             yeni.append(z)
         canli = yeni
     return canli, bb, grad
+
+
+ATLAS = None
+
+
+def _ayar(ad, varsayilan):
+    """Sayiyi ayarlar.js'ten OKUYOR. Elle yazilirsa onizleme
+    ile oyun sessizce ayrisir; bu depoda o hata dort kez oldu
+    ve dorttunde de kusur olcumdeydi."""
+    import re
+    kaynak = open("Simsek_TNT_ToprakTopu/scripts/ayarlar.js",
+                  encoding="utf-8").read()
+    m = re.search(r"export const %s = ([\d.]+);" % ad, kaynak)
+    return float(m.group(1)) if m else varsayilan
+
+
+def _goz_yerleri():
+    """Gozun skindeki satiri ve sutunlari ureteceten okunuyor
+    (GOZ_SATIR / GOZ_SUTUNLAR). v4.2 dersi: bu sayilar elle
+    kopyalanmaz."""
+    import re
+    kaynak = open("kol_uret.py", encoding="utf-8").read()
+    satir = int(re.search(r"^GOZ_SATIR\s*=\s*(\d+)", kaynak, re.M).group(1))
+    sut = re.search(r"^GOZ_SUTUNLAR\s*=\s*(\(.+?\))\s*$", kaynak, re.M).group(1)
+    return satir, eval(sut, {"__builtins__": {}}, {})
+
+
+def sprite(satir, kare, renk, en_px, boy_px, aci):
+    """Zerrenin GERCEK gorunusu: atlastan dogru hucre, tinting
+    ile renklendirilmis, gercek boya olceklenmis, gercek acida
+    dondurulmus.  v7.17 oncesi burasi daire ciziyordu."""
+    global ATLAS
+    if ATLAS is None:
+        ATLAS = Image.open(RP + "/textures/particle/iksir_aura.png").convert("RGBA")
+    H = 32
+    h = ATLAS.crop((kare * H, satir * H, kare * H + H, satir * H + H))
+    # particle_appearance_tinting: RGB de alfa da CARPILIYOR.
+    r, g, b, a = h.split()
+    h = Image.merge("RGBA", (
+        r.point(lambda v: int(v * max(0.0, min(1.0, renk[0])))),
+        g.point(lambda v: int(v * max(0.0, min(1.0, renk[1])))),
+        b.point(lambda v: int(v * max(0.0, min(1.0, renk[2])))),
+        a.point(lambda v: int(v * max(0.0, min(1.0, renk[3]))))))
+    en_px = max(1, int(round(en_px)))
+    boy_px = max(1, int(round(boy_px)))
+    h = h.resize((en_px, boy_px), Image.BICUBIC)
+    if abs(aci) > 0.5:
+        h = h.rotate(-aci, resample=Image.BICUBIC, expand=True)
+    return h
+
+
+def _ekle(hedef, s, px, py):
+    """particles_add = TOPLAMALI harman. alpha_composite
+    kullanilsaydi ust uste gelen zerreler birbirini ORTERDI;
+    oyunda toplaniyorlar ve toplanma tam da auranin parladigi
+    yer."""
+    x0 = int(px - s.width / 2.0)
+    y0 = int(py - s.height / 2.0)
+    if x0 + s.width <= 0 or y0 + s.height <= 0:
+        return
+    if x0 >= hedef.width or y0 >= hedef.height:
+        return
+    tile = Image.new("RGB", s.size, (0, 0, 0))
+    tile.paste(s.convert("RGB"), (0, 0), s)
+    kutu = (x0, y0, x0 + s.width, y0 + s.height)
+    bolge = hedef.crop(kutu)
+    hedef.paste(ImageChops.add(bolge, tile), (x0, y0))
 
 
 def sahne(aura=True):
@@ -149,31 +256,53 @@ def sahne(aura=True):
     im = Image.alpha_composite(im.convert("RGBA"), taban).convert("RGB")
     if not aura:
         return im
+
     # Kafanin ORTASI: tuvalde kafa (4,0)-(11,7) MC pikseli
     hx = kx + int(8 * O)
     hy = ky + int(4 * O)
-    kat = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    kd = ImageDraw.Draw(kat, "RGBA")
-    for ad, aralik in (("aura_hale_" + IKSIR, 14), ("aura_kor_" + IKSIR, 6)):
-        canli, bb, grad = zerreler(ad, aralik)
-        for z in canli:
-            o = z["yas"] / z["omur"]
-            renk = gradyan(grad, o)
-            boy = molang(bb["size"][0], z["r"], z["yas"], z["omur"])
-            # AURA_KAFA_Y = 0.32 blok yukaridan cikiyor
-            px = hx + z["p"][0] * BLOK
-            py = hy - (z["p"][1] + 0.32) * BLOK
-            # size = zerrenin BLOK cinsinden GENISLIGI, yaricapi
-            # degil. Ilk cizimde yaricap olarak kullandim ve
-            # zerreler iki kat buyuk cikti (plaj topu gibi).
-            rad = max(0.6, boy * BLOK / 2.0)
-            a = int(255 * max(0.0, min(1.0, renk[3])))
-            kd.ellipse([px - rad, py - rad, px + rad, py + rad],
-                       fill=(int(renk[0] * 255), int(renk[1] * 255),
-                             int(renk[2] * 255), a))
-    kat_rgb = Image.new("RGB", (W, H), (0, 0, 0))
-    kat_rgb.paste(kat.convert("RGB"), (0, 0), kat)
-    return ImageChops.add(im, kat_rgb)          # particles_add
+    kafa_y = _ayar("AURA_KAFA_Y", 0.32)
+
+    # Gozlerin tuvaldeki yeri. Yuz skinde 8. sutundan basliyor,
+    # tuvalde 4. MC pikselinde -- yani kayma 4-8 = -4.
+    goz_satir, goz_sutunlar = _goz_yerleri()
+    alev_y = _ayar("GOZ_ALEV_Y", 0.10)
+    goz_capa = []
+    for (s1, s2) in goz_sutunlar:
+        gx = kx + ((s1 + s2 + 1) / 2.0 - 4) * O
+        gy = ky + (goz_satir - 8 + 0.5) * O - alev_y * BLOK
+        goz_capa.append((gx, gy))
+
+    kat = Image.new("RGB", (W, H), (0, 0, 0))
+    # (parcacik, kac tick'te bir, capalar, yukseklik kaymasi)
+    for ad, aralik, capalar, kayma in (
+            ("aura_hale_" + IKSIR, 14, [(hx, hy)], kafa_y),
+            ("aura_kor_" + IKSIR, 6, [(hx, hy)], kafa_y),
+            ("aura_gozalev_" + IKSIR,
+             int(_ayar("GOZ_ALEV_ARALIK", 4)), goz_capa, 0.0)):
+        yol = RP + "/particles/%s.particle.json" % ad
+        if not os.path.exists(yol):
+            continue
+        for i, (cx, cy) in enumerate(capalar):
+            # Her capa AYRI tohum: iki goz ayni alevi yakmasin.
+            canli, bb, grad = zerreler(ad, aralik, tohum=11 + i * 97)
+            satir = bb["uv"]["flipbook"]["base_UV"][1] // 32
+            for z in canli:
+                o = z["yas"] / z["omur"]
+                renk = gradyan(grad, o)
+                en = molang(bb["size"][0], z["r"], z["yas"], z["omur"])
+                boy = molang(bb["size"][1], z["r"], z["yas"], z["omur"])
+                if en <= 0 or boy <= 0:
+                    continue
+                # size = zerrenin BLOK cinsinden TAM olcusu
+                # (bedrock.dev: "the x/y size of the billboard"),
+                # yaricapi degil. Ilk cizimde yaricap sandim ve
+                # zerreler iki kat buyuk cikti.
+                s = sprite(satir, min(3, int(o * 4)), renk,
+                           en * BLOK, boy * BLOK, z["aci"])
+                _ekle(kat, s,
+                      cx + z["p"][0] * BLOK,
+                      cy - (z["p"][1] + kayma) * BLOK)
+    return ImageChops.add(im, kat)          # particles_add
 
 
 def main():

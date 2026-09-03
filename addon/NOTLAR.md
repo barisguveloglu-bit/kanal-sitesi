@@ -1,3 +1,127 @@
+# v7.17.0 — Göz alevi: parçacıkla, ve auranın şekli düzeldi
+
+Kullanıcı v7.16.0'ı oyunda denedi. İki şey söyledi:
+
+> "göğüs titremiyor ama etrafında böyle küçük baloncuklar
+> oluşuyor... hani gözün üstündeki o Ateş vari şeyler var ya,
+> alev de bir büyüyor bir küçülüyor, biraz animasyonu var ya,
+> onun gibi bir animasyona sahip olsun"
+
+Yani: **göz animasyonu denemesi başarısız** (v7.16), ama
+**parçacıklar çalışıyor** (v7.15). Bu sürüm ikisinin sonucu.
+
+## 1. Göz animasyonu denemesi kapatıldı
+
+`GOZ_ANIM_DENEME = None`. Render denetleyici + doku dizisi +
+`query.life_time` yolu da attachable üzerinde **çalışmıyor**.
+Bu, v5.3'teki "attachable animasyonları çalışmıyor"
+ölçümünün yanına yazılan **ikinci ölçülmüş gerçek**.
+
+Deneme tam da bunun için ucuz tasarlanmıştı (3 dosya, tek göz,
+kare 0 = bugünkü doku) ve tasarım işe yaradı: cevap öğrenildi,
+hiçbir şey gerilemedi. Kod **silinmedi** — başarısızlığın
+kaydı değerli, birisi aynı fikri tekrar denemesin diye
+mekanizma ve ölçüm `kol_uret.py`'de duruyor.
+
+Anahtarı kapatmak üç şeyi birden geri aldı: denetleyici
+dosyası yazılmıyor, kare dokuları üretilmiyor (3 × 832×832,
+ekran kartında ~8 MB), gözler vanilla `controller.render.armor`
+yoluna döndü. `goz_anim.mjs` artık **kapalı hâli** ölçüyor:
+artık doku yok, artık dosya yok, sekiz gözün sekizi de vanilla.
+
+## 2. Sprite artık alev, baloncuk değil
+
+v7.15'in `kor` sprite'ı **merkezden uzaklığa** göre çiziliyordu
+(`d = sqrt(dx² + dy²)`) — yani tanım gereği bir **daire**.
+Daire ne kadar yumuşatılırsa yumuşatılsın baloncuktur.
+
+Yeni `_alev_dili()` üç şeyi yapıyor:
+- ucu yukarıda ve **sivri**, karnı aşağıda ve geniş
+- kenarı satır satır **titrek** (piksel piksel değil — piksel
+  bazında kırık çıkıyordu)
+- ucu **yatık ve kıvrık**, ve yatıklık her karede değişiyor
+
+Ayrıca iki ayar hatası düzeldi:
+- **Takla yoktu artık.** Eskiden `rotation` 0–360 ve saniyede
+  260 derece dönüş vardı; dönen bir şekil ne olursa olsun
+  yuvarlak okunuyor. `face_camera_mode` da `lookat_y` oldu:
+  yukarıdan bakınca alev yan yatmıyor.
+- **Boyut.** Eskisi 0.035–0.08 blok genişlikti; bir blok 16 MC
+  pikseli, yani zerreler 0.6–1.3 piksel genişliğindeydi.
+  Kullanıcının "küçük baloncuklar"ı buydu. Şimdi 0.13–0.21,
+  ve kare değil dikdörtgen (alev boyuna uzar).
+
+Ölü `kul` satırı (hiçbir parçacık kullanmıyordu) yerini
+`alev` satırına bıraktı — doku 128×128 kaldı.
+
+## 3. Göz alevi (yeni)
+
+`pa:aura_gozalev_<iksir>` — sekiz iksir için sekiz dosya.
+İki alev, iki gözün **tam önünde**. Konum kafanın konumundan
+ve **bakış yönünden** hesaplanıyor, yani oyuncu dönünce
+alevler de dönüyor.
+
+Kullanıcının istediği "bir büyüyor bir küçülüyor" iki
+kaynaktan geliyor, üst üste:
+1. Boy eğrisi `math.sin(t · 180)`: zerre yoktan doğuyor,
+   ömrünün **ortasında** en büyük, sonra yoktan kayboluyor.
+   (Molang'ın `math.sin`'i **derece** alıyor, radyan değil.)
+2. Dokunun 4 karesi: dil kısalıyor ve ucu her karede başka
+   yana yatıyor.
+
+Sürtünme 3.4 (kafa aurasında 2.2): zerre fırlayıp neredeyse
+anında duruyor, yani alev gözden kopup gitmiyor.
+
+**Birinci şahısta:** `spawnParticle` parçacığı herkese çizer,
+"yalnız başkaları görsün" seçeneği yok. Kendi ekranında da,
+görüşünün üst kenarında hafif bir parlama olacak.
+`GOZ_ALEV_Y = 0.10` bu yüzden var (alevler göz hizasının biraz
+üstünde, ekranın ortasında değil). Rahatsız ederse
+`GOZ_ALEV_ACIK = false` tek anahtar.
+
+## 4. Önizleyicideki iki ölçüm hatası
+
+`onizle_aura.py` zerreleri **daire** çiziyordu
+(`ImageDraw.ellipse`) — yani sprite'ın şeklini hiç
+göstermiyordu. Kullanıcı oyunda "baloncuk gibi duruyor" dedi
+ve önizleme buna hiçbir zaman itiraz edemezdi, çünkü kendisi
+de daire çiziyordu. Artık gerçek doku okunuyor, gerçek kare
+seçilip gerçek boyda ve gerçek açıda yapıştırılıyor, ve
+harman toplamalı (`particles_add`).
+
+İkincisi: `karakter()` göz kaplaması olarak
+`goz_element.png`'yi **elle** açıyordu. `GOZ` değişkeni
+hesaplanıyor ama hiç kullanılmıyordu — hangi iksir istenirse
+istensin önizlemede element gözü çiziliyordu.
+
+Bu depoda **dördüncü ve beşinci** kez: kusur kodda değil
+ölçümdeydi.
+
+## 5. Testler
+
+`aura.mjs` 388 → 500+ satır. Yeni bölüm **5b**: sprite'ın
+şekli **ölçülüyor** (boy > en, karın alt yarıda, uç 1–3
+piksel). Bir daire üçünde de düşüyor.
+
+Yedi mutasyonun yedisi de yakalandı:
+1. `kor` sprite'ı daireye geri döndürüldü → 5b düştü
+2. bakış yönü yok sayıldı → "alevler yüzün önünde" düştü
+3. iki göz aynı yere kondu → "iki ayrı göz var" düştü
+4. `gozAleviAt` çağrısı silindi → "göz alevi gerçekten
+   çıkıyor" düştü (metin araması bunu yakalayamazdı —
+   fonksiyon tanımı hâlâ orada)
+5. artık kare dokusu geri kondu → `goz_anim.mjs` düştü
+6. `lookat_y` → `rotate_xyz` → billboard testi düştü
+7. `math.sin` eğrisi düz eğriyle değiştirildi → düştü
+
+Dosya sayıları artık **elle yazılmıyor**: iksir sayısı × tür
+sayısı. v7.17'de dördüncü tür gelince elle yazılmış "24" iki
+ayrı yerde bayatladı.
+
+91 testin 91'i geçiyor.
+
+---
+
 # v7.16.0 — Göz animasyonu: mekanizma denemesi
 
 Parçacık bittiğine göre sıra kendi koyduğum adımda: **128 doku üretmeden

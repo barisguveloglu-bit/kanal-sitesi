@@ -9,7 +9,9 @@ import { KADEMELER, IKSIR_TAZELEME, IKSIR_ONEK,
   PARLAMA_ACIK, PARLAMA_GIRIS, PARLAMA_TUT, PARLAMA_CIKIS,
   IKSIR_LAZERI_SEC, NITROKSIN_DUSME_BAGISIK,
   AURA_ACIK, AURA_ONEK, AURA_ARALIK, AURA_HALE_ARALIK,
-  AURA_KAFA_Y, AURA_PATLAMA_Y
+  AURA_KAFA_Y, AURA_PATLAMA_Y,
+  GOZ_ALEV_ACIK, GOZ_ALEV_ARALIK, GOZ_ALEV_ON, GOZ_ALEV_YAN,
+  GOZ_ALEV_Y
 } from "../ayarlar.js";
 
 /* ============================================================
@@ -435,6 +437,44 @@ export function auraPatlat(oyuncu, kademe) {
   return auraAt(oyuncu, kademe, "patlama", AURA_PATLAMA_Y);
 }
 
+/* ---- GOZ ALEVI (v7.17) ----
+
+   Iki alev, iki gozun TAM ONUNDE. Konum kafanin konumundan
+   ve BAKIS YONUNDEN hesaplaniyor -- oyuncu donunce alevler de
+   donuyor, yoksa adam saga bakarken alevler onunde havada
+   asili kalirdi.
+
+   Yan vektor: ileri (yatay) x yukari.  ileri = (ix, 0, iz)
+   ise yan = (iz, 0, -ix).  Hangisi sag hangisi sol onemli
+   degil -- iki alev SIMETRIK konuyor, +yan ve -yan.
+
+   Tam yukari/asagi bakarken yatay bilesen sifira gidiyor ve
+   "on" diye bir yon kalmiyor; o karede cizmiyoruz. Boluyu
+   sifira bolmekten de bu koruyor.                          */
+function gozAleviAt(oyuncu, kademe) {
+  if (!AURA_ACIK || !GOZ_ALEV_ACIK) return false;
+  try {
+    const bas = oyuncu.getHeadLocation();
+    const bak = oyuncu.getViewDirection();
+    const yatay = Math.sqrt(bak.x * bak.x + bak.z * bak.z);
+    if (!(yatay > 0.05)) return false;
+    const ix = bak.x / yatay, iz = bak.z / yatay;
+    const sx = iz, sz = -ix;
+    const ad = AURA_ONEK + "gozalev_" + kademe.kimlik;
+    for (const yon of [-1, 1]) {
+      parcacikAt(oyuncu.dimension, ad, {
+        x: bas.x + ix * GOZ_ALEV_ON + sx * GOZ_ALEV_YAN * yon,
+        y: bas.y + GOZ_ALEV_Y,
+        z: bas.z + iz * GOZ_ALEV_ON + sz * GOZ_ALEV_YAN * yon
+      });
+    }
+    return true;
+  } catch (e) {
+    hataYaz("aura.gozalev", e);
+    return false;
+  }
+}
+
 export function iksirTara(oyuncular) {
   if (durumlar.size === 0) return;
 
@@ -470,6 +510,9 @@ export function iksirTara(oyuncular) {
     if (simdi % AURA_HALE_ARALIK === 0) {
       auraAt(oyuncu, d.kademe, "hale", AURA_KAFA_Y);
     }
+    /* Goz alevi en sik olani: gozun onunde KESIKSIZ yanmasi
+       gerekiyor, yoksa alev degil kivilcim gorunuyor. */
+    if (simdi % GOZ_ALEV_ARALIK === 0) gozAleviAt(oyuncu, d.kademe);
 
     if (simdi < d.sonrakiTazeleme) continue;
     d.sonrakiTazeleme = simdi + IKSIR_TAZELEME;

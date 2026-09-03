@@ -102,7 +102,7 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # tureniyor -- ayrisabilecekleri bir yer kalmadi.
 #
 # YENI SURUM CIKARIRKEN: yalnizca asagidaki satiri degistir.
-SURUM_NO = (7, 16, 0)
+SURUM_NO = (7, 17, 0)
 
 SURUM_METIN = "%d.%d.%d" % SURUM_NO
 SURUM_ETIKET = "v" + SURUM_METIN
@@ -942,8 +942,28 @@ def goz_lazer_denetleyicisi():
 #  controller.render.armor'un buyulenmis parlamasi (glint).
 #  Goz kaplamasi buyulenebilir bir esya degil; kaybi yok.
 # ============================================================
-# Hangi goz denenecek. None -> deneme kapali, hicbir sey degismez.
-GOZ_ANIM_DENEME = "goz_ates"
+# ---- SONUC: DENEME BASARISIZ, KAPATILDI (v7.17) ----
+# Kullanici v7.16.0'i oyunda denedi: "goz titremiyor". Yani
+# render denetleyici + doku dizisi + query.life_time yolu da
+# attachable uzerinde CALISMIYOR. Bu, v5.3'teki "attachable
+# animasyonlari calismiyor" olcumunun yanina yazilan IKINCI
+# olculmus gercek.
+#
+# Deneme tam da bunun icin ucuz tasarlanmisti (3 dosya, tek
+# goz, kare 0 = bugunku doku) ve tasarim ise yaradi: cevap
+# ogrenildi, hicbir sey gerilemedi.
+#
+# Anahtar simdi None. Kod SILINMEDI, cunku basarisizligin
+# KAYDI degerli: birisi ayni fikri tekrar denemesin diye
+# mekanizma ve olcum burada duruyor. None yapmak uc seyi
+# birden geri aliyor -- denetleyici dosyasi yazilmiyor, kare
+# dokulari uretilmiyor (3 x 832x832, ekran kartinda ~8 MB),
+# ve gozler vanilla controller.render.armor'a donuyor.
+#
+# Hareket artik dokudan degil PARCACIKtan geliyor: v7.17
+# "goz alevi" (bkz. aura_gozalev). Parcaciklarin calistigini
+# kullanici oyunda gordu.
+GOZ_ANIM_DENEME = None
 GOZ_ANIM_KARE = 4              # kare 0 bugunku doku
 GOZ_ANIM_HIZ = 9               # saniyede kac kare
 GOZ_ANIM_DENETIM = "controller.render.simsek_goz_anim"
@@ -6639,9 +6659,13 @@ def dismont_kurali():
 AURA_DOKU = "iksir_aura"
 AURA_DOKU_BOY = 128           # 4x4 hucre, her hucre 32x32
 AURA_HUCRE = 32
-# Satirlar: 0 kor, 1 hale, 2 kivilcim, 3 kul. Her satir 4
+# Satirlar: 0 kor, 1 hale, 2 kivilcim, 3 alev. Her satir 4
 # karelik bir animasyon (flipbook step_UV [32,0]).
-AURA_SATIR = {"kor": 0, "hale": 1, "kivilcim": 2, "kul": 3}
+# v7.17: 3. satir "kul"du ama OLU idi -- hicbir parcacik
+# _aura_uv("kul") cagirmiyordu. Yerini goz alevi aldi; doku
+# 128x128 (ikinin kuvveti) kaldi, dort satirin dordu de
+# kullaniliyor.
+AURA_SATIR = {"kor": 0, "hale": 1, "kivilcim": 2, "alev": 3}
 
 
 def _aura_zar(x, y, tuz):
@@ -6650,6 +6674,108 @@ def _aura_zar(x, y, tuz):
     h = (x * 374761393 + y * 668265263 + tuz * 2246822519) & 0xFFFFFFFF
     h = (h ^ (h >> 13)) * 1274126177 & 0xFFFFFFFF
     return (h ^ (h >> 16)) & 0xFF
+
+
+def _alev_dili(p, hx, hy, kare, uc_ust, karin_en, egim, tuz,
+               parlak=1.0, kare_sayi=4):
+    """ALEV DILI. Bir hucreye tek bir alev dili cizer.
+
+    ---- NEDEN YUVARLAK DEGIL (v7.17) ----
+    Kullanicinin oyundaki sozu: "etrafinda boyle kucuk
+    baloncuklar olusuyor... alev gibi degil". v7.15'te kor
+    sprite'i MERKEZDEN UZAKLIGA gore ciziliyordu (d = sqrt(...)),
+    yani tanim geregi bir DAIRE. Daire ne kadar yumusatilirsa
+    yumusatilsin baloncuktur; alevi alev yapan sey yuvarlaklik
+    degil, ASIMETRI:
+      - ucu yukarida ve SIVRI, karni asagida ve GENIS
+      - kenari duz degil TITREK
+      - uc bir yana YATIK, ve o yatiklik karelerde degisiyor
+    Ucu de sondurmek gerekiyor: alevin ucu saydamdir, orasi
+    doldurulursa sivrilik kayboluyor ve sekil damlaya donuyor.
+
+    ---- KAREler ----
+    kare 0 taze, kare 3 sonmek uzere. stretch_to_lifetime ile
+    bu dortlu zerrenin OMRUNE yayiliyor: her zerre dogar,
+    yukselir, kisalir, soner.  Kullanicinin istedigi "bir
+    buyuyup bir kuculme" iki yerden geliyor -- buradaki sekil
+    ve billboard'daki boy egrisi.
+    """
+    O = AURA_HUCRE
+    m = (O - 1) / 2.0
+    o = kare / float(kare_sayi - 1)          # 0 taze .. 1 sonuyor
+    yt = O * (uc_ust + 0.34 * o)             # uc asagi cekiliyor
+    yc = O * 0.72                            # karin: hep ayni yerde
+    R = O * karin_en * (1.0 - 0.36 * o)
+    if yc - yt < 2.0 or R < 1.0:
+        return
+    solma = (1.0, 0.94, 0.78, 0.52)[min(kare, 3)]
+    # Ucun hangi yana yattigi: kareden kareye degisiyor, yani
+    # tek bir zerre bile omru boyunca SALINIYOR.
+    yon = math.sin(kare * 2.1 + tuz * 0.37)
+    # Ikinci, daha DAR bir yatiklik: yalniz en uc kisma etki
+    # ediyor ve ters yone gidebiliyor. Tek yatiklikla dilin
+    # bir kenari DUZ bir diyagonal cikiyordu -- kagit kulahi
+    # gibi. Iki yatiklik ust uste gelince uc KIVRILIYOR.
+    kivrim = math.sin(kare * 3.7 + tuz * 0.91 + 1.3)
+
+    for y in range(O):
+        if y < yt:
+            continue
+        if y >= yc:
+            k = (y - yc) / R
+            if k > 1.0:
+                break
+            w = R * (1.0 - k * k) ** 0.5     # yuvarlak taban
+        else:
+            u = (y - yt) / (yc - yt)
+            w = R * u ** 1.25                # SIVRI uc
+        # Kenar titremesi SATIR SATIR, piksel piksel degil:
+        # piksel bazinda yapilsaydi kenar kirik/gurultulu
+        # cikardi, satir bazinda TITREK cikiyor.
+        # Gurultu INCE satirlarda kisiliyor: 1 piksel genisligindeki
+        # bir satira %20 gurultu vurunca satir tamamen kayboluyor
+        # ve ucta birbirine degmeyen tek pikseller kaliyor.
+        w *= 1.0 + 0.20 * min(1.0, w / 2.5) * \
+            (_aura_zar(y, kare, tuz) / 255.0 - 0.5)
+        if w < 0.34:
+            continue
+        # Yatiklik yalniz UCTA: taban yerinde duruyor.
+        yatik = max(0.0, (yc - y) / max(1.0, yc - yt))
+        cx = (m
+              + egim * O * (yatik ** 1.8) * yon
+              + egim * O * 0.5 * (yatik ** 3.4) * kivrim)
+        # Orta cizginin kendisi de titriyor -- ve yalniz ust
+        # tarafta. Genislik gurultusu iki kenari BIRLIKTE
+        # oynatiyor (dil sismanlayip zayifliyor); bu ise
+        # kenarlari AYRI oynatiyor, alevin savrulmasi bu.
+        sallanma = (_aura_zar(y, kare + 8, tuz + 3) / 255.0 - 0.5) * \
+            O * 0.10 * yatik
+        # SINIR: kayma satirin kendi yarim genisligini gecerse
+        # ust uste gelen iki satir birbirinden KOPUYOR ve uc
+        # birbirine degmeyen tek piksellere donusuyor (ilk
+        # cizimde tam bu oldu -- merdiven gibi noktalar).
+        sallanma = max(-w * 0.6, min(w * 0.6, sallanma))
+        cx += sallanma
+
+        for x in range(max(0, int(cx - w)), min(O, int(cx + w) + 2)):
+            q = abs(x - cx) / w
+            if q > 1.0:
+                continue
+            # Cekirdek DAR, sonme GENIS. Genis bir cekirdek
+            # (v7.17'nin ilk cizimi 0.42 idi) beyaz bir leke
+            # gibi duruyordu; alevin parlak yeri incedir.
+            if q <= 0.30:                    # sicak cekirdek
+                a, g = 255.0, 255
+            else:
+                t = (q - 0.30) / 0.70
+                a = 255.0 * (1.0 - t) ** 1.05
+                g = int(255 - 96 * t)
+            # Uca dogru sonme -- alevin ucu saydamdir.
+            a *= min(1.0, 0.28 + (y - yt) / max(1.0, O * 0.22))
+            a = int(a * solma * parlak)
+            if a <= 0:
+                continue
+            p[(hx + x, hy + y)] = (g, g, g, min(255, a))
 
 
 def _aura_sprite(p, hx, hy, tur, kare):
@@ -6661,39 +6787,43 @@ def _aura_sprite(p, hx, hy, tur, kare):
     o = kare / 3.0                      # 0 taze, 1 sonmus
 
     if tur == "kor":
-        # Sicak cekirdek + duzensiz kenar. Sonerken cekirdek
-        # kuculuyor, kenar dagiliyor.
-        cekirdek = O * (0.30 - 0.18 * o)
-        dis = O * (0.44 - 0.10 * o)
-        for y in range(O):
-            for x in range(O):
-                d = ((x - m) ** 2 + (y - m) ** 2) ** 0.5
-                gurultu = (_aura_zar(x // 2, y // 2, 7 + kare) / 255.0 - 0.5) * O * 0.10
-                dd = d + gurultu
-                if dd > dis:
-                    continue
-                if dd <= cekirdek:
-                    a, g = 255, 255
-                else:
-                    t = (dd - cekirdek) / max(0.001, dis - cekirdek)
-                    a = int(255 * (1 - t) ** 1.5)
-                    g = int(255 * (1 - 0.45 * t))
-                p[(hx + x, hy + y)] = (g, g, g, max(0, min(255, a)))
+        # Auranin ana parcasi: kafadan yukselen alev dilleri.
+        # v7.15'te daireydi -> baloncuk gorunuyordu.
+        _alev_dili(p, hx, hy, kare, uc_ust=0.10, karin_en=0.28,
+                   egim=0.16, tuz=7)
+
+    elif tur == "alev":
+        # GOZ ALEVI (v7.17): daha sivri, daha yatik, daha
+        # parlak. Goz ONUNDE duruyor ve kucuk cikiyor, o yuzden
+        # siluetin kuvvetli olmasi gerekiyor.
+        _alev_dili(p, hx, hy, kare, uc_ust=0.03, karin_en=0.21,
+                   egim=0.18, tuz=53, parlak=1.0)
 
     elif tur == "hale":
-        # Yumusak kure, nefes alir gibi buyuyup kuculuyor.
-        yari = O * (0.34 + 0.08 * math.sin(kare / 4.0 * 2 * math.pi))
+        # Puslu bir TUTAM -- kure degil. Kure de baloncuk
+        # gorunuyordu; bu yukari dogru inceliyor ve kenari
+        # duzensiz.
+        yari_x = O * (0.19 + 0.03 * math.sin(kare / 4.0 * 2 * math.pi))
+        yari_y = yari_x * 1.75
+        cy = m + O * 0.06
         for y in range(O):
             for x in range(O):
-                d = ((x - m) ** 2 + (y - m) ** 2) ** 0.5
-                if d > yari:
+                # Yukari dogru daralma: ust yariya dogru x
+                # olcegi buyuyor, yani sekil inceliyor.
+                daral = 1.0 + max(0.0, (cy - y) / yari_y) * 1.10
+                dx = (x - m) * daral / yari_x
+                dy = (y - cy) / yari_y
+                d = (dx * dx + dy * dy) ** 0.5
+                if d > 1.0:
                     continue
-                a = int(190 * (1 - d / yari) ** 2.2)
+                gurultu = (_aura_zar(x // 2, y // 2, 91 + kare) / 255.0
+                           - 0.5) * 0.16
+                a = int(175 * max(0.0, 1.0 - d - gurultu) ** 2.0)
                 if a <= 0:
                     continue
                 p[(hx + x, hy + y)] = (255, 255, 255, a)
 
-    elif tur == "kivilcim":
+    else:  # kivilcim
         # Dikey cizgi. Karelerde UZUYOR, sonra ortasindan
         # kopuyor -- ates kivilcimi boyle davraniyor.
         uzun = O * (0.18 + 0.24 * o)
@@ -6712,18 +6842,6 @@ def _aura_sprite(p, hx, hy, tur, kare):
                     continue
                 p[(hx + x, hy + y)] = (255, 255, 255, a)
 
-    else:  # kul
-        # Duzensiz, kucuk, donuk pul. Isik vermiyor.
-        yari = O * (0.17 - 0.05 * o)
-        for y in range(O):
-            for x in range(O):
-                d = ((x - m) ** 2 + (y - m) ** 2) ** 0.5
-                gurultu = (_aura_zar(x, y, 31 + kare) / 255.0 - 0.5) * O * 0.14
-                if d + gurultu > yari:
-                    continue
-                g = 150 + _aura_zar(x, y, 61) % 60
-                p[(hx + x, hy + y)] = (g, g, g, int(150 * (1 - o * 0.6)))
-
 
 def aura_dokusu():
     """128x128, 4 satir x 4 kare. Gri tonlu -- renk tinting'den."""
@@ -6739,19 +6857,25 @@ def _aura_renk(renk, alfa):
             round(renk[2] / 255.0, 4), round(alfa, 4)]
 
 
-def _aura_gradyan(renkler):
+def _aura_gradyan(renkler, koyulma=0.32):
     """Omur boyunca renk. Sicak beyaz -> iksir rengi -> (varsa
     ikinci renk) -> sonme. Zerre dogdugu anda en sicak, sonra
-    rengini aliyor, sonra sonuyor. Alev boyle davranir."""
+    rengini aliyor, sonra sonuyor. Alev boyle davranir.
+
+    koyulma: olurken rengin ne kadar KARARDIGI. Kafa aurasinda
+    0.32 (kul gibi kararip sonuyor). Goz alevinde 0.85 -- o
+    zerreler kucuk ve kisa omurlu, kararirlarsa gozun oldugu
+    yerde bir an kirli bir leke birakiyorlar; onlar RENGINI
+    KORUYARAK saydamlasiyor."""
     ilk = tuple(renkler[0])
     beyaz = tuple(min(255, int(c + (255 - c) * 0.75)) for c in ilk)
     g = {"0.0": _aura_renk(beyaz, 1.0), "0.18": _aura_renk(ilk, 1.0)}
     if len(renkler) > 1 and tuple(renkler[1]) != ilk:
         g["0.55"] = _aura_renk(tuple(renkler[1]), 0.92)
-        koyu = tuple(int(c * 0.32) for c in renkler[1])
+        koyu = tuple(int(c * koyulma) for c in renkler[1])
     else:
         g["0.55"] = _aura_renk(ilk, 0.92)
-        koyu = tuple(int(c * 0.32) for c in ilk)
+        koyu = tuple(int(c * koyulma) for c in ilk)
     g["0.82"] = _aura_renk(koyu, 0.5)
     g["1.0"] = _aura_renk(koyu, 0.0)
     return g
@@ -6805,13 +6929,26 @@ def aura_kor(kimlik, renkler):
         "minecraft:emitter_rate_instant": {"num_particles": 7},
         "minecraft:emitter_lifetime_once": {"active_time": 0.25},
         "minecraft:emitter_shape_sphere": {
-            "offset": [0, 0, 0], "radius": 0.30,
+            # 0.30'du: zerreler kafanin YANINDAN da cikiyordu
+            # ve onizlemede aura kafayi degil etrafindaki havayi
+            # doldurmus gibi duruyordu.
+            "offset": [0, 0, 0], "radius": 0.22,
             "surface_only": False, "direction": "outwards"},
         "minecraft:particle_initial_speed":
             "0.25 + variable.particle_random_1 * 0.45",
+        # v7.17: TAKLA YOK. Eskiden rotation 0-360 ve saniyede
+        # 260 derece donus vardi; donen bir sekil ne olursa
+        # olsun yuvarlak okunuyor -- kullanicinin gordugu
+        # "baloncuk" buydu. Alev dilinin YUKARI bakmasi sart,
+        # o yuzden yalniz hafif bir yalpa kaldi.
+        # Yalpa KUCUK. Ilk denemede +-13 derece baslangic ve
+        # saniyede +-17 derece donus vardi; 1.75 saniyelik bir
+        # zerre 43 dereceye kadar yatiyordu ve onizlemede
+        # alevler yagmur gibi EGIK CIZGILER halinde cikti.
+        # Ates yatmaz, salinir.
         "minecraft:particle_initial_spin": {
-            "rotation": "variable.particle_random_2 * 360",
-            "rotation_rate": "(variable.particle_random_3 - 0.5) * 260"},
+            "rotation": "(variable.particle_random_2 - 0.5) * 16",
+            "rotation_rate": "(variable.particle_random_3 - 0.5) * 14"},
         "minecraft:particle_lifetime_expression": {
             "max_lifetime": "0.85 + variable.particle_random_4 * 0.9"},
         "minecraft:particle_motion_dynamic": {
@@ -6821,12 +6958,29 @@ def aura_kor(kimlik, renkler):
             "linear_drag_coefficient": 2.2,
             "rotation_drag_coefficient": 0.9},
         "minecraft:particle_appearance_billboard": {
-            # Boy omur boyunca KUCULUYOR, her zerre farkli
-            # buyuklukte doguyor.
+            # v7.17 -- iki degisiklik, ikisi de kullanicinin
+            # "kucuk baloncuklar" sikayetinden:
+            #  1. BOYUT. Eskisi 0.035-0.08 BLOK genislikti; bir
+            #     blok 16 MC pikseli, yani zerreler 0.6-1.3
+            #     piksel genisligindeydi. Kafa 0.5 blok. Simdi
+            #     0.11-0.18 -- hala kafanin ucte birinden kucuk.
+            #  2. KARE DEGIL DIKDORTGEN. Alev dili enine degil
+            #     boyuna uzar; yukseklik genisligin ~1.9 kati.
+            #     Kare bir tuvale cizilen alev, dili
+            #     kisaltmadan sigmaz.
+            #  ORAN. Dis olcu 1.9 kat uzundu ama dokudaki dil
+            #  zaten hucrenin ~%56 eninde ve ~%90 boyunda; ikisi
+            #  carpilinca gorunen alev 3 kat uzun cikiyordu --
+            #  alev degil KIVILCIM IZI. Dis oran 1.38'e indi,
+            #  gorunen oran ~2.2 oldu.
             "size": [
-                "(0.035 + variable.particle_random_1 * 0.045) * (1 - " + _AURA_OMUR + " * 0.75)",
-                "(0.035 + variable.particle_random_1 * 0.045) * (1 - " + _AURA_OMUR + " * 0.75)"],
-            "face_camera_mode": "rotate_xyz",
+                "(0.13 + variable.particle_random_1 * 0.08) * (1 - " + _AURA_OMUR + " * 0.62)",
+                "(0.18 + variable.particle_random_1 * 0.11) * (1 - " + _AURA_OMUR + " * 0.62)"],
+            # lookat_y: kameraya bakiyor ama YALNIZ Y ekseninde
+            # doniyor -- yani yukarisi her zaman yukarisi.
+            # lookat_xyz olsaydi yukaridan bakildiginda alev
+            # yan yatardi.
+            "face_camera_mode": "lookat_y",
             "uv": _aura_uv("kor")},
         "minecraft:particle_appearance_tinting": {
             "color": {"gradient": _aura_gradyan(renkler),
@@ -6853,10 +7007,12 @@ def aura_hale(kimlik, renkler):
             "linear_acceleration": [0, 0.32, 0],
             "linear_drag_coefficient": 1.1},
         "minecraft:particle_appearance_billboard": {
+            # v7.17: kor ile ayni iki duzeltme -- buyudu ve
+            # boyuna uzadi. Hale bir TUTAM, top degil.
             "size": [
-                "(0.05 + variable.particle_random_3 * 0.06) * (1 - " + _AURA_OMUR + " * 0.55)",
-                "(0.05 + variable.particle_random_3 * 0.06) * (1 - " + _AURA_OMUR + " * 0.55)"],
-            "face_camera_mode": "lookat_xyz",
+                "(0.13 + variable.particle_random_3 * 0.07) * (1 - " + _AURA_OMUR + " * 0.55)",
+                "(0.20 + variable.particle_random_3 * 0.11) * (1 - " + _AURA_OMUR + " * 0.55)"],
+            "face_camera_mode": "lookat_y",
             "uv": _aura_uv("hale")},
         "minecraft:particle_appearance_tinting": {
             "color": {"gradient": _aura_gradyan(renkler),
@@ -6904,8 +7060,89 @@ def aura_patlama(kimlik, renkler):
     })
 
 
+def aura_gozalev(kimlik, renkler):
+    """GOZ ALEVI -- gozun TAM ONUNDE yanan kucuk diller. v7.17
+
+    ---- NEDEN BU VAR ----
+    Kullanicinin sozu: "gozun ustundeki o ates vari seyler var
+    ya... alev de bir buyuyor bir kuculuyor, biraz animasyonu
+    var ya, onun gibi bir animasyona sahip olsun".
+
+    Goz KAPLAMASI (832x832 doku) o alevleri cizebiliyor ama
+    KIMILDATAMIYOR. Iki mekanizma denendi ve ikisi de bu
+    depoda OLCULEREK elendi:
+      v5.3  attachable animasyonu          -> calismiyor
+      v7.16 render denetleyici + doku dizisi -> calismiyor
+    Ucuncusu -- parcacik -- kullanicinin OYUNDA gordugu tek
+    calisan yol ("etrafinda kucuk baloncuklar olusuyor").
+    O yuzden hareket dokudan degil, parcaciktan geliyor.
+
+    ---- BUYUYUP KUCULME NEREDEN ----
+    Iki kaynaktan, ust uste:
+      1. Boy egrisi math.sin(t*180): zerre yoktan doguyor,
+         omrunun ORTASINDA en buyuk, sonra yoktan kayboluyor.
+         Molang'in math.sin'i DERECE aliyor, radyan degil.
+      2. Doku 4 karesi (satir "alev"): dil kisaliyor ve ucu
+         her karede baska yana yatiyor.
+    Tek basina 1. olsaydi buyuyup kuculen bir LEKE olurdu;
+    tek basina 2. olsaydi boyu sabit titreyen bir dil. Ikisi
+    birlikte alev oluyor.
+
+    ---- NEDEN BU KADAR KUCUK ----
+    Goz skinde 2 MC pikseli, yani 0.125 blok. Alevin dis
+    olcusu 0.07-0.11 blok genisligi; dokudaki dil bunun ~%42'si
+    kadar oldugundan gorunen dil ~0.03-0.046 blok. Daha
+    buyugu yuzu kapatiyor -- bu bir aura degil, GOZUN kendisi.
+
+    ---- YERCEKIMI DEGIL, SURTUNME ----
+    linear_drag 3.4 cok yuksek: zerre firliyor ve neredeyse
+    aninda duruyor. Boylece alev gozden KOPUP gitmiyor,
+    gozun onunde asili kaliyor. Kafa aurasinda (kor) surtunme
+    2.2, cunku orada zerrelerin yukselmesi isteniyor.
+    """
+    ol = "(0.25 + 0.75 * math.sin(" + _AURA_OMUR + " * 180))"
+    return _aura_govde(kimlik, "gozalev", {
+        "minecraft:emitter_rate_instant": {"num_particles": 2},
+        "minecraft:emitter_lifetime_once": {"active_time": 0.15},
+        "minecraft:emitter_shape_sphere": {
+            # Cok kucuk: iki zerre de gozun UZERINDE ciksin.
+            "offset": [0, 0, 0], "radius": 0.035,
+            "surface_only": False, "direction": "outwards"},
+        "minecraft:particle_initial_speed":
+            "0.05 + variable.particle_random_1 * 0.11",
+        "minecraft:particle_initial_spin": {
+            # Yalpa kucuk: alev dilinin yukari bakmasi sart.
+            "rotation": "(variable.particle_random_2 - 0.5) * 20",
+            "rotation_rate": "(variable.particle_random_3 - 0.5) * 40"},
+        "minecraft:particle_lifetime_expression": {
+            # Kisa: gozun onunde birikmesinler.
+            "max_lifetime": "0.30 + variable.particle_random_4 * 0.30"},
+        "minecraft:particle_motion_dynamic": {
+            "linear_acceleration": [0, 1.05, 0],
+            "linear_drag_coefficient": 3.4,
+            "rotation_drag_coefficient": 1.2},
+        "minecraft:particle_appearance_billboard": {
+            # Onizlemede ilk olcu (0.07-0.11 x 0.13-0.21) yuzu
+            # KAPATTI: alevin boyu kafanin yarisi kadar cikti ve
+            # iki goz iki mese sopasi gibi yandi. Goz 2 MC
+            # pikseli = 0.125 blok; alevin gorunen dili disin
+            # ~%42'si kadar, yani asagidaki olculerde gorunen
+            # dil ~0.02x0.09 blok -- gozun uzerinde duruyor,
+            # yerine gecmiyor.
+            "size": [
+                "(0.050 + variable.particle_random_1 * 0.028) * " + ol,
+                "(0.078 + variable.particle_random_1 * 0.044) * " + ol],
+            "face_camera_mode": "lookat_y",
+            "uv": _aura_uv("alev")},
+        "minecraft:particle_appearance_tinting": {
+            # koyulma 0.85: rengini koruyarak saydamlasiyor.
+            "color": {"gradient": _aura_gradyan(renkler, koyulma=0.85),
+                      "interpolant": _AURA_OMUR}},
+    })
+
+
 AURA_TURLERI = (("kor", aura_kor), ("hale", aura_hale),
-                ("patlama", aura_patlama))
+                ("patlama", aura_patlama), ("gozalev", aura_gozalev))
 
 
 # ============================================================

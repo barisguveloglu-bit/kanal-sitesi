@@ -18,6 +18,7 @@
    Bu dosya bunlarin hepsini tutuyor.                       */
 
 import { readFileSync, existsSync, readdirSync } from "node:fs";
+import { inflateSync as zlibSync } from "node:zlib";
 import { execFileSync } from "node:child_process";
 
 const KOK = new URL("..", import.meta.url).pathname.replace(/\/$/, "");
@@ -32,7 +33,7 @@ const kontrol = (ad, gecti, detay = "") => {
 const oku = (y) => JSON.parse(readFileSync(y, "utf8"));
 
 const ayar = await import("./pack/ayarlar.js");
-const TURLER = ["kor", "hale", "patlama"];
+const TURLER = ["kor", "hale", "patlama", "gozalev"];
 
 /* Ureteci OKUYORUZ: iksir renkleri orada tanimli ve auranin
    renkleri onlarla AYNI olmali. Ikinci bir renk listesi
@@ -56,7 +57,7 @@ console.log("=== 1. IKI LISTE AYNI (elle eslesme tablosu YOK) ===");
 }
 
 console.log("");
-console.log("=== 2. YIRMI DORT DOSYA VE SEMA ===");
+console.log("=== 2. OTUZ IKI DOSYA VE SEMA ===");
 const GECERLI_MALZEME = ["particles_add", "particles_alpha", "particles_blend"];
 const dosyalar = [];
 {
@@ -64,7 +65,12 @@ const dosyalar = [];
   kontrol("particles klasoru var", existsSync(klasor));
   const hepsi = existsSync(klasor)
     ? readdirSync(klasor).filter((f) => f.endsWith(".particle.json")) : [];
-  kontrol("24 parcacik dosyasi (8 iksir x 3 tur)", hepsi.length === 24,
+  /* Sayi ELLE yazilmiyor: iksir sayisi x tur sayisi. v7.17'de
+     dorduncu tur (gozalev) gelince elle yazilmis "24" iki ayri
+     yerde bayatladi.                                        */
+  const BEKLENEN = ayar.KADEMELER.length * TURLER.length;
+  kontrol(BEKLENEN + " parcacik dosyasi (" + ayar.KADEMELER.length +
+          " iksir x " + TURLER.length + " tur)", hepsi.length === BEKLENEN,
           hepsi.length + " dosya");
 
   for (const k of ayar.KADEMELER) {
@@ -82,7 +88,7 @@ const dosyalar = [];
     }
   }
   kontrol("hepsinin kimligi script'in kuracagi adla ayni",
-          dosyalar.length === 24, dosyalar.length + " dosya okundu");
+          dosyalar.length === BEKLENEN, dosyalar.length + " dosya okundu");
 
   const kotuMalzeme = dosyalar.filter(
     ([, , d]) => !GECERLI_MALZEME.includes(
@@ -220,8 +226,67 @@ console.log("=== 5. HAREKET GERCEKTEN TANIMLI ===");
   /* Surtunme olmazsa zerreler hizlanarak gokyuzune firlar.  */
   kontrol("kor surtunmeyle yavasliyor", km.linear_drag_coefficient > 1,
           String(km.linear_drag_coefficient));
-  kontrol("kor takla atiyor",
-          !!kor["minecraft:particle_initial_spin"].rotation_rate);
+  /* v7.17: kor artik TAKLA ATMIYOR, salinıyor. Eskiden
+     rotation 0-360 ve saniyede 260 derece donus vardi; donen
+     bir sekil ne olursa olsun yuvarlak okunuyor -- kullanici
+     oyunda "kucuk baloncuklar" dedi. Alev dilinin yukari
+     bakmasi SART, o yuzden hem baslangic acisi hem donus hizi
+     kucuk olmali.                                            */
+  const ks = kor["minecraft:particle_initial_spin"];
+  const enBuyukAci = (i) => {
+    const m = /\* *(\d+(?:\.\d+)?)/.exec(String(i));
+    return m ? parseFloat(m[1]) / 2 : 0;    // (rastgele - 0.5) * N
+  };
+  kontrol("kor salinıyor ama TAKLA ATMIYOR",
+          enBuyukAci(ks.rotation) <= 15 && enBuyukAci(ks.rotation_rate) <= 15,
+          "aci +-" + enBuyukAci(ks.rotation) + " derece, hiz +-" +
+          enBuyukAci(ks.rotation_rate) + " derece/sn");
+  /* Yukarisi yukarida kalsin: lookat_xyz kameraya TAMAMEN
+     donuyor, yukaridan bakildiginda alev yan yatiyor.       */
+  for (const t of ["kor", "gozalev"]) {
+    kontrol(t + ": billboard dik duruyor (lookat_y)",
+            al("nitroksin", t)["minecraft:particle_appearance_billboard"]
+              .face_camera_mode === "lookat_y",
+            al("nitroksin", t)["minecraft:particle_appearance_billboard"]
+              .face_camera_mode);
+  }
+  /* Alev BOYUNA uzar. Dis olcu de oyle olmali, yoksa doku
+     kare bir tuvale sikisiyor.                              */
+  for (const t of ["kor", "gozalev"]) {
+    const b = al("nitroksin", t)["minecraft:particle_appearance_billboard"];
+    const ilk = (s) => parseFloat(/[\d.]+/.exec(String(s))[0]);
+    kontrol(t + ": boy enden UZUN", ilk(b.size[1]) > ilk(b.size[0]),
+            ilk(b.size[0]) + " x " + ilk(b.size[1]));
+  }
+
+  /* ---- GOZ ALEVI (v7.17) ---- */
+  const gz = al("nitroksin", "gozalev");
+  const gb = gz["minecraft:particle_appearance_billboard"];
+  /* Kullanicinin istedigi sey buydu: "alev de bir buyuyor bir
+     kuculuyor". math.sin(t*180) omrun ortasinda tepe yapiyor;
+     duz bir (1 - t) egrisi yalniz KUCULURDU.                */
+  kontrol("goz alevi buyuyup kuculuyor (sin egrisi)",
+          String(gb.size[0]).includes("math.sin") &&
+          String(gb.size[1]).includes("math.sin"),
+          String(gb.size[1]));
+  /* Molang math.sin DERECE aliyor: 180 ile carpilmazsa egri
+     omur boyunca neredeyse duz kalir.                       */
+  kontrol("sin derece cinsinden (x 180)",
+          String(gb.size[1]).includes("* 180"), String(gb.size[1]));
+  const gm = gz["minecraft:particle_motion_dynamic"];
+  /* Surtunme kordan YUKSEK olmali: goz alevi gozun onunde
+     asili kalmali, kafa aurasi gibi yukselip gitmemeli.     */
+  kontrol("goz alevi gozun onunde duruyor (yuksek surtunme)",
+          gm.linear_drag_coefficient > km.linear_drag_coefficient,
+          gm.linear_drag_coefficient + " > " + km.linear_drag_coefficient);
+  kontrol("goz alevi korden KISA yasiyor",
+          parseFloat(gz["minecraft:particle_lifetime_expression"].max_lifetime) <
+          parseFloat(kor["minecraft:particle_lifetime_expression"].max_lifetime));
+  /* Goz 2 MC pikseli = 0.125 blok. Alev bundan buyuk olursa
+     gozun yerine GECIYOR; onizlemede tam bunu yasadik.      */
+  kontrol("goz alevi gozden buyuk degil",
+          parseFloat(/[\d.]+/.exec(String(gb.size[1]))[0]) < 0.125,
+          parseFloat(/[\d.]+/.exec(String(gb.size[1]))[0]) + " < 0.125 blok");
 
   const pat = al("nitroksin", "patlama");
   const pm = pat["minecraft:particle_motion_dynamic"];
@@ -262,7 +327,103 @@ console.log("=== 5. HAREKET GERCEKTEN TANIMLI ===");
     }
   }
   kontrol("boy ve renk zerrenin yasina bagli", yassiz.length === 0,
-          yassiz.join(", ") || "24 dosyanin hepsi");
+          yassiz.join(", ") || dosyalar.length + " dosyanin hepsi");
+}
+
+console.log("");
+console.log("=== 5b. SPRITE ALEV MI, BALONCUK MU? (v7.17) ===");
+{
+  /* ---- BU BOLUM NEDEN VAR ----
+     Kullanici v7.15'i oyunda gordu ve "etrafinda boyle kucuk
+     baloncuklar olusuyor... alev gibi degil" dedi. v7.15'in
+     kor sprite'i MERKEZDEN UZAKLIGA gore ciziliyordu
+     (d = sqrt(dx^2+dy^2)), yani tanim geregi bir DAIRE.
+     Hicbir test bunu yakalayamazdi cunku hicbiri sekle
+     BAKMIYORDU -- onizleyici bile zerreleri daire ciziyordu.
+     Asagidaki uc olcum daireyi alevden ayiriyor:
+        1. alev boyuna uzar     -> boy > en
+        2. alevin karni ASAGIDA -> en genis satir alt yarida
+        3. alevin ucu SIVRI     -> en ust satir 1-3 piksel
+     Bir daire ucunde de dusuyor: 1'de boy = en, 2'de en genis
+     satir tam ortada, 3'te ust satir genis.                 */
+  const png = readFileSync(RP + "/textures/particle/iksir_aura.png");
+
+  /* Kucuk bir PNG cozucu: bu depoda dis bagimlilik yok.
+     Yalniz 8-bit RGBA, filtre 0-4 -- uretecin yazdigi bicim. */
+  function pngOku(b) {
+    let p = 8, en = 0, boy = 0;
+    const veri = [];
+    while (p < b.length) {
+      const uz = b.readUInt32BE(p);
+      const tip = b.toString("ascii", p + 4, p + 8);
+      if (tip === "IHDR") { en = b.readUInt32BE(p + 8); boy = b.readUInt32BE(p + 12); }
+      if (tip === "IDAT") veri.push(b.subarray(p + 8, p + 8 + uz));
+      p += 12 + uz;
+    }
+    const ham = zlibSync(Buffer.concat(veri));
+    const satirBayt = en * 4;
+    const cikti = Buffer.alloc(boy * satirBayt);
+    for (let y = 0; y < boy; y++) {
+      const f = ham[y * (satirBayt + 1)];
+      const s = ham.subarray(y * (satirBayt + 1) + 1, (y + 1) * (satirBayt + 1));
+      for (let i = 0; i < satirBayt; i++) {
+        const a = i >= 4 ? cikti[y * satirBayt + i - 4] : 0;
+        const bb = y > 0 ? cikti[(y - 1) * satirBayt + i] : 0;
+        const c = (i >= 4 && y > 0) ? cikti[(y - 1) * satirBayt + i - 4] : 0;
+        let v = s[i];
+        if (f === 1) v += a;
+        else if (f === 2) v += bb;
+        else if (f === 3) v += (a + bb) >> 1;
+        else if (f === 4) {
+          const pp = a + bb - c, pa = Math.abs(pp - a),
+                pb = Math.abs(pp - bb), pc = Math.abs(pp - c);
+          v += (pa <= pb && pa <= pc) ? a : (pb <= pc ? bb : c);
+        }
+        cikti[y * satirBayt + i] = v & 255;
+      }
+    }
+    return { en, boy, veri: cikti };
+  }
+  const im = pngOku(png);
+  const H = 32;
+  const alfa = (x, y) => im.veri[(y * im.en + x) * 4 + 3];
+
+  /* Satir sirasi ureteceten OKUNUYOR -- elle yazilmiyor. */
+  const satirlar = {};
+  for (const m of /AURA_SATIR = \{([^}]*)\}/.exec(URETEC)[1].matchAll(/"(\w+)": (\d+)/g)) {
+    satirlar[m[1]] = +m[2];
+  }
+  kontrol("dort satirin dordu de kullaniliyor",
+          Object.keys(satirlar).length === 4 &&
+          !("kul" in satirlar) && "alev" in satirlar,
+          Object.keys(satirlar).join(", "));
+
+  for (const tur of ["kor", "alev"]) {
+    const s = satirlar[tur];
+    for (let kare = 0; kare < 4; kare++) {
+      const genis = [];
+      for (let y = 0; y < H; y++) {
+        let a = -1, b = -1;
+        for (let x = 0; x < H; x++) {
+          if (alfa(kare * H + x, s * H + y) > 12) { if (a < 0) a = x; b = x; }
+        }
+        genis.push(a < 0 ? 0 : b - a + 1);
+      }
+      const dolu = genis.map((g, i) => [g, i]).filter(([g]) => g > 0);
+      const y0 = dolu[0][1], y1 = dolu[dolu.length - 1][1];
+      const boy = y1 - y0 + 1;
+      const en = Math.max(...genis);
+      const karin = genis.indexOf(en);
+      const oran = (karin - y0) / Math.max(1, boy - 1);
+      const etiket = tur + " k" + kare;
+      kontrol(etiket + ": boyuna uzun (daire degil)", boy > en,
+              "boy " + boy + " > en " + en);
+      kontrol(etiket + ": karni ASAGIDA (dairede tam ortada)", oran >= 0.58,
+              "en genis satir %" + Math.round(oran * 100));
+      kontrol(etiket + ": ucu SIVRI", genis[y0] <= 3,
+              "ust satir " + genis[y0] + " piksel");
+    }
+  }
 }
 
 console.log("");
@@ -315,10 +476,13 @@ D.sayac.parcacik = [];
 for (let i = 0; i < 40; i++) { tickIlerlet(1); iks.iksirTara([o]); }
 const tarama = (D.sayac.parcacik || []).map((p) => p.tip);
 console.warn = w;
+const bas = o.getHeadLocation();
 console.log(JSON.stringify({
   patlama, tarama,
   korY: (D.sayac.parcacik || []).filter((p) => p.tip.includes("_kor_")).map((p) => p.y),
-  basY: o.getHeadLocation().y
+  basY: bas.y, basX: bas.x, basZ: bas.z,
+  alev: (D.sayac.parcacik || []).filter((p) => p.tip.includes("_gozalev_"))
+          .map((p) => ({ x: p.x, y: p.y, z: p.z }))
 }));
 `], { encoding: "utf8", cwd: KOK + "/test" }).trim().split("\n").pop());
 
@@ -350,10 +514,51 @@ console.log(JSON.stringify({
           "kor y " + (cikti.korY[0] || "-") + " > bas y " + cikti.basY);
   kontrol("hatasi yutulmuyor, yaziliyor", /hataYaz\("aura\./.test(kod));
 
+  /* ---- GOZ ALEVI GERCEKTEN GOZLERIN ONUNDE Mi (v7.17) ----
+     Metin aramasi burada YETMEZ: konum bakis yonunden
+     hesaplaniyor ve o hesabin YANLIS olmasi hicbir metinde
+     gorunmez. Sahte oyuncu +x yonune bakiyor, kafasi
+     (0.5, 90.6, 0.5).                                       */
+  const alev = cikti.alev || [];
+  kontrol("goz alevi GERCEKTEN cikiyor", alev.length > 0,
+          alev.length + " zerre");
+  if (alev.length) {
+    /* 1) ONDE: oyuncu +x'e bakiyor, alevler +x tarafinda.
+          Bakis yonu hic kullanilmasaydi hepsi kafayla ayni
+          x'te dogardi.                                      */
+    kontrol("alevler yuzun ONUNDE (bakis yonunde)",
+            alev.every((a) => a.x > cikti.basX + 0.2),
+            "x " + alev[0].x.toFixed(3) + " > bas x " + cikti.basX);
+    /* 2) IKI GOZ, SIMETRIK: +yan ve -yan. Isaret dusseydi iki
+          alev de ayni yerde -- tek gozlu bir adam.          */
+    const zler = [...new Set(alev.map((a) => +a.z.toFixed(4)))].sort();
+    kontrol("iki ayri goz var", zler.length === 2, zler.join(" / "));
+    kontrol("iki goz kafanin ortasina gore SIMETRIK",
+            zler.length === 2 &&
+            Math.abs((zler[0] + zler[1]) / 2 - cikti.basZ) < 1e-6,
+            "orta " + ((zler[0] + zler[1]) / 2));
+    /* 3) KAFANIN DISINDA: kafa 0.5 blok, on yuzu 0.25'te.
+          Daha yakini alevi kafanin ICINE koyar.             */
+    const uzak = Math.hypot(alev[0].x - cikti.basX, alev[0].z - cikti.basZ);
+    kontrol("alev kafanin ON YUZUNUN disinda", uzak > 0.25 && uzak < 0.5,
+            uzak.toFixed(3) + " blok");
+    /* 4) GOZ HIZASININ biraz ustunde -- icinde degil.       */
+    kontrol("alev goz hizasinin ustunde",
+            alev.every((a) => a.y > cikti.basY && a.y <= cikti.basY + 0.25),
+            "y " + alev[0].y.toFixed(3) + " vs bas y " + cikti.basY);
+    /* 5) RITIM: 40 tick, her GOZ_ALEV_ARALIK'ta IKI zerre.   */
+    const bek = Math.floor(40 / ayar.GOZ_ALEV_ARALIK) * 2;
+    kontrol("alev dogru ritimde (40 tick'te ~" + bek + ")",
+            alev.length >= bek - 2 && alev.length <= bek + 2,
+            alev.length + " zerre");
+  }
+
   /* Ayarlarin hepsi GERCEKTEN okunuyor mu -- tarama.mjs'in
      oksuz-ayar korumasinin buradaki karsiligi.              */
   for (const a of ["AURA_ACIK", "AURA_ONEK", "AURA_ARALIK",
-                   "AURA_HALE_ARALIK", "AURA_KAFA_Y", "AURA_PATLAMA_Y"]) {
+                   "AURA_HALE_ARALIK", "AURA_KAFA_Y", "AURA_PATLAMA_Y",
+                   "GOZ_ALEV_ACIK", "GOZ_ALEV_ARALIK", "GOZ_ALEV_ON",
+                   "GOZ_ALEV_YAN", "GOZ_ALEV_Y"]) {
     kontrol("  " + a + " tanimli ve okunuyor",
             ayar[a] !== undefined && kod.includes(a), String(ayar[a]));
   }
@@ -377,7 +582,8 @@ console.log("=== 7. PAKETE GIRDI ===");
     const liste = execFileSync("unzip", ["-Z1", paket], { encoding: "utf8" });
     const say = liste.split("\n").filter((r) => r.startsWith("particles/") &&
                                          r.endsWith(".particle.json")).length;
-    kontrol("24 parcacik pakette", say === 24, say + " dosya");
+    kontrol(ayar.KADEMELER.length * TURLER.length + " parcacik pakette",
+            say === ayar.KADEMELER.length * TURLER.length, say + " dosya");
     kontrol("parcacik dokusu pakette",
             liste.includes("textures/particle/iksir_aura.png"));
   }

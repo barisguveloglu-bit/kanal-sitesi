@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.16.0";
+export const SURUM = "v7.17.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -968,9 +968,46 @@ export const AURA_ARALIK = 6;
 export const AURA_HALE_ARALIK = 14;
 /* getHeadLocation goz hizasini veriyor; aura biraz USTTEN
    ciksin ki yuzu kapatmasin. */
-export const AURA_KAFA_Y = 0.32;
+export const AURA_KAFA_Y = 0.26;
 /* Patlamanin ciktigi yukseklik (icildigi an, gogus hizasi). */
 export const AURA_PATLAMA_Y = -0.2;
+
+/* ---- GOZ ALEVI (v7.17) ----
+
+   Kullanicinin istegi: "gozun ustundeki o ates vari seyler
+   var ya... alev de bir buyuyor bir kuculuyor, biraz
+   animasyonu var ya, onun gibi olsun."
+
+   Goz KAPLAMASI o alevleri cizebiliyor ama kimildatamiyor:
+   iki mekanizma denendi, ikisi de bu depoda OLCULEREK elendi
+   (v5.3 attachable animasyonu, v7.16 render denetleyici +
+   doku dizisi). Parcacigin calistigini kullanici oyunda
+   gordu, o yuzden hareket buradan geliyor.
+
+   ---- BIRINCI SAHISTA NE OLUYOR ----
+   spawnParticle parcacigi HERKESE cizer; "yalniz baskalari
+   gorsun" diye bir seceneği yok. Yani kendi ekraninda da,
+   gorusunun ust kenarinda, hafif bir parlama olacak.
+   GOZ_ALEV_Y bu yuzden 0.10: alevler goz HIZASININ biraz
+   ustune konuyor, ekranin ortasina degil. Rahatsiz ederse
+   GOZ_ALEV_ACIK = false tek anahtar.                       */
+export const GOZ_ALEV_ACIK = true;
+/* Kac tick'te bir. 4 = saniyede 5 yayim x 2 goz x 2 zerre.
+   Omur 0.3-0.6 sn (ortalama 0.45) oldugundan goz basina ayni
+   anda ~4-5 zerre yasiyor. Uc tick'te birde ~7 oluyordu ve
+   onizlemede ust uste binip tek bir mese sopasi alevi
+   gorunuyordu -- alev degil MESALE.                        */
+export const GOZ_ALEV_ARALIK = 4;
+/* Kafanin ON yuzu 0.25 blokta (kafa 0.5 blok genisliginde).
+   0.30 -> alevler yuzun 5 santim onunde asili duruyor. */
+export const GOZ_ALEV_ON = 0.30;
+/* Iki goz merkezden +-2 MC pikseli = +-0.125 blok. Biraz
+   iceriden: alevler gozun uzerinde dursun, kenarinda degil. */
+export const GOZ_ALEV_YAN = 0.115;
+/* getHeadLocation TAM goz hizasi. Alev gozun icinden degil
+   UZERINDEN ciksin (ve birinci sahista ekranin ortasinda
+   durmasin) diye biraz yukaridan. */
+export const GOZ_ALEV_Y = 0.1;
 
 export const KADEMELER = [
   {

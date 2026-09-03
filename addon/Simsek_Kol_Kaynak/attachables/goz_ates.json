@@ -9,10 +9,7 @@
       },
       "textures": {
         "default": "textures/entity/goz_ates",
-        "enchanted": "textures/misc/enchanted_actor_glint",
-        "kare1": "textures/entity/goz_ates_k1",
-        "kare2": "textures/entity/goz_ates_k2",
-        "kare3": "textures/entity/goz_ates_k3"
+        "enchanted": "textures/misc/enchanted_actor_glint"
       },
       "geometry": {
         "default": "geometry.simsek_goz"
@@ -21,7 +18,7 @@
         "parent_setup": "variable.helmet_layer_visible = 0.0;"
       },
       "render_controllers": [
-        "controller.render.simsek_goz_anim"
+        "controller.render.armor"
       ]
     }
   }
