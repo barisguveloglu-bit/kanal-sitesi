@@ -1,3 +1,91 @@
+# v7.21.0 — Parçacıklar kaldırıldı, gözler olduğu gibi kaldı
+
+Kullanıcı v7.20'yi oyunda gördü: "gene birden fazla çizgi var."
+Ve kararını verdi:
+
+> "En iyisi biz bu sorunu düzeltmek için tüm şeyleri silelim,
+> yeni göz aynı şekilde kalsın, kıpırdamasın, alev falan öyle
+> yerinde dursun... yeni gözler kalsın o şekilde ama hiçbir
+> animasyon eklemeyelim."
+
+## Ne kaldırıldı
+
+`AURA_URETILEN` artık **boş**. Yani hiçbir parçacık üretilmiyor:
+
+- 8 parçacık dosyası silindi
+- `iksir_aura.png` silindi
+- `iksirler.js`'ten `gozAleviAt`, `gozNoktalari`, `hizHaritasi`,
+  `oyuncuHizi`, `ilerideDogsun` ve tarama çağrısı çıktı
+- `ayarlar.js`'ten dokuz ayar çıktı (`AURA_ACIK`, `AURA_ONEK`,
+  `AURA_HIZ_MIRASI`, `GOZ_ALEV_*`)
+- `parcacikAt`'ın v7.18'de eklenen `molang` parametresi geri
+  alındı — kullanan kalmadı
+
+**Kod silinmedi.** `aura_kor` / `aura_hale` / `aura_patlama` /
+`aura_gozalev` / `aura_gozkor` ve bütün sprite çizimi üreteçte
+duruyor. `AURA_URETILEN`'e bir tür adı yazmak hepsini geri
+getirir.
+
+## Ne kaldı
+
+**Göz kaplamaları — dokunulmadı.** Sekiz iksirin sekizi de,
+lazer varyantlarıyla birlikte, 832×832 dokularıyla yerinde.
+Üzerlerine çizili alevler de duruyor; sabitler, istenen buydu.
+
+## Neden üç sürüm sürdü
+
+Sırayla denenenler ve nerede takıldıkları:
+
+| sürüm | denenen | sonuç |
+|---|---|---|
+| v7.15 | kafa aurası (kor + hale) | "küçük baloncuklar" |
+| v7.17 | alev dili şekli + göz alevi | şekil düzeldi, ölçek küçük |
+| v7.18 | 8 kare döngü, nefes, hız mirası | mekanik doğru, hâlâ çizgi |
+| v7.19 | aura kaldırıldı, alev şişmanladı | hâlâ "İİİİİİ" |
+| v7.20 | göz başına tek, 0.26 blok | "gene birden fazla çizgi" |
+
+Altta yatan ölçülmüş gerçek: **küçük ölçekli bir parçacık,
+şekli ne olursa olsun, ekranda birkaç piksellik dikey bir iz
+olarak okunuyor.** Büyüttükçe yüzü kapatıyor. Bu ikisinin
+arasında kullanıcının istediği "alev" bandı çıkmadı.
+
+Ayrıca göz dokusunun kendisini kımıldatmak da mümkün değil ve
+bu iki kez ölçüldü: **v5.3** (attachable animasyonu) ve
+**v7.16** (render denetleyici + doku dizisi). Yani "gözün
+üstündeki çizili alevler kıvrılsın" isteğinin bu motorda
+karşılığı yok.
+
+## `aura.mjs` artık kaldırma bekçisi
+
+Dosya silinmedi, **işi değişti**: 700 satırlık parçacık ölçümü
+gitti, yerine kaldırmanın kalıcı olduğunu kanıtlayan bir test
+geldi. Bir sistemi kaldırmak kodu silmekle bitmiyor; geride
+dört ayrı artık kalabilir ve dördü de sessizce zarar verir:
+
+1. parçacık dosyaları → pakete girerler
+2. doku → ekran kartında yer tutar
+3. betikte çağrı → oyun her tick tanımsız parçacık ister
+4. ayarlar → öksüz kalırlar
+
+Beşinci bölüm ise **ters yönü** tutuyor: sekiz gözün sekizi de
+dokusuyla yerinde ve 832×832 mi. Bu olmasaydı "animasyonu
+kaldırdık" ile "gözü kaybettik" birbirinden ayırt edilemezdi.
+
+`goz_anim.mjs`'teki "yerini göz alevi parçacıkları aldı"
+satırı da güncellendi: gözün yerine bir şey **gelmedi**, göz
+olduğu gibi kaldı.
+
+Beş mutasyonun beşi de yakalandı:
+1. bir tür geri açıldı → üç satır düştü
+2. artık parçacık dosyası diske kondu → düştü
+3. betiğe çağrı geri kondu → düştü
+4. öksüz ayar geri kondu → düştü
+5. **bir göz dokusu silindi (aşırı temizlik) → düştü**
+
+91 testin 91'i geçiyor. Pakette tek bir `aura` izi yok.
+
+---
+
 # v7.20.0 — Göz başına TEK alev, "İİİİİİ" düzeldi
 
 Kullanıcı v7.19'u oyunda gördü ve şöyle tarif etti:

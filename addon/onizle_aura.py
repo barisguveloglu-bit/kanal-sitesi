@@ -1,42 +1,38 @@
-#!/usr/bin/env python3
-"""AURA ONIZLEYICI -- uzaktan nasil gorunuyorsun.
+"""Iksir gorselini onizler.  v7.21
 
-    python3 onizle_aura.py [iksir_kimligi]      (varsayilan: element)
+PARCACIK KALMADI. v7.15 - v7.20 arasinda bu arac kafanin
+etrafindaki aurayi ve gozun onundeki alevi benzetiyordu;
+kullanici uc surum denedikten sonra hepsinin kaldirilmasini
+istedi ("hicbir animasyon eklemeyelim, goz ayni sekilde
+kalsin"). Simdi cizdigi tek sey KARAKTER + GOZ KAPLAMASI --
+yani iksir icildiginde gercekten gorunen sey.
 
----- NEDEN VAR ----
-Oyunu buradan calistiramiyoruz. Ama parcacik dosyasindaki
-sayilar (baslangic hizi, ivme, surtunme, omur, boy egrisi,
-renk gradyani) belirli bir hareketi TARIF EDIYOR ve o hareket
-aynen benzetilebiliyor. Amac "guzel mi" degil OLCU:
-  - zerreler kafanin etrafinda mi kaliyor, yoksa on blok
-    oteye mi firliyor
-  - uzaktan hala gorunuyor mu
+Arac silinmedi cunku isi bitmedi: goz kaplamasinda bir
+degisiklik yapilirsa (v7.13 yeniden cizim, v7.14 832x832)
+oyuna sokmadan once uzaktan nasil okundugunu burada gormek
+gerekiyor. Parcacik benzetimi de duruyor; bir parcacik dosyasi
+yeniden uretilirse kendiliginden yine cizer.
 
-Uc sey AYNI olcekte birlestiriliyor:
-  1. Uzak Akraba skini, onden
-  2. goz kaplamasi (kafanin on yuzune)
-  3. aura parcaciklari, dosyadan benzetilerek
+---- BU DOSYADA BULUNMUS OLCUM HATALARI ----
+Hepsi ayni sinifta: kusur kodda degil OLCUMDEYDI.
 
-Sonra kucultuluyor. Uzaklik tam olarak budur: ekranda daha az
-piksel. "AURA VAR" ve "AURA YOK" alt alta ciziliyor ki auranin
-uzaktan NE KATTIGI goze gorunsun.
-
----- IKI OLCUM HATASI, IKISI DE BURADA YASANDI ----
-1. Billboard `size` zerrenin BLOK cinsinden GENISLIGI, yaricapi
-   degil. Ilk cizimde yaricap sandim, zerreler iki kat buyuk
-   cikti -- plaj topu gibi duruyorlardi.
-2. Ondan da onceki denemede yaricapi ayrica 3 ile carpmistim;
+1. Zerre boyu yaricap sanildi, zerreler iki kat buyuk cikti.
+   size = zerrenin BLOK cinsinden TAM olcusu
+   (bedrock.dev: "the x/y size of the billboard").
+2. Ondan onceki denemede yaricap ayrica 3 ile carpilmisti;
    hale kafadan buyuk gorunuyordu.
-Ikisi de kodda degil OLCUMDEYDI. Bu depoda dorduncu kez.
+3. Zerreler DAIRE ciziliyordu (ImageDraw.ellipse), yani
+   sprite'in seklini hic gostermiyordu. Kullanici oyunda
+   "baloncuk gibi duruyor" dedi ve onizleme buna itiraz
+   edemezdi -- cunku kendisi de daire ciziyordu.
+4. karakter() goz kaplamasi olarak goz_element.png'yi ELLE
+   aciyordu; GOZ degiskeni hesaplanip hic kullanilmiyordu.
+   Hangi iksir istenirse istensin element gozu ciziliyordu.
+5. Zerreler DUNYA cercevesinde ciziliyordu; "kosuyor"
+   karesinde aura adamdan kopup akiyor gorunuyordu, oysa
+   oyuncu da ayni hizla gidiyor. Ekranda gorunen sey FARK.
 
----- UCUNCU OLCUM HATASI (v7.17'de bulundu) ----
-Bu cizer zerreleri DAIRE ciziyordu (ImageDraw.ellipse). Yani
-sprite'in seklini hic gostermiyordu: doku ne olursa olsun
-onizlemede yuvarlak cikiyordu. Kullanici oyunda "baloncuk gibi
-duruyor" dedi ve onizleme buna hicbir zaman itiraz edemezdi --
-CUNKU KENDISI DE DAIRE CIZIYORDU. Simdi gercek doku okunuyor,
-gercek kare secilip gercek boyda ve gercek acida yapistiriliyor.
-Ders yine ayni: kusur olcumdeydi.
+Kullanim:  S=<cikti klasoru> python3 onizle_aura.py <iksir>
 """
 import json, math, os, random, sys
 from PIL import Image, ImageDraw, ImageChops

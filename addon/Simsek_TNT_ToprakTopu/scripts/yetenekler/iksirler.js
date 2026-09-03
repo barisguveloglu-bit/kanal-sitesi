@@ -2,15 +2,11 @@ import * as api from "@minecraft/server";
 import { system } from "@minecraft/server";
 import { iksirKaydet, iksirinKademesi, tumIksirler } from "./kayit.js";
 import {
-  hataYaz, bilgiYaz, gecerliMi, olayaAbone, actionbarYaz, ekraniBoya,
-  parcacikAt
+  hataYaz, bilgiYaz, gecerliMi, olayaAbone, actionbarYaz, ekraniBoya
 } from "../yardimcilar.js";
 import { KADEMELER, IKSIR_TAZELEME, IKSIR_ONEK,
   PARLAMA_ACIK, PARLAMA_GIRIS, PARLAMA_TUT, PARLAMA_CIKIS,
   IKSIR_LAZERI_SEC, NITROKSIN_DUSME_BAGISIK,
-  AURA_ACIK, AURA_ONEK, AURA_HIZ_MIRASI,
-  GOZ_ALEV_ACIK, GOZ_ALEV_ARALIK, GOZ_ALEV_ON, GOZ_ALEV_YAN,
-  GOZ_ALEV_Y, GOZ_ALEV_ONDEN
 } from "../ayarlar.js";
 
 /* ============================================================
@@ -404,125 +400,29 @@ if (!tamKuruldu && !basKuruldu) {
    Merkezi tick yoneticisinden cagriliyor. Hicbir oyuncu iksir
    icmemisse Map bos, dongu hic donmuyor -- bedava.             */
 
-/* ---- GOZ ALEVI -- BU DOSYADAKI TEK PARCACIK (v7.19) ----
+/* ---- PARCACIK YOK (v7.21) ----
 
-   v7.15-v7.18 arasinda kafanin etrafinda bir aura vardi: kor
-   (yukselen zerreler), hale (puslu kabuk), patlama (icildigi
-   an) ve gozkor (gozden dusen koz). Kullanici v7.18'i oyunda
-   gordu ve hepsinin kaldirilmasini istedi:
+   v7.15 ile v7.20 arasinda bu dosyada bir parcacik sistemi
+   vardi: once kafanin etrafinda bir aura (kor / hale /
+   patlama / gozkor), sonra gozun onunde bir alev.
 
-     "bu ne, aura parcaciklari ekleyecegim diye ne yaptin...
-      en iyisi aura parcaciklarini kaldir ve sadece gozun
-      ustundeki o alev efektini ekle, sadece onun icin ugras."
+   Kullanicinin karari: "en iyisi biz bu sorunu duzeltmek icin
+   tum seyleri silelim, yeni goz ayni sekilde kalsin,
+   kipirdamasin, alev falan oyle yerinde dursun... hicbir
+   animasyon eklemeyelim."
 
-   Hakliydi: kucuk olcekte o zerreler ince dikey cizgilere
-   donusuyor ve toplamali harmanda birbirine binip kafanin
-   etrafinda beyaz bir cali olusturuyorlardi. Istenen sey --
-   gozdeki alev -- o calinin icinde kayboluyordu.
+   Uc surum boyunca denendi ve hicbiri istenen seyi vermedi;
+   en son "yuzun biraz onunde IIIIII gibi IIIIII" diye tarif
+   edildi -- buyutuldu, sayisi bire indirildi, yine cizgi
+   gorundu.
 
-   Geriye tek bir sey kaldi: GOZ ALEVI. Uretecte digerlerinin
-   kodu duruyor (kol_uret.py AURA_URETILEN), ama ne dosyalari
-   yaziliyor ne de burada cagriliyor.                       */
+   GOZ KAPLAMASI DURUYOR ve tam da istenen bu: 832x832 gozler,
+   uzerlerine cizili alevleriyle, SABIT. Kaplamayi kimildatmak
+   zaten bu depoda iki kez olculup elenmisti (v5.3 attachable
+   animasyonu, v7.16 render denetleyici + doku dizisi).
 
-/* ---- HIZ MIRASI (v7.18) ----
-
-   Parcacik dunyaya birakiliyor ve oyuncunun hizini MIRAS
-   ALMIYOR: kosarken alev yuzde degil arkada bir kuyruk gibi
-   kaliyordu. Hiz buradan Molang'a gecirilince zerrenin ivmesi
-   oyuncunun hizina gore ayarlaniyor (bkz. kol_uret.py
-   _aura_suruklen).
-
-   UC AYRI GERI CEKILME var ve ucu de sessiz:
-     - ayar kapaliysa
-     - API'de MolangVariableMap yoksa (eski surum)
-     - getVelocity patlarsa
-   Uc durumda da undefined donuyor, parcacikAt eski cagriyi
-   yapiyor ve alev v7.17'deki gibi yerinde yaniyor. Yani bu
-   ekleme HICBIR kosulda parcacigi kaybettirmiyor.          */
-function oyuncuHizi(oyuncu) {
-  if (!AURA_HIZ_MIRASI) return null;
-  try {
-    return oyuncu.getVelocity ? oyuncu.getVelocity() : null;
-  } catch (e) {
-    return null;
-  }
-}
-
-/* Zerre nasil olsa geride kalacaksa ILERIDE dogsun.
-   `saniye` = kac saniyelik yol kadar ileri (bkz. ayarlar.js
-   ILERI KAYDIRMA). getVelocity blok/TICK verdigi icin 20 ile
-   carpiliyor. Hiz yoksa kayma sifir -- yani duruyorken bu
-   fonksiyonun hicbir etkisi olmuyor.                        */
-function ilerideDogsun(nokta, hiz, saniye) {
-  if (!hiz) return nokta;
-  return {
-    x: nokta.x + hiz.x * 20 * saniye,
-    y: nokta.y + hiz.y * 20 * saniye,
-    z: nokta.z + hiz.z * 20 * saniye
-  };
-}
-
-function hizHaritasi(oyuncu) {
-  if (!AURA_HIZ_MIRASI || !api.MolangVariableMap) return undefined;
-  try {
-    const h = oyuncuHizi(oyuncu);
-    if (!h) return undefined;
-    const m = new api.MolangVariableMap();
-    m.setVector3("hiz", { x: h.x, y: h.y, z: h.z });
-    return m;
-  } catch (e) {
-    return undefined;
-  }
-}
-
-/* Iki gozun dunyadaki konumu. Kafanin konumundan ve BAKIS
-   YONUNDEN hesaplaniyor -- oyuncu donunce alevler de doner,
-   yoksa adam saga bakarken alevler onunde havada asili
-   kalirdi.
-
-   Yan vektor: ileri (yatay) x yukari.  ileri = (ix, 0, iz)
-   ise yan = (iz, 0, -ix).  Hangisi sag hangisi sol onemli
-   degil -- iki nokta SIMETRIK, +yan ve -yan.
-
-   Tam yukari/asagi bakarken yatay bilesen sifira gidiyor ve
-   "on" diye bir yon kalmiyor; o karede null donuyoruz. Boluyu
-   sifira bolmekten de bu koruyor.                          */
-function gozNoktalari(oyuncu, yukseklik) {
-  const bas = oyuncu.getHeadLocation();
-  const bak = oyuncu.getViewDirection();
-  const yatay = Math.sqrt(bak.x * bak.x + bak.z * bak.z);
-  if (!(yatay > 0.05)) return null;
-  const ix = bak.x / yatay, iz = bak.z / yatay;
-  const sx = iz, sz = -ix;
-  const noktalar = [];
-  for (const yon of [-1, 1]) {
-    noktalar.push({
-      x: bas.x + ix * GOZ_ALEV_ON + sx * GOZ_ALEV_YAN * yon,
-      y: bas.y + yukseklik,
-      z: bas.z + iz * GOZ_ALEV_ON + sz * GOZ_ALEV_YAN * yon
-    });
-  }
-  return noktalar;
-}
-
-function gozAleviAt(oyuncu, kademe) {
-  if (!AURA_ACIK || !GOZ_ALEV_ACIK) return false;
-  try {
-    const noktalar = gozNoktalari(oyuncu, GOZ_ALEV_Y);
-    if (!noktalar) return false;
-    const ad = AURA_ONEK + "gozalev_" + kademe.kimlik;
-    const h = oyuncuHizi(oyuncu);
-    const hiz = hizHaritasi(oyuncu);
-    for (const n of noktalar) {
-      parcacikAt(oyuncu.dimension, ad,
-                 ilerideDogsun(n, h, GOZ_ALEV_ONDEN), hiz);
-    }
-    return true;
-  } catch (e) {
-    hataYaz("aura.gozalev", e);
-    return false;
-  }
-}
+   Uretecte parcacik kodu duruyor (kol_uret.py AURA_URETILEN)
+   ama hicbir dosya uretilmiyor.                            */
 
 export function iksirTara(oyuncular) {
   if (durumlar.size === 0) return;
@@ -547,12 +447,6 @@ export function iksirTara(oyuncular) {
       actionbarYaz(oyuncu, "§8" + d.kademe.ad + " bitti");
       continue;
     }
-
-    /* Goz alevi tazelemeden AYRI ritimde ve `continue`nin
-       USTUNDE: tazeleme IKSIR_TAZELEME tick'te bir calisiyor,
-       alev ondan cok daha sik cikmali yoksa kesik kesik
-       gorunuyor.                                            */
-    if (simdi % GOZ_ALEV_ARALIK === 0) gozAleviAt(oyuncu, d.kademe);
 
     if (simdi < d.sonrakiTazeleme) continue;
     d.sonrakiTazeleme = simdi + IKSIR_TAZELEME;

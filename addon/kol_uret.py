@@ -102,7 +102,7 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # tureniyor -- ayrisabilecekleri bir yer kalmadi.
 #
 # YENI SURUM CIKARIRKEN: yalnizca asagidaki satiri degistir.
-SURUM_NO = (7, 20, 0)
+SURUM_NO = (7, 21, 0)
 
 SURUM_METIN = "%d.%d.%d" % SURUM_NO
 SURUM_ETIKET = "v" + SURUM_METIN
@@ -6672,7 +6672,31 @@ AURA_DOKU_EN = AURA_HUCRE * AURA_KARE          # 256
 # _aura_uv("kul") cagirmiyordu. Yerini goz alevi aldi; doku
 # 128x128 (ikinin kuvveti) kaldi, dort satirin dordu de
 # kullaniliyor.
-# ---- HANGI TURLER URETILIYOR (v7.19) ----
+# ---- HANGI TURLER URETILIYOR ----
+#
+# v7.21: BOS. Yani parcacik sistemi tamamen kapali.
+#
+# Kullanicinin karari, kendi sozleriyle: "en iyisi biz bu
+# sorunu duzeltmek icin tum seyleri silelim, yeni goz ayni
+# sekilde kalsin, kipirdamasin, alev falan oyle yerinde
+# dursun... yeni gozler kalsin o sekilde ama hicbir animasyon
+# eklemeyelim."
+#
+# Uc surum boyunca (v7.15 aura, v7.17-v7.20 goz alevi) hareket
+# eklenmeye calisildi; hicbiri kullanicinin gormek istedigi
+# seyi vermedi. En son sorun oyle ozetlendi: "yuzun biraz
+# onunde IIIIII gibi IIIIII". Buyutuldu, sayisi bire indirildi,
+# yine cizgi gorundu.
+#
+# GOZ KAPLAMASI DOKUNULMADI. 832x832 gozler, uzerlerine cizili
+# alevleriyle, oldugu gibi duruyor -- istenen buydu.
+#
+# Kod da silinmedi: aura_kor / aura_hale / aura_patlama /
+# aura_gozalev / aura_gozkor ve butun sprite cizimi asagida
+# duruyor. Bu demete bir tur adi yazmak hepsini geri getirir.
+# Ama simdi hicbiri uretilmiyor: ne parcacik dosyasi, ne doku.
+#
+# ---- ESKI NOT (v7.19) ----
 #
 # Kullanici v7.18'i oyunda gordu ve auranin kaldirilmasini
 # istedi:  "bu ne, aura parcaciklari ekleyecegim diye ne
@@ -6692,7 +6716,7 @@ AURA_DOKU_EN = AURA_HUCRE * AURA_KARE          # 256
 # yazilmiyor ve kullanmadiklari sprite satirlari dokuya bile
 # konmuyor. "Kapali ama yine de gonderilen" bir sey
 # birakmiyoruz.
-AURA_URETILEN = ("gozalev",)
+AURA_URETILEN = ()
 
 # Her tur hangi sprite satirini kullaniyor. Iki tur ayni
 # satiri paylasabilir (patlama ve gozkor'un ikisi de dikey bir
@@ -9588,8 +9612,16 @@ def main():
         if _eski.startswith("aura_") and _eski not in _aura_beklenen:
             os.remove(os.path.join(_aura_yol, _eski))
             print("   silindi (aura turu kapali): %s" % _eski)
-    png_yaz(os.path.join(RP, "textures/particle", AURA_DOKU + ".png"),
-            AURA_DOKU_EN, AURA_DOKU_BOY, aura_dokusu())
+    # Hic tur uretilmiyorsa satir da yok: doku yazilmaz ve
+    # varsa SILINIR. "Kapali ama yine de pakete giren" bir sey
+    # birakmiyoruz -- parcacik dosyalarinda da ayni kural.
+    _aura_doku_yol = os.path.join(RP, "textures/particle",
+                                  AURA_DOKU + ".png")
+    if AURA_SATIR:
+        png_yaz(_aura_doku_yol, AURA_DOKU_EN, AURA_DOKU_BOY, aura_dokusu())
+    elif os.path.exists(_aura_doku_yol):
+        os.remove(_aura_doku_yol)
+        print("   silindi (parcacik sistemi kapali): %s.png" % AURA_DOKU)
     print("uretildi: %d aura parcacigi (%d iksir x %d tur)"
           % (_aura_sayi, len(IKSIRLER), len(AURA_TURLERI)))
 

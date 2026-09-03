@@ -106,13 +106,25 @@ if (!DENEME) {
   kontrol("denetleyici dosyasi da silinmis",
           !existsSync(RP + "/render_controllers/goz_anim.render_controllers.json"));
 
-  /* Yerini alan sey GERCEKTEN duruyor mu: hareket artik goz
-     alevi parcaciklarindan geliyor. Bu satir olmasaydi
-     "temizledik" demek "vazgectik" demek olurdu.           */
-  const alev = readdirSync(RP + "/particles")
-    .filter((f) => f.startsWith("aura_gozalev_"));
-  kontrol("yerini goz alevi parcaciklari aldi", alev.length === 8,
-          alev.length + " dosya");
+  /* ---- YERINE NE GELDI (v7.21'de guncellendi) ----
+     v7.17'de burasi "yerini goz alevi parcaciklari aldi"
+     diyordu ve sekiz dosya sayiyordu. O da kaldirildi:
+     kullanici uc surum denedikten sonra "hicbir animasyon
+     eklemeyelim, goz ayni sekilde kalsin" dedi.
+
+     Yani gozun yerine bir sey GELMEDI -- goz OLDUGU GIBI
+     kaldi, ve istenen buydu. O yuzden burada olculen sey
+     dokunun yerinde ve dogru cozunurlukte durmasi. Bu satir
+     olmasaydi "animasyonu kaldirdik" ile "gozu kaybettik"
+     birbirinden ayirt edilemezdi.                          */
+  const dokuVar = TUM.every((g) =>
+    existsSync(RP + "/textures/entity/" + g + ".png"));
+  kontrol("gozler oldugu gibi duruyor (sekiz doku diskte)", dokuVar,
+          TUM.length + " goz");
+  const artikParcacik = existsSync(RP + "/particles")
+    ? readdirSync(RP + "/particles").filter((f) => f.startsWith("aura_")) : [];
+  kontrol("yerine parcacik da KONMADI", artikParcacik.length === 0,
+          artikParcacik.join(", ") || "hic yok");
 
   console.log("");
   console.log(hata ? ">>> SORUN VAR" : ">>> deneme kapali, artigi kalmamis");

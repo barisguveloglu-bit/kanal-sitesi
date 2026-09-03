@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.20.0";
+export const SURUM = "v7.21.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -925,114 +925,21 @@ export const PARCACIK_LAZER = "minecraft:endrod";
    istedi ("hasari hic almasin"). Baska bir iksir 4'e cikarsa
    StarOxine'in varlik sebebi kalmaz.
    ============================================================ */
-/* ================================================================
-   IKSIR AURASI                                            v7.15
+/* ---- PARCACIK YOK (v7.21) ----
 
-   Kullanici: "parcacikla baslayalim, en detaylisini yap."
+   v7.15 - v7.20 arasinda burada bir AURA / GOZ ALEVI ayar
+   demeti vardi (AURA_ACIK, AURA_ONEK, GOZ_ALEV_*,
+   AURA_HIZ_MIRASI ...). Hepsi kaldirildi.
 
-   ---- NEDEN ----
-   Goz kaplamasi v7.14'te 832x832'ye cikti ama oyunda kafa
-   ekranda 20-30 piksel: birkac blok oteden o detayin tamami
-   tek bir lekeye donuyor. Uzaktan okunan uc sey var --
-   siluet, renk, HAREKET. Eksik olan ucuncusuydu.
+   Kullanicinin karari: "tum seyleri silelim, yeni goz ayni
+   sekilde kalsin, kipirdamasin... hicbir animasyon
+   eklemeyelim." Iksirin gorseli artik yalniz GOZ KAPLAMASI:
+   832x832 doku, uzerine cizili alevleriyle, sabit.
 
-   ---- UC KATMAN ----
-   kor     : kafadan yukselen, yukselirken yavaslayan zerreler
-   hale    : kafanin etrafinda yavas suzulen puslu kabuk
-   patlama : iksir ICILDIGI an bir kez, kivilcimlar disari
+   Bos ayar birakmadik: kullanilmayan bir ayar tarama.mjs'in
+   oksuz-ayar korumasina takilir ve daha kotusu, bir gun
+   birinin "bu ne ise yariyor" diye saatini alir.           */
 
-   Parcaciklarin kendisi kol_uret.py'de uretiliyor (24 dosya =
-   8 iksir x 3 tur). Renkler UYDURULMADI: gozun rengi ne ise
-   auranin rengi de o.
-
-   ---- KIMLIK ESLEMESI: TABLO YOK ----
-   Parcacik adi dogrudan kademe.kimlik'ten kuruluyor:
-       pa:aura_kor_<kimlik>
-   Ikinci bir eslesme tablosu TUTULMUYOR; tutulsaydi yeni bir
-   iksir eklenince biri guncellenip oteki unutulurdu. Iki
-   listenin ayni kalmasini aura.mjs kilitliyor.
-
-   ---- MALIYET ----
-   Her tick degil: AURA_ARALIK tick'te bir. Hale daha da
-   seyrek, cunku omru uzun ve ust uste birikiyor. PARCACIK_ACIK
-   kapaliysa hicbiri cizilmiyor -- tablette parcacik pahaliya
-   gelebiliyor ve o anahtar bu yuzden var.                  */
-export const AURA_ACIK = true;
-export const AURA_ONEK = "pa:aura_";
-
-/* ---- GOZ ALEVI (v7.17) ----
-
-   Kullanicinin istegi: "gozun ustundeki o ates vari seyler
-   var ya... alev de bir buyuyor bir kuculuyor, biraz
-   animasyonu var ya, onun gibi olsun."
-
-   Goz KAPLAMASI o alevleri cizebiliyor ama kimildatamiyor:
-   iki mekanizma denendi, ikisi de bu depoda OLCULEREK elendi
-   (v5.3 attachable animasyonu, v7.16 render denetleyici +
-   doku dizisi). Parcacigin calistigini kullanici oyunda
-   gordu, o yuzden hareket buradan geliyor.
-
-   ---- BIRINCI SAHISTA NE OLUYOR ----
-   spawnParticle parcacigi HERKESE cizer; "yalniz baskalari
-   gorsun" diye bir seceneği yok. Yani kendi ekraninda da,
-   gorusunun ust kenarinda, hafif bir parlama olacak.
-   GOZ_ALEV_Y bu yuzden 0.10: alevler goz HIZASININ biraz
-   ustune konuyor, ekranin ortasina degil. Rahatsiz ederse
-   GOZ_ALEV_ACIK = false tek anahtar.                       */
-export const GOZ_ALEV_ACIK = true;
-/* Kac tick'te bir. v7.20: goz basina TEK alev.
-   Kullanicinin sozu: "bir tanelik, cok fazla yok."
-
-   Hesap: 6 tick = 0.3 sn'de bir yayim, yayim basina 1 zerre,
-   omur 0.34-0.44 sn. Yani goz basina ayni anda
-       1 x (20/6) x 0.39 = 1.3 alev
-   -- neredeyse hep TEK, yalniz gecis aninda kisa bir ust uste
-   binme. O binme SART: olmasa alev bir sonup bir yanardi.
-   Zerrenin boy zarfi da bu yuzden sifira inmiyor (bkz.
-   kol_uret.py aura_gozalev, "ol" degiskeni).             */
-export const GOZ_ALEV_ARALIK = 6;
-/* Kafanin ON yuzu 0.25 blokta (kafa 0.5 blok genisliginde).
-   0.30 -> alevler yuzun 5 santim onunde asili duruyor. */
-export const GOZ_ALEV_ON = 0.30;
-/* Iki goz merkezden +-2 MC pikseli = +-0.125 blok. Biraz
-   iceriden: alevler gozun uzerinde dursun, kenarinda degil. */
-export const GOZ_ALEV_YAN = 0.115;
-/* getHeadLocation TAM goz hizasi. Alev gozun icinden degil
-   UZERINDEN ciksin (ve birinci sahista ekranin ortasinda
-   durmasin) diye biraz yukaridan. */
-export const GOZ_ALEV_Y = 0.1;
-/* Zerreye oyuncunun hizi verilsin mi (MolangVariableMap).
-   Kapaliysa alev yerinde yaniyor ve kosarken geride kaliyor --
-   yani v7.17 davranisi. API'de MolangVariableMap yoksa bu
-   ayar acik olsa bile kendiliginden devre disi kaliyor.     */
-export const AURA_HIZ_MIRASI = true;
-/* ---- ILERI KAYDIRMA: KAC SANIYELIK YOL ----
-
-   Hiz mirasi tek basina yetmiyor ve nedeni olculebilir.
-   particle_motion_dynamic'in denklemi dv/dt = a - d*v; ivmeyi
-   a = d*V yazinca zerre oyuncunun hizina YAKINSIYOR ama
-   ANINDA degil. Geri kalma:
-        gecikme(t) = V * (1 - e^(-d*t)) / d
-   Kosarken V = 5.6 blok/sn. Goz alevinde d = 3.4, omur ~0.45
-   sn: zerre omru boyunca ORTALAMA 0.144 saniyelik yol kadar
-   geride kaliyor -- yani 0.8 blok. Kafa 0.5 blok. Yani alev
-   yuzden kopuyor.
-
-   Tam duzeltmenin yolu zerreye BASLANGIC HIZI vermek
-   (particle_initial_speed'in vektor bicimi) ama belgenin
-   hicbiri o bicimin emitter yonuyle nasil birlestigini
-   soylemiyor -- ve tanimadigim bir semayi butun goz alevinin
-   uzerine kurmak istemiyorum.
-
-   Onun yerine olculebilir olani yapiyoruz: zerre nasil olsa
-   geride kalacaksa, ILERIDE dogsun. Asagidaki sayilar "kac
-   saniyelik yol kadar ileri" demek ve yukaridaki ortalama
-   gecikmenin %60'i. Neden tamami degil: fazla duzeltilirse
-   alev oyuncunun ONUNDE kosar, o daha kotu gorunur. Geride
-   kalan bir alev dogal, onde giden bir alev yanlis.
-
-   Duruyorken hiz sifir, yani bu satirlarin hicbir etkisi yok. */
-export const GOZ_ALEV_ONDEN = 0.09;
 
 export const KADEMELER = [
   {

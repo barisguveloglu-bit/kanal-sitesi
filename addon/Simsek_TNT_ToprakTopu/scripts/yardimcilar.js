@@ -166,16 +166,10 @@ let parcacikUyarisi = false;
 /* Parcacik efekti. Referans mod bunu "execute @s^^^4 /particle ..."
    diye komutla yapiyordu; script API'sinde dogrudan cagri var,
    komut ayristirma maliyeti yok.                                */
-/* molang: istege bagli MolangVariableMap (v7.18).
-   Verilirse parcacigin icindeki variable.* degerleri buradan
-   geliyor -- goz alevi oyuncunun HIZINI boyle ogreniyor.
-   Verilmezse eski cagri aynen yapiliyor: eski parcaciklarin
-   hicbiri degismedi.                                        */
-export function parcacikAt(boyut, tip, konum, molang) {
+export function parcacikAt(boyut, tip, konum) {
   if (!PARCACIK_ACIK) return;
   try {
-    if (molang) boyut.spawnParticle(tip, konum, molang);
-    else boyut.spawnParticle(tip, konum);
+    boyut.spawnParticle(tip, konum);
   } catch (e) {
     /* spawnParticle bazi surumlerde yok ya da parcacik tipi
        taninmiyor olabilir. Bir kez uyar, sonra sessizce gec --
