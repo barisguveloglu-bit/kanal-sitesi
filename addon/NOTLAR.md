@@ -1,3 +1,133 @@
+# v7.27.0 — Poz sandığı (39 poz) + sinematik kamera
+
+Kullanıcı 45 satırlık bir `playanimation` listesi + 2 kamera komutu
+gönderdi: *"bu kodların hepsini, bizde olanları ekleme, bizde
+olmayanları ekle."*
+
+## Önce ölçüm: neyin zaten olduğu
+
+| zaten var (6) | nerede |
+|---|---|
+| `animation.player.sleeping` | Will Kılıcı yatırma |
+| `animation.agent.move` | Will Kılıcı (ikinci poz) |
+| `animation.zombie.attack_bare_hand` | kol kaldırma |
+| `animation.fox.sleep` | Yamultma |
+| `animation.evoker.general` | Dondur |
+| `animation.villager.get_in_bed` | Bedeni Böl (v7.26) |
+
+Altısı da gerçekten kullanılıyor — yorumda değil, kodda. Geri kalan
+**39** yeni.
+
+Kamera tarafında da `camera fade` **zaten vardı** (`ekraniBoya`,
+Code-Man Siyah Güç'ün ekran karartması onu kullanıyor). Yeni olan
+tek şey **serbest kamera** (`camera set minecraft:free`).
+
+## Poz sandığı
+
+İki yetenek: **Poz Ver** (sıra 152) listedeki bir sonrakini verir,
+**Pozu Bırak** (153) normale döner. İkincisi süsleme değil
+**güvenlik**: geçiş süresi 9999 olan bir poz kendiliğinden bitmez.
+Çıkışı olmayan bir poz, kaynak modun Yamultma'sındaki hatanın
+aynısı olurdu.
+
+### Kaynaktaki iki hata
+
+1. `animation.cow.baby_ transform` — ortasında **boşluk** var, o
+   hâliyle komut hiç çalışmaz. `baby_transform` diye yazıldı.
+2. `animation.evoker_casting` / `...v1.0` — depodaki çalışan örnek
+   `animation.evoker.general`, yani düzen `animation.<varlık>.<ad>`.
+   Alt çizgili biçim bu düzene uymuyor. **Yine de listede bırakıldı:**
+   tahminle silmek yerine tablette denenmesi doğru.
+
+### Liste doğrulanmadı, doğrulanamaz da
+
+Vanilla animasyon kimliklerinin listesi bu depoda yok ve Bedrock
+bilinmeyen bir kimliğe **sessizce hiçbir şey yapmıyor**. Uydurma
+içerik yasağı gereği bu satırlar "çalışıyor" diye sunulmuyor:
+`POZ_DENEME` açıkken her pozun **adı ve sırası** sohbete yazılıyor
+(`12/39 · Warden Kükremesi · animation.warden.roar`). Oynamayanları
+kullanıcı görüp söyleyecek, listeden silinecek.
+
+### Test gerçek bir hata yakaladı
+
+İlk yazılışta `poz_ver` sonunda `kollariIndir(oyuncu)` çağrılıyordu
+— o da bir `playanimation`. Poz veriliyor, **bir satır sonra
+üstüne yazılıyordu**; oyunda "hiçbir şey olmuyor" gibi görünürdü.
+Yamultma'da aynı çağrı sorun çıkarmıyor çünkü orada poz **hedefe**,
+`kollariIndir` **oyuncuya** gidiyor; burada ikisi de aynı oyuncu.
+
+## Sinematik kamera
+
+Oyuncunun etrafında dönen serbest kamera + beyaz flaş. Kaynaktan
+iki yerde ayrıldık:
+
+1. **Çıkış garantisi.** Kaynakta kamerayı bırakan bir satır yok.
+   Serbest kamera kendiliğinden bitmez; temizlenmezse oyuncu kendi
+   bedenini göremeyen bir kamerada kilitli kalır ve dünyayı
+   kapatmaktan başka çaresi olmaz. `camera @s clear` `bitir()`
+   içinde — süre dolsa da, iş yarıda kesilse de, iki kez çağrılsa da
+   bir kez.
+2. **Açı hesaplanıyor.** Kaynak `rot 30 90` diye sabit yazıyor;
+   oyuncu dönünce kamera bambaşka yere bakıyor. Burada her adımda
+   kameradan oyuncuya doğru hesaplanıyor.
+
+### Tavan, tavan değildi
+
+İlk yazılışta tavan `system.currentTick >= tavanTick` idi.
+`tavanTick` her zaman `bitisTick`'ten sonra **ve ikisi aynı saati
+okuyor** — yani süre denetimi çalışıyorsa tavan gereksiz,
+çalışmıyorsa tavan da çalışmaz. Ölü koddu ve mutasyon testi bunu
+gösterdi: tavanı silmek hiçbir şeyi bozmuyordu.
+
+Tavanın anlamlı olduğu tek durum **saatin takılması**. Artık işin
+kaç kez çalıştığı sayılıyor: saat dönmese bile sayı doluyor ve
+kamera bırakılıyor. Test saati bilerek ilerletmeden koşuyor.
+
+> Ders: *bir tavan, koruduğu şeyle aynı ölçüyü okuyorsa tavan
+> değildir.*
+
+## Animasyon tarayıcısında iki düzeltme
+
+**1. Yanlış etiket.** 39 poz eklenince `SUPHE` sayısı 35 tavanından
+77'ye fırladı. Yanlış olan sayı değil **etiketti**: bir vanilla
+animasyonun "dosyada olmaması" eksiklik değil, beklenen hâl. Yeni
+bir kategori açıldı — `DIS` — ve kendi sayısı sabitlendi (43).
+Bağışıklık değil, **ayrı defter**.
+
+**2. Kör nokta.** Tarayıcı animasyon kimliğini yalnız `"animation.x.y"`
+biçiminde, yani metnin tamamı olduğunda görüyordu. Oysa depodaki
+kalıcı pozların hepsi argümanlı yazılıyor:
+
+```
+YAMULT_ANIM = "animation.fox.sleep a 9999"
+DONDUR_ANIM = "animation.evoker.general a 999"
+BEDEN_ANIM  = "animation.villager.get_in_bed a 9999"
+```
+
+Kapanış tırnağı hemen kimliğin ardından gelmediği için bunların
+**hiçbiri taranmıyordu** — tarayıcı, modun gerçekten oynattığı
+pozları hiç görmemiş. Düzeltildi; `DIS` 39'dan 43'e çıktı.
+
+## Test
+
+`test/pozlar.mjs` ve `test/sinematik.mjs` (95. ve 96. dosya). İkisi
+de yeteneği **gerçekten çalıştırıyor**.
+
+- pozlar: 11 mutasyon, 11'i de yakalandı
+- sinematik: 8 mutasyon; biri kaçtı ve yukarıdaki "tavan tavan
+  değildi" hatasını gösterdi, düzeltmeden sonra yakalandı
+
+## Tablette bakılacak iki şey
+
+1. **Hangi pozlar oynamıyor.** `POZ_DENEME` açık, her poz adıyla
+   yazılıyor. Oynamayanları söyle, silinsin.
+2. **Beyaz flaş beyaz mı.** `ekraniBoya` renkleri 0..1 arasına
+   kırpıyor ve depoda bugüne kadar yalnız siyah (`0 0 0`)
+   kullanılmış — o da iki düzende de aynı sonucu verdiği için hangi
+   aralığın doğru olduğunu kanıtlamıyor. Beyaz `[1,1,1]` yazıldı;
+   siyah çıkarsa aralık 0..255'tir ve tek satır değişir.
+
+
 # v7.26.1 — Dream: baş öne eğik, zincir elde ve gerçek zincir
 
 Kullanıcı üç şey söyledi: *"Dream'in başı da öne doğru eğik olsun,

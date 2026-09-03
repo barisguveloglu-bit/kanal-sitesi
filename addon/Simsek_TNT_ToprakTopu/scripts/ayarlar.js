@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.26.1";
+export const SURUM = "v7.27.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -628,6 +628,137 @@ export const BEDEN_KORUNAN = [
   "minecraft:wandering_trader", "minecraft:iron_golem",
   "minecraft:allay", "minecraft:snow_golem"
 ];
+
+/* ---------------- POZ SANDIGI (v7.27) ----------------
+   Kullanici 45 satirlik bir playanimation listesi gonderdi.
+   Alti tanesi ZATEN moddaydi ve hepsi gercekten kullaniliyor
+   (yorumda degil, kodda):
+
+     animation.player.sleeping        -> Will Kilici yatirma
+     animation.agent.move             -> Will Kilici (ikinci poz)
+     animation.zombie.attack_bare_hand-> kol kaldirma
+     animation.fox.sleep              -> Yamultma
+     animation.evoker.general         -> Dondur
+     animation.villager.get_in_bed    -> Bedeni Bol
+
+   Geri kalan 39'u burada.
+
+   ---- BU LISTE DOGRULANMADI, DOGRULANAMAZ DA ----
+   Vanilla animasyon kimliklerinin listesi bu depoda YOK ve
+   Bedrock playanimation'da bilinmeyen bir kimlige SESSIZCE
+   hicbir sey yapmiyor -- yani "calisti mi" sorusu ancak
+   TABLETTE cevaplanir. Uydurma icerik yasagi geregi bu
+   satirlar "calisiyor" diye sunulmuyor: DENEME modu var
+   (POZ_DENEME), poz adi ekranda yaziliyor, oynamayanlari
+   kullanici gorup soyluyor ve listeden siliniyoruz.
+
+   ---- KAYNAKTAKI IKI HATA ----
+   1. "animation.cow.baby_ transform" -- ortasinda BOSLUK var,
+      o haliyle komut hic calismaz. baby_transform diye
+      yazildi.
+   2. "animation.evoker_casting" ve "...v1.0" -- depodaki
+      calisan ornek "animation.evoker.general", yani duzen
+      animation.<varlik>.<ad>. Alt cizgili bicim bu duzene
+      uymuyor; yine de LISTEDE BIRAKILDI, cunku tahminle
+      silmek yerine tablette denenmesi dogru.
+
+   Gecis suresi 9999: depodaki oteki kalici pozlarla ayni
+   (YAMULT_ANIM, BEDEN_ANIM). Kaynaktaki 999 da ayni ise
+   yarardi; tek bir deger olsun diye 9999'da birlestirildi. */
+export const POZ_ACIK = true;
+/* Deneme modu: poz uygulanirken adi ve sirasi sohbete
+   yaziliyor. Kullanici hangisinin oynamadigini boylece
+   goruyor. Liste temizlenince false yapilabilir.           */
+export const POZ_DENEME = true;
+export const POZ_BITIS = "animation.humanoid.move a 0";
+/* [kimlik, Turkce ad] */
+export const POZ_LISTESI = [
+  ["animation.creeper.swelling",          "Creeper Sismesi"],
+  ["animation.dolphin.move",              "Yunus Yuzusu"],
+  ["animation.ghast.scale",               "Ghast Buyumesi"],
+  ["animation.fox.wiggle",                "Tilki Kivrilmasi"],
+  ["animation.fox.sit",                   "Tilki Oturusu"],
+  ["animation.cat.sit",                   "Kedi Oturusu"],
+  ["animation.panda.sitting",             "Panda Oturusu"],
+  ["animation.bat.flying",                "Yarasa Ucusu"],
+  ["animation.bee.fly.bobbing",           "Ari Salinimi"],
+  ["animation.enderman.base_pose",        "Enderman Durusu"],
+  ["animation.hoglin.baby_scaling",       "Hoglin Yavru Olcegi"],
+  ["animation.cow.baby_transform",        "Inek Yavru Donusumu"],
+  ["animation.cow.setup.v1.0",            "Inek Kurulumu"],
+  ["animation.warden.roar",               "Warden Kukremesi"],
+  ["animation.warden.dig",                "Warden Kazisi"],
+  ["animation.warden.sonic_boom",         "Warden Ses Patlamasi"],
+  ["animation.evoker_casting",            "Evoker Buyusu"],
+  ["animation.evoker_casting.v1.0",       "Evoker Buyusu (v1)"],
+  ["animation.humanoid.big_head",         "Koca Kafa"],
+  ["animation.actor.billboard",           "Panoya Donus"],
+  ["animation.arrow.move",                "Ok Hareketi"],
+  ["animation.armor_stand.cancan_a_pose", "Kankan Duruşu"],
+  ["animation.armor_stand.zombie_pose",   "Zombi Duruşu"],
+  ["animation.armor_stand.salute_pose",   "Selam Duruşu"],
+  ["animation.armor_stand.hero_pose",     "Kahraman Duruşu"],
+  ["animation.armor_stand.entertain_pose", "Sunucu Duruşu"],
+  ["animation.idle_arm_1",                "Bosta Kol"],
+  ["animation.idle_back_1",               "Bosta Sirt"],
+  ["animation.react_back_1",              "Tepki: Geri"],
+  ["animation.react_bored_1",             "Tepki: Sikilmis"],
+  ["animation.react_bored_torso_1",       "Tepki: Sikilmis Govde"],
+  ["animation.react_bottom_1",            "Tepki: Alt 1"],
+  ["animation.react_bottom_2",            "Tepki: Alt 2"],
+  ["animation.react_bottom_3",            "Tepki: Alt 3"],
+  ["animation.react_head_1",              "Tepki: Kafa"],
+  ["animation.react_confirm_1",           "Tepki: Onay 1"],
+  ["animation.react_confirm_2",           "Tepki: Onay 2"],
+  ["animation.react_offer_1",             "Tepki: Sunma"],
+  ["animation.react_offer_back_1",        "Tepki: Sunma (geri)"]
+];
+
+/* ---------------- SINEMATIK KAMERA (v7.27) ----------------
+   Kullanicinin listesindeki iki kamera satiri:
+     execute at @p run camera @p set minecraft:free ease 0.25
+             linear pos ~4 ~4 ~1.5 rot 30 90
+     camera fade time 0.5 0.5 0.5 color 255 255 255
+
+   IKINCISI ZATEN BIZDE: yardimcilar.js/ekraniBoya. Code-Man
+   Siyah Guc'un ekran karartmasi onu kullaniyor. Yeni olan tek
+   sey SERBEST KAMERA (camera set minecraft:free).
+
+   ---- EN ONEMLI SEY: CIKIS GARANTISI ----
+   Serbest kamera kendiliginden BITMEZ. Temizlenmezse oyuncu
+   kendi bedenini goremeyen bir kamerada kilitli kalir --
+   dunyayi kapatip acmaktan baska caresi olmaz. O yuzden
+   "camera @s clear" is nesnesinin bitir()'inde, yani HER
+   KOSULDA calisiyor: sure dolsa da, is yarida kesilse de,
+   oyuncu olse de. Ustune bir de tavan var.
+
+   ---- KAMERA NEREYE BAKIYOR: HESAPLANIYOR ----
+   Kaynak "rot 30 90" diye SABIT bir aci yaziyor; oyuncu
+   donunce kamera baska yere bakiyor. Burada aci her adimda
+   kameradan oyuncuya dogru HESAPLANIYOR, yani kamera hep
+   oyuncuyu goruyor.
+
+   ---- DOGRULANMAMIS TEK SEY: FADE RENGI ----
+   ekraniBoya renkleri 0..1 arasina kirpiyor. Depoda bugune
+   kadar yalniz SIYAH (0 0 0) kullanildi, o da iki duzende de
+   ayni sonucu verdigi icin hangi araligin dogru oldugunu
+   KANITLAMIYOR. Beyaz ilk deneme: [1,1,1] yaziliyor. Tablette
+   beyaz yerine siyah cikarsa aralik 0..255 demektir ve tek
+   satir degisir.                                             */
+export const SINEMATIK_ACIK    = true;
+export const SINEMATIK_SURE    = 120;   // tick (6 sn)
+export const SINEMATIK_YARICAP = 4.0;   // kaynaktaki ~4 ile ayni
+export const SINEMATIK_YUKSEK  = 4.0;   // kaynaktaki ~4
+export const SINEMATIK_ADIM    = 10;    // kac tickte bir kamera tasinsin
+/* Gecis suresi adim araligindan biraz UZUN: adim bitmeden
+   sonraki gecis basliyor, hareket kesintisiz akiyor. Esit
+   olsaydi her adimda bir duraklama olurdu.                  */
+export const SINEMATIK_GECIS   = 0.6;   // saniye (adim 10 tick = 0.5 sn)
+export const SINEMATIK_DONUS   = 200;   // toplam kac derece donsun
+export const SINEMATIK_FADE    = [0.5, 0.5, 0.5];   // giris/tut/cikis sn
+export const SINEMATIK_RENK    = [1, 1, 1];         // beyaz
+/* Tavan: is takilirsa bile kamera bu ticki gecince birakilir. */
+export const SINEMATIK_TAVAN   = 400;
 
 /* ---------------- Iksirler (Nitroksin sistemi) ----------------
    Referans mod bunu tamamen komutla yapiyordu:

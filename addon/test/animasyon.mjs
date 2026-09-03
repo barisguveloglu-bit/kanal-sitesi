@@ -87,5 +87,26 @@ kontrol("kullanilmayan animasyon sayisi artmadi",
 kontrol("bilinen artik DOSYA sayisi artmadi",
         dosyaSuphe <= 3, dosyaSuphe + " dosya (tavan 3)");
 
+/* DIS = oyunun KENDI animasyonlari (fox.sleep, warden.roar,
+   armor_stand.* ...). Bunlarin bizim paketimizde olmamasi
+   eksiklik degil, beklenen hal -- o yuzden SUPHE tavanina
+   girmiyorlar.
+
+   Ama SAYILARI SABIT: bagisiklik degil, ayri defter. Yeni bir
+   vanilla animasyon eklendiginde bu sayi degisir ve burasi
+   duser; o an kasitli mi diye bakilir.
+
+   43 = v7.27'de kullanicinin gonderdigi 39 poz (biri
+   humanoid.* oldugu icin zaten VANILLA sayiliyor) + modun
+   daha once kullandigi fox.sleep / evoker.general /
+   villager.get_in_bed / zombie.attack_bare_hand / agent.move.
+
+   Bu bes tanesi v7.27'ye kadar HIC TARANMIYORDU: tarayici
+   kimligi yalniz metnin tamami oldugunda goruyordu, oysa
+   hepsi "animation.x.y a 9999" gibi argumanli yaziliyor.  */
+const disSayisi = say("DIS  :");
+kontrol("dis (vanilla) animasyon sayisi degismedi",
+        disSayisi === 43, disSayisi + " tane (beklenen 43)");
+
 console.log(hata ? "\nKALDI" : "\nhepsi gecti");
 process.exit(hata ? 1 : 0);

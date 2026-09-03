@@ -84,26 +84,60 @@ for kimlik, yerler in kullanan.items():
     bul("HATA", yerler[0][0], "animasyon YOK: %s" % kimlik)
 
 # script'ten playAnimation ile oynatilanlar
+#
+# ---- KOR NOKTA DUZELTILDI (v7.27) ----
+# Onceki bicim r'"(animation\.[a-z0-9_.]+)"' idi, yani kimlik
+# metnin TAMAMI olmak zorundaydi. Oysa depodaki kalicilarin
+# hepsi argumanli yaziliyor:
+#     YAMULT_ANIM  = "animation.fox.sleep a 9999"
+#     DONDUR_ANIM  = "animation.evoker.general a 999"
+#     BEDEN_ANIM   = "animation.villager.get_in_bed a 9999"
+# Kapanis tirnagi hemen kimligin ardindan gelmedigi icin
+# bunlarin HICBIRI taranmiyordu. Yani tarayici, modun
+# gercekten oynattigi pozlari yillardir hic gormemis.
+# Artik kimligin ardindan bosluk da gelebiliyor.
+ANIM_METIN = re.compile(r'"(animation\.[a-z0-9_.]+)(?:[ "])')
 script_oynatilan = set()
 for y in glob.glob(os.path.join(KOK, "Simsek_TNT_ToprakTopu/scripts/**/*.js"),
                    recursive=True):
     m = open(y, encoding="utf-8").read()
-    for x in re.findall(r'"(animation\.[a-z0-9_.]+)"', m):
+    for x in re.findall(ANIM_METIN, m):
         script_oynatilan.add(x)
 ayar = open(os.path.join(KOK, "Simsek_TNT_ToprakTopu/scripts/ayarlar.js"),
             encoding="utf-8").read()
-for x in re.findall(r'"(animation\.[a-z0-9_.]+)"', ayar):
+for x in re.findall(ANIM_METIN, ayar):
     script_oynatilan.add(x)
 # v5.8: WOM_SERI ozel cozumlemesi buradaydi, mod kaldirilinca
 # olu kod oldu. (Cikardigi ders duruyor: seri adlarini kaba bir
 # regex'le okumak 27 silah adini animasyon sanip 69 sahte uyari
 # uretmisti -- tarayici da koddur, o da sinanmali.)
 
+# ---- DIS (oyunun kendi) ANIMASYONLARI ----
+# Bunlar bizim paketimizde OLMAMALI -- oyunun icinde
+# duruyorlar. Onceki surumde bunlar da SUPHE sayiliyordu ve
+# v7.27'de 39 poz eklenince sayi 35 tavanindan 77'ye firladi.
+# Yanlis olan sayi degil, ETIKETTI: bir vanilla animasyonun
+# "dosyada olmamasi" eksiklik degil, beklenen hal.
+#
+# Ayrim BIZIM ad uzaylarimiza gore yapiliyor (paketlerden
+# okundu). Bunlardan biriyle baslayip da dosyada bulunmayan
+# bir kimlik GERCEK eksiktir -> SUPHE. Geri kalani disaridan
+# -> DIS.
+#
+# DIS sayisi da SABITLENIYOR (animasyon.mjs): sessizce
+# artmasin. "Vanilla" etiketi bagisiklik degil, AYRI DEFTER.
+BIZIM_ONEK = re.compile(r"^animation\.(simsek|simsek_bot|o_sey|kol_dusen|"
+                        r"kol_gelen|recal|recal_omnitrix|drill_spin|"
+                        r"Diamondhead|prototype|ripjaws|sp_m_|pa_)")
 for x in sorted(script_oynatilan):
     if x.endswith("."):
         continue          # WOM_ANIM_ONEK gibi ONEK, animasyon degil
-    if x not in anim and not VANILLA.match(x):
+    if x in anim or VANILLA.match(x):
+        continue
+    if BIZIM_ONEK.match(x):
         bul("SUPHE", "script", "script'te gecen animasyon dosyada YOK: %s" % x)
+    else:
+        bul("DIS", "script", "oyunun kendi animasyonu: %s" % x)
 
 kullanilan = set(kullanan) | script_oynatilan
 for kimlik, (y, _) in sorted(anim.items()):
@@ -382,6 +416,7 @@ print("animasyon: %d   denetleyici: %d   kullanan yer: %d"
 print()
 hata = [b for b in BULGU if b[0] == "HATA"]
 supheli = [b for b in BULGU if b[0] == "SUPHE"]
+disari = [b for b in BULGU if b[0] == "DIS"]
 print("HATA : %d" % len(hata))
 for a, n, x in hata:
     print("   %s\n      %s" % (x, n.replace(KOK + "/", "")))
@@ -390,3 +425,12 @@ print("SUPHE: %d" % len(supheli))
 for a, n, x in supheli[:40]:
     print("   %s  (%s)" % (x, n.replace(KOK + "/", "")))
 if len(supheli) > 40: print("   ... +%d" % (len(supheli) - 40))
+print()
+# DIS: oyunun kendi animasyonlari. Eksiklik DEGIL -- bizim
+# paketimizde olmamalari beklenen hal. Ayri sayiliyor ki
+# SUPHE tavanini sisirmesinler ama yine de sessizce
+# artamasinlar (animasyon.mjs sayiyi sabitliyor).
+print("DIS  : %d" % len(disari))
+for a2, n2, x2 in disari[:60]:
+    print("   %s" % x2)
+if len(disari) > 60: print("   ... +%d" % (len(disari) - 60))

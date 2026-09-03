@@ -76,6 +76,10 @@ import {
   zirhAgacOyuncuUnut
 } from "./yetenekler/zirh_agac.js";
 
+/* v7.27: poz sandigi. Oyuncu anahtarli tek defteri var,
+   playerLeave'de dusuruluyor.                              */
+import { pozUnut } from "./yetenekler/pozlar.js";
+
 /* v5.8: acilabilir zirh katmanlari (matkap). Yetenegi kendi
    dosyasinda kaydediyor; buradan yalniz "cekirdek elden
    cikinca katmani kapat" tazelemesi cagriliyor.            */
@@ -153,6 +157,8 @@ import "./yetenekler/kol_takas.js";
 import "./yetenekler/ucurma.js";
 import "./yetenekler/yamult.js";
 import "./yetenekler/beden_bol.js";
+import "./yetenekler/pozlar.js";
+import "./yetenekler/sinematik.js";
 import "./yetenekler/toprak_duvar.js";
 import "./yetenekler/iksirler.js";
 import "./yetenekler/goz_lazeri.js";
@@ -2272,6 +2278,7 @@ olayaAbone("playerLeave", (olay) => {
   actionbarUnut(olay.playerId);
   efsaneMuzikUnut(olay.playerId);
   zirhAgacOyuncuUnut(olay.playerId);
+  pozUnut(olay.playerId);
 
   // Oyuncunun butun isleri durdurulmali, sadece birincisi degil
   const acikIsler = oyuncununIsleri.get(olay.playerId);
