@@ -7539,6 +7539,7 @@ KUPA_KAZIK = "kazik"        # kafa, kazigin ucunda
 KUPA_CARMIH = "carmih"      # tam govde, carmihta
 KUPA_ASILI = "asili"        # tam govde, daragacinda ipte
 KUPA_SIS = "sis"            # tam govde, kazik icinden gecmis
+KUPA_ZINCIRLI = "zincirli"  # tam govde, bileklerinden zincirli
 
 # (kimlik, ad, racon, bicim, skin dosyasi)
 #
@@ -7565,6 +7566,12 @@ KUPALAR = [
     ("wyne", "Wyne",
      "Benden saklanamadı, sonu da hiç iyi bitmedi. HAHAHAHAHA",
      KUPA_ASILI, "wyne.png"),
+    # Bicimi kullanici bana birakti. Dream kacmakla taninir,
+    # racon da "kacamadin" diyor -> bileklerinden zincirli.
+    ("dream", "Dream",
+     "Ben Türk birisi olarak, tabii ki eskilerin yeri "
+     "tutulmaz — ama elimden kaçamadın.",
+     KUPA_ZINCIRLI, "dream.png"),
 ]
 
 # 64x64 skin duzeni: kutu UV baslangici ve kutu olcusu.
@@ -7603,6 +7610,7 @@ SKIN_UST_KUTULARI = {
 # Kazik/carmih odunu ve daragaci ipi icin ayri dokular.
 KUPA_ODUN_DOKU = "kupa_odun"
 KUPA_IP_DOKU = "kupa_ip"
+KUPA_ZINCIR_DOKU = "kupa_zincir"
 
 
 def _kupa_yuz_uv(uv, olcu):
@@ -7829,7 +7837,8 @@ def kupa_carmih_geometrisi(kimlik):
     }
 
 
-def _kupa_govde(s, taban_y, orta_x=8.0, orta_z=8.0, dondur=None):
+def _kupa_govde(s, taban_y, orta_x=8.0, orta_z=8.0, dondur=None,
+                kol_aci=None):
     """KOLLARI ASAGI SARKAN tam govde: bacak + govde + kafa +
     iki kol, hepsi ikinci katmanlariyla.
 
@@ -7841,6 +7850,15 @@ def _kupa_govde(s, taban_y, orta_x=8.0, orta_z=8.0, dondur=None):
 
     taban_y = ayak tabaninin y'si.
 
+    kol_aci verilirse kollar omuzdan DONUYOR (yukari
+    kaldirilmis kol). Aci VANILLA KOLUN SARKTIGI yerden
+    olculuyor: kol kupu omuzdan asagi iner, yani kolu yukari
+    kaldirmak icin 180'e yakin bir aci gerekiyor -- 140
+    derece "yukari ve disari" demek.
+
+    kol_aci ile dondur AYNI ANDA verilemez: bir kupun tek
+    donusu olur, ikisi birbirini ezerdi.
+
     dondur BUTUN parcalara ayni pivot/aciyla uygulaniyor:
     govdeyi tek parca gibi egmek icin. Ayri bir kemik
     yapilmadi, cunku o zaman 30 birim denetimi eksik kalirdi
@@ -7851,10 +7869,17 @@ def _kupa_govde(s, taban_y, orta_x=8.0, orta_z=8.0, dondur=None):
     kup += _kupa_parca("kafa", (orta_x, govde_ust, orta_z), dondur=dondur, olcek=s)
     kup += _kupa_parca("govde", (orta_x, bacak_ust, orta_z), dondur=dondur, olcek=s)
     # Kollar govdenin yaninda, ust hizasi govde ustu (vanilla).
+    if kol_aci is None:
+        sag_d = sol_d = dondur
+    else:
+        assert dondur is None, "kol_aci ile dondur birlikte olmaz"
+        omuz_y = govde_ust - 1.5 * s
+        sag_d = ((orta_x - 6 * s, omuz_y, orta_z), (0, 0, -kol_aci))
+        sol_d = ((orta_x + 6 * s, omuz_y, orta_z), (0, 0, kol_aci))
     kup += _kupa_parca("sag_kol", (orta_x - 6 * s, govde_ust - 12 * s,
-                                   orta_z), dondur=dondur, olcek=s)
+                                   orta_z), dondur=sag_d, olcek=s)
     kup += _kupa_parca("sol_kol", (orta_x + 6 * s, govde_ust - 12 * s,
-                                   orta_z), dondur=dondur, olcek=s)
+                                   orta_z), dondur=sol_d, olcek=s)
     kup += _kupa_parca("sag_bacak", (orta_x - 2 * s, taban_y, orta_z),
                        dondur=dondur, olcek=s)
     kup += _kupa_parca("sol_bacak", (orta_x + 2 * s, taban_y, orta_z),
@@ -7974,34 +7999,50 @@ KUPA_UST_BOLGE = {
     "sol_bacak": (0, 48, 16, 16),
 }
 
-# Bir yuzun "gurultu" sayilma esigi: komsu piksel farkinin
-# ortalamasi. Olculdu (bu depodaki dort skin uzerinde):
-#     ferguson bozuk yuzler   88.8 .. 96.2
-#     entity303 en yuksek     55.9   (gercek cizim)
-#     wyne en yuksek          40.2
-#     earl en yuksek          25.5
-# 70 ikisinin tam ortasinda, iki yana da genis pay birakiyor.
+# Bir yuzun "gurultu" sayilmasi icin IKI KOSUL BIRDEN.
 #
-# ---- NEDEN "AYRI RENK SAYISI" DEGIL ----
-# Ilk olcum ayri renk / dolu piksel oraniydi. O olcum
-# earl.png'nin govdesini de gurultu sandi: govde alti 32
-# pikselde 28 ayri renk, ama o gurultu degil YUMUSAK BIR
-# GECIS. Renk sayisi gecisle gurultuyu ayirt edemiyor;
-# komsu farki ayirt ediyor, cunku gecişte komsu pikseller
-# birbirine yakin, gurultude degil.
-KUPA_GURULTU_ESIGI = 70.0
+# ---- IKI OLCUM DE TEK BASINA YANLIS SONUC VERDI ----
+# 1. Once "ayri renk / dolu piksel" orani denendi. O olcum
+#    earl.png'nin govde altini gurultu sandi: 32 pikselde 28
+#    ayri renk var, ama orasi gurultu degil YUMUSAK BIR
+#    GECIS. Renk sayisi gecisle gurultuyu ayiramiyor.
+# 2. Sonra "komsu piksel farki" denendi. O da dream.png'yi
+#    gurultu sandi (78.3): o skin uc-dort SAF renkten olusuyor
+#    (parlak yesil, beyaz, siyah) ve kenarlari serttir, yani
+#    komsu farki dogal olarak yuksek. Komsu farki tek basina
+#    yuksek karsitli duz renkli cizimi gurultuden ayiramiyor.
+#
+# Ikisi BIRLIKTE ayiriyor, cunku gurultunun iki ozelligi de
+# ayni anda var: komsular birbirine hic benzemiyor VE hemen
+# her piksel ayri renk.
+#
+#   skin        en komsu farki   en renk orani   ikisi birden
+#   ferguson         96.2            1.00        13 yuz -> BOZUK
+#   dream            78.3            0.12        yok   -> temiz
+#   earl             25.5            0.88        yok   -> temiz
+#   entity303        55.9            0.28        yok   -> temiz
+#   wyne             40.2            0.50        yok   -> temiz
+KUPA_GURULTU_ESIGI = 70.0        # komsu piksel farki
+KUPA_PALET_ESIGI = 0.5           # ayri renk / dolu piksel
 
 
-def _kupa_komsu_fark(px, x, y, en, boy):
-    """Bir doku dikdortgeninde komsu piksel farkinin
-    ortalamasi. Saydam piksel hesaba katilmiyor."""
+def _kupa_gurultulu_mu(px, x, y, en, boy):
+    """Bir doku dikdortgeni gurultu mu?
+
+    (gurultu_mu, komsu_farki, renk_orani, dolu_piksel)
+    donduruyor -- sayilari da veriyor ki UYARI'da gorunsun,
+    "neden reddedildi" sorusu cevapsiz kalmasin."""
     toplam = 0.0
     sayi = 0
+    dolu = 0
+    renkler = set()
     for j in range(boy):
         for i in range(en):
             a = px[x + i, y + j]
             if a[3] < 40:
                 continue
+            dolu += 1
+            renkler.add(a[:3])
             for di, dj in ((1, 0), (0, 1)):
                 if i + di >= en or j + dj >= boy:
                     continue
@@ -8010,7 +8051,11 @@ def _kupa_komsu_fark(px, x, y, en, boy):
                     continue
                 toplam += sum(abs(a[k] - b[k]) for k in range(3)) / 3.0
                 sayi += 1
-    return toplam / sayi if sayi else 0.0
+    fark = toplam / sayi if sayi else 0.0
+    oran = len(renkler) / float(dolu) if dolu else 0.0
+    gurultu = (dolu >= 16 and fark > KUPA_GURULTU_ESIGI
+               and oran > KUPA_PALET_ESIGI)
+    return gurultu, fark, oran, dolu
 
 
 def _kupa_yuz_dikdortgenleri(uv, olcu):
@@ -8058,11 +8103,7 @@ def kupa_skin_denetle(kaynak, hedef, bicim):
     # 1) ikinci katman: gurultulu bolgeyi sil
     silinen = []
     for ad, (x0, y0, en, boy) in sorted(KUPA_UST_BOLGE.items()):
-        dolu = sum(1 for j in range(boy) for i in range(en)
-                   if px[x0 + i, y0 + j][3] > 40)
-        if dolu < 16:
-            continue
-        if _kupa_komsu_fark(px, x0, y0, en, boy) > KUPA_GURULTU_ESIGI:
+        if _kupa_gurultulu_mu(px, x0, y0, en, boy)[0]:
             for j in range(boy):
                 for i in range(en):
                     px[x0 + i, y0 + j] = (0, 0, 0, 0)
@@ -8075,16 +8116,98 @@ def kupa_skin_denetle(kaynak, hedef, bicim):
     for kutu in kullanilan:
         uv, olcu = SKIN_KUTULARI[kutu]
         for yon, (x, y, en, boy) in _kupa_yuz_dikdortgenleri(uv, olcu).items():
-            dolu = sum(1 for j in range(boy) for i in range(en)
-                       if px[x + i, y + j][3] > 40)
-            if dolu < 16:
-                continue
-            f = _kupa_komsu_fark(px, x, y, en, boy)
-            if f > KUPA_GURULTU_ESIGI:
-                bozuk.append("%s.%s(%.0f)" % (kutu, yon, f))
+            gurultu, f, oran, _d = _kupa_gurultulu_mu(px, x, y, en, boy)
+            if gurultu:
+                bozuk.append("%s.%s(fark %.0f, renk orani %.2f)"
+                             % (kutu, yon, f, oran))
     if not bozuk:
         im.save(hedef)
     return silinen, bozuk
+
+
+# Zincirli govdenin olcegi. Yukaridan asagi hesap:
+#   ust kiris tepesi     29.0
+#   kiris                 3.0
+#   zincir              ~5.8   (elden kirise)
+#   ayaklar yerden        1.5   (sallaniyor)
+# 32*olcek = 19.2 -> olcek 0.6
+KUPA_ZINCIRLI_OLCEK = 0.6
+
+# Kollarin omuzdan donus acisi. 140 derece: kol sarktigi
+# yerden yukari-disari kalkiyor, eller basin hizasinin
+# uzerinde ve iki yana acik -- zincire baglanacak yer orasi.
+KUPA_ZINCIR_KOL_ACI = 140.0
+
+
+def kupa_zincirli_geometrisi(kimlik):
+    """ZINCIRLI -- govde bileklerinden zincirle asili.
+
+    Carmihtan farki: ne hac var ne civi. Kollar V bicimde
+    yukari, iki zincir yukaridaki kirise gidiyor, ayaklar
+    bosta. "Kacamadi, yakalandi" bicimi.
+
+    El konumu HESAPLANIYOR, elle yazilmiyor: kol omuzdan
+    kol_aci kadar donunce elin nereye gittigi acidan
+    cikiyor. Zincir tam oraya iniyor; aci degisirse zincir
+    de kendiliginden kayiyor."""
+    s = KUPA_ZINCIRLI_OLCEK
+    ORTA_X, ORTA_Z = 8.0, 8.0
+    TABAN_Y = 1.5
+    kupler, _kafa_ust = _kupa_govde(s, TABAN_Y, ORTA_X, ORTA_Z,
+                                    kol_aci=KUPA_ZINCIR_KOL_ACI)
+    # Elin yeri: omuz + 12s uzunlugundaki kolun donmus ucu.
+    govde_ust = TABAN_Y + 24 * s
+    omuz_y = govde_ust - 1.5 * s
+    t = math.radians(KUPA_ZINCIR_KOL_ACI)
+    el_dx = 12 * s * math.sin(t)          # disari
+    el_dy = 12 * s * math.cos(t)          # yukari (cos negatif -> +)
+    EL_X_SAG = ORTA_X - 6 * s - el_dx
+    EL_X_SOL = ORTA_X + 6 * s + el_dx
+    EL_Y = omuz_y - el_dy
+    KIRIS_UST = 29.0
+    KIRIS_BOY = 3.0
+    KIRIS_ALT = KIRIS_UST - KIRIS_BOY
+    # Kiris iki elin de disina tasiyor.
+    KIRIS_SOL = min(EL_X_SAG, EL_X_SOL) - 2.0
+    KIRIS_SAG = max(EL_X_SAG, EL_X_SOL) + 2.0
+    demir = [
+        _kupa_odun([KIRIS_SOL, KIRIS_ALT, ORTA_Z - 1.5],
+                   [KIRIS_SAG - KIRIS_SOL, KIRIS_BOY, 3]),
+    ]
+    for ex in (EL_X_SAG, EL_X_SOL):
+        demir.append(_kupa_odun([ex - 1, EL_Y, ORTA_Z - 1],
+                                [2, KIRIS_ALT - EL_Y, 2], ad="zincir"))
+    return {
+        "format_version": "1.16.0",
+        "minecraft:geometry": [{
+            "description": {
+                "identifier": "geometry." + KUPA_ONEK + kimlik,
+                "texture_width": 64, "texture_height": 64,
+                "visible_bounds_width": 2.5,
+                "visible_bounds_height": 2.5,
+                "visible_bounds_offset": [0, 0.9, 0],
+            },
+            "bones": [{"name": "kupa", "pivot": [0, 0, 0],
+                       "cubes": demir + kupler}],
+        }],
+    }
+
+
+def kupa_zincir_dokusu():
+    """Zincir: 16x16 koyu demir, halkali.
+    Lineer ifade kafes uretir -- karistirici hash."""
+    p = {}
+    for y in range(16):
+        for x in range(16):
+            h = (x * 1103515245 + y * 12345) & 0xFFFFFFFF
+            h = (h ^ (h >> 12)) * 2654435761 & 0xFFFFFFFF
+            z = (h ^ (h >> 17)) & 0xFF
+            # Halka: her dort satirda bir koyu bant.
+            halka = (y % 4) == 0 or (y % 4) == 3
+            t = 96 + (z % 24) + (-34 if halka else 22)
+            t = max(0, min(255, t))
+            p[(x, y)] = (t, t, int(t * 1.06) if t < 240 else t, 255)
+    return p
 
 
 def kupa_ip_dokusu():
@@ -8161,6 +8284,9 @@ def kupa_blogu(kimlik, ad, bicim):
                     **({"ip": {"texture": KUPA_IP_DOKU,
                                "render_method": "opaque"}}
                        if bicim == KUPA_ASILI else {}),
+                    **({"zincir": {"texture": KUPA_ZINCIR_DOKU,
+                                   "render_method": "opaque"}}
+                       if bicim == KUPA_ZINCIRLI else {}),
                 },
                 # Kupa DEKOR: carpisma kutusu yok, icinden
                 # gecilebiliyor. Carpisma olsaydi carmih iki
@@ -10227,7 +10353,8 @@ def main():
     _kupa_geo = {KUPA_KAZIK: kupa_kazik_geometrisi,
                  KUPA_CARMIH: kupa_carmih_geometrisi,
                  KUPA_ASILI: kupa_asili_geometrisi,
-                 KUPA_SIS: kupa_sis_geometrisi}
+                 KUPA_SIS: kupa_sis_geometrisi,
+                 KUPA_ZINCIRLI: kupa_zincirli_geometrisi}
     for _kk, _kad, _krac, _kbic, _kskin in KUPALAR:
         _ky = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                            KUPA_SKIN_KLASOR, _kskin)
@@ -10272,6 +10399,10 @@ def main():
     if any(_b == KUPA_ASILI for _, _, _, _b in _kupa_uretilen):
         png_yaz(os.path.join(RP, "textures/blocks", KUPA_IP_DOKU + ".png"),
                 16, 16, kupa_ip_dokusu())
+    if any(_b == KUPA_ZINCIRLI for _, _, _, _b in _kupa_uretilen):
+        png_yaz(os.path.join(RP, "textures/blocks",
+                             KUPA_ZINCIR_DOKU + ".png"),
+                16, 16, kupa_zincir_dokusu())
     print("uretildi: %d kupa" % len(_kupa_uretilen))
 
     # ---- SILAHLAR ve MERMILER (v4.87) ----
@@ -10440,6 +10571,9 @@ def main():
     if any(_b == KUPA_ASILI for _, _, _, _b in _kupa_uretilen):
         _terrain[KUPA_IP_DOKU] = {
             "textures": "textures/blocks/" + KUPA_IP_DOKU}
+    if any(_b == KUPA_ZINCIRLI for _, _, _, _b in _kupa_uretilen):
+        _terrain[KUPA_ZINCIR_DOKU] = {
+            "textures": "textures/blocks/" + KUPA_ZINCIR_DOKU}
 
     if _dusmus_blok_var:
         _terrain[DUSMUS_BLOK_DOKU] = {

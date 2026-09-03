@@ -28,11 +28,17 @@
     "kupa_wyne": {
       "textures": "textures/blocks/kupa_wyne"
     },
+    "kupa_dream": {
+      "textures": "textures/blocks/kupa_dream"
+    },
     "kupa_odun": {
       "textures": "textures/blocks/kupa_odun"
     },
     "kupa_ip": {
       "textures": "textures/blocks/kupa_ip"
+    },
+    "kupa_zincir": {
+      "textures": "textures/blocks/kupa_zincir"
     },
     "kns_dusmus_blok": {
       "textures": "textures/blocks/kns_dusmus_blok"

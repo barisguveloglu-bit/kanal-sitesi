@@ -36,6 +36,10 @@
     "textures": "kupa_wyne",
     "sound": "wood"
   },
+  "pa:kupa_dream": {
+    "textures": "kupa_dream",
+    "sound": "wood"
+  },
   "pa:kns_dusmus_blok": {
     "textures": "kns_dusmus_blok",
     "sound": "wood"

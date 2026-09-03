@@ -38,6 +38,7 @@
    sabit dogru olup da yazilmamis olabilir.                  */
 
 import { readFileSync, existsSync, readdirSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 
 const KOK = new URL("..", import.meta.url).pathname.replace(/\/$/, "");
 const BP = KOK + "/Simsek_TNT_ToprakTopu";
@@ -182,11 +183,100 @@ for (const k of bloklar) {
   kontrol(k + ": ikinci katman sisirilmis (inflate)", sismeVar);
 }
 
+/* ---- 5b. ZINCIR ELE DEGMELI ----
+   Zincirli bicimde zincirin alt ucu KOLUN ICINDE bitmeli.
+   Kod bunu aciyla HESAPLIYOR (elle yazmiyor), yani kol acisi
+   degisince zincir pesinden gidiyor. Bu madde o bagi tutuyor:
+   biri zincirin yerini sabit sayiya cevirirse burada dusar. */
+console.log("");
+console.log("== 5b. zincir ele degiyor mu");
+for (const k of bloklar) {
+  const geo = JSON.parse(readFileSync(
+    RP + "/models/blocks/kupa_" + k + ".geo.json", "utf8"))["minecraft:geometry"][0];
+  const kupler = geo.bones.flatMap(b => b.cubes || []);
+  const zincirler = kupler.filter(c => c.material_instance === "zincir");
+  if (!zincirler.length) continue;
+  /* Kollar: donmus kuplerin taban katmani (inflate yok). */
+  const kollar = kupler.filter(c => !c.material_instance && c.rotation &&
+                                    !(c.inflate > 0));
+  kontrol(k + ": zincir sayisi kol sayisiyla ayni",
+          zincirler.length === kollar.length,
+          zincirler.length + " zincir / " + kollar.length + " kol");
+  for (const z of zincirler) {
+    const zx = z.origin[0] + z.size[0] / 2;
+    const zy = z.origin[1];                 // zincirin ALT ucu
+    const degiyor = kollar.some(c => {
+      const { mn, mx } = sinirlar({ bones: [{ cubes: [c] }] });
+      return zx >= mn[0] - 0.6 && zx <= mx[0] + 0.6 &&
+             zy >= mn[1] - 0.6 && zy <= mx[1] + 0.6;
+    });
+    kontrol(k + ": zincirin alt ucu kolun icinde",
+            degiyor, "zincir x=" + zx.toFixed(1) + " y=" + zy.toFixed(1));
+  }
+}
+
 /* ---- 6. BOZUK SKIN GUVENCESI ---- */
 console.log("");
 console.log("== 6. bozuk skin uretilmiyor");
-kontrol("gurultu esigi tanimli", /KUPA_GURULTU_ESIGI\s*=\s*[\d.]+/.test(KOD));
-kontrol("komsu piksel farki olculuyor", /_kupa_komsu_fark\s*\(/.test(KOD));
+kontrol("komsu farki esigi tanimli", /KUPA_GURULTU_ESIGI\s*=\s*[\d.]+/.test(KOD));
+kontrol("palet esigi tanimli", /KUPA_PALET_ESIGI\s*=\s*[\d.]+/.test(KOD));
+/* IKI KOSUL BIRDEN aranmali. Tek basina her ikisi de yanlis
+   sonuc verdi: komsu farki dream.png'yi (uc saf renk, sert
+   kenar) gurultu sandi; renk orani earl.png'nin yumusak
+   gecisini gurultu sandi.                                  */
+kontrol("gurultu IKI kosula birden bagli",
+        /fark > KUPA_GURULTU_ESIGI[\s\S]{0,80}?oran > KUPA_PALET_ESIGI/.test(KOD));
+kontrol("komsu piksel farki olculuyor", /_kupa_gurultulu_mu\s*\(/.test(KOD));
+
+/* ---- SINIFLANDIRICI GERCEKTEN CALISTIRILIYOR ----
+   Yukaridaki maddeler kodun SEKLINE bakiyor; bu madde
+   HUKMUNE bakiyor. Depodaki bes skinin dordu temiz, biri
+   (ferguson) bozuk -- siniflandirici bunu boyle demezse
+   esikler kaymis demektir.                                 */
+{
+  const bekle = { dream: false, earl: false, entity303: false,
+                  wyne: false, ferguson: true };
+  const betik = `
+import sys
+sys.path.insert(0, ${JSON.stringify(KOK)})
+sys.argv = ["kol_uret"]
+import importlib.util
+spec = importlib.util.spec_from_file_location("ku", ${JSON.stringify(KOK + "/kol_uret.py")})
+m = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(m)
+from PIL import Image
+import os
+for ad in sorted(bekle_listesi):
+    yol = os.path.join(${JSON.stringify(KOK)}, "kupa_skinleri", ad + ".png")
+    if not os.path.exists(yol):
+        print(ad, "YOK"); continue
+    px = Image.open(yol).convert("RGBA").load()
+    bozuk = False
+    for kutu, (uv, olcu) in m.SKIN_KUTULARI.items():
+        for yon, (x, y, en, boy) in m._kupa_yuz_dikdortgenleri(uv, olcu).items():
+            if m._kupa_gurultulu_mu(px, x, y, en, boy)[0]:
+                bozuk = True
+    print(ad, "BOZUK" if bozuk else "TEMIZ")
+`;
+  const tam = "bekle_listesi = " + JSON.stringify(Object.keys(bekle)) + "\n" + betik;
+  let cikti = "";
+  try {
+    cikti = execFileSync("python3", ["-c", tam], { encoding: "utf8" });
+  } catch (e) {
+    cikti = "(python3 calismadi: " + (e.message || "") + ")";
+  }
+  if (cikti.includes("calismadi") || cikti.includes("ModuleNotFound")) {
+    console.log("  - python3/PIL yok, siniflandirici denemesi atlandi");
+  } else {
+    for (const [ad, bozukBekleniyor] of Object.entries(bekle)) {
+      const satir = cikti.split("\n").find(l => l.startsWith(ad + " "));
+      if (!satir) { kontrol(ad + ": siniflandirici sonucu var", false); continue; }
+      if (satir.endsWith("YOK")) { console.log("  - " + ad + ": skin dosyasi yok"); continue; }
+      kontrol(ad + ": siniflandirici " + (bozukBekleniyor ? "BOZUK" : "TEMIZ") + " demeli",
+              satir.endsWith(bozukBekleniyor ? "BOZUK" : "TEMIZ"), satir.trim());
+    }
+  }
+}
 kontrol("bozuk skinde kupa URETILMIYOR (continue)",
         /_bozuk[\s\S]{0,400}?continue/.test(KOD));
 kontrol("bozuk skinde artik dosyalar siliniyor",
