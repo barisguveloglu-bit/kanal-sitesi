@@ -2,20 +2,29 @@
 
 İki dosya incelendi. **İkisi de kurulmadı, çalıştırılmadı.**
 
-| | MH_TEAM_V5.apk | Toolbox_1.20.51_mod.apk |
-|---|---|---|
-| boyut | 10.490.716 | 7.651.691 |
-| sha256 | `efa1ecdb…702786` | `f21d7bbd…ba7fd9` |
-| paket adı | `io.mrarm.mctoolbox` | `io.mrarm.mctoolbox` |
-| imza | **AOSP test anahtarı** | **AOSP test anahtarı** |
-| koruyucu | NP Manager (VM koruma) | NP Manager (**akış karıştırma** 3.0.62) |
-| koruyucu sahibi | 吹牛儿 · 2863678687@qq.com | 吹牛儿 · **aynı e-posta** |
-| damga | 2023-04-17 | 2023-12-19 |
-| MC sürümü | 1.19.50 – 1.19.73 | **yalnız 1.20.51** |
-| şüpheli alan adı | yok | yok |
+| | MH_TEAM_V5 | Toolbox_1.20.51_mod | FerSReD_Client_V2 |
+|---|---|---|---|
+| boyut | 10.490.716 | 7.651.691 | 28.401.794 |
+| sha256 | `efa1ecdb…702786` | `f21d7bbd…ba7fd9` | `097f5433…ddd673` |
+| paket adı | `io.mrarm.mctoolbox` | `io.mrarm.mctoolbox` | **`io.mrarm.mctoolbox`** |
+| imza | **AOSP test anahtarı** | **AOSP test anahtarı** | **AOSP test anahtarı** |
+| koruyucu | NP Manager (VM) | NP Manager (akış karıştırma) | NP Manager (VM) |
+| MC sürümü | 1.19.50 – 1.19.73 | yalnız 1.20.51 | **24 sürüm**, 1.16.221 – 1.19.51 |
+| ek kütüphane | yok | yok | yok |
+| şüpheli alan adı | yok | yok | yok |
+| kendi izi | — | — | `dsc.gg/fersred-official` |
 
-**İkisi de aynı elden çıkmış.** Paketleyicinin e-postası birebir aynı;
-sekiz ay arayla yapılmış iki iş.
+**Üçü de aynı şey.** Adları farklı ("MH TEAM", "mod", "Client") ama
+üçü de `io.mrarm.mctoolbox` — yani **Toolbox'ın yeniden paketlenmiş
+hâli**. Üçü de aynı herkese-açık anahtarla imzalı, üçü de aynı Çin
+yapımı koruyucudan geçmiş.
+
+`FerSReD_Client_V2` adında "Client" geçmesi yanıltıcı: ayrı bir hile
+istemcisi değil, Toolbox'ın kendisi. Stok Toolbox'ta olmayan tek şey
+paketleyenin kendi Discord bağlantısı.
+
+İlk ikisinde paketleyicinin e-postası birebir aynı (2863678687@qq.com),
+sekiz ay arayla iki iş.
 
 ## İkincide ek olarak çıkanlar
 

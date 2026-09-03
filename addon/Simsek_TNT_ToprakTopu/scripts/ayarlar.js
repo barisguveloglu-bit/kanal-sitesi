@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.28.0";
+export const SURUM = "v7.29.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -813,6 +813,33 @@ export const ARIN_EFEKTLER = [
   "nausea", "poison", "wither", "hunger", "darkness",
   "levitation", "bad_omen", "fatal_poison", "slow_falling"
 ];
+
+/* ---------------- SAVUNMA KIPI (v7.29) ----------------
+   Kullanici: "Hadi diyelim ki vs yapacagiz, hileleri actim.
+   O an nasil olacagiz?"
+
+   Arinma TEK SEFERLIK: fark edip yazman lazim. Kilit dongu
+   halinde geliyorsa (her saniye yeniden kuruluyorsa) elle
+   yetismek mumkun degil.
+
+   Savunma Kipi acikken mod SAVUNMAYI SUREKLI TAZELIYOR: her
+   SAVUNMA_ARALIK tickte girdi, kamera, sarsinti ve poz geri
+   aliniyor. Yani kilit kurulsa bile yarim saniyede bir
+   kiriliyor.
+
+   ---- NEDEN SUREKLI ACIK DEGIL ----
+   Sürekli acik olsaydi kendi Yamultma/Dondur yeteneklerimiz
+   kimseyi tutamazdi ve her tick dort komut calisirdi. Bu bir
+   DOVUS KIPI: acip kapatiliyor, kendiliginden de kapaniyor.
+
+   ---- BU BIR IS, KENDI DONGUSU DEGIL ----
+   Depo kurali: her ozellik kendi system.runInterval'ini
+   acamaz (isin_topu.js'te yazili gerekce). Savunma kipi de
+   merkezi is listesinde -- butce olcumu ve playerLeave
+   temizligi boylece gecerli.                                */
+export const SAVUNMA_ARALIK = 10;    // tick (0,5 sn)
+export const SAVUNMA_SURE   = 6000;  // tick (5 dk) sonra kendi kapanir
+export const SAVUNMA_SIRA   = 157;
 
 /* ---------------- Iksirler (Nitroksin sistemi) ----------------
    Referans mod bunu tamamen komutla yapiyordu:

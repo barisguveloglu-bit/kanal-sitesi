@@ -187,5 +187,87 @@ console.log("=== 7. AYAR VE TEMIZLIK ===");
 }
 
 console.log("");
+console.log("=== 8. SAVUNMA KIPI (kilit DONGUSUNE karsi) ===");
+{
+  /* Arinma tek seferlik. Kilit her yarim saniyede yeniden
+     kuruluyorsa elle yetisilmez -- kullanicinin sorusu tam
+     buydu: "hileleri actim, o an nasil olacagiz?"           */
+  const { o } = kur("sv1", ["slowness"]);
+  const sonuc = arinma.savunmaAc(o);
+  kontrol("kip acilinca is uretiliyor", !!sonuc.is,
+          String(sonuc.mesaj).slice(0, 50));
+  kontrol("acilir acilmaz bir kez tazeleniyor",
+          komutVar(o, "inputpermission set @s movement enabled"));
+
+  /* Saldirgan her tick yeniden kilitliyormus gibi: biz de
+     her tick calis() cagiriyoruz ve tazelemenin ARALIK
+     tickte bir gerceklestigini olcuyoruz.                  */
+  o._komutlar = [];
+  let tazeleme = 0;
+  for (let i = 0; i < ayar.SAVUNMA_ARALIK * 4; i++) {
+    tickIlerlet(1);
+    const oncekiSayi = o._komutlar.length;
+    sonuc.is.calis();
+    if (o._komutlar.length > oncekiSayi) tazeleme++;
+  }
+  kontrol("kilit surekli kiriliyor", tazeleme >= 3,
+          tazeleme + " tazeleme / " + (ayar.SAVUNMA_ARALIK * 4) + " tick");
+  kontrol("her tick DEGIL, araliklarla", tazeleme <= 6,
+          tazeleme + " tazeleme");
+  /* MUTLAK SINIR. Yukaridaki madde beklentiyi ayarin
+     KENDISINDEN turetiyor: SAVUNMA_ARALIK 1 yapilinca hem
+     tazeleme sayisi hem beklenen sayi birlikte degisiyor ve
+     madde geciyor -- mutasyon testi bunu gosterdi. Bu depoda
+     kayitli hata bicimi: "olcum, olctugu seyden besleniyor".
+     Burada sayi ELLE yazili: aralik 5 tickten kisa olamaz,
+     yoksa saniyede dortten fazla kez dort komut calisir ve
+     butceyi yer.                                            */
+  kontrol("tazeleme araligi en az 5 tick",
+          ayar.SAVUNMA_ARALIK >= 5, ayar.SAVUNMA_ARALIK + " tick");
+
+  /* Ikinci kez cagirmak KAPATIYOR. */
+  const kapat = arinma.savunmaAc(o);
+  kontrol("ikinci cagri kipi kapatiyor", !kapat.is,
+          String(kapat.mesaj).slice(0, 40));
+  kontrol("kapatilinca is kendini bitiriyor", sonuc.is.calis() === true);
+  sonuc.is.bitir();
+  kontrol("bitince defterden dusuyor", !arinma.savunmadaMi(o.id));
+}
+{
+  /* Sure dolunca kendi kapanmali -- unutulup acik kalmasin. */
+  const { o } = kur("sv2");
+  const sonuc = arinma.savunmaAc(o);
+  let bitti = -1;
+  for (let i = 0; i < ayar.SAVUNMA_SURE + 50; i++) {
+    tickIlerlet(1);
+    if (sonuc.is.calis()) { bitti = i; break; }
+  }
+  sonuc.is.bitir();
+  kontrol("sure dolunca kendi kapaniyor", bitti >= 0, "tick " + bitti);
+  kontrol("SAVUNMA_SURE kadar surdu",
+          bitti >= ayar.SAVUNMA_SURE - ayar.SAVUNMA_ARALIK - 2,
+          bitti + " vs " + ayar.SAVUNMA_SURE);
+}
+{
+  /* Sohbetten de acilabilmeli, ayni sebeple: girdi
+     kilitliyken jest yapilamaz.                            */
+  const { o } = kur("sv3");
+  const r = sohbet.komutCozumle(o, "savunma");
+  kontrol("'savunma' sohbet komutu taniniyor",
+          !!r && typeof r.cevap === "string",
+          r ? String(r.cevap).slice(0, 40) : "tanimadi");
+  kontrol("sohbetten acilinca gercekten tazeleniyor",
+          komutVar(o, "inputpermission set @s movement enabled"));
+  const { readFileSync } = await import("node:fs");
+  const ana = readFileSync(new URL("./pack/main.js", import.meta.url), "utf8");
+  /* Kendi runInterval'ini ACMAMALI -- depo kurali. */
+  const kod = readFileSync(
+    new URL("./pack/yetenekler/arinma.js", import.meta.url), "utf8");
+  kontrol("kendi runInterval'ini acmiyor", !/runInterval/.test(kod));
+  kontrol("sohbet kancasi isi merkezi listeye ekliyor",
+          /savunma:\s*\(oyuncu\)[\s\S]{0,200}?isEkle\(sonuc\.is\)/.test(ana));
+}
+
+console.log("");
 console.log(hata ? ">>> SORUN VAR" : ">>> arinma yerinde");
 process.exit(hata ? 1 : 0);

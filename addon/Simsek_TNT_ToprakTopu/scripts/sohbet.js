@@ -113,6 +113,14 @@ export function komutCozumle(oyuncu, hamMetin) {
     return { cevap: cagir("arindir", oyuncu) };
   }
 
+  /* SAVUNMA KIPI -- surekli tazelenen arinma. Arinma tek
+     seferlik; kilit dongu halinde geliyorsa elle yetisilmez.
+     Bu da sohbette, ayni sebeple: girdi kilitliyken jest
+     yapamazsin ama yazabilirsin.                            */
+  if (ad === "savunma" || ad === "kalkan" || ad === "duvar") {
+    return { cevap: cagir("savunma", oyuncu) };
+  }
+
   if (ad === "can" || ad === "kalp") {
     const arg = parca[1];
 
@@ -383,6 +391,7 @@ const YARDIM = [
   "§ecan§7 · varsayilan " + KALP_ADIM + " kalp",
   "§ecan sifirla§7 · eklenen kalpleri geri al",
   "§earin§7 · KILITLERI AC: poz, girdi, kamera, sarsinti, olumsuz efekt",
+  "§esavunma§7 · SAVUNMA KIPI: kilitleri surekli kirar (vs icin)",
   "§elazer§7 · goz lazeri at (once iksir ic)",
   "§ebot§7 · botu cagir / yanina getir",
   "§ebot odun§7 · botlar etrafindaki agaclari keser",

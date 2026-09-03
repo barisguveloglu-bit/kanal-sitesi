@@ -1,3 +1,71 @@
+# v7.29.0 — Savunma Kipi: kilit döngüsüne karşı
+
+Kullanıcı: *"Hadi diyelim ki vs yapacağız, hileleri açtım. O an nasıl
+olacağız? Veya ben onun dünyasına gittim, orada engelleme yazdın mı?"*
+
+İki ayrı soru, iki ayrı cevap — biri kodla çözülüyor, biri çözülmüyor.
+
+## 1. "Onun dünyasına gittim" — bunun kodla cevabı YOK
+
+Davranış paketi **dünyaya kurulur, oyuncuya değil.** Karşı taraf kendi
+dünyasını açıyorsa benim yazdığım hiçbir satır orada çalışmaz. Bu bir
+eksik değil, Bedrock'ın çalışma biçimi.
+
+Yani: **başkasının dünyasında savunma yazamam.** Orada tek koruma
+oraya girmemek.
+
+## 2. "Hileleri açtım, o an ne olacak" — Savunma Kipi
+
+Arınma (v7.28) **tek seferlik**: fark edip yazman gerekiyor. Kilit
+döngü hâlinde geliyorsa — her yarım saniyede yeniden kuruluyorsa —
+elle yetişmek mümkün değil. Kullanıcının sorusu tam buydu.
+
+**Savunma Kipi** açıkken mod savunmayı **sürekli tazeliyor**: her
+`SAVUNMA_ARALIK` (10 tick = 0,5 sn) girdi, kamera, sarsıntı ve poz
+geri alınıyor. Kilit kurulsa bile yarım saniye içinde kırılıyor.
+
+Açılışı: `savunma` (veya `kalkan`, `duvar`) sohbet komutu, ya da jest
+sırasından (157). Sohbette olması yine aynı sebeple: **girdi
+kilitliyken jest yapamazsın ama yazabilirsin.**
+
+### Neden sürekli açık değil
+
+Sürekli açık olsaydı kendi Yamultma/Dondur yeteneklerimiz kimseyi
+tutamazdı, üstelik her tick dört komut çalışırdı. Bu bir **dövüş
+kipi**: açılıp kapatılıyor, 5 dakika sonra kendi de kapanıyor.
+
+### Kendi döngüsünü açmıyor
+
+Depo kuralı (`isin_topu.js`'te gerekçesi yazılı): hiçbir özellik kendi
+`system.runInterval`'ini açamaz. Savunma kipi de merkezi iş
+listesinde — bütçe ölçümü ve `playerLeave` temizliği böylece geçerli.
+Sohbetten açıldığında kanca işi `isEkle` ile listeye koyuyor. Test bu
+maddeyi ayrıca tutuyor.
+
+## Testte yakalanan hata: ölçüm kendi ölçtüğünden besleniyordu
+
+Yedi mutasyondan biri kaçtı: `SAVUNMA_ARALIK` 1 yapmak (yani her tick
+tazeleme). Sebep testte: "her tick değil, aralıklarla" maddesi
+beklenen sayıyı **ayarın kendisinden** türetiyordu. Ayar değişince
+hem gerçek sayı hem beklenen sayı birlikte kayıyor ve madde geçiyordu.
+
+Bu depoda kayıtlı hata biçimi: *ölçüm, ölçtüğü şeyden besleniyor.*
+Mutlak bir sınır eklendi — aralık 5 tickten kısa olamaz, sayı elle
+yazılı. Düzeltmeden sonra yedisi de yakalandı.
+
+## Savunma tablosu — nerede ne var
+
+| durum | kod tarafında ne var |
+|---|---|
+| kendi dünyam, **hileler kapalı** | karşı taraf hiçbir komut çalıştıramaz — en güçlü hâl |
+| kendi dünyam, hileler açık, karşı taraf **op değil** | komutlar reddedilir |
+| kendi dünyam, hileler açık, karşı taraf **op** | **Savunma Kipi** kilitleri sürekli kırar |
+| **onun dünyası** | **hiçbir şey** — paket orada yüklü değil |
+
+Kapsanmayanlar değişmedi: `/kill`, blok/dünya düzenleme, ve operatör
+yetkisi verdikten sonrası.
+
+
 # v7.28.0 — Arınma: dışarıdan gelen kilitlere karşı savunma
 
 Kullanıcı: *"Biriyle vs atacağım. Toolbox gibi kötü yazılımlar

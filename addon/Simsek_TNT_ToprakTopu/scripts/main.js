@@ -82,7 +82,7 @@ import { pozUnut } from "./yetenekler/pozlar.js";
 
 /* v7.28: Arinma. Sohbetten de cagriliyor (girdi kilitliyken
    jest yapilamaz), o yuzden fonksiyon disari aciliyor.      */
-import { arindir, arinmaUnut } from "./yetenekler/arinma.js";
+import { arindir, arinmaUnut, savunmaAc } from "./yetenekler/arinma.js";
 
 /* v5.8: acilabilir zirh katmanlari (matkap). Yetenegi kendi
    dosyasinda kaydediyor; buradan yalniz "cekirdek elden
@@ -2535,6 +2535,15 @@ function durumRaporu(oyuncu) {
 sohbetKancalari({
   durum: (oyuncu) => durumRaporu(oyuncu),
   arindir: (oyuncu) => arindir(oyuncu),
+
+  /* Savunma kipi bir IS uretiyor; sohbet kancasi onu merkezi
+     is listesine kendi ekliyor. Kendi runInterval'ini acmiyor
+     -- depo kurali (isin_topu.js'te gerekcesi yazili).      */
+  savunma: (oyuncu) => {
+    const sonuc = savunmaAc(oyuncu);
+    if (sonuc.is) isEkle(sonuc.is);
+    return sonuc.mesaj;
+  },
   kalpEkle: (oyuncu, adet) => kalpEkle(oyuncu, adet),
   kalpSifirla: (oyuncu) => kalpSifirla(oyuncu),
   kollariVer: (oyuncu) => kollariVer(oyuncu),
