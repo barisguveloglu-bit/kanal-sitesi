@@ -76,3 +76,57 @@ Aşağıdakiler bilinçli kararlar — "düzeltilecek eksik" değil.
   tasarımı bilerek var.
 - Betikler `defer` ile yükleniyor (ilk boyama ~%28 hızlandı). Sıra korunur,
   bozma.
+
+## Dosya teslimi — skin ve paketler LİNKLE verilir
+
+Bu kural depodaki kodla ilgili değil, **kullanıcıya nasıl teslim
+edileceğiyle** ilgili. `addon/` klasöründeki her şey için geçerli.
+
+**Kural: skin PNG'sini ve paketleri sohbete dosya olarak ekleme.
+Depodaki dosyanın doğrudan indirme linkini ver.** Kullanıcı
+tarayıcıdan indiriyor, orada sorun çıkmıyor.
+
+### Neden — v7.19'da yaşandı
+
+`uzak_akraba.png` (64×64 skin) sohbete eklenerek gönderildi.
+Kullanıcı iki şey söyledi: *"yükleyemiyorum"* ve *"aşırı
+kalitesiz"*. İkisinin de sebebi aynı: **dosya yolda yeniden
+kodlanıyor.** Bir Minecraft skini bundan sağ çıkmaz —
+saydamlık kanalı gider, ölçü bozulur, oyun dosyayı kabul etmez.
+64×64 küçük olduğu için telefonda açılınca da pul gibi görünür,
+oysa kalite düşük değildir: skin formatı zaten budur.
+
+Kullanıcının kendi sözü: *"bundan sonra linkini ver bana,
+dosyasını gönderme."*
+
+### Link biçimi
+
+```
+https://raw.githubusercontent.com/<sahip>/<depo>/refs/heads/<dal>/<yol>
+```
+
+`refs/heads/` **şart**: dal adında `/` var
+(`claude/bedrock-addon-stabilization-ppak4r`) ve o olmadan GitHub
+dal adıyla klasör adını ayırt edemiyor.
+
+Link vermeden önce **çalıştığını doğrula**, tahmin etme:
+
+```sh
+curl -s -o /dev/null -w "%{http_code}\n" "<link>"
+```
+
+200 dönmüyorsa dosya henüz itilmemiştir — önce `git push`.
+
+### Dosya göndermek zorunda kalırsan
+
+Zip'le. Zip bir resim değil, hiçbir uygulama içindekini yeniden
+sıkıştırmaz. Gönderdikten sonra `cmp` ile içindekinin orijinalle
+bire bir aynı olduğunu doğrula.
+
+### Bakmak için görsel ayrı şeydir
+
+Skinin nasıl göründüğünü göstermek için büyütülmüş bir önizleme
+göndermek serbest — ama **"bu skin dosyası değil, sadece
+bakmak için" diye açıkça yaz.** Büyütülmüş PNG'yi Minecraft
+kabul etmez (Bedrock yalnız 64×64 ve 128×128 alıyor, 256×256
+bile almıyor).
