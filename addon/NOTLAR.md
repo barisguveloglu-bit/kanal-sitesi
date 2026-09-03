@@ -1,3 +1,116 @@
+# v7.19.0 — Aura kaldırıldı, geriye sadece göz alevi kaldı
+
+Kullanıcı v7.18'i oyunda gördü ve ekran görüntüsü gönderdi:
+
+> "Bu ne, aura parçacıkları ekleyeceğim diye ne yaptın yani.
+> En iyisi aura parçacıklarını kaldır ve sadece gözün üstündeki
+> o alev efektini ekle — yani bir büyüyor bir küçülüyor gibi
+> olsun. Sadece onun için uğraş."
+
+Haklıydı ve sebebi ölçülebilir: küçük ölçekte o zerreler ince
+dikey çizgilere dönüşüyor, toplamalı harmanda birbirine binip
+kafanın etrafında beyaz bir çalı oluşturuyorlardı. Asıl istenen
+şey — gözdeki alev — o çalının içinde kayboluyordu.
+
+## 1. Kafa aurası tamamen kaldırıldı
+
+`kor` (yükselen zerreler), `hale` (puslu kabuk), `patlama`
+(içildiği an) ve `gozkor` (gözden düşen köz) gitti.
+40 parçacık dosyası → **8**. Doku 256×128 → **256×32**.
+
+Kod **silinmedi**: `aura_kor` / `aura_hale` / `aura_patlama` /
+`aura_gozkor` üreteçte duruyor. Yeni `AURA_URETILEN` sabitine
+adını yazmak geri getirmeye yetiyor.
+
+Ama **üretilmiyorlar**, ve bu iki yeni mekanizmayla garanti
+altında:
+
+- **Satırlar üretilen türlerden çıkarılıyor.** `AURA_SATIR`
+  artık elle yazılan bir sözlük değil; hangi tür üretiliyorsa
+  onun kullandığı satır dokuya giriyor. v7.17'de "kul" diye ölü
+  bir satır vardı ve hiçbir şey onu yakalamamıştı.
+- **Artık parçacık dosyaları siliniyor.** Bir tür listeden
+  çıkarılınca dosyaları diskte kalıyordu. Dokularda aynı
+  temizliği yapıyoruz, burada yapmamak için sebep yoktu.
+  "Kapalı ama yine de pakete giren" bir şey bırakmıyoruz.
+
+Betikten `auraAt`, `auraPatlat`, `gozKoruAt` ve altı ölü ayar
+(`AURA_ARALIK`, `AURA_HALE_ARALIK`, `AURA_KAFA_Y`,
+`AURA_PATLAMA_Y`, `GOZ_KOR_ARALIK`, `AURA_ONDEN`) kaldırıldı.
+
+## 2. Göz alevi: az sayıda, şişman, renkli
+
+Ekran görüntüsündeki alevler **ot gibi** duruyordu. Üç ayrı
+sebep vardı ve üçü de ölçüldü:
+
+**(a) Çok inceydi.** Karın genişliği 0.21, uç keskinliği 1.25.
+Ekranda alev 5-6 piksel yüksekliğinde çiziliyor ve o boyutta
+dar bir üçgen "alev" değil "çizgi" okunuyor. Karın **%52
+genişledi** (0.32), uç keskinliği **1.05**'e indi — yani dil ta
+tepeye kadar etli kalıyor. Küçük ölçekte okunan şey ucun
+inceliği değil **gövdenin genişliği**.
+
+Dış ölçü de aynı oranda şişti: en/boy 0.64 → **0.80**. Doku
+şişmanladığına göre tuvalin de şişmesi gerekiyordu, yoksa dil
+yassılıyordu.
+
+**(b) Çok kalabalıktı.** Yayım başına 2 zerre × 4 tick'te bir ×
+0.45 sn ömür = göz başına aynı anda **~5 dil**; üst üste binip
+bir **tarak** gibi görünüyorlardı. Şimdi yayım başına 1 zerre,
+3 tick'te bir → **~1.9 dil**. Mum alevi gibi tek bir şey:
+sayıca değil **boyca** var.
+
+**(c) Beyazdı.** Gradyan doğum anında renge %75 beyaz katıyordu.
+O değer *patlama* için doğru (bir an için gözü alan bir parlama)
+ama sürekli yanan bir alevde yanlış: beyaz hep ekranda kalıyor
+ve iksirin rengi kayboluyor. Yeşil iksirde alevler beyaz
+çıkıyordu. Göz alevinde **%30**'a indi — toplamalı harmanda üst
+üste binen zerreler zaten beyaza doyuyor.
+
+## 3. Sprite'ta iki çizim hatası
+
+- **Ucu kopuyordu.** Titreme genliği ucun kendisinde en
+  yüksekti; en dar satırlar en çok kayıyor ve uçta birbirine
+  değmeyen tek pikseller kalıyordu (oyunda alevin tepesinde
+  kopuk bir nokta). Titreme artık ucun biraz **altında**
+  tepe yapıp uçta sıfıra gidiyor.
+- **Tabanı düz kesiliyordu.** Karın %52 genişleyince karın
+  çemberinin altı 32 pikselik hücrenin dışına taştı ve alev bir
+  **elmasa** dönüştü. Karnın yeri artık `min(0.72·O, O−R−1)` —
+  yani yarıçap ne olursa olsun hücreye sığıyor.
+
+## 4. Testler
+
+`aura.mjs` artık türleri **üreteçten okuyor** (`AURA_URETILEN`),
+satır eşlemesini de (`AURA_TUR_SATIR`). Elle yazılmış liste
+v7.19'da bayatladı ve otuz iki satır birden kırmızı yandı —
+oysa kod doğruydu, **liste** eskiydi. Doku ölçüsü de aynı
+şekilde: hücre × kare (en), hücre × kullanılan satır (boy).
+
+Yeni ölçümler:
+- "çizgi gibi ince DEĞİL" — en/boy ≥ 0.7
+- "göz başına aynı anda az sayıda dil" — ≤ 4
+- "iksir içilince aura patlaması ÇIKMIYOR" (sahte dünyada
+  gerçekten çalıştırılarak)
+- "diskte artık aura dosyası kalmamış"
+- "dokuda kullanılmayan satır yok"
+
+Beş mutasyonun beşi de yakalandı:
+1. `AURA_URETILEN`'e `kor` geri eklendi → üç ayrı satır düştü
+2. kapalı bir türün dosyası diske geri kondu → düştü
+3. alev v7.18 oranına inceltildi → "çizgi gibi ince değil" düştü
+4. yayım başına zerre 1→3 → "az sayıda dil" düştü
+5. `auraPatlat` çağrısı geri kondu → çöktü (fonksiyon artık yok)
+
+**Mutasyon düzeneğinde de bir ölçüm hatası bulundu:** çıktıyı
+yalnız `✗` için tarıyordum, oysa 5. mutasyon bir **çökme**
+üretiyor ve çökmede `✗` satırı olmuyor. İlk bakışta "mutasyon
+kaçtı" gibi göründü. Kusur yine ölçümdeydi.
+
+91 testin 91'i geçiyor.
+
+---
+
 # v7.18.0 — Alev canlandı
 
 Kullanıcı: *"alev canlı olsun — bir büyüsün bir küçülsün, evet

@@ -1,12 +1,12 @@
 {
   "format_version": 2,
   "header": {
-    "name": "Şimşek 7.18.0 · Mod",
+    "name": "Şimşek 7.19.0 · Mod",
     "description": "Yetenekler, kollar, iksirler, botlar. Ana paket.",
     "uuid": "43a967b7-88e7-4607-a7b1-4ed1394cecb9",
     "version": [
       7,
-      18,
+      19,
       0
     ],
     "min_engine_version": [
@@ -21,7 +21,7 @@
       "uuid": "2f5eed9b-3416-4ab7-b01a-d6174c6f969d",
       "version": [
         7,
-        18,
+        19,
         0
       ]
     },
@@ -32,7 +32,7 @@
       "entry": "scripts/main.js",
       "version": [
         7,
-        18,
+        19,
         0
       ]
     }

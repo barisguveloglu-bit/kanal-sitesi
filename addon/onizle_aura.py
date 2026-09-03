@@ -296,7 +296,6 @@ def sahne(aura=True, hiz=(0.0, 0.0, 0.0)):
     # Kafanin ORTASI: tuvalde kafa (4,0)-(11,7) MC pikseli
     hx = kx + int(8 * O)
     hy = ky + int(4 * O)
-    kafa_y = _ayar("AURA_KAFA_Y", 0.32)
 
     # Gozlerin tuvaldeki yeri. Yuz skinde 8. sutundan basliyor,
     # tuvalde 4. MC pikselinde -- yani kayma 4-8 = -4.
@@ -309,14 +308,13 @@ def sahne(aura=True, hiz=(0.0, 0.0, 0.0)):
         goz_capa.append((gx, gy))
 
     kat = Image.new("RGB", (W, H), (0, 0, 0))
+    # v7.19: tek parcacik kaldi -- goz alevi. Kafa aurasi
+    # (kor/hale/patlama/gozkor) kullanicinin istegiyle
+    # kaldirildi, dosyalari da uretilmiyor.
     # (parcacik, kac tick'te bir, capalar, yukseklik kaymasi)
     for ad, aralik, capalar, kayma in (
-            ("aura_hale_" + IKSIR, 14, [(hx, hy)], kafa_y),
-            ("aura_kor_" + IKSIR, 6, [(hx, hy)], kafa_y),
-            ("aura_gozkor_" + IKSIR,
-             int(_ayar("GOZ_KOR_ARALIK", 26)), goz_capa, 0.0),
             ("aura_gozalev_" + IKSIR,
-             int(_ayar("GOZ_ALEV_ARALIK", 4)), goz_capa, 0.0)):
+             int(_ayar("GOZ_ALEV_ARALIK", 3)), goz_capa, 0.0),):
         yol = RP + "/particles/%s.particle.json" % ad
         if not os.path.exists(yol):
             continue
@@ -327,8 +325,7 @@ def sahne(aura=True, hiz=(0.0, 0.0, 0.0)):
             # Script zerreyi ILERIDE doguruyor (ayarlar.js
             # ILERI KAYDIRMA); onizleme de aynisini yapmali,
             # yoksa iki taraf ayrisir.
-            onden = _ayar("GOZ_ALEV_ONDEN" if "goz" in ad else "AURA_ONDEN",
-                          0.0)
+            onden = _ayar("GOZ_ALEV_ONDEN", 0.0)
             fb = bb["uv"]["flipbook"]
             hucre = int(fb["size_UV"][0])
             satir_px = int(fb["base_UV"][1])

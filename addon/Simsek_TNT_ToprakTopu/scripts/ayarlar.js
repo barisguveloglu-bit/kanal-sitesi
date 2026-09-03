@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.18.0";
+export const SURUM = "v7.19.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -959,18 +959,6 @@ export const PARCACIK_LAZER = "minecraft:endrod";
    gelebiliyor ve o anahtar bu yuzden var.                  */
 export const AURA_ACIK = true;
 export const AURA_ONEK = "pa:aura_";
-/* Kac tick'te bir kor cikacak. 6 = saniyede ~3 kez.
-   Her tick cikarsa hem pahali hem de zerreler ust uste
-   binip tek bir bulut gorunuyor. */
-export const AURA_ARALIK = 6;
-/* Hale daha seyrek: omru 1.6-2.8 saniye, yani sik cikarsa
-   kafanin etrafi doluyor. */
-export const AURA_HALE_ARALIK = 14;
-/* getHeadLocation goz hizasini veriyor; aura biraz USTTEN
-   ciksin ki yuzu kapatmasin. */
-export const AURA_KAFA_Y = 0.26;
-/* Patlamanin ciktigi yukseklik (icildigi an, gogus hizasi). */
-export const AURA_PATLAMA_Y = -0.2;
 
 /* ---- GOZ ALEVI (v7.17) ----
 
@@ -992,12 +980,13 @@ export const AURA_PATLAMA_Y = -0.2;
    ustune konuyor, ekranin ortasina degil. Rahatsiz ederse
    GOZ_ALEV_ACIK = false tek anahtar.                       */
 export const GOZ_ALEV_ACIK = true;
-/* Kac tick'te bir. 4 = saniyede 5 yayim x 2 goz x 2 zerre.
-   Omur 0.3-0.6 sn (ortalama 0.45) oldugundan goz basina ayni
-   anda ~4-5 zerre yasiyor. Uc tick'te birde ~7 oluyordu ve
-   onizlemede ust uste binip tek bir mese sopasi alevi
-   gorunuyordu -- alev degil MESALE.                        */
-export const GOZ_ALEV_ARALIK = 4;
+/* Kac tick'te bir. v7.19'da yayim basina zerre sayisi 2'den
+   1'e indi, o yuzden aralik da 4'ten 3'e cekildi: saniyede
+   6.7 yayim x 1 zerre x 0.41 sn ortalama omur = goz basina
+   ayni anda ~2.7 dil. Once ~5 dil vardi ve oyunda ust uste
+   binip bir TARAK gibi gorunuyorlardi. Mum alevi gibi tek bir
+   sey istiyoruz: sayica degil BOYCA var olsun.             */
+export const GOZ_ALEV_ARALIK = 3;
 /* Kafanin ON yuzu 0.25 blokta (kafa 0.5 blok genisliginde).
    0.30 -> alevler yuzun 5 santim onunde asili duruyor. */
 export const GOZ_ALEV_ON = 0.30;
@@ -1008,10 +997,6 @@ export const GOZ_ALEV_YAN = 0.115;
    UZERINDEN ciksin (ve birinci sahista ekranin ortasinda
    durmasin) diye biraz yukaridan. */
 export const GOZ_ALEV_Y = 0.1;
-/* Gozden dusen koz kac tick'te bir. 26 = ~1.3 saniyede bir,
-   goz basina tek zerre. Sik olsaydi gozyasi gibi akardi;
-   amac yukari akisi ARA SIRA kirmak.                        */
-export const GOZ_KOR_ARALIK = 26;
 /* Zerreye oyuncunun hizi verilsin mi (MolangVariableMap).
    Kapaliysa alev yerinde yaniyor ve kosarken geride kaliyor --
    yani v7.17 davranisi. API'de MolangVariableMap yoksa bu
@@ -1044,7 +1029,6 @@ export const AURA_HIZ_MIRASI = true;
 
    Duruyorken hiz sifir, yani bu satirlarin hicbir etkisi yok. */
 export const GOZ_ALEV_ONDEN = 0.09;
-export const AURA_ONDEN = 0.18;
 
 export const KADEMELER = [
   {

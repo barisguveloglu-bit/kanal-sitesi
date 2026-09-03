@@ -102,7 +102,7 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # tureniyor -- ayrisabilecekleri bir yer kalmadi.
 #
 # YENI SURUM CIKARIRKEN: yalnizca asagidaki satiri degistir.
-SURUM_NO = (7, 18, 0)
+SURUM_NO = (7, 19, 0)
 
 SURUM_METIN = "%d.%d.%d" % SURUM_NO
 SURUM_ETIKET = "v" + SURUM_METIN
@@ -6665,14 +6665,53 @@ AURA_HUCRE = 32
 # ekran karti icin 256x128 = 128 KB, onemsiz.
 AURA_KARE = 8
 AURA_DOKU_EN = AURA_HUCRE * AURA_KARE          # 256
-AURA_DOKU_BOY = 128           # 4 satir x 32
+# AURA_DOKU_BOY asagida, URETILEN satir sayisindan hesaplaniyor.
 # Satirlar: 0 kor, 1 hale, 2 kivilcim, 3 alev. Her satir 4
 # karelik bir animasyon (flipbook step_UV [32,0]).
 # v7.17: 3. satir "kul"du ama OLU idi -- hicbir parcacik
 # _aura_uv("kul") cagirmiyordu. Yerini goz alevi aldi; doku
 # 128x128 (ikinin kuvveti) kaldi, dort satirin dordu de
 # kullaniliyor.
-AURA_SATIR = {"kor": 0, "hale": 1, "kivilcim": 2, "alev": 3}
+# ---- HANGI TURLER URETILIYOR (v7.19) ----
+#
+# Kullanici v7.18'i oyunda gordu ve auranin kaldirilmasini
+# istedi:  "bu ne, aura parcaciklari ekleyecegim diye ne
+# yaptin... en iyisi aura parcaciklarini kaldir ve sadece
+# gozun ustundeki o alev efektini ekle, sadece onun icin
+# ugras."
+#
+# Ekran goruntusunde kafanin etrafi bir tarla gibiydi: kor +
+# hale zerreleri kucuk olcekte ince dikey cizgilere donusuyor
+# ve toplamali harmanda birbirine binip beyaz bir cali
+# olusturuyorlardi. Asil istenen sey -- gozdeki alev -- o
+# calinin icinde kayboluyordu.
+#
+# Kod SILINMEDI. aura_kor / aura_hale / aura_patlama /
+# aura_gozkor oldugu gibi duruyor; buraya adlarini yazmak
+# geri getirmeye yetiyor. Ama URETILMIYORLAR: dosyalari
+# yazilmiyor ve kullanmadiklari sprite satirlari dokuya bile
+# konmuyor. "Kapali ama yine de gonderilen" bir sey
+# birakmiyoruz.
+AURA_URETILEN = ("gozalev",)
+
+# Her tur hangi sprite satirini kullaniyor. Iki tur ayni
+# satiri paylasabilir (patlama ve gozkor'un ikisi de dikey bir
+# cizgi -- ikinci bir doku cizmenin anlami yok).
+AURA_TUR_SATIR = {
+    "kor": "kor", "hale": "hale", "patlama": "kivilcim",
+    "gozalev": "alev", "gozkor": "kivilcim",
+}
+
+# Satirlar URETILEN turlerden cikariliyor: kullanilmayan satir
+# dokuya girmiyor. v7.17'de "kul" diye olu bir satir vardi ve
+# hicbir sey onu yakalamamisti; bir daha olmasin diye satir
+# listesi artik elle yazilmiyor.
+_aura_satirlar = []
+for _t in AURA_URETILEN:
+    if AURA_TUR_SATIR[_t] not in _aura_satirlar:
+        _aura_satirlar.append(AURA_TUR_SATIR[_t])
+AURA_SATIR = dict((_ad, _i) for _i, _ad in enumerate(_aura_satirlar))
+AURA_DOKU_BOY = AURA_HUCRE * len(AURA_SATIR)
 
 # ---- HANGI SATIR DONGULU, KAC KARE/SN (v7.18) ----
 #
@@ -6712,7 +6751,7 @@ def _aura_zar(x, y, tuz):
 
 
 def _alev_dili(p, hx, hy, kare, uc_ust, karin_en, egim, tuz,
-               parlak=1.0, kare_sayi=None, dongu=True):
+               parlak=1.0, kare_sayi=None, dongu=True, uc_keskin=1.25):
     """ALEV DILI. Bir hucreye tek bir alev dili cizer.
 
     ---- NEDEN YUVARLAK DEGIL (v7.17) ----
@@ -6765,7 +6804,10 @@ def _alev_dili(p, hx, hy, kare, uc_ust, karin_en, egim, tuz,
         yt = O * (uc_ust + 0.34 * o)
         R = O * karin_en * (1.0 - 0.36 * o)
         solma = 1.0 - 0.48 * o
-    yc = O * 0.72                            # karin: hep ayni yerde
+    # Karnin yeri. Sinir SART: karin cemberinin ALTI hucrenin
+    # disina tasarsa taban duz kesiliyor ve alev bir elmasa
+    # donuyor -- v7.19'da karin %52 genisleyince tam bu oldu.
+    yc = min(O * 0.72, O - R - 1.0)
     if yc - yt < 2.0 or R < 1.0:
         return
     # Ucun hangi yana yattigi: kareden kareye degisiyor, yani
@@ -6788,7 +6830,7 @@ def _alev_dili(p, hx, hy, kare, uc_ust, karin_en, egim, tuz,
             w = R * (1.0 - k * k) ** 0.5     # yuvarlak taban
         else:
             u = (y - yt) / (yc - yt)
-            w = R * u ** 1.25                # SIVRI uc
+            w = R * u ** uc_keskin           # SIVRI uc
         # Kenar titremesi SATIR SATIR, piksel piksel degil:
         # piksel bazinda yapilsaydi kenar kirik/gurultulu
         # cikardi, satir bazinda TITREK cikiyor.
@@ -6803,13 +6845,19 @@ def _alev_dili(p, hx, hy, kare, uc_ust, karin_en, egim, tuz,
         yatik = max(0.0, (yc - y) / max(1.0, yc - yt))
         cx = (m
               + egim * O * (yatik ** 1.8) * yon
-              + egim * O * 0.5 * (yatik ** 3.4) * kivrim)
+              + egim * O * 0.32 * (yatik ** 3.4) * kivrim)
         # Orta cizginin kendisi de titriyor -- ve yalniz ust
         # tarafta. Genislik gurultusu iki kenari BIRLIKTE
         # oynatiyor (dil sismanlayip zayifliyor); bu ise
         # kenarlari AYRI oynatiyor, alevin savrulmasi bu.
+        # Titremenin en YUKSEK oldugu yer ucun biraz ALTI, ucun
+        # kendisi degil: (1 - yatik) carpani ucta sifira
+        # gidiyor. Aksi halde en dar satirlar en cok kayiyor ve
+        # ucta birbirine degmeyen tek pikseller kaliyor -- v7.19
+        # oncesi tam bunu yapiyordu, oyunda alevin tepesinde
+        # kopuk bir nokta gorunuyordu.
         sallanma = (_aura_zar(y, kare + 8, tuz + 3) / 255.0 - 0.5) * \
-            O * 0.10 * yatik
+            O * 0.10 * yatik * (1.0 - yatik * 0.75)
         # SINIR: kayma satirin kendi yarim genisligini gecerse
         # ust uste gelen iki satir birbirinden KOPUYOR ve uc
         # birbirine degmeyen tek piksellere donusuyor (ilk
@@ -6854,11 +6902,20 @@ def _aura_sprite(p, hx, hy, tur, kare):
                    egim=0.16, tuz=7)
 
     elif tur == "alev":
-        # GOZ ALEVI (v7.17): daha sivri, daha yatik, daha
-        # parlak. Goz ONUNDE duruyor ve kucuk cikiyor, o yuzden
-        # siluetin kuvvetli olmasi gerekiyor.
-        _alev_dili(p, hx, hy, kare, uc_ust=0.03, karin_en=0.21,
-                   egim=0.18, tuz=53, parlak=1.0)
+        # GOZ ALEVI.
+        #
+        # v7.19'da SISMANLADI. v7.18'de karin_en 0.21 ve uc
+        # keskinligi 1.25 idi; oyunda gozdeki alevler ince
+        # dikey CIZGILER gibi cikti -- kullanicinin ekran
+        # goruntusunde ot gibi duruyorlardi. Sebep olcek:
+        # ekranda alev 5-6 piksel yuksekliginde ciziliyor ve o
+        # boyutta dar bir ucgen "alev" degil "cizgi" okunuyor.
+        #
+        # Karin %52 genisledi, uc keskinligi 1.05'e indi (yani
+        # dil taa tepeye kadar etli kaliyor). Kucuk olcekte
+        # okunan sey ucun inceligi degil GOVDENIN genisligi.
+        _alev_dili(p, hx, hy, kare, uc_ust=0.07, karin_en=0.32,
+                   egim=0.15, tuz=53, parlak=1.0, uc_keskin=1.05)
 
     elif tur == "hale":
         # Puslu bir TUTAM -- kure degil. Kure de baloncuk
@@ -6918,7 +6975,7 @@ def _aura_renk(renk, alfa):
             round(renk[2] / 255.0, 4), round(alfa, 4)]
 
 
-def _aura_gradyan(renkler, koyulma=0.32):
+def _aura_gradyan(renkler, koyulma=0.32, beyazlik=0.75):
     """Omur boyunca renk. Sicak beyaz -> iksir rengi -> (varsa
     ikinci renk) -> sonme. Zerre dogdugu anda en sicak, sonra
     rengini aliyor, sonra sonuyor. Alev boyle davranir.
@@ -6929,7 +6986,12 @@ def _aura_gradyan(renkler, koyulma=0.32):
     yerde bir an kirli bir leke birakiyorlar; onlar RENGINI
     KORUYARAK saydamlasiyor."""
     ilk = tuple(renkler[0])
-    beyaz = tuple(min(255, int(c + (255 - c) * 0.75)) for c in ilk)
+    # beyazlik: dogum aninda renge ne kadar beyaz katiliyor.
+    # 0.75 patlama icin dogru (bir an icin gozu alan bir
+    # parlama) ama goz alevinde YANLIS: alev surekli yandigi
+    # icin o beyaz hep ekranda kaliyor ve iksirin rengi
+    # kayboluyor -- oyunda yesil iksirde alevler BEYAZ cikti.
+    beyaz = tuple(min(255, int(c + (255 - c) * beyazlik)) for c in ilk)
     g = {"0.0": _aura_renk(beyaz, 1.0), "0.18": _aura_renk(ilk, 1.0)}
     if len(renkler) > 1 and tuple(renkler[1]) != ilk:
         g["0.55"] = _aura_renk(tuple(renkler[1]), 0.92)
@@ -7250,11 +7312,15 @@ def aura_gozalev(kimlik, renkler):
     ol = ("(0.25 + 0.75 * math.sin(" + _AURA_OMUR + " * 180)) * "
           + _aura_nefes(1150, 2) + " * " + _AURA_PUF)
     return _aura_govde(kimlik, "gozalev", {
-        "minecraft:emitter_rate_instant": {"num_particles": 2},
+        # v7.19: yayim basina IKI degil BIR zerre. Ikiser
+        # zerre x 4 tick'te bir x 0.45 sn omur = goz basina
+        # ayni anda ~5 dil; oyunda ust uste binip bir TARAK
+        # gibi gorunuyorlardi. Simdi ~2.5 dil: mum alevi gibi
+        # tek bir sey, sayica degil boyca var.
+        "minecraft:emitter_rate_instant": {"num_particles": 1},
         "minecraft:emitter_lifetime_once": {"active_time": 0.15},
         "minecraft:emitter_shape_sphere": {
-            # Cok kucuk: iki zerre de gozun UZERINDE ciksin.
-            "offset": [0, 0, 0], "radius": 0.035,
+            "offset": [0, 0, 0], "radius": 0.03,
             "surface_only": False, "direction": "outwards"},
         "minecraft:particle_initial_speed":
             "0.05 + variable.particle_random_1 * 0.11",
@@ -7264,7 +7330,7 @@ def aura_gozalev(kimlik, renkler):
             "rotation_rate": "(variable.particle_random_3 - 0.5) * 40"},
         "minecraft:particle_lifetime_expression": {
             # Kisa: gozun onunde birikmesinler.
-            "max_lifetime": "0.30 + variable.particle_random_4 * 0.30"},
+            "max_lifetime": "0.28 + variable.particle_random_4 * 0.26"},
         "minecraft:particle_motion_dynamic": {
             "linear_acceleration": _aura_suruklen(3.4, "1.05"),
             "linear_drag_coefficient": 3.4,
@@ -7283,14 +7349,24 @@ def aura_gozalev(kimlik, renkler):
             # ~%42'si kadar, yani asagidaki olculerde gorunen
             # dil ~0.02x0.09 blok -- gozun uzerinde duruyor,
             # yerine gecmiyor.
+            # v7.19: az sayida ama BUYUK. En/boy orani da
+            # kareye yaklastı (0.64 -> 0.80): dokudaki dil
+            # sismanladigina gore tuvalin de sismanlamasi
+            # gerekiyordu, yoksa dil yassiliyordu.
             "size": [
-                "(0.050 + variable.particle_random_1 * 0.028) * " + ol,
-                "(0.078 + variable.particle_random_1 * 0.044) * " + ol],
+                "(0.070 + variable.particle_random_1 * 0.038) * " + ol,
+                "(0.088 + variable.particle_random_1 * 0.046) * " + ol],
             "face_camera_mode": "lookat_y",
             "uv": _aura_uv("alev")},
         "minecraft:particle_appearance_tinting": {
             # koyulma 0.85: rengini koruyarak saydamlasiyor.
-            "color": {"gradient": _aura_gradyan(renkler, koyulma=0.85),
+            # beyazlik 0.30: alev iksirin RENGINDE yansin.
+            # 0.75'te (patlamanin degeri) yesil iksirde bile
+            # beyaz cikiyordu -- toplamali harmanda ust uste
+            # binen zerreler zaten beyaza doyuyor, ustune bir
+            # de dogus rengi beyaz olunca renk hic gorunmuyor.
+            "color": {"gradient": _aura_gradyan(renkler, koyulma=0.85,
+                                                beyazlik=0.30),
                       "interpolant": _AURA_OMUR}},
     })
 
@@ -7348,9 +7424,12 @@ def aura_gozkor(kimlik, renkler):
     })
 
 
-AURA_TURLERI = (("kor", aura_kor), ("hale", aura_hale),
-                ("patlama", aura_patlama), ("gozalev", aura_gozalev),
-                ("gozkor", aura_gozkor))
+_AURA_HEPSI = {"kor": aura_kor, "hale": aura_hale,
+               "patlama": aura_patlama, "gozalev": aura_gozalev,
+               "gozkor": aura_gozkor}
+# Yalniz AURA_URETILEN'dekiler. Kalanlarin kodu yukarida duruyor
+# ama dosyalari yazilmiyor.
+AURA_TURLERI = tuple((_t, _AURA_HEPSI[_t]) for _t in AURA_URETILEN)
 
 
 # ============================================================
@@ -9466,13 +9545,25 @@ def main():
     _aura_yol = os.path.join(RP, "particles")
     os.makedirs(_aura_yol, exist_ok=True)
     _aura_sayi = 0
+    _aura_beklenen = set()
     for _ik, _iad, _irenk, _igoz, _igozrenk in IKSIRLER:
         _renkler = goz_renkleri(_igozrenk)
         for _tur, _uret in AURA_TURLERI:
-            yaz_json(os.path.join(_aura_yol,
-                                  "aura_%s_%s.particle.json" % (_tur, _ik)),
-                     _uret(_ik, _renkler))
+            _ad = "aura_%s_%s.particle.json" % (_tur, _ik)
+            yaz_json(os.path.join(_aura_yol, _ad), _uret(_ik, _renkler))
+            _aura_beklenen.add(_ad)
             _aura_sayi += 1
+    # ---- ARTIK PARCACIKLARI SIL (v7.19) ----
+    # AURA_URETILEN'den bir tur cikarilinca dosyalari diskte
+    # KALIYORDU. Kapali ama yine de pakete giren bir sey
+    # birakmiyoruz; dokularda ayni temizligi yapiyoruz, burada
+    # yapmamak icin de bir sebep yok. Yalniz "aura_" ile
+    # baslayanlara dokunuluyor -- baska bir sistemin parcacigi
+    # buraya girerse silinmesin.
+    for _eski in sorted(os.listdir(_aura_yol)):
+        if _eski.startswith("aura_") and _eski not in _aura_beklenen:
+            os.remove(os.path.join(_aura_yol, _eski))
+            print("   silindi (aura turu kapali): %s" % _eski)
     png_yaz(os.path.join(RP, "textures/particle", AURA_DOKU + ".png"),
             AURA_DOKU_EN, AURA_DOKU_BOY, aura_dokusu())
     print("uretildi: %d aura parcacigi (%d iksir x %d tur)"

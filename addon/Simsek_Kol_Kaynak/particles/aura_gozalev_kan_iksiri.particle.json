@@ -10,7 +10,7 @@
     },
     "components": {
       "minecraft:emitter_rate_instant": {
-        "num_particles": 2
+        "num_particles": 1
       },
       "minecraft:emitter_lifetime_once": {
         "active_time": 0.15
@@ -21,7 +21,7 @@
           0,
           0
         ],
-        "radius": 0.035,
+        "radius": 0.03,
         "surface_only": false,
         "direction": "outwards"
       },
@@ -31,7 +31,7 @@
         "rotation_rate": "(variable.particle_random_3 - 0.5) * 40"
       },
       "minecraft:particle_lifetime_expression": {
-        "max_lifetime": "0.30 + variable.particle_random_4 * 0.30"
+        "max_lifetime": "0.28 + variable.particle_random_4 * 0.26"
       },
       "minecraft:particle_motion_dynamic": {
         "linear_acceleration": [
@@ -49,17 +49,17 @@
       },
       "minecraft:particle_appearance_billboard": {
         "size": [
-          "(0.050 + variable.particle_random_1 * 0.028) * (0.25 + 0.75 * math.sin(variable.particle_age / variable.particle_lifetime * 180)) * (1 + 0.14 * math.sin(variable.particle_age * 1150 + variable.particle_random_2 * 360)) * (0.85 + variable.emitter_random_1 * 0.3)",
-          "(0.078 + variable.particle_random_1 * 0.044) * (0.25 + 0.75 * math.sin(variable.particle_age / variable.particle_lifetime * 180)) * (1 + 0.14 * math.sin(variable.particle_age * 1150 + variable.particle_random_2 * 360)) * (0.85 + variable.emitter_random_1 * 0.3)"
+          "(0.070 + variable.particle_random_1 * 0.038) * (0.25 + 0.75 * math.sin(variable.particle_age / variable.particle_lifetime * 180)) * (1 + 0.14 * math.sin(variable.particle_age * 1150 + variable.particle_random_2 * 360)) * (0.85 + variable.emitter_random_1 * 0.3)",
+          "(0.088 + variable.particle_random_1 * 0.046) * (0.25 + 0.75 * math.sin(variable.particle_age / variable.particle_lifetime * 180)) * (1 + 0.14 * math.sin(variable.particle_age * 1150 + variable.particle_random_2 * 360)) * (0.85 + variable.emitter_random_1 * 0.3)"
         ],
         "face_camera_mode": "lookat_y",
         "uv": {
           "texturewidth": 256,
-          "textureheight": 128,
+          "textureheight": 32,
           "flipbook": {
             "base_UV": [
               0,
-              96
+              0
             ],
             "size_UV": [
               32,
@@ -80,9 +80,9 @@
         "color": {
           "gradient": {
             "0.0": [
-              0.9647,
-              0.7961,
-              0.7961,
+              0.902,
+              0.4353,
+              0.4353,
               1.0
             ],
             "0.18": [

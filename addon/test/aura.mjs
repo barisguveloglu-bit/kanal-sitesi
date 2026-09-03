@@ -33,12 +33,40 @@ const kontrol = (ad, gecti, detay = "") => {
 const oku = (y) => JSON.parse(readFileSync(y, "utf8"));
 
 const ayar = await import("./pack/ayarlar.js");
-const TURLER = ["kor", "hale", "patlama", "gozalev", "gozkor"];
+
 
 /* Ureteci OKUYORUZ: iksir renkleri orada tanimli ve auranin
    renkleri onlarla AYNI olmali. Ikinci bir renk listesi
    tutulsaydi biri degisip oteki kalirdi.                   */
 const URETEC = readFileSync(KOK + "/kol_uret.py", "utf8");
+
+/* URETILEN turler ureteceten OKUNUYOR, elle yazilmiyor.
+   v7.19'da kullanici auranin kaldirilmasini isteyince elle
+   yazilmis liste bayatladi ve otuz iki satir birden kirmizi
+   yandi -- oysa kod dogruydu, LISTE eskiydi.               */
+const TURLER = [...(/AURA_URETILEN = \(([^)]*)\)/.exec(URETEC)[1])
+  .matchAll(/"(\w+)"/g)].map((m) => m[1]);
+
+/* Tur -> sprite satiri eslemesi de ureteceten. Iki tur ayni
+   satiri paylasabiliyor, o yuzden satir sayisi tur sayisiyla
+   ayni olmak zorunda degil.                                 */
+const TUR_SATIR = {};
+for (const m of (/AURA_TUR_SATIR = \{([\s\S]*?)\}/.exec(URETEC)[1])
+       .matchAll(/"(\w+)": "(\w+)"/g)) {
+  TUR_SATIR[m[1]] = m[2];
+}
+/* Satir sirasi uretecteki ile AYNI kurala gore kuruluyor:
+   URETILEN turlerin kullandigi satirlar, ilk gorulme sirasina
+   gore. Ureteci taklit etmiyoruz, ayni kurali uyguluyoruz --
+   AURA_SATIR artik uretecte hesaplanan bir sozluk, metinde
+   arayacak sabit bir satir yok.                             */
+const SATIR_ADLARI = [];
+for (const t of TURLER) {
+  if (!SATIR_ADLARI.includes(TUR_SATIR[t])) SATIR_ADLARI.push(TUR_SATIR[t]);
+}
+const SATIR_SAYISI = SATIR_ADLARI.length;
+const SATIR_INDEKS = {};
+SATIR_ADLARI.forEach((ad, i) => { SATIR_INDEKS[ad] = i; });
 
 console.log("=== 1. IKI LISTE AYNI (elle eslesme tablosu YOK) ===");
 {
@@ -127,10 +155,13 @@ print(json.dumps({"en": im.size[0], "boy": im.size[1]}))
   /* Olcu ELLE yazilmiyor: uretecteki sabitlerden. v7.18'de
      kare sayisi 4 -> 8 olunca doku 128 -> 256 genisledi ve
      elle yazilmis "128x128" bayatladi.                     */
-  const BEK_EN = +/^AURA_DOKU_EN = AURA_HUCRE \* AURA_KARE/m.test(URETEC)
-    * (+/^AURA_HUCRE = (\d+)/m.exec(URETEC)[1] *
-       +/^AURA_KARE = (\d+)/m.exec(URETEC)[1]);
-  const BEK_BOY = +/^AURA_DOKU_BOY = (\d+)/m.exec(URETEC)[1];
+  /* Olcu ELLE yazilmiyor: hucre x kare (en) ve hucre x
+     KULLANILAN SATIR SAYISI (boy). v7.18'de kare sayisi 4->8
+     olunca en 128->256, v7.19'da yalniz goz alevi kalinca boy
+     128->32 degisti; ikisinde de elle yazilmis sayi bayatladi. */
+  const HUCRE = +/^AURA_HUCRE = (\d+)/m.exec(URETEC)[1];
+  const BEK_EN = HUCRE * +/^AURA_KARE = (\d+)/m.exec(URETEC)[1];
+  const BEK_BOY = HUCRE * SATIR_SAYISI;
   kontrol("doku " + BEK_EN + "x" + BEK_BOY,
           olc.en === BEK_EN && olc.boy === BEK_BOY,
           olc.en + "x" + olc.boy);
@@ -160,28 +191,26 @@ print(json.dumps({"en": im.size[0], "boy": im.size[1]}))
      satiri (kivilcim) paylasiyor -- ikisi de dikey bir cizgi,
      ikinci bir sprite cizmenin anlami yok. Onemli olan
      TEKLIK degil, DOGRULUK.                                */
-  const SATIR = {};
-  for (const m of /AURA_SATIR = \{([^}]*)\}/.exec(URETEC)[1].matchAll(/"(\w+)": (\d+)/g)) {
-    SATIR[m[1]] = +m[2];
-  }
-  /* Tur -> satir esleme: uretecte hangi _aura_uv(...) cagrisi
-     yapiliyorsa o. Elle degil, dosyadan okunuyor.          */
-  const TUR_SATIR = {};
-  for (const m of URETEC.matchAll(/def aura_(\w+)\(kimlik, renkler\):([\s\S]*?)\n\n\n/g)) {
-    const uv = /_aura_uv\("(\w+)"\)/.exec(m[2]);
-    if (uv) TUR_SATIR[m[1]] = uv[1];
-  }
+  /* Her turun oynattigi satir, AURA_TUR_SATIR'da yazan satir
+     olmali. "Turler farkli satirlarda olsun" diye bakilamaz:
+     turler bilerek satir paylasabiliyor (patlama ve gozkor'un
+     ikisi de dikey bir cizgi). Onemli olan TEKLIK degil,
+     DOGRULUK.                                              */
   let yanlisSatir = [];
   for (const [, tur, d] of dosyalar) {
     const fb = d.components["minecraft:particle_appearance_billboard"].uv.flipbook;
-    const bekSatir = SATIR[TUR_SATIR[tur]];
-    if (fb.base_UV[1] !== bekSatir * 32) yanlisSatir.push(tur);
+    if (fb.base_UV[1] !== SATIR_INDEKS[TUR_SATIR[tur]] * HUCRE) {
+      yanlisSatir.push(tur);
+    }
   }
   kontrol("her tur uretecte yazan sprite satirini oynatiyor",
-          yanlisSatir.length === 0 &&
-          Object.keys(TUR_SATIR).length === TURLER.length,
+          yanlisSatir.length === 0,
           [...new Set(yanlisSatir)].join(", ") ||
-          Object.entries(TUR_SATIR).map(([t, s]) => t + "->" + s).join("  "));
+          TURLER.map((t) => t + "->" + TUR_SATIR[t]).join("  "));
+  /* Olu satir kalmasin: uretilen her satirin bir sahibi var. */
+  kontrol("dokuda kullanilmayan satir yok",
+          SATIR_SAYISI === new Set(TURLER.map((t) => TUR_SATIR[t])).size,
+          SATIR_ADLARI.join(", "));
 }
 
 console.log("");
@@ -274,14 +303,14 @@ console.log("=== 4. RENK UYDURULMADI: GOZUN RENGI ===");
     }
   }
   kontrol("gradyanin rengi gozun rengiyle ayni", uymayan.length === 0,
-          uymayan.slice(0, 2).join(" | ") || "24 dosyanin hepsi");
+          uymayan.slice(0, 2).join(" | ") || dosyalar.length + " dosyanin hepsi");
   kontrol("zerre sonerek kayboluyor (son alfa 0)",
           alfaBitmeyen.length === 0, alfaBitmeyen.join(", ") || "hepsi soniyor");
 
   /* Element'in IKI goz rengi var (buz + ates, referanstan
      olculdu). Ikisi de gradyanda olmali -- yoksa onun aurasi
      digerlerinden ayrisamaz.                                */
-  const el = dosyalar.find(([k, t]) => k.kimlik === "element" && t === "kor")[2];
+  const el = dosyalar.find(([k, t]) => k.kimlik === "element" && t === TURLER[0])[2];
   const eg = el.components["minecraft:particle_appearance_tinting"].color.gradient;
   const iki = renkler["element"];
   kontrol("Element'in IKI rengi de gradyanda", iki.length === 6 &&
@@ -291,174 +320,105 @@ console.log("=== 4. RENK UYDURULMADI: GOZUN RENGI ===");
 }
 
 console.log("");
-console.log("=== 5. HAREKET GERCEKTEN TANIMLI ===");
+console.log("=== 5. GOZ ALEVI: HAREKET VE BOY ===");
 {
-  /* Parcacik dosyasi yazilip da hareket bileseni unutulursa
-     zerreler dogduklari yerde ASILI kalir. Uc turun ucunun de
-     kendi karakteri var; asagidaki isaretler onu tutuyor.   */
-  const al = (kim, tur) => dosyalar.find(([k, t]) => k.kimlik === kim && t === tur)[2].components;
+  /* v7.19: bu bolum eskiden dort turu (kor/hale/patlama/
+     gozkor) olcuyordu. Kullanici auranin kaldirilmasini
+     istedi; geriye tek tur kaldi ve olcumler ona daraldi.
+     Silinen turlerin kodu uretecte duruyor (AURA_URETILEN),
+     geri gelirlerse buraya da olcumleri geri gelir.        */
+  const al = (kim, tur) =>
+    dosyalar.find(([k, t]) => k.kimlik === kim && t === tur)[2].components;
+  const gz = al("nitroksin", "gozalev");
+  const gb = gz["minecraft:particle_appearance_billboard"];
+  const gm = gz["minecraft:particle_motion_dynamic"];
 
-  const kor = al("nitroksin", "kor");
-  const km = kor["minecraft:particle_motion_dynamic"];
-  /* Dikey ivme artik bir Molang ifadesi ("hiz.y * 44 + 1.55"):
-     hiz mirasi disindaki SABIT terim yukari olmali. Sayi
-     bekleyen eski satir v7.18'de sessizce yanlis olurdu. */
+  /* Parcacik dosyasi yazilip da hareket bileseni unutulursa
+     zerreler dogduklari yerde ASILI kalir.                 */
   const sabitIvme = (i) => {
     const m = /([+-]?\s*[\d.]+)\s*$/.exec(String(i));
     return m ? parseFloat(m[1].replace(/\s/g, "")) : parseFloat(i);
   };
-  kontrol("kor YUKARI kalkiyor", sabitIvme(km.linear_acceleration[1]) > 0,
-          String(km.linear_acceleration[1]));
-  /* Surtunme olmazsa zerreler hizlanarak gokyuzune firlar.  */
-  kontrol("kor surtunmeyle yavasliyor", km.linear_drag_coefficient > 1,
-          String(km.linear_drag_coefficient));
-  /* v7.17: kor artik TAKLA ATMIYOR, salinıyor. Eskiden
-     rotation 0-360 ve saniyede 260 derece donus vardi; donen
-     bir sekil ne olursa olsun yuvarlak okunuyor -- kullanici
-     oyunda "kucuk baloncuklar" dedi. Alev dilinin yukari
-     bakmasi SART, o yuzden hem baslangic acisi hem donus hizi
-     kucuk olmali.                                            */
-  const ks = kor["minecraft:particle_initial_spin"];
-  const enBuyukAci = (i) => {
-    const m = /\* *(\d+(?:\.\d+)?)/.exec(String(i));
-    return m ? parseFloat(m[1]) / 2 : 0;    // (rastgele - 0.5) * N
-  };
-  kontrol("kor salinıyor ama TAKLA ATMIYOR",
-          enBuyukAci(ks.rotation) <= 15 && enBuyukAci(ks.rotation_rate) <= 15,
-          "aci +-" + enBuyukAci(ks.rotation) + " derece, hiz +-" +
-          enBuyukAci(ks.rotation_rate) + " derece/sn");
+  kontrol("alev YUKARI yukseliyor", sabitIvme(gm.linear_acceleration[1]) > 0,
+          String(gm.linear_acceleration[1]));
+  /* Surtunme YUKSEK olmali: alev gozun onunde asili kalmali,
+     yukselip gitmemeli. Kalkis ivmesinden buyuk bir surtunme
+     zerreyi kisa bir mesafede durduruyor.                  */
+  kontrol("alev gozun onunde duruyor (yuksek surtunme)",
+          gm.linear_drag_coefficient > sabitIvme(gm.linear_acceleration[1]),
+          gm.linear_drag_coefficient + " > " +
+          sabitIvme(gm.linear_acceleration[1]));
+
   /* Yukarisi yukarida kalsin: lookat_xyz kameraya TAMAMEN
-     donuyor, yukaridan bakildiginda alev yan yatiyor.       */
-  for (const t of ["kor", "gozalev"]) {
-    kontrol(t + ": billboard dik duruyor (lookat_y)",
-            al("nitroksin", t)["minecraft:particle_appearance_billboard"]
-              .face_camera_mode === "lookat_y",
-            al("nitroksin", t)["minecraft:particle_appearance_billboard"]
-              .face_camera_mode);
-  }
-  /* Alev BOYUNA uzar. Dis olcu de oyle olmali, yoksa doku
-     kare bir tuvale sikisiyor.                              */
-  for (const t of ["kor", "gozalev"]) {
-    const b = al("nitroksin", t)["minecraft:particle_appearance_billboard"];
-    const ilk = (s) => parseFloat(/[\d.]+/.exec(String(s))[0]);
-    kontrol(t + ": boy enden UZUN", ilk(b.size[1]) > ilk(b.size[0]),
-            ilk(b.size[0]) + " x " + ilk(b.size[1]));
-  }
-
-  /* ---- GOZ ALEVI (v7.17) ---- */
-  const gz = al("nitroksin", "gozalev");
-  const gb = gz["minecraft:particle_appearance_billboard"];
-  /* Kullanicinin istedigi sey buydu: "alev de bir buyuyor bir
-     kuculuyor". math.sin(t*180) omrun ortasinda tepe yapiyor;
-     duz bir (1 - t) egrisi yalniz KUCULURDU.                */
-  kontrol("goz alevi buyuyup kuculuyor (sin egrisi)",
-          String(gb.size[0]).includes("math.sin") &&
-          String(gb.size[1]).includes("math.sin"),
-          String(gb.size[1]));
-  /* Molang math.sin DERECE aliyor: 180 ile carpilmazsa egri
-     omur boyunca neredeyse duz kalir.                       */
-  kontrol("sin derece cinsinden (x 180)",
-          String(gb.size[1]).includes("* 180"), String(gb.size[1]));
-  const gm = gz["minecraft:particle_motion_dynamic"];
-  /* Surtunme kordan YUKSEK olmali: goz alevi gozun onunde
-     asili kalmali, kafa aurasi gibi yukselip gitmemeli.     */
-  kontrol("goz alevi gozun onunde duruyor (yuksek surtunme)",
-          gm.linear_drag_coefficient > km.linear_drag_coefficient,
-          gm.linear_drag_coefficient + " > " + km.linear_drag_coefficient);
-  kontrol("goz alevi korden KISA yasiyor",
-          parseFloat(gz["minecraft:particle_lifetime_expression"].max_lifetime) <
-          parseFloat(kor["minecraft:particle_lifetime_expression"].max_lifetime));
+     donuyor, yukaridan bakildiginda alev yan yatiyor.      */
+  kontrol("billboard dik duruyor (lookat_y)",
+          gb.face_camera_mode === "lookat_y", gb.face_camera_mode);
+  /* Alev BOYUNA uzar; dis olcu de oyle olmali.             */
+  const ilk = (s) => parseFloat(/[\d.]+/.exec(String(s))[0]);
+  kontrol("boy enden UZUN", ilk(gb.size[1]) > ilk(gb.size[0]),
+          ilk(gb.size[0]) + " x " + ilk(gb.size[1]));
+  /* ...ama COK uzun degil: v7.18'de oran 0.64 idi ve oyunda
+     alevler ince dikey CIZGILER gibi cikti (kullanicinin
+     ekran goruntusunde ot gibi duruyorlardi). Kucuk olcekte
+     dar bir ucgen "alev" degil "cizgi" okunuyor.           */
+  kontrol("cizgi gibi ince DEGIL", ilk(gb.size[0]) / ilk(gb.size[1]) >= 0.7,
+          "en/boy = " + (ilk(gb.size[0]) / ilk(gb.size[1])).toFixed(2));
   /* Goz 2 MC pikseli = 0.125 blok. Alev bundan buyuk olursa
-     gozun yerine GECIYOR; onizlemede tam bunu yasadik.      */
-  kontrol("goz alevi gozden buyuk degil",
-          parseFloat(/[\d.]+/.exec(String(gb.size[1]))[0]) < 0.125,
-          parseFloat(/[\d.]+/.exec(String(gb.size[1]))[0]) + " < 0.125 blok");
+     gozun yerine GECIYOR.                                  */
+  kontrol("alev gozden buyuk degil", ilk(gb.size[1]) < 0.125,
+          ilk(gb.size[1]) + " < 0.125 blok");
 
-  /* ---- UC AYRI OLCEKTE HAREKET (v7.18) ----
-     Kullanici "canli olsun" dedi. Tek bir egri canli
-     gostermiyor: yavas bir zarf tek basina sisip inen bir
-     balon. Ust uste UC olcek olmali.                       */
+  /* ---- UC AYRI OLCEKTE HAREKET ----
+     Kullanici "bir buyusun bir kuculsun" dedi. Tek bir egri
+     canli gostermiyor: yavas bir zarf tek basina sisip inen
+     bir balon.                                             */
   for (const boy of gb.size) {
     const s = String(boy);
-    kontrol("goz alevi: zarf (omur boyu bir kez)",
+    kontrol("zarf (omur boyu bir kez)",
             s.includes("math.sin(variable.particle_age /"), "");
-    kontrol("goz alevi: nefes (saniyede birkac kez)",
+    kontrol("nefes (saniyede birkac kez)",
             /math\.sin\(variable\.particle_age \* \d{3,}/.test(s), "");
     /* Nefesin FAZI her zerrede farkli olmali: ayni olsaydi
        butun alevler ayni anda buyuyup kuculur, tek bir nabiz
        gibi dururdu.                                        */
-    kontrol("goz alevi: nefesin fazi zerreye ozel",
+    kontrol("nefesin fazi zerreye ozel",
             /particle_age \* \d+ \+ variable\.particle_random_\d \* 360/.test(s), "");
     /* emitter_random bir YAYIMDAKI butun zerrelerde ayni:
        alev toptan kabarip toptan soniyor.                  */
-    kontrol("goz alevi: puf olcegi (emitter_random)",
+    kontrol("puf olcegi (emitter_random)",
             s.includes("variable.emitter_random_1"), "");
   }
+  /* Molang math.sin DERECE aliyor: 180 ile carpilmazsa egri
+     omur boyunca neredeyse duz kalir.                      */
+  kontrol("sin derece cinsinden (x 180)",
+          String(gb.size[1]).includes("* 180"), String(gb.size[1]));
 
   /* ---- HIZ MIRASI ----
      Denge hizi v = a/d. Ivmedeki katsayi surtunmenin 20 kati
-     olmali (getVelocity blok/TICK, parcacik blok/SANIYE):
-     ancak o zaman zerre oyuncunun hizina yakinsiyor. Yanlis
-     katsayi alevi ya geride birakir ya da one firlatir.    */
-  for (const [t, c] of [["kor", km], ["gozalev", gm]]) {
-    const bek = (20 * c.linear_drag_coefficient).toFixed(1);
-    kontrol(t + ": hiz mirasi katsayisi surtunmenin 20 kati",
-            String(c.linear_acceleration[0]) === "variable.hiz.x * " + bek &&
-            String(c.linear_acceleration[2]) === "variable.hiz.z * " + bek,
-            c.linear_acceleration[0] + " (beklenen " + bek + ")");
-  }
+     olmali (getVelocity blok/TICK, parcacik blok/SANIYE).  */
+  const bek = (20 * gm.linear_drag_coefficient).toFixed(1);
+  kontrol("hiz mirasi katsayisi surtunmenin 20 kati",
+          String(gm.linear_acceleration[0]) === "variable.hiz.x * " + bek &&
+          String(gm.linear_acceleration[2]) === "variable.hiz.z * " + bek,
+          gm.linear_acceleration[0] + " (beklenen " + bek + ")");
   /* Duvarin icinde yanmasin.                               */
   const gc = gz["minecraft:particle_motion_collision"];
-  kontrol("goz alevi duvara degince soniyor",
+  kontrol("duvara degince soniyor",
           !!gc && gc.expire_on_contact === true);
 
-  /* ---- GOZDEN DUSEN KOZ ----                             */
-  const kz = al("nitroksin", "gozkor");
-  const kzm = kz["minecraft:particle_motion_dynamic"];
-  /* Yukari giden her seyin arasinda ASAGI giden bir sey:
-     kozun tek isi bu. Ivmenin dikey bileseni negatif olmali. */
-  kontrol("koz ASAGI dusuyor",
-          sabitIvme(kzm.linear_acceleration[1]) < 0,
-          String(kzm.linear_acceleration[1]));
-  kontrol("koz alevden AZ cikiyor (seyrek)",
-          kz["minecraft:emitter_rate_instant"].num_particles <=
-          gz["minecraft:emitter_rate_instant"].num_particles,
-          kz["minecraft:emitter_rate_instant"].num_particles + " zerre");
-  kontrol("koz gittigi yone bakiyor (cizgi gibi uzuyor)",
-          kz["minecraft:particle_appearance_billboard"].direction.mode ===
-          "derive_from_velocity");
-  kontrol("koz yere carpinca soniyor",
-          kz["minecraft:particle_motion_collision"].expire_on_contact === true);
-
-  const pat = al("nitroksin", "patlama");
-  const pm = pat["minecraft:particle_motion_dynamic"];
-  /* Patlama YERCEKIMLI: kivilcimlar yukselip dusmeli.       */
-  kontrol("patlama asagi dusuyor", pm.linear_acceleration[1] < 0,
-          String(pm.linear_acceleration[1]));
-  /* Carpisma olmazsa kivilcimlar yerin ICINDEN gecer.       */
-  const pc = pat["minecraft:particle_motion_collision"];
-  kontrol("patlama yere carpinca soniyor",
-          !!pc && pc.expire_on_contact === true);
-  kontrol("patlama korden hizli firliyor",
-          String(pat["minecraft:particle_initial_speed"]).startsWith("1.7"),
-          String(pat["minecraft:particle_initial_speed"]));
-
-  const hale = al("nitroksin", "hale");
-  /* Hale kafanin etrafinda KABUK: yalniz kureden.           */
-  kontrol("hale yalniz kure yuzeyinden cikiyor",
-          hale["minecraft:emitter_shape_sphere"].surface_only === true);
-  kontrol("hale korden YAVAS",
-          parseFloat(hale["minecraft:particle_initial_speed"]) <
-          parseFloat(kor["minecraft:particle_initial_speed"]),
-          hale["minecraft:particle_initial_speed"] + " < " +
-          kor["minecraft:particle_initial_speed"]);
-  /* Hale uzun omurlu: puslu bir kabuk ancak boyle olusuyor. */
-  kontrol("hale korden UZUN yasiyor",
-          parseFloat(hale["minecraft:particle_lifetime_expression"].max_lifetime) >
-          parseFloat(kor["minecraft:particle_lifetime_expression"].max_lifetime));
+  /* ---- SAYICA DEGIL BOYCA ----
+     v7.18'de yayim basina 2 zerre vardi ve goz basina ayni
+     anda ~5 dil yasiyordu; oyunda ust uste binip bir TARAK
+     gibi gorunuyorlardi.                                   */
+  const adet = gz["minecraft:emitter_rate_instant"].num_particles;
+  const omur = parseFloat(
+    gz["minecraft:particle_lifetime_expression"].max_lifetime);
+  const ayniAnda = adet * (20 / ayar.GOZ_ALEV_ARALIK) * omur;
+  kontrol("goz basina ayni anda az sayida dil (<= 4)", ayniAnda <= 4,
+          ayniAnda.toFixed(1) + " dil");
 
   /* Butun boy ve renk ifadeleri zerrenin YASINA bagli olmali;
-     sabit sayi yazilsaydi zerre kuculmeden yok olurdu.      */
+     sabit sayi yazilsaydi zerre kuculmeden yok olurdu.     */
   let yassiz = [];
   for (const [k, tur, d] of dosyalar) {
     const c = d.components;
@@ -530,18 +490,14 @@ console.log("=== 5b. SPRITE ALEV MI, BALONCUK MU? (v7.17) ===");
   const H = 32;
   const alfa = (x, y) => im.veri[(y * im.en + x) * 4 + 3];
 
-  /* Satir sirasi ureteceten OKUNUYOR -- elle yazilmiyor. */
-  const satirlar = {};
-  for (const m of /AURA_SATIR = \{([^}]*)\}/.exec(URETEC)[1].matchAll(/"(\w+)": (\d+)/g)) {
-    satirlar[m[1]] = +m[2];
-  }
-  kontrol("dort satirin dordu de kullaniliyor",
-          Object.keys(satirlar).length === 4 &&
-          !("kul" in satirlar) && "alev" in satirlar,
-          Object.keys(satirlar).join(", "));
+  /* Satirlar dosyanin basinda ureteceten cikarildi
+     (SATIR_ADLARI / SATIR_INDEKS). Burada yalnizca URETILEN
+     satirlarin sekli olculuyor -- olu satir zaten yok.     */
+  kontrol("dokuda satir var", SATIR_ADLARI.length >= 1,
+          SATIR_ADLARI.join(", "));
 
-  for (const tur of ["kor", "alev"]) {
-    const s = satirlar[tur];
+  for (const tur of SATIR_ADLARI) {
+    const s = SATIR_INDEKS[tur];
     for (let kare = 0; kare < 4; kare++) {
       const genis = [];
       for (let y = 0; y < H; y++) {
@@ -577,21 +533,21 @@ console.log("=== 6. SCRIPT TARAFI ===");
      sanildi.                                                */
   const kod = kaynak.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
 
-  kontrol("aura ayar kapisina bakiyor", /if \(!AURA_ACIK\) return/.test(kod));
-  /* Ad kademe.kimlik'ten KURULUYOR; elle tablo yok.         */
+  kontrol("ayar kapisina bakiyor",
+          /if \(!AURA_ACIK \|\| !GOZ_ALEV_ACIK\) return/.test(kod));
+  /* Ad kademe.kimlik'ten KURULUYOR; elle tablo yok. Ikinci
+     bir tablo tutulsaydi biri degisip oteki kalirdi.       */
   kontrol("parcacik adi kademe.kimlik'ten kuruluyor",
-          /AURA_ONEK \+ tur \+ "_" \+ kademe\.kimlik/.test(kod));
+          /AURA_ONEK \+ "gozalev_" \+ kademe\.kimlik/.test(kod));
   /* Kafa hizasi: oyuncu.location AYAK hizasidir, aura orada
      ciksaydi zerreler bacaklardan yukselirdi.               */
   kontrol("kafa hizasindan cikiyor (getHeadLocation)",
           /getHeadLocation\(\)/.test(kod));
-  kontrol("kor ve hale ayri ritimde",
-          /simdi % AURA_ARALIK/.test(kod) && /simdi % AURA_HALE_ARALIK/.test(kod));
-  /* AURA_ARALIK'in tazelemeden ONCE gelmesi SART: sonra
-     gelseydi aura da IKSIR_TAZELEME ritmine duser, yani
-     saniyede bir cikardi ve kesik kesik gorunurdu.          */
-  kontrol("aura tazeleme 'continue'sinden ONCE",
-          kod.indexOf("simdi % AURA_ARALIK") <
+  /* Alevin tazelemeden ONCE gelmesi SART: sonra gelseydi
+     IKSIR_TAZELEME ritmine duser, yani saniyede bir cikardi
+     ve alev kesik kesik gorunurdu.                          */
+  kontrol("alev tazeleme 'continue'sinden ONCE",
+          kod.indexOf("simdi % GOZ_ALEV_ARALIK") <
           kod.indexOf("if (simdi < d.sonrakiTazeleme) continue"));
   /* METIN ARAMASI YETMEDI -- mutasyon denemesinde goruldu.
      `auraPatlat` cagrisini iksirIc'ten SILDIGIMDE test yine
@@ -634,32 +590,24 @@ console.log(JSON.stringify({
 }));
 `], { encoding: "utf8", cwd: KOK + "/test" }).trim().split("\n").pop());
 
-  /* 1) Icildigi an patlama                                  */
-  kontrol("iksir icilince patlama GERCEKTEN cikiyor",
-          cikti.patlama.includes("pa:aura_patlama_element"),
+  /* 1) Iksir icilince kafa aurasi ARTIK CIKMAMALI (v7.19).
+        Kullanici kaldirilmasini istedi; "kod silindi" demek
+        yetmiyor, sahte dunyada gercekten cikmadigini
+        gormek gerekiyor.                                    */
+  kontrol("iksir icilince aura patlamasi CIKMIYOR",
+          cikti.patlama.length === 0,
           cikti.patlama.join(", ") || "hic parcacik yok");
-  /* 2) Sonraki tick'lerde kor ve hale                       */
-  kontrol("taramada kor cikiyor",
-          cikti.tarama.some((t) => t === "pa:aura_kor_element"),
+  kontrol("taramada kafa aurasi CIKMIYOR",
+          !cikti.tarama.some((t) => /_kor_|_hale_|_patlama_|_gozkor_/.test(t)),
           [...new Set(cikti.tarama)].join(", ") || "hic");
-  kontrol("taramada hale cikiyor",
-          cikti.tarama.some((t) => t === "pa:aura_hale_element"));
+  /* 2) Cikan tek sey goz alevi                              */
+  kontrol("taramada goz alevi cikiyor",
+          cikti.tarama.some((t) => t === "pa:aura_gozalev_element"),
+          [...new Set(cikti.tarama)].join(", ") || "hic");
   /* 3) Ad ICILEN iksire gore -- sabit degil                 */
   kontrol("parcacik adi ICILEN iksirin adi",
           cikti.tarama.every((t) => t.endsWith("_element")),
           [...new Set(cikti.tarama)].join(", "));
-  /* 4) Ritim: 40 tick'te AURA_ARALIK'a gore ~7 kor          */
-  const korSay = cikti.tarama.filter((t) => t.includes("_kor_")).length;
-  kontrol("kor dogru ritimde (40 tick'te ~" +
-          Math.floor(40 / ayar.AURA_ARALIK) + ")",
-          korSay >= Math.floor(40 / ayar.AURA_ARALIK) - 1 &&
-          korSay <= Math.floor(40 / ayar.AURA_ARALIK) + 1,
-          korSay + " kor");
-  /* 5) Kafanin USTUNDEN -- ayak hizasindan degil            */
-  kontrol("kor kafanin ustunden cikiyor",
-          cikti.korY.length === 0 ||
-          cikti.korY.every((y) => y > cikti.basY),
-          "kor y " + (cikti.korY[0] || "-") + " > bas y " + cikti.basY);
   kontrol("hatasi yutulmuyor, yaziliyor", /hataYaz\("aura\./.test(kod));
 
   /* ---- GOZ ALEVI GERCEKTEN GOZLERIN ONUNDE Mi (v7.17) ----
@@ -736,40 +684,37 @@ console.log(JSON.stringify({
             mh && mh.hiz ? JSON.stringify(mh.hiz) : "-");
   }
 
-  /* ---- GOZDEN DUSEN KOZ ---- */
-  const koz = cikti.koz || [];
-  const kozBek = Math.floor(40 / ayar.GOZ_KOR_ARALIK) * 2;
-  kontrol("koz GERCEKTEN dusuyor", koz.length > 0, koz.length + " zerre");
-  /* Alevden SEYREK olmali: sik olsaydi gozyasi gibi akardi. */
-  kontrol("koz alevden seyrek", koz.length < alev.length,
-          koz.length + " koz < " + alev.length + " alev");
-  kontrol("koz dogru ritimde (40 tick'te ~" + kozBek + ")",
-          koz.length >= Math.max(0, kozBek - 2) && koz.length <= kozBek + 2,
-          koz.length + " zerre");
-  /* Alevle AYNI noktadan cikiyor: goz nerede ise koz da orada. */
-  if (koz.length && alev.length) {
-    kontrol("koz alevle ayni noktadan cikiyor",
-            Math.abs(koz[0].x - alev[0].x) < 1e-9 &&
-            Math.abs(koz[0].y - alev[0].y) < 1e-9,
-            "(" + koz[0].x.toFixed(3) + ", " + koz[0].y.toFixed(3) + ")");
-  }
-
   /* Ayarlarin hepsi GERCEKTEN okunuyor mu -- tarama.mjs'in
      oksuz-ayar korumasinin buradaki karsiligi.              */
-  for (const a of ["AURA_ACIK", "AURA_ONEK", "AURA_ARALIK",
-                   "AURA_HALE_ARALIK", "AURA_KAFA_Y", "AURA_PATLAMA_Y",
+  for (const a of ["AURA_ACIK", "AURA_ONEK", "AURA_HIZ_MIRASI",
                    "GOZ_ALEV_ACIK", "GOZ_ALEV_ARALIK", "GOZ_ALEV_ON",
-                   "GOZ_ALEV_YAN", "GOZ_ALEV_Y", "GOZ_KOR_ARALIK",
-                   "AURA_HIZ_MIRASI", "GOZ_ALEV_ONDEN",
-                   "AURA_ONDEN"]) {
+                   "GOZ_ALEV_YAN", "GOZ_ALEV_Y", "GOZ_ALEV_ONDEN"]) {
     kontrol("  " + a + " tanimli ve okunuyor",
             ayar[a] !== undefined && kod.includes(a), String(ayar[a]));
   }
   /* Her tick cikarsa hem pahali hem de zerreler ust uste
      binip tek bir bulut gorunuyor.                          */
-  kontrol("her tick cikmiyor", ayar.AURA_ARALIK > 1, String(ayar.AURA_ARALIK));
-  kontrol("hale korden seyrek", ayar.AURA_HALE_ARALIK > ayar.AURA_ARALIK,
-          ayar.AURA_HALE_ARALIK + " > " + ayar.AURA_ARALIK);
+  /* Her tick cikarsa hem pahali hem de zerreler ust uste
+     binip tek bir bulut gorunuyor.                         */
+  kontrol("her tick cikmiyor", ayar.GOZ_ALEV_ARALIK > 1,
+          String(ayar.GOZ_ALEV_ARALIK));
+  /* ...ama cok seyrek de olmamali: alev KESIKSIZ yanmali,
+     yoksa alev degil kivilcim gorunuyor.                   */
+  kontrol("alev kesiksiz (aralik <= 5)", ayar.GOZ_ALEV_ARALIK <= 5,
+          String(ayar.GOZ_ALEV_ARALIK));
+
+  /* ---- AURA GERCEKTEN KALKTI MI (v7.19) ----
+     Kullanici "aura parcaciklarini kaldir" dedi. Ayari
+     kapatmak yetmez; kapanmanin GERCEKTEN her seyi
+     goturdugunu olcmek gerekiyor -- yoksa "kapali ama yine de
+     pakete giren" bir sey kalir.                           */
+  kontrol("script'te kafa aurasi cagrisi kalmamis",
+          !/auraAt\(|auraPatlat\(|gozKoruAt\(/.test(kod),
+          "kor / hale / patlama / gozkor yok");
+  const artik = readdirSync(RP + "/particles")
+    .filter((f) => !f.startsWith("aura_gozalev_"));
+  kontrol("diskte artik aura dosyasi kalmamis", artik.length === 0,
+          artik.join(", ") || "yalniz goz alevi");
 }
 
 console.log("");
