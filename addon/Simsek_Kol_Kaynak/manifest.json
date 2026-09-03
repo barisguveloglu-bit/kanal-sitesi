@@ -1,13 +1,13 @@
 {
   "format_version": 2,
   "header": {
-    "name": "Şimşek 7.26.0 · Görünüm",
+    "name": "Şimşek 7.26.1 · Görünüm",
     "description": "İkonlar ve 3B kol görünümü. Bu paket kapalıysa eşyalar çalışır ama görünmez.",
     "uuid": "be7dc576-029b-44fe-b116-5b6789493d01",
     "version": [
       7,
       26,
-      0
+      1
     ],
     "min_engine_version": [
       1,
@@ -22,7 +22,7 @@
       "version": [
         7,
         26,
-        0
+        1
       ]
     }
   ]

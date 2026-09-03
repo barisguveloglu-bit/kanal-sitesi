@@ -102,7 +102,7 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # tureniyor -- ayrisabilecekleri bir yer kalmadi.
 #
 # YENI SURUM CIKARIRKEN: yalnizca asagidaki satiri degistir.
-SURUM_NO = (7, 26, 0)
+SURUM_NO = (7, 26, 1)
 
 SURUM_METIN = "%d.%d.%d" % SURUM_NO
 SURUM_ETIKET = "v" + SURUM_METIN
@@ -7690,15 +7690,30 @@ def _kupa_parca(kutu_adi, kok, dondur=None, olcek=1.0):
     return kupler
 
 
-def _kupa_odun(kok, olcu, ad="odun"):
+def _kupa_odun(kok, olcu, ad="odun", tam_uv=False):
     """Kazik/carmih kirisi. Skinden DEGIL, kendi dokusundan:
-    material_instance adi geometride yaziyor."""
-    return {
+    material_instance adi geometride yaziyor.
+
+    ---- tam_uv NEDEN VAR: OLCULDU ----
+    Kutu UV'de bir yuzun doku dikdortgeni KUPUN OLCUSUNDEN
+    tureniyor: on yuz (D, D, W, H). Zincir kupu 2x5.5x2, yani
+    on yuzu 2x5.5 piksellik bir serit -- 16x16 dokunun sadece
+    %4'u. Zincir deseni hic gorunmuyordu, duz gri bir cubuk
+    cikiyordu. Kullanici "zincir daha iyi yap" dedi; asil
+    sebep doku degil UV'ydi.
+
+    tam_uv=True her yuze dokunun TAMAMINI seriyor."""
+    kup = {
         "origin": [kok[0], kok[1], kok[2]],
         "size": list(olcu),
-        "uv": [0, 0],
         "material_instance": ad,
     }
+    if tam_uv:
+        kup["uv"] = {y: {"uv": [0, 0], "uv_size": [16, 16]} for y in
+                     ("north", "south", "east", "west", "up", "down")}
+    else:
+        kup["uv"] = [0, 0]
+    return kup
 
 
 def kupa_kazik_geometrisi(kimlik):
@@ -7838,7 +7853,7 @@ def kupa_carmih_geometrisi(kimlik):
 
 
 def _kupa_govde(s, taban_y, orta_x=8.0, orta_z=8.0, dondur=None,
-                kol_aci=None):
+                kol_aci=None, kafa_egim=None):
     """KOLLARI ASAGI SARKAN tam govde: bacak + govde + kafa +
     iki kol, hepsi ikinci katmanlariyla.
 
@@ -7856,8 +7871,13 @@ def _kupa_govde(s, taban_y, orta_x=8.0, orta_z=8.0, dondur=None,
     kaldirmak icin 180'e yakin bir aci gerekiyor -- 140
     derece "yukari ve disari" demek.
 
-    kol_aci ile dondur AYNI ANDA verilemez: bir kupun tek
-    donusu olur, ikisi birbirini ezerdi.
+    kafa_egim verilirse kafa BOYUNDAN one egiliyor. Kullanici
+    Dream icin istedi: "son aninda bana basini egmis gibi".
+    Egim boyun noktasindan donuyor, yani kafa govdeden
+    kopmuyor.
+
+    kol_aci ve kafa_egim ile dondur AYNI ANDA verilemez: bir
+    kupun tek donusu olur, ikisi birbirini ezerdi.
 
     dondur BUTUN parcalara ayni pivot/aciyla uygulaniyor:
     govdeyi tek parca gibi egmek icin. Ayri bir kemik
@@ -7866,7 +7886,24 @@ def _kupa_govde(s, taban_y, orta_x=8.0, orta_z=8.0, dondur=None,
     bacak_ust = taban_y + 12 * s
     govde_ust = bacak_ust + 12 * s
     kup = []
-    kup += _kupa_parca("kafa", (orta_x, govde_ust, orta_z), dondur=dondur, olcek=s)
+    if kafa_egim is None:
+        kafa_d = dondur
+    else:
+        assert dondur is None, "kafa_egim ile dondur birlikte olmaz"
+        # Boyun noktasi: govdenin tepesi, kafanin tabani.
+        #
+        # ISARET OLCULDU, tahmin edilmedi. kafa_egim POZITIF
+        # verilince ONE egilme bekleniyor, ama Bedrock'ta one
+        # egilme NEGATIF X donusu. Iki yon de render edilip
+        # yan yana konuldu:
+        #   +22 -> kafanin tepesi ARKAYA gidiyor (cene yukari)
+        #   -22 -> kafanin tepesi ONE gidiyor  (bas egik)
+        # Sayilarla da dogrulandi: kafanin on-ust kosesi
+        # +22'de z 5.6 -> 7.57 (geri), -22'de 5.6 -> 3.98 (one).
+        # Isaret burada cevriliyor ki cagiran taraf "pozitif =
+        # one" diye okuyabilsin.
+        kafa_d = ((orta_x, govde_ust, orta_z), (-kafa_egim, 0, 0))
+    kup += _kupa_parca("kafa", (orta_x, govde_ust, orta_z), dondur=kafa_d, olcek=s)
     kup += _kupa_parca("govde", (orta_x, bacak_ust, orta_z), dondur=dondur, olcek=s)
     # Kollar govdenin yaninda, ust hizasi govde ustu (vanilla).
     if kol_aci is None:
@@ -8138,6 +8175,10 @@ KUPA_ZINCIRLI_OLCEK = 0.6
 # uzerinde ve iki yana acik -- zincire baglanacak yer orasi.
 KUPA_ZINCIR_KOL_ACI = 140.0
 
+# Kafanin one egilme acisi. Kullanici: "son aninda bana basini
+# egmis gibi". Boyun noktasindan donuyor.
+KUPA_ZINCIR_KAFA_EGIM = 22.0
+
 
 def kupa_zincirli_geometrisi(kimlik):
     """ZINCIRLI -- govde bileklerinden zincirle asili.
@@ -8154,7 +8195,8 @@ def kupa_zincirli_geometrisi(kimlik):
     ORTA_X, ORTA_Z = 8.0, 8.0
     TABAN_Y = 1.5
     kupler, _kafa_ust = _kupa_govde(s, TABAN_Y, ORTA_X, ORTA_Z,
-                                    kol_aci=KUPA_ZINCIR_KOL_ACI)
+                                    kol_aci=KUPA_ZINCIR_KOL_ACI,
+                                    kafa_egim=KUPA_ZINCIR_KAFA_EGIM)
     # Elin yeri: omuz + 12s uzunlugundaki kolun donmus ucu.
     govde_ust = TABAN_Y + 24 * s
     omuz_y = govde_ust - 1.5 * s
@@ -8174,9 +8216,17 @@ def kupa_zincirli_geometrisi(kimlik):
         _kupa_odun([KIRIS_SOL, KIRIS_ALT, ORTA_Z - 1.5],
                    [KIRIS_SAG - KIRIS_SOL, KIRIS_BOY, 3]),
     ]
+    # Zincir ELIN ICINE giriyor. Olculdu: EL_Y elin UC
+    # NOKTASININ MERKEZI; zincir tam oradan baslayinca elin
+    # yalniz en ust kosesine deger (0.09 birim ortusme) ve
+    # yandan bakinca arada bosluk gorulur -- kullanici tam
+    # bunu soyledi. 2s asagi indirilince zincirin ucu bilegin
+    # icinde kaliyor.
+    EL_ICI = 2 * s
     for ex in (EL_X_SAG, EL_X_SOL):
-        demir.append(_kupa_odun([ex - 1, EL_Y, ORTA_Z - 1],
-                                [2, KIRIS_ALT - EL_Y, 2], ad="zincir"))
+        demir.append(_kupa_odun([ex - 1, EL_Y - EL_ICI, ORTA_Z - 1],
+                                [2, KIRIS_ALT - EL_Y + EL_ICI, 2],
+                                ad="zincir", tam_uv=True))
     return {
         "format_version": "1.16.0",
         "minecraft:geometry": [{
@@ -8194,19 +8244,47 @@ def kupa_zincirli_geometrisi(kimlik):
 
 
 def kupa_zincir_dokusu():
-    """Zincir: 16x16 koyu demir, halkali.
-    Lineer ifade kafes uretir -- karistirici hash."""
+    """Zincir: 16x16, ust uste dort HALKA, arasi saydam.
+
+    ---- ONCEKI SURUM NEDEN KOTUYDU ----
+    Doku hash'li duz griydi ve ustelik kutu UV yuzunden
+    dokunun sadece %4'u goruluyordu (bkz _kupa_odun tam_uv).
+    Yani ekranda gri bir cubuk vardi, zincir degil. Ikisi de
+    duzeltildi: burada gercek halka ciziliyor, kup de tam_uv
+    ile dokunun tamamini seriyor.
+
+    Halkalar SIRAYLA genis/dar: gercek zincirde ardisik
+    halkalar birbirine dik durur, 16 pikselde bunun okunabilir
+    karsiligi genislik degistirmek.
+
+    Arka plan SAYDAM -- o yuzden malzeme alpha_test."""
     p = {}
     for y in range(16):
         for x in range(16):
-            h = (x * 1103515245 + y * 12345) & 0xFFFFFFFF
-            h = (h ^ (h >> 12)) * 2654435761 & 0xFFFFFFFF
-            z = (h ^ (h >> 17)) & 0xFF
-            # Halka: her dort satirda bir koyu bant.
-            halka = (y % 4) == 0 or (y % 4) == 3
-            t = 96 + (z % 24) + (-34 if halka else 22)
-            t = max(0, min(255, t))
-            p[(x, y)] = (t, t, int(t * 1.06) if t < 240 else t, 255)
+            p[(x, y)] = (0, 0, 0, 0)
+    HALKA_BOY = 4
+    for k in range(4):
+        cy = k * HALKA_BOY + HALKA_BOY / 2.0 - 0.5
+        cx = 7.5
+        # Tek halkalar genis, ciftler dar: ardisik halkalar dik.
+        rx = 3.2 if k % 2 == 0 else 1.6
+        ry = 1.9
+        for y in range(k * HALKA_BOY, (k + 1) * HALKA_BOY):
+            for x in range(16):
+                dx = (x - cx) / rx
+                dy = (y - cy) / ry
+                d = dx * dx + dy * dy
+                if d < 0.30 or d > 1.15:
+                    continue
+                # Isik sol ustten: sol ust parlak, sag alt koyu.
+                yon = (x - cx) / max(rx, 0.001) + (y - cy) / ry
+                if yon < -0.7:
+                    t = 196
+                elif yon > 0.7:
+                    t = 74
+                else:
+                    t = 132
+                p[(x, y)] = (t, t, min(255, int(t * 1.07)), 255)
     return p
 
 
@@ -8284,8 +8362,12 @@ def kupa_blogu(kimlik, ad, bicim):
                     **({"ip": {"texture": KUPA_IP_DOKU,
                                "render_method": "opaque"}}
                        if bicim == KUPA_ASILI else {}),
+                    # alpha_test: zincir dokusunun halkalari
+                    # arasi SAYDAM. opaque olsaydi o pikseller
+                    # siyah cikardi ve zincir yine cubuk gibi
+                    # gorunurdu.
                     **({"zincir": {"texture": KUPA_ZINCIR_DOKU,
-                                   "render_method": "opaque"}}
+                                   "render_method": "alpha_test"}}
                        if bicim == KUPA_ZINCIRLI else {}),
                 },
                 # Kupa DEKOR: carpisma kutusu yok, icinden

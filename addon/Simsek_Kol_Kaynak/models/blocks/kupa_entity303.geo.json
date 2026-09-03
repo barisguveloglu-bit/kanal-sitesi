@@ -34,11 +34,11 @@
                 28.6,
                 2.4000000000000004
               ],
+              "material_instance": "odun",
               "uv": [
                 0,
                 0
-              ],
-              "material_instance": "odun"
+              ]
             },
             {
               "origin": [
@@ -51,11 +51,11 @@
                 2.4000000000000004,
                 2.4000000000000004
               ],
+              "material_instance": "odun",
               "uv": [
                 0,
                 0
-              ],
-              "material_instance": "odun"
+              ]
             },
             {
               "origin": [

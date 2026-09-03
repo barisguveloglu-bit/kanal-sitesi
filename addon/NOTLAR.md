@@ -1,3 +1,69 @@
+# v7.26.1 — Dream: baş öne eğik, zincir elde ve gerçek zincir
+
+Kullanıcı üç şey söyledi: *"Dream'in başı da öne doğru eğik olsun,
+son anında bana başını eğmiş gibi"*, *"zincirin yan tarafından
+baktığında tam eli tutmuyor, arasında boşluk var"*, *"zincir daha
+iyi yap"*.
+
+## 1. Baş öne eğik — işaret ölçüldü, tahmin edilmedi
+
+`_kupa_govde` yeni bir `kafa_egim` alıyor; eğim **boyun
+noktasından** dönüyor, yani kafa gövdeden kopmuyor.
+
+İşaretin yönü render edilerek bulundu:
+
+| açı | kafanın ön-üst köşesi | okunuş |
+|---|---|---|
+| +22 | z 5.60 → **7.57** (geri) | çene yukarı |
+| −22 | z 5.60 → **3.98** (öne) | baş eğik ✓ |
+
+Yani Bedrock'ta öne eğilme **negatif** X dönüşü. İşaret
+`_kupa_govde` içinde çevriliyor ki çağıran taraf "pozitif = öne"
+diye okuyabilsin — sabit `KUPA_ZINCIR_KAFA_EGIM = 22.0`.
+
+## 2. Zincir eli tutmuyordu — ölçüldü
+
+`EL_Y` elin **uç noktasının merkezi**. Zincir tam oradan
+başlayınca kolun yalnız en üst köşesine değiyordu: ölçülen örtüşme
+**0.09 birim**. Yandan bakınca arada boşluk görünmesinin sebebi
+buydu. Zincirin dibi `2s` aşağı indirildi, örtüşme **1.28 birim** —
+zincirin ucu artık bileğin içinde.
+
+Test artık "değiyor mu" değil **"ne kadar giriyor"** ölçüyor;
+en az yarım birim şartı var.
+
+## 3. Zincir kötü görünüyordu — sebep doku değil UV'ydi
+
+Kutu UV'de bir yüzün doku dikdörtgeni **küpün ölçüsünden**
+türüyor: ön yüz `(D, D, W, H)`. Zincir küpü 2×5.5×2, yani ön yüzü
+2×5.5 piksellik bir şerit — 16×16 dokunun **%4'ü**. Ekranda zincir
+değil düz gri bir çubuk vardı.
+
+| küp | ön yüz dikdörtgeni | dokunun kaçta kaçı |
+|---|---|---|
+| zincir | (2, 2, 2, 5.5) | %4 |
+| ip | (2, 2, 2, 3) | %2 |
+| kiriş | (3, 3, 20, 3) | %23 |
+
+`_kupa_odun` yeni bir `tam_uv` alıyor: her yüze dokunun tamamını
+seriyor. Zincir dokusu da yeniden çizildi — üst üste dört halka,
+sırayla geniş/dar (gerçek zincirde ardışık halkalar birbirine dik
+durur), araları **saydam**. Saydamlık yüzünden malzeme
+`opaque` → `alpha_test` oldu; opaque kalsaydı halka araları siyah
+çıkardı ve zincir yine çubuk gibi görünürdü.
+
+## Test
+
+`test/kupa.mjs` dört yeni madde aldı: zincirin kola en az yarım
+birim girmesi, zincirin yüz yüz UV kullanması, zincirin
+`alpha_test` olması, kafanın **öne** (arkaya değil) eğik olması.
+
+Beş mutasyonla sınandı. Biri **kaçtı** ve testte gerçek bir boşluk
+gösterdi: eğim sıfırlanınca test `continue` ile sessizce atlıyordu.
+Zincirli biçimde eğik kafa artık **zorunlu** — sessiz atlama, geçen
+test kadar tehlikeli. Düzeltmeden sonra beşi de yakalandı.
+
+
 # v7.26.0 — Bedeni Böl (toolbox komut listesinden)
 
 Kullanıcı bir toolbox komut listesi gönderdi. İlgili satırlar:

@@ -22,7 +22,7 @@
         },
         "zincir": {
           "texture": "kupa_zincir",
-          "render_method": "opaque"
+          "render_method": "alpha_test"
         }
       },
       "minecraft:collision_box": false,

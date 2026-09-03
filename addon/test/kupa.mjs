@@ -196,22 +196,95 @@ for (const k of bloklar) {
   const kupler = geo.bones.flatMap(b => b.cubes || []);
   const zincirler = kupler.filter(c => c.material_instance === "zincir");
   if (!zincirler.length) continue;
-  /* Kollar: donmus kuplerin taban katmani (inflate yok). */
+  /* Kollar: Z EKSENINDE donmus taban kupleri. Z sarti onemli
+     -- kafa da donuyor ama X ekseninde (one egik). Ilk yazilista
+     bu sart yoktu ve kafa da "kol" sayiliyordu.              */
   const kollar = kupler.filter(c => !c.material_instance && c.rotation &&
-                                    !(c.inflate > 0));
+                                    c.rotation[2] !== 0 && !(c.inflate > 0));
   kontrol(k + ": zincir sayisi kol sayisiyla ayni",
           zincirler.length === kollar.length,
           zincirler.length + " zincir / " + kollar.length + " kol");
   for (const z of zincirler) {
     const zx = z.origin[0] + z.size[0] / 2;
     const zy = z.origin[1];                 // zincirin ALT ucu
-    const degiyor = kollar.some(c => {
+    /* SADECE DEGMEK YETMIYOR. Ilk surumde zincir tam elin uc
+       noktasindan basliyordu ve kolun yalniz en ust kosesine
+       0.09 birim degiyordu -- kullanici "yandan bakinca tam
+       eli tutmuyor, arada bosluk var" dedi. Simdi GERCEK
+       ORTUSME olculuyor: zincirin ucu kolun icine en az yarim
+       birim girmeli.                                        */
+    let enIyi = -1;
+    for (const c of kollar) {
       const { mn, mx } = sinirlar({ bones: [{ cubes: [c] }] });
-      return zx >= mn[0] - 0.6 && zx <= mx[0] + 0.6 &&
-             zy >= mn[1] - 0.6 && zy <= mx[1] + 0.6;
-    });
-    kontrol(k + ": zincirin alt ucu kolun icinde",
-            degiyor, "zincir x=" + zx.toFixed(1) + " y=" + zy.toFixed(1));
+      if (zx < mn[0] - 0.3 || zx > mx[0] + 0.3) continue;
+      const ortusme = mx[1] - zy;      // kolun tepesi - zincirin dibi
+      if (ortusme > enIyi) enIyi = ortusme;
+    }
+    kontrol(k + ": zincir kolun icine giriyor (>= 0.5 birim)",
+            enIyi >= 0.5,
+            "ortusme " + (enIyi < 0 ? "kol bulunamadi" : enIyi.toFixed(2)));
+  }
+  /* Zincir kupleri YUZ YUZ UV kullanmali. Kutu UV'de bir yuzun
+     doku dikdortgeni kupun olcusunden turuyor; 2x5.5x2 bir kup
+     16x16 dokunun sadece %4'unu gosteriyor ve zincir duz gri
+     bir cubuk gibi cikiyor. Tam da bu yasandi.              */
+  for (const z of zincirler) {
+    const yuzUv = z.uv && !Array.isArray(z.uv) && z.uv.north;
+    kontrol(k + ": zincir dokunun tamamini seriyor",
+            !!yuzUv && yuzUv.uv_size &&
+            yuzUv.uv_size[0] === 16 && yuzUv.uv_size[1] === 16,
+            yuzUv ? JSON.stringify(yuzUv) : "kutu UV");
+  }
+  /* Zincir dokusunda SAYDAM piksel var (halkalarin arasi), o
+     yuzden malzeme opaque olamaz.                           */
+  {
+    const blok = JSON.parse(readFileSync(
+      BP + "/blocks/kupa_" + k + ".json", "utf8"))["minecraft:block"];
+    const mi = blok.components["minecraft:material_instances"].zincir;
+    kontrol(k + ": zincir alpha_test ile ciziliyor",
+            mi && mi.render_method === "alpha_test",
+            mi ? mi.render_method : "yok");
+  }
+}
+
+/* ---- 5c. KAFA ONE EGIK ----
+   Kullanici: "Dream'in basi da one dogru egik olsun, son
+   aninda bana basini egmis gibi." Egimin YONU da tutuluyor:
+   kafanin on-ust kosesi donusten SONRA, donmemis haline gore
+   ONE (kucuk z) gitmeli. Isaret bir kez ters yazildi.        */
+console.log("");
+console.log("== 5c. kafa one egik mi");
+for (const k of bloklar) {
+  const geo = JSON.parse(readFileSync(
+    RP + "/models/blocks/kupa_" + k + ".geo.json", "utf8"))["minecraft:geometry"][0];
+  const kupler = geo.bones.flatMap(b => b.cubes || []);
+  /* Kafa: 8x8x8 olceklenmis kup, yani en/boy/derinlik esit. */
+  const kafalar = kupler.filter(c => !c.material_instance &&
+    Math.abs(c.size[0] - c.size[1]) < 1e-6 &&
+    Math.abs(c.size[1] - c.size[2]) < 1e-6 &&
+    !(c.inflate > 0));
+  const egik = kafalar.filter(c => c.rotation && c.rotation[0] !== 0);
+  /* ZINCIRLI bicimde egik kafa ZORUNLU -- kullanici acikca
+     istedi ("son aninda bana basini egmis gibi"). Bicimi
+     zincir malzemesinden taniyoruz.
+
+     Ilk yazilista burada kosulsuz "continue" vardi: egim
+     silinince test hicbir sey demeden atliyordu ve mutasyon
+     KACIYORDU. Sessiz atlama, gecen test kadar tehlikeli. */
+  const zincirli = kupler.some(c => c.material_instance === "zincir");
+  if (zincirli) {
+    kontrol(k + ": zincirli bicimde kafa EGIK olmali",
+            egik.length > 0, egik.length + " egik kafa kupu");
+  }
+  if (egik.length === 0) continue;      // oteki bicimlerde egim yok
+  for (const c of egik) {
+    const onUst = [c.origin[0] + c.size[0] / 2,
+                   c.origin[1] + c.size[1],
+                   c.origin[2]];
+    const donmus = don(onUst, c.rotation, c.pivot);
+    kontrol(k + ": kafa ONE egik (arkaya degil)",
+            donmus[2] < onUst[2] - 0.5,
+            "on-ust kose z: " + onUst[2].toFixed(2) + " -> " + donmus[2].toFixed(2));
   }
 }
 
