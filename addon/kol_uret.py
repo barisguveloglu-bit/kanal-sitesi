@@ -102,7 +102,7 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # tureniyor -- ayrisabilecekleri bir yer kalmadi.
 #
 # YENI SURUM CIKARIRKEN: yalnizca asagidaki satiri degistir.
-SURUM_NO = (7, 21, 0)
+SURUM_NO = (7, 22, 0)
 
 SURUM_METIN = "%d.%d.%d" % SURUM_NO
 SURUM_ETIKET = "v" + SURUM_METIN
@@ -674,7 +674,7 @@ GOZ_GEOMETRI = {
 # v4.82: 17 -> 21. ayarlar.js LAZER_MENZIL ile AYNI olmali;
 # doku.mjs iki sayinin esitligini kilitliyor. Ayrisirsa isin
 # gordugunden baska yerde vurur (ya da tersi).
-LAZER_ISIN_MENZIL = 21      # blok
+LAZER_ISIN_MENZIL = 24      # blok -- ayarlar.js LAZER_MENZIL'in IKIZI
 LAZER_ISIN_KALIN  = 2       # birim, kesit (2x2 = kare)
 LAZER_ISIN_UV     = [0, 20] # dokuda duz renk yamasinin yeri (64'luk uzay)
 

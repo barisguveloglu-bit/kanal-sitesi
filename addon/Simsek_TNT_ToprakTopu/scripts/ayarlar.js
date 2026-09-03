@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.21.0";
+export const SURUM = "v7.22.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -629,6 +629,13 @@ export const IKSIR_TAZELEME = 40;   // kac tick'te bir efektler yenilensin
    sorun cikmazsa tek satirla buyutuyoruz (ve isin da onunla
    birlikte uzuyor).
 
+   ---- v7.22: 21 -> 24 ----
+   Kullanici: "lazerin menzili kacti, kac bloktu en son? Onu
+   3 blok daha arttiralim."
+   21 blokluk kutu (336 birim) iki surumdur tablette sorunsuz
+   ciziliyor; gorunurluk elemesi yasanmadi. 24 blok = 384
+   birim. Hedef taramasinin hacmi (24/21)^3 = 1.49 kat artti.
+
    ---- v4.82: 17 -> 21 ----
    Kullanici: "artik lazerin menzilini 21 blok yapalim."
    17 blokluk kutu (272 birim) tablette denendi, gorunurluk
@@ -661,7 +668,7 @@ export const IKSIR_TAZELEME = 40;   // kac tick'te bir efektler yenilensin
    etkilenmez. */
 export const NITROKSIN_DUSME_BAGISIK = true;
 
-export const LAZER_MENZIL = 21;
+export const LAZER_MENZIL = 24;
 
 /* ---------------- Lazerle duvar delme ----------------
    Referansta duvar kirma YOK. Aranan tek "wall" gecen yer

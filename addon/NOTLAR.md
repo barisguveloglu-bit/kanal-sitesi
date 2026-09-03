@@ -1,3 +1,63 @@
+# v7.22.0 — Lazer menzili 21 → 24 blok
+
+Kullanıcı: *"Lazerin menzili kaçtı, kaç bloktu en son? Onu
+3 blok daha arttıralım."*
+
+## Değişen iki sayı
+
+Menzil **iki yerde** yazılı ve ikisi bilerek bağlı:
+
+- `ayarlar.js` → `LAZER_MENZIL` — lazerin kaç blokta hasar verdiği
+- `kol_uret.py` → `LAZER_ISIN_MENZIL` — ışın **modelinin** kaç blok uzadığı
+
+Ayrışırlarsa ışın gördüğünden başka yerde vurur: 24 blok
+görünüp 21'de vursaydı, 23 bloktaki bir şeye nişan alınca ışın
+ona *ulaşıyor* görünür ama vurmazdı. `doku.mjs` bu eşitliği
+kilitliyor.
+
+## Ölçüldü, varsayılmadı
+
+Sabiti değiştirmek "menzil arttı" demek değil. Üretilen dosya
+ölçüldü:
+
+| ne | önce | sonra |
+|---|---|---|
+| ışın kutusu | 336 birim (21 blok) | **384 birim (24 blok)** |
+| görünürlük kutusu | 46 × 25 | **52 × 28** |
+
+Görünürlük kutusu şart: ışını kapsamazsa Bedrock modeli
+tamamen eleyip çizmiyor.
+
+Davranış da sahte dünyada çalıştırılarak ölçüldü:
+- 23 blokta vuruyor ✓
+- tam 24'te vuruyor ✓
+- 26'da vurmuyor ✓
+
+## Bedeli (bilerek kabul edildi)
+
+Hedef taraması bir küre; yarıçap büyüdükçe hacim küple artıyor.
+21 → 24 = **1.49 kat** daha çok varlık süzülüyor. Süzgeç ucuz
+(nokta çarpımı), asıl maliyet `getEntities` çağrısında ve o
+yarım saniyede bir dönüyor.
+
+Delme yoklaması 21 yerine 24 okuma; her biri 1 blok bütçesi.
+Vuruş tickinde 56'nın 24'ü yoklamaya gidiyor.
+
+## Mutasyon düzeneğinde ikinci kez aynı ölçüm hatası
+
+İkizi ayırma mutasyonunu çalıştırdım ve "kaçtı" sandım. Kaçmamış:
+`doku.mjs` başarısızlığı `✗` ile değil **`KALDI:`** ile yazıyor,
+benim grep'im yalnız `✗` arıyordu.
+
+Bu, v7.19'da da yaşanan hatanın aynısı (orada bir **çökme**
+`✗` üretmiyordu). **Bir testin hükmü çıkış kodudur** — bu depo
+bunu zaten yazıyordu, mutasyon düzeneğim uymuyordu. Düzeltildi:
+artık `node <test>` çıkış koduna bakılıyor, çıktı metnine değil.
+
+91 testin 91'i geçiyor.
+
+---
+
 # v7.21.0 — Parçacıklar kaldırıldı, gözler olduğu gibi kaldı
 
 Kullanıcı v7.20'yi oyunda gördü: "gene birden fazla çizgi var."
