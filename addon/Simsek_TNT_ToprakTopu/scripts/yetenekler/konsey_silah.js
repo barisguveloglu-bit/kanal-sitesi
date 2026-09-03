@@ -59,11 +59,6 @@ export function konseySilahUnut(oyuncuId) {
   if (k) { serbestBirak(oyuncuId, k); }
 }
 
-export function kurbanSayisi() { return kurbanlar.size; }
-export function kurbanMi(varlik) {
-  return !!varlik && kurbanlar.has(varlik.id);
-}
-
 /* asa.js / tas.js ile AYNI kilit. Ikinci bir kopya yazilmadi. */
 function girdiKilidi(hedef, acikMi) {
   if (!DONDUR_GIRDI_KILIT) return;

@@ -1,3 +1,102 @@
+# v7.24.0 — Genel tarama: 5 sızıntı, 1 kör koruma, 17 ölü kod
+
+Kullanıcı: *"Genel bir tarama yap, bozulan hata veya ölü kod
+bulursan hemen düzelt."*
+
+## 1. BULUNAN ASIL HATA — beş bellek sızıntısı
+
+`main.js`'in `playerLeave` bloğu 30'dan fazla defteri
+temizliyordu. **Dört defter listede yoktu** ve hiçbir şey onları
+silmiyordu; giren-çıkan her oyuncu birer satır bırakıyordu:
+
+| defter | dosya | durum |
+|---|---|---|
+| `isinBekleme` | `will_kilic.js` | temizleyici **yazılmıştı**, bağlanmamıştı |
+| `sonActionbar` | `yardimcilar.js` | temizleyici **yazılmıştı**, bağlanmamıştı |
+| `gorulen` | `efsane_muzik.js` | temizleyici "hepsini sil" idi, tek oyuncu düşürülemiyordu |
+| `secili` / `defter` / `cark` | `zirh_agac.js` | aynı — modülün tamamını sıfırlıyordu |
+
+Beşincisi oyuncuya değil **bota** bağlı: `bot_ilkel.js`'in
+`ilkelUnut(botId)` fonksiyonu `seriler`, `asaUnut` ve
+`dislerUnut`'u temizliyordu ama **hiç çağrılmıyordu** — çağırıp
+geri gönderilen her bot arkasında satır bırakıyordu.
+`_bot_defteri.js`'e `ilkelSilmeKancasi` eklendi (bakım
+kancasının ikizi, ters yönde) ve `botGeri` onu çağırıyor.
+
+### Silmekle hatayı derinleştirmiştim
+
+Taramanın ilk adımında `willBeklemeUnut` ve `ilkelUnut`
+"kullanılmayan export" göründükleri için **silinmişlerdi**.
+Yanlıştı: ölü olan kod değil, eksik olan **bağlantıydı**.
+Fonksiyonu silmek hastalığı değil ilacı siliyordu. İkisi de geri
+getirildi ve doğru yere bağlandı.
+
+Ders: *"hiçbir yerden çağrılmıyor"* iki farklı şeyin belirtisi
+olabilir — gereksiz kod, ya da **unutulmuş bağlantı**. İkisini
+ayırmadan silmek yeni hata üretiyor.
+
+## 2. BULUNAN İKİNCİ HATA — öksüz-ayar koruması kördü
+
+`tarama.mjs` betikleri `kol_uret.py` ile **birleştirip** adı
+arıyordu. Yanlıştı: `kol_uret.py` bir **Python** dosyası, bir JS
+export'unu kullanamaz.
+
+Üreteçte tesadüfen aynı adı taşıyan iki Python sabiti vardı
+(`KONSEY_ONEK`, `WILL_HASAR`), düz metin araması ikisini ayırt
+edemiyordu. Sonuç: `ayarlar.js`'teki iki ayar hiçbir yerde
+okunmuyordu ama koruma **"kullanılıyor"** diyordu.
+
+Düzeltme iki adımlı:
+- `kol_uret.py` artık tüketici sayılmıyor
+- **testler sayılıyor** — bir ayarın tek işi "üreteçteki değerle
+  aynı mı" diye sınanmak olabiliyor (`DISMONT_CEVHER`,
+  `KILIC_HASAR`, `TAS_HASAR`, `SEY_BOY`, `WILL_DAYANIKLILIK`
+  böyle); onu okuyan test **gerçek** bir tüketicidir. İlk
+  düzeltmede testleri saymamıştım ve koruma bu beşini yanlışlıkla
+  öksüz saydı.
+
+İki ölü ayar kaldırıldı; sayı belgelenmiş 9'a döndü.
+
+## 3. Ölü kod
+
+17 şey silindi: 15 hiçbir yerden (testlerden de) çağrılmayan
+export + 2 ayar. Silme sonrası deponun **kendi** "ölü kod
+büyümüyor" koruması üç öksüz `import` yakaladı — onlar da
+temizlendi.
+
+Aranan ama **bulunmayan** şeyler de var, çünkü aramanın kendisi
+sonuç: Python üreteçlerde ölü fonksiyon yok, kimlik/UUID
+çakışması yok, başvurulan her geometri/doku/ikon karşılığını
+buluyor, dil dosyasında adı olmayan eşya yok.
+
+## 4. Yeni bekçi: `sizinti.mjs` (92. test)
+
+Tek tek o beş sızıntıyı değil **sınıfın tamamını** tutuyor. İki
+katmanlı, çünkü tek katman yetmedi:
+
+- **Dosya bazında:** oyuncu kimliğiyle defter tutan her dosyanın
+  `playerLeave`'de çağrılan bir temizleyicisi olmalı.
+- **Defter bazında:** oyuncu kimliğiyle **yazılan** her Map/Set
+  için aynı dosyada bir `.delete(` ya da `.clear(` olmalı.
+
+İkincisi mutasyon denemesinde ortaya çıktı: dosya bazlı katman
+tek başına kaçak verdi — zaten temizliği olan bir dosyaya yeni
+ve temizliksiz bir defter eklendiğinde dosya hâlâ "bağlı"
+görünüyordu. Katmanı ekledikten sonra o mutasyon da yakalandı.
+
+Dört muafın her birinin **yazılı sebebi** var ve sebepsiz muaf
+testi düşürüyor (muafiyet kaçamak olmasın diye). Muafların
+hepsi doğrulandı: `main.js` kendi defterlerini satır satır
+siliyor, kalp seviyesi **kalıcı ilerleme** (silinseydi
+kazanılan kalpler giderdi), `asa.js`'in kaydı `gecerliMi()` ile
+kendiliğinden düşüyor, `yamult.js`'in kaydının kendi süresi var.
+
+Dört mutasyonun dördü de yakalanıyor.
+
+92 testin 92'si geçiyor.
+
+---
+
 # v7.23.0 — Skin: bir gözünden yaralı, daha ağır hasar
 
 Kullanıcı: *"Hasar almış hâlim, yani kollu olan — onu birazcık

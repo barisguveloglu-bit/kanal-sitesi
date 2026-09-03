@@ -203,6 +203,29 @@ export function ilkelKancasi(fn) {
   ilkelBakim = (typeof fn === "function") ? fn : undefined;
 }
 
+/* ---- SILME KANCASI  (v7.24) ----
+   Bakim kancasinin ikizi, ters yonde: bot SILINIRKEN cagriliyor
+   ki bot_ilkel.js o botun serisini, asa vuruslarini ve dis
+   kuyrugunu unutabilsin. Ayni dairesel-import sebebiyle kanca:
+   bu dosya bot_ilkel.js'i import edemez.
+
+   Olmadigi surece bu defterler HIC temizlenmiyordu -- her
+   cagirip geri gonderisde bir satir birikiyordu.            */
+let ilkelSilme;
+
+export function ilkelSilmeKancasi(fn) {
+  ilkelSilme = (typeof fn === "function") ? fn : undefined;
+}
+
+function ilkelSilindi(botId) {
+  if (!ilkelSilme || botId === undefined) return;
+  try {
+    ilkelSilme(botId);
+  } catch (e) {
+    hataYaz("bot.ilkelSilindi", e);
+  }
+}
+
 /* ---------------- Savas anahtari ---------------- */
 
 export function savasAcikMi(oyuncuId) {
@@ -387,11 +410,6 @@ function varligiBul(kayit) {
 
 /* Sahibin BUTUN botlari. Bos dizi doner, undefined degil --
    cagiran her yerde null kontrolu yapmasin.                    */
-export function botlarAl(oyuncuId) {
-  oku();
-  return listeAl(oyuncuId);
-}
-
 /* Ilk bot. Durum raporu ve menu basligi gibi "tek bir ornek
    yeter" yerlerde kullaniliyor.                                */
 export function botAl(oyuncuId) {
@@ -673,12 +691,17 @@ export function botGeri(oyuncu) {
   for (const kayit of liste) {
     const v = varligiBul(kayit);
     if (v) {
+      /* Kimlik remove()'dan ONCE okunuyor: silinmis bir
+         varligin id'sine erismek istisna atiyor.            */
+      let vid;
+      try { vid = v.id; } catch (e) { vid = undefined; }
       try {
         v.remove();
         silinen++;
       } catch (e) {
         hataYaz("bot.remove", e);
       }
+      ilkelSilindi(vid);
     }
   }
 

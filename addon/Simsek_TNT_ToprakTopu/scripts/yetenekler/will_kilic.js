@@ -42,6 +42,13 @@ export function willVar(oyuncu) {
    ayar bekcisi yakaladi. Isinlanma en cok kotuye kullanilabilen
    yetenek (duvardan gecme), beklemesiz birakmak yanlisti.   */
 const isinBekleme = new Map();
+
+/* v7.24: bu defter oyuncu KIMLIGIYLE anahtarlaniyordu ama
+   kimse silmiyordu -- oyuncu cikinca kaydi kaliyor, girip
+   cikan her oyuncu bir satir birakiyordu. Temizleyici zaten
+   YAZILMISTI, yalnizca main.js'in playerLeave'ine BAGLANMAMISTI.
+   Genel taramada once "kullanilmayan export" sanip silmistim;
+   yanlisti -- olu olan kod degil, eksik olan BAGLANTIYDI.   */
 export function willBeklemeUnut(oyuncuId) {
   if (oyuncuId === undefined) { isinBekleme.clear(); return; }
   isinBekleme.delete(oyuncuId);

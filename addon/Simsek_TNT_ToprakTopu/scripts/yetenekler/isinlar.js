@@ -357,4 +357,3 @@ for (const [kimlik, t] of [...ZIRH_ISIN, ...MARVEL_ISIN, ...BEN10_ISIN,
 }
 
 /* Testler ve dunya degisimi icin. */
-export function zirhIsinUnut() { bekleme.clear(); }

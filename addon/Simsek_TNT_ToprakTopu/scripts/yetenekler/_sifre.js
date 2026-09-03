@@ -256,7 +256,3 @@ export function sgaBlok(metin, satirHarf = 14, aralik = 1, satirAra = 3) {
 }
 
 /* Bir metnin SGA olarak kac blok genislik tutacagi. */
-export function sgaGenislik(metin, aralik = 1) {
-  const n = String(metin).length;
-  return n === 0 ? 0 : n * (SGA_BOY + aralik) - aralik;
-}

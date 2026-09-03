@@ -69,8 +69,6 @@ export function sohbetDinleyiciEkle(fn) {
   if (typeof fn === "function") dinleyiciler.push(fn);
 }
 
-export function sohbetDinleyiciUnut() { dinleyiciler.length = 0; }
-
 const TR_HARF = {
   "ç": "c", "ğ": "g", "ı": "i", "İ": "i", "ö": "o", "ş": "s", "ü": "u",
   "Ç": "c", "Ğ": "g", "I": "i", "Ö": "o", "Ş": "s", "Ü": "u"

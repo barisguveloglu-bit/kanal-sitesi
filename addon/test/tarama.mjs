@@ -437,12 +437,37 @@ console.log("=== 7. OLU KOD BUYUMUYOR ===");
   /* --- kullanilmayan ayar --- */
   const ayarMetin = readFileSync(KLASOR + "/ayarlar.js", "utf8");
   const adlar = [...ayarMetin.matchAll(/^export const (\w+)/gm)].map((m) => m[1]);
-  const uretec = readFileSync(KOK + "/kol_uret.py", "utf8");
   const yorumsuz = (t) => t
     .replace(/\/\*[\s\S]*?\*\//g, "")
-    .replace(/^\s*\/\/.*$/gm, "")
-    .replace(/^\s*#.*$/gm, "");
-  const tumKod = yorumsuz(hepsi + "\n" + uretec);
+    .replace(/^\s*\/\/.*$/gm, "");
+
+  /* ---- KOL_URET.PY ARTIK SAYILMIYOR (v7.24) ----
+     Burasi eskiden betikleri kol_uret.py ile BIRLESTIRIP adi
+     ariyordu. Yanlisti ve iki olu ayari sakliyordu:
+
+     kol_uret.py bir PYTHON dosyasi -- bir JS export'unu
+     KULLANAMAZ. Adin orada gecmesinin tek anlamli hali onu bir
+     KARAKTER DIZISI icinde anmasi olurdu. Oysa uretecin kendi
+     KONSEY_ONEK ve WILL_HASAR sabitleri vardi; adlar
+     rastlantiyla ayniydi ve duz metin aramasi ikisini ayirt
+     edemiyordu. Sonuc: ayarlar.js'teki iki ayar hicbir yerde
+     okunmuyordu ama koruma "kullaniliyor" diyordu.
+     (Ikisi de v7.24'te kaldirildi.)
+
+     Yeni kural: bir JS ayarini yalniz JS KODU kullanabilir --
+     ama TESTLER de JS. Bir ayarin tek isi "ureteçteki degerle
+     ayni mi" diye sinanmak olabiliyor (DISMONT_CEVHER,
+     KILIC_HASAR, TAS_HASAR, SEY_BOY, WILL_DAYANIKLILIK boyle);
+     onu okuyan bir test GERCEK bir tuketicidir. Testleri
+     saymayinca bu bes ayar da "oksuz" cikti ve koruma
+     dogruyu yanlis isaretlemis oldu -- ilk duzeltmede tam bu
+     yasandi.                                                */
+  const testKlasor = KOK + "/test";
+  const testKod = readdirSync(testKlasor)
+    .filter((f) => f.endsWith(".mjs"))
+    .map((f) => readFileSync(testKlasor + "/" + f, "utf8"))
+    .join("\n");
+  const tumKod = yorumsuz(hepsi + "\n" + testKod);
   const oksuz = adlar.filter((a) => {
     const temiz = tumKod.replace(
       new RegExp("^export const " + a + "\\b.*$", "gm"), "");

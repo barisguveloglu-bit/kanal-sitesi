@@ -49,10 +49,6 @@ export function tasUnut(oyuncuId) {
   sonKullanim.delete(oyuncuId);
 }
 
-export function heykelSayisi() {
-  return heykeller.size;
-}
-
 export function tasMi(varlik) {
   try {
     return !!varlik && heykeller.has(varlik.id);
@@ -371,23 +367,4 @@ export function tasKancalari() {
 /* Dunya acilinca eski heykelleri temizle: defter bos ama
    bloklar yerinde. Kimse icinde olmadigina gore blok da
    durmasin -- yoksa dunyada sahipsiz tas kutuler birikir.  */
-export function tasKurtar() {
-  const liste = oku();
-  if (liste.length === 0) return 0;
-  let silinen = 0;
-  for (const kayit of liste) {
-    try {
-      const boyut = world.getDimension(kayit[1]);
-      const b = boyut.getBlock({ x: kayit[2], y: kayit[3], z: kayit[4] });
-      if (b && b.typeId === TAS_BLOK) { b.setType("minecraft:air"); silinen++; }
-    } catch (e) {
-      /* Parca yuklu degil: bir sonraki acilista denenir. */
-    }
-  }
-  try {
-    world.setDynamicProperty(TAS_KAYIT_ANAHTAR, "[]");
-  } catch (e) { /* kayit silinemedi */ }
-  return silinen;
-}
-
 tasKancalari();

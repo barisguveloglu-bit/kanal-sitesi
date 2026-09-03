@@ -1,6 +1,6 @@
 import * as api from "@minecraft/server";
 import { system } from "@minecraft/server";
-import { iksirKaydet, iksirinKademesi, tumIksirler } from "./kayit.js";
+import { iksirKaydet, iksirinKademesi } from "./kayit.js";
 import {
   hataYaz, bilgiYaz, gecerliMi, olayaAbone, actionbarYaz, ekraniBoya
 } from "../yardimcilar.js";
@@ -57,10 +57,6 @@ export function kademeAl(oyuncuId) {
 export function kademeUnut(oyuncuId) {
   durumlar.delete(oyuncuId);
   sonIcme.delete(oyuncuId);
-}
-
-export function iksirSayisi() {
-  return tumIksirler().length;
 }
 
 /* ---------------- Goz (sadece gorunum) ---------------- */

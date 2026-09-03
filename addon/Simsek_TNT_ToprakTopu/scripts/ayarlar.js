@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.23.0";
+export const SURUM = "v7.24.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -4798,7 +4798,12 @@ export const KONSEY_TARAMA = 20;    // kac tick'te bir bakilsin
 /* Efekt suresi taramadan UZUN: tam taramada bitse, iki tarama
    arasinda bir kare gorunur olurdun.                         */
 export const KONSEY_SURE   = 60;
-export const KONSEY_ONEK   = "kns_";
+/* KONSEY_ONEK v7.24'te kaldirildi: JS tarafinda hicbir yerde
+   okunmuyordu. Ayni adli bir sabit kol_uret.py'de VAR ve orada
+   gercekten kullaniliyor -- ama o Python; bir JS export'unu
+   kullanamaz. Iki dosyanin ayni adi tasimasi, oksuz-ayar
+   korumasinin bu ayari "kullaniliyor" saymasina yol aciyordu
+   (bkz. tarama.mjs, ayni surumde duzeltildi).               */
 
 /* Giyince oyuncuyu gizleyen parcalar (kaynakta `_effect`
    dosyasi olanlar). Yuva da yazili: gorunmezlik yalniz DOGRU
@@ -6602,7 +6607,10 @@ export const WILL_KILIC       = "pa:will_kilic";
 export const WILL_NETHERITE   = 2031;    // netherite kilicin dayanikliligi
 export const WILL_KAT         = 5.5;     // kullanicinin istedigi kat
 export const WILL_DAYANIKLILIK = Math.ceil(WILL_NETHERITE * WILL_KAT);
-export const WILL_HASAR       = 4;       // altin kilicin kendisi
+/* WILL_HASAR v7.24'te kaldirildi -- KONSEY_ONEK ile ayni sebep:
+   JS'te hic okunmuyor, kol_uret.py'deki ayni adli PYTHON sabiti
+   korumayi yaniltiyordu. Kilicin hasari ureteçteki WILL_HASAR
+   ile yaziliyor, buradaki kopya hicbir ise yaramiyordu.      */
 
 /* Isinlanma: kaynak `tp @p ^^^+8`. Sekiz blok ILERI, bakis
    dogrultusunda. Kaynakta engel kontrolu YOK -- duvarin icine

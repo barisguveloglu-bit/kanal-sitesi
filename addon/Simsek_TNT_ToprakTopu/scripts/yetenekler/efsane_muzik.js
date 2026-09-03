@@ -88,10 +88,21 @@ export function efsaneMuzikOku() {
    Temizleme dunya kaydina da inmeli: yalniz bellegi silmek
    bir sonraki taramada eski kaydin geri okunmasi demek
    (Dusmus'te tam bu hata cikmisti).                         */
-export function efsaneMuzikUnut() {
-  gorulen.clear();
+export function efsaneMuzikUnut(oyuncuId) {
+  /* v7.24: KIMLIK parametresi eklendi. Onceden yalniz "hepsini
+     sil" vardi; oyuncu cikinca tek satirini silmenin yolu
+     yoktu, o yuzden main.js'in playerLeave'ine hic
+     baglanmamisti ve `gorulen` defteri suresiz buyuyordu.
+     Parametresiz cagri eski davranisi aynen koruyor -- testler
+     onu kullaniyor.                                          */
+  if (oyuncuId === undefined) {
+    gorulen.clear();
+    yaz();
+    okundu = false;
+    return;
+  }
+  if (!gorulen.delete(oyuncuId)) return;
   yaz();
-  okundu = false;
 }
 
 /* Test ve menu icin: bu oyuncu kac durak gordu. */

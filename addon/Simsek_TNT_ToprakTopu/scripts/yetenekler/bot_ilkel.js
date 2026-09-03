@@ -5,7 +5,7 @@ import {
   parcacikAt
 } from "../yardimcilar.js";
 import {
-  botCagir, botVarliklari, botunSahibi, ilkelKancasi
+  botCagir, botVarliklari, botunSahibi, ilkelKancasi, ilkelSilmeKancasi
 } from "./_bot_defteri.js";
 import { asaVurusu, asaUnut } from "./asa.js";
 import { disleriCikar, dislerUnut } from "./disler.js";
@@ -786,13 +786,22 @@ function bakim(varlik, oyuncu) {
 
 ilkelKancasi(bakim);
 
-/* Bot geri gonderilince serisi de unutulsun. */
+/* ---- BOT GERI GONDERILINCE UNUTULSUN  (v7.24) ----
+   Bu fonksiyon vardi ve dogru seyi yapiyordu ama HIC
+   CAGRILMIYORDU: bot geri gonderildiginde serisi, asa
+   vuruslari ve dis kuyrugu bellekte kaliyordu. Her cagirip
+   geri gonderisde bir satir daha birikiyordu.
+
+   Genel taramada once "kullanilmayan export" sanip silmistim;
+   yanlisti -- olu olan kod degil, eksik olan BAGLANTIYDI.
+   Simdi _bot_defteri.js botu silerken kancayi cagiriyor.   */
 export function ilkelUnut(botId) {
   seriler.delete(botId);
   asaUnut(botId);
   dislerUnut(botId);
 }
 
+ilkelSilmeKancasi(ilkelUnut);
 /* ---------------- Yetenek kaydi ----------------
    Hedef (hangi uye) yetenek cercevesinden gecmiyor; derin
    taramadaki kalibin aynisi.                                 */

@@ -79,12 +79,28 @@ function kaydet() {
   }
 }
 
-/* Testler ve dunya degisimi icin. */
+/* Testler ve dunya degisimi icin: HER SEYI unutur. */
 export function zirhAgacUnut() {
   defter = undefined;
   cark = undefined;
   secili = undefined;
   ozellikVar = undefined;
+}
+
+/* ---- TEK OYUNCUYU UNUT  (v7.24) ----
+   Yukaridaki modulun TAMAMINI sifirliyor; oyuncu cikinca onu
+   cagirmak oyunda kalanlarin da agacini silerdi. O yuzden
+   playerLeave'e hic baglanmamisti ve uc defter (secili,
+   defter, cark) oyuncu kimligiyle suresiz buyuyordu.
+
+   Bu ise yalniz o oyuncunun satirlarini dusuruyor. Defterler
+   tembel kuruluyor (undefined olabilir), o yuzden her birine
+   ayri bakiliyor -- birini unutmak sessiz bir sizinti olurdu. */
+export function zirhAgacOyuncuUnut(oyuncuId) {
+  if (oyuncuId === undefined) return;
+  if (secili) secili.delete(oyuncuId);
+  if (defter) defter.delete(oyuncuId);
+  if (cark) cark.delete(oyuncuId);
 }
 
 /* ---- SECILI MOD  (v5.9) ----
@@ -241,7 +257,3 @@ export function agacListesi(oyuncu) {
 /* Oyuncu cikinca bellek defterinden dusmesin: agac KALICI.
    Yalniz dunya ozelligi yoksa bellekte tutuluyor ve orada da
    kalmali (oyuncu geri girerse acik kalsin).                 */
-export function zirhAgacBilgi() {
-  yukle();
-  return { ozellikVar: ozellikVar === true, oyuncu: defter.size };
-}

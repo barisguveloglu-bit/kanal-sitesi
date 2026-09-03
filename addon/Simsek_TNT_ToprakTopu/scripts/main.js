@@ -26,7 +26,7 @@ import {
 
 import {
   hataYaz, bilgiYaz, gecerliMi, olayaAbone, sistemOlayaAbone, kollariKaldir,
-  kollariIndir, actionbarYaz, eldekiEsya
+  kollariIndir, actionbarYaz, eldekiEsya, actionbarUnut
 } from "./yardimcilar.js";
 
 import {
@@ -72,7 +72,8 @@ import {
    ODEYEREK aciliyor (base_mode.json -> item_buyable); bizde
    cekirdek elde tutulan bir anahtardi, yani agac yoktu.    */
 import {
-  modAc, carkAc, modSec, modAcikMi, carkAlindiMi, agacListesi
+  modAc, carkAc, modSec, modAcikMi, carkAlindiMi, agacListesi,
+  zirhAgacOyuncuUnut
 } from "./yetenekler/zirh_agac.js";
 
 /* v5.8: acilabilir zirh katmanlari (matkap). Yetenegi kendi
@@ -146,7 +147,7 @@ import "./yetenekler/meteor.js";
 import "./yetenekler/ors.js";
 import "./yetenekler/buz_adam.js";
 import "./yetenekler/toprak_ucus.js";
-import { willTara } from "./yetenekler/will_kilic.js";
+import { willTara, willBeklemeUnut } from "./yetenekler/will_kilic.js";
 import "./yetenekler/can_ver.js";
 import "./yetenekler/kol_takas.js";
 import "./yetenekler/ucurma.js";
@@ -196,7 +197,7 @@ import "./yetenekler/bot_guc.js";
    yetenek 158 taneydi ve efsane_yapisi ICLERINDE YOKTU).   */
 import "./yetenekler/efsane.js";
 /* v6.6: uc duragi da gorene bir dakikalik muzik. */
-import { efsaneMuzikTara } from "./yetenekler/efsane_muzik.js";
+import { efsaneMuzikTara, efsaneMuzikUnut } from "./yetenekler/efsane_muzik.js";
 /* v6.6: skinin renginde ozel sis. */
 import { sisAc, sisKapat } from "./yetenekler/sis.js";
 /* v7.1: Void takimi -- Falen Mod V2. Vurus kancasi ve
@@ -1962,10 +1963,6 @@ function secimAl(oyuncuId) {
 // Lazer modu acik olan oyuncular
 const lazerModu = new Set();
 
-export function lazerModundaMi(oyuncuId) {
-  return lazerModu.has(oyuncuId);
-}
-
 /* Oyuncunun O ANKI kademesi lazer atabiliyor mu.
    Menu girdisi bunu soruyor: iksir icilmemisken ya da lazersiz
    bir kademe aktifken satiri hic gostermiyoruz.               */
@@ -2258,6 +2255,22 @@ olayaAbone("playerLeave", (olay) => {
   voidUnut(olay.playerId);
   saatUnut(olay.playerId);
   viltrumiteUnutOyuncu(olay.playerId);
+
+  /* ---- v7.24'te EKLENEN DORT TEMIZLIK ----
+     Genel taramada bulundu: bu dort defter oyuncu kimligiyle
+     anahtarlaniyor ama HICBIRI silinmiyordu. Girip cikan her
+     oyuncu birer satir birakiyordu ve hicbir sey onlari geri
+     almiyordu.
+
+     Ikisinin temizleyicisi zaten YAZILMISTI, yalnizca buraya
+     BAGLANMAMISTI (willBeklemeUnut, actionbarUnut). Diger
+     ikisinde ise temizleyici "hepsini sil" biciminde oldugu
+     icin buradan cagrilamiyordu -- tek oyuncuyu dusuren
+     bicimleri ayni surumde eklendi.                         */
+  willBeklemeUnut(olay.playerId);
+  actionbarUnut(olay.playerId);
+  efsaneMuzikUnut(olay.playerId);
+  zirhAgacOyuncuUnut(olay.playerId);
 
   // Oyuncunun butun isleri durdurulmali, sadece birincisi degil
   const acikIsler = oyuncununIsleri.get(olay.playerId);
