@@ -152,6 +152,7 @@ import "./yetenekler/can_ver.js";
 import "./yetenekler/kol_takas.js";
 import "./yetenekler/ucurma.js";
 import "./yetenekler/yamult.js";
+import "./yetenekler/beden_bol.js";
 import "./yetenekler/toprak_duvar.js";
 import "./yetenekler/iksirler.js";
 import "./yetenekler/goz_lazeri.js";

@@ -1,3 +1,99 @@
+# v7.26.0 — Bedeni Böl (toolbox komut listesinden)
+
+Kullanıcı bir toolbox komut listesi gönderdi. İlgili satırlar:
+
+```
+execute positioned ^^^15 run kill @e[r=10,c=1]
+execute positioned ^^^10 run playanimation @e[r=10,c=1]
+        animation.villager.get_in_bed animation 10000000
+playanimation @s animation.armor_stand.entertain_pose animation 120
+animation.fox.sleep
+```
+
+## Dördünden biri ZATEN moddaydı
+
+`animation.fox.sleep` **Yamultma** yeteneğinin ta kendisi, v4.10'dan
+beri. Kaynağı da `ayarlar.js`'te yazılı ve aynı çevreden geliyor:
+`slowness 100000 seviye 255 + fox.sleep`, geri alan hiçbir fonksiyon
+yok — yani ~83 dakika kalıcı felç. Bizimki süreli ve çaresi var.
+
+`positioned ^^^N run damage @e[r=10,c=1]` şekli de bizde vardı
+(Will Kılıcı). Yeni olan tek şey `damage` yerine `kill`.
+
+## Numara ne: yanlış iskelete takılmış animasyon
+
+`animation.villager.get_in_bed` **köylü** iskeletine göre yazılmış.
+Oyuncu iskeletinde aynı adda kemikler yok ya da bambaşka yerde;
+oynatılınca gövde parçaları birbirinden ayrılıyor. "Beden bölme"
+dedikleri şey bu — yeni bir model değil, yanlış yere takılmış bir
+animasyon.
+
+Sondaki `10000000` süre değil, **geçiş süresi** (blend out). O kadar
+büyük olunca geçiş hiç bitmiyor, poz kalıcıya yakın kalıyor.
+
+## Kaynaktan ayrıldığımız üç yer
+
+**1. Poz geri alınıyor.** Kaynakta geri alan hiçbir şey yok —
+vurduğun kişi bedeni bölünmüş halde kalıyor. Aynı şikâyeti
+Yamultma'da kendimiz yazmışız; aynı hatayı tekrarlamıyoruz. İş
+nesnesi `BEDEN_SURE` dolunca pozu düzeltiyor ve `bitir()` **her
+koşulda** aynı işi yapıyor — iş yarıda kesilse de kimse bölünmüş
+kalmıyor.
+
+**2. `kill` alınmadı, yerine ağır hasar.** Sebep ölçülebilir: `kill`
+zırhı, direnci, totemi hiç dinlemiyor; üstelik kaynaktaki `@e` 10
+bloklık kürede armor stand'i, evcil hayvanı, yerdeki eşyayı da
+siliyordu. Bu bir saldırı, dünya silgisi değil. `BEDEN_HASAR = 30`
+(netherite kılıç 8, depodaki en güçlü eşya 62).
+
+**3. Duvar arkasına geçmiyor.** `positioned ^^^15` blokları hiç
+tanımıyor. Burada bakış ışını nereye çarparsa hedef ondan öteye
+geçemiyor (`BEDEN_DUVAR`, ayardan kapatılabilir).
+
+## Korunanlar neden "atla" listesi
+
+`can_ver`'de **izin** listesi kullanılmıştı, çünkü orada yeni bir
+düşman mob çıkarsa yanlışlıkla iyileştirilmesi kötüydü. Burada tersi:
+yeni bir mob çıkarsa vurulabilir olması doğru davranış. O yüzden
+burada **atla** listesi var — sadece vurulmaması gerekenler yazılı
+(armor stand, evcil hayvanlar, köylüler, demir golem). Botlar zaten
+`koniHedefleri` tarafından dışarıda.
+
+## Yamultma'dan farkı
+
+Yamultma **felç eder** (yavaşlık/zayıflık/kazma yorgunluğu), hasar
+vermez, çaresi var. Bu **vurur** ve görsel olarak parçalar, felç
+etmez. İkisi ayrı ayrı kullanılabilsin diye ayrı yetenek
+(`sıra 151`, Yamultma 150). Eşyasız jest sırasında.
+
+## Test
+
+`test/beden_bol.mjs` (94. dosya). Yetenek **gerçekten çalıştırılıyor**,
+tick tick: iş nesnesi oluşturuluyor, `calis()` döngüsü dönüyor,
+`bitir()` çağrılıyor. Bu depoda üç sürüm üst üste "takım yeşil" diye
+geçmiş, sonra yeni kodun hiç yürütülmediği anlaşılmıştı.
+
+Sekiz mutasyonla sınandı, sekizi de yakalandı: pozu geri almamak,
+korunanlar denetimini kaldırmak, duvar denetimini kaldırmak, hasarı
+kesmek, pozu hiç vermemek, işi hemen bitirmek, `BEDEN_ACIK`'ı
+okumamak, animasyonu başka bir kimliğe kaydırmak.
+
+### Testin kendisi bir kez yanlış ölçtü
+
+İlk yazılışta "iş kendiliğinden bitiyor mu" maddesi düşüyordu.
+Kodda hata yoktu: test `tickIlerlet` çağırmıyordu, yani **saat
+dönmüyordu** ve iş sonsuza kadar sürüyor gibi görünüyordu. Bu
+depodaki "kusur ölçümde, kodda değil" hatasının bir örneği daha.
+
+## Tablette bakılacak tek şey
+
+`animation.villager.get_in_bed`'in oyuncu üzerinde gerçekten bedeni
+ayırdığını buradan doğrulayamıyorum — vanilla animasyon kimlikleri
+depoda yok. Kod bu yüzden **güvenli düşüyor**: `playanimation`
+çalışmazsa yetenek yine çalışır (hasar uygulanır), sadece hedef dik
+durur. Aynı savunma Yamultma'da da var.
+
+
 # v7.25.0 — Kupalar: kazık, çarmıh, darağacı
 
 Kullanıcı: *"Hani ölmüş Steve'ler, kafası asılmış şeyler var ya

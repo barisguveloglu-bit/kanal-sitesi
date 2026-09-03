@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.25.0";
+export const SURUM = "v7.26.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -564,6 +564,70 @@ export const YAMULT_OYUNCU = true;
 export const YAMULT_KAZMA = 3;      // mining_fatigue seviyesi
 export const YAMULT_ANIM  = "animation.fox.sleep a 9999";
 export const YAMULT_ANIM_BITIS = "animation.humanoid.move a 0";
+
+/* ---------------- Bedeni Bol (v7.26) ----------------
+   Kullanicinin gonderdigi toolbox komut listesinden. Ilgili
+   iki satir:
+     execute positioned ^^^10 run playanimation @e[r=10,c=1]
+             animation.villager.get_in_bed animation 10000000
+     execute positioned ^^^15 run kill @e[r=10,c=1]
+
+   ---- NUMARA NEDEN ISE YARIYOR ----
+   animation.villager.get_in_bed KOYLU iskeletine gore yazilmis.
+   Oyuncu iskeletinde ayni adda kemikler yok ya da bambaska
+   yerde; oynatilinca govde parcalari birbirinden AYRILIYOR.
+   "Bedeni bolme" dedikleri sey bu -- yeni bir model degil,
+   yanlis iskelete takilmis bir animasyon.
+
+   Sondaki 10000000 sure degil, GECIS SURESI (blend out). O
+   kadar buyuk olunca gecis hic bitmiyor, yani poz kaliciya
+   yakin kaliyor.
+
+   ---- KAYNAKTAN AYRILDIGIMIZ UC YER ----
+   1. SURE SINIRLI ve poz GERI ALINIYOR. Kaynakta geri alan
+      hicbir sey yok; vurdugun kisi bedeni bolunmus halde
+      kaliyor. Yamultma'da ayni sikayeti yazmisiz, ayni
+      hatayi burada tekrarlamiyoruz.
+   2. `kill` ALINMADI, yerine agir HASAR. Sebebi olculebilir:
+      `kill` zirhi, totemi, direnci hic dinlemiyor ve @e ile
+      birlikte armor stand'i, evcil hayvani, yerdeki esyayi
+      da siliyordu. Bu bir SALDIRI, dunya silgisi degil.
+   3. DUVAR ARKASINA GECMIYOR. `positioned ^^^15` bloklari
+      tanimiyor; bakis isini nereye carpiyorsa hedef ondan
+      oteye gecemiyor.
+
+   ---- KORUNANLAR NEDEN "ATLA" LISTESI ----
+   can_ver'de IZIN listesi kullanilmisti, cunku orada yeni bir
+   dusman mob cikarsa yanlislikla IYILESTIRILMESI kotuydu.
+   Burada tersi: yeni bir mob cikarsa vurulabilir olmasi dogru
+   davranis. O yuzden burada ATLA listesi var -- yalniz
+   vurulmamasi gerekenler yaziliyor.                          */
+export const BEDEN_ACIK    = true;
+export const BEDEN_MENZIL  = 15;    // kaynaktaki ^^^15 ile ayni
+export const BEDEN_ACI     = 0.85;  // bakis konisi (yamultma ile ayni)
+export const BEDEN_TAVAN   = 4;     // en fazla kac hedef
+export const BEDEN_OYUNCU  = true;  // oyunculara da islesin mi
+export const BEDEN_SURE    = 200;   // tick (10 sn) -- poz bu kadar surer
+/* Hasar: netherite kilic 8, bu depodaki en guclu esya 62.
+   30 "agir ama infaz degil" araligi; zirh ve direnc hala
+   ise yariyor, totem hala kurtariyor.                        */
+export const BEDEN_HASAR   = 30;
+export const BEDEN_ANIM       = "animation.villager.get_in_bed a 9999";
+export const BEDEN_ANIM_BITIS = "animation.humanoid.move a 0";
+/* Duvar denetimi. Kapatilirsa kaynaktaki gibi duvar arkasindan
+   da vurur; varsayilan ACIK.                                 */
+export const BEDEN_DUVAR   = true;
+/* Bunlara ASLA vurulmuyor. Botlar zaten koniHedefleri
+   tarafindan disariniyor, buraya yazmaya gerek yok.          */
+export const BEDEN_KORUNAN = [
+  "minecraft:armor_stand",
+  "minecraft:wolf", "minecraft:cat", "minecraft:parrot",
+  "minecraft:horse", "minecraft:donkey", "minecraft:mule",
+  "minecraft:llama", "minecraft:trader_llama",
+  "minecraft:villager", "minecraft:villager_v2",
+  "minecraft:wandering_trader", "minecraft:iron_golem",
+  "minecraft:allay", "minecraft:snow_golem"
+];
 
 /* ---------------- Iksirler (Nitroksin sistemi) ----------------
    Referans mod bunu tamamen komutla yapiyordu:
