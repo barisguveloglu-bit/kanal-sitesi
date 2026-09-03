@@ -756,26 +756,35 @@ console.log("=== 22. ISTEMCI VARLIGI: CIZIM YOLU (v4.30) ===");
           d.animations && d.animations.yuru !== undefined);
 
   /* v4.75'e kadar burada "hic render controller dosyasi
-     olmasin" yaziyordu. Artik BIR tane var: goz lazerinin
-     isin kemigine entity_emissive veren denetleyici.
+     olmasin" yaziyordu. Sonra BIR tane oldu (goz lazerinin
+     isin kemigine entity_emissive veren denetleyici), v7.16'da
+     IKI (goz animasyonu denemesi).
 
-     Yasak KALKMADI, DARALDI: bot hala vanilla denetleyici
-     kullaniyor (ustteki kontrol) ve klasorde lazer
-     denetleyicisi DISINDA bir sey olmamali. v4.28'in dersi
+     Yasak KALKMADI, DARALDI ve dar kalmali: bot hala vanilla
+     denetleyici kullaniyor (ustteki kontrol) ve klasorde
+     IZIN VERILENLER DISINDA bir sey olmamali. v4.28'in dersi
      "ozel denetleyici yazma" degil, "botun cizimine
-     dokunma"ydi.                                             */
+     dokunma"ydi.
+
+     Liste elle tutuluyor -- bilerek. "Herhangi bir denetleyici
+     olabilir"e gevsetilseydi yanlislikla eklenen bir dosya
+     hicbir teste takilmazdi.                                 */
   const { readdirSync } = await import("node:fs");
   const rcVar = existsSync(RP + "/render_controllers");
   const rcDosya = rcVar ? readdirSync(RP + "/render_controllers").sort() : [];
-  kontrol("render controller klasorunde SADECE lazer isini var",
-          rcDosya.length === 0 ||
-          (rcDosya.length === 1 &&
-           rcDosya[0] === "goz_lazer.render_controllers.json"),
+  const IZINLI = ["goz_anim.render_controllers.json",
+                  "goz_lazer.render_controllers.json"];
+  kontrol("render controller klasorunde YALNIZ izinliler var",
+          rcDosya.every((f) => IZINLI.includes(f)),
           rcDosya.join(", ") || "klasor yok");
 
-  if (rcVar && rcDosya.length === 1) {
+  /* Dosya ADIYLA aciliyor, rcDosya[0] ile degil: v7.16'da
+     ikinci bir denetleyici gelince siralama degisti ve bu
+     satir yanlis dosyayi acmaya basladi.                     */
+  if (rcDosya.includes("goz_lazer.render_controllers.json")) {
     const rc = JSON.parse(
-      readFileSync(RP + "/render_controllers/" + rcDosya[0], "utf8")
+      readFileSync(RP + "/render_controllers/goz_lazer.render_controllers.json",
+                   "utf8")
     ).render_controllers["controller.render.simsek_goz_lazer"];
     kontrol("lazer denetleyicisi tanimli", rc !== undefined);
     /* Vanilla controller.render.armor ile birebir ayni olmali;

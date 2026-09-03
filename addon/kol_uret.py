@@ -102,7 +102,7 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # tureniyor -- ayrisabilecekleri bir yer kalmadi.
 #
 # YENI SURUM CIKARIRKEN: yalnizca asagidaki satiri degistir.
-SURUM_NO = (7, 15, 0)
+SURUM_NO = (7, 16, 0)
 
 SURUM_METIN = "%d.%d.%d" % SURUM_NO
 SURUM_ETIKET = "v" + SURUM_METIN
@@ -901,6 +901,113 @@ def goz_lazer_denetleyicisi():
     }
 
 
+# ============================================================
+#  GOZ ANIMASYONU -- MEKANIZMA DENEMESI                v7.16
+#
+#  Sira bende degil, kanitta: bu depoda v5.3'te OLCULMUS bir
+#  gercek var -- ATTACHABLE ANIMASYONLARI CALISMIYOR. Dort
+#  surum boyunca calismayan bir animasyon tasinmis, kimse fark
+#  etmemis. O yuzden 128 doku uretip sonra "calismiyormus"
+#  demek istemiyorum.
+#
+#  Denenen sey FARKLI bir mekanizma: animasyon degil, RENDER
+#  DENETLEYICI. Denetleyicide bir doku DIZISI tanimlaniyor ve
+#  hangi karenin cizilecegi molang ile seciliyor:
+#      "textures": [ "Array.kareler[math.floor(query.life_time * H)]" ]
+#  Resmi belge (bedrock.dev/docs/stable/MoLang) diyor ki
+#  "pozitif dizi indisleri dizi boyunca SARIYOR" -- yani mod
+#  almaya gerek yok, sayac buyuduce basa donuyor.
+#
+#  ---- NEDEN RISKSIZ ----
+#  Uc ayri koruma var:
+#    1. KARE 0 BUGUNKU DOKUNUN BIREBIR AYNISI. Tohum
+#       degismiyor, yani dosya bayt bayt ayni cikiyor.
+#       Mekanizma calismazsa denetleyici hep kare 0'i cizer --
+#       yani BUGUNKU GORUNUS. Basarisizlik hali gerileme degil.
+#    2. YALNIZ TEK GOZ. Kalan yedi iksir hic dokunulmadan
+#       eski yolunda (controller.render.armor) kaliyor; yani
+#       denetleyicim tamamen bozuk olsa bile yedi iksir
+#       calismaya devam eder. Kontrol grubu onlar.
+#    3. TEK SATIRLA KAPANIYOR: GOZ_ANIM_DENEME = None.
+#
+#  ---- KARELER NEDEN AYNI GOZ ----
+#  Kareler baska bir goz DEGIL, ayni gozun alevleri baska
+#  yerde duran hali: tohum "goz:k1", "goz:k2"... Yani renk,
+#  cekirdek ve hale sabit; yalniz alev dilleri ve korlar
+#  oynuyor. Baska turlu goz her karede baska bir goze
+#  donusmus gibi zipliyordu (lazer varyantinda ayni ders
+#  v4.73'te yazili).
+#
+#  ---- KAYBEDILEN TEK SEY ----
+#  controller.render.armor'un buyulenmis parlamasi (glint).
+#  Goz kaplamasi buyulenebilir bir esya degil; kaybi yok.
+# ============================================================
+# Hangi goz denenecek. None -> deneme kapali, hicbir sey degismez.
+GOZ_ANIM_DENEME = "goz_ates"
+GOZ_ANIM_KARE = 4              # kare 0 bugunku doku
+GOZ_ANIM_HIZ = 9               # saniyede kac kare
+GOZ_ANIM_DENETIM = "controller.render.simsek_goz_anim"
+
+
+def goz_anim_tohumu(goz, kare):
+    """Kare 0 BUGUNKU tohum -- dosya bayt bayt ayni kalsin.
+    Digerleri ayni gozun baska bir savrulmasi."""
+    return goz if kare == 0 else (goz + ":k%d" % kare)
+
+
+def goz_anim_denetleyicisi():
+    """Doku dizisi + molang indisi.
+
+    Indis mod almiyor: belge "pozitif indisler dizi boyunca
+    sariyor" diyor. math.floor sart, yoksa ondalik indis
+    kesilirken kare atlanabiliyor."""
+    return {
+        "format_version": "1.10.0",
+        "render_controllers": {
+            GOZ_ANIM_DENETIM: {
+                "arrays": {
+                    "textures": {
+                        "Array.kareler": [
+                            "Texture.default" if k == 0 else "Texture.kare%d" % k
+                            for k in range(GOZ_ANIM_KARE)
+                        ]
+                    }
+                },
+                "geometry": "Geometry.default",
+                "materials": [{"*": "Material.default"}],
+                "textures": [
+                    "Array.kareler[math.floor(query.life_time * %d)]"
+                    % GOZ_ANIM_HIZ
+                ],
+            }
+        },
+    }
+
+
+def _goz_dokulari(kimlik):
+    """Denenen gozde kare dokulari da bildiriliyor; digerlerinde
+    eskisi gibi tek doku."""
+    d = {
+        "default": "textures/entity/" + kimlik,
+        "enchanted": "textures/misc/enchanted_actor_glint",
+    }
+    if kimlik == GOZ_ANIM_DENEME:
+        for k in range(1, GOZ_ANIM_KARE):
+            d["kare%d" % k] = "textures/entity/%s_k%d" % (kimlik, k)
+    return d
+
+
+def _goz_denetleyicisi(kimlik, lazerli):
+    """Uc yol: lazer isini (parlak malzeme), animasyon denemesi,
+    ya da vanilla zirh denetleyicisi. Deneme YALNIZ tek goze
+    uygulaniyor -- kalan yedisi kontrol grubu."""
+    if lazerli and LAZER_ISIN_PARLAK:
+        return LAZER_ISIN_DENETIM
+    if GOZ_ANIM_DENEME and kimlik == GOZ_ANIM_DENEME:
+        return GOZ_ANIM_DENETIM
+    return "controller.render.armor"
+
+
 def goz_attachable(kimlik):
     """Referanstan alinan kritik satir: parent_setup ile
     helmet_layer_visible = 0 -- yoksa kaskin kendisi de cizilir ve
@@ -939,10 +1046,7 @@ def goz_attachable(kimlik):
             "description": {
                 "identifier": "pa:" + kimlik,
                 "materials": malzemeler,
-                "textures": {
-                    "default": "textures/entity/" + kimlik,
-                    "enchanted": "textures/misc/enchanted_actor_glint",
-                },
+                "textures": _goz_dokulari(kimlik),
                 # Lazer varyanti ISINLI geometriyi kullaniyor:
                 # ayni goz kaplamasi + kafadan cikan iki uzun
                 # kutu. Normal goz sade geometride kaliyor,
@@ -952,11 +1056,7 @@ def goz_attachable(kimlik):
                                 if lazerli else "geometry.simsek_goz")
                 },
                 "scripts": {"parent_setup": "variable.helmet_layer_visible = 0.0;"},
-                "render_controllers": [
-                    LAZER_ISIN_DENETIM
-                    if (lazerli and LAZER_ISIN_PARLAK)
-                    else "controller.render.armor"
-                ],
+                "render_controllers": [_goz_denetleyicisi(kimlik, lazerli)],
             }
         },
     }
@@ -8191,6 +8291,17 @@ def main():
             yaz_json(os.path.join(RP, "attachables", ad2 + ".json"), goz_attachable(ad2))
             png_yaz(os.path.join(RP, "textures/entity", ad2 + ".png"),
                     GOZ_DOKU, GOZ_DOKU, doku)
+            # ---- ANIMASYON DENEMESI (v7.16) ----
+            # Yalniz denenen goz, yalniz normal varyanti.
+            # Kare 0 yukarida zaten yazildi ve tohumu
+            # degismedigi icin dosya BUGUNKUYLE BIREBIR AYNI.
+            if GOZ_ANIM_DENEME and ad2 == GOZ_ANIM_DENEME:
+                for _k in range(1, GOZ_ANIM_KARE):
+                    png_yaz(
+                        os.path.join(RP, "textures/entity",
+                                     "%s_k%d.png" % (ad2, _k)),
+                        GOZ_DOKU, GOZ_DOKU,
+                        goz_dokusu(gozRenk, goz_anim_tohumu(goz, _k)))
             png_yaz(os.path.join(RP, "textures/item", ad2 + ".png"), 16, 16,
                     goz_ikonu(gozRenk))
             dokular[ad2] = {"textures": "textures/item/" + ad2}
@@ -9042,6 +9153,10 @@ def main():
         yaz_json(os.path.join(RP,
                               "models/entity/simsek_kol_kanli_bobby.geo.json"),
                  _bobby_geo)
+    if GOZ_ANIM_DENEME:
+        yaz_json(os.path.join(RP, "render_controllers",
+                              "goz_anim.render_controllers.json"),
+                 goz_anim_denetleyicisi())
     yaz_json(os.path.join(RP, "animations/goz_lazeri.animation.json"),
              lazer_animasyonu())
     if LAZER_ISIN_PARLAK:
@@ -9175,6 +9290,14 @@ def main():
     # v7.9: kol takasi isaretinin ikonu da hicbir listede degil
     if KOL_TAKAS_ACIK:
         beklenen.add(TAKAS_ISARET)
+    # v7.16: goz animasyonu kareleri. Bu satir olmadan temizlik
+    # adimi UCUNU DE her uretimde siliyor -- ve tam oyle oldu,
+    # "temizlendi: 3 artik dosya" yazdi. Ayni tuzak ALTINCI kez:
+    # SEY_DOKU, MUTANT_DOKU, SAAT_ESYA, ZIRH_DOKU, konsey
+    # parcalari ve simdi bu.
+    if GOZ_ANIM_DENEME:
+        for _ak in range(1, GOZ_ANIM_KARE):
+            beklenen.add("%s_k%d" % (GOZ_ANIM_DENEME, _ak))
     # v4.91: zirh parcalarinin ikonlari da listede degil
     for _zk2, _zy2, _zp2, _zt2, _ze2, _zb2 in ZIRH:
         beklenen.add(_zk2)

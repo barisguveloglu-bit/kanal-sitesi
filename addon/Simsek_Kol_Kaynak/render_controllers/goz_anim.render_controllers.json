@@ -1,0 +1,26 @@
+{
+  "format_version": "1.10.0",
+  "render_controllers": {
+    "controller.render.simsek_goz_anim": {
+      "arrays": {
+        "textures": {
+          "Array.kareler": [
+            "Texture.default",
+            "Texture.kare1",
+            "Texture.kare2",
+            "Texture.kare3"
+          ]
+        }
+      },
+      "geometry": "Geometry.default",
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ],
+      "textures": [
+        "Array.kareler[math.floor(query.life_time * 9)]"
+      ]
+    }
+  }
+}

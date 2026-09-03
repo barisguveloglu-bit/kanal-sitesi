@@ -1,3 +1,93 @@
+# v7.16.0 — Göz animasyonu: mekanizma denemesi
+
+Parçacık bittiğine göre sıra kendi koyduğum adımda: **128 doku üretmeden
+önce mekanizmayı kanıtlamak.**
+
+## Neden deneme, neden tam sürüm değil
+
+Bu depoda v5.3'te **ölçülmüş** bir gerçek var: **attachable animasyonları
+çalışmıyor.** Dört sürüm boyunca çalışmayan bir animasyon taşınmış, kimse fark
+etmemiş. Denenen şey **farklı** bir mekanizma — animasyon değil, **render
+denetleyici + doku dizisi + molang indisi**:
+
+```
+"Array.kareler": ["Texture.default", "Texture.kare1", "kare2", "kare3"]
+"textures": [ "Array.kareler[math.floor(query.life_time * 9)]" ]
+```
+
+Resmî belge diyor ki *"pozitif dizi indisleri dizi boyunca **sarıyor**"* —
+yani mod almaya gerek yok, sayaç büyüdükçe başa dönüyor.
+
+## Neden risksiz — üç koruma
+
+1. **Kare 0 bugünkü dokunun birebir aynısı.** Tohum değişmiyor, dosya
+   **bayt bayt** aynı çıkıyor (`cmp` ile doğrulandı). Mekanizma çalışmazsa
+   denetleyici hep kare 0'ı çizer — yani bugünkü görünüş. **Başarısızlık hâli
+   gerileme değil.**
+2. **Yalnız tek göz** (`goz_ates`). Kalan yedi iksir hiç dokunulmadan
+   `controller.render.armor`'da kalıyor — denetleyicim tamamen bozuk olsa bile
+   yedi iksir çalışır. **Kontrol grubu onlar.**
+3. Tek satırla kapanıyor: `GOZ_ANIM_DENEME = None`.
+
+## Kareler neden aynı göz
+
+Kareler başka bir göz değil, **aynı gözün alevleri başka yerde duran hâli**
+(tohum `goz:k1`, `goz:k2`…). Renk, çekirdek ve hale sabit; yalnız alev dilleri
+ve korlar oynuyor. Ölçüldü: çekirdek rengi dört karede de `255,190,90`,
+boyalı piksel 2080–2094 arası. Başka türlüsü gözü her karede **başka bir göze
+dönüşmüş** gibi zıplatırdı — aynı ders lazer varyantında v4.73'te yazılı.
+
+## Üretim ilk denemede sessizce silindi
+
+`python3 kol_uret.py` çıktısı: **"temizlendi: 3 artık dosya"**. Kareler hiçbir
+listede olmadığı için temizlik adımı üçünü de sildi. `beklenen` kümesine elle
+eklendiler.
+
+**Aynı tuzağa bu depoda altıncı kez düşüldü**: `SEY_DOKU`, `MUTANT_DOKU`,
+`SAAT_ESYA`, `ZIRH_DOKU`, konsey parçaları ve şimdi bu.
+
+## İki eski test düştü — ikisi de haklıydı
+
+`bot.mjs`'te *"render controller klasöründe **sadece** lazer ışını var"* diye
+bir kilit vardı (v4.28'in dersi: botun çizimine dokunma). İkinci denetleyici
+gelince düştü. Yasak **kaldırılmadı, izin listesi yapıldı** — "herhangi bir
+denetleyici olabilir"e gevşetilseydi yanlışlıkla eklenen bir dosya hiçbir
+teste takılmazdı.
+
+İkincisi daha sinsiydi: aynı blok denetleyiciyi `rcDosya[0]` ile açıyordu.
+İkinci dosya gelince **sıralama değişti** ve satır yanlış dosyayı açmaya
+başladı. Artık dosya **adıyla** açılıyor.
+
+## `goz_anim.mjs` — 10 mutasyon, 10'u da yakalandı
+
+| bozma | neden tehlikeli |
+|---|---|
+| deneme bütün gözlere yayılsın | kontrol grubu kalmaz, hata hepsini götürür |
+| lazer varyantı da denemeye girsin | parlak malzemesini kaybeder |
+| kareler temizlik listesinden düşsün | her üretimde sessizce silinir |
+| bütün kareler aynı tohumu kullansın | animasyon diye bir şey kalmaz |
+| dizi kare sayısından kısa olsun | son kareler hiç görünmez |
+| indis zamana bağlı olmasın | sabit kare — animasyon değil |
+| `math.floor` kalksın | ondalık indis kırpılırken kare atlanır |
+| attachable kare dokularını bildirmesin | o kare çizilmez, **göz kaybolur** |
+| kare 0 dizinin başında olmasın | güvenli başarısızlık garantisi gider |
+| hız saçma bir değere kaysın | — |
+
+## Şimdi sıra tablette
+
+Cevabı verecek tek soru: **Ateş İksiri içince göz titriyor mu?**
+
+- **Titriyorsa** → mekanizma çalışıyor. Sıradaki adım küçük UV'ye taşıyıp
+  sekiz iksirin hepsine yaymak (8 kare **16 MB**, bugünkü 42 MB'dan ucuz).
+- **Titremiyorsa** → mekanizma bu attachable'da da çalışmıyor demektir,
+  v5.3'ün dersi burada da geçerli. Kaybımız üç doku; `GOZ_ANIM_DENEME = None`
+  ile kapanır.
+
+Kontrol grubu için: **Mavi İksir** (Hiperoksin) hiç değişmedi. İkisini
+karşılaştır.
+
+---
+
 # v7.15.0 — İksir Aurası: özel parçacık sistemi
 
 Kullanıcı: *"parçacıkla başlayalım, aynı odağı ver, en detaylısını yap,
