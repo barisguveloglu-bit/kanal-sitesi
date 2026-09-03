@@ -77,14 +77,21 @@ Aşağıdakiler bilinçli kararlar — "düzeltilecek eksik" değil.
 - Betikler `defer` ile yükleniyor (ilk boyama ~%28 hızlandı). Sıra korunur,
   bozma.
 
-## Dosya teslimi — skin ve paketler LİNKLE verilir
+## Dosya teslimi — SKIN linkle, paket dosya olarak
 
 Bu kural depodaki kodla ilgili değil, **kullanıcıya nasıl teslim
-edileceğiyle** ilgili. `addon/` klasöründeki her şey için geçerli.
+edileceğiyle** ilgili.
 
-**Kural: skin PNG'sini ve paketleri sohbete dosya olarak ekleme.
-Depodaki dosyanın doğrudan indirme linkini ver.** Kullanıcı
-tarayıcıdan indiriyor, orada sorun çıkmıyor.
+**Kural yalnız SKIN PNG'si içindir: onu sohbete dosya olarak
+ekleme, depodaki dosyanın indirme linkini ver.**
+
+**Paketler (`.mcaddon` / `.mcpack`) dosya olarak gönderilir —
+her zamanki gibi.** Onlarda bugüne kadar hiç indirme sorunu
+yaşanmadı; zip oldukları için yolda yeniden kodlanmıyorlar.
+Kullanıcı bunu açıkça söyledi: *"skin için bunu yapmanı
+istedim, mod için link göndermene gerek yok."* Bu satır bir
+düzeltmenin kaydı: kural ilk yazıldığında paketleri de
+kapsıyordu, kapsamamalıydı.
 
 ### Neden — v7.19'da yaşandı
 
