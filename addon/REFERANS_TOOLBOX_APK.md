@@ -1,3 +1,57 @@
+# Toolbox yeniden paketleri — statik inceleme
+
+İki dosya incelendi. **İkisi de kurulmadı, çalıştırılmadı.**
+
+| | MH_TEAM_V5.apk | Toolbox_1.20.51_mod.apk |
+|---|---|---|
+| boyut | 10.490.716 | 7.651.691 |
+| sha256 | `efa1ecdb…702786` | `f21d7bbd…ba7fd9` |
+| paket adı | `io.mrarm.mctoolbox` | `io.mrarm.mctoolbox` |
+| imza | **AOSP test anahtarı** | **AOSP test anahtarı** |
+| koruyucu | NP Manager (VM koruma) | NP Manager (**akış karıştırma** 3.0.62) |
+| koruyucu sahibi | 吹牛儿 · 2863678687@qq.com | 吹牛儿 · **aynı e-posta** |
+| damga | 2023-04-17 | 2023-12-19 |
+| MC sürümü | 1.19.50 – 1.19.73 | **yalnız 1.20.51** |
+| şüpheli alan adı | yok | yok |
+
+**İkisi de aynı elden çıkmış.** Paketleyicinin e-postası birebir aynı;
+sekiz ay arayla yapılmış iki iş.
+
+## İkincide ek olarak çıkanlar
+
+**Koruyucunun işlevi bu sefer yazılı:** `Function: 控制流混淆` —
+*kontrol akışı karıştırma*. Yani kodun ne yaptığının izlenmesini
+engellemek, açıkça amaç olarak beyan edilmiş.
+
+**`android.permission.DUMP` — yanlış alarm.** Manifest'te görünce
+şüphelenildi, ama nereden geldiğine bakıldı: AndroidX WorkManager'ın
+`DiagnosticsReceiver`'ı. Standart kütüphane, paketleyenin eklediği bir
+şey değil. (Zaten sistem uygulaması olmayan bir uygulamaya
+verilmiyor.)
+
+**Neyin değiştirildiği bulunamadı.** `checkLicense` duruyor ama akış
+karıştırma yüzünden neye dönüştüğü izlenemiyor. Toolbox'ın ücretli
+özellikleri olduğu için en olası açıklama "premium kilidi açma" — ama
+bu bir **tahmin**, kanıt değil. Kanıtlanamaması zaten koruyucunun
+işlevi.
+
+## Ortak hüküm
+
+İkisinde de **kötü niyet kanıtı bulunamadı**: tuhaf komuta sunucusu
+yok, tehlikeli izin yok, `.tk`/`.xyz` gibi tek kullanımlık alan adı
+yok. Uçlar Toolbox'ın kendi sunucuları, reklam ağları ve Microsoft.
+
+Yine de kurulmamalı, ve sebep "virüs buldum" değil:
+
+> Herkesin özel anahtarını bildiği bir anahtarla imzalanmış + kod
+> izlemeyi engelleyen bir koruyucudan geçirilmiş + içinde Microsoft
+> hesabı giriş yolu var. Bu üçü bir aradayken "değiştirilmemiş"
+> demenin bir yolu yok.
+>
+> Mesele bulunan bir şey değil, **bakılamayan bir şey.**
+
+---
+
 # MH_TEAM_V5.apk — statik inceleme
 
 Kullanıcı: *"Bu kötü yazılım mı olabilir? Ben bunu niye kurayım ki,
