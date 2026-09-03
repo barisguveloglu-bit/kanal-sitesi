@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.19.0";
+export const SURUM = "v7.20.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -980,13 +980,17 @@ export const AURA_ONEK = "pa:aura_";
    ustune konuyor, ekranin ortasina degil. Rahatsiz ederse
    GOZ_ALEV_ACIK = false tek anahtar.                       */
 export const GOZ_ALEV_ACIK = true;
-/* Kac tick'te bir. v7.19'da yayim basina zerre sayisi 2'den
-   1'e indi, o yuzden aralik da 4'ten 3'e cekildi: saniyede
-   6.7 yayim x 1 zerre x 0.41 sn ortalama omur = goz basina
-   ayni anda ~2.7 dil. Once ~5 dil vardi ve oyunda ust uste
-   binip bir TARAK gibi gorunuyorlardi. Mum alevi gibi tek bir
-   sey istiyoruz: sayica degil BOYCA var olsun.             */
-export const GOZ_ALEV_ARALIK = 3;
+/* Kac tick'te bir. v7.20: goz basina TEK alev.
+   Kullanicinin sozu: "bir tanelik, cok fazla yok."
+
+   Hesap: 6 tick = 0.3 sn'de bir yayim, yayim basina 1 zerre,
+   omur 0.34-0.44 sn. Yani goz basina ayni anda
+       1 x (20/6) x 0.39 = 1.3 alev
+   -- neredeyse hep TEK, yalniz gecis aninda kisa bir ust uste
+   binme. O binme SART: olmasa alev bir sonup bir yanardi.
+   Zerrenin boy zarfi da bu yuzden sifira inmiyor (bkz.
+   kol_uret.py aura_gozalev, "ol" degiskeni).             */
+export const GOZ_ALEV_ARALIK = 6;
 /* Kafanin ON yuzu 0.25 blokta (kafa 0.5 blok genisliginde).
    0.30 -> alevler yuzun 5 santim onunde asili duruyor. */
 export const GOZ_ALEV_ON = 0.30;

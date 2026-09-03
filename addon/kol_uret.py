@@ -102,7 +102,7 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # tureniyor -- ayrisabilecekleri bir yer kalmadi.
 #
 # YENI SURUM CIKARIRKEN: yalnizca asagidaki satiri degistir.
-SURUM_NO = (7, 19, 0)
+SURUM_NO = (7, 20, 0)
 
 SURUM_METIN = "%d.%d.%d" % SURUM_NO
 SURUM_ETIKET = "v" + SURUM_METIN
@@ -7309,7 +7309,13 @@ def aura_gozalev(kimlik, renkler):
     # Ucu de kullanicinin "bir buyusun bir kuculsun"unun ayri
     # bir olcegi. Yalniz zarf olsaydi alev bir kez sisip inen
     # bir balon olurdu.
-    ol = ("(0.25 + 0.75 * math.sin(" + _AURA_OMUR + " * 180)) * "
+    # Zarf artik SIFIRA INMIYOR (0.55..1.0). v7.19'da 0.25..1.0
+    # idi ve zerre doguuunda/olumunde neredeyse yok oluyordu.
+    # Tek bir alev istendiginde bu POPLAMA yapiyor: alev bir
+    # kayboluyor bir beliriyor. 0.55 tabani, biten alevle yeni
+    # alevin uSt uSte bindigi anda ikisinin de yariya yakin
+    # buyuklukte olmasini sagliyor -- yani gecis GORUNMUYOR.
+    ol = ("(0.55 + 0.45 * math.sin(" + _AURA_OMUR + " * 180)) * "
           + _aura_nefes(1150, 2) + " * " + _AURA_PUF)
     return _aura_govde(kimlik, "gozalev", {
         # v7.19: yayim basina IKI degil BIR zerre. Ikiser
@@ -7330,7 +7336,12 @@ def aura_gozalev(kimlik, renkler):
             "rotation_rate": "(variable.particle_random_3 - 0.5) * 40"},
         "minecraft:particle_lifetime_expression": {
             # Kisa: gozun onunde birikmesinler.
-            "max_lifetime": "0.28 + variable.particle_random_4 * 0.26"},
+            # Omur, yayim araligindan (GOZ_ALEV_ARALIK tick)
+            # BIRAZ UZUN. Amac: her an yaklasik BIR alev olsun,
+            # ama gecis aninda kisa bir ust uste binme olsun ki
+            # aradan bosluk gorunmesin. Kullanicinin istegi:
+            # "bir tanelik, cok fazla yok".
+            "max_lifetime": "0.34 + variable.particle_random_4 * 0.10"},
         "minecraft:particle_motion_dynamic": {
             "linear_acceleration": _aura_suruklen(3.4, "1.05"),
             "linear_drag_coefficient": 3.4,
@@ -7349,24 +7360,37 @@ def aura_gozalev(kimlik, renkler):
             # ~%42'si kadar, yani asagidaki olculerde gorunen
             # dil ~0.02x0.09 blok -- gozun uzerinde duruyor,
             # yerine gecmiyor.
-            # v7.19: az sayida ama BUYUK. En/boy orani da
-            # kareye yaklastı (0.64 -> 0.80): dokudaki dil
-            # sismanladigina gore tuvalin de sismanlamasi
-            # gerekiyordu, yoksa dil yassiliyordu.
+            # ---- OLCEK: EN ONEMLI SAYI (v7.20) ----
+            # Kullanici oyunda gorup soyle tarif etti: "yuzun
+            # biraz onunde IIIIII gibi IIIIII" -- yani dikey
+            # cizgiler. Sebep olcekti, sekil degil.
+            #
+            # v7.19'da dis olcu 0.088-0.134 blok yuksekligindeydi.
+            # Bir blok 16 MC pikseli; dokudaki dil de tuvalin
+            # ~%56'si kadar. Yani ekranda gorunen alev
+            #     0.13 blok x 16 = 2 piksel
+            # geniskliginde bir seydi. 2 piksellik bir sey alev
+            # degil CIZGI okunuyor -- kullanicinin gordugu "I"
+            # tam olarak buydu.
+            #
+            # Kafa 0.5 blok (8 MC pikseli). Alev artik 0.28
+            # blok, yani kafanin yarisindan biraz fazla --
+            # gonderdigim render'daki oranin ta kendisi.
+            # Gorunen dil ~0.16 x 0.25 blok = 2.5 x 4 piksel.
             "size": [
-                "(0.070 + variable.particle_random_1 * 0.038) * " + ol,
-                "(0.088 + variable.particle_random_1 * 0.046) * " + ol],
+                "(0.185 + variable.particle_random_1 * 0.055) * " + ol,
+                "(0.255 + variable.particle_random_1 * 0.075) * " + ol],
             "face_camera_mode": "lookat_y",
             "uv": _aura_uv("alev")},
         "minecraft:particle_appearance_tinting": {
             # koyulma 0.85: rengini koruyarak saydamlasiyor.
-            # beyazlik 0.30: alev iksirin RENGINDE yansin.
-            # 0.75'te (patlamanin degeri) yesil iksirde bile
-            # beyaz cikiyordu -- toplamali harmanda ust uste
-            # binen zerreler zaten beyaza doyuyor, ustune bir
-            # de dogus rengi beyaz olunca renk hic gorunmuyor.
+            # beyazlik: alev iksirin RENGINDE yansin ama
+            # cekirdegi sicak olsun. v7.19'da bes alev ust uste
+            # biniyordu ve 0.75 beyaza doyuruyordu; simdi TEK
+            # alev var, doyma yok, o yuzden 0.42'ye cikti --
+            # gercek atesin ortasi da beyaza calar.
             "color": {"gradient": _aura_gradyan(renkler, koyulma=0.85,
-                                                beyazlik=0.30),
+                                                beyazlik=0.42),
                       "interpolant": _AURA_OMUR}},
     })
 

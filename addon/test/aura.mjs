@@ -363,10 +363,21 @@ console.log("=== 5. GOZ ALEVI: HAREKET VE BOY ===");
      dar bir ucgen "alev" degil "cizgi" okunuyor.           */
   kontrol("cizgi gibi ince DEGIL", ilk(gb.size[0]) / ilk(gb.size[1]) >= 0.7,
           "en/boy = " + (ilk(gb.size[0]) / ilk(gb.size[1])).toFixed(2));
-  /* Goz 2 MC pikseli = 0.125 blok. Alev bundan buyuk olursa
-     gozun yerine GECIYOR.                                  */
-  kontrol("alev gozden buyuk degil", ilk(gb.size[1]) < 0.125,
-          ilk(gb.size[1]) + " < 0.125 blok");
+  /* ---- OLCEK: IKI YONLU SINIR (v7.20) ----
+     Kullanici oyunda gordu ve soyle tarif etti: "yuzun biraz
+     onunde IIIIII gibi IIIIII" -- yani dikey cizgiler. Sebep
+     olcekti: alev 0.13 blok, bir blok 16 MC pikseli, yani
+     ekranda 2 piksel. 2 piksellik bir sey alev degil CIZGI
+     okunuyor.
+
+     Ama ters yonde de bir sinir var: alev kafadan (0.5 blok)
+     buyuk olursa yuzu kapatiyor. Ikisi de olculuyor -- tek
+     yonlu bir sinir bu hatanin ikizini yakalayamazdi.      */
+  kontrol("alev CIZGI olacak kadar ince degil", ilk(gb.size[1]) >= 0.18,
+          ilk(gb.size[1]) + " >= 0.18 blok");
+  kontrol("alev kafayi KAPATACAK kadar buyuk degil",
+          ilk(gb.size[1]) + 0.09 <= 0.5,
+          "en buyuk " + (ilk(gb.size[1]) + 0.09).toFixed(3) + " <= 0.5 blok");
 
   /* ---- UC AYRI OLCEKTE HAREKET ----
      Kullanici "bir buyusun bir kuculsun" dedi. Tek bir egri
@@ -414,8 +425,23 @@ console.log("=== 5. GOZ ALEVI: HAREKET VE BOY ===");
   const omur = parseFloat(
     gz["minecraft:particle_lifetime_expression"].max_lifetime);
   const ayniAnda = adet * (20 / ayar.GOZ_ALEV_ARALIK) * omur;
-  kontrol("goz basina ayni anda az sayida dil (<= 4)", ayniAnda <= 4,
-          ayniAnda.toFixed(1) + " dil");
+  /* Kullanicinin istegi: "bir tanelik, cok fazla yok."
+     ALT sinir da var ve o daha onemli: 1'in altina duserse
+     alevler arasinda BOSLUK olusur, yani alev bir sonup bir
+     yanar. Ust sinir 2: uzeri kalabalik gorunuyor.         */
+  kontrol("goz basina TEK alev (1 - 2 arasi)",
+          ayniAnda >= 1.0 && ayniAnda <= 2.0,
+          ayniAnda.toFixed(2) + " alev");
+  /* Bosluk olmamasi icin omrun yayim araligindan UZUN olmasi
+     sart -- yukaridaki sayi bunun sonucu, bu ise sebebi. */
+  kontrol("omur yayim araligindan uzun (bosluk olmasin)",
+          omur > ayar.GOZ_ALEV_ARALIK / 20,
+          omur + " sn > " + (ayar.GOZ_ALEV_ARALIK / 20) + " sn");
+  /* Boy zarfi SIFIRA inmemeli: inerse gecis aninda iki alev de
+     yok olur ve alev POPLAR.                               */
+  kontrol("boy zarfi sifira inmiyor",
+          /\(0\.[1-9]\d* \+ 0\./.test(String(gb.size[1])),
+          String(gb.size[1]).slice(0, 60));
 
   /* Butun boy ve renk ifadeleri zerrenin YASINA bagli olmali;
      sabit sayi yazilsaydi zerre kuculmeden yok olurdu.     */
@@ -698,10 +724,16 @@ console.log(JSON.stringify({
      binip tek bir bulut gorunuyor.                         */
   kontrol("her tick cikmiyor", ayar.GOZ_ALEV_ARALIK > 1,
           String(ayar.GOZ_ALEV_ARALIK));
-  /* ...ama cok seyrek de olmamali: alev KESIKSIZ yanmali,
-     yoksa alev degil kivilcim gorunuyor.                   */
-  kontrol("alev kesiksiz (aralik <= 5)", ayar.GOZ_ALEV_ARALIK <= 5,
-          String(ayar.GOZ_ALEV_ARALIK));
+  /* Burada eskiden "aralik <= 5" diye bir satir vardi.
+     KALDIRILDI, gevsetildigi icin degil: o satir "bosluk
+     olmasin" seyini DOLAYLI olcuyordu ve yanlis olcuyordu --
+     bosluk olup olmamasi araliga degil, omrun araligi
+     ORTUP ORTMEDIGINE bagli. v7.20'de aralik 6'ya cikti ama
+     omur de uzadi, yani bosluk yok; eski satir bunu "hata"
+     sayiyordu. Dogrudan olcum 5. bolumde:
+       "omur yayim araligindan uzun (bosluk olmasin)"
+       "goz basina TEK alev (1 - 2 arasi)"
+     Dolayli bir olcumun yerini dogrudan olcum aldi.        */
 
   /* ---- AURA GERCEKTEN KALKTI MI (v7.19) ----
      Kullanici "aura parcaciklarini kaldir" dedi. Ayari

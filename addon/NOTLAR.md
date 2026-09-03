@@ -1,3 +1,94 @@
+# v7.20.0 — Göz başına TEK alev, "İİİİİİ" düzeldi
+
+Kullanıcı v7.19'u oyunda gördü ve şöyle tarif etti:
+
+> "Yüzün biraz önünde İİİİİİ gibi İİİİİİ... yani en önemli
+> sorun bu, bunu düzeltmemiz lazım. Şu eski gönderdiğin
+> fotoğraftaki gibi ama bir tane, çok fazla yok. Bir tanelik,
+> hafif de önde yüzün."
+
+Yani: şekil doğruydu, **ölçek** yanlıştı.
+
+## 1. Sorun ölçekti, şekil değil
+
+v7.19'da dış ölçü 0.088–0.134 blok yüksekliğindeydi. Bir blok
+16 MC pikseli, dokudaki dil de tuvalin ~%56'sı kadar — yani
+ekranda görünen alev **2 piksel** genişliğinde bir şeydi.
+2 piksellik bir şey "alev" değil **çizgi** okunuyor.
+Kullanıcının gördüğü "İ" tam olarak buydu.
+
+Alev artık **0.255–0.33 blok**. Kafa 0.5 blok, yani alev
+kafanın yarısından biraz fazla — gönderdiğim render'daki
+oranın ta kendisi. Görünen dil ~0.16 × 0.25 blok.
+
+## 2. Göz başına tam TEK alev
+
+Kullanıcı "bir tanelik" dedi. Sayı hesapla tutuluyor:
+
+    1 zerre × (20 / 6 tick) × 0.39 sn ömür = 1.3 alev
+
+Yani neredeyse hep tek, yalnız geçiş anında kısa bir üst üste
+binme. **O binme şart** — olmasa alev bir sönüp bir yanardı.
+
+Aynı sebeple **boy zarfı artık sıfıra inmiyor** (0.55–1.0;
+v7.19'da 0.25–1.0 idi). Zerre doğarken ve ölürken neredeyse
+yok oluyordu; tek alev varken bu **poplama** yapıyor. 0.55
+tabanı, biten alevle yeni alevin üst üste bindiği anda ikisinin
+de yarıya yakın büyüklükte olmasını sağlıyor — geçiş
+görünmüyor.
+
+## 3. Çekirdek ısındı
+
+Beyazlık 0.30 → **0.42**. v7.19'da beş alev üst üste biniyordu
+ve toplamalı harmanda beyaza doyuyordu; şimdi tek alev var,
+doyma yok. Gerçek ateşin ortası da beyaza çalar.
+
+## 4. Yapılamayan şey — açıkça
+
+Kullanıcı ayrıca **göz dokusuna çizili alevlerin** kıvrılmasını
+istedi. Bu **yapılamıyor** ve sebebi bu depoda iki kez
+ölçüldü:
+
+- **v5.3** — attachable animasyonları çalışmıyor
+- **v7.16** — render denetleyici + doku dizisi + `query.life_time`
+  de çalışmıyor
+
+Göz kaplaması bir attachable. Kımıldayan tek şey parçacık
+olabilir. O yüzden çözüm, parçacığı çizili alevlerin tam
+üstüne, onların devamı gibi görünecek şekilde koymak.
+
+## 5. Testler
+
+Ölçek artık **iki yönlü** sınırlanıyor. Tek yönlü bir sınır bu
+hatanın ikizini yakalayamazdı:
+
+- "alev ÇİZGİ olacak kadar ince değil" — boy ≥ 0.18 blok
+- "alev kafayı KAPATACAK kadar büyük değil" — en büyük ≤ 0.5
+
+Süreklilik de doğrudan ölçülüyor:
+
+- "göz başına TEK alev (1–2 arası)"
+- "ömür yayım aralığından uzun (boşluk olmasın)"
+- "boy zarfı sıfıra inmiyor"
+
+**Bir test kaldırıldı:** `aralik <= 5`. Gevşetildiği için
+değil — o satır "boşluk olmasın"ı **dolaylı** ölçüyordu ve
+yanlış ölçüyordu. Boşluk aralığa değil, ömrün aralığı örtüp
+örtmediğine bağlı. v7.20'de aralık 6'ya çıktı ama ömür de
+uzadı; eski satır bunu "hata" sayıyordu. Dolaylı ölçümün yerini
+üç doğrudan ölçüm aldı.
+
+Beş mutasyonun beşi de yakalandı:
+1. alev v7.19 ölçeğine döndürüldü → "çizgi değil" düştü
+2. alev kafayı kapatacak kadar büyütüldü → üst sınır düştü
+3. zarf sıfıra indirildi → "poplamıyor" düştü
+4. ömür kısaltıldı → "boşluk olmasın" düştü
+5. aralık 1'e çekildi → "tek alev" düştü (6.8 alev)
+
+91 testin 91'i geçiyor.
+
+---
+
 # v7.19.0 — Aura kaldırıldı, geriye sadece göz alevi kaldı
 
 Kullanıcı v7.18'i oyunda gördü ve ekran görüntüsü gönderdi:
