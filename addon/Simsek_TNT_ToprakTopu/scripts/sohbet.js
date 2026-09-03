@@ -99,6 +99,20 @@ export function komutCozumle(oyuncu, hamMetin) {
   const parca = metin.split(" ");
   const ad = parca[0];
 
+  /* ARINMA -- disaridan gelen kilitleri acar.
+
+     Bu komutun SOHBETTE olmasi susleme degil, savunmanin can
+     damari: hareket kilitliyken (inputpermission disabled)
+     jest yapamazsin, ama sohbete yazabilirsin. Kilidi acacak
+     sey, kilidin engellemedigi bir yoldan tetiklenmeli.
+
+     Uc ad da kabul ediliyor cunku panik anindayken insan ne
+     yazacagini dusunmez.                                     */
+  if (ad === "arin" || ad === "arın" || ad === "kurtul" ||
+      ad === "serbest") {
+    return { cevap: cagir("arindir", oyuncu) };
+  }
+
   if (ad === "can" || ad === "kalp") {
     const arg = parca[1];
 
@@ -368,6 +382,7 @@ const YARDIM = [
   "§ecan 10§7 · 10 kalp ekle (tavan " + KALP_TAVAN + ")",
   "§ecan§7 · varsayilan " + KALP_ADIM + " kalp",
   "§ecan sifirla§7 · eklenen kalpleri geri al",
+  "§earin§7 · KILITLERI AC: poz, girdi, kamera, sarsinti, olumsuz efekt",
   "§elazer§7 · goz lazeri at (once iksir ic)",
   "§ebot§7 · botu cagir / yanina getir",
   "§ebot odun§7 · botlar etrafindaki agaclari keser",

@@ -80,6 +80,10 @@ import {
    playerLeave'de dusuruluyor.                              */
 import { pozUnut } from "./yetenekler/pozlar.js";
 
+/* v7.28: Arinma. Sohbetten de cagriliyor (girdi kilitliyken
+   jest yapilamaz), o yuzden fonksiyon disari aciliyor.      */
+import { arindir, arinmaUnut } from "./yetenekler/arinma.js";
+
 /* v5.8: acilabilir zirh katmanlari (matkap). Yetenegi kendi
    dosyasinda kaydediyor; buradan yalniz "cekirdek elden
    cikinca katmani kapat" tazelemesi cagriliyor.            */
@@ -159,6 +163,7 @@ import "./yetenekler/yamult.js";
 import "./yetenekler/beden_bol.js";
 import "./yetenekler/pozlar.js";
 import "./yetenekler/sinematik.js";
+import "./yetenekler/arinma.js";
 import "./yetenekler/toprak_duvar.js";
 import "./yetenekler/iksirler.js";
 import "./yetenekler/goz_lazeri.js";
@@ -2279,6 +2284,7 @@ olayaAbone("playerLeave", (olay) => {
   efsaneMuzikUnut(olay.playerId);
   zirhAgacOyuncuUnut(olay.playerId);
   pozUnut(olay.playerId);
+  arinmaUnut(olay.playerId);
 
   // Oyuncunun butun isleri durdurulmali, sadece birincisi degil
   const acikIsler = oyuncununIsleri.get(olay.playerId);
@@ -2528,6 +2534,7 @@ function durumRaporu(oyuncu) {
 
 sohbetKancalari({
   durum: (oyuncu) => durumRaporu(oyuncu),
+  arindir: (oyuncu) => arindir(oyuncu),
   kalpEkle: (oyuncu, adet) => kalpEkle(oyuncu, adet),
   kalpSifirla: (oyuncu) => kalpSifirla(oyuncu),
   kollariVer: (oyuncu) => kollariVer(oyuncu),

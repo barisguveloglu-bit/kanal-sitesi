@@ -1,3 +1,94 @@
+# v7.28.0 — Arınma: dışarıdan gelen kilitlere karşı savunma
+
+Kullanıcı: *"Biriyle vs atacağım. Toolbox gibi kötü yazılımlar
+kullanırsa ve benden daha güçlü çıkarsa ne olacak? Karşı savunma
+geçir bana."*
+
+Dosya henüz gelmedi; bu sürüm **dosyaya bağlı olmayan** kısmı
+kapatıyor: elimizdeki komut listelerinden ve deponun kendi
+kayıtlarından çıkan saldırı yüzeyi.
+
+## Saldırı yüzeyi — beşinin de ortak yanı aynı
+
+| ne | komut | neden tehlikeli |
+|---|---|---|
+| kalıcı poz | `playanimation ... 9999` | kendiliğinden geçmez |
+| girdi kilidi | `inputpermission set @s movement disabled` | kımıldayamazsın, oyun içi geri alma yolu **yok** |
+| kamera kilidi | `camera set minecraft:free` | kendi bedenini göremezsin, bitmez |
+| uzun efekt | `effect @s slowness 100000 255 true` | ~83 dakika |
+| ekran sarsma | `camerashake add @s 4 999` | görüşü bozar |
+
+Beşinin de ortak yanı: **kendiliğinden bitmiyor ve saldıran tarafta
+geri alan bir satır yok.** Bu bir tesadüf değil — aynı desen
+Yamultma'nın kaynağında da vardı ve v4.10'da not düşülmüştü.
+
+## Deponun bugünkü savunması — ölçüldü
+
+- **Var:** dünyaya her girişte `inputpermission ... enabled`
+  (v4.33'te eklenmiş son emniyet). Yani çıkıp girince girdi kilidi
+  açılıyor.
+- **Yok:** kamera kilidi, kalıcı poz, uzun efekt ve sarsıntı için
+  hiçbir kurtuluş yolu yoktu. Kendi yeteneklerimiz kendi kurdukları
+  şeyi temizliyor, ama **dışarıdan gelene karşı hiçbir şey yoktu.**
+
+## Arınma
+
+Beşini birden geri alıyor. İki yerden çağrılıyor: jest sırasından
+(sıra 156) **ve sohbet komutu olarak** (`arin` · `kurtul` ·
+`serbest`).
+
+### Sohbetten çağrılabilmesi süsleme değil, işin can damarı
+
+Hareket kilitliyken jest yapamazsın. **Kilidi açacak şeyin, kilidin
+engellemediği bir yoldan tetiklenmesi gerekir.** Sohbet girdi
+kilidinden etkilenmiyor. Test bu maddeyi ayrıca tutuyor; düşerse
+savunma tam gerektiği anda ulaşılamaz olur.
+
+### "effect @s clear" yazılmadı
+
+Bu depoda aynı tuzağa bir kez düşülmüştü (`komut_isin.mjs`): kaynak
+listede `effect @p clear` vardı ve oyuncunun **kendi içtiği iksiri**
+de siliyordu. Burada **adı yazılı** olumsuz efektler siliniyor; hız,
+güç, direnç, yenilenme, emme yerinde kalıyor. Test bunu tek tek
+kontrol ediyor.
+
+### Bekleme neden var, neden kısa
+
+Beklemesiz olsaydı Arınma her şeye anlık bağışıklık olurdu ve kendi
+Yamultma/Dondur yeteneklerimiz PvP'de işe yaramazdı. 30 tick
+(1,5 sn) ikisinin ortası: kilit döngüsünden çıkmaya yeter, bağışıklık
+vermez. Test beklemenin **2 saniyeyi geçmemesini** de tutuyor —
+uzarsa savunma iş görmez.
+
+### Kısmi başarı kabul
+
+Bir komut patlarsa (o sürümde `camera` yoksa gibi) ötekiler yine
+çalışıyor. Kamerayı açamasak bile girdiyi açmak işe yarar.
+
+## Test
+
+`test/arinma.mjs` (97. dosya), 7 bölüm. On mutasyonla sınandı, onu
+da yakalandı — beş kilidin her birini ayrı ayrı kaldırmak, sohbet
+komutunu silmek, `effect @s clear` eklemek, beklemeyi uzatmak, poz
+sıfırlamayı kalıcı yapmak, bir komut patlayınca ötekileri durdurmak.
+
+## Neyin savunması YOK — dürüstçe
+
+- **`/kill`** — zırh, direnç, totem hiçbirini dinlemiyor. Script
+  tarafında karşılığı yok; buna karşı savunma yazamam.
+- **Dünya ayarlarını değiştirmek / operatör yetkisi** — bu paketin
+  kapsamı dışında.
+- Arınma **saldırıyı engellemiyor**, geri alıyor. Kilit tekrar
+  kurulursa tekrar arınman gerekir.
+
+## Dosya gelince
+
+Gelen dosyada Arınma'nın kapsamadığı bir şey varsa listeye eklenecek.
+Bakılacak yerler: `scripts/` altındaki komut çağrıları, `functions/`
+altındaki `.mcfunction` dosyaları, `tick.json`, ve varlık
+tanımlarındaki `minecraft:on_hurt` gibi olay bağları.
+
+
 # v7.27.0 — Poz sandığı (39 poz) + sinematik kamera
 
 Kullanıcı 45 satırlık bir `playanimation` listesi + 2 kamera komutu

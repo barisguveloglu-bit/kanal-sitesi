@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.27.0";
+export const SURUM = "v7.28.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -759,6 +759,60 @@ export const SINEMATIK_FADE    = [0.5, 0.5, 0.5];   // giris/tut/cikis sn
 export const SINEMATIK_RENK    = [1, 1, 1];         // beyaz
 /* Tavan: is takilirsa bile kamera bu ticki gecince birakilir. */
 export const SINEMATIK_TAVAN   = 400;
+
+/* ---------------- ARINMA (v7.28) -- SAVUNMA ----------------
+   Kullanici: "biriyle vs atacagim, toolbox gibi seyler
+   kullanirsa ve benden daha guclu cikarsa ne olacak? Karsi
+   savunma gecir bana."
+
+   ---- SALDIRI YUZEYI: NE YAPILABILIYOR ----
+   Elimizdeki komut listelerinden ve depodaki kayitlardan
+   cikan, bir baskasinin sana yapabilecegi seyler:
+
+     1. KALICI POZ     playanimation ... 9999
+        Bedenin bolunur/yatar ve KENDILIGINDEN GECMEZ.
+     2. GIRDI KILIDI   inputpermission set @s movement disabled
+        Kimildayamazsin. Oyun ici geri alma yolu YOK.
+     3. KAMERA KILIDI  camera set minecraft:free
+        Kendi bedenini goremezsin, kendiliginden bitmez.
+     4. UZUN EFEKT     effect @s slowness 100000 255 true
+        ~83 dakika. Referans modda tam bu vardi.
+     5. EKRAN SARSMA   camerashake add @s 4 999
+
+   Besinin de ortak yani AYNI: KENDILIGINDEN BITMIYOR ve
+   saldiran tarafta geri alan bir satir yok.
+
+   ---- SAVUNMA: TEK HAREKETLE HEPSINI GERI AL ----
+   Arinma besini birden geri aliyor. Iki yerden cagriliyor:
+     - jest sirasindan (normal durumda)
+     - SOHBET KOMUTU olarak ("arin")
+   Ikincisi susleme degil, isin can damari: hareket kilitliyken
+   jest yapamazsin ama SOHBETE YAZABILIRSIN. Kilidi acacak sey,
+   kilidin engellemedigi bir yoldan tetiklenmeli.
+
+   ---- EFEKTLER: "effect @s clear" YAZILMADI ----
+   Bu depoda ayni tuzaga bir kez dusulmustu (komut_isin.mjs):
+   kaynak listede "effect @p clear" vardi ve oyuncunun KENDI
+   ictigi iksiri de siliyordu. Burada ADI YAZILI olumsuz
+   efektler siliniyor; kendi guclendirmelerine dokunulmuyor.
+
+   ---- BEKLEME NEDEN VAR ----
+   Beklemesiz olsaydi Arinma her seye anlik bagisiklik olurdu
+   ve kendi Yamultma/Dondur yeteneklerimiz PvP'de ise
+   yaramazdi. 30 tick (1,5 sn) ikisinin ortasi: kilit
+   dongusunden cikmaya yeter, bagisiklik vermez.             */
+export const ARIN_ACIK    = true;
+export const ARIN_BEKLEME = 30;     // tick
+export const ARIN_SIRA    = 156;    // jest sirasindaki yeri
+/* Silinen olumsuz efektler. IZIN listesi degil ATLA listesi
+   de degil -- ADI YAZILI liste: yalniz bunlar siliniyor,
+   kendi guclendirmelerin (hiz, guc, direnc, yenilenme,
+   emme...) yerinde kaliyor.                                 */
+export const ARIN_EFEKTLER = [
+  "slowness", "weakness", "mining_fatigue", "blindness",
+  "nausea", "poison", "wither", "hunger", "darkness",
+  "levitation", "bad_omen", "fatal_poison", "slow_falling"
+];
 
 /* ---------------- Iksirler (Nitroksin sistemi) ----------------
    Referans mod bunu tamamen komutla yapiyordu:
