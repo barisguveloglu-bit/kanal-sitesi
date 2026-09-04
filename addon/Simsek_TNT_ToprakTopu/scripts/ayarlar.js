@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.35.0";
+export const SURUM = "v7.36.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -851,6 +851,70 @@ export const ARIN_SIS   = true;    // /fog
    zaten sessizce dusuyor.                                   */
 export const ARIN_SIS_BILINEN = ["1", "11", "13", "l1", "t"];
 export const ARIN_SIS_KIMLIK  = "arinma";
+
+
+/* ---------------- KAFES KIRMA (v7.36) --------------------
+   WDBAX_Client.apk (io.wdbax.mctoolbox) incelendi: MT Manager
+   ile yeniden paketlenmis, NP Manager (npprotect/npvmp) ile
+   korunmus bir Toolbox 1.19.x kopyasi. Ozellik listesi
+   resources.arsc'ten cikarildi ve bizim REFERANS_SAVUNMA_
+   PLANI.md'deki listeyle ayni cikti -- YENI bir saldiri yok.
+
+   Ama listede bizde HALA karsiligi olmayan bir aile vardi:
+   rapid_build · bridge_builder · fast_destroy · nuke.
+   Ustune bir onceki turda olculen /fill (26 ozgun) ve
+   /setblock (9 ozgun) komutlari da ayni seye cikiyor:
+   SENI BLOKLA HAPSETMEK.
+
+   Kafes Kirma bunun karsiligi. Iki kurali var:
+
+   1. HAPSEDILMEDIYSE HICBIR SEYE DOKUNMAZ. Yoksa bu bir
+      savunma degil, kendi evini deler bir kazma olurdu.
+   2. AYAGININ ALTINI KIRMAZ. Kirsaydi kafesten kurtulup
+      bosluga duserdin.                                     */
+export const KAFES_ACIK     = true;
+/* 158: 156 Arinma, 157 Savunma Kipi (dolu). Ilk yazisimda
+   157 secilmisti; kayit.mjs/sohbet.mjs/viltrumite.mjs ucu
+   birden cakismayi yakaladi. Savunma ailesi burada bitisik
+   duruyor: 156-157-158.                                    */
+export const KAFES_SIRA     = 158;
+export const KAFES_BEKLEME  = 40;    // tick
+export const KAFES_YARICAP  = 1;     // kac blok yanina kadar acilir
+
+/* ASLA KIRILMAYAN BLOKLAR.
+   Sandik setType("air") ile silinince ICINDEKILER DE GIDER.
+   Bu modun en eski kurali "oyuncunun esyasi kaybolmaz" --
+   kafesin duvari sandiksa duvar orada kalir, biz haber
+   veririz. Kendi kupalarimiz da burada: raconun duvara
+   dayanmis olabilir.                                       */
+export const KAFES_KORUNAN = [
+  "minecraft:chest", "minecraft:trapped_chest", "minecraft:ender_chest",
+  "minecraft:barrel", "minecraft:shulker_box", "minecraft:undyed_shulker_box",
+  "minecraft:furnace", "minecraft:lit_furnace", "minecraft:blast_furnace",
+  "minecraft:smoker", "minecraft:hopper", "minecraft:dispenser",
+  "minecraft:dropper", "minecraft:brewing_stand", "minecraft:beacon",
+  "minecraft:chiseled_bookshelf", "minecraft:decorated_pot"
+];
+/* Bu onekle baslayan her sey de korunuyor -- kendi bloklarimiz. */
+export const KAFES_KORUNAN_ONEK = "pa:";
+
+/* ---------------- BLOK HIZI DENETIMI (v7.36) -------------
+   Ayni APK'daki dort ozellik tek bir olcumle goruluyor:
+   fast_destroy · rapid_build · bridge_builder · nuke.
+   Dordu de "insanin yapamayacagi hizda blok kirmak/koymak"
+   demek, ve kirma/koyma olaylari sunucuya geliyor.
+
+   ESIKLER OLCULEREK degil, ELDE EDILEBILIR EN HIZLI INSAN
+   degerinin ustune konuldu: sarj tam bir elmas kazmayla
+   yumusak blokta saniyede ~5 blok, biz 2 saniyede 24
+   (saniyede 12) diyoruz. Yani normal oyun bunu tetiklemez.
+   Yanlis suclama, kacirilan hileden pahali (gozcu.mjs'in
+   yarisi bu yuzden "temiz oyuncu suclanmiyor" maddesi).   */
+export const BLOK_ACIK        = true;
+export const BLOK_PENCERE     = 40;   // tick (2 sn)
+export const BLOK_KIRMA_ESIK  = 24;   // pencerede kirilan blok
+export const BLOK_KOYMA_ESIK  = 24;   // pencerede konulan blok
+export const BLOK_SUS         = 200;  // iki bildirim arasi en az
 
 /* ---------------- SAVUNMA KIPI (v7.29) ----------------
    Kullanici: "Hadi diyelim ki vs yapacagiz, hileleri actim.

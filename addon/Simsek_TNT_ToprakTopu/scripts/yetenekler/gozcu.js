@@ -9,7 +9,8 @@ import {
   HAREKET_ACIK, HAREKET_ORNEK, HAREKET_HIZ, HAREKET_SICRAMA,
   HAREKET_YUKSELME, HAREKET_YUKSEK_PAY,
   GERI_ITME_ACIK, GERI_ITME_ORNEK, GERI_ITME_BEKLENEN,
-  GERI_ITME_HAREKET, GERI_ITME_TAVAN
+  GERI_ITME_HAREKET, GERI_ITME_TAVAN,
+  BLOK_ACIK, BLOK_PENCERE, BLOK_KIRMA_ESIK, BLOK_KOYMA_ESIK, BLOK_SUS
 } from "../ayarlar.js";
 
 /* GOZCU -- vurus denetimi (menzil + killaura).
@@ -431,4 +432,87 @@ export function geriItmeDegerlendir(simdi) {
       hataYaz("gozcu.geriItme", e);
     }
   }
+}
+
+
+/* ============================================================
+   BLOK HIZI DENETIMI  --  fast_destroy · rapid_build ·
+                           bridge_builder · nuke      (v7.36)
+
+   WDBAX_Client.apk'nin ozellik listesindeki dort ozellik.
+   Dordu de tek bir seye cikiyor: insanin yapamayacagi hizda
+   blok kirmak ya da koymak. Ikisi de sunucuya olay olarak
+   geliyor, yani ESP'nin aksine GERCEKTEN OLCULEBILIYOR.
+
+   ---- ESIK NEDEN BU KADAR YUKSEK ----
+   Sarj tam bir elmas kazmayla yumusak blokta insan saniyede
+   ~5 blok kirabiliyor. Esik saniyede 12 (2 saniyede 24).
+   Yani normal oyun -- hatta hizli oyun -- bunu tetiklemez.
+   Yanlis suclama kacirilan hileden pahali: bu dosyanin
+   yarisi zaten "temiz oyuncu suclanmiyor" maddelerinden
+   olusuyor.
+
+   ---- MUAFIYET YINE IS LISTESINDEN ----
+   Goz Lazeri bir tickte onlarca blok kirabiliyor. Muafiyet
+   "lazer haric" diye yazilmadi -- hareket denetimindeki ayni
+   soru soruluyor: bu oyuncunun calisan bir isi var mi?
+   Yeni bir blok yeteneği eklendiginde muafiyet kendiliginden
+   gecerli oluyor.
+   ============================================================ */
+
+// oyuncuId -> { kirma: [tick], koyma: [tick], sonBildirim }
+const blokDefteri = new Map();
+
+export function blokUnut(oyuncuId) {
+  if (oyuncuId === undefined) blokDefteri.clear();
+  else blokDefteri.delete(oyuncuId);
+}
+
+export function blokDurum(oyuncuId) { return blokDefteri.get(oyuncuId); }
+
+/* Tek bir olayin islenmesi. Disari veriliyor ki test onu
+   olay sistemi olmadan da cagirabilsin -- abonelik
+   kurulamayan bir API surumunde testin sessizce gecmesi
+   istenmiyor.                                              */
+export function blokOlayi(oyuncu, tur, simdi, isVarMi) {
+  if (!BLOK_ACIK) return null;
+  if (!oyuncu || !gecerliMi(oyuncu)) return null;
+  if (oyuncu.typeId !== "minecraft:player") return null;
+  if (typeof isVarMi === "function" && isVarMi(oyuncu.id)) return null;
+
+  let d = blokDefteri.get(oyuncu.id);
+  if (!d) { d = { kirma: [], koyma: [], sonBildirim: -99999 }; blokDefteri.set(oyuncu.id, d); }
+
+  const dizi = tur === "kirma" ? d.kirma : d.koyma;
+  dizi.push(simdi);
+  /* Pencere disi dusuyor: uzun bir oturumda birikip
+     suclama uretmesin (isaretle()'deki ayni gerekce).      */
+  const suzulmus = dizi.filter((t) => simdi - t < BLOK_PENCERE);
+  if (tur === "kirma") d.kirma = suzulmus; else d.koyma = suzulmus;
+
+  const esik = tur === "kirma" ? BLOK_KIRMA_ESIK : BLOK_KOYMA_ESIK;
+  if (suzulmus.length < esik) return null;
+  if (simdi - d.sonBildirim < BLOK_SUS) return null;
+  d.sonBildirim = simdi;
+
+  let ad = "?";
+  try { ad = oyuncu.name || oyuncu.typeId || "?"; } catch (e) { /* onemsiz */ }
+  const sebep = tur === "kirma"
+    ? "kırma hızı " + suzulmus.length + "/" + (BLOK_PENCERE / 20) + " sn"
+    : "koyma hızı " + suzulmus.length + "/" + (BLOK_PENCERE / 20) + " sn";
+  sohbeteYaz("§c⚠ Gözcü: §f" + ad + " §7· " + sebep);
+  return sebep;
+}
+
+export function blokHizKur(isVarMi) {
+  if (!BLOK_ACIK) return false;
+  const kir = olayaAbone("playerBreakBlock", (olay) => {
+    try { blokOlayi(olay.player, "kirma", system.currentTick, isVarMi); }
+    catch (e) { hataYaz("gozcu.blokKirma", e); }
+  });
+  const koy = olayaAbone("playerPlaceBlock", (olay) => {
+    try { blokOlayi(olay.player, "koyma", system.currentTick, isVarMi); }
+    catch (e) { hataYaz("gozcu.blokKoyma", e); }
+  });
+  return kir || koy;
 }

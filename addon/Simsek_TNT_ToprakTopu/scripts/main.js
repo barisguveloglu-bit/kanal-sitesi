@@ -84,10 +84,14 @@ import { pozUnut } from "./yetenekler/pozlar.js";
    jest yapilamaz), o yuzden fonksiyon disari aciliyor.      */
 import { arindir, arinmaUnut, savunmaAc } from "./yetenekler/arinma.js";
 
+/* v7.36: Kafes Kirma -- bloklarla hapsedilmeye karsi. */
+import { kafesKir, kafesUnut } from "./yetenekler/kafes.js";
+
 /* v7.30: Gozcu -- vurus denetimi (menzil + killaura). Kendi
    olay aboneligini kuruyor, yetenek degil.                  */
 import {
-  gozcuKur, gozcuUnut, hareketTara, hareketUnut, geriItmeUnut
+  gozcuKur, gozcuUnut, hareketTara, hareketUnut, geriItmeUnut,
+  blokHizKur, blokUnut
 } from "./yetenekler/gozcu.js";
 import { HAREKET_ACIK, HAREKET_ORNEK } from "./ayarlar.js";
 import {
@@ -95,6 +99,12 @@ import {
 } from "./yetenekler/envanter_yedek.js";
 import { YEDEK_OTOMATIK } from "./ayarlar.js";
 gozcuKur();
+/* v7.36: blok kirma/koyma hizi (fast_destroy, rapid_build,
+   bridge_builder, nuke). Muafiyet sorusu hareket taramasiyla
+   AYNI: bu oyuncunun calisan bir isi var mi? oyuncuIsSayisi
+   asagida tanimli ama fonksiyon bildirimi oldugu icin burada
+   cagrilabiliyor; zaten geri cagri olay aninda calisiyor.  */
+blokHizKur((kimlik) => oyuncuIsSayisi(kimlik) > 0);
 
 /* v5.8: acilabilir zirh katmanlari (matkap). Yetenegi kendi
    dosyasinda kaydediyor; buradan yalniz "cekirdek elden
@@ -2319,6 +2329,8 @@ olayaAbone("playerLeave", (olay) => {
      KIMLIKLE cagriliyor: kimliksiz cagri hepsini silerdi ve
      oteki oyuncularin olcumleri de gitmis olurdu.          */
   geriItmeUnut(olay.playerId);
+  blokUnut(olay.playerId);
+  kafesUnut(olay.playerId);
   yedekUnut(olay.playerId);
 
   // Oyuncunun butun isleri durdurulmali, sadece birincisi degil
@@ -2585,6 +2597,7 @@ sohbetKancalari({
     }
     return sonuc.mesaj;
   },
+  kafesKir: (oyuncu) => kafesKir(oyuncu),
   yedekAl: (oyuncu) => yedekAl(oyuncu),
   yedekYukle: (oyuncu) => yedekYukle(oyuncu),
   kalpEkle: (oyuncu, adet) => kalpEkle(oyuncu, adet),

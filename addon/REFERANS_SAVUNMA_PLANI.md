@@ -82,16 +82,16 @@ insanın hızlı yapmasından ayırt edilemez).
 |---|---|---|
 | komutla kilit (poz/girdi/kamera/efekt) | **Arınma + Savunma Kipi** ✓ | — |
 | `/kill` | yok | yok |
-| envanteri `/clear` ile silme | yok | **envanter yedeği** |
-| bloklarla hapsetme | yok | **kafes kırma** |
-| ışınlayıp atma | yok | **konum sıçraması denetimi** |
+| envanteri `/clear` ile silme | **Envanter Yedeği** ✓ (v7.30) | — |
+| bloklarla hapsetme | **Kafes Kır** ✓ (v7.36) | — |
+| ışınlayıp atma | **Hareket denetimi** ✓ (v7.30) | — |
 | gamemode creative'e geçme | yok | **denetle ve geri al** |
-| reach ile uzaktan vurma | yok | **mesafe denetimi** |
-| killaura | yok | **vuruş hızı + bakış açısı** |
-| anti-knockback | yok | **geri itme doğrulaması** |
-| uçma / hız / yüksek zıplama | yok | **konum/fizik denetimi** |
+| reach ile uzaktan vurma | **Gözcü** ✓ (v7.30) | — |
+| killaura | **Gözcü** ✓ (v7.30) | — |
+| anti-knockback | **Gözcü** ✓ (v7.31) | — |
+| uçma / hız / yüksek zıplama | **Hareket denetimi** ✓ (v7.30) | — |
 | noclip / phase | yok | **katı blok içinde mi** |
-| hızlı kazma / rapid build | yok | **kırma-koyma hızı** |
+| hızlı kazma / rapid build | **Blok hızı denetimi** ✓ (v7.36) | — |
 | xray · ESP · tracer · minimap · freecam | **yok** | **YOK — mümkün değil** |
 
 ## Önerilen sıra
@@ -116,3 +116,20 @@ Bu modda konum sıçratan, hızlandıran, uçuran **kendi
 yeteneklerimiz** var (Uçurma, Işınlanma, Atılım, Kasırga, Meteor).
 Hareket denetimi yazılırsa bunları tanımak zorunda — yoksa savunma
 kendi oyuncusunu suçlar. Bu, sıra 4'ün en sonda olmasının sebebi.
+
+
+## v7.36 sonrası durum
+
+Yukarıdaki tablo WDBAX_Client.apk incelemesinden sonra
+güncellendi (bkz. `REFERANS_WDBAX_APK.md`). Ayrıca eklendi:
+
+| senaryo | bugün |
+|---|---|
+| ekranı title duvarıyla kapatma | **Arınma** ✓ (v7.35) |
+| ses bombası (`/playsound`, `/music`) | **Arınma** ✓ (v7.35) |
+| sis (`/fog push`) | **Arınma** ✓ (v7.35) |
+| bloklarla hapsetme | **Kafes Kır** ✓ (v7.36) |
+| rapid build · nuke · fast destroy | **Blok hızı** ✓ (v7.36) |
+
+Geriye kalan gerçek açıklar: `/kill`, `/damage`, `/gamemode`,
+`/summon` ve ekran-tarafı görüş hileleri (ESP ailesi).

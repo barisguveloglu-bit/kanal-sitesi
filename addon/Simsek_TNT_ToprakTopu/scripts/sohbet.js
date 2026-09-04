@@ -121,6 +121,17 @@ export function komutCozumle(oyuncu, hamMetin) {
     return { cevap: cagir("savunma", oyuncu) };
   }
 
+  /* KAFES KIRMA -- bloklarla hapsedilmeye karsi (v7.36).
+     Bu da sohbette olmali: bes blok bedrock'in ortasindaysan
+     jest menusunu acabilirsin ama isin acisindan fark etmez;
+     asil mesele Arinma ile ayni refleksle yazilabilmesi.
+     "cik" ve "kir" da kabul ediliyor, panik aninda kimse
+     "kafes" kelimesini aramaz.                              */
+  if (ad === "kafes" || ad === "cik" || ad === "çık" || ad === "kir" ||
+      ad === "kır") {
+    return { cevap: cagir("kafesKir", oyuncu) };
+  }
+
   /* ENVANTER YEDEGI -- "/clear" ile silinen esyanin karsiligi.
      Sohbette, cunku envanterin silindigi an genellikle
      kilitlerin de geldigi andir.                            */
@@ -402,6 +413,7 @@ const YARDIM = [
   "§ecan sifirla§7 · eklenen kalpleri geri al",
   "§earin§7 · KILITLERI AC: poz, girdi, kamera, sarsinti, olumsuz efekt",
   "§esavunma§7 · SAVUNMA KIPI: kilitleri surekli kirar (vs icin)",
+  "§ekafes§7 · BLOKLA HAPSEDILDIYSEN cevreni kir (fill/setblock)",
   "§eyedek§7 · envanterini yedekle (dovus oncesi)",
   "§egeriyukle§7 · yedekten geri yukle (/clear yediysen)",
   "§elazer§7 · goz lazeri at (once iksir ic)",
