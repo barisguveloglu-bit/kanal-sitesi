@@ -3,6 +3,7 @@ import { yetenekKaydet } from "./kayit.js";
 import { hataYaz, gecerliMi, actionbarYaz } from "../yardimcilar.js";
 import {
   ARIN_ACIK, ARIN_BEKLEME, ARIN_SIRA, ARIN_EFEKTLER,
+  ARIN_EKRAN, ARIN_SES, ARIN_SIS, ARIN_SIS_BILINEN, ARIN_SIS_KIMLIK,
   SAVUNMA_ARALIK, SAVUNMA_SURE, SAVUNMA_SIRA
 } from "../ayarlar.js";
 
@@ -13,11 +14,16 @@ import {
 
    ---- NEYE KARSI ----
    Bir baskasinin sana yapabilecegi ve KENDILIGINDEN GECMEYEN
-   bes sey var: kalici poz (playanimation ... 9999), girdi
+   SEKIZ sey var: kalici poz (playanimation ... 9999), girdi
    kilidi (inputpermission disabled), kamera kilidi (camera
-   set free), cok uzun efekt (slowness 100000 255) ve ekran
-   sarsintisi. Besinin de saldiran tarafta geri alan bir
-   satiri yok.
+   set free), cok uzun efekt (slowness 100000 255), ekran
+   sarsintisi, ekrani kapatan title duvari, ses bombasi ve
+   sis. Sekizinin de saldiran tarafta geri alan bir satiri
+   yok.
+
+   Son ucu v7.35'te eklendi: 53 MB'lik bir kod arsivindeki
+   6.808 OZGUN komut sayilinca ucunun de kullanildigi ve
+   bizde karsiliginin olmadigi goruldu.
 
    ---- NEDEN SOHBETTEN DE CAGRILIYOR ----
    Hareket kilitliyken jest yapamazsin. Kilidi acacak sey,
@@ -58,6 +64,54 @@ function komut(oyuncu, metin) {
   }
 }
 
+
+/* ---- EKRAN · SES · SIS  (v7.35) ----
+   Ucu de olculmus bir saldiriya karsilik geliyor; sayilar
+   ayarlar.js'teki ARIN_EKRAN/ARIN_SES/ARIN_SIS notunda.
+   Ucu de AYRI fonksiyon, cunku hem arindir() hem
+   savunmaTazele() ayni seyi yapmak zorunda ve iki yere
+   kopyalanan bir savunma er gec ikiye ayrisiyor.            */
+
+/* /title @a actionbar "████████..." -- ekrani kapatma.
+   clear duran yaziyi siler, reset sure/gecis ayarlarini
+   fabrika degerine dondurur. Ikisi ayri sey: yalniz clear
+   yazarsan bir sonraki title yine 99999 tick kalir.         */
+function ekranTemizle(oyuncu) {
+  if (!ARIN_EKRAN) return false;
+  const a = komut(oyuncu, "title @s clear");
+  const b = komut(oyuncu, "title @s reset");
+  return a || b;
+}
+
+/* /playsound + /music -- ses bombasi.
+   stopsound'a ses adi VERILMIYOR: adsiz hali o oyuncudaki
+   butun sesleri durduruyor. Adini yazsaydik saldiranin
+   hangi sesi caldigini bilmemiz gerekirdi.                  */
+function sesSustur(oyuncu) {
+  if (!ARIN_SES) return false;
+  const a = komut(oyuncu, "stopsound @s");
+  const b = komut(oyuncu, "music stop");
+  return a || b;
+}
+
+/* /fog @a push "minecraft:fog_hell" -- gorusu bogma.
+   Iki yol birden deneniyor; gerekcesi ayarlar.js'te.
+   Once kendi eski sisimizi topluyoruz (ust uste birikmesin),
+   sonra bilinen kimlikleri kaldirip ustune varsayilan sisi
+   itiyoruz.                                                 */
+function sisKaldir(oyuncu) {
+  if (!ARIN_SIS) return false;
+  let oldu = false;
+  komut(oyuncu, "fog @s remove " + ARIN_SIS_KIMLIK);
+  for (const kimlik of ARIN_SIS_BILINEN) {
+    if (komut(oyuncu, "fog @s remove " + kimlik)) oldu = true;
+  }
+  if (komut(oyuncu, 'fog @s push "minecraft:fog_default" ' + ARIN_SIS_KIMLIK)) {
+    oldu = true;
+  }
+  return oldu;
+}
+
 /* Asil is. Hem yetenek hem sohbet komutu bunu cagiriyor.
    Geriye kullaniciya gosterilecek metin donuyor.            */
 export function arindir(oyuncu) {
@@ -92,7 +146,16 @@ export function arindir(oyuncu) {
     yapilan.push("poz");
   }
 
-  // 5. OLUMSUZ EFEKTLER -- adi yazili olanlar, hepsi degil.
+  // 5. EKRAN KAPATMA (v7.35)
+  if (ekranTemizle(oyuncu)) yapilan.push("ekran");
+
+  // 6. SES BOMBASI (v7.35)
+  if (sesSustur(oyuncu)) yapilan.push("ses");
+
+  // 7. SIS (v7.35)
+  if (sisKaldir(oyuncu)) yapilan.push("sis");
+
+  // 8. OLUMSUZ EFEKTLER -- adi yazili olanlar, hepsi degil.
   let silinen = 0;
   for (const ad of ARIN_EFEKTLER) {
     try {
@@ -147,6 +210,9 @@ function savunmaTazele(oyuncu) {
   komut(oyuncu, "camera @s clear");
   komut(oyuncu, "camerashake stop @s");
   komut(oyuncu, "playanimation @s animation.humanoid.move a 0");
+  ekranTemizle(oyuncu);
+  sesSustur(oyuncu);
+  sisKaldir(oyuncu);
   for (const ad of ARIN_EFEKTLER) {
     try {
       if (typeof oyuncu.getEffect === "function" && !oyuncu.getEffect(ad)) {

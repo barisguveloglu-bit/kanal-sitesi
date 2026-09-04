@@ -11,7 +11,8 @@
    duserse savunma tam gerektigi anda ulasilamaz olur.
 
    Sinananlar:
-     1. Bes kilidin BESINI de geri aliyor
+     1. Sekiz kilidin SEKIZINI de geri aliyor
+        (v7.35: ekran/ses/sis olculerek eklendi)
      2. Sohbet komutu olarak calisiyor ("arin", "kurtul", ...)
      3. KENDI guclendirmelerine DOKUNMUYOR (effect clear degil)
      4. Bir komut patlarsa otekiler yine calisiyor
@@ -79,6 +80,72 @@ console.log("=== 1. BES KILIDIN BESI DE GERI ALINIYOR ===");
      kalici yapip yeni bir kilit kurmus olurduk.             */
   kontrol("poz sifirlama KALICI degil",
           !komutVar(o, "humanoid.move a 9999"));
+}
+
+console.log("=== 1b. EKRAN · SES · SIS  (v7.35) ===");
+{
+  /* Bu uc madde OLCUMDEN geldi, tahminden degil. Kullanicinin
+     getirdigi 53 MB'lik kod arsivinde 549.798 komut satiri
+     vardi ama ozgun olan 6.808 tanesiydi. Ozgunler sayilinca
+     Arinma'nin ucu de tutmadigi cikti:
+
+       /title      287 ozgun  -> ekrani "████" duvariyla kapatma
+       /playsound   41 ozgun
+       /music       22 ozgun  -> ses bombasi
+       /fog          9 ozgun  -> fog_hell, fog_soulsand_valley
+
+     Ucu de kendiliginden gecmiyor. Bu madde duserse arsivdeki
+     359 ozgun komut yeniden karsiliksiz kalir.               */
+  const { o } = kur("a1b");
+  arinma.arindir(o);
+
+  kontrol("ekran yazisi siliniyor", komutVar(o, "title @s clear"));
+  /* clear TEK BASINA yetmiyor: reset olmadan bir sonraki
+     title yine 99999 tick ekranda kaliyor.                  */
+  kontrol("title ayarlari sifirlaniyor", komutVar(o, "title @s reset"));
+
+  kontrol("sesler durduruluyor", komutVar(o, "stopsound @s"));
+  kontrol("muzik durduruluyor", komutVar(o, "music stop"));
+  /* stopsound'a ses ADI verilmemeli: adsiz hali hepsini
+     durduruyor, adliysa saldiranin hangi sesi caldigini
+     bilmemiz gerekirdi.                                     */
+  kontrol("stopsound'a ses adi YAZILMIYOR",
+          o._komutlar.some((k) => k.trim() === "stopsound @s"),
+          o._komutlar.filter((k) => k.indexOf("stopsound") !== -1).join(",") || "-");
+
+  kontrol("olculen sis kimlikleri kaldiriliyor",
+          ayar.ARIN_SIS_BILINEN.every((k) => komutVar(o, "fog @s remove " + k)),
+          ayar.ARIN_SIS_BILINEN.join(","));
+  kontrol("ustune varsayilan sis itiliyor",
+          komutVar(o, 'fog @s push "minecraft:fog_default"'));
+  /* Kendi ittigimiz sis her arinmada birikmesin diye once
+     kendi kimligimiz kaldiriliyor.                          */
+  kontrol("once kendi sisimiz toplaniyor",
+          o._komutlar.indexOf("fog @s remove " + ayar.ARIN_SIS_KIMLIK) <
+          o._komutlar.findIndex((k) => k.indexOf("fog @s push") !== -1));
+}
+
+console.log("=== 1c. SAVUNMA KIPI DE UCUNU TAZELIYOR ===");
+{
+  /* Arinma tek seferlik. Saldiran title'i her saniye yeniden
+     basiyorsa savunma kipinin de basmasi lazim. Ikisi ayri
+     fonksiyon oldugu icin biri guncellenip oteki unutulabilir
+     -- bu madde tam onu tutuyor.                            */
+  const { o } = kur("sv-yeni");
+  const sonuc = arinma.savunmaAc(o);
+  kontrol("kip acilinca ekran temizleniyor", komutVar(o, "title @s clear"));
+  kontrol("kip acilinca ses susturuluyor", komutVar(o, "stopsound @s"));
+  kontrol("kip acilinca sis kaldiriliyor", komutVar(o, "fog @s"));
+
+  o._komutlar = [];
+  for (let i = 0; i < ayar.SAVUNMA_ARALIK * 2; i++) {
+    tickIlerlet(1);
+    sonuc.is.calis();
+  }
+  kontrol("tazelemede de ekran temizleniyor", komutVar(o, "title @s clear"));
+  kontrol("tazelemede de ses susturuluyor", komutVar(o, "stopsound @s"));
+  kontrol("tazelemede de sis kaldiriliyor", komutVar(o, "fog @s"));
+  sonuc.is.bitir && sonuc.is.bitir();
 }
 
 console.log("");

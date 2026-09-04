@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.34.0";
+export const SURUM = "v7.35.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -813,6 +813,44 @@ export const ARIN_EFEKTLER = [
   "nausea", "poison", "wither", "hunger", "darkness",
   "levitation", "bad_omen", "fatal_poison", "slow_falling"
 ];
+
+/* ---------------- ARINMANIN UC YENI KOLU (v7.35) ----------
+   Kullanici bir "kod dosyasi" arsivi getirdi (53 MB, 2024).
+   Icindeki BUTUN komutlar sayildi: 549.798 komut satiri ama
+   ozgun olan 6.808 tane -- gerisi ayni satirin kopyasi.
+   Savunma kopyaya degil OZGUN OLANA gore kuruluyor, cunku
+   ayni komutun ikinci kopyasi yeni bir sey yapmiyor.
+
+   Ozgun komutlar sayilinca Arinma'nin UC deligi cikti:
+
+     /title      287 ozgun  -> ekrani "████████" duvariyla
+                               doldurup gormeni engelliyorlar
+                               (EKRAN_kapatma_titlesi.txt)
+     /playsound   41 ozgun
+     /music       22 ozgun  -> ses bombasi
+     /fog          9 ozgun  -> fog_hell / fog_soulsand_valley
+
+   Ucu de KENDILIGINDEN GECMIYOR; Arinma'nin var olma sebebi
+   tam olarak bu. Ucu de asagida.                            */
+export const ARIN_EKRAN = true;    // /title clear + reset
+export const ARIN_SES   = true;    // /stopsound + /music stop
+export const ARIN_SIS   = true;    // /fog
+
+/* Sis kaldirmanin iki yolu var ve ikisi de tek basina
+   yetmiyor:
+
+   1. /fog @s remove <kimlik> -- KIMLIK BILMEK GEREKIYOR.
+      Saldiran kendi kimligini yaziyor. Arsivde olculen
+      kimlikler asagida; baskasi baska bir sey yazarsa bu
+      liste onu tutmaz.
+   2. Ustune kendi sisimizi itmek -- kimlik bilmeyi
+      gerektirmiyor ama sis yigininin hangi ucunun kazandigi
+      TABLETTE DENENMEDI.
+
+   Ikisi birden yapiliyor. Ikisi de zararsiz: tutmayan komut
+   zaten sessizce dusuyor.                                   */
+export const ARIN_SIS_BILINEN = ["1", "11", "13", "l1", "t"];
+export const ARIN_SIS_KIMLIK  = "arinma";
 
 /* ---------------- SAVUNMA KIPI (v7.29) ----------------
    Kullanici: "Hadi diyelim ki vs yapacagiz, hileleri actim.
