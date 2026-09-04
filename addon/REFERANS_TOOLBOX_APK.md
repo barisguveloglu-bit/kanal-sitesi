@@ -59,6 +59,85 @@ Yine de kurulmamalı, ve sebep "virüs buldum" değil:
 >
 > Mesele bulunan bir şey değil, **bakılamayan bir şey.**
 
+## DÖRDÜNCÜ DOSYA BAŞKA BİR ŞEY — MuCuteClient
+
+`MuCuteClientMCPE1.21.apk` · sha256 `ddb7e173…6abe1e` · 6.196.433 bayt
+
+Üstteki üçüyle **aynı aileden değil.** Kurulmadı, çalıştırılmadı.
+
+| | önceki üçü | MuCuteClient |
+|---|---|---|
+| ne | Toolbox yeniden paketi | **paket vekili (proxy)** |
+| imza | AOSP test anahtarı | **`CN=Su Mucheng`** (gerçek geliştirici) |
+| koruyucu | NP Manager | **yok** |
+| Minecraft kütüphanesi | sürüm sürüm derlenmiş | **hiç yok** |
+| sürüm bağı | 1.16–1.20.51 (ölü) | **protokol — sürümden bağımsız** |
+
+### Nasıl çalışıyor
+
+`classes.dex` içinde **netty 2072**, **raknet 72**, `Relay`, `Proxy`,
+`Localhost` geçiyor; Minecraft'ın yerel kütüphanelerinden **hiçbiri
+yok** (sadece standart `libandroidx.graphics.path.so`).
+
+Yani oyunu değiştirmiyor: **araya giriyor.** Telefonda yerel bir
+sunucu açıyor, Minecraft ona bağlanıyor, o da gerçek sunucuya
+bağlanıp aradaki paketleri değiştiriyor.
+
+### Bu neden önemli
+
+1. **Sürüme bağlı değil.** Öteki üçü belirli Minecraft sürümlerine
+   derlenmiş yerel kütüphanelere muhtaç ve bu yüzden bugün ölüler.
+   Bu protokolü konuşuyor — 1.21'de çalışıyor, sonrasında da
+   çalışmaya devam eder.
+2. **Operatör gerekmiyor, sunucu fark etmiyor.** Komut çalıştırmıyor;
+   kendi paketlerinde yalan söylüyor.
+3. Yani **hâlâ hayatta olan ve gerçekten karşımıza çıkabilecek tür
+   bu.**
+
+### İyi haber: v7.30 tam buna göre yazılmış
+
+Vekil de olsa **sunucuya inandırıcı paket göndermek zorunda.** Gözcü
+ölçümlerini sunucunun ALDIĞI şeyden yapıyor — yani yalan söyleyen
+istemci kendi yalanı üzerinden ölçülüyor.
+
+Bulunan özellikler ve karşılıkları:
+
+| özellik | Gözcü |
+|---|---|
+| Killaura | ✓ açı + hız |
+| Speed · Fly · High Jump · Air Jump · Auto Walk | ✓ hareket |
+| No Clip | ✓ hareket (ışınlanma/hız) |
+| **Velocity (anti-knockback)** | **henüz yok** |
+| Zoom · Full Bright · Night Vision · Tracer | ✗ mümkün değil (GÖRÜNTÜ) |
+
+Tek gerçek boşluk **Velocity**: geri itme sonrası oyuncunun gerçekten
+gidip gitmediği ölçülebilir, ama v7.30'da yok.
+
+### İzinler — ikisi dikkat çekiyor
+
+    INTERNET · FOREGROUND_SERVICE(+SPECIAL_USE) · POST_NOTIFICATIONS
+    VIBRATE · DUMP · SYSTEM_ALERT_WINDOW · QUERY_ALL_PACKAGES
+
+- `SYSTEM_ALERT_WINDOW` — başka uygulamaların üstüne çizme. Menüsünü
+  Minecraft'ın üstünde göstermek için; bu tasarımda beklenen.
+- `QUERY_ALL_PACKAGES` — **telefondaki bütün uygulamaları listeleme.**
+  Bir paket vekilinin buna ihtiyacı yok. Google bu izni sebepsiz
+  kısıtlamıyor.
+
+**Depolama izni YOK** — dünya dosyalarına hiç dokunmuyor. Vekil
+mimarisiyle tutarlı.
+
+### Hüküm
+
+Öncekilerden farklı olarak burada **yeniden paketleme yok**: imza
+geliştiricinin kendi anahtarı, koruyucu katmanı yok, kod okunabilir
+durumda. Yani "kim değiştirdi bilinmiyor" itirazı bu dosya için
+geçerli değil.
+
+Geriye kalan itiraz başka: mağaza dışından gelen, denetlenmemiş bir
+uygulamaya **oyun trafiğini ve gerektiğinde hesabını** emanet etmek.
+Bir de ihtiyacından fazla izin istiyor.
+
 ---
 
 # MH_TEAM_V5.apk — statik inceleme
