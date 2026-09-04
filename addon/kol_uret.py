@@ -102,7 +102,7 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # tureniyor -- ayrisabilecekleri bir yer kalmadi.
 #
 # YENI SURUM CIKARIRKEN: yalnizca asagidaki satiri degistir.
-SURUM_NO = (7, 31, 0)
+SURUM_NO = (7, 32, 0)
 
 SURUM_METIN = "%d.%d.%d" % SURUM_NO
 SURUM_ETIKET = "v" + SURUM_METIN
@@ -1274,20 +1274,83 @@ def durus_geometrisi(kimlik, poz):
     }
 
 
-def durus_esyasi(kimlik, ad):
+# ============================================================
+#  YATMA (v7.32)  --  yerde yatarken HAREKET EDEBILME
+#
+#  Kullanici: "ben yerde sadece kafami dondurebiliyor olacagim
+#  ama yerdeyim, yerde de hareket edebiliyor olacagim -- duz
+#  bir sekilde yatiyorum ama hareket ediyorum da gibi. Sahne
+#  yapacagim, abime atacagim."
+#
+#  ---- NEDEN SCRIPT YOK ----
+#  Ilk akla gelen yol: bir yetenek acilsin, playanimation ile
+#  poz verilsin, kapaninca geri alinsin. Poz Sandigi (v7.27)
+#  ve Bedeni Bol (v7.26) tam boyle calisiyor ve IKISINDE DE
+#  ayni dert var: poz kendiliginden bitmiyor, elle geri
+#  alinmasi gerekiyor, baska bir yetenegin kollariIndir'i
+#  uzerine yazabiliyor.
+#
+#  Kullanici "denetleyici de ekle" dedi. Olculdu: bu deponun
+#  oyuncu modeli paketinde denetleyicinin isini goren
+#  mekanizma ZATEN VAR ve BES YERDE CALISIYOR --
+#  scripts.animate kosullu girdi aliyor:
+#      {"o_sey_kollar": "variable.o_sey"}
+#      {"ripjaws_hizli": "... && query.is_in_water && ..."}
+#  Yani ayri bir animation_controller dosyasi ACMAYA GEREK YOK;
+#  ayni ise yarayan, bu depoda kanitlanmis yol bu.
+#
+#  ---- DURUM SURUYOR, KOMUT DEGIL ----
+#  Yatma bir KOMUT degil bir DURUM: isaret esyasi elindeyken
+#  yatiyorsun, kaldirinca kalkiyorsun. Geri alma komutu yok,
+#  tazeleyen is yok, uzerine yazilma sorunu yok. Kullanicinin
+#  denetleyiciden bekledigi sey buydu.
+#
+#  ---- HAREKET VE KAFA NEDEN SERBEST ----
+#  playanimation/animate SADECE CIZIMI degistiriyor; yurume,
+#  bakis ve carpisma motorun isi. O yuzden yatarken yurumek ve
+#  kafa cevirmek KENDILIGINDEN calisiyor -- ayrica bir sey
+#  yazmak gerekmiyor. Zaten istenen de tam buydu.
+#
+#  ---- ANIMASYON UYDURULMADI ----
+#  animation.player.sleeping VANILLA ve bu depoda zaten
+#  calistigi gorulmus: Will Kilici'nin "Yere Serme"si onu
+#  kullaniyor (WILL_YATIR_ANIM). Yeni animasyon cizmek yerine
+#  calistigi bilinen kullanildi.
+# ============================================================
+YATMA_ACIK = True
+YATMA_ESYA = "yatma"                       # pa:yatma
+YATMA_ANIM = "animation.player.sleeping"   # vanilla, kanitli
+YATMA_RENK = (150, 150, 165)               # ikon rengi
+
+
+def durus_esyasi(kimlik, ad, onek=None, tam_ad=None):
     """Duruş tasi: bir SILAH degil, bir ANAHTAR (maske_esyasi ile
     ayni kalip). Yan ele de girebiliyor -- ana el bos kalsin diye,
-    ki bagli eller duruşunda elinde kilic durmasin.             """
+    ki bagli eller duruşunda elinde kilic durmasin.
+
+    ---- onek NEDEN VAR: TEST YAKALADI ----
+    Bu kalip v7.32'de Yatma isareti icin de kullanildi ve sessiz
+    bir hata cikti: fonksiyon kimligin basina DURUS_ONEK
+    ekliyordu, yani esya "pa:durus_yatma" oluyordu. Oysa
+    Molang tetigi "yatma" ariyordu (get_equipped_item_name ad
+    alanini KOK ADSIZ donduruyor). Ikisi tutmayinca ozellik
+    oyunda HIC calismazdi ve hicbir sey hata vermezdi.
+
+    onek="" verilirse kimlige onek EKLENMIYOR; tam_ad verilirse
+    "Duruş · " basligi da kullanilmiyor.                      """
+    if onek is None:
+        onek = DURUS_ONEK
     return {
         "format_version": "1.21.0",
         "minecraft:item": {
             "description": {
-                "identifier": "pa:" + DURUS_ONEK + kimlik,
+                "identifier": "pa:" + onek + kimlik,
                 "menu_category": {"category": "equipment"},
             },
             "components": {
-                "minecraft:icon": {"texture": DURUS_ONEK + kimlik},
-                "minecraft:display_name": {"value": "Duruş · " + ad},
+                "minecraft:icon": {"texture": onek + kimlik},
+                "minecraft:display_name": {
+                    "value": tam_ad if tam_ad else "Duruş · " + ad},
                 "minecraft:max_stack_size": 1,
                 "minecraft:hand_equipped": True,
                 "minecraft:allow_off_hand": True,
@@ -5641,6 +5704,22 @@ def oyuncu_modeli_paketi(surum):
     #    vanilla'da olmadigi icin kendi animasyonumuz gerekiyor.
     d["animations"]["o_sey_kollar"] = "animation.o_sey.yuru"
     d["scripts"]["animate"].append({"o_sey_kollar": "variable.o_sey"})
+
+    # ---- YATMA (v7.32) ----
+    # Denetleyici dosyasi ACILMADI: bu depoda ayni isi goren
+    # kosullu animate girdisi zaten bes yerde calisiyor
+    # (o_sey_kollar, ripjaws, zirh matkap...). Ikinci bir
+    # mekanizma eklemek yerine kanitlanmis olan kullanildi.
+    #
+    # Durum SURUYOR: isaret esyasi elde oldugu surece yatis
+    # cizimi acik, kaldirinca kapaniyor. Geri alma komutu yok.
+    if YATMA_ACIK:
+        d["scripts"]["pre_animation"].append(
+            "variable.yatma = query.get_equipped_item_name('main_hand') == '%s'"
+            " || query.get_equipped_item_name('off_hand') == '%s';"
+            % (YATMA_ESYA, YATMA_ESYA))
+        d["animations"]["yatma"] = YATMA_ANIM
+        d["scripts"]["animate"].append({"yatma": "variable.yatma"})
 
     # ---- MODUN KENDI ANIMASYONLARI (v4.93) ----
     # Dosyalar oldugu gibi kopyalaniyor: bicimleri zaten Bedrock
@@ -10250,6 +10329,26 @@ def main():
     # denetleyici oyuncu modeli paketinde (asagida) -- cunku duruş
     # oyuncunun KENDI modelini degistiriyor, elde tutulan bir
     # gorunum degil.
+    # ---- YATMA ISARETI (v7.32) ----
+    # durus_esyasi kalibi: bir silah degil bir ANAHTAR. Yan ele
+    # de giriyor, yani ana el bos kaliyor ve yatarken elinde
+    # kol/kilic tutabiliyorsun.
+    if YATMA_ACIK:
+        # onek="" SART: fonksiyon varsayilan olarak kimligin
+        # basina DURUS_ONEK ekliyor ve esya "pa:durus_yatma"
+        # oluyor. Molang tetigi "yatma" ariyor -- ikisi
+        # tutmazsa ozellik oyunda hic calismaz ve hicbir sey
+        # hata vermez. Test bu hatayi ilk uretimde yakaladi.
+        yaz_json(os.path.join(BP, "items/%s.json" % YATMA_ESYA),
+                 durus_esyasi(YATMA_ESYA, "Yatma", onek="", tam_ad="Yatma"))
+        png_yaz(os.path.join(RP, "textures/item/%s.png" % YATMA_ESYA),
+                16, 16, durus_ikonu(YATMA_RENK))
+        dokular[YATMA_ESYA] = {"textures": "textures/item/" + YATMA_ESYA}
+        en_us.append("item.pa:%s.name=Lie Down" % YATMA_ESYA)
+        en_us.append("item.pa:%s=Lie Down" % YATMA_ESYA)
+        tr_tr.append("item.pa:%s.name=Yatma" % YATMA_ESYA)
+        tr_tr.append("item.pa:%s=Yatma" % YATMA_ESYA)
+
     if DURUS_ACIK:
         for _dk, _dad, _drenk, _dpoz in DURUSLAR:
             _dtam = DURUS_ONEK + _dk
@@ -10889,6 +10988,13 @@ def main():
     # v7.9: kol takasi isaretinin ikonu da hicbir listede degil
     if KOL_TAKAS_ACIK:
         beklenen.add(TAKAS_ISARET)
+    # v7.32: yatma isareti. AYNI TUZAK YEDINCI KEZ -- ilk uretimde
+    # esya ve ikon yazildi, temizlik adimi ikisini de sildi ve
+    # "temizlendi: 2 artik dosya" yazdi. Isaret esyalarinin
+    # ikonlari hicbir uretim listesinde olmadigi icin buraya elle
+    # eklenmeleri gerekiyor.
+    if YATMA_ACIK:
+        beklenen.add(YATMA_ESYA)
     # v7.16: goz animasyonu kareleri. Bu satir olmadan temizlik
     # adimi UCUNU DE her uretimde siliyor -- ve tam oyle oldu,
     # "temizlendi: 3 artik dosya" yazdi. Ayni tuzak ALTINCI kez:

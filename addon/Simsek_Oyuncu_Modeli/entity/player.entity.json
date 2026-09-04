@@ -312,6 +312,7 @@
           "variable.durus_selam = (query.get_equipped_item_name('main_hand') == 'durus_selam' || query.get_equipped_item_name('off_hand') == 'durus_selam') && !query.is_gliding && !query.is_swimming;",
           "variable.takas_isareti = (query.get_equipped_item_name('main_hand') == 'takas_isareti' || query.get_equipped_item_name('off_hand') == 'takas_isareti') && !query.is_gliding && !query.is_swimming;",
           "variable.donusuk = variable.o_sey || variable.ben_elmas || variable.ben_elmas_proto || variable.ben_elmas_10k || variable.ben_dortkol || variable.ben_dortkol_proto || variable.ben_dortkol_10k || variable.ben_cene || variable.ben_cene_proto || variable.ben_cene_10k || variable.ben_ates || variable.ben_ates_proto || variable.ben_ates_10k || variable.ben_vahsi || variable.ben_vahsi_proto || variable.ben_vahsi_10k || variable.ben_xlr || variable.ben_xlr_proto || variable.ben_xlr_10k || variable.ben_gri || variable.ben_gri_proto || variable.ben_gri_10k || variable.ben_sinek || variable.ben_sinek_proto || variable.ben_sinek_10k || variable.ben_yukseltme || variable.ben_yukseltme_proto || variable.ben_yukseltme_10k || variable.ben_hayalet || variable.ben_hayalet_proto || variable.ben_hayalet_10k || variable.ben_gulle || variable.ben_gulle_proto || variable.ben_gulle_10k || variable.ben_jet || variable.ben_atomik || variable.ben_ejder || variable.ben_astro || variable.ben_bataklik || variable.ben_buz || variable.ben_yanki || variable.ben_devasa || variable.ben_gri_zirh || variable.ben_gri_zirh_proto || variable.ben_gri_zirh_10k || variable.ben_gri_uzuv || variable.ben_gri_uzuv_proto || variable.ben_gri_uzuv_10k || variable.ben_gri_takim || variable.ben_gri_takim_proto || variable.ben_gri_takim_10k || variable.ben_gulle_top || variable.ben_gulle_top_proto || variable.ben_gulle_top_10k || variable.ben_yukseltme_cubuk || variable.ben_yukseltme_cubuk_proto || variable.ben_yukseltme_cubuk_10k || variable.zirh_mod_temel || variable.zirh_mod_guc || variable.zirh_mod_hiz || variable.zirh_mod_ucus || variable.zirh_mod_gizlilik || variable.zirh_mod_isi || variable.zirh_mod_dalis || variable.zirh_mod_kesif || variable.zirh_mod_titan || variable.durus_bagli_eller || variable.durus_eller_yukari || variable.durus_kavusuk || variable.durus_t_durusu || variable.durus_selam || variable.takas_isareti;",
+          "variable.yatma = query.get_equipped_item_name('main_hand') == 'yatma' || query.get_equipped_item_name('off_hand') == 'yatma';",
           "variable.ben_elmas_ailesi = variable.ben_elmas || variable.ben_elmas_proto || variable.ben_elmas_10k;",
           "variable.ben_dortkol_ailesi = variable.ben_dortkol || variable.ben_dortkol_proto || variable.ben_dortkol_10k;",
           "variable.ben_cene_ailesi = variable.ben_cene || variable.ben_cene_proto || variable.ben_cene_10k;",
@@ -341,6 +342,9 @@
           "root",
           {
             "o_sey_kollar": "variable.o_sey"
+          },
+          {
+            "yatma": "variable.yatma"
           },
           {
             "ripjaws_yavas": "variable.ben_cene_ailesi && query.is_in_water && !query.is_sprinting"
@@ -424,6 +428,7 @@
         "holding_brush": "animation.humanoid.holding_brush",
         "brushing": "animation.humanoid.brushing",
         "o_sey_kollar": "animation.o_sey.yuru",
+        "yatma": "animation.player.sleeping",
         "ripjaws_yavas": "animation.ripjaws.swim_slow",
         "ripjaws_hizli": "animation.ripjaws.swim_fast",
         "zirh_mod_guc_matkap": "animation.drill_spin"

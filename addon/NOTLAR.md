@@ -1,3 +1,84 @@
+# v7.32.0 — Yatma: yerde yatarken hareket edebilme
+
+Kullanıcı: *"Ben yerde sadece kafamı döndürebiliyor olacağım ama
+yerdeyim, yerde de hareket edebiliyor olacağım — düz bir şekilde
+yatıyorum ama hareket ediyorum da gibi. Sahne yapacağım, abime
+atacağım."* Ve: *"denetleyici de ekle."*
+
+## Karşılığı var, üstelik hiç script gerekmiyor
+
+`playanimation` / `animate` **sadece çizimi** değiştiriyor; yürüme,
+bakış ve çarpışma motorun işi. Yani yatarken yürümek ve kafa çevirmek
+**kendiliğinden** çalışıyor — ayrıca bir şey yazmak gerekmiyor.
+İstenen zaten tam buydu.
+
+## "Denetleyici" — ölçüm bir şey gösterdi
+
+Kullanıcı animasyon denetleyicisi eklememi istedi. Baktım:
+**bu deponun oyuncu modeli paketinde denetleyicinin işini gören
+mekanizma zaten var ve beş yerde çalışıyor.** `scripts.animate`
+koşullu girdi alıyor:
+
+```json
+{"o_sey_kollar": "variable.o_sey"}
+{"ripjaws_hizli": "... && query.is_in_water && query.is_sprinting"}
+```
+
+Yani ayrı bir `animation_controllers` dosyası açmaya gerek yok —
+aynı işi yapan, **bu depoda kanıtlanmış** yol bu. İkinci bir
+mekanizma eklemek, aynı işi iki yoldan yapmak olurdu. Test bunu da
+tutuyor (`OMP'de animation_controllers klasörü yok`).
+
+## Durum sürüyor, komut değil — asıl fark bu
+
+Poz Sandığı (v7.27) ve Bedeni Böl (v7.26) pozu **komutla** veriyor.
+İkisinde de aynı dert var: poz kendiliğinden bitmiyor, elle geri
+alınması gerekiyor, başka bir yeteneğin `kollariIndir`'i üstüne
+yazabiliyor.
+
+Yatma bir **durum**: işaret eşyası elindeyken yatıyorsun, kaldırınca
+kalkıyorsun.
+
+- geri alma komutu **yok**
+- tazeleyen iş **yok**
+- üstüne yazılma sorunu **yok**
+
+Kullanıcının denetleyiciden beklediği şey buydu ve kanıtlanmış
+mekanizmayla geldi.
+
+Eşya **yan ele** giriyor (`durus_esyasi` kalıbı) — ana el boş kalıyor,
+yani yatarken elinde kol/kılıç tutabiliyorsun.
+
+## Animasyon uydurulmadı
+
+`animation.player.sleeping` **vanilla** ve bu depoda zaten çalıştığı
+görülmüş: Will Kılıcı'nın "Yere Serme"si onu kullanıyor
+(`WILL_YATIR_ANIM`). Yeni animasyon çizmek yerine çalıştığı bilinen
+kullanıldı. Test bu bağı da tutuyor.
+
+## Test iki gerçek hatayı ilk üretimde yakaladı
+
+**1. Kimlik uyuşmazlığı — özellik oyunda hiç çalışmazdı.**
+`durus_esyasi()` kimliğin başına `DURUS_ONEK` ekliyor, yani eşya
+`pa:durus_yatma` oldu. Oysa Molang tetiği `'yatma'` arıyordu
+(`get_equipped_item_name` adı **kök adsız** döndürüyor). İkisi
+tutmayınca özellik hiç tetiklenmezdi **ve hiçbir şey hata vermezdi**.
+Fonksiyona `onek` parametresi eklendi.
+
+**2. Aynı tuzak yedinci kez: temizlik ikonu sildi.**
+İlk üretimde eşya ve ikon yazıldı, temizlik adımı ikisini de sildi ve
+`temizlendi: 2 artık dosya` yazdı. İşaret eşyalarının ikonları hiçbir
+üretim listesinde olmadığı için `beklenen` kümesine elle eklenmeleri
+gerekiyor. Depoda bu tuzağın **altı** önceki kaydı var; bu yedincisi.
+
+## Kullanımı
+
+Yaratıcı menüde **"Yatma"** eşyası. Yan ele al → yatıyorsun,
+yürüyebiliyorsun, kafanı çevirebiliyorsun. Kaldır → kalkıyorsun.
+
+7 mutasyon, 7'si de yakalandı. 100 test, hepsi geçiyor.
+
+
 # v7.31.0 — Geri itme denetimi (Velocity / anti-knockback)
 
 Dördüncü APK'de (MuCuteClient) bulunan ve v7.30'un kapsamadığı tek

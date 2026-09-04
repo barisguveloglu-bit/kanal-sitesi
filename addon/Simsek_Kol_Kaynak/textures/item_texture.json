@@ -1280,6 +1280,9 @@
     "o_sey_maskesi": {
       "textures": "textures/item/o_sey_maskesi"
     },
+    "yatma": {
+      "textures": "textures/item/yatma"
+    },
     "durus_bagli_eller": {
       "textures": "textures/item/durus_bagli_eller"
     },
