@@ -1,3 +1,83 @@
+# v7.31.0 — Geri itme denetimi (Velocity / anti-knockback)
+
+Dördüncü APK'de (MuCuteClient) bulunan ve v7.30'un kapsamadığı tek
+şey. O dosya **paket vekili** mimarisinde — operatör gerektirmiyor,
+Minecraft sürümüne bağlı değil, yani elimizdeki dört dosya içinde
+hâlâ çalışan tür o.
+
+## Ölçüm "kımıldadı mı" DEĞİL
+
+İlk akla gelen ölçüm yanlış olurdu. Vurulduktan sonra kımıldamamanın
+en sık sebebi hile değil:
+
+- **duvara ya da köşeye sıkışmış olmak** — PvP'de çok olağan
+- **bizim kendi yeteneklerimizin dondurmuş olması** — Yamultma,
+  Dondur, Asa, Konsey silahı
+- suda, merdivende, bir şeye binmiş olmak
+
+Hepsinde dürüst oyuncu da kımıldamaz. Böyle bir ölçüm, dövüşü köşeye
+sıkışarak veren oyuncuyu suçlardı.
+
+## Doğru ayrım: hareket ediyor ama uzaklaşmıyor
+
+İki şey birden ölçülüyor:
+
+| ölçüm | ne |
+|---|---|
+| **uzaklaşma** | vuranın yönünden geriye doğru izdüşüm — geri itme bunu üretir |
+| **toplam hareket** | yönü ne olursa olsun kat edilen yol |
+
+İşaret **yalnızca** "toplam hareket VAR ama uzaklaşma YOK" hâlinde
+konuyor.
+
+    duvara sıkışmış   -> toplam hareket ~0   -> MUAF
+    donmuş            -> toplam hareket ~0   -> MUAF
+    Velocity açmış    -> koşuyor ama itilmiyor -> İŞARET
+
+Eşikler geniş: vanilla geri itme ~0.4 blok savuruyor, beklenen
+uzaklaşma **0.15**. Netherite zırhın geri itme direnci itmeyi
+*azaltır*, sıfırlamaz — o pay da burada.
+
+## Test iki gerçek boşluk buldu
+
+**1. Kendi dondurma yeteneklerimiz muafiyet listesinde yoktu.**
+Hareket denetiminin muafiyet listesi *hızlandıran* şeyleri sayıyor
+(levitation, speed, jump_boost) — Yamultma/Dondur'un verdiği
+`slowness`/`weakness`/`mining_fatigue` orada yok. Geri itme denetimi
+için ayrıca eklendi: donmuş oyuncunun geri itilmeye tepkisi güvenilir
+değil.
+
+**2. Test senaryosu yanlıştı.** Kurban sürekli aynı yöne (+x)
+kaçırılıyordu; o zaman "vurandan uzaklaşma" yönü de +x'e döndüğü için
+oyuncu gerçekten uzaklaşmış oluyordu. Ölçüm doğruydu, senaryo
+yanlıştı. Sağa-sola gidiş yapıldı.
+
+## İkinci bir ölü kapı bulundu
+
+`geriItmeDegerlendir` içinde `GERI_ITME_ACIK` denetimi vardı ama
+**kayıt açan taraf zaten denetliyor** — kapalıyken bekleyen listeye
+hiçbir şey girmiyor, dolayısıyla değerlendirilecek bir şey de yok.
+İkinci kapı ölü koddu ve silindi.
+
+Bu, aynı dosyada **ikinci** kez oldu (ilki `KILIT_ATLA_TIPLER`'di,
+v7.30'da). İkisini de mutasyon testi gösterdi — çünkü ölü bir kapıyı
+silmek hiçbir testi düşürmez.
+
+## Deponun kendi taraması da bir şey yakaladı
+
+`geriItmeUnut` main.js'e ithal edilip **bağlanmamıştı**;
+`tarama.mjs` "kullanılmayan ithal" diye düşürdü. Depoda kayıtlı ders
+uygulandı: *"hiçbir yerden çağrılmıyor" ya ölü koddur ya unutulmuş
+bağlantı* — burada ikincisiydi. Fonksiyon **kimlik alacak şekilde**
+yazıldı (kimliksiz çağrı öteki oyuncuların ölçümlerini de silerdi) ve
+`playerLeave`'e bağlandı.
+
+## Toplam
+
+11 mutasyon; ikisi kaçtı, ikisi de yukarıdaki bulgulara yol açtı.
+Düzeltmeden sonra hepsi yakalandı. 99 test, hepsi geçiyor.
+
+
 # v7.30.0 — Savunma duvarı: Gözcü + Envanter Yedeği
 
 Kullanıcı dört maddeyi de istedi: menzil, killaura, envanter yedeği,

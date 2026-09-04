@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.30.0";
+export const SURUM = "v7.31.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -965,6 +965,48 @@ export const HAREKET_HIZ       = 14.0;  // blok/sn yatay
 export const HAREKET_SICRAMA   = 12.0;  // blok, tek ornekte
 export const HAREKET_YUKSELME  = 6;     // ust uste kac ornek yukseliyorsa
 export const HAREKET_YUKSEK_PAY = 0.4;  // ornek basina en az bu kadar yukselme
+
+/* ---------------- GERI ITME DENETIMI (v7.31) ----------------
+   MuCuteClient'ta bulunan "Velocity" ozelligi: vurulunca geri
+   itilmeyi yok sayiyor. Vekil (proxy) mimarisi oldugu icin
+   operator de gerekmiyor, oyunun surumune de bagli degil --
+   yani elimizdeki dort dosya icinde HALA CALISAN tur bu.
+
+   ---- OLCUM NEDEN "HAREKET ETMEDI" DEGIL ----
+   Ilk akla gelen olcum "vurulduktan sonra kimildadi mi".
+   YANLIS olurdu, cunku kimildamamanin en sik sebebi hile
+   degil:
+     - duvara ya da koseye sikismis olmak (PvP'de cok olagan)
+     - bizim kendi yeteneklerimizin dondurmus olmasi
+       (Yamultma, Dondur, Asa, Konsey silahi)
+     - suda, merdivende, bir seye binmis olmak
+   Bunlarin hepsinde durust oyuncu da kimildamaz. Boyle bir
+   olcum, dovusu koseye sikisarak veren oyuncuyu suclardi.
+
+   ---- DOGRU AYRIM: HAREKET EDIYOR AMA UZAKLASMIYOR ----
+   Iki sey birden olculuyor:
+     1. UZAKLASMA -- vuranin yonunden geriye dogru yer
+        degistirme (izdusum). Geri itme bunu uretir.
+     2. TOPLAM HAREKET -- oyuncunun o pencerede kat ettigi
+        yol, yonu ne olursa olsun.
+   Isaret yalnizca "toplam hareket VAR ama uzaklasma YOK"
+   halinde konuyor.
+
+   Duvara sikismis oyuncu: toplam hareket de ~0 -> muaf.
+   Donmus oyuncu: toplam hareket ~0 -> muaf.
+   Velocity acmis oyuncu: kosmaya/donmeye devam ediyor
+   (toplam hareket var) ama geri itme onu ITEMIYOR -> isaret.
+
+   ---- ESIKLER GENIS ----
+   Vanilla geri itme yaklasik 0.4 blok savuruyor. Beklenen
+   uzaklasma 0.15 blok: gecikme, zirhin geri itme direnci
+   (netherite) ve yokus gibi seylerin hepsine pay birakiyor.
+   Netherite direnci geri itmeyi AZALTIR, sifirlamaz.        */
+export const GERI_ITME_ACIK     = true;
+export const GERI_ITME_ORNEK    = 6;     // vurustan kac tick sonra bakilsin
+export const GERI_ITME_BEKLENEN = 0.15;  // blok, en az bu kadar uzaklasmali
+export const GERI_ITME_HAREKET  = 0.30;  // blok, "kimildayabiliyor" sayilmasi icin
+export const GERI_ITME_TAVAN    = 40;    // bekleyen kayit tavani
 
 /* ---------------- Iksirler (Nitroksin sistemi) ----------------
    Referans mod bunu tamamen komutla yapiyordu:

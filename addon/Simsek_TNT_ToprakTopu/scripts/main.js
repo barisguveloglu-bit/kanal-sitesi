@@ -87,7 +87,7 @@ import { arindir, arinmaUnut, savunmaAc } from "./yetenekler/arinma.js";
 /* v7.30: Gozcu -- vurus denetimi (menzil + killaura). Kendi
    olay aboneligini kuruyor, yetenek degil.                  */
 import {
-  gozcuKur, gozcuUnut, hareketTara, hareketUnut
+  gozcuKur, gozcuUnut, hareketTara, hareketUnut, geriItmeUnut
 } from "./yetenekler/gozcu.js";
 import { HAREKET_ACIK, HAREKET_ORNEK } from "./ayarlar.js";
 import {
@@ -2315,6 +2315,10 @@ olayaAbone("playerLeave", (olay) => {
   arinmaUnut(olay.playerId);
   gozcuUnut(olay.playerId);
   hareketUnut(olay.playerId);
+  /* Cikan oyuncunun bekleyen geri-itme olcumleri dusuyor.
+     KIMLIKLE cagriliyor: kimliksiz cagri hepsini silerdi ve
+     oteki oyuncularin olcumleri de gitmis olurdu.          */
+  geriItmeUnut(olay.playerId);
   yedekUnut(olay.playerId);
 
   // Oyuncunun butun isleri durdurulmali, sadece birincisi degil

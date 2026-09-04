@@ -435,5 +435,170 @@ console.log("=== 11. KENDI YETENEKLERIMIZ SUCLANMIYOR (asil mesele) ===");
 }
 
 console.log("");
+console.log("=== 12. GERI ITME (Velocity / anti-knockback) ===");
+{
+  /* MuCuteClient'ta bulunan ozellik. Olcum "kimildadi mi"
+     DEGIL -- kimildamamanin en sik sebebi hile degil (duvar,
+     kose, donmus oyuncu). Olcum "HAREKET EDIYOR AMA
+     UZAKLASMIYOR".                                          */
+  function kurbanO(id, x, y, z, ek = {}) {
+    return Object.assign({
+      id, typeId: "minecraft:player", name: id, isValid: true,
+      location: { x, y, z },
+      isGliding: false, isFlying: false, isInWater: false,
+      isClimbing: false, isFalling: false,
+      getEffect: () => undefined, getComponent: () => undefined
+    }, ek);
+  }
+  const yok = () => false;
+
+  /* --- durust: geri itiliyor --- */
+  gozcu.gozcuUnut(); gozcu.hareketUnut(); gozcu.geriItmeUnut();
+  _durum.sohbet.length = 0;
+  {
+    const a = saldiran("kb_v1", 0, 64, 0, { x: 0, y: 0, z: 1 });
+    const k = kurbanO("kb_k1", 0, 64, 2);
+    for (let i = 0; i < ayar.GOZCU_ESIK + 2; i++) {
+      vur(a, k);
+      k.location.z += 0.5;            // vurandan UZAKLASIYOR
+      tickIlerlet(ayar.GERI_ITME_ORNEK + 1);
+      gozcu.hareketTara([k], yok);
+    }
+    kontrol("geri itilen oyuncu isaretlenmiyor",
+            !gozcu.gozcuDurum(k.id) || gozcu.gozcuDurum(k.id).isaret === 0,
+            gozcu.gozcuDurum(k.id) ? gozcu.gozcuDurum(k.id).isaret + " isaret" : "0");
+  }
+
+  /* --- Velocity: kosuyor ama itilmiyor --- */
+  gozcu.gozcuUnut(); gozcu.hareketUnut(); gozcu.geriItmeUnut();
+  _durum.sohbet.length = 0;
+  {
+    const a = saldiran("kb_v2", 0, 64, 0, { x: 0, y: 0, z: 1 });
+    const k = kurbanO("kb_k2", 0, 64, 2);
+    /* SAGA SOLA gidiyor, uzaklasmiyor. Ilk yazilista hep ayni
+       yone (+x) gidiyordu ve yanlisti: kurban surekli +x'e
+       kayinca "vurandan uzaklasma" yonu de +x'e donuyor, yani
+       oyuncu gercekten uzaklasmis oluyordu. Olcum dogruydu,
+       SENARYO yanlisti.                                     */
+    for (let i = 0; i < ayar.GOZCU_ESIK + 2; i++) {
+      vur(a, k);
+      k.location.x += (i % 2 === 0) ? 0.8 : -0.8;
+      tickIlerlet(ayar.GERI_ITME_ORNEK + 1);
+      gozcu.hareketTara([k], yok);
+    }
+    kontrol("hareket edip UZAKLASMAYAN isaretlendi",
+            gozcu.gozcuDurum(k.id) && gozcu.gozcuDurum(k.id).isaret >= ayar.GOZCU_ESIK,
+            gozcu.gozcuDurum(k.id) ? gozcu.gozcuDurum(k.id).isaret + " isaret" : "yok");
+    kontrol("sebep 'geri itilmedi' diyor",
+            sonSohbet().indexOf("geri itilmedi") !== -1, sonSohbet());
+  }
+
+  /* --- DUVARA SIKISMIS: hic kimildamiyor -> MUAF ---
+     Bu maddenin dusmesi, savunmanin koseye sikisarak dovusen
+     durust oyuncuyu suclamasi demektir.                    */
+  gozcu.gozcuUnut(); gozcu.hareketUnut(); gozcu.geriItmeUnut();
+  _durum.sohbet.length = 0;
+  {
+    const a = saldiran("kb_v3", 0, 64, 0, { x: 0, y: 0, z: 1 });
+    const k = kurbanO("kb_k3", 0, 64, 2);
+    for (let i = 0; i < ayar.GOZCU_ESIK + 6; i++) {
+      vur(a, k);                       // konum HIC degismiyor
+      tickIlerlet(ayar.GERI_ITME_ORNEK + 1);
+      gozcu.hareketTara([k], yok);
+    }
+    kontrol("DUVARA SIKISMIS oyuncu suclanmiyor",
+            !gozcu.gozcuDurum(k.id) || gozcu.gozcuDurum(k.id).isaret === 0,
+            gozcu.gozcuDurum(k.id) ? gozcu.gozcuDurum(k.id).isaret + " isaret" : "0");
+  }
+
+  /* --- DONMUS oyuncu (Yamultma/Dondur) -> MUAF --- */
+  gozcu.gozcuUnut(); gozcu.hareketUnut(); gozcu.geriItmeUnut();
+  _durum.sohbet.length = 0;
+  {
+    const a = saldiran("kb_v4", 0, 64, 0, { x: 0, y: 0, z: 1 });
+    const k = kurbanO("kb_k4", 0, 64, 2,
+      { getEffect: (ad) => ad === "slowness" ? { amplifier: 5 } : undefined });
+    for (let i = 0; i < ayar.GOZCU_ESIK + 6; i++) {
+      vur(a, k);
+      k.location.x += (i % 2 === 0) ? 0.8 : -0.8;   // hareket var
+      tickIlerlet(ayar.GERI_ITME_ORNEK + 1);
+      gozcu.hareketTara([k], yok);
+    }
+    kontrol("kendi yeteneklerimizle donmus oyuncu suclanmiyor",
+            !gozcu.gozcuDurum(k.id) || gozcu.gozcuDurum(k.id).isaret === 0,
+            gozcu.gozcuDurum(k.id) ? gozcu.gozcuDurum(k.id).isaret + " isaret" : "0");
+  }
+
+  /* --- SUDA/SUZULEN kurban -> MUAF ---
+     Suda ya da suzulurken geri itme bambaska davraniyor.
+     Bu madde dusesse savunma suda dovusen oyuncuyu suclardi. */
+  gozcu.gozcuUnut(); gozcu.hareketUnut(); gozcu.geriItmeUnut();
+  _durum.sohbet.length = 0;
+  {
+    const a = saldiran("kb_v7", 0, 64, 0, { x: 0, y: 0, z: 1 });
+    const k = kurbanO("kb_k8", 0, 64, 2, { isInWater: true });
+    for (let i = 0; i < ayar.GOZCU_ESIK + 6; i++) {
+      vur(a, k);
+      k.location.x += (i % 2 === 0) ? 0.8 : -0.8;
+      tickIlerlet(ayar.GERI_ITME_ORNEK + 1);
+      gozcu.hareketTara([k], yok);
+    }
+    kontrol("SUDAKI oyuncu suclanmiyor",
+            !gozcu.gozcuDurum(k.id) || gozcu.gozcuDurum(k.id).isaret === 0,
+            gozcu.gozcuDurum(k.id) ? gozcu.gozcuDurum(k.id).isaret + " isaret" : "0");
+  }
+
+  /* --- olgunlasmadan degerlendirilmiyor --- */
+  gozcu.gozcuUnut(); gozcu.hareketUnut(); gozcu.geriItmeUnut();
+  {
+    const a = saldiran("kb_v5", 0, 64, 0, { x: 0, y: 0, z: 1 });
+    const k = kurbanO("kb_k5", 0, 64, 2);
+    vur(a, k);
+    kontrol("vurus bekleyen listeye girdi",
+            gozcu.geriItmeBekleyenSayisi() === 1,
+            gozcu.geriItmeBekleyenSayisi() + " kayit");
+    gozcu.hareketTara([k], yok);       // daha olgunlasmadi
+    kontrol("olgunlasmadan degerlendirilmiyor",
+            gozcu.geriItmeBekleyenSayisi() === 1);
+    tickIlerlet(ayar.GERI_ITME_ORNEK + 1);
+    gozcu.hareketTara([k], yok);
+    kontrol("olgunlasinca listeden dusuyor",
+            gozcu.geriItmeBekleyenSayisi() === 0);
+  }
+
+  /* --- tavan ve temizlik --- */
+  gozcu.gozcuUnut(); gozcu.hareketUnut(); gozcu.geriItmeUnut();
+  {
+    const a = saldiran("kb_v6", 0, 64, 0, { x: 0, y: 0, z: 1 });
+    const k = kurbanO("kb_k6", 0, 64, 2);
+    for (let i = 0; i < ayar.GERI_ITME_TAVAN + 25; i++) vur(a, k);
+    kontrol("bekleyen liste tavani asmiyor",
+            gozcu.geriItmeBekleyenSayisi() <= ayar.GERI_ITME_TAVAN,
+            gozcu.geriItmeBekleyenSayisi() + " / " + ayar.GERI_ITME_TAVAN);
+    /* Kimlikle temizlik: SADECE o oyuncunun kayitlari.     */
+    const k2 = kurbanO("kb_k7", 5, 64, 2);
+    vur(a, k2);
+    const once = gozcu.geriItmeBekleyenSayisi();
+    gozcu.geriItmeUnut("kb_k7");
+    kontrol("kimlikle temizlik sadece o oyuncuyu siliyor",
+            gozcu.geriItmeBekleyenSayisi() === once - 1,
+            once + " -> " + gozcu.geriItmeBekleyenSayisi());
+  }
+
+  const { readFileSync } = await import("node:fs");
+  const ana = readFileSync(new URL("./pack/main.js", import.meta.url), "utf8");
+  kontrol("playerLeave geriItmeUnut'u KIMLIKLE cagiriyor",
+          /playerLeave[\s\S]{0,4500}?geriItmeUnut\(olay\.playerId\)/.test(ana));
+  const kod = readFileSync(
+    new URL("./pack/yetenekler/gozcu.js", import.meta.url), "utf8");
+  kontrol("geri itme kendi dongusunu acmiyor", !/runInterval|runTimeout/.test(kod));
+  /* Kapi KAYIT tarafinda: kapaliyken bekleyen listeye hicbir
+     sey girmiyor. Degerlendirme tarafina ikinci bir kapi
+     koymak OLU KOD olurdu -- bu dosyada bir kez yasandi. */
+  kontrol("GERI_ITME_ACIK kayit tarafinda denetleniyor",
+          /function geriItmeKaydet[\s\S]{0,200}?if \(!GERI_ITME_ACIK\) return;/.test(kod));
+}
+
+console.log("");
 console.log(hata ? ">>> SORUN VAR" : ">>> gozcu yerinde");
 process.exit(hata ? 1 : 0);

@@ -7,7 +7,9 @@ import {
   GOZCU_PENCERE, GOZCU_ESIK, GOZCU_SUS, GOZCU_YALNIZ_OYUNCU,
   KILIT_ATLA_TIPLER,
   HAREKET_ACIK, HAREKET_ORNEK, HAREKET_HIZ, HAREKET_SICRAMA,
-  HAREKET_YUKSELME, HAREKET_YUKSEK_PAY
+  HAREKET_YUKSELME, HAREKET_YUKSEK_PAY,
+  GERI_ITME_ACIK, GERI_ITME_ORNEK, GERI_ITME_BEKLENEN,
+  GERI_ITME_HAREKET, GERI_ITME_TAVAN
 } from "../ayarlar.js";
 
 /* GOZCU -- vurus denetimi (menzil + killaura).
@@ -153,6 +155,12 @@ export function gozcuKur() {
       d.vurus = gecmis.filter((t) => simdi - t < 40);
 
       if (sebep.length > 0) isaretle(vuran, kurban, sebep);
+
+      /* GERI ITME DENETIMI icin kayit aciliyor. Olcum hemen
+         yapilamaz: geri itme birkac tick surer. Kayit bekleyen
+         listeye giriyor, hareket taramasi olgunlasinca
+         degerlendiriyor.                                     */
+      geriItmeKaydet(vuran, kurban, simdi);
     } catch (e) {
       hataYaz("gozcu.vurus", e);
     }
@@ -274,6 +282,153 @@ export function hareketTara(oyuncular, isVarMi) {
       if (sebep.length > 0) isaretle(o, o, sebep);
     } catch (e) {
       hataYaz("gozcu.hareket", e);
+    }
+  }
+  /* Geri itme olcumleri burada olgunlasiyor: ayri bir dongu
+     acmamak icin ayni taramaya bindirildi.                  */
+  geriItmeDegerlendir(simdi);
+}
+
+
+/* ============================================================
+   GERI ITME DENETIMI  --  "Velocity" / anti-knockback
+
+   MuCuteClient'ta bulunan ozellik: vurulunca geri itilmeyi yok
+   sayiyor. Vekil mimarisi oldugu icin operator gerekmiyor ve
+   oyun surumune bagli degil -- elimizdeki dort dosya icinde
+   HALA CALISAN tur bu.
+
+   ---- OLCUM "KIMILDADI MI" DEGIL ----
+   Ilk akla gelen olcum yanlis olurdu: kimildamamanin en sik
+   sebebi hile degil. Duvara/koseye sikismak (PvP'de cok
+   olagan), bizim kendi yeteneklerimizin dondurmus olmasi
+   (Yamultma, Dondur, Asa, Konsey silahi), suda ya da bir seye
+   binmis olmak -- hepsinde durust oyuncu da kimildamaz.
+
+   ---- DOGRU AYRIM ----
+   Iki olcum birden:
+     UZAKLASMA     vuranin yonunden geriye izdusum
+     TOPLAM HAREKET yonu ne olursa olsun kat edilen yol
+   Isaret yalnizca "toplam hareket VAR ama uzaklasma YOK"
+   halinde konuyor.
+
+     duvara sikismis  -> toplam hareket ~0  -> MUAF
+     donmus           -> toplam hareket ~0  -> MUAF
+     Velocity acmis   -> kosuyor ama itilmiyor -> ISARET
+   ============================================================ */
+
+// bekleyen olcumler: { kurban, vuranId, vuranKonum, konum, tick }
+const geriItmeBekleyen = [];
+
+/* Oyuncu cikinca ONUN bekleyen olcumleri dusuyor.
+
+   Kimliksiz cagrilirsa hepsi siliniyor -- ama playerLeave'de
+   KIMLIKLE cagriliyor, cunku hepsini silmek oteki
+   oyuncularin olcumlerini de yok ederdi.                    */
+export function geriItmeUnut(oyuncuId) {
+  if (oyuncuId === undefined) { geriItmeBekleyen.length = 0; return; }
+  for (let i = geriItmeBekleyen.length - 1; i >= 0; i--) {
+    const k = geriItmeBekleyen[i];
+    let kurbanId;
+    try { kurbanId = k.kurban && k.kurban.id; } catch (e) { kurbanId = undefined; }
+    if (kurbanId === oyuncuId || k.vuranId === oyuncuId) {
+      geriItmeBekleyen.splice(i, 1);
+    }
+  }
+}
+export function geriItmeBekleyenSayisi() { return geriItmeBekleyen.length; }
+
+function geriItmeKaydet(vuran, kurban, simdi) {
+  if (!GERI_ITME_ACIK) return;
+  try {
+    if (kurban.typeId !== "minecraft:player") return;
+    /* Tavan: bekleyen liste sinirsiz buyumesin. En eskisi
+       dusuyor -- yeni vurus daha degerli.                   */
+    if (geriItmeBekleyen.length >= GERI_ITME_TAVAN) geriItmeBekleyen.shift();
+    const k = kurban.location;
+    const v = vuran.location;
+    if (!k || !v) return;
+    geriItmeBekleyen.push({
+      kurban: kurban,
+      vuranId: vuran.id,
+      vuranKonum: { x: v.x, y: v.y, z: v.z },
+      konum: { x: k.x, y: k.y, z: k.z },
+      tick: simdi
+    });
+  } catch (e) {
+    hataYaz("gozcu.geriItmeKaydet", e);
+  }
+}
+
+/* Olgunlasan kayitlari degerlendiriyor. hareketTara icinden
+   cagriliyor -- kendi dongusunu ACMIYOR (depo kurali).      */
+export function geriItmeDegerlendir(simdi) {
+  /* Burada GERI_ITME_ACIK denetimi YOK, bilerek: kayit acan
+     taraf (geriItmeKaydet) zaten denetliyor, yani kapaliyken
+     bekleyen listeye hicbir sey girmiyor ve burada
+     degerlendirilecek bir sey olmuyor.
+
+     Ikinci bir denetim OLU KAPI olurdu -- bu dosyada bir kez
+     daha yasandi (KILIT_ATLA_TIPLER, mutasyon testi gosterdi)
+     ve ayni sebeple silindi.                               */
+  for (let i = geriItmeBekleyen.length - 1; i >= 0; i--) {
+    const kayit = geriItmeBekleyen[i];
+    if (simdi - kayit.tick < GERI_ITME_ORNEK) continue;
+    geriItmeBekleyen.splice(i, 1);
+    try {
+      const k = kayit.kurban;
+      if (!gecerliMi(k)) continue;
+      /* Kendi isi olan ya da zaten muaf durumda olan oyuncu
+         denetlenmiyor -- ayni muafiyet listesi.             */
+      if (hareketMuaf(k, undefined)) continue;
+
+      /* ---- KENDI DONDURMA YETENEKLERIMIZ ----
+         Yamultma, Dondur, Asa ve Konsey silahi kurbana
+         slowness/weakness/mining_fatigue veriyor. Boyle bir
+         oyuncunun geri itilmeye tepkisi guvenilir degil:
+         cogu zaman inputpermission da kapali oldugu icin
+         zaten kimildayamaz, ama kismi hallerde hareket
+         edip itilmemis GIBI gorunebilir.
+
+         Bu efektler hareket denetiminin muafiyet listesinde
+         YOK -- orada hizlandiran seyler muaf, yavaslatanlar
+         degil. Burada ayrica bakiliyor. Test bu boslugu
+         gosterdi: donmus oyuncu isaretleniyordu.            */
+      let donuk = false;
+      try {
+        if (typeof k.getEffect === "function") {
+          for (const ad of ["slowness", "weakness", "mining_fatigue"]) {
+            if (k.getEffect(ad)) { donuk = true; break; }
+          }
+        }
+      } catch (e) { donuk = true; }     // okunamiyorsa suclamiyoruz
+      if (donuk) continue;
+
+      const simdiki = k.location;
+      if (!simdiki) continue;
+
+      const dx = simdiki.x - kayit.konum.x;
+      const dz = simdiki.z - kayit.konum.z;
+      const toplam = Math.sqrt(dx * dx + dz * dz);
+
+      /* KIMILDAYAMIYORSA denetlenmiyor: duvar, kose, donmus
+         oyuncu hepsi buraya dusuyor.                        */
+      if (toplam < GERI_ITME_HAREKET) continue;
+
+      /* Vurandan UZAKLASMA: vuran->kurban yonune izdusum. */
+      const ux = kayit.konum.x - kayit.vuranKonum.x;
+      const uz = kayit.konum.z - kayit.vuranKonum.z;
+      const uBoy = Math.sqrt(ux * ux + uz * uz);
+      if (uBoy < 0.001) continue;        // ust uste duruyorlarsa yon yok
+      const uzaklasma = (dx * ux + dz * uz) / uBoy;
+
+      if (uzaklasma < GERI_ITME_BEKLENEN) {
+        isaretle(k, k, ["geri itilmedi (" + toplam.toFixed(2) +
+                        " blok hareket, " + uzaklasma.toFixed(2) +
+                        " uzaklaşma)"]);
+      }
+    } catch (e) {
+      hataYaz("gozcu.geriItme", e);
     }
   }
 }
