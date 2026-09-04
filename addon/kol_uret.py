@@ -102,7 +102,7 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # tureniyor -- ayrisabilecekleri bir yer kalmadi.
 #
 # YENI SURUM CIKARIRKEN: yalnizca asagidaki satiri degistir.
-SURUM_NO = (7, 33, 0)
+SURUM_NO = (7, 34, 0)
 
 SURUM_METIN = "%d.%d.%d" % SURUM_NO
 SURUM_ETIKET = "v" + SURUM_METIN
@@ -8407,6 +8407,44 @@ def kupa_odun_dokusu():
     return p
 
 
+def kupa_merkezle(geo):
+    """Blok geometrisini BLOGUN MERKEZINE tasiyor.
+
+    ---- BULUNAN HATA (v7.34) ----
+    Kupalar yerlestirilince gorunmuyordu. Sebep koordinat
+    merkeziydi: Bedrock'ta blok modeli x/z ekseninde -8..+8
+    arasina kurulur (blogun MERKEZI 0), y ise 0..16. Bizim
+    modeller 0..16 aralığina kurulmustu, yani YARIM BLOK
+    kaymislardi -- parcalarin bir kismi komsu blogun icinde
+    kaliyor ve orada yuzler eleniyor, geriye gorunur pek bir
+    sey kalmiyordu.
+
+    Kanit kendi blok dosyamizda duruyordu: selection_box
+    origin'i [-8, 0, -8] yaziyor (yani dogru duzen), geometri
+    ise [7, 0, 7]'den basliyordu. Ikisi ayni duzeni
+    kullanmiyordu.
+
+    Duzeltme tek yerde: uretilen geometrinin butun kup
+    origin'leri ve pivotlari x/z'de 8 birim geri aliniyor.
+    Modelleri tek tek elden gecirmek yerine burada
+    duzeltiliyor ki yeni bir bicim eklendiginde ayni hata
+    tekrarlanmasin.                                          """
+    for g in geo.get("minecraft:geometry", []):
+        for kemik in g.get("bones", []):
+            piv = kemik.get("pivot")
+            if piv:
+                piv[0] -= 8.0
+                piv[2] -= 8.0
+            for kup in kemik.get("cubes", []):
+                kup["origin"][0] -= 8.0
+                kup["origin"][2] -= 8.0
+                kpiv = kup.get("pivot")
+                if kpiv:
+                    kpiv[0] -= 8.0
+                    kpiv[2] -= 8.0
+    return geo
+
+
 def kupa_blogu(kimlik, ad, bicim):
     """Kupanin blok tanimi.
 
@@ -10563,7 +10601,7 @@ def main():
         yaz_json(os.path.join(BP, "blocks", _kim + ".json"),
                  kupa_blogu(_kk, _kad, _kbic))
         yaz_json(os.path.join(RP, "models/blocks", _kim + ".geo.json"),
-                 _kupa_geo[_kbic](_kk))
+                 kupa_merkezle(_kupa_geo[_kbic](_kk)))
         # Skin OLCUSU/DUZENI degismeden kopyalaniyor: kutu UV
         # zaten oyuncu skin duzenine oturuyor. Tek dokunulan
         # sey ikinci katmandaki gurultu (bkz kupa_skin_temizle).

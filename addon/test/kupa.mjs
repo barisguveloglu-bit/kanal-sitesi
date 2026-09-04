@@ -15,8 +15,10 @@
         Ilk carmih taslagi 36 birim genisti; render'da guzel
         gorunuyordu ama oyun onu yuklemezdi. Bu madde tek
         basina o hatayi bir daha gecirmez.
-     2. TABAN KUPTEN EN AZ 1 PIKSEL. Ikinci sinir bu; modeli
-        yukari kaydirirsak blok gecersiz olur.
+     2. TABAN KUPLE KESISIM + MERKEZ. Model blogun kupuyle
+        kesismeli VE x/z'de ortalanmali. Bu maddenin olcusu
+        v7.34'te duzeltildi: eskiden x/z'yi de 0..16 sayiyor
+        ve yarim blok kaymis modeli onayliyordu.
      3. GEOMETRI VE MATERIAL_INSTANCES IKISI BIRDEN. 1.21.80'
         den beri zorunlu; biri unutulursa blok cizilmez.
      4. HER MATERIAL_INSTANCE ADI KARSILIGINI BULMALI. Kupte
@@ -111,10 +113,32 @@ for (const k of bloklar) {
           olcu.every(v => v <= 30.0001),
           olcu.map(v => v.toFixed(1)).join(" x "));
 
-  /* 2. taban kupun icinde en az 1 piksel (her eksende) */
+  /* 2. taban kupun icinde en az 1 piksel -- VE MERKEZDE
+
+     v7.34: burasi YANLIS OLCUYORDU, hatayi tam da bu yuzden
+     kacirdi. Bedrock'ta blok modeli x/z ekseninde -8..+8
+     arasina kurulur (blogun MERKEZI 0), y ise 0..16. Eski
+     olcu ucunu birden 0..16 sayiyordu, yani yarim blok kaymis
+     bir modele "kupte kaliyor" diyordu. Kupalar oyunda
+     gorunmuyordu: parcalarin cogu komsu blogun icinde
+     kaliyordu ve orada cizilmiyordu.
+
+     Kanit uretilen dosyalarda duruyordu: selection_box
+     origin'i [-8,0,-8], geometri ise [7,0,7]'den basliyordu.
+
+     Iki ayri sey tutuluyor:
+       a) model taban kuple gercekten kesisiyor mu,
+       b) x/z'de ORTALANMIS mi. (a) tek basina yetmez --
+          kenardan 1 piksel giren kaymis bir model de gecer. */
+  const KUP_ALT = [-8, 0, -8], KUP_UST = [8, 16, 8];
   kontrol(k + ": taban kupte kaliyor",
-          [0, 1, 2].every(i => mx[i] > 0.0001 && mn[i] < 15.9999),
+          [0, 1, 2].every(i => mx[i] > KUP_ALT[i] + 0.0001
+                            && mn[i] < KUP_UST[i] - 0.0001),
           "min " + mn.map(v => v.toFixed(1)) + " / max " + mx.map(v => v.toFixed(1)));
+  const ortaXZ = [0, 2].map(i => (mn[i] + mx[i]) / 2);
+  kontrol(k + ": x/z blogun merkezinde",
+          ortaXZ.every(v => Math.abs(v) <= 4.0001),
+          "x " + ortaXZ[0].toFixed(1) + " / z " + ortaXZ[1].toFixed(1));
 
   const blok = JSON.parse(readFileSync(by, "utf8"))["minecraft:block"];
   const bilesen = blok.components;
