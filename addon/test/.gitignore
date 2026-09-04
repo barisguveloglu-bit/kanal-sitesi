@@ -1,0 +1,3 @@
+# kos.sh her koşuda gerçek kaynaktan yeniden kopyalıyor.
+# Depoda tutulsaydı iki kopya olurdu ve ayrışırlardı.
+pack/

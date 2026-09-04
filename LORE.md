@@ -5,6 +5,12 @@
 >
 > Bu dosya hikayenin **tek doğru kaynağıdır**. Sitedeki tüm içerik buradan türetilir.
 > Yeni bir şey eklerken önce burayı güncelle, sonra `assets/js/data.js` dosyasına yansıt.
+>
+> **İki ayrı evren var, karıştırma.** 1–9 arası bölümler **Kanlı Göz evreni** —
+> Kameracı Barış'ın hikayesi, sitenin içeriği budur. Dosyanın sonundaki
+> **EK-A · Ucube Dünya Dosyası** ise başka bir evren: eklentideki *Uzak Akraba*
+> karakterinin, Minecraft Creepypasta wiki'sinden gelen hikayesi. **Canon değil,
+> siteye çıkmıyor, `data.js`'e yansıtılmıyor** — bilerek.
 
 ---
 
@@ -435,3 +441,141 @@ Arkadaşlarını arıyorlar, dünyanın anahtarını değil.
 
 ### Cips Yiyen Adam
 İki formu var: cips ve yoğurt. Başka form tanımlı değil.
+
+---
+---
+
+# EK-A · UCUBE DÜNYA DOSYASI
+
+> ## ⚠ BU BÖLÜM KANLI GÖZ EVRENİNE AİT DEĞİL
+>
+> Yukarıdaki 1–9 bölümleri **Kanlı Göz evreni**: Kameracı Barış, Kanlı Göz,
+> mafya, üç cephe, 81 il derebeyi. Sitedeki içerik odur.
+>
+> Burası **ayrı bir evren**: eklentideki **Uzak Akraba** skininin hikayesi.
+> Kaynağı Minecraft Creepypasta Fandom wiki'si — yani **bizim yazdığımız
+> kurgu değil**, dışarıdan gelen bir evren.
+>
+> **Kurallar:**
+> - Bu bölüm **`data.js`'e yansıtılmaz**, sitede görünmez. Dosyanın başındaki
+>   "önce burayı güncelle, sonra data.js" kuralı **buraya işlemez**;
+>   bu istisna bilerek konuldu ve burada yazılı olması onu sessiz bir
+>   ihlal olmaktan çıkarıyor.
+> - İki evrenin karakterleri **birbirine karıştırılmaz**. Barış ≠ Uzak Akraba.
+> - Buradaki her iddianın **kaynak bağlantısı** var. Bağlantısı olmayan bir
+>   şey buraya yazılmaz.
+
+## A.1 Kim
+
+**Uzak Akraba** — oyuncunun eklentideki skini (`Simsek_Skin/uzak_akraba.png`).
+Wiki tarafındaki karşılığı **TurkishMinecraftLegend (TRMC)**; sayfasındaki
+replik doğrudan bizi işaret ediyor: *"Se-lam Bo-ra-Lo!"*
+
+Sayfanın duvar kâğıdı dosyası: **`Freakworld.png`**.
+
+Kaynak: [Turkishminecraftlegend](https://minecraftcreepypasta.fandom.com/tr/wiki/Turkishminecraftlegend)
+
+## A.2 Tutulduğu evren — Freak World (Ucube Dünya)
+
+**Freak Girl** sayfası düz cümleyle söylüyor:
+
+> *"Turkishminecraftlegend ve Ucube Kız 'Freak world (Ucube dünya)' isimli bir
+> yerde yaşamaktadırlar. Bu evrenin gizemi yıllardır çözülememiştir...
+> Söylenene göre Freak world'te Wildfire, Green Steve, İlüzyoner, That Thing
+> ve benzer birçok canlı bulunmaktadır."*
+
+**That Thing** sayfası ise oranın ne olduğunu tarif ediyor — **bir boyut değil**:
+
+> *"...bunun bir boyut olmadığıdır... Bizim dünyamızla onlarınki arasında gizli
+> bir katman var, katmanı yırtın ve onların dünyasını göreceksiniz."*
+
+Kaynaklar: [Freak Girl](https://minecraftcreepypasta.fandom.com/tr/wiki/Freak_Girl) ·
+[That thing](https://minecraftcreepypasta.fandom.com/tr/wiki/That_thing)
+
+## A.3 Giriş yolları
+
+| yol | kaynaktaki hâli |
+|---|---|
+| Tohum **2323** | *"Seed: 2323, PC ve Bedrock Edition'da çalışır, Xbox'ta çalışmaz."* |
+| Gizli iğne / tohum | *"gizli bir iğne veya tohuma izin verebilir bu dünyaya erişirsiniz"* |
+| Dosya düzenleme | *"dosyalara gidin ve **wmbt.txt** yazın ve içine şunu yazın: **Freak345**"* |
+| Katmanı yırtmak | *"katmanı yırtmanın bir yolu var ama bu senin oyununu..."* |
+
+Kaynak: [That thing](https://minecraftcreepypasta.fandom.com/tr/wiki/That_thing)
+
+## A.4 Neden bir ay "yarım" kaldı
+
+Katmanı yırtma yolunu anlatan kişinin kendi cümlesi, olduğu gibi:
+
+> *"...ne yapacağımın sadece **yarısını** hatırlıyorum, ama geri kalanını
+> hatırlamıyorum... **yarı yolda yaparsam** aslında bilgisayarımı çökertebilir
+> ve donanımı kızartabilir."*
+
+Yani "yarım kalmak" uydurma bir hikâye değil, **Freak World'e giriş yönteminin
+kaynakta belgelenmiş arızası**.
+
+İkinci dayanak eklentinin kendi dosyasında: Code-Man paketinin dil dosyası,
+kanlı kolu taşımanın şartını söylüyor —
+*"bobby1545's Red Bloody Arms (Kolun Düzgün Çalışması İçin Skininizin **Kolsuz**
+Olması Lazımdır!)"*. Kolsuz sürüm (`uzak_akraba_kolsuz.png`) o ayın kaydı.
+
+## A.5 Zehir — chris1545
+
+**Chris1545** sayfasının sonu:
+
+> *"...derisi **kan içindeydi** ve **siyah gözleriyle** sormaya başladı...
+> lapis lazuli bloğu ve kızıl taştan, kızıl taş tozundan ve kırmızı bir
+> meşaleden bir **haç** yapmaya başladı... Bana baktığında **oyun dondu ve
+> minecraftım gitti.**"*
+
+Eklentide zehrin rengi bu karakterin **kendi dokusundan ölçüldü**
+(`kns_kolluk_chris_kanli.png`; en çok kullanılan üç opak renk:
+`(73,0,0)`, `(186,9,9)`, `(142,0,0)`). Uydurulmadı.
+
+Kaynak: [Chris1545](https://minecraftcreepypasta.fandom.com/tr/wiki/Chris1545)
+
+## A.6 Nerede karşılaşıldı — Code-Man'in sunucusu
+
+Code-Man sayfası bir **buluşma yeri** tarif ediyor, tek bir evren değil:
+
+> *"Sunucuda birçok Minecraft efsanesi yaşıyor ve **onların hepsinin bu
+> sunucuda kendisine ait yeri var**."*
+
+Ve köprünün ötesindeki orman: kanlı su, solgun ağaçlar, **"Kan grubu 1"**,
+**"Kanlı toprak"** — eklentideki Toprak Kol / Kanlı Kol imgesinin geldiği yer.
+
+Sayfanın kendi notu hikâyenin sahibini de söylüyor:
+*"Hikayenin Ana Karakteri **BoraLo**'dur."*
+
+Kaynak: [Code-Man](https://minecraftcreepypasta.fandom.com/tr/wiki/Code-Man)
+
+## A.7 İkinci aday — ve neden seçilmedi
+
+`Zayıf düşenler` sayfasında **"Zayıfların Kalesi / Anılar Salonu"** var ve
+açıkça hapishane deniyor:
+
+> *"Burası bir kale değildi. Bu bir sistemdi. Bir veritabanı. **Bir
+> hapishane.** Ve Green Fallen onun bekçisiydi."*
+
+Duck (Dustopia) orada *"en nadir olanlarını silebilirim... hatta onları
+**değiştirebilirim**"* diyor — "hasar almış/zayıflamış" ile uyuyor.
+
+**Seçilmedi**: orası **Masal Tabanı**'nın son seviyesi ve TRMC'nin sayfalarıyla
+hiçbir bağı yok. Freak World'ün ise Uzak Akraba'nın adı geçen **üç ayrı
+sayfada** dayanağı var.
+
+Kaynak: [Zayıf düşenler](https://minecraftcreepypasta.fandom.com/tr/wiki/Zay%C4%B1f_d%C3%BC%C5%9Fenler)
+
+## A.8 Eklentideki karşılıkları
+
+| hikâye | eklentideki yeri |
+|---|---|
+| That Thing'e dönüşebilmesi | `pa:o_sey` · O Şey formu · `donusum.js` |
+| Bunu bir iksirle yapması | iksir sistemi (`iksirler.js`) |
+| Bir ay yarım kalması | `uzak_akraba_kolsuz.png` + skindeki kavuşma izi (v7.10) |
+| chris1545'in zehri | skindeki kırmızı damarlar (v7.10) |
+| Hapis | skindeki pranga halkaları (v7.10) |
+| Kanlı orman / kanlı toprak | Toprak Kol, Kanlı Kol |
+
+> **Not:** Wiki'nin kendi uyarısı: *"Bu Creepypasta tamamen kurgudan ibarettir,
+> gerçeklik payı barındırmamaktadır."* Buradaki her şey kurgudur.

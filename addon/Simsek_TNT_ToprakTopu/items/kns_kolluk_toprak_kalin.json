@@ -1,0 +1,36 @@
+{
+  "format_version": "1.21.0",
+  "minecraft:item": {
+    "description": {
+      "identifier": "pa:kns_kolluk_toprak_kalin",
+      "menu_category": {
+        "category": "equipment"
+      }
+    },
+    "components": {
+      "minecraft:icon": {
+        "texture": "kns_kolluk_toprak_kalin"
+      },
+      "minecraft:display_name": {
+        "value": "Toprak Kol (Kalın)"
+      },
+      "minecraft:max_stack_size": 1,
+      "minecraft:tags": {
+        "tags": [
+          "pa:konsey",
+          "pa:konsey_kolluk"
+        ]
+      },
+      "minecraft:wearable": {
+        "slot": "slot.armor.chest",
+        "protection": 7
+      },
+      "minecraft:armor": {
+        "protection": 7
+      },
+      "minecraft:durability": {
+        "max_durability": 200
+      }
+    }
+  }
+}

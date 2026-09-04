@@ -1,0 +1,211 @@
+{
+ "format_version": "1.12.0",
+ "minecraft:geometry": [
+  {
+   "description": {
+    "identifier": "geometry.mrv_iron_fist_mask",
+    "texture_width": 128,
+    "texture_height": 128,
+    "visible_bounds_width": 4,
+    "visible_bounds_height": 5.5,
+    "visible_bounds_offset": [
+     0,
+     2.25,
+     0
+    ]
+   },
+   "bones": [
+    {
+     "name": "root",
+     "pivot": [
+      0,
+      0,
+      0
+     ]
+    },
+    {
+     "name": "waist",
+     "parent": "root",
+     "pivot": [
+      0,
+      12,
+      0
+     ]
+    },
+    {
+     "name": "body",
+     "parent": "waist",
+     "pivot": [
+      0,
+      24,
+      0
+     ]
+    },
+    {
+     "name": "head",
+     "parent": "body",
+     "pivot": [
+      0,
+      24,
+      0
+     ],
+     "cubes": [
+      {
+       "origin": [
+        -4.5,
+        23.75,
+        -4.5
+       ],
+       "size": [
+        9,
+        3,
+        9
+       ],
+       "uv": [
+        0,
+        16
+       ]
+      },
+      {
+       "origin": [
+        -4,
+        26,
+        -4
+       ],
+       "size": [
+        8,
+        6,
+        8
+       ],
+       "inflate": 0.2,
+       "uv": [
+        0,
+        81
+       ]
+      },
+      {
+       "origin": [
+        -4.5,
+        26.5,
+        -4.5
+       ],
+       "size": [
+        9,
+        6,
+        9
+       ],
+       "uv": [
+        0,
+        66
+       ]
+      },
+      {
+       "origin": [
+        0.9,
+        26.5,
+        -4.6
+       ],
+       "size": [
+        2,
+        1,
+        1
+       ],
+       "inflate": -0.05,
+       "uv": [
+        0,
+        66
+       ]
+      },
+      {
+       "origin": [
+        -2.9,
+        26.5,
+        -4.6
+       ],
+       "size": [
+        2,
+        1,
+        1
+       ],
+       "inflate": -0.05,
+       "uv": [
+        0,
+        64
+       ]
+      },
+      {
+       "origin": [
+        -1,
+        26.5,
+        3
+       ],
+       "size": [
+        2,
+        2,
+        2
+       ],
+       "uv": [
+        0,
+        60
+       ]
+      }
+     ]
+    },
+    {
+     "name": "if0",
+     "parent": "head",
+     "pivot": [
+      0.6,
+      27,
+      5.1
+     ],
+     "cubes": [
+      {
+       "origin": [
+        0.1,
+        21,
+        4.1
+       ],
+       "size": [
+        1,
+        6,
+        1
+       ],
+       "uv": [
+        28,
+        57
+       ]
+      }
+     ]
+    },
+    {
+     "name": "if1",
+     "parent": "head",
+     "pivot": [
+      -0.6,
+      27,
+      5.1
+     ],
+     "cubes": [
+      {
+       "origin": [
+        -1.1,
+        19,
+        4.1
+       ],
+       "size": [
+        1,
+        8,
+        1
+       ],
+       "uv": [
+        10,
+        57
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

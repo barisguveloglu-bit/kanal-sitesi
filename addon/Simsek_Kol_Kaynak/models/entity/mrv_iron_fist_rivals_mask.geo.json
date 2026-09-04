@@ -1,0 +1,323 @@
+{
+ "format_version": "1.12.0",
+ "minecraft:geometry": [
+  {
+   "description": {
+    "identifier": "geometry.mrv_iron_fist_rivals_mask",
+    "texture_width": 128,
+    "texture_height": 128,
+    "visible_bounds_width": 4,
+    "visible_bounds_height": 5.5,
+    "visible_bounds_offset": [
+     0,
+     2.25,
+     0
+    ]
+   },
+   "bones": [
+    {
+     "name": "root",
+     "pivot": [
+      0,
+      0,
+      0
+     ]
+    },
+    {
+     "name": "waist",
+     "parent": "root",
+     "pivot": [
+      0,
+      12,
+      0
+     ]
+    },
+    {
+     "name": "body",
+     "parent": "waist",
+     "pivot": [
+      0,
+      24,
+      0
+     ]
+    },
+    {
+     "name": "head",
+     "parent": "body",
+     "pivot": [
+      0,
+      24,
+      0
+     ],
+     "cubes": [
+      {
+       "origin": [
+        -4.5,
+        23.5,
+        -4.5
+       ],
+       "size": [
+        9,
+        9,
+        9
+       ],
+       "inflate": -0.25,
+       "uv": [
+        0,
+        0
+       ]
+      },
+      {
+       "origin": [
+        -5,
+        23,
+        -5
+       ],
+       "size": [
+        10,
+        10,
+        10
+       ],
+       "inflate": -0.7,
+       "uv": [
+        72,
+        0
+       ]
+      },
+      {
+       "origin": [
+        -0.5,
+        28,
+        3.5
+       ],
+       "size": [
+        1,
+        2,
+        1
+       ],
+       "uv": [
+        0,
+        0
+       ]
+      },
+      {
+       "origin": [
+        0.9,
+        26.5,
+        -4.4
+       ],
+       "size": [
+        2,
+        1,
+        1
+       ],
+       "inflate": -0.05,
+       "uv": [
+        24,
+        34
+       ]
+      },
+      {
+       "origin": [
+        -2.9,
+        26.5,
+        -4.4
+       ],
+       "size": [
+        2,
+        1,
+        1
+       ],
+       "inflate": -0.05,
+       "uv": [
+        36,
+        54
+       ]
+      }
+     ]
+    },
+    {
+     "name": "if0",
+     "parent": "head",
+     "pivot": [
+      0.6,
+      29,
+      5.1
+     ],
+     "cubes": [
+      {
+       "origin": [
+        0.1,
+        19,
+        4.1
+       ],
+       "size": [
+        1,
+        10,
+        1
+       ],
+       "uv": [
+        64,
+        53
+       ]
+      }
+     ]
+    },
+    {
+     "name": "if2",
+     "parent": "if0",
+     "pivot": [
+      0.6,
+      19,
+      5.1
+     ],
+     "cubes": [
+      {
+       "origin": [
+        0.1,
+        9,
+        4.1
+       ],
+       "size": [
+        1,
+        10,
+        1
+       ],
+       "uv": [
+        40,
+        56
+       ]
+      }
+     ]
+    },
+    {
+     "name": "if1",
+     "parent": "head",
+     "pivot": [
+      -0.6,
+      29,
+      5.1
+     ],
+     "cubes": [
+      {
+       "origin": [
+        -1.1,
+        19,
+        4.1
+       ],
+       "size": [
+        1,
+        10,
+        1
+       ],
+       "uv": [
+        60,
+        53
+       ]
+      }
+     ]
+    },
+    {
+     "name": "if3",
+     "parent": "if1",
+     "pivot": [
+      -0.6,
+      19,
+      5.1
+     ],
+     "cubes": [
+      {
+       "origin": [
+        -1.1,
+        9,
+        4.1
+       ],
+       "size": [
+        1,
+        10,
+        1
+       ],
+       "uv": [
+        36,
+        56
+       ]
+      }
+     ]
+    },
+    {
+     "name": "body_particle",
+     "parent": "body",
+     "pivot": [
+      0,
+      24,
+      0
+     ],
+     "locators": {
+      "body_particle": {
+       "offset": [
+        0,
+        27,
+        0
+       ],
+       "rotation": [
+        0,
+        -28,
+        0
+       ]
+      }
+     }
+    },
+    {
+     "name": "iron_fist_arms",
+     "parent": "body",
+     "pivot": [
+      0,
+      -6,
+      0
+     ]
+    },
+    {
+     "name": "iron_fist_arm0",
+     "parent": "iron_fist_arms",
+     "pivot": [
+      11,
+      24,
+      0
+     ]
+    },
+    {
+     "name": "iron_fist_arm1",
+     "parent": "iron_fist_arms",
+     "pivot": [
+      -11,
+      24,
+      0
+     ]
+    },
+    {
+     "name": "waist_particle",
+     "parent": "waist",
+     "pivot": [
+      0,
+      24,
+      0
+     ],
+     "locators": {
+      "waist_particle": {
+       "offset": [
+        0,
+        27,
+        0
+       ],
+       "rotation": [
+        0,
+        -28,
+        0
+       ]
+      }
+     }
+    }
+   ]
+  }
+ ]
+}

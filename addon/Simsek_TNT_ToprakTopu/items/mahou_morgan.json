@@ -1,0 +1,32 @@
+{
+  "format_version": "1.21.0",
+  "minecraft:item": {
+    "description": {
+      "identifier": "pa:mahou_morgan",
+      "menu_category": {
+        "category": "equipment"
+      }
+    },
+    "components": {
+      "minecraft:icon": {
+        "texture": "mahou_morgan"
+      },
+      "minecraft:display_name": {
+        "value": "Morgan"
+      },
+      "minecraft:max_stack_size": 1,
+      "minecraft:tags": {
+        "tags": [
+          "pa:mahou",
+          "pa:mahou_esya"
+        ]
+      },
+      "minecraft:hand_equipped": true,
+      "minecraft:allow_off_hand": false,
+      "minecraft:damage": 4,
+      "minecraft:durability": {
+        "max_durability": 1000
+      }
+    }
+  }
+}

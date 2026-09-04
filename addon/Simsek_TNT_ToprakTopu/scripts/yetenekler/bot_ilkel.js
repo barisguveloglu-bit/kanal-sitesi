@@ -1,0 +1,941 @@
+import { system, ItemStack } from "@minecraft/server";
+import { yetenekKaydet } from "./kayit.js";
+import {
+  hataYaz, gecerliMi, kollariIndir, actionbarYaz, olayaAbone,
+  parcacikAt
+} from "../yardimcilar.js";
+import {
+  botCagir, botVarliklari, botunSahibi, ilkelKancasi, ilkelSilmeKancasi
+} from "./_bot_defteri.js";
+import { asaVurusu, asaUnut } from "./asa.js";
+import { disleriCikar, dislerUnut } from "./disler.js";
+import {
+  ILKEL_ACIK, ILKEL_TAVAN, ILKEL_BESLI, ILKEL_ADLAR, ILKEL_OZELLIK, ILKEL_TURDEN,
+  ILKEL_ISIN_ACIK, ILKEL_ISIN_KALINLIK, ILKEL_ISIN_ADIM, ILKEL_ISIN_TAVAN,
+  ILKEL_AURA_OYUNCU, ILKEL_KORUMA, BOT_OLAY_SAVAS_AC,
+  BOT_TAVAN, BOT_TARAMA, botTuruMu,
+  ILKEL_OK_HASARI, ILKEL_OK_TABAN, MOBA_ISLEMEYEN_EFEKTLER,
+  ILKEL_PASIF_ACIK, ILKEL_PASIF_SURE, ILKEL_PASIF_PARCACIK,
+  ilkelSilahi, ILKEL_SILAH_TAZELE, SERSEM_VURUS
+} from "../ayarlar.js";
+
+/* ============================================================
+   ILKEL BESLI  --  bes patron, artik senin tarafinda
+
+   Kullanicinin getirdigi liste bes DUSMANI tarif ediyordu:
+   sana vuran, seni korlestiren, kendini iyilestiren patronlar.
+   Istek "bunlar benim kisisel botlarim olacak" oldu.
+
+   ---- CEVIRI KURALI ----
+   Sayilar aynen korundu (canlar, hasarlar, iyilesme miktarlari,
+   efekt seviyeleri, sureler). Ters cevrilen tek sey HEDEF:
+
+     listede                    burada
+     ---------------------      ----------------------------
+     "oyuncuya Yavaslik III"    botun VURDUGU seye Yavaslik III
+     "30 blok civarindaki       civardaki DUSMANLARA
+      oyunculara Bulanti V"     (sahip ve ekip disarida)
+
+   Kendi botun seni korlestirseydi bu bir ozellik degil ceza
+   olurdu.
+
+   ---- NEREDE NE CALISIYOR ----
+   Varlik JSON'unda (kol_uret.py:ILKEL): can, hasar, olcek,
+   geri itilme bagisikligi, Miskel'in ok atmasi, Harkos'un
+   sicramasi. Bunlar AI ve istatistik; script'e gerek yok.
+
+   Burada: vurulunca/vurunca tetiklenen her sey, Harkos'un
+   pasif iyilesmesi, Raxxan'in aurasi ve gizlenmesi, Okazor'un
+   uc vurusluk serisi. Bunlar olay ve zaman istiyor.
+
+   ---- OLAYA BAGIMLILIK ----
+   entityHurt ve entityHitEntity her surumde YOK. olayaAbone
+   ozellik tespiti yapiyor: olay yoksa paket olmuyor, sadece o
+   yetenek sessizce kapaniyor ve Content Log'a bir satir
+   dusuyor. Ilkel botlar yine doguyor, yine dovusuyor -- sadece
+   vurusa bagli ekstralar calismiyor.
+   ============================================================ */
+
+/* ---------------- Kimlik ---------------- */
+
+/* Bu varlik hangi ilkel uye? Degil ise undefined.
+
+   Kimlik VARLIGIN kendi ozelliginde: dunya kaydinin bicimini
+   degistirmemek icin (v4.27'de bir kez eski dunyalar
+   okunamaz olmustu).                                          */
+export function ilkelKimligi(varlik) {
+  /* ---- 1) TUR ADINDAN (v7.9.7) ----
+     Uyeler v4.35'ten beri AYRI varliklar: pa:okazor,
+     pa:miskel, pa:harkos, pa:raxxan, pa:kajaros. Yani turun
+     kendisi ZATEN kimlik ve okumak icin hicbir API cagrisi
+     gerekmiyor -- typeId her zaman var.
+
+     BU YOL ONCE DENENIYOR cunku eskiden TEK yol dinamik
+     ozellikti ve o yazma tutmayinca uyenin butun yetenekleri
+     sessizce oluyordu. Kullanici oyunda tam bunu gordu:
+     "uye vuruyor ama ozel bir sey olmuyor."                 */
+  try {
+    const tip = varlik.typeId;
+    if (typeof tip === "string") {
+      const a = ILKEL_TURDEN.get(tip);
+      if (a) return a;
+    }
+  } catch (e) {
+    /* typeId okunamadi (varlik gitmis olabilir): ozellige dus */
+  }
+
+  /* ---- 2) DINAMIK OZELLIK (yedek) ----
+     Tur eslesmezse hala ozellige bakiliyor: ileride bir uye
+     baska bir varliga bindirilirse ya da eski bir dunyada
+     tur adi degismisse yol acik kalsin.                     */
+  try {
+    if (typeof varlik.getDynamicProperty !== "function") return undefined;
+    const a = varlik.getDynamicProperty(ILKEL_OZELLIK);
+    return (typeof a === "string" && ILKEL_BESLI.has(a)) ? a : undefined;
+  } catch (e) {
+    return undefined;
+  }
+}
+
+function tanim(anahtar) {
+  return ILKEL_BESLI.get(anahtar);
+}
+
+/* ---------------- Can islemleri ---------------- */
+
+function canBileseni(varlik) {
+  try {
+    return varlik.getComponent("minecraft:health");
+  } catch (e) {
+    return undefined;
+  }
+}
+
+/* Iyilestir. Tavan asilmiyor -- "20 HP iyilestir" tam dolu
+   bir cana 20 daha eklemek demek degil.                       */
+function iyilestir(varlik, miktar) {
+  const c = canBileseni(varlik);
+  if (!c || typeof c.setCurrentValue !== "function") return false;
+  try {
+    const simdiki = c.currentValue;
+    const tavan = (typeof c.effectiveMax === "number") ? c.effectiveMax
+                : (typeof c.defaultValue === "number") ? c.defaultValue
+                : simdiki + miktar;
+    if (simdiki >= tavan) return false;
+    c.setCurrentValue(Math.min(tavan, simdiki + miktar));
+    return true;
+  } catch (e) {
+    hataYaz("ilkel.iyilestir", e);
+    return false;
+  }
+}
+
+function tamDoldur(varlik) {
+  const c = canBileseni(varlik);
+  if (!c || typeof c.setCurrentValue !== "function") return false;
+  try {
+    const tavan = (typeof c.effectiveMax === "number") ? c.effectiveMax
+                : c.defaultValue;
+    if (typeof tavan !== "number") return false;
+    c.setCurrentValue(tavan);
+    return true;
+  } catch (e) {
+    hataYaz("ilkel.tamDoldur", e);
+    return false;
+  }
+}
+
+function efektVer(hedef, liste, secenek) {
+  if (!liste) return;
+  const parcacik = (secenek && secenek.parcacik !== undefined)
+    ? secenek.parcacik : true;
+  const sureSecenek = secenek && secenek.sure;
+  for (const [ad, sure, seviye] of liste) {
+    try {
+      hedef.addEffect(ad, sureSecenek || sure,
+                      { amplifier: seviye, showParticles: parcacik });
+    } catch (e) {
+      /* Efekt adi bu surumde yoksa digerleri yine verilsin --
+         hepsini birden dusurmek gereksiz.                     */
+    }
+  }
+}
+
+/* ---------------- Silah (v4.48, v4.49) ----------------
+
+   v4.48: "Bunlar genel olarak Ilkel Besli'nin tamaminda olsun."
+   v4.49: "Bu normalde de zaten El-Harkos'un elinde bulunan bir
+          esyaydi." Yani silah uyeye ozel: El-Harkos asa,
+          digerleri balta.
+
+   Uc parca birden gerekiyor, biri eksikse silah gorunmuyor:
+     1) varlik JSON'unda minecraft:equippable  (kol_uret.py)
+     2) geometride "rightItem" kemigi          (kol_uret.py)
+     3) esyanin ele konmasi                    (burasi)
+
+   Ele koyma NEDEN script tarafinda: equipment ganimet tablosu
+   da yapardi ama onun yuvaya dagitim kurali surumden surume
+   degisiyor ve testten gecmiyor. Burada tek satir, sinanabilir
+   ve dunya yeniden yuklenince kendi kendine tazeleniyor.      */
+
+let silahUyarisi = false;
+/* Son cagrilan uyeye silahi konulabildi mi. Cagirma mesaji
+   bunu okuyor.                                              */
+let sonSilah = false;
+
+function eldekiEsya(varlik) {
+  try {
+    const e = varlik.getComponent("minecraft:equippable");
+    if (!e || typeof e.getEquipment !== "function") return undefined;
+    return e.getEquipment("Mainhand");
+  } catch (e) {
+    return undefined;
+  }
+}
+
+/* Uyenin silahini ana ele koyar. Zaten duruyorsa dokunmuyor --
+   her taramada yeni ItemStack uretmek bosuna is olurdu.
+
+   Hangi silah oldugu ANAHTARDAN geliyor, varliktan degil:
+   boylece esleme tek yerde (ayarlar.js:ILKEL_SILAH).          */
+export function silahVer(varlik, anahtar) {
+  const silah = ilkelSilahi(anahtar || ilkelKimligi(varlik));
+  if (!silah) return false;
+  let bilesen;
+  try {
+    bilesen = varlik.getComponent("minecraft:equippable");
+  } catch (e) {
+    bilesen = undefined;
+  }
+  if (!bilesen || typeof bilesen.setEquipment !== "function") {
+    /* v4.61 -- BU ARTIK BIR HATA DEGIL.
+       v4.59'da asil yol minecraft:equipment ganimet tablosuna
+       tasindi; silah DOGUSTA veriliyor ve script'e ihtiyaci yok.
+       EquippableComponent ozel varliklarda bulunmayabiliyor --
+       o zaman script silahi ne koyabiliyor NE DE OKUYABILIYOR.
+       "Konulamadi" demek yaniltici olurdu: silah muhtemelen
+       elinde, sadece buradan gorulemiyor.                     */
+    if (!silahUyarisi) {
+      silahUyarisi = true;
+      hataYaz("ilkel.silah", new Error(
+        "minecraft:equippable script tarafinda yok. Silah dogusta " +
+        "ganimet tablosuyla veriliyor; tazeleme (dusen silahi geri " +
+        "koyma) calismayacak."));
+    }
+    return "okunamadi";
+  }
+
+  const simdiki = eldekiEsya(varlik);
+  if (simdiki && simdiki.typeId === silah) return true;
+
+  try {
+    bilesen.setEquipment("Mainhand", new ItemStack(silah, 1));
+    return true;
+  } catch (e) {
+    if (!silahUyarisi) {
+      silahUyarisi = true;
+      /* Buraya dusmek GERCEK bir sorun: esya oyunun defterinde
+         yok demek, yani davranis paketi etkin degil ya da eski
+         surumu etkin.                                          */
+      hataYaz("ilkel.silah", e);
+    }
+    return false;
+  }
+}
+
+/* ---------------- Cagirma ---------------- */
+
+/* Bir uyeyi cagirir. Donen deger: {hata} ya da {dogdu, ad}.
+
+   Normal botCagir kullaniliyor, sonra varlik ilkel olayina
+   sokuluyor. Yani bu bot her sey yapabiliyor: odun toplar,
+   derin tarama yapar, teslim eder -- ustelik 1750 canla.     */
+export function ilkelCagir(oyuncu, anahtar) {
+  if (!ILKEL_ACIK) return { hata: "İlkel Beşli kapalı (ILKEL_ACIK)." };
+
+  const t = tanim(anahtar);
+  if (!t) return { hata: "Bilinmeyen üye: " + anahtar };
+
+  /* Ayni isimden ILKEL_TAVAN taneden fazlasi olmasin: bunlar
+     isimli kisiler, kalabalik degil.                          */
+  const mevcut = ilkelSayisi(oyuncu.id, anahtar);
+  if (mevcut >= ILKEL_TAVAN) {
+    return { hata: t.ad + " zaten yanında (" + mevcut + "/" + ILKEL_TAVAN + ")." };
+  }
+
+  const sonuc = botCagir(oyuncu, t.kimlik);
+  if (sonuc.hata) return sonuc;
+
+  /* DIKKAT -- botCagir'in "tavan" alani IKI ANLAMDA kullaniliyor:
+       basarida      tavan: BOT_TAVAN   (sayi, bilgi amacli)
+       tavan dolunca tavan: true        (bayrak)
+     Yani "if (sonuc.tavan)" basarili cagriyi da yakaliyor. Ilk
+     yazimda tam bu oldu: bot doguyordu ama "tavandasin" hatasi
+     donuyordu. Dogru sinama DOGDU alani.                       */
+  if (!sonuc.dogdu) {
+    return { hata: "Bot tavanındasın (" + BOT_TAVAN + "). Önce birkaçını geri gönder." };
+  }
+
+  const varlik = sonuc.varlik;
+  if (!varlik) return { hata: "Bot doğdu ama varlığa ulaşılamadı." };
+
+  return ilkelYap(varlik, anahtar) ? { dogdu: true, ad: t.ad }
+                                   : { hata: "Üye dönüşümü başarısız." };
+}
+
+/* Dogan varligi uye olarak ISARETLER.
+
+   v4.34'te burada triggerEvent ile bilesen grubu ekleniyordu;
+   v4.35'te her uye kendi varligi oldugu icin istatistikleri
+   zaten varlik JSON'unda. Geriye kimlik ve isim kaldi.        */
+export function ilkelYap(varlik, anahtar) {
+  const t = tanim(anahtar);
+  if (!t) return false;
+
+  /* KIMLIK: sessizce kaybolamaz.
+
+     Eskiden bu blok basarisizligi YUTUYORDU ve yorumu bile
+     sonucu kabulleniyordu ("script tarafi onu tanimaz").
+     Yutulan sey sunun ta kendisiydi: kimlik yazilamazsa
+     ilkelKimligi() undefined doner, bakim() ve botVurdu()
+     ILK SATIRINDA cikar, ve uyenin BUTUN yetenekleri --
+     isin, asa, disler, seri, pasifler, aura -- hicbir belirti
+     vermeden olur. Kullanicinin gorebilecegi tek sey "hicbir
+     sey olmuyor" olurdu; nitekim oyle oldu.
+
+     Iki degisiklik:
+       1. Yazma DOGRULANIYOR (geri okunuyor)
+       2. Tutmazsa SESSIZ KALINMIYOR                          */
+  let kimlikYazildi = false;
+  try {
+    if (typeof varlik.setDynamicProperty === "function") {
+      varlik.setDynamicProperty(ILKEL_OZELLIK, anahtar);
+      kimlikYazildi = (ilkelKimligi(varlik) === anahtar);
+    }
+  } catch (e) {
+    hataYaz("ilkel.kimlikYaz", e);
+  }
+  if (!kimlikYazildi) {
+    hataYaz("ilkel.kimlik", new Error(
+      anahtar + " icin kimlik ozelligi (" + ILKEL_OZELLIK + ") " +
+      "yazilamadi ya da geri okunamadi. Uye doguyor ve dovusuyor " +
+      "ama SCRIPT ONU TANIMIYOR: isin, asa, disler, seri ve " +
+      "pasiflerin HICBIRI calismaz."));
+  }
+
+  /* Koruma gorevi: ekip savasi kapali olsa bile bu bes uye
+     savasa hazir doguyor. Isleri bu.                          */
+  if (ILKEL_KORUMA) {
+    try {
+      if (typeof varlik.triggerEvent === "function") {
+        varlik.triggerEvent(BOT_OLAY_SAVAS_AC);
+      }
+    } catch (e) {
+      hataYaz("ilkel.koruma", e);
+    }
+  }
+
+  /* Silah ve sinif ozellikleri dogar dogmaz (v4.48). Ikisi de
+     bakim() taramasinda tazeleniyor; buradaki cagri sadece "ilk
+     karede zaten oyle gorunsun" icin -- bir tarama beklemek
+     uyeyi bos elle dogurmak olurdu.                           */
+  /* Silah sonucu SAKLANIYOR: cagirma mesajinda bildiriliyor.
+     v4.48-v4.58 arasi silah oyunda hic gorunmedi ve tek
+     belirtisi Content Log'a dusen bir satirdi -- kullanici
+     "gorunmuyor" dedi, sebebini gormesi imkansizdi.
+     Artik cagirir cagirmaz yaziyor.                          */
+  sonSilah = silahVer(varlik, anahtar);
+  pasifVer(varlik, t);
+
+  /* Isim etiketi rutbeyle: kim kimin ustu, bakinca belli olsun.
+       [1] Ilkel Savasci Okazor · Ekip Lideri                   */
+  try {
+    varlik.nameTag = "§6[" + t.rutbe + "] §f" + t.ad + " §7· " + t.unvan;
+  } catch (e) {
+    // Isim takilamadi; oynanis etkilenmiyor
+  }
+  return true;
+}
+
+export function ilkelSayisi(oyuncuId, anahtar) {
+  let n = 0;
+  for (const { varlik } of botVarliklari(oyuncuId)) {
+    const a = ilkelKimligi(varlik);
+    if (a && (anahtar === undefined || a === anahtar)) n++;
+  }
+  return n;
+}
+
+/* Hangi uyeler yanindaysa listesi. Durum raporu icin.        */
+export function ilkelListesi(oyuncuId) {
+  const bulunan = [];
+  for (const { varlik } of botVarliklari(oyuncuId)) {
+    const a = ilkelKimligi(varlik);
+    if (a) bulunan.push(a);
+  }
+  return bulunan;
+}
+
+/* ---------------- Dusman ayrimi ----------------
+   Bir varlik bu botun DUSMANI mi? Sahibi ve ekip arkadaslari
+   asla. Oyuncular ayara bagli: yaninda oynayan arkadasini
+   surekli mide bulantisinda tutmak ozellik degil eziyet.     */
+function dusmanMi(varlik, sahipId) {
+  try {
+    if (!gecerliMi(varlik)) return false;
+    if (varlik.id === sahipId) return false;
+    if (botTuruMu(varlik.typeId)) return false;             // ekip arkadasi
+    if (varlik.typeId === "minecraft:item" ||
+        varlik.typeId === "minecraft:xp_orb") return false;
+    if (varlik.typeId === "minecraft:player") return ILKEL_AURA_OYUNCU;
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+/* ---------------- Vurus olaylari ---------------- */
+
+/* Okazor'un serisi: botId -> [vurus tick'leri] */
+const seriler = new Map();
+
+/* Bu efekt listesi bir MOBA bir sey yapar mi?
+   Sadece Korluk/Bulanti gibi "ekran efektlerinden" olusan bir
+   liste zombiye karsi yok hukmunde.                          */
+function moblaraIsler(liste) {
+  for (const [ad] of liste) {
+    if (!MOBA_ISLEMEYEN_EFEKTLER.has(ad)) return true;
+  }
+  return false;
+}
+
+/* Bot BIR SEYE vurdu. Menzilli uyelerde bu ok degdiginde de
+   cagriliyor (v4.47) -- oncesinde sadece yakin dovus vardi ve
+   Miskel'in imza yetenegi hic tetiklenmiyordu.               */
+function botVurdu(bot, kurban, simdikiTick) {
+  const anahtar = ilkelKimligi(bot);
+  if (!anahtar) return;
+  const t = tanim(anahtar);
+
+  /* El-Harkos'un asasi (v4.50): 3 vurus -> yere serer,
+     yerdekine bir vurus daha -> mezar. Zincirin tamami
+     asa.js'te; burada sadece tetigi var.                     */
+  if (t.asa) {
+    try {
+      asaVurusu(bot, kurban, simdikiTick);
+    } catch (e) {
+      hataYaz("ilkel.asa", e);
+    }
+  }
+
+  /* Okazor'un disleri (v4.85): yerden evoker disleri cikiyor.
+     Zincirin tamami disler.js'te; burada sadece tetigi var --
+     asa ile birebir ayni kalip.                             */
+  if (t.disler) {
+    try {
+      disleriCikar(bot, kurban);
+    } catch (e) {
+      hataYaz("ilkel.disler", e);
+    }
+  }
+
+  // Kajaros: sabit efekt listesi
+  if (t.vurusEfekt) efektVer(kurban, t.vurusEfekt);
+
+  /* Miskel: iki secenekten biri. Listede "VEYA" yaziyordu,
+     yani her vuruste yazi tura.
+
+     v4.47 -- YAZI TURA ARTIK HEDEFE BAKIYOR. Secenekten biri
+     Korluk XVI: oyuncuya karsi yikici, moba karsi hicbir sey.
+     Hedef oyuncu degilse moba islemeyen secenekler eleniyor,
+     yani zombi her zaman Solgunluk yiyor. Oyuncuya karsi yazi
+     tura AYNEN duruyor -- listedeki "VEYA" orada anlamli.    */
+  if (t.vurusEfektSecim) {
+    let secenekler = t.vurusEfektSecim;
+    let oyuncuMu = false;
+    try { oyuncuMu = kurban.typeId === "minecraft:player"; } catch (e) { /* tipi okunamadi */ }
+    if (!oyuncuMu) {
+      const isleyen = secenekler.filter(moblaraIsler);
+      /* Hicbiri islemiyorsa eski davranisa donuluyor: bos liste
+         "efekt yok" demek olurdu, o da bir gerileme.           */
+      if (isleyen.length > 0) secenekler = isleyen;
+    }
+    const i = Math.floor(Math.random() * secenekler.length);
+    efektVer(kurban, secenekler[i]);
+  }
+
+  /* Okazor: "4 saniyelik araliklarla ust uste 3 kez vurmayi
+     basarirsa cani tamamen yenilenir." Pencere disinda kalan
+     vuruslar dusuyor, yani seri gercekten ARALIKSIZ olmali.  */
+  if (t.seri) {
+    const liste = (seriler.get(bot.id) || [])
+      .filter((tk) => simdikiTick - tk <= t.seri.pencere);
+    liste.push(simdikiTick);
+    if (liste.length >= t.seri.adet) {
+      if (tamDoldur(bot)) liste.length = 0;    // seri harcandi
+    }
+    seriler.set(bot.id, liste);
+  }
+}
+
+/* Bot HASAR ALDI. */
+function botVuruldu(bot) {
+  const anahtar = ilkelKimligi(bot);
+  if (!anahtar) return;
+  const t = tanim(anahtar);
+  if (t.vurulunca) iyilestir(bot, t.vurulunca);
+}
+
+/* ---------------- Menzilli vurus (v4.47) ----------------
+
+   Okun hedefi mesru mu? Ok gecerken sahibine ya da ekip
+   arkadasina degebilir; ekstra hasar oraya BINMEMELI.
+
+   dusmanMi() burada KULLANILMIYOR bilerek: o fonksiyon
+   ILKEL_AURA_OYUNCU'ya bakip oyunculari eliyor, cunku yanindaki
+   arkadasini surekli bulantida tutmamak icin yazilmisti. Ama
+   Miskel'in asil parladigi yer gercek bir OYUNCUYA karsi
+   dovusmek. Burada sadece sahip ve ekip disarida.             */
+function okHedefiMi(kurban, sahipId) {
+  try {
+    if (!gecerliMi(kurban)) return false;
+    if (sahipId && kurban.id === sahipId) return false;
+    if (botTuruMu(kurban.typeId)) return false;
+    if (kurban.typeId === "minecraft:item" ||
+        kurban.typeId === "minecraft:xp_orb") return false;
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+/* Botun attigi mermi bir seye degdi.
+
+   Bedrock'ta okun hasari aticinin attack.damage'inden bagimsiz
+   sabit bir sayi. Miskel'in ayarlardaki 28 hasari bu yuzden
+   oynanista hic kullanilmiyordu. Aradaki farki burada
+   kapatiyoruz -- sayiyi UYDURMUYORUZ, ayardakine ESITLIYORUZ.
+
+   Hasar cinsi "magic": buyucu icin dogru olan bu ve zirhtan
+   etkilenmiyor. Zirhli bir hedefe karsi Miskel'in yine
+   etkisiz kalmasi ayni sorunun tekrari olurdu.                */
+function okVurdu(bot, kurban, simdikiTick) {
+  const anahtar = ilkelKimligi(bot);
+  if (!anahtar) return;
+  const t = tanim(anahtar);
+
+  if (!okHedefiMi(kurban, botunSahibi(bot))) return;
+
+  if (ILKEL_OK_HASARI && typeof t.hasar === "number") {
+    const ek = Math.max(0, t.hasar - ILKEL_OK_TABAN);
+    if (ek > 0) {
+      try {
+        kurban.applyDamage(ek, { cause: "magic", damagingEntity: bot });
+      } catch (e) {
+        /* applyDamage secenekleri bazi surumlerde farkli.
+           Sade cagriyi dene; o da olmazsa efektler yine gecerli. */
+        try { kurban.applyDamage(ek); } catch (e2) { /* hasar binmedi */ }
+      }
+    }
+  }
+
+  /* Imza yetenegi: yakin dovusteki ile ayni yol. */
+  botVurdu(bot, kurban, simdikiTick);
+}
+
+let olayUyarisi = false;
+
+function olaylariKur() {
+  const vurus = olayaAbone("entityHitEntity", (olay) => {
+    try {
+      const bot = olay.damagingEntity;
+      const kurban = olay.hitEntity;
+      if (!bot || !kurban) return;
+      if (!botTuruMu(bot.typeId)) return;
+      botVurdu(bot, kurban, system.currentTick);
+    } catch (e) {
+      hataYaz("ilkel.entityHitEntity", e);
+    }
+  });
+
+  const hasar = olayaAbone("entityHurt", (olay) => {
+    try {
+      const bot = olay.hurtEntity;
+      if (!bot || !botTuruMu(bot.typeId)) return;
+      botVuruldu(bot);
+    } catch (e) {
+      hataYaz("ilkel.entityHurt", e);
+    }
+  });
+
+  /* Menzilli uyelerin (Miskel) tek vurus yolu bu olay.
+     Yoksa Miskel yine ok atar, ama oku sadece vanilla hasarini
+     verir ve imza yetenegi tetiklenmez -- yani v4.46'daki
+     "etkisiz kaliyor" durumuna geri doner. Sessiz kalmamali.  */
+  const mermi = olayaAbone("projectileHitEntity", (olay) => {
+    try {
+      const bot = olay.source;
+      if (!bot || !botTuruMu(bot.typeId)) return;
+      const bilgi = (typeof olay.getEntityHit === "function")
+        ? olay.getEntityHit() : undefined;
+      const kurban = bilgi && bilgi.entity;
+      if (!kurban) return;                  // bloga carpti, varliga degil
+      okVurdu(bot, kurban, system.currentTick);
+    } catch (e) {
+      hataYaz("ilkel.projectileHitEntity", e);
+    }
+  });
+
+  if (!mermi) {
+    hataYaz("ilkel.mermi", new Error(
+      "projectileHitEntity yok. Miskel ok atmaya devam eder ama " +
+      "oku sadece vanilla hasarini verir (~2 kalp) ve Korluk/" +
+      "Solgunluk tetiklenmez."));
+  }
+
+  if ((!vurus || !hasar) && !olayUyarisi) {
+    olayUyarisi = true;
+    /* Sessiz kalmasin: "Kajaros neden korlestirmiyor" sorusunun
+       cevabi burada.                                          */
+    hataYaz("ilkel.olaylar", new Error(
+      "entityHitEntity/entityHurt yok. Ilkel Besli doguyor ve " +
+      "dovusuyor ama vurusa bagli ekstralar (iyilesme, korluk, " +
+      "Okazor serisi) calismaz."));
+  }
+}
+
+olaylariKur();
+
+/* ---------------- Zamana bagli yetenekler ----------------
+   _bot_defteri.js'teki tarama dongusunden cagriliyor (kanca
+   ile -- o dosya bu dosyayi import ETMIYOR, dairesel olurdu).
+
+   Tarama BOT_TARAMA (20 tick) araliginda donuyor. Harkos'un
+   "tik basina 0,5 HP"si burada 20 x 0.5 = 10 can oluyor, yani
+   listedeki hizin AYNISI.                                    */
+/* Sinif ozellikleri (v4.48): unvanina gore surekli kendine
+   verdigi efektler. Sure ayardan geliyor ve taramadan uzun --
+   iki tarama arasinda dusup uye savunmasiz kalmasin.          */
+function pasifVer(varlik, t) {
+  if (!ILKEL_PASIF_ACIK || !t || !t.pasif) return;
+  efektVer(varlik, t.pasif, {
+    sure: ILKEL_PASIF_SURE,
+    parcacik: ILKEL_PASIF_PARCACIK
+  });
+}
+
+/* uyeId -> bir sonraki isinin en erken tick'i. isinlar.js'teki
+   `bekleme` haritasiyla ayni kalip.                          */
+const isinBekleme = new Map();
+
+/* ---------------- UYE ISINI  (v6.8) ----------------
+   Kullanicinin gonderdigi "Ust Konsey" komut listesi:
+     execute ... positioned ^^^10 run particle <parcacik>
+     execute ... positioned ^^^10 run damage @e[r=10,c=1] 2
+
+   Kaynak `^^^10` diyor: aticinin BAKTIGI yon. Bot bakmiyor --
+   `getViewDirection` moblarda guvenilir degil. O yuzden cizgi
+   HEDEFE dogru cekiliyor: goruntu ayni, nisan daha dogru.
+
+   isinlar.js'in motoru kullanilmadi cunku orasi OYUNCUNUN
+   isini: kapi kontrolu, bekleme mesaji, kollariIndir, jest
+   sirasi... Hicbiri bir mobda yok. Ortak olan tek sey "cizgi
+   ciz, uzerindekine vur" ve o on satir.                     */
+function isinAt(varlik, t, oyuncuId, simdikiTick) {
+  const bekle = isinBekleme.get(varlik.id) || 0;
+  if (simdikiTick < bekle) return;
+
+  let bas, hedefler;
+  try {
+    bas = varlik.location;
+    hedefler = varlik.dimension.getEntities({
+      location: bas,
+      maxDistance: t.isin.menzil,
+      excludeTypes: ["minecraft:item", "minecraft:xp_orb"]
+    });
+  } catch (e) {
+    return;
+  }
+
+  /* En yakin DUSMAN nisan alinir. Ekip arkadasina ya da
+     sahibine ates edilmez -- `dusmanMi` zaten bunu ayiriyor
+     ve okVurdu'da da ayni suzgec var.                       */
+  let hedef, enYakin = Infinity;
+  for (const v of hedefler) {
+    try {
+      if (!gecerliMi(v)) continue;
+      if (!dusmanMi(v, oyuncuId)) continue;
+      const k = v.location;
+      const d = Math.hypot(k.x - bas.x, k.y - bas.y, k.z - bas.z);
+      if (d < enYakin) { enYakin = d; hedef = v; }
+    } catch (e) { /* varlik gitti */ }
+  }
+  if (!hedef) return;
+
+  isinBekleme.set(varlik.id, simdikiTick + t.isin.bekleme);
+
+  /* Cizim: govde yuksekliginden hedefe. */
+  let yon;
+  try {
+    const h = hedef.location;
+    const dx = h.x - bas.x, dy = (h.y + 1) - (bas.y + 1), dz = h.z - bas.z;
+    const boy = Math.hypot(dx, dy, dz) || 1;
+    yon = { x: dx / boy, y: dy / boy, z: dz / boy };
+    for (let d = 1; d <= enYakin; d += ILKEL_ISIN_ADIM) {
+      parcacikAt(varlik.dimension, t.isin.parcacik, {
+        x: bas.x + yon.x * d, y: bas.y + 1 + yon.y * d, z: bas.z + yon.z * d
+      });
+    }
+  } catch (e) {
+    /* parcacik cikmadi: isin gorunmez ama vurur */
+  }
+
+  /* Cizgi uzerindekiler. Kaynak `r=10,c=1` diyor: tek hedef. */
+  const vurulanlar = [];
+  for (const v of hedefler) {
+    try {
+      if (!gecerliMi(v) || !dusmanMi(v, oyuncuId)) continue;
+      const k = v.location;
+      const dx = k.x - bas.x, dy = k.y - (bas.y + 1), dz = k.z - bas.z;
+      const ileri = dx * yon.x + dy * yon.y + dz * yon.z;
+      if (ileri < 0 || ileri > t.isin.menzil) continue;
+      const sapmaKare = (dx * dx + dy * dy + dz * dz) - ileri * ileri;
+      if (sapmaKare > ILKEL_ISIN_KALINLIK * ILKEL_ISIN_KALINLIK) continue;
+      vurulanlar.push({ varlik: v, ileri });
+    } catch (e) { /* varlik gitti */ }
+  }
+  vurulanlar.sort((a, b) => a.ileri - b.ileri);
+
+  let vuran = 0;
+  for (const h of vurulanlar) {
+    if (vuran >= ILKEL_ISIN_TAVAN) break;
+    try {
+      /* `cause` ZORUNLU. Oyunda su hata aliniyordu:
+             ilkel.isin: Native variant type conversion failed
+         Sebep: applyDamage'in secenek nesnesinin BIRDEN FAZLA
+         turu var (normal hasar / mermi hasari). `cause`
+         verilmezse yerel baglayici hangi turu bekledigini
+         secemiyor ve donusum patliyor.
+
+         Tahmin degil, OLCUM: depodaki secenekli 14
+         applyDamage cagrisinin 13'unde `cause` var ve
+         calisiyorlar; olmayan TEK cagri buydu ve hata veren
+         de tam buydu. "entityAttack" buz_mizragi.js ile
+         zaman_saati.js'te calistigi gorulmus deger.        */
+      h.varlik.applyDamage(t.isin.hasar,
+                           { cause: "entityAttack", damagingEntity: varlik });
+      vuran++;
+    } catch (e) {
+      hataYaz("ilkel.isin", e);
+    }
+  }
+}
+
+function bakim(varlik, oyuncu) {
+  const anahtar = ilkelKimligi(varlik);
+  if (!anahtar) return;
+  const t = tanim(anahtar);
+
+  // Sinifina gore surekli efektler (v4.48)
+  pasifVer(varlik, t);
+
+  /* Silah dustuyse ya da dunya yeniden yuklendiyse geri koy. */
+  if (ILKEL_SILAH_TAZELE) silahVer(varlik, anahtar);
+
+  // Harkos: pasif iyilesme
+  if (t.tikIyilesme) iyilestir(varlik, t.tikIyilesme * BOT_TARAMA);
+
+  /* Okazor: Kirmizi Guc, Kajaros: Ates Gucu (v6.8) */
+  if (ILKEL_ISIN_ACIK && t.isin) {
+    try {
+      isinAt(varlik, t, oyuncu.id, system.currentTick);
+    } catch (e) {
+      hataYaz("ilkel.isinAt", e);
+    }
+  }
+
+  // Raxxan: gizlenme, ansizin iyilesme, bulanti aurasi
+  if (t.gizlenme && Math.random() < t.gizlenme.sans) {
+    try {
+      varlik.addEffect("invisibility", t.gizlenme.sure,
+                       { amplifier: 0, showParticles: false });
+    } catch (e) {
+      // efekt yoksa gorunur kalir
+    }
+  }
+  if (t.ansizinIyilesme && Math.random() < t.ansizinIyilesme.sans) {
+    iyilestir(varlik, t.ansizinIyilesme.miktar);
+  }
+  if (t.aura) {
+    let yakin;
+    try {
+      yakin = varlik.dimension.getEntities({
+        location: varlik.location,
+        maxDistance: t.aura.menzil,
+        excludeTypes: ["minecraft:item", "minecraft:xp_orb"]
+      });
+    } catch (e) {
+      yakin = [];
+    }
+    for (const v of yakin) {
+      if (!dusmanMi(v, oyuncu.id)) continue;
+      efektVer(v, [t.aura.efekt]);
+    }
+  }
+}
+
+ilkelKancasi(bakim);
+
+/* ---- BOT GERI GONDERILINCE UNUTULSUN  (v7.24) ----
+   Bu fonksiyon vardi ve dogru seyi yapiyordu ama HIC
+   CAGRILMIYORDU: bot geri gonderildiginde serisi, asa
+   vuruslari ve dis kuyrugu bellekte kaliyordu. Her cagirip
+   geri gonderisde bir satir daha birikiyordu.
+
+   Genel taramada once "kullanilmayan export" sanip silmistim;
+   yanlisti -- olu olan kod degil, eksik olan BAGLANTIYDI.
+   Simdi _bot_defteri.js botu silerken kancayi cagiriyor.   */
+export function ilkelUnut(botId) {
+  seriler.delete(botId);
+  asaUnut(botId);
+  dislerUnut(botId);
+}
+
+ilkelSilmeKancasi(ilkelUnut);
+/* ---------------- Yetenek kaydi ----------------
+   Hedef (hangi uye) yetenek cercevesinden gecmiyor; derin
+   taramadaki kalibin aynisi.                                 */
+
+const bekleyen = new Map();      // oyuncuId -> anahtar
+
+export function ilkelHedefSec(oyuncuId, anahtar) {
+  bekleyen.set(oyuncuId, anahtar);
+}
+
+export function ilkelHedefUnut(oyuncuId) {
+  bekleyen.delete(oyuncuId);
+}
+
+/* Yazilan adi anahtara cevirir ("suikastci" -> "harkos"). */
+export function ilkelAdCoz(kelime) {
+  if (!kelime) return undefined;
+  return ILKEL_ADLAR.get(String(kelime));
+}
+
+yetenekKaydet({
+  kimlik: "bot_ilkel",
+  ad: "Bot: İlkel Beşli",
+  esyasiz: true,
+  sira: 248,
+
+  olustur(oyuncu) {
+    const anahtar = bekleyen.get(oyuncu.id);
+    bekleyen.delete(oyuncu.id);
+
+    /* Uye soylenmediyse SIRADAKI eksik uye cagriliyor: menuden
+       bes kez basinca besi de gelsin diye.                    */
+    const secilen = anahtar || sonrakiEksik(oyuncu.id);
+    if (!secilen) {
+      actionbarYaz(oyuncu, "§6İlkel Beşli'nin hepsi yanında.");
+      kollariIndir(oyuncu);
+      return undefined;
+    }
+
+    let sonuc;
+    try {
+      sonuc = ilkelCagir(oyuncu, secilen);
+    } catch (e) {
+      hataYaz("bot_ilkel", e);
+      kollariIndir(oyuncu);
+      return undefined;
+    }
+
+    try {
+      if (sonuc.hata) {
+        oyuncu.sendMessage("§c" + sonuc.hata);
+      } else {
+        const t = tanim(secilen);
+        /* Uc ayri durum, uc ayri cumle. v4.60'ta ikisi tek
+           satirda toplanmisti ve "konulamadi" yaziyordu --
+           oysa silah dogusta ganimet tablosuyla veriliyor,
+           script sadece OKUYAMIYOR. Yaniltici bir uyariydi. */
+        const silahSatiri =
+          sonSilah === true      ? "§8silahı elinde" :
+          sonSilah === "okunamadi" ? "§8silahı doğuşta verildi" :
+          "§c⚠ silah eşyası bulunamadı §8(davranış paketi eski olabilir)";
+        oyuncu.sendMessage(
+          "§6⚔ §f" + t.ad + "§7 yanında. §8" + t.can + " can · " +
+          t.hasar + " hasar\n§7" + ozetle(secilen) +
+          "\n" + silahSatiri +
+          "\n§8Yanındakiler: " + (ilkelListesi(oyuncu.id).length) + "/" +
+          ILKEL_BESLI.size);
+      }
+    } catch (e) {
+      hataYaz("bot_ilkel.duyuru", e);
+    }
+
+    kollariIndir(oyuncu);
+    return undefined;         // anlik is; surekli is acmiyor
+  }
+});
+
+/* Hangi uye eksik? RUTBE SIRASIYLA: once lider, sonra asagi
+   dogru. Menude "cagir"a bastikca ekip yukaridan kuruluyor.   */
+function sonrakiEksik(oyuncuId) {
+  const var_ = new Set(ilkelListesi(oyuncuId));
+  for (const anahtar of rutbeSirasi()) {
+    if (!var_.has(anahtar)) return anahtar;
+  }
+  return undefined;
+}
+
+/* Uyeler rutbeye gore sirali (1 = lider). Menu, rapor ve
+   "sonraki eksik" hep bunu kullaniyor -- sira tek yerde.      */
+export function rutbeSirasi() {
+  return [...ILKEL_BESLI.keys()]
+    .sort((a, b) => ILKEL_BESLI.get(a).rutbe - ILKEL_BESLI.get(b).rutbe);
+}
+
+/* Pasif efektlerin menude gorunen adlari. */
+const PASIF_TR = {
+  resistance: "Direnç",
+  fire_resistance: "Ateş Bağışıklığı",
+  regeneration: "Yenilenme",
+  strength: "Güç",
+  speed: "Hız",
+  jump_boost: "Zıplama",
+  night_vision: "Gece Görüşü"
+};
+
+/* Uyenin ne yaptigini tek satirda anlat. Ezberlemek zorunda
+   kalma diye.                                                */
+export function ozetle(anahtar) {
+  const t = tanim(anahtar);
+  if (!t) return "";
+  const p = [];
+  if (t.vurulunca) p.push("vurulunca +" + t.vurulunca + " can");
+  if (t.vurusEfekt) p.push("vurdugunu yavaslatir/kor eder");
+  if (t.vurusEfektSecim) {
+    /* v4.47: oku artik tam hasarini tasiyor ve moba karsi hep
+       ise yarayan tarafi seciyor. Menude de boyle yaziyor ki
+       "neden zayif" sorusu bir daha sorulmasin.               */
+    p.push(ILKEL_OK_HASARI ? "oku tam hasar vurur · oyuncuyu kor eder, mobu soldurur"
+                           : "vurdugunu kor eder ya da soldurur");
+  }
+  if (t.tikIyilesme) p.push("surekli kendini iyilestirir");
+  if (t.aura) p.push(t.aura.menzil + " blokta dusmani bulandirir");
+  if (t.gizlenme) p.push("ara ara gorunmez olur");
+  if (t.seri) p.push(t.seri.adet + " ust uste vurursa cani dolar");
+  if (t.asa) p.push(SERSEM_VURUS + " vuruşta yere serer, sonra mezara gömer");
+  /* Sinif ozellikleri (v4.48). Adlari ayardan degil buradan
+     okunuyor cunku ayarda oyunun efekt kimligi var; menude
+     Turkcesi lazim. Listede olmayan bir efekt eklenirse
+     kimligiyle yaziliyor -- sessizce dusmesin.               */
+  if (ILKEL_PASIF_ACIK && t.pasif) {
+    const romen = ["I", "II", "III", "IV", "V"];
+    p.push(t.pasif
+      .map(([ad, , sv]) => (PASIF_TR[ad] || ad) + " " + (romen[sv] || sv + 1))
+      .join(", "));
+  }
+  return p.join(" · ");
+}

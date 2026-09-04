@@ -1,0 +1,32 @@
+{
+  "format_version": "1.21.0",
+  "minecraft:item": {
+    "description": {
+      "identifier": "pa:draco_wyvern_govde",
+      "menu_category": {
+        "category": "equipment"
+      }
+    },
+    "components": {
+      "minecraft:icon": {
+        "texture": "draco_wyvern_govde"
+      },
+      "minecraft:display_name": {
+        "value": "Wyvern Göğüslüğü"
+      },
+      "minecraft:max_stack_size": 1,
+      "minecraft:wearable": {
+        "slot": "slot.armor.chest",
+        "protection": 8
+      },
+      "minecraft:armor": {
+        "protection": 8
+      },
+      "minecraft:tags": {
+        "tags": [
+          "pa:teknoloji_zirhi"
+        ]
+      }
+    }
+  }
+}

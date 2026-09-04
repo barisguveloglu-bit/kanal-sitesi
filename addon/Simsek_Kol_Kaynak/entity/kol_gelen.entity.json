@@ -1,0 +1,28 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "pa:kol_gelen",
+      "materials": {
+        "default": "entity_alphatest"
+      },
+      "textures": {
+        "default": "textures/entity/kol_kanli"
+      },
+      "geometry": {
+        "default": "geometry.kol_gelen"
+      },
+      "render_controllers": [
+        "controller.render.default"
+      ],
+      "scripts": {
+        "animate": [
+          "oyna"
+        ]
+      },
+      "animations": {
+        "oyna": "animation.kol_gelen.suzul"
+      }
+    }
+  }
+}

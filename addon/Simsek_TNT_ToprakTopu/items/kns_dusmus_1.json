@@ -1,0 +1,33 @@
+{
+  "format_version": "1.21.0",
+  "minecraft:item": {
+    "description": {
+      "identifier": "pa:kns_dusmus_1"
+    },
+    "components": {
+      "minecraft:icon": {
+        "texture": "kns_dusmus_1"
+      },
+      "minecraft:display_name": {
+        "value": "Düşmüş · 1. Aşama"
+      },
+      "minecraft:max_stack_size": 1,
+      "minecraft:tags": {
+        "tags": [
+          "pa:konsey",
+          "pa:konsey_dusmus"
+        ]
+      },
+      "minecraft:wearable": {
+        "slot": "slot.armor.chest",
+        "protection": 750
+      },
+      "minecraft:armor": {
+        "protection": 750
+      },
+      "minecraft:durability": {
+        "max_durability": 9999
+      }
+    }
+  }
+}

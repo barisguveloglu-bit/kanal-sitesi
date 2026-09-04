@@ -1,0 +1,152 @@
+{
+ "format_version": "1.12.0",
+ "minecraft:geometry": [
+  {
+   "description": {
+    "identifier": "geometry.mrv_captain_america_brave_new_world_glasses",
+    "texture_width": 128,
+    "texture_height": 128,
+    "visible_bounds_width": 6,
+    "visible_bounds_height": 4.5,
+    "visible_bounds_offset": [
+     0,
+     1.75,
+     0
+    ]
+   },
+   "bones": [
+    {
+     "name": "root",
+     "pivot": [
+      0,
+      0,
+      0
+     ]
+    },
+    {
+     "name": "waist",
+     "parent": "root",
+     "pivot": [
+      0,
+      12,
+      0
+     ]
+    },
+    {
+     "name": "body",
+     "parent": "waist",
+     "pivot": [
+      0,
+      24,
+      0
+     ]
+    },
+    {
+     "name": "head",
+     "parent": "body",
+     "pivot": [
+      0,
+      24,
+      0
+     ]
+    },
+    {
+     "name": "glasses",
+     "parent": "head",
+     "pivot": [
+      0,
+      0,
+      0
+     ],
+     "cubes": [
+      {
+       "origin": [
+        -4.5,
+        26,
+        -4.5
+       ],
+       "size": [
+        9,
+        2,
+        9
+       ],
+       "inflate": -0.25,
+       "uv": [
+        41,
+        33
+       ]
+      },
+      {
+       "origin": [
+        -4,
+        24.5,
+        -4.75
+       ],
+       "size": [
+        8,
+        4,
+        1
+       ],
+       "inflate": -0.25,
+       "uv": [
+        68,
+        52
+       ]
+      },
+      {
+       "origin": [
+        -2.5,
+        24.35,
+        -4.775
+       ],
+       "size": [
+        5,
+        4,
+        1
+       ],
+       "inflate": -0.25,
+       "uv": [
+        72,
+        57
+       ]
+      },
+      {
+       "origin": [
+        0.5,
+        26,
+        -4.65
+       ],
+       "size": [
+        3,
+        2,
+        1
+       ],
+       "inflate": -0.1,
+       "uv": [
+        34,
+        57
+       ]
+      },
+      {
+       "origin": [
+        -3.5,
+        26,
+        -4.65
+       ],
+       "size": [
+        3,
+        2,
+        1
+       ],
+       "inflate": -0.1,
+       "uv": [
+        55,
+        44
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

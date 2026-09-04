@@ -1,0 +1,32 @@
+{
+  "format_version": "1.21.0",
+  "minecraft:item": {
+    "description": {
+      "identifier": "pa:pe_kizil_ayak",
+      "menu_category": {
+        "category": "equipment"
+      }
+    },
+    "components": {
+      "minecraft:icon": {
+        "texture": "pe_kizil_ayak"
+      },
+      "minecraft:display_name": {
+        "value": "Kızıl Madde Bot"
+      },
+      "minecraft:max_stack_size": 1,
+      "minecraft:wearable": {
+        "slot": "slot.armor.feet",
+        "protection": 3
+      },
+      "minecraft:armor": {
+        "protection": 3
+      },
+      "minecraft:tags": {
+        "tags": [
+          "pa:teknoloji_zirhi"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,819 @@
+{
+  "format_version": "1.8.0",
+  "render_controllers": {
+    "controller.render.o_sey": {
+      "geometry": "Geometry.o_sey",
+      "textures": [
+        "Texture.o_sey"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_elmas": {
+      "geometry": "Geometry.ben_elmas",
+      "textures": [
+        "Texture.ben_elmas"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_elmas_proto": {
+      "geometry": "Geometry.ben_elmas_proto",
+      "textures": [
+        "Texture.ben_elmas_proto"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_elmas_10k": {
+      "geometry": "Geometry.ben_elmas_10k",
+      "textures": [
+        "Texture.ben_elmas_10k"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_dortkol": {
+      "geometry": "Geometry.ben_dortkol",
+      "textures": [
+        "Texture.ben_dortkol"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_dortkol_proto": {
+      "geometry": "Geometry.ben_dortkol_proto",
+      "textures": [
+        "Texture.ben_dortkol_proto"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_dortkol_10k": {
+      "geometry": "Geometry.ben_dortkol_10k",
+      "textures": [
+        "Texture.ben_dortkol_10k"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_cene": {
+      "geometry": "Geometry.ben_cene",
+      "textures": [
+        "Texture.ben_cene"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_cene_proto": {
+      "geometry": "Geometry.ben_cene_proto",
+      "textures": [
+        "Texture.ben_cene_proto"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_cene_10k": {
+      "geometry": "Geometry.ben_cene_10k",
+      "textures": [
+        "Texture.ben_cene_10k"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_ates": {
+      "geometry": "Geometry.ben_ates",
+      "textures": [
+        "Texture.ben_ates"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_ates_proto": {
+      "geometry": "Geometry.ben_ates_proto",
+      "textures": [
+        "Texture.ben_ates_proto"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_ates_10k": {
+      "geometry": "Geometry.ben_ates_10k",
+      "textures": [
+        "Texture.ben_ates_10k"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_vahsi": {
+      "geometry": "Geometry.ben_vahsi",
+      "textures": [
+        "Texture.ben_vahsi"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_vahsi_proto": {
+      "geometry": "Geometry.ben_vahsi_proto",
+      "textures": [
+        "Texture.ben_vahsi_proto"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_vahsi_10k": {
+      "geometry": "Geometry.ben_vahsi_10k",
+      "textures": [
+        "Texture.ben_vahsi_10k"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_xlr": {
+      "geometry": "Geometry.ben_xlr",
+      "textures": [
+        "Texture.ben_xlr"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_xlr_proto": {
+      "geometry": "Geometry.ben_xlr_proto",
+      "textures": [
+        "Texture.ben_xlr_proto"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_xlr_10k": {
+      "geometry": "Geometry.ben_xlr_10k",
+      "textures": [
+        "Texture.ben_xlr_10k"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_gri": {
+      "geometry": "Geometry.ben_gri",
+      "textures": [
+        "Texture.ben_gri"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_gri_proto": {
+      "geometry": "Geometry.ben_gri_proto",
+      "textures": [
+        "Texture.ben_gri_proto"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_gri_10k": {
+      "geometry": "Geometry.ben_gri_10k",
+      "textures": [
+        "Texture.ben_gri_10k"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_sinek": {
+      "geometry": "Geometry.ben_sinek",
+      "textures": [
+        "Texture.ben_sinek"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_sinek_proto": {
+      "geometry": "Geometry.ben_sinek_proto",
+      "textures": [
+        "Texture.ben_sinek_proto"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_sinek_10k": {
+      "geometry": "Geometry.ben_sinek_10k",
+      "textures": [
+        "Texture.ben_sinek_10k"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_yukseltme": {
+      "geometry": "Geometry.ben_yukseltme",
+      "textures": [
+        "Texture.ben_yukseltme"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_yukseltme_proto": {
+      "geometry": "Geometry.ben_yukseltme_proto",
+      "textures": [
+        "Texture.ben_yukseltme_proto"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_yukseltme_10k": {
+      "geometry": "Geometry.ben_yukseltme_10k",
+      "textures": [
+        "Texture.ben_yukseltme_10k"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_hayalet": {
+      "geometry": "Geometry.ben_hayalet",
+      "textures": [
+        "Texture.ben_hayalet"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_hayalet_proto": {
+      "geometry": "Geometry.ben_hayalet_proto",
+      "textures": [
+        "Texture.ben_hayalet_proto"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_hayalet_10k": {
+      "geometry": "Geometry.ben_hayalet_10k",
+      "textures": [
+        "Texture.ben_hayalet_10k"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_gulle": {
+      "geometry": "Geometry.ben_gulle",
+      "textures": [
+        "Texture.ben_gulle"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_gulle_proto": {
+      "geometry": "Geometry.ben_gulle_proto",
+      "textures": [
+        "Texture.ben_gulle_proto"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_gulle_10k": {
+      "geometry": "Geometry.ben_gulle_10k",
+      "textures": [
+        "Texture.ben_gulle_10k"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_jet": {
+      "geometry": "Geometry.ben_jet",
+      "textures": [
+        "Texture.ben_jet"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_atomik": {
+      "geometry": "Geometry.ben_atomik",
+      "textures": [
+        "Texture.ben_atomik"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_ejder": {
+      "geometry": "Geometry.ben_ejder",
+      "textures": [
+        "Texture.ben_ejder"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_astro": {
+      "geometry": "Geometry.ben_astro",
+      "textures": [
+        "Texture.ben_astro"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_bataklik": {
+      "geometry": "Geometry.ben_bataklik",
+      "textures": [
+        "Texture.ben_bataklik"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_buz": {
+      "geometry": "Geometry.ben_buz",
+      "textures": [
+        "Texture.ben_buz"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_yanki": {
+      "geometry": "Geometry.ben_yanki",
+      "textures": [
+        "Texture.ben_yanki"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_devasa": {
+      "geometry": "Geometry.ben_devasa",
+      "textures": [
+        "Texture.ben_devasa"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_gri_zirh": {
+      "geometry": "Geometry.ben_gri_zirh",
+      "textures": [
+        "Texture.ben_gri_zirh"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_gri_zirh_proto": {
+      "geometry": "Geometry.ben_gri_zirh_proto",
+      "textures": [
+        "Texture.ben_gri_zirh_proto"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_gri_zirh_10k": {
+      "geometry": "Geometry.ben_gri_zirh_10k",
+      "textures": [
+        "Texture.ben_gri_zirh_10k"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_gri_uzuv": {
+      "geometry": "Geometry.ben_gri_uzuv",
+      "textures": [
+        "Texture.ben_gri_uzuv"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_gri_uzuv_proto": {
+      "geometry": "Geometry.ben_gri_uzuv_proto",
+      "textures": [
+        "Texture.ben_gri_uzuv_proto"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_gri_uzuv_10k": {
+      "geometry": "Geometry.ben_gri_uzuv_10k",
+      "textures": [
+        "Texture.ben_gri_uzuv_10k"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_gri_takim": {
+      "geometry": "Geometry.ben_gri_takim",
+      "textures": [
+        "Texture.ben_gri_takim"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_gri_takim_proto": {
+      "geometry": "Geometry.ben_gri_takim_proto",
+      "textures": [
+        "Texture.ben_gri_takim_proto"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_gri_takim_10k": {
+      "geometry": "Geometry.ben_gri_takim_10k",
+      "textures": [
+        "Texture.ben_gri_takim_10k"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_gulle_top": {
+      "geometry": "Geometry.ben_gulle_top",
+      "textures": [
+        "Texture.ben_gulle_top"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_gulle_top_proto": {
+      "geometry": "Geometry.ben_gulle_top_proto",
+      "textures": [
+        "Texture.ben_gulle_top_proto"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_gulle_top_10k": {
+      "geometry": "Geometry.ben_gulle_top_10k",
+      "textures": [
+        "Texture.ben_gulle_top_10k"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_yukseltme_cubuk": {
+      "geometry": "Geometry.ben_yukseltme_cubuk",
+      "textures": [
+        "Texture.ben_yukseltme_cubuk"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_yukseltme_cubuk_proto": {
+      "geometry": "Geometry.ben_yukseltme_cubuk_proto",
+      "textures": [
+        "Texture.ben_yukseltme_cubuk_proto"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.ben_yukseltme_cubuk_10k": {
+      "geometry": "Geometry.ben_yukseltme_cubuk_10k",
+      "textures": [
+        "Texture.ben_yukseltme_cubuk_10k"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.zirh_mod_temel": {
+      "geometry": "Geometry.zirh_mod_temel",
+      "textures": [
+        "Texture.zirh_mod_temel"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.zirh_mod_guc": {
+      "geometry": "Geometry.zirh_mod_guc",
+      "textures": [
+        "Texture.zirh_mod_guc"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.zirh_mod_hiz": {
+      "geometry": "Geometry.zirh_mod_hiz",
+      "textures": [
+        "Texture.zirh_mod_hiz"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.zirh_mod_ucus": {
+      "geometry": "Geometry.zirh_mod_ucus",
+      "textures": [
+        "Texture.zirh_mod_ucus"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.zirh_mod_gizlilik": {
+      "geometry": "Geometry.zirh_mod_gizlilik",
+      "textures": [
+        "Texture.zirh_mod_gizlilik"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.zirh_mod_isi": {
+      "geometry": "Geometry.zirh_mod_isi",
+      "textures": [
+        "Texture.zirh_mod_isi"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.zirh_mod_dalis": {
+      "geometry": "Geometry.zirh_mod_dalis",
+      "textures": [
+        "Texture.zirh_mod_dalis"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.zirh_mod_kesif": {
+      "geometry": "Geometry.zirh_mod_kesif",
+      "textures": [
+        "Texture.zirh_mod_kesif"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.zirh_mod_titan": {
+      "geometry": "Geometry.zirh_mod_titan",
+      "textures": [
+        "Texture.zirh_mod_titan"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.zirh_mod_guc_matkap": {
+      "geometry": "Geometry.zirh_mod_guc_matkap",
+      "textures": [
+        "Texture.zirh_mod_guc_matkap"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.zirh_mod_titan_hale": {
+      "geometry": "Geometry.zirh_mod_titan_hale",
+      "textures": [
+        "Texture.zirh_mod_titan_hale"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.durus_bagli_eller": {
+      "geometry": "Geometry.durus_bagli_eller",
+      "textures": [
+        "Texture.default"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.durus_eller_yukari": {
+      "geometry": "Geometry.durus_eller_yukari",
+      "textures": [
+        "Texture.default"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.durus_kavusuk": {
+      "geometry": "Geometry.durus_kavusuk",
+      "textures": [
+        "Texture.default"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.durus_t_durusu": {
+      "geometry": "Geometry.durus_t_durusu",
+      "textures": [
+        "Texture.default"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.durus_selam": {
+      "geometry": "Geometry.durus_selam",
+      "textures": [
+        "Texture.default"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    },
+    "controller.render.takas_isareti": {
+      "geometry": "Geometry.takas_isareti",
+      "textures": [
+        "Texture.default"
+      ],
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ]
+    }
+  }
+}

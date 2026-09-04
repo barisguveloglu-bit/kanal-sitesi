@@ -19,16 +19,40 @@ yapmadan önce o dosyayı oku — karakterler, güçler ve efsane orada tanıml�
 
 - Yeni karakter/güç/kademe eklerken **HTML'e dokunma** — `data.js` yeterli.
 - İçerik değişince `LORE.md` ile `data.js` senkron kalmalı.
+  **Tek istisna: `LORE.md`'nin sonundaki `EK-A · UCUBE DÜNYA DOSYASI`.**
+  Orası sitenin kurgusu değil — eklentideki *Uzak Akraba* karakterinin
+  Minecraft Creepypasta wiki'sinden gelen hikayesi, kaynak bağlantılarıyla.
+  `data.js`'e **bilerek** yansıtılmıyor ve sitede görünmüyor; iki evrenin
+  karışmaması için ayrı tutuluyor. Senkron kuralı 1–9 arası bölümler için.
 - Arayüz metinleri **Türkçe**.
 - Kod içindeki değişken ve fonksiyon isimleri de Türkçe (mevcut düzene uy).
-- **Sitede hiç kullanıcı verisi toplanmıyor.** Form yok, giriş yok, çerez yok.
+- **Sitede hiç kullanıcı verisi toplanmıyor.** Form yok, giriş yok, çerez yok,
+  sunucu yok, analitik yok, dış servise giden hiçbir istek yok.
   Soru-cevap YouTube yorumlarında yapılıyor; site sadece oraya yönlendiriyor.
   Buraya backend eklemeden önce iki kez düşün — sadeliği bilinçli bir tercih.
 
+  **Tek istisna ve neden istisna:** `app.js` spoiler kapaklarının açık/kapalı
+  hâlini `localStorage`'da tutuyor (`tercihOku` / `tercihYaz`). Bu *veri
+  toplama değil*: hiçbir şey ziyaretçinin tarayıcısından çıkmıyor, kimse
+  okuyamıyor, çerez başlığı gönderilmiyor. Olmasaydı okuduğun her spoiler
+  sayfayı yenileyince yeniden kapanırdı. İkisi de `try/catch` içinde, çünkü
+  gizli sekmede `localStorage` erişimi istisna atıyor.
+  Sınır şu: **ziyaretçinin kendi tarayıcısında kalan bir tercih serbest,
+  ziyaretçi hakkında toplanan bir bilgi değil.**
+
 ## Bekleyen işler
 
-`LORE.md` dosyasının sonundaki "Açık Uçlar" bölümüne bak — irade kademelerinin
-son hâli, derebeyi isimleri ve zaman çizelgesi henüz netleşmedi.
+Burada eskiden `LORE.md`'nin sonundaki "Açık Uçlar" bölümü gösteriliyordu.
+**O bölüm artık yok** (adı "9. Kapatılan Diğer Uçlar" olmuş) ve orada bekleyen
+üç konunun ikisi kapanmış. v7.9.3 taramasında tek tek bakıldı:
+
+- **İrade kademeleri — kapandı.** Beş kademe hem `LORE.md` "3. İrade Sistemi"
+  bölümünde hem `data.js` içindeki `IRADE_KADEMELERI` listesinde ve ikisi
+  birbiriyle uyumlu: Kırılgan · Zayıf · Dirençli · Güçlü · Kanlı Göz İradesi.
+- **Derebeyi isimleri — kapandı.** Üç komutan (Nemesis · Teşup · Ahriman) ve
+  `IL_DEREBEYLERI` listesindeki 81 ilin 81'i de adlandırılmış, boş kayıt yok.
+- **Zaman çizelgesi — HÂLÂ AÇIK.** Ne `LORE.md`'de ne `data.js`'te bir
+  kronoloji var. Olayların sırası hiçbir yerde yazılı değil.
 
 ## Denetim sonrası eklenen kurallar
 
@@ -52,3 +76,64 @@ Aşağıdakiler bilinçli kararlar — "düzeltilecek eksik" değil.
   tasarımı bilerek var.
 - Betikler `defer` ile yükleniyor (ilk boyama ~%28 hızlandı). Sıra korunur,
   bozma.
+
+## Dosya teslimi — SKIN linkle, paket dosya olarak
+
+Bu kural depodaki kodla ilgili değil, **kullanıcıya nasıl teslim
+edileceğiyle** ilgili.
+
+**Kural yalnız SKIN PNG'si içindir: onu sohbete dosya olarak
+ekleme, depodaki dosyanın indirme linkini ver.**
+
+**Paketler (`.mcaddon` / `.mcpack`) dosya olarak gönderilir —
+her zamanki gibi.** Onlarda bugüne kadar hiç indirme sorunu
+yaşanmadı; zip oldukları için yolda yeniden kodlanmıyorlar.
+Kullanıcı bunu açıkça söyledi: *"skin için bunu yapmanı
+istedim, mod için link göndermene gerek yok."* Bu satır bir
+düzeltmenin kaydı: kural ilk yazıldığında paketleri de
+kapsıyordu, kapsamamalıydı.
+
+### Neden — v7.19'da yaşandı
+
+`uzak_akraba.png` (64×64 skin) sohbete eklenerek gönderildi.
+Kullanıcı iki şey söyledi: *"yükleyemiyorum"* ve *"aşırı
+kalitesiz"*. İkisinin de sebebi aynı: **dosya yolda yeniden
+kodlanıyor.** Bir Minecraft skini bundan sağ çıkmaz —
+saydamlık kanalı gider, ölçü bozulur, oyun dosyayı kabul etmez.
+64×64 küçük olduğu için telefonda açılınca da pul gibi görünür,
+oysa kalite düşük değildir: skin formatı zaten budur.
+
+Kullanıcının kendi sözü: *"bundan sonra linkini ver bana,
+dosyasını gönderme."*
+
+### Link biçimi
+
+```
+https://raw.githubusercontent.com/<sahip>/<depo>/refs/heads/<dal>/<yol>
+```
+
+`refs/heads/` **şart**: dal adında `/` var
+(`claude/bedrock-addon-stabilization-ppak4r`) ve o olmadan GitHub
+dal adıyla klasör adını ayırt edemiyor.
+
+Link vermeden önce **çalıştığını doğrula**, tahmin etme:
+
+```sh
+curl -s -o /dev/null -w "%{http_code}\n" "<link>"
+```
+
+200 dönmüyorsa dosya henüz itilmemiştir — önce `git push`.
+
+### Dosya göndermek zorunda kalırsan
+
+Zip'le. Zip bir resim değil, hiçbir uygulama içindekini yeniden
+sıkıştırmaz. Gönderdikten sonra `cmp` ile içindekinin orijinalle
+bire bir aynı olduğunu doğrula.
+
+### Bakmak için görsel ayrı şeydir
+
+Skinin nasıl göründüğünü göstermek için büyütülmüş bir önizleme
+göndermek serbest — ama **"bu skin dosyası değil, sadece
+bakmak için" diye açıkça yaz.** Büyütülmüş PNG'yi Minecraft
+kabul etmez (Bedrock yalnız 64×64 ve 128×128 alıyor, 256×256
+bile almıyor).

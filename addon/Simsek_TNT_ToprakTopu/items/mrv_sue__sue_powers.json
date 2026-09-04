@@ -1,0 +1,33 @@
+{
+  "format_version": "1.21.0",
+  "minecraft:item": {
+    "description": {
+      "identifier": "pa:mrv_sue__sue_powers",
+      "menu_category": {
+        "category": "equipment"
+      }
+    },
+    "components": {
+      "minecraft:icon": {
+        "texture": "mrv_sue__sue_powers"
+      },
+      "minecraft:display_name": {
+        "value": "Sue Storm  powers"
+      },
+      "minecraft:max_stack_size": 1,
+      "minecraft:wearable": {
+        "slot": "slot.armor.legs",
+        "protection": 5
+      },
+      "minecraft:tags": {
+        "tags": [
+          "pa:marvel",
+          "pa:marvel_guc"
+        ]
+      },
+      "minecraft:armor": {
+        "protection": 5
+      }
+    }
+  }
+}

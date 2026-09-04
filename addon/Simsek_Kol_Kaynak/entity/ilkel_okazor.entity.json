@@ -1,0 +1,32 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "pa:okazor",
+      "materials": {
+        "default": "entity_alphatest"
+      },
+      "textures": {
+        "default": "textures/entity/ilkel_okazor"
+      },
+      "geometry": {
+        "default": "geometry.simsek_bot"
+      },
+      "render_controllers": [
+        "controller.render.default"
+      ],
+      "spawn_egg": {
+        "base_color": "#4a1010",
+        "overlay_color": "#d8b040"
+      },
+      "scripts": {
+        "animate": [
+          "yuru"
+        ]
+      },
+      "animations": {
+        "yuru": "animation.simsek_bot.yuru"
+      }
+    }
+  }
+}

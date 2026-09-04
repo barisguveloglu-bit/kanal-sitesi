@@ -1,0 +1,26 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:attachable": {
+    "description": {
+      "identifier": "pa:goz_element_lazer",
+      "materials": {
+        "default": "entity_alphablend",
+        "enchanted": "armor_enchanted",
+        "isin": "entity_emissive"
+      },
+      "textures": {
+        "default": "textures/entity/goz_element_lazer",
+        "enchanted": "textures/misc/enchanted_actor_glint"
+      },
+      "geometry": {
+        "default": "geometry.simsek_goz_lazer"
+      },
+      "scripts": {
+        "parent_setup": "variable.helmet_layer_visible = 0.0;"
+      },
+      "render_controllers": [
+        "controller.render.simsek_goz_lazer"
+      ]
+    }
+  }
+}

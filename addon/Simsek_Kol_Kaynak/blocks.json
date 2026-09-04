@@ -1,0 +1,47 @@
+{
+  "format_version": [
+    1,
+    1,
+    0
+  ],
+  "pa:freedom_stone_cevheri": {
+    "textures": "freedom_stone_cevheri",
+    "sound": "stone"
+  },
+  "pa:mezar_tasi": {
+    "textures": "mezar_tasi",
+    "sound": "stone"
+  },
+  "pa:tas_heykel": {
+    "textures": "tas_heykel",
+    "sound": "stone"
+  },
+  "pa:kuruyan_kutuk": {
+    "textures": "kuruyan_kutuk",
+    "sound": "wood"
+  },
+  "pa:kuruyan_yaprak": {
+    "textures": "kuruyan_yaprak",
+    "sound": "grass"
+  },
+  "pa:kupa_earl": {
+    "textures": "kupa_earl",
+    "sound": "wood"
+  },
+  "pa:kupa_entity303": {
+    "textures": "kupa_entity303",
+    "sound": "wood"
+  },
+  "pa:kupa_wyne": {
+    "textures": "kupa_wyne",
+    "sound": "wood"
+  },
+  "pa:kupa_dream": {
+    "textures": "kupa_dream",
+    "sound": "wood"
+  },
+  "pa:kns_dusmus_blok": {
+    "textures": "kns_dusmus_blok",
+    "sound": "wood"
+  }
+}

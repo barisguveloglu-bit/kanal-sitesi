@@ -1,0 +1,47 @@
+{
+  "resource_pack_name": "simsek_kol",
+  "texture_name": "atlas.terrain",
+  "padding": 8,
+  "num_mip_levels": 4,
+  "texture_data": {
+    "freedom_stone_cevheri": {
+      "textures": "textures/blocks/freedom_stone_cevheri"
+    },
+    "mezar_tasi": {
+      "textures": "textures/blocks/mezar_tasi"
+    },
+    "tas_heykel": {
+      "textures": "textures/blocks/tas_heykel"
+    },
+    "kuruyan_kutuk": {
+      "textures": "textures/blocks/kuruyan_kutuk"
+    },
+    "kuruyan_yaprak": {
+      "textures": "textures/blocks/kuruyan_yaprak"
+    },
+    "kupa_earl": {
+      "textures": "textures/blocks/kupa_earl"
+    },
+    "kupa_entity303": {
+      "textures": "textures/blocks/kupa_entity303"
+    },
+    "kupa_wyne": {
+      "textures": "textures/blocks/kupa_wyne"
+    },
+    "kupa_dream": {
+      "textures": "textures/blocks/kupa_dream"
+    },
+    "kupa_odun": {
+      "textures": "textures/blocks/kupa_odun"
+    },
+    "kupa_ip": {
+      "textures": "textures/blocks/kupa_ip"
+    },
+    "kupa_zincir": {
+      "textures": "textures/blocks/kupa_zincir"
+    },
+    "kns_dusmus_blok": {
+      "textures": "textures/blocks/kns_dusmus_blok"
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "format_version": "1.21.0",
+  "minecraft:item": {
+    "description": {
+      "identifier": "pa:goz_kirmizi",
+      "menu_category": {
+        "category": "none"
+      }
+    },
+    "components": {
+      "minecraft:icon": {
+        "texture": "goz_kirmizi"
+      },
+      "minecraft:display_name": {
+        "value": "Kırmızı Göz"
+      },
+      "minecraft:max_stack_size": 1,
+      "minecraft:wearable": {
+        "slot": "slot.armor.head",
+        "protection": 17
+      },
+      "minecraft:armor": {
+        "protection": 17
+      },
+      "minecraft:allow_off_hand": false
+    }
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "format_version": "1.8.0",
+  "animations": {
+    "animation.o_sey.yuru": {
+      "loop": true,
+      "bones": {
+        "rightLeg": {
+          "rotation": [
+            "math.cos(query.modified_distance_moved * 38.17) * 40 * query.modified_move_speed",
+            0,
+            0
+          ]
+        },
+        "leftLeg": {
+          "rotation": [
+            "math.cos(query.modified_distance_moved * 38.17 + 180) * 40 * query.modified_move_speed",
+            0,
+            0
+          ]
+        },
+        "rightArm": {
+          "rotation": [
+            "math.cos(query.modified_distance_moved * 38.17 + 180) * 30 * query.modified_move_speed",
+            0,
+            0
+          ]
+        },
+        "leftArm": {
+          "rotation": [
+            "math.cos(query.modified_distance_moved * 38.17) * 30 * query.modified_move_speed",
+            0,
+            0
+          ]
+        },
+        "rightUpperArm": {
+          "rotation": [
+            0,
+            "math.cos(query.modified_distance_moved * 38.17 + 180) * 22 * query.modified_move_speed",
+            0
+          ]
+        },
+        "leftMiddleArm": {
+          "rotation": [
+            0,
+            "math.cos(query.modified_distance_moved * 38.17 + 180) * 22 * query.modified_move_speed",
+            0
+          ]
+        },
+        "leftUpperArm": {
+          "rotation": [
+            0,
+            "math.cos(query.modified_distance_moved * 38.17) * 22 * query.modified_move_speed",
+            0
+          ]
+        },
+        "rightMiddleArm": {
+          "rotation": [
+            0,
+            "math.cos(query.modified_distance_moved * 38.17) * 22 * query.modified_move_speed",
+            0
+          ]
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "format_version": "1.21.0",
+  "minecraft:ore_feature": {
+    "description": {
+      "identifier": "pa:freedom_stone_ore_feature"
+    },
+    "count": 1,
+    "replace_rules": [
+      {
+        "places_block": "pa:freedom_stone_cevheri",
+        "may_replace": [
+          {
+            "name": "minecraft:stone"
+          },
+          {
+            "name": "minecraft:deepslate"
+          },
+          {
+            "name": "minecraft:tuff"
+          }
+        ]
+      }
+    ]
+  }
+}

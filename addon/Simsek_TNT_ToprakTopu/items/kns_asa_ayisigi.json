@@ -1,0 +1,32 @@
+{
+  "format_version": "1.21.0",
+  "minecraft:item": {
+    "description": {
+      "identifier": "pa:kns_asa_ayisigi",
+      "menu_category": {
+        "category": "equipment"
+      }
+    },
+    "components": {
+      "minecraft:icon": {
+        "texture": "kns_asa_ayisigi"
+      },
+      "minecraft:display_name": {
+        "value": "Ay Işığı Asası"
+      },
+      "minecraft:max_stack_size": 1,
+      "minecraft:tags": {
+        "tags": [
+          "pa:konsey",
+          "pa:konsey_asa"
+        ]
+      },
+      "minecraft:hand_equipped": true,
+      "minecraft:glint": true,
+      "minecraft:damage": 42,
+      "minecraft:durability": {
+        "max_durability": 600
+      }
+    }
+  }
+}

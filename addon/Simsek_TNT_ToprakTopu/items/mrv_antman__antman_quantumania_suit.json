@@ -1,0 +1,36 @@
+{
+  "format_version": "1.21.0",
+  "minecraft:item": {
+    "description": {
+      "identifier": "pa:mrv_antman__antman_quantumania_suit",
+      "menu_category": {
+        "category": "equipment"
+      }
+    },
+    "components": {
+      "minecraft:icon": {
+        "texture": "mrv_antman__antman_quantumania_suit"
+      },
+      "minecraft:display_name": {
+        "value": "Ant-Man: Quantumania Suit"
+      },
+      "minecraft:max_stack_size": 1,
+      "minecraft:wearable": {
+        "slot": "slot.armor.feet",
+        "protection": 12
+      },
+      "minecraft:tags": {
+        "tags": [
+          "pa:marvel",
+          "pa:marvel_kostum"
+        ]
+      },
+      "minecraft:armor": {
+        "protection": 12
+      },
+      "minecraft:durability": {
+        "max_durability": 1250
+      }
+    }
+  }
+}

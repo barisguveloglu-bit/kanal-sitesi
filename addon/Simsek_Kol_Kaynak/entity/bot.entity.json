@@ -1,0 +1,32 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "pa:bot",
+      "materials": {
+        "default": "entity_alphatest"
+      },
+      "textures": {
+        "default": "textures/entity/bot"
+      },
+      "geometry": {
+        "default": "geometry.simsek_bot"
+      },
+      "render_controllers": [
+        "controller.render.default"
+      ],
+      "spawn_egg": {
+        "base_color": "#3a6ea5",
+        "overlay_color": "#c68a60"
+      },
+      "scripts": {
+        "animate": [
+          "yuru"
+        ]
+      },
+      "animations": {
+        "yuru": "animation.simsek_bot.yuru"
+      }
+    }
+  }
+}

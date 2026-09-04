@@ -1,0 +1,24 @@
+{
+  "serialize_name": "SimsekUzakAkraba",
+  "localization_name": "SimsekUzakAkraba",
+  "skins": [
+    {
+      "localization_name": "uzak_akraba",
+      "geometry": "geometry.humanoid.custom",
+      "texture": "uzak_akraba.png",
+      "type": "free"
+    },
+    {
+      "localization_name": "o_sey",
+      "geometry": "geometry.humanoid.custom",
+      "texture": "uzak_akraba_o_sey.png",
+      "type": "free"
+    },
+    {
+      "localization_name": "kolsuz",
+      "geometry": "geometry.humanoid.custom",
+      "texture": "uzak_akraba_kolsuz.png",
+      "type": "free"
+    }
+  ]
+}

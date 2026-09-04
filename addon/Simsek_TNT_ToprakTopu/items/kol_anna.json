@@ -1,0 +1,26 @@
+{
+  "format_version": "1.21.0",
+  "minecraft:item": {
+    "description": {
+      "identifier": "pa:kol_anna",
+      "menu_category": {
+        "category": "equipment"
+      }
+    },
+    "components": {
+      "minecraft:icon": {
+        "texture": "kol_anna"
+      },
+      "minecraft:display_name": {
+        "value": "Anna Kolu"
+      },
+      "minecraft:max_stack_size": 1,
+      "minecraft:hand_equipped": true,
+      "minecraft:allow_off_hand": true,
+      "minecraft:cooldown": {
+        "category": "kol_anna_bekleme",
+        "duration": 3.0
+      }
+    }
+  }
+}
