@@ -102,7 +102,7 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # tureniyor -- ayrisabilecekleri bir yer kalmadi.
 #
 # YENI SURUM CIKARIRKEN: yalnizca asagidaki satiri degistir.
-SURUM_NO = (7, 32, 0)
+SURUM_NO = (7, 33, 0)
 
 SURUM_METIN = "%d.%d.%d" % SURUM_NO
 SURUM_ETIKET = "v" + SURUM_METIN
@@ -5872,7 +5872,13 @@ def oyuncu_modeli_paketi(surum):
             "description": PAKETLER["omp"][1],
             "uuid": OMP_UUID_BAS,
             "version": surum,
-            "min_engine_version": [1, 20, 0],
+            # v7.33: 1.20.0 -> 1.21.0. Bloklarimiz
+            # format_version 1.21.0 ile yaziliyor ve ozel
+            # geometri + material_instances kullaniyor; paket
+            # 1.20.0 diye isaretliyken oyun onu eski surum
+            # kurallariyla okuyor. Kupalar dısarıdan
+            # gorunmemesinin en olasi sebebi bu uyumsuzluk.
+            "min_engine_version": [1, 21, 0],
         },
         "modules": [{
             "type": "resources",
@@ -9737,6 +9743,14 @@ def manifestleri_yaz():
         d["header"]["name"] = PAKETLER[anahtar][0]
         d["header"]["description"] = PAKETLER[anahtar][1]
         d["header"]["version"] = list(SURUM_NO)
+        # v7.33: min_engine_version de buradan yaziliyor.
+        # BP ve RP elle 1.20.0'da kalmisti; bloklarimiz
+        # format_version 1.21.0 ile yaziliyor ve ozel geometri
+        # + material_instances kullaniyor. Paket 1.20.0 diye
+        # isaretliyken oyun onu eski surum kurallariyla okuyor.
+        # Oyuncu modeli paketi zaten 1.21.0'daydi -- ucu de
+        # ayni olsun diye tek yerden yaziliyor.
+        d["header"]["min_engine_version"] = [1, 21, 0]
         for m in d.get("modules", []):
             m["version"] = list(SURUM_NO)
         yaz_json(yol, d)
