@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.29.0";
+export const SURUM = "v7.30.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -840,6 +840,131 @@ export const ARIN_EFEKTLER = [
 export const SAVUNMA_ARALIK = 10;    // tick (0,5 sn)
 export const SAVUNMA_SURE   = 6000;  // tick (5 dk) sonra kendi kapanir
 export const SAVUNMA_SIRA   = 157;
+
+/* ---------------- GOZCU (v7.30) -- HILE DENETIMI ----------------
+   Kullanicinin gonderdigi uc APK'nin KENDI ayar listesinden
+   cikarilan tehdit modeli (REFERANS_SAVUNMA_PLANI.md): 65
+   ozellik, dort aile. Bu bolum ikisini denetliyor.
+
+   ---- 1. MENZIL (reach) ----
+   Vanilla'da oyuncunun vurus menzili hayatta kalma kipinde
+   ~3 blok. Reach hilesi bunu 5-6 bloga cikariyor.
+
+   Olcum: vurus aninda saldiran GOZUNDEN hedefin MERKEZINE
+   uzaklik. Esik 4.2 blok -- vanilla 3'un uzerinde iyi bir pay:
+     + hedefin govde genisligi (0.3)
+     + ag gecikmesi: iki taraf da hareket halindeyken sunucudaki
+       konumlar bir tick eskimis olabiliyor (~0.5)
+     + kendi ittirme/atilim yeteneklerimiz mesafeyi aniden
+       degistiriyor
+   Yani 4.2, "biraz gecikmeli oynayan durust oyuncu" ile
+   "reach acmis oyuncu" arasindaki bosluga oturuyor. Dar
+   tutmak yanlis alarm uretir; bu depoda yanlis alarm, kacan
+   hileden daha pahaliya mal olur -- kendi oyuncusunu suclar.
+
+   ---- 2. BAKIS ACISI (killaura) ----
+   Killaura'nin ayirt edici yani mesafe DEGIL: hedefe BAKMADAN
+   vurmasi. Insan bakmadan vuramaz.
+
+   Olcum: bakis yonu ile (hedef - goz) yonu arasindaki acinin
+   kosinusu. 1.0 tam karsi, 0.0 tam yan. Esik 0.25 ~ 75 derece:
+   bundan genis bir aciyla vuran bir sey insan degil. Vanilla'da
+   vurus konisi cok daha dar, yani burada da genis pay var.
+
+   ---- 3. VURUS HIZI ----
+   Vanilla'da silah bekleme suresi var; en hizli silahla bile
+   saniyede ~5 vurus insan siniri. Killaura aralik ayariyla
+   (s_combat_killaura_interval) bunun cok ustune cikiyor.
+   Esik saniyede 8 -- yine genis pay.
+
+   ---- CEVAP: SUCLAMA DEGIL, SAYMA ----
+   Tek bir olcum tek basina hukum vermiyor. Isaretler
+   GOZCU_PENCERE tick icinde toplaniyor; GOZCU_ESIK'i asinca
+   bir kez bildiriliyor. Boylece tek bir gecikme sicramasi
+   kimseyi suclamiyor.
+
+   Bildirim disinda bir sey YAPILMIYOR (vurma, atma, oldurme
+   yok) -- yanlis alarmin bedeli geri alinamaz olmasin diye.
+   Ne oldugunu goruyorsun, karari sen veriyorsun.              */
+export const GOZCU_ACIK     = true;
+export const GOZCU_MENZIL   = 4.2;    // blok
+export const GOZCU_ACI      = 0.25;   // kosinus (~75 derece)
+export const GOZCU_HIZ      = 8;      // saniyede en fazla vurus
+export const GOZCU_PENCERE  = 200;    // tick (10 sn) -- isaret penceresi
+export const GOZCU_ESIK     = 4;      // bu kadar isaret -> bildir
+export const GOZCU_SUS      = 200;    // ayni oyuncu icin bildirim arasi
+/* Kendi botlarimiz ve mob'lar denetlenmiyor: bot zaten bizim
+   kodumuz, mob'un bakis yonu insan olcusune vurulamaz.       */
+export const GOZCU_YALNIZ_OYUNCU = true;
+
+/* ---------------- ENVANTER YEDEGI (v7.30) ----------------
+   Tehdit modelindeki DUNYA ailesinden: karsi taraf operatorse
+   "/clear" ile envanterini bir komutta silebiliyor. Bunun
+   kod tarafinda ONLENMESI mumkun degil -- komut sunucuda
+   calisiyor ve biz olayi sonradan goruyoruz.
+
+   Onlenemeyen seyin karsiligi GERI ALMAK.
+
+   Bu, deponun "OYUNCU ESYASI ASLA KAYBOLMAZ" kuralinin
+   savunma tarafindaki karsiligi. O kural bugune kadar hep
+   "bizim kodumuz esya kaybettirmesin" diye okunuyordu;
+   burada "baskasi kaybettirdiginde geri koyabilelim" oluyor.
+
+   ---- BELLEKTE TUTULUYOR, DISKTE DEGIL ----
+   Dinamik ozellik bu depoda guvenilir degil (Mahou manasi da
+   ayni sebeple bellekte). Yani yedek DUNYA KAPANINCA GIDER.
+   Dovus basinda alinip dovus icinde kullanilacak bir sey;
+   kalici bir sandik degil. Bu bir eksiklik degil, kapsam --
+   ve soylenmesi gerekiyor ki kimse ona kalici sanip guvenmesin.
+
+   ---- KOPYALAMA DEGIL, DEGISTIRME ----
+   Geri yukleme envanteri OLDUGU GIBI yediyle degistiriyor.
+   Ustune eklemiyor: eklemek olsaydi iki kez geri yukleyen
+   esyalarini ikiye katlardi ve savunma, hilenin kendisi
+   olurdu.                                                   */
+export const YEDEK_ACIK = true;
+/* Savunma Kipi acilinca kendiliginden yedek alinsin mi.
+   Dovus baslarken elle "yedek" yazmayi unutmak, savunmanin
+   en olasi kaybedilme bicimi.                              */
+export const YEDEK_OTOMATIK = true;
+
+/* ---------------- HAREKET DENETIMI (v7.30) ----------------
+   Tehdit modelindeki HAREKET ailesi: flying, speed, high_jump,
+   tap_teleport, no_clip, blink... Hepsi KONUMU degistiriyor,
+   konum sunucuya geliyor, yani olculebiliyor.
+
+   ---- BU AILE EN SONA BIRAKILDI, SEBEBI VAR ----
+   Bu modda konum sicratan, hizlandiran, ucuran KENDI
+   yeteneklerimiz var: Ucurma (levitation), Isinlanma, Atilim,
+   Kasirga, Meteor, Ucus modu, ZIRH ucus katmani. Bir hareket
+   denetimi bunlari tanimazsa savunma KENDI OYUNCUSUNU suclar
+   -- ve bu depoda yanlis alarm, kacan hileden pahaliya mal
+   olur.
+
+   ---- MUAFIYET: "AKTIF ISI VAR MI" ----
+   Muafiyeti yetenek yetenek saymiyoruz; o liste eskir. Onun
+   yerine tek soru soruluyor: bu oyuncunun MERKEZI IS
+   LISTESINDE calisan bir isi var mi? Varsa denetlenmiyor.
+   Yeni bir yetenek eklendiginde bu muafiyet kendiliginden
+   gecerli oluyor -- listeye bir sey eklemeyi unutmak diye bir
+   sey kalmiyor.
+
+   Ayrica: levitation/speed efekti varsa, sizliyorsa (elytra),
+   biniyorsa, suda ya da merdivendeyse denetlenmiyor.
+
+   ---- ESIKLER GENIS ----
+   Kosan oyuncu ~5.6 blok/sn; Hiz II ile ~7; buz uzerinde ve
+   teknede daha da yuksek. Esik 14 blok/sn: durust oyuncunun
+   cok uzerinde, uçma/hiz hilesinin ise altinda.
+
+   Isinlanma esigi 12 blok/ornek: kapi/portal gecisi ve
+   normal gecikme bunun altinda kalir.                        */
+export const HAREKET_ACIK      = true;
+export const HAREKET_ORNEK     = 10;    // kac tickte bir olculsun
+export const HAREKET_HIZ       = 14.0;  // blok/sn yatay
+export const HAREKET_SICRAMA   = 12.0;  // blok, tek ornekte
+export const HAREKET_YUKSELME  = 6;     // ust uste kac ornek yukseliyorsa
+export const HAREKET_YUKSEK_PAY = 0.4;  // ornek basina en az bu kadar yukselme
 
 /* ---------------- Iksirler (Nitroksin sistemi) ----------------
    Referans mod bunu tamamen komutla yapiyordu:

@@ -121,6 +121,16 @@ export function komutCozumle(oyuncu, hamMetin) {
     return { cevap: cagir("savunma", oyuncu) };
   }
 
+  /* ENVANTER YEDEGI -- "/clear" ile silinen esyanin karsiligi.
+     Sohbette, cunku envanterin silindigi an genellikle
+     kilitlerin de geldigi andir.                            */
+  if (ad === "yedek") {
+    return { cevap: cagir("yedekAl", oyuncu) };
+  }
+  if (ad === "geriyukle" || ad === "yukle" || ad === "esyalarim") {
+    return { cevap: cagir("yedekYukle", oyuncu) };
+  }
+
   if (ad === "can" || ad === "kalp") {
     const arg = parca[1];
 
@@ -392,6 +402,8 @@ const YARDIM = [
   "§ecan sifirla§7 · eklenen kalpleri geri al",
   "§earin§7 · KILITLERI AC: poz, girdi, kamera, sarsinti, olumsuz efekt",
   "§esavunma§7 · SAVUNMA KIPI: kilitleri surekli kirar (vs icin)",
+  "§eyedek§7 · envanterini yedekle (dovus oncesi)",
+  "§egeriyukle§7 · yedekten geri yukle (/clear yediysen)",
   "§elazer§7 · goz lazeri at (once iksir ic)",
   "§ebot§7 · botu cagir / yanina getir",
   "§ebot odun§7 · botlar etrafindaki agaclari keser",

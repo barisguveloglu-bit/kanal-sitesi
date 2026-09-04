@@ -84,6 +84,18 @@ import { pozUnut } from "./yetenekler/pozlar.js";
    jest yapilamaz), o yuzden fonksiyon disari aciliyor.      */
 import { arindir, arinmaUnut, savunmaAc } from "./yetenekler/arinma.js";
 
+/* v7.30: Gozcu -- vurus denetimi (menzil + killaura). Kendi
+   olay aboneligini kuruyor, yetenek degil.                  */
+import {
+  gozcuKur, gozcuUnut, hareketTara, hareketUnut
+} from "./yetenekler/gozcu.js";
+import { HAREKET_ACIK, HAREKET_ORNEK } from "./ayarlar.js";
+import {
+  yedekAl, yedekYukle, yedekUnut
+} from "./yetenekler/envanter_yedek.js";
+import { YEDEK_OTOMATIK } from "./ayarlar.js";
+gozcuKur();
+
 /* v5.8: acilabilir zirh katmanlari (matkap). Yetenegi kendi
    dosyasinda kaydediyor; buradan yalniz "cekirdek elden
    cikinca katmani kapat" tazelemesi cagriliyor.            */
@@ -370,6 +382,22 @@ system.runInterval(() => {
      Simdi taramalar da isler de ayni havuzdan yiyor -- zaten
      amaci buydu.                                             */
   butceSifirla();
+
+  /* HAREKET DENETIMI (v7.30). Kendi dongusunu ACMIYOR --
+     depo kurali; ana dongunun icinde, HAREKET_ORNEK tickte
+     bir. Muafiyet sorusu "bu oyuncunun aktif isi var mi"
+     ve cevabi BURADAN veriliyor, cunku is listesi burada.
+     Boylece yeni bir yetenek eklendiginde muafiyet
+     kendiliginden gecerli oluyor -- guncellenecek bir liste
+     yok.                                                    */
+  if (HAREKET_ACIK && system.currentTick % HAREKET_ORNEK === 0) {
+    try {
+      hareketTara(world.getAllPlayers(),
+                  (kimlik) => oyuncuIsSayisi(kimlik) > 0);
+    } catch (e) {
+      hataYaz("hareketTara", e);
+    }
+  }
 
   // Esyasiz jest taramasi: aktif is olmasa da calismali
   if (ESYASIZ_ACIK) {
@@ -2285,6 +2313,9 @@ olayaAbone("playerLeave", (olay) => {
   zirhAgacOyuncuUnut(olay.playerId);
   pozUnut(olay.playerId);
   arinmaUnut(olay.playerId);
+  gozcuUnut(olay.playerId);
+  hareketUnut(olay.playerId);
+  yedekUnut(olay.playerId);
 
   // Oyuncunun butun isleri durdurulmali, sadece birincisi degil
   const acikIsler = oyuncununIsleri.get(olay.playerId);
@@ -2542,8 +2573,16 @@ sohbetKancalari({
   savunma: (oyuncu) => {
     const sonuc = savunmaAc(oyuncu);
     if (sonuc.is) isEkle(sonuc.is);
+    /* Kip ACILIRKEN envanteri de yedekle. Dovus baslarken
+       elle "yedek" yazmayi unutmak, savunmanin en olasi
+       kaybedilme bicimi.                                   */
+    if (sonuc.is && YEDEK_OTOMATIK) {
+      try { yedekAl(oyuncu); } catch (e) { hataYaz("savunma.yedek", e); }
+    }
     return sonuc.mesaj;
   },
+  yedekAl: (oyuncu) => yedekAl(oyuncu),
+  yedekYukle: (oyuncu) => yedekYukle(oyuncu),
   kalpEkle: (oyuncu, adet) => kalpEkle(oyuncu, adet),
   kalpSifirla: (oyuncu) => kalpSifirla(oyuncu),
   kollariVer: (oyuncu) => kollariVer(oyuncu),

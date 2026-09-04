@@ -1,3 +1,104 @@
+# v7.30.0 — Savunma duvarı: Gözcü + Envanter Yedeği
+
+Kullanıcı dört maddeyi de istedi: menzil, killaura, envanter yedeği,
+hareket denetimi. Dördü de yazıldı.
+
+## Gözcü — vuruş ve hareket denetimi
+
+### Menzil (reach)
+Vuruş anında saldıranın **gözünden** hedefin merkezine uzaklık.
+Eşik **4.2 blok**: vanilla ~3'ün üstünde geniş pay — gövde genişliği,
+ağ gecikmesi ve kendi ittirme yeteneklerimiz için.
+
+### Bakış açısı (killaura'nın asıl izi)
+Killaura'yı ayıran şey mesafe değil: **hedefe bakmadan vurması.**
+Bakış yönü ile hedef yönü arasındaki açı ölçülüyor, eşik ~75°.
+İnsan o açıyla vuramaz.
+
+### Vuruş hızı
+Saniyede 8'den fazla vuruş.
+
+### Hareket — hız, ışınlanma, kesintisiz yükselme
+Örnek başına konum farkı. Hız 14 blok/sn, sıçrama 12 blok/örnek,
+yükselme üst üste 6 örnek.
+
+## Yanlış alarm — bu bölümün asıl derdi
+
+Bu depoda yanlış alarmın bedeli kaçan hilenin bedelinden büyük:
+sistem kendi oyuncusunu suçlarsa modun kendisine güven kalmaz.
+Testin yarısı "temiz oyuncu suçlanmıyor" maddeleri.
+
+**Muafiyet yetenek listesi DEĞİL.** "Uçurma, Işınlanma, Atılım,
+Kasırga, Meteor hariç" diye yazılabilirdi — ama öyle bir liste eskir
+ve yeni yetenek eklendiğinde kimse güncellemeyi hatırlamaz. Onun
+yerine tek soru: **bu oyuncunun merkezî iş listesinde çalışan bir işi
+var mı?** Varsa denetlenmiyor. Yeni yetenek geldiğinde muafiyet
+kendiliğinden geçerli.
+
+Ayrıca muaf: levitation/speed/jump_boost efekti, süzülme, uçuş kipi,
+su, tırmanma, düşme, binme. Ve **okunamayan durum da muaf** —
+şüphede kalırsa suçlamıyoruz.
+
+## Cevap: suçlama değil, sayma
+
+Tek ölçüm tek başına hüküm vermiyor. İşaretler 10 saniyelik pencerede
+toplanıyor, 4'ü aşınca **bir kez** bildiriliyor, sonra susturma
+devreye giriyor. Bildirim dışında **hiçbir şey yapılmıyor** — vurma,
+atma, öldürme yok. Yanlış alarmın bedeli geri alınamaz olmasın diye.
+
+## Envanter yedeği
+
+`/clear` önlenemez (komut sunucuda çalışır, biz sonradan görürüz).
+Önlenemeyen şeyin karşılığı geri almak. Deponun **"oyuncu eşyası asla
+kaybolmaz"** kuralının savunma tarafındaki karşılığı.
+
+Üç karar:
+1. **Bellekte** — dinamik özellik bu depoda güvenilir değil. Dünya
+   kapanınca gider; dövüş içinde kullanılacak bir şey, kalıcı sandık
+   değil.
+2. **Değiştirme, ekleme değil** — iki kez geri yükleyen eşyasını
+   ikiye katlasaydı savunma hilenin kendisi olurdu.
+3. **Boş yedekle envanter silinmez** — yoksa savunma koruduğu şeyi
+   yok ederdi.
+
+Savunma Kipi açılınca **otomatik** yedek alınıyor: dövüş başlarken
+elle yazmayı unutmak, savunmanın en olası kaybedilme biçimi.
+
+## Testte ve kodda yakalananlar
+
+`test/gozcu.mjs` ve `test/envanter_yedek.mjs` (98. ve 99. dosya).
+Toplam **28 mutasyon**; beşi kaçtı, beşi de gerçek bir zayıflık
+gösterdi:
+
+1. **Ölü kod bulundu.** Gözcüde `KILIT_ATLA_TIPLER.has(vuran.typeId)`
+   yazılıydı ama üstündeki "yalnız oyuncu" satırını geçen her şey
+   zaten oyuncu — o kümeye hiç ulaşılmıyordu. Silindi.
+2. **Yanlış teşhis bulundu.** Işınlanma bulununca `continue`
+   ediliyordu; gerçek bir hız hilesi (30 blok/sn) sıçrama eşiğini de
+   aştığı için "ışınlanma" diye etiketleniyordu. Sayı doğru, teşhis
+   yanlış. Artık sebepler birlikte bildiriliyor.
+3. **Dupe testi yanlış senaryoyu deniyordu.** Yedek aynı yuvalara
+   yazdığı için temizleme adımını silmek yakalanmıyordu. Gerçek risk
+   yedekten *sonra* alınan eşyalar — o senaryo eklendi.
+4. **Zıplama testi zayıftı.** Tek zıplama deneniyordu; yükselme
+   sayacının sıfırlanmasını silmek kaçıyordu. Art arda zıplayan
+   oyuncu senaryosu eklendi — sayaç sıfırlanmazsa dürüst oyuncu
+   "uçuyor" diye suçlanır.
+5. **Muafiyet denetimi yorumları da tarıyordu.** Açıklamada yetenek
+   adlarını saymak iyi belgeleme; kötü olan kodda liste tutmak.
+   Yorumlar ayıklandı.
+
+## Kapsanmayanlar — değişmedi
+
+- **GÖRÜNTÜ ailesi** (xray, ESP, tracer, minimap, freecam): sunucuya
+  hiçbir şey göndermiyorlar. Ne görülür ne engellenir. Gözcüye "xray
+  denetimi" eklemek sahte güven üretmek olurdu; test bunu ayrıca
+  yasaklıyor.
+- **`/kill`** — zırh, direnç, totem dinlemiyor.
+- **Başkasının dünyası** — paket orada yüklü değilse hiçbir satır
+  çalışmaz.
+
+
 # v7.29.0 — Savunma Kipi: kilit döngüsüne karşı
 
 Kullanıcı: *"Hadi diyelim ki vs yapacağız, hileleri açtım. O an nasıl
