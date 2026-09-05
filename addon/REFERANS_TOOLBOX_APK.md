@@ -275,6 +275,30 @@ biliyor: *"bakalım PvP'de ne kadar yetenekliyiz."*
 Rakamlar `savunma_olc.py`'den, o da bu dosyadaki ve
 `REFERANS_SAVUNMA_PLANI.md`'deki ölçülmüş özellik listelerinden.
 
+## Doğrulama — dosyanın kendisinden, referanstan değil
+
+Kullanıcı dosyayı yeniden gönderdi: *"sadece referanstan bakma
+diye gönderdim."* Haklı bir refleks — bu rapor iki yıl önceki bir
+incelemenin sayılarına dayanıyordu. Dosya baştan açıldı ve
+aşağıdakiler **bu turda ölçüldü**:
+
+| ölçüm | sonuç |
+|---|---|
+| boyut | 10.490.716 bayt — referansla aynı |
+| sha256 | `efa1ecdb…7702786` — **referansla aynı** |
+| paket adı | `io.mrarm.mctoolbox`, sürüm `4.0.0` |
+| Toolbox çekirdekleri | `1.19.50.02` · `1.19.51.01` · `1.19.63.01` · `1.19.71.02` · `1.19.73.02` |
+| `s_*` özellik anahtarı | **65** |
+| BloodyClient'ın listesiyle farkı | **`diff` boş — bire bir aynı 65 satır** |
+| izinler | INTERNET · ACCESS_NETWORK_STATE · READ/WRITE_EXTERNAL_STORAGE · VIBRATE · WAKE_LOCK · AD_ID |
+
+Son satır önemli: "aynı aileden" demek bir tahmindi, artık
+**ölçüm**. MH_TEAM_V5 ile BloodyClient'ın özellik listesi
+birbirinin aynısı, yani aşağıdaki bütün sayılar bu dosya için de
+aynen geçerli.
+
+Değişen tek şey yok — referans doğruydu.
+
 ## Önce en önemli şey: bu paket senin dünyana giremez
 
 MH_TEAM_V5'in içindeki Toolbox çekirdekleri **beş sürüm** için
