@@ -195,3 +195,74 @@ Katı blok denetimi **Savunma Kipi açıkken** çalışıyor (blok
 okuma bütçesi, `REFERANS_WCLIENT_APK.md`). Oyun kipini **geri
 alma** da öyle. İkisi de vs başlarken düğmeye basılmasına bağlı;
 basılmazsa ölçüm yapılmıyor. Gizli kalmasın diye buraya yazıldı.
+
+
+## Kapsam ölçümü — "yüzde kaç?"
+
+Kullanıcı sordu: *"savunmamız yüzde kaç ve ne kadar arttı?"*
+
+Sayı **tahmin edilmedi**. `savunma_olc.py` dört APK'nin kendi
+ayar/modül listesinden çıkarılmış **85 özelliği** tek tek
+sınıflandırıyor ve saydırıyor. Aşağıdaki tablo o betiğin
+çıktısı; değiştiren biri betiği çalıştırmak zorunda, çünkü
+`test/savunma_kapsam.mjs` ikisinin uyuştuğunu tutuyor.
+
+### Bu yüzde ne DEĞİLDİR
+
+**"%67 güvendesin" demek değil.** Bu bir *özellik sayan* ölçü:
+kaçan tek bir killaura, göremediğimiz on tane HUD parçasından
+daha önemli. Ağırlık verilmedi çünkü ağırlığı kimin vereceği
+belli değil — uydurulmuş bir ağırlık, uydurulmuş bir yüzde
+üretir.
+
+### Sayım
+
+| durum | sayı | ne demek |
+|---|---|---|
+| **kapalı** | **28** | bizim kodumuz görüyor |
+| açık | 14 | ölçülebilir ama yazılmadı |
+| ayırt edilemez | 12 | sunucuya geliyor, dürüst oyundan ayrılamıyor |
+| operatör kapısı | 5 | op vermemek yeterli |
+| **imkânsız** | **26** | tamamen ekran tarafı, asla görülemez |
+| toplam | 85 | |
+
+### İki yüzde
+
+- **Ham kapsam: %33** (28/85)
+- **Engellenebilirin kapsamı: %67** (28/42) ← anlamlı olan
+
+Ham kapsamın tavanı 100 değil, **%49**. Görüntü ailesi (26),
+ayırt edilemeyenler (12) ve op ailesi (5) bir davranış
+paketinin ulaşabileceği yerde değil. Yani ham sayı hiçbir
+zaman %49'u geçemez ve bugün onun **üçte ikisindeyiz**.
+
+### Sürüme göre artış
+
+| sürüm | kapalı | ham | engellenebilir | o sürümde eklenen |
+|---|---|---|---|---|
+| v7.27 | 0 | %0 | %0 | *(savunma yoktu)* |
+| v7.28 | 1 | %1 | %2 | Arınma |
+| v7.29 | 2 | %2 | %5 | Savunma Kipi |
+| v7.30 | 12 | %14 | %29 | Gözcü + hareket + envanter yedeği |
+| v7.31 | 13 | %15 | %31 | geri itme |
+| v7.35 | 16 | %19 | %38 | ekran · ses · sis |
+| v7.36 | 22 | %26 | %52 | blok hızı + Kafes Kır |
+| **v7.38** | **28** | **%33** | **%67** | aynı tick · oyun kipi · katı blok · kaçış |
+
+**v7.36 → v7.38 artışı: engellenebilirin %52'sinden %67'sine**
+(altı özellik). En büyük tek sıçrama hâlâ v7.30 (Gözcü'nün
+kurulduğu sürüm): %5'ten %29'a.
+
+### Açık kalan 14 — sıradaki iş listesi
+
+Hepsi **ölçülebilir**, sadece yazılmadı:
+
+`no_fall` · `jesus` · `spider` · `anti_void` · `slow_falling`
+(hareket ailesi, hepsi konum/hasar tutarsızlığı) ·
+`far_bypass` · `pick_distance` (blok koyma mesafesi) ·
+`auto_crystal` (koyma+vurma hızı) · `fake_death` ·
+`spammer` (sohbet hızı) · `blink` · `disabler` · `desync` ·
+`ping_spoof` (dördü de paket geciktirme ailesi).
+
+Bunların hepsi yazılsa engellenebilir kapsam **%100** olurdu,
+ham kapsam **%49**. Ondan sonrası mümkün değil.
