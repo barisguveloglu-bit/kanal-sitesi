@@ -124,38 +124,219 @@ for (const [kimlik, ad, bayrak, yukseklik] of [
 }
 
 console.log("");
-console.log("=== 2. OYUNCUYA ISLEMEMESI GEREKEN ===");
+console.log("=== 2. SIMSEK OYUNCUYU DA HEDEFLIYOR (v7.39) ===");
 {
-  /* Coklu Simsek KAPALI olmali: yirmi yildirimlik bir yagmur
-     yanindaki arkadasini oldururdu. Bu satir "acilmasin" diye
-     var -- sadece "isliyor mu" diye baksaydik acilmasi fark
-     edilmezdi.                                               */
-  kontrol("COKLU_OYUNCU KAPALI (varsayilan)", ayar.COKLU_OYUNCU === false,
-          String(ayar.COKLU_OYUNCU));
+  /* ---- BU MADDE v7.39'DA TERS CEVRILDI ----
+     Eskiden burasi "COKLU_OYUNCU KAPALI olmali" diyordu ve
+     gerekcesi suydu: "yirmi yildirimlik bir yagmur yanindaki
+     arkadasini oldururdu."
+
+     Kullanici karari degistirdi -- kendi sozleriyle: "evet
+     oyuncuyu da otomatik olarak hedeflesin... diger
+     kollardaki simsekle alakali olan ozelliklerde de bu
+     sistem olsun." Sebebi bir duello: onceki hal PvP'de nisan
+     yardimini TAMAMEN islevsiz birakiyordu.
+
+     Madde silinmedi, YONU degisti. Bayrak hala tek tek
+     tutuluyor: sessizce KAPANMASI da en az acilmasi kadar
+     onemli, cunku kapandigi an duelloda kimse fark etmez.
+
+     Eski gerekce yok olmadi, yer degistirdi: "yanindakini
+     vurma" endisesinin karsiligi artik 3. bolumdeki
+     DOKTURUCU denetimi.                                    */
+  kontrol("SIMSEK_OYUNCU_HEDEF ACIK (tek anahtar)",
+          ayar.SIMSEK_OYUNCU_HEDEF === true, String(ayar.SIMSEK_OYUNCU_HEDEF));
+  kontrol("COKLU_OYUNCU tek anahtara bagli",
+          ayar.COKLU_OYUNCU === ayar.SIMSEK_OYUNCU_HEDEF, String(ayar.COKLU_OYUNCU));
+  kontrol("BOT_SIMSEK_OYUNCU tek anahtara bagli",
+          ayar.BOT_SIMSEK_OYUNCU === ayar.SIMSEK_OYUNCU_HEDEF,
+          String(ayar.BOT_SIMSEK_OYUNCU));
+  kontrol("ALAN_MUAF oyuncuyu ARTIK muaf tutmuyor",
+          ayar.ALAN_MUAF.indexOf("minecraft:player") === -1,
+          ayar.ALAN_MUAF.length + " muaf tip");
+  /* MUAF'in kendisi bozulmadi -- ALAN_MUAF ondan TURETILIYOR.
+     Ikisini elle ayri tutmak, birini guncellemeyi unutmanin
+     kisa yoludur.                                          */
+  kontrol("MUAF listesi bozulmadi (ALAN_MUAF ondan turuyor)",
+          ayar.MUAF.indexOf("minecraft:player") !== -1);
+
   /* Coklu Simsek kurbana DOGRUDAN dokunmuyor: hedefin
      KONUMUNA yildirim dusuruyor. Bu yuzden "efekt/itme/hasar
-     var mi" diye bakmak yetmiyordu -- bayragi acsam bile o
-     olcum sessiz kaliyordu, yani iddia bayragin kendisini
-     tekrar etmekten ibaretti. Dogru olcum: oyuncunun DIBINE
-     yildirim dustu mu?                                       */
+     var mi" diye bakmak yetmiyor -- dogru olcum: oyuncunun
+     DIBINE yildirim dustu mu?                              */
   const k = kurbanOyuncu(12.5, 88.98, 0.5);   // COKLU_EN_YAKIN'in otesi
   const s = calistir("coklu_simsek", [k]);
   const yakinYildirim = (s.D ? s.D.sayac.dogan : []).filter(
     (d) => d.tip === "minecraft:lightning_bolt" &&
            Math.hypot(d.x - k.location.x, d.z - k.location.z) < 1.0).length;
-  kontrol("  Coklu Simsek oyuncunun DIBINE yildirim dusurmuyor",
-          !s.yok && yakinYildirim === 0 && !dokunuldu(k),
+  kontrol("  Coklu Simsek OYUNCUNUN dibine yildirim dusuruyor",
+          !s.yok && yakinYildirim > 0,
           "oyuncunun dibine dusen yildirim=" + yakinYildirim);
-  /* Ama MOBA isliyor olmali -- yoksa yukaridaki "dokunmuyor"
-     sonucu yetenegin hic calismamasindan da gelebilirdi.    */
+  /* MOBA da isliyor olmali -- yoksa "oyuncuya isliyor" sonucu
+     yetenegin ayrim yapmayi tamamen birakmasindan gelebilirdi. */
   const mob = kurbanOyuncu(12.5, 88.98, 0.5);
   mob.typeId = "minecraft:zombie"; mob.id = "kurban_mob";
   const s2 = calistir("coklu_simsek", [mob]);
   const mobYildirim = (s2.D ? s2.D.sayac.dogan : []).filter(
     (d) => d.tip === "minecraft:lightning_bolt" &&
            Math.hypot(d.x - mob.location.x, d.z - mob.location.z) < 1.0).length;
-  kontrol("  ama MOBUN dibine dusuyor (yetenek gercekten calisti)",
-          mobYildirim > 0, "mobun dibine dusen yildirim=" + mobYildirim);
+  kontrol("  MOBUN dibine de dusuyor", mobYildirim > 0,
+          "mobun dibine dusen yildirim=" + mobYildirim);
+  /* COKLU_EN_YAKIN payi hala duruyor: cok yakindakini vurmuyor.
+     Bu, dokturucunun kendi yildiriminin alan hasarindan
+     yanmamasini saglayan tek sey.                          */
+  const yakinKurban = kurbanOyuncu(1.5, 88.98, 0.5);   // EN_YAKIN'in icinde
+  const s3 = calistir("coklu_simsek", [yakinKurban]);
+  const cokYakin = (s3.D ? s3.D.sayac.dogan : []).filter(
+    (d) => d.tip === "minecraft:lightning_bolt" &&
+           Math.hypot(d.x - yakinKurban.location.x,
+                      d.z - yakinKurban.location.z) < 1.0).length;
+  kontrol("  ama COKLU_EN_YAKIN icindekini hala vurmuyor",
+          cokYakin === 0, "cok yakina dusen yildirim=" + cokYakin);
+}
+
+console.log("");
+console.log("=== 2b. YON SIMSEGI RAKIBE KILITLENIYOR MU ===");
+{
+  /* ---- ASIL BULUNAN HATA BUYDU ----
+     yildirim.js kilitliHedef'i cagiriyordu ama oyuncuDahil'i
+     HIC GECMIYORDU. koniHedefleri oyunculari varsayilan olarak
+     atladigi icin kilit duelloda rakibe takilmiyordu: yildirim
+     sadece "baktigin noktaya" dusuyordu.
+
+     Olcum kilidin KENDISINE bakiyor, yildirimin dustugu yere
+     degil -- kilit tutmasa da yildirim yine dusecegi icin
+     "yildirim dustu mu" sorusu bu hatayi GORMEZDI. Zaten bu
+     yuzden yillarca fark edilmemis.                        */
+  const D = dunyaKur();
+  const yardim = await import("./pack/yardimcilar.js");
+  const o = oyuncuKur(D.boyut, { x: 1, y: 0, z: 0 }, { x: 0.5, y: 90.6, z: 0.5 });
+  o.id = "nisanci"; o.typeId = "minecraft:player";
+
+  const rakip = kurbanOyuncu(10.5, 89, 0.5);
+  rakip.id = "rakip";
+  D.boyut._varliklar = [rakip];
+
+  const kilitsiz = yardim.kilitliHedef(o, {
+    menzil: ayar.KILIT_MENZIL, aci: ayar.KILIT_ACI });
+  kontrol("oyuncuDahil GECILMEZSE rakip bulunmuyor (eski hal)",
+          kilitsiz === undefined, kilitsiz ? kilitsiz.id : "yok");
+
+  const kilitli = yardim.kilitliHedef(o, {
+    menzil: ayar.KILIT_MENZIL, aci: ayar.KILIT_ACI, oyuncuDahil: true });
+  kontrol("oyuncuDahil ile rakibe kilitleniyor",
+          kilitli !== undefined && kilitli.id === "rakip",
+          kilitli ? kilitli.id : "yok");
+
+  /* Yetenegin KENDISI o secenegi geciyor mu? Yukaridaki iki
+     madde yardimcinin dogru calistigini gosteriyor ama
+     yildirim.js onu cagirmasaydi ikisi de gecerdi.         */
+  const { readFileSync } = await import("node:fs");
+  const kod = readFileSync(new URL("./pack/yetenekler/yildirim.js",
+                                   import.meta.url), "utf8");
+  kontrol("yildirim.js kilide oyuncuDahil GECIYOR",
+          /kilitliHedef\([\s\S]{0,200}?oyuncuDahil:\s*SIMSEK_OYUNCU_HEDEF/.test(kod));
+  const botKod = readFileSync(new URL("./pack/yetenekler/bot_guc.js",
+                                      import.meta.url), "utf8");
+  kontrol("bot_guc.js kilide oyuncuDahil GECIYOR",
+          /kilitliHedef\([\s\S]{0,200}?oyuncuDahil:\s*SIMSEK_OYUNCU_HEDEF/.test(botKod));
+}
+
+console.log("");
+console.log("=== 2c. NISAN ACIYA GORE SECILIYOR ===");
+{
+  /* Duelloda yasanan durum: rakibe nisan almissin, araya bir
+     tavuk giriyor. Tavuk daha YAKIN oldugu icin eski kod
+     kilidi ona veriyordu -- oysa nisangahin uzerinde rakip var.
+
+     Dogru olcu mesafe degil ACI.                            */
+  const D = dunyaKur();
+  const yardim = await import("./pack/yardimcilar.js");
+  const o = oyuncuKur(D.boyut, { x: 1, y: 0, z: 0 }, { x: 0.5, y: 90.6, z: 0.5 });
+  o.id = "nisanci2"; o.typeId = "minecraft:player";
+
+  /* Tavuk YAKIN ama koninin kenarinda; rakip UZAK ama tam
+     nisangahin uzerinde (bakis +x, z sapmasi yok).
+
+     ---- YUKSEKLIK: ILK KURULUM YANLISTI ----
+     Ikisi de once y=90,6'ya (goz hizasi) konmustu. Ama
+     koniHedefleri merkezi oyuncunun AYAK konumundan (88,98)
+     aliyor, yani 1,62 birimlik bir dy giriyor: tavugun
+     kosinusu 0,937'den 0,873'e dusuyor ve koninin DISINA
+     cikiyor. O zaman "mesafeye gore tavuk secilir" maddesi
+     duser -- kod yuzunden degil, kurulum yuzunden.
+     Bu dosyanin kendi uyardigi hata (anna.mjs dersi) burada
+     bir kez daha yasandi. Ikisi de ayak hizasina alindi.   */
+  const tavuk = kurbanOyuncu(4.5, 88.98, 2.0);
+  tavuk.id = "tavuk"; tavuk.typeId = "minecraft:chicken";
+  const rakip = kurbanOyuncu(12.5, 88.98, 0.5);
+  rakip.id = "rakip2";
+  D.boyut._varliklar = [tavuk, rakip];
+
+  const aciya = yardim.kilitliHedef(o, {
+    menzil: ayar.KILIT_MENZIL, aci: ayar.KILIT_ACI,
+    oyuncuDahil: true, aciyaGore: true });
+  kontrol("aciya gore: nisangahtaki RAKIP seciliyor",
+          aciya && aciya.id === "rakip2", aciya ? aciya.id : "yok");
+
+  const mesafeye = yardim.kilitliHedef(o, {
+    menzil: ayar.KILIT_MENZIL, aci: ayar.KILIT_ACI,
+    oyuncuDahil: true, aciyaGore: false });
+  kontrol("mesafeye gore: yakindaki TAVUK seciliyor (eski hal)",
+          mesafeye && mesafeye.id === "tavuk", mesafeye ? mesafeye.id : "yok");
+
+  kontrol("varsayilan ACIYA GORE", ayar.KILIT_ACIYA_GORE === true,
+          String(ayar.KILIT_ACIYA_GORE));
+}
+
+console.log("");
+console.log("=== 2d. ALAN SIMSEGI: RAKIBI VURUR, SENI VURMAZ ===");
+{
+  /* ---- BU MADDE BIR TEHLIKENIN KAYDI ----
+     Oyuncu hedef sayilir sayilmaz Alan Simsegi KENDI
+     dokturucusunu de vurmaya baslardi: getEntities yaricaptaki
+     her seyi verir ve dokturucu tam merkezdedir. Kimlik
+     denetimi olmadan bu yetenek bir intihar tusuydu.        */
+  const rakip = kurbanOyuncu(8.5, 88.98, 0.5);
+  rakip.id = "alan_rakip";
+  const s = calistir("alan_simsegi", [rakip]);
+  const dusenler = (s.D ? s.D.sayac.dogan : []).filter(
+    (d) => d.tip === "minecraft:lightning_bolt");
+  const rakibeDusen = dusenler.filter(
+    (d) => Math.hypot(d.x - rakip.location.x, d.z - rakip.location.z) < 1.0).length;
+  kontrol("Alan Simsegi RAKIBI vuruyor", !s.yok && rakibeDusen > 0,
+          "rakibe dusen=" + rakibeDusen);
+
+  /* Dokturucu listeye KONULUYOR: gercek getEntities onu zaten
+     dondururdu. Sahte dunyada elle koymazsak "vurmuyor"
+     sonucu kodun dogrulugundan degil, kurulumun eksikliginden
+     gelirdi -- anna.mjs dersi.                              */
+  const D2 = dunyaKur();
+  const ben = oyuncuKur(D2.boyut, { x: 1, y: 0, z: 0 }, { x: 0.5, y: 90.6, z: 0.5 });
+  ben.id = "saldiran"; ben.typeId = "minecraft:player";
+  ben.sendMessage = () => {}; ben.runCommand = () => true;
+  const rakip2 = kurbanOyuncu(8.5, 88.98, 0.5);
+  rakip2.id = "alan_rakip2";
+  /* Dokturucunun KENDISI de yaricapta -- gercek oyundaki hal. */
+  D2.boyut._varliklar = [rakip2, { id: "saldiran", typeId: "minecraft:player",
+                                   isValid: true, location: { x: 0.5, y: 88.98, z: 0.5 } }];
+  _durum.oyuncular = [ben];
+  const tanim = kayit.yetenekAl("alan_simsegi");
+  sus();
+  const is = tanim.olustur(ben);
+  for (let i = 0; i < 200 && is; i++) { try { if (is.calis()) break; } catch (e) { /* */ } tickIlerlet(1); }
+  if (is && is.bitir) { try { is.bitir(); } catch (e) { /* */ } }
+  ac();
+  const kendine = D2.sayac.dogan.filter(
+    (d) => d.tip === "minecraft:lightning_bolt" &&
+           Math.hypot(d.x - 0.5, d.z - 0.5) < 1.0).length;
+  kontrol("Alan Simsegi DOKTURUCUYU vurmuyor", kendine === 0,
+          "kendine dusen=" + kendine);
+  const otekine = D2.sayac.dogan.filter(
+    (d) => d.tip === "minecraft:lightning_bolt" &&
+           Math.hypot(d.x - 8.5, d.z - 0.5) < 1.0).length;
+  kontrol("  ama rakibe yine dusuyor (yetenek gercekten calisti)",
+          otekine > 0, "rakibe dusen=" + otekine);
 }
 
 console.log("");

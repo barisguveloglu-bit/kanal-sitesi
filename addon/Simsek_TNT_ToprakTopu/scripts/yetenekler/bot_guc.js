@@ -8,7 +8,7 @@ import {
 } from "../yardimcilar.js";
 import {
   BOT_GUC_ACIK, BOT_TOP_TAVAN, BOT_SIMSEK_TAVAN, BOT_SIMSEK_SAYISI,
-  BOT_GUC_MENZIL, BOT_SIMSEK_OYUNCU,
+  BOT_GUC_MENZIL, BOT_SIMSEK_OYUNCU, SIMSEK_OYUNCU_HEDEF,
   KILIT_ACIK, KILIT_MENZIL, KILIT_ACI, SIMSEK_ARALIK, SIMSEK_GRUP,
   TOP_YARICAP
 } from "../ayarlar.js";
@@ -45,7 +45,13 @@ import {
 function nisanAl(oyuncu) {
   if (KILIT_ACIK) {
     try {
-      const kilit = kilitliHedef(oyuncu, { menzil: KILIT_MENZIL, aci: KILIT_ACI });
+      /* v7.39: bot da oyuncuya kilitlenebiliyor. yon_simsegi
+         ile ayni mantik -- bot senin nisanindan faydalaniyor,
+         yani duelloda bot da rakibi goruyor.                */
+      const kilit = kilitliHedef(oyuncu, {
+        menzil: KILIT_MENZIL, aci: KILIT_ACI,
+        oyuncuDahil: SIMSEK_OYUNCU_HEDEF
+      });
       if (kilit) {
         const k = varlikKonumu(kilit);
         if (k) return { nokta: k, kilit };

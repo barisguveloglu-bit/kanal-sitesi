@@ -205,6 +205,25 @@ if __name__ == "__main__":
                  if eklenen else "-"))
         onceki = k
     print()
+    print("=== KAYNAGA GORE  (T = Toolbox ailesi, W = WClient) ===")
+    for etiket, kosul in (
+        ("Toolbox ailesi (MH_TEAM_V5 · WDBAX · BloodyClient)",
+         lambda o: "T" in o[2]),
+        ("WClient (vekil)", lambda o: "W" in o[2]),
+    ):
+        alt = [o for o in OZELLIKLER if kosul(o)]
+        a_kapali = sum(1 for o in alt if o[3] == KAPALI)
+        a_acik = sum(1 for o in alt if o[3] == ACIK)
+        a_imk = sum(1 for o in alt if o[3] == IMKANSIZ)
+        a_ayirt = sum(1 for o in alt if o[3] == AYIRT)
+        a_op = sum(1 for o in alt if o[3] == OP)
+        a_eng = a_kapali + a_acik
+        print("  %s" % etiket)
+        print("    toplam %d · kapali %d · acik %d · ayirt %d · op %d · imkansiz %d"
+              % (len(alt), a_kapali, a_acik, a_ayirt, a_op, a_imk))
+        print("    ham %%%.0f   engellenebilir %%%.0f"
+              % (100.0 * a_kapali / len(alt), 100.0 * a_kapali / a_eng))
+    print()
     print("=== ACIK KALANLAR (olculebilir ama yazilmadi) ===")
     for o in OZELLIKLER:
         if o[3] == ACIK:

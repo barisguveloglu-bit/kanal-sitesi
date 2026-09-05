@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.38.0";
+export const SURUM = "v7.39.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -84,6 +84,72 @@ export const KILIT_MENZIL  = 32;
 export const KILIT_ACI     = 0.9;
 export const KILIT_SAYISI  = 6;
 export const KILIT_YAYILMA = 1;    // kilitliyken sacilma (normalde YAYILMA=7)
+
+/* ---------------- SIMSEK OYUNCUYU DA HEDEFLER (v7.39) -------
+   Kullanici: "evet oyuncuyu da otomatik olarak hedeflesin...
+   diger kollardaki simsekle alakali olan ozelliklerde de bu
+   sistem olsun."
+
+   ---- ONCEKI HAL BIR DUELLODA ISE YARAMIYORDU ----
+   Dort simsek yetenegi de oyuncuyu BILEREK disliyordu ve
+   sebepleri ayri ayri makuldu (kendini vurma, kendi botunu
+   vurma). Ama toplami sudur: PvP'de nisan yardimi HIC
+   calismiyordu. Rakibinin uzerine kilitlenmiyor, sadece
+   baktigin noktaya dusuyordu.
+
+     yon_simsegi   kilitliHedef'e oyuncuDahil GECMIYORDU
+     bot_guc       ayni
+     alan_simsegi  MUAF listesinde minecraft:player vardi
+     coklu_simsek  COKLU_OYUNCU = false
+
+   Dordu de acildi. TEK ANAHTAR, cunku dort ayri ayar dort ayri
+   sekilde unutulur.
+
+   ---- KENDINI VURMA TEHLIKESI ----
+   Oyuncu artik hedef sayildigi icin ALAN yetenekleri KENDI
+   dokturucusunu de vurabilirdi: getEntities yaricaptaki her
+   seyi verir, dokturucu de o yaricapta. Ikisinde de kimlik
+   denetimi var (coklu_simsek'te zaten vardi, alan_simsegi'ne
+   BU SURUMDE eklendi -- yoksa yetenek intihar tusuna donerdi).
+   coklu_simsek'in ayrica COKLU_EN_YAKIN payi var.
+
+   Dost/dusman ayrimi YOK: bu modda arkadas listesi diye bir
+   sey yok, yani alan yetenekleri yakindaki HERKESI vurur.
+   1v1 duelloda dogru davranis bu; kalabalikta dikkat.        */
+export const SIMSEK_OYUNCU_HEDEF = true;
+
+/* ---------------- NISAN: ACIYA GORE (v7.39) ----------------
+   Kilit eskiden koni icindeki EN YAKIN varligi seciyordu.
+   Duelloda yanlis sonuc veriyor: rakibe nisan almisken araya
+   giren bir tavuk daha yakin oldugu icin kilidi kapiyor.
+
+   Dogru olcu mesafe degil ACI: nisangaha en yakin olan, yani
+   ekranda artinin uzerindeki. Esit acida yakin olan kazaniyor
+   (siralama once kosinus, sonra uzaklik -- tek gecisli ve
+   gecisli bir karsilastirma).                                */
+export const KILIT_ACIYA_GORE = true;
+
+/* ---------------- DUVAR ARKASINI ATLA -- YAPILMADI ---------
+   Bir ara "duvar arkasindakine kilitlenmesin" diye soz
+   verilmisti. Yazilmadi ve sebebi burada duruyor ki bir
+   dahaki sefere ayni yola girilmesin.
+
+   UCUZ YOLU YANLIS: elimizdeki tek isin izi
+   getBlockFromViewDirection, yani BAKIS YONUNDE gidiyor.
+   Kilit konisi 25 derece genis; hedef koninin kenarindayken
+   isin ona degil, onunden gecip yere carpar. O zaman apacik
+   gorunen bir rakip "duvarin arkasinda" sayilir. Yani ucuz
+   yol duellonun ortasinda kilidi bosuna dusururdu.
+
+   DOGRU YOLU BELIRSIZ: hedefe DOGRU bir isin lazim
+   (dimension.getBlockFromRay gibi); surumden surume degisiyor
+   ve varligina guvenemiyoruz.
+
+   Ayrica simsek icin dogru olup olmadigi da tartismali:
+   yildirim gokyuzunden duser, aradaki duvar onu durdurmaz.
+
+   Ucu birden: yanlis olcum + belirsiz API + tartismali kural.
+   Yarim yamalak yazmak yerine yazilmadi.                    */
 
 /* ---------------- Alan simsegi ---------------- */
 export const ALAN_YARICAP = 25;   // etrafindaki kac blokluk moblar vurulsun
@@ -2208,6 +2274,17 @@ export const MUAF = [
   "minecraft:fishing_hook",
   "minecraft:falling_block"
 ];
+
+/* Alan Simsegi'nin muaf listesi. MUAF'tan TURETILIYOR:
+   SIMSEK_OYUNCU_HEDEF acikken oyuncu listeden dusuyor, yani
+   alan simsegi oyunculari da vuruyor.
+
+   MUAF'in kendisine dokunulmadi: adi "simsek carpmasindan muaf
+   varliklar" ve baska bir yerde adiyla aniliyor. Turetmek,
+   listeyi ikiye bolup birini guncellemeyi unutmaktan iyi.   */
+export const ALAN_MUAF = SIMSEK_OYUNCU_HEDEF
+  ? MUAF.filter((t) => t !== "minecraft:player")
+  : MUAF;
 
 export const TOP_HASAR_MUAF = [
   "minecraft:item",
@@ -5751,7 +5828,20 @@ export const BOT_TOP_TAVAN     = 3;    // ayni anda kac bot top atsin
 export const BOT_SIMSEK_TAVAN  = 5;    // ayni anda kac bot simsek yagdirsin
 export const BOT_SIMSEK_SAYISI = 4;    // bot basina kac yildirim
 export const BOT_GUC_MENZIL    = 60;   // botun nisan alabilecegi en uzak nokta
-export const BOT_SIMSEK_OYUNCU = false; // bot yildirimi oyunculara da vursun mu
+/* v7.39: SIMSEK_OYUNCU_HEDEF'e baglandi (eskiden sabit false).
+
+   ---- ONCEKI GEREKCE VE NEDEN DEGISTI ----
+   Eskiden "yildirim yangin cikariyor ve alan etkisi var; botun
+   KENDI KARARIYLA arkadasina yildirim indirmesi istenmez"
+   deniyordu. Gerekce hala dogru ama dayanagi yanlisti: bot
+   kendi karar VERMIYOR -- nisanAl() senin kilidini okuyor,
+   yani bot senin nisan aldigin seye vuruyor.
+
+   Kullanici butun simsek yeteneklerinin oyuncuyu hedeflemesini
+   istedi. Botunki de senin nisanini takip ettigi icin ayni
+   anahtara baglandi; ayri kalsaydi "botum niye vurmuyor"
+   diye bir soru daha uretirdi.                              */
+export const BOT_SIMSEK_OYUNCU = SIMSEK_OYUNCU_HEDEF;
 export const BOT_OLAY_SAVAS_AC    = "pa:savas_ac";
 export const BOT_OLAY_SAVAS_KAPAT = "pa:savas_kapat";
 
@@ -5974,7 +6064,9 @@ export const COKLU_MENZIL    = 15;
 export const COKLU_EN_YAKIN  = 4;    // bundan yakindakini VURMAZ
 export const COKLU_HEDEF     = 3;    // en fazla kac hedef
 export const COKLU_ARALIK    = 3;    // yildirimlar arasi tick
-export const COKLU_OYUNCU    = false;
+/* v7.39: tek anahtara baglandi. Eskiden false idi ve Coklu
+   Simsek duelloda rakibi hic gormuyordu.                    */
+export const COKLU_OYUNCU    = SIMSEK_OYUNCU_HEDEF;
 export const COKLU_MUAF = [
   "minecraft:item",
   "minecraft:xp_orb",

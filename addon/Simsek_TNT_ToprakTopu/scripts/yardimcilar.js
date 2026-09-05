@@ -1,7 +1,7 @@
 import { world, system } from "@minecraft/server";
 import {
   HATA_SOHBETE, HATA_SOHBET_ARALIK, ANIM_KALDIR, ANIM_INDIR, YUKSEKLIK_TABLO,
-  PARCACIK_ACIK, SARSINTI_ACIK, KILIT_ATLA_TIPLER
+  PARCACIK_ACIK, SARSINTI_ACIK, KILIT_ATLA_TIPLER, KILIT_ACIYA_GORE
 } from "./ayarlar.js";
 
 /* ============================================================
@@ -444,16 +444,34 @@ export function koniHedefleri(oyuncu, secenek) {
       const dx = k.x - merkez.x, dy = k.y - merkez.y, dz = k.z - merkez.z;
       const uzaklik = Math.sqrt(dx * dx + dy * dy + dz * dz);
       if (uzaklik < 0.001) continue;
-      if ((dx * yon.x + dy * yon.y + dz * yon.z) / uzaklik < secenek.aci) continue;
+      const kosinus = (dx * yon.x + dy * yon.y + dz * yon.z) / uzaklik;
+      if (kosinus < secenek.aci) continue;
 
-      bulunan.push({ varlik, uzaklik });
+      bulunan.push({ varlik, uzaklik, kosinus });
     } catch (e) {
       hataYaz("koniHedefleri.tarama", e);
     }
   }
 
-  // Tavan asilirsa EN YAKINLAR kalsin -- rastgele degil
-  bulunan.sort((a, b) => a.uzaklik - b.uzaklik);
+  /* ---- SIRALAMA: MESAFE MI, ACI MI (v7.39) ----
+     Varsayilan mesafe -- alan yetenekleri "yakindan uzaga"
+     istiyor ve tavan asilirsa en yakinlar kalmali.
+
+     `aciyaGore` isteyen NISAN ALIYOR demektir: dogru olcu
+     mesafe degil, nisangaha olan ACI. Duelloda fark ediyor --
+     rakibe nisan almisken araya giren tavuk daha yakin oldugu
+     icin kilidi kapiyordu.
+
+     Karsilastirma once kosinus (buyuk = kucuk aci), esitlikte
+     uzaklik. Iki anahtarli tek gecis, yani gecisli ve kararli;
+     "aci farki 0.02'den kucukse mesafeye bak" gibi bir esik
+     GECISLI OLMAZDI (a~b, b~c ama a≁c).                     */
+  if (secenek.aciyaGore) {
+    bulunan.sort((a, b) => (b.kosinus - a.kosinus) || (a.uzaklik - b.uzaklik));
+  } else {
+    // Tavan asilirsa EN YAKINLAR kalsin -- rastgele degil
+    bulunan.sort((a, b) => a.uzaklik - b.uzaklik);
+  }
   const tavan = secenek.tavan || bulunan.length;
   return bulunan.slice(0, tavan).map((x) => x.varlik);
 }
@@ -474,7 +492,14 @@ export function kilitliHedef(oyuncu, secenek) {
     menzil: secenek.menzil,
     aci: secenek.aci,
     tavan: 1,
-    oyuncuDahil: secenek.oyuncuDahil === true
+    oyuncuDahil: secenek.oyuncuDahil === true,
+    botDahil: secenek.botDahil === true,
+    /* Kilit = NISAN. Cagiran aksini soylemedikce aciya gore
+       seciliyor: ekranda artinin uzerindeki hedef. Ayardan
+       kapatilabiliyor cunku bu bir davranis degisikligi ve
+       kapatilamayan degisiklik geri alinamaz.               */
+    aciyaGore: secenek.aciyaGore !== undefined
+      ? secenek.aciyaGore : KILIT_ACIYA_GORE
   });
   return liste.length > 0 ? liste[0] : undefined;
 }

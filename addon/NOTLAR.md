@@ -1,3 +1,152 @@
+# v7.39.0 — Şimşek artık oyuncuyu da hedefliyor
+
+Kullanıcı bir düelloya çıkıyor ve iki şey istedi:
+*"MH_TEAM_V5.apk dosyasını PvP durumumu incele"* ve
+*"evet oyuncuyu da otomatik olarak hedeflesin… diğer
+kollardaki şimşekle alakalı olan özelliklerde de bu sistem
+olsun."*
+
+(Aynı turda bir jest isteği de vardı — eğilme + el hareketiyle
+yıldırım. Kullanıcı ondan **vazgeçti**, yapılmadı.)
+
+## Bulunan hata: PvP'de nişan yardımı hiç çalışmıyordu
+
+Dört şimşek yeteneğinin **dördü de** oyuncuyu hedeften
+çıkarıyordu ve her birinin gerekçesi ayrı ayrı makuldü:
+
+| yetenek | neden atlıyordu |
+|---|---|
+| `yon_simsegi` | `kilitliHedef`'e `oyuncuDahil` **hiç geçilmiyordu** |
+| `bot_guc` | aynı |
+| `alan_simsegi` | `MUAF` listesinde `minecraft:player` vardı |
+| `coklu_simsek` | `COKLU_OYUNCU = false` |
+
+Tek tek bakıldığında dördü de doğru. Toplamı ise şu:
+**düelloda kilit rakibe hiç takılmıyordu**, yıldırım sadece
+baktığın noktaya düşüyordu.
+
+Bu, "her biri ayrı ayrı savunulabilir dört karar, birlikte
+yanlış bir sonuç" sınıfından bir hata — ve tam olarak bu yüzden
+dördü de **tek anahtara** bağlandı (`SIMSEK_OYUNCU_HEDEF`).
+Dört ayrı ayar, dört ayrı şekilde unutulur.
+
+### Neden test yakalamamıştı
+
+`pvp.mjs`'te bir madde vardı ve **geçiyordu**:
+
+> `COKLU_OYUNCU KAPALI (varsayilan)`
+
+Yani test o kararı *bilerek tutuyordu*. Karar değişince madde
+silinmedi, **yönü çevrildi** — çünkü sessizce KAPANMASI da en az
+açılması kadar önemli: kapandığı an düelloda kimse fark etmez.
+
+## Nişan artık açıya göre
+
+Kilit eskiden koni içindeki **en yakın** varlığı seçiyordu.
+Düelloda yanlış sonuç veriyor: rakibe nişan almışken araya giren
+tavuk daha yakın olduğu için kilidi kapıyor.
+
+Doğru ölçü mesafe değil **açı** — nişangâha en yakın olan, yani
+ekranda artının üzerindeki. Sıralama önce kosinüs, eşitlikte
+uzaklık: iki anahtarlı tek geçiş, yani geçişli ve kararlı.
+("Açı farkı 0.02'den küçükse mesafeye bak" gibi bir eşik
+**geçişli olmazdı**: a~b, b~c ama a≁c.)
+
+Alan yetenekleri eski sıralamada kalıyor — onlar nişan almıyor,
+"yakından uzağa" istiyor.
+
+## Tehlike: yetenek intihar tuşuna dönüyordu
+
+Oyuncu hedef sayılır sayılmaz **Alan Şimşeği kendi döktürücüsünü
+de vurmaya başlıyordu.** `getEntities` yarıçaptaki her şeyi verir
+ve döktürücü tam merkezdedir. Kimlik denetimi eklendi; o satır
+olmadan yetenek bir intihar tuşuydu.
+
+`coklu_simsek`'te denetim zaten vardı, ayrıca `COKLU_EN_YAKIN`
+payı duruyor (4 bloktan yakındakini vurmaz).
+
+Dost/düşman ayrımı **yok** — bu modda arkadaş listesi diye bir
+şey yok. 1v1 düelloda doğru davranış bu; kalabalıkta yakınındaki
+herkesi vurur.
+
+## Botun yıldırımı da açıldı — eski gerekçe neden düştü
+
+`BOT_SIMSEK_OYUNCU` sabit `false` idi ve gerekçesi şuydu:
+*"botun **kendi kararıyla** arkadaşına yıldırım indirmesi
+istenmez."*
+
+Gerekçe hâlâ doğru ama **dayanağı yanlıştı**: bot kendi karar
+vermiyor, `nisanAl()` senin kilidini okuyor. Yani bot senin
+nişan aldığın şeye vuruyor. Aynı anahtara bağlandı.
+
+## Söz verilip YAPILMAYAN: duvar arkasını atla
+
+Bir ara "duvar arkasındakine kilitlenmesin" denmişti. Yazılmadı
+ve sebebi `ayarlar.js`'te duruyor:
+
+- **Ucuz yolu yanlış.** Elimizdeki tek ışın izi
+  `getBlockFromViewDirection`, yani **bakış yönünde** gidiyor.
+  Kilit konisi 25° geniş; hedef koninin kenarındayken ışın ona
+  değil, önünden geçip yere çarpar. O zaman apaçık görünen bir
+  rakip "duvarın arkasında" sayılır — düellonun ortasında kilidi
+  boşuna düşürürdü.
+- **Doğru yolu belirsiz.** Hedefe *doğru* bir ışın lazım
+  (`getBlockFromRay` gibi); sürümden sürüme değişiyor.
+- **Kuralın kendisi tartışmalı.** Yıldırım gökyüzünden düşer,
+  aradaki duvar onu durdurmaz.
+
+Üçü birden: yanlış ölçüm + belirsiz API + tartışmalı kural.
+Yarım yamalak yazmak yerine yazılmadı ve ayar da **eklenmedi** —
+kullanılmayan bir ayar `tarama.mjs`'in "öksüz ayar" maddesinden
+zaten düşüyor (düştü de, bu sürümde bir kez).
+
+## MH_TEAM_V5 · PvP durum raporu
+
+Tam metin `REFERANS_TOOLBOX_APK.md`'nin sonunda. Özeti:
+
+**En önemli şey kodda değil.** MH_TEAM_V5'in Toolbox çekirdekleri
+`1.19.50` – `1.19.73` için derlenmiş; bizim eklenti
+`min_engine_version 1.21.0`. Toolbox bir enjektör: eşleşen
+çekirdek yoksa oyuna hiç bağlanamaz. **Rakip 1.21'de oynuyorsa o
+dosyanın 65 özelliğinin 65'i de ölü.**
+
+Çalıştığını varsayarsak, Toolbox ailesinin 55 özelliğine karşı:
+
+    kapali 24 · acik 6 · ayirt 6 · op 5 · imkansiz 14
+    ham %44 · engellenebilir %80
+
+WClient'e karşı %75; yani MH_TEAM_V5'e karşı daha iyi
+durumdayız — o bir vekil ve oyun sürümüne bağlı değil.
+
+`savunma_olc.py` artık kaynağa göre de ayırıyor (Toolbox ailesi /
+WClient).
+
+## Test
+
+`pvp.mjs`'e dört bölüm eklendi: kilit rakibe takılıyor mu (hem
+yardımcı hem **yeteneğin o seçeneği geçtiği**), açıya göre seçim,
+Alan Şimşeği rakibi vurup döktürücüyü vurmuyor mu.
+
+Altı mutasyon, altısı da yakalandı: tek anahtarı kapatmak ·
+`yildirim.js`'ten `oyuncuDahil`'i silmek · açı sıralamasını
+mesafeye çevirmek · döktürücü denetimini silmek ·
+`koniHedefleri`'nin açı dalını silmek · `ALAN_MUAF`'ı `MUAF`'a
+eşitlemek.
+
+**Bir test kurulumu da yanlıştı ve dosyanın kendi uyardığı
+hataydı.** Açı testinde iki hedefi de göz hizasına (y 90,6)
+koymuştum; `koniHedefleri` merkezi **ayak** konumundan alıyor,
+yani 1,62'lik bir dy giriyor ve tavuğun kosinüsü 0,937'den
+0,873'e düşüp koninin dışına çıkıyor. Madde koddan değil
+kurulumdan düşmüştü. (anna.mjs dersi, bir kez daha.)
+
+## Bekleyen
+
+- Hiçbiri **oyunda denenmedi**.
+- Kalabalık bir dünyada Alan Şimşeği artık yakınındaki her
+  oyuncuyu vurur. Dost/düşman ayrımı yok ve eklenmedi.
+
+
 # v7.38.0 — İki APK daha: biri kopya, biri başka bir tür
 
 Kullanıcı iki dosya gönderdi ve amacını açıkça yazdı:

@@ -5,7 +5,7 @@ import {
 } from "../yardimcilar.js";
 import {
   SIMSEK_ESYA, MENZIL, SIMSEK_SAYISI, SIMSEK_GRUP, SIMSEK_ARALIK,
-  KILIT_ACIK, KILIT_MENZIL, KILIT_ACI, KILIT_SAYISI
+  KILIT_ACIK, KILIT_MENZIL, KILIT_ACI, KILIT_SAYISI, SIMSEK_OYUNCU_HEDEF
 } from "../ayarlar.js";
 
 /* YON SIMSEGI -- baktigin yere simsek yagmuru.
@@ -35,7 +35,15 @@ yetenekKaydet({
   olustur(oyuncu) {
     let kilit;
     if (KILIT_ACIK) {
-      kilit = kilitliHedef(oyuncu, { menzil: KILIT_MENZIL, aci: KILIT_ACI });
+      /* v7.39: OYUNCU DA HEDEF. Eskiden bu secenek hic
+         gecilmiyordu ve koniHedefleri oyunculari varsayilan
+         olarak atliyor -- yani duelloda kilit rakibe HIC
+         takilmiyordu, sadece moblara takiliyordu. Yetenegin
+         PvP'de nisan yardimi yoktu.                         */
+      kilit = kilitliHedef(oyuncu, {
+        menzil: KILIT_MENZIL, aci: KILIT_ACI,
+        oyuncuDahil: SIMSEK_OYUNCU_HEDEF
+      });
     }
 
     /* Kilit varsa merkez hedefin konumu, yoksa baktigin nokta.

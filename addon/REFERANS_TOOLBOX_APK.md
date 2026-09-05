@@ -263,3 +263,142 @@ yapabilecekleri, sunucunun kabul ettikleriyle sınırlı:
 
 Yani en güçlü savunma kodda değil: **operatör yetkisi verme, PvP
 dünyasında hileleri kapat.**
+
+
+---
+
+# MH_TEAM_V5 · PvP DURUM RAPORU (v7.39)
+
+Kullanıcı bir düelloya çıkıyor ve rakibin bu dosyayı kullandığını
+biliyor: *"bakalım PvP'de ne kadar yetenekliyiz."*
+
+Rakamlar `savunma_olc.py`'den, o da bu dosyadaki ve
+`REFERANS_SAVUNMA_PLANI.md`'deki ölçülmüş özellik listelerinden.
+
+## Önce en önemli şey: bu paket senin dünyana giremez
+
+MH_TEAM_V5'in içindeki Toolbox çekirdekleri **beş sürüm** için
+derlenmiş:
+
+    1.19.50.02 · 1.19.51.01 · 1.19.63.01 · 1.19.71.02 · 1.19.73.02
+
+Bizim eklentinin `min_engine_version` değeri **1.21.0**. Yani
+dünyanın 1.21+ üzerinde çalışıyor.
+
+Toolbox bir **enjektör**: oyunun belleğine kendi `.so`'sunu
+bağlıyor ve o `.so` oyunun tam sürümüne göre derleniyor. Eşleşen
+çekirdek yoksa **hiçbir şey yapamaz** — hile menüsü açılır ama
+oyuna bağlanamaz.
+
+> **Rakip 1.21'de oynuyorsa MH_TEAM_V5'in 65 özelliğinin 65'i de
+> ölüdür.** Aşağıdaki tablonun tamamı, o dosyanın çalıştığı bir
+> sürüme *inmesi* hâlinde geçerli.
+
+Bu, kodda yazdığımız hiçbir savunmadan daha güçlü. Düellodan önce
+tek soru: **hangi sürümde oynuyoruz?**
+
+## Çalıştığını varsayarsak — sayılar
+
+Toolbox ailesinin (MH_TEAM_V5 · WDBAX · BloodyClient — üçü aynı)
+bu ölçümde **55 özelliği** var:
+
+| durum | sayı |
+|---|---|
+| **kapalı** (bizim kod görüyor) | **24** |
+| açık (ölçülebilir, yazılmadı) | 6 |
+| ayırt edilemez | 6 |
+| operatör kapısı | 5 |
+| **imkânsız** (ekran tarafı) | 14 |
+
+- **Ham kapsam: %44**
+- **Engellenebilirin kapsamı: %80** ← anlamlı olan
+
+WClient'e karşı %75; yani MH_TEAM_V5'e karşı **daha iyi**
+durumdayız. Sebebi basit: WClient bir vekil, oyun sürümüne
+bağlı değil ve daha yeni modülleri var.
+
+## Düelloda ne olur — aile aile
+
+### Sana zarar veremeyecekleri (kapalı)
+
+| onun özelliği | senin karşılığın |
+|---|---|
+| killaura · reach · hitbox_expand | **Gözcü** — menzil + bakış açısı + CPS |
+| anti_knockback | **Geri itme denetimi** |
+| fly · speed · high_jump · air_jump · tap_teleport | **Hareket denetimi** |
+| no_clip · phase | **Katı blok içinde** *(Savunma Kipi açıkken)* |
+| fast_destroy · rapid_build · bridge_builder · nuke · haste | **Blok hızı denetimi** |
+| bloklarla hapsetme | **Kafes Kır** |
+| komutla kilit · ekran · ses · sis | **Arınma + Savunma Kipi** |
+| envanteri `/clear` ile silme | **Envanter Yedeği** |
+
+Hepsi **bildirim** üretiyor, otomatik ceza yok — bu bilinçli:
+yanlış alarmın bedeli kaçan hileden büyük.
+
+### Hâlâ açık olanlar (6) — ölçülebilir ama yazılmadı
+
+`no_fall` · `jesus` · `slow_falling` · `blink` ·
+`far_bypass` · `pick_distance`
+
+Düellodaki karşılığı: rakip yüksekten atlayıp hasar almayabilir,
+su üstünde yürüyebilir, blok koyma mesafesini uzatabilir. Hiçbiri
+doğrudan sana vurmuyor.
+
+### Ayırt edilemeyenler (6)
+
+`auto_armor` · `auto_bow` · `switcher` · `auto_sprint` ·
+`no_slowdown` · `chest_stealer`
+
+Envanter otomasyonu. Sunucuya geliyor ama hızlı oynayan bir
+insandan ayrılamıyor. Bunlara "tespit" demek yalan olurdu.
+
+### Operatör kapısı (5)
+
+`give_item` · `enchant` · `nbt_editor` · `spawn_exp` ·
+`/kill`-`/damage`-`/summon`
+
+**Kod değil, karar.** Operatör yetkisi verme; verirsen buradaki
+hiçbir satırın anlamı kalmaz.
+
+### İmkânsız (14) — dürüstçe
+
+`xray` · `chest_esp` · `player_esp` · `tracers` · `minimap` ·
+`freecam` · `fullbright` · `zoom` · `hp_bars` · `armor_hud` ·
+`outline_renderer` · `name_override` · `force_achievements` ·
+`xray_block_tracker`
+
+Rakip **duvarın arkasından** seni, sandığını ve canını görüyor.
+Sunucuya hiçbir şey göndermiyor; bir davranış paketi bunu ne
+görebilir ne engelleyebilir. Buraya bir "xray denetimi" eklemek
+sahte güven üretmek olurdu.
+
+**Tek gerçek karşılığı kod değil, düzen:**
+
+- **Açık arazide dövüş.** Xray'in ve ESP'nin değeri saklanan
+  bilgidir; saklanacak bilgi yoksa değeri de yok.
+- **Tuzak ve gizli sandık kurma.** Görüyor.
+- **Canını saymasına göre oynama** — HP barları onda var.
+
+## Düello öncesi kontrol listesi
+
+1. **Sürümü sor.** 1.21+ ise bu dosya zaten ölü.
+2. **Operatör yetkisi verme.** Beş özellik tek başına burada
+   kapanıyor.
+3. **Savunma Kipi'ni aç.** İki denetim (katı blok, oyun kipi geri
+   alma) yalnız o açıkken çalışıyor.
+4. **Açık arazi seç.** Göremediğimiz 14 özelliğin karşılığı bu.
+5. Gözcü bildirimlerini izle — hüküm senin.
+
+## v7.39'da düello için değişen şey
+
+Yıldırım yetenekleri artık **oyunculara da kilitleniyor.** Önceki
+hâlde dördü de oyuncuyu bilerek atlıyordu:
+
+    yon_simsegi   kilitliHedef'e oyuncuDahil geçmiyordu
+    bot_guc       aynı
+    alan_simsegi  MUAF listesinde minecraft:player vardı
+    coklu_simsek  COKLU_OYUNCU = false
+
+Yani **PvP'de nişan yardımı hiç çalışmıyordu.** Ayrıca kilit artık
+"en yakın varlık" yerine "nişangâha en yakın açı" ile seçiliyor —
+araya giren tavuk kilidi kapmıyor.
