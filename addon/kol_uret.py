@@ -102,7 +102,7 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # tureniyor -- ayrisabilecekleri bir yer kalmadi.
 #
 # YENI SURUM CIKARIRKEN: yalnizca asagidaki satiri degistir.
-SURUM_NO = (7, 36, 0)
+SURUM_NO = (7, 37, 0)
 
 SURUM_METIN = "%d.%d.%d" % SURUM_NO
 SURUM_ETIKET = "v" + SURUM_METIN
@@ -7775,30 +7775,51 @@ def _kupa_parca(kutu_adi, kok, dondur=None, olcek=1.0):
     return kupler
 
 
-def _kupa_odun(kok, olcu, ad="odun", tam_uv=False):
-    """Kazik/carmih kirisi. Skinden DEGIL, kendi dokusundan:
-    material_instance adi geometride yaziyor.
+# Bir kupun alti yuzu. Yuz yuz UV bunlarin hepsini istiyor:
+# yazilmayan yuz HIC CIZILMIYOR (sema: "Omitting a face will
+# cause that face to not get drawn").
+KUPA_YUZLER = ("north", "south", "east", "west", "up", "down")
 
-    ---- tam_uv NEDEN VAR: OLCULDU ----
+
+def _kupa_odun(kok, olcu, ad="odun"):
+    """Kazik, carmih kirisi, daragaci ipi, zincir. Skinden
+    DEGIL, kendi dokusundan.
+
+    ---- MALZEME ADI KUPTE DEGIL YUZDE (v7.37, KULLANICI) ----
+    Burasi malzeme adini KUPUN KENDISINE yaziyordu:
+        {"origin": ..., "size": ..., "material_instance": "odun"}
+    Boyle bir alan geometri semasinda YOK. geometry:1.16.0
+    semasinda material_instance yalnizca YUZ nesnesinin
+    icinde tanimli bir alan:
+        "uv": {"north": {"uv": [..], "uv_size": [..],
+                         "material_instance": "odun"}, ...}
+    Oyun kup duzeyindeki alani sessizce atiyor, o kupler de
+    blogun "*" malzemesine dusuyordu -- yani KUPANIN SKINI.
+
+    Kullanici tablette tam bunu gordu ve ekran goruntusuyle
+    gonderdi: Wyne'i tutan ip ve daragaci Wyne'in skini,
+    Earl'un kazigi Earl'un skini, Entity303'un haci
+    Entity303'un skini. Uc kupada da ayni tek sebep.
+
+    Test bunu KACIRDI cunku o da ayni yanlis yerden okuyordu
+    (kupteki alan). Artik yuzden okuyor ve ayrica kup
+    duzeyinde material_instance BULUNMAMASINI da tutuyor.
+
+    ---- UV NEDEN HER ZAMAN TAM DOKU ----
     Kutu UV'de bir yuzun doku dikdortgeni KUPUN OLCUSUNDEN
-    tureniyor: on yuz (D, D, W, H). Zincir kupu 2x5.5x2, yani
-    on yuzu 2x5.5 piksellik bir serit -- 16x16 dokunun sadece
-    %4'u. Zincir deseni hic gorunmuyordu, duz gri bir cubuk
-    cikiyordu. Kullanici "zincir daha iyi yap" dedi; asil
-    sebep doku degil UV'ydi.
-
-    tam_uv=True her yuze dokunun TAMAMINI seriyor."""
-    kup = {
+    tureniyor. 3x29x3 bir direkte on yuz v ekseninde 3'ten
+    32'ye gidiyor -- 16x16 dokunun disina, doku atlasinda
+    KOMSU dokularin uzerine. Zincirde ayni sey ters yonde
+    yasandi: 2x5.5x2 kup dokunun %4'unu gosteriyordu ve
+    kullanici "zincir daha iyi yap" demisti. Ikisinin de tek
+    cozumu ayni: her yuze dokunun TAMAMINI ser. Eskiden bu
+    yalniz zincire ozel bir secenekti (tam_uv), artik kural."""
+    return {
         "origin": [kok[0], kok[1], kok[2]],
         "size": list(olcu),
-        "material_instance": ad,
+        "uv": {y: {"uv": [0, 0], "uv_size": [16, 16],
+                   "material_instance": ad} for y in KUPA_YUZLER},
     }
-    if tam_uv:
-        kup["uv"] = {y: {"uv": [0, 0], "uv_size": [16, 16]} for y in
-                     ("north", "south", "east", "west", "up", "down")}
-    else:
-        kup["uv"] = [0, 0]
-    return kup
 
 
 def kupa_kazik_geometrisi(kimlik):
@@ -7837,13 +7858,34 @@ def kupa_kazik_geometrisi(kimlik):
     }
 
 
-# Carmihtaki govdenin olcegi. 1.0 OLAMAZ, sebebi olculdu:
-#   tam boy oyuncu            32 birim
-#   + kafanin ustunde direk  + 3 birim
-#   = 35 > 30 (blok sinirı)
-# 0.8'de 25.6 + 3.4 = 29 birim, siniri gecmiyor. Kollar da
-# 1.0'da 36 birim aciliyordu, 0.8'de 22.4.
-KUPA_CARMIH_OLCEK = 0.8
+# ---- CARMIHTAKI GOVDENIN OLCEGI ----
+# Kullanici: "entity303 benden boy olarak kucuk, kollari da
+# asiri kucuk."  Dogru olcum, dogru sikayet.
+#
+# 1.0 OLAMAZ ve bu bir tercih degil, oyunun siniri: blok
+# modeli her eksende en fazla 30 birim (Bedrock belgesi,
+# "model size limits"). Tam boy oyuncu 32 birim. Yani bir
+# blok kupasi oyuncu boyuna MATEMATIKSEL OLARAK cikamaz;
+# ulasilabilecek en buyuk oran 30/32 = 0.9375 ve o da
+# kafanin ustunde hic direk birakmaz.
+#
+# Eski 0.8, siniri ISRAF EDIYORDU. Yeni hesap (yukaridan):
+#   govde        32 * 0.875 = 28.0
+#   + kafanin ustunde direk    1.5
+#   = 29.5  <= 30                            (yukseklik)
+#   kiris yarisi 15 * 0.875 = 13.125, + tasma 1.5 = 14.625
+#   = 29.25 <= 30                            (genislik)
+# Boy 25.6 -> 28.0 birim, yani 1.60 blok -> 1.75 blok.
+# Oyuncunun 2 blogunun %87.5'i; sinirin izin verdigi en yuksek
+# oran bu (0.875'in ustunde ya direk ya kiris tasmasi
+# tamamen kaybolur, ikisi de "carmih" okunmasini saglayan sey).
+#
+# 15*s: kol ELI govdenin merkezinden ne kadar uzakta duruyor.
+# Vanilla oyuncu modelinden: kol kupu x -8..-4, omuz ekseni
+# -5, kol 12 uzunlugunda; ±90 donunce el x = -15'e gidiyor.
+KUPA_CARMIH_OLCEK = 0.875
+KUPA_CARMIH_DIREK_PAY = 1.5     # kafanin ustunde gorunen direk
+KUPA_CARMIH_KIRIS_PAY = 1.5     # kirisin ellerin otesine tasmasi
 
 
 def kupa_carmih_geometrisi(kimlik):
@@ -7863,28 +7905,51 @@ def kupa_carmih_geometrisi(kimlik):
     Kollar YATAY: kol kupu omuzdan asagi iner (dy -12..0),
     Z ekseninde ±90 donunce el DISARI gidiyor.
 
-    Kirisin uclari ellerin 3 birim otesine tasiyor ve direk
-    kafanin 3 birim ustune cikiyor -- hac ancak boyle
-    okunuyor (render'la bakildi)."""
+    Kirisin uclari ellerin KUPA_CARMIH_KIRIS_PAY kadar
+    otesine tasiyor ve direk kafanin KUPA_CARMIH_DIREK_PAY
+    kadar ustune cikiyor -- hac ancak boyle okunuyor
+    (render'la bakildi).
+
+    ---- KOL OMUZDAN CIKMIYORDU: v7.37'DE OLCULDU ----
+    Kullanici "kollari da asiri kucuk" dedi. Olculdu, hakli:
+    omuz ekseni ORTA_X ± 2s'te duruyordu, oysa vanilla oyuncu
+    modelinde kol kupu x -8..-4 arasinda ve donus ekseni -5.
+    2s, GOVDENIN ICI (govde ±4s). Kol oradan donunce:
+      - kolun ic 2s'lik parcasi govdenin icinde kaliyor,
+      - el govde merkezinden 14s uzaga gidiyor (vanilla 15s).
+    Yani kol hem KISA hem de dibi gomulu goruniyordu; goz
+    sadece disarida kalan 10s'yi kol saniyordu.
+    Simdi vanilla ile birebir: kup merkezi ORTA_X ± 6s,
+    donus ekseni ORTA_X ± 5s, ust hizasi GOVDE_UST.
+    Donusten SONRA kol x = pivot ∓ 12s .. pivot ± 1s, yani
+    el 15s'te ve kolun ic ucu govdenin kenarina 1s giriyor --
+    kopuk da degil gomulu de degil."""
     s = KUPA_CARMIH_OLCEK
     ORTA_X, ORTA_Z = 8.0, 8.0
     # Dikey yerlesim: bacak 12s, govde 12s, kafa 8s.
     BACAK_UST = 12 * s
     GOVDE_UST = BACAK_UST + 12 * s
     KAFA_UST = GOVDE_UST + 8 * s
-    OMUZ_Y = GOVDE_UST - 1.5 * s          # kol donus ekseni
-    DIREK_UST = KAFA_UST + 3.0            # kafanin ustunde gorunen pay
+    # Omuz ekseni: vanilla'da govde tepesinin 2 birim altinda.
+    OMUZ_Y = GOVDE_UST - 2 * s
+    OMUZ_X = 6 * s                        # kol kupunun merkezi
+    OMUZ_EKSEN_X = 5 * s                  # donus ekseni (vanilla)
+    DIREK_UST = KAFA_UST + KUPA_CARMIH_DIREK_PAY
     # Hac govdenin ARKASINDA: govde z ORTA_Z±2s, hac ondan geride.
     HAC_Z = ORTA_Z + 2 * s
     HAC_DERIN = 3 * s
-    KIRIS_YARI = 14 * s + 3.0             # el ucu + 3 birim tasma
+    # El govde merkezinden 15s uzakta (yukaridaki hesap).
+    KIRIS_YARI = 15 * s + KUPA_CARMIH_KIRIS_PAY
     # Kiris kollarin TAM ALTINDA duruyor, arkasinda degil.
     # Render'la olculdu: arkasindayken kollar onu tamamen
     # ortuyordu, geriye 0.4 birimlik bir cizgi kaliyordu ve
     # hac okunmuyordu. Altina alininca butun genisligi
     # gorunuyor ve kollar kirisin uzerine yatiyor.
+    #
+    # Donmus kolun ALT kenari: pivot - 1s (kup pivotun 1s
+    # solunda bitiyor, donunce o 1s asagi geciyor).
     KIRIS_BOY = 3 * s
-    KIRIS_ALT = OMUZ_Y - 2 * s - KIRIS_BOY
+    KIRIS_ALT = OMUZ_Y - 1 * s - KIRIS_BOY
     return {
         "format_version": "1.16.0",
         "minecraft:geometry": [{
@@ -7915,16 +7980,16 @@ def kupa_carmih_geometrisi(kimlik):
                               olcek=s)
                 + _kupa_parca("govde", (ORTA_X, BACAK_UST, ORTA_Z),
                               olcek=s)
-                # Kollar: kup omuzdan ASAGI iniyor (kok_y =
-                # OMUZ_Y - 12s), pivot omuzda, Z'de ±90.
+                # Kollar: kup omuzdan ASAGI iniyor (ust hizasi
+                # GOVDE_UST), donus ekseni omuzda, Z'de ±90.
                 + _kupa_parca("sag_kol",
-                              (ORTA_X - 2 * s, OMUZ_Y - 12 * s, ORTA_Z),
-                              dondur=((ORTA_X - 2 * s, OMUZ_Y, ORTA_Z),
+                              (ORTA_X - OMUZ_X, GOVDE_UST - 12 * s, ORTA_Z),
+                              dondur=((ORTA_X - OMUZ_EKSEN_X, OMUZ_Y, ORTA_Z),
                                       (0, 0, -90)),
                               olcek=s)
                 + _kupa_parca("sol_kol",
-                              (ORTA_X + 2 * s, OMUZ_Y - 12 * s, ORTA_Z),
-                              dondur=((ORTA_X + 2 * s, OMUZ_Y, ORTA_Z),
+                              (ORTA_X + OMUZ_X, GOVDE_UST - 12 * s, ORTA_Z),
+                              dondur=((ORTA_X + OMUZ_EKSEN_X, OMUZ_Y, ORTA_Z),
                                       (0, 0, 90)),
                               olcek=s)
                 # Bacaklar bitisik, duz asagi.
@@ -8009,13 +8074,27 @@ def _kupa_govde(s, taban_y, orta_x=8.0, orta_z=8.0, dondur=None,
     return kup, govde_ust + 8 * s      # ikinci deger: kafanin tepesi
 
 
-# Daragacindaki govdenin olcegi. Yukaridan asagi hesap:
-#   direk tepesi         29.0  (sinir 30)
-#   daragaci kolu         3.0
-#   ip                    3.0
-#   ayaklar yerden        2.5   (sallaniyor, yere degmiyor)
-#   -> govdeye kalan     20.5 birim, tam boy 32 -> olcek 0.64
-KUPA_ASILI_OLCEK = 0.64
+# ---- DARAGACINDAKI GOVDENIN OLCEGI ----
+# Kullanici Wyne icin de boyu kucuk buldu (Entity303 ile ayni
+# sikayet). Daragaci carmihtan daha zor: govdenin ustunde
+# SADECE direk degil, bir de daragaci kolu ve ip var.
+#
+# Yukaridan asagi, sinir 30:
+#   direk tepesi         29.5   (eskiden 29.0)
+#   daragaci kolu         2.5   (eskiden 3.0)
+#   ip                    1.96  (eskiden 3.0 -- ip 2 birimde
+#                                de rahat okunuyor, kalinligi
+#                                zaten 2 birim)
+#   ayaklar yerden        2.0   (eskiden 2.5; hala degmiyor)
+#   -> govdeye kalan     23.04 birim (eskiden 20.5)
+#   tam boy 32 -> olcek 0.72 (eskiden 0.64)
+# Boy 1.28 blok -> 1.44 blok. Carmihin 1.75'ine cikamiyor,
+# cunku carmihta govdenin ustunde tek bir 1.5 birimlik pay
+# var, burada 4.5 birimlik daragaci var. Bu bicimin fiyati.
+KUPA_ASILI_OLCEK = 0.72
+KUPA_ASILI_DIREK_UST = 29.5     # sinir 30
+KUPA_ASILI_KOL_BOY = 2.5        # daragaci kolunun kalinligi
+KUPA_ASILI_TABAN = 2.0          # ayaklarin yerden yuksekligi
 
 
 def kupa_asili_geometrisi(kimlik):
@@ -8034,7 +8113,7 @@ def kupa_asili_geometrisi(kimlik):
     anliyor."""
     s = KUPA_ASILI_OLCEK
     ORTA_X, ORTA_Z = 8.0, 8.0
-    TABAN_Y = 2.5
+    TABAN_Y = KUPA_ASILI_TABAN
     # Once EGIK OLMAYAN hali kuruluyor: kafanin tepesi
     # boylece bulunuyor, egim de tam o noktadan -- ipin
     # baglandigi yerden -- donuyor.
@@ -8043,15 +8122,16 @@ def kupa_asili_geometrisi(kimlik):
     kupler = _kupa_govde(s, TABAN_Y, ORTA_X, ORTA_Z,
                          dondur=((ORTA_X, KAFA_UST, ORTA_Z),
                                  (0, 0, EGIM)))[0]
-    DIREK_UST = 29.0
-    KOL_ALT = DIREK_UST - 3.0             # daragaci kolunun alti
+    DIREK_UST = KUPA_ASILI_DIREK_UST
+    KOL_ALT = DIREK_UST - KUPA_ASILI_KOL_BOY   # daragaci kolunun alti
     DIREK_Z = 13.0                        # direk govdenin arkasinda
     hac = [
         # Dikey direk.
         _kupa_odun([ORTA_X - 1.5, 0, DIREK_Z], [3, DIREK_UST, 3]),
         # Daragaci kolu: tepeden govdenin uzerine uzaniyor.
         _kupa_odun([ORTA_X - 1.5, KOL_ALT, ORTA_Z - 0.5],
-                   [3, 3, DIREK_Z + 3 - (ORTA_Z - 0.5)]),
+                   [3, KUPA_ASILI_KOL_BOY,
+                    DIREK_Z + 3 - (ORTA_Z - 0.5)]),
         # Ip: kolun ucundan kafanin tepesine. Kalinligi 2
         # birim -- 1 birimde render'da neredeyse gorunmuyordu.
         _kupa_odun([ORTA_X - 1, KAFA_UST, ORTA_Z - 1],
@@ -8075,10 +8155,15 @@ def kupa_asili_geometrisi(kimlik):
 
 # Kaziga gecmis govdenin olcegi. Kazik kafanin ustunden
 # cikacagi icin tepede pay lazim:
-#   kazik tepesi 29.0, kafanin ustunde 2 birim gorunsun,
-#   govde yerden 4 birim yukarida (kaziga surunmus) ->
-#   32*olcek = 29 - 2 - 4 = 23 -> olcek 0.71
-KUPA_SIS_OLCEK = 0.71
+#   kazik tepesi 29.64 (sinir 30), kafanin ustunde 2 birim
+#   gorunsun, govde yerden 3 birim yukarida (kaziga surunmus)
+#   -> 32*olcek = 29.64 - 2 - 3 = 24.64 -> olcek 0.77
+# Eskiden 0.71 ve taban 4.0 idi; oteki bicimlerle birlikte
+# buyutuldu (v7.37). Ferguson'un skini hala bozuk, yani bu
+# bicim OYUNDA HIC GORULMEDI -- olcu hesapla dogru, gozle
+# degil. Temiz skin gelince ilk bakilacak sey bu.
+KUPA_SIS_OLCEK = 0.77
+KUPA_SIS_TABAN = 3.0
 
 
 def kupa_sis_geometrisi(kimlik):
@@ -8090,7 +8175,7 @@ def kupa_sis_geometrisi(kimlik):
     kaziga surunup kalmis, ayaklari bosta."""
     s = KUPA_SIS_OLCEK
     ORTA_X, ORTA_Z = 8.0, 8.0
-    TABAN_Y = 4.0
+    TABAN_Y = KUPA_SIS_TABAN
     kupler, KAFA_UST = _kupa_govde(s, TABAN_Y, ORTA_X, ORTA_Z)
     KAZIK_UST = KAFA_UST + 2.0
     kazik = [_kupa_odun([ORTA_X - 1, 0, ORTA_Z - 1],
@@ -8247,13 +8332,22 @@ def kupa_skin_denetle(kaynak, hedef, bicim):
     return silinen, bozuk
 
 
-# Zincirli govdenin olcegi. Yukaridan asagi hesap:
-#   ust kiris tepesi     29.0
-#   kiris                 3.0
-#   zincir              ~5.8   (elden kirise)
-#   ayaklar yerden        1.5   (sallaniyor)
-# 32*olcek = 19.2 -> olcek 0.6
-KUPA_ZINCIRLI_OLCEK = 0.6
+# ---- ZINCIRLI GOVDENIN OLCEGI ----
+# Bu bicimde govdenin ustunde asili duran bir sey YOK: kollar
+# yukari kalktigi icin ELLER kirise cok yakin. Yani zincirin
+# uzunlugu bosa giden pay degil, kollarin acisindan cikan bir
+# sonuc -- olcek buyudukce zincir kendiliginde kisaliyor.
+#
+# Yukaridan asagi, sinir 30:
+#   ust kiris tepesi     29.5   (eskiden 29.0)
+#   kiris                 2.5   (eskiden 3.0)
+#   zincir              ~4.1    (elden kirise; hesaplanan)
+#   ayaklar yerden        1.5
+# 32*olcek = 23.04 -> olcek 0.72 (eskiden 0.6)
+# Boy 1.2 blok -> 1.44 blok. Dream hakkinda ayrica bir sikayet
+# gelmedi, ama uc kupa buyuyup dorduncusu kucuk kalsaydi yan
+# yana dizildiklerinde bu sefer O goze batardi.
+KUPA_ZINCIRLI_OLCEK = 0.72
 
 # Kollarin omuzdan donus acisi. 140 derece: kol sarktigi
 # yerden yukari-disari kalkiyor, eller basin hizasinin
@@ -8291,8 +8385,8 @@ def kupa_zincirli_geometrisi(kimlik):
     EL_X_SAG = ORTA_X - 6 * s - el_dx
     EL_X_SOL = ORTA_X + 6 * s + el_dx
     EL_Y = omuz_y - el_dy
-    KIRIS_UST = 29.0
-    KIRIS_BOY = 3.0
+    KIRIS_UST = 29.5
+    KIRIS_BOY = 2.5
     KIRIS_ALT = KIRIS_UST - KIRIS_BOY
     # Kiris iki elin de disina tasiyor.
     KIRIS_SOL = min(EL_X_SAG, EL_X_SOL) - 2.0
@@ -8311,7 +8405,7 @@ def kupa_zincirli_geometrisi(kimlik):
     for ex in (EL_X_SAG, EL_X_SOL):
         demir.append(_kupa_odun([ex - 1, EL_Y - EL_ICI, ORTA_Z - 1],
                                 [2, KIRIS_ALT - EL_Y + EL_ICI, 2],
-                                ad="zincir", tam_uv=True))
+                                ad="zincir"))
     return {
         "format_version": "1.16.0",
         "minecraft:geometry": [{

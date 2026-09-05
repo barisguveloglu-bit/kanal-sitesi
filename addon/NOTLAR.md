@@ -1,3 +1,148 @@
+# v7.37.0 — Kupalar: onları tutan şey skindi, üçü de küçüktü
+
+Kullanıcı v7.36'yı tablette denedi ve ekran görüntüsüyle gönderdi:
+
+> *"Wyne'nin onu tutan şey onun skin ile aynı. Entity303 benden boy
+> olarak küçük, kolları da aşırı küçük. Earl'de de Wyne ile aynı
+> sorun var galiba."*
+
+Üç ayrı şikâyet, iki ayrı sebep. Üçü de doğru çıktı.
+
+## 1. ONU TUTAN ŞEY SKİNDİ — malzeme adı yanlış yerdeydi
+
+`_kupa_odun` malzeme adını **küpün kendisine** yazıyordu:
+
+```json
+{"origin": [...], "size": [...], "material_instance": "odun"}
+```
+
+**Geometri şemasında böyle bir alan yok.** Resmî `geometry:1.16.0`
+şemasında `material_instance` yalnızca *yüz* nesnesinin içinde
+tanımlı bir alan:
+
+```json
+"uv": {"north": {"uv": [0,0], "uv_size": [16,16],
+                 "material_instance": "odun"}, ...}
+```
+
+Oyun tanımadığı alanı sessizce atıyor ve o yüzler blokta `"*"` ile
+tanımlı malzemeye düşüyor. Kupalarda `"*"` **skinin kendisi**. Yani:
+
+| kupa | onu tutan şey | oyunda çizilen |
+|---|---|---|
+| Earl | kazık | Earl'ün skini |
+| Entity303 | haç | Entity303'ün skini |
+| Wyne | darağacı + ip | Wyne'in skini |
+| Dream | kiriş + zincir | Dream'in skini |
+
+Kullanıcının bahsettiği "Wyne ile aynı sorun" dördünde de aynı tek
+satırdı. Blok dosyaları baştan beri doğruydu (`odun`, `ip`, `zincir`
+üçü de tanımlı); hiçbir yüz onları istemiyordu.
+
+**UV de aynı düzeltmeyle onarıldı.** Kutu UV'de bir yüzün doku
+dikdörtgeni küpün ölçüsünden türüyor: 3×29×3 bir direkte ön yüz v
+ekseninde 3'ten 32'ye gidiyor — 16×16 dokunun dışına, doku atlasında
+**komşu dokuların üzerine**. Zincirde bunun tersi yaşanmıştı (2×5.5×2
+küp dokunun %4'ünü gösteriyordu, kullanıcı "zincir daha iyi yap"
+demişti) ve oraya `tam_uv` diye özel bir seçenek konmuştu. Artık
+kural: her odun/ip/zincir yüzü dokunun tamamını seriyor.
+
+## 2. BOY — sınır 30, biz 25.6 kullanıyorduk
+
+Blok modeli her eksende en fazla **30 birim** (Bedrock belgesi, model
+size limits). Tam boy oyuncu **32 birim**. Yani bir blok kupası oyuncu
+boyuna **matematiksel olarak çıkamaz** — bu bir tercih değil, tavan.
+
+Ama tavanı kullanmıyorduk. Yukarıdan aşağı yeniden hesaplandı:
+
+| kupa | biçim | eski ölçek | yeni ölçek | boy (blok) |
+|---|---|---|---|---|
+| Entity303 | çarmıh | 0.80 | **0.875** | 1.60 → **1.75** |
+| Wyne | darağacı | 0.64 | **0.72** | 1.28 → **1.44** |
+| Dream | zincirli | 0.60 | **0.72** | 1.20 → **1.44** |
+| Ferguson | şiş | 0.71 | **0.77** | 1.42 → **1.54** |
+| Earl | kazık | 1.0 | 1.0 | kafa, değişmedi |
+
+Çarmıh 0.875'in üstüne çıkamıyor: 32×0.875 = 28, üstüne haçın 1.5
+birimi = 29.5. Genişlik de sınırda (29.25). Darağacı daha düşük
+kalıyor çünkü gövdenin üstünde direk değil **darağacı kolu + ip**
+var — bu biçimin fiyatı, ve orada da pay 4.5 birime indirildi
+(direk tepesi 29.0 → 29.5, kol 3.0 → 2.5, ip 3.0 → 2.0).
+
+Dream hakkında şikâyet gelmedi ama o da büyütüldü: üçü büyüyüp
+dördüncüsü küçük kalsaydı yan yana dizildiklerinde bu sefer o göze
+batardı.
+
+## 3. KOLLAR — omuz gövdenin içindeydi
+
+Çarmıhta kol dönüş ekseni `ORTA_X ± 2s`'teydi. Gövde `±4s`, yani
+**eksen gövdenin içinde**. Sonucu ölçüldü:
+
+- kolun iç `2s`'lik parçası gövdenin içinde gömülü kalıyor,
+- el gövde merkezinden `14s` uzağa gidiyor.
+
+Vanilla oyuncu modelinde kol küpü x `-8..-4`, dönüş ekseni `-5`; kol
+±90 dönünce el `-15`'e gidiyor ve kolun iç ucu gövdeye 1 birim
+giriyor — kopuk değil, gömülü de değil. Şimdi birebir o: küp merkezi
+`±6s`, eksen `±5s`, üst hizası gövde tepesi.
+
+`14s → 15s` tek başına küçük duruyor, ama görünen kol daha da
+kısaydı: gömülü kısım çıkınca gözün kol saydığı parça `10s`'ti.
+Ölçekle birlikte kol `8.0` birimden `11.8` birime çıktı.
+
+## Test bunu neden kaçırdı
+
+`test/kupa.mjs`'in 4. maddesi zaten "her malzeme adının karşılığı
+olmalı" diyordu ve **geçiyordu** — çünkü test de adı aynı yanlış
+yerden, küpten okuyordu. Üretici ve test aynı yanlışı paylaşınca
+madde kendi kendini onaylıyor.
+
+Üç yeni madde eklendi, üçü de **üretilen dosyadan** ölçüyor:
+
+- **9.** Küp düzeyinde `material_instance` kalıntısı olmamalı; adlı
+  küpün **altı yüzünde de** ad bulunmalı (bir yüz adsız kalırsa o yüz
+  skine düşer, yani direk yarı odun yarı skin görünür); adlı küp
+  dokunun tamamını sermeli.
+- **10.** Tam boy kupanın tepesi 29–30 arasında olmalı **ve** gövdenin
+  tepesi modelin tepesine 6 birimden yakın olmalı. İkisi birden lazım:
+  tek başına ilki, direk 29.5'te durup gövde küçülünce yine geçerdi.
+- **11.** Çarmıhta el gövde merkezinden `15s` uzakta olmalı. Ölçek
+  üretilen geometriden (kafa küpünün boyundan) çıkarılıyor, sabit sayı
+  değil oran karşılaştırılıyor.
+
+10. madde **ilk yazılışında yanlış ölçüyordu**: "modelin toplam Y
+uzunluğu ≥ 28.5" dedi ve Dream 28.18 ile düştü. Kodda hata yoktu —
+zincirli biçimde yere inen direk yok ve ayaklar 1.5 birim boşta, yani
+modelin *uzunluğu* tepesinin nerede olduğunu hiç söylemiyor. Bu
+depodaki "kusur ölçümde, kodda değil" hatasının bir örneği daha.
+
+Dört mutasyonla sınandı, dördü de yakalandı: malzeme adını küpe geri
+almak (12 madde düştü), çarmıhı 0.8'e küçültmek (1), omuzu gövdenin
+içine geri koymak (2), tek bir yüzden adı silmek (20).
+
+## `onizle_kupa.py` — bu hata neden ancak tablette görüldü
+
+Depodaki çizici (`ciz_kemik.ciz`) dokuyu **kemik başına** seçiyor,
+kupanın ise tek kemiği var. Yani kupayı çizdiğinde odunu da skinle
+çiziyordu — hatayı gösteremezdi, üstelik hatayla aynı görüntüyü
+üretiyordu.
+
+Yeni araç küpleri malzemeye göre ayrı kemiklere bölüp her kemiğe
+kendi dokusunu veriyor; çizim artık oyundaki dizilimin aynısını
+yapıyor. Malzeme adını **yüzden** okuyor — küpten okusaydı bu hatayı
+o da göremezdi.
+
+Ne olduğu bilerek yazıldı: bu çizici bir yüzü tek renge indirger,
+yani **dokunun desenini göstermez**. Oranı, duruşu ve malzeme
+ayrımını gösterir. Desen için oyuna bakmak gerekiyor.
+
+## Bekleyen
+
+- **Ferguson** hâlâ üretilmiyor (skini bozuk). Yeni ölçüsü hesapla
+  doğru, **gözle görülmedi** — temiz skin gelince ilk bakılacak şey.
+- Kupaların yeni boyu tablette denenmedi.
+
+
 # v7.32.0 — Yatma: yerde yatarken hareket edebilme
 
 Kullanıcı: *"Ben yerde sadece kafamı döndürebiliyor olacağım ama

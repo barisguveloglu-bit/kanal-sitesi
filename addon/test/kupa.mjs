@@ -35,6 +35,21 @@
         UV kayiyor; o yuzden olcek 1.0 degilse yuz yuz UV
         yazilmali. Bu madde o kurali tutuyor.
      8. RACON DIL DOSYASINDA OLMALI. Kupanin butun anlami o.
+     9. MALZEME ADI KUPTE DEGIL YUZDE OLMALI. v7.36'ya kadar
+        "odun"/"ip"/"zincir" kupun kendisine yaziliyordu.
+        Geometri semasinda boyle bir alan YOK; oyun onu atip
+        o yuzleri "*"e, yani KUPANIN SKININE dusuruyordu.
+        Kullanici tablette gordu: Wyne'i tutan ip Wyne'in
+        skiniydi. Bu dosya hatayi KACIRMISTI cunku o da ayni
+        yanlis yerden okuyordu -- 4. madde artik yuzden
+        okuyor, 9. madde de kupte kalinti kalmamasini tutuyor.
+    10. TAM BOY KUPA 30 BIRIMI KULLANMALI. Sinir 30 ve kullanici
+        "benden boy olarak kucuk" dedi. Sadece "30'u asmasin"
+        demek yetmiyor: 0.6 olcek de asmiyordu ve kucuktu.
+        Alt sinir da tutuluyor.
+    11. CARMIHTA KOL OMUZDAN CIKMALI. Omuz ekseni govdenin
+        icindeyken (2s) kolun dibi gomuluyor ve el 15s yerine
+        14s'te kaliyordu -- "kollari asiri kucuk" bu.
 
    Olcum URETILEN DOSYALARDAN yapiliyor, kaynak koddan degil:
    sabit dogru olup da yazilmamis olabilir.                  */
@@ -77,6 +92,20 @@ function don(p, aci, pivot) {
   c = Math.cos(rz); s = Math.sin(rz);
   [x, y] = [x * c - y * s, x * s + y * c];
   return [x + pivot[0], y + pivot[1], z + pivot[2]];
+}
+
+/* ---- BIR KUPUN MALZEME ADI ----
+   Yuz yuz UV nesnesinin icinden okunuyor. Geometri semasinda
+   (geometry:1.16.0) material_instance YALNIZCA burada var;
+   kup duzeyinde boyle bir alan yok ve oyun onu sessizce atiyor.
+   Adsiz kup (skin kupleri) blogun "*" malzemesini aliyor.    */
+function malzemeAdi(c) {
+  if (!c.uv || Array.isArray(c.uv)) return null;
+  for (const y of ["north", "south", "east", "west", "up", "down"]) {
+    const f = c.uv[y];
+    if (f && f.material_instance) return f.material_instance;
+  }
+  return null;
 }
 
 function sinirlar(geo) {
@@ -154,7 +183,7 @@ for (const k of bloklar) {
   const mi = bilesen["minecraft:material_instances"] || {};
   const kullanilan = new Set();
   for (const b of geo.bones) for (const c of b.cubes || [])
-    kullanilan.add(c.material_instance || "*");
+    kullanilan.add(malzemeAdi(c) || "*");
   const tanimli = new Set(Object.keys(mi));
   kontrol(k + ": kupteki her malzeme adi blokta tanimli",
           [...kullanilan].every(a => tanimli.has(a)),
@@ -218,12 +247,12 @@ for (const k of bloklar) {
   const geo = JSON.parse(readFileSync(
     RP + "/models/blocks/kupa_" + k + ".geo.json", "utf8"))["minecraft:geometry"][0];
   const kupler = geo.bones.flatMap(b => b.cubes || []);
-  const zincirler = kupler.filter(c => c.material_instance === "zincir");
+  const zincirler = kupler.filter(c => malzemeAdi(c) === "zincir");
   if (!zincirler.length) continue;
   /* Kollar: Z EKSENINDE donmus taban kupleri. Z sarti onemli
      -- kafa da donuyor ama X ekseninde (one egik). Ilk yazilista
      bu sart yoktu ve kafa da "kol" sayiliyordu.              */
-  const kollar = kupler.filter(c => !c.material_instance && c.rotation &&
+  const kollar = kupler.filter(c => !malzemeAdi(c) && c.rotation &&
                                     c.rotation[2] !== 0 && !(c.inflate > 0));
   kontrol(k + ": zincir sayisi kol sayisiyla ayni",
           zincirler.length === kollar.length,
@@ -283,7 +312,7 @@ for (const k of bloklar) {
     RP + "/models/blocks/kupa_" + k + ".geo.json", "utf8"))["minecraft:geometry"][0];
   const kupler = geo.bones.flatMap(b => b.cubes || []);
   /* Kafa: 8x8x8 olceklenmis kup, yani en/boy/derinlik esit. */
-  const kafalar = kupler.filter(c => !c.material_instance &&
+  const kafalar = kupler.filter(c => !malzemeAdi(c) &&
     Math.abs(c.size[0] - c.size[1]) < 1e-6 &&
     Math.abs(c.size[1] - c.size[2]) < 1e-6 &&
     !(c.inflate > 0));
@@ -295,7 +324,7 @@ for (const k of bloklar) {
      Ilk yazilista burada kosulsuz "continue" vardi: egim
      silinince test hicbir sey demeden atliyordu ve mutasyon
      KACIYORDU. Sessiz atlama, gecen test kadar tehlikeli. */
-  const zincirli = kupler.some(c => c.material_instance === "zincir");
+  const zincirli = kupler.some(c => malzemeAdi(c) === "zincir");
   if (zincirli) {
     kontrol(k + ": zincirli bicimde kafa EGIK olmali",
             egik.length > 0, egik.length + " egik kafa kupu");
@@ -393,12 +422,149 @@ for (const k of bloklar) {
     RP + "/models/blocks/kupa_" + k + ".geo.json", "utf8"))["minecraft:geometry"][0];
   let kotu = [];
   for (const b of geo.bones) for (const c of b.cubes || []) {
-    if (c.material_instance) continue;          // odun/ip: skin degil
+    if (malzemeAdi(c)) continue;                // odun/ip: skin degil
     /* skin kupu: olculeri tam sayi degilse UV yuz yuz olmali */
     const tam = c.size.every(v => Math.abs(v - Math.round(v)) < 1e-9);
     if (!tam && Array.isArray(c.uv)) kotu.push(c.size.join("x"));
   }
   kontrol(k + ": kesirli olculu kupte kutu UV yok", kotu.length === 0, kotu.join(" "));
+}
+
+/* ---- 9. MALZEME ADI KUPTE DEGIL YUZDE ----
+   BU MADDE BIR HATANIN UZERINE YAZILDI (v7.37).
+
+   Uretici malzeme adini kupun kendisine yaziyordu:
+     {"origin": .., "size": .., "material_instance": "odun"}
+   geometry:1.16.0 semasinda kup duzeyinde boyle bir alan YOK;
+   material_instance yalnizca yuz nesnesinin icinde tanimli.
+   Oyun bilmedigi alani sessizce atiyor ve o yuzler blogun
+   "*" malzemesine dusuyor -- kupalarda "*" SKININ KENDISI.
+
+   Sonuc oyunda: Wyne'i tutan ip ve daragaci Wyne'in skini,
+   Earl'un kazigi Earl'un skini, Entity303'un haci onun skini.
+   Kullanici tabletten ekran goruntusuyle gonderdi.
+
+   Uc sey birden tutuluyor, cunku hatanin uc ayri yolu var:
+     a) kupte kalinti material_instance -- sessizce atilir
+     b) yuzlerin BIR KISMINDA ad var -- adsiz yuz skine duser,
+        yani direk yarim odun yarim skin gorunur
+     c) kutu UV -- 3x29x3 direkte doku dikdortgeni 16x16'nin
+        disina, doku atlasinda KOMSU dokularin uzerine tasar  */
+console.log("");
+console.log("== 9. malzeme adi yuzde mi (kupte kalinti var mi)");
+const YUZLER = ["north", "south", "east", "west", "up", "down"];
+for (const k of bloklar) {
+  const geo = JSON.parse(readFileSync(
+    RP + "/models/blocks/kupa_" + k + ".geo.json", "utf8"))["minecraft:geometry"][0];
+  const kupler = geo.bones.flatMap(b => b.cubes || []);
+
+  const kupte = kupler.filter(c => c.material_instance !== undefined);
+  kontrol(k + ": kup duzeyinde material_instance YOK",
+          kupte.length === 0,
+          kupte.length + " kupte kalinti (oyun bunu atar, yuz skine duser)");
+
+  const adli = kupler.filter(c => malzemeAdi(c));
+  kontrol(k + ": adli malzeme kupu var (odun/ip/zincir)", adli.length > 0,
+          adli.length + " kup");
+  for (const c of adli) {
+    const ad = malzemeAdi(c);
+    const eksik = YUZLER.filter(y => !c.uv[y] || c.uv[y].material_instance !== ad);
+    kontrol(k + ": '" + ad + "' kupunun ALTI yuzunde de ad var",
+            eksik.length === 0, eksik.join(",") || "-");
+    const tam = YUZLER.every(y => c.uv[y] && c.uv[y].uv_size &&
+                                  c.uv[y].uv_size[0] === 16 &&
+                                  c.uv[y].uv_size[1] === 16);
+    kontrol(k + ": '" + ad + "' dokunun tamamini seriyor", tam,
+            c.size.join("x"));
+  }
+}
+
+/* ---- 10. TAM BOY KUPA 30 BIRIMLIK PAYI KULLANMALI ----
+   Kullanici: "entity303 benden boy olarak kucuk."  Hakliydi ve
+   1. madde bunu YAKALAYAMAZDI: o sadece ust siniri tutuyor,
+   0.6 olcekli bir kupa da 30'u asmaz.
+
+   ---- ILK YAZILISTA OLCU YANLISTI ----
+   Once "modelin toplam Y uzunlugu >= 28.5" yazildi ve Dream
+   28.18 ile dustu. Kodda hata yoktu: zincirli bicimde yere
+   inen bir direk YOK (kiris yalniz tepede), ayaklar da 1.5
+   birim bosta -- yani modelin UZUNLUGU tepesinin nerede
+   oldugunu hic soylemiyor. Bu depodaki "kusur olcumde, kodda
+   degil" hatasinin bir ornegi daha.
+
+   Dogru olcu IKI parca:
+     a) MODELIN TEPESI 29-30 arasinda olmali. Sinir 30; bicim
+        payini kullanmiyorsa (direk kisaltilmis, olcek
+        dusurulmus) buradan dusuyor.
+     b) KAFANIN TEPESI modelin tepesine 6 birimden yakin
+        olmali. Tek basina (a) yetmez: direk 29.5'te durup
+        govde kuculse (v7.36'daki hal) (a) yine gecerdi.
+        6 birim, bicimlerin govde ustunde gercekten ihtiyac
+        duydugu en buyuk paydan (daragaci: kol 2.5 + ip 2)
+        biraz genis. Olculen aralik: carmih 1.06, daragaci
+        4.10, zincirli 4.60.
+
+   Kazik (Earl) haric: orada kafa var, govde yok -- 8 birimlik
+   bir kafayi 30'a cikarmanin anlami olmaz. Ayrim skin
+   kuplerinin sayisindan: tam govde 12 kup (6 parca x 2 katman),
+   kazik 2.                                                   */
+console.log("");
+console.log("== 10. tam boy kupa 30 birimlik payi kullaniyor mu");
+for (const k of bloklar) {
+  const geo = JSON.parse(readFileSync(
+    RP + "/models/blocks/kupa_" + k + ".geo.json", "utf8"))["minecraft:geometry"][0];
+  const kupler = geo.bones.flatMap(b => b.cubes || []);
+  const skinKup = kupler.filter(c => !malzemeAdi(c));
+  if (skinKup.length < 12) {
+    console.log("  - " + k + ": tam govde degil (" + skinKup.length +
+                " skin kupu), boy sarti yok");
+    continue;
+  }
+  const tepe = sinirlar(geo).mx[1];
+  const kafaTepe = sinirlar({ bones: [{ cubes: skinKup }] }).mx[1];
+  kontrol(k + ": modelin tepesi 29-30 arasinda",
+          tepe >= 29.0 && tepe <= 30.0001, tepe.toFixed(2) + " birim");
+  kontrol(k + ": govde tepeye yakin (bosa giden pay < 6)",
+          tepe - kafaTepe < 6.0,
+          "kafa " + kafaTepe.toFixed(2) + ", tepe " + tepe.toFixed(2) +
+          ", pay " + (tepe - kafaTepe).toFixed(2));
+}
+
+/* ---- 11. CARMIHTA KOL OMUZDAN CIKIYOR MU ----
+   Kullanici: "kollari da asiri kucuk."  Sebep olculdu: omuz
+   donus ekseni ORTA_X ± 2s'teydi, yani GOVDENIN ICINDE
+   (govde ±4s). Vanilla oyuncu modelinde eksen ±5s ve kol
+   ±90 donunce el ±15s'e gidiyor. Eskisinde el 14s'te
+   kaliyordu VE kolun ic 2s'lik parcasi govdenin icinde
+   gomuluydu; goz sadece disarida kalan parcayi kol saniyordu.
+
+   Olcu URETILEN GEOMETRIDEN: olcek kafa kupunun boyundan
+   cikariliyor (kafa 8 birim), elin yeri de donmus kolun
+   sinirlarindan. Sabit sayi karsilastirilmiyor, ORAN
+   karsilastiriliyor -- olcek degisirse madde yine gecerli.  */
+console.log("");
+console.log("== 11. carmihta kol omuzdan cikiyor mu (el 15s'te)");
+for (const k of bloklar) {
+  const geo = JSON.parse(readFileSync(
+    RP + "/models/blocks/kupa_" + k + ".geo.json", "utf8"))["minecraft:geometry"][0];
+  const kupler = geo.bones.flatMap(b => b.cubes || []);
+  /* Yatay kol: TAM ±90 donmus, sismemis skin kupu. Zincirli
+     bicimdeki kollar 140 derece donuyor, oraya karismasin. */
+  const yatay = kupler.filter(c => !malzemeAdi(c) && c.rotation &&
+                                   Math.abs(Math.abs(c.rotation[2]) - 90) < 1e-6 &&
+                                   !(c.inflate > 0));
+  if (!yatay.length) continue;
+  const kafa = kupler.find(c => !malzemeAdi(c) && !(c.inflate > 0) &&
+    Math.abs(c.size[0] - c.size[1]) < 1e-6 && Math.abs(c.size[1] - c.size[2]) < 1e-6);
+  if (!kafa) { kontrol(k + ": olcek icin kafa kupu bulundu", false); continue; }
+  const s = kafa.size[0] / 8;
+  for (const c of yatay) {
+    const { mn, mx } = sinirlar({ bones: [{ cubes: [c] }] });
+    const uzak = Math.max(Math.abs(mn[0]), Math.abs(mx[0]));
+    kontrol(k + ": el govde merkezinden 15s uzakta",
+            uzak >= 15 * s - 0.01,
+            "el " + (uzak / s).toFixed(2) + "s (vanilla 15s), olcek " + s.toFixed(3));
+  }
 }
 
 /* ---- 8. RACON ---- */
