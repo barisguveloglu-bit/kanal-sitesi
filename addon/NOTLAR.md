@@ -1,3 +1,182 @@
+# v7.38.0 — İki APK daha: biri kopya, biri başka bir tür
+
+Kullanıcı iki dosya gönderdi ve amacını açıkça yazdı:
+
+> *"Bunu ekle demiyorum, sadece bunu kullanan biriyle vs
+> atarsam savunmalı olayım diye söylüyorum… beni hiçbir şeyi
+> çalıştırma, sadece engellenebilecekleri engelle."*
+
+İkisi de **çalıştırılmadı**. Açıldı, tabloları okundu.
+İncelemeler: `REFERANS_BLOODY_APK.md` · `REFERANS_WCLIENT_APK.md`
+
+## BloodyClient — Toolbox'ın üçüncü kopyası
+
+`io.mrarm.mctoolbox`, aynı beş `libtoolbox-*.so`, aynı NP
+Manager koruması. `resources.arsc`'teki `s_*` anahtarları
+sayıldı: **65 tane ve mevcut listeyle birebir aynı.**
+
+**Yeni saldırı yok, yeni savunma yazılmadı.** Bunu yazmak da
+bir sonuç: üç dosyanın üçü de aynı araç çıktı.
+
+## WClient v36 — bu bir mod değil, VEKİL
+
+Öncekiler oyunun içine giriyordu. Bu farklı:
+
+    Minecraft → 127.0.0.1:19132 → WClient → gerçek sunucu
+
+Telefonda bir vekil çalışıyor, aradan geçen paketleri yeniden
+yazıyor. Kanıt dosyanın içinde: `RelayService`, RakNet katmanı,
+`org.cloudburstmc.protocol` (Bedrock protokolünün tamamı, 1803
+tip), Microsoft/Xbox girişi, `protocol_mapping.txt`'te 53–898
+arası sürümler, 41 MB'lik kendi blok/eşya tablosu.
+
+Sınıf adları gizlenmiş (`o5/q`, `p5/z`), yani modül listesi
+sınıf adlarından okunamıyor. `classes.dex` içindeki
+`const-string` sabitleri **sınıf başına** çıkarıldı — bytecode
+yorumlanmadan, sadece taranarak. Modül adları oradan geldi.
+
+### Bunun anlamı
+
+Toolbox oyun sürümüne bağlıydı (beş ayrı `.so`). Vekil değil:
+protokol konuşuyor, **operatör yetkisi hiç istemiyor**.
+Buna karşılık gönderdiği her şey **hâlâ paket** — yani
+ölçülebilir olan ölçülebilir kalıyor. Vekil olması savunmayı
+zorlaştırmıyor, kapsamı genişletiyor.
+
+## Eklenen dört denetim
+
+Hepsi `gozcu.js`'e girdi, hepsi **ölçülebilir olduğu için**.
+
+### 1. Aynı tickte aynı kurbana çoklu vuruş
+
+WClient'in bütün dövüş modüllerinde bir `packetsPerAttack`
+ayarı var: tek sallışta birden fazla saldırı paketi.
+
+Gözcü'nün CPS ölçümü bunu zaten yakalıyordu ama **bir saniye
+bekleyerek**. Bu ölçüm aynı tickte yakalıyor ve yanlış alarm
+payına ihtiyacı yok: bir insan tek tickte iki kez vuramaz.
+
+**AYNI KURBAN şartı var ve bu şart olmasaydı savunma kendi
+oyuncusunu suçlardı** — aynı tickte farklı varlıklara hasar
+veren kendi yeteneklerimiz var (Kasırga, Meteor, alan şimşeği).
+Mutasyon denemesinde şart kaldırıldı ve "aynı tickte farklı
+kurbanlar temiz" maddesi hemen düştü.
+
+### 2. Oyun kipi denetimi
+
+`GamemodeSwitcher` — ekrana *"Switched to Creative"* yazıyor.
+`REFERANS_SAVUNMA_PLANI.md`'de bu boşluk zaten "denetle ve geri
+al" diye duruyordu; artık gerçekten sevk edilen bir modül
+olduğu görüldü.
+
+Ölçümde belirsizlik yok: ya yaratıcı kiptesin ya değilsin.
+Ama **geri almak** başka bir şey. Kendi dünyasında inşa yaparken
+yaratıcı kipe geçen ev sahibini zorla hayatta kalmaya düşüren
+bir mod, hilecilerden önce kendi kullanıcısını kaçırır.
+
+İkisi ayrıldı: **bildirim her zaman, geri alma yalnız Savunma
+Kipi açıkken.** Yeni bir yargı kuralı eklenmedi — Savunma Kipi
+zaten kullanıcının "vs atıyoruz, hileler açık" dediği açık bir
+düğme (v7.29, kendi sözü).
+
+Savunma Kipi kişiye değil **dünyaya** soruluyor
+(`savunmaVarMi()`): düğmeye *kendini savunan* basıyor, oysa
+yaratıcı kipe geçen *karşı taraf*. Kişiye bakan bir koşul her
+zaman yanlış cevap verirdi.
+
+### 3. Katı blok içinde — noclip · phase · tpmine
+
+Planda önerilen ama yazılmamış ölçüm buydu. `TPMine` de buraya
+düşüyor: cevheri görüp yanına ışınlanıyor, yani xray'in aksine
+**konum değiştiriyor** — ve cevherin yanı genellikle taşın içi.
+
+Üst üste dört örnek boyunca hem ayak hem baş hizası dolu ise
+işaret. Tek örnek suçlamak yanlış alarm makinesi olurdu:
+gecikme, kapı, yarım blok, kendi ışınlanmalarımız.
+
+### 4. Savaştan kaçış — auto_disconnect
+
+Modülün kendi metni: *"AutoDisconnect: Sent '/lobby' at 6.0 HP"*.
+
+**Bu engellenemez.** Bir davranış paketi kimsenin bağlantısını
+tutamaz. Görülebilen şey şu: son hasardan 6 saniye geçmeden
+çıktı mı, o an kaç canı kalmıştı.
+
+Bildirim **"hile" demiyor, ölçüyü söylüyor** — gerçek kopmalar
+da aynı pencereye düşer (kablo, pil, oyunun çökmesi).
+
+## BLOK OKUMA BÜTÇESİ — ölçüm dört testi düşürdü
+
+Katı blok denetimi ilk yazılışında **her taramada iki blok
+okuyordu** ve dört test birden düştü:
+
+    ✗ hic blok okunmuyor  ::  80 okuma
+
+Testler haklıydı: bu depoda boşta duran modun blok okumaması
+bir kural. İki koşula bağlandı — **Savunma Kipi açık** ve
+**oyuncu kımıldamış** (ya da sayacı zaten açılmış).
+
+Ücreti dürüstçe: **düğme kapalıyken noclip yakalanmaz.** Bu
+satır `ayarlar.js`'te, referans dosyasında ve savunma planında
+da yazıyor; gizli bir kısıt olmasın diye.
+
+## Testte bulunan iki şey
+
+**1. Eski bir madde yanlış şeyi taklit ediyordu.** `gozcu.mjs`'in
+4. maddesi (*"çok hızlı vuruş yakalanıyor"*) bütün vuruşları
+**aynı tickte** yapıyor ve "saniyede N vuruş" sebebini
+bekliyordu. Yeni ölçüm gelince madde düştü — ve haklı olarak:
+o kurulum CPS'i değil, paket çoklamasını taklit ediyordu. Bir
+insan tek tickte 13 kez vuramaz. Vuruşlar ayrı ticklere yayıldı.
+
+**2. Yorum import'un içine yazılamıyor.** `tarama.mjs`'in ölü
+kod tarayıcısı import listesini düz metin olarak ayırıp her adı
+`RegExp`'e koyuyor. Süslü parantezin içine yorum girince
+düzenli ifade çatladı:
+
+    SyntaxError: Invalid regular expression: Unterminated group
+
+Yorum import'un üstüne alındı.
+
+## Mutasyon denemesi
+
+Sekiz mutasyon, sekizi de yakalandı: aynı tick ölçümünü
+kapatmak · kurban ayrımını kaldırmak · kurban kimliğini
+kayıttan silmek · `creative`'i izinli kipler listesine eklemek ·
+geri almayı sessizce kapatmak · her bloğu geçilebilir saymak ·
+Savunma Kipi kapısını kaldırmak · `playerLeave`'de hüküm ile
+unutmanın sırasını değiştirmek.
+
+Son ikisi kodun **şekline** bakıyor, çünkü ölçülen şey bir
+davranış değil bir **kapı**: biri koşulu kaldırırsa gozcu
+testleri yine geçerdi, düşen başka bir dosya olurdu ve sebebi
+orada hiç yazmazdı.
+
+## Yapılmayanlar — ve neden
+
+- **Bütün görüntü ailesi** (BlockESP, ChestESP, Nametags,
+  Minimap, FreeCamera, Fullbright, Zoom, StashFinder,
+  ChunkFinder): sunucuya hiçbir şey göndermiyorlar. Bir davranış
+  paketi ne görebilir ne engelleyebilir. Buraya bir "xray
+  denetimi" eklemek sahte güven üretmek olurdu.
+- **AntiDebuff**: vekil etki paketini istemciye ulaşmadan
+  düşürüyor; sunucuda etki duruyor, yani `getEffect` ile baksak
+  bir şey görmeyiz. Ölçülecek iz yok — ve zaten işine de
+  yaramıyor, hasar sunucu tarafında uygulanıyor.
+- **Envanter otomasyonu** (AutoTotem, InventoryHelper, Switcher,
+  FastDrop): insanın hızlı yapmasından ayırt edilemez.
+- **Disabler · Desync · PingSpoof · Blink**: izleri ışınlanma
+  ölçümüne düşüyor ama bu **tesadüfi bir yakalama**, ölçüm bunun
+  için yazılmadı — öyleymiş gibi de davranılmıyor.
+
+## Bekleyen
+
+- Dört denetimin hiçbiri **oyunda denenmedi**; ölçüm sahte
+  dünyada yapıldı.
+- `KATI_GECILEBILIR` listesi elle yazıldı ve **tam değil**.
+  Yanlış alarm üreten bir blok çıkarsa listeye eklenecek.
+
+
 # v7.37.0 — Kupalar: onları tutan şey skindi, üçü de küçüktü
 
 Kullanıcı v7.36'yı tablette denedi ve ekran görüntüsüyle gönderdi:

@@ -1,12 +1,12 @@
 {
   "format_version": 2,
   "header": {
-    "name": "Şimşek 7.37.0 · Oyuncu Modeli",
+    "name": "Şimşek 7.38.0 · Oyuncu Modeli",
     "description": "Maskeyi eline al, O Şey ol. Ayrı paket: oyuncu modelini ezen başka bir paketle birlikte çalışmaz.",
     "uuid": "c1f0a4d7-9b62-4f8e-9a31-2d6b8f4c7e05",
     "version": [
       7,
-      37,
+      38,
       0
     ],
     "min_engine_version": [
@@ -21,7 +21,7 @@
       "uuid": "6e2b91c4-3d57-4a10-8f7d-b53e19a06c88",
       "version": [
         7,
-        37,
+        38,
         0
       ]
     }

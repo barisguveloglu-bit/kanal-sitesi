@@ -89,9 +89,18 @@ import { kafesKir, kafesUnut } from "./yetenekler/kafes.js";
 
 /* v7.30: Gozcu -- vurus denetimi (menzil + killaura). Kendi
    olay aboneligini kuruyor, yetenek degil.                  */
+/* v7.38: iki yeni APK'den cikan denetimler. Ucu hareket
+   taramasina biniyor (oyun kipi, kati blok, ayni tick);
+   yalniz kacis kendi aboneligini istiyor.
+
+   Yorum import'un ICINDE degil USTUNDE: tarama.mjs'in olu kod
+   tarayicisi import listesini duz metin olarak ayirip her adi
+   RegExp'e koyuyor, yorum oraya girince duzenli ifade
+   catliyor. Bir kez yasandi.                                */
 import {
   gozcuKur, gozcuUnut, hareketTara, hareketUnut, geriItmeUnut,
-  blokHizKur, blokUnut
+  blokHizKur, blokUnut,
+  kipUnut, kacisKur, kacisUnut, kacisAyrilma
 } from "./yetenekler/gozcu.js";
 import { HAREKET_ACIK, HAREKET_ORNEK } from "./ayarlar.js";
 import {
@@ -105,6 +114,9 @@ gozcuKur();
    asagida tanimli ama fonksiyon bildirimi oldugu icin burada
    cagrilabiliyor; zaten geri cagri olay aninda calisiyor.  */
 blokHizKur((kimlik) => oyuncuIsSayisi(kimlik) > 0);
+/* v7.38: savastan kacis (auto_disconnect). Hasar anini
+   kaydediyor; hukmu playerLeave'de veriyor.                */
+kacisKur();
 
 /* v5.8: acilabilir zirh katmanlari (matkap). Yetenegi kendi
    dosyasinda kaydediyor; buradan yalniz "cekirdek elden
@@ -2332,6 +2344,12 @@ olayaAbone("playerLeave", (olay) => {
   blokUnut(olay.playerId);
   kafesUnut(olay.playerId);
   yedekUnut(olay.playerId);
+  kipUnut(olay.playerId);
+  /* KACIS SIRALAMA ONEMLI: once hukum, sonra unutma.
+     kacisAyrilma kaydi kendisi siliyor, yani kacisUnut
+     ondan ONCE cagrilsaydi olcum hic yapilamazdi.        */
+  kacisAyrilma(olay.playerId, olay.playerName, system.currentTick);
+  kacisUnut(olay.playerId);
 
   // Oyuncunun butun isleri durdurulmali, sadece birincisi degil
   const acikIsler = oyuncununIsleri.get(olay.playerId);

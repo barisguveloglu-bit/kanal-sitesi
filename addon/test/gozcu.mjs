@@ -21,7 +21,20 @@
      7. Bildirim susturmasi calisiyor
      8. Kendi botlarimiz denetlenmiyor
      9. Oyuncu cikinca defter temizleniyor
-    10. Kapaliyken hic abone olunmuyor                       */
+    10. Kapaliyken hic abone olunmuyor
+
+   ---- v7.38: IKI YENI APK ----
+   BloodyClient (Toolbox'in ucuncu kopyasi, yeni saldiri yok)
+   ve WClient v36 (telefonda calisan bir VEKIL -- oyun degil,
+   paket katmani). WClient'in ozellik listesinden cikan dort
+   olculebilir sey eklendi:
+
+    13. Ayni tickte AYNI KURBANA coklu vurus ("Packets" ayari)
+    14. Oyun kipi denetimi (gamemode_switcher)
+    15. Kati blok icinde (no_clip / phase / tpmine)
+    16. Savastan kacis (auto_disconnect)
+
+   Her birinde yine ayni oncelik: temiz oyuncu suclanmiyor. */
 
 import { dunyaKur, oyuncuKur } from "./dunya.mjs";
 import { tickIlerlet, vurusTetikle, _durum } from "@minecraft/server";
@@ -122,8 +135,20 @@ console.log("=== 4. COK HIZLI VURUS YAKALANIYOR ===");
   _durum.sohbet.length = 0;
   const a = saldiran("hiz1", 0, 64, 0, { x: 0, y: 0, z: 1 });
   const k = kurban("hedef4", 0, 64, 2);
-  /* Ayni tick icinde arka arkaya: saniyede GOZCU_HIZ ustu. */
-  for (let i = 0; i < ayar.GOZCU_HIZ + ayar.GOZCU_ESIK + 2; i++) vur(a, k);
+  /* AYRI TICKLERDE, saniyeden hizli: saniyede GOZCU_HIZ ustu.
+
+     ---- BU KURULUM v7.38'DE DUZELTILDI ----
+     Eskiden butun vuruslar AYNI TICK'te yapiliyordu ve madde
+     "saniyede N vurus" sebebini bekliyordu. O kurulum artik
+     yeni "ayni tickte coklu vurus" olcumunu tetikliyor -- ve
+     hakli olarak: bir insan tek tickte 13 kez vuramaz. Yani
+     eski kurulum CPS'i degil, paket coklamasini taklit
+     ediyordu. Ayri ticklere yayildi; ayni tick olcumunun
+     kendi maddesi 11'de.                                     */
+  for (let i = 0; i < ayar.GOZCU_HIZ + ayar.GOZCU_ESIK + 2; i++) {
+    tickIlerlet(1);
+    vur(a, k);
+  }
   const d = gozcu.gozcuDurum(a.id);
   kontrol("hizli vurus isaretlendi", d && d.isaret >= ayar.GOZCU_ESIK,
           d ? d.isaret + " isaret" : "yok");
@@ -597,6 +622,194 @@ console.log("=== 12. GERI ITME (Velocity / anti-knockback) ===");
      koymak OLU KOD olurdu -- bu dosyada bir kez yasandi. */
   kontrol("GERI_ITME_ACIK kayit tarafinda denetleniyor",
           /function geriItmeKaydet[\s\S]{0,200}?if \(!GERI_ITME_ACIK\) return;/.test(kod));
+}
+
+console.log("");
+console.log("=== 13. AYNI TICKTE COKLU VURUS (Packets) ===");
+{
+  gozcu.gozcuUnut();
+  _durum.sohbet.length = 0;
+  /* WClient'in butun dovus modullerinde "packetsPerAttack"
+     var: tek salliste birden fazla saldiri paketi. */
+  const a = saldiran("pk1", 0, 64, 0, { x: 0, y: 0, z: 1 });
+  const k = kurban("hedefpk", 0, 64, 2);
+  tickIlerlet(5);
+  for (let i = 0; i < ayar.GOZCU_ESIK + 1; i++) vur(a, k);   // hepsi AYNI tick
+  kontrol("ayni tick coklu vurus isaretlendi",
+          gozcu.gozcuDurum(a.id) && gozcu.gozcuDurum(a.id).isaret >= ayar.GOZCU_ESIK,
+          gozcu.gozcuDurum(a.id) ? gozcu.gozcuDurum(a.id).isaret + " isaret" : "yok");
+  kontrol("sebep 'aynı tickte' diyor",
+          sonSohbet().indexOf("aynı tickte") !== -1, sonSohbet());
+
+  /* TEK vurus tetiklememeli -- yoksa her normal vurus isaret olurdu. */
+  gozcu.gozcuUnut();
+  _durum.sohbet.length = 0;
+  const b = saldiran("pk2", 0, 64, 0, { x: 0, y: 0, z: 1 });
+  for (let i = 0; i < 6; i++) { tickIlerlet(6); vur(b, k); }
+  kontrol("tick basina TEK vurus temiz",
+          !gozcu.gozcuDurum(b.id) || gozcu.gozcuDurum(b.id).isaret === 0,
+          gozcu.gozcuDurum(b.id) ? gozcu.gozcuDurum(b.id).isaret + " isaret" : "0");
+
+  /* KURBAN AYRIMI: ayni tickte FARKLI hedeflere vurmak bizim
+     kendi alan yeteneklerimizin yaptigi sey (Kasirga, Meteor,
+     alan simsegi). Suclanmamali.                            */
+  gozcu.gozcuUnut();
+  _durum.sohbet.length = 0;
+  const c = saldiran("pk3", 0, 64, 0, { x: 0, y: 0, z: 1 });
+  tickIlerlet(5);
+  for (let i = 0; i < ayar.GOZCU_ESIK + 1; i++) vur(c, kurban("ayri" + i, 0, 64, 2));
+  kontrol("ayni tickte FARKLI kurbanlar temiz",
+          sonSohbet().indexOf("aynı tickte") === -1,
+          sonSohbet() || "bildirim yok");
+}
+
+console.log("");
+console.log("=== 14. OYUN KIPI DENETIMI (gamemode_switcher) ===");
+{
+  const arinma = await import("./pack/yetenekler/arinma.js");
+  const kipli = (id, kip) => ({
+    id, typeId: "minecraft:player", name: id, isValid: true,
+    _kip: kip, _yazilan: [],
+    getGameMode() { return this._kip; },
+    setGameMode(y) { this._kip = y; this._yazilan.push(y); }
+  });
+
+  gozcu.kipUnut();
+  _durum.sohbet.length = 0;
+  arinma.arinmaUnut();                       // Savunma Kipi KAPALI
+
+  const temiz = kipli("kip_temiz", "survival");
+  kontrol("survival temiz", gozcu.kipDenetle(temiz) === null);
+  kontrol("adventure de temiz",
+          gozcu.kipDenetle(kipli("kip_adv", "adventure")) === null);
+
+  const hileci = kipli("kip_hileci", "creative");
+  const sonuc = gozcu.kipDenetle(hileci);
+  kontrol("creative yakalandi", sonuc !== null && sonuc.kip === "creative",
+          JSON.stringify(sonuc));
+  kontrol("Savunma Kipi KAPALIYKEN geri alinmiyor",
+          sonuc && sonuc.geriAlindi === false && hileci._kip === "creative",
+          hileci._kip);
+  kontrol("bildirim sebebi yaziyor",
+          sonSohbet().indexOf("oyun kipi") !== -1, sonSohbet());
+
+  /* Susturma: ust uste cagri ikinci bildirimi uretmemeli. */
+  const ikinci = gozcu.kipDenetle(hileci);
+  kontrol("susturma calisiyor (ikinci bildirim yok)", ikinci === null);
+
+  /* Savunma Kipi ACIKKEN geri aliniyor. */
+  gozcu.kipUnut();
+  _durum.sohbet.length = 0;
+  tickIlerlet(ayar.KIP_SUS + 5);
+  arinma.savunmaAc({
+    id: "savunan", typeId: "minecraft:player", name: "savunan", isValid: true,
+    runCommand: () => ({ successCount: 1 }),
+    onScreenDisplay: { setActionBar() {} }
+  });
+  const hileci2 = kipli("kip_hileci2", "creative");
+  const sonuc2 = gozcu.kipDenetle(hileci2);
+  kontrol("Savunma Kipi ACIKKEN geri alindi",
+          sonuc2 && sonuc2.geriAlindi === true && hileci2._kip === ayar.KIP_IZIN[0],
+          hileci2._kip);
+
+  /* OKUNAMAYAN kip suclanmiyor -- eski API surumu. */
+  gozcu.kipUnut();
+  kontrol("kipi okunamayan oyuncu suclanmiyor",
+          gozcu.kipDenetle({ id: "kip_yok", typeId: "minecraft:player",
+                             name: "kip_yok", isValid: true }) === null);
+  arinma.arinmaUnut();
+}
+
+console.log("");
+console.log("=== 15. KATI BLOK ICINDE (no_clip / phase / tpmine) ===");
+{
+  const D = dunyaKur();
+  const blokta = (y) => ({
+    id: "kb", typeId: "minecraft:player", name: "kb", isValid: true,
+    dimension: D.boyut, location: { x: 0.5, y, z: 0.5 }
+  });
+  /* Sahte dunyada y < 64 tas, ustu hava. */
+  kontrol("tas icindeki oyuncu KATI", gozcu.katidaMi(blokta(30)) === true);
+  kontrol("acik havadaki oyuncu KATI DEGIL", gozcu.katidaMi(blokta(70)) === false);
+  /* Ayak tasta, bas havada (yerde duran normal oyuncu). */
+  kontrol("zeminde duran oyuncu KATI DEGIL", gozcu.katidaMi(blokta(63)) === false);
+  /* Dunyanin disi: olculemedi -- kati DEMIYOR. */
+  kontrol("olculemeyen konum undefined donuyor",
+          gozcu.katidaMi(blokta(-9999)) === undefined);
+  /* Boyutu olmayan varlik da olculemez. */
+  kontrol("boyutsuz varlik undefined donuyor",
+          gozcu.katidaMi({ id: "x", location: { x: 0, y: 0, z: 0 } }) === undefined);
+
+  /* ---- SAVUNMA KIPI KAPISI KODDA DURUYOR MU ----
+     Bu denetim blok OKUYOR ve depo kurali "bosta duran mod
+     blok okumaz". Kosulsuz yazildiginda efsane_muzik.mjs
+     "hic blok okunmuyor :: 4 okuma" ile dustu.
+
+     Madde kodun SEKLINE bakiyor cunku olculecek sey bir
+     davranis degil bir KAPI: biri kosulu kaldirirsa gozcu
+     testleri yine gecerdi, dusen BASKA bir dosya olurdu ve
+     sebebi orada hic yazmiyor.                             */
+  const { readFileSync: oku15 } = await import("node:fs");
+  const kod15 = oku15(new URL("./pack/yetenekler/gozcu.js", import.meta.url), "utf8");
+  kontrol("kati denetimi Savunma Kipine bagli",
+          /if \(KATI_ACIK && savunmaVarMi\(\)/.test(kod15));
+  kontrol("kati denetimi kimildamayan oyuncuda blok okumuyor",
+          /toplam > 0\.05 \|\| \(iz\.kati \|\| 0\) > 0/.test(kod15));
+}
+
+console.log("");
+console.log("=== 16. SAVASTAN KACIS (auto_disconnect) ===");
+{
+  gozcu.kacisUnut();
+  _durum.sohbet.length = 0;
+  const canli = (id, can) => ({
+    id, typeId: "minecraft:player", name: id, isValid: true,
+    getComponent: (ad) => ad === "minecraft:health" ? { currentValue: can } : undefined
+  });
+
+  /* 1. Vurulup HEMEN cikan. */
+  const kacan = canli("kacan", 6);
+  gozcu.kacisHasar(kacan, 1000);
+  const sebep = gozcu.kacisAyrilma("kacan", "kacan", 1000 + 40);
+  kontrol("hasardan hemen sonra cikis yakalandi", sebep !== null, String(sebep));
+  kontrol("bildirimde kalan can var",
+          sonSohbet().indexOf("kalan can") !== -1, sonSohbet());
+  kontrol("bildirim 'hile' demiyor (olcu soyluyor)",
+          sonSohbet().toLowerCase().indexOf("hile") === -1, sonSohbet());
+
+  /* 2. Cok sonra cikan: normal ayrilma, suclanmiyor. */
+  gozcu.kacisUnut();
+  _durum.sohbet.length = 0;
+  gozcu.kacisHasar(canli("gec", 20), 2000);
+  kontrol("pencere disinda cikan suclanmiyor",
+          gozcu.kacisAyrilma("gec", "gec", 2000 + ayar.KACIS_PENCERE + 1) === null);
+  kontrol("bildirim yok", sohbetSayisi() === 0);
+
+  /* 3. Hic vurulmadan cikan. */
+  gozcu.kacisUnut();
+  kontrol("hic vurulmayan suclanmiyor",
+          gozcu.kacisAyrilma("hic", "hic", 3000) === null);
+
+  /* 4. Kayit ciktiktan sonra DUSUYOR: ayni kimlik geri
+        gelirse eski hasar hukum vermemeli. */
+  gozcu.kacisUnut();
+  gozcu.kacisHasar(canli("tekrar", 4), 4000);
+  gozcu.kacisAyrilma("tekrar", "tekrar", 4010);
+  kontrol("hukumden sonra kayit dusuyor",
+          gozcu.kacisDurum("tekrar") === undefined);
+
+  /* 5. Oyuncu olmayan varlik kaydedilmiyor -- botlarimiz
+        savastan kacmaz.                                    */
+  gozcu.kacisUnut();
+  kontrol("bot kaydedilmiyor",
+          gozcu.kacisHasar({ id: "bot1", typeId: "pa:bot", isValid: true }, 5000) === null);
+
+  /* 6. main.js sirasi: once hukum, sonra unutma. Ters olsaydi
+        olcum hic yapilamazdi.                              */
+  const { readFileSync } = await import("node:fs");
+  const ana = readFileSync(new URL("./pack/main.js", import.meta.url), "utf8");
+  kontrol("main.js kacisAyrilma'yi kacisUnut'tan ONCE cagiriyor",
+          /kacisAyrilma\([\s\S]{0,200}?kacisUnut\(/.test(ana));
 }
 
 console.log("");

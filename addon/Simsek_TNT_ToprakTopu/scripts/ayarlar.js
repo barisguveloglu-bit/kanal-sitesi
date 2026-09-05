@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.37.0";
+export const SURUM = "v7.38.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -1109,6 +1109,138 @@ export const GERI_ITME_ORNEK    = 6;     // vurustan kac tick sonra bakilsin
 export const GERI_ITME_BEKLENEN = 0.15;  // blok, en az bu kadar uzaklasmali
 export const GERI_ITME_HAREKET  = 0.30;  // blok, "kimildayabiliyor" sayilmasi icin
 export const GERI_ITME_TAVAN    = 40;    // bekleyen kayit tavani
+
+/* ============================================================
+   v7.38 -- IKI YENI APK'DEN CIKAN DENETIMLER
+
+   Kullanici iki dosya daha gonderdi ve amacini acikca yazdi:
+   "bunu ekle demiyorum, bunu kullanan biriyle vs atarsam
+   savunmali olayim diye... sadece engellenebilecekleri
+   engelle."
+
+   Incelemeler: REFERANS_BLOODY_APK.md · REFERANS_WCLIENT_APK.md
+
+   BloodyClient Toolbox'in ucuncu kopyasi cikti -- 65 ayar
+   anahtari BIREBIR ayni, yeni saldiri yok.
+
+   WClient BASKA BIR SEY: oyunun icine giren bir mod degil,
+   telefonda calisan bir VEKIL (relay). Oyun 127.0.0.1:19132'ye
+   baglaniyor, vekil gercek sunucuya baglaniyor ve arada
+   paketleri yeniden yaziyor. Bu dosyadaki dort denetim onun
+   ozellik listesinden cikti; DORDU DE OLCULEBILIR olduğu icin
+   yazildi, gerisi icin REFERANS_WCLIENT_APK.md'ye bak.
+   ============================================================ */
+
+/* ---------------- 1. OYUN KIPI DENETIMI ----------------
+   WClient modulu: gamemode_switcher
+   ("§l§e[Gamemode] Switched to Creative / Restored to Survival")
+
+   REFERANS_SAVUNMA_PLANI.md'de bu bosluk zaten yaziliydi:
+   "gamemode creative'e gecme | yok | denetle ve geri al".
+   Artik gercekten sevk edilen bir modul oldugu goruldu.
+
+   ---- YANLIS ALARM RISKI SIFIR, GERI ALMA RISKI DEGIL ----
+   Olcumde belirsizlik yok: ya yaratici kiptesin ya degilsin.
+   Ama GERI ALMAK baska bir sey -- kendi dunyasinda insa
+   yaparken yaratici kipe gecen ev sahibini zorla hayatta
+   kalmaya dusuren bir mod, hilecilerden once kendi
+   kullanicisini kacirir.
+
+   O yuzden ikisi ayrildi:
+     bildirim -> her zaman
+     geri alma -> YALNIZ Savunma Kipi acikken
+   Savunma Kipi zaten "vs atiyoruz, hileler acik" anlamina
+   gelen ACIK bir dugme (v7.29, kullanicinin kendi sozu).
+   Yani yeni bir yargi kurali eklenmedi, var olan dugmeye
+   baglandi.                                                 */
+export const KIP_ACIK    = true;
+export const KIP_IZIN    = ["survival", "adventure"];  // kucuk harf
+export const KIP_SUS     = 200;   // iki bildirim arasi en az tick
+
+/* ---------------- 2. KATI BLOK ICINDE ----------------
+   WClient modulleri: no_clip · phase · tpmine
+   (tpmine: "Ore at (x,y,z) to be mined" -- cevheri gorup
+   yanina isinlaniyor; xray'in OLCULEBILIR akrabasi, cunku
+   xray'in aksine KONUM degistiriyor.)
+
+   REFERANS_SAVUNMA_PLANI.md: "noclip / phase | yok | KATI
+   BLOK ICINDE MI". Burada o.
+
+   ---- NEDEN UST USTE ORNEK ISTENIYOR ----
+   Durust oyuncu da bir an blogun icinde gorunebilir: gecikme,
+   kapi/kepenk, yari blok, bizim kendi isinlanmalarimiz. Tek
+   ornek suclamak yanlis alarm makinesi olurdu. Ust uste
+   KATI_ORNEK ornek boyunca HEM ayak HEM bas hizasi dolu ise
+   isaret konuyor -- bogulan oyuncu o kadar dayanmaz, cikar
+   ya da olur.
+
+   ---- GECILEBILIR BLOK LISTESI DURUSTCE EKSIK ----
+   Blok "kati mi" sorusunun API'de guvenilir tek cevabi yok
+   (surumden surume degisiyor). Asagidaki liste elle yazildi
+   ve TAM DEGIL. Eksik olmasi yanlis alarm uretir, o yuzden
+   esik ust uste ornek isteyecek kadar yuksek. Yeni bir
+   gecilebilir blok yanlis alarm uretirse listeye eklenir.
+
+   ---- YALNIZ SAVUNMA KIPI ACIKKEN CALISIYOR ----
+   Bu denetim blok OKUYOR (ayak + bas hizasi). Bu depoda
+   "bosta duran mod blok okumaz" bir kural ve birden fazla
+   test onu tutuyor; kosulsuz halinde efsane_muzik.mjs "hic
+   blok okunmuyor :: 4 okuma" ile dustu.
+
+   O yuzden Savunma Kipine baglandi -- kullanicinin "vs
+   atiyoruz, hileler acik" dedigi acik dugme (v7.29). Ucreti
+   durustce: DUGME KAPALIYKEN NOCLIP YAKALANMAZ. Gizli
+   kalmasin diye buraya yazildi.                            */
+export const KATI_ACIK   = true;
+export const KATI_ORNEK  = 4;     // ust uste kac tarama
+export const KATI_SUS    = 200;
+export const KATI_GECILEBILIR = [
+  "minecraft:water", "minecraft:flowing_water",
+  "minecraft:lava", "minecraft:flowing_lava",
+  "minecraft:ladder", "minecraft:vine", "minecraft:scaffolding",
+  "minecraft:snow_layer", "minecraft:cobweb",
+  "minecraft:tallgrass", "minecraft:short_grass", "minecraft:double_plant",
+  "minecraft:powder_snow", "minecraft:bubble_column"
+];
+/* Kendi bloklarimiz: kupalar carpismasiz (collision_box false),
+   yani oyuncu gercekten iclerinden gecebiliyor.              */
+export const KATI_GECILEBILIR_ONEK = "pa:";
+
+/* ---------------- 3. AYNI TICK'TE COKLU VURUS ----------------
+   WClient dovus modullerinin hepsinde bir "Packets" ayari var
+   (o5/g AutoFight, o5/j EnemyHunter, o5/q Killaura, o5/t WAura,
+   p5/s OpFightBot -- "packetsPerAttack"). Tek salliste birden
+   fazla saldiri paketi gonderiyor.
+
+   ---- BU OLCUM NEDEN OTEKILERDEN SAGLAM ----
+   Gozcu'nun var olan hiz olcumu saniyedeki vurusa bakiyor ve
+   bunu da yakalar, ama BIR SANIYE beklemesi gerekir. Ayni
+   tick'te AYNI KURBANA iki vurus ise fiziksel olarak imkansiz:
+   tek tickte tek sallis olur. Yani esik 1'in ustu ve yanlis
+   alarm payi aramaya gerek yok.
+
+   AYNI KURBAN sarti onemli: farkli varliklara ayni tickte
+   hasar veren kendi yeteneklerimiz var (Kasirga, Meteor, alan
+   simsegi). Kurban ayrimi olmasaydi savunma kendi oyuncusunu
+   suclardi.                                                 */
+export const TICK_VURUS_ACIK = true;
+export const TICK_VURUS_ESIK = 1;   // ayni tick + ayni kurban: bundan fazlasi
+
+/* ---------------- 4. SAVASTAN KACIS ----------------
+   WClient modulu: auto_disconnect
+   ("AutoDisconnect: Sent '/lobby' at 6.0 HP", Health Threshold,
+   Check Delay). Cani azalinca kendini oyundan atiyor.
+
+   ---- BU ENGELLENEMEZ, AMA GORULEBILIR ----
+   Bir davranis paketi kimsenin cikisini durduramaz. Gorebilecegi
+   sey su: son hasardan KACIS_PENCERE tick gecmeden cikti mi.
+   Dovusun kaydi tutulmus olur; karar kullanicinin.
+
+   Gercek kopmalar da bu pencereye duser (kablo, pil, oyunun
+   cokmesi). O yuzden metin "hile" demiyor, OLCUYU soyluyor:
+   ne kadar can kalmisti, kac saniye once vurulmustu.        */
+export const KACIS_ACIK    = true;
+export const KACIS_PENCERE = 120;   // tick (6 sn)
 
 /* ---------------- Iksirler (Nitroksin sistemi) ----------------
    Referans mod bunu tamamen komutla yapiyordu:

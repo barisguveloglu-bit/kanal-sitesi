@@ -10,8 +10,15 @@ import {
   HAREKET_YUKSELME, HAREKET_YUKSEK_PAY,
   GERI_ITME_ACIK, GERI_ITME_ORNEK, GERI_ITME_BEKLENEN,
   GERI_ITME_HAREKET, GERI_ITME_TAVAN,
-  BLOK_ACIK, BLOK_PENCERE, BLOK_KIRMA_ESIK, BLOK_KOYMA_ESIK, BLOK_SUS
+  BLOK_ACIK, BLOK_PENCERE, BLOK_KIRMA_ESIK, BLOK_KOYMA_ESIK, BLOK_SUS,
+  KIP_ACIK, KIP_IZIN, KIP_SUS,
+  KATI_ACIK, KATI_ORNEK, KATI_SUS, KATI_GECILEBILIR, KATI_GECILEBILIR_ONEK,
+  TICK_VURUS_ACIK, TICK_VURUS_ESIK,
+  KACIS_ACIK, KACIS_PENCERE
 } from "../ayarlar.js";
+/* Oyun kipini GERI ALMAK yalniz Savunma Kipi acikken -- sebebi
+   ayarlar.js'te yazili (kendi dunyasinda insa yapan ev sahibi). */
+import { savunmaVarMi } from "./arinma.js";
 
 /* GOZCU -- vurus denetimi (menzil + killaura).
 
@@ -55,7 +62,7 @@ function uzaklik(a, b) {
 
 /* Vurus anindaki uc olcum. Sebep listesi donuyor -- bos ise
    vurus temiz.                                               */
-export function vurusuOlc(vuran, kurban, simdi, gecmis) {
+export function vurusuOlc(vuran, kurban, simdi, gecmis, ayniTick = 0) {
   const sebep = [];
 
   let goz, yon, hedef;
@@ -97,7 +104,35 @@ export function vurusuOlc(vuran, kurban, simdi, gecmis) {
     sebep.push("saniyede " + birSaniye + " vurus");
   }
 
+  /* 4. AYNI TICK'TE AYNI KURBANA COKLU VURUS  (v7.38)
+
+     WClient'in butun dovus modullerinde bir "Packets" ayari
+     var (packetsPerAttack): tek salliste birden fazla saldiri
+     paketi gonderiyor. 3. olcum bunu da yakalar ama BIR
+     SANIYE bekler; bu olcum ayni tickte yakaliyor ve yanlis
+     alarm payina ihtiyaci yok -- tek tickte tek sallis olur.  */
+  if (ayniTick > TICK_VURUS_ESIK) {
+    sebep.push("aynı tickte " + ayniTick + " vuruş");
+  }
+
   return sebep;
+}
+
+/* Ayni tick + AYNI KURBAN sayaci. Ayri tutuluyor cunku
+   d.vurus yalnizca tick tasiyor ve kurban ayrimi yapamaz.
+
+   KURBAN AYRIMI SART: farkli varliklara ayni tickte hasar
+   veren kendi yeteneklerimiz var (Kasirga, Meteor, alan
+   simsegi). Kurbana bakmayan bir sayac savunmayi kendi
+   oyuncusuna cevirirdi.                                     */
+export function ayniTickSay(d, kurbanId, simdi) {
+  if (!TICK_VURUS_ACIK) return 0;
+  if (!d.tickVurus || d.tickVurus.tick !== simdi ||
+      d.tickVurus.kurbanId !== kurbanId) {
+    d.tickVurus = { tick: simdi, kurbanId, sayi: 0 };
+  }
+  d.tickVurus.sayi += 1;
+  return d.tickVurus.sayi;
 }
 
 function isaretle(vuran, kurban, sebep) {
@@ -148,7 +183,8 @@ export function gozcuKur() {
       if (!d) { d = { isaretler: [], sonBildirim: -99999, vurus: [] }; defter.set(vuran.id, d); }
       const gecmis = d.vurus;
 
-      const sebep = vurusuOlc(vuran, kurban, simdi, gecmis);
+      const sebep = vurusuOlc(vuran, kurban, simdi, gecmis,
+                              ayniTickSay(d, kurban.id, simdi));
 
       /* Vurus gecmisi HER vuruşta buyuyor, sebepli sebepsiz --
          hiz olcumu zaten temiz vuruslari da saymak zorunda. */
@@ -222,6 +258,151 @@ export function hareketMuaf(oyuncu, isVarMi) {
   return undefined;
 }
 
+/* ============================================================
+   OYUN KIPI DENETIMI  --  gamemode_switcher          (v7.38)
+
+   WClient'in modulu ekrana "Switched to Creative" /
+   "Restored to Survival" yaziyor. REFERANS_SAVUNMA_PLANI.md'de
+   bu bosluk zaten "denetle ve geri al" diye duruyordu.
+
+   Olcumde belirsizlik yok -- ya yaratici kiptesin ya degilsin,
+   yanlis alarm imkansiz. Ama GERI ALMA baska bir sey ve
+   sebebi ayarlar.js'te yazili: kendi dunyasinda insa yapan ev
+   sahibini zorla hayatta kalmaya dusuren bir mod, hilecilerden
+   once kendi kullanicisini kacirir. O yuzden bildirim her
+   zaman, geri alma yalniz Savunma Kipi acikken.
+   ============================================================ */
+
+// oyuncuId -> son kip bildirimi (tick)
+const kipDefteri = new Map();
+
+export function kipUnut(oyuncuId) {
+  if (oyuncuId === undefined) kipDefteri.clear();
+  else kipDefteri.delete(oyuncuId);
+}
+
+export function kipDurum(oyuncuId) { return kipDefteri.get(oyuncuId); }
+
+/* Oyuncunun kipini okur. API surumleri arasinda iki bicim var:
+   getGameMode() (yeni) ve gameMode alani (eski). Ikisi de
+   yoksa DENETLENMIYOR -- okuyamadigimiz seyi suclamiyoruz. */
+function kipOku(oyuncu) {
+  try {
+    if (typeof oyuncu.getGameMode === "function") {
+      const g = oyuncu.getGameMode();
+      return g === undefined || g === null ? undefined : String(g).toLowerCase();
+    }
+    if (oyuncu.gameMode !== undefined && oyuncu.gameMode !== null) {
+      return String(oyuncu.gameMode).toLowerCase();
+    }
+  } catch (e) {
+    hataYaz("gozcu.kipOku", e);
+  }
+  return undefined;
+}
+
+/* Geri alma: once API, olmazsa komut. Ikisi de olmazsa false
+   doner ve bildirim "geri alinamadi" der -- sessizce basarili
+   gorunmek, hic denememekten kotudur.                       */
+function kipGeriAl(oyuncu, hedef) {
+  try {
+    if (typeof oyuncu.setGameMode === "function") {
+      oyuncu.setGameMode(hedef);
+      return true;
+    }
+  } catch (e) { hataYaz("gozcu.kipYaz", e); }
+  try {
+    if (typeof oyuncu.runCommand === "function") {
+      oyuncu.runCommand("gamemode " + hedef);
+      return true;
+    }
+  } catch (e) { hataYaz("gozcu.kipKomut", e); }
+  return false;
+}
+
+/* Tek oyuncunun denetimi. Disari veriliyor ki test onu tarama
+   dongusu olmadan da cagirabilsin.                          */
+export function kipDenetle(oyuncu) {
+  if (!KIP_ACIK) return null;
+  if (!gecerliMi(oyuncu)) return null;
+  const kip = kipOku(oyuncu);
+  if (kip === undefined) return null;              // okunamadi -> suclama yok
+  if (KIP_IZIN.indexOf(kip) !== -1) return null;
+
+  const simdi = system.currentTick;
+  const son = kipDefteri.get(oyuncu.id);
+  if (son !== undefined && simdi - son < KIP_SUS) return null;
+  kipDefteri.set(oyuncu.id, simdi);
+
+  let ad = "?";
+  try { ad = oyuncu.name || oyuncu.typeId || "?"; } catch (e) { /* onemsiz */ }
+
+  let geri = false;
+  if (savunmaVarMi()) geri = kipGeriAl(oyuncu, KIP_IZIN[0]);
+
+  sohbeteYaz("§c⚠ Gözcü: §f" + ad + " §7· oyun kipi §f" + kip + " §8· " +
+             (geri ? "§a" + KIP_IZIN[0] + "'a geri alındı"
+                   : savunmaVarMi() ? "§cgeri alınamadı"
+                                    : "§7Savunma Kipi kapalı, geri alınmadı"));
+  return { kip, geriAlindi: geri };
+}
+
+
+/* ============================================================
+   KATI BLOK ICINDE  --  no_clip · phase · tpmine    (v7.38)
+
+   REFERANS_SAVUNMA_PLANI.md'de onerilen ama yazilmamis olcum
+   buydu: "noclip / phase | yok | katı blok içinde mi".
+
+   tpmine de buraya dusuyor: cevheri gorup yanina isinlaniyor,
+   yani xray'in aksine KONUM degistiriyor -- ve cevherin yani
+   genellikle tasin icidir.
+
+   ---- UST USTE ORNEK, TEK ORNEK DEGIL ----
+   Durust oyuncu da bir an blogun icinde gorunur: gecikme,
+   kapi, yari blok, bizim kendi isinlanmalarimiz. Ust uste
+   KATI_ORNEK ornek boyunca HEM ayak HEM bas hizasi dolu
+   olmasi gerekiyor. Bogulan oyuncu o kadar dayanmaz.
+
+   ---- LISTE EKSIK OLDUGUNU BILEREK ----
+   "Bu blok kati mi" sorusunun API'de guvenilir tek cevabi yok.
+   KATI_GECILEBILIR elle yazildi ve tam degil; esik bu yuzden
+   ust uste ornek istiyor.
+   ============================================================ */
+
+function gecilebilirMi(blok) {
+  try {
+    if (!blok) return true;
+    if (blok.isAir) return true;
+    if (blok.isLiquid === true) return true;
+    const tip = blok.typeId;
+    if (typeof tip !== "string") return true;      // okunamadi -> muaf
+    if (tip.indexOf(KATI_GECILEBILIR_ONEK) === 0) return true;
+    return KATI_GECILEBILIR.indexOf(tip) !== -1;
+  } catch (e) {
+    hataYaz("gozcu.gecilebilir", e);
+    return true;                                   // suphede muaf
+  }
+}
+
+/* Ayak ve bas hizasi birden dolu mu. undefined = olculemedi. */
+export function katidaMi(oyuncu) {
+  try {
+    const boyut = oyuncu.dimension;
+    const k = oyuncu.location;
+    if (!boyut || typeof boyut.getBlock !== "function" || !k) return undefined;
+    const ayak = boyut.getBlock({ x: k.x, y: k.y, z: k.z });
+    const bas = boyut.getBlock({ x: k.x, y: k.y + 1, z: k.z });
+    if (!ayak || !bas) return undefined;
+    return !gecilebilirMi(ayak) && !gecilebilirMi(bas);
+  } catch (e) {
+    /* Dunya sinirinin disi ya da yuklenmemis parca: OLCULEMEDI.
+       Burada "kati" demek, yeni dogan oyuncuyu suclamak olurdu. */
+    return undefined;
+  }
+}
+
+
 /* main.js her HAREKET_ORNEK tickte cagiriyor. */
 export function hareketTara(oyuncular, isVarMi) {
   if (!GOZCU_ACIK || !HAREKET_ACIK) return;
@@ -229,11 +410,20 @@ export function hareketTara(oyuncular, isVarMi) {
   for (const o of oyuncular) {
     try {
       if (!gecerliMi(o)) continue;
+
+      /* OYUN KIPI once ve MUAFIYETTEN BAGIMSIZ: calisan bir isi
+         olan oyuncu da yaratici kipte olabilir. Hareket
+         olcumleriyle hicbir ortak yani yok, sadece ayni
+         taramaya biniyor (depo kurali: yeni dongu acma).    */
+      kipDenetle(o);
+
       const k = o.location;
       if (!k) continue;
       const onceki = izler.get(o.id);
       izler.set(o.id, { konum: { x: k.x, y: k.y, z: k.z }, tick: simdi,
-                        yukselme: onceki ? onceki.yukselme : 0 });
+                        yukselme: onceki ? onceki.yukselme : 0,
+                        kati: onceki ? onceki.kati : 0,
+                        katiBildirim: onceki ? onceki.katiBildirim : -99999 });
       if (!onceki) continue;
 
       const gecen = simdi - onceki.tick;
@@ -244,13 +434,53 @@ export function hareketTara(oyuncular, isVarMi) {
          bitince olcum dogru yerden devam ediyor.             */
       const muaf = hareketMuaf(o, isVarMi);
       const iz = izler.get(o.id);
-      if (muaf) { iz.yukselme = 0; continue; }
+      if (muaf) { iz.yukselme = 0; iz.kati = 0; continue; }
 
       const dx = k.x - onceki.konum.x;
       const dy = k.y - onceki.konum.y;
       const dz = k.z - onceki.konum.z;
       const yatay = Math.sqrt(dx * dx + dz * dz);
       const toplam = Math.sqrt(dx * dx + dy * dy + dz * dz);
+
+      /* KATI BLOK ICINDE -- ust uste ornek sayiliyor.
+
+         ---- BLOK OKUMA BUTCESI: OLCULDU ----
+         Ilk yazilista bu denetim HER taramada iki blok
+         okuyordu ve dort test birden dustu ("hic blok
+         okunmuyor :: 80 okuma"). Bu depoda bosta duran modun
+         blok okumamasi bir kural, kaza degil.
+
+         Iki kosul kondu:
+           1. SAVUNMA KIPI acik olacak. Bu, kullanicinin "vs
+              atiyoruz" dedigi acik dugme (v7.29) -- yani
+              denetim tam gerektigi anda calisiyor, normal
+              oyunda hic blok okumuyor. Ucreti durustce
+              soylemek gerekirse: dugme kapaliyken noclip
+              yakalanmaz.
+           2. Oyuncu KIMILDAMIS olacak, ya da sayaci zaten
+              acilmis olacak. noclip/phase/tpmine ucu de
+              hareketle oluyor; duvara girerken ilk okuma
+              yapiliyor, sonra durup beklese de sayac acik
+              oldugu icin takip ediliyor.
+
+         1. kosul olcumle geldi: kosulsuz halinde efsane_muzik
+         "hic blok okunmuyor :: 4 okuma" ile dustu. O test
+         hakliydi -- bosta duran modun blok okumamasi bu
+         depoda bir kural.                                   */
+      if (KATI_ACIK && savunmaVarMi() &&
+          (toplam > 0.05 || (iz.kati || 0) > 0)) {
+        const icinde = katidaMi(o);
+        if (icinde === true) iz.kati = (iz.kati || 0) + 1;
+        else if (icinde === false) iz.kati = 0;
+        /* undefined = olculemedi: sayaci ne artir ne sifirla,
+           yuklenmemis bir parca ne kanit ne aklama.          */
+        if (iz.kati >= KATI_ORNEK &&
+            simdi - (iz.katiBildirim || -99999) >= KATI_SUS) {
+          iz.katiBildirim = simdi;
+          iz.kati = 0;
+          isaretle(o, o, ["katı blok içinde " + KATI_ORNEK + " örnek"]);
+        }
+      }
 
       /* Uc olcum de yapiliyor ve sebepler BIRLIKTE bildiriliyor.
          Ilk yazilista isinlanma bulununca "continue" ediliyordu;
@@ -515,4 +745,90 @@ export function blokHizKur(isVarMi) {
     catch (e) { hataYaz("gozcu.blokKoyma", e); }
   });
   return kir || koy;
+}
+
+
+/* ============================================================
+   SAVASTAN KACIS  --  auto_disconnect                (v7.38)
+
+   WClient modulu, ekran metniyle:
+       "AutoDisconnect: Sent '/lobby' at 6.0 HP"
+   Ayarlari: Health Threshold, Check Delay, Command.
+   Yani cani esigin altina duserse kendini oyundan atiyor.
+
+   ---- BU ENGELLENEMEZ, SADECE GORULEBILIR ----
+   Bir davranis paketi kimsenin baglantisini tutamaz. Yapabildigi
+   tek sey kaydi tutmak: son hasardan KACIS_PENCERE tick
+   gecmeden cikti mi, o an kac cani kalmisti.
+
+   ---- METIN NEDEN "HILE" DEMIYOR ----
+   Gercek kopmalar da tam bu pencereye duser: kablo, pil, oyunun
+   cokmesi. Bildirim OLCUYU soyluyor ("3.2 sn once vuruldu, 6
+   can kalmisti"), hukmu degil. Bu dosyanin geri kalaninin
+   kurali burada da gecerli: yanlis suclama kacan hileden pahali.
+
+   ---- CAN NEDEN HASAR ANINDA OKUNUYOR ----
+   playerLeave geldiginde oyuncu nesnesi artik yok; elde yalniz
+   kimlik ve ad var. O yuzden can, hasar aninda kaydediliyor.
+   ============================================================ */
+
+// oyuncuId -> { tick, can }
+const kacisDefteri = new Map();
+
+export function kacisUnut(oyuncuId) {
+  if (oyuncuId === undefined) kacisDefteri.clear();
+  else kacisDefteri.delete(oyuncuId);
+}
+
+export function kacisDurum(oyuncuId) { return kacisDefteri.get(oyuncuId); }
+
+function canOku(varlik) {
+  try {
+    if (typeof varlik.getComponent !== "function") return undefined;
+    const c = varlik.getComponent("minecraft:health");
+    if (!c) return undefined;
+    const v = c.currentValue;
+    return typeof v === "number" ? v : undefined;
+  } catch (e) {
+    return undefined;
+  }
+}
+
+/* Hasar kaydi. Disari veriliyor ki test olay sistemi olmadan da
+   cagirabilsin -- abonelik kurulamayan bir API surumunde testin
+   sessizce gecmesi istenmiyor (blokOlayi'ndaki ayni gerekce). */
+export function kacisHasar(kurban, simdi) {
+  if (!KACIS_ACIK) return null;
+  if (!kurban || !gecerliMi(kurban)) return null;
+  if (kurban.typeId !== "minecraft:player") return null;
+  const kayit = { tick: simdi, can: canOku(kurban) };
+  kacisDefteri.set(kurban.id, kayit);
+  return kayit;
+}
+
+/* main.js playerLeave'de cagiriyor. Sebep metni doner, yoksa null. */
+export function kacisAyrilma(oyuncuId, ad, simdi) {
+  if (!KACIS_ACIK) return null;
+  const kayit = kacisDefteri.get(oyuncuId);
+  kacisDefteri.delete(oyuncuId);
+  if (!kayit) return null;
+  const gecen = simdi - kayit.tick;
+  if (gecen < 0 || gecen >= KACIS_PENCERE) return null;
+
+  const canMetni = kayit.can === undefined
+    ? "" : " §8· kalan can " + kayit.can.toFixed(1);
+  const sebep = "son hasardan " + (gecen / 20).toFixed(1) + " sn sonra çıktı";
+  sohbeteYaz("§c⚠ Gözcü: §f" + (ad || "?") + " §7· " + sebep + canMetni);
+  return sebep;
+}
+
+export function kacisKur() {
+  if (!KACIS_ACIK) return false;
+  return olayaAbone("entityHurt", (olay) => {
+    try {
+      kacisHasar(olay.hurtEntity, system.currentTick);
+    } catch (e) {
+      hataYaz("gozcu.kacisHasar", e);
+    }
+  });
 }

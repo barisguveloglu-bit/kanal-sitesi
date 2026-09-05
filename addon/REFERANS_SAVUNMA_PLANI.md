@@ -133,3 +133,65 @@ güncellendi (bkz. `REFERANS_WDBAX_APK.md`). Ayrıca eklendi:
 
 Geriye kalan gerçek açıklar: `/kill`, `/damage`, `/gamemode`,
 `/summon` ve ekran-tarafı görüş hileleri (ESP ailesi).
+
+
+## v7.38 sonrası durum — iki APK daha
+
+`REFERANS_BLOODY_APK.md` · `REFERANS_WCLIENT_APK.md`
+
+**BloodyClient**, Toolbox'ın üçüncü kopyası çıktı: 65 ayar
+anahtarı yukarıdaki listeyle birebir aynı. Yeni saldırı yok,
+yeni savunma da gerekmedi.
+
+**WClient v36** bu dosyanın varsayımını değiştiriyor. Yukarıdaki
+tehdit modeli "oyunun içine giren araç" üzerine kuruluydu.
+WClient bir **vekil**: oyun `127.0.0.1:19132`'ye bağlanıyor,
+vekil gerçek sunucuya bağlanıyor, aradaki paketleri yeniden
+yazıyor. Sonuçları:
+
+- **Oyun sürümüne bağlı değil.** Toolbox beş ayrı `.so` taşıyor;
+  vekil protokol konuşuyor (53–898 arası sürümler).
+- **Operatör yetkisi hiç istemiyor.** Yukarıdaki "operatör
+  kapısı gerekli ama yeterli değil" düzeltmesi burada iyice
+  keskinleşiyor: `give_item`/`enchant`/`nbt_editor` gibi komut
+  ailesi zaten küçük bir dilimdi, vekilde daha da küçük.
+- **Ama gönderdiği her şey hâlâ paket.** Ölçülebilir olan
+  ölçülebilir kalıyor. Vekil olması savunmayı zorlaştırmıyor;
+  kapsamı genişletiyor.
+
+### Tabloya eklenenler
+
+| senaryo | bugün |
+|---|---|
+| `packetsPerAttack` (tek sallışta çoklu saldırı) | **Gözcü · aynı tick** ✓ (v7.38) |
+| gamemode creative'e geçme | **Oyun kipi denetimi** ✓ (v7.38) |
+| noclip · phase | **Katı blok içinde** ✓ (v7.38, Savunma Kipi) |
+| tpmine (cevhere ışınlanma) | **Katı blok içinde** ✓ (v7.38, Savunma Kipi) |
+| auto_disconnect (savaştan kaçış) | **Kaçış denetimi** ✓ (v7.38, bildirim) |
+
+"Önerilen sıra" listesindeki 5. madde (**gamemode denetimi**)
+ve "yapılabilir" sütunundaki **noclip/phase** böylece kapandı.
+
+### Hâlâ açık kalanlar
+
+- `/kill` · `/damage` · `/summon` — komut ailesi, karşılığı yok.
+- **Bütün görüntü ailesi** — BlockESP · ChestESP · Nametags ·
+  Minimap · FreeCamera · Fullbright · Zoom · StashFinder ·
+  ChunkFinder. Sunucuya hiçbir şey göndermiyorlar. **Bu satır
+  değişmeyecek**; mümkün değil, mümkünmüş gibi de yazılmayacak.
+- `AntiDebuff` — vekil etkiyi istemciye ulaşmadan düşürüyor,
+  sunucuda etki duruyor: ölçülecek iz yok. Zaten işine de
+  yaramıyor, hasar sunucu tarafında uygulanıyor.
+- Envanter otomasyonu (`AutoTotem`, `InventoryHelper`,
+  `Switcher`, `FastDrop`) — insanın hızlı yapmasından ayırt
+  edilemez.
+- `Disabler` · `Desync` · `PingSpoof` · `Blink` — paketi
+  geciktirip toplu gönderiyorlar. İzleri ışınlanma ölçümüne
+  düşüyor ama bu tesadüfi; ölçüm bunun için yazılmadı.
+
+### Kapalı düğme uyarısı
+
+Katı blok denetimi **Savunma Kipi açıkken** çalışıyor (blok
+okuma bütçesi, `REFERANS_WCLIENT_APK.md`). Oyun kipini **geri
+alma** da öyle. İkisi de vs başlarken düğmeye basılmasına bağlı;
+basılmazsa ölçüm yapılmıyor. Gizli kalmasın diye buraya yazıldı.

@@ -50,6 +50,17 @@ export function arinmaUnut(oyuncuId) {
 
 export function savunmadaMi(oyuncuId) { return savunmada.has(oyuncuId); }
 
+/* Savunma Kipi HERHANGI BIR oyuncuda acik mi (v7.38).
+
+   Gozcu'nun oyun kipi denetimi buna bakiyor. Neden kisiye
+   degil dunyaya bakiyor: Savunma Kipini KENDINI savunan
+   acar, oysa yaratici kipe gecen KARSI TARAFTIR. Kisiye
+   bakan bir kosul her zaman yanlis cikardi.
+
+   Yani bunun anlami "su an bir vs var" -- kullanicinin
+   dugmeyi actigi an zaten tam olarak bunu soyluyor.        */
+export function savunmaVarMi() { return savunmada.size > 0; }
+
 function komut(oyuncu, metin) {
   try {
     if (typeof oyuncu.runCommand !== "function") return false;
