@@ -319,5 +319,79 @@ console.log("=== 5. SOHBET: SALT-OKUNUR KIP VE YANILTICI MESAJ ===");
 }
 
 console.log("");
+console.log("=== 6. MIN_ENGINE_VERSION / MANIFEST TUTARLILIGI ===");
+{
+  /* ---- BULGU 6 v7.41'DE KAPANDI ----
+     Rapor "min_engine_version [1,21,0] ama bagimlilik
+     @minecraft/server 2.0.0 -- 1.21.0'da paket uyumlu gorunup
+     script modulu hic yuklenmez" dedi. Dogruydu; v7.40'ta
+     BILEREK dokunulmadi cunku dogru alt sinir belgede yoktu ve
+     duello oncesi tahminle degistirmek calisan bir kurulumu
+     kilitleyebilirdi.
+
+     Kullanici surumunu verdi (v26.45, protokol 2169) ve
+     Minecraft'in Aralik 2025'te YIL TABANLI surumlemeye
+     gectigi goruldu: 1.21.132'den sonra 26.0 geliyor. Yani
+     eklenti eski olcegin cok otesinde bir oyunda calisiyor.
+
+     [26,45,0] YAZILMADI: resmi manifest belgesi (format 2)
+     min_engine_version'i hala [a,b,c] vektoru olarak
+     tanimliyor ve butun ornekleri 1.x; yil tabanli bir major
+     kabul edilir mi belgelenmemis. Reddedilirse eklenti hic
+     yuklenmez.                                              */
+  const kok = new URL("..", import.meta.url).pathname.replace(/\/$/, "");
+  const oku = (p) => JSON.parse(readFileSync(kok + "/" + p + "/manifest.json", "utf8"));
+
+  const bp = oku("Simsek_TNT_ToprakTopu");
+  const mev = bp.header.min_engine_version;
+  kontrol("BP min_engine_version okundu", Array.isArray(mev), JSON.stringify(mev));
+
+  /* 2.0.0-beta 1.21.70 onizlemelerinde gorundu; alt sinir
+     ondan KUCUK olamaz. Sayi olarak karsilastiriliyor.     */
+  const sayi = (v) => v[0] * 1000000 + v[1] * 1000 + v[2];
+  kontrol("min_engine_version 1.21.70'ten kucuk DEGIL",
+          sayi(mev) >= sayi([1, 21, 70]), JSON.stringify(mev));
+  /* Ust sinir: eski olcegin son surumu. Yil tabanli major
+     denenmemis, bilerek girilmedi.                         */
+  kontrol("major hala 1 (yil tabanli major denenmedi)", mev[0] === 1,
+          String(mev[0]));
+
+  /* Uc paket de AYNI degeri tasimali -- tek yerden yaziliyor. */
+  for (const p of ["Simsek_Kol_Kaynak", "Simsek_Oyuncu_Modeli"]) {
+    const m = oku(p).header.min_engine_version;
+    kontrol(p + " ayni min_engine_version", JSON.stringify(m) === JSON.stringify(mev),
+            JSON.stringify(m));
+  }
+
+  /* Bagimlilikla tutarli olmali: 2.x isteniyorsa alt sinir da
+     2.x'i tasiyan bir surum olmali.                        */
+  const srv = (bp.dependencies || []).find((d) => d.module_name === "@minecraft/server");
+  kontrol("@minecraft/server bagimliligi var", !!srv, srv ? srv.version : "yok");
+  if (srv && String(srv.version).startsWith("2.")) {
+    kontrol("  2.x isteniyor, min_engine_version da 1.21.70+",
+            sayi(mev) >= sayi([1, 21, 70]));
+  }
+
+  /* ---- SKIN PAKETINDE min_engine_version YOKLUGU KUSUR DEGIL ----
+     Rapor "diger ucunde var, skinde yok" dedi. Belge acik:
+     min_engine_version "resource ve behavior paketleri icin
+     ZORUNLU bir alan". Skin paketinin modulu skin_pack, ikisi
+     de degil. Eksiklik degil, dogru hal.                   */
+  const skin = oku("Simsek_Skin");
+  kontrol("skin paketi modulu skin_pack",
+          (skin.modules || []).some((m) => m.type === "skin_pack"));
+  kontrol("skin paketinde min_engine_version YOK (dogrusu bu)",
+          skin.header.min_engine_version === undefined);
+
+  /* Uretecin tek kaynagi -- uc pakette elle yazilirsa biri
+     unutulur. v7.33'te tam bu olmustu.                     */
+  const uretec = readFileSync(kok + "/kol_uret.py", "utf8");
+  kontrol("uretecte tek sabit var (MIN_MOTOR)",
+          /^MIN_MOTOR = \[/m.test(uretec));
+  kontrol("elle yazilmis [1, 21, 0] kalmadi",
+          !/"min_engine_version": \[1, 21, 0\]/.test(uretec));
+}
+
+console.log("");
 console.log(hata ? ">>> SORUN VAR" : ">>> denetim bulgulari kapali");
 process.exit(hata ? 1 : 0);

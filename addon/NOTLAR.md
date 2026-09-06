@@ -1,3 +1,91 @@
+# v7.41.0 — min_engine_version: açık madde kapandı
+
+Kullanıcı oyununun sürüm bilgisini verdi:
+
+    Sürüm v26.45 · Protokol 2169 · Branch r/26_u4
+
+## Önce şaşırtan şey: bu Bedrock sürümü
+
+`26.45` ilk bakışta Minecraft'a benzemiyor — bildiğimiz biçim
+`1.21.x` ve protokol ~800 aralığında. Tahmin etmek yerine
+bakıldı: **Minecraft Aralık 2025'te yıl tabanlı sürümlemeye
+geçmiş.** `1.21.132`'den sonra `26.0` geliyor; biçim `YY.D.H`
+(yıl · game drop · hotfix). `26.45` 28 Ağustos 2026 tarihli bir
+hotfix ve protokolü **2169**.
+
+Yani "%12169" ekrandaki bir gösterim artığı; gerçek değer 2169.
+
+Kaynak: `minecraft.wiki/w/Bedrock_Edition_26.0` ve `_26.45`.
+
+## Kapanan madde
+
+v7.40'ta dış inceleme şunu bulmuştu ve **haklıydı**:
+
+> `min_engine_version [1,21,0]` ama bağımlılık
+> `@minecraft/server 2.0.0`. 1.21.0'da paket "uyumlu" görünüp
+> script modülü hiç yüklenmez.
+
+O turda **bilerek dokunulmadı**: doğru alt sınır belgede yoktu
+ve düello öncesi tahminle değiştirmek çalışan bir kurulumu
+kilitleyebilirdi. Bu, `NOTLAR` "Bekleyen işler"in 1. maddesiydi
+ve orada da *"doğru değeri yazmak için oyunun tablet üzerindeki
+sürümünün bilinmesi gerekiyor"* yazıyordu.
+
+Sürüm gelince kapandı: **`[1, 21, 0]` → `[1, 21, 132]`**, üç
+pakette birden, tek sabitten (`MIN_MOTOR`).
+
+## Neden 1.21.132, neden 26.45 değil
+
+1. **Resmî manifest belgesi (format 2)** `min_engine_version`'ı
+   hâlâ `[a, b, c]` **vektörü** olarak tanımlıyor ve bütün
+   örnekleri `1.x`. Yıl tabanlı bir major (`26`) kabul edilir mi
+   **belgelenmemiş**. Reddedilirse eklenti hiç yüklenmez — yani
+   yanlış tahminin bedeli, düzeltmenin kazancından büyük.
+   (Sürüm 3 manifesti semver *dizesi* istiyor ama o hâlâ
+   önizlemede.)
+2. **1.21.132 eski ölçeğin son sürümü**, yani `26.0`'ın hemen
+   öncesi. `2.0.0-beta` 1.21.70 önizlemelerinde göründüğüne göre
+   2.0.0 bu aralıktan önce değil — 1.21.132 güvenli üst sınır.
+3. Kullanıcının oyunu 26.45, yani bu değerin **çok üstünde**.
+   Kurulumu bozmuyor.
+
+## Yükseltmenin davranış riski ölçüldü: yok
+
+`min_engine_version` yalnızca sürüm etiketi değil — belgeye göre
+**uyumluluk kalıplarını** da etkiliyor: mcfunction'lardaki komut
+sürümü, `tick.json` ve **davranış animasyonları**.
+
+Pakette üçü de **yok**, sayıldı:
+
+    0 mcfunction · 0 tick.json
+    0 BP animations · 0 BP animation_controllers
+
+Yani bu pakette `min_engine_version`'ın tek işlevi script modülü
+çözümlemesi. Yükseltmenin davranışı değiştirme riski sıfır.
+
+## Skin paketindeki "eksik" eksik değil
+
+Rapor *"skin paketi manifest'inde min_engine_version yok —
+diğer üçünde var"* demişti. Belge açık: min_engine_version
+**"resource ve behavior paketleri için zorunlu bir alan"**.
+Skin paketinin modülü `skin_pack`, ikisi de değil. Olmaması
+doğru hâl; eklemek yanlış olurdu.
+
+## Test
+
+`denetim.mjs`'e 6. bölüm eklendi. İki mutasyon, ikisi de
+yakalandı: `[1,21,0]`'a geri düşürmek ve `[26,45,0]` yazmak.
+İkinci madde bilerek var — yıl tabanlı major **denenmedi**, ve
+biri denemeye kalkarsa bunun bilinçli bir sınır olduğunu
+görsün.
+
+## Bekleyen
+
+- `[26, 45, 0]` denenmedi. Belge yıl tabanlı major'ı
+  kapsayınca ya da biri oyunda deneyince güncellenebilir.
+- Bu sürümde de hiçbir şey oyunda denenmedi.
+
+
 # v7.40.0 — Dış inceleme raporu: doğrulandı ve kapatıldı
 
 Kullanıcı paketi başka bir modele statik olarak taratıp raporu

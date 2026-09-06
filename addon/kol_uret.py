@@ -102,9 +102,46 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # tureniyor -- ayrisabilecekleri bir yer kalmadi.
 #
 # YENI SURUM CIKARIRKEN: yalnizca asagidaki satiri degistir.
-SURUM_NO = (7, 40, 0)
+SURUM_NO = (7, 41, 0)
 
 SURUM_METIN = "%d.%d.%d" % SURUM_NO
+
+# ---------------- MIN_ENGINE_VERSION -------------------------
+# Uc pakette de tek yerden yaziliyor.
+#
+# ---- 1.21.0 NEDEN YANLISTI (v7.41) ----
+# Dis inceleme "min_engine_version [1,21,0] ama bagimlilik
+# @minecraft/server 2.0.0 -- 1.21.0'da paket uyumlu gorunup
+# script modulu hic yuklenmez" dedi. Dogruydu ama alt sinirin
+# NE OLMASI gerektigi belgede yoktu, o yuzden v7.40'ta bilerek
+# dokunulmadi: duello oncesi tahminle degistirmek calisan bir
+# kurulumu kilitleyebilirdi.
+#
+# ---- KULLANICI SURUM BILGISINI VERDI ----
+#   Surum v26.45 · Protokol 2169 · Branch r/26_u4
+# Minecraft Aralik 2025'te YIL TABANLI surumlemeye gecmis:
+# 1.21.132'den sonra 26.0 geliyor (minecraft.wiki). Yani
+# kullanicinin oyunu eski olcegin cok otesinde ve eklenti
+# orada calisiyor -- 2.0.0 o surumde COZULUYOR, olculdu.
+#
+# ---- NEDEN [1, 21, 132], [26, 45, 0] DEGIL ----
+# 1. Resmi manifest belgesi (format 2) min_engine_version'i
+#    hala [a,b,c] vektoru olarak tanimliyor ve orneklerin
+#    hepsi 1.x. Yil tabanli bir major ("26") kabul edilir mi
+#    BELGELENMEMIS; reddedilirse eklenti hic yuklenmez.
+# 2. 1.21.132 eski olcegin SON surumu, yani 26.0'in hemen
+#    oncesi. 2.0.0-beta 1.21.70 onizlemelerinde gorundugune
+#    gore 2.0.0 bu araliktan once degil -- 1.21.132 guvenli
+#    ust sinir.
+# 3. Yukseltmenin DAVRANIS riski YOK: min_engine_version
+#    uyumluluk kaliplarini mcfunction, tick.json ve DAVRANIS
+#    animasyonlari uzerinden etkiliyor (belge). Bu pakette
+#    ucu de YOK -- olculdu (0 mcfunction, 0 tick.json,
+#    0 animations, 0 animation_controllers).
+#
+# Kaynak: learn.microsoft.com packmanifest + scripting
+# versioning; minecraft.wiki Bedrock_Edition_26.0.
+MIN_MOTOR = [1, 21, 132]
 SURUM_ETIKET = "v" + SURUM_METIN
 
 # ---- PAKET ADLARI ----
@@ -5893,13 +5930,10 @@ def oyuncu_modeli_paketi(surum):
             "description": PAKETLER["omp"][1],
             "uuid": OMP_UUID_BAS,
             "version": surum,
-            # v7.33: 1.20.0 -> 1.21.0. Bloklarimiz
-            # format_version 1.21.0 ile yaziliyor ve ozel
-            # geometri + material_instances kullaniyor; paket
-            # 1.20.0 diye isaretliyken oyun onu eski surum
-            # kurallariyla okuyor. Kupalar dısarıdan
-            # gorunmemesinin en olasi sebebi bu uyumsuzluk.
-            "min_engine_version": [1, 21, 0],
+            # v7.41: MIN_MOTOR'dan (bkz. yukarisi). Eskiden
+            # elle [1, 21, 0] yaziliyordu ve @minecraft/server
+            # 2.0.0 ile tutarsizdi.
+            "min_engine_version": list(MIN_MOTOR),
         },
         "modules": [{
             "type": "resources",
@@ -9903,7 +9937,7 @@ def manifestleri_yaz():
         # isaretliyken oyun onu eski surum kurallariyla okuyor.
         # Oyuncu modeli paketi zaten 1.21.0'daydi -- ucu de
         # ayni olsun diye tek yerden yaziliyor.
-        d["header"]["min_engine_version"] = [1, 21, 0]
+        d["header"]["min_engine_version"] = list(MIN_MOTOR)
         for m in d.get("modules", []):
             m["version"] = list(SURUM_NO)
         yaz_json(yol, d)
