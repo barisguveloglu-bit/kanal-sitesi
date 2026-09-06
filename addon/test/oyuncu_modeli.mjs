@@ -64,6 +64,44 @@ console.log("=== 1. TABAN VANILLA OYUNCU TANIMI ===");
     kontrol("referansin '" + yabanci + "' eki temizlenmis",
             !ham.includes(yabanci));
   }
+
+  /* ---- TABAN ESKIMESIN  (v7.45) ----
+     Bu paket vanilla'nin player.entity.json'unu EZIYOR. Yani
+     vanilla'da olup bizim kopyada olmayan her sey, paketi kuran
+     oyuncudan SILINIYOR -- kopya eskidikce sessizce ozellik
+     kaybediyoruz.
+
+     v7.45'te Mojang/bedrock-samples'in guncel dosyasiyla
+     (format_version 1.26.0) karsilastirildi ve DORT esleme
+     eksik cikti. Dordu de eklendi; asagidaki liste onlarin bir
+     daha dusmemesini tutuyor.
+
+     Neden liste, neden "sayi > 50" degil: sayi kontrolu zaten
+     vardi ve DORT eksigi gormedi. 73 de 77 de "50'den buyuk".  */
+  const VANILLA_1_26 = {
+    /* KANITLI: gonderilen controller.animation.player.* onu
+       adiyla cagiriyor, esleme yokken hic oynamiyordu.        */
+    first_person_breathing_bob: "animation.player.first_person.breathing_bob",
+    /* Bu ucunun cagrildigi yeri ornek pakette BULAMADIM; motor
+       iceriden cagiriyor olabilir. Yine de duruyorlar --
+       cagrilmayan bir esleme atil, eksik olan ise kayip.      */
+    first_person_attack_rotation_item:
+      "animation.player.first_person.attack_rotation_item",
+    first_person_crossbow_hold: "animation.player.first_person.crossbow_hold",
+    fishing_rod: "animation.humanoid.fishing_rod"
+  };
+  for (const [kisa, tam] of Object.entries(VANILLA_1_26)) {
+    kontrol("  vanilla '" + kisa + "' eslemesi duruyor",
+            d.animations[kisa] === tam, String(d.animations[kisa]));
+  }
+
+  /* Vanilla bu carpani 10.0'dan 5.0'a indirmisti; bizim kopya
+     eski degeri tasiyordu (saldiri sirasinda govde iki kati
+     donuyordu).                                               */
+  const govde = d.scripts.pre_animation.find(
+    (x) => x.includes("attack_body_rot_y"));
+  kontrol("  attack_body_rot_y vanilla degerinde (5.0)",
+          !!govde && govde.includes("* 5.0"), String(govde));
 }
 
 console.log("");

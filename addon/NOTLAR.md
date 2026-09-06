@@ -1,3 +1,119 @@
+# v7.45.0 — eski sürüm teknolojisi taraması
+
+Kullanıcı: *"genel bir tarama zamanı, kullandığımız eski sürüm
+teknolojileri falan var mı bir bakar mısın, yenisiyle değil
+**uygun şekilde** değiştirin."*
+
+"Uygun şekilde" doğru kelime. Bedrock'ta `format_version`
+**güncel tutulacak bir sürüm değil, ayrıştırma sözleşmesidir**:
+yükseltmek bileşenlerin nasıl okunduğunu değiştirir. Bu yüzden
+tarama "eski mi?" değil **"eski olması bize bir şey kaybettiriyor
+mu?"** sorusuyla yapıldı.
+
+Karşılaştırma `Mojang/bedrock-samples` (`main`, sürüm 1.26.40.5)
+ile — tahminle değil, indirilip okunarak.
+
+## Envanter
+
+| tür | bizde | vanilla güncel | hüküm |
+|---|---|---|---|
+| manifest | `2` | `2` | **güncel** |
+| attachables (330) | `1.10.0` | `1.10.0` | **güncel** |
+| render_controllers | `1.8.0` | `1.8.0` | **güncel** |
+| sound_definitions | `1.20.20` | `1.20.20` | **güncel** |
+| geometry (346) | `1.12.0` | `1.8.0` | bizimki **daha yeni** |
+| items (516) | `1.21.0` | `1.26.30` | eski — bilerek |
+| blocks (10) | `1.21.0` | — | eski — bilerek |
+| BP entities (13) | `1.16.0` / `1.18.20` | `1.26.x` | eski — bilerek |
+| RP entity (13) | `1.10.0` | `1.26.0` | eski — bilerek |
+| script API | `2.0.0` | `2.9.0` | eski — bilerek |
+
+Yani "eskimiş" görünen çoğu şey aslında **güncel**.
+
+## Bileşen taraması — temiz
+
+Paketin ürettiği **87 benzersiz** `minecraft:*` bileşeninin tamamı
+güncel Bedrock bileşeni. Kullanımdan kalkmış tek bir tane yok.
+
+`minecraft:use_animation` / `minecraft:use_modifiers` zaten eski
+`food.using_converts_to` kalıbının **yeni** karşılığı — o geçiş
+daha önce yapılmış.
+
+## Script API — ölçüldü, temiz
+
+`@minecraft/server` **2.9.0** tip tanımları indirildi:
+
+- **`@deprecated` işaretli tek bir üye yok.** Dosyada "deprecat"
+  kelimesi hiç geçmiyor.
+- Kodumuzda geçen 134 üye/olay adının **104'ü** 2.9.0'da birebir
+  var. Kalan 30'un tamamı ya JavaScript yerleşiği (`Math.hypot`,
+  `Array.splice`) ya bizim Türkçe fonksiyonlarımız.
+- Tek İngilizce şüpheli `setLinearVelocity` çıktı ve o da
+  `ok_yagmuru.js`'te **`applyImpulse`'ın catch yedeği** —
+  bilinçli uyumluluk yolu, `applyImpulse` 2.9.0'da duruyor.
+
+Yani `2.0.0` bir "eskilik" değil, **taban**. Yükseltmek eski
+istemcileri dışarı atardı ve karşılığında hiçbir şey vermezdi.
+
+## Bulunan tek gerçek eskilik — ve neden tehlikeli
+
+`oyuncu_modeli_taban/player.entity.json` vanilla'nın bir
+**kopyası** ve bu paket vanilla dosyayı **eziyor**. Yani:
+
+> Vanilla'da olup bizim kopyada olmayan her şey, paketi kuran
+> oyuncudan **silinir**.
+
+Kopya eskidikçe sessizce özellik kaybediyoruz. Güncel vanilla ile
+karşılaştırıldı — **dört animasyon eşlemesi eksikti**:
+
+```
+first_person_breathing_bob
+first_person_attack_rotation_item
+first_person_crossbow_hold
+fishing_rod
+```
+
+Dördü de eklendi. Kanıt durumları **aynı değil ve karıştırılmadı**:
+
+- `first_person_breathing_bob` — **kanıtlı.** Gönderilen
+  `controller.animation.player.*` onu adıyla çağırıyor
+  (`vac_player.animation_controllers.json:188`). Eşleme yokken hiç
+  oynamıyordu.
+- Diğer üçü — vanilla'nın kendi dosyasında var, ama çağrıldıkları
+  yeri örnek paket içinde **bulamadım**. Motor içeriden çağırıyor
+  olabilir. Yine de eklendiler: **çağrılmayan bir eşleme atıl,
+  eksik olan ise kayıp.**
+
+Ayrıca `attack_body_rot_y` çarpanı **10.0 → 5.0**. Vanilla onu
+yarıya indirmiş; bizim kopya eski değeri taşıyordu, yani saldırı
+sırasında gövde vanilla'nın iki katı dönüyordu.
+
+## Neden `format_version` tazelenmedi
+
+Taban `1.10.0` kaldı (vanilla `1.26.0`). Yükseltmenin ölçülebilir
+bir kazancı yok, ölçülemez bir riski var: ayrıştırma kuralları
+değişir ve sonucu ancak tablette görülür. `render_controllers`
+listesi vanilla ile **birebir aynı** çıktı, yani üretecin o listeye
+yaptığı ek (`&& !variable.donusuk`) hâlâ temiz uyuyor — tazelemek
+için teknik bir zorunluluk da yok.
+
+Aynı gerekçe items/blocks/entities için de geçerli.
+
+## Ölçüm
+
+`test/oyuncu_modeli.mjs` 1. bölüme eklendi. Neden liste, neden
+sayı değil: **sayı kontrolü zaten vardı ve dört eksiği görmedi.**
+73 de 77 de "50'den büyük".
+
+İki mutasyon denendi, ikisi de yakalandı:
+
+| mutasyon | düşen kontrol |
+|---|---|
+| `fishing_rod` eşlemesi silindi | 1 |
+| `attack_body_rot_y` 10.0'a geri | 1 |
+
+---
+
 # v7.44.0 — dış incelemenin bulduğu açıklar
 
 Kullanıcı v7.43'ü başka bir modele inceletip raporu getirdi. Yedi

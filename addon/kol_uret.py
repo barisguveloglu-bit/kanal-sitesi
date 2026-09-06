@@ -102,7 +102,7 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # tureniyor -- ayrisabilecekleri bir yer kalmadi.
 #
 # YENI SURUM CIKARIRKEN: yalnizca asagidaki satiri degistir.
-SURUM_NO = (7, 44, 0)
+SURUM_NO = (7, 45, 0)
 
 SURUM_METIN = "%d.%d.%d" % SURUM_NO
 
@@ -5770,6 +5770,36 @@ def oyuncu_modeli_paketi(surum):
     ekleri TEMIZLENEREK saklandi. Elle yazilmadi -- icinde
     ~70 satir vanilla molang ve ~70 animasyon adi var, biri
     kaysa oyuncu cizimi bozulurdu.
+
+    ---- TABAN DOSYA v7.45'TE TAZELENDI ----
+    Taban vanilla'nin KOPYASI ve bu paket onu EZIYOR: vanilla'da
+    olup bizim kopyada olmayan her sey, paketi kuran oyuncudan
+    SILINIYOR. Kopya eskidikce sessizce ozellik kaybediyoruz.
+
+    Mojang/bedrock-samples'in guncel player.entity.json'uyla
+    (format_version 1.26.0) karsilastirildi. DORT animasyon
+    eslemesi eksikti ve dordu de eklendi:
+        first_person_breathing_bob
+        first_person_attack_rotation_item
+        first_person_crossbow_hold
+        fishing_rod
+    Bunlardan YALNIZ birincisi kanitli: gonderilen
+    `controller.animation.player.*` onu adiyla cagiriyor, yani
+    esleme yokken hic oynamiyordu. Digerlerinin cagrildigi yeri
+    ORNEK PAKETTE BULAMADIM -- motor iceriden cagiriyor olabilir.
+    Yine de eklendiler: cagrilmayan bir animasyon eslemesi
+    ATIL, zarari yok; eksik olan ise kayip.
+
+    Ayrica `attack_body_rot_y` carpani 10.0 -> 5.0: vanilla onu
+    yariya indirmis, bizim kopya eski degeri tasiyordu (saldiri
+    sirasinda govde iki kati donuyordu).
+
+    ---- NEYIN TAZELENMEDIGI, NEDEN ----
+    format_version 1.10.0 BIRAKILDI (vanilla 1.26.0). Bedrock'ta
+    bu alan "guncel tutulacak bir surum" degil, AYRISTIRMA
+    SOZLESMESI: yukseltmek bilesenlerin nasil okundugunu
+    degistirir ve oyunda bakmadan dogrulanamaz. Kazanci olmayan,
+    olculemeyen bir risk.
 
     Buraya eklenen SADECE dort sey:
       1. geometry.o_sey  + dokusu
