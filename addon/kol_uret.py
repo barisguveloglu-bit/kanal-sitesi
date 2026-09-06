@@ -102,7 +102,7 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # tureniyor -- ayrisabilecekleri bir yer kalmadi.
 #
 # YENI SURUM CIKARIRKEN: yalnizca asagidaki satiri degistir.
-SURUM_NO = (7, 43, 0)
+SURUM_NO = (7, 44, 0)
 
 SURUM_METIN = "%d.%d.%d" % SURUM_NO
 
@@ -4929,6 +4929,54 @@ KONSEY_ITME = {
 }
 
 
+# ---- ALETLER GERCEKTEN ALET OLSUN  (v7.44) ----
+#
+# Dis inceleme: "kns_void_kazma, kns_earl_kazma, kns_void_balta,
+# kns_earl_kurek, kns_earl_capa ve digerleri yalnizca damage +
+# durability tasiyor. digger bileseni olmadan bunlar elle kazma
+# hizinda kaziyor ve dogru alet sayilmiyor -- yani tas kazsan
+# blok dusmuyor. Isimleri kazma/kurek/capa."
+#
+# Dogru. v4.84'te ayni sey ilkel_balta'da bulunmustu ("tamamen
+# olu bir esya"); orada duzeltilmis, konsey aletlerinde
+# atlanmisti.
+#
+# ---- IKI PARCA VAR VE GUVENILIRLIKLERI FARKLI ----
+#
+# 1. ESYA ETIKETI (minecraft:is_pickaxe vb.) -- blogun DUSUP
+#    dusmeyecegini bu belirliyor. Etiketler duz metin; taninmayan
+#    bir etiket sessizce yok sayilir, hicbir seyi bozmaz.
+#
+# 2. destroy_speeds icindeki BLOK ETIKETLERI -- kazma HIZINI bu
+#    belirliyor. Bunlarin adlarini OLCEMEDIM: vanilla blok
+#    listesinde (bedrock-samples/metadata/mojang-blocks.json)
+#    etiket alani yok, yani depoda kaniti olan tek deger
+#    'wood' (ilkel_balta, v4.84).
+#
+#    Yine de yazildilar. Gerekce: yanlis bir blok etiketi
+#    ESLESMEZ, yani alet yavas kalir -- bozulan bir sey olmaz.
+#    Bu, "kanitsiz molang sorgusu yazma" kuralinin kapsadigi
+#    risk sinifi DEGIL: orada yanlis ifade cizimi komple
+#    bozuyordu, burada en kotu ihtimalle bugunku durum suruyor.
+#    Tablette bakilinca duzeltilebilir.
+KONSEY_ALET_TURU = {
+    "kazma": ("minecraft:is_pickaxe", "query.any_tag('stone','metal')"),
+    "balta": ("minecraft:is_axe",     "query.any_tag('wood')"),
+    "kurek": ("minecraft:is_shovel",  "query.any_tag('dirt','sand','gravel','snow')"),
+    "capa":  ("minecraft:is_hoe",     "query.any_tag('plant','leaves')"),
+    "kilic": ("minecraft:is_sword",   None),
+}
+
+# Hizlar ilkel_balta ile AYNI (12): o deger v4.84'te "netherite
+# baltadan bir tik yukari" diye secilmisti ve depodaki tek
+# olculmus alet hizi o. Ikinci bir sayi uydurmak yerine ayni
+# sayi kullanildi.
+KONSEY_ALET_HIZ = 12
+
+# Void Coklu Alet uc isi birden yapiyor -- adi zaten bu.
+KONSEY_COKLU = {"void_alet": ("kazma", "balta", "kurek")}
+
+
 def konsey_esyasi(t):
     """Giyilebilir ya da elde tutulan parca. Butun sayilar
     kaynagin kendi esya JSON'undan.
@@ -4965,9 +5013,42 @@ def konsey_esyasi(t):
     if anahtar in KONSEY_ITME:
         bilesenler["minecraft:knockback_resistance"] = {
             "value": KONSEY_ITME[anahtar]}
+
+    # ---- ALET BILESENLERI  (v7.44, bkz. KONSEY_ALET_TURU) ----
+    # Hangi alet oldugu ADINDAN turuyor: tabloya sekizinci bir
+    # alan eklemek 58 satirin hepsini degistirmek demekti ve
+    # adlar zaten tutarli (earl_kazma, void_kurek...).
+    turler = KONSEY_COKLU.get(anahtar)
+    if turler is None:
+        son = anahtar.rsplit("_", 1)[-1]
+        turler = (son,) if son in KONSEY_ALET_TURU else ()
+    hizlar = []
+    for _t in turler:
+        _etiket, _sorgu = KONSEY_ALET_TURU[_t]
+        if _etiket not in bilesenler["minecraft:tags"]["tags"]:
+            bilesenler["minecraft:tags"]["tags"].append(_etiket)
+        if _sorgu:
+            hizlar.append({"block": {"tags": _sorgu},
+                           "speed": KONSEY_ALET_HIZ})
+    if hizlar:
+        bilesenler["minecraft:digger"] = {
+            "use_efficiency": True,
+            "destroy_speeds": hizlar,
+        }
     tanim = {"identifier": "pa:" + kimlik}
     if tur != "dusmus":
         tanim["menu_category"] = {"category": "equipment"}
+    else:
+        # ---- GIZLEME BICIMI BIRLESTI  (v7.44) ----
+        # Dis inceleme: "kns_dusmus_1..4 dosyalarinda
+        # menu_category blogu hic yok; diger 16 gizli esyada
+        # 'category': 'none' kullanmissin. Ayni sonucu veriyor
+        # ama iki farkli yontem."
+        #
+        # Dogru. Ikisi de calisiyor (16 esya bunu kanitliyor),
+        # ama alan hic yokken "unutulmus mu, bilerek mi"
+        # ayirt edilemiyor. Acik olan secildi.
+        tanim["menu_category"] = {"category": "none"}
     return {
         "format_version": "1.21.0",
         "minecraft:item": {
@@ -10035,6 +10116,11 @@ def manifestleri_yaz():
     UUID'ler ve modul yapisi AYNEN korunuyor -- degisen yalnizca
     ad, aciklama ve surum. UUID degisseydi oyun paketi YENI bir
     paket sayar ve kullanicinin dunyasindaki kurulum kopardi.  """
+    # UUID ELLE YAZILMIYOR, RP manifestinden okunuyor: iki yerde
+    # duran bir UUID bir gun ayrisir ve bagimlilik sessizce
+    # cozulmez olur.
+    RP_UUID = json.load(open(os.path.join(RP, "manifest.json"),
+                             encoding="utf-8"))["header"]["uuid"]
     for kok, anahtar in ((BP, "bp"), (RP, "rp")):
         yol = os.path.join(kok, "manifest.json")
         d = json.load(open(yol, encoding="utf-8"))
@@ -10051,6 +10137,27 @@ def manifestleri_yaz():
         d["header"]["min_engine_version"] = list(MIN_MOTOR)
         for m in d.get("modules", []):
             m["version"] = list(SURUM_NO)
+        # ---- BP -> RP BAGIMLILIGI  (v7.44) ----
+        # Dis inceleme: "Ana pakette Gorunum paketine
+        # dependencies girdisi yok. Aciklamada uyari var ama
+        # bagimlilik yazilirsa kaynak paketi oyun kendisi acar."
+        #
+        # Dogru. Uyari bir dize; oyun onu okumuyor.
+        #
+        # SADECE RP yaziliyor. Oyuncu Modeli ve Skin paketleri
+        # ISTEGE BAGLI (biri vanilla oyuncuyu eziyor, oteki
+        # sadece gorunum) -- onlari zorunlu yapmak, istemeyeni
+        # kurulumdan eder. Kaynak paketi ise zorunlu: onsuz
+        # kollar dokusuz cizilir.
+        #
+        # SURUM her uretimde yeniden yaziliyor: sabit bir surum
+        # yazilsaydi bir sonraki surumde bagimlilik tutmaz ve
+        # paket hic acilmazdi -- uyari yerine sessiz olum.
+        if anahtar == "bp":
+            digerleri = [x for x in d.get("dependencies", [])
+                         if not x.get("uuid")]
+            digerleri.append({"uuid": RP_UUID, "version": list(SURUM_NO)})
+            d["dependencies"] = digerleri
         yaz_json(yol, d)
 
 
@@ -10769,6 +10876,23 @@ def main():
         _mut_doku.save(_mut_hedef)
     elif not os.path.exists(_mut_hedef):
         print("UYARI: Mutant dokusu uretilemedi -- varlik mor-siyah cizilir")
+
+    # ---- GORUNMEZ SAHNE VARLIKLARI  (v7.44) ----
+    # Dis inceleme: "4 varligin dil anahtari eksik. Dordu de
+    # is_spawnable: false oldugu icin yumurta cikmiyor, ama
+    # isim etiketi takilirsa ham kimlik gorunur."
+    #
+    # Dogru ve ucuz: dordu de sahne parcasi (dusen/gelen kol,
+    # O Sey kiligi), yani oyuncu onlari normalde hic
+    # adlandirmiyor. Yine de ham "pa:kol_dusen_sag" gormek
+    # kirik gorunur. YUMURTA anahtari YAZILMIYOR: yumurtalari
+    # yok, olmayan bir seye ad vermek yanlis bilgi olurdu.
+    for _sk, _sad in ((TAKAS_DUSEN_SAG, "Düşen Kol · Sağ"),
+                      (TAKAS_DUSEN_SOL, "Düşen Kol · Sol"),
+                      (TAKAS_GELEN,     "Gelen Kol"),
+                      (SEY_KILIK_KIMLIK.replace("pa:", ""), "Kılık")):
+        for liste in (en_us, tr_tr):
+            liste.append("entity.pa:%s.name=%s" % (_sk, _sad))
 
     for liste, ad in ((en_us, SEY_AD), (tr_tr, SEY_TR)):
         liste.append("entity.%s.name=%s" % (SEY_KIMLIK, ad))

@@ -799,6 +799,10 @@ export function ilkelUnut(botId) {
   seriler.delete(botId);
   asaUnut(botId);
   dislerUnut(botId);
+  /* v7.44: BESINCI defter. v7.24'te dorde temizlik yazilmis,
+     bu atlanmisti -- dis inceleme buldu. Cagrilan her konsey
+     uyesi olunce bir satir birakiyordu.                     */
+  isinBekleme.delete(botId);
 }
 
 ilkelSilmeKancasi(ilkelUnut);

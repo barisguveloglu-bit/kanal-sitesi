@@ -3,7 +3,8 @@
 import { world, system } from "@minecraft/server";
 import { bilgiYaz, hataYaz, sistemOlayaAbone } from "./yardimcilar.js";
 import {
-  SOHBET_ACIK, SOHBET_ONEK, KALP_ADIM, KALP_TAVAN, DERIN_ADLAR, ILKEL_ADLAR
+  SOHBET_ACIK, SOHBET_ONEK, KALP_ADIM, KALP_TAVAN, DERIN_ADLAR, ILKEL_ADLAR,
+  KOMUT_ETIKET, KOMUT_KORUMALI
 } from "./ayarlar.js";
 
 /* ============================================================
@@ -84,6 +85,34 @@ export function sadelestir(metin) {
   return s.trim().replace(/\s+/g, " ");
 }
 
+/* ---- KOMUT YETKISI  (v7.44) ----
+
+   GOZCU_ETIKET ile AYNI kural ve ayni gerekce: etiketi tasiyan
+   oyuncu YOKSA kapi aciktir.
+
+     - Kendi dunyanda hicbir sey degismiyor; ayardan habersiz
+       biri komutlarini sessizce kaybetmiyor.
+     - Duellodan once `/tag @s add simsek_yetkili` yazan kisi
+       ayni anda herkesi disari almis oluyor. Tek komut.
+
+   "Kimse etiketli degilse kimse kullanamasin" secilseydi paket
+   kurulur kurulmaz butun komutlar oluydu ve sebebi gorunmezdi.  */
+function yetkiliMi(oyuncu, ad) {
+  if (!KOMUT_ETIKET) return true;
+  if (KOMUT_KORUMALI.indexOf(ad) < 0) return true;   // korumali degil
+  let etiketliVar = false;
+  try {
+    for (const p of world.getAllPlayers()) {
+      try { if (p.hasTag(KOMUT_ETIKET)) { etiketliVar = true; break; } }
+      catch (e) { /* bu oyuncuda etiket okunamadi */ }
+    }
+  } catch (e) {
+    return true;                  // liste okunamadi: kapiyi kapatma
+  }
+  if (!etiketliVar) return true;  // kimse etiketli degil: kapi acik
+  try { return oyuncu.hasTag(KOMUT_ETIKET); } catch (e) { return true; }
+}
+
 /* Cozumleyici. Donen deger:
      undefined  -> bu bir komut degil, sohbete dokunma
      {cevap}    -> komuttu, sohbetten gizle ve cevabi yaz         */
@@ -100,6 +129,22 @@ export function komutCozumle(oyuncu, hamMetin) {
 
   const parca = metin.split(" ");
   const ad = parca[0];
+
+  /* ---- YETKI KAPISI  (v7.44) ----
+     Dis inceleme: "sohbete duz 'can 10' yazan herkes kendine
+     10 kalp ekliyor; KALP_TAVAN=200 oldugu icin tavan 200 ek
+     kalp." Duelloda karsindaki de paketi kurmus oluyor.
+
+     Kapi YALNIZ KOMUT_KORUMALI'daki komutlar icin. Arinma,
+     savunma ve kafes kirma ASLA kapatilmiyor: ucu de KILIT
+     ACMA komutu ve girdisi kilitli oyuncunun tek cikis yolu.
+     Onlar bu satirin USTUNDE degil ALTINDA olsaydi bile
+     korumali listede olmadiklari icin gecerlerdi; yine de
+     sira burada, cozumlemenin en basinda.                  */
+  if (!yetkiliMi(oyuncu, ad)) {
+    return { cevap: "§c⛔ §7Bu komut yetkili oyunculara açık. " +
+                    "§8(/tag @s add " + KOMUT_ETIKET + ")" };
+  }
 
   /* ARINMA -- disaridan gelen kilitleri acar.
 

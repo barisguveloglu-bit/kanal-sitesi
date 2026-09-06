@@ -1,8 +1,9 @@
 import { world } from "@minecraft/server";
-import { hataYaz } from "../yardimcilar.js";
+import { hataYaz, kaliciYaz
+} from "../yardimcilar.js";
 import {
   ZIRH_AGAC_ACIK, ZIRH_AGAC_ANAHTAR, ZIRH_AGAC_KOK, ZIRH_AGAC_BEDEL,
-  ZIRH_CARK_XP, ZIRH_MODLAR, ZIRH_CEKIRDEK_ONEK
+  ZIRH_CARK_XP, ZIRH_MODLAR, ZIRH_CEKIRDEK_ONEK, DEFTER_TAVAN
 } from "../ayarlar.js";
 
 /* ================================================================
@@ -71,9 +72,23 @@ function kaydet() {
   try {
     const acik = {};
     for (const [oid, kume] of defter) acik[oid] = [...kume];
-    world.setDynamicProperty(ZIRH_AGAC_ANAHTAR,
-      JSON.stringify({ acik, cark: [...cark],
-                       secili: Object.fromEntries(secili) }));
+    /* v7.44: tavan. Kirpma EN ESKI OYUNCUYU dusuruyor:
+       nesne anahtarlari eklenme sirasini koruyor, yani ilk
+       anahtar en eski kayit. Uc parcasi da (acik/cark/secili)
+       birlikte dusuyor, yoksa yarim bir oyuncu kalirdi. */
+    kaliciYaz(ZIRH_AGAC_ANAHTAR,
+      { acik, cark: [...cark], secili: Object.fromEntries(secili) },
+      (d, oran) => {
+        const kimlikler = Object.keys(d.acik);
+        const at = Math.max(1, Math.ceil(kimlikler.length * oran));
+        if (kimlikler.length <= at) return undefined;
+        const dusen = new Set(kimlikler.slice(0, at));
+        const yeniAcik = {}, yeniSecili = {};
+        for (const [k, v] of Object.entries(d.acik)) if (!dusen.has(k)) yeniAcik[k] = v;
+        for (const [k, v] of Object.entries(d.secili)) if (!dusen.has(k)) yeniSecili[k] = v;
+        return { acik: yeniAcik, cark: d.cark.filter((k) => !dusen.has(k)),
+                 secili: yeniSecili };
+      }, DEFTER_TAVAN);
   } catch (e) {
     hataYaz("zirh_agac.kaydet", e);
   }

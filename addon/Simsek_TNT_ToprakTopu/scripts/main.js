@@ -101,10 +101,11 @@ import { kafesKir, kafesUnut } from "./yetenekler/kafes.js";
    catliyor. Bir kez yasandi.                                */
 import {
   gozcuKur, gozcuUnut, hareketTara, hareketUnut, geriItmeUnut,
+  hareketAffet, afUnut,
   blokHizKur, blokUnut,
   kipUnut, kacisKur, kacisUnut, kacisAyrilma
 } from "./yetenekler/gozcu.js";
-import { HAREKET_ACIK, HAREKET_ORNEK } from "./ayarlar.js";
+import { HAREKET_ACIK, HAREKET_ORNEK, HAREKET_AF_ESYA } from "./ayarlar.js";
 import {
   yedekAl, yedekYukle, yedekUnut
 } from "./yetenekler/envanter_yedek.js";
@@ -265,7 +266,7 @@ import "./yetenekler/konsey_silah.js";
    isinlari da ayni motora katildi. zirh.js ve marvel.js'ten
    "elindeki X" fonksiyonlarini kullaniyor, o yuzden onlardan
    SONRA gelmeli -- yukaridaki DIKKAT notunun ayni geregi.   */
-import "./yetenekler/isinlar.js";
+import { isinBeklemeUnut } from "./yetenekler/isinlar.js";
 /* v6.1: Ben 10 saldirilari. ben10.js'ten "elindeki yaratik"
    fonksiyonunu kullaniyor, o yuzden ondan SONRA gelmeli --
    ayni DIKKAT geregi.                                        */
@@ -1762,6 +1763,19 @@ const girisKuruldu = olayaAbone("itemUse", (olay) => {
     const esya = olay.itemStack;
     if (!oyuncu || !esya) return;
 
+    /* ---- ISINLANMA AFFI  (v7.44) ----
+       Ender incisi / chorus meyvesi / riptide tek ornekte 30+
+       blok atiyor ve BOYUT DEGISMIYOR, yani Gozcu'nun iz
+       sifirlamasi orada is gormuyor. Bu esyalar kullanilinca
+       bir sonraki sicrama ornegi affediliyor.
+
+       `return` YOK: bu esyalarin baska bir isi de olabilir ve
+       burasi jest girisinin ta kendisi -- erken cikmak
+       yetenekleri bozardi.                                  */
+    if (HAREKET_AF_ESYA.indexOf(esya.typeId) >= 0) {
+      hareketAffet(oyuncu.id);
+    }
+
     /* ---- RESETTING SWORD (v4.86) ----
        Kol degil, kendi basina bir esya. Kol dallarindan ONCE
        bakiliyor cunku esyaninYetenekleri onu tanimaz ve
@@ -2347,6 +2361,7 @@ olayaAbone("playerLeave", (olay) => {
      oteki oyuncularin olcumleri de gitmis olurdu.          */
   geriItmeUnut(olay.playerId);
   blokUnut(olay.playerId);
+  isinBeklemeUnut(olay.playerId);   // v7.44: zirh isini beklemeleri
   kafesUnut(olay.playerId);
   yedekUnut(olay.playerId);
   kipUnut(olay.playerId);
@@ -2371,6 +2386,20 @@ olayaAbone("playerLeave", (olay) => {
    Bu satiri gormuyorsan paket ya etkin degil ya da script hic
    calismamis demektir.                                            */
 olayaAbone("playerSpawn", (olay) => {
+  /* ---- HAREKET IZI HER DOGUSTA DUSUYOR  (v7.44) ----
+     Olup yeniden dogmak da bir isinlanmadir: yatak binlerce
+     blok oteye atabilir ve Gozcu bunu tek ornekte "isinlanma"
+     diye isaretliyordu.
+
+     initialSpawn AYRIMI BILEREK YAPILMIYOR. Olup dogma
+     initialSpawn=false ile geliyor -- yani asil yanlis
+     pozitifi uretebilecek olan tam da asagidaki erken cikisin
+     eledigi durum.                                          */
+  try {
+    if (olay.player) { hareketUnut(olay.player.id); afUnut(olay.player.id); }
+  } catch (e) { /* oyuncu nesnesi okunamadi: iz bir sonraki
+                   ornekte kendiliginden tazeleniyor */ }
+
   if (!olay.initialSpawn) return;
 
   /* ---- SON EMNIYET: girdi kilidini AC ----  (v4.33)

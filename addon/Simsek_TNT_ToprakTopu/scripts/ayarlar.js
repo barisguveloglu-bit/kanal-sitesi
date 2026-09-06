@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.43.0";
+export const SURUM = "v7.44.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -1064,6 +1064,53 @@ export const GOZCU_SUS      = 200;    // ayni oyuncu icin bildirim arasi
 /* Kendi botlarimiz ve mob'lar denetlenmiyor: bot zaten bizim
    kodumuz, mob'un bakis yonu insan olcusune vurulamaz.       */
 export const GOZCU_YALNIZ_OYUNCU = true;
+
+/* ---------------- GOZCU BILDIRIMLERI KIME GIDIYOR  (v7.44) ----
+   Dis inceleme: "isaretle ve kipDenetle sohbeteYaz kullaniyor,
+   yani world.sendMessage. Yanlis pozitif ciktiginda suclama tum
+   sunucuya acik sekilde yaziliyor."
+
+   Dogru. Bir hile suclamasi herkese acik yazilmamali -- ustelik
+   Gozcu'nun bildirimleri TAHMIN, kanit degil.
+
+   ---- NEDEN VARSAYILAN YINE HERKES ----
+   Bu etiketi tasiyan oyuncu YOKSA bildirim eskisi gibi herkese
+   gidiyor. Boylece:
+     - Etiketten habersiz biri icin hicbir sey degismiyor,
+       yani savunma sessizce KAPANMIYOR.
+     - Kendini etiketleyen ilk kisi (tag @s add gozcu) ayni anda
+       herkesi disari almis oluyor -- tek komut.
+   "Kimse etiketli degilse kimseye gitmesin" secilseydi, ayari
+   bilmeyen herkes anticheat'i sessizce kaybederdi; bu depoda
+   sessiz kapanma en pahali hata bicimi.
+
+   Bos birakilirsa (`""`) etiket hic sorulmuyor: her zaman herkese. */
+export const GOZCU_ETIKET = "gozcu";
+
+/* ---------------- ISINLANMA AFFI  (v7.44) ----------------
+   Dis inceleme: "Nether portalindan gecince koordinat 1/8'e
+   dusuyor; x=800'de girip x=100'e cikan oyuncu tek ornekte 700
+   bloklu bir sicrama uretiyor."
+
+   Portal ve olup yeniden dogma IZ SIFIRLAMASIYLA cozuluyor
+   (bkz. gozcu.js). Ama ender incisi, chorus meyvesi ve riptide
+   ayni boyutta kaliyor -- orada sifirlanacak bir sey yok, tek
+   ornekte 30+ blokluk gercek bir sicrama var.
+
+   Cozum: bu esyalar kullanildiginda bir sonraki sicrama ornegi
+   AFFEDILIYOR. Af tek seferlik ve sureli; ikinci sicrama yine
+   isaretleniyor, yani "inci at, sonra ucdan ucuk" isi
+   yaramiyor.
+
+   Sure neden 60 tick: inci en uzun atista ~3 saniye havada
+   kaliyor, riptide aninda. 60 tick (3 sn) ikisini de kapsayan
+   en kisa deger.                                              */
+export const HAREKET_AF_TICK = 60;
+export const HAREKET_AF_ESYA = [
+  "minecraft:ender_pearl",
+  "minecraft:chorus_fruit",
+  "minecraft:trident",          // riptide
+];
 
 /* ---------------- ENVANTER YEDEGI (v7.30) ----------------
    Tehdit modelindeki DUNYA ailesinden: karsi taraf operatorse
@@ -2447,6 +2494,27 @@ export const KALP_DOLDUR   = true;  // eklenince can tam dolsun mu
 // Kalp defteri dunya ozelligine bu adla kaydediliyor
 export const KALP_KAYIT_ANAHTAR = "simsek:kalpler";
 
+/* ---------------- KALICI DEFTER TAVANI  (v7.44) ----------------
+   Dis inceleme: "Kalici defterlerde boyut siniri yok. Bedrock'ta
+   string dinamik ozellik siniri 32767 bayt; kayit basina ~300
+   bayttan yaklasik 100 benzersiz oyuncuda tavan doluyor. O
+   noktada setDynamicProperty firlatiyor, hataYaz yutuyor ve
+   ilerleme sessizce kaydedilmez oluyor."
+
+   Dogru ve en kotu bicimi: SESSIZ kayip. Oyuncu kademe
+   atliyor, dunyayi kapatinca kademesi yok.
+
+   ---- NEDEN 24000, NEDEN 32767 DEGIL ----
+   Tavana kadar doldurup sinirda patlamak yerine pay birakiliyor:
+   siniri asan yazim TAMAMEN dusuyor, yani son yazim eski kaydi
+   da goturur. 24000 = ~%73; kalan pay tek bir kaydin buyumesine
+   yetiyor.
+
+   Sinir asilinca EN ESKI kayitlar dusuyor. Alternatif "yeni
+   kaydi yazma" idi ve daha kotu: o zaman defter donar, yeni
+   oyuncu hicbir zaman kaydedilemezdi.                          */
+export const DEFTER_TAVAN = 24000;
+
 /* ============================================================
    SOHBET KOMUTLARI
 
@@ -2463,6 +2531,33 @@ export const KALP_KAYIT_ANAHTAR = "simsek:kalpler";
    ile calisiyor. Ikisi de ayni cozumleyiciden geciyor.        */
 export const SOHBET_ACIK = true;
 export const SOHBET_ONEK = "";     // "" = oneksiz. "!" yazarsan "!can 10"
+
+/* ---------------- KOMUT YETKISI  (v7.44) ----------------
+   Dis inceleme: "SOHBET_ONEK varsayilan bos, yani sohbete duz
+   'can 10' yazan herkes kendine 10 kalp ekliyor; KALP_TAVAN=200
+   oldugu icin tavan 200 ek kalp."
+
+   Dogru ve duello icin ONEMLI: karsindaki de paketi kurmus
+   olacak, yani 'can 200' yazip dovuse oyle girebilir.
+
+   ---- ETIKET KAPISI ----
+   KOMUT_KORUMALI'daki komutlar yalniz KOMUT_ETIKET etiketini
+   tasiyan oyunculara acik. GOZCU_ETIKET ile AYNI kural:
+   etiketi tasiyan kimse yoksa kapi aciktir. Yani:
+     - Kendi dunyanda hicbir sey degismiyor.
+     - Duellodan once `/tag @s add simsek_yetkili` yazarsan
+       karsindaki 'can 200' yazamaz. Tek komut.
+
+   ---- HANGI KOMUTLAR KORUMALI DEGIL, NEDEN ----
+   arin / savunma / kafes ASLA kapatilmiyor. Ucu de KILIT ACMA
+   komutu: girdin kilitliyken jest yapamazsin ama yazabilirsin.
+   Onlari yetkiye baglamak, hapsedilen oyuncunun tek cikis
+   yolunu kapatmak olurdu.
+
+   lazer / kol / guc de acik: ucu de oyuncunun ZATEN jestle
+   yapabildigi seyler, sohbet sadece kisa yol.                 */
+export const KOMUT_ETIKET = "simsek_yetkili";
+export const KOMUT_KORUMALI = ["can", "kalp", "bot"];
 
 /* ============================================================
    IKSIR ICINCE LAZERI HAZIR ET

@@ -1,9 +1,10 @@
 import { world } from "@minecraft/server";
-import { hataYaz, actionbarYaz } from "../yardimcilar.js";
+import { hataYaz, actionbarYaz, kaliciYaz
+} from "../yardimcilar.js";
 import {
   BECERI_ACIK, BECERI_AGACI, BECERI_KAYIT_ANAHTAR,
   BECERI_XP_CARPAN, BECERI_XP_TABAN, BECERI_TAVAN_KADEME,
-  BECERI_SALDIRI_ADIM, BECERI_ZIRH_ADIM
+  BECERI_SALDIRI_ADIM, BECERI_ZIRH_ADIM, DEFTER_TAVAN
 } from "../ayarlar.js";
 
 /* ================================================================
@@ -77,7 +78,14 @@ function kaydet() {
     for (const [id, turler] of defter) {
       dizi.push([id, [...turler.entries()]]);
     }
-    world.setDynamicProperty(BECERI_KAYIT_ANAHTAR, JSON.stringify(dizi));
+    /* v7.44: tavan. Sinir asilinca EN ESKI kayit dusuyor --
+       defteri dondurup yeni oyuncuyu hic kaydedememektense
+       en eskisini feda etmek. bkz. yardimcilar.kaliciYaz. */
+    kaliciYaz(BECERI_KAYIT_ANAHTAR, dizi,
+              (d, oran) => {
+                const at = Math.max(1, Math.ceil(d.length * oran));
+                return d.length > at ? d.slice(at) : undefined;
+              }, DEFTER_TAVAN);
   } catch (e) {
     hataYaz("beceri.kaydet", e);
   }

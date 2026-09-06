@@ -1,10 +1,11 @@
-import { system } from "@minecraft/server";
+import { system, world } from "@minecraft/server";
 import {
   hataYaz, gecerliMi, olayaAbone, sohbeteYaz
 } from "../yardimcilar.js";
 import {
   GOZCU_ACIK, GOZCU_MENZIL, GOZCU_ACI, GOZCU_HIZ,
   GOZCU_PENCERE, GOZCU_ESIK, GOZCU_SUS, GOZCU_YALNIZ_OYUNCU,
+  GOZCU_ETIKET, HAREKET_AF_TICK,
   KILIT_ATLA_TIPLER,
   HAREKET_ACIK, HAREKET_HIZ, HAREKET_SICRAMA,
   HAREKET_YUKSELME, HAREKET_YUKSEK_PAY,
@@ -151,7 +152,7 @@ function isaretle(vuran, kurban, sebep) {
 
   let ad = "?";
   try { ad = vuran.name || vuran.typeId || "?"; } catch (e) { /* onemsiz */ }
-  sohbeteYaz("§c⚠ Gözcü: §f" + ad + " §7· " + d.isaretler.length +
+  gozcuYaz("§c⚠ Gözcü: §f" + ad + " §7· " + d.isaretler.length +
              " işaret §8· son sebep: " + sebep.join(", "));
 }
 
@@ -224,12 +225,67 @@ export function gozcuKur() {
    cevaplayan bir fonksiyon veriyor (isVarMi).
    ============================================================ */
 
-// oyuncuId -> { konum, tick, yukselme }
+// oyuncuId -> { konum, boyut, tick, yukselme }
 const izler = new Map();
 
 export function hareketUnut(oyuncuId) {
   if (oyuncuId === undefined) izler.clear();
   else izler.delete(oyuncuId);
+}
+
+/* ---- ISINLANMA AFFI  (v7.44) ----
+   Ender incisi / chorus meyvesi / riptide tek ornekte 30+ blok
+   atiyor ve BOYUT DEGISMIYOR, yani iz sifirlamasi orada is
+   gormuyor. main.js bu esyalar kullanildiginda burayi cagiriyor;
+   bir sonraki sicrama ornegi affediliyor.
+
+   Af TEK SEFERLIK ve sureli: harcandiginda siliniyor, yani
+   "inci at, sonra ucdan ucuk" isi yaramiyor.                 */
+const afliler = new Map();      /* oyuncuId -> affin bittigi tick */
+
+export function hareketAffet(oyuncuId, simdiTick) {
+  if (!HAREKET_AF_TICK) return;
+  afliler.set(oyuncuId, (simdiTick === undefined ? system.currentTick
+                                                 : simdiTick) + HAREKET_AF_TICK);
+}
+
+/* Af gecerliyse HARCAR ve true doner. Sadece sicrama olcumu
+   soruyor -- hiz ve yukselme affedilmiyor, cunku inci ikisini
+   de uretmez.                                                 */
+function afVarMi(oyuncuId) {
+  const bitis = afliler.get(oyuncuId);
+  if (bitis === undefined) return false;
+  afliler.delete(oyuncuId);
+  return system.currentTick <= bitis;
+}
+
+export function afUnut(oyuncuId) {
+  if (oyuncuId === undefined) afliler.clear();
+  else afliler.delete(oyuncuId);
+}
+
+/* ---- BILDIRIM KIME GIDIYOR  (v7.44) ----
+   Bir hile suclamasi herkese acik yazilmamali; ustelik
+   Gozcu'nun cikardigi sey TAHMIN, kanit degil.
+
+   GOZCU_ETIKET'i tasiyan oyuncu VARSA bildirim yalniz onlara
+   gidiyor. Kimse tasimiyorsa eskisi gibi herkese -- ayardan
+   habersiz biri anticheat'i sessizce kaybetmesin diye. Bu
+   depoda sessiz kapanma en pahali hata bicimi.               */
+function gozcuYaz(metin) {
+  if (!GOZCU_ETIKET) { sohbeteYaz(metin); return; }
+  let etiketli;
+  try {
+    etiketli = world.getAllPlayers().filter((p) => {
+      try { return p.hasTag(GOZCU_ETIKET); } catch (e) { return false; }
+    });
+  } catch (e) {
+    etiketli = undefined;             // oyuncu listesi okunamadi
+  }
+  if (!etiketli || etiketli.length === 0) { sohbeteYaz(metin); return; }
+  for (const p of etiketli) {
+    try { p.sendMessage(metin); } catch (e) { /* biri dustu, digerleri surer */ }
+  }
 }
 
 export function hareketDurum(oyuncuId) { return izler.get(oyuncuId); }
@@ -340,7 +396,7 @@ export function kipDenetle(oyuncu) {
   let geri = false;
   if (savunmaVarMi()) geri = kipGeriAl(oyuncu, KIP_IZIN[0]);
 
-  sohbeteYaz("§c⚠ Gözcü: §f" + ad + " §7· oyun kipi §f" + kip + " §8· " +
+  gozcuYaz("§c⚠ Gözcü: §f" + ad + " §7· oyun kipi §f" + kip + " §8· " +
              (geri ? "§a" + KIP_IZIN[0] + "'a geri alındı"
                    : savunmaVarMi() ? "§cgeri alınamadı"
                                     : "§7Savunma Kipi kapalı, geri alınmadı"));
@@ -420,11 +476,33 @@ export function hareketTara(oyuncular, isVarMi) {
       const k = o.location;
       if (!k) continue;
       const onceki = izler.get(o.id);
-      izler.set(o.id, { konum: { x: k.x, y: k.y, z: k.z }, tick: simdi,
+      /* BOYUT DA KAYDEDILIYOR (v7.44). Nether portali
+         koordinati 1/8'e boluyor: x=800'de girip x=100'de
+         cikan oyuncu tek ornekte 700 blokluk bir "sicrama"
+         uretiyordu ve HAREKET_SICRAMA=12 esigini her seferinde
+         asiyordu. Yani portal kullanan herkes hileci
+         sayiliyordu.
+
+         Olayla degil IZLE cozuldu: playerDimensionChange her
+         API surumunde yok, ama iki konumu karsilastirmadan
+         once boyutlarinin ayni oldugunu sormak hicbir seye
+         bagli degil.                                         */
+      let boyutId;
+      try { boyutId = o.dimension ? o.dimension.id : undefined; }
+      catch (e) { boyutId = undefined; }
+      izler.set(o.id, { konum: { x: k.x, y: k.y, z: k.z }, boyut: boyutId,
+                        tick: simdi,
                         yukselme: onceki ? onceki.yukselme : 0,
                         kati: onceki ? onceki.kati : 0,
                         katiBildirim: onceki ? onceki.katiBildirim : -99999 });
       if (!onceki) continue;
+      /* Boyut degistiyse iki konum ayni uzayda degil: olcum
+         yapilmiyor, yeni iz zaten yukarida yazildi.         */
+      if (onceki.boyut !== boyutId) {
+        const yeni = izler.get(o.id);
+        yeni.yukselme = 0; yeni.kati = 0;
+        continue;
+      }
 
       const gecen = simdi - onceki.tick;
       if (gecen <= 0) continue;
@@ -490,14 +568,34 @@ export function hareketTara(oyuncular, isVarMi) {
          bile. Test bunu gosterdi.                              */
       const sebep = [];
 
+      const hizSn = yatay / (gecen / 20);
+      const sicramaVar = toplam > HAREKET_SICRAMA;
+      const hizVar = hizSn > HAREKET_HIZ;
+
+      /* ---- AF: TEK ORNEK, IKI OLCUM  (v7.44) ----
+         Ilk yazilista af yalniz SICRAMAYI kapsiyordu ve testim
+         yakaladi: ender incisi 35 bloku bir ornekte atiyor, yani
+         SICRAMA esigini de HIZ esigini de birden asiyor
+         (35 blok / 0,5 sn = 70 blok/sn). Af sicramayi bagislayip
+         hizi bagislamayinca inci yine isaretleniyordu -- yani
+         duzeltme hicbir sey duzeltmiyordu.
+
+         Ikisi birlikte bagislaniyor cunku IKISI DE ayni tek
+         hareketin olcumu. Af yine TEK ORNEKLIK: bir sonraki
+         ornekte ikisi de gecerli.
+
+         YUKSELME bagislanMIYOR: o ust uste HAREKET_YUKSELME
+         ornek istiyor, yani tek bir isinlanmayla olusmaz --
+         affin arkasina saklanacak yer orasi olurdu.        */
+      const afli = (sicramaVar || hizVar) && afVarMi(o.id);
+
       /* 1. ISINLANMA -- tek ornekte kocaman siçrama. */
-      if (toplam > HAREKET_SICRAMA) {
+      if (sicramaVar && !afli) {
         sebep.push("ışınlanma " + toplam.toFixed(0) + " blok");
       }
 
       /* 2. YATAY HIZ */
-      const hizSn = yatay / (gecen / 20);
-      if (hizSn > HAREKET_HIZ) {
+      if (hizVar && !afli) {
         sebep.push("hız " + hizSn.toFixed(1) + " blok/sn");
       }
 
@@ -730,7 +828,7 @@ export function blokOlayi(oyuncu, tur, simdi, isVarMi) {
   const sebep = tur === "kirma"
     ? "kırma hızı " + suzulmus.length + "/" + (BLOK_PENCERE / 20) + " sn"
     : "koyma hızı " + suzulmus.length + "/" + (BLOK_PENCERE / 20) + " sn";
-  sohbeteYaz("§c⚠ Gözcü: §f" + ad + " §7· " + sebep);
+  gozcuYaz("§c⚠ Gözcü: §f" + ad + " §7· " + sebep);
   return sebep;
 }
 
@@ -818,7 +916,7 @@ export function kacisAyrilma(oyuncuId, ad, simdi) {
   const canMetni = kayit.can === undefined
     ? "" : " §8· kalan can " + kayit.can.toFixed(1);
   const sebep = "son hasardan " + (gecen / 20).toFixed(1) + " sn sonra çıktı";
-  sohbeteYaz("§c⚠ Gözcü: §f" + (ad || "?") + " §7· " + sebep + canMetni);
+  gozcuYaz("§c⚠ Gözcü: §f" + (ad || "?") + " §7· " + sebep + canMetni);
   return sebep;
 }
 

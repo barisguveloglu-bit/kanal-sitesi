@@ -836,6 +836,11 @@ export function viltrumiteKur() {
 
 /* Oyuncu cikinca butun defterlerden dus. */
 export function viltrumiteUnutOyuncu(oyuncuId) {
+  /* v7.44: kanama kaydi da dusuyor. kanamaTara zaten gecersiz
+     varligi eliyor, yani kayip sinirliydi -- ama "cikan
+     oyuncunun her satiri dusuyor" kuralinin istisnasi
+     kalmasin.                                              */
+  kanamaUnut(oyuncuId);
   pasifUnut(oyuncuId);
   yumrukSarj.delete(oyuncuId);
   yaylimSarj.delete(oyuncuId);

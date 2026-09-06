@@ -18,7 +18,10 @@
       "minecraft:tags": {
         "tags": [
           "pa:konsey",
-          "pa:konsey_alet"
+          "pa:konsey_alet",
+          "minecraft:is_pickaxe",
+          "minecraft:is_axe",
+          "minecraft:is_shovel"
         ]
       },
       "minecraft:hand_equipped": true,
@@ -26,6 +29,29 @@
       "minecraft:damage": 5,
       "minecraft:durability": {
         "max_durability": 600
+      },
+      "minecraft:digger": {
+        "use_efficiency": true,
+        "destroy_speeds": [
+          {
+            "block": {
+              "tags": "query.any_tag('stone','metal')"
+            },
+            "speed": 12
+          },
+          {
+            "block": {
+              "tags": "query.any_tag('wood')"
+            },
+            "speed": 12
+          },
+          {
+            "block": {
+              "tags": "query.any_tag('dirt','sand','gravel','snow')"
+            },
+            "speed": 12
+          }
+        ]
       }
     }
   }

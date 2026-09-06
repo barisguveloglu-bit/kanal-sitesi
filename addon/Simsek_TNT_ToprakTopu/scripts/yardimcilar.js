@@ -559,7 +559,86 @@ export function kureNoktalari(r) {
   return noktalar;
 }
 
-// Kucuk tam sayi koordinatlarini tek sayiya paketle (-16..15 guvenli)
+/* Kucuk tam sayi koordinatlarini tek sayiya paketle.
+
+   GUVENLI ARALIK -16..15: z+16 32'yi asarsa bir sonraki y
+   basamagina tasar ve IKI FARKLI nokta AYNI anahtari alir --
+   sessiz cakisma, yani top arkasinda delik.
+
+   ---- v7.44: SINIR ARTIK OLCULUYOR ----
+   Aralik eskiden yalniz bu yorumda yaziyordu. Dis inceleme
+   hakliydi: "TOP_HIZ=2 ile su an guvendesin, ama ayarlar.js'ten
+   hizi 13'un ustune cikaran biri sessiz anahtar cakismasi
+   alir." Yorum bir koruma degil.
+
+   Asan cagri undefined donuyor; cagiran taraf onbellegi
+   ATLIYOR (yavas ama DOGRU) -- hatali sonuc vermektense
+   hizdan feragat.                                           */
+export const KURE_ANAHTAR_SINIR = 16;
+
 export function kureAnahtar(x, y, z) {
+  if (x < -KURE_ANAHTAR_SINIR || x >= KURE_ANAHTAR_SINIR ||
+      y < -KURE_ANAHTAR_SINIR || y >= KURE_ANAHTAR_SINIR ||
+      z < -KURE_ANAHTAR_SINIR || z >= KURE_ANAHTAR_SINIR) {
+    return undefined;
+  }
   return (x + 16) * 1024 + (y + 16) * 32 + (z + 16);
+}
+
+/* ============================================================
+   KALICI DEFTER YAZIMI  (v7.44)
+
+   Dis inceleme: kalici defterlerin hepsi butun defteri tek bir
+   string dinamik ozellige yaziyor ve ELEME YOK. Bedrock'ta
+   string dinamik ozellik siniri 32767 bayt; oyuncu basina ~300
+   bayttan ~100 oyuncuda tavan doluyor, setDynamicProperty
+   firlatiyor, hataYaz yutuyor ve ILERLEME SESSIZCE KAYBOLUYOR.
+
+   Buradaki tek kapi hepsini birden kapatiyor: yazmadan once
+   olculuyor, asiyorsa `kirp` ile kuculuyor ve tekrar
+   olculuyor.
+
+   `kirp(veri)` cagirana ait: her defterin sekli farkli (dizi,
+   nesne, ic ice). Ortak olan tek sey OLCUM ve dongu, o da
+   burada. Kirpma en ESKIYI dusurmeli.
+
+   Donen: gercekten yazilan metin, ya da undefined (yazilamadi).
+   ============================================================ */
+export function kaliciYaz(anahtar, veri, kirp, tavan) {
+  let d = veri;
+  let metin = JSON.stringify(d);
+  /* ---- NEDEN ORAN, NEDEN "BIRER BIRER DUSUR" DEGIL ----
+     Ilk yazilista `kirp` en eski TEK kaydi dusuruyordu ve
+     dongu 64 turla sinirliydi. Kendi testim yakaladi: 900
+     kayitlik bir defter 42191 bayttan ancak 39303'e indi,
+     yani tavanin ustunde kaldi ve sinir SESSIZCE tutmadi.
+
+     Tur sayisini buyutmek cozum degil: her tur bastan
+     JSON.stringify demek, 900 kayitta 900 serilestirme --
+     tek tick'te yapilamaz.
+
+     Simdi kirpma ORANLA calisiyor: metin ne kadar tasmissa o
+     kadari dusuruluyor. Iki-uc turda oturuyor ve kayit basina
+     boyut esit oldugu surece fazladan kayit dusurmuyor.
+
+     %5 pay: kayitlar esit boyutlu degil, oran tam tutmayabilir.
+     Payi olmayan bir hesap her seferinde bir tur fazla
+     doner.                                                    */
+  for (let tur = 0; tur < 8 && metin.length > tavan; tur++) {
+    if (typeof kirp !== "function") break;
+    const oran = Math.min(0.9, 1 - (tavan / metin.length) + 0.05);
+    const kucuk = kirp(d, oran);
+    /* Kirpma kucultemediyse dur: sonsuz donguye girmektense
+       buyuk metni yazmayi dene ve hatayi GORUNUR kil.        */
+    if (kucuk === undefined || kucuk === d) break;
+    d = kucuk;
+    metin = JSON.stringify(d);
+  }
+  try {
+    world.setDynamicProperty(anahtar, metin);
+    return metin;
+  } catch (e) {
+    hataYaz("kaliciYaz(" + anahtar + ")", e);
+    return undefined;
+  }
 }

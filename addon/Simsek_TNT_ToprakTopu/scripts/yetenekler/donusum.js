@@ -1,14 +1,14 @@
 import { world, system } from "@minecraft/server";
 import { yetenekKaydet } from "./kayit.js";
 import {
-  hataYaz, gecerliMi, actionbarYaz, kollariIndir, parcacikHalkasi
+  hataYaz, gecerliMi, actionbarYaz, kollariIndir, parcacikHalkasi, kaliciYaz
 } from "../yardimcilar.js";
 import {
   DONUSUM_ACIK, SEY_KILIK_KIMLIK, DONUSUM_TAZELEME, DONUSUM_SURE,
   DONUSUM_KAYIT_ANAHTAR, DONUSUM_Y_KAYMA, SEY_AD,
   DONUSUM_PARCACIK, DONUSUM_PARCACIK_ADET, DONUSUM_PARCACIK_YARICAP,
   KILIK_ONDELEME, KILIK_ONDELEME_TAVAN,
-  KILIK_DONUS_ONDELEME, KILIK_DONUS_TAVAN
+  KILIK_DONUS_ONDELEME, KILIK_DONUS_TAVAN, DEFTER_TAVAN
 } from "../ayarlar.js";
 
 /* ================================================================
@@ -83,7 +83,14 @@ function kaydet() {
   try {
     const liste = [];
     for (const [oyuncuId, k] of kilikler) liste.push([oyuncuId, k.kilikId]);
-    world.setDynamicProperty(DONUSUM_KAYIT_ANAHTAR, JSON.stringify(liste));
+    /* v7.44: tavan. Sinir asilinca EN ESKI kayit dusuyor --
+       defteri dondurup yeni oyuncuyu hic kaydedememektense
+       en eskisini feda etmek. bkz. yardimcilar.kaliciYaz. */
+    kaliciYaz(DONUSUM_KAYIT_ANAHTAR, liste,
+              (d, oran) => {
+                const at = Math.max(1, Math.ceil(d.length * oran));
+                return d.length > at ? d.slice(at) : undefined;
+              }, DEFTER_TAVAN);
   } catch (e) {
     hataYaz("donusum.kaydet", e);
   }

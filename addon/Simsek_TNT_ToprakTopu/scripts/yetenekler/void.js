@@ -1,12 +1,12 @@
 import { system, world, ItemStack } from "@minecraft/server";
 import {
   hataYaz, bilgiYaz, gecerliMi, actionbarYaz, olayaAbone, varlikKonumu,
-  parcacikAt
+  parcacikAt, kaliciYaz
 } from "../yardimcilar.js";
 import {
   VOID_ACIK, VOID_ALET, VOID_MIGFER, VOID_SURE, VOID_TARAMA,
   VOID_KAYIT_ANAHTAR, VOID_MESAJ,
-  ENDER_KILIC, ENDER_FIRLATMA, ENDER_YUMUSAK
+  ENDER_KILIC, ENDER_FIRLATMA, ENDER_YUMUSAK, DEFTER_TAVAN
 } from "../ayarlar.js";
 
 /* ================================================================
@@ -47,8 +47,18 @@ function yaz() {
   try {
     const dizi = [];
     for (const [id, k] of defter) dizi.push([id, k.bitis, k.migfer || ""]);
-    world.setDynamicProperty(VOID_KAYIT_ANAHTAR,
-      dizi.length === 0 ? undefined : JSON.stringify(dizi));
+    if (dizi.length === 0) {
+      world.setDynamicProperty(VOID_KAYIT_ANAHTAR, undefined);
+    } else {
+    /* v7.44: tavan. Sinir asilinca EN ESKI kayit dusuyor --
+       defteri dondurup yeni oyuncuyu hic kaydedememektense
+       en eskisini feda etmek. bkz. yardimcilar.kaliciYaz. */
+      kaliciYaz(VOID_KAYIT_ANAHTAR, dizi,
+                (d, oran) => {
+                  const at = Math.max(1, Math.ceil(d.length * oran));
+                  return d.length > at ? d.slice(at) : undefined;
+                }, DEFTER_TAVAN);
+    }
   } catch (e) {
     hataYaz("void.yaz", e);
   }

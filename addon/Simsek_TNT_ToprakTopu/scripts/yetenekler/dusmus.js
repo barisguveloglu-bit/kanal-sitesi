@@ -1,7 +1,7 @@
 import { system, world, ItemStack } from "@minecraft/server";
 import {
   hataYaz, bilgiYaz, gecerliMi, actionbarYaz, baslikYaz, parcacikAt,
-  varlikKonumu, olayaAbone
+  varlikKonumu, olayaAbone, kaliciYaz
 } from "../yardimcilar.js";
 import { sohbetDinleyiciEkle, sadelestir } from "../sohbet.js";
 import {
@@ -10,7 +10,7 @@ import {
   DUSMUS_ATES_TICK, DUSMUS_BAGISIKLIK, DUSMUS_KAYIT_ANAHTAR,
   DUSMUS_SECILME_SURE, DUSMUS_SECILME_BASLIK, DUSMUS_SECILME_ALT,
   DUSMUS_YEMIN_YONERGE, DUSMUS_YEMIN, DUSMUS_ASKER_BASLIK,
-  DUSMUS_ASKER_MESAJ, DUSMUS_YEMIN_TEKRAR
+  DUSMUS_ASKER_MESAJ, DUSMUS_YEMIN_TEKRAR, DEFTER_TAVAN
 } from "../ayarlar.js";
 
 /* ================================================================
@@ -117,9 +117,19 @@ function yaz() {
       dizi.push([id, k.durum, k.asama, k.zirh || []]);
     }
     const paket = { k: dizi, b: [...bloklar.keys()] };
-    world.setDynamicProperty(DUSMUS_KAYIT_ANAHTAR,
-      (dizi.length === 0 && bloklar.size === 0)
-        ? undefined : JSON.stringify(paket));
+    if (dizi.length === 0 && bloklar.size === 0) {
+      world.setDynamicProperty(DUSMUS_KAYIT_ANAHTAR, undefined);
+    } else {
+      /* v7.44: tavan. Sinir asilinca EN ESKI kayit dusuyor --
+         defteri dondurup yeni oyuncuyu hic kaydedememektense
+         en eskisini feda etmek. bkz. yardimcilar.kaliciYaz. */
+      kaliciYaz(DUSMUS_KAYIT_ANAHTAR, paket,
+                (d, oran) => {
+                  const at = Math.max(1, Math.ceil(d.k.length * oran));
+                  return d.k.length > at
+                    ? { k: d.k.slice(at), b: d.b } : undefined;
+                }, DEFTER_TAVAN);
+    }
   } catch (e) {
     hataYaz("dusmus.yaz", e);
   }

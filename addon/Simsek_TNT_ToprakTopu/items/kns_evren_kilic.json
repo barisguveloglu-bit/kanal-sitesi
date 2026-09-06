@@ -18,7 +18,8 @@
       "minecraft:tags": {
         "tags": [
           "pa:konsey",
-          "pa:konsey_silah"
+          "pa:konsey_silah",
+          "minecraft:is_sword"
         ]
       },
       "minecraft:hand_equipped": true,

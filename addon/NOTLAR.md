@@ -1,3 +1,198 @@
+# v7.44.0 — dış incelemenin bulduğu açıklar
+
+Kullanıcı v7.43'ü başka bir modele inceletip raporu getirdi. Yedi
+madde vardı. **Hepsi tek tek doğrulandı**, biri yanlış çıktı, biri
+zaten kayıtlı bir karardı.
+
+## Doğrulama tablosu
+
+| # | Bulgu | Hüküm |
+|---|---|---|
+| 1 | Gözcü'de ışınlanma yanlış pozitifi | **doğru** · düzeltildi |
+| 2 | Gözcü bildirimleri herkese gidiyor | **doğru** · düzeltildi |
+| 3 | Komutlarda yetki kapısı yok | **doğru** · düzeltildi |
+| 4 | Kalıcı defterlerde boyut sınırı yok | **doğru** (mahou hariç) · düzeltildi |
+| 5 | `isinBekleme` temizlenmiyor | **doğru** · düzeltildi |
+| 6a | Aletlerde `digger` yok | **doğru** · düzeltildi |
+| 6b | `mahou_dagger`/`hammer`'da hasar yok | **doğru ama kasıtlı** · değişmedi |
+| 7 | Beş küçük tutarsızlık | **doğru** · beşi de düzeltildi |
+
+### Raporun yanıldığı yer
+
+`mahou.js` "sınırsız büyüyen defter" listesine konmuş. **Değil.**
+Orada `world.setDynamicProperty` değil `oyuncu.setDynamicProperty`
+var ve yazılan şey bir dizi değil **tek bir sayı** (mana). Oyuncu
+başına ayrı özellik, birikme yok.
+
+Diğer beşi (`beceri`, `donusum`, `zirh_agac`, `void`, `dusmus`)
+tam raporun dediği gibi.
+
+### Raporun bulduğu ama zaten kayıtlı olan karar
+
+`mahou_dagger` ve `mahou_hammer`'da `damage` yok — doğru. Ama
+`kol_uret.py:mahou_esyasi` bunu yazıyor: *"`hasar` None ise silah
+değil, alet/odak: hasar bileşeni HİÇ yazılmıyor — kaynakta da
+yok."* Mahou Tsukai'de Dagger ve Hammer **ritüel aleti**, silah
+değil. Kaynak ölçülmüş, karar kayıtlı. Değiştirilmedi.
+
+---
+
+## 1. Portal kullanan herkes hileci sayılıyordu
+
+Rapor haklıydı ve etkisi düellolarda doğrudan görünür: Nether
+portalı koordinatı 1/8'e bölüyor, `x=800` → `x=100` tek örnekte
+**700 bloklu bir sıçrama** üretiyor, `HAREKET_SICRAMA=12` eşiği
+her seferinde aşılıyor.
+
+Üç kaynak var ve üçü ayrı ayrı kapatıldı:
+
+**Boyut değişimi** — ize artık `boyut` da yazılıyor; iki konum
+farklı boyuttaysa ölçüm hiç yapılmıyor. **Olayla değil izle**
+çözüldü: `playerDimensionChange` her API sürümünde yok, ama iki
+konumun aynı uzayda olup olmadığını sormak hiçbir şeye bağlı değil.
+
+**Ölüp yeniden doğma** — `playerSpawn` izi düşürüyor.
+`initialSpawn` ayrımı **bilerek yapılmadı**: ölüp doğma
+`initialSpawn=false` ile geliyor, yani asıl yanlış pozitifi
+üretecek olan tam da eski erken çıkışın elediği durum. Test bunu
+satır sırasıyla tutuyor.
+
+**Ender incisi / chorus / riptide** — boyut aynı, düşürülecek bir
+şey yok. Bu eşyalar kullanılınca **tek örneklik af** veriliyor.
+
+### Af yazılırken bir hata yaptım, testim yakaladı
+
+İlk yazılışta af yalnız **sıçramayı** bağışlıyordu. Ölçüm gösterdi:
+ender incisi 35 bloku bir örnekte atıyor, yani sıçrama eşiğini de
+**hız eşiğini de** aşıyor (35 blok / 0,5 sn = 70 blok/sn). Af
+sıçramayı bağışlayıp hızı bağışlamayınca inci **yine
+işaretleniyordu** — düzeltme hiçbir şey düzeltmiyordu.
+
+İkisi birlikte bağışlanıyor; ikisi de aynı tek hareketin ölçümü.
+**Yükselme bağışlanmıyor**: o üst üste 6 örnek istiyor, yani tek
+bir ışınlanmayla oluşmaz — affın arkasına saklanacak yer orası
+olurdu.
+
+## 2. Suçlama artık herkese yazılmıyor
+
+`GOZCU_ETIKET = "gozcu"`. Etiketi taşıyan oyuncu varsa bildirim
+yalnız onlara gidiyor.
+
+**Etiketli kimse yoksa eskisi gibi herkese.** Bu bilinçli:
+"kimse etiketli değilse kimseye gitmesin" seçilseydi, ayarı
+bilmeyen herkes anticheat'i **sessizce** kaybederdi. Bu depoda
+sessiz kapanma en pahalı hata biçimi.
+
+Kendini etiketleyen ilk kişi aynı anda herkesi dışarı almış
+oluyor — tek komut: `/tag @s add gozcu`.
+
+## 3. Komut yetkisi
+
+`SOHBET_ONEK = ""` olduğu için sohbete düz `can 10` yazan herkes
+kendine 10 kalp ekliyordu, tavan 200. Düelloda karşındaki de
+paketi kurmuş oluyor.
+
+`KOMUT_ETIKET = "simsek_yetkili"` ve `KOMUT_KORUMALI = [can, kalp,
+bot]`. Aynı "etiketli kimse yoksa kapı açık" kuralı.
+
+**`arin` / `savunma` / `kafes` asla kapatılmıyor.** Üçü de kilit
+açma komutu ve girdisi kilitli oyuncunun tek çıkış yolu; yetkiye
+bağlamak savunmayı silahtan etmek olurdu. Test bunu ayrıca tutuyor.
+
+## 4. Defter tavanı — ve ikinci bir kendi hatam
+
+`DEFTER_TAVAN = 24000` (Bedrock sınırı 32767; pay bırakıldı).
+Aşınca **en eski** kayıt düşüyor — defteri dondurup yeni oyuncuyu
+hiç kaydedememektense.
+
+İlk yazılışta `kirp` en eski **tek** kaydı düşürüyordu ve döngü 64
+turla sınırlıydı. Testim yakaladı: 900 kayıtlık defter 42191
+bayttan ancak 39303'e indi, **yani tavanın üstünde kaldı ve sınır
+sessizce tutmadı.** Tur sayısını büyütmek çözüm değil — her tur
+baştan `JSON.stringify` demek, tek tick'te yapılamaz.
+
+Kırpma artık **oranla** çalışıyor: metin ne kadar taşmışsa o kadarı
+düşüyor, iki-üç turda oturuyor. 42191 → **21903**.
+
+## 5. Beşinci defter
+
+`ilkelUnut` `seriler`, `asaUnut`, `dislerUnut` temizliyordu;
+`isinBekleme.delete(botId)` yoktu. v7.24'te dört deftere temizlik
+yazılmış, beşincisi atlanmış. `isinlar.js`'teki `bekleme` de hiç
+silinmiyordu — anahtarı `oyuncuId|ışın` olduğu için önekle
+taranıyor. `viltrumite.kanamaUnut` da tutarlılık için bağlandı.
+
+## 6. Aletler gerçekten alet
+
+Dokuz konsey aleti yalnız `damage` + `durability` taşıyordu:
+`digger` yok, vanilla alet etiketi yok. Yani "Earl Kazması" taş
+kazınca blok düşürmüyordu. v4.84'te aynı şey `ilkel_balta`'da
+bulunmuş, konsey aletlerinde atlanmıştı.
+
+**İki parça var ve güvenilirlikleri farklı — ayrı yazıldı:**
+
+- **Eşya etiketi** (`minecraft:is_pickaxe` vb.) bloğun düşüp
+  düşmeyeceğini belirliyor. Düz metin; tanınmayan etiket sessizce
+  yok sayılır.
+- **`destroy_speeds` içindeki blok etiketleri** hızı belirliyor.
+  **Bunların adlarını ölçemedim**: `bedrock-samples`'ın vanilla
+  blok listesinde etiket alanı yok, depoda kanıtı olan tek değer
+  `'wood'` (ilkel_balta, v4.84).
+
+Yine de yazıldılar. Gerekçe kodda da duruyor: yanlış bir blok
+etiketi **eşleşmez**, yani alet yavaş kalır — bozulan bir şey
+olmaz. Bu, "kanıtsız molang sorgusu yazma" kuralının kapsadığı
+risk sınıfı değil; orada yanlış ifade çizimi komple bozuyordu,
+burada en kötü ihtimalle bugünkü durum sürüyor. **Tablette
+bakılması gereken tek madde bu.**
+
+## 7. Beş küçük madde
+
+- `kureAnahtar` aralığı artık **ölçülüyor**, yalnız yorumda
+  yazmıyor. Aşan çağrı `undefined` dönüyor, çağıran önbelleği
+  atlıyor — yavaş ama doğru. Test çakışmanın gerçekten olacağını
+  da ölçüyor (`eski(0,1,0) === eski(0,0,32)`).
+- Gizli eşyalar tek yöntemle gizleniyor (`category: "none"`).
+  İkisi de çalışıyordu ama alan hiç yokken "unutulmuş mu, bilerek
+  mi" ayırt edilemiyordu.
+- Dört sahne varlığı adlandırıldı. **Yumurta anahtarı
+  yazılmadı** — yumurtaları yok, olmayan bir şeye ad vermek yanlış
+  bilgi olurdu.
+- `geometry.o_sey` iki paketteki kopyası **birebir aynı** ve
+  ayrışamaz, çünkü ikisi de aynı fonksiyondan üretiliyor. Rapor
+  "biri güncellenirse sessizce ayrışır" dedi; ayrışmaz — ama bunu
+  bir **test** söylemeli, yorum değil. Test eklendi.
+- Ana paket artık kaynak paketine bağımlı. UUID **manifest'ten
+  okunuyor**, elle yazılmıyor; sürüm her üretimde tazeleniyor
+  (sabit yazılsaydı bir sonraki sürümde bağımlılık çözülmez ve
+  paket hiç açılmazdı — uyarı yerine sessiz ölüm).
+
+## Ölçüm
+
+`test/inceleme_744.mjs` yedi bölüm. Dokuz mutasyon denendi,
+**dokuzu da yakalandı**:
+
+| mutasyon | düşen kontrol |
+|---|---|
+| boyut kontrolü kaldırıldı | 2 |
+| ışınlanma affı kaldırıldı | 2 |
+| af harcanmıyor (kalıcı muafiyet) | 1 |
+| af her şeyi bağışlıyor | 6 |
+| bildirim yine herkese | 2 |
+| yetki kapısı kaldırıldı | 1 |
+| etiketsiz dünyada kapı kapanıyor | 1 |
+| defter kırpma devre dışı | 2 |
+| `kureAnahtar` koruması kaldırıldı | 1 |
+
+İlk mutasyon turunda **üçü kaçmıştı**: test sohbete düşen suçlamayı
+sayıyordu, oysa Gözcü ancak 4 işaretten sonra yazıyor — tek portal
+örneği hiçbir zaman sohbete düşmez. Yani "portal işaretlenmiyor"
+satırı, düzeltme kaldırıldığında bile geçiyordu. Ölçüm işaret
+sayacına (`gozcuDurum().isaret`) taşındı. Bu, `anna.mjs` dersinin
+aynısı: **yanlış yerden ölçen bir test, test değildir.**
+
+---
+
 # v7.43.0 — Mezar Wither'a karşı ayakta kalıyor
 
 Kullanıcı:

@@ -18,7 +18,8 @@
       "minecraft:tags": {
         "tags": [
           "pa:konsey",
-          "pa:konsey_alet"
+          "pa:konsey_alet",
+          "minecraft:is_shovel"
         ]
       },
       "minecraft:hand_equipped": true,
@@ -26,6 +27,17 @@
       "minecraft:damage": 12,
       "minecraft:durability": {
         "max_durability": 600
+      },
+      "minecraft:digger": {
+        "use_efficiency": true,
+        "destroy_speeds": [
+          {
+            "block": {
+              "tags": "query.any_tag('dirt','sand','gravel','snow')"
+            },
+            "speed": 12
+          }
+        ]
       }
     }
   }

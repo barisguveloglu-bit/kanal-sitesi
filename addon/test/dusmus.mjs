@@ -132,8 +132,17 @@ console.log("=== 1. ZIRH DEGIL, BLOK ===");
     kontrol("kns_dusmus_" + i + " esyasi var", existsSync(y));
     if (!existsSync(y)) continue;
     const d = oku(y)["minecraft:item"].description;
+    /* v7.44: GIZLEME BICIMI DEGISTI, guvence degil.
+       Eskiden `menu_category` alani HIC yazilmiyordu; artik
+       depodaki oteki 16 gizli esyayla ayni bicimde
+       `category: "none"` yaziliyor. Ikisi de menuden
+       kaldiriyor, ama alan hic yokken "unutulmus mu, bilerek
+       mi" ayirt edilemiyordu (dis inceleme buldu).
+
+       Test ACIK bicimi bekliyor: geri donulurse dussun.   */
     kontrol("  menude YOK (zirh degil, durum)",
-            d.menu_category === undefined, JSON.stringify(d.menu_category));
+            !!d.menu_category && d.menu_category.category === "none",
+            JSON.stringify(d.menu_category));
   }
   const bl = BP + "/blocks/kns_dusmus_blok.json";
   kontrol("Dusmus Blogu tanimli", existsSync(bl));

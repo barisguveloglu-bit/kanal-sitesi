@@ -62,6 +62,21 @@ import {
 /* oyuncuId + isin -> bir sonraki atisin en erken tick'i */
 const bekleme = new Map();
 
+/* v7.44: cikan oyuncunun bekleme satirlari dusuyor. Anahtar
+   "oyuncuId|isinKimligi" oldugu icin tek delete yetmiyor,
+   onekle taraniyor -- oyuncu basina en fazla isin sayisi
+   kadar satir var, yani dongu kucuk.
+
+   Dis inceleme buldu: "isinlar.js:63'teki bekleme haritasi
+   hic silinmiyor."                                          */
+export function isinBeklemeUnut(oyuncuId) {
+  if (oyuncuId === undefined) { bekleme.clear(); return; }
+  const onek = oyuncuId + "|";
+  for (const anahtar of bekleme.keys()) {
+    if (anahtar.startsWith(onek)) bekleme.delete(anahtar);
+  }
+}
+
 /* isinAt'in birakip gittigi yildirim artigi. Isin ANLIK bir
    yetenek; yalniz yildirimli olanlar is dondurup kalani
    tamamliyor.                                              */
