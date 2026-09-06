@@ -102,8 +102,6 @@ function blokAnahtar(boyutId, x, y, z) {
   return boyutId + "|" + x + "|" + y + "|" + z;
 }
 
-export function dusmusBlokSayisi() { return bloklar.size; }
-
 /* Kayit bicimi: [[oyuncuId, durum, asama, [zirh...]], ...]
    Zirh yalniz TIP olarak saklaniyor: dunya ozelliginin boyut
    siniri var ve buyu/ad gibi verileri tasimak defteri
@@ -185,8 +183,6 @@ export function dusmusDurum(oyuncuId) {
   const k = defter.get(oyuncuId);
   return k ? k.durum : undefined;
 }
-export function dusmusSayisi() { return defter.size; }
-
 const YUVALAR = ["Head", "Chest", "Legs", "Feet"];
 
 function kap(oyuncu) {

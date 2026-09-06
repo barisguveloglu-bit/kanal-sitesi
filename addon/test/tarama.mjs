@@ -473,9 +473,14 @@ console.log("=== 7. OLU KOD BUYUMUYOR ===");
       new RegExp("^export const " + a + "\\b.*$", "gm"), "");
     return !new RegExp("\\b" + a + "\\b").test(temiz);
   });
-  /* Dokuz tanesi ONCEDEN beri oksuz ve ayarlar.js'te
-     isaretli. Sayi ARTMAMALI.                             */
-  kontrol("oksuz ayar sayisi artmadi", oksuz.length <= 9,
+  /* v7.51: dokuzun UCU KALDIRILDI (BOS_SISE,
+     BOT_KURTARMA_YAKIN, DONUSUM_TARAMA) -- ucu de baska bir
+     ayarin ya da hic var olmayan bir esyanin artigiydi;
+     gerekcesi ayarlar.js'teki isaret blogunda. Kalan ALTI
+     tanesi "tasarlandi, baglanmadi" sinifinda ve bilerek
+     duruyor. Sinir 9'dan 6'ya cekildi: kazanilan yer geri
+     verilmesin.                                            */
+  kontrol("oksuz ayar sayisi artmadi", oksuz.length <= 6,
           oksuz.length + " tane: " + oksuz.join(", "));
   kontrol("oksuz ayarlar ayarlar.js'te isaretli",
           oksuz.length === 0 ||

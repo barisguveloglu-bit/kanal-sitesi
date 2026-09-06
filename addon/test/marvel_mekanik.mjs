@@ -301,19 +301,61 @@ console.log("=== 6. OYUNCU VARLIGI ===");
     const e = oku(y)["minecraft:entity"];
     kontrol("kimlik minecraft:player",
             e.description.identifier === "minecraft:player");
-    kontrol("uc bilesen grubu, uc olay",
-            Object.keys(e.component_groups).length === 3 &&
-            Object.keys(e.events).length === 3);
-    const olcek = Object.values(e.component_groups)
-      .map((g) => g["minecraft:scale"].value).sort((a, b) => a - b);
+    /* ---- BIZIM UCUMUZ + VANILLA'NIN BASKIN MAKINESI (v7.51) ----
+       Burasi eskiden "tam uc grup, tam uc olay" diyordu. O sayi
+       BIR EKSIGI GIZLIYORDU: BP'de bir varligi ezmek TUMDEN
+       ezmektir, yani vanilla oyuncusunun baskin gruplari ve
+       olaylari pakette yoksa OYUNDAN SILINIYOR. Yoklardi --
+       eklenti kuruluyken Kotu Alamet tasiyan oyuncu koye
+       girdiginde baskin baslamiyordu. Artik ikisi de burada ve
+       AYRI AYRI kilitleniyor: sayi degil, ADLAR.             */
+    const bizimGrup = ["pa_boy_buyuk", "pa_boy_kucuk", "pa_boy_normal"];
+    const grupAdlari = Object.keys(e.component_groups).sort();
+    kontrol("bizim uc boy grubumuz duruyor",
+            bizimGrup.every((g) => grupAdlari.includes(g)),
+            grupAdlari.join(", "));
+    const vanillaGrup = ["minecraft:add_raid_omen",
+                         "minecraft:clear_raid_omen_spell_effect",
+                         "minecraft:raid_trigger"];
+    kontrol("vanilla baskin gruplari SILINMEMIS",
+            vanillaGrup.every((g) => grupAdlari.includes(g)),
+            grupAdlari.join(", "));
+    const vanillaOlay = ["minecraft:clear_add_raid_omen",
+                         "minecraft:gain_raid_omen",
+                         "minecraft:remove_raid_trigger",
+                         "minecraft:trigger_raid"];
+    const olayAdlari = Object.keys(e.events).sort();
+    kontrol("vanilla baskin olaylari SILINMEMIS",
+            vanillaOlay.every((o) => olayAdlari.includes(o)),
+            olayAdlari.join(", "));
+    /* Baskin tetigi olaya BAGLI olmali; grup dursa da bunu
+       tetikleyen bilesen gitse zincir yine kopardi.          */
+    const cevre = e.components["minecraft:environment_sensor"];
+    kontrol("baskin tetigi (environment_sensor) bagli",
+            !!cevre && cevre.triggers &&
+            cevre.triggers.event === "minecraft:gain_raid_omen",
+            JSON.stringify(cevre));
+    kontrol("spawn_category vanilla'daki gibi",
+            e.description.spawn_category === "creature",
+            String(e.description.spawn_category));
+    /* Fazladan grup EKLENMESIN: liste bu ikisiyle tam.       */
+    kontrol("baska grup yok",
+            grupAdlari.length === bizimGrup.length + vanillaGrup.length,
+            grupAdlari.length + " tane");
+    const olcek = bizimGrup
+      .map((g) => e.component_groups[g]["minecraft:scale"].value)
+      .sort((a, b) => a - b);
     kontrol("olcekler 0.05 / 1 / 5",
             JSON.stringify(olcek) === "[0.05,1,5]", JSON.stringify(olcek));
     /* Olay adlari ayarlar.js ile AYNI olmali: yoksa script
        var olmayan bir olayi tetikler ve boy hic degismez.   */
     const ayarOlay = Object.values(ayar.MARVEL_BOY_OLAY).sort();
     kontrol("olay adlari ayarlar.js ile ayni",
-            JSON.stringify(Object.keys(e.events).sort()) ===
-            JSON.stringify(ayarOlay), Object.keys(e.events).join(","));
+            ayarOlay.every((o) => olayAdlari.includes(o)),
+            Object.keys(e.events).join(","));
+    kontrol("bizim olaylarimiz + vanilla'ninki, fazlasi yok",
+            olayAdlari.length === ayarOlay.length + vanillaOlay.length,
+            olayAdlari.length + " tane");
     /* Cizim bileseni OLMAMALI: oyuncuyu yeniden cizmiyoruz.  */
     kontrol("BP tanimi oyuncuyu yeniden CIZMIYOR",
             !e.components["minecraft:geometry"] &&

@@ -183,6 +183,7 @@
           "v.chest_layer_visible = 1.0;",
           "v.attack_body_rot_y = Math.sin(360 * Math.sqrt(v.attack_time)) * 5.0;",
           "v.tcos0 = math.cos(query.modified_distance_moved * 38.17) * query.modified_move_speed / v.gliding_speed_value * 57.3;",
+          "v.first_person_rotation_factor = math.sin((1 - v.attack_time) * 180.0);",
           "v.first_person_item_rotation_factor = math.sin((1 - v.attack_time) * 180.0);",
           "v.hand_bob = query.life_time < 0.01 ? 0.0 : v.hand_bob + ((query.is_on_ground && query.is_alive ? math.clamp(math.sqrt(math.pow(query.position_delta(0), 2.0) + math.pow(query.position_delta(2), 2.0)), 0.0, 0.1) : 0.0) - v.hand_bob) * 0.02;",
           "v.map_angle = math.clamp(1 - v.player_x_rotation / 45.1, 0.0, 1.0);",

@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.50.0";
+export const SURUM = "v7.51.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -2604,7 +2604,26 @@ export const LAZER_BUZ_TAVAN   = 80;   // tek atista en fazla kac blok
    kucuk hali. Baglanana kadar burada BOYLE duruyorlar ki
    kimse bunlari acik saniip beklemesin.
 
-   Testte sayilari sabit: yenisi eklenirse tarama yakalar.  */
+   Testte sayilari sabit: yenisi eklenirse tarama yakalar.
+
+   ---- v7.51: OKSUZ SAYISI DOKUZDAN ALTIYA INDI ----
+   Uc tanesi bu alti gibi "tasarlandi ama baglanmadi" degildi,
+   ARTIKTI -- yani niyeti zaten baska bir ayar karsiliyordu.
+   Ucu de kaldirildi, cunku birakmanin tek etkisi okuyani
+   yaniltmakti:
+
+     BOS_SISE ("pa:bos_sise")  Boyle bir esya HIC YOK: ne
+       items/ altinda bir dosyasi, ne dil kaydi, ne de onu anan
+       baska bir satir. Bos siseyi anlatan bir ayar, bos sise
+       diye bir sey olmadan.
+     BOT_KURTARMA_YAKIN (2)  "isinlanirken oyuncuya kac blok
+       uzaga" diyordu; isi GERCEKTEN yapan BOT_CAGIR_YAKIN (3)
+       ve `yanaGetir` onu okuyor. Iki ayar, tek is, farkli iki
+       sayi -- degistiren kisi yanlis olani degistirirdi.
+     DONUSUM_TARAMA (1)  "kac tick'te bir konum guncellensin"
+       diyordu; kilik zaten KOSULSUZ her tick hizalaniyor
+       (donusum.js), yani ayarlanacak bir sey yok. Degeri 2
+       yapmak hicbir sey yavaslatmazdi.                       */
 export const LAZER_HIZ_SURE     = 100;
 export const LAZER_HIZ_SEVIYE   = 2;
 export const LAZER_KALKAN_SURE  = 120;
@@ -2615,7 +2634,6 @@ export const LAZER_SAVUR_GUC    = 1.6;
 /* Kademe -> iksir esyasi eslesmesi generator ile ayni sirada
    uretiliyor: pa:iksir_<kimlik>                                  */
 export const IKSIR_ONEK = "pa:iksir_";
-export const BOS_SISE   = "pa:bos_sise";
 
 /* ---------------- Korunan bloklar ----------------
    Toprak topu ve blok yazan diger yetenekler bunlara dokunmaz.     */
@@ -3031,7 +3049,6 @@ export const BOT_ACIK             = true;
 export const BOT_KIMLIK           = "pa:bot";
 export const BOT_TAVAN            = 30;   // oyuncu basina kac bot
 export const BOT_KURTARMA_MENZIL  = 24;   // bu kadar uzaklasirsa isinlanir
-export const BOT_KURTARMA_YAKIN   = 2;    // isinlanirken oyuncuya kac blok uzaga
 export const BOT_TARAMA           = 20;   // kac tick'te bir mesafe olculsun
 export const BOT_CAGIR_YAKIN      = 3;    // "yanima gel" mesafesi
 export const BOT_DOGUM_YAKIN      = 2;    // yeni bot kac blok yana dogsun
@@ -4314,7 +4331,6 @@ export const SEY_BOY    = 2.75;   // blok -- carpisma kutusu boyu
    Tazelenmezse oyuncu bir anda iki bedenli gorunur.            */
 export const DONUSUM_ACIK      = true;
 export const SEY_KILIK_KIMLIK  = "pa:o_sey_kilik";
-export const DONUSUM_TARAMA    = 1;    // kac tick'te bir konum guncellensin
 export const DONUSUM_TAZELEME  = 40;   // gorunmezlik kac tick'te bir yenilensin
 export const DONUSUM_SURE      = 200;  // efekt suresi (TAZELEME x 5)
 export const DONUSUM_KAYIT_ANAHTAR = "simsek:kilikler";

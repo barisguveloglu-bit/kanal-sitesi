@@ -1,3 +1,148 @@
+# v7.51.0 — sistem taraması: üretim artık depodan, oyuncu varlığı vanilla ile eşit
+
+Kullanıcı *"sistemi baştan sona tarayıp ölü kod varsa düzeltmeni veya
+eksik yerler varsa oraları da düzeltmeni istiyorum. Ayrıca sistem uygun
+olan son teknolojiyi kullanıyor mu diye bakmanı istiyorum"* dedi.
+
+Tarama bağımsız yapıldı: paketin tamamı (2.311 dosya) referans
+bütünlüğü için ayrı bir betikle gezildi, betikler için modül grafiği ve
+dışarı-verim kullanımı çıkarıldı, üretici temiz bir ağaçta çalıştırılıp
+çıktısı depodakiyle karşılaştırıldı ve vanilla tarafı `Mojang/bedrock-samples`
+(1.26.40.5, 04-08-2026) **indirilerek** okundu — hafızadan değil.
+
+## 1. En pahalı bulgu: üretici kendi çıktısını bozuyordu
+
+`python3 kol_uret.py` temiz bir ağaçta koşturulunca **beş PNG küçük yer
+tutuculara dönüyordu** (`bot.png` 2.704 → 459 bayt; ayrıca `kol_toprak`
+ve `kol_buz`'un hem varlık hem ikon dokuları).
+
+Sebep: kaynak skinler `/root/.claude/uploads/<oturum>/` altını
+gösteriyordu. O klasör **oturumluk**. Depo başka bir makineye
+klonlandığında dosyalar yoktu ve üretici sessizce yer tutucu yazıyordu.
+Yani kullanıcının gönderdiği çizimlerin **tek kopyası** üretilmiş
+çıktının kendisiydi ve üreteci bir kez çalıştırmak onu siliyordu.
+
+Düzeltme iki parçalı:
+
+- Kaynaklar depoya alındı: `kaynak_doku/bot_skin.png`, `kaynak_doku/kol_skin.png`,
+  `kaynak_doku/ilkel_{harkos,raxxan,miskel,okazor,kajaros}.png`. Bot ve
+  İlkel dosyaları zaten `shutil.copyfile` ile birebir kopyalanıyordu,
+  yani çıktı kaynağın aynısı. Kol dokusu türetiliyordu; kaynak iki
+  çıktıdan geri kuruldu ve **bayt bayt aynı** sonucu verdiği doğrulandı
+  (dört dosyanın da sha1'i tutuyor).
+- `skin_kaynagi()` eklendi: önce depo, sonra yükleme klasörü. Hiçbiri
+  yoksa **diskteki korunuyor** — yer tutucu yazılmıyor. Bu koruma
+  İlkel skinlerinde zaten vardı; bot ve kol yollarında yoktu.
+
+Sonuç ölçüldü: üretici arka arkaya iki kez koşuyor ve `git status`
+temiz kalıyor. Üretim artık depodan yeniden kurulabilir.
+
+## 2. Oyuncu varlığı vanilla'nın baskın sistemini siliyordu
+
+`Simsek_TNT_ToprakTopu/entities/player.json` `minecraft:player`'ı
+eziyor. Bedrock'ta bir varlığı ezmek **tümden** ezmektir: pakette
+olmayan şey vanilla'dan gelmiyor, siliniyor.
+
+Bizim kopyada olmayanlar (bugünkü vanilla ile karşılaştırıldı):
+
+| eksik olan | ne yapar |
+|---|---|
+| `minecraft:environment_sensor` | Kötü Alamet + köy → `gain_raid_omen` |
+| `minecraft:add_raid_omen` grubu | alameti Baskın Alameti'ne çevirir |
+| `minecraft:clear_raid_omen_spell_effect` grubu | efekti temizler |
+| `minecraft:raid_trigger` grubu | baskını başlatır |
+| dört `minecraft:*` olayı | zinciri birbirine bağlar |
+| `spawn_category: "creature"` | vanilla'da var |
+
+Yani **eklenti kuruluyken baskın hiç başlamıyordu.** Bileşen kümesi
+Marvel modunun `player.json`'undan alınmıştı ve mod da bunları
+düşürmüştü; kopya hiç tam olmadı.
+
+Biçim sürümüne dokunulmadı ve bu bir tahmin değil: vanilla'nın
+1.19.30'daki `player.json`'u da `format_version` **1.18.20** idi ve bu
+dördünü (`environment_sensor` / `spell_effects` / `timer` /
+`raid_trigger`) zaten taşıyordu. Tanımlar bugünkü vanilla'dan alındı
+(1.21'de `bad_omen` → `raid_omen` yeniden yazıldı, kullanıcının oyunu
+26.45).
+
+**Bilerek alınmayan iki bileşen:** `minecraft:apply_knockback_rules` ve
+`minecraft:pushable_by_block`. İkisi de vanilla'ya `format_version`
+1.26.30 ile geldi; 1.18.20'de geçerli olduklarına dair kanıt yok.
+Oyuncu varlığını kırmanın bedeli, kükürt küpü geri tepmesinin
+varsayılana düşmesinden büyük. Biçim sürümünü yükseltmek ayrı bir
+karar: kazandırır ama `min_engine_version` 1.21.132 olan istemcilerde
+oyuncu ezmesini tümden düşürür.
+
+## 3. Oyuncu modelinde eksik vanilla molang satırı
+
+`player.entity.json` de vanilla'yı eziyor. `pre_animation` satır satır
+karşılaştırıldı: `variable.first_person_rotation_factor` vanilla'da var,
+bizde yoktu. Eklendi. (Bizdeki `first_person_item_rotation_factor`
+korundu — vanilla animasyonlarının **gerçekten okuduğu** ad o.)
+
+Geri kalan her şey eşit: 72 animasyon eşlemesi, 5 render controller, 4
+malzeme, `initialize`'ın dördü de yerinde. `v.tcos0` yalnız
+parantezleme farkı, matematiği aynı.
+
+## 4. Ölü kod
+
+| ne | karar |
+|---|---|
+| `textures/entity/zirh_suit.png` | **silindi.** `ZIRH` listesi v4.98'de boşaltıldı, `zirh_attachable` hiç çağrılmıyor, pakette o dokuyu isteyen tek dosya yok. Yine de kopyalanıyor **ve** temizlik adımından korunuyordu. Aura parçacıklarında konan kuralın aynısı: "kapalı ama yine de pakete giren bir şey bırakmıyoruz." |
+| `test/_gecici_NaN.js` | **silindi.** 414 satır, `main.js`'in eski bir kopyası (main.js bugün 2.751 satır), hiçbir yerden çağrılmıyor. |
+| boş `Simsek_Kol_Kaynak/particles/` | **kaldırıldı.** `AURA_URETILEN` boş olduğu hâlde klasör her koşuda açılıyordu. |
+| `BOS_SISE` | **silindi.** `pa:bos_sise` diye bir eşya hiç yok — ne dosyası, ne dil kaydı. |
+| `BOT_KURTARMA_YAKIN` | **silindi.** İşi gerçekten yapan `BOT_CAGIR_YAKIN`; iki ayar, tek iş, farklı iki sayı. |
+| `DONUSUM_TARAMA` | **silindi.** Kılık zaten koşulsuz her tick hizalanıyor; ayarlanacak bir şey yok. |
+| `dusmusSayisi`, `dusmusBlokSayisi`, `kipDurum`, `tumIksirler` | **silindi.** Dördünü de ne kod ne test okuyor. Kardeşleri (`voidSayisi`, `mezarSayisi`…) testlerden okunuyor; bunlar okunmuyordu. |
+
+`tarama.mjs`'teki "öksüz ayar" sınırı **9'dan 6'ya** çekildi — kazanılan
+yer geri verilmesin diye.
+
+**Bilerek dokunulmayanlar:** altı `LAZER_*` ayarı (tasarlandı,
+bağlanmadı — kendi bloğunda işaretli) ve Ben 10 paketindeki 31 bağlanmamış
+animasyon (`BEN10_ANIM_BAGLI` notu: uydurma bir koşul yazmaktansa böyle).
+
+## 5. Mutlak yollar
+
+`kol_uret.py` (4) ve `onizle_ilkel.py` (3) depo kökünü içine gömmüştü.
+Başka bir makinede üretici ya hiçbir şey bulamaz ya yanlış yere yazardı.
+Aynı hata `kos.sh`'ta v7.9.3'te düzeltilmişti; buralarda kalmış.
+`birlestir.py`'nin `KOK` kalıbına geçirildi. Depoda artık gömülü mutlak
+yol yok.
+
+## 6. Teknoloji: eskilik yok
+
+`bedrock-samples` 1.26.40.5 ile karşılaştırıldı.
+
+- `format_version`'lar vanilla'nın bugün kullandığı değerlerle aynı
+  hizada (manifest 2, attachable 1.10.0, item 1.21.0, block 1.21.0,
+  sound_definitions 1.20.20). Geometrimiz 1.12.0, vanilla zombisinin
+  1.8.0'ından yeni.
+- `@minecraft/server` 2.0.0 bir eskilik değil **taban**; yükseltmek eski
+  istemcileri dışarı atardı (v7.45 ölçümü hâlâ geçerli).
+- Bulunan tek gerçek eskilik vanilla'yı ezen iki dosyaydı ve ikisi de bu
+  sürümde kapandı (2. ve 3. bölüm).
+
+## 7. Kapanmayan tek şey
+
+**Ferguson kupası hâlâ üretilmiyor.** `kupa_skinleri/ferguson.png` 13
+yüzünde birden gürültü ölçütünü aşıyor (komşu farkı 96, renk oranı 1.00);
+diğer dört skinin hiçbiri yaklaşmıyor bile. Ölçüt doğru çalışıyor, skin
+bozuk. Temiz bir dosya gelmeden yapılabilecek bir şey yok — uydurma bir
+kupa üretmek bu depodaki kurala aykırı.
+
+## Test
+
+`kos.sh` 107 dosyanın tamamı yeşil. `marvel_mekanik.mjs` 6. bölüm
+yeniden yazıldı: eskiden "tam üç grup, tam üç olay" diyordu ve **tam o
+sayı eksiği gizliyordu**. Artık sayı değil **adlar** kilitleniyor —
+bizim üç boy grubumuz, vanilla'nın üç baskın grubu ve dört olayı,
+`environment_sensor`'ün olaya bağlılığı ve `spawn_category` ayrı ayrı
+sınanıyor.
+
+---
+
 # v7.50.0 — arşivin tamamı tarandı: üç eksik
 
 Kullanıcı 11 MB'lık arşivi tekrar gönderip *"eklenebileceklerinin

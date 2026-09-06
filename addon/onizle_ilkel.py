@@ -15,12 +15,15 @@ Skin duzeni (64x64, vanilla):
 from PIL import Image, ImageDraw, ImageFont
 import os, json, re
 
-RP = "/home/user/kanal-sitesi/addon/Simsek_Kol_Kaynak"
-AYAR = "/home/user/kanal-sitesi/addon/Simsek_TNT_ToprakTopu/scripts/ayarlar.js"
+# v7.51: uc mutlak yol kaldirildi -- betik kendi konumundan
+# turetiyor (kol_uret.py ve birlestir.py ile ayni kalip).
+KOK = os.path.dirname(os.path.abspath(__file__))
+RP = os.path.join(KOK, "Simsek_Kol_Kaynak")
+AYAR = os.path.join(KOK, "Simsek_TNT_ToprakTopu/scripts/ayarlar.js")
 
 def onay_tablosu():
     """kol_uret.py:ILKEL_SKIN_ONAY sozlugunu okur."""
-    metin = open("/home/user/kanal-sitesi/addon/kol_uret.py",
+    metin = open(os.path.join(KOK, "kol_uret.py"),
                  encoding="utf-8").read()
     blok = metin[metin.index("ILKEL_SKIN_ONAY = {"):]
     blok = blok[:blok.index("}")]

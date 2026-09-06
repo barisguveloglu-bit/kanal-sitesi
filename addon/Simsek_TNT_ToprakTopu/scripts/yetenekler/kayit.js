@@ -152,10 +152,6 @@ export function iksirinKademesi(esyaTipi) {
   return iksirEsyasi.get(esyaTipi);
 }
 
-export function tumIksirler() {
-  return Array.from(iksirler.values());
-}
-
 /* Esyasiz jest sirasinda gosterilecek yetenekler, sirali. */
 export function esyasizSira() {
   return tumYetenekler()

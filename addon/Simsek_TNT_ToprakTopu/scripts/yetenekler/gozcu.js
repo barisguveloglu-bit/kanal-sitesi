@@ -451,8 +451,6 @@ export function kipUnut(oyuncuId) {
   else kipDefteri.delete(oyuncuId);
 }
 
-export function kipDurum(oyuncuId) { return kipDefteri.get(oyuncuId); }
-
 /* Oyuncunun kipini okur. API surumleri arasinda iki bicim var:
    getGameMode() (yeni) ve gameMode alani (eski). Ikisi de
    yoksa DENETLENMIYOR -- okuyamadigimiz seyi suclamiyoruz. */

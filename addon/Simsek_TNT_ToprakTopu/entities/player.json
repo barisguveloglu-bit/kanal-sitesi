@@ -6,6 +6,7 @@
       "is_spawnable": false,
       "is_summonable": false,
       "is_experimental": false,
+      "spawn_category": "creature",
       "properties": {
         "pa:matkap": {
           "type": "bool",
@@ -15,6 +16,40 @@
       }
     },
     "component_groups": {
+      "minecraft:add_raid_omen": {
+        "minecraft:spell_effects": {
+          "add_effects": [
+            {
+              "display_on_screen_animation": true,
+              "duration": 30,
+              "effect": "raid_omen"
+            }
+          ],
+          "remove_effects": "bad_omen"
+        },
+        "minecraft:timer": {
+          "looping": false,
+          "time": [
+            0.0,
+            0.0
+          ],
+          "time_down_event": {
+            "event": "minecraft:clear_add_raid_omen",
+            "target": "self"
+          }
+        }
+      },
+      "minecraft:clear_raid_omen_spell_effect": {
+        "minecraft:spell_effects": {}
+      },
+      "minecraft:raid_trigger": {
+        "minecraft:raid_trigger": {
+          "triggered_event": {
+            "event": "minecraft:remove_raid_trigger",
+            "target": "self"
+          }
+        }
+      },
       "pa_boy_normal": {
         "minecraft:scale": {
           "value": 1.0
@@ -158,9 +193,61 @@
         ]
       },
       "minecraft:conditional_bandwidth_optimization": {},
-      "minecraft:block_climber": {}
+      "minecraft:block_climber": {},
+      "minecraft:environment_sensor": {
+        "triggers": {
+          "event": "minecraft:gain_raid_omen",
+          "filters": {
+            "all_of": [
+              {
+                "subject": "self",
+                "test": "has_mob_effect",
+                "value": "bad_omen"
+              },
+              {
+                "subject": "self",
+                "test": "is_in_village",
+                "value": true
+              }
+            ]
+          }
+        }
+      }
     },
     "events": {
+      "minecraft:clear_add_raid_omen": {
+        "add": {
+          "component_groups": [
+            "minecraft:clear_raid_omen_spell_effect"
+          ]
+        },
+        "remove": {
+          "component_groups": [
+            "minecraft:add_raid_omen"
+          ]
+        }
+      },
+      "minecraft:remove_raid_trigger": {
+        "remove": {
+          "component_groups": [
+            "minecraft:raid_trigger"
+          ]
+        }
+      },
+      "minecraft:gain_raid_omen": {
+        "add": {
+          "component_groups": [
+            "minecraft:add_raid_omen"
+          ]
+        }
+      },
+      "minecraft:trigger_raid": {
+        "add": {
+          "component_groups": [
+            "minecraft:raid_trigger"
+          ]
+        }
+      },
       "pa:boy_normal": {
         "add": {
           "component_groups": [

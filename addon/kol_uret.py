@@ -16,8 +16,16 @@ esyalarimiz kararli formatta (asagidaki esya() aciklamasina bak).
 
 import json, math, os, re, struct, zlib
 
-BP = "/home/user/kanal-sitesi/addon/Simsek_TNT_ToprakTopu"
-RP = "/home/user/kanal-sitesi/addon/Simsek_Kol_Kaynak"
+# ---- YOLLAR BETIGIN KENDI KONUMUNDAN  (v7.51) ----
+# Dordu de mutlak yazilmisti (depo koku betige gomuluydu).
+# Baska bir makinede (ya da depo baska bir klasore
+# klonlandiginda) uretec ya hicbir sey bulamaz ya da yanlis
+# yere yazardi. Ayni hata kos.sh'ta v7.9.3'te duzeltilmisti;
+# burada kalmis. birlestir.py'nin KOK kalibiyla ayni.
+KOK = os.path.dirname(os.path.abspath(__file__))
+
+BP = os.path.join(KOK, "Simsek_TNT_ToprakTopu")
+RP = os.path.join(KOK, "Simsek_Kol_Kaynak")
 # ---- SKIN PAKETI (v4.88) ----
 # Kullanici: "bu yeni surume actigim zaman skin otomatik olarak
 # bana geliyor mu".
@@ -72,7 +80,7 @@ RP = "/home/user/kanal-sitesi/addon/Simsek_Kol_Kaynak"
 #   2. Dosya oyunun surumune bagli (icinde vanilla animasyon
 #      adlari var). Bozarsa sadece bu paket kapatilir, modun
 #      geri kalani calismaya devam eder.
-OMP = "/home/user/kanal-sitesi/addon/Simsek_Oyuncu_Modeli"
+OMP = os.path.join(KOK, "Simsek_Oyuncu_Modeli")
 OMP_TABAN = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                          "oyuncu_modeli_taban")
 OMP_UUID_BAS = "c1f0a4d7-9b62-4f8e-9a31-2d6b8f4c7e05"
@@ -84,7 +92,7 @@ MASKE_ESYA = "o_sey_maskesi"
 MASKE_TR   = "O Şey Maskesi"
 MASKE_EN   = "That Thing Mask"
 
-SKP = "/home/user/kanal-sitesi/addon/Simsek_Skin"
+SKP = os.path.join(KOK, "Simsek_Skin")
 SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # ==================== SURUM: TEK KAYNAK  (v7.9.8) ====================
 #
@@ -102,7 +110,7 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # tureniyor -- ayrisabilecekleri bir yer kalmadi.
 #
 # YENI SURUM CIKARIRKEN: yalnizca asagidaki satiri degistir.
-SURUM_NO = (7, 50, 0)
+SURUM_NO = (7, 51, 0)
 
 SURUM_METIN = "%d.%d.%d" % SURUM_NO
 
@@ -2081,7 +2089,35 @@ ILKEL_SKIN_ONAY = {
     "okazor":  True,    # v4.39: "ikisi de olduğu yerde kalsin, ikisi de dogru"
     "kajaros": True,
 }
+# ---- KAYNAK SKINLER ARTIK DEPODA  (v7.51) ----
+# Burasi eskiden DOGRUDAN yukleme klasorunu gosteriyordu:
+#   /root/.claude/uploads/<oturum>/...
+# O klasor OTURUMLUK. Depo baska bir makineye klonlaninca (ya da
+# oturum degisince) yoktu ve uretec sessizce YER TUTUCU doku
+# yaziyordu -- yani `python3 kol_uret.py` calistirmak kullanicinin
+# gonderdigi bes Ilkel skinini, bot skinini ve iki kol dokusunu
+# BOZUYORDU. Olculdu: temiz bir agacta uretec kosunca bes PNG
+# kucuk yer tutuculara donuyordu (bot.png 2704 -> 459 bayt).
+#
+# Artik kaynagin kendisi depoda: kaynak_doku/ altinda, okunabilir
+# adlarla. Yukleme klasoru YEDEK olarak duruyor -- yeni bir dosya
+# gelirse oradan da okunabiliyor, ama artik ona BAGLI degiliz.
 ILKEL_SKIN_KAYNAK = "/root/.claude/uploads/e51da4d9-22bc-53d5-b9b6-e97d8e6ccf11"
+
+
+def skin_kaynagi(arsiv_ad, yedek_ad):
+    """Kaynak skinin yolunu verir: once depo, sonra yukleme klasoru.
+
+    Doner: var olan bir yol ya da None. None donerse cagiran taraf
+    DISKTEKINI KORUMALI -- yer tutucu yazmamali (asagidaki her
+    cagri boyle davraniyor).                                      """
+    arsiv = os.path.join(DOKU_KAYNAK, arsiv_ad)
+    if os.path.exists(arsiv):
+        return arsiv
+    yedek = os.path.join(ILKEL_SKIN_KAYNAK, yedek_ad)
+    if os.path.exists(yedek):
+        return yedek
+    return None
 
 # ---- ELLE CIZILMIS KOL DOKULARI ----
 # kimlik -> kaynak dosya. Bos birakilan kollar uretilen (yer
@@ -2101,6 +2137,9 @@ KOL_SKIN = {
     "kol_toprak": ("fa85d183-image.png", "sag"),
     "kol_buz":    ("fa85d183-image.png", "sol"),
 }
+# Ayni dosyanin depodaki kopyasi (v7.51). Iki kol da bundan
+# cikiyor, o yuzden tek ad yetiyor.
+KOL_SKIN_ARSIV = "kol_skin.png"
 
 # Oyuncu skininde kol kutularinin basladigi nokta.
 # Ikisinin IC duzeni ayni (ust, alt, dogu, on, bati, arka),
@@ -2124,11 +2163,18 @@ def kol_skin_uygula(kimlik):
     if not kayit:
         return False
     dosya, yuva = kayit
-    kaynak = os.path.join(ILKEL_SKIN_KAYNAK, dosya)
-    if not os.path.exists(kaynak):
-        print("UYARI: %s dokusu bulunamadi (%s), uretilen kullaniliyor"
-              % (kimlik, kaynak))
-        return False
+    kaynak = skin_kaynagi(KOL_SKIN_ARSIV, dosya)
+    if kaynak is None:
+        # v7.51: eskiden `return False` deniyordu ve cagiran taraf
+        # URETILEN yer tutucuyu yaziyordu -- yani kaynak yoksa
+        # diskteki dogru doku EZILIYORDU. Artik dokunulmuyor:
+        # elde olan, uretilecek olandan iyidir.
+        _var = os.path.exists(os.path.join(RP, "textures/entity",
+                                           kimlik + ".png"))
+        print("UYARI: %s kaynak dokusu yok (%s); %s"
+              % (kimlik, KOL_SKIN_ARSIV,
+                 "diskteki korunuyor" if _var else "uretilen kullaniliyor"))
+        return _var
 
     try:
         from PIL import Image
@@ -2199,6 +2245,7 @@ def iksir_dokusu_kopyala(kimlik, hedef):
 # gonderdi: "botlar artik guclendigi icin gorunumu bu sekilde
 # olacak". Ilkel Besli'nin kendi skinleri var, onlara dokunmuyor.
 BOT_SKIN = "61d145cb-image.png"
+BOT_SKIN_ARSIV = "bot_skin.png"   # depodaki kopyasi (v7.51)
 
 # ---- ILKEL BESLI'NIN SILAHLARI (v4.48, v4.49'da uyeye ozel) ----
 # Dokular kullanicinin elle cizdikleri.
@@ -3970,10 +4017,17 @@ ZIRH_TR_TAKIM = "Zırh Yükseltmesi"
 # "beklenen ikonlar" denetimi ayni sekilde calissin, geri
 # eklemek gerekirse tek satir olsun.
 #
-# zirh_esyasi / zirh_ikonu / zirh_attachable fonksiyonlari da
-# duruyor -- zirh_geometrisi'ni MOD CEKIRDEKLERI kullaniyor,
-# digerleri onunla ayni bolumde ve silmek diffi buyutmekten
-# baska bir sey yapmazdi.
+# zirh_esyasi / zirh_ikonu / zirh_attachable / zirh_geometrisi
+# fonksiyonlari duruyor; dordu de yalnizca asagidaki ZIRH
+# dongusunden cagriliyor, yani liste bos oldugu surece hicbiri
+# calismiyor. Silinmediler cunku geri getirmek tek satir.
+#
+# v7.51 DUZELTMESI: burada eskiden "zirh_geometrisi'ni MOD
+# CEKIRDEKLERI kullaniyor" yaziyordu. YANLISTI -- mod
+# cekirdekleri (ZIRH_MOD) kendi geometrilerini kaynak_geo/
+# altindan aliyor ve kendi dokulari var (zirh_mod_*.png).
+# Yanlis not bir sey daha sakliyordu: zirh_suit.png hicbir
+# yerden kullanilmadigi halde kaynak pakete giriyordu.
 ZIRH = []
 
 
@@ -4616,6 +4670,67 @@ MARVEL_OYUNCU_BILESEN = {
              "max_rider_count": 2, "lock_rider_rotation": 0}]},
     "minecraft:conditional_bandwidth_optimization": {},
     "minecraft:block_climber": {},
+    # ---- BASKIN (RAID) SISTEMI GERI GELDI  (v7.51) ----
+    # Bu bilesen ve asagidaki UC GRUP + DORT OLAY vanilla
+    # oyuncusunda VARDI, bizim kopyada YOKTU. Kopya Marvel
+    # modunun player.json'undan alinmisti ve MOD DA ONLARI
+    # DUSURMUSTU -- yani hic tam olmadi.
+    #
+    # BP'de bir varligi ezmek TUMDEN ezmektir: pakette olmayan
+    # bir sey vanilla'dan gelmiyor, SILINIYOR. Sonuc olculebilir
+    # bir kayipti: eklenti kuruluyken Kotu Alamet tasiyan oyuncu
+    # koye girdiginde BASKIN HIC BASLAMIYORDU.
+    #
+    # Bicim surumune dokunmadan eklenebildigi KANITLI: vanilla
+    # 1.19.30'un player.json'u da format_version 1.18.20 idi ve
+    # bu dordunu (environment_sensor / spell_effects / timer /
+    # raid_trigger) zaten tasiyordu. Yani "yeni bilesen eski
+    # bicimde" riski yok.
+    #
+    # Tanimlar bugunku vanilla'dan (bedrock-samples 1.26.40.5)
+    # alindi, 1.19'unkinden degil: 1.21'de bad_omen -> raid_omen
+    # yeniden yazildi ve kullanicinin oyunu 26.45.
+    "minecraft:environment_sensor": {
+        "triggers": {
+            "event": "minecraft:gain_raid_omen",
+            "filters": {"all_of": [
+                {"subject": "self", "test": "has_mob_effect",
+                 "value": "bad_omen"},
+                {"subject": "self", "test": "is_in_village",
+                 "value": True}]}}},
+}
+
+# Vanilla oyuncusunun baskin gruplari ve olaylari (yukaridaki
+# nota bak). Bizim `pa_boy_*` gruplarimizla ad cakismasi yok,
+# yani yan yana durabiliyorlar.
+VANILLA_BASKIN_GRUP = {
+    "minecraft:add_raid_omen": {
+        "minecraft:spell_effects": {
+            "add_effects": [{"display_on_screen_animation": True,
+                             "duration": 30, "effect": "raid_omen"}],
+            "remove_effects": "bad_omen"},
+        "minecraft:timer": {
+            "looping": False, "time": [0.0, 0.0],
+            "time_down_event": {"event": "minecraft:clear_add_raid_omen",
+                                "target": "self"}}},
+    "minecraft:clear_raid_omen_spell_effect": {
+        "minecraft:spell_effects": {}},
+    "minecraft:raid_trigger": {
+        "minecraft:raid_trigger": {
+            "triggered_event": {"event": "minecraft:remove_raid_trigger",
+                                "target": "self"}}},
+}
+
+VANILLA_BASKIN_OLAY = {
+    "minecraft:clear_add_raid_omen": {
+        "add": {"component_groups": ["minecraft:clear_raid_omen_spell_effect"]},
+        "remove": {"component_groups": ["minecraft:add_raid_omen"]}},
+    "minecraft:remove_raid_trigger": {
+        "remove": {"component_groups": ["minecraft:raid_trigger"]}},
+    "minecraft:gain_raid_omen": {
+        "add": {"component_groups": ["minecraft:add_raid_omen"]}},
+    "minecraft:trigger_raid": {
+        "add": {"component_groups": ["minecraft:raid_trigger"]}},
 }
 
 # (olay, grup, olcek, kutu eni, kutu boyu) -- ayarlar.js
@@ -4633,8 +4748,10 @@ def marvel_oyuncu_varligi():
     format_version 1.18.20: modun kendi dosyasindaki surum.
     Daha yenisi denenmedi cunku bu surumun tablette calistigi
     BILINIYOR (mod calisiyor).                                 """
-    gruplar = {}
-    olaylar = {}
+    # Vanilla'nin baskin makinesi ONCE giriyor; bizimkiler
+    # ustune ekleniyor (ad cakismasi yok, ezme yok).
+    gruplar = dict(VANILLA_BASKIN_GRUP)
+    olaylar = dict(VANILLA_BASKIN_OLAY)
     adlar = [g for _, g, _, _, _ in MARVEL_BOY]
     for olay, grup, olcek, en, boy in MARVEL_BOY:
         gruplar[grup] = {
@@ -4653,6 +4770,10 @@ def marvel_oyuncu_varligi():
                 "is_spawnable": False,
                 "is_summonable": False,
                 "is_experimental": False,
+                # v7.51: vanilla'da var, kopyada yoktu.
+                # (Vanilla 1.20.80'de eklendi ve o zaman da
+                # format_version 1.18.20 idi.)
+                "spawn_category": "creature",
                 # v5.8: acilabilir katmanlarin anahtarlari
                 # (matkap). Script setProperty ile aciyor,
                 # kaynak paket q.property ile okuyor.
@@ -10335,14 +10456,15 @@ def main():
     for anahtar, veri in ilkel_istemci_varliklari().items():
         yaz_json(os.path.join(RP, "entity/ilkel_%s.entity.json" % anahtar), veri)
     for anahtar, dosya in ILKEL_SKIN.items():
-        kaynak = os.path.join(ILKEL_SKIN_KAYNAK, dosya)
+        kaynak = skin_kaynagi("ilkel_%s.png" % anahtar, dosya)
         hedef = os.path.join(RP, "textures/entity/ilkel_%s.png" % anahtar)
-        if os.path.exists(kaynak):
+        if kaynak is not None:
             os.makedirs(os.path.dirname(hedef), exist_ok=True)
             shutil.copyfile(kaynak, hedef)
         elif not os.path.exists(hedef):
             # Skin bulunamadi: sessiz kalma, yoksa uye mor-siyah cizilir
-            print("UYARI: %s skini bulunamadi (%s)" % (anahtar, kaynak))
+            print("UYARI: %s skini bulunamadi (kaynak_doku/ilkel_%s.png)"
+                  % (anahtar, anahtar))
 
     # ---- O Sey: 6 kol + cift beden (v4.88) ----
     yaz_json(os.path.join(BP, "entities/o_sey.json"), o_sey_varligi())
@@ -10414,13 +10536,28 @@ def main():
     # ---- ZIRH YUKSELTMESI (v4.91) ----
     # Ionstrike/Max Steel takimi: 4 giyilebilir parca + modun
     # dokusu. Sayilar modun powers/*.json dosyalarindan.
-    _zs = os.path.join(DOKU_KAYNAK, ZIRH_DOKU + ".png")
-    if os.path.exists(_zs):
-        _zh = os.path.join(RP, "textures/entity/%s.png" % ZIRH_DOKU)
-        os.makedirs(os.path.dirname(_zh), exist_ok=True)
-        shutil.copyfile(_zs, _zh)
-    else:
-        print("UYARI: zirh dokusu yok (%s)" % _zs)
+    # ---- DOKU YALNIZ PARCA VARSA GONDERILIYOR  (v7.51) ----
+    # ZIRH bos (dort giyilebilir parca v4.98'de kaldirildi), yani
+    # `zirh_attachable` hic cagrilmiyor ve pakette
+    # `textures/entity/zirh_suit` diyen TEK BIR dosya yok. Doku
+    # yine de kopyalaniyordu: kaynak pakete giren, kimsenin
+    # bakmadigi bir PNG. Aura parcaciklarinda konan kural
+    # ("kapali ama yine de pakete giren bir sey birakmiyoruz")
+    # burada da geciyor -- artikta duran kopya SILINIYOR.
+    #
+    # Geri getirmek yine tek satir: ZIRH listesine bir parca
+    # yaz, doku da kendiliginden gelir.
+    _zh = os.path.join(RP, "textures/entity/%s.png" % ZIRH_DOKU)
+    if ZIRH:
+        _zs = os.path.join(DOKU_KAYNAK, ZIRH_DOKU + ".png")
+        if os.path.exists(_zs):
+            os.makedirs(os.path.dirname(_zh), exist_ok=True)
+            shutil.copyfile(_zs, _zh)
+        else:
+            print("UYARI: zirh dokusu yok (%s)" % _zs)
+    elif os.path.exists(_zh):
+        os.remove(_zh)
+        print("   silindi (zirh parcasi yok): %s.png" % ZIRH_DOKU)
     for _za, _zy, _zk, _ztr, _zen, _zb in ZIRH:
         yaz_json(os.path.join(BP, "items/%s.json" % _za),
                  zirh_esyasi(_za, _zy, _zk, _ztr))
@@ -11129,8 +11266,14 @@ def main():
     # tablosundaki GOZ renkleri -- gozunde yanan renk ne ise
     # etrafinda ucusan da o. Element'in iki rengi de gradyana
     # giriyor.
+    # v7.51: klasor yalniz URETILECEKSE aciliyor. AURA_URETILEN
+    # bos oldugu icin burasi her kosuda bos bir `particles/`
+    # klasoru birakiyordu -- ayni bolumun kendi kuralina
+    # ("kapali ama yine de pakete giren bir sey birakmiyoruz")
+    # aykiri, kucuk olcekte de olsa.
     _aura_yol = os.path.join(RP, "particles")
-    os.makedirs(_aura_yol, exist_ok=True)
+    if AURA_TURLERI:
+        os.makedirs(_aura_yol, exist_ok=True)
     _aura_sayi = 0
     _aura_beklenen = set()
     for _ik, _iad, _irenk, _igoz, _igozrenk in IKSIRLER:
@@ -11147,10 +11290,14 @@ def main():
     # yapmamak icin de bir sebep yok. Yalniz "aura_" ile
     # baslayanlara dokunuluyor -- baska bir sistemin parcacigi
     # buraya girerse silinmesin.
-    for _eski in sorted(os.listdir(_aura_yol)):
-        if _eski.startswith("aura_") and _eski not in _aura_beklenen:
-            os.remove(os.path.join(_aura_yol, _eski))
-            print("   silindi (aura turu kapali): %s" % _eski)
+    if os.path.isdir(_aura_yol):
+        for _eski in sorted(os.listdir(_aura_yol)):
+            if _eski.startswith("aura_") and _eski not in _aura_beklenen:
+                os.remove(os.path.join(_aura_yol, _eski))
+                print("   silindi (aura turu kapali): %s" % _eski)
+        # Bosaldiysa klasorun kendisi de kalmasin.
+        if not os.listdir(_aura_yol):
+            os.rmdir(_aura_yol)
     # Hic tur uretilmiyorsa satir da yok: doku yazilmaz ve
     # varsa SILINIR. "Kapali ama yine de pakete giren" bir sey
     # birakmiyoruz -- parcacik dosyalarinda da ayni kural.
@@ -11280,14 +11427,19 @@ def main():
     # Normal botun skini de kullanicidan geliyor (v4.43).
     # Uretilen doku (bot_dokusu) YEDEK olarak duruyor: dosya
     # yoksa eski gorunum ciziliyor, bot mor-siyah kalmiyor.
-    bot_skin = os.path.join(ILKEL_SKIN_KAYNAK, BOT_SKIN)
+    bot_skin = skin_kaynagi(BOT_SKIN_ARSIV, BOT_SKIN)
     bot_hedef = os.path.join(RP, "textures/entity/bot.png")
-    if os.path.exists(bot_skin):
+    if bot_skin is not None:
         os.makedirs(os.path.dirname(bot_hedef), exist_ok=True)
         shutil.copyfile(bot_skin, bot_hedef)
+    elif os.path.exists(bot_hedef):
+        # v7.51: burasi eskiden kosulsuz yer tutucu yaziyordu ve
+        # kullanicinin gonderdigi bot skinini eziyordu.
+        print("UYARI: bot kaynak skini yok (kaynak_doku/%s); "
+              "diskteki korunuyor" % BOT_SKIN_ARSIV)
     else:
-        print("UYARI: bot skini bulunamadi (%s), uretilen doku kullaniliyor"
-              % bot_skin)
+        print("UYARI: bot skini bulunamadi (kaynak_doku/%s), "
+              "uretilen doku kullaniliyor" % BOT_SKIN_ARSIV)
         png_yaz(bot_hedef, 64, 64, bot_dokusu(0))
     for liste, ad in ((en_us, BOT_AD), (tr_tr, BOT_TR)):
         liste.append("entity.%s.name=%s" % (BOT_KIMLIK, ad))
@@ -11476,7 +11628,12 @@ def main():
     # ZIRHIN VARLIK DOKUSU da listede degil. Bir kez yasandi:
     # doku kopyalandi, ayni kosuda temizlik adimi sildi ve zirh
     # oyunda mor-siyah cikardi. Ayni tuzak besinci kez.
-    beklenen.add(ZIRH_DOKU)
+    # v7.51: ama YALNIZ parca varsa. ZIRH bosken doku zaten
+    # yazilmiyor; listede tutmak "silinmesin" demek olurdu ve
+    # olu dosyayi tam da temizlemek istedigimiz adimdan
+    # korurdu.
+    if ZIRH:
+        beklenen.add(ZIRH_DOKU)
     # v4.92: Ben 10 ikonlari
     for _bk3, _bt3, _be3, _bd3, _btr3 in BEN10 + ZIRH_MOD:
         beklenen.add(_bk3)
