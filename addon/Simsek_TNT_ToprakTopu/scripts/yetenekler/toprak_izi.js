@@ -4,7 +4,7 @@ import { hataYaz, gecerliMi, actionbarYaz } from "../yardimcilar.js";
 import { blokIste } from "../butce.js";
 import {
   IZ_ACIK, IZ_SIRA, IZ_BLOK, IZ_SURE, IZ_TAVAN,
-  IZ_KORUNAN, IZ_KORUNAN_ONEK
+  IZ_KORUNAN, IZ_KORUNAN_ONEK, IZ_GECILIR
 } from "../ayarlar.js";
 
 /* TOPRAK IZI -- yurudugun yer toprak olur, sonra geri doner.
@@ -25,6 +25,7 @@ import {
    defterdeki her blok geri konuyor.                        */
 
 const korunanKume = new Set(IZ_KORUNAN);
+const gecilirKume = new Set(IZ_GECILIR);
 
 // oyuncuId -> { kapat }
 const izde = new Map();
@@ -42,6 +43,12 @@ export function izdeMi(oyuncuId) { return izde.has(oyuncuId); }
 function yazilirMi(tip) {
   if (typeof tip !== "string") return false;
   if (tip === IZ_BLOK) return false;          // zaten toprak
+  /* HAVA VE ICINDEN GECILENLER: iz bir ZEMIN izi, kopru
+     degil. Bu denetim olmadan ziplamak havada toprak
+     merdiveni oruyordu -- olculdu, uc zipla uc blok.
+     Kaynak Boby1545'te de var (filtresiz `dirt replace`);
+     kopyalarken hatayi da kopyalamisiz.                   */
+  if (gecilirKume.has(tip)) return false;
   if (korunanKume.has(tip)) return false;
   if (tip.indexOf(IZ_KORUNAN_ONEK) === 0) return false;
   return true;
@@ -109,7 +116,12 @@ yetenekKaydet({
         let k;
         try { k = oyuncu.location; } catch (e) { return true; }
         const x = Math.floor(k.x);
-        const y = Math.floor(k.y) - 1;      // ayagin ALTI
+        /* v7.52.1: once `Math.floor(k.y) - 1` yaziliydi. Tam
+           blok uzerinde ikisi de ayni sonucu veriyor ama YARIM
+           blokta (slab, soul_sand, farmland) bir fazla asagi
+           iniyordu: y=63.5'te bizimki 62'yi, kaynak 63'u
+           gosteriyordu -- kaynak dogruydu. Onun hesabi alindi. */
+        const y = Math.floor(k.y - 0.5);    // ayagin bastigi blok
         const z = Math.floor(k.z);
         const a = anahtar(x, y, z);
 

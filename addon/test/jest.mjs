@@ -77,6 +77,16 @@ for (let i = 0; i < beklenen.length; i++) {
      Boby1545 her tick yaziyordu, duzeltilen sey bu). Duran bir
      test oyuncusuyla olculseydi "HICBIR SEY OLMADI" cikardi --
      yetenegin dogru davranisi teste hata gibi gorunurdu.    */
+  /* Yuruyus yolunun ALTINA zemin. v7.52.1'de Toprak Izi'ne
+     "icinden gecilen bloklara yazma" denetimi eklendi (havada
+     toprak merdiveni olusuyordu); zeminsiz yuruyen bir test
+     oyuncusu artik hicbir sey yazdirmaz. Zemin koymak, o
+     denetimi atlatmak degil -- gercek oyuncu da zemin
+     uzerinde yuruyor.                                       */
+  for (let g = 0; g <= 30; g++) {
+    D2.boyut.getBlock({ x: g, y: 88, z: 0 }).setType("minecraft:stone");
+  }
+  const zeminBloklari = D2.sayac.setType;
   for (let t = 0; t < 300; t++) {
     if (t % 10 === 0) {
       p.location = { x: 0.5 + Math.floor(t / 10), y: 89, z: 0.5 };
@@ -84,7 +94,8 @@ for (let i = 0; i < beklenen.length; i++) {
     sus(); tickIlerlet(1); ac();
   }
 
-  const bloklar = D2.sayac.setType, dogan = D2.sayac.dogan.length;
+  /* Zemini biz kurduk; yetenegin hanesine yazilmasin. */
+  const bloklar = D2.sayac.setType - zeminBloklari, dogan = D2.sayac.dogan.length;
   const tnt = D2.sayac.dogan.filter(d=>d.tip==="minecraft:tnt").length;
   const sim = D2.sayac.dogan.filter(d=>d.tip==="minecraft:lightning_bolt").length;
   let sonuc = "";

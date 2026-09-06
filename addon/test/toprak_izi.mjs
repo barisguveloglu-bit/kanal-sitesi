@@ -161,6 +161,54 @@ console.log("=== 5. KORUNAN BLOKLAR ===");
   kontrol("normal tas cevrildi", tipi(D, 3, 63, 0) === ayar.IZ_BLOK);
 }
 
+console.log("=== 5b. ZIPLARKEN HAVADA BLOK OLUSMUYOR  (v7.52.1) ===");
+{
+  /* ---- KARSILASTIRMA SIRASINDA BULUNAN HATA ----
+     Kullanici "kaynaktan farklariniz ne" diye sorunca iki kod
+     yan yana konuldu ve bizimkinde bir kusur cikti: hava
+     YAZILABILIR sayiliyordu, yani ziplayinca ayagin altina
+     toprak konuyordu -- havada merdiven.
+
+     Kaynak Boby1545'te de ayni hata var (`setblock ... dirt
+     replace`, filtre yok). Kopyalarken hatayi da kopyalamisiz;
+     bu bolum onun kaydi.                                    */
+  const { D, o } = kur();
+  D.boyut.getBlock({ x: 0, y: 63, z: 0 }).setType("minecraft:stone");
+  const is = tanim.olustur(o);
+  yuru(is, o, 0, 0);                                  // yerde
+  for (const y of [65.2, 66.4, 67.0, 66.2]) {         // zipliyor
+    o.location = { x: 0.5, y, z: 0.5 };
+    butce.butceSifirla();
+    is.calis();
+  }
+  const havada = D.sayac.yazilan.filter(
+    (b) => b.tip === ayar.IZ_BLOK && b.y > 63);
+  kontrol("havada tek blok bile olusmadi", havada.length === 0,
+          havada.map((b) => "y=" + b.y).join(",") || "yok");
+  kontrol("yerdeki blok yine de kondu",
+          tipi(D, 0, 63, 0) === ayar.IZ_BLOK, tipi(D, 0, 63, 0));
+  kontrol("hava GECILIR listesinde",
+          ayar.IZ_GECILIR.indexOf("minecraft:air") !== -1);
+}
+
+console.log("=== 5c. YARIM BLOKTA (slab) DOGRU KATA YAZIYOR ===");
+{
+  /* Y hesabi kaynaktan alindi. Bizim ilk halimiz
+     `Math.floor(k.y) - 1`di; tam blokta ikisi ayni ama yarim
+     blokta (y=63.5) bizimki 62'yi, kaynak 63'u gosteriyordu.
+     Kaynak dogruydu.                                        */
+  const { D, o } = kur();
+  D.boyut.getBlock({ x: 0, y: 63, z: 0 }).setType("minecraft:stone");
+  const is = tanim.olustur(o);
+  o.location = { x: 0.5, y: 63.5, z: 0.5 };     // yarim blok ustu
+  butce.butceSifirla();
+  is.calis();
+  kontrol("bastigi blok (63) topraga dondu",
+          tipi(D, 0, 63, 0) === ayar.IZ_BLOK, tipi(D, 0, 63, 0));
+  kontrol("bir alt kat (62) DOKUNULMADI",
+          tipi(D, 0, 62, 0) !== ayar.IZ_BLOK, tipi(D, 0, 62, 0));
+}
+
 console.log("=== 6. TAVAN DOLUNCA EN ESKI GERI KONUYOR ===");
 {
   const { D, o } = kur();

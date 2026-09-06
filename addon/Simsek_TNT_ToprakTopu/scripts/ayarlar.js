@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.52.0";
+export const SURUM = "v7.52.1";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -593,6 +593,23 @@ export const IZ_KORUNAN = [
 ];
 /* Kendi bloklarimiz. kafes.js ve arinma.js ile ayni onek. */
 export const IZ_KORUNAN_ONEK = "pa:";
+
+/* ICINDEN GECILEN BLOKLAR -- iz BUNLARIN uzerine yazmaz.
+   v7.52.1: ilk yazimda bu liste YOKTU ve ziplayinca havada
+   toprak merdiveni olusuyordu (olculdu: uc zipla uc blok).
+   Kaynak Boby1545'te de ayni hata var -- `setblock ... dirt
+   replace` filtresiz oldugu icin havayi da topraga ceviriyor.
+   Kopyalarken hatayi da kopyalamisiz.
+
+   kafes.js'teki GECILIR listesiyle ayni fikir; oradaki soru
+   "bu bir duvar mi", buradaki "bu basilacak bir zemin mi".  */
+export const IZ_GECILIR = [
+  "minecraft:air", "minecraft:water", "minecraft:flowing_water",
+  "minecraft:lava", "minecraft:flowing_lava", "minecraft:tallgrass",
+  "minecraft:short_grass", "minecraft:fire", "minecraft:soul_fire",
+  "minecraft:vine", "minecraft:ladder", "minecraft:torch",
+  "minecraft:light_block", "minecraft:structure_void"
+];
 
 /* ---------------- Cift el (iki kol birden) ----------------
    BoraLo videolarinda iki kol ayni anda takili: hem ors yagiyor

@@ -1,3 +1,58 @@
+# v7.52.1 — karşılaştırma bir hata buldu: havada toprak merdiveni
+
+Kullanıcı sordu: *"Tek Şimşek + Toprak İzi bunlar tam olarak
+nasıl çalışıyordu ve bizim yaptığımızdan farklılıkları
+nelerdir."*
+
+İki kodu yan yana koyunca **bizimkinde iki kusur çıktı.**
+
+## 1. Hava yazılabilir sayılıyordu
+
+`yazilirMi()` yalnız üç şeyi eliyordu: zaten toprak olanlar,
+`IZ_KORUNAN` listesi, `pa:` öneki. **Hava listede değildi.**
+Yani zıplayınca ayağının altına toprak konuyordu — havada
+merdiven. Ölçüldü: üç zıplama, üç kayan blok.
+
+Kaynak Boby1545'te de aynı hata var:
+
+```js
+setblock ${pX} ${pY} ${pZ} dirt replace   // filtre yok
+```
+
+`replace` filtresiz olduğu için havayı da toprağa çeviriyor.
+**Kopyalarken hatayı da kopyalamışız.** `IZ_GECILIR` listesi
+eklendi (`kafes.js`'teki `GECILIR` ile aynı fikir: oradaki soru
+*"bu bir duvar mı"*, buradaki *"bu basılacak bir zemin mi"*).
+
+## 2. Y hesabında kaynak haklıymış
+
+| `konum.y` | kaynak `floor(y-0.5)` | bizim `floor(y)-1` |
+|---|---|---|
+| 64.0 (tam blok) | 63 | 63 |
+| 63.5 (yarım blok) | **63** | **62** ✗ |
+| 64.7 (zıplarken) | 64 | 63 |
+
+Tam blok üzerinde ikisi aynı. Ama **yarım blokta** (slab, soul
+sand, farmland) bizimki bir kat aşağı iniyordu. Kaynağın hesabı
+alındı; zıplama durumunu da 1. maddedeki geçilir denetimi
+kapatıyor, yani ikisi birlikte her iki halde de doğru.
+
+Bu, kaynağın bizden **daha iyi** olduğu tek nokta ve kayda
+geçmesi gerekiyor: karşılaştırma tek yönlü değil.
+
+## jest.mjs'e zemin kondu
+
+Yeni geçilir denetimi eklenince `jest.mjs` düştü: yürüyen test
+oyuncusunun altı havaydı, dolayısıyla Toprak İzi hiçbir şey
+yazmıyordu. Yürüyüş yolunun altına taş kondu ve o blokların
+sayısı yeteneğin hanesinden düşüldü. Denetimi atlatmak değil —
+gerçek oyuncu da zemin üzerinde yürüyor.
+
+Mutasyon: her iki düzeltme de tek tek bozuldu, ikisi de
+yakalandı.
+
+---
+
 # v7.52.0 — "tek tek şimşek": iki eklentiden iki yetenek
 
 Kullanıcı iki eklenti gönderdi (Boby1545 Mini Pack ve Kevin1545
