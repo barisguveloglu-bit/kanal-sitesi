@@ -73,6 +73,26 @@ kontrol("ayar acik", ayar.IZ_ACIK === true);
 kontrol("sure sinirli (kaynakta suresiz)", ayar.IZ_SURE > 0,
         ayar.IZ_SURE + " tick");
 
+console.log("=== 0b. KOLA BAGLI MI  (v7.52.2) ===");
+{
+  /* tek_simsek.mjs 0b ile ayni gerekce: v7.52'de yalnizca
+     esyasiz siradaydi, kol tutan biri icin yoktu.
+     toprak_izi YALNIZ Toprak Kol'da -- Kanli Kol bir dovus
+     kolu, toprak isi oraya konmadi.                        */
+  const l = kayit.esyaninYetenekleri("pa:kol_toprak") || [];
+  kontrol("pa:kol_toprak toprak_izi tasiyor",
+          l.some((y) => y.kimlik === "toprak_izi"), l.length + " yetenek");
+  const kanli = kayit.esyaninYetenekleri("pa:kol_kanli") || [];
+  kontrol("Kanli Kol'a BILEREK konmadi",
+          !kanli.some((y) => y.kimlik === "toprak_izi"));
+  kontrol("esyasiz sirada da duruyor",
+          kayit.esyasizSira().some((y) => y.kimlik === "toprak_izi"));
+  const t = l.map((y) => y.kimlik);
+  kontrol("Toprak Duvar'in hemen ardinda",
+          t.indexOf("toprak_izi") === t.indexOf("toprak_duvar") + 1,
+          "duvar=" + t.indexOf("toprak_duvar") + " iz=" + t.indexOf("toprak_izi"));
+}
+
 console.log("=== 1. YURUYUNCE AYAGIN ALTI TOPRAK ===");
 {
   const { D, o } = kur();

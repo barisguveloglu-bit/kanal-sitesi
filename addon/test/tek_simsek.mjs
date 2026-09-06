@@ -83,6 +83,38 @@ console.log("=== 0. YETENEK KAYITLI ===");
 kontrol("tek_simsek kayitli", !!tanim, tanim ? tanim.ad : "yok");
 kontrol("ayar acik", ayar.TEK_SIMSEK_ACIK === true);
 
+console.log("=== 0b. KOLA BAGLI MI  (v7.52.2) ===");
+{
+  /* ---- KULLANICININ BULDUGU EKSIK ----
+     "tekli Simsek hangi kola ekledin, nasil yapabiliyorum,
+     onu goremedim."
+
+     v7.52'de yetenek YALNIZCA esyasiz jest sirasindaydi.
+     main.js'in esyasizOyuncu'su elde KOL varsa genel siraya
+     HIC girmiyor (secimler.length === 0 dali atlaniyor), yani
+     Toprak Kol tutan biri icin yetenek hic yoktu. Bulunamamasi
+     kullanicinin dikkatsizligi degil, bagin eksikligiydi.
+
+     Bu bolum onun kaydi: yeni bir yetenek "kayitli" olmakla
+     ULASILABILIR olmak ayni sey degil.                      */
+  const bagli = ["pa:kol_toprak", "pa:kol_kanli"];
+  for (const kol of bagli) {
+    const l = kayit.esyaninYetenekleri(kol) || [];
+    kontrol(kol + " tek_simsek tasiyor",
+            l.some((y) => y.kimlik === "tek_simsek"),
+            l.length + " yetenek");
+  }
+  kontrol("esyasiz sirada da duruyor (bos elle de calisir)",
+          kayit.esyasizSira().some((y) => y.kimlik === "tek_simsek"));
+  /* Yon Simsegi'nin YANINDA olmali: ikisi de nisan alip
+     simsek atiyor, arka arkaya durmalari bir tercih.       */
+  const t = (kayit.esyaninYetenekleri("pa:kol_toprak") || [])
+    .map((y) => y.kimlik);
+  kontrol("Yon Simsegi'nin hemen ardinda",
+          t.indexOf("tek_simsek") === t.indexOf("yon_simsegi") + 1,
+          "yon=" + t.indexOf("yon_simsegi") + " tek=" + t.indexOf("tek_simsek"));
+}
+
 console.log("=== 1. TEK BASIS -> TEK VARLIK, IS YOK ===");
 {
   const { D, o } = kur({ x: 1, y: 0, z: 0 }, { x: 0.5, y: 90.6, z: 0.5 });

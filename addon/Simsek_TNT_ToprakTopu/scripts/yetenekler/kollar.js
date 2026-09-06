@@ -74,9 +74,22 @@ export const KOL_ESYALARI = [
      Menu listeyi bu sirayla ciziyor ve kalp yetenekleri en son
      kullanilanlar -- asil yolu zaten sohbet ("can 10").
      Dovus yetenekleri ustte, bakim yetenekleri altta.          */
-  ["pa:kol_toprak", "toprak_topu", "yon_simsegi", "yildirim_halkasi",
+  /* v7.52.2: tek_simsek ve toprak_izi BURAYA da baglandi.
+     v7.52'de yalnizca "esyasiz" sirada duruyorlardi ve
+     kullanici bulamadi -- hakli olarak: main.js'in
+     esyasizOyuncu'sunda elde KOL varsa genel siraya HIC
+     girilmiyor (secimler.length === 0 dali atlaniyor).
+     Yani Toprak Kol tutan biri icin ikisi de yoktu.
+
+     Yer secimi tesaduf degil: tek_simsek yon_simsegi'nin
+     hemen yanina (ikisi de nisan alip simsek atiyor),
+     toprak_izi toprak_duvar'in yanina (ikisi de toprak
+     koyup geri aliyor).                                    */
+  ["pa:kol_toprak", "toprak_topu", "yon_simsegi", "tek_simsek",
+                    "yildirim_halkasi",
                     "alan_simsegi", "savur", "ors",
-                    "toprak_ucus", "toprak_duvar", "meteor", "guclu_tnt",
+                    "toprak_ucus", "toprak_duvar", "toprak_izi",
+                    "meteor", "guclu_tnt",
                     "yakala", "coklu_simsek", "ok_yagmuru", "sarsinti",
                     "kalp_ekle", "kalp_sifirla",
    /* v7.9: KANLI KOLA GEC -- yetenek degil, bir SAHNE.
@@ -177,8 +190,12 @@ export const KOL_ESYALARI = [
      KAYNAKTAN ALINMAYAN: "Kapat" esyasi `Envanteri_Sil`
      cagiriyor ve o fonksiyon tek satir -- `clear @s`. Yani
      kolu kapatmak butun envanteri siliyor.                  */
+  /* Kanli Kol'da da yon_simsegi var; tek_simsek onun yanina.
+     toprak_izi BURAYA KONMADI: bu kol bir dovus kolu, toprak
+     isi Toprak Kol'un konusu.                               */
   ["pa:kol_kanli",  "kanli_ors", "kanli_simsek", "meteor",
-                    "guclu_tnt", "yon_simsegi", "toprak_ucus"],
+                    "guclu_tnt", "yon_simsegi", "tek_simsek",
+                    "toprak_ucus"],
 
   /* BOBBY KANLI KOL (v7.12).
 
