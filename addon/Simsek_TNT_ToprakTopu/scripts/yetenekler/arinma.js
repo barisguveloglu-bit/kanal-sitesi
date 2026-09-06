@@ -4,6 +4,8 @@ import { hataYaz, gecerliMi, actionbarYaz } from "../yardimcilar.js";
 import {
   ARIN_ACIK, ARIN_BEKLEME, ARIN_SIRA, ARIN_EFEKTLER,
   ARIN_EKRAN, ARIN_SES, ARIN_SIS, ARIN_SIS_BILINEN, ARIN_SIS_KIMLIK,
+  ZORLA_ACIK, ZORLA_YUVALAR, ZORLA_ENVANTER, ZORLA_MUAF_ONEK,
+  ZORLA_KOR_ESYALAR,
   SAVUNMA_ARALIK, SAVUNMA_SURE, SAVUNMA_SIRA
 } from "../ayarlar.js";
 
@@ -14,16 +16,18 @@ import {
 
    ---- NEYE KARSI ----
    Bir baskasinin sana yapabilecegi ve KENDILIGINDEN GECMEYEN
-   SEKIZ sey var: kalici poz (playanimation ... 9999), girdi
+   DOKUZ sey var: kalici poz (playanimation ... 9999), girdi
    kilidi (inputpermission disabled), kamera kilidi (camera
    set free), cok uzun efekt (slowness 100000 255), ekran
-   sarsintisi, ekrani kapatan title duvari, ses bombasi ve
-   sis. Sekizinin de saldiran tarafta geri alan bir satiri
-   yok.
+   sarsintisi, ekrani kapatan title duvari, ses bombasi,
+   sis ve KILITLI ESYA (item_lock). Dokuzunun da saldiran
+   tarafta geri alan bir satiri yok.
 
-   Son ucu v7.35'te eklendi: 53 MB'lik bir kod arsivindeki
-   6.808 OZGUN komut sayilinca ucunun de kullanildigi ve
-   bizde karsiliginin olmadigi goruldu.
+   Ekran/ses/sis v7.35'te eklendi: 53 MB'lik bir kod
+   arsivindeki 6.808 OZGUN komut sayilinca ucunun de
+   kullanildigi ve bizde karsiliginin olmadigi goruldu.
+   Kilitli esya v7.49'da eklendi; gerekcesi ayarlar.js'teki
+   ZORLA_ACIK notunda.
 
    ---- NEDEN SOHBETTEN DE CAGRILIYOR ----
    Hareket kilitliyken jest yapamazsin. Kilidi acacak sey,
@@ -123,6 +127,144 @@ function sisKaldir(oyuncu) {
   return oldu;
 }
 
+/* ---- KILITLI ESYA  (v7.49) ----
+   item_lock ile kafana/eline zorla takilan parcanin kilidini
+   soker. Gerekce ve iki kural ayarlar.js'teki ZORLA_ACIK
+   notunda; ozeti: esya SILINMEZ, "pa:" onekli kendi
+   esyalarimiza DOKUNULMAZ.                                  */
+const KOR_KUME = new Set(ZORLA_KOR_ESYALAR);
+
+function bizimMi(tip) {
+  return typeof tip === "string" && tip.indexOf(ZORLA_MUAF_ONEK) === 0;
+}
+
+/* Tek bir ContainerSlot. Kilit sokulduyse true doner.
+
+   Her adim ayri try icinde, cunku bir yuvada patlayan sey
+   OTEKI YUVALARI durdurmamali -- komut() ile ayni gerekce.
+   Kismi kurtarma, hic kurtarmamaya yegdir.                  */
+function yuvaCoz(yuva) {
+  let tip;
+  try {
+    if (!yuva || typeof yuva.hasItem !== "function" || !yuva.hasItem()) {
+      return false;
+    }
+    tip = yuva.typeId;
+    /* "none" disindaki her sey kilit sayiliyor: hem "slot"
+       hem "inventory". Ikisi ayrilmiyor cunku ikisi de
+       oyuncunun kendi eliyle cozemedigi bir durum.          */
+    if (yuva.lockMode === undefined || yuva.lockMode === "none") return false;
+  } catch (e) {
+    /* lockMode okunamiyorsa (eski surum) bu yuva atlanir.   */
+    return false;
+  }
+  if (bizimMi(tip)) return false;
+
+  try {
+    yuva.lockMode = "none";
+    return true;
+  } catch (e) {
+    hataYaz("arinma.kilit.yaz", e);
+    return false;
+  }
+}
+
+/* Kafadaki parca GORUSU KAPATIYORSA envantere indirilir.
+   Kilidi sokmus olmak yetmiyor: kabak kilitsizken de ekrani
+   kapatmaya devam ediyor.
+
+   Envanterde yer yoksa esya KAFADA KALIYOR -- ama artik
+   kilitsiz, yani elle cikarilabiliyor. Yere atmak ya da
+   silmek YOK: ikisi de esya kaybi, bu depoda o riske
+   girilmiyor.                                               */
+function korlukIndir(oyuncu, ekip) {
+  let esya;
+  try {
+    esya = ekip.getEquipment("Head");
+    if (!esya || !KOR_KUME.has(esya.typeId) || bizimMi(esya.typeId)) return false;
+  } catch (e) { return false; }
+
+  let kap;
+  try {
+    const env = oyuncu.getComponent("minecraft:inventory");
+    kap = env && env.container;
+  } catch (e) { kap = undefined; }
+  if (!kap || typeof kap.addItem !== "function") return false;
+
+  /* YER VAR MI, ONCE O. Sonra indir, sonra koy. Ters sirada
+     (once indir, sonra "sigmadi" de) esya bosluga duserdi;
+     once koyup sonra indirmek de setEquipment patlarsa esyayi
+     IKIYE cikarirdi. Bu sira ikisini de yapmiyor.            */
+  try { if (!(kap.emptySlotsCount > 0)) return false; }
+  catch (e) { return false; }
+
+  try { ekip.setEquipment("Head", undefined); }
+  catch (e) { hataYaz("arinma.kilit.cikar", e); return false; }
+
+  let artan;
+  try { artan = kap.addItem(esya); }
+  catch (e) { artan = esya; hataYaz("arinma.kilit.envanter", e); }
+
+  /* Konamadiysa GERI TAK. Esya kaybettirmemek, kabagi
+     indirmekten onemli -- kabak kilitsiz kaldi, oyuncu
+     kendi de cikarabilir.                                    */
+  if (artan) {
+    try { ekip.setEquipment("Head", esya); }
+    catch (e) { hataYaz("arinma.kilit.geritak", e); }
+    return false;
+  }
+  return true;
+}
+
+/* Disaridan cagrilan tek giris. Donen deger: sokulen kilit
+   sayisi (kor parca indirildiyse +1).                       */
+export function kilitSok(oyuncu) {
+  if (!ZORLA_ACIK) return 0;
+  let sayi = 0;
+
+  let ekip;
+  try { ekip = oyuncu.getComponent("minecraft:equippable"); }
+  catch (e) { ekip = undefined; }
+
+  if (ekip && typeof ekip.getEquipmentSlot === "function") {
+    /* Kafadaki parca KILITLIYDIYSE indirme hakki dogar.
+       Bu kosul testin 4. bolumunden geldi: kosulsuz yazilmis
+       hali, enderman'dan korunmak icin KENDI taktigi kabagi
+       da indiriyordu. Kilitli olmasi "bunu sen takmadin"in
+       tek olculebilir kaniti -- oyuncunun kendi eli bir
+       esyayi kilitleyemez.                                   */
+    let kafaKilitliydi = false;
+    for (const ad of ZORLA_YUVALAR) {
+      let yuva;
+      try { yuva = ekip.getEquipmentSlot(ad); }
+      catch (e) { continue; }
+      if (yuvaCoz(yuva)) {
+        sayi++;
+        if (ad === "Head") kafaKilitliydi = true;
+      }
+    }
+    if (kafaKilitliydi && korlukIndir(oyuncu, ekip)) sayi++;
+  }
+
+  if (ZORLA_ENVANTER) {
+    let kap;
+    try {
+      const env = oyuncu.getComponent("minecraft:inventory");
+      kap = env && env.container;
+    } catch (e) { kap = undefined; }
+    if (kap && typeof kap.getSlot === "function") {
+      for (let i = 0; i < kap.size; i++) {
+        let yuva;
+        try { yuva = kap.getSlot(i); }
+        catch (e) { continue; }
+        if (yuvaCoz(yuva)) sayi++;
+      }
+    }
+  }
+
+  return sayi;
+}
+
 /* Asil is. Hem yetenek hem sohbet komutu bunu cagiriyor.
    Geriye kullaniciya gosterilecek metin donuyor.            */
 export function arindir(oyuncu) {
@@ -181,6 +323,12 @@ export function arindir(oyuncu) {
   }
   if (silinen > 0) yapilan.push(silinen + " efekt");
 
+  // 9. KILITLI ESYA (v7.49) -- item_lock ile zorla takilan
+  //    parca. En sona konuldu: otekilerin hicbirini
+  //    geciktirmiyor ve envanter taramasi en pahalisi.
+  const kilit = kilitSok(oyuncu);
+  if (kilit > 0) yapilan.push(kilit + " kilit");
+
   return yapilan.length
     ? "§aArındın §7· " + yapilan.join(" · ")
     : "§7Arındın.";
@@ -232,6 +380,10 @@ function savunmaTazele(oyuncu) {
       oyuncu.removeEffect(ad);
     } catch (e) { /* onemsiz */ }
   }
+  /* Kilit sokme burada da var: saldiran replaceitem'i dongu
+     halinde atiyorsa tek seferlik Arinma yetismez -- Savunma
+     Kipinin var olma sebebi tam olarak bu.                  */
+  kilitSok(oyuncu);
 }
 
 /* Cagiran taraf { mesaj, is } aliyor. is varsa merkezi is

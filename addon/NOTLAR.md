@@ -1,3 +1,126 @@
+# v7.49.0 — Arınmanın 9. kolu: kilitli eşya
+
+Kullanıcı beş komut dosyası daha getirdi. Dördü zaten kapalı
+aileleri tekrarlıyordu; **biri yeni bir delik gösterdi.**
+
+Tam kayıt: [`REFERANS_KOMUT_DOSYALARI_PSG.md`](REFERANS_KOMUT_DOSYALARI_PSG.md).
+
+## Delik
+
+```
+/replaceitem entity @a[name=!PSG1834] slot.armor.head 1
+  carved_pumpkin 1 0 {"item_lock":{"mode":"lock_in_slot"}}
+```
+
+Kafaya balkabağı takıp **kilitliyor**. Balkabağı ekranı
+kapatıyor, `lock_in_slot` çıkarmayı imkânsız kılıyor.
+Kendiliğinden geçmiyor, kurbanın elinde bir çıkış yok.
+
+Arınmanın sekiz kolu da **komutla geri alınabilen** şeylere
+bakıyordu: girdi, kamera, sarsıntı, poz, ekran, ses, sis,
+efekt. Kilitli eşya bunların hiçbiri değil — bir **envanter
+durumu**. Sekizi de çalışıyordu ve kafasında balkabağıyla
+dövüşen adam için bu, hiçbirinin çalışmamasıyla aynı şeydi.
+
+## Bu kalıbı üçüncü kez gördük
+
+| kaynak | eşya |
+|---|---|
+| Falen Mod V2 (v7.1) | `sp:voidol` |
+| Klezy konsey silahları (v6.3) | `klezy:toxic_skin` |
+| PSG GM3 (v7.49) | `carved_pumpkin` |
+
+Üçünde de aynı iki parça: görüşü kapatan bir eşya + `item_lock`.
+Kendi sürümlerimizi yazarken bu kalıbı iki kez **reddetmiştik**.
+Ama *bize* yapıldığında karşılığı yoktu. Ders: bir kalıbı
+reddetmek, ona karşı savunmalı olmakla aynı şey değil.
+
+## Ölçülen API, tahmin değil
+
+`@minecraft/server` 2.9.0 `index.d.ts`:
+
+```
+ContainerSlot.lockMode : ItemLockMode        (okunur-YAZILIR)
+ItemLockMode           = none | inventory | slot
+EntityEquippableComponent.getEquipmentSlot(s) -> ContainerSlot
+```
+
+Kilidi açmak için saldırandan izin gerekmiyor: kilit, eşyanın
+üzerinde duran bir alan ve script onu yazabiliyor.
+
+## İki kural — ikisi de eski kuralların devamı
+
+1. **Eşya silinmiyor.** Kilit sökülüyor, eşya duruyor. Yalnız
+   *görüşü kapatan* parça kafadan indirilip envantere konuyor;
+   yer yoksa kafada kalıyor — ama kilitsiz.
+2. **Kendi eşyamıza dokunulmuyor.** `pa:` önekli her şey
+   atlanıyor, `kafes.js`'teki `KAFES_KORUNAN_ONEK` ile aynı
+   gerekçe.
+
+## Testin yakaladığı hata
+
+`test/kilit_sok.mjs` 4. bölüm ilk yazımda **kırmızı yandı**:
+kilitsiz balkabağını da kafadan indiriyordu. Enderman'dan
+korunmak için kendi isteğiyle balkabağı takan adamın kafasını
+Arınma açıyordu.
+
+Düzeltme tek satır: indirme hakkı ancak **kafadaki parça
+kilitliydiyse** doğuyor. Kilitli olması *"bunu sen takmadın"*ın
+tek ölçülebilir kanıtı — oyuncunun kendi eli bir eşyayı
+kilitleyemez.
+
+Mutasyon: 7 bozma denendi, 7'si de yakalandı.
+
+## Bir isim çakışması
+
+Ayarlar önce `KILIT_ACIK` diye yazıldı. `ayarlar.js`'te
+**zaten** bir `KILIT_ACIK` vardı (yıldırımın hedef kilidi,
+satır 82). Node tek satırda söyledi:
+`Identifier 'KILIT_ACIK' has already been declared`.
+Önek `ZORLA_` oldu. 10 bin satırlık bir ayar dosyasında ad
+seçmeden önce `grep` — bedava, ve bu kez bedavaya çıkmadı.
+
+## Poz sandığı 70 → 72
+
+Getirilen dosyaların en çok kullandığı kimlik
+`animation.player.swim`'di (beş dosyanın dördünde, 20+ satırda)
+ve **bizde yoktu**. Mojang'ın `player.json`'unda duruyor —
+uydurma değil, biz atlamışız.
+`animation.player.swim.legs.stationary` ile birlikte eklendi.
+
+`animation.player.first_person.map_hold` **eklenmedi**:
+Mojang'ın dosyalarında yok. "Kod dosyasında geçiyor" bir
+kimliğin var olduğunun kanıtı değil.
+
+## Yeni olmayan dördü
+
+- **Efektler** — PSG'nin 23 `/effect` satırındaki olumsuzların
+  tamamı zaten `ARIN_EFEKTLER`'de. `speed`/`strength`/
+  `absorption` gibi olanlar kasten yok: onlar kurbanı
+  *güçlendiriyor*, `/effect @s clear` yazan bir savunma kendi
+  içtiği iksiri de silerdi.
+- **`camerashake`** — Arınma 3. kol zaten kesiyor.
+- **Title duvarı** — `G__L__T_TLE.txt` neredeyse tamamen bu;
+  v7.35'te kapandı.
+- **Magma hapsi** (`fill ~-6 … ~6 magma[] hollow`) — Kafes Kır
+  bunu kırmıyor ve **kırmaması doğru**: duvarlar 6 blok
+  uzakta, kurban hapsedilmiş değil bir odanın ortasında.
+  Altı blok uzaktaki duvarı kırmak savunma değil, kendi evini
+  delen bir kazma olurdu.
+
+## Kapsam
+
+```
+kapalı 32 → 33 · toplam 99 → 100
+ham %32 → %33   engellenebilir %68 → %70
+```
+
+Komut dosyaları tabloya **K** harfiyle girdi: ilk sekiz sürüm
+boyunca ölçülen her şey bir programdı (apk/enjektör/vekil),
+bunlar değil.
+
+---
+
 # v7.48.0 — poz sandığı 39'dan 70'e, ve üç bozuk kimlik
 
 Kullanıcı 88 MB'lık bir "300K kod dosyası" derlemesi buldu ve

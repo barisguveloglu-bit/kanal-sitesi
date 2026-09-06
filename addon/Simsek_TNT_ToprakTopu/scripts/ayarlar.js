@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.48.0";
+export const SURUM = "v7.49.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -830,6 +830,12 @@ export const POZ_LISTESI = [
   ["animation.player.move.arms.statue_of_liberty", "Ozgurluk Heykeli"],
   ["animation.player.move.legs.inverted",          "Ters Bacaklar"],
   ["animation.player.sneaking.inverted",           "Ters Egilme"],
+  /* v7.49: getirilen bes komut dosyasindaki EN COK gecen
+     kimlik buydu (bes dosyanin dordunde, 20+ satirda). Bizde
+     yoktu. Mojang'in kendi player.json'unda duruyor -- yani
+     uydurma degil, biz atlamisiz.                            */
+  ["animation.player.swim",                        "Yuzme Durusu"],
+  ["animation.player.swim.legs.stationary",        "Yuzme (Duran Bacak)"],
 
   /* Enderman */
   ["animation.enderman.scary_face",       "Enderman Korkutma"],
@@ -992,6 +998,88 @@ export const ARIN_SIS   = true;    // /fog
    zaten sessizce dusuyor.                                   */
 export const ARIN_SIS_BILINEN = ["1", "11", "13", "l1", "t"];
 export const ARIN_SIS_KIMLIK  = "arinma";
+
+
+/* ------------- ZORLA TAKILAN ESYA  (Arinmanin 9. kolu)  v7.49 ----
+   Kullanici bes komut dosyasi daha getirdi. Ikisi yeni bir
+   sey tasimiyordu (kalkma listeleri -- kimliklerin hepsi
+   v7.48'de dogrulanmis 175 vanilla kimlik icinde; title
+   duvari -- ARIN_EKRAN zaten kapatiyor). Biri tasidi:
+
+     psgkodgm3_1.txt · "KAFAYA BALKABAGI SOKMA"
+       replaceitem entity @a[name=!PSG1834] slot.armor.head
+         1 carved_pumpkin 1 0
+         {"item_lock":{"mode":"lock_in_slot"}}
+
+   Bu kalibi UCUNCU kez goruyoruz ve ucunde de ayni:
+     - Falen Mod V2  -> sp:voidol,  slot.armor.head, lock_in_slot
+     - Klezy konsey  -> klezy:toxic_skin, ayni yuva
+     - PSG GM3       -> carved_pumpkin, ayni yuva
+
+   ---- NEDEN ARINMA BUNU TUTMUYORDU ----
+   Arinmanin sekiz kolu da KOMUTLA geri alinabilen seylere
+   bakiyor: girdi, kamera, sarsinti, poz, ekran, ses, sis,
+   efekt. Kilitli esya bunlarin hicbiri degil -- bir ENVANTER
+   durumu. Oyuncu kendi eliyle cikaramiyor (lock_in_slot'un
+   tanimi bu), Arinma da bakmiyordu. Kafasinda balkabagiyla
+   dovusen adam icin dokuz koldan sekizi calisiyor demek,
+   hicbirinin calismamasiyla ayni sey.
+
+   ---- OLCULEN SEY, TAHMIN DEGIL ----
+   @minecraft/server 2.9.0 index.d.ts:
+     ContainerSlot.lockMode : ItemLockMode   (okunur-YAZILIR)
+     ItemLockMode = none | inventory | slot
+     EntityEquippableComponent.getEquipmentSlot(slot)
+       -> ContainerSlot
+   Yani kilidi acmak icin saldirandan izin almaya gerek yok:
+   kilit esyanin uzerinde duran bir alan ve script onu
+   yazabiliyor.
+
+   ---- IKI KURAL, IKISI DE ESKI KURALLARIN DEVAMI ----
+   1. ESYA SILINMIYOR. Bu depoda esya kaybettiren hicbir sey
+      yok (kafes.js KAFES_KORUNAN, konsey_silah.js "yuva
+      bossa", envanter_yedek.js -- ucu de ayni kural). Kilit
+      SOKULUYOR, esya duruyor. Yalniz GORUSU KAPATAN bir
+      parca (asagidaki liste) kafadan indirilip envantere
+      konuyor; envanterde yer yoksa kafada kaliyor -- ama
+      artik kilitsiz, yani elle cikarilabiliyor.
+   2. KENDI ESYAMIZA DOKUNULMUYOR. "pa:" onekli her sey
+      atlaniyor. Void kolu, konsey derileri ve Dusmus
+      virusunun parcalari kendi kurallariyla cikiyor;
+      Arinma onlari sokseydi kendi yeteneklerimizi
+      kirardi.                                               */
+export const ZORLA_ACIK = true;
+
+/* Bakilan yuvalar. Altisi da replaceitem'in hedef alabildigi
+   yuvalar; kaynak dosyalarda yalniz slot.armor.head gorulmus
+   olsa da otekiler ayni komutun bir kelimesi uzaginda.       */
+export const ZORLA_YUVALAR = [
+  "Head", "Chest", "Legs", "Feet", "Mainhand", "Offhand"
+];
+
+/* Envanter de taraniyor: item_lock'un "inventory" kipi
+   esyayi ATILAMAZ yapiyor. Envanteri kilitli copla
+   doldurmak yer kaplama saldirisi -- kilidi sokunce
+   oyuncu kendi temizleyebiliyor.                            */
+export const ZORLA_ENVANTER = true;
+
+/* Kendi esyalarimiz. kafes.js'teki KAFES_KORUNAN_ONEK ile
+   ayni gerekce, ayni deger.                                 */
+export const ZORLA_MUAF_ONEK = "pa:";
+
+/* GORUSU KAPATAN PARCALAR -- yalniz bunlar kafadan indiriliyor.
+   Kilidi sokmek balkabagi icin TEK BASINA yetmiyor: kabak
+   kilitsizken de ekrani kapatmaya devam ediyor, cikarmak icin
+   envanteri acip surukleman gerekiyor. Dovusun ortasinda o
+   sure gercek.
+
+   Liste dar tutuldu. "Kilitliyse indir" deseydik saldiranin
+   taktigi bir elmas migferi de indirirdik -- oysa o migfer
+   ise YARIYOR. Indirilen sey yalnizca GORMENI ENGELLEYEN sey. */
+export const ZORLA_KOR_ESYALAR = [
+  "minecraft:carved_pumpkin", "minecraft:pumpkin",
+  "minecraft:jack_o_lantern", "minecraft:lit_pumpkin"
+];
 
 
 /* ---------------- KAFES KIRMA (v7.36) --------------------

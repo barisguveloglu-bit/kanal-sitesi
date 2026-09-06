@@ -183,6 +183,10 @@ console.log("=== 1b. LISTE VANILLA'DA GERCEKTEN VAR MI (v7.48) ===");
     "animation.player.move.arms.statue_of_liberty",
     "animation.player.move.legs.inverted",
     "animation.player.sneaking.inverted",
+    /* v7.49: Mojang player.json'unda dogrulandi. Getirilen
+       komut dosyalarinin EN COK kullandigi kimlik buydu. */
+    "animation.player.swim",
+    "animation.player.swim.legs.stationary",
     "animation.villager.raise_arms",
     "animation.warden.dig",
     "animation.warden.roar",

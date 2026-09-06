@@ -219,27 +219,27 @@ belli değil — uydurulmuş bir ağırlık, uydurulmuş bir yüzde
 
 | durum | sayı | ne demek |
 |---|---|---|
-| **kapalı** | **32** | bizim kodumuz görüyor |
+| **kapalı** | **33** | bizim kodumuz görüyor |
 | açık | 14 | ölçülebilir ama yazılmadı |
 | ayırt edilemez | 14 | sunucuya geliyor, dürüst oyundan ayrılamıyor |
 | operatör kapısı | 7 | op vermemek yeterli |
 | **imkânsız** | **32** | tamamen ekran tarafı, asla görülemez |
-| toplam | 99 | |
+| toplam | 100 | |
 
 ### İki yüzde
 
-- **Ham kapsam: %32** (32/99)
-- **Engellenebilirin kapsamı: %70** (32/46) ← anlamlı olan
+- **Ham kapsam: %33** (33/100)
+- **Engellenebilirin kapsamı: %70** (33/47) ← anlamlı olan
 
-Ham kapsamın tavanı 100 değil, **%46**. Görüntü ailesi (32),
+Ham kapsamın tavanı 100 değil, **%47**. Görüntü ailesi (32),
 ayırt edilemeyenler (14) ve op ailesi (7) bir davranış
 paketinin ulaşabileceği yerde değil. Yani ham sayı hiçbir
-zaman %46'yı geçemez ve bugün onun **yaklaşık yedide altısındayız**.
+zaman %47'yi geçemez ve bugün onun **yaklaşık yedide altısındayız**.
 
 **Ham sayının v7.46'daki %34'ten %32'ye DÜŞMESI bir gerileme
 değil**: FerSReD Client 13 yeni madde ekledi ve 13'ünün 8'i
 imkânsız/op ailesinden. Payda büyüdü, pay da büyüdü ama daha
-yavaş. Anlamlı olan ikinci sayı ve o **%67'den %70'e çıktı**.
+yavaş. Anlamlı olan ikinci sayı ve o **%66'dan %70'e çıktı**.
 
 ### Sürüme göre artış
 
@@ -249,14 +249,15 @@ yavaş. Anlamlı olan ikinci sayı ve o **%67'den %70'e çıktı**.
 | v7.28 | 1 | %1 | %2 | Arınma |
 | v7.29 | 2 | %2 | %4 | Savunma Kipi |
 | v7.30 | 14 | %14 | %30 | Gözcü + hareket + envanter yedeği |
-| v7.31 | 15 | %15 | %33 | geri itme |
-| v7.35 | 18 | %18 | %39 | ekran · ses · sis |
-| v7.36 | 24 | %24 | %52 | blok hızı + Kafes Kır |
-| v7.38 | 30 | %30 | %65 | aynı tick · oyun kipi · katı blok · kaçış |
-| v7.46 | 31 | %31 | %67 | süzülme kör noktası |
-| **v7.47** | **32** | **%32** | **%70** | düşme hasarı yok |
+| v7.31 | 15 | %15 | %32 | geri itme |
+| v7.35 | 18 | %18 | %38 | ekran · ses · sis |
+| v7.36 | 24 | %24 | %51 | blok hızı + Kafes Kır |
+| v7.38 | 30 | %30 | %64 | aynı tick · oyun kipi · katı blok · kaçış |
+| v7.46 | 31 | %31 | %66 | süzülme kör noktası |
+| v7.47 | 32 | %32 | %68 | düşme hasarı yok |
+| **v7.49** | **33** | **%33** | **%70** | zorla eşya takma (`item_lock`) |
 
-**v7.36 → v7.38 artışı: engellenebilirin %52'sinden %65'ine**
+**v7.36 → v7.38 artışı: engellenebilirin %51'inden %64'üne**
 (altı özellik). En büyük tek sıçrama hâlâ v7.30 (Gözcü'nün
 kurulduğu sürüm): %4'ten %30'a.
 
@@ -279,12 +280,35 @@ Kaynak: `REFERANS_TOOLBOX_TR_APK.md` (Toolbox For Turkey,
 
 Hepsi **ölçülebilir**, sadece yazılmadı:
 
-`no_fall` · `jesus` · `spider` · `anti_void` · `slow_falling`
-(hareket ailesi, hepsi konum/hasar tutarsızlığı) ·
-`far_bypass` · `pick_distance` (blok koyma mesafesi) ·
-`auto_crystal` (koyma+vurma hızı) · `fake_death` ·
+`jesus` · `spider` · `anti_void` · `slow_falling` ·
+`auto_glide` (hareket ailesi, hepsi konum/hasar
+tutarsızlığı) · `far_bypass` · `pick_distance` (blok koyma
+mesafesi) · `auto_crystal` (koyma+vurma hızı) · `fake_death` ·
 `spammer` (sohbet hızı) · `blink` · `disabler` · `desync` ·
 `ping_spoof` (dördü de paket geciktirme ailesi).
 
+`no_fall` bu listedeydi, **v7.47'de kapandı**.
+
 Bunların hepsi yazılsa engellenebilir kapsam **%100** olurdu,
-ham kapsam **%49**. Ondan sonrası mümkün değil.
+ham kapsam **%47**. Ondan sonrası mümkün değil.
+
+---
+
+## v7.49 — komut dosyaları ayrı bir kaynak oldu
+
+İlk sekiz sürüm boyunca ölçülen her şey bir **program**dı:
+apk, enjektör ya da paket vekili. v7.49'da gelen beş dosya
+program değil — sohbete yapıştırılan `.txt` listeleri.
+Kurulum istemiyorlar, dolayısıyla en yaygın olanları.
+
+Tabloya **K** harfiyle girdiler. Beşinden dördü zaten kapalı
+aileleri tekrarlıyordu; biri yeni bir delik gösterdi:
+
+> `/replaceitem entity @a slot.armor.head 1 carved_pumpkin
+>   1 0 {"item_lock":{"mode":"lock_in_slot"}}`
+
+Kafaya kilitli balkabağı. Arınmanın sekiz kolu da **komutla**
+geri alınabilen şeylere bakıyordu; kilitli eşya bir **envanter
+durumu** ve hiçbiri ona bakmıyordu. Arınmanın 9. kolu bu.
+
+Kaynak: `REFERANS_KOMUT_DOSYALARI_PSG.md`

@@ -54,6 +54,14 @@ KAPALI, ACIK, AYIRT, OP, IMKANSIZ = "kapali", "acik", "ayirt", "op", "imkansiz"
 # bir enjektor (io.mrarm.mctoolbox, libtoolbox-1.19.51.01.so).
 # Ozellik listesi buyuk olcude ortusuyor ama dagitim yolu
 # bambaska; kaynagi karistirmamak icin kendi harfi var.
+#
+# ---- K NEDEN AYRI BIR HARF  (v7.49) ----
+# Otekilerin hepsi bir PROGRAM: apk, enjektor ya da vekil.
+# K bir program degil, elden ele dolasan KOMUT DOSYALARI --
+# .txt icinde /effect, /replaceitem, /playanimation satirlari.
+# Kurulum istemiyor, sohbete yapistiriliyor. Ozellik listesi
+# cok daha kucuk ama tam da bu yuzden en yaygin olani:
+# indirilecek bir sey yok.
 OZELLIKLER = [
     # ---------------- DOVUS ----------------
     ("anti_knockback",   "dovus", "TWMF", KAPALI, "7.31", "geri itme denetimi"),
@@ -118,6 +126,8 @@ OZELLIKLER = [
     ("ses bombasi", "komut", "TW", KAPALI, "7.35", "Arinma"),
     ("sis (/fog push)", "komut", "TW", KAPALI, "7.35", "Arinma"),
     ("envanteri /clear ile silme", "komut", "TW", KAPALI, "7.30", "Envanter Yedegi"),
+    ("item_lock ile zorla esya takma", "komut", "TWK", KAPALI, "7.49",
+     "Arinma -- kilit sokme"),
     ("/kill · /damage · /summon", "komut", "TW", OP, "", "sunucu izin vermeli"),
 
     # ---------------- CESITLI ----------------
@@ -183,7 +193,8 @@ OZELLIKLER = [
 ]
 
 # Savunmanin yazildigi surumler, sirayla.
-SURUMLER = ["7.27", "7.28", "7.29", "7.30", "7.31", "7.35", "7.36", "7.38", "7.46", "7.47"]
+SURUMLER = ["7.27", "7.28", "7.29", "7.30", "7.31", "7.35", "7.36", "7.38",
+            "7.46", "7.47", "7.49"]
 
 
 def surum_no(s):
@@ -214,7 +225,7 @@ if __name__ == "__main__":
     # bir davranis paketinin yazabilecegi bir sey degil.
     engellenebilir = kapali + acik
 
-    print("=== OZELLIK SAYIMI (ALTI APK'nin kendi listesinden) ===")
+    print("=== OZELLIK SAYIMI (ALTI APK ve KOMUT DOSYALARI) ===")
     print("  toplam ozellik            %3d" % toplam)
     print("  kapali (bizde karsiligi)  %3d" % kapali)
     print("  acik   (olculebilir, yok) %3d" % acik)
@@ -246,13 +257,15 @@ if __name__ == "__main__":
         onceki = k
     print()
     print("=== KAYNAGA GORE  (T = Toolbox ailesi, W = WClient,")
-    print("                    M = Toolbox For Turkey, F = FerSReD) ===")
+    print("                    M = Toolbox For Turkey, F = FerSReD,")
+    print("                    K = elden ele komut dosyalari) ===")
     for etiket, kosul in (
         ("Toolbox ailesi (MH_TEAM_V5 · WDBAX · BloodyClient)",
          lambda o: "T" in o[2]),
         ("WClient (vekil)", lambda o: "W" in o[2]),
         ("Toolbox For Turkey (enjektor)", lambda o: "M" in o[2]),
         ("FerSReD Client (ToolMcFSRD)", lambda o: "F" in o[2]),
+        ("Komut dosyalari (elden ele .txt)", lambda o: "K" in o[2]),
     ):
         alt = [o for o in OZELLIKLER if kosul(o)]
         a_kapali = sum(1 for o in alt if o[3] == KAPALI)
