@@ -7,6 +7,7 @@ import {
   GOZCU_PENCERE, GOZCU_ESIK, GOZCU_SUS, GOZCU_YALNIZ_OYUNCU,
   GOZCU_ETIKET, HAREKET_AF_TICK,
   SUZULME_ACIK, SUZULME_ORNEK, SUZULME_PAY, SUZULME_ROKET_TICK,
+  DUSUS_ACIK, DUSUS_ESIK, DUSUS_PAY,
   KILIT_ATLA_TIPLER,
   HAREKET_ACIK, HAREKET_HIZ, HAREKET_SICRAMA,
   HAREKET_YUKSELME, HAREKET_YUKSEK_PAY,
@@ -315,6 +316,68 @@ function suzulmeOlc(o, iz, onceki, k) {
   isaretle(o, o, ["roketsiz süzülerek " + SUZULME_ORNEK + " örnek yükseldi"]);
 }
 
+/* ---- DUSME HASARI YOK  (v7.47) ----
+   FerSReD Client menusunde "Dusme Hasari Yok" var; bu madde
+   savunma planindaki "acik kalanlar" listesinde v7.38'den beri
+   duruyordu.
+
+   Dusus yuksekligi hareket izinden zaten cikiyor. Can bir
+   VARLIK bileseni, yani ek BLOK okumasi yok -- bosta duran mod
+   yine tek blok okumuyor.
+
+   Olcut: DUSUS_ESIK blok dustukten sonra yere degdiginde can
+   DUSUS_PAY kadar bile azalmadiysa.                          */
+function dususMuaf(o) {
+  try {
+    if (o.isInWater) return "suda";
+    if (o.isGliding) return "suzuluyor";
+    if (o.isFlying) return "ucus kipi";
+    if (o.isClimbing) return "tirmaniyor";
+    if (typeof o.getEffect === "function") {
+      for (const ad of ["slow_falling", "levitation", "resistance"]) {
+        if (o.getEffect(ad)) return ad;
+      }
+    }
+    if (typeof o.getComponent === "function" &&
+        o.getComponent("minecraft:riding")) return "biniyor";
+  } catch (e) {
+    return "okunamadi";          // suphede kalirsa SUCLAMIYORUZ
+  }
+  return undefined;
+}
+
+function dususOlc(o, iz, dy) {
+  if (!DUSUS_ACIK) { iz.dusus = 0; return; }
+
+  /* HALA DUSUYOR: yuksekligi biriktir, dusus baslangicindaki
+     cani bir kez kaydet.                                     */
+  if (dy < 0) {
+    if (!iz.dusus) {
+      iz.dusus = 0;
+      iz.dususCan = canOku(o);
+    }
+    iz.dusus += -dy;
+    return;
+  }
+
+  /* YERE DEGDI (ya da yukseliyor). Biriken dusus esigin
+     altindaysa hukum yok.                                    */
+  const yukseklik = iz.dusus || 0;
+  iz.dusus = 0;
+  if (yukseklik < DUSUS_ESIK) { iz.dususCan = undefined; return; }
+
+  const onceCan = iz.dususCan;
+  iz.dususCan = undefined;
+  if (typeof onceCan !== "number") return;      // can okunamadi: hukum yok
+  if (dususMuaf(o)) return;
+
+  const simdiCan = canOku(o);
+  if (typeof simdiCan !== "number") return;
+  if (onceCan - simdiCan >= DUSUS_PAY) return;  // hasar aldi, sorun yok
+
+  isaretle(o, o, ["düşme hasarı yok (" + yukseklik.toFixed(0) + " blok)"]);
+}
+
 /* ---- BILDIRIM KIME GIDIYOR  (v7.44) ----
    Bir hile suclamasi herkese acik yazilmamali; ustelik
    Gozcu'nun cikardigi sey TAHMIN, kanit degil.
@@ -545,6 +608,8 @@ export function hareketTara(oyuncular, isVarMi) {
                         tick: simdi,
                         yukselme: onceki ? onceki.yukselme : 0,
                         suzulme: onceki ? onceki.suzulme : 0,
+                        dusus: onceki ? onceki.dusus : 0,
+                        dususCan: onceki ? onceki.dususCan : undefined,
                         kati: onceki ? onceki.kati : 0,
                         katiBildirim: onceki ? onceki.katiBildirim : -99999 });
       if (!onceki) continue;
@@ -553,6 +618,7 @@ export function hareketTara(oyuncular, isVarMi) {
       if (onceki.boyut !== boyutId) {
         const yeni = izler.get(o.id);
         yeni.yukselme = 0; yeni.suzulme = 0; yeni.kati = 0;
+        yeni.dusus = 0; yeni.dususCan = undefined;
         continue;
       }
 
@@ -564,6 +630,19 @@ export function hareketTara(oyuncular, isVarMi) {
          bitince olcum dogru yerden devam ediyor.             */
       const muaf = hareketMuaf(o, isVarMi);
       const iz = izler.get(o.id);
+
+      /* DUSME HASARI muafiyetten ONCE ve HER durumda olculuyor
+         (v7.47). Sebebi bariz ama yazili olmasi sart:
+         `hareketMuaf` dusen oyuncuyu "dusuyor" diye muaf
+         tutuyor -- yani dusus olcumu muafiyetin arkasina
+         konsaydi HIC CALISMAZDI. Olculen sey muafiyetin ta
+         kendisi.
+
+         Kendi muafiyet listesi ayri (dususMuaf): su, suzulme,
+         ucus, tirmanma, binme ve yavas dusme / levitasyon /
+         direnc.                                              */
+      dususOlc(o, iz, k.y - onceki.konum.y);
+
       if (muaf) {
         iz.yukselme = 0; iz.kati = 0;
         /* SUZULME ARTIK TOPTAN MUAF DEGIL  (v7.46).

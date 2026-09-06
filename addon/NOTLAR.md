@@ -1,3 +1,156 @@
+# v7.47.0 — FerSReD Client ve "Düşme Hasarı Yok"
+
+Altıncı hile dosyası. **Hiçbir şey çalıştırılmadı**; zip açıldı,
+ikili dosyalar Python ile *okundu*.
+
+Tam kayıt: [`REFERANS_FERSRED_APK.md`](REFERANS_FERSRED_APK.md).
+
+## Aynı enjektör, iki katı menü
+
+`io.mrarm.mctoolbox` — paket adı Toolbox For Turkey ile **aynı**,
+izinleri de birebir (`diff` boş). Ama görünen adı **FerSReD
+Client** ve menüsü **46 madde** (öteki 26).
+
+Ek olarak `libnpprotect.so` + `libnpvmp.so` (NetEase kod koruma)
+ve karartılmış kaynak adları (`۟.xml`) var — yani bu geliştiricinin
+kendi yayını değil, **yeniden paketlenmiş** bir sürüm.
+
+### İlk arama boş döndü ve sebebi öğreticiydi
+
+`Kill-Aura`, `ChestESP`, `Fullbright` — hiçbiri yok. Bir an
+"menüsüz sürüm" sandım. Menü **tamamen Türkçeleştirilmiş**:
+`Aura Öldürme`, `SandıkESP`, `Full Parlaklık`. İngilizce
+anahtarla aradığım için kaçırmışım.
+
+Ders: **bir dosyada bir şeyin yokluğu, aradığın kelimenin
+yokluğu olabilir.**
+
+## "64bit" dosya adı — ölçüldü, iki noktada yanlış
+
+Kullanıcı: *"bu hilelerde genellikle 32 bit ve 64 bit ayrımı
+oluyor, yüksek kaliteli olanlar 64 oluyor."*
+
+**1. Bu dosya "64bit" adını taşıyor ama 32 biti de içeriyor:**
+
+```
+lib/arm64-v8a/     26 .so   (64 bit)
+lib/armeabi-v7a/   27 .so   (32 bit)
+```
+
+**2. 32/64 bir kalite kademesi değil, işlemci mimarisi.** Hangi
+klasörün yükleneceğini telefon belirler. 2019'dan beri satılan
+hemen her Android 64 bit.
+
+Gerçek fark muhtemelen şu: 64 bit yama yazmak daha zahmetli
+olduğu için bazı yayınlar yalnız 32 bit çıkıyor ve modern
+telefonlarda **hiç açılmıyor**. "64 bit olanı iyi" izlenimi
+oradan geliyor — *iyi* değil, *çalışıyor*.
+
+### Sürüm kapsamı
+
+26 farklı Minecraft sürümü için yama: `1.16.221` → `1.19.51`
+(Aralık 2022). Kullanıcının oyunu **26.45**. Yamalar sürüme özgü
+bellek adresleri olduğu için bu APK de oyunu **başlatamaz**.
+
+## Yazılan: Düşme Hasarı Yok
+
+Menüdeki üç madde bizim **"açık kalanlar"** listemizdeydi:
+`Su Üzerinde Yürüme` (jesus), `Düşme Hasarı Yok` (no_fall),
+`Yavaş Düşme` (slow_falling). v7.38'den beri *"ölçülebilir ama
+yazılmadı"* diye duruyorlardı.
+
+**`no_fall` yazıldı.** Ölçüt: `DUSUS_ESIK` (8) blok düştükten
+sonra yere değdiğinde can `DUSUS_PAY` (1,0 puan) kadar bile
+azalmadıysa.
+
+### Ölçüm neden bedava
+
+Düşüş yüksekliği hareket izinden **zaten çıkıyor** (her örnekte
+`dy` var). Can bir **varlık** bileşeni, blok değil — `gozcu.js`
+onu kaçış denetiminde zaten okuyor. Yani boşta duran mod hâlâ
+**tek blok okumuyor**.
+
+### Eşik neden 8 blok
+
+Vanilla hasarı `(mesafe − 3)` yarım kalp. 8 blok = 5 puan = 2,5
+kalp. Bu kadar hasarın kaçırılması ölçüm hatası olamaz. Daha
+düşük eşik (4–5 blok) tek puanlık hasara bakardı ve yenilenme
+onu maskeleyebilirdi.
+
+### Ölçüm muafiyetin ARKASINA konamazdı
+
+`hareketMuaf` düşen oyuncuyu `"dusuyor"` diye muaf tutuyor.
+Ölçüm muafiyetten sonra çalışsaydı **hiç çalışmazdı** — ölçülen
+şey muafiyetin ta kendisi. O yüzden `dususOlc` muafiyet
+kontrolünden **önce** ve her durumda çağrılıyor.
+
+Bu, v7.46'daki süzülme bulgusunun aynı ailesi: bir muafiyet
+bayrağı, kendisi ölçülmesi gereken durumu örtüyordu.
+
+### Yanlış alarm yüzeyi — açıkça kabul edildi
+
+Saman balyası, slime blok, örümcek ağı ve tekne düşme hasarını
+**meşru olarak** sıfırlıyor. Ayırt etmek inilen bloğu okumayı
+gerektirir; boşta blok okumamak bu depoda bir kural.
+
+Kabul edilebilir olmasının sebebi Gözcü'nün kendi tasarımı:
+`isaretle()` **4 işaret** görmeden hiçbir şey yazmıyor. Bir kez
+samana inmek suçlama üretmez; dört kez üst üste 8 bloktan
+hasarsız inmek üretir.
+
+Suya inmek, süzülmek, uçmak, binmek ve yavaş düşme /
+levitasyon / direnç etkileri **zaten muaf** (`dususMuaf`).
+
+## Ölçüm
+
+`test/inceleme_744.mjs` 9. bölüm — bir hile senaryosu, sekiz
+meşru senaryo:
+
+```
+✓ hasar ALAN dusus suclanmiyor (kontrol)   0 isaret
+✓ hasarsiz inis ISARETLENIYOR              1 isaret
+✓   esigin ALTINDAKI dusus suclanmiyor     0 isaret
+✓   suya inis / yavas dusme / levitasyon /
+    direnc / suzulerek inis SUCLANMIYOR    0 isaret
+✓   can okunamayinca hukum YOK             0 isaret
+✓   baslangic cani yoksa hukum YOK         0 isaret
+✓   inis cani yoksa hukum YOK              0 isaret
+```
+
+Altı mutasyon denendi, **altısı da yakalandı**:
+
+| mutasyon | düşen |
+|---|---|
+| düşüş ölçümü kaldırıldı | 1 |
+| muafiyet listesi boşaltıldı | 5 |
+| eşik kaldırıldı | 1 |
+| hasar karşılaştırması tersine | 2 |
+| başlangıç canı koruması kaldırıldı | 1 |
+| iniş canı koruması kaldırıldı | 1 |
+
+Son iki satır ayrı ayrı yazıldı çünkü **iki ayrı korumayı**
+ölçüyorlar; ilk denemede tek senaryo ikisini birden kapsıyordu
+ve biri sessizce ölçüsüz kalıyordu.
+
+## Kapsam
+
+Altı dosyayla birlikte **99 özellik**. Kapalı **31 → 32**,
+engellenebilir **%67 → %70**.
+
+Ham kapsam %34'ten %32'ye *düştü* — bu gerileme değil: FerSReD 13
+yeni madde getirdi ve 8'i imkânsız/op ailesinden. Payda pay'dan
+hızlı büyüdü. Anlamlı olan ikinci sayı.
+
+```
+FerSReD Client (ToolMcFSRD)
+  toplam 46 · kapalı 18 · açık 4 · ayırt 6 · op 4 · imkânsız 14
+  ham %39   engellenebilir %82
+```
+
+Hâlâ açık: `jesus`, `slow_falling`, `auto_glide`, `blink`.
+
+---
+
 # v7.46.0 — Toolbox For Turkey ve süzülme kör noktası
 
 Kullanıcı beşinci bir hile dosyası gönderdi: *"aynı şekilde bir

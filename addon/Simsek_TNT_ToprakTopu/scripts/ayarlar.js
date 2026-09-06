@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.46.0";
+export const SURUM = "v7.47.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -1152,6 +1152,43 @@ export const SUZULME_ORNEK  = 5;      // ust uste kac ornek yukseliyorsa
 export const SUZULME_PAY    = 0.4;    // ornek basina en az bu kadar yukselme
 export const SUZULME_ROKET_TICK = 100;
 export const SUZULME_ROKET_ESYA = ["minecraft:firework_rocket"];
+
+/* ---------------- DUSME HASARI DENETIMI  (v7.47) ----------------
+   FerSReD Client (ToolMcFSRD, io.mrarm.mctoolbox tabanli)
+   menusunde "Dusme Hasari Yok" var. Bu madde REFERANS_SAVUNMA_
+   PLANI.md'deki "acik kalanlar" listesinde v7.38'den beri
+   duruyordu: "no_fall -- dustu ama hasar almadi".
+
+   ---- OLCUM ----
+   Dusus yuksekligi hareket izinden zaten cikiyor (her ornekte
+   dy var). Cana bakmak ek blok okumasi GEREKTIRMIYOR: can bir
+   varlik bileseni, gozcu.js zaten kacis denetiminde okuyor.
+
+   Yani olcut: DUSUS_ESIK blok dustukten sonra yere degdiginde
+   can DUSUS_PAY kadar bile azalmadiysa.
+
+   ---- ESIK NEDEN 8 BLOK ----
+   Vanilla hasari (mesafe - 3) yarim kalp. 8 blok = 5 puan, yani
+   2,5 kalp. Bu kadar hasarin kacirilmasi olcum hatasi olamaz.
+   Daha dusuk esik (4-5 blok) tek puanlik hasara bakardi ve
+   yenilenme onu maskeleyebilirdi.
+
+   ---- YANLIS ALARM YUZEYI ve NEDEN KABUL EDILEBILIR ----
+   Saman balyasi, slime blok, orumcek agi ve tekne dusme
+   hasarini MESRU olarak sifirliyor. Bunlari ayirt etmek inilen
+   blogu OKUMAYI gerektirir ve bosta blok okumamak bu depoda bir
+   kural.
+
+   Kabul edilebilir olmasinin sebebi Gozcu'nun kendi tasarimi:
+   isaretle() GOZCU_ESIK (4) isaret gormeden hicbir sey
+   yazmiyor. Bir kez samana inmek suclama uretmez; dort kez
+   ust uste 8 bloktan hasarsiz inmek uretir.
+
+   Suya inmek, suzulmek, ucmak, binmek ve yavas dusme /
+   levitasyon / direnc etkileri ZATEN muaf (bkz. dususMuaf).  */
+export const DUSUS_ACIK = true;
+export const DUSUS_ESIK = 8;      // blok
+export const DUSUS_PAY  = 1.0;    // en az bu kadar can azalmali (puan)
 
 /* ---------------- ENVANTER YEDEGI (v7.30) ----------------
    Tehdit modelindeki DUNYA ailesinden: karsi taraf operatorse

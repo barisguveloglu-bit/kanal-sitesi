@@ -219,22 +219,27 @@ belli değil — uydurulmuş bir ağırlık, uydurulmuş bir yüzde
 
 | durum | sayı | ne demek |
 |---|---|---|
-| **kapalı** | **29** | bizim kodumuz görüyor |
+| **kapalı** | **32** | bizim kodumuz görüyor |
 | açık | 14 | ölçülebilir ama yazılmadı |
-| ayırt edilemez | 12 | sunucuya geliyor, dürüst oyundan ayrılamıyor |
-| operatör kapısı | 5 | op vermemek yeterli |
-| **imkânsız** | **26** | tamamen ekran tarafı, asla görülemez |
-| toplam | 86 | |
+| ayırt edilemez | 14 | sunucuya geliyor, dürüst oyundan ayrılamıyor |
+| operatör kapısı | 7 | op vermemek yeterli |
+| **imkânsız** | **32** | tamamen ekran tarafı, asla görülemez |
+| toplam | 99 | |
 
 ### İki yüzde
 
-- **Ham kapsam: %34** (29/86)
-- **Engellenebilirin kapsamı: %67** (29/43) ← anlamlı olan
+- **Ham kapsam: %32** (32/99)
+- **Engellenebilirin kapsamı: %70** (32/46) ← anlamlı olan
 
-Ham kapsamın tavanı 100 değil, **%50**. Görüntü ailesi (26),
-ayırt edilemeyenler (12) ve op ailesi (5) bir davranış
+Ham kapsamın tavanı 100 değil, **%46**. Görüntü ailesi (32),
+ayırt edilemeyenler (14) ve op ailesi (7) bir davranış
 paketinin ulaşabileceği yerde değil. Yani ham sayı hiçbir
-zaman %50'yi geçemez ve bugün onun **üçte ikisindeyiz**.
+zaman %46'yı geçemez ve bugün onun **yaklaşık yedide altısındayız**.
+
+**Ham sayının v7.46'daki %34'ten %32'ye DÜŞMESI bir gerileme
+değil**: FerSReD Client 13 yeni madde ekledi ve 13'ünün 8'i
+imkânsız/op ailesinden. Payda büyüdü, pay da büyüdü ama daha
+yavaş. Anlamlı olan ikinci sayı ve o **%67'den %70'e çıktı**.
 
 ### Sürüme göre artış
 
@@ -242,17 +247,18 @@ zaman %50'yi geçemez ve bugün onun **üçte ikisindeyiz**.
 |---|---|---|---|---|
 | v7.27 | 0 | %0 | %0 | *(savunma yoktu)* |
 | v7.28 | 1 | %1 | %2 | Arınma |
-| v7.29 | 2 | %2 | %5 | Savunma Kipi |
-| v7.30 | 12 | %14 | %28 | Gözcü + hareket + envanter yedeği |
-| v7.31 | 13 | %15 | %30 | geri itme |
-| v7.35 | 16 | %19 | %37 | ekran · ses · sis |
-| v7.36 | 22 | %26 | %51 | blok hızı + Kafes Kır |
-| v7.38 | 28 | %33 | %65 | aynı tick · oyun kipi · katı blok · kaçış |
-| **v7.46** | **29** | **%34** | **%67** | süzülme kör noktası |
+| v7.29 | 2 | %2 | %4 | Savunma Kipi |
+| v7.30 | 14 | %14 | %30 | Gözcü + hareket + envanter yedeği |
+| v7.31 | 15 | %15 | %33 | geri itme |
+| v7.35 | 18 | %18 | %39 | ekran · ses · sis |
+| v7.36 | 24 | %24 | %52 | blok hızı + Kafes Kır |
+| v7.38 | 30 | %30 | %65 | aynı tick · oyun kipi · katı blok · kaçış |
+| v7.46 | 31 | %31 | %67 | süzülme kör noktası |
+| **v7.47** | **32** | **%32** | **%70** | düşme hasarı yok |
 
-**v7.36 → v7.38 artışı: engellenebilirin %51'inden %65'ine**
+**v7.36 → v7.38 artışı: engellenebilirin %52'sinden %65'ine**
 (altı özellik). En büyük tek sıçrama hâlâ v7.30 (Gözcü'nün
-kurulduğu sürüm): %5'ten %28'e.
+kurulduğu sürüm): %4'ten %30'a.
 
 ### v7.46 — sayıdan çok ÖNEMLİ olan bir madde
 

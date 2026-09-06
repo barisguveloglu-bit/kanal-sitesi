@@ -571,5 +571,121 @@ console.log("=== 8. SUZULME KOR NOKTASI (v7.46) ===");
           isaretSayisi("hizli") + " isaret");
 }
 
+/* ================================================================
+   9. DUSME HASARI YOK  (v7.47)
+   FerSReD Client (ToolMcFSRD) menusunde "Dusme Hasari Yok" var.
+   Bu madde savunma planindaki "acik kalanlar" listesinde
+   v7.38'den beri duruyordu.
+
+   Olcut: DUSUS_ESIK blok dustukten sonra yere degdiginde can
+   DUSUS_PAY kadar bile azalmadiysa.
+   ================================================================ */
+console.log("");
+console.log("=== 9. DUSME HASARI YOK (v7.47) ===");
+{
+  /* Canli bir dusus taklidi: n blok dus, sonra yere deg. `can`
+     inisten sonraki cani veriyor.                            */
+  const dus = (D, id, yukseklik, can, ek) => {
+    const o = oyuncuYap(D, id, 0, 200, 0, "minecraft:overworld");
+    o._can = 20;
+    o.getComponent = (ad) => (ad === "minecraft:health"
+      ? { currentValue: o._can } : undefined);
+    if (ek) ek(o);
+    tara([o]);                                   // ilk iz
+    o.location = { x: 0, y: 200 - yukseklik, z: 0 };
+    tara([o]);                                   // dususte
+    o._can = can;
+    o.location = { x: 0, y: 200 - yukseklik, z: 0 };
+    tara([o]);                                   // yere degdi
+    return o;
+  };
+
+  const D = dunyaKur();
+  _durum.boyut = D.boyut;
+
+  /* KONTROL: hasar ALAN oyuncu suclanmamali. Bu satir
+     dusuyorsa asagidaki "hasarsiz iniş isaretleniyor" satiri
+     hicbir sey olcmuyor demektir.                            */
+  gozcu.hareketUnut(); gozcu.gozcuUnut();
+  dus(D, "durust", ayar.DUSUS_ESIK + 4, 20 - 6);
+  kontrol("hasar ALAN dusus suclanmiyor (kontrol)",
+          isaretSayisi("durust") === 0, isaretSayisi("durust") + " isaret");
+
+  gozcu.hareketUnut(); gozcu.gozcuUnut();
+  dus(D, "nofall", ayar.DUSUS_ESIK + 4, 20);
+  kontrol("hasarsiz inis ISARETLENIYOR",
+          isaretSayisi("nofall") >= 1, isaretSayisi("nofall") + " isaret");
+
+  /* ESIGIN ALTINDA: kisa dusus zaten hasar vermez, suclama
+     olmamali. Vanilla 3 bloga kadar hic hasar yok.           */
+  gozcu.hareketUnut(); gozcu.gozcuUnut();
+  dus(D, "kisa", ayar.DUSUS_ESIK - 3, 20);
+  kontrol("  esigin ALTINDAKI dusus suclanmiyor",
+          isaretSayisi("kisa") === 0, isaretSayisi("kisa") + " isaret");
+
+  /* MESRU MUAFIYETLER: suya inmek, yavas dusme etkisi,
+     suzulmek. Ucu de hasarsiz inisi MESRU kiliyor.           */
+  for (const [ad, kur] of [
+    ["suya inis",        (o) => { o.isInWater = true; }],
+    ["yavas dusme",      (o) => { o.getEffect = (e) => (e === "slow_falling"
+                                    ? { amplifier: 0 } : undefined); }],
+    ["levitasyon",       (o) => { o.getEffect = (e) => (e === "levitation"
+                                    ? { amplifier: 0 } : undefined); }],
+    ["direnc",           (o) => { o.getEffect = (e) => (e === "resistance"
+                                    ? { amplifier: 0 } : undefined); }],
+    ["suzulerek inis",   (o) => { o.isGliding = true; }]
+  ]) {
+    gozcu.hareketUnut(); gozcu.gozcuUnut();
+    const kimlik = "muaf_" + ad.replace(/ /g, "_");
+    dus(D, kimlik, ayar.DUSUS_ESIK + 4, 20, kur);
+    kontrol("  " + ad + " SUCLANMIYOR", isaretSayisi(kimlik) === 0,
+            isaretSayisi(kimlik) + " isaret");
+  }
+
+  /* Can okunamazsa hukum YOK: supheli durumda suclamiyoruz.  */
+  gozcu.hareketUnut(); gozcu.gozcuUnut();
+  const c = oyuncuYap(D, "cansiz", 0, 200, 0, "minecraft:overworld");
+  c.getComponent = () => undefined;
+  tara([c]);
+  c.location = { x: 0, y: 200 - (ayar.DUSUS_ESIK + 4), z: 0 };
+  tara([c]);
+  tara([c]);
+  kontrol("  can okunamayinca hukum YOK", isaretSayisi("cansiz") === 0,
+          isaretSayisi("cansiz") + " isaret");
+
+  /* Can dusus BASLARKEN okunamiyorsa da hukum yok. Ayri bir
+     satir cunku ayri bir korumayi olcuyor: inis anindaki can
+     okunabilse bile karsilastiracak baslangic degeri yoksa
+     "hasar almadi" denemez.                                  */
+  gozcu.hareketUnut(); gozcu.gozcuUnut();
+  const y2 = oyuncuYap(D, "sonradan", 0, 200, 0, "minecraft:overworld");
+  y2.getComponent = () => undefined;             // dususte can YOK
+  tara([y2]);
+  y2.location = { x: 0, y: 200 - (ayar.DUSUS_ESIK + 4), z: 0 };
+  tara([y2]);
+  y2._can = 20;
+  y2.getComponent = (ad) => (ad === "minecraft:health"
+    ? { currentValue: y2._can } : undefined);    // inişte can VAR
+  tara([y2]);
+  kontrol("  baslangic cani yoksa hukum YOK",
+          isaretSayisi("sonradan") === 0, isaretSayisi("sonradan") + " isaret");
+
+  /* Aynanin oteki yuzu: baslangic cani VAR ama inis aninda
+     okunamiyor (oyuncu cikmis, varlik gecersizlesmis). Ayri
+     bir koruma, ayri bir satir.                              */
+  gozcu.hareketUnut(); gozcu.gozcuUnut();
+  const y3 = oyuncuYap(D, "kaybolan", 0, 200, 0, "minecraft:overworld");
+  y3._can = 20;
+  y3.getComponent = (ad) => (ad === "minecraft:health"
+    ? { currentValue: y3._can } : undefined);
+  tara([y3]);
+  y3.location = { x: 0, y: 200 - (ayar.DUSUS_ESIK + 4), z: 0 };
+  tara([y3]);
+  y3.getComponent = () => undefined;             // inişte can YOK
+  tara([y3]);
+  kontrol("  inis cani yoksa hukum YOK",
+          isaretSayisi("kaybolan") === 0, isaretSayisi("kaybolan") + " isaret");
+}
+
 console.log(hata ? "\nKALDI" : "\nhepsi gecti");
 process.exit(hata ? 1 : 0);
