@@ -42,37 +42,52 @@ KAPALI, ACIK, AYIRT, OP, IMKANSIZ = "kapali", "acik", "ayirt", "op", "imkansiz"
 
 # (ad, aile, kaynak, durum, surum, not)
 # kaynak: T = Toolbox ailesi (Toolbox/WDBAX/Bloody -- ucu ayni)
-#         W = WClient (vekil), TW = ikisinde de
+#         W = WClient (vekil)
+#         M = Toolbox For Turkey / io.mrarm.mctoolbox (enjektor)
+#         Harfler birlesebilir: "TW", "TM", "TWM"...
+#
+# ---- M NEDEN AYRI BIR HARF  (v7.46) ----
+# Oteki dordu OYUNU YERINE KOYAN istemciler ya da paket vekili.
+# Bu ise gercek Minecraft'i KENDI SURECINDE baslatip yamalayan
+# bir enjektor (io.mrarm.mctoolbox, libtoolbox-1.19.51.01.so).
+# Ozellik listesi buyuk olcude ortusuyor ama dagitim yolu
+# bambaska; kaynagi karistirmamak icin kendi harfi var.
 OZELLIKLER = [
     # ---------------- DOVUS ----------------
-    ("anti_knockback",   "dovus", "TW", KAPALI, "7.31", "geri itme denetimi"),
-    ("killaura",         "dovus", "TW", KAPALI, "7.30", "menzil + bakis acisi + CPS"),
-    ("reach / hitbox_expand", "dovus", "TW", KAPALI, "7.30", "vurus aninda mesafe"),
+    ("anti_knockback",   "dovus", "TWM", KAPALI, "7.31", "geri itme denetimi"),
+    ("killaura",         "dovus", "TWM", KAPALI, "7.30", "menzil + bakis acisi + CPS"),
+    ("reach / hitbox_expand", "dovus", "TWM", KAPALI, "7.30", "vurus aninda mesafe"),
     ("tp_to_player",     "dovus", "TW", KAPALI, "7.30", "isinlanma sicramasi"),
     ("packets_per_attack", "dovus", "W", KAPALI, "7.38", "ayni tick + ayni kurban"),
-    ("auto_armor",       "dovus", "T",  AYIRT, "", "envanter otomasyonu"),
-    ("auto_bow",         "dovus", "T",  AYIRT, "", "envanter otomasyonu"),
-    ("switcher",         "dovus", "TW", AYIRT, "", "envanter otomasyonu"),
+    ("auto_armor",       "dovus", "TM",  AYIRT, "", "envanter otomasyonu"),
+    ("auto_bow",         "dovus", "TM",  AYIRT, "", "envanter otomasyonu"),
+    ("switcher",         "dovus", "TWM", AYIRT, "", "envanter otomasyonu"),
     ("auto_totem",       "dovus", "W",  AYIRT, "", "envanter otomasyonu"),
     ("auto_crystal",     "dovus", "W",  ACIK, "", "koyma+vurma hizi olculebilir"),
 
     # ---------------- HAREKET ----------------
-    ("flying",           "hareket", "TW", KAPALI, "7.30", "kesintisiz yukselme"),
+    ("flying",           "hareket", "TWM", KAPALI, "7.30", "kesintisiz yukselme"),
+    # v7.46: suzulme eskiden TOPTAN muaf idi -- elytra takan biri
+    # butun hareket denetimlerini kapatiyordu. Artik roketsiz
+    # tirmanis olculuyor, gerisi hala muaf (gercek suzulme
+    # roketle 30+ blok/sn yapar).
+    ("elytra_fly",       "hareket", "M",  KAPALI, "7.46",
+     "suzulurken roketsiz surekli yukselme"),
     ("speed",            "hareket", "TW", KAPALI, "7.30", "yatay hiz"),
     ("high_jump",        "hareket", "TW", KAPALI, "7.30", "yukselme"),
-    ("air_jump",         "hareket", "TW", KAPALI, "7.30", "yukselme"),
+    ("air_jump",         "hareket", "TWM", KAPALI, "7.30", "yukselme"),
     ("tap_teleport",     "hareket", "TW", KAPALI, "7.30", "isinlanma"),
     ("vanilla_fly_bypass", "hareket", "T", KAPALI, "7.30", "ucus olcumu"),
-    ("no_clip",          "hareket", "TW", KAPALI, "7.38", "kati blok icinde"),
-    ("phase",            "hareket", "TW", KAPALI, "7.38", "kati blok icinde"),
+    ("no_clip",          "hareket", "TWM", KAPALI, "7.38", "kati blok icinde"),
+    ("phase",            "hareket", "TWM", KAPALI, "7.38", "kati blok icinde"),
     ("tpmine",           "hareket", "W",  KAPALI, "7.38", "kati blok icinde"),
     ("no_fall",          "hareket", "T",  ACIK, "", "dustu ama hasar almadi"),
     ("jesus",            "hareket", "T",  ACIK, "", "su yuzeyinde duruyor"),
     ("spider",           "hareket", "W",  ACIK, "", "duvara tirmaniyor"),
     ("anti_void",        "hareket", "W",  ACIK, "", "bosluktan geri donuyor"),
-    ("blink",            "hareket", "TW", ACIK, "", "paket geciktirme"),
+    ("blink",            "hareket", "TWM", ACIK, "", "paket geciktirme"),
     ("slow_falling",     "hareket", "T",  ACIK, "", "dusme hizi"),
-    ("auto_sprint",      "hareket", "TW", AYIRT, "", "insan da hep kosar"),
+    ("auto_sprint",      "hareket", "TWM", AYIRT, "", "insan da hep kosar"),
     ("no_slowdown",      "hareket", "T",  AYIRT, "", "istemci tarafi yavaslama"),
     ("anti_afk",         "hareket", "W",  AYIRT, "", "kucuk hareketler"),
     ("auto_walk",        "hareket", "W",  AYIRT, "", "yurumek yurumektir"),
@@ -81,17 +96,17 @@ OZELLIKLER = [
     ("fast_destroy",     "dunya", "TW", KAPALI, "7.36", "blok kirma hizi"),
     ("rapid_build",      "dunya", "TW", KAPALI, "7.36", "blok koyma hizi"),
     ("bridge_builder",   "dunya", "TW", KAPALI, "7.36", "blok koyma hizi"),
-    ("nuke",             "dunya", "TW", KAPALI, "7.36", "blok kirma hizi"),
-    ("haste_effect / fast_miner", "dunya", "TW", KAPALI, "7.36", "blok kirma hizi"),
+    ("nuke",             "dunya", "TWM", KAPALI, "7.36", "blok kirma hizi"),
+    ("haste_effect / fast_miner", "dunya", "TWM", KAPALI, "7.36", "blok kirma hizi"),
     ("bloklarla hapsetme", "dunya", "TW", KAPALI, "7.36", "Kafes Kir"),
     ("gamemode_switcher", "dunya", "W", KAPALI, "7.38", "oyun kipi denetimi"),
     ("far_bypass",       "dunya", "T",  ACIK, "", "blok koyma mesafesi"),
     ("pick_distance",    "dunya", "T",  ACIK, "", "blok koyma mesafesi"),
     ("chest_stealer",    "dunya", "TW", AYIRT, "", "normal sandik etkilesimi"),
     ("give_item",        "dunya", "T",  OP, "", "sunucu izin vermeli"),
-    ("enchant",          "dunya", "T",  OP, "", "sunucu izin vermeli"),
-    ("nbt_editor",       "dunya", "T",  OP, "", "sunucu izin vermeli"),
-    ("spawn_exp",        "dunya", "T",  OP, "", "sunucu izin vermeli"),
+    ("enchant",          "dunya", "TM",  OP, "", "sunucu izin vermeli"),
+    ("nbt_editor",       "dunya", "TM",  OP, "", "sunucu izin vermeli"),
+    ("spawn_exp",        "dunya", "TM",  OP, "", "sunucu izin vermeli"),
 
     # ---------------- KOMUT / KILIT (Arinma ailesi) ----------------
     ("komutla poz/girdi/kamera kilidi", "komut", "TW", KAPALI, "7.28", "Arinma"),
@@ -118,16 +133,16 @@ OZELLIKLER = [
     ("totem_pop_counter", "cesitli", "W", IMKANSIZ, "", "sadece sayac"),
 
     # ---------------- GORUNTU (tamami imkansiz) ----------------
-    ("xray",             "goruntu", "TW", IMKANSIZ, "", "sunucuya hicbir sey gitmiyor"),
-    ("xray_block_tracker", "goruntu", "T", IMKANSIZ, "", ""),
-    ("xray_chest_esp / chest_esp", "goruntu", "TW", IMKANSIZ, "", ""),
-    ("xray_player_esp / esp", "goruntu", "TW", IMKANSIZ, "", ""),
+    ("xray",             "goruntu", "TWM", IMKANSIZ, "", "sunucuya hicbir sey gitmiyor"),
+    ("xray_block_tracker", "goruntu", "TM", IMKANSIZ, "", ""),
+    ("xray_chest_esp / chest_esp", "goruntu", "TWM", IMKANSIZ, "", ""),
+    ("xray_player_esp / esp", "goruntu", "TWM", IMKANSIZ, "", ""),
     ("block_esp",        "goruntu", "W",  IMKANSIZ, "", ""),
     ("tracers",          "goruntu", "TW", IMKANSIZ, "", ""),
-    ("minimap",          "goruntu", "TW", IMKANSIZ, "", ""),
-    ("freecam",          "goruntu", "TW", IMKANSIZ, "", ""),
-    ("fullbright",       "goruntu", "TW", IMKANSIZ, "", ""),
-    ("zoom",             "goruntu", "TW", IMKANSIZ, "", ""),
+    ("minimap",          "goruntu", "TWM", IMKANSIZ, "", ""),
+    ("freecam",          "goruntu", "TWM", IMKANSIZ, "", ""),
+    ("fullbright",       "goruntu", "TWM", IMKANSIZ, "", ""),
+    ("zoom",             "goruntu", "TWM", IMKANSIZ, "", ""),
     ("hp_bars",          "goruntu", "TW", IMKANSIZ, "", ""),
     ("armor_hud / armor_esp", "goruntu", "TW", IMKANSIZ, "", ""),
     ("outline_renderer", "goruntu", "T",  IMKANSIZ, "", ""),
@@ -143,7 +158,7 @@ OZELLIKLER = [
 ]
 
 # Savunmanin yazildigi surumler, sirayla.
-SURUMLER = ["7.27", "7.28", "7.29", "7.30", "7.31", "7.35", "7.36", "7.38"]
+SURUMLER = ["7.27", "7.28", "7.29", "7.30", "7.31", "7.35", "7.36", "7.38", "7.46"]
 
 
 def surum_no(s):
@@ -205,11 +220,13 @@ if __name__ == "__main__":
                  if eklenen else "-"))
         onceki = k
     print()
-    print("=== KAYNAGA GORE  (T = Toolbox ailesi, W = WClient) ===")
+    print("=== KAYNAGA GORE  (T = Toolbox ailesi, W = WClient,")
+    print("                    M = Toolbox For Turkey / enjektor) ===")
     for etiket, kosul in (
         ("Toolbox ailesi (MH_TEAM_V5 · WDBAX · BloodyClient)",
          lambda o: "T" in o[2]),
         ("WClient (vekil)", lambda o: "W" in o[2]),
+        ("Toolbox For Turkey (enjektor)", lambda o: "M" in o[2]),
     ):
         alt = [o for o in OZELLIKLER if kosul(o)]
         a_kapali = sum(1 for o in alt if o[3] == KAPALI)

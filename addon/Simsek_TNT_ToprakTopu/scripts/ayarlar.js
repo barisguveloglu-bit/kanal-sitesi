@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.45.0";
+export const SURUM = "v7.46.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -1111,6 +1111,47 @@ export const HAREKET_AF_ESYA = [
   "minecraft:chorus_fruit",
   "minecraft:trident",          // riptide
 ];
+
+/* ---------------- SUZULME DENETIMI  (v7.46) ----------------
+   Toolbox For Turkey (io.mrarm.mctoolbox) incelemesi bir KOR
+   NOKTA acti. Menusunde "Elytra Fly" var ve bizde karsiligi
+   yoktu -- ama asil sorun o degil:
+
+   `hareketMuaf` sizulmeyi TOPTAN muaf tutuyordu. Yani elytra
+   takip suzulme durumunda kalan biri hiz, sicrama, yukselme ve
+   kati blok denetimlerinin HEPSINI birden kapatiyordu. Elytra
+   Fly kullanmasa bile.
+
+   ---- NEDEN TOPTAN MUAFIYET VARDI, NEDEN HAKLIYDI ----
+   Gercek suzulme roketle 30+ blok/sn yapiyor; hiz denetimi
+   oldugu gibi calissa her suzulen oyuncu hileci sayilirdi.
+   Muafiyetin kendisi dogruydu, KAPSAMI yanlisti.
+
+   ---- OLCULEBILEN TEK SEY: ROKETSIZ YUKSELME ----
+   Gercek elytra kendi basina YUKSELEMEZ. Daliştan cikarken
+   hizini yukseklige cevirip kisa sure tirmanabilir, ama
+   SURDUREMEZ; surdurmek icin havai fisek gerekir. Elytra Fly
+   hilesi tam bunu yapiyor.
+
+   Yani olcut: suzulurken, havai fisek atmadan, ust uste
+   SUZULME_ORNEK ornek boyunca yukselmek.
+
+   ORNEK sayisi 5: HAREKET_ORNEK 10 tick, yani 5 ornek = 2,5
+   saniye kesintisiz tirmanis. Daliştan cikis bu kadar
+   surmuyor (olculmedi, ustten secildi -- yanlis alarm
+   yerine kacirmayi tercih ediyoruz, bkz. GOZCU_ESIK).
+
+   ROKET_TICK 100 (5 sn): roketin itisi ~2 sn suruyor ama
+   tirmanis birakildiktan sonra da devam ediyor. Pay birakildi.
+
+   Diger butun suzulme olcumleri KAPALI kaliyor: hiz, sicrama
+   ve kati blok suzulurken hala olculmuyor. Onlar icin
+   dogru esik yok ve olculmedi.                               */
+export const SUZULME_ACIK   = true;
+export const SUZULME_ORNEK  = 5;      // ust uste kac ornek yukseliyorsa
+export const SUZULME_PAY    = 0.4;    // ornek basina en az bu kadar yukselme
+export const SUZULME_ROKET_TICK = 100;
+export const SUZULME_ROKET_ESYA = ["minecraft:firework_rocket"];
 
 /* ---------------- ENVANTER YEDEGI (v7.30) ----------------
    Tehdit modelindeki DUNYA ailesinden: karsi taraf operatorse

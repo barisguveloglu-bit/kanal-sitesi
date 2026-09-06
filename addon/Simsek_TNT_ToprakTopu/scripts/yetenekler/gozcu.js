@@ -6,6 +6,7 @@ import {
   GOZCU_ACIK, GOZCU_MENZIL, GOZCU_ACI, GOZCU_HIZ,
   GOZCU_PENCERE, GOZCU_ESIK, GOZCU_SUS, GOZCU_YALNIZ_OYUNCU,
   GOZCU_ETIKET, HAREKET_AF_TICK,
+  SUZULME_ACIK, SUZULME_ORNEK, SUZULME_PAY, SUZULME_ROKET_TICK,
   KILIT_ATLA_TIPLER,
   HAREKET_ACIK, HAREKET_HIZ, HAREKET_SICRAMA,
   HAREKET_YUKSELME, HAREKET_YUKSEK_PAY,
@@ -264,6 +265,56 @@ export function afUnut(oyuncuId) {
   else afliler.delete(oyuncuId);
 }
 
+/* ---- ROKET PENCERESI  (v7.46) ----
+   Havai fisek atan oyuncu suzulurken YUKSELEBILIR; hile
+   olcumu onu suclamamali. main.js fisek kullanilinca burayi
+   cagiriyor.
+
+   HARCANMIYOR (isinlanma affinin aksine): roketin itisi bir
+   ornekten uzun surer ve tirmanis birakildiktan sonra da
+   devam eder. Sure dolunca kendiliginden gecersiz.          */
+const roketliler = new Map();   /* oyuncuId -> pencerenin bittigi tick */
+
+export function roketAtildi(oyuncuId, simdiTick) {
+  if (!SUZULME_ROKET_TICK) return;
+  roketliler.set(oyuncuId,
+    (simdiTick === undefined ? system.currentTick : simdiTick)
+    + SUZULME_ROKET_TICK);
+}
+
+export function roketUnut(oyuncuId) {
+  if (oyuncuId === undefined) roketliler.clear();
+  else roketliler.delete(oyuncuId);
+}
+
+function roketVarMi(oyuncuId) {
+  const bitis = roketliler.get(oyuncuId);
+  if (bitis === undefined) return false;
+  if (system.currentTick <= bitis) return true;
+  roketliler.delete(oyuncuId);      // suresi doldu, defteri sisirmesin
+  return false;
+}
+
+/* ---- SUZULURKEN ROKETSIZ YUKSELME  (v7.46) ----
+   Gercek elytra kendi basina yukselemez: daliştan cikarken
+   hizini yukseklige cevirip KISA sure tirmanir, surduremez.
+   Surdurmek icin havai fisek gerekir. Elytra Fly hilesi tam
+   bunu yapiyor.
+
+   Suzulme muafiyetinin TEK istisnasi bu. Hiz, sicrama ve kati
+   blok suzulurken hala olculmuyor -- onlar icin dogru esik
+   yok ve olculmedi.                                          */
+function suzulmeOlc(o, iz, onceki, k) {
+  if (!SUZULME_ACIK) { iz.suzulme = 0; return; }
+  const dy = k.y - onceki.konum.y;
+  if (dy < SUZULME_PAY) { iz.suzulme = 0; return; }   // yukselmiyor
+  if (roketVarMi(o.id)) { iz.suzulme = 0; return; }   // fisek atmis
+  iz.suzulme = (iz.suzulme || 0) + 1;
+  if (iz.suzulme < SUZULME_ORNEK) return;
+  iz.suzulme = 0;                                     // bir kez sucla
+  isaretle(o, o, ["roketsiz süzülerek " + SUZULME_ORNEK + " örnek yükseldi"]);
+}
+
 /* ---- BILDIRIM KIME GIDIYOR  (v7.44) ----
    Bir hile suclamasi herkese acik yazilmamali; ustelik
    Gozcu'nun cikardigi sey TAHMIN, kanit degil.
@@ -493,6 +544,7 @@ export function hareketTara(oyuncular, isVarMi) {
       izler.set(o.id, { konum: { x: k.x, y: k.y, z: k.z }, boyut: boyutId,
                         tick: simdi,
                         yukselme: onceki ? onceki.yukselme : 0,
+                        suzulme: onceki ? onceki.suzulme : 0,
                         kati: onceki ? onceki.kati : 0,
                         katiBildirim: onceki ? onceki.katiBildirim : -99999 });
       if (!onceki) continue;
@@ -500,7 +552,7 @@ export function hareketTara(oyuncular, isVarMi) {
          yapilmiyor, yeni iz zaten yukarida yazildi.         */
       if (onceki.boyut !== boyutId) {
         const yeni = izler.get(o.id);
-        yeni.yukselme = 0; yeni.kati = 0;
+        yeni.yukselme = 0; yeni.suzulme = 0; yeni.kati = 0;
         continue;
       }
 
@@ -512,7 +564,24 @@ export function hareketTara(oyuncular, isVarMi) {
          bitince olcum dogru yerden devam ediyor.             */
       const muaf = hareketMuaf(o, isVarMi);
       const iz = izler.get(o.id);
-      if (muaf) { iz.yukselme = 0; iz.kati = 0; continue; }
+      if (muaf) {
+        iz.yukselme = 0; iz.kati = 0;
+        /* SUZULME ARTIK TOPTAN MUAF DEGIL  (v7.46).
+           Eskiden burada kosulsuz `continue` vardi: elytra
+           takip suzulme durumunda kalan biri hiz, sicrama,
+           yukselme ve kati blok denetimlerinin HEPSINI birden
+           kapatiyordu -- Elytra Fly kullanmasa bile.
+           Toolbox For Turkey incelemesi bunu buldu.
+
+           Muafiyetin kendisi dogruydu (gercek suzulme roketle
+           30+ blok/sn yapiyor), KAPSAMI yanlisti. Olculebilen
+           tek sey roketsiz yukselme; o olculuyor, gerisi hala
+           muaf.                                              */
+        if (muaf === "suzuluyor") suzulmeOlc(o, iz, onceki, k);
+        else iz.suzulme = 0;
+        continue;
+      }
+      iz.suzulme = 0;
 
       const dx = k.x - onceki.konum.x;
       const dy = k.y - onceki.konum.y;

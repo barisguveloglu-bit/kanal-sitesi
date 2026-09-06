@@ -101,11 +101,13 @@ import { kafesKir, kafesUnut } from "./yetenekler/kafes.js";
    catliyor. Bir kez yasandi.                                */
 import {
   gozcuKur, gozcuUnut, hareketTara, hareketUnut, geriItmeUnut,
-  hareketAffet, afUnut,
+  hareketAffet, afUnut, roketAtildi, roketUnut,
   blokHizKur, blokUnut,
   kipUnut, kacisKur, kacisUnut, kacisAyrilma
 } from "./yetenekler/gozcu.js";
-import { HAREKET_ACIK, HAREKET_ORNEK, HAREKET_AF_ESYA } from "./ayarlar.js";
+import {
+  HAREKET_ACIK, HAREKET_ORNEK, HAREKET_AF_ESYA, SUZULME_ROKET_ESYA
+} from "./ayarlar.js";
 import {
   yedekAl, yedekYukle, yedekUnut
 } from "./yetenekler/envanter_yedek.js";
@@ -1776,6 +1778,13 @@ const girisKuruldu = olayaAbone("itemUse", (olay) => {
       hareketAffet(oyuncu.id);
     }
 
+    /* ---- HAVAI FISEK  (v7.46) ----
+       Suzulurken yukselmenin MESRU yolu. Roket penceresi
+       aciliyor; o pencere icinde tirmanis suclanmiyor.    */
+    if (SUZULME_ROKET_ESYA.indexOf(esya.typeId) >= 0) {
+      roketAtildi(oyuncu.id);
+    }
+
     /* ---- RESETTING SWORD (v4.86) ----
        Kol degil, kendi basina bir esya. Kol dallarindan ONCE
        bakiliyor cunku esyaninYetenekleri onu tanimaz ve
@@ -2356,6 +2365,7 @@ olayaAbone("playerLeave", (olay) => {
   arinmaUnut(olay.playerId);
   gozcuUnut(olay.playerId);
   hareketUnut(olay.playerId);
+  roketUnut(olay.playerId);        // v7.46: roket penceresi
   /* Cikan oyuncunun bekleyen geri-itme olcumleri dusuyor.
      KIMLIKLE cagriliyor: kimliksiz cagri hepsini silerdi ve
      oteki oyuncularin olcumleri de gitmis olurdu.          */
@@ -2396,7 +2406,10 @@ olayaAbone("playerSpawn", (olay) => {
      pozitifi uretebilecek olan tam da asagidaki erken cikisin
      eledigi durum.                                          */
   try {
-    if (olay.player) { hareketUnut(olay.player.id); afUnut(olay.player.id); }
+    if (olay.player) {
+      hareketUnut(olay.player.id); afUnut(olay.player.id);
+      roketUnut(olay.player.id);
+    }
   } catch (e) { /* oyuncu nesnesi okunamadi: iz bir sonraki
                    ornekte kendiliginden tazeleniyor */ }
 

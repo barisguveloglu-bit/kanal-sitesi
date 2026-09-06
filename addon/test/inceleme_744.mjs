@@ -478,5 +478,98 @@ console.log("=== 7. KUCUK TUTARSIZLIKLAR ===");
   }
 }
 
+/* ================================================================
+   8. SUZULME KOR NOKTASI  (v7.46)
+   Toolbox For Turkey (io.mrarm.mctoolbox) menusunde "Elytra Fly"
+   var ve bizde karsiligi yoktu. Ama asil bulgu o degil:
+
+   `hareketMuaf` suzulmeyi TOPTAN muaf tutuyordu. Elytra takip
+   suzulme durumunda kalan biri hiz, sicrama, yukselme ve kati
+   blok denetimlerinin HEPSINI birden kapatiyordu -- Elytra Fly
+   kullanmasa bile.
+   ================================================================ */
+console.log("");
+console.log("=== 8. SUZULME KOR NOKTASI (v7.46) ===");
+{
+  const D = dunyaKur();
+  _durum.boyut = D.boyut;
+  gozcu.hareketUnut(); gozcu.afUnut(); gozcu.gozcuUnut();
+  gozcu.roketUnut(); sohbetiTemizle();
+
+  /* KONTROL: suzulmeyen bir oyuncu ayni yukselisi yaparsa
+     ZATEN isaretleniyordu. Bu satir dusuyorsa asagidakiler
+     hicbir sey olcmuyor demektir.                          */
+  const y = oyuncuYap(D, "yerdeki", 0, 64, 0, "minecraft:overworld");
+  tara([y]);
+  for (let i = 0; i <= ayar.HAREKET_YUKSELME; i++) {
+    y.location = { x: 0, y: y.location.y + 1.0, z: 0 };
+    tara([y]);
+  }
+  kontrol("suzulmeyen yukselis isaretleniyor (kontrol)",
+          isaretSayisi("yerdeki") >= 1, isaretSayisi("yerdeki") + " isaret");
+
+  /* ELYTRA FLY: suzulurken roketsiz surekli tirmanis. */
+  gozcu.hareketUnut(); gozcu.gozcuUnut(); gozcu.roketUnut();
+  const e = oyuncuYap(D, "elytraci", 0, 64, 0, "minecraft:overworld");
+  e.isGliding = true;
+  tara([e]);
+  for (let i = 0; i < ayar.SUZULME_ORNEK; i++) {
+    e.location = { x: 0, y: e.location.y + 1.0, z: 0 };
+    tara([e]);
+  }
+  kontrol("roketsiz suzulerek tirmanma ISARETLENIYOR",
+          isaretSayisi("elytraci") >= 1, isaretSayisi("elytraci") + " isaret");
+
+  /* MESRU SUZULME: roket atarak tirmanmak SUCLANMAMALI. */
+  gozcu.hareketUnut(); gozcu.gozcuUnut(); gozcu.roketUnut();
+  const r = oyuncuYap(D, "roketci", 0, 64, 0, "minecraft:overworld");
+  r.isGliding = true;
+  tara([r]);
+  for (let i = 0; i < ayar.SUZULME_ORNEK + 3; i++) {
+    gozcu.roketAtildi("roketci");             // her ornekte fisek
+    r.location = { x: 0, y: r.location.y + 1.0, z: 0 };
+    tara([r]);
+  }
+  kontrol("  roketle tirmanma SUCLANMIYOR", isaretSayisi("roketci") === 0,
+          isaretSayisi("roketci") + " isaret");
+
+  /* MESRU SUZULME: alcalarak suzulmek suclanmamali. */
+  gozcu.hareketUnut(); gozcu.gozcuUnut(); gozcu.roketUnut();
+  const a2 = oyuncuYap(D, "alcalan", 0, 200, 0, "minecraft:overworld");
+  a2.isGliding = true;
+  tara([a2]);
+  for (let i = 0; i < ayar.SUZULME_ORNEK + 3; i++) {
+    a2.location = { x: i * 15, y: 200 - i * 2, z: 0 };   // hizli ama ALCALIYOR
+    tara([a2]);
+  }
+  kontrol("  alcalarak suzulme SUCLANMIYOR", isaretSayisi("alcalan") === 0,
+          isaretSayisi("alcalan") + " isaret");
+
+  /* KISA TIRMANIS (daliştan cikis) SUCLANMAMALI: esik ust uste
+     SUZULME_ORNEK ornek istiyor.                            */
+  gozcu.hareketUnut(); gozcu.gozcuUnut(); gozcu.roketUnut();
+  const d2 = oyuncuYap(D, "dalisci", 0, 100, 0, "minecraft:overworld");
+  d2.isGliding = true;
+  tara([d2]);
+  for (let i = 0; i < ayar.SUZULME_ORNEK - 1; i++) {
+    d2.location = { x: 0, y: d2.location.y + 1.0, z: 0 };
+    tara([d2]);
+  }
+  kontrol("  esigin ALTINDA tirmanis suclanmiyor",
+          isaretSayisi("dalisci") === 0, isaretSayisi("dalisci") + " isaret");
+
+  /* Suzulmenin OTEKI denetimleri hala muaf: roketli suzulme
+     30+ blok/sn yapiyor, hiz denetimi acilirsa her suzulen
+     oyuncu hileci sayilirdi.                                */
+  gozcu.hareketUnut(); gozcu.gozcuUnut(); gozcu.roketUnut();
+  const h = oyuncuYap(D, "hizli", 0, 100, 0, "minecraft:overworld");
+  h.isGliding = true;
+  tara([h]);
+  h.location = { x: 400, y: 99, z: 0 };        // cok hizli ama alcaliyor
+  tara([h]);
+  kontrol("  suzulurken HIZ hala muaf", isaretSayisi("hizli") === 0,
+          isaretSayisi("hizli") + " isaret");
+}
+
 console.log(hata ? "\nKALDI" : "\nhepsi gecti");
 process.exit(hata ? 1 : 0);

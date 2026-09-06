@@ -1,3 +1,143 @@
+# v7.46.0 — Toolbox For Turkey ve süzülme kör noktası
+
+Kullanıcı beşinci bir hile dosyası gönderdi: *"aynı şekilde bir
+tane daha buldum, hiçbir şeyi çalıştırmadan savunmaya
+eklenebilecek, engellenebilecek şeyleri engelle."*
+
+**Hiçbir şey çalıştırılmadı.** Zip açıldı, ikili dosyalar Python
+ile *okundu*. Üç ayrıştırıcı bu inceleme için yazıldı
+(`axml.py`, `dexstr.py`, `arsc.py`) ve üçü de yalnız okuyor.
+
+Tam kayıt: [`REFERANS_TOOLBOX_TR_APK.md`](REFERANS_TOOLBOX_TR_APK.md).
+
+## Bu öncekilerden farklı bir sınıf
+
+| dosya | sınıf |
+|---|---|
+| MH_TEAM_V5 · WDBAX · BloodyClient | **istemci** — MuCute tabanlı üçüzler, `diff` boş |
+| WClient v36 | **vekil** — paketleri araya girip değiştiriyor |
+| **Toolbox For Turkey** | **enjektör** — gerçek Minecraft'ı kendi sürecinde başlatıp yamalıyor |
+
+`io.mrarm.mctoolbox`, sha256 `9756610c…a6622e`. Xbox/MSA girişi,
+Google Play faturalama, "Premium" aboneliği — yeraltı istemcisi
+değil, mağaza uygulaması biçiminde bir araç.
+
+**Hedef sürümü çok eski:** `libtoolbox-1.19.51.01.so`. Yamalar
+sürüme özgü bellek uzantıları olduğu için bu APK kullanıcının
+oyununu (**26.45**) başlatamaz bile. Bugünkü pratik tehdidi
+sıfıra yakın.
+
+Ama *bu dosya bugün çalışmıyor* demek *ondan öğrenilecek bir şey
+yok* demek değil. Menüsü bir kör noktamızı açığa çıkardı.
+
+## 26 maddenin 25'i zaten kapsam tablosundaydı
+
+Menü `resources.arsc` içinden okundu; etiketler bitişik duruyor,
+yani gerçekten tek bir menünün kendisi. Türkçe yerelleştirmesi de
+gerçek (`Anti-Geritepme`, `Mob rengi`).
+
+Üç ad yeniydi; ikisi zaten başka anahtarla listedeydi (`freecam`,
+`spawn_exp`). Geriye **bir** tane kaldı: `Elytra Fly`.
+
+### Görüntü ailesinin kanıtı APK'nın içinde
+
+`assets/tb-1/` altında `wireframe.material`, `barrier.material` ve
+`shaders/glsl/outline.fragment`. X-Ray ve ESP'nin nasıl çizildiği
+bunlar — **hiçbiri sunucuya bir şey göndermiyor.** O ailenin neden
+kalıcı olarak görünmez olduğunun somut kanıtı, artık elimizde.
+
+## Asıl bulgu: süzülme TOPTAN muafiyetti
+
+Menüde `Elytra Fly` vardı, bizde karşılığı yoktu. Kodu kontrol
+ettim ve asıl sorun onun eksikliği değilmiş:
+
+```js
+if (oyuncu.isGliding) return "suzuluyor";
+...
+if (muaf) { iz.yukselme = 0; iz.kati = 0; continue; }
+```
+
+Elytra takıp süzülme durumunda kalan biri **hız, sıçrama,
+yükselme ve katı blok denetimlerinin hepsini birden**
+kapatıyordu. Elytra Fly kullanmasa bile.
+
+Bir düelloda karşındakinin tek yapması gereken sırtına elytra
+takmakmış. Tablodaki "kapalı 28" sayısı o anda pratikte **22'ye
+düşüyordu** ve sayı bunu göstermiyordu.
+
+### Muafiyetin kendisi doğruydu, kapsamı yanlıştı
+
+Gerçek süzülme roketle 30+ blok/sn yapıyor; hız denetimi olduğu
+gibi çalışsaydı **her süzülen oyuncu hileci sayılırdı.** Muafiyet
+bu yüzden vardı ve bu gerekçe hâlâ geçerli.
+
+Ölçülebilen tek şey **roketsiz yükselme**: gerçek elytra kendi
+başına yükselemez. Dalıştan çıkarken hızını yüksekliğe çevirip
+kısa süre tırmanabilir, ama *sürdüremez*; sürdürmek için havai
+fişek gerekir. Elytra Fly hilesi tam bunu yapıyor.
+
+**Ölçüt:** süzülürken, havai fişek atmadan, üst üste 5 örnek
+boyunca 0,4'ten fazla yükselmek = 2,5 saniye kesintisiz tırmanış.
+
+Havai fişek `itemUse` ile yakalanıyor ve 5 saniyelik bir pencere
+açıyor. Pencere **harcanmıyor** (ışınlanma affının aksine) çünkü
+roketin itişi bir örnekten uzun sürer ve tırmanış bırakıldıktan
+sonra da devam eder.
+
+Süzülmenin öteki ölçümleri **hâlâ muaf**. Onlar için doğru eşik
+yok ve ölçülmedi — hepsini birden açmak, kapatmakla aynı hata
+olurdu.
+
+## Ölçüm
+
+`test/inceleme_744.mjs` 8. bölüm. Beş meşru senaryo ve bir hile
+senaryosu:
+
+```
+✓ suzulmeyen yukselis isaretleniyor (kontrol)   1 isaret
+✓ roketsiz suzulerek tirmanma ISARETLENIYOR     1 isaret
+✓   roketle tirmanma SUCLANMIYOR                0 isaret
+✓   alcalarak suzulme SUCLANMIYOR               0 isaret
+✓   esigin ALTINDA tirmanis suclanmiyor         0 isaret
+✓   suzulurken HIZ hala muaf                    0 isaret
+```
+
+Son satır kritik: düzeltmenin muafiyeti **komple açmadığını**
+ölçüyor.
+
+Dört mutasyon denendi, dördü de yakalandı:
+
+| mutasyon | düşen |
+|---|---|
+| süzülme ölçümü kaldırıldı (eski hâl) | 1 |
+| roket penceresi yok sayıldı | 1 |
+| alçalma kontrolü kaldırıldı | 1 |
+| eşik kaldırıldı (tek örnekte suçla) | 1 |
+
+### İlk mutasyon turu yanlış sonuç verdi — testte değil, bende
+
+İlk denemede üçü "kaçtı" göründü. Testi suçlamadan önce
+değişikliklerin gerçekten uygulandığını doğruladım: üçü de
+eşleşiyordu. Sorun mutasyon betiğimin geri-yükleme sırasındaydı,
+testte değil. Düzeltilince dördü de düştü.
+
+## Kapsam
+
+```
+Toolbox For Turkey (enjektör)
+  toplam 26 · kapalı 10 · açık 1 · ayırt 4 · op 3 · imkânsız 8
+  ham %38   engellenebilir %91
+```
+
+Açık kalan tek madde `blink`. `op` üçlüsü (`enchant`,
+`nbt_editor`, `spawn_exp`) enjektörün özelliği değil, **operatör
+yetkisi** istiyor — op vermemek yeterli.
+
+Genel tablo: **kapalı 28 → 29**, engellenebilir **%65 → %67**.
+Sayı küçük; kapattığı şey değil.
+
+---
+
 # v7.45.0 — eski sürüm teknolojisi taraması
 
 Kullanıcı: *"genel bir tarama zamanı, kullandığımız eski sürüm

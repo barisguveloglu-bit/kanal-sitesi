@@ -219,22 +219,22 @@ belli değil — uydurulmuş bir ağırlık, uydurulmuş bir yüzde
 
 | durum | sayı | ne demek |
 |---|---|---|
-| **kapalı** | **28** | bizim kodumuz görüyor |
+| **kapalı** | **29** | bizim kodumuz görüyor |
 | açık | 14 | ölçülebilir ama yazılmadı |
 | ayırt edilemez | 12 | sunucuya geliyor, dürüst oyundan ayrılamıyor |
 | operatör kapısı | 5 | op vermemek yeterli |
 | **imkânsız** | **26** | tamamen ekran tarafı, asla görülemez |
-| toplam | 85 | |
+| toplam | 86 | |
 
 ### İki yüzde
 
-- **Ham kapsam: %33** (28/85)
-- **Engellenebilirin kapsamı: %67** (28/42) ← anlamlı olan
+- **Ham kapsam: %34** (29/86)
+- **Engellenebilirin kapsamı: %67** (29/43) ← anlamlı olan
 
-Ham kapsamın tavanı 100 değil, **%49**. Görüntü ailesi (26),
+Ham kapsamın tavanı 100 değil, **%50**. Görüntü ailesi (26),
 ayırt edilemeyenler (12) ve op ailesi (5) bir davranış
 paketinin ulaşabileceği yerde değil. Yani ham sayı hiçbir
-zaman %49'u geçemez ve bugün onun **üçte ikisindeyiz**.
+zaman %50'yi geçemez ve bugün onun **üçte ikisindeyiz**.
 
 ### Sürüme göre artış
 
@@ -243,15 +243,31 @@ zaman %49'u geçemez ve bugün onun **üçte ikisindeyiz**.
 | v7.27 | 0 | %0 | %0 | *(savunma yoktu)* |
 | v7.28 | 1 | %1 | %2 | Arınma |
 | v7.29 | 2 | %2 | %5 | Savunma Kipi |
-| v7.30 | 12 | %14 | %29 | Gözcü + hareket + envanter yedeği |
-| v7.31 | 13 | %15 | %31 | geri itme |
-| v7.35 | 16 | %19 | %38 | ekran · ses · sis |
-| v7.36 | 22 | %26 | %52 | blok hızı + Kafes Kır |
-| **v7.38** | **28** | **%33** | **%67** | aynı tick · oyun kipi · katı blok · kaçış |
+| v7.30 | 12 | %14 | %28 | Gözcü + hareket + envanter yedeği |
+| v7.31 | 13 | %15 | %30 | geri itme |
+| v7.35 | 16 | %19 | %37 | ekran · ses · sis |
+| v7.36 | 22 | %26 | %51 | blok hızı + Kafes Kır |
+| v7.38 | 28 | %33 | %65 | aynı tick · oyun kipi · katı blok · kaçış |
+| **v7.46** | **29** | **%34** | **%67** | süzülme kör noktası |
 
-**v7.36 → v7.38 artışı: engellenebilirin %52'sinden %67'sine**
+**v7.36 → v7.38 artışı: engellenebilirin %51'inden %65'ine**
 (altı özellik). En büyük tek sıçrama hâlâ v7.30 (Gözcü'nün
-kurulduğu sürüm): %5'ten %29'a.
+kurulduğu sürüm): %5'ten %28'e.
+
+### v7.46 — sayıdan çok ÖNEMLİ olan bir madde
+
+v7.46 tabloya yalnız **bir** özellik ekledi (`elytra_fly`) ama
+kapattığı şey bir özellikten büyüktü: **süzülme toptan
+muafiyetti.** Elytra takan biri hız, sıçrama, yükselme ve katı
+blok denetimlerinin *hepsini birden* kapatıyordu.
+
+Yani tablodaki "kapalı 28" sayısı, karşındaki sırtına elytra
+taktığı anda **pratikte 22'ye düşüyordu** (Gözcü'nün hareket
+tarafındaki altı maddesi). Sayı bunu göstermiyordu; bu satır
+gösteriyor.
+
+Kaynak: `REFERANS_TOOLBOX_TR_APK.md` (Toolbox For Turkey,
+`io.mrarm.mctoolbox`).
 
 ### Açık kalan 14 — sıradaki iş listesi
 
