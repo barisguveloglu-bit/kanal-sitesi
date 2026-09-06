@@ -1,3 +1,137 @@
+# v7.42.0 — Kanlı Kol'da sol kolun sağ koldan yukarıda durması
+
+Kullanıcı v7.41'i kurup denedi:
+
+> "tamam kurdum deneyeceğim bir sorun var **sol hep sağ kola
+> göre daha yukarıda** lütfen düzelt"
+
+## Önce model suçlandı ve temize çıktı
+
+İlk şüpheli `simsek_kol_kanli.geo.json` idi. Ölçüldü — kemik
+dönüşleri (`bone` `[0, 90, -175]` / `bone3` `[0, -90, 175]`) ve
+küp dönüşleri de uygulandıktan sonra dünya uzayındaki sınırlar:
+
+    X   sağ[-13.482  -1.673]   sol[ +1.673 +13.482]   aynalı
+    Y   sağ[  3.489  26.494]   sol[  3.489  26.494]   AYNI
+    Z   sağ[ -3.825   2.025]   sol[ -3.825   2.025]   AYNI
+
+Kutu ölçümü yetmez — iki küp birbirini gizleyip kutuyu aynı
+gösterebilir. Küp küp de bakıldı: **33 küpün 33'ü aynalı, ayna
+dışı küp sayısı 0.** Model kusursuz.
+
+## Suçlu motorun kendisi
+
+Vanilla `animation.player.holding` (Mojang'ın kendi kaynağı,
+`bedrock-samples/resource_pack/animations/player.animation.json`):
+
+```
+leftarm  : variable.is_holding_left  ? (-this * 0.5 - 18.0) : 0.0
+rightarm : variable.is_holding_right ? (-this * 0.5 - 18.0) : 0.0
+```
+
+Eşya **ana elde** olduğu için `is_holding_right` 1,
+`is_holding_left` 0. Yani:
+
+- sağ kol **−18 derece** öne eğiliyor,
+- sol kol 0'a **eziliyor** (kendi hâline bırakılmıyor bile).
+
+Bu değerler **tahmin edilmedi, indirilip okundu.** Kanlı Kol
+üzerindeki ölçülmüş etkisi:
+
+    Y  sağ[3.213 26.298]  sol[3.489 26.494]  -> sol 0.28 birim YUKARIDA
+    Z  sağ[-3.172 7.646]  sol[-3.825 2.025]  -> sağ 5.62 birim İLERİDE
+
+Yön kullanıcının tarifiyle birebir aynı: **sol yukarıda.**
+
+### Başka aday kalmadı — hepsi ölçüldü
+
+| animasyon | sol | sağ | hüküm |
+|---|---|---|---|
+| `move.arms` | `variable.tcos0` | `-variable.tcos0` | aynalı |
+| `bob` | `-(cos…+2.865)` | `+(cos…+2.865)` | aynalı |
+| `zombie.attack_bare_hand` | X −90 | X −90 | aynalı |
+
+Kalıcı sağ/sol farkı yaratan tek şey `holding`.
+
+## Neden sadece Kanlı Kol'da görülüyor
+
+`geometry.simsek_kol`de **yalnız `RightArm` var** — dokuz kolun
+yedisi tek kollu, onlarda ayrışacak ikinci kol yok. İki kollu
+olan sadece ikisi: `kol_kanli` ve `kol_kanli_bobby`. Yani hata
+dört sürümdür oradaydı, görülecek yer yoktu.
+
+## Düzeltme — en küçüğü seçildi
+
+`Simsek_Oyuncu_Modeli/animations/oyuncu_tutus.animation.json`
+vanilla `animation.player.holding`i **eziyor**; değişen tek şey
+**koşul**:
+
+```
+(variable.is_holding_left  || variable.simsek_cift_kol) ? (-this * 0.5 - 18.0) : 0.0
+(variable.is_holding_right || variable.simsek_cift_kol) ? (-this * 0.5 - 18.0) : 0.0
+```
+
+Sayılar vanilla'dan **birebir kopya**. Tetik `variable.simsek_cift_kol`
+`player.entity.json`in `pre_animation`ında, depodaki kanıtlanmış
+kalıpla (`o_sey`, `duruş`, `yatma` da böyle çalışıyor).
+
+### Denenip seçilmeyen iki yol
+
+1. **`override_previous_animation` ile iki kolu sabit poza
+   çakmak.** Simetriyi getirirdi ama **yürüyüş ve vuruş
+   salınımını götürürdü** — hem de birinci şahısta da, çünkü
+   `rightArm` orada da kullanılıyor. İstenmeyen bir kayıp.
+2. **Geometriye ters dönüş pişirmek.** Kol takılı değilken
+   model yamuk kalırdı.
+
+Seçilen yolda başka her eşyanın tutuşu **vanilla'nın aynısı**;
+değişken tanımsızsa molang 0 döndürür, yani oyuncu modeli paketi
+kapatılırsa geriye vanilla davranış kalır.
+
+## Ölçüm: düzeltme gerçekten sıfırlıyor mu
+
+`test/kol_simetri.mjs` pozu taklit ediyor ve **kontrollü**
+ölçüyor — önce bozuk hâlin farkı görünür olmalı, yoksa "sıfır"
+satırı hiçbir şey ölçmüyor demektir:
+
+    kol_kanli  pozdan gelen fark VAR (kontrol)  Y 0.276/0.197  Z -0.653/-5.621
+    kol_kanli  model aynalı -> düzeltmeyle fark SIFIR  (0.00e+0)
+
+Test ayrıca modelin aynalı kalmasını, iki kola giden ifadenin
+`left`/`right` dışında birebir aynı olmasını ve tetiğin **iki
+kollu kolların tamamını** kapsayıp tek kollulara bulaşmamasını
+tutuyor. Yeni bir iki kollu kol eklenirse liste dışı kalamaz.
+
+## Yan bulgu — DÜZELTİLMEDİ, bildiriliyor
+
+Ölçüm sırasında **Bobby Kanlı Kol**'da ayrı bir kusur çıktı.
+`kns_kolluk_bobby_kanli.geo.json` (kaynak model, Code-Man
+paketi) sol kolu X'te **de** Z'de **de** aynalıyor — yani sol
+kol sağın aynası değil, 180 derece döndürülmüş hâli:
+
+    Z  sağ[-16.372 3.150]  sol[-3.150 16.372]   ->  13.222 birim
+
+Sonuç: **sağ yumruk öne, sol yumruk arkaya bakıyor.** Chris'in
+kolunda böyle bir şey yok.
+
+Düzeltilmedi çünkü **kemik dönüşünü değiştirmek matematiksel
+olarak yetmiyor**: gereken dönüşüm bir yansıma (determinantı
+−1), hiçbir dönüş onu veremez. Sol kolun küpleri yeniden
+yazılmalı, o da uv eşlemesini taşır — yani görülmeden yapılamayacak
+bir sanat değişikliği. Değer teste **pivotlandı**: kaynak
+düzelirse ya da daha çok bozulursa test düşer, sessizce yeşil
+yanmaz.
+
+## Ölçüm nereden geldi
+
+Vanilla animasyonlar `Mojang/bedrock-samples` deposundan
+indirildi (`player.animation.json`, `humanoid.animation.json`,
+`zombie.animation.json`). Bu depoda ilk kez vanilla animasyon
+metni **okunarak** karar verildi; daha önce hep "kanıtsız sorgu
+yazma" diyip vazgeçilmişti. Artık vazgeçmek gerekmiyor.
+
+---
+
 # v7.41.0 — min_engine_version: açık madde kapandı
 
 Kullanıcı oyununun sürüm bilgisini verdi:

@@ -102,7 +102,7 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # tureniyor -- ayrisabilecekleri bir yer kalmadi.
 #
 # YENI SURUM CIKARIRKEN: yalnizca asagidaki satiri degistir.
-SURUM_NO = (7, 41, 0)
+SURUM_NO = (7, 42, 0)
 
 SURUM_METIN = "%d.%d.%d" % SURUM_NO
 
@@ -241,6 +241,21 @@ KOLLAR = [
     # paletinden, turuncu et #E58D3F ve pihti #390808.
     ("kol_kanli_bobby", "ors",          "Bobby Kanli Kol",       (57, 8, 8),      (229, 141, 63)),
 ]
+
+# ---- IKI KOLLU KOLLAR  (v7.42) ----
+# Kollarin cogu TEK kol: geometry.simsek_kol'da sadece
+# `RightArm` var. Iki tanesinin geometrisinde hem `rightArm`
+# hem `leftArm` KOK kemigi var, yani attachable oyuncunun IKI
+# koluna birden takiliyor. Vanilla'nin tutus pozu yalnizca
+# esyanin bulundugu ele uygulandigi icin (bkz.
+# oyuncu_tutus_animasyonu) asimetri SADECE bu ikisinde
+# gorunur. Tek kaynak: asagidaki geometri esleme de bundan
+# turuyor, ikisi ayrisamaz.
+CIFT_KOL_GEO = {
+    "kol_kanli":       "geometry.simsek_kol_kanli",
+    "kol_kanli_bobby": "geometry.simsek_kol_kanli_bobby",
+}
+CIFT_KOLLAR = tuple(CIFT_KOL_GEO)
 
 # Turkce gorunen adlar.
 #
@@ -5595,6 +5610,77 @@ def omnitrix_attachable(anahtar):
     }
 
 
+# ---- VANILLA TUTUS POZUNUN AYNALANMASI  (v7.42) ----
+#
+# Kullanici: "bir sorun var sol hep sag kola gore daha yukarida
+# lutfen duzelt." (Kanli Kol takiliyken, ucuncu sahis.)
+#
+# ---- NE OLCULDU ----
+# Once model suclandi ve TEMIZE CIKTI. simsek_kol_kanli'nin iki
+# yarisi kemik donusleri ve kup donusleri de uygulandiktan sonra
+# birebir ayna:
+#     X sag[-13.482 -1.673]  sol[+1.673 +13.482]   (aynali)
+#     Y sag[  3.489 26.494]  sol[ 3.489  26.494]   (AYNI)
+#     Z sag[ -3.825  2.025]  sol[-3.825   2.025]   (AYNI)
+# 33 kupun 33'u de kup kup aynali; ayna disi kup: 0.
+#
+# Asimetri MOTORDA. Vanilla `animation.player.holding`
+# (bedrock-samples, resource_pack/animations/player.animation.json):
+#     leftarm : variable.is_holding_left  ? (-this * 0.5 - 18.0) : 0.0
+#     rightarm: variable.is_holding_right ? (-this * 0.5 - 18.0) : 0.0
+# Esya ANA ELDE oldugu icin `is_holding_right` 1, `is_holding_left`
+# 0. Yani sag kol -18 derece egiliyor, sol kol 0'da kaliyor --
+# ustelik yan el bosken sol kolun degeri sifira EZILIYOR, kendi
+# haline birakilmiyor.
+#
+# -18 derecenin Kanli Kol uzerindeki olculmus etkisi:
+#     Y sag[3.213 26.298]  sol[3.489 26.494]  -> sol 0.28 birim YUKARIDA
+#     Z sag[-3.172  7.646] sol[-3.825  2.025] -> sag 5.62 birim ILERIDE
+# Yon kullanicinin tarifiyle birebir ayni: sol yukarida.
+#
+# Kalici sag/sol farki yaratan BASKA bir sey yok, hepsi olculdu:
+#     move.arms  leftarm  variable.tcos0 / rightarm -variable.tcos0  (aynali)
+#     bob        leftarm -(cos..+2.865) / rightarm +(cos..+2.865)    (aynali)
+#     zombie.attack_bare_hand  X ikisinde de -90, Y ve Z aynali
+#
+# ---- NEDEN BOYLE DUZELTILDI ----
+# Kolu dondurmek (override_previous_animation ile iki kolu sabit
+# poza cakmak) simetriyi getirirdi ama yuruyus ve vurus salinimini
+# GOTURURDU -- istenmeyen bir kayip. Geometriye ters donus pisirmek
+# de olurdu ama o zaman kol takili degilken model yamuk kalirdi.
+#
+# Yapilan sey en kucugu: vanilla animasyonun KENDISI eziliyor ve
+# yalnizca KOSULU degisiyor. Sayilar (-this * 0.5 - 18.0) vanilla'dan
+# BIREBIR kopya, tahmin yok. Iki kollu bir Simsek kolu elde oldugu
+# surece iki kola da ayni ifade uygulaniyor; baska her esyada
+# davranis vanilla'nin aynisi.
+#
+# Degisken tanimsizsa molang 0 dondurur: oyuncu modeli paketi
+# kapatilirsa dosya da onunla gider, geriye vanilla davranis kalir.
+def oyuncu_tutus_animasyonu():
+    """`animation.player.holding`i ezen animasyon.
+
+    Kosula `variable.simsek_cift_kol` ekleniyor; geri kalan her
+    sey vanilla ile birebir ayni. Kemik adlari da vanilla'daki
+    gibi KUCUK harf -- Bedrock kemik aramada buyuk/kucuk harf
+    ayirmiyor ama kopyayi degistirmemek ezme niyetini acik
+    tutuyor.                                                    """
+    ifade = "(variable.is_holding_%s || variable.simsek_cift_kol)" \
+            " ? (-this * 0.5 - 18.0) : 0.0"
+    return {
+        "format_version": "1.8.0",
+        "animations": {
+            "animation.player.holding": {
+                "loop": True,
+                "bones": {
+                    "leftarm":  {"rotation": [ifade % "left",  0.0, 0.0]},
+                    "rightarm": {"rotation": [ifade % "right", 0.0, 0.0]},
+                },
+            }
+        },
+    }
+
+
 def oyuncu_modeli_paketi(surum):
     """OYUNCUNUN KENDI MODELINI O SEY YAPAN paket.
 
@@ -5714,6 +5800,15 @@ def oyuncu_modeli_paketi(surum):
         "".join(" || variable." + _b[0] for _b in BEN10 + ZIRH_MOD) +
         "".join(" || variable." + _v for _v in _durus_degiskenleri) +
         "".join(" || variable." + _v for _v in _takas_degiskenleri) + ";")
+
+    # Iki kollu Simsek kolu elde mi: vanilla tutus pozunu iki
+    # kola birden uygulatan tetik (bkz. oyuncu_tutus_animasyonu).
+    d["scripts"]["pre_animation"].append(
+        "variable.simsek_cift_kol = "
+        + " || ".join(
+            "query.get_equipped_item_name('%s') == '%s'" % (_yuva, _k)
+            for _k in CIFT_KOLLAR for _yuva in ("main_hand", "off_hand"))
+        + ";")
 
     # 3. + 4. Denetleyiciler
     yeni_rc = []
@@ -5872,6 +5967,8 @@ def oyuncu_modeli_paketi(surum):
         yaz_json(os.path.join(OMP, "models/entity/%s.geo.json" % TAKAS_GOVDE),
                  kolsuz_geometrisi())
     yaz_json(os.path.join(OMP, "animations/o_sey.animation.json"), SEY_ANIM)
+    yaz_json(os.path.join(OMP, "animations/oyuncu_tutus.animation.json"),
+             oyuncu_tutus_animasyonu())
     kaynak_doku = os.path.join(RP, "textures/entity/%s.png" % SEY_DOKU)
     hedef_doku = os.path.join(OMP, "textures/entity/%s.png" % SEY_DOKU)
     if os.path.exists(kaynak_doku):
@@ -9975,9 +10072,7 @@ def main():
         # geometry.simsek_kol'u paylasiyor.
         # Iki kanli kolun da KENDI geometrisi var (dikenler /
         # yumruklar); digerleri geometry.simsek_kol'u paylasiyor.
-        _geo = {"kol_kanli": "geometry.simsek_kol_kanli",
-                "kol_kanli_bobby": "geometry.simsek_kol_kanli_bobby"}.get(
-                    kimlik, "geometry.simsek_kol")
+        _geo = CIFT_KOL_GEO.get(kimlik, "geometry.simsek_kol")
         yaz_json(os.path.join(RP, "attachables", kimlik + ".json"),
                  attachable(kimlik, _geo))
 

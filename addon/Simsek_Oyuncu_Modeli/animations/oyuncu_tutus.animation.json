@@ -1,0 +1,24 @@
+{
+  "format_version": "1.8.0",
+  "animations": {
+    "animation.player.holding": {
+      "loop": true,
+      "bones": {
+        "leftarm": {
+          "rotation": [
+            "(variable.is_holding_left || variable.simsek_cift_kol) ? (-this * 0.5 - 18.0) : 0.0",
+            0.0,
+            0.0
+          ]
+        },
+        "rightarm": {
+          "rotation": [
+            "(variable.is_holding_right || variable.simsek_cift_kol) ? (-this * 0.5 - 18.0) : 0.0",
+            0.0,
+            0.0
+          ]
+        }
+      }
+    }
+  }
+}
