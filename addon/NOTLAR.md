@@ -1,3 +1,135 @@
+# v7.48.0 — poz sandığı 39'dan 70'e, ve üç bozuk kimlik
+
+Kullanıcı 88 MB'lık bir "300K kod dosyası" derlemesi buldu ve
+*"içinde bir cevher yatıyor bizim için"* dedi. Vardı.
+
+Tam kayıt: [`REFERANS_KOD_DERLEMESI.md`](REFERANS_KOD_DERLEMESI.md).
+
+## Önce eskiyen bir cümle
+
+`ayarlar.js` şöyle diyordu:
+
+> *"BU LISTE DOGRULANMADI, DOGRULANAMAZ DA — vanilla animasyon
+> kimliklerinin listesi bu depoda YOK ve Bedrock playanimation'da
+> bilinmeyen bir kimlige SESSIZCE hicbir sey yapmiyor."*
+
+Yazıldığında doğruydu. **Artık değil.** Mojang'ın örnek paketi
+(`bedrock-samples`) animasyon dosyalarını yayınlıyor. 33 dosya
+indirildi, **175 gerçek kimlik** okundu.
+
+v7.45'te aynı şey olmuştu: bir varsayım eskimişti ve ölçüm mümkün
+hale gelmişti. Bu depoda "doğrulanamaz" damgası kalıcı değil.
+
+## Mevcut 39 poz doğrulandı — 3'ü bozukmuş
+
+```
+23 vanilla dosyalarında BULUNDU
+ 3 BULUNAMADI      -> düzeltildi
+13 emote/persona   -> örnek pakette yayınlanmıyor, hâlâ doğrulanamaz
+```
+
+| yanlış | doğrusu | kanıt |
+|---|---|---|
+| `animation.ghast.scale` | `animation.ghast.move` | `ghast.animation.json`'da **tek** animasyon var |
+| `animation.evoker_casting` | `animation.evoker.casting` | `evoker.animation.json` |
+| `animation.evoker_casting.v1.0` | `animation.evoker.casting.v1.0` | aynı dosya |
+
+### Eski yorum haklıymış
+
+v7.27'de yazılan yorum şöyleydi:
+
+> *"animation.evoker_casting ve ...v1.0 — depodaki çalışan örnek
+> animation.evoker.general, yani düzen animation.\<varlık\>.\<ad\>.
+> Alt çizgili biçim bu düzene uymuyor; **yine de LİSTEDE
+> BIRAKILDI**, çünkü tahminle silmek yerine tablette denenmesi
+> doğru."*
+
+Tahmin doğruymuş. Ve **bırakmak da doğruymuş**: silinmiş olsaydı
+bugün düzeltilecek bir şey kalmazdı. Şimdi silinmedi — düzeltildi.
+
+Bu, deponun "ölçmediysen dokunma" kuralının işe yaradığı somut bir
+örnek. Kural yalnız yanlış eklemeyi değil, **yanlış silmeyi** de
+engellemiş.
+
+## 31 yeni poz — hepsi doğrulanmış
+
+Derlemede 747 benzersiz animasyon kimliği vardı; **98'i** gerçek
+vanilla animasyonu ve bizde yoktu. 31'i eklendi.
+
+**Derleme kaynak değil, süzgeç oldu.** Adlar derlemeden alınmadı;
+derlemenin işaret ettiği adlar Mojang'ın kendi dosyasında arandı ve
+bulundu. Bulunamayan hiçbiri eklenmedi.
+
+Eklenenler:
+
+- **armor stand'in 10 pozu** — liste artık **tam**: vanilla
+  dosyasında 15 poz var, 15'i de sandıkta (`honor`, `riposte`,
+  `athena`, `brandish`, `solemn`, `cancan_a/b`, `hero`, `salute`,
+  `zombie`, `entertain`, `wiggle`, `default`, `no_pose`,
+  `holding_heavy_core`)
+- **Baş Aşağı** (`player.base_pose.upside_down`)
+- **Özgürlük Heykeli** (`player.move.arms.statue_of_liberty`)
+- Ters bacaklar, ters eğilme, enderman üçlüsü, humanoid tutuşları,
+  hayvan duruşları
+
+### Ne alınMADI ve neden
+
+İç karışım katmanları (`move.arms`, `bob`, `attack.rotations`,
+`look_at_target.*`) **bilerek alınmadı.** Onlar oyuncunun üzerinde
+zaten sürekli çalışan katmanlar; poz olarak çağrılınca ya hiçbir
+şey yapmazlar ya da duran pozu bozarlar. Doğrulanmış olmaları
+eklenmeleri için yeterli değil — **poz olan alındı, katman olan
+alınmadı.**
+
+## Ölçüm
+
+`test/pozlar.mjs` 1b. bölüm. Doğrulanmış 57 kimlik teste
+**pivotlandı** — test çevrimdışı koşuyor, vanilla dosyalarını her
+koşuda indiremez. Yeni bir poz eklenmek istenirse bu listeye de
+eklenmeli; yani *"önce vanilla'da var mı diye bak"* adımı atlanamaz.
+
+```
+✓ emote disi her poz vanilla'da DOGRULANMIS   57 poz
+✓   emote ailesi ayri sayiliyor               13 emote
+✓   DENEME modu emote'lar icin acik duruyor
+✓   bozuk kimlik geri gelmemis  (uc tanesi ayri ayri)
+✓   hepsi animation.<varlik>.<ad> bicimde
+✓   armor_stand pozlarinin TAMAMI listede     15 poz
+```
+
+Beş mutasyon denendi, **beşi de yakalandı**:
+
+| mutasyon | düşen |
+|---|---|
+| bozuk `evoker_casting` geri geldi | 3 |
+| bozuk `ghast.scale` geri geldi | 2 |
+| doğrulanmamış poz eklendi | 1 |
+| armor_stand pozu silindi | 1 |
+| DENEME modu kapatıldı | 1 |
+
+### Bir koruma da kendiliğinden çalıştı
+
+`animasyon.mjs`'deki "dış vanilla animasyon sayısı değişmedi"
+kontrolü düştü: **43 → 67**. Beklenen davranıştı ve işini gördü —
+sayıyı elle güncellerken 31 eklemenin bu kovaya neden **24** olarak
+yansıdığına bakıldı. Sebep: `animation.player.*` ve
+`animation.humanoid.*` o tarayıcıda DIS değil VANILLA kovasına
+giriyor. Fark kayıp değil, başka kovada.
+
+## Derlemenin geri kalanı
+
+- **Savunma boşluğu yok.** Başkasını hedefleyen bütün komut
+  aileleri sayıldı; hepsinin karşılığı zaten var.
+- **`FFPsetup.exe` alarmı geri alındı.** Sertifika zinciri okundu:
+  Tonec Inc. / Internet Download Manager, 2015, imzalı. Yeri
+  yanlış, tehlikeli değil.
+- **Parçacık listesi kullanılmadı.** 134 ad var ama Mojang parçacık
+  indeksi yayınlamıyor (404); ölçülemedi, o yüzden alınmadı.
+- Derlemenin %76'sı kopya; ilk gönderilen tek dosya (11,6 MB) zaten
+  hepsini taşıyordu. Sonraki iki parti **sıfır** yeni içerik getirdi.
+
+---
+
 # v7.47.0 — FerSReD Client ve "Düşme Hasarı Yok"
 
 Altıncı hile dosyası. **Hiçbir şey çalıştırılmadı**; zip açıldı,

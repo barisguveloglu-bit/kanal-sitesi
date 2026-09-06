@@ -102,6 +102,132 @@ console.log("=== 1. LISTE SAGLAM MI ===");
 }
 
 console.log("");
+console.log("=== 1b. LISTE VANILLA'DA GERCEKTEN VAR MI (v7.48) ===");
+{
+  /* ---- BU BOLUM NEDEN VAR ----
+     ayarlar.js eskiden "BU LISTE DOGRULANMADI, DOGRULANAMAZ DA"
+     diyordu ve hakliydi: vanilla animasyon kimlikleri depoda
+     yoktu. v7.48'de artik var -- Mojang/bedrock-samples
+     animasyon dosyalarini yayinliyor, 33 dosya indirildi ve
+     175 kimlik okundu.
+
+     Olcum uc bozuk kayit buldu:
+       animation.ghast.scale        -> yok, dogrusu ghast.move
+       animation.evoker_casting     -> yok, dogrusu evoker.casting
+       animation.evoker_casting.v1.0-> yok, dogrusu ...casting.v1.0
+     Ucu de duzeltildi.
+
+     ---- LISTE NEDEN BURAYA PIVOTLANDI ----
+     Test cevrimdisi kosuyor; vanilla dosyalarini her kosuda
+     indiremez. O yuzden dogrulanmis kimlikler BURAYA yazildi.
+     Yeni bir poz eklenirse bu listeye de eklenmeli -- yani
+     "once vanilla'da var mi diye bak" adimi atlanamaz.
+
+     ---- EMOTE AILESI AYRI ----
+     animation.idle_* ve animation.react_* Mojang'in ornek
+     paketinde YAYINLANMIYOR (persona/emote dosyalari yok).
+     Onlar hala dogrulanamiyor ve POZ_DENEME modu tam onlar
+     icin acik duruyor. Uydurma icerik yasagi geregi
+     "calisiyor" diye sunulmuyorlar.                        */
+  const VANILLA_DOGRULANAN = [
+    "animation.actor.billboard",
+    "animation.armor_stand.athena_pose",
+    "animation.armor_stand.brandish_pose",
+    "animation.armor_stand.cancan_a_pose",
+    "animation.armor_stand.cancan_b_pose",
+    "animation.armor_stand.default_pose",
+    "animation.armor_stand.entertain_pose",
+    "animation.armor_stand.hero_pose",
+    "animation.armor_stand.holding_heavy_core",
+    "animation.armor_stand.honor_pose",
+    "animation.armor_stand.no_pose",
+    "animation.armor_stand.riposte_pose",
+    "animation.armor_stand.salute_pose",
+    "animation.armor_stand.solemn_pose",
+    "animation.armor_stand.wiggle",
+    "animation.armor_stand.zombie_pose",
+    "animation.arrow.move",
+    "animation.bat.flying",
+    "animation.bat.resting",
+    "animation.bee.fly.bobbing",
+    "animation.blaze.move",
+    "animation.cat.lie_down",
+    "animation.cat.sit",
+    "animation.cat.sneak",
+    "animation.cow.baby_transform",
+    "animation.cow.setup.v1.0",
+    "animation.creeper.swelling",
+    "animation.dolphin.move",
+    "animation.enderman.arms_legs",
+    "animation.enderman.base_pose",
+    "animation.enderman.carrying",
+    "animation.enderman.scary_face",
+    "animation.evoker.casting",
+    "animation.evoker.casting.v1.0",
+    "animation.evoker.move",
+    "animation.fox.crouch",
+    "animation.fox.pounce",
+    "animation.fox.sit",
+    "animation.fox.stuck",
+    "animation.fox.wiggle",
+    "animation.ghast.move",
+    "animation.hoglin.baby_scaling",
+    "animation.humanoid.big_head",
+    "animation.humanoid.brandish_spear",
+    "animation.humanoid.celebrating",
+    "animation.humanoid.charging",
+    "animation.humanoid.holding_spyglass",
+    "animation.humanoid.tooting_goat_horn",
+    "animation.panda.sitting",
+    "animation.player.base_pose.upside_down",
+    "animation.player.move.arms.statue_of_liberty",
+    "animation.player.move.legs.inverted",
+    "animation.player.sneaking.inverted",
+    "animation.villager.raise_arms",
+    "animation.warden.dig",
+    "animation.warden.roar",
+    "animation.warden.sonic_boom"
+  ];
+  const EMOTE = /^animation\.(idle|react)_/;
+
+  const L = ayar.POZ_LISTESI.map((x) => x[0]);
+  const emote = L.filter((k) => EMOTE.test(k));
+  const digerleri = L.filter((k) => !EMOTE.test(k));
+
+  const dogrulanmayan = digerleri.filter(
+    (k) => VANILLA_DOGRULANAN.indexOf(k) === -1);
+  kontrol("emote disi her poz vanilla'da DOGRULANMIS",
+          dogrulanmayan.length === 0,
+          dogrulanmayan.join(", ") || digerleri.length + " poz");
+  kontrol("  emote ailesi ayri sayiliyor (dogrulanamaz)",
+          emote.length > 0, emote.length + " emote");
+  kontrol("  DENEME modu emote'lar icin acik duruyor",
+          ayar.POZ_DENEME === true);
+
+  /* Duzeltilen uc kimlik GERI GELMESIN. Ad benzerligi degil,
+     tam esitlik araniyor: evoker.casting DOGRU, evoker_casting
+     YANLIS ve ikisi birbirine cok benziyor.               */
+  for (const bozuk of ["animation.ghast.scale",
+                       "animation.evoker_casting",
+                       "animation.evoker_casting.v1.0"]) {
+    kontrol("  bozuk kimlik geri gelmemis: " + bozuk,
+            L.indexOf(bozuk) === -1);
+  }
+
+  /* Bicim kurali: vanilla kimlikleri animation.<varlik>.<ad>.
+     evoker_casting hatasi tam bu kurali cigniyordu.        */
+  const bicimsiz = digerleri.filter((k) => k.split(".").length < 3);
+  kontrol("  hepsi animation.<varlik>.<ad> bicimde",
+          bicimsiz.length === 0, bicimsiz.join(", ") || "-");
+
+  /* armor_stand'in vanilla dosyasinda 15 poz var; listede
+     15'i de olsun -- eksik biri kalmasin diye sayiliyor.  */
+  const stand = L.filter((k) => k.indexOf("animation.armor_stand.") === 0);
+  kontrol("  armor_stand pozlarinin TAMAMI listede (15)",
+          stand.length === 15, stand.length + " poz");
+}
+
+console.log("");
 console.log("=== 2. POZ GERCEKTEN OYNATILIYOR ===");
 {
   const { o } = kur("p1");

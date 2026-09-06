@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.47.0";
+export const SURUM = "v7.48.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -709,24 +709,46 @@ export const BEDEN_KORUNAN = [
 
    Geri kalan 39'u burada.
 
-   ---- BU LISTE DOGRULANMADI, DOGRULANAMAZ DA ----
-   Vanilla animasyon kimliklerinin listesi bu depoda YOK ve
-   Bedrock playanimation'da bilinmeyen bir kimlige SESSIZCE
-   hicbir sey yapmiyor -- yani "calisti mi" sorusu ancak
-   TABLETTE cevaplanir. Uydurma icerik yasagi geregi bu
-   satirlar "calisiyor" diye sunulmuyor: DENEME modu var
-   (POZ_DENEME), poz adi ekranda yaziliyor, oynamayanlari
-   kullanici gorup soyluyor ve listeden siliniyoruz.
+   ---- LISTE ARTIK DOGRULANDI  (v7.48) ----
+   Eskiden burada "BU LISTE DOGRULANMADI, DOGRULANAMAZ DA --
+   vanilla animasyon kimliklerinin listesi bu depoda YOK"
+   yaziyordu. O cumle ARTIK DOGRU DEGIL: Mojang'in ornek
+   paketi (Mojang/bedrock-samples) animasyon dosyalarini
+   yayinliyor. 33 dosya indirildi, 175 kimlik okundu ve liste
+   tek tek karsilastirildi.
 
-   ---- KAYNAKTAKI IKI HATA ----
-   1. "animation.cow.baby_ transform" -- ortasinda BOSLUK var,
-      o haliyle komut hic calismaz. baby_transform diye
-      yazildi.
-   2. "animation.evoker_casting" ve "...v1.0" -- depodaki
-      calisan ornek "animation.evoker.general", yani duzen
-      animation.<varlik>.<ad>. Alt cizgili bicim bu duzene
-      uymuyor; yine de LISTEDE BIRAKILDI, cunku tahminle
-      silmek yerine tablette denenmesi dogru.
+   Sonuc:
+     39 pozun 23'u vanilla dosyalarinda BULUNDU
+      3'u BULUNAMADI  -> duzeltildi (asagida)
+     13'u emote/persona ailesi -> ornek pakette yayinlanmiyor,
+          hala dogrulanamiyor, DENEME modu onlar icin duruyor
+
+   ---- BULUNAMAYAN UCU ve NE OLDUKLARI ----
+   1. "animation.ghast.scale" -- ghast.animation.json'da TEK
+      animasyon var ve o "animation.ghast.move". `scale` diye
+      bir sey yok. Duzeltildi.
+   2. "animation.evoker_casting" ve "...v1.0" -- alt cizgili
+      bicim yanlismis. Dogrusu "animation.evoker.casting" ve
+      "animation.evoker.casting.v1.0"; ikisi de evoker.
+      animation.json'da duruyor.
+
+      BU SATIR BIR KAYIT: eski yorum tam bunu tahmin etmisti
+      ("alt cizgili bicim bu duzene uymuyor") ama "tahminle
+      silmek yerine tablette denenmesi dogru" diye birakmisti.
+      Tahmin dogruymus. Silmemek de dogruymus -- simdi
+      SILINMEDI, DUZELTILDI.
+
+   ---- KAYNAKTAKI BIR HATA DAHA ----
+   "animation.cow.baby_ transform" -- ortasinda BOSLUK vardi,
+   o haliyle komut hic calismaz. baby_transform diye yazildi
+   ve dogrulandi.
+
+   ---- YENI POZLAR NEREDEN GELDI  (v7.48) ----
+   Kullanicinin gonderdigi "300K kod dosyasi" derlemesi
+   (bkz. REFERANS_KOD_DERLEMESI.md). 52.199 benzersiz satirdan
+   747 animasyon kimligi cikti; hepsi ayni vanilla dosyalariyla
+   karsilastirildi. Asagiya YALNIZCA dogrulananlar eklendi --
+   derlemenin kendisi kaynak degil, SUZGEC oldu.
 
    Gecis suresi 9999: depodaki oteki kalici pozlarla ayni
    (YAMULT_ANIM, BEDEN_ANIM). Kaynaktaki 999 da ayni ise
@@ -741,7 +763,7 @@ export const POZ_BITIS = "animation.humanoid.move a 0";
 export const POZ_LISTESI = [
   ["animation.creeper.swelling",          "Creeper Sismesi"],
   ["animation.dolphin.move",              "Yunus Yuzusu"],
-  ["animation.ghast.scale",               "Ghast Buyumesi"],
+  ["animation.ghast.move",                "Ghast Hareketi"],
   ["animation.fox.wiggle",                "Tilki Kivrilmasi"],
   ["animation.fox.sit",                   "Tilki Oturusu"],
   ["animation.cat.sit",                   "Kedi Oturusu"],
@@ -755,8 +777,8 @@ export const POZ_LISTESI = [
   ["animation.warden.roar",               "Warden Kukremesi"],
   ["animation.warden.dig",                "Warden Kazisi"],
   ["animation.warden.sonic_boom",         "Warden Ses Patlamasi"],
-  ["animation.evoker_casting",            "Evoker Buyusu"],
-  ["animation.evoker_casting.v1.0",       "Evoker Buyusu (v1)"],
+  ["animation.evoker.casting",            "Evoker Buyusu"],
+  ["animation.evoker.casting.v1.0",       "Evoker Buyusu (v1)"],
   ["animation.humanoid.big_head",         "Koca Kafa"],
   ["animation.actor.billboard",           "Panoya Donus"],
   ["animation.arrow.move",                "Ok Hareketi"],
@@ -777,7 +799,60 @@ export const POZ_LISTESI = [
   ["animation.react_confirm_1",           "Tepki: Onay 1"],
   ["animation.react_confirm_2",           "Tepki: Onay 2"],
   ["animation.react_offer_1",             "Tepki: Sunma"],
-  ["animation.react_offer_back_1",        "Tepki: Sunma (geri)"]
+  ["animation.react_offer_back_1",        "Tepki: Sunma (geri)"],
+
+  /* ---- v7.48: DOGRULANMIS YENI POZLAR ----
+     Hepsi Mojang/bedrock-samples'in animasyon dosyalarinda
+     ADIYLA BULUNDU. Uydurma yok; bulunamayan hicbiri
+     eklenmedi.
+
+     Ic katman animasyonlari (move.arms, bob, attack.rotations
+     gibi) BILEREK ALINMADI: onlar oyuncunun uzerinde zaten
+     surekli calisan karisim katmanlari, poz olarak
+     cagrilinca ya hicbir sey yapmazlar ya da duran pozu
+     bozarlar. Poz olan sey alindi, katman olan alinmadi. */
+
+  /* armor_stand -- vanilla dosyada 15 poz var, besi zaten
+     yukarida. Kalan onu: liste artik TAMAM.               */
+  ["animation.armor_stand.honor_pose",    "Saygi Duruşu"],
+  ["animation.armor_stand.riposte_pose",  "Karsi Hamle Duruşu"],
+  ["animation.armor_stand.athena_pose",   "Athena Duruşu"],
+  ["animation.armor_stand.brandish_pose", "Kilic Cekme Duruşu"],
+  ["animation.armor_stand.solemn_pose",   "Agirbasli Duruş"],
+  ["animation.armor_stand.cancan_b_pose", "Kankan Duruşu (B)"],
+  ["animation.armor_stand.default_pose",  "Varsayilan Duruş"],
+  ["animation.armor_stand.no_pose",       "Duruşsuz"],
+  ["animation.armor_stand.wiggle",        "Kivrilma"],
+  ["animation.armor_stand.holding_heavy_core", "Agir Cekirdek Tutusu"],
+
+  /* Oyuncunun kendi ters/ozel pozlari */
+  ["animation.player.base_pose.upside_down",       "Bas Asagi"],
+  ["animation.player.move.arms.statue_of_liberty", "Ozgurluk Heykeli"],
+  ["animation.player.move.legs.inverted",          "Ters Bacaklar"],
+  ["animation.player.sneaking.inverted",           "Ters Egilme"],
+
+  /* Enderman */
+  ["animation.enderman.scary_face",       "Enderman Korkutma"],
+  ["animation.enderman.carrying",         "Enderman Tasima"],
+  ["animation.enderman.arms_legs",        "Enderman Uzuvlari"],
+
+  /* Insansi (humanoid) tutuslari */
+  ["animation.humanoid.celebrating",      "Kutlama"],
+  ["animation.humanoid.brandish_spear",   "Mizrak Cekme"],
+  ["animation.humanoid.holding_spyglass", "Dürbün Tutusu"],
+  ["animation.humanoid.charging",         "Sarj Durusu"],
+  ["animation.humanoid.tooting_goat_horn", "Keci Boynuzu"],
+
+  /* Hayvanlar ve oteki varliklar */
+  ["animation.bat.resting",               "Yarasa Asilisi"],
+  ["animation.cat.sneak",                 "Kedi Sinsiligi"],
+  ["animation.cat.lie_down",              "Kedi Uzanisi"],
+  ["animation.fox.crouch",                "Tilki Cömelmesi"],
+  ["animation.fox.pounce",                "Tilki Atlayisi"],
+  ["animation.fox.stuck",                 "Tilki Sikismasi"],
+  ["animation.villager.raise_arms",       "Kollari Kaldirma"],
+  ["animation.blaze.move",                "Blaze Hareketi"],
+  ["animation.evoker.move",               "Evoker Hareketi"]
 ];
 
 /* ---------------- SINEMATIK KAMERA (v7.27) ----------------

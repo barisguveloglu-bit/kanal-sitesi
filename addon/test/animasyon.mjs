@@ -103,10 +103,22 @@ kontrol("bilinen artik DOSYA sayisi artmadi",
 
    Bu bes tanesi v7.27'ye kadar HIC TARANMIYORDU: tarayici
    kimligi yalniz metnin tamami oldugunda goruyordu, oysa
-   hepsi "animation.x.y a 9999" gibi argumanli yaziliyor.  */
+   hepsi "animation.x.y a 9999" gibi argumanli yaziliyor.
+
+   ---- 43 -> 67  (v7.48) ----
+   Poz sandigina 31 DOGRULANMIS vanilla pozu eklendi ve 3
+   bozuk kimlik duzeltildi (ghast.scale -> ghast.move,
+   evoker_casting -> evoker.casting, ayni sekilde .v1.0).
+   Ayrintisi ayarlar.js:POZ_LISTESI ve pozlar.mjs 1b.
+
+   Bu satirin dusmesi BEKLENEN seydi ve isini gordu: sayiyi
+   elle guncellerken 31 eklemenin bu kovaya neden 24 olarak
+   yansidigina bakildi -- `animation.player.*` ve
+   `animation.humanoid.*` bu tarayicida DIS degil VANILLA
+   kovasina giriyor. Yani fark kayip degil, baska kovada.  */
 const disSayisi = say("DIS  :");
 kontrol("dis (vanilla) animasyon sayisi degismedi",
-        disSayisi === 43, disSayisi + " tane (beklenen 43)");
+        disSayisi === 67, disSayisi + " tane (beklenen 67)");
 
 console.log(hata ? "\nKALDI" : "\nhepsi gecti");
 process.exit(hata ? 1 : 0);
