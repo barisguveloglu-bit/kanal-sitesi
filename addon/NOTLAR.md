@@ -1,3 +1,110 @@
+# v7.50.0 — arşivin tamamı tarandı: üç eksik
+
+Kullanıcı 11 MB'lık arşivi tekrar gönderip *"eklenebileceklerinin
+hepsini tek tek doğrula, bir şeyi katmayı unutmuşsan onu da
+ekle"* dedi. Haklıymış: v7.48'de arşivin **yalnız ilk dosyası**
+taranmıştı.
+
+Dosya bayt bayt aynı. Yeni bir içerik yok — **daha derin bir
+tarama** var. İç içe zip'lerle birlikte 376 metin dosyası
+açıldı, 51.285 komut satırı sayıldı.
+
+Tam kayıt: [`REFERANS_KOMUT_DOSYALARI_PSG.md`](REFERANS_KOMUT_DOSYALARI_PSG.md).
+
+## Üç eksik
+
+### 1. `fog … basic`
+
+`ARIN_SIS_BILINEN` v7.35'te ilk dosyadan yazılmıştı. Arşivin
+tamamında 12 özgün `/fog` satırı var ve birinde kimlik `basic`:
+
+```
+/fog @a push minecraft:fog_hell basic
+```
+
+Kimliği bilmeyen bir `remove` hiçbir şey yapmıyor. Tek
+kelimelik bir delik, tek kelimeyle kapandı.
+
+### 2. Girdi kilidinin 11 türünden 9'u
+
+Arınma yalnız `movement` ve `camera` açıyordu. Bedrock 11 tür
+tanıyor (`InputPermissionCategory`). Arşivde yalnız
+`movement disabled` göründü — ama ötekiler aynı komutun **bir
+kelimesi** uzağında. `jump disabled` yiyen biri için Arınma
+sessizce hiçbir şey yapmıyordu.
+
+`ZORLA_YUVALAR`da (v7.49) verilen aynı karar: görülen tek yuva
+kafaydı, altısı da kapatıldı.
+
+### 3. Poz sandığı 72 → 132
+
+580 özgün animasyon dizesinin **147'si** Mojang'ın dosyalarında
+gerçek çıktı. 72'si zaten bizdeydi, 6'sı modun başka yerinde
+kullanılıyor, **60'ı eksikti**. Altmışının altmışı da doğrulandı.
+
+En çok kullanılan iki kimlik bizde yoktu:
+`animation.player.sneaking` (4.166 kez) ve
+`animation.player.riding.legs` (3.535 kez — havada oturma).
+
+**Alınmayanlar:** oyuncunun/insansının kendi normal çizimi olan
+28 kimlik (`player.bob`, `humanoid.base_pose`, `player.cape`…)
+ve mermi modelleri (`shulker_bullet.move` 531 kez,
+`llama_spit.setup` 508). İkincisi gerçek kimlik ama insansı
+kemikleri yok; tahminle liste şişmesin diye eklenmedi.
+
+**İstisna kaydı:** `riding.*` ailesi ALINDI. İlk filtrem onu
+"yapısal" diye elemişti — yanlıştı: bir şeye *binmeyen*
+oyuncuda oturur biçim veriyor. Arşivin en çok kullandığı ikinci
+kimliğin bu olması zaten söylüyordu.
+
+## Bir sayıyı açıklamadan güncellememek
+
+`animasyon.mjs` DIS sayısını sabitliyor. 60 ekleme bu kovaya
+**35** olarak yansıdı. Farkı "herhalde öyledir" diye geçmedim,
+tek tek bakıldı:
+
+```
+-24  animation.player.* ve animation.humanoid.*
+     (bu tarayıcıda DIS değil VANILLA kovası)
+- 1  animation.skeleton.attack ZATEN bağlıymış:
+     Simsek_Oyuncu_Modeli/entity/player.entity.json:397
+     "skeleton_attack" eşleme adıyla
+----
+ 35
+```
+
+Sabitlenmiş bir sayıyı açıklamadan güncellemek, sabitlemenin
+kendisini işe yaramaz kılar.
+
+## Değişmeyenler — hepsine tek tek bakıldı
+
+Efekt (30 ad), camerashake (23), camera (1), clear (3),
+gamemode (13), fill/setblock, summon (21 tür), particle (17),
+tp (26), damage (1). Hepsinin ya karşılığı vardı ya operatör
+kapısında.
+
+`jump_boost` bir örnek: listede yok ve **olmamalı** — arşivde
+`@s`'ye veriliyor, yani saldıranın kendi hareketi, kurbana
+atılan bir şey değil. Bakmadan eklemek listeyi bozardı.
+
+## v7.49 doğru şeyi hedeflemiş
+
+Arşivde **256** `item_lock` geçiyor — en yaygın eşya mekaniği.
+İki yazımla: `"item_lock"` (11) ve `"minecraft:item_lock"`
+(245). İkisi de aynı `lockMode` değerini üretiyor; savunmamız
+metne değil `ContainerSlot.lockMode` alanına baktığı için
+ikisini de tutuyor. Metin eşleştiren bir savunma birini
+kaçırırdı.
+
+## Kapatılmayan bir şey, açıkça
+
+Kilitsiz balkabağı (`replaceitem … carved_pumpkin`, item_lock
+yok). Saldırganın taktığı ile enderman'dan korunmak için kendi
+taktığın **ölçülebilir biçimde ayırt edilemiyor**. v7.49'un
+"kilitliyse indir" kuralı bu yüzden. Eksik değil, ölçüm sınırı.
+
+---
+
 # v7.49.0 — Arınmanın 9. kolu: kilitli eşya
 
 Kullanıcı beş komut dosyası daha getirdi. Dördü zaten kapalı

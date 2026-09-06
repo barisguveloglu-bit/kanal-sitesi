@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.49.0";
+export const SURUM = "v7.50.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -837,6 +837,95 @@ export const POZ_LISTESI = [
   ["animation.player.swim",                        "Yuzme Durusu"],
   ["animation.player.swim.legs.stationary",        "Yuzme (Duran Bacak)"],
 
+  /* ---- v7.50: ARSIVIN TAMAMI YENIDEN TARANDI ----
+     Kullanici 11 MB'lik arsivi tekrar gonderip "eklenebilecek
+     her seyi tek tek dogrula" dedi. Dogru istek: v7.48'de
+     yalniz DERLEMENIN ilk dosyasi taranmisti, bu kez ic ice
+     zip'lerle birlikte 376 metin dosyasinin tamami acildi.
+
+     51.285 komut satirinda 580 ozgun animasyon dizesi geciyor;
+     Mojang'in kendi dosyalariyla karsilastirilinca 147'si
+     GERCEK cikti. Bunlarin 72'si zaten bizdeydi, 6'si modun
+     baska yerinde kullaniliyor (sleeping/agent.move/zombie.
+     attack_bare_hand/fox.sleep/evoker.general/villager.
+     get_in_bed), 60'i asagida.
+
+     ---- NEYIN ALINMADIGI ve NEDEN ----
+     1. Oyuncunun/insansinin KENDI normal cizimi (28 kimlik:
+        player.bob, player.move.arms, humanoid.base_pose,
+        player.cape, attack.rotations...). Bunlar zaten her
+        karede oynuyor; poz olarak vermek gorunur bir sey
+        yapmaz. Ayni kural v7.48'de de uygulanmisti.
+        ISTISNA: riding.* ailesi ALINDI -- bir seye BINMEYEN
+        oyuncuda oturur bicim veriyor, yani gorunur bir
+        degisiklik. Arsivin en cok kullandigi ikinci kimlik
+        (player.riding.legs, 3.535 kez) tam da bu yuzden.
+     2. Mermi modelleri (shulker_bullet.move 531 kez,
+        llama_spit.setup 508, arrow.move 70). Gercek kimlikler
+        ama insansi kemikleri yok. Denenmedi diye SILINMEDI,
+        eklenmedi de -- POZ_DENEME acikken kullanici oynamayani
+        gorup soyleyebilir; tahminle liste sismesin.          */
+  ["animation.player.sneaking",                  "Egilme"],
+  ["animation.humanoid.sneaking",                "Insansi Egilme"],
+  ["animation.player.riding.legs",               "Oturma (Bacak)"],
+  ["animation.player.riding.arms",               "Oturma (Kol)"],
+  ["animation.humanoid.riding.legs",             "Insansi Oturma (Bacak)"],
+  ["animation.humanoid.riding.arms",             "Insansi Oturma (Kol)"],
+  ["animation.player.riding.arms.zombie",        "Zombi Oturusu"],
+  ["animation.player.move.arms.zombie",          "Zombi Kollari"],
+  ["animation.player.holding.zombie",            "Zombi Tutusu"],
+  ["animation.player.look_at_target.inverted",   "Ters Bakis"],
+  ["animation.player.glide",                     "Suzulme Pozu"],
+  ["animation.player.shield_block_main_hand",    "Kalkan (Sag El)"],
+  ["animation.player.shield_block_off_hand",     "Kalkan (Sol El)"],
+  ["animation.player.bow_equipped",              "Yay Cekme"],
+  ["animation.player.crossbow_equipped",         "Tatar Yayi"],
+  ["animation.player.crossbow_hold",             "Tatar Yayi Tutusu"],
+  ["animation.humanoid.bow_and_arrow",           "Ok Atma"],
+  ["animation.humanoid.damage_nearby_mobs",      "Cevreye Vurus"],
+  ["animation.humanoid.brushing",                "Firca Surtme"],
+  ["animation.humanoid.holding_brush",           "Firca Tutusu"],
+  ["animation.humanoid.swimming",                "Insansi Yuzme"],
+  ["animation.humanoid.look_at_target.swimming", "Yuzerken Bakis"],
+  ["animation.player.swim.legs",                 "Yuzme Bacaklari"],
+  ["animation.player.swim.legs.single",          "Yuzme Tek Bacak"],
+  ["animation.zombie.swimming",                  "Zombi Yuzmesi"],
+  ["animation.warden.emerge",                    "Warden Cikisi"],
+  ["animation.warden.sniff",                     "Warden Koklamasi"],
+  ["animation.warden.attack",                    "Warden Saldirisi"],
+  ["animation.warden.move",                      "Warden Yuruyusu"],
+  ["animation.skeleton.attack",                  "Iskelet Saldirisi"],
+  ["animation.witch.general",                    "Cadi Durusu"],
+  ["animation.villager.general",                 "Koylu Durusu"],
+  ["animation.villager.general.v1.0",            "Koylu Durusu v1"],
+  ["animation.villager.move",                    "Koylu Yuruyusu"],
+  ["animation.villager.baby_transform",          "Koylu Yavru Donusumu"],
+  ["animation.evoker.general.v1.0",              "Evoker Durusu v1"],
+  ["animation.panda.lying",                      "Panda Yatisi"],
+  ["animation.panda.rolling",                    "Panda Yuvarlanmasi"],
+  ["animation.panda.sneezing",                   "Panda Hapsirmasi"],
+  ["animation.panda.unhappy",                    "Panda Somurtmesi"],
+  ["animation.panda.baby_transform",             "Panda Yavru Donusumu"],
+  ["animation.spider.walk",                      "Orumcek Yuruyusu"],
+  ["animation.spider.default_leg_pose",          "Orumcek Bacaklari"],
+  ["animation.spider.look_at_target",            "Orumcek Bakisi"],
+  ["animation.cat.walk",                         "Kedi Yuruyusu"],
+  ["animation.cat.sprint",                       "Kedi Kosusu"],
+  ["animation.cat.baby_transform",               "Kedi Yavru Donusumu"],
+  ["animation.bee.flying",                       "Ari Ucusu"],
+  ["animation.bee.sting",                        "Ari Sokmasi"],
+  ["animation.bee.no_stinger",                   "Ignesiz Ari"],
+  ["animation.hoglin.attack",                    "Hoglin Saldirisi"],
+  ["animation.hoglin.walk",                      "Hoglin Yuruyusu"],
+  ["animation.hoglin.look_at_target",            "Hoglin Bakisi"],
+  ["animation.wither_boss.move",                 "Wither Hareketi"],
+  ["animation.wither_boss.scale",                "Wither Olcegi"],
+  ["animation.wither_boss.look_at_target",       "Wither Bakisi"],
+  ["animation.agent.swing_arms",                 "Ajan Kol Sallamasi"],
+  ["animation.creeper.legs",                     "Creeper Bacaklari"],
+  ["animation.cow.setup",                        "Inek Kurulumu"],
+  ["animation.fox.setup",                        "Tilki Kurulumu"],
+
   /* Enderman */
   ["animation.enderman.scary_face",       "Enderman Korkutma"],
   ["animation.enderman.carrying",         "Enderman Tasima"],
@@ -979,6 +1068,29 @@ export const ARIN_EFEKTLER = [
 
    Ucu de KENDILIGINDEN GECMIYOR; Arinma'nin var olma sebebi
    tam olarak bu. Ucu de asagida.                            */
+/* ---- GIRDI TURLERI  (v7.50) ----
+   Arinma eskiden yalniz "movement" ve "camera" aciyordu.
+   Bedrock'un tanidigi tur sayisi 11:
+   @minecraft/server 2.9.0 InputPermissionCategory =
+     Camera · Movement · LateralMovement · Sneak · Jump ·
+     Mount · Dismount · MoveForward · MoveBackward ·
+     MoveLeft · MoveRight
+
+   Arsivde yalniz "movement disabled" gorundu -- ama otekiler
+   ayni komutun BIR KELIMESI uzaginda. "jump disabled" yiyen
+   biri icin Arinma sessizce hicbir sey yapmiyordu.
+   ZORLA_YUVALAR'da (v7.49) verilen ayni karar: gorulen tek
+   yuva kafaydi, altisi da kapatildi.
+
+   Tutmayan bir tur (eski surumde olmayan bir ad) sessizce
+   dusuyor -- komut() zaten yakaliyor, ARIN_SIS_BILINEN'de de
+   ayni desen var.                                            */
+export const ARIN_GIRDI = [
+  "movement", "camera", "lateral_movement", "sneak", "jump",
+  "mount", "dismount", "move_forward", "move_backward",
+  "move_left", "move_right"
+];
+
 export const ARIN_EKRAN = true;    // /title clear + reset
 export const ARIN_SES   = true;    // /stopsound + /music stop
 export const ARIN_SIS   = true;    // /fog
@@ -996,7 +1108,14 @@ export const ARIN_SIS   = true;    // /fog
 
    Ikisi birden yapiliyor. Ikisi de zararsiz: tutmayan komut
    zaten sessizce dusuyor.                                   */
-export const ARIN_SIS_BILINEN = ["1", "11", "13", "l1", "t"];
+/* v7.50: "basic" ARSIVIN TAMAMI taraninca cikti. Elimizdeki
+   liste v7.35'te derlemenin ILK dosyasindan yazilmisti; ic ice
+   zip'ler acilinca 12 ozgun /fog satiri gorundu ve birinde
+   kimlik "basic"ti:
+       /fog @a push minecraft:fog_hell basic
+   Kimligi bilmeyen bir "remove" hicbir sey yapmiyor, yani o
+   sis bizde SOKULMUYORDU. Tek kelimelik bir delik.           */
+export const ARIN_SIS_BILINEN = ["1", "11", "13", "l1", "t", "basic"];
 export const ARIN_SIS_KIMLIK  = "arinma";
 
 

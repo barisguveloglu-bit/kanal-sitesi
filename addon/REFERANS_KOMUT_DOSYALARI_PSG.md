@@ -1,4 +1,4 @@
-# Referans · Beş komut dosyası (PSG · LWESxSAPLAR · GÜLÜT)
+# Referans · Komut dosyaları (PSG · LWESxSAPLAR · GÜLÜT + arşivin tamamı)
 
 **Hiçbiri çalıştırılmadı.** Beş dosya da düz metin; okundu,
 sayıldı, karşılaştırıldı. Oyunda hiçbir satırı denenmedi.
@@ -209,3 +209,141 @@ ham %32 → %33   engellenebilir %68 → %70
 ```
 
 Tam tablo: `python3 addon/savunma_olc.py`
+
+
+---
+
+# v7.50 — arşivin TAMAMI yeniden tarandı
+
+Kullanıcı 11 MB'lık arşivi tekrar gönderip *"eklenebileceklerinin
+hepsini tek tek doğrula"* dedi. Doğru istekti: v7.48'de arşivin
+**yalnız ilk dosyası** taranmıştı. Bu kez iç içe zip'lerle
+birlikte **376 metin dosyasının tamamı** açıldı.
+
+Dosya bayt bayt aynı (`sha256 3eebd233fa5368697c70a2e1…`,
+12.169.981 bayt) — yeni bir içerik yok, **daha derin bir
+tarama** var.
+
+## Sayılar
+
+```
+51.285 komut satırı · 3.000+ özgün
+   580 özgün animasyon dizesi
+   147'si Mojang'ın kendi dosyalarında GERÇEK
+```
+
+| fiil | satır | özgün |
+|---|---|---|
+| playanimation | 43.090 | 2.369 |
+| execute | 3.393 | 349 |
+| effect | 1.241 | 144 |
+| title | 786 | 60 |
+| summon | 652 | 71 |
+| fog | 272 | 12 |
+| tp | 248 | 26 |
+| particle | 211 | 17 |
+| camerashake | 187 | 23 |
+| fill | 183 | 11 |
+| replaceitem | 159 | 14 |
+| setblock | 155 | 16 |
+
+## Bulunan üç eksik — üçü de kapatıldı
+
+### 1. `fog … basic` (Arınma'da yoktu)
+
+`ARIN_SIS_BILINEN` listesi v7.35'te arşivin **ilk** dosyasından
+yazılmıştı: `["1","11","13","l1","t"]`. İç içe zip'ler açılınca
+12 özgün `/fog` satırı göründü ve birinde kimlik `basic`ti:
+
+```
+/fog @a push minecraft:fog_hell basic
+```
+
+Kimliği bilmeyen bir `remove` hiçbir şey yapmıyor — o sis
+bizde **sökülmüyordu**. Tek kelimelik bir delik.
+
+### 2. Girdi kilidinin 11 türünden 9'u açılmıyordu
+
+Arınma yalnız `movement` ve `camera` açıyordu. Bedrock 11 tür
+tanıyor (`InputPermissionCategory`, `@minecraft/server` 2.9.0):
+
+```
+Camera · Movement · LateralMovement · Sneak · Jump · Mount ·
+Dismount · MoveForward · MoveBackward · MoveLeft · MoveRight
+```
+
+Arşivde yalnız `movement disabled` görüldü — ama ötekiler aynı
+komutun **bir kelimesi** uzağında. `jump disabled` yiyen biri
+için Arınma sessizce hiçbir şey yapmıyordu. `ZORLA_YUVALAR`da
+(v7.49) verilen aynı karar: görülen tek yuva kafaydı, altısı da
+kapatıldı.
+
+### 3. Poz sandığı 72 → 132
+
+147 gerçek kimliğin 72'si zaten bizdeydi, 6'sı modun başka
+yerinde kullanılıyor, **60'ı eksikti**. Altmışının altmışı da
+Mojang'ın kendi dosyalarında doğrulandı.
+
+En çok kullanılan ikisi bizde yoktu:
+
+| kimlik | arşivde | ne yapıyor |
+|---|---|---|
+| `animation.player.sneaking` | 4.166 kez | eğilme |
+| `animation.player.riding.legs` | 3.535 kez | havada oturma |
+
+**Alınmayanlar ve neden:**
+
+- **28 kimlik** — oyuncunun/insansının kendi normal çizimi
+  (`player.bob`, `player.move.arms`, `humanoid.base_pose`,
+  `player.cape`, `attack.rotations`…). Bunlar zaten her karede
+  oynuyor; poz olarak vermek görünür bir şey yapmaz.
+  **İstisna: `riding.*` ailesi ALINDI** — bir şeye *binmeyen*
+  oyuncuda oturur biçim veriyor, yani görünür bir değişiklik.
+  Arşivin en çok kullandığı ikinci kimlik tam da bu yüzden.
+- **Mermi modelleri** — `shulker_bullet.move` (531 kez),
+  `llama_spit.setup` (508), `arrow.move` (70). Gerçek
+  kimlikler ama insansı kemikleri yok. Tahminle liste
+  şişmesin diye eklenmedi; `POZ_DENEME` açıkken kullanıcı
+  oynamayanı görüp söyleyebiliyor.
+
+## Değişmeyen — tek tek bakıldı
+
+| aile | bulgu |
+|---|---|
+| **efekt** (30 ad) | olumsuzların tamamı `ARIN_EFEKTLER`'de. `jump_boost` **@s'ye** veriliyor (saldıranın kendi hareketi), kurbana değil — listeye girmedi. |
+| **camerashake** (23) | hepsi `camerashake stop @s` ile kesiliyor |
+| **camera** (1) | `camera @p set third_person_front` → `camera @s clear` geri alıyor |
+| **clear** (3) | `/clear @a` → Envanter Yedeği (v7.30) |
+| **gamemode** (13) | Gözcü oyun kipi denetimi (v7.38) |
+| **fill / setblock** | ofsetlerin çoğu 1–6; `iron_bars`, `barrier` dahil hepsi Kafes Kır'ın duvar sayımına giriyor |
+| **summon** (21 tür) | `lightning_bolt`, `ender_dragon`, `wither`, `warden`… hepsi operatör kapısı |
+| **particle** (17) | tamamen geçici, silinecek bir durum bırakmıyor |
+| **tp** (26) | operatör kapısı |
+| **damage** (1) | `/damage @a 1500` — operatör kapısı |
+
+## `item_lock` — v7.49 doğru şeyi hedeflemiş
+
+Arşivde **256** `item_lock` geçiyor; en yaygın eşya mekaniği bu.
+İki farklı yazımla:
+
+```
+"item_lock"             11 kez
+"minecraft:item_lock"  245 kez
+```
+
+İkisi de çalışma anında aynı `lockMode` değerini üretiyor.
+Savunmamız metne değil `ContainerSlot.lockMode` alanına baktığı
+için **iki yazımı da** tutuyor — metin eşleştiren bir savunma
+birini kaçırırdı.
+
+## Kapatılmayan bir şey, açıkça
+
+`/replaceitem entity <isim> slot.armor.head 1 carved_pumpkin`
+— **kilitsiz** balkabağı. Eşyayı yok ediyor ve görüşü
+kapatıyor ama `lockMode` `none`, yani saldırganın taktığı
+balkabağı ile enderman'dan korunmak için kendi taktığın
+balkabağı **ölçülebilir biçimde ayırt edilemiyor**.
+
+v7.49'un kuralı bu yüzden "kilitliyse indir". Kilitsizi de
+indirseydik oyuncunun kendi kararını bozardık. Bu bir eksik
+değil, ölçüm sınırı — ve burada yazılı duruyor.

@@ -254,6 +254,59 @@ console.log("=== 7. AYAR VE TEMIZLIK ===");
 }
 
 console.log("");
+console.log("=== 1d. ONBIR GIRDI TURUNUN ONBIRI DE ACILIYOR  (v7.50) ===");
+{
+  /* Arinma eskiden yalniz "movement" ve "camera" aciyordu.
+     Bedrock 11 tur taniyor (InputPermissionCategory). Arsivde
+     yalniz "movement disabled" gorundu ama otekiler ayni
+     komutun BIR KELIMESI uzaginda: "jump disabled" yiyen biri
+     icin Arinma sessizce hicbir sey yapmiyordu.              */
+  const { o } = kur("g1");
+  arinma.arindir(o);
+  const eksik = ayar.ARIN_GIRDI.filter(
+    (t) => !komutVar(o, "inputpermission set @s " + t + " enabled"));
+  kontrol("ayarda 11 tur var", ayar.ARIN_GIRDI.length === 11,
+          ayar.ARIN_GIRDI.length + " tur");
+  kontrol("hepsi gercekten aciliyor", eksik.length === 0,
+          eksik.join(", ") || "eksik yok");
+  /* Sira onemli: otekileri denemek icin bile once
+     kimildayabilmen lazim.                                   */
+  kontrol("ilk acilan movement", ayar.ARIN_GIRDI[0] === "movement",
+          ayar.ARIN_GIRDI[0]);
+  kontrol("jump da listede", ayar.ARIN_GIRDI.indexOf("jump") !== -1);
+  kontrol("sneak da listede", ayar.ARIN_GIRDI.indexOf("sneak") !== -1);
+}
+{
+  /* Savunma Kipi ayni isi yapmali -- kilit dongu halinde
+     geliyorsa tek seferlik arinma yetismez.                  */
+  const { o } = kur("g2");
+  arinma.savunmaAc(o);
+  const eksik = ayar.ARIN_GIRDI.filter(
+    (t) => !komutVar(o, "inputpermission set @s " + t + " enabled"));
+  kontrol("Savunma Kipi de 11'ini aciyor", eksik.length === 0,
+          eksik.join(", ") || "eksik yok");
+  arinma.arinmaUnut(o.id);
+}
+
+console.log("");
+console.log("=== 1e. SIS KIMLIGI 'basic' DE SOKULUYOR  (v7.50) ===");
+{
+  /* Arsivin TAMAMI (ic ice zip'ler dahil) taraninca 12 ozgun
+     /fog satiri cikti ve birinde kimlik "basic"ti:
+         /fog @a push minecraft:fog_hell basic
+     Kimligi bilmeyen bir "remove" hicbir sey yapmiyor.       */
+  const { o } = kur("s1");
+  arinma.arindir(o);
+  kontrol("'basic' ayar listesinde",
+          ayar.ARIN_SIS_BILINEN.indexOf("basic") !== -1,
+          ayar.ARIN_SIS_BILINEN.join(","));
+  const eksik = ayar.ARIN_SIS_BILINEN.filter(
+    (k) => !komutVar(o, "fog @s remove " + k));
+  kontrol("bilinen her kimlik icin remove atiliyor",
+          eksik.length === 0, eksik.join(", ") || "eksik yok");
+}
+
+console.log("");
 console.log("=== 8. SAVUNMA KIPI (kilit DONGUSUNE karsi) ===");
 {
   /* Arinma tek seferlik. Kilit her yarim saniyede yeniden

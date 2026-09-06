@@ -4,6 +4,7 @@ import { hataYaz, gecerliMi, actionbarYaz } from "../yardimcilar.js";
 import {
   ARIN_ACIK, ARIN_BEKLEME, ARIN_SIRA, ARIN_EFEKTLER,
   ARIN_EKRAN, ARIN_SES, ARIN_SIS, ARIN_SIS_BILINEN, ARIN_SIS_KIMLIK,
+  ARIN_GIRDI,
   ZORLA_ACIK, ZORLA_YUVALAR, ZORLA_ENVANTER, ZORLA_MUAF_ONEK,
   ZORLA_KOR_ESYALAR,
   SAVUNMA_ARALIK, SAVUNMA_SURE, SAVUNMA_SIRA
@@ -79,6 +80,21 @@ function komut(oyuncu, metin) {
   }
 }
 
+
+/* Butun girdi turlerini acar (v7.50). Once "movement",
+   cunku otekileri denemek icin bile once kimildayabilmen
+   lazim ve liste sirasi bunu garanti ediyor.
+
+   Donen deger: EN AZ BIRI tuttu mu. Hepsini sart kosmuyoruz:
+   eski bir surumde "move_left" diye bir tur olmayabilir ve
+   onun dusmesi "girdi acilmadi" demek degil.                 */
+function girdiAc(oyuncu) {
+  let oldu = false;
+  for (const tur of ARIN_GIRDI) {
+    if (komut(oyuncu, "inputpermission set @s " + tur + " enabled")) oldu = true;
+  }
+  return oldu;
+}
 
 /* ---- EKRAN · SES · SIS  (v7.35) ----
    Ucu de olculmus bir saldiriya karsilik geliyor; sayilar
@@ -283,10 +299,7 @@ export function arindir(oyuncu) {
 
   // 1. GIRDI KILIDI -- en oncelikli, cunku otekileri denemek
   //    icin bile once kimildayabilmen lazim.
-  if (komut(oyuncu, "inputpermission set @s movement enabled")) {
-    komut(oyuncu, "inputpermission set @s camera enabled");
-    yapilan.push("girdi");
-  }
+  if (girdiAc(oyuncu)) yapilan.push("girdi");
 
   // 2. KAMERA KILIDI
   if (komut(oyuncu, "camera @s clear")) yapilan.push("kamera");
@@ -364,8 +377,7 @@ yetenekKaydet({
    yeteneklerimiz kimseyi tutamazdi. Dovus kipi: acilip
    kapatiliyor, SAVUNMA_SURE sonunda kendi de kapaniyor.    */
 function savunmaTazele(oyuncu) {
-  komut(oyuncu, "inputpermission set @s movement enabled");
-  komut(oyuncu, "inputpermission set @s camera enabled");
+  girdiAc(oyuncu);
   komut(oyuncu, "camera @s clear");
   komut(oyuncu, "camerashake stop @s");
   komut(oyuncu, "playanimation @s animation.humanoid.move a 0");

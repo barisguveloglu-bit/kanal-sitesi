@@ -21,12 +21,17 @@ import {
    modun Yamultma'sindaki hatanin aynisi olurdu -- oyuncu
    bolunmus/yatmis halde kalir.
 
-   ---- LISTE DOGRULANMADI ----
-   Vanilla animasyon kimlik listesi bu depoda yok ve Bedrock
-   bilinmeyen bir kimlige sessizce hicbir sey yapmiyor. O
-   yuzden POZ_DENEME acikken her pozun ADI VE SIRASI sohbete
-   yaziliyor: oynamayan varsa kullanici gorup soyluyor,
-   listeden siliniyor. "Calisiyor" diye sunulmuyor.          */
+   ---- LISTE DOGRULANDI  (v7.48, genisletildi v7.50) ----
+   Bu yorumda eskiden "LISTE DOGRULANMADI, vanilla kimlik
+   listesi bu depoda yok" yaziyordu. Artik dogru degil:
+   Mojang'in ornek paketinden 175 gercek kimlik okundu ve
+   emote disi her poz tek tek karsilastirildi (test/pozlar.mjs
+   1b bolumu bunu tutuyor).
+
+   POZ_DENEME yine de ACIK: dogrulanmis bir kimlik "var"
+   demek, oyuncu modelinde GORUNUR bir sey yapiyor demek
+   degil. Deneme acikken her pozun adi ve sirasi sohbete
+   yaziliyor; oynamayan varsa kullanici gorup soyluyor.      */
 
 // oyuncuId -> listedeki son gosterilen indeks
 const sonPoz = new Map();

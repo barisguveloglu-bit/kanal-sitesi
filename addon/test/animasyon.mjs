@@ -115,10 +115,27 @@ kontrol("bilinen artik DOSYA sayisi artmadi",
    elle guncellerken 31 eklemenin bu kovaya neden 24 olarak
    yansidigina bakildi -- `animation.player.*` ve
    `animation.humanoid.*` bu tarayicida DIS degil VANILLA
-   kovasina giriyor. Yani fark kayip degil, baska kovada.  */
+   kovasina giriyor. Yani fark kayip degil, baska kovada.
+
+   ---- 67 -> 102  (v7.50) ----
+   Kullanici 11 MB'lik arsivi tekrar gonderip "eklenebilecek
+   her seyi tek tek dogrula" dedi. Ic ice zip'lerle birlikte
+   376 metin dosyasi acildi, 147 GERCEK kimlik cikti, 60'i
+   bizde yoktu ve eklendi (ayarlar.js POZ_LISTESI 72 -> 132).
+
+   60 ekleme bu kovaya neden 35 olarak yansidi -- ikisi de
+   TEK TEK bakildi, "herhalde oyle" denmedi:
+     -24  animation.player.* ve animation.humanoid.* (yukarida
+          anlatilan ayni kova farki)
+     - 1  animation.skeleton.attack ZATEN bagliydi:
+          Simsek_Oyuncu_Modeli/entity/player.entity.json
+          satir 397, "skeleton_attack" esleme adiyla. Yani
+          yeni bir DIS degil, tanidik bir kimlik.
+     ----
+      35  kalan                                              */
 const disSayisi = say("DIS  :");
 kontrol("dis (vanilla) animasyon sayisi degismedi",
-        disSayisi === 67, disSayisi + " tane (beklenen 67)");
+        disSayisi === 102, disSayisi + " tane (beklenen 102)");
 
 console.log(hata ? "\nKALDI" : "\nhepsi gecti");
 process.exit(hata ? 1 : 0);
