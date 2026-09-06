@@ -34,12 +34,20 @@ for (let i = 0; i < 6; i++) {
 
 console.log("");
 console.log("=== JEST 2: her yetenegi sirayla calistir (egil + zipla) ===");
-const beklenen = ["Yildirim Halkasi","Yon Simsegi","Alan Simsegi","TNT Yagmuru","Toprak Topu"];
+/* v7.52: Tek Simsek (sira 21) ve Toprak Izi (22) eklendi,
+   liste ona gore uzadi. Bu testte sabit liste DOGRU: olctugu
+   sey zaten "jest sirasi bu mu" -- yeni yetenek eklendiginde
+   burasi dusmeli ve sira bilerek mi degisti diye bakilmali.
+   (yeni2.mjs ve yeni_yetenekler.mjs'te durum farkliydi:
+   onlar TEK BIR yetenegi sinariyordu ve sirayi sabitlemeleri
+   gereksizdi; ikisi de ADA gore aramaya cevrildi.)         */
+const beklenen = ["Yildirim Halkasi","Yon Simsegi","Tek Şimşek","Toprak İzi",
+                  "Alan Simsegi","TNT Yagmuru","Toprak Topu"];
 // secimi basa al
 esyasizSifirla();
 function esyasizSifirla(){}
 let hata = false;
-for (let i = 0; i < 5; i++) {
+for (let i = 0; i < beklenen.length; i++) {
   const D2 = dunyaKur();
   const p = oyuncuKur(D2.boyut, { x: 0.6, y: -0.3, z: 0.74 }, { x: 0.5, y: 90.6, z: 0.5 });
   p.id = "sec-" + i;
@@ -64,13 +72,24 @@ for (let i = 0; i < 5; i++) {
   p.isSneaking = true; p.isJumping = true;
   sus(); tickIlerlet(8); ac();
   p.isJumping = false;
-  sus(); tickIlerlet(300); ac();
+  /* HAREKETE BAGLI YETENEKLER icin oyuncu GERCEKTEN yuruyor.
+     Toprak Izi duruyorken bilerek hicbir sey yazmiyor (kaynak
+     Boby1545 her tick yaziyordu, duzeltilen sey bu). Duran bir
+     test oyuncusuyla olculseydi "HICBIR SEY OLMADI" cikardi --
+     yetenegin dogru davranisi teste hata gibi gorunurdu.    */
+  for (let t = 0; t < 300; t++) {
+    if (t % 10 === 0) {
+      p.location = { x: 0.5 + Math.floor(t / 10), y: 89, z: 0.5 };
+    }
+    sus(); tickIlerlet(1); ac();
+  }
 
   const bloklar = D2.sayac.setType, dogan = D2.sayac.dogan.length;
   const tnt = D2.sayac.dogan.filter(d=>d.tip==="minecraft:tnt").length;
   const sim = D2.sayac.dogan.filter(d=>d.tip==="minecraft:lightning_bolt").length;
   let sonuc = "";
   if (bloklar > 500) sonuc = bloklar + " blok (toprak topu)";
+  else if (bloklar > 0 && sim === 0 && tnt === 0) sonuc = bloklar + " blok";
   else if (tnt > 0)  sonuc = tnt + " TNT";
   else if (sim > 0)  sonuc = sim + " yildirim";
   else sonuc = "HICBIR SEY OLMADI";

@@ -88,6 +88,8 @@ import { arindir, arinmaUnut, savunmaAc } from "./yetenekler/arinma.js";
 
 /* v7.36: Kafes Kirma -- bloklarla hapsedilmeye karsi. */
 import { kafesKir, kafesUnut } from "./yetenekler/kafes.js";
+import { tekSimsekUnut } from "./yetenekler/tek_simsek.js";
+import { izUnut } from "./yetenekler/toprak_izi.js";
 
 /* v7.30: Gozcu -- vurus denetimi (menzil + killaura). Kendi
    olay aboneligini kuruyor, yetenek degil.                  */
@@ -183,6 +185,8 @@ import {
    eklemek icin yetenekler/ altina dosya ac ve buraya bir satir
    ekle. Bedrock'ta klasor tarama yok, import sart.              */
 import "./yetenekler/yildirim.js";
+import "./yetenekler/tek_simsek.js";
+import "./yetenekler/toprak_izi.js";
 import "./yetenekler/yildirim_halkasi.js";
 import "./yetenekler/alan_simsegi.js";
 import "./yetenekler/tnt_yagmuru.js";
@@ -2373,6 +2377,8 @@ olayaAbone("playerLeave", (olay) => {
   blokUnut(olay.playerId);
   isinBeklemeUnut(olay.playerId);   // v7.44: zirh isini beklemeleri
   kafesUnut(olay.playerId);
+  tekSimsekUnut(olay.playerId);
+  izUnut(olay.playerId);
   yedekUnut(olay.playerId);
   kipUnut(olay.playerId);
   /* KACIS SIRALAMA ONEMLI: once hukum, sonra unutma.

@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.51.0";
+export const SURUM = "v7.52.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -63,6 +63,57 @@ export const SIMSEK_GRUP   = 1;
 export const SIMSEK_ARALIK = 3;
 export const TNT_GRUP      = 2;
 export const TNT_ARALIK    = 2;
+
+/* ---------------- TEK SIMSEK  (v7.52) --------------------
+   Kullanici iki eklenti gonderdi (Boby1545 Mini Pack ve
+   Kevin1545 modu, ikisi de eymox derlemesi) ve sordu:
+   "bir tanesinde tek tek Simsek atabiliyorsun ... onun nasil
+   yaptigina bir bak bize gecir."
+
+   ---- KAYNAKTA GERCEKTEN NE VAR ----
+   Iki ayri yol bulundu, ikisi de AYNI ise cikiyor:
+
+   1. Kevin1545 · yildirim.mcfunction  -- TEK SATIR:
+        summon lightning_bolt ^^^12
+      Caret (yerel) koordinat: baktigin yonde SABIT 12 blok
+      ileri. Nisan yok, raycast yok, arada ne varsa onemsiz.
+      Esyada `minecraft:cooldown` var (1 sn) -- yani hizli ve
+      tek tek basiliyor.
+
+   2. Boby1545 · menu.js  "1535_0 Normal Simsek":
+        getEntitiesFromRay -> getBlockFromRay -> yon*12
+      Uc kademeli nisan, sonra tek `summon lightning_bolt`.
+
+   ---- BIZDE NEDEN YOKTU ----
+   Dort simsek yetenegimiz var (Yon Simsegi, Coklu, Alan,
+   Halka) ve DORDU DE YAGMUR: SIMSEK_SAYISI tane simsek
+   SIMSEK_ARALIK tickte bir dusuyor. Guclu ama agir; tek bir
+   moba nisan alip bir kere basmak diye bir sey yoktu.
+   Kullanicinin fark ettigi eksik tam olarak bu.
+
+   ---- BIZIMKI KAYNAKTAN NEREDE AYRILIYOR ----
+   a) Kevin'in `^^^12`si arada duvar olsa da 12 blok ileriye
+      vuruyor -- yani duvarin ARKASINA. Bizimki once varliga,
+      sonra bloga nisan aliyor; hicbiri yoksa TEK_SIMSEK_UZAK
+      blok ileri. Ucuncu kademe kaynagin davranisi, ilk ikisi
+      Boby'nin.
+   b) Bekleme JS'te (TEK_SIMSEK_BEKLEME), esyada degil: bu
+      depodaki butun beklemeler tek yerden okunuyor.
+   c) Yagmur ISI ACMIYOR. Tek tick, tek varlik, is yok --
+      "tek tek basma" hissi ancak boyle oluyor.              */
+export const TEK_SIMSEK_ACIK    = true;
+export const TEK_SIMSEK_SIRA    = 21;   // Yon Simsegi (20) yaninda
+/* 10 tick = 0.5 sn. Kaynagin esya beklemesi 1 sn; yarisi
+   secildi cunku bizimki yagmur degil, tek atis -- "tek tek"
+   hissi bekleme kisaldikca artiyor. Yine de sifir degil:
+   sifir bekleme, tek atisi otomatik silaha cevirirdi.       */
+export const TEK_SIMSEK_BEKLEME = 10;
+/* Nisan menzili. KILIT_MENZIL (32) ile ayni: ikisi de varlik
+   taramasi ve 32 gorus mesafesiyle uyumlu.                  */
+export const TEK_SIMSEK_MENZIL  = 32;
+/* Hicbir seye nisan alinamadiginda kac blok ileri dussun.
+   Kaynagin ikisinde de 12; degistirmek icin sebep yok.      */
+export const TEK_SIMSEK_UZAK    = 12;
 
 /* ---------------- Hedef kilidi ----------------
    Tek simsek atarken karsindaki varliga kilitlenme. Hedef yoksa
@@ -497,6 +548,51 @@ export const DUVAR_GENISLIK = 3;    // merkezden saga/sola (3 = 7 blok)
 export const DUVAR_YUKSEK   = 4;    // kac blok yukari
 export const DUVAR_DERINLIK = 1;    // kac blok kalinlikta
 export const DUVAR_BLOK     = "minecraft:dirt";
+
+/* ---------------- TOPRAK IZI  (v7.52) --------------------
+   Kaynak: Boby1545 Mini Pack · menu.js  "boby_2 Yurudugun
+   Yer Toprak". Kaynakta tek dongu:
+
+     system.runInterval(() => {
+       for (const id of activeTrails) {
+         ...
+         player.dimension.runCommand(`setblock ${x} ${y} ${z} dirt replace`)
+       }
+     }, 1);
+
+   ---- KAYNAKTA UC SORUN VAR, UCU DE BURADA YOK ----
+   1. HER TICK YAZIYOR. Duruyorsan bile saniyede 20 setblock
+      -- ayni bloga, ayni degeri. Bu depodaki en eski kural
+      "bos duran mod hicbir blok okumaz"; burada koordinat
+      DEGISMEDIKCE tek bir islem bile yapilmiyor.
+   2. GERI ALMIYOR. Yurudugun her yer kalici toprak oluyor.
+      kevin.mjs'te kayitli kural: "koydugunu GERI ALIYOR".
+      Burada eski blok tipi deftere yaziliyor ve iz kapaninca
+      aynen geri konuyor.
+   3. SURESIZ. Acan kapatmayi unutursa dunya sonsuza kadar
+      toprak. Burada hem sure hem blok tavani var.
+
+   IZ_TAVAN neden 256: dolunca EN ESKI iz geri konup listeden
+   dusuyor (kuyruk). Yani sinir "iz durur ve calismaz" degil,
+   "arkanda en fazla 256 blokluk bir kuyruk kalir".         */
+export const IZ_ACIK   = true;
+export const IZ_SIRA   = 22;               // Tek Simsek (21) yaninda
+export const IZ_BLOK   = "minecraft:dirt";
+export const IZ_SURE   = 2400;             // 2 dk
+export const IZ_TAVAN  = 256;              // ayni anda kac blok
+/* Ustune yazilmayan bloklar. Kaynagin `replace` filtresi YOK,
+   yani sandigi da toprak yapiyor -- icindekiyle birlikte.
+   kafes.js'teki KAFES_KORUNAN ile ayni gerekce.            */
+export const IZ_KORUNAN = [
+  "minecraft:chest", "minecraft:trapped_chest", "minecraft:ender_chest",
+  "minecraft:barrel", "minecraft:shulker_box", "minecraft:undyed_shulker_box",
+  "minecraft:furnace", "minecraft:lit_furnace", "minecraft:blast_furnace",
+  "minecraft:smoker", "minecraft:hopper", "minecraft:dispenser",
+  "minecraft:dropper", "minecraft:brewing_stand", "minecraft:beacon",
+  "minecraft:bedrock", "minecraft:chiseled_bookshelf", "minecraft:decorated_pot"
+];
+/* Kendi bloklarimiz. kafes.js ve arinma.js ile ayni onek. */
+export const IZ_KORUNAN_ONEK = "pa:";
 
 /* ---------------- Cift el (iki kol birden) ----------------
    BoraLo videolarinda iki kol ayni anda takili: hem ors yagiyor

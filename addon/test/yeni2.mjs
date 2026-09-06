@@ -15,18 +15,35 @@ console.warn = w;
 const sus = () => { console.warn = () => {}; };
 const ac  = () => { console.warn = w; };
 
-// sira: 10 halka, 20 yon, 30 alan, 40 tnt, 50 top, 60 savur, 70 ucus, 80 gtnt, 90 meteor
-function kosJest(D, o, kacKere, tick = 400) {
+/* ---- SAYIYA DEGIL ADA GORE ILERLEME  (v7.52) ----
+   Burada eskiden "6 kere jest yap, Ucus secili olur" yaziyordu
+   ve yaninda "sira: 10 halka, 20 yon, 30 alan..." diye bir
+   harita duruyordu. O harita her yeni yetenekte eskiyor: Tek
+   Simsek (21) ve Toprak Izi (22) eklenince UC test birden
+   dustu, cunku 6. jest artik Ucus degildi.
+
+   Bu bir yetenek hatasi degil TEST hatasiydi -- olculen sey
+   davranis degil SIRADAKI YERDI. Artik istenen ADA ulasana
+   kadar ilerliyor; araya yetenek girmesi testi bozmuyor.
+
+   TAVAN neden var: ad hic gelmezse dongu sonsuza gitmesin.
+   Bulunamazsa son secim donuyor ve cagiran "secili: ..."
+   satirinda yanlis adi goruyor -- sessizce gecmiyor.       */
+function kosJestAd(D, o, istenenAd, tick = 400, tavan = 40) {
   _durum.oyuncular = [o];
   o.isSneaking = true;
   const bakis = o.getViewDirection();
-  for (let k = 0; k < kacKere; k++) {
+  const oku = () => (o.onScreenDisplay._son || "")
+    .replace(/§./g, "").replace("» ", "").split(" (")[0].trim();
+  let secim = "";
+  for (let k = 0; k < tavan; k++) {
     o.getViewDirection = () => ({x:0,y:1,z:0});
     sus(); tickIlerlet(16); ac();
     o.getViewDirection = () => bakis;
     sus(); tickIlerlet(8); ac();
+    secim = oku();
+    if (secim === istenenAd) break;
   }
-  const secim = (o.onScreenDisplay._son||"").replace(/§./g,"").replace("» ","").split(" (")[0];
   o.isJumping = true; sus(); tickIlerlet(8); ac(); o.isJumping = false;
   sus(); tickIlerlet(tick); ac();
   return secim;
@@ -37,7 +54,7 @@ console.log("=== UCUS ===");
   const D = dunyaKur();
   const o = oyuncuKur(D.boyut, { x: 1, y: 0, z: 0 }, { x: 0.5, y: 90.6, z: 0.5 });
   o.id = "uc";
-  const secim = kosJest(D, o, 6, 60);
+  const secim = kosJestAd(D, o, "Ucus", 60);
   const ef = D.boyut._efektler || [];
   console.log("  secili: " + secim);
   for (const e of ef) console.log("  efekt: " + e.ad + " sure=" + e.sure + " tick (" + (e.sure/20).toFixed(1) + " sn)");
@@ -51,7 +68,7 @@ console.log("=== GUCLU TNT ===");
   const D = dunyaKur();
   const o = oyuncuKur(D.boyut, { x: 0.8, y: 0.2, z: 0 }, { x: 0.5, y: 90.6, z: 0.5 });
   o.id = "gt";
-  const secim = kosJest(D, o, 7, 200);
+  const secim = kosJestAd(D, o, "Guclu TNT", 200);
   const tnt = D.sayac.dogan.filter(d=>d.tip==="minecraft:tnt");
   console.log("  secili: " + secim);
   console.log("  dogan TNT: " + tnt.length + " (1 olmali)");
@@ -66,7 +83,7 @@ console.log("=== METEOR ===");
   const D = dunyaKur();
   const o = oyuncuKur(D.boyut, { x: 0.8, y: -0.3, z: 0 }, { x: 0.5, y: 90.6, z: 0.5 });
   o.id = "mt";
-  const secim = kosJest(D, o, 8, 300);
+  const secim = kosJestAd(D, o, "Yildirim Meteoru", 300);
   const sim = D.sayac.dogan.filter(d=>d.tip==="minecraft:lightning_bolt").length;
   console.log("  secili: " + secim);
   console.log("  yildirim: " + sim + " | patlama: " + D.sayac.patlama.length + " (6/6 olmali)");

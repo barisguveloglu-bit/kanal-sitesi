@@ -1,3 +1,127 @@
+# v7.52.0 — "tek tek şimşek": iki eklentiden iki yetenek
+
+Kullanıcı iki eklenti gönderdi (Boby1545 Mini Pack ve Kevin1545
+modu, ikisi de eymox) ve sordu: *"bir tanesinde tek tek Şimşek
+atabiliyorsun, hangisi olduğunu bilmiyorum ama onun nasıl
+yaptığına bir bak bize geçir."*
+
+**İkisinde de var, iki ayrı yolla.**
+
+Tam kayıt: [`REFERANS_EYMOX_BOBY_KEVIN.md`](REFERANS_EYMOX_BOBY_KEVIN.md).
+
+## Kaynaktaki iki yol
+
+**Kevin1545 · `yildirim.mcfunction` — tek satır:**
+
+```
+summon lightning_bolt ^^^12
+```
+
+`^^^12` caret (yerel) koordinat: baktığın yönde sabit 12 blok
+ileri. Kılıcın `minecraft:on_use` olayına bağlı, `cooldown`
+1 saniye. "Tek tek" hissi buradan.
+
+**Boby1545 · `menu.js` — üç kademeli nişan:**
+`getEntitiesFromRay` → `getBlockFromRay` → `yön*12`, sonra tek
+`summon lightning_bolt`.
+
+## Bizde neden yoktu
+
+Dört şimşek yeteneğimiz vardı ve **dördü de yağmur**
+(`SIMSEK_SAYISI` 20 tane, `SIMSEK_ARALIK` 3 tickte bir). Tek bir
+moba nişan alıp bir kere basmak diye bir şey yoktu.
+
+## 1. Tek Şimşek (sıra 21)
+
+Boby'nin üç kademesi + Kevin'in üçüncü kademesi (12 blok).
+Kaynaktan üç farkı var:
+
+1. **Duvarın arkasına geçmiyor.** Kevin'in `^^^12`'si arada
+   duvar olsa da 12 blok ileri vuruyor; bizde blok kademesi
+   ikinci sırada.
+2. **Bekleme eşyada değil JS'te** — bu depodaki bütün beklemeler
+   `ayarlar.js`'ten okunuyor.
+3. **İş açmıyor.** Bir tick, bir varlık, bitti. Yağmur işi
+   açsaydı "tek tek basma" hissi kaybolurdu.
+
+Mutasyon: 6 bozma, 6'sı da yakalandı.
+
+## 2. Toprak İzi (sıra 22)
+
+Boby'nin `"boby_2"` gücü. Kaynağın üç sorunu var, üçü de bizde
+yok:
+
+| sorun | kaynakta | bizde |
+|---|---|---|
+| her tick yazıyor | duruyorken bile 20 `setblock`/sn | koordinat değişmedikçe tek işlem yok |
+| geri almıyor | kalıcı toprak | eski blok defterde, kapanınca geri |
+| süresiz | sonsuza kadar | 2 dk + 256 blokluk kuyruk |
+
+Kaynağın `replace` filtresi de yok: sandığı da içindekiyle
+birlikte toprağa çeviriyor. `IZ_KORUNAN` bunu engelliyor.
+
+## Mutasyonun yakaladığı test boşluğu
+
+İlk turda **en önemli mutasyon kaçtı**: koordinat denetimini
+sildim, test yine yeşil yandı.
+
+Sebep, testin yanlış yerden ölçmesiydi. 2. bölüm **taş**
+üzerinde duruyordu; taş yazılabilir, yani ilk tickte deftere
+giriyor ve sonraki tickler "zaten yazdım" kaydına takılıp
+dönüyor. Asıl sızıntı **yazılamayan** blokta: sandık deftere hiç
+girmiyor, koordinat denetimi yoksa her tick yeniden bütçe
+isteniyor ve blok okunuyor.
+
+Bölüm sandık üzerinde yeniden yazıldı, `getBlock` sayacına
+bakıyor. Mutasyon artık yakalanıyor. `anna.mjs`'te kayıtlı ders
+bir kez daha: **yanlış yerden ölçen bir test, test değildir.**
+
+## Üç test düştü — ve düşmeleri doğruydu
+
+Yeni iki yetenek sıra 21-22'ye girince `jest.mjs`, `yeni2.mjs`
+ve `yeni_yetenekler.mjs` düştü: üçü de **sayıya göre** yetenek
+seçiyordu ("6 kere jest yap, Uçuş seçili olur").
+
+İkisi TEK BİR yeteneği sınıyordu ve sırayı sabitlemeleri
+gereksizdi — **ada göre aramaya** çevrildi, artık araya yetenek
+girmesi onları bozmuyor.
+
+`jest.mjs` farklı: onun ölçtüğü şey zaten *jest sırasının
+kendisi*. Orada sabit liste **doğru** — yeni yetenekle birlikte
+uzatıldı, ki bir dahaki sefere de düşsün ve sıra bilerek mi
+değişti diye bakılsın.
+
+`jest.mjs`'in "her yetenek bir şey yapmalı" kuralı Toprak İzi'nde
+"HİÇBİR ŞEY OLMADI" veriyordu — çünkü test oyuncusu duruyor ve
+yetenek duruyorken bilerek hiçbir şey yazmıyor. Yeteneğin *doğru*
+davranışı teste hata gibi görünüyordu. Çözüm muafiyet değil:
+test oyuncusu artık gerçekten yürüyor.
+
+## Alınmayan: `picker_0`, bilerek
+
+Boby'nin "Mobpicker" gücü kurbanı yerin 5 blok dibine gömüyor,
+kör ediyor, `slowness 255` ile donduruyor ve `regeneration` +
+`resistance` 255 ile **ölümsüz** yapıyor — ölerek bile
+kurtulamıyor. Tek çıkış saldırganın düğmesi, eski konum ise
+**bellekteki bir Map'te**: dünya kapanınca kurban orada kalıyor.
+
+Zaman Saati'nde (v7.2) reddettiğimiz hatanın aynısı, üçüncü kez.
+
+Kurtarma fonksiyonunun iki kusuru daha var: `effect clear`
+kurbanın kendi iksirini de siliyor (dördüncü kez reddedilen
+kalıp), ve döngü içindeki `return` yüzünden iki tutsaktan
+**yalnız biri** kurtarılabiliyor.
+
+## Geri kalanı zaten bizdeydi
+
+`hapis` (Kevin1545'ten v6.x'te alınmış), `kol_kopar`/`düzelt`
+(Dondur), `tp ^^^10` (Işınlanma), dev toprak duvar, örs,
+uçma, uçurma, yamultma, 10 blok şimşek yağmuru (Alan Şimşeği),
+3 sn şimşek takibi (Yön Şimşeği'nin hedef kilidi), kafaya model
+takma (kol/konsey derileri).
+
+---
+
 # v7.51.0 — sistem taraması: üretim artık depodan, oyuncu varlığı vanilla ile eşit
 
 Kullanıcı *"sistemi baştan sona tarayıp ölü kod varsa düzeltmeni veya

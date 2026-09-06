@@ -38,13 +38,18 @@ console.log("=== SAVUR (baktigini ucur) ===");
   sus(); itemUseYok(); ac();
   function itemUseYok(){}
   // dogrudan jestle: egil + zipla, secim savur olana kadar degistir
+  /* SAYIYA DEGIL ADA GORE ilerliyoruz (v7.52). Eskiden
+     "savur sirada 6." yaziyordu; Tek Simsek (21) ve Toprak
+     Izi (22) eklenince 6. artik savur degildi ve test dustu.
+     Olculen sey davranis degil SIRADAKI YER'di.            */
   let secim = "";
-  for (let k = 0; k < 5; k++) {   // savur sirada 6. (indeks 5)
+  for (let k = 0; k < 40; k++) {
     o.getViewDirection = () => ({x:0,y:1,z:0});
     sus(); tickIlerlet(16); ac();
     o.getViewDirection = () => ({x:1,y:0,z:0});
     sus(); tickIlerlet(8); ac();
     secim = (o.onScreenDisplay._son||"").replace(/§./g,"");
+    if (secim.replace("» ","").split(" (")[0].trim() === "Baktigini Ucur") break;
   }
   console.log("  secili: " + secim.replace("» ","").split(" (")[0]);
   o.isJumping = true; sus(); tickIlerlet(8); ac(); o.isJumping = false;
@@ -67,11 +72,14 @@ console.log("=== SAVUR: arkadakiler etkilenmemeli ===");
   }];
   D.boyut.getEntities = () => arka;
   _durum.oyuncular = [o];
-  for (let k = 0; k < 5; k++) {
+  for (let k = 0; k < 40; k++) {
     o.getViewDirection = () => ({x:0,y:1,z:0});
     sus(); tickIlerlet(16); ac();
     o.getViewDirection = () => ({x:1,y:0,z:0});
     sus(); tickIlerlet(8); ac();
+    const ad = (o.onScreenDisplay._son||"").replace(/§./g,"")
+      .replace("» ","").split(" (")[0].trim();
+    if (ad === "Baktigini Ucur") break;
   }
   o.isJumping = true; sus(); tickIlerlet(8); ac(); o.isJumping = false;
   sus(); tickIlerlet(40); ac();
