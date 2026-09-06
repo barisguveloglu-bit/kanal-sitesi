@@ -1,7 +1,7 @@
 import { world } from "@minecraft/server";
 import { yetenekKaydet } from "./kayit.js";
 import {
-  hataYaz, bilgiYaz, gecerliMi, kollariIndir, kilitliHedef, varlikKonumu,
+  hataYaz, bilgiYaz, kollariIndir, kilitliHedef, varlikKonumu,
   actionbarYaz, hedefBul, parcacikAt
 } from "../yardimcilar.js";
 import {

@@ -1,12 +1,12 @@
 {
   "format_version": 2,
   "header": {
-    "name": "Şimşek 7.39.0 · Skin",
+    "name": "Şimşek 7.40.0 · Skin",
     "description": "Uzak Akraba ve diğer skinler.",
     "uuid": "45f22ff1-d633-49d1-b5e9-f8870fe98200",
     "version": [
       7,
-      39,
+      40,
       0
     ]
   },
@@ -16,7 +16,7 @@
       "uuid": "8333e7a8-7e19-4736-b1f5-e5558a586b52",
       "version": [
         7,
-        39,
+        40,
         0
       ]
     }

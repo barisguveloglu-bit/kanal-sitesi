@@ -687,7 +687,6 @@ export function botGeri(oyuncu) {
   const liste = listeAl(oyuncu.id);
   if (liste.length === 0) return 0;
 
-  let silinen = 0;
   for (const kayit of liste) {
     const v = varligiBul(kayit);
     if (v) {
@@ -697,7 +696,6 @@ export function botGeri(oyuncu) {
       try { vid = v.id; } catch (e) { vid = undefined; }
       try {
         v.remove();
-        silinen++;
       } catch (e) {
         hataYaz("bot.remove", e);
       }

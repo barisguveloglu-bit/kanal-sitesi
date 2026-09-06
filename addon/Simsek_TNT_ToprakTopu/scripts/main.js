@@ -36,7 +36,9 @@ import {
 import { menuAc, menuKullanilabilir } from "./menu.js";
 import { asaTara } from "./yetenekler/asa.js";
 import { disTara } from "./yetenekler/disler.js";
-import { kilicKullan, kilicTara, kilicUnut } from "./yetenekler/kilic.js";
+import {
+  kilicKullan, kilicTara, kilicUnut, kilicGirisDuzelt
+} from "./yetenekler/kilic.js";
 import { tasTara, tasUnut } from "./yetenekler/tas.js";
 import { silahKullan, silahTara, silahUnut, silahiBul } from "./yetenekler/silahlar.js";
 
@@ -2388,6 +2390,26 @@ olayaAbone("playerSpawn", (olay) => {
     } catch (e) {
       // Komut eski surumlerde yok; kilit de kurulamamis demektir
     }
+  }
+
+  /* ---- SON EMNIYET 2: IZLEYICI KIPINDEN CIKAR ----  (v7.40)
+
+     Ustteki kilidin ayni sinifindan bir acik: Kilic oyuncuyu
+     200 tick izleyici yapiyor ve geri donduren tek yer bir
+     tarama dongusuydu. Oyuncu izleyiciyken CIKARSA ya da dunya
+     kapanip acilirsa geri donduren kimse kalmiyordu -- ucabilen,
+     bloktan gecebilen, gorunmez, kalici bir oyuncu.
+
+     Cikarken duzeltmek MUMKUN DEGIL: playerLeave elimize yalniz
+     kimlik verir, oyuncu nesnesi gecersizdir. O yuzden burada.
+
+     Kosulsuz survival YAPMIYOR: yalnizca deftere BIZIM
+     yazdigimiz oyuncuyu geri aliyor. Kendi istegiyle izleyici
+     olan birini geri cekmek, acigi kapatmaktan kotu olurdu. */
+  try {
+    kilicGirisDuzelt(olay.player);
+  } catch (e) {
+    hataYaz("playerSpawn.kilicGirisDuzelt", e);
   }
 
   if (!OLCUM_SOHBETE && !HATA_SOHBETE) return;

@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.39.0";
+export const SURUM = "v7.40.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -3244,6 +3244,30 @@ export const KILIC_TAVAN = 1331;        // guvenlik siniri
    SURELI: kilit hep cift (bkz. asa.js ayni kural).        */
 export const KILIC_IZLEYICI_SURE = 200; // 10 saniye
 export const KILIC_BEKLEME = 200;       // 10 saniye
+
+/* ---------------- KALICI IZLEYICI KAYDI (v7.40) ------------
+   ---- BULUNAN ACIK ----
+   Kilic oyuncuyu 200 tick izleyici (spectator) kipine aliyor ve
+   geri dondurme isini YALNIZ kilicTara() yapiyordu. Iki yoldan
+   birinde oyuncu KALICI izleyici kaliyordu:
+
+     1. Oyuncu izleyiciyken CIKARSA -- kilicUnut() kaydi
+        siliyordu, geri donduren kimse kalmiyordu.
+     2. Dunya kapanip acilirsa -- `izleyiciler` Map'i bellekte.
+
+   Sonuc: ucabilen, bloktan gecebilen, gorunmez bir oyuncu.
+   Oyunun icinden geri donusu yok.
+
+   ---- ONERILEN COZUM TEK BASINA CALISMAZDI ----
+   "kilicUnut icinde silmeden once modYaz cagir" denmisti. Ama
+   playerLeave elimize yalniz KIMLIK veriyor; oyuncu nesnesi o
+   anda gecersiz ve setGameMode istisna atar. Yani cikan
+   oyuncunun kipi CIKARKEN yazilamaz.
+
+   Dogru yol: kayit dunya ozelligine yaziliyor, geri donus
+   OYUNCU TEKRAR GIRINCE yapiliyor (playerSpawn). Ayni kalip
+   main.js'te girdi kilidi icin zaten var ("son emniyet").  */
+export const KILIC_KAYIT_ANAHTAR = "simsek:izleyiciler";
 
 /* ============================================================
    SILAH SISTEMI  (v4.87)

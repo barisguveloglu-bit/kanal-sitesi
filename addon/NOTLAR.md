@@ -1,3 +1,179 @@
+# v7.40.0 — Dış inceleme raporu: doğrulandı ve kapatıldı
+
+Kullanıcı paketi başka bir modele statik olarak taratıp raporu
+getirdi. **Bulguların hepsi tek tek doğrulandı** — kabul edilip
+uygulanmadı, koda bakıldı.
+
+## Rapor her şeyde haklı değildi
+
+Önce bunu yazmak gerekiyor, çünkü raporlar da ölçülür:
+
+- **"BETA_GEREKLI false olduğu için chatSend bulunamaz."**
+  Yanlış. `sohbet.js` `BETA_GEREKLI`'ye **hiç bakmıyor**; olayın
+  varlığını çalışma anında sınıyor. Sonuç doğru olabilir ama
+  gösterilen sebep değil.
+- **"Bağlanmamış temizleyiciler: `asaUnut`, `beceriUnut`,
+  `ben10SaldiriUnut`, `dislerUnut`, `takasUnut`, `cepleriUnut`,
+  `ilkelUnut`."** Yanlış — ve bağlansalardı **zarar verirdi**:
+  - `asaUnut(botId)` · `dislerUnut(botId)` · `ilkelUnut(botId)`
+    **bot** kimliğiyle çalışıyor ve `ilkelSilmeKancasi(ilkelUnut)`
+    ile bot silme kancasına zaten bağlı. `playerLeave`'e bağlamak
+    yanlış anahtarla silmek olurdu.
+  - `beceriUnut()` · `takasUnut()` · `cepleriUnut()` ·
+    `ben10SaldiriUnut()` **argümansız**: "hepsini sıfırla"
+    biçiminde test yardımcıları. `playerLeave`'e bağlansalardı
+    bir oyuncu çıkınca **herkesin** durumu silinirdi.
+
+Benim ilk doğrulamam da özensizdi: "kaç kez geçiyor" diye
+sayınca beş değişkeni "kullanılıyor" sandım — oysa ikinci geçiş
+**yorumdaydı**. Tek tek bakınca raporun haklı olduğu görüldü.
+
+## 1. Kalıcı izleyici açığı (kilic.js) — en ciddisi
+
+Kılıç oyuncuyu 200 tick spectator yapıyor, geri döndürme işini
+yalnız `kilicTara()` yapıyordu. İki yoldan biri gerçekleşince
+oyuncu **kalıcı izleyici** kalıyordu: (1) izleyiciyken çıkmak,
+(2) dünyanın kapanıp açılması. Uçabilen, bloktan geçebilen,
+görünmez bir oyuncu — oyunun içinden geri dönüşü yok.
+
+**Önerilen çözüm tek başına çalışmazdı.** Rapor "`kilicUnut`
+içinde silmeden önce `modYaz` çağır" diyordu; ama `playerLeave`
+elimize yalnız **kimlik** veriyor, oyuncu nesnesi o anda geçersiz
+ve `setGameMode` istisna atar. Çıkarken kip yazılamaz.
+
+Doğru yol: kayıt dünya özelliğine yazılıyor, geri dönüş oyuncu
+**tekrar girince** yapılıyor (`playerSpawn`). Aynı kalıp
+`main.js`'te girdi kilidi için zaten vardı ("son emniyet").
+
+Koşulsuz survival **yapmıyor**: yalnızca deftere bizim
+yazdığımız oyuncu geri alınıyor. Kendi isteğiyle izleyici olan
+birini geri çekmek, açığı kapatmaktan kötü olurdu.
+
+## 2. Sahipsiz heykeller (tas.js) — ölü kod
+
+`oku()` yazılıydı ama **hiçbir yerden çağrılmıyordu**. Dosyanın
+sonundaki yorum "dünya açılınca eski heykelleri temizle"
+diyordu; altındaki satır ise yalnızca olay aboneliği kuruyordu.
+Yorum bir süre kodun yapmadığı şeyi anlattı.
+
+Sonuç tam olarak yorumda korkulan şeydi: yeniden yüklemeden
+sonra taş heykel blokları dünyada sahipsiz kalıyordu.
+
+Açılışta hepsini birden silmek **doğru değil** — blok yazmak
+için parçanın yüklü olması gerekiyor ve bu depoda "boşta duran
+mod blok okumaz" bir kural. Yol: liste açılışta bir kez
+okunuyor, taramada **tick başına bir tane** deneniyor. Liste
+birkaç saniyede tükeniyor, sonrasında maliyet sıfır.
+Temizlenemeyen kayıt defterde kalıyor.
+
+## 3. `vuran` tanımsız (goz_lazeri.js)
+
+`bitir()` içindeki özet, `isinVur()`'un **yerelini** okuyordu.
+En az bir blok delinen her lazerde özet actionbar'ı hiç
+görünmüyor, yerine Content Log'a `ReferenceError` düşüyordu.
+
+Doğru değişken zaten vardı: `toplamVuran`. Canlı actionbar onu
+kullanıyordu — yani **özet ile canlı gösterge aynı sayıyı
+söylemiyordu bile**.
+
+## 4. display_name dil dosyasını eziyordu
+
+516 eşyanın hepsinde `minecraft:display_name` düz metin.
+Bedrock'ta display_name lang'ı **eziyor**, yani 1059 satırlık
+dil dosyası eşyalar için ölü ağırlıktı **ve sessizce kaymıştı**:
+altı eşyada JSON ile lang farklıydı, oyunda JSON kazanıyordu.
+Oyuncu "Ucus Kolu", "Gunes Kolu", "Kanli Kol" görüyordu.
+
+Kaynağı bir **kuraldı**: üretecin `TR_AD` tablosunun başlığında
+*"dil dosyası için; JSON'da ASCII tutuluyor"* yazıyordu. Kural
+kendi amacını yok ediyordu — şapkalı ad hiç ekrana gelmiyordu.
+Dayanağı da yoktu: aynı dosyada zaten şapkalı display_name var
+("Kol Takası (geçici)") ve çalışıyor.
+
+Artık ikisi de **aynı kaynaktan** türüyor. Dil dosyası
+silinmedi: kaynak paketi kurulmadan da eşya adı okunabilir
+kalsın diye (BP tek başına kurulabiliyor, depo bunu özellikle
+uyarıyor).
+
+## 5. Sohbet: salt-okunur kip ve yanıltıcı mesaj
+
+`cevapYaz` `beforeEvents.chatSend` **içinden** çağrılıyordu ve
+`sendMessage` dünyayı değiştiren bir çağrı — salt-okunur kipte
+istisna atar. Eski yorum "burada sadece metin yazılıyor"
+diyordu; metin yazmak da bir değişiklik. Bugüne kadar
+patlamamasının tek sebebi `chatSend`'in kararlı API'de hiç
+bulunmaması, yani o dalın zaten çalışmamasıydı.
+
+**Koşulsuz `system.run` yanlış çözümdü** ve ölçüldü: çalışan
+durumu da bir tick geciktiriyor, üç testte cevap "son mesaj"
+olmaktan çıkıyordu. `modYaz`'daki kalıp kullanıldı — önce
+doğrudan dene, istisna atarsa bir sonraki tick'e at.
+
+Abonelik mesajı da düzeltildi: v4.25'te manifest kararlı
+`2.0.0`'a geçmişti, mesaj hâlâ "Beta modülü yüklü ama" diyordu.
+
+## Yapılmayanlar ve sebepleri
+
+**6. `min_engine_version` / `@minecraft/server 2.0.0` —
+manifeste DOKUNULMADI.** Rapor haklı: resmî sürüm tablosunda
+1.21.0 → modül **1.11.0**, ve 2.0.0-beta ancak 1.21.70
+önizlemelerinde göründü. Yani `[1,21,0]` ile `2.0.0` bir arada
+tutarsız.
+
+Ama **doğru alt sınır belgelenmemiş** — tablo 1.17.0 → 1.21.60'ta
+bitiyor. Düello öncesi tahminle yükseltmek, çalışan bir kurulumu
+kilitleme riski taşıyordu. Eklenti tablette çalıştığına göre
+oyunun sürümü zaten yeterli; **doğru değeri yazmak için o sürümü
+bilmek gerekiyor** (bu, "Bekleyen işler"in 1. maddesinin aynısı).
+
+`@minecraft/server-ui` bağımlılığı da **kaldırılmadı**: Bedrock
+yalnızca manifestte bildirilen modülleri import etmeye izin
+veriyor, yani kaldırmak dinamik import'u da öldürürdü. Rapor
+gerilimi doğru tespit etmiş; çözümü "bağımlılığı sil" değil.
+
+**8. `minecraft:player` ezilmesi — bilinçli.** Oyuncu modelini
+değiştirmek bu modun çekirdeği. Riskler gerçek (başka model
+modlarıyla çakışma, vanilla'nın yeni bileşenlerini silme) ama
+"düzeltilecek hata" değil, mimarinin bedeli. `pa:matkap`'ın
+1.18.20 format sürümüyle gerçekten okunup okunmadığı **oyunda
+denenmedi** — rapor da öyle diyor, katılıyorum.
+
+**9'un kalanı:** `pa_boy_kucuk`'ta ölçek/çarpışma uyuşmazlığı,
+boş `particles/` klasörü, 8 kullanılmayan geometri, dynamic
+property tavanları — hiçbiri oyuncunun hissedeceği bir kırık
+değil, bu turda ele alınmadı.
+
+## Temizlenen kullanılmayan değişkenler
+
+`_bot_defteri.js` `silinen` (yazılıp okunmuyordu) ·
+`goz_lazeri.js` `bas`/`yon` (atanıyor, `isinVur` kendi
+parametrelerini kullanıyor — **çağrılar kaldı**, çünkü
+okunamıyorsa yetenek hiç başlamamalı) · `marvel.js` `uzerinde` ·
+`gozcu.js` `HAREKET_ORNEK` · `isin_topu.js` `system` ·
+`yakala.js` `gecerliMi`.
+
+## Test
+
+`test/denetim.mjs` (yeni, 5 bölüm). On mutasyon denendi.
+
+**İlk yazılışta ikisi KAÇTI ve ikisi de testin kendi kusuruydu:**
+
+1. `tas.js`'in temizlik listesi oturum başına bir kez okunuyor;
+   test ikinci senaryoyu kurduğunda liste zaten tükenmişti, yani
+   "başkasının bloğuna dokunmuyor" maddesi **boşuna geçiyordu**.
+   `defteriUnut()` artık onu da sıfırlıyor.
+2. Lazer maddesi ham metinde arıyordu ve düzeltmenin yanına
+   yazdığım **açıklamada** `toplamVuran` geçiyor — madde yorumu
+   kod sanıyordu. `tarama.mjs`'in kalıbıyla yorumlar ayıklandı.
+   Aynı tuzağa 5. bölümde bir kez daha düşüldü.
+
+## Bekleyen
+
+- Hiçbir düzeltme **oyunda denenmedi**.
+- `min_engine_version` hâlâ açık: Minecraft sürümünü söyle, tek
+  satırlık iş.
+
+
 # v7.39.0 — Şimşek artık oyuncuyu da hedefliyor
 
 Kullanıcı bir düelloya çıkıyor ve iki şey istedi:

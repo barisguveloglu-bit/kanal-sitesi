@@ -102,7 +102,7 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # tureniyor -- ayrisabilecekleri bir yer kalmadi.
 #
 # YENI SURUM CIKARIRKEN: yalnizca asagidaki satiri degistir.
-SURUM_NO = (7, 39, 0)
+SURUM_NO = (7, 40, 0)
 
 SURUM_METIN = "%d.%d.%d" % SURUM_NO
 SURUM_ETIKET = "v" + SURUM_METIN
@@ -205,7 +205,28 @@ KOLLAR = [
     ("kol_kanli_bobby", "ors",          "Bobby Kanli Kol",       (57, 8, 8),      (229, 141, 63)),
 ]
 
-# Turkce gorunen adlar (dil dosyasi icin; JSON'da ASCII tutuluyor)
+# Turkce gorunen adlar.
+#
+# ---- "JSON'DA ASCII TUTULUYOR" KURALI KALDIRILDI (v7.40) ----
+# Burasi eskiden "dil dosyasi icin; JSON'da ASCII tutuluyor"
+# diyordu. Dis bir inceleme sonucun tam tersi oldugunu gosterdi:
+#
+#   minecraft:display_name dil dosyasini EZIYOR.
+#
+# Yani sapkali ad hicbir zaman ekrana gelmiyordu; oyuncu hep
+# "Ucus Kolu", "Gunes Kolu", "Kanli Kol" goruyordu. Kural kendi
+# amacini yok ediyordu -- 516 esyanin hepsinde display_name duz
+# metin ve 1059 satirlik dil dosyasi esyalar icin OLU AGIRLIK.
+#
+# Kuralin dayanagi da yoktu: bu dosyanin baska yerlerinde zaten
+# sapkali display_name var ("Kol Takasi (gecici)" -> "Kol
+# Takası (geçici)") ve calisiyor. JSON UTF-8.
+#
+# Artik display_name de buradan turiyor. Dil dosyasi SILINMEDI:
+# kaynak paketi kurulmadan da esyanin adi okunabilir kalsin
+# diye (BP tek basina kurulabiliyor, depo bunu ozellikle
+# uyariyor). Ikisi ayni kaynaktan turedigi icin bir daha
+# kayamazlar; test/denetim.mjs bunu tutuyor.
 TR_AD = {
     "kol_toprak": "Toprak Kol",
     "kol_ucus":   "Uçuş Kolu",
@@ -9912,7 +9933,10 @@ def main():
     en_us, tr_tr = [], []
 
     for kimlik, _yetenek, ad, ana, vurgu in KOLLAR:
-        yaz_json(os.path.join(BP, "items", kimlik + ".json"), esya(kimlik, ad))
+        # v7.40: JSON'a da SAPKALI ad gidiyor -- display_name dil
+        # dosyasini eziyordu, yani sapkali ad hic gorunmuyordu.
+        yaz_json(os.path.join(BP, "items", kimlik + ".json"),
+                 esya(kimlik, TR_AD.get(kimlik, ad)))
         # Kanli Kol'un kendi geometrisi var (dikenler); digerleri
         # geometry.simsek_kol'u paylasiyor.
         # Iki kanli kolun da KENDI geometrisi var (dikenler /
@@ -9979,7 +10003,7 @@ def main():
     # ---- Iksirler ve gozler ----
     for kimlik, ad, sivi, goz, gozRenk in IKSIRLER:
         yaz_json(os.path.join(BP, "items", "iksir_" + kimlik + ".json"),
-                 iksir_esyasi(kimlik, ad))
+                 iksir_esyasi(kimlik, IKSIR_TR.get(kimlik, ad)))
         # Referans moddan gelen gercek ikon varsa onu kopyala,
         # yoksa uretilen siseye dus. Kopyalama sessiz olmasin:
         # dosyayi silen biri bunu paketi acmadan gormeli.

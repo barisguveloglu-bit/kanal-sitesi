@@ -138,12 +138,10 @@ export function marvelTara(oyuncular) {
   const simdi = system.currentTick;
 
   for (const oyuncu of oyuncular) {
-    let uzerinde;
-    try {
-      uzerinde = takilanMarvel(oyuncu);
-    } catch (e) {
-      uzerinde = undefined;
-    }
+    /* v7.40: `uzerinde` burada atanip HIC OKUNMUYORDU (asagida
+       yalniz `guc` kullaniliyor; ayni adli degisken 193. satirda
+       BASKA bir fonksiyonda ve orada gercekten okunuyor).
+       Cagri da yan etkisiz -- ikisi birden dustu.          */
     let guc;
     try { guc = guctekiKahraman(oyuncu); } catch (e) { guc = undefined; }
 

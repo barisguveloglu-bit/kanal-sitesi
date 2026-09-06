@@ -484,10 +484,16 @@ yetenekKaydet({
     const boyut = oyuncu.dimension;
     const ayar = lazerAyari(oyuncu.id, kademe);
 
-    let bas, yon;
+    /* ---- v7.40: DEGISKENLER SILINDI, KAPI KALDI ----
+       `bas` ve `yon` atanip HIC OKUNMUYORDU: isinVur(bas, yon)
+       kendi PARAMETRELERINI kullaniyor ve tek cagrisi
+       isinVur(b, y) -- yani bunlar golgede kaliyordu.
+
+       Ama cagrilarin kendisi olu degil: okunamiyorsa yetenek
+       hic baslamamali. Atama dustu, KAPI durdu.            */
     try {
-      bas = oyuncu.getHeadLocation();
-      yon = oyuncu.getViewDirection();
+      oyuncu.getHeadLocation();
+      oyuncu.getViewDirection();
     } catch (e) {
       hataYaz("goz_lazeri.baslangic", e);
       kollariIndir(oyuncu);
@@ -934,8 +940,21 @@ yetenekKaydet({
       bitir() {
         if (delinen > 0) {
           try {
+            /* ---- v7.40: `vuran` BURADA TANIMSIZDI ----
+               `vuran` isinVur()'un YERELI (bir sayac, her
+               cagrida sifirlaniyor). bitir() baska bir kapanma;
+               oradan okununca ReferenceError atiyordu -- yani
+               en az bir blok delindiginde bu ozet HIC
+               gorunmuyor, her kullanimda Content Log'a hata
+               dusuyordu.
+
+               Dogru degisken zaten vardi: toplamVuran, isin
+               omru boyunca birikiyor ve 847. satirdaki canli
+               actionbar'da da o kullaniliyor. Yani ozet ile
+               canli gosterge ayni sayiyi soylemiyordu bile. */
             actionbarYaz(oyuncu, "§c⚡ " + kademe.ad + " lazeri §7· " +
-                         vuran + " hedef · §8" + delinen + " blok delindi");
+                         toplamVuran + " hedef · §8" + delinen +
+                         " blok delindi");
           } catch (e) {
             hataYaz("goz_lazeri.bitirActionbar", e);
           }

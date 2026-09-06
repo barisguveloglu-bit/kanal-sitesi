@@ -1,4 +1,3 @@
-import { system } from "@minecraft/server";
 import { yetenekKaydet } from "./kayit.js";
 import { patlamaIste } from "../butce.js";
 import {

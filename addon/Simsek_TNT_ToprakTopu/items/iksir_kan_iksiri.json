@@ -12,7 +12,7 @@
         "texture": "iksir_kan_iksiri"
       },
       "minecraft:display_name": {
-        "value": "Kan Iksiri"
+        "value": "Kan İksiri"
       },
       "minecraft:max_stack_size": 16,
       "minecraft:use_animation": "drink",

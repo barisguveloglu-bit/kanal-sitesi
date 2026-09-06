@@ -1,9 +1,12 @@
-import { system } from "@minecraft/server";
+import { system, world } from "@minecraft/server";
 import { blokIste } from "../butce.js";
-import { gecerliMi, actionbarYaz, varlikKonumu } from "../yardimcilar.js";
+import {
+  gecerliMi, actionbarYaz, varlikKonumu, hataYaz
+} from "../yardimcilar.js";
 import {
   KILIC_ACIK, KILIC_YARICAP, KILIC_TAVAN,
-  KILIC_IZLEYICI_SURE, KILIC_BEKLEME, KORUNAN_KUME
+  KILIC_IZLEYICI_SURE, KILIC_BEKLEME, KORUNAN_KUME,
+  KILIC_KAYIT_ANAHTAR
 } from "../ayarlar.js";
 
 /* ============================================================
@@ -42,8 +45,85 @@ const sonKullanim = new Map();
    moddaki biri kilici kullaninca survival'a dusmesin.       */
 const izleyiciler = new Map();
 
+/* ============================================================
+   KALICI IZLEYICI KAYDI  (v7.40)
+
+   Bellekteki `izleyiciler` Map'i iki durumda kaybolur ve oyuncu
+   KALICI izleyici kalirdi: (1) izleyiciyken cikmak, (2) dunyanin
+   kapanip acilmasi. Ucabilen, bloktan gecebilen, gorunmez bir
+   oyuncu; oyunun icinden geri donusu yok.
+
+   Kayit dunya ozelliginde: { oyuncuId: onceki_kip }.
+   Geri donus oyuncu TEKRAR GIRINCE yapiliyor -- cikarken
+   yazilamaz, cunku playerLeave elimize yalniz kimlik verir ve
+   oyuncu nesnesi o anda gecersizdir.                        */
+function kayitOku() {
+  try {
+    const ham = world.getDynamicProperty(KILIC_KAYIT_ANAHTAR);
+    if (typeof ham !== "string" || ham.length === 0) return {};
+    const v = JSON.parse(ham);
+    return (v && typeof v === "object" && !Array.isArray(v)) ? v : {};
+  } catch (e) {
+    return {};
+  }
+}
+
+function kayitYaz(defter) {
+  try {
+    const bos = Object.keys(defter).length === 0;
+    world.setDynamicProperty(KILIC_KAYIT_ANAHTAR,
+                             bos ? undefined : JSON.stringify(defter));
+  } catch (e) {
+    hataYaz("kilic.kayitYaz", e);
+  }
+}
+
+function kayitEkle(oyuncuId, onceki) {
+  const d = kayitOku();
+  d[oyuncuId] = onceki;
+  kayitYaz(d);
+}
+
+function kayitSil(oyuncuId) {
+  const d = kayitOku();
+  if (d[oyuncuId] === undefined) return;
+  delete d[oyuncuId];
+  kayitYaz(d);
+}
+
+/* Sadece testler icin. */
+export function kilicKaydiOku() { return kayitOku(); }
+
+/* main.js playerSpawn'dan cagriliyor: "son emniyet".
+
+   ---- NEDEN KOSULSUZ SURVIVAL YAPMIYORUZ ----
+   Kendi istegiyle izleyici olan birini geri cekmek, acigi
+   kapatmaktan kotu olurdu. Yalnizca DEFTERDE ADI OLAN oyuncu
+   geri aliniyor -- yani izleyiciye BIZIM aldigimiz kisi.    */
+export function kilicGirisDuzelt(oyuncu) {
+  try {
+    if (!oyuncu || !gecerliMi(oyuncu)) return false;
+    const d = kayitOku();
+    const onceki = d[oyuncu.id];
+    if (onceki === undefined) return false;
+    modYaz(oyuncu, onceki);
+    kayitSil(oyuncu.id);
+    izleyiciler.delete(oyuncu.id);
+    try {
+      actionbarYaz(oyuncu, "§7⟲ §fİzleyici kipinden çıkarıldın §8· " + onceki);
+    } catch (e) { /* bildirim onemsiz */ }
+    return true;
+  } catch (e) {
+    hataYaz("kilic.girisDuzelt", e);
+    return false;
+  }
+}
+
 export function kilicUnut(oyuncuId) {
   sonKullanim.delete(oyuncuId);
+  /* Bellekteki kayit dusuyor AMA dunya kaydi KALIYOR: oyuncu
+     izleyiciyken cikmis olabilir ve kipi ancak geri girince
+     yazilabilir. Burada kaydi silmek acigin ta kendisiydi. */
   izleyiciler.delete(oyuncuId);
 }
 
@@ -75,11 +155,15 @@ function modYaz(oyuncu, mod) {
 function izleyiciYap(oyuncu) {
   const onceki = modAl(oyuncu);
   if (!modYaz(oyuncu, "spectator")) return false;
+  const eskiKip = onceki || "survival";
   izleyiciler.set(oyuncu.id, {
     oyuncu,
-    onceki: onceki || "survival",
+    onceki: eskiKip,
     bitis: system.currentTick + KILIC_IZLEYICI_SURE
   });
+  /* Dunya kaydi: cikis ya da yeniden yukleme olursa geri
+     donusun tek dayanagi bu.                              */
+  kayitEkle(oyuncu.id, eskiKip);
   return true;
 }
 
@@ -88,10 +172,13 @@ export function kilicTara() {
   if (izleyiciler.size === 0) return;
   const simdi = system.currentTick;
   for (const [id, kayit] of izleyiciler) {
+    /* Oyuncu gecersiz = cikmis. Bellekteki kayit dusuyor ama
+       DUNYA KAYDI KALIYOR: geri girince duzeltilecek.      */
     if (!gecerliMi(kayit.oyuncu)) { izleyiciler.delete(id); continue; }
     if (simdi < kayit.bitis) continue;
     izleyiciler.delete(id);
     modYaz(kayit.oyuncu, kayit.onceki);
+    kayitSil(id);                     // normal yolla dondu: kayit dussun
     try {
       actionbarYaz(kayit.oyuncu, "§7⟲ §fGeri döndün §8· " + kayit.onceki);
     } catch (e) { /* bildirim onemsiz */ }

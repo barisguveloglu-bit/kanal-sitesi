@@ -12,7 +12,7 @@
         "texture": "iksir_element"
       },
       "minecraft:display_name": {
-        "value": "Element"
+        "value": "Element İksiri"
       },
       "minecraft:max_stack_size": 16,
       "minecraft:use_animation": "drink",

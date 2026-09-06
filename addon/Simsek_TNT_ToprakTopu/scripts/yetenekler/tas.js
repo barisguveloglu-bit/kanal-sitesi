@@ -89,10 +89,18 @@ function oku() {
   }
 }
 
-/* Sadece testler icin: defteri sifirla. */
+/* Sadece testler icin: defteri sifirla.
+
+   `bekleyenTemizlik` de sifirlaniyor: oturum basina BIR KEZ
+   okunuyor (uretimde dogrusu bu), ama test ikinci bir senaryo
+   kurdugunda liste zaten tukenmis oluyor ve tarama hicbir sey
+   yapmiyordu. Sifirlamadan yazilan bir madde BOSUNA GECER --
+   nitekim "baskasinin bloguna dokunmuyor" maddesi tam boyle
+   bosuna geciyordu ve mutasyon denemesinde yakalandi.       */
 export function defteriUnut() {
   heykeller.clear();
   sonKullanim.clear();
+  bekleyenTemizlik = null;
 }
 
 /* ---------------- Kilit (asa.js ile ayni kural) ---------------- */
@@ -146,9 +154,81 @@ function heykeliKaldir(id, kayit) {
   kaydet();
 }
 
+/* ============================================================
+   SAHIPSIZ HEYKELLERI TEMIZLE  (v7.40)
+
+   ---- BULUNAN OLU KOD ----
+   `oku()` yaziliydi ama HICBIR YERDEN CAGRILMIYORDU. Dosyanin
+   sonundaki yorum "dunya acilinca eski heykelleri temizle"
+   diyordu; altindaki tasKancalari() ise yalnizca olay
+   aboneligi kuruyordu. Yani `kaydet()` her seferinde yaziyor,
+   kimse okumuyordu.
+
+   Sonuc tam olarak yorumda korkulan seydi: yeniden yuklemeden
+   sonra tas heykel bloklari dunyada SAHIPSIZ kaliyor ve
+   `heykeller` Map'i bos oldugu icin kimse onlari kaldiramiyor.
+
+   ---- NEDEN ACILISTA HEPSI BIRDEN SILINMIYOR ----
+   Blok yazmak icin parcanin YUKLU olmasi lazim; dunya acilirken
+   cogu yuklu degil. Ustelik bu depoda "bosta duran mod blok
+   okumaz" bir kural ve her tick butun listeyi denemek onu
+   cignerdi.
+
+   Yol: liste acilista bir kez okunuyor, taramada TICK BASINA
+   BIR TANE deneniyor. Liste birkac saniyede tukeniyor ve
+   sonrasinda maliyet SIFIR. Temizlenemeyen (parca yuklu degil)
+   kayit dunya defterinde KALIYOR -- o parcanin yuklu oldugu bir
+   sonraki oturumda temizlenir.
+   ============================================================ */
+let bekleyenTemizlik = null;      // null = daha okunmadi
+
+function temizlikSirasi() {
+  if (bekleyenTemizlik === null) bekleyenTemizlik = oku();
+  return bekleyenTemizlik;
+}
+
+/* Tek bir sahipsiz kaydi dener. Doner: kayit defterden dussun mu. */
+function sahipsiziDene(kayit) {
+  try {
+    const [id, boyutId, x, y, z] = kayit;
+    /* Kurban hala heykelse dokunma: bu oturumda yeniden
+       kuruldu demektir, sahipsiz degil.                    */
+    if (heykeller.has(id)) return true;
+    const boyut = world.getDimension(boyutId);
+    if (!boyut) return true;                 // boyut yok: kayit anlamsiz
+    const b = boyut.getBlock({ x, y, z });
+    if (!b) return false;                    // okunamadi: sonraya birak
+    /* SADECE kendi blogumuz sokuluyor -- heykeliKaldir'daki
+       ayni kural: araya biri bir sey koyduysa ona dokunma. */
+    if (b.typeId === TAS_BLOK) b.setType("minecraft:air");
+    return true;
+  } catch (e) {
+    /* Parca yuklu degil ya da dunya sinirinin disi.
+       Kayit KALIYOR: baska bir oturumda temizlenir.        */
+    return false;
+  }
+}
+
 /* ---------------- Merkezi tarama ----------------
    Suresi dolan heykeli cozuyor. Defter bosken hic donmiyor.  */
 export function tasTara() {
+  /* Sahipsiz temizligi: tick basina EN FAZLA BIR kayit.
+     Liste bitince bu dal hic calismiyor.                  */
+  const sira = temizlikSirasi();
+  if (sira.length > 0) {
+    const kayit = sira.shift();
+    if (sahipsiziDene(kayit)) {
+      const kalan = oku().filter((s) => !(s[0] === kayit[0] &&
+        s[2] === kayit[2] && s[3] === kayit[3] && s[4] === kayit[4]));
+      try {
+        world.setDynamicProperty(TAS_KAYIT_ANAHTAR,
+          kalan.length ? JSON.stringify(kalan) : undefined);
+      } catch (e) {
+        hataYaz("tas.sahipsizYaz", e);
+      }
+    }
+  }
+
   if (heykeller.size === 0) return;
   const simdi = system.currentTick;
   for (const [id, kayit] of heykeller) {
@@ -364,7 +444,12 @@ export function tasKancalari() {
   }
 }
 
-/* Dunya acilinca eski heykelleri temizle: defter bos ama
-   bloklar yerinde. Kimse icinde olmadigina gore blok da
-   durmasin -- yoksa dunyada sahipsiz tas kutuler birikir.  */
+/* Vurus kancasini kur.
+
+   ---- YORUM DUZELTILDI (v7.40) ----
+   Burasi eskiden "dunya acilinca eski heykelleri temizle"
+   diyordu ve BU SATIR ONU YAPMIYORDU -- yalnizca olay
+   aboneligi kuruyor. Yorum bir sure kodun yapmadigi seyi
+   anlatti; asil temizlik simdi tasTara() icinde
+   (sahipsiziDene), tick basina bir kayit.                 */
 tasKancalari();

@@ -1,4 +1,6 @@
-import { world } from "@minecraft/server";
+/* system: beforeEvents salt-okunur, cevap system.run ile
+   bir sonraki tick'e ataniyor (v7.40).                     */
+import { world, system } from "@minecraft/server";
 import { bilgiYaz, hataYaz, sistemOlayaAbone } from "./yardimcilar.js";
 import {
   SOHBET_ACIK, SOHBET_ONEK, KALP_ADIM, KALP_TAVAN, DERIN_ADLAR, ILKEL_ADLAR
@@ -450,10 +452,41 @@ function cagir(ad, ...arg) {
   }
 }
 
+/* ---- SALT-OKUNUR KIP: DENE, OLMAZSA ERTELE  (v7.40) ----
+
+   Bu fonksiyon beforeEvents.chatSend'in ICINDEN de cagriliyor.
+   `beforeEvents` salt-okunur kipte calisir ve `sendMessage`
+   dunyayi degistiren bir cagridir -- orada dogrudan cagirmak
+   "Cannot modify the world in read-only mode" atar.
+
+   Eski yorum "burada sadece metin yaziliyor" diyordu ve
+   yanlisti; metin yazmak da bir degisiklik. Bugune kadar
+   patlamamis olmasinin tek sebebi chatSend'in KARARLI API'DE
+   HIC BULUNMAMASI, yani o dalin zaten calismamasiydi. Beta
+   acilir acilmaz butun komutlar cevapsiz kalirdi.
+
+   ---- NEDEN KOSULSUZ system.run DEGIL ----
+   Kosulsuz ertelemek CALISAN durumu da bir tick geciktirir ve
+   cagri sirasini degistirir; olculdu, uc testte cevap artik
+   "son mesaj" olmaktan cikti. Burada modYaz'daki kalip
+   kullaniliyor: once dogrudan dene, istisna atarsa yedek yola
+   dus. Erteleme yalnizca gercekten gerektiginde oluyor.    */
 function cevapYaz(oyuncu, cevap) {
   if (!cevap) return;
   try {
     oyuncu.sendMessage(cevap);
+    return;
+  } catch (e) {
+    /* Salt-okunur olabilir; asagida bir sonraki tick'e atiyoruz. */
+  }
+  try {
+    system.run(() => {
+      try {
+        oyuncu.sendMessage(cevap);
+      } catch (e2) {
+        hataYaz("sohbet.cevapYaz.ertelenmis", e2);
+      }
+    });
   } catch (e) {
     hataYaz("sohbet.cevapYaz", e);
   }
@@ -477,10 +510,21 @@ function sohbeteAbone() {
          Buraya dusuyorsak beta modulu yuklenmemis demektir --
          ama o durumda script hic calismazdi. Yani pratikte
          buraya ancak API bicimi degisirse duseriz.             */
-      bilgiYaz("world.beforeEvents.chatSend YOK. Beta modulu yuklu ama " +
-               "olay bulunamadi (API bicimi degismis olabilir). Sohbet " +
-               "komutlari kapali; menu ve /scriptevent simsek:komut " +
-               "calismaya devam ediyor.");
+      /* ---- METIN v7.40'TA DUZELTILDI ----
+         Eskiden "Beta modulu yuklu ama olay bulunamadi" diyordu.
+         O cumle v4.24 donemine ait: manifest o zaman
+         "2.0.0-beta" istiyordu. Manifest v4.25'te KARARLI
+         "2.0.0"a gecti, yani mesaj o gunden beri yanlis bir
+         sebep gosteriyordu -- kullanici "beta neden yuklu
+         degil" diye bakardi, oysa beta hic istenmiyor.
+
+         chatSend Bedrock'ta hala beta kapisinin arkasinda;
+         kararli modulde yoktur. Yani buraya dusmek BEKLENEN
+         durum, ariza degil.                                */
+      bilgiYaz("world.beforeEvents.chatSend YOK -- kararli API'de bu olay " +
+               "bulunmuyor (beta kapisinin arkasinda). Sohbet komutlari " +
+               "kapali; menu ve /scriptevent simsek:komut calismaya " +
+               "devam ediyor.");
       return false;
     }
 
@@ -504,10 +548,10 @@ function sohbeteAbone() {
 
         e.cancel = true;            // komut satiri sohbete dusmesin
 
-        /* Cevap bir sonraki tick'te yazilmali: beforeEvents
-           icinde dunyayi degistirmek yasak. Kancalar zaten
-           system.run ile sariliyor (main.js), burada sadece
-           metin yaziliyor.                                     */
+        /* Salt-okunur kip sorunu cevapYaz'in ICINDE cozuluyor
+           (v7.40): once dogrudan deneniyor, istisna atarsa bir
+           sonraki tick'e ataniyor. Cagri yerine sargı koymak
+           calisan durumu da geciktirirdi.                    */
         cevapYaz(oyuncu, sonuc.cevap);
       } catch (hata) {
         hataYaz("sohbet.chatSend", hata);
