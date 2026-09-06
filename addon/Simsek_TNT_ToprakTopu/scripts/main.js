@@ -34,7 +34,7 @@ import {
 } from "./butce.js";
 
 import { menuAc, menuKullanilabilir } from "./menu.js";
-import { asaTara } from "./yetenekler/asa.js";
+import { asaTara, mezarOnar } from "./yetenekler/asa.js";
 import { disTara } from "./yetenekler/disler.js";
 import {
   kilicKullan, kilicTara, kilicUnut, kilicGirisDuzelt
@@ -639,6 +639,9 @@ system.runInterval(() => {
      disariya almanin bir maliyeti yok. Dogru yer burasi.   */
   try {
     asaTara();
+    /* v7.43: mezar kabugunu ayakta tutar ve tutsagi iceride
+       tutar. Mezar defteri bosken TEK BLOK okumuyor.        */
+    mezarOnar();
     disTara();
     kilicTara();
     tasTara();

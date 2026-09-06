@@ -1,3 +1,111 @@
+# v7.43.0 — Mezar Wither'a karşı ayakta kalıyor
+
+Kullanıcı:
+
+> "El-Harkos'un 3 kere vurunca kapattığı mezar var ya… Wither ile
+> savaşıyordum, Harkos'un asası ile kapattım, **adam anında yıktı
+> geçti**, onun kırılmaması lazımdı."
+
+## Açık, tek cümlede
+
+Mezar **yalnız oyuncuya karşı** korunuyordu.
+
+`asa.js`'teki `playerBreakBlock` kancası, yeterli Freedom Stone'u
+olmayan oyuncunun kırdığı bloğu geri koyuyor — bu v4.50'den beri
+çalışıyor ve testi de var. Ama **Wither bir oyuncu değil.** O kanca
+onun için hiç çalışmıyor ve mob tarafında başka hiçbir koruma yoktu.
+
+Yani hata "bir yerde kırıldı" değil: mob tarafı **hiç yazılmamıştı.**
+
+## İki ayrı şey gerekiyordu, biri yetmiyor
+
+### 1. Onarım — kabuk geri geliyor
+
+`mezarOnar()` defterdeki mezarların bloklarını sırayla geziyor;
+**havaya dönmüş** olanı geri koyuyor. Tick başına en fazla
+`MEZAR_ONAR_BUTCE` (8) blok, `blokIste()` üzerinden — yani yetenekler
+çalışırken bütçeyi kapmıyor. Tam kabuk 98 blok, bir mezar ~13 tick'te
+(0,65 sn) baştan taranıyor.
+
+Kural `mezariAc()` ve `tas.js` ile aynı: **sadece hava dolduruluyor.**
+Araya biri sandık koyduysa ona dokunulmuyor.
+
+### 2. Tutsak kilidi — çıkan geri konuyor
+
+Onarım tek başına **yetmiyor** ve bu bir tahmin değil, mekanizmanın
+kendisi: Wither çevresindeki kutuyu **tek seferde** kırıyor; biz deliği
+0,65 saniyede kapatana kadar dışarı çıkmış oluyor. Blok geri gelse
+bile tutsak dışarıda kalırdı — mezar sağlam, içi boş.
+
+Bu yüzden tutsak mezarın içinde tutuluyor. Kalıp yeni değil:
+`SERSEM_CIVILE` aynı dosyada, aynı işlemle (düştüğü noktaya geri
+ışınla) v4.59'dan beri çalışıyor. Fark şu: **sersemlik süreli, mezar
+süresiz.** Süresi dolunca bırakılması gereken şey mezar değil.
+
+Oyuncuya uygulanmıyor — onu blok kuralı zaten tutuyor (anahtarsız
+kazamıyor) ve ışınlanma kamerayı sarsar. Eksik olan taraf zaten mob
+tarafıydı.
+
+## Blok direnci de yükseltildi — ama asıl güvence o değil
+
+`pa:mezar_tasi` patlama direnci **1200 → 3.600.000** (kaya yatağı
+seviyesi). Bileşenin **biçimi değişmedi**, sadece sayı büyüdü:
+`false` kısayolunu denemek bloğun hiç yüklenmemesi riskini taşırdı ve
+o çok daha pahalı bir hata olurdu.
+
+**Dürüst sınır:** Wither'ın blok kırması bir *patlama* değil, motorun
+kendi davranışı. Bu sayının ona ne yaptığını oyunda ölçmeden
+bilemeyiz. Bu satır TNT/creeper tarafını kapatıyor; mezarı Wither'a
+karşı ayakta tutan şey **onarım döngüsü**, bu sayı değil. İkisi
+karıştırılmasın diye kodda da böyle yazıyor.
+
+## Ölçüm
+
+`test/asa.mjs` bölüm 5b Wither senaryosunu birebir kuruyor: kabuğu
+12 bloktan del, tutsağı 12 blok uzağa taşı.
+
+    ✓ kabukta delik açıldı (kontrol)      12 blok hava
+    ✓ kabuk onarıldı                      0 blok hala hava, 14 tick
+    ✓ tutsak mezara geri kondu            {"x":4.5,"y":90,"z":4.5}
+    ✓ içerideyken tekrar ışınlanmıyor     0 fazla ışınlanma
+    ✓ başkasının koyduğu blok EZİLMİYOR
+    ✓ mezar yokken hiç blok okunmuyor     0 okuma
+    ✓ açılan mezar geri KAPANMIYOR        0 blok geri geldi
+
+Son üçü kritik:
+
+- **Boşta sıfır okuma.** Mezar süresiz olduğu için onarım da süresiz
+  çalışacaktı; defter boşken tek blok okumuyor.
+- **Açılan mezar geri kapanmıyor.** Anahtarla açılan mezarı kendi
+  kodumuzun geri kapatması, düzeltmenin yaratabileceği en kötü hata
+  olurdu.
+- **Kontrol satırı.** Önce gerçekten delik açıldığı ölçülüyor; yoksa
+  "kapandı" satırı hiçbir şey ölçmüyor demektir.
+
+Üç mutasyon denendi, üçü de yakalandı:
+
+| mutasyon | düşen kontrol |
+|---|---|
+| `MEZAR_ONAR = false` | 2 |
+| `MEZAR_TUTSAK_KILIT = false` | 1 |
+| `isAir` koşulu tersine | 2 |
+
+## Yan bulgu — DÜZELTİLMEDİ, bildiriliyor
+
+**Taş heykelde (`tas.js`) aynı boşluk var.** O da yalnız
+`playerBreakBlock` ile korunuyor (satır 371–385), mob ya da patlama
+tarafında hiçbir şey yok ve onarımı da yok. Yani aynı Wither bir taş
+heykeli de kırıp geçer.
+
+Düzeltilmedi çünkü kullanıcı onu bildirmedi ve heykelin kurtarma
+zinciri mezarınkinden farklı. Aynı iki parça (onarım + kilit) oraya da
+takılabilir; istenirse ayrı bir turda.
+
+Hapis kafesi (`kafes.js`) bu aileye girmiyor — o blok **koymuyor**,
+sadece kırıyor.
+
+---
+
 # v7.42.0 — Kanlı Kol'da sol kolun sağ koldan yukarıda durması
 
 Kullanıcı v7.41'i kurup denedi:

@@ -46,6 +46,7 @@ const defter = await import("./pack/yetenekler/_bot_defteri.js");
 const ilkel = await import("./pack/yetenekler/bot_ilkel.js");
 const asa = await import("./pack/yetenekler/asa.js");
 const mezarlar = await import("./pack/yetenekler/_mezar_defteri.js");
+const { butceSifirla } = await import("./pack/butce.js");
 
 let hata = false;
 const kontrol = (ad, gecti, detay = "") => {
@@ -524,6 +525,121 @@ console.log("=== 5. KURTARMA: 10 DISMONT TASI ===");
   kontrol("defterde olmayan mezar tasi normal kiriliyor",
           o._mesajlar.length === once && dismontSay(o) === 64,
           dismontSay(o) + " tas, " + (o._mesajlar.length - once) + " mesaj");
+}
+
+console.log("");
+console.log("=== 5b. MEZAR AYAKTA KALIYOR MU (v7.43) ===");
+/* Kullanici: "wither ile savasiyordum, harkos'un asasi ile
+   kapattim, adam aninda yikti gecti, onun kirilmamasi lazimdi."
+
+   Acik neden: mezar YALNIZ OYUNCUYA karsi koruluyordu
+   (playerBreakBlock kancasi). Wither bir oyuncu degil, o kanca
+   onun icin hic calismiyordu.
+
+   Asagisi Wither senaryosunu birebir kuruyor: kabugu delip
+   disari cikmak. Ikisi de olculuyor -- kabuk geri geliyor mu,
+   tutsak iceri geri konuyor mu.                              */
+{
+  const { D, o } = kur("a7");
+  sus(); ilkel.ilkelCagir(o, "harkos"); ac();
+  const bot = harkosu(D);
+  const kurban = kurbanYap("wither1", D.boyut, "minecraft:wither");
+  /* world.getEntity onu bulabilsin: tutsak kilidi kimlikten
+     ariyor (defterde sadece kimlik duruyor, varlik degil). */
+  D.sayac.varliklar.push(kurban);
+
+  vur(bot, kurban, ayar.SERSEM_VURUS + 1);
+  kontrol("mezar kuruldu", mezarlar.mezarSayisi() === 1);
+  const mezar = mezarlar.mezarDefteri()[0];
+  kontrol("  tutsak kimligi kayitli", mezar.i === "wither1", mezar.i);
+
+  /* ---- WITHER KABUGU KIRIYOR ----
+     Motor bunu tek seferde yapiyor; burada da tek seferde
+     yapiyoruz. Sonra tutsak disari cikiyor.                */
+  const kirilan = mezar.k.slice(0, 12);
+  for (const n of kirilan) {
+    D.boyut.getBlock({ x: n[0], y: n[1], z: n[2] }).setType("minecraft:air");
+  }
+  kurban.location = { x: mezar.m[0] + 12, y: mezar.m[1], z: mezar.m[2] + 12 };
+  kurban._isinlanma = [];
+
+  const havaSayisi = () => kirilan.filter((n) =>
+    D.boyut.getBlock({ x: n[0], y: n[1], z: n[2] }).isAir).length;
+  /* KONTROL: once gercekten delik olmali, yoksa asagidaki
+     "kapandi" satiri hicbir sey olcmuyor demektir.          */
+  kontrol("  kabukta delik acildi (kontrol)", havaSayisi() === 12,
+          havaSayisi() + " blok hava");
+
+  /* Butce tick basina sinirli, o yuzden birden fazla tick.
+     Tam kabuk MEZAR_ONAR_BUTCE'lik dilimlerle taraniyor.    */
+  const gerekenTick = Math.ceil(mezar.k.length / ayar.MEZAR_ONAR_BUTCE) + 1;
+  for (let t = 0; t < gerekenTick; t++) { butceSifirla(); asa.mezarOnar(); }
+
+  kontrol("  kabuk onarildi", havaSayisi() === 0,
+          havaSayisi() + " blok hala hava, " + gerekenTick + " tick");
+  kontrol("  tutsak mezara geri kondu", kurban._isinlanma.length > 0,
+          JSON.stringify(kurban._isinlanma[0] || "isinlanmadi"));
+  if (kurban._isinlanma.length) {
+    const g = kurban._isinlanma[kurban._isinlanma.length - 1];
+    kontrol("  geri konulan yer mezarin merkezi",
+            g.x === mezar.m[0] + 0.5 && g.z === mezar.m[2] + 0.5);
+  }
+
+  /* Iceridekine DOKUNULMUYOR: her tick isinlanan bir tutsak
+     titrer ve sunucuya bedava yuk olur.                     */
+  const oncekiIsinlanma = kurban._isinlanma.length;
+  for (let t = 0; t < 5; t++) { butceSifirla(); asa.mezarOnar(); }
+  kontrol("  icerideyken tekrar isinlanmiyor",
+          kurban._isinlanma.length === oncekiIsinlanma,
+          (kurban._isinlanma.length - oncekiIsinlanma) + " fazla isinlanma");
+}
+{
+  /* ARAYA KONAN BLOGA DOKUNULMUYOR -- mezariAc() ve tas.js
+     ile ayni kural. Onarim delik doldurur, kimsenin isini
+     bozmaz.                                                */
+  const { D, o } = kur("a7b");
+  sus(); ilkel.ilkelCagir(o, "harkos"); ac();
+  const bot = harkosu(D);
+  const kurban = kurbanYap("wither2", D.boyut, "minecraft:wither");
+  D.sayac.varliklar.push(kurban);
+  vur(bot, kurban, ayar.SERSEM_VURUS + 1);
+  const mezar = mezarlar.mezarDefteri()[0];
+  const n = mezar.k[0];
+  D.boyut.getBlock({ x: n[0], y: n[1], z: n[2] }).setType("minecraft:chest");
+  for (let t = 0; t < 20; t++) { butceSifirla(); asa.mezarOnar(); }
+  kontrol("baskasinin koydugu blok EZILMIYOR",
+          D.boyut.getBlock({ x: n[0], y: n[1], z: n[2] }).typeId
+            === "minecraft:chest");
+}
+{
+  /* DEFTER BOSKEN TEK BLOK OKUNMUYOR. Bu depoda en pahali
+     sey bosta calisan bir dongu; mezar SURESIZ oldugu icin
+     onarim da suresiz calisacakti.                          */
+  const { D } = kur("a7c");
+  const once = D.sayac.getBlock;
+  for (let t = 0; t < 40; t++) { butceSifirla(); asa.mezarOnar(); }
+  kontrol("mezar yokken hic blok okunmuyor",
+          D.sayac.getBlock === once,
+          (D.sayac.getBlock - once) + " okuma");
+}
+{
+  /* Mezar ACILINCA onarim durmali, yoksa anahtarla acilan
+     mezari kendi kodumuz geri kapatirdi.                    */
+  const { D, o } = kur("a7d");
+  sus(); ilkel.ilkelCagir(o, "harkos"); ac();
+  const bot = harkosu(D);
+  const kurban = kurbanYap("k_acilan", D.boyut, "minecraft:zombie");
+  D.sayac.varliklar.push(kurban);
+  vur(bot, kurban, ayar.SERSEM_VURUS + 1);
+  const mezar = mezarlar.mezarDefteri()[0];
+  const yerler = mezar.k.map((n) => ({ x: n[0], y: n[1], z: n[2] }));
+  asa.mezariAc(D.boyut, mezar);
+  asa.onarimiUnut();
+  for (let t = 0; t < 40; t++) { butceSifirla(); asa.mezarOnar(); }
+  const geriGelen = yerler.filter((p) =>
+    D.boyut.getBlock(p).typeId === ayar.MEZAR_BLOK).length;
+  kontrol("acilan mezar geri KAPANMIYOR", geriGelen === 0,
+          geriGelen + " blok geri geldi");
 }
 
 console.log("");

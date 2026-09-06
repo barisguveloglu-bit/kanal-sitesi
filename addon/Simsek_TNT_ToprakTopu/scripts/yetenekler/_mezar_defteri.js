@@ -68,6 +68,15 @@ export function mezarEkle(boyutId, merkez, konan, tutsakId) {
   return defter[defter.length - 1];
 }
 
+/* Defterin kendisi. Onarim ve tutsak kilidi uzerinde geziyor;
+   KOPYA DONMUYOR cunku her tarama tick'inde bir kopya uretmek
+   defter dolu oldugunda bosuna cop uretir. Yazan tek yer yine
+   bu dosya -- disaridan degistirilmiyor.                      */
+export function mezarDefteri() {
+  yukle();
+  return defter;
+}
+
 export function mezarSayisi() {
   yukle();
   return defter.length;

@@ -4,12 +4,14 @@ import {
 } from "../yardimcilar.js";
 import { botunSahibi } from "./_bot_defteri.js";
 import {
-  mezarEkle, mezariBul, mezarSil, tavanDoldu
+  mezarEkle, mezariBul, mezarSil, tavanDoldu, mezarDefteri
 } from "./_mezar_defteri.js";
+import { blokIste } from "../butce.js";
 import {
   SERSEM_VURUS, SERSEM_PENCERE, SERSEM_SURE, SERSEM_YAVASLIK, SERSEM_KOR,
   SERSEM_CIVILE, SERSEM_GUCSUZ, ASA_BILDIR,
   MEZAR_ACIK, MEZAR_YARICAP, MEZAR_YUKSEK, MEZAR_BLOK,
+  MEZAR_ONAR, MEZAR_ONAR_BUTCE, MEZAR_TUTSAK_KILIT,
   DISMONT_ESYA, MEZAR_ANAHTAR_ADET,
   ASA_OYUNCUDA, ASA_ESYA,
   DONDUR_GIRDI_KILIT, DONDUR_KAMERA_KILIT
@@ -296,6 +298,112 @@ export function mezariAc(boyut, mezar) {
   if (mezar.i) ayilt(mezar.i);
   mezarSil(mezar);
   return true;
+}
+
+/* ---------------- MEZAR AYAKTA KALSIN ----------------  (v7.43)
+
+   Kullanici: "wither ile savasiyordum, harkos'un asasi ile
+   kapattim, adam aninda yikti gecti, onun kirilmamasi lazimdi."
+
+   Neden kirildi: mezar YALNIZ OYUNCUYA karsi koruluyordu.
+   asaKancalari()'ndaki playerBreakBlock kancasi yeterli dismont
+   tasi olmayan oyuncunun kirdigi blogu geri koyuyor. Wither bir
+   oyuncu degil -- o kanca onun icin hic calismiyor ve mob
+   tarafinda baska hicbir koruma yoktu.                        */
+
+/* Onarim nerede kaldi. Defter uzerinde SIRAYLA yuruyor: her
+   tick'te butcenin verdigi kadar blok, sonraki tick kaldigi
+   yerden. Tam kabuk 98 blok, yani bir mezar ~12 tick'te
+   bastan taraniyor.                                           */
+let onarMezar = 0;
+let onarNokta = 0;
+
+/* Tutsak mezarin ICINDE mi? Merkez `m`, ic bosluk
+   MEZAR_YARICAP genisliginde ve MEZAR_YUKSEK boyunda.
+   Kenarlara yarim blok pay birakiliyor: tam sinirdaki bir
+   varlik her tick isinlanmasin.                              */
+function icerideMi(m, k) {
+  const r = MEZAR_YARICAP + 0.5;
+  return Math.abs(k.x - (m[0] + 0.5)) <= r
+      && Math.abs(k.z - (m[2] + 0.5)) <= r
+      && k.y >= m[1] - 0.5 && k.y <= m[1] + MEZAR_YUKSEK;
+}
+
+/* Tutsagi mezarin icine geri koyar.
+
+   ONARIM TEK BASINA YETMIYOR ve bu tahmin degil: Wither
+   cevresindeki kutuyu TEK SEFERDE kiriyor, biz deligi
+   kapatana kadar disari cikmis oluyor. Blok geri gelse bile
+   tutsak disarida kalirdi.
+
+   OYUNCUYA UYGULANMIYOR: onu blok kurali zaten tutuyor
+   (anahtarsiz kazamiyor) ve isinlanma kamerayi sarsar --
+   SERSEM_CIVILE'de de ayni istisna var.                      */
+function tutsagiTut(mezar) {
+  if (!MEZAR_TUTSAK_KILIT || !mezar.i) return;
+  if (typeof world.getEntity !== "function") return;
+  let tutsak;
+  try {
+    tutsak = world.getEntity(mezar.i);
+  } catch (e) {
+    return;                       // kimlik bu oturumda yok
+  }
+  if (!gecerliMi(tutsak)) return;
+  if (tutsak.typeId === "minecraft:player") return;
+  try {
+    const k = varlikKonumu(tutsak);
+    if (icerideMi(mezar.m, k)) return;
+    tutsak.teleport({ x: mezar.m[0] + 0.5, y: mezar.m[1], z: mezar.m[2] + 0.5 });
+  } catch (e) {
+    /* Isinlanamadi (parca yuklu degil): onarim yine surer. */
+  }
+}
+
+/* Merkezi dongu cagiriyor. Defter bosken TEK BLOK okunmuyor. */
+export function mezarOnar() {
+  if (!MEZAR_ONAR) return;
+  const defter = mezarDefteri();
+  if (defter.length === 0) { onarMezar = 0; onarNokta = 0; return; }
+
+  if (onarMezar >= defter.length) { onarMezar = 0; onarNokta = 0; }
+  const mezar = defter[onarMezar];
+
+  tutsagiTut(mezar);
+
+  const izin = blokIste(MEZAR_ONAR_BUTCE);
+  if (izin === 0) return;                 // butce dolu: sonraki tick
+
+  let boyut;
+  try {
+    boyut = world.getDimension(mezar.b);
+  } catch (e) {
+    boyut = undefined;
+  }
+  if (!boyut) { onarMezar++; onarNokta = 0; return; }
+
+  let harcanan = 0;
+  while (harcanan < izin && onarNokta < mezar.k.length) {
+    const n = mezar.k[onarNokta++];
+    harcanan++;
+    try {
+      const b = boyut.getBlock({ x: n[0], y: n[1], z: n[2] });
+      if (!b) continue;
+      /* SADECE HAVAYA donmus yer dolduruluyor. Araya biri bir
+         sey koyduysa ona dokunulmuyor -- mezariAc()'taki ve
+         tas.js'teki ayni kural.                               */
+      if (b.isAir) b.setType(MEZAR_BLOK);
+    } catch (e) {
+      /* Parca yuklu degil: bu nokta sonraki turda denenir. */
+    }
+  }
+
+  if (onarNokta >= mezar.k.length) { onarMezar++; onarNokta = 0; }
+}
+
+/* Testler icin: onarim imlecini basa alir. */
+export function onarimiUnut() {
+  onarMezar = 0;
+  onarNokta = 0;
 }
 
 /* ---------------- Vurus zinciri ----------------

@@ -102,7 +102,7 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # tureniyor -- ayrisabilecekleri bir yer kalmadi.
 #
 # YENI SURUM CIKARIRKEN: yalnizca asagidaki satiri degistir.
-SURUM_NO = (7, 42, 0)
+SURUM_NO = (7, 43, 0)
 
 SURUM_METIN = "%d.%d.%d" % SURUM_NO
 
@@ -6699,7 +6699,21 @@ def mezar_tasi_blogu():
                 "minecraft:destructible_by_mining": {"seconds_to_destroy": 3},
                 # Patlamaya dayanikli: TNT ile mezar acilmasin,
                 # anahtar dismont tasi olsun.
-                "minecraft:destructible_by_explosion": {"explosion_resistance": 1200},
+                #
+                # v7.43: 1200 -> 3600000 (kaya yatagi seviyesi).
+                # Bicim DEGISMEDI, sadece sayi buyudu: bilesenin
+                # sekli zaten yukleniyor, `false` kisayolunu
+                # denemek blogun hic yuklenmemesi riskini
+                # tasirdi ve o cok daha pahali bir hata olurdu.
+                #
+                # DIKKAT -- ASIL GUVENCE BU DEGIL. Wither'in blok
+                # kirmasi bir PATLAMA degil, motorun kendi
+                # davranisi; bu sayinin ona ne yaptigini oyunda
+                # olcmeden bilemeyiz. Mezari ayakta tutan sey
+                # asa.js'teki onarim dongusu (mezarOnar), bu satir
+                # yalnizca TNT/creeper tarafini kapatiyor.
+                "minecraft:destructible_by_explosion": {
+                    "explosion_resistance": 3600000},
                 "minecraft:map_color": "#141018",
             },
         },

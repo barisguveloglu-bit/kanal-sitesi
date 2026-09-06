@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.42.0";
+export const SURUM = "v7.43.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -3191,6 +3191,41 @@ export const MEZAR_BLOK = "pa:mezar_tasi";
    dunyadan cikip girsen de duruyor.                           */
 export const MEZAR_KAYIT_ANAHTAR = "simsek:mezarlar";
 export const MEZAR_TAVAN = 8;          // ayni anda kac mezar
+
+/* ---------------- MEZAR AYAKTA KALSIN  (v7.43) ----------------
+   Kullanici: "wither ile savasiyordum, harkos'un asasi ile
+   kapattim, adam aninda yikti gecti, onun kirilmamasi lazimdi."
+
+   ---- ACIK NEDEN ----
+   Mezar OYUNCUYA karsi korunuyordu: playerBreakBlock kancasi
+   yeterli dismont tasi yoksa kirilan blogu GERI KOYUYOR. Ama
+   Wither bir oyuncu degil; o kanca hic calismiyor. Mob tarafinda
+   HICBIR koruma yoktu.
+
+   Iki ayri sey birden gerekiyor ve ikisi ayni sorunun parcasi:
+
+   ONARIM: kayittaki bloklardan HAVAYA donmus olanlar geri
+     konuyor. Tick basina en fazla MEZAR_ONAR_BUTCE blok --
+     tam kabuk 98 blok, yani bir mezar ~12 tick'te (0,6 sn)
+     bastan taraniyor. Defter bosken hic blok okunmuyor.
+
+   KILIT: tutsak mezarin ICINDE tutuluyor. Onarim tek basina
+     YETMIYOR ve bu bir tahmin degil olcum: Wither cevresindeki
+     3x4x3 kutuyu TEK SEFERDE kiriyor, biz deligi 0,6 saniyede
+     kapatana kadar disari cikmis oluyor. Blok geri gelse bile
+     tutsak disarida kalirdi.
+
+     Kalip yeni degil: SERSEM_CIVILE ayni dosyada, ayni islemle
+     (dustugu noktaya geri isinla) v4.59'dan beri calisiyor.
+     Fark su: sersemlik SURELI, mezar SURESIZ -- suresi
+     dolunca kilidin birakmasi gereken sey mezar degil.
+
+   OYUNCUYA UYGULANMIYOR: oyuncuyu zaten blok kurali tutuyor
+   (kazamiyor) ve isinlanma kamerayi sarsar. Mob tarafi da
+   zaten eksik olan tarafti.                                  */
+export const MEZAR_ONAR = true;
+export const MEZAR_ONAR_BUTCE = 8;     // tick basina onarilacak blok
+export const MEZAR_TUTSAK_KILIT = true;
 
 /* ---------------- DISMONT TASI ----------------
    "Elmas gibi ama bulmasi asiri zor bir maden, adi dismont
