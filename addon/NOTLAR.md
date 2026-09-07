@@ -1,3 +1,101 @@
+# v7.64.0 — Şeytan Meyveleri: Gura · Yami · Ope
+
+Kullanıcı: *"bu modu ekle, 3 tane meyve seç, bunları orijinal One
+Piece araştırarak seç ve güçlü olmak zorunda"*
+
+Kaynak: **Mine Mine no Mi 1.20.10 (11.5)** — 3271 sınıf, **882
+yetenek sınıfı**, ~60 şeytan meyvesi. Jar **hiç çalıştırılmadı**.
+Çözümleme: [`REFERANS_MINEMINE.md`](REFERANS_MINEMINE.md).
+
+## Seçim ölçütü: "bence güçlü" değil, eserde yazılı
+
+| Meyve | Eserdeki ifade |
+|---|---|
+| **Gura Gura no Mi** | Sengoku: *"dünyayı yok edebilecek güce sahip, **en güçlü** şeytan meyvesi"* |
+| **Yami Yami no Mi** | Tek dokunuşla **başka meyve güçlerini iptal ediyor**; taşıyıcısı iki meyveyi birden taşıyabilen tek kişi |
+| **Ope Ope no Mi** | Doflamingo: ***"nihai şeytan meyvesi"***; Ölümsüzlük Ameliyatı'nı yapabilen tek meyve |
+
+**Elenen güçlü adaylar:** Goro Goro ("yenilmez" deniyor ama eserde
+yenildi), Magu Magu (yalnız *Mera Mera'ya* üstün olduğu yazılı),
+Pika Pika (hız üstünlüğü var, "en güçlü" iddiası yok).
+
+## On yetenek (sıra 560–570)
+
+**Gura Gura** — Gekishin (mermi) · Tenchi Meidō (**26 blok alan**,
+kaynaktaki `RANGE 26`) · Kabutowari (tek hedef, ağır)
+
+**Yami Yami** — Kurouzu (çeker **ve iptal eder**) · Kara Delik
+(alan) · Kara Madde (delici mermi)
+
+**Ope Ope** — ROOM (küre, aç/kapa) · Shambles (yer değiştirme) ·
+Gamma Knife (kaynakta `DAMAGE 70`) · Counter Shock
+
+## Kaynaktan alınan en değerli şey: ODA bağımlılığı
+
+`ShamblesAbility`, `GammaKnifeAbility`, `CounterShockAbility` ve
+`MesAbility` — **dördü de** sabit havuzunda
+`RoomAbility.hasRoomActive` çağrısını taşıyor. ODA açık değilse
+hiçbiri çalışmıyor.
+
+Bizde de aynen öyle: `odaSart()` üç yeteneğin de önünde. Onsuz
+Ope üç ayrı saldırıya dönüşürdü; oysa meyvenin bütün olayı o küre.
+
+## Karanlığın imzası: iptal
+
+Yami'yi eserde üstün kılan şey hasarı değil, dokunduğunun **meyve
+gücünü iptal etmesi**. Bizde karşılığı: Kurouzu çektiği hedefin
+**faydalı** efektlerini söküyor (`strength`, `speed`,
+`resistance`, `regeneration`, `absorption`…), **zararlılara
+dokunmuyor** — iptal bir yardım değil, güç alma.
+
+Sadece hasar veren bir çekme, bu meyveyi meyve yapan şeyi dışarıda
+bırakırdı. Test hem sökmeyi hem zararlılara dokunmamayı hem de
+Gura'nın iptal *etmediğini* tutuyor.
+
+## Alınmayanlar
+
+**Blok yutma** (`BlackHole` → `AbsorbedBlocks` → `Liberation`,
+512/1024 bloklu kuyruk): geri verilmeyen blok bu depoda eşya
+kaybı, ve o defteri kurmak ayrı bir iş. Alan hasarı ve içine çekme
+alındı.
+
+**Blok kırma** (`TenchiMeido`, `ShimaYurashi` arazi parçalıyor):
+bu depoda blok kıran her şey önce kapalı gelir; üstelik bu bir
+düello hamlesi, arazi silahı değil.
+
+## Önceki sürümlerin dersleri burada da uygulandı
+
+- **Kol takılıyken kapalı** (v7.58): iki yarım, ölçüt
+  `main.js`'inkiyle aynı, **sağ ve sol el birlikte**.
+- **Işınlanma iki denetimden geçer** (v7.57): Shambles bir
+  **takas** olduğu için **iki taraf da** denetleniyor.
+- **Özellik arızası oyuncu başına** (v7.62): bir oyuncunun hatası
+  herkesin kalıcılığını kapatmıyor.
+- **Tek normalleştirici** (v7.62): `sohbet.js` ve `meyve.js` ikisi
+  de `sadelestir`.
+
+## Mutasyon bataryası — 24 mutasyon, biri kaçtı
+
+**Odanın süre denetimi ölçülmüyordu.** `odaAcikMi`'deki
+`currentTick >= bitis` satırı silinince hiçbir test kırılmıyordu,
+çünkü her bölüm odayı `bitir()` ile kapatıyordu — süresi dolan ama
+işi henüz tıklamamış bir oda hiç denenmemişti. İş
+**çalıştırılmadan** süre ilerletilen bir bölüm eklendi. İkinci
+turda 24/24.
+
+## Test
+
+`test/meyve.mjs` — 12 bölüm: kayıt ve sıra, üç meyvenin eserdeki
+sahipleri, meyve ayrımı (10 yetenek × 3 meyve), adla seçim (8 ad +
+tanınmayan + jest döngüsü), **ODA bağımlılığı** (üç yetenek ×
+odasız/odalı/süresi dolmuş), **karanlığın iptali** (sökme +
+zararlılara dokunmama + Gura'nın etmemesi), Gura'nın itip Yami'nin
+çekmesi, mermiler ve çarpan, Shambles'in takası + duvar denetimi,
+kol kapısı (sağ · sol · süren iş · kol olmayan eşya), alanların
+kapanması ve güç yetmemesi, defter temizliği.
+
+---
+
 # v7.63.1 — Askerin Kuşağı eklentiye çekildi
 
 Kullanıcı: *"ben şunu bekliyordum, oyundan değil de eklentimizden

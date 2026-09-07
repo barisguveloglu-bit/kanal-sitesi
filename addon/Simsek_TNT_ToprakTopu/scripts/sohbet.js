@@ -4,7 +4,7 @@ import { world, system } from "@minecraft/server";
 import { bilgiYaz, hataYaz, sistemOlayaAbone } from "./yardimcilar.js";
 import {
   SOHBET_ACIK, SOHBET_ONEK, KALP_ADIM, KALP_TAVAN, DERIN_ADLAR, ILKEL_ADLAR,
-  KOMUT_ETIKET, KOMUT_KORUMALI, JJK_KARAKTERLER
+  KOMUT_ETIKET, KOMUT_KORUMALI, JJK_KARAKTERLER, MEYVE_LISTESI
 } from "./ayarlar.js";
 
 /* ============================================================
@@ -140,6 +140,14 @@ export function yetkiliMi(oyuncu, ad) {
      {cevap}    -> komuttu, sohbetten gizle ve cevabi yaz         */
 /* Yazilan kelime bir Jujutsu karakter adi mi. Liste
    ayarlar.js'ten okunuyor, burada kopyalanmiyor.          */
+function meyveAdiMi(ad) {
+  for (const k of MEYVE_LISTESI) {
+    if (sadelestir(k.kimlik) === ad) return true;
+    for (const a of k.adlar) if (sadelestir(a) === ad) return true;
+  }
+  return false;
+}
+
 function jjkAdiMi(ad) {
   for (const k of JJK_KARAKTERLER) {
     if (k.kimlik === ad) return true;
@@ -228,6 +236,15 @@ export function komutCozumle(oyuncu, hamMetin) {
   }
   if (jjkAdiMi(ad)) {
     return { cevap: cagir("jjkSec", oyuncu, ad) };
+  }
+
+  /* SEYTAN MEYVESI SECIMI (v7.64). jjk ile ayni kalip: adin
+     KENDISI komut, liste ayarlar.js'ten okunuyor.         */
+  if (ad === "meyve" || ad === "fruit") {
+    return { cevap: cagir("meyveSec", oyuncu, parca[1] || "") };
+  }
+  if (meyveAdiMi(ad)) {
+    return { cevap: cagir("meyveSec", oyuncu, ad) };
   }
 
   /* DUSMUS YEMINI  (v7.63).

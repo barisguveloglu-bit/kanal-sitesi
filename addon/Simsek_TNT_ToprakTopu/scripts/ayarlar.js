@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.63.1";
+export const SURUM = "v7.64.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -612,6 +612,194 @@ export const SIMBIYOT_VURUS_TAVAN  = 3;
    Bizim sayimiz; Royal'in artirici oldugu KESIN, ne kadar
    artirdigi degil.                                          */
 export const SIMBIYOT_ROYAL_CARPAN = 1.5;
+
+
+/* ============ SEYTAN MEYVELERI (v7.64) ============
+   Kaynak: Mine Mine no Mi 1.20.10 (11.5). 3271 sinif; sinif
+   sabit havuzlari OKUNARAK cikarildi, jar calistirilmadi.
+
+   ---- UC MEYVE NEDEN BUNLAR ----
+   Kullanici "orijinal One Piece'i arastirarak sec, guclu
+   olmak zorunda" dedi. Ucu de eserin KENDI METNINDE en ust
+   sirada anilan meyveler; "bence guclu" degil, yazili:
+
+   1. GURA GURA NO MI -- Sengoku, Marineford'da: "dunyayi yok
+      edebilecek guce sahip, EN GUCLU seytan meyvesi."
+      Mecazi degil, meyvenin resmi tanimi.
+   2. YAMI YAMI NO MI -- tek dokunusla BASKA meyve guclerini
+      iptal ediyor ve tasiyicisi (Karasakal) eserde iki meyveyi
+      birden tasiyabilen tek kisi. Iptal ozelligi onu digerlerine
+      karsi ustun kilan sey.
+   3. OPE OPE NO MI -- Doflamingo'nun sozu: "NIHAI seytan
+      meyvesi" (kyukyoku no akuma no mi). Olumsuzluk ameliyati
+      yapabilen tek meyve; ugruna savas cikti.
+
+   Elenen guclu adaylar ve nedeni:
+     Goro Goro ("yenilmez" deniyor ama eserde yenildi),
+     Magu Magu (yalniz Mera Mera'ya ustun oldugu yazili),
+     Pika Pika (hiz ustunlugu, "en guclu" iddiasi yok).
+
+   ---- OLCULEN SAYILAR (sinif sabitleri) ----
+   GekishinAbility     COOLDOWN 240 · CHARGE 20 · RANGE 8
+   TenchiMeidoAbility  COOLDOWN 400 · CHARGE 20 · RANGE 26
+   KabutowariAbility   COOLDOWN 200 · CHARGE 40 · PULL_TIME 60
+   KurouzuAbility      COOLDOWN 240 · DAMAGE 30 · RANGE 128
+   BlackHoleAbility    CHARGE 100 · COOLDOWN 200-400 · Y -6..6
+   DarkMatterAbility   COOLDOWN 280 · CHARGE 80
+   RoomAbility         MIN 8 · MAX 45 · CHARGE 20
+   ShamblesAbility     COOLDOWN 40 · RANGE 64
+   GammaKnifeAbility   COOLDOWN 500 · DAMAGE 70
+   CounterShockAbility COOLDOWN 200 (ODA sart)
+   Bekleme sayilari BIZDE KULLANILMIYOR (BEKLEME=0, v7.53);
+   menzil ve hasar geciyor, olcek Bedrock'a cekiliyor.
+
+   ---- KAYNAKTAN ALINAN BAGIMLILIK ----
+   Mod'da Shambles · Gamma Knife · Counter Shock · Mes
+   hepsi `RoomAbility.hasRoomActive` denetiminden geciyor:
+   ODA acik degilse hicbiri calismiyor. Bu bizde de aynen var
+   -- Ope'nin butun olayi zaten o kure.                     */
+export const MEYVE_ACIK = true;
+export const MEYVE_KOL_KES = true;
+export const MEYVE_LISTESI = [
+  { kimlik: "gura", ad: "Gura Gura no Mi", sahip: "Edward Newgate",
+    tur: "Paramecia", adlar: ["gura", "titrek", "sarsinti", "quake"] },
+  { kimlik: "yami", ad: "Yami Yami no Mi", sahip: "Marshall D. Teach",
+    tur: "Logia", adlar: ["yami", "karanlik", "karanlık", "dark"] },
+  { kimlik: "ope",  ad: "Ope Ope no Mi", sahip: "Trafalgar D. Water Law",
+    tur: "Paramecia", adlar: ["ope", "oda", "room", "operasyon"] }
+];
+export const MEYVE_VARSAYILAN = "gura";
+export const MEYVE_SEC_SIRA = 569;
+
+/* ---- GURA 1/3: GEKISHIN  (GekishinAbility) ----
+   Kaynakta RANGE 8 ve bir mermi (GekishinProjectile). Havayi
+   catlatip ilerleyen sarsinti.                              */
+export const GURA_GEKISHIN_ACIK   = true;
+export const GURA_GEKISHIN_SIRA   = 560;
+export const GURA_GEKISHIN_MENZIL = 24;
+export const GURA_GEKISHIN_HASAR  = 24;
+export const GURA_GEKISHIN_HIZ    = 2.0;
+export const GURA_GEKISHIN_OMUR   = 60;
+export const GURA_GEKISHIN_ITME   = 2.5;
+export const GURA_GEKISHIN_BEDEL  = 240;
+
+/* ---- GURA 2/3: TENCHI MEIDO  (TenchiMeidoAbility) ----
+   Kaynakta RANGE 26 -- modun en genis alani. Dunyayi ceviren
+   hamle; bizde cevredeki her seye sarsinti + savurma.
+   BLOK KIRMIYOR: kaynakta kiriyor ama bu depoda blok kiran
+   her sey once kapali gelir ve bu yetenek bir DUELLO hamlesi,
+   arazi silahi degil.                                       */
+export const GURA_TENCHI_ACIK    = true;
+export const GURA_TENCHI_SIRA    = 561;
+export const GURA_TENCHI_YARICAP = 26;    // kaynakta 26.0
+export const GURA_TENCHI_HASAR   = 30;
+export const GURA_TENCHI_ITME    = 3.0;
+export const GURA_TENCHI_TAVAN   = 14;
+export const GURA_TENCHI_BEDEL   = 700;
+
+/* ---- GURA 3/3: KABUTOWARI  (KabutowariAbility) ----
+   Kaynakta CHARGE 40 ve PULL_TIME 60: once tutuyor, sonra
+   ikiye ayiriyor. Bizde tek hedefe agir vurus + yukari savurma. */
+export const GURA_KABUTO_ACIK   = true;
+export const GURA_KABUTO_SIRA   = 562;
+export const GURA_KABUTO_MENZIL = 6;
+export const GURA_KABUTO_ACI    = 0.35;
+export const GURA_KABUTO_HASAR  = 40;
+export const GURA_KABUTO_ITME   = 1.6;
+export const GURA_KABUTO_BEDEL  = 320;
+
+/* ---- YAMI 1/3: KUROUZU  (KurouzuAbility) ----
+   Kaynakta DAMAGE 30, RANGE 128 (!), surekli tutma 200 tick.
+   128 blok Bedrock'ta bir taramanin ulasabilecegi yer degil;
+   32'ye cekildi.
+
+   ---- KARANLIGIN IMZASI: IPTAL ----
+   Yami'yi eserde ustun kilan sey hasar degil, DOKUNDUGU
+   kisinin meyve gucunu iptal etmesi. Bizde karsiligi: cektigi
+   hedefin FAYDALI efektlerini soker. Sadece hasar veren bir
+   cekme, bu meyveyi meyve yapan seyi disarida birakirdi.   */
+export const YAMI_KUROUZU_ACIK   = true;
+export const YAMI_KUROUZU_SIRA   = 563;
+export const YAMI_KUROUZU_MENZIL = 32;    // kaynakta 128
+export const YAMI_KUROUZU_HASAR  = 30;    // kaynakta 30
+export const YAMI_KUROUZU_CEKIM  = 3.0;
+export const YAMI_KUROUZU_TAVAN  = 8;
+export const YAMI_KUROUZU_BEDEL  = 320;
+/* Sokulen faydali efektler. Zararli olanlara DOKUNULMUYOR:
+   iptal bir yardim degil, guc alma.                        */
+export const YAMI_SOKULEN = [
+  "strength", "speed", "resistance", "regeneration", "absorption",
+  "fire_resistance", "invisibility", "haste", "jump_boost",
+  "health_boost", "night_vision", "water_breathing"
+];
+
+/* ---- YAMI 2/3: KARA DELIK  (BlackHoleAbility) ----
+   Kaynakta CHARGE 100, Y araligi -6..+6, cevredeki bloklari
+   yutuyor. BLOK YUTMA ALINMADI: geri verilmeyen blok bu
+   depoda esya kaybi sayilir ve Liberation'in defterini
+   (512/1024 blok) kurmak ayri bir is. Alan hasari ve icine
+   cekme aliniyor.                                          */
+export const YAMI_DELIK_ACIK    = true;
+export const YAMI_DELIK_SIRA    = 564;
+export const YAMI_DELIK_YARICAP = 12;
+export const YAMI_DELIK_SURE    = 200;   // kaynakta 200
+export const YAMI_DELIK_ADIM    = 10;
+export const YAMI_DELIK_HASAR   = 8;
+export const YAMI_DELIK_CEKIM   = 1.2;
+export const YAMI_DELIK_TAVAN   = 10;
+export const YAMI_DELIK_BEDEL   = 700;
+
+/* ---- YAMI 3/3: KARA MADDE  (DarkMatterAbility) ----
+   Kaynakta CHARGE 80, COOLDOWN 280 ve bir mermi. Delici. */
+export const YAMI_MADDE_ACIK   = true;
+export const YAMI_MADDE_SIRA   = 565;
+export const YAMI_MADDE_MENZIL = 36;
+export const YAMI_MADDE_HASAR  = 34;
+export const YAMI_MADDE_HIZ    = 2.4;
+export const YAMI_MADDE_OMUR   = 60;
+export const YAMI_MADDE_BEDEL  = 400;
+
+/* ---- OPE 1/4: ODA  (RoomAbility) ----
+   Kaynakta MIN_ROOM_SIZE 8, MAX 45. Ope'nin butun olayi bu:
+   Shambles · Gamma Knife · Counter Shock hepsi
+   `hasRoomActive` denetiminden geciyor. Oda kapaliysa ucu de
+   calismiyor -- kaynaktaki bagimlilik aynen aliniyor.      */
+export const OPE_ODA_ACIK    = true;
+export const OPE_ODA_SIRA    = 566;
+export const OPE_ODA_YARICAP = 16;    // kaynakta 8..45 arasi
+export const OPE_ODA_SURE    = 400;
+export const OPE_ODA_ADIM    = 20;    // parcacik/denetim araligi
+export const OPE_ODA_BEDEL   = 300;
+
+/* ---- OPE 2/4: SHAMBLES  (ShamblesAbility) ----
+   Kaynakta COOLDOWN 40, RANGE 64. Oda icinde YER DEGISTIRME.
+   Bu depoda isinlanma her zaman iki denetimden geciyor:
+   varis yeri ve ustu hava olacak (v7.57 Berserk dersi).    */
+export const OPE_SHAMBLES_ACIK  = true;
+export const OPE_SHAMBLES_SIRA  = 567;
+export const OPE_SHAMBLES_BEDEL = 180;
+
+/* ---- OPE 3/4: GAMMA KNIFE  (GammaKnifeAbility) ----
+   Kaynakta DAMAGE 70, COOLDOWN 500 -- modun en agir tek hedef
+   hasari. Ic organlari kesiyor: bizde hasar + zayiflik, ve
+   ODA sart.                                                 */
+export const OPE_GAMMA_ACIK   = true;
+export const OPE_GAMMA_SIRA   = 568;
+export const OPE_GAMMA_MENZIL = 8;
+export const OPE_GAMMA_ACI    = 0.4;
+export const OPE_GAMMA_HASAR  = 70;    // kaynakta 70
+export const OPE_GAMMA_ZAYIF  = 8;     // saniye
+export const OPE_GAMMA_BEDEL  = 900;
+
+/* ---- OPE 4/4: COUNTER SHOCK  (CounterShockAbility) ----
+   Kaynakta patlama bileseni + ODA sarti. Yakin alanda sok. */
+export const OPE_SOK_ACIK   = true;
+export const OPE_SOK_SIRA   = 570;
+export const OPE_SOK_MENZIL = 6;
+export const OPE_SOK_HASAR  = 26;
+export const OPE_SOK_ITME   = 2.0;
+export const OPE_SOK_TAVAN  = 6;
+export const OPE_SOK_BEDEL  = 320;
 
 /* ---- RYUJIN 1/3: ONIBI  (OnibiProcedure) ----
    Sinifta: toRadians/cos/sin + yaw + "compareDistOf" ile

@@ -97,6 +97,7 @@ import { jjkUnut, sonsuzUnut, jjkSec } from "./yetenekler/jujutsu.js";
 import {
   simbiyotUnut, simbiyotAcikMi, enGucluSus, enGucluKademe
 } from "./yetenekler/simbiyot.js";
+import { meyveUnut, odaUnut, meyveSec } from "./yetenekler/meyve.js";
 import { izUnut } from "./yetenekler/toprak_izi.js";
 
 /* v7.30: Gozcu -- vurus denetimi (menzil + killaura). Kendi
@@ -202,6 +203,7 @@ import "./yetenekler/ruh_yetenekler.js";
 import "./yetenekler/karakter_yetenekler.js";
 import "./yetenekler/jujutsu.js";
 import "./yetenekler/simbiyot.js";
+import "./yetenekler/meyve.js";
 import "./yetenekler/yildirim_halkasi.js";
 import "./yetenekler/alan_simsegi.js";
 import "./yetenekler/tnt_yagmuru.js";
@@ -2500,6 +2502,8 @@ olayaAbone("playerLeave", (olay) => {
   jjkUnut(olay.playerId);
   sonsuzUnut(olay.playerId);
   simbiyotUnut(olay.playerId);
+  meyveUnut(olay.playerId);
+  odaUnut(olay.playerId);
   izUnut(olay.playerId);
   yedekUnut(olay.playerId);
   kipUnut(olay.playerId);
@@ -2800,6 +2804,10 @@ sohbetKancalari({
      secici konmadi: sira zaten 20'yi gecti ve kullanici
      "adlarini yazarak degistireyim" dedi.                   */
   jjkSec: (oyuncu, ad) => jjkSec(oyuncu, ad),
+
+  /* Seytan meyvesi secimi (v7.64). Jest sirasinda da var
+     (meyve_sec) ama sohbet tablette tek adimda cozuyor.   */
+  meyveSec: (oyuncu, ad) => meyveSec(oyuncu, ad),
 
   /* Savunma kipi bir IS uretiyor; sohbet kancasi onu merkezi
      is listesine kendi ekliyor. Kendi runInterval'ini acmiyor
