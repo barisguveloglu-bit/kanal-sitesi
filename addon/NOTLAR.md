@@ -1,3 +1,54 @@
+# v7.59.0 — SLR tamamen çıkarıldı, çözümleme referansta kaldı
+
+Kullanıcı: *"bu mod paketini tamamen çıkart, ileride belki iş
+yerimize yarar o yüzden referanslara ekle"*
+
+v7.58'de eklenen SLR silahları **tümüyle** çıkarıldı:
+
+- `yetenekler/slr.js` — silindi
+- `test/slr.mjs` — silindi
+- `ayarlar.js`'teki 81 satırlık SLR bloğu — silindi
+- `main.js`'teki import — silindi
+
+Geriye tek satır SLR kodu kalmadı (`grep -rn slr` temiz).
+
+## Kalan tek şey: REFERANS_SLR.md
+
+Çözümlemenin kendisi **duruyor** ve başına durum notu eklendi:
+eklentide karşılığı olmadığı, hangi sürümde çıkarıldığı, boşalan
+sıranın 520–521 olduğu.
+
+"Bizde nasıl karşılandı" bölümü yerine **"İleride yeniden
+kurulacaksa"** bölümü yazıldı. Orada v7.58'de bedeli ödenmiş
+altı ders duruyor:
+
+- Boş sıra 520–521, çekirdek döngünün ve yol/karakter
+  ailelerinin dışında
+- `KILIC_ACIK` / `HANCER_*` adları `ayarlar.js`'te zaten var —
+  önek gerekiyor
+- "Kol takılıyken kapalı" iki yarımdır; eksik olan **süren iş**
+  ve ölçüt `esyaninYetenekleri` olmalı, sol el de dahil
+- Tavan tek sabitte tutulmalı, oran ondan türemeli
+- Test taklidinin doğru alanı `_elde`, `getComponent` baştan
+  yazılırsa equippable taklidi kaybolur
+- Anlık yetenekler dönüş değeriyle ölçülemez, ölçüt hasar
+
+Yani kod gitti, **öğrenilenler gitmedi**. Aynı yol yeniden
+yürünürse aynı altı tuzağa ikinci kez düşülmeyecek.
+
+## Sıra numarası bilerek boş bırakıldı
+
+520–521 doldurulmadı ve `ayarlar.js`'te niye boş olduğu yazıldı.
+Aradaki boşluğu kapatıp sonraki aileleri kaydırmak, ileride
+geri gelirse yeniden kaydırma demekti.
+
+## Denetim
+
+`tarama.mjs` temiz: kullanılmayan ithal yok, öksüz ayar sayısı
+6'ya döndü (SLR öncesi sayı). Tam süit 111 test, hepsi yeşil.
+
+---
+
 # v7.58.0 — SLR silahları, kol takılıyken kapalı
 
 Kullanıcı: *"Toprak kol taktığımda bitecek yani o dosyadaki

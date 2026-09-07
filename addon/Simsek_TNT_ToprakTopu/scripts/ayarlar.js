@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.58.0";
+export const SURUM = "v7.59.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -310,88 +310,10 @@ export const RUH_KARAKTERLER = [
 export const RUH_VARSAYILAN_KARAKTER = "ryujin";
 export const KARAKTER_SIRA = 519;
 
-
-/* ================= SLR · SOLO LEVELING SILAHLARI =================
-   Kaynak: "SLR 1.7.8" — bu bir CurseForge MODPAKETI (NeoForge
-   21.1.249 / MC 1.21.1, 156 mod). Icinde "Solo Leveling:
-   Reawakening" (Efkrdnzz) ve "Solo Leveling: Arsenal" (Zerotekz)
-   var ama JAR'LARI YOK: paket yalnizca manifest.json (mod
-   kimlikleri) ve overrides/ (ayar dosyalari) tasiyor.
-
-   ---- BU YUZDEN NEYI OLCEBILDIK, NEYI OLCEMEDIK ----
-   OLCULDU (FTB gorev dosyalarindan, dogrudan okunarak):
-     - Rutbe harfleri: mana_crystal_e / _a / _s ve
-       dagger_karambit_e · dagger_knight_d · dagger_chain_c ·
-       dagger_golden_b · dagger_heat_a  ->  E · D · C · B · A · S
-     - Harfli kademelerin USTUNDEKI adli silahlar:
-       demon_kings_long_sword · demon_kings_dagger ·
-       barukas_dagger · mythic_dagger · gravity_dagger ·
-       emerald_dagger
-   OLCULEMEDI:
-     - Hicbir silahin hasar sayisi (jar yok)
-     - Stat/seviye TAVANI. Pakette tek SLR ayari
-       sololeveling-client.properties ve icinde yalnizca
-       gorunum ayarlari var (damageNumbers, outline...).
-
-   ---- BU YUZDEN TAVAN BURADA TANIMLI, VARSAYIM ----
-   Kullanicinin kurali: "maksimum stats seviyesi neyse onun
-   sayi olarak 10 dusugu; maksimum 100 ise 90 olacak."
-   Tavani kaynaktan okuyamadigimiz icin BURADA taniniyor.
-   Gercek sayi ogrenilirse DEGISTIRILECEK TEK YER
-   SLR_STAT_TAVAN -- SLR_STAT kendiliginden dogru cikar.       */
-export const SLR_ACIK       = true;
-export const SLR_STAT_TAVAN = 100;   // sistemin ust siniri (VARSAYIM)
-export const SLR_STAT_FARK  = 10;    // kullanicinin kurali: tavanin 10 altı
-export const SLR_STAT       = SLR_STAT_TAVAN - SLR_STAT_FARK;   // 90
-/* Guc oraninin tek kapisi. 90/100 = 0.9 -- yani silahlar
-   tavanin %90'inda calisiyor. Iki ayri yerde hesaplansaydi
-   tavan degisince biri geride kalirdi.                       */
-export const SLR_ORAN       = SLR_STAT / SLR_STAT_TAVAN;
-export const SLR_RUTBELER   = ["E", "D", "C", "B", "A", "S"];
-
-/* ---- KOL TAKILIYKEN KAPALI ----
-   Kullanicinin istegi: "Toprak kol taktigimda bitecek, kol
-   takmadigim zaman bu gucler acilacak."
-   Tetiklenmesi zaten esyasiz jest sirasinda oldugu icin
-   kendiliginden boyle. EKSIK OLAN ikinci yarisiydi: calisan
-   bir is, ortasinda kol takilinca DEVAM EDIYORDU. SLR_KOL_KES
-   acikken SLR isleri her tick ele bakiyor ve kol gorurse
-   kendini kapatiyor.                                          */
-export const SLR_KOL_KES = true;
-
-/* IKI ONEK DE SLR_ ILE BASLIYOR. Ilk yazimda KILIC_* ve
-   HANCER_* denendi; KILIC_ACIK bu dosyada ZATEN VARDI
-   (pa:resetting_sword, satir ~4350) ve Node dogrudan
-   "already been declared" dedi. v7.49'da ayni sey KILIT_*
-   ile yasanmisti: 10 bin satirlik bir ayar dosyasinda ad
-   secmeden once grep atmak sart.                        */
-/* ---- 1. SEYTAN KRALI'NIN UZUN KILICI (demon_kings_long_sword) ----
-   Neden bu: gorev dosyalarindaki TEK uzun kilic -- geri kalan
-   butun silahlar hancer. Ve harfli kademeye degil, adli
-   kademeye ait: d_knight_1'den (Seytan Krali'nin Sovalyesi)
-   dusuyor, yani harfli hancerlerin ustunde bir kaynaktan.     */
-export const SLR_KILIC_ACIK   = true;
-export const SLR_KILIC_SIRA   = 520;
-export const SLR_KILIC_MENZIL = 6;
-export const SLR_KILIC_ACI    = -0.35;   // genis yay (~110 derece)
-export const SLR_KILIC_HASAR  = 26;      // SLR_ORAN ile olcekleniyor
-export const SLR_KILIC_TAVAN  = 12;
-export const SLR_KILIC_ITME   = 2.2;
-export const SLR_KILIC_ZAYIF  = 6;       // saniye, hedefe zayiflik
-
-/* ---- 2. BARUKA'NIN HANCERI (barukas_dagger) ----
-   Neden bu: adli silahlar arasinda gorev agacinin EN UCUNDA
-   duruyor (mutated'dan dusuyor) ve kaynak eserde de sahibinin
-   imza silahi. Uzun kilicin tam zitti: tek hedefe hizli ard
-   arda vurus.                                                 */
-export const SLR_HANCER_ACIK   = true;
-export const SLR_HANCER_SIRA   = 521;
-export const SLR_HANCER_MENZIL = 5;
-export const SLR_HANCER_ACI    = 0.3;
-export const SLR_HANCER_ADET   = 7;      // kac vurus
-export const SLR_HANCER_ADIM   = 3;      // tick, vuruslar arasi
-export const SLR_HANCER_HASAR  = 9;      // vurus basina, SLR_ORAN ile
-export const SLR_HANCER_YAVAS  = 4;      // saniye, hedefe yavaslik
+/* SIRA 520-521 BOS BIRAKILDI (v7.59). Orada SLR silahlari
+   vardi, kullanicinin karariyla tamamen cikarildi. Cozumleme
+   REFERANS_SLR.md'de duruyor -- ileride lazim olursa yeniden
+   kurulacak yer burasi.                                     */
 
 /* ---- RYUJIN 1/3: ONIBI  (OnibiProcedure) ----
    Sinifta: toRadians/cos/sin + yaw + "compareDistOf" ile

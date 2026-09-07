@@ -1,5 +1,11 @@
 # Referans · SLR 1.7.8 (Solo Leveling: Reawakening)
 
+> **DURUM: EKLENTIDE KARSILIGI YOK.**
+> v7.58'de iki silah eklenmisti; v7.59'da kullanicinin karariyla
+> **tamamen cikarildi**. Bu belge yalnizca cozumleme kaydi olarak
+> duruyor — ileride lazim olursa buradan yeniden kurulur.
+> Bosalan yetenek sirasi: **520–521** (`ayarlar.js`'te isaretli).
+
 ## Bu dosya ne, ne değil
 
 **Bu bir mod değil, bir CurseForge MODPAKETİ export'u.**
@@ -101,18 +107,37 @@ gerçek sayılar için `sololeveling` jar'ının kendisi gerekiyor.
 ama `steel_fang_wolf`'tan düşüyor — ağaçta Baruka'nınkinden
 daha erken.
 
-## Bizde nasıl karşılandı
+## İleride yeniden kurulacaksa
 
-`yetenekler/slr.js`, sıra 520–521. İkisi de `esyasiz`.
+v7.58'de bir kez kuruldu ve çıkarıldı. Aynı yol yeniden
+yürünecekse çıkan dersler:
 
-**Güç kapısı tek:** `SLR_ORAN × ruhCarpani`. `SLR_ORAN` =
-`SLR_STAT / SLR_STAT_TAVAN` = 90/100 = **0.9**.
+**Boş sıra 520–521.** `ayarlar.js`'te işaretli, çekirdek jest
+döngüsünün ve yol/karakter ailelerinin (500–519) dışında.
 
-`SLR_STAT_TAVAN` bir **varsayım** (kaynaktan okunamadı). Gerçek
-sayı öğrenilirse değiştirilecek tek yer o — `SLR_STAT` ve
-`SLR_ORAN` kendiliğinden doğru çıkar.
+**Ad çakışması tuzağı.** `KILIC_ACIK` ve `HANCER_*` adları
+`ayarlar.js`'te **zaten var** (`pa:resetting_sword`, satır
+~4350). v7.58'de tam buna takıldı ve önek `SLR_` yapıldı. 10 bin
+satırlık bir ayar dosyasında ad seçmeden önce grep.
 
-**Rütbe gösterimi:** S yalnızca tavanın kendisi; tavanın altındaki
-her değer en fazla A. Yani 90/100 ekranda `[A · 90/100]` olarak
-görünüyor — kullanıcının "tavanın 10 altı" kuralı arayüzde de
-okunuyor.
+**"Kol takılıyken kapalı" iki yarımdır.** Tetikleme yarısı
+kendiliğinden gelir (eşyasız jest sırası, `main.js` elde kol
+varken genel sıraya bakmaz). Eksik olan **süren iş**: bir iş
+başladıktan sonra kol takılınca devam eder. Her tick ele bakan
+bir denetim gerekir, ölçütü `esyaninYetenekleri` olmalı —
+`main.js`'inkiyle aynı, yoksa iki tanım zamanla ayrışır. Sağ
+elin yanında **sol el** de bakılmalı (`CIFT_EL_ACIK` gerçek bir
+özellik); v7.58'de bunu bir mutasyon yakaladı.
+
+**Tavan tek yerde tutulmalı.** Kaynaktan okunamayan sayı
+(`SLR_STAT_TAVAN`) tek bir sabit olmalı, oran ondan türemeli.
+Gerçek sayı öğrenilince değişecek tek yer o olur.
+
+**Test taklidinin doğru alanı `_elde`.** `dunya.mjs`'in
+`oyuncuKur`'u `getEquipment(slot)` ile `o._elde` okuyor;
+`getEquipmentSlot` diye bir şey yok. Ayrıca `getComponent`
+baştan yazılırsa equippable taklidi kaybolur ve kol denetimi
+testi sessizce hiçbir zaman kol göremez.
+
+**Anlık yetenekler dönüş değeriyle ölçülemez.** İş açmayan bir
+yetenek her hâlükârda `undefined` döner; ölçüt hasar olmalı.
