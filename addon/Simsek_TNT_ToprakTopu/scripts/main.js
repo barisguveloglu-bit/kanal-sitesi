@@ -91,6 +91,7 @@ import { arindir, arinmaUnut, savunmaAc } from "./yetenekler/arinma.js";
 import { kafesKir, kafesUnut } from "./yetenekler/kafes.js";
 import { tekSimsekUnut } from "./yetenekler/tek_simsek.js";
 import { ruhTara, ruhUnut } from "./yetenekler/ruh.js";
+import { quincyUnut, reishiUnut } from "./yetenekler/ruh_yetenekler.js";
 import { izUnut } from "./yetenekler/toprak_izi.js";
 
 /* v7.30: Gozcu -- vurus denetimi (menzil + killaura). Kendi
@@ -189,6 +190,7 @@ import {
 import "./yetenekler/yildirim.js";
 import "./yetenekler/tek_simsek.js";
 import "./yetenekler/toprak_izi.js";
+import "./yetenekler/ruh_yetenekler.js";
 import "./yetenekler/yildirim_halkasi.js";
 import "./yetenekler/alan_simsegi.js";
 import "./yetenekler/tnt_yagmuru.js";
@@ -2417,6 +2419,8 @@ olayaAbone("playerLeave", (olay) => {
   kafesUnut(olay.playerId);
   tekSimsekUnut(olay.playerId);
   ruhUnut(olay.playerId);
+  quincyUnut(olay.playerId);
+  reishiUnut(olay.playerId);
   izUnut(olay.playerId);
   yedekUnut(olay.playerId);
   kipUnut(olay.playerId);

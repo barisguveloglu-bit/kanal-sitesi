@@ -1,3 +1,81 @@
+# v7.56.0 — Üç yolun yetenekleri
+
+Kullanıcı: *"devam et zaten seçtiğimiz 3 yolunda tüm yeteneklere
+tüm her şeyi alınacak alınabilir olanları"*
+
+v7.54–7.55'te üç yol (Getsuga · Cero · Letzt) seçilmişti ama
+ortada sadece kademe sistemi vardı: yol seçmek işe yaramıyordu,
+çünkü yola bağlı hiçbir yetenek yoktu. Bu sürüm o boşluğu
+dolduruyor — `yetenekler/ruh_yetenekler.js`.
+
+Hepsi `Bleach_KD2.4.6__1.12.2.jar` sınıflarının sabit havuzu
+**okunarak** çıkarıldı; jar hiç çalıştırılmadı.
+
+| Yetenek | Kaynak sınıf | Yol | Sıra |
+|---|---|---|---|
+| Getsuga Tenshō | `EntityGetsuga` (`accelX/Y/Z`, `lunarBlockDestruction`) | getsuga | 500 |
+| Bankai Halkası | `ItemBankai` (`shockwaveRing`, `shockwaveMax`, `ringTimer`, `healTimer`) | getsuga (yalnız kademe 2) | 501 |
+| Cero | `EntityCeroCharge` → `EntityCeroFired` (`CHARGE/CHARGE_MAX`, `infrontUser`) | cero | 502 |
+| Quincy Oku | `ItemQuincyBow` / `ItemLeztzBow` (`bowDamage`, `spiritcost`) | letzt | 503 |
+| Reishi Zemini | `BlockReishiPlatform` (`CARPET_AABB`, `TRANSLUCENT`) | letzt | 504 |
+| Ruh Yolu Seç | — | hepsi | 505 |
+
+## Kaynaktan bilerek ayrıldığımız üç şey
+
+1. **Tek çarpan kapısı.** Kaynakta `boost*` alanları ayrı ayrı
+   uygulanıyor. Bizde her sayı tek bir `ruhCarpani()`'ndan
+   geçiyor: iki ayrı hesap er geç ayrışır.
+2. **Blok kırma kapalı doğuyor.** `lunarBlockDestruction` ve
+   `ceroBlockDestruction` kaynakta varsayılan açık. Bu depoda
+   blok kıran her şey önce kapalı gelir.
+3. **Mermiler varlık değil iş.** Bedrock'ta özel mermi varlığı
+   BP'de yeni bir varlık demek. Burada mermi adım adım ilerleyen
+   bir iş (`isinlar.js`'in kalıbı) — aynı görünüm, sıfır yeni
+   varlık.
+
+## Yol boyunca çıkan üç şey
+
+**Sıra 23–28 çekirdek döngünün ortasına düşüyordu.** İlk yazımda
+aile 23'ten başlıyordu; `jest.mjs` 5–7. yuvalar için "HİÇBİR ŞEY
+OLMADI" dedi. Aile 500–505'e taşındı, o aralık boş.
+
+**Cero'nun ikinci aşaması `bitir()` içinden açılamıyor.** İlk
+yazımda ateş, şarj işi biterken açılıyordu ve bir kuyruk
+gerekiyordu — çünkü `bitir()` merkezi iş listesi *yürürken*
+çağrılıyor, oradan yeni iş eklenemiyor. Tek iş içinde aşama
+değiştirmek hem kuyruğu hem `main.js`'e dokunmayı gereksiz kıldı.
+
+**`tarama.mjs` iki ölü ithal yakaladı** (`koniHedefleri`,
+`QUINCY_MENZIL`). İkisi de silindi, öksüz kalan ayar da.
+
+## Mutasyon bataryası — iki tanesi kaçtı
+
+18 mutasyon denendi, 16'sı ilk turda yakalandı. Kaçan ikisi
+gerçek birer açıktı:
+
+- **Mermi duvardan geçiyordu.** `else return true` satırı
+  silindiğinde bütün testler yeşil kaldı — yani duvarın
+  ardındaki oyuncuyu vuran bir mermi hiçbir teste takılmıyordu.
+  Duvar arkası vuruş, blok kırmaktan daha kötü.
+- **Halka hiç durmuyordu.** `HALKA_MAKS` tavanı 99 katına
+  çıkarıldığında da testler geçti. Oysa tavan yalnız görünümü
+  değil işin **ömrünü** belirliyor: durmayan halka her adımda
+  `maxDistance`'ı büyüten bir tarama demek.
+
+`test/ruh_yetenek.mjs`'e iki bölüm eklendi (duvar + halka
+sınırı); ikinci turda 18/18 yakalandı.
+
+## Test
+
+`test/ruh_yetenek.mjs` — 10 bölüm: yol ayrımı (5 yetenek × 3
+yol), çarpan ölçeği, aynı hedefe tek vuruş, duvarda durma,
+kademe-2 kapısı, halka sınırı, Cero'nun iki aşaması, Quincy'nin
+üç kipi + ruh bedeli + eğilerek kip değiştirme, Reishi'nin
+yalnız havaya yazması ve tam geri alması, yol döngüsü, oyuncu
+çıkınca defterlerin temizlenmesi.
+
+---
+
 # v7.55.0 — SP dolumu hızlandı, tavan otomatik, bir tutarsızlık düzeldi
 
 Kullanıcı: *"SP hızını birazcık daha arttıralım ama birazcık"* +

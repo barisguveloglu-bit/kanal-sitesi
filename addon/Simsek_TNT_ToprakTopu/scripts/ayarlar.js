@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.55.0";
+export const SURUM = "v7.56.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -177,6 +177,102 @@ export const RUH_VARSAYILAN_YOL = "getsuga";
    sorulursa cevabi burada, modun eksigi degil bizim tercihimiz.
    Acilmak istenirse RUH_TAVAN'i kucultup XP'ye baglamak yeter. */
 export const RUH_SEVIYE_ACIK = false;
+
+/* ================================================================
+   UC YOLUN YETENEKLERI                                    v7.56
+
+   Hepsi Bleach: Kurosaki Dynasty 2.4.6 siniflarindan OKUNARAK
+   cikarildi (calistirilmadi). Her birinin yaninda hangi
+   siniftan geldigi yaziyor.
+
+   ---- ORTAK KURAL: CARPAN ----
+   Butun sayilar ruhCarpani() ile olcekleniyor. Yani ayni
+   yetenek Shikai'de bir, Bankai'de baska vuruyor. Tek kapi
+   olmasi onemli -- iki ayri carpan hesabi er gec ayrisir.   */
+
+/* ---- 1. GETSUGA TENSHO  (EntityGetsuga) ----
+   Sinifta okunanlar: damage · accelX/Y/Z (bakis yonu) ·
+   lunarBlockDestruction (blok kirma, mobGriefing'e bagli) ·
+   reishiBlock (kirilamaz blok istisnasi).
+   Bizde blok kirma AYARDAN kapali basliyor: bu depoda blok
+   kiran her sey once kapali gelir.                          */
+export const GETSUGA_ACIK    = true;
+export const GETSUGA_SIRA    = 500;
+export const GETSUGA_HASAR   = 18;    // carpanla olcekleniyor
+export const GETSUGA_MENZIL  = 32;
+export const GETSUGA_HIZ     = 1.6;   // blok/tick
+export const GETSUGA_OMUR    = 60;    // tick
+export const GETSUGA_BLOK_KIR = false;   // lunarBlockDestruction
+
+/* ---- 2. BANKAI SARSINTI HALKASI  (ItemBankai) ----
+   Sinifta: shockwaveRing · shockwaveMax · ringTimer ·
+   windSound · healTimer. Yani Bankai'de etrafa genisleyen
+   bir halka ve bir iyilesme sayaci var.
+   YALNIZ KADEME 2'de calisiyor -- kaynakta da Bankai'ye ait. */
+export const HALKA_ACIK   = true;
+export const HALKA_SIRA   = 501;
+export const HALKA_MAKS   = 8;     // shockwaveMax: kac blok yaricap
+export const HALKA_ADIM   = 4;     // ringTimer: kac tickte bir buyusun
+export const HALKA_HASAR  = 12;
+export const HALKA_IYILES = 60;    // healTimer: kendine yenilenme (tick)
+
+/* ---- 3. CERO  (EntityCeroCharge -> EntityCeroFired) ----
+   Sinifta: CHARGE · CHARGE_MAX · getCharge/setCharge ·
+   infrontUser (onunde duruyor) · spawnCero · fireCero ·
+   COLOUR_R/G/B. Yani IKI ASAMA: onunde toplaniyor, sonra
+   ateslenıyor -- bizim isin_topu kalibinin aynisi.          */
+export const CERO_ACIK    = true;
+export const CERO_SIRA    = 502;
+export const CERO_SARJ    = 40;    // CHARGE_MAX: tam sarj kac tick
+export const CERO_ONDE    = 2.0;   // infrontUser: kac blok onde
+export const CERO_HASAR   = 30;    // TAM sarjda; eksik sarj oranli
+export const CERO_MENZIL  = 40;
+export const CERO_HIZ     = 2.0;
+export const CERO_OMUR    = 60;
+export const CERO_BLOK_KIR = false;  // ceroBlockDestruction
+
+/* ---- 4. QUINCY OKU  (ItemQuincyBow / ItemLeztzBow) ----
+   ItemLeztzBow'da UC ATIS KIPI var, adlari sinifta aynen
+   geciyor: RapidFire · WideShot · Charged.
+   ItemQuincyBow'da: bowDamage · spiritcost (her atis ruh
+   yakiyor) · rangecap · manipcap.                           */
+export const QUINCY_ACIK   = true;
+export const QUINCY_SIRA   = 503;
+/* QUINCY_MENZIL KALDIRILDI (v7.56): oklar gercek
+   minecraft:arrow varliklari, menzillerini itki ve yercekimi
+   belirliyor -- bizim sayimiz onlara gecmiyordu. tarama.mjs
+   "kullanilmayan ithal" olarak yakaladi. */
+export const QUINCY_BEDEL  = 40;    // spiritcost: atis basina ruh
+/* Uc kip sirayla degisiyor. Sayilar bizim; kaynakta yalniz
+   ADLAR okunabiliyordu.                                     */
+export const QUINCY_KIPLER = [
+  { ad: "RapidFire", adet: 5, yayilma: 0.06, hasar: 6,  aralik: 2 },
+  { ad: "WideShot",  adet: 7, yayilma: 0.30, hasar: 8,  aralik: 0 },
+  { ad: "Charged",   adet: 1, yayilma: 0.0,  hasar: 40, aralik: 0 }
+];
+
+/* ---- 5. REISHI ZEMINI  (BlockReishiPlatform) ----
+   Sinifta: CARPET_AABB (hali yuksekligi) · TRANSLUCENT ·
+   reishi_platform. Yani Hirenkyaku: havada basacak zemin.
+   toprak_izi'nin kardesi -- ayni defter, ayni geri koyma.   */
+export const REISHI_ACIK   = true;
+export const REISHI_SIRA   = 504;
+export const REISHI_BLOK   = "minecraft:white_stained_glass";
+export const REISHI_SURE   = 1200;   // 60 sn
+export const REISHI_TAVAN  = 96;     // ayni anda kac blok
+export const REISHI_YARICAP = 1;     // ayagin altinda kac blokluk alan
+
+/* ---- RUH AILESI 500-505'TE  (v7.56) ----
+   Ilk yazimda 23-28 secilmisti ve cekirdek jest sirasinin
+   ORTASINA dustu: jest.mjs "secim 5 Alan Simsegi" beklerken
+   yola bagli bir yetenek buldu ve "HICBIR SEY OLMADI" dedi.
+
+   Test hakliydi ve iki sorunu birden gosterdi: kullanici da
+   Alan Simsegi'ne ulasmak icin yola bagli bes olu kaydin
+   icinden gecerdi. Aile 500'e alindi -- Konsey (480-482)
+   sonrasi ilk bos aralik. Cekirdek sira artik hic degismiyor. */
+export const RUH_YOL_SIRA = 505;
+
 
 /* ---- KURTARICI: can esigi tetikleyicisi ----
    Kullanicinin asil istedigi sey. Can okuma yeni bir sey
