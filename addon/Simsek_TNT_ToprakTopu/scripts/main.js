@@ -368,6 +368,32 @@ function oyuncuIsSayisi(oyuncuId) {
   return liste ? liste.length : 0;
 }
 
+/* AYNI YETENEK ZATEN CALISIYOR MU?  (v7.53)
+
+   BEKLEME 0'a inince butce.mjs'in "oyuncu basina tek aktif
+   efekt" bolumu dustu: ust uste 6 tetikleme AYNI yetenegin
+   IKI kopyasini birden acti (2684 setType = tek atisin iki
+   kati, 2 patlama).
+
+   Sebep AYNI_ANDA = 2 idi ve o sayi bu is icin KONMAMISTI --
+   yorumu acikca soyluyor: "sag ve sol elde AYRI kollar varsa
+   ikisi birden calissin". Yani iki FARKLI yetenek icin.
+   3 saniyelik bekleme, ayni yetenegin kendi kendine
+   binmesini tesadufen engelliyordu; bekleme kalkinca o
+   koruma da kalkti.
+
+   Bu yuzden ayrica bakiliyor: ayni KIMLIK zaten calisiyorsa
+   ikincisi acilmiyor. Cift el bozulmuyor (farkli kimlikler),
+   ayni yetenek kendiyle ustuste binmiyor.                   */
+function ayniIsVarMi(oyuncuId, kimlik) {
+  const liste = oyuncununIsleri.get(oyuncuId);
+  if (!liste) return false;
+  for (const is of liste) {
+    if (is && is.ad === kimlik) return true;
+  }
+  return false;
+}
+
 function isEkle(is) {
   if (OLCUM_ACIK && isler.length === 0) olcumSifirla();
   isler.push(is);
@@ -717,6 +743,13 @@ function yetenekTetikle(oyuncu, kimlikler) {
           bilgiYaz("UYARI: bilinmeyen yetenek kimligi: " + kimlik);
           continue;
         }
+
+        /* AYNI YETENEK KENDIYLE USTUSTE BINMESIN (v7.53).
+           Gerekce ayniIsVarMi'nin ustunde. Kapi ACIK KALIYOR:
+           is acmayan anlik yetenekler (Arinma, Isinlanma...)
+           ve is adi kimlikten farkli olanlar buradan gecer --
+           onlarda ustuste binecek bir is zaten yok.          */
+        if (ayniIsVarMi(oyuncu.id, kimlik)) continue;
 
         /* olustur() tek bir is ya da IS DIZISI donebilir.
            Dizi v4.29'da lazim oldu: bot gucleri bot basina bir

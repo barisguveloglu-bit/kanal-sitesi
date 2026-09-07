@@ -1,3 +1,92 @@
+# v7.53.0 — beklemesiz tetikleme, ve `2/10 kalp` kaldırıldı
+
+Kullanıcının iki isteği:
+
+1. *"Artık bu modda Kevin moddaki gibi cooldown'suz atayım,
+   yani saniye beklemeyeyim."*
+2. *"Şu 2/10 şeyi kaldır, bunun yerine Minecraft'ın kendi can
+   barında olsun."*
+
+## 1. `BEKLEME` 60 → 0
+
+Merkezi bekleme 3 saniyeydi. Kevin1545'in yıldırım kılıcında
+`minecraft:cooldown` 1 sn.
+
+**Neden güvenli — bekleme tek koruma değil, üçüncüsüydü:**
+
+| koruma | ne yapar | durumu |
+|---|---|---|
+| jest kenarı | yetenek ancak zıplama *başladığı* tick tetikleniyor | yerinde |
+| `AYNI_ANDA = 2` | oyuncu başına eşzamanlı iş tavanı | yerinde |
+| bütçe | tick başına blok/varlık/patlama tavanı | yerinde |
+
+`jest.mjs` 2b bölümü zaten "zıplamayı basılı tutmak tekrar
+etmiyor"u tutuyor (400 tick basılı → 20 yıldırım, 40 değil).
+
+`TEK_SIMSEK_BEKLEME` de 10 → 0.
+
+## Beklemeyi kaldırınca bir hata ortaya çıktı
+
+`butce.mjs`'in "oyuncu başına tek aktif efekt" bölümü düştü:
+üst üste 6 tetikleme **aynı yeteneğin iki kopyasını** birden
+açtı (2684 setType = tek atışın iki katı, 2 patlama).
+
+Sebep `AYNI_ANDA = 2` idi ve o sayı bu iş için konmamıştı —
+yorumu açıkça söylüyor: *"sağ ve sol elde AYRI kollar varsa
+ikisi birden çalışsın"*. Yani iki **farklı** yetenek için.
+
+3 saniyelik bekleme, aynı yeteneğin kendi kendine binmesini
+**tesadüfen** engelliyormuş. Bekleme kalkınca o koruma da
+kalktı.
+
+`ayniIsVarMi()` eklendi: aynı kimlik zaten çalışıyorsa ikincisi
+açılmıyor. Çift el bozulmuyor (farklı kimlikler), aynı yetenek
+kendiyle üst üste binmiyor.
+
+**Ders:** bir ayarı değiştirmek, o ayarın *yan etkisiyle*
+tutulan başka bir güvenceyi de düşürebilir. Testin bunu
+yakalaması, sayının kendisini değil davranışı ölçtüğü içindi.
+
+## 2. `CAN_SAYACI_ACIK` → false
+
+Ekrandaki `❤ 2/10 kalp` yazısı kapatıldı.
+
+**Kalpler zaten Minecraft'ın kendi can barındaydı.**
+`kalp_ekle` / `kalp_toptan` `health_boost` efektiyle can
+tavanını büyütüyor; oyunun kendi kalp barı onu satır satır
+çiziyor. Actionbar yazısı onun *yerine* değil **üstüne** gelen
+ikinci bir okumaydı. Silinmedi, kapatıldı.
+
+### Renkli kalp katmanları — yapılamıyor
+
+Kullanıcının gönderdiği `HealthOverlay1.19.38.0.0.jar` bir
+**Java Edition Forge modu** (`META-INF/mods.toml` + mixin'ler).
+Bedrock'a taşınamaz: farklı motor, farklı çizim yolu, mixin'ler
+Java bytecode'u yamalıyor.
+
+Bedrock'ta can barı motorun içine gömülü bir çizici; davranış
+paketi ne rengini değiştirebiliyor ne de "10 kalp göster,
+katmanı renkle anlat" diyebiliyor.
+
+Zaten v4.89'da kayıtlı: kullanıcı 400 kalbi denemiş,
+*"410 kalpte okunamaz hale geliyordu"* deyip 200'e indirmiş.
+`KALP_TAVAN = 200` o ölçümün sonucu.
+
+## Testler
+
+- `tek_simsek.mjs` 6. bölüm artık **sayıyı değil davranışı**
+  sabitliyor: ayar kaçsa basış o kadar sınırlanmalı. 0'da üç
+  basış üç şimşek, ileride büyütülürse tek şimşek.
+- `can_sayaci.mjs` 3–5. bölümler koşullu: **açıkken** bütün
+  yazma yolları, **kapalıyken** gerçekten sustuğu ölçülüyor.
+  Muafiyet değil koşul — geri açıldığı gün kapsam kendiliğinden
+  dönüyor.
+
+Mutasyon: `ayniIsVarMi` çağrısı silindi, karşılaştırması
+bozuldu — ikisi de yakalandı.
+
+---
+
 # v7.52.1 — karşılaştırma bir hata buldu: havada toprak merdiveni
 
 Kullanıcı sordu: *"Tek Şimşek + Toprak İzi bunlar tam olarak

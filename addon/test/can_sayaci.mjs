@@ -73,7 +73,15 @@ const yazi = (o) => (o.onScreenDisplay && o.onScreenDisplay._son) || "";
 
 console.log("=== 1. AYARLAR MODUN UC MODUYLA AYNI ===");
 {
-  kontrol("CAN_SAYACI_ACIK", ayar.CAN_SAYACI_ACIK === true);
+  /* v7.53: ARTIK KAPALI. Kullanici: "su 2/10 seyi kaldir,
+     bunun yerine Minecraft'in kendi can barinda olsun."
+     Ayar true'ya SABITLENMIYOR artik -- kapatilabilir olmasi
+     zaten bu ayarin var olma sebebi. Sinanan sey ayarin
+     DEGERI degil, ayarin GECERLI olmasi ve kapaliyken
+     sayacin gercekten susmasi (asagida 1b).                */
+  kontrol("CAN_SAYACI_ACIK bir boolean",
+          typeof ayar.CAN_SAYACI_ACIK === "boolean",
+          String(ayar.CAN_SAYACI_ACIK));
   /* healthoverlay.options.heart_display_mode: off / always /
      on_change -- ucunun de karsiligi olmali.               */
   const modlar = ["kapali", "hep", "degisince"];
@@ -130,100 +138,125 @@ console.log("=== 2. METIN DOGRU ===");
 }
 
 console.log("");
-console.log("=== 3. ILK TARAMA SESSIZ, DEGISINCE YAZIYOR ===");
-{
-  const { o } = kur("c1");
-  sayac.canSayaciTara([o]);
-  kontrol("ilk taramada YAZI YOK (dunyaya girer girmez dusmesin)",
-          yazi(o) === "", yazi(o));
+/* ---- 3-5. BOLUMLER AYAR ACIKKEN OLCULUYOR  (v7.53) ----
+   Sayac v7.53'te KAPATILDI (kullanici "su 2/10 seyi kaldir"
+   dedi). Kapaliyken yazma yollarini sinamak imkansiz; ayari
+   testten degistirmek de mumkun degil, modul sabiti.
 
-  /* Can degisince gorunmeli. Sessizlik penceresini gecmek
-     icin tick ilerletiliyor.                              */
-  o._can = 12;
-  tickIlerlet(ayar.CAN_SAYACI_SESSIZLIK + ayar.CAN_SAYACI_TARAMA + 2);
-  kontrol("can degisince yazdi", /kalp/.test(yazi(o)), yazi(o));
-  kontrol("dogru degeri yazdi", yazi(o).includes("6§7/10"), yazi(o));
-}
-{
-  /* Tavan degisimi de sayilmali: kalp eklemek tam olarak bu. */
-  const { o } = kur("c2");
-  sayac.canSayaciTara([o]);
-  o._maks = 420; o._can = 420;
-  tickIlerlet(ayar.CAN_SAYACI_SESSIZLIK + ayar.CAN_SAYACI_TARAMA + 2);
-  kontrol("tavan degisince yazdi (kalp ekleme)",
-          yazi(o).includes("210§7/210"), yazi(o));
-}
-{
-  /* Yarim kalpten kucuk oynamalar sayacı acmamali:
-     yenilenme efekti acikken can surekli kipirdiyor.      */
-  const { o } = kur("c3");
-  sayac.canSayaciTara([o]);
-  tickIlerlet(ayar.CAN_SAYACI_SESSIZLIK + ayar.CAN_SAYACI_TARAMA + 2);
-  const oncesi = yazi(o);
-  o._can = 20 - 0.4;
-  tickIlerlet(ayar.CAN_SAYACI_TARAMA + 2);
-  kontrol("yarim kalptan kucuk oynama sayaci acmiyor",
-          yazi(o) === oncesi, yazi(o));
+   Cozum muafiyet degil KOSUL: acikken butun davranis
+   sinaniyor, kapaliyken de SUSTUGU sinaniyor. Yani ayar
+   hangi konumda olursa olsun bir sey olculuyor ve geri
+   acildigi gun kapsam kendiliginden geri geliyor.          */
+if (ayar.CAN_SAYACI_ACIK) {
+  console.log("=== 3. ILK TARAMA SESSIZ, DEGISINCE YAZIYOR ===");
+  {
+    const { o } = kur("c1");
+    sayac.canSayaciTara([o]);
+    kontrol("ilk taramada YAZI YOK (dunyaya girer girmez dusmesin)",
+            yazi(o) === "", yazi(o));
+
+    /* Can degisince gorunmeli. Sessizlik penceresini gecmek
+       icin tick ilerletiliyor.                              */
+    o._can = 12;
+    tickIlerlet(ayar.CAN_SAYACI_SESSIZLIK + ayar.CAN_SAYACI_TARAMA + 2);
+    kontrol("can degisince yazdi", /kalp/.test(yazi(o)), yazi(o));
+    kontrol("dogru degeri yazdi", yazi(o).includes("6§7/10"), yazi(o));
+  }
+  {
+    /* Tavan degisimi de sayilmali: kalp eklemek tam olarak bu. */
+    const { o } = kur("c2");
+    sayac.canSayaciTara([o]);
+    o._maks = 420; o._can = 420;
+    tickIlerlet(ayar.CAN_SAYACI_SESSIZLIK + ayar.CAN_SAYACI_TARAMA + 2);
+    kontrol("tavan degisince yazdi (kalp ekleme)",
+            yazi(o).includes("210§7/210"), yazi(o));
+  }
+  {
+    /* Yarim kalpten kucuk oynamalar sayacı acmamali:
+       yenilenme efekti acikken can surekli kipirdiyor.      */
+    const { o } = kur("c3");
+    sayac.canSayaciTara([o]);
+    tickIlerlet(ayar.CAN_SAYACI_SESSIZLIK + ayar.CAN_SAYACI_TARAMA + 2);
+    const oncesi = yazi(o);
+    o._can = 20 - 0.4;
+    tickIlerlet(ayar.CAN_SAYACI_TARAMA + 2);
+    kontrol("yarim kalptan kucuk oynama sayaci acmiyor",
+            yazi(o) === oncesi, yazi(o));
+  }
+
+  console.log("");
+  console.log("=== 4. SESSIZ: BASKASININ YAZISINI EZMIYOR ===");
+  {
+    /* Asil guvence. Lazerin "359 vurus" yazisi kullanicinin
+       bildirdigi hatanin ta kendisiydi; sayac onu ezerse
+       hatayi gormek imkansizlasir.                           */
+    const { o } = kur("c4");
+    sayac.canSayaciTara([o]);          // ilk tarama: sessiz
+    o._can = 10;                        // degisim var
+
+    yard.actionbarYaz(o, "§c⚡ 359 vurus");
+    tickIlerlet(ayar.CAN_SAYACI_TARAMA + 2);
+    kontrol("baskasi az once yazdiysa sayac SUSUYOR",
+            yazi(o) === "§c⚡ 359 vurus", yazi(o));
+
+    /* Sessizlik penceresi gecince yazabilmeli, yoksa sayac
+       hicbir zaman gorunmezdi.                              */
+    tickIlerlet(ayar.CAN_SAYACI_SESSIZLIK + ayar.CAN_SAYACI_TARAMA + 2);
+    kontrol("pencere gecince yaziyor", /kalp/.test(yazi(o)), yazi(o));
+  }
+  {
+    /* Sayac KENDI yazisini "baskasi" saymamali: sayarsa ilk
+       yazidan sonra kendini susturur ve bir daha hic
+       gorunmezdi.                                            */
+    const { o } = kur("c5");
+    sayac.canSayaciTara([o]);
+    o._can = 10;
+    tickIlerlet(ayar.CAN_SAYACI_SESSIZLIK + ayar.CAN_SAYACI_TARAMA + 2);
+    const ilk = yazi(o);
+    kontrol("sayac yazdi", /kalp/.test(ilk), ilk);
+    o._can = 6;
+    tickIlerlet(ayar.CAN_SAYACI_TARAMA + 2);
+    kontrol("kendi yazisi kendini susturmuyor",
+            yazi(o).includes("3§7/10"), yazi(o));
+  }
+
+  console.log("");
+  console.log("=== 5. MODLAR ===");
+  {
+    kontrol("'kapali' modunda hic yazmiyor",
+            (() => {
+              const { o } = kur("c6");
+              /* Ayari dogrudan degistiremiyoruz (const export),
+                 o yuzden davranis DOLAYLI sinaniyor: mod
+                 "kapali" olsaydi tara() hemen donerdi. Burada
+                 en azindan mod degerinin uc secenekten biri
+                 oldugunu ve kodun o dali tasidigini goruyoruz. */
+              const k = readFileSync(BP + "/scripts/yetenekler/can_sayaci.js", "utf8");
+              return k.includes('CAN_SAYACI_MOD === "kapali"') &&
+                     k.includes('CAN_SAYACI_MOD === "degisince"');
+            })());
+    const k = readFileSync(BP + "/scripts/yetenekler/can_sayaci.js", "utf8");
+    kontrol("'hep' modu icin ayri dal yok (degisince disi = hep)",
+            !k.includes('CAN_SAYACI_MOD === "hep"'),
+            "degisince kontrolu disinda kalan her sey 'hep' gibi davraniyor");
+  }
+
+  console.log("");
+} else {
+  console.log("=== 3-5. KAPALIYKEN GERCEKTEN SUSUYOR ===");
+  {
+    /* Kullanicinin istedigi sey tam olarak bu: ekranda
+       "2/10 kalp" yazmasin. Kalpler zaten oyunun kendi can
+       barinda (health_boost ile buyutulen tavan).          */
+    const { D, o } = kur(20, 20);
+    for (let t = 0; t < 200; t++) tickIlerlet(1);
+    kontrol("hicbir sey yazilmadi", yazi(o) === "", yazi(o) || "(bos)");
+    o._can = 4;                       // can DEGISTI
+    for (let t = 0; t < 200; t++) tickIlerlet(1);
+    kontrol("can degisince de yazmadi", yazi(o) === "", yazi(o) || "(bos)");
+  }
 }
 
-console.log("");
-console.log("=== 4. SESSIZ: BASKASININ YAZISINI EZMIYOR ===");
-{
-  /* Asil guvence. Lazerin "359 vurus" yazisi kullanicinin
-     bildirdigi hatanin ta kendisiydi; sayac onu ezerse
-     hatayi gormek imkansizlasir.                           */
-  const { o } = kur("c4");
-  sayac.canSayaciTara([o]);          // ilk tarama: sessiz
-  o._can = 10;                        // degisim var
-
-  yard.actionbarYaz(o, "§c⚡ 359 vurus");
-  tickIlerlet(ayar.CAN_SAYACI_TARAMA + 2);
-  kontrol("baskasi az once yazdiysa sayac SUSUYOR",
-          yazi(o) === "§c⚡ 359 vurus", yazi(o));
-
-  /* Sessizlik penceresi gecince yazabilmeli, yoksa sayac
-     hicbir zaman gorunmezdi.                              */
-  tickIlerlet(ayar.CAN_SAYACI_SESSIZLIK + ayar.CAN_SAYACI_TARAMA + 2);
-  kontrol("pencere gecince yaziyor", /kalp/.test(yazi(o)), yazi(o));
-}
-{
-  /* Sayac KENDI yazisini "baskasi" saymamali: sayarsa ilk
-     yazidan sonra kendini susturur ve bir daha hic
-     gorunmezdi.                                            */
-  const { o } = kur("c5");
-  sayac.canSayaciTara([o]);
-  o._can = 10;
-  tickIlerlet(ayar.CAN_SAYACI_SESSIZLIK + ayar.CAN_SAYACI_TARAMA + 2);
-  const ilk = yazi(o);
-  kontrol("sayac yazdi", /kalp/.test(ilk), ilk);
-  o._can = 6;
-  tickIlerlet(ayar.CAN_SAYACI_TARAMA + 2);
-  kontrol("kendi yazisi kendini susturmuyor",
-          yazi(o).includes("3§7/10"), yazi(o));
-}
-
-console.log("");
-console.log("=== 5. MODLAR ===");
-{
-  kontrol("'kapali' modunda hic yazmiyor",
-          (() => {
-            const { o } = kur("c6");
-            /* Ayari dogrudan degistiremiyoruz (const export),
-               o yuzden davranis DOLAYLI sinaniyor: mod
-               "kapali" olsaydi tara() hemen donerdi. Burada
-               en azindan mod degerinin uc secenekten biri
-               oldugunu ve kodun o dali tasidigini goruyoruz. */
-            const k = readFileSync(BP + "/scripts/yetenekler/can_sayaci.js", "utf8");
-            return k.includes('CAN_SAYACI_MOD === "kapali"') &&
-                   k.includes('CAN_SAYACI_MOD === "degisince"');
-          })());
-  const k = readFileSync(BP + "/scripts/yetenekler/can_sayaci.js", "utf8");
-  kontrol("'hep' modu icin ayri dal yok (degisince disi = hep)",
-          !k.includes('CAN_SAYACI_MOD === "hep"'),
-          "degisince kontrolu disinda kalan her sey 'hep' gibi davraniyor");
-}
-
-console.log("");
 console.log("=== 6. ULASILABILIYOR MU ===");
 {
   const kaynak = readFileSync(BP + "/scripts/main.js", "utf8");

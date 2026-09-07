@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.52.1";
+export const SURUM = "v7.53.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -107,7 +107,9 @@ export const TEK_SIMSEK_SIRA    = 21;   // Yon Simsegi (20) yaninda
    secildi cunku bizimki yagmur degil, tek atis -- "tek tek"
    hissi bekleme kisaldikca artiyor. Yine de sifir degil:
    sifir bekleme, tek atisi otomatik silaha cevirirdi.       */
-export const TEK_SIMSEK_BEKLEME = 10;
+/* v7.53: 10 -> 0, merkezi BEKLEME ile birlikte. Kaynagin
+   esya beklemesi 1 sn'ydi; kullanici onu da istemedi.       */
+export const TEK_SIMSEK_BEKLEME = 0;
 /* Nisan menzili. KILIT_MENZIL (32) ile ayni: ikisi de varlik
    taramasi ve 32 gorus mesafesiyle uyumlu.                  */
 export const TEK_SIMSEK_MENZIL  = 32;
@@ -217,7 +219,24 @@ export const PATLAMA_GUCU = 4;    // sonunda patlama gucu (TNT = 4)
 export const TOP_BLOK     = "minecraft:dirt";
 
 /* ---------------- Genel ---------------- */
-export const BEKLEME     = 60;    // tekrar kullanma beklemesi (20 tick = 1 sn)
+/* v7.53: 60 -> 0. Kullanici: "artik bu modda Kevin moddaki
+   gibi cooldown'suz atayim yani saniye beklemeyeyim."
+   Kevin1545'in yildirim kilicinda `minecraft:cooldown` 1 sn;
+   bizde 3 sn'ydi.
+
+   NEDEN GUVENLI -- bekleme tek koruma degildi, ucuncusuydu:
+     1. JEST KENARI: yetenek ancak ziplama BASLADIGI tick
+        tetikleniyor (simdiZipliyor && !oncekiZipliyor).
+        Ziplamayi basili tutmak tekrar etmiyor; jest.mjs 2b
+        bolumu bunu tutuyor (400 tick basili -> 20 yildirim,
+        40 degil).
+     2. AYNI_ANDA = 2: oyuncu basina es zamanli is tavani ve
+        bu denetim beklemeden ONCE calisiyor. Yani 0 bekleme
+        ile bile ucuncu is acilmiyor.
+     3. BUTCE: tick basina blok/varlik/patlama tavani ortak.
+   Ilk ikisi yerinde durdugu icin 0 otomatik silaha cevirmiyor.
+   Tablette yavaslama olursa tek sayi geri buyutulur.        */
+export const BEKLEME     = 0;     // beklemesiz (v7.53)
 export const KOL_GECIKME = 10;    // kollar kalktiktan kac tick sonra baslasin
 
 /* ---------------- Kol animasyonu ----------------
@@ -5110,7 +5129,14 @@ export const ZIRH_MODLAR = new Map([
    etmek yerine kendi esiklerimizi koyduk: dolulukla degisen
    uc renk. Modun renkleri DEGIL, bizim secimimiz.
    ================================================================ */
-export const CAN_SAYACI_ACIK = true;
+/* v7.53: KAPATILDI. Kullanici: "su 2/10 seyi kaldir, bunun
+   yerine Minecraft'in kendi can barinda olsun."
+   Kalpler ZATEN orada: kalp_ekle/kalp_toptan health_boost
+   efektiyle can tavanini buyutuyor ve oyunun kendi kalp
+   bari onu satir satir ciziyor. Bu actionbar yazisi onun
+   YERINE degil, USTUNE gelen ikinci bir okumaydi.
+   Silinmedi, kapatildi: geri istenirse tek kelime.          */
+export const CAN_SAYACI_ACIK = false;
 /* "kapali" | "hep" | "degisince"
    Modun off / always / on_change'inin karsiligi. Varsayilan
    "degisince": actionbar'i lazer sayaci ve donusum mesajlari

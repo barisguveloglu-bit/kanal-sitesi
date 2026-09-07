@@ -165,17 +165,25 @@ console.log("=== 5. DUVARIN ARKASINA GECMIYOR  (kaynaktan FARK) ===");
   }
 }
 
-console.log("=== 6. BEKLEME TUTUYOR ===");
+console.log("=== 6. BEKLEME AYARI NE DIYORSA O  (v7.53: 0) ===");
 {
+  /* Kullanici: "Kevin moddaki gibi cooldown'suz atayim, yani
+     saniye beklemeyeyim." TEK_SIMSEK_BEKLEME 10 -> 0.
+
+     Bu bolum artik SAYIYI degil DAVRANISI sabitliyor: ayar
+     kacsa basis o kadar sinirlanmali. Boylece hem 0 hem de
+     ileride geri buyutulen bir deger dogru olculuyor.      */
   const { D, o } = kur({ x: 1, y: 0, z: 0 }, { x: 0.5, y: 90.6, z: 0.5 });
   tanim.olustur(o);
   tanim.olustur(o);      // hemen ikinci basis
   tanim.olustur(o);
   const l = dogan(D);
-  kontrol("ust uste basmak tek simsek biraktı", l.length === 1,
-          l.length + " tane");
-  kontrol("bekleme sifir DEGIL", ayar.TEK_SIMSEK_BEKLEME > 0,
-          ayar.TEK_SIMSEK_BEKLEME + " tick");
+  const beklenen = ayar.TEK_SIMSEK_BEKLEME > 0 ? 1 : 3;
+  kontrol("uc basis -> " + beklenen + " simsek", l.length === beklenen,
+          l.length + " tane (bekleme " + ayar.TEK_SIMSEK_BEKLEME + ")");
+  if (ayar.TEK_SIMSEK_BEKLEME === 0) {
+    kontrol("beklemesiz: her basis bir simsek", l.length === 3);
+  }
 }
 
 console.log("=== 7. BUTCE DOLUYKEN DOGMUYOR ===");
