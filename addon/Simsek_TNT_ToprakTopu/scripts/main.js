@@ -17,7 +17,7 @@ import {
   BEN10_ACIK, BEN10, SIMBIYOT_ACIK, YETENEK_KORUMALI, ANLIK_BEKLEME,
   KONSEY_ACIK,
   DISMONT_ESYA,
-  DUSMUS_ACIK, DUSMUS_CAKMAK,
+  DUSMUS_ACIK, DUSMUS_CAKMAK, DUSMUS_YEMIN,
   SAAT_ACIK, SAAT_ESYA,
   TEKNOLOJI_ACIK, TEKNOLOJI_TAKIMLAR, TEKNOLOJI_ONEK,
   MAHOU_ACIK, MAHOU_BUYULER, MAHOU_ESYALAR, MAHOU_MANA_TAVAN,
@@ -175,7 +175,9 @@ import { konseyTara, konseyUnut } from "./yetenekler/konsey.js";
 import {
   konseySilahTara, konseySilahUnut, konseySilahKir
 } from "./yetenekler/konsey_silah.js";
-import { dusmusTara, dusmusUnut, dusmusAtesle } from "./yetenekler/dusmus.js";
+import {
+  dusmusTara, dusmusUnut, dusmusAtesle, dusmusYemin, kusakVer
+} from "./yetenekler/dusmus.js";
 
 /* Sohbet komutlari ("can 10", "lazer"...). Bu dosya main.js'i
    import etmiyor; komutlarin calistiracagi fonksiyonlar kanca
@@ -2814,6 +2816,15 @@ sohbetKancalari({
     return sonuc.mesaj;
   },
   kafesKir: (oyuncu) => kafesKir(oyuncu),
+
+  /* DUSMUS YEMINI (v7.63). Kisa komut, uzun cumlenin AYNI
+     fonksiyonuna gidiyor -- iki ayri yol iki ayri davranisa
+     donusmesin diye beklenen cumleyi kendisi veriyor.     */
+  dusmusYeminEt: (oyuncu) =>
+    dusmusYemin(oyuncu, DUSMUS_YEMIN)
+      ? "§4§lASKER §7· yemin kabul edildi"
+      : "§7Şu an yemin edecek durumda değilsin.",
+  dusmusKusak: (oyuncu) => kusakVer(oyuncu),
   yedekAl: (oyuncu) => yedekAl(oyuncu),
   yedekYukle: (oyuncu) => yedekYukle(oyuncu),
   kalpEkle: (oyuncu, adet) => kalpEkle(oyuncu, adet),

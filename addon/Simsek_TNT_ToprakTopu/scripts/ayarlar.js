@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.62.0";
+export const SURUM = "v7.63.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -7145,9 +7145,30 @@ export const DUSMUS_SECILME_ALT =
   "§fYücelerin Yücesi tarafından seçildin — artık seçilmiş " +
   "oyunculardan birisin";
 /* Sohbete yazilan yonerge ve beklenen yemin. */
+/* ---- YEMIN NEDEN CALISMIYORDU  (v7.63) ----
+   Kullanici: "4 asamadan sonra yemin istiyor, aynisini
+   yaziyordum ama calismiyordu."
+
+   Sebep bulundu ve yazim hatasi DEGILDI: yemin, duz cumleyi
+   dinleyen `sohbetDinleyiciEkle` yoluyla okunuyor ve o
+   dinleyiciler YALNIZ world.beforeEvents.chatSend aboneligi
+   icinde calisiyor. chatSend "Beta APIs" istiyor; kapaliysa
+   abonelik sessizce kurulmuyor.
+
+   Komutlarin scriptevent yedegi vardi, YEMININ YOKTU. Yani
+   yonerge ekrana geliyordu (o tick dongusunden), yazilan
+   cumle ise hicbir yere ulasmiyordu. Dort surumdur boyleydi.
+
+   Uc sey birden duzeldi:
+     1. scriptevent yolu artik dinleyicilere de soruyor.
+     2. Kisa "yemin" komutu eklendi -- tablette 47 harflik
+        Turkce bir cumleyi yazmak zaten asil zorluk.
+     3. Yonerge her iki yolu da yaziyor.                    */
 export const DUSMUS_YEMIN_YONERGE =
   "§5§lYEMİN §7— aşağıdaki satırı sohbete yaz:\n" +
-  "§f  Yücelerin Yücesine and olsun karanlıkta yürürüm";
+  "§f  Yücelerin Yücesine and olsun karanlıkta yürürüm\n" +
+  "§8  kısa yolu: §7yemin\n" +
+  "§8  sohbet çalışmıyorsa: §7/scriptevent simsek:komut yemin";
 export const DUSMUS_YEMIN =
   "Yücelerin Yücesine and olsun karanlıkta yürürüm";
 export const DUSMUS_ASKER_BASLIK = "§4§lASKER";
@@ -7155,6 +7176,49 @@ export const DUSMUS_ASKER_MESAJ =
   "§a§lArtık tam anlamıyla bir asker oldun.";
 /* Yemin yonergesi kac tick'te bir tekrarlansin (kaybolmasin). */
 export const DUSMUS_YEMIN_TEKRAR = 400;    // 20 sn
+/* ================= ASKERIN KUSAGI  (v7.63) =================
+   Kullanici: "yemin ettikten sonra bana bazi itemler vermeni
+   istiyorum, ben bir askerim artik."
+
+   ---- SET NEDEN BU ----
+   Yemin sahnesi zaten "minecraft:totem_particle" doguruyor;
+   setin merkezine ODULMEZ TOTEM konuldu, gorsel ile odul ayni
+   seyi soylesin diye. Gerisi bir ASKERIN ihtiyaci: zirh, silah,
+   menzil, yiyecek -- ve eklentinin kendi kanli temasindan
+   Kanli Kol ile iki kan iksiri.
+
+   Netherite bilerek: bu odul dort asama + secilme + yeminin
+   sonunda geliyor, yani gec oyun. Elmas verseydik odul
+   oyuncunun zaten sahip oldugu seyin altinda kalirdi.
+
+   ---- BIR KEZ  ----
+   Defterde `kusak` isareti var. Ikinci kez verilmiyor; envanter
+   doluysa HIC verilmiyor ve isaret KONMUYOR -- yani "yarim al,
+   sonra tekrar al" diye bir yol yok. Bosluk acip `kusak`
+   yazarak alinabiliyor.
+   Neden dokup birakmiyoruz: yere dusen esya kaybolabilir ve bu
+   depoda hicbir yetenek oyuncunun esyasini kaybettirmez.     */
+export const DUSMUS_KUSAK_ACIK = true;
+export const DUSMUS_KUSAK = [
+  ["minecraft:totem_of_undying", 1],
+  ["minecraft:netherite_helmet", 1],
+  ["minecraft:netherite_chestplate", 1],
+  ["minecraft:netherite_leggings", 1],
+  ["minecraft:netherite_boots", 1],
+  ["minecraft:netherite_sword", 1],
+  ["minecraft:bow", 1],
+  ["minecraft:arrow", 64],
+  ["minecraft:golden_apple", 8],
+  ["minecraft:cooked_beef", 32],
+  ["minecraft:ender_pearl", 8],
+  /* Eklentinin kendi esyalari: kanli tema yeminle ayni. */
+  ["pa:kol_kanli", 1],
+  ["pa:iksir_kan_iksiri", 2],
+  ["pa:iksir_redoksin", 1]
+];
+export const DUSMUS_KUSAK_MESAJ =
+  "§4§lASKERİN KUŞAĞI §7— yeminin karşılığı envanterinde.";
+
 export const DUSMUS_KAYIT_ANAHTAR = "simsek:dusmus";
 
 export const BOT_KIMLIKLER = new Set([BOT_KIMLIK, SEY_KIMLIK, SEY_KILIK_KIMLIK]);

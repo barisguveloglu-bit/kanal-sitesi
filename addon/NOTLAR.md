@@ -1,3 +1,109 @@
+# v7.63.0 — Yemin neden çalışmıyordu, ve Askerin Kuşağı
+
+Kullanıcı: *"4 aşamadan sonra yemin istiyor ya, o durumda
+aynısını yazıyordum ama çalışmıyordu"* + *"yemin ettikten sonra
+bana bazı itemler vermeni istiyorum, ben bir askerim artık"*
+
+## Sebep yazım hatası değildi
+
+Önce şüpheliyi eledim: `sadelestir` karşılaştırmasını beş ayrı
+yazımla denedim (büyük harf, küçük harf, şapkasız, sondaki
+boşluk) — **beşi de eşleşiyor**. Yani yazdığın satır doğruydu.
+
+Gerçek sebep zincirin başka bir halkasındaydı:
+
+Yemin, düz cümleyi dinleyen `sohbetDinleyiciEkle` yoluyla
+okunuyor. O dinleyiciler **yalnız** `world.beforeEvents.chatSend`
+aboneliğinin içinde çalışıyordu. `chatSend` ise **"Beta APIs"**
+deneysel ayarını istiyor; kapalıysa abonelik sessizce
+kurulmuyor — bu depoda v4.23'te öğrenilmiş ve yazılmış bir şey.
+
+**Komutların `scriptevent` yedeği vardı, yeminin yoktu.** Yani:
+
+- Yönerge ekrana geliyordu — o tick döngüsünden geliyor, sohbete
+  bağlı değil.
+- Yazdığın cümle **hiçbir yere ulaşmıyordu**.
+
+İkisi birbirinden bağımsız olduğu için hata "sanki çalışıyor ama
+kabul etmiyor" gibi görünüyordu. Dört sürümdür böyleydi.
+
+## Üç şey birden düzeldi
+
+1. **`scriptevent` yolu artık dinleyicilere de soruyor.**
+   `dinleyicilereSor` dışa açıldı; `chatSend` ve `scriptevent`
+   aynı yardımcıyı kullanıyor, iki kopya yok.
+   Beta kapalıyken:
+   `/scriptevent simsek:komut Yücelerin Yücesine and olsun karanlıkta yürürüm`
+2. **Kısa `yemin` komutu** eklendi. Tablette 47 harflik Türkçe
+   bir cümleyi yazmak zaten asıl zorluktu. Uzun cümle de aynen
+   çalışıyor — ikisi de `dusmusYemin`'in aynı çağrısına gidiyor.
+3. **Yönerge her iki yolu da yazıyor** artık. Eskiden tek satır
+   vardı ve o satır çalışmıyorsa kullanıcının elinde hiçbir şey
+   kalmıyordu.
+
+## Askerin Kuşağı
+
+Yemin kabul edilir edilmez veriliyor. 14 parça:
+
+**Odak:** `minecraft:totem_of_undying` — yemin sahnesi zaten
+`minecraft:totem_particle` doğuruyordu; ödülün merkezine onu
+koydum ki görsel ile ödül aynı şeyi söylesin.
+
+**Zırh ve silah:** netherite takım (4 parça) · netherite kılıç ·
+yay · 64 ok.
+Netherite bilerek: bu ödül dört aşama + seçilme + yeminin
+sonunda geliyor. Elmas verseydim ödül oyuncunun zaten sahip
+olduğu şeyin altında kalırdı.
+
+**Dayanma:** 8 altın elma · 32 pişmiş biftek · 8 ender incisi.
+
+**Eklentinin kendinden:** `pa:kol_kanli` (Kanlı Kol — kanlı tema
+yeminle aynı) · 2 Kan İksiri · 1 Redoksin.
+
+### Bir kez, ve yarım yok
+
+Defterde `kusak` işareti var ve **dünya kaydında saklanıyor** —
+çıkıp giren oyuncu ikinci kez alamıyor.
+
+Envanterde yer yetmiyorsa **hiç verilmiyor ve işaret
+konmuyor**; sohbete `kuşak` yazarak sonra alınıyor. Üç seçenek
+vardı, ikisi kötüydü:
+
+- *Yarım ver, işareti koy* → oyuncu ödülünün yarısını kaybeder.
+- *Yarım ver, işareti koyma* → "doldur, yarım al, boşalt, tekrar
+  al" çoğaltma yolu açılır — v7.62'de envanter yedeğinde tam bu
+  sınıf hata kapatılmıştı.
+- *Hiç verme, işareti koyma* → seçilen bu.
+
+Yere dökmek de yok: düşen eşya kaybolabilir ve bu depoda hiçbir
+yetenek oyuncunun eşyasını kaybettirmez.
+
+## Mutasyon bataryası — 14 mutasyon, ikisi kaçtı
+
+- **`kusak` işaretinin dünya kaydından sağ çıktığı
+  ölçülmüyordu.** Bellekte tutmak yetmez; çıkıp giren oyuncu
+  kuşağını ikinci kez alabilseydi çoğaltma yolu açık kalırdı.
+  Çıkış-giriş bölümü eklendi.
+- **Yönergedeki kısa yol satırı ayırt edilmiyordu.** Kalıbım
+  `"yemin"` arıyordu ama o kelime `scriptevent` satırında da
+  geçiyor — kısa yol satırı silinse bile test yeşil kalıyordu.
+  Kalıp `kısa yolu:` satırına bağlandı.
+
+İkinci turda 14/14.
+
+## Test
+
+`dusmus.mjs` iki bölüm kazandı: **7f** (yeminin iki yolu + kuşak:
+kendiliğinden verilmesi, ikinci kez verilmemesi, çıkış-girişten
+sonra da verilmemesi, yeminsiz alınamaması, dolu envanterde hiç
+verilmemesi ve yer açılınca alınabilmesi) ve **7g** (scriptevent
+yolunun dinleyicilere sorması, tek kopya, yönergenin iki yolu da
+yazması). Ayrıca kuşak eşyaları taklit dünyaya **ayardan
+okunarak** kaydediliyor — listeye yeni bir parça eklenince test
+de görüyor.
+
+---
+
 # v7.62.0 — Dış inceleme: dokuz bulgu doğrulandı ve kapatıldı
 
 Kullanıcı v7.60'ı dış bir modele verip açık aradı. On madde geldi;

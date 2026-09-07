@@ -10,7 +10,8 @@ import {
   DUSMUS_ATES_TICK, DUSMUS_BAGISIKLIK, DUSMUS_KAYIT_ANAHTAR,
   DUSMUS_SECILME_SURE, DUSMUS_SECILME_BASLIK, DUSMUS_SECILME_ALT,
   DUSMUS_YEMIN_YONERGE, DUSMUS_YEMIN, DUSMUS_ASKER_BASLIK,
-  DUSMUS_ASKER_MESAJ, DUSMUS_YEMIN_TEKRAR, DEFTER_TAVAN
+  DUSMUS_ASKER_MESAJ, DUSMUS_YEMIN_TEKRAR, DEFTER_TAVAN,
+  DUSMUS_KUSAK_ACIK, DUSMUS_KUSAK, DUSMUS_KUSAK_MESAJ
 } from "../ayarlar.js";
 
 /* ================================================================
@@ -112,7 +113,10 @@ function yaz() {
   try {
     const dizi = [];
     for (const [id, k] of defter) {
-      dizi.push([id, k.durum, k.asama, k.zirh || []]);
+      /* 5. alan v7.63'te eklendi: kusak alindi mi. ESKI
+         kayitlarda yok, o yuzden okurken varligina bakiliyor
+         -- eski dunyalar bozulmasin.                       */
+      dizi.push([id, k.durum, k.asama, k.zirh || [], k.kusak ? 1 : 0]);
     }
     const paket = { k: dizi, b: [...bloklar.keys()] };
     if (dizi.length === 0 && bloklar.size === 0) {
@@ -152,6 +156,10 @@ export function dusmusOku() {
       defter.set(String(satir[0]), {
         durum: String(satir[1]), asama: Number(satir[2]) || 0,
         zirh: Array.isArray(satir[3]) ? satir[3] : [],
+        /* satir[4] yoksa eski kayit: kusak alinmamis sayiliyor.
+           Tersi (alinmis saymak) yemin etmis eski oyuncuyu
+           odulunden ederdi.                                */
+        kusak: satir.length > 4 ? Boolean(satir[4]) : false,
         sonrakiTick: 0
       });
     }
@@ -319,12 +327,80 @@ export function dusmusYemin(oyuncu, metin) {
   try {
     baslikYaz(oyuncu, DUSMUS_ASKER_BASLIK, DUSMUS_ASKER_MESAJ);
     oyuncu.sendMessage(DUSMUS_ASKER_MESAJ);
+    kusakVer(oyuncu);
     parcacikAt(oyuncu.dimension, "minecraft:totem_particle",
                varlikKonumu(oyuncu));
   } catch (e) {
     hataYaz("dusmus.yemin", e);
   }
   return true;                       // yemin herkesin sohbetine dusmesin
+}
+
+/* ================= ASKERIN KUSAGI  (v7.63) =================
+   Yeminin karsiligi. Bir kez veriliyor; ikinci cagri hicbir
+   sey yapmiyor.
+
+   ---- YARIM VERMEK YOK ----
+   Envanterde yer yetmiyorsa HIC verilmiyor ve `kusak` isareti
+   KONMUYOR. Yarim verip isareti koysaydik oyuncu odulunun
+   yarisini kaybederdi; yarim verip isareti KOYMASAYDIK "doldur,
+   yarim al, bosalt, tekrar al" diye bir cogaltma yolu acilirdi
+   -- v7.62'de envanter yedeginde tam bu sinif hata kapatildi.
+   Yere dokmek de yok: dusen esya kaybolabilir ve bu depoda
+   hicbir yetenek oyuncunun esyasini kaybettirmez.           */
+export function kusakVer(oyuncu) {
+  if (!DUSMUS_KUSAK_ACIK) return "§7Kuşak kapalı.";
+  const kayit = defter.get(oyuncu.id);
+  if (!kayit || kayit.durum !== "asker") {
+    return "§7Önce yemin etmen lazım.";
+  }
+  if (kayit.kusak) return "§7Kuşağını zaten aldın.";
+  if (!ItemStack) return "§cItemStack API'si yok.";
+
+  let kap;
+  try {
+    const env = oyuncu.getComponent("minecraft:inventory");
+    kap = env ? env.container : undefined;
+  } catch (e) { hataYaz("dusmus.kusak.envanter", e); }
+  if (!kap || typeof kap.addItem !== "function") {
+    return "§cEnvanter okunamadı.";
+  }
+
+  /* Once YER var mi diye bakiliyor, sonra veriliyor. */
+  const gerek = DUSMUS_KUSAK.length;
+  let bos = gerek;
+  try {
+    if (typeof kap.emptySlotsCount === "number") bos = kap.emptySlotsCount;
+  } catch (e) { /* surumde yoksa denemeye devam */ }
+  if (bos < gerek) {
+    return "§eEnvanterinde §f" + gerek + "§e boş yuva lazım §8(şu an " +
+           bos + "). §7Yer açıp sohbete §fkuşak§7 yaz.";
+  }
+
+  let verilen = 0;
+  const olmayan = [];
+  for (const [esya, adet] of DUSMUS_KUSAK) {
+    try {
+      kap.addItem(new ItemStack(esya, adet));
+      verilen++;
+    } catch (e) {
+      olmayan.push(esya);
+    }
+  }
+  /* Isaret ancak buraya gelince konuyor. */
+  kayit.kusak = true;
+  yaz();
+  try {
+    oyuncu.sendMessage(DUSMUS_KUSAK_MESAJ);
+    parcacikAt(oyuncu.dimension, "minecraft:totem_particle",
+               varlikKonumu(oyuncu));
+  } catch (e) { /* onemsiz */ }
+  if (olmayan.length > 0) {
+    hataYaz("dusmus.kusak", new Error("kayitli olmayan: " + olmayan.join(", ")));
+    return "§a" + verilen + " parça verildi §8· §c" + olmayan.length +
+           " tanesi oyuna kayıtlı değil";
+  }
+  return "§4§lASKERİN KUŞAĞI §7· §a" + verilen + " parça envanterinde";
 }
 
 /* Ates degdi mi: yaniyorsa ya da cakmak kullandiysa. */

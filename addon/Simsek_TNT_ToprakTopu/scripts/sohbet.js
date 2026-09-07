@@ -72,6 +72,24 @@ export function sohbetDinleyiciEkle(fn) {
   if (typeof fn === "function") dinleyiciler.push(fn);
 }
 
+/* Dinleyicilere sor: biri sahiplenirse true.
+   v7.63'te DISA cikarildi -- eskiden yalniz chatSend
+   aboneligi icinde cagriliyordu ve chatSend "Beta APIs"
+   istiyor. Yani Beta kapaliyken Dusmus yemini HICBIR yere
+   ulasmiyordu: yonerge ekrana geliyor, yazilan cumle
+   kayboluyordu. Komutlarin scriptevent yedegi vardi,
+   dinleyicilerin yoktu.                                    */
+export function dinleyicilereSor(oyuncu, metin) {
+  for (const d of dinleyiciler) {
+    try {
+      if (d(oyuncu, metin)) return true;
+    } catch (hata) {
+      hataYaz("sohbet.dinleyici", hata);
+    }
+  }
+  return false;
+}
+
 const TR_HARF = {
   "ç": "c", "ğ": "g", "ı": "i", "İ": "i", "ö": "o", "ş": "s", "ü": "u",
   "Ç": "c", "Ğ": "g", "I": "i", "Ö": "o", "Ş": "s", "Ü": "u"
@@ -210,6 +228,19 @@ export function komutCozumle(oyuncu, hamMetin) {
   }
   if (jjkAdiMi(ad)) {
     return { cevap: cagir("jjkSec", oyuncu, ad) };
+  }
+
+  /* DUSMUS YEMINI  (v7.63).
+     Uzun cumle hala calisiyor (dinleyici yoluyla); bu kisa yol
+     tablet icin. 47 harflik Turkce bir cumleyi yazmak asil
+     zorluktu ve Beta kapaliysa cumle hicbir yere ulasmiyordu. */
+  if (ad === "yemin" || ad === "and") {
+    return { cevap: cagir("dusmusYeminEt", oyuncu) };
+  }
+  /* Askerin kusagi: envanter doluyken yer acip tekrar istemek
+     icin. Bir kez veriliyor.                                */
+  if (ad === "kusak" || ad === "kuşak" || ad === "set") {
+    return { cevap: cagir("dusmusKusak", oyuncu) };
   }
 
   if (ad === "yedek") {
@@ -622,13 +653,7 @@ function sohbeteAbone() {
         if (!sonuc) {
           /* Komut degil. Dinleyicilere sor; biri sahiplenirse
              mesaj sohbete dusmez.                            */
-          for (const d of dinleyiciler) {
-            try {
-              if (d(oyuncu, e.message)) { e.cancel = true; return; }
-            } catch (hata) {
-              hataYaz("sohbet.dinleyici", hata);
-            }
-          }
+          if (dinleyicilereSor(oyuncu, e.message)) { e.cancel = true; return; }
           return;                   // normal sohbet olarak gitsin
         }
 
@@ -662,9 +687,13 @@ function scripteventeAbone() {
       const oyuncu = olay.sourceEntity;
       if (!oyuncu || oyuncu.typeId !== "minecraft:player") return;
 
-      const sonuc = komutCozumle(oyuncu, olay.message || "");
-      cevapYaz(oyuncu, sonuc ? sonuc.cevap
-        : "§cAnlamadim: §7" + olay.message + "\n" + YARDIM);
+      const metin = olay.message || "";
+      const sonuc = komutCozumle(oyuncu, metin);
+      if (sonuc) { cevapYaz(oyuncu, sonuc.cevap); return; }
+      /* v7.63: komut degilse DINLEYICILERE de sor. Dusmus
+         yemininin Beta'siz tek yolu burasi.                */
+      if (dinleyicilereSor(oyuncu, metin)) return;
+      cevapYaz(oyuncu, "§cAnlamadim: §7" + metin + "\n" + YARDIM);
     } catch (e) {
       hataYaz("sohbet.scriptevent", e);
     }

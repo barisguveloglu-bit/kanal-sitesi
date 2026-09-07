@@ -38,6 +38,12 @@ esyaKaydet("pa:kns_dusmus_1", "pa:kns_dusmus_2", "pa:kns_dusmus_3",
            "minecraft:diamond_helmet", "minecraft:netherite_chestplate",
            "minecraft:iron_leggings", "minecraft:golden_boots");
 
+/* v7.63: ASKERIN KUSAGI. Taklit ItemStack yalniz burada kayitli
+   tipleri kabul ediyor; kusagin butun parcalari kaydediliyor ki
+   test gercek listeyi sinasin. Liste AYARDAN okunuyor, elle
+   yazilmiyor -- ayara yeni bir parca eklenince test de gorur. */
+esyaKaydet(...ayar.DUSMUS_KUSAK.map(([e]) => e));
+
 let hata = false;
 const kontrol = (ad, gecti, detay = "") => {
   if (!gecti) hata = true;
@@ -318,8 +324,13 @@ console.log("=== 5. ATES: TEK ZAAF ===");
   /* Cakmak main.js'te BAGLI mi? Yazilip baglanmamak eski bir
      tuzak (efsane.js, konseySilahKir).                      */
   const kaynak = readFileSync(BP + "/scripts/main.js", "utf8");
+  /* Ithal satiri v7.63'te cok satira yayildi (dusmusYemin ve
+     kusakVer eklendi); kalip ADLARA bakiyor, satirin sekline
+     degil -- bicimlenme degisince test yanlis yere dusmesin. */
   kontrol("main.js dusmus.js'i import ediyor",
-          kaynak.includes('import { dusmusTara, dusmusUnut, dusmusAtesle }'));
+          /from "\.\/yetenekler\/dusmus\.js"/.test(kaynak) &&
+          ["dusmusTara", "dusmusUnut", "dusmusAtesle",
+           "dusmusYemin", "kusakVer"].every((a) => kaynak.includes(a)));
   kontrol("cakmak itemUse'a BAGLI",
           /DUSMUS_CAKMAK && dusmusAtesle\(oyuncu\)/.test(kaynak));
   kontrol("tarama merkezi tick'ten cagriliyor",
@@ -445,6 +456,164 @@ console.log("=== 7b. BULASMAMIS OYUNCU YEMIN EDEMEZ ===");
   kontrol("2. asamadaki kurban", dus.dusmusDurum(b.o.id) === "yozlasiyor");
   kontrol("  yemini islemiyor",
           dus.dusmusYemin(b.o, ayar.DUSMUS_YEMIN) === false);
+}
+
+console.log("");
+console.log("=== 7f. YEMININ IKI YOLU VE ASKERIN KUSAGI  (v7.63) ===");
+{
+  /* ---- NEDEN BU BOLUM VAR ----
+     Kullanici: "4 asamadan sonra yemin istiyor, aynisini
+     yaziyordum ama calismiyordu."
+     Sebep yazim degildi: yemin `sohbetDinleyiciEkle` yoluyla
+     okunuyordu ve o dinleyiciler YALNIZ chatSend aboneligi
+     icinde calisiyordu. chatSend "Beta APIs" istiyor; kapaliysa
+     yazilan cumle hicbir yere ulasmiyordu. Komutlarin
+     scriptevent yedegi vardi, YEMININ YOKTU.               */
+  const asker = () => {
+    const { o } = kur();
+    /* Envanter: kusagin sinanmasi icin bos yuvali bir kap. */
+    const yuvalar = new Array(36).fill(undefined);
+    const eskiGet = o.getComponent.bind(o);
+    o.getComponent = (ad) => (ad === "minecraft:inventory")
+      ? { container: {
+            size: 36,
+            get emptySlotsCount() { return yuvalar.filter((x) => !x).length; },
+            getItem: (i) => yuvalar[i],
+            setItem: (i, e) => { yuvalar[i] = e; },
+            addItem: (e) => {
+              const bos = yuvalar.indexOf(undefined);
+              if (bos < 0) throw new Error("dolu");
+              yuvalar[bos] = e; return e;
+            }
+          } }
+      : eskiGet(ad);
+    blokKoy(o);
+    const adim = Math.ceil(ayar.DUSMUS_ASAMA_ARA / ayar.DUSMUS_TARAMA) + 1;
+    ilerlet(o, 1 + adim * 3);
+    bekle(o, () => dus.dusmusDurum(o.id) === "secilmis",
+          Math.ceil(ayar.DUSMUS_SECILME_SURE / ayar.DUSMUS_TARAMA) + 5);
+    return { o, yuvalar };
+  };
+
+  /* 1. YOL: uzun cumle (dinleyici) -- eski yol, hala calisiyor. */
+  {
+    const { o, yuvalar } = asker();
+    kontrol("secilmis durumda", dus.dusmusDurum(o.id) === "secilmis");
+    sohbetTetikle(o, ayar.DUSMUS_YEMIN);
+    kontrol("uzun cumle ile asker oldu", dus.dusmusDurum(o.id) === "asker");
+    const dolu = yuvalar.filter((x) => x).length;
+    kontrol("kusak kendiliginden verildi", dolu === ayar.DUSMUS_KUSAK.length,
+            dolu + " / " + ayar.DUSMUS_KUSAK.length + " parca");
+    /* Odul ile sahnenin gorseli ayni seyi soylesin diye. */
+    kontrol("kusagin merkezinde totem var",
+            yuvalar.some((x) => x && x.typeId === "minecraft:totem_of_undying"));
+    kontrol("eklentinin kendi esyalari da var",
+            yuvalar.some((x) => x && x.typeId === "pa:kol_kanli") &&
+            yuvalar.some((x) => x && x.typeId === "pa:iksir_kan_iksiri"));
+    /* IKINCI KEZ YOK: cogaltma yolu acilmasin. */
+    const cevap = dus.kusakVer(o);
+    kontrol("kusak IKINCI kez verilmiyor",
+            yuvalar.filter((x) => x).length === ayar.DUSMUS_KUSAK.length,
+            cevap);
+
+    /* ---- ISARET DUNYA KAYDINDAN SAG CIKIYOR MU ----
+       Bellekte tutmak yetmez: cikip giren oyuncu kusagini
+       ikinci kez alabilseydi cogaltma yolu acik kalirdi.
+       Mutasyon tam buradan kacmisti (defterin 5. alani).   */
+    const kayitli = _durum.ozellikler.get(ayar.DUSMUS_KAYIT_ANAHTAR);
+    dus.dusmusUnut();                                  // dunyadan cikis
+    _durum.ozellikler.set(ayar.DUSMUS_KAYIT_ANAHTAR, kayitli);  // giris
+    ilerlet(o, 1);
+    kontrol("cikis-girise ragmen ASKER", dus.dusmusDurum(o.id) === "asker");
+    const oncekiDolu = yuvalar.filter((x) => x).length;
+    const cevap2 = dus.kusakVer(o);
+    kontrol("cikis-girisden sonra kusak YINE verilmiyor",
+            yuvalar.filter((x) => x).length === oncekiDolu, cevap2);
+  }
+
+  /* 2. YOL: kisa "yemin" komutu -- Beta kapaliyken tek yol.
+     komutCozumle uzerinden gidiyor, yani scriptevent yedegi
+     de ayni kapiya cikiyor.                                */
+  {
+    const { o, yuvalar } = asker();
+    const sohbet = await import("./pack/sohbet.js");
+    const sonuc = sohbet.komutCozumle(o, "yemin");
+    kontrol("'yemin' bir KOMUT olarak taniniyor", !!sonuc,
+            sonuc ? sonuc.cevap : "taninmadi");
+    kontrol("kisa komutla da asker oldu", dus.dusmusDurum(o.id) === "asker");
+    kontrol("kisa yolda da kusak verildi",
+            yuvalar.filter((x) => x).length === ayar.DUSMUS_KUSAK.length);
+  }
+
+  /* Yeminden ONCE kusak yok. */
+  {
+    const { o } = kur();
+    kontrol("yemin etmeden kusak alinamiyor",
+            dus.kusakVer(o).indexOf("yemin") >= 0, dus.kusakVer(o));
+  }
+
+  /* ENVANTER DOLUYSA: hic verilmiyor, isaret de KONMUYOR.
+     Yarim verip isaret koysaydik odul yarim kalirdi; yarim
+     verip isaret koymasaydik "doldur, yarim al, bosalt,
+     tekrar al" cogaltma yolu acilirdi (v7.62 dersi).       */
+  {
+    const { o } = kur();
+    const yuvalar = new Array(36).fill({ typeId: "minecraft:stone" });
+    const eskiGet = o.getComponent.bind(o);
+    o.getComponent = (ad) => (ad === "minecraft:inventory")
+      ? { container: {
+            size: 36,
+            get emptySlotsCount() { return yuvalar.filter((x) => !x).length; },
+            getItem: (i) => yuvalar[i],
+            setItem: (i, e) => { yuvalar[i] = e; },
+            addItem: (e) => {
+              const bos = yuvalar.indexOf(undefined);
+              if (bos < 0) throw new Error("dolu");
+              yuvalar[bos] = e; return e;
+            }
+          } }
+      : eskiGet(ad);
+    blokKoy(o);
+    const adim = Math.ceil(ayar.DUSMUS_ASAMA_ARA / ayar.DUSMUS_TARAMA) + 1;
+    ilerlet(o, 1 + adim * 3);
+    bekle(o, () => dus.dusmusDurum(o.id) === "secilmis",
+          Math.ceil(ayar.DUSMUS_SECILME_SURE / ayar.DUSMUS_TARAMA) + 5);
+    sohbetTetikle(o, ayar.DUSMUS_YEMIN);
+    kontrol("dolu envanterde de ASKER oldu", dus.dusmusDurum(o.id) === "asker");
+    kontrol("dolu envanterde HIC parca verilmedi",
+            yuvalar.every((x) => x && x.typeId === "minecraft:stone"));
+    /* Yer acilinca alinabiliyor: isaret konmamis olmali. */
+    yuvalar.fill(undefined);
+    const cevap = dus.kusakVer(o);
+    kontrol("yer acilinca kusak alinabiliyor",
+            yuvalar.filter((x) => x).length === ayar.DUSMUS_KUSAK.length,
+            cevap);
+  }
+}
+
+console.log("");
+console.log("=== 7g. SCRIPTEVENT YOLU DINLEYICILERE DE SORUYOR ===");
+{
+  /* Beta kapaliyken tek yol bu. Kod yolunun VARLIGI olculuyor:
+     scriptevent handler'i komut degilse dinleyicilere soruyor. */
+  const src = readFileSync(BP + "/scripts/sohbet.js", "utf8");
+  kontrol("dinleyicilereSor disa acildi",
+          /export function dinleyicilereSor/.test(src));
+  const i = src.indexOf("function scripteventeAbone");
+  const j = src.indexOf("Sohbetten komut YAZILABILIYOR", i);
+  const govde = src.slice(i, j);
+  kontrol("scriptevent yolu dinleyicilere soruyor",
+          /dinleyicilereSor\(oyuncu, metin\)/.test(govde));
+  kontrol("chatSend yolu ayni yardimciyi kullaniyor (tek kopya)",
+          (src.match(/dinleyicilereSor\(/g) || []).length >= 3);
+  kontrol("yonerge scriptevent yolunu da yaziyor",
+          /scriptevent simsek:komut yemin/.test(ayar.DUSMUS_YEMIN_YONERGE));
+  /* "yemin" kelimesi scriptevent satirinda da geciyor; kalip
+     KISA YOL satirini ayirt etmeli, yoksa o satir silinse bile
+     test yesil kalir (mutasyon oradan kacmisti).           */
+  kontrol("yonerge kisa yolu da yaziyor",
+          /kısa yolu:[^\n]*yemin/.test(ayar.DUSMUS_YEMIN_YONERGE),
+          JSON.stringify(ayar.DUSMUS_YEMIN_YONERGE.split("\n")[2] || ""));
 }
 
 console.log("");
