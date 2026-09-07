@@ -81,7 +81,32 @@ kontrol("esik toparlamadan KUCUK",
         ayar.KURTARICI_ESIK < ayar.KURTARICI_TOPARLAMA,
         ayar.KURTARICI_ESIK + " < " + ayar.KURTARICI_TOPARLAMA);
 
+/* ---- v7.55: IKI SINIR AYNI YERDE BULUSMALI ----
+   v7.54'te tavan 1000'di: 1000/5 = 200 tick = 10 sn, oysa
+   KURTARICI_SURE 600 tick. Ruh HER ZAMAN once bitiyordu ve
+   sure sinirit hicbir zaman islemiyordu -- iki sinirdan biri
+   olu yatiyordu ve bunu hicbir test soylemiyordu.
+
+   Kural: tam dolu ruhla giren tam sureyi yasar.             */
+{
+  const omur = ayar.RUH_TAVAN / ayar.RUH_KADEMELER[2].tuketim;
+  kontrol("tam ruhun kademe-2 omru = KURTARICI_SURE",
+          omur === ayar.KURTARICI_SURE,
+          omur + " tick vs " + ayar.KURTARICI_SURE + " tick");
+}
+kontrol("seviye sistemi BILEREK kapali (tavan otomatik)",
+        ayar.RUH_SEVIYE_ACIK === false);
+
 console.log("=== 1. HAVUZ DOLUYOR, TAVANI ASMIYOR ===");
+{
+  /* Kullanici: "SP maksimum kac olabiliyorsa o bende otomatik
+     olacak." Modda seviye atlayarak buyuyor (reiryokuXPRate,
+     maxReiryoku, prestigeSP); bizde ilerleme YOK, yeni oyuncu
+     dogrudan tavanda basliyor.                              */
+  const { o: yeni } = kur();
+  kontrol("yeni oyuncu TAVANDA basliyor",
+          ruh.ruhOku(yeni) === ayar.RUH_TAVAN, String(ruh.ruhOku(yeni)));
+}
 {
   const { o } = kur();
   ruh.ruhYaz(o, 100);
@@ -109,6 +134,25 @@ console.log("=== 1. HAVUZ DOLUYOR, TAVANI ASMIYOR ===");
   ruh.ruhYaz(o, -500);
   kontrol("ruhYaz negatifi sifira cekiyor",
           ruh.ruhOku(o) === 0, String(ruh.ruhOku(o)));
+}
+{
+  /* ---- DOLUM HIZI  (v7.55) ----
+     Kullanici "SP hizini birazcik daha arttiralim ama
+     birazcik" dedi ve 1 -> 4 secildi. Bu bolum HIZI olcuyor;
+     onceki bolumler yalnizca "doldu mu" diye bakiyordu ve
+     dolumu 1'e geri ceken mutasyon KACIYORDU -- her pozitif
+     hiz er gec dolduruyor, yeter ki yeterince tick versin.  */
+  const { o } = kur();
+  ruh.ruhYaz(o, 0);
+  let tick = 0;
+  while (ruh.ruhOku(o) < ayar.RUH_TAVAN && tick < 20000) { tickIlerlet(1); tick++; }
+  const sn = tick / 20;
+  const beklenen = ayar.RUH_TAVAN / ayar.RUH_DOLUM / 20;
+  kontrol("bostan tam doluma sure ayarla uyuyor",
+          Math.abs(sn - beklenen) <= 1.0,
+          sn.toFixed(1) + " sn (beklenen " + beklenen.toFixed(1) + ")");
+  kontrol("kullanicinin sectigi hiz: ~37,5 sn",
+          Math.abs(sn - 37.5) <= 1.0, sn.toFixed(1) + " sn");
 }
 
 console.log("=== 2. KADEME EFEKT VERIYOR (carpanin gorunumu) ===");

@@ -1,3 +1,75 @@
+# v7.55.0 — SP dolumu hızlandı, tavan otomatik, bir tutarsızlık düzeldi
+
+Kullanıcı: *"SP hızını birazcık daha arttıralım ama birazcık"* +
+*"SP maksimum kaç olabiliyorsa o bende otomatik olacak, seviye
+seviye arttırabiliyor muyuz?"*
+
+## Sayılara bakınca bir tutarsızlık çıktı
+
+v7.54'te `RUH_TAVAN = 1000`, kademe-2 tüketimi 5/tick:
+
+```
+1000 / 5 = 200 tick = 10 sn
+KURTARICI_SURE       = 600 tick = 30 sn
+```
+
+**Ruh her zaman önce bitiyordu; 30 saniyelik sınır hiçbir zaman
+işlemiyordu.** İki sınırdan biri ölü yatıyordu ve bunu hiçbir
+test söylemiyordu.
+
+`RUH_TAVAN = 3000` → `3000 / 5 = 600 tick` = **tam olarak**
+`KURTARICI_SURE`. Artık iki sınır aynı yerde buluşuyor: tam
+dolu ruhla giren tam süreyi yaşıyor, eksik ruhla giren erken
+çıkıyor. Sayı keyfi değil, ötekinden türetildi.
+
+`test/ruh.mjs` bu kuralı sabitliyor — biri sayıyı değiştirirse
+düşer.
+
+## Dolum hızı: 1 → 4
+
+```
+eski: 1000 / 1 = 1000 tick = 50,0 sn
+yeni: 3000 / 4 =  750 tick = 37,5 sn
+```
+
+Havuz 3 kat büyüdü ama dolum 4 kat hızlandı — yani **tam dolum
+süresi kısaldı**. İstenen "birazcık" bu: dörtte bir daha kısa.
+
+## Seviye sistemi: modda var, bizde bilerek yok
+
+Soruya cevap — **evet, modda seviye atlayarak büyüyor:**
+
+```
+reiryokuXPRate · statXPRate      XP ile artış hızı
+maxReiryoku · maxStatAchievable · statCapLimit   tavanlar
+prestigeSP · prestigeSPBoost     prestij bonusu
+statDeathLoss · deathSPRecover   ölümde kayıp/kazanım
+```
+
+Yani modda tavana ulaşmak bir **ilerleme işi**.
+
+Bizde yok ve bu bir eksiklik değil **karar**: kullanıcı tavanı
+doğrudan istedi. `ruhOku` yazılmamış oyuncuya `RUH_TAVAN`
+döndürüyor, yani **"maksimum otomatik" zaten sağlanmış**.
+`RUH_SEVIYE_ACIK = false` bu kararın kaydı.
+
+## Modun kendi sayıları neden alınamadı
+
+`BleachConfiguration.class` 149 alan taşıyor ama hiçbirinde
+`ConstantValue` yok — varsayılanlar `<clinit>` bytecode'unda
+atanıyor. Jar'da hazır bir `.cfg` de yok. Yani **modun gerçek
+varsayılanları okunamadı**; bizim sayılarımız bizim kalıyor ve
+`ayarlar.js` bunu açıkça yazıyor.
+
+## Mutasyon bir test boşluğu daha gösterdi
+
+`RUH_DOLUM` 4 → 1 bozması **kaçtı**: testler yalnızca "doldu
+mu" diye bakıyordu ve **her pozitif hız er geç dolduruyor**,
+yeter ki yeterince tick verilsin. Hız ölçen bölüm eklendi
+(boştan tam doluma geçen süre), artık yakalanıyor.
+
+---
+
 # v7.54.0 — Ruh Gücü ve Kurtarıcı (temel)
 
 Kullanıcı: *"pvp gibi durumlarda canımın azaldığı durumlarda bu

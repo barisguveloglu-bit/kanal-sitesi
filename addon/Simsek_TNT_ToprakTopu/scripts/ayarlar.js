@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.54.0";
+export const SURUM = "v7.55.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -99,10 +99,28 @@ export const RUH_ACIK    = true;
 /* Havuz. mahou.js'teki MAHOU_MANA_TAVAN kalibinin aynisi;
    orada 200000, burada 1000 cunku bu havuz SURE olcuyor,
    buyu bedeli degil: 1000 / (tuketim 2) = 500 tick = 25 sn.  */
-export const RUH_TAVAN   = 1000;
-/* Bos formda tick basina dolum. 1000 / 1 = 1000 tick = 50 sn
-   tam dolum. Dovus arasi bir nefes molasi kadar.             */
-export const RUH_DOLUM   = 1;
+/* v7.55: 1000 -> 3000.
+
+   ---- ONCEKI SAYI TUTARSIZDI ----
+   1000 havuz, kademe 2 tuketimi 5/tick: 1000/5 = 200 tick =
+   10 sn. Oysa KURTARICI_SURE 600 tick (30 sn). Yani ruh HER
+   ZAMAN once bitiyordu ve 30 saniyelik sinir hicbir zaman
+   islemiyordu -- iki sinirdan biri olu yatiyordu.
+
+   3000 / 5 = 600 tick = TAM OLARAK KURTARICI_SURE. Artik iki
+   sinir ayni yerde bulusuyor: tam dolu ruhla giren biri tam
+   sureyi yasiyor, eksik ruhla giren erken cikiyor. Sayi
+   keyfi degil, otekinden turetildi.                          */
+export const RUH_TAVAN   = 3000;
+/* Bos formda tick basina dolum.
+   v7.55: 1 -> 4. Kullanici "SP hizini birazcik daha
+   arttiralim ama birazcik" dedi.
+     eski: 1000 / 1 = 1000 tick = 50,0 sn
+     yeni: 3000 / 4 =  750 tick = 37,5 sn
+   Havuz 3 kat buyudu ama dolum 4 kat hizlandi -- yani tam
+   dolum SURESI kisaldi. Istenen "birazcik" bu: dortte bir
+   daha kisa, yarisi degil.                                   */
+export const RUH_DOLUM   = 4;
 /* Kac tickte bir islensin. can_sayaci ile ayni deger; ayni
    sebeple: her tick okumak bos duran modda israf.            */
 export const RUH_TARAMA  = 10;
@@ -138,6 +156,27 @@ export const RUH_YOLLAR = [
     birinci: "Vollständig",   ikinci: "Letzt Stil" }
 ];
 export const RUH_VARSAYILAN_YOL = "getsuga";
+
+/* ---- SEVIYE SISTEMI: MODDA VAR, BIZDE BILEREK YOK ----
+   Kullanici sordu: "SP maksimum kac olabiliyorsa o bende
+   otomatik olacak, seviye seviye arttirabiliyor muyuz?"
+
+   Modda ruh gucu SEVIYE ATLAYARAK buyuyor:
+     reiryokuXPRate · statXPRate   XP ile artis hizi
+     maxReiryoku · maxStatAchievable · statCapLimit  tavanlar
+     prestigeSP · prestigeSPBoost  prestij bonusu
+     statDeathLoss · deathSPRecover  olumde kayip/kazanim
+   Yani modda tavana ulasmak bir ILERLEME isi.
+
+   BIZDE YOK ve bu bir eksiklik degil KARAR: kullanici tavani
+   dogrudan istedi. Havuz her oyuncuda RUH_TAVAN'da basliyor
+   (ruhOku yazilmamis oyuncuya RUH_TAVAN donuyor), yani
+   "maksimum otomatik" zaten saglanmis durumda.
+
+   Bu satir bir KAYIT: ileride "neden seviye yok" diye
+   sorulursa cevabi burada, modun eksigi degil bizim tercihimiz.
+   Acilmak istenirse RUH_TAVAN'i kucultup XP'ye baglamak yeter. */
+export const RUH_SEVIYE_ACIK = false;
 
 /* ---- KURTARICI: can esigi tetikleyicisi ----
    Kullanicinin asil istedigi sey. Can okuma yeni bir sey
