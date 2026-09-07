@@ -1,3 +1,88 @@
+# v7.54.0 — Ruh Gücü ve Kurtarıcı (temel)
+
+Kullanıcı: *"pvp gibi durumlarda canımın azaldığı durumlarda bu
+devreye girsin, bana bir destek sağlasın."* + üç güç yolu onayı.
+
+Kaynak: **Bleach: Kurosaki Dynasty 2.4.6** (1.12.2 Forge, 733
+sınıf okundu, çalıştırılmadı).
+
+## Modun modeli aynen alındı
+
+Mod gücü bedava vermiyor, iki ayrı ölçek tutuyor:
+
+```
+boostBankai · boostRess · boostQuincy · boostVisored → statları ÇARPAN
+drainShikai · drainBankai · drainRess · drainLeztz   → SP'yi TÜKETEN
+```
+
+Form açıkken statlar çarpılıyor **ama SP eriyor, SP bitince
+form kendiliğinden kapanıyor.** Bu tam olarak bu deponun kuralı
+— süre var, çıkış yolu var, sonsuz güç yok. Uydurulmadı, alındı.
+
+## Üç yol (kullanıcı onayladı)
+
+| yol | ırk | kademe 1 | kademe 2 |
+|---|---|---|---|
+| `getsuga` | Shinigami · Lunar | Shikai | **Bankai** |
+| `cero` | Arrancar | Resurrección | **Segunda Etapa** |
+| `letzt` | Quincy | Vollständig | **Letzt Stil** |
+
+Çarpanlar ×1.0 / ×1.6 / ×2.6, tüketim 0 / 2 / 5.
+Çarpanın görünümü: `strength` · `speed` · `resistance` · `haste`.
+
+**Letzt Stil'e özel bedel:** Bleach'te "gücünü kaybetme
+pahasına son teknik", modda ayrı bir `drainLeztz` ölçeği var.
+Burada kapanınca ruh dibe vuruyor — **yalnız Quincy yolunda,
+yalnız 2. kademeden inerken.**
+
+## Kurtarıcı
+
+```
+can < %25  →  kademe 2 bir kez açılır (30 sn ya da ruh bitene dek)
+can > %50  →  yeniden silahlanır
+```
+
+Can okuma **yeni bir şey değil**: `can_sayaci.js` zaten
+`getComponent("minecraft:health")` ile okuyor, `gozcu.js` düşme
+denetiminde takip ediyor. Tetikleyici hazırdı.
+
+**İki sınır birden var** (süre ve ruh), ilk dolan kapatır. Tek
+sınır olsaydı ötekinin bittiği durum sessizce sonsuz olurdu —
+bu depoda "çıkışı olmayan güç" en eski reddedilen kalıp
+(Yamultma, Zaman Saati, `picker_0`).
+
+## Mutasyonun yakaladığı iki test boşluğu
+
+İlk turda 8 bozmadan **2'si kaçtı**:
+
+**1. "eşik denetimi yok" kaçtı.** Sebep: dolu canda zaten
+*toparlama* dalı dönüyordu, yani eşik denetimine hiç
+gelinmiyordu. Asıl fark **aradaki bölgede**: %35 canla
+tetiklenmemeli. 5b bölümü eklendi.
+
+**2. "tavan kelepçesi" kaçtı.** Dolum yolu zaten *"tavandan
+küçükse doldur"* diyor, o yoldan tavan aşılmıyor. Kelepçe
+`ruhYaz`'ın **dışarıdan gelen değere** karşı ayrı güvencesi —
+doğrudan çağırarak sınandı.
+
+İkisi de aynı ders: **bir denetimin silinmesi testte
+görünmüyorsa, test o denetimin çalıştığı durumu hiç
+kurmuyordur.**
+
+## can_sayaci.mjs'te bir düzeltme
+
+"actionbar boş mu" diye bakıyordu; Kurtarıcı oraya "Bankai"
+yazınca düştü. Artık **sayacın kendi metnine** bakıyor —
+alakasız bir özelliğin doğru çalışması hata gibi görünmesin.
+
+## Sırada
+
+Üç yolun kendi yetenekleri (Getsuga mermisi · Cero şarj/ateş ·
+Vollständig okları) ve yol seçimi arayüzü. Bu tur **temel**:
+havuz, kademeler, can eşiği.
+
+---
+
 # v7.53.0 — beklemesiz tetikleme, ve `2/10 kalp` kaldırıldı
 
 Kullanıcının iki isteği:

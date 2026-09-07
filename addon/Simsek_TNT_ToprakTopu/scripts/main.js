@@ -13,6 +13,7 @@ import {
   MARVEL_ACIK, MARVEL_ONEK, MARVEL_GUCLER,
   BECERI_ACIK, BECERI_AGACI, BECERI_TAVAN_KADEME,
   CAN_SAYACI_ACIK,
+  RUH_ACIK,
   BEN10_ACIK, BEN10,
   KONSEY_ACIK,
   DISMONT_ESYA,
@@ -89,6 +90,7 @@ import { arindir, arinmaUnut, savunmaAc } from "./yetenekler/arinma.js";
 /* v7.36: Kafes Kirma -- bloklarla hapsedilmeye karsi. */
 import { kafesKir, kafesUnut } from "./yetenekler/kafes.js";
 import { tekSimsekUnut } from "./yetenekler/tek_simsek.js";
+import { ruhTara, ruhUnut } from "./yetenekler/ruh.js";
 import { izUnut } from "./yetenekler/toprak_izi.js";
 
 /* v7.30: Gozcu -- vurus denetimi (menzil + killaura). Kendi
@@ -545,6 +547,9 @@ system.runInterval(() => {
       } catch (e) {
         hataYaz("tirmanmaTara", e);
       }
+    }
+    if (RUH_ACIK) {
+      try { ruhTara(); } catch (e) { hataYaz("ruhTara", e); }
     }
     if (CAN_SAYACI_ACIK) {
       try {
@@ -2411,6 +2416,7 @@ olayaAbone("playerLeave", (olay) => {
   isinBeklemeUnut(olay.playerId);   // v7.44: zirh isini beklemeleri
   kafesUnut(olay.playerId);
   tekSimsekUnut(olay.playerId);
+  ruhUnut(olay.playerId);
   izUnut(olay.playerId);
   yedekUnut(olay.playerId);
   kipUnut(olay.playerId);

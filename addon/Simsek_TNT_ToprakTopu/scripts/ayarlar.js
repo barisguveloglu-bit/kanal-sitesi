@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.53.0";
+export const SURUM = "v7.54.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -63,6 +63,99 @@ export const SIMSEK_GRUP   = 1;
 export const SIMSEK_ARALIK = 3;
 export const TNT_GRUP      = 2;
 export const TNT_ARALIK    = 2;
+
+/* ================================================================
+   RUH GUCU ve KURTARICI                                   v7.54
+
+   Kaynak: Bleach: Kurosaki Dynasty 2.4.6 (1.12.2, Forge).
+   733 sinif okundu, calistirilmadi.
+
+   Kullanici: "pvp gibi durumlarda canimin azaldigi durumlarda
+   bu devreye girsin, bana bir destek saglasin."
+
+   ---- MODUN KENDI MODELI ----
+   Mod gucu BEDAVA vermiyor; iki ayri olcek tutuyor:
+     boostBankai · boostRess · boostQuincy · boostVisored
+        -> form acikken statlari CARPAN
+     drainShikai · drainBankai · drainRess · drainLeztz
+        -> SP'yi (Reiryoku) TUKETEN
+   Yani form acik = statlar carpiliyor AMA SP eriyor; SP
+   bitince form kendiliginden kapaniyor.
+
+   Bu tam olarak bu deponun kurali: sure var, cikis yolu var,
+   sonsuz guc yok. O yuzden mekanik AYNEN alindi -- uydurulmadi.
+
+   ---- UC YOL (kullanici onayladi) ----
+     getsuga  Shinigami · Lunar   Shikai -> Bankai
+     cero     Arrancar            Resurreccion -> Segunda Etapa
+     letzt    Quincy              Vollstandig -> Letzt Stil
+
+   ---- LETZT STIL NEDEN FARKLI ----
+   Bleach'te Letzt Stil "gucunu kaybetme pahasina son teknik".
+   Modda da ayri bir drainLeztz olcegi var. Burada carpani en
+   yuksek ama sonrasinda ruh DIBE VURUYOR ve yavas doluyor --
+   bedeli gercek olsun diye.                                  */
+export const RUH_ACIK    = true;
+/* Havuz. mahou.js'teki MAHOU_MANA_TAVAN kalibinin aynisi;
+   orada 200000, burada 1000 cunku bu havuz SURE olcuyor,
+   buyu bedeli degil: 1000 / (tuketim 2) = 500 tick = 25 sn.  */
+export const RUH_TAVAN   = 1000;
+/* Bos formda tick basina dolum. 1000 / 1 = 1000 tick = 50 sn
+   tam dolum. Dovus arasi bir nefes molasi kadar.             */
+export const RUH_DOLUM   = 1;
+/* Kac tickte bir islensin. can_sayaci ile ayni deger; ayni
+   sebeple: her tick okumak bos duran modda israf.            */
+export const RUH_TARAMA  = 10;
+
+/* KADEMELER. carpan modun boost*, tuketim modun drain*
+   olceklerinin karsiligi. Sayilar bizim -- modun kendi
+   varsayilanlari config dosyasinda, jar icinde okunamadi;
+   uydurmak yerine ACIKCA kendi olceklerimizi koyduk.
+   (ayni durustluk notu CAN_SAYACI_RENKLER'de de var.)        */
+export const RUH_KADEMELER = [
+  { ad: "normal", carpan: 1.0, tuketim: 0 },
+  { ad: "birinci", carpan: 1.6, tuketim: 2 },
+  { ad: "ikinci",  carpan: 2.6, tuketim: 5 }
+];
+
+/* Carpanin Bedrock'taki gorunumu. Kademe indeksine gore
+   efekt seviyesi (amplifier). Sure RUH_TARAMA'dan uzun
+   tutuluyor ki tazeleme arasinda sonmesin.                   */
+export const RUH_EFEKT_SURE = 40;      // tick
+export const RUH_EFEKTLER = [
+  [],                                                   // kademe 0
+  [["strength", 0], ["speed", 0], ["resistance", 0]],   // kademe 1
+  [["strength", 2], ["speed", 1], ["resistance", 1], ["haste", 1]]
+];
+
+/* UC YOL. `ikinci` alanlari kullanicinin onayladigi formlar. */
+export const RUH_YOLLAR = [
+  { kimlik: "getsuga", ad: "Getsuga",  irk: "Shinigami",
+    birinci: "Shikai",        ikinci: "Bankai" },
+  { kimlik: "cero",    ad: "Cero",     irk: "Arrancar",
+    birinci: "Resurrección",  ikinci: "Segunda Etapa" },
+  { kimlik: "letzt",   ad: "Letzt",    irk: "Quincy",
+    birinci: "Vollständig",   ikinci: "Letzt Stil" }
+];
+export const RUH_VARSAYILAN_YOL = "getsuga";
+
+/* ---- KURTARICI: can esigi tetikleyicisi ----
+   Kullanicinin asil istedigi sey. Can okuma yeni bir sey
+   degil -- can_sayaci.js zaten getComponent("minecraft:health")
+   ile okuyor, gozcu.js dusus denetiminde takip ediyor.       */
+export const KURTARICI_ACIK  = true;
+/* Canin bu ORANININ ALTINA dusunce tetiklenir. 0.25 = ceyrek. */
+export const KURTARICI_ESIK  = 0.25;
+/* Kademe 2 kac tick acik kalsin (ruh daha once biterse o
+   kazanir -- iki sinir birden var, ilk dolan kapatir).       */
+export const KURTARICI_SURE  = 600;    // 30 sn
+/* Tekrar silahlanma: can bu oranin USTUNE cikmadan ikinci kez
+   tetiklenmiyor. Yoksa esikte titreyen can sistemi surekli
+   yakardi.                                                    */
+export const KURTARICI_TOPARLAMA = 0.5;
+/* Letzt Stil bedeli: kapaninca ruh bu orana dusuyor.
+   0 = tamamen tukeniyor. Oteki yollarda uygulanmiyor.        */
+export const RUH_LETZT_BEDEL = 0.0;
 
 /* ---------------- TEK SIMSEK  (v7.52) --------------------
    Kullanici iki eklenti gonderdi (Boby1545 Mini Pack ve

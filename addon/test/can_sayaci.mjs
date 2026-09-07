@@ -253,7 +253,13 @@ if (ayar.CAN_SAYACI_ACIK) {
     kontrol("hicbir sey yazilmadi", yazi(o) === "", yazi(o) || "(bos)");
     o._can = 4;                       // can DEGISTI
     for (let t = 0; t < 200; t++) tickIlerlet(1);
-    kontrol("can degisince de yazmadi", yazi(o) === "", yazi(o) || "(bos)");
+    /* "bos mu" degil "SAYAC yazdi mi" diye bakiliyor (v7.54).
+       Actionbar'i baska altsistemler de kullaniyor: can %25'in
+       altina dusunce Kurtarici oraya "Bankai" yaziyor. Bos
+       olmasini sart kosmak, ALAKASIZ bir ozelligin dogru
+       calismasini hata gibi gosterirdi.                      */
+    kontrol("can degisince de SAYAC yazmadi",
+            yazi(o).indexOf("kalp") === -1, yazi(o) || "(bos)");
   }
 }
 
