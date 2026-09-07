@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.60.0";
+export const SURUM = "v7.61.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -535,6 +535,83 @@ export const JJK_KOLLAR_ETKILER = [
    BASKA bir oyuncuda okunabiliyor, dinamik ozellik icin
    oyuncu nesnesi lazim ve dusman bir mob da olabilir.       */
 export const JJK_SONSUZ_ETIKET = "simsek_sonsuzluk";
+
+
+/* ================= SIMBIYOT (v7.61) =================
+   Kaynak: symbiote 1.1.2 (Scout, Forge). 266 sinif, ELLE
+   yazilmis bir mod (MCreator degil). Sinif sabit havuzlari
+   OKUNARAK cikarildi; jar calistirilmadi.
+
+   ---- KAYNAKTAKI IKI EKSEN ----
+   SymbioteStrain (5 sus):  GUARDIAN · PREDATOR · SHADOW ·
+                            SCULK · ROYAL
+   BondStage (5 kademe):    UNBONDED · ATTACHED · INTEGRATED ·
+                            COOPERATIVE · DOMINANT
+
+   ---- "EN GUCLUSU" HANGISI, NEDEN ----
+   Tahmin degil, uc ayri yerden okundu:
+     1. ROYAL'e ozel ayarlar var ve hepsi ARTIRICI:
+        ROYAL_DAMAGE_MULT · ROYAL_ARMOR_DR_BONUS ·
+        ROYAL_HIT_CAP_FRAC · ROYAL_REGEN_ENABLED ·
+        ROYAL_INTENSITY_BONUS. Diger dort susun bu kadar
+        artiricisi yok.
+     2. CrownedOnslaught sinifi CROWN/crownSlot tasiyor --
+        yalniz ROYAL'in yetenegi.
+     3. Apex Form'un tus aciklamasi kaynagin kendi dilinde
+        "Apex Form (Dominant)": en ust BOND KADEMESI sart.
+   Yani en guclusu = ROYAL susu + DOMINANT kademesi + Apex.
+   Kullanicinin istedigi dugme dogrudan bunu veriyor.
+
+   ---- OLCULEN SAYILAR (sinif sabitleri) ----
+   Carapace.DAMAGE_REDUCTION            0.65
+   Frenzy.STRIKE_INTERVAL / RANGE / DAMAGE   8 tick · 6.0 · 7.0
+   CrownedOnslaught.MAX_STRIKES_PER_VOLLEY   2
+   SonicScreech.CONE_COS                0.57
+   GroundSlam fazlari                   16 / 26 / 40 tick
+   APEX_DURATION_TICKS ve APEX_COOLDOWN_TICKS ayar dosyasinda
+   ISIMLE var ama degerleri sabit havuzunda ada BAGLANAMIYOR
+   (ldc sirasi guvenilir degil) -- o ikisi bizim.            */
+export const SIMBIYOT_ACIK = true;
+export const SIMBIYOT_SIRA = 550;
+
+/* Bes sus ve bes kademe: menude gostermek ve "en guclusu"nun
+   neye gore secildigini kanitlamak icin duruyor.            */
+export const SIMBIYOT_SUSLAR = [
+  { kimlik: "guardian", ad: "Guardian" },
+  { kimlik: "predator", ad: "Predator" },
+  { kimlik: "shadow",   ad: "Shadow" },
+  { kimlik: "sculk",    ad: "Sculk" },
+  { kimlik: "royal",    ad: "Royal" }        // en ustu
+];
+export const SIMBIYOT_KADEMELER = [
+  "Unbonded", "Attached", "Integrated", "Cooperative", "Dominant"
+];
+/* Dugmenin verdigi sey. Listelerin SON elemani olmak zorunda:
+   test bunu degismez olarak tutuyor, yani listeye yeni bir
+   sus eklenirse "en guclusu" kendiliginden kayar.           */
+export const SIMBIYOT_EN_GUCLU_SUS     = "royal";
+export const SIMBIYOT_EN_GUCLU_KADEME  = "Dominant";
+
+export const SIMBIYOT_SURE     = 400;   // Apex form suresi (tick)
+export const SIMBIYOT_BEDEL    = 400;   // ruh
+/* Carapace.DAMAGE_REDUCTION 0.65. Direnc III = %60, IV = %80;
+   0.65'e yakin olan III. Direnc V (dokunulmazlik) bu depoda
+   yasak -- tarama.mjs ayrica deniyor.                       */
+export const SIMBIYOT_DIRENC   = 2;     // Direnc III
+export const SIMBIYOT_ETKILER  = [
+  ["strength", 1], ["speed", 1], ["regeneration", 0]
+];
+
+/* Frenzy: kaynakta STRIKE_INTERVAL 8 tick, STRIKE_RANGE 6.0,
+   STRIKE_DAMAGE 7.0. Apex acikken kendiliginden vuruyor.   */
+export const SIMBIYOT_VURUS_ADIM   = 8;    // kaynakta 8
+export const SIMBIYOT_VURUS_MENZIL = 6;    // kaynakta 6.0
+export const SIMBIYOT_VURUS_HASAR  = 7;    // kaynakta 7.0
+export const SIMBIYOT_VURUS_TAVAN  = 3;
+/* ROYAL_DAMAGE_MULT ayar adiyla var, degeri okunamadi.
+   Bizim sayimiz; Royal'in artirici oldugu KESIN, ne kadar
+   artirdigi degil.                                          */
+export const SIMBIYOT_ROYAL_CARPAN = 1.5;
 
 /* ---- RYUJIN 1/3: ONIBI  (OnibiProcedure) ----
    Sinifta: toRadians/cos/sin + yaw + "compareDistOf" ile

@@ -14,7 +14,7 @@ import {
   BECERI_ACIK, BECERI_AGACI, BECERI_TAVAN_KADEME,
   CAN_SAYACI_ACIK,
   RUH_ACIK,
-  BEN10_ACIK, BEN10,
+  BEN10_ACIK, BEN10, SIMBIYOT_ACIK,
   KONSEY_ACIK,
   DISMONT_ESYA,
   DUSMUS_ACIK, DUSMUS_CAKMAK,
@@ -94,6 +94,9 @@ import { ruhTara, ruhUnut } from "./yetenekler/ruh.js";
 import { quincyUnut, reishiUnut } from "./yetenekler/ruh_yetenekler.js";
 import { berserkUnut } from "./yetenekler/karakter_yetenekler.js";
 import { jjkUnut, sonsuzUnut, jjkSec } from "./yetenekler/jujutsu.js";
+import {
+  simbiyotUnut, simbiyotAcikMi, enGucluSus, enGucluKademe
+} from "./yetenekler/simbiyot.js";
 import { izUnut } from "./yetenekler/toprak_izi.js";
 
 /* v7.30: Gozcu -- vurus denetimi (menzil + killaura). Kendi
@@ -195,6 +198,7 @@ import "./yetenekler/toprak_izi.js";
 import "./yetenekler/ruh_yetenekler.js";
 import "./yetenekler/karakter_yetenekler.js";
 import "./yetenekler/jujutsu.js";
+import "./yetenekler/simbiyot.js";
 import "./yetenekler/yildirim_halkasi.js";
 import "./yetenekler/alan_simsegi.js";
 import "./yetenekler/tnt_yagmuru.js";
@@ -1359,6 +1363,27 @@ function ben10Menusu(oyuncu) {
     }
   }
 
+  /* SIMBIYOT (v7.61). Kullanici: "Ben 10 donusumlerinin
+     oldugu yere ekle, butona basinca EN GUCLUSUNU versin."
+
+     Listeye degil EKLER'e konuyor, yani menunun ALTINA --
+     cunku Ben 10 listesi BILGI veriyor (donusum esyayi eline
+     almakla oluyor), bu dugme ise DOGRUDAN CALISTIRIYOR.
+     Ikisini ayni listede karistirmak "dokundum ama bir sey
+     olmadi / dokundum ve bir sey oldu" karmasasi olurdu.
+
+     Sus ve kademe adlari simbiyot.js'ten okunuyor: hangisinin
+     en ustte oldugu tek yerde yaziyor.                      */
+  if (SIMBIYOT_ACIK) {
+    const acikSim = simbiyotAcikMi(oyuncu.id);
+    ekler.push({
+      ad: (acikSim ? "§a✔ " : "§8") + "🕷 §fSimbiyot · Apex §8· " +
+          enGucluSus().ad + " / " + enGucluKademe() +
+          (acikSim ? "\n§8dokun · kapat" : "\n§8en güçlü form · dokun · aç"),
+      calis() { yetenekTetikle(oyuncu, "simbiyot"); }
+    });
+  }
+
   const acildi = menuAc(oyuncu,
     simdiki
       ? "§a⌚ Ben 10 §7· şu an §f" + BEN10.get(simdiki).ad
@@ -2428,6 +2453,7 @@ olayaAbone("playerLeave", (olay) => {
   berserkUnut(olay.playerId);
   jjkUnut(olay.playerId);
   sonsuzUnut(olay.playerId);
+  simbiyotUnut(olay.playerId);
   izUnut(olay.playerId);
   yedekUnut(olay.playerId);
   kipUnut(olay.playerId);

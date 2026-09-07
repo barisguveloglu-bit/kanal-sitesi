@@ -1,3 +1,108 @@
+# v7.61.0 — Simbiyot: Ben 10 menüsünün altına, en güçlü form
+
+Kullanıcı: *"Toprak kolun Ben 10 dönüşümleri işte farklı farklı
+şeyler için yeri var ya, o aşağılarda, oraya ekle; bir de butona
+bastığım zaman en güçlüsünü versin"*
+
+Kaynak: **symbiote 1.1.2** (Scout) — 266 sınıf, **elle yazılmış**
+bir mod, MCreator değil. 196 ayar anahtarı, 52 yetenek sınıfı. Jar
+**hiç çalıştırılmadı**.
+Çözümleme: [`REFERANS_SIMBIYOT.md`](REFERANS_SIMBIYOT.md).
+
+## "En güçlüsü" nasıl bulundu
+
+Tahminle değil, üç ayrı yerden okunarak:
+
+1. **Ayar dosyasında ROYAL'e özel altı artırıcı var**
+   (`ROYAL_DAMAGE_MULT`, `ROYAL_ARMOR_DR_BONUS`,
+   `ROYAL_HIT_CAP_FRAC`, `ROYAL_REGEN_ENABLED`,
+   `ROYAL_INTENSITY_BONUS`, `ROYAL_DEFIANCE_MULT`). Diğer dört
+   suşta bu kadarı yok; `PREDATOR_*`'ın ikisi zaten ceza.
+2. **`CrownedOnslaught` sınıfı `CROWN`/`crownSlot` taşıyor** —
+   taç yalnız ROYAL'in.
+3. **Apex Form'un tuş açıklaması kaynağın kendi dilinde**
+   `Apex Form (Dominant)` — en üst bond kademesi şart.
+
+Sonuç: **ROYAL suşu + DOMINANT kademesi + Apex Form**.
+
+## Düğme neden listeye değil altına kondu
+
+Ben 10 listesi **bilgi** veriyor: dönüşüm eşyayı eline almakla
+oluyor, çünkü görünüşü süren molang sorgusu
+(`get_equipped_item_name`) yalnız eli okuyabiliyor. Simbiyot
+düğmesi ise **doğrudan çalıştırıyor**.
+
+İkisini aynı listede karıştırmak "dokundum ama bir şey olmadı /
+dokundum ve bir şey oldu" karmaşası olurdu. O yüzden `ekler`'e
+girdi — menünün altına, kullanıcının tarif ettiği yere.
+
+Simbiyot Ben 10 gibi bir **eşya** da yapılamazdı: Bedrock'ta
+modeli yok ve yeni bir yaratık modeli uydurmak "sahte içerik
+yasak" kuralına girer.
+
+## Ölçülen sayılar ve ölçülemeyenler
+
+**Ölçüldü** (sınıf sabitleri, ada bitişik):
+`Carapace.DAMAGE_REDUCTION 0.65` · `Frenzy.STRIKE_INTERVAL 8` ·
+`STRIKE_RANGE 6.0` · `STRIKE_DAMAGE 7.0` ·
+`CrownedOnslaught.MAX_STRIKES_PER_VOLLEY 2` ·
+`SonicScreech.CONE_COS 0.57` · `GroundSlam` fazları 16/26/40.
+
+**Ölçülemedi:** 196 ayarın **değerleri** (`APEX_DURATION_TICKS`,
+`ROYAL_DAMAGE_MULT`…). Adlar `SymbioteConfig`'de var ama sayılar
+ada bağlanamıyor — `ldc` sırası güvenilir değil ve yanlış
+eşleştirme uydurma sayı demekti. O üçü bizim ve `ayarlar.js`'te
+öyle işaretli.
+
+Carapace 0.65 → **Direnç III** (%60); IV %80 ve 0.65'e daha uzak.
+Direnç V dokunulmazlık demek, bu depoda yasak.
+
+## "En güçlü" listeden okunuyor
+
+`enGucluSus()` ve `enGucluKademe()` listelerin **son elemanını**
+döndürüyor, elle "royal" yazmıyor. `SIMBIYOT_SUSLAR`'a yeni bir suş
+eklenirse düğmenin verdiği şey kendiliğinden kayar. Test bunu
+değişmez olarak tutuyor ve iki mutasyon (sabit yazma) buradan
+yakalandı.
+
+## Alınmayan taraf: esaret
+
+Modun 52 yetenek sınıfının çoğu simbiyotun **kendi iradesi**
+üzerine: `DefianceController`, `WalkSeizure`, `DeepSeizure`,
+`SleepTakeover`, `SymbioteJealousy`, `VoidFarewell`. Bunlar
+oyuncunun kontrolünü **elinden alan** mekanikler
+(`override_seizure`, "Symbiote seizes control").
+
+Bu depoda oyuncunun kontrolünü elinden alan bir şey yok ve olmamalı
+— `arinma.js` tam bunun için yazılmıştı. **Gücü alındı, esareti
+değil.**
+
+## Mutasyon bataryası — 18 mutasyon, üçü kaçtı
+
+- **Bedelin alındığı ölçülmüyordu.** "Ruh yetmezse açılmıyor"
+  kontrolü tek başına, bedeli hiç almayan bir kodu yakalamıyordu.
+- **Vuruş aralığı ölçülmüyordu.** Aralık silinse her tick vururdu;
+  vuruş *başına* hasar doğru kalırdı ama toplam sekiz katına
+  çıkardı. Vuruş **sayısı** da ölçülür oldu.
+- **Menü kontrolü yanlış şeye bakıyordu.** `/ekler\.push[\s\S]*Simbiyot/`
+  kalıbı, aradaki **Beceriler** düğmesinin `ekler.push`'u yüzünden
+  tek başına doğrulanıyordu — Simbiyot düğmesi listeye taşınsa
+  bile test yeşildi. Ölçüt "Simbiyot'tan önce gelen **en yakın**
+  push" oldu.
+
+İkinci turda 18/18.
+
+## Test
+
+`test/simbiyot.mjs` — 6 bölüm: kayıt ve sıra, en güçlünün listeden
+okunması (5 suş + 5 kademe), Ben 10 menüsünün altında olması ve
+gerçekten tetiklemesi, formun açılıp etki vermesi (Direnç V
+olmadan), Frenzy'nin çevreye kendiliğinden vurması + aralık +
+çarpanlar, ve çıkış yolları (süre · tekrar dokunma · ruh
+yetmemesi).
+
+---
+
 # v7.60.0 — Jujutsu: Gojō ve Sukuna
 
 Kullanıcı: *"2 tane karakter seç, bu 2 tane önceki sildiğimiz şeyle
