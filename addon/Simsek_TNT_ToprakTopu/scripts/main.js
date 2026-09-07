@@ -93,6 +93,7 @@ import { tekSimsekUnut } from "./yetenekler/tek_simsek.js";
 import { ruhTara, ruhUnut } from "./yetenekler/ruh.js";
 import { quincyUnut, reishiUnut } from "./yetenekler/ruh_yetenekler.js";
 import { berserkUnut } from "./yetenekler/karakter_yetenekler.js";
+import { jjkUnut, sonsuzUnut, jjkSec } from "./yetenekler/jujutsu.js";
 import { izUnut } from "./yetenekler/toprak_izi.js";
 
 /* v7.30: Gozcu -- vurus denetimi (menzil + killaura). Kendi
@@ -193,6 +194,7 @@ import "./yetenekler/tek_simsek.js";
 import "./yetenekler/toprak_izi.js";
 import "./yetenekler/ruh_yetenekler.js";
 import "./yetenekler/karakter_yetenekler.js";
+import "./yetenekler/jujutsu.js";
 import "./yetenekler/yildirim_halkasi.js";
 import "./yetenekler/alan_simsegi.js";
 import "./yetenekler/tnt_yagmuru.js";
@@ -2424,6 +2426,8 @@ olayaAbone("playerLeave", (olay) => {
   quincyUnut(olay.playerId);
   reishiUnut(olay.playerId);
   berserkUnut(olay.playerId);
+  jjkUnut(olay.playerId);
+  sonsuzUnut(olay.playerId);
   izUnut(olay.playerId);
   yedekUnut(olay.playerId);
   kipUnut(olay.playerId);
@@ -2719,6 +2723,11 @@ function durumRaporu(oyuncu) {
 sohbetKancalari({
   durum: (oyuncu) => durumRaporu(oyuncu),
   arindir: (oyuncu) => arindir(oyuncu),
+
+  /* Jujutsu karakter secimi (v7.60). Jest sirasina ucuncu bir
+     secici konmadi: sira zaten 20'yi gecti ve kullanici
+     "adlarini yazarak degistireyim" dedi.                   */
+  jjkSec: (oyuncu, ad) => jjkSec(oyuncu, ad),
 
   /* Savunma kipi bir IS uretiyor; sohbet kancasi onu merkezi
      is listesine kendi ekliyor. Kendi runInterval'ini acmiyor

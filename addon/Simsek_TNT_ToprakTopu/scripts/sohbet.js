@@ -4,7 +4,7 @@ import { world, system } from "@minecraft/server";
 import { bilgiYaz, hataYaz, sistemOlayaAbone } from "./yardimcilar.js";
 import {
   SOHBET_ACIK, SOHBET_ONEK, KALP_ADIM, KALP_TAVAN, DERIN_ADLAR, ILKEL_ADLAR,
-  KOMUT_ETIKET, KOMUT_KORUMALI
+  KOMUT_ETIKET, KOMUT_KORUMALI, JJK_KARAKTERLER
 } from "./ayarlar.js";
 
 /* ============================================================
@@ -116,6 +116,16 @@ function yetkiliMi(oyuncu, ad) {
 /* Cozumleyici. Donen deger:
      undefined  -> bu bir komut degil, sohbete dokunma
      {cevap}    -> komuttu, sohbetten gizle ve cevabi yaz         */
+/* Yazilan kelime bir Jujutsu karakter adi mi. Liste
+   ayarlar.js'ten okunuyor, burada kopyalanmiyor.          */
+function jjkAdiMi(ad) {
+  for (const k of JJK_KARAKTERLER) {
+    if (k.kimlik === ad) return true;
+    for (const a of k.adlar) if (sadelestir(a) === ad) return true;
+  }
+  return false;
+}
+
 export function komutCozumle(oyuncu, hamMetin) {
   let metin = sadelestir(hamMetin);
   if (metin.length === 0) return undefined;
@@ -182,6 +192,22 @@ export function komutCozumle(oyuncu, hamMetin) {
   /* ENVANTER YEDEGI -- "/clear" ile silinen esyanin karsiligi.
      Sohbette, cunku envanterin silindigi an genellikle
      kilitlerin de geldigi andir.                            */
+  /* JUJUTSU KARAKTER SECIMI (v7.60).
+     Kullanici: "adlarini yazarak aralarinda degisim
+     yapabileyim." Iki bicim de calisiyor:
+        gojo            -> dogrudan sec
+        jujutsu gojo    -> ayni sey, onekli
+        jujutsu         -> su anki karakteri ve adlari yaz
+     Adin KENDISI komut oldugu icin liste ayarlar.js'te
+     (JJK_KARAKTERLER[].adlar) -- burada elle yazilsaydi iki
+     liste zamanla ayrisirdi.                                */
+  if (ad === "jujutsu" || ad === "jjk" || ad === "teknik") {
+    return { cevap: cagir("jjkSec", oyuncu, parca[1] || "") };
+  }
+  if (jjkAdiMi(ad)) {
+    return { cevap: cagir("jjkSec", oyuncu, ad) };
+  }
+
   if (ad === "yedek") {
     return { cevap: cagir("yedekAl", oyuncu) };
   }

@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.59.0";
+export const SURUM = "v7.60.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -314,6 +314,227 @@ export const KARAKTER_SIRA = 519;
    vardi, kullanicinin karariyla tamamen cikarildi. Cozumleme
    REFERANS_SLR.md'de duruyor -- ileride lazim olursa yeniden
    kurulacak yer burasi.                                     */
+
+/* ============ JUJUTSU · IKI LANETLI TEKNIK (v7.60) ============
+   Kaynak: JujutsuCraft 50.1 (Forge 1.20.1, MCreator).
+   3493 sinifin sabit havuzu OKUNARAK cikarildi; jar
+   calistirilmadi.
+
+   ---- ONEK NEDEN JJK_ ----
+   MAVI/KIRMIZI/MOR gibi adlar bu dosyada renk ayari olarak
+   cikabilir. v7.49 (KILIT_) ve v7.58 (KILIC_) iki kez ad
+   cakismasiyla durdu; artik once grep, sonra ortak onek.
+
+   ---- SLR'DEN DEVRALINAN KURAL: KOL TAKILIYKEN KAPALI ----
+   Kullanici bunu SLR icin istemisti, orasi silindi ama kural
+   dogruydu. Iki yarimi var ve yalniz biri kendiliginden gelir:
+     1. TETIKLEME -- esyasiz jest sirasi, elde kol varken
+        main.js genel siraya HIC bakmiyor.
+     2. SUREN IS -- eksik olan bu: is basladiktan sonra kol
+        takilinca devam ediyordu. JJK isleri her tick ele
+        bakiyor. Gerekcesi REFERANS_SLR.md'de kayitli.
+   Olcut main.js'inkiyle AYNI (esyaninYetenekleri) ve SAG ile
+   SOL el birlikte bakiliyor -- v7.58'de sol eli atlamak bir
+   mutasyonla yakalanmisti.
+
+   ---- KARAKTER SECIMI SOHBETTEN ----
+   Kullanici: "adlarini yazarak aralarinda degisim
+   yapabileyim." Jest sirasina ucuncu bir secici koymak yerine
+   sohbete "gojo" / "sukuna" yaziliyor (sohbet.js). Jest sirasi
+   zaten 20'yi gecti; bir secici daha eklemek onu uzatirdi.
+
+   ---- LANETLI ENERJI AYRI KURULMADI ----
+   Kaynakta "skill" adli bir enerji havuzu var. Bizde ruh
+   havuzu (RUH_TAVAN) zaten ayni isi yapiyor. Ikinci bir havuz
+   iki dogruluk kaynagi demekti -- v7.57'de kademe icin ayni
+   karar verilmisti.                                          */
+export const JJK_ACIK = true;
+export const JJK_KOL_KES = true;
+export const JJK_KARAKTERLER = [
+  { kimlik: "gojo",   ad: "Satoru Gojō",  teknik: "Limitless",
+    adlar: ["gojo", "gojō", "satoru", "limitless"] },
+  { kimlik: "sukuna", ad: "Ryōmen Sukuna", teknik: "Malevolent Shrine",
+    adlar: ["sukuna", "ryomen", "ryōmen", "mabet", "shrine"] }
+];
+export const JJK_VARSAYILAN = "gojo";
+
+/* ---- GOJO 1/6: MAVI  (TechniqueBlueProcedure) ----
+   Sinifta: GetDistanceNearestEnemy + ExplosionInteraction +
+   NEUTRALIZATION etkisi. Sayilar 16 (menzil), 8/5/3 (yaricap
+   kademeleri) ve -50 -- eksi isaret CEKIM demek: Mavi
+   iceri ceker, Kirmizi disari iter.                         */
+export const JJK_MAVI_ACIK    = true;
+export const JJK_MAVI_SIRA    = 530;
+export const JJK_MAVI_MENZIL  = 16;    // kaynakta 16.0
+export const JJK_MAVI_YARICAP = 8;     // kaynakta 8.0
+export const JJK_MAVI_HASAR   = 14;
+export const JJK_MAVI_CEKIM   = 2.5;   // kaynakta -50 (ceken isaret)
+export const JJK_MAVI_TAVAN   = 10;
+export const JJK_MAVI_BEDEL   = 180;
+
+/* ---- GOJO 2/6: KIRMIZI  (TechniqueRedProcedure) ----
+   Kaynakta bir RED VARLIGI doguyor (MOB_SUMMONED) ve
+   x_power/y_power/z_power ile firlatiliyor. Bizde varlik degil
+   is: mermiIsi kalibi. Sayilar 25 (menzil), 16, 8, 5, 2.     */
+export const JJK_KIRMIZI_ACIK   = true;
+export const JJK_KIRMIZI_SIRA   = 531;
+export const JJK_KIRMIZI_MENZIL = 25;   // kaynakta 25.0
+export const JJK_KIRMIZI_HASAR  = 22;
+export const JJK_KIRMIZI_HIZ    = 2.2;
+export const JJK_KIRMIZI_OMUR   = 60;
+export const JJK_KIRMIZI_ITME   = 3.0;
+export const JJK_KIRMIZI_BEDEL  = 180;
+
+/* ---- GOJO 3/6: MOR  (HollowPurpleProcedure) ----
+   Kaynagin en buyuk sayilari burada: 40 · 24 · 90 · 215 · 66.
+   Mavi ile Kirmizi'nin bilesimi, yani ikisinin bedelinden
+   pahali ve ikisinden guclu olmali.
+   DELICI: ilk hedefte durmuyor.                             */
+export const JJK_MOR_ACIK   = true;
+export const JJK_MOR_SIRA   = 532;
+export const JJK_MOR_MENZIL = 40;    // kaynakta 40.0
+export const JJK_MOR_HASAR  = 55;
+export const JJK_MOR_HIZ    = 2.5;
+export const JJK_MOR_OMUR   = 60;
+export const JJK_MOR_BEDEL  = 600;   // Mavi + Kirmizi'den pahali
+
+/* ---- GOJO 4/6: SONSUZLUK  (InfinityProcedure +
+   InfinityActiveTickProcedure + WhenPlayerActiveTickInfinity) ----
+   Kaynakta bir ACIP KAPANAN durum: "infinity" boolean, her
+   tick "skill" havuzunu yakiyor, INFINITY_EFFECT ve
+   NEUTRALIZATION etkileri veriyor.
+
+   ---- BU DEPODA NEDEN DIRENC IV, V DEGIL ----
+   Direnc V dokunulmazlik demek ve tarama.mjs onu ayrica
+   deniyor ("Direnc V (dokunulmazlik) yok"). Sonsuzluk gucludur
+   ama cikisi olmayan bir sey degildir.                       */
+export const JJK_SONSUZ_ACIK  = true;
+export const JJK_SONSUZ_SIRA  = 533;
+export const JJK_SONSUZ_SURE  = 300;   // tick, ust sinir
+/* ---- OLU SINIR, IKINCI KEZ ----
+   Ilk yazimda AKIS 6 idi ve test onu yakaladi: Sonsuzluk
+   acikken ruh AZALMIYOR, ARTIYORDU (2900 -> 2994).
+   Sebep: ruh havuzu RUH_DOLUM=4 ile HER TICK doluyor, yani
+   10 tickte 40. 10 tickte 6 yakan bir sey hicbir zaman
+   bitmez -- yani Sonsuzluk bedava, sonsuz suren bir hasar
+   azaltmaya donusurdu.
+   v7.55'te ayni sinif hata vardi (RUH_TAVAN/tuketim ile
+   KURTARICI_SURE tutmuyordu). Ders ayni: bir "tuketim"
+   sayisi yazarken DOLUM sayisina bakilmali.
+   Tick basina yanan 60/10 = 6 > dolan 4. Fark 2/tick.     */
+export const JJK_SONSUZ_AKIS  = 60;    // her JJK_SONSUZ_ADIM'da yanan ruh
+export const JJK_SONSUZ_ADIM  = 10;    // tick
+export const JJK_SONSUZ_DIRENC = 3;    // Direnc IV (0 tabanli)
+export const JJK_SONSUZ_BEDEL = 100;   // acilis bedeli
+
+/* ---- GOJO 5/6: SINIRSIZ BOSLUK  (UnlimitedVoidProcedure) ----
+   Kaynakta DomainExpansionCreateBarrier + DomainExpansionRadius
+   ve 33/34 (bariyer yaricapi). 33 blok Bedrock'ta cok genis
+   bir tarama demek; yaricap 20'ye cekildi ve tarama
+   JJK_BOSLUK_ADIM tickte bir yapiliyor.
+   Alan icindekilere korluk + yavaslik: kaynak da "blindness"
+   komutunu Mabet'te aynen kullaniyor.                       */
+export const JJK_BOSLUK_ACIK    = true;
+export const JJK_BOSLUK_SIRA    = 534;
+export const JJK_BOSLUK_YARICAP = 20;   // kaynakta 33 (olcekli)
+export const JJK_BOSLUK_SURE    = 200;
+export const JJK_BOSLUK_ADIM    = 10;
+export const JJK_BOSLUK_HASAR   = 6;    // her adimda
+export const JJK_BOSLUK_KORLUK  = 4;    // saniye
+export const JJK_BOSLUK_TAVAN   = 12;
+export const JJK_BOSLUK_BEDEL   = 900;  // alan genisletme en pahalisi
+
+/* ---- GOJO 6/6: KIYAFET  (uniform_gojo_* esyalari) ----
+   Kaynakta dort parca: Blindfold (Black) · Satoru Gojo's
+   Uniform (gogus + bacak) · Black Boots.
+
+   ---- NEDEN ESYA DEGIL ETKI ----
+   Giyilebilir zirh eklemek BP'de yeni esya + yeni doku
+   demek; dokuyu uydurmak "sahte icerik yasak" kuralina
+   girer. Zirhin YAPTIGI sey aliniyor: koruma + hiz, ve
+   gozbagi karsiligi gece gorusu.                            */
+export const JJK_KIYAFET_ACIK = true;
+export const JJK_KIYAFET_SIRA = 535;
+export const JJK_KIYAFET_SURE = 600;   // tick
+export const JJK_KIYAFET_BEDEL = 120;
+export const JJK_KIYAFET_ETKILER = [
+  ["resistance", 1], ["speed", 1], ["night_vision", 0]
+];
+
+/* ---- SUKUNA 1/5: PARCALA  (DismantleProcedure) ----
+   Sinifta GetDistanceNearestEnemy, PRESS_Z, flag_dismantle ve
+   -- onemlisi -- INFINITY_EFFECT denetimi.
+
+   ---- KAYNAKTAN ALINAN EN GUZEL SEY ----
+   Kaynakta Parcala, hedefte Sonsuzluk varsa GECMIYOR. Iki
+   karakter arasinda gercek bir tas-kagit iliskisi var ve
+   bizde de var: JJK_SONSUZ_ETIKET tasiyan hedefe Parcala ve
+   Yar islemiyor.                                            */
+export const JJK_PARCALA_ACIK   = true;
+export const JJK_PARCALA_SIRA   = 536;
+export const JJK_PARCALA_MENZIL = 16;   // kaynakta 16.0
+export const JJK_PARCALA_ACI    = 0.25;
+export const JJK_PARCALA_HASAR  = 18;
+export const JJK_PARCALA_ADET   = 3;    // dismantle1/2/3 combo
+export const JJK_PARCALA_ADIM   = 4;    // tick, kesikler arasi
+export const JJK_PARCALA_TAVAN  = 8;
+export const JJK_PARCALA_BEDEL  = 180;
+
+/* ---- SUKUNA 2/5: YAR  (CleaveProcedure) ----
+   Kaynakta ChargeParticle + ANIMATION_1 ve 30/120/22/19/17.
+   Parcala coklu, Yar TEK ve agir.                           */
+export const JJK_YAR_ACIK   = true;
+export const JJK_YAR_SIRA   = 537;
+export const JJK_YAR_MENZIL = 8;
+export const JJK_YAR_ACI    = 0.45;
+export const JJK_YAR_HASAR  = 34;
+export const JJK_YAR_ITME   = 2.0;
+export const JJK_YAR_BEDEL  = 320;
+
+/* ---- SUKUNA 3/5: KUTSAL MABET  (MalevolentShrineProcedure) ----
+   Kaynakta bariyer yaricapi 33/34, DOMAIN_EXPANSION etkisi ve
+   alan icindekilere dogrudan "effect give @s blindness 2 0
+   true" komutu. Gojo'nun alani gorusu keser, Sukuna'nınki
+   surekli DOGRAR: her adimda alan icindeki herkese vurus.   */
+export const JJK_MABET_ACIK    = true;
+export const JJK_MABET_SIRA    = 538;
+export const JJK_MABET_YARICAP = 20;
+export const JJK_MABET_SURE    = 200;
+export const JJK_MABET_ADIM    = 10;
+export const JJK_MABET_HASAR   = 9;
+export const JJK_MABET_KORLUK  = 2;    // kaynakta blindness 2
+export const JJK_MABET_TAVAN   = 12;
+export const JJK_MABET_BEDEL   = 900;
+
+/* ---- SUKUNA 4/5: ATES AC / FUGA  (OpenProcedure) ----
+   Sinifta x_pos/y_pos/z_pos + parcacik + 405 · 30 · 17.5 ·
+   12 · 45 · 720. Bakis yonunde ilerleyen bir alev hatti.    */
+export const JJK_FUGA_ACIK   = true;
+export const JJK_FUGA_SIRA   = 539;
+export const JJK_FUGA_MENZIL = 30;    // kaynakta 30.0
+export const JJK_FUGA_HASAR  = 26;
+export const JJK_FUGA_HIZ    = 2.0;
+export const JJK_FUGA_OMUR   = 60;
+export const JJK_FUGA_YAKMA  = 8;     // saniye
+export const JJK_FUGA_BEDEL  = 320;
+
+/* ---- SUKUNA 5/5: SUKUNA'NIN KOLLARI
+   (sukuna_body_chestplate = "Sukuna's Arms") ----
+   Gojo'nun kiyafetiyle ayni gerekce: esya degil ETKI.
+   Dort kol = daha cok vurus: guc + hizli vurus.            */
+export const JJK_KOLLAR_ACIK = true;
+export const JJK_KOLLAR_SIRA = 540;
+export const JJK_KOLLAR_SURE = 600;
+export const JJK_KOLLAR_BEDEL = 120;
+export const JJK_KOLLAR_ETKILER = [
+  ["strength", 1], ["haste", 1], ["resistance", 0]
+];
+
+/* Sonsuzluk acikken hedefe konan etiket. Parcala ve Yar bunu
+   goruyor. Etiket secildi, dinamik ozellik degil: etiket
+   BASKA bir oyuncuda okunabiliyor, dinamik ozellik icin
+   oyuncu nesnesi lazim ve dusman bir mob da olabilir.       */
+export const JJK_SONSUZ_ETIKET = "simsek_sonsuzluk";
 
 /* ---- RYUJIN 1/3: ONIBI  (OnibiProcedure) ----
    Sinifta: toRadians/cos/sin + yaw + "compareDistOf" ile

@@ -1,3 +1,112 @@
+# v7.60.0 — Jujutsu: Gojō ve Sukuna
+
+Kullanıcı: *"2 tane karakter seç, bu 2 tane önceki sildiğimiz şeyle
+aynı olayı olsun yani kol takınca yetenekler kapansın, bu iki
+karakter güçlü olmak zorunda, o karakterle ilgili tüm yetenekler
+tüm zırhlar her şeyi almanı istiyorum alınabilir olanları,
+adlarını yazarak aralarında değişim yapabileyim"*
+
+Kaynak: **JujutsuCraft 50.1** (Forge 1.20.1, MCreator) — 3493
+sınıf, 1080 benzersiz yordam, 166 teknik adı. Jar **hiç
+çalıştırılmadı**. Çözümleme: [`REFERANS_JUJUTSU.md`](REFERANS_JUJUTSU.md).
+
+## On bir yetenek (sıra 530–540)
+
+**Satoru Gojō · Limitless**
+- **Mavi** (`TechniqueBlueProcedure`) — çeker
+- **Kırmızı** (`TechniqueRedProcedure`) — iter
+- **Mor** (`HollowPurpleProcedure`) — delici, en pahalı, en güçlü
+- **Sonsuzluk** (`InfinityProcedure` + tick) — açılıp kapanan
+- **Sınırsız Boşluk** (`UnlimitedVoidProcedure`) — alan
+- **Üniforma** (`uniform_gojo_*`) — etki olarak
+
+**Ryōmen Sukuna · Malevolent Shrine**
+- **Parçala** (`DismantleProcedure`) — 3'lü combo
+- **Yar** (`CleaveProcedure`) — tek, ağır
+- **Kutsal Mabet** (`MalevolentShrineProcedure`) — alan, sürekli doğrar
+- **Fūga** (`OpenProcedure`) — alev hattı
+- **Sukuna'nın Kolları** (`sukuna_body_chestplate`) — etki olarak
+
+## Kaynaktan alınan en değerli şey
+
+`DismantleProcedure`'ün sabit havuzunda **`INFINITY_EFFECT`**
+geçiyor: kaynakta Sukuna'nın kesiği, hedefte Sonsuzluk varsa
+**geçmiyor**. İki karakter arasında koda yazılmış gerçek bir
+taş-kâğıt ilişkisi.
+
+Bizde aynen var. Sonsuzluk açık hedefe Parçala ve Yar işlemiyor;
+Gojo'nun Mavi'si takılmıyor — kaynakta da denetim yalnız Sukuna'nın
+kesiklerinde.
+
+Mekanizma farkı: kaynakta potion effect, bizde **etiket**
+(`simsek_sonsuzluk`). Etiket **başka bir varlıkta** okunabiliyor;
+dinamik özellik için oyuncu nesnesi gerekirdi ve hedef mob da
+olabilir.
+
+## Ölü sınır, ikinci kez
+
+`JJK_SONSUZ_AKIS` ilk yazımda **6** idi. Test yakaladı: Sonsuzluk
+açıkken ruh azalmıyor, **artıyordu** (2900 → 2994).
+
+Sebep: ruh havuzu `RUH_DOLUM = 4` ile **her tick** doluyor, yani 10
+tickte 40. 10 tickte 6 yakan bir şey hiçbir zaman bitmez —
+Sonsuzluk bedava, süresiz bir hasar azaltmaya dönüşürdü.
+
+v7.55'te aynı sınıf hata vardı (`RUH_TAVAN`/tüketim ile
+`KURTARICI_SURE` tutmuyordu). **Ders aynı: bir "tüketim" sayısı
+yazarken dolum sayısına bakılmalı.** AKIS 60 yapıldı; tick başına
+yanan 6 > dolan 4. Fark testte değişmez olarak sabitlendi.
+
+## Kol takılıyken kapalı — SLR'den devralındı
+
+Kural SLR için istenmişti, orası v7.59'da silindi ama kural
+doğruydu ve `REFERANS_SLR.md`'de kayıtlıydı. Aynen uygulandı:
+ölçüt `main.js`'inkiyle aynı (`esyaninYetenekleri`), **sağ ve sol
+el birlikte**, ve **süren iş** her tick ele bakıyor.
+
+O belgedeki altı dersin beşi bu sürümde işe yaradı — özellikle
+"test taklidinin doğru alanı `_elde`" ve "`getComponent` baştan
+yazılırsa equippable taklidi kaybolur". Bu sefer o hatalar hiç
+yapılmadı.
+
+## Karakter seçimi sohbette
+
+Jest sırası zaten 20'yi geçmişti. Sohbete `gojo` / `sukuna` (veya
+`satoru`, `ryomen`, `limitless`, `shrine`) yazmak yetiyor;
+`jujutsu` tek başına şu anki karakteri ve seçenekleri yazıyor.
+
+Ad listesi `ayarlar.js`'te (`JJK_KARAKTERLER[].adlar`);
+`sohbet.js` oradan **okuyor**, kopyalamıyor — iki liste zamanla
+ayrışırdı.
+
+## Zırhlar neden eşya değil etki
+
+Giyilebilir zırh BP'de yeni eşya + yeni doku demek; dokuyu
+uydurmak "sahte içerik yasak" kuralına girer. Zırhın **yaptığı
+şey** alındı.
+
+## Mutasyon bataryası — 29 mutasyon, biri kaçtı
+
+**Ruh yetmiyor kapısının silinmesi kaçmıştı.** `ruhYaz` zaten 0'a
+kırpıyor, yani bedel eksiye düşmüyor ve hiçbir test kırılmıyordu —
+ama yetenek bedava çalışıyordu. Dört pahalı yetenek için "ruh
+yetmezse hiç çalışmıyor + ruh da harcanmıyor" bölümü eklendi.
+İkinci turda **29/29**.
+
+## Test
+
+`test/jujutsu.mjs` — 12 bölüm: kayıt ve sıra, karakter ayrımı (11
+yetenek × 2 karakter), ruh yetmezse çalışmama, adla seçim (6 ad +
+tanınmayan ad), kol takılıyken kapalı (sağ el · sol el · kol
+olmayan eşya), süren işin kesilmesi, **Sonsuzluk'un Sukuna'nın
+kesiklerini durdurması**, Sonsuzluk'un etiketi/akışı/kapanması ve
+Direnç V olmaması, Mavi'nin çekip Kırmızı'nın itmesi, Mor'un
+delici ve en pahalı olması, alanların kendiliğinden kapanması,
+zırhların etki olarak geçmesi, defter temizliği, dinamik özellik
+yokken seçim.
+
+---
+
 # v7.59.0 — SLR tamamen çıkarıldı, çözümleme referansta kaldı
 
 Kullanıcı: *"bu mod paketini tamamen çıkart, ileride belki iş
