@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.61.0";
+export const SURUM = "v7.62.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -942,6 +942,24 @@ export const TOP_BLOK     = "minecraft:dirt";
    Ilk ikisi yerinde durdugu icin 0 otomatik silaha cevirmiyor.
    Tablette yavaslama olursa tek sayi geri buyutulur.        */
 export const BEKLEME     = 0;     // beklemesiz (v7.53)
+
+/* ---- ANLIK YETENEKLERE AYRI SAYAC  (v7.62) ----
+   BEKLEME 0 olunca ayniIsVarMi devreye girdi ama o yalniz IS
+   ACAN yetenekleri kapsiyor. `return undefined` diyen anlik
+   yetenekler (ucus, savur, cekme, sarsinti...) hic is acmadigi
+   icin oyuncuIsSayisi 0 kaliyor ve her jest kenarinda yeniden
+   tetiklenebiliyor.
+
+   Dis inceleme bunu buldu. Mekanizma tarifi tam degildi --
+   "her tick" degil, ESYASIZ_TARAMA (4 tick) ve ziplama
+   KENARI sart, yani saniyede en fazla ~5 -- ama sorun gercek:
+   anlik yeteneklerin hicbir freni yoktu.
+
+   Sayi kucuk tutuldu: kullanici v7.53'te beklemeyi BILEREK
+   kaldirdi ("Kevin'in modundaki gibi"). 6 tick, art arda
+   basmayi bozmayacak kadar kisa, yaylim atesini durduracak
+   kadar uzun.                                               */
+export const ANLIK_BEKLEME = 6;   // tick
 export const KOL_GECIKME = 10;    // kollar kalktiktan kac tick sonra baslasin
 
 /* ---------------- Kol animasyonu ----------------
@@ -3773,6 +3791,20 @@ export const SOHBET_ONEK = "";     // "" = oneksiz. "!" yazarsan "!can 10"
    yapabildigi seyler, sohbet sadece kisa yol.                 */
 export const KOMUT_ETIKET = "simsek_yetkili";
 export const KOMUT_KORUMALI = ["can", "kalp", "bot"];
+
+/* ---- AYNI KAPI JESTTE DE  (v7.62) ----
+   Dis inceleme en ciddi bulguyu buldu ve hakliydi: sohbetteki
+   "can 10" etikete bagliydi ama AYNI GUC jestten etiketsiz
+   aliniyordu. kalp_ekle (sira 115) ve kalp_toptan (116)
+   esyasiz kayitli, yani egil+zipla ile tetikleniyor.
+   Duelloda karsi taraf "can 10" yazamiyor ama jestle ayni 200
+   kalbi aliyordu -- yani kapi kilitliyken pencere acikti.
+
+   Kalp SILME (kalp_sifirla) bilerek listede YOK: o bir geri
+   alma, kilitlenmesi kimseyi korumaz, aksine kilitli kalan
+   birinin cikis yolunu kapatir -- arinma/kafes/savunma ile
+   ayni gerekce.                                             */
+export const YETENEK_KORUMALI = ["kalp_ekle", "kalp_toptan"];
 
 /* ============================================================
    IKSIR ICINCE LAZERI HAZIR ET

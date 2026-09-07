@@ -1,4 +1,5 @@
 import { world } from "@minecraft/server";
+import { varlikIste } from "../butce.js";
 import { yetenekKaydet } from "./kayit.js";
 import {
   hataYaz, bilgiYaz, kollariIndir, kilitliHedef, varlikKonumu,
@@ -188,6 +189,9 @@ function birak(oyuncu, boyut, oyuncuId, cepte) {
   }
 
   try {
+    /* v7.62: BUTCE. Varlik doguran her yer defterden gecmeli;
+       burasi atlamisti (dis inceleme buldu).               */
+    if (!varlikIste(1)) return "§7Şu an çok yoğun, bir saniye sonra dene.";
     const yeni = boyut.spawnEntity(cepte.tip, nokta);
     if (cepte.ad && yeni) {
       try {

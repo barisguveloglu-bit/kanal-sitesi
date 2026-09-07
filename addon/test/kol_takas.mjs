@@ -18,6 +18,12 @@
    ve SONUNDAKI esyalari tek tek sayiyor.                      */
 
 import { dunyaKur, oyuncuKur } from "./dunya.mjs";
+/* v7.62: BUTCE SIFIRLA. Bu dosyanin sinadigi yetenekler artik
+   varlik dogururken butceden kota istiyor (dis inceleme dort
+   yerde bunun atlandigini bulmustu). Oyunda kotayi tick'in
+   basi veriyor (main.js:453); test tick dongusunu isletmedigi
+   icin kotayi kendisi acmali, yoksa hicbir varlik dogmaz.  */
+const { butceSifirla } = await import("./pack/butce.js");
 import { tickIlerlet, _durum, world } from "@minecraft/server";
 import { readFileSync } from "node:fs";
 
@@ -128,7 +134,7 @@ console.log("");
 console.log("=== 2. ON DENETIM: baslamiyorsa HICBIR SEY oynamiyor ===");
 {
   /* --- Kanli Kol yok --- */
-  const D = dunyaKur();
+  const D = (butceSifirla(), dunyaKur());
   const o = oyuncuHazirla(D, ayar.KOL_TAKAS_KAYNAK, []);
   const once = esyaSay(o);
   sus(); const is = tanim().olustur(o); ac();
@@ -142,7 +148,7 @@ console.log("=== 2. ON DENETIM: baslamiyorsa HICBIR SEY oynamiyor ===");
 }
 {
   /* --- Envanter dolu: tasinacak yer yok --- */
-  const D = dunyaKur();
+  const D = (butceSifirla(), dunyaKur());
   const dolu = [];
   for (let i = 0; i < 36; i++) dolu.push([i, i === 0 ? ayar.KOL_TAKAS_HEDEF : "minecraft:dirt"]);
   const o = oyuncuHazirla(D, ayar.KOL_TAKAS_KAYNAK, dolu);
@@ -153,7 +159,7 @@ console.log("=== 2. ON DENETIM: baslamiyorsa HICBIR SEY oynamiyor ===");
 }
 {
   /* --- Elde Toprak Kol yok --- */
-  const D = dunyaKur();
+  const D = (butceSifirla(), dunyaKur());
   const o = oyuncuHazirla(D, "minecraft:stone", [[5, ayar.KOL_TAKAS_HEDEF]]);
   sus(); const is = tanim().olustur(o); ac();
   kontrol("elde Toprak Kol yokken is ACILMIYOR", is === undefined);
@@ -162,7 +168,7 @@ console.log("=== 2. ON DENETIM: baslamiyorsa HICBIR SEY oynamiyor ===");
 {
   /* --- setEquipment olmayan surum ---
      Ana ele esya koymanin yolu yoksa sahne YARIM oynamamali. */
-  const D = dunyaKur();
+  const D = (butceSifirla(), dunyaKur());
   const o = oyuncuHazirla(D, ayar.KOL_TAKAS_KAYNAK, [[5, ayar.KOL_TAKAS_HEDEF]]);
   const temel = o.getComponent;
   o.getComponent = (ad) => (ad === "minecraft:equippable"
@@ -178,7 +184,7 @@ console.log("");
 console.log("=== 3. EVRE 0: el degisiyor, kollar doguyor ===");
 let S = null;
 {
-  const D = dunyaKur();
+  const D = (butceSifirla(), dunyaKur());
   const o = oyuncuHazirla(D, ayar.KOL_TAKAS_KAYNAK, [[7, ayar.KOL_TAKAS_HEDEF]]);
   const once = esyaSay(o);
   sus(); const is = tanim().olustur(o); ac();
@@ -325,7 +331,7 @@ console.log("=== 5. BITIS: kol takildi, ortada bir sey kalmadi ===");
 console.log("");
 console.log("=== 7. YARIDA KESILME: bitir() her kosulda topluyor ===");
 {
-  const D = dunyaKur();
+  const D = (butceSifirla(), dunyaKur());
   const o = oyuncuHazirla(D, ayar.KOL_TAKAS_KAYNAK, [[3, ayar.KOL_TAKAS_HEDEF]]);
   const once = esyaSay(o);
   sus(); const is = tanim().olustur(o); ac();
@@ -363,7 +369,7 @@ console.log("=== 7b. OYUNCU SAHNE ORTASINDA GECERSIZ OLURSA ===");
      ortasinda cikar, olur ya da boyut degistirir. Koruma
      olmasaydi is her tick gecersiz bir nesneye dokunur,
      istisna atar ve sahne tavana kadar acik kalirdi.        */
-  const D = dunyaKur();
+  const D = (butceSifirla(), dunyaKur());
   const o = oyuncuHazirla(D, ayar.KOL_TAKAS_KAYNAK, [[4, ayar.KOL_TAKAS_HEDEF]]);
   sus(); const is = tanim().olustur(o); ac();
   is.calis(); tickIlerlet(1);
@@ -388,7 +394,7 @@ console.log("=== 7b. OYUNCU SAHNE ORTASINDA GECERSIZ OLURSA ===");
 console.log("");
 console.log("=== 8. GUVENLIK TAVANI ===");
 {
-  const D = dunyaKur();
+  const D = (butceSifirla(), dunyaKur());
   const o = oyuncuHazirla(D, ayar.KOL_TAKAS_KAYNAK, [[3, ayar.KOL_TAKAS_HEDEF]]);
   sus(); const is = tanim().olustur(o); ac();
   /* Gelen kolu YERINDE CIVILE: hedefe hic ulasamasin. Tavan
@@ -426,7 +432,7 @@ console.log("=== 9. ORTADA KALAN VARLIK TEMIZLIGI ===");
   /* Sahne yarida kalirsa (oyun kapandi) varliklar `persistent`
      oldugu icin yerinde kalir. Kimlikleri dunya ozelliginde;
      sonraki kullanimda taranip siliniyor.                    */
-  const D = dunyaKur();
+  const D = (butceSifirla(), dunyaKur());
   const hayalet = { id: "hayalet1", typeId: ayar.KOL_TAKAS_DUSEN_SAG,
                     isValid: true, _kaldirildi: false,
                     remove() { this._kaldirildi = true; this.isValid = false; } };
@@ -468,7 +474,7 @@ console.log("=== 10. PARCACIK: EMITTER YOK ===");
 
   /* Sayi SINIRLI olmali: emitter'in derdi zaten sinirsiz
      olmasiydi. Halkanin kac zerre attigi olculuyor.         */
-  const D = dunyaKur();
+  const D = (butceSifirla(), dunyaKur());
   const o = oyuncuHazirla(D, ayar.KOL_TAKAS_KAYNAK, [[9, ayar.KOL_TAKAS_HEDEF]]);
   const oncekiParcacik = D.sayac.parcacik ? D.sayac.parcacik.length : 0;
   sus(); const is = tanim().olustur(o); oynat(is); is.bitir(); ac();

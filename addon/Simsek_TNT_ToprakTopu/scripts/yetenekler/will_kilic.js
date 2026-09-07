@@ -1,4 +1,4 @@
-import { system } from "@minecraft/server";
+import { system, world } from "@minecraft/server";
 import { yetenekKaydet, esyaBagla } from "./kayit.js";
 import {
   hataYaz, gecerliMi, kollariIndir, actionbarYaz, koniHedefleri, eldekiEsya
@@ -160,8 +160,12 @@ yetenekKaydet({
           const kimlik = hedef.id;
           system.runTimeout(() => {
             try {
-              const h = oyuncu.dimension.getEntities()
-                .find((v) => v.id === kimlik);
+              /* v7.62: world.getEntity(kimlik) -- eskiden
+                 boyuttaki BUTUN yuklu varliklar geziliyordu,
+                 hedef basina (alti hedefe kadar). kol_takas.js
+                 zaten bu yolu kullaniyor; burada gozden
+                 kacmisti (dis inceleme buldu).             */
+              const h = world.getEntity(kimlik);
               if (h && gecerliMi(h)) {
                 h.runCommand("playanimation @s " + WILL_YATIR_DUZEL +
                              ' x 1 "0" will_yat');

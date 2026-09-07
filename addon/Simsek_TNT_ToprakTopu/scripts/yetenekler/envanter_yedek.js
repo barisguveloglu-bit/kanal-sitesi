@@ -92,5 +92,15 @@ export function yedekYukle(oyuncu) {
     hataYaz("yedek.yukle", e);
     return "§cGeri yükleme yarıda kaldı.";
   }
-  return "§aEnvanter geri yüklendi §7· " + yazilan + " yuva";
+  /* ---- YEDEK GERI YUKLENINCE SILINIYOR  (v7.62) ----
+     Dis inceleme bir cogaltma acigi buldu ve hakliydi:
+       yedek yaz -> esyalari sandiga koy -> geriyukle
+     Envanter geri geliyor, sandiktakiler de duruyor. Yedek
+     silinmedigi icin dongu SINIRSIZ tekrarlanabiliyordu.
+
+     "Ekleme degil degistirme" korumasi (asagida) yalniz ust
+     uste iki geri yuklemeyi engelliyordu; DISARI AKTARMAYI
+     degil. Tek seferlik yapmak ikisini birden kapatiyor.  */
+  yedekler.delete(oyuncu.id);
+  return "§aEnvanter geri yüklendi §7· " + yazilan + " yuva §8· yedek harcandı";
 }

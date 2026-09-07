@@ -14,7 +14,7 @@ import {
   BECERI_ACIK, BECERI_AGACI, BECERI_TAVAN_KADEME,
   CAN_SAYACI_ACIK,
   RUH_ACIK,
-  BEN10_ACIK, BEN10, SIMBIYOT_ACIK,
+  BEN10_ACIK, BEN10, SIMBIYOT_ACIK, YETENEK_KORUMALI, ANLIK_BEKLEME,
   KONSEY_ACIK,
   DISMONT_ESYA,
   DUSMUS_ACIK, DUSMUS_CAKMAK,
@@ -181,7 +181,8 @@ import { dusmusTara, dusmusUnut, dusmusAtesle } from "./yetenekler/dusmus.js";
    import etmiyor; komutlarin calistiracagi fonksiyonlar kanca
    olarak asagida veriliyor.                                    */
 import {
-  sohbetKur, sohbetKancalari, sohbetDurumMesaji, sohbetCalisiyorMu
+  sohbetKur, sohbetKancalari, sohbetDurumMesaji, sohbetCalisiyorMu,
+  yetkiliMi as sohbetYetkisi
 } from "./sohbet.js";
 
 import {
@@ -397,6 +398,37 @@ function oyuncuIsSayisi(oyuncuId) {
    Bu yuzden ayrica bakiliyor: ayni KIMLIK zaten calisiyorsa
    ikincisi acilmiyor. Cift el bozulmuyor (farkli kimlikler),
    ayni yetenek kendiyle ustuste binmiyor.                   */
+/* ---- ANLIK YETENEK BEKLEMESI  (v7.62) ----
+   oyuncuId|kimlik -> son tetikleme tick'i. ayniIsVarMi yalniz
+   IS ACAN yetenekleri kapsiyor; is acmayanlarin freni yoktu.  */
+const anlikSon = new Map();
+
+export function anlikUnut(oyuncuId) {
+  if (oyuncuId === undefined) { anlikSon.clear(); return; }
+  for (const k of [...anlikSon.keys()]) {
+    if (k.startsWith(oyuncuId + "|")) anlikSon.delete(k);
+  }
+}
+
+function anlikHazirMi(oyuncuId, kimlik) {
+  if (ANLIK_BEKLEME <= 0) return true;
+  const k = oyuncuId + "|" + kimlik;
+  const onceki = anlikSon.get(k);
+  if (onceki !== undefined &&
+      system.currentTick - onceki < ANLIK_BEKLEME) return false;
+  anlikSon.set(k, system.currentTick);
+  return true;
+}
+
+/* ---- YETKI KAPISI JESTTE DE  (v7.62) ----
+   Sohbetteki yetkiliMi ile AYNI olcut, ayni etiket. Iki ayri
+   olcut yazsaydik biri sikilastirilirken oteki geride kalirdi
+   -- zaten sorun tam buydu: sohbet kapaliydi, jest acikti.   */
+function yetenekYetkisi(oyuncu, kimlik) {
+  if (YETENEK_KORUMALI.indexOf(kimlik) < 0) return true;
+  return sohbetYetkisi(oyuncu, "can");
+}
+
 function ayniIsVarMi(oyuncuId, kimlik) {
   const liste = oyuncununIsleri.get(oyuncuId);
   if (!liste) return false;
@@ -765,6 +797,18 @@ function yetenekTetikle(oyuncu, kimlikler) {
            ve is adi kimlikten farkli olanlar buradan gecer --
            onlarda ustuste binecek bir is zaten yok.          */
         if (ayniIsVarMi(oyuncu.id, kimlik)) continue;
+
+        /* v7.62: KORUMALI YETENEK. Sohbetteki "can 10" etikete
+           bagliyken jestten ayni 200 kalp etiketsiz aliniyordu.
+           Ayni kapi, ayni etiket.                            */
+        if (!yetenekYetkisi(oyuncu, kimlik)) {
+          actionbarYaz(oyuncu, "§c⛔ §7Bu yetenek yetkili oyunculara açık.");
+          continue;
+        }
+
+        /* v7.62: ANLIK YETENEK FRENI. Is acan yetenekleri
+           ayniIsVarMi tutuyor; is acmayanlari bu tutuyor.    */
+        if (!anlikHazirMi(oyuncu.id, kimlik)) continue;
 
         /* olustur() tek bir is ya da IS DIZISI donebilir.
            Dizi v4.29'da lazim oldu: bot gucleri bot basina bir

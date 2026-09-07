@@ -17,6 +17,12 @@
       bicimi.                                                */
 
 import { dunyaKur, oyuncuKur } from "./dunya.mjs";
+/* v7.62: BUTCE SIFIRLA. Bu dosyanin sinadigi yetenekler artik
+   varlik dogururken butceden kota istiyor (dis inceleme dort
+   yerde bunun atlandigini bulmustu). Oyunda kotayi tick'in
+   basi veriyor (main.js:453); test tick dongusunu isletmedigi
+   icin kotayi kendisi acmali, yoksa hicbir varlik dogmaz.  */
+const { butceSifirla } = await import("./pack/butce.js");
 import { _durum } from "@minecraft/server";
 
 const w = console.warn;
@@ -48,7 +54,7 @@ function kap(boyut = 36) {
   };
 }
 function kur(id, esyalar = {}) {
-  const D = dunyaKur();
+  const D = (butceSifirla(), dunyaKur());
   const o = oyuncuKur(D.boyut, { x: 0, y: 0, z: 1 }, { x: 0.5, y: 64, z: 0.5 });
   o.id = id; o.typeId = "minecraft:player";
   o._kap = kap();
@@ -96,23 +102,36 @@ console.log("=== 2. DEGISTIRIYOR, EKLEMIYOR (esya cogaltmiyor) ===");
   yedek.yedekUnut();
   const { o } = kur("y2", { 0: "minecraft:diamond", 1: "minecraft:diamond" });
   yedek.yedekAl(o);
-  /* Envanter silinmeden IKI KEZ geri yukleniyor. Ekleme
-     olsaydi esya sayisi katlanirdi -- savunma dupe olurdu. */
+
+  /* ---- YEDEK ARTIK TEK KULLANIMLIK  (v7.62) ----
+     Dis inceleme bir DISARI AKTARMA acigi buldu:
+       yedek al -> esyalari sandiga koy -> geri yukle
+     Envanter geri geliyor, sandiktakiler de duruyor; yedek
+     silinmedigi icin dongu sinirsiz tekrarlanabiliyordu.
+     "Degistirme, ekleme degil" korumasi bunu KAPATMIYORDU --
+     o yalniz ust uste iki geri yuklemeyi engelliyordu.     */
   yedek.yedekYukle(o);
-  yedek.yedekYukle(o);
+  const ikinci = yedek.yedekYukle(o);
+  kontrol("ikinci geri yukleme YEDEK YOK diyor",
+          typeof ikinci === "string" && ikinci.indexOf("Yedeğin yok") >= 0,
+          ikinci);
   kontrol("iki kez yukleyince esya KATLANMIYOR", dolu(o) === 2,
           dolu(o) + " esya (2 olmali)");
 
   /* ---- ASIL DUPE SENARYOSU ----
      Yukaridaki madde tek basina YETMIYOR: yedek ayni yuvalara
      yazdigi icin, temizleme adimi silinse bile sayi degismiyor.
-     Mutasyon testi bunu gosterdi -- "temizlemeyi kaldir"
-     mutasyonu KACTI.
+     Mutasyon testi bunu gostermisti -- "temizlemeyi kaldir"
+     mutasyonu KACMISTI.
 
      Gercek risk YEDEKTEN SONRA alinan esyalar: temizleme
      olmasaydi geri yukleme eskiyi geri koyup yenileri de
      birakirdi, yani envanter buyurdu. Geri yukleme
-     DEGISTIRME'dir: yedekten sonrasi gider.                */
+     DEGISTIRME'dir: yedekten sonrasi gider.
+
+     Yedek tek kullanimlik oldugu icin burada YENIDEN
+     aliniyor -- olculen sey degismedi, yolu degisti.       */
+  yedek.yedekAl(o);
   o._kap.setItem(9, { typeId: "minecraft:emerald", amount: 64 });
   o._kap.setItem(10, { typeId: "minecraft:emerald", amount: 64 });
   kontrol("yedekten sonra iki esya daha alindi", dolu(o) === 4,
@@ -121,6 +140,10 @@ console.log("=== 2. DEGISTIRIYOR, EKLEMIYOR (esya cogaltmiyor) ===");
   kontrol("geri yukleme YEDEKTEN SONRASINI birakmiyor", dolu(o) === 2,
           dolu(o) + " esya (2 olmali)");
   kontrol("sonradan alinan yuva bosaldi", !o._kap.getItem(9));
+
+  /* DISARI AKTARMA DONGUSU KAPALI: yedek harcandi. */
+  kontrol("geri yukleme sonrasi yedek KALMADI",
+          !yedek.yedekVarMi(o.id));
 }
 
 console.log("");

@@ -9,7 +9,7 @@ import { KALP_ADIM, KALP_TAVAN, PARCACIK_IYILES } from "../ayarlar.js";
      iksirler   bos kalpleri doldurur  (yenilenme, 300 sn)
      kalp_ekle  yeni kalp ekler        (kalici, birikir)
 
-   Her kullanimda KALP_ADIM (10) kalp, KALP_TAVAN'a (100) kadar.
+   Her kullanimda KALP_ADIM (10) kalp, KALP_TAVAN'a (200) kadar.
    Normal 10 kalp de sayilinca en fazla 110 kalple dolasirsin.
 
    ---- REFERANSTA NASILDI ----

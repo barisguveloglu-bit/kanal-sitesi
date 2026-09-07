@@ -1,5 +1,6 @@
 import { system } from "@minecraft/server";
 import { yetenekKaydet, esyaninYetenekleri } from "./kayit.js";
+import { sadelestir } from "../sohbet.js";
 import {
   hataYaz, gecerliMi, eldekiEsya, basKonumu, parcacikAt,
   parcacikHalkasi, actionbarYaz, koniHedefleri
@@ -54,11 +55,17 @@ import {
 
 const ANAHTAR = "simsek:jjk";
 const bellek = new Map();
-let ozellikVar = true;
+/* ---- OZELLIK ARIZASI ARTIK OYUNCU BASINA  (v7.62) ----
+   Eskiden tek bir `let ozellikVar` vardi: BIR oyuncuda
+   setDynamicProperty patlayinca herkesin kaliciligi
+   kapaniyordu. Dis inceleme buldu.
+   Simdi arizali oyuncu bellege duser, digerleri dinamik
+   ozellikte kalir.                                          */
+const ozellikYok = new Set();
 
 export function jjkUnut(id) {
-  if (id === undefined) { bellek.clear(); sonsuzda.clear(); }
-  else { bellek.delete(id); sonsuzda.delete(id); }
+  if (id === undefined) { bellek.clear(); sonsuzda.clear(); ozellikYok.clear(); }
+  else { bellek.delete(id); sonsuzda.delete(id); ozellikYok.delete(id); }
 }
 
 export function jjkBul(kimlik) {
@@ -72,16 +79,23 @@ export function jjkBul(kimlik) {
    ama ingilizce uzatmalar ondan gecmiyor.                   */
 export function jjkAdBul(metin) {
   if (typeof metin !== "string") return undefined;
-  const m = metin.trim().toLowerCase();
+  /* v7.62: sohbet.js ile AYNI normallestirici. Eskiden burasi
+     duz toLowerCase, sohbet tarafi sadelestir kullaniyordu.
+     Su anki liste ikisinden de ayni geciyordu -- yani kirik
+     degildi -- ama listeye Turkce harfli bir ad eklendigi anda
+     sohbet kapisi adi tanir, secici tanimazdi. Dis inceleme
+     bunu "henuz kirilmadi ama kirilacak" diye bildirdi ve
+     hakliydi; iki kopya olmasin diye tek yerden geciyor.   */
+  const m = sadelestir(metin);
   for (const k of JJK_KARAKTERLER) {
-    if (k.kimlik === m) return k;
-    for (const a of k.adlar) if (a === m) return k;
+    if (sadelestir(k.kimlik) === m) return k;
+    for (const a of k.adlar) if (sadelestir(a) === m) return k;
   }
   return undefined;
 }
 
 export function jjkOku(oyuncu) {
-  if (ozellikVar) {
+  if (!ozellikYok.has(oyuncu.id)) {
     try {
       const v = oyuncu.getDynamicProperty(ANAHTAR);
       if (typeof v === "string" && jjkBul(v)) return v;
@@ -93,9 +107,9 @@ export function jjkOku(oyuncu) {
 
 export function jjkYaz(oyuncu, kimlik) {
   if (!jjkBul(kimlik)) return false;
-  if (ozellikVar) {
+  if (!ozellikYok.has(oyuncu.id)) {
     try { oyuncu.setDynamicProperty(ANAHTAR, kimlik); return true; }
-    catch (e) { ozellikVar = false; }
+    catch (e) { ozellikYok.add(oyuncu.id); }
   }
   bellek.set(oyuncu.id, kimlik);
   return true;

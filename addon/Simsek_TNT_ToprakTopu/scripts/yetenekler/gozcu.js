@@ -413,9 +413,23 @@ export function hareketMuaf(oyuncu, isVarMi) {
     if (oyuncu.isInWater) return "suda";
     if (oyuncu.isClimbing) return "tirmaniyor";
     if (oyuncu.isFalling) return "dusuyor";
+    /* ---- EFEKTLER ARTIK TOPTAN MUAF DEGIL  (v7.62) ----
+       Eskiden bu dort efektten biri varsa oyuncu BUTUN
+       hareket denetimlerinden muaf tutuluyordu. Yaninda hiz
+       iksiri tasiyan biri hiz, sicrama, yukselme VE kati blok
+       denetimlerinin dordunu birden kapatmis oluyordu.
+
+       Dis inceleme bunu buldu ve hakliydi: muafiyetin kendisi
+       dogru (modun kendi ucusu yanlis alarm uretmesin), KAPSAMI
+       yanlisti. v7.46'da suzulme icin verilen kararin aynisi:
+       efekt NEYI acikliyorsa yalniz onu bagisliyor.
+
+       Onek "efekt:" -- cagiran buna bakip toptan atlamak yerine
+       yalniz ilgili olcumu atliyor. KATI BLOK denetimini hicbir
+       efekt aciklamiyor, o hep calisiyor.                    */
     if (typeof oyuncu.getEffect === "function") {
       for (const ad of ["levitation", "speed", "slow_falling", "jump_boost"]) {
-        if (oyuncu.getEffect(ad)) return ad;
+        if (oyuncu.getEffect(ad)) return "efekt:" + ad;
       }
     }
     /* Bir seye biniyorsa hizi bizim degil, bindigi seyin. */
@@ -641,7 +655,12 @@ export function hareketTara(oyuncular, isVarMi) {
          direnc.                                              */
       dususOlc(o, iz, k.y - onceki.konum.y);
 
-      if (muaf) {
+      /* Efekt muafiyeti TOPTAN atlamiyor: hangi olcumu
+         bagisladigi asagida tek tek belirleniyor.           */
+      const efektMuaf = (typeof muaf === "string" && muaf.startsWith("efekt:"))
+        ? muaf.slice(6) : undefined;
+
+      if (muaf && !efektMuaf) {
         iz.yukselme = 0; iz.kati = 0;
         /* SUZULME ARTIK TOPTAN MUAF DEGIL  (v7.46).
            Eskiden burada kosulsuz `continue` vardi: elytra
@@ -736,12 +755,25 @@ export function hareketTara(oyuncular, isVarMi) {
       const afli = (sicramaVar || hizVar) && afVarMi(o.id);
 
       /* 1. ISINLANMA -- tek ornekte kocaman siçrama. */
-      if (sicramaVar && !afli) {
+      /* Hangi efekt neyi acikliyor:
+           speed       -> yatay hiz
+           jump_boost  -> sicrama (dikey mesafe)
+           levitation / slow_falling -> yukselme ve sicrama
+         Hicbiri KATI BLOK'u aciklamiyor; o yukarida calisti. */
+      const efHiz    = efektMuaf === "speed";
+      const efSicrama = efektMuaf === "jump_boost" ||
+                        efektMuaf === "levitation" ||
+                        efektMuaf === "slow_falling";
+      const efYukselme = efektMuaf === "levitation" ||
+                         efektMuaf === "slow_falling";
+      if (efektMuaf && !efYukselme) iz.yukselme = iz.yukselme || 0;
+
+      if (sicramaVar && !afli && !efSicrama) {
         sebep.push("ışınlanma " + toplam.toFixed(0) + " blok");
       }
 
       /* 2. YATAY HIZ */
-      if (hizVar && !afli) {
+      if (hizVar && !afli && !efHiz) {
         sebep.push("hız " + hizSn.toFixed(1) + " blok/sn");
       }
 
@@ -749,6 +781,7 @@ export function hareketTara(oyuncular, isVarMi) {
          yukselir ve biter; ucma ust uste yukselir.          */
       if (dy > HAREKET_YUKSEK_PAY) iz.yukselme = (iz.yukselme || 0) + 1;
       else iz.yukselme = 0;
+      if (efYukselme) iz.yukselme = 0;
       if (iz.yukselme >= HAREKET_YUKSELME) {
         sebep.push("kesintisiz yükselme " + iz.yukselme + " örnek");
         iz.yukselme = 0;

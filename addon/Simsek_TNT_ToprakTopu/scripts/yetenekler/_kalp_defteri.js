@@ -1,8 +1,8 @@
 import { world, system } from "@minecraft/server";
-import { bilgiYaz, hataYaz, gecerliMi } from "../yardimcilar.js";
+import { bilgiYaz, hataYaz, gecerliMi, kaliciYaz } from "../yardimcilar.js";
 import {
   KALP_ADIM, KALP_TAVAN, KALP_TAZELEME, KALP_SURE, KALP_DOLDUR,
-  KALP_KAYIT_ANAHTAR
+  KALP_KAYIT_ANAHTAR, DEFTER_TAVAN
 } from "../ayarlar.js";
 
 /* ============================================================
@@ -90,8 +90,26 @@ function yaz() {
     for (const [oyuncuId, kalp] of defter) {
       if (kalp > 0) dizi.push([oyuncuId, kalp]);
     }
-    world.setDynamicProperty(KALP_KAYIT_ANAHTAR,
-                             dizi.length === 0 ? undefined : JSON.stringify(dizi));
+    /* ---- BOYUT KAPISI  (v7.62) ----
+       Dis inceleme buldu: bu defter ham setDynamicProperty
+       yapiyordu, eleme yoktu. Kayit basina ~20 bayt oldugu
+       icin 32767 tavani uzak ama DUNYADAN AYRILAN OYUNCU HIC
+       DUSMUYOR -- sunucu/Realm'de zamanla dolar ve hata
+       hataYaz tarafindan yutuldugu icin ilerleme SESSIZCE
+       kaybolur. yardimcilar.js:kaliciYaz tam bunun icin
+       yazilmisti; burasi onu kullanmiyordu.
+
+       Kirpma EN ESKIYI dusuruyor: Map ekleme sirasini
+       koruyor, yani dizinin basi en eski kayit.            */
+    if (dizi.length === 0) {
+      world.setDynamicProperty(KALP_KAYIT_ANAHTAR, undefined);
+    } else {
+      kaliciYaz(KALP_KAYIT_ANAHTAR, dizi,
+                (d, oran) => {
+                  const at = Math.max(1, Math.ceil(d.length * oran));
+                  return d.length > at ? d.slice(at) : undefined;
+                }, DEFTER_TAVAN);
+    }
   } catch (e) {
     hataYaz("kalp.yaz", e);
   }
@@ -211,7 +229,21 @@ export function kalpEkle(oyuncu, istenen = KALP_ADIM) {
 
   const eklenen = sonraki_ - onceki;
   if (eklenen <= 0) {
-    return { eklenen: 0, toplam: onceki, tavanaCarpti: true };
+    /* ---- TAVAN MI, GECERSIZ MIKTAR MI  (v7.62) ----
+       Ikisi de "eklenen 0" veriyordu ve ikisine de "tavandasin"
+       deniyordu. Dis inceleme bunu buldu: 0 kalpken "can 1"
+       yazan biri "en fazla 200 ek kalp" cevabini aliyordu --
+       oysa sebep TAVAN degil, tek sayinin cift sayiya
+       yuvarlanmasiydi (kalbiDuzelt(1) = 0).
+
+       Yanlis gerekce yanlis teshis demek: kullanici tavana
+       geldigini sanip vazgeciyordu.                        */
+    if (adim <= 0) {
+      return { eklenen: 0, toplam: onceki, tavanaCarpti: false,
+               gecersizMiktar: true };
+    }
+    return { eklenen: 0, toplam: onceki, tavanaCarpti: true,
+             gecersizMiktar: false };
   }
 
   defter.set(oyuncu.id, sonraki_);
@@ -224,7 +256,8 @@ export function kalpEkle(oyuncu, istenen = KALP_ADIM) {
      gereksiz yere ustune yazmasin.                             */
   sonraki.set(oyuncu.id, system.currentTick + KALP_TAZELEME);
 
-  return { eklenen, toplam: sonraki_, tavanaCarpti: sonraki_ >= tavan };
+  return { eklenen, toplam: sonraki_, tavanaCarpti: sonraki_ >= tavan,
+           gecersizMiktar: false };
 }
 
 export function kalpSifirla(oyuncu) {

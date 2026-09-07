@@ -1,4 +1,5 @@
 import { system } from "@minecraft/server";
+import { varlikIste } from "../butce.js";
 import { yetenekKaydet } from "./kayit.js";
 import {
   hataYaz, bilgiYaz, gecerliMi, actionbarYaz, kollariIndir, parcacikAt,
@@ -513,6 +514,12 @@ ESYA_ISLERI.mahou_kutsal_mizrak = (oyuncu) => {
   let sayi = 0;
   for (const v of yakindakiler(oyuncu, 20)) {
     if (sayi >= 10) break;
+    /* v7.62: BUTCE. On yildirim tek tickte doguyordu ve
+       TICK_VARLIK_BUTCESI 4 -- butcenin 2.5 kati. Depo kurali
+       varlik doguran her yerin defterden gecmesi; burasi
+       atlamisti. Butce dolunca kalanlar dogmuyor, hasar yine
+       veriliyor (asagidaki vur() zaten yedek yol).         */
+    if (!varlikIste(1)) { vur(v, 8, oyuncu); sayi++; continue; }
     sayi++;
     try {
       oyuncu.dimension.spawnEntity("minecraft:lightning_bolt", v.location);

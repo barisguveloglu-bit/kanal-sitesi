@@ -23,6 +23,12 @@
      3. kilik dovulebilir/itilebilirse oyuncuyla titresir      */
 
 import { dunyaKur, oyuncuKur } from "./dunya.mjs";
+/* v7.62: BUTCE SIFIRLA. Bu dosyanin sinadigi yetenekler artik
+   varlik dogururken butceden kota istiyor (dis inceleme dort
+   yerde bunun atlandigini bulmustu). Oyunda kotayi tick'in
+   basi veriyor (main.js:453); test tick dongusunu isletmedigi
+   icin kotayi kendisi acmali, yoksa hicbir varlik dogmaz.  */
+const { butceSifirla } = await import("./pack/butce.js");
 import { tickIlerlet, varlikKaydet, _durum, world } from "@minecraft/server";
 import { readFileSync } from "node:fs";
 const KOK = new URL("..", import.meta.url).pathname.replace(/\/$/, "");
@@ -52,7 +58,7 @@ const oku = (y) => JSON.parse(readFileSync(y, "utf8"));
 
 const BAS = { x: 0.5, y: 90.6, z: 0.5 };
 function kur(id = "d1") {
-  const D = dunyaKur();
+  const D = (butceSifirla(), dunyaKur());
   const o = oyuncuKur(D.boyut, { x: 0, y: 0, z: 1 }, BAS);
   o.id = id; o.typeId = "minecraft:player";
   _durum.oyuncular = [o];

@@ -1,3 +1,161 @@
+# v7.62.0 — Dış inceleme: dokuz bulgu doğrulandı ve kapatıldı
+
+Kullanıcı v7.60'ı dış bir modele verip açık aradı. On madde geldi;
+hepsi **tek tek koda bakılarak** denetlendi. **Dokuzu doğru**,
+biri kod bulgusu değil. Sıralama raporun kendi sırası.
+
+## 1. Yetki kapısı yalnız sohbetteydi — DOĞRU, en ciddisi
+
+Sohbetteki `can 10` `KOMUT_ETIKET`'e bağlıydı ama **aynı güç
+jestten etiketsiz alınıyordu**: `kalp_ekle` (sıra 115) ve
+`kalp_toptan` (116) `esyasiz: true`. Düelloda karşı taraf
+`can 10` yazamıyor, jestle aynı 200 kalbi alıyordu. **Kapı
+kilitliyken pencere açıktı.**
+
+`YETENEK_KORUMALI` eklendi ve tetikleme kapısı `sohbet.js`'in
+**aynı** `yetkiliMi`'sini soruyor — iki kopya yazsaydık biri
+sıkılaştırılırken öteki geride kalırdı, zaten sorun tam buydu.
+
+`kalp_sifirla` bilerek listede **yok**: o bir geri alma,
+kilitlenmesi kimseyi korumaz, aksine kilitli kalanın çıkış
+yolunu kapatır — arınma/kafes/savunma ile aynı gerekçe.
+
+## 2. Envanter yedeği dışarı aktarma açığı — DOĞRU
+
+`yedek → sandığa koy → geriyukle`: envanter geri geliyor,
+sandıktakiler duruyor, yedek silinmediği için döngü sınırsız.
+"Ekleme değil değiştirme" koruması bunu **kapatmıyordu** — o
+yalnız üst üste iki geri yüklemeyi engelliyordu.
+
+Yedek artık **tek kullanımlık**: başarılı geri yüklemeden sonra
+siliniyor.
+
+## 3. Gözcü muafiyeti bir bypass'tı — DOĞRU
+
+`levitation / speed / slow_falling / jump_boost`'tan biri varsa
+oyuncu **bütün** hareket denetimlerinden muaftı. Yanında hız
+iksiri taşıyan biri hız, sıçrama, yükselme **ve katı blok**
+denetiminin dördünü birden kapatıyordu.
+
+Raporun tespiti de doğruydu: v7.46'da süzülme için verilen
+kararın aynısı gerekiyordu. Efekt artık `"efekt:<ad>"` diye
+dönüyor ve **neyi açıklıyorsa yalnız onu** bağışlıyor:
+
+| Efekt | Bağışladığı | Bağışlamadığı |
+|---|---|---|
+| `speed` | yatay hız | sıçrama · yükselme · **katı blok** |
+| `jump_boost` | sıçrama | hız · yükselme · **katı blok** |
+| `levitation` / `slow_falling` | sıçrama · yükselme | hız · **katı blok** |
+
+Katı blok denetimini **hiçbir efekt** açıklamıyor; o hep
+çalışıyor. Uçuş kipi/su/tırmanma muafiyetleri aynen kaldı.
+
+## 4. Anlık yeteneklerin freni yoktu — DOĞRU (mekanizma tarifi eksik)
+
+`ayniIsVarMi` yalnız **iş açan** yetenekleri kapsıyor;
+`return undefined` diyen anlık yeteneklerin freni yoktu.
+
+Raporun mekanizma tarifi tam değildi — "her tick" değil,
+`ESYASIZ_TARAMA` 4 tick **ve** zıplama kenarı şart, yani
+saniyede en fazla ~5. Ama **sorun gerçek**. `ANLIK_BEKLEME = 6`
+tick eklendi: art arda basmayı bozmayacak kadar kısa (kullanıcı
+v7.53'te beklemeyi bilerek kaldırmıştı), yaylım ateşini
+durduracak kadar uzun.
+
+## 5. Dört varlık noktası bütçeyi atlıyordu — DOĞRU
+
+`mahou.js` Rhongomyniad tek kullanımda **10 yıldırım** doğuruyordu;
+`TICK_VARLIK_BUTCESI = 4`, yani bütçenin 2.5 katı. `yakala.js`,
+`donusum.js`, `kol_takas.js` birer varlık.
+
+Dördü de `varlikIste()`'den geçiyor. Rhongomyniad bütçe bitince
+varlık doğurmuyor ama **hasarı yine veriyor** — zaten `vur()`
+yedek yolu vardı.
+
+## 6. `will_kilic.js` süzgeçsiz tarama — DOĞRU
+
+`dimension.getEntities().find(...)` hedef başına, altı hedefe
+kadar, boyuttaki bütün yüklü varlıkları geziyordu.
+`kol_takas.js` zaten `world.getEntity(kimlik)` kullanıyordu;
+burada gözden kaçmıştı. Düzeltildi.
+
+## 7. Defter sınırları — DOĞRU (iki ayrı şey)
+
+**a)** `MEZAR_TAVAN` denetimi `mezarEkle`'de değil çağıranda
+duruyordu; bir çağıran unutsa tavan yok sayılırdı. Sınır artık
+sınırın ait olduğu yerde: defterin kendisinde.
+
+**b)** Kalp defteri ham `setDynamicProperty` yapıyordu, eleme
+yoktu. Kayıt başına ~20 bayt olduğu için 32767 tavanı uzak ama
+**dünyadan ayrılan oyuncu hiç düşmüyor** — sunucu/Realm'de
+zamanla dolar ve hata `hataYaz` tarafından yutulduğu için
+ilerleme sessizce kaybolur. `kaliciYaz` tam bunun için
+yazılmıştı; artık onu kullanıyor. Ölçüldü: 2000 oyuncu → 20521
+bayt, tavan 24000.
+
+Raporun saydığı diğer ham yazıcılar (`kol_takas`,
+`zaman_saati`, `yakala`, `efsane_muzik`, `kilic`, `tas`) sabit
+boyutlu ya da doğal olarak sınırlı defterler — sırada duruyorlar
+ama kalp defteri gibi sınırsız büyümüyorlar.
+
+## 8. "can" komutunda tek sayı — KISMEN doğru
+
+`kalbiDuzelt(1) = 0` olduğu için 0 kalpken `can 1` yazan biri
+**"Tavandasın: en fazla 200 ek kalp"** cevabını alıyordu. Yanlış
+gerekçe, yanlış teşhis: kullanıcı tavana geldiğini sanıp
+vazgeçiyordu. `gecersizMiktar` ayrımı eklendi.
+
+Raporun ikinci yarısı **yanlış**: `can 3` yazınca 2 kalp ekleniyor
+ve `tavanaCarpti` orada zaten `false` — tavan gösterilmiyordu.
+Sorun yalnız `eklenen === 0` dalındaydı.
+
+Yorumlardaki `KALP_TAVAN (100)` kayması da düzeldi (gerçek değer
+200). Raporun verdiği satır numarası (`ayarlar.js:3621`) tutmuyor,
+doğrusu 3698 — ama kayma gerçekti.
+
+## 9. Jujutsu'da iki normalleştirici — DOĞRU (henüz kırılmamış)
+
+`sohbet.js` `sadelestir`, `jujutsu.js` düz `toLowerCase`
+kullanıyordu. Rapor da "şu an kırık değil ama listeye Türkçe
+harfli bir ad eklendiği anda kapı adı tanır, seçici tanımaz"
+diyordu — aynen öyle. İkisi de artık `sadelestir` kullanıyor.
+
+İkinci yarısı da doğruydu: tek bir global `ozellikVar` vardı ve
+**bir oyuncunun hatası herkesin kalıcılığını kapatıyordu**. Artık
+oyuncu başına (`ozellikYok` kümesi): arızalı olan belleğe düşer,
+diğerleri dinamik özellikte kalır.
+
+## 10. Dağıtım — kod bulgusu değil
+
+Doğru bir gözlem ama kodla kapatılacak bir şey değil; kullanıcının
+kendi kararı. Not olarak duruyor.
+
+## Mutasyon bataryası — 18 mutasyon, ikisi kaçtı
+
+İkisi de aynı sebepten: **düzeltmenin yazıldığını ölçüyordum,
+çalıştığını değil.**
+
+- **Yetki kapısını `if(false)` yapmak hiçbir testi kırmıyordu** —
+  hiçbir bölüm kapıyı gerçekten çalıştırmıyordu. Uçtan uca bölüm
+  eklendi: etiketsiz oyuncu jest sırasında "Kalp Ekle"ye kadar
+  ilerleyip tetikliyor ve **0 kalp** alıyor; etiketli olan 10
+  alıyor.
+- **Kalp defterini yine ham yazmak da kaçıyordu** — hiçbir bölüm
+  defteri tavanı aşacak kadar büyütmüyordu. 2000 oyunculuk
+  ölçüm eklendi.
+
+İkinci turda 18/18.
+
+## Test
+
+`test/denetim_762.mjs` — 9 bölüm, her bulguya bir tane. Ayrıca
+`donusum.mjs`, `envanter_yedek.mjs` ve `kol_takas.mjs` bütçe
+sıfırlamayı öğrendi: sınadıkları yetenekler artık kotadan
+geçiyor, oyunda kotayı tick'in başı veriyor (`main.js:453`), test
+kendisi açmalı.
+
+---
+
 # v7.61.0 — Simbiyot: Ben 10 menüsünün altına, en güçlü form
 
 Kullanıcı: *"Toprak kolun Ben 10 dönüşümleri işte farklı farklı

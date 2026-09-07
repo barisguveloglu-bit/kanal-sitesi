@@ -97,7 +97,11 @@ export function sadelestir(metin) {
 
    "Kimse etiketli degilse kimse kullanamasin" secilseydi paket
    kurulur kurulmaz butun komutlar oluydu ve sebebi gorunmezdi.  */
-function yetkiliMi(oyuncu, ad) {
+/* v7.62: DISA ACILDI. main.js jest kapisi icin ayni olcutu
+   kullaniyor. Iki ayri kopya yazsaydik biri sikilastirilirken
+   oteki geride kalirdi -- zaten sorun tam buydu: sohbet
+   kapaliydi, jest acikti.                                   */
+export function yetkiliMi(oyuncu, ad) {
   if (!KOMUT_ETIKET) return true;
   if (KOMUT_KORUMALI.indexOf(ad) < 0) return true;   // korumali degil
   let etiketliVar = false;
@@ -242,6 +246,17 @@ export function komutCozumle(oyuncu, hamMetin) {
     if (!sonuc) return { cevap: "§cKalp eklenemedi." };
 
     if (sonuc.eklenen <= 0) {
+      /* v7.62: TAVAN MI, GECERSIZ MIKTAR MI. Ikisine de
+         "tavandasin" deniyordu; 0 kalpken "can 1" yazan biri
+         tavana geldigini saniyordu. Sebep tek sayinin cift
+         sayiya yuvarlanmasiydi.                            */
+      if (sonuc.gecersizMiktar) {
+        return {
+          cevap: "§eKalp ÇİFT sayı olmalı: §7" + istenen +
+                 " istedin, çifte yuvarlanınca 0 kaldı " +
+                 "§8(örnek: can 2)"
+        };
+      }
       return {
         cevap: "§eTavandasin: §7en fazla " + KALP_TAVAN +
                " ek kalp §8(toplam " + (10 + sonuc.toplam) + " kalp)"

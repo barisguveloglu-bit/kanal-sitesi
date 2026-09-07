@@ -58,6 +58,12 @@ function kaydet() {
 
 export function mezarEkle(boyutId, merkez, konan, tutsakId) {
   yukle();
+  /* ---- TAVAN ARTIK BURADA  (v7.62) ----
+     MEZAR_TAVAN denetimi yalniz mezarDoluMu()'de duruyordu ve
+     onu CAGIRAN kontrol ediyordu (asa.js). Bir cagiran unutsa
+     tavan yok sayilirdi -- dis inceleme bunu buldu.
+     Sinir, sinirin ait oldugu yerde: defterin kendisinde.  */
+  if (defter.length >= MEZAR_TAVAN) return undefined;
   defter.push({
     b: boyutId,
     m: [merkez.x, merkez.y, merkez.z],

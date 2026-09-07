@@ -1,4 +1,5 @@
 import * as api from "@minecraft/server";
+import { varlikIste } from "../butce.js";
 import { world, system } from "@minecraft/server";
 import { yetenekKaydet } from "./kayit.js";
 import {
@@ -189,6 +190,8 @@ function omuzlar(oyuncu) {
 
 function dogur(oyuncu, tip, nokta) {
   try {
+    /* v7.62: BUTCE (dis inceleme). */
+    if (!varlikIste(1)) return null;
     return oyuncu.dimension.spawnEntity(tip, nokta) || null;
   } catch (e) {
     hataYaz("kol_takas.dogur(" + tip + ")", e);

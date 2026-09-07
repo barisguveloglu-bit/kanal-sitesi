@@ -1,4 +1,5 @@
 import { world, system } from "@minecraft/server";
+import { varlikIste } from "../butce.js";
 import { yetenekKaydet } from "./kayit.js";
 import {
   hataYaz, gecerliMi, actionbarYaz, kollariIndir, parcacikHalkasi, kaliciYaz
@@ -167,6 +168,8 @@ export function donus(oyuncu) {
 
   let kilik;
   try {
+    /* v7.62: BUTCE (dis inceleme). */
+    if (!varlikIste(1)) return undefined;
     kilik = oyuncu.dimension.spawnEntity(SEY_KILIK_KIMLIK, {
       x: oyuncu.location.x,
       y: oyuncu.location.y + DONUSUM_Y_KAYMA,
