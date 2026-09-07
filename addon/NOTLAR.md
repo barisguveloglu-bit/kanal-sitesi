@@ -1,3 +1,115 @@
+# v7.58.0 — SLR silahları, kol takılıyken kapalı
+
+Kullanıcı: *"Toprak kol taktığımda bitecek yani o dosyadaki
+güçleri kullanamayacağım ama kol takmadığım zaman bu güçler
+açılacak"* + *"maksimum stats seviyesi neyse onun sayı olarak 10
+düşüğü, mesela maksimum 100 ise 90 olacak"* + *"en güçlü 2 tane
+itemi seçmeni istiyorum"*
+
+## Önce dosyanın ne olduğu
+
+`SLR1.7.8.zip` bir **CurseForge modpaketi** — mod değil. İçinde
+156 modun **CurseForge proje kimliği** ve ayar dosyaları var; jar
+dosyaları **yok**. Bu, ne yapabildiğimizi doğrudan belirledi:
+
+- **Ölçüldü:** rütbe merdiveni (E·D·C·B·A·S), tam eşya kataloğu,
+  hangi eşyanın hangi düşmandan düştüğü, boss listesi.
+- **Ölçülemedi:** hiçbir silahın hasar sayısı; **stat tavanı**.
+  Pakette tek SLR ayarı `sololeveling-client.properties` ve
+  içinde yalnızca görünüm ayarları var (`damageNumbersEnabled`,
+  `outlineDensity`…). Ne stat adı, ne tavan, ne seviye eğrisi.
+
+Ayrıntı: [`REFERANS_SLR.md`](REFERANS_SLR.md).
+
+## Seçilen iki eşya
+
+**`demon_kings_long_sword`** — kataloğun **tek uzun kılıcı**
+(gerisi hep hançer), harfli kademeye değil adlı kademeye ait,
+`d_knight_1`'den düşüyor.
+
+**`barukas_dagger`** — adlı silahlar içinde görev ağacının **en
+ucunda** (`mutated`), kaynak eserde sahibinin imza silahı, uzun
+kılıcın mekanik zıttı.
+
+Seçim ölçüm değil **çıkarım**: hasar sayıları okunamıyordu.
+
+## "Tavanın 10 altı" nasıl uygulandı
+
+Tavan kaynaktan okunamadığı için `ayarlar.js`'te **varsayım
+olarak** tanımlandı ve tek yerde tutuldu:
+
+```js
+SLR_STAT_TAVAN = 100      // VARSAYIM
+SLR_STAT_FARK  = 10       // kullanıcının kuralı
+SLR_STAT       = 90       // tavan - fark
+SLR_ORAN       = 0.9      // bütün hasarların tek kapısı
+```
+
+Gerçek sayı öğrenilirse **değiştirilecek tek yer** `SLR_STAT_TAVAN`.
+
+Rütbe gösteriminde S **yalnızca tavanın kendisi**; altındaki her
+değer en fazla A. Yani ekranda `[A · 90/100]` yazıyor — kural
+arayüzde de okunuyor.
+
+## "Kol takınca bitecek" — iki yarısı vardı
+
+**Birincisi zaten vardı:** tetikleme eşyasız jest sırasından
+geliyor ve `main.js` elde kol varken genel sıraya *hiç* bakmıyor.
+
+**İkincisi eksikti ve asıl istenen buydu:** bir iş başlamışken
+ortasında kol takılınca iş **devam ediyordu**. `kolTakili()` her
+tick ele bakıyor, kol görürse iş kendini kapatıyor.
+
+Ölçüt `main.js`'inkiyle **aynı** (`esyaninYetenekleri`): "kol"
+diye ayrı bir liste tutsaydık iki tanım zamanla ayrışır, biri
+kolu görüp öteki görmezdi. Yan etkisi olumlu — elmas kılıç
+engellemiyor, çünkü ölçüt "elinde bir şey var mı" değil "**kol**
+var mı".
+
+## İki hata, ikisi de testin kendisindeydi
+
+**Ad çakışması, ikinci kez.** İlk yazımda ayarlar `KILIC_*` /
+`HANCER_*` diye kondu; `KILIC_ACIK` bu dosyada **zaten vardı**
+(`pa:resetting_sword`, satır ~4350). v7.49'da aynı şey `KILIT_*`
+ile olmuştu. Önek `SLR_` yapıldı. Ders aynı: 10 bin satırlık bir
+ayar dosyasında ad seçmeden önce grep.
+
+**Test yanlış şeyi ölçüyordu.** Kol taklidi `getEquipmentSlot`
+kullanıyordu, gerçek API `getEquipment`. Üstelik `kur()`
+`getComponent`'i baştan yazdığı için `dunya.mjs`'in equippable
+taklidi tamamen kayboluyordu — yani "kol takılıyken açılmıyor"
+kontrolü hiçbir zaman kol göremiyordu. Ayrıca kılıç anlık bir
+yetenek olduğu için **her hâlükârda** `undefined` dönüyor; dönüş
+değerine bakan kontrol hep geçerdi. Ölçüt hasara çevrildi.
+
+## Mutasyon bataryası — 18 mutasyon, üçü kaçtı
+
+- **Yalnız ana ele bakılıyor.** Sol eldeki kol SLR'yi kesmiyordu
+  — çift el gerçek bir özellik (`CIFT_EL_ACIK`). Sol el için ayrı
+  bir taklit ve bölüm eklendi.
+- **Rütbe tavan dalı sınanamıyordu.** `slrRutbe()` modül
+  sabitlerini okuyordu, testte değiştirilemiyordu. Sayıları
+  **parametre** alacak şekilde yeniden yazıldı ve dışa aktarıldı;
+  artık `slrRutbe(100,100) === "S"` ile `slrRutbe(90,100) === "A"`
+  ayrı ayrı ölçülüyor.
+- **Üçüncüsü kaçak değil, ölü koddu.** `Math.min(n-2, i)`
+  satırına hiç ulaşılmıyordu: `i` ancak `stat >= tavan` iken
+  `n-1`'e çıkabiliyor, o durum da bir üstteki dalda dönüyor.
+  Test yazmak yerine ölü savunma satırı kaldırıldı.
+
+İkinci turda hepsi yakalandı.
+
+## Test
+
+`test/slr.mjs` — 7 bölüm: kayıt ve sıra, kol takılıyken
+açılmama (sağ el · sol el · kol olmayan eşya), **süren işin kol
+takılınca kesilmesi**, kılıcın geniş yayı + zayıflık + savurma,
+tek güç kapısı (`SLR_ORAN × ruhCarpani`), stat tavanının 10 altı
+ve rütbe merdiveni, hançerin vuruş sayısı + hedef dağıtımı +
+yavaşlık.
+
+---
+
 # v7.57.0 — İkinci kategori: karakterler
 
 Kullanıcı: *"bundan da bazı yetenekler al, önceden seçtiğimiz 3

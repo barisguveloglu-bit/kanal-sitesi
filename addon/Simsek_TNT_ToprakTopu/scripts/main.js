@@ -193,6 +193,7 @@ import "./yetenekler/tek_simsek.js";
 import "./yetenekler/toprak_izi.js";
 import "./yetenekler/ruh_yetenekler.js";
 import "./yetenekler/karakter_yetenekler.js";
+import "./yetenekler/slr.js";
 import "./yetenekler/yildirim_halkasi.js";
 import "./yetenekler/alan_simsegi.js";
 import "./yetenekler/tnt_yagmuru.js";
