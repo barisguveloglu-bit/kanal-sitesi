@@ -510,6 +510,32 @@ console.log("=== 7f. YEMININ IKI YOLU VE ASKERIN KUSAGI  (v7.63) ===");
     kontrol("eklentinin kendi esyalari da var",
             yuvalar.some((x) => x && x.typeId === "pa:kol_kanli") &&
             yuvalar.some((x) => x && x.typeId === "pa:iksir_kan_iksiri"));
+    /* ---- SETIN AGIRLIGI EKLENTIDE  (v7.63.1) ----
+       Ilk sette eklentiden yalnizca dort esya vardi, gerisi
+       oyunun kendi netherite takimiydi. Kullanici hakli olarak
+       "eklentiden olsun" dedi. Bu olcum setin yeniden
+       dengelenmesi halinde eklenti payinin dusmedigini tutuyor. */
+    /* Esigin KENDISI de olculuyor: asagidaki kontrol esigi
+       referans aldigi icin, esik 1'e dusurulse set bozulmus
+       olsa bile gecerdi. Mutasyon tam oradan kacti. Sekiz
+       sayisi kullanicinin kendi istegi.                    */
+    kontrol("eklenti esigi en az 8", ayar.DUSMUS_KUSAK_EKLENTI_ENAZ >= 8,
+            "" + ayar.DUSMUS_KUSAK_EKLENTI_ENAZ);
+    const eklenti = yuvalar.filter((x) => x && x.typeId.startsWith("pa:"));
+    kontrol("eklentiden en az " + ayar.DUSMUS_KUSAK_EKLENTI_ENAZ + " cesit",
+            eklenti.length >= ayar.DUSMUS_KUSAK_EKLENTI_ENAZ,
+            eklenti.length + " cesit");
+    kontrol("zirhin DORDU de eklentiden (tam takim)",
+            ["baslik", "govde", "bacak", "bot"].every((y) =>
+              yuvalar.some((x) => x && x.typeId === "pa:kns_olubuyucu_" + y)));
+    kontrol("silah da eklentiden",
+            yuvalar.some((x) => x && x.typeId === "pa:kns_earl_kilic"));
+    /* Oyundan kalanlar YALNIZ hayatta kalma olmali. */
+    const oyundan = yuvalar.filter((x) => x && !x.typeId.startsWith("pa:"))
+                           .map((x) => x.typeId);
+    kontrol("oyundan zirh/silah KALMADI",
+            !oyundan.some((t) => /helmet|chestplate|leggings|boots|sword|bow|arrow/.test(t)),
+            oyundan.join(", "));
     /* IKINCI KEZ YOK: cogaltma yolu acilmasin. */
     const cevap = dus.kusakVer(o);
     kontrol("kusak IKINCI kez verilmiyor",

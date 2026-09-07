@@ -1,3 +1,53 @@
+# v7.63.1 — Askerin Kuşağı eklentiye çekildi
+
+Kullanıcı: *"ben şunu bekliyordum, oyundan değil de eklentimizden
+almanı bekliyordum; eklentiden 4 tane malzeme var sadece, bunu
+biz 8'e"*
+
+Haklıydı. İlk set oyunun kendi netherite takımıyla doluydu;
+eklentinin **516 eşyasından yalnızca dördü** vardı. Zırh ve silah
+artık **tamamen eklentiden**; oyundan kalan dört şey sadece
+hayatta kalma.
+
+| | |
+|---|---|
+| **Eklentiden (8 çeşit)** | Ölü Büyücü takımı (başlık · gövde · pantolon · bot) · Earl Kılıcı · Kanlı Kol · Kanlı Göz · 2× Kan İksiri |
+| **Oyundan (4)** | Ölümsüzlük Totemi · 8 altın elma · 32 pişmiş biftek · 8 ender incisi |
+
+## Seçimlerin gerekçesi
+
+**Ölü Büyücü takımı** — Düşmüş bir virüs ve yemin eden kişi onun
+askeri; ölü büyücü teması bunun tam ortası. Dördü de ayrı yuvaya
+giriyor (baş/gövde/bacak/ayak, her biri 7 koruma), yani dağılmış
+parçalar değil **gerçek bir takım**.
+
+**Earl Kılıcı (21 hasar)** — Void Kılıcı da vardı ama hasarı
+**255**, yani her şeyi tek vuruşta öldürüyor. Kendi düellonu bozan
+bir ödül ödül değildir. Earl, netherite kılıcın (8) iki katından
+fazla ama oyunu bitirmiyor.
+
+**Kanlı Göz (17 koruma)** — baş yuvasında Ölü Büyücü Başlığı (7)
+ile aynı yeri paylaşıyor. İkisi de veriliyor; seçim oyuncunun —
+koruma mu, gözün kendi hattı mı.
+
+**Kanlı Kol + Kan İksiri** — kanlı tema yeminle aynı yerden.
+
+## Ölçüm
+
+`DUSMUS_KUSAK_EKLENTI_ENAZ = 8` eklendi ve test dört şeyi tutuyor:
+eklenti payının 8'in altına düşmemesi, zırhın **dördünün de**
+eklentiden olması, silahın eklentiden olması ve oyundan gelenlerde
+**zırh/silah kalmaması**.
+
+## Mutasyon bataryası — 5 mutasyon, biri kaçtı
+
+**Eşiği 1'e düşürmek yakalanmıyordu**, çünkü kontrolüm eşiğin
+kendisini referans alıyordu — kendine gönderme yapan bir ölçüm.
+Eşiğin kendisi de ölçülür oldu (8, kullanıcının kendi istediği
+sayı). İkinci turda 5/5.
+
+---
+
 # v7.63.0 — Yemin neden çalışmıyordu, ve Askerin Kuşağı
 
 Kullanıcı: *"4 aşamadan sonra yemin istiyor ya, o durumda

@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.63.0";
+export const SURUM = "v7.63.1";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -7199,23 +7199,49 @@ export const DUSMUS_YEMIN_TEKRAR = 400;    // 20 sn
    Neden dokup birakmiyoruz: yere dusen esya kaybolabilir ve bu
    depoda hicbir yetenek oyuncunun esyasini kaybettirmez.     */
 export const DUSMUS_KUSAK_ACIK = true;
+/* ---- v7.63.1: SET EKLENTIYE CEKILDI ----
+   Kullanici: "eklentimizden almani bekliyordum; eklentiden 4
+   tane malzeme var sadece, bunu biz 8'e."
+   Hakliydi: ilk set oyunun kendi netherite takimiyla doluydu,
+   eklentinin 516 esyasindan yalnizca dordu vardi. Zirh ve
+   silah artik TAMAMEN eklentiden; oyundan kalan dort sey
+   sadece hayatta kalma (totem, elma, et, inci).
+
+   ---- SECIMLERIN GEREKCESI ----
+   OLU BUYUCU TAKIMI: Dusmus bir virus ve yemin eden kisi onun
+   askeri. Olu buyucu dort parcasi bu temanin tam ortasi ve
+   dordu de ayri yuvaya giriyor (bas/govde/bacak/ayak, her biri
+   7 koruma) -- yani gercek bir takim, dagilmis parcalar degil.
+
+   EARL KILICI (21 hasar): Void Kilici da vardi ama hasari 255,
+   yani her seyi tek vurusta olduruyor -- kendi duellonu bozan
+   bir odul odul degildir. Earl netherite kilicin (8) iki
+   katindan fazla, oyunu bitirmiyor.
+
+   KANLI GOZ: bas yuvasina 17 koruma. Olu Buyucu Basligi (7)
+   ile ayni yuvayi paylasiyor; ikisi de veriliyor ve SECIM
+   oyuncunun -- koruma mu, gozun kendi hatti mi.
+
+   KANLI KOL + KAN IKSIRI: kanli tema yeminle ayni yerden.  */
 export const DUSMUS_KUSAK = [
+  /* --- eklentiden: sekiz cesit --- */
+  ["pa:kns_olubuyucu_baslik", 1],
+  ["pa:kns_olubuyucu_govde", 1],
+  ["pa:kns_olubuyucu_bacak", 1],
+  ["pa:kns_olubuyucu_bot", 1],
+  ["pa:kns_earl_kilic", 1],
+  ["pa:kol_kanli", 1],
+  ["pa:goz_kan", 1],
+  ["pa:iksir_kan_iksiri", 2],
+  /* --- oyundan: yalniz hayatta kalma --- */
   ["minecraft:totem_of_undying", 1],
-  ["minecraft:netherite_helmet", 1],
-  ["minecraft:netherite_chestplate", 1],
-  ["minecraft:netherite_leggings", 1],
-  ["minecraft:netherite_boots", 1],
-  ["minecraft:netherite_sword", 1],
-  ["minecraft:bow", 1],
-  ["minecraft:arrow", 64],
   ["minecraft:golden_apple", 8],
   ["minecraft:cooked_beef", 32],
-  ["minecraft:ender_pearl", 8],
-  /* Eklentinin kendi esyalari: kanli tema yeminle ayni. */
-  ["pa:kol_kanli", 1],
-  ["pa:iksir_kan_iksiri", 2],
-  ["pa:iksir_redoksin", 1]
+  ["minecraft:ender_pearl", 8]
 ];
+/* Test bu sayiyi tutuyor: set yeniden dengelenirse eklenti
+   payinin dusmedigi olculsun.                              */
+export const DUSMUS_KUSAK_EKLENTI_ENAZ = 8;
 export const DUSMUS_KUSAK_MESAJ =
   "§4§lASKERİN KUŞAĞI §7— yeminin karşılığı envanterinde.";
 
