@@ -4,7 +4,7 @@ import {
   RUH_ACIK, RUH_TAVAN, RUH_DOLUM, RUH_TARAMA, RUH_KADEMELER,
   RUH_EFEKT_SURE, RUH_EFEKTLER, RUH_YOLLAR, RUH_VARSAYILAN_YOL,
   KURTARICI_ACIK, KURTARICI_ESIK, KURTARICI_SURE, KURTARICI_TOPARLAMA,
-  RUH_LETZT_BEDEL
+  RUH_LETZT_BEDEL, RUH_KARAKTERLER, RUH_VARSAYILAN_KARAKTER
 } from "../ayarlar.js";
 
 /* RUH GUCU (Reiryoku) ve KURTARICI.
@@ -24,6 +24,10 @@ import {
 
 const ANAHTAR_RUH = "simsek:ruh";
 const ANAHTAR_YOL = "simsek:ruh_yol";
+/* v7.57: IKINCI KATEGORI. Yol ile ayni kalibi kullaniyor ama
+   AYRI anahtarda duruyor -- ikisi bagimsiz secilebiliyor,
+   yani uc yol x uc karakter = dokuz bilesim.               */
+const ANAHTAR_KARAKTER = "simsek:ruh_karakter";
 
 /* oyuncuId -> { kademe, bitis, kurtarildi } */
 const durumlar = new Map();
@@ -32,16 +36,18 @@ const durumlar = new Map();
 const kurtarmaHazir = new Set();
 const bellekRuh = new Map();      // dinamik ozellik yoksa
 const bellekYol = new Map();
+const bellekKarakter = new Map();
 let ozellikVar = true;
 let sayac = 0;
 
 export function ruhUnut(oyuncuId) {
   if (oyuncuId === undefined) {
     durumlar.clear(); bellekRuh.clear(); bellekYol.clear();
-    kurtarmaHazir.clear();
+    bellekKarakter.clear(); kurtarmaHazir.clear();
   } else {
     durumlar.delete(oyuncuId); bellekRuh.delete(oyuncuId);
-    bellekYol.delete(oyuncuId); kurtarmaHazir.delete(oyuncuId);
+    bellekYol.delete(oyuncuId); bellekKarakter.delete(oyuncuId);
+    kurtarmaHazir.delete(oyuncuId);
   }
 }
 
@@ -98,6 +104,36 @@ export function yolYaz(oyuncu, kimlik) {
 
 export function yolBul(kimlik) {
   for (const y of RUH_YOLLAR) if (y.kimlik === kimlik) return y;
+  return undefined;
+}
+
+/* ---------------- karakter secimi ----------------
+   Yol ile AYNI kalip, bilerek: iki kategori de ayni sekilde
+   okunup yaziliyor, yani birinde bulunan bir hata otekinde de
+   ayni yerde. Ayri iki kalip olsaydi ikisi zamanla ayrisirdi. */
+export function karakterOku(oyuncu) {
+  if (ozellikVar) {
+    try {
+      const v = oyuncu.getDynamicProperty(ANAHTAR_KARAKTER);
+      if (typeof v === "string" && karakterBul(v)) return v;
+    } catch (e) { /* yok */ }
+  }
+  const v = bellekKarakter.get(oyuncu.id);
+  return (typeof v === "string" && karakterBul(v)) ? v : RUH_VARSAYILAN_KARAKTER;
+}
+
+export function karakterYaz(oyuncu, kimlik) {
+  if (!karakterBul(kimlik)) return false;
+  if (ozellikVar) {
+    try { oyuncu.setDynamicProperty(ANAHTAR_KARAKTER, kimlik); return true; }
+    catch (e) { ozellikVar = false; }
+  }
+  bellekKarakter.set(oyuncu.id, kimlik);
+  return true;
+}
+
+export function karakterBul(kimlik) {
+  for (const k of RUH_KARAKTERLER) if (k.kimlik === kimlik) return k;
   return undefined;
 }
 

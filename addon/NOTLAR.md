@@ -1,3 +1,104 @@
+# v7.57.0 — İkinci kategori: karakterler
+
+Kullanıcı: *"bundan da bazı yetenekler al, önceden seçtiğimiz 3
+tane karakterin toplam 6 tane olsun ama kategorisi 2 tane, biri
+yol diğeri de karakter olsun"*
+
+Yani seçim **iki eksene** ayrıldı ve toplam altı oldu:
+
+| Kategori | Seçenekler | Kaynak |
+|---|---|---|
+| **Yol** (v7.54–7.56) | Getsuga · Cero · Letzt | Bleach: Kurosaki Dynasty 2.4.6 |
+| **Karakter** (bu sürüm) | Ryūjin Jakka · Nozarashi · Shinsō | BleachAwaken 1.6.1 |
+
+İkisi **bağımsız**: yol değiştirmek karakteri, karakter
+değiştirmek yolu bozmuyor. Dokuz bileşim çıkıyor. Tek listeye
+koysaydık altı seçenekten *birini* seçiyor olurdun ve iki kaynağın
+tadı birbirini yerdi.
+
+Kaynak çözümlemesi ve neyin neden alınmadığı:
+[`REFERANS_BLEACH.md`](REFERANS_BLEACH.md). Jar **hiç
+çalıştırılmadı** — zip olarak açılıp `.class` sabit havuzları
+okundu.
+
+## Dokuz yeni yetenek (sıra 510–518, seçim 519)
+
+**Ryūjin Jakka** — ateş ve alan
+- **Onibi** (`OnibiProcedure`) — 10 blok koni, hedefleri ateşe verir
+- **Alev Halesi** (`FlameAoeEffectTickProcedure`) — 10 sn boyunca
+  etrafındaki her şeyi yakan hale
+- **Ateş Gayzeri** (`GeyserOfFireEffectTickProcedure`) — 12×12
+  kutuda yerden yükselen ateş sütunları
+
+**Nozarashi** — yakın dövüş
+- **Güçlü Kesik** (`StrongSlashProcedure`) — kısa menzil, geniş
+  süpürme, geri savurma
+- **Üçlü Kesik** (`TripleSlashProcedure`) — yan yana üç kesik
+  (kaynaktaki −1.5 / 0 / +1.5 ofsetleri)
+- **Berserk** (`Berserk2OnEffectActiveTickProcedure`) —
+  kendiliğinden hedefe ışınıp pençeliyor
+
+**Shinsō** — menzil ve zehir
+- **Tetik** (`ShinsoTriggerProcedure`) — **100 blok** delici hat +
+  zehir
+- **Kamishini no Yari** — geniş koni + uzun zehir
+- **Butō Renjin** — kısa menzilli yaylım
+
+## Üç tasarım kararı
+
+**Kademe ikinci kez kurulmadı.** Kaynakta her karakterin üç formu
+ve her formda ayrı eşyası var. Bizde kademe zaten `RUH_KADEMELER`;
+ikinci bir "form açık mı" defteri iki doğruluk kaynağı demekti.
+Karakterin üç yeteneği birden açık, güçleri `ruhCarpani` ile
+büyüyor.
+
+**Işınma iki sınırla bağlandı.** Berserk hedefin *yanına* ışınıyor,
+üstüne değil; ve varış yeri **ile bir üstü** hava değilse hiç
+ışınmıyor, yerinden vuruyor. Bu depoda oyuncuyu blokların içine
+sokan bir yetenek olmaz.
+
+**Hiçbiri blok yazmıyor.** Gayzer bile parçacık + hasar — kaynakta
+da öyle. Blok yazan her şey defter tutmak zorunda; gereksiz defter
+tutmuyoruz.
+
+## Kaynakta bulunan bir tuhaflık
+
+`RyujinBankaiSkillNames2` "East - 225" diye bir yetenek gösteriyor
+ama **`EastProcedure` diye bir sınıf yok**. O yuva aslında
+`RyujinBankai1Item` ↔ `RyujinBankai2Item` geçişi yapıyor: yani
+"East/West" bir yetenek değil, **duruş değiştirme**. Adlar
+listesinde yetenekmiş gibi duruyor.
+
+## Mutasyon bataryası — 21 mutasyon, biri kaçtı
+
+20'si ilk turda yakalandı. Kaçan:
+
+**`karakterYaz` bellek yolunda `bellekYol`'a yazsaydı hiçbir test
+kırılmıyordu.** Sebep: bütün testlerin taklit oyuncusunda dinamik
+özellik **vardı**, yani bellek yedeği hiç yürümüyordu. Dinamik
+özelliğin patladığı bir dünyada (eski sürüm, kısıtlı sunucu)
+karakter seçmek **yolu** değiştirirdi.
+
+10. bölüm eklendi: dinamik özelliği istisna atan bir oyuncuyla iki
+kategorinin hâlâ ayrı olduğu ölçülüyor. Aynı bölümde ikinci bir
+kaçak da kapandı (`ruhUnut(id)` bellekteki karakteri silmiyordu).
+İkinci turda 21/21.
+
+Bölüm en sona konuldu: `ozellikVar` bir kez false olunca modül
+boyunca öyle kalıyor.
+
+## Test
+
+`test/karakter_yetenek.mjs` — 11 bölüm: kayıt ve sıra, karakter
+ayrımı (9 yetenek × 3 karakter), **iki kategorinin bağımsızlığı**,
+Onibi'nin konisi + yakması + çarpanı, dokuz yeteneğin ruh bedeli,
+Üçlü Kesik'in tek işte üç mermisi, Berserk'in ışınması / duvarda
+ışınmaması / kapanması, Tetik'in 100 blok delici menzili ve zehri,
+Hale ile Gayzer'in kendiliğinden kapanması, defter temizliği,
+dinamik özellik yokken kategori ayrımı.
+
+---
+
 # v7.56.0 — Üç yolun yetenekleri
 
 Kullanıcı: *"devam et zaten seçtiğimiz 3 yolunda tüm yeteneklere

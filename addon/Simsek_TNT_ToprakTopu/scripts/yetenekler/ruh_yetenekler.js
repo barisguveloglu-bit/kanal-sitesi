@@ -38,8 +38,9 @@ import {
 /* ---------------- ortak: ilerleyen mermi ----------------
    Her tick HIZ kadar ilerler, carptigi ilk seye hasar verir.
    Kaynagin accelX/Y/Z alanlarinin karsiligi.                */
-function mermiIsi(secenek) {
-  const { ad, oyuncu, hasar, menzil, hiz, omur, parcacik, blokKir } = secenek;
+export function mermiIsi(secenek) {
+  const { ad, oyuncu, hasar, menzil, hiz, omur, parcacik, blokKir,
+          kaydir, carpinca } = secenek;
   const boyut = oyuncu.dimension;
   let konum, yon;
   try {
@@ -47,6 +48,16 @@ function mermiIsi(secenek) {
     yon = oyuncu.getViewDirection();
   } catch (e) { return undefined; }
   if (!konum || !yon) return undefined;
+
+  /* YANAL KAYDIRMA (v7.57, Nozarashi'nin Uclu Kesigi icin).
+     Kaynakta ofsetler 1.5 / 0 / -1.5. Bakis yonunun YATAY
+     dikini aliyoruz; dikey bilesen kullanilsaydi yukari
+     bakarken uc kesik ust uste binerdi.                    */
+  if (kaydir) {
+    const uz = Math.hypot(yon.x, yon.z) || 1;
+    konum = { x: konum.x + (-yon.z / uz) * kaydir, y: konum.y,
+              z: konum.z + (yon.x / uz) * kaydir };
+  }
 
   let gidilen = 0;
   let tick = 0;
@@ -92,6 +103,7 @@ function mermiIsi(secenek) {
           if (v.typeId === "minecraft:item") continue;
           vurulan.add(v.id);
           v.applyDamage(hasar, { cause: "entityAttack", damagingEntity: oyuncu });
+          if (carpinca) carpinca(v);
         } catch (e) { /* varlik kayboldu */ }
       }
       return false;

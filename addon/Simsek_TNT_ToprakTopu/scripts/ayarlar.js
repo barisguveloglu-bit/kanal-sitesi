@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.56.0";
+export const SURUM = "v7.57.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -272,6 +272,180 @@ export const REISHI_YARICAP = 1;     // ayagin altinda kac blokluk alan
    icinden gecerdi. Aile 500'e alindi -- Konsey (480-482)
    sonrasi ilk bos aralik. Cekirdek sira artik hic degismiyor. */
 export const RUH_YOL_SIRA = 505;
+
+
+/* ================== IKINCI KATEGORI: KARAKTERLER ==================
+   Kaynak: BleachAwaken 1.6.1 (Deephantom, Forge 1.16.5).
+   Sinif sabit havuzlari OKUNARAK cikarildi; jar calistirilmadi.
+
+   ---- NEDEN AYRI BIR KATEGORI ----
+   Kullanici "kategorisi 2 tane, biri yol digeri de karakter"
+   dedi. Yol (Getsuga/Cero/Letzt) ve karakter (Ryujin/Nozarashi/
+   Shinso) BIRBIRINDEN BAGIMSIZ secilir: dokuz bilesim cikiyor.
+   Tek listeye koysaydik alti secenekten birini seciyor olurdun
+   ve iki kaynagin tadi birbirini yerdi.
+
+   ---- KAYNAKTAKI YAPIYI NEDEN AYNEN ALMADIK ----
+   BleachAwaken'da her karakterin UC KADEMESI var (temel /
+   Shikai / Bankai) ve her kademede ayri bir esya. Bizde kademe
+   zaten RUH_KADEMELER'de var; ayni seyi ikinci kez kurmak iki
+   ayri "form acik mi" defteri demekti. Onun yerine karakterin
+   UC YETENEGI birden acik, gucleri ruhCarpani ile buyuyor.
+
+   ---- BEDELLER ----
+   Kaynakta yetenek adlarinin yaninda reiatsu bedeli yaziyor
+   ("Onibi - 65", "Bankai - 445"). Reiatsu tavani kaynakta
+   seviyeyle buyudugu icin mutlak sayilar bize gecmiyor; ORAN
+   gecti. En pahali kaynak bedeli 445, bizim tavanimiz 3000:
+   65->100, 125->180, 225->320, 445->600.                        */
+export const KARAKTER_ACIK = true;
+export const RUH_KARAKTERLER = [
+  { kimlik: "ryujin",    ad: "Ryūjin Jakka", sahip: "Yamamoto",
+    tema: "ateş ve alan" },
+  { kimlik: "nozarashi", ad: "Nozarashi",    sahip: "Zaraki",
+    tema: "yakın dövüş" },
+  { kimlik: "shinso",    ad: "Shinsō",       sahip: "Ichimaru",
+    tema: "menzil ve zehir" }
+];
+export const RUH_VARSAYILAN_KARAKTER = "ryujin";
+export const KARAKTER_SIRA = 519;
+
+/* ---- RYUJIN 1/3: ONIBI  (OnibiProcedure) ----
+   Sinifta: toRadians/cos/sin + yaw + "compareDistOf" ile
+   mesafeye gore siralama + double 10.0 (menzil). Yani bakis
+   yonunde bir koni. Bizde koniHedefleri tam bu.
+   RyujinSetOnFireProcedure ayri bir yordam: hedefi yakiyor. */
+export const ONIBI_ACIK   = true;
+export const ONIBI_SIRA   = 510;
+export const ONIBI_MENZIL = 10;    // kaynakta 10.0
+export const ONIBI_ACI    = 0.5;   // kosinus esigi (~60 derece)
+export const ONIBI_HASAR  = 14;
+export const ONIBI_TAVAN  = 8;     // en fazla kac hedef
+export const ONIBI_YAKMA  = 5;     // saniye (RyujinSetOnFire)
+export const ONIBI_BEDEL  = 100;   // kaynak: "Onibi - 65"
+
+/* ---- RYUJIN 2/3: ALEV HALESI  (WestProcedure ->
+   FlameAoeEffectPotionEffect -> FlameAoeEffectTickProcedure) ----
+   Tick yordaminda radius1 ve XRadius2/ZRadius2 donguleri var,
+   yani oyuncunun ETRAFINDA her tick donen bir kutu taramasi.
+   Bizde her tick taramak butceyi yerdi; HALE_ADIM tickte bir. */
+export const HALE_ACIK    = true;
+export const HALE_SIRA    = 511;
+export const HALE_SURE    = 200;   // tick (10 saniye)
+export const HALE_ADIM    = 10;    // kac tickte bir vursun
+export const HALE_YARICAP = 5;     // kaynakta 2.5 ve 5.0 geciyor
+export const HALE_HASAR   = 4;     // her vurusta
+export const HALE_YAKMA   = 3;     // saniye
+export const HALE_BEDEL   = 320;   // kaynak: "West - 225"
+
+/* ---- RYUJIN 3/3: ATES GAYZERI
+   (GeyserOfFireEffectTickProcedure) ----
+   Sabitler: -6.0 / 6.0 (kutu), 3.0 ve 15.0 (yukseklik), 5.0
+   (hasar). Yani oyuncunun cevresinde 12x12'lik bir kutuda
+   yerden yukselen atES sutunlari.
+   BLOK YAZMIYOR: kaynakta da yazmiyor, parcacik + hasar.    */
+export const GAYZER_ACIK   = true;
+export const GAYZER_SIRA   = 512;
+export const GAYZER_SURE   = 120;  // tick
+export const GAYZER_ADIM   = 15;   // kac tickte bir yeni sutun
+export const GAYZER_KUTU   = 6;    // kaynakta -6.0..6.0
+export const GAYZER_ADET   = 3;    // her adimda kac sutun
+export const GAYZER_YUKSEK = 15;   // kaynakta 15.0
+export const GAYZER_HASAR  = 10;   // kaynakta 5.0 (tick basina)
+export const GAYZER_YAKMA  = 4;    // saniye
+export const GAYZER_BEDEL  = 320;  // kaynak: "Geyser of Fire - 225"
+
+/* ---- NOZARASHI 1/3: GUCLU KESIK  (StrongSlashProcedure) ----
+   Sinifta xRadius/zRadius/loop donguleri ve 3.0 · 5.0 · 9.0
+   sabitleri: onunde genis bir kutu supurmesi. Menzili kisa,
+   acisi genis -- Getsuga'nin tam tersi.                     */
+export const KESIK_ACIK   = true;
+export const KESIK_SIRA   = 513;
+export const KESIK_MENZIL = 5;     // kaynakta 5.0
+export const KESIK_ACI    = -0.2;  // genis supurme (~100 derece)
+export const KESIK_HASAR  = 16;
+export const KESIK_TAVAN  = 10;
+export const KESIK_ITME   = 1.6;
+export const KESIK_BEDEL  = 40;    // kaynak: "Strong Slash - 25"
+
+/* ---- NOZARASHI 2/3: UCLU KESIK  (TripleSlashProcedure) ----
+   Sabitler: 1.5 · 0.0 · -1.5 (yanal kaydirma), 0.1 (gecikme
+   carpani), 0.075. Yani UC kesik, yan yana ve gecikmeli.
+   Uc ayri is degil TEK is: mermiler is icinde tutuluyor,
+   yoksa AYNI_ANDA=2 tavanina takilirdi.                     */
+export const UCLU_ACIK    = true;
+export const UCLU_SIRA    = 514;
+export const UCLU_KAYDIR  = [-1.5, 0, 1.5];   // kaynaktaki uc ofset
+export const UCLU_GECIKME = 4;     // tick, kesikler arasi
+export const UCLU_HASAR   = 13;
+export const UCLU_MENZIL  = 22;
+export const UCLU_HIZ     = 1.4;
+export const UCLU_OMUR    = 40;
+export const UCLU_BEDEL   = 320;   // kaynak: "Triple Slash - 225"
+
+/* ---- NOZARASHI 3/3: BERSERK
+   (Berserk2OnEffectActiveTickProcedure) ----
+   Tick yordaminda: shunpo sesi, ClawLeft/ClawRigthParticle,
+   TargetPotionEffect ve "CanTeleport" degiskeni + 5.0 mesafe.
+   Yani berserk KENDILIGINDEN hedefe isiniyor ve pencesini
+   vuruyor. Bu ailenin en ozgun mekanigi.
+
+   ---- ISINMANIN IKI SINIRI ----
+   1. Hedefin YANINA isiniyor, ustune degil: hedefin oldugu
+      yere isinmak oyuncuyu bloklarin icine sokabilir.
+   2. Varis yeri ve ustu HAVA degilse isinma yapilmiyor.
+   Bu depoda oyuncuyu duvara sokan bir yetenek olmaz.        */
+export const BERSERK_ACIK   = true;
+export const BERSERK_SIRA   = 515;
+export const BERSERK_SURE   = 160;  // tick (8 saniye)
+export const BERSERK_ADIM   = 20;   // kac tickte bir atak
+export const BERSERK_MENZIL = 16;   // hedef arama yaricapi
+export const BERSERK_YAKIN  = 1.5;  // hedefe kac blok kala dursun
+export const BERSERK_HASAR  = 11;
+export const BERSERK_BEDEL  = 100;  // kaynak: "Berserk - 70"
+
+/* ---- SHINSO 1/3: TETIK  (ShinsoTriggerProcedure) ----
+   Sinifta double 100.0 var. Shinso'nun butun olayi bu: bicak
+   uzuyor ve cok uzaktan deliyor. Zehir de burada
+   (ShinsoPoisonPotionEffect).
+   DELICI: ilk hedefte durmuyor, hattaki HERKESI birer kez
+   vuruyor -- mermiIsi zaten boyle calisiyor.                */
+export const TETIK_ACIK   = true;
+export const TETIK_SIRA   = 516;
+export const TETIK_MENZIL = 100;   // kaynakta 100.0
+export const TETIK_HIZ    = 5.0;   // blok/tick (100 blok = 20 tick)
+export const TETIK_OMUR   = 40;
+export const TETIK_HASAR  = 20;
+export const TETIK_ZEHIR  = 6;     // saniye
+export const TETIK_BEDEL  = 320;   // kaynak: "Trigger - 225"
+
+/* ---- SHINSO 2/3: KAMISHINI NO YARI
+   (KamishiniNoYariProcedure) ----
+   Sabitler 2.5 · 10.0 · 0.2 ve ShinsoPoisonPotionEffect.
+   Koni + zehir. Tetik'ten farki: yakin, genis ve daha uzun
+   zehir -- kacan bir hedefi degil, cevreni temizliyor.      */
+export const KAMI_ACIK   = true;
+export const KAMI_SIRA   = 517;
+export const KAMI_MENZIL = 10;     // kaynakta 10.0
+export const KAMI_ACI    = 0.3;
+export const KAMI_HASAR  = 15;
+export const KAMI_TAVAN  = 8;
+export const KAMI_ZEHIR  = 10;     // saniye
+export const KAMI_BEDEL  = 320;    // kaynak: "Kamishini No Yari - 225"
+
+/* ---- SHINSO 3/3: BUTO RENJIN  (ButoRenjinProcedure ->
+   ButoRenjinShotProcedure) ----
+   Dis yordam ic yordami TEKRAR TEKRAR cagiriyor; ic yordamda
+   2.5 ve 5.0 var. Yani kisa menzilli bir yaylim.            */
+export const BUTO_ACIK   = true;
+export const BUTO_SIRA   = 518;
+export const BUTO_ADET   = 6;      // kac atis
+export const BUTO_ADIM   = 5;      // tick, atislar arasi
+export const BUTO_MENZIL = 5;      // kaynakta 5.0
+export const BUTO_ACI    = 0.4;
+export const BUTO_HASAR  = 7;      // atis basina
+export const BUTO_TAVAN  = 5;
+export const BUTO_BEDEL  = 320;    // kaynak: "Buto Renjin - 225"
 
 
 /* ---- KURTARICI: can esigi tetikleyicisi ----
