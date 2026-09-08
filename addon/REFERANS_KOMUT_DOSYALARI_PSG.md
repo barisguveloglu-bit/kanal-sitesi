@@ -448,3 +448,81 @@ ANİMASYON K…` dosyalarında **harfi harfine** duruyor. Kodlar
 kopyalanıp üstüne yeni rumuz yazılarak dolaşıyor — savunma
 kurarken "kim yazdı" değil **hangi komut** sorusunun sorulması
 gerektiğinin kanıtı.
+
+---
+
+## v7.65 · üçüncü parti — "Shalex öldürücü kodlar" (Xorcer arşivi)
+
+**Hiçbiri çalıştırılmadı.** Arşiv açıldı, metinler okundu; oyunda tek
+satır denenmedi.
+
+| md5 | bayt | ad |
+|---|---|---|
+| `57467269be2fa9d84095cfabfc2e01f5` | 11.431.442 | `Shalexoldurucukodlar.txt` |
+
+**Dosya `.txt` değil.** İlk baytları `37 7a bc af 27 1c` — bir **7z
+arşivi**, uzantısı değiştirilmiş. Bu sahnede yaygın bir alışkanlık;
+daha önce gelen `r_dosya_7z.txt` de aynıydı (o bir zip'ti). Uzantıya
+göre karar veren bir denetim bunları metin sanır.
+
+İçinde 11 `.txt` + `Xorcer dosya 7z.bin` adında iç içe bir zip.
+Onun içinde de zipler var. Toplam **584 dosya, 33 MB metin.**
+
+### Sayım
+
+| ölçüm | değer |
+|---|---|
+| komut satırı | 64.621 |
+| özgün komut | **3.897** |
+| tekrar oranı | %94 |
+| önceki 3.014'lük kümeyle ortak | 2.570 |
+| **gerçekten yeni** | **1.327** |
+
+### Sonuç: yeni saldırı türü YOK
+
+1.327 yeni komutun hepsi ayrıştırıldı. Karşılığı olmayan tek bir
+kalıp çıkmadı:
+
+| yeni kalıp | karşılığı | sürüm |
+|---|---|---|
+| `playanimation` + kök denetleyici | `ARIN_POZ_KONTROLCU` | v7.65 |
+| `camerashake add @a[...] 4 999999999` | `camerashake stop @s` | v7.28 |
+| `camera @p set third_person_front` | `camera @s clear` | v7.28 |
+| `music music.game.*` | `music stop` | v7.35 |
+| `replaceitem slot.armor.head carved_pumpkin` + `item_lock` | `ZORLA_KOR_ESYALAR` | v7.49 |
+| `gamemode c @a[name=!X]` | Gözcü `gamemode_switcher` | v7.38 |
+| `tellraw` / `title` yığını | `ARIN_EKRAN` | v7.35 |
+
+**`/effect` tarafında da açık yok.** Yeni 24 efekt adının 11'i zaten
+`ARIN_EFEKTLER`'de. Kalanlar ya **olumlu** (`resistance`, `speed`,
+`strength`, `absorption`, `haste`, `saturation`, `conduit_power`,
+`water_breathing`, `fire_resistance`, `village_hero`, `health_boost`)
+— bunlar saldıranın kendi koruması, kurbanda kilit yapmıyor — ya da
+**anlıktır** (`instant_damage`, `instant_health`), yani sökülecek
+kalıcı bir şey bırakmıyor. v7.35'te konan "yalnız adı yazılı olumsuz
+efektler silinir" kararı ayakta.
+
+Yeni kümede hiç `inputpermission`, `hud`, `ride`, `structure`,
+`fog`, `dialogue`, `function` **yok**.
+
+### Tek sınır durumu
+
+Yeni komutlarda `controller.animation.player.steve` **bir kez**
+geçiyor. Gerçek bir vanilla yuva mı, doğrulanamadı — bu depoda oyun
+çalıştırılmıyor. `ARIN_POZ_KONTROLCU` listesinin ilkesi "yalnız
+gerçek yuvalar"; doğrulanmamış bir adı oraya yazmak o notu yalan
+yapardı. **Dışarıda bırakıldı.** Gerçek çıkarsa tek satırlık ekleme.
+
+### Arşivde iki Minecraft dışı dosya
+
+| md5 | bayt | ad | not |
+|---|---|---|---|
+| `7e28802506ace8239514c96ec069e4b7` | 9.224.664 | `FFPsetup.exe` | Windows çalıştırılabiliri (`MZ`). Minecraft komut arşivinde işi yok. **Çalıştırılmadı.** |
+| `a0c3835e82d04b5b7b89576f1034dfa9` | 14.336 | `…𝕄𝕣1.doc` | Eski OLE Word belgesi. `VBA`, `Macros`, `AutoOpen`, `Shell` imzaları **arandı, bulunamadı** — makro izi yok. Açılmadı. |
+
+### Küçük dosyalar zaten bunun içinde
+
+Daha önce tek tek gelen 26 küçük dosyanın **19'u** bu arşivin içinde
+md5'i aynı olarak duruyor. Dışarıda kalan 7'nin ikisi kullanıcının
+kendi `.mcaddon` paketleri, biri socket.io sohbet kodu — komut
+dosyası değil. Yani bu arşiv ötekilerin üst kümesi.
