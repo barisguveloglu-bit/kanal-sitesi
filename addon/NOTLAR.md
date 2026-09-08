@@ -1,89 +1,79 @@
-# v7.71.0 — Efsanenin Korkusu
+# v7.72.0 — Efsanenin Gazabı
 
-Kullanıcı bir Forge modu getirdi (`cosmichorror 0.0.4`, iç adı
-`korkumodu`) ve tek bir şart koydu:
+Kullanıcı v7.71'deki şartını düzeltti ve **haklıydı, ben yanlış
+anlamışım**:
 
-> *"bu yaratıklar bana saldırmasın, saldırırsa efsane kendi oluşturduğu
-> yaratıklar tarafından saldırıldı gibi bir şey olur ve hiç iyi olmaz"*
+> *"Ben bir efsaneyim gibiyim aslında; onun kendi yaratıkları kendisine
+> zarar verirse bu gülünç bir durum. Korkutması gerekirken 'bu nasıl
+> efsane ya, nerede korkunçluk, nerede gizem' diye sorgularlar. Hasar
+> olanları da ekle ama bana bir şey yapmasınlar."*
 
-## Şart ölçüldü, tahmin edilmedi
+Şart **"hasar olmasın" değil, "hasar bana değmesin"**. v7.71'de
+`TntRain` ve `Trap1` bu yüzden dışarıda bırakılmıştı; artık içerideler.
 
-**Mod çalıştırılmadı.** Zip olarak açıldı, `events/` altındaki **21
-olay sınıfının** sabit havuzunda saldırı izi arandı: `setTarget`,
-`setAttacking`, `damage`, `DamageSource`, `kill`, `setHealth` ve
-benzerleri.
+## Güvenlik efektle değil, geometriyle
 
-**20 sınıfta hiç iz yok.** Tek istisna `HauntedWolves` ve orada da
-bulunan `ALLOW_DAMAGE` bir *izin* kancası; hedef oyuncu değil, kurt.
+İki katman:
 
-Yani modun tasarımı zaten atmosferik. Kullanıcının şartı bu modla
-çatışmıyor — tesadüf değil, mod böyle yazılmış.
+1. **Halka.** Tehlike efsanenin en az **16**, en çok **30** blok ötesine
+   düşüyor. TNT gücü 4'ün hasar menzili ~8 blok; 16 iki katından fazla
+   pay bırakıyor.
+2. **Patlama anında yeniden ölçüm.** TNT havada 2 saniye kalıyor ve
+   oyuncu o sırada halkaya yürüyebilir. Fitil dolunca mesafe tekrar
+   ölçülüyor; yakınsa o patlama **hiç yapılmıyor**.
 
-## Alınan beş olay
+Yalnız birincisi "muhtemelen güvenli" olurdu; ikisi birden "kesin
+güvenli" yapıyor.
 
-Hepsi Efsane duraklarının çevresinde:
+**Direnç efekti verilmedi.** Hem *"Direnç V yasak"* kuralına takılırdı,
+hem yanlış çözüm olurdu: oyuncu diğer her şeye karşı da korunmuş
+olurdu.
 
-| bizdeki | kaynaktaki |
-|---|---|
-| Bakış | `Paranoya` |
-| Aya Bakış | `MoonLook` |
-| Hayalet Ses | `PhantomAnimals` |
-| Uzak Kazma | `EchoMining` |
-| Uzak Işık | `DistantBeacon` |
+## TNT'nin görüntüsü vanilla, patlaması bizim
 
-**Bakış nasıl:** kaynak `EntityAnchorArgument$Anchor` (yani `lookAt`)
-kullanıyor. Bedrock script'te bunun API'si yok; `/tp ... facing` var ve
-yaptığı tam bu. **Yaratık dönüyor, hedef almıyor** — `setTarget`
-çağrılmıyor.
+`guclu_tnt.js`'teki aynı teknik: varlık fırlatılıyor, fitil dolunca
+elle kaldırılıp yerine bizim patlamamız çağrılıyor. Böylece hem güç
+(4) hem `breaksBlocks` (**false**) bizde — yoksa Efsane yapısının
+kendisi havaya uçardı.
 
-Seçici `type=!player` içeriyor: başka oyuncular döndürülmüyor. Bir
-oyuncunun bakışını zorla çevirmek v7.65'te savunma yazdığımız griefing
-kalıbının ta kendisi.
+Diğer oyuncular varsayılan olarak **vurulmuyor**: habersiz birini
+patlatmak v7.65–v7.69'da savunma yazdığımız şeyin kendisi olurdu.
+Açmak isteyen tek satır değiştirir.
 
-## Alınmayanlar
+## Test bir hatamı yakaladı
 
-`TntRain` (hasar), `Trap1` (oyuncuya yıldırım), `TotemHeist` (eşya
-kaybı), envanter illüzyonu (Bedrock'ta görsel-only envanter yok),
-`SecondMoon`/`VersionCorruption` (istemci render'ı), `LeafDestroyer`
-(oyuncunun yapısını bozabilir), `HauntedWolves` (evcil hayvana
-dokunmuyoruz).
+Yıldırım için mesafe **yuvarlanmamış** noktada ölçülüyor ama düşüş
+`Math.floor` edilmiş noktaya yapılıyordu. Yuvarlama mesafeyi bir
+buçuk bloğa kadar kısaltabiliyor — test 16 sınırı içinde **15,5
+bloklık bir yıldırım** buldu.
 
-Hepsinin nedeni `ayarlar.js`'e ve `REFERANS_COSMICHORROR.md`'ye yazıldı
-— yoksa bir gün biri "TNT yağmuru neden yok" diye ekler ve şart bozulur.
-Test bu yazının orada durduğunu sınıyor.
+Düzeltme: önce yuvarla, sonra ölç. Ölçülen nokta ile kullanılan nokta
+aynı olmalı.
 
-## Depodaki tarama iki hatamı yakaladı
+## Mutasyon bataryası testin kendisini de düzeltti
 
-`tarama.mjs` daha ilk koşuda ikisini birden buldu:
+İlk turda **5 mutasyon kaçtı**. Hepsi testin zayıflığıydı, kodun
+değil:
 
-- `efsane_korku.js`'te **kullanılmayan bir import** (`hataYaz`)
-- **öksüz bir ayar**: `EFSANE_KORKU_KAYIT_ANAHTAR` tanımlanmış ama hiç
-  okunmuyor
+| kaçan | sebebi | düzeltme |
+|---|---|---|
+| TNT mesafe denetimi kaldırıldı | oyuncu hiç halkaya girmiyordu | deterministik kurulum: TNT'nin tam üstüne ışınla |
+| halka iç yarıçapı kaldırıldı | yalnız patlama ölçülüyordu | **doğuş** anı da ölçülüyor |
+| yuvarlama sırası bozuldu | 45 örnekte 1 kez çıkıyordu | örnek sayısı 3000 taramaya çıkarıldı |
+| TNT blok kırmaya açıldı | sahte dünya seçenekleri yoksayıyor | ayar + kod maddesi (ve bunun bir **sınır** olduğu yazılı) |
+| vanilla TNT kaldırılmıyor | sahte dünya vanilla patlamayı simüle etmiyor | aynı şekilde kod maddesi |
 
-İkincisi düşündürücüydü: kalıcı kayıt gerçekten **gerekmiyor**.
-`efsane_muzik.js` defterini dünyaya yazıyor çünkü "üçünü de gördün mü"
-kalıcı bir bilgi; korku ise anlık ve unutulmalı. Ayar kaldırıldı,
-gerekçesi yerine yazıldı.
+Ayrıca mutasyonlardan biri **benim yazdığım mutasyonun yanlış**
+olduğunu gösterdi: yuvarlamayı tamamen kaldırıyordum, oysa asıl hata
+"yuvarlanmamışı ölç, yuvarlanmışı kullan"dı. Doğru mutasyon yazılınca
+test onu 240 yıldırımda 5 kez yakaladı.
 
-## Test ve mutasyon
+**Son durum: 9 mutasyon, 9'u da yakalandı.**
 
-`efsane_korku.mjs` — 30 madde. En önemlisi hiçbir olayın zarar
-vermediği, **iki yönden**: kodda hasar çağrısı var mı, ve 400 tarama
-çalıştırılınca oyuncunun canı değişti mi. Sadece koda bakmak
-"yazılmış mı" sınar, "çalışıyor mu" sınamaz.
+## Ölçüm
 
-İlk yazılışta iki kusur çıktı, ikisi de **ölçümdeydi**:
-
-1. Test ham dosyayı tarıyordu ve dosyanın kendi açıklaması
-   (*"applyDamage çağırmıyoruz"*) testi düşürüyordu. Yorumlar
-   çıkarıldı.
-2. **2. bölüm hiçbir şey sınamıyordu**: zincir kurulmadığı için tarama
-   tek satırda çıkıyor, "hasar yok" boş yere yeşil yanıyordu. Artık
-   "olaylar gerçekten çalıştı (57 komut üretildi)" maddesi bunu tutuyor.
-
-**7 mutasyon denendi, 7'si de yakalandı** — ama biri ilk turda kaçtı:
-"olaylar arası boşluk kaldırıldı". Sebebi ölçünün *sayıya* bakmasıydı;
-şans (%25) ve tarama aralığı (40 tik) zaten doğal bir seyreklik
-veriyordu. Ölçü **mesafeye** çevrildi: iki olay arası en az
-`EFSANE_KORKU_ARA` tik olmalı. Boşluk kaldırılınca en kısa ara
-200'den 40'a düşüyor ve mutasyon yakalanıyor.
+```
+68 patlama · 0'ı güvenli yarıçapta · en yakın 19.4 blok (sınır 16)
+194 yıldırım · 0'ı güvenli yarıçapta · en yakın 16.1 blok
+272 TNT doğumu · 0'ı halka içinde
+```

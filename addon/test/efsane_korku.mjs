@@ -63,28 +63,43 @@ function kur(id, konum) {
   return { D, o };
 }
 
-console.log("=== 1. ŞART: HİÇBİR OLAY ZARAR VERMİYOR ===");
+console.log("=== 1. ŞART: HASAR EFSANEYE DEĞMİYOR ===");
 {
-  /* YORUMLAR CIKARILIYOR. Ilk yazilista ham dosya taranmisti
-     ve dosyanin kendi acıklamasi ("applyDamage cagirmiyoruz")
-     testi dusuruyordu -- kusur kodda degil OLCUMDEYDI. Bu
-     depoda daha once de yasanmis bir hata bicimi.          */
+  /* v7.72'de ŞART DEĞİŞTİ. v7.71'de "hiç hasar olmasın" diye
+     anlaşılmıştı; kullanıcı düzeltti:
+
+       "Ben bir efsaneyim; onun kendi yaratıkları kendisine
+        zarar verirse bu gülünç bir durum... hasar olanları da
+        ekle ama bana bir şey yapmasınlar."
+
+     Yani hasar VAR, ama efsaneye DEĞMİYOR. Test de buna
+     göre değişti: artık "createExplosion yok" demiyoruz,
+     "createExplosion efsaneden uzakta" diyoruz.            */
   const ham = readFileSync(
     KOK + "/Simsek_TNT_ToprakTopu/scripts/yetenekler/efsane_korku.js", "utf8");
   const kod = ham.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
-  for (const yasak of ["applyDamage", "createExplosion", "setOnFire",
-                       "kill ", "clear @", "setTarget", "addEffect"]) {
-    kontrol("kodda '" + yasak.trim() + "' YOK",
-            kod.indexOf(yasak) < 0);
+
+  /* Bunlar HALA yasak: oyuncuya DOGRUDAN uygulanan seyler.
+     Patlama dolayli ve mesafeyle sinirli; applyDamage
+     dogrudan ve sinirlanamaz.                              */
+  for (const yasak of ["applyDamage", "setOnFire", "kill @", "clear @",
+                       "setTarget", "addEffect"]) {
+    kontrol("kodda '" + yasak.trim() + "' YOK", kod.indexOf(yasak) < 0);
   }
-  /* Envantere hic dokunulmuyor: esya kaybi olamaz.         */
   kontrol("envantere dokunulmuyor",
           !/getComponent\(["']minecraft:inventory/.test(kod) &&
           !/setItem|replaceitem/.test(kod));
-  /* Baska OYUNCUYU dondurmuyor: bunu yapmak v7.65'te savunma
-     yazdigimiz griefing kalibinin ta kendisi olurdu.       */
   kontrol("bakis komutu oyunculari DISLIYOR (type=!player)",
           /type=!player/.test(kod));
+
+  /* Guvenlik EFEKTLE degil GEOMETRIYLE. Direnc verilmesi hem
+     "Direnc V yasak" kuralina takilir hem yanlis cozum olurdu. */
+  kontrol("bagisiklik EFEKTI verilmiyor",
+          !/resistance|Direnç V|"resistance"/i.test(kod));
+  kontrol("patlama ANINDA mesafe yeniden olculuyor",
+          /gazapGuvenliMi/.test(kod) &&
+          kod.indexOf("gazapGuvenliMi") !== kod.lastIndexOf("gazapGuvenliMi"),
+          "tanim + en az bir cagri");
 }
 
 console.log("\n=== 2. DAVRANIŞ: ÇALIŞINCA DA ZARAR YOK ===");
@@ -122,6 +137,165 @@ console.log("\n=== 2. DAVRANIŞ: ÇALIŞINCA DA ZARAR YOK ===");
   kontrol("uretilen komutlarin hicbiri hasar komutu DEGIL",
           p._komutlar.every((k) => !/^(damage|kill|clear|effect)\b/.test(k)),
           [...new Set(p._komutlar.map((k) => k.split(" ")[0]))].join(", "));
+}
+
+console.log("\n=== 2a. GAZAP: HER PATLAMA EFSANEDEN UZAK  (v7.72) ===");
+{
+  /* BU DOSYANIN EN ONEMLI MADDESI.
+
+     Kullanicinin sarti tek cumle: hasar olsun ama bana degmesin.
+     Burada HER patlamanin ve HER yildiriminin efsaneye olan
+     mesafesi tek tek olculuyor. Bir tanesi bile guvenli
+     yaricapin icinde olursa ozellik kullanicinin acikca
+     istemedigi seye donusmus demektir.
+
+     Kod okuyarak degil, CALISTIRARAK olculuyor: "mesafe
+     kontrolu yazilmis" ile "mesafe kontrolu tutuyor" ayri
+     seyler -- v7.62'de tam bu ayrim kacirilmisti.          */
+  const { D, o: g } = kur("gz1");
+  const dunyaG = (await import("@minecraft/server")).world;
+  dunyaG.setDynamicProperty(ayar.EFSANE_KAYIT_ANAHTAR,
+                            JSON.stringify({ x: 0, z: 0 }));
+  /* Y'yi yer ustune al: gazap olaylari yalniz acik havada. */
+  g.location = { x: 0.5, y: 80, z: 0.5 };
+
+  /* Ornek sayisi YUKSEK: yuvarlama hatasi 45 ornekte bir kez
+     goruluyordu, yani az ornekle test flaky olurdu. Mutasyon
+     bataryasi "yuvarlama sirasi bozuldu" mutasyonunu az
+     ornekte KACIRDI.                                        */
+  for (let i = 0; i < 3000; i++) {
+    tickIlerlet(ayar.EFSANE_KORKU_TARAMA);
+    if (butce.butceSifirla) butce.butceSifirla();
+    korku.efsaneKorkuTara([g]);
+  }
+  /* Fitiller dolsun: TNT 40 tik sonra patliyor. */
+  for (let i = 0; i < 10; i++) {
+    tickIlerlet(ayar.EFSANE_GAZAP_TNT_FITIL);
+    if (butce.butceSifirla) butce.butceSifirla();
+  }
+
+  const guvenli = ayar.EFSANE_GAZAP_GUVENLI;
+  const mesafe = (p) => {
+    const dx = p.x - g.location.x, dy = p.y - g.location.y, dz = p.z - g.location.z;
+    return Math.sqrt(dx * dx + dy * dy + dz * dz);
+  };
+
+  const patlamalar = D.sayac.patlama;
+  const yakinPatlama = patlamalar.filter((p) => mesafe(p) < guvenli);
+  kontrol("gazap GERCEKTEN calisti (patlama uretildi)",
+          patlamalar.length > 0, patlamalar.length + " patlama");
+  kontrol("HICBIR patlama guvenli yaricapin icinde DEGIL",
+          yakinPatlama.length === 0,
+          yakinPatlama.length + " yakin / " + patlamalar.length + " toplam" +
+          (patlamalar.length
+            ? " · en yakin " + Math.min(...patlamalar.map(mesafe)).toFixed(1) +
+              " blok (sinir " + guvenli + ")"
+            : ""));
+
+  /* DOGUS anini da olc: halkanin ic yaricapi kaldirilirsa TNT
+     oyuncunun tepesinde DOGAR. Patlama iptal edilse bile bu
+     yanlis -- gorunum bozulur ve savunma tek katmana iner. */
+  const tntDogumlari = D.sayac.dogan.filter((d) => d.tip === "minecraft:tnt");
+  const yakinDogum = tntDogumlari.filter((d) => {
+    const dx = d.x - g.location.x, dz = d.z - g.location.z;
+    return Math.sqrt(dx * dx + dz * dz) < ayar.EFSANE_GAZAP_GUVENLI;
+  });
+  kontrol("TNT'ler HALKA icinde doguyor (tepede degil)",
+          yakinDogum.length === 0,
+          yakinDogum.length + " yakin dogum / " + tntDogumlari.length);
+
+  const yildirimlar = D.sayac.dogan.filter((d) => d.tip === "minecraft:lightning_bolt");
+  const yakinYildirim = yildirimlar.filter((d) => mesafe(d) < guvenli);
+  kontrol("yildirim da dustu", yildirimlar.length > 0,
+          yildirimlar.length + " yildirim");
+  kontrol("HICBIR yildirim guvenli yaricapin icinde DEGIL",
+          yakinYildirim.length === 0,
+          yakinYildirim.length + " yakin / " + yildirimlar.length + " toplam" +
+          (yildirimlar.length
+            ? " · en yakin " + Math.min(...yildirimlar.map(mesafe)).toFixed(1) + " blok"
+            : ""));
+
+  /* Patlama gucu de sinirli olmali: 4 vanilla TNT ile ayni.
+     Buyudukce guvenli yaricap yetmemeye baslar.            */
+  kontrol("patlama gucu vanilla TNT sinirinda",
+          patlamalar.every((p) => p.guc <= 4),
+          "en buyuk " + (patlamalar.length ? Math.max(...patlamalar.map((p) => p.guc)) : "-"));
+  kontrol("guvenli yaricap patlama menzilinin en az iki kati",
+          guvenli >= 2 * ayar.EFSANE_GAZAP_TNT_GUC * 2,
+          guvenli + " >= " + (2 * ayar.EFSANE_GAZAP_TNT_GUC * 2));
+}
+
+console.log("\n=== 2c. GAZAP: OYUNCU HALKAYA GİRERSE İPTAL ===");
+{
+  /* TNT havada iki saniye kaliyor ve oyuncu o sirada halkaya
+     YURUYEBILIR. Dogus anina bakmak "muhtemelen guvenli"
+     olurdu; bu madde "kesin guvenli"yi tutuyor.
+
+     DETERMINISTIK kurulum: TNT dusene kadar tarama yapiliyor,
+     sonra oyuncu TNT'lerin TAM USTUNE isinlanip fitil
+     dolduruluyor. Ilk yazilista tarama 600 kez donduruluyordu
+     ve TNT'lerin cogu zaten patlamis oluyordu -- yani madde
+     hicbir sey sinamiyordu ve mutasyon KACTI.               */
+  const { D, o: g } = kur("gz2");
+  const dunyaG = (await import("@minecraft/server")).world;
+  dunyaG.setDynamicProperty(ayar.EFSANE_KAYIT_ANAHTAR,
+                            JSON.stringify({ x: 0, z: 0 }));
+  g.location = { x: 0.5, y: 80, z: 0.5 };
+
+  /* TNT dogana kadar tara (fitil dolmadan dur). */
+  let tntler = [];
+  for (let i = 0; i < 500 && tntler.length === 0; i++) {
+    tickIlerlet(ayar.EFSANE_KORKU_TARAMA);
+    if (butce.butceSifirla) butce.butceSifirla();
+    korku.efsaneKorkuTara([g]);
+    tntler = D.sayac.dogan.filter((d) => d.tip === "minecraft:tnt");
+  }
+  kontrol("TNT dogdu (kurulum tuttu)", tntler.length > 0,
+          tntler.length + " TNT");
+
+  const oncekiPatlama = D.sayac.patlama.length;
+  /* Oyuncuyu ILK TNT'nin tam ustune isinla. */
+  if (tntler.length) g.location = { x: tntler[0].x, y: 80, z: tntler[0].z };
+  for (let i = 0; i < 4; i++) {
+    tickIlerlet(ayar.EFSANE_GAZAP_TNT_FITIL);
+    if (butce.butceSifirla) butce.butceSifirla();
+  }
+  const yeni = D.sayac.patlama.slice(oncekiPatlama);
+  const mes = (p) => {
+    const dx = p.x - g.location.x, dy = p.y - g.location.y, dz = p.z - g.location.z;
+    return Math.sqrt(dx * dx + dy * dy + dz * dz);
+  };
+  const yakin = yeni.filter((p) => mes(p) < ayar.EFSANE_GAZAP_GUVENLI);
+  kontrol("oyuncunun USTUNDEKI patlama IPTAL edildi",
+          yakin.length === 0,
+          yakin.length + " yakin / " + yeni.length + " patlama" +
+          (yeni.length ? " · en yakin " + Math.min(...yeni.map(mes)).toFixed(1) : ""));
+}
+
+console.log("\n=== 2d. GAZAP AYARLARI SINIRLI ===");
+{
+  /* Sahte dunyanin createExplosion'i secenekleri yoksayiyor,
+     yani "blok kirmiyor" DAVRANIS olarak olculemiyor. Ayara
+     ve koda bakiyoruz -- ve bunun bir SINIR oldugu burada
+     yazili duruyor, "olctuk" demiyoruz.                     */
+  kontrol("TNT blok KIRMIYOR (ayar)",
+          ayar.EFSANE_GAZAP_TNT_KIRAR === false,
+          String(ayar.EFSANE_GAZAP_TNT_KIRAR));
+  const kod = readFileSync(
+    KOK + "/Simsek_TNT_ToprakTopu/scripts/yetenekler/efsane_korku.js", "utf8");
+  kontrol("kod ayari createExplosion'a GECIRIYOR",
+          /breaksBlocks:\s*EFSANE_GAZAP_TNT_KIRAR/.test(kod));
+  /* Vanilla TNT kaldirilmazsa IKI patlama olur: biri bizim
+     sinirlarimizla, biri vanilla'nin -- ve vanilla'ninki
+     mesafe denetiminden gecmez. Sahte dunya vanilla TNT
+     patlamasini simule etmiyor, o yuzden bu da KOD maddesi. */
+  kontrol("vanilla TNT patlamadan once KALDIRILIYOR",
+          /gecerliMi\(tnt\)\)\s*tnt\.remove\(\)/.test(kod));
+  kontrol("digger oyuncular varsayilan olarak VURULMUYOR",
+          ayar.EFSANE_GAZAP_OYUNCU_VURUR === false);
+  kontrol("guvenli yaricap uzaktan kucuk (halka anlamli)",
+          ayar.EFSANE_GAZAP_GUVENLI < ayar.EFSANE_GAZAP_UZAK,
+          ayar.EFSANE_GAZAP_GUVENLI + " < " + ayar.EFSANE_GAZAP_UZAK);
 }
 
 console.log("\n=== 2b. OLAY SIKLIĞI SINIRLI ===");

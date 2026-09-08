@@ -1,6 +1,6 @@
 import { system, world } from "@minecraft/server";
-import { varlikKonumu } from "../yardimcilar.js";
-import { blokIste } from "../butce.js";
+import { varlikKonumu, gecerliMi } from "../yardimcilar.js";
+import { blokIste, varlikIste, patlamaIste } from "../butce.js";
 import { kokAl, zincirNoktasi } from "./efsane.js";
 import {
   EFSANE_ACIK, EFSANE_DURAK_SAYISI,
@@ -11,7 +11,12 @@ import {
   EFSANE_KAZMA_SESLER, EFSANE_KAZMA_DERINLIK,
   EFSANE_KAZMA_UZAK_MIN, EFSANE_KAZMA_UZAK_MAX,
   EFSANE_ISIK_BLOK, EFSANE_ISIK_UZAK, EFSANE_ISIK_SURE,
-  EFSANE_ISIK_GECE_BAS, EFSANE_ISIK_GECE_SON
+  EFSANE_ISIK_GECE_BAS, EFSANE_ISIK_GECE_SON,
+  EFSANE_GAZAP_ACIK, EFSANE_GAZAP_GUVENLI, EFSANE_GAZAP_UZAK,
+  EFSANE_GAZAP_TNT_ADET, EFSANE_GAZAP_TNT_YUKSEK,
+  EFSANE_GAZAP_TNT_FITIL, EFSANE_GAZAP_TNT_GUC,
+  EFSANE_GAZAP_TNT_KIRAR, EFSANE_GAZAP_YILDIRIM_ADET,
+  EFSANE_GAZAP_OYUNCU_VURUR
 } from "../ayarlar.js";
 
 /* ================================================================
@@ -163,6 +168,119 @@ function uzakIsik(oyuncu, boyut, konum) {
   return true;
 }
 
+/* ---- GÜVENLİ HALKA ----
+   Tehlikenin dusebilecegi tek yer: efsanenin GAZAP_GUVENLI ile
+   GAZAP_UZAK arasi. Ic yaricap TNT'nin hasar menzilinin iki
+   katindan fazla.                                             */
+function halkadaNokta(konum) {
+  const aci = Math.random() * Math.PI * 2;
+  const uz = EFSANE_GAZAP_GUVENLI +
+             Math.random() * (EFSANE_GAZAP_UZAK - EFSANE_GAZAP_GUVENLI);
+  return {
+    x: konum.x + Math.cos(aci) * uz,
+    y: konum.y,
+    z: konum.z + Math.sin(aci) * uz
+  };
+}
+
+/* Efsaneye yeterince uzak mi -- PATLAMA ANINDA sorulan soru.
+
+   Dogus anina bakmak yetmiyordu: TNT havada iki saniye kaliyor
+   ve oyuncu o sirada halkanin icine YURUYEBILIR. Bu fonksiyon
+   tam patlamadan once cagriliyor ve yakinsa patlama HIC
+   yapilmiyor -- "muhtemelen guvenli" yerine "kesin guvenli".  */
+function gazapGuvenliMi(oyuncu, yer) {
+  let k;
+  try { k = varlikKonumu(oyuncu) || oyuncu.location; } catch (e) { return false; }
+  if (!k) return false;
+  const dx = k.x - yer.x, dy = k.y - yer.y, dz = k.z - yer.z;
+  return (dx * dx + dy * dy + dz * dz) >=
+         EFSANE_GAZAP_GUVENLI * EFSANE_GAZAP_GUVENLI;
+}
+
+/* Diger oyuncular da halkanin disinda mi (ayar kapaliyken).
+   Acikken bu denetim atlaniyor ve bunu acan kisi ne yaptigini
+   bilerek aciyor.                                             */
+function otekilerGuvenliMi(boyut, yer) {
+  if (EFSANE_GAZAP_OYUNCU_VURUR) return true;
+  let liste;
+  try { liste = boyut.getPlayers ? boyut.getPlayers() : []; }
+  catch (e) { return false; }        // okuyamadiysak patlatma
+  for (const p of liste) {
+    let k;
+    try { k = p.location; } catch (e) { return false; }
+    const dx = k.x - yer.x, dy = k.y - yer.y, dz = k.z - yer.z;
+    if ((dx * dx + dy * dy + dz * dz) <
+        EFSANE_GAZAP_GUVENLI * EFSANE_GAZAP_GUVENLI) return false;
+  }
+  return true;
+}
+
+/* ---- 5. TNT YAĞMURU (kaynakta: TntRain) ----
+   Gorunum vanilla TNT, patlama BIZIM: guclu_tnt.js'teki ayni
+   teknik. Boylece hem gucu hem breaksBlocks'u biz belirliyoruz
+   -- yoksa Efsane yapisinin kendisi havaya ucardi.            */
+function tntYagmuru(oyuncu, boyut, konum) {
+  if (!EFSANE_GAZAP_ACIK) return false;
+  let dustu = 0;
+  for (let i = 0; i < EFSANE_GAZAP_TNT_ADET; i++) {
+    const hedef = halkadaNokta(konum);
+    const dogum = { x: hedef.x, y: hedef.y + EFSANE_GAZAP_TNT_YUKSEK, z: hedef.z };
+    if (varlikIste(1) === 0) break;
+    let tnt = null;
+    try { tnt = boyut.spawnEntity("minecraft:tnt", dogum); } catch (e) { continue; }
+    dustu++;
+    system.runTimeout(() => {
+      let yer = dogum;
+      try { if (tnt && gecerliMi(tnt)) yer = tnt.location; } catch (e) { /* dustu */ }
+      /* Vanilla TNT kendi patlamasini yapmadan kaldiriliyor,
+         yoksa iki patlama olur ve BIZIM sinirlarimiz gecersiz
+         kalirdi.                                              */
+      try { if (tnt && gecerliMi(tnt)) tnt.remove(); } catch (e) { /* onemsiz */ }
+      if (!gazapGuvenliMi(oyuncu, yer)) return;        // efsane yaklasti: iptal
+      if (!otekilerGuvenliMi(boyut, yer)) return;
+      if (patlamaIste(1) === 0) return;
+      try {
+        boyut.createExplosion(yer, EFSANE_GAZAP_TNT_GUC, {
+          breaksBlocks: EFSANE_GAZAP_TNT_KIRAR,
+          causesFire: false, allowUnderwater: true
+        });
+      } catch (e) { /* onemsiz */ }
+    }, EFSANE_GAZAP_TNT_FITIL);
+  }
+  return dustu > 0;
+}
+
+/* ---- 6. YILDIRIM (kaynakta: Trap1) ----
+   Kaynakta yildirim OYUNCUNUN konumuna dusuyor. Burada
+   halkaya dusuyor -- fark tam da kullanicinin istedigi fark. */
+function yildirim(oyuncu, boyut, konum) {
+  if (!EFSANE_GAZAP_ACIK) return false;
+  let dustu = 0;
+  for (let i = 0; i < EFSANE_GAZAP_YILDIRIM_ADET; i++) {
+    /* ONCE YUVARLA, SONRA OLC.
+
+       Ilk yazilista mesafe yuvarlanmamis noktada olculuyor ama
+       yildirim Math.floor edilmis noktaya dusuyordu. Yuvarlama
+       mesafeyi bir bucuk bloga kadar KISALTABILIYOR ve test
+       tam bunu yakaladi: sinir 16 iken 15.5 blokta bir
+       yildirim. Olculen nokta ile kullanilan nokta AYNI
+       olmali.                                                */
+    const ham = halkadaNokta(konum);
+    const yer = {
+      x: Math.floor(ham.x), y: Math.floor(ham.y), z: Math.floor(ham.z)
+    };
+    if (!gazapGuvenliMi(oyuncu, yer)) continue;
+    if (!otekilerGuvenliMi(boyut, yer)) continue;
+    if (varlikIste(1) === 0) break;
+    try {
+      boyut.spawnEntity("minecraft:lightning_bolt", yer);
+      dustu++;
+    } catch (e) { /* onemsiz */ }
+  }
+  return dustu > 0;
+}
+
 /* Duraga yakin mi. Blok OKUNMUYOR: duraklarin koordinati
    zincirden hesaplanabiliyor (efsane_muzik.js'teki ayni karar). */
 function duraktaMi(kok, konum) {
@@ -208,6 +326,11 @@ export function efsaneKorkuTara(oyuncular) {
     /* Hangi olay: yer altindaysa kazma sesi de masada.       */
     const secenekler = ["bakis", "aya", "hayalet", "isik"];
     if (konum.y <= EFSANE_KAZMA_DERINLIK) secenekler.push("kazma");
+    /* Gazap olaylari yalniz ACIK HAVADA: yer altinda gokten TNT
+       dusemez, tavana carpip oyuncunun basina inerdi.         */
+    if (EFSANE_GAZAP_ACIK && konum.y > EFSANE_KAZMA_DERINLIK) {
+      secenekler.push("tnt", "yildirim");
+    }
     const olay = sec(secenekler);
 
     let oldu = false;
@@ -225,6 +348,10 @@ export function efsaneKorkuTara(oyuncular) {
       oldu = uzakKazma(oyuncu, konum.y);
     } else if (olay === "isik") {
       oldu = uzakIsik(oyuncu, boyut, konum);
+    } else if (olay === "tnt") {
+      oldu = tntYagmuru(oyuncu, boyut, konum);
+    } else if (olay === "yildirim") {
+      oldu = yildirim(oyuncu, boyut, konum);
     }
 
     if (oldu) durum.set(oyuncu.id, { bitis: 0, ara: simdi + EFSANE_KORKU_ARA });

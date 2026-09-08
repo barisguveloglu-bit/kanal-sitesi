@@ -56,12 +56,44 @@ Seçici `type=!player` içeriyor: **başka oyuncular döndürülmüyor.**
 Bir oyuncunun bakışını zorla çevirmek v7.65'te savunma yazdığımız
 griefing kalıplarından biri — kendi eklentimiz onu yapmayacak.
 
-## Alınmayanlar ve nedeni
+## v7.72 — şart düzeltildi, hasarlılar da alındı
+
+Kullanıcı v7.71'deki şartını düzeltti ve haklıydı; ben yanlış anlamışım:
+
+> *"Ben bir efsaneyim gibiyim aslında; onun kendi yaratıkları kendisine
+> zarar verirse bu gülünç bir durum. Korkutması gerekirken 'bu nasıl
+> efsane ya, nerede korkunçluk, nerede gizem' diye sorgularlar. Hasar
+> olanları da ekle ama bana bir şey yapmasınlar."*
+
+Şart **"hasar olmasın" değil, "hasar bana değmesin"**. `TntRain` ve
+`Trap1` bu yüzden artık içeride.
+
+| bizdeki | kaynaktaki |
+|---|---|
+| TNT Yağmuru | `TntRain` |
+| Yıldırım | `Trap1` |
+
+**Güvenlik efektle değil geometriyle.** Tehlike bir halkaya düşüyor:
+efsanenin en az 16, en çok 30 blok ötesi. Ve patlama **anında** mesafe
+yeniden ölçülüyor — oyuncu bu arada halkanın içine yürüdüyse o patlama
+hiç yapılmıyor. TNT havada 2 saniye kalıyor, yalnız doğuş anına bakmak
+"muhtemelen güvenli" olurdu.
+
+Direnç efekti verilmiyor: hem *"Direnç V yasak"* kuralına takılır, hem
+yanlış çözüm olurdu — oyuncu diğer her şeye karşı da korunmuş olurdu.
+
+TNT'nin görüntüsü vanilla, patlaması bizim (`guclu_tnt.js`'teki aynı
+teknik): varlık fitil dolunca elle kaldırılıp yerine bizim patlamamız
+çağrılıyor. Böylece hem güç (4, vanilla ile aynı) hem `breaksBlocks`
+(**false**) bizde — yoksa Efsane yapısının kendisi havaya uçardı.
+
+Diğer oyuncular varsayılan olarak **vurulmuyor**; habersiz birini
+patlatmak v7.65–v7.69'da savunma yazdığımız şeyin kendisi olurdu.
+
+## Hâlâ alınmayanlar ve nedeni
 
 | kaynak | neden alınmadı |
 |---|---|
-| `TntRain` | gökten TNT yağıyor — **hasar verir**, şart bunu dışlıyor |
-| `Trap1` | oyuncunun konumuna `LightningBolt` — aynı sebep |
 | `TotemHeist` | totemi çalıyor — *"hiçbir yetenek oyuncunun eşyasını kaybettirmez"* kuralına aykırı |
 | Envanter illüzyonu | kaynakta *"visual-only, real items never change"* yazıyor; Bedrock script'te görsel-only envanter **yok**, gerçekten değiştirmek gerekirdi — aynı kurala takılıyor |
 | `SecondMoon`, `VersionCorruption` | ikisi de `client/` altında, istemci render'ı; Bedrock'ta karşılığı yok |

@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.71.0";
+export const SURUM = "v7.72.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -8412,6 +8412,66 @@ export const EFSANE_ISIK_UZAK   = 26;
 export const EFSANE_ISIK_SURE   = 100;   // 5 saniye sonra söner
 export const EFSANE_ISIK_GECE_BAS = 13000;
 export const EFSANE_ISIK_GECE_SON = 23000;
+
+
+/* ================= EFSANENİN GAZABI  (v7.72) =================
+   Kullanıcı v7.71'deki şartını düzeltti — ve haklıydı, ben
+   yanlış anlamışım:
+
+     "Ben bir efsaneyim gibiyim aslında; onun kendi yaratıkları
+      kendisine zarar verirse bu gülünç bir durum. Korkutması
+      gerekirken 'bu nasıl efsane ya, nerede korkunçluk, nerede
+      gizem' diye sorgularlar. Hasar olanları da ekle, ama bana
+      bir şey yapmasınlar."
+
+   Yani şart "hasar olmasın" DEĞİL, **"hasar bana değmesin"**.
+   v7.71'de TntRain ve Trap1 bu yüzden dışarıda bırakılmıştı;
+   artık içerideler ve güvenlik BAŞKA türlü sağlanıyor.
+
+   ---- GÜVENLİK NASIL SAĞLANIYOR ----
+   Efekt ya da bağışıklık İLE DEĞİL, **geometriyle**.
+
+   1. Tehlike bir HALKA içine düşüyor: efsanenin en az
+      GAZAP_GUVENLI blok ötesi, en çok GAZAP_UZAK.
+   2. Patlama ANINDA mesafe TEKRAR ölçülüyor. Oyuncu bu arada
+      halkanın içine yürüdüyse o patlama HİÇ yapılmıyor.
+
+   İkinci madde şart: TNT havada ~2 saniye kalıyor ve o sürede
+   oyuncu yürüyebilir. Yalnız doğuş anına bakmak "muhtemelen
+   güvenli" olurdu; ikisi birden "kesin güvenli" yapıyor.
+
+   Direnç efekti VERİLMİYOR — "Direnç V yasak" kuralı ve
+   zaten bağışıklık vermek yanlış çözüm olurdu: oyuncu diğer
+   her şeye karşı da korunmuş olurdu.
+
+   ---- TNT NEDEN KENDİ PATLAMAMIZLA ----
+   guclu_tnt.js'teki aynı teknik: vanilla TNT varlığı
+   fırlatılıyor (görüntü onun), fitil dolunca varlık elle
+   kaldırılıp yerine BİZİM patlamamız çağrılıyor. Böylece hem
+   gücü hem `breaksBlocks`'u biz belirliyoruz — yoksa Efsane
+   yapısının kendisi havaya uçardı.
+
+   ---- DİĞER OYUNCULAR ----
+   Varsayılan: diğer oyuncular da vurulMAZ. Sebep basit —
+   habersiz birini patlatmak tam da v7.65-v7.69'da savunma
+   yazdığımız şeyin kendisi. Açmak isteyen tek satır değiştirir
+   ve ne yaptığını bilerek değiştirir.                        */
+export const EFSANE_GAZAP_ACIK = true;
+/* Tehlikenin ASLA giremeyeceği yarıçap. TNT gücü 4'ün hasar
+   menzili ~8 blok; 16 iki katından fazla pay bırakıyor.      */
+export const EFSANE_GAZAP_GUVENLI = 16;
+export const EFSANE_GAZAP_UZAK    = 30;
+/* Kaç TNT düşsün ve nereden. */
+export const EFSANE_GAZAP_TNT_ADET = 5;
+export const EFSANE_GAZAP_TNT_YUKSEK = 14;   // oyuncunun kaç blok üstünden
+export const EFSANE_GAZAP_TNT_FITIL  = 40;   // 2 saniye
+export const EFSANE_GAZAP_TNT_GUC    = 4;    // vanilla TNT ile aynı
+/* Blok KIRMIYOR: Efsane yapısı ve oyuncunun eviyle aynı
+   alandayız. Görüntü ve ses aynı, kalıcı yıkım yok.         */
+export const EFSANE_GAZAP_TNT_KIRAR  = false;
+export const EFSANE_GAZAP_YILDIRIM_ADET = 3;
+/* Diğer oyuncular da vurulsun mu. Varsayılan HAYIR. */
+export const EFSANE_GAZAP_OYUNCU_VURUR = false;
 
 /* KALICI KAYIT YOK -- ve bu bilincli.
 
