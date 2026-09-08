@@ -359,6 +359,56 @@ console.log("\n=== 6c. CARPIK HAL DAHA GUCLU  (v7.68) ===");
   }
 }
 
+console.log("\n=== 6d. SKIN PAKETINDE DE VAR  (v7.70) ===");
+{
+  /* Kullanici skini indirip kurmak istedi. En kolayi indirmek
+     degil: skin paketine koymak -- paketi kurunca dogrudan
+     Giyinme Odasi'na dusuyor.
+
+     KRITIK MADDE: skin dosyasi kilik dokusuyla BIREBIR AYNI
+     olmali. Iki yerde ayri cizilseydi sessizce ayrisirlardi ve
+     donusup cikinca "ayni karakter" hissi bozulurdu -- o_sey
+     icin de ayni kural yazili.                              */
+  const skinYol = KOK + "/Simsek_Skin/uzak_akraba_carpik.png";
+  kontrol("carpik skin paketinde", existsSync(skinYol));
+
+  const md5 = (y) => execFileSync("python3",
+    ["-c", "import hashlib,sys;print(hashlib.md5(open(sys.argv[1],'rb').read()).hexdigest())", y],
+    { encoding: "utf8" }).trim();
+  let a = "", b = "";
+  try {
+    a = md5(skinYol);
+    b = md5(KOK + "/Simsek_Kol_Kaynak/textures/entity/carpik.png");
+  } catch (e) { /* olculemedi */ }
+  kontrol("skin dosyasi kilik dokusuyla BIREBIR AYNI", !!a && a === b,
+          a ? a.slice(0, 12) + " vs " + b.slice(0, 12) : "olculemedi");
+
+  const skins = JSON.parse(readFileSync(KOK + "/Simsek_Skin/skins.json", "utf8"));
+  const kayitli = (skins.skins || []).filter(
+    (s) => (s.texture || "").indexOf("carpik") >= 0);
+  kontrol("skins.json'da kayitli", kayitli.length === 1,
+          kayitli.length + " kayit");
+
+  const lang = readFileSync(KOK + "/Simsek_Skin/texts/tr_TR.lang", "utf8");
+  kontrol("Turkce adi var", /Çarpık Hal/.test(lang),
+          (lang.match(/skin\.[^\n]*carpik[^\n]*/) || ["yok"])[0]);
+}
+
+console.log("\n=== 6e. KAYNAK GERCEK DOSYA  (v7.70) ===");
+{
+  /* Uretec ONCE carpik dokusunu yaziyor, SKP/uzak_akraba.png'yi
+     1000 satir SONRA. SKP'den okumak bir onceki kosunun
+     dosyasini okumak demekti -- calisiyordu ama temiz bir
+     checkout'ta bayat veri verirdi. Bu madde onu tutuyor.   */
+  const uret = readFileSync(KOK + "/kol_uret.py", "utf8");
+  kontrol("kaynak SEY_SKIN_KAYNAK (uretecin ciktisi DEGIL)",
+          /CARPIK_KAYNAK_YOL = SEY_SKIN_KAYNAK/.test(uret));
+  kontrol("SKP'den okumuyor",
+          !/CARPIK_KAYNAK_YOL = os\.path\.join\(SKP/.test(uret));
+  kontrol("gercek kaynak dosya duruyor",
+          existsSync(KOK + "/UzakAkraba_skin.png"));
+}
+
 console.log("\n=== 7. KILIK 'BOT' SAYILIYOR ===");
 {
   kontrol("BOT_KIMLIKLER carpik kiligi taniyor",

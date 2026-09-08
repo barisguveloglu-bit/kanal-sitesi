@@ -1,71 +1,45 @@
-# v7.69.0 — Çarpık Hal doğru skinden üretiliyor
+# v7.70.0 — Çarpık skin artık pakette
 
-Kullanıcı: *"uzak_akraba.png'nin değiştirilmiş halini gönder bana, ama
-linkten."*
+Kullanıcı: *"skinini link olarak verebilir misin, indirip kuracağım,
+öyle daha kolay oluyor."*
 
-## Ne yanlıştı
+En kolayı indirmek değil: **skin paketine koymak**. Paketi kurunca
+doğrudan Giyinme Odası'na düşüyor, tek dokunuşla seçiliyor. Link yine
+de var, ama artık gerek yok.
 
-v7.67'de form, kullanıcının sohbete gönderdiği **başka bir skinden**
-üretiliyordu. Hikâye kurulunca ortaya çıktı: çarpılan kişi Uzak Akraba,
-ama form onun skininden gelmiyordu. İki dosya **%42 piksel farklı**.
+Skin paketi 3 → **4 skin**:
 
-Kullanıcı bunu zaten söylemişti — *"Ana tema full siyah olduğu için
-bilemiyorum"* — ilk okuyuşta anlaşılmadı.
-
-## Düzeltme ve ortaya çıkan şey
-
-Kaynak `Simsek_Skin/uzak_akraba.png` oldu. `kaynak_doku/` altında ikinci
-bir kopya tutulmadı: o dosya skin paketinin kendi kaynağı, kopya elle
-eşitlenecek ikinci bir doğruluk kaynağı olurdu. Eski
-`carpik_kaynak.png` silindi.
-
-Sonuç hikâyeye çok daha uygun. Skin neredeyse tamamen siyah
-(`#0a0a0d`, `#060608`), tersi **bembeyaz** oluyor:
-
-| orijinal | tersi |
+| skin | dosya |
 |---|---|
-| siyah gövde | beyaz |
-| chris1545'in kan damarları (kırmızı) | **camgöbeği** |
-| camgöbeği izler | **kırmızı** |
-| pranga halkaları (gri) | gri kalıyor |
+| Uzak Akraba | `uzak_akraba.png` |
+| Uzak Akraba · O Şey Formu | `uzak_akraba_o_sey.png` |
+| Uzak Akraba · Kolsuz | `uzak_akraba_kolsuz.png` |
+| **Uzak Akraba · Çarpık Hal** | `uzak_akraba_carpik.png` |
 
-Yani hapisliğin ve zehrin izleri kaybolmuyor, **ters yüz** oluyor.
+Doku **kopyalanıyor, yeniden çizilmiyor** — `o_sey` ile aynı gerekçe:
+kılık ile skin aynı dosya olsun ki dönüşüp çıkınca "aynı karakter"
+hissi bozulmasın. İki yerde çizilseydi sessizce ayrışırlardı. Test
+md5 ile birebir eşitliği tutuyor.
 
-## Bunu yakalayan asıl şey: geometri artık ölçülüyor
+## Bulunan gerçek hata: sıra bağımlılığı
 
-`uzak_akraba.png` **klasik (Steve, 4 piksel kol)** çıktı. v7.67'deki
-geometri ise **ince (Alex, 3 piksel)** diye **sabit yazılmıştı** —
-çünkü o günkü kaynak skin inceydi.
+`carpik_dokusu()` üreteçte **10827. satırda** çalışıyor.
+`Simsek_Skin/uzak_akraba.png` ise **11907. satırda** yazılıyor — yani
+1080 satır sonra, ve o dosya bu üretecin **kendi çıktısı**.
 
-Sabit kalsaydı kol dokusu bir piksel kayardı ve **kimse fark etmezdi**.
+Yani çarpık doku, kaynağını **bir önceki koşunun dosyasından**
+okuyordu. Çalışıyordu, çünkü dosya zaten oradaydı. Ama:
 
-Artık `carpik_kol_genisligi()` kaynağı ölçüyor: kol üst yüzü 64×64
-düzende `y=16`, `x=44..51`. İnce skinde 6 sütun opak (3+3), klasikte 8
-(4+4). Belirsizse klasik varsayılıyor — vanilla varsayılanı o.
+- temiz bir checkout'ta (dosya henüz üretilmemişken) okuyacak bir şey
+  olmazdı
+- kaynak skin değişse, çarpık hâl **bir sürüm geriden** gelirdi
 
-Test de artık sabit beklemiyor: **kaynağı ölçüp geometriyle
-karşılaştırıyor.** Kullanıcı yarın skinini ince bir skinle değiştirse
-geometri kendiliğinden takip eder.
-
-## Ölçüm
-
-```
-ters=1620  ayni=0  saydam_korundu=2464  sirit_siyah=12/12
-kol: geo 4 · kaynak 4
-```
-
-## Belgeye eklenen uyarı
-
-`LORE.md` EK-B'ye açık bir cümle yazıldı: formun **görünüşü** Distorted
-Alex araştırmasından, **hikâyesi** Uzak Akraba'dan geliyor. Kaynakta
-Uzak Akraba'nın çarpık bir hâli olduğu **yazmıyor** — ikisini
-birleştiren kullanıcının kurgusu.
-
-EK-A'nın kendi kuralı "iki evrenin karakterleri karıştırılmaz" diyor;
-bu geçiş bilerek yapıldı ve artık yazılı olduğu için sessiz bir ihlal
-değil.
+Kaynak gerçek dosyaya bağlandı: `addon/UzakAkraba_skin.png`
+(`SEY_SKIN_KAYNAK`). Test iki maddeyle tutuyor: kaynağın o olduğu, ve
+`SKP`'den **okumadığı**.
 
 ## Test
 
-2 mutasyon denendi, 2'si de yakalandı: kol genişliği sabit 3'e
-çevrildi · kaynak yanlış skine çevrildi.
+`carpik.mjs` 45 → 52 madde. **3 mutasyon denendi, 3'ü de yakalandı:**
+kaynak yine üretecin çıktısına bağlandı · skin paketine yanlış doku
+kopyalandı · skin paketinden çıkarıldı.

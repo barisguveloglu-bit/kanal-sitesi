@@ -110,7 +110,7 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # tureniyor -- ayrisabilecekleri bir yer kalmadi.
 #
 # YENI SURUM CIKARIRKEN: yalnizca asagidaki satiri degistir.
-SURUM_NO = (7, 69, 0)
+SURUM_NO = (7, 70, 0)
 
 SURUM_METIN = "%d.%d.%d" % SURUM_NO
 
@@ -208,6 +208,17 @@ SKIN_LISTE = [
     # Ayni skin, kol pikselleri saydam.
     ("kolsuz", "uzak_akraba_kolsuz.png", "Uzak Akraba · Kolsuz",
      "Uzak Akraba · Armless", "kolsuz"),
+    # v7.70: Carpik Hal. Kullanici: "skinini link olarak verebilir
+    # misin, indirip kuracagim, oyle daha kolay oluyor." En kolayi
+    # indirmek DEGIL: skin paketine koymak. Paketi kurunca dogrudan
+    # Giyinme Odasi'na dusuyor, tek dokunusla seciliyor.
+    #
+    # Doku KOPYALANIYOR, yeniden cizilmiyor -- o_sey ile ayni
+    # gerekce: kilik ile skin AYNI dosya olsun ki donusup cikinca
+    # "ayni karakter" hissi bozulmasin. Iki yerde ciziIseydi
+    # sessizce ayrisirlardi.
+    ("carpik", "uzak_akraba_carpik.png", "Uzak Akraba · Çarpık Hal",
+     "Uzak Akraba · Distorted Form", "carpik"),
 ]
 SKIN_ANAHTAR = SKIN_LISTE[0][0]        # eski adlar (testler icin)
 SKIN_DOSYA  = SKIN_LISTE[0][1]
@@ -3758,7 +3769,12 @@ CARPIK_DOKU   = "carpik"
 # Dosya kaynak_doku/ altinda DEGIL, Simsek_Skin/ altinda: skin
 # paketinin kendi kaynagi orasi ve ikinci bir kopya tutmak iki
 # dosyayi elle esitlemek demek olurdu.
-CARPIK_KAYNAK_YOL = os.path.join(SKP, "uzak_akraba.png")
+CARPIK_KAYNAK_YOL = SEY_SKIN_KAYNAK      # addon/UzakAkraba_skin.png
+# SKP/uzak_akraba.png DEGIL: o dosya bu uretecin KENDI ciktisi ve
+# 1000 satir SONRA yaziliyor. Oradan okumak bir onceki kosunun
+# dosyasini okumak demekti -- calisiyordu ama temiz bir checkout'ta
+# ya da kaynak skin degistiginde BAYAT veri verirdi. Ilk yazilista
+# tam oyle yazildi; sira farki olculunce duzeltildi.
 
 # Siritis plani: {yuze gore satir: [sutunlar]}, kafa on yuzu
 # 8x8 (skinde 8,8 -> 15,15). Uc aday cizilip yan yana bakildi:
@@ -11901,6 +11917,8 @@ def main():
             kaynak_yol = SEY_SKIN_KAYNAK
         elif _kaynak == "kolsuz":
             kaynak_yol = SEY_SKIN_KAYNAK.replace(".png", "_kolsuz.png")
+        elif _kaynak == "carpik":
+            kaynak_yol = os.path.join(RP, "textures/entity/%s.png" % CARPIK_DOKU)
         else:
             kaynak_yol = os.path.join(RP, "textures/entity/%s.png" % SEY_DOKU)
         if os.path.exists(kaynak_yol):

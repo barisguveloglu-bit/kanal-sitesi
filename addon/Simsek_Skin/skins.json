@@ -19,6 +19,12 @@
       "geometry": "geometry.humanoid.custom",
       "texture": "uzak_akraba_kolsuz.png",
       "type": "free"
+    },
+    {
+      "localization_name": "carpik",
+      "geometry": "geometry.humanoid.custom",
+      "texture": "uzak_akraba_carpik.png",
+      "type": "free"
     }
   ]
 }
