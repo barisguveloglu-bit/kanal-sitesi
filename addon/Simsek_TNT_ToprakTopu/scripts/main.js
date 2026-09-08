@@ -14,7 +14,7 @@ import {
   BECERI_ACIK, BECERI_AGACI, BECERI_TAVAN_KADEME,
   CAN_SAYACI_ACIK,
   RUH_ACIK,
-  BEN10_ACIK, BEN10, SIMBIYOT_ACIK, YETENEK_KORUMALI, ANLIK_BEKLEME,
+  BEN10_ACIK, BEN10, SIMBIYOT_ACIK, YETENEK_KORUMALI, ANLIK_BEKLEME, YETENEK_ARA_LISTE,
   KONSEY_ACIK,
   DISMONT_ESYA,
   DUSMUS_ACIK, DUSMUS_CAKMAK, DUSMUS_YEMIN,
@@ -184,7 +184,7 @@ import {
    import etmiyor; komutlarin calistiracagi fonksiyonlar kanca
    olarak asagida veriliyor.                                    */
 import {
-  sohbetKur, sohbetKancalari, sohbetDurumMesaji, sohbetCalisiyorMu,
+  sohbetKur, sohbetKancalari, sohbetDurumMesaji, sohbetCalisiyorMu, sadelestir,
   yetkiliMi as sohbetYetkisi
 } from "./sohbet.js";
 
@@ -2796,6 +2796,24 @@ function durumRaporu(oyuncu) {
   return satir.join("\n");
 }
 
+/* Sohbetten yetenek calistirmanin TEK govdesi (v7.66).
+
+   Iki kanca da bunu cagiriyor: "yetenek" (kimlikle) ve
+   "yetenekAra" (adiyla arayip bulan). Ikiye kopyalansaydi
+   birinin bekleme mesaji digerinden ayrisirdi -- arinma.js'te
+   ayni gerekce yazili.                                       */
+function yetenegiCalistir(oyuncu, kimlik) {
+  const tanim = yetenekAl(kimlik);
+  if (!tanim) return "§cBilinmeyen yetenek: " + kimlik;
+  if (yetenekTetikle(oyuncu, kimlik)) return undefined;   // calisti, sessiz kal
+
+  const kalan = kalanBekleme(oyuncu.id);
+  if (kalan > 0) {
+    return "§7" + tanim.ad + " §8· §c" + (kalan / 20).toFixed(1) + " sn bekle";
+  }
+  return "§7" + tanim.ad + " §8· §caktif isin dolu (" + AYNI_ANDA + ")";
+}
+
 sohbetKancalari({
   durum: (oyuncu) => durumRaporu(oyuncu),
   arindir: (oyuncu) => arindir(oyuncu),
@@ -2865,17 +2883,40 @@ sohbetKancalari({
     }
     return derinBaslat(oyuncu, anahtar, adetKirp(adet));
   },
-  yetenek: (oyuncu, kimlik) => {
-    const tanim = yetenekAl(kimlik);
-    if (!tanim) return "§cBilinmeyen yetenek: " + kimlik;
-    if (yetenekTetikle(oyuncu, kimlik)) return undefined;   // calisti, sessiz kal
+  /* ---- ADIYLA ARA VE CALISTIR  (v7.66) ----
 
-    const kalan = kalanBekleme(oyuncu.id);
-    if (kalan > 0) {
-      return "§7" + tanim.ad + " §8· §c" + (kalan / 20).toFixed(1) + " sn bekle";
+     Aramayi BURASI yapiyor, sohbet.js degil: kayit defterine
+     erisim main.js'te. sohbet.js kayit.js'i hic tanimiyor ve
+     tanimasin -- iki katman ayri kalsin diye.
+
+     Tek eslesme varsa calistiriyor; birden fazlaysa LISTELIYOR.
+     Yanlis yetenegi calistirmak BEKLEME suresini bosa
+     harcatirdi ve kullanici neden olmadigini anlamazdi.       */
+  yetenekAra: (oyuncu, arama) => {
+    const liste = esyasizSira();
+    const q = sadelestir(arama || "");
+    if (!q) {
+      return "§7" + liste.length + " yetenek var. §fAdiyla calistir: " +
+             "§eyetenek <ad>§7\n§8ornek: yetenek gura · yetenek mabet · " +
+             "yetenek simbiyot";
     }
-    return "§7" + tanim.ad + " §8· §caktif isin dolu (" + AYNI_ANDA + ")";
-  }
+    /* Tam kimlik once: "gura_tenchi" yazan tam onu istiyordur,
+       "gura" ile baslayan uc yetenegin listesini degil.       */
+    const tam = liste.find((y) => sadelestir(y.kimlik) === q);
+    const bulunan = tam ? [tam] : liste.filter((y) =>
+      sadelestir(y.kimlik).indexOf(q) >= 0 ||
+      sadelestir(y.ad || "").indexOf(q) >= 0);
+
+    if (bulunan.length === 0) return "§cBulamadim: §7" + arama;
+    if (bulunan.length > 1) {
+      const ilk = bulunan.slice(0, YETENEK_ARA_LISTE);
+      return "§e" + bulunan.length + " eslesme§7 · hangisi?\n§8" +
+             ilk.map((y) => y.kimlik).join(" · ") +
+             (bulunan.length > ilk.length ? " §7..." : "");
+    }
+    return yetenegiCalistir(oyuncu, bulunan[0].kimlik);
+  },
+  yetenek: (oyuncu, kimlik) => yetenegiCalistir(oyuncu, kimlik)
 });
 sohbetKur();
 

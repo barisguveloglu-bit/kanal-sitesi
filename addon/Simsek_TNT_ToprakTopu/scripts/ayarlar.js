@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.65.0";
+export const SURUM = "v7.66.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -1147,6 +1147,11 @@ export const BEKLEME     = 0;     // beklemesiz (v7.53)
    kaldirdi ("Kevin'in modundaki gibi"). 6 tick, art arda
    basmayi bozmayacak kadar kisa, yaylim atesini durduracak
    kadar uzun.                                               */
+/* Sohbette "yetenek <ad>" birden fazla eslesirse kac tanesi
+   listelenir (v7.66). Hepsini yazmak sohbeti bogar: "a" gibi
+   tek harflik bir arama 216 yetenegin yarisini tutturur.     */
+export const YETENEK_ARA_LISTE = 8;
+
 export const ANLIK_BEKLEME = 6;   // tick
 export const KOL_GECIKME = 10;    // kollar kalktiktan kac tick sonra baslasin
 

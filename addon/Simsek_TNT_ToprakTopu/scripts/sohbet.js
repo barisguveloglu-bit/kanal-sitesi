@@ -442,6 +442,29 @@ export function komutCozumle(oyuncu, hamMetin) {
     return { cevap: cagir("durum", oyuncu) || "§cDurum okunamadi." };
   }
 
+  /* ---- YETENEGI ADIYLA CALISTIR  (v7.66) ----
+
+     NEDEN VAR: jest dongusu 216 yetenege ulasti. Yeni eklenen
+     her sey listenin SONUNA giriyor, cunku sira numaralari
+     artan. Son 16'ya (JJK, Simbiyot, Seytan Meyveleri) jestle
+     ulasmak icin 200'den fazla kez donmek gerekiyordu -- yani
+     yazildilar, sinandilar ve pratikte ERISILEMEZDILER.
+
+     Bu bir "yeni guc" degil, VAR OLAN gucun kapisi. Ayni
+     kapidan geciyor: yetenekTetikle AYNI_ANDA, BEKLEME,
+     yetenekYetkisi ve anlikHazirMi denetimlerini yapiyor.
+     Yani sohbetten calistirmak jestten calistirmaktan daha
+     serbest DEGIL.
+
+     Arama kimlikte ve Turkce adda birden yapiliyor; "gura",
+     "mabet", "simbiyot" gibi bir parca yeter. Birden fazla
+     esleserse SECMIYOR, listeliyor -- yanlis yetenegi
+     calistirmak bekleme suresini bosa harcatirdi.            */
+  if (ad === "yetenek" || ad === "yetenekler" || ad === "guc kullan") {
+    const arama = parca.slice(1).join(" ").trim();
+    return { cevap: cagir("yetenekAra", oyuncu, arama) };
+  }
+
   if (ad === "yardim" || ad === "komut" || ad === "komutlar") {
     return { cevap: YARDIM };
   }
@@ -553,6 +576,8 @@ const YARDIM = [
   "§eyedek§7 · envanterini yedekle (dovus oncesi)",
   "§egeriyukle§7 · yedekten geri yukle (/clear yediysen)",
   "§elazer§7 · goz lazeri at (once iksir ic)",
+  "§eyetenek gura§7 · YETENEGI ADIYLA CALISTIR (jestle 216. sirada olani da)",
+  "§eyetenek§7 · adiyla arama nasil yapilir, kac yetenek var",
   "§ebot§7 · botu cagir / yanina getir",
   "§ebot odun§7 · botlar etrafindaki agaclari keser",
   "§ebot maden§7 · botlar etrafindaki cevheri kazar",

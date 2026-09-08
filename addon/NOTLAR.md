@@ -1,110 +1,87 @@
-# v7.65.0 — Poz kilidinin denetleyici yuvası
+# v7.66.0 — Baştan sona tarama + erişilemeyen 16 yetenek
 
-Kullanıcı yeni bir komut arşivi getirdi ve tek şey istedi:
-*"hilelere karşı dayanıklı olayım, koruma konusunda, kod tarafında.
-Hiçbir şeyi çalıştırma."*
+Kullanıcı: *"yeni sürümü göndermeden önce bir açık varsa veya bir ölü
+kod varsa temizle, tüm sistemi baştan sona tara, bu konuda ciddiyim."*
 
-Hiçbir şey çalıştırılmadı. Dosyalar düz metin olarak ayrıştırıldı,
-oyunda tek satır denenmedi.
+105 dosya, 40.802 satır tarandı. Aşağıdakiler **ölçüm**, tahmin değil.
 
-## Ölçüm: "2 milyon kod" 3.014 çıktı
+## Taramanın bulmadıkları (yani temiz çıkan yerler)
 
-1.350 metin dosyası, 58 MB, **77.784 komut satırı** — ama özgün
-olan **3.014 tane**. Tekrar oranı %96. v7.35'te konan kural aynen
-işledi: *savunma kopyaya değil özgüne göre kurulur*, çünkü aynı
-komutun ikinci kopyası yeni bir şey yapmıyor.
+| aranan | sonuç |
+|---|---|
+| ölü ayar sabiti | 6 tane — **hepsi zaten belgeli ve bilinçli** (`LAZER_HIZ_*`, `LAZER_KALKAN_*`, `LAZER_SERSEM_SURE`, `LAZER_SAVUR_GUC`). `tarama.mjs` bunları v7.51'den beri sayıyor; bağımsız tarayıcı aynı 6'yı buldu — mevcut koruma dürüst. |
+| ölü limit (`_TAVAN`/`_SINIR`) | **yok.** 12 tanesi ilk taramada "karşılaştırılmıyor" göründü, hepsi yanlış alarm: ortak hedef bulucuya `tavan:` olarak geçiyorlar. |
+| hiç import edilmeyen dosya | **yok.** 40 dosya öyle göründü; `main.js` onları 62 yan etki importuyla (`import "./x.js"`) yüklüyor. |
+| çağrılmayan fonksiyon | **yok.** 4 aday da değer olarak geçiliyor (`filter(moblaraIsler)`, `kaydet(..., simsekIsleri)`, `ilkelKancasi(bakim)`). |
+| ad çakışması | 4 aynı ad var (`savunmadaMi`, `kolTakili`, `tavanDoldu`, `defteriUnut`) ama **hiçbiri birlikte import edilmiyor**; her biri kendi dosyasında kalıyor. Aktif hata yok. |
+| gereksiz `export` | 43 tane (kendi dosyasında kullanılıyor, dışarı açılması gereksiz). Kozmetik; 43 dosyayı çalkalamamak için dokunulmadı. |
 
-Bir örnek yeter: `ghost_kodlarrr_v5.txt` içinde tek bir komut
-`umutkrln1 … umutkrln100` diye yüz kez yazılmış. İki dosya
-(`DarkChris` ve `siyah1`) ise md5'i aynı — bire bir aynı dosya,
-farklı isimle.
+## Bulunan gerçek kusur: 16 yetenek pratikte erişilemez
 
-## Bulunan delik
+Jest döngüsü **216 yeteneğe** ulaşmış. Sıra numaraları artan olduğu için
+yeni eklenen her şey listenin **sonuna** giriyor. Ölçüm:
 
-`/playanimation`'ın son argümanı denetleyici yuvası. Özgün
-komutlarda **173 farklı ad** var ama neredeyse hepsi uydurma
-(`controller.animation.humanoid.umutkrln7`, `rootjsjsj`) — var
-olmayan yuvaya yazmak hiçbir şey yapmıyor. Gerçek olan iki tane:
+    201/216  jjk_yar        209/216  yami_kurouzu
+    202/216  jjk_mabet      210/216  yami_delik
+    203/216  jjk_fuga       211/216  yami_madde
+    204/216  jjk_kollar     212/216  ope_oda
+    205/216  simbiyot       213/216  ope_shambles
+    206/216  gura_gekishin  214/216  ope_gamma
+    207/216  gura_tenchi    215/216  meyve_sec
+    208/216  gura_kabuto    216/216  ope_sok
 
-    controller.animation.player.root         207 komut
-    controller.animation.humanoid.sneaking     8 komut
+`ope_sok`'a çömel+yukarı bak jestiyle ulaşmak için **216 kez** döngü
+çevirmek gerekiyordu. Yani JJK, Simbiyot ve Şeytan Meyveleri yazıldı,
+sınandı ve **kullanılamıyordu**.
 
-İlki oyuncunun bütün normal animasyonlarını yöneten kök
-denetleyici. Üzerine yazılınca oyuncu o pozda kilitli kalıyor —
-"yatırma", "ters çevirme", "yamultma" denen şey bu.
+Sohbette `jjk` ve `meyve` komutları vardı ama onlar karakter/meyve
+*değiştiriyor*, yeteneği çalıştırmıyor. `kancalar.yetenek` genel bir
+çalıştırıcıydı ama sohbet onu yalnız **8 sabit kimlikle** çağırıyordu.
 
-Arınmanın poz kolu v7.28'den v7.64'e kadar şunu çalıştırıyordu:
+## Yama: `yetenek <ad>`
 
-    playanimation @s animation.humanoid.move a 0
+```
+yetenek                → 216 yetenek var, nasıl aranır
+yetenek gura_tenchi    → çalıştırır
+yetenek gura           → 3 eşleşme, listeler (SEÇMEZ)
+yetenek boyleseyyok    → bulamadım
+```
 
-**Denetleyici argümanı yok.** Adsız çalıştırılan bir playanimation
-kendi girdisini oluşturuyor; saldıranın *adıyla* yazdığı yuvaya
-dokunacağının garantisi yoktu.
+**Yeni bir güç değil, var olan gücün kapısı.** Aynı kapıdan geçiyor:
+`yetenekTetikle` içindeki `AYNI_ANDA`, `BEKLEME`, `yetenekYetkisi` ve
+`anlikHazirMi` denetimlerinin hepsi işliyor. Sohbetten çalıştırmak
+jestten daha serbest **değil**.
 
-## Yama
+Arama `main.js`'te yapılıyor, `sohbet.js`'te değil: kayıt defterine
+erişim orada ve iki katman ayrı kalsın diye. İki kanca (`yetenek`,
+`yetenekAra`) **tek gövdeyi** paylaşıyor — `yetenegiCalistir`.
 
-`pozAc()` iki aşamalı:
+**Belirsizken seçmiyor, listeliyor.** Yanlış yeteneği çalıştırmak
+bekleme süresini boşa harcatır ve kullanıcı nedenini anlamaz.
 
-1. **Adsız çağrı kalıyor.** Özgün komutların üçte ikisinde son
-   argüman zaten uydurma; o kitleyi bu kapatıyor.
-2. **Yuva adıyla çağrı.** `ARIN_POZ_KONTROLCU`'daki gerçek
-   yuvalara nötr animasyon yazılıyor.
+### Tam kimlik kısayolu ölçümle doğrulandı
 
-Geçiş süresi ikisinde de 0. Bir yuva tutmazsa ötekiler yine
-deneniyor — `ARIN_SIS_BILINEN`'deki desenin aynısı.
-
-`arindir()` ve `savunmaTazele()` **aynı** fonksiyonu çağırıyor.
-arinma.js'in kendi notu bunu söylüyordu: *"iki yere kopyalanan bir
-savunma er geç ikiye ayrışıyor."*
-
-Listeye yalnız gerçek yuvalar girdi. 173 uydurma adı tek tek
-yazmak boş iş: var olmayan yuvaya nötr animasyon yazmak da hiçbir
-şey yapmıyor.
-
-## Dürüstlük notu
-
-Bu bir **çıkarım, ölçüm değil**. Oyun içinde denenmedi. Yama yine
-de yazıldı çünkü maliyeti iki komut ve yanlış olsa bile zararı yok
-— aynı nötr animasyon iki kez daha çalışır, o kadar. Doğrulanırsa
-`ayarlar.js`'teki not güncellenecek.
+`yetenekAra` önce tam kimlik eşleşmesine bakıyor. Bu şart mı diye
+ölçtüm: 216 kimlikten **tam biri** başkasının öneki —
+`ben_sald_gulle_motion_damage`, `..._dash`'in öneki. Kısayol olmasa o
+kimliği tam yazan biri "2 eşleşme" cevabı alır ve yetenek çalışmazdı.
+Tek örnek ama gerçek, ve teste yazıldı.
 
 ## Test
 
-`arinma.mjs`'e iki bölüm eklendi:
+`yetenek_ara.mjs` — 18 madde. En önemlisi **kapının aynı kapı olduğu**,
+ve o madde *tersten de* tutuluyor: etiketli oyuncu geçebiliyor,
+etiketsiz geçemiyor. İlk yazılışta yalnız etiketsiz tek oyuncuyla
+sınanmıştı; `yetkiliMi`'nin "kimse etiketli değilse kapı açık" kuralı
+yüzünden o test **hiçbir şey sınamıyordu** ve yeşil yanacaktı.
 
-- yuva adıyla yazılıyor mu (her yuva ayrı madde)
-- ayar listesi boş bırakılmış mı (sabitin **kendisi** sınanıyor —
-  `dusmus.mjs`'teki ders: beklentiyi sınanan şeyden türetme)
-- listede yalnız gerçek `controller.animation.*` adı var mı
-- yuvaya yazılan poz kalıcı değil mi
-- **tazeleme de aynı fonksiyonu çağırıyor mu**
+**9 mutasyon denendi, 8'i yakalandı.** Kaçan mutasyon ve neden kaçtığı
+test dosyasının sonuna yazıldı: ortak gövdeyi ikiye ayıran bir refactor
+bütün güvenlik davranışını koruyor, yalnız reddetme mesajını
+kaybediyor; onu görmek için `AYNI_ANDA` tavanını gerçekten doldurmak
+gerekiyor ve sahte dünyada yetenekler kol/ruh/oda şartı yüzünden erken
+çıkıp iş oluşturmuyor. "9/9" demek yanlış olurdu.
 
-Beş mutasyon denendi, beşi de yakalandı: yuva döngüsü silindi,
-ayar listesi boşaltıldı, tazeleme eski koda döndü, adsız çağrı
-silindi, geçiş süresi kalıcı yapıldı.
-
-## Yan bulgu: iki yuvarlama birbirini tutmuyormuş
-
-`savunma_olc.py` Python `%.0f` ile yuvarlıyordu (yarımı **çifte**:
-62.5 → 62), `savunma_kapsam.mjs` ise JS `Math.round` ile (yukarı:
-62.5 → 63). v7.65'e kadar hiçbir satır tam yarıma denk gelmediği
-için fark görünmedi; payda 47'den 48'e çıkınca belge ile betik
-çatıştı. Tek bir `yuvarla()` yazıldı, iki taraf da onu kullanıyor.
-
-Bu tür bir şeyin ancak sayı değişince ortaya çıkması, bu depodaki
-"kusur ölçümde, kodda değil" hatasının bir örneği daha.
-
-## Savunma tablosu
-
-| | önce | sonra |
-|---|---|---|
-| kapalı | 33 | **34** |
-| ham kapsam | %33 | **%34** (34/101) |
-| engellenebilir | %69 | **%71** (34/48) |
-| K kaynağı (elden ele .txt) | 1 satır | **2 satır** |
-
-## Bir düzeltme kayda geçsin
-
-Analiz sırasında "eklentiye animasyon kilidini kır düğmesi
-eklenebilir" dendi. Yanlıştı — Arınma v7.35'ten beri bunu zaten
-yapıyordu. Eksik olan düğme değil, denetleyici yuvasıydı.
+Ayar sabitinin kendisi de sınanıyor (`YETENEK_ARA_LISTE <= 12`) —
+beklentiyi sınanan şeyden türetirsen ayarı 999 yapan mutasyon kaçar;
+`dusmus.mjs`'te öğrenilen ders.
