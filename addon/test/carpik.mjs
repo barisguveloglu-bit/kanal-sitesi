@@ -63,9 +63,10 @@ console.log("=== 1. YETENEK KAYITLI ===");
 
 console.log("\n=== 2. DOKU GERCEKTEN TERS  (en onemli madde) ===");
 {
-  const kaynakYol = KOK + "/kaynak_doku/carpik_kaynak.png";
+  /* v7.69: kaynak artik Uzak Akraba'nin KENDI skini. */
+  const kaynakYol = KOK + "/Simsek_Skin/uzak_akraba.png";
   const urunYol   = KOK + "/Simsek_Kol_Kaynak/textures/entity/carpik.png";
-  kontrol("kaynak skin depoda", existsSync(kaynakYol));
+  kontrol("kaynak skin (uzak_akraba) depoda", existsSync(kaynakYol));
   kontrol("carpik doku uretilmis", existsSync(urunYol));
 
   /* PIL ile piksel karsilastirmasi. Node tarafinda PNG cozucu
@@ -230,9 +231,32 @@ console.log("\n=== 6. PAKET DOSYALARI ===");
           (d.scripts.animate || []).join(", "));
   kontrol("ince (Alex) geometri", d.geometry.default === "geometry.carpik");
   const geo = JSON.parse(readFileSync(KOK + "/Simsek_Kol_Kaynak/models/entity/carpik.geo.json", "utf8"));
+  /* v7.69: GENISLIK OLCUMDEN GELIYOR, sabit degil.
+
+     v7.67'de "ince (3px)" diye SABIT yazilmisti, cunku o gunku
+     kaynak skin inceydi. Kaynak Uzak Akraba'ya cevrilince o
+     KLASIK (4px) cikti -- sabit kalsaydi kol dokusu bir piksel
+     kayardi ve kimse fark etmezdi. Test de artik sabit
+     beklemiyor: KAYNAGI OLCUP geometriyle karsilastiriyor.  */
   const kol = geo["minecraft:geometry"][0].bones.find((b) => b.name === "rightArm");
-  kontrol("kol 3 piksel genis (ince model)", kol.cubes[0].size[0] === 3,
-          "genislik " + kol.cubes[0].size[0]);
+  const olcBetik = `
+import sys
+from PIL import Image
+px=Image.open(sys.argv[1]).convert("RGBA").load()
+opak=sum(1 for x in range(44,52) if px[x,16][3]>0)
+print(3 if opak==6 else 4)
+`;
+  let beklenenKol = 0;
+  try {
+    beklenenKol = parseInt(execFileSync("python3",
+      ["-c", olcBetik, KOK + "/Simsek_Skin/uzak_akraba.png"], { encoding: "utf8" }).trim(), 10);
+  } catch (e) { beklenenKol = -1; }
+  kontrol("geometri kol genisligi KAYNAKLA uyumlu",
+          kol.cubes[0].size[0] === beklenenKol,
+          "geo " + kol.cubes[0].size[0] + " · kaynak " + beklenenKol);
+  kontrol("kol orijini genislikle tutarli",
+          kol.cubes[0].origin[0] === -4 - kol.cubes[0].size[0],
+          "orijin " + kol.cubes[0].origin[0]);
 }
 
 console.log("\n=== 6b. TITREME IKI KADEMELI  (v7.68) ===");

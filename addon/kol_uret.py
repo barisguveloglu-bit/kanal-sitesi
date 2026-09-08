@@ -110,7 +110,7 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # tureniyor -- ayrisabilecekleri bir yer kalmadi.
 #
 # YENI SURUM CIKARIRKEN: yalnizca asagidaki satiri degistir.
-SURUM_NO = (7, 68, 0)
+SURUM_NO = (7, 69, 0)
 
 SURUM_METIN = "%d.%d.%d" % SURUM_NO
 
@@ -3749,7 +3749,16 @@ SEY_KILIK_KIMLIK = "pa:o_sey_kilik"
 # en okunur zemin.
 CARPIK_KILIK_KIMLIK = "pa:carpik_kilik"
 CARPIK_DOKU   = "carpik"
-CARPIK_KAYNAK = "carpik_kaynak.png"
+# v7.69: KAYNAK ARTIK UZAK AKRABA'NIN KENDI SKINI.
+# Kullanici hikayeyi kurunca ortaya cikti: carpilan kisi Uzak
+# Akraba, ama form BASKA bir skinden uretiliyordu -- ikisi %42
+# piksel farkliydi. Kullanici "ana tema full siyah" derken tam
+# bunu soylemis, ilk okuyusta anlasilmamis.
+#
+# Dosya kaynak_doku/ altinda DEGIL, Simsek_Skin/ altinda: skin
+# paketinin kendi kaynagi orasi ve ikinci bir kopya tutmak iki
+# dosyayi elle esitlemek demek olurdu.
+CARPIK_KAYNAK_YOL = os.path.join(SKP, "uzak_akraba.png")
 
 # Siritis plani: {yuze gore satir: [sutunlar]}, kafa on yuzu
 # 8x8 (skinde 8,8 -> 15,15). Uc aday cizilip yan yana bakildi:
@@ -3810,12 +3819,36 @@ CARPIK_TITREME_GIRIS_KAT = 6.0
 CARPIK_TITREME_SURE      = 1.5   # saniye; bu surede oturmus hale iniyor
 
 
-def carpik_geo():
-    """Ince (Alex) oyuncu geometrisi.
+def carpik_kol_genisligi():
+    """Kaynak skinden OLCEREK kol genisligini bulur: 3 (ince /
+    Alex) ya da 4 (klasik / Steve).
 
-    Kullanicinin skini olculdu: kol ust yuzu 3 piksel, yani INCE
-    model. Klasik (4 piksel) geometri verilseydi kol dokusu bir
-    piksel kayardi.                                             """
+    Neden olculuyor, sabit yazilmiyor: v7.67'de geometri "ince"
+    diye SABIT yazilmisti cunku o gunku kaynak skin inceydi.
+    v7.69'da kaynak Uzak Akraba'nin skinine cevrildi ve o KLASIK
+    cikti -- sabit kalsaydi kol dokusu bir piksel kayardi ve
+    bunu kimse fark etmezdi.
+
+    Olcum: kol UST yuzu 64x64 duzende y=16 satirinda x=44..51
+    arasinda. Ince skinde 6 sutun opak (3+3), klasikte 8 (4+4).
+    Belirsizse KLASIK varsayiliyor: vanilla varsayilani o.     """
+    try:
+        from PIL import Image
+    except ImportError:
+        return 4
+    if not os.path.exists(CARPIK_KAYNAK_YOL):
+        return 4
+    px = Image.open(CARPIK_KAYNAK_YOL).convert("RGBA").load()
+    opak = sum(1 for x in range(44, 52) if px[x, 16][3] > 0)
+    return 3 if opak == 6 else 4
+
+
+def carpik_geo():
+    """Oyuncu geometrisi. Kol genisligi KAYNAK SKINDEN olculuyor
+    (bkz. carpik_kol_genisligi); yanlis genislik kol dokusunu
+    bir piksel kaydirir.                                       """
+    kg = carpik_kol_genisligi()      # 3 = ince (Alex), 4 = klasik (Steve)
+
     def kutu(orijin, boyut, uv, sisme=None):
         k = {"origin": orijin, "size": boyut, "uv": uv}
         if sisme is not None:
@@ -3840,12 +3873,12 @@ def carpik_geo():
                     kutu([-4, 24, -4], [8, 8, 8], [32, 0], 0.5)]},
                 {"name": "rightArm", "parent": "body", "pivot": [-5, 22, 0],
                  "cubes": [
-                    kutu([-7, 12, -2], [3, 12, 4], [40, 16]),
-                    kutu([-7, 12, -2], [3, 12, 4], [40, 32], 0.25)]},
+                    kutu([-4 - kg, 12, -2], [kg, 12, 4], [40, 16]),
+                    kutu([-4 - kg, 12, -2], [kg, 12, 4], [40, 32], 0.25)]},
                 {"name": "leftArm", "parent": "body", "pivot": [5, 22, 0],
                  "cubes": [
-                    kutu([4, 12, -2], [3, 12, 4], [32, 48]),
-                    kutu([4, 12, -2], [3, 12, 4], [48, 48], 0.25)]},
+                    kutu([4, 12, -2], [kg, 12, 4], [32, 48]),
+                    kutu([4, 12, -2], [kg, 12, 4], [48, 48], 0.25)]},
                 {"name": "rightLeg", "parent": "body", "pivot": [-1.9, 12, 0],
                  "cubes": [
                     kutu([-3.9, 0, -2], [4, 12, 4], [0, 16]),
@@ -3964,7 +3997,7 @@ def carpik_dokusu(hedef):
     kopyalar -- paket olmez, sadece form ters cevrilmemis olur.
     Ayni sozlesme doku_kopyala'da da var.
     """
-    kaynak = os.path.join(DOKU_KAYNAK, CARPIK_KAYNAK)
+    kaynak = CARPIK_KAYNAK_YOL
     if not os.path.exists(kaynak):
         print("UYARI: carpik kaynak skini yok (%s)" % kaynak)
         return False

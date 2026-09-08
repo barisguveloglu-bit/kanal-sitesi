@@ -664,8 +664,23 @@ görünüyor. Hangisinin doğru olduğu **denenmedi**.
 
 ## Eklentideki karşılığı
 
-**Çarpık Hal** (`carpik`, v7.67). Kullanıcının kendi kararı:
-renkleri tam tersine çevir, üstüne bir sırıtış ekle.
+**Çarpık Hal** (`carpik`, v7.67; kaynak v7.69'da düzeltildi).
+Kullanıcının kendi kararı: renkleri tam tersine çevir, üstüne bir
+sırıtış ekle.
+
+**Kaynak skin Uzak Akraba'nın kendisi** (`uzak_akraba.png`). v7.67'de
+yanlışlıkla başka bir skin kullanılmıştı; ikisi %42 piksel farklıydı.
+Düzeltilince ortaya çıkan şey hikâyeye çok daha uygun: skin
+neredeyse tamamen siyah olduğu için tersi **bembeyaz** oluyor,
+chris1545'in kan damarları **camgöbeğine**, camgöbeği izleri
+**kırmızıya** dönüyor, pranga halkaları gri kalıyor. Yani hapisliğin
+ve zehrin izleri kayboluyor değil, **ters yüz** oluyor.
+
+**Uyarı — bu geçiş bize ait:** formun görünüşü Distorted Alex
+araştırmasından, hikâyesi Uzak Akraba'dan geliyor. Kaynakta Uzak
+Akraba'nın çarpık bir hâli olduğu **yazmıyor**; ikisini birleştiren
+kullanıcının kurgusu. EK-A'nın "iki evrenin karakterleri
+karıştırılmaz" kuralı gereği bu açıkça yazılı duruyor.
 
 Kaynağa sadık kalınan yer: eklenen **tek** şey sırıtış. Diken, kan,
 kırmızı göz, uzayan kol yok — hiçbirinin kaynakta karşılığı yok ve

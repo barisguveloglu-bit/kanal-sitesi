@@ -361,16 +361,19 @@ eksik. Uydurma değil — eksik.
 The Monitor %19 — o kahramanların modda kaskı yok, oyuncunun kendi yüzü
 görünüyor. Attachable ile bu doğru davranış.
 
-## `carpik_kaynak.png` — Çarpık formun kaynağı (v7.67)
+## Çarpık formun kaynağı — burada DEĞİL (v7.69)
 
-Kullanıcının **kendi skini**, sohbete kendisi gönderdi. Çarpık form
-bunun renkleri tersine çevrilmiş hâli; başka hiçbir yerden bir piksel
-alınmadı.
+Çarpık Hal'in dokusu `Simsek_Skin/uzak_akraba.png`'den üretiliyor,
+`kaynak_doku/` altından değil. Sebep: o dosya skin paketinin kendi
+kaynağı; ikinci bir kopya tutmak iki dosyayı elle eşitlemek olurdu.
 
-Ölçüm: 64×64, 43 renk, 1671 saydam olmayan piksel. Kol üst yüzü
-3 piksel → **ince (Alex) model**. Distorted Alex de varsayılan Alex
-skini olduğu için bu denk düştü, ama seçim değil, ölçüm.
+v7.67'de kullanıcının gönderdiği **başka** bir skin
+(`carpik_kaynak.png`) kullanılıyordu. Hikâye kurulunca ortaya çıktı:
+çarpılan kişi Uzak Akraba, ama form onun skininden üretilmiyordu —
+ikisi %42 piksel farklıydı. Kullanıcı bunu zaten söylemişti ("ana tema
+full siyah"), ilk okuyuşta anlaşılmadı. Dosya v7.69'da kaldırıldı.
 
-Türetilen doku `kol_uret.py`'deki `carpik_dokusu()` tarafından her
-üretimde yeniden hesaplanıyor — depoda türev tutulmuyor, kaynak
-tutuluyor.
+Türev her üretimde yeniden hesaplanıyor (`carpik_dokusu()`), depoda
+tutulmuyor. Kol genişliği de **ölçülüyor** (`carpik_kol_genisligi()`):
+`uzak_akraba.png` klasik (4px) çıktı, v7.67'deki sabit "ince (3px)"
+kalsaydı kol dokusu bir piksel kayardı.
