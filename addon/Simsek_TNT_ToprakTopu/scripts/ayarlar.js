@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.70.0";
+export const SURUM = "v7.71.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -8312,6 +8312,115 @@ export const EFSANE_MUZIK_TARAMA = 20;   // her saniyede bir bak
    Yapi 116 blok genisliginde; 64 blok icinde olan onun
    onunde duruyordur.                                        */
 export const EFSANE_MUZIK_MENZIL = 64;
+
+/* ================= EFSANENİN KORKUSU  (v7.71) =================
+   Kullanıcı bir Forge modu getirdi (cosmichorror 0.0.4,
+   `korkumodu`) ve dedi: *"efsane yapısına bu moddaki bazı
+   özellikleri ekle, ama bu yaratıklar bana saldırmasın —
+   saldırırsa efsane kendi oluşturduğu yaratıklar tarafından
+   saldırıldı gibi olur ve hiç iyi olmaz."*
+
+   ---- MOD İNCELENDİ, ÇALIŞTIRILMADI ----
+   3,9 MB, 61 ana sınıf. `events/` altındaki 21 olay sınıfının
+   sabit havuzu tarandı ve saldırı izi (`setTarget`,
+   `setAttacking`, `damage`, `DamageSource`) arandı.
+
+   SONUÇ: 21 sınıfın 20'sinde saldırı izi YOK. Modun tamamı
+   atmosferik: bakma, ses, ışık, illüzyon. Tek istisna
+   `HauntedWolves` ve orada da hedef oyuncu değil, kurt.
+
+   Yani kullanıcının şartı bu modla zaten uyumlu — tesadüf
+   değil, modun tasarımı bu.
+
+   ---- ALINANLAR ----
+   Hepsi durak çevresinde, hiçbiri hasar vermiyor:
+
+     Bakış        yakındaki yaratıklar dönüp SANA bakar
+     Aya Bakış    yaratıklar sana değil, göğe bakar
+     Hayalet Ses  yakında hayvan sesi -- ortada hayvan yok
+     Uzak Kazma   yer altındayken uzaktan kazma sesi
+     Uzak Işık    gece uzakta bir meşale yanar, sonra söner
+
+   Kaynaktaki adları: Paranoya, MoonLook, PhantomAnimals,
+   EchoMining, DistantBeacon.
+
+   ---- ALINMAYANLAR VE NEDENİ ----
+     TntRain     gökten TNT -- HASAR VERİR, şart bunu dışlıyor
+     Trap1       oyuncunun üstüne yıldırım -- aynı sebep
+     TotemHeist  totemi çalıyor -- "hiçbir yetenek oyuncunun
+                 eşyasını kaybettirmez" kuralına aykırı
+     Envanter illüzyonu   kaynakta "visual-only, real items
+                 never change" yazıyor; Bedrock script'te
+                 GÖRSEL-ONLY envanter yok, gerçekten değiştirmek
+                 gerekirdi -- yani aynı kurala takılıyor
+     SecondMoon / VersionCorruption   ikisi de client render
+                 (`client/` altında); Bedrock'ta karşılığı yok
+     LeafDestroyer   yaprakları siliyor; oyuncunun kendi
+                 yapısını bozabilir, geri koyma garantisi yok
+
+   ---- BAKIŞ NASIL YAPILIYOR ----
+   Kaynak `EntityAnchorArgument$Anchor` kullanıyor, yani
+   `lookAt`. Bedrock script'te varlığa "şuraya bak" dedirten
+   bir API yok; `/tp <hedef> ~ ~ ~ facing ...` var ve yaptığı
+   tam bu. Yaratık DÖNÜYOR, hedef almıyor: `setTarget`
+   çağrılmıyor, saldırı durumu değişmiyor.                    */
+export const EFSANE_KORKU_ACIK   = true;
+export const EFSANE_KORKU_TARAMA = 40;   // 2 saniyede bir bak
+/* Menzil müzikten DAR: müzik "durağı gördün" diyor, korku
+   "durağın içindesin" diyor. İkisi aynı olsaydı olaylar
+   ufukta başlardı ve sebebi anlaşılmazdı.                   */
+export const EFSANE_KORKU_MENZIL = 32;
+/* Olaylar arası en az bekleme (tik). Üst üste binmesinler:
+   aynı anda hem bakış hem ses "bozuk" değil "gürültülü"
+   görünürdü.                                                */
+export const EFSANE_KORKU_ARA    = 200;  // 10 saniye
+/* Her taramada olay çıkma olasılığı. 1'e yakın olsaydı durakta
+   durmak katlanılmaz olurdu; korku seyrek olunca korku.     */
+export const EFSANE_KORKU_SANS   = 0.25;
+
+/* Yaratıkların döndürüleceği yarıçap. Menzilden küçük:
+   olayın kaynağı durak, etkisi oyuncunun çevresi.           */
+export const EFSANE_BAKIS_YARICAP = 12;
+export const EFSANE_BAKIS_TAVAN   = 10;   // en fazla kaç yaratık
+/* Bakış olayının süresi: bu kadar tik boyunca her taramada
+   yeniden döndürülüyorlar. Tek karelik bir dönüş fark
+   edilmezdi.                                                */
+export const EFSANE_BAKIS_SURE    = 60;   // 3 saniye
+
+/* Hayalet ses: ortada hayvan yokken çalan sesler. Vanilla
+   ses adları -- uydurma ad sessizce hiçbir şey çalmaz.      */
+export const EFSANE_HAYALET_SESLER = [
+  "mob.cow.say", "mob.pig.say", "mob.chicken.say",
+  "mob.sheep.say", "mob.horse.idle", "mob.wolf.bark"
+];
+export const EFSANE_HAYALET_UZAK = 10;   // kaç blok öteden gelsin
+
+/* Uzak kazma: yer altındayken duyulan kazma sesi. */
+export const EFSANE_KAZMA_SESLER = [
+  "dig.stone", "hit.stone", "use.stone"
+];
+export const EFSANE_KAZMA_DERINLIK = 50;  // bu Y'nin altındayken
+export const EFSANE_KAZMA_UZAK_MIN = 14;
+export const EFSANE_KAZMA_UZAK_MAX = 30;
+
+/* Uzak ışık: gece uzakta yanan meşale. GEÇİCİ -- süre dolunca
+   kaldırılıyor. "Her kalıcı etkinin süresi ve çıkışı olmalı"
+   kuralı burada da geçerli; yoksa dünya zamanla meşale
+   tarlasına dönerdi.                                        */
+export const EFSANE_ISIK_BLOK   = "minecraft:torch";
+export const EFSANE_ISIK_UZAK   = 26;
+export const EFSANE_ISIK_SURE   = 100;   // 5 saniye sonra söner
+export const EFSANE_ISIK_GECE_BAS = 13000;
+export const EFSANE_ISIK_GECE_SON = 23000;
+
+/* KALICI KAYIT YOK -- ve bu bilincli.
+
+   efsane_muzik.js defterini dunyaya yaziyor cunku "ucunu de
+   gordun mu" KALICI bir bilgi. Korku ise anlik: hangi olayin
+   ne zaman oldugu dunya kapaninca unutulabilir, hatta
+   unutulmali. Kalici bir anahtar tanimlayip kullanmamak
+   okuyani yanlis yola sokardi -- v7.51'de tam bu yuzden uc
+   oksuz ayar kaldirilmisti.                                 */
 export const EFSANE_MUZIK_BASLIK = "§b§lEFSANE TAMAMLANDI";
 export const EFSANE_MUZIK_ALT =
   "§fUc duragi da buldun.";

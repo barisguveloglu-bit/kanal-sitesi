@@ -1,45 +1,89 @@
-# v7.70.0 — Çarpık skin artık pakette
+# v7.71.0 — Efsanenin Korkusu
 
-Kullanıcı: *"skinini link olarak verebilir misin, indirip kuracağım,
-öyle daha kolay oluyor."*
+Kullanıcı bir Forge modu getirdi (`cosmichorror 0.0.4`, iç adı
+`korkumodu`) ve tek bir şart koydu:
 
-En kolayı indirmek değil: **skin paketine koymak**. Paketi kurunca
-doğrudan Giyinme Odası'na düşüyor, tek dokunuşla seçiliyor. Link yine
-de var, ama artık gerek yok.
+> *"bu yaratıklar bana saldırmasın, saldırırsa efsane kendi oluşturduğu
+> yaratıklar tarafından saldırıldı gibi bir şey olur ve hiç iyi olmaz"*
 
-Skin paketi 3 → **4 skin**:
+## Şart ölçüldü, tahmin edilmedi
 
-| skin | dosya |
+**Mod çalıştırılmadı.** Zip olarak açıldı, `events/` altındaki **21
+olay sınıfının** sabit havuzunda saldırı izi arandı: `setTarget`,
+`setAttacking`, `damage`, `DamageSource`, `kill`, `setHealth` ve
+benzerleri.
+
+**20 sınıfta hiç iz yok.** Tek istisna `HauntedWolves` ve orada da
+bulunan `ALLOW_DAMAGE` bir *izin* kancası; hedef oyuncu değil, kurt.
+
+Yani modun tasarımı zaten atmosferik. Kullanıcının şartı bu modla
+çatışmıyor — tesadüf değil, mod böyle yazılmış.
+
+## Alınan beş olay
+
+Hepsi Efsane duraklarının çevresinde:
+
+| bizdeki | kaynaktaki |
 |---|---|
-| Uzak Akraba | `uzak_akraba.png` |
-| Uzak Akraba · O Şey Formu | `uzak_akraba_o_sey.png` |
-| Uzak Akraba · Kolsuz | `uzak_akraba_kolsuz.png` |
-| **Uzak Akraba · Çarpık Hal** | `uzak_akraba_carpik.png` |
+| Bakış | `Paranoya` |
+| Aya Bakış | `MoonLook` |
+| Hayalet Ses | `PhantomAnimals` |
+| Uzak Kazma | `EchoMining` |
+| Uzak Işık | `DistantBeacon` |
 
-Doku **kopyalanıyor, yeniden çizilmiyor** — `o_sey` ile aynı gerekçe:
-kılık ile skin aynı dosya olsun ki dönüşüp çıkınca "aynı karakter"
-hissi bozulmasın. İki yerde çizilseydi sessizce ayrışırlardı. Test
-md5 ile birebir eşitliği tutuyor.
+**Bakış nasıl:** kaynak `EntityAnchorArgument$Anchor` (yani `lookAt`)
+kullanıyor. Bedrock script'te bunun API'si yok; `/tp ... facing` var ve
+yaptığı tam bu. **Yaratık dönüyor, hedef almıyor** — `setTarget`
+çağrılmıyor.
 
-## Bulunan gerçek hata: sıra bağımlılığı
+Seçici `type=!player` içeriyor: başka oyuncular döndürülmüyor. Bir
+oyuncunun bakışını zorla çevirmek v7.65'te savunma yazdığımız griefing
+kalıbının ta kendisi.
 
-`carpik_dokusu()` üreteçte **10827. satırda** çalışıyor.
-`Simsek_Skin/uzak_akraba.png` ise **11907. satırda** yazılıyor — yani
-1080 satır sonra, ve o dosya bu üretecin **kendi çıktısı**.
+## Alınmayanlar
 
-Yani çarpık doku, kaynağını **bir önceki koşunun dosyasından**
-okuyordu. Çalışıyordu, çünkü dosya zaten oradaydı. Ama:
+`TntRain` (hasar), `Trap1` (oyuncuya yıldırım), `TotemHeist` (eşya
+kaybı), envanter illüzyonu (Bedrock'ta görsel-only envanter yok),
+`SecondMoon`/`VersionCorruption` (istemci render'ı), `LeafDestroyer`
+(oyuncunun yapısını bozabilir), `HauntedWolves` (evcil hayvana
+dokunmuyoruz).
 
-- temiz bir checkout'ta (dosya henüz üretilmemişken) okuyacak bir şey
-  olmazdı
-- kaynak skin değişse, çarpık hâl **bir sürüm geriden** gelirdi
+Hepsinin nedeni `ayarlar.js`'e ve `REFERANS_COSMICHORROR.md`'ye yazıldı
+— yoksa bir gün biri "TNT yağmuru neden yok" diye ekler ve şart bozulur.
+Test bu yazının orada durduğunu sınıyor.
 
-Kaynak gerçek dosyaya bağlandı: `addon/UzakAkraba_skin.png`
-(`SEY_SKIN_KAYNAK`). Test iki maddeyle tutuyor: kaynağın o olduğu, ve
-`SKP`'den **okumadığı**.
+## Depodaki tarama iki hatamı yakaladı
 
-## Test
+`tarama.mjs` daha ilk koşuda ikisini birden buldu:
 
-`carpik.mjs` 45 → 52 madde. **3 mutasyon denendi, 3'ü de yakalandı:**
-kaynak yine üretecin çıktısına bağlandı · skin paketine yanlış doku
-kopyalandı · skin paketinden çıkarıldı.
+- `efsane_korku.js`'te **kullanılmayan bir import** (`hataYaz`)
+- **öksüz bir ayar**: `EFSANE_KORKU_KAYIT_ANAHTAR` tanımlanmış ama hiç
+  okunmuyor
+
+İkincisi düşündürücüydü: kalıcı kayıt gerçekten **gerekmiyor**.
+`efsane_muzik.js` defterini dünyaya yazıyor çünkü "üçünü de gördün mü"
+kalıcı bir bilgi; korku ise anlık ve unutulmalı. Ayar kaldırıldı,
+gerekçesi yerine yazıldı.
+
+## Test ve mutasyon
+
+`efsane_korku.mjs` — 30 madde. En önemlisi hiçbir olayın zarar
+vermediği, **iki yönden**: kodda hasar çağrısı var mı, ve 400 tarama
+çalıştırılınca oyuncunun canı değişti mi. Sadece koda bakmak
+"yazılmış mı" sınar, "çalışıyor mu" sınamaz.
+
+İlk yazılışta iki kusur çıktı, ikisi de **ölçümdeydi**:
+
+1. Test ham dosyayı tarıyordu ve dosyanın kendi açıklaması
+   (*"applyDamage çağırmıyoruz"*) testi düşürüyordu. Yorumlar
+   çıkarıldı.
+2. **2. bölüm hiçbir şey sınamıyordu**: zincir kurulmadığı için tarama
+   tek satırda çıkıyor, "hasar yok" boş yere yeşil yanıyordu. Artık
+   "olaylar gerçekten çalıştı (57 komut üretildi)" maddesi bunu tutuyor.
+
+**7 mutasyon denendi, 7'si de yakalandı** — ama biri ilk turda kaçtı:
+"olaylar arası boşluk kaldırıldı". Sebebi ölçünün *sayıya* bakmasıydı;
+şans (%25) ve tarama aralığı (40 tik) zaten doğal bir seyreklik
+veriyordu. Ölçü **mesafeye** çevrildi: iki olay arası en az
+`EFSANE_KORKU_ARA` tik olmalı. Boşluk kaldırılınca en kısa ara
+200'den 40'a düşüyor ve mutasyon yakalanıyor.

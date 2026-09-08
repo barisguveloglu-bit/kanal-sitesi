@@ -271,6 +271,7 @@ import "./yetenekler/bot_guc.js";
 import "./yetenekler/efsane.js";
 /* v6.6: uc duragi da gorene bir dakikalik muzik. */
 import { efsaneMuzikTara, efsaneMuzikUnut } from "./yetenekler/efsane_muzik.js";
+import { efsaneKorkuTara, efsaneKorkuUnut } from "./yetenekler/efsane_korku.js";
 /* v6.6: skinin renginde ozel sis. */
 import { sisAc, sisKapat } from "./yetenekler/sis.js";
 /* v7.1: Void takimi -- Falen Mod V2. Vurus kancasi ve
@@ -677,6 +678,13 @@ system.runInterval(() => {
       efsaneMuzikTara(oyuncular);
     } catch (e) {
       hataYaz("efsaneMuzikTara", e);
+    }
+    /* v7.71: Efsanenin korkusu. Zincir kurulmamissa tek
+       satirda cikiyor -- ayni `oyuncular` listesi.          */
+    try {
+      efsaneKorkuTara(oyuncular);
+    } catch (e) {
+      hataYaz("efsaneKorkuTara", e);
     }
     /* v7.1: Void bulasmasi. Defter bosken tek satirda cikiyor. */
     try {
@@ -2482,6 +2490,7 @@ olayaAbone("playerLeave", (olay) => {
   willBeklemeUnut(olay.playerId);
   actionbarUnut(olay.playerId);
   efsaneMuzikUnut(olay.playerId);
+  efsaneKorkuUnut(olay.playerId);
   zirhAgacOyuncuUnut(olay.playerId);
   pozUnut(olay.playerId);
   arinmaUnut(olay.playerId);
