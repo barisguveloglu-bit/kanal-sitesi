@@ -579,3 +579,100 @@ Kaynak: [Zayıf düşenler](https://minecraftcreepypasta.fandom.com/tr/wiki/Zay%
 
 > **Not:** Wiki'nin kendi uyarısı: *"Bu Creepypasta tamamen kurgudan ibarettir,
 > gerçeklik payı barındırmamaktadır."* Buradaki her şey kurgudur.
+
+---
+
+# EK-B · ÇARPIK ALEX DOSYASI
+
+> ## ⚠ BU BÖLÜM DE KANLI GÖZ EVRENİNE AİT DEĞİL
+>
+> EK-A ile aynı kural: bu bölüm **canon değil**, siteye çıkmıyor,
+> `data.js`'e yansıtılmıyor. Eklentideki **Çarpık Hal** formunun
+> dayandığı Minecraft Creepypasta kaynağı burada duruyor ki iki
+> evren karışmasın.
+
+## Kaynaklar ve nasıl okundukları
+
+| kaynak | durum |
+|---|---|
+| [Distorted Alex (EN)](https://minecraftcreepypasta.fandom.com/wiki/Distorted_Alex) | sayfa normal yoldan **402** verdi; metin wiki API'sinden alındı (`action=parse&prop=wikitext`) — özet değil, **ham kaynak** |
+| [Çarpık Alex (TR)](https://minecraftcreepypasta.fandom.com/tr/wiki/%C3%87arp%C4%B1k_Alex) | aynı yolla; İngilizcenin çevirisi, `{{Çeviri}}` şablonu özgün yazarı **Desserted You** olarak veriyor |
+| Sayfadaki iki ekran görüntüsü | indirildi, bakıldı: gece, uzakta çatıda küçük bir figür. Yüz ayrıntısı yok. |
+| Crazy Alex · Dark Alex · NameAlex | **ayrı varlıklar** olduklarını doğrulamak için açıldı; karıştırılmadı |
+
+## Hikâye
+
+Üç arkadaş yeni bir sunucu açıyor, rastgele seed, bir köyün yanında
+başlıyorlar.
+
+İlk yanlış detay: **tarlalar meşe değil, nether/kızıl odundan.**
+Umursamıyorlar. Evleri geziyorlar; İngilizce metinde bir evde **kanlı
+bir kafa** buluyorlar.
+
+Meydana döndüklerinde önceden orada olmayan **kızıltaş tozları** var —
+rastgele değil, **bir yol çizecek şekilde**. Yolu takip ediyorlar. Yol
+onları **yanan bir eve** götürüyor; çatıda o var. Fark ettikleri an
+kayboluyor.
+
+Kaydı tutan kişi o anı yazamıyor. Metinde aynen:
+
+> *"the recorder said: DUHEVUIDASIUM. he was scared and can't write it."*
+
+Köyden uzaklaşıp ev yapıyorlar. Biri çıkıyor. Kalan ikisi madene
+iniyor. Yüzeye çıktıklarında **kendi evleri yanıyor** ve çatıda yine o
+var. **Göz teması kurdukları anda sunucu çöküyor.**
+
+Tekrar giriyorlar — gökyüzündeler, aşağısı görünmüyor, önlerinde bir
+odaya giden **uçan bir köprü**. Odaya giriyorlar, o yine karşılarında.
+Sunucu bir daha kapanıyor. İngilizce metnin son cümlesi:
+
+> *"He didn't hear from them since."*
+
+## Varlığın kanonik tarifi
+
+Kaynakta tek cümle:
+
+> *"She is the default female skin, Alex. She has a big, distorted
+> grin. She is in a unknown seed, living there alone. At A village
+> with No villagers."*
+
+| özellik | kaynakta yazan |
+|---|---|
+| taban | varsayılan **Alex** skini — yeni bir model değil |
+| yüz | **büyük, çarpık bir sırıtış** — tek ayırt edici şey |
+| ses | **yok.** Metinde tek bir ses, çığlık, kahkaha geçmiyor |
+| davranış | çatıda durur, **fark edilince kaybolur**, kovalamaz |
+| izleri | kızıl odun, yol çizen kızıltaş, yanan evler, kanlı kafa |
+| son | göz teması → sunucu çöker |
+
+**Tasarım dersi:** korkusu *fazlalıktan* gelmiyor. Devasa değil (Giant
+Alex ayrı varlık), koşmuyor, saldırmıyor, konuşmuyor. Tek yaptığı
+orada olmak ve bakınca yok olmak. Korku, bir şeyin **yanlış ve az**
+olmasından geliyor.
+
+## Kaynaklar arasında bir tutarsızlık
+
+Seed iki sayfada farklı:
+
+- İngilizce: `-4231131849898478410` (19 hane)
+- Türkçe: `-42311318498478410` (17 hane)
+
+Türkçede iki hane eksik (`98` düşmüş). İkisi de "bulut ve çiçek
+şekillerinden çıkarıldı" diyor — yani **doğrulanmış değil**, iddia.
+Türkçe sayfa İngilizcenin çevirisi olduğuna göre hata çeviride oluşmuş
+görünüyor. Hangisinin doğru olduğu **denenmedi**.
+
+## Eklentideki karşılığı
+
+**Çarpık Hal** (`carpik`, v7.67). Kullanıcının kendi kararı:
+renkleri tam tersine çevir, üstüne bir sırıtış ekle.
+
+Kaynağa sadık kalınan yer: eklenen **tek** şey sırıtış. Diken, kan,
+kırmızı göz, uzayan kol yok — hiçbirinin kaynakta karşılığı yok ve
+"sahte içerik üretme" kuralı burada da geçerli. Form güç de vermiyor;
+bu bir görünüm.
+
+**Titreme kaynakta YOK.** Kullanıcı şiddeti bize bıraktı ("hikâyede
+nasıl oluyorsa"); dürüst cevabı yukarıda: hikâyede hareket bile yok.
+Bu yüzden titreme sürekli ama ince (±1,5° gövde, ±2,5° kafa) —
+şiddetli bir sarsıntı karakteri "glitch"e çevirirdi.

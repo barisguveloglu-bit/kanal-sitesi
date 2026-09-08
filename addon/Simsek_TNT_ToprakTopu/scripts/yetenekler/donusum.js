@@ -71,6 +71,14 @@ export function donusukMu(oyuncuId) {
   return kilikler.has(oyuncuId);
 }
 
+/* Hangi kilikta: "carpik" mi "o sey" mi. Yoksa undefined.
+   Iki form ayni deftere yazdigi icin cikis mesajini dogru
+   secebilmek buna bagli.                                     */
+export function kilikKimligi(oyuncuId) {
+  const k = kilikler.get(oyuncuId);
+  return k ? k.kimlik : undefined;
+}
+
 export function donusukSayisi() {
   return kilikler.size;
 }
@@ -160,7 +168,18 @@ function gorunmezSil(oyuncu) {
 /* ---------------- Donusum ---------------- */
 
 /* Donen deger: {hata} ya da {donustu:true} / {cikti:true} */
-export function donus(oyuncu) {
+/* v7.67: KILIK KIMLIGI ARTIK PARAMETRE.
+
+   Carpik Hal ikinci bir kilik getirdi. Iki secenek vardi:
+   donusum.js'i kopyalayip kimligi degistirmek, ya da tek
+   parametre eklemek. Kopya secilseydi hizalama, temizlik,
+   kalicilik ve cikis mantigi IKI yerde dururdu ve biri
+   duzeltilirken oteki geride kalirdi -- arinma.js'te yazili
+   olan ayni gerekce.
+
+   Varsayilan SEY_KILIK_KIMLIK: eski cagrilarin hicbiri
+   degismedi.                                                 */
+export function donus(oyuncu, kilikKimlik = SEY_KILIK_KIMLIK) {
   if (!DONUSUM_ACIK) return { hata: "Dönüşüm kapalı (DONUSUM_ACIK)." };
   oku();
 
@@ -170,7 +189,7 @@ export function donus(oyuncu) {
   try {
     /* v7.62: BUTCE (dis inceleme). */
     if (!varlikIste(1)) return undefined;
-    kilik = oyuncu.dimension.spawnEntity(SEY_KILIK_KIMLIK, {
+    kilik = oyuncu.dimension.spawnEntity(kilikKimlik, {
       x: oyuncu.location.x,
       y: oyuncu.location.y + DONUSUM_Y_KAYMA,
       z: oyuncu.location.z
@@ -181,7 +200,7 @@ export function donus(oyuncu) {
   }
   if (!kilik) return { hata: "Kılık doğdu ama varlığa ulaşılamadı." };
 
-  kilikler.set(oyuncu.id, { kilikId: kilik.id });
+  kilikler.set(oyuncu.id, { kilikId: kilik.id, kimlik: kilikKimlik });
   sonraki.set(oyuncu.id, 0);          // ilk taramada hemen verilsin
   kaydet();
 

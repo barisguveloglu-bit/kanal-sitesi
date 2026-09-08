@@ -1,0 +1,90 @@
+{
+  "format_version": "1.8.0",
+  "animations": {
+    "animation.carpik.yuru": {
+      "loop": true,
+      "bones": {
+        "rightLeg": {
+          "rotation": [
+            "math.cos(query.modified_distance_moved * 38.17) * 40 * query.modified_move_speed",
+            0,
+            0
+          ]
+        },
+        "leftLeg": {
+          "rotation": [
+            "math.cos(query.modified_distance_moved * 38.17 + 180) * 40 * query.modified_move_speed",
+            0,
+            0
+          ]
+        },
+        "rightArm": {
+          "rotation": [
+            "math.cos(query.modified_distance_moved * 38.17 + 180) * 30 * query.modified_move_speed",
+            0,
+            0
+          ]
+        },
+        "leftArm": {
+          "rotation": [
+            "math.cos(query.modified_distance_moved * 38.17) * 30 * query.modified_move_speed",
+            0,
+            0
+          ]
+        }
+      }
+    },
+    "animation.carpik.titre": {
+      "loop": true,
+      "bones": {
+        "body": {
+          "rotation": [
+            "math.random(-1.5, 1.5)",
+            "math.random(-1.5, 1.5)",
+            "math.random(-1.5, 1.5)"
+          ],
+          "position": [
+            "math.random(-0.15, 0.15)",
+            "math.random(-0.15, 0.15)",
+            "math.random(-0.15, 0.15)"
+          ]
+        },
+        "head": {
+          "rotation": [
+            "math.random(-2.5, 2.5)",
+            "math.random(-2.5, 2.5)",
+            "math.random(-2.5, 2.5)"
+          ]
+        },
+        "rightArm": {
+          "rotation": [
+            "math.random(-1.5, 1.5)",
+            "math.random(-1.5, 1.5)",
+            "math.random(-1.5, 1.5)"
+          ]
+        },
+        "leftArm": {
+          "rotation": [
+            "math.random(-1.5, 1.5)",
+            "math.random(-1.5, 1.5)",
+            "math.random(-1.5, 1.5)"
+          ]
+        },
+        "rightLeg": {
+          "rotation": [
+            "math.random(-1.5, 1.5)",
+            "math.random(-1.5, 1.5)",
+            "math.random(-1.5, 1.5)"
+          ]
+        },
+        "leftLeg": {
+          "rotation": [
+            "math.random(-1.5, 1.5)",
+            "math.random(-1.5, 1.5)",
+            "math.random(-1.5, 1.5)"
+          ]
+        }
+      }
+    }
+  }
+}

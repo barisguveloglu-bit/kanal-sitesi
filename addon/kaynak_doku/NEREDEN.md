@@ -360,3 +360,17 @@ eksik. Uydurma değil — eksik.
 **Boş bölgeler bilerek boş.** Spectre'in kafa bölgesi %0 dolu, Shazam %6,
 The Monitor %19 — o kahramanların modda kaskı yok, oyuncunun kendi yüzü
 görünüyor. Attachable ile bu doğru davranış.
+
+## `carpik_kaynak.png` — Çarpık formun kaynağı (v7.67)
+
+Kullanıcının **kendi skini**, sohbete kendisi gönderdi. Çarpık form
+bunun renkleri tersine çevrilmiş hâli; başka hiçbir yerden bir piksel
+alınmadı.
+
+Ölçüm: 64×64, 43 renk, 1671 saydam olmayan piksel. Kol üst yüzü
+3 piksel → **ince (Alex) model**. Distorted Alex de varsayılan Alex
+skini olduğu için bu denk düştü, ama seçim değil, ölçüm.
+
+Türetilen doku `kol_uret.py`'deki `carpik_dokusu()` tarafından her
+üretimde yeniden hesaplanıyor — depoda türev tutulmuyor, kaynak
+tutuluyor.

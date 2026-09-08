@@ -460,6 +460,15 @@ export function komutCozumle(oyuncu, hamMetin) {
      "mabet", "simbiyot" gibi bir parca yeter. Birden fazla
      esleserse SECMIYOR, listeliyor -- yanlis yetenegi
      calistirmak bekleme suresini bosa harcatirdi.            */
+  /* ---- CARPIK HAL  (v7.67) ----
+     Jest dongusunde 252. sirada; "yetenek carpik" da calisir
+     ama form gunluk kullanilacak bir sey oldugu icin kendi
+     kisa komutu var. sadelestir "çarpık" -> "carpik" yapiyor,
+     iki yazim da tutuyor.                                    */
+  if (ad === "carpik" || ad === "carpik hal" || ad === "carpil") {
+    return { cevap: cagir("yetenek", oyuncu, "carpik") };
+  }
+
   if (ad === "yetenek" || ad === "yetenekler" || ad === "guc kullan") {
     const arama = parca.slice(1).join(" ").trim();
     return { cevap: cagir("yetenekAra", oyuncu, arama) };
@@ -576,6 +585,7 @@ const YARDIM = [
   "§eyedek§7 · envanterini yedekle (dovus oncesi)",
   "§egeriyukle§7 · yedekten geri yukle (/clear yediysen)",
   "§elazer§7 · goz lazeri at (once iksir ic)",
+  "§ecarpik§7 · ÇARPIK HAL: renklerin tersi, sırıtış, titreyen beden",
   "§eyetenek gura§7 · YETENEGI ADIYLA CALISTIR (jestle 216. sirada olani da)",
   "§eyetenek§7 · adiyla arama nasil yapilir, kac yetenek var",
   "§ebot§7 · botu cagir / yanina getir",

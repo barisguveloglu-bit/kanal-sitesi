@@ -1,87 +1,99 @@
-# v7.66.0 — Baştan sona tarama + erişilemeyen 16 yetenek
+# v7.67.0 — Çarpık Hal
 
-Kullanıcı: *"yeni sürümü göndermeden önce bir açık varsa veya bir ölü
-kod varsa temizle, tüm sistemi baştan sona tara, bu konuda ciddiyim."*
+Kullanıcı: *"benim skinin renklerini tam terse çevirelim, tam tersi
+çevirdikten sonra bir tane sırıtış ekleyelim, yeni bir form olduğu
+için böyle yapmak istedim."* Titremenin şiddetini bize bıraktı.
 
-105 dosya, 40.802 satır tarandı. Aşağıdakiler **ölçüm**, tahmin değil.
+Önce araştırma istedi: *"çarpılmış halimi yapmadan önce Distorted
+Alex'in tüm bulabildiğin kaynaklarda araştırma yapmanı istiyorum,
+hikayesini okumanı istiyorum."*
 
-## Taramanın bulmadıkları (yani temiz çıkan yerler)
+## Araştırma
 
-| aranan | sonuç |
+Fandom sayfaları normal yoldan **402** verdi; metinler wiki'nin kendi
+API'sinden alındı (`action=parse&prop=wikitext`) — yani özet değil ham
+kaynak. İngilizce sayfa, Türkçe çevirisi, sayfadaki iki ekran
+görüntüsü okundu. Crazy Alex / Dark Alex / NameAlex de açıldı ve
+**ayrı varlıklar** oldukları doğrulandı; karıştırılmadı.
+
+Tamamı `LORE.md` **EK-B**'de — EK-A ile aynı kural: canon değil,
+siteye çıkmıyor, `data.js`'e yansıtılmıyor.
+
+Kaynağın varlık tarifi tek cümle: *"She is the default female skin,
+Alex. She has a big, distorted grin."* Kanonik tek ayırt edici şey
+**sırıtış**. Devasa değil, koşmuyor, saldırmıyor, konuşmuyor.
+
+Ayrıca bir **tutarsızlık** bulundu: seed EN'de 19 haneli, TR'de 17
+haneli yazılmış (`98` düşmüş). İkisi de doğrulanmış değil.
+
+## Ölçüm: kullanıcının skini zaten yarı yolda
+
+64×64, 43 renk, 1671 opak piksel. **Kol üst yüzü 3 piksel → ince
+(Alex) modeli.** Distorted Alex de Alex skini olduğu için denk düştü,
+ama bu seçim değil ölçüm.
+
+Yüzünde gözler hizasında siyah bir bant, altında geniş açık renkli bir
+ağız bandı vardı. Ters çevrilince siyah bant **beyaz boşluğa**, ağız
+bandı **koyu çizgiye** dönüyor — yani sırıtışı çizmek için en okunur
+zemin kendiliğinden oluşuyor.
+
+## Sırıtış üç aday arasından seçildi
+
+Üç plan çizilip yan yana bakıldı:
+
+| aday | sonuç |
 |---|---|
-| ölü ayar sabiti | 6 tane — **hepsi zaten belgeli ve bilinçli** (`LAZER_HIZ_*`, `LAZER_KALKAN_*`, `LAZER_SERSEM_SURE`, `LAZER_SAVUR_GUC`). `tarama.mjs` bunları v7.51'den beri sayıyor; bağımsız tarayıcı aynı 6'yı buldu — mevcut koruma dürüst. |
-| ölü limit (`_TAVAN`/`_SINIR`) | **yok.** 12 tanesi ilk taramada "karşılaştırılmıyor" göründü, hepsi yanlış alarm: ortak hedef bulucuya `tavan:` olarak geçiyorlar. |
-| hiç import edilmeyen dosya | **yok.** 40 dosya öyle göründü; `main.js` onları 62 yan etki importuyla (`import "./x.js"`) yüklüyor. |
-| çağrılmayan fonksiyon | **yok.** 4 aday da değer olarak geçiliyor (`filter(moblaraIsler)`, `kaydet(..., simsekIsleri)`, `ilkelKancasi(bakim)`). |
-| ad çakışması | 4 aynı ad var (`savunmadaMi`, `kolTakili`, `tavanDoldu`, `defteriUnut`) ama **hiçbiri birlikte import edilmiyor**; her biri kendi dosyasında kalıyor. Aktif hata yok. |
-| gereksiz `export` | 43 tane (kendi dosyasında kullanılıyor, dışarı açılması gereksiz). Kozmetik; 43 dosyayı çalkalamamak için dokunulmadı. |
+| **A** — uçlar y5'te kalkık, y6 gövde, y7 daralan | **seçilen**: kavis okunuyor, gözler okunur kalıyor |
+| B — y6 ve y7 tam genişlik | siyah blok, kavis kayboldu |
+| C — y6 tam genişlik + y7 sadece uçlar | düz çizgi, zayıf |
+| A2 — uçlar y4'e çıkarılmış | gözleri yutuyor |
 
-## Bulunan gerçek kusur: 16 yetenek pratikte erişilemez
+## Titreme — kaynakta yok, bilerek ince
 
-Jest döngüsü **216 yeteneğe** ulaşmış. Sıra numaraları artan olduğu için
-yeni eklenen her şey listenin **sonuna** giriyor. Ölçüm:
+Dürüst cevap: **hikâyede titreme yok.** Distorted Alex hareketsiz
+duruyor, çatıda bekliyor, fark edilince kayboluyor; metinde tek bir
+hareket ya da ses geçmiyor.
 
-    201/216  jjk_yar        209/216  yami_kurouzu
-    202/216  jjk_mabet      210/216  yami_delik
-    203/216  jjk_fuga       211/216  yami_madde
-    204/216  jjk_kollar     212/216  ope_oda
-    205/216  simbiyot       213/216  ope_shambles
-    206/216  gura_gekishin  214/216  ope_gamma
-    207/216  gura_tenchi    215/216  meyve_sec
-    208/216  gura_kabuto    216/216  ope_sok
+Sürekli ama ince: ±1,5° gövde/uzuvlar, ±2,5° kafa, ±0,15 blok kayma.
+Şiddetli bir sarsıntı karakteri "glitch"e çevirirdi ve kaynağın ruhuna
+— az ve yanlış olmak — ters düşerdi.
 
-`ope_sok`'a çömel+yukarı bak jestiyle ulaşmak için **216 kez** döngü
-çevirmek gerekiyordu. Yani JJK, Simbiyot ve Şeytan Meyveleri yazıldı,
-sınandı ve **kullanılamıyordu**.
+`math.random` kullanılıyor, `math.sin` değil: sinüs düzenli bir
+sallanma verirdi, "bozuk" değil "dans ediyor" gibi görünürdü. Depoda
+`math.random` **ilk kez** burada kullanılıyor.
 
-Sohbette `jjk` ve `meyve` komutları vardı ama onlar karakter/meyve
-*değiştiriyor*, yeteneği çalıştırmıyor. `kancalar.yetenek` genel bir
-çalıştırıcıydı ama sohbet onu yalnız **8 sabit kimlikle** çağırıyordu.
+## Yapı
 
-## Yama: `yetenek <ad>`
+Doku **her üretimde kaynak skinden yeniden hesaplanıyor**; depoda
+türev tutulmuyor, kaynak tutuluyor (`kaynak_doku/carpik_kaynak.png`).
+Kullanıcı skinini değiştirirse çarpık hal kendiliğinden takip eder.
 
-```
-yetenek                → 216 yetenek var, nasıl aranır
-yetenek gura_tenchi    → çalıştırır
-yetenek gura           → 3 eşleşme, listeler (SEÇMEZ)
-yetenek boyleseyyok    → bulamadım
-```
+Kılık mantığı **kopyalanmadı**: `donusum.js` tek bir parametre aldı
+(kılık kimliği, varsayılan `SEY_KILIK_KIMLIK`). Kopyalansaydı
+hizalama, temizlik, kalıcılık ve çıkış mantığı iki yerde dururdu.
 
-**Yeni bir güç değil, var olan gücün kapısı.** Aynı kapıdan geçiyor:
-`yetenekTetikle` içindeki `AYNI_ANDA`, `BEKLEME`, `yetenekYetkisi` ve
-`anlikHazirMi` denetimlerinin hepsi işliyor. Sohbetten çalıştırmak
-jestten daha serbest **değil**.
+## Yedinci kez aynı tuzak
 
-Arama `main.js`'te yapılıyor, `sohbet.js`'te değil: kayıt defterine
-erişim orada ve iki katman ayrı kalsın diye. İki kanca (`yetenek`,
-`yetenekAra`) **tek gövdeyi** paylaşıyor — `yetenegiCalistir`.
-
-**Belirsizken seçmiyor, listeliyor.** Yanlış yeteneği çalıştırmak
-bekleme süresini boşa harcatır ve kullanıcı nedenini anlamaz.
-
-### Tam kimlik kısayolu ölçümle doğrulandı
-
-`yetenekAra` önce tam kimlik eşleşmesine bakıyor. Bu şart mı diye
-ölçtüm: 216 kimlikten **tam biri** başkasının öneki —
-`ben_sald_gulle_motion_damage`, `..._dash`'in öneki. Kısayol olmasa o
-kimliği tam yazan biri "2 eşleşme" cevabı alır ve yetenek çalışmazdı.
-Tek örnek ama gerçek, ve teste yazıldı.
+Üreteçteki temizlik adımı `beklenen` listesinde olmayan her dokuyu
+siliyor. `carpik.png` üretildi, aynı koşuda silindi, yalnız OMP
+kopyası kaldı. `kol_uret.py`'deki yorum "aynı tuzak altıncı kez"
+diyordu — bu yedincisi. Not güncellendi.
 
 ## Test
 
-`yetenek_ara.mjs` — 18 madde. En önemlisi **kapının aynı kapı olduğu**,
-ve o madde *tersten de* tutuluyor: etiketli oyuncu geçebiliyor,
-etiketsiz geçemiyor. İlk yazılışta yalnız etiketsiz tek oyuncuyla
-sınanmıştı; `yetkiliMi`'nin "kimse etiketli değilse kapı açık" kuralı
-yüzünden o test **hiçbir şey sınamıyordu** ve yeşil yanacaktı.
+`carpik.mjs` — 30 madde. En önemlisi **dokunun gerçekten ters
+olduğu**: kaynak ile türev piksel piksel karşılaştırılıyor.
+Ölçüm: `ters=1659  ayni=0  saydam_korundu=2425  sirit_siyah=12/12`.
 
-**9 mutasyon denendi, 8'i yakalandı.** Kaçan mutasyon ve neden kaçtığı
-test dosyasının sonuna yazıldı: ortak gövdeyi ikiye ayıran bir refactor
-bütün güvenlik davranışını koruyor, yalnız reddetme mesajını
-kaybediyor; onu görmek için `AYNI_ANDA` tavanını gerçekten doldurmak
-gerekiyor ve sahte dünyada yetenekler kol/ruh/oda şartı yüzünden erken
-çıkıp iş oluşturmuyor. "9/9" demek yanlış olurdu.
+"Kaynakla aynı kalan piksel yok" maddesi asıl koruma: üreteç bozulup
+kaynağı kopyalasaydı form "çarpık" değil "aynı skin" olurdu ve
+hiçbir görsel test bunu fark etmezdi.
 
-Ayar sabitinin kendisi de sınanıyor (`YETENEK_ARA_LISTE <= 12`) —
-beklentiyi sınanan şeyden türetirsen ayarı 999 yapan mutasyon kaçar;
-`dusmus.mjs`'te öğrenilen ders.
+**11 mutasyon denendi, 10'u yakalandı.** Kaçan ve neden kaçtığı test
+dosyasına yazıldı: saydam piksellerin RGB'sini de ters çevirmek alfayı
+değiştirmiyor, yani davranışı koruyan bir mutasyon.
+
+Mutasyon bataryası **gerçek bir test zayıflığı** buldu: `donus()`
+parametreyi yoksayıp hep O Şey doğursa bile test yeşil yanıyordu,
+çünkü deftere yazılan alanı ölçüyordum. Artık **doğan varlığın
+typeId'si** ölçülüyor.

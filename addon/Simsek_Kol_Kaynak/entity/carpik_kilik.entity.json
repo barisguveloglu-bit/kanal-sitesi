@@ -1,0 +1,30 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "pa:carpik_kilik",
+      "materials": {
+        "default": "entity_alphatest"
+      },
+      "textures": {
+        "default": "textures/entity/carpik"
+      },
+      "geometry": {
+        "default": "geometry.carpik"
+      },
+      "render_controllers": [
+        "controller.render.default"
+      ],
+      "scripts": {
+        "animate": [
+          "yuru",
+          "titre"
+        ]
+      },
+      "animations": {
+        "yuru": "animation.carpik.yuru",
+        "titre": "animation.carpik.titre"
+      }
+    }
+  }
+}

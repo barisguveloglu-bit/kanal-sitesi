@@ -254,6 +254,7 @@ import "./yetenekler/asa.js";
 import "./yetenekler/bot_ilkel.js";
 import "./yetenekler/o_sey.js";
 import "./yetenekler/donusum.js";
+import "./yetenekler/carpik.js";
 import "./yetenekler/bot_guc.js";
 /* v6.2 -- BU SATIR EKSIKTI VE EFSANE YAPISI HIC CALISMIYORDU.
    efsane.js hicbir yerden import edilmiyordu; yani icindeki

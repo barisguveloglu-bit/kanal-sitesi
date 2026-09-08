@@ -110,7 +110,7 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # tureniyor -- ayrisabilecekleri bir yer kalmadi.
 #
 # YENI SURUM CIKARIRKEN: yalnizca asagidaki satiri degistir.
-SURUM_NO = (7, 66, 0)
+SURUM_NO = (7, 67, 0)
 
 SURUM_METIN = "%d.%d.%d" % SURUM_NO
 
@@ -3711,6 +3711,251 @@ def o_sey_varligi():
 SEY_KILIK_KIMLIK = "pa:o_sey_kilik"
 
 
+# ==================== CARPIK HAL  (v7.67) ====================
+# Kullanici: "benim skinin renklerini tam terse cevirelim, tam
+# tersi cevirdikten sonra bir tane siritis ekleyelim, yeni bir
+# form oldugu icin boyle yapmak istedim."
+#
+# ---- ARASTIRMA NEYI SOYLEDI ----
+# Kaynak: Minecraft CreepyPasta Wiki, "Distorted Alex" (EN) ve
+# cevirisi "Carpik Alex" (TR). Sayfalar WebFetch'e 402 verdi,
+# metin wiki'nin kendi API'sinden (action=parse&prop=wikitext)
+# alindi -- yani ozet degil, sayfanin ham kaynagi.
+#
+# Wiki'nin varlik tarifi TEK CUMLE:
+#   "She is the default female skin, Alex. She has a big,
+#    distorted grin."
+#
+# Kanonik olan tek ayirt edici sey SIRITIS. Devasa degil (Giant
+# Alex ayri bir varlik), kosmuyor, saldirmiyor, konusmuyor --
+# metinde tek bir ses gecmiyor. Yaptigi: catida durmak ve fark
+# edilince kaybolmak. Korku FAZLALIKTAN degil, bir seyin yanlis
+# ve AZ olmasindan geliyor.
+#
+# Bu yuzden burada eklenen tek sey siritis. Diken, kan, kirmizi
+# goz, uzayan kol EKLENMEDI: hicbirinin kaynakta karsiligi yok
+# ve "sahte icerik uretme" kurali burada da gecerli.
+#
+# ---- RENK: TERS CEVIRME KULLANICININ KARARI ----
+# Skinin kendisi ters cevriliyor (255-r,255-g,255-b). Saydamlik
+# ters CEVRILMIYOR: cevrilseydi kullanilmayan ikinci katman
+# birden gorunur olur ve karakter sisman bir bulut gibi cikardi.
+#
+# Ters cevirmenin yan etkisi olculdu ve ise yariyor: kullanicinin
+# skininde gozlerin hizasinda SIYAH bir bant, altinda ACIK renkli
+# genis bir agiz banti var. Ters cevrilince siyah bant BEYAZ bir
+# bosluga, agiz banti KOYU bir cizgiye donuyor. Yani yuz zaten
+# "bos beyaz yuzey + koyu agiz" oluyor -- siritisi cizmek icin
+# en okunur zemin.
+CARPIK_KILIK_KIMLIK = "pa:carpik_kilik"
+CARPIK_DOKU   = "carpik"
+CARPIK_KAYNAK = "carpik_kaynak.png"
+
+# Siritis plani: {yuze gore satir: [sutunlar]}, kafa on yuzu
+# 8x8 (skinde 8,8 -> 15,15). Uc aday cizilip yan yana bakildi:
+#   A  ucları y5'te kalkik, y6 govde, y7 daralan  <-- SECILEN
+#   B  y6 tam genislik + y7 genis  -> siyah blok, kavis kayboldu
+#   C  y6 tam genislik + y7 sadece uclar -> duz cizgi, zayif
+# A secildi cunku KAVIS okunuyor ve GOZLER okunur kaliyor:
+# uclarin y4'e cikarildigi varyant (A2) gozleri yutuyordu.
+CARPIK_SIRIT = {5: [0, 7], 6: [1, 2, 3, 4, 5, 6], 7: [2, 3, 4, 5]}
+CARPIK_SIRIT_RENK = (0, 0, 0, 255)      # saf siyah: beyaz yuzde en yuksek karsitlik
+CARPIK_YUZ = (8, 8)                     # kafa on yuzunun skindeki sol ust kosesi
+
+
+# ---- TITREME: KAYNAKTA YOK, BILEREK INCE ----
+# Kullanici "surekli bedenim titresin" dedi ve siddeti bana
+# birakti: "hikayede nasil oluyorsa".
+#
+# DURUST CEVAP: hikayede titreme YOK. Distorted Alex hareketsiz
+# duruyor, catida bekliyor, bakinca kayboluyor. Metinde tek bir
+# hareket, ses ya da sarsinti gecmiyor.
+#
+# O yuzden titreme SUREKLI ama INCE tutuldu. Siddetli bir
+# sarsinti karakteri "glitch"e cevirirdi ve kaynagin ruhuna --
+# az ve yanlis olmak -- ters duserdi. Sayilar asagida ve tek
+# yerde; buyutmek isteyen tek satir degistirir.
+#
+# math.random her degerlendirmede YENIDEN atiyor, yani gercek
+# titreme veriyor; math.sin olsaydi duzenli bir sallanma olurdu
+# ve "bozuk" degil "dans ediyor" gibi gorunurdu.
+# Depoda math.random ilk kez burada kullaniliyor.
+CARPIK_TITREME_ACI  = 1.5    # derece, +/- (govde ve uzuvlar)
+CARPIK_TITREME_KAFA = 2.5    # derece, +/- (kafa biraz daha fazla)
+CARPIK_TITREME_KAY  = 0.15   # blok, +/- (yerinde ufak kayma)
+
+
+def carpik_geo():
+    """Ince (Alex) oyuncu geometrisi.
+
+    Kullanicinin skini olculdu: kol ust yuzu 3 piksel, yani INCE
+    model. Klasik (4 piksel) geometri verilseydi kol dokusu bir
+    piksel kayardi.                                             """
+    def kutu(orijin, boyut, uv, sisme=None):
+        k = {"origin": orijin, "size": boyut, "uv": uv}
+        if sisme is not None:
+            k["inflate"] = sisme
+        return k
+    return {
+        "format_version": "1.12.0",
+        "minecraft:geometry": [{
+            "description": {
+                "identifier": "geometry.carpik",
+                "texture_width": 64, "texture_height": 64,
+                "visible_bounds_width": 2, "visible_bounds_height": 3,
+                "visible_bounds_offset": [0, 1.5, 0]
+            },
+            "bones": [
+                {"name": "body", "pivot": [0, 24, 0], "cubes": [
+                    kutu([-4, 12, -2], [8, 12, 4], [16, 16]),
+                    kutu([-4, 12, -2], [8, 12, 4], [16, 32], 0.25)]},
+                {"name": "head", "parent": "body", "pivot": [0, 24, 0],
+                 "cubes": [
+                    kutu([-4, 24, -4], [8, 8, 8], [0, 0]),
+                    kutu([-4, 24, -4], [8, 8, 8], [32, 0], 0.5)]},
+                {"name": "rightArm", "parent": "body", "pivot": [-5, 22, 0],
+                 "cubes": [
+                    kutu([-7, 12, -2], [3, 12, 4], [40, 16]),
+                    kutu([-7, 12, -2], [3, 12, 4], [40, 32], 0.25)]},
+                {"name": "leftArm", "parent": "body", "pivot": [5, 22, 0],
+                 "cubes": [
+                    kutu([4, 12, -2], [3, 12, 4], [32, 48]),
+                    kutu([4, 12, -2], [3, 12, 4], [48, 48], 0.25)]},
+                {"name": "rightLeg", "parent": "body", "pivot": [-1.9, 12, 0],
+                 "cubes": [
+                    kutu([-3.9, 0, -2], [4, 12, 4], [0, 16]),
+                    kutu([-3.9, 0, -2], [4, 12, 4], [0, 32], 0.25)]},
+                {"name": "leftLeg", "parent": "body", "pivot": [1.9, 12, 0],
+                 "cubes": [
+                    kutu([-0.1, 0, -2], [4, 12, 4], [16, 48]),
+                    kutu([-0.1, 0, -2], [4, 12, 4], [0, 48], 0.25)]}
+            ]
+        }]
+    }
+
+
+def carpik_animasyonu():
+    """Yuruyus + surekli titreme.
+
+    Yuruyus o_sey.animation.json ile ayni kaliba dayaniyor
+    (math.cos * modified_distance_moved): kilik oyuncunun
+    konumuna hizalandigi icin bacaklarin kendiliginden yurumesi
+    gerekiyor.
+
+    Titreme AYRI bir animasyon: yuruyusle ayni dosyada ama ayri
+    girdi, cunku ikisi ayni kemige yaziyor ve tek animasyonda
+    birlestirilseydi yuruyusu degistiren biri titremeyi de
+    bozardi.                                                    """
+    a = str(CARPIK_TITREME_ACI)
+    kf = str(CARPIK_TITREME_KAFA)
+    ky = str(CARPIK_TITREME_KAY)
+    r = lambda n: ["math.random(-%s, %s)" % (n, n)] * 3
+    return {
+        "format_version": "1.8.0",
+        "animations": {
+            "animation.carpik.yuru": {
+                "loop": True,
+                "bones": {
+                    "rightLeg": {"rotation": [
+                        "math.cos(query.modified_distance_moved * 38.17) * 40 "
+                        "* query.modified_move_speed", 0, 0]},
+                    "leftLeg": {"rotation": [
+                        "math.cos(query.modified_distance_moved * 38.17 + 180) "
+                        "* 40 * query.modified_move_speed", 0, 0]},
+                    "rightArm": {"rotation": [
+                        "math.cos(query.modified_distance_moved * 38.17 + 180) "
+                        "* 30 * query.modified_move_speed", 0, 0]},
+                    "leftArm": {"rotation": [
+                        "math.cos(query.modified_distance_moved * 38.17) * 30 "
+                        "* query.modified_move_speed", 0, 0]}
+                }
+            },
+            "animation.carpik.titre": {
+                "loop": True,
+                "bones": {
+                    "body":     {"rotation": r(a), "position": r(ky)},
+                    "head":     {"rotation": r(kf)},
+                    "rightArm": {"rotation": r(a)},
+                    "leftArm":  {"rotation": r(a)},
+                    "rightLeg": {"rotation": r(a)},
+                    "leftLeg":  {"rotation": r(a)}
+                }
+            }
+        }
+    }
+
+
+def carpik_varligi():
+    """Sunucu tarafi kilik. o_sey_kilik ile AYNI bilesenler:
+    vurulamaz, itilemez, dusmez, kimseyi hedef almaz -- bir
+    GORUNTU. Farki yalniz kimlik.                              """
+    d = o_sey_kilik_varligi()
+    d["minecraft:entity"]["description"]["identifier"] = CARPIK_KILIK_KIMLIK
+    return d
+
+
+def carpik_istemci_varligi():
+    return {
+        "format_version": "1.10.0",
+        "minecraft:client_entity": {
+            "description": {
+                "identifier": CARPIK_KILIK_KIMLIK,
+                "materials": {"default": "entity_alphatest"},
+                "textures": {"default": "textures/entity/" + CARPIK_DOKU},
+                "geometry": {"default": "geometry.carpik"},
+                "render_controllers": ["controller.render.default"],
+                # Iki animasyon da SURDIGI icin ikisi de listede;
+                # titreme kosula bagli degil, formun kendisi bu.
+                "scripts": {"animate": ["yuru", "titre"]},
+                "animations": {
+                    "yuru": "animation.carpik.yuru",
+                    "titre": "animation.carpik.titre"
+                }
+            }
+        }
+    }
+
+
+def carpik_dokusu(hedef):
+    """Kaynak skini ters cevirip siritisi cizer.
+
+    Depoda TUREV tutulmuyor, kaynak tutuluyor: kullanici skinini
+    degistirirse carpik hal de kendiliginden degisir. Iki dosyayi
+    elle esitlemek zorunda kalinmaz.
+
+    PIL yoksa False doner ve cagiran taraf kaynagi oldugu gibi
+    kopyalar -- paket olmez, sadece form ters cevrilmemis olur.
+    Ayni sozlesme doku_kopyala'da da var.
+    """
+    kaynak = os.path.join(DOKU_KAYNAK, CARPIK_KAYNAK)
+    if not os.path.exists(kaynak):
+        print("UYARI: carpik kaynak skini yok (%s)" % kaynak)
+        return False
+    try:
+        from PIL import Image
+    except ImportError:
+        print("UYARI: PIL yok, carpik doku ters cevrilemedi")
+        return False
+
+    im = Image.open(kaynak).convert("RGBA")
+    g, y = im.size
+    px = im.load()
+    for j in range(y):
+        for i in range(g):
+            r, ye, m, a = px[i, j]
+            if a == 0:
+                continue            # saydamlik korunuyor
+            px[i, j] = (255 - r, 255 - ye, 255 - m, a)
+
+    bx, by = CARPIK_YUZ
+    for satir, sutunlar in CARPIK_SIRIT.items():
+        for sutun in sutunlar:
+            px[bx + sutun, by + satir] = CARPIK_SIRIT_RENK
+
+    im.save(hedef)
+    return True
+
+
 def mutant_varligi():
     """Mutant Halim'in sunucu varligi. O Sey'in AYNI yolu:
     govdesi kopyalanip sayilari degistiriliyor -- boylece
@@ -6199,6 +6444,14 @@ def oyuncu_modeli_paketi(surum):
         yaz_json(os.path.join(OMP, "models/entity/%s.geo.json" % TAKAS_GOVDE),
                  kolsuz_geometrisi())
     yaz_json(os.path.join(OMP, "animations/o_sey.animation.json"), SEY_ANIM)
+    # ---- CARPIK HAL (v7.67) ----
+    # Geometri, animasyon ve doku IKI kaynak paketinde birden
+    # duruyor. Sebep o_sey'inkiyle ayni: hangi paket tek basina
+    # kurulursa kurulsun form calissin. Ikisi de URETILDIGI icin
+    # ayrisma ihtimali yok -- elle esitlenen iki kopya degil.
+    yaz_json(os.path.join(OMP, "models/entity/carpik.geo.json"), carpik_geo())
+    yaz_json(os.path.join(OMP, "animations/carpik.animation.json"),
+             carpik_animasyonu())
     yaz_json(os.path.join(OMP, "animations/oyuncu_tutus.animation.json"),
              oyuncu_tutus_animasyonu())
     kaynak_doku = os.path.join(RP, "textures/entity/%s.png" % SEY_DOKU)
@@ -10489,6 +10742,25 @@ def main():
     yaz_json(os.path.join(RP, "entity/o_sey_kilik.entity.json"),
              o_sey_kilik_istemci_varligi())
 
+    # ---- CARPIK HAL (v7.67) ----
+    yaz_json(os.path.join(BP, "entities/carpik_kilik.json"), carpik_varligi())
+    yaz_json(os.path.join(RP, "entity/carpik_kilik.entity.json"),
+             carpik_istemci_varligi())
+    yaz_json(os.path.join(RP, "models/entity/carpik.geo.json"), carpik_geo())
+    yaz_json(os.path.join(RP, "animations/carpik.animation.json"),
+             carpik_animasyonu())
+    # Doku HER URETIMDE kaynak skinden yeniden hesaplaniyor:
+    # kullanici skinini degistirirse carpik hal kendiliginden
+    # takip etsin, iki dosya elle esitlenmesin.
+    _cdh = os.path.join(RP, "textures/entity/%s.png" % CARPIK_DOKU)
+    os.makedirs(os.path.dirname(_cdh), exist_ok=True)
+    if carpik_dokusu(_cdh):
+        _cdh2 = os.path.join(OMP, "textures/entity/%s.png" % CARPIK_DOKU)
+        os.makedirs(os.path.dirname(_cdh2), exist_ok=True)
+        shutil.copyfile(_cdh, _cdh2)
+    else:
+        print("UYARI: carpik doku URETILEMEDI -- form dokusuz kalir")
+
     # ---- KOL TAKASI SAHNESI (v7.9) ----
     # Uc sahte varlik: iki dusen toprak kol + gelen kanli kol.
     # Geometriler ELLE YAZILMIYOR, var olan modellerden
@@ -11594,6 +11866,13 @@ def main():
     # dokuyu HER uretimde siliyordu -- varlik yaziliyor,
     # doku gidiyor, mutant mor-siyah cikiyordu.
     beklenen.add(MUTANT_DOKU)
+    # v7.67: Carpik Hal'in dokusu. AYNI TUZAK YEDINCI KEZ --
+    # ve bu sefer yasanarak: doku uretildi, temizlik adimi ayni
+    # kosuda sildi, yalniz OMP kopyasi kaldi. Yukaridaki
+    # "altinci kez" notu artik yedi olmali; sayiyi buyutmek
+    # yerine sunu yazmak daha yararli: bu listeye eklenmeyen
+    # HER yeni doku sessizce silinir.
+    beklenen.add(CARPIK_DOKU)
     # v7.2: Zaman Saati ikonu. Bu satir olmadan temizlik
     # adimi ikonu her uretimde siliyor.
     beklenen.add(SAAT_ESYA)

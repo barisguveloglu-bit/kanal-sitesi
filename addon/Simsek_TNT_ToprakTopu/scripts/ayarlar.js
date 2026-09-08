@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.66.0";
+export const SURUM = "v7.67.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -5442,6 +5442,40 @@ export const SEY_BOY    = 2.75;   // blok -- carpisma kutusu boyu
    Tazelenmezse oyuncu bir anda iki bedenli gorunur.            */
 export const DONUSUM_ACIK      = true;
 export const SEY_KILIK_KIMLIK  = "pa:o_sey_kilik";
+
+/* ---------------- ÇARPIK HAL  (v7.67) --------------------
+   Kullanıcı: "benim skinin renklerini tam terse çevirelim,
+   tam tersi çevirdikten sonra bir tane sırıtış ekleyelim,
+   yeni bir form olduğu için böyle yapmak istedim."
+
+   Kaynak: Minecraft CreepyPasta Wiki, "Distorted Alex" (EN)
+   ve çevirisi "Çarpık Alex" (TR). Sayfalar WebFetch'e 402
+   verdi; metin wiki'nin kendi API'sinden alındı, yani özet
+   değil ham kaynak. Araştırmanın tamamı LORE.md EK-A'da.
+
+   Kaynağın varlık tarifi tek cümle: "She is the default
+   female skin, Alex. She has a big, distorted grin."
+   Kanonik tek ayırt edici şey SIRITIŞ -- o yüzden eklenen
+   tek şey o. Diken, kan, kırmızı göz eklenmedi: hiçbirinin
+   kaynakta karşılığı yok.
+
+   ---- TİTREME NEDEN İNCE ----
+   Kullanıcı şiddeti bize bıraktı: "hikayede nasıl oluyorsa".
+   Dürüst cevap: hikâyede titreme YOK. Distorted Alex
+   hareketsiz duruyor, çatıda bekliyor, fark edilince
+   kayboluyor; metinde tek bir hareket ya da ses geçmiyor.
+   Bu yüzden titreme SÜREKLİ ama İNCE. Şiddetli bir sarsıntı
+   karakteri "glitch"e çevirirdi.
+
+   Sayılar kol_uret.py'de (CARPIK_TITREME_*), çünkü titreme
+   bir ANIMASYON -- script tarafında okunacak bir değeri yok.
+   Buraya kopyalansaydı iki sayı ayrışırdı.                 */
+export const CARPIK_ACIK         = true;
+export const CARPIK_KILIK_KIMLIK = "pa:carpik_kilik";
+export const CARPIK_AD           = "Çarpık Hal";
+/* Sıra: donusum (251) ile bot_teslim (250) arasında yer yok;
+   252 boştu ve iki dönüşüm yan yana dursun.                */
+export const CARPIK_SIRA         = 252;
 export const DONUSUM_TAZELEME  = 40;   // gorunmezlik kac tick'te bir yenilensin
 export const DONUSUM_SURE      = 200;  // efekt suresi (TAZELEME x 5)
 export const DONUSUM_KAYIT_ANAHTAR = "simsek:kilikler";
@@ -7489,7 +7523,11 @@ export const DUSMUS_KUSAK_MESAJ =
 
 export const DUSMUS_KAYIT_ANAHTAR = "simsek:dusmus";
 
-export const BOT_KIMLIKLER = new Set([BOT_KIMLIK, SEY_KIMLIK, SEY_KILIK_KIMLIK]);
+/* v7.67: CARPIK_KILIK_KIMLIK de burada. Unutulsaydi carpik
+   kilik "bot" sayilmaz, temizlik ve gozcu onu yabanci bir
+   varlik gibi gorurdu.                                      */
+export const BOT_KIMLIKLER = new Set([BOT_KIMLIK, SEY_KIMLIK, SEY_KILIK_KIMLIK,
+                                      CARPIK_KILIK_KIMLIK]);
 for (const t of ILKEL_BESLI.values()) {
   if (t.kimlik) BOT_KIMLIKLER.add(t.kimlik);
 }
