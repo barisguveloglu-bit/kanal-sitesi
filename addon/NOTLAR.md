@@ -1,3 +1,66 @@
+# v7.73.0 — Marvel: eksik 32 parça
+
+İstek: *"tüm karakterlerin yeteneklerini alabildiğin kadar al,
+sonuçta bu bedrock modu."*
+
+Mod zaten v5.2'de eklenmişti (Fisk silinmiş, `test/marvel.mjs` 1.
+bölüm 11 kalıntı denetiminin hepsini geçiyor). Ama sayarken **modda
+303 giyilebilir parça olduğunu, bizde 264 olduğunu** gördüm.
+
+**Sebep bizdeydi, modda değil.** `marvel_coz.py` türü *etiketten*
+tahmin ediyordu: `suit` → kostüm, `mask` → maske, `_powers` → güç.
+Bu üçünden hiçbirine uymayan parça `tur = None → continue` ile
+**sessizce düşüyordu** — `MARVEL_ATLANAN` defterine bile
+yazılmıyordu, o yüzden iki sürümdür fark edilmemişti.
+
+Sınıflandırma **yuvaya** çevrildi. Sonuç: **268 → 300 parça**
+(142 kostüm, 90 maske, **47** güç, 21 ek), atlananlar 2 → **7**
+kayıt (hepsi meşru: 6'sının attachable'ı yok, 1'inin geometrisi
+`geometry.no`).
+
+Ortaya çıkan **6 gerçek güç**: Agamotto'nun Gözü, ark reaktörü,
+Mark 50 reaktörü, Star-Lord bot jetleri, White Tiger tılsımı,
+Ms. Marvel koruması. Beşi tam olarak `ayarlar.js`'te *"bu
+kahramanın modda güç eşyası yok"* yazan kahramanlara ait — **o
+yorum yanlıştı, beşi de düzeltildi.** Güçler bacak yuvasında
+olduğu için `guctekiKahraman()` onları kod değişmeden görüyor.
+
+## Kemik onarımı — iki tuzak
+
+Yeni gelen **dönüşüm modelleri** olduğu gibi paketlenemezdi.
+
+**1. Yabancı iskelet.** Beş model (Galacta, Galactus, Groot, Jeff
+the Land Shark, Mole Man) bütün kemiklerini ekli adlandırmış
+(`root_p`, `body_groot`, `head_shark`…). Zırh attachable'ında bir
+kemik yalnız **aynı adlı** oyuncu kemiğini takip eder, yani bunlar
+heykel gibi durur, yürümez, kollarını sallamazdı. Vanilla adlara
+çevrildiler.
+
+**2. Taraf tuzağı.** Mole Man'in **iki kolu da** kaynakta
+`rightArm_mole` / `rightArm_mole2`. Ada bakıp düz ek atsaydım
+sağ/sol ters bağlanır, kolları yürürken ters yöne sallanırdı.
+Taraf **pivota** göre seçiliyor; ölçülen kural (üç ayrı vanilla
+modelde aynı): `right*` negatif x, `left*` pozitif x.
+
+**Neredeyse yaptığım hata:** ilk refleksim mevcut
+`insan_hiyerarsisi()`yi çağırmaktı. 208 marvel geometrisi üzerinde
+kuru çalıştırdım — **70'inde** küplü `waist`i "çakışan kemik"
+sayıp `waist_ic` diye yeniden adlandırıyordu, yani **bugün doğru
+duran modelleri bozacaktı.** Marvel geometrileri bu yüzden ayrı
+bir yoldan (`marvel_geo_yaz`) geçiyor. Test bunu da kilitliyor.
+
+Ayrıca `mrv_deadpool_katanas`'ta `rightLeg`in ebeveyni yoktu;
+onarıldı. Onarımdan sonra `maletin` dışında yabancı kök kemik
+kalmadı.
+
+Beş mutasyonun beşi de yakalandı: düz kopya, pivot yerine ada
+bakma, ebeveyn onarımının silinmesi, genel onarıcının sızması,
+çakışma korumasının kaldırılması.
+
+Ayrıntı: `REFERANS_MARVEL.md`.
+
+---
+
 # v7.72.0 — Efsanenin Gazabı
 
 Kullanıcı v7.71'deki şartını düzeltti ve **haklıydı, ben yanlış

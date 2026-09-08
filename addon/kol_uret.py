@@ -110,7 +110,7 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # tureniyor -- ayrisabilecekleri bir yer kalmadi.
 #
 # YENI SURUM CIKARIRKEN: yalnizca asagidaki satiri degistir.
-SURUM_NO = (7, 72, 0)
+SURUM_NO = (7, 73, 0)
 
 SURUM_METIN = "%d.%d.%d" % SURUM_NO
 
@@ -5144,6 +5144,131 @@ def marvel_esyasi(p):
             "components": bilesenler,
         },
     }
+
+
+# ---------------------------------------------------------------
+#  MARVEL KEMIK ONARIMI                              (v7.73)
+#
+#  NEDEN AYRI BIR FONKSIYON -- `insan_hiyerarsisi` KULLANILMIYOR:
+#  Marvel modellerinde `waist` kemiginin KUPLERI var. Genel
+#  onarici kuplu bir `waist`i "cakisan kemik" sayip `waist_ic`
+#  diye yeniden adlandiriyor. 208 marvel geometrisinin uzerinde
+#  kuru calistirdim: 70 tanesinde bu tetikleniyordu, yani bugun
+#  DOGRU calisan modelleri bozacakti. Bu yuzden marvel
+#  geometrileri `yaz_json`dan degil buradan geciyor.
+#
+#  NE ONARILIYOR -- iki gercek kusur:
+#
+#  1) YABANCI ISKELET. Bes model (Galacta, Galactus, Groot,
+#     Jeff the Land Shark, Mole Man) butun kemiklerini `_p` /
+#     `_groot` / `_shark` / `_mole` ekiyle adlandirmis. Kaynak
+#     modda bunlar oyuncunun modelini KOMPLE degistiriyor; biz
+#     ise her seyi `controller.render.armor` ile zirh olarak
+#     ciziyoruz. Zirhta bir kemik yalniz AYNI ADLI oyuncu
+#     kemigini takip eder -- `body_groot` diye bir oyuncu kemigi
+#     olmadigi icin butun model varligin merkezine mihlanip
+#     heykel gibi dururdu: bacaklar yurumez, kollar sallanmazdi.
+#     Ek yazilmis adlari vanilla adlara cevirince model oyuncu
+#     iskeletine baglanip onunla hareket ediyor.
+#
+#  2) EBEVEYNSIZ UZUV. `mrv_deadpool_katanas` icinde `rightLeg`in
+#     ebeveyni yok (modelcinin unutmasi). Kok sayildigi icin
+#     bacak govdeden bagimsiz kalirdi.
+#
+#  TARAF, ADA DEGIL PIVOTA GORE SECILIYOR -- Mole Man yuzunden:
+#  o modelde iki kol da `rightArm_mole` / `rightArm_mole2` diye
+#  adlandirilmis, yani adin yarisi yanlis. Bedrock oyuncu
+#  iskeletinde olctugum kural (mrv_janet, mrv_antman_suit,
+#  mrv_deadpool_katanas hepsinde ayni): rightArm/rightLeg pivot
+#  x'i NEGATIF, leftArm/leftLeg POZITIF. Ada bakip duz ek atsaydim
+#  Mole'un sag/sol uzuvlari ters baglanir, kollari yururken ters
+#  yone sallanirdi.
+# ---------------------------------------------------------------
+MARVEL_UZUV = ("root", "waist", "body", "head",
+               "rightArm", "leftArm", "rightLeg", "leftLeg")
+# Tek bir ek: `body_mode` (Mole'daki yazim hatasi) ve
+# `rightArm_mole2` (rakamli ek) de yakalansin diye `\d*`.
+MARVEL_UZUV_KALIP = re.compile(r"^(%s)_[a-z]+\d*$" % "|".join(MARVEL_UZUV))
+MARVEL_KARSI_TARAF = {"rightArm": "leftArm", "leftArm": "rightArm",
+                      "rightLeg": "leftLeg", "leftLeg": "rightLeg"}
+
+
+def marvel_kemik_onar(veri, ad="?"):
+    """Marvel geometrisini oyuncu iskeletine baglanabilir hale getirir."""
+    for g in veri.get("minecraft:geometry", []) or []:
+        kemikler = g.get("bones")
+        if not isinstance(kemikler, list):
+            continue
+        adlar = {b.get("name") for b in kemikler if isinstance(b, dict)}
+
+        # ---- 1) yabanci iskelet: ekli adlari vanillaya cevir ----
+        yeni_ad = {}
+        for b in kemikler:
+            if not isinstance(b, dict):
+                continue
+            m = MARVEL_UZUV_KALIP.match(b.get("name") or "")
+            if not m:
+                continue
+            uzuv = m.group(1)
+            if uzuv in MARVEL_KARSI_TARAF:
+                x = (b.get("pivot") or [0, 0, 0])[0]
+                # x=0 belirsiz: adda ne yaziyorsa o kalir.
+                if x > 0 and uzuv.startswith("right"):
+                    uzuv = MARVEL_KARSI_TARAF[uzuv]
+                elif x < 0 and uzuv.startswith("left"):
+                    uzuv = MARVEL_KARSI_TARAF[uzuv]
+            # Hedef ad zaten doluysa DOKUNMA: iki kemigi ayni ada
+            # cevirmek modeli sessizce bozardi.
+            if uzuv in adlar or uzuv in yeni_ad.values():
+                continue
+            yeni_ad[b["name"]] = uzuv
+        if yeni_ad:
+            for b in kemikler:
+                if not isinstance(b, dict):
+                    continue
+                if b.get("name") in yeni_ad:
+                    b["name"] = yeni_ad[b["name"]]
+                if b.get("parent") in yeni_ad:
+                    b["parent"] = yeni_ad[b["parent"]]
+            adlar = {b.get("name") for b in kemikler if isinstance(b, dict)}
+            print("   %s: %d kemik vanilla ada cevrildi" % (ad, len(yeni_ad)))
+
+        # ---- 2) ebeveynsiz uzuv ----
+        if "root" not in adlar:
+            continue
+        for b in kemikler:
+            if not isinstance(b, dict):
+                continue
+            n = b.get("name")
+            if n == "root" or b.get("parent"):
+                continue
+            dogru = INSAN_EBEVEYN.get(n)
+            if dogru and dogru in adlar:
+                b["parent"] = dogru
+                print("   %s: %s ebeveynsizdi -> %s" % (ad, n, dogru))
+    return veri
+
+
+def marvel_geo_yaz(kaynak, hedef, ad):
+    """Marvel geometrisini onararak kopyalar (duz kopya DEGIL)."""
+    import shutil
+    with open(kaynak, encoding="utf-8") as f:
+        veri = json.load(f)
+    once = json.dumps(veri, sort_keys=True)
+    marvel_kemik_onar(veri, ad)
+    os.makedirs(os.path.dirname(hedef), exist_ok=True)
+    if json.dumps(veri, sort_keys=True) == once:
+        # Onarilacak bir sey yoktu -> BAYT BAYT kopya. Yeniden
+        # bicimlendirmek 208 dosyanin 202'sini "degismis"
+        # gosterir ve gercek degisikligi diffte gorunmez yapardi.
+        shutil.copyfile(kaynak, hedef)
+        return
+    # Bilerek `yaz_json` degil: o `insan_hiyerarsisi`yi cagirir
+    # ve marvel modellerindeki kuplu `waist`i bozar (yukaridaki
+    # aciklama).
+    with open(hedef, "w", encoding="utf-8") as f:
+        json.dump(veri, f, indent=2, ensure_ascii=False)
+        f.write("\n")
 
 
 def marvel_attachable(p):
@@ -11045,9 +11170,18 @@ def main():
     yaz_json(os.path.join(BP, "entities/player.json"),
              marvel_oyuncu_varligi())
 
-    # ---- MARVEL PROJECT (v5.2) ----
-    # 268 parca: 142 kostum, 85 maske, 41 guc. Geometri ve doku
-    # modun kendisinden; hicbiri yeniden cizilmedi.
+    # ---- MARVEL PROJECT (v5.2, genisletildi v7.73) ----
+    # 300 parca: 142 kostum, 90 maske, 47 guc, 21 ek. Geometri ve
+    # doku modun kendisinden; hicbiri yeniden cizilmedi.
+    #
+    # v7.73'te 268'den 300'e cikti. Eksik olan 32 parca gizli
+    # degildi -- `marvel_coz.py` etikete bakip siniflandiriyordu ve
+    # etiketi tanimadigi her parcayi SESSIZCE dusuruyordu
+    # (`tur = None -> continue`). Yuvaya gore siniflandirmaya
+    # gecince 6 gerçek guc (Agamotto, ark reaktoru, Mark 50
+    # reaktoru, Star-Lord jetleri, White Tiger tilsimi, Ms. Marvel
+    # kalkani) ve 21 ek parca (pelerin, kanat, katana...) ortaya
+    # cikti. Atlananlar artik `MARVEL_ATLANAN`da kayitli.
     _mrv_geo_yazildi = set()
     for _mp in MARVEL_PARCA:
         _mad = MARVEL_ONEK + _mp["kahraman"] + MARVEL_AYIRAC + _mp["anahtar"]
@@ -11062,8 +11196,7 @@ def main():
                 if os.path.exists(_mgk):
                     _mgh = os.path.join(RP, "models/entity/%s.geo.json"
                                         % _mp["geo"])
-                    os.makedirs(os.path.dirname(_mgh), exist_ok=True)
-                    shutil.copyfile(_mgk, _mgh)
+                    marvel_geo_yaz(_mgk, _mgh, _mp["geo"])
                     _mrv_geo_yazildi.add(_mp["geo"])
                 else:
                     print("UYARI: %s geometrisi yok (%s)" % (_mad, _mgk))

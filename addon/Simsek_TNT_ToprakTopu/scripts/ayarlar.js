@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.72.0";
+export const SURUM = "v7.73.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -8879,9 +8879,13 @@ export const MARVEL_GUCLER = new Map([
   /* ---- UCANLAR ---- kaynakta `<ad>_fly` etiketi var ---- */
   ["ironman", {
     ad: "Iron Man",
-    /* Bu kahramanin modda GUC ESYASI YOK -- gucu
-       kostumun kendisi tasiyor. Uydurma bir guc esyasi
-       uretmedik; calisma zamani kostume bakiyor.        */
+    /* v7.73: BU KAHRAMANIN BACAK GUC ESYASI VAR (`reactor_arc / reactor_mark50`).
+       Eskiden "modda guc esyasi yok" yaziyordu -- yanlisti:
+       esya moddaydi, `marvel_coz.py` etiketini tanimadigi icin
+       sessizce dusuyordu. `gucKostumden` yine de KALIYOR:
+       kostumu giyip bacagi bos birakan oyuncu bugune kadar
+       guc aliyordu, onu elinden almanin gerekcesi yok.
+       Bacak takiliysa zaten o kazaniyor.                  */
     gucKostumden: true, ozet: "UÇUŞ · UNIBEAM · ateş bağışıklığı · düşme hasarı yok",
     /* scripts/fly_system/ironman.js -> "ironman_fly"
        scripts/ironman/ironman_weapons.js -> unibeam/repulsor  */
@@ -8927,9 +8931,13 @@ export const MARVEL_GUCLER = new Map([
   ["dr_strange", {
     ad: "Doctor Strange",
     mekanikler: ["gecit"],
-    /* Bu kahramanin modda GUC ESYASI YOK -- gucu
-       kostumun kendisi tasiyor. Uydurma bir guc esyasi
-       uretmedik; calisma zamani kostume bakiyor.        */
+    /* v7.73: BU KAHRAMANIN BACAK GUC ESYASI VAR (`agamoto`).
+       Eskiden "modda guc esyasi yok" yaziyordu -- yanlisti:
+       esya moddaydi, `marvel_coz.py` etiketini tanimadigi icin
+       sessizce dusuyordu. `gucKostumden` yine de KALIYOR:
+       kostumu giyip bacagi bos birakan oyuncu bugune kadar
+       guc aliyordu, onu elinden almanin gerekcesi yok.
+       Bacak takiliysa zaten o kazaniyor.                  */
     gucKostumden: true, ozet: "UÇUŞ · gece görüşü · düşme hasarı yok",
     /* "dr_strange_fly", "dr_strange_wind"; portallar
        aktarilamadi (kendi varlik sistemi).                   */
@@ -8955,9 +8963,13 @@ export const MARVEL_GUCLER = new Map([
   ["starlord", {
     ad: "Star-Lord",
     mekanikler: ["sicrayis"],
-    /* Bu kahramanin modda GUC ESYASI YOK -- gucu
-       kostumun kendisi tasiyor. Uydurma bir guc esyasi
-       uretmedik; calisma zamani kostume bakiyor.        */
+    /* v7.73: BU KAHRAMANIN BACAK GUC ESYASI VAR (`starlord_boots_jets`).
+       Eskiden "modda guc esyasi yok" yaziyordu -- yanlisti:
+       esya moddaydi, `marvel_coz.py` etiketini tanimadigi icin
+       sessizce dusuyordu. `gucKostumden` yine de KALIYOR:
+       kostumu giyip bacagi bos birakan oyuncu bugune kadar
+       guc aliyordu, onu elinden almanin gerekcesi yok.
+       Bacak takiliysa zaten o kazaniyor.                  */
     gucKostumden: true, ozet: "UÇUŞ · su altında nefes · düşme hasarı yok",
     /* "starlord_fly", "starlord_skip"                        */
     yetenek: "ucus",
@@ -9114,9 +9126,13 @@ export const MARVEL_GUCLER = new Map([
   ["white_tiger", {
     ad: "White Tiger",
     mekanikler: ["tirmanma", "atilma"],
-    /* Bu kahramanin modda GUC ESYASI YOK -- gucu
-       kostumun kendisi tasiyor. Uydurma bir guc esyasi
-       uretmedik; calisma zamani kostume bakiyor.        */
+    /* v7.73: BU KAHRAMANIN BACAK GUC ESYASI VAR (`white_tiger_amulet`).
+       Eskiden "modda guc esyasi yok" yaziyordu -- yanlisti:
+       esya moddaydi, `marvel_coz.py` etiketini tanimadigi icin
+       sessizce dusuyordu. `gucKostumden` yine de KALIYOR:
+       kostumu giyip bacagi bos birakan oyuncu bugune kadar
+       guc aliyordu, onu elinden almanin gerekcesi yok.
+       Bacak takiliysa zaten o kazaniyor.                  */
     gucKostumden: true, ozet: "hız III · zıplama III · gece görüşü",
     /* "white_tiger_claws/climb/kick"                         */
     efektler: [["speed", 0, 2], ["jump_boost", 0, 2],
@@ -9212,9 +9228,13 @@ export const MARVEL_GUCLER = new Map([
   }],
   ["ms_marvel", {
     ad: "Ms. Marvel",
-    /* Bu kahramanin modda GUC ESYASI YOK -- gucu
-       kostumun kendisi tasiyor. Uydurma bir guc esyasi
-       uretmedik; calisma zamani kostume bakiyor.        */
+    /* v7.73: BU KAHRAMANIN BACAK GUC ESYASI VAR (`ms_marvel_protection`).
+       Eskiden "modda guc esyasi yok" yaziyordu -- yanlisti:
+       esya moddaydi, `marvel_coz.py` etiketini tanimadigi icin
+       sessizce dusuyordu. `gucKostumden` yine de KALIYOR:
+       kostumu giyip bacagi bos birakan oyuncu bugune kadar
+       guc aliyordu, onu elinden almanin gerekcesi yok.
+       Bacak takiliysa zaten o kazaniyor.                  */
     gucKostumden: true, ozet: "zıplama III · direnç II · düşme hasarı yok",
     efektler: [["jump_boost", 0, 2], ["resistance", 0, 1],
                ["slow_falling", 0, 0]]

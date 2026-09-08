@@ -85,19 +85,23 @@ console.log("=== 1. FISK GERCEKTEN GITTI MI ===");
           !/item\.pa:kahraman_/.test(tr));
 }
 
-console.log("=== 2. 268 PARCA, 54 KAHRAMAN ===");
+console.log("=== 2. 300 PARCA, 54 KAHRAMAN ===");
 {
-  kontrol("268 esya uretildi", parcalar.length === 268,
+  /* v7.73: 268 -> 300. Fark gizli bir parca degil, cikarici
+     hatasiydi: etiketi tanimadigi parcayi sessizce dusuruyordu.
+     Ayrintisi REFERANS_MARVEL.md ve marvel_coz.py yorumunda. */
+  kontrol("300 esya uretildi", parcalar.length === 300,
           parcalar.length + " esya");
-  const tur = { kostum: 0, maske: 0, guc: 0 };
+  const tur = { kostum: 0, maske: 0, guc: 0, ek: 0 };
   for (const p of parcalar) {
     for (const t of p.components["minecraft:tags"].tags) {
       const m = t.match(/^pa:marvel_(\w+)$/);
       if (m && tur[m[1]] !== undefined) tur[m[1]]++;
     }
   }
-  kontrol("142 kostum · 85 maske · 41 guc",
-          tur.kostum === 142 && tur.maske === 85 && tur.guc === 41,
+  kontrol("142 kostum · 90 maske · 47 guc · 21 ek",
+          tur.kostum === 142 && tur.maske === 90 &&
+          tur.guc === 47 && tur.ek === 21,
           JSON.stringify(tur));
 
   const kahramanlar = new Set();
@@ -132,7 +136,7 @@ console.log("=== 3. KIMLIK COZUMU ===");
   const cozulmeyen = parcalar
     .map((p) => p.description.identifier)
     .filter((k) => !mrv.kimligiCoz(k));
-  kontrol("268 kimligin hepsi cozuluyor", cozulmeyen.length === 0,
+  kontrol("300 kimligin hepsi cozuluyor", cozulmeyen.length === 0,
           cozulmeyen.slice(0, 3).join(" | "));
 }
 
@@ -393,7 +397,7 @@ console.log("=== 7. GORUNUS ZINCIRI ===");
       kopuk.push(f + " ozel render controller (v4.28: gorunmez olur)");
     }
   }
-  kontrol("227 kostum/maske attachable'i var", attSayisi === 227,
+  kontrol("253 kostum/maske/ek attachable'i var", attSayisi === 253,
           attSayisi + " attachable");
   kontrol("attachable -> geometri -> doku zinciri saglam",
           kopuk.length === 0, kopuk.slice(0, 4).join(" | "));
@@ -412,7 +416,7 @@ console.log("=== 7. GORUNUS ZINCIRI ===");
   const ikonsuz = parcalar
     .map((p) => p.description.identifier.replace("pa:", ""))
     .filter((a) => !atlas[a] || !existsSync(RP + "/textures/item/" + a + ".png"));
-  kontrol("268 esyanin hepsinin ikonu ve atlas kaydi var",
+  kontrol("300 esyanin hepsinin ikonu ve atlas kaydi var",
           ikonsuz.length === 0, ikonsuz.slice(0, 4).join(" | "));
 
   /* Kemik adlari: attachable oyuncunun kemiklerine BAGLANIR.
@@ -444,7 +448,89 @@ console.log("=== 7. GORUNUS ZINCIRI ===");
           gercektenYabanci.map((x) => x.join("x")).join(", "));
 }
 
-console.log("=== 8. DEFTER TEMIZLIGI ===");
+console.log("=== 8. KEMIK ONARIMI (v7.73) ===");
+{
+  /* Bes "donusum" modeli butun kemiklerini ekli adlandirmisti
+     (root_p / root_groot / root_shark / root_mole). Zirh
+     attachable'inda bir kemik yalniz AYNI ADLI oyuncu kemigini
+     takip eder, yani bunlar heykel gibi durur, yurumez,
+     kollarini sallamazdi. `marvel_kemik_onar` vanillaya
+     ceviriyor.                                              */
+  const DONUSUM = ["mrv_galacta", "mrv_galactus_player", "mrv_groot",
+                   "mrv_mole"];
+  const eksik = [];
+  for (const ad of DONUSUM) {
+    const g = oku(RP + "/models/entity/" + ad + ".geo.json")["minecraft:geometry"][0];
+    const k = new Map(g.bones.map((b) => [b.name, b]));
+    for (const u of ["root", "body", "head", "rightArm", "leftArm",
+                     "rightLeg", "leftLeg"]) {
+      if (!k.has(u)) eksik.push(ad + " -> " + u);
+    }
+  }
+  kontrol("donusum modelleri vanilla uzuv adlarina cevrildi",
+          eksik.length === 0, eksik.join(", "));
+
+  /* TARAF TUZAGI. Mole Man'in IKI kolu da kaynakta
+     `rightArm_mole` / `rightArm_mole2` adini tasiyor -- adin
+     yarisi yanlis. Ada bakip duz ek atsaydik sag/sol ters
+     baglanir, kollar yururken ters yone sallanirdi. Onarici
+     taraf secimini PIVOTA gore yapiyor. Olculen vanilla kural
+     (mrv_janet, mrv_antman_suit, mrv_deadpool_katanas hepsinde
+     ayni): right* negatif x, left* pozitif x.               */
+  const ters = [];
+  for (const f of readdirSync(RP + "/models/entity")) {
+    if (!f.startsWith("mrv_")) continue;
+    const g = oku(RP + "/models/entity/" + f)["minecraft:geometry"][0];
+    for (const b of g.bones) {
+      if (!/^(right|left)(Arm|Leg)$/.test(b.name)) continue;
+      const x = (b.pivot || [0, 0, 0])[0];
+      if (x === 0) continue;                 /* ortada: belirsiz */
+      if (b.name.startsWith("right") ? x > 0 : x < 0) {
+        ters.push(f + ":" + b.name + " x=" + x);
+      }
+    }
+  }
+  kontrol("hicbir modelde sag/sol ters baglanmamis",
+          ters.length === 0, ters.slice(0, 4).join(", "));
+
+  /* Vanilla adli hicbir uzuv ebeveynsiz kalmamali:
+     mrv_deadpool_katanas'ta `rightLeg`in ebeveyni yoktu.     */
+  const oksuz = [];
+  for (const f of readdirSync(RP + "/models/entity")) {
+    if (!f.startsWith("mrv_")) continue;
+    const g = oku(RP + "/models/entity/" + f)["minecraft:geometry"][0];
+    const adlar = new Set(g.bones.map((b) => b.name));
+    if (!adlar.has("root")) continue;
+    for (const b of g.bones) {
+      if (b.name === "root" || b.parent) continue;
+      if (/^(body|head|waist|rightArm|leftArm|rightLeg|leftLeg)$/.test(b.name)) {
+        oksuz.push(f + ":" + b.name);
+      }
+    }
+  }
+  kontrol("vanilla uzuvlarin hepsinin ebeveyni var",
+          oksuz.length === 0, oksuz.join(", "));
+
+  /* GERILEME KORUMASI. Marvel geometrileri BILEREK `yaz_json`
+     yolundan gecmiyor: oradaki `insan_hiyerarsisi` kuplu bir
+     `waist`i "cakisan kemik" sayip `waist_ic` diye yeniden
+     adlandiriyor. 208 marvel modelinin uzerinde kuru
+     calistirildi: 70'inde tetikleniyordu, yani bugun DOGRU
+     duran modelleri bozacakti. Boyle bir ad ciktiginda genel
+     onarici marvel yoluna sizmis demektir.                  */
+  const sizinti = [];
+  for (const f of readdirSync(RP + "/models/entity")) {
+    if (!f.startsWith("mrv_")) continue;
+    const g = oku(RP + "/models/entity/" + f)["minecraft:geometry"][0];
+    for (const b of g.bones) {
+      if (/_ic(_ic)*$/.test(b.name)) sizinti.push(f + ":" + b.name);
+    }
+  }
+  kontrol("genel insan onaricisi marvel modellerine dokunmuyor",
+          sizinti.length === 0, sizinti.slice(0, 4).join(", "));
+}
+
+console.log("=== 9. DEFTER TEMIZLIGI ===");
 {
   const { o } = kur();
   tak(o, "Legs", "thor", "thor_powers");

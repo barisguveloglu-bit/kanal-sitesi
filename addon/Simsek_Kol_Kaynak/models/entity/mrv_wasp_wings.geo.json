@@ -1,0 +1,287 @@
+{
+ "format_version": "1.12.0",
+ "minecraft:geometry": [
+  {
+   "description": {
+    "identifier": "geometry.mrv_wasp_wings",
+    "texture_width": 64,
+    "texture_height": 64,
+    "visible_bounds_width": 4,
+    "visible_bounds_height": 3.5,
+    "visible_bounds_offset": [
+     0,
+     1.25,
+     0
+    ]
+   },
+   "bones": [
+    {
+     "name": "root",
+     "pivot": [
+      0,
+      0,
+      0
+     ]
+    },
+    {
+     "name": "waist",
+     "parent": "root",
+     "pivot": [
+      0,
+      12,
+      0
+     ]
+    },
+    {
+     "name": "body",
+     "parent": "waist",
+     "pivot": [
+      0,
+      24,
+      0
+     ]
+    },
+    {
+     "name": "wing0",
+     "parent": "body",
+     "pivot": [
+      0,
+      22,
+      2.5
+     ],
+     "rotation": [
+      0,
+      -7.5,
+      -20
+     ],
+     "cubes": [
+      {
+       "origin": [
+        0,
+        18.5,
+        1.65
+       ],
+       "size": [
+        24,
+        5,
+        1
+       ],
+       "inflate": -0.4,
+       "uv": [
+        0,
+        6
+       ]
+      },
+      {
+       "origin": [
+        0,
+        18.5,
+        1.9
+       ],
+       "size": [
+        24,
+        5,
+        1
+       ],
+       "inflate": -0.4,
+       "pivot": [
+        12,
+        21,
+        2.15
+       ],
+       "rotation": [
+        0,
+        180,
+        0
+       ],
+       "uv": [
+        0,
+        6
+       ]
+      }
+     ]
+    },
+    {
+     "name": "wing2",
+     "parent": "body",
+     "pivot": [
+      0,
+      20,
+      2.5
+     ],
+     "rotation": [
+      0,
+      -7.5,
+      32.5
+     ],
+     "cubes": [
+      {
+       "origin": [
+        0,
+        16.5,
+        1.65
+       ],
+       "size": [
+        16,
+        5,
+        1
+       ],
+       "inflate": -0.4,
+       "uv": [
+        0,
+        18
+       ]
+      },
+      {
+       "origin": [
+        0,
+        16.5,
+        1.9
+       ],
+       "size": [
+        16,
+        5,
+        1
+       ],
+       "inflate": -0.4,
+       "pivot": [
+        8,
+        19,
+        2.15
+       ],
+       "rotation": [
+        0,
+        180,
+        0
+       ],
+       "uv": [
+        0,
+        18
+       ]
+      }
+     ]
+    },
+    {
+     "name": "wing1",
+     "parent": "body",
+     "pivot": [
+      0,
+      22,
+      2.5
+     ],
+     "rotation": [
+      0,
+      7.5,
+      20
+     ],
+     "cubes": [
+      {
+       "origin": [
+        -24,
+        18.5,
+        1.65
+       ],
+       "size": [
+        24,
+        5,
+        1
+       ],
+       "inflate": -0.4,
+       "uv": [
+        0,
+        0
+       ]
+      },
+      {
+       "origin": [
+        -24,
+        18.5,
+        1.9
+       ],
+       "size": [
+        24,
+        5,
+        1
+       ],
+       "inflate": -0.4,
+       "pivot": [
+        -12,
+        21,
+        2.15
+       ],
+       "rotation": [
+        0,
+        180,
+        0
+       ],
+       "uv": [
+        0,
+        0
+       ]
+      }
+     ]
+    },
+    {
+     "name": "wing3",
+     "parent": "body",
+     "pivot": [
+      0,
+      20,
+      2.5
+     ],
+     "rotation": [
+      0,
+      7.5,
+      -32.5
+     ],
+     "cubes": [
+      {
+       "origin": [
+        -16,
+        16.5,
+        1.65
+       ],
+       "size": [
+        16,
+        5,
+        1
+       ],
+       "inflate": -0.4,
+       "uv": [
+        0,
+        12
+       ]
+      },
+      {
+       "origin": [
+        -16,
+        16.5,
+        1.9
+       ],
+       "size": [
+        16,
+        5,
+        1
+       ],
+       "inflate": -0.4,
+       "pivot": [
+        -8,
+        19,
+        2.15
+       ],
+       "rotation": [
+        0,
+        180,
+        0
+       ],
+       "uv": [
+        0,
+        12
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

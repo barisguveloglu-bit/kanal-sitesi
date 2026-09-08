@@ -24,9 +24,26 @@ modun kendisi depoda degil. Cikarma BIR KEZ yapilir, sonucu
 depoya girer; uretim ondan sonra moda hic bakmaz.
 (kaynak_doku/kahraman_coz.py ile ayni gerekce.)
 
----- NE ALINIYOR ----
-Yalniz `suit` ve `mask` etiketli GIYILEBILIR esyalar. Silahlar,
-makineler, bloklar, NPC'ler, arac ve efsane esyalari ALINMIYOR.
+---- NE ALINIYOR  (v7.73'te GENISLETILDI) ----
+GIYILEBILIR ve CIZILEBILIR olan HER esya. Silahlar, makineler,
+bloklar, NPC'ler, arac ve efsane esyalari ALINMIYOR.
+
+v5.2'de kural yalniz `suit` ve `mask` ETIKETIYDI ve bu 37
+esyayi SESSIZCE dusuruyordu -- ustelik iclerinde gercek
+yetenekler vardi: starlord_boots_jets (`fly_system`),
+white_tiger_amulet (`white_tiger_powers`), reactor_mark50,
+agamoto. Ayrica butun donusumler (hulk_transform,
+venom_transform, vision, rogue, groot_skin...) ve kanatlar
+(wasp_wings, falcon_wings, web_wings) disarida kaliyordu.
+
+Kullanicinin istegi zaten "tum kahramanlarin yeteneklerini
+alabildigin kadar al" idi; etiket kurali onu tutmuyordu.
+
+---- ATLAMA ARTIK SESSIZ DEGIL ----
+v5.2'de siniflandirmaya uymayan esya `continue` ile atiliyor ve
+HICBIR YERE yazilmiyordu. MARVEL_ATLANAN'da yalnizca iki kayit
+vardi, oysa 39 esya dusmustu. Artik her atlamanin SEBEBI
+yaziliyor -- "eksik olduğunu rapor et" kurali.
 
 ---- NE ALINAMIYOR (gizlenmedi) ----
 Modun attachable'lari kendi varlik ozelliklerine bakiyor
@@ -163,15 +180,26 @@ def coz(kaynak):
                 continue
             etiket = (c.get("minecraft:tags") or {}).get("tags", [])
             kid0 = it["description"]["identifier"]
-            # GUC esyalari: modun kendi kalibi -- kahraman basina
-            # bir tane, bacak yuvasinda, adi "<kahraman>_powers".
-            # Gorunusu yok (ikon disinda); tasidigi sey YETENEK.
-            guc = kid0.endswith("_powers")
-            tur = ("guc" if guc
-                   else "kostum" if "suit" in etiket
-                   else "maske" if "mask" in etiket else None)
-            if tur is None:
-                continue
+            yuva0 = w.get("slot") or ""
+            # ---- SINIFLANDIRMA  (v7.73'te genisletildi) ----
+            # GUC: modun kendi kalibi -- BACAK yuvasi. Adi
+            # "<kahraman>_powers" olanlar acik ornegi, ama
+            # ayni yuvada baska yetenek tasiyicilari da var
+            # (agamoto, reactor_mark50, starlord_boots_jets,
+            # white_tiger_amulet, ms_marvel_protection).
+            # Yuvaya bakmak ada bakmaktan saglam.
+            if kid0.endswith("_powers") or yuva0 == "slot.armor.legs":
+                tur = "guc"
+            elif "suit" in etiket:
+                tur = "kostum"
+            elif "mask" in etiket or "mask" in kid0.split(":")[-1]:
+                tur = "maske"
+            else:
+                # Geri kalan giyilebilirler: donusumler
+                # (convert_entity / special_skin), kanatlar,
+                # pelerinler, kollar. v5.2'de bunlar SESSIZCE
+                # dusuyordu; artik "ek" olarak aliniyorlar.
+                tur = "ek"
             kid = it["description"]["identifier"]
             anahtar = kid.split(":")[-1]
             klasor = os.path.relpath(y, os.path.join(bp, "items")).split(os.sep)[0]

@@ -272,6 +272,9 @@
     "mrv_adam_warlock__adam_warlock_powers": {
       "textures": "textures/item/mrv_adam_warlock__adam_warlock_powers"
     },
+    "mrv_antman__wasp_wings": {
+      "textures": "textures/item/mrv_antman__wasp_wings"
+    },
     "mrv_antman__antman_powers": {
       "textures": "textures/item/mrv_antman__antman_powers"
     },
@@ -317,11 +320,17 @@
     "mrv_antman__quantum_mask": {
       "textures": "textures/item/mrv_antman__quantum_mask"
     },
+    "mrv_antman__wasp_emh_mask": {
+      "textures": "textures/item/mrv_antman__wasp_emh_mask"
+    },
     "mrv_antman__wasp_mask": {
       "textures": "textures/item/mrv_antman__wasp_mask"
     },
     "mrv_antman__wasp_quantumania_mask": {
       "textures": "textures/item/mrv_antman__wasp_quantumania_mask"
+    },
+    "mrv_black_panther__black_panther_cape": {
+      "textures": "textures/item/mrv_black_panther__black_panther_cape"
     },
     "mrv_black_panther__black_panther_powers": {
       "textures": "textures/item/mrv_black_panther__black_panther_powers"
@@ -355,6 +364,9 @@
     },
     "mrv_black_panther__black_panther_shuri_mask": {
       "textures": "textures/item/mrv_black_panther__black_panther_shuri_mask"
+    },
+    "mrv_black_widow__black_widow_skin": {
+      "textures": "textures/item/mrv_black_widow__black_widow_skin"
     },
     "mrv_black_widow__black_widow_powers": {
       "textures": "textures/item/mrv_black_widow__black_widow_powers"
@@ -515,6 +527,9 @@
     "mrv_daredevil__daredevil_yfns_mask": {
       "textures": "textures/item/mrv_daredevil__daredevil_yfns_mask"
     },
+    "mrv_deadpool__deadpool_katanas": {
+      "textures": "textures/item/mrv_deadpool__deadpool_katanas"
+    },
     "mrv_deadpool__deadpool_powers": {
       "textures": "textures/item/mrv_deadpool__deadpool_powers"
     },
@@ -545,17 +560,26 @@
     "mrv_dr_doom__dr_doom_mask": {
       "textures": "textures/item/mrv_dr_doom__dr_doom_mask"
     },
+    "mrv_dr_strange__agamoto": {
+      "textures": "textures/item/mrv_dr_strange__agamoto"
+    },
     "mrv_dr_strange__dr_strange_cape": {
       "textures": "textures/item/mrv_dr_strange__dr_strange_cape"
     },
     "mrv_dr_strange__dr_strange_suit": {
       "textures": "textures/item/mrv_dr_strange__dr_strange_suit"
     },
+    "mrv_falcon__falcon_wings": {
+      "textures": "textures/item/mrv_falcon__falcon_wings"
+    },
     "mrv_falcon__falcon_suit": {
       "textures": "textures/item/mrv_falcon__falcon_suit"
     },
     "mrv_falcon__falcon_glasses": {
       "textures": "textures/item/mrv_falcon__falcon_glasses"
+    },
+    "mrv_fantastic_4__mole": {
+      "textures": "textures/item/mrv_fantastic_4__mole"
     },
     "mrv_fantastic_4__fantastic_4_2005_suit": {
       "textures": "textures/item/mrv_fantastic_4__fantastic_4_2005_suit"
@@ -583,6 +607,12 @@
     },
     "mrv_fantastic_4__fantastic_4_suit": {
       "textures": "textures/item/mrv_fantastic_4__fantastic_4_suit"
+    },
+    "mrv_galactus__galacta_player": {
+      "textures": "textures/item/mrv_galactus__galacta_player"
+    },
+    "mrv_galactus__galactus_player": {
+      "textures": "textures/item/mrv_galactus__galactus_player"
     },
     "mrv_galactus__galactus_powers": {
       "textures": "textures/item/mrv_galactus__galactus_powers"
@@ -629,8 +659,26 @@
     "mrv_groot__groot_powers": {
       "textures": "textures/item/mrv_groot__groot_powers"
     },
+    "mrv_guardians__adam_warlock": {
+      "textures": "textures/item/mrv_guardians__adam_warlock"
+    },
+    "mrv_guardians__groot_skin": {
+      "textures": "textures/item/mrv_guardians__groot_skin"
+    },
+    "mrv_guardians__rocket_raccoon_skin": {
+      "textures": "textures/item/mrv_guardians__rocket_raccoon_skin"
+    },
+    "mrv_guardians__vision": {
+      "textures": "textures/item/mrv_guardians__vision"
+    },
     "mrv_guardians__guardians_suit": {
       "textures": "textures/item/mrv_guardians__guardians_suit"
+    },
+    "mrv_gwenpool__gwenpool": {
+      "textures": "textures/item/mrv_gwenpool__gwenpool"
+    },
+    "mrv_gwenpool__jeff_the_land_shark_skin": {
+      "textures": "textures/item/mrv_gwenpool__jeff_the_land_shark_skin"
     },
     "mrv_gwenpool__gwenpool_powers": {
       "textures": "textures/item/mrv_gwenpool__gwenpool_powers"
@@ -689,6 +737,15 @@
     "mrv_iron_fist__iron_fist_rivals_mask": {
       "textures": "textures/item/mrv_iron_fist__iron_fist_rivals_mask"
     },
+    "mrv_ironman__nano_tech_arsenal": {
+      "textures": "textures/item/mrv_ironman__nano_tech_arsenal"
+    },
+    "mrv_ironman__reactor_arc": {
+      "textures": "textures/item/mrv_ironman__reactor_arc"
+    },
+    "mrv_ironman__reactor_mark50": {
+      "textures": "textures/item/mrv_ironman__reactor_mark50"
+    },
     "mrv_ironman__ironman_avengers": {
       "textures": "textures/item/mrv_ironman__ironman_avengers"
     },
@@ -745,6 +802,9 @@
     },
     "mrv_luke_cage__luke_cage_suit": {
       "textures": "textures/item/mrv_luke_cage__luke_cage_suit"
+    },
+    "mrv_mantis__mantis": {
+      "textures": "textures/item/mrv_mantis__mantis"
     },
     "mrv_mantis__mantis_powers": {
       "textures": "textures/item/mrv_mantis__mantis_powers"
@@ -806,6 +866,9 @@
     "mrv_moon_knight__western_moon_knight_mask": {
       "textures": "textures/item/mrv_moon_knight__western_moon_knight_mask"
     },
+    "mrv_ms_marvel__ms_marvel_protection": {
+      "textures": "textures/item/mrv_ms_marvel__ms_marvel_protection"
+    },
     "mrv_ms_marvel__ms_marvel_suit": {
       "textures": "textures/item/mrv_ms_marvel__ms_marvel_suit"
     },
@@ -851,11 +914,17 @@
     "mrv_rocket_raccoon__rocket_raccoon_powers": {
       "textures": "textures/item/mrv_rocket_raccoon__rocket_raccoon_powers"
     },
+    "mrv_rogue__rogue": {
+      "textures": "textures/item/mrv_rogue__rogue"
+    },
     "mrv_rogue__rogue_powers": {
       "textures": "textures/item/mrv_rogue__rogue_powers"
     },
     "mrv_rogue__rogue_suit": {
       "textures": "textures/item/mrv_rogue__rogue_suit"
+    },
+    "mrv_scarlet_witch__scarlet_witch_tiara": {
+      "textures": "textures/item/mrv_scarlet_witch__scarlet_witch_tiara"
     },
     "mrv_scarlet_witch__scarlet_witch_powers": {
       "textures": "textures/item/mrv_scarlet_witch__scarlet_witch_powers"
@@ -865,6 +934,9 @@
     },
     "mrv_scarlet_witch__scarlet_witch_suit": {
       "textures": "textures/item/mrv_scarlet_witch__scarlet_witch_suit"
+    },
+    "mrv_scarlet_witch__scarlet_witch_mom_mask": {
+      "textures": "textures/item/mrv_scarlet_witch__scarlet_witch_mom_mask"
     },
     "mrv_sentry__sentry_powers": {
       "textures": "textures/item/mrv_sentry__sentry_powers"
@@ -886,6 +958,9 @@
     },
     "mrv_silver_surfer__silver_surfer": {
       "textures": "textures/item/mrv_silver_surfer__silver_surfer"
+    },
+    "mrv_spiderman__iron_arms": {
+      "textures": "textures/item/mrv_spiderman__iron_arms"
     },
     "mrv_spiderman__spiderman_powers": {
       "textures": "textures/item/mrv_spiderman__spiderman_powers"
@@ -962,6 +1037,9 @@
     "mrv_spiderman__ultimate_spiderman_ucm_mask": {
       "textures": "textures/item/mrv_spiderman__ultimate_spiderman_ucm_mask"
     },
+    "mrv_squirrel_girl__squirrel_girl": {
+      "textures": "textures/item/mrv_squirrel_girl__squirrel_girl"
+    },
     "mrv_squirrel_girl__squirrel_girl_powers": {
       "textures": "textures/item/mrv_squirrel_girl__squirrel_girl_powers"
     },
@@ -970,6 +1048,9 @@
     },
     "mrv_squirrel_girl__squirrel_girl_ears": {
       "textures": "textures/item/mrv_squirrel_girl__squirrel_girl_ears"
+    },
+    "mrv_starlord__starlord_boots_jets": {
+      "textures": "textures/item/mrv_starlord__starlord_boots_jets"
     },
     "mrv_starlord__starlord_suit": {
       "textures": "textures/item/mrv_starlord__starlord_suit"
@@ -988,6 +1069,9 @@
     },
     "mrv_taskmaster__taskmaster_mask": {
       "textures": "textures/item/mrv_taskmaster__taskmaster_mask"
+    },
+    "mrv_thanos__thanos_skin": {
+      "textures": "textures/item/mrv_thanos__thanos_skin"
     },
     "mrv_thanos__thanos_powers": {
       "textures": "textures/item/mrv_thanos__thanos_powers"
@@ -1034,6 +1118,9 @@
     "mrv_vision__vision_powers": {
       "textures": "textures/item/mrv_vision__vision_powers"
     },
+    "mrv_white_tiger__white_tiger_amulet": {
+      "textures": "textures/item/mrv_white_tiger__white_tiger_amulet"
+    },
     "mrv_white_tiger__white_tiger_hector_suit": {
       "textures": "textures/item/mrv_white_tiger__white_tiger_hector_suit"
     },
@@ -1057,6 +1144,15 @@
     },
     "mrv_winter_soldier__winter_soldier_suit": {
       "textures": "textures/item/mrv_winter_soldier__winter_soldier_suit"
+    },
+    "mrv_winter_soldier__winter_soldier_full_mask": {
+      "textures": "textures/item/mrv_winter_soldier__winter_soldier_full_mask"
+    },
+    "mrv_winter_soldier__winter_soldier_mask": {
+      "textures": "textures/item/mrv_winter_soldier__winter_soldier_mask"
+    },
+    "mrv_winter_soldier__winter_soldier_rivals_mask": {
+      "textures": "textures/item/mrv_winter_soldier__winter_soldier_rivals_mask"
     },
     "mrv_wolverine__wolverine_powers": {
       "textures": "textures/item/mrv_wolverine__wolverine_powers"
