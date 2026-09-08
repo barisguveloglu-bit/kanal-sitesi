@@ -10,6 +10,7 @@ import {
   METEOR_ATES, METEOR_YUKSEK, METEOR_INIS, METEOR_TAVAN,
   PARCACIK_PATLAMA, SARSINTI_PATLAMA, SARSINTI_SURE
 } from "../ayarlar.js";
+import { carpikGuc } from "./carpik_guc.js";
 
 /* YILDIRIM METEORU -- baktigin noktaya gokten meteor yagar.
 
@@ -75,7 +76,7 @@ yetenekKaydet({
         }
       }
       try {
-        boyut.createExplosion(yer, METEOR_GUC, {
+        boyut.createExplosion(yer, carpikGuc(oyuncu.id, "meteor", METEOR_GUC), {
           breaksBlocks: true, causesFire: METEOR_ATES, allowUnderwater: true
         });
       } catch (e) {

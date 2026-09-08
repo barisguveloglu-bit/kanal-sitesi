@@ -1,99 +1,92 @@
-# v7.67.0 — Çarpık Hal
+# v7.68.0 — Çarpık Hal: iki kademeli titreme + güç çarpanı
 
-Kullanıcı: *"benim skinin renklerini tam terse çevirelim, tam tersi
-çevirdikten sonra bir tane sırıtış ekleyelim, yeni bir form olduğu
-için böyle yapmak istedim."* Titremenin şiddetini bize bıraktı.
+Kullanıcı: *"o forma geçtiğim zaman kollar normalden iki kat daha güçlü
+olsun, mesela güçlü TNT var ya, onun iki katını düşün. Ayrıca forma
+dönüşürken titreme daha çok olsun, forma dönüştükten sonra titremeler
+az olsun."*
 
-Önce araştırma istedi: *"çarpılmış halimi yapmadan önce Distorted
-Alex'in tüm bulabildiğin kaynaklarda araştırma yapmanı istiyorum,
-hikayesini okumanı istiyorum."*
+## Titreme artık iki kademeli
 
-## Araştırma
+v7.67'de tek kademeydi: sürekli ±1,5°. Giriş anı yoktu.
 
-Fandom sayfaları normal yoldan **402** verdi; metinler wiki'nin kendi
-API'sinden alındı (`action=parse&prop=wikitext`) — yani özet değil ham
-kaynak. İngilizce sayfa, Türkçe çevirisi, sayfadaki iki ekran
-görüntüsü okundu. Crazy Alex / Dark Alex / NameAlex de açıldı ve
-**ayrı varlıklar** oldukları doğrulandı; karıştırılmadı.
+**Ayrı bir giriş animasyonu ve denetleyici yazılmadı.** Kılık varlığı
+dönüşüm anında **doğuyor**, yani `query.life_time` tam o anda 0'dan
+başlıyor. Genlik bunun fonksiyonu:
 
-Tamamı `LORE.md` **EK-B**'de — EK-A ile aynı kural: canon değil,
-siteye çıkmıyor, `data.js`'e yansıtılmıyor.
+```
+genlik = OTURMUS + (GIRIS - OTURMUS) * math.clamp(1 - life_time/SURE, 0, 1)
+```
 
-Kaynağın varlık tarifi tek cümle: *"She is the default female skin,
-Alex. She has a big, distorted grin."* Kanonik tek ayırt edici şey
-**sırıtış**. Devasa değil, koşmuyor, saldırmıyor, konuşmuyor.
+| an | gövde | kafa |
+|---|---|---|
+| doğuş | **±9°** | ±15° |
+| 0,75 sn | ±5,25° | — |
+| 1,5 sn ve sonrası | ±1,5° | ±2,5° |
 
-Ayrıca bir **tutarsızlık** bulundu: seed EN'de 19 haneli, TR'de 17
-haneli yazılmış (`98` düşmüş). İkisi de doğrulanmış değil.
+Tek animasyon, denetleyici yok, ek dosya yok. Ve **titreme durmuyor** —
+"sürekli titresin" şartı bozulmadı, sadece kademesi düştü.
 
-## Ölçüm: kullanıcının skini zaten yarı yolda
+`math.clamp` şart: olmasaydı süre dolduktan sonra genlik eksiye düşer,
+`math.random` ters aralığa girerdi. Test bunu ayrı madde olarak tutuyor.
 
-64×64, 43 renk, 1671 opak piksel. **Kol üst yüzü 3 piksel → ince
-(Alex) modeli.** Distorted Alex de Alex skini olduğu için denk düştü,
-ama bu seçim değil ölçüm.
+## Güç çarpanı
 
-Yüzünde gözler hizasında siyah bir bant, altında geniş açık renkli bir
-ağız bandı vardı. Ters çevrilince siyah bant **beyaz boşluğa**, ağız
-bandı **koyu çizgiye** dönüyor — yani sırıtışı çizmek için en okunur
-zemin kendiliğinden oluşuyor.
+`CARPIK_GUC_CARPANI = 2`, tek yerde. Her yeteneğin içine ayrı yazılsaydı
+biri 2'yi 3 yapar, ötekiler 2'de kalırdı.
 
-## Sırıtış üç aday arasından seçildi
+**Herkese uygulanmıyor, adı yazılı dört yeteneğe uygulanıyor.** "Bütün
+yetenekler iki kat" ölçülemeyen bir vaat: 222 yeteneğin çoğunun sayısal
+bir gücü yok (menü açan, kılık giren, eşya veren). Liste
+`CARPIK_GUC_YETENEKLER`'de:
 
-Üç plan çizilip yan yana bakıldı:
+| yetenek | normal | Çarpık |
+|---|---|---|
+| `toprak_topu` | 4 | **8** |
+| `guclu_tnt` | 8 | **16** |
+| `meteor` | 5 | **10** |
+| `isin_topu` | 4 | **8** |
 
-| aday | sonuç |
-|---|---|
-| **A** — uçlar y5'te kalkık, y6 gövde, y7 daralan | **seçilen**: kavis okunuyor, gözler okunur kalıyor |
-| B — y6 ve y7 tam genişlik | siyah blok, kavis kayboldu |
-| C — y6 tam genişlik + y7 sadece uçlar | düz çizgi, zayıf |
-| A2 — uçlar y4'e çıkarılmış | gözleri yutuyor |
+Karşılaştırma için vanilla TNT = 4.
 
-## Titreme — kaynakta yok, bilerek ince
+**Bütçeye dokunmuyor:** değişen patlamanın *gücü*, *sayısı* değil.
+`patlamaIste()` yine aynı sayıda patlama istiyor, v7.62 bütçe kapısı
+aynen geçerli.
 
-Dürüst cevap: **hikâyede titreme yok.** Distorted Alex hareketsiz
-duruyor, çatıda bekliyor, fark edilince kayboluyor; metinde tek bir
-hareket ya da ses geçmiyor.
+O Şey kılığında çarpan **uygulanmıyor** — güç Çarpık forma ait.
 
-Sürekli ama ince: ±1,5° gövde/uzuvlar, ±2,5° kafa, ±0,15 blok kayma.
-Şiddetli bir sarsıntı karakteri "glitch"e çevirirdi ve kaynağın ruhuna
-— az ve yanlış olmak — ters düşerdi.
+## Yazarken gerçek bir hata çıktı
 
-`math.random` kullanılıyor, `math.sin` değil: sinüs düzenli bir
-sallanma verirdi, "bozuk" değil "dans ediyor" gibi görünürdü. Depoda
-`math.random` **ilk kez** burada kullanılıyor.
+İlk yazılışta `toprak_topu.js`'te doğrudan `oyuncu.id` yazdım. O
+fonksiyon (`patlat`) modül düzeyinde ve **`oyuncu` orada kapsamda
+değil** — çalışma anında `ReferenceError` atardı ve toprak topu hiç
+patlamazdı.
 
-## Yapı
+`patlat(boyut, poz, atanId)` oldu. Botlar da bu fonksiyonu kullanıyor;
+onların kimliği Çarpık defterinde olmadığı için çarpan kendiliğinden 1
+kalıyor.
 
-Doku **her üretimde kaynak skinden yeniden hesaplanıyor**; depoda
-türev tutulmuyor, kaynak tutuluyor (`kaynak_doku/carpik_kaynak.png`).
-Kullanıcı skinini değiştirirse çarpık hal kendiliğinden takip eder.
-
-Kılık mantığı **kopyalanmadı**: `donusum.js` tek bir parametre aldı
-(kılık kimliği, varsayılan `SEY_KILIK_KIMLIK`). Kopyalansaydı
-hizalama, temizlik, kalıcılık ve çıkış mantığı iki yerde dururdu.
-
-## Yedinci kez aynı tuzak
-
-Üreteçteki temizlik adımı `beklenen` listesinde olmayan her dokuyu
-siliyor. `carpik.png` üretildi, aynı koşuda silindi, yalnız OMP
-kopyası kaldı. `kol_uret.py`'deki yorum "aynı tuzak altıncı kez"
-diyordu — bu yedincisi. Not güncellendi.
+`isin_topu.js`'te de aynısı vardı, kapanışta `oyuncuId` mevcuttu, ona
+çevrildi. `meteor.js`'te `patlat` zaten `olustur(oyuncu)` içinde
+tanımlı, sorun yoktu.
 
 ## Test
 
-`carpik.mjs` — 30 madde. En önemlisi **dokunun gerçekten ters
-olduğu**: kaynak ile türev piksel piksel karşılaştırılıyor.
-Ölçüm: `ters=1659  ayni=0  saydam_korundu=2425  sirit_siyah=12/12`.
+`carpik.mjs` iki yeni bölümle 30 → 45 madde.
 
-"Kaynakla aynı kalan piksel yok" maddesi asıl koruma: üreteç bozulup
-kaynağı kopyalasaydı form "çarpık" değil "aynı skin" olurdu ve
-hiçbir görsel test bunu fark etmezdi.
+Titreme testi Molang'ı **metin olarak taramıyor, değerlendiriyor**:
+ifade JS'e çevrilip `life_time = 0`, `0.75`, `99` için hesaplanıyor.
+Metinde "6" görmek genliğin altı kat olduğunu kanıtlamaz.
 
-**11 mutasyon denendi, 10'u yakalandı.** Kaçan ve neden kaçtığı test
-dosyasına yazıldı: saydam piksellerin RGB'sini de ters çevirmek alfayı
-değiştirmiyor, yani davranışı koruyan bir mutasyon.
+Güç testi hem çarpanı hem **bağlantıyı** sınıyor: ayarda listede olup
+kodda çağrılmamış olabilirdi.
 
-Mutasyon bataryası **gerçek bir test zayıflığı** buldu: `donus()`
-parametreyi yoksayıp hep O Şey doğursa bile test yeşil yanıyordu,
-çünkü deftere yazılan alanı ölçüyordum. Artık **doğan varlığın
-typeId'si** ölçülüyor.
+**8 mutasyon denendi, 8'i de yakalandı:** giriş kademesi kaldırıldı ·
+genlik sabitlendi · clamp kaldırıldı · çarpan 1 yapıldı · liste
+denetimi kaldırıldı · form denetimi kaldırıldı · O Şey kılığı da güç
+aldı · `guclu_tnt` çarpanı çağırmadı.
+
+## Kodda henüz olmayan şey
+
+Hikâyedeki *"yeteneklerini asla saklamıyor"* kusuru **yazılmadı**.
+Güç geldi ama bedeli gelmedi. Bu bilerek `ayarlar.js`'te yazılı
+duruyor ki unutulmuş sayılmasın.

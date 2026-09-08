@@ -235,6 +235,106 @@ console.log("\n=== 6. PAKET DOSYALARI ===");
           "genislik " + kol.cubes[0].size[0]);
 }
 
+console.log("\n=== 6b. TITREME IKI KADEMELI  (v7.68) ===");
+{
+  /* Kullanici: "forma donusurken titreme daha cok olsun, forma
+     donustukten sonra titremeler az olsun."
+
+     Ayri bir giris animasyonu ve denetleyici YAZILMADI: kilik
+     donusum aninda DOGUYOR, yani query.life_time tam o anda
+     0'dan basliyor. Genlik bunun fonksiyonu.                */
+  const anim = JSON.parse(readFileSync(
+    KOK + "/Simsek_Kol_Kaynak/animations/carpik.animation.json", "utf8"));
+  const titre = anim.animations["animation.carpik.titre"];
+  const govde = titre.bones.body.rotation[0];
+
+  kontrol("genlik life_time'a bagli", /query\.life_time/.test(govde));
+  kontrol("sonum sinirlandirilmis (clamp)", /math\.clamp/.test(govde),
+          "clamp yoksa genlik eksiye duser ve math.random ters araliğa girer");
+
+  /* Sayilari Molang'i tarayarak degil, DEGERLENDIREREK
+     olcuyoruz: metinde "6" gormek genligin 6 kat oldugunu
+     kanitlamaz.                                            */
+  const genlikOlc = (ifade, lifeTime) => {
+    const m = ifade.match(/math\.random\(-\((.+?)\), \(/);
+    if (!m) return NaN;
+    const js = m[1]
+      .replace(/math\.clamp\(([^,]+),\s*0,\s*1\)/g, "Math.min(1,Math.max(0,$1))")
+      .replace(/query\.life_time/g, "(" + lifeTime + ")");
+    return Function("return (" + js + ")")();
+  };
+  const giris   = genlikOlc(govde, 0);
+  const oturmus = genlikOlc(govde, 99);
+  kontrol("dogus anindaki genlik OTURMUS halden buyuk",
+          giris > oturmus, giris.toFixed(2) + "° -> " + oturmus.toFixed(2) + "°");
+  kontrol("oturmus genlik ayardaki ince deger",
+          Math.abs(oturmus - 1.5) < 0.001, oturmus + "°");
+  kontrol("giris genligi oturmusun 6 kati",
+          Math.abs(giris / oturmus - 6) < 0.001, (giris / oturmus).toFixed(2) + "x");
+  /* Sure dolunca titreme DURMUYOR -- kullanici "surekli
+     titresin" dedi, "sonra dursun" demedi.                 */
+  kontrol("sure dolunca titreme DURMUYOR", oturmus > 0, oturmus + "°");
+  const yari = genlikOlc(govde, 0.75);
+  kontrol("arada kademeli iniyor (yarida ortada)",
+          yari < giris && yari > oturmus, yari.toFixed(2) + "°");
+}
+
+console.log("\n=== 6c. CARPIK HAL DAHA GUCLU  (v7.68) ===");
+{
+  /* Kullanici: "kollar normalden iki kat daha guclu olsun,
+     mesela guclu TNT var ya, onun iki katini dusun."       */
+  const cg = await import("./pack/yetenekler/carpik_guc.js");
+  kontrol("carpan 2", ayar.CARPIK_GUC_CARPANI === 2,
+          String(ayar.CARPIK_GUC_CARPANI));
+  kontrol("guclu_tnt listede", ayar.CARPIK_GUC_YETENEKLER.indexOf("guclu_tnt") >= 0,
+          ayar.CARPIK_GUC_YETENEKLER.join(", "));
+
+  const { o } = kur("guc1");
+  kontrol("insan halinde guc AYNI",
+          cg.carpikGuc(o.id, "guclu_tnt", 8) === 8,
+          String(cg.carpikGuc(o.id, "guclu_tnt", 8)));
+
+  const t = kayit.tumYetenekler().find((y) => y.kimlik === "carpik");
+  t.olustur(o);
+  kontrol("carpik halde guc IKI KAT",
+          cg.carpikGuc(o.id, "guclu_tnt", 8) === 16,
+          String(cg.carpikGuc(o.id, "guclu_tnt", 8)));
+  kontrol("carpiktaMi dogru soyluyor", cg.carpiktaMi(o.id) === true);
+
+  /* Listede OLMAYAN yetenek carpik haldeyken bile artmamali --
+     yoksa "hangisi iki kat" sorusunun cevabi kalmaz.        */
+  kontrol("listede olmayan yetenek ARTMIYOR",
+          cg.carpikGuc(o.id, "kalp_ekle", 8) === 8,
+          String(cg.carpikGuc(o.id, "kalp_ekle", 8)));
+
+  /* O Sey kiliginda da artmamali: guc CARPIK forma ait.     */
+  const { o: o2 } = kur("guc2");
+  don.donus(o2);   // O Sey
+  kontrol("O Sey kiliginda guc ARTMIYOR",
+          cg.carpikGuc(o2.id, "guclu_tnt", 8) === 8,
+          String(cg.carpikGuc(o2.id, "guclu_tnt", 8)));
+
+  /* Formdan cikinca guc geri normale donmeli.               */
+  t.olustur(o);
+  kontrol("formdan cikinca guc normale donuyor",
+          cg.carpikGuc(o.id, "guclu_tnt", 8) === 8,
+          String(cg.carpikGuc(o.id, "guclu_tnt", 8)));
+
+  /* Dort yetenegin dordu de carpani GERCEKTEN cagiriyor mu:
+     ayarda listede olup kodda baglanmamis olabilirdi.       */
+  const bagli = {
+    guclu_tnt: "guclu_tnt.js", toprak_topu: "toprak_topu.js",
+    meteor: "meteor.js", isin_topu: "isin_topu.js"
+  };
+  for (const k of ayar.CARPIK_GUC_YETENEKLER) {
+    const dosya = bagli[k];
+    const kod = dosya ? readFileSync(
+      KOK + "/Simsek_TNT_ToprakTopu/scripts/yetenekler/" + dosya, "utf8") : "";
+    kontrol(k + " kodda carpani cagiriyor",
+            new RegExp('carpikGuc\\([^)]*"' + k + '"').test(kod), dosya || "dosya bilinmiyor");
+  }
+}
+
 console.log("\n=== 7. KILIK 'BOT' SAYILIYOR ===");
 {
   kontrol("BOT_KIMLIKLER carpik kiligi taniyor",

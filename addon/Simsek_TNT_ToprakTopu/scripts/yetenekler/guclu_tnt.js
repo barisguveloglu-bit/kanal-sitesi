@@ -8,6 +8,7 @@ import {
   GTNT_HIZ, GTNT_FITIL, GTNT_GUC, GTNT_ATES,
   PARCACIK_PATLAMA, SARSINTI_PATLAMA, SARSINTI_SURE
 } from "../ayarlar.js";
+import { carpikGuc } from "./carpik_guc.js";
 
 /* Baktigin yone guclu TNT firlatir.
 
@@ -105,7 +106,7 @@ yetenekKaydet({
 
         if (sonYer.y >= sinir.min && sonYer.y <= sinir.max) {
           try {
-            boyut.createExplosion(sonYer, GTNT_GUC, {
+            boyut.createExplosion(sonYer, carpikGuc(oyuncu.id, "guclu_tnt", GTNT_GUC), {
               breaksBlocks: true, causesFire: GTNT_ATES, allowUnderwater: true
             });
           } catch (e) {

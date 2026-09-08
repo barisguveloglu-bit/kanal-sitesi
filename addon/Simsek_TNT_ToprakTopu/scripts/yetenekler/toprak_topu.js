@@ -9,6 +9,7 @@ import {
   TOP_ESYA, TOP_YARICAP, TOP_HIZ, TOP_ARALIK, TOP_MENZIL,
   TOP_HASAR, TOP_BLOK, PATLAMA_GUCU, KORUNAN_KUME, TOP_HASAR_MUAF
 } from "../ayarlar.js";
+import { carpikGuc } from "./carpik_guc.js";
 
 const KURE = kureNoktalari(TOP_YARICAP);
 
@@ -102,10 +103,17 @@ function hasarVer(boyut, poz, atanId) {
   }
 }
 
-function patlat(boyut, poz) {
+/* v7.68: atanId PARAMETRE.
+
+   Carpik Hal'in guc carpani "kim atti" bilgisini istiyor ve bu
+   fonksiyonda oyuncu KAPSAMDA DEGILDI -- ilk yazilista dogrudan
+   oyuncu.id yazildi ve calisma aninda ReferenceError atardi.
+   Botlar da bu fonksiyonu kullaniyor; onlarin kimligi carpik
+   listesinde olmadigi icin carpan kendiliginden 1 kaliyor.   */
+function patlat(boyut, poz, atanId) {
   if (!poz) return;
   try {
-    boyut.createExplosion(poz, PATLAMA_GUCU, {
+    boyut.createExplosion(poz, carpikGuc(atanId, "toprak_topu", PATLAMA_GUCU), {
       breaksBlocks: true, causesFire: false, allowUnderwater: true
     });
   } catch (e) {
@@ -262,7 +270,7 @@ export function topIsi(atan, secenek) {
 
         // 2) Son temizlik bittiyse patlat ve kapat
         if (bitisBekliyor) {
-          patlat(boyut, patlamaNoktasi);
+          patlat(boyut, patlamaNoktasi, oyuncuId);
           return true;
         }
 

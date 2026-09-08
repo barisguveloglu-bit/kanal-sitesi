@@ -110,7 +110,7 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # tureniyor -- ayrisabilecekleri bir yer kalmadi.
 #
 # YENI SURUM CIKARIRKEN: yalnizca asagidaki satiri degistir.
-SURUM_NO = (7, 67, 0)
+SURUM_NO = (7, 68, 0)
 
 SURUM_METIN = "%d.%d.%d" % SURUM_NO
 
@@ -3780,9 +3780,34 @@ CARPIK_YUZ = (8, 8)                     # kafa on yuzunun skindeki sol ust koses
 # titreme veriyor; math.sin olsaydi duzenli bir sallanma olurdu
 # ve "bozuk" degil "dans ediyor" gibi gorunurdu.
 # Depoda math.random ilk kez burada kullaniliyor.
-CARPIK_TITREME_ACI  = 1.5    # derece, +/- (govde ve uzuvlar)
+#
+# ---- v7.68: IKI KADEME ----
+# Kullanici: "forma donusurken titreme daha cok olsun, forma
+# donustukten sonra titremeler az olsun."
+#
+# Bu tek kademeden daha iyi ve gerekcesi de kaynakta: gecis
+# siddetli (katmandan gecmek), sonrasi ise Distorted Alex'in
+# kendi hali -- hareketsiz durup yanlis gorunmek.
+#
+# NASIL: ayri bir "giris animasyonu" ve animasyon denetleyicisi
+# YAZILMADI. Kilik varligi donusum aninda DOGUYOR, yani
+# query.life_time tam o anda 0'dan basliyor. Genlik bunun
+# fonksiyonu:
+#
+#   genlik = SONRA + (BASLANGIC - SONRA) * sonum
+#   sonum  = math.clamp(1 - life_time / SURE, 0, 1)
+#
+# Yani doguste BASLANGIC, SURE saniye sonunda SONRA'ya iniyor
+# ve orada kaliyor. Tek animasyon, denetleyici yok, ek dosya
+# yok -- ve "titreme hic durmasin" sarti bozulmuyor.
+CARPIK_TITREME_ACI  = 1.5    # derece, +/- (govde ve uzuvlar, OTURMUS hal)
 CARPIK_TITREME_KAFA = 2.5    # derece, +/- (kafa biraz daha fazla)
 CARPIK_TITREME_KAY  = 0.15   # blok, +/- (yerinde ufak kayma)
+# Giris: oturmus halin kac kati. 6 secildi -- 9 derecelik bir
+# sarsinti gecisi tasiyor ama hala "kasilma" gibi duruyor;
+# daha yukarisi karakteri firlatilmis gibi gosteriyordu.
+CARPIK_TITREME_GIRIS_KAT = 6.0
+CARPIK_TITREME_SURE      = 1.5   # saniye; bu surede oturmus hale iniyor
 
 
 def carpik_geo():
@@ -3846,9 +3871,21 @@ def carpik_animasyonu():
     girdi, cunku ikisi ayni kemige yaziyor ve tek animasyonda
     birlestirilseydi yuruyusu degistiren biri titremeyi de
     bozardi.                                                    """
-    a = str(CARPIK_TITREME_ACI)
-    kf = str(CARPIK_TITREME_KAFA)
-    ky = str(CARPIK_TITREME_KAY)
+    # sonum: doguste 1, CARPIK_TITREME_SURE saniye sonra 0
+    sonum = ("math.clamp(1 - query.life_time / %s, 0, 1)"
+             % CARPIK_TITREME_SURE)
+
+    def genlik(oturmus):
+        """oturmus + (giris - oturmus) * sonum  -- tek satirda."""
+        giris = oturmus * CARPIK_TITREME_GIRIS_KAT
+        # round: 0.15*6-0.15 kayan noktada 0.7499999999999999
+        # cikiyor. Molang'i etkilemez ama uretilen dosyayi
+        # okunmaz yapar ve diff'i gurultuye bogar.
+        return "(%s + %s * %s)" % (oturmus, round(giris - oturmus, 4), sonum)
+
+    a = genlik(CARPIK_TITREME_ACI)
+    kf = genlik(CARPIK_TITREME_KAFA)
+    ky = genlik(CARPIK_TITREME_KAY)
     r = lambda n: ["math.random(-%s, %s)" % (n, n)] * 3
     return {
         "format_version": "1.8.0",

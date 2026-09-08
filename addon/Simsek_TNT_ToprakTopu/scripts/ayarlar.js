@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.67.0";
+export const SURUM = "v7.68.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -5476,6 +5476,34 @@ export const CARPIK_AD           = "Çarpık Hal";
 /* Sıra: donusum (251) ile bot_teslim (250) arasında yer yok;
    252 boştu ve iki dönüşüm yan yana dursun.                */
 export const CARPIK_SIRA         = 252;
+
+/* ---- ÇARPIK HAL'İN GÜCÜ  (v7.68) ----
+   Kullanıcı: "kollar normalden iki kat daha güçlü olsun,
+   mesela güçlü TNT var ya, onun iki katını düşün."
+
+   Çarpan YALNIZ aşağıdaki listedeki yeteneklere uygulanıyor.
+   "Bütün yetenekler iki kat" ölçülemeyen bir vaat olurdu:
+   222 yeteneğin çoğunun sayısal bir gücü yok (menü açan,
+   kılık giren, eşya veren). Listede olan dördünün de patlama
+   gücü var ve ikiye katlanan tek şey o.
+
+   Patlama SAYISI değişmiyor -- v7.62 bütçe kapısı aynen
+   geçerli.
+
+   Sonuçta oyunda ne oluyor:
+     toprak_topu   4 -> 8    (vanilla TNT 4)
+     guclu_tnt     8 -> 16
+     meteor        5 -> 10
+     isin_topu     4 -> 8
+
+   Hikâye tarafı: bu form "çıldırmış ve yeteneklerini asla
+   saklamayan" hâl. Güç bedava değil -- bedeli LORE.md EK-B'de
+   tartışılıyor; kodda henüz karşılığı yok ve bu bilerek
+   yazılı, unutulmuş sayılmasın.                             */
+export const CARPIK_GUC_CARPANI = 2;
+export const CARPIK_GUC_YETENEKLER = [
+  "toprak_topu", "guclu_tnt", "meteor", "isin_topu"
+];
 export const DONUSUM_TAZELEME  = 40;   // gorunmezlik kac tick'te bir yenilensin
 export const DONUSUM_SURE      = 200;  // efekt suresi (TAZELEME x 5)
 export const DONUSUM_KAYIT_ANAHTAR = "simsek:kilikler";

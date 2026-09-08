@@ -9,6 +9,7 @@ import {
   ISINTOP_DELIP_GECER, ISINTOP_TAVAN,
   ISINTOP_PATLAR, ISINTOP_PATLAMA, ISINTOP_BLOK_KIRAR
 } from "../ayarlar.js";
+import { carpikGuc } from "./carpik_guc.js";
 
 /* ISIN TOPU -- once elinde topluyorsun, sonra firlatiyorsun.
 
@@ -117,7 +118,7 @@ yetenekKaydet({
         if (patlamaNoktasi) {
           if (patlamaIste(1) === 0) return false;   // butce dolu
           try {
-            boyut.createExplosion(patlamaNoktasi, ISINTOP_PATLAMA, {
+            boyut.createExplosion(patlamaNoktasi, carpikGuc(oyuncuId, "isin_topu", ISINTOP_PATLAMA), {
               breaksBlocks: ISINTOP_BLOK_KIRAR,
               causesFire: false,
               allowUnderwater: true
