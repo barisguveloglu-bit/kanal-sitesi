@@ -4,7 +4,7 @@ import { hataYaz, gecerliMi, actionbarYaz } from "../yardimcilar.js";
 import {
   ARIN_ACIK, ARIN_BEKLEME, ARIN_SIRA, ARIN_EFEKTLER,
   ARIN_EKRAN, ARIN_SES, ARIN_SIS, ARIN_SIS_BILINEN, ARIN_SIS_KIMLIK,
-  ARIN_GIRDI,
+  ARIN_GIRDI, ARIN_POZ_ANIM, ARIN_POZ_KONTROLCU,
   ZORLA_ACIK, ZORLA_YUVALAR, ZORLA_ENVANTER, ZORLA_MUAF_ONEK,
   ZORLA_KOR_ESYALAR,
   SAVUNMA_ARALIK, SAVUNMA_SURE, SAVUNMA_SIRA
@@ -139,6 +139,32 @@ function sisKaldir(oyuncu) {
   }
   if (komut(oyuncu, 'fog @s push "minecraft:fog_default" ' + ARIN_SIS_KIMLIK)) {
     oldu = true;
+  }
+  return oldu;
+}
+
+/* ---- KALICI POZ  (v7.28, denetleyici yuvasi v7.65) ----
+   Iki asamali, cunku saldirinin asil yuku komutun SON
+   argumaninda: kok denetleyici yuvasina yazilan animasyon.
+   Gerekce ve olculen sayilar ayarlar.js'teki
+   ARIN_POZ_KONTROLCU notunda.
+
+   1. Adsiz cagri  -- v7.28'den beri var, KALIYOR. Adiyla
+      yazilmamis (yani yuvasiz) bir pozu bu geri aliyor ve
+      arsivdeki komutlarin ucte ikisi tam da oyle.
+   2. Yuva adiyla cagri -- saldiranin yazdigi yuvanin ustune
+      notr animasyonu yaziyor.
+
+   Gecis suresi ikisinde de 0: hemen normale donsun.
+
+   Bir yuva tutmazsa OTEKILER YINE DENENSIN diye her biri
+   ayri komut(); ARIN_SIS_BILINEN'deki desenin aynisi.       */
+function pozAc(oyuncu) {
+  let oldu = komut(oyuncu, "playanimation @s " + ARIN_POZ_ANIM + " a 0");
+  for (const yuva of ARIN_POZ_KONTROLCU) {
+    if (komut(oyuncu, "playanimation @s " + ARIN_POZ_ANIM + " a 0 true " + yuva)) {
+      oldu = true;
+    }
   }
   return oldu;
 }
@@ -307,10 +333,8 @@ export function arindir(oyuncu) {
   // 3. EKRAN SARSINTISI
   komut(oyuncu, "camerashake stop @s");
 
-  // 4. KALICI POZ -- gecis suresi 0, yani hemen normale.
-  if (komut(oyuncu, "playanimation @s animation.humanoid.move a 0")) {
-    yapilan.push("poz");
-  }
+  // 4. KALICI POZ -- adsiz + yuva adiyla; bkz. pozAc().
+  if (pozAc(oyuncu)) yapilan.push("poz");
 
   // 5. EKRAN KAPATMA (v7.35)
   if (ekranTemizle(oyuncu)) yapilan.push("ekran");
@@ -380,7 +404,7 @@ function savunmaTazele(oyuncu) {
   girdiAc(oyuncu);
   komut(oyuncu, "camera @s clear");
   komut(oyuncu, "camerashake stop @s");
-  komut(oyuncu, "playanimation @s animation.humanoid.move a 0");
+  pozAc(oyuncu);
   ekranTemizle(oyuncu);
   sesSustur(oyuncu);
   sisKaldir(oyuncu);

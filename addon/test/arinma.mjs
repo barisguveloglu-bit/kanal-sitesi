@@ -125,6 +125,49 @@ console.log("=== 1b. EKRAN · SES · SIS  (v7.35) ===");
           o._komutlar.findIndex((k) => k.indexOf("fog @s push") !== -1));
 }
 
+console.log("=== 1b2. POZ KILIDININ DENETLEYICI YUVASI  (v7.65) ===");
+{
+  /* Yeni bir komut arsivi olculdu (58 MB, 1.350 dosya,
+     77.784 komut satiri, 3.014 ozgun). Ozgun playanimation
+     komutlarinin SON argumani ayristirilinca gercek tek
+     tehdit cikti: controller.animation.player.root -- 207
+     komut. Oyuncunun kok animasyon denetleyicisi.
+
+     v7.28'den v7.64'e kadar Arinma pozu adsiz cagriyla
+     siliyordu; saldiranin ADIYLA yazdigi yuvaya dokundugunun
+     garantisi yoktu. Bu madde onu tutuyor.                  */
+  const { o } = kur("poz-yuva");
+  arinma.arindir(o);
+
+  kontrol("adsiz cagri KALDI (ucte ikilik kitleyi o kapatiyor)",
+          o._komutlar.some((k) =>
+            k.trim() === "playanimation @s " + ayar.ARIN_POZ_ANIM + " a 0"));
+
+  for (const yuva of ayar.ARIN_POZ_KONTROLCU) {
+    kontrol("yuva adiyla da yaziliyor: " + yuva, komutVar(o, yuva));
+  }
+
+  /* Ayar listesi bos birakilirsa yama sessizce olur ve kimse
+     fark etmez. Sabitin KENDISI de sinaniyor -- dusmus.mjs'te
+     ogrenilen ders: beklentiyi sinanan seyin kendisinden
+     turetme.                                                */
+  kontrol("gercek kok denetleyici listede",
+          ayar.ARIN_POZ_KONTROLCU.indexOf(
+            "controller.animation.player.root") !== -1,
+          ayar.ARIN_POZ_KONTROLCU.join(", "));
+
+  /* Uydurma adlar (umutkrln7, rootjsjsj ...) listeye
+     GIRMEMELI: var olmayan yuvaya yazmak bos komut.         */
+  kontrol("listede yalniz gercek controller adi var",
+          ayar.ARIN_POZ_KONTROLCU.every((y) =>
+            y.indexOf("controller.animation.") === 0));
+
+  /* Yuva cagrisi da kalici olmamali -- 0 gecis suresi.      */
+  kontrol("yuvaya yazilan poz da KALICI degil",
+          !o._komutlar.some((k) =>
+            k.indexOf(ayar.ARIN_POZ_ANIM) !== -1 && /\ba 9+\b/.test(k)));
+}
+
 console.log("=== 1c. SAVUNMA KIPI DE UCUNU TAZELIYOR ===");
 {
   /* Arinma tek seferlik. Saldiran title'i her saniye yeniden
@@ -145,6 +188,12 @@ console.log("=== 1c. SAVUNMA KIPI DE UCUNU TAZELIYOR ===");
   kontrol("tazelemede de ekran temizleniyor", komutVar(o, "title @s clear"));
   kontrol("tazelemede de ses susturuluyor", komutVar(o, "stopsound @s"));
   kontrol("tazelemede de sis kaldiriliyor", komutVar(o, "fog @s"));
+  /* v7.65: tazeleme de AYNI pozAc() fonksiyonunu cagirmali.
+     Iki yere kopyalanan bir savunma er gec ikiye ayrisiyor --
+     arinma.js'in kendi notu bunu soyluyor.                  */
+  for (const yuva of ayar.ARIN_POZ_KONTROLCU) {
+    kontrol("tazelemede de yuva yaziliyor: " + yuva, komutVar(o, yuva));
+  }
   sonuc.is.bitir && sonuc.is.bitir();
 }
 

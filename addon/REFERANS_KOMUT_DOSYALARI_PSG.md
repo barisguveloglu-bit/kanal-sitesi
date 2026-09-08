@@ -347,3 +347,104 @@ balkabağı **ölçülebilir biçimde ayırt edilemiyor**.
 v7.49'un kuralı bu yüzden "kilitliyse indir". Kilitsizi de
 indirseydik oyuncunun kendi kararını bozardık. Bu bir eksik
 değil, ölçüm sınırı — ve burada yazılı duruyor.
+
+---
+
+## v7.65 · ikinci parti — "ZYPHER 2 MİLYON KOD" ve beş dosya daha
+
+**Hiçbiri çalıştırılmadı.** Zip açıldı, iç içe zipler dahil
+metinler okundu; oyunda tek satır denenmedi. Kullanıcının
+talimatı aynen duruyor: *"hiçbir şeyi çalıştırma, sadece
+engellenebilir olanları engelle."*
+
+| md5 | bayt | ad |
+|---|---|---|
+| `8e29d64a705bbfd5ae84bf01c67f626b` | 2.722.790 | `༒ZYPHER༒ 2 MİLYON KOD DOSYA.zip` |
+| `bbd8c8ae0101640d2f7648b99f47986f` | 520.838 | `827272828 ... P.YASA KOD DOSYASU.txt` |
+| `bd4de722afb70a699fb6f5c3518a0599` | 1.012 | `ASAFDAN P.YASAYA EN GÜÇLÜ GM1 KODLAR.txt` |
+| `17ef2d90b1f1d592cc9fd96ad049316f` | 27.522 | `DarkChris koddosyası ANİMASYON.txt` |
+| `d0782ba25397a6963265fb72adaa4287` | 39.338 | `ghost_kodlarrr_v5.txt` |
+| `17ef2d90b1f1d592cc9fd96ad049316f` | 27.522 | `siyah1.MC.KOD.DOSYASI.V1.0.txt` |
+
+Son iki satırın md5'i **aynı**: `DarkChris` ile `siyah1` bire bir
+aynı dosya, yalnız adları farklı. Arşivlerin nasıl büyüdüğünün
+küçük bir örneği.
+
+### Sayım
+
+| ölçüm | değer |
+|---|---|
+| okunan metin dosyası (iç zipler dahil) | 1.350 |
+| toplam metin | 58,1 MB |
+| komut satırı | 77.784 |
+| **özgün komut** | **3.014** |
+| tekrar oranı | **%96** |
+
+Dosyanın adı "2 milyon kod". Gerçek sayı 3.014. `ghost_kodlarrr_v5`
+bunu tek başına gösteriyor: tek komut `umutkrln1 … umutkrln100`
+diye yüz kez yazılmış.
+
+Komut dağılımı: %85 `/playanimation` (66.212 satır), kalanı
+`/execute`, `/title`, `/effect`, `/summon`, `/fog`, `/camerashake`.
+(Sayımdaki `/item` ve `/damage` satırlarının çoğu komut değil,
+`item.book.page_turn` gibi **ses adı** listesi.)
+
+### Asıl bulgu: yük son argümanda
+
+`/playanimation`'ın sözdizimi:
+
+    <hedef> <animasyon> <next_state> <blend_out_time> <stop_expression> <controller>
+
+Özgün komutların son argümanı ayrıştırıldı — **173 farklı
+denetleyici adı**, 569 komut. Neredeyse hepsi uydurma
+(`controller.animation.humanoid.umutkrln7`, `rootjsjsj`); var
+olmayan yuvaya yazmak hiçbir şey yapmıyor. Gerçek olan iki tane:
+
+| denetleyici | komut |
+|---|---|
+| `controller.animation.player.root` | **207** |
+| `controller.animation.humanoid.sneaking` | 8 |
+
+İlki oyuncunun bütün normal animasyonlarını yöneten kök
+denetleyici; üzerine yazılınca oyuncu o pozda kilitli kalıyor.
+**Arınmanın v7.65'te kapattığı delik bu** — ayrıntısı
+`ayarlar.js`'teki `ARIN_POZ_KONTROLCU` notunda.
+
+### Ne kadarı zaten bozuk
+
+- `stop_expression`'ın **586'sı geçersiz**. En sık hata
+  `query_is_on_moving` — Molang'da nokta kullanılır
+  (`query.is_moving`), alt çizgi değil.
+- 241 farklı animasyon adının **20'si `animation.` önekiyle bile
+  başlamıyor** (`sleeping`, `animasyon.axolotl.swim`, `blacknull`).
+- `animation.mooshroom.setu`, `baby_transfrom` gibi yazım hataları.
+- 24 komutta `blend_out_time` yuvasında sayı yerine harf var.
+
+Bunlar **oyunda denenmedi**; yargı belgelenmiş komut sözdizimine
+göre.
+
+### Hedef dağılımı
+
+Özgün `/playanimation`'ların **1.297'si `@a`/`@e`/`@p`** ile
+başkalarını, 1.015'i `@s` ile kendini hedefliyor. `@s` olanların
+büyük kısmı saldırı değil **kalkma** (kilitten çıkma) denemesi;
+arşivde dosyanın adı zaten `kalkma.txt`.
+
+`/playanimation` dışındaki kalıplar — hepsinin Arınma'da
+karşılığı zaten var:
+
+| dosya | komut | karşılığı |
+|---|---|---|
+| `EKRAN kapatma titlesi.txt` | `title @a actionbar §e§4 ██████…` | `ARIN_EKRAN` (v7.35) |
+| `troll komutlaı .txt` | `effect @a[...] blindness/levitation 255` | `ARIN_EFEKTLER` |
+| `boyun eğdirme.txt` | `tp @r ^^^5 facing ~~-100~` | kalıcı değil, kilit sayılmıyor |
+
+### İmza notu
+
+`zyphor` kelimesi 58 MB'ın tamamında **0 kez** geçiyor; `psg`
+6.163 kez, 14 dosyada. Kullanıcının "Zyphor" adıyla getirdiği üç
+satır arşivdeki `kalkma.txt` ve `💥PSG PİYASANIN EN SAĞLAM
+ANİMASYON K…` dosyalarında **harfi harfine** duruyor. Kodlar
+kopyalanıp üstüne yeni rumuz yazılarak dolaşıyor — savunma
+kurarken "kim yazdı" değil **hangi komut** sorusunun sorulması
+gerektiğinin kanıtı.

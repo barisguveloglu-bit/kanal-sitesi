@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.64.0";
+export const SURUM = "v7.65.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -2160,6 +2160,55 @@ export const ARIN_SIS   = true;    // /fog
    sis bizde SOKULMUYORDU. Tek kelimelik bir delik.           */
 export const ARIN_SIS_BILINEN = ["1", "11", "13", "l1", "t", "basic"];
 export const ARIN_SIS_KIMLIK  = "arinma";
+
+
+/* ------------- POZ KILIDININ DENETLEYICI YUVASI  (v7.65) ----
+   Kullanici yeni bir komut arsivi getirdi (58 MB, 1.350 metin
+   dosyasi). Butun komutlar sayildi: 77.784 satir ama OZGUN
+   olan 3.014 tane -- %96'si ayni satirin kopyasi. v7.35'teki
+   ayni kural: savunma kopyaya degil ozgune gore kuruluyor.
+
+   Ozgun /playanimation komutlari ayristirilinca su cikti:
+   komutun SON argumani (denetleyici yuvasi) 173 farkli ad
+   tasiyor, ama bunlarin neredeyse hepsi uydurma
+   ("controller.animation.humanoid.umutkrln7", "rootjsjsj").
+   Uydurma ad var olmayan bir yuvaya yaziyor, yani hicbir sey
+   yapmiyor. GERCEK olan iki tane:
+
+       controller.animation.player.root         207 komut
+       controller.animation.humanoid.sneaking     8 komut
+
+   Ilki oyuncunun butun normal animasyonlarini yoneten kok
+   denetleyici. Uzerine yazildiginda oyuncu o pozda kilitli
+   kaliyor -- "yatirma", "ters cevirme", "yamultma" denen sey
+   bu.
+
+   ---- DELIK NEYDI ----
+   Arinmanin poz kolu v7.28'den beri su satiri calistiriyordu:
+
+       playanimation @s animation.humanoid.move a 0
+
+   Denetleyici argumani YOK. Adsiz calistirilan bir
+   playanimation kendi girdisini olusturuyor; saldiranin
+   ADIYLA yazdigi yuvaya dokunacaginin bir garantisi yok.
+   Yani kilit yerinde kalabilir.
+
+   ---- BU BIR VARSAYIM, OLCUM DEGIL ----
+   Durust olmak gerekiyor: yukaridaki cikarim komut
+   sozdiziminden. Oyun icinde denenmedi (bu depoda hicbir
+   sey calistirilmiyor). Yama yine de yaziliyor cunku
+   maliyeti IKI komut ve yanlis olsa bile zarari yok --
+   ayni notrleyici animasyon iki kez daha calisir, o kadar.
+   Dogrulanirsa bu not guncellenecek.
+
+   Listeye yalniz GERCEK yuvalar giriyor. Uydurma adlarin
+   173'unu tek tek yazmak bos is: var olmayan yuvaya notr
+   animasyon yazmak da hicbir sey yapmiyor.                   */
+export const ARIN_POZ_ANIM = "animation.humanoid.move";
+export const ARIN_POZ_KONTROLCU = [
+  "controller.animation.player.root",
+  "controller.animation.humanoid.sneaking"
+];
 
 
 /* ------------- ZORLA TAKILAN ESYA  (Arinmanin 9. kolu)  v7.49 ----

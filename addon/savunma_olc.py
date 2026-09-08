@@ -121,6 +121,8 @@ OZELLIKLER = [
 
     # ---------------- KOMUT / KILIT (Arinma ailesi) ----------------
     ("komutla poz/girdi/kamera kilidi", "komut", "TW", KAPALI, "7.28", "Arinma"),
+    ("poz kilidinin denetleyici yuvasi", "komut", "K", KAPALI, "7.65",
+     "Arinma -- kok denetleyiciye notr animasyon"),
     ("dongu halinde kilit", "komut", "TW", KAPALI, "7.29", "Savunma Kipi"),
     ("ekrani title duvariyla kapatma", "komut", "TW", KAPALI, "7.35", "Arinma"),
     ("ses bombasi", "komut", "TW", KAPALI, "7.35", "Arinma"),
@@ -194,7 +196,19 @@ OZELLIKLER = [
 
 # Savunmanin yazildigi surumler, sirayla.
 SURUMLER = ["7.27", "7.28", "7.29", "7.30", "7.31", "7.35", "7.36", "7.38",
-            "7.46", "7.47", "7.49"]
+            "7.46", "7.47", "7.49", "7.65"]
+
+
+def yuvarla(x):
+    """Yarim YUKARI yuvarlar.
+
+    Python'un %.0f'i yarimi CIFTE yuvarliyor (62.5 -> 62),
+    testteki JS Math.round ise yukari (62.5 -> 63). Ikisi
+    v7.65'e kadar hic ayni sayiya denk gelmedigi icin fark
+    gorunmedi; payda 47'den 48'e cikinca belge ile betik
+    catisti. Tek yuvarlama burada, iki taraf da bunu
+    kullaniyor.                                             */"""
+    return int(x + 0.5)
 
 
 def surum_no(s):
@@ -250,8 +264,9 @@ if __name__ == "__main__":
     for s in SURUMLER:
         k = kapsam(s)
         eklenen = [o[0] for o in OZELLIKLER if o[3] == KAPALI and o[4] == s]
-        print("  v%-6s %3d    %%%-4.0f  %%%-14.0f %s"
-              % (s, k, 100.0 * k / toplam, 100.0 * k / engellenebilir,
+        print("  v%-6s %3d    %%%-4d  %%%-14d %s"
+              % (s, k, yuvarla(100.0 * k / toplam),
+                 yuvarla(100.0 * k / engellenebilir),
                  (", ".join(eklenen[:3]) + ("…" if len(eklenen) > 3 else ""))
                  if eklenen else "-"))
         onceki = k
