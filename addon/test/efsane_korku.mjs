@@ -304,9 +304,18 @@ console.log("\n=== 2b. OLAY SIKLIĞI SINIRLI ===");
      Kaldirilirsa her taramada olay cikar ve durakta durmak
      katlanilmaz olur -- korku seyrek olunca korku.
 
-     OLCUM: playsound komutlari sayiliyor, cunku her biri TAM
-     BIR olay baslangici. Bakis olayi suresince `execute`
-     tekrar ediyor, o yuzden ham komut sayisi yaniltir.
+     OLCUM (v7.74'te DEGISTI): eskiden playsound komutlari
+     sayiliyordu, "her biri tam bir olay baslangici" diye. Bu
+     v7.74'te YANLIS oldu: Kalp Atisi tek olayda 6, Kapi
+     Tiklatma 3, Sonen Mesale mesale basina 1 ses caliyor.
+     Yani ses sayisi artik olay sayisi degil ve test kendi
+     kodumuzu haksiz yere dusuruyordu.
+
+     Yeni olcu VEKIL DEGIL, KAPININ KENDISI: tarama bir olayi
+     ancak `simdi >= d.ara` iken basliyor ve basarili her olay
+     `ara`yi `simdi + EFSANE_KORKU_ARA`ya itiyor. Defterdeki
+     `ara` her degistiginde TAM BIR olay baslamis demektir --
+     kac ses caldigindan bagimsiz.
 
      Bu maddeyi eklemeden once mutasyon bataryasi "olaylar
      arasi bosluk kaldirildi" mutasyonunu KACIRDI.          */
@@ -314,30 +323,32 @@ console.log("\n=== 2b. OLAY SIKLIĞI SINIRLI ===");
   const dunya2 = (await import("@minecraft/server")).world;
   dunya2.setDynamicProperty(ayar.EFSANE_KAYIT_ANAHTAR,
                             JSON.stringify({ x: 0, z: 0 }));
-  const TARAMA_SAYISI = 300;
-  for (let i = 0; i < TARAMA_SAYISI; i++) {
-    tickIlerlet(ayar.EFSANE_KORKU_TARAMA);
-    if (butce.butceSifirla) butce.butceSifirla();
-    korku.efsaneKorkuTara([q]);
-  }
+  const TARAMA_SAYISI2 = 300;
   /* ASIL DEGISMEZ: iki olay ARASI MESAFE. Sayiya bakmak
      yaniltir -- sans (0.25) ve tarama araligi (40) zaten
      dogal bir seyreklik veriyor, o yuzden boslugu kaldiran
      mutasyon sayi sinirinin altinda kaliyordu. Mutasyon
      bataryasi bunu gosterdi ve olcu MESAFEYE cevrildi.     */
-  const sesTikleri = q._tikler
-    .filter((x) => x.k.startsWith("playsound")).map((x) => x.tik);
-  let enKisa = Infinity;
-  for (let i = 1; i < sesTikleri.length; i++) {
-    enKisa = Math.min(enKisa, sesTikleri[i] - sesTikleri[i - 1]);
+  let enKisa = Infinity, oncekiBas = null, olaySayisi = 0, sonAra = -1;
+  for (let i = 0; i < TARAMA_SAYISI2; i++) {
+    tickIlerlet(ayar.EFSANE_KORKU_TARAMA);
+    if (butce.butceSifirla) butce.butceSifirla();
+    korku.efsaneKorkuTara([q]);
+    const d = korku.efsaneKorkuDurum(q.id);
+    if (!d || d.ara === sonAra) continue;
+    sonAra = d.ara;
+    olaySayisi++;
+    const bas = d.ara - ayar.EFSANE_KORKU_ARA;   // olayin basladigi tik
+    if (oncekiBas !== null) enKisa = Math.min(enKisa, bas - oncekiBas);
+    oncekiBas = bas;
   }
   kontrol("iki olay arasi en az EFSANE_KORKU_ARA",
-          sesTikleri.length < 2 || enKisa >= ayar.EFSANE_KORKU_ARA,
-          sesTikleri.length + " ses olayi · en kisa ara " +
+          olaySayisi < 2 || enKisa >= ayar.EFSANE_KORKU_ARA,
+          olaySayisi + " olay · en kisa ara " +
           (enKisa === Infinity ? "-" : enKisa) +
           " tik (sinir " + ayar.EFSANE_KORKU_ARA + ")");
   kontrol("olcum anlamli olacak kadar olay var",
-          sesTikleri.length >= 2, sesTikleri.length + " ses olayi");
+          olaySayisi >= 2, olaySayisi + " olay");
 }
 
 console.log("\n=== 3. AYARLAR VE SINIRLAR ===");
@@ -386,6 +397,260 @@ console.log("\n=== 5. TEMİZLİK ===");
   kontrol("playerLeave efsaneKorkuUnut cagiriyor",
           /efsaneKorkuUnut\(olay\.playerId\)/.test(m));
   kontrol("ana donguye baglanmis", /efsaneKorkuTara\(oyuncular\)/.test(m));
+}
+
+console.log("\n=== 6. ERROR 404 · ANOMALY REPHASED (v7.74) ===");
+{
+  const dunya6 = (await import("@minecraft/server")).world;
+
+  /* ---- 6a. MEŞALE GERİ GELİYOR MU ----
+     Sondurulen mesale OYUNCUNUN ESYASI. Geri gelmezse
+     "hicbir yetenek oyuncunun esyasini kaybettirmez" kurali
+     kirilir. Bu bolumun asil sorusu bu.                     */
+  const { D: D6, o: o6 } = kur("k6", { x: 0.5, y: 64, z: 0.5 });
+  dunya6.setDynamicProperty(ayar.EFSANE_KAYIT_ANAHTAR,
+                            JSON.stringify({ x: 0, z: 0 }));
+
+  /* MESALE TARLASI. Ilk yazilista halkaya 24 tek mesale
+     konmustu ve 400 taramada yalnizca 2 tanesi sondu -- olcum
+     yapilamayacak kadar az, cunku 60 rastgele orneklemenin
+     belirli bir bloga denk gelmesi zor. Simdi r=2..17 arasi
+     DOLU bir disk doseniyor: her ornekleme bir mesaleye
+     denk geliyor ve olcu gercekten baski yapiyor.          */
+  const yakinlar = [], uzaklar = [];
+  for (let dx = -17; dx <= 17; dx++) {
+    for (let dz = -17; dz <= 17; dz++) {
+      const d = Math.hypot(dx, dz);
+      if (d < 2 || d > 17) continue;
+      /* Uc katman: olay orneklemede y'yi -2..+4 kaydiriyor,
+         tek katman olsaydi okumalarin cogu havaya denk
+         gelirdi.                                            */
+      for (let dy = -2; dy <= 4; dy++) {
+        const p = { x: dx, y: 64 + dy, z: dz };
+        D6.boyut.getBlock(p).setType("minecraft:torch");
+        (d < ayar.EFSANE_SONME_YAKIN - 1 ? yakinlar : uzaklar).push(p);
+      }
+    }
+  }
+  const mesaleMi = (p) => D6.boyut.getBlock(p).typeId === "minecraft:torch";
+
+  let hicSondu = false;
+  for (let i = 0; i < 400; i++) {
+    tickIlerlet(ayar.EFSANE_KORKU_TARAMA);
+    if (butce.butceSifirla) butce.butceSifirla();
+    korku.efsaneKorkuTara([o6]);
+    if (!hicSondu && uzaklar.some((p) => !mesaleMi(p))) hicSondu = true;
+  }
+  kontrol("uzaktaki mesaleler GERCEKTEN sondu (olay calisti)", hicSondu);
+
+  /* Zamanlayicilar ilerlesin, defter de bosalsin.           */
+  for (let i = 0; i < 20; i++) {
+    tickIlerlet(ayar.EFSANE_SONME_SURE);
+    if (butce.butceSifirla) butce.butceSifirla();
+    korku.efsaneKorkuTara([o6]);
+  }
+  kontrol("sonen mesalelerin HEPSI geri geldi",
+          uzaklar.every(mesaleMi),
+          uzaklar.filter((p) => !mesaleMi(p)).length + " mesale eksik");
+  kontrol("mesale defteri bosaldi",
+          korku.mesaleDefteriBoyu() === 0,
+          korku.mesaleDefteriBoyu() + " kayit");
+
+  /* YAKINDAKILER hic sonmemeli: pencerede kirilip
+     kaybedilebilirlerdi.
+
+     OLCU BELIRLI NOKTALARA BAKMIYOR. Ilk yazilista "su 24
+     mesale duruyor mu" diye bakiyordu ve mutasyon bataryasi
+     bunu KACIRDI: yakin siniri kaldirildiginda bile 60
+     rastgele orneklemenin o 24 blogun birine tam denk gelme
+     ihtimali dusuk, yani test sans eseri yesil yaniyordu.
+     Simdi SONDURULEN HER MESALENIN mesafesi olculuyor --
+     sinir kalkarsa ilk yakin ornek testi dusurur.          */
+  const sondurulenler = D6.sayac.yazilan.filter((w) => w.tip === "minecraft:air");
+  let enYakinSonme = Infinity;
+  for (const w of sondurulenler) {
+    const d = Math.hypot(w.x - 0.5, w.z - 0.5);
+    enYakinSonme = Math.min(enYakinSonme, d);
+  }
+  kontrol("sondurulen HICBIR mesale SONME_YAKIN'dan yakin degil",
+          sondurulenler.length === 0 || enYakinSonme >= ayar.EFSANE_SONME_YAKIN - 1,
+          sondurulenler.length + " sonme · en yakini " +
+          (enYakinSonme === Infinity ? "-" : enYakinSonme.toFixed(1)) +
+          " blok (sinir " + ayar.EFSANE_SONME_YAKIN + ")");
+  kontrol("olcum anlamli olacak kadar sonme var", sondurulenler.length >= 3,
+          sondurulenler.length + " sonme");
+  kontrol("SONME_YAKIN icindeki mesaleler duruyor",
+          yakinlar.every(mesaleMi),
+          yakinlar.filter((p) => !mesaleMi(p)).length + " yakin mesale gitti");
+
+  /* ---- 6b. ZAMANLAYICI DÜŞERSE ----
+     Dunya kapanip acilirsa `system.runTimeout` zinciri gider.
+     Defterin ikinci sansi tam bunun icin. Zamanlayici kuyrugu
+     BOSALTILIP defterin tek basina geri koyabildigi olculuyor. */
+  korku.efsaneKorkuUnut();
+  /* Mesale MENZILE konmali. Ilk yazilista 40 blok oteye
+     konmustu -- SONME_UZAK 16, yani oraya hic bakilmiyordu ve
+     olay tetiklenemiyordu. Test kendi kendini olcemiyordu;
+     mutasyon bataryasi temiz kosuda bile dusurunce cikti.   */
+  for (const p of uzaklar) D6.boyut.getBlock(p).setType("minecraft:torch");
+  let sondurdu = false;
+  for (let i = 0; i < 400 && !sondurdu; i++) {
+    tickIlerlet(ayar.EFSANE_KORKU_TARAMA);
+    if (butce.butceSifirla) butce.butceSifirla();
+    korku.efsaneKorkuTara([o6]);
+    if (korku.mesaleDefteriBoyu() > 0) sondurdu = true;
+  }
+  if (sondurdu) {
+    _durum.zamanlar.length = 0;                 // zamanlayicilar DUSTU
+    for (let i = 0; i < 10; i++) {
+      tickIlerlet(ayar.EFSANE_SONME_SURE);
+      if (butce.butceSifirla) butce.butceSifirla();
+      korku.efsaneKorkuTara([o6]);
+    }
+    kontrol("zamanlayici dusse bile defter mesaleyi geri koydu",
+            korku.mesaleDefteriBoyu() === 0,
+            korku.mesaleDefteriBoyu() + " kayit defterde kaldi");
+  } else {
+    kontrol("zamanlayici dusse bile defter mesaleyi geri koydu",
+            false, "olay hic tetiklenmedi -- olcum yapilamadi");
+  }
+
+  /* ---- 6c. KAÇAN GÖLGE SALDIRAMAZ ----
+     Sartin kod tarafindaki garantisi: kilik varliginda HICBIR
+     AI hedefi yok. Yorum degil, dosyadan okunuyor.          */
+  const kilik = JSON.parse(readFileSync(
+    KOK + "/Simsek_TNT_ToprakTopu/entities/carpik_kilik.json", "utf8"));
+  const bilesen = Object.keys(kilik["minecraft:entity"].components || {});
+  const aiIzi = bilesen.filter((b) => /behavior|target|attack|movement|navigation/i.test(b));
+  kontrol("golge kiliginda AI/hedef/saldiri bileseni YOK",
+          aiIzi.length === 0, aiIzi.join(", "));
+  kontrol("golge kiligi ayarda bu varliga bagli",
+          ayar.EFSANE_GOLGE_KIMLIK === kilik["minecraft:entity"].description.identifier,
+          ayar.EFSANE_GOLGE_KIMLIK);
+
+  /* ---- 6d. GÖLGE ORTADA KALMIYOR ----
+     donusum.js'te YASANMIS tuzak: kalici kilik dunya kapaninca
+     yerinde kaliyor. Defter + acilis supurmesi bunun icin.  */
+  const kk = readFileSync(
+    KOK + "/Simsek_TNT_ToprakTopu/scripts/yetenekler/efsane_korku.js", "utf8");
+  /* METIN DEGIL DAVRANIS. Ilk yazilista bu madde kaynakta
+     `kaliciYaz(EFSANE_GOLGE_...)` GECIYOR MU diye bakiyordu;
+     mutasyon bataryasi kacirdi, cunku cagri yerini silmek
+     tanimi silmiyor. Simdi golge dogduktan sonra dunya
+     ozelligine GERCEKTEN yazilmis mi diye bakiliyor.       */
+  korku.efsaneKorkuUnut();
+  dunya6.setDynamicProperty(ayar.EFSANE_GOLGE_KAYIT_ANAHTAR, "");
+  const { o: o8 } = kur("k8");
+  dunya6.setDynamicProperty(ayar.EFSANE_KAYIT_ANAHTAR,
+                            JSON.stringify({ x: 0, z: 0 }));
+  let golgeDogdu = false;
+  for (let i = 0; i < 600 && !golgeDogdu; i++) {
+    tickIlerlet(ayar.EFSANE_KORKU_TARAMA);
+    if (butce.butceSifirla) butce.butceSifirla();
+    korku.efsaneKorkuTara([o8]);
+    if (korku.golgeSayisi() > 0) golgeDogdu = true;
+  }
+  kontrol("golge gercekten dogdu (olcum yapilabilir)", golgeDogdu);
+  const defterHam = dunya6.getDynamicProperty(ayar.EFSANE_GOLGE_KAYIT_ANAHTAR);
+  kontrol("golge kimlikleri kalici deftere YAZILDI",
+          golgeDogdu && typeof defterHam === "string" && defterHam.length > 2,
+          JSON.stringify(defterHam));
+  kontrol("kaynakta da kalici yazim duruyor",
+          /kaliciYaz\(EFSANE_GOLGE_KAYIT_ANAHTAR/.test(kk));
+  kontrol("acilista ortada kalan golgeler supuruluyor",
+          /golgeleriSupur/.test(kk) &&
+          kk.indexOf("golgeleriSupur") !== kk.lastIndexOf("golgeleriSupur"),
+          "tanim + cagri");
+  kontrol("golge defteri donusum defterinden AYRI",
+          ayar.EFSANE_GOLGE_KAYIT_ANAHTAR !== ayar.DONUSUM_KAYIT_ANAHTAR,
+          ayar.EFSANE_GOLGE_KAYIT_ANAHTAR);
+
+  /* ---- 6d-2. GÖLGE BAKINCA KAYBOLUYOR MU ----
+     Turun imza mekanigi bu (ErrorStareDespawn, APeekTick) ve
+     mutasyon bataryasi gosterdi ki hicbir sey onu sinamiyordu:
+     "bakinca kaybolma" satirini silmek testleri dusurmuyordu.
+     Burada DAVRANIS olculuyor.
+
+     Bakis yonu YAZILABILIR bir nesne uzerinden veriliyor:
+     dunya.mjs'teki getViewDirection kapanistaki `bakis`i CANLI
+     okuyor, yani ayni nesneyi degistirince oyuncu gercekten
+     donmus oluyor.                                           */
+  for (const bakinca of [true, false]) {
+    korku.efsaneKorkuUnut();
+    const D9 = dunyaKur();
+    const yon = { x: 0, y: 0, z: 1 };            // +z'ye bakiyor
+    const o9 = oyuncuKur(D9.boyut, yon, { x: 0.5, y: 64, z: 0.5 });
+    o9.id = "k9"; o9.typeId = "minecraft:player";
+    o9._komutlar = []; o9._hasar = []; o9.hasTag = () => false;
+    o9.runCommand = (k) => { o9._komutlar.push(k); return { successCount: 1 }; };
+    o9.sendMessage = () => {};
+    o9.applyDamage = () => true;
+    D9.boyut._varliklar = [o9];
+    _durum.oyuncular = [o9];
+    dunya6.setDynamicProperty(ayar.EFSANE_KAYIT_ANAHTAR,
+                              JSON.stringify({ x: 0, z: 0 }));
+
+    let var9 = false;
+    for (let i = 0; i < 800 && !var9; i++) {
+      tickIlerlet(ayar.EFSANE_KORKU_TARAMA);
+      if (butce.butceSifirla) butce.butceSifirla();
+      korku.efsaneKorkuTara([o9]);
+      if (korku.golgeSayisi() > 0) var9 = true;
+    }
+    if (!var9) { kontrol("golge dogdu (bakis olcumu)", false, "dogmadi"); break; }
+
+    if (bakinca) {
+      /* Golge ARKAYA dogruluyor (-z). Oraya donuyoruz.       */
+      yon.z = -1;
+      for (let i = 0; i < 6; i++) tickIlerlet(ayar.EFSANE_GOLGE_DENET);
+      kontrol("BAKINCA golge kayboluyor",
+              korku.golgeSayisi() === 0,
+              korku.golgeSayisi() + " golge duruyor");
+    } else {
+      /* Bakmiyoruz: sure dolana kadar DURMALI. Yoksa mekanik
+         "bakinca kaybolan" degil "hemen kaybolan" olurdu.   */
+      for (let i = 0; i < 4; i++) tickIlerlet(ayar.EFSANE_GOLGE_DENET);
+      kontrol("BAKMAYINCA golge duruyor",
+              korku.golgeSayisi() > 0, "erken kayboldu");
+      /* Ama sonsuza kadar degil: suresi dolunca gitmeli.    */
+      for (let i = 0; i < 40; i++) tickIlerlet(ayar.EFSANE_GOLGE_DENET);
+      kontrol("suresi dolunca golge kendiliginden gidiyor",
+              korku.golgeSayisi() === 0,
+              korku.golgeSayisi() + " golge kaldi");
+    }
+  }
+
+  /* ---- 6e. 404 KAYDI KİMSEYİ TAKLİT ETMİYOR ----
+     Kaynak `kick @p` ile sahte bir baglanti kopmasi uretiyor.
+     O ALINMADI; geriye satirin kendisi kaldi.               */
+  kontrol("kodda 'kick' YOK",
+          !/\bkick\b/.test(kk.replace(/\/\*[\s\S]*?\*\//g, "")));
+  kontrol("404 satirlari var", ayar.EFSANE_404_SATIRLAR.length >= 2);
+
+  /* ---- 6f. YENİ OLAYLARIN HİÇBİRİ HASAR VERMİYOR ---- */
+  korku.efsaneKorkuUnut();
+  const { o: o7 } = kur("k7");
+  dunya6.setDynamicProperty(ayar.EFSANE_KAYIT_ANAHTAR,
+                            JSON.stringify({ x: 0, z: 0 }));
+  for (let i = 0; i < 500; i++) {
+    tickIlerlet(ayar.EFSANE_KORKU_TARAMA);
+    if (butce.butceSifirla) butce.butceSifirla();
+    korku.efsaneKorkuTara([o7]);
+  }
+  kontrol("500 taramada yeni olaylar da hic hasar vermedi",
+          o7._hasar.length === 0, o7._hasar.length + " hasar");
+  kontrol("uretilen komutlar arasinda kick/kill/clear yok",
+          o7._komutlar.every((k) => !/^(kick|kill|clear|damage)\b/.test(k)),
+          [...new Set(o7._komutlar.map((k) => k.split(" ")[0]))].join(", "));
+
+  /* ---- 6g. İKİ MODUN TARAMASI YAZILI OLMALI ----
+     Yoksa bir gun biri "jumpscare neden yok" diye ekler ve
+     sart bozulur.                                           */
+  const ay6 = readFileSync(KOK + "/Simsek_TNT_ToprakTopu/scripts/ayarlar.js", "utf8");
+  for (const ad of ["glitchmanv", "anomaly_rephased", "Jumpscare", "kick @p"]) {
+    kontrol("'" + ad + "' ayarlarda geciyor (alindi/alinmadi yazili)",
+            ay6.indexOf(ad) >= 0);
+  }
 }
 
 console.log("");

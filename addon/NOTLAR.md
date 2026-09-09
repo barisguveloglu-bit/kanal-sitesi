@@ -1,3 +1,90 @@
+# v7.74.0 — Efsanenin Sessizliği
+
+İstek: iki Forge modu daha (*Error404 1.3.8* / `glitchmanv`,
+*Anomaly Rephased 2.0.0b32* / `anomaly_rephased`), aynı şartla:
+*"bu yaratık da bana saldırmasın, korku unsurlarını ekle."*
+
+## Önce ölçüm
+
+İkisinin de **bütün varlık sınıflarının** sabit havuzu tarandı
+(`setTarget`, `MeleeAttackGoal`, `NearestAttackableTargetGoal`,
+`HurtByTargetGoal`, `doHurtTarget`, `ATTACK_DAMAGE`).
+
+**Hiçbirinde tek bir saldırı hedefi ya da vuruşu yok.** Bulunan
+tüm hedefler `RandomStrollGoal`, `FloatGoal`, `LookAtPlayerGoal`,
+`RandomLookAroundGoal`, `RestrictSunGoal`. Yani her iki mod da
+yaratıkla değil **atmosferle** korkutuyor — cosmichorror'da olduğu
+gibi. Öldürme ikisinde de prosedürde (jumpscare / deathmode);
+o kısım alınmadı.
+
+**Üç modun üçü de meşale söndürüyor** (Error404
+`CheckForTorches`, Anomaly `UnlitTorchOnTickUpdate`). Birbirinden
+habersiz modların aynı mekaniği kurması türün çekirdek korkusunu
+gösteriyor: ışığını kaybetmek. Bu yüzden alındı.
+
+## Alınan altı olay
+
+Sönen Meşale · Kapı Tıklatma · Kalp Atışı · Ensende Nefes ·
+Kaçan Gölge · 404 Kaydı. Hiçbiri hasar vermiyor.
+
+**Kaçan Gölge** kılığı `pa:carpik_kilik`. Seçimin gerekçesi
+ölçülebilir: o varlık tanımında **hiçbir AI bileşeni yok** —
+yalnız fizik, sağlık, çarpışma kutusu. Saldıramaz, yürüyemez,
+hedef alamaz. Şartın kod tarafındaki garantisi bu, yorum değil;
+test dosyadan okuyup doğruluyor.
+
+## İki eski tuzak, ikisi de tekrar çıktı
+
+**1. Meşale oyuncunun eşyası.** Söndürüp geri koymazsak "hiçbir
+yetenek oyuncunun eşyasını kaybettirmez" kuralı kırılır. İki geri
+koyma yolu var: `runTimeout` (hızlı) ve her taramada bakılan
+**defter** (dünya kapanıp açılırsa ikinci şans). Ayrıca meşaleler
+en az 8 blok öteden seçiliyor — ayağının dibindekini söndürseydik
+7 saniyelik pencerede kırıp kaybedebilirdi.
+
+**2. Kalıcı kılık ortada kalır.** `donusum.js`'te yaşanmış tuzak.
+Aynı çözüm: kimlikler dünya özelliğine yazılıyor, açılışta
+taranıp temizleniyor. Defter donusum'unkinden **ayrı** — tek
+deftere yazsaydık açılış süpürmesi oyuncunun gerçek kılığını da
+silerdi.
+
+## Alınmayanlar
+
+- **Jumpscare / deathmode** — Bedrock'ta istemci render kancası
+  yok, öldürme zaten şarta aykırı. Anomaly'nin kendisi bile
+  açılışta hassas görüş uyarısı basıyor; taklit etmedik.
+- **`kick @p`** — Error404 sahte bir çökme mesajıyla oyuncuyu
+  atıyor. Bedrock'ta yok; sahte bağlantı kopması üretmek de olsa
+  yapmazdık. Yerine sohbet satırı alındı: korkusu aynı, yalanı yok.
+- Bozuk mob dokuları, blok bozma / chunk kaldırma,
+  `playersSleepingPercentage`, faz sistemi — gerekçeleri
+  `ayarlar.js`'te tek tek yazılı.
+
+## Testin kendisi üç yerden düzeldi
+
+Mutasyon bataryası **kendi testlerimin** zayıf olduğunu gösterdi:
+
+- "Yakın meşalelere dokunulmadı" belirli 24 bloğa bakıyordu; 60
+  rastgele örneklemenin birine denk gelmesi düşük ihtimal olduğu
+  için **şans eseri yeşil yanıyordu.** Ölçü, sönen *her*
+  meşalenin mesafesine çevrildi (78 ölçüm).
+- Gölge defteri testi kaynakta metin arıyordu; çağrı yerini
+  silmek tanımı silmediği için mutasyonu kaçırdı. **Davranışa**
+  çevrildi: gölge doğduktan sonra dünya özelliği gerçekten
+  yazılmış mı.
+- "Bakınca kaybolma" — türün imza mekaniği — **hiç
+  sınanmıyordu.** Artık bakınca gidiyor mu, bakmayınca duruyor
+  mu, süresi dolunca gidiyor mu, üçü de ölçülüyor.
+
+Ayrıca "iki olay arası boşluk" ölçüsü `playsound` saymayı
+bırakıp defterdeki `ara` alanına taşındı: Kalp Atışı tek olayda
+6 ses çalıyor, yani ses sayısı artık olay sayısı değildi ve test
+kendi kodumuzu haksız yere düşürüyordu.
+
+Dokuz mutasyonun dokuzu da yakalanıyor.
+
+---
+
 # v7.73.0 — Marvel: eksik 32 parça
 
 İstek: *"tüm karakterlerin yeteneklerini alabildiğin kadar al,

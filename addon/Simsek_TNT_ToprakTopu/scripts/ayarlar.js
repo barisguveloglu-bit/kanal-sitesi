@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.73.0";
+export const SURUM = "v7.74.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -8472,6 +8472,172 @@ export const EFSANE_GAZAP_TNT_KIRAR  = false;
 export const EFSANE_GAZAP_YILDIRIM_ADET = 3;
 /* Diğer oyuncular da vurulsun mu. Varsayılan HAYIR. */
 export const EFSANE_GAZAP_OYUNCU_VURUR = false;
+
+/* ============= EFSANENİN SESSİZLİĞİ  (v7.74) =============
+   Kullanıcı iki Forge modu daha getirdi ve şartı yineledi:
+   *"bu yaratık da bana saldırmasın, korku unsurlarını ekle."*
+
+   ---- İKİSİ DE İNCELENDİ, ÇALIŞTIRILMADI ----
+
+   1) `Error404 1.3.8` — MCreator, modId `glitchmanv`
+      ("GlitchManV2"). 253 sınıf, 58 prosedür.
+   2) `Anomaly Rephased 2.0.0b32` — MCreator, modId
+      `anomaly_rephased` (Clorofite). 434 sınıf, 129 prosedür,
+      17 anomali varlığı.
+
+   Her iki modun BÜTÜN varlık sınıflarının sabit havuzu tarandı
+   ve saldırı izi arandı (`setTarget`, `MeleeAttackGoal`,
+   `NearestAttackableTargetGoal`, `HurtByTargetGoal`,
+   `doHurtTarget`, `ATTACK_DAMAGE`).
+
+   SONUÇ — ikisinde de TEK BİR varlıkta bile saldırı hedefi ya
+   da vuruşu yok. Bulunan tüm hedefler `RandomStrollGoal`,
+   `FloatGoal`, `LookAtPlayerGoal`, `RandomLookAroundGoal`,
+   `RestrictSunGoal`. Yani her iki mod da yaratıkla değil
+   ATMOSFERLE korkutuyor: bakan, dikizleyen, kaybolan, ses
+   çıkaran şeyler. Kullanıcının şartı bu iki modla da zaten
+   uyumlu — cosmichorror'da olduğu gibi, tesadüf değil, türün
+   tasarımı bu.
+
+   (Öldürme ikisinde de prosedürde: jumpscare ve "deathmode".
+   O kısım ALINMADI — şart onu dışlıyor.)
+
+   ---- ÜÇ MODUN ÜÇÜ DE AYNI ŞEYİ YAPIYOR ----
+   Meşale söndürme: Error404'te `CheckForTorchesProcedure` +
+   `unlit_torch` bloğu, Anomaly'de `UnlitTorchOnTickUpdate` +
+   `UnlitTorchTileEntity`. Birbirinden habersiz iki mod aynı
+   mekaniği kurmuş. Türün çekirdek korkusu bu: ışığını
+   kaybetmek. Bu yüzden buraya alındı.
+
+   ---- ALINANLAR ----
+   Altısı da durak çevresinde, HİÇBİRİ hasar vermiyor:
+
+     Sönen Meşale   çevredeki meşaleler söner, sonra geri gelir
+     Kapı Tıklatma  gece kapına vurulur -- kimse yoktur
+     Kalp Atışı     görüş alanında bir şey varken kalp sesi
+     Ensende Nefes  arkandan nefes sesi
+     Kaçan Gölge    uzakta bir şey belirir, BAKINCA kaybolur
+     404 Kaydı      sohbete bozuk bir satır düşer
+
+   Kaynaktaki adları sırayla: CheckForTorches /
+   UnlitTorchOnTickUpdate · SleepEvent1-2 (door_knock,
+   door_knockfast) · PlayerCanSeeAnomaly (heartbeat) ·
+   AHuntOnEntityTickUpdate (a_breath) · ErrorStareDespawn +
+   APeekTick · SeenScript ("MobID:404 left the game") +
+   PlayerSendsMessage ("wsserver 00.000.00.000:⛥∅✞∞").
+
+   ---- ALINMAYANLAR VE NEDENİ ----
+     Jumpscare / deathmode   ekranı kaplayan yüz + öldürme.
+                 Bedrock script'te istemci render kancası YOK;
+                 zaten öldürme kısmı şarta aykırı. Anomaly'nin
+                 KENDİSİ bile açılışta uyarı basıyor: "bu mod
+                 hassas görüşü olanlara zararlı olabilecek
+                 efektler içeriyor". Taklit etmedik.
+     kick @p     Error404 sahte bir çökme mesajıyla oyuncuyu
+                 sunucudan atıyor ("Internal Exception:
+                 java.io.IOException: Emergency Shutdown").
+                 Bedrock davranış paketinde `kick` yok; sahte
+                 bir bağlantı kopması üretmek de olsa
+                 yapmazdık. Yerine sohbet satırı alındı --
+                 korkusu aynı, yalanı yok.
+     Bozuk mob dokuları  `ChangeMobTextures`: Bedrock'ta çalışma
+                 anında vanilla mob dokusu değiştirilemiyor.
+     Blok bozma / chunk kaldırma  `ReplaceBlocksCode`,
+                 `LiftChunks`: oyuncunun kendi yapısını kalıcı
+                 bozar, geri koyma garantisi yok.
+     `playersSleepingPercentage 110`  Anomaly uykuyu böyle
+                 engelliyor; Bedrock'ta bu gamerule yok.
+     Faz sistemi  ikisinde de var (`GetPhase`/`SetPhase`),
+                 kurulabilir ama ayrı bir iş -- uydurmadık,
+                 eksik olduğunu yazdık.
+
+   ---- MEŞALE NASIL GERİ GELİYOR ----
+   "Her kalıcı etkinin süresi ve çıkışı olmalı" kuralı burada
+   en sert haliyle geçerli: söndürülen meşale OYUNCUNUN EŞYASI.
+   Bu yüzden iki geri koyma yolu var:
+     1) `system.runTimeout` -- hızlı yol
+     2) her taramada bakılan DEFTER -- zamanlayıcı düşerse
+        (dünya kapanıp açılırsa, chunk boşalırsa) ikinci şans
+   İkisi de "yerinde hâlâ hava mı" diye bakıyor; oyuncu araya
+   girip bir şey koyduysa dokunulmuyor.
+
+   Meşaleler ÖTEDEN seçiliyor (en az SONME_YAKIN blok). Ayağının
+   dibindeki meşaleyi söndürseydik pencerede onu kırıp
+   kaybedebilirdi; 8 blok öte üç saniyede gidilemez.          */
+export const EFSANE_404_ACIK = true;
+
+/* -- Sönen Meşale --
+   Küre taranmıyor: SONME_ORNEK kadar rastgele nokta okunuyor.
+   16 yarıçaplı küreyi taramak ~17.000 blok okuması olurdu, bu
+   60. Yan etkisi de iyi: bazıları söner bazıları sönmez, yani
+   "hepsi birden" gibi mekanik durmaz.                        */
+export const EFSANE_SONME_ORNEK  = 60;   // kaç nokta örneklensin
+export const EFSANE_SONME_YAKIN  = 8;    // bundan yakını söndürülmez
+export const EFSANE_SONME_UZAK   = 16;
+export const EFSANE_SONME_TAVAN  = 6;    // en fazla kaç meşale
+export const EFSANE_SONME_SURE   = 140;  // 7 saniye sonra geri gelir
+export const EFSANE_SONME_BLOKLAR = ["minecraft:torch", "minecraft:lantern"];
+export const EFSANE_SONME_SES    = "random.fizz";
+
+/* -- Kapı Tıklatma --
+   Kaynakta uykuya bağlı (SleepEvent1/2). Bedrock'ta yatak
+   kullanımına kanca yok, o yüzden GECEYE bağlandı: gece,
+   durakta, yakınında tıklatılıyor. Sapma bilerek ve burada
+   yazılı.
+
+   `dig.wood` seçildi çünkü bu depoda ZATEN kullanılıyor, yani
+   Bedrock'ta var olduğu ölçülmüş. Uydurma bir ses adı sessizce
+   hiçbir şey çalmaz -- korkunun hiç gelmemesi en kötüsü.     */
+export const EFSANE_KAPI_SES    = "dig.wood";
+export const EFSANE_KAPI_ADET   = 3;     // kaç vuruş
+export const EFSANE_KAPI_ARALIK = 7;     // vuruşlar arası tik
+export const EFSANE_KAPI_UZAK   = 3;     // kaç blok öteden
+
+/* -- Kalp Atışı ve Ensende Nefes --
+   Bedrock ses adları. Yoksa sessizce hiçbir şey olmaz ve
+   öteki olaylar çalışmaya devam eder (hayaletSes ile aynı
+   dayanıklılık).                                             */
+export const EFSANE_KALP_SES   = "mob.warden.heartbeat";
+export const EFSANE_KALP_ADET  = 6;
+export const EFSANE_KALP_ARALIK = 16;
+export const EFSANE_NEFES_SES  = "mob.ghast.moan";
+export const EFSANE_NEFES_UZAK = 2;      // tam ensende
+
+/* -- Kaçan Gölge --
+   Uzakta beliren, BAKINCA kaybolan şey. İki modun ikisinde de
+   var (ErrorStareDespawn, APeekTick) -- türün imzası.
+
+   Kılık `pa:carpik_kilik`: Çarpık Hal'in kılık varlığı.
+   Seçilme sebebi ölçülebilir -- o varlık tanımında HİÇBİR AI
+   hedefi yok (`components` yalnız fizik, sağlık, çarpışma
+   kutusu). Yani saldıramaz, yürüyemez, hedef alamaz. Şartın
+   kod tarafındaki garantisi bu.
+
+   Hikâye tarafı da denk düşüyor: seni uzaktan izleyen şey
+   kendi çarpılmış hâlin.                                     */
+export const EFSANE_GOLGE_KIMLIK = "pa:carpik_kilik";
+export const EFSANE_GOLGE_UZAK   = 22;
+export const EFSANE_GOLGE_SURE   = 200;  // 10 sn sonra kendiliğinden gider
+export const EFSANE_GOLGE_BAKIS  = 60;   // kaç derece içinde "baktın" sayılır
+export const EFSANE_GOLGE_DENET  = 10;   // kaç tikte bir bakılıyor mu diye bak
+
+/* -- 404 Kaydı --
+   Sohbete düşen bozuk satır. `§e` sarı: kaynakta da
+   `"color":"yellow"`. Ad UYDURMA DEĞİL, bizim: gerçek bir
+   oyuncu adını taklit etmiyor.                               */
+/* Kaçan Gölge'nin defteri. Kılık KALICI bir varlık; dünya
+   kapanırsa zamanlayıcı zinciri düşer ve o şey orada kalır.
+   donusum.js'te aynı tuzak yaşandı ve çözümü orada yazılı:
+   kimlikler dünya özelliğine yazılır, açılışta TARANIP
+   temizlenir. Aynı çözüm, aynı gerekçe.                      */
+export const EFSANE_GOLGE_KAYIT_ANAHTAR = "simsek:efsane_golge";
+
+export const EFSANE_404_SATIRLAR = [
+  "§eMobID:404 sunucudan ayrıldı",
+  "§eMobID:404 oyuna katıldı",
+  "§8<§4MobID:404§8> §7⛥∅✞∞",
+  "§8wsserver 00.000.00.000:⛥∅✞∞"
+];
 
 /* KALICI KAYIT YOK -- ve bu bilincli.
 
