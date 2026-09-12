@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.74.0";
+export const SURUM = "v7.75.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -8631,6 +8631,117 @@ export const EFSANE_GOLGE_DENET  = 10;   // kaç tikte bir bakılıyor mu diye b
    kimlikler dünya özelliğine yazılır, açılışta TARANIP
    temizlenir. Aynı çözüm, aynı gerekçe.                      */
 export const EFSANE_GOLGE_KAYIT_ANAHTAR = "simsek:efsane_golge";
+
+
+/* ================= VİKTOR  (v7.75) =================
+   Kullanıcı kendi komut bloğu listesini getirdi ve *"bunları
+   da ekle"* dedi. Kaynak: ametist parçası elde tutulunca
+   çalışan `execute as @a[hasitem=...]` satırları.
+
+   ---- KAYNAKTAN AYRILDIĞIMIZ YERLER ----
+   Hepsinin gerekçesi tek satırda: komut bloğu döngüsü ile
+   eklenti yeteneği aynı şey değil.
+
+   1. ELDE AMETİST ŞARTI KALDIRILMADI ama yeteneğe taşındı.
+      Kaynakta `hasitem` her tick bakılıyor; burada yetenek
+      zaten oyuncunun kendi tetiklemesi. Şart `VIKTOR_ANAHTAR`
+      olarak duruyor: elinde ametist yoksa yetenek çalışmıyor.
+      Böylece "istemeden tetikledim" olmuyor.
+
+   2. KLON KALICI DEĞİL. Kaynak `summon npc` diyor ve o NPC
+      dünyada sonsuza kadar kalıyor. Depo kuralı: her kalıcı
+      etkinin süresi ve çıkışı olmalı. Klon `VIKTOR_KLON_SURE`
+      sonunda kendiliğinden gidiyor, defteri de var.
+
+   3. `spreadplayers` SÖZDİZİMİ DÜZELTİLDİ. Kaynakta
+      `@e[type!player, r=3,c=1]` yazıyor — `type!player`
+      geçersiz, doğrusu `type=!player`. Oyun bu satırı sessizce
+      reddediyordu, yani o yetenek kaynakta zaten çalışmıyordu.
+      Ayrıca `!player` KORUNDU: oyuncuyu rastgele bir yere
+      fırlatmak tam da v7.65-v7.69'da savunma yazdığımız şey.
+
+   4. Uçuş `levitation 1 1 true` -> aynı, ama süresi var ve
+      Direnç V yasağıyla ilgisi yok (levitation bağışıklık
+      değil).                                                */
+export const VIKTOR_ACIK    = true;
+/* Elde tutulması gereken eşya. Kaynakta ametist parçası. */
+export const VIKTOR_ANAHTAR = "minecraft:amethyst_shard";
+/* Işınlanma mesafesi: kaynakta `^ ^ ^6`. */
+export const VIKTOR_ISIN_UZAK = 6;
+export const VIKTOR_PARCACIK_ISIN = "minecraft:eyeofender_death_explode_particle";
+export const VIKTOR_PARCACIK_BUYU = "minecraft:dragon_breath_trail";
+/* Klon: kaynakta `summon npc`. NPC yerine kendi kılığımız --
+   NPC'nin sohbet arayüzü var ve tıklanınca boş pencere açıyor;
+   sahnede istenmeyen bir şey.                               */
+export const VIKTOR_KLON_KIMLIK = "pa:carpik_kilik";
+export const VIKTOR_KLON_SURE   = 200;   // 10 saniye sonra gider
+export const VIKTOR_GORUNMEZ_SURE = 3;   // saniye (kaynakta 3)
+export const VIKTOR_UCUS_SURE   = 3;     // saniye
+export const VIKTOR_UCUS_KADEME = 1;
+/* Yok etme: kaynakta `spreadplayers ~ ~ 20 80`. */
+export const VIKTOR_SAVUR_MENZIL = 3;    // kaç blok öndeki
+export const VIKTOR_SAVUR_YAKIN  = 20;
+export const VIKTOR_SAVUR_UZAK   = 80;
+/* Çember: kaynakta skorbordla açı artırılıyor; burada script
+   zaten açıyı biliyor, skorborda gerek yok.                 */
+export const VIKTOR_CEMBER_NOKTA = 24;
+export const VIKTOR_CEMBER_YARICAP = 1.2;
+
+export const VIKTOR_KLON_SIRA   = 571;
+export const VIKTOR_ISIN_SIRA   = 572;
+export const VIKTOR_BUYU_SIRA   = 573;
+export const VIKTOR_UCUS_SIRA   = 574;
+export const VIKTOR_SAVUR_SIRA  = 575;
+export const VIKTOR_EL_SIRA     = 576;
+export const VIKTOR_CEMBER_SIRA = 577;
+
+
+/* ================= KUTLAMA SAHNESİ  (v7.75) =================
+   İstek aynen: *"2 tane bembeyaz gözlü bunlardan bayağı olsun
+   etrafımda ve körlük efekti ver, chat'te şunu söylesin 'seni
+   kutluyorum Yüce Earsh' ama bunu büyük harflerle ve İngilizce
+   şekilde yazsın, isim etiketi gözükmesin, animasyon 25 saniye
+   olsun."*
+
+   ---- METİN NEDEN BÖYLE ----
+   Türkçesi "seni kutluyorum Yüce Earsh". İngilizce karşılığı
+   büyük harfle: `I CONGRATULATE YOU, GREAT EARSH`. Arayüz
+   metinleri Türkçe kuralının istisnası — kullanıcı burada
+   açıkça İngilizce istedi ve sebebi de belli: sahnenin kendisi
+   bir replik, arayüz değil.
+
+   ---- İSİM ETİKETİ ----
+   `pa:izleyici` varlığına hiçbir yerde `nameTag` yazılmıyor ve
+   varlık tanımında ad göstermeyi açan bir bileşen yok. Test
+   bunu dosyadan okuyup doğruluyor.
+
+   ---- SÜRE ----
+   25 saniye = 500 tik. Körlük efekti de aynı süre, ama
+   efektin kendisi saniye cinsinden veriliyor.
+
+   ---- NEDEN KÖRLÜK DİRENÇ DEĞİL ----
+   Körlük bir CEZA değil sahnenin kendisi: gözlerden başka bir
+   şey görünmesin diye. Süresi sahneyle birlikte bitiyor, yani
+   "her kalıcı etkinin çıkışı olmalı" kuralına uyuyor.       */
+export const KUTLAMA_ACIK   = true;
+export const KUTLAMA_SURE   = 500;   // 25 saniye
+export const KUTLAMA_SANIYE = 25;
+export const KUTLAMA_KIMLIK = "pa:izleyici";
+/* "bunlardan bayağı olsun": iki halka, toplam 18 izleyici. */
+export const KUTLAMA_ADET      = 18;
+export const KUTLAMA_YARICAP   = 6;
+export const KUTLAMA_IC_YARICAP = 3.5;
+export const KUTLAMA_YUKSEK    = 1.2;   // göz hizası
+/* Kaç tikte bir yeniden hizalanıyorlar (oyuncu yürürse
+   halka onunla gelsin).                                     */
+export const KUTLAMA_HIZALA  = 10;
+export const KUTLAMA_METIN   = "I CONGRATULATE YOU, GREAT EARSH";
+export const KUTLAMA_RENK    = "§f";
+export const KUTLAMA_SES     = "mob.warden.heartbeat";
+export const KUTLAMA_SIRA    = 578;
+/* Sahne yarıda kalırsa (dünya kapanırsa) izleyiciler ortada
+   kalmasın: Kaçan Gölge'deki aynı defter, aynı gerekçe.     */
+export const KUTLAMA_KAYIT_ANAHTAR = "simsek:kutlama_izleyici";
 
 export const EFSANE_404_SATIRLAR = [
   "§eMobID:404 sunucudan ayrıldı",

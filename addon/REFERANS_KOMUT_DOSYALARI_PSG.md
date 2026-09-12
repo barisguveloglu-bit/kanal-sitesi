@@ -526,3 +526,91 @@ Daha önce tek tek gelen 26 küçük dosyanın **19'u** bu arşivin içinde
 md5'i aynı olarak duruyor. Dışarıda kalan 7'nin ikisi kullanıcının
 kendi `.mcaddon` paketleri, biri socket.io sohbet kodu — komut
 dosyası değil. Yani bu arşiv ötekilerin üst kümesi.
+
+
+---
+
+## "baruto kalkma linkleri" (v7.74 sonrası ölçüm)
+
+Kullanıcı yeni bir metin dosyası getirdi ve *"işimize
+yarayabilecek kodları bak ve ekle"* dedi. **Eklenecek bir şey
+çıkmadı — ve bu bir eksiklik değil, sonucun kendisi.** Dosyanın
+tamamı saldırı yükü; savunmamızın onları kapatıp kapatmadığı
+ölçüldü.
+
+| ne | sayı |
+|---|---|
+| `playanimation` satırı | 150 |
+| özgün satır | 124 |
+| özgün son argüman (denetleyici yuvası) | 109 |
+| özgün animasyon kimliği | 25 |
+
+### Gerçek yuva bir tane ve zaten kapsanıyor
+
+109 özgün yuva adının **yalnız biri** gerçek vanilla
+denetleyici:
+
+| yuva | komut | durum |
+|---|---|---|
+| `controller.animation.player.root` | 5 | **`ARIN_POZ_KONTROLCU`'da var** |
+| `controller.animation.humanoid.umutkrln1…22` | 30 | uydurma |
+| `controller.animation.player.root.text_type.…` | 2 | uydurma (gerçek adın uzatılmışı) |
+| `transition_fox_steep_…`, `ghostcagan_…`, `jajajaj_…` | 72 | uydurma |
+
+Uydurma ad var olmayan bir yuvaya yazar, yani hiçbir şey yapmaz.
+v7.65'te konan ilke — *"listeye yalnız gerçek yuvalar girer"* —
+bu dosyada da doğrulandı: 109 addan 108'ini listeye eklemek boş
+iş olurdu.
+
+En uzun uydurma yuva adı **1.891 karakter**. Uzunluk bir şey
+değiştirmiyor; yine var olmayan bir yuva.
+
+### Hedef seçiciler
+
+| seçici | satır | ne demek |
+|---|---|---|
+| `@s` | 83 | saldıranın kendi üstünde deneme |
+| `@e[name=!X]` / `@a[name=!X]` | 60 | **kendisi hariç herkes** |
+| `"<oyuncu adı>"` | 4 | seçici yerine tırnaklı ad |
+| `@a` | 2 | ayrım yok, herkes |
+
+Tırnaklı ad **yeni bir şekil** ama savunma açısından fark
+etmiyor: Arınma kilidin nasıl uygulandığına değil, kendi
+oyuncusunun üstündeki sonuca bakıyor.
+
+`name=!X` şekli 60 satırla en yaygın olanı; tekrarlanan
+saldırıya karşı **Savunma Kipi** (`savunmaAc`) zaten
+`SAVUNMA_ARALIK` başına bir kez poz sıfırlıyor.
+
+### Animasyon kimlikleri: yeni gerçek kimlik yok
+
+25 özgün kimliğin hepsi daha önce görülmüş ailelerden.
+`animation.player.swim` (36 satırla en çok kullanılan) v7.49'da
+zaten Poz Sandığı'na girmişti.
+`animation.player.first_person.map_hold` (8 satır) yine
+doğrulanamadığı için **yine dışarıda** — v7.49'daki karar
+değişmedi.
+
+### Sonuç
+
+**Savunmada delik bulunamadı, kod değişmedi.** Bu dosya
+v7.65'te ölçülen 58 MB'lık arşivin daha küçük ve daha gürültülü
+bir kopyası: aynı iki gerçek tehdit şekli, aynı yüzlerce
+uydurma süs. `test/arinma.mjs`'teki "gerçek kök denetleyici
+listede" ve "listede yalnız gerçek controller adı var"
+maddeleri bu iddiayı zaten kilitliyor.
+
+### Dosyadaki bağlantılar açılmadı
+
+Başta beş `dosya.co` bağlantısı var. **İndirilmedi.** Sebep iki
+tane: bu depoda dış kaynak çalıştırılmıyor, ve adlarından
+(`SANALIN_EN_İYİ_KALKMA_KOMUTLARI`, `ghost_kalkma_v2`) aynı
+ailenin devamı oldukları belli — v7.65'te 1.350 dosyanın %96'sı
+aynı satırın kopyası çıkmıştı.
+
+### Dosyanın geri kalanı
+
+Satırların çoğu adı geçen kişilere yönelik ağır küfür içeriyor.
+Teknik olarak hiçbir şey taşımıyor: yuva adının içine yazılmış
+metin, var olmayan bir yuvaya yazıldığı için oyunda hiçbir yere
+çıkmıyor.

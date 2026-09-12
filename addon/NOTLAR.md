@@ -1,3 +1,90 @@
+# v7.75.0 — Viktor ve Kutlama Sahnesi
+
+İki istek: kullanıcının kendi komut bloğu listesini eklemek, ve
+tarif ettiği animasyonu yapmak.
+
+## Viktor — yedi yetenek
+
+Ametist parçası elde tutulunca çalışan komut listesi yeteneğe
+çevrildi: Klon Bırakma · Işınlanma · İki Elde Büyü · Uçuş ·
+Savurma · Eli Kaldır · Çember.
+
+**Kaynakta çalışmayan bir satır vardı.** Savurma şöyle yazılmış:
+
+    @e[type!player, r=3,c=1]
+
+`type!player` geçersiz bir seçici; doğrusu `type=!player`. Oyun
+o satırı sessizce reddediyor, yani **o yetenek kaynakta zaten
+çalışmıyordu.** Düzeltildi — ama `!player` kısmı **korundu**:
+bir oyuncuyu haberi olmadan 80 blok öteye fırlatmak tam da
+v7.65–v7.69'da savunmasını yazdığımız kalıp. Yaratıklara
+serbest, oyunculara değil.
+
+Bir de klon: kaynak `summon npc` diyor ve o NPC dünyada
+**sonsuza kadar** kalıyor. Depo kuralı bunu yasaklıyor, klonun
+artık süresi var.
+
+## Kutlama Sahnesi — altı şart
+
+İstek: *"2 tane bembeyaz gözlü, bunlardan bayağı olsun
+etrafımda, körlük efekti ver, chat'te 'seni kutluyorum Yüce
+Earsh' desin ama büyük harfle ve İngilizce, isim etiketi
+gözükmesin, 25 saniye olsun."*
+
+Altısı da karşılandı ve altısının da ayrı bir test maddesi var:
+`pa:izleyici` (siyah gövde, iki bembeyaz göz) · 18 izleyici, iki
+halka · körlük · `I CONGRATULATE YOU, GREAT EARSH` · `nameTag`
+hiç yazılmıyor · 500 tik.
+
+İzleyicilerin **hiçbir yapay zeka bileşeni yok** — saldıramaz,
+yürüyemez, hedef alamaz. Test bunu varlık dosyasından okuyor.
+
+## Üç tuzak, üçü de tanıdık
+
+**1. Bütçe.** 18 izleyiciyi tek tickte istemek tick başına dört
+varlık bütçesini tüketiyordu; gerisi sessizce düşüyordu, testte
+18 yerine 4 çıktı. Artık kademeli doğuyorlar — yan etkisi de
+iyi, karanlıkta gözler tek tek açılıyor.
+
+**2. Temizlik tuzağı, sekizinci kez.** Üreteçteki `beklenen`
+listesine eklenmeyen her yeni doku aynı üretimde siliniyor.
+İzleyici dokusu da ona takıldı.
+
+**3. Tarama kendi yorumumu yakaladı.** `type!player` kullanmadığımızı
+sınayan madde düşüyordu, çünkü `viktor.js`'in yorumu kaynaktaki
+hatayı **anlatırken** o dizgeyi yazıyor. Yorumlar sökülüp
+arandı — `efsane_korku.mjs`'te de yaşanmış aynı tuzak.
+
+## Mutasyon bataryası bir test kusurumu buldu
+
+"İzleyicilerin hepsi kaldırıldı" maddesi yalnız **deftere**
+bakıyordu. `remove()` çağrısını silen mutasyon testi
+geçiyordu: defter boşalıyor ama onsekiz izleyici oyuncunun
+dünyasında dikilmeye devam ediyor. Asıl şart buydu, ölçü
+dünyanın kaldırma sayacına taşındı. Yedi mutasyonun yedisi de
+yakalanıyor.
+
+## Ayrıca: v7.74'ün testleri sağlamlaştırıldı
+
+Geçen sürümde bıraktığım üç kararsız test düzeltildi ve bir
+**gerçek kusur** çıktı: Kaçan Gölge zaten geçersizse defterdeki
+kaydı hiç düşmüyordu, yani dünya özelliği her oturumda ölü
+kimliklerle büyüyordu.
+
+Testler artık şansa bakmıyor. Olay seçimi rastgeleydi ve
+"yeterince tara, er ya da gec çıkar" diye bekleniyordu; 30
+koşuda bir beklenen olay hiç çıkmıyor ve test kendi kodumuzu
+haksız yere düşürüyordu (v7.72'den beri duran TNT ölçümü
+dâhil). Artık olay zorlanıyor, sıra da kaynaktan doğrulanıyor.
+
+Bu arada kendi ölçüm aracımı da iki kez yanlış kullandım:
+mutasyonları `test/pack` yerine kaynağa uygulayıp "dört mutasyon
+sağ kaldı" sandım, ve bir testin **çöktüğünü** fark etmedim
+çünkü yalnızca `✗` satırı arıyordum — çökmede öyle bir satır
+olmuyor.
+
+---
+
 # v7.74.0 — Efsanenin Sessizliği
 
 İstek: iki Forge modu daha (*Error404 1.3.8* / `glitchmanv`,

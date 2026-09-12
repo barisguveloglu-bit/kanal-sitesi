@@ -86,6 +86,11 @@ import { pozUnut } from "./yetenekler/pozlar.js";
 /* v7.28: Arinma. Sohbetten de cagriliyor (girdi kilitliyken
    jest yapilamaz), o yuzden fonksiyon disari aciliyor.      */
 import { arindir, arinmaUnut, savunmaAc } from "./yetenekler/arinma.js";
+/* `kutlamaUnut` BILEREK ithal edilmiyor: o yalniz testlerin
+   bellegi sifirlamasi icin disa aciliyor, tipki
+   donusum.js'teki `donusumUnut` gibi. main.js'e almak olu
+   ithal olurdu -- tarama.mjs zaten yakaladi.               */
+import { izleyicileriSupur } from "./yetenekler/kutlama.js";
 
 /* v7.36: Kafes Kirma -- bloklarla hapsedilmeye karsi. */
 import { kafesKir, kafesUnut } from "./yetenekler/kafes.js";
@@ -255,6 +260,8 @@ import "./yetenekler/bot_ilkel.js";
 import "./yetenekler/o_sey.js";
 import "./yetenekler/donusum.js";
 import "./yetenekler/carpik.js";
+import "./yetenekler/viktor.js";
+import "./yetenekler/kutlama.js";
 import "./yetenekler/bot_guc.js";
 /* v6.2 -- BU SATIR EKSIKTI VE EFSANE YAPISI HIC CALISMIYORDU.
    efsane.js hicbir yerden import edilmiyordu; yani icindeki
@@ -683,6 +690,10 @@ system.runInterval(() => {
        satirda cikiyor -- ayni `oyuncular` listesi.          */
     try {
       efsaneKorkuTara(oyuncular);
+      /* Kutlama sahnesinin izleyicileri de kalici varliklar:
+         onceki oturumdan kalanlar ilk taramada supuruluyor.
+         efsane_korku.js'teki ayni cozum, ayni gerekce.     */
+      izleyicileriSupur();
     } catch (e) {
       hataYaz("efsaneKorkuTara", e);
     }

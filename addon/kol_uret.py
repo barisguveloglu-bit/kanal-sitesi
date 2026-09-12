@@ -110,7 +110,7 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # tureniyor -- ayrisabilecekleri bir yer kalmadi.
 #
 # YENI SURUM CIKARIRKEN: yalnizca asagidaki satiri degistir.
-SURUM_NO = (7, 74, 0)
+SURUM_NO = (7, 75, 0)
 
 SURUM_METIN = "%d.%d.%d" % SURUM_NO
 
@@ -3966,6 +3966,106 @@ def carpik_animasyonu():
                     "rightLeg": {"rotation": r(a)},
                     "leftLeg":  {"rotation": r(a)}
                 }
+            }
+        }
+    }
+
+
+# ================================================================
+#  IZLEYICI  (Kutlama sahnesinin seyircileri)            v7.75
+#
+#  Kullanici: "2 tane bembeyaz gozlu, bunlardan bayagi olsun
+#  etrafimda, korluk efekti ver, sohbette buyuk harfle ingilizce
+#  soylesin, isim etiketi gorunmesin, 25 saniye olsun."
+#
+#  ---- NEDEN YENI BIR VARLIK ----
+#  Elimizdeki kiliklar (o_sey_kilik, carpik_kilik) oyuncu
+#  geometrisi tasiyor; "karanlikta duran iki goz" icin fazla
+#  govde var. Bu varlik yalniz iki seyden ibaret: siyah bir
+#  bas ve uzerinde iki beyaz goz.
+#
+#  ---- BILESENLERI KILIKLARLA AYNI ----
+#  Yani HICBIR yapay zeka hedefi yok: saldiramaz, yuruyemez,
+#  hedef alamaz. Efsane Korkusu'ndaki golge icin yazilan ayni
+#  garanti burada da gecerli ve testi de ayni.
+#
+#  ---- ISIM ETIKETI ----
+#  Istek acikti: "isim etiketi gozukmesin". Iki yerden birden
+#  kapatiliyor -- varlikta `is_hidden_when_invisible` yok ve
+#  `nameable` yeniden adlandirmayi reddediyor; istemci
+#  tarafinda da hicbir yere ad yazilmiyor. Script de zaten
+#  `nameTag` atamiyor.
+# ================================================================
+IZLEYICI_KIMLIK = "pa:izleyici"
+IZLEYICI_DOKU   = "izleyici"
+
+
+def izleyici_dokusu(hedef):
+    """32x32: her yeri siyah, yalniz yuz yuzunde iki beyaz goz.
+
+    Goz BEYAZI degil, BEMBEYAZ (255,255,255) -- istek aynen
+    "bembeyaz gozlu". Govde saf siyah degil (8,8,10): tam siyah
+    gece yaninda blok gibi duruyor, bir tik mavi kirginlik onu
+    "karanlikta bir sey var" hissine ceviriyor.              """
+    px = {}
+    for x in range(32):
+        for y in range(32):
+            px[(x, y)] = (8, 8, 10, 255)
+    # Bas kutusunun ON yuzu: uv [8,8] - [16,16] (8x8 alan).
+    for gx, gy in ((10, 12), (11, 12), (13, 12), (14, 12)):
+        px[(gx, gy)] = (255, 255, 255, 255)
+    # Gozlerin bir piksel altinda solgun bir iz: bakis "asagi
+    # dogru uzuyor" gibi dursun. Beyaz degil, kirik beyaz.
+    for gx in (10, 11, 13, 14):
+        px[(gx, 13)] = (120, 120, 128, 255)
+    png_yaz(hedef, 32, 32, px)
+    return True
+
+
+def izleyici_geo():
+    """Tek kutu: 8x8x8 bir bas. Govde YOK -- karanlikta govde
+    zaten gorunmezdi, gorunen sey gozler.                     """
+    return {
+        "format_version": "1.12.0",
+        "minecraft:geometry": [{
+            "description": {
+                "identifier": "geometry.izleyici",
+                "texture_width": 32, "texture_height": 32,
+                "visible_bounds_width": 1.5, "visible_bounds_height": 1.5,
+                "visible_bounds_offset": [0, 0.75, 0]
+            },
+            "bones": [{
+                "name": "head", "pivot": [0, 4, 0],
+                "cubes": [{"origin": [-4, 0, -4], "size": [8, 8, 8],
+                           "uv": [0, 0]}]
+            }]
+        }]
+    }
+
+
+def izleyici_varligi():
+    """Kiliklarla AYNI bilesenler: bir goruntu, baska bir sey degil."""
+    d = o_sey_kilik_varligi()
+    d["minecraft:entity"]["description"]["identifier"] = IZLEYICI_KIMLIK
+    return d
+
+
+def izleyici_istemci_varligi():
+    return {
+        "format_version": "1.10.0",
+        "minecraft:client_entity": {
+            "description": {
+                "identifier": IZLEYICI_KIMLIK,
+                # entity_alphatest degil `entity_emissive_alpha`
+                # DEGIL: gozlerin kendi isigini vermesi guzel
+                # olurdu ama o malzeme dokunun alfa kanalini
+                # isik maskesi sayiyor ve govdemiz tamamen opak.
+                # Saydam bir maske cizmek yerine duz malzeme:
+                # karanlikta beyaz zaten one cikiyor.
+                "materials": {"default": "entity_alphatest"},
+                "textures": {"default": "textures/entity/" + IZLEYICI_DOKU},
+                "geometry": {"default": "geometry.izleyici"},
+                "render_controllers": ["controller.render.default"]
             }
         }
     }
@@ -10972,6 +11072,13 @@ def main():
     else:
         print("UYARI: carpik doku URETILEMEDI -- form dokusuz kalir")
 
+    # ---- IZLEYICI (v7.75) ----
+    yaz_json(os.path.join(BP, "entities/izleyici.json"), izleyici_varligi())
+    yaz_json(os.path.join(RP, "entity/izleyici.entity.json"),
+             izleyici_istemci_varligi())
+    yaz_json(os.path.join(RP, "models/entity/izleyici.geo.json"), izleyici_geo())
+    izleyici_dokusu(os.path.join(RP, "textures/entity/%s.png" % IZLEYICI_DOKU))
+
     # ---- KOL TAKASI SAHNESI (v7.9) ----
     # Uc sahte varlik: iki dusen toprak kol + gelen kanli kol.
     # Geometriler ELLE YAZILMIYOR, var olan modellerden
@@ -12094,6 +12201,10 @@ def main():
     # yerine sunu yazmak daha yararli: bu listeye eklenmeyen
     # HER yeni doku sessizce silinir.
     beklenen.add(CARPIK_DOKU)
+    # v7.75: ayni tuzak SEKIZINCI kez. Bu satir olmasa Izleyici
+    # dokusu yazildigi uretimde siliniyor ve varlik dokusuz
+    # kaliyor (mor-siyah damali).
+    beklenen.add(IZLEYICI_DOKU)
     # v7.2: Zaman Saati ikonu. Bu satir olmadan temizlik
     # adimi ikonu her uretimde siliyor.
     beklenen.add(SAAT_ESYA)

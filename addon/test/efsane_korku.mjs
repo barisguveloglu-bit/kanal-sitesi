@@ -39,6 +39,68 @@ const kontrol = (ad, kosul, ek) => {
 
 /* Zinciri kurulmus bir dunya: korku yalnizca durak yakininda
    calisiyor, kok yoksa hic donmuyor.                        */
+/* ---- OLAYI ZORLA SEC ----
+   Tarama iki yerde `Math.random` cagiriyor: once seyreklik
+   kapisi (`> EFSANE_KORKU_SANS` ise cikiyor), sonra
+   `sec(secenekler)`. Testler bugune kadar "yeterince tara,
+   er ya da gec cikar" diye bekliyordu ve bu YANLISTI:
+   30 kosuda bir, beklenen olay 500 taramada bile cikmiyor ve
+   test kendi kodumuzu haksiz yere dusuruyordu (TNT olcumu
+   dahil -- o madde de ayni sekilde kararsizmis).
+
+   Burasi ilk iki cagriyi sabitliyor, gerisini normal
+   `Math.random`a birakiyor: olayin ICINDEKI rastgelelik
+   (konum, ornekleme) bozulmasin diye.
+
+   Secenek sirasi taramadaki sirayla ayni olmali; `SIRA_*`
+   sabitleri onu yaziyor ve degisirse test dusurur.          */
+const OLAY_SIRASI_ACIK = ["bakis", "aya", "hayalet", "isik",
+                          /* 404 olaylari `isik`ten HEMEN SONRA
+                             ekleniyor -- gazap olaylari en sona
+                             kaliyor. Ilk yazilista sira yanlisti
+                             ve zorlama sessizce YANLIS olayi
+                             seciyordu: "tnt bekliyorum" diyip
+                             "sonme" calistiriyordu. Ayni sirayi
+                             iki yerde tutmak kirilgan, o yuzden
+                             asagida taramanin kendi listesiyle
+                             karsilastiriliyor.               */
+                          "sonme", "kapi", "kalp", "nefes",
+                          "golge", "kayit",
+                          "tnt", "yildirim"];
+
+/* Sira kaynaktan DOGRULANIYOR. Iki yerde elle tutulan bir
+   sirayi test kilitlemezse, kaynak degisince zorlama sessizce
+   baska bir olayi calistirir ve testler "gecti" der.        */
+function siraDogrula(kaynak) {
+  const g = kaynak.match(/const secenekler = \[([^\]]*)\]/);
+  const p = kaynak.match(/secenekler\.push\("sonme"[^)]*\)/);
+  const t = kaynak.match(/secenekler\.push\("tnt"[^)]*\)/);
+  if (!g || !p || !t) return null;
+  /* `String.match` bir DIZI donuyor, dizge degil -- ilk
+     yazilista dogrudan `g`ye `.match` cagirdim ve test kendi
+     sonunda COKUYORDU. Cokmeyi de kacirdim, cunku hata
+     ayiklarken yalnizca "✗" satiri ariyordum; cokmede oyle
+     bir satir olmuyor. Olcum aracina da bakmak gerekiyormus. */
+  const al = (metin) =>
+    (String(metin).match(/"([a-z]+)"/g) || []).map((x) => x.slice(1, -1));
+  return [...al(g[1]), ...al(p[0]), ...al(t[0])];
+}
+
+function zorla(olayAdi, isi) {
+  const i = OLAY_SIRASI_ACIK.indexOf(olayAdi);
+  if (i < 0) throw new Error("bilinmeyen olay: " + olayAdi);
+  const gercek = Math.random;
+  let sayac = 0;
+  Math.random = () => {
+    sayac++;
+    if (sayac === 1) return 0;                       // kapiyi ac
+    if (sayac === 2) return (i + 0.5) / OLAY_SIRASI_ACIK.length;
+    return gercek();
+  };
+  try { sayac = 0; return isi(() => { sayac = 0; }); }
+  finally { Math.random = gercek; }
+}
+
 function kur(id, konum) {
   const D = dunyaKur();
   const o = oyuncuKur(D.boyut, { x: 0, y: 0, z: 1 },
@@ -244,12 +306,15 @@ console.log("\n=== 2c. GAZAP: OYUNCU HALKAYA GİRERSE İPTAL ===");
 
   /* TNT dogana kadar tara (fitil dolmadan dur). */
   let tntler = [];
-  for (let i = 0; i < 500 && tntler.length === 0; i++) {
-    tickIlerlet(ayar.EFSANE_KORKU_TARAMA);
-    if (butce.butceSifirla) butce.butceSifirla();
-    korku.efsaneKorkuTara([g]);
-    tntler = D.sayac.dogan.filter((d) => d.tip === "minecraft:tnt");
-  }
+  zorla("tnt", (sifirla) => {
+    for (let i = 0; i < 30 && tntler.length === 0; i++) {
+      tickIlerlet(ayar.EFSANE_KORKU_TARAMA);
+      if (butce.butceSifirla) butce.butceSifirla();
+      sifirla();
+      korku.efsaneKorkuTara([g]);
+      tntler = D.sayac.dogan.filter((d) => d.tip === "minecraft:tnt");
+    }
+  });
   kontrol("TNT dogdu (kurulum tuttu)", tntler.length > 0,
           tntler.length + " TNT");
 
@@ -435,15 +500,27 @@ console.log("\n=== 6. ERROR 404 · ANOMALY REPHASED (v7.74) ===");
   const mesaleMi = (p) => D6.boyut.getBlock(p).typeId === "minecraft:torch";
 
   let hicSondu = false;
-  for (let i = 0; i < 400; i++) {
-    tickIlerlet(ayar.EFSANE_KORKU_TARAMA);
-    if (butce.butceSifirla) butce.butceSifirla();
-    korku.efsaneKorkuTara([o6]);
-    if (!hicSondu && uzaklar.some((p) => !mesaleMi(p))) hicSondu = true;
-  }
+  zorla("sonme", (sifirla) => {
+    for (let i = 0; i < 40; i++) {
+      tickIlerlet(ayar.EFSANE_KORKU_TARAMA);
+      if (butce.butceSifirla) butce.butceSifirla();
+      sifirla();
+      korku.efsaneKorkuTara([o6]);
+      if (!hicSondu && uzaklar.some((p) => !mesaleMi(p))) hicSondu = true;
+    }
+  });
   kontrol("uzaktaki mesaleler GERCEKTEN sondu (olay calisti)", hicSondu);
 
-  /* Zamanlayicilar ilerlesin, defter de bosalsin.           */
+  /* BOSALTIRKEN YENI OLAY CIKMAMALI. Ilk yazilista bu dongu
+     taramaya devam ediyordu, yani her turda yeni mesaleler
+     sonduruyordu ve son turda sondurulenler daima "geri
+     gelmemis" gorunuyordu. Test sekizde bir dusuyordu ve
+     sebebi kod degil TESTIN KENDISIYDI.
+
+     Cozum: oyuncuyu duraktan UZAKLASTIR. `duraktaMi` yanlis
+     donunce yeni olay cikmiyor, ama `mesaleleriTazele` kok
+     denetiminden ONCE calistigi icin defter yine bosaliyor. */
+  o6.location.x = 5000; o6.location.z = 5000;
   for (let i = 0; i < 20; i++) {
     tickIlerlet(ayar.EFSANE_SONME_SURE);
     if (butce.butceSifirla) butce.butceSifirla();
@@ -473,7 +550,11 @@ console.log("\n=== 6. ERROR 404 · ANOMALY REPHASED (v7.74) ===");
     enYakinSonme = Math.min(enYakinSonme, d);
   }
   kontrol("sondurulen HICBIR mesale SONME_YAKIN'dan yakin degil",
-          sondurulenler.length === 0 || enYakinSonme >= ayar.EFSANE_SONME_YAKIN - 1,
+          /* Pay 1.5: ornek noktasi `Math.floor` ile bloga
+             oturtuluyor, bu hem x'te hem z'de bir blok
+             yaklastirabilir (kosegende ~1.42).            */
+          sondurulenler.length === 0 ||
+          enYakinSonme >= ayar.EFSANE_SONME_YAKIN - 1.5,
           sondurulenler.length + " sonme · en yakini " +
           (enYakinSonme === Infinity ? "-" : enYakinSonme.toFixed(1)) +
           " blok (sinir " + ayar.EFSANE_SONME_YAKIN + ")");
@@ -493,15 +574,23 @@ console.log("\n=== 6. ERROR 404 · ANOMALY REPHASED (v7.74) ===");
      olay tetiklenemiyordu. Test kendi kendini olcemiyordu;
      mutasyon bataryasi temiz kosuda bile dusurunce cikti.   */
   for (const p of uzaklar) D6.boyut.getBlock(p).setType("minecraft:torch");
+  o6.location.x = 0.5; o6.location.z = 0.5;      // duraga geri
   let sondurdu = false;
-  for (let i = 0; i < 400 && !sondurdu; i++) {
-    tickIlerlet(ayar.EFSANE_KORKU_TARAMA);
-    if (butce.butceSifirla) butce.butceSifirla();
-    korku.efsaneKorkuTara([o6]);
-    if (korku.mesaleDefteriBoyu() > 0) sondurdu = true;
-  }
+  zorla("sonme", (sifirla) => {
+    for (let i = 0; i < 40 && !sondurdu; i++) {
+      tickIlerlet(ayar.EFSANE_KORKU_TARAMA);
+      if (butce.butceSifirla) butce.butceSifirla();
+      sifirla();
+      korku.efsaneKorkuTara([o6]);
+      if (korku.mesaleDefteriBoyu() > 0) sondurdu = true;
+    }
+  });
   if (sondurdu) {
     _durum.zamanlar.length = 0;                 // zamanlayicilar DUSTU
+    /* Yine uzaklasiyoruz: olcmek istedigimiz sey "defter tek
+       basina geri koyabiliyor mu", "yenisini sondururken
+       eskisini geri koyabiliyor mu" degil.                  */
+    o6.location.x = 5000; o6.location.z = 5000;
     for (let i = 0; i < 10; i++) {
       tickIlerlet(ayar.EFSANE_SONME_SURE);
       if (butce.butceSifirla) butce.butceSifirla();
@@ -544,12 +633,15 @@ console.log("\n=== 6. ERROR 404 · ANOMALY REPHASED (v7.74) ===");
   dunya6.setDynamicProperty(ayar.EFSANE_KAYIT_ANAHTAR,
                             JSON.stringify({ x: 0, z: 0 }));
   let golgeDogdu = false;
-  for (let i = 0; i < 600 && !golgeDogdu; i++) {
-    tickIlerlet(ayar.EFSANE_KORKU_TARAMA);
-    if (butce.butceSifirla) butce.butceSifirla();
-    korku.efsaneKorkuTara([o8]);
-    if (korku.golgeSayisi() > 0) golgeDogdu = true;
-  }
+  zorla("golge", (sifirla) => {
+    for (let i = 0; i < 30 && !golgeDogdu; i++) {
+      tickIlerlet(ayar.EFSANE_KORKU_TARAMA);
+      if (butce.butceSifirla) butce.butceSifirla();
+      sifirla();
+      korku.efsaneKorkuTara([o8]);
+      if (korku.golgeSayisi() > 0) golgeDogdu = true;
+    }
+  });
   kontrol("golge gercekten dogdu (olcum yapilabilir)", golgeDogdu);
   const defterHam = dunya6.getDynamicProperty(ayar.EFSANE_GOLGE_KAYIT_ANAHTAR);
   kontrol("golge kimlikleri kalici deftere YAZILDI",
@@ -575,14 +667,20 @@ console.log("\n=== 6. ERROR 404 · ANOMALY REPHASED (v7.74) ===");
      dunya.mjs'teki getViewDirection kapanistaki `bakis`i CANLI
      okuyor, yani ayni nesneyi degistirince oyuncu gercekten
      donmus oluyor.                                           */
-  for (const bakinca of [true, false]) {
+  /* OLCU ZAMANLAMA DEGIL KARSILASTIRMA.
+     Ilk yazilista "4 turda hala duruyor mu, 40 turda gitti mi"
+     diye bakiliyordu ve bu kirilgandi: tur sayilari zincirin
+     ic adimina (GOLGE_DENET) bagliydi, degisince test yalan
+     soylerdi. Olculen sey aslinda su: BAKINCA bakmayinca
+     olduguna gore COK DAHA CABUK gidiyor mu.              */
+  const golgeOmru = (bakacakMi) => {
     korku.efsaneKorkuUnut();
     const D9 = dunyaKur();
     const yon = { x: 0, y: 0, z: 1 };            // +z'ye bakiyor
     const o9 = oyuncuKur(D9.boyut, yon, { x: 0.5, y: 64, z: 0.5 });
     o9.id = "k9"; o9.typeId = "minecraft:player";
-    o9._komutlar = []; o9._hasar = []; o9.hasTag = () => false;
-    o9.runCommand = (k) => { o9._komutlar.push(k); return { successCount: 1 }; };
+    o9.hasTag = () => false;
+    o9.runCommand = () => ({ successCount: 1 });
     o9.sendMessage = () => {};
     o9.applyDamage = () => true;
     D9.boyut._varliklar = [o9];
@@ -590,35 +688,44 @@ console.log("\n=== 6. ERROR 404 · ANOMALY REPHASED (v7.74) ===");
     dunya6.setDynamicProperty(ayar.EFSANE_KAYIT_ANAHTAR,
                               JSON.stringify({ x: 0, z: 0 }));
 
+    const dogan9 = () => D9.sayac.dogan
+      .filter((d) => d.tip === ayar.EFSANE_GOLGE_KIMLIK).length;
     let var9 = false;
-    for (let i = 0; i < 800 && !var9; i++) {
-      tickIlerlet(ayar.EFSANE_KORKU_TARAMA);
-      if (butce.butceSifirla) butce.butceSifirla();
-      korku.efsaneKorkuTara([o9]);
-      if (korku.golgeSayisi() > 0) var9 = true;
-    }
-    if (!var9) { kontrol("golge dogdu (bakis olcumu)", false, "dogmadi"); break; }
+    zorla("golge", (sifirla) => {
+      for (let i = 0; i < 30 && !var9; i++) {
+        tickIlerlet(ayar.EFSANE_KORKU_TARAMA);
+        if (butce.butceSifirla) butce.butceSifirla();
+        sifirla();
+        korku.efsaneKorkuTara([o9]);
+        if (dogan9() > 0 && korku.golgeSayisi() > 0) var9 = true;
+      }
+    });
+    if (!var9) return -1;                        // dogmadi
 
-    if (bakinca) {
-      /* Golge ARKAYA dogruluyor (-z). Oraya donuyoruz.       */
-      yon.z = -1;
-      for (let i = 0; i < 6; i++) tickIlerlet(ayar.EFSANE_GOLGE_DENET);
-      kontrol("BAKINCA golge kayboluyor",
-              korku.golgeSayisi() === 0,
-              korku.golgeSayisi() + " golge duruyor");
-    } else {
-      /* Bakmiyoruz: sure dolana kadar DURMALI. Yoksa mekanik
-         "bakinca kaybolan" degil "hemen kaybolan" olurdu.   */
-      for (let i = 0; i < 4; i++) tickIlerlet(ayar.EFSANE_GOLGE_DENET);
-      kontrol("BAKMAYINCA golge duruyor",
-              korku.golgeSayisi() > 0, "erken kayboldu");
-      /* Ama sonsuza kadar degil: suresi dolunca gitmeli.    */
-      for (let i = 0; i < 40; i++) tickIlerlet(ayar.EFSANE_GOLGE_DENET);
-      kontrol("suresi dolunca golge kendiliginden gidiyor",
-              korku.golgeSayisi() === 0,
-              korku.golgeSayisi() + " golge kaldi");
+    /* Golge ARKAYA (-z) doguruluyor. Bakmak icin oraya donuyoruz. */
+    if (bakacakMi) yon.z = -1;
+    let tur = 0;
+    while (korku.golgeSayisi() > 0 && tur < 400) {
+      tickIlerlet(ayar.EFSANE_GOLGE_DENET);
+      tur++;
     }
-  }
+    return korku.golgeSayisi() > 0 ? 999 : tur;
+  };
+
+  const bakincaTur = golgeOmru(true);
+  const bakmayincaTur = golgeOmru(false);
+  kontrol("iki olcumde de golge dogdu",
+          bakincaTur >= 0 && bakmayincaTur >= 0,
+          bakincaTur + " / " + bakmayincaTur);
+  kontrol("BAKINCA golge hemen kayboluyor",
+          bakincaTur >= 0 && bakincaTur <= 2,
+          bakincaTur + " tur");
+  kontrol("BAKMAYINCA cok daha uzun duruyor",
+          bakmayincaTur > bakincaTur * 3,
+          "bakinca " + bakincaTur + " tur · bakmayinca " + bakmayincaTur + " tur");
+  kontrol("suresi dolunca yine de kendiliginden gidiyor",
+          bakmayincaTur < 400,
+          bakmayincaTur + " tur");
 
   /* ---- 6e. 404 KAYDI KİMSEYİ TAKLİT ETMİYOR ----
      Kaynak `kick @p` ile sahte bir baglanti kopmasi uretiyor.
@@ -642,6 +749,13 @@ console.log("\n=== 6. ERROR 404 · ANOMALY REPHASED (v7.74) ===");
   kontrol("uretilen komutlar arasinda kick/kill/clear yok",
           o7._komutlar.every((k) => !/^(kick|kill|clear|damage)\b/.test(k)),
           [...new Set(o7._komutlar.map((k) => k.split(" ")[0]))].join(", "));
+
+  /* ---- 6f-2. ZORLAMA SIRASI KAYNAKLA AYNI MI ---- */
+  const gercekSira = siraDogrula(kk);
+  kontrol("zorlama sirasi taramanin kendi sirasiyla ayni",
+          gercekSira !== null &&
+          gercekSira.join(",") === OLAY_SIRASI_ACIK.join(","),
+          "kaynak: " + (gercekSira ? gercekSira.join(",") : "okunamadi"));
 
   /* ---- 6g. İKİ MODUN TARAMASI YAZILI OLMALI ----
      Yoksa bir gun biri "jumpscare neden yok" diye ekler ve

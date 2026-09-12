@@ -579,10 +579,14 @@ function kacanGolge(oyuncu, boyut, konum) {
   try { golgeId = golge.id; } catch (e) { golgeId = null; }
   if (golgeId) { golgeler.add(golgeId); golgeKaydet(); }
 
+  const defterdenDus = () => {
+    if (golgeId && golgeler.delete(golgeId)) golgeKaydet();
+  };
+
   const sil = () => {
     try { if (golge && gecerliMi(golge)) golge.remove(); }
     catch (e) { /* zaten gitmis */ }
-    if (golgeId && golgeler.delete(golgeId)) golgeKaydet();
+    defterdenDus();
   };
 
   /* Bakinca kaybolsun diye periyodik denetim. Kendi kendini
@@ -590,7 +594,12 @@ function kacanGolge(oyuncu, boyut, konum) {
      de biter, bosuna tik yenmez.                             */
   const denetle = (kalan) => {
     if (kalan <= 0) { sil(); return; }
-    if (!golge || !gecerliMi(golge)) return;
+    /* Golge zaten yoksa (baskasi oldurdu, chunk bosaldi)
+       DEFTERI YINE DE TEMIZLE. Ilk yazilista burada duz
+       `return` vardi ve kayit defterde sonsuza kadar kaliyordu
+       -- dunya ozelligi her oturumda olu kimliklerle
+       buyurdu. Silinecek varlik yok, silinecek KAYIT var.  */
+    if (!golge || !gecerliMi(golge)) { defterdenDus(); return; }
     if (!gecerliMi(oyuncu)) { sil(); return; }
     let y;
     try { y = golge.location; } catch (e) { sil(); return; }
