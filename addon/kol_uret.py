@@ -110,7 +110,7 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # tureniyor -- ayrisabilecekleri bir yer kalmadi.
 #
 # YENI SURUM CIKARIRKEN: yalnizca asagidaki satiri degistir.
-SURUM_NO = (7, 75, 0)
+SURUM_NO = (7, 76, 0)
 
 SURUM_METIN = "%d.%d.%d" % SURUM_NO
 
@@ -2208,6 +2208,164 @@ def kol_skin_uygula(kimlik):
     ikon.alpha_composite(doku.crop((44, 20, 48, 32)), (6, 2))
     ikon.save(os.path.join(RP, "textures/item", kimlik + ".png"))
     return True
+
+
+# ---------------------------------------------------------------
+#  ESYA IKONLARI TEK OLCUYE INDIRILIYOR                  (v7.76)
+#
+#  ---- NEDEN: "itemler gozukmuyor" ----
+#  Kullanici oyunda esya ikonlarinin cikmadigini bildirdi.
+#  `item_texture.json`daki 547 girdinin dosyalari olculdu:
+#
+#      16x16   435 |  32x32    60 |  64x64    29
+#      48x48     1 | 128x128   11 | 256x256    7
+#      383x593   1 | 384x618    1 | 534x1183   1 | 539x1379  1
+#
+#  Son dort satir `kns_dusmus_1..4`. Kaynak paketten OLDUGU GIBI
+#  kopyalanmislardi (konsey_al.py onlari `fallen_1..4` diye
+#  aliyor) ve kimse olculerine bakmamisti -- cunku o dort esya
+#  yaratici menusunde GORUNMUYOR (v6.4'te menu kategorisi
+#  kaldirildi). Menude gorunmemesi atlasta yer kaplamamasi
+#  demek degil: `item_texture.json`da kayitlari duruyor, yani
+#  atlasa GIRIYORLAR.
+#
+#  ---- HESAP ----
+#  Bedrock `item_texture.json`daki her seyi TEK bir atlasa
+#  (`atlas.items`) diziyor ve hucre olcusu girdilerin EN
+#  BUYUGUNE gore belirleniyor. En buyuk 1379 piksel oldugunda
+#  547 hucrelik bir sayfa hicbir cihazin doku sinirina sigmaz.
+#  256'da bile sigmiyor:
+#
+#      4096 / 256 =  16 hucre/satir ->  256 hucre  <  547  (X)
+#      4096 / 128 =  32 hucre/satir -> 1024 hucre  >  547  (OK)
+#      2048 /  64 =  32 hucre/satir -> 1024 hucre  >  547  (OK)
+#
+#  Atlas kurulamayinca tek bir ikon degil, BUTUN esyalar
+#  eksik-doku karesine doner. Bildirilen belirti tam olarak bu.
+#
+#  ---- NEDEN 64, 128 DEGIL ----
+#  128 yalnizca 4096'lik atlasi olan cihazda kurtariyor; 64
+#  2048'lik sinirda da dort kat pay birakiyor ve kullanici
+#  tablette oynuyor. Bedeli gercek ve yaziyorum: 128x128 olan
+#  11 ikon (kns_raxxan, kns_kajaros, ilkel_asa...) ile 256x256
+#  olan 7 ikon ayrinti kaybediyor. Vanilla esya ikonu 16x16;
+#  64 onun hala dort kati.
+#
+#  ---- NEDEN ESNETME DEGIL DOLGU ----
+#  `kns_dusmus_4` 539x1379, yani boyu eninin iki buçuk kati.
+#  Kareye ESNETSEYDIM figur yassilirdi. En-boy orani korunup
+#  kalan yer SAYDAM birakiliyor.
+#
+#  ---- KAYNAK DOSYALAR ELLENMIYOR ----
+#  Duzeltme `kaynak_doku/` altinda degil, PAKETE yazildiktan
+#  sonra yapiliyor. Kaynak, modun kendi olcusunde kaliyor:
+#  yarin atlas siniri degisirse tek sayi (IKON_EN_BUYUK)
+#  degisiyor, kaynak yeniden cikarilmiyor.
+# ---------------------------------------------------------------
+# ---------------------------------------------------------------
+#  ZIRH PUANI BEDROCK OLCUSUNE SIKISTIRILIYOR             (v7.76)
+#
+#  Depodaki kural "sayilar modun kendi esyasindan, hicbiri
+#  yeniden hesaplanmadi" ve o kural DURUYOR -- asagidaki tavan
+#  yeniden hesaplama degil, OYUNUN kendi tavani.
+#
+#  Bedrock'ta zirh cubugu 10 ikon, yani 20 PUAN. Tam elmas
+#  takim (3+8+6+3) tam tamina 20 eder; ustune cikilamaz, cunku
+#  gosterilecek ikon kalmiyor. Yani 20'yi asan her sayi oyunda
+#  GORUNMEZ -- esyada yazan sayiyla cubuktaki ikon birbirini
+#  tutmaz.
+#
+#  Olcum: `kns_dusmus_1..4` govde yuvasinda "protection": 750
+#  tasiyordu. Kaynak Java modunun kendi olcegi bu (orada zirh
+#  puani baska bir formulden geciyor); Bedrock'a oldugu gibi
+#  tasininca 750 ile 20 arasinda hicbir fark kalmiyor, sayi
+#  yalniz yaniltiyor. Tavana cekildi.
+#
+#  DIGER 543 ESYA DEGISMIYOR: hepsi zaten 0-20 arasinda.
+#  Yani bu satirin tek gorunur etkisi dort Dusmus asamasi.
+# ---------------------------------------------------------------
+ZIRH_TAVAN = 20
+
+
+def zirh_puani(koruma):
+    """Bedrock'in gosterebilecegi araliga sikistirir."""
+    try:
+        k = int(koruma)
+    except (TypeError, ValueError):
+        return 0
+    if k < 0:
+        return 0
+    if k > ZIRH_TAVAN:
+        print("UYARI: zirh puani %d -> %d (Bedrock cubugu 20 puan)"
+              % (k, ZIRH_TAVAN))
+        return ZIRH_TAVAN
+    return k
+
+
+IKON_EN_BUYUK = 64
+
+
+def _ikinin_kuvveti(n):
+    """n'e esit ya da ondan BUYUK en kucuk ikinin kuvveti.
+
+    Yukari yuvarliyor, asagi degil: 48x48 olan tek ikon
+    (`resetting_sword`) 32'ye kucultulup ayrinti kaybetmesin,
+    64'e SAYDAM DOLGUYLA tasinsin diye.                       """
+    k = 1
+    while k < n:
+        k *= 2
+    return k
+
+
+def ikonlari_olcule(klasor):
+    """Esya ikonlarini KARE, ikinin kuvveti ve en cok
+    IKON_EN_BUYUK yapar. Doner: kac dosyaya dokunuldu.
+
+    Zaten uygun olan dosya ACILMIYOR bile -- 547 ikonun 524'u
+    bu durumda ve her uretimde hepsini yeniden kodlamak hem
+    yavas hem de kayipsiz degil.                              """
+    if not os.path.isdir(klasor):
+        return 0
+    try:
+        from PIL import Image
+    except ImportError:
+        print("UYARI: PIL yok -- ikon olculeri denetlenmedi")
+        return 0
+
+    dokunulan = 0
+    for ad in sorted(os.listdir(klasor)):
+        if not ad.endswith(".png"):
+            continue
+        yol = os.path.join(klasor, ad)
+        with open(yol, "rb") as f:
+            bas = f.read(24)
+        # PNG imzasi + IHDR: en/boy 16. bayttan itibaren.
+        if len(bas) < 24 or bas[:8] != b"\x89PNG\r\n\x1a\n":
+            print("UYARI: %s PNG degil, atlandi" % ad)
+            continue
+        en, boy = struct.unpack(">II", bas[16:24])
+        hedef = min(_ikinin_kuvveti(max(en, boy)), IKON_EN_BUYUK)
+        if en == boy == hedef:
+            continue
+
+        im = Image.open(yol).convert("RGBA")
+        # En-boy orani korunarak kareye sigdiriliyor.
+        # olcek 1.0'i GECMIYOR: kucuk bir ikonu buyutmek
+        # (48x48 gibi) piksel sanatini bulaniklastirirdi --
+        # o durumda yalniz saydam dolgu yapiliyor.
+        olcek = min(1.0, hedef / float(en), hedef / float(boy))
+        ye, yb = max(1, int(round(en * olcek))), max(1, int(round(boy * olcek)))
+        # Kucultmede LANCZOS: kucultulen dosyalarin hepsi
+        # (dusmus 1..4, 256'lik yedi ikon, 128'lik onbir ikon)
+        # modun kendi buyuk render'lari, piksel sanati degil.
+        if (ye, yb) != (en, boy):
+            im = im.resize((ye, yb), Image.LANCZOS)
+        kare = Image.new("RGBA", (hedef, hedef), (0, 0, 0, 0))
+        kare.alpha_composite(im, ((hedef - ye) // 2, (hedef - yb) // 2))
+        kare.save(yol)
+        print("ikon olculendi: %s  %dx%d -> %dx%d" % (ad, en, boy, hedef, hedef))
+        dokunulan += 1
+    return dokunulan
 
 
 def kaynak_doku_kopyala(dosya, hedef):
@@ -4570,7 +4728,8 @@ def zirh_esyasi(anahtar, yuva, koruma, ad):
                 "minecraft:icon": {"texture": anahtar},
                 "minecraft:display_name": {"value": ad},
                 "minecraft:max_stack_size": 1,
-                "minecraft:wearable": {"slot": yuva, "protection": koruma},
+                "minecraft:wearable": {"slot": yuva,
+                                       "protection": zirh_puani(koruma)},
                 # Etiket: script "takim uzerinde mi" diye bakarken
                 # kimlikleri tek tek yazmak zorunda kalmasin.
                 "minecraft:tags": {"tags": ["pa:zirh_yukseltmesi"]},
@@ -4731,8 +4890,9 @@ def teknoloji_esyasi(takim, parca, yuva, koruma, ad):
                 "minecraft:icon": {"texture": takim + "_" + parca},
                 "minecraft:display_name": {"value": ad},
                 "minecraft:max_stack_size": 1,
-                "minecraft:wearable": {"slot": yuva, "protection": koruma},
-                "minecraft:armor": {"protection": koruma},
+                "minecraft:wearable": {"slot": yuva,
+                                       "protection": zirh_puani(koruma)},
+                "minecraft:armor": {"protection": zirh_puani(koruma)},
                 # Etiket: script "teknoloji zirhi mi" diye
                 # bakarken kimlikleri tek tek yazmasin.
                 "minecraft:tags": {"tags": ["pa:teknoloji_zirhi"]},
@@ -5226,11 +5386,11 @@ def marvel_esyasi(p):
         "minecraft:display_name": {"value": p["ad"]},
         "minecraft:max_stack_size": 1,
         "minecraft:wearable": {"slot": p["yuva"],
-                               "protection": p["koruma"]},
+                               "protection": zirh_puani(p["koruma"])},
         "minecraft:tags": {"tags": ["pa:marvel", "pa:marvel_" + p["tur"]]},
     }
     if p["koruma"]:
-        bilesenler["minecraft:armor"] = {"protection": p["koruma"]}
+        bilesenler["minecraft:armor"] = {"protection": zirh_puani(p["koruma"])}
     if p["dayaniklilik"]:
         bilesenler["minecraft:durability"] = {
             "max_durability": p["dayaniklilik"]}
@@ -5677,8 +5837,9 @@ def konsey_esyasi(t):
     }
     if yuva:
         bilesenler["minecraft:wearable"] = {
-            "slot": "slot.armor." + yuva, "protection": koruma}
-        bilesenler["minecraft:armor"] = {"protection": koruma}
+            "slot": "slot.armor." + yuva,
+            "protection": zirh_puani(koruma)}
+        bilesenler["minecraft:armor"] = {"protection": zirh_puani(koruma)}
     else:
         # Elde tutulanlar: asalar, aletler, silahlar.
         bilesenler["minecraft:hand_equipped"] = True
@@ -12383,6 +12544,15 @@ def main():
                 silinen += 1
     if silinen:
         print("temizlendi: %d artik dosya" % silinen)
+
+    # ---- IKON OLCULERI  (v7.76) ----
+    # TEMIZLIKTEN SONRA: artik dosyalar silindikten sonra
+    # bakiliyor, yoksa bir sonraki satirda silinecek ikonu
+    # yeniden kodlamis olurduk. Gerekce ve hesap
+    # `ikonlari_olcule`nin basinda.
+    _olculen = ikonlari_olcule(os.path.join(RP, "textures/item"))
+    if _olculen:
+        print("olculendi: %d ikon" % _olculen)
 
     print("uretildi: %d kol, %d iksir, %d goz (lazer varyantiyla) -> %d esya + bot"
           % (len(KOLLAR), len(IKSIRLER), len(IKSIRLER) * 2,

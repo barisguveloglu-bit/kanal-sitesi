@@ -1,3 +1,109 @@
+# v7.76.0 — İkonlar neden görünmüyordu
+
+İstek: *"itemler gözükmüyor ve yarısı da kullanılmıyor, zırhı
+takıyorum ya normalde onun zırhının yanında 12 yazıyor ama 5
+tane zırh kaplıyor, itemleri kontrol et neden gözükmüyorlar"*
+
+## Önce ölçüm — `item_texture.json`'daki 547 girdi
+
+| ölçü | adet |
+|---|---|
+| 16×16 | 435 |
+| 32×32 | 60 |
+| 64×64 | 29 |
+| 48×48 | 1 |
+| 128×128 | 11 |
+| 256×256 | 7 |
+| **383×593 · 384×618 · 534×1183 · 539×1379** | **4** |
+
+Son satır `kns_dusmus_1..4`. Kaynak paketten **olduğu gibi**
+kopyalanmış Java modu render'ları; `konsey_al.py` onları
+`fallen_1..4` diye alıyor ve ölçülerine kimse bakmamış.
+
+**Neden gözden kaçmışlar:** o dört eşya yaratıcı menüsünde
+**görünmüyor** (v6.4'te menü kategorisi kaldırıldı, "1000
+korumalı bedava zırh olmasın" diye). Menüde görünmemek atlasta
+yer kaplamamak değil — kayıtları `item_texture.json`'da duruyor,
+yani atlasa **giriyorlar**.
+
+## Hesap
+
+Bedrock bütün eşya dokularını **tek atlasa** (`atlas.items`)
+diziyor ve hücre ölçüsü **en büyük girdiye** göre belirleniyor:
+
+```
+hücre 1379px -> 2048/1379 = 1 hücre/satır ->    1 hücre  <  547   ✗
+hücre  256px -> 4096/256  = 16 hücre/satır ->  256 hücre  <  547   ✗
+hücre  128px -> 4096/128  = 32 hücre/satır -> 1024 hücre  >  547   ✓ (yalnız 4096'da)
+hücre   64px -> 2048/64   = 32 hücre/satır -> 1024 hücre  >  547   ✓
+```
+
+Atlas kurulamayınca **tek ikon değil bütün eşyalar** eksik-doku
+karesine döner. Bildirilen belirti tam olarak bu.
+
+**64 seçildi, 128 değil.** 128 yalnızca 4096'lık atlası olan
+cihazda kurtarıyor; kullanıcı tablette oynuyor. Bedeli gerçek ve
+yazıyorum: 128×128 olan onbir ikon (`kns_raxxan`, `kns_kajaros`,
+`ilkel_asa`…) ile 256×256 olan yedi ikon ayrıntı kaybediyor.
+Vanilla eşya ikonu 16×16; 64 onun hâlâ dört katı.
+
+**Esnetme değil dolgu.** `kns_dusmus_4` 539×1379 — boyu eninin
+iki buçuk katı. Kareye esnetseydim figür yassılırdı. En-boy oranı
+korunup kalan yer saydam bırakılıyor. 48×48 olan tek ikon
+(`resetting_sword`) da küçültülmüyor, 64'e dolguyla taşınıyor.
+
+**Kaynak dosyalar ellenmedi.** Düzeltme `kaynak_doku/` altında
+değil, pakete yazıldıktan **sonra** yapılıyor — yarın sınır
+değişirse tek sayı (`IKON_EN_BUYUK`) değişiyor, kaynak yeniden
+çıkarılmıyor.
+
+## Zırh sayısı: 750
+
+Aynı dört eşya gövde yuvasında `"protection": 750` taşıyordu.
+Bedrock'ta zırh çubuğu **10 ikon = 20 puan**; tam elmas takım
+(3+8+6+3) tam tamına 20 eder. Yani 20'yi aşan sayı oyunda
+**görünmüyor**, yalnız eşyada yazanı yalanlıyor.
+
+`ZIRH_TAVAN = 20` eklendi. Depodaki *"sayılar modun kendi
+eşyasından, hiçbiri yeniden hesaplanmadı"* kuralı **duruyor** —
+bu tavan yeniden hesaplama değil, **oyunun kendi tavanı**.
+Diğer 543 eşya zaten 0–20 arasındaydı, **hiçbiri değişmedi**:
+tek görünür etkisi dört Düşmüş aşaması.
+
+## Hâlâ açık: "12 yazıyor ama 5 kaplıyor"
+
+Bu maddeyi **kapatmadım.** Depoda ölçebildiğim her sayı tutarlı:
+548 eşyanın hepsinde `wearable.protection` ile
+`armor.protection` aynı, hiçbiri artık 20'yi aşmıyor, ikonu
+atlasta olmayan tek eşya `will_kilic` (vanilla `golden_sword`
+kullanıyor, meşru). Hangi eşyanın 12 gösterip 5 ikon doldurduğunu
+**kullanıcıdan öğrenmek gerekiyor** — tahminle bir sayı
+değiştirmek deponun kuralına aykırı.
+
+## "Yarısı kullanılmıyor" — ölçüldü, kusur değil
+
+381 giyilebilir eşyanın **50'sinin** attachable'ı (görünümü)
+yok. Tek tek bakıldı, **ellisi de kasıtlı**:
+
+- **47'si güç eşyası** (`*_powers`, `reactor_arc`, `agamoto`,
+  `ms_marvel_protection`…). Kaynakta da görünmezler: bacak
+  yuvasında dururlar ve **yetenek** taşırlar, model taşımazlar.
+- **3'ü Draconic göğüslüğü.** Giyilen modeli serbest üçgen ağı,
+  Bedrock kutu istiyor. `TEKNOLOJI_TAKIM`'da `None` yazıyor ve
+  gerekçesi orada: uydurma model çizilmedi.
+
+## Test
+
+`test/ikon_atlas.mjs` — 14 madde. Dört mutasyonun dördü de
+yakalanıyor: dev ikonu geri koymak, 750'yi geri koymak,
+süpürge çağrısını silmek, `zirh_puani` çağrılarını kaldırmak.
+
+Süpürgenin **çağrıldığı** ayrıca sınanıyor, çünkü dosyaları elle
+düzeltmek yetmez: bir sonraki üretim kaynaktan yeniden kopyalayıp
+eski ölçüleri geri getirirdi.
+
+---
+
 # v7.75.0 — Viktor ve Kutlama Sahnesi
 
 İki istek: kullanıcının kendi komut bloğu listesini eklemek, ve
