@@ -14,6 +14,7 @@
 import { dunyaKur, oyuncuKur } from "./dunya.mjs";
 import { tickIlerlet, _durum } from "@minecraft/server";
 import { readFileSync, existsSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 
 const KOK = new URL("..", import.meta.url).pathname.replace(/\/$/, "");
 const BP = KOK + "/Simsek_TNT_ToprakTopu";
@@ -74,18 +75,82 @@ console.log("=== 2. MUTANT: HALIM'IN KIMLIGI DURUYOR ===");
      yaratik DIK duruyor, kafa TEPEDE.                      */
   const kafa = g.bones.find((b) => b.name === "head");
   const govde = g.bones.find((b) => b.name === "body");
-  const kafaAlt = Math.min(...kafa.cubes.map((c) => c.origin[1]));
+  /* ---- v7.78: OLCU KAFA KUPUNE DARALDI ----
+     Eskiden kafa kemigindeki BUTUN kuplerin en altina
+     bakiyordu. Agiz eklenince o sayi 43'e dustu (agiz cene
+     hattinin ALTINA sarkiyor, referansta da oyle) ve olcu
+     kendi kodumuzu haksiz yere dusurdu. Olculmek istenen sey
+     kafanin kendisi: 10x10x10 kup.                          */
+  const kafaKupu = kafa.cubes.find(
+    (c) => c.size[0] === 10 && c.size[1] === 10 && c.size[2] === 10);
+  kontrol("kafa kupu 10x10x10 duruyor", !!kafaKupu);
+  const kafaAlt = kafaKupu ? kafaKupu.origin[1] : -Infinity;
   const govdeUst = Math.max(...govde.cubes.map((c) => c.origin[1] + c.size[1]));
   kontrol("kafa govdenin TEPESINDE (gomulu degil)",
           kafaAlt >= govdeUst, "kafa alt " + kafaAlt + " · govde ust " + govdeUst);
 
+  /* ---- v7.78: EKLEMLER ----
+     Kullanici bes gorsel gonderip "birazcik yanlis gibi" dedi.
+     Gorsellerde kol omuz-dirsek-bilek, bacak kalca-diz-ayak
+     olarak UC parca. Eskiden ikisi de tek kutuydu: uzundu ama
+     eklemsizdi, yururken sopa gibi salliniyordu.            */
+  for (const a of ["rightForearm", "leftForearm", "rightShin", "leftShin"]) {
+    kontrol("  eklem kemigi " + a, adlar.includes(a));
+  }
+  const kemikAdi = new Map(g.bones.map((b) => [b.name, b]));
+  /* Zincirin EN ALT noktasi: olcu artik tek kemige degil
+     omuzdan yumruga butun zincire bakiyor. Tek kemige bakan
+     eski olcu, kol parcalara ayrilinca yanlis cevap verirdi
+     (rightArm artik yalniz UST kol).                        */
+  const zincirDibi = (bas) => {
+    let en = Infinity;
+    const yigin = [bas];
+    while (yigin.length) {
+      const ad = yigin.pop();
+      const b = kemikAdi.get(ad);
+      if (!b) continue;
+      for (const c of (b.cubes || [])) en = Math.min(en, c.origin[1]);
+      for (const k of g.bones) if (k.parent === ad) yigin.push(k.name);
+    }
+    return en;
+  };
   /* Kollar dizin ALTINA inmeli -- gorseldeki asil ozellik. */
-  const kol = g.bones.find((b) => b.name === "rightArm");
-  const bacak = g.bones.find((b) => b.name === "rightLeg");
-  const kolDip = Math.min(...kol.cubes.map((c) => c.origin[1]));
+  const bacak = kemikAdi.get("rightLeg");
+  const kolDip = zincirDibi("rightArm");
   const bacakOrta = Math.max(...bacak.cubes.map((c) => c.origin[1]));
   kontrol("kollar diz hizasinin ALTINA iniyor",
           kolDip <= bacakOrta, "kol dibi " + kolDip + " · diz " + bacakOrta);
+
+  /* ---- AGIZ: REFERANSIN IMZASI ----
+     Kupleri "yuz basina UV'si var mi" diye aramak YANLIS oldu:
+     sacin da yuz basina UV'si var ve listede once geliyor,
+     yani olcu sacı agiz sanip dustu. Artik OLCUYE gore
+     araniyor -- agiz 14 genis, sac 11, kafa 10.             */
+  const agiz = kafa.cubes.find((c) => c.size[0] === 14);
+  const sac = kafa.cubes.find((c) => c.size[0] === 11);
+  kontrol("agiz kupu var", !!agiz);
+  kontrol("sac kupu var", !!sac);
+  if (agiz && kafaKupu) {
+    kontrol("  agiz kafadan GENIS", agiz.size[0] > kafaKupu.size[0],
+            agiz.size[0] + " vs " + kafaKupu.size[0]);
+    kontrol("  agiz kafanin ONUNE tasiyor",
+            agiz.origin[2] < kafaKupu.origin[2],
+            "agiz z " + agiz.origin[2] + " · kafa z " + kafaKupu.origin[2]);
+    kontrol("  agiz cene hattinin ALTINA sarkiyor",
+            agiz.origin[1] < kafaKupu.origin[1],
+            "agiz " + agiz.origin[1] + " · kafa " + kafaKupu.origin[1]);
+    /* Agzin ARKA yuzu cizilmiyor: kafanin icinde kaliyor. */
+    kontrol("  agzin arka yuzu bos yere cizilmiyor",
+            agiz.uv && !agiz.uv.south);
+  }
+  if (agiz && sac) {
+    /* Sacla agiz arasinda GOZLERIN durdugu bir serit kalmali.
+       Ilk denemede sac 49'dan basliyordu, agiz 49'da bitiyordu
+       ve cizdirince YUZ HIC KALMADI.                         */
+    const bosluk = sac.origin[1] - (agiz.origin[1] + agiz.size[1]);
+    kontrol("  sac ile agiz arasinda yuz kaliyor", bosluk >= 1,
+            bosluk + " birim");
+  }
 
   /* Kemik adlari VANILLA duzeninde olmali: yuruyus
      animasyonu (animation.o_sey.yuru) onlari oynatiyor.
@@ -96,13 +161,155 @@ console.log("=== 2. MUTANT: HALIM'IN KIMLIGI DURUYOR ===");
   }
   const istemci = oku(RP + "/entity/o_sey_mutant.entity.json")
     ["minecraft:client_entity"].description;
-  kontrol("yuruyus animasyonu O SEY ile ayni",
-          istemci.animations.yuru === "animation.o_sey.yuru",
+  /* ---- v7.78: YURUYUS AYRILDI ----
+     Kullanici: "yururken SOL ilk once gidiyor, onu yakaladim."
+     Sol-once yalniz mutant icin istendi; ortak dosyayi cevirmek
+     O Sey'in yuruyusunu de degistirirdi. Ayrica mutantin artik
+     diz ve dirsegi var, O Sey'in yok.                        */
+  kontrol("mutantin KENDI yuruyus animasyonu",
+          istemci.animations.yuru === "animation.o_sey_mutant.yuru",
           istemci.animations.yuru);
+  const anim = oku(RP + "/animations/o_sey_mutant.animation.json")
+    .animations["animation.o_sey_mutant.yuru"].bones;
+  kontrol("O SEY'in yuruyusu DEGISMEDI",
+          !!oku(RP + "/animations/o_sey.animation.json")
+            .animations["animation.o_sey.yuru"]);
+  /* ---- SOL AYAK ONCE ----
+     Salinim cos(mesafe * 38.17 + faz); mesafe 0'ken cos(0)=1,
+     yani FAZ EKLENMEYEN kemik en one uzanmis basliyor. Olcu
+     tam bu: solda faz yok, sagda +180.                      */
+  const fazli = (ad) => /\+\s*180/.test(anim[ad].rotation.join(" "));
+  kontrol("SOL bacak once (fazsiz)", !fazli("leftLeg"));
+  kontrol("SAG bacak yarim donem geride", fazli("rightLeg"));
+  /* Dogal yuruyus: bacagin TERSI kol one gider. */
+  kontrol("sag kol sol bacakla ayni fazda", !fazli("rightArm"));
+  kontrol("sol kol yarim donem geride", fazli("leftArm"));
+  /* ---- EKLEMLER TEK YONE KILITLI ----
+     ciz_kemik.don ile olculdu: pivotun altindaki nokta +X
+     donusle ONE gidiyor. Yani diz NEGATIF, dirsek POZITIF
+     bukmeli. math.max(0, ...) da eklemin ters tarafa
+     KIRILMASINI engelliyor.                                 */
+  for (const d of ["leftShin", "rightShin"]) {
+    const ifade = anim[d].rotation[0];
+    kontrol("  " + d + " GERIYE bukuyor (negatif)", ifade.startsWith("-"),
+            ifade.slice(0, 24));
+    kontrol("  " + d + " tek yone kilitli", /math\.max\(0,/.test(ifade));
+  }
+  for (const d of ["leftForearm", "rightForearm"]) {
+    const ifade = anim[d].rotation[0];
+    kontrol("  " + d + " ONE bukuyor (pozitif)", !ifade.startsWith("-"),
+            ifade.slice(0, 24));
+    kontrol("  " + d + " tek yone kilitli", /math\.max\(0,/.test(ifade));
+  }
   kontrol("kendi geometrisini gosteriyor",
           istemci.geometry.default === "geometry.o_sey_mutant");
   kontrol("kendi dokusunu gosteriyor",
           istemci.textures.default === "textures/entity/o_sey_mutant");
+}
+
+console.log("");
+console.log("=== 2b. YENI YAMALAR BOS UV BLOGUNDA (v7.78) ===");
+{
+  /* ---- BU BOLUM NEDEN VAR ----
+     Agiz, disler, sac, eldiven ve bantlar dokuda yeni yer
+     istiyor. 64x64 skin duzeninde bos alan TEK bir dikdortgen:
+     x 40..64, y 0..16. Bir yama oradan tasarsa mevcut bir
+     parcanin dokusunu EZER -- ve bu oyunda hata vermez, sadece
+     bir yerler yanlis renge doner. Tam olarak sessizce
+     bozulan turden bir sey, o yuzden olculuyor.             */
+  const g = oku(RP + "/models/entity/o_sey_mutant.geo.json")
+    ["minecraft:geometry"][0];
+  const kutuUV = [];     // kutu-UV ayak izleri
+  const yuzUV = [];      // yuz basina yamalar
+  for (const b of g.bones) {
+    for (const c of (b.cubes || [])) {
+      if (Array.isArray(c.uv)) {
+        const [sx, sy, sz] = c.size.map((t) => Math.round(t));
+        kutuUV.push([c.uv[0], c.uv[1], 2 * sz + 2 * sx, sz + sy]);
+      } else if (c.uv) {
+        for (const y2 of Object.values(c.uv)) {
+          yuzUV.push([y2.uv[0], y2.uv[1], y2.uv_size[0], y2.uv_size[1]]);
+        }
+      }
+    }
+  }
+  kontrol("yuz basina yama var", yuzUV.length > 0, yuzUV.length + " yama");
+
+  const disari = yuzUV.filter(([x, y, w, h]) =>
+    x < 0 || y < 0 || x + w > 64 || y + h > 64);
+  kontrol("hicbir yama dokunun disina tasmiyor", disari.length === 0,
+          JSON.stringify(disari.slice(0, 3)));
+
+  /* Olculen bos blok. Sinir burada TEKRAR yazili degil,
+     uretecten okunuyor -- iki yerde duran bir sayi ayrisir. */
+  const kaynak = readFileSync(KOK + "/kol_uret.py", "utf8");
+  const bloklar = [...kaynak.matchAll(
+    /^\s*"(\w+)":\s*\(\s*(\d+),\s*(\d+),\s*(\d+),\s*(\d+)\)/gm)];
+  const yamaTablo = new Map();
+  const tabloBlok = /MUTANT_YAMA = \{([\s\S]*?)\n\}/.exec(kaynak);
+  if (tabloBlok) {
+    for (const m of tabloBlok[1].matchAll(
+        /"(\w+)":\s*\(\s*(\d+),\s*(\d+),\s*(\d+),\s*(\d+)\)/g)) {
+      yamaTablo.set(m[1], [+m[2], +m[3], +m[4], +m[5]]);
+    }
+  }
+  kontrol("MUTANT_YAMA tablosu uretecte", yamaTablo.size >= 5,
+          yamaTablo.size + " yama");
+  const disinda = [...yamaTablo.entries()].filter(
+    ([, [x, y, w, h]]) => x < 40 || y < 0 || x + w > 64 || y + h > 16);
+  kontrol("yamalarin hepsi olculen bos blokta (x40..64 · y0..16)",
+          disinda.length === 0, disinda.map(([a]) => a).join(", ") || "hepsi icerde");
+
+  const kesisir = (a, b) =>
+    a[0] < b[0] + b[2] && b[0] < a[0] + a[2] &&
+    a[1] < b[1] + b[3] && b[1] < a[1] + a[3];
+  const carpisan = [];
+  for (const yv of yuzUV) {
+    for (const kv of kutuUV) if (kesisir(yv, kv)) carpisan.push(yv.join(","));
+  }
+  kontrol("hicbir yama mevcut parcanin dokusunu EZMIYOR",
+          carpisan.length === 0, [...new Set(carpisan)].slice(0, 3).join(" | "));
+
+  /* Disler GERCEKTEN cizilmis mi: agzin on yamasinda hem
+     ACIK (dis) hem KOYU (agzin ici) piksel olmali ve disler
+     UST ile ALT satirda AYRI sutunlarda durmali -- yoksa
+     kenetlenme degil duz bir bant olur (ilk denemede oldu). */
+  const yama = yamaTablo.get("agiz_on");
+  if (yama) {
+    const olc = JSON.parse(execFileSync("python3", ["-c", `
+from PIL import Image
+import json
+im = Image.open(${JSON.stringify(RP + "/textures/entity/o_sey_mutant.png")}).convert("RGB")
+u, v, w, h = ${JSON.stringify(yama)}
+p = im.load()
+def parlak(x, y):
+    r, g, b = p[u + x, v + y]
+    return (r + g + b) / 3.0 > 140
+ust = [x for x in range(w) if parlak(x, 0)]
+alt = [x for x in range(w) if parlak(x, h - 1)]
+koyu = sum(1 for y in range(h) for x in range(w) if not parlak(x, y))
+satir = [sum(1 for x in range(w) if not parlak(x, y)) for y in range(h)]
+print(json.dumps({"ust": ust, "alt": alt, "koyu": koyu, "satir": satir}))
+`], { encoding: "utf8" }));
+    kontrol("  ust sirada dis var", olc.ust.length > 0, olc.ust.length + " piksel");
+    kontrol("  alt sirada dis var", olc.alt.length > 0, olc.alt.length + " piksel");
+    kontrol("  agzin ici koyu kaliyor (dis duz bant degil)",
+            olc.koyu > 0, olc.koyu + " koyu piksel");
+    /* Kenetlenme: ustteki disin sutunu altta BOS olmali. */
+    const cakisan = olc.ust.filter((x) => olc.alt.includes(x));
+    kontrol("  ust ve alt disler kenetleniyor (ayni sutunda degil)",
+            cakisan.length === 0, cakisan.join(",") || "hicbiri cakismiyor");
+    /* ---- HICBIR SATIR BASTAN BASA DIS OLMAMALI ----
+       Ilk denemede disler 4 piksel uzundu: ustteki ile
+       alttaki ORTA satirlarda ust uste biniyordu ve agiz
+       dis degil DUZ BEYAZ BIR BANT gorunuyordu. Sutun
+       olcusu bunu YAKALAMIYOR (ust satir ile alt satir yine
+       ayri sutunlarda), o yuzden ayri bir madde: her satirda
+       en az bir koyu piksel kalmali.                       */
+    const doluSatir = olc.satir.filter((n) => n === 0).length;
+    kontrol("  hicbir satir bastan basa dis degil", doluSatir === 0,
+            "satir basina koyu piksel: " + olc.satir.join(","));
+  }
 }
 
 console.log("");

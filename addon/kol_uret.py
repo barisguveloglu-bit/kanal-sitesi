@@ -110,7 +110,7 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # tureniyor -- ayrisabilecekleri bir yer kalmadi.
 #
 # YENI SURUM CIKARIRKEN: yalnizca asagidaki satiri degistir.
-SURUM_NO = (7, 77, 0)
+SURUM_NO = (7, 78, 0)
 
 SURUM_METIN = "%d.%d.%d" % SURUM_NO
 
@@ -3691,6 +3691,84 @@ SEY_ANIM = {
 }
 
 
+# ============================================================
+#  MUTANT YURUYUSU -- SOL AYAK ONCE                    (v7.78)
+#
+#  Kullanici: "bir boralo mutant hali YURURKEN SOL ILK ONCE
+#  GIDIYOR, onu yakaladim."
+#
+#  ---- HANGI BACAK "ONCE" GIDIYOR ----
+#  Salinim `math.cos(mesafe * 38.17 + faz)`. Mesafe 0'ken
+#  cos(0) = 1, yani FAZ EKLENMEYEN kemik en one uzanmis
+#  durumda basliyor. O Sey'de faz eklenmeyen kemik `rightLeg`
+#  idi -- yani sag ayak once gidiyordu. Mutantta ters:
+#  `leftLeg` fazsiz, `rightLeg` +180.
+#
+#  Kollar bacaklarin TERSI (dogal yuruyus: sol bacak one
+#  giderken sag kol one gider), yani `rightArm` fazsiz.
+#
+#  ---- NEDEN AYRI BIR ANIMASYON DOSYASI ----
+#  Mutant v7.77'ye kadar `animation.o_sey.yuru`yu paylasiyordu.
+#  Iki sebeple ayrildi:
+#    1. Sol-once yalniz MUTANT icin istendi; ortak dosyayi
+#       cevirmek O Sey'in yuruyusunu de degistirirdi ve onun
+#       icin verilmis bir karar yok.
+#    2. Mutantin artik DIZI ve DIRSEGI var (rightShin /
+#       rightForearm). O Sey'de o kemikler YOK; ortak dosyada
+#       oynatilsalardi O Sey tarafinda sessizce hicbir sey
+#       yapmazlardi -- ama okuyan "bunlar neden burada"
+#       diye ararak vakit kaybederdi.
+#
+#  ---- EKLEMLERIN ISARETI OLCULDU, TAHMIN EDILMEDI ----
+#  ciz_kemik.don ile kuru calistirildi: pivotun ALTINDAKI bir
+#  nokta, X ekseninde POZITIF donusle -z'ye (yani ONE, cunku
+#  yuz z=-5'te) gidiyor. Dolayisiyla:
+#    diz  geriye buker  -> NEGATIF X
+#    dirsek one buker   -> POZITIF X   (insan dirsegi eli one
+#                                       ve yukari getirir)
+#  math.max(0, ...) ile tek yone kilitli: eklem ters tarafa
+#  KIRILMIYOR. Bu, "bir gun birinin genligi buyutup bacagi
+#  ikiye katlamasi" ihtimaline karsi da bir kilit.
+#
+#  Ceyrek donem gecikme (+90): diz, uyluk en one uzandiktan
+#  bir ceyrek sonra -- yani bacak govdenin altindan gecerken --
+#  en cok bukuluyor. Gercek yuruyusteki sira bu.
+# ============================================================
+_MUT_FAZ = ("math.cos(query.modified_distance_moved * 38.17%s)"
+            " * %s * query.modified_move_speed")
+# Eklem: tek yone kilitli, ceyrek donem gecikmeli.
+_MUT_EKLEM = ("%smath.max(0, math.cos("
+              "query.modified_distance_moved * 38.17%s + 90))"
+              " * %s * query.modified_move_speed")
+MUTANT_ANIM = {
+    "format_version": "1.8.0",
+    "animations": {
+        "animation.o_sey_mutant.yuru": {
+            "loop": True,
+            "bones": {
+                # SOL ONCE: fazsiz olan sol.
+                "leftLeg":        {"rotation": [_MUT_FAZ % ("", 40), 0, 0]},
+                "rightLeg":       {"rotation": [_MUT_FAZ % (" + 180", 40), 0, 0]},
+                # Diz: GERIYE buker (negatif), uylugun faziyla.
+                "leftShin":       {"rotation": [_MUT_EKLEM % ("-", "", 30), 0, 0]},
+                "rightShin":      {"rotation": [_MUT_EKLEM % ("-", " + 180", 30), 0, 0]},
+                # Kollar bacaklarin tersi.
+                "rightArm":       {"rotation": [_MUT_FAZ % ("", 30), 0, 0]},
+                "leftArm":        {"rotation": [_MUT_FAZ % (" + 180", 30), 0, 0]},
+                # Dirsek: ONE buker (pozitif), kolun faziyla.
+                "rightForearm":   {"rotation": [_MUT_EKLEM % ("", "", 18), 0, 0]},
+                "leftForearm":    {"rotation": [_MUT_EKLEM % ("", " + 180", 18), 0, 0]},
+                # Yatay dort kol: O Sey'deki gibi Y ekseninde.
+                "rightUpperArm":  {"rotation": [0, _MUT_FAZ % (" + 180", 22), 0]},
+                "leftMiddleArm":  {"rotation": [0, _MUT_FAZ % (" + 180", 22), 0]},
+                "leftUpperArm":   {"rotation": [0, _MUT_FAZ % ("", 22), 0]},
+                "rightMiddleArm": {"rotation": [0, _MUT_FAZ % ("", 22), 0]},
+            },
+        }
+    },
+}
+
+
 def o_sey_dokusu(kaynak_yol):
     """Kendi skinimizden (UzakAkraba_skin.png) O Sey dokusu uretir.
 
@@ -3793,50 +3871,154 @@ MUTANT_BOY    = 3.4        # blok (54 birim / 16)
 MUTANT_EN     = 1.4        # omuzlar cok genis
 
 
+# ============================================================
+#  MUTANT GOVDESININ YAMALARI -- BOS UV BLOGU     (v7.78)
+#
+#  Yeni parcalarin (agiz, disler, sac, eldiven, bantlar) dokuda
+#  yeri yok: 64x64 skin duzeninin her yeri dolu. Bos alan
+#  OLCULEREK bulundu -- dokunun her pikseli kupi UV ayak
+#  izleriyle karsilastirildi ve TEK buyuk bos dikdortgen cikti:
+#
+#      x 40..64 · y 0..16      (24 x 16, tamami saydam)
+#
+#  Ikinci bir bos alan daha var (x 0..16, y 38..42) ama 16x4;
+#  agzin on yuzu oraya sigmiyor.
+#
+#  ---- NEDEN KUTU-UV DEGIL, YUZ BASINA UV ----
+#  Kutu-UV'de bir kupun ayak izi MODEL OLCUSUNDEN turuyor:
+#  14 genis, 6 yuksek, 4 derin bir agiz 2x4+2x14 = 36 birim
+#  genislik ister. Bos blok 24 birim. Yuz basina UV'de ise
+#  yalniz cizdigimiz yuzler yer kapliyor ve olculeri biz
+#  veriyoruz -- 36 yerine 16 birim. Ayni teknik isin
+#  kutularinda v4.75'ten beri calisiyor.
+#
+#  ---- DOKUYU BUYUTMEK COZUM DEGILDI ----
+#  Ilk fikrim dokuyu 128x128'e cikarmakti. Yanlis: kutu-UV ayak
+#  izi model olcusune bagli, doku olcusune degil. 128'de ayni
+#  kup yine 36 BIRIM ister ama o birimler artik yarim texel
+#  kapladigi icin mevcut butun parcalar kaydigi yerden yanlis
+#  ornekler -- calisan her seyi bozardi.
+# ============================================================
+MUTANT_YAMA = {
+    # ad:            (u,  v,  en, boy)
+    "agiz_on":       (40,  0, 16,  6),   # disler burada
+    "agiz_yan":      (56,  0,  4,  6),
+    "agiz_ust":      (40,  6, 16,  2),   # damak
+    "agiz_alt":      (40,  8, 16,  2),
+    "bant":          (56,  6,  8,  4),   # diz bandi + omuz pedi
+    "sac":           (40, 10,  8,  6),
+    "eldiven":       (48, 10,  8,  6),
+}
+
+
+def _yama_uv(ad, yuzler=("north", "south", "east", "west", "up", "down")):
+    """Bir yamayi verilen yuzlere dogrudan bagliyor."""
+    u, v, en, boy = MUTANT_YAMA[ad]
+    return {y: {"uv": [u, v], "uv_size": [en, boy]} for y in yuzler}
+
+
 def mutant_geometrisi():
     """Mutant Halim. O Sey'in alti kolu duruyor; govde
-    orneklerdeki mutant oranlarinda.
+    kullanicinin gonderdigi Mutant Boralo goruntulerinin
+    oranlarinda.
 
-    ---- KULLANICI DUZELTTI: KAMBUR DEGIL ----
+    ---- KULLANICI DUZELTTI (1): KAMBUR DEGIL ----
     Ilk denemede yaratigi kambur yaptim -- kafayi omuzlarin
     arasina gomup govdeyi one egdim. Kullanici Mutant Boralo'nun
     ekran goruntusunu gonderdi: yaratik DIK duruyor, kafa
     govdenin tepesinde normal yerinde, ve asil ozellik
-    KOLLARIN UZUNLUGU -- omuzdan basliyor, dizin ALTINA kadar
-    iniyor, ucunda koca koyu yumruklar var.
+    KOLLARIN UZUNLUGU.
 
-    Kaynagin poz verisi de bunu soyluyordu ama yanlis okumusum:
-    `RightArm:{Y:46}` kolu one-asagi sarkitiyor, `Torso` donusu
-    ise govdeyi egmiyor, KOLLARI ONE aciyor.
+    ---- KULLANICI DUZELTTI (2): EKLEMLER VE AGIZ  (v7.78) ----
+    Ikinci turda bes gorsel geldi (onden, arkadan, yururken,
+    egilmisken) ve "birazcik yanlis gibi" dendi. Gorseller tek
+    tek okundu; mevcut modelde eksik olan BES yapisal sey cikti:
 
-    Olculer (birim, 16 = 1 blok):
-      bacak alt   0..12    kalin
-      bacak ust  12..22
-      kalca      22..30    14 genis
-      gogus      30..44    18 genis
-      kafa       44..54    normal boy, TEPEDE
-      kollar     42..10    otuz iki birim -- dizin altina iner
-      yumruk      2..10    koca
-    Toplam 54 birim = 3,4 blok.                                """
+      1. KOL IKI PARCALI. Referansta omuz-dirsek-bilek net
+         goruluyor ve on kol hafif one aciliyor. Bizdeki tek
+         duz kutuydu: uzundu ama EKLEMSIZDI, yani yururken
+         sopa gibi salliniyordu.
+      2. BACAK IKI PARCALI, arasinda KOYU DIZ BANDI. Bizdeki
+         iki kup ust uste duruyordu ama ayni kemikteydi --
+         yani diz diye bir sey yoktu.
+      3. AGIZ. Referansin imzasi bu: kafanin ONUNE TASAN,
+         kafadan GENIS, ici disle dolu bir agiz. Bizde hic
+         yoktu, kafa duz bir kutuydu.
+      4. GOMLEK ETEGI. Govde tek parca degil: gogsun altinda
+         ayri, bir tik dar bir bant var ve kalcayi ortuyor.
+      5. OMUZ PEDI ve ELDIVEN. Omuzda govdeden ayri bir kutu,
+         kolun ucunda koyu bir el.
 
-    def uzun_kol(ad, yumruk_ad, sag, uv, yumruk_uv):
-        """Mutantin imzasi: omuzdan dizin altina inen kalin kol
-        ve ucunda koca yumruk.
+    ---- OLCULER (birim, 16 = 1 blok) ----
+      ayak         0..2     one tasan
+      baldir       2..13
+      diz bandi   13..15    koyu, bacaktan genis
+      uyluk       15..24
+      etek        24..32    16 genis  -- gomlegin eteği
+      gogus       32..44    18 genis
+      kafa        44..54
+      sac         49..56    kafanin ustu ve arkasi
+      agiz        43..49    14 GENIS, z -9..-5 (kafanin ONUNDE)
+      omuz pedi   36..43
+      ust kol     26..42
+      on kol      12..26
+      el           4..12
+    Toplam 54 birim = 3,4 blok -- ONCEKIYLE AYNI, yani
+    carpisma kutusu (MUTANT_BOY) degismiyor.                  """
 
-        Disardaki kemik SWING icin (yuruyus animasyonu onu
-        donduruyor), yumruk kemigi kolun ucuna asili."""
+    def uzun_kol(ad, on_ad, yumruk_ad, sag, uv, yumruk_uv):
+        """Mutantin imzasi: omuzdan dizin altina inen kol.
+
+        v7.78: artik UC kemik. Disardaki `ad` omuzdan doner
+        (yuruyusun salinimi), `on_ad` DIRSEKTEN doner, `yumruk_ad`
+        bilekten. Tek parca kalsaydi kol yururken sopa gibi
+        sallanirdi -- referansta on kol gorunur bicimde geride
+        kaliyor.                                                """
         omuz = 42
-        dip = 10
+        dirsek = 26
+        bilek = 12
         kalin = 7
         x = -9 if sag else 9
         org_x = (-9 - kalin) if sag else 9
         return [
-            {"name": ad, "parent": "body", "pivot": [x, omuz, 0],
-             "cubes": [{"origin": [org_x, dip, -3.5],
-                        "size": [kalin, omuz - dip, 7], "uv": uv}]},
-            {"name": yumruk_ad, "parent": ad, "pivot": [x, dip, 0],
-             "cubes": [{"origin": [org_x - 1.5, dip - 8, -5],
+            # Omuz: pedi tasiyan ve butun kolu donduren kemik.
+            {"name": ad, "parent": "body", "pivot": [x, omuz, 0], "cubes": [
+                # Omuz pedi -- referansta govdeden AYRI bir kutu,
+                # koldan bir birim genis, omzun uzerine oturuyor.
+                {"origin": [org_x - 0.5, 36, -4], "size": [kalin + 1, 7, 8],
+                 "uv": _yama_uv("bant")},
+                {"origin": [org_x, dirsek, -3.5],
+                 "size": [kalin, omuz - dirsek, 7], "uv": uv},
+            ]},
+            {"name": on_ad, "parent": ad, "pivot": [x, dirsek, 0], "cubes": [
+                {"origin": [org_x, bilek, -3.5],
+                 "size": [kalin, dirsek - bilek, 7], "uv": uv},
+            ]},
+            {"name": yumruk_ad, "parent": on_ad, "pivot": [x, bilek, 0],
+             "cubes": [{"origin": [org_x - 1.5, bilek - 8, -5],
                         "size": [kalin + 3, 8, 10], "uv": yumruk_uv}]},
+        ]
+
+    def bacak(ad, baldir_ad, sag, uv):
+        """Iki parcali bacak. Uyluk `ad` kemiginde (yuruyusun
+        salinimi orada), baldir DIZDEN donen ayri kemikte.
+        Aradaki koyu bant referansta cok belirgin.            """
+        org_x = -8 if sag else 1
+        return [
+            {"name": ad, "parent": "body", "pivot": [org_x + 3.5, 24, 0],
+             "cubes": [
+                 {"origin": [org_x, 15, -3.5], "size": [7, 9, 7], "uv": uv},
+                 # Diz bandi: bacaktan yarim birim genis, koyu.
+                 {"origin": [org_x - 0.5, 13, -4], "size": [8, 2, 8],
+                  "uv": _yama_uv("bant")},
+             ]},
+            {"name": baldir_ad, "parent": ad, "pivot": [org_x + 3.5, 13, 0],
+             "cubes": [
+                 {"origin": [org_x + 0.5, 2, -3], "size": [6, 11, 6], "uv": uv},
+                 # Ayak ONE tasiyor -- referansta ciplak ayak
+                 # govdenin onunden gorunuyor.
+                 {"origin": [org_x, 0, -4.5], "size": [7, 2, 8], "uv": uv},
+             ]},
         ]
 
     def yatay_kol(ad, taban_ad, pivot_y, sag, uv):
@@ -3856,30 +4038,59 @@ def mutant_geometrisi():
         ]
 
     kemikler = [
-        # ---- GOVDE: kalca + gogus, ikisi de DIK ----
-        # Ornekteki gibi iki parcali: alt bant dar, gogus genis.
-        {"name": "body", "pivot": [0, 30, 0], "cubes": [
-            {"origin": [-7, 22, -4], "size": [14, 8, 8], "uv": [16, 16]},
-            {"origin": [-9, 30, -5], "size": [18, 14, 9], "uv": [16, 32]},
+        # ---- GOVDE: gomlek etegi + gogus, ikisi de DIK ----
+        # Referansta govde TEK parca degil: gogsun altinda bir
+        # tik dar, kalcayi ortan ayri bir bant var.
+        {"name": "body", "pivot": [0, 32, 0], "cubes": [
+            {"origin": [-8, 24, -4.5], "size": [16, 8, 9], "uv": [16, 16]},
+            {"origin": [-9, 32, -5], "size": [18, 12, 10], "uv": [16, 32]},
         ]},
         # ---- KAFA: govdenin TEPESINDE, normal yerinde ----
-        # Boyun yok ama kafa gomulu de degil.
         {"name": "head", "parent": "body", "pivot": [0, 44, 0], "cubes": [
             {"origin": [-5, 44, -5], "size": [10, 10, 10], "uv": [0, 0]},
-        ]},
-        # ---- BACAKLAR: kalin, iki parcali ----
-        {"name": "rightLeg", "parent": "body", "pivot": [-4, 22, 0], "cubes": [
-            {"origin": [-8, 12, -3.5], "size": [7, 10, 7], "uv": [0, 16]},
-            {"origin": [-8, 0, -3.5], "size": [7, 12, 7], "uv": [0, 16]},
-        ]},
-        {"name": "leftLeg", "parent": "body", "pivot": [4, 22, 0], "cubes": [
-            {"origin": [1, 12, -3.5], "size": [7, 10, 7], "uv": [0, 42]},
-            {"origin": [1, 0, -3.5], "size": [7, 12, 7], "uv": [0, 42]},
+            # Sac: kafanin ustunu ve arkasini ortuyor.
+            # ---- Y=50, 49 DEGIL ----
+            # Ilk denemede sac 49'dan, agiz 49'a kadardi ve
+            # cizdirince YUZ HIC KALMADI: sacin alt kenariyla
+            # agzin ust kenari birlesiyordu. Referansta ikisinin
+            # arasinda gozlerin durdugu bir serit var. Sac 50'ye
+            # cekildi, agiz 48'de bitiyor -- arada iki birimlik
+            # yuz kaliyor.
+            # Arkaya bir birim tasiyor (z -5..6): referansta sac
+            # ensede kabarik.
+            {"origin": [-5.5, 50, -5], "size": [11, 6, 11],
+             "uv": _yama_uv("sac")},
+            # ---- AGIZ: REFERANSIN IMZASI ----
+            # Kafadan GENIS (14 vs 10) ve ONE TASIYOR (z -9,
+            # kafanin on yuzu -5). Alt kenari kafanin altina
+            # (43 < 44) sarkiyor: gorsellerde cene hattinin
+            # altindan cikiyor. Ust kenari 48 -- sac 50'den
+            # basladigi icin arada gozlerin serilidigi iki
+            # birimlik yuz kaliyor.
+            {"origin": [-7, 43, -9], "size": [14, 5, 4], "uv": {
+                "north": {"uv": list(MUTANT_YAMA["agiz_on"][:2]),
+                          "uv_size": list(MUTANT_YAMA["agiz_on"][2:])},
+                "east": {"uv": list(MUTANT_YAMA["agiz_yan"][:2]),
+                         "uv_size": list(MUTANT_YAMA["agiz_yan"][2:])},
+                "west": {"uv": list(MUTANT_YAMA["agiz_yan"][:2]),
+                         "uv_size": list(MUTANT_YAMA["agiz_yan"][2:])},
+                "up": {"uv": list(MUTANT_YAMA["agiz_ust"][:2]),
+                       "uv_size": list(MUTANT_YAMA["agiz_ust"][2:])},
+                "down": {"uv": list(MUTANT_YAMA["agiz_alt"][:2]),
+                         "uv_size": list(MUTANT_YAMA["agiz_alt"][2:])},
+                # Arka yuz YOK: kafanin icinde kaliyor, cizilse
+                # de gorunmez ve bos yere doku yer kaplardi.
+            }},
         ]},
     ]
+    # ---- BACAKLAR: iki parcali, diz bantli ----
+    kemikler += bacak("rightLeg", "rightShin", True, [0, 16])
+    kemikler += bacak("leftLeg", "leftShin", False, [0, 42])
     # ---- ANA KOL CIFTI: mutantin imzasi ----
-    kemikler += uzun_kol("rightArm", "rightFist", True, [40, 16], [40, 16])
-    kemikler += uzun_kol("leftArm", "leftFist", False, [32, 48], [32, 48])
+    kemikler += uzun_kol("rightArm", "rightForearm", "rightFist",
+                         True, [40, 16], _yama_uv("eldiven"))
+    kemikler += uzun_kol("leftArm", "leftForearm", "leftFist",
+                         False, [32, 48], _yama_uv("eldiven"))
     # ---- DORT FAZLADAN KOL (Halim'in kimligi) ----
     kemikler += yatay_kol("rightMiddleArm", "rightArm_r2", 34, True, [40, 16])
     kemikler += yatay_kol("rightUpperArm",  "rightArm_r1", 41, True, [40, 16])
@@ -3994,7 +4205,93 @@ def mutant_dokusu(kaynak_yol):
                 cp[x2, y2] = (min(255, int(r * 1.25)),
                               min(255, int(g * 1.25)),
                               min(255, int(b * 1.25)), 255)
+    _mutant_yamalari(cikti, VURGU, PARLAK)
     return cikti
+
+
+# ---- AGIZ, DIS VE OTEKI YAMALAR  (v7.78) ----
+#
+# ---- RENK: HALIM'IN PALETI, REFERANSIN KIRMIZISI DEGIL ----
+# Gonderilen goruntulerde agzin ici KIRMIZI. Buraya kirmizi
+# KOYULMADI ve sebebi bu fonksiyonun ustundeki kuralin ta
+# kendisi: "palet DEGISMIYOR, yeni renk uydurulmuyor". Halim'in
+# olculmus paleti iki ton: siyaha yakin zemin ve #20C5B5
+# turkuaz vurgu. Agzin isteyen tek sey KOYU bir ic ve ACIK
+# disler -- ikisi de bu iki tondan TURETILEBILIYOR:
+#     ic      vurgunun %82 siyaha cekilmis hali
+#     dis     acik tonun %62 beyaza cekilmis hali
+# Yani referansin YAPISI (tasan agiz, kenetlenen disler)
+# alindi, RENGI alinmadi. Kirmizi istenirse degistirilecek tek
+# yer asagidaki iki satir.
+#
+# ---- DIS SAYISI ----
+# Goruntulerde ust sirada 4-5, alt sirada 4-5 dis okunuyor;
+# kesin sayi kamera acisina gore degisiyor. 16 piksellik on
+# yuze iki piksellik disler ve iki piksellik bosluklar
+# sigiyor: ustte DORT, altta DORT, tam kenetlenerek. Daha cok
+# dis koymak 16 piksele tek piksellik cizgiler demekti --
+# oyunda dis degil TARAK gorunurdu.
+def _mutant_yamalari(im, vurgu, parlak):
+    """Bos UV bloguna (MUTANT_YAMA) agiz, dis, sac, eldiven ve
+    bant yamalarini cizer. Hepsi deterministik."""
+    p = im.load()
+    ic = _karis(vurgu, (0, 0, 0), 0.82)          # agzin ici
+    dis = _karis(parlak, (255, 255, 255), 0.62)  # disler
+    koyu = _karis(vurgu, (0, 0, 0), 0.90)        # eldiven / en koyu
+    orta = _karis(vurgu, (0, 0, 0), 0.72)        # bant
+
+    def doldur(ad, renk):
+        u, v, en, boy = MUTANT_YAMA[ad]
+        for yy in range(v, v + boy):
+            for xx in range(u, u + en):
+                p[xx, yy] = tuple(renk) + (255,)
+
+    # ---- AGZIN ON YUZU: kenetlenen disler ----
+    doldur("agiz_on", ic)
+    u, v, en, boy = MUTANT_YAMA["agiz_on"]
+    UST = (0, 4, 8, 12)      # ustten sarkan dort dis
+    ALT = (2, 6, 10, 14)     # alttan cikan dort dis, tam bosluklara
+    # ---- DIS BOYU: 6'NIN YARISI, DAHA UZUNU DEGIL ----
+    # Ilk denemede disler 4 piksel uzundu ve ustteki ile
+    # alttaki orta iki satirda UST USTE BINIYORDU: onizlemede
+    # agiz dis degil DUZ BEYAZ BIR BANT gorunuyordu. Yariya
+    # (3'er piksel) inince aradaki koyu bosluk aciliyor ve
+    # kenetlenme okunuyor.
+    yari = boy // 2
+    for bas in UST:
+        for yy in range(v, v + yari):
+            for xx in range(u + bas, u + bas + 2):
+                p[xx, yy] = tuple(dis) + (255,)
+    for bas in ALT:
+        for yy in range(v + yari, v + boy):
+            for xx in range(u + bas, u + bas + 2):
+                p[xx, yy] = tuple(dis) + (255,)
+    # Iki damla: referansta agzin altindan sarkan izler. Alt
+    # disler ARASINDAKI koyu sutunlara konuyor, yoksa disin
+    # uzerine duserdi. Vurgu renginde, cunku Halim'in "kani" o.
+    for xx, yy in ((u + 1, v + boy - 1), (u + 9, v + boy - 1)):
+        p[xx, yy] = tuple(vurgu) + (255,)
+
+    # ---- AGZIN YAN / UST / ALT YUZLERI ----
+    # Yandan bakinca agzin ici gorunuyor, ustunde bir dis ucu.
+    doldur("agiz_yan", ic)
+    u, v, en, boy = MUTANT_YAMA["agiz_yan"]
+    for yy in range(v, v + 3):
+        p[u + en - 1, yy] = tuple(dis) + (255,)
+    doldur("agiz_ust", ic)
+    doldur("agiz_alt", ic)
+
+    # ---- SAC / BANT / ELDIVEN ----
+    # Sac zemin renginde ama govdenin damar desenini TASIMIYOR:
+    # kafanin ustu tek parca koyu kutle olarak okunmali.
+    doldur("sac", _karis(vurgu, (0, 0, 0), 0.86))
+    doldur("bant", orta)
+    doldur("eldiven", koyu)
+    # Bantta tek bir vurgu cizgisi: diz ve omuz oyunda duz bir
+    # leke degil, bir KUSAK gibi okunsun.
+    u, v, en, boy = MUTANT_YAMA["bant"]
+    for xx in range(u, u + en):
+        p[xx, v + boy // 2] = tuple(vurgu) + (255,)
 
 
 def o_sey_varligi():
@@ -4549,11 +4846,13 @@ def mutant_istemci_varligi():
                     "base_color": "#16303a",     # mutant zemini
                     "overlay_color": "#4aedd9",  # damar turkuazi
                 },
-                # Yuruyus animasyonu O SEY ile AYNI: kemik adlari
-                # bilerek vanilla duzeninde tutuldu, yoksa model
+                # Yuruyus v7.78'de AYRILDI: sol ayak once ve
+                # yeni diz/dirsek kemikleri yalniz mutantta var
+                # (gerekcesi MUTANT_ANIM'in basinda). Kemik
+                # adlari yine vanilla duzeninde -- yoksa model
                 # hareketsiz kalirdi.
                 "scripts": {"animate": ["yuru"]},
-                "animations": {"yuru": "animation.o_sey.yuru"},
+                "animations": {"yuru": "animation.o_sey_mutant.yuru"},
             }
         },
     }
@@ -12121,6 +12420,8 @@ def main():
     yaz_json(os.path.join(RP, "models/entity/o_sey_mutant.geo.json"),
              mutant_geometrisi())
     yaz_json(os.path.join(RP, "animations/o_sey.animation.json"), SEY_ANIM)
+    yaz_json(os.path.join(RP, "animations/o_sey_mutant.animation.json"),
+             MUTANT_ANIM)
     # ---- MUTANT HALIM DOKUSU (v7.2) ----
     # O Sey'in dokusundan TURETILIYOR; kaynak dosya orada
     # duruyor, ayri bir doku dosyasi tutulmuyor.

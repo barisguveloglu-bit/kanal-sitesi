@@ -1,3 +1,135 @@
+# v7.78.0 — Mutant Halim yeniden ölçüldü
+
+İstek: *"mutant halim aslında birazcık yanlış gibi; burada
+arkadan önden detaylı bir şekilde bir Boralo mutant hali,
+yürürken sol ilk önce gidiyor onu yakaladım... dişleri falan
+detayları iyice bakmanı istiyorum."*
+
+Beş görsel geldi: eğilmiş yakın çekim, yürürken, önden,
+arkadan, bir daha önden. Tek tek okundu.
+
+## Neyi değiştirdim, neyi değiştirmedim
+
+**Değişen: YAPI.** Modelde eksik olan beş şey görsellerden
+okundu.
+
+**Değişmeyen: KİMLİK.** Altı kol ve Halim'in ölçülmüş paleti
+duruyor. v7.2'de yazılan ayrım hâlâ geçerli: *oranlar ve duruş*
+örneklerden, *kimlik* O Şey'den. Görseldeki mavi tişört, haki
+pantolon ve kırmızı ağız **BoraLo'nun kendi skini** — onları
+almak Halim'i BoraLo yapardı.
+
+## Görsellerden okunan beş eksik
+
+**1. Kol iki parçalıydı, bizimki tek kutuydu.** Referansta
+omuz–dirsek–bilek net görünüyor. Bizdeki uzundu ama
+**eklemsizdi**, yani yürürken sopa gibi sallanıyordu. Artık üç
+kemik: `rightArm` (omuz) → `rightForearm` (dirsek) →
+`rightFist` (bilek).
+
+**2. Bacak da iki parçalı, arasında koyu diz bandı.** Bizdeki
+iki küp üst üste duruyordu ama **aynı kemikteydi** — diz diye
+bir şey yoktu. Artık `rightLeg` (uyluk + bant) →
+`rightShin` (baldır + ayak).
+
+**3. Ağız yoktu.** Referansın imzası bu: kafanın **önüne
+taşan**, kafadan **geniş** (14 birim / 10), içi dişle dolu bir
+ağız. Çene hattının altına sarkıyor — görsellerde de öyle.
+
+**4. Gömlek eteği.** Gövde tek parça değil: göğsün altında bir
+tık dar, kalçayı örten ayrı bir bant var.
+
+**5. Omuz pedi ve eldiven.** Omuzda gövdeden ayrı bir kutu,
+kolun ucunda koyu bir el.
+
+## Dişler
+
+16 piksellik ön yüze **üstte dört, altta dört** diş, tam
+kenetlenerek. Sayı keyfî değil: iki piksellik dişler ve iki
+piksellik boşluklar 16 piksele tam sığıyor. Daha çok diş
+koymak tek piksellik çizgiler demekti — oyunda diş değil
+**tarak** görünürdü.
+
+**Bir hata yapıp çizdirince gördüm:** ilk denemede dişler
+4 piksel uzundu ve üsttekiyle alttaki orta iki satırda **üst
+üste biniyordu** — ağız diş değil **düz beyaz bir bant**
+görünüyordu. Yarıya indirince aradaki koyu boşluk açıldı.
+Test artık bunu davranıştan tutuyor: *hiçbir satır baştan
+başa diş olamaz.*
+
+**Renk: Halim'in paleti, referansın kırmızısı değil.**
+Görsellerde ağzın içi kırmızı; buraya kırmızı koymadım çünkü
+bu dosyanın kuralı *"palet değişmiyor, yeni renk
+uydurulmuyor"*. Ağzın istediği tek şey koyu bir iç ve açık
+dişler — ikisi de mevcut iki tondan türetilebiliyor (iç =
+vurgunun %82 siyaha çekilmişi, diş = açık tonun %62 beyaza
+çekilmişi). Kırmızı istenirse değişecek tek yer o iki satır.
+
+## Yürüyüş: sol önce
+
+Salınım `cos(mesafe × 38,17 + faz)`. Mesafe 0'ken `cos(0) = 1`,
+yani **fazı eklenmeyen kemik en öne uzanmış başlıyor.** O
+Şey'de fazsız olan `rightLeg` idi — sağ ayak önce gidiyordu.
+Mutantta ters çevrildi.
+
+**Animasyon ayrıldı.** İki sebeple: sol-önce yalnız mutant için
+istendi (ortak dosyayı çevirmek O Şey'i de değiştirirdi), ve
+mutantın artık O Şey'de olmayan diz/dirsek kemikleri var.
+
+**Eklemlerin işareti ölçüldü, tahmin edilmedi.**
+`ciz_kemik.don` ile kuru çalıştırdım: pivotun altındaki bir
+nokta, X ekseninde **pozitif** dönüşle −z'ye gidiyor — yüz
+z = −5'te olduğuna göre o taraf **ön**. Dolayısıyla diz
+negatif, dirsek pozitif bükmeli. `math.max(0, …)` ile ikisi de
+tek yöne kilitli: eklem ters tarafa **kırılmıyor**.
+
+## Dokuda yer yoktu, ölçerek bulundu
+
+Ağız, diş, saç, eldiven ve bantlar dokuda yeni yer istiyor.
+64×64 skin düzeninin her pikseli küp UV ayak izleriyle
+karşılaştırıldı; tek büyük boş dikdörtgen çıktı:
+**x 40..64 · y 0..16.**
+
+**Kutu-UV değil, yüz başına UV.** Kutu-UV'de ayak izi *model
+ölçüsünden* türüyor: 14 geniş, 6 yüksek, 4 derin bir ağız
+2×4 + 2×14 = **36 birim** genişlik ister, boş blok 24. Yüz
+başına UV'de yalnız çizdiğimiz yüzler yer kaplıyor ve ölçüyü
+biz veriyoruz — 36 yerine 16.
+
+**Dokuyu büyütmek çözüm değildi** ve bunu yazıyorum çünkü ilk
+fikrim oydu: kutu-UV ayak izi doku ölçüsüne değil model
+ölçüsüne bağlı. 128×128'de aynı küp yine 36 *birim* ister ama
+o birimler artık yarım texel kapladığı için **çalışan her şey
+kayardı.**
+
+## Çizdirmek iki hatayı daha yakaladı
+
+- **Yüz hiç kalmamıştı.** Saç 49'dan başlıyordu, ağız 49'da
+  bitiyordu: ikisi birleşince gözlerin durduğu şerit yok oldu.
+  Saç 50'ye çekildi, ağız 48'de bitiyor.
+- **Test kendi kodumu düşürdü ve haklıydı ama ölçüsü yanlıştı.**
+  "Kafa gövdenin tepesinde" maddesi kafa kemiğindeki *bütün*
+  küplerin en altına bakıyordu; ağız çene altına sarktığı için
+  43'e düştü. Ölçülmek istenen şey kafanın kendisiydi — ölçü
+  10×10×10 küpe daraltıldı.
+- Ayrıca "ağzı bul" araması *yüz başına UV'si olan ilk küp*
+  diyordu ve **saçı ağız sanıyordu** (saçın da yüz başına UV'si
+  var, listede önce geliyor). Artık ölçüye göre aranıyor.
+
+## Test
+
+`mutant_saat.mjs` genişledi. Yeni 2b bölümü yamaların ölçülen
+boş blokta durduğunu ve **hiçbirinin mevcut bir parçanın
+dokusunu ezmediğini** tutuyor — bu, oyunda hata vermeden
+sessizce bozulan cinsten bir şey.
+
+Yedi mutasyonun yedisi de yakalanıyor: dirsek kemiğini silmek,
+sağ ayağı öne almak, dizi ters yöne bükmek, yamayı boş bloğun
+dışına taşımak, dişleri üst üste bindirmek, ağzı kafadan dar
+yapmak, saçı yüzün üstüne indirmek.
+
+---
+
 # v7.77.0 — Prizmoksin
 
 İstek aynen: *"bana özel bir iksir yapabilir misin acaba,
