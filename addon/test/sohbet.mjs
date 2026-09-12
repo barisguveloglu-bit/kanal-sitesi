@@ -273,14 +273,32 @@ console.log("=== 11. IKSIR SURELERI (v4.81: hepsi 8 dakika) ===");
      "hicbir alanda uzman degil; farki artik GUCTE degil
      SUREDE." O fark artik yok. Kullaniciya bildirildi;
      Hiperoksin'e yeni bir sebep verilmesi bekleyen is.      */
+  /* ---- v7.77: PRIZMOKSIN BU KURALIN DISINDA ----
+     Kullanici "en guclusunun en guclusu" dedi. Sayilarin
+     hepsi zaten tavana dayandigi icin (bkz. iksir.mjs 8.
+     bolum) geriye olculebilir tek eksen SURE kaldi -- bu
+     yuzden 19200 (16 dakika), otekilerin tam iki kati.
+
+     Kural SILINMEDI, IKIYE BOLUNDU: temel sekizin hepsi hala
+     9600'de ve aralarinda fark YOK (o kural v4.81'de
+     kullanicinin kendi istegiydi), Prizmoksin ise onlarin
+     HEPSINDEN uzun olmak ZORUNDA. Yani "sure ustunlugu"
+     artik bir kaza degil, sinanan bir sart.                 */
+  const USTUN = "prizmoksin";
   const BEKLENEN = 9600;
-  for (const k of ayar.KADEMELER) {
+  const temel = ayar.KADEMELER.filter((k) => k.kimlik !== USTUN);
+  const ustun = ayar.KADEMELER.find((k) => k.kimlik === USTUN);
+  for (const k of temel) {
     kontrol(k.ad.padEnd(12) + " " + (BEKLENEN / 20) + " sn",
             k.sure === BEKLENEN, k.sure + " tick = " + (k.sure / 20) + " sn");
   }
-  kontrol("hepsi ayni surede (kimse geride kalmadi)",
-          new Set(ayar.KADEMELER.map((k) => k.sure)).size === 1,
-          [...new Set(ayar.KADEMELER.map((k) => k.sure))].join(", "));
+  kontrol("temel sekizi ayni surede (kimse geride kalmadi)",
+          new Set(temel.map((k) => k.sure)).size === 1,
+          [...new Set(temel.map((k) => k.sure))].join(", "));
+  kontrol("Prizmoksin tabloda duruyor", ustun !== undefined);
+  kontrol("Prizmoksin hepsinden UZUN sureli",
+          ustun !== undefined && temel.every((k) => ustun.sure > k.sure),
+          ustun ? ustun.sure + " tick = " + (ustun.sure / 20) + " sn" : "yok");
 
   /* Sureyi uzatmak hiyerarsiyi geri getirmemeli.
 

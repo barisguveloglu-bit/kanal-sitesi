@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.76.0";
+export const SURUM = "v7.77.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -3467,6 +3467,99 @@ export const KADEMELER = [
       /* v4.80: elementin hicbir vurus gucu yoktu */
       ["strength",     1]
     ]
+  },
+  /* ============================================================
+     v7.77 -- PRIZMOKSIN: KULLANICIYA OZEL, EN GUCLUSU
+
+     Istek aynen: "bana ozel bir iksir yapabilir misin, rengarenk
+     olsun, ismini de sen belirle, su ana kadar yapabildigin en
+     guclu iksir olsun, lazeri de gokkusaginin orijinal
+     renklerinden olussun, goz de ayni sekilde... bu iksir asla
+     zayif kalmamali, en guclusunun en guclusu."
+
+     ---- ONCE DURUSTLUK: BIR KURALI KIRIYOR ----
+     Bu tablonun ustundeki nota gore iksirler UZMANLIK
+     duzenindeydi: her iksir bir alanda birinci, kimse baskasinin
+     alaninda onu gecmiyordu. Prizmoksin o duzeni BOZUYOR --
+     sekiz alanin sekizinde de birinci.
+
+     Bunu gizlemiyorum cunku bedeli gercek: bu iksir masadayken
+     diger sekizinin varlik sebebi zayifliyor. Kullanici sarti
+     iki kez ve acikca tekrarladi ("en guclusunun en guclusu"),
+     yani bu bir gozden kacma degil VERILMIS BIR KARAR. Geri
+     almak istenirse yapilacak sey belli: asagidaki sayilari
+     kendi uzmaninin BIR ALTINA cekmek.
+
+     ---- DAYANIKLILIK NEDEN 5 DEGIL 4 ----
+     Tek istisna bu ve sebebi oyun, tercih degil. Bedrock'ta
+     Dayaniklilik seviye basina %20 hasar dusuruyor; amplifier 4
+     (seviye V) %100 ediyor, yani TAM DOKUNULMAZLIK. 5 yazmak
+     ekranda roma rakamini VI yapar ve baska hicbir sey yapmaz --
+     bu depoda sahte icerik uretmiyoruz. Zaten tavan: StarOxine
+     ile ESIT, ustune cikilabilecek bir sayi yok.
+
+     Ayni sebeple seviyesiz efektler 0'da: night_vision,
+     fire_resistance, water_breathing, conduit_power,
+     invisibility, slow_falling, saturation. Onlarin oyunda
+     seviyesi YOK. Prizmoksin'in ustunlugu bunlarin HEPSINI
+     birden tasimasindan geliyor -- sekiz iksire dagilmis
+     seviyesiz yeteneklerin tamami tek siseda.
+
+     ---- SURE ----
+     Otekiler 9600 tik (8 dakika). Bu 19200 (16 dakika): sayilar
+     tavana dayandigi icin "daha guclu"nun kalan tek olculebilir
+     ekseni sure.
+     ============================================================ */
+  {
+    kimlik: "prizmoksin",
+    ad: "Prizmoksin",
+    /* Tek renkli parlama yolunun yedegi. Prizmaya giren isik
+       BEYAZDIR; yediye ayrilmasi ondan sonra oluyor. Asil
+       gorunum asagidaki `renkler` dongusu.                    */
+    renk: [1.0, 1.0, 1.0],
+    /* ---- RENGARENK ICME PARLAMASI ----
+       Gokkusaginin orijinal yedi rengi, kirmizidan mora
+       (dalga boyu uzundan kisaya). Degerler kol_uret.py'deki
+       GOKKUSAGI tablosunun 0-1'e bolunmus hali; kaynaklari ve
+       morun neden #8B00FF oldugu orada yazili.
+       `camera fade` 0.0-1.0 bekliyor -- referansin 0-255
+       yazip beyaza dusen hatasi bu tabloda tekrarlanmiyor.  */
+    renkler: [
+      [1.00, 0.00, 0.00],   // kirmizi #FF0000
+      [1.00, 0.50, 0.00],   // turuncu #FF7F00
+      [1.00, 1.00, 0.00],   // sari    #FFFF00
+      [0.00, 1.00, 0.00],   // yesil   #00FF00
+      [0.00, 0.00, 1.00],   // mavi    #0000FF
+      [0.29, 0.00, 0.51],   // civit   #4B0082
+      [0.55, 0.00, 1.00]    // mor     #8B00FF
+    ],
+    sure: 19200,                    // 960 saniye (16 dakika)
+    goz: "pa:goz_prizma",
+    lazerGoz: "pa:goz_prizma_lazer",
+    ozet: "EN GÜÇLÜSÜ · yedi renk · üç lazer modu",
+    /* Lazerin ucu de en genisi: Element'in iki modu (buz, ates)
+       ve ikisini AYNI ANDA veren ucuncu mod. Element'te iki
+       secenek vardi, burada uc.                              */
+    lazer: { modlu: "prizma" },
+    efektler: [
+      ["speed",           5],   // uzman Nitroksin 4
+      ["jump_boost",      5],   // uzman Nitroksin 4
+      ["strength",        5],   // uzman Redoksin / Kan 4
+      ["haste",           5],   // uzman Redoksin 4
+      ["absorption",      5],   // uzman Grinoksin / Kan 4
+      ["health_boost",    5],   // uzman Grinoksin 4
+      ["regeneration",    4],   // uzman Grinoksin 3
+      ["resistance",      4],   // TAVAN: 4 zaten tam dokunulmazlik
+      /* Seviyesiz olanlarin HEPSI -- sekiz iksire dagilmis
+         yeteneklerin tamami burada birlesiyor.               */
+      ["night_vision",    0],
+      ["fire_resistance", 0],
+      ["water_breathing", 0],
+      ["conduit_power",   0],
+      ["invisibility",    0],
+      ["slow_falling",    0],
+      ["saturation",      0]
+    ]
   }
 ];
 
@@ -3665,6 +3758,17 @@ export const LAZER_KALKAN_ESYALARI = new Set(["minecraft:shield"]);
 
 export const LAZER_MODLARI = new Map([
   ["element", [
+    { kimlik: "buz",  ad: "Buz",  ek: { dondur: true, buzKafes: true } },
+    { kimlik: "ates", ad: "Ateş", ek: { ates: true } }
+  ]],
+  /* v7.77: Prizmoksin. Element'in iki modu AYNEN duruyor, ustune
+     ucuncusu geliyor: ikisini birden veren "Tayf". Yeni bir
+     mekanik uydurulmadi -- ikisi de zaten yazili ve sinanmis
+     (dondur/buzKafes ve ates), Tayf sadece ayni bayraklari
+     birlikte aciyor. En guclu lazer, en cok secenegi olan.  */
+  ["prizma", [
+    { kimlik: "tayf", ad: "Tayf",
+      ek: { dondur: true, buzKafes: true, ates: true } },
     { kimlik: "buz",  ad: "Buz",  ek: { dondur: true, buzKafes: true } },
     { kimlik: "ates", ad: "Ateş", ek: { ates: true } }
   ]]
@@ -8108,6 +8212,25 @@ export const PARLAMA_ACIK  = true;
 export const PARLAMA_GIRIS = 0.2;   // saniye, kararma
 export const PARLAMA_TUT   = 0.3;   // saniye, sabit kalma
 export const PARLAMA_CIKIS = 0.6;   // saniye, acilma
+
+/* ---- RENGARENK PARLAMA  (v7.77) ----
+   Prizmoksin'in `renkler` dizisi varsa parlama tek renk degil,
+   yedi rengin ardisik SUPURMESI oluyor.
+
+   Sayilarin gerekcesi: tek renkli parlama 0.2+0.3+0.6 = 1,1
+   saniye. Yedi banti o surenin icine sigdirmak icin bant basina
+   pencere kisaldi ve bantlar 4 tikte bir (0,2 sn) basliyor --
+   toplam 7x4 = 28 tik, yani 1,4 saniye. Daha seyrek olsaydi
+   yedi AYRI flas gorunurdu; amac tek bir gokkusagi supurmesi.
+
+   `camera fade` yeniden verilince oncekini EZIYOR, yani
+   ust uste binen pencereler birikmiyor -- renk kayiyor.
+   Son bandin acilmasi PARLAMA_CIKIS ile uzun: ekran yumusak
+   donsun, dongu bitince ani kesilmesin.                      */
+export const PARLAMA_BANT_GIRIS  = 0.10;  // saniye
+export const PARLAMA_BANT_TUT    = 0.05;  // saniye
+export const PARLAMA_BANT_CIKIS  = 0.15;  // saniye
+export const PARLAMA_BANT_ARALIK = 4;     // tik, iki bant arasi
 
 
 /* ---------------- Ok yagmuru ----------------

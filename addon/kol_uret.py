@@ -110,7 +110,7 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # tureniyor -- ayrisabilecekleri bir yer kalmadi.
 #
 # YENI SURUM CIKARIRKEN: yalnizca asagidaki satiri degistir.
-SURUM_NO = (7, 76, 0)
+SURUM_NO = (7, 77, 0)
 
 SURUM_METIN = "%d.%d.%d" % SURUM_NO
 
@@ -494,6 +494,156 @@ GOZ_ZIRH = 17
 # GOZ RENGI iki bicimde yazilabilir:
 #   (r, g, b)              -> iki goz de ayni renk
 #   ((r,g,b), (r,g,b))     -> sol goz / sag goz ayri (bkz. goz_renkleri)
+# ============================================================
+#  GOKKUSAGININ ORIJINAL RENKLERI                     (v7.77)
+#
+#  Kullanici: "lazeri de gokkusaginin ORIJINAL renklerinden
+#  olussun, goz de ayni sekilde, bunu arastir."
+#
+#  Arastirildi, hatirdan yazilmadi. Iki ayri soru var ve
+#  ikisinin de cevabi asagida:
+#
+#  ---- 1. KAC RENK VE HANGILERI ----
+#  Newton tayfi yediye boldu: kirmizi, turuncu, sari, yesil,
+#  mavi, CIVIT (indigo) ve mor. Yedinci rengi (civit) fizik
+#  gerektirdigi icin degil, renkleri muzik gamindaki yedi notaya
+#  ve o gun bilinen yedi gezegene benzetmek istedigi icin
+#  ekledi. Modern kaynaklar civitin insan gozunce maviden
+#  ayirt edilemedigini soyluyor -- ama istek "ORIJINAL"
+#  renkler oldugu icin YEDISI DE alindi, altiya indirilmedi.
+#
+#  ---- 2. HANGI SAYILAR ----
+#  Tayf SUREKLI; "kirmizi su hex'tir" diyen resmi bir olcu yok,
+#  cunku renkler arasinda sinir yok. Yaygin olarak alintilanan
+#  ROYGBIV kumesi soyle (webnots ve itechguides ayni degerleri
+#  veriyor):
+#
+#    kirmizi  #FF0000   620-750 nm
+#    turuncu  #FF7F00   590-620 nm
+#    sari     #FFFF00   560-590 nm
+#    yesil    #00FF00   490-560 nm
+#    mavi     #0000FF   440-490 nm
+#    civit    #4B0082   ~420-440 nm
+#    mor      #8B00FF   380-440 nm
+#
+#  MOR ICIN IKI DEGER DOLASIYOR ve secimin gerekcesi yazili:
+#  webnots #9400D3 veriyor (CSS'in "darkviolet"i), digerleri
+#  #8B00FF. Kaynaklarin cogunlugu ROYGBIV'in standardi olarak
+#  #8B00FF'i gosteriyor; #9400D3 "canli palet" varyanti olarak
+#  geciyor. #8B00FF secildi -- ustelik #4B0082 civitten daha
+#  net ayriliyor, yani yedi bant oyunda da yedi bant gorunuyor.
+#
+#  Kaynaklar:
+#    https://www.webnots.com/vibgyor-rainbow-color-codes/
+#    https://www.itechguides.com/roygbiv-vs-vibgyor-rainbow-color-codes-hex-rgb-order-and-css/
+#    https://sciencenotes.org/visible-light-spectrum-wavelengths-and-colors/
+#
+#  ---- SIRA NEDEN BOYLE ----
+#  Gercek gokkusaginda kirmizi DISTA, mor ICTE. Isin gozden
+#  cikarken kirmizi baslayip uca dogru mora gidiyor: yani
+#  sira, isigin kendi dalga boyu sirasi (uzundan kisaya).
+#  Tersine cevirmek icin GOKKUSAGI_TERS'i True yap.
+# ============================================================
+GOKKUSAGI = (
+    (255,   0,   0),   # kirmizi  #FF0000
+    (255, 127,   0),   # turuncu  #FF7F00
+    (255, 255,   0),   # sari     #FFFF00
+    (  0, 255,   0),   # yesil    #00FF00
+    (  0,   0, 255),   # mavi     #0000FF
+    ( 75,   0, 130),   # civit    #4B0082
+    (139,   0, 255),   # mor      #8B00FF
+)
+GOKKUSAGI_TERS = False
+
+# ---- BANT GOZUNUN NOTR TABANI ----
+# Goz once bu duz gri ile ciziliyor, sonra pikselleri banda
+# boyaniyor (_bant_boya). Sayi KEYFI DEGIL, 178 = 255 x 0,70
+# ve secilme sebebi cizicinin kendi matematigi:
+#
+#   soguk = _karis(renk, siyah, 0.30)
+#   sicak = _karis(renk, beyaz, min(0.62, 0.34 x guc))
+#
+# Gri tabanla cizince cikan degerden bu oranlar GERI OKUNABILIYOR:
+#   v > 178  ->  beyaza gidis orani (v-178)/(255-178)
+#   v < 178  ->  siyaha gidis orani (178-v)/178
+# Ayni orani bant rengine uygulayinca, o gozu bastan o renkle
+# cizmisiz gibi BIREBIR ayni sonuc cikiyor (yuvarlama disinda).
+#
+# BEYAZ TABAN OLMAZDI: beyazda hem cekirdegin kimlik bandi hem
+# sicak merkez 255'e dayaniyor, yani ikisi ayirt edilemiyor ve
+# gozun tamami %45 beyaza cekilmis gibi -- kirmizi bant pembe
+# okunuyordu (ilk denemede tam olarak bu oldu).
+GOKKUSAGI_TABAN = (178, 178, 178)
+
+# Gokkusagi isininin duz renk yamalari dokuda NEREDE duruyor.
+# LAZER_ISIN_UV [0,20]'de ve 2 goz x 2 birim = u 0..4 kapliyor.
+# Burasi ayri bir satir: 2 goz x 7 bant = 14 yama x 2 birim =
+# u 0..28, v 23..25. 64'luk UV uzayinda ikisi de bos ve
+# cakismiyorlar (aradaki v=22 serbest).
+GOKKUSAGI_ISIN_UV = [0, 23]
+
+
+def _bant_mi(renk):
+    """renk tek bir (r,g,b) mi, yoksa bant listesi mi."""
+    return bool(renk) and isinstance(renk[0], (tuple, list))
+
+
+def bantlari(renk):
+    """Hangi gelirse gelsin bant DIZISI dondurur.
+
+    Tek renk verilirse tek elemanli dizi. Boylece cagiran taraf
+    "bant mi degil mi" diye ikinci bir dal yazmak zorunda
+    kalmiyor.                                                  """
+    return tuple(tuple(b) for b in renk) if _bant_mi(renk) \
+        else (tuple(renk),)
+
+
+def bant_sec(renk, i, n):
+    """n parcali bir dizide i. parcanin rengi.
+
+    Bant sayisi ile parca sayisi esit olmak ZORUNDA DEGIL:
+    16x16 ikonda goz basina 3 sutun var, yedi bant sigmiyor.
+    Orantili ornekleme yapiliyor -- yani yedi banti alti sutuna
+    dagitirken hicbir sutun bos kalmiyor, yalnizca bir bant
+    atlaniyor (ve o atlanan ikonda baska yerde kullaniliyor,
+    bkz. goz_ikonu).                                           """
+    b = bantlari(renk)
+    if len(b) == 1 or n <= 1:
+        return b[0]
+    j = int(round(i * (len(b) - 1) / float(n - 1)))
+    return b[max(0, min(len(b) - 1, j))]
+
+# ---- PARLAKLIK: dunya isigini bypass et ----
+# Doygunluk rengi DUZELTIYOR ama %45 golgelemeyi kaldirmiyor.
+# Hicbir doku degeri bunu kapatamaz: 255'in ustune cikilamiyor.
+# Tek gercek cozum malzeme -- "entity_emissive" dokunun alfa
+# kanalini PARLAKLIK maskesi olarak kullaniyor ve pikseli
+# dunya isigindan bagimsiz ciziyor. Alfa DUSTUKCE daha cok
+# parliyor; "_alpha" ekli surumun aksine piksel yine de tam
+# opak kaliyor, yani isin saydamlasmiyor.
+#
+# GOZE UYGULANAMAZ: gozun halesi ve sacaklari ara alfa
+# degerleriyle yumusuyor (bkz. goz_dokusu). entity_emissive
+# altinda o ara degerler saydamlik degil PARLAKLIK sayilir --
+# hale opak parlayan bir leke olur, yani v4.18'de temizlenen
+# "gozluk" hatasi geri gelir. O yuzden isin AYRI BIR KEMIGE
+# alindi ve malzeme kemik basina veriliyor (kendi render
+# denetleyicimiz). Goz kemigi eskisi gibi entity_alphablend.
+#
+# REFERANS BUNU YAPMIYOR: Element modu duz "armor" kullaniyor,
+# yani onun isini da golgeleniyor. Kullanicinin gonderdigi
+# parlak turkuaz gorsel bir OYUN ICI kare degil, islenmis bir
+# animasyon karesi. Yani burasi referansi GECIYOR.
+#
+# KAPATMA: LAZER_ISIN_PARLAK = False -> isin yine Head
+# kemiginde, tek malzeme, ozel render denetleyicisi yok.
+# Tablette goz kaybolursa tek satirlik donus yolu budur.
+LAZER_ISIN_PARLAK  = True
+LAZER_ISIN_ALFA    = 64          # dusuk alfa = cok parlama
+LAZER_ISIN_KEMIK   = "isin"
+LAZER_ISIN_MALZEME = "entity_emissive"
+LAZER_ISIN_DENETIM = "controller.render.simsek_goz_lazer"
+
 IKSIRLER = [
     ("nitroksin",   "Nitroksin",   (236, 240, 248), "goz_beyaz",    (245, 248, 255)),
     ("grinoksin",   "Grinoksin",   (96, 214, 110),  "goz_yesil",    (150, 255, 160)),
@@ -516,6 +666,22 @@ IKSIRLER = [
     # Referansin goz dokusu da lazeri de boyle ciziliyordu.
     ("element",     "Element",     (56, 225, 255),  "goz_element",
      ((56, 225, 255), (255, 178, 0))),
+    # ---- v7.77: PRIZMOKSIN -- kullaniciya ozel, yedi bant ----
+    # Istek: "bana ozel bir iksir, rengarenk olsun, ismini sen
+    # belirle, lazeri de gozu de gokkusaginin ORIJINAL
+    # renklerinden olussun, yapabildigin en gucluyu yap."
+    #
+    # ADIN GEREKCESI: aile zaten "-oksin" (Nitroksin, Grinoksin,
+    # Redoksin, Firenoksin, Hiperoksin). Yedi rengi tek bir
+    # isikta birlestiren sey PRIZMA -- ustelik bu listeyi ilk
+    # kez yedi renge bolen de Newton'un prizmasiydi, yani ad
+    # paletle ayni kaynaktan geliyor.
+    #
+    # Hem sise hem goz BANT DIZISI aliyor: sisenin yedi sivi
+    # satiri yedi banta birebir oturuyor, gozun iki tarafi da
+    # yatayda yedi banda boluyor.
+    ("prizmoksin", "Prizmoksin", GOKKUSAGI, "goz_prizma",
+     (GOKKUSAGI, GOKKUSAGI)),
 ]
 
 # ---- Referans modlardan gelen iksir ikonlari (v4.63) ----
@@ -538,6 +704,7 @@ IKSIR_TR = {
     "redoksin": "Redoksin", "firenoksin": "Firenoksin",
     "kan_iksiri": "Kan İksiri", "hiperoksin": "Hiperoksin",
     "staroxine": "StarOxine", "element": "Element İksiri",
+    "prizmoksin": "Prizmoksin",
 }
 GOZ_TR = {
     "goz_beyaz": "Beyaz Göz", "goz_yesil": "Yeşil Göz",
@@ -549,6 +716,7 @@ GOZ_TR = {
     "goz_beyaz_lazer": "Beyaz Göz (Lazer)", "goz_yesil_lazer": "Yeşil Göz (Lazer)",
     "goz_kirmizi_lazer": "Kırmızı Göz (Lazer)", "goz_ates_lazer": "Ateş Gözü (Lazer)",
     "goz_kan_lazer": "Kanlı Göz (Lazer)", "goz_mavi_lazer": "Mavi Göz (Lazer)",
+    "goz_prizma": "Prizma Gözü", "goz_prizma_lazer": "Prizma Gözü (Lazer)",
 }
 
 
@@ -826,37 +994,6 @@ LAZER_ISIN_RENK = {
     "goz_kan":     (205, 0, 48),    # Kan: koyu bordo -- morumsu tarafa
 }
 
-# ---- PARLAKLIK: dunya isigini bypass et ----
-# Doygunluk rengi DUZELTIYOR ama %45 golgelemeyi kaldirmiyor.
-# Hicbir doku degeri bunu kapatamaz: 255'in ustune cikilamiyor.
-# Tek gercek cozum malzeme -- "entity_emissive" dokunun alfa
-# kanalini PARLAKLIK maskesi olarak kullaniyor ve pikseli
-# dunya isigindan bagimsiz ciziyor. Alfa DUSTUKCE daha cok
-# parliyor; "_alpha" ekli surumun aksine piksel yine de tam
-# opak kaliyor, yani isin saydamlasmiyor.
-#
-# GOZE UYGULANAMAZ: gozun halesi ve sacaklari ara alfa
-# degerleriyle yumusuyor (bkz. goz_dokusu). entity_emissive
-# altinda o ara degerler saydamlik degil PARLAKLIK sayilir --
-# hale opak parlayan bir leke olur, yani v4.18'de temizlenen
-# "gozluk" hatasi geri gelir. O yuzden isin AYRI BIR KEMIGE
-# alindi ve malzeme kemik basina veriliyor (kendi render
-# denetleyicimiz). Goz kemigi eskisi gibi entity_alphablend.
-#
-# REFERANS BUNU YAPMIYOR: Element modu duz "armor" kullaniyor,
-# yani onun isini da golgeleniyor. Kullanicinin gonderdigi
-# parlak turkuaz gorsel bir OYUN ICI kare degil, islenmis bir
-# animasyon karesi. Yani burasi referansi GECIYOR.
-#
-# KAPATMA: LAZER_ISIN_PARLAK = False -> isin yine Head
-# kemiginde, tek malzeme, ozel render denetleyicisi yok.
-# Tablette goz kaybolursa tek satirlik donus yolu budur.
-LAZER_ISIN_PARLAK  = True
-LAZER_ISIN_ALFA    = 64          # dusuk alfa = cok parlama
-LAZER_ISIN_KEMIK   = "isin"
-LAZER_ISIN_MALZEME = "entity_emissive"
-LAZER_ISIN_DENETIM = "controller.render.simsek_goz_lazer"
-
 
 def isin_rengi(renk):
     """Goz renginin ISIN icin doygunlastirilmis hali.
@@ -887,8 +1024,24 @@ def isin_rengi(renk):
     return (tasi(r), tasi(g), tasi(b))
 
 
-def isin_kutulari():
-    """Iki goz isini: model uzayinda kutu tanimlari."""
+def isin_kutulari(bant_adet=1):
+    """Iki goz isini: model uzayinda kutu tanimlari.
+
+    bant_adet > 1 ise her isin uzunlugu boyunca o kadar parcaya
+    bolunuyor ve HER PARCA KENDI 2x2 yamasina bakiyor
+    (GOKKUSAGI_ISIN_UV). Yani isin gozden cikarken kirmizi
+    baslayip ucunda mora varan bir gokkusagi oluyor.
+
+    ---- NEDEN PARCALAMA, NEDEN UV GERDIRME DEGIL ----
+    Tek kutuyu alip yan yuzlerine 2x7'lik bir serit UV'si
+    vermek daha az kutu ederdi. Ama uzun bir kutunun yan
+    yuzunde u ve v'nin hangi eksene dustugu yuze gore
+    degisiyor; oyunda denemeden dogrusunu bilemezdim ve
+    yanlissa isin yedi bant yerine tek renge ezilirdi.
+    Parcalama ise ZATEN CALISAN mekanizmanin (yuz basina duz
+    2x2 yama, v4.75'ten beri oyunda) yedi kez tekrari --
+    tahmin icermiyor. Bedeli isin basina alti fazladan kutu.
+    """
     uzun = LAZER_ISIN_MENZIL * 16
     k = LAZER_ISIN_KALIN
     # Goz satirinin ORTASI: skin sy=GOZ_SATIR -> model y 40-sy
@@ -914,27 +1067,57 @@ def isin_kutulari():
         x_yuksek = 12 - sol                  # daha buyuk model x
         genis = x_yuksek - x_dusuk           # bitisik iki sutun -> 2
         # Kesit KARE olsun: genislik zaten 2, kalinligi da 2
-        kutular.append({
-            "origin": [x_dusuk, round(y0, 3), round(z0, 3)],
-            "size": [genis, k, uzun],
-            # Her yuz ayni duz renk yamasina bakiyor. Kutu-UV
-            # bu kadar uzun bir kutuda dokuyu her yuze farkli
-            # gerdirir; yuz basina UV ile hepsi tek renkte.
-            "uv": {
-                yuz: {"uv": [LAZER_ISIN_UV[0] + i * 2, LAZER_ISIN_UV[1]],
-                      "uv_size": [2, 2]}
-                for yuz in ("north", "south", "east", "west", "up", "down")
-            },
-        })
+        if bant_adet <= 1:
+            kutular.append({
+                "origin": [x_dusuk, round(y0, 3), round(z0, 3)],
+                "size": [genis, k, uzun],
+                # Her yuz ayni duz renk yamasina bakiyor. Kutu-UV
+                # bu kadar uzun bir kutuda dokuyu her yuze farkli
+                # gerdirir; yuz basina UV ile hepsi tek renkte.
+                "uv": {
+                    yuz: {"uv": [LAZER_ISIN_UV[0] + i * 2, LAZER_ISIN_UV[1]],
+                          "uv_size": [2, 2]}
+                    for yuz in ("north", "south", "east", "west", "up", "down")
+                },
+            })
+            continue
+
+        # Bant parcalari. j=0 GOZE EN YAKIN parca, yani ilk
+        # bant (kirmizi) gozden cikiyor, sonuncusu (mor) ucta.
+        # Uzunluk tam bolunmeyebilir; son parca kalani aliyor
+        # ki isin menzili LAZER_ISIN_MENZIL'den kisalmasin --
+        # ayarlar.js LAZER_MENZIL ile esitligi test kilitliyor.
+        bx, by = GOKKUSAGI_ISIN_UV
+        adim = uzun / float(bant_adet)
+        for j in range(bant_adet):
+            bas = on - (j + 1) * adim if j < bant_adet - 1 else z0
+            bit = on - j * adim
+            kutular.append({
+                "origin": [x_dusuk, round(y0, 3), round(bas, 3)],
+                "size": [genis, k, round(bit - bas, 3)],
+                "uv": {
+                    yuz: {"uv": [bx + (i * bant_adet + j) * 2, by],
+                          "uv_size": [2, 2]}
+                    for yuz in ("north", "south", "east", "west", "up", "down")
+                },
+            })
     return kutular
 
 
-def goz_lazer_geometrisi():
-    """Goz kaplamasi + iki isin. Sadece _lazer varyanti kullaniyor."""
+def goz_lazer_geometrisi(bant_adet=1, ad=None):
+    """Goz kaplamasi + iki isin. Sadece _lazer varyanti kullaniyor.
+
+    bant_adet > 1 ise isin parcalara bolunuyor ve geometri AYRI
+    bir adla uretiliyor. Ayri olmasi sart: geometri butun
+    lazerli gozlerde ORTAK ve bu dosyaya bant eklemek sekiz
+    gozun isinini birden bozardi (hepsi GOKKUSAGI_ISIN_UV'ye
+    bakar, oysa oradaki serit yalniz bant gozde cizili --
+    digerlerinde o bolge saydam, yani isinlari gorunmez
+    olurdu).                                                   """
     import copy
     g = copy.deepcopy(GOZ_GEOMETRI)
     tanim = g["minecraft:geometry"][0]
-    tanim["description"]["identifier"] = "geometry.simsek_goz_lazer"
+    tanim["description"]["identifier"] = ad or "geometry.simsek_goz_lazer"
     # Isin bu kadar uzunken gorunurluk kutusu da buyumeli,
     # yoksa kafa ekran kenarina gelince model TAMAMEN eleniyor.
     tanim["description"]["visible_bounds_width"] = LAZER_ISIN_MENZIL * 2 + 4
@@ -943,7 +1126,7 @@ def goz_lazer_geometrisi():
 
     if not LAZER_ISIN_PARLAK:
         # Eski duzen: isin gozle ayni kemikte, tek malzeme.
-        tanim["bones"][0]["cubes"].extend(isin_kutulari())
+        tanim["bones"][0]["cubes"].extend(isin_kutulari(bant_adet))
         return g
 
     # ---- ISIN AYRI KEMIKTE (v4.75) ----
@@ -960,7 +1143,7 @@ def goz_lazer_geometrisi():
         "name": LAZER_ISIN_KEMIK,
         "parent": kafa,
         "pivot": [0, 24, 0],
-        "cubes": isin_kutulari(),
+        "cubes": isin_kutulari(bant_adet),
     })
     return g
 
@@ -1120,6 +1303,27 @@ def _goz_denetleyicisi(kimlik, lazerli):
     return "controller.render.armor"
 
 
+GOKKUSAGI_LAZER_GEO = "geometry.simsek_goz_lazer_gokkusagi"
+
+
+def gokkusagi_gozu_mu(kimlik):
+    """Bu goz BANT renkli mi (yani gokkusagi isinini mi kullanir).
+
+    Cevap IKSIRLER tablosundan okunuyor, elle tutulan ikinci bir
+    listeden degil: iki liste er ya da gec ayrisir ve o gun
+    isin ya kaybolur ya yanlis geometriye baglanir.            """
+    ad = kimlik[:-len("_lazer")] if kimlik.endswith("_lazer") else kimlik
+    for _k, _a, _s, goz, gozRenk in IKSIRLER:
+        if goz == ad:
+            return any(_bant_mi(r) for r in goz_renkleri(gozRenk))
+    return False
+
+
+def _lazer_geometri_adi(kimlik):
+    return GOKKUSAGI_LAZER_GEO if gokkusagi_gozu_mu(kimlik) \
+        else "geometry.simsek_goz_lazer"
+
+
 def goz_attachable(kimlik):
     """Referanstan alinan kritik satir: parent_setup ile
     helmet_layer_visible = 0 -- yoksa kaskin kendisi de cizilir ve
@@ -1164,7 +1368,7 @@ def goz_attachable(kimlik):
                 # kutu. Normal goz sade geometride kaliyor,
                 # yoksa iksir icer icmez isin cikardi.
                 "geometry": {
-                    "default": ("geometry.simsek_goz_lazer"
+                    "default": (_lazer_geometri_adi(kimlik)
                                 if lazerli else "geometry.simsek_goz")
                 },
                 "scripts": {"parent_setup": "variable.helmet_layer_visible = 0.0;"},
@@ -10430,8 +10634,14 @@ def paket_ikonu(renk):
 
 
 def iksir_ikonu(renk):
-    """16x16 sise: cam govde + renkli sivi + tipa."""
+    """16x16 sise: cam govde + renkli sivi + tipa.
+
+    v7.77: `renk` bant dizisi de olabiliyor. Sivi satirlari
+    y=7..13, yani TAM YEDI satir -- gokkusaginin yedi bandiyla
+    birebir ortusuyor. Ustte kirmizi, altta mor: gercek bir
+    gokkusaginda da kirmizi disda, mor icte.                  """
     p = {}
+    _bantlar = bantlari(renk) if _bant_mi(renk) else None
     CAM = (196, 214, 222)
     TIPA = (128, 96, 62)
     for y in range(2, 5):                       # boyun
@@ -10448,7 +10658,9 @@ def iksir_ikonu(renk):
             if kenar:
                 p[(x, y)] = golge(CAM, 0.7) + (255,)
             elif y >= 7:                        # sivi seviyesi
-                p[(x, y)] = (renk if (x + y) % 5 else golge(renk, 1.3)) + (255,)
+                c = (_bantlar[min(len(_bantlar) - 1, y - 7)]
+                     if _bantlar else renk)
+                p[(x, y)] = (c if (x + y) % 5 else golge(c, 1.3)) + (255,)
             else:
                 p[(x, y)] = golge(CAM, 1.05) + (255,)
     return p
@@ -10842,22 +11054,73 @@ def _goz_govdesi(p, x0, x1, y0, y1, renk, tohum, guc=1.0):
                  170 * (1 - o) ** 1.35 * (1 - 0.4 * kenar))
 
 
+def _bant_boya(q, x0, x1, bantlar):
+    """Cizilmis TEK bir gozu yatayda bantlara boyar.
+
+    ---- NEDEN SONRADAN BOYANIYOR ----
+    `_goz_govdesi` v7.13'te renderdan bakila bakila ayarlandi
+    (alti katman, sacak savrulmasi, sicak merkez) ve doku.mjs
+    cikan pikselleri OLCUYOR. Icine "renk x'e gore degissin"
+    diye bir dal acsaydim o ayarin tamami risk altina girerdi
+    ve sekiz gozun sekizi de ayni anda degisebilirdi.
+
+    Onun yerine: goz NOTR tabanla (GOKKUSAGI_TABAN) normal
+    ciziliyor, sonra pikselleri boyaniyor. Yani mevcut gozler
+    icin bu fonksiyon HIC CALISMIYOR -- bant vermeyen hicbir
+    goz bu yoldan gecmiyor.
+
+    ---- PARLAKLIK NEDEN KORUNUYOR ----
+    Beyaz tabanla cizilen govde 178 (soguk kenar) ile 255
+    (sicak merkez) arasinda degisen bir gri. O fark gozun ic
+    yapisinin ta kendisi. Bant duz basilsaydi goz yedi renkli
+    bir LEVHA olurdu; burada bant, gri ne kadar parlaksa o
+    kadar beyaza cekiliyor, yani merkez yine kor gibi duruyor.
+    Alfa'ya dokunulmuyor: hale, sacak ve kivilcimlarin
+    yumusakligi oradan geliyor.                                """
+    genis = max(1, x1 - x0)
+    n = len(bantlar)
+    g0 = float(GOKKUSAGI_TABAN[0])
+    for (x, y), (r, g, b, a) in list(q.items()):
+        # Cekirdegin disina tasan pikseller (hale, savrulan
+        # sacak) uc bantlara kirpiliyor -- yoksa hale gozun
+        # solunda eksi indekse duserdi.
+        i = int((x - x0) / float(genis) * n)
+        bant = bantlar[0 if i < 0 else (n - 1 if i >= n else i)]
+        v = (r + g + b) / 3.0
+        if v > g0:
+            c = _karis(bant, (255, 255, 255), (v - g0) / (255.0 - g0))
+        elif v < g0:
+            c = _karis(bant, (0, 0, 0), (g0 - v) / g0)
+        else:
+            c = tuple(bant)          # kimlik bandi: DOKUNULMAZ
+        q[(x, y)] = c + (a,)
+
+
 def _goz_ciz(gozRenk, tohum, guc=1.0):
     """Iki gozu de cizip alt piksel sozlugunu dondurur.
 
     GOZ_SUTUNLAR sirasiyla renkler eslesir: ilk renk x=9,10
     (doku uzayinda SOL goz), ikincisi x=13,14. Element iksirinin
     bir gozu buz, obur gozu ates -- bu yuzden goz basina ayri.
-    """
+
+    v7.77: bir gozun rengi BANT DIZISI de olabiliyor
+    (Prizmoksin). O durumda goz notr tabanla ayri bir sozluge
+    cizilip boyaniyor, sonra ayni `_kat` ile ustuste biniyor --
+    yani bindirme sirasi ve kurallari degismiyor.             """
     p = {}
     for i, ((sol, sag), renk) in enumerate(
             zip(GOZ_SUTUNLAR, goz_renkleri(gozRenk))):
-        _goz_govdesi(
-            p,
-            sol * GOZ_OLCEK, (sag + 1) * GOZ_OLCEK,
-            GOZ_SATIR * GOZ_OLCEK, (GOZ_SATIR + 1) * GOZ_OLCEK,
-            renk, tohum + ":" + str(i), guc,
-        )
+        x0, x1 = sol * GOZ_OLCEK, (sag + 1) * GOZ_OLCEK
+        y0, y1 = GOZ_SATIR * GOZ_OLCEK, (GOZ_SATIR + 1) * GOZ_OLCEK
+        t = tohum + ":" + str(i)
+        if not _bant_mi(renk):
+            _goz_govdesi(p, x0, x1, y0, y1, renk, t, guc)
+            continue
+        q = {}
+        _goz_govdesi(q, x0, x1, y0, y1, GOKKUSAGI_TABAN, t, guc)
+        _bant_boya(q, x0, x1, bantlari(renk))
+        for (x, y), c in q.items():
+            _kat(p, x, y, c[:3], c[3])
     return p
 
 
@@ -10884,8 +11147,10 @@ def lazer_goz_dokusu(gozRenk, tohum, kimlik=None):
     # dusuyordu -- lazer aninda hangi iksiri ictigin
     # anlasilmiyordu. 0.32 rengi koruyor, guc (sacak boyu ve
     # hale genisligi) farki zaten "acildi" hissini veriyor.
+    def _parlat(renk):
+        return tuple(min(255, int(c + (255 - c) * 0.32)) for c in renk)
     parlaklar = tuple(
-        tuple(min(255, int(c + (255 - c) * 0.32)) for c in renk)
+        (tuple(_parlat(b) for b in renk) if _bant_mi(renk) else _parlat(renk))
         for renk in goz_renkleri(gozRenk)
     )
     p = _goz_ciz(parlaklar, tohum, 1.8)
@@ -10919,14 +11184,51 @@ def lazer_goz_dokusu(gozRenk, tohum, kimlik=None):
     ux, uy = LAZER_ISIN_UV
     isin_alfa = LAZER_ISIN_ALFA if LAZER_ISIN_PARLAK else 255
     elle = LAZER_ISIN_RENK.get(kimlik if kimlik is not None else tohum)
-    for i, ham in enumerate(goz_renkleri(gozRenk)):
-        # Iki goz iki ayri 2x2 yama: sol goz UV'de solda.
-        gx = (ux + i * 2) * GOZ_OLCEK
-        gy = uy * GOZ_OLCEK
-        yama = (elle if elle is not None else isin_rengi(ham)) + (isin_alfa,)
+    def _yama(gx, gy, renk):
+        c = renk + (isin_alfa,)
         for yy in range(gy, gy + 2 * GOZ_OLCEK):
             for xx in range(gx, gx + 2 * GOZ_OLCEK):
-                p[(xx, yy)] = yama
+                p[(xx, yy)] = c
+
+    for i, ham in enumerate(goz_renkleri(gozRenk)):
+        # Iki goz iki ayri 2x2 yama: sol goz UV'de solda.
+        # Bant gozde "temsilci" olarak ORTA bant kullaniliyor:
+        # bu yama yalniz duz isin geometrisinin baktigi yer ve
+        # bant gozun kendi geometrisi asagidaki serite bakiyor.
+        b = bantlari(ham)
+        temsil = b[len(b) // 2]
+        _yama((ux + i * 2) * GOZ_OLCEK, uy * GOZ_OLCEK,
+              elle if elle is not None else isin_rengi(temsil))
+
+        # ---- GOKKUSAGI SERIDI  (v7.77) ----
+        # Isin uzunlugu boyunca yedi parcaya bolunuyor ve her
+        # parca kendi 2x2 yamasina bakiyor (bkz.
+        # isin_kutulari). Yamalar goz basina ayri: sol gozun
+        # yedisi, sonra sag gozun yedisi.
+        if not _bant_mi(ham):
+            continue
+        #
+        # ---- BURADA `isin_rengi` KULLANILMIYOR, SEBEBI OLCULDU ----
+        # Ilk yazimda oteki gozler gibi doygunlastiriliyordu ve
+        # cikan sey sunu verdi:
+        #     civit #4B0082 -> (147, 0, 255)
+        #     mor   #8B00FF -> (139, 0, 255)
+        # Yani yedi bandin ikisi ISINDA AYNI RENGE dustu. Sebep
+        # v4.76'daki iki kirmizinin aynisi: civit ile morun TONU
+        # zaten neredeyse ayni (271 vs 273 derece), aralarindaki
+        # fark yalnizca ACIKLIK. Doygunlugu tavana cekmek o farki
+        # siliyor.
+        #
+        # Doygunlastirma zaten SOLUK gozler icin vardi; bu palet
+        # solgun degil, kaynagindan geldigi gibi tam doygun.
+        # Ustelik istek "gokkusaginin ORIJINAL renkleri" -- bir
+        # rengi degistirmek istegin kendisine aykiri olurdu.
+        # Bantlar oldugu gibi basiliyor; civit koyu kaliyor,
+        # cunku civit ZATEN koyu bir renk.
+        bx, by = GOKKUSAGI_ISIN_UV
+        for j, bant in enumerate(b):
+            _yama((bx + (i * len(b) + j) * 2) * GOZ_OLCEK,
+                  by * GOZ_OLCEK, tuple(bant))
     return p
 
 
@@ -10945,20 +11247,47 @@ def goz_ikonu(gozRenk):
     yumusak hale bir piksellik halka olarak eklendi.          """
     p = {}
     renkler = goz_renkleri(gozRenk)
-    for bx, renk in zip((4, 9), renkler):
+
+    # ---- BANT GOZDE SUTUN DAGILIMI  (v7.77) ----
+    # Iki gozun ucer sutunu var, toplam ALTI. Yedi bant altiya
+    # sigmiyor: `bant_sec` orantili ornekliyor ve bir bant
+    # disarida kaliyor (yedi banttan yesil).
+    #
+    # SIZINTI SATIRI BIR SONRAKI BANDI ALIYOR. Ilk cozumum
+    # disarida kalan tek banti sizintinin ALTISINA birden
+    # basmakti ve onizlemede iki gozun altinda DUZ YESIL bir
+    # cubuk olarak goruldu -- gokkusagi degil, leke. Simdi her
+    # sutunun sizintisi kendi bandinin BIR SONRAKI bandi:
+    # hem dogal bir gecis oluyor hem de atlanan bant kendi
+    # komsusunun altinda ortaya cikiyor, yani 16x16 ikonda
+    # yedi rengin yedisi de var.
+    sutunlar, sizinti = [], []
+    for gi, renk in enumerate(renkler):
+        bl = bantlari(renk)
+        for k in range(3):
+            if not _bant_mi(renk):
+                sutunlar.append(tuple(renk))
+                sizinti.append(tuple(renk))
+                continue
+            c = bant_sec(renk, gi * 3 + k, 6)
+            sutunlar.append(c)
+            sizinti.append(bl[min(len(bl) - 1, bl.index(c) + 1)])
+
+    for gi, (bx, renk) in enumerate(zip((4, 9), renkler)):
         # Cekirdek: referanstaki 3x2 blogun aynisi
-        for y in (9, 10):
-            for x in range(bx, bx + 3):
-                p[(x, y)] = tuple(renk) + (255,)
+        for k in range(3):
+            c = sutunlar[gi * 3 + k]
+            for y in (9, 10):
+                p[(bx + k, y)] = c + (255,)
         # Ustunde iki sacak, altinda bir sizinti.
         # HALE YOK ve YANLARA HICBIR SEY YOK: 16x16'da bir
         # piksellik yan hale bile iki gozu birlestirip tek bir
         # vizor cubugu haline getiriyor (dokuda da ayni tuzak
         # vardi, GOZ_HALE_YATAY notuna bak).
-        p[(bx, 8)] = tuple(renk) + (210,)
-        p[(bx + 2, 8)] = tuple(renk) + (150,)
-        for x in range(bx, bx + 3):
-            p[(x, 11)] = tuple(renk) + (95,)
+        p[(bx, 8)] = sutunlar[gi * 3] + (210,)
+        p[(bx + 2, 8)] = sutunlar[gi * 3 + 2] + (150,)
+        for k in range(3):
+            p[(bx + k, 11)] = sizinti[gi * 3 + k] + (95,)
     return p
 
 
@@ -12215,6 +12544,15 @@ def main():
     yaz_json(os.path.join(RP, "models/entity/simsek_goz.geo.json"), GOZ_GEOMETRI)
     yaz_json(os.path.join(RP, "models/entity/simsek_goz_lazer.geo.json"),
              goz_lazer_geometrisi())
+    # ---- GOKKUSAGI ISINI  (v7.77) ----
+    # Yalniz bant renkli goz varsa uretiliyor; yoksa dosya da
+    # yazilmiyor. `beklenen` temizligi models/entity altinda
+    # sadece mrv_/kahraman/pe_/meka_/kns_ oneklerine bakiyor,
+    # yani bu ad temizlige takilmiyor.
+    if any(gokkusagi_gozu_mu(_gg[3]) for _gg in IKSIRLER):
+        yaz_json(os.path.join(RP,
+                              "models/entity/simsek_goz_lazer_gokkusagi.geo.json"),
+                 goz_lazer_geometrisi(len(GOKKUSAGI), GOKKUSAGI_LAZER_GEO))
     yaz_json(os.path.join(RP, "models/entity/simsek_kol.geo.json"), GEOMETRI)
     _kanli_geo = kanli_geometrisi()
     if _kanli_geo is not None:

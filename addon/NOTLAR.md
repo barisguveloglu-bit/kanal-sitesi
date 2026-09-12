@@ -1,3 +1,171 @@
+# v7.77.0 — Prizmoksin
+
+İstek aynen: *"bana özel bir iksir yapabilir misin acaba,
+rengârenk olsun, ismini de sen belirle, şu ana kadar
+yapabildiğin en güçlü iksiri olsun, lazeri de gökkuşağının
+orijinal renklerinden oluşsun, göz de aynı şekilde, bunu
+araştır... bu iksir asla zayıf kalmamalı, en güçlüsünün en
+güçlüsü."*
+
+## Ad
+
+**Prizmoksin.** Aile zaten `-oksin` (Nitroksin, Grinoksin,
+Redoksin, Firenoksin, Hiperoksin). Yedi rengi tek ışıkta
+birleştiren şey prizma — üstelik bu listeyi *ilk kez* yediye
+bölen de Newton'un prizmasıydı, yani ad paletle aynı kaynaktan
+geliyor.
+
+## Renkler araştırıldı, hatırdan yazılmadı
+
+İki ayrı soru vardı.
+
+**Kaç renk?** Newton tayfı yediye böldü ve yedinciyi (çivit)
+fizik gerektirdiği için değil, renkleri müzik gamındaki yedi
+notaya benzetmek istediği için ekledi. Modern kaynaklar çivitin
+gözle maviden ayırt edilemediğini söylüyor — ama istek
+*"orijinal"* renkler olduğu için **yedisi de** alındı.
+
+**Hangi sayılar?** Tayf sürekli, "kırmızı şu hex'tir" diyen
+resmî bir ölçü yok. Yaygın alıntılanan ROYGBIV kümesi alındı:
+
+| renk | hex | dalga boyu |
+|---|---|---|
+| kırmızı | `#FF0000` | 620–750 nm |
+| turuncu | `#FF7F00` | 590–620 nm |
+| sarı | `#FFFF00` | 560–590 nm |
+| yeşil | `#00FF00` | 490–560 nm |
+| mavi | `#0000FF` | 440–490 nm |
+| çivit | `#4B0082` | ~420–440 nm |
+| mor | `#8B00FF` | 380–440 nm |
+
+**Mor için iki değer dolaşıyor** ve seçim gerekçesiyle yazılı:
+webnots `#9400D3` veriyor (CSS'in `darkviolet`i), kaynakların
+çoğunluğu ROYGBIV standardı olarak `#8B00FF`. İkincisi seçildi —
+`#4B0082` çivitten daha net ayrılıyor, yani yedi bant oyunda da
+yedi bant görünüyor.
+
+Kaynaklar `kol_uret.py`'de `GOKKUSAGI` tablosunun başında
+bağlantılarıyla duruyor.
+
+## Göz: çizici değişmedi, sonradan boyanıyor
+
+`_goz_govdesi` v7.13'te render'a baka baka ayarlandı (altı
+katman, savrulan alev dilleri, sıcak merkez) ve `doku.mjs`
+çıkan pikselleri ölçüyor. İçine "renk x'e göre değişsin" diye
+bir dal açsaydım sekiz gözün sekizi birden risk altına girerdi.
+
+Onun yerine: göz **nötr griyle** çiziliyor, sonra pikselleri
+banda boyanıyor. Mevcut sekiz göz bu yoldan **hiç geçmiyor** —
+git farkında tek bir eski göz dokusu değişmedi.
+
+**Taban 178 ve bu sayı keyfî değil.** Çizicinin kendi
+matematiği `soguk = %30 siyah`, `sicak = %34 beyaz`. 178 =
+255×0,70 olduğu için gri tabanla çizilen değerden bu oranlar
+**geri okunabiliyor** ve aynı oran bant rengine uygulanınca
+gözü baştan o renkle çizmişiz gibi birebir aynı sonuç çıkıyor.
+
+İlk denemede taban **beyazdı** ve yanlıştı: beyazda hem
+çekirdeğin kimlik bandı hem sıcak merkez 255'e dayanıyor, ikisi
+ayırt edilemiyor, göz komple beyaza çekiliyordu — kırmızı bant
+**pembe** okunuyordu. Test artık bunu davranıştan yakalıyor
+(mavi bandın beyaza çekilmiş tonu var mı).
+
+## Lazer: yedi parça, UV gerdirme yok
+
+Tek kutunun yan yüzüne 2×7'lik şerit UV'si vermek daha az kutu
+ederdi. Ama uzun bir kutunun yan yüzünde u ve v'nin hangi
+eksene düştüğü yüze göre değişiyor; oyunda denemeden doğrusunu
+bilemezdim ve yanlışsa ışın yedi bant yerine **tek renge**
+ezilirdi.
+
+Onun yerine ışın uzunluğu boyunca **yedi parçaya** bölündü ve
+her parça kendi 2×2 yamasına bakıyor — yani v4.75'ten beri
+oyunda çalışan mekanizmanın yedi kez tekrarı. Bedeli ışın başına
+altı fazladan kutu. Kırmızı gözden çıkıyor, mor uçta.
+
+**Geometri ayrı dosyada.** Ortak olsaydı sekiz gözün ışını da
+gökkuşağı şeridine bakardı — orası onların dokusunda boş, yani
+**ışınları görünmez olurdu**.
+
+**`isin_rengi` bu ışında kullanılmıyor** ve sebebi ölçüldü:
+
+```
+çivit #4B0082 -> (147, 0, 255)
+mor   #8B00FF -> (139, 0, 255)
+```
+
+Yedi bandın ikisi aynı renge düşüyordu. Sebep v4.76'daki iki
+kırmızının aynısı: çivit ile morun **tonu** zaten neredeyse
+aynı (271° / 273°), fark yalnızca açıklık, ve doygunluğu tavana
+çekmek o farkı siliyor. Doygunlaştırma solgun gözler içindi; bu
+palet solgun değil. Üstelik istek "orijinal renkler" — bir
+rengi değiştirmek isteğin kendisine aykırı olurdu.
+
+## İçme parlaması da rengârenk
+
+Tek renk yerine yedi rengin ardışık süpürmesi. Bant başına
+pencere kısaldı ve bantlar 4 tikte bir başlıyor: toplam 28 tik
+(1,4 sn), tek renkli parlamanın 1,1 saniyesine yakın. Daha
+seyrek olsaydı yedi **ayrı flaş** görünürdü; amaç tek bir
+gökkuşağı süpürmesi.
+
+## Güç: bir kuralı bilerek kırıyor
+
+İksirler **uzmanlık düzenindeydi** — her iksir bir alanda
+birinci, kimse başkasının alanında onu geçmiyor. Prizmoksin o
+düzeni bozuyor: paylaştığı **on beş efektin on beşinde** en az
+temel sekiz kadar, **yedisinde tek başına önde**.
+
+Bunu gizlemiyorum, bedeli gerçek: bu iksir masadayken diğer
+sekizinin varlık sebebi zayıflıyor. Şart iki kez ve açıkça
+tekrarlandı, yani bu bir gözden kaçma değil **verilmiş bir
+karar**. Geri alınmak istenirse yapılacak şey belli: sayıları
+kendi uzmanının bir altına çekmek.
+
+**Dayanıklılık tek istisna ve sebebi oyun, tercih değil.**
+Bedrock'ta seviye başına %20; amplifier 4 (seviye V) **tam
+dokunulmazlık**. 5 yazmak ekranda VI gösterir ve oyunda hiçbir
+şey yapmaz — "sahte içerik yasak". StarOxine ile **eşit**, çünkü
+üstüne çıkılabilecek bir sayı yok. Aynı sebeple seviyesiz yedi
+efekt 0'da; Prizmoksin'in üstünlüğü onların **hepsini birden**
+taşımasından geliyor.
+
+Sayılar tavana dayandığı için geriye ölçülebilir tek eksen
+**süre** kaldı: 19200 tik (16 dakika), ötekilerin tam iki katı.
+
+Lazeri de en genişi: Element'in iki modu (Buz, Ateş) duruyor,
+üstüne ikisini **aynı anda** veren **Tayf** geliyor. Yeni bir
+mekanik uydurulmadı — ikisi de zaten yazılı ve sınanmış.
+
+## Testler kendi kurallarımı yakaladı
+
+Üç dosya düştü ve **üçü de haklıydı**: `aura.mjs` "sekiz
+iksirin sekizi", `iksir.mjs` uzmanlık düzeni, `sohbet.mjs`
+"hepsi aynı sürede".
+
+Hiçbiri silinmedi, **ikiye bölündü**:
+
+- `aura.mjs` artık sayı saymıyor, **her iksirin bir gözü var mı**
+  diye bakıyor. Ölçmek istediği şey zaten buydu; "sekiz" yazılı
+  olması bir kusurdu.
+- `iksir.mjs`'te düzen **temel sekiz** arasında aynen geçerli —
+  yarın biri Grinoksin'i büyütüp Nitroksin'i hızda geçerse test
+  yine düşer. Prizmoksin'e ise **ters** bir şart kondu:
+  paylaştığı her efektte temel sekizin en yükseğinden aşağı
+  olamaz. Yani *"asla zayıf kalmamalı"* artık bir dilek değil,
+  **ölçülen bir şart**.
+- `sohbet.mjs` temel sekizi 9600'de tutuyor, Prizmoksin'in
+  onların hepsinden **uzun** olmasını şart koşuyor.
+
+`test/prizma.mjs` (42 madde) ayrı bir dosya, çünkü `doku.mjs`
+sekiz gözün rengini tek renk varsayarak ölçüyor ve o ölçünün
+bozulmadan kalması gerekiyordu. Altı mutasyonun altısı da
+yakalanıyor: moru `#9400D3` yapmak, `isin_rengi`'ni geri
+koymak, tabanı beyaza çevirmek, bant geometrisini bağlamamak,
+ışını parçalamamak, sıcak merkezi kaybetmek.
+
+---
+
 # v7.76.0 — İkonlar neden görünmüyordu
 
 İstek: *"itemler gözükmüyor ve yarısı da kullanılmıyor, zırhı

@@ -320,6 +320,29 @@ console.log("=== 8. EFEKT DUZENI (v4.80) ===");
   const ef = (kd) => new Map(kd.efektler);
   const hepsi = ayar.KADEMELER;
 
+  /* ============================================================
+     v7.77 -- PRIZMOKSIN BU BOLUMUN KURALLARININ USTUNDE
+
+     Bu bolum "uzmanlik duzeni"ni bekliyordu: her iksir bir
+     alanda birinci, kimse baskasinin alaninda onu gecmiyor.
+     Kullanici o duzeni BILEREK kirdi ve iki kez tekrar etti:
+     "yapabildigin en guclu iksiri yap... en guclusunun en
+     guclusu."
+
+     Kural silinmedi, IKIYE AYRILDI:
+       1. TEMEL SEKIZ arasinda duzen aynen gecerli. Yarin biri
+          Grinoksin'i buyutup Nitroksin'i hizda gecerse test
+          yine duser.
+       2. Prizmoksin icin TERS bir sart kondu: paylastigi her
+          efektte temel sekizin EN YUKSEGINDEN asagi olamaz.
+          Yani "asla zayif kalmamali" artik bir dilek degil,
+          olculen bir sart.
+     ============================================================ */
+  const USTUN = "prizmoksin";
+  const temel = hepsi.filter((kd) => kd.kimlik !== USTUN);
+  const ustun = hepsi.find((kd) => kd.kimlik === USTUN);
+  kontrol("Prizmoksin tabloda", ustun !== undefined);
+
   /* ---- 1. SEVIYESIZ EFEKTLER 0'DA KALMALI ----
      Bu efektlerin oyunda seviyesi yok. Amplifier'i buyutmek
      ekranda "Atese Dayaniklilik II" yazdirir ve oyunda hicbir
@@ -342,12 +365,20 @@ console.log("=== 8. EFEKT DUZENI (v4.80) ===");
      (amplifier 4) TAM DOKUNULMAZLIK. Kullanici bunu SADECE
      StarOxine icin istedi ("hasari hic almasin"). Ikinci bir
      iksir oraya cikarsa StarOxine'in varlik sebebi kalmaz.  */
-  const dokunulmaz = hepsi.filter((kd) => (ef(kd).get("resistance") ?? 0) >= 4);
-  kontrol("dokunulmazlik (Dayaniklilik V) tek iksirde",
+  const dokunulmaz = temel.filter((kd) => (ef(kd).get("resistance") ?? 0) >= 4);
+  kontrol("temel sekizde dokunulmazlik tek iksirde",
           dokunulmaz.length === 1, dokunulmaz.map((k) => k.kimlik).join(", "));
   kontrol("o iksir StarOxine",
           dokunulmaz.length === 1 && dokunulmaz[0].kimlik === "staroxine",
           dokunulmaz.map((k) => k.kimlik).join(", "));
+  /* Prizmoksin de orada ve bu bir CAKISMA DEGIL: 4 zaten tam
+     dokunulmazlik, yani ustune cikilabilecek bir sayi yok.
+     StarOxine ile ESIT olmasi "en guclu" sartinin bu eksende
+     saglanabilecek en iyi hali. 5 yazmak ekranda VI gosterip
+     oyunda hicbir sey yapmazdi -- "sahte icerik yasak".     */
+  kontrol("Prizmoksin de tam dokunulmazlikta",
+          ustun !== undefined && (ef(ustun).get("resistance") ?? 0) === 4,
+          ustun ? String(ef(ustun).get("resistance")) : "yok");
 
   /* ---- 3. UZMANLIK DUZENI AYAKTA ----
      Dosyanin kendi notu: "hiz Nitroksin'de, vurus Redoksin'de,
@@ -357,7 +388,7 @@ console.log("=== 8. EFEKT DUZENI (v4.80) ===");
      birbirinin ayni olur.                                   */
   const enYuksek = (etki) => {
     let en = -1, sahip = [];
-    for (const kd of hepsi) {
+    for (const kd of temel) {
       const n = ef(kd).get(etki);
       if (n === undefined) continue;
       if (n > en) { en = n; sahip = [kd.kimlik]; }
@@ -370,8 +401,37 @@ console.log("=== 8. EFEKT DUZENI (v4.80) ===");
                                ["strength", "redoksin"],
                                ["health_boost", "grinoksin"]]) {
     const { en, sahip } = enYuksek(etki);
-    kontrol(etki + " uzmani hala " + uzman,
+    kontrol("temel sekizde " + etki + " uzmani hala " + uzman,
             sahip.includes(uzman), sahip.join(", ") + " (seviye " + en + ")");
+  }
+
+  /* ---- PRIZMOKSIN HICBIR ALANDA GERIDE DEGIL ----
+     Istegin kendisi: "bu iksir asla zayif kalmamali." Temel
+     sekizde gecen HER efekt taraniyor; Prizmoksin ya o efekte
+     sahip ve en yuksegine esit/ustunde, ya da kusurlu.
+     Seviyesiz efektlerde "esit" yeterli -- 0'in ustu yok.   */
+  {
+    const tumEtkiler = new Set();
+    for (const kd of temel) for (const [ad] of kd.efektler) tumEtkiler.add(ad);
+    const geride = [];
+    for (const etki of tumEtkiler) {
+      const { en } = enYuksek(etki);
+      const bizim = ustun ? ef(ustun).get(etki) : undefined;
+      if (bizim === undefined) geride.push(etki + " (yok)");
+      else if (bizim < en) geride.push(etki + " " + bizim + " < " + en);
+    }
+    kontrol("Prizmoksin temel sekizin HER efektinde en az onlar kadar",
+            geride.length === 0,
+            geride.join(", ") || tumEtkiler.size + " efekt tarandi");
+    /* Ve en az birinde KESIN ustun: hepsinde esit olsaydi
+       "en guclusu" demek anlamsiz olurdu.                   */
+    let ustunluk = 0;
+    for (const etki of tumEtkiler) {
+      const { en } = enYuksek(etki);
+      if (ustun && (ef(ustun).get(etki) ?? -1) > en) ustunluk++;
+    }
+    kontrol("en az bir alanda KESIN ustun", ustunluk > 0,
+            ustunluk + " efektte tek basina onde");
   }
   /* Vurus uzmanligi PAYLASILMAMALI: Redoksin ile Kan Iksiri
      ayni seviyede olabilir (ikisi de vurus iksiri), ama

@@ -6,6 +6,8 @@ import {
 } from "../yardimcilar.js";
 import { KADEMELER, IKSIR_TAZELEME, IKSIR_ONEK,
   PARLAMA_ACIK, PARLAMA_GIRIS, PARLAMA_TUT, PARLAMA_CIKIS,
+  PARLAMA_BANT_GIRIS, PARLAMA_BANT_TUT, PARLAMA_BANT_CIKIS,
+  PARLAMA_BANT_ARALIK,
   IKSIR_LAZERI_SEC, NITROKSIN_DUSME_BAGISIK,
 } from "../ayarlar.js";
 
@@ -209,9 +211,44 @@ function efektSil(oyuncu, kademe) {
 /* v6.9: govde yardimcilar.js'e tasindi (ekraniBoya). Code-Man'in
    siyah guc saldirisi da ayni komutu istiyor; iki kopya iki ayri
    yerde bozulacak tek bir mantik demekti.                     */
+/* v7.77: `renkler` varsa parlama TEK renk degil, dizideki her
+   rengin sirayla ekrani boyamasi. Prizmoksin'in gokkusagi
+   supurmesi bu; ayrintilar ayarlar.js PARLAMA_BANT_* notunda.
+
+   NEDEN IS LISTESINE GIRMIYOR: supurme yarim saniyelik bir
+   GORSEL. Kalici bir durum degil, oyuncunun AYNI_ANDA is
+   yuvasini tutmamali (bu dosyanin basindaki notun ayni
+   gerekcesi). runTimeout birakip gecmek yeterli.
+
+   Her adimda `gecerliMi`: oyuncu supurme bitmeden cikabilir ya
+   da olebilir; gecersiz varliga komut gondermek istisna atar. */
 function parlat(oyuncu, kademe) {
   if (!PARLAMA_ACIK) return;
-  ekraniBoya(oyuncu, kademe.renk, PARLAMA_GIRIS, PARLAMA_TUT, PARLAMA_CIKIS);
+  const bantlar = kademe.renkler;
+  if (!Array.isArray(bantlar) || bantlar.length === 0) {
+    ekraniBoya(oyuncu, kademe.renk, PARLAMA_GIRIS, PARLAMA_TUT, PARLAMA_CIKIS);
+    return;
+  }
+  for (let i = 0; i < bantlar.length; i++) {
+    const renk = bantlar[i];
+    /* Son bandin acilmasi uzun: ekran yumusak donsun. */
+    const cikis = i === bantlar.length - 1 ? PARLAMA_CIKIS : PARLAMA_BANT_CIKIS;
+    const boya = () => {
+      if (!gecerliMi(oyuncu)) return;
+      ekraniBoya(oyuncu, renk, PARLAMA_BANT_GIRIS, PARLAMA_BANT_TUT, cikis);
+    };
+    if (i === 0) {
+      boya();
+      continue;
+    }
+    try {
+      system.runTimeout(boya, i * PARLAMA_BANT_ARALIK);
+    } catch (e) {
+      /* runTimeout yoksa supurme dusuyor, iksir calismaya
+         devam ediyor: parlama tamamen gorsel.               */
+      hataYaz("iksir.parlat", e);
+    }
+  }
 }
 
 export function iksirIc(oyuncu, kademe) {

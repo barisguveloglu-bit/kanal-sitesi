@@ -105,8 +105,15 @@ console.log("=== 4. ASIL SEY DURUYOR: GOZ KAPLAMALARI ===");
   const blok = /IKSIRLER = \[([\s\S]*?)\n\]/.exec(URETEC)[1];
   const gozler = [...blok.matchAll(/^\s*\("(\w+)",[^\n]*?"(goz_\w+)"/gm)]
     .map((m) => m[2]);
-  kontrol("sekiz iksirin sekizi de bir goze bagli", gozler.length === 8,
-          gozler.length + " goz");
+  /* v7.77: sayi ARTIK SABIT DEGIL. "sekiz" yaziliydi ve
+     dokuzuncu iksir (Prizmoksin) eklenince dustu -- oysa
+     olcmek istedigi sey sayi degil, HER iksirin bir goze
+     bagli oldugu. Satirlar tablodan sayiliyor: iksir sayisi
+     ile goz sayisi esitse hicbiri gozsuz kalmamis demektir. */
+  const satirlar = [...blok.matchAll(/^\s*\("(\w+)",/gm)].length;
+  kontrol("her iksirin bir gozu var",
+          gozler.length === satirlar && gozler.length > 0,
+          gozler.length + " goz / " + satirlar + " iksir");
 
   let eksik = [];
   for (const g of gozler) {

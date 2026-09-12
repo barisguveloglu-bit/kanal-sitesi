@@ -101,6 +101,15 @@
     "goz_element_lazer": {
       "textures": "textures/item/goz_element_lazer"
     },
+    "iksir_prizmoksin": {
+      "textures": "textures/item/iksir_prizmoksin"
+    },
+    "goz_prizma": {
+      "textures": "textures/item/goz_prizma"
+    },
+    "goz_prizma_lazer": {
+      "textures": "textures/item/goz_prizma_lazer"
+    },
     "zaman_saati": {
       "textures": "textures/item/zaman_saati"
     },
