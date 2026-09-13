@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.89.0";
+export const SURUM = "v7.90.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -11374,3 +11374,96 @@ export const MERDIVEN_ITME_YARICAP = 6;
 export const MERDIVEN_ITME_GUC     = 1.6;
 export const MERDIVEN_PARCACIK     = "minecraft:totem_particle";
 export const MERDIVEN_SES          = "random.totem";
+
+
+/* ============================================================
+   YENILMEZ ZIRH                                     (v7.90)
+
+   Kullanici: "bu modda zirhli bir sekilde ozel bir zirhi var,
+   o zirhi taktiginda /kill yazinca bile oldurmuyormus, oyle
+   bir mekanik var mi? ... ayrica /kill yazinca hata mesaji
+   versin, Ingilizce, 'onu olduremezsin' yazsin."
+
+   ---- ONCE OLCUM: KAYNAKTA OYLE BIR SEY YOK ----
+   Avaritia Ultimate 1.5.0 acildi ve `__bundle.js` (630 KB)
+   okundu. Bulunan sey su: `immortal` bir ETIKET ve tek isi
+   MODUN KENDI silahlarinin o oyuncuyu ATLAMASI:
+
+     if (entity.hasTag("immortal")) entity.removeTag("infinityHit");
+     if (entity.hasTag("immortal")) runCommand("damage @s 1 ...");
+
+   Yani sonsuzluk kilici sana 100000 yerine 1 hasar veriyor.
+   /kill ile hicbir ilgisi yok.
+
+   Paketin tamaminda `beforeEvents.entityHurt` YOK (yalniz
+   itemUse, playerBreakBlock, interact ve startup var),
+   `entityDie` ile dirilten bir sey YOK. Yani "zirhi takinca
+   /kill oldurmuyor" iddiasi o pakette KARSILIKSIZ.
+
+   ---- BEDROCK'TA NE MUMKUN ----
+   Hasari GERI ALAN bir olay yok; `entityHurt` olay SONRASI.
+   Avaritia'nin dusme hasarini iptal etme yontemi de tam bu:
+
+     health.setCurrentValue(current + ev.damage)
+
+   yani hasari geri IYILESTIRIYOR. Biz de onu kullaniyoruz.
+   Bu, olumcul olmayan her hasari fiilen yok ediyor.
+
+   /kill'e gelince: onu oyunun icinden kesin olarak
+   engelleyebilecegim bir kanca yok ve OYUNDA DENEYEMIYORUM.
+   O yuzden ikisi ayri yazildi:
+     - IYILESTIRME kesin calisir (Avaritia'da calisan teknigin
+       aynisi).
+     - OLDURME GIRISIMI yakalandiginda mesaj basiliyor.
+   Hangisinin ne kadar tuttugunu oyunda gorecegiz; kod
+   "herhalde olur" diye bir sey iddia etmiyor.
+
+   ---- NEDEN SARJLI ----
+   Sinirsiz olsaydi bu depodaki en temel kurali cignerdi
+   (kalici etkinin siniri olmali) ve duelloyu bitirirdi:
+   yenilmez bir rakiple oynamak oynamak degildir. Sarj
+   bitince zirh soguyor ve zamanla doluyor.
+   ============================================================ */
+
+export const YENILMEZ_ACIK = true;
+
+/* Kapi: BU DORT PARCA birden takili olmali. Guc Zirhi tam set
+   olarak zaten uretiliyor. Baska bir set istenirse burasi
+   degisiyor, kod degismiyor.                                */
+export const YENILMEZ_PARCALAR = {
+  Head:  "pa:kns_guczirhi_baslik",
+  Chest: "pa:kns_guczirhi_govde",
+  Legs:  "pa:kns_guczirhi_bacak",
+  Feet:  "pa:kns_guczirhi_bot"
+};
+
+/* Kac kez kurtarsin. Bitince zirh soguyor.                  */
+export const YENILMEZ_SARJ = 8;
+/* Kac tickte bir sarj dolsun (600 tick = 30 sn).            */
+export const YENILMEZ_DOLUM = 600;
+/* ---- BURADA BIR "TAVAN HASAR" AYARI VARDI, SILINDI ----
+   `YENILMEZ_TAVAN_HASAR = 200` yazilmisti, gerekcesi de
+   "tavan yoksa tek satirlik bir hata sinirsiz iyilestirme
+   yapardi" idi. Mutasyon bataryasi ayari kaldirdi ve HICBIR
+   madde dusmedi.
+
+   Haklıydi: iyilestirme zaten `Math.min(maks, ...)` ile can
+   TAVANINA vuruyor, yani ikinci bir tavan hicbir sey
+   yapmiyordu. Gozlenebilir etkisi olmayan ayar, okuyana
+   "burada bir sinir var" diye yalan soyler.               */
+
+/* OLDURME GIRISIMI sayilan hasar sebepleri. `/kill` Bedrock'ta
+   selfDestruct uretiyor; void ve suicide de ayni aileden.
+   Liste kisa ve acik: tahmin ettigim her seyi degil,
+   gercekten "oldurme niyeti" olan sebepleri tutuyor.       */
+export const YENILMEZ_OLDURME_SEBEP = ["selfDestruct", "suicide", "void"];
+/* Ya da hasar bu kadar buyukse: /kill devasa hasar veriyor. */
+export const YENILMEZ_OLDURME_HASAR = 100;
+
+/* Mesaj HERKESE gidiyor: mesele zaten karsi tarafin gormesi.
+   Ingilizce, kullanicinin istegi.                           */
+export const YENILMEZ_HERKESE = true;
+export const YENILMEZ_SES     = "random.anvil_land";
+export const YENILMEZ_PARCACIK = "minecraft:totem_particle";
+/* Mesaj arasi susturma: /kill spam'i sohbeti bogmasin.      */
+export const YENILMEZ_SUS = 40;

@@ -99,6 +99,7 @@ import { ruhTara, ruhUnut } from "./yetenekler/ruh.js";
 import {
   merdivenTara, merdivenUnut
 } from "./yetenekler/savunma_merdiveni.js";
+import { yenilmezKur, yenilmezUnut } from "./yetenekler/yenilmez_zirh.js";
 import { quincyUnut, reishiUnut } from "./yetenekler/ruh_yetenekler.js";
 import { berserkUnut } from "./yetenekler/karakter_yetenekler.js";
 import { jjkUnut, sonsuzUnut, jjkSec } from "./yetenekler/jujutsu.js";
@@ -126,7 +127,7 @@ import {
 } from "./yetenekler/gozcu.js";
 import {
   HAREKET_ACIK, HAREKET_ORNEK, HAREKET_AF_ESYA, SUZULME_ROKET_ESYA,
-  MERDIVEN_ACIK, MERDIVEN_ARA,
+  MERDIVEN_ACIK, MERDIVEN_ARA, YENILMEZ_ACIK,
   HAREKET_AF_HASAR, HAREKET_AF_HASAR_TICK
 } from "./ayarlar.js";
 import {
@@ -2472,6 +2473,16 @@ if (VILTRUMITE_ACIK) viltrumiteKur();
 
    Olay her surumde yok; `olayaAbone` eksik olayda paketi
    oldurmuyor, yalniz bu af kapali kalir.                     */
+/* YENILMEZ ZIRH (v7.90). Kendi `entityHurt` abonesini
+   kuruyor -- asagidaki vurulma affindan AYRI, cunku ikisi
+   ayri sey: af Gozcu'yu susturuyor, zirh hasari geri
+   aliyor. Tek abonede birlestirilseydi biri kapatilinca
+   oteki de kapanirdi.                                     */
+const yenilmezKuruldu = yenilmezKur();
+if (!yenilmezKuruldu && YENILMEZ_ACIK) {
+  bilgiYaz("entityHurt yok: Yenilmez Zirh calismiyor. Modun geri kalani normal.");
+}
+
 const vurulmaAffiKuruldu = HAREKET_AF_HASAR && olayaAbone("entityHurt", (olay) => {
   try {
     const vurulan = olay && olay.hurtEntity;
@@ -2572,6 +2583,7 @@ olayaAbone("playerLeave", (olay) => {
   hareketUnut(olay.playerId);
   nefesCikti(olay.playerId);       // v7.87: yalniz bekleme, uslup kalir
   merdivenUnut(olay.playerId);     // v7.89: savunma merdiveni durumu
+  yenilmezUnut(olay.playerId);     // v7.90: zirh sarji
   roketUnut(olay.playerId);        // v7.46: roket penceresi
   /* Cikan oyuncunun bekleyen geri-itme olcumleri dusuyor.
      KIMLIKLE cagriliyor: kimliksiz cagri hepsini silerdi ve

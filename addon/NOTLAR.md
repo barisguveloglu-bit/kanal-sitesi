@@ -1,3 +1,77 @@
+# v7.90.0 — Yenilmez Zırh
+
+Kullanıcı: *"bu modda o zırhı taktığın zaman /kill yazınca bile öldürmüyormuş,
+öyle bir mekanik var mı? … /kill yazınca hata mesajı versin, İngilizce."*
+
+## Önce ölçüm: kaynakta öyle bir mekanik YOK
+
+Tam inceleme [`REFERANS_AVARITIA.md`](REFERANS_AVARITIA.md).
+
+Avaritia'daki `immortal` bir **etiket** ve tek işi **modun kendi silahlarının**
+seni atlaması — sonsuzluk kılıcı sana 100000 yerine 1 hasar veriyor. `/kill`
+ile hiçbir ilgisi yok.
+
+Bundle'daki bütün `beforeEvents` abonelikleri sayıldı:
+`entityHurt` **sıfır**. `entityDie` ile dirilten bir şey de yok. İddia
+karşılıksız.
+
+## Ama kullanılabilir bir teknik vardı
+
+Mod düşme hasarını `afterEvents.entityHurt` içinde **geri iyileştirerek**
+iptal ediyor:
+
+```js
+health.setCurrentValue(min(effectiveMax, currentValue + ev.damage))
+```
+
+Alınan şey bu, her hasar sebebine genişletilmiş hâli.
+
+## Ne kesin, ne değil
+
+- **Geri iyileştirme kesin çalışır** — kaynakta çalışan tekniğin aynısı.
+- **`/kill` garanti edilemez.** Hasarı iptal eden bir kanca Bedrock'ta yok;
+  `entityHurt` olaydan sonra çalışıyor. Script'in ölümü sonlandırmadan önce
+  yetişip yetişmediği oyunda denenmeden bilinemez ve burada oyun
+  çalıştırılamıyor.
+
+İki iş **ayrı** yazıldı: iyileştirme ayrı, öldürme girişimi bildirimi ayrı.
+
+## Mekanik
+
+Kapı: **Güç Zırhı tam set** (4 parça birden). Tek parça eksikse zırh yok.
+
+- Hasar geri iyileştiriliyor, **şarj** harcanıyor (8 şarj).
+- Şarj bitince zırh **soğuyor**, 30 saniyede bir dolum.
+- Öldürme girişiminde (`selfDestruct` · `suicide` · `void` ya da ≥100 hasar)
+  herkese İngilizce mesaj:
+
+```
+✖ COMMAND FAILED
+Target is protected by the ARMOR OF THE LEGEND.
+» /kill cannot be executed on this entity.
+Entity: Earsh · Status: UNDYING · Charges: 7/8
+```
+
+Mesaj susturmalı — `/kill` spam'i sohbeti boğmasın.
+
+**Neden şarjlı:** sınırsız olsaydı hem bu deponun en temel kuralını çiğnerdi
+(kalıcı etkinin sınırı olmalı) hem düelloyu bitirirdi. Yenilmez bir rakiple
+oynamak oynamak değildir.
+
+## Mutasyon bataryası bir ölü ayar buldu
+
+`YENILMEZ_TAVAN_HASAR = 200` yazmıştım, gerekçesi "tavan yoksa sınırsız
+iyileştirme olur" idi. Batarya ayarı kaldırdı ve **hiçbir madde düşmedi** —
+çünkü iyileştirme zaten `Math.min(maks, …)` ile can tavanına vuruyor. İkinci
+tavanın gözlenebilir hiçbir etkisi yoktu. Silindi; gerçek sınır olan can
+tavanı ayrıca test edildi.
+
+## Test
+
+`test/yenilmez.mjs` 36 madde. Mutasyon bataryası **11/11**.
+
+---
+
 # v7.89.0 — Savunma Merdiveni
 
 Kullanıcı kararı: *"biz bunu tamamen savunmaya yönelik yapalım … canım
