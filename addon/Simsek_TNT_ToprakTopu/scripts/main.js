@@ -96,6 +96,9 @@ import { izleyicileriSupur } from "./yetenekler/kutlama.js";
 import { kafesKir, kafesUnut } from "./yetenekler/kafes.js";
 import { tekSimsekUnut } from "./yetenekler/tek_simsek.js";
 import { ruhTara, ruhUnut } from "./yetenekler/ruh.js";
+import {
+  merdivenTara, merdivenUnut
+} from "./yetenekler/savunma_merdiveni.js";
 import { quincyUnut, reishiUnut } from "./yetenekler/ruh_yetenekler.js";
 import { berserkUnut } from "./yetenekler/karakter_yetenekler.js";
 import { jjkUnut, sonsuzUnut, jjkSec } from "./yetenekler/jujutsu.js";
@@ -123,6 +126,7 @@ import {
 } from "./yetenekler/gozcu.js";
 import {
   HAREKET_ACIK, HAREKET_ORNEK, HAREKET_AF_ESYA, SUZULME_ROKET_ESYA,
+  MERDIVEN_ACIK, MERDIVEN_ARA,
   HAREKET_AF_HASAR, HAREKET_AF_HASAR_TICK
 } from "./ayarlar.js";
 import {
@@ -524,6 +528,23 @@ system.runInterval(() => {
                   (kimlik) => oyuncuIsSayisi(kimlik) > 0);
     } catch (e) {
       hataYaz("hareketTara", e);
+    }
+  }
+
+  /* SAVUNMA MERDIVENI (v7.89). Kendi dongusunu ACMIYOR --
+     hareketTara ile ayni yol, ayni gerekce.
+
+     `yetenekTetikle` disari verilmiyor; merdiven onu PARAMETRE
+     olarak aliyor. Boylece merdiven merkezi is listesine
+     dogrudan dokunmuyor ve bekleme/tavan kurallari tek
+     yerde kaliyor -- hareketTara'nin `isVarMi` almasiyla
+     ayni kalip.                                             */
+  if (MERDIVEN_ACIK && system.currentTick % MERDIVEN_ARA === 0) {
+    try {
+      merdivenTara(world.getAllPlayers(),
+                   (oyuncu, kimlik) => yetenekTetikle(oyuncu, kimlik));
+    } catch (e) {
+      hataYaz("merdivenTara", e);
     }
   }
 
@@ -2550,6 +2571,7 @@ olayaAbone("playerLeave", (olay) => {
   gozcuUnut(olay.playerId);
   hareketUnut(olay.playerId);
   nefesCikti(olay.playerId);       // v7.87: yalniz bekleme, uslup kalir
+  merdivenUnut(olay.playerId);     // v7.89: savunma merdiveni durumu
   roketUnut(olay.playerId);        // v7.46: roket penceresi
   /* Cikan oyuncunun bekleyen geri-itme olcumleri dusuyor.
      KIMLIKLE cagriliyor: kimliksiz cagri hepsini silerdi ve

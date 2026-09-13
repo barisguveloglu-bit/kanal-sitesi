@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.88.0";
+export const SURUM = "v7.89.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -11260,3 +11260,117 @@ export const PB_PISIR_TABLO = new Map([
   ["minecraft:raw_gold",       "minecraft:gold_ingot"],
   ["minecraft:raw_copper",     "minecraft:copper_ingot"]
 ]);
+
+
+/* ============================================================
+   SAVUNMA MERDIVENI                                 (v7.89)
+
+   Kullanici karari: "biz bunu tamamen savunmaya yonelik
+   yapalim ... canim azaldiginda ekstra guc acacagim, veya
+   rakibimin gucu benden daha gucluyse en azindan defansimi
+   gelistireyim ... o kurtarici dediginiz ile bir sistem
+   kuralim ... kurtarici bitti ondan sonra da sirali olsun ...
+   hepsine de can okuyucu ekle ki sirali bir sekilde devreye
+   girsinler."
+
+   ---- NE YAPIYOR ----
+   Canin ORANI dustukce basamaklar SIRAYLA kendiliginden
+   aciliyor. Oyuncu hicbir sey yapmiyor; merdiven okuyor ve
+   aciyor.
+
+   ---- NEDEN ORAN, MUTLAK SAYI DEGIL ----
+   200 kalp formunda 20 can "az", normalde tam dolu.
+   ruh.js'teki kurtarici da ayni sebeple orana bakiyor.
+
+   ---- SIRALI OLMASI NE DEMEK ----
+   Her taramada EN FAZLA BIR basamak aciliyor. Can bir anda
+   dibe vursa bile merdiven 1'den baslayip tirmaniyor. Bu
+   kullanicinin acik istegi ("sirali olsun") ve ayrica dogru:
+   bes basamak birden acilsaydi bes ayri etki ayni anda
+   binerdi ve hangisinin ise yaradigi hic anlasilmazdi.
+
+   ---- "RAKIBIM BENDEN GUCLU" NASIL OLCULUYOR ----
+   Rakibin gucunu okuyan bir API yok. Olculebilen sey CANIN
+   NE HIZLA GITTIGI: kisa pencerede oranin buyuk kismi
+   gidiyorsa karsi taraf agir basiyor demektir. O durumda
+   merdiven bir basamak yerine IKI basamak birden cikiyor.
+   Tahmin degil, olcum.
+
+   ---- KURTARICI ILE ILISKISI ----
+   Kurtarici (ruh.js) DURUYOR ve degistirilmedi: o ruh yakan,
+   karaktere bagli, TEK bir kademe. Merdiven ondan bagimsiz ve
+   genel. Ikisi ayni anda calisabilir -- kullanici "kurtarici
+   bitti ondan sonra da sirali olsun" dedi, yani kurtaricinin
+   yerine degil ARDINA bir sistem istedi.
+
+   ---- DIRENC V YOK ----
+   Tavan Direnc IV (amp 3). Direnc V (amp 4) tam
+   dokunulmazlik ve bu depoda yasak -- tarama.mjs ayrica
+   deniyor. "Asla yenilmemek" istegi anlasilir ama
+   dokunulmazlik oyunu bitirir, savunmayi degil.
+   ============================================================ */
+
+export const MERDIVEN_ACIK = true;
+/* Can kac tickte bir okunsun. 10 tick (yarim saniye):
+   duelloda yeterince hizli, bosta duran modda ucuz.        */
+export const MERDIVEN_ARA = 10;
+
+/* Merdiven bu oranin USTUNE cikinca BASTAN kuruluyor.
+   Yoksa esikte titreyen can basamaklari surekli yakardi --
+   KURTARICI_TOPARLAMA ile ayni gerekce.                    */
+export const MERDIVEN_TOPARLAMA = 0.85;
+
+/* HIZLI DUSUS: bu pencerede canin bu kadar ORANI giderse
+   merdiven tek yerine IKI basamak cikiyor.                 */
+export const MERDIVEN_DUSUS_PENCERE = 40;    // tick (2 sn)
+export const MERDIVEN_DUSUS_ORAN    = 0.25;  // canin dortte biri
+
+/* Basamaklar. `esik` = canin bu oranININ ALTINA dusunce.
+   Sirali okunuyor, yukaridan asagiya.
+
+   ---- HEPSI SAVUNMA ----
+   Hicbir basamak hasar vermiyor. Son basamaktaki `itme`
+   bile hasarsiz: uzerindekileri ayiriyor, oldurmuyor.      */
+export const MERDIVEN_BASAMAKLAR = [
+  {
+    kimlik: "tetikte", ad: "Tetikte", esik: 0.70, sure: 200,
+    renk: "§e",
+    efektler: [["resistance", 200, 0]]
+  },
+  {
+    kimlik: "zirh", ad: "Zırh", esik: 0.50, sure: 300,
+    renk: "§7",
+    efektler: [["resistance", 300, 1], ["fire_resistance", 300, 0],
+               ["absorption", 300, 0]]
+  },
+  {
+    kimlik: "kalkan", ad: "Kalkan Sistemi", esik: 0.35, sure: 300,
+    renk: "§b",
+    efektler: [["resistance", 300, 1]],
+    /* SecurityCraft'tan aldigimiz mermi dusurucu. Elle
+       acilabiliyordu; burada can okuyucu aciyor.           */
+    yetenek: "kalkan_sistemi"
+  },
+  {
+    kimlik: "nobetci", ad: "Nöbetçi", esik: 0.20, sure: 400,
+    renk: "§c",
+    efektler: [["resistance", 400, 2], ["regeneration", 400, 0]],
+    yetenek: "nobetci"
+  },
+  {
+    kimlik: "son_direnis", ad: "Son Direniş", esik: 0.10, sure: 400,
+    renk: "§4",
+    /* amp 3 = Direnc IV. TAVAN. amp 4 (Direnc V) tam
+       dokunulmazlik ve bu depoda yasak.                    */
+    efektler: [["resistance", 400, 3], ["regeneration", 400, 1],
+               ["slow_falling", 400, 0], ["absorption", 400, 1]],
+    /* Uzerindekileri AYIRIR. Hasar YOK -- bu bir savunma
+       basamagi, saldiri degil.                             */
+    itme: true
+  }
+];
+
+export const MERDIVEN_ITME_YARICAP = 6;
+export const MERDIVEN_ITME_GUC     = 1.6;
+export const MERDIVEN_PARCACIK     = "minecraft:totem_particle";
+export const MERDIVEN_SES          = "random.totem";

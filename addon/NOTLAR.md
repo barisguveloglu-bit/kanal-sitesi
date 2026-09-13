@@ -1,3 +1,75 @@
+# v7.89.0 — Savunma Merdiveni
+
+Kullanıcı kararı: *"biz bunu tamamen savunmaya yönelik yapalım … canım
+azaldığında ekstra güç açacağım, veya rakibimin gücü benden daha güçlüyse en
+azından defansımı geliştireyim … o kurtarıcı dediğimiz ile bir sistem kuralım
+… kurtarıcı bitti ondan sonra da sıralı olsun … hepsine de can okuyucu ekle ki
+sıralı bir şekilde devreye girsinler."*
+
+## Beş basamak, canın oranına bağlı
+
+| can | basamak | ne veriyor |
+|---|---|---|
+| %70 | Tetikte | Direnç I |
+| %50 | Zırh | Direnç II · ateş direnci · emilim |
+| %35 | Kalkan Sistemi | Direnç II + **mermi düşürücü açılır** |
+| %20 | Nöbetçi | Direnç III · yenilenme + **taret kurulur** |
+| %10 | Son Direniş | **Direnç IV** · yenilenme II · yavaş düşme · emilim II + üstündekileri ayırır |
+
+Oyuncu hiçbir şey yapmıyor; merdiven canı okuyor ve açıyor.
+
+## Sıralı olması
+
+Her taramada **en fazla bir basamak** açılıyor. Can bir anda dibe vursa bile
+merdiven 1'den başlayıp tırmanıyor. Bu senin açık isteğindi ve ayrıca doğru:
+beş basamak birden açılsaydı hangisinin işe yaradığı hiç anlaşılmazdı.
+
+## "Rakibim benden güçlü" nasıl ölçülüyor
+
+Rakibin gücünü okuyan bir API yok. Ölçülebilen şey **canın ne hızla gittiği**:
+2 saniyelik pencerede oranın dörtte birinden fazlası giderse merdiven bir
+yerine **iki basamak** birden çıkıyor. Tahmin değil ölçüm.
+
+## Test bir tasarım hatası buldu
+
+İlk yazılışta toparlama dalı can geçmişini siliyordu. Sonuç: **tam candan
+başlayan düşüş hiç ölçülemiyordu** — %100'deki örnek silindiği için bir
+sonraki taramada pencerede tek değer kalıyor ve "hızlı düşüş" hiçbir zaman
+doğru çıkmıyordu. Kaçırılan şey tam da senin anlattığın durumdu: tam candan
+bir anda dibe vurmak. Testin 4. maddesi yakaladı, düzeltildi.
+
+## Direnç V yok
+
+Tavan **Direnç IV** (amp 3). Direnç V tam dokunulmazlık ve bu depoda yasak —
+`tarama.mjs` onu ayrıca deniyor, merdiven testi de kendi tablosunda deniyor.
+"Asla yenilmemek" anlaşılır bir istek ama dokunulmazlık savunmayı değil oyunu
+bitirir.
+
+## Hiçbir basamak hasar vermiyor
+
+Tamamen savunma. Son basamağın itmesi bile hasarsız: üstündekileri **ayırır,
+öldürmez**. Botlarımızı itmiyor, kendimize dokunmuyor.
+
+## Kurtarıcı duruyor
+
+`ruh.js`'teki Kurtarıcı **değiştirilmedi** — ruh yakan, karaktere bağlı, tek
+kademe. Merdiven ondan bağımsız ve genel. "Yerine" değil "ardına" bir sistem
+istendi, öyle yapıldı.
+
+## Test
+
+`test/merdiven.mjs` 40 madde. Mutasyon bataryası **10/10** — sıralılığın
+kaldırılması, hızlı düşüş kuralının silinmesi, geçmişin yine silinmesi,
+Direnç V konması, son basamağın hasar vermesi, oranın yerine mutlak canın
+okunması… hepsi yakalandı.
+
+Bir mutasyon (can okuma **istisna** atarsa 0 dönmesi) ilk turda **kaçtı** ve
+gerçek bir test boşluğuydu: `getComponent` undefined dönen yol deneniyordu ama
+istisna atan yol denenmiyordu. 0 dönmek "canın %0" demek, yani okunamayan
+oyuncunun bütün merdivenini yakar. Madde eklendi.
+
+---
+
 # v7.88.0 — Üçüncü nefes: Bambu
 
 Kullanıcı: *"bu kadar dolu olmasa da 3 sırada olan en dolu yeteneğe sahip
