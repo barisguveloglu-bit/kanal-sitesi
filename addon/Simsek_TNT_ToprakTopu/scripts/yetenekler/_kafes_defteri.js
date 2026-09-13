@@ -1,6 +1,6 @@
 import { world } from "@minecraft/server";
-import { bilgiYaz, hataYaz } from "../yardimcilar.js";
-import { HAPIS_TAVAN, HAPIS_KAYIT_ANAHTAR } from "../ayarlar.js";
+import { bilgiYaz, hataYaz, kaliciYaz } from "../yardimcilar.js";
+import { HAPIS_TAVAN, HAPIS_KAYIT_ANAHTAR, DEFTER_TAVAN } from "../ayarlar.js";
 
 /* ============================================================
    KAFES DEFTERI
@@ -56,8 +56,35 @@ function yaz() {
         dizi.push(satir);
       }
     }
-    world.setDynamicProperty(HAPIS_KAYIT_ANAHTAR,
-                             dizi.length === 0 ? undefined : JSON.stringify(dizi));
+    /* ---- BOYUT SINIRI  (v7.80) ----
+       Dunya ozelliginin 32767 baytlik siniri var ve bu defter
+       OYUNCU SAYISIYLA buyuyor: her oyuncu HAPIS_TAVAN (8)
+       kafes tutabiliyor, her kafes 34 blok.
+
+       Olculdu (kutuKabugu(1,3) = 34 blok, kayit basina ~385
+       bayt):
+            1 oyuncu ->  3.080 bayt
+            4 oyuncu -> 12.320 bayt
+            8 oyuncu -> 24.640 bayt
+           16 oyuncu -> 49.280 bayt  ### SINIR ASILDI ###
+       Yani ~11 oyuncuda tasiyor. Tasinca `setDynamicProperty`
+       istisna atiyor, `hataYaz` yutuyor ve defter SESSIZCE
+       yazilmiyor -- kalp defterinde duzeltilen hatanin
+       birebir aynisi.
+
+       `kaliciYaz` tasma olunca EN ESKI kayitlari dusuruyor.
+       Kafes kaybolmuyor, yalnizca dunyada kalan bir kafesin
+       defter kaydi dusuyor; bu, hicbir seyin yazilmamasindan
+       iyi.                                                  */
+    if (dizi.length === 0) {
+      world.setDynamicProperty(HAPIS_KAYIT_ANAHTAR, undefined);
+    } else {
+      kaliciYaz(HAPIS_KAYIT_ANAHTAR, dizi,
+                (d, oran) => {
+                  const at = Math.max(1, Math.ceil(d.length * oran));
+                  return d.length > at ? d.slice(at) : undefined;
+                }, DEFTER_TAVAN);
+    }
   } catch (e) {
     hataYaz("kafesDefteri.yaz", e);
   }

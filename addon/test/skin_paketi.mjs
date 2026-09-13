@@ -294,5 +294,41 @@ print(json.dumps({"normal":opak(a),"kolsuz":opak(b),"disi":disi}))
 }
 
 console.log("");
+console.log("\n=== HER VARLIĞIN ADI VAR (v7.80) ===");
+{
+  /* Genel taramada cikti: `pa:carpik_kilik` ve `pa:izleyici`
+     dil dosyasinda YOKTU, oysa ayni ailedeki `pa:o_sey_kilik`
+     vardi. Adi olmayan varligin adini oyun HAM KIMLIK olarak
+     yaziyor (olum mesaji, /kill geri bildirimi, yumurta adi).
+
+     Olcu TEK TEK AD DEGIL, KURAL: BP'deki her varligin iki
+     dilde de adi olmali. Yeni varlik eklendiginde
+     kendiliginden gecerli.                                  */
+  const fs = await import("node:fs");
+  const okuLang = (p) => {
+    const d = {};
+    for (const satir of fs.readFileSync(p, "utf8").split("\n")) {
+      const t = satir.trim();
+      if (!t || t.startsWith("#") || t.indexOf("=") < 0) continue;
+      d[t.slice(0, t.indexOf("=")).trim()] = true;
+    }
+    return d;
+  };
+  const trL = okuLang("../Simsek_Kol_Kaynak/texts/tr_TR.lang");
+  const enL = okuLang("../Simsek_Kol_Kaynak/texts/en_US.lang");
+  const eksik = [];
+  for (const f of fs.readdirSync("../Simsek_TNT_ToprakTopu/entities")) {
+    if (!f.endsWith(".json")) continue;
+    const d = JSON.parse(fs.readFileSync("../Simsek_TNT_ToprakTopu/entities/" + f, "utf8"));
+    const k = d["minecraft:entity"].description.identifier;
+    if (k === "minecraft:player") continue;   // vanilla ezmesi, adi oyunun
+    const a = "entity." + k + ".name";
+    if (!trL[a]) eksik.push("tr:" + k);
+    if (!enL[a]) eksik.push("en:" + k);
+  }
+  kontrol("her varligin iki dilde de adi var", eksik.length === 0,
+          eksik.join(", "));
+}
+
 console.log(hata ? ">>> SORUN VAR" : ">>> skin paketi ve 400 kalp yerinde");
 process.exit(hata ? 1 : 0);

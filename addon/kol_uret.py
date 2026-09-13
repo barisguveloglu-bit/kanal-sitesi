@@ -110,7 +110,7 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # tureniyor -- ayrisabilecekleri bir yer kalmadi.
 #
 # YENI SURUM CIKARIRKEN: yalnizca asagidaki satiri degistir.
-SURUM_NO = (7, 79, 0)
+SURUM_NO = (7, 80, 0)
 
 SURUM_METIN = "%d.%d.%d" % SURUM_NO
 
@@ -12446,7 +12446,16 @@ def main():
     for _sk, _sad in ((TAKAS_DUSEN_SAG, "Düşen Kol · Sağ"),
                       (TAKAS_DUSEN_SOL, "Düşen Kol · Sol"),
                       (TAKAS_GELEN,     "Gelen Kol"),
-                      (SEY_KILIK_KIMLIK.replace("pa:", ""), "Kılık")):
+                      (SEY_KILIK_KIMLIK.replace("pa:", ""), "Kılık"),
+                      # v7.80: bu ikisinin adi YOKTU. Genel taramada
+                      # cikti -- `o_sey_kilik`in adi varken bu ikisi
+                      # unutulmus. Adlari nadiren gorunuyor (ikisi de
+                      # isim etiketi tasimayan sahne nesnesi) ama ad
+                      # yoksa oyun HAM KIMLIGI yaziyor: olum
+                      # mesajinda, `/kill` geri bildiriminde,
+                      # yumurta adinda.
+                      (CARPIK_KILIK_KIMLIK.replace("pa:", ""), "Çarpık Kılık"),
+                      (IZLEYICI_KIMLIK.replace("pa:", ""), "İzleyici")):
         for liste in (en_us, tr_tr):
             liste.append("entity.pa:%s.name=%s" % (_sk, _sad))
 

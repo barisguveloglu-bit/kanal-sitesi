@@ -338,5 +338,34 @@ console.log("\n=== ORTAK BÜTÇEYE UYUYOR (v7.79) ===");
 }
 
 console.log("");
+console.log("\n=== DEFTER 32767 SINIRINDA SESSİZCE KAYBOLMUYOR (v7.80) ===");
+{
+  /* Genel taramada olculdu: defter OYUNCU SAYISIYLA buyuyor
+     (HAPIS_TAVAN=8 kafes x 34 blok). ~11 oyuncuda dunya
+     ozelliginin 32767 baytlik siniri asiliyor; ham
+     `setDynamicProperty` orada istisna atiyor ve `hataYaz`
+     yutuyor -- defter sessizce yazilmiyordu. Kalp defterinde
+     duzeltilen hatanin birebir aynisi.                     */
+  const kod = (await import("node:fs")).readFileSync(
+    "../Simsek_TNT_ToprakTopu/scripts/yetenekler/_kafes_defteri.js", "utf8");
+  const kodsuz = kod.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+  kontrol("defter kaliciYaz kullaniyor (boyut kapisi)",
+          /kaliciYaz\(HAPIS_KAYIT_ANAHTAR/.test(kodsuz));
+  /* YALNIZ GERCEK YAZIMLAR sayiliyor. Ilk yazilista duz
+     "setDynamicProperty" araniyordu ve 32. satirdaki
+     `typeof world.setDynamicProperty === "function"` yetenek
+     DENETIMI de sayiliyordu -- test temiz kaynakta dustu. */
+  const yazimlar = kodsuz.match(/world\.setDynamicProperty\(/g) || [];
+  kontrol("ham yazim yalniz SILME icin",
+          yazimlar.length === 1 &&
+          /world\.setDynamicProperty\(HAPIS_KAYIT_ANAHTAR, undefined\)/.test(kodsuz),
+          yazimlar.length + " ham yazim");
+
+  /* Tavanin kendisi de anlamli olmali.                     */
+  kontrol("DEFTER_TAVAN Bedrock sinirinin altinda",
+          ayar.DEFTER_TAVAN > 0 && ayar.DEFTER_TAVAN <= 32767,
+          ayar.DEFTER_TAVAN + " bayt");
+}
+
 console.log(hata ? ">>> SORUN VAR" : ">>> hepsi gecti");
 process.exit(hata ? 1 : 0);

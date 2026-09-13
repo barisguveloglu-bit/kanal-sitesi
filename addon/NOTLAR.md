@@ -1,3 +1,80 @@
+# v7.80.0 — Genel tarama
+
+Kullanıcı paketin tamamının yeniden taranmasını istedi. On bir
+ayrı denetim çalıştırdım; **üç gerçek bulgu** çıktı, gerisi
+temiz.
+
+## Temiz çıkanlar (ölçüldü, kanıtı var)
+
+| denetim | sonuç |
+|---|---|
+| JSON geçerliliği | 1736 dosya, 0 bozuk |
+| Attachable → geometri | 372 tanım, 0 eksik |
+| Attachable → doku | 0 eksik (kendi dokularımız) |
+| Eşya ikonu → atlas → dosya | 551 eşya, 1 vanilla anahtar |
+| Betikteki `pa:` kimlikleri | 93 gönderme, 0 tanımsız |
+| Varlık olayları / sisler / özellikler | hepsi tanımlı |
+| Oyuncu kimliğiyle anahtarlanan defterler | 56 bağlı, 4 bilinçli kalıcı |
+| Kalıcı varlıkların temizlik yolu | 14 varlık, hepsi kapalı |
+| Komut seçicileri | 4 tanesi `@e`, dördü de oyuncuyu dışlıyor |
+| Direnç V · süresiz efekt · kalıcı poz | 0 ihlal |
+| Manifest / UUID / sürüm | 4 paket tutarlı, 0 çakışma |
+
+`pa:matkap` "tanımsız olay" gibi göründü ama bir **özellik**;
+`player.json`'da duruyor. Yanlış pozitif.
+
+## Bulgu 1 — Kafes defteri 32767 sınırında sessizce kayboluyordu
+
+Ham `setDynamicProperty` kullanıyordu ve defter **oyuncu
+sayısıyla** büyüyor. Ölçtüm (`kutuKabugu(1,3)` = 34 blok,
+kayıt başına ~385 bayt):
+
+```
+ 1 oyuncu x 8 kafes ->  3.080 bayt
+ 4 oyuncu x 8 kafes -> 12.320 bayt
+ 8 oyuncu x 8 kafes -> 24.640 bayt
+16 oyuncu x 8 kafes -> 49.280 bayt   ### SINIR AŞILDI ###
+```
+
+Yani **~11 oyuncuda** taşıyor. Taşınca istisna atıyor,
+`hataYaz` yutuyor, defter sessizce yazılmıyordu — kalp
+defterinde düzeltilen hatanın birebir aynısı. `kaliciYaz`'a
+bağlandı.
+
+Kendi dünyasında tek başına oynayan biri için ulaşılmaz bir
+sınır; realm/sunucuda gerçek.
+
+## Bulgu 2 — İki varlığın adı yoktu
+
+`pa:carpik_kilik` ve `pa:izleyici` dil dosyasında yoktu, oysa
+aynı ailedeki `pa:o_sey_kilik` vardı. **İkisi de benim kendi
+eklemelerim** (v7.67 ve v7.75). Adı olmayan varlığın adını oyun
+ham kimlik olarak yazıyor. Eklendi.
+
+Test artık tek tek ada değil **kurala** bakıyor: BP'deki her
+varlığın iki dilde de adı olmalı.
+
+## Bulgu 3 — Belgelenmemiş bütçe kararı
+
+`toprak_topu.js` patlama bütçesi istemiyor. Bilinçli ve doğru:
+patlama işin sonunda **bir kez** oluyor ve bütçeye bağlamak
+kotanın dolu olduğu bir tick'te yeteneğin tek ödülünü sessizce
+düşürürdü. Ama gerekçe yazılı değildi — `_bot_defteri`'nde aynı
+karar yazılıydı. Yorum eklendi.
+
+## Testin kendisi bir kez daha
+
+Yeni testlerden biri temiz kaynakta düştü: ham
+`setDynamicProperty` sayarken 32. satırdaki
+`typeof world.setDynamicProperty === "function"` **yetenek
+denetimini** de sayıyordum. Ölçü gerçek yazımlara daraltıldı.
+Bu turda beşinci kez aynı ders: metin aramak davranışı
+kanıtlamaz.
+
+İki mutasyonun ikisi de yakalanıyor.
+
+---
+
 # v7.79.0 — Dış inceleme açıkları
 
 Kullanıcı v7.78.0'ı başka bir modele inceletti ve 14 madde geldi.

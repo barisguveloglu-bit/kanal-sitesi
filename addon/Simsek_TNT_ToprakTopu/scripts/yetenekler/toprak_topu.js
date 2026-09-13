@@ -110,6 +110,19 @@ function hasarVer(boyut, poz, atanId) {
    oyuncu.id yazildi ve calisma aninda ReferenceError atardi.
    Botlar da bu fonksiyonu kullaniyor; onlarin kimligi carpik
    listesinde olmadigi icin carpan kendiliginden 1 kaliyor.   */
+/* ---- NEDEN `patlamaIste` YOK  (v7.80) ----
+   Genel tarama bu dosyayi "patlama butcesi istemeyen" olarak
+   isaretledi. Bilincli: bu patlama isin SONUNDA bir kez
+   oluyor (`bitisBekliyor`), sonra is kapaniyor. Yani oyuncu
+   basina en fazla bir tane, AYNI_ANDA (2) ile de tavanli.
+
+   Butceye baglamak ZARARLI olurdu: kota dolu bir tick'e denk
+   gelen top sessizce patlamadan kaybolurdu ve yetenegin butun
+   odulu o patlama. efsane_korku'daki TNT yagmuru istiyor cunku
+   orada tek olayda BES patlama var ve birinin dusmesi sahneyi
+   bozmuyor.
+
+   Blok tarafi ZATEN butcede: 205. satirda `blokIste`.       */
 function patlat(boyut, poz, atanId) {
   if (!poz) return;
   try {
