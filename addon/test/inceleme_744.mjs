@@ -153,7 +153,17 @@ const isaretSayisi = (id) => (gozcu.gozcuDurum(id) || { isaret: 0 }).isaret;
   tara([o]);
   gozcu.hareketAffet("eskici");
   tickIlerlet(ayar.HAREKET_AF_TICK + 40);   // af suresi doldu
-  o.location = { x: 40, y: 64, z: 0 };
+  /* ---- MESAFE 40 -> 400  (v7.83) ----
+     Sicrama esigi artik gecen ticke bolunuyor (hiz olcumu
+     bastan beri boluyordu; ikisinden biri olcekli, oteki
+     degildi). Yukarida 100 tick bekleniyor, yani esik o
+     ornekte 12 degil 120 blok.
+
+     40 bloklu bir sicrama 5 saniyede saniyede 8 blok demek --
+     yeni olcume gore isinlanma DEGIL, ve bu dogru. Maddenin
+     olctugu sey affin suresi, mesafe esigi degil; sayi
+     senaryoyu bozmayacak sekilde buyutuldu.                */
+  o.location = { x: 400, y: 64, z: 0 };
   tara([o]);
   kontrol("suresi dolan af KURTARMIYOR", isaretSayisi("eskici") === 1,
           isaretSayisi("eskici") + " isaret");

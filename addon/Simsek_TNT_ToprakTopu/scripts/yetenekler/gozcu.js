@@ -9,9 +9,9 @@ import {
   SUZULME_ACIK, SUZULME_ORNEK, SUZULME_PAY, SUZULME_ROKET_TICK,
   DUSUS_ACIK, DUSUS_ESIK, DUSUS_PAY,
   KILIT_ATLA_TIPLER,
-  HAREKET_ACIK, HAREKET_HIZ, HAREKET_SICRAMA,
+  HAREKET_ACIK, HAREKET_HIZ, HAREKET_SICRAMA, HAREKET_ORNEK,
   HAREKET_YUKSELME, HAREKET_YUKSEK_PAY,
-  GERI_ITME_ACIK, GERI_ITME_ORNEK, GERI_ITME_BEKLENEN,
+  GERI_ITME_ACIK, GERI_ITME_ORNEK, GERI_ITME_GEC, GERI_ITME_BEKLENEN,
   GERI_ITME_HAREKET, GERI_ITME_TAVAN,
   BLOK_ACIK, BLOK_PENCERE, BLOK_KIRMA_ESIK, BLOK_KOYMA_ESIK, BLOK_SUS,
   KIP_ACIK, KIP_IZIN, KIP_SUS,
@@ -63,23 +63,71 @@ function uzaklik(a, b) {
   return Math.sqrt(dx * dx + dy * dy + dz * dz);
 }
 
+/* ============================================================
+   KURBANIN GOVDE EKSENI  --  uzun mob yanlis alarmi  (v7.83)
+
+   `location` bir varligin AYAK noktasi. Menzil ve bakis acisi
+   olcumlerinin ikisi de oraya bakiyordu; kisa mob'ta bu fark
+   etmez, uzun mob'ta olcumu bozuyor.
+
+   Warden 2,9 blok. Yanina gecip GOVDESINE bakan oyuncunun
+   bakis yonu ile "gozden AYAGA" vektoru arasindaki aci 90
+   dereceyi asabiliyor -- GOZCU_ACI esigi ~75 derece, yani
+   "bakmadan vurus" damgasi. Enderman, Iron Golem, Ravager,
+   Hoglin ve Ender Ejderi de ayni sinifta.
+
+   Ayni sey menzile de vuruyor: 2,9 bloklu mob'un basina
+   vurmak icin 3,4 blok uzakta durmak yetiyor, ama gozden
+   ayaga olan mesafe 3,8 blok olarak olculuyordu.
+
+   ---- COZUM: NOKTA DEGIL DOGRU PARCASI ----
+   Kurbanin ayagi ile basi arasindaki dogru parcasinin,
+   vuranin gozune EN YAKIN noktasi olculuyor. Bu, hitbox'in
+   dikey eksenini temsil ediyor.
+
+   Bas konumu okunamazsa (eski API, sahte nesne) eskisi gibi
+   ayak noktasi kullaniliyor -- olcum kotulesmez, sadece
+   duzelme olmaz.
+
+   ---- HILEYI ACMIYOR ----
+   Duzeltme olculen mesafeyi ve aciyi yalniz KUCULTUYOR, yani
+   esikleri gevsetiyor. Bir reach hilesi 6 blok uzaktan
+   vurdugunda gozden govdeye en yakin nokta da 6 bloga yakin
+   kaliyor; 4,2 esigi hala asiliyor.
+   ============================================================ */
+export function govdeNoktasi(goz, ayak, bas) {
+  if (!bas) return ayak;
+  const ax = bas.x - ayak.x, ay = bas.y - ayak.y, az = bas.z - ayak.z;
+  const boy2 = ax * ax + ay * ay + az * az;
+  if (!(boy2 > 0.000001)) return ayak;     // bas ile ayak ayni nokta
+  let t = ((goz.x - ayak.x) * ax +
+           (goz.y - ayak.y) * ay +
+           (goz.z - ayak.z) * az) / boy2;
+  if (!(t > 0)) t = 0;                     // NaN de buraya dusuyor
+  else if (t > 1) t = 1;
+  return { x: ayak.x + ax * t, y: ayak.y + ay * t, z: ayak.z + az * t };
+}
+
 /* Vurus anindaki uc olcum. Sebep listesi donuyor -- bos ise
    vurus temiz.                                               */
 export function vurusuOlc(vuran, kurban, simdi, gecmis, ayniTick = 0) {
   const sebep = [];
 
-  let goz, yon, hedef;
+  let goz, yon, ayak, bas;
   try {
     goz = typeof vuran.getHeadLocation === "function"
       ? vuran.getHeadLocation() : vuran.location;
     yon = typeof vuran.getViewDirection === "function"
       ? vuran.getViewDirection() : undefined;
-    hedef = kurban.location;
+    ayak = kurban.location;
+    bas = typeof kurban.getHeadLocation === "function"
+      ? kurban.getHeadLocation() : undefined;
   } catch (e) {
     hataYaz("gozcu.konum", e);
     return sebep;               // okuyamiyorsak suclamiyoruz
   }
-  if (!goz || !hedef) return sebep;
+  if (!goz || !ayak) return sebep;
+  const hedef = govdeNoktasi(goz, ayak, bas);
 
   /* 1. MENZIL */
   const d = uzaklik(goz, hedef);
@@ -586,7 +634,22 @@ function gecilebilirMi(blok) {
     const tip = blok.typeId;
     if (typeof tip !== "string") return true;      // okunamadi -> muaf
     if (tip.indexOf(KATI_GECILEBILIR_ONEK) === 0) return true;
-    return KATI_GECILEBILIR.indexOf(tip) !== -1;
+    if (KATI_GECILEBILIR.indexOf(tip) !== -1) return true;
+    /* ---- ELLE YAZILAN LISTENIN YEDEGI  (v7.83) ----
+       Ustteki liste eksik oldugunu BILEREK yazildi ve eksik
+       kalmaya da mahkum: her surumde yeni blok geliyor.
+       API bu soruyu kendisi cevaplayabiliyorsa ona soruluyor.
+
+       Yon TEK TARAFLI: `isSolid === false` muafiyet ACIYOR,
+       `true` hicbir sey kapatmiyor -- listedeki bir blok
+       isSolid dese bile yukarida zaten muaf oldu. Yani bu
+       satir yanlis alarmi ancak azaltabilir, ekleyemez.
+
+       `=== false` sart: alan yoksa `undefined` gelir ve
+       `!undefined` onu "gecilebilir" yapardi -- o zaman
+       denetim tamamen olur.                                 */
+    if (blok.isSolid === false) return true;
+    return false;
   } catch (e) {
     hataYaz("gozcu.gecilebilir", e);
     return true;                                   // suphede muaf
@@ -760,7 +823,27 @@ export function hareketTara(oyuncular, isVarMi) {
       const sebep = [];
 
       const hizSn = yatay / (gecen / 20);
-      const sicramaVar = toplam > HAREKET_SICRAMA;
+
+      /* ---- SICRAMA ESIGI DE GECEN TICKE GORE  (v7.83) ----
+         Hemen ustteki satir mesafeyi gecen ticke boluyor,
+         alttaki bolmuyordu. Ayni hareketin iki olcumunden
+         biri olcekli, oteki degil.
+
+         Sonuc: tarama gecikirse hiz dogru olculuyor ama
+         sicrama esigi fiilen KUCULUYOR. Ornek araligi 10
+         tick yerine 40 tick olursa (script watchdog bir
+         tickte butceyi asinca callback atlaniyor, ya da
+         oyuncu bir tarama boyunca listede gorunmuyor)
+         kosan oyuncu 2 saniyede 11 blok gidiyor ve 12 blok
+         esigine dayaniyor -- hicbir sey yapmadan.
+
+         Pay yalniz BUYUYOR: gecen 10'un altina inemez
+         (tarama 10 tickte bir calisiyor), Math.max zaten
+         1'in altina dusurmuyor. Yani normal durumda esik
+         aynen 12 blok.                                      */
+      const sicramaPay = HAREKET_SICRAMA *
+                         Math.max(1, gecen / HAREKET_ORNEK);
+      const sicramaVar = toplam > sicramaPay;
       const hizVar = hizSn > HAREKET_HIZ;
 
       /* ---- AF: TEK ORNEK, IKI OLCUM  (v7.44) ----
@@ -907,8 +990,28 @@ export function geriItmeDegerlendir(simdi) {
      ve ayni sebeple silindi.                               */
   for (let i = geriItmeBekleyen.length - 1; i >= 0; i--) {
     const kayit = geriItmeBekleyen[i];
-    if (simdi - kayit.tick < GERI_ITME_ORNEK) continue;
+    const yas = simdi - kayit.tick;
+    if (yas < GERI_ITME_ORNEK) continue;
     geriItmeBekleyen.splice(i, 1);
+
+    /* ---- GEC OLGUNLASAN KAYIT: HUKUM YOK  (v7.83) ----
+       Bu fonksiyon kendi dongusunu acmiyor, HAREKET_ORNEK
+       (10) tickte bir calisan taramanin icinden cagriliyor.
+       Olgunluk sarti "6 tick gecsin" oldugu icin olcumun
+       yapildigi an vurustan 6 ila 15 tick sonrasi arasinda
+       geziyor -- hangi tickte vurdugunuza bagli, yani rastgele.
+
+       Olculen sey zamanla eriyor: geri itme darbesi
+       surtunmeyle soner, oyuncunun kendi kosma girdisi
+       sonmez. Vurulur vurulmaz saldirganin uzerine geri kosan
+       oyuncu -- duellonun en sik hareketi -- 6. tickte hala
+       uzaklasmis gorunuyor, 15. tickte uzaklasmasi esigin
+       altina dusuyor ve "geri itilmedi" damgasi yiyor.
+
+       Burada hukum vermek yerine OLCUMU ATIYORUZ. Kayip
+       kucuk: her vurus yeni kayit aciyor, bir sonraki olcum
+       saglam pencereye denk gelir.                          */
+    if (yas > GERI_ITME_GEC) continue;
     try {
       const k = kayit.kurban;
       if (!gecerliMi(k)) continue;

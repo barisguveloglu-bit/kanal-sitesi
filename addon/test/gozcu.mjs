@@ -37,7 +37,7 @@
    Her birinde yine ayni oncelik: temiz oyuncu suclanmiyor. */
 
 import { dunyaKur, oyuncuKur } from "./dunya.mjs";
-import { tickIlerlet, vurusTetikle, _durum } from "@minecraft/server";
+import { tickIlerlet, vurusTetikle, itemUseTetikle, system, _durum } from "@minecraft/server";
 
 const w = console.warn;
 const sus = () => { console.warn = () => {}; };
@@ -965,6 +965,319 @@ console.log("\n=== VURULMA AFFI: WARDEN SAVURMASI (v7.82) ===");
     kontrol("VURULMADAN isinlanma hala isaretleniyor",
             d && (d.isaret || 0) >= ayar.GOZCU_ESIK,
             d ? (d.isaret || 0) + " isaret" : "yok");
+  }
+}
+
+console.log("");
+console.log("=== 17. YANLIS POZITIF TARAMASI (v7.83) ===");
+{
+  /* Kullanicinin istegi uzerine acildi: Warden dovusundeki
+     yanlis alarm (v7.82) tek basina bir kaza degil, bir SINIF.
+     Bu bolum ayni siniftan bulunan otekileri tutuyor.
+
+     Her maddenin iki yuzu var: yanlis alarm DUSTU mu, ve o
+     duserken gercek hile HALA yakalaniyor mu. Ikincisi
+     olmadan birincisi sadece denetimi kapatmak olurdu.     */
+  const yok = () => false;
+
+  /* ---------- 17a. UZUN MOB: GOVDE EKSENI ---------- */
+  /* `location` ayak noktasi. Warden 2,9 blok: yanindan
+     govdesine bakinca "gozden AYAGA" vektoru ile bakis yonu
+     arasindaki aci 100 dereceyi buluyordu -- esik ~75.      */
+  function uzunMob(id, x, y, z, boy) {
+    return {
+      id, typeId: "minecraft:warden", name: id, isValid: true,
+      location: { x, y, z },
+      getHeadLocation: () => ({ x, y: y + boy, z })
+    };
+  }
+
+  gozcu.gozcuUnut(); _durum.sohbet.length = 0;
+  {
+    /* Oyuncu 1 blok otede, Warden'in BASINA bakiyor. */
+    const a = saldiran("wd_a", 0, 64, 0, { x: 0, y: 0.669, z: 0.743 });
+    const k = uzunMob("wd_k", 0, 64, 1, 2.5);
+    for (let i = 0; i < ayar.GOZCU_ESIK + 2; i++) { tickIlerlet(6); vur(a, k); }
+    const d = gozcu.gozcuDurum(a.id);
+    kontrol("uzun mob'un govdesine bakmak 'bakmadan vurus' degil",
+            !d || d.isaret === 0, d ? d.isaret + " isaret" : "0");
+  }
+
+  /* Ayak noktasina bakan eski olcum bu senaryoda GERCEKTEN
+     suclardi -- madde bos yere durmuyor, olculuyor. */
+  {
+    const goz  = { x: 0, y: 65.6, z: 0 };
+    const ayak = { x: 0, y: 64, z: 1 };
+    const bas  = { x: 0, y: 66.5, z: 1 };
+    const yon  = { x: 0, y: 0.669, z: 0.743 };
+    const kos = (h) => {
+      const vx = h.x - goz.x, vy = h.y - goz.y, vz = h.z - goz.z;
+      const b = Math.sqrt(vx * vx + vy * vy + vz * vz);
+      return (yon.x * vx + yon.y * vy + yon.z * vz) / b;
+    };
+    kontrol("eski olcum (ayak) esigin ALTINDA kaliyordu",
+            kos(ayak) < ayar.GOZCU_ACI, kos(ayak).toFixed(3));
+    kontrol("yeni olcum (govde) esigin USTUNDE",
+            kos(gozcu.govdeNoktasi(goz, ayak, bas)) > ayar.GOZCU_ACI,
+            kos(gozcu.govdeNoktasi(goz, ayak, bas)).toFixed(3));
+  }
+
+  /* govdeNoktasi'nin kenar halleri. */
+  {
+    const goz = { x: 0, y: 65.6, z: 0 };
+    const ayak = { x: 0, y: 64, z: 1 };
+    kontrol("bas okunamazsa ayak noktasi donuyor",
+            gozcu.govdeNoktasi(goz, ayak, undefined) === ayak);
+    kontrol("bas ile ayak ayni ise ayak noktasi donuyor",
+            gozcu.govdeNoktasi(goz, ayak, { x: 0, y: 64, z: 1 }) === ayak);
+    /* Goz mob'un cok ustunde: en yakin nokta BAS, asilmiyor. */
+    const ust = gozcu.govdeNoktasi({ x: 0, y: 90, z: 1 }, ayak,
+                                   { x: 0, y: 66.5, z: 1 });
+    kontrol("govde ekseninin disina tasmiyor (ust uc)",
+            Math.abs(ust.y - 66.5) < 1e-6, String(ust.y));
+    const alt = gozcu.govdeNoktasi({ x: 0, y: 10, z: 1 }, ayak,
+                                   { x: 0, y: 66.5, z: 1 });
+    kontrol("govde ekseninin disina tasmiyor (alt uc)",
+            Math.abs(alt.y - 64) < 1e-6, String(alt.y));
+  }
+
+  /* GERCEK REACH HALA YAKALANIYOR -- duzeltmenin bedeli. */
+  gozcu.gozcuUnut(); _durum.sohbet.length = 0;
+  {
+    const a = saldiran("wd_r", 0, 64, 0, { x: 0, y: 0, z: 1 });
+    const k = uzunMob("wd_rk", 0, 64, 6, 2.5);
+    for (let i = 0; i < ayar.GOZCU_ESIK; i++) { tickIlerlet(6); vur(a, k); }
+    const d = gozcu.gozcuDurum(a.id);
+    kontrol("uzun mob'a 6 bloktan vurmak HALA menzil isareti",
+            d && d.isaret >= ayar.GOZCU_ESIK && sonSohbet().indexOf("menzil") !== -1,
+            sonSohbet() || "bildirim yok");
+  }
+
+  /* ---------- 17b. GECIKEN ORNEKTE SICRAMA ESIGI ---------- */
+  /* Hiz gecen ticke bolunuyordu, sicrama bolunmuyordu. Tarama
+     gecikince kosan oyuncu "isinlanma" sayilabiliyordu.     */
+  function kosanO(id, x, y, z) {
+    return {
+      id, typeId: "minecraft:player", name: id, isValid: true,
+      location: { x, y, z }, dimension: { id: "overworld" },
+      isGliding: false, isFlying: false, isInWater: false,
+      isClimbing: false, isFalling: false,
+      getEffect: () => undefined, getComponent: () => undefined
+    };
+  }
+
+  gozcu.gozcuUnut(); gozcu.hareketUnut(); _durum.sohbet.length = 0;
+  {
+    const o = kosanO("gec1", 0, 64, 0);
+    /* Aralik 40 tick: normalin dort kati, ama dort ornek hala
+       GOZCU_PENCERE (200 tick) icine siğiyor -- yoksa isaretler
+       sayilmadan dusup madde kendiliginden gecerdi.          */
+    for (let i = 0; i < ayar.GOZCU_ESIK + 2; i++) {
+      gozcu.hareketTara([o], yok);
+      tickIlerlet(40);                  // tarama 10 yerine 40 tickte
+      o.location.z += 13;               // 13 blok / 2 sn = 6,5 blok/sn
+    }
+    gozcu.hareketTara([o], yok);
+    const d = gozcu.gozcuDurum(o.id);
+    kontrol("geciken ornekte kosmak isinlanma sayilmiyor",
+            !d || (d.isaret || 0) === 0,
+            d ? (d.isaret || 0) + " isaret :: " + sonSohbet() : "0");
+    /* Madde bos yere durmuyor: ESKI olcum bu mesafeyi
+       gercekten isinlanma sayardi.                          */
+    kontrol("  eski (olceksiz) esik bu kosuyu suclardi",
+            13 > ayar.HAREKET_SICRAMA, "13 > " + ayar.HAREKET_SICRAMA);
+  }
+
+  /* Ayni gecikmede GERCEK isinlanma hala yakalaniyor. */
+  gozcu.gozcuUnut(); gozcu.hareketUnut(); _durum.sohbet.length = 0;
+  {
+    const o = kosanO("gec2", 0, 64, 0);
+    for (let i = 0; i < ayar.GOZCU_ESIK; i++) {
+      gozcu.hareketTara([o], yok);
+      tickIlerlet(40);
+      o.location.z += 200;              // 100 blok/sn
+    }
+    gozcu.hareketTara([o], yok);
+    const d = gozcu.gozcuDurum(o.id);
+    kontrol("geciken ornekte GERCEK isinlanma hala isaretleniyor",
+            d && (d.isaret || 0) >= ayar.GOZCU_ESIK,
+            d ? (d.isaret || 0) + " isaret" : "yok");
+  }
+
+  /* Normal aralikta esik degismedi: 12 blok hala isinlanma. */
+  gozcu.gozcuUnut(); gozcu.hareketUnut(); _durum.sohbet.length = 0;
+  {
+    const o = kosanO("gec3", 0, 64, 0);
+    for (let i = 0; i < ayar.GOZCU_ESIK; i++) {
+      gozcu.hareketTara([o], yok);
+      tickIlerlet(ayar.HAREKET_ORNEK);
+      o.location.z += ayar.HAREKET_SICRAMA + 1;
+    }
+    gozcu.hareketTara([o], yok);
+    const d = gozcu.gozcuDurum(o.id);
+    kontrol("normal aralikta esik gevsemedi",
+            d && (d.isaret || 0) >= ayar.GOZCU_ESIK,
+            d ? (d.isaret || 0) + " isaret" : "yok");
+  }
+
+  /* ---------- 17c. KATI BLOK: LISTE + isSolid ---------- */
+  const sahteBoyut = (tip, ek) => ({
+    getBlock: () => Object.assign(
+      { isAir: false, isLiquid: false, typeId: tip }, ek || {})
+  });
+  const icinde = (tip, ek) => gozcu.katidaMi({
+    id: "kt", location: { x: 0, y: 64, z: 0 }, dimension: sahteBoyut(tip, ek)
+  });
+
+  /* 1.21'de `double_plant` ve `tallgrass` bolundu; listedeki
+     iki isim hicbir seyle eslesmiyordu. */
+  kontrol("uzun ot (1.21 adi) kati sayilmiyor",
+          icinde("minecraft:tall_grass") === false);
+  kontrol("iki bloklu cicek kati sayilmiyor",
+          icinde("minecraft:rose_bush") === false);
+  kontrol("seker kamisi kati sayilmiyor",
+          icinde("minecraft:reeds") === false);
+  kontrol("nether gecidi kati sayilmiyor",
+          icinde("minecraft:portal") === false);
+  kontrol("magara sarmasigi kati sayilmiyor",
+          icinde("minecraft:cave_vines") === false);
+  kontrol("tas HALA kati", icinde("minecraft:stone") === true);
+
+  /* isSolid yedegi: listede olmayan blok. */
+  kontrol("isSolid=false bilinmeyen blok muaf",
+          icinde("minecraft:yepyeni_bitki", { isSolid: false }) === false);
+  kontrol("isSolid=true bilinmeyen blok kati",
+          icinde("minecraft:yepyeni_tas", { isSolid: true }) === true);
+  /* EN ONEMLI MADDE: alan hic yoksa denetim AYAKTA kalmali.
+     `!blok.isSolid` yazilsaydi undefined her blogu muaf yapar
+     ve kati denetimi tamamen olurdu.                        */
+  kontrol("isSolid alani yoksa denetim kapanmiyor",
+          icinde("minecraft:bilinmeyen") === true);
+
+  /* ---------- 17d. GERI ITME: GEC OLGUNLASAN OLCUM ---------- */
+  /* Olcum 10 ticklik taramanin icinden cagriliyor ama olgunluk
+     sarti 6 tick: olcumun yapildigi an 6-15 arasinda geziyor.
+     Gec olculdugunde geri itme darbesi sonmus, oyuncunun kendi
+     kosma girdisi sonmemis oluyor -- saldirganin uzerine geri
+     kosan durust oyuncu "geri itilmedi" damgasi yiyordu.    */
+  function kurbanG(id, x, y, z) {
+    return {
+      id, typeId: "minecraft:player", name: id, isValid: true,
+      location: { x, y, z },
+      isGliding: false, isFlying: false, isInWater: false,
+      isClimbing: false, isFalling: false,
+      getEffect: () => undefined, getComponent: () => undefined
+    };
+  }
+
+  gozcu.gozcuUnut(); gozcu.hareketUnut(); gozcu.geriItmeUnut();
+  _durum.sohbet.length = 0;
+  {
+    const a = saldiran("gi_a1", 0, 64, 0, { x: 0, y: 0, z: 1 });
+    const k = kurbanG("gi_k1", 0, 64, 2);
+    /* TICK ILERLETILMIYOR, olgunlasma tiki ELDEN veriliyor.
+       Sebebi: tickIlerlet ana donguyu de calistiriyor ve ana
+       dongu her 10 tickte `geriItmeDegerlendir`i kendisi
+       cagiriyor -- yani kayit biz gecikmeye birakamadan,
+       pencere icinde degerlendirilip tuketiliyordu. Olculmek
+       istenen sey tam da GEC degerlendirme oldugu icin o tick
+       burada dogrudan veriliyor.                            */
+    for (let i = 0; i < ayar.GOZCU_ESIK + 4; i++) {
+      vur(a, k);
+      k.location.x += (i % 2 === 0) ? 0.8 : -0.8;   // uzaklasma yok
+      gozcu.geriItmeDegerlendir(system.currentTick + ayar.GERI_ITME_GEC + 2);
+    }
+    const d = gozcu.gozcuDurum(k.id);
+    kontrol("gec olculen geri itme hukum vermiyor",
+            !d || (d.isaret || 0) === 0,
+            d ? (d.isaret || 0) + " isaret :: " + sonSohbet() : "0");
+  }
+
+  /* Pencere icinde olculunce Velocity HALA yakalaniyor. */
+  gozcu.gozcuUnut(); gozcu.hareketUnut(); gozcu.geriItmeUnut();
+  _durum.sohbet.length = 0;
+  {
+    const a = saldiran("gi_a2", 0, 64, 0, { x: 0, y: 0, z: 1 });
+    const k = kurbanG("gi_k2", 0, 64, 2);
+    /* Ayni senaryo, tek fark olgunlasma tiki PENCERE ICINDE. */
+    for (let i = 0; i < ayar.GOZCU_ESIK + 2; i++) {
+      vur(a, k);
+      k.location.x += (i % 2 === 0) ? 0.8 : -0.8;
+      gozcu.geriItmeDegerlendir(system.currentTick + ayar.GERI_ITME_ORNEK);
+    }
+    const d = gozcu.gozcuDurum(k.id);
+    kontrol("pencere icinde Velocity hala isaretleniyor",
+            d && (d.isaret || 0) >= ayar.GOZCU_ESIK,
+            d ? (d.isaret || 0) + " isaret" : "yok");
+  }
+
+  kontrol("gec penceresi olgunluk sartindan buyuk",
+          ayar.GERI_ITME_GEC > ayar.GERI_ITME_ORNEK,
+          ayar.GERI_ITME_ORNEK + " -> " + ayar.GERI_ITME_GEC);
+
+  /* ---------- 17e. RUZGAR YUKU AFFI ---------- */
+  /* Hasar vermeden savuruyor, yani v7.82'nin VURULMA AFFI
+     bunu kapsamiyor: af icin entityHurt gerekiyor.          */
+  gozcu.gozcuUnut(); gozcu.hareketUnut(); _durum.sohbet.length = 0;
+  {
+    const o = kosanO("ruzgar", 0, 64, 0);
+    gozcu.hareketTara([o], yok);
+    itemUseTetikle({ source: o, itemStack: { typeId: "minecraft:wind_charge" } });
+    tickIlerlet(ayar.HAREKET_ORNEK);
+    o.location.z += 25;                  // yuk firlatti
+    gozcu.hareketTara([o], yok);
+    const d = gozcu.gozcuDurum(o.id);
+    kontrol("ruzgar yuku sonrasi savrulma affediliyor",
+            !d || (d.isaret || 0) === 0,
+            d ? (d.isaret || 0) + " isaret :: " + sonSohbet() : "0");
+  }
+
+  /* Af TEK SEFERLIK: ikinci sicrama yine isaretleniyor. */
+  gozcu.gozcuUnut(); gozcu.hareketUnut(); _durum.sohbet.length = 0;
+  {
+    const o = kosanO("ruzgar2", 0, 64, 0);
+    gozcu.hareketTara([o], yok);
+    itemUseTetikle({ source: o, itemStack: { typeId: "minecraft:wind_charge" } });
+    for (let i = 0; i < ayar.GOZCU_ESIK + 1; i++) {
+      tickIlerlet(ayar.HAREKET_ORNEK);
+      o.location.z += 25;
+      gozcu.hareketTara([o], yok);
+    }
+    const d = gozcu.gozcuDurum(o.id);
+    kontrol("ruzgar affi tek seferlik (ard arda sicrama isaretli)",
+            d && (d.isaret || 0) > 0, d ? (d.isaret || 0) + " isaret" : "0");
+  }
+
+  /* ---------- 17f. VURUS HIZI ESIGI ---------- */
+  /* Bedrock'ta saldiri bekleme suresi YOK: fareyle oynayan
+     insan saniyede 10-14 tiklayabiliyor. Eski esik 8'di. */
+  gozcu.gozcuUnut(); _durum.sohbet.length = 0;
+  {
+    const a = saldiran("cps_a", 0, 64, 0, { x: 0, y: 0, z: 1 });
+    const k = kurban("cps_k", 0, 64, 2);
+    /* Saniyede 12 vurus: hizli ama insan.  Ayni tick denetimine
+       takilmasin diye her vurus ayri ticke dagitiliyor.      */
+    for (let sn = 0; sn < 4; sn++) {
+      for (let i = 0; i < 12; i++) { vur(a, k); tickIlerlet(1); }
+      tickIlerlet(8);
+    }
+    const d = gozcu.gozcuDurum(a.id);
+    kontrol("saniyede 12 tiklayan insan suclanmiyor",
+            !d || (d.isaret || 0) === 0,
+            d ? (d.isaret || 0) + " isaret :: " + sonSohbet() : "0");
+  }
+
+  gozcu.gozcuUnut(); _durum.sohbet.length = 0;
+  {
+    const a = saldiran("aura_a", 0, 64, 0, { x: 0, y: 0, z: 1 });
+    const k = kurban("aura_k", 0, 64, 2);
+    /* Killaura hizi: tickte bir vurus = saniyede 20. */
+    for (let i = 0; i < 40; i++) { vur(a, k); tickIlerlet(1); }
+    const d = gozcu.gozcuDurum(a.id);
+    kontrol("saniyede 20 vurus (killaura) hala yakalaniyor",
+            d && (d.isaret || 0) >= ayar.GOZCU_ESIK &&
+            sonSohbet().indexOf("vurus") !== -1,
+            sonSohbet() || "bildirim yok");
   }
 }
 

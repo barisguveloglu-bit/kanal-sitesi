@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.82.0";
+export const SURUM = "v7.83.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -2454,7 +2454,22 @@ export const SAVUNMA_SIRA   = 157;
 export const GOZCU_ACIK     = true;
 export const GOZCU_MENZIL   = 4.2;    // blok
 export const GOZCU_ACI      = 0.25;   // kosinus (~75 derece)
-export const GOZCU_HIZ      = 8;      // saniyede en fazla vurus
+/* ---- VURUS HIZI ESIGI 8 -> 14  (v7.83) ----
+   Yukaridaki gerekce BEDROCK'ta yanlis: "vanilla'da silah
+   bekleme suresi var, saniyede ~5 vurus insan siniri" cumlesi
+   Java Edition'i anlatiyor. Bedrock'ta SALDIRI BEKLEME SURESI
+   YOK -- fareyle oynayan bir insan saniyede 10-14 kere rahat
+   tiklar, hicbir hile kullanmadan.
+
+   Yani 8 esigi, hizli tiklayan durust bir PC oyuncusunu
+   dort saniyede dort isaretle bildiriyordu.
+
+   14 hala killaura'yi goruyor: killaura'nin isi aralikla
+   calismak ve tipik ayari saniyede 20'nin ustunde. Arada
+   kalan 14-20 bandi bilerek feda edildi -- bu dosyanin her
+   yerinde yazili olan ayni tercih: yanlis suclamanin bedeli
+   kacan hileden buyuk.                                       */
+export const GOZCU_HIZ      = 14;     // saniyede en fazla vurus
 export const GOZCU_PENCERE  = 200;    // tick (10 sn) -- isaret penceresi
 export const GOZCU_ESIK     = 4;      // bu kadar isaret -> bildir
 export const GOZCU_SUS      = 200;    // ayni oyuncu icin bildirim arasi
@@ -2507,6 +2522,11 @@ export const HAREKET_AF_ESYA = [
   "minecraft:ender_pearl",
   "minecraft:chorus_fruit",
   "minecraft:trident",          // riptide
+  /* RUZGAR YUKU  (1.21) -- hasar vermeden savuruyor, yani
+     v7.82'de eklenen VURULMA AFFI bunu KAPSAMIYOR: af icin
+     entityHurt gerekiyor, ruzgar yuku onu uretmiyor. Kendi
+     attigi yuk oyuncuyu 8-10 blok firlatabiliyor.            */
+  "minecraft:wind_charge",
 ];
 
 /* ---------------- VURULMA AFFI  (v7.82) ----------------
@@ -2751,9 +2771,36 @@ export const HAREKET_YUKSEK_PAY = 0.4;  // ornek basina en az bu kadar yukselme
    uzaklasma 0.15 blok: gecikme, zirhin geri itme direnci
    (netherite) ve yokus gibi seylerin hepsine pay birakiyor.
    Netherite direnci geri itmeyi AZALTIR, sifirlamaz.        */
+/* ---- OLCUM PENCERESI DARALTILDI  (v7.83) ----
+   Ustteki "esikler genis" iddiasi olculunce cikmadi.
+
+   Kayitlar `geriItmeDegerlendir` icinde olgunlasiyor ve o
+   fonksiyon HAREKET_ORNEK (10) tickte bir calisan taramanin
+   icinden cagriliyor. Olgunluk sartiysa "vurustan 6 tick
+   gecmis olsun". Ikisi birlesince olcumun yapildigi an
+   vurustan 6 ila 15 tick sonrasi arasinda GEZIYOR -- hangi
+   tickte vurdugunuza bagli.
+
+   Bu gezinme yanlis alarm uretiyor cunku olculen mesafe
+   zamanla ERIYOR: geri itme darbesi surtunmeyle sonuyor,
+   oyuncunun kendi kosma girdisi sonmuyor. Vurulur vurulmaz
+   saldirganin uzerine geri kosan bir oyuncu -- yani duellonun
+   en sik hareketi -- 6. tickte hala ~0,26 blok uzakta
+   gorunuyor, 15. tickte ~0,12. Ikincisi 0,15 esiginin
+   altinda: "geri itilmedi" damgasi.
+
+   Iki degisiklik:
+     1. GERI_ITME_GEC: bu kadar tickten sonra olgunlasan kayit
+        DEGERLENDIRILMIYOR, atiliyor. Hukum vermek yerine
+        olcumu kaybediyoruz -- her vurus zaten kayit aciyor,
+        bir sonraki olcum saglam pencereye denk gelir.
+     2. Beklenen uzaklasma 0,15 -> 0,10. Velocity acmis oyuncu
+        0,00-0,03 uretiyor; 0,10 onu hala yakaliyor ama durust
+        oyuncunun payini ikiye katliyor.                      */
 export const GERI_ITME_ACIK     = true;
 export const GERI_ITME_ORNEK    = 6;     // vurustan kac tick sonra bakilsin
-export const GERI_ITME_BEKLENEN = 0.15;  // blok, en az bu kadar uzaklasmali
+export const GERI_ITME_GEC      = 10;    // bundan gec olgunlasan kayit atiliyor
+export const GERI_ITME_BEKLENEN = 0.10;  // blok, en az bu kadar uzaklasmali
 export const GERI_ITME_HAREKET  = 0.30;  // blok, "kimildayabiliyor" sayilmasi icin
 export const GERI_ITME_TAVAN    = 40;    // bekleyen kayit tavani
 
@@ -2841,13 +2888,45 @@ export const KIP_SUS     = 200;   // iki bildirim arasi en az tick
 export const KATI_ACIK   = true;
 export const KATI_ORNEK  = 4;     // ust uste kac tarama
 export const KATI_SUS    = 200;
+/* ---- LISTE 1.21 DUZLESTIRMESINDEN ONCEKI HALDEYDI (v7.83) ----
+   Iki isim 1.21'de ARTIK YOK: `minecraft:tallgrass` ve
+   `minecraft:double_plant`. Ikisi de tek tek bloklara
+   bolundu. Yani listedeki iki satir hicbir seyle eslesmiyordu
+   ve ONLARIN yerini alan bloklar listede degildi.
+
+   Sonuc olculebilir bir yanlis alarmdi: uzun otun icinde
+   durmak -- ayak da bas da dolu -- dort taramada (2 saniye)
+   "kati blok icinde" damgasi yiyordu. Ovada dovusmek yetiyor.
+
+   Ayni sinifa giren ve eksik olan otekiler: seker kamisi
+   (3 blok boyunda, carpismasiz), magara sarmasiklari, nether
+   sarmasiklari ve NETHER GECIDI -- gecidin icinde beklemek
+   iki blogu birden dolduruyor.
+
+   Eski isimler SILINMEDI: eski surumlerde hala gecerliler.  */
 export const KATI_GECILEBILIR = [
   "minecraft:water", "minecraft:flowing_water",
   "minecraft:lava", "minecraft:flowing_lava",
   "minecraft:ladder", "minecraft:vine", "minecraft:scaffolding",
   "minecraft:snow_layer", "minecraft:cobweb",
   "minecraft:tallgrass", "minecraft:short_grass", "minecraft:double_plant",
-  "minecraft:powder_snow", "minecraft:bubble_column"
+  "minecraft:powder_snow", "minecraft:bubble_column",
+  /* 1.21 duzlestirmesi: iki bloklu bitkiler */
+  "minecraft:tall_grass", "minecraft:large_fern", "minecraft:fern",
+  "minecraft:sunflower", "minecraft:lilac", "minecraft:rose_bush",
+  "minecraft:peony", "minecraft:pitcher_plant",
+  /* Boyu oyuncuyu asan, carpismasiz otekiler */
+  "minecraft:reeds", "minecraft:sugar_cane", "minecraft:bamboo_sapling",
+  "minecraft:kelp", "minecraft:seagrass", "minecraft:tall_seagrass",
+  "minecraft:cave_vines", "minecraft:cave_vines_head_with_berries",
+  "minecraft:cave_vines_body_with_berries",
+  "minecraft:twisting_vines", "minecraft:weeping_vines",
+  "minecraft:hanging_roots", "minecraft:glow_lichen",
+  /* Gecitler: icinde beklemek iki blogu birden doldurur */
+  "minecraft:portal", "minecraft:end_portal", "minecraft:end_gateway",
+  /* Gorunmez / carpismasiz teknik bloklar */
+  "minecraft:light_block", "minecraft:structure_void",
+  "minecraft:fire", "minecraft:soul_fire"
 ];
 /* Kendi bloklarimiz: kupalar carpismasiz (collision_box false),
    yani oyuncu gercekten iclerinden gecebiliyor.              */
