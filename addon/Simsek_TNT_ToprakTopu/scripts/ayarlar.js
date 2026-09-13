@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.90.0";
+export const SURUM = "v7.91.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -11467,3 +11467,85 @@ export const YENILMEZ_SES     = "random.anvil_land";
 export const YENILMEZ_PARCACIK = "minecraft:totem_particle";
 /* Mesaj arasi susturma: /kill spam'i sohbeti bogmasin.      */
 export const YENILMEZ_SUS = 40;
+
+
+/* ============================================================
+   AVARITIA ULTIMATE 1.5.0 -- alinan uc mekanik      (v7.91)
+
+   Kullanici: "bence moddaki her seyi alalim gitsin vallahi
+   zirhi da alalim."
+
+   Zirh v7.90'da alindi (Yenilmez Zirh). Incelemenin tamami
+   REFERANS_AVARITIA.md'de: 117 esya, 58 blok, 49 script
+   modulu. Modullerin yarisindan cogu TARIF/ARAYUZ tesisati
+   (sikistirma tarifleri, 9x9 tezgah, tarif rehberi, EMC
+   kaydi, uyumluluk denetleyicileri). Gercek MEKANIK ~20 ve
+   cogunun bizde karsiligi var.
+
+   Buraya alinan uc tanesi, bizde karsiligi HIC olmayanlar.
+   ============================================================ */
+
+export const AVA_ACIK = true;
+/* Yenilmez Zirh 700'lerde degil; PowerBorne 700'den basliyor
+   ve 11 tane. Avaritia 760'tan basliyor -- arada pay var.  */
+export const AVA_SIRA_BAS = 760;
+
+/* ---------------- 1. DIKEN ZIRHI (thorns surplus) ---------
+   Kaynak (`xtreme_effects.js`):
+
+     const thorns = armor.thorns | 0;
+     if (thorns <= 0) return;
+     const src = ev.damageSource && ev.damageSource.damagingEntity;
+     if (!src || src.id === victim.id) return;
+     xtDealBonus(src, victim, xtScale(thorns) * 1.5, thorns);
+
+   Yani vurana hasarin bir kismi geri donuyor. Bizde hic
+   yoktu ve kullanicinin "tamamen savunmaya yonelik" yonune
+   tam oturuyor: saldiran ceza aliyor, sen saldirmiyorsun.
+
+   ---- KAYNAKTAN AYRILDIGIMIZ YER ----
+   Kaynakta zirhin `thorns` buyusune bagli ve SUREKLI.
+   Bizde SURELI bir yetenek: kalici etkinin sure siniri bu
+   depoda sart. Ayrica ORAN tavanli -- yansima hasarin
+   tamamini gecemiyor, yoksa vuran kendi vurusundan olurdu
+   ve bu bir savunma degil tuzak olurdu.                    */
+export const AVA_DIKEN_SURE   = 300;   // tick (15 sn)
+export const AVA_DIKEN_ORAN   = 0.6;   // gelen hasarin bu kadari geri
+export const AVA_DIKEN_TAVAN  = 8;     // tek yansimada en fazla
+export const AVA_DIKEN_PARCACIK = "minecraft:critical_hit_emitter";
+
+/* ---------------- 2. AGAC DEVIRME (veinMining) ------------
+   Kaynak adi `veinMining` ama yaptigi is CEVHER DAMARI DEGIL
+   AGAC: `affectedBlocks` yalniz `_log`, `_stem`, `_leaves`,
+   `wart_block`, `mangrove_roots` iceriyor. Adina bakip
+   "damar madenciligi" demek yanlis olurdu -- koda bakildi.
+
+   Sinirlar kaynaktan: 256 kutuk, 64 yaprak. Bizde cok daha
+   dusuk, cunku bu depoda tick basina blok butcesi var
+   (blokIste) ve 320 blok tek karede yazilamaz.            */
+export const AVA_AGAC_SURE    = 200;   // tick -- kac tick acik kalsin
+export const AVA_AGAC_ARA     = 2;     // kac tickte bir parti
+export const AVA_AGAC_PARTI   = 6;     // tek partide en fazla blok
+export const AVA_AGAC_TAVAN   = 160;   // toplam blok tavani
+export const AVA_AGAC_MENZIL  = 6;     // baktigin kutuge uzaklik
+export const AVA_AGAC_YAPRAK_UZAK = 6; // kutukten bu kadar uzak yaprak
+/* Son ek eslesmesi -- kaynaktaki listenin aynisi.          */
+export const AVA_AGAC_KUTUK   = ["_log", "_stem"];
+export const AVA_AGAC_YAPRAK  = ["_leaves", "wart_block", "mangrove_roots"];
+
+/* ---------------- 3. BEDROCK KIRICI -----------------------
+   Kaynak (`bedrock_breaker.js`): neutronium kazmasiyla
+   bedrock kiriliyor, 188 tick suruyor ("elmas kazmayla
+   obsidyen 9,4 sn").
+
+   ---- EN ALT KATMAN KIRILMIYOR ----
+   Kaynakta boyle bir sinir YOK. Burada var ve sebebi olculu:
+   dunyanin en alt katmani kirilirsa altinda BOSLUK kalir.
+   Kullanicinin "Efsanenin Dunyasi" dunyasi TEK KAT bedrock --
+   orada bu yetenek zemini delip dunyayi kullanilamaz
+   yapardi. Bir yetenek, kullanicinin dunyasini geri
+   alinamaz bicimde bozmamali.                              */
+export const AVA_BEDROCK_MENZIL = 6;
+export const AVA_BEDROCK_SURE   = 188;  // tick -- kaynaktaki sayi
+export const AVA_BEDROCK_PARCACIK = "minecraft:basic_smoke_particle";
+export const AVA_BEDROCK_TIPLER = ["minecraft:bedrock"];

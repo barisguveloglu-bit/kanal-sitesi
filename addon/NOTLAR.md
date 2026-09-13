@@ -1,3 +1,64 @@
+# v7.91.0 — Avaritia'dan üç mekanik
+
+Kullanıcı: *"bence moddaki her şeyi alalım gitsin vallahi zırhı da alalım."*
+
+Zırh v7.90'da alınmıştı. Tam hüküm listesi
+[`REFERANS_AVARITIA_EK.md`](REFERANS_AVARITIA_EK.md).
+
+## Önce sayıyı düzeltelim
+
+117 eşya görünüyor ama **25'i tekillik** (aynı tarifin 25 kopyası), **~35'i
+dört ayrı kademe takımı** (blaze/crystal/neutronium/infinity), **~10'u
+yemek/dekor**. 49 script modülünün yarısından çoğu tarif/arayüz tesisatı.
+**Gerçek mekanik ~20** ve yedisinin bizde karşılığı zaten var.
+
+## Alınan üç tanesi
+
+| bizdeki | kaynak | ne değişti |
+|---|---|---|
+| **Diken Zırhı** | thorns surplus | süreli + **tavanlı** — vuran kendi vuruşundan ölmesin |
+| **Ağaç Devir** | `veinMining.js` | bütçeye bölündü |
+| **Bedrock Kır** | `bedrock_breaker.js` | süre aynen (188 tick), **en alt katman kırılmıyor** |
+
+**Diken Zırhı** senin "tamamen savunmaya yönelik" yönüne tam oturuyor:
+saldıran ceza alıyor, sen saldırmıyorsun.
+
+**En alt katman kuralı kaynakta yok.** Senin "Efsanenin Dünyası" dünyan tek
+kat bedrock — orada bu yetenek zemini delip dünyayı kullanılamaz yapardı.
+
+**`veinMining` adı yanıltıcı:** cevher damarı değil **ağaç** kesiyor. Adına
+bakıp "damar madenciliği" demek yanlış olurdu; koda bakıldı.
+
+## Alınmayanın en büyüğü: sıkıştırma ekonomisi
+
+Avaritia'nın çekirdeği bir **ilerleme sistemi** — 9×9 tezgahta bin blok
+sıkıştırıp tekillik, tekillikleri birleştirip katalizör. Bu bir mekanik değil
+bir **ekonomi**; almak 9×9 tezgah + 200'den fazla tarif + kendi arayüzü
+demek, yani ayrı bir mod. Dört kademe takım da alınmadı: bizde `kns_*`,
+Marvel'ın 300 parçası ve Ben 10 zaten var, beşinci bir kademe merdiveni
+kimsenin kullanmayacağı bir şey olurdu.
+
+## Test iki gerçek hata buldu
+
+**1. Bedrock kırıcı hiç kırmıyordu.** `sureliIs` önce "süre doldu mu" diye
+bakıp `true` dönüyor, adım ondan sonra çalışıyor. Süre tavanı
+`SURE + 2` yazılmıştı, adım aralığı 10 tick — son adım 190. tickte gelecekti
+ama iş 190'da zaten bitmiş oluyordu. Tavan genişletildi; işi bitiren artık
+adımın kendisi.
+
+**2. Yaprak uzaklık sınırı test edilmiyordu.** Mutasyon sınırı kaldırdı,
+hiçbir madde düşmedi — test ağacı küçüktü, bütün yapraklar zaten sınırın
+içindeydi. Uzun bir yaprak zinciri eklendi; sınır artık ölçülüyor.
+
+Ayrıca bir sayım yanlışım vardı: kütüğe komşu yaprak `d=0` ile başlıyor, yani
+`d <= 6` sınırının karşılığı zincirde **7.** blok. Kodda hata yoktu.
+
+## Test
+
+`test/avaritia.mjs` 25 madde. Mutasyon bataryası **10/10**.
+
+---
+
 # v7.90.0 — Yenilmez Zırh
 
 Kullanıcı: *"bu modda o zırhı taktığın zaman /kill yazınca bile öldürmüyormuş,

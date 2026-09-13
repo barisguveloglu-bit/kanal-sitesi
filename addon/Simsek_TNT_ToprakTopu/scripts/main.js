@@ -100,6 +100,8 @@ import {
   merdivenTara, merdivenUnut
 } from "./yetenekler/savunma_merdiveni.js";
 import { yenilmezKur, yenilmezUnut } from "./yetenekler/yenilmez_zirh.js";
+import "./yetenekler/avaritia.js";
+import { dikenKur, dikenUnut } from "./yetenekler/avaritia.js";
 import { quincyUnut, reishiUnut } from "./yetenekler/ruh_yetenekler.js";
 import { berserkUnut } from "./yetenekler/karakter_yetenekler.js";
 import { jjkUnut, sonsuzUnut, jjkSec } from "./yetenekler/jujutsu.js";
@@ -127,7 +129,7 @@ import {
 } from "./yetenekler/gozcu.js";
 import {
   HAREKET_ACIK, HAREKET_ORNEK, HAREKET_AF_ESYA, SUZULME_ROKET_ESYA,
-  MERDIVEN_ACIK, MERDIVEN_ARA, YENILMEZ_ACIK,
+  MERDIVEN_ACIK, MERDIVEN_ARA, YENILMEZ_ACIK, AVA_ACIK,
   HAREKET_AF_HASAR, HAREKET_AF_HASAR_TICK
 } from "./ayarlar.js";
 import {
@@ -2479,6 +2481,14 @@ if (VILTRUMITE_ACIK) viltrumiteKur();
    aliyor. Tek abonede birlestirilseydi biri kapatilinca
    oteki de kapanirdi.                                     */
 const yenilmezKuruldu = yenilmezKur();
+/* DIKEN ZIRHI (v7.91) kendi `entityHurt` abonesini kuruyor:
+   yenilmez zirh hasari GERI ALIYOR, diken hasari VURANA
+   yansitiyor. Ayri seyler, ayri abone -- biri kapatilinca
+   oteki kapanmasin.                                       */
+const dikenKuruldu = dikenKur();
+if (!dikenKuruldu && AVA_ACIK) {
+  bilgiYaz("entityHurt yok: Diken Zirhi calismiyor. Modun geri kalani normal.");
+}
 if (!yenilmezKuruldu && YENILMEZ_ACIK) {
   bilgiYaz("entityHurt yok: Yenilmez Zirh calismiyor. Modun geri kalani normal.");
 }
@@ -2584,6 +2594,7 @@ olayaAbone("playerLeave", (olay) => {
   nefesCikti(olay.playerId);       // v7.87: yalniz bekleme, uslup kalir
   merdivenUnut(olay.playerId);     // v7.89: savunma merdiveni durumu
   yenilmezUnut(olay.playerId);     // v7.90: zirh sarji
+  dikenUnut(olay.playerId);        // v7.91: diken zirhi penceresi
   roketUnut(olay.playerId);        // v7.46: roket penceresi
   /* Cikan oyuncunun bekleyen geri-itme olcumleri dusuyor.
      KIMLIKLE cagriliyor: kimliksiz cagri hepsini silerdi ve

@@ -130,8 +130,8 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # penceresi, ruzgar yuku affi, vurus hizi esigi). Ucuncu
 # hanenin 0 yerine 5'ten baslamasi bunun isareti -- 7.83.0
 # ile 7.83.5 AYNI kod, sadece numara degisti.
-# v7.90.0: ORTANCA hane -- Yenilmez Zirh. Yeni sistem.
-SURUM_NO = (7, 90, 0)
+# v7.91.0: ORTANCA hane -- Avaritia'dan uc mekanik.
+SURUM_NO = (7, 91, 0)
 
 SURUM_METIN = "%d.%d.%d" % SURUM_NO
 
