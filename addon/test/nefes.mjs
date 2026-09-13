@@ -83,16 +83,24 @@ const bekle = () => { sus(); tickIlerlet(ayar.NEFES_BEKLEME + 2); ac(); };
 
 console.log("=== 1. IKI USLUP, 23 FORM ===");
 {
-  kontrol("iki uslup tanimli", ayar.NEFES_USLUPLAR.size === 2,
+  kontrol("uc uslup tanimli", ayar.NEFES_USLUPLAR.size === 3,
           [...ayar.NEFES_USLUPLAR.keys()].join(" "));
   const g = ayar.NEFES_USLUPLAR.get("gunes");
   const a = ayar.NEFES_USLUPLAR.get("ay");
+  const b = ayar.NEFES_USLUPLAR.get("bambu");
   kontrol("Gunes 12 form", g.formlar.length === 12, String(g.formlar.length));
   kontrol("Ay 11 form", a.formlar.length === 11, String(a.formlar.length));
+  kontrol("Bambu 12 form", b.formlar.length === 12, String(b.formlar.length));
 
   const hepsi = kayit.tumYetenekler().filter((x) => x.kimlik.startsWith("nefes"));
-  kontrol("25 yetenek kayitli (2 secim + 23 form)", hepsi.length === 25,
+  kontrol("38 yetenek kayitli (3 secim + 35 form)", hepsi.length === 38,
           hepsi.length + " yetenek");
+  /* Sira payi: nefes veriye bagli ve buyuyor. PowerBorne'un
+     basladigi yere dayanirsa dorduncu uslup carpar.        */
+  const enBuyuk = Math.max(...hepsi.map((x) => x.sira));
+  kontrol("dorduncu uslup icin sira payi var (>= 20 slot)",
+          ayar.PB_SIRA_BAS - enBuyuk >= 20,
+          enBuyuk + " -> " + ayar.PB_SIRA_BAS);
   kontrol("sira carpismasi yok", kayit.siraDenetimi().length === 0,
           kayit.siraDenetimi().join(" | ") || "temiz");
 
@@ -114,6 +122,17 @@ console.log("=== 1. IKI USLUP, 23 FORM ===");
           a.formlar.map((f) => f.no).join(","));
   kontrol("modda bos olan Gunes 13 alinmadi",
           !g.formlar.some((f) => f.no === 13));
+
+  /* Bambu form adlari da MODDAN. Bambu'da modda hic bos
+     anahtar yok: 1-12'nin hepsi dolu.                     */
+  kontrol("Bambu 1. form 'Bamboo Blade'", b.formlar[0].en === "Bamboo Blade");
+  kontrol("Bambu 10. form 'Takemikazuchi no Kami'",
+          b.formlar.find((f) => f.no === 10).en === "Takemikazuchi no Kami");
+  kontrol("Bambu 12. form 'BAMBOO'",
+          b.formlar.find((f) => f.no === 12).en === "BAMBOO");
+  kontrol("Bambu formlari 1..12 kesintisiz (modda bos yok)",
+          b.formlar.map((f) => f.no).join(",") === "1,2,3,4,5,6,7,8,9,10,11,12",
+          b.formlar.map((f) => f.no).join(","));
 }
 
 console.log("");
@@ -266,6 +285,45 @@ console.log("=== 7. CIKISTA USLUP SILINMIYOR ===");
   /* nefesUnut ise gercekten siliyor (test aracı). */
   nefes.nefesUnut(o.id);
   kontrol("nefesUnut siliyor", nefes.nefesSecili(o.id) === undefined);
+}
+
+console.log("");
+console.log("=== 8. BAMBU'NUN IMZASI: SERSEMLETME ===");
+{
+  /* Uc uslubun uc ayri imzasi olmali: Gunes yakiyor, Ay
+     tekrarli kesiyor, Bambu sersemletiyor. Ucuncusu
+     olmasaydi Bambu, Gunes'in renksiz bir kopyasi olurdu. */
+  const { D, o } = kur("b1");
+  const z = hedef("zb", "minecraft:zombie", 0.5, 90, 3.0);
+  D.boyut._varliklar = [o, z];
+  nefes.nefesUnut();
+  calistir("nefes_sec_bambu", o);
+  kontrol("bambu secilebiliyor", nefes.nefesSecili(o.id) === "bambu",
+          String(nefes.nefesSecili(o.id)));
+  bekle(); calistir("nefes_bambu_1", o);
+  kontrol("hasar verdi", z._hasar.length > 0, z._hasar.join(","));
+  kontrol("SERSEMLETTI (bulanti)",
+          z._etki.some((e) => e.a === "nausea"),
+          JSON.stringify(z._etki.map((x) => x.a)));
+  kontrol("  yavaslatti da", z._etki.some((e) => e.a === "slowness"));
+  kontrol("  sersemletme SURELI",
+          z._etki.every((e) => e.s > 0 && e.s <= 200),
+          z._etki.map((e) => e.a + ":" + e.s).join(" "));
+  /* Bambu ATES VERMIYOR -- Gunes'ten fark. */
+  kontrol("Bambu ates vermiyor (Gunes'ten fark)", z._ates === 0,
+          z._ates + " sn");
+
+  /* Gunes SERSEMLETMIYOR -- Bambu'dan fark. Bu madde olmadan
+     "uc ayri imza" iddiasi olculmemis olurdu.             */
+  const { D: D2, o: o2 } = kur("b2");
+  const z2 = hedef("zg", "minecraft:zombie", 0.5, 90, 3.0);
+  D2.boyut._varliklar = [o2, z2];
+  nefes.nefesUnut();
+  calistir("nefes_sec_gunes", o2);
+  bekle(); calistir("nefes_gunes_1", o2);
+  kontrol("Gunes sersemletmiyor (Bambu'dan fark)",
+          !z2._etki.some((e) => e.a === "nausea"),
+          JSON.stringify(z2._etki.map((x) => x.a)));
 }
 
 console.log(hata ? ">>> SORUN VAR" : ">>> nefes yerinde");

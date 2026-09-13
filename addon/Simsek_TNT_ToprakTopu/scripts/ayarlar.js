@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.87.0";
+export const SURUM = "v7.88.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -11028,6 +11028,67 @@ export const NEFES_USLUPLAR = new Map([
       { no: 16, ad: "Ay Kuşağı, Yarım Ay",           en: "Moonbow, Half Moon",
         tur: "mermi",  hasar: 11, menzil: 16 }
     ]
+  }],
+  /* ---------------- UCUNCU USLUP: BAMBU  (v7.88) ----------------
+     Kullanici: "bu kadar dolu olmasa da 3 sirada olan en dolu
+     yetenege sahip olan nefes hangisi onu da alabilir misin."
+
+     ---- OLCUM ----
+     Gunes ve Ay disarida birakilip kalan 14 nefes sayildi
+     (form sayisi, kendi kilici, kendi mermisi, kendi varligi,
+     dil kaydi). Bambu her olcutte onde:
+
+       bambu   12 dolu form · 2 nichirin kilici · 22 dil kaydi
+       su      11 form · kilic yok · 20 dil kaydi
+       canavar 10 form · kilic yok · 21 dil kaydi
+       yildirim 10 form · kilic yok · 14 dil kaydi
+
+     Ilk sayimda ic siniflar ($1) kiliclari ikiye katliyordu;
+     tekillestirilip tekrarlandi ve sonuc degismedi.
+
+     ---- KANON DEGIL, BILEREK ----
+     Bambu Nefesi Kimetsu no Yaiba kanonunda YOK; moda ozgu.
+     Kullanicinin istegi "dosyadaki en dolu ucuncu" idi,
+     "kanondaki ucuncu" degil. Kanon bir ucuncu istenirse Su
+     (11 form) hazir bekliyor.
+
+     ---- IMZASI: SERSEMLETME ----
+     Gunes yakiyor, Ay tekrarli kesiyor. Bambu bir TAHTA
+     kilic: kesmez, ezer. Formlarinin cogu `sersem` alani
+     tasiyor -- bulanti + yavaslik. Ucuncu uslubun ucuncu bir
+     imzasi olmasaydi, Gunes'in renksiz bir kopyasi olurdu. */
+  ["bambu", {
+    ad: "Bambu Nefesi", en: "Bamboo Breathing",
+    ikinci: "moda özgü",
+    renk: "§a",
+    parcacik: "minecraft:redstone_wandering_trail_particle",
+    ses: "block.bamboo.break",
+    formlar: [
+      { no: 1,  ad: "Bambu Kılıcı",         en: "Bamboo Blade",
+        tur: "kesik",  hasar: 6,  menzil: 4.5, aci: 0.35, sersem: 60 },
+      { no: 2,  ad: "Bambu Yolu",           en: "Bamboo Way",
+        tur: "atilim", hasar: 6,  menzil: 6,   guc: 1.5 },
+      { no: 3,  ad: "Bambu Sepeti",         en: "Bamboo Basket",
+        tur: "halka",  hasar: 5,  menzil: 5,   sersem: 80 },
+      { no: 4,  ad: "Bambu Pervanesi",      en: "Bamboo-Copter",
+        tur: "koruma", efektler: [["jump_boost", 200, 3], ["slow_falling", 200, 0]] },
+      { no: 5,  ad: "Bambu Ayaklık",        en: "Stilt",
+        tur: "atilim", hasar: 5,  menzil: 4,   guc: 0.6, yukari: 1.2 },
+      { no: 6,  ad: "Bambu Darbesi",        en: "Bamboo Impact",
+        tur: "kesik",  hasar: 10, menzil: 5,   aci: 0.3,  sersem: 100 },
+      { no: 7,  ad: "Bambu Dişli İblis",    en: "Bamboo Fang Demon",
+        tur: "kesik",  hasar: 6,  menzil: 5,   aci: 0.35, tekrar: 2 },
+      { no: 8,  ad: "Bambu Otu Sayımı",     en: "Bamboo Grass Enumeration",
+        tur: "halka",  hasar: 4,  menzil: 6,   tekrar: 3 },
+      { no: 9,  ad: "Maytap",               en: "Firecracker",
+        tur: "halka",  hasar: 6,  menzil: 6,   sersem: 120 },
+      { no: 10, ad: "Takemikazuchi no Kami", en: "Takemikazuchi no Kami",
+        tur: "mermi",  hasar: 9,  menzil: 14 },
+      { no: 11, ad: "Shishi-Odoshi",        en: "Shishi-Odoshi",
+        tur: "cekis",  hasar: 5,  menzil: 9 },
+      { no: 12, ad: "BAMBU",                en: "BAMBOO",
+        tur: "halka",  hasar: 12, menzil: 7,   sersem: 100 }
+    ]
   }]
 ]);
 
@@ -11063,8 +11124,16 @@ export const NEFES_HASAR_SEBEP  = "entityAttack";
    ============================================================ */
 
 export const PB_ACIK = true;
-/* Nefes 600-625'te. Onun ustunden basliyor.               */
-export const PB_SIRA_BAS = 640;
+/* ---- 640 -> 700  (v7.88) ----
+   640 yazilmisti ve iki uslupla (25 yetenek) rahat siğiyordu.
+   Ucuncu uslup eklenince nefes 637'ye kadar cikti: uc slot
+   pay kaldi. Dorduncu uslup carpardi.
+
+   Nefes veriye bagli ve kullanici "sunu da ekle" dedikce
+   buyuyor -- yani buradaki payin genis olmasi lazim. 700
+   secildi: arada 62 slot bos, yaklasik iki uslup daha
+   siğiyor ve siraDenetimi carpismayi zaten yakaliyor.     */
+export const PB_SIRA_BAS = 700;
 
 /* 1. DUVARDA YURUME (Spider-Man wall_crawl) ----------------
    Kaynak: duvara degdiginde tirmaniyor.

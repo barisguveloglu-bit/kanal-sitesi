@@ -130,9 +130,9 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # penceresi, ruzgar yuku affi, vurus hizi esigi). Ucuncu
 # hanenin 0 yerine 5'ten baslamasi bunun isareti -- 7.83.0
 # ile 7.83.5 AYNI kod, sadece numara degisti.
-# v7.87.0: ORTANCA hane -- iki yeni sistem: Nefes (Kimetsu no
-# Yaiba, 2 uslup 23 form) ve PowerBorne'un onbir mekanigi.
-SURUM_NO = (7, 87, 0)
+# v7.88.0: ORTANCA hane -- ucuncu nefes uslubu (Bambu, 12
+# form). Yeni ozellik, hata duzeltmesi degil.
+SURUM_NO = (7, 88, 0)
 
 SURUM_METIN = "%d.%d.%d" % SURUM_NO
 

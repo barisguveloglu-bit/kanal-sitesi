@@ -1,3 +1,50 @@
+# v7.88.0 — Üçüncü nefes: Bambu
+
+Kullanıcı: *"bu kadar dolu olmasa da 3 sırada olan en dolu yeteneğe sahip
+olan nefes hangisi onu da alabilir misin."*
+
+## Ölçüm
+
+Güneş ve Ay dışarıda bırakıldı, kalan 14 nefes aynı ölçütlerle sayıldı:
+
+| nefes | dolu form | kendi kılıcı | dil kaydı |
+|---|---|---|---|
+| **bambu** | **12** | **2** | **22** |
+| su | 11 | — | 20 |
+| canavar | 10 | — | 21 |
+| yıldırım | 10 | — | 14 |
+
+**Bambu her ölçütte önde.** İlk sayımda iç sınıflar (`$1`) kılıçları ikiye
+katlıyordu; tekilleştirip tekrarladım, sonuç değişmedi.
+
+**Kanonda yok, bilerek aldım.** Bambu Nefesi Kimetsu no Yaiba kanonunda
+geçmez, moda özgü. İstek "dosyadaki en dolu üçüncü" idi. Kanon bir üçüncü
+istenirse **Su** (11 form) hazır.
+
+## İmzası ayrı: sersemletme
+
+Güneş yakıyor, Ay tekrarlı kesiyor. Bambu bir **tahta** kılıç — kesmez, ezer:
+bulantı + yavaşlık. Üçüncü üslubun üçüncü bir imzası olmasaydı Güneş'in
+renksiz bir kopyası olurdu. Test hem Bambu'nun sersemlettiğini hem **Güneş'in
+sersemletmediğini** ayrı ayrı ölçüyor.
+
+12 formun hepsi dolu — Bambu'da modda boş anahtar yok.
+
+## Sıra payı açıldı
+
+Üçüncü üslupla nefes 637'ye çıktı, PowerBorne 640'tan başlıyordu: **üç slot**
+pay kalmıştı, dördüncü üslup çarpardı. PowerBorne **700**'e taşındı, araya 62
+slot (yaklaşık iki üslup daha) girdi. Test bu payı ayrıca ölçüyor — daralırsa
+haber verir.
+
+## Test
+
+`test/nefes.mjs` 48 madde (8. bölüm yeni). Mutasyon bataryası **5/5**:
+sersemletmenin kaldırılması, süresiz yapılması, Güneş'e de verilmesi,
+uydurma form eklenmesi ve sıra payının daraltılması — beşi de yakalandı.
+
+---
+
 # v7.87.0 — Nefes (Kimetsu) + PowerBorne'un on bir mekaniği
 
 Kullanıcı dört şey istedi.

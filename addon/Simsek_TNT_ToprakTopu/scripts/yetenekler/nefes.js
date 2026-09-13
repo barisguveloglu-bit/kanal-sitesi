@@ -110,6 +110,18 @@ function atesVer(hedef, tick) {
   } catch (e) { /* ates veremediysek hasar yine gitti */ }
 }
 
+/* BAMBU'NUN IMZASI. Tahta kilic kesmez, ezer: bulanti +
+   yavaslik. Sure ayardan geliyor ve hepsi sonlu -- bu depoda
+   kalici etkinin sure siniri sart.                          */
+function sersemlet(hedef, tick) {
+  if (!tick) return;
+  try {
+    if (typeof hedef.addEffect !== "function") return;
+    hedef.addEffect("nausea", tick, { amplifier: 0, showParticles: true });
+    hedef.addEffect("slowness", tick, { amplifier: 1, showParticles: false });
+  } catch (e) { /* efekt yoksa hasar yine gitti */ }
+}
+
 function korEt(hedef, tick) {
   if (!tick) return;
   try {
@@ -138,7 +150,7 @@ const MEKANIK = {
       for (const h of liste) {
         if (!gecerliMi(h)) continue;
         if (!vur(h, oyuncu, f.hasar)) continue;
-        atesVer(h, f.atesle); korEt(h, f.kor);
+        atesVer(h, f.atesle); korEt(h, f.kor); sersemlet(h, f.sersem);
         parcacikAt(oyuncu.dimension, u.parcacik,
                    varlikKonumu(h) || h.location);
         if (k === 0) n++;

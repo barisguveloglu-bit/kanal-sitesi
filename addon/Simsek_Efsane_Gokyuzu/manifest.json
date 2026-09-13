@@ -1,12 +1,12 @@
 {
   "format_version": 2,
   "header": {
-    "name": "Şimşek 7.87.0 · Efsanenin Göğü",
+    "name": "Şimşek 7.88.0 · Efsanenin Göğü",
     "description": "Gökyüzü #106159, sis #20C5B5. AYRI paket: yalnızca açtığın dünyada geçerli, öteki dünyaların vanilla kalır.",
     "uuid": "3f8a1c40-7e21-4b96-9d55-2ac0e7f13b80",
     "version": [
       7,
-      87,
+      88,
       0
     ],
     "min_engine_version": [
@@ -22,7 +22,7 @@
       "uuid": "3f8a1c40-7e21-4b96-9d55-2ac0e7f13b81",
       "version": [
         7,
-        87,
+        88,
         0
       ]
     }

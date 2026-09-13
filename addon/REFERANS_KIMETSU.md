@@ -94,12 +94,45 @@ yalnızca bekleme sayacını temizliyor. (İlk yazılışta `nefesUnut`
 çağrılıyordu ve üslubu da siliyordu — yani kalıcılık kodu yazılıp hemen
 iptal edilmiş oluyordu. Test bunu davranışla ölçüyor.)
 
+## ÜÇÜNCÜ ÜSLUP: BAMBU (v7.88)
+
+Kullanıcı: *"bu kadar dolu olmasa da 3 sırada olan en dolu yeteneğe sahip
+olan nefes hangisi onu da alabilir misin."*
+
+Güneş ve Ay dışarıda bırakılıp kalan 14 nefes aynı ölçütlerle sayıldı:
+
+| nefes | dolu form | kendi kılıcı | dil kaydı |
+|---|---|---|---|
+| **bambu** | **12** | **2** (`nichirinsword_bamboo`, `_bamboo_2`) | **22** |
+| su | 11 | — | 20 |
+| canavar | 10 | — | 21 |
+| yıldırım | 10 | — | 14 |
+| sakura | 10 | — | 13 |
+| rüzgâr | 9 | — | 19 |
+
+Bambu her ölçütte önde. (İlk sayımda iç sınıflar `$1` kılıçları ikiye
+katlıyordu; tekilleştirilip tekrarlandı, sonuç değişmedi.)
+
+**Kanonda yok, bilerek.** Bambu Nefesi Kimetsu no Yaiba kanonunda geçmez,
+moda özgü. İstek "dosyadaki en dolu üçüncü" idi, "kanondaki üçüncü" değil.
+Kanon bir üçüncü istenirse **Su** (11 form) hazır bekliyor.
+
+**İmzası: sersemletme.** Güneş yakıyor, Ay tekrarlı kesiyor. Bambu bir
+**tahta** kılıç — kesmez, ezer: bulantı + yavaşlık. Üçüncü üslubun üçüncü bir
+imzası olmasaydı Güneş'in renksiz bir kopyası olurdu. Test hem Bambu'nun
+sersemlettiğini hem **Güneş'in sersemletmediğini** ayrı ayrı ölçüyor.
+
+12 formun hepsi dolu (modda boş anahtar yok): Bamboo Blade · Bamboo Way ·
+Bamboo Basket · Bamboo-Copter · Stilt · Bamboo Impact · Bamboo Fang Demon ·
+Bamboo Grass Enumeration · Firecracker · Takemikazuchi no Kami ·
+Shishi-Odoshi · BAMBOO.
+
 ## ALINMADI
 
-- **Öteki 16 nefes** — kullanıcı "iki tanesini seçebilirsin" dedi. Su, Alev,
-  Yıldırım, Rüzgâr, Taş, Sis, Ses, Aşk, Yılan, Böcek, Çiçek, Canavar, Bambu,
-  Sakura ve iki yardımcı. İstenirse aynı tablodan eklenir — sistem veriye
-  bağlı, kod değişmez.
+- **Öteki 13 nefes** — Su, Alev, Yıldırım, Rüzgâr, Taş, Sis, Ses, Aşk, Yılan,
+  Böcek, Çiçek, Canavar, Sakura. İstenirse aynı tablodan eklenir — sistem
+  veriye bağlı, kod değişmez. Sıra payı da açıldı: PowerBorne 640'tan
+  **700**'e taşındı, yaklaşık iki üslup daha sığıyor.
 - **67 Kekkijutsu (kan iblis sanatı)** — iblis tarafı. Ayrı bir kadro,
   ayrı bir istek.
 - **Karakter varlıkları ve dokuları** — Yoriichi'nin üç sürümü, Kokushibo,
