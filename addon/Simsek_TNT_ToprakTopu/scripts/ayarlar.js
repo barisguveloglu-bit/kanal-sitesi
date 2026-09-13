@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.83.5";
+export const SURUM = "v7.84.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -10635,3 +10635,107 @@ export const KOL_TAKAS_PARCACIK_YARICAP = 0.35;
    varliklarinin vurulamaz ve carpismasiz olmasi bu durumu
    zararsiz kiliyor -- yerde duran bir goruntu kaliyor.        */
 export const KOL_TAKAS_KAYIT_ANAHTAR = "simsek:kol_takas";
+
+
+/* ============================================================
+   BORALO V6 -- KAN YAGMURU ve GOZ SENSORU        (v7.84)
+
+   Kullanici "Boralo V6" paketini gonderdi: 201 esya, 636
+   function, 49 animasyon denetleyicisi, SIFIR script.
+   Incelemenin tamami REFERANS_BORALO_V6.md'de.
+
+   Olcum sonucu kisa: pakettekı mekaniklerin neredeyse hepsi
+   bizde ZATEN var ve cogu daha iyi kurulu (sersemletme +
+   mezar zinciri, kol sistemi, goz lazerleri, kafes,
+   isinlanma, ors, meteor, zaman saati, tas donusturucu...).
+
+   Gercekten EKSIK olan iki sey cikti ve ikisi de burada:
+
+     1. HAVA DURUMU -- bu depoda havaya dokunan tek bir satir
+        yoktu. ("Blood Rain")
+     2. ANLIK KORLUK SILAHI -- korluk baska yeteneklerin
+        icinde var ama tek isi korluk olan bir sey yoktu.
+        Ustelik SERSEM_KOR bilerek false: sersemletilen
+        gorsun diye. Yani bosluk gercekten bosluktu.
+        ("Eye Sensor")
+   ============================================================ */
+
+/* ---------------- KAN YAGMURU ----------------
+   Kaynaktaki hali (`pa:blood_rain`):
+
+     Blood_Rain          -> weather rain
+     HasarVer            -> execute positioned ^^^15 run damage @e[r=10,c=1] 3
+     Herkese_Hasar_Ver   -> damage @e 1
+
+   Uc ayri hata:
+
+   1. `weather rain` SURESIZ. Dunya bir daha kendiliginden
+      acmiyor; oyuncu `/weather clear` yazmayi bilmiyorsa
+      yagmur kaliyor. Burada sure VERILIYOR -- vanilla o
+      sureden sonra havayi kendisi seciyor, yani cikis yolu
+      kodda degil oyunun kendisinde.
+
+   2. `damage @e 1` DUNYADAKI HER SEYE vuruyor: oyuncunun
+      kendisine, evcil kurduna, cercevedeki esyaya, bizim
+      sahne varliklarimiza. Burada menzil var, kendimiz
+      disarida, KILIT_ATLA_TIPLER disarida (koniHedefleri
+      ikisini de kendiliginden yapiyor).
+
+   3. Iki ayri hasar komutu (biri r=10 c=1, oteki @e) ayni
+      esyada birlikte cagriliyor -- yani en yakina 3, herkese
+      1 daha. Ikisi tek olcume indirildi.                    */
+export const KAN_YAGMURU_ACIK     = true;
+export const KAN_YAGMURU_MENZIL   = 12;    // blok
+/* Aci -1: koni degil KURE. Yagmur "baktigin yon" bilmez.
+   koniHedefleri kosinusu -1 ile karsilastirinca hicbir sey
+   elenmiyor, ama kendimizi ve botlari eleme kurallari
+   calismaya devam ediyor -- bize lazim olan tam buydu.     */
+export const KAN_YAGMURU_ACI      = -1;
+export const KAN_YAGMURU_TAVAN    = 8;     // en fazla kac hedef
+export const KAN_YAGMURU_HASAR    = 3;
+/* Saniye. Vanilla `weather rain <sn>` suresi dolunca havayi
+   kendisi seciyor. 0 yazilirsa hava hic degistirilmiyor.   */
+export const KAN_YAGMURU_YAGMUR   = 60;
+export const KAN_YAGMURU_PARCACIK = "minecraft:redstone_ore_dust_particle";
+
+/* ---------------- GOZ SENSORU ----------------
+   Kaynaktaki hali (`pa:eye_sensor`):
+
+     KorEt               -> effect @e[r=10,c=1] blindness 9999 255
+     Flash_Sound         -> playsound random.screenshot @a
+     Efekti_Sil_Kendini  -> effect @s clear
+
+   Uc ayri hata:
+
+   1. `blindness 9999 255` SONSUZ KORLUK. Bu depoda kalici
+      etkinin sure siniri ve cikis yolu olmasi kural. Ayrica
+      255 seviyesi korlukte hicbir sey yapmiyor -- korluk
+      ac/kapa bir etki, seviyesi yok. Sayi sadece kullaniciyi
+      "daha guclu" diye yaniltiyor.
+
+   2. `effect @s clear` KENDI ETKILERINI SILIYOR. Kullanicinin
+      uzerindeki iyi etkiler de gidiyor (hiz, can yenileme,
+      yangin direnci). Hicbir yetenek kullanicinin kazandigi
+      seyi goturmez -- bu depo kurali. Burada oyuncunun kendi
+      etkilerine DOKUNULMUYOR.
+
+   3. `playsound ... @a` sesi DUNYADAKI HERKESE caliyor,
+      olayin nerede oldugundan bagimsiz. Ses artik olayin
+      oldugu yerde caliniyor; uzaktaki duymuyor.             */
+export const GOZ_SENSORU_ACIK     = true;
+export const GOZ_SENSORU_MENZIL   = 10;    // blok
+export const GOZ_SENSORU_ACI      = 0.3;   // kosinus (~72 derece koni)
+export const GOZ_SENSORU_TAVAN    = 6;
+export const GOZ_SENSORU_SURE     = 60;    // tick (3 sn) -- sinirli, kural
+export const GOZ_SENSORU_SES      = "random.screenshot";
+export const GOZ_SENSORU_PARCACIK = "minecraft:totem_particle";
+/* Oyuncu hedeflerde ekran da beyaza patliyor: korluk tek
+   basina "flash" hissi vermiyor, KARARTIYOR -- oysa anlatilan
+   sey bir flas. Ikisi birlikte dogru hissi veriyor.
+
+   Bicim `ekraniBoya`nin istedigi: [r, g, b] 0-1 arasi, sonra
+   giris / tut / cikis saniyeleri. Toplam 1,1 saniye, yani
+   korluk suresinden (3 sn) kisa: flas once geciyor, korluk
+   devam ediyor.                                             */
+export const GOZ_SENSORU_FLAS     = [1, 1, 1];
+export const GOZ_SENSORU_FLAS_SURE = [0.1, 0.4, 0.6];

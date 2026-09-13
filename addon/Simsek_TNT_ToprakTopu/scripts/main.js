@@ -248,6 +248,7 @@ import "./yetenekler/yakala.js";
 import "./yetenekler/coklu_simsek.js";
 import "./yetenekler/ok_yagmuru.js";
 import "./yetenekler/sarsinti.js";
+import "./yetenekler/boralo_v6.js";
 import "./yetenekler/kalp_ekle.js";
 import "./yetenekler/kalp_toptan.js";
 import "./yetenekler/kalp_sifirla.js";

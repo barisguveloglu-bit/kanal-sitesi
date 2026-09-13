@@ -97,6 +97,16 @@ export function dunyaKur(sinir = { min: -64, max: 319 }) {
         return true;
       });
     },
+    /* BOYUTTA KOMUT (v7.84): `weather rain <sn>`in tek yolu bu.
+       Sahte dunyada da olmasi sart -- yoksa Kan Yagmuru'nun
+       hava kismi test edilemez, kod sessizce catlar (yardimci
+       `typeof ... === "function"` diye baktigi icin istisna
+       bile atmaz) ve test bunu fark etmez. Ayni gerekce
+       playSound'da yazili.                                  */
+    runCommand(k) {
+      (sayac.boyutKomut = sayac.boyutKomut || []).push(String(k));
+      return { successCount: 1 };
+    },
     /* v6.6: efsane muzigi buradan calabiliyor. Sahte dunyada
        da olmasi sart: yoksa "muzik caldi mi" olculemez, kod
        sessizce catlar ve test bunu fark etmez.             */
