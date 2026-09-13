@@ -1,3 +1,44 @@
+# v7.81.0 — Savunma sessizce kapanıyordu
+
+Kullanıcı daha önce gönderdiği kalkma dosyasını tekrar yolladı
+(md5 aynı) ve sordu: *"savunma geliştirilebilecek bir yanı
+varsa geliştir."*
+
+## Dosyada yine açık yok — ama bu kez farklı yoldan bakıldı
+
+İlk incelemede denetleyici yuvaları sayılmıştı. Bu kez
+**animasyon ailelerine** bakıldı: başka varlık pozu (75), oyuncu
+pozu (41), yatırma (15), ters çevirme (10), **ilk şahıs (8)**.
+
+İlk şahıs ailesi gerçek bir boşluğa işaret ediyor gibiydi —
+`ARIN_POZ_KONTROLCU` listesinde ilk-şahıs denetleyicisi yok.
+Ama 8 satırın hepsi `animation.player.first_person.map_hold`
+kullanıyor ve o kimlik v7.49'da araştırılmış: **Mojang'ın
+`player.json`'unda yok.** Var olmayan animasyon uygulanamaz.
+Yani o satırlar zaten ölü, savunma eklemek kanıtsız bir tehdide
+karşı yazmak olurdu.
+
+## Asıl eksik savunmanın kendisindeydi
+
+Savunma Kipini incelerken şu çıktı: **beş dakika sonra sessizce
+kapanıyordu.** `bitir()` bir satır yazıyor ama dövüşün ortasında
+akan sohbette o satır kaybolur; actionbar ise son ana kadar
+"açık" demeye devam ediyordu. Uzun bir vs'de korumasız
+kaldığını fark etmenin yolu yoktu — kilidi yiyene kadar.
+
+Süreyi uzatmak yanlış çözüm olurdu: tavan bilerek var,
+unutulan bir savunma kipi iş yuvasını (`AYNI_ANDA = 2`) sonsuza
+kadar tutmasın diye. Doğru çözüm haber vermek:
+
+- Son dakikada sohbete **bir kez** uyarı (tekrarlamıyor,
+  dövüşte sohbeti kirletmesin).
+- Actionbar son dakikada **geri sayıma** geçiyor.
+- Kapanış mesajı artık ne yapılacağını söylüyor.
+
+Üç mutasyonun üçü de yakalanıyor.
+
+---
+
 # v7.80.0 — Genel tarama
 
 Kullanıcı paketin tamamının yeniden taranmasını istedi. On bir

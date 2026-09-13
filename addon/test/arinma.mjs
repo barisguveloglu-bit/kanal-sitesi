@@ -438,5 +438,52 @@ console.log("=== 8. SAVUNMA KIPI (kilit DONGUSUNE karsi) ===");
 }
 
 console.log("");
+console.log("\n=== SAVUNMA SESSİZCE KAPANMIYOR (v7.81) ===");
+{
+  /* Kip BES DAKIKA sonra kendi kapaniyordu ve actionbar son
+     ana kadar "acik" diyordu. Uzun bir vs'de korumasiz
+     kaldigini fark etmenin yolu yoktu.
+
+     OLCU UC PARCA: son dakikada (a) sohbete BIR KEZ uyari,
+     (b) actionbar geri sayima geciyor, (c) kapanis mesaji ne
+     yapilacagini soyluyor.                                 */
+  const { o } = kur("uyari");
+  const sonuc = arinma.savunmaAc(o);
+  kontrol("savunma acildi", !!sonuc.is);
+
+  /* Son dakikaya kadar ilerlet: uyari HENUZ cikmamali. */
+  const erken = ayar.SAVUNMA_SURE - ayar.SAVUNMA_UYARI - 200;
+  for (let t = 0; t < erken; t += ayar.SAVUNMA_ARALIK) {
+    tickIlerlet(ayar.SAVUNMA_ARALIK);
+    sonuc.is.calis();
+  }
+  const uyariMetni = (m) => /kapanacak/.test(String(m));
+  kontrol("erken uyari YOK (son dakikaya girilmedi)",
+          !o._mesaj.some(uyariMetni),
+          o._mesaj.filter(uyariMetni).join(" | "));
+  kontrol("actionbar hala 'acik' diyor",
+          /Savunma kipi açık/.test(String((o.onScreenDisplay || {})._son || "")),
+          String((o.onScreenDisplay || {})._son || ""));
+
+  /* Son dakikaya gir. */
+  for (let t = 0; t < ayar.SAVUNMA_UYARI; t += ayar.SAVUNMA_ARALIK) {
+    tickIlerlet(ayar.SAVUNMA_ARALIK);
+    if (sonuc.is.calis()) break;
+  }
+  const uyarilar = o._mesaj.filter(uyariMetni);
+  kontrol("son dakikada sohbete uyari dustu", uyarilar.length >= 1,
+          uyarilar.length + " uyari");
+  kontrol("uyari BIR KEZ dustu (sohbet kirlenmiyor)",
+          uyarilar.length === 1, uyarilar.length + " kez");
+  kontrol("uyari ne yapilacagini soyluyor",
+          /savunma/.test(uyarilar[0] || ""), uyarilar[0]);
+
+  /* Kapanis mesaji da yol gostermeli. */
+  sonuc.is.bitir();
+  const son = String(o._mesaj[o._mesaj.length - 1] || "");
+  kontrol("kapanis mesaji yeniden acmayi soyluyor",
+          /KAPANDI/.test(son) && /savunma/.test(son), son);
+}
+
 console.log(hata ? ">>> SORUN VAR" : ">>> arinma yerinde");
 process.exit(hata ? 1 : 0);

@@ -614,3 +614,31 @@ Satırların çoğu adı geçen kişilere yönelik ağır küfür içeriyor.
 Teknik olarak hiçbir şey taşımıyor: yuva adının içine yazılmış
 metin, var olmayan bir yuvaya yazıldığı için oyunda hiçbir yere
 çıkmıyor.
+
+
+### Aynı dosya ikinci kez geldi (v7.81)
+
+md5 `13f23b49976c43ba2250ada09edabd5b` — yukarıdaki bölümle
+**birebir aynı dosya**. Bu kez farklı bir yöntemle bakıldı:
+denetleyici yuvalarına değil **animasyon ailelerine**.
+
+| aile | satır |
+|---|---|
+| başka varlık pozu | 75 |
+| oyuncu pozu | 41 |
+| yatırma | 15 |
+| ters çevirme | 10 |
+| ilk şahıs | 8 |
+
+**İlk şahıs ailesi umut vericiydi, çıkmadı.** 8 satırın hepsi
+`animation.player.first_person.map_hold` kullanıyor ve o kimlik
+v7.49'da zaten araştırılmıştı: Mojang'ın `player.json`'unda
+**yok**. Var olmayan bir animasyon uygulanamaz, yani o 8 satır
+hiçbir şey yapmıyor. Arınma listesine ilk-şahıs denetleyicisi
+eklemek, **var olduğuna dair kanıtı olmayan** bir tehdide karşı
+savunma yazmak olurdu — bu dosyanın kendi kuralına aykırı.
+
+Sonuç yine aynı: **bu dosyada kapatılacak açık yok.**
+
+Ama savunmanın kendisine bakarken ayrı bir eksik çıktı ve o
+kapatıldı — bkz. NOTLAR.md v7.81, "Savunma sessizce kapanıyordu".

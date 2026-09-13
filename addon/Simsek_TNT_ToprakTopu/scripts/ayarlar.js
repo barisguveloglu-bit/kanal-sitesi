@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.80.0";
+export const SURUM = "v7.81.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -2386,6 +2386,24 @@ export const BLOK_SUS         = 200;  // iki bildirim arasi en az
    temizligi boylece gecerli.                                */
 export const SAVUNMA_ARALIK = 10;    // tick (0,5 sn)
 export const SAVUNMA_SURE   = 6000;  // tick (5 dk) sonra kendi kapanir
+/* ---- SUSME UYARISI  (v7.81) ----
+   Kullanici bir vs oncesi "yenilir miyim" diye sordu ve
+   savunmaya bakarken sunu gordum: kip BES DAKIKA sonra
+   SESSIZCE kapaniyordu. `bitir()` bir satir yaziyor ama
+   dovusun ortasinda akan sohbette o satir kaybolur; actionbar
+   ise son ana kadar "acik" demeye devam ediyordu.
+
+   Yani uzun bir vs'de korumasiz kaldigini FARK ETMIYORSUN.
+   Kilidi yiyene kadar.
+
+   Sureyi uzatmak yanlis cozum: tavan bilerek var, unutulan
+   bir savunma kipi is yuvasini sonsuza kadar tutmasin diye
+   (AYNI_ANDA = 2). Dogru cozum HABER VERMEK.
+
+   Son dakikada actionbar geri sayima geciyor ve bir kez de
+   sohbete yaziliyor -- sohbet satiri kacsa bile actionbar
+   gozunun onunde.                                          */
+export const SAVUNMA_UYARI = 1200;   // son 1 dk uyar
 export const SAVUNMA_SIRA   = 157;
 
 /* ---------------- GOZCU (v7.30) -- HILE DENETIMI ----------------

@@ -7,7 +7,7 @@ import {
   ARIN_GIRDI, ARIN_POZ_ANIM, ARIN_POZ_KONTROLCU,
   ZORLA_ACIK, ZORLA_YUVALAR, ZORLA_ENVANTER, ZORLA_MUAF_ONEK,
   ZORLA_KOR_ESYALAR,
-  SAVUNMA_ARALIK, SAVUNMA_SURE, SAVUNMA_SIRA
+  SAVUNMA_ARALIK, SAVUNMA_SURE, SAVUNMA_SIRA, SAVUNMA_UYARI
 } from "../ayarlar.js";
 
 /* ARINMA -- disaridan gelen kilitleri tek hareketle acar.
@@ -446,6 +446,8 @@ export function savunmaAc(oyuncu) {
      tavan sure denetimiyle ayni saati okuyunca tavan olmuyor. */
   let calisti = 0;
   const tavan = Math.ceil(SAVUNMA_SURE / 1) + 100;
+  /* Son dakikaya girildiginde bir kez sohbete yaziliyor. */
+  let uyarildi = false;
 
   return {
     mesaj: "§aSavunma kipi §fAÇIK §7· kilitler " +
@@ -462,15 +464,34 @@ export function savunmaAc(oyuncu) {
         if (system.currentTick < sonraki) return false;
         sonraki = system.currentTick + SAVUNMA_ARALIK;
         savunmaTazele(oyuncu);
+
+        /* ---- SON DAKIKA GERI SAYIMI  (v7.81) ----
+           Kip sessizce kapaniyordu; dovusun ortasinda
+           korumasiz kaldigini fark etmenin yolu yoktu.     */
+        const kalan = bitisTick - system.currentTick;
         try {
-          actionbarYaz(oyuncu, "§a◈ Savunma kipi açık", true);
+          if (kalan <= SAVUNMA_UYARI) {
+            if (!uyarildi) {
+              uyarildi = true;
+              oyuncu.sendMessage(
+                "§e⚠ Savunma kipi §f" + Math.ceil(kalan / 1200) +
+                " dk§e sonra kapanacak §7· yeniden açmak için " +
+                "sohbete §fsavunma§7 yaz");
+            }
+            actionbarYaz(oyuncu, "§e◈ Savunma §f" +
+                         Math.ceil(kalan / 20) + " sn", true);
+          } else {
+            actionbarYaz(oyuncu, "§a◈ Savunma kipi açık", true);
+          }
         } catch (e) { /* actionbar onemsiz */ }
         return false;
       },
       bitir() {
         savunmada.delete(oyuncu.id);
         try {
-          oyuncu.sendMessage("§7Savunma kipi kapandı.");
+          /* Kapanis mesaji da artik NE YAPILACAGINI soyluyor. */
+          oyuncu.sendMessage("§cSavunma kipi KAPANDI §7· yeniden açmak " +
+                             "için sohbete §fsavunma§7 yaz");
         } catch (e) { /* onemsiz */ }
       }
     }
