@@ -1,3 +1,67 @@
+# v7.86.0 — SecurityCraft'tan beş savunma düzeneği + PowerBorne denetimi
+
+Kullanıcı iki jar gönderdi. İkisi de **çalıştırılmadı** — zip açıldı, veri
+dosyaları okundu.
+
+## PowerBorne Heroes 0.5.1 — "aldık mı diye bak"
+
+Tam cevap [`REFERANS_POWERBORNE.md`](REFERANS_POWERBORNE.md).
+
+**Bu mod hiç işlenmemiş.** Marvel içeriğimiz `REFERANS_MARVEL.md`'de yazılı ve
+başka bir moddan: *Marvel Project Addon v3.0.1* (Bedrock). PowerBorne ise
+Forge + Palladium + KubeJS. Adları benzediği için karışmış olabilir.
+
+Altı karakter (Superman · Spider-Man · Thor · Captain America · Sentry ·
+Firestorm), sıfır `.class`, ~420 yetenek girdisi ama çoğu tesisat; gerçek
+mekanik ~45.
+
+Karşılaştırma yapıldı: **11 gerçek mekanik bizde yok** — duvarda yürüme,
+örümcek hissi, ağ atma, kalkan fırlatma, çekiç çağırma, yukarı yumruk, dalış
+vuruşu, dondurucu nefes, thunderclap, madde dönüştürme, elde pişirme.
+Çoğu Bedrock'ta yapılabilir. Bu sürümde alınmadı çünkü bu dosya için istek
+"aldık mı diye bak" idi.
+
+## SecurityCraft v1.10.2.1 — "hiçbir şeyi atlamadan al"
+
+Tam cevap [`REFERANS_SECURITYCRAFT.md`](REFERANS_SECURITYCRAFT.md).
+
+**Önce sayıyı düzelttim:** 710 blok görünüyor ama 592'si "güçlendirilmiş
+\<vanilla blok\>", 37'si "\<cevher\> mayını", 24'ü gizli tabela, 18'i
+dekoratif kuvars. Gerçek fikir sayısı **48**, 710 değil.
+
+**Alınan beş düzenek:**
+
+| | kaynak | ne değişti |
+|---|---|---|
+| Kalkan Sistemi | Trophy System | kendi okunu düşürmüyor — hız vektörü ölçümüyle |
+| Yarık Dengeleyici | Rift Stabilizer | Gözcü görür, bu engeller |
+| Nöbetçi | Sentry | modeli yok (ölçülü karar), sahibini/botları vurmaz |
+| Radar | Portable Radar | kendini listelemez |
+| Mayın | Mine / Claymore | sahibi tetikleyemez, kurma gecikmesi var, blok kırmaz |
+
+**Kendi okunu düşürmeme sorunu** en ilginci: kaynak merminin sahibini
+okuyabiliyor (Java'da `shooter` alanı var), Bedrock script'inde o alan yok.
+Ölçümle çözüldü — merminin hız vektörü ile "mermiden bize" vektörünün iç
+çarpımı. Pozitifse bize geliyor, negatifse uzaklaşıyor. Sahip bilgisine hiç
+gerek kalmadı.
+
+**Hepsi süreli.** Kaynakta hepsi blok: koyduğun yerde sonsuza kadar durur.
+Yerde unutulmuş bir mayın, sahibini bir ay sonra öldüren bir şeydir.
+
+**Alınmayan 43 fikrin her biri gerekçesiyle yazılı** — 6'sı bizde zaten var,
+5'i Bedrock'ta yapılamaz (kamera, blok cebi, projektör, kılık modülü, sonik
+sistem), 13'ü yapılabilir ama bu sürüme sığmadı, gerisi dekoratif.
+
+## Test
+
+`test/securitycraft.mjs`, 43 madde. Mutasyon bataryası **11/11** — kendi okunu
+düşürme, sahibini vurma, mayını sahibinin tetiklemesi, kurma gecikmesinin
+kalkması gibi mutasyonların hepsi yakalandı.
+
+Tarama aracı bir ölü ithal yakaladı (`varlikIste` kullanılmıyordu), silindi.
+
+---
+
 # v7.85.0 — Efsanenin Dünyası
 
 Kullanıcı: *"bana ait bir özel tohum olacak … her yeri bedrock ama her yeri

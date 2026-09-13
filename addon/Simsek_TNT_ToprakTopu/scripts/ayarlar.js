@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.85.0";
+export const SURUM = "v7.86.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -10739,3 +10739,149 @@ export const GOZ_SENSORU_PARCACIK = "minecraft:totem_particle";
    devam ediyor.                                             */
 export const GOZ_SENSORU_FLAS     = [1, 1, 1];
 export const GOZ_SENSORU_FLAS_SURE = [0.1, 0.4, 0.6];
+
+
+/* ============================================================
+   SECURITYCRAFT  --  savunma duzenekleri              (v7.86)
+
+   Kullanici SecurityCraft v1.10.2.1 jar'ini gonderdi:
+   "alabildigimiz tum her seyi alalim, hicbir seyi atlamadan."
+
+   Incelemenin tamami REFERANS_SECURITYCRAFT.md'de. Kisaca:
+   710 blok, 55 esya. Bloklarin 600'den fazlasi
+   "guclendirilmis <vanilla blok>" ve "<cevher> mayini"
+   varyasyonu, yani ayni iki fikrin yuzlerce kopyasi. Geriye
+   kalan GERCEK fikir sayisi ~35.
+
+   Buraya alinan bes tanesi, bu depoda karsiligi HIC olmayan
+   ve script ile gercekten yapilabilenler. Kalanlarin her biri
+   -- alinan alinmayan -- referans belgesinde tek tek
+   gerekcesiyle yazili.
+
+   ---- ORTAK ILKE: HEPSI SURELI ----
+   Kaynakta bunlar BLOK: koydugun yerde sonsuza kadar durur.
+   Bizde blok yok, sureli IS var. Sebep tek: bu depoda kalici
+   her etkinin sure siniri ve cikis yolu olmak zorunda. Yerde
+   unutulmus bir mayin, sahibini bir ay sonra olduren bir
+   seydir.
+   ============================================================ */
+
+/* ---------------- 1. KALKAN SISTEMI (Trophy System) ----------
+   Kaynak: yakinindaki mermileri havada yok ediyor.
+   Duelloda karsiligi bariz: ok yagmuruna karsi.
+
+   ---- KENDI OKUNU DUSURMEME SORUNU ----
+   Kaynak merminin SAHIBINI okuyabiliyor (Java tarafinda
+   shooter alani var). Bedrock script'inde o alan yok.
+
+   Cozum olcumle: merminin HIZ VEKTORU ile "mermiden bize"
+   vektorunun ic carpimi. Pozitifse mermi bize DOGRU geliyor,
+   negatifse bizden UZAKLASIYOR. Kendi attigimiz ok bizden
+   uzaklasir, dusurulmez. Sahip bilgisine hic gerek kalmadi.
+
+   Hiz okunamazsa mermiye DOKUNULMUYOR: supheliyi yok etmek
+   yerine birakmak, bu dosyanin her yerindeki ayni tercih. */
+export const KALKAN_ACIK    = true;
+export const KALKAN_YARICAP = 7;     // blok
+export const KALKAN_SURE    = 200;   // tick (10 sn)
+export const KALKAN_ARA     = 2;     // kac tickte bir taransin
+export const KALKAN_TAVAN   = 6;     // tek taramada en fazla kac mermi
+export const KALKAN_PARCACIK = "minecraft:electric_spark_particle";
+/* Hangi mermiler dusurulsun. Ender incisi BILEREK YOK:
+   onu dusurmek YARIK DENGELEYICI'nin isi ve ayri bir
+   yetenek olmasinin sebebi de bu -- biri seni oktan korur,
+   oteki rakibin kacmasini engeller. Ikisi ayni dugme
+   olsaydi, ok yagmurundan korunmak isteyen kisi farkinda
+   olmadan rakibinin kacisini da engellerdi.              */
+export const KALKAN_MERMILER = [
+  "minecraft:arrow", "minecraft:thrown_trident", "minecraft:snowball",
+  "minecraft:egg", "minecraft:fireball", "minecraft:small_fireball",
+  "minecraft:dragon_fireball", "minecraft:wither_skull",
+  "minecraft:wither_skull_dangerous", "minecraft:shulker_bullet",
+  "minecraft:llama_spit", "minecraft:splash_potion",
+  "minecraft:lingering_potion", "minecraft:wind_charge_projectile",
+  "minecraft:fireworks_rocket"
+];
+
+/* ---------------- 2. YARIK DENGELEYICI (Rift Stabilizer) -----
+   Kaynak: yaricapi icinde isinlanmayi engelliyor (ender
+   incisi, chorus meyvesi, enderman).
+
+   Bizde tam karsiligi yoktu ve duelloda en cok istenen sey
+   bu: rakip kacamasin. Gozcu isinlanmayi GORUYOR ama
+   ENGELLEMIYOR (o bilerek: Gozcu yalniz bildirir). Burasi
+   engelleyen taraf.
+
+   Chorus meyvesi varlık uretmiyor, yani yalniz inci
+   dusuruluyor -- eksigi referans belgesinde yazili.     */
+export const YARIK_ACIK    = true;
+export const YARIK_YARICAP = 14;    // blok -- kalkandan genis
+export const YARIK_SURE    = 400;   // tick (20 sn)
+export const YARIK_ARA     = 2;
+export const YARIK_TAVAN   = 4;
+export const YARIK_PARCACIK = "minecraft:eyeofender_death_explode_particle";
+export const YARIK_MERMILER = ["minecraft:ender_pearl"];
+
+/* ---------------- 3. NOBETCI (Sentry) ------------------------
+   Kaynak: koydugun yerde duran, menzile gireni vuran taret.
+
+   ---- MODELI YOK, BILEREK ----
+   Kaynakta fiziksel bir taret var. Burada varlık dogurmuyoruz:
+   nobetci bir KONUM ve sureli bir is. Gorunumu parcacik.
+   Sebep olculebilir: her varlık tick butcesinden yiyor
+   (TICK_VARLIK_BUTCESI 4) ve yerde unutulan varlık bu depoda
+   defalarca sorun oldu (donusum.js'in supurme kodu tam
+   bunun icin var). Duran bir modelin oynanisa katkisi,
+   maliyetini karsilamiyordu.
+
+   ---- OYUNCUYU VURUR MU ----
+   SIMSEK_OYUNCU_HEDEF ayarina bagli, yani modun geri
+   kalaniyla ayni kural. Sahibini ASLA vurmuyor.        */
+export const NOBETCI_ACIK    = true;
+export const NOBETCI_YARICAP = 12;    // blok
+export const NOBETCI_SURE    = 600;   // tick (30 sn)
+export const NOBETCI_ARA     = 20;    // atis araligi (1 sn)
+export const NOBETCI_HASAR   = 4;
+export const NOBETCI_PARCACIK = "minecraft:redstone_wandering_trail_particle";
+export const NOBETCI_SES     = "note.pling";
+
+/* ---------------- 4. RADAR (Portable Radar) ------------------
+   Kaynak: menzildeki oyuncularin adini bildiriyor.
+
+   Gozcu'yu tamamliyor: Gozcu "bu adam hile yapiyor olabilir"
+   der, radar "su an yaninda kim var" der. Ikisi ayri soru.
+
+   Kendini listeye ALMIYOR -- referans mod bu hatayi
+   yapiyordu ve bu seride dorduncu kez gorulen ayni hata. */
+export const RADAR_ACIK    = true;
+export const RADAR_YARICAP = 48;    // blok
+export const RADAR_SURE    = 400;   // tick (20 sn)
+export const RADAR_ARA     = 40;    // rapor araligi (2 sn)
+export const RADAR_TAVAN   = 6;     // en fazla kac ad yazilsin
+
+/* ---------------- 5. MAYIN (Mine / Claymore) -----------------
+   Kaynak: yere konur, uzerine basan patlar.
+
+   ---- SAHIBINI VURMAZ ----
+   Kaynakta da oyle ve burada da: mayini kuran oyuncu
+   tetikleyemiyor. Bu bir nezaket degil sart -- kendi
+   yetenegiyle olen oyuncu bir daha o dugmeye basmaz.
+
+   ---- KURMA GECIKMESI ----
+   Kurulduktan sonra MAYIN_KURULUM tick boyunca hicbir sey
+   tetiklemiyor. Yoksa mayini kurarken yanindan gecen bir
+   tavuk aninda patlatiyor ve yetenek kullanilamaz oluyor.
+
+   ---- SURE SINIRI ----
+   Kaynakta mayin sonsuza kadar durur. Burada MAYIN_SURE
+   sonunda kendiliginden sonuyor. Sebebi ustteki ortak ilke:
+   yerde unutulmus mayin, sahibini bir ay sonra olduren bir
+   seydir.                                               */
+export const MAYIN_ACIK     = true;
+export const MAYIN_YARICAP  = 3;     // blok
+export const MAYIN_SURE     = 1200;  // tick (60 sn) sonra sonuyor
+export const MAYIN_KURULUM  = 40;    // tick -- kurma gecikmesi
+export const MAYIN_ARA      = 5;     // kac tickte bir taransin
+export const MAYIN_GUC      = 3;     // patlama gucu (vanilla TNT 4)
+export const MAYIN_KIRAR    = false; // blok kirmiyor: duello alani bozulmasin
+export const MAYIN_PARCACIK = "minecraft:redstone_ore_dust_particle";
