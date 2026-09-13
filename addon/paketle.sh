@@ -27,6 +27,9 @@ SK="Simsek_Skin"
 # cunku player.entity.json'u ezen iki paket ayni anda calisamaz --
 # sorun cikarsa tek dokunusla yalniz bu kapatilir.
 OM="Simsek_Oyuncu_Modeli"
+# v7.85: gokyuzu paketi. dunya_uret.py uretiyor, .mcaddon'a
+# GIRMIYOR (sebebi asagida).
+GK="Simsek_Efsane_Gokyuzu"
 # Dosya adindaki surum de manifest'ten TURETILIYOR (v4.41).
 # Elle yaziliyordu ve bir kez ayristi: paketin ici v4.41'di ama
 # dosya adi SimsekTNT_v440.mcaddon diyordu. Hangi dosyanin yeni
@@ -55,6 +58,18 @@ rm -f "$K"/SimsekTNT_*.mcpack "$K"/SimsekKol_*.mcpack "$K"/SimsekTNT_*.mcaddon
 rm -f "$K"/Simsek_*.mcpack "$K"/Simsek_*.mcaddon
 rm -f "$K"/UzakAkraba_*.mcpack "$K"/OyuncuModeli_*.mcpack
 rm -f "$K"/*_v3.mcpack "$K"/Simsek_TNT_v3.mcaddon
+rm -f "$K"/Simsek_*.mctemplate
+
+# ---- GOKYUZU PAKETI ve DUNYA DOSYASI  (v7.85) ----
+# Ustteki rm ikisini de siliyor; uretimi BURADA, zipten ONCE.
+# Sirasi onemli: dunya_uret.py paketleri sablonun icine
+# kopyaliyor, yani manifestler kesinlesmis olmali (kol_uret.py
+# zaten daha once calisiyor).
+#
+# Tek komutla ureme kurali: paketle.sh calistirildiginda
+# ortada eksik dosya kalmasin. Ilk yazilista rm burada,
+# uretim baska yerdeydi ve test "dosya yok" diye dustu.
+python3 "$K/dunya_uret.py"
 
 # ---- ICERIK ARTIK ELLE YAZILMIYOR (v4.75) ----
 # Ustteki DIKKAT notu "yeni klasor eklersen buraya da ekle"
@@ -77,11 +92,28 @@ rm -f "$K"/*_v3.mcpack "$K"/Simsek_TNT_v3.mcaddon
     -x '__pycache__/*' '*/__pycache__/*' '.*' '*/.*' >/dev/null)
 (cd "$K" && zip -r -X "$K/Simsek_$S.mcaddon" "$BP" "$RP" "$SK" "$OM" >/dev/null)
 
+# ---- EFSANENIN GOGU + EFSANENIN DUNYASI  (v7.85) ----
+# Gokyuzu paketi .mcaddon'a KONMUYOR, bilerek: .mcaddon'daki
+# her paket kurulur kurulmaz etkin oluyor ve bu paket
+# GOKYUZUNU boyuyor -- modu kuran herkesin butun dunyasi
+# degisirdi. Bu depoda oyuncunun dunyasini geri alinamaz
+# bicimde degistiren sey alinmiyor (REFERANS_BORALO_V5.md,
+# biyom ezmesi maddesi). Tek basina .mcpack olarak cikiyor:
+# isteyen istedigi dunyada aciyor.
+#
+# Dunya dosyasi ayrica uretiliyor ve gokyuzu paketini ZATEN
+# icinde tasiyor, yani o dunyada elle acmaya gerek yok.
+if [ -d "$K/$GK" ]; then
+  (cd "$K/$GK" && zip -r -X "$K/Simsek_${S}_Gokyuzu.mcpack" . \
+      -x '__pycache__/*' '*/__pycache__/*' '.*' '*/.*' >/dev/null)
+fi
+
 echo "Olusturuldu:"
 echo "  KUR:  Simsek_$S.mcaddon   <-- normalde SADECE bunu kur"
 for f in "Simsek_${S}_Mod.mcpack" "Simsek_${S}_Gorunum.mcpack" "Simsek_${S}_Skin.mcpack" \
-         "Simsek_${S}_OyuncuModeli.mcpack" "Simsek_$S.mcaddon"; do
-  echo "  $f  ($(du -h "$K/$f" | cut -f1))"
+         "Simsek_${S}_OyuncuModeli.mcpack" "Simsek_$S.mcaddon" \
+         "Simsek_${S}_Gokyuzu.mcpack"; do
+  [ -f "$K/$f" ] && echo "  $f  ($(du -h "$K/$f" | cut -f1))"
 done
 echo
 # ---- KOPYA UYARISI  (v7.10.0) ----

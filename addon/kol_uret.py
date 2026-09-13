@@ -130,9 +130,9 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # penceresi, ruzgar yuku affi, vurus hizi esigi). Ucuncu
 # hanenin 0 yerine 5'ten baslamasi bunun isareti -- 7.83.0
 # ile 7.83.5 AYNI kod, sadece numara degisti.
-# v7.84.0: ORTANCA hane, cunku yeni yetenek geldi (Kan Yagmuru,
-# Goz Sensoru). Kural hemen ustte yazili.
-SURUM_NO = (7, 84, 0)
+# v7.85.0: ORTANCA hane, cunku yeni SISTEM geldi -- Efsanenin
+# Dunyasi (gokyuzu paketi + hazir dunya dosyasi). Kural ustte.
+SURUM_NO = (7, 85, 0)
 
 SURUM_METIN = "%d.%d.%d" % SURUM_NO
 

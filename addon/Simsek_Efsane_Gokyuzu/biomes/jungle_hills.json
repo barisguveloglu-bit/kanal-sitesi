@@ -1,0 +1,16 @@
+{
+  "format_version": "1.21.40",
+  "minecraft:client_biome": {
+    "description": {
+      "identifier": "jungle_hills"
+    },
+    "components": {
+      "minecraft:sky_color": {
+        "sky_color": "#106159"
+      },
+      "minecraft:fog_appearance": {
+        "fog_identifier": "pa:efsane_dunyasi"
+      }
+    }
+  }
+}
