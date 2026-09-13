@@ -250,6 +250,9 @@ import "./yetenekler/ok_yagmuru.js";
 import "./yetenekler/sarsinti.js";
 import "./yetenekler/boralo_v6.js";
 import "./yetenekler/securitycraft.js";
+import "./yetenekler/powerborne.js";
+import "./yetenekler/nefes.js";
+import { nefesCikti } from "./yetenekler/nefes.js";
 import "./yetenekler/kalp_ekle.js";
 import "./yetenekler/kalp_toptan.js";
 import "./yetenekler/kalp_sifirla.js";
@@ -2546,6 +2549,7 @@ olayaAbone("playerLeave", (olay) => {
   arinmaUnut(olay.playerId);
   gozcuUnut(olay.playerId);
   hareketUnut(olay.playerId);
+  nefesCikti(olay.playerId);       // v7.87: yalniz bekleme, uslup kalir
   roketUnut(olay.playerId);        // v7.46: roket penceresi
   /* Cikan oyuncunun bekleyen geri-itme olcumleri dusuyor.
      KIMLIKLE cagriliyor: kimliksiz cagri hepsini silerdi ve

@@ -1,3 +1,73 @@
+# v7.87.0 — Nefes (Kimetsu) + PowerBorne'un on bir mekaniği
+
+Kullanıcı dört şey istedi.
+
+## 1. "Frisk's heroes'un tüm karakterlerini sil" — zaten silinmişti
+
+FiskHeroes **v5.2'de tamamen kaldırılmıştı**: dokuz kahraman, yedi ışını,
+kostüm geometrisi, `kahraman.js`, `REFERANS_FISK.md`. `test/marvel.mjs` 1.
+bölüm on bir maddeyle kalıntı arıyor, hepsi temiz. Yapacak bir şey yoktu.
+
+## 2. "Marvel Project'i çıkarma, powerborne yanında dursun"
+
+Duruyor — 54 kahraman, 300 parça, hiç dokunulmadı. `test/powerborne.mjs`
+**0. bölüm** bunu ayrıca bekçiliyor: biri gün gelip "yerine koyduk" diye
+silmeye kalkarsa test düşer.
+
+## 3. PowerBorne'un on bir mekaniği alındı
+
+Geçen sürümde ölçülüp "bizde yok" diye işaretlenmişlerdi. Hepsi yazıldı:
+
+duvarda yürüme · örümcek hissi · ağ atma · kalkan fırlatma · çekiç çağırma ·
+yukarı yumruk · dalış vuruşu · donduran nefes · gök gürlemesi · madde
+dönüştürme · elde pişirme
+
+Kaynaktan ayrıldığımız yerler ve sebepleri
+[`REFERANS_POWERBORNE.md`](REFERANS_POWERBORNE.md)'de. Özetle: ağ **hasar
+vermiyor** (tutuyor), donduran nefes **blok koymuyor** (oyuncuyu bloğun içine
+hapsetmek yasak), çekiç çağırma eşyayı **silmiyor**, elde pişirme **adedi
+koruyor**, dalış vuruşu **yerdeyken çalışmıyor**, madde tablosu **bilerek
+zayıf** (taşı elmasa çevirmek hile olurdu).
+
+Bir hatayı test buldu: kalkan en **uzaktakine** önce vuruyordu. Sebebi
+ölçülür — göz yüksekliği 1,6 blok olduğu için tam önündeki üç hedeften en
+uzaktaki en küçük açıyı veriyor. Açı sıralaması nişan almak için doğru,
+sekme için doğru olan mesafe.
+
+## 4. Kimetsu no Yaiba: en güçlü iki üslup
+
+Tam inceleme [`REFERANS_KIMETSU.md`](REFERANS_KIMETSU.md).
+
+**Seçim beğeniyle değil ölçümle yapıldı.** Modda 18 nefes var; Güneş ve Ay
+modun kendi içeriğinde ayrılıyor — Güneş'in **iki** procedure'ü
+(`Sun` + `HinokamiKagura`) ve üç karakter varlığı, Ay'ın **kendi mermi
+varlığı** ve üç zırh parçası var. Öteki 16'sında hiçbiri yok. Kanonla da
+örtüşüyor: Güneş kök, Ay ondan türeyen tek nefes.
+
+**Bir ölçüm hatasını düzelttim:** ilk sayım "Sun 39 sınıf" dedi ve yanlıştı —
+`sun` alt dizesi **Kimet`sun`oyaiba**'nın içinde geçiyor, mod iskeletinin her
+sınıfı eşleşiyordu. Kelime sınırıyla tekrarladım.
+
+**23 form, adları moddan birebir.** Modda boş bırakılmış altı anahtar
+(`sun13`, `moon4/11/12/13/15`) **alınmadı** — olmayan şeyi uydurmak yasak;
+test o altısının eklenmediğini ayrıca ölçüyor.
+
+720 procedure altı mekaniğe indirildi (kesik · halka · atılım · mermi ·
+koruma · çekiş) ve her formun türü **adından değil kaynaktaki işinden**
+seçildi. İki üslubun imzası ayrı: **Güneş yakıyor, Ay tekrarlı kesiyor.**
+
+## Test
+
+`test/nefes.mjs` 34 madde, `test/powerborne.mjs` 40 madde.
+Mutasyon bataryası **18/18** (7 nefes + 11 powerborne).
+
+`tarama.mjs` bir ölü ithal yakaladı (`nefes.js`'te `KILIT_ATLA_TIPLER`),
+silindi. `yetenek_ara.mjs` düştü çünkü yeni aileler jest kuyruğunun sonunu
+değiştirdi — maddenin ölçtüğü şey "şu aileler kuyrukta" değil "kuyrukta
+erişilemeyen bir aile var", o yüzden liste genişletildi ve gerekçesi yazıldı.
+
+---
+
 # v7.86.0 — SecurityCraft'tan beş savunma düzeneği + PowerBorne denetimi
 
 Kullanıcı iki jar gönderdi. İkisi de **çalıştırılmadı** — zip açıldı, veri

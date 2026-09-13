@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.86.0";
+export const SURUM = "v7.87.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -10885,3 +10885,309 @@ export const MAYIN_ARA      = 5;     // kac tickte bir taransin
 export const MAYIN_GUC      = 3;     // patlama gucu (vanilla TNT 4)
 export const MAYIN_KIRAR    = false; // blok kirmiyor: duello alani bozulmasin
 export const MAYIN_PARCACIK = "minecraft:redstone_ore_dust_particle";
+
+
+/* ============================================================
+   NEFES  --  Kimetsu no Yaiba ver3                  (v7.87)
+
+   Kullanici jar'i gonderdi: "en guclusunu sec yani aralarindan
+   iki tanesini secebilirsin, sectigin o iki tane sey ile
+   alakali tum seyleri alacaksin."
+
+   ---- SECIM OLCULDU, TAHMIN EDILMEDI ----
+   Modda 18 `PlayerBreath*Procedure` var, yani 18 nefes. Iki
+   tanesi hem kanonda hem MODUN KENDI ICERIGINDE ayriliyor:
+
+     GUNES (Hinokami Kagura) -- oteki butun nefeslerin
+       turedigi kok. Modda IKI ayri prosedurle duruyor
+       (PlayerBreathSunProcedure + PlayerBreathHinokamiKagura)
+       ve Yoriichi Tsugikuni'nin uc ayri varlık surumu,
+       kendi nichirin kilici, onbir replik satiri var.
+
+     AY -- Gunes'ten DOGRUDAN tureyen tek nefes; Kokushibo'nun
+       (Ust Ay Bir) nefesi. Modda kendi mermisi
+       (BulletSlashingMoonProjectile), kendi varligi, iki
+       kilici, kendi zirh parcalari var.
+
+   Ucuncu bir aday yoktu: oteki 16 nefesin hicbirinde ne ikinci
+   prosedur ne ozel mermi var.
+
+   ---- FORM ADLARI MODDAN ----
+   Uydurulmadi, `assets/kimetsunoyaiba/lang/en_us.json`'dan
+   birebir alindi (`kimetsu.breath.sun1..12`, `moon1..16`).
+   Modda BOS birakilmis anahtarlar (sun13, moon4, moon11-13,
+   moon15) buraya da alinmadi -- olmayan seyi uydurmak bu
+   depoda yasak.
+
+   ---- MEKANIKLER ALTI TURE INDIRILDI ----
+   Kaynak MCreator uretimi: her form ayri bir prosedur, 720
+   prosedur. Hepsini bire bir tasimak ne mumkun ne anlamli;
+   yaptiklari is alti kalibin icine dusuyor:
+
+     kesik   bakis konisinde hasar
+     halka   cevrede hasar (360 derece)
+     atilim  ileri firla, varista hasar
+     mermi   firlatilan kesik
+     koruma  kendine sureli efekt
+     cekis   hedefleri kendine cek
+
+   Her formun TURU adindan degil, kaynaktaki isinden secildi.  */
+
+export const NEFES_ACIK = true;
+/* Jest sirasi 600'den basliyor.
+
+   ---- 560 DENENDI, CARPTI ----
+   Ilk yazilista 560'ti ve siraDenetimi uc carpisma buldu:
+   Viktor yetenekleri 570'lerde, Kutlama 578'de. 25 formluk
+   bir blok icin "burasi bostur" diye goz karari yer secmek
+   calismiyor.
+
+   600 olculerek secildi: kayitli butun yeteneklerin EN
+   BUYUK sirasi 578. 600'den sonrasi tamamen bos ve 25 form
+   + 2 uslup secimi rahat siğiyor.                          */
+export const NEFES_SIRA_BAS = 600;
+
+/* Secili uslup dunyada saklaniyor: oyuncu cikip girince
+   nefesini yeniden secmek zorunda kalmasin.                */
+export const NEFES_KAYIT_ANAHTAR = "simsek:nefes";
+
+/* Form kullaninca kisa bekleme. Kaynakta her formun kendi
+   bekleme suresi var; burada tek deger, cunku formlar
+   arasindaki fark GUC degil BICIM -- birini otekinden daha
+   sik kullandirmak icin sebep yok.                         */
+export const NEFES_BEKLEME = 30;      // tick (1,5 sn)
+
+export const NEFES_USLUPLAR = new Map([
+  ["gunes", {
+    ad: "Güneş Nefesi", en: "Sun Breathing",
+    ikinci: "Hinokami Kagura",
+    renk: "§6",
+    parcacik: "minecraft:basic_flame_particle",
+    ses: "mob.blaze.shoot",
+    /* Gunes atesle calisiyor: formlarin cogu hedefi yakiyor.
+       `atesle` alani o yuzden var; Ay'da yok.               */
+    formlar: [
+      { no: 1,  ad: "Dans",                          en: "Dance",
+        tur: "kesik",  hasar: 7,  menzil: 4.5, aci: 0.35, atesle: 40 },
+      { no: 2,  ad: "Açık Mavi Gökyüzü",             en: "Clear Blue Sky",
+        tur: "halka",  hasar: 6,  menzil: 5 },
+      { no: 3,  ad: "Kızgın Güneş",                  en: "Raging Sun",
+        tur: "atilim", hasar: 8,  menzil: 6,   guc: 1.6, atesle: 60 },
+      { no: 4,  ad: "Yanan Kemikler, Yaz Güneşi",    en: "Burning Bones, Summer Sun",
+        tur: "kesik",  hasar: 9,  menzil: 5,   aci: 0.2,  atesle: 80 },
+      { no: 5,  ad: "Ayçiçeği Darbesi",              en: "Sunflower Thrust",
+        tur: "kesik",  hasar: 11, menzil: 7,   aci: 0.85 },
+      { no: 6,  ad: "Ejderha Güneş Halesi Baş Dansı", en: "Dragon Sun Halo Head Dance",
+        tur: "halka",  hasar: 5,  menzil: 5,   tekrar: 3 },
+      { no: 7,  ad: "Batan Güneş Dönüşümü",          en: "Setting Sun Transformation",
+        tur: "atilim", hasar: 7,  menzil: 5,   guc: 1.2, yukari: 0.9 },
+      { no: 8,  ad: "Güneş Isısı Pusu",              en: "Solar Heat Haze",
+        tur: "kesik",  hasar: 6,  menzil: 5,   aci: 0.3, kor: 60 },
+      { no: 9,  ad: "Cömert Işıltı",                 en: "Beneficent Radiance",
+        tur: "halka",  hasar: 10, menzil: 7 },
+      { no: 10, ad: "Ateş Çarkı",                    en: "Fire Wheel",
+        tur: "mermi",  hasar: 8,  menzil: 14,  atesle: 60 },
+      { no: 11, ad: "Sahte Gökkuşağı",               en: "Fake Rainbow",
+        tur: "koruma", efektler: [["speed", 120, 2], ["resistance", 120, 1]] },
+      { no: 12, ad: "Alev Dansı",                    en: "Flame Dance",
+        tur: "kesik",  hasar: 8,  menzil: 5,   aci: 0.35, atesle: 100 }
+    ]
+  }],
+  ["ay", {
+    ad: "Ay Nefesi", en: "Moon Breathing",
+    ikinci: "Kokushibo",
+    renk: "§5",
+    parcacik: "minecraft:eyeofender_death_explode_particle",
+    ses: "mob.phantom.bite",
+    /* Ay'in imzasi: her kesigin yaninda DUZENSIZ ek kesikler.
+       Kaynakta gorsel olarak boyle; burada `tekrar` ile
+       karsiligi var.                                        */
+    formlar: [
+      { no: 1,  ad: "Karanlık Ay — Akşam Sarayı",    en: "Dark Moon - Evening Palace",
+        tur: "kesik",  hasar: 10, menzil: 6,  aci: 0.25 },
+      { no: 2,  ad: "İnci Çiçekleri Ay Seyri",       en: "Pearl Flowers Moongazing",
+        tur: "halka",  hasar: 6,  menzil: 6,  tekrar: 2 },
+      { no: 3,  ad: "İğrenç Ay — Zincirler",         en: "Loathsome Moon - Chains",
+        tur: "cekis",  hasar: 4,  menzil: 10 },
+      { no: 5,  ad: "Ay Ruhu Felaket Girdabı",       en: "Moon Spirit Calamitous Eddy",
+        tur: "halka",  hasar: 8,  menzil: 6,  tekrar: 2 },
+      { no: 6,  ad: "Sonsuz Gece, Yalnız Ay — Bitimsiz",
+        en: "Perpetual Night, Lonely Moon - Incessant",
+        tur: "kesik",  hasar: 12, menzil: 7,  aci: 0.1 },
+      { no: 7,  ad: "Talihsizlik Aynası — Ay Işığı", en: "Mirror of Misfortune - Moonlit",
+        tur: "koruma", efektler: [["resistance", 160, 2], ["absorption", 160, 1]] },
+      { no: 8,  ad: "Ay-Ejderha Halka Kuyruk",       en: "Moon-Dragon Ringtail",
+        tur: "halka",  hasar: 7,  menzil: 5,  tekrar: 3 },
+      { no: 9,  ad: "Küçülen Ay Biçimleri",          en: "Waning Moonswaths",
+        tur: "kesik",  hasar: 8,  menzil: 5,  aci: 0.3, tekrar: 2 },
+      { no: 10, ad: "Delici Kesikler, Bambu Yaprakları Arasından Ay",
+        en: "Drilling Slashes, Moon Through Bamboo Leaves",
+        tur: "kesik",  hasar: 13, menzil: 8,  aci: 0.9 },
+      { no: 14, ad: "Felaket, Tenman Hilal Ay",      en: "Catastrophe, Tenman Crescent Moon",
+        tur: "halka",  hasar: 14, menzil: 8 },
+      { no: 16, ad: "Ay Kuşağı, Yarım Ay",           en: "Moonbow, Half Moon",
+        tur: "mermi",  hasar: 11, menzil: 16 }
+    ]
+  }]
+]);
+
+/* Mermi formunun firlattigi sey. Vanilla varlık: kendi
+   mermimizi uretmek icin sebep yok, gorunumu parcacik
+   zaten veriyor.                                          */
+export const NEFES_MERMI_VARLIK = "minecraft:arrow";
+export const NEFES_HASAR_SEBEP  = "entityAttack";
+
+
+/* ============================================================
+   POWERBORNE HEROES  --  eksik onbir mekanik        (v7.87)
+
+   Kullanici: "Frisk's heroes'un tum karakterlerini sil onun
+   yerine bu powerborne'yi koy ... bu yeni dosyanin tum her
+   seyini almaya calis ... Marvel Project Addon v3.0.1
+   cikarma, powerborne yaninda birlikte dursun."
+
+   FiskHeroes zaten v5.2'de TAMAMEN silinmisti (marvel.mjs 1.
+   bolum onbir maddeyle bekciligini yapiyor). Marvel Project
+   duruyor, dokunulmadi -- 54 kahraman, 300 parca.
+
+   REFERANS_POWERBORNE.md'de "bizde yok" diye isaretlenen
+   onbir mekanik burada. Kaynak Palladium + KubeJS; oradaki
+   yetenek agaci, enerji cubugu ve shader'lar alinmadi
+   (sebepleri referans belgesinde).
+
+   ---- ORTAK ILKE ----
+   Kaynak yetenekleri BASILI TUTULAN tuşlarla calisiyor ve
+   cogu surekli. Bizde jest var ve her sey anlik ya da sureli.
+   Bu yuzden "surekli duvar tirmanma" yerine "sureli duvar
+   tirmanma" var: bu depoda kalici etkinin sure siniri sart.
+   ============================================================ */
+
+export const PB_ACIK = true;
+/* Nefes 600-625'te. Onun ustunden basliyor.               */
+export const PB_SIRA_BAS = 640;
+
+/* 1. DUVARDA YURUME (Spider-Man wall_crawl) ----------------
+   Kaynak: duvara degdiginde tirmaniyor.
+   Bizde: sureli. Her tarama adiminda onunde KATI blok varsa
+   yukari kucuk bir itme veriliyor -- yani duvar varken
+   tirmaniyor, yokken normal dusuyor.                      */
+export const PB_TIRMAN_SURE   = 200;   // tick (10 sn)
+export const PB_TIRMAN_ARA    = 4;
+export const PB_TIRMAN_ITME   = 0.35;  // blok/tick yukari
+export const PB_TIRMAN_MESAFE = 0.9;   // onunde bu kadar yakinda duvar
+
+/* 2. ORUMCEK HISSI (spider_sense) -------------------------
+   Kaynak: yakindaki tehlikeyi parlatiyor + refleks veriyor.
+   Bedrock'ta varlık parlatmanin tek yolu glowing efekti.   */
+export const PB_HIS_SURE    = 300;
+export const PB_HIS_YARICAP = 16;
+export const PB_HIS_TAVAN   = 10;
+export const PB_HIS_EFEKTLER = [["speed", 300, 1], ["jump_boost", 300, 1]];
+
+/* 3. AG ATMA (web_shoot / web_bomb) -----------------------
+   Kaynak: hedefi aga sarip yavaslatiyor.
+   OLDURMUYOR: kaynakta da ag hasar vermez, tutar.          */
+export const PB_AG_MENZIL = 12;
+export const PB_AG_ACI    = 0.6;
+export const PB_AG_TAVAN  = 3;
+export const PB_AG_SURE   = 120;      // tick
+export const PB_AG_SEVIYE = 4;        // slowness seviyesi
+export const PB_AG_PARCACIK = "minecraft:basic_smoke_particle";
+
+/* 4. KALKAN FIRLATMA (Captain America throw_shield) -------
+   Kaynak: kalkan sekerek birden fazla hedefe vuruyor.
+   `sekme` = kac hedefe kadar zincirlensin.                 */
+export const PB_KALKAN_MENZIL = 14;
+export const PB_KALKAN_ACI    = 0.5;
+export const PB_KALKAN_HASAR  = 7;
+export const PB_KALKAN_SEKME  = 3;
+export const PB_KALKAN_PARCACIK = "minecraft:electric_spark_particle";
+
+/* 5. CEKIC CAGIRMA (Thor mjolnir_call) --------------------
+   Kaynak: firlatilan Mjolnir geri geliyor.
+   Bizde cekic yok; karsiligi YERDEKI ESYAYI cagirmak --
+   kaynaktaki "elime gelsin" hissi ayni, nesne farkli.
+   Esya KAYBETTIRMIYOR: yerdeki esyayi oyuncuya cekiyor,
+   silmiyor.                                               */
+export const PB_CAGIR_YARICAP = 20;
+export const PB_CAGIR_TAVAN   = 24;
+
+/* 6. YUKARI YUMRUK (rising_uppercut) ----------------------
+   Hem hedefi hem kendini havaya atiyor.                    */
+export const PB_YUMRUK_MENZIL = 4;
+export const PB_YUMRUK_ACI    = 0.5;
+export const PB_YUMRUK_HASAR  = 8;
+export const PB_YUMRUK_HEDEF_YUKARI = 1.1;
+export const PB_YUMRUK_KENDI_YUKARI = 0.8;
+
+/* 7. DALIS VURUSU (blazing_strike / photonic_strike) ------
+   Kaynak: HAVADAYKEN asagi dalip yere carpiyor.
+   Yerdeyken calismiyor -- kaynakta da oyle ve bu, yetenegi
+   "her zaman basilabilir bir alan hasari" olmaktan
+   cikariyor.                                               */
+export const PB_DALIS_YARICAP = 6;
+export const PB_DALIS_HASAR   = 12;
+export const PB_DALIS_ITME    = 1.4;   // asagi dogru
+export const PB_DALIS_PARCACIK = "minecraft:knockback_roar_particle";
+
+/* 8. DONDURAN NEFES (Superman freeze_breath) --------------
+   Koni icinde yavaslatma + kisa sure donma hissi.
+   Kaynakta hedefi buz blogu yapiyor; burada blok
+   KOYULMUYOR: bir oyuncuyu blogun icine hapsetmek bu
+   depoda yasak (kafes.js'te ayni karar yazili).            */
+export const PB_NEFES_MENZIL = 9;
+export const PB_NEFES_ACI    = 0.55;
+export const PB_NEFES_HASAR  = 3;
+export const PB_NEFES_SURE   = 100;
+export const PB_NEFES_PARCACIK = "minecraft:snowflake_particle";
+
+/* 9. GOK GURLEMESI (Superman thunderclap) -----------------
+   Cevreye halka bicimde itme. HASAR DUSUK, is itmek.       */
+export const PB_GOK_YARICAP = 10;
+export const PB_GOK_HASAR   = 4;
+export const PB_GOK_ITME    = 1.8;
+export const PB_GOK_SES     = "ambient.weather.thunder";
+
+/* 10. MADDE DONUSTURME (Firestorm molecular_shift) --------
+   Kaynak: bakilan maddeyi baska maddeye ceviriyor.
+
+   ---- TABLO KISA VE BILEREK ZAYIF ----
+   "Tasi elmasa cevir" bir yetenek degil hile olurdu.
+   Donusumler yalniz AYNI DEGERDE ya da yakin seyler
+   arasinda: kum->cam, kirik tas->tas, kutuk->tahta.
+   Oyuncuya kolaylik veriyor, ekonomi bozmuyor.            */
+export const PB_MADDE_MENZIL = 6;
+export const PB_MADDE_TABLO = new Map([
+  ["minecraft:sand",            "minecraft:glass"],
+  ["minecraft:red_sand",        "minecraft:glass"],
+  ["minecraft:cobblestone",     "minecraft:stone"],
+  ["minecraft:cobbled_deepslate", "minecraft:deepslate"],
+  ["minecraft:stone",           "minecraft:smooth_stone"],
+  ["minecraft:clay",            "minecraft:terracotta"],
+  ["minecraft:gravel",          "minecraft:cobblestone"],
+  ["minecraft:dirt",            "minecraft:coarse_dirt"],
+  ["minecraft:netherrack",      "minecraft:nether_brick"],
+  ["minecraft:ice",             "minecraft:packed_ice"]
+]);
+
+/* 11. ELDE PISIRME (Firestorm cook_item) ------------------
+   Elindeki ham seyi pisiriyor.
+
+   ---- ESYA KAYBETTIRMIYOR ----
+   Tabloda OLMAYAN esyaya dokunulmuyor; olan esyanin yalniz
+   turu degisiyor, adedi korunuyor. Bu depoda hicbir yetenek
+   oyuncunun esyasini goturmez.                            */
+export const PB_PISIR_TABLO = new Map([
+  ["minecraft:beef",           "minecraft:cooked_beef"],
+  ["minecraft:porkchop",       "minecraft:cooked_porkchop"],
+  ["minecraft:chicken",        "minecraft:cooked_chicken"],
+  ["minecraft:mutton",         "minecraft:cooked_mutton"],
+  ["minecraft:rabbit",         "minecraft:cooked_rabbit"],
+  ["minecraft:cod",            "minecraft:cooked_cod"],
+  ["minecraft:salmon",         "minecraft:cooked_salmon"],
+  ["minecraft:potato",         "minecraft:baked_potato"],
+  ["minecraft:kelp",           "minecraft:dried_kelp"],
+  ["minecraft:raw_iron",       "minecraft:iron_ingot"],
+  ["minecraft:raw_gold",       "minecraft:gold_ingot"],
+  ["minecraft:raw_copper",     "minecraft:copper_ingot"]
+]);

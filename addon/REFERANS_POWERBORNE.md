@@ -63,10 +63,40 @@ Güç dosyalarında toplam ~420 yetenek girdisi var ama çoğu tesisat:
 "Yok" satırları **11 gerçek mekanik**. Hiçbiri alınmadı çünkü mod hiç
 işlenmedi.
 
-## Ne yapılabilir
+## ALINDI (v7.87) — on bir mekaniğin hepsi
 
-Onbir mekaniğin çoğu Bedrock script'iyle yapılabilir. Yapılamayan tek grup
-xray (shader gerekiyor) ve Palladium'un kendi yetenek-ağacı arayüzü.
+Kullanıcı sonra *"bu yeni dosyanın tüm her şeyini almaya çalış"* dedi.
+Kod `yetenekler/powerborne.js`, test `test/powerborne.mjs` (40 madde),
+mutasyon bataryası **11/11**.
 
-**Bu sürümde alınmadı** — kullanıcının bu dosya için isteği "aldık mı diye bak"
-idi, "al" değil. Liste burada duruyor; istenirse sırayla alınır.
+| bizdeki | kaynak | kaynaktan ayrıldığımız yer |
+|---|---|---|
+| Duvarda Yürüme | `wall_crawl` | süreli; **duvar yoksa tırmanmıyor** — bu bir uçuş değil tırmanma |
+| Örümcek Hissi | `spider_sense` | tehlikeyi `glowing` ile gösteriyor (Bedrock'ta tek yol) |
+| Ağ At | `web_shoot` | **hasar vermiyor**, tutuyor — kaynakta da öyle |
+| Kalkan Fırlat | `throw_shield` | sekerken güç kaybediyor; sıralama **mesafeye** göre |
+| Çekiç Çağır | `mjolnir_call` | bizde çekiç yok → yerdeki eşyayı çağırıyor, **silmiyor** |
+| Yukarı Yumruk | `rising_uppercut` | hedefi de kendini de kaldırıyor |
+| Dalış Vuruşu | `blazing/photonic_strike` | **yerdeyken çalışmıyor** — havaya çıkmak bedel |
+| Donduran Nefes | `freeze_breath` | **blok koymuyor**; oyuncuyu bloğun içine hapsetmek yasak |
+| Gök Gürlemesi | `thunderclap` | hasar düşük, iş savurmak |
+| Madde Dönüştür | `molecular_shift` | tablo **bilerek zayıf** — taşı elmasa çevirmek hile olurdu |
+| Elde Pişir | `cook_item` | **adet korunuyor**; tabloda olmayana dokunulmuyor |
+
+### Alınmayanlar
+
+- **xray vision** — Bedrock'ta shader yok, yapılamaz.
+- **Palladium yetenek ağacı ve enerji çubuğu** (güneş şarjı, kryptonite) —
+  kendi arayüzü ve `energy_bar_*` özellik sistemi var; bizde `beceri.js`
+  benzer bir şey yapıyor ama bu ölçekte değil.
+- **Karakter kostümleri** — Marvel Project'ten zaten 54 kahraman ve 300 parça
+  var. Kullanıcı *"Marvel Project Addon v3.0.1 çıkarma, powerborne yanında
+  birlikte dursun"* dedi; ikisi yan yana duruyor ve `test/powerborne.mjs`
+  0. bölüm Marvel Project'in **silinmediğini** ayrıca bekçiliyor.
+
+### FiskHeroes
+
+Kullanıcı *"Frisk's heroes'un tüm karakterlerini sil"* dedi. **Zaten v5.2'de
+tamamen silinmişti** — dokuz kahraman, yedi ışını, kostüm geometrisi,
+`kahraman.js` ve `REFERANS_FISK.md` dahil. `test/marvel.mjs` 1. bölüm on bir
+maddeyle kalıntı arıyor ve hepsi temiz.

@@ -46,11 +46,23 @@ console.log("=== 1. ERISIM SORUNU GERCEKTEN VAR MI (olcum) ===");
 {
   const sira = kayit.esyasizSira();
   kontrol("jest dongusu 150'den uzun", sira.length > 150, sira.length + " yetenek");
-  /* Son onda yeni ailelerden biri olmali -- yoksa bu komutun
-     varlik sebebi kalkar ve test bunu haber vermeli.        */
+  /* Kuyrukta ERISILEMEYEN BIR AILE olmali -- yoksa bu komutun
+     varlik sebebi kalkar ve test bunu haber vermeli.
+
+     ---- LISTE NEDEN BUYUYOR ----
+     Ilk yazilista yalniz meyve/jjk/simbiyot vardi, cunku o
+     gun kuyrukta onlar duruyordu. Her yeni aile listenin
+     SONUNA giriyor ve oncekini yukari itiyor -- v7.87'de
+     nefes ve powerborne eklenince madde dustu.
+
+     Olculen sey "su aileler kuyrukta" DEGIL, "kuyrukta
+     jestle ulasilamayacak bir aile var". Yeni aile eklendikce
+     buraya eklenmesi o yuzden dogru; madde yine de
+     bosalabilir ve bosalirsa haber verir.                  */
   const son = sira.slice(-16).map((y) => y.kimlik).join(" ");
-  kontrol("son 16'da meyve/jjk/simbiyot var",
-          /gura|yami|ope|jjk|simbiyot/.test(son), son.slice(0, 70) + "...");
+  kontrol("kuyrukta erisilmesi zor bir aile var",
+          /gura|yami|ope|jjk|simbiyot|nefes_|duvar_tirmanma|madde_donustur/.test(son),
+          son.slice(0, 70) + "...");
 }
 
 console.log("\n=== 2. ADIYLA CALISTIRMA ===");
