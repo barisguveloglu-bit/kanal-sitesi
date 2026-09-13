@@ -504,12 +504,33 @@ function kipGeriAl(oyuncu, hedef) {
 
 /* Tek oyuncunun denetimi. Disari veriliyor ki test onu tarama
    dongusu olmadan da cagirabilsin.                          */
-export function kipDenetle(oyuncu) {
+export function kipDenetle(oyuncu, isVarMi) {
   if (!KIP_ACIK) return null;
   if (!gecerliMi(oyuncu)) return null;
   const kip = kipOku(oyuncu);
   if (kip === undefined) return null;              // okunamadi -> suclama yok
   if (KIP_IZIN.indexOf(kip) !== -1) return null;
+
+  /* ---- IZLEYICI KIPI KENDI ISIMIZDEN OLABILIR  (v7.79) ----
+     Dis inceleme bunu buldu ve hakliydi: Kilic oyuncuyu 200
+     tick izleyici yapiyor, Gozcu ortasinda survival'a cekiyordu
+     -- ustelik bloklarin temizlendigi anda, yani oyuncu blogun
+     icinde kalabiliyordu.
+
+     MUAFIYET YALNIZ IZLEYICI ICIN. Ustteki "muafiyetten
+     bagimsiz" karari YARATICI kip icin dogru: calisan isi olan
+     bir oyuncu da yaratici kipe hile olarak gecebilir. Ama
+     izleyici kipine oyuncuyu BIZ sokuyoruz; kendi koydugumuz
+     seyi kendi denetimimizle bozmak anlamsiz.
+
+     Muafiyet yine LISTE DEGIL: "calisan isi var mi" diye
+     soruluyor (bu dosyanin en ustundeki ayni ilke), yani yeni
+     bir yetenek izleyici kipi kullanirsa kendiliginden gecerli. */
+  if (kip === "spectator" && typeof isVarMi === "function") {
+    let isi = false;
+    try { isi = isVarMi(oyuncu.id) === true; } catch (e) { isi = false; }
+    if (isi) return null;
+  }
 
   const simdi = system.currentTick;
   const son = kipDefteri.get(oyuncu.id);
@@ -597,7 +618,7 @@ export function hareketTara(oyuncular, isVarMi) {
          olan oyuncu da yaratici kipte olabilir. Hareket
          olcumleriyle hicbir ortak yani yok, sadece ayni
          taramaya biniyor (depo kurali: yeni dongu acma).    */
-      kipDenetle(o);
+      kipDenetle(o, isVarMi);
 
       const k = o.location;
       if (!k) continue;

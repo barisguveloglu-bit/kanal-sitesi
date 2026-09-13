@@ -23,7 +23,7 @@ import { dunyaKur, oyuncuKur } from "./dunya.mjs";
    basi veriyor (main.js:453); test tick dongusunu isletmedigi
    icin kotayi kendisi acmali, yoksa hicbir varlik dogmaz.  */
 const { butceSifirla } = await import("./pack/butce.js");
-import { _durum } from "@minecraft/server";
+import { _durum, tickIlerlet } from "@minecraft/server";
 
 const w = console.warn;
 const sus = () => { console.warn = () => {}; };
@@ -130,7 +130,15 @@ console.log("=== 2. DEGISTIRIYOR, EKLEMIYOR (esya cogaltmiyor) ===");
      DEGISTIRME'dir: yedekten sonrasi gider.
 
      Yedek tek kullanimlik oldugu icin burada YENIDEN
-     aliniyor -- olculen sey degismedi, yolu degisti.       */
+     aliniyor -- olculen sey degismedi, yolu degisti.
+
+     v7.79: araya `yedekUnut` girdi. Yedek almanin artik
+     BEKLEMESI var (cogaltma dongusunun freni) ve bu senaryo
+     ust uste iki yedek istiyor. Beklemeyi sifirlamak testin
+     olctugu seyi degistirmiyor: burada olculen "geri yukleme
+     yedekten sonrasini birakir mi", bekleme degil. Beklemenin
+     kendisi asagida ayri bir bolumde sinaniyor.            */
+  yedek.yedekUnut(o.id);
   yedek.yedekAl(o);
   o._kap.setItem(9, { typeId: "minecraft:emerald", amount: 64 });
   o._kap.setItem(10, { typeId: "minecraft:emerald", amount: 64 });
@@ -205,6 +213,41 @@ console.log("=== 6. TEMIZLIK VE KAPSAM ===");
      kimse kalici sanmasin.                                 */
   kontrol("bellekte tutuldugu belgede yazili",
           /BELLEKTE|dunya kapaninca/i.test(kod));
+}
+
+console.log("\n=== BEKLEME: ÇOĞALTMA DÖNGÜSÜNÜN FRENİ (v7.79) ===");
+{
+  /* Dis inceleme v7.62'nin dongyu kapatmadigini gosterdi:
+       yedek -> esyalari sandiga bosalt -> yukle -> YENIDEN
+       yedek -> tekrar
+     Her tur envanteri ikiye katliyordu. Yedegi harcamak ise
+     yaramiyor cunku yenisini almak bedavaydi.              */
+  const { o } = kur("bek");
+  yedek.yedekUnut(o.id);
+  o._kap.setItem(0, { typeId: "minecraft:diamond", amount: 64 });
+
+  const ilk = yedek.yedekAl(o);
+  kontrol("ilk yedek alindi", /yedeklendi/.test(ilk), ilk);
+  kontrol("bekleme basladi", yedek.yedekKalanBekleme(o.id) > 0,
+          yedek.yedekKalanBekleme(o.id) + " tik");
+
+  /* DONGUNUN IKINCI TURU: esyayi "sandiga bosalt", geri yukle,
+     sonra yeniden yedek almaya calis.                      */
+  o._kap.setItem(0, undefined);
+  yedek.yedekYukle(o);
+  const ikinci = yedek.yedekAl(o);
+  kontrol("dongunun ikinci turu ENGELLENDI",
+          /beklemede/i.test(ikinci), ikinci);
+
+  /* Bekleme dolunca yine alinabilmeli -- savunma tarafi
+     bozulmamali.                                           */
+  tickIlerlet(ayar.YEDEK_BEKLEME + 1);
+  const ucuncu = yedek.yedekAl(o);
+  kontrol("bekleme dolunca yeniden alinabiliyor",
+          /yedeklendi/.test(ucuncu), ucuncu);
+
+  kontrol("bekleme ayari anlamli (>= 1 dakika)",
+          ayar.YEDEK_BEKLEME >= 1200, ayar.YEDEK_BEKLEME + " tik");
 }
 
 console.log("");

@@ -76,7 +76,20 @@ function kur(id) {
   return { D, o };
 }
 
-const yaz = (o, metin) => { sus(); const r = sohbetTetikle(o, metin); ac(); return r; };
+/* ---- BIR TICK ILERLIYOR  (v7.79) ----
+   `beforeEvents.chatSend` SALT-OKUNUR kipte calisiyor; komutun
+   kendisi artik `system.run` ile bir sonraki tick'e ataniyor
+   (eskiden yalniz CEVAP erteleniyordu ve calistirma salt-okunur
+   kipte kaliyordu -- Beta acilinca butun komutlar sessizce
+   olurdu). Yardimci da gercek akisi taklit ediyor: yaz, bir
+   tick gec, sonucu oku.                                      */
+const yaz = (o, metin) => {
+  sus();
+  const r = sohbetTetikle(o, metin);
+  tickIlerlet(1);
+  ac();
+  return r;
+};
 const sonMesaj = (o) => o._mesajlar[o._mesajlar.length - 1] || "";
 
 console.log("=== 1. JEST SIRASINDA CAKISMA YOK ===");
@@ -334,6 +347,46 @@ console.log("=== 12. DURUM RAPORU (v4.25) ===");
   kontrol("API yuzeyi yaziyor", /2\.0\.0-beta|2\.0\.0/.test(r));
   kontrol("'test' ve 'bilgi' de ayni raporu veriyor",
           (yaz(o, "test"), sonMesaj(o).includes("Simsek durum")));
+}
+
+console.log("\n=== SALT-OKUNUR KİP: KOMUT BİR TİCK SONRA (v7.79) ===");
+{
+  /* `beforeEvents.chatSend` SALT-OKUNUR kipte calisiyor.
+     v7.40 yalniz CEVABI ertelemisti; `komutCozumle`nin
+     KENDISI orada calismaya devam ediyordu ve o cagri
+     dunyayi degistiriyor (kalpEkle, arindir, botGeri...).
+     Beta acilir acilmaz butun komutlar sessizce olurdu.
+
+     OLCU: yan etki tetiklemeden ONCE degil, bir tick SONRA
+     gorunmeli. Ikisi birden sinaniyor -- yalniz "sonra
+     oldu" demek, hic ertelenmemis bir surumde de gecerdi. */
+  defter.defteriUnut();
+  _durum.ozellikler.delete(ayar.KALP_KAYIT_ANAHTAR);
+  const { o } = kur("ert");
+
+  sus();
+  const yutuldu = sohbetTetikle(o, "can 5");
+  const hemen = defter.kalpAl("ert");
+  tickIlerlet(1);
+  const sonra = defter.kalpAl("ert");
+  ac();
+
+  kontrol("komut satiri yine de gizlendi (tanima yan etkisiz)",
+          yutuldu === true);
+  kontrol("TETIKLEME ANINDA dunya DEGISMEDI (salt-okunur kip)",
+          hemen === 0, hemen + " kalp");
+  /* Miktar DEGIL, DEGISIM olculuyor: "can N" kac kalp verir
+     sorusunun cevabi yukarida ayri bir bolumde sinaniyor.
+     Buradaki soru yalniz "ne zaman calisti".              */
+  kontrol("BIR TICK SONRA calisti", sonra > hemen,
+          hemen + " -> " + sonra + " kalp");
+
+  /* Komut olmayan metin sohbette kalmali -- taniyici fazla
+     genis olsaydi normal konusma da yutulurdu.            */
+  sus();
+  const duz = sohbetTetikle(o, "merhaba nasilsin");
+  ac();
+  kontrol("duz cumle YUTULMUYOR", duz === false);
 }
 
 console.log("");

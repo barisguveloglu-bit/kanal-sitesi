@@ -1,6 +1,8 @@
 import { system } from "@minecraft/server";
 import { yetenekKaydet } from "./kayit.js";
 import { hataYaz, gecerliMi } from "../yardimcilar.js";
+import { blokIste } from "../butce.js";
+
 import {
   KAFES_ACIK, KAFES_SIRA, KAFES_BEKLEME, KAFES_YARICAP,
   KAFES_KORUNAN, KAFES_KORUNAN_ONEK
@@ -144,13 +146,32 @@ export function kafesKir(oyuncu) {
 
   const boyut = oyuncu.dimension;
   const m = koord(oyuncu);
-  let kirilan = 0, korunan = 0;
+  let kirilan = 0, korunan = 0, butceBitti = false;
   for (const nokta of hedefler(m)) {
     let blok;
     try { blok = boyut.getBlock(nokta); } catch (e) { continue; }
     if (!blok) continue;
     if (gecilirMi(blok)) continue;
     if (korunanMi(blok)) { korunan++; continue; }
+    /* ---- BUTCE  (v7.79) ----
+       Dis inceleme bu dosyanin `blokIste` CAGIRMAYAN tek dosya
+       oldugunu buldu ve hakliydi: 3x3x3 = 26 blok tek tick'te,
+       56'lik ortak butceyi hic gormeden isleniyordu. Kafes
+       kirma bir kurtulus yolu, ama butcenin disinda kalmasinin
+       bir gerekcesi yok -- kismi kurtulus da kurtulustur ve
+       bekleme zaten iki saniye.                              */
+    if (blokIste(1) === 0) { butceBitti = true; break; }
+    /* ---- ESYA DUSMUYOR VE BU BILINCLI  (v7.79) ----
+       Dis inceleme "esya dusmuyor, yani sessiz kazma aleti"
+       dedi. Olcum tersini gosteriyor: esya DUSSEYDI alet
+       olurdu. Dusmedigi icin kafes kirmanin madencilik
+       degeri SIFIR -- kendini duvarla ormek, beklemek ve
+       hicbir sey kazanmamak.
+
+       Kirilan bloklar da zaten SALDIRGANIN kafesi; "oyuncunun
+       esyasi kaybolmaz" kurali kurbanin envanteri icin, onu
+       hapsedenin duvari icin degil. Kendi blogun ve sandiklar
+       `korunanMi` ile ZATEN korunuyor.                      */
     try { blok.setType("minecraft:air"); kirilan++; } catch (e) {
       /* Tek bir blok kirilamazsa OTEKILER YINE KIRILSIN --
          kismi kurtulus da kurtulustur (arinma.js'teki
@@ -160,6 +181,7 @@ export function kafesKir(oyuncu) {
   }
 
   let mesaj = "§aKafes kırıldı §7· " + kirilan + " blok";
+  if (butceBitti) mesaj += " §8· bütçe doldu, kalanı tekrar dene";
   if (korunan > 0) {
     mesaj += " §8· " + korunan + " blok korundu (sandık/kendi bloğun)";
   }

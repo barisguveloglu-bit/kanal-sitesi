@@ -416,6 +416,14 @@ function oyuncuIsSayisi(oyuncuId) {
    IS ACAN yetenekleri kapsiyor; is acmayanlarin freni yoktu.  */
 const anlikSon = new Map();
 
+/* Defterde kac satir var. Yalniz TEST icin disa aciliyor --
+   `mesaleDefteriBoyu` / `golgeSayisi` / `izleyiciSayisi` ile
+   ayni kalip. Kaynakta "anlikUnut cagriliyor mu" diye metin
+   aramak yetmiyordu: `if (false) anlikUnut(...)` metni
+   koruyup davranisi bozuyor, mutasyon bataryasi bunu
+   gosterdi.                                                */
+export function anlikSayisi() { return anlikSon.size; }
+
 export function anlikUnut(oyuncuId) {
   if (oyuncuId === undefined) { anlikSon.clear(); return; }
   for (const k of [...anlikSon.keys()]) {
@@ -2543,6 +2551,14 @@ olayaAbone("playerLeave", (olay) => {
     }
   }
   sonKullanim.delete(olay.playerId);
+  /* ---- v7.79: ATLANMIS TEK DEFTER ----
+     Dis inceleme bunu buldu ve hakliydi: `anlikUnut` tanimli ve
+     disa acikti ama HICBIR YERDEN cagrilmiyordu. Anahtar
+     `oyuncuId|kimlik` oldugu icin giren-cikan her oyuncu,
+     kullandigi HER yetenek icin bir satir birakiyor ve hicbir
+     sey silmiyordu. Oteki 55 defterin hepsi bagliydi, atlanan
+     tek defter buydu.                                        */
+  anlikUnut(olay.playerId);
 });
 
 /* Paketin gercekten calistigini dunyaya girer girmez gormek icin.
@@ -2566,8 +2582,6 @@ olayaAbone("playerSpawn", (olay) => {
   } catch (e) { /* oyuncu nesnesi okunamadi: iz bir sonraki
                    ornekte kendiliginden tazeleniyor */ }
 
-  if (!olay.initialSpawn) return;
-
   /* ---- SON EMNIYET: girdi kilidini AC ----  (v4.33)
 
      "Dondur" oyuncularda inputpermission ile gercek bir kilit
@@ -2581,6 +2595,16 @@ olayaAbone("playerSpawn", (olay) => {
      yok. Bu satir o kapiyi kapatiyor: dunyaya her girisde
      herkes serbest baslar. Kilitli degilsen zaten hicbir sey
      yapmiyor.                                                  */
+  /* ---- v7.79: ERKEN CIKIS BUNUN USTUNDEYDI ----
+     `if (!olay.initialSpawn) return;` tam burada duruyordu,
+     yani emniyet YALNIZ dunyaya ilk giriste calisiyordu.
+     Olup yeniden dogmak `initialSpawn = false` ile geliyor --
+     yani donmus halde olen oyuncu kilidi uzerinde tasimaya
+     devam ediyordu ve geri almanin oyun ici yolu yok.
+
+     Dis inceleme bunu buldu ve hakliydi. Erken cikis
+     asagiya, izleyici emniyetinin de ALTINA alindi; ikisi de
+     her doguste calismali.                                  */
   if (DONDUR_GIRDI_KILIT) {
     try {
       olay.player.runCommand("inputpermission set @s movement enabled");
@@ -2609,6 +2633,17 @@ olayaAbone("playerSpawn", (olay) => {
   } catch (e) {
     hataYaz("playerSpawn.kilicGirisDuzelt", e);
   }
+
+  /* ---- ERKEN CIKIS BURAYA INDI  (v7.79) ----
+     Yukaridaki IKI EMNIYET (girdi kilidi ve izleyici kipi) her
+     doguste calismali: olup yeniden dogmak `initialSpawn=false`
+     ile geliyor ve donmus/izleyici halde olen oyuncu o durumu
+     uzerinde tasiyordu.
+
+     Asagidaki KARSILAMA MESAJI ise yalniz ilk giriste anlamli;
+     her olumde tekrarlarsa sohbeti kirletirdi. Sinir tam
+     burasi.                                                  */
+  if (!olay.initialSpawn) return;
 
   if (!OLCUM_SOHBETE && !HATA_SOHBETE) return;
   try {

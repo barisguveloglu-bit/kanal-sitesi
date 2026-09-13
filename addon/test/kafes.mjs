@@ -46,6 +46,7 @@ await import("./pack/main.js");
 ac();
 
 const ayar   = await import("./pack/ayarlar.js");
+const butce   = await import("./pack/butce.js");
 const kafes  = await import("./pack/yetenekler/kafes.js");
 const gozcu  = await import("./pack/yetenekler/gozcu.js");
 const sohbet = await import("./pack/sohbet.js");
@@ -109,6 +110,7 @@ console.log("=== 1. KAFESTE: CEVRE KIRILIYOR, AYAK ALTI DURUYOR ===");
   kafes.kafesUnut();
   const { D, o, m } = kafeseKoy();
   kontrol("hapsedildigi goruluyor", kafes.hapsedildiMi(o));
+  if (butce.butceSifirla) butce.butceSifirla();
   const cevap = kafes.kafesKir(o);
   kontrol("kafes kirildi mesaji", /Kafes kırıldı/.test(cevap), cevap);
   kontrol("gercekten blok kirildi", D.sayac.setType > 0, D.sayac.setType + " setType");
@@ -131,6 +133,7 @@ console.log("=== 2. ACIK ARAZIDE HICBIR SEYE DOKUNMUYOR (en onemlisi) ===");
   kafes.kafesUnut();
   const { D, o } = acikAraziye();
   kontrol("hapsedilmis gorunmuyor", !kafes.hapsedildiMi(o));
+  if (butce.butceSifirla) butce.butceSifirla();
   const cevap = kafes.kafesKir(o);
   kontrol("uyari veriyor", /Hapsedilmiş görünmüyorsun/.test(cevap), cevap);
   /* Sayaç SIFIR olmali. "az blok kirdi" yeterli degil --
@@ -144,6 +147,7 @@ console.log("=== 3. SANDIK DUVAR KIRILMIYOR (esya kaybi yasak) ===");
 {
   kafes.kafesUnut();
   const { D, o } = kafeseKoy("minecraft:chest");
+  if (butce.butceSifirla) butce.butceSifirla();
   const cevap = kafes.kafesKir(o);
   const sandikSilindi = D.sayac.yazilan.length > 0;
   kontrol("sandiga dokunulmadi", !sandikSilindi,
@@ -156,6 +160,8 @@ console.log("=== 4. KENDI BLOKLARIMIZ ('pa:') KIRILMIYOR ===");
 {
   kafes.kafesUnut();
   const { D, o } = kafeseKoy("pa:kupa_earl");
+  if (butce.butceSifirla) butce.butceSifirla();
+  if (butce.butceSifirla) butce.butceSifirla();
   kafes.kafesKir(o);
   kontrol("kupa duvari duruyor", D.sayac.yazilan.length === 0,
           D.sayac.yazilan.length + " yazim");
@@ -166,14 +172,18 @@ console.log("=== 5. BEKLEME: BOSUNA DENEMEDE ISLEMIYOR ===");
 {
   kafes.kafesUnut();
   const { o } = acikAraziye();
+  if (butce.butceSifirla) butce.butceSifirla();
+  if (butce.butceSifirla) butce.butceSifirla();
   kafes.kafesKir(o);                 // acik arazi -> saat baslamamali
   const { D: D2, o: o2 } = kafeseKoy();
   o2.id = o.id;                      // ayni oyuncu
+  if (butce.butceSifirla) butce.butceSifirla();
   const ikinci = kafes.kafesKir(o2);
   /* Bosuna denemenin bedeli olmamali: acik arazide bir kez
      denedi diye gercek kafeste beklemeye dusmemeli.       */
   kontrol("bosuna deneme bekleme baslatmadi",
           /Kafes kırıldı/.test(ikinci), ikinci);
+  if (butce.butceSifirla) butce.butceSifirla();
   const ucuncu = kafes.kafesKir(o2);
   kontrol("gercek kirmadan sonra bekleme var",
           /bekliyor/i.test(ucuncu), ucuncu);
@@ -293,6 +303,38 @@ console.log("=== 11. OYUNCU CIKINCA DEFTER TEMIZLENIYOR ===");
           /kafesUnut\(olay\.playerId\)/.test(
             (await import("node:fs")).readFileSync(
               "../Simsek_TNT_ToprakTopu/scripts/main.js", "utf8")));
+}
+
+console.log("\n=== ORTAK BÜTÇEYE UYUYOR (v7.79) ===");
+{
+  /* Dis inceleme bu dosyanin `blokIste` CAGIRMAYAN TEK dosya
+     oldugunu buldu ve hakliydi: 3x3x3 = 26 blok tek tick'te,
+     56'lik ortak butceyi hic gormeden isleniyordu.
+
+     OLCU: butce sifirken HICBIR blok kirilmamali.        */
+  const { D, o } = kafeseKoy();
+  butce.butceSifirla();
+  /* Butceyi tuket: kalan sifira insin.                    */
+  while (butce.blokIste(1) > 0) { /* bosalt */ }
+  const yazimOnce = D.sayac.yazilan.length;
+  const cevap = kafes.kafesKir(o);
+  kontrol("butce bosken HICBIR blok kirilmadi",
+          D.sayac.yazilan.length === yazimOnce,
+          (D.sayac.yazilan.length - yazimOnce) + " yazim");
+  kontrol("kullaniciya sebebi soyleniyor",
+          /bütçe/i.test(cevap), cevap);
+
+  /* Butce dolunca yine kirilmali -- kurtulus yolu kapanmasin. */
+  /* `kafeseKoy` ayni oyuncu kimligini veriyor; kirma
+     beklemesi bir onceki cagridan kalir.                 */
+  kafes.kafesUnut();
+  const { D: D2, o: o2 } = kafeseKoy();
+  butce.butceSifirla();
+  const once2 = D2.sayac.yazilan.length;
+  kafes.kafesKir(o2);
+  kontrol("butce dolunca kafes yine kiriliyor",
+          D2.sayac.yazilan.length > once2,
+          (D2.sayac.yazilan.length - once2) + " yazim");
 }
 
 console.log("");

@@ -1,4 +1,5 @@
-/* system: beforeEvents salt-okunur, cevap system.run ile
+/* system: beforeEvents salt-okunur; v7.79'dan beri hem CEVAP
+   hem KOMUTUN KENDISI system.run ile
    bir sonraki tick'e ataniyor (v7.40).                     */
 import { world, system } from "@minecraft/server";
 import { bilgiYaz, hataYaz, sistemOlayaAbone } from "./yardimcilar.js";
@@ -133,6 +134,46 @@ export function yetkiliMi(oyuncu, ad) {
   }
   if (!etiketliVar) return true;  // kimse etiketli degil: kapi acik
   try { return oyuncu.hasTag(KOMUT_ETIKET); } catch (e) { return true; }
+}
+
+/* ---- TANIYICI: YAN ETKISIZ  (v7.79) ----
+   `komutCozumle` hem TANIYOR hem CALISTIRIYOR. Salt-okunur
+   kipte (beforeEvents.chatSend) calistirmak yasak, ama
+   "bu bir komut mu" sorusunu orada sormak zorundayiz --
+   `e.cancel` ancak o anda yazilabiliyor.
+
+   Bu yuzden tanima ayri: hicbir sey degistirmiyor, yalnizca
+   ilk kelimeye bakiyor.
+
+   ---- LISTE NEDEN ELLE YAZILI VE NASIL KORUNUYOR ----
+   Cozumleyici uzun bir `if (ad === "...")` zinciri; oradan
+   calisma aninda liste cikarmanin yolu yok. Elle yazilan
+   liste ise KAYAR: yeni komut eklenir, buraya yazilmaz ve
+   komut sessizce calismaz olur.
+
+   O yuzden `test/sohbet.mjs` bu listeyi DOSYADAN cikariyor
+   ve birebir karsilastiriyor. Kaymasi mumkun degil; kayarsa
+   test duser.                                              */
+const SABIT_KOMUTLAR = new Set([
+  "and", "arin", "arın", "bilgi", "bot", "can", "carpik",
+  "carpik hal", "carpil", "cik", "durum", "duvar", "esyalarim",
+  "fruit", "geriyukle", "goz", "guc", "guc kullan", "jjk",
+  "jujutsu", "kafes", "kalkan", "kalp", "kir", "kol", "kollar",
+  "komut", "komutlar", "kurtul", "kusak", "kuşak", "kır", "lazer",
+  "meyve", "savunma", "serbest", "set", "teknik", "test", "yardim",
+  "yedek", "yemin", "yetenek", "yetenekler", "yukle", "çık"
+]);
+
+export function komutMu(hamMetin) {
+  let metin = sadelestir(hamMetin);
+  if (metin.length === 0) return false;
+  if (SOHBET_ONEK && metin.startsWith(SOHBET_ONEK)) {
+    metin = metin.slice(SOHBET_ONEK.length).trim();
+  }
+  const ad = metin.split(" ")[0];
+  if (SABIT_KOMUTLAR.has(ad)) return true;
+  /* Bu ikisi ZATEN yan etkisiz birer yuklem; kopyalanmiyor. */
+  return meyveAdiMi(ad) || jjkAdiMi(ad);
 }
 
 /* Cozumleyici. Donen deger:
@@ -701,21 +742,44 @@ function sohbeteAbone() {
       try {
         const oyuncu = e.sender;
         if (!oyuncu) return;
-        const sonuc = komutCozumle(oyuncu, e.message);
-        if (!sonuc) {
+        const metin = e.message;
+
+        /* ---- CALISTIRMA DA ERTELENIYOR  (v7.79) ----
+           v7.40 yalniz CEVABI ertelemisti ve yorumu "sorun
+           cozuldu" diyordu. Yarisi cozulmustu: `komutCozumle`
+           tanimakla kalmiyor, CALISTIRIYOR da --
+           cagir("kalpEkle"), arindir, botGeri, yedekYukle
+           hepsi dunyayi degistiriyor. Salt-okunur kipte
+           hepsi "Cannot modify the world in read-only mode"
+           atar ve `cagir`in try/catch'i yutar: kullanici
+           cevabi gorur, komut hic calismaz.
+
+           Bugune kadar patlamamasinin sebebi chatSend'in
+           kararli API'de HIC BULUNMAMASI. Beta acilir acilmaz
+           butun sohbet komutlari sessizce olurdu.
+
+           Artik tanima burada (yan etkisiz), calistirma bir
+           sonraki tick'te.                                  */
+        if (!komutMu(metin)) {
           /* Komut degil. Dinleyicilere sor; biri sahiplenirse
              mesaj sohbete dusmez.                            */
-          if (dinleyicilereSor(oyuncu, e.message)) { e.cancel = true; return; }
+          if (dinleyicilereSor(oyuncu, metin)) { e.cancel = true; return; }
           return;                   // normal sohbet olarak gitsin
         }
 
         e.cancel = true;            // komut satiri sohbete dusmesin
 
-        /* Salt-okunur kip sorunu cevapYaz'in ICINDE cozuluyor
-           (v7.40): once dogrudan deneniyor, istisna atarsa bir
-           sonraki tick'e ataniyor. Cagri yerine sargı koymak
-           calisan durumu da geciktirirdi.                    */
-        cevapYaz(oyuncu, sonuc.cevap);
+        system.run(() => {
+          try {
+            const sonuc = komutCozumle(oyuncu, metin);
+            /* Taniyici "komut" dedi ama cozumleyici tanimadiysa
+               (ornegin yetki kapisi disi bir durum) sessiz
+               kalmak yanlis olurdu -- yine de bir sey yaz.  */
+            cevapYaz(oyuncu, sonuc ? sonuc.cevap : undefined);
+          } catch (hata) {
+            hataYaz("sohbet.komutCalistir", hata);
+          }
+        });
       } catch (hata) {
         hataYaz("sohbet.chatSend", hata);
       }

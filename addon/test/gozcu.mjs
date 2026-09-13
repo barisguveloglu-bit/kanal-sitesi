@@ -812,6 +812,45 @@ console.log("=== 16. SAVASTAN KACIS (auto_disconnect) ===");
           /kacisAyrilma\([\s\S]{0,200}?kacisUnut\(/.test(ana));
 }
 
+console.log("\n=== İZLEYİCİ KİPİ KENDİ İŞİMİZDEN OLABİLİR (v7.79) ===");
+{
+  /* Kilic oyuncuyu 200 tick izleyici yapiyor; Gozcu onu
+     ortasinda survival'a cekiyordu -- ustelik bloklarin
+     temizlendigi anda, yani oyuncu blogun icinde kalabilir.
+
+     MUAFIYET YALNIZ IZLEYICI ICIN: yaratici kipe calisan isi
+     olan bir oyuncu da hile olarak gecebilir, orada muafiyet
+     yanlis olurdu. Iki yon de olculuyor.                  */
+  const D = dunyaKur();
+  const o = oyuncuKur(D.boyut, { x: 0, y: 0, z: 1 }, { x: 0, y: 64, z: 0 });
+  o.id = "izl"; o.typeId = "minecraft:player";
+  o._kip = "spectator";
+  o.getGameMode = () => o._kip;
+  o.setGameMode = (k) => { o._kip = k; };
+  o.runCommand = () => ({ successCount: 1 });
+  o.sendMessage = () => {};
+
+  const isiVar = () => true;
+  const isiYok = () => false;
+
+  gozcu.kipUnut && gozcu.kipUnut();
+  const muaf = gozcu.kipDenetle(o, isiVar);
+  kontrol("kendi isi varken IZLEYICI kipine dokunulmuyor",
+          muaf === null && o._kip === "spectator", o._kip);
+
+  gozcu.kipUnut && gozcu.kipUnut();
+  o._kip = "creative";
+  const yaratici = gozcu.kipDenetle(o, isiVar);
+  kontrol("kendi isi VARKEN BILE yaratici kip yakalaniyor",
+          yaratici !== null, JSON.stringify(yaratici));
+
+  gozcu.kipUnut && gozcu.kipUnut();
+  o._kip = "spectator";
+  const isizIzleyici = gozcu.kipDenetle(o, isiYok);
+  kontrol("isi YOKKEN izleyici kipi yine yakalaniyor",
+          isizIzleyici !== null, JSON.stringify(isizIzleyici));
+}
+
 console.log("");
 console.log(hata ? ">>> SORUN VAR" : ">>> gozcu yerinde");
 process.exit(hata ? 1 : 0);

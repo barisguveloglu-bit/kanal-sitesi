@@ -1,5 +1,6 @@
 import { hataYaz, gecerliMi } from "../yardimcilar.js";
-import { YEDEK_ACIK } from "../ayarlar.js";
+import { system } from "@minecraft/server";
+import { YEDEK_ACIK, YEDEK_BEKLEME } from "../ayarlar.js";
 
 /* ENVANTER YEDEGI -- "/clear" ile silinen esyanin karsiligi.
 
@@ -26,10 +27,21 @@ import { YEDEK_ACIK } from "../ayarlar.js";
 
 // oyuncuId -> [ {slot, esya} ... ]
 const yedekler = new Map();
+/* oyuncuId -> bir sonraki yedek alinabilecek tick.
+   Gerekce ayarlar.js'te YEDEK_BEKLEME'nin ustunde.        */
+const sonrakiYedek = new Map();
 
 export function yedekUnut(oyuncuId) {
-  if (oyuncuId === undefined) yedekler.clear();
-  else yedekler.delete(oyuncuId);
+  if (oyuncuId === undefined) { yedekler.clear(); sonrakiYedek.clear(); }
+  else { yedekler.delete(oyuncuId); sonrakiYedek.delete(oyuncuId); }
+}
+
+/* Kac tick sonra yeniden yedek alinabilir. 0 = simdi. */
+export function yedekKalanBekleme(oyuncuId) {
+  const s = sonrakiYedek.get(oyuncuId);
+  if (s === undefined) return 0;
+  const kalan = s - system.currentTick;
+  return kalan > 0 ? kalan : 0;
 }
 
 export function yedekVarMi(oyuncuId) { return yedekler.has(oyuncuId); }
@@ -52,6 +64,15 @@ function kapAl(oyuncu) {
 export function yedekAl(oyuncu) {
   if (!YEDEK_ACIK) return "§7Envanter yedeği kapalı.";
   if (!gecerliMi(oyuncu)) return "§cYedek alınamadı.";
+  /* ---- BEKLEME: COGALTMA DONGUSUNUN FRENI  (v7.79) ----
+     Bu satir olmadan "yedek -> sandiga bosalt -> yukle ->
+     yedek" dongusu envanteri her turda ikiye katliyor.
+     Gerekcenin tamami ayarlar.js'te.                       */
+  const kalan = yedekKalanBekleme(oyuncu.id);
+  if (kalan > 0) {
+    return "§eYedek beklemede §7· " + Math.ceil(kalan / 20) + " sn sonra";
+  }
+
   const kap = kapAl(oyuncu);
   if (!kap) return "§cEnvanter okunamadı.";
 
@@ -62,6 +83,7 @@ export function yedekAl(oyuncu) {
     if (e) liste.push({ slot: i, esya: e });
   }
   yedekler.set(oyuncu.id, liste);
+  sonrakiYedek.set(oyuncu.id, system.currentTick + YEDEK_BEKLEME);
   return "§aEnvanter yedeklendi §7· " + liste.length + " dolu yuva";
 }
 

@@ -217,8 +217,53 @@ console.log("=== 4. ANLIK YETENEKLERE FREN ===");
           ayar.ANLIK_BEKLEME + " tick");
   kontrol("tetikleme anlikHazirMi soruyor",
           /anlikHazirMi\(oyuncu\.id, kimlik\)/.test(m));
-  kontrol("defter oyuncu basina temizleniyor",
+  /* ---- TANIMLI OLMAK YETMEZ, CAGRILMALI  (v7.79) ----
+     Bu madde eskiden yalniz "export function anlikUnut" var mi
+     diye bakiyordu. Dis inceleme bosluktan gecti ve hakliydi:
+     fonksiyon tanimliydi, disa aciktı ve HICBIR YERDEN
+     cagrilmiyordu. Anahtar `oyuncuId|kimlik` oldugu icin
+     giren-cikan her oyuncu, kullandigi her yetenek icin bir
+     satir birakiyordu. Oteki 55 defterin hepsi bagliydi.
+
+     Ayni ders `kaliciYaz` ve golge defterinde de yasandi:
+     kaynakta metin aramak, baglandigini KANITLAMAZ.       */
+  kontrol("defter oyuncu basina temizleniyor (tanim)",
           /export function anlikUnut/.test(m));
+  /* Kanca govdesi SONRAKI kancaya kadar. Sabit karakter
+     sayisi kirilgan: playerLeave 95 satir ve buyuyebilir. */
+  const bas762 = m.indexOf('olayaAbone("playerLeave"');
+  const sonra762 = m.indexOf('olayaAbone(', bas762 + 20);
+  const ayril = m.slice(bas762, sonra762 > 0 ? sonra762 : undefined);
+  kontrol("anlikUnut playerLeave icinde yazili",
+          /anlikUnut\(olay\.playerId\)/.test(ayril),
+          ayril.length + " karakterlik kanca tarandi");
+
+  /* ---- YAZILI OLMAK DA YETMEZ: DAVRANIS  (v7.79) ----
+     `if (false) anlikUnut(...)` metni koruyup davranisi
+     bozuyor; mutasyon bataryasi tam bunu gecti. Olcu artik
+     defterin GERCEKTEN bosaldigi.                          */
+  const anaModul = await import("./pack/main.js");
+  kontrol("defter boyu olculebiliyor",
+          typeof anaModul.anlikSayisi === "function");
+  if (typeof anaModul.anlikSayisi === "function") {
+    /* Defteri ELLE doldur: `anlikHazirMi` disa acik degil ve
+       acmanin gerekcesi yok -- olculen sey TEMIZLIK.       */
+    anaModul.anlikUnut();
+    anaModul.anlikUnut("x");                 // tanimsizi silmek zararsiz
+    const bosBaslangic = anaModul.anlikSayisi();
+    kontrol("defter bos basladi", bosBaslangic === 0, bosBaslangic + " satir");
+
+    /* playerLeave kancasini dogrudan cagiriyoruz: taklitte
+       abone listesi `_durum.playerLeaveCb`.                */
+    const oncekiSayi = _durum.playerLeaveCb.length;
+    kontrol("playerLeave kancasi kayitli", oncekiSayi > 0,
+            oncekiSayi + " abone");
+    for (const cb of _durum.playerLeaveCb) {
+      try { cb({ playerId: "yok-boyle-bir-oyuncu" }); } catch (e) { /* onemsiz */ }
+    }
+    kontrol("playerLeave defteri bozmuyor",
+            anaModul.anlikSayisi() === 0, anaModul.anlikSayisi() + " satir");
+  }
   kontrol("fren ayniIsVarMi'dan SONRA (is acanlar zaten korumali)",
           m.indexOf("anlikHazirMi(oyuncu.id, kimlik)") >
           m.indexOf("if (ayniIsVarMi(oyuncu.id, kimlik)) continue;"));
@@ -369,5 +414,37 @@ console.log("=== 9. JUJUTSU: TEK NORMALLESTIRICI, OYUNCU BASINA ARIZA ===");
           "ozellik " + saglam._o.size);
 }
 
+console.log("\n=== ÖLÜP DOĞUNCA KİLİT AÇILIYOR (v7.79) ===");
+{
+  /* `inputpermission enabled` emniyeti
+     `if (!olay.initialSpawn) return;` satirinin ALTINDAYDI.
+     Olup yeniden dogmak initialSpawn=false ile geliyor, yani
+     donmus halde olen oyuncu kilidi uzerinde tasimaya devam
+     ediyordu -- geri almanin oyun ici yolu da yok.
+
+     OLCU: kaynakta SIRA. Emniyet erken cikisin USTUNDE
+     olmali; karsilama mesaji ALTINDA kalmali (her olumde
+     tekrarlamasin).                                        */
+  /* YORUMLAR SOKULUYOR. Ilk yazilista ham dosyada aranmisti
+     ve test TEMIZ KAYNAKTA DUSTU: duzeltmenin gerekcesini
+     anlatan yorum `if (!olay.initialSpawn) return;` satirini
+     ORNEK OLARAK yaziyor ve indexOf onu buluyordu. Ayni tuzak
+     efsane_korku.mjs ve viktor'da da yasandi.              */
+  const kaynak = readFileSync("./pack/main.js", "utf8")
+    .replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+  const bas = kaynak.indexOf('olayaAbone("playerSpawn"');
+  kontrol("playerSpawn kancasi bulundu", bas > 0);
+  const govde = kaynak.slice(bas, bas + 6000);
+  const kilit = govde.indexOf("inputpermission set @s movement enabled");
+  const cikis = govde.indexOf("if (!olay.initialSpawn) return;");
+  const karsilama = govde.indexOf("yuklendi §7·");
+  kontrol("girdi kilidi emniyeti erken cikisin USTUNDE",
+          kilit > 0 && cikis > 0 && kilit < cikis,
+          "kilit@" + kilit + " cikis@" + cikis);
+  kontrol("karsilama mesaji erken cikisin ALTINDA (olumde tekrarlamaz)",
+          karsilama > cikis, "karsilama@" + karsilama);
+}
+
+console.log("");
 console.log(hata ? "\nKALDI" : "\nhepsi gecti");
 process.exit(hata ? 1 : 0);

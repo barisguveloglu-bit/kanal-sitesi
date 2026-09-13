@@ -23,7 +23,7 @@ import {
   tickIlerlet, varlikKaydet, esyaKaydet, _durum,
   vurusTetikle, blokKirTetikle
 } from "@minecraft/server";
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
 const KOK = new URL("..", import.meta.url).pathname.replace(/\/$/, "");
 
 const BP = KOK + "/Simsek_TNT_ToprakTopu";
@@ -818,6 +818,43 @@ console.log("\n=== 9. BALTA DA OLU DEGIL (v4.84) ===");
             v.components["minecraft:attack"].damage >= 10,
             v.components["minecraft:attack"].damage + " hasar");
   }
+}
+
+console.log("\n=== DISMONT KİMLİKLERİ BAYAT DEĞİL (v7.79) ===");
+{
+  /* Tas v4.50'de "Freedom Stone" diye yeniden adlandirildi ama
+     iki yerde eski kimlik kaldi: DERIN_HEDEFLER'de `pa:dismont`,
+     BOT_MADEN_BLOKLARI'nda `pa:dismont_cevheri`. Oyle esya ve
+     oyle blok YOK -- yani `bot dismont 64` aradigini hicbir
+     zaman bulamiyor, DERIN_EN_UZUN'a kadar bosuna kaziyordu.
+
+     Kimlikler ayarlar.js'te DUZ YAZI olmak zorunda (sabitler
+     asagida tanimli, `const` gecici olu bolgede). O yuzden
+     esitlik burada sinaniyor.                              */
+  kontrol("derin tarama hedefi gercek esyayi ariyor",
+          ayar.DERIN_HEDEFLER.get("dismont").esya === ayar.DISMONT_ESYA,
+          ayar.DERIN_HEDEFLER.get("dismont").esya + " / " + ayar.DISMONT_ESYA);
+  kontrol("cevher -> esya eslemesi gercek kimliklerle",
+          ayar.BOT_MADEN_BLOKLARI.get(ayar.DISMONT_CEVHER) === ayar.DISMONT_ESYA,
+          String(ayar.BOT_MADEN_BLOKLARI.get(ayar.DISMONT_CEVHER)));
+
+  /* Esya ve blok GERCEKTEN uretiliyor mu -- iddia "hicbir
+     JSON'da tanimli degil" idi; dosyadan bakiliyor.        */
+  const esyaYolu = KOK + "/Simsek_TNT_ToprakTopu/items/freedom_stone.json";
+  const blokYolu = KOK + "/Simsek_TNT_ToprakTopu/blocks/freedom_stone_cevheri.json";
+  kontrol("freedom_stone esyasi diskte", existsSync(esyaYolu));
+  kontrol("freedom_stone cevheri diskte", existsSync(blokYolu));
+  const e = JSON.parse(readFileSync(esyaYolu, "utf8"));
+  kontrol("esya kimligi ayarla ayni",
+          e["minecraft:item"].description.identifier === ayar.DISMONT_ESYA,
+          e["minecraft:item"].description.identifier);
+
+  /* Geriye bayat yazi kalmasin. Yorumlar sokuluyor: gerekceyi
+     ANLATAN satirlar eski kimligi yaziyor.                 */
+  const ham = readFileSync(KOK + "/Simsek_TNT_ToprakTopu/scripts/ayarlar.js", "utf8");
+  const kodsuz = ham.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+  kontrol("kodda 'pa:dismont' kimligi KALMADI",
+          kodsuz.indexOf('"pa:dismont') < 0);
 }
 
 console.log("");

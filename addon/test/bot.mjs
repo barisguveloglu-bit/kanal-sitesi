@@ -43,7 +43,13 @@ const { yetenekAl } = await import("./pack/yetenekler/kayit.js");
 let hata = false;
 const kontrol = (ad, gecti, detay = "") => {
   if (!gecti) hata = true;
-  console.log("  " + (gecti ? "✓" : "✗") + " " + ad + (detay ? "  ::  " + detay : ""));
+  /* ---- v7.79: SOHBET KOMUTU BIR TICK SONRA CALISIYOR ----
+   `beforeEvents.chatSend` salt-okunur kipte; komutun kendisi
+   artik `system.run` ile bir sonraki tick'e ataniyor (eskiden
+   yalniz cevap erteleniyordu, calistirma salt-okunur kipte
+   kaliyordu ve Beta acilinca butun komutlar sessizce olurdu).
+   Testler de gercek akisi taklit ediyor.                   */
+console.log("  " + (gecti ? "✓" : "✗") + " " + ad + (detay ? "  ::  " + detay : ""));
 };
 
 const BAS = { x: 0.5, y: 90.6, z: 0.5 };
@@ -299,13 +305,13 @@ console.log("=== 10. SOHBET KOMUTLARI ===");
   sus(); sohbetTetikle(o, "bot"); tickIlerlet(ayar.KOL_GECIKME + 5); ac();
   kontrol("'bot' botu cagirdi", defter.botAl("b10") !== undefined);
 
-  sus(); sohbetTetikle(o, "bot bekle"); ac();
+  sus(); sohbetTetikle(o, "bot bekle"); tickIlerlet(1); ac();
   kontrol("'bot bekle' calisti", defter.botAl("b10").durum === "bekle");
 
-  sus(); sohbetTetikle(o, "bot takip"); ac();
+  sus(); sohbetTetikle(o, "bot takip"); tickIlerlet(1); ac();
   kontrol("'bot takip' calisti", defter.botAl("b10").durum === "takip");
 
-  sus(); sohbetTetikle(o, "bot zirva"); ac();
+  sus(); sohbetTetikle(o, "bot zirva"); tickIlerlet(1); ac();
   const son = o._mesajlar[o._mesajlar.length - 1] || "";
   kontrol("tanimsiz alt komut uyardi", /bot komutu/.test(son), son);
 

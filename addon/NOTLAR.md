@@ -1,3 +1,108 @@
+# v7.79.0 — Dış inceleme açıkları
+
+Kullanıcı v7.78.0'ı başka bir modele inceletti ve 14 madde geldi.
+Her birini **koda bakarak ölçtüm**; çoğu doğruydu, ikisi kısmen,
+biri yanlış yöndeydi.
+
+## Kapatılanlar
+
+**1. Envanter çoğaltma döngüsü — gerçek, kapatıldı.**
+v7.62 "tek yedekten iki kez yükleme"yi kapatmıştı ama döngüyü
+değil: `yedek → sandığa boşalt → yükle → yedek` her turda
+envanteri ikiye katlıyordu. Yedeği harcamak işe yaramıyor çünkü
+yenisini almak bedavaydı.
+İnceleme "imza doğrulaması" önerdi; **çalışmaz** — yedeğin
+varlık sebebi envanterin boşalmış olması (`/clear`), yani
+yüklerken farklı olması *beklenen* durum. Sandığa boşaltmakla
+`/clear` yemeyi envantere bakarak ayırt etmenin yolu yok. Ayırt
+edilemiyorsa sınırlanır: iki yedek arasına **5 dakika bekleme**
+kondu, otomatik yedeğe de işliyor. `yedek`/`yukle` ayrıca
+korumalı komut listesine girdi.
+
+**2. Sohbet komutları Beta açılınca ölürdü — gerçek, kapatıldı.**
+`komutCozumle` salt-okunur kipin içinde hem tanıyor hem
+**çalıştırıyordu**. v7.40 yalnız cevabı ertelemiş, dosyanın
+yorumu da sorunu çözdüğünü sanıyordu. Artık tanıma orada
+(yan etkisiz), çalıştırma `system.run` ile bir tick sonra.
+Tanıyıcının komut listesi **testte dosyadan türetilip
+karşılaştırılıyor**, yani kayamaz.
+
+**3. Ölüp doğunca girdi kilidi — gerçek, kapatıldı.**
+`inputpermission enabled` emniyeti `if (!olay.initialSpawn)
+return;` satırının altındaydı; ölüp doğmak `initialSpawn=false`
+ile geliyor. Donmuş halde ölen oyuncu kilidi taşımaya devam
+ediyordu. Erken çıkış iki emniyetin altına indi, karşılama
+mesajı üstünde kaldı (her ölümde tekrarlamasın).
+
+**4. `anlikSon` sızıntısı — gerçek, kapatıldı.**
+`anlikUnut` tanımlı, dışa açık ve **hiçbir yerden
+çağrılmıyordu**. 55 defterin atlanan tekiydi. Mevcut test
+"fonksiyon tanımlı mı" diye bakıyordu — inceleme tam o
+boşluktan geçti. Test artık defterin gerçekten boşaldığını
+ölçüyor.
+
+**5. Dismont zinciri — gerçek, kapatıldı (sebebi farklı).**
+İnceleme "hiçbir JSON'da tanımlı değil" dedi. Doğrusu: taş
+v4.50'de **Freedom Stone** diye yeniden adlandırılmış, eşya ve
+cevher üretiliyor — ama `ayarlar.js` iki yerde eski kimliği
+(`pa:dismont`) taşıyordu. Yani `bot dismont 64` aradığını asla
+bulamıyordu. Kimlikler düzeltildi.
+
+**6. İzleyici kipi çakışması — gerçek, kapatıldı.**
+Kılıç oyuncuyu 200 tick izleyici yapıyor, Gözcü ortasında
+survival'a çekiyordu. Muafiyet mekanizması (`isVarMi`) vardı
+ama `kipDenetle`'ye geçmiyordu. Muafiyet **yalnız izleyici
+için**: yaratıcı kipe çalışan işi olan biri de hile olarak
+geçebilir.
+
+**7. Kafes bütçesi — gerçek, kapatıldı.**
+`blokIste` çağırmayan tek dosyaydı; 26 blok ortak bütçeyi hiç
+görmeden işleniyordu.
+
+## Düzeltmediklerim ve nedeni
+
+**"savunma herkesi etkiliyor" (3. madde) — tasarım, hata değil.**
+Global olması bilinçli ve gerekçesi `arinma.js`'te yazılı:
+Savunma Kipini *kurban* açar, yaratıcı kipe geçen *karşı
+taraftır*. Kişiye bakan bir koşul hiçbir zaman hileciyi
+yakalamazdı. Önce kişiye bağladım, sonra gerekçeyi okuyup geri
+aldım. Gerçek kusur olan izleyici kısmı (6) ayrıca kapatıldı.
+
+**"Kafes eşya düşürmüyor, yani sessiz kazma aleti" — ters.**
+Eşya *düşseydi* alet olurdu. Düşmediği için kafes kırmanın
+madencilik değeri sıfır. Kırılan bloklar da saldırganın kafesi;
+kendi bloğun ve sandıklar `korunanMi` ile zaten korunuyor.
+Önce `setblock destroy`'a çevirdim, sonra bunun sömürüyü
+*kolaylaştıracağını* görüp geri aldım.
+
+Kalan maddeler (yetki takma adları, `kaliciYaz` kullanmayan
+defterler, af penceresi, `BEKLEME = 0`) gerçek ama daha düşük
+etkili; bu sürüme girmedi.
+
+## Testin kendisi üç yerden düzeldi
+
+Mutasyon bataryası ilk turda **altı yamanın beşini** kaçırdı —
+yamalar doğruydu, testleri yoktu. Yazarken üç tuzağa düştüm ve
+üçü de tanıdık:
+
+- `anlikUnut` testi kaynakta metin arıyordu; `if (false)
+  anlikUnut(...)` metni koruyup davranışı bozuyor. Davranışa
+  çevrildi (`anlikSayisi` dışa açıldı).
+- Yeni bölümü `process.exit`'ten **sonraya** koydum, hiç
+  çalışmadı — `grep "✗"` de bunu göstermiyor.
+- Sıra denetimi kendi yorumumu yakaladı: gerekçeyi anlatan
+  yorum `if (!olay.initialSpawn) return;` satırını örnek olarak
+  yazıyor. Yorumlar söküldü.
+
+Ayrıca sahte dünyada **`system.run` hiç yokmuş**. Yani v7.40'ın
+ertelenen cevap yolu bugüne kadar bir kez bile çalışmamış;
+test yeşil yanıyordu çünkü doğrudan yol zaten çalışıyordu.
+Taklide eklendi.
+
+Yedi mutasyonun yedisi de yakalanıyor.
+
+---
+
 # v7.78.0 — Mutant Halim yeniden ölçüldü
 
 İstek: *"mutant halim aslında birazcık yanlış gibi; burada

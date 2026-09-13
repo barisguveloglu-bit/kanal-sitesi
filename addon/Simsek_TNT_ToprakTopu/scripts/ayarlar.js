@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.78.0";
+export const SURUM = "v7.79.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -2599,6 +2599,34 @@ export const YEDEK_ACIK = true;
    Dovus baslarken elle "yedek" yazmayi unutmak, savunmanin
    en olasi kaybedilme bicimi.                              */
 export const YEDEK_OTOMATIK = true;
+/* ---- YEDEK ALMA BEKLEMESI  (v7.79) ----
+   Dis inceleme v7.62'deki duzeltmenin DONGUYU kapatmadigini
+   gosterdi ve hakliydi. v7.62 "tek yedekten iki kez yukleme"yi
+   kapatti; acik oyleymis:
+
+     yedek -> esyalari sandiga bosalt -> yukle (envanter geri
+     gelir, sandiktakiler durur) -> YENIDEN yedek -> tekrar
+
+   Her tur envanteri ikiye katliyor. Yedegi harcamak ise
+   yaramiyor cunku yenisini almak bedava.
+
+   ---- NEDEN IMZA DOGRULAMASI DEGIL ----
+   Ilk akla gelen "yedek alindigi andaki envanter imzasini
+   yuklemede dogrula" idi. Calismaz: yedegin VARLIK SEBEBI
+   envanterin bosalmis olmasi (dusman operator `/clear`
+   attiginda geri almak). Yani yuklerken envanterin farkli
+   olmasi BEKLENEN durum. Sandiga bosaltmakla `/clear` yemeyi
+   envantere bakarak ayirt etmenin yolu yok.
+
+   ---- O YUZDEN EKONOMI ----
+   Ayirt edilemiyorsa SINIRLANIR. Iki yedek arasinda bekleme
+   var; cogaltma hizi "envanter dolusu / bekleme"ye iniyor ve
+   pratikte islemez hale geliyor. Savunma tarafi zarar
+   gormuyor: bir dovuste bir yedek zaten yeterli.
+
+   Bekleme SAVUNMANIN OTOMATIK YEDEGINE DE isliyor -- yoksa
+   "savunma" yazmak bedava yedek kaynagi olurdu.            */
+export const YEDEK_BEKLEME = 6000;   // 5 dakika
 
 /* ---------------- HAREKET DENETIMI (v7.30) ----------------
    Tehdit modelindeki HAREKET ailesi: flying, speed, high_jump,
@@ -4136,7 +4164,11 @@ export const SOHBET_ONEK = "";     // "" = oneksiz. "!" yazarsan "!can 10"
    lazer / kol / guc de acik: ucu de oyuncunun ZATEN jestle
    yapabildigi seyler, sohbet sadece kisa yol.                 */
 export const KOMUT_ETIKET = "simsek_yetkili";
-export const KOMUT_KORUMALI = ["can", "kalp", "bot"];
+/* v7.79: `yedek` ve `yukle` de korumali. Sebebi otekilerden
+   FARKLI -- can/kalp "kendine guc ver" komutlari, bunlar ise
+   ENVANTER yaziyor. Kilit acma komutlarindan degiller, yani
+   hapsedilen oyuncunun cikis yolunu kapatmiyorlar.        */
+export const KOMUT_KORUMALI = ["can", "kalp", "bot", "yedek", "yukle"];
 
 /* ---- AYNI KAPI JESTTE DE  (v7.62) ----
    Dis inceleme en ciddi bulguyu buldu ve hakliydi: sohbetteki
@@ -4482,7 +4514,18 @@ export const DERIN_HEDEFLER = new Map([
      istedigin an tavan sureye (DERIN_EN_UZUN) dayaniyor.
      Bilincli: mezar anahtarinin kolay bulunmasi zinciri
      anlamsiz kilardi.                                        */
-  ["dismont",  { ad: "dismont taşı", esya: "pa:dismont",     zorluk: 14,  y: -59 }],
+  /* ---- KIMLIK v7.79'DA DUZELTILDI ----
+     Burada `pa:dismont` yaziyordu ama oyle bir esya YOK: tas
+     v4.50'de "Freedom Stone" diye yeniden adlandirildi ve
+     uretec `pa:freedom_stone` cikariyor (DISMONT_ESYA). Yani
+     `bot dismont 64` aradigi esyayi hicbir zaman bulamiyor,
+     DERIN_EN_UZUN'a kadar bosuna kaziyordu.
+
+     Sabite DEGIL duz yaziya bagli: DISMONT_ESYA bu satirin
+     ASAGISINDA tanimli ve `const` gecici olu bolgede
+     (TDZ) -- burada okumak modul yuklenirken patlardi.
+     test/asa.mjs ikisinin esitligini sinifiyor.            */
+  ["dismont",  { ad: "dismont taşı", esya: "pa:freedom_stone", zorluk: 14, y: -59 }],
   /* Hedef soylenmezse: ne cikarsa. Sadece sure hesabi icin
      zorlugu var, sayimda BUTUN cevherler sayilir.              */
   ["maden",    { ad: "maden",    esya: undefined,               zorluk: 1.5, y: -16 }]
@@ -7774,7 +7817,9 @@ export const BOT_MADEN_BLOKLARI = new Map([
   /* Dismont cevheri (v4.50). Kendi blogumuz, o yuzden tek
      varyanti var -- vanilla cevherlerin deepslate ikizi
      olmasinin sebebi dunya uretimi, bizimki tek blok.        */
-  ["pa:dismont_cevheri", "pa:dismont"],
+  /* v7.79: ikisi de bayat kimlikti (bkz. DERIN_HEDEFLER).
+     Gercek adlar DISMONT_CEVHER / DISMONT_ESYA.            */
+  ["pa:freedom_stone_cevheri", "pa:freedom_stone"],
   ["minecraft:coal_ore", "minecraft:coal"],
   ["minecraft:deepslate_coal_ore", "minecraft:coal"],
   ["minecraft:iron_ore", "minecraft:raw_iron"],
