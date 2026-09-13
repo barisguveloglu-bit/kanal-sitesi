@@ -110,7 +110,27 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # tureniyor -- ayrisabilecekleri bir yer kalmadi.
 #
 # YENI SURUM CIKARIRKEN: yalnizca asagidaki satiri degistir.
-SURUM_NO = (7, 83, 0)
+#
+# ---- UCUNCU HANE YENIDEN KULLANIMDA  (v7.83.5) ----
+# Kullanicinin karari. Uzun suredir ucuncu hane hep 0
+# yaziliyordu ve her degisiklik ortadaki haneyi bir artiriyordu
+# -- yani kucuk bir hata duzeltmesi de yeni bir yetenek de
+# ayni buyuklukte gorunuyordu. Numaraya bakip ne oldugunu
+# anlamak imkansizdi.
+#
+# Bundan sonra:
+#   ucuncu hane  -> hata duzeltmesi / yanlis alarm / ayar
+#                   (v7.83.5 -> v7.83.6)
+#   ortanca hane -> yeni yetenek, yeni sistem, yeniden
+#                   yapilandirma (v7.83.x -> v7.84.0)
+#
+# v7.83 "YENIDEN YAPILANDIRILMIS SURUM": Gozcu'nun alti
+# olcumu birden bu surumde yeniden kuruldu (govde ekseni,
+# olcekli sicrama esigi, kati blok listesi, geri itme
+# penceresi, ruzgar yuku affi, vurus hizi esigi). Ucuncu
+# hanenin 0 yerine 5'ten baslamasi bunun isareti -- 7.83.0
+# ile 7.83.5 AYNI kod, sadece numara degisti.
+SURUM_NO = (7, 83, 5)
 
 SURUM_METIN = "%d.%d.%d" % SURUM_NO
 
