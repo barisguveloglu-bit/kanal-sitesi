@@ -245,10 +245,15 @@ export function hareketUnut(oyuncuId) {
    "inci at, sonra ucdan ucuk" isi yaramiyor.                 */
 const afliler = new Map();      /* oyuncuId -> affin bittigi tick */
 
-export function hareketAffet(oyuncuId, simdiTick) {
-  if (!HAREKET_AF_TICK) return;
+export function hareketAffet(oyuncuId, simdiTick, sure) {
+  /* v7.82: `sure` istege bagli. Esya affi 60 tick (inci havada
+     3 sn kaliyor), VURULMA affi 40 tick (savrulma ~1 sn'de
+     oturuyor). Ayri fonksiyon yazmak yerine tek parametre:
+     defter ve harcama mantigi ikisinde de ayni.             */
+  const n = (sure === undefined) ? HAREKET_AF_TICK : sure;
+  if (!n) return;
   afliler.set(oyuncuId, (simdiTick === undefined ? system.currentTick
-                                                 : simdiTick) + HAREKET_AF_TICK);
+                                                 : simdiTick) + n);
 }
 
 /* Af gecerliyse HARCAR ve true doner. Sadece sicrama olcumu

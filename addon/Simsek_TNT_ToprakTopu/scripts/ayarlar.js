@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.81.0";
+export const SURUM = "v7.82.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -2508,6 +2508,37 @@ export const HAREKET_AF_ESYA = [
   "minecraft:chorus_fruit",
   "minecraft:trident",          // riptide
 ];
+
+/* ---------------- VURULMA AFFI  (v7.82) ----------------
+   Kullanici bildirdi: Prizmoksin denerken Warden ile
+   dovusuyordu, surekli kaciyor, Warden vuruyordu. Gozcu adinin
+   yanina "17 blok", "14 blok" yazdi -- yani ISINLANMA
+   sanmisti.
+
+   ---- OLCUM DOGRULUYOR ----
+   Esik tek ornekte 12 blok ve ornek araligi 10 tick, yani
+   YARIM SANIYEDE 12 blok = 24 blok/sn. Kosan oyuncu ~5,6
+   blok/sn gidiyor. Bu hizi ureten sey oyuncu degil, VURULMA:
+   Warden'in vurusu ve ses patlamasi oyuncuyu savuruyor.
+
+   ---- NEDEN AF, NEDEN ESIK YUKSELTME DEGIL ----
+   Esigi 17'nin ustune cekmek gercek isinlanmayi da gormez
+   hale getirirdi. Sorun esikte degil SEBEPTE: o mesafeyi
+   oyuncu uretmedi. Eshya affi (inci/chorus) zaten ayni
+   mantikta; eksik olan "vuruldun" hali.
+
+   ---- SURE NEDEN ITEM AFFINDAN KISA ----
+   Inci havada 3 saniye kaliyor, bu yuzden orada 60 tick var.
+   Savrulma ise ~1 saniyede oturuyor; 40 tick (2 sn) iki ornek
+   araligini kapsiyor ve fazlasi gereksiz pencere acardi.
+
+   ---- HILEYI ACMIYOR ----
+   Af TEK SEFERLIK: harcandiginda siliniyor. Yani bir vurus bir
+   ornegi affettiriyor, arka arkaya isinlanma yine
+   isaretleniyor. Ustelik af almak icin HASAR YEMEK gerekiyor --
+   bedeli olan bir kapi.                                      */
+export const HAREKET_AF_HASAR      = true;
+export const HAREKET_AF_HASAR_TICK = 40;   // 2 sn
 
 /* ---------------- SUZULME DENETIMI  (v7.46) ----------------
    Toolbox For Turkey (io.mrarm.mctoolbox) incelemesi bir KOR

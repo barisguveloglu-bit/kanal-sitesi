@@ -122,7 +122,8 @@ import {
   kipUnut, kacisKur, kacisUnut, kacisAyrilma
 } from "./yetenekler/gozcu.js";
 import {
-  HAREKET_ACIK, HAREKET_ORNEK, HAREKET_AF_ESYA, SUZULME_ROKET_ESYA
+  HAREKET_ACIK, HAREKET_ORNEK, HAREKET_AF_ESYA, SUZULME_ROKET_ESYA,
+  HAREKET_AF_HASAR, HAREKET_AF_HASAR_TICK
 } from "./ayarlar.js";
 import {
   yedekAl, yedekYukle, yedekUnut
@@ -2430,6 +2431,34 @@ if (TEKNOLOJI_ACIK && !teknolojiKur()) {
    yaziyor (indirim orani mesajda geciyor), o yuzden burada
    ikinci bir bilgiYaz yok.                                   */
 if (VILTRUMITE_ACIK) viltrumiteKur();
+
+/* ---- VURULMA AFFI  (v7.82) ----
+   Kullanici bildirdi: Warden ile dovusurken Gozcu adinin yanina
+   "17 blok", "14 blok" yazdi -- isinlanma sandi. Olcum onu
+   dogruluyor: esik YARIM SANIYEDE 12 blok ve Warden'in vurusu
+   oyuncuyu bundan fazlasina savuruyor.
+
+   O mesafeyi oyuncu uretmedi, VURAN uretti. Esya affiyle (inci,
+   chorus) ayni mantik; eksik olan "vuruldun" haliydi.
+
+   Af TEK SEFERLIK ve almak icin HASAR YEMEK gerekiyor -- yani
+   hileye acilan bir kapi degil, bedeli olan dar bir pencere.
+
+   Olay her surumde yok; `olayaAbone` eksik olayda paketi
+   oldurmuyor, yalniz bu af kapali kalir.                     */
+const vurulmaAffiKuruldu = HAREKET_AF_HASAR && olayaAbone("entityHurt", (olay) => {
+  try {
+    const vurulan = olay && olay.hurtEntity;
+    if (!vurulan || vurulan.typeId !== "minecraft:player") return;
+    hareketAffet(vurulan.id, undefined, HAREKET_AF_HASAR_TICK);
+  } catch (e) {
+    /* Tek olay kacsa da denetim calismaya devam etsin. */
+  }
+});
+if (HAREKET_AF_HASAR && !vurulmaAffiKuruldu) {
+  bilgiYaz("entityHurt yok: vurulma affi kapali. Gozcu, savrulan " +
+           "oyuncuyu isinlanma sanabilir.");
+}
 
 const beceriKuruldu = olayaAbone("entityDie", (olay) => {
   try {

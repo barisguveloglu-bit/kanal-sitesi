@@ -1,3 +1,51 @@
+# v7.82.0 — Gözcü, savrulmayı ışınlanma sanıyordu
+
+Kullanıcı oyundan bildirdi: Prizmoksin denerken Warden ile
+dövüşüyordu, sürekli kaçıyordu, Warden vuruyordu. Gözcü adının
+yanına **"17 blok", "14 blok"** yazdı — yani ışınlanma sandı.
+
+## Ölçüm kullanıcıyı doğruluyor
+
+`HAREKET_SICRAMA = 12.0` blok, `HAREKET_ORNEK = 10` tick. Yani
+eşik **yarım saniyede 12 blok = 24 blok/sn**. Koşan oyuncu
+~5,6 blok/sn gidiyor. O mesafeyi üreten şey oyuncu değil,
+**vurulma**: Warden'ın vuruşu ve ses patlaması savuruyor.
+
+## Neden eşiği yükseltmedim
+
+17'nin üstüne çekmek gerçek ışınlanmayı da görmez hale
+getirirdi. Sorun eşikte değil **sebepte**: o mesafeyi oyuncu
+üretmedi. Eşya affı (inci / chorus / riptide) zaten tam bu
+mantıkta çalışıyordu — eksik olan "vuruldun" hâliydi.
+
+`entityHurt` kancası eklendi: oyuncu hasar yiyince bir sonraki
+sıçrama örneği affediliyor.
+
+**Süre eşya affından kısa.** İnci havada 3 saniye kalıyor, orada
+60 tick var. Savrulma ~1 saniyede oturuyor; 40 tick iki örnek
+aralığını kapsıyor, fazlası gereksiz pencere açardı.
+
+**Hileye kapı açmıyor:** af tek seferlik (harcanınca siliniyor)
+ve almak için hasar yemek gerekiyor. Aynı pencerede ikinci
+sıçrama yine işaretleniyor.
+
+## Testlerim önce üçünü birden kaçırdı
+
+Mutasyon bataryası ilk turda üç yamanın üçünü de geçirdi:
+
+- **Kanca testi** kaynakta metin arıyordu; `if (false)` metni
+  koruyup davranışı bozuyor. Artık gerçek `entityHurt` olayı
+  atılıyor.
+- **"Tek seferlik" testi** affı pencere *dışında* harcıyordu —
+  af silinmese de geçerdi. İki sıçrama da pencerenin içine
+  alındı.
+- **Süre testi** yalnız sabitleri karşılaştırıyordu. Artık 50
+  tick bekleyip affın dolduğu ölçülüyor (60 olsaydı geçerdi).
+
+Dört mutasyonun dördü de yakalanıyor.
+
+---
+
 # v7.81.0 — Savunma sessizce kapanıyordu
 
 Kullanıcı daha önce gönderdiği kalkma dosyasını tekrar yolladı

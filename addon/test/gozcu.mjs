@@ -852,5 +852,121 @@ console.log("\n=== İZLEYİCİ KİPİ KENDİ İŞİMİZDEN OLABİLİR (v7.79) ==
 }
 
 console.log("");
+console.log("\n=== VURULMA AFFI: WARDEN SAVURMASI (v7.82) ===");
+{
+  /* Kullanici bildirdi: Warden ile dovusurken Gozcu adinin
+     yanina "17 blok", "14 blok" yazdi -- isinlanma sandi.
+
+     Olcum onu dogruluyor: esik tek ornekte 12 blok ve ornek
+     araligi 10 tick, yani YARIM SANIYEDE 12 blok = 24 blok/sn.
+     Kosan oyuncu ~5,6 blok/sn gidiyor; o mesafeyi vurulma
+     uretiyor.
+
+     UC OLCU DE DAVRANISSAL. Ilk yazilista ucu de kacti:
+       - kanca testi kaynakta METIN ariyordu; `if (false)`
+         metni koruyup davranisi bozuyor
+       - "tek seferlik" testi affi pencere DISINDA harciyordu,
+         yani af silinmese de gecerdi
+       - sure testi yalniz sabitleri karsilastiriyordu
+     Simdi ucu de gercek olay/zaman uzerinden.               */
+  const kosan = (id, x, y, z) => ({
+    id, typeId: "minecraft:player", name: id, isValid: true,
+    location: { x, y, z },
+    isGliding: false, isFlying: false, isInWater: false,
+    isClimbing: false, isFalling: false,
+    getEffect: () => undefined,
+    getComponent: () => undefined
+  });
+  const yok = () => false;
+  /* GERCEK OLAYI at: main.js'in kancasi calissin.           */
+  const vur = (o) => {
+    for (const cb of _durum.entityHurtCb) cb({ hurtEntity: o, damage: 6 });
+  };
+
+  kontrol("vurulma affi acik", ayar.HAREKET_AF_HASAR === true);
+  kontrol("af suresi esya affindan KISA (savrulma ~1 sn'de oturur)",
+          ayar.HAREKET_AF_HASAR_TICK < ayar.HAREKET_AF_TICK,
+          ayar.HAREKET_AF_HASAR_TICK + " < " + ayar.HAREKET_AF_TICK);
+  kontrol("entityHurt kancasi GERCEKTEN kayitli",
+          _durum.entityHurtCb.length > 0,
+          _durum.entityHurtCb.length + " abone");
+
+  /* 1) VURULARAK savrulan oyuncu -- isaretlenmemeli.
+        Af GERCEK OLAYLA aciliyor, elle degil.              */
+  gozcu.gozcuUnut(); gozcu.hareketUnut(); _durum.sohbet.length = 0;
+  {
+    const o = kosan("warden1", 0, 64, 0);
+    for (let i = 0; i < ayar.GOZCU_ESIK; i++) {
+      gozcu.hareketTara([o], yok);
+      vur(o);                        // Warden vurdu
+      tickIlerlet(ayar.HAREKET_ORNEK);
+      o.location.z += 16;            // kullanicinin bildirdigi buyukluk
+    }
+    gozcu.hareketTara([o], yok);
+    const d = gozcu.gozcuDurum(o.id);
+    kontrol("VURULARAK savrulan oyuncu isaretlenmiyor",
+            !d || (d.isaret || 0) === 0,
+            d ? (d.isaret || 0) + " isaret · " + sonSohbet() : "temiz");
+  }
+
+  /* 2) Af TEK SEFERLIK. Iki sicrama da AF PENCERESININ ICINDE
+        (toplam 20 tick < 40), yani suresi degil HARCANMASI
+        olculuyor.                                           */
+  gozcu.gozcuUnut(); gozcu.hareketUnut(); _durum.sohbet.length = 0;
+  {
+    const o = kosan("warden2", 0, 64, 0);
+    gozcu.hareketTara([o], yok);
+    vur(o);                          // TEK vurus
+    tickIlerlet(ayar.HAREKET_ORNEK);
+    o.location.z += 200;
+    gozcu.hareketTara([o], yok);     // 1. sicrama: affedilmeli
+    const ilk = gozcu.gozcuDurum(o.id);
+    kontrol("vurustan sonraki ILK sicrama affediliyor",
+            !ilk || (ilk.isaret || 0) === 0,
+            ilk ? (ilk.isaret || 0) + " isaret" : "temiz");
+
+    tickIlerlet(ayar.HAREKET_ORNEK);
+    o.location.z += 200;
+    gozcu.hareketTara([o], yok);     // 2. sicrama: AYNI pencerede
+    const ikinci = gozcu.gozcuDurum(o.id);
+    kontrol("AYNI pencerede IKINCI sicrama isaretleniyor (af harcandi)",
+            ikinci && (ikinci.isaret || 0) > 0,
+            ikinci ? (ikinci.isaret || 0) + " isaret" : "hic isaret yok");
+  }
+
+  /* 3) SURE gercekten 40 tick mi. Af aciliyor, 50 tick
+        bekleniyor (40'tan buyuk, 60'tan kucuk), sonra
+        sicrama: af dolmus olmali. Sure 60 olsaydi gecerdi. */
+  gozcu.gozcuUnut(); gozcu.hareketUnut(); _durum.sohbet.length = 0;
+  {
+    const o = kosan("warden3", 0, 64, 0);
+    gozcu.hareketTara([o], yok);
+    vur(o);
+    tickIlerlet(50);                 // 40 < 50 < 60
+    o.location.z += 200;
+    gozcu.hareketTara([o], yok);
+    const d = gozcu.gozcuDurum(o.id);
+    kontrol("af 40 tickte doluyor (60 degil)",
+            d && (d.isaret || 0) > 0,
+            d ? (d.isaret || 0) + " isaret" : "af hala gecerli");
+  }
+
+  /* 4) Vurulmadan savrulma hala yakalaniyor. */
+  gozcu.gozcuUnut(); gozcu.hareketUnut(); _durum.sohbet.length = 0;
+  {
+    const o = kosan("hileci", 0, 64, 0);
+    for (let i = 0; i < ayar.GOZCU_ESIK; i++) {
+      gozcu.hareketTara([o], yok);
+      tickIlerlet(ayar.HAREKET_ORNEK);
+      o.location.z += 200;
+    }
+    gozcu.hareketTara([o], yok);
+    const d = gozcu.gozcuDurum(o.id);
+    kontrol("VURULMADAN isinlanma hala isaretleniyor",
+            d && (d.isaret || 0) >= ayar.GOZCU_ESIK,
+            d ? (d.isaret || 0) + " isaret" : "yok");
+  }
+}
+
 console.log(hata ? ">>> SORUN VAR" : ">>> gozcu yerinde");
 process.exit(hata ? 1 : 0);
