@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.91.0";
+export const SURUM = "v7.92.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -11549,3 +11549,95 @@ export const AVA_BEDROCK_MENZIL = 6;
 export const AVA_BEDROCK_SURE   = 188;  // tick -- kaynaktaki sayi
 export const AVA_BEDROCK_PARCACIK = "minecraft:basic_smoke_particle";
 export const AVA_BEDROCK_TIPLER = ["minecraft:bedrock"];
+
+
+/* ============================================================
+   BEN 10 -- EVRIM KADEMESI                          (v7.92)
+
+   Kullanici uc jar gonderdi: "AlienEvo diyebilir Ben 10 modu
+   vardi ya, işte onların eklentilerini buldum."
+
+   Ucu de gercekten AlienEvo eklentisi -- bizim Ben 10
+   kaynagimiz da o (REFERANS_BEN10.md: AlienEvo 1.1.3).
+
+   ---- HANGISINDE NE VAR ----
+     shout (23 dosya)          tek bir Palladium gucu + ses
+     yelling_alien (74 dosya)  14 turun BAGIRMA gucu, ses
+     pinnacle_of_evolution     ALTI EVRIMLESMIS FORM  <- deger
+
+   Ilk ikisi SES eklentisi: `sounds.json` + voice line
+   betikleri, mekanik yok. Ucuncusu gercek bir kademe.
+
+   ---- BIZDEKI _proto / _10k ILE KARISTIRMA ----
+   Bizdeki uc bicim (Recal / Prototip / 10K) ayni turun uc
+   GORUNUMU; ayarlar.js'te yazili: "gorunum farkli, guc ayni".
+   EVRIM oyle degil: kaynakta ayri `powers/evolved_*.json`
+   dosyalari var ve gucleri FARKLI (evolved_kineceleran'da 72
+   yetenek, normalinde yok). O yuzden bicim listesine
+   eklenmedi, AYRI bir kademe olarak yazildi.
+
+   ---- ALTI TUR, CUNKU KAYNAKTA ALTI VAR ----
+   alien_201..206: Pyronite, Vulpimancer, Petrosapien,
+   Kineceleran, Galvan, Tetramand. Yedincisi yok; uydurmadik.
+   ============================================================ */
+
+export const EVRIM_ACIK = true;
+export const EVRIM_SIRA = 790;
+/* Evrim SURELI. Kaynakta `omnitrix_timer` ile zaman asimi
+   var; bizde de sure sinirli -- kalici etki bu depoda yasak. */
+export const EVRIM_SURE = 400;      // tick (20 sn)
+export const EVRIM_ARA  = 10;       // mekanik adim araligi
+export const EVRIM_SES  = "mob.wither.spawn";
+export const EVRIM_PARCACIK = "minecraft:totem_particle";
+
+/* Tur -> evrim. Anahtarlar BEN10 tablosundaki tur adlari
+   (bicim ekisiz): oyuncu hangi bicimi tutuyorsa tutsun evrim
+   ayni -- kaynakta da evrim TURE bagli, gorunume degil.    */
+export const BEN10_EVRIM = new Map([
+  ["ben_ates", {
+    ad: "Evrim · Ateş", kaynak: "evolved_pyronite", renk: "§6",
+    /* Kaynakta `evolved_pyronite_nova`, `_beam`, `_absorb`,
+       `_armorkill` function'lari var. Alinan: NOVA. */
+    mekanik: "nova", yaricap: 7, hasar: 8, atesle: 100,
+    efektler: [["fire_resistance", 400, 0], ["strength", 400, 2],
+               ["resistance", 400, 1]]
+  }],
+  ["ben_vahsi", {
+    ad: "Evrim · Vahşi", kaynak: "evolved_vulpimancer", renk: "§c",
+    /* Kaynakta `evolved_vulpimancer_stun.mcfunction`. */
+    mekanik: "sersem", yaricap: 8, sure: 100,
+    efektler: [["speed", 400, 2], ["strength", 400, 1],
+               ["night_vision", 400, 0]]
+  }],
+  ["ben_elmas", {
+    ad: "Evrim · Elmas", kaynak: "evolved_petrosapien", renk: "§b",
+    /* Kaynakta kristal dikenler (crystal_spike esyasi,
+       evolved_crystal_pillar.js). Bizde blok koymadan
+       karsiligi: cevreye diken hasari.                      */
+    mekanik: "diken", yaricap: 6, hasar: 7,
+    efektler: [["resistance", 400, 2], ["health_boost", 400, 3],
+               ["slowness", 400, 0]]
+  }],
+  ["ben_xlr", {
+    ad: "Evrim · XLR8", kaynak: "evolved_kineceleran", renk: "§e",
+    /* Kaynakta speed_1..speed_5 kademeli hiz + sayac gostergesi.
+       Bizde de kademeli: her adimda bir ust basamak.        */
+    mekanik: "hiz", kademe: 5,
+    efektler: [["jump_boost", 400, 1], ["slow_falling", 400, 0]]
+  }],
+  ["ben_gri", {
+    ad: "Evrim · Gri Madde", kaynak: "evolved_galvan", renk: "§a",
+    /* Kaynakta telekinezi + ucus + zihin carpmasi. */
+    mekanik: "cekim", yaricap: 12, hasar: 4,
+    efektler: [["levitation", 100, 0], ["resistance", 400, 1],
+               ["night_vision", 400, 0]]
+  }],
+  ["ben_dortkol", {
+    ad: "Evrim · Dört Kol", kaynak: "evolved_tetramand", renk: "§4",
+    /* Kaynakta `malevolent_shrine` modeli ve animasyonu var;
+       mekanigi alan carpmasi.                               */
+    mekanik: "carpma", yaricap: 9, hasar: 10, itme: 1.8,
+    efektler: [["strength", 400, 3], ["resistance", 400, 2],
+               ["slowness", 400, 0]]
+  }]
+]);

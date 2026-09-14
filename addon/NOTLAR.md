@@ -1,3 +1,71 @@
+# v7.92.0 — AlienEvo eklentileri: Evrim kademesi
+
+Kullanıcı üç jar yükledi: *"AlienEvo diyebilir, ben 10 modu vardı ya kanka,
+işte onların eklentilerini buldum, yani ekstra özellikler ekleyen şeyleri
+buldum."*
+
+Tam ölçüm listesi [`REFERANS_BEN10_EK.md`](REFERANS_BEN10_EK.md).
+
+## Üçünün ikisi ses paketi — alınmadı
+
+| jar | güç JSON | komut | alındı mı |
+|---|---|---|---|
+| `shout-1.0.3` | 1 | **11 komutun 11'i `playsound`** | hayır |
+| `yelling_alien-0.8.0` | 14 | **14 komutun 14'ü `playsound`** | hayır |
+| `pinnacle_of_evolution` | 9 | — | **evet** |
+
+İkisinde de tek bir `effect`, `damage`, `summon`, `setblock` ya da
+`particle` komutu yok; yaptıkları iş uzaylıya dönüşünce adını bağırmak.
+"Eksik bırakıldı" değil — **alınacak mekanik yok.**
+
+## Alınan: altı evrimleşmiş uzaylı
+
+`pinnacle_of_evolution` (id `evolved` v4.1.0) gerçek bir kademe ekliyor.
+287 yetenek kaydı var ama yarısından çoğu görsel (iz rengi, render katmanı,
+animasyon sayacı) ya da aynı özelliğin kademesi (`speed_1`..`speed_5`).
+**Gerçek mekanik altı** ve altısı da alındı:
+
+| tür | kaynak | bizdeki mekanik |
+|---|---|---|
+| Ateş | `evolved_pyronite_nova.mcfunction` | alan hasarı + ateşe verme |
+| Vahşi | `evolved_vulpimancer_stun.mcfunction` | yavaşlık + bulantı, **hasar yok** |
+| Elmas | `alienevo:crystal_pillar` | diken hasarı |
+| XLR8 | `speed_1..speed_5` | kademeli hız, tavan 5 |
+| Gri Madde | `corewithstuff:telekinesis` | hedefleri kendine çekme |
+| Dört Kol | `alienevo:sonic_clap` | hasar + savurma |
+
+Yetenek: `evrim`, sıra **790**, süre 20 sn. Elinde evrimleşebilen bir
+yaratık tutman gerekiyor; bırakırsan ya da başka türe geçersen evrim biter.
+
+## Bilerek değiştirilen üç şey
+
+1. **Kristal diken BLOK olarak alınmadı.** Kaynak hedefin etrafına gerçekten
+   blok koyuyor (`crystal_pillar`, `block_placer`). Bir oyuncuyu bloğun
+   içine hapsetmek bu depoda yasak — aynı karar `kafes.js`'te yazılı.
+   Test 8. bölümde "hiç blok koymadı" diye ölçülüyor.
+2. **`alienevo:invulnerable` alınmadı.** Süresiz dokunulmazlık "her kalıcı
+   etkinin süresi ve çıkışı olacak" kuralına aykırı; `yenilmez_zirh.js`
+   zaten sayaçlı bir karşılığını veriyor.
+3. **Evrim bir BİÇİM değil, KADEME.** Bizdeki `_proto` / `_10k` aynı türün
+   görünümü — "görünüm farklı, güç aynı". Kaynakta evrim ayrı
+   `powers/evolved_*.json` dosyalarıyla geliyor. O yüzden `BEN10_BICIM`'e
+   dördüncü ek olarak eklenmedi; üç görünümün üçü de **aynı** evrime
+   giriyor.
+
+## Testte bir ölçüm hatası bulundu (kodda değil)
+
+`test/ben10_evrim.mjs` ilk yazımda adım değil **tick** sayıyordu. `calis()`
+sırası gelmemiş tick'te de `false` dönüyor, yani "bir tur döndü" ile "bir
+adım attı" aynı görünüyordu. XLR8 kademe tavanı testi bu yüzden 2'de takıldı
+— **kod doğruydu, ölçü yanlıştı.** Adım sayacı artık her adımın sonundaki
+evrim parçacığı.
+
+29 mutasyonun 29'u yakalanıyor. Beş tanesi ilk turda kaçtı ve beşi de gerçek
+test boşluğuydu: Gri Madde'nin hasarı, kapı kapanırken kolların inmesi,
+giriş sesi, geçersiz oyuncuda işin bitmesi ve adımların aralıklı olması.
+
+---
+
 # v7.91.0 — Avaritia'dan üç mekanik
 
 Kullanıcı: *"bence moddaki her şeyi alalım gitsin vallahi zırhı da alalım."*

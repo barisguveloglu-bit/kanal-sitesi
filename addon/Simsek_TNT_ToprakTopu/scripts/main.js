@@ -102,6 +102,8 @@ import {
 import { yenilmezKur, yenilmezUnut } from "./yetenekler/yenilmez_zirh.js";
 import "./yetenekler/avaritia.js";
 import { dikenKur, dikenUnut } from "./yetenekler/avaritia.js";
+import "./yetenekler/ben10_evrim.js";
+import { evrimUnut } from "./yetenekler/ben10_evrim.js";
 import { quincyUnut, reishiUnut } from "./yetenekler/ruh_yetenekler.js";
 import { berserkUnut } from "./yetenekler/karakter_yetenekler.js";
 import { jjkUnut, sonsuzUnut, jjkSec } from "./yetenekler/jujutsu.js";
@@ -2595,6 +2597,7 @@ olayaAbone("playerLeave", (olay) => {
   merdivenUnut(olay.playerId);     // v7.89: savunma merdiveni durumu
   yenilmezUnut(olay.playerId);     // v7.90: zirh sarji
   dikenUnut(olay.playerId);        // v7.91: diken zirhi penceresi
+  evrimUnut(olay.playerId);        // v7.92: ben10 evrim kademesi
   roketUnut(olay.playerId);        // v7.46: roket penceresi
   /* Cikan oyuncunun bekleyen geri-itme olcumleri dusuyor.
      KIMLIKLE cagriliyor: kimliksiz cagri hepsini silerdi ve
