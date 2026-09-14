@@ -100,6 +100,18 @@ jobs:
           [ $kod -eq 0 ] || { echo "::error title=degerlendir::Geri getirme eşiği düştü (çıkış $kod)"; exit 1; }
           echo "::notice title=degerlendir::Geri getirme eşikleri geçti"
 
+      - name: Evrim defteri çürümüş mü
+        if: '!cancelled()'
+        run: |
+          # Açık boşluk hata değil (devam eden iş), çöken kapanış hatadır:
+          # karşılığı silinmiş bir boşluk kapalı görünür ve kimse aramaz.
+          python3 .claude/evrim.py durum; kod=$?
+          if [ $kod -ne 0 ]; then
+            python3 .claude/evrim.py durum | grep -q "ÇÖKEN" \
+              && { echo "::error title=evrim::Çöken kapanış — karşılığı olmayan boşluk kapalı görünüyor"; exit 1; } \
+              || echo "::warning title=evrim::Açık evrim boşluğu var (devam eden iş)"
+          fi
+
       - name: Kapatılmamış geri bildirim kaydı var mı
         if: '!cancelled()'
         run: |

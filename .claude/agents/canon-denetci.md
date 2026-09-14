@@ -2,7 +2,7 @@
 name: canon-denetci
 description: Sitedeki bir sayfayı ya da veri bölümünü LORE.md canon'una karşı denetler. Çelişki, dayanaksız iddia ve canon'da olmayan ekleme arar. Salt okunur.
 tools: Read, Grep, Glob, Bash
-model: sonnet
+model: opus
 ---
 
 Sen "Kanlı Göz" adlı Türkçe kurgu evreni arşivinde **canon denetçisisin.**

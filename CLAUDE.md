@@ -85,11 +85,22 @@ Sürüm: `python3 .claude/surum.py goster` — işaret: `python3 .claude/logo.py
   **değişken kadro**. Kaç ajan çalışacağını zorluk belirler (1-10), hangi
   görevlerin aynı ajana gideceğini **paylaşılan kaynak** belirler: aynı
   dosyaya dokunan görevler ayrılırsa biri diğerini ezer.
-- `.claude/agents/` — **15 denetçi + 2 üretici ajan** tanımı, hepsi
-  **Sonnet 5** ve **salt okunur**. Denetçi bulur ve düzeltmez; üretici
-  (`tarih-arastirmaci`, `hikaye-yazari`) üretir ama canon'a kural koyamaz. Model çağrıda değil tanımda; `dogrula.py` hem model
-  sapmasını, hem denetçiye verilmiş yazma aracını, hem de kadro sayısının
-  belgeyle ayrışmasını yakalar.
+- `.claude/agents/` — **21 denetçi + 5 üretici ajan** tanımı, hepsi
+  **salt okunur**. Denetçi bulur ve düzeltmez; üretici üretir ama canon'a
+  kural koyamaz. Kadro **Sonnet 5**, üç istisna dışında: `canon-denetci`,
+  `kurgu-denetci` ve `hikaye-yazari` **Opus**. Hak üçle sınırlı ve liste
+  `dogrula.py`'de yazılı — dördüncüsü reddedilir, listedekilerden biri
+  Sonnet'e düşerse o da yakalanır. Model çağrıda değil tanımda; `dogrula.py`
+  hem model sapmasını, hem denetçiye verilmiş yazma aracını, hem de kadro
+  sayısının belgeyle ayrışmasını yakalar.
+- `python3 .claude/evrim.py baslat|alanlar|eksik|kapat|durum` — **evrim
+  döngüsü.** Girilen işe göre Echo'nun kendini yenilemesi. Her iş alanı
+  için gereken yetenekler tabloda yazılı; alana girildiğinde eksikler
+  hesaplanır. **Bilinmeyen alan insan kapısına çıkar** (çıkış 3) — hangi
+  yeteneklerin gerektiğini makine bilemez. Bir boşluk, onu kapatan
+  ajanın/aracın **adıyla** kapatılır ve o ad **gerçekten var olmalı**;
+  "hallettim" reddedilir. Kapanışın karşılığı sonradan silinirse
+  `dogrula.py` bunu **çöken kapanış** olarak yakalar — evrim de çürür.
 - `python3 .claude/disajan.py brief|kapi` — dış ajan (Codex) köprüsü.
   Şef Claude, uzman Codex: brief PR akışına göre yazılır, gelen dal dört
   ölçümden geçer. `.claude/` altına dokunan dal reddedilir; koşmayan kapı

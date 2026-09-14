@@ -1,4 +1,4 @@
-# Echo Orkestra v2.0
+# Echo Orkestra v2.0.1
 
 Bu katmanın adı **Echo**. Adın sebebi işleyişinde: her çıktı bir
 denetimden geri döner, her hata bir teste geri döner, her ölçüm sistemin
@@ -967,7 +967,7 @@ birleştirmede sürpriz üretir.
 Ama tanım da sessizce değişebilir, o yüzden `belge` denetimi her ajan
 dosyasını okuyor — `model: sonnet` değilse kırmızı yanıyor.
 
-### Kadro — **15 denetçi ajan**
+### Kadro — **21 denetçi ajan**
 
 | # | Ajan | Ne arar |
 |---|---|---|
@@ -987,7 +987,7 @@ dosyasını okuyor — `model: sonnet` değilse kırmızı yanıyor.
 | 14 | `belge-denetci` | Belgedeki iddia ile koddaki gerçek uyuşuyor mu |
 | 15 | `surum-denetci` | Sürüm dağınıklığı, üretilmiş dosyanın tazeliği |
 
-### Üreticiler — **2 üretici ajan**
+### Üreticiler — **5 üretici ajan**
 
 | Ajan | Ne yapar |
 |---|---|

@@ -25,6 +25,21 @@ import sys
 
 KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+# Barış üç ajana Opus hakkı verdi — kadronun geri kalanı Sonnet.
+# Hangi üçü olduğu BURADA yazılı, çünkü "önemli olanlar Opus olsun"
+# bir yazı olarak durursa dördüncüsü sessizce eklenir.
+#
+# Seçim gerekçeleri (DONGULER.md'de uzunu):
+#   canon-denetci  — hatanın bedeli en yüksek; canon bozulursa kalıcı
+#   kurgu-denetci  — en zor akıl yürütme: sebep-sonuç, güç dengesi, güdü
+#   hikaye-yazari  — tek üretken karar merkezi; taslağın zayıf yeri
+#                    tam buydu (ses ve anlatı merkezi)
+#
+# Modül düzeyinde duruyor ki arac-sinavi.py da buradan okusun — liste
+# iki yerde tutulursa biri çürür.
+OPUS_HAKKI = {"canon-denetci", "kurgu-denetci", "hikaye-yazari"}
+OPUS_TAVANI = 3
+
 # Menüde ve site haritasında bulunması beklenen sayfalar.
 SAYFALAR = [
     "index.html",
@@ -507,6 +522,7 @@ def d_belge(r):
     ajan_klasor = os.path.join(KOK, ".claude", "agents")
     if os.path.isdir(ajan_klasor):
         beklenen_model = "sonnet"
+        opus_bulunan = set()
         for ad in sorted(os.listdir(ajan_klasor)):
             if not ad.endswith(".md"):
                 continue
@@ -520,10 +536,18 @@ def d_belge(r):
                 if zorunlu not in alanlar:
                     r.hata("belge", f"agents/{ad}: '{zorunlu}' alanı eksik.")
             model = alanlar.get("model", "").strip()
-            if model and model != beklenen_model:
+            kok_ad = ad[:-3]
+            if model == "opus":
+                opus_bulunan.add(kok_ad)
+                if kok_ad not in OPUS_HAKKI:
+                    r.hata("belge", f"agents/{ad}: Opus verilmiş ama bu ajan "
+                                    f"Opus listesinde değil. Liste: "
+                                    f"{', '.join(sorted(OPUS_HAKKI))}. "
+                                    "Hak sayısı sınırlı; yenisi bir karar.")
+            elif model and model != beklenen_model:
                 r.hata("belge", f"agents/{ad}: model '{model}' — beklenen "
-                                f"'{beklenen_model}'. Kadro Sonnet 5 olarak "
-                                "kararlaştırıldı; değiştirmek bir karar, "
+                                f"'{beklenen_model}' ya da listedeki üç ajan "
+                                "için 'opus'. Model değiştirmek bir karar, "
                                 "sessizce olmamalı.")
             # Denetçi ajanlar salt okunur olmalı: bulmak ile düzeltmek ayrı
             # işler ve düzeltme kararı insanın.
@@ -533,6 +557,21 @@ def d_belge(r):
                     r.hata("belge", f"agents/{ad}: denetçi ajana yazma aracı "
                                     f"verilmiş ({yazan}). Bulmak ile düzeltmek "
                                     "ayrı işlerdir.")
+            r.tamam()
+
+        # Liste yazılı olup uygulanmazsa yine yazıdır. İki yönü de denetle:
+        # tavan aşılmasın VE listedeki üç ajan gerçekten Opus olsun. İkincisi
+        # önemli: biri sessizce Sonnet'e düşerse "üç Opus var" iddiası
+        # yalan olur ama hiçbir şey kırılmaz.
+        if len(opus_bulunan) > OPUS_TAVANI:
+            r.hata("belge", f"Opus tavanı {OPUS_TAVANI}, {len(opus_bulunan)} "
+                            f"ajanda Opus var: {', '.join(sorted(opus_bulunan))}")
+        eksik_opus = OPUS_HAKKI - opus_bulunan
+        if eksik_opus:
+            r.hata("belge", f"Opus listesindeki ajan(lar) Opus değil: "
+                            f"{', '.join(sorted(eksik_opus))}. Liste ile "
+                            "gerçek ayrışmış.")
+        if not eksik_opus and len(opus_bulunan) <= OPUS_TAVANI:
             r.tamam()
 
         # Kadro sayısı da çürüyebilir — nitekim çürüdü: 10 ajan istendi,
@@ -553,6 +592,41 @@ def d_belge(r):
             elif int(eslesme.group(1)) != sayi:
                 r.hata("belge", f"DONGULER.md: {sayi} {etiket} ajan var, "
                                 f"belge {eslesme.group(1)} yazıyor.")
+            else:
+                r.tamam()
+
+    # Evrim döngüsü de çürür. Bir boşluk bir ajanla kapatılır, sonra o ajan
+    # silinir — boşluk defterde kapalı görünmeye devam eder ve kimse aramaz.
+    # Kapatılmış ama karşılığı olmayan boşluk, kapatılmamış boşluktan
+    # kötüdür. Açık boşluk hata DEĞİL (devam eden iştir); çöken kapanış
+    # hatadır.
+    evrim_yolu = os.path.join(KOK, ".claude", "evrim.py")
+    if os.path.exists(evrim_yolu):
+        try:
+            tanim = importlib.util.spec_from_file_location("_evr", evrim_yolu)
+            evr = importlib.util.module_from_spec(tanim)
+            tanim.loader.exec_module(evr)
+        except Exception as e:
+            r.hata("belge", f"evrim.py okunamadı ({type(e).__name__}: {e}).")
+            evr = None
+        if evr is not None:
+            coken = [k for k in evr.defter_oku()
+                     if k.get("tur") == "kapanis"
+                     and not evr.var_mi(k.get("karsilik", ""))]
+            if coken:
+                for k in coken:
+                    r.hata("belge", f"evrim boşluğu [{k['no']}] "
+                                    f"'{k.get('karsilik')}' ile kapatılmış "
+                                    "ama o karşılık artık yok.")
+            else:
+                r.tamam()
+            # ALANLAR tablosu da gerçekle ayrışabilir: bir alan var olmayan
+            # bir ajana işaret ediyorsa o alan sessizce ölçülemez hâle gelir.
+            hayalet = sorted({g for v in evr.ALANLAR.values()
+                              for g in v if not evr.var_mi(g)})
+            if hayalet:
+                r.hata("belge", "evrim ALANLAR tablosu var olmayan yeteneğe "
+                                f"işaret ediyor: {', '.join(hayalet)}")
             else:
                 r.tamam()
 

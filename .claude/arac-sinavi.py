@@ -1718,24 +1718,36 @@ def t_ajan_kadrosu_sonnet(kok):
     dosyalar = [x for x in os.listdir(klasor) if x.endswith(".md")]
     if not dosyalar:
         return "hiç ajan tanımı yok"
+    # Barış üç ajana Opus hakkı verdi; geri kalan Sonnet. Listeyi burada
+    # tekrar yazmıyoruz — dogrula.py'den okuyoruz, yoksa iki yerde iki
+    # ayrı liste tutulur ve biri çürür.
+    import importlib.util as _iu
+    _t = _iu.spec_from_file_location(
+        "_dog_sinav", os.path.join(kok, ".claude", "dogrula.py"))
+    _dog = _iu.module_from_spec(_t)
+    _t.loader.exec_module(_dog)
+    opus_hakki = _dog.OPUS_HAKKI
     for ad in dosyalar:
         metin = open(os.path.join(klasor, ad), encoding="utf-8").read()
-        if "model: sonnet" not in metin:
-            return f"{ad}: model sonnet değil"
+        beklenen = "opus" if ad[:-3] in opus_hakki else "sonnet"
+        if f"model: {beklenen}" not in metin:
+            return f"{ad}: model {beklenen} değil"
     return None
 
 
 def t_ajan_model_sapmasi_yakalaniyor(kok):
-    yol = os.path.join(kok, ".claude", "agents", "canon-denetci.md")
+    """Opus hakkı üç ajanla sınırlı. Dördüncüsünü sessizce eklemek
+    mümkün olmamalı — sapmayı listedeki olmayan bir ajanda dene."""
+    yol = os.path.join(kok, ".claude", "agents", "veri-denetci.md")
     if not os.path.exists(yol):
-        return "canon-denetci tanımı yok"
+        return "veri-denetci tanımı yok"
     with open(yol, encoding="utf-8") as f:
         metin = f.read()
     with open(yol, "w", encoding="utf-8") as f:
         f.write(metin.replace("model: sonnet", "model: opus", 1))
     s = kos(kok, "dogrula.py", "belge")
-    if s.returncode != 1 or "beklenen 'sonnet'" not in s.stdout:
-        return f"model sapması yakalanmadı (çıkış {s.returncode})"
+    if s.returncode != 1 or "Opus listesinde değil" not in s.stdout:
+        return f"izinsiz Opus yakalanmadı (çıkış {s.returncode})"
     return None
 
 
@@ -1851,6 +1863,73 @@ def t_ajan_uretici_web_erisimi_sadece_arastirmacida(kok):
         return "hikaye yazarına web erişimi verilmiş"
     if "WebSearch" not in arastirmaci:
         return "tarih araştırmacısında web erişimi yok"
+    return None
+
+
+def t_evrim_tanimsiz_alani_insana_birakiyor(kok):
+    """Bilinmeyen bir işe girildiğinde makine sessizce devam etmemeli.
+    Hangi yeteneklerin gerektiği bir karardır — çıkış 3."""
+    s = kos(kok, "evrim.py", "baslat", "--is", "deneme işi",
+            "--alan", "bilinmeyen-alan-xyz")
+    if s.returncode != 3:
+        return f"tanımsız alan insan kapısına çıkmadı (çıkış {s.returncode})"
+    if "TANIMSIZ" not in s.stdout:
+        return "tanımsız alan olduğu söylenmedi"
+    return None
+
+
+def t_evrim_karsiliksiz_kapatmayi_reddediyor(kok):
+    """Bu aracın tek gerçek işi: iddia ile gerçeği ayırmak. 'Hallettim'
+    demek yetmez, kapatan şey diskte olmalı."""
+    kos(kok, "evrim.py", "baslat", "--is", "x", "--alan", "yok-boyle-alan")
+    s = kos(kok, "evrim.py", "kapat", "--no", "1",
+            "--karsilik", "agents/asla-var-olmayan.md")
+    if s.returncode == 0:
+        return "var olmayan karşılıkla kapatma kabul edildi"
+    if "REDDEDİLDİ" not in s.stdout:
+        return "reddedilme gerekçesi söylenmedi"
+    return None
+
+
+def t_evrim_gercek_karsiligi_kabul_ediyor(kok):
+    """Reddetmek kolay; doğru olanı kabul ettiğini de göstermeli, yoksa
+    araç her şeyi reddeden bir duvara dönüşür."""
+    kos(kok, "evrim.py", "baslat", "--is", "x", "--alan", "yok-boyle-alan")
+    s = kos(kok, "evrim.py", "kapat", "--no", "1",
+            "--karsilik", "agents/canon-denetci.md")
+    if s.returncode != 0:
+        return f"var olan karşılıkla kapatma reddedildi (çıkış {s.returncode})"
+    return None
+
+
+def t_evrim_coken_kapanisi_yakaliyor(kok):
+    """Evrim de çürür: bir boşluk bir ajanla kapatılır, sonra o ajan
+    silinir ve boşluk kapalı görünmeye devam eder."""
+    defter = os.path.join(kok, ".claude", "evrim-defteri.jsonl")
+    with open(defter, "a", encoding="utf-8") as f:
+        f.write(json.dumps({"no": 99, "tur": "eksik-yetenek", "alan": "d",
+                            "yetenek": "agents/x.md", "durum": "acik",
+                            "tarih": "2026-09-14"}, ensure_ascii=False) + "\n")
+        f.write(json.dumps({"no": 99, "tur": "kapanis", "durum": "kapali",
+                            "karsilik": "agents/silinmis.md", "not": "",
+                            "tarih": "2026-09-14"}, ensure_ascii=False) + "\n")
+    s = kos(kok, "evrim.py", "durum")
+    if s.returncode == 0 or "ÇÖKEN" not in s.stdout:
+        return f"çöken kapanış yakalanmadı (çıkış {s.returncode})"
+    # dogrula.py da aynı çürümeyi görmeli — tek yerde denetlenen kural
+    # o yer atlanınca kaybolur.
+    d = kos(kok, "dogrula.py", "belge")
+    if d.returncode != 1 or "artık yok" not in d.stdout:
+        return f"dogrula çöken kapanışı görmedi (çıkış {d.returncode})"
+    return None
+
+
+def t_evrim_alan_tablosu_hayalet_yetenege_isaret_etmiyor(kok):
+    """ALANLAR tablosu var olmayan bir ajana işaret ederse o alan
+    sessizce ölçülemez hâle gelir."""
+    s = kos(kok, "evrim.py", "alanlar")
+    if "✗" in s.stdout:
+        return f"alan tablosunda var olmayan yetenek var: {s.stdout[:200]}"
     return None
 
 
@@ -2000,6 +2079,11 @@ VAKALAR = [
     ("geri bildirim: vakaya çeviriyor",     t_geribildirim_vakaya_ceviriyor),
     ("geri bildirim: yineleneni kapatıyor", t_geribildirim_yineleneni_kapatiyor),
     ("geri bildirim: kaynaksızı insana bırakıyor", t_geribildirim_kaynaksizi_insana_biraktiyor),
+    ("evrim: tanımsız alanı insana bırakıyor", t_evrim_tanimsiz_alani_insana_birakiyor),
+    ("evrim: karşılıksız kapatmayı reddediyor", t_evrim_karsiliksiz_kapatmayi_reddediyor),
+    ("evrim: gerçek karşılığı kabul ediyor", t_evrim_gercek_karsiligi_kabul_ediyor),
+    ("evrim: çöken kapanışı yakalıyor", t_evrim_coken_kapanisi_yakaliyor),
+    ("evrim: alan tablosu hayalet yeteneğe işaret etmiyor", t_evrim_alan_tablosu_hayalet_yetenege_isaret_etmiyor),
 ]
 
 
