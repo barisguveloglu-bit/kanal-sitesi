@@ -60,6 +60,12 @@ DINLEYICILER = [
      "site dosyası düzenlendi → denetleyiciyi koştur (yansıt-iyileştir)"),
     ("PreToolUse", r"^(Agent|Task)$", "kanca-gorev.py",
      "alt ajan gönderiliyor → sözleşmesiz görevi engelle"),
+    # Bellek geliştirme döngüsünün kapanan halkası. Ders defteri kalıcı
+    # ama OKUNMAZSA yok gibidir — okunmasını insanın hatırlamasına
+    # bırakmak, kuralı yazıya bırakmaktır. Oturum açılışında kendi
+    # yüzeye çıkıyor.
+    ("SessionStart", r"^.*$", "kanca-ders.py",
+     "oturum açıldı → ders defterini yüzeye çıkar"),
 ]
 
 

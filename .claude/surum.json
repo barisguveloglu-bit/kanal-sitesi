@@ -1,7 +1,7 @@
 {
   "majör": 2,
   "minör": 0,
-  "yama": 1,
+  "yama": 2,
   "gecmis": [
     {
       "surum": "v1.1",
@@ -31,6 +31,11 @@
     {
       "surum": "v2.0.1",
       "ne": "Kadro 17'den 26'ya çıktı (21 denetçi + 5 üretici); üç ajan Opus'a alındı; evrim döngüsü eklendi — girilen işe göre eksik yetenekleri hesaplayan, bilinmeyen alanı insan kapısına çıkaran, boşluğu ancak gerçekten var olan bir karşılıkla kapattıran halka",
+      "tarih": "2026-09-14"
+    },
+    {
+      "surum": "v2.0.2",
+      "ne": "Bellek geliştirme döngüsü onarıldı (ders.py — kalıcı defter + oturum açılışında otomatik yüzeye çıkma) ve eleştirmen-aktör döngüsüne sürücü eklendi (tur: yakınsama ölçümü, tekrarlayan yerde insan kapısı)",
       "tarih": "2026-09-14"
     }
   ]

@@ -70,9 +70,19 @@ Sürüm: `python3 .claude/surum.py goster` — işaret: `python3 .claude/logo.py
   komşularını `degerlendir.py`'ye karşı ölçer. Plato, sırt ve **ezber tepe**
   tuzaklarını raporlar; yalıtık tepeyi reddeder ve hiçbir ayarı kendiliğinden
   uygulamaz.
-- `python3 .claude/elestirmen.py brief|denetle` — eleştirmen-üretici döngüsü.
+- `python3 .claude/elestirmen.py brief|denetle|tur` — eleştirmen-aktör döngüsü.
   İkinci bir ajan çıktıyı eleştirir; raporu mekanik denetlenir. "KUSUR YOK"
   derken denetleyiciler kusur buluyorsa **lastik damga** sayılır ve reddedilir.
+  `tur` döngünün kendisini sürer: turları sayar ve **aynı yer iki turda arka
+  arkaya geliyorsa durur** (çıkış 3) — aktör düzeltmiyor demektir. Nazikçe
+  sonsuza dönen döngü, hiç dönmeyenden kötüdür: çalışıyormuş gibi görünür.
+- `python3 .claude/ders.py yaz|oku|ara|koru|korumasiz|durum` — **ders defteri,
+  oturumlar arası hafıza.** `seyir.jsonl` koşuya özel ve `.gitignore`'da;
+  oturum bitince ders kayboluyordu. `dersler.jsonl` **kalıcı ve depoda.**
+  Her ders bir `koruma` taşır (onu engelleyen test); korumasız dersler
+  sayılır. Defter **oturum açılışında kendiliğinden yüzeye çıkar** —
+  `SessionStart` → `olay.py` → `kanca-ders.py`. Okunmasını hatırlamaya
+  bırakmak, kuralı yazıya bırakmaktır.
 - `python3 .claude/tdd.py kirmizi|yesil|duzenle` — kırmızı-yeşil-düzenle.
   Kırmızı adımı bir kapıdır: şu an geçen bir vakayla TDD başlatılamaz.
   Düzenleme adımı vaka sayısının düşmesine izin vermez.

@@ -41,6 +41,7 @@ Buna ek üç kural:
 """
 
 import argparse
+import json
 import os
 import re
 import subprocess
@@ -53,6 +54,9 @@ ONAY_KALIBI = re.compile(r"^\s*KUSUR YOK\s*$", re.M | re.I)
 BULGU_KALIBI = re.compile(r"^\s*[-*]\s*(?P<yer>[\w./-]+:\d+(?:-\d+)?)\s*[—:-]\s*"
                           r"(?P<ne>.+)$", re.M)
 ATIF_KALIBI = re.compile(r"LORE\.md:(\d+)")
+
+# Döngü durumu koşuya özel — sürüme girmez, .gitignore'da.
+TUR_DOSYA = os.path.join(KLASOR, "elestirmen-turu.json")
 
 
 def _kos(betik, *arg):
@@ -181,6 +185,144 @@ def denetle(a):
     return 0
 
 
+def _kelimeler(ne):
+    sade = re.sub(r"[^\wçğıöşü]+", " ", ne.lower())
+    return {k for k in sade.split() if len(k) > 3}
+
+
+def _parmak_izi(yer, ne):
+    """Bir bulgunun kimliği: YERİ.
+
+    İlk hâlim tarifin ilk altı kelimesini de kimliğe katıyordu. Denedim
+    ve kaçtı: aktör aynı kusuru bir sonraki turda başka kelimelerle
+    yazınca parmak izi değişti, döngü "tekrar yok" dedi. Kelime seçmek
+    bir TAHMİNDİ.
+
+    Yer tek başına daha sağlam bir kimlik: aynı `dosya:satır` iki turda
+    arka arkaya geliyorsa orada düzelmeyen bir şey var. Aynı yerde
+    farklı bir kusur da olabilir — o yüzden kelime örtüşmesi ayrıca
+    ölçülüp raporlanıyor, ama kimliği o belirlemiyor.
+    """
+    return yer
+
+
+def _tur_oku():
+    if not os.path.exists(TUR_DOSYA):
+        return None
+    try:
+        with open(TUR_DOSYA, encoding="utf-8") as f:
+            return json.load(f)
+    except (ValueError, OSError):
+        return None
+
+
+def _tur_yaz(d):
+    with open(TUR_DOSYA, "w", encoding="utf-8") as f:
+        json.dump(d, f, ensure_ascii=False, indent=2)
+        f.write("\n")
+
+
+def tur(a):
+    """Eleştirmen-aktör döngüsünün sürücüsü.
+
+    `denetle` tek bir eleştiriyi ölçer ama döngüyü görmez: "düzeltilince
+    tekrar eleştir" der ve orada biter. Döngünün gerçek kusuru ise
+    ancak turlar arasında görünür — **aynı bulgu tekrar geliyorsa aktör
+    düzeltmiyor demektir.** Nazikçe sonsuza kadar dönen bir döngü,
+    hiç dönmeyenden kötüdür: çalışıyormuş gibi görünür.
+
+    Bu komut turları sayar, bulguları parmak iziyle izler ve
+    yakınsamayı ölçer.
+    """
+    if a.alt == "basla":
+        _tur_yaz({"konu": a.konu, "tur": 0, "gecmis": []})
+        print(f"Eleştirmen-aktör döngüsü başladı: {a.konu}")
+        print("Sıra: eleştir → düzelt → eleştir …")
+        print("`tur elestir --rapor <dosya>` ile her turu kaydet.")
+        return 0
+
+    d = _tur_oku()
+    if d is None:
+        print("Açık döngü yok. Önce: elestirmen.py tur basla --konu \"<konu>\"")
+        return 1
+
+    if a.alt == "durum":
+        print(f"KONU: {d['konu']}   ·   {d['tur']} tur")
+        for i, t in enumerate(d["gecmis"], 1):
+            print(f"  tur {i}: {t['sayi']} bulgu"
+                  + (f", {t['tekrar']} tekrar" if t.get("tekrar") else ""))
+        return 0
+
+    if a.alt == "kapat":
+        os.remove(TUR_DOSYA)
+        print(f"Döngü kapandı: {d['konu']} ({d['tur']} tur)")
+        return 0
+
+    # alt == "elestir"
+    if not os.path.exists(a.rapor):
+        print(f"Rapor bulunamadı: {a.rapor}", file=sys.stderr)
+        return 1
+    rapor = open(a.rapor, encoding="utf-8").read()
+    bulgular = BULGU_KALIBI.findall(rapor)
+    onay = bool(ONAY_KALIBI.search(rapor))
+    izler = [_parmak_izi(y, n) for y, n in bulgular]
+    tarifler = {_parmak_izi(y, n): _kelimeler(n) for y, n in bulgular}
+
+    onceki = set(d["gecmis"][-1]["izler"]) if d["gecmis"] else set()
+    onceki_tarif = d["gecmis"][-1].get("tarifler", {}) if d["gecmis"] else {}
+    tekrar = [i for i in izler if i in onceki]
+
+    d["tur"] += 1
+    d["gecmis"].append({"sayi": len(bulgular), "izler": izler,
+                        "tarifler": {k: sorted(v) for k, v in tarifler.items()},
+                        "tekrar": len(tekrar), "onay": onay})
+    _tur_yaz(d)
+
+    print(f"TUR {d['tur']} — {d['konu']}")
+    print(f"  bulgu    {len(bulgular)}")
+    if d["tur"] > 1:
+        onceki_sayi = d["gecmis"][-2]["sayi"]
+        yon = "azaldı" if len(bulgular) < onceki_sayi else (
+            "arttı" if len(bulgular) > onceki_sayi else "değişmedi")
+        print(f"  önceki   {onceki_sayi} ({yon})")
+        print(f"  tekrar   {len(tekrar)}")
+
+    if onay and not bulgular:
+        print("\nYAKINSADI — eleştirmen temiz dedi. Döngü kapatılabilir.")
+        return 0
+
+    if tekrar:
+        print(f"\nDURDU — {len(tekrar)} yer bir önceki turdan aynen geldi:")
+        for i in tekrar[:4]:
+            # Aynı yerde farklı bir kusur da olabilir. Kelime örtüşmesi
+            # bunu ayırt etmeye yarıyor — kimliği belirlemiyor, sadece
+            # ne kadar emin olunabileceğini söylüyor.
+            eski = set(onceki_tarif.get(i, []))
+            yeni = tarifler.get(i, set())
+            ortak = len(eski & yeni)
+            toplam = len(eski | yeni) or 1
+            oran = ortak / toplam
+            ek = ("aynı kusur" if oran >= 0.4
+                  else "aynı yer, tarif değişmiş — başka bir kusur olabilir")
+            print(f"  · {i}  ({ek}, örtüşme %{oran * 100:.0f})")
+        print("\nAktör bu yerleri düzeltmiyor. Nazikçe dönen döngü,")
+        print("dönmeyen döngüden kötüdür: çalışıyormuş gibi görünür.")
+        print("Ya bulgu yanlış (eleştirmene sor), ya düzeltme aktörün")
+        print("yetkisi dışında (insana çıkar). Tur eklemek çözmez.")
+        return 3
+
+    # Devre kesiciye sor — sonsuz tur pahalıdır.
+    s = _kos("devre.py", "dene", "--halka", "elestirmen",
+             "--sinir", str(a.sinir), "--not", f"tur {d['tur']}")
+    if s.returncode == 1:
+        print(f"\nSINIR — {a.sinir} tur doldu. Elindekiyle devam et ve")
+        print("neyin çözülemediğini açıkça söyle.")
+        return 1
+
+    print("\nBulgular aktöre gidiyor. Düzeltilince tekrar `tur elestir`.")
+    return 0
+
+
 def main(argv):
     a = argparse.ArgumentParser(description="Eleştirmen-üretici döngüsü.")
     alt = a.add_subparsers(dest="komut", required=True)
@@ -192,6 +334,13 @@ def main(argv):
     p = alt.add_parser("denetle", help="eleştiri raporunu denetle")
     p.add_argument("--rapor", required=True)
     p.set_defaults(islev=denetle)
+
+    p = alt.add_parser("tur", help="eleştirmen-aktör döngüsünü sür")
+    p.add_argument("alt", choices=("basla", "elestir", "durum", "kapat"))
+    p.add_argument("--konu", default="")
+    p.add_argument("--rapor", default="")
+    p.add_argument("--sinir", type=int, default=3)
+    p.set_defaults(islev=tur)
 
     secim = a.parse_args(argv)
     return secim.islev(secim)

@@ -1045,9 +1045,16 @@ def t_olay_sozlesmesiz_gorevi_engelliyor(kok):
 
 def t_olay_bilinmeyen_olay_deftere_dusuyor(kok):
     """Dinleyicisi olmayan olay sessizce kaybolursa 'kanca çalışmıyor mu,
-    yoksa bu olay dinlenmiyor mu' sorusu cevaplanamaz hâle gelir."""
-    govde = json.dumps({"hook_event_name": "SessionStart", "tool_name": "",
-                        "cwd": kok})
+    yoksa bu olay dinlenmiyor mu' sorusu cevaplanamaz hâle gelir.
+
+    Örnek olay adı GERÇEKTEN dinlenmeyen bir ad olmalı. İlk hâli
+    `SessionStart` kullanıyordu; ders defteri o olaya bağlanınca fikstür
+    bayatladı ve test araçta sorun yokken kırmızıya döndü. Buradaki ad
+    Claude Code'un olay adlarından biri değil, o yüzden ileride de
+    dinleyici kazanmaz.
+    """
+    govde = json.dumps({"hook_event_name": "DinleyicisiOlmayanOlay",
+                        "tool_name": "", "cwd": kok})
     s = _olay(kok, govde)
     if s.returncode != 0:
         return f"bilinmeyen olay akışı kesti (çıkış {s.returncode})"
@@ -1937,6 +1944,67 @@ def t_evrim_alan_tablosu_hayalet_yetenege_isaret_etmiyor(kok):
     return None
 
 
+def t_ders_defteri_oturumlar_arasi_kaliyor(kok):
+    """Bellek geliştirme döngüsünün kırık olduğu yer burasıydı: seyir.jsonl
+    gitignore'da, oturum bitince ders kayboluyordu. dersler.jsonl KALICI."""
+    ig = open(os.path.join(kok, ".gitignore"), encoding="utf-8").read()
+    if "dersler.jsonl" in ig:
+        return "ders defteri gitignore'da — oturum bitince kaybolur"
+    s = kos(kok, "ders.py", "durum")
+    if s.returncode not in (0, 1):
+        return f"ders defteri okunamadı (çıkış {s.returncode})"
+    return None
+
+
+def t_ders_ayni_dersi_iki_kez_yazmiyor(kok):
+    """Şişen defter okunmaz, okunmayan defter yok demektir."""
+    s1 = kos(kok, "ders.py", "yaz", "--tur", "olcum", "--baglam", "deneme",
+             "--ders", "Yinelenen ders denemesi xyz")
+    if s1.returncode != 0:
+        return f"ilk yazma başarısız (çıkış {s1.returncode})"
+    s2 = kos(kok, "ders.py", "yaz", "--tur", "olcum", "--baglam", "deneme",
+             "--ders", "Yinelenen ders denemesi xyz")
+    if s2.returncode == 0:
+        return "aynı ders iki kez yazıldı"
+    return None
+
+
+def t_ders_oturum_acilisinda_yuzeye_cikiyor(kok):
+    """Defter okunmazsa yok gibidir; okunmasını hatırlamaya bırakmak
+    kuralı yazıya bırakmaktır."""
+    s = subprocess.run(
+        [sys.executable, os.path.join(kok, ".claude", "olay.py"), "dagit"],
+        input='{"hook_event_name":"SessionStart","source":"startup"}',
+        cwd=kok, capture_output=True, text=True, timeout=60)
+    if "DERS DEFTERİ" not in s.stdout:
+        return f"oturum açılışında ders yüzeye çıkmadı: {s.stdout[:120]}"
+    return None
+
+
+def t_elestirmen_turu_tekrarlayan_yeri_yakaliyor(kok):
+    """Döngünün gerçek kusuru turlar arasında görünür: aynı yer tekrar
+    geliyorsa aktör düzeltmiyor demektir. Nazikçe sonsuza kadar dönen
+    döngü, hiç dönmeyenden kötüdür."""
+    kayit = os.path.join(kok, ".claude", "elestirmen-turu.json")
+    if os.path.exists(kayit):
+        os.remove(kayit)
+    r1 = os.path.join(kok, "t1.md")
+    r2 = os.path.join(kok, "t2.md")
+    open(r1, "w", encoding="utf-8").write(
+        "- index.html:81 — vitrin metni canon disi siralama kuruyor\n")
+    # Aynı yer, BAŞKA kelimeler — ilk parmak izi tam da burada kaçmıştı.
+    open(r2, "w", encoding="utf-8").write(
+        "- index.html:81 — bu cumle canon'da karsiligi olmayan iddia iceriyor\n")
+    kos(kok, "elestirmen.py", "tur", "basla", "--konu", "deneme")
+    kos(kok, "elestirmen.py", "tur", "elestir", "--rapor", r1)
+    s = kos(kok, "elestirmen.py", "tur", "elestir", "--rapor", r2)
+    if s.returncode != 3:
+        return f"tekrarlayan yer insan kapısına çıkmadı (çıkış {s.returncode})"
+    if "DURDU" not in s.stdout:
+        return "durma gerekçesi söylenmedi"
+    return None
+
+
 VAKALAR = [
     ("devre: sınırda kesiyor",              t_devre_sinirda_kesiyor),
     ("devre: başarı sayacı sıfırlıyor",     t_devre_basari_sifirliyor),
@@ -2088,6 +2156,10 @@ VAKALAR = [
     ("evrim: gerçek karşılığı kabul ediyor", t_evrim_gercek_karsiligi_kabul_ediyor),
     ("evrim: çöken kapanışı yakalıyor", t_evrim_coken_kapanisi_yakaliyor),
     ("evrim: alan tablosu hayalet yeteneğe işaret etmiyor", t_evrim_alan_tablosu_hayalet_yetenege_isaret_etmiyor),
+    ("ders: defter oturumlar arası kalıyor", t_ders_defteri_oturumlar_arasi_kaliyor),
+    ("ders: aynı dersi iki kez yazmıyor", t_ders_ayni_dersi_iki_kez_yazmiyor),
+    ("ders: oturum açılışında yüzeye çıkıyor", t_ders_oturum_acilisinda_yuzeye_cikiyor),
+    ("eleştirmen: turu tekrarlayan yeri yakalıyor", t_elestirmen_turu_tekrarlayan_yeri_yakaliyor),
 ]
 
 
