@@ -19,11 +19,15 @@ yapmadan önce o dosyayı oku — karakterler, güçler ve efsane orada tanıml�
 
 - Yeni karakter/güç/kademe eklerken **HTML'e dokunma** — `data.js` yeterli.
 - İçerik değişince `LORE.md` ile `data.js` senkron kalmalı.
-  **Tek istisna: `LORE.md`'nin sonundaki `EK-A · UCUBE DÜNYA DOSYASI`.**
-  Orası sitenin kurgusu değil — eklentideki *Uzak Akraba* karakterinin
-  Minecraft Creepypasta wiki'sinden gelen hikayesi, kaynak bağlantılarıyla.
-  `data.js`'e **bilerek** yansıtılmıyor ve sitede görünmüyor; iki evrenin
-  karışmaması için ayrı tutuluyor. Senkron kuralı 1–9 arası bölümler için.
+  **İstisna: `LORE.md`'nin sonundaki EK bölümlerinin hepsi.** Şu an ikisi var:
+  `EK-A · UCUBE DÜNYA DOSYASI` (eklentideki *Uzak Akraba*) ve
+  `EK-B · ÇARPIK ALEX DOSYASI` (eklentideki *Çarpık Hal*). İkisi de sitenin
+  kurgusu değil — Minecraft Creepypasta wiki'sinden gelen hikayeler, kaynak
+  bağlantılarıyla. `data.js`'e **bilerek** yansıtılmıyorlar ve sitede
+  görünmüyorlar; iki evrenin karışmaması için ayrı tutuluyorlar.
+  Senkron kuralı 1–9 arası bölümler için; EK ile başlayan her bölüm dışarıda.
+  Yeni bir EK eklenirse aynı kural onun için de geçerli — bu satırı
+  bölüm adlarıyla değil, "EK-" önekiyle oku.
 - Arayüz metinleri **Türkçe**.
 - Kod içindeki değişken ve fonksiyon isimleri de Türkçe (mevcut düzene uy).
 - **Sitede hiç kullanıcı verisi toplanmıyor.** Form yok, giriş yok, çerez yok,
@@ -51,8 +55,16 @@ Burada eskiden `LORE.md`'nin sonundaki "Açık Uçlar" bölümü gösteriliyordu
   birbiriyle uyumlu: Kırılgan · Zayıf · Dirençli · Güçlü · Kanlı Göz İradesi.
 - **Derebeyi isimleri — kapandı.** Üç komutan (Nemesis · Teşup · Ahriman) ve
   `IL_DEREBEYLERI` listesindeki 81 ilin 81'i de adlandırılmış, boş kayıt yok.
-- **Zaman çizelgesi — HÂLÂ AÇIK.** Ne `LORE.md`'de ne `data.js`'te bir
-  kronoloji var. Olayların sırası hiçbir yerde yazılı değil.
+- **Zaman çizelgesi — HÂLÂ AÇIK, ama tam olarak eksik olan şey şu:**
+  `LORE.md` "2. Unutulan Efsane" içinde 1728–1735 arasını kapsayan bir
+  **vakayiname tablosu var** (ağacın sökülmesi, Yılmaz'ın ölümü, ağacın
+  kuruması) ve `efsane.html` onu eskimiş kâğıt olarak gösteriyor. Eksik olan
+  **bugünkü olayların sırası**: Samara'nın ihaneti, Barış'ın kaçırılması,
+  iyilerin bunu ne zaman öğrendiği — hiçbiri sıralı değil, ne `LORE.md`'de
+  ne `data.js`'te.
+  **Bunu doldurmak uydurma işi değil, Barış'ın kararı:** olayların sırasını
+  yazmak kurguyu kalıcı olarak sabitler. "Sahte içerik yasak" kuralı burada
+  da geçerli — sıra videolardan belli olmadan bu bölüm yazılmaz.
 
 ## Denetim sonrası eklenen kurallar
 
@@ -76,6 +88,33 @@ Aşağıdakiler bilinçli kararlar — "düzeltilecek eksik" değil.
   tasarımı bilerek var.
 - Betikler `defer` ile yükleniyor (ilk boyama ~%28 hızlandı). Sıra korunur,
   bozma.
+
+## Ölü kod taraması (v7.91 sonrası)
+
+Sitede üç ölü parça bulunup temizlendi. Üçü de `addon/test/site.mjs` ile
+kilitlendi (bölüm 9–11), yani geri sızarlarsa test düşer:
+
+- **Kaldırılan soru-cevap özelliğinin CSS'i** (126 satır): giriş kutusu
+  (`.oturum*`), soru formu (`.soru-form`, `.cevap-alani`), cevap listesi
+  (`.sc-*`), yönetim paneli (`.yonetim-*`) ve yasaklı listesi (`.yasakli-*`).
+  Özellik Supabase ile birlikte kaldırılmıştı (bkz. README), iskeleti kalmıştı.
+  **Yeniden eklemeyin** — "form yok, giriş yok, sunucu yok" kuralı bunu
+  kapsıyor. `.dugme:disabled` kuralı o blokta duruyordu ama YAŞIYOR
+  (`gizli.js`'in kapı düğmesi kullanıyor); `.dugme` bloğuna taşındı.
+- **`SITE_ADRESI`** hiçbir yerde okunmuyordu. Silinmedi: canonical/og/sitemap
+  JavaScript'ten üretilemediği için adres 36 yere elle yazılı ve bu sabit
+  onların **beyan edildiği tek yer**. Artık test o 36 etiketin hepsinin
+  bununla başladığını ve her sayfanın canonical'inin kendini gösterdiğini
+  ölçüyor. Alan adı değişirse önce `data.js`'i değiştir, sonra testi çalıştır.
+- **`MAFYA_TEPE[].id`** hiç okunmuyordu. Silinmedi, bağlandı: mafya
+  sayfasındaki iki kutu artık `karakterler.html#<id>` bağlantısı basıyor —
+  `efsane.html` ve `mafya.html` zaten aynı biçimi kullanıyordu.
+
+Eklentide (`addon/`) ölü kod aranıp **bulunamadı**: 116 betiğin hepsi import
+ediliyor, kullanılmayan tek bir import veya yerel fonksiyon yok, `pa:`
+kimliklerinin hepsi bir JSON'a denk geliyor, doku/model/animasyon
+referanslarının hepsi çözülüyor. `ayarlar.js`'teki altı `LAZER_*` ayarı
+öksüz ama bu **bilinçli ve orada yazılı** — dokunma.
 
 ## Dosya teslimi — SKIN linkle, paket dosya olarak
 

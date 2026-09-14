@@ -12,7 +12,23 @@
 /* Kanalın adresi — hem alt bilgide hem gizli sayfada kullanılıyor */
 const KANAL = "https://www.youtube.com/@mahmutguveloglu473";
 
-/* Sitenin yayındaki adresi — paylaşım önizlemeleri ve site haritası için */
+/*
+ * Sitenin yayındaki adresi.
+ *
+ * DİKKAT — bu sabiti TARAYICI OKUMUYOR, bilerek. canonical, og:url ve
+ * og:image etiketleri ile sitemap.xml'in JavaScript'ten üretilmesi
+ * mümkün değil: arama motoru ve paylaşım botları sayfayı okurken
+ * betiği çalıştırmıyor. O yüzden adres 37 yerde HTML'e ve
+ * sitemap.xml'e yazılı duruyor.
+ *
+ * Buradaki satırın işi onları bir arada tutmak: adresin BEYAN EDİLDİĞİ
+ * tek yer burası ve `addon/test/site.mjs` o 37 yerin hepsinin bununla
+ * aynı olduğunu ölçüyor. Adres değişirse önce burayı değiştir; test
+ * geri kalanından hangilerinin unutulduğunu tek tek söyler.
+ *
+ * Derleme adımı eklenirse doğru iş bu satırdan üretmek olur — o zamana
+ * kadar tek kaynak burası, uygulayıcısı testtir.
+ */
 const SITE_ADRESI = "https://barisguveloglu-bit.github.io/kanal-sitesi/";
 
 /*
@@ -421,6 +437,11 @@ const IRADE_KADEMELERI = [
  *   4. 81 il derebeyi (her ilde bir tane)
  *
  * İsim vermek için ilgili satırdaki ad: null yerine ad: "İsim" yaz.
+ *
+ * id: KARAKTERLER içindeki aynı kişinin kimliği. Mafya sayfasındaki kutu
+ * buradan karakterler.html#<id> bağlantısını üretiyor — yani iki listede
+ * duran aynı kişi birbirine bağlanmış oluyor. Karşılığı olmayan biri
+ * eklenirse id yazma; bağlantı basılmaz.
  */
 const MAFYA_TEPE = [
   {

@@ -228,5 +228,186 @@ console.log("=== 8. LORE.md <-> data.js SENKRON ===");
 }
 
 console.log("");
+console.log("=== 9. SITE_ADRESI GERCEKTEN TEK KAYNAK MI ===");
+{
+  /* data.js'teki SITE_ADRESI'ni tarayici okumuyor: canonical,
+     og:url, og:image ve sitemap.xml JavaScript'ten uretilemez
+     (arama motoru ve paylasim botu betigi calistirmaz), o
+     yuzden adres HTML'e ELLE yazili. Sabit o kopyalarin BEYAN
+     EDILDIGI yer; burasi kopyalarin beyandan ayrismadigini
+     olcuyor.
+
+     v7.9.3'te sabit HIC okunmuyordu -- ne kod, ne test. Alan
+     adi degisse 37 satiri elle bulmak gerekirdi ve biri
+     unutulsa hicbir sey soylemezdi: yanlis canonical, arama
+     motoruna yanlis sayfa demektir.
+
+     ---- ILK YAZILISTA BU SINAMA KENDI KOR NOKTASINI TASIYORDU ----
+     Once "SITE_ADRESI'ndeki ALAN ADINI iceren her baglanti"
+     sekilinde yazilmisti. Mutasyon denendi: bir canonical
+     `barisguveloglu-bit.github.io` yerine
+     `barisguveloglu.github.io` yapildi -- test YESIL YANDI.
+     Cunku bozuk adres artik alan adi suzgecinden gecmiyordu;
+     yani sinama tam da yakalamasi gereken hatayi goremiyordu.
+     NOTLAR.md'deki tuzagin aynisi: beklentiyi olctugun seyden
+     turetme.
+
+     Simdiki bicim suzgec kullanmiyor. Olculen etiketler
+     TANIMI GEREGI sitenin kendisini gosteriyor (canonical,
+     og:url, og:image, twitter:image, sitemap <loc>), yani
+     hepsi istisnasiz SITE_ADRESI ile baslamak zorunda.       */
+  const veri = oku("assets/js/data.js");
+  const m = veri.match(/const SITE_ADRESI = "([^"]+)"/);
+  kontrol("data.js SITE_ADRESI tanimliyor", !!m, m ? m[1] : "yok");
+  if (m) {
+    const adres = m[1];
+    kontrol("  adres / ile bitiyor (birlestirirken cift egik cizgi olmasin)",
+            adres.endsWith("/"), adres);
+
+    const kendini = [];           /* [dosya, adres] */
+    for (const h of sayfalar) {
+      const s = oku(h);
+      for (const x of s.matchAll(/<link[^>]+rel="canonical"[^>]+href="([^"]+)"/g))
+        kendini.push([h + " canonical", x[1]]);
+      for (const x of s.matchAll(/<meta[^>]+(?:property|name)="(og:url|og:image|twitter:image)"[^>]+content="([^"]+)"/g))
+        kendini.push([h + " " + x[1], x[2]]);
+    }
+    for (const x of oku("sitemap.xml").matchAll(/<loc>([^<]+)<\/loc>/g))
+      kendini.push(["sitemap.xml loc", x[1]]);
+    for (const x of oku("robots.txt").matchAll(/Sitemap:\s*(\S+)/g))
+      kendini.push(["robots.txt Sitemap", x[1]]);
+
+    const sapan = kendini.filter(([, u]) => !u.startsWith(adres));
+    kontrol("  siteyi gosteren " + kendini.length +
+            " etiketin hepsi SITE_ADRESI ile basliyor",
+            sapan.length === 0,
+            sapan.slice(0, 5).map(([f, u]) => f + " -> " + u).join(" | "));
+
+    /* Sayi sifir/az olursa yukarisi bos yere yesil yanar.
+       404 ve gizli disindaki 7 sayfanin her birinde 4 etiket,
+       sitemap'te 7 loc, robots'ta 1 = 36.                    */
+    kontrol("  ve gercekten olculecek bir sey var", kendini.length >= 30,
+            kendini.length + " etiket");
+
+    /* Her ACIK sayfanin canonical'i KENDINI gostermeli:
+       hepsi ana sayfayi gosterseydi ustteki sinama yine yesil
+       yanardi ama arama motoru butun sayfalari ayni sayfa
+       sanardi.                                               */
+    const yanlisCanonical = [];
+    for (const h of sayfalar) {
+      if (h === "404.html" || h === "gizli.html") continue;
+      const x = oku(h).match(/<link[^>]+rel="canonical"[^>]+href="([^"]+)"/);
+      if (!x) { yanlisCanonical.push(h + " -> canonical YOK"); continue; }
+      const beklenen = adres + (h === "index.html" ? "" : h);
+      if (x[1] !== beklenen) yanlisCanonical.push(h + " -> " + x[1]);
+    }
+    kontrol("  her sayfanin canonical'i KENDI adresi",
+            yanlisCanonical.length === 0, yanlisCanonical.join(" | "));
+  }
+}
+
+console.log("=== 10. OLU CSS GERI SIZMASIN ===");
+{
+  /* Kaldirilan soru-cevap ozelliginin bicimlendirmesi (giris
+     kutusu, soru formu, yonetim paneli, yasakli listesi) 126
+     satir olarak style.css'te kalmisti. Ozellik CLAUDE.md'de
+     "form yok, giris yok, sunucu yok" diye yaziliyken sitede
+     onun iskeleti duruyordu.
+
+     Burada tek tek o sinif adlarini aramak yerine SINIFIN
+     TAMAMI olculuyor: CSS'te tanimli her sinif HTML veya JS'te
+     gercekten geciyor mu.                                    */
+  const cssler = ["assets/css/style.css", "assets/css/animasyon.css"];
+  const kullanilan = new Set();
+
+  /* class="..." degerini ${...} icindeki tirnaklara TAKILMADAN
+     okuyor. Duz regex bunu yapamiyor: app.js'te
+
+         class="komutan ${k.ad ? "" : "bos"}"
+
+     yaziyor ve /class="([^"]*)"/ ilk ic tirnakta duruyor --
+     yani "bos" sinifini hic gormuyor, olu saniyor. Ilk yazilista
+     tam olarak bu oldu: uc yasayan sinif (.bos, .olur, .olmaz)
+     olu diye raporlandi.                                      */
+  const sinifAttr = (s) => {
+    const cikti = [];
+    let i = 0;
+    while ((i = s.indexOf('class="', i)) !== -1) {
+      i += 7;
+      let derinlik = 0, parca = "";
+      for (; i < s.length; i++) {
+        const c = s[i];
+        if (c === "$" && s[i + 1] === "{") { derinlik++; i++; parca += " "; continue; }
+        if (derinlik > 0) {
+          if (c === "{") derinlik++;
+          else if (c === "}") derinlik--;
+          else parca += c;           /* ic ifadedeki tirnaklar da gelsin */
+          continue;
+        }
+        if (c === '"') break;        /* attribute burada bitti */
+        parca += c;
+      }
+      cikti.push(parca);
+    }
+    return cikti;
+  };
+
+  const topla = (s) => {
+    for (const p of sinifAttr(s))
+      p.split(/[\s'"`?:+()]+/).forEach((c) => c && kullanilan.add(c));
+    /* el.className = "kilit-durum " + (x ? "olur" : "olmaz");
+       Ifadenin TAMAMINDAKI tirnakli parcalar aliniyor, yoksa
+       ternary'nin iki dali da olu gorunur (gizli.js boyle).  */
+    for (const m of s.matchAll(/\.className\s*=\s*([^;\n]+)/g))
+      for (const q of m[1].matchAll(/["'`]([^"'`]*)["'`]/g))
+        q[1].split(/\s+/).forEach((c) => c && kullanilan.add(c));
+    for (const m of s.matchAll(/classList\.(?:add|remove|toggle|contains)\(([^)]*)\)/g))
+      for (const q of m[1].matchAll(/["'`]([\w-]+)["'`]/g)) kullanilan.add(q[1]);
+    for (const m of s.matchAll(/querySelector(?:All)?\(\s*["'`]([^"'`]+)["'`]/g))
+      for (const q of m[1].matchAll(/\.([\w-]+)/g)) kullanilan.add(q[1]);
+    /* kapakHtml(v, "one-cikan-kapak", ...) gibi: sinif adi
+       cagriya degisken olarak giriyor, class=" icinde degil.  */
+    for (const m of s.matchAll(/["']([a-z][a-z0-9]*(?:-[a-z0-9]+)+)["']/g)) kullanilan.add(m[1]);
+  };
+  for (const h of sayfalar) topla(oku(h));
+  for (const j of readdirSync(KOK + "/assets/js").filter((f) => f.endsWith(".js")))
+    topla(oku("assets/js/" + j));
+
+  const olu = [];
+  for (const f of cssler) {
+    const kod = oku(f).replace(/\/\*[\s\S]*?\*\//g, "");
+    const gorulen = new Set();
+    for (const m of kod.matchAll(/([^{}]+)\{/g)) {
+      if (/^\s*@/.test(m[1])) continue;
+      for (const c of m[1].matchAll(/\.([a-zA-Z_][\w-]*)/g)) gorulen.add(c[1]);
+    }
+    for (const c of gorulen) if (!kullanilan.has(c)) olu.push(f.split("/").pop() + " -> ." + c);
+  }
+  kontrol("CSS'te tanimli her sinif HTML/JS'te geciyor", olu.length === 0,
+          olu.join(", ") || "olu sinif yok");
+}
+
+console.log("");
+console.log("=== 11. MAFYA_TEPE ID'LERI BIR KARAKTERE DENK GELIYOR ===");
+{
+  /* MAFYA_TEPE'deki iki kisinin id'si uzun sure HIC OKUNMUYORDU.
+     Artik mafya.html'deki kutu ondan karakterler.html#<id>
+     baglantisini uretiyor -- yani yanlis yazilmis bir id artik
+     KIRIK BAGLANTI demek, sessiz bir fazlalik degil.          */
+  const veri = oku("assets/js/data.js");
+  const kes = (bas, son) => veri.slice(veri.indexOf(bas), veri.indexOf(son));
+  const karakterId = new Set(
+    [...kes("const KARAKTERLER = [", "const ICRAATLER = [")
+        .matchAll(/id:\s*"([^"]+)"/g)].map((m) => m[1]));
+  const tepeId = [...kes("const MAFYA_TEPE = [", "const KOMUTANLAR = [")
+        .matchAll(/id:\s*"([^"]+)"/g)].map((m) => m[1]);
+  kontrol("MAFYA_TEPE'de id var", tepeId.length > 0, tepeId.join(", "));
+  const kayip = tepeId.filter((i) => !karakterId.has(i));
+  kontrol("  hepsinin KARAKTERLER'de karsiligi var", kayip.length === 0, kayip.join(", "));
+  kontrol("  app.js bu id'yi gercekten baglantiya ceviriyor",
+          oku("assets/js/app.js").includes('karakterler.html#${kacir(o.id)}'));
+}
+
+console.log("");
 console.log(hata ? "BAZI SINAMALAR KALDI" : "hepsi gecti");
 process.exit(hata ? 1 : 0);

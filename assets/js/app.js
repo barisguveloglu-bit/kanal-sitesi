@@ -451,6 +451,7 @@ function mafyayiKur() {
           <h3>${kacir(o.ad)}</h3>
           <div class="unvan">${kacir(o.unvan)}</div>
           <p>${kacir(o.not)}</p>
+          ${o.id ? `<a class="kutu-baglanti" href="karakterler.html#${kacir(o.id)}">Karakter kartı →</a>` : ""}
         </div>
       </div>
       <div class="hiyerarsi-cizgi"></div>`
