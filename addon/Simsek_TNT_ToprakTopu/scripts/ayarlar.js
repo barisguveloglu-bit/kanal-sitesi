@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.92.0";
+export const SURUM = "v7.93.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -11640,4 +11640,100 @@ export const BEN10_EVRIM = new Map([
     efektler: [["strength", 400, 3], ["resistance", 400, 2],
                ["slowness", 400, 0]]
   }]
+]);
+
+/* ============================================================
+   SONSUZLUK TASLARI  --  `infintrix-2.2.jar`          v7.93
+   ============================================================
+   Kullanici: "yeni bir tane mod daha buldum, bunu da ekle...
+   alabildigin tum her seyi al."
+
+   ---- BU MOD BIR KOPRU, ICERIK MODU DEGIL ----
+   Kendi tanimi: "Adds compatibility from Pugmeowla's Infinity
+   Stone Core to Alien Evo, Reds Omnitrix Evolution and ITO."
+   176 dosyanin 62'si PNG, 28'i render katmani, 6'si GeckoLib
+   modeli -- hepsi ALTI TASIN Omnitrix uzerinde gorunmesi icin.
+   GERCEK MEKANIK BES TANE ve besi de asagida.
+
+   ---- TASLARIN KENDI GUCLERI BU JAR'DA YOK ----
+   `power_stone`, `mind_stone`... hepsi sadece `objective_score`
+   olarak OKUNUYOR; yazan taraf `Pugmeowla's Infinity Stone
+   Core` modu ve o mod yuklenmedi. Yani bu jar'da Gerceklik,
+   Ruh, Zaman ve Zihin taslarinin TEK islevi "alti tas tamam mi"
+   sayimina katilmak. Onlara guc uydurmadik -- REFERANS'ta
+   olculeriyle yazili.
+
+   ---- MEVCUT BEN 10'A DOKUNULMADI ----
+   Eldiven KAPALIYKEN Ben 10 bugune kadar nasil calisiyorsa
+   oyle calisiyor: yaratigi tut, efektler gelsin, sure yok.
+   Sayac YALNIZ eldiven takiliyken isliyor. Yani bu sistem bir
+   zayiflatma degil, istege bagli bir kumar: sinirsiz donusum
+   ve Usta Denetimi isteyen yanma riskini de aliyor.          */
+
+export const SNS_ACIK = true;
+export const SNS_SIRA_BAS = 800;   // 800 eldiven · 801-806 tas · 807 sikma
+export const SNS_KAYIT_ANAHTAR = "simsek:sonsuzluk";
+
+/* Kaynaktaki komutlarin BIREBIR karsiligi:
+     gauntlet_on  -> block.beacon.activate
+     gauntlet_off -> block.beacon.deactivate
+   Bedrock'ta ayni sesin adi onceksiz.                        */
+export const SNS_SES_AC   = "beacon.activate";
+export const SNS_SES_KAPA = "beacon.deactivate";
+/* Kaynak `playsound infinity:reality_stone` diyor; o ses o
+   modun ses bankasinda ve o mod bizde yok. Uydurma dosya adi
+   yazmak yerine oyunun kendi sesi kullanildi.                */
+export const SNS_SES_TAK  = "random.levelup";
+export const SNS_SES_YAN  = "random.fizz";
+
+/* Kaynak `particle dust <r> <g> <b> 1` kullaniyor; Bedrock'ta
+   script API'sinden renk parametreli toz parcacigi YOK, o
+   yuzden en yakin hazir parcaciklar secildi.                 */
+export const SNS_PARCACIK_AC   = "minecraft:totem_particle";
+export const SNS_PARCACIK_KAPA = "minecraft:basic_smoke_particle";
+export const SNS_PARCACIK_TAK  = "minecraft:enchanting_table_particle";
+
+/* ---- OMNITRIX SAYACI (yalniz eldiven acikken) ----
+   Kaynakta bu sayac temel AlienEvo modunda; bizde yoktu.
+   Eldiven takan oyuncu icin acildi ki Guc Tasi'nin ve yanmanin
+   bir anlami olsun -- yoksa ikisi de olu kod olurdu.         */
+export const SNS_OMNI_SURE = 1200;   // tick · 60 sn kesintisiz donusum
+export const SNS_SARJ      = 200;    // tick · 10 sn normal sarj
+
+/* GUC TASI: kaynakta `infinite_power` her tick calisip sayaci
+   10'un ustundeyse 2'ye cekiyor -- yani sarj yok. Birebir. */
+export const SNS_GUC_SAYAC = 2;
+export const SNS_GUC_ESIK  = 10;
+
+/* ---- USTA DENETIMI ve YANMA ----
+   `all_6`: alti tas tamamsa AlienEvo.MasterControl. Bizdeki
+   karsiligi: yaratigi ELINDE TUTMADAN son turun gucleri devam
+   ediyor (kaynakta da "zaman asimi yok, hepsi acik" demek).
+
+   `snap_burn`: yanma etiketi gelince Usta Denetimi kalkiyor ve
+   sayac buyuk bir degere cekiliyor. Kaynaktaki sayilar aynen:
+     prototype 2999 · recal 3000 · ult 3000 · omniverse 6000
+   Bizde Omniverse bicimi YOK, o yuzden 6000 kullanilmiyor.
+   10K'ya 3000 verildi (kaynakta `ult` ile ayni basamak);
+   6000'i "en ust bicim bizde de en agir cezayi alsin" diye
+   10K'ya vermek cazipti ama 10K Omniverse DEGIL -- olcmeden
+   esitlemek bu depoda yasak.                                 */
+export const SNS_USTA_SURE = 600;    // tick · 30 sn sonra yaniyor
+export const SNS_YANIK = new Map([
+  ["_proto", 2999],
+  ["",       3000],
+  ["_10k",   3000]
+]);
+/* `remove_tag`: sayac 5'in altina inince sert kilit kalkiyor. */
+export const SNS_KILIT_ESIK = 5;
+
+/* Alti tas. Adlari render katmanlarindan BIREBIR alindi:
+   power · space · reality · soul · time · mind.              */
+export const SONSUZLUK_TASLARI = new Map([
+  ["guc",    { ad: "Güç Taşı",       kaynak: "power_stone",   renk: "§d" }],
+  ["uzay",   { ad: "Uzay Taşı",      kaynak: "space_stone",   renk: "§b" }],
+  ["gercek", { ad: "Gerçeklik Taşı", kaynak: "reality_stone", renk: "§c" }],
+  ["ruh",    { ad: "Ruh Taşı",       kaynak: "soul_stone",    renk: "§6" }],
+  ["zaman",  { ad: "Zaman Taşı",     kaynak: "time_stone",    renk: "§a" }],
+  ["zihin",  { ad: "Zihin Taşı",     kaynak: "mind_stone",    renk: "§e" }]
 ]);

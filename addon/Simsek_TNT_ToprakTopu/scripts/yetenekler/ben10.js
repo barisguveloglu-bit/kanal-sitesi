@@ -2,6 +2,10 @@ import { system } from "@minecraft/server";
 import { actionbarYaz, eldekiEsya } from "../yardimcilar.js";
 import { BEN10_ACIK, BEN10_TARAMA, BEN10_SURE, BEN10 } from "../ayarlar.js";
 import { beceriEfektleri } from "./beceri.js";
+/* TEK YONLU ITHAL. infintrix.js buradan HICBIR SEY almiyor;
+   dairesel ithal olsaydi ESM yuklenme sirasina gore biri
+   `undefined` gorurdu.                                       */
+import { omniIlerlet, yanmaBildir } from "./infintrix.js";
 
 /* ================================================================
    BEN 10 -- YARATIK OLMAK                                 v4.92
@@ -29,10 +33,16 @@ import { beceriEfektleri } from "./beceri.js";
 const sonraki = new Map();
 /* oyuncuId -> son bilinen yaratik (mesaj icin) */
 const sonYaratik = new Map();
+/* oyuncuId -> son ELDE TUTULAN tur. sonYaratik el bosalinca
+   `undefined` oluyor (mesaj icin oyle olmali); Usta Denetimi
+   ise "elinde olmasa da devam" demek, yani ayri bir hafiza
+   gerekiyor.                                                 */
+const sonTur = new Map();
 
 export function ben10Unut(oyuncuId) {
   sonraki.delete(oyuncuId);
   sonYaratik.delete(oyuncuId);
+  sonTur.delete(oyuncuId);
 }
 
 /* Elinde ya da yan elinde hangi yaratik var? */
@@ -95,12 +105,35 @@ export function ben10Tara(oyuncular) {
          beklemek "aldim ama bir sey olmadi" hissi verirdi.  */
       sonraki.set(oyuncu.id, 0);
     }
-    if (!anahtar) continue;
+    if (anahtar) sonTur.set(oyuncu.id, anahtar);
 
+    /* ---- KISITLAMA ARTIK EL BOSKEN DE ISLIYOR (v7.93) ----
+       Eskiden burada `if (!anahtar) continue;` vardi ve sayac
+       hic donmezdi. Omnitrix sayaci ile Usta Denetimi el
+       bosken de ilerlemek zorunda, o yuzden kisitlama yukari
+       alindi. Davranis degismiyor: yaratik DEGISINCE
+       `sonraki` zaten 0'a cekiliyor, yani eline alir almaz
+       efektler yine aninda geliyor.                          */
     if (simdi < (sonraki.get(oyuncu.id) || 0)) continue;
     sonraki.set(oyuncu.id, simdi + BEN10_TARAMA);
 
-    const t = BEN10.get(anahtar);
+    /* Sonsuzluk Eldiveni takili degilse bu cagri hemen
+       `{engelle:false, usta:false}` donuyor -- eldivensiz
+       oyuncu icin hicbir sey degismiyor.                     */
+    let karar;
+    try {
+      karar = omniIlerlet(oyuncu.id, anahtar, BEN10_TARAMA);
+    } catch (e) {
+      karar = { engelle: false, usta: false };
+    }
+    if (karar.yandi) yanmaBildir(oyuncu);
+
+    /* Usta Denetimi: yaratik elde olmasa da son turun gucleri
+       devam ediyor -- kaynaktaki MasterControl'un karsiligi. */
+    const kullan = anahtar || (karar.usta ? sonTur.get(oyuncu.id) : undefined);
+    if (!kullan || karar.engelle) continue;
+
+    const t = BEN10.get(kullan);
     /* v4.98: acilmis BECERI dugumlerinin katkisi. Agac TURE
        ait (t.taban), bicime degil -- Prototip'le kazandigin
        puani 10K'da harciyorsun, modda da oyle.

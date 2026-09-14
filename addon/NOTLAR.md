@@ -1,3 +1,91 @@
+# v7.93.0 — Infintrix: Sonsuzluk Taşları
+
+Kullanıcı: *"yeni bir tane mod daha buldum, bunu da ekle... alabildiğin tüm
+her şeyi al."*
+
+Tam ölçüm listesi [`REFERANS_INFINTRIX.md`](REFERANS_INFINTRIX.md).
+
+## Bu bir köprü modu
+
+`infintrix-2.2.jar` (124 KB, **sıfır Java sınıfı**) kendini şöyle tanıtıyor:
+*"Adds compatibility from Pugmeowla's Infinity Stone Core to Alien Evo."*
+176 dosyanın dağılımı:
+
+| ne | adet | alındı mı |
+|---|---|---|
+| render katmanı | 28 | hayır — AlienEvo'nun modeline giydirilmiş |
+| doku | 62 | hayır — başka modun telifli dokuları |
+| GeckoLib modeli | 6 | hayır |
+| güç dosyası | 5 | **evet** |
+| `.mcfunction` | 2 | **evet** |
+
+45 yetenek kaydının 28'i render katmanı. Geriye kalan 16 komut yeteneği tek
+tek okundu; **gerçek mekanik beş tane** ve beşi de alındı.
+
+## Kritik ölçüm: taşların kendi güçleri bu jar'da yok
+
+`power_stone`, `mind_stone`, `space_stone`, `reality_stone`, `time_stone`,
+`soul_stone` — altısı da yalnız `objective_score` olarak **okunuyor**. Bu
+skorları **yazan** taraf `Pugmeowla's Infinity Stone Core` ve o mod
+yüklenmedi. Yani bu jar'da dört taşın tek işlevi "altı taş tamam mı"
+sayımına katılmak. **Onlara güç uydurulmadı.**
+
+## Alınan sistem
+
+Sekiz yetenek, sıra 800–807: `eldiven`, altı taş yuvası, `sonsuzluk_durum`.
+
+1. Eldiven açık, taş yok → 60 sn dönüşüm, 10 sn şarj.
+2. **Güç Taşı** → şarj anında bitiyor (`infinite_power` birebir: sayaç ≥10
+   ise 2'ye çekiliyor). Kesinti 10 taramadan 1 taramaya iniyor.
+3. **Altı taş** → Usta Denetimi: yaratığı elinde tutmadan son türün
+   güçleri devam ediyor (`MasterControl`).
+4. 30 sn sonra **yanıyor**; ceza biçime göre — Prototip 2999, Recal 3000,
+   10K 3000 tick. Kaynaktaki sayılar aynen.
+5. Yanık cezasını Güç Taşı **atlayamıyor** (`no_instant_timein`); eşiğin
+   altına inince sert kilit kalkıyor (`remove_tag`).
+
+## Mevcut Ben 10 zayıflatılmadı
+
+En önemli karar bu. Omnitrix sayacı **yalnız eldiven takılıyken** işliyor;
+eldiven kapalıyken Ben 10 bugüne kadar nasıl çalışıyorsa öyle çalışıyor.
+Yani bu bir nerf değil, isteğe bağlı bir kumar: sınırsız dönüşüm ve Usta
+Denetimi isteyen yanma riskini de alıyor.
+
+## Beyan edilmiş iki ikame, bir de alınmayan
+
+- **Taşı yuvaya oturtma komutla.** Kaynakta bu işi Infinity Stone Core
+  yapıyor. Uydurma bir toplama mekaniği kurmak yerine her taş bir aç/kapa
+  yeteneği oldu.
+- **`playsound infinity:reality_stone` → `random.levelup`.** O ses diğer
+  modun ses bankasında; var olmayan bir dosya adını pakete yazmak sessizce
+  çalışmayan bir ses demek olurdu.
+- **`unlock_omnitrix` alınmadı:** bizde kilitli yaratık yok, 24 türün 56
+  kaydı zaten açık. Kilit sistemi kurup sonra onu açan bir yetenek yazmak,
+  olmayan bir soruna çözüm üretmek olurdu.
+
+## Mutasyon turu üç gerçek boşluk buldu
+
+30 mutasyonun 30'u yakalanıyor; ilk turda beşi kaçtı ve dördü gerçek test
+boşluğuydu:
+
+- **Eldiven kapısının ikinci dalı ölçülmemişti.** Test yalnız *hiç kaydı
+  olmayan* oyuncuyu deniyordu; `!s` dalı oradan geçiyor, `!s.eldiven`
+  dalı ölçüsüz kalıyordu. Eldiveni takıp çıkarmış oyuncu eklendi.
+- **Güç Taşı'nın kısaltması iki yerde** ve ikincisi tek başına sonucu 2'ye
+  çekiyor; "şarj 2 oldu mu" ölçüsü ilkini kaçırıyordu. Gerçek fark kesinti
+  **uzunluğu** — artık tarama sayarak ölçülüyor.
+- **Eldiven kapanınca sayaçların sıfırlanması** hiç ölçülmüyordu.
+- **`ben10Unut` hatırlanan türü de silmeli.** İlk düzeltme yanlış yere
+  konuldu: `kur()` içindeki `sonsuzlukUnut()` durumu zaten sildiği için
+  satır hiçbir şey ölçmüyordu ve mutasyon yine kaçtı. Doğru yere taşındı
+  ve o tuzak testin içine yorum olarak yazıldı.
+
+Beşinci mutasyon (`omniIlerlet` ekrana yazıyor) **kötü kurulmuştu**:
+fonksiyonun elinde oyuncu nesnesi yok, yalnız kimlik var — ekrana yazması
+yapısal olarak mümkün değil. Test boşluğu değil.
+
+---
+
 # v7.92.0 — AlienEvo eklentileri: Evrim kademesi
 
 Kullanıcı üç jar yükledi: *"AlienEvo diyebilir, ben 10 modu vardı ya kanka,
