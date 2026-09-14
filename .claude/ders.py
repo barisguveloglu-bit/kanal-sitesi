@@ -30,6 +30,7 @@ import argparse
 import datetime
 import json
 import os
+import re
 import sys
 
 KLASOR = os.path.dirname(os.path.abspath(__file__))
@@ -211,6 +212,78 @@ def k_durum(a):
     return 0
 
 
+def k_ozetle(a):
+    """Koşu defterinden ders adayları ayıkla — bellek pekiştirme.
+
+    Boşluk şuydu: `ders.py` kalıcı depo, ama ayıklama tamamen elle.
+    İş biterken kimse "bundan ne öğrendik" diye sormuyorsa, ders yalnızca
+    birinin aklına gelirse yazılıyor.
+
+    Bu komut `seyir.jsonl`'i okur ve aday çıkarır. **Otomatik yazmaz** —
+    yazsaydı defter ders değil gürültü biriktirirdi; bir koşu kaydı ile
+    genel bir kural aynı şey değildir. Aday sunar, cümleyi insan/ajan
+    kurar.
+
+    Aday seçimi kasten dar: `cozulmemis` ve gerekçeli `karar` kayıtları.
+    `olculdu` kayıtları ölçümdür, ders değil — bir kere doğru olan şey
+    her zaman doğru olmayabilir.
+    """
+    seyir = os.path.join(KLASOR, "seyir.jsonl")
+    if not os.path.exists(seyir):
+        print("Koşu defteri (seyir.jsonl) yok — ayıklanacak bir şey yok.")
+        print("Bu normal: seyir koşuya özel, oturum bitince silinir.")
+        print("Ders çıkarmak için İŞ BİTMEDEN bu komutu çalıştır.")
+        return 0
+
+    kayitlar = []
+    with open(seyir, encoding="utf-8") as f:
+        for satir in f:
+            satir = satir.strip()
+            if not satir:
+                continue
+            try:
+                kayitlar.append(json.loads(satir))
+            except ValueError:
+                continue
+
+    adaylar = [k for k in kayitlar
+               if k.get("tur") == "cozulmemis"
+               or (k.get("tur") == "karar" and k.get("neden"))]
+    if not adaylar:
+        print("Ders adayı yok.")
+        print("Aday olanlar: çözülmemiş kayıtlar ve gerekçeli kararlar.")
+        return 0
+
+    # Zaten deftere girmiş olanı tekrar önermek, listeyi okunmaz yapar.
+    mevcut = " ".join(k.get("ders", "").lower()
+                      for k in oku() if "_bozuk" not in k)
+
+    print(f"{len(adaylar)} ders adayı — bunlar KAYIT, henüz ders değil.\n")
+    yeni = 0
+    for k in adaylar:
+        ne = k.get("ne", "")
+        # Kaba bir benzerlik: adayın belirgin kelimeleri defterde geçiyorsa
+        # muhtemelen zaten yazılmış. Kesin değil, o yüzden gizlemiyoruz —
+        # işaretliyoruz.
+        anahtar = [w for w in re.findall(r"[\wçğıöşü]{5,}", ne.lower())][:4]
+        var_gibi = anahtar and all(w in mevcut for w in anahtar)
+        isaret = "~" if var_gibi else "+"
+        if not var_gibi:
+            yeni += 1
+        print(f"  {isaret} [{k.get('tur')}] {ne[:150]}")
+        if k.get("neden"):
+            print(f"      neden: {k['neden'][:130]}")
+
+    print()
+    print(f"+ {yeni} aday muhtemelen yeni, ~ işaretliler defterde var gibi.")
+    print()
+    print("Bir kayıt ders DEĞİLDİR. Ders, bir koşuya değil gelecekteki")
+    print("koşulara ait olan genel kuraldır. Adayı okuyup kuralı sen kur:")
+    print('  python3 .claude/ders.py yaz --tur <tür> --ders "<kural>" \\')
+    print('      --baglam "<nerede öğrenildi>" --koruma "<engelleyen test>"')
+    return 0
+
+
 def main(argv=None):
     a = argparse.ArgumentParser(
         description="Echo Orkestra ders defteri — oturumlar arası hafıza.")
@@ -239,6 +312,9 @@ def main(argv=None):
 
     p = alt.add_parser("korumasiz", help="mekanik koruması olmayan dersler")
     p.set_defaults(fn=k_korumasiz)
+
+    p = alt.add_parser("ozetle", help="koşu defterinden ders adayı ayıkla")
+    p.set_defaults(fn=k_ozetle)
 
     p = alt.add_parser("durum", help="defterin özeti")
     p.set_defaults(fn=k_durum)

@@ -90,6 +90,122 @@ ALANLAR = {
 }
 
 
+# İş şekli → o iş için anlamlı döngüler.
+#
+# "Uyarlanabilir döngü" buradan çıkıyor: her işe her döngüyü koşmak
+# israf, hiçbirini koşmamak körlük. Tablo hangisinin ne zaman işe
+# yaradığını söylüyor.
+#
+# Eşleştirme anahtar kelimeyle yapılıyor ve bu KABA bir yöntem. Zayıf
+# eşleşmede araç tahmin yürütmüyor, "kendin seç" diyor — yanlış döngü
+# önermek, döngü önermemekten kötüdür.
+IS_SEKILLERI = {
+    "üretim": {
+        "anahtar": ("yaz", "üret", "taslak", "hikaye", "karakter", "içerik",
+                    "oluştur", "tasarla"),
+        "donguler": [
+            ("elestirmen.py tur", "eleştirmen-aktör: üretici kendi kusurunu görmez"),
+            ("gorev.py dogrula", "doğrulayıcı: atıflar gerçekten o satırı gösteriyor mu"),
+            ("hedef.py", "değişmez sözleşme: neyin DEĞİŞMEYECEĞİNİ baştan yaz"),
+        ],
+    },
+    "denetim": {
+        "anahtar": ("denetle", "kontrol", "incele", "ara", "bul", "tara",
+                    "audit", "gözden geçir"),
+        "donguler": [
+            ("havuz.py + /orkestra", "çok parçalı iş: kadroyu hesapla, elle sayma"),
+            ("celiski-denetci", "raporları birbirine karşı denetle — kapsanmayanı bul"),
+            ("ozetleyici ya da Codex", "derleme: hiçbir bulgu sessizce düşmesin"),
+        ],
+    },
+    "ölçüm": {
+        "anahtar": ("test", "sınav", "ölç", "denetleyici", "kapı", "vaka",
+                    "mutasyon"),
+        "donguler": [
+            ("tdd.py", "kırmızı-yeşil-düzenle: geçen vakayla TDD başlatılamaz"),
+            ("mutasyon.py", "testin kendisini ölç — ölü test buradan çıkar"),
+            ("sinav.py", "denetleyiciyi kasten boz, yakalıyor mu bak"),
+        ],
+    },
+    "ayar": {
+        "anahtar": ("parametre", "ayar", "eşik", "iyileştir", "hızlandır",
+                    "optimize"),
+        "donguler": [
+            ("tirmanma.py", "tepe tırmanma: plato, sırt ve ezber tepeyi raporlar"),
+            ("eniyile.py", "puanlı değerlendirici, kısır turda durur"),
+            ("degerlendir.py", "önce ölç — ölçmeden ayar, tahmindir"),
+        ],
+    },
+    "canon": {
+        "anahtar": ("canon", "lore", "evren", "kural koy", "efsane", "kademe"),
+        "donguler": [
+            ("hedef.py + insan kapısı", "canon kararı ajanın değil Barış'ın"),
+            ("butunluk.py", "canon ↔ veri ↔ site gerçekleri"),
+            ("zaman-denetci", "tarih aritmetiği ve çağ tutarlılığı"),
+        ],
+    },
+    "hata": {
+        "anahtar": ("hata", "bozuk", "çalışmıyor", "kırık", "düzelt", "onar"),
+        "donguler": [
+            ("geri-bildirim.py", "hatayı KALICI teste çevir — yoksa geri gelir"),
+            ("ders.py", "aynı sınıftan bir ders çıktı mı, yaz"),
+            ("tdd.py kirmizi", "önce düşen vaka, sonra düzeltme"),
+        ],
+    },
+    "uzun": {
+        "anahtar": ("büyük", "uzun", "çok", "kapsamlı", "tüm", "hepsi",
+                    "tam kadro", "dalga"),
+        "donguler": [
+            ("butce.py", "ajan bütçesi: koşunun ortasında limite çarpma"),
+            ("butce.py kilometre", "devam noktası: koşu ölürse baştan başlama"),
+            ("devre.py", "tur, duvar saati ve ilerleme sınırı"),
+            ("seyir.py ozet", "bağlam sıkıştırma: ham iz değil karar taşınır"),
+        ],
+    },
+}
+
+
+def k_dongu(a):
+    """Uyarlanabilir döngü seçimi: bu iş için hangi halka?"""
+    metin = a.is_.lower()
+    puanlar = []
+    for ad, tanim in IS_SEKILLERI.items():
+        vurus = [k for k in tanim["anahtar"] if k in metin]
+        if vurus:
+            puanlar.append((len(vurus), ad, vurus))
+    puanlar.sort(reverse=True)
+
+    print(f"İŞ: {a.is_}\n")
+
+    if not puanlar:
+        print("Bu iş bilinen şekillerden hiçbirine benzemedi.")
+        print()
+        print("Bu bir cevap değil, cevap verememe. Anahtar kelime eşleşmesi")
+        print("kaba bir yöntem — zayıf eşleşmede tahmin yürütmek, yanlış")
+        print("döngü önermektir. Şekiller:")
+        print("  " + ", ".join(sorted(IS_SEKILLERI)))
+        print()
+        print("Bu iş yeni bir şekilse IS_SEKILLERI tablosuna ekle.")
+        return 3
+
+    # Her zaman geçerli olanlar. Bunlar işin şekline bağlı değil.
+    print("HER İŞTE:")
+    print("  · dogrula.py        kapı — 0/1/3 dışında kod 'geçti' sayılmaz")
+    print("  · ders.py ara       bu konuda daha önce ders çıktı mı")
+    print()
+
+    for _, ad, vurus in puanlar:
+        print(f"{ad.upper()}  (eşleşen: {', '.join(vurus)})")
+        for arac, neden in IS_SEKILLERI[ad]["donguler"]:
+            print(f"  · {arac:<24} {neden}")
+        print()
+
+    if len(puanlar) > 1:
+        print("Birden fazla şekle uydu — iş bölünebilir demektir.")
+        print("havuz.py ile parçalara ayır, her parçaya kendi döngüsünü ver.")
+    return 0
+
+
 def _yol(karsilik):
     """Yetenek adını gerçek dosya yoluna çevirir."""
     return os.path.join(KLASOR, karsilik)
@@ -315,6 +431,10 @@ def main(argv=None):
                    help="boşluğu kapatan ajan/araç (gerçekten var olmalı)")
     p.add_argument("--not", dest="not_", default="")
     p.set_defaults(fn=k_kapat)
+
+    p = alt.add_parser("dongu", help="bu iş için hangi döngü (uyarlanabilir)")
+    p.add_argument("--is", dest="is_", required=True)
+    p.set_defaults(fn=k_dongu)
 
     p = alt.add_parser("durum", help="defterin özeti")
     p.set_defaults(fn=k_durum)

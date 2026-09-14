@@ -170,3 +170,17 @@ Aşağıdakiler bilinçli kararlar — "düzeltilecek eksik" değil.
   tasarımı bilerek var.
 - Betikler `defer` ile yükleniyor (ilk boyama ~%28 hızlandı). Sıra korunur,
   bozma.
+- `python3 .claude/butce.py ac|ajan|kilometre|devam|durum|kapat` — koşu
+  bütçesi, vites ve kilometre taşları. Ajan gönderiminden **önce**
+  `ajan` çağrılır; bütçe bittiyse **reddeder** (koşunun ortasında
+  limite çarpıp ajanların düşmesi iki kez yaşandı). Bütçenin %30'u
+  kalınca **vites küçültme** uyarısı verir — kapı değil uyarı.
+  `kilometre` devam noktası bırakır; yarım kalan iş `--zorla` olmadan
+  kapatılamaz. Token sayamaz (buradan görünmüyor), ajan ve süre sayar.
+- `python3 .claude/evrim.py dongu --is "<iş>"` — **uyarlanabilir döngü
+  seçimi.** İşin şekline göre hangi halkaların anlamlı olduğunu söyler.
+  Eşleşme kaba bir anahtar kelime yöntemi; zayıf eşleşmede tahmin
+  yürütmez, insan kapısına çıkar (çıkış 3).
+- `python3 .claude/ders.py ozetle` — **bellek pekiştirme.** Koşu
+  defterinden ders adayı ayıklar. Otomatik yazmaz: bir koşu kaydı ile
+  gelecekteki koşulara ait genel bir kural aynı şey değildir.

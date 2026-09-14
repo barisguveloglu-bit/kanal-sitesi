@@ -2005,6 +2005,48 @@ def t_elestirmen_turu_tekrarlayan_yeri_yakaliyor(kok):
     return None
 
 
+def t_butce_bittiginde_ajan_reddediyor(kok):
+    """Bu kapının sebebi iki kez yaşandı: koşunun ortasında oturum
+    limitine çarpıp ajanların düşmesi. Bütçe bitince gönderim
+    reddedilmeli, ölmeyi beklememeli."""
+    kos(kok, "butce.py", "kapat", "--zorla")
+    kos(kok, "butce.py", "ac", "--kosu", "deneme", "--ajan-sinir", "1",
+        "--dakika", "60")
+    s1 = kos(kok, "butce.py", "ajan", "--ad", "birinci")
+    if s1.returncode != 0:
+        return f"ilk ajan reddedildi (çıkış {s1.returncode})"
+    s2 = kos(kok, "butce.py", "ajan", "--ad", "ikinci")
+    if s2.returncode != 1 or "REDDEDİLDİ" not in s2.stdout:
+        return f"bütçe bittiği hâlde ajan kabul edildi (çıkış {s2.returncode})"
+    return None
+
+
+def t_butce_yarim_isi_kapatmiyor(kok):
+    """Yarım işi kapatmak, bitmiş saymaktır."""
+    kos(kok, "butce.py", "kapat", "--zorla")
+    kos(kok, "butce.py", "ac", "--kosu", "deneme")
+    kos(kok, "butce.py", "kilometre", "--ad", "dalga 2", "--durum", "yarim")
+    s = kos(kok, "butce.py", "kapat")
+    if s.returncode != 3:
+        return f"yarım iş sessizce kapandı (çıkış {s.returncode})"
+    d = kos(kok, "butce.py", "devam")
+    if "YARIM KALAN" not in d.stdout:
+        return "devam noktası yarım kalanı göstermedi"
+    kos(kok, "butce.py", "kapat", "--zorla")
+    return None
+
+
+def t_evrim_dongu_zayif_eslesmede_tahmin_yurutmuyor(kok):
+    """Yanlış döngü önermek, döngü önermemekten kötüdür."""
+    s = kos(kok, "evrim.py", "dongu", "--is", "qwerty zxcvb asdfg")
+    if s.returncode != 3:
+        return f"eşleşmeyen iş insan kapısına çıkmadı (çıkış {s.returncode})"
+    s2 = kos(kok, "evrim.py", "dongu", "--is", "hikaye taslağı üret")
+    if s2.returncode != 0 or "ÜRETIM" not in s2.stdout:
+        return f"eşleşen iş için döngü önerilmedi: {s2.stdout[:120]}"
+    return None
+
+
 VAKALAR = [
     ("devre: sınırda kesiyor",              t_devre_sinirda_kesiyor),
     ("devre: başarı sayacı sıfırlıyor",     t_devre_basari_sifirliyor),
@@ -2160,6 +2202,9 @@ VAKALAR = [
     ("ders: aynı dersi iki kez yazmıyor", t_ders_ayni_dersi_iki_kez_yazmiyor),
     ("ders: oturum açılışında yüzeye çıkıyor", t_ders_oturum_acilisinda_yuzeye_cikiyor),
     ("eleştirmen: turu tekrarlayan yeri yakalıyor", t_elestirmen_turu_tekrarlayan_yeri_yakaliyor),
+    ("bütçe: bittiğinde ajan reddediyor", t_butce_bittiginde_ajan_reddediyor),
+    ("bütçe: yarım işi kapatmıyor", t_butce_yarim_isi_kapatmiyor),
+    ("evrim: zayıf eşleşmede tahmin yürütmüyor", t_evrim_dongu_zayif_eslesmede_tahmin_yurutmuyor),
 ]
 
 

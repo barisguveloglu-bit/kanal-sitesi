@@ -1,4 +1,4 @@
-# Echo Orkestra v2.0.2
+# Echo Orkestra v2.0.3
 
 Bu katmanın adı **Echo**. Adın sebebi işleyişinde: her çıktı bir
 denetimden geri döner, her hata bir teste geri döner, her ölçüm sistemin

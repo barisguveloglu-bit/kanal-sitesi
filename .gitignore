@@ -14,3 +14,4 @@ __pycache__/
 # Kalıcı bilgi (geri-bildirim.jsonl, yargi-gecmisi.jsonl) izlenmeye devam eder.
 .claude/seyir.jsonl
 .claude/elestirmen-turu.json
+.claude/butce-durumu.json
