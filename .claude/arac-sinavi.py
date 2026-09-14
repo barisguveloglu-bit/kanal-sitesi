@@ -1707,10 +1707,14 @@ def t_havuz_dayanaksiz_raporu_sunuma_gecirmiyor(kok):
 
 
 def t_ajan_kadrosu_sonnet(kok):
-    """Kadro Sonnet 5 olarak kararlaştırıldı — çağrıda değil TANIMDA.
+    """Kadro Sonnet 5 — üç ajan dışında; hepsi çağrıda değil TANIMDA.
 
     Çağrıda seçilen model unutulur, tanımdaki unutulamaz. Ama tanım da
     sessizce değişebilir; o yüzden denetleniyor.
+
+    Opus hakkı üç ajanda (canon-denetci, kurgu-denetci, hikaye-yazari).
+    Liste burada tekrar yazılmıyor — dogrula.py'den okunuyor, yoksa iki
+    yerde iki ayrı liste tutulur ve biri çürür.
     """
     klasor = os.path.join(kok, ".claude", "agents")
     if not os.path.isdir(klasor):
