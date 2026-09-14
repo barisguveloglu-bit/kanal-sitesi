@@ -1,3 +1,105 @@
+# v7.94.0 — Error 404: ikinci geçiş
+
+Kullanıcı: *"ben sana her zaman ne yiyorum hepsini al demiyor muyum… bundan
+sonra kuralımdan vazgeçmeyeceksin… güzel mekanik diye geçme, diğerleri de
+güzeldir ama sen onları almazsan o mod kalitesinde olmaz."*
+
+**Kural kabul edildi.** Alınabilecek her şey alınır; alınmayan her şeyin
+sebebi yazılır ve sebep ya bir depo kuralı ya ölçülmüş bir Bedrock sınırı
+olur — "bence bu daha güzel" bir sebep değil.
+
+Tam hesap [`REFERANS_ERROR404_EK.md`](REFERANS_ERROR404_EK.md).
+
+## Bu mod v7.74'te kısmen alınmıştı
+
+`Error404-1.3.8` (modId `glitchmanv`, 512 dosya, 253 sınıf, **113 prosedür**)
+o zaman taranmış ve altı olay alınmıştı. Almadıklarımı da `ayarlar.js`'e tek
+tek yazmışım. **Bu sürüm o listeye geri dönüyor.** 113 prosedürün hepsi
+`javap` ile açıldı, çağrılan metotlar ve string sabitleri okundu.
+
+| v7.74'te ne yazmıştım | şimdi |
+|---|---|
+| Faz sistemi: *"kurulabilir ama ayrı bir iş"* | **ALINDI** |
+| `ReplaceBlocksCode`: *"kalıcı bozar"* | **ALINDI** — defterle |
+| `LiftChunks`: *"geri koyma garantisi yok"* | **ALINDI** — tersine çevrilerek |
+| Config GUI (hiç değinilmemişti) | **ALINDI** — altı düğme |
+| Şifre bilmecesi (hiç değinilmemişti) | **ALINDI** — birebir |
+| `CodemanDie` / bitiş (hiç değinilmemişti) | **ALINDI** — satırları birebir |
+| `ChangeMobTextures`: *"Bedrock'ta olmaz"* | **YARISI ALINDI** |
+
+## Alınanlar
+
+**Faz sistemi.** Durakta geçirilen süreyle yükseliyor, düşmüyor, dünyaya
+yazılıyor. Her fazın kaynaktaki kendi cümleleri var — üçüncü fazdaki
+`dQw4w9WgXcQ` bir YouTube kimliği ve kaynağın kendi şakası, uydurma değil.
+
+**Bozulan Blok.** v7.74'teki itiraz "kalıcı bozar"dı; çözüm zaten depodaydı —
+meşale defterinin birebir aynısı. Üstüne iki koruma: yalnız **doğal zemin**
+bozuluyor (sandık/fırın/yatak/cam listede yok) ve oyuncu araya girip bir şey
+koyduysa dokunulmuyor.
+
+**Yükselen Zemin, tersine çevrilerek.** Kaynak zemini yukarı itiyor, yani
+zeminden blok eksiliyor. Burada hiçbir blok silinmiyor: zeminin bir parçası
+**havada yankılanıyor**, sonra siliniyor. En kötü ihtimal havada bir blok
+kalması — evinden bir şey eksilmiyor. Test "zeminden tek blok bile eksilmedi"
+diye ölçüyor.
+
+**Bozulmuş Sürü.** Doku değiştirilemiyor (bu ölçüm hâlâ doğru), ama davranış
+değiştirilebiliyor: çevredeki hayvanlar duruyor ve sana dönüyor. Hasar yok.
+
+**Yapılandırma.** Kaynaktaki altı düğmenin altısı da: beliriş, blok bozma,
+zemin oynatma, sıklık 1-2-3, temizle, durum. Hepsi kalıcı.
+
+**Şifre ve bitiş.** Telefon **334-303-9542**, kod **334303** — ikisi de
+birebir. `korku_not` → notu okur, `korku_sifre` → reddedilir,
+`korku_sifre_334303` → `CodemanDie`'nin dört satırı ve bitiş. Bitiş fazı
+sıfırlar, defterleri boşaltır ve kaynağın kendi sözü gereği yapılandırmadan
+geri açılabilir.
+
+## Hâlâ alınmayan dört şey — hepsinin sebebi ölçülmüş
+
+- **`kick @p`** — sahte bir çökme mesajıyla oyuncuyu atıyor. Bedrock'ta `kick`
+  yok; olsaydı da sahte bağlantı kopması üretmek yalan olurdu.
+- **Jumpscare / deathmode** — Bedrock script'te istemci render kancası yok;
+  öldürme kısmı da şarta aykırı.
+- **`DisturbSleep`** — hasar veriyor (şart dışlıyor) **ve** Bedrock'ta yatak
+  kancası yok.
+- **Mob dokusu değiştirme** — Bedrock'ta çalışma anında olmuyor.
+
+10 ogg, 10 nbt yapı, 61 png ve 6 GeckoLib modeli de alınmadı: bunlar
+"alınmadı" değil **alınamaz** — modun telifli varlık dosyaları.
+
+## Şart bozulmadı
+
+`error404.js` içinde `applyDamage(`, `createExplosion(`, `.kill(`,
+`setOnFire(`, `clearAll(` ve `minecraft:inventory` hiç geçmiyor. Test bunu
+**yorumları soyarak** ölçüyor — ilk yazımda dosyanın kendi başlığındaki
+"applyDamage / createExplosion / kill YOK" cümlesi yasak sayılıyordu.
+
+## Üç tuzağa düşüldü, üçü de yazıldı
+
+1. **Faz eşiği 0'dan başlıyordu** (`[0, 40, 120]`), yani ilk taramada faz 1
+   oluyordu ve faz 0 diye bir durum kalmıyordu. Olay listesi uzuyor,
+   `efsane_korku.mjs`'in olay zorlama düzeneği **sessizce başka bir olayı**
+   çalıştırıyordu — "sönme bekliyorum" diyip "kayıt" çalıştırdı. Düzeltme:
+   eşik `[20, 60, 160]` ve faz artık listenin **uzunluğunu** değil, olayın
+   **kendisini** kapatıyor.
+2. **`siraDogrula` deseni `[a-z]` idi**, `faz_satir`'daki alt çizgi
+   eşleşmiyordu; sıra karşılaştırması sessizce eksik listeyle yapılıyordu.
+3. **Ölü bir koruma yazmışım.** Faz hesabındaki `Math.max` kaldırıldığında
+   hiçbir test düşmedi — çünkü gerçekten ölüydü: `yeni` zaten `d.faz` ile
+   başlıyor ve `yeni > d.faz` kapısı düşmeyi ayrıca engelliyor. Ölü koruma
+   okuyana "burada bir şey korunuyor" diye yalan söyler; kaldırıldı ve
+   korumayı gerçekten yapan kapı için **kayıttan yüklenen faz düşmüyor**
+   testi yazıldı.
+
+35 mutasyonun 35'i yakalanıyor. İlk turda yedisi kaçtı; biri yukarıdaki ölü
+koruma, altısı gerçek test boşluğuydu — tavan ölçümleri gevşekti, ayar
+kapıları `undefined` bir boyutla deneniyordu (o zaten istisna atıp `false`
+dönüyordu) ve bitişin temizlediği defterler zaten boştu.
+
+---
+
 # v7.93.0 — Infintrix: Sonsuzluk Taşları
 
 Kullanıcı: *"yeni bir tane mod daha buldum, bunu da ekle... alabildiğin tüm

@@ -27,6 +27,7 @@ console.warn = w;
 
 const ayar  = await import("./pack/ayarlar.js");
 const korku = await import("./pack/yetenekler/efsane_korku.js");
+const e404 = await import("./pack/yetenekler/error404.js");
 const efsane = await import("./pack/yetenekler/efsane.js");
 const butce = await import("./pack/butce.js");
 
@@ -66,7 +67,13 @@ const OLAY_SIRASI_ACIK = ["bakis", "aya", "hayalet", "isik",
                              karsilastiriliyor.               */
                           "sonme", "kapi", "kalp", "nefes",
                           "golge", "kayit",
-                          "tnt", "yildirim"];
+                          "tnt", "yildirim",
+                          /* v7.94: dordu de listenin SONUNDA ve
+                             HER ZAMAN listede -- faz denetimi
+                             isin icinde. Liste uzunlugu sabit
+                             kalmasaydi bu zorlama duzenegi
+                             yanlis olayi calistirirdi.        */
+                          "faz_satir", "suru", "bozulma", "zemin"];
 
 /* Sira kaynaktan DOGRULANIYOR. Iki yerde elle tutulan bir
    sirayi test kilitlemezse, kaynak degisince zorlama sessizce
@@ -75,15 +82,19 @@ function siraDogrula(kaynak) {
   const g = kaynak.match(/const secenekler = \[([^\]]*)\]/);
   const p = kaynak.match(/secenekler\.push\("sonme"[^)]*\)/);
   const t = kaynak.match(/secenekler\.push\("tnt"[^)]*\)/);
-  if (!g || !p || !t) return null;
+  const v = kaynak.match(/secenekler\.push\("faz_satir"[^)]*\)/);
+  if (!g || !p || !t || !v) return null;
   /* `String.match` bir DIZI donuyor, dizge degil -- ilk
      yazilista dogrudan `g`ye `.match` cagirdim ve test kendi
      sonunda COKUYORDU. Cokmeyi de kacirdim, cunku hata
      ayiklarken yalnizca "✗" satiri ariyordum; cokmede oyle
      bir satir olmuyor. Olcum aracina da bakmak gerekiyormus. */
   const al = (metin) =>
-    (String(metin).match(/"([a-z]+)"/g) || []).map((x) => x.slice(1, -1));
-  return [...al(g[1]), ...al(p[0]), ...al(t[0])];
+    /* v7.94: `faz_satir` ALT CIZGI iceriyor. Desen [a-z] iken
+       o ad hic eslesmiyordu ve sira karsilastirmasi sessizce
+       eksik listeyle yapiliyordu.                            */
+    (String(metin).match(/"([a-z_]+)"/g) || []).map((x) => x.slice(1, -1));
+  return [...al(g[1]), ...al(p[0]), ...al(t[0]), ...al(v[0])];
 }
 
 function zorla(olayAdi, isi) {
@@ -122,6 +133,13 @@ function kur(id, konum) {
   _durum.oyuncular = [o];
   if (butce.butceSifirla) butce.butceSifirla();
   korku.efsaneKorkuUnut();
+  /* ---- FAZ DA SIFIRLANMALI  (v7.94) ----
+     v7.94 olaylari faza bagli ve secenek listesinin SONUNA
+     ekleniyor. Faz sifirlanmazsa onceki bolumlerde biriken
+     sayac bir yerde faz 1'e ulasiyor, liste uzuyor ve
+     `zorla` yanlis olayi calistiriyor -- test "gecti" derken
+     baska bir sey olcuyor. Bir kez yasandi, boyle bulundu.  */
+  e404.e404Unut();
   return { D, o };
 }
 

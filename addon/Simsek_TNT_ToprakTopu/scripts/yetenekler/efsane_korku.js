@@ -2,6 +2,14 @@ import { system, world } from "@minecraft/server";
 import { varlikKonumu, gecerliMi, kaliciYaz, hataYaz } from "../yardimcilar.js";
 import { blokIste, varlikIste, patlamaIste } from "../butce.js";
 import { kokAl, zincirNoktasi } from "./efsane.js";
+/* TEK YONLU: error404.js buradan hicbir sey ithal etmiyor.
+   Dairesel ithal ESM'de yuklenme sirasina gore `undefined`
+   verir -- sessiz ve bulunmasi zor bir hata sinifi.         */
+import {
+  e404Duruyor, e404SiklikCarpani, fazIlerlet, fazSatiri,
+  bozulanBlok, bozuklariTazele, yukselenZemin, havaTazele,
+  bozulmusSuru
+} from "./error404.js";
 import {
   EFSANE_ACIK, EFSANE_DURAK_SAYISI,
   EFSANE_KORKU_ACIK, EFSANE_KORKU_TARAMA, EFSANE_KORKU_MENZIL,
@@ -649,6 +657,10 @@ export function efsaneKorkuTara(oyuncular) {
      mesale sonsuza kadar sonuk kalirdi.                      */
   golgeleriSupur();                 // ilk taramada bir kez
   mesaleleriTazele(simdi);
+  /* v7.94 defterleri de ONCE: bitis calissa bile bozulmus
+     blok geri konmali. Mesale defteriyle ayni gerekce.      */
+  bozuklariTazele(simdi);
+  havaTazele(simdi);
 
   const kok = kokAl();
   if (!kok) return;                 // zincir yok: tek satirda cik
@@ -667,9 +679,19 @@ export function efsaneKorkuTara(oyuncular) {
       continue;
     }
 
-    if (!duraktaMi(kok, konum)) { durum.delete(oyuncu.id); continue; }
+    /* ---- FAZ  (v7.94) ----
+       Durakta gecirilen sureyle yukseliyor; disarida sayac
+       islemiyor ama faz da DUSMUYOR.                        */
+    const durakta = duraktaMi(kok, konum);
+    const faz = fazIlerlet(oyuncu, durakta);
+
+    if (!durakta) { durum.delete(oyuncu.id); continue; }
     if (simdi < d.ara) continue;                       // olaylar arasi bosluk
-    if (Math.random() > EFSANE_KORKU_SANS) continue;   // seyrek olsun
+    /* Bitis calistiysa hicbir olay olmaz -- kaynaktaki
+       CodemanDie'nin "artik hicbir sey belirmeyecek" sozu. */
+    if (e404Duruyor()) continue;
+    /* Siklik carpani: kaynaktaki RateOfSpawn 1/2/3.        */
+    if (Math.random() > EFSANE_KORKU_SANS * e404SiklikCarpani()) continue;
 
     let boyut;
     try { boyut = oyuncu.dimension; } catch (e) { continue; }
@@ -685,6 +707,27 @@ export function efsaneKorkuTara(oyuncular) {
        dusemez, tavana carpip oyuncunun basina inerdi.         */
     if (EFSANE_GAZAP_ACIK && konum.y > EFSANE_KAZMA_DERINLIK) {
       secenekler.push("tnt", "yildirim");
+    }
+    /* ---- v7.94 OLAYLARI ----
+       Kaynakta da agir olaylar ust fazlarda. Ama faz KAPIYI
+       degil, OLAYIN KENDISINI kapatiyor: liste her zaman ayni
+       uzunlukta, faz denetimi islerin icinde.
+
+       NEDEN BOYLE: liste uzunlugu degisseydi efsane_korku.mjs'in
+       olay zorlama duzenegi (`zorla`) sessizce BASKA bir olayi
+       calistirirdi -- indeksi liste uzunluguna boluyor. O tuzak
+       testin kendi yorumunda yazili ve bir kez daha yasandi:
+       ilk yazilista faz esigi 0'dan basliyordu, ilk taramada
+       faz 1 oluyordu, liste uzuyordu ve "sonme" bekleyen olcum
+       0 sonme goruyordu.
+
+       Yan etkisi de dogru: dusuk fazda bu secimler bos geciyor,
+       yani dunya basta daha SESSIZ.
+
+       Listenin SONUNA ekleniyor, arasina degil -- `tnt` ve
+       `yildirim`in sira numaralari kaymasin.                   */
+    if (EFSANE_404_ACIK) {
+      secenekler.push("faz_satir", "suru", "bozulma", "zemin");
     }
     const olay = sec(secenekler);
 
@@ -719,6 +762,14 @@ export function efsaneKorkuTara(oyuncular) {
       oldu = kacanGolge(oyuncu, boyut, konum);
     } else if (olay === "kayit") {
       oldu = kayit404(oyuncu);
+    } else if (olay === "faz_satir") {
+      oldu = faz >= 1 && fazSatiri(oyuncu);
+    } else if (olay === "suru") {
+      oldu = faz >= 1 && bozulmusSuru(oyuncu, boyut, konum);
+    } else if (olay === "bozulma") {
+      oldu = faz >= 2 && bozulanBlok(oyuncu, boyut, konum, simdi);
+    } else if (olay === "zemin") {
+      oldu = faz >= 3 && yukselenZemin(oyuncu, boyut, konum, simdi);
     }
 
     if (oldu) durum.set(oyuncu.id, { bitis: 0, ara: simdi + EFSANE_KORKU_ARA });

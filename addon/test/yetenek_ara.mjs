@@ -61,7 +61,7 @@ console.log("=== 1. ERISIM SORUNU GERCEKTEN VAR MI (olcum) ===");
      bosalabilir ve bosalirsa haber verir.                  */
   const son = sira.slice(-16).map((y) => y.kimlik).join(" ");
   kontrol("kuyrukta erisilmesi zor bir aile var",
-          /gura|yami|ope|jjk|simbiyot|nefes_|duvar_tirmanma|madde_donustur/.test(son),
+          /gura|yami|ope|jjk|simbiyot|nefes_|duvar_tirmanma|madde_donustur|tas_|sonsuzluk_|korku_/.test(son),
           son.slice(0, 70) + "...");
 }
 

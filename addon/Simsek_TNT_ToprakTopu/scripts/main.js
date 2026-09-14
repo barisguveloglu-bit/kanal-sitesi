@@ -105,6 +105,7 @@ import { dikenKur, dikenUnut } from "./yetenekler/avaritia.js";
 import "./yetenekler/ben10_evrim.js";
 import { evrimUnut } from "./yetenekler/ben10_evrim.js";
 import { sonsuzlukCikti } from "./yetenekler/infintrix.js";
+import { e404Unut } from "./yetenekler/error404.js";
 import { quincyUnut, reishiUnut } from "./yetenekler/ruh_yetenekler.js";
 import { berserkUnut } from "./yetenekler/karakter_yetenekler.js";
 import { jjkUnut, sonsuzUnut, jjkSec } from "./yetenekler/jujutsu.js";
@@ -2602,6 +2603,9 @@ olayaAbone("playerLeave", (olay) => {
   /* v7.93: sayaclari sifirliyor, ELDIVENI VE TASLARI DEGIL --
      ikisi de dunyaya yazili ve geri girince durmali.        */
   sonsuzlukCikti(olay.playerId);
+  /* v7.94: faz DUNYAYA yazili, burada silinen yalniz bellek
+     kopyasi -- geri girince kayittan okunuyor.              */
+  e404Unut(olay.playerId);
   roketUnut(olay.playerId);        // v7.46: roket penceresi
   /* Cikan oyuncunun bekleyen geri-itme olcumleri dusuyor.
      KIMLIKLE cagriliyor: kimliksiz cagri hepsini silerdi ve

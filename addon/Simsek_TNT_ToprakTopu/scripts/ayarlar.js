@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.93.0";
+export const SURUM = "v7.94.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -11737,3 +11737,154 @@ export const SONSUZLUK_TASLARI = new Map([
   ["zaman",  { ad: "Zaman Taşı",     kaynak: "time_stone",    renk: "§a" }],
   ["zihin",  { ad: "Zihin Taşı",     kaynak: "mind_stone",    renk: "§e" }]
 ]);
+
+/* ============================================================
+   ERROR 404 -- IKINCI GECIS                          v7.94
+   ============================================================
+   Kullanici: "ben sana her zaman ne yiyorum hepsini al
+   demiyor muyum... bundan sonra kuralimdan vazgecmeyeceksin...
+   guzel mekanik diye gecme, digerleri de guzeldir ama sen
+   onlari almazsan o mod kalitesinde olmaz."
+
+   ---- BU MOD DAHA ONCE KISMEN ALINMISTI ----
+   v7.74'te `Error404 1.3.8` (modId `glitchmanv`) tarandi ve
+   ALTI olay alindi (Sonen Mesale · Kapi Tiklatma · Kalp Atisi ·
+   Ensende Nefes · Kacan Golge · 404 Kaydi). O zaman ALINMAYAN
+   her sey "EFSANENIN SESSIZLIGI" bolumunde tek tek yazildi.
+   Bu bolum o listeye GERI DONUYOR ve alinabilecek olanlarin
+   hepsini aliyor.
+
+   ---- ALINMAYANLAR LISTESI, SIMDI TEK TEK ----
+     Faz sistemi          ALINDI (asagida) -- "kurulabilir ama
+                          ayri bir is" diye birakilmisti.
+     ReplaceBlocksCode    ALINDI -- "kalici bozar" itirazi
+                          defterle cozuldu; mesale defterinin
+                          aynisi.
+     LiftChunks           ALINDI ama TERSINE cevrilerek: hicbir
+                          blok SILINMIYOR, yalniz HAVAYA blok
+                          konuyor ve geri aliniyor. Kaynak
+                          zemini kaldiriyor; biz zemini
+                          havada YANKILIYORUZ. Boylece "kalici
+                          yikim yok" kurali hic zorlanmiyor.
+     Yapilandirma menusu  ALINDI -- kaynaktaki CanSpawn /
+                          CanChangeBlocks / CanMoveChunks /
+                          RateOfSpawn / ClearEntities /
+                          IsThereEntity dugmelerinin hepsi.
+     Sifre bilmecesi      ALINDI -- 334-303-9542 / 334303.
+     CodemanDie (bitis)   ALINDI -- satirlari birebir.
+     ChangeMobTextures    YARISI ALINDI. Bedrock'ta calisma
+                          aninda vanilla mob DOKUSU
+                          degistirilemiyor (bu hala dogru).
+                          Ama gozlenebilir yarisi -- surunun
+                          durup sana donmesi -- alinabiliyor.
+     DisturbSleep         ALINMADI ve sebebi ikili: (1) hasar
+                          veriyor, sart bunu disliyor;
+                          (2) Bedrock script API'sinde yatak
+                          kancasi YOK. Zaten v7.74'te Kapi
+                          Tiklatma geceye baglanarak bunun
+                          yerine gecmisti.
+     kick @p              ALINMADI. Sahte bir baglanti kopmasi
+                          uretmek yalan; v7.74'teki karar
+                          aynen gecerli.
+     Jumpscare            ALINMADI. Bedrock script'te istemci
+                          render kancasi yok; modun kendisi
+                          bile uyari basiyor.
+     Ogg sesler / NBT     ALINMADI. Baska bir modun telifli ses
+     yapilari / PNG'ler   ve yapi dosyalari. 10 ogg, 10 nbt,
+                          61 png.                              */
+
+export const E404_ACIK = true;
+
+/* ---- FAZ SISTEMI ----
+   Kaynakta `STAGE` niteligi + `RandomStageGiverProcedure`.
+   Faz oyuncunun DURAKTA gecirdigi sureyle yukseliyor; dusmuyor
+   (kaynakta da tek yon). Bitis (`korku_bitir`) sifirliyor.    */
+export const E404_FAZ_KAYIT_ANAHTAR = "simsek:e404";
+export const E404_FAZ_TAVAN = 3;
+/* Faza gecmek icin durakta gecirilmesi gereken TARAMA sayisi.
+   EFSANE_KORKU_TARAMA ile carpilarak tick'e cevriliyor.       */
+/* Ilk yazilista [0, 40, 120] yazilmisti ve ILK TARAMADA faz 1
+   oluyordu (0 >= 0). Faz 0 diye bir durum kalmiyordu. */
+export const E404_FAZ_ESIK = [20, 60, 160];
+/* Her fazin kendi satirlari. Kaynaktaki metinler birebir
+   cevrildi; ucuncu fazdaki `dQw4w9WgXcQ` bir YouTube kimligi
+   ve kaynagin kendi sakasi -- uydurma degil, o yuzden duruyor. */
+export const E404_FAZ_SATIRLAR = new Map([
+  [1, ["§8İzleniyormuşum gibi…", "§8Hatırlıyor musun?", "§8Bir şeyler ters"]],
+  [2, ["§7Seni görüyorum…", "§7Merhaba?", "§7Arkanda"]],
+  [3, ["§8dQw4w9WgXcQ", "§8<§4MobID:404§8> §7⛥∅✞∞"]]
+]);
+/* Faz YUKSELDIGINDE bir kez calan ses ve yazilan baslik. */
+export const E404_FAZ_SES = "mob.warden.heartbeat";
+
+/* ---- BOZULAN BLOK  (ReplaceBlocksCode) ----
+   Mesale defterinin ayni disiplini: defter + zamanlayici +
+   "yerinde hala bizimki mi" denetimi.
+
+   YALNIZ DOGAL ZEMIN bozuluyor. Oyuncunun koydugu bir blogu
+   ayirt edemiyoruz, o yuzden en yakin vekil bu liste: kirilsa
+   bile kimsenin canini yakmayacak bloklar. Sandik, firin,
+   yatak, kapi, cam -- hicbiri listede yok.                    */
+export const E404_BOZULMA_BLOK   = "minecraft:sculk";
+export const E404_BOZULMA_HEDEF  = [
+  "minecraft:stone", "minecraft:deepslate", "minecraft:dirt",
+  "minecraft:grass_block", "minecraft:gravel", "minecraft:andesite",
+  "minecraft:diorite", "minecraft:granite", "minecraft:tuff"
+];
+export const E404_BOZULMA_ORNEK = 40;   // kac nokta orneklensin
+export const E404_BOZULMA_YAKIN = 6;    // bundan yakini bozulmaz
+export const E404_BOZULMA_UZAK  = 14;
+export const E404_BOZULMA_TAVAN = 5;    // en fazla kac blok
+export const E404_BOZULMA_SURE  = 200;  // 10 sn sonra geri gelir
+export const E404_BOZULMA_SES   = "block.sculk.spread";
+
+/* ---- YUKSELEN ZEMIN  (LiftChunks, tersine) ----
+   Kaynak zemini yukari itiyor. Biz hicbir blogu SILMIYORUZ:
+   zeminin bir parcasi HAVADA yankilaniyor, sonra siliniyor.
+   Yani en kotu ihtimalde havada bir blok kalir -- oyuncunun
+   evinden bir parca eksilmez.                                */
+export const E404_KALDIRMA_YAKIN = 8;
+export const E404_KALDIRMA_UZAK  = 18;
+export const E404_KALDIRMA_EN    = 3;    // kac blok genisliginde
+export const E404_KALDIRMA_YUKSEK = 5;   // zeminden kac blok yukarida
+export const E404_KALDIRMA_TAVAN = 9;    // en fazla kac blok konsun
+export const E404_KALDIRMA_SURE  = 160;  // 8 sn
+
+/* ---- BOZULMUS SURU  (ChangeMobTextures'in alinabilir yarisi) ----
+   Dokuyu degistiremiyoruz. Degistirebildigimiz sey davranis:
+   cevredeki barisci hayvanlar DURUYOR ve sana donuyor.
+   Hasar yok, kalici degil, hayvan kaybolmuyor.                */
+export const E404_SURU_MENZIL = 12;
+export const E404_SURU_TAVAN  = 6;
+export const E404_SURU_SURE   = 100;   // 5 sn
+export const E404_SURU_TIPLER = [
+  "minecraft:cow", "minecraft:pig", "minecraft:chicken",
+  "minecraft:sheep", "minecraft:rabbit", "minecraft:horse"
+];
+
+/* ---- YAPILANDIRMA  (kaynaktaki config GUI) ----
+   Kaynakta bir menu; bizde jest/sohbet yetenegi. Dugmelerin
+   hepsi karsilandi.                                          */
+export const E404_SIRA_BAS = 810;   // 810-817
+/* RateOfSpawn 1/2/3 -> olay sansi carpani. Kaynakta sayi
+   dogrudan spawn oranina giriyor.                            */
+export const E404_SIKLIK_CARPAN = [1, 2, 3];
+export const E404_SIKLIK_VARSAYILAN = 1;
+
+/* ---- SIFRE BILMECESI ----
+   `PasswordScriptProcedure` telefon numarasini soyluyor
+   (334-303-9542), `Pass1Procedure` kabul edilen kodu tutuyor
+   (334303). Ikisi de birebir.                                */
+export const E404_TELEFON = "334-303-9542";
+export const E404_SIFRE   = "334303";
+export const E404_SIFRE_RET = "§c> Şifre Reddedildi";
+export const E404_SIFRE_KABUL = "§a> Şifre Kabul Edildi";
+/* `CodemanDieProcedure`nin satirlari, birebir cevrildi. */
+export const E404_BITIS_SATIRLAR = [
+  "§7> Betiğe Zararlı Yazılım Enjekte Ediliyor",
+  "§7> Zararlı Yazılım Enjekte Edildi",
+  "§7> Varlık Etkisiz Hâle Getiriliyor",
+  "§a> Varlık Etkisiz Hâle Getirildi",
+  "§8(Yapılandırmadan yeniden açılmadıkça artık hiçbir şey belirmeyecek)"
+];
+export const E404_BITIS_SES = "random.anvil_land";
