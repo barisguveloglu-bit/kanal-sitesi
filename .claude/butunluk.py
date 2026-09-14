@@ -478,7 +478,34 @@ def f04_olculmus_renk_anahtarlari_duruyor():
     bir şeyi anlatır ve ölçüm kaydı sahipsiz kalır.
     """
     talimat = open(os.path.join(KOK, "CLAUDE.md"), encoding="utf-8").read()
-    anilan = set(re.findall(r"`(--[\w-]+)`", talimat))
+    # Komut satırı bayrakları da `--ad` biçiminde yazılıyor ve bu sınav
+    # onları CSS değişkeni sanıyordu: `butce.py --zorla` belgelenir
+    # belgelenmez "CSS'te yok" diye patladı. Araçta sorun yoktu, ayırt
+    # edemeyen sınavdaydı.
+    #
+    # Ayrım bağlamla yapılıyor: bir betik çağrısı geçen MADDE içindeki
+    # `--ad` bayraktır, CSS değişkeni değil. Şekle bakarak ayırmak
+    # mümkün değil (ikisi de `--kelime-kelime`).
+    #
+    # Satır bazlı filtre denendi ve yetmedi: madde sarılınca bayrak
+    # komutun devam satırına düşüyor ve o satırda betik adı geçmiyor.
+    # Bu yüzden madde BLOĞU birim alınıyor.
+    bloklar, simdiki = [], []
+    for satir in talimat.splitlines():
+        if satir.startswith("- "):
+            if simdiki:
+                bloklar.append("\n".join(simdiki))
+            simdiki = [satir]
+        else:
+            simdiki.append(satir)
+    if simdiki:
+        bloklar.append("\n".join(simdiki))
+
+    anilan = set()
+    for blok in bloklar:
+        if ".py" in blok or "python3" in blok:
+            continue
+        anilan |= set(re.findall(r"`(--[\w-]+)`", blok))
     tanimli = set(re.findall(r"(--[\w-]+)\s*:", K.css))
     yok = sorted(anilan - tanimli)
     return None if not yok else (f"CLAUDE.md ölçüldüğünü söylüyor ama CSS'te "
