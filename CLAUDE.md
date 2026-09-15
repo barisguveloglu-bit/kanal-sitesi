@@ -155,6 +155,29 @@ var mı). İkisi ayrı sorular, ikisi de gerekli.
 GeckoLib sürüm atlarsa: `python3 addon/arac/gecko_coz.py`, sonra testi
 çalıştır.
 
+## Java modelden Bedrock geometriye — `jar_model_coz.py` (v7.94.3)
+
+Bir Java 1.12 mod'unun `ModelBase` sınıflarından Bedrock `.geo.json`
+üretiliyor. Araç NarutoMod 1.12.2 üzerinde büyütüldü (bkz.
+`REFERANS_NARUTO.md`): sabit sınıf adı kaldırıldı, eksik yığın artık
+modeli yakmıyor, `--geo` ile doğrudan geometri çıkıyor.
+
+```sh
+python3 addon/jar_model_coz.py mod.jar --liste
+python3 addon/jar_model_coz.py mod.jar '<Sınıf>' --geo geometry.x > x.geo.json
+```
+
+Çevrim formülü **ölçülmüş veriye karşı doğrulandı** (`kol_uret.py`'deki
+zırh geometrileri) ve `test/model_cevrim.mjs` ile kilitlendi. Üretilen
+geometri `arac/bicim_dogrula.py`'den de geçmeli.
+
+**Bilinen sınır:** alt kemik pivotlarının ebeveyne göreli sayılması
+ölçülmüş veriyle doğrulanamadı — yeni model taşırken oyunda gözle bak.
+
+**Dış mod dosyaları depoya alınmaz.** Referans JAR'ları büyük ve çoğu
+lisanssız; `REFERANS_*.md` belgeleri ölçümü taşır, dosyayı değil.
+(İstisna: `arac/geckolib/` — MIT ve kural tablosu ondan üretiliyor.)
+
 ## Dosya teslimi — SKIN linkle, paket dosya olarak
 
 Bu kural depodaki kodla ilgili değil, **kullanıcıya nasıl teslim
