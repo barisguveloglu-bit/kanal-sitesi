@@ -2,7 +2,13 @@
 """Butun animasyonlari tarar ve bozukluk arar."""
 import json, os, glob, collections, re
 
-KOK = "/home/user/kanal-sitesi/addon"
+# v7.94.1: MUTLAK YOL KALDIRILDI. Bu dosya "/home/user/kanal-sitesi/..."
+# diye sabit bir yol tasiyordu; baska bir makinede (ya da depo baska bir
+# klasore klonlandiginda) hicbir animasyon bulamaz, sessizce "0 dosya
+# tarandi" der ve temiz gorunurdu. kos.sh ayni hatadan v7.9.3'te
+# temizlenmisti, bu dosya atlanmis. Artik kendi konumundan turetiliyor:
+# addon/test/anim_tara.py -> addon/
+KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PAKETLER = ["Simsek_Kol_Kaynak", "Simsek_Oyuncu_Modeli"]
 BULGU = []
 def bul(agirlik, nerede, ne):

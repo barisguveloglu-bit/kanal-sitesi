@@ -129,6 +129,32 @@ topluyor, test modeli de soruyor.
 Buradan çıkan kural: bir özellik kaldırılırken **eşya + attachable +
 ikon + model + doku**, beşi birden aranır. Dördünü aramak yeterli değil.
 
+## Biçim doğrulama — `arac/` (v7.94.2)
+
+`.animation.json` ve `.geo.json` dosyalarının **biçim olarak geçerli
+olup olmadığı** artık her koşuda ölçülüyor. 379 geometri dosyası bugüne
+kadar hiçbir şekilde doğrulanmıyordu.
+
+Kurallar bir yerden **çıkarıldı**, yazılmadı: kullanıcının gönderdiği
+GeckoLib 5.5.5 JAR'ı (`arac/geckolib/`, MIT). GeckoLib bu dosyaları
+gerçekten okuyan bağımsız bir uygulama; hangi `easing` adlarının
+gerçek olduğunu, MoLang'de hangi fonksiyonların bulunduğunu ve kaç
+argüman aldıklarını oradan biliyoruz. Ayrıntı: `REFERANS_GECKOLIB.md`.
+
+- `arac/gecko_coz.py` — JAR'dan kural tablosunu **üretir**
+- `arac/gecko_kurallari.json` — üretilen tablo, **elle düzenleme**
+- `arac/bicim_dogrula.py` — depodaki dosyaları o tabloya göre doğrular
+- `arac/bicim_mutasyon.py` — doğrulayıcının ısırdığını gösterir
+- `test/bicim.mjs` — ikisini `kos.sh`'e bağlar
+
+`test/anim_tara.py` ile **karıştırma**: o, animasyonların birbiriyle
+tutarlılığına bakıyor (çift kimlik, modelde olmayan kemik, uzunluk
+aşımı). Bu, biçim soruyor (easing adı gerçek mi, MoLang fonksiyonu
+var mı). İkisi ayrı sorular, ikisi de gerekli.
+
+GeckoLib sürüm atlarsa: `python3 addon/arac/gecko_coz.py`, sonra testi
+çalıştır.
+
 ## Dosya teslimi — SKIN linkle, paket dosya olarak
 
 Bu kural depodaki kodla ilgili değil, **kullanıcıya nasıl teslim

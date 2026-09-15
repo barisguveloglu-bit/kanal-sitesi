@@ -1,0 +1,670 @@
+{
+  "_kaynak": "GeckoLib 5.5.5 -- geckolib-neoforge-26.2-5.5.5.jar",
+  "_lisans": "MIT (arac/geckolib/LICENSE.txt)",
+  "_uretim": "addon/arac/gecko_coz.py ile uretildi, ELLE DUZENLEME",
+  "easing": [
+    "catmullrom",
+    "easeinback",
+    "easeinbounce",
+    "easeincirc",
+    "easeincubic",
+    "easeinelastic",
+    "easeinexpo",
+    "easeinoutback",
+    "easeinoutbounce",
+    "easeinoutcirc",
+    "easeinoutcubic",
+    "easeinoutelastic",
+    "easeinoutexpo",
+    "easeinoutquad",
+    "easeinoutquart",
+    "easeinoutquint",
+    "easeinoutsine",
+    "easeinquad",
+    "easeinquart",
+    "easeinquint",
+    "easeinsine",
+    "easeoutback",
+    "easeoutbounce",
+    "easeoutcirc",
+    "easeoutcubic",
+    "easeoutelastic",
+    "easeoutexpo",
+    "easeoutquad",
+    "easeoutquart",
+    "easeoutquint",
+    "easeoutsine",
+    "linear",
+    "none",
+    "step"
+  ],
+  "easing_en_az_adim": 2,
+  "geo_format_version": [
+    "1.12.0",
+    "1.14.0",
+    "1.16.0",
+    "1.19.30",
+    "1.21.0"
+  ],
+  "loop": [
+    "default",
+    "false",
+    "hold_on_last_frame",
+    "loop",
+    "play_once",
+    "true"
+  ],
+  "molang_desenleri": {
+    "degisken": "^[a-z_]+(\\.\\w+)+$",
+    "izinli_karakter": "^[\\w\\s_+-/*%^&|<>=!?:;.,(){}]+$",
+    "sayi": "^-?(\\d+(\\.\\d+)?|\\.\\d+)$"
+  },
+  "molang_fonksiyonlari": {
+    "math.abs": {
+      "en_az_arguman": 1,
+      "sinif": "com.geckolib.loading.math.function.generic.AbsFunction"
+    },
+    "math.acos": {
+      "en_az_arguman": 1,
+      "sinif": "com.geckolib.loading.math.function.generic.ACosFunction"
+    },
+    "math.asin": {
+      "en_az_arguman": 1,
+      "sinif": "com.geckolib.loading.math.function.generic.ASinFunction"
+    },
+    "math.atan": {
+      "en_az_arguman": 1,
+      "sinif": "com.geckolib.loading.math.function.generic.ATanFunction"
+    },
+    "math.atan2": {
+      "en_az_arguman": 2,
+      "sinif": "com.geckolib.loading.math.function.generic.ATan2Function"
+    },
+    "math.ceil": {
+      "en_az_arguman": 1,
+      "sinif": "com.geckolib.loading.math.function.round.CeilFunction"
+    },
+    "math.clamp": {
+      "en_az_arguman": 3,
+      "sinif": "com.geckolib.loading.math.function.limit.ClampFunction"
+    },
+    "math.cos": {
+      "en_az_arguman": 1,
+      "sinif": "com.geckolib.loading.math.function.generic.CosFunction"
+    },
+    "math.die_roll": {
+      "en_az_arguman": 3,
+      "sinif": "com.geckolib.loading.math.function.random.DieRollFunction"
+    },
+    "math.die_roll_integer": {
+      "en_az_arguman": 3,
+      "sinif": "com.geckolib.loading.math.function.random.DieRollIntegerFunction"
+    },
+    "math.exp": {
+      "en_az_arguman": 1,
+      "sinif": "com.geckolib.loading.math.function.generic.ExpFunction"
+    },
+    "math.floor": {
+      "en_az_arguman": 1,
+      "sinif": "com.geckolib.loading.math.function.round.FloorFunction"
+    },
+    "math.hermite_blend": {
+      "en_az_arguman": 1,
+      "sinif": "com.geckolib.loading.math.function.round.HermiteBlendFunction"
+    },
+    "math.lerp": {
+      "en_az_arguman": 3,
+      "sinif": "com.geckolib.loading.math.function.round.LerpFunction"
+    },
+    "math.lerprotate": {
+      "en_az_arguman": 3,
+      "sinif": "com.geckolib.loading.math.function.round.LerpRotFunction"
+    },
+    "math.ln": {
+      "en_az_arguman": 1,
+      "sinif": "com.geckolib.loading.math.function.generic.LogFunction"
+    },
+    "math.max": {
+      "en_az_arguman": 2,
+      "sinif": "com.geckolib.loading.math.function.limit.MaxFunction"
+    },
+    "math.min": {
+      "en_az_arguman": 2,
+      "sinif": "com.geckolib.loading.math.function.limit.MinFunction"
+    },
+    "math.min_angle": {
+      "en_az_arguman": 1,
+      "sinif": "com.geckolib.loading.math.function.round.MinAngleFunction"
+    },
+    "math.mod": {
+      "en_az_arguman": 2,
+      "sinif": "com.geckolib.loading.math.function.generic.ModFunction"
+    },
+    "math.pi": {
+      "en_az_arguman": 0,
+      "sinif": "com.geckolib.loading.math.function.misc.PiFunction"
+    },
+    "math.pow": {
+      "en_az_arguman": 2,
+      "sinif": "com.geckolib.loading.math.function.generic.PowFunction"
+    },
+    "math.random": {
+      "en_az_arguman": 1,
+      "sinif": "com.geckolib.loading.math.function.random.RandomFunction"
+    },
+    "math.random_integer": {
+      "en_az_arguman": 1,
+      "sinif": "com.geckolib.loading.math.function.random.RandomIntegerFunction"
+    },
+    "math.round": {
+      "en_az_arguman": 1,
+      "sinif": "com.geckolib.loading.math.function.round.RoundFunction"
+    },
+    "math.sin": {
+      "en_az_arguman": 1,
+      "sinif": "com.geckolib.loading.math.function.generic.SinFunction"
+    },
+    "math.sqrt": {
+      "en_az_arguman": 1,
+      "sinif": "com.geckolib.loading.math.function.generic.SqrtFunction"
+    },
+    "math.to_deg": {
+      "en_az_arguman": 1,
+      "sinif": "com.geckolib.loading.math.function.misc.ToDegFunction"
+    },
+    "math.to_rad": {
+      "en_az_arguman": 1,
+      "sinif": "com.geckolib.loading.math.function.misc.ToRadFunction"
+    },
+    "math.trunc": {
+      "en_az_arguman": 1,
+      "sinif": "com.geckolib.loading.math.function.round.TruncateFunction"
+    }
+  },
+  "sema": {
+    "animasyon": {
+      "ActorAnimation": [
+        {
+          "ad": "animLength",
+          "tip": "Float"
+        },
+        {
+          "ad": "loop",
+          "tip": "com.mojang.datafixers.util.Either<Boolean, String>"
+        },
+        {
+          "ad": "startDelay",
+          "tip": "String"
+        },
+        {
+          "ad": "loopDelay",
+          "tip": "String"
+        },
+        {
+          "ad": "animTimeUpdate",
+          "tip": "String"
+        },
+        {
+          "ad": "blendWeight",
+          "tip": "String"
+        },
+        {
+          "ad": "overridePrevAnimation",
+          "tip": "Boolean"
+        },
+        {
+          "ad": "boneAnimations",
+          "tip": "Map<String, ActorBoneAnimation>"
+        },
+        {
+          "ad": "particleEffects",
+          "tip": "Map<String, ActorAnimationParticleEffect>"
+        },
+        {
+          "ad": "soundEffects",
+          "tip": "Map<String, ActorAnimationSoundEffect>"
+        },
+        {
+          "ad": "timeline",
+          "tip": "Map<String, String>"
+        }
+      ],
+      "ActorAnimationParticleEffect": [
+        {
+          "ad": "effect",
+          "tip": "String"
+        },
+        {
+          "ad": "locator",
+          "tip": "String"
+        },
+        {
+          "ad": "preEffectScript",
+          "tip": "String"
+        },
+        {
+          "ad": "bindToActor",
+          "tip": "Boolean"
+        }
+      ],
+      "ActorAnimationSoundEffect": [
+        {
+          "ad": "effect",
+          "tip": "String"
+        },
+        {
+          "ad": "locator",
+          "tip": "String"
+        },
+        {
+          "ad": "preEffectScript",
+          "tip": "String"
+        },
+        {
+          "ad": "bindToActor",
+          "tip": "Boolean"
+        }
+      ],
+      "ActorAnimations": [
+        {
+          "ad": "formatVersion",
+          "tip": "String"
+        },
+        {
+          "ad": "animations",
+          "tip": "Map<String, ActorAnimation>"
+        }
+      ],
+      "ActorBoneAnimation": [
+        {
+          "ad": "relativeTo",
+          "tip": "String"
+        },
+        {
+          "ad": "positionKeyframes",
+          "tip": "ActorBoneAnimationEntry"
+        },
+        {
+          "ad": "rotationKeyframes",
+          "tip": "ActorBoneAnimationEntry"
+        },
+        {
+          "ad": "scaleKeyframes",
+          "tip": "ActorBoneAnimationEntry"
+        }
+      ],
+      "ActorBoneAnimationEntry": [
+        {
+          "ad": "keyframes",
+          "tip": "com.mojang.datafixers.util.Either<ActorBoneAnimationKeyframe, it.unimi.dsi.fastutil.doubles.Double2ObjectArrayMap<ActorBoneAnimationKeyframe>>"
+        }
+      ],
+      "ActorBoneAnimationKeyframe": [
+        {
+          "ad": "values",
+          "tip": "ActorBoneAnimationKeyframeValues"
+        },
+        {
+          "ad": "interpolationType",
+          "tip": "String"
+        },
+        {
+          "ad": "easingArgs",
+          "tip": "DoubleOrString[]"
+        },
+        {
+          "ad": "preKeyframe",
+          "tip": "ActorBoneAnimationKeyframe"
+        },
+        {
+          "ad": "postKeyframe",
+          "tip": "ActorBoneAnimationKeyframe"
+        }
+      ],
+      "ActorBoneAnimationKeyframeValues": [
+        {
+          "ad": "xValue",
+          "tip": "DoubleOrString"
+        },
+        {
+          "ad": "yValue",
+          "tip": "DoubleOrString"
+        },
+        {
+          "ad": "zValue",
+          "tip": "DoubleOrString"
+        }
+      ],
+      "KeyframeTriplet": [
+        {
+          "ad": "x",
+          "tip": "Keyframe"
+        },
+        {
+          "ad": "y",
+          "tip": "Keyframe"
+        },
+        {
+          "ad": "z",
+          "tip": "Keyframe"
+        }
+      ]
+    },
+    "geometri": {
+      "Geometry": [
+        {
+          "ad": "formatVersion",
+          "tip": "String"
+        },
+        {
+          "ad": "debug",
+          "tip": "boolean"
+        },
+        {
+          "ad": "definitions",
+          "tip": "GeometryDefinition[]"
+        }
+      ],
+      "GeometryBone": [
+        {
+          "ad": "name",
+          "tip": "String"
+        },
+        {
+          "ad": "parent",
+          "tip": "String"
+        },
+        {
+          "ad": "pivot",
+          "tip": "net.minecraft.world.phys.Vec3"
+        },
+        {
+          "ad": "rotation",
+          "tip": "net.minecraft.world.phys.Vec3"
+        },
+        {
+          "ad": "debug",
+          "tip": "boolean"
+        },
+        {
+          "ad": "mirror",
+          "tip": "Boolean"
+        },
+        {
+          "ad": "inflate",
+          "tip": "Float"
+        },
+        {
+          "ad": "renderGroupId",
+          "tip": "int"
+        },
+        {
+          "ad": "cubes",
+          "tip": "GeometryCube[]"
+        },
+        {
+          "ad": "binding",
+          "tip": "String"
+        },
+        {
+          "ad": "locators",
+          "tip": "Map<String, GeometryLocator>"
+        },
+        {
+          "ad": "polyMesh",
+          "tip": "GeometryPolyMesh"
+        },
+        {
+          "ad": "textureMeshes",
+          "tip": "GeometryTextureMesh[]"
+        }
+      ],
+      "GeometryCube": [
+        {
+          "ad": "origin",
+          "tip": "net.minecraft.world.phys.Vec3"
+        },
+        {
+          "ad": "size",
+          "tip": "net.minecraft.world.phys.Vec3"
+        },
+        {
+          "ad": "rotation",
+          "tip": "net.minecraft.world.phys.Vec3"
+        },
+        {
+          "ad": "pivot",
+          "tip": "net.minecraft.world.phys.Vec3"
+        },
+        {
+          "ad": "inflate",
+          "tip": "Float"
+        },
+        {
+          "ad": "mirror",
+          "tip": "Boolean"
+        },
+        {
+          "ad": "uv",
+          "tip": "GeometryUv"
+        }
+      ],
+      "GeometryDefinition": [
+        {
+          "ad": "description",
+          "tip": "GeometryDescription"
+        },
+        {
+          "ad": "cape",
+          "tip": "String"
+        },
+        {
+          "ad": "bones",
+          "tip": "GeometryBone[]"
+        }
+      ],
+      "GeometryDescription": [
+        {
+          "ad": "identifier",
+          "tip": "String"
+        },
+        {
+          "ad": "visibleBoundsWidth",
+          "tip": "Float"
+        },
+        {
+          "ad": "visibleBoundsHeight",
+          "tip": "Float"
+        },
+        {
+          "ad": "visibleBoundsOffset",
+          "tip": "net.minecraft.world.phys.Vec3"
+        },
+        {
+          "ad": "textureWidth",
+          "tip": "int"
+        },
+        {
+          "ad": "textureHeight",
+          "tip": "int"
+        }
+      ],
+      "GeometryLocator": [
+        {
+          "ad": "offset",
+          "tip": "net.minecraft.world.phys.Vec3"
+        },
+        {
+          "ad": "rotation",
+          "tip": "net.minecraft.world.phys.Vec3"
+        }
+      ],
+      "GeometryPolyIndex": [
+        {
+          "ad": "position",
+          "tip": "float"
+        },
+        {
+          "ad": "normal",
+          "tip": "float"
+        },
+        {
+          "ad": "scale",
+          "tip": "float"
+        }
+      ],
+      "GeometryPolyIndices": [
+        {
+          "ad": "trisOrQuads",
+          "tip": "com.mojang.datafixers.util.Either<GeometryPolyIndex[], GeometryPolyIndex[]>"
+        }
+      ],
+      "GeometryPolyMesh": [
+        {
+          "ad": "normalizedUvs",
+          "tip": "boolean"
+        },
+        {
+          "ad": "positions",
+          "tip": "net.minecraft.world.phys.Vec3[]"
+        },
+        {
+          "ad": "normals",
+          "tip": "net.minecraft.world.phys.Vec3[]"
+        },
+        {
+          "ad": "uvs",
+          "tip": "GeometryUv[]"
+        },
+        {
+          "ad": "polys",
+          "tip": "GeometryPolyIndices"
+        },
+        {
+          "ad": "polysFormat",
+          "tip": "String"
+        }
+      ],
+      "GeometryQuadUvs": [
+        {
+          "ad": "uvCoordinates",
+          "tip": "GeometryUvPair"
+        },
+        {
+          "ad": "uvSize",
+          "tip": "GeometryUvPair"
+        }
+      ],
+      "GeometryTextureMesh": [
+        {
+          "ad": "texture",
+          "tip": "net.minecraft.resources.Identifier"
+        },
+        {
+          "ad": "position",
+          "tip": "net.minecraft.world.phys.Vec3"
+        },
+        {
+          "ad": "localPivot",
+          "tip": "net.minecraft.world.phys.Vec3"
+        },
+        {
+          "ad": "rotation",
+          "tip": "net.minecraft.world.phys.Vec3"
+        },
+        {
+          "ad": "scale",
+          "tip": "net.minecraft.world.phys.Vec3"
+        }
+      ],
+      "GeometryUv": [
+        {
+          "ad": "uvData",
+          "tip": "com.mojang.datafixers.util.Either<GeometryUvPair, GeometryUvMapping>"
+        }
+      ],
+      "GeometryUvMapping": [
+        {
+          "ad": "uvFaces",
+          "tip": "EnumMap<net.minecraft.core.Direction, GeometryUvMappingDetails>"
+        }
+      ],
+      "GeometryUvMappingDetails": [
+        {
+          "ad": "uv",
+          "tip": "GeometryUvPair"
+        },
+        {
+          "ad": "uvSize",
+          "tip": "GeometryUvPair"
+        },
+        {
+          "ad": "uvRotation",
+          "tip": "UvFaceRotation"
+        },
+        {
+          "ad": "materialInstance",
+          "tip": "String"
+        }
+      ],
+      "GeometryUvPair": [
+        {
+          "ad": "u",
+          "tip": "double"
+        },
+        {
+          "ad": "v",
+          "tip": "double"
+        }
+      ],
+      "ModelFormatVersion": [
+        {
+          "ad": "serializedName",
+          "tip": "String"
+        },
+        {
+          "ad": "supported",
+          "tip": "boolean"
+        },
+        {
+          "ad": "errorMessage",
+          "tip": "String"
+        }
+      ],
+      "VertexSet": [
+        {
+          "ad": "bottomLeftBack",
+          "tip": "GeoVertex"
+        },
+        {
+          "ad": "bottomRightBack",
+          "tip": "GeoVertex"
+        },
+        {
+          "ad": "topLeftBack",
+          "tip": "GeoVertex"
+        },
+        {
+          "ad": "topRightBack",
+          "tip": "GeoVertex"
+        },
+        {
+          "ad": "topLeftFront",
+          "tip": "GeoVertex"
+        },
+        {
+          "ad": "topRightFront",
+          "tip": "GeoVertex"
+        },
+        {
+          "ad": "bottomLeftFront",
+          "tip": "GeoVertex"
+        },
+        {
+          "ad": "bottomRightFront",
+          "tip": "GeoVertex"
+        }
+      ]
+    }
+  }
+}
