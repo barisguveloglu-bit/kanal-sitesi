@@ -16,6 +16,37 @@ D="$(cd "$(dirname "$0")" && pwd)"
 # addon/test/ -> addon/Simsek_TNT_ToprakTopu/scripts
 KAYNAK="$(cd "$D/.." && pwd)/Simsek_TNT_ToprakTopu/scripts"
 
+# ---- ON KONTROL: DIS BAGIMLILIKLAR  (v7.94.1) ----
+# 20 test dosyasi PNG olcuyor ve bunu python3 + Pillow (PIL) ile
+# yapiyor. Pillow KURULU DEGILSE dokuz test cokuyordu ve ekrana
+# dokulen sey bir Node yigin izi oluyordu:
+#   "ModuleNotFoundError: No module named 'PIL'"
+# Bu yigin izi yanlis yere baktiriyor -- hatanin eklenti kodunda
+# oldugu saniliyor, oysa eksik olan tek sey bir python paketi.
+# Bagimlilik hicbir yerde de yazili degildi.
+#
+# Bu yuzden kosudan ONCE bakiliyor. Eksikse takim HIC baslamiyor
+# ve ne yapilacagini tek satirda soyluyor.
+#
+# ATLAMA YOK, bilerek: eksik bagimliligi "o testleri gec" diye
+# cozmek bu depodaki en pahali hata bicimini (yesil yanan ama
+# hicbir sey olcmeyen takim) geri getirirdi. Eksikse duruluyor.
+EKSIK=""
+command -v node >/dev/null 2>&1 || EKSIK="$EKSIK node"
+command -v python3 >/dev/null 2>&1 || EKSIK="$EKSIK python3"
+if command -v python3 >/dev/null 2>&1; then
+  python3 -c "import PIL" >/dev/null 2>&1 || EKSIK="$EKSIK Pillow(PIL)"
+fi
+if [ -n "$EKSIK" ]; then
+  echo "TAKIM BASLAMADI -- eksik bagimlilik:$EKSIK" >&2
+  echo "" >&2
+  echo "  Pillow icin:  python3 -m pip install Pillow" >&2
+  echo "" >&2
+  echo "20 test dosyasi PNG olcuyor ve bunu PIL ile yapiyor." >&2
+  echo "Eksikken kosmak dokuz sahte hata uretir; bu yuzden duruldu." >&2
+  exit 1
+fi
+
 rm -rf "$D/pack"
 cp -r "$KAYNAK" "$D/pack"
 

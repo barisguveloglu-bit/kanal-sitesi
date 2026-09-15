@@ -391,6 +391,40 @@ def dunya_sablonu(gk_kok):
     return kok
 
 
+# ---- URETIM YENIDEN URETILEBILIR OLSUN  (v7.94.1) ----
+# Sorun olculdu: `sh addon/paketle.sh` ardi ardina iki kez
+# calistirilinca dort paket BIREBIR AYNI cikiyordu ama
+# Gokyuzu.mcpack ile Efsane_Dunyasi.mctemplate her seferinde
+# FARKLI bayt veriyordu. Sebep icerik degil, ZAMAN DAMGASI:
+# bu ikisinin dosyalari her kosuda yeniden yaziliyor ve zip
+# her girdinin mtime'ini iceri koyuyor.
+#
+# Neden onemli: paketler depoda tutuluyor. Damga kaydigi icin
+# hicbir sey degismese bile `git status` 5,5 MB'lik iki ikili
+# dosyayi "degisti" diye gosteriyordu. Bu insani her kosudan
+# sonra dusunmeden `git checkout --` yapmaya alistirir -- ve
+# gercek bir degisiklik tam oyle kaybolur.
+#
+# Cozum: uretilen her dosyanin damgasi sabitleniyor. Artik
+# "paket kaynakla ayni mi" sorusu tek komutla cevaplaniyor:
+# paketle.sh'i calistir, git status bos kaliyorsa aynidir.
+# Tarih kasitli olarak sabit; surumle degismiyor cunku
+# degisseydi surum atlayan her kosu yine butun paketleri
+# tazeler ve kazanilan sey giderdi.
+SABIT_ZAMAN = (2020, 1, 1, 0, 0, 0)
+SABIT_EPOK = 1577836800  # 2020-01-01T00:00:00Z
+
+
+def damgayi_sabitle(kok):
+    """kok altindaki her dosya ve klasorun mtime'ini sabitler."""
+    for dizin, altlar, dosyalar in os.walk(kok):
+        for ad in dosyalar:
+            os.utime(os.path.join(dizin, ad), (SABIT_EPOK, SABIT_EPOK))
+        for ad in altlar:
+            os.utime(os.path.join(dizin, ad), (SABIT_EPOK, SABIT_EPOK))
+    os.utime(kok, (SABIT_EPOK, SABIT_EPOK))
+
+
 def sablonu_ziple(kok):
     yol = os.path.join(KOK, "Simsek_v%s_Efsane_Dunyasi.mctemplate" % SURUM_METIN)
     if os.path.exists(yol):
@@ -401,10 +435,20 @@ def sablonu_ziple(kok):
         # kat bedrock). Klasorun kendisi yine de yaziliyor,
         # cunku bazi surumler yoksa dunyayi listede gostermiyor.
         z.writestr(zipfile.ZipInfo("db/"), b"")
+        # altlar SIRALANIYOR: os.walk klasorleri dosya
+        # sisteminin verdigi sirayla geziyor ve o sira makineden
+        # makineye degisebiliyor. Siralanmazsa ayni icerik baska
+        # bir makinede baska bir zip veriyor.
         for dizin, altlar, dosyalar in os.walk(kok):
+            altlar.sort()
             for d in sorted(dosyalar):
                 tam = os.path.join(dizin, d)
-                z.write(tam, os.path.relpath(tam, kok))
+                bilgi = zipfile.ZipInfo(os.path.relpath(tam, kok),
+                                        date_time=SABIT_ZAMAN)
+                bilgi.compress_type = zipfile.ZIP_DEFLATED
+                bilgi.external_attr = 0o644 << 16
+                with open(tam, "rb") as g:
+                    z.writestr(bilgi, g.read())
     return yol
 
 
@@ -416,6 +460,11 @@ def main():
     print("  sis     %s" % SIS_RENK)
     print("  gokyuzu %s  (kontrast %.2f:1)" % (GOK_RENK, GOK_KONTRAST))
     print("  %d biyom dosyasi" % n)
+
+    # Gokyuzu paketini paketle.sh'teki `zip` zipliyor, yani
+    # damgasini burada sabitlemek zorundayiz: o komut disaridan
+    # sabit tarih almiyor.
+    damgayi_sabitle(gk)
 
     kok = dunya_sablonu(gk)
     yol = sablonu_ziple(kok)

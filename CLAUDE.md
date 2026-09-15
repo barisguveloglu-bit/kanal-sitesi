@@ -110,11 +110,24 @@ kilitlendi (bölüm 9–11), yani geri sızarlarsa test düşer:
   sayfasındaki iki kutu artık `karakterler.html#<id>` bağlantısı basıyor —
   `efsane.html` ve `mafya.html` zaten aynı biçimi kullanıyordu.
 
-Eklentide (`addon/`) ölü kod aranıp **bulunamadı**: 116 betiğin hepsi import
-ediliyor, kullanılmayan tek bir import veya yerel fonksiyon yok, `pa:`
-kimliklerinin hepsi bir JSON'a denk geliyor, doku/model/animasyon
-referanslarının hepsi çözülüyor. `ayarlar.js`'teki altı `LAZER_*` ayarı
-öksüz ama bu **bilinçli ve orada yazılı** — dokunma.
+Eklentide (`addon/`) **kod** tarafında ölü parça yok: 120 betiğin hepsi
+`main.js`'ten ulaşılabiliyor, kullanılmayan tek bir import veya yerel
+fonksiyon yok, `pa:` kimliklerinin hepsi bir JSON'a denk geliyor.
+`ayarlar.js`'teki altı `LAZER_*` ayarı öksüz ama bu **bilinçli ve orada
+yazılı** — dokunma.
+
+**v7.94.0 taramasında VARLIK tarafında bir artık bulundu ve silindi.**
+Kod aranmıştı, dosyalar aranmamıştı. Kalkan giyilebilir zırh takımının
+dört modeli (`Simsek_Kol_Kaynak/models/entity/zirh_{bas,govde,bacak,ayak}.geo.json`)
+diskte kalmıştı: eşyaları, attachable'ları ve atlas ikonları
+kaldırılmıştı, modelleri kaldırılmamıştı. `kol_uret.py` zırh **dokusunu**
+temizliyordu, **modelini** temizlemiyordu; `zirh.mjs` de eşyayı,
+attachable'ı ve ikonu "gitti mi" diye soruyor, modeli sormuyordu.
+Üçü de v7.94.1'de kapatıldı: dosyalar silindi, üretim kendi artığını
+topluyor, test modeli de soruyor.
+
+Buradan çıkan kural: bir özellik kaldırılırken **eşya + attachable +
+ikon + model + doku**, beşi birden aranır. Dördünü aramak yeterli değil.
 
 ## Dosya teslimi — SKIN linkle, paket dosya olarak
 

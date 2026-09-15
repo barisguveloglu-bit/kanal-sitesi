@@ -2,12 +2,37 @@
 
 `bash kos.sh` — hepsini çalıştırır.
 
+## Gereksinimler
+
+- **Node.js** (takımın kendisi `.mjs`).
+- **python3 + Pillow** — `python3 -m pip install Pillow`.
+
+Yirmi test dosyası PNG **ölçüyor** (piksel rengi, saydamlık, boyut) ve
+bunu Pillow ile yapıyor. Pillow yokken bu dosyalar çöküyor ve ekrana
+`ModuleNotFoundError: No module named 'PIL'` diye bir Node yığın izi
+döküyor — hata eklenti kodundaymış gibi görünüyor, oysa eksik olan tek
+şey bir python paketi. v7.94.0 taramasında dokuz test tam olarak bu
+yüzden kırmızıydı ve bağımlılık hiçbir yerde yazılı değildi.
+
+`kos.sh` artık koşudan **önce** bakıyor: eksikse takım hiç başlamıyor ve
+ne kurulacağını yazıyor. Eksik bağımlılığı "o testleri atla" diye çözmek
+**bilerek yapılmadı** — atlayan bir takım yeşil yanar ve hiçbir şey
+ölçmez, bu depodaki en pahalı hata biçimi budur.
+
+Paketleme (`addon/paketle.sh`) Pillow **istemiyor**: `kol_uret.py`
+PNG'leri kendisi yazıyor (`zlib` + `struct`). Yani mod üretmek için
+Pillow gerekmez, yalnız testler için gerekir.
+
 ## Neden burada
 
 Bu takım uzun süre **hiçbir yerde saklanmıyordu**: yalnızca geçici
 çalışma diskinde duruyordu ve konteyner kapandığında 84 dosya,
 2600'den fazla sınama birlikte kaybolacaktı. v7.9.3 genel
 taramasında fark edildi ve depoya alındı.
+
+O günden beri büyüdü: v7.94.0 itibarıyla **132 dosya, 4582 sınama**.
+Yukarıdaki 84/2600 sayıları v7.9.3'ün kaydı, bugünün ölçüsü değil —
+ikisi de kasıtlı olarak duruyor çünkü cümle o günü anlatıyor.
 
 ## Nasıl çalışıyor
 

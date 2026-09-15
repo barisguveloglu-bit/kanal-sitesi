@@ -11958,6 +11958,19 @@ def main():
     elif os.path.exists(_zh):
         os.remove(_zh)
         print("   silindi (zirh parcasi yok): %s.png" % ZIRH_DOKU)
+    # v7.94.1: MODELLER de temizleniyor. Ustteki doku temizligi
+    # vardi, modelinki YOKTU: ZIRH bosaltildiginda dort
+    # zirh_*.geo.json diskte kaldi ve o gunden beri her kaynak
+    # pakete giriyordu -- olmayan bir esyanin modeli. zirh.mjs
+    # esyayi, attachable'i ve atlas ikonunu "gitti mi" diye
+    # soruyordu, modeli sormuyordu; bu yuzden kimse gormedi.
+    # Artik uretim kendi artigini topluyor ve test de soruyor.
+    if not ZIRH:
+        for _zm in ("zirh_bas", "zirh_govde", "zirh_bacak", "zirh_ayak"):
+            _zmy = os.path.join(RP, "models/entity/%s.geo.json" % _zm)
+            if os.path.exists(_zmy):
+                os.remove(_zmy)
+                print("   silindi (zirh parcasi yok): %s.geo.json" % _zm)
     for _za, _zy, _zk, _ztr, _zen, _zb in ZIRH:
         yaz_json(os.path.join(BP, "items/%s.json" % _za),
                  zirh_esyasi(_za, _zy, _zk, _ztr))

@@ -133,6 +133,14 @@ console.log("=== 1. GIYILEBILIR TAKIM GERCEKTEN KALKTI ===");
             !existsSync(BP + "/items/" + ad + ".json"));
     kontrol(ad + ": attachable'i ARTIK YOK",
             !existsSync(RP + "/attachables/" + ad + ".json"));
+    /* v7.94.1: MODEL de soruluyor. Esya, attachable ve atlas
+       ikonu soruluyordu; model sorulmuyordu ve tam orada
+       kaldi -- dort zirh_*.geo.json, ZIRH listesi
+       bosaltildigindan beri her kaynak pakette tasiniyordu.
+       Olmayan bir esyanin modeli, olmayan bir esyanin ikonu
+       kadar bosuna (bkz. 7. bolum).                          */
+    kontrol(ad + ": modeli ARTIK YOK",
+            !existsSync(RP + "/models/entity/" + ad + ".geo.json"));
   }
   kontrol("ZIRH_PARCALAR ayari kaldirildi",
           ayar.ZIRH_PARCALAR === undefined);
