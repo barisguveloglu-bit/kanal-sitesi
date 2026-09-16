@@ -1,5 +1,6 @@
 import { system } from "@minecraft/server";
 import { yetenekKaydet } from "./kayit.js";
+import { simsekEkHasar } from "./_simsek_hasar.js";
 import { varlikIste } from "../butce.js";
 import {
   hataYaz, gecerliMi, kollariIndir, actionbarYaz, yukseklikAraligi
@@ -126,6 +127,7 @@ yetenekKaydet({
 
         try {
           boyut.spawnEntity("minecraft:lightning_bolt", nokta);
+          simsekEkHasar(boyut, nokta, oyuncu);   // v7.94.4
           dusen++;
         } catch (e) {
           hataYaz("coklu_simsek.spawnEntity", e);

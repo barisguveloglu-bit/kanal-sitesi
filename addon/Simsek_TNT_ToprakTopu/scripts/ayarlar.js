@@ -1064,6 +1064,42 @@ export const KILIT_YAYILMA = 1;    // kilitliyken sacilma (normalde YAYILMA=7)
    1v1 duelloda dogru davranis bu; kalabalikta dikkat.        */
 export const SIMSEK_OYUNCU_HEDEF = true;
 
+/* ---------------- SIMSEK EK HASARI (v7.94.4) ----------------
+   Kullanici: "simsekle alakali olan seylerin hasarini birazcik
+   daha arttirabilir misin".
+
+   ONCE OLCULDU, SONRA YAZILDI: dort simsek yeteneginin de
+   (yon_simsegi, yildirim_halkasi, coklu_simsek, tek_simsek)
+   hasari vanilla `lightning_bolt` varliginin kendisinden
+   geliyor. Yani ARTIRILACAK BIR SAYI YOKTU -- bu ayar o sayiyi
+   EKLIYOR, var olan bir sayiyi buyutmuyor.
+
+   Vanilla yildirim 10 hasar (5 kalp) veriyor ve zirhla
+   azaliyor. Bu ayar onun USTUNE biniyor, yerine gecmiyor:
+       toplam = vanilla 10 + SIMSEK_EK_HASAR
+
+   NE KADAR ISE YARAR -- durustce:
+   Ek hasar da normal hasar, yani ZIRH ONU DA AZALTIR.
+     · zirhsiz hedef                         : +4 ham = +4
+     · netherite + Koruma IV (%92,8 azaltma) : +4 -> ~+0,3
+   Kalabalik PvP'de fark kucuk kalir; asil etkisi zirhsiz
+   hedeflerde ve moblarda gorunur. Daha fazlasi isteniyorsa
+   sayiyi buyutmek yeterli -- tek yer burasi.
+
+   4 secildi cunku "birazcik" istendi: vanilla'nin %40'i.
+   Ikiye katlamak isteniyorsa 10 yazilir.                      */
+export const SIMSEK_EK_HASAR   = 4;     // yildirim basina ek ham hasar
+export const SIMSEK_EK_YARICAP = 2.5;   // dustugu noktadan kac blok
+
+/* Ek hasarin ATLAYACAGI tipler. coklu_simsek'in COKLU_MUAF'i
+   ile ayni mantik: dusen esyayi, tecrube kuresini ve yildirimin
+   kendisini vurmanin anlami yok.                               */
+export const SIMSEK_EK_MUAF = [
+  "minecraft:item",
+  "minecraft:xp_orb",
+  "minecraft:lightning_bolt"
+];
+
 /* ---------------- NISAN: ACIYA GORE (v7.39) ----------------
    Kilit eskiden koni icindeki EN YAKIN varligi seciyordu.
    Duelloda yanlis sonuc veriyor: rakibe nisan almisken araya

@@ -1,5 +1,6 @@
 import { system } from "@minecraft/server";
 import { varlikIste } from "../butce.js";
+import { simsekEkHasar } from "./_simsek_hasar.js";
 import {
   hataYaz, kollariIndir, yukseklikAraligi, varlikKonumu
 } from "../yardimcilar.js";
@@ -94,6 +95,13 @@ export function yagmurIsi(secenekler) {
 
         try {
           boyut.spawnEntity(varlik, nokta);
+          /* v7.94.4: SIMSEK EK HASARI. yagmurIsi genel bir
+             yagdirici -- TNT ve meteor da buradan geciyor.
+             O yuzden ek hasar YALNIZ yildirimda calisiyor,
+             yoksa TNT yagmuru da sessizce guclenirdi.      */
+          if (varlik === "minecraft:lightning_bolt") {
+            simsekEkHasar(boyut, nokta, oyuncu);
+          }
         } catch (e) {
           hataYaz(ad + ".spawnEntity", e);
         }
