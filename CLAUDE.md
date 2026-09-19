@@ -54,7 +54,7 @@ Sürüm: `python3 .claude/surum.py goster` — işaret: `python3 .claude/logo.py
   `python3 .claude/arac-sinavi.py` — sırasıyla denetleyiciyi, aramayı ve
   araçları (kesici, yargıç, geri bildirim, kanca) ölçer.
 - `python3 .claude/butunluk.py` — canon ↔ veri ↔ site bütünlüğünü ölçer
-  (75 vaka): 81 ilin plakası resmî kodla eşleşiyor mu, aynı derebeyi iki
+  (77 vaka): 81 ilin plakası resmî kodla eşleşiyor mu, aynı derebeyi iki
   ile atanmış mı, `data.js`'teki her isim `LORE.md`'de geçiyor mu, canon'da
   dayanağı olmayan sıralama iddiası var mı. `dogrula.py` kuralları denetler,
   bu sınav gerçekleri. `data.js`'i `okuyucu.py` dış bağımlılık olmadan okur.

@@ -3,7 +3,7 @@
 """
 KANLI GÖZ — Canon geri getirme (RAG'in "R"si)
 ===============================================================
-`LORE.md` 437 satır ve büyüyor. Bir soruya cevap vermek için dosyanın
+`LORE.md` birkaç yüz satır ve büyüyor. Bir soruya cevap vermek için dosyanın
 tamamını okumak hem pahalı hem de asıl sorunu çözmüyor: sorun hız değil,
 **dayanak.**
 
@@ -13,7 +13,7 @@ Bu betik canon'u parçalara ayırıp soruya en yakın parçaları
 Uydurma ile alıntı arasındaki fark budur.
 
 Dışa bağımlılığı yok. Gömme (embedding) yok, vektör veritabanı yok —
-437 satırlık Türkçe bir metin için BM25 fazlasıyla yeterli ve
+birkaç yüz satırlık Türkçe bir metin için BM25 fazlasıyla yeterli ve
 her koşuda aynı sonucu verir (test edilebilir olmasının şartı bu).
 
     python3 .claude/ara.py "Teşup'un zaafı ne"

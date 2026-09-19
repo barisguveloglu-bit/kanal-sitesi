@@ -64,7 +64,7 @@ PLAKALAR = {
 # ------------------------------------------------------------------ kaynaklar
 
 class Kaynak:
-    """Dosyalar bir kez okunur; 74 vaka aynı metni tekrar tekrar açmasın."""
+    """Dosyalar bir kez okunur; vakalar aynı metni tekrar tekrar açmasın."""
 
     def __init__(self):
         self.data_metin = self._oku("assets/js/data.js")
@@ -463,6 +463,77 @@ def f03_html_de_tanimsiz_degisken_yok():
         eksik |= set(re.findall(r"var\((--[\w-]+)", m)) - tanimli
     return None if not eksik else f"HTML'de tanımsız değişken: {sorted(eksik)}"
 
+
+# Kaldırılmış soru-cevap/oturum/moderasyon arayüzünün CSS artığı.
+# İki ajan bunu birbirinden bağımsız buldu; 125 satır, 5195 bayt, hiçbir
+# HTML/JS'te kullanılmıyor. SİLME KARARI BARIŞ'IN — ben kendi kendime
+# 125 satır CSS silmem.
+#
+# Burada listeli olmalarının sebebi: denetim doğuştan kırmızı olmasın ama
+# YENİ ölü sınıf eklenirse yakalansın. Liste bekleyen bir kararın kaydı,
+# bir muafiyet değil. Blok silinince bu liste de silinmeli — aşağıdaki
+# "bayat liste" kontrolü onu zorluyor.
+BEKLEYEN_OLU_SINIFLAR = {
+    "alan-ad", "basari", "benim-durum", "benim-kutu", "benim-liste",
+    "benim-satir", "cevap-alani", "form-not", "kucuk", "oturum",
+    "oturum-ad", "oturum-kutu", "oturum-not", "ozet-kutu", "sayac-kucuk",
+    "sc-cevap", "sc-kart", "sc-kategori", "sc-liste", "sc-soran",
+    "sc-soru", "sc-tarih", "sc-ust", "sistem-mesaj", "soru-form",
+    # `.dugme.tehlike` — aynı panelin düğme varyantı. Prototipim bunu
+    # kaçırmıştı çünkü data.js'i de tarıyordu ve "tehlike" orada
+    # Türkçe bir kelime olarak geçiyor. Veri dosyası kullanım kanıtı
+    # değildir: sınıf adı ile düz metin aynı şey değil.
+    "tehlike",
+    "vurgu-elektrik", "yasakli-ad", "yasakli-liste", "yasakli-satir",
+    "yasakli-sebep", "yonetim-dugmeler", "yonetim-kart", "yonetim-ozet",
+}
+
+
+def _olu_siniflar():
+    """CSS'te tanımlı ama hiçbir HTML/JS'te geçmeyen sınıflar.
+
+    Yöntem: sınıf adı DÜZ METİN olarak aranıyor. Bu depoda güvenli çünkü
+    sınıf adları birleştirmeyle kurulmuyor — `class="${sinif}"` gibi
+    dinamik kullanımlarda bile ad bir yerde düz metin olarak geçiyor
+    (`app.js:243` parametresi çağrıldığı yerde literal alıyor).
+    Birleştirme başlarsa bu sınav yanlış pozitif verir; o gün burayı
+    değiştirmek gerekir, sınıfı silmek değil.
+    """
+    css = K.css
+    ek = os.path.join(KOK, "assets/css/animasyon.css")
+    if os.path.exists(ek):
+        css += open(ek, encoding="utf-8").read()
+    siniflar = set(re.findall(r"\.([a-z][a-z0-9_-]*)(?=[\s,:.{\[>+~])", css))
+    kullanim = "".join(K.html.values()) + K.app
+    for ad in ("goz.js", "gizli.js", "animasyon.js"):
+        y = os.path.join(KOK, "assets/js", ad)
+        if os.path.exists(y):
+            kullanim += open(y, encoding="utf-8").read()
+    return {s for s in siniflar if s not in kullanim}
+
+
+def f05_yeni_olu_sinif_yok():
+    """Ölü CSS bu depoda gerçekten birikti ve iki ajan onu TESADÜFEN buldu.
+
+    Tesadüfe bırakmamak için mekanik hâle getirildi. Bekleyen blok
+    listede; yenisi eklenirse burası kırmızıya döner.
+    """
+    yeni = sorted(_olu_siniflar() - BEKLEYEN_OLU_SINIFLAR)
+    return None if not yeni else (
+        f"CSS'te tanımlı ama hiç kullanılmayan yeni sınıf: {yeni}")
+
+
+def f06_bekleyen_olu_listesi_bayat_degil():
+    """Liste bekleyen bir kararın kaydı; karar verilince liste de gitmeli.
+
+    Listede olup artık ölü OLMAYAN bir sınıf iki şeyden birini gösterir:
+    ya blok silindi (liste temizlenmeli), ya sınıf yeniden kullanıma
+    girdi (liste yanlış). İkisi de insanın bakması gereken durum.
+    """
+    olu = _olu_siniflar()
+    bayat = sorted(BEKLEYEN_OLU_SINIFLAR - olu)
+    return None if not bayat else (
+        f"bekleyen ölü listesi bayat — bunlar artık ölü değil: {bayat}")
 
 
 def f04_olculmus_renk_anahtarlari_duruyor():
@@ -868,6 +939,8 @@ VAKALAR = [
 
     ("bicim", "css: kullanılan değişken tanımlı", f01_kullanilan_degiskenler_tanimli),
     ("bicim", "css: ölü değişken yok", f02_tanimli_degiskenler_kullaniliyor),
+    ("bicim", "css: yeni ölü sınıf yok", f05_yeni_olu_sinif_yok),
+    ("bicim", "css: bekleyen ölü listesi bayat değil", f06_bekleyen_olu_listesi_bayat_degil),
     ("bicim", "css: html'de tanımsız değişken yok", f03_html_de_tanimsiz_degisken_yok),
     ("bicim", "css: ölçülen anahtarlar duruyor", f04_olculmus_renk_anahtarlari_duruyor),
 

@@ -2047,6 +2047,66 @@ def t_evrim_dongu_zayif_eslesmede_tahmin_yurutmuyor(kok):
     return None
 
 
+def t_kizil_takim_claude_md_sayisi_korunuyor(kok):
+    """Kızıl takım boşluğu #5: CLAUDE.md'deki vaka sayısı 80 yapıldı ve
+    hiçbir kapı görmedi. DONGULER.md zorlanıyordu, projenin ASIL talimat
+    dosyası zorlanmıyordu — ajanlar önce onu okuyor."""
+    yol = os.path.join(kok, "CLAUDE.md")
+    m = open(yol, encoding="utf-8").read()
+    yeni = re.sub(r"\((\d+) vaka\)", "(999 vaka)", m, count=1)
+    if yeni == m:
+        return "CLAUDE.md'de '(N vaka)' biçimi yok"
+    open(yol, "w", encoding="utf-8").write(yeni)
+    s = kos(kok, "dogrula.py", "belge")
+    if s.returncode != 1 or "CLAUDE.md" not in s.stdout:
+        return f"CLAUDE.md sayı çürümesi yakalanmadı (çıkış {s.returncode})"
+    return None
+
+
+def t_kizil_takim_yeni_olu_css_yakalaniyor(kok):
+    """Kızıl takım boşluğu #10: ölü CSS eklendi, hiçbir denetim görmedi.
+    125 satırlık ölü blok bu yüzden aylarca durdu — iki ajan onu
+    tesadüfen buldu."""
+    yol = os.path.join(kok, "assets/css/style.css")
+    with open(yol, "a", encoding="utf-8") as f:
+        f.write("\n.kizil-takim-olu-sinif { color: red; }\n")
+    s = kos(kok, "butunluk.py")
+    if s.returncode != 1 or "kizil-takim-olu-sinif" not in s.stdout:
+        return f"yeni ölü CSS yakalanmadı (çıkış {s.returncode})"
+    return None
+
+
+def t_kizil_takim_ders_silme_yakalaniyor(kok):
+    """Kızıl takım boşluğu #14: defterden ders silindi, hiçbir kapı
+    görmedi. Hafızanın kendisi korumasızdı.
+
+    İki delik ayrı ayrı sınanıyor: sondan silme sayıyı düşürür ama
+    numara dizisini bozmaz; ortadan silme diziyi koparır ama sayı
+    denetimi olmadan da yakalanır. Testte silinen kayıt SONDAKİYDİ —
+    yalnız dizi denetimi yazılsaydı boşluk açık kalırdı.
+    """
+    defter = os.path.join(kok, ".claude", "dersler.jsonl")
+    if not os.path.exists(defter):
+        return "ders defteri yok"
+    satirlar = open(defter, encoding="utf-8").read().splitlines()
+    if len(satirlar) < 3:
+        return "sınamak için yeterli ders yok"
+
+    # sondan silme
+    open(defter, "w", encoding="utf-8").write("\n".join(satirlar[:-1]) + "\n")
+    s = kos(kok, "dogrula.py", "belge")
+    if s.returncode != 1 or "ders" not in s.stdout:
+        return f"sondan ders silme yakalanmadı (çıkış {s.returncode})"
+
+    # ortadan silme
+    orta = satirlar[:1] + satirlar[2:]
+    open(defter, "w", encoding="utf-8").write("\n".join(orta) + "\n")
+    s = kos(kok, "dogrula.py", "belge")
+    if s.returncode != 1 or "kopuk" not in s.stdout:
+        return f"ortadan ders silme yakalanmadı (çıkış {s.returncode})"
+    return None
+
+
 VAKALAR = [
     ("devre: sınırda kesiyor",              t_devre_sinirda_kesiyor),
     ("devre: başarı sayacı sıfırlıyor",     t_devre_basari_sifirliyor),
@@ -2205,6 +2265,9 @@ VAKALAR = [
     ("bütçe: bittiğinde ajan reddediyor", t_butce_bittiginde_ajan_reddediyor),
     ("bütçe: yarım işi kapatmıyor", t_butce_yarim_isi_kapatmiyor),
     ("evrim: zayıf eşleşmede tahmin yürütmüyor", t_evrim_dongu_zayif_eslesmede_tahmin_yurutmuyor),
+    ("kızıl takım: CLAUDE.md sayısı korunuyor", t_kizil_takim_claude_md_sayisi_korunuyor),
+    ("kızıl takım: yeni ölü CSS yakalanıyor", t_kizil_takim_yeni_olu_css_yakalaniyor),
+    ("kızıl takım: ders silme yakalanıyor", t_kizil_takim_ders_silme_yakalaniyor),
 ]
 
 

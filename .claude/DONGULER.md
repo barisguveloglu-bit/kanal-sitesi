@@ -1,4 +1,4 @@
-# Echo Orkestra v2.0.3
+# Echo Orkestra v2.0.4
 
 Bu katmanın adı **Echo**. Adın sebebi işleyişinde: her çıktı bir
 denetimden geri döner, her hata bir teste geri döner, her ölçüm sistemin
@@ -835,7 +835,7 @@ kararı dışarıdaki koşucu veriyor. Taklit etmek **yanlış bir yeşil**
 |---|---|---|
 | `sinav.py` | denetleyiciyi — fay enjeksiyonu | 28 |
 | `arac-sinavi.py` | araçları — devre, yargıç, görev, logo, olay, tırmanma, eleştirmen, TDD, dış ajan, havuz, kadro | 121 |
-| `butunluk.py` | **içeriği** — canon ↔ veri ↔ site | **75 bütünlük vakası** |
+| `butunluk.py` | **içeriği** — canon ↔ veri ↔ site | **77 bütünlük vakası** |
 
 ```
 python3 .claude/butunluk.py
@@ -966,6 +966,9 @@ birleştirmede sürpriz üretir.
 çağrıda değil: çağrıda seçilen model unutulur, tanımdaki unutulamaz.
 Ama tanım da sessizce değişebilir, o yüzden `belge` denetimi her ajan
 dosyasını okuyor — `model: sonnet` değilse kırmızı yanıyor.
+
+Ders defteri (`dersler.jsonl`) şu an **15 ders** taşıyor; kalıcı ve
+depoda. Sayı burada yazılı çünkü sessiz silmeyi ancak bu yakalıyor.
 
 ### Kadro — **21 denetçi ajan**
 

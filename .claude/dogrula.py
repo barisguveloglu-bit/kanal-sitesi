@@ -630,6 +630,49 @@ def d_belge(r):
             else:
                 r.tamam()
 
+    # Kızıl takım testinde ders defterinden son kayıt sessizce silindi ve
+    # HİÇBİR kapı görmedi. Hafızanın kendisi korumasızdı: unutturmak
+    # serbestti.
+    #
+    # İki ayrı delik, iki ayrı denetim gerekiyor:
+    #   ortadan silme  → numara dizisi kopar (1,2,4…)
+    #   sondan silme   → dizi bozulmaz, sayı düşer; belgeyle karşılaştır
+    # Yalnız biri yapılsaydı diğeri açık kalırdı — testte silinen kayıt
+    # tam olarak sondakiydi.
+    ders_yolu = os.path.join(KOK, ".claude", "ders.py")
+    if os.path.exists(ders_yolu):
+        try:
+            tanim = importlib.util.spec_from_file_location("_ders", ders_yolu)
+            drs = importlib.util.module_from_spec(tanim)
+            tanim.loader.exec_module(drs)
+        except Exception as e:
+            r.hata("belge", f"ders.py okunamadı ({type(e).__name__}: {e}).")
+            drs = None
+        if drs is not None:
+            kayitlar = [k for k in drs.oku() if "_bozuk" not in k]
+            bozuk = [k for k in drs.oku() if "_bozuk" in k]
+            nolar = sorted({k.get("no") for k in kayitlar
+                            if isinstance(k.get("no"), int)})
+            if bozuk:
+                r.hata("belge", f"dersler.jsonl: {len(bozuk)} bozuk satır.")
+            elif nolar and nolar != list(range(1, len(nolar) + 1)):
+                eksik = sorted(set(range(1, max(nolar) + 1)) - set(nolar))
+                r.hata("belge", f"dersler.jsonl: numara dizisi kopuk, "
+                                f"eksik ders: {eksik}. Ders silmek sessiz "
+                                "olmamalı — unutturmak da bir karardır.")
+            else:
+                r.tamam()
+
+            eslesme = re.search(r"\*\*(\d+) ders\*\*", belge)
+            if not eslesme:
+                r.hata("belge", "DONGULER.md: ders sayısı cümlesi yok. "
+                                "Biçim: **N ders**")
+            elif int(eslesme.group(1)) != len(nolar):
+                r.hata("belge", f"DONGULER.md: defterde {len(nolar)} ders var, "
+                                f"belge {eslesme.group(1)} yazıyor.")
+            else:
+                r.tamam()
+
     butunluk_yolu = os.path.join(KOK, ".claude", "butunluk.py")
     if os.path.exists(butunluk_yolu):
         try:
@@ -652,6 +695,24 @@ def d_belge(r):
             else:
                 r.tamam()
 
+            # Kızıl takım testi bunu açık bıraktı: CLAUDE.md'deki
+            # "(75 vaka)" 80 yapıldığında hiçbir denetim görmedi.
+            # DONGULER.md'nin sayıları zorlanıyordu ama projenin ASIL
+            # talimat dosyasınınki zorlanmıyordu — ve ajanlar önce onu
+            # okuyor. Yanlış sayı en çok orada zarar verir.
+            talimat_yolu = os.path.join(KOK, "CLAUDE.md")
+            if os.path.exists(talimat_yolu):
+                talimat = open(talimat_yolu, encoding="utf-8").read()
+                t_es = re.search(r"\((\d+) vaka\)", talimat)
+                if not t_es:
+                    r.hata("belge", "CLAUDE.md: bütünlük vaka sayısı cümlesi "
+                                    "yok. Biçim: (N vaka)")
+                elif int(t_es.group(1)) != sayi:
+                    r.hata("belge", f"CLAUDE.md: bütünlük sınavı {sayi} vaka, "
+                                    f"talimat {t_es.group(1)} yazıyor.")
+                else:
+                    r.tamam()
+
     # LORE.md'nin satır sayısı belgede üç yerde yazılıydı ve üçü de
     # çürümüştü — üstelik iki farklı yanlış sayıyla (437 ve 470).
     #
@@ -664,12 +725,36 @@ def d_belge(r):
     # yeteceği kadar küçük". Kesin sayı orada hiç durmamalıydı. Denetim
     # artık sayıyı doğrulamıyor, sayının VARLIĞINI reddediyor. Tek
     # istisna 2000: o bir ölçüm değil, yeniden bakma eşiği.
-    iddialar = sorted(set(re.findall(r"\b(\d+) satır(?:lık)?\b", belge)))
-    kacak = [s for s in iddialar if s != "2000"]
-    if kacak:
-        r.hata("belge", f"DONGULER.md: LORE.md uzunluğu için kesin satır "
-                        f"sayısı yazılmış ({', '.join(kacak)}). Bu sayı "
-                        f"her canon düzenlemesinde çürür — ölçek yaz "
+    #
+    # Ve yalnızca DONGULER.md'ye bakmak yetmiyordu: kızıl takım testinden
+    # sonra `ara.py`'nin docstring'inde aynı çürümüş sayının (437) hâlâ
+    # durduğu bulundu. Kuralı bir dosyada zorlamak, onu öbür dosyalarda
+    # serbest bırakmaktır. Artık `.claude/*.py` de taranıyor.
+    taranan = {"DONGULER.md": belge}
+    for ad in sorted(os.listdir(os.path.join(KOK, ".claude"))):
+        if ad.endswith(".py"):
+            yol = os.path.join(KOK, ".claude", ad)
+            taranan[ad] = open(yol, encoding="utf-8").read()
+
+    kacaklar = []
+    for ad, metin in taranan.items():
+        for s in re.findall(r"\b(\d+) satır(?:lık)?\b", metin):
+            # Hangi sayı çürür, hangisi çürümez? Ölçtüm: bu depodaki
+            # meşru "N satır" ifadeleri küçük ve sabit şeylere ait —
+            # 27 satırlık tablo, 81 satırlık il listesi, 125 satırlık
+            # ölü CSS bloğu. Çürüyen tek sayı LORE.md'nin uzunluğu ve
+            # o birkaç yüz mertebesinde.
+            #
+            # Bu bir sezgi, kesin kural değil: aralığa giren meşru bir
+            # sayı çıkarsa burayı değiştirmek gerekir, sayıyı silmek
+            # değil. 2000 hariç — o bir ölçüm değil, yeniden bakma eşiği.
+            n = int(s)
+            if 300 <= n <= 3000 and n != 2000:
+                kacaklar.append(f"{ad}:{s}")
+    if kacaklar:
+        r.hata("belge", f"LORE.md uzunluğu için kesin satır sayısı yazılmış "
+                        f"({', '.join(sorted(set(kacaklar)))}). Bu sayı her "
+                        f"canon düzenlemesinde çürür — ölçek yaz "
                         f"('birkaç yüz satır'), sayı yazma.")
     else:
         r.tamam()
