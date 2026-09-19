@@ -167,7 +167,7 @@
         "priority": 9
       },
       "minecraft:attack": {
-        "damage": 14
+        "damage": 12
       },
       "minecraft:scale": {
         "value": 0.95
@@ -186,7 +186,7 @@
           {
             "slot": 0,
             "accepted_items": [
-              "pa:ilkel_asa"
+              "pa:ilkel_balta"
             ]
           }
         ]

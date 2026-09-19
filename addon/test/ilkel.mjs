@@ -622,7 +622,10 @@ console.log("=== 5e. SILAHLAR: UYEYE OZEL (v4.48, v4.49) ===");
      yazilmiyor. Yeni bir silah eklenince kendi kendine giriyor. */
   const silahlar = new Set([ayar.ILKEL_SILAH_VARSAYILAN,
                             ...ayar.ILKEL_SILAH.values()]);
-  kontrol("iki ayri silah var (balta + asa)", silahlar.size === 2,
+  /* v7.94.6: El-Harkos'un Asasi silindi, geriye TEK silah
+     kaldi. Sayi yine ESLEMEDEN turetiliyor; yeni bir silah
+     eklenirse burasi kendiliginden gorur.                    */
+  kontrol("tek silah kaldi (balta)", silahlar.size === 1,
           [...silahlar].join(", "));
 
   for (const tam of silahlar) {
@@ -717,10 +720,13 @@ console.log("=== 5e. SILAHLAR: UYEYE OZEL (v4.48, v4.49) ===");
             (kabul ? kabul[0] : "-") + " / " + ayar.ilkelSilahi(anahtar));
   }
 
-  kontrol("El-Harkos ASA tasiyor (kullanici bildirdi)",
-          ayar.ilkelSilahi("harkos") === "pa:ilkel_asa",
+  /* v7.94.6: asa silindi, El-Harkos da varsayilana dustu.
+     Eski satir "ASA tasiyor" diyordu; yerine "artik asa
+     TASIMIYOR" kondu ki esya sessizce geri gelirse yakalansin. */
+  kontrol("El-Harkos artik ASA TASIMIYOR",
+          ayar.ilkelSilahi("harkos") !== "pa:ilkel_asa",
           ayar.ilkelSilahi("harkos"));
-  for (const a of ["okazor", "miskel", "kajaros", "raxxan"]) {
+  for (const a of ["harkos", "okazor", "miskel", "kajaros", "raxxan"]) {
     kontrol(a + ": balta tasiyor (varsayilan)",
             ayar.ilkelSilahi(a) === "pa:ilkel_balta", ayar.ilkelSilahi(a));
   }
@@ -748,8 +754,8 @@ console.log("=== 5e. SILAHLAR: UYEYE OZEL (v4.48, v4.49) ===");
                      (v._el ? v._el.typeId.replace("pa:ilkel_", "") : "bos")).join(" "));
 
   const h = uyeler.find((v) => ilkel.ilkelKimligi(v) === "harkos");
-  kontrol("El-Harkos'un elinde ASA (baltanin degil)",
-          h && h._el && h._el.typeId === "pa:ilkel_asa",
+  kontrol("El-Harkos'un elinde BALTA (asa silindi)",
+          h && h._el && h._el.typeId === "pa:ilkel_balta",
           h && h._el ? h._el.typeId : "bos");
 
   /* Silah duserse tarama geri koymali (dunya yeniden
@@ -757,14 +763,16 @@ console.log("=== 5e. SILAHLAR: UYEYE OZEL (v4.48, v4.49) ===");
   h._el = undefined;
   sus(); tickIlerlet(ayar.BOT_TARAMA + 2); defter.botTara([o]); ac();
   kontrol("dusen silah taramada geri geliyor (dogrusu)",
-          h._el && h._el.typeId === "pa:ilkel_asa",
+          h._el && h._el.typeId === "pa:ilkel_balta",
           h._el ? h._el.typeId : "bos");
 
   /* Yanlis silah eline gecerse duzeltmeli: pickup_items
      kapatildi ama baska bir yol acilirsa bu satir tutar.      */
-  h._el = { typeId: "pa:ilkel_balta" };
+  /* Yanlis silah artik ASA: esya silindigi hâlde bir yerden
+     ele gecerse tarama onu atip dogrusunu koymali.           */
+  h._el = { typeId: "pa:ilkel_asa" };
   sus(); tickIlerlet(ayar.BOT_TARAMA + 2); defter.botTara([o]); ac();
-  kontrol("YANLIS silah duzeltiliyor", h._el.typeId === "pa:ilkel_asa",
+  kontrol("YANLIS silah duzeltiliyor", h._el.typeId === "pa:ilkel_balta",
           h._el.typeId);
 }
 {

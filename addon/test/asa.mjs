@@ -686,177 +686,58 @@ console.log("=== 6. AYAR ve MENU ===");
    mu" ayri iki soru. Bu depoda ayni ders v4.65'te de cikti
    (goz lazerine uc surum boyunca ulasilamiyordu).
    ============================================================ */
-console.log("\n=== 7. ASA OYUNCUNUN ELINDE (v4.83) ===");
+console.log("\n=== 7. OYUNCU ASASI KALDIRILDI (v7.94.6) ===");
 {
-  const { D, o } = kur("as7");
-  const kurban = kurbanYap("k7", D.boyut);
-  D.boyut._varliklar = [kurban];
+  /* Kullanici El-Harkos'un Asasi'ni (`pa:ilkel_asa`) silmeye
+     karar verdi. Eski 7. ve 8. bolumler oyuncunun elindeki asayi
+     siniyordu; yerlerine "GERCEKTEN GITTI MI" sorusu kondu.
 
-  /* Oyuncunun eline asayi ver. */
-  let elde;
-  o.getComponent = (a) => (a === "minecraft:equippable") ? {
-    getEquipment: (yv) => (yv === "Mainhand" && elde) ? { typeId: elde } : undefined,
-    setEquipment: (yv, e) => { if (yv === "Mainhand") elde = e ? e.typeId : undefined; return true; }
-  } : undefined;
+     Eski bolumleri silmek yerine yerlerine bu soruyu koymak
+     onemli: bir sonraki uretimde esya ya da ayar sessizce geri
+     gelirse burasi kirmizi yanar. (zirh.mjs 1. bolumu kalkan
+     zirh takimi icin aynisini yapiyor.)
 
-  /* ---- ELI BOSKEN HICBIR SEY OLMAMALI ---- */
-  elde = undefined;
-  for (let i = 0; i < ayar.SERSEM_VURUS + 1; i++) {
-    vurusTetikle({ damagingEntity: o, hitEntity: kurban });
+     ZINCIR OLMEDI: sersemletme + mezar El-Harkos mob'unun
+     vurusuyla calismaya devam ediyor; yukaridaki 1-6. bolumler
+     onu siniyor ve hepsi yesil.                                */
+  kontrol("esya dosyasi ARTIK YOK",
+          !existsSync(BP + "/items/ilkel_asa.json"));
+  kontrol("ikon dokusu ARTIK YOK",
+          !existsSync(KOK + "/Simsek_Kol_Kaynak/textures/item/ilkel_asa.png"));
+
+  kontrol("ASA_ESYA ayari kaldirildi", ayar.ASA_ESYA === undefined);
+  kontrol("ASA_OYUNCUDA ayari kaldirildi", ayar.ASA_OYUNCUDA === undefined);
+  kontrol("ASA_HASAR ayari kaldirildi", ayar.ASA_HASAR === undefined);
+
+  /* Atlas ve dil dosyalari da temiz olmali -- v7.94.1'de tam
+     bu adim atlandigi icin olu model dosyalari kalmisti.      */
+  const atlas = readFileSync(
+    KOK + "/Simsek_Kol_Kaynak/textures/item_texture.json", "utf8");
+  kontrol("atlas girdisi silindi", !/\bilkel_asa\b/.test(atlas));
+  for (const dil of ["tr_TR", "en_US"]) {
+    const l = readFileSync(
+      KOK + "/Simsek_Kol_Kaynak/texts/" + dil + ".lang", "utf8");
+    kontrol(dil + " girdisi silindi", !/\bilkel_asa\b/.test(l));
   }
-  kontrol("eli bosken zincir baslamiyor",
-          !asa.sersemMi(kurban), "yumrukla sersemletemez");
 
-  /* ---- BASKA BIR ESYA DA CALISMAMALI ---- */
-  elde = "minecraft:diamond_sword";
-  for (let i = 0; i < ayar.SERSEM_VURUS + 1; i++) {
-    vurusTetikle({ damagingEntity: o, hitEntity: kurban });
-  }
-  kontrol("elmas kilicla zincir baslamiyor", !asa.sersemMi(kurban));
+  /* Oyuncu tarafindaki tetik de gitmeli, yoksa olu kod kalir. */
+  const kaynak = readFileSync(
+    BP + "/scripts/yetenekler/asa.js", "utf8");
+  kontrol("asaOyuncuKancasi cagrilmiyor",
+          !/^asaOyuncuKancasi\(\);/m.test(kaynak));
+  kontrol("asaOyuncuKancasi ihrac edilmiyor",
+          !/export function asaOyuncuKancasi/.test(kaynak));
 
-  /* ---- ASAYLA: UC VURUS -> YERE SERER ---- */
-  elde = ayar.ASA_ESYA;
-  for (let i = 0; i < ayar.SERSEM_VURUS; i++) {
-    vurusTetikle({ damagingEntity: o, hitEntity: kurban });
-  }
-  kontrol("OYUNCU asayla ucuncu vuruslta yere serdi",
-          asa.sersemMi(kurban), "sersem: " + asa.sersemMi(kurban));
-  kontrol("oyuncuya bildirildi (sahibi kendisi)",
-          /Yere serildi/.test(o.onScreenDisplay._son || ""),
-          o.onScreenDisplay._son);
-
-  /* ---- SERSEMKEN BIR VURUS DAHA -> MEZAR ---- */
-  const oncekiMezar = mezarlar.mezarSayisi ? mezarlar.mezarSayisi() : undefined;
-  vurusTetikle({ damagingEntity: o, hitEntity: kurban });
-  kontrol("dorduncu vuruslta mezar kuruldu",
-          !asa.sersemMi(kurban) === false || true, "");
-  const konulan = D.sayac.yazilan.filter((b) => b.tip === ayar.MEZAR_BLOK);
-  kontrol("mezar taslari koyuldu", konulan.length > 0,
-          konulan.length + " blok");
-  kontrol("mezar acildigi oyuncuya bildirildi",
-          /Mezar açıldı/.test(o.onScreenDisplay._son || ""),
-          o.onScreenDisplay._son);
-}
-
-console.log("\n=== 8. ASA GERCEK BIR SILAH (v4.83) ===");
-{
-  const esya = JSON.parse(readFileSync(
-    BP + "/items/ilkel_asa.json", "utf8"))["minecraft:item"];
-  kontrol("asanin hasari var (yumruk degil)",
-          esya.components["minecraft:damage"] === ayar.ASA_HASAR,
-          JSON.stringify(esya.components["minecraft:damage"]));
-  kontrol("hasar kullanicinin istedigi gibi 14+",
-          ayar.ASA_HASAR >= 14, ayar.ASA_HASAR + " = " +
-          (ayar.ASA_HASAR / 2) + " kalp");
-  kontrol("elmas kilictan (7) daha sert",
-          ayar.ASA_HASAR > 7, ayar.ASA_HASAR + " > 7");
-  /* Patron asasi kullanildikca kirilmamali. */
-  kontrol("dayanikligi yok (kirilmaz)",
-          esya.components["minecraft:durability"] === undefined);
-  /* Ayar ile uretec ayni sayiyi soylemeli: ikisi ayrisirsa
-     El-Harkos'un taban hasari yanlis hesaplanir.            */
-  const uretec = readFileSync(
-    KOK + "/kol_uret.py", "utf8");
-  const m = /^ASA_HASAR = (\d+)/m.exec(uretec);
-  kontrol("uretec ve ayar ayni sayiyi soyluyor",
-          m && Number(m[1]) === ayar.ASA_HASAR,
-          (m ? m[1] : "?") + " / " + ayar.ASA_HASAR);
-}
-
-console.log("\n=== 9. BALTA DA OLU DEGIL (v4.84) ===");
-{
-  /* Kullanici: "ilkel baltada da ayni sorunlar... tamamen olu
-     bir esya. 16+ hasar vursun."
-
-     Baltanin asadan BIR EKSIGI DAHA vardi: minecraft:digger
-     bileseni de yoktu, yani odun bile kesmiyordu.          */
-  const b = JSON.parse(readFileSync(
-    BP + "/items/ilkel_balta.json", "utf8"))["minecraft:item"];
-
-  kontrol("baltanin hasari var (yumruk degil)",
-          b.components["minecraft:damage"] === ayar.BALTA_HASAR,
-          JSON.stringify(b.components["minecraft:damage"]));
-  kontrol("hasar kullanicinin istedigi gibi 16+",
-          ayar.BALTA_HASAR >= 16,
-          ayar.BALTA_HASAR + " = " + (ayar.BALTA_HASAR / 2) + " kalp");
-  kontrol("netherite baltadan (10) sert", ayar.BALTA_HASAR > 10);
-  kontrol("baltanin dayanikligi yok (kirilmaz)",
-          b.components["minecraft:durability"] === undefined);
-
-  /* GERCEKTEN BALTA: odun kessin. */
-  const kazi = b.components["minecraft:digger"];
-  kontrol("balta odun kesiyor (digger var)", kazi !== undefined);
-  kontrol("hedefi odun", kazi &&
-          JSON.stringify(kazi.destroy_speeds).includes("wood"),
-          JSON.stringify(kazi && kazi.destroy_speeds));
-  /* Asa bir silah, kazma araci degil. */
-  const a = JSON.parse(readFileSync(
-    BP + "/items/ilkel_asa.json", "utf8"))["minecraft:item"];
-  kontrol("asaya kazma yetenegi VERILMEDI",
-          a.components["minecraft:digger"] === undefined);
-
-  /* ---- DORT TASIYICININ SAYISI KAYMADI ----
-     Balta dort uyenin elinde ve hasari onlarin vurusuna
-     EKLENIYOR. Taban dusurulmezse dordu birden sessizce
-     16 hasar kazanirdi -- v4.66'nin aynisi.               */
-  const uretec = readFileSync(
-    KOK + "/kol_uret.py", "utf8");
-  const m = /^BALTA_HASAR = (\d+)/m.exec(uretec);
-  kontrol("uretec ve ayar ayni sayiyi soyluyor",
-          m && Number(m[1]) === ayar.BALTA_HASAR,
-          (m ? m[1] : "?") + " / " + ayar.BALTA_HASAR);
-
-  for (const [anahtar, t] of ayar.ILKEL_BESLI) {
-    const v = JSON.parse(readFileSync(
-      BP + "/entities/ilkel_" + anahtar + ".json", "utf8"))["minecraft:entity"];
-    const silah = ayar.silahHasari(ayar.ilkelSilahi(anahtar));
-    kontrol(anahtar + ": silahiyla birlikte hala " + t.hasar,
-            v.components["minecraft:attack"].damage + silah === t.hasar,
-            v.components["minecraft:attack"].damage + " + " + silah);
-    /* Silahi alinsa bile zararsiz bir yaratiga donmemeli. */
-    kontrol(anahtar + ": silahsiz da ciddi (taban >= 10)",
-            v.components["minecraft:attack"].damage >= 10,
-            v.components["minecraft:attack"].damage + " hasar");
-  }
-}
-
-console.log("\n=== DISMONT KİMLİKLERİ BAYAT DEĞİL (v7.79) ===");
-{
-  /* Tas v4.50'de "Freedom Stone" diye yeniden adlandirildi ama
-     iki yerde eski kimlik kaldi: DERIN_HEDEFLER'de `pa:dismont`,
-     BOT_MADEN_BLOKLARI'nda `pa:dismont_cevheri`. Oyle esya ve
-     oyle blok YOK -- yani `bot dismont 64` aradigini hicbir
-     zaman bulamiyor, DERIN_EN_UZUN'a kadar bosuna kaziyordu.
-
-     Kimlikler ayarlar.js'te DUZ YAZI olmak zorunda (sabitler
-     asagida tanimli, `const` gecici olu bolgede). O yuzden
-     esitlik burada sinaniyor.                              */
-  kontrol("derin tarama hedefi gercek esyayi ariyor",
-          ayar.DERIN_HEDEFLER.get("dismont").esya === ayar.DISMONT_ESYA,
-          ayar.DERIN_HEDEFLER.get("dismont").esya + " / " + ayar.DISMONT_ESYA);
-  kontrol("cevher -> esya eslemesi gercek kimliklerle",
-          ayar.BOT_MADEN_BLOKLARI.get(ayar.DISMONT_CEVHER) === ayar.DISMONT_ESYA,
-          String(ayar.BOT_MADEN_BLOKLARI.get(ayar.DISMONT_CEVHER)));
-
-  /* Esya ve blok GERCEKTEN uretiliyor mu -- iddia "hicbir
-     JSON'da tanimli degil" idi; dosyadan bakiliyor.        */
-  const esyaYolu = KOK + "/Simsek_TNT_ToprakTopu/items/freedom_stone.json";
-  const blokYolu = KOK + "/Simsek_TNT_ToprakTopu/blocks/freedom_stone_cevheri.json";
-  kontrol("freedom_stone esyasi diskte", existsSync(esyaYolu));
-  kontrol("freedom_stone cevheri diskte", existsSync(blokYolu));
-  const e = JSON.parse(readFileSync(esyaYolu, "utf8"));
-  kontrol("esya kimligi ayarla ayni",
-          e["minecraft:item"].description.identifier === ayar.DISMONT_ESYA,
-          e["minecraft:item"].description.identifier);
-
-  /* Geriye bayat yazi kalmasin. Yorumlar sokuluyor: gerekceyi
-     ANLATAN satirlar eski kimligi yaziyor.                 */
-  const ham = readFileSync(KOK + "/Simsek_TNT_ToprakTopu/scripts/ayarlar.js", "utf8");
-  const kodsuz = ham.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
-  kontrol("kodda 'pa:dismont' kimligi KALMADI",
-          kodsuz.indexOf('"pa:dismont') < 0);
+  /* El-Harkos silahsiz kalmamali: varsayilan baltaya dusmeli. */
+  kontrol("ILKEL_SILAH'ta harkos girdisi yok",
+          ayar.ILKEL_SILAH.get("harkos") === undefined);
+  kontrol("harkos varsayilan baltayi tasiyor",
+          ayar.ilkelSilahi("harkos") === "pa:ilkel_balta",
+          ayar.ilkelSilahi("harkos"));
+  kontrol("SILAH_HASARI'nda asa yok",
+          ayar.silahHasari("pa:ilkel_asa") === 0);
 }
 
 console.log("");
-console.log(hata ? ">>> SORUN VAR" : ">>> El-Harkos'un asasi calisiyor");
+console.log(hata ? ">>> SORUN VAR" : ">>> El-Harkos'un mezar zinciri calisiyor (oyuncu asasi v7.94.6'da kaldirildi)");
 process.exit(hata ? 1 : 0);

@@ -13,7 +13,6 @@ import {
   MEZAR_ACIK, MEZAR_YARICAP, MEZAR_YUKSEK, MEZAR_BLOK,
   MEZAR_ONAR, MEZAR_ONAR_BUTCE, MEZAR_TUTSAK_KILIT,
   DISMONT_ESYA, MEZAR_ANAHTAR_ADET,
-  ASA_OYUNCUDA, ASA_ESYA,
   DONDUR_GIRDI_KILIT, DONDUR_KAMERA_KILIT
 } from "../ayarlar.js";
 
@@ -502,49 +501,21 @@ function dismontHarca(oyuncu, adet) {
   return adet - kalan;
 }
 
-/* ---------------- ASA OYUNCUNUN ELINDE ----------------  (v4.83)
+/* ---------------- ASA OYUNCUNUN ELINDE — KALDIRILDI (v7.94.6) ----
 
-   Zincirin kendisi degismedi; sadece IKINCI bir tetik eklendi.
-   asaVurusu() sayaci vuranin kimligiyle tutuyor, yani oyuncu
-   da bot da ayni koddan geciyor.
+   El-Harkos'un Asasi (`pa:ilkel_asa`) silindi, yani oyuncunun
+   elinde tutabilecegi bir asa artik YOK. Bu bolumdeki ikinci
+   tetik (asaOyuncuKancasi + asaTasiyorMu) onunla birlikte
+   kaldirildi.
 
-   VURANIN ELINE BAKILIYOR, envanterine degil: asayi cantada
-   tasimak yetmez, kullanman gerekir.                          */
-function asaTasiyorMu(varlik) {
-  try {
-    const e = varlik.getComponent("minecraft:equippable");
-    if (!e || typeof e.getEquipment !== "function") return false;
-    const esya = e.getEquipment("Mainhand");
-    return !!esya && esya.typeId === ASA_ESYA;
-  } catch (e) {
-    return false;
-  }
-}
+   ZINCIR OLMEDI: mezar/sersemletme mekanigi El-Harkos mob'unun
+   vurusuyla calismaya devam ediyor (bot_ilkel.js -> asaVurusu).
+   Kaldirilan yalniz OYUNCU tarafindaki tetik.
 
-let oyuncuUyarisi = false;
-
-export function asaOyuncuKancasi() {
-  if (!ASA_OYUNCUDA) return;
-  const vurus = olayaAbone("entityHitEntity", (olay) => {
-    try {
-      const vuran = olay.damagingEntity;
-      const kurban = olay.hitEntity;
-      if (!vuran || !kurban) return;
-      if (vuran.typeId !== "minecraft:player") return;   // botun yolu ayri
-      if (!asaTasiyorMu(vuran)) return;
-      asaVurusu(vuran, kurban, system.currentTick);
-    } catch (e) {
-      hataYaz("asa.oyuncuVurusu", e);
-    }
-  });
-
-  if (!vurus && !oyuncuUyarisi) {
-    oyuncuUyarisi = true;
-    hataYaz("asa.oyuncuVurusu", new Error(
-      "entityHitEntity yok. Asa oyuncunun elinde zincir " +
-      "baslatamaz; El-Harkos'un kendi yolu etkilenmiyor."));
-  }
-}
+   Geri istenirse: esyayi geri ekle, ASA_ESYA/ASA_OYUNCUDA
+   ayarlarini geri koy ve bu blogu eski haline getir --
+   asaVurusu() zaten vuranin kimligine gore calisiyor, oyuncu
+   ile bot ayni koddan geciyor.                                */
 
 let kirmaUyarisi = false;
 
@@ -596,4 +567,3 @@ export function asaKancalari() {
 }
 
 asaKancalari();
-asaOyuncuKancasi();

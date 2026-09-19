@@ -5443,9 +5443,13 @@ export const ILKEL_PASIF_PARCACIK = false;
    hata gorunmez. ilkel.mjs ikisini karsilastiriyor.           */
 export const ILKEL_SILAH_VARSAYILAN = "pa:ilkel_balta";
 
-export const ILKEL_SILAH = new Map([
-  ["harkos", "pa:ilkel_asa"]
-]);
+/* v7.94.6: ["harkos", "pa:ilkel_asa"] KALDIRILDI -- El-Harkos'un
+   Asasi silindi. Harkos artik listede yazmadigi icin
+   ILKEL_SILAH_VARSAYILAN'i, yani Ilkel Baltasi'ni tasiyor.
+   Tablo BOS BIRAKILDI, silinmedi: ilkelSilahi() ve ilkel.mjs
+   ayni sekilde calissin, yeni bir esleme gerekirse tek satir
+   olsun.                                                      */
+export const ILKEL_SILAH = new Map([]);
 
 export function ilkelSilahi(anahtar) {
   return ILKEL_SILAH.get(anahtar) || ILKEL_SILAH_VARSAYILAN;
@@ -5473,18 +5477,14 @@ export function ilkelSilahi(anahtar) {
    baglanmamis"ti. Testler de bunu goremezdi: hepsi El-Harkos
    uzerinden gidiyordu ve gecıyordu.
 
-   Artik iki tetik var, ikisi de ayni zinciri kullaniyor:
-     - El-Harkos vurunca      (bot_ilkel.js, eskisi gibi)
-     - OYUNCU asayla vurunca  (asa.js kancasi, yeni)
+   v7.94.6: IKINCI TETIK KALDIRILDI. El-Harkos'un Asasi
+   (`pa:ilkel_asa`) esya olarak silindi, yani oyuncunun elinde
+   tutabilecegi bir asa yok. Geriye TEK tetik kaldi:
+     - El-Harkos vurunca      (bot_ilkel.js)
+   Zincirin kendisi (sersemletme + mezar) aynen duruyor;
+   kaldirilan yalniz oyuncu tarafi. ASA_OYUNCUDA, ASA_ESYA ve
+   ASA_HASAR ayarlari da onunla birlikte gitti.
    ============================================================ */
-export const ASA_OYUNCUDA = true;
-export const ASA_ESYA = "pa:ilkel_asa";
-/* Asanin normal vurus hasari. Kullanici: "normal vurusu da
-   14+ olsun." 14 hasar = 7 KALP, yani elmas kilicin (7) iki
-   kati, netherite kilicin (8) neredeyse iki kati. Sayi esyada
-   yaziyor (kol_uret.py:ASA_HASAR); burasi testlerin ve menu
-   metninin okudugu ikiz.                                      */
-export const ASA_HASAR = 14;
 
 /* ---- BALTA DA OLU BIR ESYAYDI (v4.84) ----
    Kullanici: "ilkel baltada da ayni sorunlar... onda da ayni
@@ -5511,7 +5511,7 @@ export const BALTA_HASAR = 16;
    yeni bir silah eklenip buraya yazilmazsa test hemen
    yakalar.                                                  */
 export const SILAH_HASARI = new Map([
-  [ASA_ESYA, ASA_HASAR],
+  /* v7.94.6: [ASA_ESYA, ASA_HASAR] KALDIRILDI -- asa silindi. */
   ["pa:ilkel_balta", BALTA_HASAR],
 ]);
 

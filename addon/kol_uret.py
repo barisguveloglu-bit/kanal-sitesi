@@ -2658,17 +2658,17 @@ BOT_SKIN_ARSIV = "bot_skin.png"   # depodaki kopyasi (v7.51)
 # istenirse ILKEL tablosundaki sayi degisir, silah degil.
 #
 # anahtar -> (esya kimligi, Turkce ad, kaynak dosya)
+# v7.94.6: "asa" girdisi KALDIRILDI -- El-Harkos'un Asasi silindi.
+# Uretilecek tek ilkel silah balta kaldi.
 ILKEL_SILAHLAR = {
     "balta": ("ilkel_balta", "İlkel Baltası", "6893255b-image.png"),
-    "asa":   ("ilkel_asa", "El-Harkos'un Asası", "14b8762c-image.png"),
 }
 
 # Kim neyi tasiyor. Burada YAZMAYAN herkes varsayilani tasiyor.
 # Tek kaynak burasi: ayarlar.js'teki esleme de bunu yansitiyor
 # ve ilkel.mjs ikisinin ayni seyi soyledigini sinliyor.
-ILKEL_SILAH = {
-    "harkos": "asa",
-}
+# v7.94.6: harkos artik varsayilani (balta) tasiyor.
+ILKEL_SILAH = {}
 ILKEL_SILAH_VARSAYILAN = "balta"
 
 
@@ -2794,13 +2794,12 @@ def ilkel_gruplari():
 # elde tutulan esyanin damage'i taban vurusun USTUNE biniyor.
 # O yuzden varlik JSON'una yazilan sayi ILKEL tablosundakinden
 # silahin hasari kadar DUSUK (bkz. ilkel_taban_hasar).
-ASA_HASAR = 14
+# v7.94.6: ASA_HASAR KALDIRILDI -- El-Harkos'un Asasi silindi.
 BALTA_HASAR = 16
 
 # esya kimligi -> vurus hasari. Silahsiz bir uye eklenirse
 # burada yazmaz ve tabani oldugu gibi kalir.
 SILAH_HASARI = {
-    "ilkel_asa": ASA_HASAR,
     "ilkel_balta": BALTA_HASAR,
 }
 
