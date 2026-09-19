@@ -967,7 +967,7 @@ birleştirmede sürpriz üretir.
 Ama tanım da sessizce değişebilir, o yüzden `belge` denetimi her ajan
 dosyasını okuyor — `model: sonnet` değilse kırmızı yanıyor.
 
-Ders defteri (`dersler.jsonl`) şu an **15 ders** taşıyor; kalıcı ve
+Ders defteri (`dersler.jsonl`) şu an **16 ders** taşıyor; kalıcı ve
 depoda. Sayı burada yazılı çünkü sessiz silmeyi ancak bu yakalıyor.
 
 ### Kadro — **21 denetçi ajan**

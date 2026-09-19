@@ -595,7 +595,13 @@ def t_logo_surum_kaymasi_yakalaniyor(kok):
     """Asıl tehlike bu: sürüm yükselir, logo v1.1'de kalır ve kimse görmez."""
     yol = os.path.join(kok, ".claude", "surum.json")
     d = json.load(open(yol, encoding="utf-8"))
-    d["yama"] = 4
+    # Sabit bir yama değeri (4) yazılıydı. Sürüm gerçekten v2.0.4'e
+    # çıktığı gün fikstür mevcut değerle ÇAKIŞTI: başlık değişmedi,
+    # regex hiçbir şey bulamadı ve test "başlık biçimi yanlış" dedi.
+    # Araçta sorun yoktu — üçüncü kez aynı sınıf: sabit sayı gömen
+    # fikstür, ölçtüğü şeyden hızlı çürür. Değer artık mevcuttan
+    # türetiliyor, yani her zaman farklı.
+    d["yama"] = (d.get("yama", 0) % 8) + 1
     json.dump(d, open(yol, "w", encoding="utf-8"), ensure_ascii=False)
     # Belge başlığını da güncelle ki tek başına logo hatası kalsın.
     # Başlık GÖMÜLMÜYOR, aranıyor. Sürüm v1.1.1'e çıktığı gün gömülü hâli
