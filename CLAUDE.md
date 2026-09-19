@@ -174,6 +174,33 @@ geometri `arac/bicim_dogrula.py`'den de geçmeli.
 **Bilinen sınır:** alt kemik pivotlarının ebeveyne göreli sayılması
 ölçülmüş veriyle doğrulanamadı — yeni model taşırken oyunda gözle bak.
 
+### Java `elements` modeli → Bedrock (v7.94.5)
+
+Java tarafında model **iki** biçimde duruyor ve ikisinin çevrimi
+**ayrı**:
+
+| kaynak | araç | Y kuralı |
+|---|---|---|
+| `ModelBase` alt sınıfı (bytecode) | `jar_model_coz.py` | `24 - y` (Java'da +Y aşağı) |
+| Kaynak paketi JSON'u (`elements`) | `arac/java_gorsel_coz.py` | **Y kaymaz**, yalnız X/Z −8 |
+
+**Birini ötekine uygulamak sessiz hatadır** — model geçerli JSON
+çıkar, oyun kabul eder, sadece ters/kayık durur.
+`test/java_gorsel.mjs` 3. bölümü iki çevrimin ayrı kaldığını tutuyor.
+
+X/Z −8 kaydırması ölçüldü: `Simsek_Kol_Kaynak/models/blocks/`
+altındaki blok geometrilerinin kemiklerinin hepsi `pivot [-8, 0, -8]`.
+
+```sh
+python3 addon/arac/java_gorsel_coz.py model.json --rapor
+python3 addon/arac/java_gorsel_coz.py model.json --kimlik geometry.x > x.geo.json
+```
+
+`--rapor` **çevirmeden ölçer**: kaç eleman, kaçı sıfır kalınlıklı
+düzlem, Bedrock'ta makul mü. Bir modelin alınmaya değip
+değmediğini önce buna sor — NarutoMod'un Shukaku modeli 82.558
+elemandı ve %100'ü düzlemdi: çevrilebilirdi ama çizilemezdi.
+
 **Dış mod dosyaları depoya alınmaz.** Referans JAR'ları büyük ve çoğu
 lisanssız; `REFERANS_*.md` belgeleri ölçümü taşır, dosyayı değil.
 (İstisna: `arac/geckolib/` — MIT ve kural tablosu ondan üretiliyor.)
