@@ -155,6 +155,20 @@ var mı). İkisi ayrı sorular, ikisi de gerekli.
 GeckoLib sürüm atlarsa: `python3 addon/arac/gecko_coz.py`, sonra testi
 çalıştır.
 
+### Ters yazılmış Java elementi (v7.94.8)
+
+Java'da `from > to` olan bir element **geçerlidir** — Java tolere edip
+aynı kutuyu çizer. `java_gorsel_coz.py` bunu eskiden negatif `size`'a
+çeviriyordu; artık `kosleri_duzelt()` ile normalleştiriyor ve
+`--rapor` "ters kutu" diye **sayıyor** (sessizce düzeltmek, kaynağın
+bozuk olduğunu gizler). `test/java_gorsel.mjs` 5. bölümü kilitliyor.
+
+**`bicim_dogrula.py`'ye negatif `size` kontrolü BİLEREK eklenmedi.**
+Denendi ve geri alındı: depoda 103 bulgu çıktı, hepsi bizim çalışan
+Ben 10 modellerimizde (15 dosya). Bedrock negatif boyutlu kutuyu
+reddetmiyor. Gerekçe `bicim_dogrula.py` içinde `_vektor_dogrula`
+üstünde yazılı — bir daha denenmesin.
+
 ## Java modelden Bedrock geometriye — `jar_model_coz.py` (v7.94.3)
 
 Bir Java 1.12 mod'unun `ModelBase` sınıflarından Bedrock `.geo.json`
@@ -224,6 +238,15 @@ ihtarı riski demekti — bu yüzden alınmadı.
 
 **Bu belgelerden bir şey uygularken kural:** sayıyı/fikri al, dosyayı
 alma. Kendi dokumuzla, kendi adımızla, kendi kodumuzla yaz.
+
+**Craftformers için özel durum (v7.94.8).** Kullanıcı yapımcıyla
+(Bit & Byte) doğrudan yazıştı ve **kişisel kullanım** izni aldı.
+Şartı: *dosyayı kimseye vermemek.* Bu depo herkese açık olduğu için
+şart, varlıkları buraya koymayı **dışlıyor** — commit etmek paylaşmanın
+en geniş hâli olurdu. İzin yerel kullanımı açıyor, depoyu değil.
+Hasbro/Transformers marka katmanı da ayrıca duruyor; kişisel oyunda
+sorun değil, videoda ayrı konu.
+
 
 **Üçünün ortak bulgusu — `minecraft:player` çakışması.** Iron Man
 (hem davranış hem kaynak) ve NPA (kaynak), bizim

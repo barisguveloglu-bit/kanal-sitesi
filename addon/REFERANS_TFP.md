@@ -156,14 +156,36 @@ içindeki `SIMSEK_EK_MUAF` gibi listelerle yapılıyor — aynı fikir.
 
 `arac/java_gorsel_coz.py --rapor` ile ölçüm:
 
-- **23/23 "makul"** — yani Bedrock kutu sınırlarını aşmıyorlar.
+- **24/24 çevrildi ve `bicim_dogrula.py`'den geçti.** (Ölçüm önce 23
+  demişti; `black_hat.json` `elements` anahtarını taşıyor ama içi boş,
+  o yüzden sayım 24.)
 - **8'i tamamen düzlemsiz** → çevrilmeye en uygun adaylar.
-- `block/energon_tank` **bozuk**: `from > to`, ters çevrilmiş kutu.
-  Bedrock bunu kabul etmez. (Java tolere ediyor olmalı.)
+- `block/energon_tank` **ters yazılmış**: 2. elemanında `from[0]=15.998
+  > to[0]=0.002`. Java bunu tolere edip aynı kutuyu çiziyor. Çevirici
+  v7.94.8'e kadar bunu **negatif `size`'a** çeviriyordu; artık
+  normalleştiriyor ve `--rapor` "ters kutu" diye sayıyor.
+  (İlk taramada "Bedrock kabul etmez" yazılmıştı — bu **ölçülmemiş bir
+  iddiaydı**. Bedrock negatif boyutlu kutuyu reddetmiyor, ters/aynalanmış
+  çiziyor; depomuzun kendi Ben 10 modellerinde 103 tane var ve
+  sürümlerdir çiziliyorlar. Asıl sorun belirsizlikti, ret değil.)
 - `signal_navigator` %55 düzlem, `synth_en` %50 düzlem.
-- `main_control_panel`'de **46 birim** genişlikte kutu var — Bedrock'ta
-  kutu kenarı 0–16 arası olmalı, bu geçmez.
+- `main_control_panel`'de **46 birim** genişlikte bir kutu var.
+  Bu, **varlık geometrisi olarak sorun değil** (Bedrock varlık
+  kutularında 16 sınırı yok); ama 16'lık blok aralığını aştığı için
+  **blok modeli olarak kullanılamaz**.
 - 4 model ne `parent` ne `elements` içeriyor (blok-varlık renderer'ı).
+
+### Çevrilebilir olanlar ne, gerçekten
+
+Çevrilen 24 modelin dökümü: **9 peluş** (`*_plushy` — birkaçı zaten
+kodda kayıtsız, ölü), 2 şapka, 2 kablo parçası, 2 dizüstü, enerjon
+kristali/tankı, kontrol paneli, sinyal navigatörü, 2 eldiven varyantı.
+
+**Transformer modellerinin hiçbiri burada değil.** Optimus, Megatron
+ve diğer 16'sı `client/model/**` altındaki 41 kodlanmış sınıfta —
+`elements` JSON'u olarak hiç yoklar. Yani bu modun görsel değerinin
+büyük kısmı `java_gorsel_coz.py` ile **alınamıyor**; alınabilen kısım
+dekoratif eşya.
 
 Kalan **41 model kod içinde sınıf olarak** çizilmiş (`client/model/**`).
 Onlar `java_gorsel_coz.py`'nin değil, `jar_model_coz.py`'nin işi — ama

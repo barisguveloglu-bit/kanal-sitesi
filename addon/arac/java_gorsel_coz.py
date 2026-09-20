@@ -60,12 +60,30 @@ BLOK_KAYDIRMA = 8.0
 MAKUL_KUTU = 285
 
 
+def kosleri_duzelt(frm, to):
+    """from > to olan ekseni takas eder.
+
+    Java bunu TOLERE EDIYOR: ters yazilmis bir kutu ayni kutuyu
+    ciziyor. Bedrock etmiyor -- ters eksen negatif `size` uretir ve
+    kutu cizilmez. v7.94.8'e kadar cevirici bunu sessizce geciriyordu:
+    Craftformers'in `energon_tank` modeli `size: [-15.996, ...]`
+    olarak cikiyor, `bicim_dogrula.py` de onu geciriyordu.
+    Dogru cevrim kutuyu normallestirmek -- niyet korunur, cikti
+    gecerli olur.
+    """
+    a = [min(frm[i], to[i]) for i in range(3)]
+    b = [max(frm[i], to[i]) for i in range(3)]
+    return a, b
+
+
 def cevir_origin(frm, to):
     """Java element kosesi -> Bedrock cube origin."""
+    frm, to = kosleri_duzelt(frm, to)
     return [frm[0] - BLOK_KAYDIRMA, frm[1], frm[2] - BLOK_KAYDIRMA]
 
 
 def cevir_boyut(frm, to):
+    frm, to = kosleri_duzelt(frm, to)
     return [to[0] - frm[0], to[1] - frm[1], to[2] - frm[2]]
 
 
@@ -131,17 +149,25 @@ def olc(model):
     e = model.get("elements") or []
     dej = 0
     tekyuz = 0
+    ters = 0
     for x in e:
         frm, to = x.get("from"), x.get("to")
         if isinstance(frm, list) and isinstance(to, list) and len(frm) == 3:
             if any(abs(to[i] - frm[i]) < 1e-9 for i in range(3)):
                 dej += 1
+            # from > to: Java tolere eder, Bedrock etmez. Cevirici
+            # bunu duzeltiyor (kosleri_duzelt), ama raporun bunu
+            # SOYLEMESI gerekiyor -- sessizce duzeltilen bir sey,
+            # kaynagin bozuk oldugunu gizler.
+            if any(frm[i] > to[i] for i in range(3)):
+                ters += 1
         if len(x.get("faces") or {}) == 1:
             tekyuz += 1
     return {
         "eleman": len(e),
         "dejenere": dej,
         "tek_yuzlu": tekyuz,
+        "ters": ters,
         "makul": len(e) <= MAKUL_KUTU,
     }
 
@@ -244,8 +270,13 @@ def main():
         model = json.load(f)
 
     o = olc(model)
-    sys.stderr.write("eleman: %d · dejenere (sifir kalinlikli): %d · tek yuzlu: %d\n"
-                     % (o["eleman"], o["dejenere"], o["tek_yuzlu"]))
+    sys.stderr.write("eleman: %d · dejenere (sifir kalinlikli): %d · tek yuzlu: %d"
+                     " · ters kutu: %d\n"
+                     % (o["eleman"], o["dejenere"], o["tek_yuzlu"], o["ters"]))
+    if o["ters"]:
+        sys.stderr.write("NOT: %d eleman ters yazilmis (from > to). Java bunu "
+                         "tolere ediyor, Bedrock etmiyor; cevirici duzeltiyor "
+                         "ama kaynak bozuk.\n" % o["ters"])
     if not o["makul"]:
         sys.stderr.write("DIKKAT: %d eleman, deponun en buyuk geometrisi %d kutu. "
                          "Bedrock'ta bu olcek cizilmez.\n" % (o["eleman"], MAKUL_KUTU))

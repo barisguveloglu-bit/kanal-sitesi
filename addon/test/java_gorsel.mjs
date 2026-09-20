@@ -167,6 +167,60 @@ console.log("=== 4. RAPOR KIPI KULLANILAMAZ MODELI YAKALIYOR ===");
           uyari.trim().split("\n")[0] || "uyari yok");
 }
 
+// --------------------------------------------------------------
+// v7.94.8: Java'da TERS yazilmis element (from > to).
+// Java bunu tolere edip AYNI kutuyu ciziyor; cevirici eskiden
+// bunu negatif `size`a ceviriyordu ve Bedrock kutuyu ciziyorsa
+// bile ters/aynalanmis ciziyordu. Artik normallestiriliyor.
+// Gercek ornek: Craftformers'in block/energon_tank modeli.
+console.log("");
+console.log("=== 5. TERS ELEMAN NORMALLESTIRILIYOR ===");
+{
+  const d = mkdtempSync(join(tmpdir(), "jgorsel5_"));
+  const girdi = join(d, "ters.json");
+  writeFileSync(girdi, JSON.stringify({
+    elements: [
+      // X ekseni ters yazilmis -- energon_tank ile ayni kalip
+      { from: [15.998, 0.002, 0.002], to: [0.002, 15.998, 15.998],
+        faces: { north: { uv: [0, 0, 16, 16] } } },
+    ],
+  }));
+
+  const { cikti, uyari } = kosTam([girdi, "--kimlik", "geometry.ters"]);
+  const geo = JSON.parse(cikti);
+  const kup = geo["minecraft:geometry"][0].bones[0].cubes[0];
+
+  kontrol("hicbir boyut bileseni negatif degil",
+          kup.size.every((x) => x >= 0), JSON.stringify(kup.size));
+  kontrol("boyut mutlak degeri korundu",
+          kup.size.every((x) => Math.abs(x - 15.996) < 1e-6),
+          JSON.stringify(kup.size));
+  kontrol("origin kucuk koseden turetildi (X/Z -8)",
+          Math.abs(kup.origin[0] - (0.002 - 8)) < 1e-6 &&
+          Math.abs(kup.origin[2] - (0.002 - 8)) < 1e-6,
+          JSON.stringify(kup.origin));
+  kontrol("Y kaymadi (elements kuralı)",
+          Math.abs(kup.origin[1] - 0.002) < 1e-6, String(kup.origin[1]));
+
+  // --rapor bunu SOYLEMELI: sessizce duzeltmek kaynagin bozuk
+  // oldugunu gizler.
+  const r = kosTam([girdi, "--rapor"]);
+  const o = JSON.parse(r.cikti.slice(r.cikti.indexOf("{")));
+  kontrol("rapor ters kutuyu sayiyor", o.ters === 1, String(o.ters));
+  kontrol("rapor ters kutuyu yaziyor", r.uyari.includes("ters yazilmis"),
+          r.uyari.trim().split("\n")[0] || "uyari yok");
+
+  // Duz (normal) bir eleman ters sayilmamali.
+  const girdi2 = join(d, "duz.json");
+  writeFileSync(girdi2, JSON.stringify({
+    elements: [{ from: [0, 0, 0], to: [16, 16, 16],
+                 faces: { north: { uv: [0, 0, 16, 16] } } }],
+  }));
+  const r2 = kosTam([girdi2, "--rapor"]);
+  const o2 = JSON.parse(r2.cikti.slice(r2.cikti.indexOf("{")));
+  kontrol("duz eleman ters SAYILMIYOR", o2.ters === 0, String(o2.ters));
+}
+
 console.log("");
 console.log(hata ? "SORUN VAR" : "temiz");
 process.exit(hata ? 1 : 0);

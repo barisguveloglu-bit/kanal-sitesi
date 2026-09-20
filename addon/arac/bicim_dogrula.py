@@ -357,6 +357,19 @@ def _tanim_dogrula(g, yer):
                                 "%s :: %s.cubes[%d].%s" % (yer, ad, j, alan))
 
 
+# NEGATIF `size` KONTROLU BILEREK YOK (v7.94.8'de denendi, geri alindi).
+# Gerekce: eklenince depoda 103 bulgu cikti, hepsi BIZIM calisan
+# Ben 10 modellerimizde (ben_xlr*, ben_gulle*, ben_atomik, ben_astro,
+# ben_jet, ben_ates*, omnitrix_*, ben_dortkol -- 15 dosya). Bu modeller
+# surumlerdir oyunda ciziliyor, yani Bedrock negatif boyutlu kutuyu
+# REDDETMIYOR (ters/aynalanmis ciziyor). "Bedrock cizmez" iddiasi
+# olculmedi ve yanlis cikti.
+# Asil sorun burada degildi: `java_gorsel_coz.py` Java'da ters
+# yazilmis elementleri (from > to) negatif boyuta CEVIRIYORDU.
+# O, kaynaginda duzeltildi (kosleri_duzelt). Calisan icerige 103
+# sahte hata basmak, gercek bir hatayi yakalamaktan daha pahali.
+
+
 def _vektor_dogrula(v, yer):
     if v is None:
         return
