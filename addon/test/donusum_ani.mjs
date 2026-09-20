@@ -12,6 +12,8 @@
 import { dunyaKur, oyuncuKur } from "./dunya.mjs";
 import { tickIlerlet } from "@minecraft/server";
 
+const KOK = new URL("..", import.meta.url).pathname.replace(/\/$/, "");
+
 const w = console.warn;
 console.warn = () => {};
 await import("./pack/main.js");
@@ -104,26 +106,51 @@ console.log("=== 3. RENKLER KAYNAKTAN, UYDURMA DEGIL ===");
 }
 
 console.log("");
-console.log("=== 4. NIDA KANCASI BOS AMA HAZIR ===");
+console.log("=== 4. NIDALAR DEPODA VE BAGLI ===");
 {
-  // Kaynagin 11 ses dosyasi ALINMADI (lisans). Harita bos
-  // durmali; yerel kol doldurunca ture ozel ses calmali.
-  kontrol("BEN10_NIDA depoda BOS", ayar.BEN10_NIDA.size === 0,
+  // v7.96.1: 11 nida DEPOYA girdi (yapimcidan paylasilabilir
+  // izin alindi). Harita artik dolu ve her kaydin ses dosyasi
+  // gercekten pakette olmali -- tanimsiz bir ses cagirmak
+  // sessizce hicbir sey yapar, yani "calisiyor" sanilir.
+  const { readFileSync, existsSync } = await import("node:fs");
+  const RP = KOK + "/Simsek_Kol_Kaynak";
+  kontrol("BEN10_NIDA dolu", ayar.BEN10_NIDA.size === 11,
           ayar.BEN10_NIDA.size + " kayit");
-  kontrol("varsayilan donusum sesi vanilla",
+
+  const sd = JSON.parse(readFileSync(RP + "/sounds/sound_definitions.json", "utf8"))
+    .sound_definitions;
+  const eksikTanim = [], eksikDosya = [];
+  for (const [tur, ses] of ayar.BEN10_NIDA) {
+    if (!sd[ses]) { eksikTanim.push(tur + "->" + ses); continue; }
+    const yol = RP + "/" + sd[ses].sounds[0].name + ".ogg";
+    if (!existsSync(yol)) eksikDosya.push(ses);
+  }
+  kontrol("her nidanin ses TANIMI var", eksikTanim.length === 0,
+          eksikTanim.join(",") || "temiz");
+  kontrol("her nidanin ogg DOSYASI var", eksikDosya.length === 0,
+          eksikDosya.join(",") || "temiz");
+
+  // Nidasi OLMAYAN tur vanilla sese dusmeli.
+  kontrol("varsayilan donusum sesi hâlâ vanilla",
           typeof ayar.BEN10_DONUSUM_SES === "string" &&
-          !ayar.BEN10_DONUSUM_SES.includes("shout:"),
+          !ayar.BEN10_DONUSUM_SES.startsWith("pa.nida_"),
           ayar.BEN10_DONUSUM_SES);
 
-  // Kanca gercekten calisiyor mu: haritaya gecici bir kayit koy.
-  ayar.BEN10_NIDA.set("pyronite", "sinama.nida");
-  const { o, calan } = kur("pa:ben_ates");
+  // Gercekten O ses mi caliyor?
+  const { o, calan } = kur("pa:ben_ates");   // pyronite
   console.warn = () => {};
   try { ben10.ben10Tara([o]); } catch (e) {}
   console.warn = w;
-  ayar.BEN10_NIDA.delete("pyronite");
-  kontrol("nida haritasi doldurulunca O ses caliyor",
-          calan.includes("sinama.nida"), calan.join(",") || "-");
+  kontrol("Ates Topu donusumunde heatblast nidasi caliyor",
+          calan.includes("pa.nida_heatblast"), calan.join(",") || "-");
+
+  // Nidasi olmayan bir tur (necrofriggian = buz) vanillaya dusmeli.
+  const b = kur("pa:ben_buz");
+  console.warn = () => {};
+  try { ben10.ben10Tara([b.o]); } catch (e) {}
+  console.warn = w;
+  kontrol("nidasi olmayan tur vanillaya dusuyor",
+          b.calan.includes(ayar.BEN10_DONUSUM_SES), b.calan.join(",") || "-");
 }
 
 console.log("");

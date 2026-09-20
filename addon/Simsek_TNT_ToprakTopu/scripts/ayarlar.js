@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.96.0";
+export const SURUM = "v7.96.1";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -12108,8 +12108,41 @@ export const BEN10_DONUSUM_SES = "beacon.power";
 /* Insana geri donerken. */
 export const BEN10_DONUSUM_SES_GERI = "beacon.deactivate";
 
-/* TURE OZEL NIDA. Depoda BOS: kaynagin 11 ses dosyasi
-   alinmadi (lisans). `addon/yerel/` koluna ses eklenirse
-   buraya "tur -> ses kimligi" yazilir ve o tur icin
-   BEN10_DONUSUM_SES yerine bu calar.                       */
-export const BEN10_NIDA = new Map();
+/* TURE OZEL NIDA -- v7.96.1'DE DOLDU.
+
+   v7.96.0'da bu harita BOSTU ve yorumunda "lisans yuzunden
+   alinmadi, yerel koldan eklenir" yaziyordu. Kullanici sonra
+   duzeltti: `shout` modunun yapimcisi dahil, bugune kadar
+   kullandigimiz butun modlarin yapimcilarindan izin alinmis
+   (kullanicinin kendi sozu: bir yilini onlara ulasmaya
+   harcamis) ve Ben 10 tarafi PAYLASILABILIR izinli. Yani
+   sesler yerelde durmak zorunda degil, depoya girdiler.
+
+   Kaynak: `shout` 1.0.0. 11 ses, `sounds/nida/` altinda,
+   md5 ile birebir dogrulandi. Kaynakta komut suydu:
+     playsound shout:<uzayli> master @a[distance=..15]
+
+   Anahtar bizim TUR adi (`kaynak` alani), deger ses kimligi.
+   Eslesme kaynagin uzayli adindan turedi:
+     heatblast->pyronite · diamondhead->petrosapien
+     fourarms->tetramand · wildmutt->vulpimancer
+     cannonbolt->arburian_pelarota · ghostfreak->ectonurite
+     stinkfly->lepidopterran · greymatter->galvan
+     upgrade->galvanic_mechamorph · xlr8->kineceleran
+     ripjaws->piscciss_volann
+
+   Burada OLMAYAN tur BEN10_DONUSUM_SES'e (vanilla) duser --
+   13 turun nidasi yok ve onlara ses UYDURULMADI.            */
+export const BEN10_NIDA = new Map([
+  ["pyronite",            "pa.nida_heatblast"],
+  ["petrosapien",         "pa.nida_diamondhead"],
+  ["tetramand",           "pa.nida_fourarms"],
+  ["vulpimancer",         "pa.nida_wildmutt"],
+  ["arburian_pelarota",   "pa.nida_cannonbolt"],
+  ["ectonurite",          "pa.nida_ghostfreak"],
+  ["lepidopterran",       "pa.nida_stinkfly"],
+  ["galvan",              "pa.nida_greymatter"],
+  ["galvanic_mechamorph", "pa.nida_upgrade"],
+  ["kineceleran",         "pa.nida_xlr8"],
+  ["piscciss_volann",     "pa.nida_ripjaws"]
+]);

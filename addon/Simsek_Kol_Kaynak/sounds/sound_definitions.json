@@ -40,6 +40,116 @@
           "volume": 1.0
         }
       ]
+    },
+    "pa.nida_cannonbolt": {
+      "category": "player",
+      "sounds": [
+        {
+          "name": "sounds/nida/cannonbolt",
+          "stream": false,
+          "volume": 1.0
+        }
+      ]
+    },
+    "pa.nida_diamondhead": {
+      "category": "player",
+      "sounds": [
+        {
+          "name": "sounds/nida/diamondhead",
+          "stream": false,
+          "volume": 1.0
+        }
+      ]
+    },
+    "pa.nida_fourarms": {
+      "category": "player",
+      "sounds": [
+        {
+          "name": "sounds/nida/fourarms",
+          "stream": false,
+          "volume": 1.0
+        }
+      ]
+    },
+    "pa.nida_ghostfreak": {
+      "category": "player",
+      "sounds": [
+        {
+          "name": "sounds/nida/ghostfreak",
+          "stream": false,
+          "volume": 1.0
+        }
+      ]
+    },
+    "pa.nida_greymatter": {
+      "category": "player",
+      "sounds": [
+        {
+          "name": "sounds/nida/greymatter",
+          "stream": false,
+          "volume": 1.0
+        }
+      ]
+    },
+    "pa.nida_heatblast": {
+      "category": "player",
+      "sounds": [
+        {
+          "name": "sounds/nida/heatblast",
+          "stream": false,
+          "volume": 1.0
+        }
+      ]
+    },
+    "pa.nida_ripjaws": {
+      "category": "player",
+      "sounds": [
+        {
+          "name": "sounds/nida/ripjaws",
+          "stream": false,
+          "volume": 1.0
+        }
+      ]
+    },
+    "pa.nida_stinkfly": {
+      "category": "player",
+      "sounds": [
+        {
+          "name": "sounds/nida/stinkfly",
+          "stream": false,
+          "volume": 1.0
+        }
+      ]
+    },
+    "pa.nida_upgrade": {
+      "category": "player",
+      "sounds": [
+        {
+          "name": "sounds/nida/upgrade",
+          "stream": false,
+          "volume": 1.0
+        }
+      ]
+    },
+    "pa.nida_wildmutt": {
+      "category": "player",
+      "sounds": [
+        {
+          "name": "sounds/nida/wildmutt",
+          "stream": false,
+          "volume": 1.0
+        }
+      ]
+    },
+    "pa.nida_xlr8": {
+      "category": "player",
+      "sounds": [
+        {
+          "name": "sounds/nida/xlr8",
+          "stream": false,
+          "volume": 1.0
+        }
+      ]
     }
   }
 }

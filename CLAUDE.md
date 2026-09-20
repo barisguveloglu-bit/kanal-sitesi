@@ -255,6 +255,26 @@ ihtarı riski demekti — bu yüzden alınmadı.
 **Bu belgelerden bir şey uygularken kural:** sayıyı/fikri al, dosyayı
 alma. Kendi dokumuzla, kendi adımızla, kendi kodumuzla yaz.
 
+**v7.96.1 DÜZELTMESİ — izinler sanılandan geniş.** Kullanıcı
+kullandığımız modların yapımcılarına tek tek ulaşmış (kendi sözüyle
+bir yılını buna harcamış) ve **hepsinden izin almış**. Ben 10 tarafı
+(`shout`) **paylaşılabilir** izinli, yani yerelde durmak zorunda değil.
+İlk 11 dış varlık (dönüşüm nidaları) bu sayede depoya girdi.
+
+Artık kural üç kademeli:
+
+| izin | nereye |
+|---|---|
+| yok / bilinmiyor | hiç alınmaz, yalnız `REFERANS_*.md` ölçümü |
+| kişisel kullanım | `addon/yerel/`, commit'lenmez |
+| **paylaşılabilir** | **depoya girer** + `KAYNAKLAR.md`'ye satır |
+
+**`addon/KAYNAKLAR.md`** bu kaydı tutuyor: hangi varlık, nereden,
+hangi izinle. Depoya bir dış dosya girerse oraya satırı eklenir.
+İzin, yapımcının **kendi emeğini** kapsar; marka katmanı
+(Cartoon Network, Marvel, Hasbro) ayrıdır ve mod yapımcısı onu
+veremez — bu bir uyarı değil, kayıt.
+
 **İki yapımcıdan kişisel kullanım izni var (v7.94.8 · v7.94.9).**
 Kullanıcı **Bit & Byte** (Craftformers) ve **Mr. Nido** (Iron Man) ile
 doğrudan yazıştı; ikisi de kişisel kullanıma onay verdi ve **ikisi de

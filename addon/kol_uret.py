@@ -131,7 +131,7 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # hanenin 0 yerine 5'ten baslamasi bunun isareti -- 7.83.0
 # ile 7.83.5 AYNI kod, sadece numara degisti.
 # v7.91.0: ORTANCA hane -- Avaritia'dan uc mekanik.
-SURUM_NO = (7, 96, 0)
+SURUM_NO = (7, 96, 1)
 
 SURUM_METIN = "%d.%d.%d" % SURUM_NO
 
@@ -6128,6 +6128,7 @@ KONSEY_IKON_KAYNAK = os.path.join(DOKU_KAYNAK, "konsey_ikon")
 SES_KAYNAK = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                           "kaynak_ses")
 KONSEY_SES_KAYNAK = os.path.join(SES_KAYNAK, "konsey")
+NIDA_SES_KAYNAK = os.path.join(SES_KAYNAK, "nida")
 
 
 # Skinden OLCULEN vurgu rengi. Gerekcesi ve olcum dokumu
@@ -12362,6 +12363,33 @@ def main():
         }
     else:
         print("UYARI: efsane muzigi yok (%s)" % _my)
+
+    # ---- BEN 10 DONUSUM NIDALARI (v7.96.1) ----
+    # `shout` 1.0.0'in 11 sesi. Yapimcidan PAYLASILABILIR izin
+    # alindi, bu yuzden yerelde degil depoda duruyorlar
+    # (bkz. KAYNAKLAR.md).
+    #
+    # NEDEN BURADA: v7.96.1'de once cikti dosyasina
+    # (`sound_definitions.json`) elle yazildilar ve bu uretec
+    # calisinca SILINDILER -- dosyayi bastan yaziyor. Ayni ders
+    # v7.95.1'de animasyonlarda ogrenilmisti; CLAUDE.md'deki
+    # "bir seyi eklerken/kaldirirken URETENI de ara" kurali
+    # tam bunun icin yazildi. Test yakaladi.
+    for _nk in sorted(os.listdir(NIDA_SES_KAYNAK)
+                      if os.path.isdir(NIDA_SES_KAYNAK) else []):
+        if not _nk.endswith(".ogg"):
+            continue
+        _nad = _nk[:-4]
+        _nh = os.path.join(RP, "sounds/nida/%s.ogg" % _nad)
+        os.makedirs(os.path.dirname(_nh), exist_ok=True)
+        shutil.copyfile(os.path.join(NIDA_SES_KAYNAK, _nk), _nh)
+        # stream KAPALI: hepsi 1-2.4 sn, akitmaya gerek yok
+        # (Ay Isigi sarkisinda stream=True bilerek duruyor).
+        _sesler["pa.nida_" + _nad] = {
+            "category": "player",
+            "sounds": [{"name": "sounds/nida/" + _nad,
+                        "stream": False, "volume": 1.0}],
+        }
 
     if _sesler:
         yaz_json(os.path.join(RP, "sounds/sound_definitions.json"),
