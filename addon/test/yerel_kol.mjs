@@ -50,7 +50,13 @@ console.log("");
 console.log("=== 3. GERCEKTEN YOK SAYILIYOR MU (olcerek) ===");
 {
   // Iddia etmek yetmez: gercek bir dosya koyup git'e SORUYORUZ.
-  const deneme = join(ADDON, "yerel", "Simsek_Kol_Kaynak", "_sinama.txt");
+  // DIKKAT: burasi eskiden temizlikte `addon/yerel`i KOKUNDEN
+  // siliyordu ve kullanicinin gercek birlesik dosyalarini yok
+  // etti (v7.95.0'da yasandi). Test kendi actigi seyden
+  // fazlasina dokunmaz: dosya zaten varsa elleme, yoksa yarat
+  // ve SADECE onu sil.
+  const deneme = join(ADDON, "yerel", "_sinama_yerel_kol.txt");
+  const oncedenVardi = existsSync(join(ADDON, "yerel"));
   let kurduk = false;
   try {
     mkdirSync(dirname(deneme), { recursive: true });
@@ -59,13 +65,17 @@ console.log("=== 3. GERCEKTEN YOK SAYILIYOR MU (olcerek) ===");
     const ciktisi = git("status", "--porcelain", "--", "addon/yerel");
     kontrol("yeni dosya git status'ta GORUNMUYOR", ciktisi === "",
             ciktisi || "temiz");
-    const ign = git("check-ignore", "-q", "addon/yerel/Simsek_Kol_Kaynak/_sinama.txt");
+    const ign = git("check-ignore", "-q", "addon/yerel/_sinama_yerel_kol.txt");
     // check-ignore -q: yok sayiliyorsa cikis 0, degilse 1.
     // execFileSync hata firlatirsa git() bos dondurur; ayrimi
     // status ile zaten yaptik, bu ikinci olcum.
     kontrol("git check-ignore yok sayiyor", ign === "", ign || "yok sayiliyor");
   } finally {
-    if (kurduk) rmSync(join(ADDON, "yerel"), { recursive: true, force: true });
+    // YALNIZCA kendi dosyamizi sil. Klasoru ancak BIZ actiysak
+    // kaldir -- icinde kullanicinin birlesik dosyalari olabilir.
+    if (kurduk) rmSync(deneme, { force: true });
+    if (kurduk && !oncedenVardi)
+      rmSync(join(ADDON, "yerel"), { recursive: true, force: true });
   }
 }
 

@@ -316,6 +316,9 @@ import "./yetenekler/konsey_silah.js";
    "elindeki X" fonksiyonlarini kullaniyor, o yuzden onlardan
    SONRA gelmeli -- yukaridaki DIKKAT notunun ayni geregi.   */
 import { isinBeklemeUnut } from "./yetenekler/isinlar.js";
+/* v7.95: Ultimate Form -- dort formun birlesimi. Defteri
+   oyuncu cikinca birakmasin diye unutma kancasi da var. */
+import { ultimateUnut } from "./yetenekler/ultimate_form.js";
 /* v6.1: Ben 10 saldirilari. ben10.js'ten "elindeki yaratik"
    fonksiyonunu kullaniyor, o yuzden ondan SONRA gelmeli --
    ayni DIKKAT geregi.                                        */
@@ -2613,6 +2616,7 @@ olayaAbone("playerLeave", (olay) => {
   geriItmeUnut(olay.playerId);
   blokUnut(olay.playerId);
   isinBeklemeUnut(olay.playerId);   // v7.44: zirh isini beklemeleri
+  ultimateUnut(olay.playerId);      // v7.95: Ultimate Form defteri
   kafesUnut(olay.playerId);
   tekSimsekUnut(olay.playerId);
   ruhUnut(olay.playerId);

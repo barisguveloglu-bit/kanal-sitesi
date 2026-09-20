@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.94.9";
+export const SURUM = "v7.95.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -11924,3 +11924,63 @@ export const E404_BITIS_SATIRLAR = [
   "§8(Yapılandırmadan yeniden açılmadıkça artık hiçbir şey belirmeyecek)"
 ];
 export const E404_BITIS_SES = "random.anvil_land";
+
+/* ============================================================
+   ULTIMATE FORM                                        v7.95
+
+   Kullanici: "en guclu formlari birlestir, ultimate form diye
+   bir sekme ac Toprak Kol'un menusunun icerisinde."
+
+   ---- SECIM NASIL YAPILDI ----
+   Butun formlar olculdu (85 form: 56 Ben 10 uzaylisi, 52 Marvel
+   kostumu, 9 zirh modu). Siralama ham hasar -> guc -> direnc.
+   Secim ham ilk dorde gore DEGIL, dort AYRI EKSENE gore:
+
+     Titan     2000 hasar · guc LIV · direnc IV   -> vurus
+     Galactus  1000 hasar · guc X   · direnc IV   -> menzil + ucus
+     Atomik     250 hasar · guc 33  · can +20     -> Ben 10 + dayanim
+     Temel     %97 indirim · yenilenme VI · 10 yetenek -> savunma
+
+   Ham ilk dort (Titan 2000, Galactus 1000, Isi 800, Iron Man 400)
+   alinmadi: Isi zaten Titan'in zayif kardesi (ayni zirh, ayni
+   direnc, dusuk isin) ve listede Ben 10 hic yoktu. Kullanici
+   "Ben 10'den, diger ondan, baska seylerden" dedi.
+
+   ---- EFEKTLER TURETILIYOR, ELLE YAZILMIYOR ----
+   Asagida efekt listesi YOK; yalnizca kaynaklarin ADI var.
+   Birlesik blok calisma aninda bu dort formun kendi
+   efektlerinden hesaplaniyor (her efektin EN YUKSEGI alinir).
+   Sebep depo kurali: elle ikinci bir liste tutmak, ayrisan iki
+   liste demek. Titan'in gucu yarin degisirse Ultimate
+   kendiliginden dogru kalir.
+
+   ---- ISIN ----
+   Ultimate acikken Titan Lazeri'nin (2000) kapisi acilir.
+   Ayri bir isin YAZILMADI -- var olan isin motoru kullaniliyor,
+   sadece kapiya bir kosul eklendi (isinlar.js kapiAcik).
+   ============================================================ */
+export const ULTIMATE_ACIK = true;
+
+/* [hangi tablo, anahtar] -- efektler bunlardan turetilir. */
+export const ULTIMATE_KAYNAKLAR = [
+  ["zirh",   "titan"],
+  ["marvel", "galactus"],
+  ["ben10",  "atomik"],
+  ["zirh",   "temel"]
+];
+
+/* Ultimate acikken kapisi acilan isin. */
+export const ULTIMATE_ISIN = "zirh_titan_lazeri";
+
+export const ULTIMATE_SURE     = 600;   // 30 sn acik kalir
+export const ULTIMATE_BEKLEME  = 1200;  // 60 sn (suresi bittikten sonra)
+export const ULTIMATE_TAZELEME = 40;    // efektler kac tick'te bir yenilensin
+
+/* Efekt suresi TAZELEME'nin katı olmali, yoksa iki yenileme
+   arasinda efekt bir an sonuyor. ben10.js'teki ayni ders.      */
+export const ULTIMATE_EFEKT_SURE = ULTIMATE_TAZELEME * 5;
+
+export const ULTIMATE_PARCACIK = "minecraft:electric_spark_particle";
+export const ULTIMATE_PARCACIK_ADET = 16;
+export const ULTIMATE_SES_AC  = "beacon.activate";
+export const ULTIMATE_SES_KAPA = "beacon.deactivate";

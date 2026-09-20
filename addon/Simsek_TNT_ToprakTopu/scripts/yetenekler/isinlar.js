@@ -4,6 +4,7 @@ import { varlikIste } from "../butce.js";
 import { elindekiCekirdek } from "./zirh.js";
 import { elindekiYaratik } from "./ben10.js";
 import { guctekiKahraman, gucKumesi } from "./marvel.js";
+import { ultimateAcikMi } from "./ultimate_form.js";
 import {
   hataYaz, gecerliMi, actionbarYaz, kollariIndir, parcacikAt,
   eldekiEsya, ekraniBoya, yukseklikAraligi
@@ -12,7 +13,7 @@ import {
   ZIRH_ISIN, MARVEL_ISIN, BEN10_ISIN, KOL_ISIN, BEN10,
   ZIRH_ISIN_KALINLIK, ZIRH_ISIN_TAVAN,
   ZIRH_ISIN_ADIM, ZIRH_ISIN_BEKLEME,
-  LAZER_HASAR_SEBEP
+  LAZER_HASAR_SEBEP, ULTIMATE_ISIN
 } from "../ayarlar.js";
 
 /* ============================================================
@@ -249,6 +250,21 @@ function isinAt(oyuncu, t) {
    -- o yoldan Titan lazerini Temel cekirdegiyle atmak mumkun
    olurdu.                                                    */
 function kapiAcik(oyuncu, t) {
+  /* v7.95: ULTIMATE FORM KOLU -- butun kapilardan ONCE.
+     Ultimate acikken ULTIMATE_ISIN'in kapisi acilir; cekirdek
+     elde olmasi gerekmez. Sebep: Ultimate zaten Titan'i
+     ICERIYOR (ULTIMATE_KAYNAKLAR), yani cekirdegi ayrica
+     istemek "birlestirdigin gucu kullanamazsin" demek olurdu.
+     Yalnizca O isin acilir -- digerleri kendi kapisinda kalir,
+     yoksa Ultimate butun isinlarin ana anahtari olurdu.      */
+  try {
+    if (t === ZIRH_ISIN.get(ULTIMATE_ISIN) && ultimateAcikMi(oyuncu.id)) {
+      return { acik: true, gerek: "" };
+    }
+  } catch (e) {
+    /* Ultimate defteri okunamadi: normal kapilar isini gorsun. */
+  }
+
   /* v6.8: DORDUNCU kapi turu -- ELDEKI ESYA. Kaynak komutlari
      `hasitem={item=...,location=slot.weapon.mainhand}` ile
      kapiyi ELDEKINE bagliyordu; biz de oyle yapiyoruz.

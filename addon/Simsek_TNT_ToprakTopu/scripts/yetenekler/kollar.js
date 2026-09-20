@@ -79,6 +79,12 @@ export const KOL_ESYALARI = [
                     "toprak_ucus", "toprak_duvar", "meteor", "guclu_tnt",
                     "yakala", "coklu_simsek", "ok_yagmuru", "sarsinti",
                     "kalp_ekle", "kalp_sifirla",
+   /* v7.95: ULTIMATE FORM -- dort formun birlesimi.
+      Dovus yeteneklerinin ALTINA, bakim yeteneklerinin
+      ALTINA ve kol_takas'in USTUNE konuldu: tek bir
+      yetenek degil, bir DURUM degistirici. Secimin
+      gerekcesi ayarlar.js ULTIMATE_KAYNAKLAR'da.      */
+                    "ultimate_form",
    /* v7.9: KANLI KOLA GEC -- yetenek degil, bir SAHNE.
       Listenin EN SONUNA konuldu cunku bu bir dovus ya da bakim
       yetenegi degil, Toprak Kol'dan CIKIS. Ustteki on alti
