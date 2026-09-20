@@ -141,9 +141,15 @@ kontrol("bilinen artik DOSYA yok",
           yeni bir DIS degil, tanidik bir kimlik.
      ----
       35  kalan                                              */
+/* v7.96.2: 102 -> 112. Artan 10, uretimin oyuncu varligina
+   bindirdigi DIS tanimdan (Iron Man) geliyor ve o animasyonlar
+   KENDI paketinde yasiyor. anim_tara.py onlari olculu biçimde
+   DIS sayiyor: muafiyet genel degil, yalnizca kaynak dosyanin
+   gercekten tanimladigi kimlikler. Kaynak klasor silinirse
+   muafiyet de kalkar ve sayi 102'ye doner.                  */
 const disSayisi = say("DIS  :");
 kontrol("dis (vanilla) animasyon sayisi degismedi",
-        disSayisi === 102, disSayisi + " tane (beklenen 102)");
+        disSayisi === 112, disSayisi + " tane (beklenen 102)");
 
 console.log(hata ? "\nKALDI" : "\nhepsi gecti");
 process.exit(hata ? 1 : 0);

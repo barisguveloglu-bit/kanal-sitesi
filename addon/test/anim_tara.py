@@ -84,9 +84,37 @@ for p in PAKETLER:
 # ---------- 4. eksik / oksuz ----------
 VANILLA = re.compile(r"^(animation|controller\.animation)\.("
                      r"player|humanoid|persona|skeleton|common)\b")
+
+# ---- BIRLESTIRILEN DIS TANIMDAN GELENLER (v7.96.2) ----
+# `kol_uret.py` uretilen oyuncu varligina dis bir tanimi
+# (Iron Man) bindiriyor. O tanimin getirdigi animasyonlar
+# KENDI paketinde yasiyor, bizimkinde degil -- yani bizde
+# "yok" gorunuyorlar ama eksik degiller.
+#
+# MUAFIYET GENEL DEGIL, OLCULU: yalnizca kaynak dosyanin
+# GERCEKTEN tanimladigi kimlikler muaf. Kaynak klasor yoksa
+# hicbir muafiyet olmaz ve her sey yine HATA sayilir.
+DIS_KAYNAK = os.path.join(KOK, "kaynak_dis", "ironman",
+                          "player.entity.json")
+dis_kimlikler = set()
+if os.path.exists(DIS_KAYNAK):
+    try:
+        _ds = open(DIS_KAYNAK, encoding="utf-8-sig").read()
+        _ds = re.sub(r"/\*.*?\*/", "", _ds, flags=re.S)
+        _ds = re.sub(r"(?m)//.*$", "", _ds)
+        _ds = re.sub(r",(\s*[}\]])", r"\1", _ds)
+        _dd = json.loads(_ds)["minecraft:client_entity"]["description"]
+        dis_kimlikler = set((_dd.get("animations") or {}).values())
+    except Exception as _e:
+        print("UYARI: dis oyuncu tanimi okunamadi: %s" % _e)
+
 for kimlik, yerler in kullanan.items():
     if kimlik in anim or kimlik in ctrl: continue
     if VANILLA.match(kimlik): continue
+    if kimlik in dis_kimlikler:
+        bul("DIS", yerler[0][0],
+            "birlestirilen dis tanimdan: %s (kendi paketinde)" % kimlik)
+        continue
     bul("HATA", yerler[0][0], "animasyon YOK: %s" % kimlik)
 
 # script'ten playAnimation ile oynatilanlar

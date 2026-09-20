@@ -14,7 +14,19 @@ run_command kullaniyor, ikisi de deneysel ayar gerektiriyor. Bizim
 esyalarimiz kararli formatta (asagidaki esya() aciklamasina bak).
 """
 
-import json, math, os, re, struct, zlib
+import json, math, os, re, struct, sys, zlib
+
+# Oyuncu varligi birlestirme MANTIGI arac/oyuncu_birlestir.py'de.
+# Buraya kopyalanmadi: iki yerde duran ayni mantik zamanla
+# ayrisir (deponun tekrarlayan dersi). Arac hem elle hem
+# uretimden cagriliyor, tek kaynak o.
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "arac"))
+try:
+    from oyuncu_birlestir import birlestir as _oyuncu_birlestir
+    from oyuncu_birlestir import davranis_birlestir as _davranis_birlestir
+except Exception:          # arac/ yoksa uretim yine calissin
+    _oyuncu_birlestir = None
+    _davranis_birlestir = None
 
 # ---- YOLLAR BETIGIN KENDI KONUMUNDAN  (v7.51) ----
 # Dordu de mutlak yazilmisti (depo koku betige gomuluydu).
@@ -131,7 +143,7 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # hanenin 0 yerine 5'ten baslamasi bunun isareti -- 7.83.0
 # ile 7.83.5 AYNI kod, sadece numara degisti.
 # v7.91.0: ORTANCA hane -- Avaritia'dan uc mekanik.
-SURUM_NO = (7, 96, 1)
+SURUM_NO = (7, 96, 2)
 
 SURUM_METIN = "%d.%d.%d" % SURUM_NO
 
@@ -6130,6 +6142,54 @@ SES_KAYNAK = os.path.join(os.path.dirname(os.path.abspath(__file__)),
 KONSEY_SES_KAYNAK = os.path.join(SES_KAYNAK, "konsey")
 NIDA_SES_KAYNAK = os.path.join(SES_KAYNAK, "nida")
 
+# ---- DIS OYUNCU TANIMLARI (v7.96.2) ----
+# Bedrock'ta `minecraft:player`'i ezen iki paket ayni anda
+# calisamaz: ustteki alttakini BUTUNUYLE degistirir. Iron Man
+# add-on'u bu anahtari hem davranis hem kaynak tarafinda
+# eziyor, biz de eziyoruz -- yani ikisi yan yana kurulunca
+# birinin oyuncu katmani tamamen dusuyordu.
+#
+# v7.94.10'da birlestirme araci yazildi ve cikti `addon/yerel/`
+# altinda, commit DISINDA tutuldu; o zamanki izin "kimseye
+# verme" sartliydi. v7.96.2'de kullanici yapimciyi ikna etti,
+# izin PAYLASILABILIR oldu ve birlestirme uretimin parcasi
+# haline geldi.
+#
+# Klasor BOSSA uretim hicbir sey yapmaz: depo Iron Man'siz de
+# calisir, birlesik dosya yalnizca kaynak varsa uretilir.
+DIS_OYUNCU_KAYNAK = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "kaynak_dis", "ironman")
+
+
+def _dis_oyuncu_birlestir(hedef, dosya, davranis=False):
+    """Uretilen oyuncu tanimina dis tanimi bindirir.
+
+    Hicbir sey bulamazsa SESSIZCE gecer -- birlestirme bir
+    eklenti, sart degil.
+    """
+    kaynak = os.path.join(DIS_OYUNCU_KAYNAK, dosya)
+    arac = _davranis_birlestir if davranis else _oyuncu_birlestir
+    if arac is None or not os.path.exists(kaynak):
+        return False
+    try:
+        if davranis:
+            birlesik, catisma, _birlesen, _t, _e = arac(hedef, kaynak)
+        else:
+            # Donusum anahtarini ekten gelen ucuncu sahis
+            # denetleyicilerine de yay: yoksa Ben 10 yaratigina
+            # donunce dis modeller cizmeye devam eder ve iki
+            # model ust uste biner. Gerekcesi arac/koruma_yay.
+            birlesik, catisma, _birlesen, _t, _e = arac(
+                hedef, kaynak, koru=["!variable.donusuk"])
+    except Exception as hata:
+        print("UYARI: oyuncu birlestirme atlandi (%s): %s" % (dosya, hata))
+        return False
+    yaz_json(hedef, birlesik)
+    if catisma:
+        print("NOT: %s birlestirmesinde %d catisma, taban korundu"
+              % (dosya, len(catisma)))
+    return True
+
 
 # Skinden OLCULEN vurgu rengi. Gerekcesi ve olcum dokumu
 # asagida, sis dosyalarinin yazildigi yerde.
@@ -7462,7 +7522,12 @@ def oyuncu_modeli_paketi(surum):
             _akosul += " && q.property('%s')" % _eoz
         d["scripts"]["animate"].append({_ek: _akosul})
 
-    yaz_json(os.path.join(OMP, "entity/player.entity.json"), v)
+    _rp_oyuncu = os.path.join(OMP, "entity/player.entity.json")
+    yaz_json(_rp_oyuncu, v)
+    # Dis oyuncu tanimi (Iron Man) varsa uzerine bindir.
+    # Gerekcesi DIS_OYUNCU_KAYNAK'in ustunde yazili.
+    if _dis_oyuncu_birlestir(_rp_oyuncu, "player.entity.json"):
+        print("oyuncu varligi birlestirildi (gorunum)")
 
     # Denetleyici: referans paketteki sp_m_bobby_gun'in BIREBIR
     # ayni bicimi.
@@ -12170,8 +12235,10 @@ def main():
     # Depoda ILK KEZ bir BP oyuncu varligi var; tek sebebi
     # Ant-Man'in boy degistirmesi (Bedrock'ta olcek yalniz
     # bilesen grubuyla degisiyor). Gerekcesi tanimin basinda.
-    yaz_json(os.path.join(BP, "entities/player.json"),
-             marvel_oyuncu_varligi())
+    _bp_oyuncu = os.path.join(BP, "entities/player.json")
+    yaz_json(_bp_oyuncu, marvel_oyuncu_varligi())
+    if _dis_oyuncu_birlestir(_bp_oyuncu, "player.json", davranis=True):
+        print("oyuncu varligi birlestirildi (davranis)")
 
     # ---- MARVEL PROJECT (v5.2, genisletildi v7.73) ----
     # 300 parca: 142 kostum, 90 maske, 47 guc, 21 ek. Geometri ve

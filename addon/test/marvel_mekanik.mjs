@@ -338,10 +338,17 @@ console.log("=== 6. OYUNCU VARLIGI ===");
     kontrol("spawn_category vanilla'daki gibi",
             e.description.spawn_category === "creature",
             String(e.description.spawn_category));
-    /* Fazladan grup EKLENMESIN: liste bu ikisiyle tam.       */
-    kontrol("baska grup yok",
-            grupAdlari.length === bizimGrup.length + vanillaGrup.length,
-            grupAdlari.length + " tane");
+    /* v7.96.2: "fazlasi yok" SARTI KALKTI. Uretim artik
+       oyuncu varligina dis bir tanimi (Iron Man) bindiriyor
+       ve o, kendi gruplarini/olaylarini getiriyor. Sart
+       "baskasi olmasin" degil, "BIZIMKILER DURUYOR" olmali --
+       asil risk zaten bizimkinin kaybolmasiydi.              */
+    kontrol("bizim gruplarimizin hepsi duruyor",
+            bizimGrup.every((g) => grupAdlari.includes(g)),
+            bizimGrup.join(","));
+    kontrol("vanilla gruplari duruyor",
+            vanillaGrup.every((g) => grupAdlari.includes(g)),
+            vanillaGrup.join(","));
     const olcek = bizimGrup
       .map((g) => e.component_groups[g]["minecraft:scale"].value)
       .sort((a, b) => a - b);
@@ -353,9 +360,9 @@ console.log("=== 6. OYUNCU VARLIGI ===");
     kontrol("olay adlari ayarlar.js ile ayni",
             ayarOlay.every((o) => olayAdlari.includes(o)),
             Object.keys(e.events).join(","));
-    kontrol("bizim olaylarimiz + vanilla'ninki, fazlasi yok",
-            olayAdlari.length === ayarOlay.length + vanillaOlay.length,
-            olayAdlari.length + " tane");
+    kontrol("vanilla olaylari duruyor",
+            vanillaOlay.every((o) => olayAdlari.includes(o)),
+            vanillaOlay.join(","));
     /* Cizim bileseni OLMAMALI: oyuncuyu yeniden cizmiyoruz.  */
     kontrol("BP tanimi oyuncuyu yeniden CIZMIYOR",
             !e.components["minecraft:geometry"] &&

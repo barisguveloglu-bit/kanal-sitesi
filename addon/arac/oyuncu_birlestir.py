@@ -108,9 +108,42 @@ def sirali_birlestir(a, b):
     return cikti
 
 
-def liste_birlestir(a, b, birlesen):
+def koruma_yay(harita, sira, yalnizEk, koru, birlesen):
+    """Ekten gelen ucuncu sahis denetleyicilerine koruma ekler.
+
+    NEDEN GEREKLI (v7.96.2'de olculdu):
+    Bizim donusum anahtarimiz `!variable.donusuk`, oyuncu Ben 10
+    yaratigina donunce NORMAL modeli gizliyor. Ama o kosul yalniz
+    BIZIM denetleyicilerimizde vardi. Iron Man'in tanimi dort
+    ucuncu sahis denetleyicisi daha getiriyor ve ucu yalnizca
+    `!variable.is_first_person` ile geciyor -- yani donusmusken
+    onlar cizmeye devam ederdi ve iki model ust uste binerdi.
+
+    Kural: ucuncu sahis oyuncu cizimi, KIMDEN gelirse gelsin,
+    donusum anahtarina uymak zorunda. Yalnizca EKTEN gelenlere
+    uygulanir; tabanin kendi denetleyicileri zaten korumali.
+    """
+    if not koru:
+        return
+    for k in sira:
+        if k not in yalnizEk:
+            continue
+        if "third_person" not in k:
+            continue
+        mevcut = kosul(harita[k])
+        yeni_k = mevcut
+        for sart in koru:
+            if esitle(sart) not in [esitle(x.strip())
+                                    for x in (yeni_k or "").split("&&")]:
+                yeni_k = kosul_birlestir(yeni_k, sart)
+        if yeni_k != mevcut:
+            harita[k] = {k: yeni_k}
+            birlesen.append("%s <- koruma yayildi: %s" % (k, ", ".join(koru)))
+
+
+def liste_birlestir(a, b, birlesen, koru=None):
     """Anahtara gore birlesim; ayni anahtarin kosullari `&&` ile."""
-    sira, harita = [], {}
+    sira, harita, yalnizEk = [], {}, set()
     for x in (a or []):
         k = anahtar(x)
         if k not in harita:
@@ -121,6 +154,7 @@ def liste_birlestir(a, b, birlesen):
         if k not in harita:
             sira.append(k)
             harita[k] = x
+            yalnizEk.add(k)
             continue
         eski, yeni = harita[k], x
         if eski == yeni:
@@ -132,10 +166,11 @@ def liste_birlestir(a, b, birlesen):
         harita[k] = {k: b_kosul}
         birlesen.append("%s\n      taban : %s\n      ek    : %s\n      sonuc : %s"
                         % (k, ke, ky, b_kosul))
+    koruma_yay(harita, sira, yalnizEk, koru, birlesen)
     return [harita[k] for k in sira]
 
 
-def birlestir(taban_yol, ek_yol):
+def birlestir(taban_yol, ek_yol, koru=None):
     t = yukle(taban_yol)
     e = yukle(ek_yol)
     kok = "minecraft:client_entity"
@@ -162,7 +197,8 @@ def birlestir(taban_yol, ek_yol):
     yeni["scripts"] = ys
 
     yeni["render_controllers"] = liste_birlestir(
-        td.get("render_controllers"), ed.get("render_controllers"), birlesen)
+        td.get("render_controllers"), ed.get("render_controllers"),
+        birlesen, koru)
 
     t[kok]["description"] = yeni
     return t, catisma, birlesen, td, ed

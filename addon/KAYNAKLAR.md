@@ -31,6 +31,30 @@ playsound shout:<uzaylı> master @a[distance=..15]
 
 Bizde karşılığı `ben10.js` içindeki `donusumSahnesi()`.
 
+### Iron Man Add-on — oyuncu tanımı
+
+| | |
+|---|---|
+| ne | `player.entity.json` + `entities/player.json` (iki tanım) |
+| nerede | `kaynak_dis/ironman/` (ham) → üretim paketlere bindiriyor |
+| neden | Bedrock'ta `minecraft:player`'ı ezen iki paket aynı anda çalışamaz; üstteki alttakini bütünüyle siler |
+| izin | **Yapımcısından (Mr. Nido) alındı, paylaşılabilir.** |
+
+v7.94.10'da birleştirme aracı yazılmış, çıktı `addon/yerel/` altında
+commit dışında tutulmuştu — o zamanki izin "kimseye verme" şartlıydı.
+v7.96.2'de kullanıcı yapımcıyı ikna etti, izin paylaşılabilir oldu ve
+birleştirme **üretimin parçası** hâline geldi (`kol_uret.py`).
+
+Yalnız bu iki JSON alındı; Iron Man'in geometri, doku ve animasyon
+dosyaları **alınmadı** — birleşik tanım onları kendi paketinden
+çözüyor, yani Iron Man add-on'u kurulu olmalı.
+
+**Ölçülen bir davranış:** birleştirme sırasında bizim dönüşüm
+anahtarımız (`!variable.donusuk`) ekten gelen üçüncü şahıs
+denetleyicilerine de yayılıyor. Yayılmasaydı Ben 10 yaratığına
+dönüşünce Iron Man'in modelleri çizmeye devam ederdi (ölçüldü:
+6 denetleyicinin yalnız 2'si korumalıydı).
+
 ---
 
 ## Depoda BULUNMAYAN ama ölçümü alınan modlar
@@ -46,7 +70,6 @@ Her birinin ölçümü kendi `REFERANS_*.md` dosyasında.
 | Ionstrike (Max Steel) | Bionic | `REFERANS_IONSTRIKE.md` |
 | Symbiote | kitigawa | `REFERANS_SIMBIYOT.md` |
 | NarutoMod | AHZNB | `REFERANS_NARUTO.md` |
-| Iron Man Add-on | Mr. Nido | `REFERANS_IRONMAN.md` |
 | NPA | KID_SKY | `REFERANS_NPA.md` |
 | Craftformers Prime | Bit & Byte | `REFERANS_TFP.md` |
 | GeckoLib | (MIT) | `REFERANS_GECKOLIB.md` |

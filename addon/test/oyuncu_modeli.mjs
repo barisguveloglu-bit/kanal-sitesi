@@ -206,7 +206,33 @@ console.log("=== 4. CIZIM: O SEY GELIYOR, OYUNCU GIDIYOR ===");
      anlamina gelirdi: matkaplar gorunur, takim gorunmez.  */
   const EK_KATMAN = { zirh_mod_guc_matkap: "zirh_mod_guc",
                       zirh_mod_titan_hale: "zirh_mod_titan" };
-  const tabanBicimler = bicimler.filter((b) => !(b in EK_KATMAN));
+  /* v7.96.2: DIS TANIMDAN GELENLERI AYIKLA.
+     Uretim artik oyuncu varligina dis bir tanimi (Iron Man)
+     bindiriyor ve onun geometrileri de bu haritaya giriyor
+     (`humanoid_update`, `two_hands`...). Onlar BIZIM donusum
+     bicimimiz degil; bizim tetiklerimize ve `donusuk`
+     sayacimiza bagli olmalari BEKLENMEZ.
+
+     Ayiklama TAHMIN DEGIL, OLCUM: kaynak dosyanin kendisi
+     okunuyor. Kaynak yoksa hicbir sey ayiklanmaz ve test
+     eski hâline doner.                                      */
+  let disBicim = new Set();
+  {
+    const dy = KOK + "/kaynak_dis/ironman/player.entity.json";
+    if (existsSync(dy)) {
+      try {
+        const ham = readFileSync(dy, "utf8")
+          .replace(/\/\*[\s\S]*?\*\//g, "")
+          .replace(/(^|[^:])\/\/.*$/gm, "$1")
+          .replace(/,(\s*[}\]])/g, "$1");
+        const dd = JSON.parse(ham)["minecraft:client_entity"].description;
+        disBicim = new Set(Object.keys(dd.geometry || {}));
+      } catch (e) { /* okunamadi: ayiklama yok */ }
+    }
+  }
+  const tabanBicimler = bicimler
+    .filter((b) => !(b in EK_KATMAN))
+    .filter((b) => !disBicim.has(b));
 
   const beklenenGrup = { o_sey: 1, ben_: 56, zirh_mod_: 9 };
   for (const [onek, adet] of Object.entries(beklenenGrup)) {

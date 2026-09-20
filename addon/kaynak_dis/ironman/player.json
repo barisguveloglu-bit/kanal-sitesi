@@ -1,0 +1,626 @@
+{
+  "format_version": "1.13.0",
+  "minecraft:entity": {
+    "description": {
+      "identifier": "minecraft:player",
+      "is_spawnable": false,
+      "is_summonable": false,
+      "is_experimental": false,
+      "properties":{
+		//Player transform in creature
+        "arathnido:transformation":{ "type": "bool", "default": false, "client_sync": true },
+		//Generate attack
+        "arathnido:attack":{ "type": "bool", "default": false, "client_sync": true },
+		//Attack animations
+		"arathnido:attacks":{ "type": "int","range": [0, 100], "default": "0", "client_sync": true },
+		//Skins Characters
+		"arathnido:skins":{ "type": "int","range": [0, 100], "default": "0", "client_sync": true },
+		//Agarrar/Lanzar
+        "arathnido:take":{ "type": "bool", "default": false, "client_sync": true },
+		//Block detect 100
+        "arathnido:limit_blocks":{ "type": "bool", "default": false, "client_sync": true },
+		//Camera Character
+		"arathnido:camera":{ "type": "int","range": [0, 100], "default": "0", "client_sync": true },
+		//Detect walls in front - climbing system
+		"arathnido:escalar":{ "type": "bool", "default": false, "client_sync": true },
+		//Detect roof - roof climbing system
+		"arathnido:techo":{ "type": "bool", "default": false, "client_sync": true },
+		//Load animation 1. Hulk super_attack, 2. Shoot, 3. Reload
+		"arathnido:animation":{ "type": "int","range": [0, 100], "default": "0", "client_sync": true },
+		//Custom Riding: 1. Hawkeye - Balanceo, 2. Silver Surfer Table, 3.Motocycle, 4.5.6.Gatear & Spider-Man balanceo 10 - 29
+		"arathnido:custom_riding":{ "type": "int","range": [0, 100], "default": "0", "client_sync": true },
+		//Mask System
+		"arathnido:mask":{ "type": "bool", "default": false, "client_sync": true },
+		//Ability of Power
+		"arathnido:ability0":{ "type": "int","range": [0, 100], "default": "0", "client_sync": true },
+		"nido:ability1":{ "type": "int","range": [0, 100], "default": "0", "client_sync": true },
+		//Ability of suit/Power
+		"arathnido:suit_ability0":{ "type": "int","range": [0, 100], "default": "0", "client_sync": true },
+		"arathnido:suit_ability1":{ "type": "int","range": [0, 100], "default": "0", "client_sync": true },
+		"arathnido:suit_ability2":{ "type": "int","range": [0, 100], "default": "0", "client_sync": true },
+		"arathnido:suit_ability3":{ "type": "int","range": [0, 100], "default": "0", "client_sync": true },
+		//SuitTexture
+		"arathnido:SuitTexture0":{ "type": "int","range": [0, 100], "default": "0", "client_sync": true },
+		
+		"arathnido:texture":{ "type": "int","range": [0, 100], "default": "0", "client_sync": true },
+		//Mira Telescopica
+		"nido:item.attachments.1":{ "type": "int","range": [0, 100], "default": "0", "client_sync": true },
+		//Mira Laser
+		"nido:item.attachments.2":{ "type": "int","range": [0, 100], "default": "0", "client_sync": true },
+		//Silenciador o Bayoneta
+		"nido:item.attachments.3":{ "type": "int","range": [0, 100], "default": "0", "client_sync": true },
+		//Arma secundaria: M203 o Escopeta
+		"nido:item.attachments.4":{ "type": "int","range": [0, 100], "default": "0", "client_sync": true },
+		//Skin
+		"nido:item.attachments.5":{ "type": "int","range": [0, 100], "default": "0", "client_sync": true },
+		//Blood
+		"nido:blood":{ "type": "int","range": [0, 100], "default": "0", "client_sync": true },
+		
+		"nido:flying":{ "type": "bool", "default": false, "client_sync": true }
+      },
+      "scripts": {
+        "animate": [
+			"player.ironman.c",
+			"player.ultron.c",
+			"player.whiplash.c",
+			"player.mandarin.c",
+			"player.hulkbuster.c"
+        ]
+      },
+      "animations": {
+		"player.hulkbuster.c": "controller.animation.player.hulkbuster",
+		"player.hulkbuster.hammer.c": "controller.animation.player.hulkbuster.hammer",
+		"player.hulkbuster.hammer": "animation.player.hulkbuster.hammer",
+		"player.hulkbuster.hammer.sound": "animation.player.hulkbuster.hammer.sound",
+		"player.hulkbuster.weapons.c": "controller.animation.player.hulkbuster.weapons",
+		"player.hulkbuster.footstep.c": "controller.animation.player.hulkbuster.footstep",
+		"player.hulkbuster.footstep": "animation.player.hulkbuster.footstep",
+		"player.hulkbuster.gamma_mode.c": "controller.animation.player.hulkbuster.gamma_mode",
+		"player.hulkbuster.gamma_mode": "animation.player.hulkbuster.gamma_mode",
+		"player.hulkbuster.veronica.c": "controller.animation.player.hulkbuster.veronica",
+		"player.hulkbuster.veronica": "animation.player.hulkbuster.veronica",
+		"player.hulkbuster.attack.properties.c": "controller.animation.player.hulkbuster.attack.properties",
+		"player.hulkbuster.attack.cooldown": "animation.player.hulkbuster.attack.cooldown",
+		"player.hulkbuster.attack.c": "controller.animation.player.hulkbuster.attack",
+		"player.hulkbuster.attack": "animation.player.hulkbuster.attack",
+		"player.hulkbuster.repulsor": "animation.player.hulkbuster.repulsor",
+		"player.hulkbuster.repulsor.gamma": "animation.player.hulkbuster.repulsor.gamma",
+		"player.hulkbuster.transform.on": "animation.player.hulkbuster.transform.on",
+		"player.hulkbuster.transform.off": "animation.player.hulkbuster.transform.off",
+		"player.hulkbuster.rockets": "animation.player.hulkbuster.rockets",
+		"player.hulkbuster.smash_ground": "animation.player.hulkbuster.smash_ground",
+		"player.hulkbuster.unibeam": "animation.player.hulkbuster.unibeam",
+		"player.hulkbuster.unibeam.gamma": "animation.player.hulkbuster.unibeam.gamma",
+		"player.hulkbuster.unibeam.load": "animation.player.hulkbuster.unibeam.load",
+		"player.hulkbuster.transform.c": "controller.animation.player.hulkbuster.transform",
+		"player.hulkbuster.powers.c": "controller.animation.player.hulkbuster.powers",
+		"player.hulkbuster.active.c": "controller.animation.player.hulkbuster.active",
+		"player.hulkbuster.powers": "animation.player.hulkbuster.powers",
+		"player.hulkbuster.fly_particles": "animation.player.hulkbuster.fly_particles",
+		"player.hulkbuster.float_particles": "animation.player.hulkbuster.float_particles",
+		
+		"player.mandarin.fly.c": "controller.animation.player.mandarin.fly",
+		"player.mandarin.ring_zero": "animation.player.mandarin.ring_zero",
+		"player.mandarin.liar": "animation.player.mandarin.liar",
+		"player.mandarin.liar.load": "animation.player.mandarin.liar.load",
+		"player.mandarin.lightning": "animation.player.mandarin.lightning",
+		"player.mandarin.lightning.load": "animation.player.mandarin.lightning.load",
+		"player.mandarin.nightbringer": "animation.player.mandarin.nightbringer",
+		"player.mandarin.nightbringer.load": "animation.player.mandarin.nightbringer.load",
+		"player.mandarin.ring_spectral.c": "controller.animation.player.mandarin.ring_spectral",
+		"player.mandarin.ring_spectral": "animation.player.mandarin.ring_spectral",
+		"player.mandarin.weapons.c": "controller.animation.player.mandarin.weapons",
+		"player.mandarin.c": "controller.animation.player.mandarin",
+		"player.mandarin.menu2.c": "controller.animation.player.mandarin.menu2",
+		"player.mandarin.menu1.c": "controller.animation.player.mandarin.menu1",
+		"player.mandarin.menu.time": "animation.player.mandarin.menu.time",
+		"player.mandarin.rings.c": "controller.animation.player.mandarin.rings",
+		"player.mandarin.powers": "animation.player.mandarin.powers",
+
+		"player.whiplash.c": "controller.animation.player.whiplash",
+		"player.whiplash.powers.c": "controller.animation.player.whiplash.powers",
+		"player.whiplash.powers": "animation.player.whiplash.powers",
+		"player.whiplash.weapons.c": "controller.animation.player.whiplash.weapons",
+		"player.whiplash.attack": "animation.player.whiplash.attack",
+		"player.whiplash.area": "animation.player.whiplash.area",
+		"player.whiplash.take": "animation.player.whiplash.take",
+		"player.whiplash.take.tp": "animation.player.whiplash.take.tp",
+
+		"player.ultron.drone.c": "controller.animation.player.ultron.drone",
+		"player.ultron.drone": "animation.player.ultron.drone",
+		"player.ultron.fly.c": "controller.animation.player.ultron.fly",
+		"player.ultron.float": "animation.player.ultron.float",
+		"player.ultron.gliders.particles": "animation.player.ultron.gliders.particles",
+		"player.ultron.weapons.c": "controller.animation.player.ultron.weapons",
+		"player.ultron.laser": "animation.player.ultron.laser",
+		"player.ultron.laser.load": "animation.player.ultron.laser.load",
+		"player.ultron.special_attack": "animation.player.ultron.special_attack",
+		"player.ultron.special_attack.score.load": "animation.player.ultron.special_attack.score.load",
+		"player.ultron.special_attack.load": "animation.player.ultron.special_attack.load",
+		"player.ultron.c": "controller.animation.player.ultron",
+		"player.ultron.powers.c": "controller.animation.player.ultron.powers",
+		"player.ultron.powers": "animation.player.ultron.powers",
+
+		"player.ironman.war_machine.autogun.c": "controller.animation.player.ironman.war_machine.autogun",
+		"player.ironman.war_machine.autogun": "animation.player.ironman.war_machine.autogun",
+		"player.ironman.water.c": "controller.animation.player.ironman.water",
+		"player.ironman.water": "animation.player.ironman.water",
+		"player.ironman.reset_item.c": "controller.animation.player.ironman.reset_item",
+		"player.ironman.laser_mark6": "animation.player.ironman.laser_mark6",
+		"player.ironman.laser_mark6.load": "animation.player.ironman.laser_mark6.load",
+		"player.ironman.mega_explotion": "animation.player.ironman.mega_explotion",
+		"player.ironman.mega_explotion.load": "animation.player.ironman.mega_explotion.load",
+		"player.ironman.invisibility.c": "controller.animation.player.ironman.invisibility",
+		"player.ironman.invisibility": "animation.player.ironman.invisibility",
+		"player.ironman.invisibility.load": "animation.player.ironman.invisibility.load",
+		"player.ironman.mega_unibeam.load": "animation.player.ironman.mega_unibeam.load",
+		"player.ironman.mega_unibeam": "animation.player.ironman.mega_unibeam",
+		"player.ironman.footstep.c": "controller.animation.player.ironman.footstep",
+		"player.ironman.footstep": "animation.player.ironman.footstep",
+		"player.ironman.mark2.frozen.c": "controller.animation.player.ironman.mark2.frozen",
+		"player.ironman.mark2.frozen": "animation.player.ironman.mark2.frozen",
+		"player.ironman.health.sound.c": "controller.animation.player.ironman.health.sound",
+		"player.ironman.apuntar.c": "controller.animation.player.ironman.apuntar",
+		"player.ironman.apuntar.hud.c": "controller.animation.player.ironman.apuntar.hud",
+		"player.ironman.mark50.transform.c": "controller.animation.player.ironman.mark50.transform",
+		"player.ironman.mark50.transform": "animation.player.ironman.mark50.transform",
+		"player.ironman.nanotechnology.weapons.c": "controller.animation.player.ironman.nanotechnology.weapons",
+		"player.ironman.mark50.c": "controller.animation.player.ironman.mark50",
+		"player.ironman.displacer_sentries": "animation.player.ironman.displacer_sentries",
+		"player.ironman.displacer_sentries.load": "animation.player.ironman.displacer_sentries.load",
+		"player.ironman.repulsor_cannon": "animation.player.ironman.repulsor_cannon",
+		"player.ironman.repulsor_cannon.load": "animation.player.ironman.repulsor_cannon.load",
+		"player.ironman.nanotechnology.shields.c": "controller.animation.player.ironman.nanotechnology.shields",
+		"player.ironman.shield.load": "animation.player.ironman.shield.load",
+		"player.ironman.big_shield.load": "animation.player.ironman.big_shield.load",
+		"player.ironman.flamethrower": "animation.player.ironman.flamethrower",
+		"player.ironman.flamethrower.sound": "animation.player.ironman.flamethrower.sound",
+		"player.ironman.flamethrower.load": "animation.player.ironman.flamethrower.load",
+		"player.ironman.arsenal.weapon.c": "controller.animation.player.ironman.arsenal.weapon",
+		"player.ironman.repulsor_unibeam": "animation.player.ironman.repulsor_unibeam",
+		"player.ironman.guided_rockets": "animation.player.ironman.guided_rockets",
+		"player.ironman.repulsor": "animation.player.ironman.repulsor",
+		"player.ironman.repulsor_gamma": "animation.player.ironman.repulsor_gamma",
+		"player.ironman.repulsor_gamma.load": "animation.player.ironman.repulsor_gamma.load",
+		"player.ironman.repulsor_unibeam.load": "animation.player.ironman.repulsor_unibeam.load",
+		"player.ironman.heal.c": "controller.animation.player.ironman.heal",
+		"player.ironman.heal": "animation.player.ironman.heal",
+		"player.ironman.heal.load": "animation.player.ironman.heal.load",
+		"player.war_machine.weapons.c": "controller.animation.player.war_machine.weapons",
+		"player.war_machine.special.rockets": "animation.player.war_machine.special.rockets",
+		"player.war_machine.special.shoot": "animation.player.war_machine.special.shoot",
+		"player.war_machine.special.load": "animation.player.war_machine.special.load",
+		"player.war_machine.super_sonic": "animation.player.war_machine.super_sonic",
+		"player.war_machine.super_sonic.load": "animation.player.war_machine.super_sonic.load",
+		"player.war_machine.shotgun": "animation.player.war_machine.shotgun",
+		"player.war_machine.shotgun.load": "animation.player.war_machine.shotgun.load",
+		"player.war_machine.bomb": "animation.player.war_machine.bomb",
+		"player.war_machine.bomb.load": "animation.player.war_machine.bomb.load",
+		"player.war_machine.minigun.time": "animation.player.war_machine.minigun.time",
+		"player.war_machine.minigun": "animation.player.war_machine.minigun",
+		"player.war_machine.minigun.load": "animation.player.war_machine.minigun.load",
+		"player.ironman.arsenal.c": "controller.animation.player.ironman.arsenal",
+		"player.ironman.sniper.c": "controller.animation.player.ironman.sniper",
+		"player.ironman.sniper": "animation.player.ironman.sniper",
+		"player.ironman.special_weapon.c": "controller.animation.player.ironman.special_weapon",
+		"player.ironman.flares": "animation.player.ironman.flares",
+		"player.ironman.flares.load": "animation.player.ironman.flares.load",
+		"player.ironman.miniguns": "animation.player.ironman.miniguns",
+		"player.ironman.miniguns.load": "animation.player.ironman.miniguns.load",
+		"player.ironman.unibeam.c": "controller.animation.player.ironman.unibeam",
+		"player.ironman.unibeam": "animation.player.ironman.unibeam",
+		"player.ironman.unibeam.load": "animation.player.ironman.unibeam.load",
+		"player.ironman.laser_reactor.load": "animation.player.ironman.laser_reactor.load",
+		"player.ironman.ironman_laser.load": "animation.player.ironman.ironman_laser.load",
+		"player.ironman.laser_reactor": "animation.player.ironman.laser_reactor",
+		"player.war_machine.laser_reactor": "animation.player.war_machine.laser_reactor",
+		"player.ironman.laser_reactor.time": "animation.player.ironman.laser_reactor.time",
+		"player.ironman.weapons.c": "controller.animation.player.ironman.weapons",
+		"player.ironman.laser": "animation.player.ironman.laser",
+		"player.ironman.laser.sound": "animation.player.ironman.laser.sound",
+		"player.ironman.superior_ironman.time": "animation.player.ironman.superior_ironman.time",
+		"player.ironman.suit.sounds.c": "controller.animation.player.ironman.suit.sounds",
+		"player.ironman.mask.sounds.c": "controller.animation.player.ironman.mask.sounds",
+		"player.ironman.mask.time": "animation.player.ironman.mask.time",
+		"player.ironman.mask.c": "controller.animation.player.ironman.mask",
+		"player.ironman.c": "controller.animation.player.ironman",
+		"player.ironman.powers.c": "controller.animation.player.ironman.powers",
+		"player.ironman.powers": "animation.player.ironman.powers",
+		"player.ironman.fly.c": "controller.animation.player.ironman.fly",
+		"player.ironman.fly.remove": "animation.player.ironman.fly.remove",
+		"player.ironman.fly": "animation.player.ironman.fly",
+		"player.ironman.fly.time": "animation.player.ironman.fly.time",
+		"player.ironman.propulsor_loop": "animation.player.ironman.propulsor_loop",
+		"player.ironman.gliders_loop": "animation.player.ironman.gliders_loop",
+		"player.ironman.float": "animation.player.ironman.float",
+		"player.ironman.gliders.particles": "animation.player.ironman.gliders.particles",
+		"player.ironman.aterrizaje": "animation.player.ironman.aterrizaje",
+		"player.ironman.fly.time": "animation.player.ironman.fly.time",
+		"player.ironman.weapons.time": "animation.player.ironman.weapons.time",
+		"regeneration.powers": "animation.regeneration.powers"
+      }
+    },
+
+    "component_groups": {
+      "hulkbuster:unibeam_gamma": { "minecraft:spawn_entity": { "entities": [  { "min_wait_time": 0, "max_wait_time": 0, "single_use": true, "spawn_entity": "ironmanaddon:unibeam_gamma_shoot", "num_to_spawn": 1 }]}
+      },
+      "mandarin:lightning": { "minecraft:spawn_entity": { "entities": [  { "min_wait_time": 0, "max_wait_time": 0, "single_use": true, "spawn_entity": "ironmanaddon:ring_lightning_shoot", "num_to_spawn": 1 }]}
+      },
+      "mandarin:liar": { "minecraft:spawn_entity": { "entities": [  { "min_wait_time": 0, "max_wait_time": 0, "single_use": true, "spawn_entity": "ironmanaddon:ring_liar_shoot", "num_to_spawn": 1 }]}
+      },
+      "mandarin:nightbringer": { "minecraft:spawn_entity": { "entities": [  { "min_wait_time": 0, "max_wait_time": 0, "single_use": true, "spawn_entity": "ironmanaddon:ring_nightbringer_shoot", "num_to_spawn": 1 }]}
+      },
+      "ultron:laser": { "minecraft:spawn_entity": { "entities": [  { "min_wait_time": 0, "max_wait_time": 0, "single_use": true, "spawn_entity": "ironmanaddon:ultron_laser_shoot", "num_to_spawn": 1 }]}
+      },
+      "ultron:special_attack": { "minecraft:spawn_entity": { "entities": [  { "min_wait_time": 0, "max_wait_time": 0, "single_use": true, "spawn_entity": "ironmanaddon:ultron_special_attack_shoot", "num_to_spawn": 12 }]}
+      },
+      "ironman:big_escudo_on": {
+		"minecraft:damage_sensor": {
+          "triggers": {
+		    "cause": "all",
+			"deals_damage": false,
+            "on_damage": {
+              "event": "ironman:big_escudo_empuje"
+            }
+          }
+        }
+	  },
+      "ironman:big_escudo_off": {
+      "minecraft:damage_sensor": {
+        "triggers": {
+          "cause": "all",
+          "deals_damage": true
+        }
+      }
+	  },
+      "ironman:escudo_empuje": { "minecraft:spawn_entity": { "entities": [  { "min_wait_time": 0, "max_wait_time": 0, "single_use": true, "spawn_entity": "ironmanaddon:escudo_empuje", "num_to_spawn": 5 }]}
+      },
+      "ironman:escudo_on": {
+		"minecraft:damage_sensor": {
+          "triggers": {
+		    "cause": "all",
+			"deals_damage": false,
+            "on_damage": {
+              "event": "ironman:escudo_empuje"
+            }
+          }
+        }
+	  },
+      "ironman:escudo_off": {
+      "minecraft:damage_sensor": {
+        "triggers": {
+          "cause": "all",
+          "deals_damage": true
+        }
+      }
+	  },
+      "ironman:displacer_sentries": { "minecraft:spawn_entity": { "entities": [  { "min_wait_time": 0, "max_wait_time": 0, "single_use": true, "spawn_entity": "ironmanaddon:displacer_sentries_shoot", "num_to_spawn": 1 }]}
+      },
+      "ironman:repulsor_cannon": { "minecraft:spawn_entity": { "entities": [  { "min_wait_time": 0, "max_wait_time": 0, "single_use": true, "spawn_entity": "ironmanaddon:repulsor_cannon_shoot", "num_to_spawn": 1 }]}
+      },
+      "ironman:flamethrower": { "minecraft:spawn_entity": { "entities": [  { "min_wait_time": 0, "max_wait_time": 0, "single_use": true, "spawn_entity": "ironmanaddon:flamethrower_shoot", "num_to_spawn": 5 }]}
+      },
+      "ironman:guided_rockets": { "minecraft:spawn_entity": { "entities": [  { "min_wait_time": 0, "max_wait_time": 0, "single_use": true, "spawn_entity": "ironmanaddon:guided_rockets_shoot", "num_to_spawn": 1 }]}
+      },
+      "ironman:repulsor_gamma": { "minecraft:spawn_entity": { "entities": [  { "min_wait_time": 0, "max_wait_time": 0, "single_use": true, "spawn_entity": "ironmanaddon:repulsor_gamma_shoot", "num_to_spawn": 1 }]}
+      },
+      "ironman:repulsor_unibeam": { "minecraft:spawn_entity": { "entities": [  { "min_wait_time": 0, "max_wait_time": 0, "single_use": true, "spawn_entity": "ironmanaddon:repulsor_unibeam_shoot", "num_to_spawn": 1 }]}
+      },
+      "war_machine:special": { "minecraft:spawn_entity": { "entities": [  { "min_wait_time": 0, "max_wait_time": 0, "single_use": true, "spawn_entity": "ironmanaddon:minigun_shoot", "num_to_spawn": 5 }]}
+      },
+      "ironman:super_sonic": { "minecraft:spawn_entity": { "entities": [  { "min_wait_time": 0, "max_wait_time": 0, "single_use": true, "spawn_entity": "ironmanaddon:super_sonic_shoot", "num_to_spawn": 9 }]}
+      },
+      "ironman:shotgun": { "minecraft:spawn_entity": { "entities": [  { "min_wait_time": 0, "max_wait_time": 0, "single_use": true, "spawn_entity": "ironmanaddon:shotgun_shoot", "num_to_spawn": 9 }]}
+      },
+      "ironman:minigun": { "minecraft:spawn_entity": { "entities": [  { "min_wait_time": 0, "max_wait_time": 0, "single_use": true, "spawn_entity": "ironmanaddon:minigun_shoot", "num_to_spawn": 1 }]}
+      },
+      "ironman:miniguns": { "minecraft:spawn_entity": { "entities": [  { "min_wait_time": 0, "max_wait_time": 0, "single_use": true, "spawn_entity": "ironmanaddon:miniguns_shoot", "num_to_spawn": 1 }]}
+      },
+      "ironman:mega_unibeam": { "minecraft:spawn_entity": { "entities": [  { "min_wait_time": 0, "max_wait_time": 0, "single_use": true, "spawn_entity": "ironmanaddon:mega_unibeam_shoot", "num_to_spawn": 1 }]}
+      },
+      "ironman:mega_explotion": { "minecraft:spawn_entity": { "entities": [  { "min_wait_time": 0, "max_wait_time": 0, "single_use": true, "spawn_entity": "ironmanaddon:mega_explotion_shoot", "num_to_spawn": 1 }]}
+      },
+      "ironman:unibeam": { "minecraft:spawn_entity": { "entities": [  { "min_wait_time": 0, "max_wait_time": 0, "single_use": true, "spawn_entity": "ironmanaddon:unibeam_shoot", "num_to_spawn": 1 }]}
+      },
+      "war_machine:laser_reactor": { "minecraft:spawn_entity": { "entities": [  { "min_wait_time": 0, "max_wait_time": 0, "single_use": true, "spawn_entity": "ironmanaddon:war_machine_laser_reactor_shoot", "num_to_spawn": 1 }]}
+      },
+      "ironman:laser_reactor": { "minecraft:spawn_entity": { "entities": [  { "min_wait_time": 0, "max_wait_time": 0, "single_use": true, "spawn_entity": "ironmanaddon:laser_reactor_shoot", "num_to_spawn": 1 }]}
+      },
+      "ironman:repulse": { "minecraft:spawn_entity": { "entities": [  { "min_wait_time": 0, "max_wait_time": 0, "single_use": true, "spawn_entity": "ironmanaddon:repulse_shoot", "num_to_spawn": 1 }]}
+      },
+      "ironman:misil_launcher_glove": { "minecraft:spawn_entity": { "entities": [  { "min_wait_time": 0, "max_wait_time": 0, "single_use": true, "spawn_entity": "ironmanaddon:misil_shoot", "num_to_spawn": 1 }]}
+      },
+      "ironman:laser": { "minecraft:spawn_entity": { "entities": [  { "min_wait_time": 0, "max_wait_time": 0, "single_use": true, "spawn_entity": "ironmanaddon:laser_shoot", "num_to_spawn": 1 }]}
+      },
+      "minecraft:add_bad_omen": {
+        "minecraft:spell_effects": {
+          "add_effects": [
+            {
+              "effect": "bad_omen",
+              "duration": 6000,
+              "display_on_screen_animation": true
+            }
+          ]
+        },
+        "minecraft:timer": {
+          "time": [ 0.0, 0.0 ],
+          "looping": false,
+          "time_down_event": {
+            "event": "minecraft:clear_add_bad_omen",
+            "target": "self"
+          }
+        }
+      },
+      "minecraft:clear_bad_omen_spell_effect": {
+        "minecraft:spell_effects": {
+        }
+      },
+      "minecraft:raid_trigger": {
+        "minecraft:raid_trigger": {
+          "triggered_event": {
+            "event": "minecraft:remove_raid_trigger",
+            "target": "self"
+          }
+        },
+        "minecraft:spell_effects": {
+          "remove_effects": "bad_omen"
+        }
+      }
+    },
+
+    "components": {
+      "minecraft:experience_reward": {
+        "on_death": "Math.Min(query.player_level * 7, 100)"
+      },
+      "minecraft:type_family": {
+        "family": [ "player" ]
+      },
+      "minecraft:is_hidden_when_invisible": {
+      },
+      "minecraft:loot": {
+        "table": "loot_tables/empty.json"
+      },
+      "minecraft:collision_box": {
+        "width": 0.6,
+        "height": 1.8
+      },
+      "minecraft:can_climb": {
+      },
+      "minecraft:movement": {
+        "value": 0.1
+      },
+      "minecraft:hurt_on_condition": {
+        "damage_conditions": [
+          {
+            "filters": { "test": "in_lava", "subject": "self", "operator": "==", "value": true },
+            "cause": "lava",
+            "damage_per_tick": 4
+          }
+        ]
+      },
+      "minecraft:attack": {
+        "damage": 1
+      },
+      "minecraft:player.saturation": {
+        "value": 20
+      },
+      "minecraft:player.exhaustion": {
+        "value": 0,
+        "max": 4
+      },
+      "minecraft:player.level": {
+        "value": 0,
+        "max": 24791
+      },
+      "minecraft:player.experience": {
+        "value": 0,
+        "max": 1
+      },
+      "minecraft:breathable": {
+        "total_supply": 15,
+        "suffocate_time": -1,
+        "inhale_time": 3.75,
+        "generates_bubbles": false
+      },
+      "minecraft:nameable": {
+        "always_show": true,
+        "allow_name_tag_renaming": false
+      },
+      "minecraft:physics": {
+      },
+      "minecraft:pushable": {
+        "is_pushable": false,
+        "is_pushable_by_piston": true
+      },
+      "minecraft:insomnia": {
+        "days_until_insomnia": 3
+      },
+      "minecraft:rideable": {
+        "seat_count": 2,
+        "family_types": [
+          "parrot_tame"
+        ],
+        "pull_in_entities": true,
+        "seats": [
+          {
+            "position": [ 0.4, -0.2, -0.1 ],
+            "min_rider_count": 0,
+            "max_rider_count": 0,
+            "lock_rider_rotation": 0
+          },
+          {
+            "position": [ -0.4, -0.2, -0.1 ],
+            "min_rider_count": 1,
+            "max_rider_count": 2,
+            "lock_rider_rotation": 0
+          }
+        ]
+      },
+      "minecraft:scaffolding_climber": {},
+      "minecraft:environment_sensor": {
+        "triggers": {
+          "filters": {
+            "all_of": [
+              {
+                "test": "has_mob_effect",
+                "subject": "self",
+                "value": "bad_omen"
+              },
+              {
+                "test": "is_in_village",
+                "subject": "self",
+                "value": true
+              }
+            ]
+          },
+          "event": "minecraft:trigger_raid"
+        }
+      }
+    },
+
+    "events": {
+      "minecraft:gain_bad_omen": {
+        "add": {
+          "component_groups": [
+            "minecraft:add_bad_omen"
+          ]
+        }
+      },
+      "minecraft:clear_add_bad_omen": {
+        "remove": {
+          "component_groups": [
+            "minecraft:add_bad_omen"
+          ]
+        },
+        "add": {
+          "component_groups": [
+            "minecraft:clear_bad_omen_spell_effect"
+          ]
+        }
+      },
+      "minecraft:trigger_raid": {
+        "add": {
+          "component_groups": [ "minecraft:raid_trigger" ]
+        }
+      },
+      "minecraft:remove_raid_trigger": {
+        "remove": {
+          "component_groups": [ "minecraft:raid_trigger" ]
+        }
+      },
+	  //GUNS3
+      "guns:reload": { "set_property":{ "arathnido:animation": 3 }
+      },
+      "guns:reload.off": { "set_property":{ "arathnido:animation": 0 }
+      },
+      "guns:shoot": { "set_property":{ "arathnido:animation": 2 }
+      },
+      "guns:shoot.off": { "set_property":{ "arathnido:animation": 0 }
+      },
+      "nido:flying": { "set_property":{ "nido:flying": true }
+      },
+      "nido:flying.off": { "set_property":{ "nido:flying": false }
+      },
+      "ironman:repulse": { "add": { "component_groups": [ "ironman:repulse" ] }
+      },
+      "ironman:laser": { "add": { "component_groups": [ "ironman:laser" ] }
+      },
+      "ironman:misil_launcher_glove": { "add": { "component_groups": [ "ironman:misil_launcher_glove" ] }
+      },
+      "ironman:laser_reactor": { "add": { "component_groups": [ "ironman:laser_reactor" ] }
+      },
+      "ironman:mega_unibeam": { "add": { "component_groups": [ "ironman:mega_unibeam" ] }
+      },
+      "ironman:unibeam": { "add": { "component_groups": [ "ironman:unibeam" ] }
+      },
+      "ironman:miniguns": { "add": { "component_groups": [ "ironman:miniguns" ] }
+      },
+      "ironman:minigun": { "add": { "component_groups": [ "ironman:minigun" ] }
+      },
+      "ironman:mega_explotion": { "add": { "component_groups": [ "ironman:mega_explotion" ] }
+      },
+      "war_machine:laser_reactor": { "add": { "component_groups": [ "war_machine:laser_reactor" ] }
+      },
+      "ironman:shotgun": { "add": { "component_groups": [ "ironman:shotgun" ] }
+      },
+      "ironman:super_sonic": { "add": { "component_groups": [ "ironman:super_sonic" ] }
+      },
+      "ironman:repulsor_unibeam": { "add": { "component_groups": [ "ironman:repulsor_unibeam" ] }
+      },
+      "war_machine:special": { "add": { "component_groups": [ "war_machine:special" ] }
+      },
+      "ironman:repulsor_gamma": { "add": { "component_groups": [ "ironman:repulsor_gamma" ] }
+      },
+      "ironman:guided_rockets": { "add": { "component_groups": [ "ironman:guided_rockets" ] }
+      },
+      "ironman:flamethrower": { "add": { "component_groups": [ "ironman:flamethrower" ] }
+      },
+      "ironman:escudo_off": { "remove": { "component_groups": [ "ironman:escudo_on" ] }, "add": { "component_groups": [ "ironman:escudo_off" ] }, "set_property":{ "arathnido:ability0": 0 }
+      },
+      "ironman:escudo_on": { "add": { "component_groups": [ "ironman:escudo_on" ] }, "set_property":{ "arathnido:animation": 2 }
+      },
+      "ironman:escudo_empuje": { "add": { "component_groups": [ "ironman:escudo_empuje" ] },
+		"queue_command": { "command": [ "playsound random.anvil_land @a[r=15] ~ ~ ~", "scoreboard players remove @s[scores={ironman_shield=1..}] ironman_shield 1", "function ironman/ironman_shield_score" ]
+		}
+      },
+      "ironman:big_escudo_off": { "remove": { "component_groups": [ "ironman:big_escudo_on" ] }, "add": { "component_groups": [ "ironman:big_escudo_off" ] }, "set_property":{ "arathnido:ability0": 0 }
+      },
+      "ironman:big_escudo_on": { "add": { "component_groups": [ "ironman:big_escudo_on" ] }, "set_property":{ "arathnido:animation": 2 }
+      },
+      "ironman:big_escudo_empuje": { "add": { "component_groups": [ "ironman:escudo_empuje" ] },
+		"queue_command": { "command": [ "playsound random.anvil_land @a[r=15] ~ ~ ~", "scoreboard players remove @s[scores={ironman_big_shield=1..}] ironman_big_shield 1", "function ironman/ironman_big_shield_score" ]
+		}
+      },
+      "ironman:repulsor_cannon": { "add": { "component_groups": [ "ironman:repulsor_cannon" ] }
+      },
+      "ironman:displacer_sentries": { "add": { "component_groups": [ "ironman:displacer_sentries" ] }
+      },
+      "ultron:laser": { "add": { "component_groups": [ "ultron:laser" ] }
+      },
+      "ultron:special_attack": { "add": { "component_groups": [ "ultron:special_attack" ] }
+      },
+      "ultron:drone": { "set_property":{ "arathnido:ability0": 1 }
+      },
+      "ultron:drone.off": { "set_property":{ "arathnido:ability0": 0 }
+      },
+      "mandarin:nightbringer": { "add": { "component_groups": [ "mandarin:nightbringer" ] }
+      },
+      "mandarin:liar": { "add": { "component_groups": [ "mandarin:liar" ] }
+      },
+      "mandarin:lightning": { "add": { "component_groups": [ "mandarin:lightning" ] }
+      },
+      "ironman:mark50.off": { "set_property":{ "arathnido:SuitTexture0": 0 }
+      },
+      "ironman:mark50.1": { "set_property":{ "arathnido:SuitTexture0": 1 }
+      },
+      "ironman:mark50.2": { "set_property":{ "arathnido:SuitTexture0": 2 }
+      },
+      "ironman:mark50.3": { "set_property":{ "arathnido:SuitTexture0": 3 }
+      },
+      "ironman:mark50.4": { "set_property":{ "arathnido:SuitTexture0": 4 }
+      },
+      "ironman:mark50.5": { "set_property":{ "arathnido:SuitTexture0": 5 }
+      },
+      "ironman:mark50.6": { "set_property":{ "arathnido:SuitTexture0": 6 }
+      },
+      "ironman:hulkbuster.gamma_mode.on": { "set_property":{ "arathnido:ability0": 1 }
+      },
+      "ironman:hulkbuster.gamma_mode.off": { "set_property":{ "arathnido:ability0": 0 }
+      },
+      "ironman:hulkbuster.on": { "set_property":{ "nido:ability1": 2 }
+      },
+      "ironman:hulkbuster.off": { "set_property":{ "nido:ability1": 0 }
+      },
+      "ironman:invisibility": { "set_property":{ "arathnido:ability0": 1 }
+      },
+      "ironman:invisibility.off": { "set_property":{ "arathnido:ability0": 0 }
+      },
+      "hulkbuster:attack": { "set_property":{ "arathnido:attack": 1 }
+      },
+      "hulkbuster:attack.off": { "set_property":{ "arathnido:attack": 0 }
+      },
+      "hulkbuster:unibeam_gamma": { "add": { "component_groups": [ "hulkbuster:unibeam_gamma" ] }
+      }
+    }
+  }
+}
