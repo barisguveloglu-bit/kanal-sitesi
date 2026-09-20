@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.95.3";
+export const SURUM = "v7.96.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -12019,3 +12019,97 @@ export const ULTIMATE_PARCACIK = "minecraft:electric_spark_particle";
 export const ULTIMATE_PARCACIK_ADET = 16;
 export const ULTIMATE_SES_AC  = "beacon.activate";
 export const ULTIMATE_SES_KAPA = "beacon.deactivate";
+
+/* ============================================================
+   BEN 10 · DONUSUM ANI                                 v7.96
+
+   Kullanici: "donusum yaparken bir sey oluyor mu?"
+   Cevap: KAYNAKTA oluyordu, BIZDE hic olmuyordu. Donusumde
+   ne parcacik ne ses vardi.
+
+   ---- KAYNAKTA UC KATMAN VAR (olculdu) ----
+   1. `energy_beams/transform_bubbles/` 16 dosya. Hepsi
+      `palladium:lightning`. Kalip: `transform_timer` bir
+      animation_timer, `transform_bubble` ise o zamanlayici
+      10. tick'e gelince atesleniyor
+      (`animation_timer_ability` min 10 max 10).
+   2. `particle_emitters/` 18 dosya (pyronite ×7, dragonoid ×2,
+      freeze_breath, aqua_jet, slime, smoke_dash/form, spin ×2).
+   3. `shout` ADLI AYRI MOD: 11 ses, her uzayliya biri.
+      Komut: `playsound shout:<uzayli> master @a[distance=..15]`.
+
+   ---- NE ALINDI, NE ALINMADI ----
+   ALINDI: zamanlama fikri, 15 blokluk duyulma yaricapi ve
+   TURLERIN GERCEK PARILTI RENKLERI (asagida, hex olarak
+   kaynaktan okundu).
+   ALINMADI: onlarin ses ve animasyon DOSYALARI. Uc modun da
+   lisansi kisitli ve bu depo acik (bkz. CLAUDE.md). Gercek
+   nidalar isteniyorsa `addon/yerel/` kolundan eklenir;
+   BEN10_NIDA haritasi tam da bunun icin bos duruyor.
+   ============================================================ */
+export const BEN10_DONUSUM_ACIK = true;
+
+/* TURUN PARILTI RENGI -- KAYNAKTAN OLCULDU, uydurulmadi.
+   alienevo'nun guc JSON'larindaki `glow_color_1` alani.
+   24 turumuzun 13'unde bu deger VAR; kalan 11'i kaynakta
+   renk tasimiyor ve onlara renk UYDURULMADI -- varsayilana
+   dusuyorlar.                                              */
+export const BEN10_DONUSUM_RENK = new Map([
+  ["petrosapien",       "#86d698"],
+  ["tetramand",         "#cbcbcb"],
+  ["pyronite",          "#f3b661"],
+  ["vulpimancer",       "#FF0000"],
+  ["lepidopterran",     "#cee442"],
+  ["ectonurite",        "#ca7de8"],
+  ["arburian_pelarota", "#FFAD35"],
+  ["aerophibian",       "#56ff00"],
+  ["nucleonix",         "#39ff33"],
+  ["dragonoid",         "#ec692a"],
+  ["methanosian",       "#fca103"],
+  ["sonorosian",        "#ffffff"],
+  ["crystalsapien",     "#D646D6"]
+]);
+
+/* Renk -> parcacik. BU ESLEME OLCUM DEGIL, YAKLASTIRMA.
+   Sebep: Bedrock'ta bu vanilla parcaciklar renk almiyor;
+   hex'i dogrudan basmanin yolu ozel bir parcacik dosyasi
+   yazmaktan geciyor ve o, oyunda denenmeden eklenirse
+   sessizce hic cizilmeyebilir. Bu yuzden her tur, rengine
+   EN YAKIN ailedeki kanitlanmis vanilla parcacigina
+   baglandi (hepsi bu depoda zaten kullaniliyor).
+   Ustteki hex'ler kayitli; biri ozel parcacik yazmak
+   isterse oradan okur.                                     */
+export const BEN10_DONUSUM_PARCACIK = new Map([
+  ["vulpimancer",       "minecraft:redstone_ore_dust_particle"],
+  ["pyronite",          "minecraft:basic_flame_particle"],
+  ["dragonoid",         "minecraft:basic_flame_particle"],
+  ["methanosian",       "minecraft:basic_flame_particle"],
+  ["arburian_pelarota", "minecraft:basic_flame_particle"],
+  ["nucleonix",         "minecraft:crop_growth_emitter"],
+  ["aerophibian",       "minecraft:crop_growth_emitter"],
+  ["petrosapien",       "minecraft:crop_growth_emitter"],
+  ["lepidopterran",     "minecraft:crop_growth_emitter"],
+  ["crystalsapien",     "minecraft:enchanting_table_particle"],
+  ["ectonurite",        "minecraft:dragon_breath_trail"],
+  ["sonorosian",        "minecraft:snowflake_particle"],
+  ["tetramand",         "minecraft:basic_smoke_particle"]
+]);
+export const BEN10_DONUSUM_VARSAYILAN = "minecraft:electric_spark_particle";
+
+export const BEN10_DONUSUM_ADET    = 14;   // halkadaki parcacik
+export const BEN10_DONUSUM_YARICAP = 1.1;  // blok
+
+/* Donusum sesi. Vanilla -- kaynagin kendi nidalari DEGIL.
+   (Kaynakta nida 15 blok capinda duyuluyordu: `playsound
+   shout:<uzayli> master @a[distance=..15]`. Bizde vanilla
+   playSound zaten cevreye caliyor, o yuzden ayri bir menzil
+   AYARI YOK -- oksuz ayar olurdu, sayi burada yazili.)     */
+export const BEN10_DONUSUM_SES = "beacon.power";
+/* Insana geri donerken. */
+export const BEN10_DONUSUM_SES_GERI = "beacon.deactivate";
+
+/* TURE OZEL NIDA. Depoda BOS: kaynagin 11 ses dosyasi
+   alinmadi (lisans). `addon/yerel/` koluna ses eklenirse
+   buraya "tur -> ses kimligi" yazilir ve o tur icin
+   BEN10_DONUSUM_SES yerine bu calar.                       */
+export const BEN10_NIDA = new Map();

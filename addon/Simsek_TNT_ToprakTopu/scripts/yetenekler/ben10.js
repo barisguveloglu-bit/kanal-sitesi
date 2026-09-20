@@ -1,6 +1,9 @@
 import { system } from "@minecraft/server";
-import { actionbarYaz, eldekiEsya } from "../yardimcilar.js";
-import { BEN10_ACIK, BEN10_TARAMA, BEN10_SURE, BEN10 } from "../ayarlar.js";
+import { actionbarYaz, eldekiEsya , parcacikHalkasi, varlikKonumu} from "../yardimcilar.js";
+import { BEN10_ACIK, BEN10_TARAMA, BEN10_SURE, BEN10 ,
+  BEN10_DONUSUM_ACIK, BEN10_DONUSUM_RENK, BEN10_DONUSUM_PARCACIK,
+  BEN10_DONUSUM_VARSAYILAN, BEN10_DONUSUM_ADET, BEN10_DONUSUM_YARICAP,
+  BEN10_DONUSUM_SES, BEN10_DONUSUM_SES_GERI, BEN10_NIDA} from "../ayarlar.js";
 import { beceriEfektleri } from "./beceri.js";
 /* TEK YONLU ITHAL. infintrix.js buradan HICBIR SEY almiyor;
    dairesel ithal olsaydi ESM yuklenme sirasina gore biri
@@ -80,6 +83,42 @@ export function elindekiYaratik(oyuncu) {
   return undefined;
 }
 
+/* ---- DONUSUM SAHNESI (v7.96) ----
+   Tek is: donusum ANINDA bir halka parcacik ve bir ses.
+   Mekanige dokunmuyor -- efektler zaten asagida veriliyor.
+
+   Tur rengi kaynaktan OLCULDU (BEN10_DONUSUM_RENK); parcacik
+   secimi ise yaklastirma, cunku vanilla parcaciklar renk
+   almiyor. Gerekce ayarlar.js'te yazili.
+
+   Ses: depoda vanilla. Kaynagin 11 nidasi ALINMADI (lisans);
+   BEN10_NIDA doldurulursa ture ozel ses calar.              */
+function donusumSahnesi(oyuncu, anahtar) {
+  if (!BEN10_DONUSUM_ACIK) return;
+  const t = anahtar ? BEN10.get(anahtar) : undefined;
+  const kaynak = t ? t.kaynak : undefined;
+
+  try {
+    const k = varlikKonumu(oyuncu);
+    const p = (kaynak && BEN10_DONUSUM_PARCACIK.get(kaynak)) ||
+              BEN10_DONUSUM_VARSAYILAN;
+    parcacikHalkasi(oyuncu.dimension, p, k,
+                    BEN10_DONUSUM_ADET, BEN10_DONUSUM_YARICAP);
+  } catch (e) {
+    /* Cizim sus: donusumun kendisi calisti. */
+  }
+
+  try {
+    const ses = t
+      ? ((kaynak && BEN10_NIDA.get(kaynak)) || BEN10_DONUSUM_SES)
+      : BEN10_DONUSUM_SES_GERI;
+    oyuncu.dimension.playSound(ses, varlikKonumu(oyuncu));
+  } catch (e) {
+    /* playSound bu surumde yoksa donusum yine oldu. */
+  }
+}
+
+
 export function ben10Tara(oyuncular) {
   if (!BEN10_ACIK) return;
   const simdi = system.currentTick;
@@ -108,6 +147,10 @@ export function ben10Tara(oyuncular) {
       /* Yaratik degisince efektleri HEMEN ver: bir tarama
          beklemek "aldim ama bir sey olmadi" hissi verirdi.  */
       sonraki.set(oyuncu.id, 0);
+      /* v7.96: DONUSUM ANI. Buraya kadar donusum sessiz ve
+         gorselsizdi; kaynakta (alienevo + shout) uc katman
+         vardi. Ayrinti ayarlar.js'teki blokta.              */
+      donusumSahnesi(oyuncu, anahtar);
     }
     if (anahtar) sonTur.set(oyuncu.id, anahtar);
 
