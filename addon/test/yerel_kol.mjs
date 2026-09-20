@@ -70,6 +70,30 @@ console.log("=== 3. GERCEKTEN YOK SAYILIYOR MU (olcerek) ===");
 }
 
 console.log("");
+console.log("=== 3b. URETILEN _Yerel PAKETLERI DE YOK SAYILIYOR ===");
+{
+  // v7.94.10'da yakalandi: yerel/ korunuyordu ama paketle.sh'in
+  // URETTIGI _Yerel paketleri korunmuyordu ve `git add -A` onlari
+  // sessizce commit'e aldi. Icleri birlesik player.entity.json
+  // tasiyor -- o da dis bir moddan TURETILMIS.
+  const izlenen = git("ls-files", "addon/");
+  const sizan = izlenen.split("\n").filter((x) => x.includes("_Yerel_"));
+  kontrol("izlenen dosyalarda _Yerel paketi yok", sizan.length === 0,
+          sizan.join(", ") || "temiz");
+
+  const deneme = join(ADDON, "Simsek_v0.0.0_Yerel_Sinama.mcpack");
+  try {
+    writeFileSync(deneme, "sinama");
+    const ciktisi = git("status", "--porcelain", "--", "addon/");
+    const gorunen = ciktisi.split("\n").filter((x) => x.includes("_Yerel_"));
+    kontrol("yeni _Yerel paketi git status'ta GORUNMUYOR",
+            gorunen.length === 0, gorunen.join(", ") || "temiz");
+  } finally {
+    rmSync(deneme, { force: true });
+  }
+}
+
+console.log("");
 console.log("=== 4. paketle.sh YEREL KOLU TASIYOR ===");
 {
   const ps = readFileSync(join(ADDON, "paketle.sh"), "utf8");

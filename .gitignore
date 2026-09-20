@@ -9,3 +9,9 @@ addon/onizleme/
 # olurdu. paketle.sh burayi varsa alir, yoksa sessizce atlar.
 # Ayrinti: CLAUDE.md "Yerel varlik kolu".
 addon/yerel/
+
+# Yerel kolun URETTIGI paketler de girmez (v7.94.10'da yakalandi:
+# `git add -A` bunlari sessizce commit'e aldi). Icleri birlesik
+# player.entity.json tasiyor, o da dis bir moddan TURETILMIS.
+addon/*_Yerel_*.mcpack
+addon/*_Yerel_*.mcaddon
