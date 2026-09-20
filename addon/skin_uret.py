@@ -87,7 +87,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from kol_uret import GOZ_SATIR, GOZ_SUTUNLAR, png_yaz, golge
+from kol_uret import GOZ_SATIR, GOZ_SUTUNLAR, png_yaz
 
 CIKTI = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                      "UzakAkraba_skin.png")

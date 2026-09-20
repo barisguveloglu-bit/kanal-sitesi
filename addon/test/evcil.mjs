@@ -21,7 +21,6 @@
 
    Ikisi de tek basina follow_owner'i olduruyor.              */
 
-import { dunyaKur, oyuncuKur } from "./dunya.mjs";
 import { tickIlerlet, varlikKaydet, _durum } from "@minecraft/server";
 import { readFileSync } from "node:fs";
 const KOK = new URL("..", import.meta.url).pathname.replace(/\/$/, "");

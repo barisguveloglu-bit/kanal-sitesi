@@ -9,7 +9,7 @@
    koruduğu okunabiliyor -- "eskiden burada bir hata vardi"
    demek yetmiyor, HANGI hata oldugu yazili olmali.            */
 
-import { dunyaKur, oyuncuKur } from "./dunya.mjs";
+import { dunyaKur } from "./dunya.mjs";
 import { tickIlerlet, _durum } from "@minecraft/server";
 import { readFileSync, existsSync } from "node:fs";
 

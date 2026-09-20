@@ -34,10 +34,7 @@ uv dortgeni var. Bedrock 1.12.0 zaten yuz bazli uv kabul ediyor:
     "uv": {"north": {"uv": [..], "uv_size": [..]}, ...}
 Kutu uv'sine ZORLAMAK doku kaymasi demek olurdu.
 """
-import json
 import math
-import os
-import re
 import sys
 
 BEDROCK_TERS = True     # bkz. NOTLAR.md v4.88

@@ -28,7 +28,7 @@
       blok delinen her lazerde ozet actionbar'i hic gorunmuyor,
       yerine Content Log'a ReferenceError dusuyordu.          */
 
-import { dunyaKur, oyuncuKur } from "./dunya.mjs";
+import { dunyaKur } from "./dunya.mjs";
 import { tickIlerlet, _durum, world } from "@minecraft/server";
 import { readFileSync } from "node:fs";
 

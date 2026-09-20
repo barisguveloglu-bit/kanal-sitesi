@@ -1,3 +1,80 @@
+# v7.96.3 sonrası — ikinci derin tarama (anlamsal katman)
+
+Birinci tarama **yapıyı** ölçmüştü (ölü dosya, koşulmayan test, ölü
+fonksiyon). Bu tarama **bağları** ölçtü: bir ad gerçekten bir şeye
+denk geliyor mu. On bir katman tarandı, her tarayıcı **mutasyonla
+ısırdığı gösterildikten sonra** hükmü kabul edildi.
+
+## Bulunan ve düzeltilenler — hepsi Python/test tarafında
+
+| yer | ne | neden ölü |
+|---|---|---|
+| `kol_uret.py` | ikinci `return p` | ilkinden sonra, erişilmez |
+| `ciz_bb.py` | `bb_ciz()` + `os` + `ciz_kemik` ithali | fonksiyonu kimse çağırmıyordu; o gidince iki ithal de öksüz kaldı |
+| `dunya_uret.py` | `subprocess` | ithal edilmiş, kullanılmamış |
+| `obj_coz.py` | `json`, `os`, `re` | üçü de kullanılmamış |
+| `onizle_ilkel.py` | `json` | kullanılmamış |
+| `skin_uret.py` | `golge` | `kol_uret`'ten alınmış, yalnız yorumlarda geçiyor |
+| `test/denetim.mjs` · `test/inceleme_744.mjs` | `oyuncuKur` | ithal edilmiş, çağrılmamış |
+| `test/evcil.mjs` | satırın tamamı (`dunyaKur, oyuncuKur`) | ikisi de kullanılmamış |
+
+**Paket içeriği değişmedi.** Üretim yeniden koşuldu, tek bir üretilmiş
+dosya bile oynamadı; bu yüzden sürüm numarası artmadı.
+
+## Temiz çıkan on bir katman
+
+| katman | ölçü | sonuç |
+|---|---|---|
+| ithal/ihraç uyuşması | 122 betik | 0 |
+| ölü ithal (JS) | 122 betik | 0 |
+| dairesel ithal | 122 betik | 0 — `ben10.js`'in "tek yönlü ithal" notu hâlâ doğru |
+| çift nesne anahtarı / çift `case` | 48.696 satır | 0 |
+| erişilmez kod / ölü yerel değişken (JS) | 48.696 satır | 0 |
+| JSON geçerliliği + çift anahtar | 1.820 dosya | 0 |
+| eşya → dil anahtarı | 550 eşya × 2 dil | 0 |
+| eşya → atlas → doku dosyası | 549 atlas girdisi | 0 |
+| ses adı → tanım → `.ogg` | 15 tanım | 0 |
+| render/animasyon denetleyici bağları | iki oyuncu dosyası | 0 |
+| manifest sürüm/UUID | 5 paket, 11 UUID | 0 |
+
+## Yanlış alarmlar — neden sayılmadılar
+
+Dört tarayıcı önce kırmızı yandı, dördü de kendi hatasıydı:
+
+- **93 "eksik" doku/geometri** (`player.entity.json`): hepsi
+  `kaynak_dis/ironman`'den geliyor. Bedrock dokuyu **yığının
+  tamamında** arar, tek pakette değil — birleştirmenin amacı zaten
+  alttaki paketin varlıklarını çalışır bırakmak. Dosyayı buraya
+  kopyalamak izin şartını çiğnerdi. Tek tek doğrulandı: dışarıdan
+  gelmeyen **sıfır** tane.
+- **358 "eksik" doku** (attachable'lar): hepsi
+  `textures/misc/enchanted_actor_glint` ve `enchanted_item_glint` —
+  vanilla.
+- **15 "tanımsız" `pa:` kimliği**: dördü çalışma anında birleştirilen
+  **önek** (`pa:iksir_`, `pa:mahou_`, `pa:mrv_`, `pa:zirh_mod_`),
+  kalanı olay adı veya sis kimliği, hepsi karşılığını buluyor.
+- **15 "yanlış argüman sayısı"**: isteğe bağlı parametre imzada
+  `= varsayılan` ile değil, gövdede `slot || "Mainhand"` ile
+  karşılanıyor. Ölçü yanlıştı, kod değil.
+
+## Ölü ihraç sayısı: 196 değil, 6
+
+Ham sayım 196 diyor. Testlerin `pack/` üzerinden yaptığı ithaller
+sayılınca 47'ye, kendi dosyasında kullanılanlar ayıklanınca **6**'ya
+iniyor — ve o altı `LAZER_*` ayarının öksüz olduğu `ayarlar.js`'te
+zaten **yazılı**. Yani betik tarafında yeni ölü kod yok.
+
+Kalan 41 ad "ölü" değil, yalnız `export` anahtarı gereksiz: hepsi
+kendi dosyasında çağrılıyor. Dokunulmadı — kazancı yok, riski var.
+
+## Dışlanan üç test çürümemiş
+
+`dunya.mjs`, `eski.mjs`, `olcum.mjs` tek tek koşuldu; üçü de `0` ile
+çıkıyor. v7.96.3'teki ders (*"dışlama listesi bir çöp kutusu
+değil"*) bu koşuyla ölçüldü, iddia edilmedi.
+
+---
+
 # v7.94.0 — Error 404: ikinci geçiş
 
 Kullanıcı: *"ben sana her zaman ne yiyorum hepsini al demiyor muyum… bundan

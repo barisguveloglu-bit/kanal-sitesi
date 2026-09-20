@@ -7833,8 +7833,6 @@ def bot_dokusu(cesit):
 
     return p
 
-    return p
-
 
 # ------------------------------------------------------------- geometri
 GEOMETRI = {

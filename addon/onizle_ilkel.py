@@ -13,7 +13,7 @@ Skin duzeni (64x64, vanilla):
   sol bacak (20,52) 4x12     ust katman (4,52)  4x12
 """
 from PIL import Image, ImageDraw, ImageFont
-import os, json, re
+import os, re
 
 # v7.51: uc mutlak yol kaldirildi -- betik kendi konumundan
 # turetiyor (kol_uret.py ve birlestir.py ile ayni kalip).

@@ -28,7 +28,7 @@
    paketinde `biomes/` altinda ISTEMCI BIYOMU tanimi gerekiyor
    (`minecraft:sky_color`). Ikisi ayri dosya, ayri bilesen.
 """
-import json, os, struct, subprocess, sys, zipfile, hashlib, colorsys
+import json, os, struct, sys, zipfile, hashlib, colorsys
 
 KOK = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(KOK, "arac"))

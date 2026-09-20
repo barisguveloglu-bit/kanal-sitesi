@@ -43,8 +43,7 @@ yapilmadan bir Bedrock geometrisine yazilabiliyor. Sira da
 ayni (XYZ) -- v7.3'te Bedrock icin OLCTUGUMUZ sirayla.
 Asagidaki `KONTROL` bunu her kosuda yeniden dogruluyor.
 """
-import json, os
-import ciz_kemik as ck
+import json
 
 
 def bb_yukle(yol):
@@ -110,12 +109,6 @@ def bb_kemikleri(model, poz_adi="standing", gizle=()):
             k["cubes"][0]["mirror"] = True
         kemikler.append(k)
     return kemikler
-
-
-def bb_ciz(model, doku, poz_adi="standing", aci=0, SC=10, gizle=()):
-    kemikler = bb_kemikleri(model, poz_adi, gizle)
-    tw, th = model.get("texture", [64, 32])
-    return ck.ciz(kemikler, tw, th, doku, None, aci, SC=SC)
 
 
 # ---- KONTROL: cevrimin dogrulugu OLCULEREK tutuluyor ----
