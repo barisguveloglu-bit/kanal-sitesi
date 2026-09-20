@@ -11965,7 +11965,7 @@ export const E404_BITIS_SES = "random.anvil_land";
 
      Titan     2000 hasar · guc LIV · direnc IV   -> vurus
      Galactus  1000 hasar · guc X   · direnc IV   -> menzil + ucus
-     Atomik     250 hasar · guc 33  · can +20     -> Ben 10 + dayanim
+     Atomik     250 hasar · guc 33  · can KADEME 20 -> Ben 10 + dayanim
      Temel     %97 indirim · yenilenme VI · 10 yetenek -> savunma
 
    Ham ilk dort (Titan 2000, Galactus 1000, Isi 800, Iron Man 400)
@@ -11980,6 +11980,14 @@ export const E404_BITIS_SES = "random.anvil_land";
    Sebep depo kurali: elle ikinci bir liste tutmak, ayrisan iki
    liste demek. Titan'in gucu yarin degisirse Ultimate
    kendiliginden dogru kalir.
+
+   ---- "KADEME" YANILGISI (v7.95.4'te duzeltildi) ----
+   Bu bloklarda ozet ve efektler KADEME yaziyor, bonus degil
+   (kanit: jet "direnç I · güç II" -> amp 0 ve amp 1).
+   Atomik'in "can artisi 20"si health_boost KADEME 20 demek;
+   Bedrock kademe basina 4 can verdigi icin bu +80 CAN eder,
+   +20 degil. Ultimate acikken toplam can 20 + 80 = 100.
+   Ilk anlatimda "+20" yazilmisti, yanlisti.
 
    ---- ISIN ----
    Ultimate acikken Titan Lazeri'nin (2000) kapisi acilir.
