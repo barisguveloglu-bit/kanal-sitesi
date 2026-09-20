@@ -51,7 +51,12 @@ export function nefesUnut(oyuncuId) {
 export function nefesCikti(oyuncuId) { bekleme.delete(oyuncuId); }
 
 export function nefesSecili(oyuncuId) { return secili.get(oyuncuId); }
-export function nefesSayisi() { return secili.size; }
+/* v7.96.3: `nefesSayisi()` SILINDI. Butun oyuncularin toplam
+   sayisini donduruyordu ve hicbir yerden -- koddan da testten
+   de -- cagrilmiyordu. Kardesi `seySayisi(oyuncuId)` OYUNCU
+   BASINA sayiyor ve menude "6/tavan" diye gosteriliyor; bunun
+   oyle bir tuketicisi yoktu, kuresel bir tani sayaciydi.
+   Gerekirse geri yazmak tek satir.                          */
 
 /* ---- KALICILIK ----
    Dunya ozelligi yoksa bellekte kaliyor: eksigi durustce

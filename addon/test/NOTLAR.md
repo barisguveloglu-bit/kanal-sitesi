@@ -53,9 +53,23 @@ Sekiz dosya hükmünü **metin olarak** yazıyor ve her zaman `0` ile
 (`kol_halka`, `kol_simsek`, `kol_top`) sınamaya devam ediyordu,
 düşüyordu ve kimse görmemişti. Sekizine de çıkış kodu eklendi.
 
-`tekel.mjs` ölçüm betiği (tek bir sayı yazıyor, hüküm vermiyor);
-`olcum.mjs`, `sure.mjs`, `ucus_olc.mjs`, `butce_tara.mjs` ve
-`eski.mjs` ile birlikte `kos.sh`'in dışlama listesinde.
+Dışlama listesinde artık **üç** dosya var: `dunya.mjs` (yardımcı
+modül), `eski.mjs` (eski algoritmanın kopyası — `sinir.mjs` ve
+`test.mjs` karşılaştırma için import ediyor) ve `olcum.mjs`
+(çalışan ölçüm raporu).
+
+**v7.96.3'te beşi silindi:** `sure.mjs`, `butce_tara.mjs`,
+`tara_20.js` (3093 satır), `ucus_olc.mjs`, `tekel.mjs`.
+Dışlandıkları için yıllardır kimse koşmamıştı; ölçüldüğünde
+ikisi **çöküyordu** (artık var olmayan `./yeni.js` ve
+`./ayarlar.js`'i import ediyorlardı), ikisi **sıfır ölçüyordu**
+(zıplamayla tetikleme modeli eskimiş; çalışan testler
+`itemUseTetikle` kullanıyor). Ölçtükleri şey — tick başına blok
+tavanı — zaten `butce.mjs`'te gerçek iddialarla ölçülüyor.
+
+> **Dışlama listesi bir çöp kutusu değil.** Buraya bir ad yazmak
+> o dosyayı denetimden çıkarır; çıktığı gün bozulsa kimse görmez.
+> Bir dosya hüküm vermiyorsa ya hüküm versin ya da silinsin.
 
 ## Bir testin gerçekten iş gördüğünü nasıl anlarsın
 

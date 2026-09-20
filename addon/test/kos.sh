@@ -54,12 +54,26 @@ cd "$D"
 KALDI=0
 for f in *.mjs; do
   case "$f" in
-    # tekel.mjs (v7.9.3): tek bir SAYI yaziyor (tick basina en
-    # fazla blok islemi), hukum vermiyor -- yani gecip gecmedigi
-    # diye bir sey yok. Olcum betikleri listesine alindi. Diger
-    # sekiz "sessiz" dosyaya cikis kodu EKLENDI, cunku onlar
-    # gercekten hukum veriyordu.
-    dunya.mjs|eski.mjs|olcum.mjs|butce_tara.mjs|sure.mjs|ucus_olc.mjs|tekel.mjs) continue ;;
+    # Bunlar HUKUM VERMIYOR, o yuzden kosulmuyorlar:
+    #   dunya.mjs  -- yardimci modul (110 test import ediyor)
+    #   eski.mjs   -- eski algoritmanin kopyasi; sinir.mjs ve
+    #                 test.mjs karsilastirma icin IMPORT EDIYOR
+    #   olcum.mjs  -- calisan olcum raporu, elle kosuluyor
+    #
+    # v7.96.3'te BES DOSYA SILINDI: sure.mjs, butce_tara.mjs,
+    # tara_20.js (3093 satir), ucus_olc.mjs, tekel.mjs.
+    # Atlandiklari icin yillardir kimse kosmamisti; olculdugunde
+    # ikisi COKUYORDU (artik var olmayan ./yeni.js ve
+    # ./ayarlar.js'i import ediyorlardi) ve ikisi SIFIR
+    # olcuyordu (ziplamayla tetikleme modeli eskimis; calisan
+    # testler itemUseTetikle kullaniyor). Olctukleri sey --
+    # tick basina blok tavani -- zaten butce.mjs'te GERCEK
+    # iddialarla olculuyor.
+    #
+    # DERS: "atla" listesi bir cop kutusu degil. Buraya bir ad
+    # yazmak o dosyayi denetimden CIKARIR; ciktigi gun bozulsa
+    # kimse gormez.
+    dunya.mjs|eski.mjs|olcum.mjs) continue ;;
   esac
   # zirh_menu.mjs MENUYU GERCEKTEN aciyor: @minecraft/server-ui
   # taklidini yalniz onun icin aciyoruz. Digerlerinde taklit
