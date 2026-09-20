@@ -263,3 +263,120 @@ Sayılar modun kendi JSON'undan — küçültmek uydurmak olurdu.
 
 `kaynak_doku/NEREDEN.md` — her dokunun ve her modelin modun içindeki yolu
 orada yazılı.
+
+---
+
+## v7.95.6 · ÜÇÜNCÜ TARAMA — animasyon ve dönüşüm anı
+
+Kullanıcı üç jar yükledi ve sordu: *"almadığımız animasyonlar var mı,
+dönüşüm yaparken bir şey oluyor mu?"* Cevap: **evet, hem de çoğu.**
+
+| jar | modid | sürüm | yazar | lisans |
+|---|---|---|---|---|
+| `AlienEvo-1.1.3-fabric_1.jar` | `alienevo` | 1.1.2 | Habb and Stephen | All Rights Reserved |
+| `pinnacle_of_evolution.jar` | `evolved` | 4.1.0 | Gorrini | Gorrini/Tim/WOU/Fireblast |
+| `shout-1.0.3.jar` | `shout` | 1.0.0 | — | All rights reserved |
+
+Üçü de lisanssız/kısıtlı → **ölçüm alınır, dosya alınmaz** (depo kuralı).
+
+### 1. DÖNÜŞÜM ANI — kaynakta var, bizde HİÇ yok
+
+Bizim `ben10.js`'imiz dönüşümde **hiçbir görsel ve ses üretmiyor**.
+Kaynakta üç ayrı katman var:
+
+**a) `energy_beams/transform_bubbles/` — 16 dosya**
+Her uzaylı rengine bir tane: `transform_bubble` + 13 renk varyantı
+(`_black _blue _brown _cyan _dark_green _gray _light_blue _light_gray
+_magenta _orange _pink _purple`) + `_recal` + `_t`, artı `self_destruct`.
+
+Hepsi `palladium:lightning` tipinde. `self_destruct`'ın ölçülen değerleri:
+
+```
+body_part head · segments 3 · frequency 1 · spread 10
+glow #FC7900 · core #FFFFFF (opacity 0.4) · bloom 10
+size [500, 500] · rotation 120 · rotation_speed 50 · offset [0,-5,15]
+```
+
+**Bu belgede tek satır vardı** ("Dönüşüm balonu · `transform_bubble.json`
+— parçacık + ses, yapılabilir") ve **tek dosya sanılmıştı**. Gerçekte
+16 renkli varyant var.
+
+**b) `particle_emitters/` — 18 dosya, belgede HİÇ yoktu**
+
+```
+aqua_jet · dragonoid_breath · dragonoid_tornado · freeze_breath
+pyronite_beaml · pyronite_beamr · pyronite_breath
+pyronite_breath_flight · pyronite_flight · pyronite_leap
+pyronite_shield · pyronite_surf · pyronite_tornado
+slime · smoke_dash · smoke_form · spin_cloud · spin_particles
+```
+
+**c) `shout` modu — 11 ses, bu mod bize HİÇ gelmemişti**
+
+Ayrı bir mod. 22 yetenek: 11 `animation_timer` + 11 komut.
+Her komut şu: `playsound shout:<uzaylı> master @a[distance=..15]`
+— yani dönüşünce 15 blok çapındaki herkes duyuyor.
+
+| ses | süre | ses | süre |
+|---|---:|---|---:|
+| stinkfly | 0.99 sn | diamondhead | 1.52 sn |
+| cannonbolt | 1.23 sn | ripjaws | 1.83 sn |
+| upgrade | 1.25 sn | fourarms | 2.06 sn |
+| greymatter | 1.38 sn | wildmutt | 2.12 sn |
+| xlr8 | 1.46 sn | ghostfreak | 2.43 sn |
+| heatblast | 1.52 sn | | |
+
+Bu, Ben 10'un o klasik "dönüşürken adını haykırma" anı. Bizde yok.
+
+### 2. ANİMASYONLAR — 23'ün 1'i bizde
+
+`assets/alienevo/animations/` altında 23 dosya var, depoda **yalnız
+`ripjaws`**:
+
+```
+astrobot · atomix · aurora · cannonbolt · crystal_dome · dragonoid
+ectonurite · galvan_armor · galvanic.rod · galvanic_mechamorph
+greymatter · jetray · petrosapien · prototype · prototype_core_pickup
+recal_omnitrix · ripjaws(BİZDE) · stinkfly · wildmutt · xlr8
+```
+
+**Ayrım önemli:** `petrosapien`, `prototype`, `recal_omnitrix` bizde
+BİR ARA VARDI ve v7.95.1'de **bilerek silindi** — hiçbiri bir tetiğe
+bağlanmamıştı. Kalan 19'u ise hiç alınmadı.
+
+Yani "eksik" iki türlü: bilinçli silinen 3, hiç bakılmayan 19.
+
+### 3. `evolved` (Pinnacle of Evolution) — formlar TAM, görsel eksik
+
+Modun 6 evrim gücünün **altısı da bizde** (`BEN10_EVRIM`):
+`evolved_pyronite · evolved_vulpimancer · evolved_petrosapien ·
+evolved_kineceleran · evolved_galvan · evolved_tetramand`.
+Bu taraf eksiksiz.
+
+Alınmayanı görsel katman:
+
+- **7 animasyon**: `evolved_greymatter · evolved_petrosapien ·
+  evolved_pyronite · evolved_tetramand · evolved_wildmutt ·
+  evolved_xlr8 · malevolent_shrine`
+- **8 parçacık türü**: `evolved_dismantle · evolved_pyronite_absorb ·
+  _ball · _flame · _flares · _surf · _tornado · evolved_slash`
+
+`malevolent_shrine` üç animasyon taşıyor (`shrine`, `shrine_up`,
+`shrine_down`) ama **kemik listesi boş** — model tarafında duran, bu
+dosyada yalnız zamanlaması olan bir şey. Jujutsu Kaisen göndermesi.
+
+### Özet: ne eksik
+
+| katman | kaynakta | bizde |
+|---|---:|---:|
+| Dönüşüm balonu (renkli) | 16 | 0 |
+| Parçacık yayıcı (alienevo) | 18 | 0 |
+| Dönüşüm nidası (shout) | 11 | 0 |
+| Animasyon (alienevo) | 23 | 1 |
+| Animasyon (evolved) | 7 | 0 |
+| Parçacık türü (evolved) | 8 | 0 |
+| **Evrim formları** | **6** | **6** ✅ |
+
+En ucuz ve en çok hissedilecek olan **shout**: 11 ses dosyası ve
+dönüşüm anına bağlı tek bir `playSound` çağrısı. Mekanik değişmiyor,
+sadece dönüşüm sessiz olmaktan çıkıyor.
