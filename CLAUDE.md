@@ -239,13 +239,45 @@ ihtarı riski demekti — bu yüzden alınmadı.
 **Bu belgelerden bir şey uygularken kural:** sayıyı/fikri al, dosyayı
 alma. Kendi dokumuzla, kendi adımızla, kendi kodumuzla yaz.
 
-**Craftformers için özel durum (v7.94.8).** Kullanıcı yapımcıyla
-(Bit & Byte) doğrudan yazıştı ve **kişisel kullanım** izni aldı.
-Şartı: *dosyayı kimseye vermemek.* Bu depo herkese açık olduğu için
-şart, varlıkları buraya koymayı **dışlıyor** — commit etmek paylaşmanın
-en geniş hâli olurdu. İzin yerel kullanımı açıyor, depoyu değil.
-Hasbro/Transformers marka katmanı da ayrıca duruyor; kişisel oyunda
-sorun değil, videoda ayrı konu.
+**İki yapımcıdan kişisel kullanım izni var (v7.94.8 · v7.94.9).**
+Kullanıcı **Bit & Byte** (Craftformers) ve **Mr. Nido** (Iron Man) ile
+doğrudan yazıştı; ikisi de kişisel kullanıma onay verdi ve **ikisi de
+aynı şartı koydu: dosyayı kimseye vermemek.**
+
+Bu depo herkese açık, dolayısıyla şart varlıkları buraya koymayı
+dışlıyor — commit etmek paylaşmanın en geniş hâli olurdu. İzin
+**yerel kullanımı** açıyor, depoyu değil. Marka katmanları
+(Hasbro, Marvel/Disney) ayrıca duruyor; kullanıcı dağıtmıyor ve
+videoda paylaşmıyor, kişisel oyunda sorun değil.
+
+## Yerel varlık kolu — `addon/yerel/` (v7.94.9)
+
+Dış modlardan türetilmiş varlıkların yeri. **`.gitignore`'da, asla
+commit'lenmez.**
+
+```
+addon/yerel/
+  Simsek_Kol_Kaynak/       # kaynak paketin üzerine biner
+  Simsek_TNT_ToprakTopu/   # davranış paketinin üzerine biner
+  Simsek_Oyuncu_Modeli/    # oyuncu modelinin üzerine biner
+```
+
+`paketle.sh` bu klasörü **varsa alır, yoksa sessizce atlar**. Varsa,
+içeriği ilgili paketin üzerine bindirip ayrı bir paket üretir:
+`Simsek_<sürüm>_Yerel_<PaketAdı>.mcpack`.
+
+**Temiz paketler değişmez.** Depodan üretilen çıktı yeniden
+üretilebilir kalır; yerel kol yalnız ek dosya doğurur. Ölçüldü:
+yerel bir dosya `_Yerel` paketinin içine giriyor, temiz `Gorunum`
+paketine **girmiyor**.
+
+Üretilen `_Yerel` paketleri de paylaşılmaz — izin şartı onları da
+kapsar.
+
+`test/yerel_kol.mjs` sınırı makineye sorduruyor: `.gitignore` satırı
+duruyor mu, `addon/yerel` altında izlenen dosya var mı, gerçek bir
+dosya konunca git onu yok sayıyor mu, `paketle.sh` kolu taşıyor mu.
+İddia etmiyor, **ölçüyor** — mutasyonla ısırdığı doğrulandı.
 
 
 **Üçünün ortak bulgusu — `minecraft:player` çakışması.** Iron Man

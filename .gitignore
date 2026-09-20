@@ -1,3 +1,11 @@
 addon/_yeni_kimlik/
 __pycache__/
 addon/onizleme/
+
+# Yerel varlik kolu (v7.94.9).
+# Dis modlardan turetilmis varliklar BURAYA konur ve ASLA
+# commit'lenmez. Kullanicinin yapimcilardan aldigi izinlerin sarti
+# "dosyayi kimseye vermemek"; acik bir depoya koymak bunun tersi
+# olurdu. paketle.sh burayi varsa alir, yoksa sessizce atlar.
+# Ayrinti: CLAUDE.md "Yerel varlik kolu".
+addon/yerel/

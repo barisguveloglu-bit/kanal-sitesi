@@ -108,6 +108,41 @@ if [ -d "$K/$GK" ]; then
       -x '__pycache__/*' '*/__pycache__/*' '.*' '*/.*' >/dev/null)
 fi
 
+# ---- YEREL VARLIK KOLU  (v7.94.9) ----
+# addon/yerel/<PaketAdi>/ varsa, icerigi o paketin uzerine
+# BINDIRILEREK ayri bir "_Yerel" paketi uretilir. Temiz paketler
+# DEGISMEZ -- depodan uretilen cikti yeniden uretilebilir kalir.
+#
+# Neden ayri: buradaki varliklar dis modlardan turetilmis olabilir.
+# Kullanici yapimcilardan (Bit & Byte, Mr. Nido) KISISEL KULLANIM
+# izni aldi; ikisinin de sarti "dosyayi kimseye vermemek". Bu yuzden
+# yerel/ .gitignore'da ve uretilen _Yerel paketi de paylasilmaz.
+# Klasor yoksa bu blok hicbir sey yapmaz ve hicbir sey yazmaz.
+YEREL="$K/yerel"
+if [ -d "$YEREL" ]; then
+  SAHNE="$(mktemp -d)"
+  trap 'rm -rf "$SAHNE"' EXIT
+  uretildi=""
+  for paket in "$BP" "$RP" "$OM"; do
+    [ -d "$YEREL/$paket" ] || continue
+    rm -rf "$SAHNE/$paket"
+    cp -R "$K/$paket" "$SAHNE/$paket"
+    # -R ile bindirme: yereldeki dosya ayni addaki depo dosyasini ezer,
+    # yeni dosyalar eklenir, dokunulmayanlar depodan kalir.
+    cp -R "$YEREL/$paket/." "$SAHNE/$paket/"
+    cikti="$K/Simsek_${S}_Yerel_${paket}.mcpack"
+    rm -f "$cikti"
+    (cd "$SAHNE/$paket" && zip -r -X "$cikti" . \
+        -x '__pycache__/*' '*/__pycache__/*' '.*' '*/.*' >/dev/null)
+    uretildi="$uretildi $paket"
+  done
+  if [ -n "$uretildi" ]; then
+    echo "YEREL kol calisti ->$uretildi"
+    echo "  Uretilen _Yerel paketleri PAYLASILMAZ (izin sarti)."
+    echo
+  fi
+fi
+
 echo "Olusturuldu:"
 echo "  KUR:  Simsek_$S.mcaddon   <-- normalde SADECE bunu kur"
 for f in "Simsek_${S}_Mod.mcpack" "Simsek_${S}_Gorunum.mcpack" "Simsek_${S}_Skin.mcpack" \
