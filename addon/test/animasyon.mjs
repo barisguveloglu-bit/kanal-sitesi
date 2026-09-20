@@ -66,26 +66,34 @@ if (hataSayisi > 0) {
 }
 kontrol("animasyon HATASI yok", hataSayisi === 0, hataSayisi + " hata");
 
-/* SUPHE = kullanilmayan animasyon. Bozukluk DEGIL: kaynak
-   modlardan gelen ve henuz baglanmamis animasyonlar.
-   Kullanici "kutuphanelerden odun verme" dedigi icin
-   SILINMIYORLAR; yalniz sayilari sabitleniyor ki sessizce
-   artmasin.
+/* SUPHE = kullanilmayan animasyon.
+   v7.95.1'DE SIFIRA INDI. Onceden "kaynak modlardan gelen ve
+   henuz baglanmamis" 35 animasyon vardi ve kullanici
+   "kutuphanelerden odun verme" dedigi icin silinmiyorlardi;
+   tavan yalnizca buyumelerini engelliyordu.
 
-   v5.8: tarayici DOSYA duzeyinde de bir satir yaziyor
-   ("bilinen artik dosya"). O satirlar tek tek animasyonlari
-   saymiyor, ayni animasyonlari OZETLIYOR -- tavana katilirsa
-   ayni seyi iki kez saymis oluruz. O yuzden ayri sayiliyor
-   ve kendi tavani var (3: petrosapien, prototype,
-   recal_omnitrix).                                          */
+   Kullanici karari degistirdi ("hepsi gitsin") ve 31'i de
+   kaldirildi -- uc dosya tamamen (petrosapien, prototype,
+   recal_omnitrix), ikisinden olu kayitlar (ripjaws,
+   simsek_kol).
+
+   TAVAN ARTIK 0. Kasitli: burasi bir daha yukselirse yeni
+   bir artik birikiyor demektir ve o sessizce gecmemeli.
+   Tavani yukseltmek bir DUZELTME degil, bir KARAR -- once
+   animasyonun neden baglanmadigina bak.
+
+   OLCULEN TUZAK (v7.95.1): "kullanilmiyor mu" diye ALT DIZE
+   sayarak bakma. `animation.X.shield_spin`,
+   `animation.X.shield_spin_left`in icinde gecer; dort olu
+   animasyon bu yuzden "canli" gorunmustu. anim_tara.py tam
+   kelime bakiyor, dogrusu o.                                */
 const dosyaSuphe = satirlar
   .filter((x) => x.indexOf("bilinen artik dosya") !== -1).length;
 const supheSayisi = say("SUPHE:") - dosyaSuphe;
-kontrol("kullanilmayan animasyon sayisi artmadi",
-        supheSayisi >= 0 && supheSayisi <= 35,
-        supheSayisi + " tane (tavan 35)");
-kontrol("bilinen artik DOSYA sayisi artmadi",
-        dosyaSuphe <= 3, dosyaSuphe + " dosya (tavan 3)");
+kontrol("kullanilmayan animasyon YOK",
+        supheSayisi === 0, supheSayisi + " tane (tavan 0)");
+kontrol("bilinen artik DOSYA yok",
+        dosyaSuphe === 0, dosyaSuphe + " dosya (tavan 0)");
 
 /* DIS = oyunun KENDI animasyonlari (fox.sleep, warden.roar,
    armor_stand.* ...). Bunlarin bizim paketimizde olmamasi

@@ -69,7 +69,12 @@ console.log("=== 1. DEPODAKI DOSYALAR BICIM OLARAK GECERLI MI ===");
      tarardi. O yuzden "en az su kadar dosya gordun mu" soruluyor. */
   const anim = parseInt(satir(cikti, "animasyon dosyasi:").split(":")[1], 10);
   const geo = parseInt(satir(cikti, "geometri dosyasi:").split(":")[1], 10);
-  kontrol("animasyon dosyalari bulundu", anim >= 15, String(anim));
+  /* v7.95.1: taban 15'ten 12'ye indi. Sebep icerik kaybi
+     DEGIL: uc artik animasyon dosyasi silindi (petrosapien,
+     prototype, recal_omnitrix -- 31 animasyon, hicbiri
+     baglanmamisti). Bu satir "tarayici gercekten dosya gordu
+     mu" diye soruyor, "kac animasyonumuz var" diye degil.   */
+  kontrol("animasyon dosyalari bulundu", anim >= 12, String(anim));
   kontrol("geometri dosyalari bulundu", geo >= 350, String(geo));
 
   if (n > 0) {

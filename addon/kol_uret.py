@@ -131,7 +131,7 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # hanenin 0 yerine 5'ten baslamasi bunun isareti -- 7.83.0
 # ile 7.83.5 AYNI kod, sadece numara degisti.
 # v7.91.0: ORTANCA hane -- Avaritia'dan uc mekanik.
-SURUM_NO = (7, 95, 0)
+SURUM_NO = (7, 95, 1)
 
 SURUM_METIN = "%d.%d.%d" % SURUM_NO
 
@@ -6769,7 +6769,7 @@ OMNITRIX = [
     ("omnitrix_recal", "Omnitrix · Recal",    "Omnitrix (Recalibrated)"),
 ]
 
-# ---- ANIMASYONLAR (v4.93) ----
+# ---- ANIMASYONLAR (v4.93, v7.95.1'de budandi) ----
 # Kullanici: "animasyon falan varsa her seyi ekle."
 #
 # Modun animasyonlari da Bedrock bicimi (format_version 1.8.0) --
@@ -6777,7 +6777,32 @@ OMNITRIX = [
 # armorX kemiklerini surmuyor, hepsi ic kemikleri suruyor. Yani
 # bizim yeniden adlandirmamizdan ETKILENMIYORLAR, oldugu gibi
 # kopyalaniyorlar.
-BEN10_ANIM = ["petrosapien", "ripjaws", "prototype", "recal_omnitrix"]
+#
+# v7.95.1: UCU CIKARILDI -- petrosapien (10), prototype (13),
+# recal_omnitrix (8). 31 animasyon kopyalaniyordu ama HICBIRI
+# BAGLANMAMISTI: BEN10_ANIM_BAGLI'da yoklar, oyuncu varligina
+# kayitli degiller, script'ten de oynatilmiyorlar.
+#
+# ONEMLI DERS (v7.94.1'in aynisi): dosyalari silmek YETMEDI.
+# Ilk denemede uc dosya diskten silindi, testler yesil dondu,
+# sonra `kol_uret.py` calisinca UCU DE GERI GELDI -- cunku
+# uretimin listesi hala onlari tasiyordu. Bir seyi kaldirirken
+# URETENI de aramak gerekiyor.
+#
+# `ripjaws` KALDI cunku gercekten kullaniliyor: swim_slow ve
+# swim_fast asagida BEN10_ANIM_BAGLI'da bagli.
+BEN10_ANIM = ["ripjaws"]
+
+# Kaynak dosyada olup BIZE GEREKMEYEN animasyonlar.
+# Dosyanin tamami kopyalandigi icin cikti dosyasini elle
+# duzenlemek ISE YARAMAZ -- bir sonraki uretimde geri gelir
+# (v7.95.1'de olculdu). Suzgec KOPYALAMA aninda uygulanmali.
+#
+# ripjaws: `bite` ve `swipe` hicbir tetige bagli degil
+# (BEN10_ANIM_BAGLI'da yalniz swim_slow/swim_fast var).
+BEN10_ANIM_AT = {
+    "ripjaws": ["animation.ripjaws.bite", "animation.ripjaws.swipe"],
+}
 BEN10_ANIM_KAYNAK = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                  "kaynak_anim")
 
@@ -7352,11 +7377,59 @@ def oyuncu_modeli_paketi(surum):
     # surmuyor, yani yeniden adlandirmamizdan etkilenmiyorlar.
     for _an in BEN10_ANIM:
         _ak = os.path.join(BEN10_ANIM_KAYNAK, _an + ".animation.json")
-        if os.path.exists(_ak):
-            shutil.copyfile(_ak, os.path.join(
-                OMP, "animations/%s.animation.json" % _an))
-        else:
+        _ah = os.path.join(OMP, "animations/%s.animation.json" % _an)
+        if not os.path.exists(_ak):
             print("UYARI: %s animasyonu yok" % _an)
+            continue
+        _at = BEN10_ANIM_AT.get(_an)
+        if not _at:
+            shutil.copyfile(_ak, _ah)
+            continue
+        # Suzgecli kopya: istenmeyen animasyonlar DUSURULUR.
+        with open(_ak, encoding="utf-8-sig") as _f:
+            _d = json.load(_f)
+        _dusen = [_k for _k in _at if _k in _d.get("animations", {})]
+        for _k in _dusen:
+            del _d["animations"][_k]
+        yaz_json(_ah, _d)
+        if _dusen:
+            print("%s: %d animasyon suzuldu (%s)"
+                  % (_an, len(_dusen), ", ".join(_dusen)))
+
+    # ---- KENDI ARTIGINI TOPLA (v7.95.1) ----
+    # BEN10_ANIM'den bir ad CIKARILINCA diskteki dosya kendi
+    # basina gitmiyor. v7.95.1'de tam bu yasandi: uc animasyon
+    # dosyasi silindi, testler yesil dondu, sonra bu uretec
+    # calisinca UCU DE GERI GELDI -- cunku eski kopyalar
+    # diskte duruyordu ve kimse onlari kaldirmiyordu.
+    #
+    # Ayni ders v7.94.1'de zirh MODELLERI icin ogrenilmisti:
+    # "bir ozellik kaldirilirken esya + attachable + ikon +
+    # model + doku, besi birden aranir". Ureteci unutmak bu
+    # listenin gizli altincisi.
+    #
+    # Yalnizca kaynak klasorde KARSILIGI OLAN dosyalar silinir:
+    # boylece elle yazilmis animasyonlar (carpik, o_sey,
+    # oyuncu_tutus) etkilenmez.
+    #
+    # ISTENEN KUME IKI LISTEDEN kuruluyor. Ilk yazisda yalniz
+    # BEN10_ANIM'e bakiyordu ve `drill_spin`i yanlislikla
+    # siliyordu -- o dosyayi ASAGIDAKI ZIRH_EK dongusu ayni
+    # kaynaktan kopyaliyor. Net sonuc dogruydu (dosya geri
+    # geliyordu) ama temizlik yanlis seyi hedefliyor ve
+    # yaniltici bir satir yaziyordu.
+    _kaynaktakiler = set()
+    if os.path.isdir(BEN10_ANIM_KAYNAK):
+        for _f in os.listdir(BEN10_ANIM_KAYNAK):
+            if _f.endswith(".animation.json"):
+                _kaynaktakiler.add(_f)
+    _istenen = {a + ".animation.json" for a in BEN10_ANIM}
+    _istenen |= {e[3] + ".animation.json" for e in ZIRH_EK if e[3]}
+    for _f in sorted(_kaynaktakiler - _istenen):
+        _hedef = os.path.join(OMP, "animations", _f)
+        if os.path.exists(_hedef):
+            os.remove(_hedef)
+            print("artik animasyon silindi: %s" % _f)
 
     # Bicim AILELERI: "Yuzen Cene'nin herhangi bir bicimi" gibi
     # kosullar icin. Uc bicimi tek tek yazmak yerine tek

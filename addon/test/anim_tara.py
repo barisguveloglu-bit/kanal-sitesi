@@ -385,22 +385,26 @@ for p in PAKETLER:
 # artiktir. Tek tek "kullanilmiyor" zaten SUPHE; burasi
 # DOSYANIN TAMAMI olunce HATA'ya cikariyor.
 #
-# ---- BILINEN UC DOSYA ----
-# Bu denetimi yazar yazmaz Ben 10'dan kalma uc dosya cikti:
-# petrosapien (10), prototype (13), recal_omnitrix (8) -- 31
-# animasyon, hicbiri oyuncu varligina kayitli degil ve
-# script'ten oynatilmiyor. v4.x'te kaynaktan kopyalanmislar
-# ama hic baglanmamislar.
+# ---- LISTE v7.95.1'DE BOSALDI ----
+# Burada Ben 10'dan kalma uc dosya vardi: petrosapien (10),
+# prototype (13), recal_omnitrix (8) -- 31 animasyon, hicbiri
+# oyuncu varligina kayitli degil ve script'ten oynatilmiyordu.
+# v4.x'te kaynaktan kopyalanmis ama hic baglanmamislardi.
 #
-# SILINMEDILER: kullanicinin istegi WoM'du, bunlar Ben 10
-# icerigi ve ileride baglanabilir. Ama listede DURUYORLAR --
-# yeni bir artik dosya eklenirse denetim yine kirmizi yanar,
-# bunlar sessizce buyuyen bir yigina donmez.
-BILINEN_ARTIK = {
-    "petrosapien.animation.json",
-    "prototype.animation.json",
-    "recal_omnitrix.animation.json",
-}
+# Uzun sure SILINMEDILER cunku kullanici "kutuphanelerden odun
+# verme" demisti; liste onlari buyumekten alikoyuyordu.
+# v7.95.1'de kullanici karari DEGISTIRDI ("hepsi gitsin") ve
+# 31'i de kaldirildi:
+#   prototype.animation.json      13/13 -> dosya silindi
+#   recal_omnitrix.animation.json  8/8  -> dosya silindi
+#   petrosapien.animation.json     6/10 -> olu kayitlar cikti
+#   ripjaws.animation.json         2/4  -> olu kayitlar cikti
+#   simsek_kol.animation.json      2/4  -> olu kayitlar cikti
+#
+# Liste BOS ama DURUYOR: yeni bir artik dosya eklenirse
+# denetim yine kirmizi yanar. Buraya bir ad yazmak, o dosyayi
+# "bilerek artik" ilan etmektir -- once iki kez dusun.
+BILINEN_ARTIK = set()
 dosyaAnim = {}
 for kimlik, (y2, v) in anim.items():
     dosyaAnim.setdefault(y2, []).append(kimlik)

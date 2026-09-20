@@ -505,8 +505,19 @@ console.log("=== 10. MODUN KENDI ANIMASYONLARI ===");
 {
   /* Kullanici: "animasyon falan varsa her seyi ekle."
      Mod GeckoLib kullandigi icin animasyonlari da Bedrock
-     bicimi (format_version 1.8.0) -- oldugu gibi kopyalandi. */
-  for (const a of ["petrosapien", "ripjaws", "prototype", "recal_omnitrix"]) {
+     bicimi (format_version 1.8.0) -- oldugu gibi kopyalandi.
+
+     v7.95.1: UC DOSYA ARTIK BEKLENMIYOR. petrosapien (10),
+     prototype (13) ve recal_omnitrix (8) kopyalanmisti ama
+     HIC BAGLANMAMISTI -- oyuncu varligina kayitli degillerdi
+     ve script'ten oynatilmiyorlardi. Uzun sure "ileride
+     baglanir" diye tutuldular; kullanici karari degistirdi
+     ("hepsi gitsin") ve ucu de silindi.
+
+     Geriye `ripjaws` kaldi ve o GERCEKTEN kullaniliyor
+     (swim_slow / swim_fast). Bu satir "kopyalanmis mi" degil,
+     "kullanilan dosya yerinde mi" diye soruyor artik.       */
+  for (const a of ["ripjaws"]) {
     const y = OMP + "/animations/" + a + ".animation.json";
     kontrol(a + ": animasyon dosyasi pakette", existsSync(y));
     if (!existsSync(y)) continue;
@@ -554,6 +565,13 @@ console.log("=== 10. MODUN KENDI ANIMASYONLARI ===");
       kontrol("  ailesi 'ben_" + t + son + "' bicimini sayiyor",
               !!satir && kalip.test(satir));
     }
+  }
+  /* Silinenler GERI SIZMASIN. Bir dosyayi kaldirmak yetmez --
+     bir sonraki "kaynaktan her seyi al" turunda geri gelebilir
+     ve kimse fark etmezdi. */
+  for (const a of ["petrosapien", "prototype", "recal_omnitrix"]) {
+    kontrol(a + ": silinmis, geri gelmemis",
+            !existsSync(OMP + "/animations/" + a + ".animation.json"));
   }
 }
 

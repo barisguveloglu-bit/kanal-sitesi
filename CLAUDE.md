@@ -129,6 +129,22 @@ topluyor, test modeli de soruyor.
 Buradan çıkan kural: bir özellik kaldırılırken **eşya + attachable +
 ikon + model + doku**, beşi birden aranır. Dördünü aramak yeterli değil.
 
+**v7.95.1'de bu listenin gizli ALTINCISI bulundu: ÜRETEÇ.**
+31 bağlanmamış Ben 10 animasyonu silindi, testler yeşil döndü —
+sonra `kol_uret.py` çalışınca **üçü de geri geldi**, çünkü üretimin
+listesi hâlâ onları taşıyordu. İki ayrı düzeltme gerekti:
+
+- **Tam dosya:** `BEN10_ANIM`'den ad çıkarmak yetmiyor; üreteç artık
+  kendi artığını da topluyor (kaynak klasörde karşılığı olup
+  istenmeyenleri siliyor). İstenen küme **iki listeden** kuruluyor —
+  ilk yazışta yalnız `BEN10_ANIM`'e bakıyordu ve `ZIRH_EK`'in
+  kopyaladığı `drill_spin`'i yanlışlıkla siliyordu.
+- **Kısmi dosya:** çıktıyı elle düzenlemek İŞE YARAMAZ, bir sonraki
+  üretimde geri gelir. Süzgeç **kopyalama anında** uygulanmalı
+  (`BEN10_ANIM_AT`).
+
+Kural: bir şeyi kaldırırken **onu ÜRETENİ de ara.**
+
 ## Biçim doğrulama — `arac/` (v7.94.2)
 
 `.animation.json` ve `.geo.json` dosyalarının **biçim olarak geçerli
