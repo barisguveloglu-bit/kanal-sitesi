@@ -56,8 +56,12 @@ export function elindekiYaratik(oyuncu) {
 
   const adaylar = [];
   try {
+    /* eldekiEsya KIMLIK donduruyor, esya degil. Burada da
+       `.typeId` okunuyordu ve hep undefined'di; asagidaki
+       dongu "typeof kimlik !== string" diye eledigi icin
+       GORUNUR bir bozukluk yapmiyordu -- maskelenmis hata. */
     const el = eldekiEsya(oyuncu);
-    if (el) adaylar.push(el.typeId);
+    if (el) adaylar.push(el);
   } catch (e) { /* elde bir sey yok */ }
   if (bilesen && typeof bilesen.getEquipment === "function") {
     for (const yuva of ["Mainhand", "Offhand"]) {

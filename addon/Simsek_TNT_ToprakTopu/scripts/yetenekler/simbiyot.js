@@ -10,7 +10,8 @@ import {
   SIMBIYOT_DIRENC, SIMBIYOT_ETKILER, SIMBIYOT_SUSLAR,
   SIMBIYOT_KADEMELER, SIMBIYOT_EN_GUCLU_SUS, SIMBIYOT_EN_GUCLU_KADEME,
   SIMBIYOT_VURUS_ADIM, SIMBIYOT_VURUS_MENZIL, SIMBIYOT_VURUS_HASAR,
-  SIMBIYOT_VURUS_TAVAN, SIMBIYOT_ROYAL_CARPAN
+  SIMBIYOT_VURUS_TAVAN, SIMBIYOT_ROYAL_CARPAN,
+  SIMBIYOT_PARCACIK
 } from "../ayarlar.js";
 
 /* SIMBIYOT · APEX FORM.
@@ -116,7 +117,7 @@ export function simbiyotBaslat(oyuncu) {
         } catch (e) { /* varlik kayboldu */ }
       }
       try {
-        parcacikHalkasi(oyuncu.dimension, "minecraft:sonic_explosion",
+        parcacikHalkasi(oyuncu.dimension, SIMBIYOT_PARCACIK,
                         oyuncu.location, 10, 2);
       } catch (e) { /* onemsiz */ }
       return false;

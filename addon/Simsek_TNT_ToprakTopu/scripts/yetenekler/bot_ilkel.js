@@ -225,8 +225,12 @@ export function silahVer(varlik, anahtar) {
     return "okunamadi";
   }
 
+  /* eldekiEsya KIMLIK donduruyor. `.typeId` okundugu surece
+     bu erken cikis HIC tetiklenmiyordu: silah zaten elde olsa
+     bile her tazelemede setEquipment yeniden cagriliyordu.
+     Bozukluk degildi ama bosa isti. */
   const simdiki = eldekiEsya(varlik);
-  if (simdiki && simdiki.typeId === silah) return true;
+  if (simdiki === silah) return true;
 
   try {
     bilesen.setEquipment("Mainhand", new ItemStack(silah, 1));

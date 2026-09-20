@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.95.1";
+export const SURUM = "v7.95.3";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -612,6 +612,33 @@ export const SIMBIYOT_VURUS_TAVAN  = 3;
    Bizim sayimiz; Royal'in artirici oldugu KESIN, ne kadar
    artirdigi degil.                                          */
 export const SIMBIYOT_ROYAL_CARPAN = 1.5;
+
+/* Frenzy vurusunun gorseli.
+
+   v7.95.3'E KADAR `minecraft:sonic_explosion` IDI VE YANLISTI.
+   Kullanici fark etti: "Venom'un oyle bir sey yaptigini
+   dusunmuyorum." Kaynak jar'dan dogrulandi ve haklıydi:
+
+   `AbilityDispatcher`in tableswitch'i susu yetenege esliyor
+   (SymbioteStrain sirasi GUARDIAN=0 · PREDATOR=1 · SHADOW=2 ·
+   SCULK=3 · ROYAL=4):
+       1 -> RupturePounce   (PREDATOR)
+       2 -> Nightstep       (SHADOW)
+       3 -> SonicScreech    (SCULK)     <-- sonic BURADA
+   default -> AegisBloom    (GUARDIAN ve ROYAL)
+
+   Yani sonic SCULK susunun yetenegi; bizim dugmemiz ise
+   ROYAL + Dominant + Apex veriyor. Ustelik `ApexForm.fire()`
+   bytecode'unda `SonicScreech` HIC gecmiyor -- cagirdigi sey
+   `TendrilFxEntity.spawnBurst`, yani bir TENDRIL patlamasi.
+   Kaynagin SonicScreech'i ayrica bir KONI (CONE_COS 0.57),
+   bizimki ise oyuncunun etrafinda halka; sekil de tutmuyordu.
+
+   Bedrock'ta tendril parcacigi yok. En yakin okunus koyu,
+   organik bir patlama -- `basic_smoke_particle`. Hasar tarafi
+   (Frenzy: menzil 6 · hasar 7 · adim 8) kaynaga sadik ve
+   DEGISMEDI; yanlis olan yalnizca gorseldi.                 */
+export const SIMBIYOT_PARCACIK = "minecraft:basic_smoke_particle";
 
 
 /* ============ SEYTAN MEYVELERI (v7.64) ============

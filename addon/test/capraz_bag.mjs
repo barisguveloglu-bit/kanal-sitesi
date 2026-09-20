@@ -16,6 +16,8 @@
 import { dunyaKur, oyuncuKur } from "./dunya.mjs";
 import { tickIlerlet } from "@minecraft/server";
 
+const KOK = new URL("..", import.meta.url).pathname.replace(/\/$/, "");
+
 const w = console.warn;
 const sus = () => { console.warn = () => {}; };
 const ac = () => { console.warn = w; };
@@ -240,6 +242,85 @@ console.log("=== 3. ESYA BAGLARI TEK YONLU VE DOGRU ===");
   kontrol("hicbir kolda ayni yetenek iki kez yok", cift === 0, cift + " cift");
   kontrol("her bagli kimlik gercek bir yetenek", bilinmeyen === 0,
           bilinmeyen + " bilinmeyen");
+}
+
+console.log("");
+console.log("=== 4. eldekiEsya SONUCUNDA .typeId OKUNMUYOR ===");
+{
+  /* eldekiEsya() ESYAYI degil KIMLIGINI (dize) donduruyor.
+     Dizede `.typeId` YOK -- okunursa hep undefined cikar ve
+     ona dayanan her kosul sessizce yanlis calisir.
+
+     v7.95.3'te olculdu: bu yuzden UC yetenek (Biyo Silah,
+     Bobby Silahi, Ay Isigi sarkisi) dogru esya elde
+     tutulurken bile "elinde olmali" diyordu ve menuden HIC
+     calismiyordu. Ayni hata zirh.js'te v5.0'da yakalanip
+     duzeltilmisti; ders bir dosyada ogrenilmis, dort yer
+     supurulmemisti.
+
+     Bu kontrol KAYNAK metinde arar, cunku hata calisma aninda
+     patlamiyor -- sessizce yanlis cevap veriyor.            */
+  const { readFileSync, readdirSync } = await import("node:fs");
+  const kokDizin = KOK + "/Simsek_TNT_ToprakTopu/scripts/yetenekler";
+
+  /* YORUMLAR ONCE ATILIR. Iki sebep:
+       1. Bu duzeltmeyi ANLATAN yorumlar "`.typeId` okunuyordu"
+          diyor -- taranirsa kendi aciklamamiz suclu cikar.
+       2. Yorum bloklari atama ile kosul arasina giriyor ve
+          pencereyi tasiriyor. Ilk surum tam bunun kurbani
+          oldu: bilerek geri konan hata YAKALANMADI, cunku
+          araya giren 10 satirlik aciklama `.typeId`yi bes
+          satirlik pencerenin disina itmisti.                */
+  const yorumsuz = (t) => t
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/(^|[^:])\/\/.*$/gm, "$1");
+
+  const suclu = [];
+  for (const f of readdirSync(kokDizin)) {
+    if (!f.endsWith(".js")) continue;
+    const satirlar = yorumsuz(readFileSync(kokDizin + "/" + f, "utf8"))
+      .split("\n");
+    for (let i = 0; i < satirlar.length; i++) {
+      if (!/\beldekiEsya\s*\(/.test(satirlar[i])) continue;
+      const m = satirlar[i].match(/(?:const|let|var)?\s*([A-Za-z_$][\w$]*)\s*=\s*eldekiEsya/);
+      if (!m) continue;
+      const ad = m[1];
+      /* Pencere 5'ten 15'e cikti (yukaridaki 2. sebep). */
+      const pencere = satirlar.slice(i, i + 15).join("\n");
+      if (new RegExp("\\b" + ad + "\\.typeId\\b").test(pencere))
+        suclu.push(f + ":" + (i + 1) + " (" + ad + ".typeId)");
+    }
+  }
+  kontrol("hicbir yerde eldekiEsya sonucunda .typeId okunmuyor",
+          suclu.length === 0, suclu.join(" | ") || "temiz");
+}
+
+console.log("");
+console.log("=== 5. SIMBIYOT GORSELI DOGRU YETENEKTEN ===");
+{
+  /* Kaynakta sonic, SCULK susunun `SonicScreech`i.
+     Bizim dugmemiz ROYAL + Dominant + Apex veriyor ve
+     `ApexForm.fire()` SonicScreech'i HIC cagirmiyor.
+     v7.95.3'e kadar Frenzy vurusu `sonic_explosion`
+     ciziyordu -- baska bir susun gorseli.                   */
+  const ayar = await import("./pack/ayarlar.js");
+  kontrol("simbiyot parcacigi ayarlardan geliyor",
+          typeof ayar.SIMBIYOT_PARCACIK === "string" &&
+          ayar.SIMBIYOT_PARCACIK.length > 0, ayar.SIMBIYOT_PARCACIK);
+  kontrol("sonic parcacigi KULLANILMIYOR",
+          !/sonic/i.test(ayar.SIMBIYOT_PARCACIK), ayar.SIMBIYOT_PARCACIK);
+  const { readFileSync } = await import("node:fs");
+  const kod = readFileSync(
+    KOK + "/Simsek_TNT_ToprakTopu/scripts/yetenekler/simbiyot.js", "utf8");
+  kontrol("kodda sabit gomulu sonic yok", !/sonic/i.test(kod));
+  /* Hasar tarafi kaynaga sadik kalmali -- degisen yalniz gorsel. */
+  kontrol("Frenzy sayilari kaynaktaki gibi",
+          ayar.SIMBIYOT_VURUS_MENZIL === 6 &&
+          ayar.SIMBIYOT_VURUS_HASAR === 7 &&
+          ayar.SIMBIYOT_VURUS_ADIM === 8,
+          "menzil=" + ayar.SIMBIYOT_VURUS_MENZIL +
+          " hasar=" + ayar.SIMBIYOT_VURUS_HASAR +
+          " adim=" + ayar.SIMBIYOT_VURUS_ADIM);
 }
 
 console.log("");

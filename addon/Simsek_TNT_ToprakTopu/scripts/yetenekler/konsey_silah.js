@@ -224,7 +224,16 @@ for (const [kimlik, t] of KONSEY_SILAH) {
          mi, burada da sinaniyor.                            */
       let elde;
       try { elde = eldekiEsya(oyuncu); } catch (e) { elde = undefined; }
-      if (!elde || elde.typeId !== "pa:" + kimlik) {
+      /* eldekiEsya ESYAYI degil KIMLIGINI (dize) donduruyor.
+         v7.95.3'e kadar burada `.typeId` okunuyordu; dizede o
+         alan yok, hep undefined cikiyordu ve kosul HER ZAMAN
+         dogru oluyordu. Sonuc: dogru esya elde tutulurken bile
+         "elinde olmali" deniyordu -- bu kapinin arkasindaki UC
+         yetenek (Biyo Silah, Bobby Silahi, Ay Isigi sarkisi)
+         menuden HIC calismiyordu.
+         Ayni hata zirh.js'te v5.0'da yakalanip duzeltilmisti;
+         ders bir dosyada ogrenilmis, digerleri supurulmemisti. */
+      if (elde !== "pa:" + kimlik) {
         actionbarYaz(oyuncu, "§c" + t.ad + " elinde olmalı");
         kollariIndir(oyuncu);
         return undefined;
@@ -271,7 +280,16 @@ for (const [kimlik, t] of KONSEY_ASA_SESI) {
     olustur(oyuncu) {
       let elde;
       try { elde = eldekiEsya(oyuncu); } catch (e) { elde = undefined; }
-      if (!elde || elde.typeId !== "pa:" + kimlik) {
+      /* eldekiEsya ESYAYI degil KIMLIGINI (dize) donduruyor.
+         v7.95.3'e kadar burada `.typeId` okunuyordu; dizede o
+         alan yok, hep undefined cikiyordu ve kosul HER ZAMAN
+         dogru oluyordu. Sonuc: dogru esya elde tutulurken bile
+         "elinde olmali" deniyordu -- bu kapinin arkasindaki UC
+         yetenek (Biyo Silah, Bobby Silahi, Ay Isigi sarkisi)
+         menuden HIC calismiyordu.
+         Ayni hata zirh.js'te v5.0'da yakalanip duzeltilmisti;
+         ders bir dosyada ogrenilmis, digerleri supurulmemisti. */
+      if (elde !== "pa:" + kimlik) {
         actionbarYaz(oyuncu, "§c" + t.ad + " elinde olmalı");
         kollariIndir(oyuncu);
         return undefined;
