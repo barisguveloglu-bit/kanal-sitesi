@@ -114,3 +114,84 @@ Eşleme tablosu `ayarlar.js: ZIRH_MODLAR` içinde satır satır yazılı, ve
 ## Alınan dosyalar
 
 `kaynak_doku/NEREDEN.md` — her dokunun modun içindeki yolu orada yazılı.
+
+---
+
+## v7.95.5 · İKİNCİ TARAMA — belge eksikmiş
+
+Kullanıcı jar'ı yeniden yükledi. **Dosya birebir aynı** (md5
+`a0fee04d4ab2e14c89f381dcc298dbcd`, 643 KB, 588 dosya) — yeni sürüm değil.
+Ama yeniden tarayınca yukarıdaki listenin **eksik olduğu** çıktı.
+
+"Bir kez yazıldı, tekrar taramayayım" notu bu yüzden tehlikeli: belge
+tam sanılıyor, oysa ilk taramada atlanan şeyler var. Aşağıdakiler
+o taramada **hiç geçmiyordu**.
+
+### Modların resmî listesi nereden okunur
+
+`powers/voice_commands.json` modun **kilit açma sistemi**: `<Ad>_Unlock`
+biçiminde 11 yetenek + Base. Yani asıl mod listesi budur, 12 mod:
+
+```
+Base · Cannon · Clone · Flight · Heat · Recon · Scuba
+Shrink · Speed · Stealth · Strength · Titan
+```
+
+**Bizde 9 var.** Eksik üçü: **Cannon · Clone · Shrink**.
+
+### `size_mode` (Shrink) — belgede hiç yoktu
+
+14 yetenek. `fall_resistance 100 · armor 20 · toughness 15`.
+Üç tuşlu geçiş: **`size_grow` · `size_shrink` · `size_manip`**,
+boyut `scale set pehkui:base` ile ayarlanıyor.
+
+### `strength_mode`'un İKİNCİ alt modu: **EXO** — belgede hiç yoktu
+
+Güç modunda **iki** ayrı `toggle` tuşu var, biri bizde yok:
+
+| toggle | ne yapıyor | bizde |
+|---|---|---|
+| `drill_hands` | matkap eller · `destroy_speed +2` · `tool_hands` · dual_wielding | **var** (`zirh_matkap`) |
+| `exo_render` | **EXO** — `attack ×2` · `knockback ×4` · `health_boost` kademe 5 (+20 can) | **YOK** |
+
+`exo_stats` gizli (`hidden: true`); koşulu `exo_render` açık mı diye
+soruyor, yani EXO görünümü açılınca istatistikler kendiliğinden geliyor.
+
+Ayrıca `strength_stats` ilk taramada okunmamış — güç modu oyuncuyu
+**iki katına çıkarıyor**: `scale pehkui:base 2` · `entity_reach 2` ·
+`knockback 2`. Bizim güç modumuzda boyut/erişim değişimi yok.
+
+### `ion_power` — belgede hiç yoktu
+
+14 yetenek. `ion_blast` ışını (**5 hasar · 30 blok**), pasif
+`jump_boost` + `regeneration` + `saturation`. Dört tuş:
+`turbo_stat_boost` · `turbo_energy_construction` · `manual_charge` ·
+`ion_blast`.
+
+### Gizlilik birleşimleri — belgede hiç yoktu
+
+Modlar **çiftlenebiliyor**; her birinin `return_<mod>` tuşuyla geri
+dönüşü var:
+
+| birleşim | ek |
+|---|---|
+| `strength_stealth` | görünmezlik + güç modunun tamamı (armor 30, attack 15, 2× boyut) |
+| `flight_stealth` | görünmezlik + uçuş |
+| `scuba_stealth` | görünmezlik + `swim_speed 5` |
+| `scuba_flight` | `fall_resistance 200` + `swim_speed 5` |
+| `speed_stealth` | **kaynakta BOZUK** — dosya 0 bayt |
+
+`speed_stealth.json`'ın boş olması modun kendi hatası; diğer dört
+birleşim sağlam.
+
+### İlk taramada olan ama eksik yazılan
+
+`super_mode` satırı vardı ama tuşları yazılmamıştı: **`laser_eyes`**
+(15 hasar / 30 blok), `boost` (`flight_speed` 3'e set),
+`destructive_flight`, ve `splode_immune` (patlama bağışıklığı).
+
+### Buradan çıkan kural
+
+Bir referans belgesi "bitti" diye işaretlenmez. Bu belge iki yıl
+"tam" sayıldı ve **beş mod/alt mod eksikti**. Yeniden taramak ucuz;
+eksik belgeye güvenmek pahalı.
