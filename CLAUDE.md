@@ -205,6 +205,33 @@ elemandı ve %100'ü düzlemdi: çevrilebilirdi ama çizilemezdi.
 lisanssız; `REFERANS_*.md` belgeleri ölçümü taşır, dosyayı değil.
 (İstisna: `arac/geckolib/` — MIT ve kural tablosu ondan üretiliyor.)
 
+### v7.94.7 — üç dış paket ölçüldü, hiçbiri alınmadı
+
+Kullanıcı üç dosya gönderdi ve iki seçenek arasından **ölçümü al,
+dosyayı alma**yı seçti. Üçünün de varlıkları depo dışında kaldı:
+
+| belge | kaynak | ne için |
+|---|---|---|
+| `REFERANS_IRONMAN.md` | `Iron_Man_Add-on.mcaddon` (Bedrock) | zırh efektleri, hasar tablosu, mermi numarası |
+| `REFERANS_NPA.md` | `NPA_V0.6.61.mcpack` (Bedrock) | oyuncu animasyon durum makinesi |
+| `REFERANS_TFP.md` | `tfp-forge-1.20.1-0.5.8.1.jar` (Java) | 18 transformer künyesi, cooldown dengesi |
+
+Üçünde de lisans sorunlu: Iron Man ve NPA'da **lisans dosyası yok**,
+Craftformers'ta **çelişkili** (kökte CC0 metni, `mods.toml`'da "All
+Rights Reserved"). Üstüne marka katmanı var (Marvel/Disney, Hasbro).
+Depo herkese açık olduğu için varlıkları almak DMCA ve YouTube telif
+ihtarı riski demekti — bu yüzden alınmadı.
+
+**Bu belgelerden bir şey uygularken kural:** sayıyı/fikri al, dosyayı
+alma. Kendi dokumuzla, kendi adımızla, kendi kodumuzla yaz.
+
+**Üçünün ortak bulgusu — `minecraft:player` çakışması.** Iron Man
+(hem davranış hem kaynak) ve NPA (kaynak), bizim
+`Simsek_Oyuncu_Modeli/entity/player.entity.json` ile **aynı anahtarı
+aynı `format_version` ile** tanımlıyor. Bedrock bunları birleştirmez;
+üstteki alttakini bütünüyle siler. Ayrıntı ve tek çözüm
+`REFERANS_NPA.md` sonundaki "Üç taraflı çakışma" bölümünde.
+
 ## Dosya teslimi — SKIN linkle, paket dosya olarak
 
 Bu kural depodaki kodla ilgili değil, **kullanıcıya nasıl teslim
