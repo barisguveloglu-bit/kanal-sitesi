@@ -1,3 +1,99 @@
+# v7.97.0 — İki dış moddan iki sistem: Enerji ve Füzyon
+
+Kullanıcı iki mod gönderdi (Avatar Addon 2.0.0, Dragon Block C Ultimate
+1.1.0), ikisinin de lisansı yok, ikisinin de yalnız **ölçümü** alındı.
+Bu sürüm o ölçümden **bizde hiç olmayan iki sistemi** uyguluyor.
+
+## Enerji (Chi) — Avatar Addon'dan
+
+Deponun **üçüncü freni**. İlk ikisi vardı:
+
+| fren | neyi sınırlıyor |
+|---|---|
+| `butce.js` | tick başına **toplam** iş — bütün oyuncular ortak |
+| bekleme süreleri | yetenek başına **sıklık** |
+| **enerji** | oyuncu başına **"pes etmeden kaç tane"** |
+
+İlk ikisi "ne sıklıkla" diyor, üçüncüsü "ne kadar" diyor.
+
+### Eğri kaynaktan birebir ve TERS
+
+```
+YENİLENME = 0.3 + 1.7 / (1 + e^(-0.05 × (enerji − 39.8)))
+```
+
+| enerji | yenilenme |
+|---|---|
+| 0 (boş) | **0,504** /tick |
+| 39,8 (dönüm) | 1,150 /tick |
+| 100 (dolu) | **1,920** /tick |
+
+Sezgiye ters: boşken yavaş, doluyken hızlı. Yani art arda harcamak seni
+uzun süre kuruturken idareli kullanan hiç yavaşlamıyor. Kaynağın kendi
+kararı (`bender.js:180`) ve kasten alındı. `test/enerji.mjs` 2. bölümü
+bu ters eğriyi **kilitliyor** — biri "düzeltip" düz artan yaparsa test
+düşer.
+
+### Opt-in: 150+ eski yeteneğin hiçbiri etkilenmedi
+
+Bir yetenek enerji harcamak için kaydında `enerji: N` yazmalı. Yazmayan
+her yetenek eskisi gibi çalışıyor. Bilinçli: bütün yetenekleri tek
+seferde enerjiye bağlamak, çalışan bir sistemi sessizce bozmanın en
+kestirme yoluydu.
+
+Kapı **tek yerde**: `main.js`'te `tanim.olustur()` çağrısının hemen
+önünde. Her yeteneğe tek tek yazmak, unutulan bir yetenek demekti.
+
+Yenilenme koşulu da kaynaktan: kaynak yalnız bekleme sıfırken yeniliyor,
+bizde karşılığı **oyuncunun çalışan işi yoksa** (`oyuncuIsSayisi`).
+
+## Füzyon — Dragon Block C'den
+
+Kaynakta iç içe bir fonksiyon ağacı: `fusion_start` → `acontesa_fusao`
+→ `fusao_segura` → `fusion_end`.
+
+**Bedrock iki oyuncuyu gerçekten birleştiremez** — oyuncu varlığı
+silinemiyor, başkasına bindirilemiyor. Kaynak da bunu yapmıyor: etiket
+ve skorla "birleşmiş sayıyor" ve ikisine de aynı gücü veriyor. Bizdeki
+de öyle.
+
+| adım | ne oluyor |
+|---|---|
+| **davet** | ilk oyuncu tetikler, 10 saniyelik pencere açılır — **bedava** |
+| **kabul** | ikinci oyuncu 6 blok içinde tetiklerse füzyon başlar, **ikisinden de** 60 enerji alınır |
+| **tutma** | 60 saniye; 24 bloktan fazla ayrılırlarsa **kopar** (`fusao_segura` karşılığı) |
+
+Davetin bedava olması önemli: bedel ancak füzyon gerçekten başlarsa
+alınıyor. Biri ödeyemezse ödeyen taraf **geri alıyor** — yarım ödeme
+bırakmak "eşyası kayboldu" sınıfında bir hata olurdu.
+
+### Füzyon bilerek Ultimate Form'dan zayıf
+
+Ultimate tek kişinin **en yüksek** hâli; iki kişinin birleşmesi ondan
+güçlü olsaydı Ultimate anlamsızlaşırdı. `test/enerji.mjs` 7. bölümü
+füzyonun hiçbir efektinin Ultimate'i geçmediğini ölçüyor.
+
+Kaynağın kendi sayıları (NPC'leri 4.000 can) bizim ölçeğimizin on katı —
+**olduğu gibi alınmadı**.
+
+## İki hata, ikisi de test tarafından yakalandı
+
+1. **`getPlayers` sahte dünyada yok.** Füzyon ilk yazışta onu
+   kullanıyordu ve test düştü. Deponun kendi kodu da `getPlayers`'ı
+   korumalı çağırıyor (`efsane_korku.js:232`). `getEntities` + typeId
+   süzgecine çevrildi — her sürümde var ve aynı `location` +
+   `maxDistance` süzgecini destekliyor.
+2. **Kendi düzenli ifadem.** `enerjiTara(oyuncular, [^)]*oyuncuIsSayisi`
+   yazmıştım; `[^)]*` çağrının içindeki `(kimlik)` parantezini
+   geçemiyordu. Test kendi hatası yüzünden düştü.
+
+## Kalan
+
+İki modun ölçümü tam, uygulaması değil. Avatar'ın 88 hareketi ve DBC'nin
+dokuz form / üç ırk sistemi henüz alınmadı.
+
+---
+
 # v7.96.8 — Üç iksir daha: ikiz tarif ve yaprak
 
 Kullanıcı: *"Redoksin, Firenoksin — bunların tarifleri birbirine

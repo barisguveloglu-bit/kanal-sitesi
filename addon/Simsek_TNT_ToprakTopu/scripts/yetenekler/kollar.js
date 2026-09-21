@@ -85,6 +85,14 @@ export const KOL_ESYALARI = [
       yetenek degil, bir DURUM degistirici. Secimin
       gerekcesi ayarlar.js ULTIMATE_KAYNAKLAR'da.      */
                     "ultimate_form",
+   /* v7.97: FUZYON -- Dragon Block C'den. Ultimate Form'un
+      hemen ALTINA konuldu cunku ikisi de DURUM degistirici,
+      tek yetenek degil. Sira onemli: Ultimate tek kisinin en
+      yuksek hali, Fuzyon iki kisinin birlesmesi; menude
+      yan yana dursunlar ki hangisinin ne oldugu belli olsun.
+      Fuzyon bilerek Ultimate'ten ZAYIF -- gerekce
+      ayarlar.js:FUZYON_EFEKTLER.                         */
+                    "fuzyon",
    /* v7.9: KANLI KOLA GEC -- yetenek degil, bir SAHNE.
       Listenin EN SONUNA konuldu cunku bu bir dovus ya da bakim
       yetenegi degil, Toprak Kol'dan CIKIS. Ustteki on alti

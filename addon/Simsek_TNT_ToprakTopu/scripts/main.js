@@ -15,6 +15,7 @@ import {
   CAN_SAYACI_ACIK,
   RUH_ACIK,
   BEN10_ACIK, BEN10, SIMBIYOT_ACIK, YETENEK_KORUMALI, ANLIK_BEKLEME, YETENEK_ARA_LISTE,
+  ENERJI_ACIK,
   KONSEY_ACIK,
   DISMONT_ESYA,
   DUSMUS_ACIK, DUSMUS_CAKMAK, DUSMUS_YEMIN,
@@ -233,7 +234,10 @@ import "./yetenekler/ors.js";
 import "./yetenekler/buz_adam.js";
 import "./yetenekler/toprak_ucus.js";
 import "./yetenekler/ftech.js";
+import "./yetenekler/fuzyon.js";
+import { fuzyonUnut } from "./yetenekler/fuzyon.js";
 import { ftechUnutOyuncu } from "./yetenekler/ftech.js";
+import { enerjiTara, enerjiIste, enerjiUnut } from "./enerji.js";
 import { willTara, willBeklemeUnut } from "./yetenekler/will_kilic.js";
 import "./yetenekler/can_ver.js";
 import "./yetenekler/kol_takas.js";
@@ -701,6 +705,17 @@ system.runInterval(() => {
         hataYaz("viltrumiteTara", e);
       }
     }
+    /* ---- ENERJI YENILENMESI (v7.97.0) ----
+       Ayni `oyuncular` listesi -- getAllPlayers yine tek kez
+       cagriliyor. `oyuncuIsSayisi` kaynagin "bekleme sifir mi"
+       kosulunun karsiligi: isi olan oyuncunun enerjisi dolmaz. */
+    if (ENERJI_ACIK) {
+      try {
+        enerjiTara(oyuncular, (kimlik) => oyuncuIsSayisi(kimlik) > 0);
+      } catch (e) {
+        hataYaz("enerjiTara", e);
+      }
+    }
     if (BEN10_ACIK) {
       try {
         ben10Tara(oyuncular);
@@ -885,6 +900,15 @@ function yetenekTetikle(oyuncu, kimlikler) {
            Dizi v4.29'da lazim oldu: bot gucleri bot basina bir
            is aciyor (bes bot = bes simsek isi). Tek tetikleme
            sayiliyor, yani bekleme suresi bir kez isliyor.      */
+        /* ---- ENERJI KAPISI (v7.97.0) ----
+           Yetenek kaydinda `enerji: N` yazmissa o kadar
+           enerji dusuyor; yazmamissa (150+ eski yetenek)
+           bu satir hicbir sey yapmiyor. Opt-in olmasi
+           bilincli: butun yetenekleri tek seferde enerjiye
+           baglamak, calisan bir sistemi sessizce bozmanin
+           en kestirme yoluydu.                            */
+        if (!enerjiIste(oyuncu, tanim.enerji, tanim.ad)) continue;
+
         const sonuc = tanim.olustur(oyuncu);
         if (Array.isArray(sonuc)) {
           for (const is of sonuc) {
@@ -2580,6 +2604,8 @@ olayaAbone("playerLeave", (olay) => {
   saatUnut(olay.playerId);
   viltrumiteUnutOyuncu(olay.playerId);
   ftechUnutOyuncu(olay.playerId);
+  fuzyonUnut(olay.playerId);
+  enerjiUnut(olay.playerId);
 
   /* ---- v7.24'te EKLENEN DORT TEMIZLIK ----
      Genel taramada bulundu: bu dort defter oyuncu kimligiyle

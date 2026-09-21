@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.96.8";
+export const SURUM = "v7.97.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -12330,3 +12330,130 @@ export const FTECH_YAPRAK_BLOKLAR = new Set([
 
 /* Kol sesi. Kaynaktaki robot_arm.ogg birebir alindi (MIT). */
 export const FTECH_SES = "pa.ftech_kol";
+
+/* ================================================================
+   ENERJI (CHI)                                            v7.97.0
+
+   Kaynak: Avatar Addon 2.0.0 (olcum REFERANS_AVATAR.md).
+   Deponun bugune kadar hic sahip olmadigi sey: oyuncu basina
+   HARCANAN ve YENILENEN bir kaynak.
+
+   ---- BIZDEKI FRENLER NEDEN YETMIYORDU ----
+   Iki frenimiz vardi:
+     1. tick butcesi (butce.js) -- TUM oyuncular arasinda
+        paylasilan is tavani
+     2. bekleme sureleri -- yetenek basina
+   Ikisi de "ne siklikla" sorusunu cevapliyor, "ne kadar"
+   sorusunu cevaplamiyor. Enerji ucuncu bir soru soruyor:
+   pes etmeden kac tane?
+
+   ---- EGRI TERS, VE BU BILINCLI ----
+   Kaynaktan olculen yenilenme (bender.js:180):
+
+     YENILENME = 0.3 + 1.7 / (1 + e^(-0.05 x (enerji - 39.8)))
+
+   Enerji BOSKEN ~0.3/tick, DOLUYKEN ~2.0/tick. Yani art arda
+   harcamak seni uzun sure kuruturken, idareli kullanan hic
+   yavaslamiyor. Sezgiye ters ama kaynagin kendi karari ve
+   kasten aliniyor: "bos kaldiysan cezasi uzun".
+
+   ---- OPT-IN: ESKI YETENEKLERIN HICBIRI ETKILENMEDI ----
+   Bir yetenek enerji harcamak icin kaydinda `enerji: N` yazmali.
+   Yazmayan 150+ yetenek eskisi gibi calisiyor. Bu bilincli:
+   butun yetenekleri tek seferde enerjiye baglamak, bu depodaki
+   en pahali hata bicimini (sessizce bozulan calisan sistem)
+   davet ederdi.                                              */
+
+export const ENERJI_ACIK   = true;
+export const ENERJI_TAVAN  = 100;    // kaynaktan: chi tavani 100
+export const ENERJI_BASLIK = 100;    // dogunca dolu (playerSpawn.js:26)
+
+/* Sigmoid katsayilari, kaynaktan birebir. */
+export const ENERJI_TABAN   = 0.3;   // en dusuk yenilenme
+export const ENERJI_ARALIK  = 1.7;   // taban + aralik = en yuksek (2.0)
+export const ENERJI_EGIM    = 0.05;
+export const ENERJI_ORTA    = 39.8;  // egrinin donum noktasi
+
+/* Kacinci tick'te bir yenilensin. Kaynak her tick isliyor;
+   bizde tarama zaten 4 tick'lik bir ritimde (ESYASIZ_TARAMA)
+   ve her tick oyuncu dongusu acmak bosuna is.
+   YENILENME o yuzden ARALIK KADAR CARPILIYOR -- yani toplam
+   hiz kaynakla ayni kaliyor, sadece daha seyrek uygulaniyor. */
+export const ENERJI_ARALIK_TICK = 4;
+
+/* Kaynak yalniz bekleme sifirken yeniliyor. Bizde beklemenin
+   karsiligi "oyuncunun calisan isi var mi": is varken enerji
+   dolmuyor.                                                   */
+export const ENERJI_ISTE_BOSTA = true;
+
+/* Enerji yetmezse ne olsun: yetenek CALISMIYOR ve sebebi
+   yaziliyor. Yarim calistirmak (mesela hasari dusurmek)
+   bilerek secilmedi -- "bastim ama ne oldugunu anlamadim"
+   bu depoda en cok sikayet edilen sey.                       */
+export const ENERJI_UYARI = true;
+
+/* ================================================================
+   FUZYON                                                   v7.97.0
+
+   Kaynak: Dragon Block C Ultimate V1.1.0 (REFERANS_DBC.md).
+   Kaynakta ic ice bir fonksiyon agaci: fusion_start ->
+   acontesa_fusao -> fusao_segura -> fusion_end.
+
+   ---- BEDROCK SINIRI, OLCULDU ----
+   Iki oyuncuyu GERCEKTEN tek bedene indirmek Bedrock'ta yok:
+   oyuncu varligi silinemiyor, baskasina bindirilemiyor.
+   Kaynak da bunu yapmiyor zaten -- etiket ve skorla "birlesmis
+   sayiyor" ve iki oyuncuya da ayni gucu veriyor.
+
+   Bizde de oyle: iki oyuncu birbirine yakin durup ikisi de
+   yetenegi tetiklerse FUZYON baslar. Sure boyunca ikisi de
+   birlesik efektleri tasir. Ayrilirlarsa fuzyon BOZULUR --
+   kaynaktaki "fusao_segura" (fuzyonu tut) adiminin karsiligi.  */
+
+export const FUZYON_ACIK = true;
+
+/* Fuzyon baslamak icin iki oyuncu kac blok icinde olmali. */
+export const FUZYON_MESAFE = 6;
+
+/* Ikinci oyuncunun tetiklemesi kac tick icinde gelmeli.
+   Kaynakta bekleme varligi var (fusion_waiting_som); bizde
+   sure penceresi.                                             */
+export const FUZYON_PENCERE = 200;      // 10 saniye
+
+/* Fuzyon ne kadar surer. Kaynakta kademeli; bizde tek sure. */
+export const FUZYON_SURE = 1200;        // 60 saniye
+
+/* Fuzyon boyunca en fazla kac blok ayrilabilirler.
+   Asilirsa fuzyon bozulur ("fusao_segura" karsiligi).        */
+export const FUZYON_KOPMA = 24;
+
+/* Baslangic bedeli (enerji). Iki oyuncudan da alinir. */
+export const FUZYON_BEDEL = 60;
+
+/* Fuzyonun verdigi efektler. Kaynagin form tablosu bizim
+   olcegimize gore cok buyuk (NPC'leri 4000 can); sayilar
+   OLDUGU GIBI ALINMADI. Bunun yerine deponun kendi Ultimate
+   Form'undan BIR KADEME ASAGI tutuldu: fuzyon guclu ama
+   Ultimate'i gecmiyor, cunku Ultimate tek kisinin en yuksek
+   hali ve iki kisinin birlesmesi ondan guclu olsaydi Ultimate
+   anlamsizlasirdi.                                            */
+export const FUZYON_EFEKTLER = [
+  ["strength",        3],
+  ["resistance",      2],
+  ["regeneration",    2],
+  ["health_boost",    9],   // +40 can
+  ["absorption",      3],
+  ["speed",           2],
+  ["jump_boost",      2],
+  ["fire_resistance", 0],
+  ["night_vision",    0],
+  ["saturation",      0]
+];
+
+/* Efektlerin tazelenme araligi (Ultimate ile ayni ritim). */
+export const FUZYON_TAZELEME = 40;
+
+/* Fuzyon sirasinda cizilen parcacik ve calan ses. */
+export const FUZYON_PARCACIK = "minecraft:totem_particle";
+export const FUZYON_SES      = "beacon.activate";
+export const FUZYON_BOZULMA_SES = "beacon.deactivate";
