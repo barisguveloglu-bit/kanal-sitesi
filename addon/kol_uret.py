@@ -143,7 +143,7 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # hanenin 0 yerine 5'ten baslamasi bunun isareti -- 7.83.0
 # ile 7.83.5 AYNI kod, sadece numara degisti.
 # v7.91.0: ORTANCA hane -- Avaritia'dan uc mekanik.
-SURUM_NO = (7, 96, 4)
+SURUM_NO = (7, 96, 5)
 
 SURUM_METIN = "%d.%d.%d" % SURUM_NO
 
@@ -740,6 +740,158 @@ IKSIR_DOKU = {
 # Her gozun bir de LAZER varyanti var: lazer atarken kisa sureligine
 # ona geciliyor. Referansta da boyleydi (pa:beyaz_goz -> beyaz_goz_lazer),
 # tek farki bizde kilit olmamasi.
+
+# ================================================================
+#  IKSIR URETIM ZINCIRI                                  v7.96.5
+#
+#  Kullanici: "senin saydiklarin cok buyuk oldugu icin ve bunu
+#  crafting table yapamayacaklari icin tek tek yapmalari
+#  gerekiyordu ve en sonunda birlestirip iste iksir."
+#
+#  Dogru tespit: bir iksirin butun etkilerini tek 3x3 tarife
+#  sigdirmak, hem tezgahi asiyor hem de her iksiri devasa
+#  yapiyordu. Zincir uc adim:
+#
+#      1. SIVI    iki malzeme   -> pa:sivi_<iksir>
+#      2. SISE    iki malzeme   -> pa:iksir_sise   (ORTAK)
+#      3. IKSIR   sivi + sise + iki malzeme -> pa:iksir_<iksir>
+#
+#  Tarifler SEKILSIZ (recipe_shapeless): dizilis onemsiz, dort
+#  esyayi tezgaha atmak yetiyor. Sekilli tarif burada bir sey
+#  kazandirmazdi -- iki ve dort malzemenin "dogru dizilisi" diye
+#  bir sey yok.
+#
+#  ---- SISE NEDEN ORTAK ----
+#  Kullanicinin sozu: "disindaki iksiri icmek icin tutulan
+#  sisesi". Yani kap iksire ait degil, iksiri TASIYAN sey.
+#  Dokuz iksire dokuz ayri kap yapmak kap fikrini bozardi.
+#  Ikonu kullanicinin gonderdigi gorsel (kaynak_doku/iksir_sise.png).
+#
+#  ---- MALZEMELER TAHMIN DEGIL ----
+#  Her sivi malzemesi, o iksirin EN YUKSEK iki etkisini
+#  vanilla'da gerceklestiren esya:
+#    Nitroksin  hiz IV + ziplama IV -> seker + tavsan ayagi
+#    Hiperoksin guc III + emilim III -> blaze tozu + altin elma
+#  Tamamlama madenleri kademeyi tasiyor: Nitroksin listenin
+#  ILK iksiri (demir + elmas), Hiperoksin ALTINCISI
+#  (elmas + netherit).
+#
+#  ---- FREEDOM STONE BILEREK KULLANILMADI ----
+#  Dunyaya cikan tek ozel madenimiz o, ama zaten bir isi var:
+#  mezar anahtari, 10 tane gerekiyor ve harcaniyor
+#  (MEZAR_ANAHTAR_ADET, ayarlar.js). Iksirlere de koymak mezari
+#  erisilemez yapardi.
+# ================================================================
+IKSIR_SISE = "iksir_sise"
+IKSIR_SIVI_ONEK = "sivi_"
+
+# Sisenin iki malzemesi. Gorseldeki tup cam, kapagi gri metal.
+IKSIR_SISE_MALZEME = ["minecraft:glass_bottle", "minecraft:iron_ingot"]
+
+# Zinciri OLAN iksirler. Burada olmayan iksirin sivisi da
+# uretilmiyor -- tarifi olmayan bir sivi olu esya olurdu.
+IKSIR_ZINCIR = {
+    "nitroksin":  {"sivi":  ["minecraft:sugar", "minecraft:rabbit_foot"],
+                   "tamam": ["minecraft:iron_ingot", "minecraft:diamond"]},
+    "hiperoksin": {"sivi":  ["minecraft:blaze_powder", "minecraft:golden_apple"],
+                   "tamam": ["minecraft:diamond", "minecraft:netherite_ingot"]},
+}
+
+IKSIR_SISE_TR = "İksir Şişesi"
+IKSIR_SIVI_TR = {
+    "nitroksin":  "Nitroksin Sıvısı",
+    "hiperoksin": "Hiperoksin Sıvısı",
+}
+
+
+def sivi_ikonu(renk):
+    """16x16 sivi damlasi -- iksirin KENDI rengi, sise yok.
+
+    Zincirin ilk adimi "henuz sisenin icine girmemis sivi",
+    o yuzden bilerek iksir_ikonu'ndan farkli duruyor: orada
+    cam govde var, burada yok. Envanterde ikisi karismasin.  """
+    p = {}
+    koyu = golge(renk, 0.72)
+    acik = golge(renk, 1.28)
+    # Gercek damla: ustte sivri, altta YUVARLAK.
+    # Ilk yazista alt taraf DUZ kesiliyordu ve damla degil
+    # koni gibi duruyordu; asagisi 4,6 yaricapli cemberden
+    # turuyor, ustu ona dogru dogrusal sivriliyor.
+    YARICAP = 4.6
+    MERKEZ_Y = 10
+    for y in range(2, 15):
+        if y >= 8:
+            dy = y - MERKEZ_Y
+            kare = YARICAP * YARICAP - dy * dy
+            genis = int(kare ** 0.5) if kare > 0 else 0
+        else:
+            genis = int(round((y - 2) * 4.0 / 6.0))
+        for x in range(8 - genis, 8 + genis + 1):
+            if x < 1 or x > 14:
+                continue
+            if x == 8 - genis or x == 8 + genis:
+                p[(x, y)] = koyu + (255,)
+            elif x - (8 - genis) <= 1 and y >= 9:
+                p[(x, y)] = acik + (255,)   # isik vurusu
+            else:
+                p[(x, y)] = renk + (255,)
+    return p
+
+
+def sivi_esyasi(kimlik, ad):
+    """Ara urun: icilmiyor, yalniz tarifte kullaniliyor."""
+    return {
+        "format_version": "1.21.0",
+        "minecraft:item": {
+            "description": {
+                "identifier": "pa:" + IKSIR_SIVI_ONEK + kimlik,
+                "menu_category": {"category": "items"},
+            },
+            "components": {
+                "minecraft:icon": {"texture": IKSIR_SIVI_ONEK + kimlik},
+                "minecraft:display_name": {"value": ad},
+                "minecraft:max_stack_size": 16,
+                "minecraft:tags": {"tags": ["pa:iksir_ara"]},
+            },
+        },
+    }
+
+
+def sise_esyasi():
+    """Ortak kap. Ikonu kullanicinin gonderdigi gorsel."""
+    return {
+        "format_version": "1.21.0",
+        "minecraft:item": {
+            "description": {
+                "identifier": "pa:" + IKSIR_SISE,
+                "menu_category": {"category": "items"},
+            },
+            "components": {
+                "minecraft:icon": {"texture": IKSIR_SISE},
+                "minecraft:display_name": {"value": IKSIR_SISE_TR},
+                "minecraft:max_stack_size": 16,
+                "minecraft:tags": {"tags": ["pa:iksir_ara"]},
+            },
+        },
+    }
+
+
+def sekilsiz_tarif(kimlik, malzemeler, sonuc, adet=1):
+    """Bedrock sekilsiz tezgah tarifi.
+
+    `tags: ["crafting_table"]` SART: yazilmazsa tarif hicbir
+    tezgahta gorunmez -- Bedrock tarifi bir is istasyonuna
+    baglamak zorunda.                                          """
+    return {
+        "format_version": "1.20.10",
+        "minecraft:recipe_shapeless": {
+            "description": {"identifier": "pa:" + kimlik},
+            "tags": ["crafting_table"],
+            "ingredients": [{"item": m} for m in malzemeler],
+            "result": {"item": sonuc, "count": adet},
+        },
+    }
+
 
 IKSIR_TR = {
     "nitroksin": "Nitroksin", "grinoksin": "Grinoksin",
@@ -12018,6 +12170,57 @@ def main():
         tr_tr.append("item.%s.name=%s" % (tam, TR_AD[kimlik]))
         tr_tr.append("item.%s=%s" % (tam, TR_AD[kimlik]))
 
+    # ---- IKSIR URETIM ZINCIRI (v7.96.5) ----
+    # Sise + sivilar + uc tarif. Zinciri OLAN iksir icin uretilir;
+    # IKSIR_ZINCIR'de olmayan iksirin sivisi da tarifi de yok.
+    import shutil
+    _tarif_dizin = os.path.join(BP, "recipes")
+    os.makedirs(_tarif_dizin, exist_ok=True)
+
+    # Ortak sise
+    yaz_json(os.path.join(BP, "items", IKSIR_SISE + ".json"), sise_esyasi())
+    _sk = os.path.join(DOKU_KAYNAK, IKSIR_SISE + ".png")
+    _sh = os.path.join(RP, "textures/item", IKSIR_SISE + ".png")
+    if os.path.exists(_sk):
+        os.makedirs(os.path.dirname(_sh), exist_ok=True)
+        shutil.copyfile(_sk, _sh)
+    else:
+        print("UYARI: iksir sisesi ikonu yok (%s)" % _sk)
+    dokular[IKSIR_SISE] = {"textures": "textures/item/" + IKSIR_SISE}
+    for liste in (en_us, tr_tr):
+        liste.append("item.pa:%s.name=%s" % (IKSIR_SISE, IKSIR_SISE_TR))
+        liste.append("item.pa:%s=%s" % (IKSIR_SISE, IKSIR_SISE_TR))
+    yaz_json(os.path.join(_tarif_dizin, IKSIR_SISE + ".json"),
+             sekilsiz_tarif(IKSIR_SISE, IKSIR_SISE_MALZEME, "pa:" + IKSIR_SISE))
+
+    # Sivilar ve iki tarif (sivi + tamamlama)
+    _iksir_renk = {k: r for k, _a, r, _g, _gr in IKSIRLER}
+    for _zk in IKSIR_ZINCIR:
+        if _zk not in _iksir_renk:
+            print("UYARI: IKSIR_ZINCIR'de olmayan iksir: %s" % _zk)
+            continue
+        _z = IKSIR_ZINCIR[_zk]
+        _sad = IKSIR_SIVI_ONEK + _zk
+        _sTR = IKSIR_SIVI_TR.get(_zk, _zk)
+
+        yaz_json(os.path.join(BP, "items", _sad + ".json"),
+                 sivi_esyasi(_zk, _sTR))
+        png_yaz(os.path.join(RP, "textures/item", _sad + ".png"),
+                16, 16, sivi_ikonu(_iksir_renk[_zk]))
+        dokular[_sad] = {"textures": "textures/item/" + _sad}
+        for liste in (en_us, tr_tr):
+            liste.append("item.pa:%s.name=%s" % (_sad, _sTR))
+            liste.append("item.pa:%s=%s" % (_sad, _sTR))
+
+        # 1. adim: sivi
+        yaz_json(os.path.join(_tarif_dizin, _sad + ".json"),
+                 sekilsiz_tarif(_sad, _z["sivi"], "pa:" + _sad))
+        # 3. adim: sivi + sise + iki maden -> iksir
+        yaz_json(os.path.join(_tarif_dizin, "iksir_" + _zk + ".json"),
+                 sekilsiz_tarif("iksir_" + _zk,
+                                ["pa:" + _sad, "pa:" + IKSIR_SISE] + _z["tamam"],
+                                "pa:iksir_" + _zk))
+
     # ---- Iksirler ve gozler ----
     for kimlik, ad, sivi, goz, gozRenk in IKSIRLER:
         yaz_json(os.path.join(BP, "items", "iksir_" + kimlik + ".json"),
@@ -13433,6 +13636,12 @@ def main():
     # (dosya sayisi 13'ten 0'a dustu).
     for _ft3 in FTECH_ESYALAR:
         beklenen.add(_ft3[0])
+    # v7.96.5: iksir zincirinin ara urunleri. Ayni tuzak ucuncu
+    # kez: sise ve sivilar hicbir listede degil, temizlik adimi
+    # onlari yazildiklari kosuda silerdi.
+    beklenen.add(IKSIR_SISE)
+    for _zk3 in IKSIR_ZINCIR:
+        beklenen.add(IKSIR_SIVI_ONEK + _zk3)
     # v4.93: Omnitrix saatleri (hem ikon hem varlik dokusu)
     for _ok3, _ot3, _oe3 in OMNITRIX:
         beklenen.add(_ok3)

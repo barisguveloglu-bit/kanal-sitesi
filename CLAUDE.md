@@ -323,6 +323,25 @@ aynı `format_version` ile** tanımlıyor. Bedrock bunları birleştirmez;
 üstteki alttakini bütünüyle siler. Ayrıntı ve tek çözüm
 `REFERANS_NPA.md` sonundaki "Üç taraflı çakışma" bölümünde.
 
+## Üretim tarifleri — `recipes/` (v7.96.5)
+
+Depoda v7.96.4'e kadar **sıfır tarif** vardı. İlk tarifler iksir
+zinciri için yazıldı ve hepsi `kol_uret.py` **üretiyor** —
+`Simsek_TNT_ToprakTopu/recipes/` altındaki dosyaları elle düzenleme,
+bir sonraki üretimde geri gelirler.
+
+Zincir üç adım: sıvı (2 malzeme) → şişe (2 malzeme, **ortak**) →
+iksir (sıvı + şişe + 2 maden). Kaynak tablo `IKSIR_ZINCIR`;
+tabloda olmayan iksirin sıvısı da tarifi de üretilmiyor.
+
+Yeni bir tarif eklerken **iki yeri birden** güncelle: tablo ve
+üretecin `beklenen` temizlik listesi. İkincisi unutulursa yeni eşya
+yazıldığı koşuda silinir — bu tuzağa üç kez düşüldü (v7.95.1
+animasyonlar, v7.96.4 F-Tech, v7.96.5 iksir ara ürünleri).
+
+`pa:freedom_stone` tariflere **bilerek konulmadı**: zaten mezar
+anahtarı (10 adet, harcanıyor). `test/tarif.mjs` bunu kilitliyor.
+
 ## Dosya teslimi — SKIN linkle, paket dosya olarak
 
 Bu kural depodaki kodla ilgili değil, **kullanıcıya nasıl teslim

@@ -1,0 +1,25 @@
+{
+  "format_version": "1.21.0",
+  "minecraft:item": {
+    "description": {
+      "identifier": "pa:sivi_nitroksin",
+      "menu_category": {
+        "category": "items"
+      }
+    },
+    "components": {
+      "minecraft:icon": {
+        "texture": "sivi_nitroksin"
+      },
+      "minecraft:display_name": {
+        "value": "Nitroksin Sıvısı"
+      },
+      "minecraft:max_stack_size": 16,
+      "minecraft:tags": {
+        "tags": [
+          "pa:iksir_ara"
+        ]
+      }
+    }
+  }
+}

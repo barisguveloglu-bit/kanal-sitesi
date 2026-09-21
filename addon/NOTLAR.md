@@ -1,3 +1,86 @@
+# v7.96.5 — İlk üretim tarifleri: iksir zinciri
+
+v7.96.4'e kadar bu depoda **sıfır tarif** vardı. 564 eşyanın hiçbiri
+craft edilemiyordu; hepsi yaratıcı menü ya da `/give` ile geliyordu.
+Bu sürüm o duvarı açan ilk adım.
+
+## Biçimi kullanıcı koydu
+
+Önce tek bir 3×3 tarif önermiştim (her etkinin vanilla malzemesi yan
+yana). Kullanıcı reddetti ve gerekçesi doğruydu:
+
+> *"senin saydıkların çok büyük olduğu için ve bunu crafting table
+> yapamayacakları için tek tek yapmaları gerekiyordu ve en sonunda
+> birleştirip işte iksir."*
+
+Bir iksirin on iki etkisini tek tezgâha sığdırmak hem 3×3'ü aşıyor
+hem de her iksiri devasa yapıyordu. Zincir üç adım:
+
+| adım | ne | malzeme |
+|---|---|---|
+| 1 | `pa:sivi_<iksir>` | iki malzeme |
+| 2 | `pa:iksir_sise` (**ortak**) | iki malzeme |
+| 3 | `pa:iksir_<iksir>` | sıvı + şişe + iki maden |
+
+Şişe iksire ait değil, iksiri **taşıyan** şey — kullanıcının sözü:
+*"dışındaki iksiri içmek için tutulan şişesi"*. Dokuz iksire dokuz
+ayrı kap yapmak kap fikrini bozardı. İkonu kullanıcının gönderdiği
+görsel (`kaynak_doku/iksir_sise.png`, 160×160'tan kırpılıp 16×16'ya
+indirildi).
+
+## Malzemeler tahmin değil
+
+Her sıvı malzemesi, o iksirin **en yüksek iki etkisini** vanilla'da
+gerçekleştiren eşya:
+
+| iksir | sıvı | neden |
+|---|---|---|
+| Nitroksin | şeker + tavşan ayağı | hız IV + zıplama IV |
+| Hiperoksin | blaze tozu + altın elma | güç III + emilim III |
+
+Tamamlama madenleri kademeyi taşıyor: Nitroksin listenin **ilk**
+iksiri (demir + elmas), Hiperoksin **altıncısı** (elmas + netherit).
+
+Tarifler **şekilsiz** (`recipe_shapeless`): iki ve dört malzemenin
+"doğru dizilişi" diye bir şey yok, şekilli tarif burada hiçbir şey
+kazandırmazdı.
+
+## Freedom Stone bilerek kullanılmadı
+
+Dünyaya çıkan tek özel madenimiz o ve iksir zinciri için cazipti.
+Ama zaten bir işi var: **mezar anahtarı**, 10 tane gerekiyor ve
+harcanıyor (`MEZAR_ANAHTAR_ADET`), zorluğu netherit'in üstünde.
+İksirlere de koymak mezarı erişilemez yapardı. `test/tarif.mjs`
+6. bölümü bu kararı kilitliyor — biri eklerse test düşer ve
+gerekçeyi yeniden düşünmek zorunda kalır.
+
+## Aynı tuzak ÜÇÜNCÜ kez
+
+Üç yeni eşya (şişe + iki sıvı) üretecin `beklenen` listesine
+eklenmeseydi, **yazıldıkları koşuda silineceklerdi**: eşya JSON'u
+yazılıyor, atlas kaydı ve dil satırı kalıyor, dosya gidiyor.
+v7.95.1'de animasyonlarda, v7.96.4'te F-Tech eşyalarında, burada
+iksir ara ürünlerinde. Bu sefer önceden eklendi ve
+`test/tarif.mjs` 5. bölümü satırı tutuyor.
+
+## Testin kendi hatası
+
+`test/tarif.mjs` zinciri **üreteçten okuyor**, elle liste tutmuyor —
+zincir büyüyünce kendiliğinden doğru kalsın diye. İlk yazışta
+düzenli ifade `^\s*"(...)"` idi ve iç anahtarları (`"sivi"`,
+`"tamam"`) da yakalıyordu: test "tamam" diye bir iksir arayıp
+düştü. Tam dört boşluk şartıyla düzeltildi.
+
+## Kalan sekiz iksir
+
+Zincir `IKSIR_ZINCIR` tablosundan türüyor; tabloda olmayan iksirin
+sıvısı da tarifi de üretilmiyor (tarifi olmayan bir sıvı ölü eşya
+olurdu). Grinoksin, Redoksin, Firenoksin, Kan İksiri, StarOxine,
+Element ve Prizmoksin **henüz eklenmedi** — kullanıcı ikisinden
+başlamak istedi.
+
+---
+
 # v7.96.4 — F-Tech: Equipment alındı (MIT)
 
 Kullanıcı JAR'ı gönderdi: *"bunu da ekle, alabildiğin hepsini al."*

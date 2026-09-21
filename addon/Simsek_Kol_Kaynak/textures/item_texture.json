@@ -32,6 +32,15 @@
     "kol_ftech": {
       "textures": "textures/item/kol_ftech"
     },
+    "iksir_sise": {
+      "textures": "textures/item/iksir_sise"
+    },
+    "sivi_nitroksin": {
+      "textures": "textures/item/sivi_nitroksin"
+    },
+    "sivi_hiperoksin": {
+      "textures": "textures/item/sivi_hiperoksin"
+    },
     "iksir_nitroksin": {
       "textures": "textures/item/iksir_nitroksin"
     },
