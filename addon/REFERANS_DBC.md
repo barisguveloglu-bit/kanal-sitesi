@@ -148,7 +148,129 @@ Piccolo, Enma, Babidi, Bills, Kaioh).
 3. **Yapı yerleştirme** (`.mcstructure` × 8) — hazır binalar. Bizde
    `dunya_uret.py` dünya üretiyor ama yapı yerleştirme yok.
 
-## 9. Ölçülemeyenler
+## 9. Formlar gerçekten ne veriyor — ikinci turda ölçüldü
+
+Zincir: `ui_saiyajin` skoru → `super_form_*` etiketi → varlık olayı →
+`forms_saiyajin<N>` özelliği → animasyon denetleyicisi `stat_health`,
+`stat_attack` ve `bp_score` ekliyor.
+
+**Formüller doğrulandı** (`entities/…363.json`, 500 + 550 bileşen grubu):
+
+```
+can   = 200 + 10 × stat_health      (500 grubun 500'ü de uyuyor)
+hasar = 3   +  3 × stat_attack      (550 grubun 546'sı uyuyor)
+```
+
+| form | can | hasar | güç (bp) | ki/tick |
+|---|---|---|---|---|
+| taban | 220 | 12 | — | 0 |
+| oozaru | 220 | 12 | +200 | **0** (aşağıdaki hataya bak) |
+| ssj | 260 | 33 | +1.200 | 1 |
+| ssj2 | 280 | 48 | +2.500 | 2 |
+| ssj3 | 300 | 63 | +3.200 | 3 |
+| ssj4 | 320 | 78 | +4.500 | 4 |
+| ssj5 | 340 | 93 | +5.200 | 5 |
+| ssj god | 360 | 108 | +7.000 | 6 |
+| ssj blue | 420 | 123 | +8.200 | 7 |
+| ssj blue evolution | 440 | 138 | +9.200 | 10 |
+| ssj rose | 400 | 129 | +8.500 | 7 |
+| ssj rose evolution | 420 | 144 | +9.500 | 10 |
+| ultra instinct (eksik) | 450 | 153 | +12.000 | 10 |
+| ultra instinct (tam) | 500 | 183 | +15.000 | 15 |
+| beast | 600 | 213 | +18.000 | 7 |
+| ultra ego | 700 | 243 | +20.000 | 7 |
+
+Dönüşüm şarjı: çömelirken `forms_tran` +2/tick, **115**'te dönüşüm olur.
+
+**Hiçbir form hız ya da efekt vermiyor.** Depodaki 37 `effect @` satırının
+tamamı tarandı: ışınlanma karartması, füzyon görünmezliği ve bulut uçuşu.
+Form component_group'ları yalnız `minecraft:scale` içeriyor — o da sadece
+`oozaru`da 2, kalan her formda 1.
+
+### İki hata bulundu (kaynağın kendi hataları)
+
+1. **Oozaru ki harcamıyor.** `functions/forms.mcfunction:30` oozaru'ya
+   geçerken `dimi_ki` etiketini kaldırıyor, dolayısıyla sızıntı sayacı
+   hiç artmıyor. Bedava form.
+2. **`forms.mcfunction:276`** — `ssj_blue_rose_evolution` bloğunun içinde
+   ama `ki_ssj_blue_rose` etiketini okuyor. Evolution'ın tüketimi aynı
+   etikete iki kez yazılıyor (7 + 10).
+
+## 10. Ki sistemi
+
+| ölçüm | değer |
+|---|---|
+| tavan | **500** (`spawn_scoreboard.mcfunction:121`) |
+| taban | 0 |
+| başlangıç | 0 |
+| pasif yenilenme | sayaç +1/tick, **200'de 1 ki** — yalnız aura kapalıyken |
+| elle şarj | çömelerek GUI düğmesi, **+5 ki** |
+| Senzu fasulyesi | ki'yi **500'e** tamamlar + instant_health 255 |
+| yemek | 38 çeşit, +2 … +8 |
+| gösterge | 0–500 aralığı **24 çubuk kademesi** |
+
+Tüketim:
+
+| yol | miktar |
+|---|---|
+| aura (n_score) | 1.000 sayaçta 1 ki; kademeye göre +1 … **+28**/tick |
+| form sızıntısı | 120 sayaçta 1 ki; forma göre 1 … 15/tick |
+| uçuş | 20 sayaçta 1 ki |
+| Kienzan | **−50** (kullanım şartı ki ≥ 50) |
+| Teleport | **−50** |
+
+**Aura (`n_score`)** ayrıca doğrudan güç veriyor: her 10 kademede
+`stat_attack` +1 ve `bp_score` +32. Tavan 50'ye kırpılmış ama denetleyici
+100'e kadar durum tanımlıyor — kaynağın kendi tutarsızlığı.
+
+**Kaioken:** çömelerek şarj, 500/1000/1500'de 2x/3x/5x. Ama `kaioken_ind`
+skorunun cana ya da hasara ne yaptığı **depoda hiçbir yerde okunmuyor** —
+ölü sistem.
+
+## 11. Saldırılar — Kamehameha YOK
+
+İki paket baştan sona tarandı: **Kamehameha, Final Flash, Galick Gun,
+Masenko, Big Bang, Special Beam Cannon — hiçbiri yok.** Tek eşleşme
+"Kame House" adlı bir yapı dosyası.
+
+Üç saldırı eşyası var, üçü de mermi:
+
+| eşya | ki | bekleme | hasar |
+|---|---|---|---|
+| **Ki Blast** (şarjlı) | doğrudan yok, `ki ≥ 1` şartı | **yok** | patlama 1,2 … 3 |
+| **Kienzan** | 50 | 0,8 sn | patlama 1 |
+| **Teleport** | 50 | 1,5 sn | yok |
+
+Ki Blast şarjı +10/tick; **240 tick (12 saniye)** en güçlü atış için.
+900'ün altında bırakılırsa **hiçbir şey çıkmıyor**. Dördünde de doğrudan
+çarpma hasarı yok — hasarın tamamı patlamadan geliyor.
+
+## 12. Kılıç zincirinin malzemeleri
+
+Daha önce sonuçları biliniyordu, şimdi desenleri de ölçüldü:
+
+| tarif | desen | malzeme |
+|---|---|---|
+| `katanabla` (bıçak) | `AAA / AAA / ␣A␣` | 7 × demir külçe |
+| `cabok` (sap) | `A␣A / BCB` | 2 demir + 2 deri + 1 katchinko |
+| **`katana`** | `B / C` (dikey) | bıçak + sap |
+| `swordbl` (bıçak) | `␣A␣ / BAB / ␣A␣` | 3 katchinko + **2 katanabla** |
+| `caboz` (sap) | `A␣A / BCB` | 2 **altın** + 2 deri + 1 katchinko |
+| **`espada_z`** | `B / C` (dikey) | bıçak + sap |
+
+Ham maliyet: katana **9 demir + 2 deri + 1 katchinko**;
+espada_z **14 demir + 2 altın + 2 deri + 4 katchinko**.
+
+`dbc:katchinko`'nun tarifi **yok** — madencilikten geliyor olmalı.
+
+Battle zırhı üç parça, hepsi tek malzeme (`dbc:warenai`): bot 4, pantolon
+7, göğüslük 8. `warenai` fırında `warenai_block`'tan eriyor.
+
+**Bizim iksir zincirimizle örtüşme:** kılıç doğrudan yapılmıyor — önce
+bıçak, ayrıca sap, sonra ikisi dikey olarak birleşiyor. Kullanıcının
+iksirler için istediği kalıbın aynısı, bağımsız olarak.
+
+## 13. Ölçülemeyenler
 
 - Her formun verdiği güç: form etiketleri bulundu ama etiketin hangi
   efektleri/nitelikleri açtığı animasyon denetleyicilerinde ve `player`

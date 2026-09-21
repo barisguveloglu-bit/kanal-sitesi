@@ -268,7 +268,91 @@ Bu modun bize göre asıl yeniliği tek tek hareketler değil, üç sistem:
 3. **Şarjlı hareket** — basılı tutup güç biriktirme (tavan 200).
    Bizde bütün yetenekler anlık.
 
-## 9. Ölçülemeyenler
+## 9. Yetenek ağaçları — ikinci turda ölçüldü
+
+**Yedi ağacın hepsi tam 19 düğüm** ve hepsi aynı iskeleti kullanıyor:
+`core` kökü + 5 kök-çocuğu, her birinin altında 1–2 dal.
+
+### Maliyet ağaçta değil, tek bir eğride
+
+`core/scroll/skillTree.js:535` — doğrulandı:
+
+```
+costs = [0, 4, 5, 6, 7, 8, 9, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42]
+```
+
+- Maliyet **XP seviyesi** olarak ödeniyor (`player.addLevels(-cost)`).
+- `cost = costs[açılmış yetenek sayısı]` — **düğüme özgü değil**, kaçıncı
+  satın alma olduğuna bağlı. İlk gerçek satın alma `costs[1] = 4`.
+- Önkoşul da alan değil: **ağaçtaki ebeveyn** önkoşuldur.
+- Kayıt 24 bitlik maske — 24 düğüm tavanı, ağaçlar 19 kullanıyor.
+
+### Kardeş kilidi — ağacın asıl kuralı
+
+Ebeveyni `core` **olmayan** bir düğümün kardeşlerinden biri açılırsa,
+diğerleri ve bütün alt ağaçları **kalıcı kilitlenir**
+(`skillTree.js:537-573`). `core`'un doğrudan beş çocuğu bu kuralın
+dışında — beşi birden alınabilir.
+
+Bundan çıkan üst sınır: **en çok 13 düğüm**, toplam **129 XP seviyesi**.
+
+Yani ağaç "hepsini topla" değil, **yol seç** ağacı. Bizim `beceri.js`
+ağacımızda böyle bir kilit yok (dört ağaç × 11 düğüm, hepsi alınabilir
+ama puan yetmiyor). İki ayrı fren tasarımı.
+
+## 10. Pasif etkiler (`runtimes/`)
+
+Beş ailede `runtimes/main.js`, ikisinde (`avatar`, `dark_avatar`)
+`runtime.js` — toplam yedi dosya.
+
+Her bükücüde çalışan ortak pasifler (`core/player/bender.js`):
+
+| düğüm | etki | amplifier | süre |
+|---|---|---|---|
+| `chi_infusion` | regeneration | 0 | 20.000.000 tick |
+| `chi_infusion_plus` | health_boost | 2 | 20.000.000 |
+| `warriors_spirit` | strength | 0 | 20.000.000 |
+
+`chi_infusion_plus` ayrıca can 8'in altındayken **chi yenileme çarpanını
+3'e** çıkarıyor (normalde 2).
+
+Aileye özel olanlardan öne çıkanlar:
+
+| aile | düğüm | etki |
+|---|---|---|
+| fire · dark_avatar | `fast_footed` / `airflow` | speed + jump_boost amp 1, süresiz |
+| fire | `hot_blooded` | 7 negatif etkiyi siliyor (dark_avatar'da 8, weakness dahil) |
+| fire | `firey_disposition` | fire_resistance amp 1 (dark_avatar'da amp **0** — tutarsızlık) |
+| water | `waterwash` | hasardan sonra resistance amp 1, **2 tick** |
+| water | `conduit_power` | su altında conduit_power; sprint 85'i geçince speed `min(12, sprint/80)` |
+| air | `double_jump` | havada zıplama → knockback 0.8 + slow_falling |
+| air | `wind_dash` | çömel+havada → knockback güç **8**, 2 tick sonra ters **1.5** |
+| nonbender | `adrenaline` / `perseverance` | **can < 8** iken strength / resistance amp 1 |
+
+## 11. En güçlü 32 hareketin menzili
+
+`createShockwave(player, konum, güç, menzil, knockback, ateş, ...)`
+menzil içindeki **bütün** varlıkları vuruyor — hedef sayısı sınırsız.
+
+| hareket | menzil | hedef |
+|---|---|---|
+| SuperchargedFirewall | **24** blok, knockback 8, ateşe verir | sınırsız |
+| SuperchargedTyphoon | 15,5 blok, 150 tick | hedef başına 1 kez |
+| SuperchargedFireShockwave | 15 blok | sınırsız |
+| SuperchargedTsunami | maks 15 blok, knockback 25 | sınırsız |
+| Singularity | 14 blok toplama | başta sabitlenen liste |
+| SuperchargedAirShove | 12 blok, knockback **25** | sınırsız |
+| ChaosBeam | ışın **100** blok + 10 blok patlama | ışın 1, patlama sınırsız |
+| ElementalTyphoon | 7 blok gövde, 100 tick | sınırsız |
+| Thunderclap | 32 blok tarama | **10** hedef |
+| Electroshock | 4 + 8×şarj blok | **64** hedef |
+| LightningSweep | 14 blok | **3** hedef |
+| AirSniper | ~97 blok mermi + 14 blok patlama | sınırsız |
+
+Şarjlı hareketlerin menzili şarjla **çarpılıyor** (`14 × şarj` gibi) —
+şarj tavanı 200, yani tam şarjda menzil iki katına çıkıyor.
+
+## 12. Ölçülemeyenler
 
 - Her hareketin menzili ve hedef sayısı: hareket gövdesinde, tek tek
   okunmadı (88 dosya). Hasar/chi/bekleme/tür çıkarıldı.
