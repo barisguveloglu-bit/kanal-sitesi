@@ -44,6 +44,15 @@
     "sivi_element": {
       "textures": "textures/item/sivi_element"
     },
+    "sivi_redoksin": {
+      "textures": "textures/item/sivi_redoksin"
+    },
+    "sivi_firenoksin": {
+      "textures": "textures/item/sivi_firenoksin"
+    },
+    "sivi_grinoksin": {
+      "textures": "textures/item/sivi_grinoksin"
+    },
     "iksir_nitroksin": {
       "textures": "textures/item/iksir_nitroksin"
     },

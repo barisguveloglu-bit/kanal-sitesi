@@ -1,0 +1,29 @@
+{
+  "format_version": "1.20.10",
+  "minecraft:recipe_shapeless": {
+    "description": {
+      "identifier": "pa:iksir_firenoksin"
+    },
+    "tags": [
+      "crafting_table"
+    ],
+    "ingredients": [
+      {
+        "item": "pa:sivi_firenoksin"
+      },
+      {
+        "item": "pa:iksir_sise"
+      },
+      {
+        "item": "minecraft:magma"
+      },
+      {
+        "item": "minecraft:diamond"
+      }
+    ],
+    "result": {
+      "item": "pa:iksir_firenoksin",
+      "count": 1
+    }
+  }
+}

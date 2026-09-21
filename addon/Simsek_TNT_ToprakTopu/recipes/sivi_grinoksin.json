@@ -1,0 +1,23 @@
+{
+  "format_version": "1.20.10",
+  "minecraft:recipe_shapeless": {
+    "description": {
+      "identifier": "pa:sivi_grinoksin"
+    },
+    "tags": [
+      "crafting_table"
+    ],
+    "ingredients": [
+      {
+        "item": "minecraft:ghast_tear"
+      },
+      {
+        "item": "minecraft:golden_apple"
+      }
+    ],
+    "result": {
+      "item": "pa:sivi_grinoksin",
+      "count": 1
+    }
+  }
+}

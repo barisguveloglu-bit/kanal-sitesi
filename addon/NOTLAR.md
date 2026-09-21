@@ -1,3 +1,71 @@
+# v7.96.8 — Üç iksir daha: ikiz tarif ve yaprak
+
+Kullanıcı: *"Redoksin, Firenoksin — bunların tarifleri birbirine
+benzesin, sen hallet. Grinoksin İpeksi Dokunuş ile ağaç yaprağını
+alsın, aynı şekilde aynı format."*
+
+## Redoksin ve Firenoksin: ikiz tarif
+
+"Benzemek"in ölçülebilir karşılığı: dört malzemenin **ikisi ortak,
+ikisi ayrı**, ve ayrılan eksen her iksirin kendi kimliği.
+
+| | Redoksin | Firenoksin |
+|---|---|---|
+| sıvı | **blaze tozu** + redstone tozu | **blaze tozu** + magma kreması |
+| tamamlama | redstone bloğu + **elmas** | magma bloğu + **elmas** |
+
+- **Ortak: blaze tozu + elmas.** İkisi de vuruş iksiri (Redoksin
+  `strength 4`, Firenoksin `strength 3`); blaze tozu vanilla'nın Güç
+  iksiri malzemesi.
+- **Ayrı eksen:** Redoksin'in `haste 4`'ü kazma demek → redstone;
+  Firenoksin'in başlık etkisi `fire_resistance` → magma kreması.
+- **Ham → blok yükselişi**, Element'te kurulan kalıbın aynısı:
+  redstone tozu → redstone bloğu, magma kreması → magma bloğu.
+
+Redstone seçimi renk tesadüfü değil: Redoksin **kırmızı** ve uzmanlığı
+kazma; redstone hem kırmızı hem madencilik.
+
+## Grinoksin: yaprak
+
+Yaprak **tamamlama** adımında — Element'teki buz bloğunun yeri: elde
+etmesi özel bir şey isteyen blok.
+
+```
+ghast gözyaşı + altın elma            →  Grinoksin Sıvısı
+Sıvı + şişe + meşe yaprağı + zümrüt   →  Grinoksin
+```
+
+Sıvı, Grinoksin'in en yüksek üçünü taşıyor: `absorption 4` ve
+`health_boost 4` → altın elma, `regeneration 3` → ghast gözyaşı.
+
+Tamamlamanın ikisi de **yeşil**: yaprak ve zümrüt. Redoksin'in
+kırmızısı, Firenoksin'in ateşi, Grinoksin'in yeşili — üçü de kendi
+rengini taşıyor.
+
+**Oyun içi not:** yaprak bloğunu almanın **iki** yolu var — İpeksi
+Dokunuş ya da **makas**. Makas çok daha ucuz (iki demir) ve büyü
+istemiyor. Tarifin şartı değil, malzemeyi elde etmenin yolu.
+
+## Zincirin durumu
+
+| iksir | sıvı | tamamlama |
+|---|---|---|
+| Nitroksin | şeker + tavşan ayağı | demir + elmas |
+| Grinoksin | ghast gözyaşı + altın elma | meşe yaprağı + zümrüt |
+| Redoksin | blaze tozu + redstone | redstone bloğu + elmas |
+| Firenoksin | blaze tozu + magma kreması | magma bloğu + elmas |
+| Hiperoksin | blaze tozu + altın elma | elmas + netherit |
+| Element | kar topu + blaze tozu | buz bloğu + magma bloğu |
+
+**Altı iksir, on üç tarif.** Kalan üç: Kan İksiri, StarOxine,
+Prizmoksin.
+
+`test/tarif.mjs` 8. bölüm ikiz yapıyı ölçüyor (tam iki ortak, tam iki
+ayrı, eksen doğru, ham→blok), 9. bölüm Grinoksin'in yaprağını.
+Mutasyonla ısırdıkları doğrulandı.
+
+---
+
 # v7.96.7 — "Dört element" uydurmaydı, düzeltildi
 
 Kullanıcı v7.96.6'daki gerekçeyi reddetti:

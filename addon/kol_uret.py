@@ -143,7 +143,7 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # hanenin 0 yerine 5'ten baslamasi bunun isareti -- 7.83.0
 # ile 7.83.5 AYNI kod, sadece numara degisti.
 # v7.91.0: ORTANCA hane -- Avaritia'dan uc mekanik.
-SURUM_NO = (7, 96, 7)
+SURUM_NO = (7, 96, 8)
 
 SURUM_METIN = "%d.%d.%d" % SURUM_NO
 
@@ -829,6 +829,49 @@ IKSIR_ZINCIR = {
     # malzemeyi nasil elde ettiginin sarti.
     "element":    {"sivi":  ["minecraft:snowball", "minecraft:blaze_powder"],
                    "tamam": ["minecraft:ice", "minecraft:magma"]},
+    # ---- REDOKSIN ve FIRENOKSIN: IKIZ TARIF  (v7.96.8) ----
+    # Kullanici: "bunlarin tarifleri birbirine benzesin."
+    #
+    # Ikisi de VURUS iksiri (Redoksin strength 4, Firenoksin 3),
+    # o yuzden sivinin ILK malzemesi ORTAK: blaze tozu, vanilla'nin
+    # Guc iksiri malzemesi. Ikinci malzeme kimligi ayiriyor ve
+    # tamamlamada BLOK haline yukseliyor -- Element'te kurulan
+    # "ham -> blok" kalibinin aynisi:
+    #
+    #   Redoksin   haste 4 (kazma)      redstone tozu   -> redstone blogu
+    #   Firenoksin fire_resistance      magma kremasi   -> magma blogu
+    #
+    # Tamamlamanin ikinci maddesi de ORTAK (elmas), yani iki
+    # tarif tek bir eksende ayrisiyor. "Birbirine benzesin"in
+    # olculebilir karsiligi bu: dort malzemenin ikisi ayni.
+    #
+    # Redstone secimi renk tesadufu degil: Redoksin KIRMIZI ve
+    # uzmanligi kazma; redstone hem kirmizi hem madencilik.
+    "redoksin":   {"sivi":  ["minecraft:blaze_powder", "minecraft:redstone"],
+                   "tamam": ["minecraft:redstone_block", "minecraft:diamond"]},
+    "firenoksin": {"sivi":  ["minecraft:blaze_powder", "minecraft:magma_cream"],
+                   "tamam": ["minecraft:magma", "minecraft:diamond"]},
+    # ---- GRINOKSIN: YAPRAK  (v7.96.8) ----
+    # Kullanici: "grinoksin ipeksi dokunus ile agac yapragini
+    # alsin, ayni sekilde ayni format."
+    #
+    # Yaprak TAMAMLAMA adiminda: Element'teki buz blogunun yeri.
+    # Ikisi de "elde etmesi ozel bir sey isteyen blok".
+    #
+    # OYUN ICI NOT: yaprak blogunu almanin IKI yolu var --
+    # Ipeksi Dokunus ya da MAKAS. Makas cok daha ucuz (iki demir),
+    # buyu gerektirmiyor. Tarifin sarti degil, malzemeyi elde
+    # etmenin yolu.
+    #
+    # Ikinci malzeme ZUMRUT: Grinoksin YESIL ve tamamlamanin iki
+    # maddesi de yesil. Redoksin'in kirmizisi, Firenoksin'in
+    # atesi, Grinoksin'in yesili -- ucu de kendi rengini tasiyor.
+    #
+    # Sivi Grinoksin'in en yuksek ucunu tasiyor: absorption 4 ve
+    # health_boost 4 -> altin elma, regeneration 3 -> ghast
+    # gozyasi. Ikisi de o etkilerin vanilla karsiligi.
+    "grinoksin":  {"sivi":  ["minecraft:ghast_tear", "minecraft:golden_apple"],
+                   "tamam": ["minecraft:oak_leaves", "minecraft:emerald"]},
 }
 
 IKSIR_SISE_TR = "İksir Şişesi"
@@ -836,6 +879,9 @@ IKSIR_SIVI_TR = {
     "nitroksin":  "Nitroksin Sıvısı",
     "hiperoksin": "Hiperoksin Sıvısı",
     "element":    "Element Sıvısı",
+    "redoksin":   "Redoksin Sıvısı",
+    "firenoksin": "Firenoksin Sıvısı",
+    "grinoksin":  "Grinoksin Sıvısı",
 }
 
 

@@ -1,0 +1,23 @@
+{
+  "format_version": "1.20.10",
+  "minecraft:recipe_shapeless": {
+    "description": {
+      "identifier": "pa:sivi_firenoksin"
+    },
+    "tags": [
+      "crafting_table"
+    ],
+    "ingredients": [
+      {
+        "item": "minecraft:blaze_powder"
+      },
+      {
+        "item": "minecraft:magma_cream"
+      }
+    ],
+    "result": {
+      "item": "pa:sivi_firenoksin",
+      "count": 1
+    }
+  }
+}

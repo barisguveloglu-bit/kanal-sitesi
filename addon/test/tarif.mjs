@@ -200,5 +200,73 @@ console.log("=== 7. ELEMENT IKI ELEMENTTEN OLUSUR: BUZ VE ATES ===");
 }
 
 console.log("");
+console.log("=== 8. REDOKSIN ve FIRENOKSIN IKIZ ===");
+{
+  /* Kullanici: "bunlarin tarifleri birbirine benzesin."
+     "Benzemek"in olculebilir karsiligi: dort malzemenin
+     IKISI ayni, ikisi ayri, ve ayrilan eksen her iksirin
+     kendi kimligi.                                        */
+  const topla = (k) => {
+    const a = tarifler.get("pa:sivi_" + k);
+    const b = tarifler.get("pa:iksir_" + k);
+    return []
+      .concat(a ? a.ingredients.map((i) => i.item) : [])
+      .concat(b ? b.ingredients.map((i) => i.item) : [])
+      .filter((m) => m.startsWith("minecraft:"));
+  };
+  const kir = topla("redoksin");
+  const ate = topla("firenoksin");
+  kontrol("ikisinin de dort vanilla malzemesi var",
+          kir.length === 4 && ate.length === 4,
+          kir.length + " / " + ate.length);
+
+  const ortak = kir.filter((m) => ate.includes(m));
+  kontrol("tam iki malzeme ORTAK", ortak.length === 2,
+          ortak.map((m) => m.replace("minecraft:", "")).join(" + "));
+
+  const ayri = kir.filter((m) => !ate.includes(m));
+  kontrol("tam iki malzeme AYRI", ayri.length === 2,
+          ayri.map((m) => m.replace("minecraft:", "")).join(" + "));
+
+  /* Ayrilan eksen kimligi tasimali: Redoksin'de redstone
+     (kirmizi + madencilik), Firenoksin'de magma (ates).   */
+  kontrol("Redoksin ekseni redstone",
+          ayri.every((m) => m.includes("redstone")), ayri.join(","));
+  const ayri2 = ate.filter((m) => !kir.includes(m));
+  kontrol("Firenoksin ekseni magma",
+          ayri2.every((m) => m.includes("magma")), ayri2.join(","));
+
+  /* Ham -> blok yukselisi: sivideki toz/krema, tamamlamada
+     blok haline geliyor.                                   */
+  const sRed = tarifler.get("pa:sivi_redoksin").ingredients.map((i) => i.item);
+  const tRed = tarifler.get("pa:iksir_redoksin").ingredients.map((i) => i.item);
+  kontrol("Redoksin ham -> blok",
+          sRed.includes("minecraft:redstone") &&
+          tRed.includes("minecraft:redstone_block"));
+  const sAte = tarifler.get("pa:sivi_firenoksin").ingredients.map((i) => i.item);
+  const tAte = tarifler.get("pa:iksir_firenoksin").ingredients.map((i) => i.item);
+  kontrol("Firenoksin ham -> blok",
+          sAte.includes("minecraft:magma_cream") && tAte.includes("minecraft:magma"));
+}
+
+console.log("");
+console.log("=== 9. GRINOKSIN YAPRAK ALIYOR ===");
+{
+  /* Kullanici: "grinoksin ipeksi dokunus ile agac yapragini
+     alsin." Yaprak TAMAMLAMA adiminda -- Element'teki buz
+     blogunun yeri: elde etmesi ozel bir sey isteyen blok. */
+  const t = tarifler.get("pa:iksir_grinoksin");
+  const mal = t ? t.ingredients.map((i) => i.item) : [];
+  kontrol("tamamlamada yaprak var",
+          mal.some((m) => m.endsWith("_leaves")), mal.join(" + "));
+  kontrol("tamamlamanin ikisi de YESIL (yaprak + zumrut)",
+          mal.includes("minecraft:oak_leaves") && mal.includes("minecraft:emerald"));
+  const sv = tarifler.get("pa:sivi_grinoksin");
+  kontrol("sivi en yuksek ikisini tasiyor (emilim/can + yenilenme)",
+          !!sv && sv.ingredients.map((i) => i.item).sort().join(",") ===
+            "minecraft:ghast_tear,minecraft:golden_apple");
+}
+
+console.log("");
 console.log(hata ? "HATA : " + hata : "temiz");
 process.exit(hata ? 1 : 0);
