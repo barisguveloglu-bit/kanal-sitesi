@@ -41,6 +41,9 @@
     "sivi_hiperoksin": {
       "textures": "textures/item/sivi_hiperoksin"
     },
+    "sivi_element": {
+      "textures": "textures/item/sivi_element"
+    },
     "iksir_nitroksin": {
       "textures": "textures/item/iksir_nitroksin"
     },

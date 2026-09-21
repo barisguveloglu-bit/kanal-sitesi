@@ -1,3 +1,61 @@
+# v7.96.6 — Element zincire girdi, ateş karşılığı magma
+
+Kullanıcı Element'i istedi ve tamamlama adımını kendisi belirledi:
+**bir buz bloğu** — *"parçacıklarını değil, buz bloğu gerekli"*.
+Ateş tarafını bulamadığını söyledi.
+
+## Bir düzeltme: Verimlilik değil, İpeksi Dokunuş
+
+Kullanıcı *"verimlilik basılmış bir kazma ile sanırım verimlilikti"*
+dedi. Buz bloğunu koruyan büyü **Verimlilik değil, İpeksi Dokunuş**.
+Verimlilik yalnız kazma hızını artırır; verimlilikli kazmayla kırılan
+buz yine suya döner. Bu tarifin şartı değil, malzemeyi nasıl elde
+ettiğinin şartı — ama yanlış büyüyü basmamak için söylendi.
+
+## Ateş karşılığı: magma bloğu
+
+| ölçüt | neden magma |
+|---|---|
+| blok mu | evet — kullanıcının şartı "parçacık değil, blok" |
+| buzun zıddı mı | ısı olarak birebir |
+| depo ne diyor | `ayarlar.js` ateş bloğu listesi zaten `soul_fire · magma · campfire` |
+| emek dengesi | buz için İpeksi Dokunuş, magma için Nether |
+
+Kimlik `minecraft:magma` — Bedrock'ta magma bloğunun kimliği bu
+(Java'da `magma_block`). Deponun kendi kullanımından doğrulandı,
+tahmin edilmedi.
+
+## Sıvı: balon balığı + phantom zarı
+
+Element'in kimliği `ayarlar.js`'te yazılı: *"her ortamda ayakta
+kal"* — su altında nefes, ateşe bağışıklık, karanlıkta görme, yavaş
+düşme. Sıvı bunun iki vanilla karşılığını taşıyor:
+
+| malzeme | etki |
+|---|---|
+| balon balığı | su altında nefes |
+| phantom zarı | yavaş düşüş |
+
+Böylece tarifin tamamında **dört element birden** çıkıyor:
+sıvıda su + hava, tamamlamada buz + ateş. Bu, Element'in kendi
+`v4.80` notuyla örtüşüyor: *"dördüncü element: HAVA (su/ateş/toprak
+vardı)"*.
+
+**Dürüst eksik:** toprak elementinin ve Element'in en yüksek
+etkisinin (`haste 3`) vanilla'da malzeme karşılığı yok. Onlar için
+bir şey uydurulmadı.
+
+## Element'te maden yok
+
+Nitroksin ve Hiperoksin'in tamamlaması iki madendi (kademe
+taşısın diye). Element'inki iki blok — kullanıcının tasarımı.
+Bedeli maden değil ama ucuz da değil: İpeksi Dokunuş + Nether.
+
+Kalan altı iksir (Grinoksin, Redoksin, Firenoksin, Kan İksiri,
+StarOxine, Prizmoksin) hâlâ zincirde değil.
+
+---
+
 # v7.96.5 — İlk üretim tarifleri: iksir zinciri
 
 v7.96.4'e kadar bu depoda **sıfır tarif** vardı. 564 eşyanın hiçbiri

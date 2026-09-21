@@ -1,0 +1,29 @@
+{
+  "format_version": "1.20.10",
+  "minecraft:recipe_shapeless": {
+    "description": {
+      "identifier": "pa:iksir_element"
+    },
+    "tags": [
+      "crafting_table"
+    ],
+    "ingredients": [
+      {
+        "item": "pa:sivi_element"
+      },
+      {
+        "item": "pa:iksir_sise"
+      },
+      {
+        "item": "minecraft:ice"
+      },
+      {
+        "item": "minecraft:magma"
+      }
+    ],
+    "result": {
+      "item": "pa:iksir_element",
+      "count": 1
+    }
+  }
+}

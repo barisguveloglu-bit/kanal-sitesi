@@ -143,7 +143,7 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # hanenin 0 yerine 5'ten baslamasi bunun isareti -- 7.83.0
 # ile 7.83.5 AYNI kod, sadece numara degisti.
 # v7.91.0: ORTANCA hane -- Avaritia'dan uc mekanik.
-SURUM_NO = (7, 96, 5)
+SURUM_NO = (7, 96, 6)
 
 SURUM_METIN = "%d.%d.%d" % SURUM_NO
 
@@ -795,12 +795,42 @@ IKSIR_ZINCIR = {
                    "tamam": ["minecraft:iron_ingot", "minecraft:diamond"]},
     "hiperoksin": {"sivi":  ["minecraft:blaze_powder", "minecraft:golden_apple"],
                    "tamam": ["minecraft:diamond", "minecraft:netherite_ingot"]},
+    # ---- ELEMENT: TAMAMLAMA MADEN DEGIL, IKI BLOK  (v7.96.6) ----
+    # Kullanici: "element iksirini tamamen tamamlamak icin ...
+    # bir buz blogunu almamiz lazim parcaciklarini degil buz
+    # blogu gerekli ama bu element iksiri bir buz bir ates
+    # oldugu icin atesi layik bir sey bulamadim."
+    #
+    # Ates karsiligi MAGMA BLOGU secildi:
+    #   - blok, parcacik degil (kullanicinin sarti)
+    #   - buzun isi olarak birebir ziddi
+    #   - deponun KENDISI magmayi ates sayiyor: ates bloklari
+    #     listesi soul_fire + magma + campfire (bu dosyanin
+    #     degil, ayarlar.js'in kendi tablosu)
+    #
+    # Element'in kimligi "her ortamda ayakta kal" (ayarlar.js'te
+    # boyle yazili): su altinda nefes, atese bagisiklik,
+    # karanlikta gorme, yavas dusme. Sivi bunu tasiyor --
+    # balon baligi su nefesini, phantom zari yavas dususu veren
+    # vanilla esyalari.
+    #
+    # Boylece tarifin tamaminda DORT ELEMENT birden cikiyor:
+    #   sivi       -> su + hava
+    #   tamamlama  -> buz + ates
+    #
+    # OYUN ICI NOT: buz blogunu ALMAK icin Ipeksi Dokunus
+    # gerekiyor, Verimlilik degil -- verimlilikli kazmayla
+    # kirilan buz yine suya doner. Bu tarifin sarti degil,
+    # malzemeyi nasil elde ettiginin sarti.
+    "element":    {"sivi":  ["minecraft:pufferfish", "minecraft:phantom_membrane"],
+                   "tamam": ["minecraft:ice", "minecraft:magma"]},
 }
 
 IKSIR_SISE_TR = "İksir Şişesi"
 IKSIR_SIVI_TR = {
     "nitroksin":  "Nitroksin Sıvısı",
     "hiperoksin": "Hiperoksin Sıvısı",
+    "element":    "Element Sıvısı",
 }
 
 
