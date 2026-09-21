@@ -70,6 +70,27 @@ function ilerlet(o, n = 1) {
   }
 }
 
+/* Yalniz MUZIK taramasinin okudugu blok sayisi.
+
+   NEDEN AYRI BIR OLCER: D.sayac.getBlock KURESEL. tickIlerlet
+   main.js'in tick'ini de dondurur ve orada efsane_korku'nun
+   "sonen mesale" olayi RASTGELE (EFSANE_KORKU_SANS) tetiklenip
+   16 yaricapli kureden 60 nokta ORNEKLER. O 60 okuma sayaca
+   yaziliyordu ve bu testi ~8 kosuda 1 dusuruyordu -- olcmek
+   istedigimiz sey muzik taramasi, tick'in tamami degil.
+   Pencere efsaneMuzikTara cagrisinin iki yanina daraltildi:
+   tarama blok okumaya baslarsa yine yakalanir.              */
+function muzikOkumasi(D, o, n = 1) {
+  let topla = 0;
+  for (let i = 0; i < n; i++) {
+    tickIlerlet(ayar.EFSANE_MUZIK_TARAMA);
+    const once = D.sayac.getBlock;
+    muz.efsaneMuzikTara([o]);
+    topla += D.sayac.getBlock - once;
+  }
+  return topla;
+}
+
 function duragaGit(o, i) {
   const n = efs.zincirNoktasi(KOKNOKTA, i);
   o.location = { x: n.x, y: 64, z: n.z };
@@ -198,21 +219,19 @@ console.log("=== 5. ZINCIR YOKKEN HIC DONMUYOR ===");
      kurulmamis bir dunyada bu tarama tick butcesinden
      yememeli.                                             */
   const { D, o } = kur();          // zincir KURULMADI
-  const once = D.sayac.getBlock;
   o.location = { x: 0, y: 64, z: 0 };
-  ilerlet(o, 20);
+  const okuma1 = muzikOkumasi(D, o, 20);
   kontrol("kok yokken hicbir sey olmuyor",
           muz.efsaneMuzikDurum(o.id).gorulen === 0);
-  kontrol("hic blok okunmuyor", D.sayac.getBlock === once,
-          (D.sayac.getBlock - once) + " okuma");
+  kontrol("hic blok okunmuyor", okuma1 === 0, okuma1 + " okuma");
 
   /* Zincir VARKEN de blok okumamali: konum karsilastirmasi
      yeterli (Dusmus'te getBlock uc testi birden dusurmustu). */
   zinciriKur();
-  const once2 = D.sayac.getBlock;
-  for (let i = 0; i < 3; i++) { duragaGit(o, i); ilerlet(o, 1); }
-  kontrol("zincir varken de hic blok okunmuyor",
-          D.sayac.getBlock === once2, (D.sayac.getBlock - once2) + " okuma");
+  let okuma2 = 0;
+  for (let i = 0; i < 3; i++) { duragaGit(o, i); okuma2 += muzikOkumasi(D, o, 1); }
+  kontrol("zincir varken de hic blok okunmuyor", okuma2 === 0,
+          okuma2 + " okuma");
   kontrol("  ama muzik yine caldi", o._ses.length === 1);
 }
 
