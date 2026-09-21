@@ -5,6 +5,7 @@ import {
   OLCUM_SOHBETE, HATA_SOHBETE, ESYASIZ_ACIK, ESYASIZ_EGILME_SART,
   ESYASIZ_BAKIS_ESIGI, ESYASIZ_TUTMA, ESYASIZ_TARAMA,
   KOL_VER_ACIK, KOL_VER_ESIGI, KOL_VER_TUTMA, CIFT_EL_ACIK, AYNI_ANDA,
+  FTECH_KUYRUK_EK,
   MENU_DOKUNUSLA, KALP_ADIM, KALP_TAVAN, BETA_GEREKLI,
   SOHBET_ONEK, BOT_TAVAN, DERIN_HEDEFLER, DERIN_VARSAYILAN,
   DONDUR_GIRDI_KILIT, ILKEL_BESLI, ILKEL_ACIK, botTuruMu,
@@ -237,6 +238,7 @@ import "./yetenekler/ftech.js";
 import "./yetenekler/fuzyon.js";
 import { fuzyonUnut } from "./yetenekler/fuzyon.js";
 import { ftechUnutOyuncu } from "./yetenekler/ftech.js";
+import { kuyrukAcikMi } from "./yetenekler/_ftech_defteri.js";
 import { enerjiTara, enerjiIste, enerjiUnut } from "./enerji.js";
 import { willTara, willBeklemeUnut } from "./yetenekler/will_kilic.js";
 import "./yetenekler/can_ver.js";
@@ -418,6 +420,23 @@ const oyuncununIsleri = new Map();
 function oyuncuIsSayisi(oyuncuId) {
   const liste = oyuncununIsleri.get(oyuncuId);
   return liste ? liste.length : 0;
+}
+
+/* Bu oyuncunun es zamanli is tavani.
+
+   Herkese AYNI_ANDA; F-Tech "Gorev Kuyrugu" modulu takiliysa
+   FTECH_KUYRUK_EK kadar fazla. Gerekce ayarlar.js'te
+   FTECH_KUYRUK_EK'in ustunde -- ozeti: butce ortak, fazladan
+   is yuku artirmiyor, boluyor.
+
+   try/catch: defter okumasi (dynamic property) istisna atarsa
+   tavan sessizce TABANA duser. Ters yonde dusmemeli --
+   istisnadan sonra sinirsiz is acilmasi en kotu sonuc olurdu. */
+function isTavani(oyuncuId) {
+  try {
+    if (kuyrukAcikMi(oyuncuId)) return AYNI_ANDA + FTECH_KUYRUK_EK;
+  } catch (e) { /* defter okunamadi: taban tavan */ }
+  return AYNI_ANDA;
 }
 
 /* AYNI YETENEK ZATEN CALISIYOR MU?  (v7.53)
@@ -855,7 +874,7 @@ function yetenekTetikle(oyuncu, kimlikler) {
   const liste = Array.isArray(kimlikler) ? kimlikler : [kimlikler];
   if (liste.length === 0) return false;
 
-  if (oyuncuIsSayisi(oyuncu.id) >= AYNI_ANDA) return false;
+  if (oyuncuIsSayisi(oyuncu.id) >= isTavani(oyuncu.id)) return false;
 
   const simdi = system.currentTick;
   const onceki = sonKullanim.get(oyuncu.id);
@@ -869,7 +888,7 @@ function yetenekTetikle(oyuncu, kimlikler) {
     for (const kimlik of liste) {
       try {
         if (!gecerliMi(oyuncu)) return;
-        if (oyuncuIsSayisi(oyuncu.id) >= AYNI_ANDA) break;
+        if (oyuncuIsSayisi(oyuncu.id) >= isTavani(oyuncu.id)) break;
 
         const tanim = yetenekAl(kimlik);
         if (!tanim) {

@@ -301,5 +301,51 @@ console.log("=== 9. YETENEK KIMLIKLERI AYARLA UYUYOR ===");
 }
 
 console.log("");
+console.log("=== 10. GOREV KUYRUGU IS TAVANINI YUKSELTIYOR ===");
+{
+  /* v7.97.1: "Gorev Kuyrugu" yukseltmesi takilabiliyordu ama
+     HICBIR SEY yapmiyordu -- kuyrukAcikMi() yazilmis, kimse
+     cagirmamisti. Deponun taramasinda "hic tuketilmeyen tek
+     export" olarak cikti.
+
+     Oyuncunun alabildigi ama ise yaramayan bir esya, "sahte
+     icerik yasak" kuralinin tam ortasi. Kuyruk artik main.js'te
+     es zamanli is tavanini (AYNI_ANDA) yukseltiyor.
+
+     Burada OLCULEN sey davranis degil BAG: defterin kapisi ile
+     ayardaki sayi. main.js'in isTavani'si disari acilmiyor,
+     onu metinden soruyoruz -- bag kopmasin diye.          */
+  kontrol("FTECH_KUYRUK_EK ayarda var ve pozitif",
+          typeof ayar.FTECH_KUYRUK_EK === "number" && ayar.FTECH_KUYRUK_EK > 0,
+          String(ayar.FTECH_KUYRUK_EK));
+
+  const kuyruklu = [...ayar.FTECH_YUKSELTMELER]
+    .filter(([, t]) => t.kuyruk).map(([k]) => k);
+  kontrol("kuyruk alanli tam bir yukseltme var",
+          kuyruklu.length === 1, kuyruklu.join(","));
+
+  defter.ftechUnut("t10");
+  kontrol("yukseltmesiz: kuyruk KAPALI",
+          defter.kuyrukAcikMi("t10") === false);
+  defter.yukseltmeTak("t10", "ftech_y_depo1");
+  kontrol("baska yukseltme kuyrugu ACMIYOR",
+          defter.kuyrukAcikMi("t10") === false);
+  defter.yukseltmeTak("t10", kuyruklu[0]);
+  kontrol("kuyruk modulu takilinca ACIK",
+          defter.kuyrukAcikMi("t10") === true);
+
+  /* main.js gercekten BAGLADI mi: kaynak metninden soruluyor.
+     Bu kontrol olmasaydi kuyrukAcikMi yine oksuz kalir ve
+     tarama ayni bulguyu bir daha cikarirdi.               */
+  const m = readFileSync(KOK + "/Simsek_TNT_ToprakTopu/scripts/main.js", "utf8");
+  kontrol("main.js kuyrukAcikMi'yi ICERI ALIYOR",
+          /import\s*\{[^}]*kuyrukAcikMi[^}]*\}\s*from/.test(m));
+  kontrol("main.js FTECH_KUYRUK_EK ile tavani BUYUTUYOR",
+          /AYNI_ANDA\s*\+\s*FTECH_KUYRUK_EK/.test(m));
+  kontrol("is kapilarinin hicbiri ciplak AYNI_ANDA'ya bakmiyor",
+          !/oyuncuIsSayisi\([^)]*\)\s*>=\s*AYNI_ANDA\b/.test(m));
+}
+
+console.log("");
 console.log(hata ? "HATA : " + hata : "temiz");
 process.exit(hata ? 1 : 0);

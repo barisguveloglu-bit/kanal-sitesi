@@ -12195,6 +12195,24 @@ export const FTECH_KOL = 8;
 
 /* BackpackItem.BASE_CAPACITY / BASE_MAX_RANGE */
 export const FTECH_DEPO_TABAN  = 1000;
+
+/* ---- GOREV KUYRUGU (Queue) ----
+   Kaynakta "surekli gorev kuyrugu" (REFERANS_FTECH.md, yukseltme
+   tablosu): kol is bitince durmuyor, sirayi isletiyor.
+
+   Bizde kuyruk diye ayri bir duzenek YOK ve uydurulmadi --
+   deponun zaten es anlamli sayisi var: AYNI_ANDA, oyuncu basina
+   es zamanli is tavani. Kuyruk modulu o tavani yukseltiyor.
+
+   NEDEN BUTCE ACISINDAN GUVENLI: AYNI_ANDA'nin kendi gerekcesi
+   ("Cift el" blogu) bunu zaten yaziyor -- blok/varlik/patlama
+   butcesi tick basina ORTAK, isler onu paylasiyor, toplam tavan
+   degismiyor. Ucuncu is yuku artirmiyor, boluyor.
+
+   1 secildi, 2 degil: kazi tavani 5x5 = 25 blok ve butce 56.
+   Uc kazi isi birden 75 isterdi, butce keserdi ve oyuncu
+   sebebini goremezdi.                                       */
+export const FTECH_KUYRUK_EK = 1;   // Kuyruk moduluyle +1 es zamanli is
 export const FTECH_MENZIL_TABAN = 1;
 
 /* BackpackUpgradeSlotsComponent.SLOT_COUNT */
