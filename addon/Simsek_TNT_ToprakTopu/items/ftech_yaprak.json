@@ -1,0 +1,30 @@
+{
+  "format_version": "1.20.50",
+  "minecraft:item": {
+    "description": {
+      "identifier": "pa:ftech_yaprak",
+      "menu_category": {
+        "category": "equipment",
+        "group": "itemGroup.name.sword"
+      }
+    },
+    "components": {
+      "minecraft:icon": {
+        "texture": "ftech_yaprak"
+      },
+      "minecraft:display_name": {
+        "value": "Yaprak Temizleyici"
+      },
+      "minecraft:max_stack_size": 1,
+      "minecraft:hand_equipped": true,
+      "minecraft:tags": {
+        "tags": [
+          "pa:ftech"
+        ]
+      },
+      "minecraft:durability": {
+        "max_durability": 256
+      }
+    }
+  }
+}

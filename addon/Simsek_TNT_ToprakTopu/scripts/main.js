@@ -232,6 +232,8 @@ import "./yetenekler/meteor.js";
 import "./yetenekler/ors.js";
 import "./yetenekler/buz_adam.js";
 import "./yetenekler/toprak_ucus.js";
+import "./yetenekler/ftech.js";
+import { ftechUnutOyuncu } from "./yetenekler/ftech.js";
 import { willTara, willBeklemeUnut } from "./yetenekler/will_kilic.js";
 import "./yetenekler/can_ver.js";
 import "./yetenekler/kol_takas.js";
@@ -2577,6 +2579,7 @@ olayaAbone("playerLeave", (olay) => {
   voidUnut(olay.playerId);
   saatUnut(olay.playerId);
   viltrumiteUnutOyuncu(olay.playerId);
+  ftechUnutOyuncu(olay.playerId);
 
   /* ---- v7.24'te EKLENEN DORT TEMIZLIK ----
      Genel taramada bulundu: bu dort defter oyuncu kimligiyle

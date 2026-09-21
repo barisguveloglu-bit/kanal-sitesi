@@ -143,7 +143,7 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # hanenin 0 yerine 5'ten baslamasi bunun isareti -- 7.83.0
 # ile 7.83.5 AYNI kod, sadece numara degisti.
 # v7.91.0: ORTANCA hane -- Avaritia'dan uc mekanik.
-SURUM_NO = (7, 96, 3)
+SURUM_NO = (7, 96, 4)
 
 SURUM_METIN = "%d.%d.%d" % SURUM_NO
 
@@ -292,6 +292,14 @@ KOLLAR = [
     # Yine de dogru olculer: kaynagin (Bobby1545 Mod V3) kendi
     # paletinden, turuncu et #E58D3F ve pihti #390808.
     ("kol_kanli_bobby", "ors",          "Bobby Kanli Kol",       (57, 8, 8),      (229, 141, 63)),
+    # F-TECH SIRT CANTASI (v7.96.4). Iki renk kaynagin KENDI
+    # canta dokusundan OLCULDU (ftech_canta.png, 64x64,
+    # saydam olmayan 1044 piksel sayildi):
+    #     #41435C mavi-gri (%29,8) -- govde
+    #     #1C1523 koyu mor (%15,5) -- golge
+    # Ikon dokusu kaynaktan (MIT); uretilen kol dokusu bu iki
+    # renkle ciziliyor, ikon onu ezmiyor -- kol ayri, ikon ayri.
+    ("kol_ftech",  "ftech_kazi",        "F-Tech Sirt Cantasi",   (28, 21, 35),    (65, 67, 92)),
 ]
 
 # ---- IKI KOLLU KOLLAR  (v7.42) ----
@@ -341,6 +349,7 @@ TR_AD = {
     "kol_kanli":  "Kanlı Kol",
     "kol_anna":   "Anna Kolu",
     "kol_kanli_bobby": "Bobby Kanlı Kol",
+    "kol_ftech":  "F-Tech Sırt Çantası",
 }
 
 # BEKLEME = 60 tick = 3 sn. Esya beklemesi bununla ayni tutuluyor ki
@@ -6141,6 +6150,104 @@ SES_KAYNAK = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                           "kaynak_ses")
 KONSEY_SES_KAYNAK = os.path.join(SES_KAYNAK, "konsey")
 NIDA_SES_KAYNAK = os.path.join(SES_KAYNAK, "nida")
+FTECH_SES_KAYNAK = os.path.join(SES_KAYNAK, "ftech")
+FTECH_IKON_KAYNAK = os.path.join(DOKU_KAYNAK, "ftech_ikon")
+FTECH_GEO_KAYNAK = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                "kaynak_geo", "ftech")
+
+# ---- F-TECH: EQUIPMENT 1.0.1  (v7.96.4) ----
+# Kaynak MIT lisansli (BillBodkin); ikonlar, ses ve iki model
+# depoya ALINDI. Olcumun tamami REFERANS_FTECH.md,
+# izin kaydi KAYNAKLAR.md.
+#
+# Onikisi de duz esya: yukseltmeler bir kez kullanilip
+# harcaniyor, matkap ve yaprak temizleyici elde tutuluyor.
+# `geo` alani True olanlarin 3B modeli var (kaynagin Java
+# `elements` modelinden arac/java_gorsel_coz.py ile cevrildi);
+# digerleri yalniz ikon.
+#
+# `dayaniklilik` yalniz yaprak temizleyicide: kaynagin kayit
+# satirinda `sipush 256`. Matkabin dayanikliligi ve tier'i
+# f_tech_core bagimliligindan geliyor ve o JAR elimizde yok --
+# UYDURULMADI, bos birakildi.
+# RoboticDrillItem.getBreakingTicks icindeki 30.0f carpani.
+# Bedrock'ta karsiligi `minecraft:digger` bileseninin
+# `speed` alani: vanilla elmas kazma 8, netherite 9.
+# Kaynagin carpani 30 ve olcek ayni degil, ama SIRALAMA
+# ayni kalsin diye sayi oldugu gibi veriliyor -- bu matkap
+# netherite'tan hizli olmali, kaynakta da oyle.
+FTECH_MATKAP_HIZ = 30
+
+FTECH_ESYALAR = [
+    # (anahtar,           TR ad,                   geo,   dayaniklilik)
+    ("ftech_matkap",      "Robotik Matkap",        True,  0),
+    ("ftech_yaprak",      "Yaprak Temizleyici",    True,  256),
+    ("ftech_bos_yukselti", "Boş Yükseltme",        False, 0),
+    ("ftech_y_kazi",      "Kazı Modülü",           False, 0),
+    ("ftech_y_dovus",     "Dövüş Modülü",          False, 0),
+    ("ftech_y_kavra",     "Kavrama Modülü",        False, 0),
+    ("ftech_y_topla",     "Toplama Modülü",        False, 0),
+    ("ftech_y_hareket",   "Hareket Modülü",        False, 0),
+    ("ftech_y_kuyruk",    "Görev Kuyruğu",         False, 0),
+    ("ftech_y_menzil",    "Menzil Yükseltmesi",    False, 0),
+    ("ftech_y_depo1",     "Depo Mk.I",             False, 0),
+    ("ftech_y_depo2",     "Depo Mk.II",            False, 0),
+    ("ftech_y_depo3",     "Depo Mk.III",           False, 0),
+]
+
+
+def ftech_esyasi(t):
+    """F-Tech esyasi. Hepsi max_stack_size 1 -- kaynakta da
+    oyle (butun kayit satirlarinda `iconst_1`)."""
+    anahtar, ad, _geo, dayaniklilik = t
+    bilesenler = {
+        "minecraft:icon": {"texture": anahtar},
+        "minecraft:display_name": {"value": ad},
+        "minecraft:max_stack_size": 1,
+        "minecraft:hand_equipped": True,
+        "minecraft:tags": {"tags": ["pa:ftech"]},
+    }
+    if dayaniklilik:
+        bilesenler["minecraft:durability"] = {"max_durability": dayaniklilik}
+    if anahtar == "ftech_matkap":
+        bilesenler["minecraft:digger"] = {
+            "use_efficiency": True,
+            "destroy_speeds": [
+                {"block": {"tags": "q.any_tag('stone', 'metal', 'diamond_pick_diggable')"},
+                 "speed": FTECH_MATKAP_HIZ},
+            ],
+        }
+    return {
+        "format_version": "1.20.50",
+        "minecraft:item": {
+            "description": {"identifier": "pa:" + anahtar,
+                            "menu_category": {"category": "equipment",
+                                              "group": "itemGroup.name.sword"}},
+            "components": bilesenler,
+        },
+    }
+
+
+def ftech_attachable(anahtar):
+    """Elde 3B cizim. Doku ESYA atlasindan degil kendi
+    yolundan geliyor: model `texture_size` [32,32] ile
+    cevrildi, yani ikonun kendisi doku olarak kullaniliyor."""
+    return {
+        "format_version": "1.10.0",
+        "minecraft:attachable": {
+            "description": {
+                "identifier": "pa:" + anahtar,
+                "materials": {"default": "entity_alphatest",
+                              "enchanted": "entity_alphatest_glint"},
+                "textures": {
+                    "default": "textures/item/" + anahtar,
+                    "enchanted": "textures/misc/enchanted_actor_glint",
+                },
+                "geometry": {"default": "geometry." + anahtar},
+                "render_controllers": ["controller.render.item_default"],
+            }
+        },
+    }
 
 # ---- DIS OYUNCU TANIMLARI (v7.96.2) ----
 # Bedrock'ta `minecraft:player`'i ezen iki paket ayni anda
@@ -12298,6 +12405,42 @@ def main():
             liste.append("item.pa:%s.name=%s" % (_mad, _mp["ad"]))
             liste.append("item.pa:%s=%s" % (_mad, _mp["ad"]))
 
+    # ---- F-TECH: EQUIPMENT (v7.96.4) ----
+    # 13 esya: 10 yukseltme + bos yukseltme + matkap + yaprak
+    # temizleyici. Ikonlarin hepsi kaynaktan (MIT, birebir);
+    # ikisinin 3B modeli de kaynaktan cevrildi.
+    #
+    # NEDEN BURADA: ikon atlasina (`dokular`) ve dil listesine
+    # yazan tek yer burasi. Cikti dosyalarina elle yazmak ISE
+    # YARAMAZ -- bir sonraki uretim siler (CLAUDE.md'deki
+    # "URETENI de ara" kurali).
+    for _ft in FTECH_ESYALAR:
+        _fad = _ft[0]
+        yaz_json(os.path.join(BP, "items/%s.json" % _fad), ftech_esyasi(_ft))
+
+        _fgk = os.path.join(FTECH_GEO_KAYNAK, _fad + ".geo.json")
+        if _ft[2]:
+            if os.path.exists(_fgk):
+                with open(_fgk, encoding="utf-8") as _fgf:
+                    yaz_json(os.path.join(RP, "models/entity/%s.geo.json" % _fad),
+                             json.load(_fgf))
+                yaz_json(os.path.join(RP, "attachables/%s.json" % _fad),
+                         ftech_attachable(_fad))
+            else:
+                print("UYARI: %s geometrisi yok (%s)" % (_fad, _fgk))
+
+        _fik = os.path.join(FTECH_IKON_KAYNAK, _fad + ".png")
+        if os.path.exists(_fik):
+            _fiy = os.path.join(RP, "textures/item/%s.png" % _fad)
+            os.makedirs(os.path.dirname(_fiy), exist_ok=True)
+            shutil.copyfile(_fik, _fiy)
+        else:
+            print("UYARI: %s ikonu yok (%s)" % (_fad, _fik))
+        dokular[_fad] = {"textures": "textures/item/" + _fad}
+        for liste in (en_us, tr_tr):
+            liste.append("item.pa:%s.name=%s" % (_fad, _ft[1]))
+            liste.append("item.pa:%s=%s" % (_fad, _ft[1]))
+
     # ---- KONSEY (v6.2) ----
     # 54 parca: 6 Konsey kostumu, 4 deri, 4 maske, 14 kol,
     # 7 asa, 5 Earl aleti, 8 zirh, 2 silah, 4 Dusmus asamasi.
@@ -12455,6 +12598,22 @@ def main():
             "sounds": [{"name": "sounds/nida/" + _nad,
                         "stream": False, "volume": 1.0}],
         }
+
+    # ---- F-TECH KOL SESI (v7.96.4) ----
+    # Kaynagin `robot_arm.ogg` dosyasi, birebir (MIT).
+    # 11.821 bayt, akitmaya gerek yok.
+    _fsk = os.path.join(FTECH_SES_KAYNAK, "ftech_kol.ogg")
+    if os.path.exists(_fsk):
+        _fsh = os.path.join(RP, "sounds/ftech/ftech_kol.ogg")
+        os.makedirs(os.path.dirname(_fsh), exist_ok=True)
+        shutil.copyfile(_fsk, _fsh)
+        _sesler["pa.ftech_kol"] = {
+            "category": "player",
+            "sounds": [{"name": "sounds/ftech/ftech_kol",
+                        "stream": False, "volume": 1.0}],
+        }
+    else:
+        print("UYARI: F-Tech kol sesi yok (%s)" % _fsk)
 
     if _sesler:
         yaz_json(os.path.join(RP, "sounds/sound_definitions.json"),
@@ -13267,6 +13426,13 @@ def main():
     # silerdi (silahlarda bir kez yasandi).
     for _kt3 in KONSEY:
         beklenen.add(KONSEY_ONEK + _kt3[0])
+    # v7.96.4: F-Tech esyalari. Ayni tuzak: ilk yazista bu satir
+    # YOKTU ve temizlik adimi 13 dosyayi ayni kosuda sildi --
+    # esya JSON'lari yaziliyor, atlas kaydi ve dil satiri
+    # kaliyor, dosya gidiyordu. Uretecin kendisi yakaladi
+    # (dosya sayisi 13'ten 0'a dustu).
+    for _ft3 in FTECH_ESYALAR:
+        beklenen.add(_ft3[0])
     # v4.93: Omnitrix saatleri (hem ikon hem varlik dokusu)
     for _ok3, _ot3, _oe3 in OMNITRIX:
         beklenen.add(_ok3)

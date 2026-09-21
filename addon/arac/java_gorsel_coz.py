@@ -259,17 +259,48 @@ def main():
 
     yol = arg[0]
     kimlik = "geometry.cozulen"
-    doku = 16.0
     rapor = "--rapor" in arg
     if "--kimlik" in arg:
         kimlik = arg[arg.index("--kimlik") + 1]
-    if "--doku" in arg:
-        doku = float(arg[arg.index("--doku") + 1])
 
     with open(yol, encoding="utf-8") as f:
         model = json.load(f)
 
+    # ---- DOKU OLCEGI MODELDEN OKUNUYOR (v7.96.4) ----
+    # Java modeli kendi doku olcegini `texture_size` ile YAZIYOR
+    # ve 16 disinda bir deger sik: F-Tech'in matkabi ve yaprak
+    # temizleyicisi ikisi de [32, 32].
+    #
+    # Eskiden bu alan HIC okunmuyordu; olcek yalniz `--doku` ile
+    # veriliyordu ve verilmezse 16 varsayiliyordu. 32'lik bir
+    # modeli bayrak vermeden cevirmek UV'leri yariya indiriyor:
+    # cikti gecerli JSON, oyun kabul ediyor, doku KAYIK duruyor --
+    # yani sessiz hata. Java `elements` cevriminin Y kuralini
+    # ModelBase'e uygulamakla ayni sinifta bir hata.
+    #
+    # Artik sira su: `--doku` > modelin `texture_size` > 16.
+    doku = 16.0
+    model_olcek = model.get("texture_size")
+    if isinstance(model_olcek, list) and len(model_olcek) == 2:
+        try:
+            en, boy = float(model_olcek[0]), float(model_olcek[1])
+        except (TypeError, ValueError):
+            en = boy = 0.0
+        if en > 0 and boy > 0:
+            if en != boy:
+                sys.stderr.write("DIKKAT: texture_size kare degil (%g x %g). "
+                                 "Bedrock kare olcek istiyor; en buyuk kenar "
+                                 "kullanildi.\n" % (en, boy))
+            doku = max(en, boy)
+    if "--doku" in arg:
+        doku = float(arg[arg.index("--doku") + 1])
+
     o = olc(model)
+    o["doku_olcek"] = doku
+    sys.stderr.write("doku olcegi: %g (%s)\n"
+                     % (doku, "--doku" if "--doku" in arg
+                        else ("texture_size" if model.get("texture_size")
+                              else "varsayilan")))
     sys.stderr.write("eleman: %d · dejenere (sifir kalinlikli): %d · tek yuzlu: %d"
                      " · ters kutu: %d\n"
                      % (o["eleman"], o["dejenere"], o["tek_yuzlu"], o["ters"]))

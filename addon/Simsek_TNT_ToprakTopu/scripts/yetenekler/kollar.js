@@ -224,7 +224,33 @@ export const KOL_ESYALARI = [
      dokusu ve kendi temasi var; onlar tek yetenekli kopyalardi.
      Yine de secim kullanicinindir -- istenirse tek satir. */
   ["pa:kol_kanli_bobby", "ors", "savur", "sarsinti", "yakala",
-                         "yildirim_halkasi"]
+                         "yildirim_halkasi"],
+
+  /* F-TECH SIRT CANTASI (v7.96.4).
+
+     Kaynak: F-Tech: Equipment 1.0.1 (Fabric, MIT, BillBodkin).
+     Olcumun tamami addon/REFERANS_FTECH.md.
+
+     ---- NEDEN KENDI KOLU, TOPRAK KOL'A EKLENMEDI ----
+     Kol israfi kurali "ayni isi yapan ikinci kolu acma" diyor;
+     burada is AYNI DEGIL. Bes yetenegin besi de bir MODULE
+     bagli: yukseltme takili degilse yetenek calismiyor ve
+     sebebini yaziyor. Toprak Kol'un on yedi yeteneginin hicbiri
+     boyle bir kapiya bagli degil -- oraya konsaydi menude
+     "neden calismiyor" diyen bes olu satir olurdu.
+
+     Kaynagin kendi ilerlemesi de bunu istiyor: canta tek basina
+     bos bir govde, yukseltmeler onu doldurmaya yariyor. O
+     ilerleme ancak kendi kolunda gorunur.
+
+     ---- CAKISMA SIFIR ----
+     Bes yetenegin hicbiri baska bir kolda yok.
+
+     ---- ALTINCI ESYA AYRI ----
+     Yaprak Temizleyici kaynakta da AYRI bir esya ve yukseltme
+     istemiyor; burada da oyle (pa:ftech_yaprak).             */
+  ["pa:kol_ftech",  "ftech_kazi", "ftech_dovus", "ftech_topla",
+                    "ftech_kavra", "ftech_hareket"]
 ];
 
 for (const satir of KOL_ESYALARI) {

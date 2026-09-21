@@ -1,3 +1,85 @@
+# v7.96.4 — F-Tech: Equipment alındı (MIT)
+
+Kullanıcı JAR'ı gönderdi: *"bunu da ekle, alabildiğin hepsini al."*
+Ölçümün tamamı [`REFERANS_FTECH.md`](REFERANS_FTECH.md), izin kaydı
+[`KAYNAKLAR.md`](KAYNAKLAR.md).
+
+## Lisans önce bakıldı: MIT
+
+`fabric.mod.json` içinde `"license": "MIT"`, yapımcı **BillBodkin**.
+Marka katmanı yok — mod tümüyle yapımcının kendi tasarımı. Yani
+depo kuralının **üçüncü kademesi**: paylaşılabilir, dosya alınır.
+Bugüne kadarki iki kalemden (shout, Iron Man) farkı yok; fark,
+iznin bu sefer yazışmadan değil **lisans beyanından** gelmesi.
+
+## Alınanlar
+
+| ne | nereden | nereye |
+|---|---|---|
+| 13 eşya ikonu (32×32) | `textures/item/` + çanta dokusu | `kaynak_doku/ftech_ikon/` |
+| 1 ses (`robot_arm.ogg`) | `sounds/` | `kaynak_ses/ftech/` |
+| 2 eşya modeli | Java `elements` JSON | `kaynak_geo/ftech/` (çevrildi) |
+| bütün sayılar | 156 sınıfın bytecode'u | `ayarlar.js` + `kol_uret.py` |
+
+Kaynağın **sekiz robotik kolu** var (`BackpackArm` enum). Bedrock'ta
+oyuncuya bağlı sekiz hareketli uzuv çizilemiyor: attachable başına
+bir kemik gerekiyor ve `query.get_equipped_item_name` yalnız iki eli
+okuyabiliyor. Bu yüzden 8 sayısı **görünüş değil paralellik** olarak
+yaşıyor: bir turda en çok 8 blok, 8 hedef, 8 eşya; hedef başına en
+çok 2 kol (`MAX_ARMS_PER_TARGET`).
+
+## Modüller kilitli — kaynağın kendi ilerlemesi
+
+Kaynakta her kip bir yükseltme eşyası istiyor ve yükseltmeler
+çantanın 3×3 gridinde duruyor. Bedrock'ta **özel kap arayüzü yok**
+(`ActionFormData` liste ve düğme çiziyor, yuva çizmiyor). Bu yüzden
+yükseltme **elde kullanılarak** takılıyor ve eşya harcanıyor —
+ilerleme aynı (üret → tak → modül açılır), değişen tek şey jest.
+
+`allowsMultiple()` bytecode'dan okundu: altısı yalnız bir kez,
+dördü istiflenir. Depo Mk.I/II/III = +500/+1000/+2000, Menzil = +1.
+Dokuz yuva dolunca takma reddediliyor — üçü de ölçülüyor.
+
+## Kendi testim kendi hatamı buldu
+
+`koniHedefleri` **varlık** döndürüyor, sarmalayıcı nesne değil
+(`.map((x) => x.varlik)` ile bitiyor). İlk yazışta üç yerde
+`h.varlik` okunuyordu; `undefined` geliyor, çağrı kendi `try`ına
+düşüyor ve **Dövüş ile Kavrama sessizce hiçbir şey yapmıyordu.**
+Deponun `eldekiEsya` dize/nesne karışıklığıyla aynı sınıf hata.
+`test/ftech.mjs` 5. ve 6. bölümü bunu ölçüyor.
+
+## Üreteç yine kendi artığını topladı
+
+13 eşya JSON'u yazılıyor, atlas kaydı ve dil satırı kalıyor,
+**dosyalar aynı koşuda siliniyordu** — `beklenen` listesine
+eklenmedikleri için. CLAUDE.md'deki *"bir şeyi eklerken ÜRETENİ de
+ara"* kuralının bir kez daha yaşanması. Dosya sayısı 13'ten 0'a
+düştüğü için yakalandı; `test/ftech.mjs` 8. bölümü listeyi kilitledi.
+
+## Çeviricide sessiz bir hata kapatıldı
+
+`arac/java_gorsel_coz.py` modelin kendi `texture_size` alanını
+**hiç okumuyordu**; ölçek yalnız `--doku` ile veriliyor, verilmezse
+16 varsayılıyordu. F-Tech'in iki modeli de `[32, 32]`. Bayrak
+vermeden çevirmek UV'leri yarıya indiriyor: çıktı geçerli JSON,
+oyun kabul ediyor, doku **kayık** duruyor. Artık sıra
+`--doku` > `texture_size` > 16 ve `--rapor` hangisinin
+kullanıldığını yazıyor.
+
+## Alınmayanlar ve sebepleri
+
+| alınmadı | sebep |
+|---|---|
+| Depolama (1000 eşya) | Bedrock Script API'sinde ItemStack serileştirmesi yok; dinamik özellik yalnız dize/sayı tutuyor. Büyülü ya da hasarlı eşyayı saklamak onu **bozardı** — "oyuncu eşyası asla kaybolmaz" kuralı. Sayılar `ayarlar.js`'te duruyor, hesap `depoKapasitesi()` ile ölçülüyor. |
+| Platform bloğu | Eşya aktarımı için özel kap gerekiyor; aynı sınır. |
+| WASD/zıpla/çömel ile uçuş | `applyImpulse` **oyunculara işlemiyor** (deponun kendi ölçümü, `toprak_ucus.js`). Hareket modülü levitation + hız ile karşılanıyor; en az bir kol tutunma kuralı korundu. |
+| Kaydırma tekerleğiyle mesafe | Script API'sinde tekerlek olayı yok. Karşılığı **çömelme**: çömeliyken varlık uzaklaşıyor. Adım 0.35 ve sınırlar −1.75…6.0 kaynağın kendi sayıları. |
+| Matkabın dayanıklılığı ve tier'i | `f_tech_core` bağımlılığından geliyor, o JAR elimizde yok. **Uydurulmadı**, boş bırakıldı. Kazma hızı (30) ölçülebildiği için alındı. |
+| Görev kuyruğu (Queue) | Yükseltme olarak var ve takılıyor, ama bizde eylemler zaten sıraya giriyor (`butce.js`). Kaynaktaki "kollar çalışırken yeni görev ekle" davranışının bizde karşılığı yok — eklenmedi, uydurulmadı. |
+
+---
+
 # v7.96.3 sonrası — ikinci derin tarama (anlamsal katman)
 
 Birinci tarama **yapıyı** ölçmüştü (ölü dosya, koşulmayan test, ölü

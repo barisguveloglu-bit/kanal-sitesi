@@ -187,7 +187,7 @@ console.log("=== 4. HICBIR YETENEK SAHIPSIZ KALMADI ===");
      Anna kol israfi degil: tek yetenegi (can_ver) BASKASINI
      iyilestiriyor ve depoda bunu yapan baska hicbir sey yok.  */
 kontrol("kol sayisi 9 (v7.12: Bobby Kanli Kol eklendi)",
-          kollar.KOL_ESYALARI.length === 9,
+          kollar.KOL_ESYALARI.length === 10,
           kollar.KOL_ESYALARI.length + " kol");
 }
 

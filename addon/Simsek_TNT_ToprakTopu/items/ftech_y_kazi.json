@@ -1,0 +1,27 @@
+{
+  "format_version": "1.20.50",
+  "minecraft:item": {
+    "description": {
+      "identifier": "pa:ftech_y_kazi",
+      "menu_category": {
+        "category": "equipment",
+        "group": "itemGroup.name.sword"
+      }
+    },
+    "components": {
+      "minecraft:icon": {
+        "texture": "ftech_y_kazi"
+      },
+      "minecraft:display_name": {
+        "value": "Kazı Modülü"
+      },
+      "minecraft:max_stack_size": 1,
+      "minecraft:hand_equipped": true,
+      "minecraft:tags": {
+        "tags": [
+          "pa:ftech"
+        ]
+      }
+    }
+  }
+}

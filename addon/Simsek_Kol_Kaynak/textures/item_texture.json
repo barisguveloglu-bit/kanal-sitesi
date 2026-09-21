@@ -29,6 +29,9 @@
     "kol_kanli_bobby": {
       "textures": "textures/item/kol_kanli_bobby"
     },
+    "kol_ftech": {
+      "textures": "textures/item/kol_ftech"
+    },
     "iksir_nitroksin": {
       "textures": "textures/item/iksir_nitroksin"
     },
@@ -1177,6 +1180,45 @@
     },
     "mrv_wolverine__wolverine_2024_mask": {
       "textures": "textures/item/mrv_wolverine__wolverine_2024_mask"
+    },
+    "ftech_matkap": {
+      "textures": "textures/item/ftech_matkap"
+    },
+    "ftech_yaprak": {
+      "textures": "textures/item/ftech_yaprak"
+    },
+    "ftech_bos_yukselti": {
+      "textures": "textures/item/ftech_bos_yukselti"
+    },
+    "ftech_y_kazi": {
+      "textures": "textures/item/ftech_y_kazi"
+    },
+    "ftech_y_dovus": {
+      "textures": "textures/item/ftech_y_dovus"
+    },
+    "ftech_y_kavra": {
+      "textures": "textures/item/ftech_y_kavra"
+    },
+    "ftech_y_topla": {
+      "textures": "textures/item/ftech_y_topla"
+    },
+    "ftech_y_hareket": {
+      "textures": "textures/item/ftech_y_hareket"
+    },
+    "ftech_y_kuyruk": {
+      "textures": "textures/item/ftech_y_kuyruk"
+    },
+    "ftech_y_menzil": {
+      "textures": "textures/item/ftech_y_menzil"
+    },
+    "ftech_y_depo1": {
+      "textures": "textures/item/ftech_y_depo1"
+    },
+    "ftech_y_depo2": {
+      "textures": "textures/item/ftech_y_depo2"
+    },
+    "ftech_y_depo3": {
+      "textures": "textures/item/ftech_y_depo3"
     },
     "kns_okazor": {
       "textures": "textures/item/kns_okazor"

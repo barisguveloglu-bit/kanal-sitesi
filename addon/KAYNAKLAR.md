@@ -55,6 +55,29 @@ denetleyicilerine de yayılıyor. Yayılmasaydı Ben 10 yaratığına
 dönüşünce Iron Man'in modelleri çizmeye devam ederdi (ölçüldü:
 6 denetleyicinin yalnız 2'si korumalıydı).
 
+### F-Tech: Equipment 1.0.1 — ikonlar, ses, iki model
+
+| | |
+|---|---|
+| ne | 13 eşya ikonu (32×32 PNG), 1 ses (`robot_arm.ogg`), 2 eşya modeli |
+| nerede | `kaynak_doku/ftech_ikon/` · `kaynak_ses/ftech/` · `kaynak_geo/ftech/` |
+| bağlandığı yer | `FTECH_*` (ayarlar.js) → `yetenekler/ftech.js` |
+| izin | **MIT** — `fabric.mod.json` içinde beyan edilmiş |
+| yapımcı | BillBodkin (cablepost.co.uk) |
+
+MIT izin verici bir lisans: kopyalama, değiştirme ve dağıtma serbest,
+tek şart telif bildiriminin korunması — bu satır o bildirim.
+Üçüncü taraf marka katmanı **yok**; mod tümüyle yapımcının kendi
+tasarımı. Bu yüzden diğer iki kalemden farkı yok: paylaşılabilir,
+depoya girdi.
+
+İkonlar ve ses **birebir** kopyalandı. İki eşya modeli (matkap ve
+yaprak temizleyici) Java `elements` biçimindeydi ve depodaki
+`arac/java_gorsel_coz.py` ile Bedrock geometrisine çevrildi —
+çeviri bizim, kutu ölçüleri kaynağın.
+
+Ölçümün tamamı `REFERANS_FTECH.md`.
+
 ---
 
 ## Depoda BULUNMAYAN ama ölçümü alınan modlar

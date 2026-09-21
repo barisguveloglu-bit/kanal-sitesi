@@ -22,6 +22,13 @@ const ac  = () => { console.warn = w; };
    eklenip cikarilinca burasi kendiliginden dogru kaliyor ve
    ayni bayatlama bir daha yasanmiyor.                        */
 const kollarModulu = await import("./pack/yetenekler/kollar.js");
+/* v7.96.4: F-Tech kolunun bes yetenegi de bir YUKSELTMEYE
+   bagli. Yukseltme takili degilken hicbir sey yapmamasi
+   DOGRU davranis -- "modul takili degil" yaziyor ve duruyor.
+   Kurulum yapmadan sinamak "kol calismiyor" demek olurdu;
+   anna.mjs ve kol_kanli_bobby'de ayni hata iki kez yapildi.
+   Asagida F-Tech kolu icin Kazi modulu takiliyor.          */
+const ftechDefteri = await import("./pack/yetenekler/_ftech_defteri.js");
 /* Hedef isteyen ya da ozel kurulum isteyen kollar burada
    elenmiyor -- asagida her birine uygun kurban/kurulum
    veriliyor. Kanli Kol ve Anna Kolu hedef istiyor.          */
@@ -63,6 +70,18 @@ for (const [esya, ad, beklenen] of KOLLAR) {
       applyImpulse(i) { this._itildi = i; },
       applyKnockback: () => true
     }];
+  }
+  if (esya === "pa:kol_ftech") {
+    ftechDefteri.ftechUnut(o.id);
+    ftechDefteri.yukseltmeTak(o.id, "ftech_y_kazi");
+    /* KAZILACAK BIR SEY OLMALI. Sahte dunyada y >= 64 HAVA
+       (dunya.mjs: varsayilan) ve oyuncu 90.6'da duruyor --
+       kazi yetenegi dogru calissa bile kiracak blok yok,
+       "hicbir sey" cikardi. Kod degil OLCUM eksik olurdu;
+       anna.mjs ve Bobby Kanli Kol'da ayni hata iki kez
+       yapilmisti. `hepsiDolu` dort.mjs'in kullandigi bayrak:
+       her yeri tas sayiyor.                                 */
+    D.bloklar.hepsiDolu = true;
   }
   sus(); itemUseTetikle({ source: o, itemStack: { typeId: esya } }); tickIlerlet(400); ac();
   const sim = D.sayac.dogan.filter(d => d.tip === "minecraft:lightning_bolt").length;

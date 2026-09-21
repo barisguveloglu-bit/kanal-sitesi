@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.96.3";
+export const SURUM = "v7.96.4";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -12146,3 +12146,165 @@ export const BEN10_NIDA = new Map([
   ["kineceleran",         "pa.nida_xlr8"],
   ["piscciss_volann",     "pa.nida_ripjaws"]
 ]);
+
+/* ================================================================
+   F-TECH SIRT CANTASI                                     v7.96.4
+
+   Kaynak: F-Tech: Equipment 1.0.1 (Fabric, MIT, BillBodkin).
+   Olcumun tamami addon/REFERANS_FTECH.md; asagidaki her sayinin
+   yaninda hangi sinifin hangi alanindan geldigi yazili.
+
+   Kaynak "sekiz robotik kol tasiyan bir sirt cantasi": kazar,
+   dovusur, esya toplar, varlik kavrar/firlatir ve yuzeylere
+   tutunup oyuncuyu havada tasir. Bizde tek bir KOL esyasi ve
+   onun icinde alti yetenek -- depo kurali "her seyi kol yapma,
+   kol israfini onle".
+
+   ---- NEDEN SEKIZ SAYISI HER YERDE ----
+   Kaynakta kol sayisi sabit 8 (BackpackArm enum). Bizde kol
+   diye ayri bir varlik yok; 8 sayisi PARALELLIK olarak
+   yasiyor: bir tick'te en cok 8 blok kiriliyor, en cok 8
+   hedefe vuruluyor, en cok 8 varlik kavraniyor.              */
+
+export const FTECH_ACIK = true;
+
+/* BackpackArm enum'undaki kol sayisi. */
+export const FTECH_KOL = 8;
+
+/* BackpackItem.BASE_CAPACITY / BASE_MAX_RANGE */
+export const FTECH_DEPO_TABAN  = 1000;
+export const FTECH_MENZIL_TABAN = 1;
+
+/* BackpackUpgradeSlotsComponent.SLOT_COUNT */
+export const FTECH_YUVA = 9;
+
+/* ---- YUKSELTMELER ----
+   `coklu` alani kaynagin allowsMultiple() degeri:
+   iconst_1 -> istiflenir, iconst_0 -> yalniz bir kez.
+   `depo` ve `menzil` StorageUpgradeItem / RangeUpgradeItem
+   kayit satirlarindan (tier, bonus) ciftleri.
+
+   `acar` alani hangi yetenegi actigini soyluyor; yetenek
+   kimlikleri yetenekler/ftech.js'teki kayitlarla AYNI olmak
+   zorunda -- test bunu olcuyor.                              */
+export const FTECH_YUKSELTMELER = new Map([
+  ["ftech_y_kazi",    { ad: "Kazı Modülü",        coklu: false, acar: "ftech_kazi" }],
+  ["ftech_y_dovus",   { ad: "Dövüş Modülü",       coklu: false, acar: "ftech_dovus" }],
+  ["ftech_y_kavra",   { ad: "Kavrama Modülü",     coklu: false, acar: "ftech_kavra" }],
+  ["ftech_y_topla",   { ad: "Toplama Modülü",     coklu: false, acar: "ftech_topla" }],
+  ["ftech_y_hareket", { ad: "Hareket Modülü",     coklu: false, acar: "ftech_hareket" }],
+  ["ftech_y_kuyruk",  { ad: "Görev Kuyruğu",      coklu: false, kuyruk: true }],
+  ["ftech_y_menzil",  { ad: "Menzil Yükseltmesi", coklu: true,  menzil: 1 }],
+  ["ftech_y_depo1",   { ad: "Depo Mk.I",          coklu: true,  depo: 500 }],
+  ["ftech_y_depo2",   { ad: "Depo Mk.II",         coklu: true,  depo: 1000 }],
+  ["ftech_y_depo3",   { ad: "Depo Mk.III",        coklu: true,  depo: 2000 }]
+]);
+
+/* ---- KAZI (Block Operations) ----
+   Kaynakta alan +/- dugmeleriyle dort yone genisliyor.
+   Bizde menuden ayni dort yon. Tavan 2: 5x5 kesit demek,
+   yani bir tick'te en cok 25 blok -- butce 56, iki is
+   birden calisirken tasmasin diye.                          */
+export const FTECH_KAZI_TAVAN   = 2;
+export const FTECH_KAZI_DERINLIK = 3;
+/* NOT: RoboticDrillItem.getBreakingTicks'teki 30.0f carpani
+   BURADA DEGIL, kol_uret.py'de duruyor (FTECH_MATKAP_HIZ).
+   Sebebi: o sayiyi okuyan tek sey matkap esyasinin
+   `minecraft:digger` bileseni ve o bileseni ureten yer
+   kol_uret.py. Burada tutmak oksuz bir ayar olurdu --
+   tarama.mjs'in "oksuz ayar sayisi artmadi" olcumu tam
+   bunu yakaladi.                                            */
+
+/* ---- DOVUS ----
+   AttackAction.ATTACK_RANGE = 10.0
+   AttackAction.MAX_ARMS_PER_TARGET = 2
+   BackpackWeaponSlotsComponent.MIN_ATTACK_DAMAGE = 1.0     */
+export const FTECH_DOVUS_MENZIL   = 10;
+export const FTECH_DOVUS_KOL_HEDEF = 2;
+export const FTECH_DOVUS_ENAZ_HASAR = 1;
+/* Bir kol vurdu mu tekrar vurmadan once bekliyor. Kaynakta
+   bu sure savurma evrelerinden cikiyor (ATTACK_SWING_SPEED
+   0.3 ile ilerleyen bir ilerleme cubugu); bizde tick.      */
+export const FTECH_DOVUS_BEKLEME = 10;
+
+/* ---- ESYA TOPLAMA ----
+   PickupAction icindeki menzil sabitleri 8.0 ve 10.0.
+   Kucugu esyaya uzanma, buyugu tarama menzili.             */
+export const FTECH_TOPLA_MENZIL = 8;
+export const FTECH_TOPLA_TARAMA = 10;
+
+/* ---- VARLIK KAVRAMA ----
+   EntityThrowAction.GRAB_RANGE = 10.0
+   HOLD_DISTANCE_STEP = 0.35, sinirlar -1.75 .. 6.0
+   GrabbedEntityTracker.HOLD_LERP_FACTOR = 0.4
+   EntityReleaseHandler: sarj 6..40 tick, hiz 0.8..2.8      */
+export const FTECH_KAVRA_MENZIL   = 10;
+export const FTECH_KAVRA_MESAFE   = 3.0;
+export const FTECH_KAVRA_ADIM     = 0.35;
+export const FTECH_KAVRA_ENAZ     = -1.75;
+export const FTECH_KAVRA_ENCOK    = 6.0;
+export const FTECH_KAVRA_YUMUSAK  = 0.4;
+export const FTECH_FIRLAT_ENAZ_SARJ = 6;
+export const FTECH_FIRLAT_ENCOK_SARJ = 40;
+export const FTECH_FIRLAT_ENAZ_HIZ = 0.8;
+export const FTECH_FIRLAT_ENCOK_HIZ = 2.8;
+/* Kavranamayanlar. Kaynagin kendi tanimi "mobs or primed TNT"
+   -- yani oyuncu degil. Ejderha ve Wither kaynakta ayrica
+   elenmiyor ama Bedrock'ta bunlari isinlamak dunyayi bozuyor
+   (olculdu: ejderha kendi savas durumunu kaybediyor).        */
+export const FTECH_KAVRANAMAZ = new Set([
+  "minecraft:player",
+  "minecraft:ender_dragon",
+  "minecraft:wither"
+]);
+
+/* ---- HAREKET (Locomotion) ----
+   LocomotionController sabitleri: ivme 0.025/0.05/0.1,
+   hiz tavani 0.7/1.2/1.5, sonumleme 0.95, menzil 10/12.
+   Belgenin kendi kurali: en az BIR kol yuzeye tutunmali.
+
+   ---- BEDROCK SINIRI, OLCULDU ----
+   applyImpulse oyunculara islemiyor (deponun kendi notu,
+   toprak_ucus.js). Oyuncuyu havada tutmanin kararli tek yolu
+   levitation; yatay hareket icin de oyuncunun KENDI hareketi
+   kullaniliyor. Yani kaynagin WASD/zipla/comel kontrolu
+   birebir degil: tutunma varken levitation + hiz efekti
+   veriliyor, tutunma bitince ikisi de kalkiyor.             */
+export const FTECH_HAREKET_MENZIL  = 12;
+export const FTECH_HAREKET_ENAZ_KOL = 1;
+export const FTECH_HAREKET_SIDDET  = 1;
+export const FTECH_HAREKET_HIZ     = 2;
+export const FTECH_HAREKET_SURE    = 30;
+
+/* ---- YAPRAK TEMIZLEYICI ----
+   FoliageClearerItem: CONE_RANGE 18.0, CONE_ANGLE 30.0,
+   DROP_CHANCE 0.125, COOLDOWN_TICKS 20, dayaniklilik 256.  */
+export const FTECH_YAPRAK_MENZIL = 18;
+export const FTECH_YAPRAK_ACI    = 30;
+export const FTECH_YAPRAK_DUSME  = 0.125;
+export const FTECH_YAPRAK_BEKLEME = 20;
+
+/* clearable_foliage etiketindeki 36 blok + bes etiketin
+   Bedrock karsiligi. Kaynakta etiketle yaziliydi
+   (#minecraft:leaves gibi); Bedrock'ta blok etiketi
+   sorgulanamadigi icin acik liste.                          */
+export const FTECH_YAPRAK_BLOKLAR = new Set([
+  "minecraft:oak_leaves", "minecraft:spruce_leaves", "minecraft:birch_leaves",
+  "minecraft:jungle_leaves", "minecraft:acacia_leaves", "minecraft:dark_oak_leaves",
+  "minecraft:mangrove_leaves", "minecraft:cherry_leaves", "minecraft:azalea_leaves",
+  "minecraft:azalea_leaves_flowered",
+  "minecraft:short_grass", "minecraft:tall_grass", "minecraft:fern",
+  "minecraft:large_fern", "minecraft:deadbush", "minecraft:seagrass",
+  "minecraft:kelp", "minecraft:vine", "minecraft:cave_vines",
+  "minecraft:glow_lichen", "minecraft:hanging_roots", "minecraft:spore_blossom",
+  "minecraft:moss_carpet", "minecraft:pink_petals", "minecraft:waterlily",
+  "minecraft:reeds", "minecraft:bamboo", "minecraft:sweet_berry_bush",
+  "minecraft:nether_sprouts", "minecraft:warped_roots", "minecraft:crimson_roots",
+  "minecraft:weeping_vines", "minecraft:twisting_vines", "minecraft:big_dripleaf",
+  "minecraft:small_dripleaf_block", "minecraft:azalea", "minecraft:flowering_azalea",
+  "minecraft:moss_block", "minecraft:sculk_vein",
+  "minecraft:yellow_flower", "minecraft:red_flower", "minecraft:sapling"
+]);
+
+/* Kol sesi. Kaynaktaki robot_arm.ogg birebir alindi (MIT). */
+export const FTECH_SES = "pa.ftech_kol";

@@ -461,8 +461,14 @@ console.log("=== 8. ULASILABILIYOR MU ===");
      "yeni kol sessizce eklenmesin".
      Anna kol israfi degil: tek yetenegi (can_ver) BASKASINI
      iyilestiriyor ve depoda bunu yapan baska hicbir sey yok.  */
-kontrol("izinsiz kol acilmadi (9 kol)",
-          (uretec.match(/^\s*\("kol_\w+",/gm) || []).length === 9);
+/* v7.96.4: 10. kol -- F-Tech Sirt Cantasi. Kullanici acikca
+   istedi ("bunu da ekle, alabildigin hepsini al"). Kol israfi
+   degil: bes yetenegin besi de bir YUKSELTMEYE bagli ve
+   takili degilse calismiyor; deponun hicbir kolunda boyle bir
+   kapi yok. Sayi YINE ELLE guncellendi -- bekcinin isi
+   "yeni kol sessizce eklenmesin".                           */
+kontrol("izinsiz kol acilmadi (10 kol)",
+          (uretec.match(/^\s*\("kol_\w+",/gm) || []).length === 10);
 }
 
 console.log("");

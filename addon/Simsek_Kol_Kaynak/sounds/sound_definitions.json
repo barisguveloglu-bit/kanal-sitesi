@@ -150,6 +150,16 @@
           "volume": 1.0
         }
       ]
+    },
+    "pa.ftech_kol": {
+      "category": "player",
+      "sounds": [
+        {
+          "name": "sounds/ftech/ftech_kol",
+          "stream": false,
+          "volume": 1.0
+        }
+      ]
     }
   }
 }
