@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.96.6";
+export const SURUM = "v7.96.7";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -3681,7 +3681,29 @@ export const KADEMELER = [
       ["night_vision",    0],
       /* Element kimligi: her ortamda ayakta kal */
       ["regeneration",    1],
-      /* v4.80: dorduncu element: HAVA (su/ates/toprak vardi) */
+      /* ---- BU SATIRIN GEREKCESI v7.96.7'DE DUZELTILDI ----
+         Burada bu efekti "elementlerden biri" diye anlatan
+         bir satir vardi ve Element'i DORT elementli sayiyordu.
+         O bir OLCUM DEGILDI: v4.80'de efekt eklenirken
+         sonradan uydurulmus bir gerekceydi ve yanlisti.
+         (Eski cumle buraya BILEREK kopyalanmadi -- test onu
+         ariyor, alintilasaydim kendi duzeltmem testi
+         dusururdu. Bir kez dusurdu.)
+
+         Kaynakta Element IKI elementten olusuyor: BUZ ve ATES.
+         Olculmus tek kanit bu (kaynak_doku/NEREDEN.md):
+           buz gozu   (56, 225, 255)   buz lazeri  (0, 255, 243)
+           ates gozu  (255, 178, 0)    ates lazeri (255, 98, 0)
+         Toprak ve hava kaynakta HIC YOK.
+
+         Yanlis gerekce zararsiz degildi: v7.96.6'da iksirin
+         tarifi bu satira dayanilarak kuruldu ("dort element")
+         ve kullanici duzeltti.
+
+         Efekt DURUYOR -- iksiri zayiflatmak icin sebep yok,
+         yalnizca sebebi dogru yazildi: sekiz dakikalik bir
+         iksirde dusme hasari yemek, iksirin verdigi hicbir
+         seyle ilgisi olmayan bir olum bicimi.              */
       ["slow_falling", 0],
       /* v4.80: elementin hicbir vurus gucu yoktu */
       ["strength",     1]

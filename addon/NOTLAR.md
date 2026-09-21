@@ -1,4 +1,82 @@
+# v7.96.7 — "Dört element" uydurmaydı, düzeltildi
+
+Kullanıcı v7.96.6'daki gerekçeyi reddetti:
+
+> *"öyle demiyor, element iksiri buz ve ateşten oluşur. Hava toprak
+> bunları zaten yapamadık, yani bunlar zaten orijinal iksirde de yok.
+> O zaman bir karışıklık çıkmış notlarında."*
+
+Haklıydı ve bu **ölçülebilir** bir haklılık.
+
+## Kaynakta ölçülmüş olan
+
+`kaynak_doku/NEREDEN.md`, referansın dokusundan sayılmış:
+
+| ne | renk |
+|---|---|
+| Element **buz** gözü | `(56, 225, 255)` |
+| Element **ateş** gözü | `(255, 178, 0)` |
+| Element **buz** lazeri | `(0, 255, 243)` |
+| Element **ateş** lazeri | `(255, 98, 0)` |
+
+İki göz, iki lazer, ikisi de buz ve ateş. **Toprak ve hava kaynakta
+hiç yok.**
+
+## Yanlışın kaynağı
+
+`ayarlar.js`'te `slow_falling` satırının üstünde, v4.80'de yazılmış
+tek bir yorum Element'i dört elementli sayıyordu. O bir ölçüm değil,
+efekt eklenirken **sonradan uydurulmuş bir gerekçeydi**.
+
+Zararsız duruyordu ama değildi: v7.96.6'da Element'in tarifi ona
+dayanılarak kuruldu. Uydurma bir gerekçe, on altı sürüm sonra bir
+tasarım kararına dönüştü.
+
+## Üç düzeltme
+
+1. **`ayarlar.js`** — yorum değiştirildi. Efekt *duruyor* (iksiri
+   zayıflatmak için sebep yok), yalnız sebebi doğru yazıldı: sekiz
+   dakikalık bir iksirde düşme hasarı yemek, iksirin verdiği hiçbir
+   şeyle ilgisi olmayan bir ölüm biçimi.
+2. **Sıvı değişti** — `balon balığı + phantom zarı` gitti, yerine
+   `kar topu + blaze tozu` geldi. Zincir artık **ham → blok** diye
+   yükseliyor:
+
+   | adım | buz | ateş |
+   |---|---|---|
+   | sıvı | kar topu | blaze tozu |
+   | tamamlama | buz bloğu | magma bloğu |
+
+3. **`test/tarif.mjs` 7. bölüm** — Element'in dört vanilla
+   malzemesinin dördünün de buz ya da ateş tarafında olduğunu
+   ölçüyor, ve uydurma gerekçenin `ayarlar.js`'e geri sızmadığını
+   kontrol ediyor.
+
+## Kendi yorumum kendi testimi düşürdü
+
+Düzeltme yorumunu yazarken eski cümleyi **alıntı olarak** koydum;
+test o cümleyi arıyordu ve düzeltmenin kendisi testi düşürdü.
+v7.96.3'te aynı sınıf hata yaşanmıştı (bir açıklama satırı tarayıcının
+penceresini kaydırmıştı). Yorum alıntısız yeniden yazıldı ve neden
+alıntısız olduğu oraya not düşüldü.
+
+## Ders
+
+Bir yorumdaki gerekçe, kodun kendisi kadar ciddiye alınıyor — çünkü
+sonraki oturum onu okuyup üstüne inşa ediyor. Ölçülmemiş bir cümleyi
+ölçülmüş gibi yazmak, bu depoda en pahalı hata biçimlerinden biri.
+`kaynak_doku/NEREDEN.md` gibi **ölçüm dosyaları** varken gerekçe
+oradan yazılmalı.
+
+---
+
 # v7.96.6 — Element zincire girdi, ateş karşılığı magma
+
+> **Bu girdideki "dört element" anlatımı YANLIŞ. v7.96.7 düzeltti** —
+> aşağıdaki "dört element birden çıkıyor" cümlesi ve ona dayanan sıvı
+> seçimi geçersiz. Kaynakta Element **iki** elementten oluşuyor:
+> buz ve ateş. Girdi silinmedi, çünkü hatanın kendisi kayıt.
+
 
 Kullanıcı Element'i istedi ve tamamlama adımını kendisi belirledi:
 **bir buz bloğu** — *"parçacıklarını değil, buz bloğu gerekli"*.

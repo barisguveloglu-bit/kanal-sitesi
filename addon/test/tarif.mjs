@@ -154,5 +154,51 @@ console.log("=== 6. FREEDOM STONE ZINCIRE GIRMEDI ===");
 }
 
 console.log("");
+console.log("=== 7. ELEMENT IKI ELEMENTTEN OLUSUR: BUZ VE ATES ===");
+{
+  /* ---- v7.96.7'DE DUZELTILEN BIR YANLIS ----
+     v7.96.6'da Element'in tarifi "dort element" gerekcesiyle
+     kurulmustu: sivida su + hava, tamamlamada buz + ates.
+     O gerekce ayarlar.js'teki v4.80 yorumundan geliyordu ve
+     yorum bir OLCUM DEGIL, sonradan uydurulmus bir aciklamaydi.
+
+     Kaynakta olculmus tek kanit kaynak_doku/NEREDEN.md'de:
+     iki goz ve iki lazer, ikisi de BUZ ve ATES. Toprak ve
+     hava kaynakta HIC YOK. Kullanici duzeltti.
+
+     Bu bolum karari kilitliyor: Element'in dort malzemesinin
+     dordu de buz ya da ates tarafinda olmali.               */
+  const buzAtes = new Set([
+    "minecraft:snowball", "minecraft:ice", "minecraft:packed_ice",
+    "minecraft:blue_ice", "minecraft:powder_snow_bucket",
+    "minecraft:blaze_powder", "minecraft:blaze_rod", "minecraft:magma",
+    "minecraft:magma_cream", "minecraft:fire_charge", "minecraft:lava_bucket",
+  ]);
+  const tSivi = tarifler.get("pa:sivi_element");
+  const tIksir = tarifler.get("pa:iksir_element");
+  const malzemeler = []
+    .concat(tSivi ? tSivi.ingredients.map((i) => i.item) : [])
+    .concat(tIksir ? tIksir.ingredients.map((i) => i.item) : [])
+    .filter((m) => m.startsWith("minecraft:"));
+  const yabanci = malzemeler.filter((m) => !buzAtes.has(m));
+  kontrol("Element zinciri var", !!tSivi && !!tIksir);
+  kontrol("dort vanilla malzemenin dordu de buz ya da ates",
+          malzemeler.length === 4 && yabanci.length === 0,
+          yabanci.length ? "yabanci: " + yabanci.join(", ")
+                         : malzemeler.join(" + "));
+
+  /* Kaynagin olcumu: iki goz, iki lazer -- toprak/hava yok. */
+  const nereden = readFileSync(KOK + "/kaynak_doku/NEREDEN.md", "utf8");
+  kontrol("kaynakta olculen Element rengi yalniz buz ve ates",
+          /Element buz gözü/.test(nereden) && /Element ateş gözü/.test(nereden) &&
+          !/Element toprak|Element hava/.test(nereden));
+
+  /* Uydurma gerekce geri sizmasin. */
+  const ayar = readFileSync(KOK + "/Simsek_TNT_ToprakTopu/scripts/ayarlar.js", "utf8");
+  kontrol("'dorduncu element: HAVA' gerekcesi geri gelmedi",
+          !/dorduncu element: HAVA/.test(ayar));
+}
+
+console.log("");
 console.log(hata ? "HATA : " + hata : "temiz");
 process.exit(hata ? 1 : 0);

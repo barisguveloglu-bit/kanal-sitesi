@@ -9,10 +9,10 @@
     ],
     "ingredients": [
       {
-        "item": "minecraft:pufferfish"
+        "item": "minecraft:snowball"
       },
       {
-        "item": "minecraft:phantom_membrane"
+        "item": "minecraft:blaze_powder"
       }
     ],
     "result": {

@@ -143,7 +143,7 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # hanenin 0 yerine 5'ten baslamasi bunun isareti -- 7.83.0
 # ile 7.83.5 AYNI kod, sadece numara degisti.
 # v7.91.0: ORTANCA hane -- Avaritia'dan uc mekanik.
-SURUM_NO = (7, 96, 6)
+SURUM_NO = (7, 96, 7)
 
 SURUM_METIN = "%d.%d.%d" % SURUM_NO
 
@@ -808,21 +808,26 @@ IKSIR_ZINCIR = {
     #     listesi soul_fire + magma + campfire (bu dosyanin
     #     degil, ayarlar.js'in kendi tablosu)
     #
-    # Element'in kimligi "her ortamda ayakta kal" (ayarlar.js'te
-    # boyle yazili): su altinda nefes, atese bagisiklik,
-    # karanlikta gorme, yavas dusme. Sivi bunu tasiyor --
-    # balon baligi su nefesini, phantom zari yavas dususu veren
-    # vanilla esyalari.
+    # ---- SIVI v7.96.7'DE DEGISTI ----
+    # Ilk yazista sivi "balon baligi + phantom zari" idi ve
+    # gerekcesi "dort element: sivida su + hava, tamamlamada
+    # buz + ates" diye yazilmisti. O gerekce YANLISTI:
+    # kaynakta Element IKI elementten olusuyor, buz ve ates.
+    # Olculmus kanit kaynak_doku/NEREDEN.md'de -- iki goz, iki
+    # lazer, ikisi de buz ve ates. Toprak ve hava kaynakta yok.
+    # "Dort element" ayarlar.js'te v4.80'de uydurulmus bir
+    # yorumdu; kullanici duzeltti.
     #
-    # Boylece tarifin tamaminda DORT ELEMENT birden cikiyor:
-    #   sivi       -> su + hava
-    #   tamamlama  -> buz + ates
+    # Sivi artik iksirin GERCEK kimligini tasiyor ve zincir
+    # HAM -> BLOK diye yukseliyor:
+    #   sivi       -> kar topu + blaze tozu   (buz ve atesin hami)
+    #   tamamlama  -> buz blogu + magma blogu (buz ve atesin blogu)
     #
     # OYUN ICI NOT: buz blogunu ALMAK icin Ipeksi Dokunus
     # gerekiyor, Verimlilik degil -- verimlilikli kazmayla
     # kirilan buz yine suya doner. Bu tarifin sarti degil,
     # malzemeyi nasil elde ettiginin sarti.
-    "element":    {"sivi":  ["minecraft:pufferfish", "minecraft:phantom_membrane"],
+    "element":    {"sivi":  ["minecraft:snowball", "minecraft:blaze_powder"],
                    "tamam": ["minecraft:ice", "minecraft:magma"]},
 }
 
