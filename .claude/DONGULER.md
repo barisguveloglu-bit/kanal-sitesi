@@ -1,4 +1,4 @@
-# Echo Orkestra v2.0.6
+# Echo Orkestra v2.0.7
 
 Bu katmanın adı **Echo**. Adın sebebi işleyişinde: her çıktı bir
 denetimden geri döner, her hata bir teste geri döner, her ölçüm sistemin
@@ -970,7 +970,7 @@ her ajan dosyasını okuyor — listede olmayan biri Opus'a çıkarsa da,
 listedeki biri Sonnet'e düşerse de kırmızı yanıyor. Hak **üçle sınırlı**
 ve liste `dogrula.py`'de yazılı; dördüncüsü reddedilir.
 
-Ders defteri (`dersler.jsonl`) şu an **19 ders** taşıyor; kalıcı ve
+Ders defteri (`dersler.jsonl`) şu an **21 ders** taşıyor; kalıcı ve
 depoda. Sayı burada yazılı çünkü sessiz silmeyi ancak bu yakalıyor.
 
 **Koruma doğrulanır.** Bir ders "korunuyor" diyebiliyorsa bunun
@@ -1228,6 +1228,99 @@ doğru güçlenen **KAT 2-3-4**, çekirdek **yapılan iş**, içeri dönen ok
   kendisi de test edilmiş durumda: simgeye kesik halka ya da ok geri
   eklenirse sınav düşer, yoksa biri onu "tutarlılık olsun" diye işaretle
   aynı hâle getirir ve küçük boy sessizce bozulur.
+
+## İz analizi — koşular arası hata döngüsü
+
+Tepe tırmanma döngüsünün eksik ayağıydı. Her halka **kendi turuna**
+bakıyordu: `elestirmen.py` aynı turun tekrarını, `devre.py` aynı koşunun
+salınımını, `eniyile.py` aynı halkanın puanını görüyor. Hiçbiri şunu
+göremiyordu:
+
+    "Bu aynı şekildeki hata üç ayrı koşuda dört kez oldu."
+
+Ham malzeme de kalıcı değildi: `seyir.jsonl` ve `olay-defteri.jsonl`
+ikisi de `.gitignore`'da. Ertesi gün "nerede hata yapıldı" sorusunu
+soracak bir şey kalmıyordu.
+
+`iz-defteri.jsonl` **kalıcı ve depoda.** İçinde ham iz yok — ham iz
+bağlamı çürütür ve zaten `seyir.py`'nin kasten dışarıda bıraktığı şey.
+Duran şey **hata şekli**: ne oldu, nerede, hangi kapı yakaladı (ya da
+yakalayamadı), kanıtı ne.
+
+### Kimlik neye bağlı
+
+Ders defterinden alınan disiplin: kimliği doğrulanabilir olana bağla.
+
+| Küme | Kimlik | Sonuç |
+|---|---|---|
+| **Yer kümesi** | adres — aynı dosyada tekrarlıyor | ölçüm, çıkış 0/1 |
+| **Şekil kümesi** | kelime — farklı yerlerde benzer cümle | **tahmin**, çıkış 3 |
+
+İkincisi insan kapısına çıkıyor. Kelime örtüşmesiyle "bunlar aynı hata"
+demek bir ölçüm değil bir tahmindir, ve sistem tahminini ölçüm diye
+sunmaz. Aynı hata mı, benzer cümleyle yazılmış iki ayrı hata mı — makine
+ayıramaz.
+
+Defterin en değerli kaydı `kapi: yok` olanlar: **hiçbir mekanik kapının
+görmediği hata.** `oner` tam olarak onları gösteriyor.
+
+### Neden hiçbir şeyi kendiliğinden değiştirmiyor
+
+Bu aracın en önemli sınırı, ve bir vakayla zorlanıyor
+(`iz: kuralı kendiliğinden değiştirmiyor`).
+
+Ölçülen şeyin, ölçen kuralı yazma yetkisi olursa kural kural olmaktan
+çıkar. Kızıl takım testinde bunu gördük: bir testin **adı yerinde
+bırakılıp gövdesi boşaltıldı** ve hiçbir kapı fark etmedi. Kural yazma
+yetkisi olan bir ajan bunu kötü niyetle değil **iyi niyetle** yapar —
+"bu test gereksiz katı" der, gevşetir, sistem yeşil kalır, ölçüm ölür.
+
+Otomatik önerilebilecek şey kural değil **test**: yanlış bir test
+gürültülü biçimde kırmızı yanar, yanlış bir kural sessizce yanlış şeyi
+savunmaya başlar ve aylarca fark edilmez.
+
+Bir iz, onu yakalayan vakanın **adıyla** kapanıyor ve o ad gerçekten var
+olmalı — doğrulamayı `ders.py`'nin çözücüsü yapıyor, ikinci bir kopya
+yazılmadı: iki çözücü ayrışır, biri düzeltilir öbürü eski kalır ve
+hangisinin doğru olduğu bilinmez. `coken` karşılığı sonradan silinen ya
+da içi boşaltılanı yakalıyor.
+
+## Rapor okuyucu — özyinelemeli okuma
+
+26 ajan koşturulduğunda 26 rapor çıkıyor ve bunları kabuktan okumak
+bağlamı taşırıyordu. Yasak doğruydu ama **yerine bir şey konmamıştı**:
+raporlar `ozetleyici` ajanına devrediliyordu, o da aynı pencere sınırına
+çarpıyordu, sadece başka bir yerde.
+
+Fikir bu depoda zaten iki yerde uygulanıyor — veriyi modele yükleme, dış
+ortamda tut, programlı sorgula:
+
+| Araç | Ne yapıyor |
+|---|---|
+| `okuyucu.py` | `data.js`'i modele okutmaz, Python'da ayrıştırır |
+| `ara.py` | LORE'u yüklemez, BM25 ile sorgular, satır döndürür |
+| `rapor.py` | raporu yüklemez, arar/parçalar/adres döndürür |
+
+`rapor.py` bir adım ekliyor: **özyineleme.** `parca` büyük bir raporu
+kararlı numaralı parçalara böler; model parçayı ister, işler, bir
+sonrakini ister. Tamamını hiç görmez, ve nerede kalındığı kaybolmaz.
+
+`al` içeriği **basmaz**, yalnızca ölçü basar — aracın bütün varlık sebebi
+bu ve bir vaka onu zorluyor (`rapor: içeriği pencereye basmıyor`).
+Basmamak saklamamak değil: aynı vaka içeriğin depoda **durduğunu** da
+doğruluyor, sorulunca bulunuyor.
+
+Serbest özet yok. `seyir.py`'deki ile aynı gerekçe: serbest özetleyici
+neyin önemli olduğunu bilmez ve tam da sonradan lazım olacak şeyi atar.
+Dönen şey **adresli satır** — okuyan gider bakar.
+
+`ortak` birden fazla raporun gösterdiği adresi önceliklendiriyor ama
+çıktısında bunun kanıt olmadığını söylüyor: **aynı modelin N kopyası N
+bağımsız göz değildir**, aynı kör noktayı paylaşırlar. Bu da bir vakayla
+zorlanıyor — uyarı silinirse sınav kırmızı yanar.
+
+Depo (`rapor-deposu/`) koşuya özel ve `.gitignore`'da; kalıcı bilgi ders
+defterine ya da iz defterine yazılır.
 
 ## Sınırlar
 

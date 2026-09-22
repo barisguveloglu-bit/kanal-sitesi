@@ -97,6 +97,29 @@ Sürüm: `python3 .claude/surum.py goster` — işaret: `python3 .claude/logo.py
   Düzenleme adımı vaka sayısının düşmesine izin vermez.
 - `python3 .claude/mutasyon.py` — testlerin kendisini ölçer: aracı kasten
   bozar, sınavın yakalayıp yakalamadığına bakar. Ölü test buradan çıkar.
+- `python3 .claude/iz.py yaz|kume|oner|kuyruk|coken|kapat|durum` — **koşular
+  arası hata analizi.** Her halka kendi turuna bakıyordu; hiçbiri "bu aynı
+  hata üç ayrı koşuda dört kez oldu" diyemiyordu. `iz-defteri.jsonl`
+  **kalıcı ve depoda** — ham iz değil, hata şekli. İki kümeleme var:
+  **yer kümesi** kimliğini adresten alır (sağlam), **şekil kümesi**
+  kelimeden alır ve bu yüzden insan kapısına çıkar (çıkış 3). `oner`
+  tekrar eden ve hiçbir kapının yakalamadığı hataları gösterir ama
+  **hiçbir kuralı, ayarı ya da prompt'u değiştirmez** — önerilebilecek
+  şey kural değil TEST: yanlış bir test kırmızı yanar, yanlış bir kural
+  sessizce yanlış şeyi savunmaya başlar. Bir iz, onu yakalayan vakanın
+  **adıyla** kapanır ve ad gerçekten var olmalı (`ders.py`'nin çözücüsü);
+  `coken` karşılığı sonradan silinen ya da içi boşaltılanı yakalar.
+- `python3 .claude/rapor.py al|liste|ara|bulgular|ortak|parca|unut` —
+  **ajan raporlarını pencereye yüklemeden sorgulama.** 26 ajan koşunca
+  raporları kabuktan okumak bağlamı taşırıyordu; yasak doğruydu ama
+  yerine bir şey konmamıştı. `okuyucu.py` ve `ara.py` ile aynı ilke —
+  veri dış ortamda kalır, programlı sorgulanır — artı **özyineleme**:
+  `parca` büyük raporu kararlı parçalara böler, model tamamını görmez.
+  `al` içeriği **basmaz**, yalnızca ölçü basar. Serbest özet yok, dönen
+  şey adresli satır. `ortak` birden fazla raporun gösterdiği adresi
+  önceliklendirir ama bunun kanıt olmadığını söyler: aynı modelin N
+  kopyası aynı kör noktayı paylaşır. Depo (`rapor-deposu/`) koşuya özel
+  ve `.gitignore`'da.
 - `python3 .claude/gorev.py` — alt ajana verilecek sözleşmeli brief üretir
   ve gelen raporun atıflarını denetler. Sözleşmesiz görev `kanca-gorev.py`
   tarafından gönderilmeden engellenir.

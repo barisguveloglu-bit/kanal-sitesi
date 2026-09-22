@@ -112,6 +112,24 @@ jobs:
               || echo "::warning title=evrim::Açık evrim boşluğu var (devam eden iş)"
           fi
 
+      - name: İz defteri çürümüş mü
+        if: '!cancelled()'
+        run: |
+          # Açık iz hata değil (henüz teste çevrilmemiş iş), ÇÖKEN
+          # karşılık hatadır: karşılığı silinmiş bir iz kapalı görünür
+          # ve bir daha kimse aramaz. `evrim.py` ile aynı ayrım.
+          python3 .claude/iz.py coken; kod=$?
+          case $kod in
+            0) echo "::notice title=iz::Kapatılan her izin karşılığı yerinde" ;;
+            1) echo "::error title=iz::Çöken ya da kaymış karşılık — kapalı görünen iz aslında açık"; exit 1 ;;
+            *) echo "::error title=iz::Denetim çalışmadı (çıkış $kod) — geçti sayılmaz"; exit 1 ;;
+          esac
+          # Kuyrukta bekleyen iz uyarıdır, kapı değil: her hatayı aynı
+          # gün teste çevirmek zorunlu olsaydı, hata kaydetmek cezaya
+          # dönerdi ve defter boş kalırdı.
+          python3 .claude/iz.py kuyruk >/dev/null; kod=$?
+          [ $kod -eq 0 ] || echo "::warning title=iz::Karşılığı yazılmamış iz var — yakalayan kapı yok demektir"
+
       - name: Kapatılmamış geri bildirim kaydı var mı
         if: '!cancelled()'
         run: |
