@@ -1,4 +1,4 @@
-# Echo Orkestra v2.0.4
+# Echo Orkestra v2.0.5
 
 Bu katmanın adı **Echo**. Adın sebebi işleyişinde: her çıktı bir
 denetimden geri döner, her hata bir teste geri döner, her ölçüm sistemin
@@ -962,13 +962,40 @@ tek ajana yığdı; hepsi `LORE.md` okuduğu için.
 Bölünemeyen küme kapasiteyi aşabilir — ama sessizce değil. Sessiz aşım
 birleştirmede sürpriz üretir.
 
-**Hangi model.** Kadro **Sonnet 5**. Tanım `.claude/agents/` altında,
-çağrıda değil: çağrıda seçilen model unutulur, tanımdaki unutulamaz.
-Ama tanım da sessizce değişebilir, o yüzden `belge` denetimi her ajan
-dosyasını okuyor — `model: sonnet` değilse kırmızı yanıyor.
+**Hangi model.** Kadro **Sonnet 5**, üç istisna dışında: `canon-denetci`,
+`kurgu-denetci` ve `hikaye-yazari` **Opus**. Tanım `.claude/agents/`
+altında, çağrıda değil: çağrıda seçilen model unutulur, tanımdaki
+unutulamaz. Ama tanım da sessizce değişebilir, o yüzden `belge` denetimi
+her ajan dosyasını okuyor — listede olmayan biri Opus'a çıkarsa da,
+listedeki biri Sonnet'e düşerse de kırmızı yanıyor. Hak **üçle sınırlı**
+ve liste `dogrula.py`'de yazılı; dördüncüsü reddedilir.
 
 Ders defteri (`dersler.jsonl`) şu an **16 ders** taşıyor; kalıcı ve
 depoda. Sayı burada yazılı çünkü sessiz silmeyi ancak bu yakalıyor.
+
+**Koruma doğrulanır.** Bir ders "korunuyor" diyebiliyorsa bunun
+karşılığı gerçekten var olmalı. Serbest metin kabul edilmiyor; koruma ya
+`vaka:<sınav vakası adı>` ya `dosya:<yol>#<çapa metni>`. Ölçüm: defterde
+o an 11 koruma vardı, **5'i var olmayan bir vakayı ya da silinmiş bir
+satırı gösteriyordu** ve defter hepsini korumalı sayıyordu — korumasızlık
+sayılıyordu ama yanlış sayılıyordu.
+
+**Kaynağın özeti saklanır.** Bir korumanın adını korumak, iddiasını
+korumak değil: kızıl takım testinde bir vakanın gövdesi boşaltıldı, adı
+yerinde kaldı, hiçbir kapı görmedi. Artık koruma bağlanırken hedefin
+(vaka gövdesi ya da çapa paragrafı) özeti saklanıyor; `bayat` adı duran
+ama içeriği kaymış korumaları bildiriyor, `tazele` bilerek değişeni
+onaylıyor.
+
+**Makbuz tekilliği.** Bir ders başka bir korumaya sessizce bağlanamaz:
+aynı kayıt farklı içerikle iki kez yazılırsa hangisinin doğru olduğu
+bilinemez. Değiştirmek bir karardır, `--degistir` ile söylenir.
+
+Defter bir **ekleme günlüğü değil**: `koru` ve `tazele` satırı yerinde
+değiştirir. İlk hâlinde ekliyordu ve iki şey bozuldu — ham okuyan yerler
+aynı dersi iki kez saydı (`durum` 16 derken `oku` 22 bastı), ve ders
+silme denetimi kör kaldı, çünkü son satırı silmek yalnızca bir
+yinelemeyi siliyordu. Değişikliğin izi zaten git'te duruyor.
 
 ### Kadro — **21 denetçi ajan**
 

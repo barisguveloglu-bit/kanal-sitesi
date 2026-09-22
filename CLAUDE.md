@@ -76,13 +76,22 @@ Sürüm: `python3 .claude/surum.py goster` — işaret: `python3 .claude/logo.py
   `tur` döngünün kendisini sürer: turları sayar ve **aynı yer iki turda arka
   arkaya geliyorsa durur** (çıkış 3) — aktör düzeltmiyor demektir. Nazikçe
   sonsuza dönen döngü, hiç dönmeyenden kötüdür: çalışıyormuş gibi görünür.
-- `python3 .claude/ders.py yaz|oku|ara|koru|korumasiz|durum` — **ders defteri,
-  oturumlar arası hafıza.** `seyir.jsonl` koşuya özel ve `.gitignore`'da;
-  oturum bitince ders kayboluyordu. `dersler.jsonl` **kalıcı ve depoda.**
-  Her ders bir `koruma` taşır (onu engelleyen test); korumasız dersler
-  sayılır. Defter **oturum açılışında kendiliğinden yüzeye çıkar** —
-  `SessionStart` → `olay.py` → `kanca-ders.py`. Okunmasını hatırlamaya
-  bırakmak, kuralı yazıya bırakmaktır.
+- `python3 .claude/ders.py yaz|oku|ara|koru|korumasiz|bayat|tazele|durum` —
+  **ders defteri, oturumlar arası hafıza.** `seyir.jsonl` koşuya özel ve
+  `.gitignore`'da; oturum bitince ders kayboluyordu. `dersler.jsonl`
+  **kalıcı ve depoda.** Her ders bir `koruma` taşır (onu engelleyen test);
+  korumasız dersler sayılır. Defter **oturum açılışında kendiliğinden
+  yüzeye çıkar** — `SessionStart` → `olay.py` → `kanca-ders.py`.
+  Okunmasını hatırlamaya bırakmak, kuralı yazıya bırakmaktır.
+  Koruma **serbest metin olamaz**, iki doğrulanabilir biçimden biridir:
+  `vaka:<sınav vakası adı>` ya da `dosya:<yol>#<çapa metni>` — `evrim.py`
+  ile aynı disiplin. Ölçüldü: 11 korumanın 5'i var olmayan bir şeyi
+  gösteriyordu ve defter hepsini korumalı sayıyordu. Korumanın **içeriği
+  de özetlenip saklanır**; vakanın adı durup iddiası boşaltılırsa `bayat`
+  bunu **kaymış koruma** olarak bildirir (`tazele` bilerek değişeni
+  onaylar). Bir dersi başka bir korumaya bağlamak **`--degistir` ister**:
+  aynı kayıt farklı içerikle iki kez yazılırsa hangisinin doğru olduğu
+  bilinemez.
 - `python3 .claude/tdd.py kirmizi|yesil|duzenle` — kırmızı-yeşil-düzenle.
   Kırmızı adımı bir kapıdır: şu an geçen bir vakayla TDD başlatılamaz.
   Düzenleme adımı vaka sayısının düşmesine izin vermez.

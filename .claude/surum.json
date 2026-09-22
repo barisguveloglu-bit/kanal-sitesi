@@ -1,7 +1,7 @@
 {
   "majör": 2,
   "minör": 0,
-  "yama": 4,
+  "yama": 5,
   "gecmis": [
     {
       "surum": "v1.1",
@@ -47,6 +47,11 @@
       "surum": "v2.0.4",
       "ne": "Kızıl takım testinin üç ölçülmüş boşluğu kapatıldı: CLAUDE.md sayı denetimi, ölü CSS sınıfı denetimi, ders defteri silme denetimi",
       "tarih": "2026-09-19"
+    },
+    {
+      "surum": "v2.0.5",
+      "ne": "Ders defteri korumaları artık doğrulanıyor: serbest metin reddediliyor, korumanın içerik özeti saklanıyor (kaymış koruma görünür), aynı ders --degistir olmadan başka korumaya bağlanamıyor. Defter satırı yerinde güncelleniyor.",
+      "tarih": "2026-09-22"
     }
   ]
 }

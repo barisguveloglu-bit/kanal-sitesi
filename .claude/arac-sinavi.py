@@ -1987,6 +1987,112 @@ def t_ders_oturum_acilisinda_yuzeye_cikiyor(kok):
     return None
 
 
+def t_ders_dogrulanamayan_koruma_reddediliyor(kok):
+    """"Korunuyor" diyen bir ders aslında korunmuyor olabilir.
+
+    Ölçüldü: 11 korumanın 5'i var olmayan bir vakayı ya da silinmiş bir
+    satırı gösteriyordu ve defter hepsini `·` ile korumalı sayıyordu.
+    Serbest metin artık reddediliyor."""
+    s = kos(kok, "ders.py", "yaz", "--tur", "olcum", "--baglam", "deneme",
+            "--ders", "Serbest metin koruma denemesi qwe",
+            "--koruma", "arac-sinavi bunu bir şekilde yakalıyor")
+    if s.returncode == 0:
+        return "serbest metin koruma kabul edildi"
+    s = kos(kok, "ders.py", "yaz", "--tur", "olcum", "--baglam", "deneme",
+            "--ders", "Olmayan vaka koruma denemesi qwe",
+            "--koruma", "vaka:böyle bir vaka yok zaten")
+    if s.returncode == 0:
+        return "var olmayan vakaya bağlı koruma kabul edildi"
+    s = kos(kok, "ders.py", "yaz", "--tur", "olcum", "--baglam", "deneme",
+            "--ders", "Gerçek vaka koruma denemesi qwe",
+            "--koruma", "vaka:ders: aynı dersi iki kez yazmıyor")
+    if s.returncode != 0:
+        return f"gerçek vakaya bağlı koruma reddedildi: {s.stdout[:160]}"
+    return None
+
+
+def t_ders_koruma_kaymasi_yakalaniyor(kok):
+    """Kızıl takım senaryosu: vakanın ADI durur, İDDİASI boşaltılır.
+
+    Ada bakan bir doğrulama bu sabotajı göremez — ders hâlâ "korunuyor"
+    görünür. Gövdenin özeti saklandığı için kayma görünür oluyor."""
+    s = kos(kok, "ders.py", "yaz", "--tur", "olcum", "--baglam", "deneme",
+            "--ders", "Kayma denemesi için ders qwe",
+            "--koruma", "vaka:ders: aynı dersi iki kez yazmıyor")
+    if s.returncode != 0:
+        return f"koruma bağlanamadı: {s.stdout[:160]}"
+    s = kos(kok, "ders.py", "bayat")
+    if s.returncode != 0:
+        return f"taze defter bayat sayıldı (çıkış {s.returncode})"
+
+    # Vakanın adı yerinde kalsın, iddiası boşalsın.
+    yol = os.path.join(kok, ".claude", "arac-sinavi.py")
+    metin = open(yol, encoding="utf-8").read()
+    boz = metin.replace('        return "aynı ders iki kez yazıldı"',
+                        "        return None", 1)
+    if boz == metin:
+        return "sabotaj çapası bulunamadı — vaka gövdesi değişmiş"
+    open(yol, "w", encoding="utf-8").write(boz)
+
+    s = kos(kok, "ders.py", "bayat")
+    if s.returncode != 1 or "KAYMIŞ" not in s.stdout:
+        return f"boşaltılan vaka yakalanmadı (çıkış {s.returncode})"
+    return None
+
+
+def t_ders_makbuz_tekilligi_koruyor(kok):
+    """Aynı kimlik farklı içerikle iki kez yazılırsa hangisinin doğru
+    olduğu bilinemez. Değiştirmek bir karardır, sessizce olmaz."""
+    s = kos(kok, "ders.py", "yaz", "--tur", "olcum", "--baglam", "deneme",
+            "--ders", "Makbuz tekilliği denemesi qwe",
+            "--koruma", "vaka:ders: aynı dersi iki kez yazmıyor")
+    if s.returncode != 0:
+        return f"ders yazılamadı: {s.stdout[:160]}"
+    no = re.search(r"Ders \[(\d+)\]", s.stdout)
+    if not no:
+        return f"ders numarası basılmadı: {s.stdout[:160]}"
+    no = no.group(1)
+
+    s = kos(kok, "ders.py", "koru", "--no", no,
+            "--koruma", "vaka:ders: defter oturumlar arası kalıyor")
+    if s.returncode != 1 or "ÇAKIŞMA" not in s.stdout:
+        return f"sessiz üzerine yazma engellenmedi (çıkış {s.returncode})"
+
+    s = kos(kok, "ders.py", "koru", "--no", no, "--degistir",
+            "--koruma", "vaka:ders: defter oturumlar arası kalıyor")
+    if s.returncode != 0:
+        return f"açık değiştirme reddedildi (çıkış {s.returncode})"
+    return None
+
+
+def t_ders_okuyucular_ayni_sayiyi_veriyor(kok):
+    """Defter ekleme günlüğü: `koru` üzerine yazmaz, satır ekler. Bu
+    ayrımı her okuyucunun ayrı ayrı hatırlamasına bırakmak, bazılarının
+    unutması demek — `durum` 16 ders sayarken `oku` 22 bastı ve oturum
+    açılışında defter şişmiş göründü."""
+    s = kos(kok, "ders.py", "yaz", "--tur", "olcum", "--baglam", "deneme",
+            "--ders", "Okuyucu tutarlılığı denemesi qwe",
+            "--koruma", "vaka:ders: aynı dersi iki kez yazmıyor")
+    if s.returncode != 0:
+        return f"ders yazılamadı: {s.stdout[:160]}"
+    no = re.search(r"Ders \[(\d+)\]", s.stdout).group(1)
+    s = kos(kok, "ders.py", "koru", "--no", no, "--degistir",
+            "--koruma", "vaka:ders: defter oturumlar arası kalıyor")
+    if s.returncode != 0:
+        return f"koruma değiştirilemedi (çıkış {s.returncode})"
+
+    s_oku = kos(kok, "ders.py", "oku")
+    s_durum = kos(kok, "ders.py", "durum")
+    e_oku = re.search(r"—\s*(\d+) ders", s_oku.stdout)
+    e_durum = re.search(r"ders\s*:\s*(\d+)", s_durum.stdout)
+    if not e_oku or not e_durum:
+        return "ders sayısı okunamadı"
+    if e_oku.group(1) != e_durum.group(1):
+        return (f"okuyucular ayrışıyor: oku {e_oku.group(1)}, "
+                f"durum {e_durum.group(1)}")
+    return None
+
+
 def t_elestirmen_turu_tekrarlayan_yeri_yakaliyor(kok):
     """Döngünün gerçek kusuru turlar arasında görünür: aynı yer tekrar
     geliyorsa aktör düzeltmiyor demektir. Nazikçe sonsuza kadar dönen
@@ -2267,6 +2373,10 @@ VAKALAR = [
     ("ders: defter oturumlar arası kalıyor", t_ders_defteri_oturumlar_arasi_kaliyor),
     ("ders: aynı dersi iki kez yazmıyor", t_ders_ayni_dersi_iki_kez_yazmiyor),
     ("ders: oturum açılışında yüzeye çıkıyor", t_ders_oturum_acilisinda_yuzeye_cikiyor),
+    ("ders: doğrulanamayan koruma reddediliyor", t_ders_dogrulanamayan_koruma_reddediliyor),
+    ("ders: koruma kayması yakalanıyor", t_ders_koruma_kaymasi_yakalaniyor),
+    ("ders: makbuz tekilliği koruyor", t_ders_makbuz_tekilligi_koruyor),
+    ("ders: okuyucular aynı sayıyı veriyor", t_ders_okuyucular_ayni_sayiyi_veriyor),
     ("eleştirmen: turu tekrarlayan yeri yakalıyor", t_elestirmen_turu_tekrarlayan_yeri_yakaliyor),
     ("bütçe: bittiğinde ajan reddediyor", t_butce_bittiginde_ajan_reddediyor),
     ("bütçe: yarım işi kapatmıyor", t_butce_yarim_isi_kapatmiyor),
