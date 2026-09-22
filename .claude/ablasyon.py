@@ -89,11 +89,26 @@ def kopya():
     return gecici, kok
 
 
+# Özyineleme kırıcı.
+#
+# `arac-sinavi.py` ablasyonun kendi vakalarını taşıyor ve o vakalar
+# `ablasyon.py` çağırıyor — ablasyon sınav koşturunca sınav ablasyon
+# koşturuyor, o da yine sınav. Ölçüldü: sınav 60 sn'den 1 dk 44 sn'ye
+# çıktı ve 30 halkalık tarama zaman aşımına girdi.
+#
+# Bu bayrak açıkken o iki vaka atlanıyor. Atlama SESSİZ değil, raporda
+# yazılı — sessizce atlanan vaka, geçen vaka gibi görünür.
+BAYRAK = "ECHO_ABLASYON"
+ATLANAN = 2
+
+
 def kos(kok, betik, *arg):
     yol = os.path.join(kok, ".claude", betik)
+    cevre = dict(os.environ, **{BAYRAK: "1"})
     try:
         return subprocess.run([sys.executable, yol, *arg], cwd=kok,
-                              capture_output=True, text=True, timeout=1200)
+                              capture_output=True, text=True, timeout=1200,
+                              env=cevre)
     except subprocess.TimeoutExpired:
         return None
 
@@ -196,6 +211,9 @@ def main(argv=None):
         print("Önce zemini yeşile getir; kirli zeminde 'vaka düştü' hiçbir")
         print("şey söylemez.")
         return 1
+
+    print(f"(Ablasyonun kendi {ATLANAN} vakası atlanıyor — {BAYRAK} açık. "
+          "Yoksa sınav ablasyonu, ablasyon sınavı koşturur.)\n")
 
     sonuclar = []
     for h in secili:

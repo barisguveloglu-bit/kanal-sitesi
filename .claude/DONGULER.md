@@ -1,4 +1,4 @@
-# Echo Orkestra v2.0.8
+# Echo Orkestra v2.0.9
 
 Bu katmanın adı **Echo**. Adın sebebi işleyişinde: her çıktı bir
 denetimden geri döner, her hata bir teste geri döner, her ölçüm sistemin
@@ -970,7 +970,7 @@ her ajan dosyasını okuyor — listede olmayan biri Opus'a çıkarsa da,
 listedeki biri Sonnet'e düşerse de kırmızı yanıyor. Hak **üçle sınırlı**
 ve liste `dogrula.py`'de yazılı; dördüncüsü reddedilir.
 
-Ders defteri (`dersler.jsonl`) şu an **21 ders** taşıyor; kalıcı ve
+Ders defteri (`dersler.jsonl`) şu an **22 ders** taşıyor; kalıcı ve
 depoda. Sayı burada yazılı çünkü sessiz silmeyi ancak bu yakalıyor.
 
 **Koruma doğrulanır.** Bir ders "korunuyor" diyebiliyorsa bunun
@@ -1346,6 +1346,19 @@ Kötü olduğu anlamına gelmez — **ölçülmediği** anlamına gelir, ve
 
 Zemin kirliyse ölçüm yapılmıyor: düşen vakayı ablasyon mu yoksa zaten
 kırık bir şey mi düşürdü, ayırt edilemez.
+
+### Kendi özyinelemesi
+
+İlk tam tarama zaman aşımına girdi. Sebep: `arac-sinavi.py` ablasyonun
+kendi vakalarını taşıyor ve o vakalar `ablasyon.py` çağırıyor — ablasyon
+sınav koşturunca sınav ablasyon koşturuyor, o da yine sınav. Ölçüldü:
+sınav **60 saniyeden 1 dakika 44 saniyeye** çıkmıştı.
+
+`ECHO_ABLASYON` bayrağı açıkken o vakalar atlanıyor. Atlama **sessiz
+değil**, raporda yazılı — sessizce atlanan vaka, geçen vaka gibi görünür.
+Ve atlanan sayı bir vakayla korunuyor: yeni bir ablasyon vakası eklenip
+bayrağa bağlanmazsa özyineleme geri döner, bağlanıp sayı güncellenmezse
+rapor yalan söyler.
 
 **Hiçbir halkayı silmez** (çıkış 3). İki gerekçe: kanıtsızlık aracın
 değil SINAVIN kusuru olabilir (daha olası), ve kendi kendini budayan bir

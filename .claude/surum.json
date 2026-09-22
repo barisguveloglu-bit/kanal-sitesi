@@ -1,7 +1,7 @@
 {
   "majör": 2,
   "minör": 0,
-  "yama": 8,
+  "yama": 9,
   "gecmis": [
     {
       "surum": "v1.1",
@@ -66,6 +66,11 @@
     {
       "surum": "v2.0.8",
       "ne": "Dört halka: ölçüm katmanı bekçisi (beyansız değişikliği taban commit'ine karşı yakalar), oturum başı duman testi (iki oturum arası dışarıdan gireni yakalar), özellik sınavı (kural yaz, girdiyi makine üretsin), halka ablasyonu (kaldır, kimse fark ediyor mu).",
+      "tarih": "2026-09-22"
+    },
+    {
+      "surum": "v2.0.9",
+      "ne": "Ablasyon özyinelemesi kırıldı: sınav ablasyon vakası koşturuyor, ablasyon sınav koşturuyordu; sınav 60 sn'den 1 dk 44 sn'ye çıkmış ve tam tarama zaman aşımına girmişti.",
       "tarih": "2026-09-22"
     }
   ]

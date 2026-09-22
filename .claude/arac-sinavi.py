@@ -2270,7 +2270,14 @@ def t_ozellik_gercek_karsi_ornegi_buluyor(kok):
 
 def t_ablasyon_kirli_zeminde_olcmuyor(kok):
     """Kirli zeminde 'vaka düştü' hiçbir şey söylemez: düşen vakayı
-    ablasyon mu yoksa zaten kırık bir şey mi düşürdü, ayırt edilemez."""
+    ablasyon mu yoksa zaten kırık bir şey mi düşürdü, ayırt edilemez.
+
+    ECHO_ABLASYON açıkken atlanır: bu vaka ablasyon çağırıyor, ablasyon
+    da sınav çağırıyor — ölçüldü, sınav 60 sn'den 1 dk 44 sn'ye çıktı ve
+    30 halkalık tarama zaman aşımına girdi. Atlama ablasyon raporunda
+    yazılı; sessizce atlanan vaka, geçen vaka gibi görünür."""
+    if os.environ.get("ECHO_ABLASYON"):
+        return None
     yol = os.path.join(kok, ".claude", "dogrula.py")
     metin = open(yol, encoding="utf-8").read()
     open(yol, "w", encoding="utf-8").write(metin + "\nraise SystemExit(9)\n")
@@ -2291,6 +2298,8 @@ def t_ablasyon_hicbir_halkayi_silmiyor(kok):
     boyunca hiç değişmemeli. Bu, bilinmeyen bir adı reddeden hızlı yolda
     da, kirli zemin yolunda da aynı iddiadır — ve ikisi de `kopya()`
     çağırıp kaynağa dokunmamayı gerektirir."""
+    if os.environ.get("ECHO_ABLASYON"):
+        return None          # özyineleme kırıcı — yukarıdaki gerekçe
     once = subprocess.run(["git", "status", "--porcelain"], cwd=kok,
                           capture_output=True, text=True, timeout=60).stdout
 
@@ -2313,6 +2322,32 @@ def t_ablasyon_hicbir_halkayi_silmiyor(kok):
     # araç kendi kaynağını boşaltıyor demektir.
     if "os.path.join(KAYNAK" in metin.split("def olc(", 1)[-1].split("def ", 1)[0]:
         return "ablasyon kaynak ağaca yazıyor"
+    return None
+
+
+def t_ablasyon_ozyinelemeyi_kiriyor(kok):
+    """Ablasyon sınav koşturuyor, sınav ablasyon vakası koşturuyor, o da
+    yine sınav. Ölçüldü: sınav 60 sn'den 1 dk 44 sn'ye çıktı ve 30
+    halkalık tarama zaman aşımına girdi.
+
+    Asıl korunan şey SAYI: ablasyon raporunda kaç vakanın atlandığı
+    yazılı. Yeni bir ablasyon vakası eklenip bayrağa bağlanmazsa özyineleme
+    geri döner; bağlanıp sayı güncellenmezse rapor yalan söyler. Bu depoda
+    zorlanmayan sayının çürüdüğü defalarca ölçüldü."""
+    abl = open(os.path.join(kok, ".claude", "ablasyon.py"), encoding="utf-8").read()
+    if "env=cevre" not in abl or 'BAYRAK = "ECHO_ABLASYON"' not in abl:
+        return "ablasyon sınavları bayraksız koşturuyor — özyineleme açık"
+
+    e = re.search(r"^ATLANAN\s*=\s*(\d+)", abl, re.M)
+    if not e:
+        return "ablasyon atlanan vaka sayısını bildirmiyor"
+    bildirilen = int(e.group(1))
+
+    sinav = open(os.path.join(kok, ".claude", "arac-sinavi.py"), encoding="utf-8").read()
+    gercek = len(re.findall(r'os\.environ\.get\("ECHO_ABLASYON"\)', sinav))
+    if gercek != bildirilen:
+        return (f"ablasyon {bildirilen} vaka atlıyorum diyor, "
+                f"bayrağa bağlı {gercek} vaka var")
     return None
 
 
@@ -2868,6 +2903,7 @@ VAKALAR = [
     ("özellik: gerçek karşı-örneği buluyor", t_ozellik_gercek_karsi_ornegi_buluyor),
     ("ablasyon: kirli zeminde ölçmüyor",    t_ablasyon_kirli_zeminde_olcmuyor),
     ("ablasyon: hiçbir halkayı silmiyor",   t_ablasyon_hicbir_halkayi_silmiyor),
+    ("ablasyon: özyinelemeyi kırıyor",      t_ablasyon_ozyinelemeyi_kiriyor),
 
     ("iz: sahte karşılık reddediliyor",     t_iz_sahte_karsilik_reddediliyor),
     ("iz: tekrarı kaydedebiliyor",          t_iz_tekrari_kaydedebiliyor),
