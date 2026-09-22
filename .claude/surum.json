@@ -1,0 +1,62 @@
+{
+  "majör": 2,
+  "minör": 0,
+  "yama": 6,
+  "gecmis": [
+    {
+      "surum": "v1.1",
+      "ne": "denetimden sonra kurulan tam katman — 15 döngü, 4 ölçüm katı",
+      "tarih": "2026-08-12"
+    },
+    {
+      "surum": "v1.1.1",
+      "ne": "Değerlendirici-optimize edici ve olay döngüsü eklendi",
+      "tarih": "2026-08-13"
+    },
+    {
+      "surum": "v1.1.2",
+      "ne": "Tepe tırmanma, eleştirmen-üretici ve TDD döngüleri eklendi",
+      "tarih": "2026-08-13"
+    },
+    {
+      "surum": "v1.1.3",
+      "ne": "15 denetçi + 2 üretici kadrosu, görev havuzu, dış ajan köprüsü ve hedef/seyir/devre halkaları tek akışta birleştirildi; kadro ilk kez tam çalıştırıldı",
+      "tarih": "2026-08-16"
+    },
+    {
+      "surum": "v2.0",
+      "ne": "Echo Orkestra — ad ve majör sürüm değişti. 15 denetçi + 2 üretici Sonnet 5 kadrosu, görev havuzu, dış ajan (Codex) köprüsü ve hedef/seyir/devre halkaları tek akış. Majör artış Barış'ın kararı: yama zinciri (v1.1.9→v1.2) kademeli büyüme içindir, bu bir sürüm atlaması değil bilinçli bir ana sürüm.",
+      "tarih": "2026-08-16"
+    },
+    {
+      "surum": "v2.0.1",
+      "ne": "Kadro 17'den 26'ya çıktı (21 denetçi + 5 üretici); üç ajan Opus'a alındı; evrim döngüsü eklendi — girilen işe göre eksik yetenekleri hesaplayan, bilinmeyen alanı insan kapısına çıkaran, boşluğu ancak gerçekten var olan bir karşılıkla kapattıran halka",
+      "tarih": "2026-09-14"
+    },
+    {
+      "surum": "v2.0.2",
+      "ne": "Bellek geliştirme döngüsü onarıldı (ders.py — kalıcı defter + oturum açılışında otomatik yüzeye çıkma) ve eleştirmen-aktör döngüsüne sürücü eklendi (tur: yakınsama ölçümü, tekrarlayan yerde insan kapısı)",
+      "tarih": "2026-09-14"
+    },
+    {
+      "surum": "v2.0.3",
+      "ne": "Bütçe/kilometre döngüsü (butce.py), uyarlanabilir döngü seçimi (evrim.py dongu) ve bellek pekiştirme (ders.py ozetle) eklendi",
+      "tarih": "2026-09-14"
+    },
+    {
+      "surum": "v2.0.4",
+      "ne": "Kızıl takım testinin üç ölçülmüş boşluğu kapatıldı: CLAUDE.md sayı denetimi, ölü CSS sınıfı denetimi, ders defteri silme denetimi",
+      "tarih": "2026-09-19"
+    },
+    {
+      "surum": "v2.0.5",
+      "ne": "Ders defteri korumaları artık doğrulanıyor: serbest metin reddediliyor, korumanın içerik özeti saklanıyor (kaymış koruma görünür), aynı ders --degistir olmadan başka korumaya bağlanamıyor. Defter satırı yerinde güncelleniyor.",
+      "tarih": "2026-09-22"
+    },
+    {
+      "surum": "v2.0.6",
+      "ne": "Dış ajan kapısı vakaları dal adı yerine commit kimliğine bağlandı: ayrık HEAD'de (GitHub PR koşusu) taban ile dal aynı yeri gösteriyor ve ihlal görünmüyordu.",
+      "tarih": "2026-09-22"
+    }
+  ]
+}
