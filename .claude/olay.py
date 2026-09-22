@@ -66,6 +66,13 @@ DINLEYICILER = [
     # yüzeye çıkıyor.
     ("SessionStart", r"^.*$", "kanca-ders.py",
      "oturum açıldı → ders defterini yüzeye çıkar"),
+    # CI işin SONUNDA, kanca dosya düzenlendiğinde koşuyor; ikisi de BU
+    # oturumda yapılanı denetliyor. İki oturum arasında dışarıdan giren
+    # bir düzenleme (telefondan GitHub web arayüzü, başka bir oturumun
+    # yarım işi) hiçbirini tetiklemiyordu ve ilk işin zeminine
+    # denetlenmeden giriyordu. Kırmızı zemine konan yeşil iş yeşil değil.
+    ("SessionStart", r"^.*$", "kanca-duman.py",
+     "oturum açıldı → zemin kırmızı mı, hızlı kapıları koştur"),
 ]
 
 

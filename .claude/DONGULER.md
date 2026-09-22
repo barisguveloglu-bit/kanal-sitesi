@@ -1,4 +1,4 @@
-# Echo Orkestra v2.0.7
+# Echo Orkestra v2.0.8
 
 Bu katmanın adı **Echo**. Adın sebebi işleyişinde: her çıktı bir
 denetimden geri döner, her hata bir teste geri döner, her ölçüm sistemin
@@ -1228,6 +1228,130 @@ doğru güçlenen **KAT 2-3-4**, çekirdek **yapılan iş**, içeri dönen ok
   kendisi de test edilmiş durumda: simgeye kesik halka ya da ok geri
   eklenirse sınav düşer, yoksa biri onu "tutarlılık olsun" diye işaretle
   aynı hâle getirir ve küçük boy sessizce bozulur.
+
+## Ölçüm katmanı bekçisi — ölçen aleti kim değiştirdi
+
+Fay enjeksiyonu denetleyicinin dikkatini ölçüyor, mutasyon testlerin
+canlılığını, TDD kapısı kırmızıyı zorunlu kılıyor. Üçü de şunu
+engellemiyordu: **ajanın denetleyiciyi kendisi değiştirerek geçmesi.**
+
+Teorik bir risk değil. Bu depoda bir oturum boyunca `arac-sinavi.py`
+onlarca kez düzenlendi ve bazıları **kırmızı yanan bir testi düzeltmek**
+içindi. Çoğu meşruydu — ama meşru olanı olmayandan ayıran bir şey yoktu.
+
+Emsali vardı: `disajan.py` dış ajanın `.claude/` altına dokunan dalını
+reddediyor. Dışarıdakine uygulanan disiplinin içerideki için geçerli
+olmaması tuhaftı.
+
+### Neden kilit dosyası değil
+
+Akla ilk gelen çözüm `tests.lock` + SHA-256. Çalışmaz: **kilidi yazabilen
+kilidi de güncelleyebilir.** Kapsamı ikinci bir kilitli dosyada tutmak da
+sonsuz döngü.
+
+Gerçek çapa başka yerde: **dalı ajan yazar, tabanı insan merge eder.**
+Karşılaştırma bir dosyaya değil taban commit'ine bakıyor; ajan dalda ne
+yaparsa yapsın taban onun yazamadığı yerde duruyor.
+
+Aynı açık bekçinin kendisinde de vardı ve bir vaka onu yakaladı: dal,
+listeden `bekci.py` satırını silince bekçi kendini görmez oldu. Liste de
+tabandan okunuyor artık, ve iki liste **birleştiriliyor** — dosya
+eklemek hemen etkili, çıkarmak insan kararı. Asimetri kasten: korumayı
+genişletmek serbest, daraltmak değil.
+
+Sözleşme: ölçüm dosyalarına dokunmak yasak değil, **beyansız** dokunmak
+yasak. `ÖLÇÜM-DEĞİŞTİ: <gerekçe>`. Beyan onay değil — çıkış 3, merge
+kararı insanın.
+
+## Oturum başı duman testi — zemin kırmızı mı
+
+CI işin SONUNDA, kanca dosya düzenlendiğinde koşuyor. İkisi de **bu
+oturumda yapılanı** denetliyor. İki oturum arasında depoya dışarıdan
+giren bir şey — telefondan GitHub web arayüzünde yapılan düzenleme,
+başka bir oturumun yarım işi, merge sonrası kalan tutarsızlık — hiçbirini
+tetiklemiyor ve ilk işin zeminine denetlenmeden giriyordu. **Kırmızı bir
+zemine konan yeşil iş, yeşil değildir.**
+
+Hızlı kapıları koşuyor (~0,4 sn): kural denetimi, bütünlük, iki defterin
+çürümemişliği. Araç sınavı burada yok — 40 saniye sürüyor, oturum
+açılışında kabul edilemez. Kapsamı CI'den dar olması eksiklik değil hız
+tercihi, ama bunu yazmak gerekiyor yoksa sonraki okuyan tam kapsam sanar.
+
+Yeni denetim icat etmiyor, var olan kapıları çağırıyor: kapılar
+güçlendikçe duman da güçleniyor, ayrı bakım istemiyor. Bu, fikrin bilinen
+riskine karşı: *"test seti incelirse her şey hep yeşil görünür."*
+
+**Oturumu engellemez.** `kanca-ders.py` ile aynı disiplin — açılışı
+engelleyen bir uyarı, uyarı değil engeldir. Kanca olması ise şart: talimat
+olarak kalsaydı atlanabilirdi, ve bu deponun en çok uğraştığı hata türü
+tam olarak odur.
+
+## Özellik sınavı — kural yaz, girdiyi makine üretsin
+
+`arac-sinavi.py` ve `butunluk.py` vakaları **elle yazılmış örnekler.** Her
+biri birinin aklına gelmiş bir durumu korur — ve tam olarak o kadarını.
+Aklıma gelmeyen durum korunmuyor.
+
+Burada tersi: örnek değil **kural** yazılır, üretilen girdilerde denenir.
+Benim seçmediğim girdiler benim kör noktamı taşımaz.
+
+Karşı-örnek **küçültülüyor**: kural hâlâ ihlal ediliyorken atılabilen
+parça atılır. Amaç en küçüğü bulmak değil, okunabilir olanı bulmak.
+Tohum basılıyor — tekrar üretilemeyen kırmızı, düzeltildiği
+doğrulanamayan kırmızıdır.
+
+### İlk koşusunda ne buldu
+
+Gerçek bir kusur, ve tam da sistemin en çok önemsediği yerde. `ara.py`
+dosyayı `split("\n")` ile bölüyordu; dosya satırsonuyla bittiği için
+sonda boş bir eleman kalıyor ve son parçanın bitişi bir fazla çıkıyordu.
+Sonuç: **son parçanın adresi dosyanın son satırından bir sonrasını
+gösteriyordu** — var olmayan bir satıra atıf.
+
+Bu depoda her iddia bir satır adresine bağlanıyor ve `yargi.py` atıfların
+doğru satırı gösterdiğini denetliyor. Elle yazılmış vakaların hiçbiri
+dosya SONUNU sınamamıştı.
+
+### CI'de kapı değil uyarı
+
+Yöntemin ölçülmüş yanlış alarm oranı yüksek. Yanlış alarmla kapı
+kapatmak, kapıyı görmezden gelmeyi öğretir. Çıkan karşı-örnek doğrudan
+kusur sayılmaz — bakılır, gerçekse geri bildirim halkasıyla kalıcı
+vakaya çevrilir.
+
+Ters tuzağı da var: kural ölçtüğü fonksiyonun kopyası olarak yazılırsa
+hiçbir şeyi sınamaz. Bir vaka bunu zorluyor — okuyucu kasten bozulunca
+özellik sınavı kırmızı yanmalı.
+
+## Halka ablasyonu — hangi halka hak ediyor
+
+Otuzdan fazla halka var ve **hiçbirinin hak ettiğini kanıtlayan bir ölçüm
+yoktu.** Her halka başka bir şeyi ölçüyor; hiçbiri kendisinin ölçüldüğünü
+göstermiyor. Evrim döngüsü EKSİK yeteneği arıyor, FAZLA olanı değil.
+
+Büyüyen bir sistemde küçültme mekanizması olmaması, tören biriktirmenin
+garantisidir: halka eklenir, kimse silmez, kimse ölçmez, ve on halka
+sonra sistemin ne kadarının gerçekten çalıştığı bilinmez.
+
+Yöntem mutasyonun kardeşi, ters yönde:
+
+| Sınav | Ne yapar | Ne sorar |
+|---|---|---|
+| **mutasyon** | aracı **bozar**, sınav yakalamalı | test canlı mı? |
+| **ablasyon** | aracı **kaldırır**, sınav düşmeli | araç ölçülüyor mu? |
+
+Kaldırılınca hiçbir vaka düşmüyorsa o aracı hiçbir şey sınamıyor demektir.
+Kötü olduğu anlamına gelmez — **ölçülmediği** anlamına gelir, ve
+ölçülmeyen şeyin çalıştığı da bilinmez.
+
+Zemin kirliyse ölçüm yapılmıyor: düşen vakayı ablasyon mu yoksa zaten
+kırık bir şey mi düşürdü, ayırt edilemez.
+
+**Hiçbir halkayı silmez** (çıkış 3). İki gerekçe: kanıtsızlık aracın
+değil SINAVIN kusuru olabilir (daha olası), ve kendi kendini budayan bir
+araç en zayıf halkayı değil **en az sınanmış** halkayı silerdi — tam
+tersi bir seçim. Bu da reddedilen kategoriyle aynı ilke: ölçülen şeyin
+ölçen kuralı değiştirme yetkisi olmamalı.
 
 ## İz analizi — koşular arası hata döngüsü
 

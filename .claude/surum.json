@@ -1,7 +1,7 @@
 {
   "majör": 2,
   "minör": 0,
-  "yama": 7,
+  "yama": 8,
   "gecmis": [
     {
       "surum": "v1.1",
@@ -61,6 +61,11 @@
     {
       "surum": "v2.0.7",
       "ne": "İz analizi (iz.py) ve rapor okuyucu (rapor.py) eklendi: koşular arası hata kümelemesi — yer kümesi ölçüm, şekil kümesi insan kapısı; hiçbir kuralı kendiliğinden değiştirmez. Raporlar pencereye yüklenmeden sorgulanıyor, parça parça özyinelemeli okuma.",
+      "tarih": "2026-09-22"
+    },
+    {
+      "surum": "v2.0.8",
+      "ne": "Dört halka: ölçüm katmanı bekçisi (beyansız değişikliği taban commit'ine karşı yakalar), oturum başı duman testi (iki oturum arası dışarıdan gireni yakalar), özellik sınavı (kural yaz, girdiyi makine üretsin), halka ablasyonu (kaldır, kimse fark ediyor mu).",
       "tarih": "2026-09-22"
     }
   ]

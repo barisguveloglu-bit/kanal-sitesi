@@ -108,6 +108,14 @@ class Parca:
 def lore_parcala(yol):
     """LORE.md'yi başlıklara göre böler; tablo satırlarını ayrıca indeksler."""
     satirlar = open(os.path.join(KOK, yol), encoding="utf-8").read().split("\n")
+    # Dosya satırsonuyla bitiyorsa `split` sonda boş bir eleman bırakır ve
+    # `len(satirlar)` gerçek satır sayısından bir fazla olur. Son parçanın
+    # bitişi oradan geliyordu: son parçanın adresi dosyanın son satırından
+    # bir sonrasını gösteriyordu — var olmayan bir satıra atıf. Elle
+    # yazılmış vakaların hiçbiri dosya SONUNU sınamamıştı; özellik sınavı
+    # ilk koşusunda buldu.
+    if satirlar and satirlar[-1] == "":
+        satirlar.pop()
     parcalar = []
     yigin = {}          # seviye -> başlık
     bas, baslik = 0, "(giriş)"

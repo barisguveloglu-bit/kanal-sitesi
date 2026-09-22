@@ -112,6 +112,28 @@ jobs:
               || echo "::warning title=evrim::Açık evrim boşluğu var (devam eden iş)"
           fi
 
+      - name: Ölçüm katmanına beyansız dokunuldu mu
+        # Yalnız PR'da: tabanı olmayan bir push'ta karşılaştırılacak bir
+        # şey yok. Çapa zaten taban — dalı ajan yazar, tabanı insan merge
+        # eder, ve bu adım o ayrımın kendisi.
+        if: "!cancelled() && github.event_name == 'pull_request'"
+        run: |
+          python3 .claude/bekci.py --taban "${{ github.event.pull_request.base.sha }}" --ayrinti; kod=$?
+          case $kod in
+            0) echo "::notice title=bekci::Ölçüm katmanına dokunulmamış" ;;
+            1) echo "::error title=bekci::Ölçen alet BEYANSIZ değişti — commit mesajına 'ÖLÇÜM-DEĞİŞTİ: <gerekçe>' ekle"; exit 1 ;;
+            3) echo "::warning title=bekci::Ölçen alet değişti ve beyan edildi — merge kararı insanın" ;;
+            *) echo "::error title=bekci::Bekçi çalışmadı (çıkış $kod) — geçti sayılmaz"; exit 1 ;;
+          esac
+
+      - name: Özellik sınavı (kapı değil, uyarı)
+        if: '!cancelled()'
+        run: |
+          # Ölçülmüş yanlış alarm oranı yüksek olduğu için KAPI DEĞİL.
+          # Yanlış alarmla kapı kapatmak, kapıyı görmezden gelmeyi öğretir.
+          python3 .claude/ozellik.py --kez 300; kod=$?
+          [ $kod -eq 0 ] || echo "::warning title=ozellik::Karşı-örnek bulundu — bak, gerçekse kalıcı vakaya çevir"
+
       - name: İz defteri çürümüş mü
         if: '!cancelled()'
         run: |

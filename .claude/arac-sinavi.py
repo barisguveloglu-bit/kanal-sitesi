@@ -2112,6 +2112,210 @@ def t_ders_okuyucular_ayni_sayiyi_veriyor(kok):
     return None
 
 
+def t_bekci_beyansiz_olcum_degisikligini_yakaliyor(kok):
+    """Ölçen aleti değiştirmek yasak değil — beyansız değiştirmek yasak.
+
+    Bu depoda bir oturum boyunca arac-sinavi.py onlarca kez düzenlendi ve
+    bazıları KIRMIZI YANAN BİR TESTİ düzeltmek içindi. Çoğu meşruydu ama
+    meşru olanı olmayandan ayıran bir şey yoktu."""
+    taban = subprocess.run(["git", "rev-parse", "HEAD"], cwd=kok,
+                           capture_output=True, text=True, timeout=60).stdout.strip()
+
+    # Ölçüm dışı bir dosya: bekçi susmalı.
+    def masum():
+        with open(os.path.join(kok, "README.md"), "a", encoding="utf-8") as f:
+            f.write("\nsınav satırı\n")
+    _dal_kur(kok, "sinav/masum", masum, "README.md")
+    s = kos(kok, "bekci.py", "--taban", taban, "--ucu", "sinav/masum")
+    if s.returncode != 0:
+        return f"masum değişiklikte bekçi öttü (çıkış {s.returncode}): {s.stdout[:140]}"
+
+    # Ölçüm dosyası, beyansız: çıkış 1.
+    def beyansiz():
+        with open(os.path.join(kok, ".claude", "sinav.py"), "a",
+                  encoding="utf-8") as f:
+            f.write("\n# sınav\n")
+    _dal_kur(kok, "sinav/beyansiz", beyansiz, ".claude/sinav.py")
+    s = kos(kok, "bekci.py", "--taban", taban, "--ucu", "sinav/beyansiz")
+    if s.returncode != 1 or "BEYAN YOK" not in s.stdout:
+        return f"beyansız ölçüm değişikliği geçti (çıkış {s.returncode})"
+    return None
+
+
+def t_bekci_beyani_insan_kapisina_cikariyor(kok):
+    """Beyan onay değildir: ölçen aletin değişmesine karar vermek ajanın
+    işi değil, merge kararı insanın."""
+    taban = subprocess.run(["git", "rev-parse", "HEAD"], cwd=kok,
+                           capture_output=True, text=True, timeout=60).stdout.strip()
+    yol = os.path.join(kok, ".claude", "dogrula.py")
+    subprocess.run(["git", "checkout", "-q", "-B", "sinav/beyanli"], cwd=kok,
+                   capture_output=True, text=True, timeout=60)
+    with open(yol, "a", encoding="utf-8") as f:
+        f.write("\n# sınav\n")
+    subprocess.run(["git", "add", "--", ".claude/dogrula.py"], cwd=kok,
+                   capture_output=True, text=True, timeout=60)
+    subprocess.run(["git", "commit", "-q", "-m",
+                    "sınav: beyanlı\n\nÖLÇÜM-DEĞİŞTİ: sınav amaçlı yorum satırı",
+                    "--", ".claude/dogrula.py"],
+                   cwd=kok, capture_output=True, text=True, timeout=60)
+    s = kos(kok, "bekci.py", "--taban", taban, "--ucu", "sinav/beyanli")
+    if s.returncode != 3:
+        return f"beyanlı değişiklik insan kapısına çıkmadı (çıkış {s.returncode})"
+    if "İNSAN KAPISI" not in s.stdout:
+        return "beyanın onay olmadığı söylenmedi"
+    return None
+
+
+def t_bekci_kendini_listede_tutuyor(kok):
+    """Bekçiyi listeden çıkaran commit, bekçiyi sessizce etkisizleştirir
+    ve bunu bekçinin kendisi görmelidir."""
+    metin = open(os.path.join(kok, ".claude", "bekci.py"), encoding="utf-8").read()
+    if '".claude/bekci.py"' not in metin:
+        return "bekçi kendi dosyasını ölçüm listesinde tutmuyor"
+
+    # Taban, bekçinin KENDİSİNİ içermeli — liste oradan okunuyor. Bekçi
+    # henüz commit'lenmemişken `git show <taban>:.claude/bekci.py` düşer
+    # ve bekçi yerel listeye geri döner; ilk yazışta vaka tam bu yüzden
+    # yeşil kaldı ve açığı göstermedi.
+    subprocess.run(["git", "add", "-A"], cwd=kok,
+                   capture_output=True, text=True, timeout=60)
+    subprocess.run(["git", "commit", "-q", "-m", "sınav: taban"], cwd=kok,
+                   capture_output=True, text=True, timeout=60)
+    taban = subprocess.run(["git", "rev-parse", "HEAD"], cwd=kok,
+                           capture_output=True, text=True, timeout=60).stdout.strip()
+
+    def boz():
+        yol = os.path.join(kok, ".claude", "bekci.py")
+        s = open(yol, encoding="utf-8").read()
+        open(yol, "w", encoding="utf-8").write(
+            s.replace('    ".claude/bekci.py",\n', "", 1))
+    _dal_kur(kok, "sinav/bekci-cikti", boz, ".claude/bekci.py")
+    s = kos(kok, "bekci.py", "--taban", taban, "--ucu", "sinav/bekci-cikti")
+    if s.returncode != 1:
+        return f"bekçiyi listeden çıkaran dal geçti (çıkış {s.returncode})"
+    return None
+
+
+def t_duman_oturum_acilisinda_kosuyor(kok):
+    """Cowork'ün bu fikir için yazdığı risk: "kanca yerine talimat olarak
+    kalırsa ajan testi atlayıp işe başlar." Bu deponun en çok uğraştığı
+    hata türü tam olarak bu."""
+    s = subprocess.run(
+        [sys.executable, os.path.join(kok, ".claude", "olay.py"), "dagit"],
+        input='{"hook_event_name":"SessionStart","source":"startup"}',
+        cwd=kok, capture_output=True, text=True, timeout=120)
+    if "Zemin denetimi" not in s.stdout:
+        return f"duman testi oturum açılışında koşmadı: {s.stdout[-160:]}"
+    return None
+
+
+def t_duman_kirmizi_zemini_bildiriyor(kok):
+    """Zemin kırmızıysa söylemeli — ama oturumu durdurmamalı. Açılışı
+    engelleyen bir uyarı, uyarı değil engeldir."""
+    yol = os.path.join(kok, "assets", "css", "style.css")
+    metin = open(yol, encoding="utf-8").read()
+    boz = metin.replace("[hidden] { display: none !important; }", "", 1)
+    if boz == metin:
+        return "sabotaj çapası bulunamadı"
+    open(yol, "w", encoding="utf-8").write(boz)
+
+    s = kos(kok, "duman.py")
+    if s.returncode != 1 or "KIRMIZI" not in s.stdout:
+        return f"kırmızı zemin bildirilmedi (çıkış {s.returncode})"
+
+    # Kanca yine de akışı bozmamalı.
+    s = subprocess.run(
+        [sys.executable, os.path.join(kok, ".claude", "olay.py"), "dagit"],
+        input='{"hook_event_name":"SessionStart","source":"startup"}',
+        cwd=kok, capture_output=True, text=True, timeout=120)
+    if s.returncode != 0:
+        return f"kırmızı zemin oturum açılışını engelledi (çıkış {s.returncode})"
+    if "ZEMİN DENETİMİ" not in s.stdout:
+        return "kırmızı zemin oturum açılışında görünmedi"
+    return None
+
+
+def t_ozellik_tohumu_tekrar_uretilebilir(kok):
+    """Kırmızı bir koşuyu aynı tohumla tekrar üretemiyorsan, düzelttiğini
+    de doğrulayamazsın."""
+    a = kos(kok, "ozellik.py", "--kez", "40", "--tohum", "7")
+    b = kos(kok, "ozellik.py", "--kez", "40", "--tohum", "7")
+    if a.returncode != b.returncode:
+        return f"aynı tohum farklı sonuç verdi ({a.returncode} ≠ {b.returncode})"
+    if a.stdout != b.stdout:
+        return "aynı tohum farklı çıktı üretti — karşı-örnek tekrar üretilemez"
+    return None
+
+
+def t_ozellik_gercek_karsi_ornegi_buluyor(kok):
+    """Kural bozulunca özellik sınavı kırmızı yanmalı — yoksa kural
+    ölçtüğü fonksiyonun kopyasıdır ve hiçbir şeyi sınamıyordur."""
+    yol = os.path.join(kok, ".claude", "okuyucu.py")
+    metin = open(yol, encoding="utf-8").read()
+    # Dizgi okumayı boz: okunan artık yazılanın aynısı olmaz. Kaçış
+    # çözümünü bozmak yeterli — üretici kaçış gerektiren dizgiler üretiyor.
+    boz = metin.replace('return "".join(cikti)',
+                        'return "".join(cikti).upper()', 1)
+    if boz == metin:
+        return "sabotaj çapası bulunamadı — okuyucu değişmiş"
+    open(yol, "w", encoding="utf-8").write(boz)
+
+    s = kos(kok, "ozellik.py", "--kez", "200", "--tohum", "3", "--ozellik", "okuyucu")
+    if s.returncode != 1:
+        return f"bozuk okuyucu karşı-örnek üretmedi (çıkış {s.returncode})"
+    if "karşı-örnek" not in s.stdout:
+        return "karşı-örnek basılmadı"
+    return None
+
+
+def t_ablasyon_kirli_zeminde_olcmuyor(kok):
+    """Kirli zeminde 'vaka düştü' hiçbir şey söylemez: düşen vakayı
+    ablasyon mu yoksa zaten kırık bir şey mi düşürdü, ayırt edilemez."""
+    yol = os.path.join(kok, ".claude", "dogrula.py")
+    metin = open(yol, encoding="utf-8").read()
+    open(yol, "w", encoding="utf-8").write(metin + "\nraise SystemExit(9)\n")
+    s = kos(kok, "ablasyon.py", "--halka", "ders")
+    if s.returncode != 1 or "ZEMİN KİRLİ" not in s.stdout:
+        return f"kirli zeminde ablasyon yapıldı (çıkış {s.returncode})"
+    return None
+
+
+def t_ablasyon_hicbir_halkayi_silmiyor(kok):
+    """Kanıtsız çıkan bir halka otomatik kaldırılmaz.
+
+    Araç kendi kendini budayabilseydi en zayıf halka değil EN AZ SINANMIŞ
+    halka silinirdi — tam tersi bir seçim.
+
+    Tam ablasyon üç sınav koşusu sürüyor ve bu vakayı zaman aşımına
+    uğrattı. Onun yerine ÖLÇÜLEN yol kullanılıyor: kaynak depo ablasyon
+    boyunca hiç değişmemeli. Bu, bilinmeyen bir adı reddeden hızlı yolda
+    da, kirli zemin yolunda da aynı iddiadır — ve ikisi de `kopya()`
+    çağırıp kaynağa dokunmamayı gerektirir."""
+    once = subprocess.run(["git", "status", "--porcelain"], cwd=kok,
+                          capture_output=True, text=True, timeout=60).stdout
+
+    s = kos(kok, "ablasyon.py", "--halka", "boyle-bir-halka-yok")
+    if s.returncode != 1:
+        return f"olmayan halka kabul edildi (çıkış {s.returncode})"
+
+    sonra = subprocess.run(["git", "status", "--porcelain"], cwd=kok,
+                           capture_output=True, text=True, timeout=60).stdout
+    if once != sonra:
+        return "ablasyon kaynak depoyu değiştirdi — yalnız kopyada çalışmalı"
+
+    # İddia aracın GERÇEKTEN bastığı metne bağlı. İlk yazışta belgedeki
+    # "**otomatik kaldırılmaz.**" cümlesine bağlanmıştı; satır sonunda
+    # bölündüğü için hiç eşleşmedi ve vaka doğru araçta kırmızı kaldı.
+    metin = open(os.path.join(kok, ".claude", "ablasyon.py"), encoding="utf-8").read()
+    if "kaldırılmayacak" not in metin:
+        return "sınırını söylemiyor"
+    # Kabuk yazımı kopyaya gitmeli: `KAYNAK` altına yazan bir satır varsa
+    # araç kendi kaynağını boşaltıyor demektir.
+    if "os.path.join(KAYNAK" in metin.split("def olc(", 1)[-1].split("def ", 1)[0]:
+        return "ablasyon kaynak ağaca yazıyor"
+    return None
+
+
 def t_iz_sahte_karsilik_reddediliyor(kok):
     """"Hallettim" bir karşılık değil — `evrim.py` ve `ders.py` ile aynı
     disiplin, tek çözücü üzerinden."""
@@ -2654,6 +2858,16 @@ VAKALAR = [
     ("ders: koruma kayması yakalanıyor", t_ders_koruma_kaymasi_yakalaniyor),
     ("ders: makbuz tekilliği koruyor", t_ders_makbuz_tekilligi_koruyor),
     ("ders: okuyucular aynı sayıyı veriyor", t_ders_okuyucular_ayni_sayiyi_veriyor),
+
+    ("bekçi: beyansız ölçüm değişikliği yakalanıyor", t_bekci_beyansiz_olcum_degisikligini_yakaliyor),
+    ("bekçi: beyan insan kapısına çıkıyor", t_bekci_beyani_insan_kapisina_cikariyor),
+    ("bekçi: kendini listede tutuyor",      t_bekci_kendini_listede_tutuyor),
+    ("duman: oturum açılışında koşuyor",    t_duman_oturum_acilisinda_kosuyor),
+    ("duman: kırmızı zemini bildiriyor",    t_duman_kirmizi_zemini_bildiriyor),
+    ("özellik: tohumu tekrar üretilebilir", t_ozellik_tohumu_tekrar_uretilebilir),
+    ("özellik: gerçek karşı-örneği buluyor", t_ozellik_gercek_karsi_ornegi_buluyor),
+    ("ablasyon: kirli zeminde ölçmüyor",    t_ablasyon_kirli_zeminde_olcmuyor),
+    ("ablasyon: hiçbir halkayı silmiyor",   t_ablasyon_hicbir_halkayi_silmiyor),
 
     ("iz: sahte karşılık reddediliyor",     t_iz_sahte_karsilik_reddediliyor),
     ("iz: tekrarı kaydedebiliyor",          t_iz_tekrari_kaydedebiliyor),

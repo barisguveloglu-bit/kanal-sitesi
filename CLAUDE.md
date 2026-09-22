@@ -97,6 +97,44 @@ Sürüm: `python3 .claude/surum.py goster` — işaret: `python3 .claude/logo.py
   Düzenleme adımı vaka sayısının düşmesine izin vermez.
 - `python3 .claude/mutasyon.py` — testlerin kendisini ölçer: aracı kasten
   bozar, sınavın yakalayıp yakalamadığına bakar. Ölü test buradan çıkar.
+- `python3 .claude/bekci.py --taban <ref>` — **ölçüm katmanı bekçisi.**
+  Fay enjeksiyonu, mutasyon ve TDD kapısı denetleyicinin gücünü ölçüyor;
+  hiçbiri ajanın **denetleyiciyi kendisi değiştirerek geçmesini**
+  engellemiyordu. Ölçüm dosyalarına dokunmak yasak değil, **beyansız**
+  dokunmak yasak: commit mesajında `ÖLÇÜM-DEĞİŞTİ: <gerekçe>` satırı
+  olmalı. Kilit dosyası değil **taban commit'i** çapa — kilidi yazabilen
+  kilidi de açar, ama dalı ajan yazar, tabanı insan merge eder. Ölçüm
+  listesi de tabandan okunur ve yerel listeyle **birleştirilir**: dosya
+  eklemek hemen etkili, çıkarmak insan kararı. Çıkış `0` dokunulmamış,
+  `1` beyansız, `3` beyanlı (insan kapısı).
+- `python3 .claude/duman.py` — **oturum başı zemin denetimi.** CI işin
+  sonunda, kanca dosya düzenlendiğinde koşuyor; ikisi de *bu oturumda*
+  yapılanı denetliyor. İki oturum arası dışarıdan giren bir düzenleme
+  (telefondan GitHub web arayüzü, başka oturumun yarım işi) hiçbirini
+  tetiklemiyordu. `SessionStart` → `olay.py` → `kanca-duman.py` ile
+  kendiliğinden koşar (~0,4 sn), **oturumu engellemez** — kırmızıysa
+  söyler, durdurma kararı okuyanın. Kapsamı CI'den dar (fay enjeksiyonu
+  ve araç sınavı burada koşmaz); bu eksiklik değil, hız tercihi.
+- `python3 .claude/ozellik.py` — **özellik sınavı.** Elle yazılmış vakalar
+  yalnızca akla gelen durumu korur. Burada örnek değil **kural** yazılır
+  ("okunan, yazılanın aynısı olmalı") ve üretilen yüzlerce girdide
+  denenir; karşı-örnek **küçültülür** (okunabilir olsun diye). Tohum
+  basılır — tekrar üretilemeyen kırmızı, düzeltildiği doğrulanamayan
+  kırmızıdır. İlk koşusunda gerçek bir kusur buldu: `ara.py` son parçanın
+  adresini dosyanın son satırından bir sonrası olarak veriyordu, yani var
+  olmayan bir satıra atıf. **CI'de kapı değil uyarı** — ölçülmüş yanlış
+  alarm oranı yüksek, yanlış alarmla kapı kapatmak kapıyı görmezden
+  gelmeyi öğretir.
+- `python3 .claude/ablasyon.py --halka <ad>|tara` — **halka ablasyonu.**
+  Mutasyonun kardeşi, ters yönde: mutasyon *aracı bozar, sınav
+  yakalamalı*; ablasyon *aracı kaldırır, sınav düşmeli*. Kaldırılınca
+  hiçbir vaka düşmüyorsa o halkayı **hiçbir şey sınamıyor** demektir —
+  kötü olduğu değil, ölçülmediği anlamına gelir. Büyüyen bir sistemde
+  küçültme mekanizması olmaması tören biriktirmenin garantisidir.
+  **Hiçbir halkayı silmez** (çıkış 3, insan kapısı): kanıtsızlık aracın
+  değil sınavın kusuru olabilir, ve kendi kendini budayan bir araç en
+  zayıf halkayı değil **en az sınanmış** halkayı silerdi. Mutasyon gibi
+  yavaş — haftalık ve elle.
 - `python3 .claude/iz.py yaz|kume|oner|kuyruk|coken|kapat|durum` — **koşular
   arası hata analizi.** Her halka kendi turuna bakıyordu; hiçbiri "bu aynı
   hata üç ayrı koşuda dört kez oldu" diyemiyordu. `iz-defteri.jsonl`
