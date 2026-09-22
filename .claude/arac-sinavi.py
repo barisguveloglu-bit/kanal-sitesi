@@ -2332,6 +2332,41 @@ def t_ablasyon_hicbir_halkayi_silmiyor(kok):
     return None
 
 
+def t_arama_kisa_kok_yanlis_ret_uretmiyor(kok):
+    """Cevabı canon'da olan soruyu "dayanak yok" diye reddetmek, uydurmanın
+    tersi ama yine yanlış cevap: alçakgönüllülük kılığında bir hata.
+
+    30 soruluk deneme sınavında bulundu. Kökler 5 harfte kesiliyordu; 4
+    harflik bir kök ek alınca ekin harfi köke taşıyordu: `ağaçtan` →
+    `ağaçt`, canon'da `ağaç`; `sıvıyı` → `sıvıy`, canon'da `sıvı`. Söz
+    dağarı kapısı da kelimelerin yarısından azını tanıyınca hiç sonuç
+    döndürmüyordu. Altın set bunu görmüyordu: yalnız düzgün yazılmış
+    soruları içeriyordu ve %100 diyordu.
+
+    `/sor` bu boş sonucu "soru bu evrenle ilgili değil" diye okuyordu —
+    yani kusur iki katmanda birden yanlış cevap üretiyordu."""
+    import importlib.util
+    sys.path.insert(0, os.path.join(kok, ".claude"))
+    t = importlib.util.spec_from_file_location(
+        "ara_" + str(abs(hash(kok))), os.path.join(kok, ".claude", "ara.py"))
+    ara = importlib.util.module_from_spec(t)
+    t.loader.exec_module(ara)
+    dizin = ara.dizin_kur()
+
+    sonuc = dizin.ara("Ağaçtan akan tatlı sıvıyı kimler içti", 3)
+    if not sonuc:
+        return "cevabı canon'da olan soru reddedildi (dayanak yok dendi)"
+    hedef = (70, 374, 375)
+    if not any(p.kaynak == "LORE.md" and any(p.ilk <= n <= p.son for n in hedef)
+               for _, p in sonuc):
+        return f"doğru satır ilk 3'te yok: {[p.adres for _, p in sonuc]}"
+
+    # Kapı gevşerken konu dışı soru içeri sızmamalı — ret hâlâ bir cevap.
+    if dizin.ara("Bitcoin fiyatı bugün kaç dolar", 3):
+        return "konu dışı soru artık reddedilmiyor — kapı fazla gevşedi"
+    return None
+
+
 def _sahte_kapi(kok, cikis, ozet=True):
     """Çıkış kodu ve özet satırı kontrol edilebilen bir kapı."""
     yol = os.path.join(kok, ".claude", "sahte-kapi.py")
@@ -3077,6 +3112,7 @@ VAKALAR = [
     ("ablasyon: hiçbir halkayı silmiyor",   t_ablasyon_hicbir_halkayi_silmiyor),
     ("ablasyon: özyinelemeyi kırıyor",      t_ablasyon_ozyinelemeyi_kiriyor),
     ("ablasyon: koşmayan sınavı kanıt saymıyor", t_ablasyon_kosmayan_sinavi_kanit_saymiyor),
+    ("arama: kısa kök yanlış ret üretmiyor", t_arama_kisa_kok_yanlis_ret_uretmiyor),
     ("gölge: çıkış kodunu etkilemiyor",     t_golge_cikis_kodunu_etkilemiyor),
     ("gölge: ekle hep gölge ekliyor",       t_golge_ekle_hep_golge_ekliyor),
     ("gölge: erken terfiyi reddediyor",     t_golge_erken_terfiyi_reddediyor),

@@ -1,4 +1,4 @@
-# Echo Orkestra v2.1.1
+# Echo Orkestra v2.1.2
 
 Bu katmanın adı **Echo**. Adın sebebi işleyişinde: her çıktı bir
 denetimden geri döner, her hata bir teste geri döner, her ölçüm sistemin
@@ -970,7 +970,7 @@ her ajan dosyasını okuyor — listede olmayan biri Opus'a çıkarsa da,
 listedeki biri Sonnet'e düşerse de kırmızı yanıyor. Hak **üçle sınırlı**
 ve liste `dogrula.py`'de yazılı; dördüncüsü reddedilir.
 
-Ders defteri (`dersler.jsonl`) şu an **23 ders** taşıyor; kalıcı ve
+Ders defteri (`dersler.jsonl`) şu an **25 ders** taşıyor; kalıcı ve
 depoda. Sayı burada yazılı çünkü sessiz silmeyi ancak bu yakalıyor.
 
 **Koruma doğrulanır.** Bir ders "korunuyor" diyebiliyorsa bunun
@@ -1228,6 +1228,76 @@ doğru güçlenen **KAT 2-3-4**, çekirdek **yapılan iş**, içeri dönen ok
   kendisi de test edilmiş durumda: simgeye kesik halka ya da ok geri
   eklenirse sınav düşer, yoksa biri onu "tutarlılık olsun" diye işaretle
   aynı hâle getirir ve küçük boy sessizce bozulur.
+
+## Deneme sınavı — sistem hatayı fark ediyor mu, düzeltebiliyor mu
+
+Barış'ın isteği: 5 test, her birinde 6 soru, soruları ben yazayım. Kendi
+kör noktamı ölçmemek için beklenen satırlar arama koşturulmadan ÖNCE
+`LORE.md` okunarak sabitlendi; arama körlemesine koştu, sonra puanlandı.
+
+| Test | Önce | Sonra |
+|---|---|---|
+| T1 Doğrudan olgu | 6/6 | 6/6 |
+| T2 Tablo satırı | 6/6 | 6/6 |
+| T3 Canon'un sustuğu yer | 5,5/6 | 6/6 |
+| T4 Ağız dili, ek, eş anlamlı | 3,5/6 | 6/6 |
+| T5 İki kaynak gerekir | 5/6 | 6/6 |
+
+"Sonra" sütunu döngü katmanıyla: arama + düzeltilmiş `/sor`. Aramanın
+tek başına, tek adımda ilk 3'e getirdiği oran %82'den %91'e çıktı.
+
+### Fark ediyor mu
+
+**Önce: hayır.** `degerlendir.py` %100 diyordu; yargıç dört yanlış soruyu
+tanımıyordu. Altın sette "Barış nerede tutuluyor" vardı ve geçiyordu —
+aynı sorunun gündelik hâli "barışı nerde saklıyolar" reddediliyordu.
+Altın set yalnız düzgün yazılmış soruyu sınıyordu.
+
+**Geri bildirimden sonra: evet.** Dört hata `geri-bildirim.py` ile altın
+sete girince `degerlendir.py` kırmızıya döndü (isabet@3 %83) ve yargıç
+dördünü de doğru gerekçeyle yakaladı: üçünde "cevabı canon'da olan
+soruyu reddetti", birinde "atıf yok" (site verisini dayanak göstermişti).
+
+Sistem kendi hatasını geri bildirim yazılırken de yakaladı: dayanak
+satırını yanlış vermiştim (`LORE.md:157`, o satırda "abisi" geçmiyor) ve
+altın setin kayma denetimi bunu hemen işaretledi.
+
+### Düzeltebiliyor mu
+
+**Evet, iki katmanda:**
+
+- **Arama.** Kesilmiş kök, canon'da tam 4 harflik bir kelimeyle
+  başlıyorsa tanınıyor (`ağaçt` → `ağaç`); ağız dilindeki yer zarfları
+  yazı diline çevriliyor (`nerde` → `nerede`). İlk denediğim kural fazla
+  gevşekti ve konu dışı reddini %100'den %50'ye düşürdü — "react
+  BİLEŞeni" canon'daki "bile"yle eşleşti. Kural daraltıldı, "bile"
+  durak listesine girdi, ret %100'e döndü. Ölçüm her adımda yakaladı.
+- **`/sor` talimatı.** "Arama hiçbir şey döndürmedi → soru bu evrenle
+  ilgili değil" diyordu. Yanlıştı. Artık boş sonuçta bir kez yeniden
+  ifade ediyor, ilişki sorusunda ilişki fiilini tek başına arıyor, yalnız
+  `data.js` gelince canon'da tam adlarla arıyor.
+
+Yargıç düzeltilmiş cevaplara 30/30 verdi, uydurma sıfır.
+
+### Neyi ölçmüyor
+
+- Talimata ilk yazdığım örneklerde **test sorularının cevapları** vardı
+  ("Nemesis → Cips Yiyen Adam", "saklıyorlar → tutuluyor"). Ölçmeden önce
+  soyutlandı; yoksa döngünün cevabı bulduğunu değil talimatı okuduğunu
+  ölçmüş olurdum.
+- 3.3'te eş anlamlıyı ("şehir" → "memleket") ben seçtim ve cevabın o
+  satırda olduğunu biliyordum. O adımın başarısı tamamen sisteme
+  yazılamaz.
+- Arama katmanında iki soru hâlâ kaçıyor (tek yönlü ilişki, karşılaştırma).
+  Altın sette bilerek duruyorlar; isabet@3 %92 ile eşiğin hemen üstünde.
+
+### Yan bulgu — canon'da bölge tutarsızlığı (karar Barış'ın)
+
+`LORE.md:187` Orta cephenin bölgesine "Batı Karadeniz", `LORE.md:188`
+Doğu cepheye "Doğu Karadeniz" diyor. Ama tablolarda Trabzon ve Giresun
+(Doğu Karadeniz) Orta cephede; Zonguldak, Bartın, Bolu, Düzce (Batı
+Karadeniz) Batı cephede. `butunluk.py` 27/27/27 dağılımını denetliyor,
+bölge tanımlarını denetlemiyor. Canon'a dokunulmadı.
 
 ## Gölge modu — yeni kapıların deneme süresi
 
@@ -1555,7 +1625,7 @@ defterine ya da iz defterine yazılır.
 ## Sınırlar
 
 Bunlar tahmin değil, fay enjeksiyon sınavıyla ölçüldü: **28 vaka
-(22 yakalanmalı, 6 masum)** ve **20 altın soru**. Bu sayılar `dogrula.py`
+(22 yakalanmalı, 6 masum)** ve **24 altın soru**. Bu sayılar `dogrula.py`
 tarafından denetleniyor — betikler değişip belge yerinde kalırsa hata verir.
 Ölçülen iki gerçek açık vardı, ikisi de kapatıldı — biri tam olarak
 kapanamadı, aşağıda:

@@ -46,7 +46,12 @@ def main():
         return 0
 
     cikti = (s.stdout or "").strip()
-    if not cikti or "boş" in cikti:
+    # Boş defteri CÜMLENİN TAMAMIYLA tanı, kelimeyle değil. İlk hâli
+    # çıktının herhangi bir yerinde "boş" geçerse susuyordu; bir ders
+    # "aracın boş sonucu..." diye yazılınca bütün defter oturum açılışında
+    # görünmez oldu — üstelik o ders tam da boş sonucu yanlış okumak
+    # üzerineydi. İddia aracın gerçekten bastığı metne bağlanmalı.
+    if not cikti or cikti == "Ders defteri boş.":
         return 0
 
     print("Echo Orkestra — önceki koşulardan kalan dersler:\n")

@@ -1,7 +1,7 @@
 {
   "majör": 2,
   "minör": 1,
-  "yama": 1,
+  "yama": 2,
   "gecmis": [
     {
       "surum": "v1.1",
@@ -81,6 +81,11 @@
     {
       "surum": "v2.1.1",
       "ne": "Beyin V3'ten iki fikir: gölge modu (yeni kapı önce gölgede koşar, kanıtla ve insan kararıyla kapıya terfi eder) ve acil kapatma anahtarı (ECHO_KAPALI=1 bütün kancaları durdurur, sessiz değil; kalıcı açık bırakılırsa dogrula.py yakalar).",
+      "tarih": "2026-09-22"
+    },
+    {
+      "surum": "v2.1.2",
+      "ne": "Deneme sınavı (5×6 soru) iki katmanlı bir hata buldu: arama cevabı canon'da olan soruları reddediyordu (kök taşması, ağız dili), /sor da boş sonucu 'konu dışı' okuyordu. Altın set 20→24, arama ve /sor düzeltildi.",
       "tarih": "2026-09-22"
     }
   ]
