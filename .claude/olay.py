@@ -76,6 +76,23 @@ DINLEYICILER = [
 ]
 
 
+# Acil kapatma anahtarı — Beyin V3'ün `BEYIN_JEV_DISABLE` fikri.
+#
+# Bir kanca bozulur da her düzenlemede ya da her oturum açılışında sorun
+# çıkarırsa, telefondan onu kapatmanın hızlı bir yolu yoktu: ya
+# `settings.json`'ı düzenlemek ya da betiği onarmak gerekiyordu. Ortam
+# değişkeni kayıtlı hiçbir ayarı değiştirmeden bütün kancaları durdurur,
+# kaldırılınca her şey eski hâline döner.
+#
+# Kalıcı olarak AÇIK bırakılması ayrı bir tehlike: `settings.json`'ın
+# `env` alanına yazılırsa Echo sessizce ölür. `dogrula.py` bunu yakalıyor.
+ANAHTAR = "ECHO_KAPALI"
+
+
+def kapali_mi():
+    return os.environ.get(ANAHTAR, "").strip() not in ("", "0")
+
+
 def defter_yaz(kayit):
     """Defter yazımı asla akışı bozmamalı — hata yutulur, olay geçer."""
     try:
@@ -107,6 +124,22 @@ def dagit(a):
     olay_adi = a.olay or olay.get("hook_event_name") or ""
     arac = olay.get("tool_name") or ""
     kok = os.environ.get("CLAUDE_PROJECT_DIR") or olay.get("cwd") or os.getcwd()
+
+    if kapali_mi():
+        # Acil kapatma anahtarı açık. Hiçbir işleyici koşmaz — sözleşme
+        # denetimi (`kanca-gorev.py`) dahil. Acil durumun anlamı bu.
+        #
+        # Ama SESSİZ değil: her atlanan olay deftere yazılır ve oturum
+        # açılışında tek satır basılır. Sessizce kapalı kalan bir kapı,
+        # çalışıyor gibi görünür — bu deponun en çok yaşadığı hata.
+        defter_yaz({"zaman": datetime.now().isoformat(timespec="seconds"),
+                    "olay": olay_adi, "arac": arac,
+                    "karar": f"atlandı — {ANAHTAR} açık"})
+        if olay_adi == "SessionStart":
+            print(f"ECHO KAPALI — {ANAHTAR}=1 açık. Kancaların HİÇBİRİ koşmuyor: "
+                  "ders defteri, zemin denetimi, düzenleme denetimi ve alt ajan "
+                  "sözleşmesi devre dışı. Açmak için ortam değişkenini kaldır.")
+        return 0
 
     eslesenler = dinleyicileri_bul(olay_adi, arac)
     if not eslesenler:
@@ -152,6 +185,9 @@ def dagit(a):
 
 
 def tablo(a):
+    if kapali_mi():
+        print(f"!! {ANAHTAR} AÇIK — aşağıdaki tablonun hiçbir satırı şu an "
+              "koşmuyor.\n")
     print("Olay tablosu — hangi olay hangi işleyiciye gidiyor\n")
     for olay_adi, esles, betik, ne in DINLEYICILER:
         var = "" if os.path.exists(os.path.join(KLASOR, betik)) else "  [DOSYA YOK]"

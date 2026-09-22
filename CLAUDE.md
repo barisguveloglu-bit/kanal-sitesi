@@ -107,6 +107,28 @@ Sürüm: `python3 .claude/surum.py goster` — işaret: `python3 .claude/logo.py
   listesi de tabandan okunur ve yerel listeyle **birleştirilir**: dosya
   eklemek hemen etkili, çıkarmak insan kararı. Çıkış `0` dokunulmamış,
   `1` beyansız, `3` beyanlı (insan kapısı).
+- `python3 .claude/golge.py kos|durum|ekle|terfi|indir` — **gölge modu**
+  (Beyin V3'ün `jev shadow` → `jev on` sırası). Yeni bir kapı önce
+  **gölgede** koşar: kararını hesaplar ve kaydeder ama kimseyi durdurmaz.
+  Bir günde eklenen üç araç (`iz`, `ablasyon`, `bekci`) ilk gerçek
+  kullanımda kendi kusurunu gösterdi; o an kapı olsalardı yanlış yeşil
+  geçireceklerdi. `ekle` **her zaman gölge** ekler — deneme süresi
+  atlanabilir olsaydı atlanırdı. `terfi` en az 5 kayıtlı koşu ve **sıfır
+  "koşmadı"** ister: kod 0 dönüp özet desenini basmayan kapı temiz değil
+  koşmadı sayılır. Terfi ve indirme `golge.json`'ı değiştirir, o dosya
+  bekçinin listesinde — yani `ÖLÇÜM-DEĞİŞTİ` beyanı ve insan merge'ü ister.
+  CI `kos`'u `--kaydet` olmadan koşar (depo temiz kalmalı); kanıt yerelde
+  birikir.
+- **Acil kapatma anahtarı: `ECHO_KAPALI=1`** (Beyin V3'ün
+  `BEYIN_JEV_DISABLE` fikri). Ortam değişkeni açıkken `olay.py` hiçbir
+  işleyiciyi koşturmaz — ders defteri, zemin denetimi, düzenleme denetimi
+  ve alt ajan sözleşmesi dahil. Kayıtlı hiçbir ayarı değiştirmez;
+  kaldırılınca her şey eski hâline döner. Bir kanca bozulursa telefondan
+  hızlı kapatmak için. **Sessiz değil:** atlanan her olay deftere yazılır,
+  oturum açılışında `ECHO KAPALI` satırı basılır, `olay.py tablo` uyarır.
+  `settings.json`'ın `env` alanına kalıcı yazılırsa Echo her oturumda
+  sessizce ölür — ve bunu fark edecek kancalar da kapalıdır; bu yüzden
+  `dogrula.py` onu dışarıdan yakalar.
 - `python3 .claude/duman.py` — **oturum başı zemin denetimi.** CI işin
   sonunda, kanca dosya düzenlendiğinde koşuyor; ikisi de *bu oturumda*
   yapılanı denetliyor. İki oturum arası dışarıdan giren bir düzenleme

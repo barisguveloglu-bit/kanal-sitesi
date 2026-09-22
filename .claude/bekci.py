@@ -71,6 +71,11 @@ OLCUM = (
     ".claude/mutasyon.py",
     ".claude/okuyucu.py",
     ".claude/bekci.py",
+    # Gölgeden kapıya terfi bir kapıyı SERTLEŞTİRİR, kapıdan gölgeye
+    # inmek YUMUŞATIR. İkisi de ölçen aleti değiştirir ve ikisi de bu
+    # dosyada bir satır — beyansız olmamalı.
+    ".claude/golge.py",
+    ".claude/golge.json",
     ".claude/altin-sorular.json",
     ".github/workflows/denetim.yml",
 )

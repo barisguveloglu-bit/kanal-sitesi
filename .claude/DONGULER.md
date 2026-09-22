@@ -1,4 +1,4 @@
-# Echo Orkestra v2.1
+# Echo Orkestra v2.1.1
 
 Bu katmanın adı **Echo**. Adın sebebi işleyişinde: her çıktı bir
 denetimden geri döner, her hata bir teste geri döner, her ölçüm sistemin
@@ -1228,6 +1228,79 @@ doğru güçlenen **KAT 2-3-4**, çekirdek **yapılan iş**, içeri dönen ok
   kendisi de test edilmiş durumda: simgeye kesik halka ya da ok geri
   eklenirse sınav düşer, yoksa biri onu "tutarlılık olsun" diye işaretle
   aynı hâle getirir ve küçük boy sessizce bozulur.
+
+## Gölge modu — yeni kapıların deneme süresi
+
+Beyin V3'ten: `jev shadow` → `jev on`. Yeni bir bileşen önce gölgede
+çalışır, kararını hesaplar ama uygulamaz; ölçülünce devreye girer.
+
+Bu depoda gerekçesi bir günde üç kez yaşandı. Aynı gün eklenen üç araç
+ilk gerçek kullanımda kendi kusurunu gösterdi:
+
+| Araç | İlk gerçek kullanımda |
+|---|---|
+| `iz.py` | tekrarı kaydetmeyi reddetti — varlık sebebini |
+| `ablasyon.py` | çıkış 0 ile ölen sınavı "sıfır vaka düştü" diye okudu, iki halkayı yanlışlıkla KANITSIZ ilan etti |
+| `bekci.py` | kendini listeden çıkaran dalı göremedi |
+
+Üçü de o an kapı olsaydı ya yanlış yere kırmızı yakacak ya da yanlış yere
+yeşil geçirecekti. İkincisi daha kötü: yanlış kırmızı fark edilir, yanlış
+yeşil edilmez.
+
+Kurallar:
+
+- `ekle` **her zaman gölge** ekler. Deneme süresi atlanabilir olsaydı,
+  atlanırdı.
+- Gölge çıkış kodunu **etkilemez** ama kararını **basar** — hesaplayıp
+  susmak, hiç hesaplamamaktan farksızdır.
+- **"Koşmadı" ayrı bir hâl.** Her kapının bir özet deseni olabilir; kod 0
+  dönüp özeti basmayan kapı temiz değil koşmadı sayılır. Tek bir "koşmadı"
+  terfiyi engeller.
+- **Terfi en az 5 koşu ister.** Beş ölçülerek seçilmedi, seçilemezdi —
+  henüz terfi etmiş bir kapı yok. Gerekçe: üç kusurun üçü de ilk koşuda
+  göründü, beş onları elemeye yeter.
+- **Terfi insan kararı.** `terfi` kanıtı denetler, ama değişen şey
+  `golge.json` — ve o dosya bekçinin listesinde. Gölgeden kapıya çıkmak
+  bir kapıyı sertleştirir, kapıdan gölgeye inmek yumuşatır; ikisi de ölçen
+  aleti değiştirir.
+- **CI sayaç yazmaz.** Yazsaydı her CI koşusu depoyu kirletir ve kendi
+  "depo temiz kaldı mı" kapısını kırmızıya çevirirdi.
+
+İlk gölge kapı özellik sınavı: CI'da zaten elle "uyarı, kapı değil"
+yapılmıştı. Artık o kararın bir kuralı ve bir terfi yolu var.
+
+Bir vaka yazılırken yapılan mutasyon denemesinde **eşdeğer mutant**
+çıktı: "kayıt her zaman yazılsın" diye bozulan kod, sayaç artmadığı için
+dosyaya aynı baytları yazıyordu ve vaka onu yakalamadı. Vaka ölü değildi —
+mutasyon davranışı değiştirmiyordu. Davranışı gerçekten değiştiren
+mutasyonu (sayaç CI'da da yazılsın) yakaladı. Yakalanmayan her mutasyon
+ölü test demek değildir; önce mutasyonun bir şey değiştirip değiştirmediğine
+bakılır.
+
+## Acil kapatma anahtarı — `ECHO_KAPALI`
+
+Beyin V3'ten: `BEYIN_JEV_DISABLE=1` kayıtlı ayarı değiştirmeden bütün
+çağrıları durdurur.
+
+Bir kanca bozulur da her düzenlemede ya da her oturum açılışında sorun
+çıkarırsa, telefondan onu kapatmanın hızlı bir yolu yoktu: ya
+`settings.json`'ı düzenlemek ya da betiği onarmak gerekiyordu.
+
+`ECHO_KAPALI=1` açıkken `olay.py` hiçbir işleyiciyi koşturmaz. Sözleşme
+denetimi dahil — acil durumun anlamı bu. Kaldırılınca her şey eski hâline
+döner, çünkü hiçbir ayar değişmedi.
+
+**Sessiz değil.** Sessizce kapalı kalan bir kapı çalışıyor gibi görünür:
+
+- atlanan her olay deftere `atlandı — ECHO_KAPALI açık` diye yazılır
+- oturum açılışında tek satır: `ECHO KAPALI — kancaların HİÇBİRİ koşmuyor`
+- `olay.py tablo` en üstte uyarır
+
+**Kalıcı açık bırakılması ayrı bir tehlike.** `settings.json`'ın `env`
+alanına yazılırsa Echo her oturumda ölür — ve bunu fark edecek kancalar da
+ölüdür. Dağıtıcı bunu göremez, çünkü o da kapalıdır. Bu yüzden kilit
+**dışarıdan** bakıyor: `dogrula.py` ayar dosyalarında `ECHO_KAPALI` görürse
+hata verir, ve `dogrula.py` CI'da kancadan bağımsız koşuyor.
 
 ## Ölçüm katmanı bekçisi — ölçen aleti kim değiştirdi
 

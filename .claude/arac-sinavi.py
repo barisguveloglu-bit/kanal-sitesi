@@ -2332,6 +2332,146 @@ def t_ablasyon_hicbir_halkayi_silmiyor(kok):
     return None
 
 
+def _sahte_kapi(kok, cikis, ozet=True):
+    """Çıkış kodu ve özet satırı kontrol edilebilen bir kapı."""
+    yol = os.path.join(kok, ".claude", "sahte-kapi.py")
+    satir = 'print("3/3 vaka beklendiği gibi")\n' if ozet else ""
+    open(yol, "w", encoding="utf-8").write(
+        f"import sys\n{satir}sys.exit({cikis})\n")
+    json.dump({"kapilar": {}}, open(os.path.join(kok, ".claude", "golge.json"),
+                                    "w", encoding="utf-8"))
+    return kos(kok, "golge.py", "ekle", "--ad", "sahte",
+               "--komut", "python3 .claude/sahte-kapi.py", "--ozet", r"\d+/\d+ vaka")
+
+
+def t_golge_cikis_kodunu_etkilemiyor(kok):
+    """Gölgenin tanımı bu: kararını hesaplar, kimseyi durdurmaz."""
+    if _sahte_kapi(kok, 1).returncode != 0:
+        return "sahte kapı eklenemedi"
+    s = kos(kok, "golge.py", "kos")
+    if s.returncode != 0:
+        return f"engelleyecek gölge koşuyu düşürdü (çıkış {s.returncode})"
+    if "ENGELLERDİ" not in s.stdout:
+        return "gölgenin kararı görünmedi — hesaplanıp susulmamalı"
+    return None
+
+
+def t_golge_ekle_hep_golge_ekliyor(kok):
+    """Deneme süresi atlanabilir olsaydı, atlanırdı."""
+    _sahte_kapi(kok, 0)
+    d = json.load(open(os.path.join(kok, ".claude", "golge.json"), encoding="utf-8"))
+    if d["kapilar"]["sahte"]["durum"] != "gölge":
+        return "yeni kapı gölgeye girmeden eklendi"
+    yardim = kos(kok, "golge.py", "ekle", "--help").stdout
+    if "--durum" in yardim or "--kapi" in yardim:
+        return "ekle doğrudan kapı eklemeye izin veriyor"
+    return None
+
+
+def t_golge_erken_terfiyi_reddediyor(kok):
+    """Bu depodaki üç araç ilk gerçek koşuda kendi kusurunu gösterdi."""
+    _sahte_kapi(kok, 0)
+    for _ in range(2):
+        kos(kok, "golge.py", "kos", "--kaydet")
+    s = kos(kok, "golge.py", "terfi", "--ad", "sahte")
+    if s.returncode == 0:
+        return "iki koşuyla terfi edildi"
+    for _ in range(3):
+        kos(kok, "golge.py", "kos", "--kaydet")
+    s = kos(kok, "golge.py", "terfi", "--ad", "sahte")
+    if s.returncode != 0:
+        return f"beş temiz koşudan sonra terfi reddedildi: {s.stdout[:140]}"
+    return None
+
+
+def t_golge_kosmayan_terfi_edemiyor(kok):
+    """Kod 0 dönüp özet basmayan kapı 'temiz' değil KOŞMADI sayılır — ve
+    koşmadığı görülmüş kapı bağlayıcı yapılamaz. Ablasyonun bir kez
+    düştüğü tuzak."""
+    _sahte_kapi(kok, 0, ozet=False)
+    for _ in range(6):
+        kos(kok, "golge.py", "kos", "--kaydet")
+    d = json.load(open(os.path.join(kok, ".claude", "golge.json"), encoding="utf-8"))
+    if d["kapilar"]["sahte"]["kayit"]["kosmadi"] != 6:
+        return f"özet basmayan kapı 'koşmadı' sayılmadı: {d['kapilar']['sahte']['kayit']}"
+    s = kos(kok, "golge.py", "terfi", "--ad", "sahte")
+    if s.returncode == 0:
+        return "koşmadığı görülmüş kapı terfi etti"
+    return None
+
+
+def t_golge_kapi_dusunce_kosu_dusuyor(kok):
+    """Terfi etmiş kapı gerçek kapıdır."""
+    _sahte_kapi(kok, 0)
+    yol = os.path.join(kok, ".claude", "golge.json")
+    d = json.load(open(yol, encoding="utf-8"))
+    d["kapilar"]["sahte"]["durum"] = "kapı"
+    json.dump(d, open(yol, "w", encoding="utf-8"))
+    open(os.path.join(kok, ".claude", "sahte-kapi.py"), "w", encoding="utf-8").write(
+        'import sys\nprint("2/3 vaka")\nsys.exit(1)\n')
+    s = kos(kok, "golge.py", "kos")
+    if s.returncode != 1:
+        return f"düşen kapı koşuyu düşürmedi (çıkış {s.returncode})"
+    return None
+
+
+def t_golge_ci_sayac_yazmiyor(kok):
+    """CI koşu sonrası deponun temiz kaldığını doğruluyor; `kos` sayaç
+    yazsaydı her CI koşusu kendi kapısını kırmızıya çevirirdi."""
+    _sahte_kapi(kok, 0)
+    yol = os.path.join(kok, ".claude", "golge.json")
+    once = open(yol, encoding="utf-8").read()
+    kos(kok, "golge.py", "kos")
+    if open(yol, encoding="utf-8").read() != once:
+        return "--kaydet olmadan sayaç yazıldı — CI depoyu kirletir"
+    return None
+
+
+def t_acil_anahtar_kancalari_durduruyor(kok):
+    """Kapalıyken hiçbir işleyici koşmamalı — ama SESSİZCE değil."""
+    cevre = dict(os.environ, ECHO_KAPALI="1")
+    s = subprocess.run(
+        [sys.executable, os.path.join(kok, ".claude", "olay.py"), "dagit"],
+        input='{"hook_event_name":"SessionStart","source":"startup"}',
+        cwd=kok, capture_output=True, text=True, timeout=60, env=cevre)
+    if s.returncode != 0:
+        return f"kapalı dağıtıcı oturumu engelledi (çıkış {s.returncode})"
+    if "DERS DEFTERİ" in s.stdout or "Zemin denetimi" in s.stdout:
+        return "anahtar açıkken işleyiciler yine koştu"
+    if "ECHO KAPALI" not in s.stdout:
+        return "anahtar açık ama oturum açılışında söylenmedi — sessiz kapalı kapı"
+
+    # Düzenleme kancası da susmalı: bozuk dosyada bile geri besleme yok.
+    yol = os.path.join(kok, "assets", "css", "style.css")
+    metin = open(yol, encoding="utf-8").read()
+    open(yol, "w", encoding="utf-8").write(
+        metin.replace("[hidden] { display: none !important; }", "", 1))
+    s = subprocess.run(
+        [sys.executable, os.path.join(kok, ".claude", "olay.py"), "dagit"],
+        input=json.dumps({"hook_event_name": "PostToolUse", "tool_name": "Edit",
+                          "tool_input": {"file_path": "assets/css/style.css"}}),
+        cwd=kok, capture_output=True, text=True, timeout=60, env=cevre)
+    if s.returncode != 0:
+        return f"anahtar açıkken düzenleme kancası koştu (çıkış {s.returncode})"
+    d = kos(kok, "olay.py", "defter", "--son", "3").stdout
+    if "atlandı" not in d:
+        return "atlanan olay deftere yazılmadı"
+    return None
+
+
+def t_acil_anahtar_kalici_acik_yakalaniyor(kok):
+    """Ayar dosyasına yazılırsa Echo her oturumda sessizce ölür — ve bunu
+    fark edecek kancalar da ölüdür. Dışarıdan bakan denetim şart."""
+    yol = os.path.join(kok, ".claude", "settings.json")
+    d = json.load(open(yol, encoding="utf-8"))
+    d.setdefault("env", {})["ECHO_KAPALI"] = "1"
+    json.dump(d, open(yol, "w", encoding="utf-8"))
+    s = kos(kok, "dogrula.py", "belge")
+    if s.returncode != 1 or "ECHO_KAPALI" not in s.stdout:
+        return f"kalıcı açık anahtar yakalanmadı (çıkış {s.returncode})"
+    return None
+
+
 def t_ablasyon_kosmayan_sinavi_kanit_saymiyor(kok):
     """Ablasyonun gerçekten düştüğü tuzak — ve en sinsisi.
 
@@ -2937,6 +3077,14 @@ VAKALAR = [
     ("ablasyon: hiçbir halkayı silmiyor",   t_ablasyon_hicbir_halkayi_silmiyor),
     ("ablasyon: özyinelemeyi kırıyor",      t_ablasyon_ozyinelemeyi_kiriyor),
     ("ablasyon: koşmayan sınavı kanıt saymıyor", t_ablasyon_kosmayan_sinavi_kanit_saymiyor),
+    ("gölge: çıkış kodunu etkilemiyor",     t_golge_cikis_kodunu_etkilemiyor),
+    ("gölge: ekle hep gölge ekliyor",       t_golge_ekle_hep_golge_ekliyor),
+    ("gölge: erken terfiyi reddediyor",     t_golge_erken_terfiyi_reddediyor),
+    ("gölge: koşmayan terfi edemiyor",      t_golge_kosmayan_terfi_edemiyor),
+    ("gölge: kapı düşünce koşu düşüyor",    t_golge_kapi_dusunce_kosu_dusuyor),
+    ("gölge: CI sayaç yazmıyor",            t_golge_ci_sayac_yazmiyor),
+    ("acil: anahtar kancaları durduruyor",  t_acil_anahtar_kancalari_durduruyor),
+    ("acil: kalıcı açık yakalanıyor",       t_acil_anahtar_kalici_acik_yakalaniyor),
 
     ("iz: sahte karşılık reddediliyor",     t_iz_sahte_karsilik_reddediliyor),
     ("iz: tekrarı kaydedebiliyor",          t_iz_tekrari_kaydedebiliyor),

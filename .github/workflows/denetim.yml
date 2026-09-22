@@ -126,13 +126,21 @@ jobs:
             *) echo "::error title=bekci::Bekçi çalışmadı (çıkış $kod) — geçti sayılmaz"; exit 1 ;;
           esac
 
-      - name: Özellik sınavı (kapı değil, uyarı)
+      - name: Gölge kapıları (golge.json)
         if: '!cancelled()'
         run: |
-          # Ölçülmüş yanlış alarm oranı yüksek olduğu için KAPI DEĞİL.
-          # Yanlış alarmla kapı kapatmak, kapıyı görmezden gelmeyi öğretir.
-          python3 .claude/ozellik.py --kez 300; kod=$?
-          [ $kod -eq 0 ] || echo "::warning title=ozellik::Karşı-örnek bulundu — bak, gerçekse kalıcı vakaya çevir"
+          # Yeni kapılar önce gölgede koşar: kararını hesaplar, kimseyi
+          # durdurmaz. Terfi etmiş olanlar burada gerçek kapıdır.
+          # --kaydet YOK: CI sayaç yazmaz, depo temiz kalmalı. Kanıt yerelde
+          # birikir.
+          python3 .claude/golge.py kos; kod=$?
+          case $kod in
+            0) echo "::notice title=golge::Hiçbir kapı düşmedi (gölgeler bilgi amaçlı)" ;;
+            1) echo "::error title=golge::Terfi etmiş bir kapı düştü ya da koşmadı"; exit 1 ;;
+            3) echo "::error title=golge::Terfi etmiş bir kapı insan kararı istiyor"; exit 1 ;;
+            *) echo "::error title=golge::Gölge koşucusu çalışmadı (çıkış $kod) — geçti sayılmaz"; exit 1 ;;
+          esac
+          python3 .claude/golge.py durum
 
       - name: İz defteri çürümüş mü
         if: '!cancelled()'
