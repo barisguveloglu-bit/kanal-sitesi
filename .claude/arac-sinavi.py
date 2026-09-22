@@ -2278,12 +2278,19 @@ def t_ablasyon_kirli_zeminde_olcmuyor(kok):
     yazılı; sessizce atlanan vaka, geçen vaka gibi görünür."""
     if os.environ.get("ECHO_ABLASYON"):
         return None
-    yol = os.path.join(kok, ".claude", "dogrula.py")
+    # Sabotaj sınavı ÖLDÜRMEMELİ, düşürmeli. `dogrula.py`'yi çökerten bir
+    # sabotaj kirli zemini değil "sınav koşmadı" hâlini üretir — ikisi
+    # ayrı ve ayrı ölçülüyor (bkz. t_ablasyon_kosmayan_sinavi_...).
+    yol = os.path.join(kok, "assets", "css", "style.css")
     metin = open(yol, encoding="utf-8").read()
-    open(yol, "w", encoding="utf-8").write(metin + "\nraise SystemExit(9)\n")
+    boz = metin.replace("[hidden] { display: none !important; }", "", 1)
+    if boz == metin:
+        return "sabotaj çapası bulunamadı"
+    open(yol, "w", encoding="utf-8").write(boz)
+
     s = kos(kok, "ablasyon.py", "--halka", "ders")
     if s.returncode != 1 or "ZEMİN KİRLİ" not in s.stdout:
-        return f"kirli zeminde ablasyon yapıldı (çıkış {s.returncode})"
+        return f"kirli zeminde ablasyon yapıldı (çıkış {s.returncode}): {s.stdout[:140]}"
     return None
 
 
@@ -2322,6 +2329,31 @@ def t_ablasyon_hicbir_halkayi_silmiyor(kok):
     # araç kendi kaynağını boşaltıyor demektir.
     if "os.path.join(KAYNAK" in metin.split("def olc(", 1)[-1].split("def ", 1)[0]:
         return "ablasyon kaynak ağaca yazıyor"
+    return None
+
+
+def t_ablasyon_kosmayan_sinavi_kanit_saymiyor(kok):
+    """Ablasyonun gerçekten düştüğü tuzak — ve en sinsisi.
+
+    Boş kabuk modül düzeyinde `sys.exit(0)` çağırıyordu. Bir vaka o aracı
+    fikstür kurmak için içe aktarınca SystemExit bütün sınavı süpürdü ve
+    süreç ÇIKIŞ KODU 0 ile öldü. Ablasyon bunu "sıfır vaka düştü" diye
+    okudu ve iki halkayı KANITSIZ ilan etti; ikisi de kanıtlıydı
+    (yargi 9, tirmanma 3 vaka).
+
+    Defterdeki "0/1/3 dışı geçti sayılmaz" dersi bir adım eksikmiş: bir
+    araç kodu 0 verip işini hiç yapmamış da olabilir. Kanıt çıkış kodu
+    değil, sınavın ÖZET satırı."""
+    yol = os.path.join(kok, ".claude", "sinav.py")
+    # Sessizce, başarıyla, hiçbir şey yapmadan ölen bir sınav.
+    open(yol, "w", encoding="utf-8").write(
+        "#!/usr/bin/env python3\nimport sys\nsys.exit(0)\n")
+
+    s = kos(kok, "ablasyon.py", "--halka", "logo")
+    if s.returncode == 0:
+        return "koşmayan sınav 'kanıtlı' sayıldı"
+    if "SINAV KOŞMADI" not in s.stdout:
+        return (f"koşmayan sınav kirli zeminden ayrılmadı: {s.stdout[:160]}")
     return None
 
 
@@ -2904,6 +2936,7 @@ VAKALAR = [
     ("ablasyon: kirli zeminde ölçmüyor",    t_ablasyon_kirli_zeminde_olcmuyor),
     ("ablasyon: hiçbir halkayı silmiyor",   t_ablasyon_hicbir_halkayi_silmiyor),
     ("ablasyon: özyinelemeyi kırıyor",      t_ablasyon_ozyinelemeyi_kiriyor),
+    ("ablasyon: koşmayan sınavı kanıt saymıyor", t_ablasyon_kosmayan_sinavi_kanit_saymiyor),
 
     ("iz: sahte karşılık reddediliyor",     t_iz_sahte_karsilik_reddediliyor),
     ("iz: tekrarı kaydedebiliyor",          t_iz_tekrari_kaydedebiliyor),

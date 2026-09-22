@@ -52,6 +52,7 @@ türünü hiç içermiyorsa halka yararsız görünür. Karar okuyanın.
 
 import argparse
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -70,11 +71,32 @@ HARIC = {
     "mutasyon.py", "degerlendir.py",
 }
 
+# Kabuk, İÇE AKTARILINCA patlamaz.
+#
+# İlk hâli modül düzeyinde `sys.exit(0)` çağırıyordu. Bir sınav vakası o
+# aracı fikstür kurmak için içe aktarınca `SystemExit` bütün sınavı
+# süpürdü ve süreç **çıkış kodu 0** ile öldü — ablasyon da bunu "sıfır
+# vaka düştü" diye okudu. İki halka kanıtsız göründü; kanıtsız değildi,
+# ölçüm yalan söylüyordu.
+#
+# Artık kabuk yalnız DOĞRUDAN ÇALIŞTIRILINCA hiçbir şey yapmıyor. İçe
+# aktaran bir vaka, aradığı adı bulamayıp düşüyor — ölçülmek istenen şey
+# de zaten bu.
 KABUK = '''#!/usr/bin/env python3
 # ablasyon: bu araç kasten boşaltıldı
 import sys
-sys.exit(0)
+
+if __name__ == "__main__":
+    sys.exit(0)
 '''
+
+# Sınavın GERÇEKTEN koştuğunun kanıtı: özet satırı.
+#
+# Çıkış kodu tek başına yetmiyor — yukarıdaki kaza tam olarak bunu
+# gösterdi: kod 0'dı ve sınav hiç koşmamıştı. Defterdeki "0/1/3 dışı
+# geçti sayılmaz" dersi bir adım eksikmiş; bir araç kodu 0 verip işini
+# yapmamış da olabilir.
+OZET = re.compile(r"(\d+)\s*/\s*(\d+)\s+(?:araç\s+)?vaka")
 
 
 def halkalar():
@@ -114,7 +136,12 @@ def kos(kok, betik, *arg):
 
 
 def dusenler(kok):
-    """Sınavlarda düşen vaka sayısı. None = sınav koşmadı."""
+    """Sınavlarda düşen vaka sayısı. None = sınav koşmadı.
+
+    Düşen sayısı FAIL satırı sayarak değil, ÖZETTEN türetiliyor: sınav
+    "N/M vaka beklendiği gibi davrandı" diyorsa düşen M-N'dir. FAIL
+    saymak, hiç satır basmayan bir sınavı sıfır düşen gösteriyordu.
+    """
     toplam = 0
     for betik in ("sinav.py", "arac-sinavi.py"):
         s = kos(kok, betik)
@@ -124,7 +151,13 @@ def dusenler(kok):
             # 0/1 dışı: sınav çalışmadı. Bunu "düşmedi" saymak, ablasyonu
             # sessizce yalancı yapardı.
             return None
-        toplam += sum(1 for x in s.stdout.splitlines() if "FAIL" in x)
+        e = OZET.search(s.stdout or "")
+        if not e:
+            # Kod 0 ama özet yok → sınav yarıda öldü. Ölçülen şey
+            # "hiçbir vaka düşmedi" değil, "ölçüm yapılmadı".
+            return None
+        gecen, hepsi = int(e.group(1)), int(e.group(2))
+        toplam += hepsi - gecen
     return toplam
 
 
@@ -205,9 +238,18 @@ def main(argv=None):
         temiz, n = zemin_temiz(kok)
     finally:
         shutil.rmtree(gecici, ignore_errors=True)
+    if n is None:
+        # Kirli zeminden AYRI bir hâl. Karıştırmak, ablasyonun bir kez
+        # düştüğü tuzağın ta kendisi: sınav çıkış 0 ile yarıda ölmüştü ve
+        # "sıfır vaka düştü" diye okunmuştu.
+        print("ZEMİN ÖLÇÜLEMEDİ — SINAV KOŞMADI.")
+        print("Sınav çıkış kodu 0 verip özetini basmamış olabilir; bu")
+        print("'hiçbir vaka düşmedi' değil, 'ölçüm yapılmadı' demektir.")
+        print("İkisini karıştırmak ablasyonu yalancı yapar.")
+        return 1
     if not temiz:
         print("ZEMİN KİRLİ — ablasyon yapılamaz.")
-        print(f"Ablasyonsuz koşuda {n} vaka düşüyor (ya da sınav koşmadı).")
+        print(f"Ablasyonsuz koşuda {n} vaka düşüyor.")
         print("Önce zemini yeşile getir; kirli zeminde 'vaka düştü' hiçbir")
         print("şey söylemez.")
         return 1

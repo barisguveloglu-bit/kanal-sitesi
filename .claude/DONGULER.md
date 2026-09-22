@@ -1,4 +1,4 @@
-# Echo Orkestra v2.0.9
+# Echo Orkestra v2.1
 
 Bu katmanın adı **Echo**. Adın sebebi işleyişinde: her çıktı bir
 denetimden geri döner, her hata bir teste geri döner, her ölçüm sistemin
@@ -970,7 +970,7 @@ her ajan dosyasını okuyor — listede olmayan biri Opus'a çıkarsa da,
 listedeki biri Sonnet'e düşerse de kırmızı yanıyor. Hak **üçle sınırlı**
 ve liste `dogrula.py`'de yazılı; dördüncüsü reddedilir.
 
-Ders defteri (`dersler.jsonl`) şu an **22 ders** taşıyor; kalıcı ve
+Ders defteri (`dersler.jsonl`) şu an **23 ders** taşıyor; kalıcı ve
 depoda. Sayı burada yazılı çünkü sessiz silmeyi ancak bu yakalıyor.
 
 **Koruma doğrulanır.** Bir ders "korunuyor" diyebiliyorsa bunun
@@ -1346,6 +1346,26 @@ Kötü olduğu anlamına gelmez — **ölçülmediği** anlamına gelir, ve
 
 Zemin kirliyse ölçüm yapılmıyor: düşen vakayı ablasyon mu yoksa zaten
 kırık bir şey mi düşürdü, ayırt edilemez.
+
+### İlk tam taramanın yalanı
+
+İlk tam tarama iki halkayı — `tirmanma.py` ve `yargi.py` — **KANITSIZ**
+ilan etti. İkisi de kanıtlıydı: `yargi.py` kaldırılınca 9, `tirmanma.py`
+kaldırılınca 3 vaka düşüyor.
+
+Yalanın kaynağı boş kabuktu. Modül düzeyinde `sys.exit(0)` çağırıyordu ve
+bir sınav vakası o aracı fikstür kurmak için **içe aktarınca** `SystemExit`
+bütün sınavı süpürdü. Süreç **çıkış kodu 0** ile öldü, tek satır bile
+basmadı, ve ablasyon bunu "sıfır vaka düştü" diye okudu.
+
+Defterdeki *"0/1/3 dışında bir çıkış kodu geçti sayılmaz"* dersi bir adım
+eksikmiş: bir araç kodu 0 verip işini **hiç yapmamış** da olabilir. Kanıt
+artık kodun kendisi değil, sınavın **özet satırı** — ve düşen sayısı FAIL
+satırı sayarak değil özetten türetiliyor (`M - N`), çünkü hiç satır
+basmayan bir sınav sıfır FAIL gösterir.
+
+"Zemin kirli" ile "sınav koşmadı" da artık ayrı iki hâl. Karıştırmak,
+tuzağın kendisiydi.
 
 ### Kendi özyinelemesi
 
