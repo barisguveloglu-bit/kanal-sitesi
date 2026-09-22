@@ -1389,6 +1389,24 @@ def t_geri_bildirim_korumasizi_raporluyor(kok):
 
 # --------------------------------------------------------- dış ajan köprüsü
 
+def _taban(kok):
+    """Dal karşılaştırmasının tabanı — ADI değil, COMMIT'i.
+
+    Önce `rev-parse --abbrev-ref HEAD` kullanılıyordu. Yerelde çalışıyordu
+    çünkü HEAD bir dala bağlıydı. GitHub'da PR koşusunda `checkout` HEAD'i
+    AYIRIYOR ve bu komut düz `HEAD` dizesini döndürüyor; `_dal_kur` sahte
+    dalı çıkardıktan sonra `HEAD` artık o dalın ucu oluyor ve taban ile
+    dal AYNI yeri gösteriyor. Fark boş çıkınca `.claude/` ihlali
+    görünmüyor, vaka sessizce yeşile dönüyordu — kapı kırmızıyken geçti
+    sayılıyordu, yani tam olarak bu kapının engellemesi gereken şey.
+
+    Commit kimliği ayrık HEAD'de de, dalda da aynı yeri gösterir.
+    """
+    return subprocess.run(["git", "rev-parse", "HEAD"], cwd=kok,
+                          capture_output=True, text=True,
+                          timeout=60).stdout.strip()
+
+
 def _dal_kur(kok, ad, degistir, yol):
     """Kopyada sahte bir Codex dalı üret.
 
@@ -1420,8 +1438,7 @@ def t_disajan_brief_pr_akisini_tasiyor(kok):
 
 def t_disajan_claude_klasorune_dokunmayi_reddediyor(kok):
     """Dış ajanın sınavı gevşetmesi en sinsi senaryo."""
-    taban = subprocess.run(["git", "rev-parse", "--abbrev-ref", "HEAD"], cwd=kok,
-                           capture_output=True, text=True, timeout=60).stdout.strip()
+    taban = _taban(kok)
 
     def boz():
         yol = os.path.join(kok, ".claude", "dogrula.py")
@@ -1436,8 +1453,7 @@ def t_disajan_claude_klasorune_dokunmayi_reddediyor(kok):
 
 
 def t_disajan_kural_ihlalini_reddediyor(kok):
-    taban = subprocess.run(["git", "rev-parse", "--abbrev-ref", "HEAD"], cwd=kok,
-                           capture_output=True, text=True, timeout=60).stdout.strip()
+    taban = _taban(kok)
 
     def boz():
         yol = os.path.join(kok, "assets", "css", "style.css")
@@ -1456,8 +1472,7 @@ def t_disajan_kural_ihlalini_reddediyor(kok):
 
 def t_disajan_temiz_dali_kabul_ediyor(kok):
     """Aşırı duyarlılık da hatadır: temiz iş geçmeli."""
-    taban = subprocess.run(["git", "rev-parse", "--abbrev-ref", "HEAD"], cwd=kok,
-                           capture_output=True, text=True, timeout=60).stdout.strip()
+    taban = _taban(kok)
 
     def duzelt():
         yol = os.path.join(kok, "assets", "js", "data.js")
@@ -1478,8 +1493,7 @@ def t_disajan_kosmayan_kapiyi_gecmis_saymiyor(kok):
     İlk hâlim tam bunu yapıyordu: dalda `butunluk.py` bulunmayınca çıkış 2
     geliyor ve kapı "dördü de geçti" diyordu.
     """
-    taban = subprocess.run(["git", "rev-parse", "--abbrev-ref", "HEAD"], cwd=kok,
-                           capture_output=True, text=True, timeout=60).stdout.strip()
+    taban = _taban(kok)
 
     def sil():
         os.remove(os.path.join(kok, ".claude", "butunluk.py"))

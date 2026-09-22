@@ -1,7 +1,7 @@
 {
   "majör": 2,
   "minör": 0,
-  "yama": 5,
+  "yama": 6,
   "gecmis": [
     {
       "surum": "v1.1",
@@ -51,6 +51,11 @@
     {
       "surum": "v2.0.5",
       "ne": "Ders defteri korumaları artık doğrulanıyor: serbest metin reddediliyor, korumanın içerik özeti saklanıyor (kaymış koruma görünür), aynı ders --degistir olmadan başka korumaya bağlanamıyor. Defter satırı yerinde güncelleniyor.",
+      "tarih": "2026-09-22"
+    },
+    {
+      "surum": "v2.0.6",
+      "ne": "Dış ajan kapısı vakaları dal adı yerine commit kimliğine bağlandı: ayrık HEAD'de (GitHub PR koşusu) taban ile dal aynı yeri gösteriyor ve ihlal görünmüyordu.",
       "tarih": "2026-09-22"
     }
   ]

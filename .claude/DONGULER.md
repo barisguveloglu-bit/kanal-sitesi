@@ -1,4 +1,4 @@
-# Echo Orkestra v2.0.5
+# Echo Orkestra v2.0.6
 
 Bu katmanın adı **Echo**. Adın sebebi işleyişinde: her çıktı bir
 denetimden geri döner, her hata bir teste geri döner, her ölçüm sistemin
@@ -970,7 +970,7 @@ her ajan dosyasını okuyor — listede olmayan biri Opus'a çıkarsa da,
 listedeki biri Sonnet'e düşerse de kırmızı yanıyor. Hak **üçle sınırlı**
 ve liste `dogrula.py`'de yazılı; dördüncüsü reddedilir.
 
-Ders defteri (`dersler.jsonl`) şu an **18 ders** taşıyor; kalıcı ve
+Ders defteri (`dersler.jsonl`) şu an **19 ders** taşıyor; kalıcı ve
 depoda. Sayı burada yazılı çünkü sessiz silmeyi ancak bu yakalıyor.
 
 **Koruma doğrulanır.** Bir ders "korunuyor" diyebiliyorsa bunun
