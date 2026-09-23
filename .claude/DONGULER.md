@@ -1291,13 +1291,18 @@ Yargıç düzeltilmiş cevaplara 30/30 verdi, uydurma sıfır.
 - Arama katmanında iki soru hâlâ kaçıyor (tek yönlü ilişki, karşılaştırma).
   Altın sette bilerek duruyorlar; isabet@3 %92 ile eşiğin hemen üstünde.
 
-### Yan bulgu — canon'da bölge tutarsızlığı (karar Barış'ın)
+### Yan bulgu — canon'da bölge tutarsızlığı (kapandı)
 
 `LORE.md:187` Orta cephenin bölgesine "Batı Karadeniz", `LORE.md:188`
 Doğu cepheye "Doğu Karadeniz" diyor. Ama tablolarda Trabzon ve Giresun
 (Doğu Karadeniz) Orta cephede; Zonguldak, Bartın, Bolu, Düzce (Batı
 Karadeniz) Batı cephede. `butunluk.py` 27/27/27 dağılımını denetliyor,
-bölge tanımlarını denetlemiyor. Canon'a dokunulmadı.
+bölge tanımlarını denetlemiyor.
+
+Barış onayladı; iller değil **bölge tanımları** düzeltildi. İlleri
+taşımak derebeyi adlarını da değiştirmeyi gerektirirdi (Zonguldak'ın
+Herakles'i Yunan, Trabzon'un Şuwaliyat'ı Hitit) ve 27/27/27 dengesini
+bozardı. `LORE.md` ve `data.js` birlikte güncellendi.
 
 ## Gölge modu — yeni kapıların deneme süresi
 
