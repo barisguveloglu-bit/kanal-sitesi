@@ -136,6 +136,43 @@ def a06_plaka_il_eslesmesi_gercek():
     return None if not yanlis else "plaka-il eşleşmesi yanlış: " + "; ".join(yanlis[:5])
 
 
+def a09_canon_tablosu_veriyle_ayni():
+    """Canon'daki il tablosu satır satır data.js ile aynı mı.
+
+    İsim kontrolü yalnız "bu ad canon'da bir yerde geçiyor mu" diye
+    soruyordu. İki ilin derebeyi canon'da takas edilse iki ad da geçmeye
+    devam eder ve sınav "tutarlı" der. Ölçüldü: tam olarak böyle oldu.
+    Burada her satır adresiyle karşılaştırılıyor: plaka → (il, ad, cephe).
+    """
+    cephe = None
+    canon = {}
+    for no, satir in enumerate(K.lore_satir, 1):
+        # "Cephe" ve "Cephesi" ikisi de: canon'da Orta başlığı "Orta Cephe"
+        # diye yazılı, diğerleri "…Cephesi". İlk desen yalnız "Cephesi"yi
+        # tanıyordu; Orta başlığı eşleşmeyince 27 satır Batı'ya yazıldı ve
+        # kontrol yazıldığı an yanlış alarm verdi.
+        b = re.match(r"^####\s+(Batı|Orta|Doğu) Cephe(?:si)?\b", satir)
+        if b:
+            cephe = {"Batı": "bati", "Orta": "orta", "Doğu": "dogu"}[b.group(1)]
+            continue
+        if satir.startswith("## "):
+            cephe = None
+        e = re.match(r"^\|\s*(\d+)\s*\|\s*([^|]+?)\s*\|\s*\*\*([^*]+)\*\*\s*\|", satir)
+        if cephe and e:
+            canon[int(e.group(1))] = (e.group(2), e.group(3), cephe, no)
+    if len(canon) != 81:
+        return f"canon il tablolarında 81 satır beklenirken {len(canon)} bulundu"
+    fark = []
+    for i in K.iller:
+        c = canon.get(i["plaka"])
+        if c is None:
+            fark.append(f"plaka {i['plaka']} canon'da yok")
+        elif (c[0], c[1], c[2]) != (i["il"], i["ad"], i["komutan"]):
+            fark.append(f"LORE.md:{c[3]} {c[0]}/{c[1]}/{c[2]} ≠ data.js "
+                        f"{i['il']}/{i['ad']}/{i['komutan']}")
+    return None if not fark else "canon ↔ veri ayrışması: " + "; ".join(fark[:4])
+
+
 def a07_komutan_alani_gecerli():
     idler = {k["id"] for k in K.d["KOMUTANLAR"]}
     kotu = [f"{i['il']}→{i['komutan']}" for i in K.iller if i["komutan"] not in idler]
@@ -891,6 +928,7 @@ VAKALAR = [
     ("veri", "il: plaka tekrarı yok", a03_plaka_tekrari_yok),
     ("veri", "il: derebeyi adı boş değil", a04_derebeyi_adi_bos_degil),
     ("veri", "il: plaka-il eşleşmesi gerçek", a06_plaka_il_eslesmesi_gercek),
+    ("veri", "il: canon tablosu veriyle aynı", a09_canon_tablosu_veriyle_ayni),
     ("veri", "il: komutan alanı geçerli", a07_komutan_alani_gecerli),
     ("veri", "il: her komutanın ili var", a08_her_komutanin_ili_var),
     ("veri", "il: derebeyi adı tekrarsız", a09_derebeyi_adi_tekrarsiz),

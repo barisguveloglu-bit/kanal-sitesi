@@ -1,7 +1,7 @@
 {
   "majör": 2,
   "minör": 1,
-  "yama": 3,
+  "yama": 4,
   "gecmis": [
     {
       "surum": "v1.1",
@@ -91,6 +91,11 @@
     {
       "surum": "v2.1.3",
       "ne": "Videodan iki fikir: işe göre model seçimi (ucuz Haiku katmanı tarama-denetci, HAIKU_HAKKI listesiyle) ve paralel ajanlar için adres tabanlı ortak pano (pano.py).",
+      "tarih": "2026-09-26"
+    },
+    {
+      "surum": "v2.1.4",
+      "ne": "Kendi yalan denetimi: duman ve CI ölü kapıya 'tutarlı' diyordu (kapi.py ile özet satırı zorunlu); dogrula bağımlılığın sys.exit'ini yutuyordu; bütünlük sınavı canon il tablosunu data.js ile hiç karşılaştırmıyordu.",
       "tarih": "2026-09-26"
     }
   ]

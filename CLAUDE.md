@@ -54,7 +54,8 @@ Sürüm: `python3 .claude/surum.py goster` — işaret: `python3 .claude/logo.py
   `python3 .claude/arac-sinavi.py` — sırasıyla denetleyiciyi, aramayı ve
   araçları (kesici, yargıç, geri bildirim, kanca) ölçer.
 - `python3 .claude/butunluk.py` — canon ↔ veri ↔ site bütünlüğünü ölçer
-  (77 vaka): 81 ilin plakası resmî kodla eşleşiyor mu, aynı derebeyi iki
+  (78 vaka): 81 ilin plakası resmî kodla eşleşiyor mu, canon'daki il
+  tablosu satır satır `data.js` ile aynı mı, aynı derebeyi iki
   ile atanmış mı, `data.js`'teki her isim `LORE.md`'de geçiyor mu, canon'da
   dayanağı olmayan sıralama iddiası var mı. `dogrula.py` kuralları denetler,
   bu sınav gerçekleri. `data.js`'i `okuyucu.py` dış bağımlılık olmadan okur.
@@ -129,6 +130,12 @@ Sürüm: `python3 .claude/surum.py goster` — işaret: `python3 .claude/logo.py
   `settings.json`'ın `env` alanına kalıcı yazılırsa Echo her oturumda
   sessizce ölür — ve bunu fark edecek kancalar da kapalıdır; bu yüzden
   `dogrula.py` onu dışarıdan yakalar.
+- `python3 .claude/kapi.py <kapı>` — **kapı sarmalayıcısı.** Kapıyı
+  koşturur ve özet satırını arar; kod 0 dönüp özet basmayan kapı **2
+  (koşmadı)** sayılır. 23. ders (çıkış kodu 0 iş yapıldı demek değil)
+  ablasyona uygulanmış, duman ve CI'a uygulanmamıştı: ölü bir bütünlük
+  sınavına ikisi de "tutarlı" diyordu. Desenler başarıyı VE başarısızlığı
+  kapsar, TEK yerde durur; duman da CI da buradan okur.
 - `python3 .claude/duman.py` — **oturum başı zemin denetimi.** CI işin
   sonunda, kanca dosya düzenlendiğinde koşuyor; ikisi de *bu oturumda*
   yapılanı denetliyor. İki oturum arası dışarıdan giren bir düzenleme

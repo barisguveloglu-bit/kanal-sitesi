@@ -53,26 +53,32 @@ KOK = os.path.dirname(KLASOR)
 # Duman testinin işi hız; kapsamı CI'den küçük olması bir eksiklik değil
 # tasarım — ama bunu yazmak zorundayım, yoksa bir sonraki okuyan onu
 # tam kapsam sanar.
+#
+# Kapılar `kapi.py` üzerinden koşuyor, doğrudan değil. İlk hâli yalnız
+# çıkış koduna bakıyordu ve ölçüldü: hiçbir iş yapmadan 0 ile ölen bir
+# bütünlük sınavına "temiz" dedi. 23. ders ablasyona uygulanmış, buraya
+# uygulanmamıştı. Özet deseni kapi.py'de, TEK yerde.
 KAPILAR = (
-    ("kural denetimi", "dogrula.py", (), (0,)),
-    ("canon ↔ veri ↔ site", "butunluk.py", (), (0,)),
-    ("ders korumaları", "ders.py", ("bayat",), (0,)),
-    ("iz karşılıkları", "iz.py", ("coken",), (0,)),
+    ("kural denetimi", "dogrula"),
+    ("canon ↔ veri ↔ site", "butunluk"),
+    ("ders korumaları", "ders-bayat"),
+    ("iz karşılıkları", "iz-coken"),
 )
 
 
-def kos(betik, arg):
-    yol = os.path.join(KLASOR, betik)
+def kos(ad):
+    """(kod, çıktı) — kod 2 koşmadı demek. kapi.py yoksa koşmadı sayılır."""
+    import importlib.util
+    yol = os.path.join(KLASOR, "kapi.py")
     if not os.path.exists(yol):
-        return None, f"{betik} yok"
+        return 2, "kapi.py yok"
     try:
-        s = subprocess.run([sys.executable, yol, *arg], cwd=KOK,
-                           capture_output=True, text=True, timeout=120)
-    except subprocess.TimeoutExpired:
-        return None, "zaman aşımı"
+        t = importlib.util.spec_from_file_location("_kapi_duman", yol)
+        kapi = importlib.util.module_from_spec(t)
+        t.loader.exec_module(kapi)
+        return kapi.kos(ad)
     except Exception as e:
-        return None, f"{type(e).__name__}: {e}"
-    return s, None
+        return 2, f"{type(e).__name__}: {e}"
 
 
 def main(argv=None):
@@ -81,24 +87,18 @@ def main(argv=None):
     ayr = a.parse_args(argv)
 
     kirmizi, kosmayan, satir = [], [], []
-    for ad, betik, arg, kabul in KAPILAR:
-        s, hata = kos(betik, arg)
-        if s is None:
-            kosmayan.append((ad, hata))
-            satir.append(f"  KOŞMADI  {ad} — {hata}")
-            continue
-        if s.returncode in kabul:
+    for ad, kapi_adi in KAPILAR:
+        kod, cikti = kos(kapi_adi)
+        if kod == 2:
+            son = (cikti or "").strip().splitlines()
+            kosmayan.append((ad, son[-1][:100] if son else "bilinmiyor"))
+            satir.append(f"  KOŞMADI  {ad}")
+        elif kod == 0:
             satir.append(f"  temiz    {ad}")
         else:
-            # Çıkış kodu sözleşmesi: 0/1/3 dışı "araç çalışmadı" demek,
-            # "geçti" değil. Bu ayrımı silmek bu depoda bir kez yaşandı.
-            if s.returncode not in (0, 1, 3):
-                kosmayan.append((ad, f"çıkış {s.returncode}"))
-                satir.append(f"  KOŞMADI  {ad} — çıkış {s.returncode}")
-            else:
-                ilk = (s.stdout or "").strip().splitlines()
-                kirmizi.append((ad, ilk[0] if ilk else f"çıkış {s.returncode}"))
-                satir.append(f"  KIRMIZI  {ad}")
+            ilk = (cikti or "").strip().splitlines()
+            kirmizi.append((ad, ilk[0] if ilk else f"çıkış {kod}"))
+            satir.append(f"  KIRMIZI  {ad}")
 
     if ayr.sessiz:
         return 2 if kosmayan else (1 if kirmizi else 0)
