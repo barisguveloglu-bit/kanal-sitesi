@@ -76,6 +76,11 @@ ekleme, dosya silme. `git add`, `git commit`, `git push`, `git checkout`,
 
 Geçici betik yazman gerekiyorsa `/tmp/` altına yaz — depoya değil.
 
+Tek istisna ortak pano: başka ajanlarla paralel çalışıyorsan baktığın
+alanı `python3 .claude/pano.py al --ajan <ad> --alan <yol>` ile yaz,
+bitince `bitir`. Pano `.gitignore`'da, depoyu değiştirmez. `al` çıkış 1
+verirse o alan başka ajanda — üstüne gitme, raporla.
+
 Uyuşmazlık veya hata bulursan **düzeltme**, raporla. Düzeltme kararı
 Barış'ın; senin işin bulmak.
 
