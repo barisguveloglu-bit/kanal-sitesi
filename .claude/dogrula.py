@@ -48,6 +48,12 @@ OPUS_TAVANI = 3
 # kimse fark etmeden çökerdi.
 HAIKU_HAKKI = {"tarama-denetci"}
 
+# Bağımlı araçları içe aktarırken `Exception` değil `(Exception, SystemExit)`
+# yakalanıyor. `sys.exit()` bir Exception değil; bağımlılık içe aktarılırken
+# çıkış çağırırsa bu denetleyici tek satır basmadan, çoğu zaman 0 koduyla
+# ölüyordu — "bozuk araç denetimi çökertmesin" koruması tam o durumda
+# işlemiyordu. Kapı sarmalayıcısı (`kapi.py`) bunu ilk ölçümünde yakaladı.
+
 # Menüde ve site haritasında bulunması beklenen sayfalar.
 SAYFALAR = [
     "index.html",
@@ -417,7 +423,7 @@ def d_belge(r):
             tanim = importlib.util.spec_from_file_location("_sinav", sinav_yolu)
             modul = importlib.util.module_from_spec(tanim)
             tanim.loader.exec_module(modul)
-        except Exception as e:
+        except (Exception, SystemExit) as e:
             r.hata("belge", f"sinav.py okunamadı ({type(e).__name__}: {e}). "
                             "Vaka sayısı doğrulanamadı — önce onu düzelt.")
             modul = None
@@ -471,7 +477,7 @@ def d_belge(r):
             sur = importlib.util.module_from_spec(_t)
             _t.loader.exec_module(sur)
             beklenen = sur.metin(sur.oku())
-        except Exception as e:
+        except (Exception, SystemExit) as e:
             r.hata("belge", f"surum.py okunamadı: {e}")
             beklenen = None
         if beklenen:
@@ -628,7 +634,7 @@ def d_belge(r):
             tanim = importlib.util.spec_from_file_location("_evr", evrim_yolu)
             evr = importlib.util.module_from_spec(tanim)
             tanim.loader.exec_module(evr)
-        except Exception as e:
+        except (Exception, SystemExit) as e:
             r.hata("belge", f"evrim.py okunamadı ({type(e).__name__}: {e}).")
             evr = None
         if evr is not None:
@@ -667,7 +673,7 @@ def d_belge(r):
             tanim = importlib.util.spec_from_file_location("_ders", ders_yolu)
             drs = importlib.util.module_from_spec(tanim)
             tanim.loader.exec_module(drs)
-        except Exception as e:
+        except (Exception, SystemExit) as e:
             r.hata("belge", f"ders.py okunamadı ({type(e).__name__}: {e}).")
             drs = None
         if drs is not None:
@@ -725,7 +731,7 @@ def d_belge(r):
             tanim = importlib.util.spec_from_file_location("_but", butunluk_yolu)
             but = importlib.util.module_from_spec(tanim)
             tanim.loader.exec_module(but)
-        except Exception as e:
+        except (Exception, SystemExit) as e:
             r.hata("belge", f"butunluk.py okunamadı ({type(e).__name__}: {e}). "
                             "Bütünlük vaka sayısı doğrulanamadı.")
             but = None
@@ -811,7 +817,7 @@ def d_belge(r):
             tanim = importlib.util.spec_from_file_location("_mut", mutasyon_yolu)
             mut = importlib.util.module_from_spec(tanim)
             tanim.loader.exec_module(mut)
-        except Exception as e:
+        except (Exception, SystemExit) as e:
             r.hata("belge", f"mutasyon.py okunamadı ({type(e).__name__}: {e}). "
                             "Mutasyon sayısı doğrulanamadı.")
             mut = None
@@ -836,7 +842,7 @@ def d_belge(r):
             tanim = importlib.util.spec_from_file_location("_logo", logo_yolu)
             logo = importlib.util.module_from_spec(tanim)
             tanim.loader.exec_module(logo)
-        except Exception as e:
+        except (Exception, SystemExit) as e:
             r.hata("belge", f"logo.py okunamadı ({type(e).__name__}: {e}). "
                             "Logo dosyaları doğrulanamadı.")
             logo = None

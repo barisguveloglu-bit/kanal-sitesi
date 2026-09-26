@@ -71,6 +71,9 @@ OLCUM = (
     ".claude/mutasyon.py",
     ".claude/okuyucu.py",
     ".claude/bekci.py",
+    # Kapıların "koştu mu" kararı burada; yumuşatılırsa bütün kapılar
+    # ölü hâlde "geçti" diyebilir.
+    ".claude/kapi.py",
     # Gölgeden kapıya terfi bir kapıyı SERTLEŞTİRİR, kapıdan gölgeye
     # inmek YUMUŞATIR. İkisi de ölçen aleti değiştirir ve ikisi de bu
     # dosyada bir satır — beyansız olmamalı.

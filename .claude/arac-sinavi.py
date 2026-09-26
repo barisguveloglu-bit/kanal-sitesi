@@ -2427,6 +2427,92 @@ def t_ajan_haiku_listesi_gercek(kok):
     return None
 
 
+def t_butunluk_canon_tablosu_veriyle_karsilastiriliyor(kok):
+    """Bütünlük sınavı "canon ↔ veri ↔ site" diye tanıtılıyordu ama il
+    kontrolleri yalnız data.js'i okuyordu. Canon tablosunda bir derebeyi
+    başka bir ile yazılsa — adı canon'da başka satırda geçtiği için isim
+    kontrolü de susardı — hiçbir şey kırmızı yanmazdı. Ölçüldü: LORE.md'de
+    İstanbul'un plakası değiştirildi, sınav "hepsi tutarlı" dedi."""
+    yol = os.path.join(kok, "LORE.md")
+    m = open(yol, encoding="utf-8").read()
+    # İki ilin derebeyini TAKAS et: iki ad da canon'da kalır, yani isim
+    # kontrolü susar. İlk yazışta tek taraflı değiştirmiştim; Telipinu
+    # canon'dan tamamen kalkınca eski isim kontrolü düştü ve vaka yan
+    # etkiyi ölçtü, boşluğu değil.
+    a, b = "| 42 | Konya | **Telipinu** |", "| 6 | Ankara | **Kumarbi** |"
+    if a not in m or b not in m:
+        return "sabotaj çapası bulunamadı"
+    m = m.replace(a, "@@A@@").replace(b, a.replace("Telipinu", "Kumarbi"))
+    m = m.replace("@@A@@", b.replace("Kumarbi", "Telipinu"))
+    open(yol, "w", encoding="utf-8").write(m)
+    s = kos(kok, "butunluk.py")
+    if s.returncode != 1 or "Konya" not in s.stdout:
+        return f"canon tablosu veriden ayrıştı, sınav görmedi (çıkış {s.returncode})"
+    return None
+
+
+def _olu_kapi(kok, betik):
+    """Hiçbir iş yapmadan, özet basmadan 0 ile ölen bir kapı."""
+    open(os.path.join(kok, ".claude", betik), "w", encoding="utf-8").write(
+        "import sys\nsys.exit(0)\n")
+
+
+def t_kapi_sessiz_sifiri_kosmadi_sayiyor(kok):
+    """23. ders ablasyona uygulanmış, duman ve CI'a uygulanmamıştı: ölü bir
+    bütünlük sınavına ikisi de "tutarlı" diyordu."""
+    _olu_kapi(kok, "butunluk.py")
+    s = kos(kok, "kapi.py", "butunluk")
+    if s.returncode != 2 or "KOŞMADI" not in s.stdout:
+        return f"özetsiz ölen kapı geçti sayıldı (çıkış {s.returncode})"
+    return None
+
+
+def t_kapi_durust_kirmiziyi_kosmadi_saymiyor(kok):
+    """Ters tuzak: desen yalnız başarıyı tanısaydı dürüst bir kırmızı
+    'koşmadı' diye okunurdu."""
+    yol = os.path.join(kok, "assets", "css", "style.css")
+    m = open(yol, encoding="utf-8").read()
+    open(yol, "w", encoding="utf-8").write(
+        m.replace("[hidden] { display: none !important; }", "", 1))
+    s = kos(kok, "kapi.py", "dogrula")
+    if s.returncode != 1:
+        return f"dürüst kırmızı yanlış okundu (çıkış {s.returncode}, 1 beklenirdi)"
+    return None
+
+
+def t_kapi_desenleri_gercek_ciktiyla_eslesiyor(kok):
+    """Desen kapının gerçek özetine bağlı olmalı. Kapı çıktısını değiştirir
+    de desen eski kalırsa, sağlıklı kapı 'koşmadı' görünür."""
+    kotu = []
+    for ad in ("dogrula", "butunluk", "sinav", "degerlendir",
+               "ders-bayat", "iz-coken", "golge"):
+        s = kos(kok, "kapi.py", ad)
+        if s.returncode == 2:
+            kotu.append(ad)
+    return None if not kotu else f"sağlıklı kapı 'koşmadı' göründü: {kotu}"
+
+
+def t_duman_sessiz_sifiri_temiz_saymiyor(kok):
+    """Ölçüldü: ölü bir bütünlük sınavına duman 'temiz' diyordu."""
+    _olu_kapi(kok, "butunluk.py")
+    s = kos(kok, "duman.py")
+    if s.returncode != 2:
+        return f"ölü kapıda duman çıkışı {s.returncode} (2 beklenirdi)"
+    if "temiz    canon" in s.stdout:
+        return "ölü kapı 'temiz' diye listelendi"
+    return None
+
+
+def t_dogrula_bagimliligin_cikisini_yutmuyor(kok):
+    """sys.exit() bir Exception değil. Bağımlılık içe aktarılırken çıkış
+    çağırınca dogrula.py tek satır basmadan 0 ile ölüyordu."""
+    _olu_kapi(kok, "butunluk.py")
+    s = kos(kok, "dogrula.py")
+    if s.returncode != 1 or "okunamadı" not in s.stdout:
+        return f"bağımlılığın çıkışı yutuldu (çıkış {s.returncode})"
+    return None
+
+
 def _sahte_kapi(kok, cikis, ozet=True):
     """Çıkış kodu ve özet satırı kontrol edilebilen bir kapı."""
     yol = os.path.join(kok, ".claude", "sahte-kapi.py")
@@ -3181,6 +3267,12 @@ VAKALAR = [
     ("gölge: CI sayaç yazmıyor",            t_golge_ci_sayac_yazmiyor),
     ("acil: anahtar kancaları durduruyor",  t_acil_anahtar_kancalari_durduruyor),
     ("acil: kalıcı açık yakalanıyor",       t_acil_anahtar_kalici_acik_yakalaniyor),
+    ("bütünlük: canon tablosu veriyle karşılaştırılıyor", t_butunluk_canon_tablosu_veriyle_karsilastiriliyor),
+    ("kapı: sessiz sıfırı koşmadı sayıyor", t_kapi_sessiz_sifiri_kosmadi_sayiyor),
+    ("kapı: dürüst kırmızıyı koşmadı saymıyor", t_kapi_durust_kirmiziyi_kosmadi_saymiyor),
+    ("kapı: desenler gerçek çıktıyla eşleşiyor", t_kapi_desenleri_gercek_ciktiyla_eslesiyor),
+    ("duman: sessiz sıfırı temiz saymıyor", t_duman_sessiz_sifiri_temiz_saymiyor),
+    ("dogrula: bağımlılığın çıkışını yutmuyor", t_dogrula_bagimliligin_cikisini_yutmuyor),
     ("pano: adres çakışmasını yakalıyor",   t_pano_adres_cakismasini_yakaliyor),
     ("pano: depoyu kirletmiyor",            t_pano_depoyu_kirletmiyor),
     ("ajan: haiku yalnız listede",          t_ajan_haiku_yalniz_listede),
