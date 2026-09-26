@@ -168,6 +168,18 @@ def m_dogrula_belgeyi_gormesin(kok):
             "        elif False:")
 
 
+def m_dogrula_talimat_butcesi_kor(kok):
+    duzenle(kok, ".claude/dogrula.py",
+            "    if boyut > TALIMAT_BUTCESI:",
+            "    if False:")
+
+
+def m_dogrula_agents_senkronu_kor(kok):
+    duzenle(kok, ".claude/dogrula.py",
+            "        if yer:\n            eksik.append(",
+            "        if False:\n            eksik.append(")
+
+
 def m_ara_bilmiyorum_diyemesin(kok):
     duzenle(kok, ".claude/ara.py",
             "        if self.soz_dagari_kapsamasi(sorgu) < self.SOZ_DAGARI_ESIK:",
@@ -402,6 +414,8 @@ MUTASYONLAR = [
     ("denetleyici: kontrast kör",        m_dogrula_kontrasti_gormesin,       "sinav.py"),
     ("denetleyici: odak kör",            m_dogrula_odagi_gormesin,           "sinav.py"),
     ("denetleyici: belge kör",           m_dogrula_belgeyi_gormesin,         "sinav.py"),
+    ("denetleyici: talimat bütçesi kör", m_dogrula_talimat_butcesi_kor,      "sinav.py"),
+    ("denetleyici: AGENTS senkronu kör", m_dogrula_agents_senkronu_kor,      "sinav.py"),
 
     ("arama: bilmiyorum diyemiyor",      m_ara_bilmiyorum_diyemesin,         "degerlendir.py"),
 ]
