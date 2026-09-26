@@ -13,5 +13,10 @@ __pycache__/
 # Uzun koşunun çalışma hafızası — tur izi koşuya özel, sürüme girmez.
 # Kalıcı bilgi (geri-bildirim.jsonl, yargi-gecmisi.jsonl) izlenmeye devam eder.
 .claude/seyir.jsonl
+
+# Ajan raporlarının geçici deposu. Raporun kendisi koşuya özel; ondan
+# çıkan kalıcı bilgi ders defterine ya da iz defterine yazılır.
+# (iz-defteri.jsonl KALICI ve depoda — burada değil.)
+.claude/rapor-deposu/
 .claude/elestirmen-turu.json
 .claude/butce-durumu.json

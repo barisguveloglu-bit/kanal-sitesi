@@ -19,6 +19,7 @@ Siteye hiçbir şey eklemez, sadece okur.
 Çıkış kodu: 0 = temiz, 1 = kural ihlali, 3 = insan onayı gerekiyor.
 """
 
+import json
 import os
 import re
 import sys
@@ -672,6 +673,30 @@ def d_belge(r):
                                 f"belge {eslesme.group(1)} yazıyor.")
             else:
                 r.tamam()
+
+    # Acil kapatma anahtarı KALICI olarak açık bırakılmış mı?
+    #
+    # `ECHO_KAPALI` bir ortam değişkeni: oturumluk, geçici, telefondan hızlı
+    # kapatmak için. Ama `settings.json`'ın `env` alanına yazılırsa her
+    # oturumda açık gelir ve Echo sessizce ölür — kancaların hiçbiri koşmaz,
+    # ve bunu fark edecek olan kancalar da koşmaz. Kilit dışarıdan bakan bu
+    # denetim; dağıtıcının kendisi bunu göremez, çünkü o da kapalıdır.
+    for ayar_adi in ("settings.json", "settings.local.json"):
+        ayar_yolu = os.path.join(KOK, ".claude", ayar_adi)
+        if not os.path.exists(ayar_yolu):
+            continue
+        try:
+            ayar = json.load(open(ayar_yolu, encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        deger = str((ayar.get("env") or {}).get("ECHO_KAPALI", "")).strip()
+        if deger not in ("", "0"):
+            r.hata("belge", f".claude/{ayar_adi}: ECHO_KAPALI kalıcı olarak "
+                            "açık — bütün kancalar her oturumda devre dışı. "
+                            "Acil anahtar geçici olmalı; ortam değişkeni "
+                            "olarak ver, ayar dosyasına yazma.")
+        else:
+            r.tamam()
 
     butunluk_yolu = os.path.join(KOK, ".claude", "butunluk.py")
     if os.path.exists(butunluk_yolu):

@@ -1,7 +1,7 @@
 {
   "majör": 2,
-  "minör": 0,
-  "yama": 6,
+  "minör": 1,
+  "yama": 2,
   "gecmis": [
     {
       "surum": "v1.1",
@@ -56,6 +56,36 @@
     {
       "surum": "v2.0.6",
       "ne": "Dış ajan kapısı vakaları dal adı yerine commit kimliğine bağlandı: ayrık HEAD'de (GitHub PR koşusu) taban ile dal aynı yeri gösteriyor ve ihlal görünmüyordu.",
+      "tarih": "2026-09-22"
+    },
+    {
+      "surum": "v2.0.7",
+      "ne": "İz analizi (iz.py) ve rapor okuyucu (rapor.py) eklendi: koşular arası hata kümelemesi — yer kümesi ölçüm, şekil kümesi insan kapısı; hiçbir kuralı kendiliğinden değiştirmez. Raporlar pencereye yüklenmeden sorgulanıyor, parça parça özyinelemeli okuma.",
+      "tarih": "2026-09-22"
+    },
+    {
+      "surum": "v2.0.8",
+      "ne": "Dört halka: ölçüm katmanı bekçisi (beyansız değişikliği taban commit'ine karşı yakalar), oturum başı duman testi (iki oturum arası dışarıdan gireni yakalar), özellik sınavı (kural yaz, girdiyi makine üretsin), halka ablasyonu (kaldır, kimse fark ediyor mu).",
+      "tarih": "2026-09-22"
+    },
+    {
+      "surum": "v2.0.9",
+      "ne": "Ablasyon özyinelemesi kırıldı: sınav ablasyon vakası koşturuyor, ablasyon sınav koşturuyordu; sınav 60 sn'den 1 dk 44 sn'ye çıkmış ve tam tarama zaman aşımına girmişti.",
+      "tarih": "2026-09-22"
+    },
+    {
+      "surum": "v2.1",
+      "ne": "Ablasyon ölçümü düzeltildi: boş kabuk içe aktarılınca sınavı çıkış 0 ile öldürüyordu ve iki halka yanlışlıkla KANITSIZ ilan edilmişti. Kanıt artık çıkış kodu değil, sınavın özet satırı.",
+      "tarih": "2026-09-22"
+    },
+    {
+      "surum": "v2.1.1",
+      "ne": "Beyin V3'ten iki fikir: gölge modu (yeni kapı önce gölgede koşar, kanıtla ve insan kararıyla kapıya terfi eder) ve acil kapatma anahtarı (ECHO_KAPALI=1 bütün kancaları durdurur, sessiz değil; kalıcı açık bırakılırsa dogrula.py yakalar).",
+      "tarih": "2026-09-22"
+    },
+    {
+      "surum": "v2.1.2",
+      "ne": "Deneme sınavı (5×6 soru) iki katmanlı bir hata buldu: arama cevabı canon'da olan soruları reddediyordu (kök taşması, ağız dili), /sor da boş sonucu 'konu dışı' okuyordu. Altın set 20→24, arama ve /sor düzeltildi.",
       "tarih": "2026-09-22"
     }
   ]

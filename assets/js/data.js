@@ -471,7 +471,7 @@ const KOMUTANLAR = [
       "Ayrıca biriktirdiği hasarın bir sınırı var; taşarsa kendisi çöküyor.",
     iradeKademe: 4,
     not:
-      "Marmara, Ege ve Batı Akdeniz — Trakya'dan Antalya'ya 27 il. " +
+      "Marmara, Ege, Batı Akdeniz ve Batı Karadeniz kıyısı — Trakya'dan Antalya'ya 27 il. " +
       "Cips Yiyen Adam'ın en büyük kozu olan ham güç, ona karşı en büyük zaafı.",
   },
   {
@@ -498,7 +498,7 @@ const KOMUTANLAR = [
       "sıradan bir savaşçıya dönüyor.",
     iradeKademe: 3,
     not:
-      "İç Anadolu, Batı Karadeniz ve Çukurova — başkenti kapsayan 27 il. " +
+      "İç Anadolu, Orta Karadeniz ve Çukurova — başkenti kapsayan 27 il. " +
       "Fırtına tanrısının adını taşıyor ama gerçek yıldırım abinin elinde. " +
       "Üçü arasında iradesi en zayıf olan da o.\n\n" +
       "Barış şu anda onun cephesinde tutuluyor. Elindeki en değerli şeyi " +
@@ -528,7 +528,7 @@ const KOMUTANLAR = [
       "Ayrıca temas etmesi şart — uzaktan hiçbir şey yapamıyor.",
     iradeKademe: 4,
     not:
-      "Doğu Anadolu, Güneydoğu ve Doğu Karadeniz — en sert coğrafyadaki 27 il. " +
+      "Doğu Anadolu, Güneydoğu ve Karadeniz'in doğu ucu — en sert coğrafyadaki 27 il. " +
       "Sarı Gülücük'ün bütün icat ve tuzak avantajını silen adam.",
   },
 ];

@@ -183,9 +183,9 @@ Her komutanın adı, **yönettiği toprakların mitolojisinden** geliyor:
 
 | Cephe | Komutan | Mitoloji | Kim? | Bölge |
 |---|---|---|---|---|
-| Batı | **Nemesis** | Yunan | İntikam ve ilahi adalet tanrıçası | Marmara, Ege, Batı Akdeniz |
-| Orta | **Teşup** | Hitit | Fırtına tanrısı, elinde yıldırım | İç Anadolu, Batı Karadeniz, Çukurova |
-| Doğu | **Ahriman** | Pers | Yıkımın ruhu, iyiliğin karşıtı | Doğu Anadolu, Güneydoğu, Doğu Karadeniz |
+| Batı | **Nemesis** | Yunan | İntikam ve ilahi adalet tanrıçası | Marmara, Ege, Batı Akdeniz, Batı Karadeniz kıyısı (Düzce–Bartın) |
+| Orta | **Teşup** | Hitit | Fırtına tanrısı, elinde yıldırım | İç Anadolu, Orta Karadeniz (Karabük–Trabzon), Çukurova |
+| Doğu | **Ahriman** | Pers | Yıkımın ruhu, iyiliğin karşıtı | Doğu Anadolu, Güneydoğu, Karadeniz'in doğu ucu (Rize, Artvin, Gümüşhane, Bayburt) |
 
 **Nemesis** — haksızlığı bitirmek için kurulmuş bir mafyada, adı doğrudan
 adaleti anlatan komutan. Kendi ölçüsünü kendi koyuyor.

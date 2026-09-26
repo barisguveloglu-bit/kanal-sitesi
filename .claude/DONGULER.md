@@ -1,4 +1,4 @@
-# Echo Orkestra v2.0.6
+# Echo Orkestra v2.1.2
 
 Bu katmanın adı **Echo**. Adın sebebi işleyişinde: her çıktı bir
 denetimden geri döner, her hata bir teste geri döner, her ölçüm sistemin
@@ -970,7 +970,7 @@ her ajan dosyasını okuyor — listede olmayan biri Opus'a çıkarsa da,
 listedeki biri Sonnet'e düşerse de kırmızı yanıyor. Hak **üçle sınırlı**
 ve liste `dogrula.py`'de yazılı; dördüncüsü reddedilir.
 
-Ders defteri (`dersler.jsonl`) şu an **19 ders** taşıyor; kalıcı ve
+Ders defteri (`dersler.jsonl`) şu an **25 ders** taşıyor; kalıcı ve
 depoda. Sayı burada yazılı çünkü sessiz silmeyi ancak bu yakalıyor.
 
 **Koruma doğrulanır.** Bir ders "korunuyor" diyebiliyorsa bunun
@@ -1229,10 +1229,408 @@ doğru güçlenen **KAT 2-3-4**, çekirdek **yapılan iş**, içeri dönen ok
   eklenirse sınav düşer, yoksa biri onu "tutarlılık olsun" diye işaretle
   aynı hâle getirir ve küçük boy sessizce bozulur.
 
+## Deneme sınavı — sistem hatayı fark ediyor mu, düzeltebiliyor mu
+
+Barış'ın isteği: 5 test, her birinde 6 soru, soruları ben yazayım. Kendi
+kör noktamı ölçmemek için beklenen satırlar arama koşturulmadan ÖNCE
+`LORE.md` okunarak sabitlendi; arama körlemesine koştu, sonra puanlandı.
+
+| Test | Önce | Sonra |
+|---|---|---|
+| T1 Doğrudan olgu | 6/6 | 6/6 |
+| T2 Tablo satırı | 6/6 | 6/6 |
+| T3 Canon'un sustuğu yer | 5,5/6 | 6/6 |
+| T4 Ağız dili, ek, eş anlamlı | 3,5/6 | 6/6 |
+| T5 İki kaynak gerekir | 5/6 | 6/6 |
+
+"Sonra" sütunu döngü katmanıyla: arama + düzeltilmiş `/sor`. Aramanın
+tek başına, tek adımda ilk 3'e getirdiği oran %82'den %91'e çıktı.
+
+### Fark ediyor mu
+
+**Önce: hayır.** `degerlendir.py` %100 diyordu; yargıç dört yanlış soruyu
+tanımıyordu. Altın sette "Barış nerede tutuluyor" vardı ve geçiyordu —
+aynı sorunun gündelik hâli "barışı nerde saklıyolar" reddediliyordu.
+Altın set yalnız düzgün yazılmış soruyu sınıyordu.
+
+**Geri bildirimden sonra: evet.** Dört hata `geri-bildirim.py` ile altın
+sete girince `degerlendir.py` kırmızıya döndü (isabet@3 %83) ve yargıç
+dördünü de doğru gerekçeyle yakaladı: üçünde "cevabı canon'da olan
+soruyu reddetti", birinde "atıf yok" (site verisini dayanak göstermişti).
+
+Sistem kendi hatasını geri bildirim yazılırken de yakaladı: dayanak
+satırını yanlış vermiştim (`LORE.md:157`, o satırda "abisi" geçmiyor) ve
+altın setin kayma denetimi bunu hemen işaretledi.
+
+### Düzeltebiliyor mu
+
+**Evet, iki katmanda:**
+
+- **Arama.** Kesilmiş kök, canon'da tam 4 harflik bir kelimeyle
+  başlıyorsa tanınıyor (`ağaçt` → `ağaç`); ağız dilindeki yer zarfları
+  yazı diline çevriliyor (`nerde` → `nerede`). İlk denediğim kural fazla
+  gevşekti ve konu dışı reddini %100'den %50'ye düşürdü — "react
+  BİLEŞeni" canon'daki "bile"yle eşleşti. Kural daraltıldı, "bile"
+  durak listesine girdi, ret %100'e döndü. Ölçüm her adımda yakaladı.
+- **`/sor` talimatı.** "Arama hiçbir şey döndürmedi → soru bu evrenle
+  ilgili değil" diyordu. Yanlıştı. Artık boş sonuçta bir kez yeniden
+  ifade ediyor, ilişki sorusunda ilişki fiilini tek başına arıyor, yalnız
+  `data.js` gelince canon'da tam adlarla arıyor.
+
+Yargıç düzeltilmiş cevaplara 30/30 verdi, uydurma sıfır.
+
+### Neyi ölçmüyor
+
+- Talimata ilk yazdığım örneklerde **test sorularının cevapları** vardı
+  ("Nemesis → Cips Yiyen Adam", "saklıyorlar → tutuluyor"). Ölçmeden önce
+  soyutlandı; yoksa döngünün cevabı bulduğunu değil talimatı okuduğunu
+  ölçmüş olurdum.
+- 3.3'te eş anlamlıyı ("şehir" → "memleket") ben seçtim ve cevabın o
+  satırda olduğunu biliyordum. O adımın başarısı tamamen sisteme
+  yazılamaz.
+- Arama katmanında iki soru hâlâ kaçıyor (tek yönlü ilişki, karşılaştırma).
+  Altın sette bilerek duruyorlar; isabet@3 %92 ile eşiğin hemen üstünde.
+
+### Yan bulgu — canon'da bölge tutarsızlığı (kapandı)
+
+`LORE.md:187` Orta cephenin bölgesine "Batı Karadeniz", `LORE.md:188`
+Doğu cepheye "Doğu Karadeniz" diyor. Ama tablolarda Trabzon ve Giresun
+(Doğu Karadeniz) Orta cephede; Zonguldak, Bartın, Bolu, Düzce (Batı
+Karadeniz) Batı cephede. `butunluk.py` 27/27/27 dağılımını denetliyor,
+bölge tanımlarını denetlemiyor.
+
+Barış onayladı; iller değil **bölge tanımları** düzeltildi. İlleri
+taşımak derebeyi adlarını da değiştirmeyi gerektirirdi (Zonguldak'ın
+Herakles'i Yunan, Trabzon'un Şuwaliyat'ı Hitit) ve 27/27/27 dengesini
+bozardı. `LORE.md` ve `data.js` birlikte güncellendi.
+
+## Gölge modu — yeni kapıların deneme süresi
+
+Beyin V3'ten: `jev shadow` → `jev on`. Yeni bir bileşen önce gölgede
+çalışır, kararını hesaplar ama uygulamaz; ölçülünce devreye girer.
+
+Bu depoda gerekçesi bir günde üç kez yaşandı. Aynı gün eklenen üç araç
+ilk gerçek kullanımda kendi kusurunu gösterdi:
+
+| Araç | İlk gerçek kullanımda |
+|---|---|
+| `iz.py` | tekrarı kaydetmeyi reddetti — varlık sebebini |
+| `ablasyon.py` | çıkış 0 ile ölen sınavı "sıfır vaka düştü" diye okudu, iki halkayı yanlışlıkla KANITSIZ ilan etti |
+| `bekci.py` | kendini listeden çıkaran dalı göremedi |
+
+Üçü de o an kapı olsaydı ya yanlış yere kırmızı yakacak ya da yanlış yere
+yeşil geçirecekti. İkincisi daha kötü: yanlış kırmızı fark edilir, yanlış
+yeşil edilmez.
+
+Kurallar:
+
+- `ekle` **her zaman gölge** ekler. Deneme süresi atlanabilir olsaydı,
+  atlanırdı.
+- Gölge çıkış kodunu **etkilemez** ama kararını **basar** — hesaplayıp
+  susmak, hiç hesaplamamaktan farksızdır.
+- **"Koşmadı" ayrı bir hâl.** Her kapının bir özet deseni olabilir; kod 0
+  dönüp özeti basmayan kapı temiz değil koşmadı sayılır. Tek bir "koşmadı"
+  terfiyi engeller.
+- **Terfi en az 5 koşu ister.** Beş ölçülerek seçilmedi, seçilemezdi —
+  henüz terfi etmiş bir kapı yok. Gerekçe: üç kusurun üçü de ilk koşuda
+  göründü, beş onları elemeye yeter.
+- **Terfi insan kararı.** `terfi` kanıtı denetler, ama değişen şey
+  `golge.json` — ve o dosya bekçinin listesinde. Gölgeden kapıya çıkmak
+  bir kapıyı sertleştirir, kapıdan gölgeye inmek yumuşatır; ikisi de ölçen
+  aleti değiştirir.
+- **CI sayaç yazmaz.** Yazsaydı her CI koşusu depoyu kirletir ve kendi
+  "depo temiz kaldı mı" kapısını kırmızıya çevirirdi.
+
+İlk gölge kapı özellik sınavı: CI'da zaten elle "uyarı, kapı değil"
+yapılmıştı. Artık o kararın bir kuralı ve bir terfi yolu var.
+
+Bir vaka yazılırken yapılan mutasyon denemesinde **eşdeğer mutant**
+çıktı: "kayıt her zaman yazılsın" diye bozulan kod, sayaç artmadığı için
+dosyaya aynı baytları yazıyordu ve vaka onu yakalamadı. Vaka ölü değildi —
+mutasyon davranışı değiştirmiyordu. Davranışı gerçekten değiştiren
+mutasyonu (sayaç CI'da da yazılsın) yakaladı. Yakalanmayan her mutasyon
+ölü test demek değildir; önce mutasyonun bir şey değiştirip değiştirmediğine
+bakılır.
+
+## Acil kapatma anahtarı — `ECHO_KAPALI`
+
+Beyin V3'ten: `BEYIN_JEV_DISABLE=1` kayıtlı ayarı değiştirmeden bütün
+çağrıları durdurur.
+
+Bir kanca bozulur da her düzenlemede ya da her oturum açılışında sorun
+çıkarırsa, telefondan onu kapatmanın hızlı bir yolu yoktu: ya
+`settings.json`'ı düzenlemek ya da betiği onarmak gerekiyordu.
+
+`ECHO_KAPALI=1` açıkken `olay.py` hiçbir işleyiciyi koşturmaz. Sözleşme
+denetimi dahil — acil durumun anlamı bu. Kaldırılınca her şey eski hâline
+döner, çünkü hiçbir ayar değişmedi.
+
+**Sessiz değil.** Sessizce kapalı kalan bir kapı çalışıyor gibi görünür:
+
+- atlanan her olay deftere `atlandı — ECHO_KAPALI açık` diye yazılır
+- oturum açılışında tek satır: `ECHO KAPALI — kancaların HİÇBİRİ koşmuyor`
+- `olay.py tablo` en üstte uyarır
+
+**Kalıcı açık bırakılması ayrı bir tehlike.** `settings.json`'ın `env`
+alanına yazılırsa Echo her oturumda ölür — ve bunu fark edecek kancalar da
+ölüdür. Dağıtıcı bunu göremez, çünkü o da kapalıdır. Bu yüzden kilit
+**dışarıdan** bakıyor: `dogrula.py` ayar dosyalarında `ECHO_KAPALI` görürse
+hata verir, ve `dogrula.py` CI'da kancadan bağımsız koşuyor.
+
+## Ölçüm katmanı bekçisi — ölçen aleti kim değiştirdi
+
+Fay enjeksiyonu denetleyicinin dikkatini ölçüyor, mutasyon testlerin
+canlılığını, TDD kapısı kırmızıyı zorunlu kılıyor. Üçü de şunu
+engellemiyordu: **ajanın denetleyiciyi kendisi değiştirerek geçmesi.**
+
+Teorik bir risk değil. Bu depoda bir oturum boyunca `arac-sinavi.py`
+onlarca kez düzenlendi ve bazıları **kırmızı yanan bir testi düzeltmek**
+içindi. Çoğu meşruydu — ama meşru olanı olmayandan ayıran bir şey yoktu.
+
+Emsali vardı: `disajan.py` dış ajanın `.claude/` altına dokunan dalını
+reddediyor. Dışarıdakine uygulanan disiplinin içerideki için geçerli
+olmaması tuhaftı.
+
+### Neden kilit dosyası değil
+
+Akla ilk gelen çözüm `tests.lock` + SHA-256. Çalışmaz: **kilidi yazabilen
+kilidi de güncelleyebilir.** Kapsamı ikinci bir kilitli dosyada tutmak da
+sonsuz döngü.
+
+Gerçek çapa başka yerde: **dalı ajan yazar, tabanı insan merge eder.**
+Karşılaştırma bir dosyaya değil taban commit'ine bakıyor; ajan dalda ne
+yaparsa yapsın taban onun yazamadığı yerde duruyor.
+
+Aynı açık bekçinin kendisinde de vardı ve bir vaka onu yakaladı: dal,
+listeden `bekci.py` satırını silince bekçi kendini görmez oldu. Liste de
+tabandan okunuyor artık, ve iki liste **birleştiriliyor** — dosya
+eklemek hemen etkili, çıkarmak insan kararı. Asimetri kasten: korumayı
+genişletmek serbest, daraltmak değil.
+
+Sözleşme: ölçüm dosyalarına dokunmak yasak değil, **beyansız** dokunmak
+yasak. `ÖLÇÜM-DEĞİŞTİ: <gerekçe>`. Beyan onay değil — çıkış 3, merge
+kararı insanın.
+
+## Oturum başı duman testi — zemin kırmızı mı
+
+CI işin SONUNDA, kanca dosya düzenlendiğinde koşuyor. İkisi de **bu
+oturumda yapılanı** denetliyor. İki oturum arasında depoya dışarıdan
+giren bir şey — telefondan GitHub web arayüzünde yapılan düzenleme,
+başka bir oturumun yarım işi, merge sonrası kalan tutarsızlık — hiçbirini
+tetiklemiyor ve ilk işin zeminine denetlenmeden giriyordu. **Kırmızı bir
+zemine konan yeşil iş, yeşil değildir.**
+
+Hızlı kapıları koşuyor (~0,4 sn): kural denetimi, bütünlük, iki defterin
+çürümemişliği. Araç sınavı burada yok — 40 saniye sürüyor, oturum
+açılışında kabul edilemez. Kapsamı CI'den dar olması eksiklik değil hız
+tercihi, ama bunu yazmak gerekiyor yoksa sonraki okuyan tam kapsam sanar.
+
+Yeni denetim icat etmiyor, var olan kapıları çağırıyor: kapılar
+güçlendikçe duman da güçleniyor, ayrı bakım istemiyor. Bu, fikrin bilinen
+riskine karşı: *"test seti incelirse her şey hep yeşil görünür."*
+
+**Oturumu engellemez.** `kanca-ders.py` ile aynı disiplin — açılışı
+engelleyen bir uyarı, uyarı değil engeldir. Kanca olması ise şart: talimat
+olarak kalsaydı atlanabilirdi, ve bu deponun en çok uğraştığı hata türü
+tam olarak odur.
+
+## Özellik sınavı — kural yaz, girdiyi makine üretsin
+
+`arac-sinavi.py` ve `butunluk.py` vakaları **elle yazılmış örnekler.** Her
+biri birinin aklına gelmiş bir durumu korur — ve tam olarak o kadarını.
+Aklıma gelmeyen durum korunmuyor.
+
+Burada tersi: örnek değil **kural** yazılır, üretilen girdilerde denenir.
+Benim seçmediğim girdiler benim kör noktamı taşımaz.
+
+Karşı-örnek **küçültülüyor**: kural hâlâ ihlal ediliyorken atılabilen
+parça atılır. Amaç en küçüğü bulmak değil, okunabilir olanı bulmak.
+Tohum basılıyor — tekrar üretilemeyen kırmızı, düzeltildiği
+doğrulanamayan kırmızıdır.
+
+### İlk koşusunda ne buldu
+
+Gerçek bir kusur, ve tam da sistemin en çok önemsediği yerde. `ara.py`
+dosyayı `split("\n")` ile bölüyordu; dosya satırsonuyla bittiği için
+sonda boş bir eleman kalıyor ve son parçanın bitişi bir fazla çıkıyordu.
+Sonuç: **son parçanın adresi dosyanın son satırından bir sonrasını
+gösteriyordu** — var olmayan bir satıra atıf.
+
+Bu depoda her iddia bir satır adresine bağlanıyor ve `yargi.py` atıfların
+doğru satırı gösterdiğini denetliyor. Elle yazılmış vakaların hiçbiri
+dosya SONUNU sınamamıştı.
+
+### CI'de kapı değil uyarı
+
+Yöntemin ölçülmüş yanlış alarm oranı yüksek. Yanlış alarmla kapı
+kapatmak, kapıyı görmezden gelmeyi öğretir. Çıkan karşı-örnek doğrudan
+kusur sayılmaz — bakılır, gerçekse geri bildirim halkasıyla kalıcı
+vakaya çevrilir.
+
+Ters tuzağı da var: kural ölçtüğü fonksiyonun kopyası olarak yazılırsa
+hiçbir şeyi sınamaz. Bir vaka bunu zorluyor — okuyucu kasten bozulunca
+özellik sınavı kırmızı yanmalı.
+
+## Halka ablasyonu — hangi halka hak ediyor
+
+Otuzdan fazla halka var ve **hiçbirinin hak ettiğini kanıtlayan bir ölçüm
+yoktu.** Her halka başka bir şeyi ölçüyor; hiçbiri kendisinin ölçüldüğünü
+göstermiyor. Evrim döngüsü EKSİK yeteneği arıyor, FAZLA olanı değil.
+
+Büyüyen bir sistemde küçültme mekanizması olmaması, tören biriktirmenin
+garantisidir: halka eklenir, kimse silmez, kimse ölçmez, ve on halka
+sonra sistemin ne kadarının gerçekten çalıştığı bilinmez.
+
+Yöntem mutasyonun kardeşi, ters yönde:
+
+| Sınav | Ne yapar | Ne sorar |
+|---|---|---|
+| **mutasyon** | aracı **bozar**, sınav yakalamalı | test canlı mı? |
+| **ablasyon** | aracı **kaldırır**, sınav düşmeli | araç ölçülüyor mu? |
+
+Kaldırılınca hiçbir vaka düşmüyorsa o aracı hiçbir şey sınamıyor demektir.
+Kötü olduğu anlamına gelmez — **ölçülmediği** anlamına gelir, ve
+ölçülmeyen şeyin çalıştığı da bilinmez.
+
+Zemin kirliyse ölçüm yapılmıyor: düşen vakayı ablasyon mu yoksa zaten
+kırık bir şey mi düşürdü, ayırt edilemez.
+
+### İlk tam taramanın yalanı
+
+İlk tam tarama iki halkayı — `tirmanma.py` ve `yargi.py` — **KANITSIZ**
+ilan etti. İkisi de kanıtlıydı: `yargi.py` kaldırılınca 9, `tirmanma.py`
+kaldırılınca 3 vaka düşüyor.
+
+Yalanın kaynağı boş kabuktu. Modül düzeyinde `sys.exit(0)` çağırıyordu ve
+bir sınav vakası o aracı fikstür kurmak için **içe aktarınca** `SystemExit`
+bütün sınavı süpürdü. Süreç **çıkış kodu 0** ile öldü, tek satır bile
+basmadı, ve ablasyon bunu "sıfır vaka düştü" diye okudu.
+
+Defterdeki *"0/1/3 dışında bir çıkış kodu geçti sayılmaz"* dersi bir adım
+eksikmiş: bir araç kodu 0 verip işini **hiç yapmamış** da olabilir. Kanıt
+artık kodun kendisi değil, sınavın **özet satırı** — ve düşen sayısı FAIL
+satırı sayarak değil özetten türetiliyor (`M - N`), çünkü hiç satır
+basmayan bir sınav sıfır FAIL gösterir.
+
+"Zemin kirli" ile "sınav koşmadı" da artık ayrı iki hâl. Karıştırmak,
+tuzağın kendisiydi.
+
+### Kendi özyinelemesi
+
+İlk tam tarama zaman aşımına girdi. Sebep: `arac-sinavi.py` ablasyonun
+kendi vakalarını taşıyor ve o vakalar `ablasyon.py` çağırıyor — ablasyon
+sınav koşturunca sınav ablasyon koşturuyor, o da yine sınav. Ölçüldü:
+sınav **60 saniyeden 1 dakika 44 saniyeye** çıkmıştı.
+
+`ECHO_ABLASYON` bayrağı açıkken o vakalar atlanıyor. Atlama **sessiz
+değil**, raporda yazılı — sessizce atlanan vaka, geçen vaka gibi görünür.
+Ve atlanan sayı bir vakayla korunuyor: yeni bir ablasyon vakası eklenip
+bayrağa bağlanmazsa özyineleme geri döner, bağlanıp sayı güncellenmezse
+rapor yalan söyler.
+
+**Hiçbir halkayı silmez** (çıkış 3). İki gerekçe: kanıtsızlık aracın
+değil SINAVIN kusuru olabilir (daha olası), ve kendi kendini budayan bir
+araç en zayıf halkayı değil **en az sınanmış** halkayı silerdi — tam
+tersi bir seçim. Bu da reddedilen kategoriyle aynı ilke: ölçülen şeyin
+ölçen kuralı değiştirme yetkisi olmamalı.
+
+## İz analizi — koşular arası hata döngüsü
+
+Tepe tırmanma döngüsünün eksik ayağıydı. Her halka **kendi turuna**
+bakıyordu: `elestirmen.py` aynı turun tekrarını, `devre.py` aynı koşunun
+salınımını, `eniyile.py` aynı halkanın puanını görüyor. Hiçbiri şunu
+göremiyordu:
+
+    "Bu aynı şekildeki hata üç ayrı koşuda dört kez oldu."
+
+Ham malzeme de kalıcı değildi: `seyir.jsonl` ve `olay-defteri.jsonl`
+ikisi de `.gitignore`'da. Ertesi gün "nerede hata yapıldı" sorusunu
+soracak bir şey kalmıyordu.
+
+`iz-defteri.jsonl` **kalıcı ve depoda.** İçinde ham iz yok — ham iz
+bağlamı çürütür ve zaten `seyir.py`'nin kasten dışarıda bıraktığı şey.
+Duran şey **hata şekli**: ne oldu, nerede, hangi kapı yakaladı (ya da
+yakalayamadı), kanıtı ne.
+
+### Kimlik neye bağlı
+
+Ders defterinden alınan disiplin: kimliği doğrulanabilir olana bağla.
+
+| Küme | Kimlik | Sonuç |
+|---|---|---|
+| **Yer kümesi** | adres — aynı dosyada tekrarlıyor | ölçüm, çıkış 0/1 |
+| **Şekil kümesi** | kelime — farklı yerlerde benzer cümle | **tahmin**, çıkış 3 |
+
+İkincisi insan kapısına çıkıyor. Kelime örtüşmesiyle "bunlar aynı hata"
+demek bir ölçüm değil bir tahmindir, ve sistem tahminini ölçüm diye
+sunmaz. Aynı hata mı, benzer cümleyle yazılmış iki ayrı hata mı — makine
+ayıramaz.
+
+Defterin en değerli kaydı `kapi: yok` olanlar: **hiçbir mekanik kapının
+görmediği hata.** `oner` tam olarak onları gösteriyor.
+
+### Neden hiçbir şeyi kendiliğinden değiştirmiyor
+
+Bu aracın en önemli sınırı, ve bir vakayla zorlanıyor
+(`iz: kuralı kendiliğinden değiştirmiyor`).
+
+Ölçülen şeyin, ölçen kuralı yazma yetkisi olursa kural kural olmaktan
+çıkar. Kızıl takım testinde bunu gördük: bir testin **adı yerinde
+bırakılıp gövdesi boşaltıldı** ve hiçbir kapı fark etmedi. Kural yazma
+yetkisi olan bir ajan bunu kötü niyetle değil **iyi niyetle** yapar —
+"bu test gereksiz katı" der, gevşetir, sistem yeşil kalır, ölçüm ölür.
+
+Otomatik önerilebilecek şey kural değil **test**: yanlış bir test
+gürültülü biçimde kırmızı yanar, yanlış bir kural sessizce yanlış şeyi
+savunmaya başlar ve aylarca fark edilmez.
+
+Bir iz, onu yakalayan vakanın **adıyla** kapanıyor ve o ad gerçekten var
+olmalı — doğrulamayı `ders.py`'nin çözücüsü yapıyor, ikinci bir kopya
+yazılmadı: iki çözücü ayrışır, biri düzeltilir öbürü eski kalır ve
+hangisinin doğru olduğu bilinmez. `coken` karşılığı sonradan silinen ya
+da içi boşaltılanı yakalıyor.
+
+## Rapor okuyucu — özyinelemeli okuma
+
+26 ajan koşturulduğunda 26 rapor çıkıyor ve bunları kabuktan okumak
+bağlamı taşırıyordu. Yasak doğruydu ama **yerine bir şey konmamıştı**:
+raporlar `ozetleyici` ajanına devrediliyordu, o da aynı pencere sınırına
+çarpıyordu, sadece başka bir yerde.
+
+Fikir bu depoda zaten iki yerde uygulanıyor — veriyi modele yükleme, dış
+ortamda tut, programlı sorgula:
+
+| Araç | Ne yapıyor |
+|---|---|
+| `okuyucu.py` | `data.js`'i modele okutmaz, Python'da ayrıştırır |
+| `ara.py` | LORE'u yüklemez, BM25 ile sorgular, satır döndürür |
+| `rapor.py` | raporu yüklemez, arar/parçalar/adres döndürür |
+
+`rapor.py` bir adım ekliyor: **özyineleme.** `parca` büyük bir raporu
+kararlı numaralı parçalara böler; model parçayı ister, işler, bir
+sonrakini ister. Tamamını hiç görmez, ve nerede kalındığı kaybolmaz.
+
+`al` içeriği **basmaz**, yalnızca ölçü basar — aracın bütün varlık sebebi
+bu ve bir vaka onu zorluyor (`rapor: içeriği pencereye basmıyor`).
+Basmamak saklamamak değil: aynı vaka içeriğin depoda **durduğunu** da
+doğruluyor, sorulunca bulunuyor.
+
+Serbest özet yok. `seyir.py`'deki ile aynı gerekçe: serbest özetleyici
+neyin önemli olduğunu bilmez ve tam da sonradan lazım olacak şeyi atar.
+Dönen şey **adresli satır** — okuyan gider bakar.
+
+`ortak` birden fazla raporun gösterdiği adresi önceliklendiriyor ama
+çıktısında bunun kanıt olmadığını söylüyor: **aynı modelin N kopyası N
+bağımsız göz değildir**, aynı kör noktayı paylaşırlar. Bu da bir vakayla
+zorlanıyor — uyarı silinirse sınav kırmızı yanar.
+
+Depo (`rapor-deposu/`) koşuya özel ve `.gitignore`'da; kalıcı bilgi ders
+defterine ya da iz defterine yazılır.
+
 ## Sınırlar
 
 Bunlar tahmin değil, fay enjeksiyon sınavıyla ölçüldü: **28 vaka
-(22 yakalanmalı, 6 masum)** ve **20 altın soru**. Bu sayılar `dogrula.py`
+(22 yakalanmalı, 6 masum)** ve **24 altın soru**. Bu sayılar `dogrula.py`
 tarafından denetleniyor — betikler değişip belge yerinde kalırsa hata verir.
 Ölçülen iki gerçek açık vardı, ikisi de kapatıldı — biri tam olarak
 kapanamadı, aşağıda:
