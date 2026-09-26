@@ -60,7 +60,7 @@ jobs:
 
       - name: Kural denetimi (dogrula.py)
         run: |
-          python3 .claude/dogrula.py; kod=$?
+          kod=0; python3 .claude/dogrula.py || kod=$?
           case $kod in
             0) echo "::notice title=dogrula::Temiz" ;;
             1) echo "::error title=dogrula::Kural ihlali — düzelt"; exit 1 ;;
@@ -71,7 +71,7 @@ jobs:
       - name: Bütünlük denetimi (butunluk.py)
         if: '!cancelled()'
         run: |
-          python3 .claude/butunluk.py; kod=$?
+          kod=0; python3 .claude/butunluk.py || kod=$?
           case $kod in
             0) echo "::notice title=butunluk::Canon ↔ veri ↔ site tutarlı" ;;
             1) echo "::error title=butunluk::İçerik tutarsızlığı"; exit 1 ;;
@@ -82,21 +82,21 @@ jobs:
       - name: Denetleyicinin sınavı (sinav.py)
         if: '!cancelled()'
         run: |
-          python3 .claude/sinav.py; kod=$?
+          kod=0; python3 .claude/sinav.py || kod=$?
           [ $kod -eq 0 ] || { echo "::error title=sinav::Denetleyici kasıtlı bozulmayı kaçırdı (çıkış $kod)"; exit 1; }
           echo "::notice title=sinav::Denetleyici bozulmayı yakalıyor"
 
       - name: Araçların sınavı (arac-sinavi.py)
         if: '!cancelled()'
         run: |
-          python3 .claude/arac-sinavi.py; kod=$?
+          kod=0; python3 .claude/arac-sinavi.py || kod=$?
           [ $kod -eq 0 ] || { echo "::error title=arac-sinavi::Araç vakası düştü (çıkış $kod)"; exit 1; }
           echo "::notice title=arac-sinavi::Bütün araç vakaları beklendiği gibi"
 
       - name: Geri getirme ölçümü (degerlendir.py)
         if: '!cancelled()'
         run: |
-          python3 .claude/degerlendir.py; kod=$?
+          kod=0; python3 .claude/degerlendir.py || kod=$?
           [ $kod -eq 0 ] || { echo "::error title=degerlendir::Geri getirme eşiği düştü (çıkış $kod)"; exit 1; }
           echo "::notice title=degerlendir::Geri getirme eşikleri geçti"
 
@@ -105,7 +105,7 @@ jobs:
         run: |
           # Açık boşluk hata değil (devam eden iş), çöken kapanış hatadır:
           # karşılığı silinmiş bir boşluk kapalı görünür ve kimse aramaz.
-          python3 .claude/evrim.py durum; kod=$?
+          kod=0; python3 .claude/evrim.py durum || kod=$?
           if [ $kod -ne 0 ]; then
             python3 .claude/evrim.py durum | grep -q "ÇÖKEN" \
               && { echo "::error title=evrim::Çöken kapanış — karşılığı olmayan boşluk kapalı görünüyor"; exit 1; } \
@@ -118,7 +118,7 @@ jobs:
         # eder, ve bu adım o ayrımın kendisi.
         if: "!cancelled() && github.event_name == 'pull_request'"
         run: |
-          python3 .claude/bekci.py --taban "${{ github.event.pull_request.base.sha }}" --ayrinti; kod=$?
+          kod=0; python3 .claude/bekci.py --taban "${{ github.event.pull_request.base.sha }}" --ayrinti || kod=$?
           case $kod in
             0) echo "::notice title=bekci::Ölçüm katmanına dokunulmamış" ;;
             1) echo "::error title=bekci::Ölçen alet BEYANSIZ değişti — commit mesajına 'ÖLÇÜM-DEĞİŞTİ: <gerekçe>' ekle"; exit 1 ;;
@@ -133,7 +133,7 @@ jobs:
           # durdurmaz. Terfi etmiş olanlar burada gerçek kapıdır.
           # --kaydet YOK: CI sayaç yazmaz, depo temiz kalmalı. Kanıt yerelde
           # birikir.
-          python3 .claude/golge.py kos; kod=$?
+          kod=0; python3 .claude/golge.py kos || kod=$?
           case $kod in
             0) echo "::notice title=golge::Hiçbir kapı düşmedi (gölgeler bilgi amaçlı)" ;;
             1) echo "::error title=golge::Terfi etmiş bir kapı düştü ya da koşmadı"; exit 1 ;;
@@ -148,7 +148,7 @@ jobs:
           # Açık iz hata değil (henüz teste çevrilmemiş iş), ÇÖKEN
           # karşılık hatadır: karşılığı silinmiş bir iz kapalı görünür
           # ve bir daha kimse aramaz. `evrim.py` ile aynı ayrım.
-          python3 .claude/iz.py coken; kod=$?
+          kod=0; python3 .claude/iz.py coken || kod=$?
           case $kod in
             0) echo "::notice title=iz::Kapatılan her izin karşılığı yerinde" ;;
             1) echo "::error title=iz::Çöken ya da kaymış karşılık — kapalı görünen iz aslında açık"; exit 1 ;;
@@ -157,7 +157,7 @@ jobs:
           # Kuyrukta bekleyen iz uyarıdır, kapı değil: her hatayı aynı
           # gün teste çevirmek zorunlu olsaydı, hata kaydetmek cezaya
           # dönerdi ve defter boş kalırdı.
-          python3 .claude/iz.py kuyruk >/dev/null; kod=$?
+          kod=0; python3 .claude/iz.py kuyruk >/dev/null || kod=$?
           [ $kod -eq 0 ] || echo "::warning title=iz::Karşılığı yazılmamış iz var — yakalayan kapı yok demektir"
 
       - name: Kapatılmamış geri bildirim kaydı var mı
@@ -165,7 +165,7 @@ jobs:
         run: |
           # Çıkış koduna bakıyoruz, metne değil. Metne bağlanan iddia,
           # cümle değişince sessizce yanlış ölçer — bu depoda yaşandı.
-          python3 .claude/geri-bildirim.py korumasiz; kod=$?
+          kod=0; python3 .claude/geri-bildirim.py korumasiz || kod=$?
           [ $kod -eq 0 ] || echo "::warning title=geri-bildirim::Testsiz kapatılmış kayıt var — düzeltilmiş değil, ertelenmiş demektir"
 
       - name: Depo temiz mi (denetim hiçbir şeyi değiştirmemeli)
@@ -199,6 +199,6 @@ jobs:
           git config --global user.name "Echo Orkestra Denetim"
       - name: Mutasyon sınavı
         run: |
-          python3 .claude/mutasyon.py; kod=$?
+          kod=0; python3 .claude/mutasyon.py || kod=$?
           [ $kod -eq 0 ] || { echo "::error title=mutasyon::Ölü test var — bozulma yakalanmadı (çıkış $kod)"; exit 1; }
           echo "::notice title=mutasyon::Bütün mutasyonlar yakalandı"
