@@ -1,7 +1,7 @@
 {
   "majör": 2,
   "minör": 1,
-  "yama": 4,
+  "yama": 5,
   "gecmis": [
     {
       "surum": "v1.1",
@@ -96,6 +96,11 @@
     {
       "surum": "v2.1.4",
       "ne": "Kendi yalan denetimi: duman ve CI ölü kapıya 'tutarlı' diyordu (kapi.py ile özet satırı zorunlu); dogrula bağımlılığın sys.exit'ini yutuyordu; bütünlük sınavı canon il tablosunu data.js ile hiç karşılaştırmıyordu.",
+      "tarih": "2026-09-26"
+    },
+    {
+      "surum": "v2.1.5",
+      "ne": "Videodan iki eksik: devre.py çakışma kilidi (turu aralıktan uzun süren döngü kendi üstüne binmesin, çıkış 4); duman.py sahipsiz worktree uyarısı (korumasız 'worktree sızdırır' dersi artık vakayla korunuyor).",
       "tarih": "2026-09-26"
     }
   ]

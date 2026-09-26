@@ -144,6 +144,9 @@ Sürüm: `python3 .claude/surum.py goster` — işaret: `python3 .claude/logo.py
   kendiliğinden koşar (~0,4 sn), **oturumu engellemez** — kırmızıysa
   söyler, durdurma kararı okuyanın. Kapsamı CI'den dar (fay enjeksiyonu
   ve araç sınavı burada koşmaz); bu eksiklik değil, hız tercihi.
+  Ayrıca **sahipsiz worktree**'leri sayar ve açılışta söyler (kapı değil
+  uyarı, hiçbirini silmez — içinde merge edilmemiş iş olabilir). "git
+  worktree sızdırır" dersi bununla korumalı hâle geldi.
 - `python3 .claude/ozellik.py` — **özellik sınavı.** Elle yazılmış vakalar
   yalnızca akla gelen durumu korur. Burada örnek değil **kural** yazılır
   ("okunan, yazılanın aynısı olmalı") ve üretilen yüzlerce girdide
@@ -226,6 +229,11 @@ Sürüm: `python3 .claude/surum.py goster` — işaret: `python3 .claude/logo.py
   kararları ve çözülmemişleri verir, ham tur izini vermez (bağlam çürümesi).
 - `python3 .claude/devre.py` — döngülere mekanik tur sınırı koyar (devre
   kesici). Üç sınır: tur sayısı, duvar saati ve ilerleme (tekrar/salınım).
+  Artı **çakışma kilidi**: her halka bir sahip (oturum kimliği) taşır;
+  önceki koşu kendi süre bütçesi içindeyken başka bir koşu aynı halkada
+  `dene` derse **çıkış 4** alır ve durum dosyasına dokunulmaz — turu
+  atlar. Dışarıda gözlendi: turu aralıktan uzun süren zamanlanmış döngü
+  kendi üstüne biniyor, iki koşu aynı alana giriyordu.
 - `python3 .claude/yargi.py` — verilen cevapları altın sete karşı yargılar:
   atıf gerçekten doğru satırı gösteriyor mu, uydurma var mı.
 - `python3 .claude/geri-bildirim.py` — yanlış çıkan bir cevabı kalıcı test

@@ -1,4 +1,4 @@
-# Echo Orkestra v2.1.4
+# Echo Orkestra v2.1.5
 
 Bu katmanın adı **Echo**. Adın sebebi işleyişinde: her çıktı bir
 denetimden geri döner, her hata bir teste geri döner, her ölçüm sistemin
@@ -381,6 +381,13 @@ deftere geçiyor.
 - **Defter bağlam şişmesine karşı.** Her tur tek satır yazılır. Amaç arşiv
   değil *unutabilmek*: model geçmişi bağlamında taşımak yerine `durum`
   komutuyla okur.
+- **Çakışma kilidi.** Zamanlanmış bir döngünün turu aralıktan uzun
+  sürerse, önceki bitmeden yenisi başlar ve ikisi aynı alana girer; sayaç
+  bunu göremez, iki koşu aynı sayacı paylaşır. Halka bir **sahip** taşır
+  (oturum kimliği ya da `--sahip`); başka sahip, halka kendi süre
+  bütçesi içindeyken `dene` derse **çıkış 4** alır ve dosyaya dokunulmaz.
+  Bütçesi dolmuş ya da `basari` ile kapanmış halkanın kilidi ölüdür —
+  çökmüş bir koşu halkayı sonsuza kadar kilitlememeli.
 
 ## Sınırlı otonom döngü (Ralph Wiggum)
 
