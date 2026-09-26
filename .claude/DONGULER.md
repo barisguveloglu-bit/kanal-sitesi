@@ -1,4 +1,4 @@
-# Echo Orkestra v2.1.4
+# Echo Orkestra v2.1.5
 
 Bu katmanın adı **Echo**. Adın sebebi işleyişinde: her çıktı bir
 denetimden geri döner, her hata bir teste geri döner, her ölçüm sistemin
@@ -381,6 +381,13 @@ deftere geçiyor.
 - **Defter bağlam şişmesine karşı.** Her tur tek satır yazılır. Amaç arşiv
   değil *unutabilmek*: model geçmişi bağlamında taşımak yerine `durum`
   komutuyla okur.
+- **Çakışma kilidi.** Zamanlanmış bir döngünün turu aralıktan uzun
+  sürerse, önceki bitmeden yenisi başlar ve ikisi aynı alana girer; sayaç
+  bunu göremez, iki koşu aynı sayacı paylaşır. Halka bir **sahip** taşır
+  (oturum kimliği ya da `--sahip`); başka sahip, halka kendi süre
+  bütçesi içindeyken `dene` derse **çıkış 4** alır ve dosyaya dokunulmaz.
+  Bütçesi dolmuş ya da `basari` ile kapanmış halkanın kilidi ölüdür —
+  çökmüş bir koşu halkayı sonsuza kadar kilitlememeli.
 
 ## Sınırlı otonom döngü (Ralph Wiggum)
 
@@ -598,6 +605,17 @@ sürüm yamayı dokuzdan öteye taşısın, logo sürümü gövdeye çakılsın�
 
 Bu sayı da belgeye elle yazılıyor, yani o da çürüyebilir — nitekim çürüdü:
 belge 15 derken gerçek 23'tü. `belge` denetimi artık bu sayıyı da tutuyor.
+
+**v2.1.5'te mutasyon sınavı hiç bitmiyordu.** Araç sınavı büyüdükçe
+(184 vaka, içinde iç içe bir ablasyon koşusu) tek koşu ~3 dakikaya çıktı;
+42 mutasyonla toplam ~2 saat. Haftalık iş 60 dakikalık sınıra çarpıp
+çıkış 124 ile ölüyordu — ve bitmeyen mutasyon sınavı hiçbir şey
+söylemez. Öldürülen her koşu `finally` çalışmadan kapandığı için geçici
+kopyalar da diskte kalıyordu (iki koşu ~700 MB). Üç düzeltme:
+`--ilk-hatada-dur` (mutasyonun sorusu "en az bir vaka düştü mü"; ilk
+düşüşten sonrası cevabı değiştirmez), tek koşu sınırı 300 → 900 sn, ve
+SIGTERM'in çıkışa çevrilmesi (temizlik koşsun). Bayrak ortam değişkeni
+değil argüman: ablasyonun iç içe tam koşusuna sızmamalı.
 
 v1.1.2 koşusunda iki şey birden çıktı ve ikisi de farklı bir körlük türü:
 
@@ -970,7 +988,7 @@ her ajan dosyasını okuyor — listede olmayan biri Opus'a çıkarsa da,
 listedeki biri Sonnet'e düşerse de kırmızı yanıyor. Hak **üçle sınırlı**
 ve liste `dogrula.py`'de yazılı; dördüncüsü reddedilir.
 
-Ders defteri (`dersler.jsonl`) şu an **26 ders** taşıyor; kalıcı ve
+Ders defteri (`dersler.jsonl`) şu an **27 ders** taşıyor; kalıcı ve
 depoda. Sayı burada yazılı çünkü sessiz silmeyi ancak bu yakalıyor.
 
 **Koruma doğrulanır.** Bir ders "korunuyor" diyebiliyorsa bunun

@@ -49,6 +49,11 @@ def main():
         # koşmadığı görünmez olur ve sessiz başarısızlık sessiz başarıdan
         # ayırt edilemez. Tek satır yeter.
         print("Zemin denetimi: temiz (duman testi).")
+        # Kapı olmayan uyarılar (sahipsiz worktree) çıkış kodunu
+        # değiştirmez; burada yutulursa hiç görünmezler.
+        cikti = s.stdout or ""
+        if "UYARI —" in cikti:
+            print(cikti[cikti.index("UYARI —"):].strip())
         return 0
 
     print("ZEMİN DENETİMİ — dikkat\n")

@@ -104,6 +104,88 @@ def t_devre_defter_tutuyor(kok):
     return None
 
 
+def t_devre_cakisan_kosuyu_reddediyor(kok):
+    """Dışarıda gözlendi: 15 dakikalık döngünün turu 15 dakikayı aşınca
+    ikinci koşu başladı ve ikisi aynı alana girdi. Sayaç bunu göremez."""
+    yol = os.path.join(kok, ".claude", "devre-durumu.json")
+    kos(kok, "devre.py", "dene", "--halka", "t", "--sinir", "8",
+        "--sure", "600", "--sahip", "birinci")
+    once = open(yol, encoding="utf-8").read()
+    s = kos(kok, "devre.py", "dene", "--halka", "t", "--sinir", "8",
+            "--sure", "600", "--sahip", "ikinci")
+    if s.returncode != 4 or "ÇAKIŞMA" not in s.stdout:
+        return f"ikinci koşu halkanın üstüne bindi (çıkış {s.returncode})"
+    if open(yol, encoding="utf-8").read() != once:
+        return "reddedilen koşu durum dosyasını değiştirdi"
+    s = kos(kok, "devre.py", "dene", "--halka", "t", "--sinir", "8",
+            "--sure", "600", "--sahip", "birinci")
+    if s.returncode != 0 or "2/8" not in s.stdout:
+        return f"sahibin kendi turu reddedildi: {s.stdout.strip()[:60]}"
+    return None
+
+
+def t_devre_olu_kilidi_birakiyor(kok):
+    """Çökmüş bir koşu halkayı sonsuza kadar kilitlememeli: bütçesi
+    dolmuş ya da başarıyla kapanmış halka başkasına açıktır."""
+    from datetime import datetime, timedelta
+    kos(kok, "devre.py", "dene", "--halka", "t", "--sinir", "8",
+        "--sure", "60", "--sahip", "birinci")
+    yol = os.path.join(kok, ".claude", "devre-durumu.json")
+    d = json.load(open(yol, encoding="utf-8"))
+    d["t"]["baslangic"] = (datetime.now() - timedelta(seconds=120)).isoformat(timespec="seconds")
+    json.dump(d, open(yol, "w", encoding="utf-8"), ensure_ascii=False)
+    s = kos(kok, "devre.py", "dene", "--halka", "t", "--sinir", "8",
+            "--sure", "60", "--sahip", "ikinci")
+    if s.returncode == 4:
+        return "bütçesi dolmuş koşunun kilidi hâlâ tutuyor"
+    kos(kok, "devre.py", "dene", "--halka", "u", "--sahip", "birinci")
+    kos(kok, "devre.py", "basari", "--halka", "u")
+    s = kos(kok, "devre.py", "dene", "--halka", "u", "--sahip", "ikinci")
+    if s.returncode != 0:
+        return f"başarıyla kapanan halka başkasına açılmadı (çıkış {s.returncode})"
+    return None
+
+
+def t_duman_sahipsiz_worktreei_bildiriyor(kok):
+    """'git worktree sızdırır' dersi korumasızdı — yalnızca okunarak
+    hatırlanıyordu. Açılışta görünmeli ve kapı gibi durdurmamalı."""
+    yetim = os.path.join(os.path.dirname(kok), "yetim-agac")
+    s = subprocess.run(["git", "worktree", "add", "--detach", yetim],
+                       cwd=kok, capture_output=True, text=True, timeout=120)
+    if s.returncode != 0:
+        return f"fikstür kurulamadı: {s.stderr.strip()[:80]}"
+    s = subprocess.run(
+        [sys.executable, os.path.join(kok, ".claude", "olay.py"), "dagit"],
+        input='{"hook_event_name":"SessionStart","source":"startup"}',
+        cwd=kok, capture_output=True, text=True, timeout=120)
+    if "sahipsiz worktree" not in s.stdout or "yetim-agac" not in s.stdout:
+        return f"sahipsiz worktree açılışta görünmedi: {s.stdout[-160:]}"
+    if s.returncode != 0:
+        return f"uyarı oturumu engelledi (çıkış {s.returncode})"
+    if not os.path.isdir(yetim):
+        return "duman worktree'yi sildi — silme kararı okuyanın"
+    return None
+
+
+def t_arac_sinavi_ilk_hatada_duruyor(kok):
+    """Mutasyon sınavı bu bayrakla koşuyor. Bayrak düşen vakayı 0 ile
+    kapatırsa her mutasyon "kaçtı" görünür; hiç durmazsa haftalık iş
+    süre sınırına çarpıp hiçbir şey söylemeden ölür — ikisi de yaşandı
+    sayılır. İlk vaka bozulur: iç koşu orada durmalı, bu vakaya hiç
+    ulaşmamalı (özyineleme yok)."""
+    hata = _boz(kok, ".claude/devre.py",
+                "tur_doldu = halka[\"sayac\"] > halka[\"sinir\"]",
+                "tur_doldu = False")
+    if hata:
+        return hata
+    s = kos(kok, "arac-sinavi.py", "--ilk-hatada-dur")
+    if s.returncode != 1:
+        return f"düşen vakaya rağmen çıkış {s.returncode}"
+    if "İLK HATADA DURULDU — 1/" not in s.stdout:
+        return f"ilk hatada durmadı: {s.stdout.strip()[-120:]}"
+    return None
+
+
 # ------------------------------------------------------------------ yargıç
 
 def _cevaplar(kok, bozma=None):
@@ -3094,6 +3176,10 @@ VAKALAR = [
     ("devre: bayat sayaç sıfırlanıyor",     t_devre_bayat_sifirliyor),
     ("devre: bozuk durum kilitlemiyor",     t_devre_bozuk_durum_kilitlemiyor),
     ("devre: defter not tutuyor",           t_devre_defter_tutuyor),
+    ("devre: çakışan koşuyu reddediyor",    t_devre_cakisan_kosuyu_reddediyor),
+    ("devre: ölü kilidi bırakıyor",         t_devre_olu_kilidi_birakiyor),
+    ("duman: sahipsiz worktree'yi bildiriyor", t_duman_sahipsiz_worktreei_bildiriyor),
+    ("araç sınavı: ilk hatada duruyor",     t_arac_sinavi_ilk_hatada_duruyor),
 
     ("yargı: kusursuz set geçiyor",         t_yargi_temiz_gecer),
     ("yargı: UYDURMA yakalanıyor",          t_yargi_uydurma_yakalar),
@@ -3301,6 +3387,14 @@ VAKALAR = [
 
 
 def main():
+    # --ilk-hatada-dur: mutasyon sınavı için. Onun tek sorusu "en az bir
+    # vaka düştü mü"; ilk düşüşten sonra kalan vakaları koşturmak cevabı
+    # değiştirmez, yalnız süre yakar. Ölçüldü: 184 vakalık tam koşu ~3 dk,
+    # 42 mutasyonla ~2 saat — haftalık iş 60 dakikalık sınıra çarpıp hiç
+    # bitmiyordu ve bitmeyen mutasyon sınavı hiçbir şey söylemiyor.
+    # Argüman, ortam değişkeni değil: ablasyon iç içe bir tam koşu açar
+    # ve orada vaka sayımı eksiksiz olmalı; ortam alt sürece sızardı.
+    ilk_hatada = "--ilk-hatada-dur" in sys.argv[1:]
     gecti = basarisiz = 0
     for ad, islev in VAKALAR:
         gecici, kok = kopya()
@@ -3314,6 +3408,10 @@ def main():
         if kusur:
             print(f"  FAIL {ad}\n       → {kusur}")
             basarisiz += 1
+            if ilk_hatada:
+                print(f"\nİLK HATADA DURULDU — {gecti + basarisiz}/{len(VAKALAR)} "
+                      "vaka koşturuldu, kalanlar atlandı.")
+                return 1
         else:
             print(f"  OK   {ad}")
             gecti += 1
