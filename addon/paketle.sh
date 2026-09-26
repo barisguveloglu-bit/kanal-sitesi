@@ -27,6 +27,9 @@ SK="Simsek_Skin"
 # cunku player.entity.json'u ezen iki paket ayni anda calisamaz --
 # sorun cikarsa tek dokunusla yalniz bu kapatilir.
 OM="Simsek_Oyuncu_Modeli"
+# v7.97.2: Iron Man uyumlu oyuncu modeli. Klasorde yalniz manifest
+# ve birlesik varlik tanimi var; asagida OM'nin USTUNE bindiriliyor.
+OMIM="Simsek_Oyuncu_Modeli_IronMan"
 # v7.85: gokyuzu paketi. dunya_uret.py uretiyor, .mcaddon'a
 # GIRMIYOR (sebebi asagida).
 GK="Simsek_Efsane_Gokyuzu"
@@ -92,6 +95,21 @@ python3 "$K/dunya_uret.py"
     -x '__pycache__/*' '*/__pycache__/*' '.*' '*/.*' >/dev/null)
 (cd "$K" && zip -r -X "$K/Simsek_$S.mcaddon" "$BP" "$RP" "$SK" "$OM" >/dev/null)
 
+# ---- IRON MAN UYUMLU OYUNCU MODELI  (v7.97.2) ----
+# .mcaddon'a KONMUYOR, bilerek. Birlesik tanim Iron Man paketindeki
+# geometri/denetleyici/malzemelere dayaniyor; v7.96.2-v7.97.1 arasi
+# temiz pakete yaziliyordu ve Iron Man KURULU OLMAYAN oyuncu ucuncu
+# sahista GORUNMEZ oldu. Temiz paket artik yalniz kendi dosyalarimiza
+# dayaniyor; Iron Man'i kuran bunu, normal Oyuncu Modeli YERINE kurar.
+if [ -d "$K/$OMIM" ]; then
+  IMSAHNE="$(mktemp -d)"
+  cp -R "$K/$OM/." "$IMSAHNE/"
+  cp -R "$K/$OMIM/." "$IMSAHNE/"      # manifest + birlesik tanim ezer
+  (cd "$IMSAHNE" && zip -r -X "$K/Simsek_${S}_OyuncuModeli_IronMan.mcpack" . \
+      -x '__pycache__/*' '*/__pycache__/*' '.*' '*/.*' >/dev/null)
+  rm -rf "$IMSAHNE"
+fi
+
 # ---- EFSANENIN GOGU + EFSANENIN DUNYASI  (v7.85) ----
 # Gokyuzu paketi .mcaddon'a KONMUYOR, bilerek: .mcaddon'daki
 # her paket kurulur kurulmaz etkin oluyor ve bu paket
@@ -147,7 +165,7 @@ echo "Olusturuldu:"
 echo "  KUR:  Simsek_$S.mcaddon   <-- normalde SADECE bunu kur"
 for f in "Simsek_${S}_Mod.mcpack" "Simsek_${S}_Gorunum.mcpack" "Simsek_${S}_Skin.mcpack" \
          "Simsek_${S}_OyuncuModeli.mcpack" "Simsek_$S.mcaddon" \
-         "Simsek_${S}_Gokyuzu.mcpack"; do
+         "Simsek_${S}_Gokyuzu.mcpack" "Simsek_${S}_OyuncuModeli_IronMan.mcpack"; do
   [ -f "$K/$f" ] && echo "  $f  ($(du -h "$K/$f" | cut -f1))"
 done
 echo
@@ -167,3 +185,7 @@ echo "DIKKAT: .mcaddon skin paketini de iceriyor."
 echo "  Ikisini birden kurma -> oyun 'kopya' der (ayni UUID)."
 echo "  Sadece skini isteyen Simsek_${S}_Skin.mcpack'i kurar."
 echo "  Yeni surumden once ESKI surumun paketlerini sil."
+echo
+echo "IRON MAN: Simsek_${S}_OyuncuModeli_IronMan.mcpack YALNIZ Iron Man"
+echo "  add-on'u kuruluysa. Normal Oyuncu Modeli'nin YERINE etkinlestir."
+echo "  Iron Man yokken bunu acarsan ucuncu sahista gorunmez olursun."

@@ -36,7 +36,7 @@ Bizde karşılığı `ben10.js` içindeki `donusumSahnesi()`.
 | | |
 |---|---|
 | ne | `player.entity.json` + `entities/player.json` (iki tanım) |
-| nerede | `kaynak_dis/ironman/` (ham) → üretim paketlere bindiriyor |
+| nerede | `kaynak_dis/ironman/` (ham) → davranış paketine bindiriliyor; görünüm tarafı **ayrı, isteğe bağlı** paket: `Simsek_<sürüm>_OyuncuModeli_IronMan.mcpack` |
 | neden | Bedrock'ta `minecraft:player`'ı ezen iki paket aynı anda çalışamaz; üstteki alttakini bütünüyle siler |
 | izin | **Yapımcısından (Mr. Nido) alındı, paylaşılabilir.** |
 
@@ -48,6 +48,19 @@ birleştirme **üretimin parçası** hâline geldi (`kol_uret.py`).
 Yalnız bu iki JSON alındı; Iron Man'in geometri, doku ve animasyon
 dosyaları **alınmadı** — birleşik tanım onları kendi paketinden
 çözüyor, yani Iron Man add-on'u kurulu olmalı.
+
+**v7.97.2 düzeltmesi — birleşik görünüm tanımı herkese gitmez.**
+v7.96.2–v7.97.1 arasında birleşik `player.entity.json` temiz
+Oyuncu Modeli paketine yazılıyordu. O tanım Iron Man paketindeki
+16 geometriye, 82 çizim denetleyicisine, 73 dokuya ve iki özel
+malzemeye dayanıyor. Iron Man **kurulu olmayan** kullanıcı üçüncü
+şahısta **görünmez** oldu, kendi skini hiç çizilmedi (kullanıcının
+bildirimi: "kendi skinim · görünmezim · Iron Man kurulu değil ·
+v7.96.2 ve sonrası"). Temiz paket artık v7.96.1'deki tanımla
+birebir aynı; birleşik tanım `Simsek_Oyuncu_Modeli_IronMan/`
+altında ve `.mcaddon`'a girmiyor. Iron Man'i kuran onu normal
+Oyuncu Modeli'nin **yerine** etkinleştirir. `test/oyuncu_modeli.mjs`
+9. bölüm kilitliyor.
 
 **Ölçülen bir davranış:** birleştirme sırasında bizim dönüşüm
 anahtarımız (`!variable.donusuk`) ekten gelen üçüncü şahıs

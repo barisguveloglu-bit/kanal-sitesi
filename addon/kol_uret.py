@@ -97,6 +97,22 @@ OMP_TABAN = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                          "oyuncu_modeli_taban")
 OMP_UUID_BAS = "c1f0a4d7-9b62-4f8e-9a31-2d6b8f4c7e05"
 OMP_UUID_MOD = "6e2b91c4-3d57-4a10-8f7d-b53e19a06c88"
+# ---- IRON MAN UYUMLU OYUNCU MODELI  (v7.97.2) ----
+# Birlesik oyuncu tanimi (bizim + Iron Man) BURAYA yaziliyor,
+# temiz OMP'ye degil. Klasorde yalniz manifest ve varlik tanimi
+# durur; paketle.sh OMP'yi kopyalayip bunu ustune bindirir.
+#
+# NEDEN AYRI: v7.96.2-v7.97.1 arasi birlesik tanim temiz pakete
+# yaziliyordu. O tanim Iron Man paketinde bulunan 16 geometriye,
+# 78 cizim denetleyicisine, 72 dokuya ve iki ozel malzemeye
+# (ironman_propulsores, outline) dayaniyor. Iron Man KURULU
+# DEGILKEN kullanici ucuncu sahista GORUNMEZ oldu -- kendi skini
+# hic cizilmedi. Kullanicinin bildirimi: "kendi skinim",
+# "gorunmezim", "Iron Man kurulu degil", "v7.96.2 ve sonrasi".
+# Kural: herkese giden paket yalniz KENDI dosyalarimiza dayanir.
+OMP_IM = os.path.join(KOK, "Simsek_Oyuncu_Modeli_IronMan")
+OMP_IM_UUID_BAS = "6556c295-1112-4b12-8a97-135629ee6ed6"
+OMP_IM_UUID_MOD = "41ad2a5a-1332-405c-a686-02dcda21e5fc"
 # Esyanin kimligi. get_equipped_item_name AD ALANINI ATIYOR
 # (belgede ve referans paketlerde boyle: 'pa:ilkel_asa' -> 'ilkel_asa'),
 # o yuzden molang'de karsilastirilan metin ON EKSIZ.
@@ -143,7 +159,7 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # hanenin 0 yerine 5'ten baslamasi bunun isareti -- 7.83.0
 # ile 7.83.5 AYNI kod, sadece numara degisti.
 # v7.91.0: ORTANCA hane -- Avaritia'dan uc mekanik.
-SURUM_NO = (7, 97, 1)
+SURUM_NO = (7, 97, 2)
 
 SURUM_METIN = "%d.%d.%d" % SURUM_NO
 
@@ -202,6 +218,9 @@ PAKETLER = {
              "Maskeyi eline al, O Şey ol. Ayrı paket: oyuncu modelini ezen başka bir paketle birlikte çalışmaz."),
     "skin": (PAKET_ONEK + "Skin",
              "Uzak Akraba ve diğer skinler."),
+    # v7.97.2: yalniz Iron Man add-on'u KURULU olanlar icin.
+    "omp_im": (PAKET_ONEK + "Oyuncu Modeli (Iron Man)",
+               "Yalnız Iron Man add-on'u kuruluysa. Normal Oyuncu Modeli yerine kur, ikisini birden değil."),
 }
 
 SKIN_PAKET_AD = PAKETLER["skin"][0]
@@ -7864,10 +7883,17 @@ def oyuncu_modeli_paketi(surum):
 
     _rp_oyuncu = os.path.join(OMP, "entity/player.entity.json")
     yaz_json(_rp_oyuncu, v)
-    # Dis oyuncu tanimi (Iron Man) varsa uzerine bindir.
-    # Gerekcesi DIS_OYUNCU_KAYNAK'in ustunde yazili.
-    if _dis_oyuncu_birlestir(_rp_oyuncu, "player.entity.json"):
-        print("oyuncu varligi birlestirildi (gorunum)")
+    # Dis oyuncu tanimi (Iron Man) varsa AYRI pakete bindir --
+    # temiz OMP'ye DEGIL. Gerekcesi OMP_IM'in ustunde.
+    _im_oyuncu = os.path.join(OMP_IM, "entity/player.entity.json")
+    yaz_json(_im_oyuncu, v)
+    if _dis_oyuncu_birlestir(_im_oyuncu, "player.entity.json"):
+        print("oyuncu varligi birlestirildi (Iron Man uyumlu paket)")
+        _im_var = True
+    else:
+        # Kaynak yoksa yarim paket birakma: klasoru topla.
+        shutil.rmtree(OMP_IM, ignore_errors=True)
+        _im_var = False
 
     # Denetleyici: referans paketteki sp_m_bobby_gun'in BIREBIR
     # ayni bicimi.
@@ -7998,6 +8024,24 @@ def oyuncu_modeli_paketi(surum):
         }],
     })
     png_yaz(os.path.join(OMP, "pack_icon.png"), 64, 64, paket_ikonu((10, 10, 13)))
+    if _im_var:
+        # Kendi UUID'si: temiz paketle ayni UUID olsaydi oyun
+        # ikisini "kopya" sayar, birini sessizce atardi.
+        yaz_json(os.path.join(OMP_IM, "manifest.json"), {
+            "format_version": 2,
+            "header": {
+                "name": PAKETLER["omp_im"][0],
+                "description": PAKETLER["omp_im"][1],
+                "uuid": OMP_IM_UUID_BAS,
+                "version": surum,
+                "min_engine_version": list(MIN_MOTOR),
+            },
+            "modules": [{
+                "type": "resources",
+                "uuid": OMP_IM_UUID_MOD,
+                "version": surum,
+            }],
+        })
     return True
 
 

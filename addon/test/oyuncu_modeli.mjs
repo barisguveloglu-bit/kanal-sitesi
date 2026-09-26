@@ -24,7 +24,7 @@
    ya da oyuncu iki bedenli gorunur -- ikisinin de sebebi
    tabletten anlasilmaz.                                        */
 
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync, existsSync, readdirSync, statSync } from "node:fs";
 
 const KOK = new URL("..", import.meta.url).pathname.replace(/\/$/, "");
 const OMP = KOK + "/Simsek_Oyuncu_Modeli";
@@ -406,6 +406,92 @@ console.log("=== 8. ESKI YOL (KILIK) DURUYOR ===");
   const ana = readFileSync(BP + "/scripts/main.js", "utf8");
   kontrol("menuden hala ulasiliyor",
           /yetenekTetikle\(oyuncu, "donusum"\)/.test(ana));
+}
+
+console.log("");
+console.log("=== 9. TEMIZ PAKET YALNIZ KENDI DOSYALARINA DAYANIYOR (v7.97.2) ===");
+{
+  /* v7.96.2-v7.97.1 arasi temiz Oyuncu Modeli'ne Iron Man'in
+     tanimi bindiriliyordu. O tanim Iron Man paketindeki 16
+     geometriye, 82 cizim denetleyicisine, 73 dokuya ve iki ozel
+     malzemeye dayaniyor. Iron Man KURULU DEGILKEN kullanici
+     ucuncu sahista GORUNMEZ oldu; kendi skini hic cizilmedi.
+
+     Bu bolum iddia etmiyor, OLCUYOR: temiz tanimin her
+     referansi ya vanilla ya da BIZIM paketlerimizde tanimli
+     olmali. Kural genel: yarin baska bir dis tanim temiz pakete
+     sizarsa da burasi duser.                                   */
+  const tanimli = { geo: new Set(), anim: new Set(), rc: new Set(), doku: new Set() };
+  const gez = (kok, alt) => {
+    for (const ad of readdirSync(alt)) {
+      const y = alt + "/" + ad;
+      if (statSync(y).isDirectory()) { gez(kok, y); continue; }
+      if (/\.(png|tga)$/.test(ad)) {
+        tanimli.doku.add(y.slice(kok.length + 1).replace(/\.(png|tga)$/, ""));
+        continue;
+      }
+      if (!ad.endsWith(".json")) continue;
+      let j; try { j = JSON.parse(readFileSync(y, "utf8")); } catch (e) { continue; }
+      if (!j || typeof j !== "object") continue;
+      for (const g of j["minecraft:geometry"] || [])
+        if (g.description && g.description.identifier) tanimli.geo.add(g.description.identifier);
+      for (const a of ["animations", "animation_controllers"])
+        if (j[a] && typeof j[a] === "object") Object.keys(j[a]).forEach((k) => tanimli.anim.add(k));
+      if (j.render_controllers && !Array.isArray(j.render_controllers))
+        Object.keys(j.render_controllers).forEach((k) => tanimli.rc.add(k));
+    }
+  };
+  gez(OMP, OMP); gez(RP, RP);
+
+  const VANILLA_ONEK = ["animation.player", "animation.humanoid", "animation.skeleton",
+    "animation.zombie", "animation.common", "animation.persona",
+    "controller.animation.player", "controller.animation.humanoid",
+    "controller.animation.persona", "controller.render.player.",
+    "geometry.humanoid", "geometry.cape"];
+  const vanilla = (n) => VANILLA_ONEK.some((o) => n.startsWith(o));
+  const VANILLA_MALZEME = new Set(["entity_alphatest", "player_animated",
+    "player_spectator", "slime", "entity_emissive_alpha", "slime_outer"]);
+  const VANILLA_DOKU = ["textures/entity/steve", "textures/entity/cape_invisible"];
+  const rcAd = (r) => (typeof r === "string" ? r : Object.keys(r)[0]);
+
+  const eksik = {
+    geometri: Object.values(d.geometry).filter((v) => !vanilla(v) && !tanimli.geo.has(v)),
+    animasyon: Object.values(d.animations).filter((v) => !vanilla(v) && !tanimli.anim.has(v)),
+    denetleyici: d.render_controllers.map(rcAd).filter((v) => !vanilla(v) && !tanimli.rc.has(v)),
+    doku: Object.values(d.textures).filter((v) => !VANILLA_DOKU.includes(v) && !tanimli.doku.has(v)),
+    malzeme: Object.values(d.materials).filter((v) => !VANILLA_MALZEME.has(v))
+  };
+  for (const [tur, l] of Object.entries(eksik)) {
+    kontrol("temiz tanimda cozulmeyen " + tur + " YOK", l.length === 0,
+            l.length + (l.length ? ": " + l.slice(0, 3).join(", ") : ""));
+  }
+  /* Vanilla ucuncu sahis cizimi -- skini ciziyor olan BU -- yalniz
+     bizim anahtarimiza bagli, dis kosul tasimiyor.              */
+  const ucuncu = d.render_controllers.find(
+    (x) => typeof x === "object" && "controller.render.player.third_person" in x);
+  const uk = ucuncu ? ucuncu["controller.render.player.third_person"] : "";
+  kontrol("skini cizen denetleyici dis kosul tasimiyor",
+          !!uk && !/off_skin|convert_entity/.test(uk), uk);
+
+  /* Birlesik tanim KAYBOLMADI, ayri pakete tasindi: Iron Man'i
+     kuran icin uyum hala var.                                    */
+  const IM = KOK + "/Simsek_Oyuncu_Modeli_IronMan";
+  if (existsSync(KOK + "/kaynak_dis/ironman/player.entity.json")) {
+    kontrol("Iron Man uyumlu paket uretildi", existsSync(IM + "/entity/player.entity.json"));
+    if (existsSync(IM + "/manifest.json")) {
+      const mi = oku(IM + "/manifest.json"), mo = oku(OMP + "/manifest.json");
+      kontrol("  kendi UUID'si var (temizle kopya sayilmaz)",
+              mi.header.uuid !== mo.header.uuid &&
+              mi.modules[0].uuid !== mo.modules[0].uuid);
+      const di = oku(IM + "/entity/player.entity.json")["minecraft:client_entity"].description;
+      kontrol("  birlesik tanim Iron Man geometrisini tasiyor",
+              "humanoid_update" in di.geometry);
+      kontrol("  bizim donusumlerimiz de icinde", "o_sey" in di.geometry);
+    }
+  }
+  const pk = readFileSync(KOK + "/paketle.sh", "utf8");
+  const mcaddon = (pk.match(/zip -r -X "\$K\/Simsek_\$S\.mcaddon"[^\n]*/) || [""])[0];
+  kontrol(".mcaddon Iron Man paketini TASIMIYOR", !!mcaddon && !/OMIM/.test(mcaddon), mcaddon);
 }
 
 console.log("");

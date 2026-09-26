@@ -147,9 +147,15 @@ kontrol("bilinen artik DOSYA yok",
    DIS sayiyor: muafiyet genel degil, yalnizca kaynak dosyanin
    gercekten tanimladigi kimlikler. Kaynak klasor silinirse
    muafiyet de kalkar ve sayi 102'ye doner.                  */
+/* v7.97.2: 112 -> 102. Birlesik tanim temiz Oyuncu Modeli'nden
+   ayri pakete (Simsek_Oyuncu_Modeli_IronMan) tasindi: Iron Man
+   kurulu degilken oyuncu ucuncu sahista GORUNMEZ oluyordu.
+   Temiz tanim o 10 dis animasyona artik atif yapmiyor; yukaridaki
+   notun dedigi gibi sayi 102'ye dondu. Tarayici birlesik paketi
+   taramiyor -- onun dis referanslari Iron Man'in kendi paketinde. */
 const disSayisi = say("DIS  :");
 kontrol("dis (vanilla) animasyon sayisi degismedi",
-        disSayisi === 112, disSayisi + " tane (beklenen 102)");
+        disSayisi === 102, disSayisi + " tane (beklenen 102)");
 
 console.log(hata ? "\nKALDI" : "\nhepsi gecti");
 process.exit(hata ? 1 : 0);
