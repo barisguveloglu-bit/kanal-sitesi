@@ -116,6 +116,18 @@ def v_lore_uydurma_karakter(k):
     duzenle(k, "assets/js/data.js", '    ad: "Sarı Gülücük",',
             '    ad: "Çelik Pençeli Kasap",')
 
+def v_agents_kural_dustu(k):
+    """CLAUDE.md'deki kural AGENTS.md'den düşerse Codex onu bilmeden
+    çalışır; hiçbir kapı talimatı ölçmüyordu."""
+    duzenle(k, "AGENTS.md", "outline: none", "odak stilini sade tut")
+
+def v_talimat_sisti(k):
+    """CLAUDE.md her oturumda bağlama giriyor; araç ayrıntısı oraya
+    geri dolarsa yakalanmalı."""
+    p = os.path.join(k, "CLAUDE.md")
+    with open(p, "a", encoding="utf-8") as f:
+        f.write("\n## Ek not\n\n" + "Bu aracın uzun gerekçesi. " * 120 + "\n")
+
 # --- masum vakalar: bunlar yakalanmamalı --------------------------------
 
 def m_degisiklik_yok(k):
@@ -173,6 +185,8 @@ VAKALAR = [
     ("belge: vaka sayısı kaydı",          v_belge_vaka_sayisi,            "belge"),
     ("belge: altın soru sayısı kaydı",    v_belge_altin_sayisi,           "belge"),
     ("belge: olmayan bölüme atıf",        v_belge_olmayan_bolum,          "belge"),
+    ("belge: AGENTS.md'den kural düştü",  v_agents_kural_dustu,           "belge"),
+    ("belge: CLAUDE.md bütçeyi aştı",     v_talimat_sisti,                "belge"),
 
     ("MASUM: hiç değişiklik yok",         m_degisiklik_yok,               None),
     ("MASUM: yorumda 'outline: none'",    m_yorumda_outline,              None),

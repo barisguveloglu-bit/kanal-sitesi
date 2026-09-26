@@ -868,6 +868,74 @@ def d_belge(r):
         else:
             r.tamam()
 
+    talimat_belgeleri(r)
+
+
+# CLAUDE.md her oturumda baştan sona bağlama yükleniyor. 18 KB'a çıkmıştı:
+# araçların tarihçesi, her oturumda gereken kuralla aynı yerde duruyordu.
+# Sınır bayt cinsinden, çünkü bağlama giren şey bayt; satır sayısı uzun
+# satırla kandırılır. Taşınınca 6,2 KB kaldı — bütçe ~%30 pay bırakıyor.
+# Aşılırsa çözüm bütçeyi büyütmek değil, ayrıntıyı DONGULER.md'ye taşımak.
+TALIMAT_BUTCESI = 8000
+
+# Sitenin değişmez kuralları ve açık işler — CLAUDE.md (Claude) ile
+# AGENTS.md (Codex) İKİSİNDE de yazılı olmalı. Biri değişip öbürü
+# unutulursa iki ajan farklı kurala göre çalışır ve hiçbir kapı bunu
+# görmez: dış ajan kapısı kod ölçer, talimat ölçmez. Çapa kısa ve iki
+# dosyada da doğal geçen bir ifade; biçim (**, `) ve büyük harf yok sayılır.
+ORTAK_KURALLAR = (
+    ("HTML'e dokunma", "yeni içerik data.js'e"),
+    ("senkron kalmalı", "LORE ↔ data"),
+    ("Türkçe", "arayüz ve kod adları"),
+    ("sahte içerik yasak", "sahte içerik"),
+    ("opacity: 0", "gizleme yöntemi"),
+    ("[hidden] { display: none !important; }", "gizleme kuralı"),
+    ("outline: none", "odak halkası"),
+    ("4.5:1", "ölçülmüş kontrast"),
+    ("defer", "betik yükleme"),
+    ("sitemap.xml", "menü + site haritası"),
+    ("kullanıcı verisi toplanmıyor", "veri toplamama"),
+    ("kademelerinin son hâli", "açık iş: irade kademeleri"),
+    ("1730 mu 1731 mi", "açık iş: zaman çizelgesi"),
+    ("video bağlantıları", "açık iş: videolar"),
+)
+
+
+def _sade(metin):
+    metin = metin.replace("İ", "i").replace("I", "ı").lower()
+    return re.sub(r"[*`]", "", metin)
+
+
+def talimat_belgeleri(r):
+    claude = os.path.join(KOK, "CLAUDE.md")
+    agents = os.path.join(KOK, "AGENTS.md")
+    if not os.path.exists(claude):
+        return
+    boyut = os.path.getsize(claude)
+    if boyut > TALIMAT_BUTCESI:
+        r.hata("belge", f"CLAUDE.md {boyut} bayt, bütçe {TALIMAT_BUTCESI}. Bu "
+                        "dosya her oturumda bağlama yükleniyor — araç ayrıntısını "
+                        "DONGULER.md 'Araç dizini'ne taşı, bütçeyi büyütme.")
+    else:
+        r.tamam()
+
+    if not os.path.exists(agents):
+        return
+    c = _sade(open(claude, encoding="utf-8").read())
+    g = _sade(open(agents, encoding="utf-8").read())
+    eksik = []
+    for capa, ne in ORTAK_KURALLAR:
+        s = _sade(capa)
+        yer = [ad for ad, metin in (("CLAUDE.md", c), ("AGENTS.md", g))
+               if s not in metin]
+        if yer:
+            eksik.append(f"{ne} ('{capa}') → {', '.join(yer)}'de yok")
+    if eksik:
+        r.hata("belge", "CLAUDE.md ↔ AGENTS.md ayrıştı; bir ajan kuralı "
+                        "bilmeden çalışıyor: " + "; ".join(eksik))
+    else:
+        r.tamam()
+
 
 DENETIMLER = {
     "menu": ("Menü bütünlüğü", d_menu),

@@ -1,7 +1,7 @@
 {
   "majör": 2,
   "minör": 1,
-  "yama": 5,
+  "yama": 6,
   "gecmis": [
     {
       "surum": "v1.1",
@@ -101,6 +101,11 @@
     {
       "surum": "v2.1.5",
       "ne": "Videodan iki eksik: devre.py çakışma kilidi (turu aralıktan uzun süren döngü kendi üstüne binmesin, çıkış 4); duman.py sahipsiz worktree uyarısı (korumasız 'worktree sızdırır' dersi artık vakayla korunuyor).",
+      "tarih": "2026-09-26"
+    },
+    {
+      "surum": "v2.1.6",
+      "ne": "Videodan iki eksik: CLAUDE.md boyut bütçesi (8000 bayt; araç anlatımları DONGULER.md 'Araç dizini'ne taşındı, 18,7 KB → 6,2 KB) ve CLAUDE.md ↔ AGENTS.md ortak kural senkronu (14 çapa). 2 sınav vakası, 2 mutasyon.",
       "tarih": "2026-09-26"
     }
   ]
