@@ -167,6 +167,25 @@ def t_duman_sahipsiz_worktreei_bildiriyor(kok):
     return None
 
 
+def t_arac_sinavi_ilk_hatada_duruyor(kok):
+    """Mutasyon sınavı bu bayrakla koşuyor. Bayrak düşen vakayı 0 ile
+    kapatırsa her mutasyon "kaçtı" görünür; hiç durmazsa haftalık iş
+    süre sınırına çarpıp hiçbir şey söylemeden ölür — ikisi de yaşandı
+    sayılır. İlk vaka bozulur: iç koşu orada durmalı, bu vakaya hiç
+    ulaşmamalı (özyineleme yok)."""
+    hata = _boz(kok, ".claude/devre.py",
+                "tur_doldu = halka[\"sayac\"] > halka[\"sinir\"]",
+                "tur_doldu = False")
+    if hata:
+        return hata
+    s = kos(kok, "arac-sinavi.py", "--ilk-hatada-dur")
+    if s.returncode != 1:
+        return f"düşen vakaya rağmen çıkış {s.returncode}"
+    if "İLK HATADA DURULDU — 1/" not in s.stdout:
+        return f"ilk hatada durmadı: {s.stdout.strip()[-120:]}"
+    return None
+
+
 # ------------------------------------------------------------------ yargıç
 
 def _cevaplar(kok, bozma=None):
@@ -3160,6 +3179,7 @@ VAKALAR = [
     ("devre: çakışan koşuyu reddediyor",    t_devre_cakisan_kosuyu_reddediyor),
     ("devre: ölü kilidi bırakıyor",         t_devre_olu_kilidi_birakiyor),
     ("duman: sahipsiz worktree'yi bildiriyor", t_duman_sahipsiz_worktreei_bildiriyor),
+    ("araç sınavı: ilk hatada duruyor",     t_arac_sinavi_ilk_hatada_duruyor),
 
     ("yargı: kusursuz set geçiyor",         t_yargi_temiz_gecer),
     ("yargı: UYDURMA yakalanıyor",          t_yargi_uydurma_yakalar),
@@ -3367,6 +3387,14 @@ VAKALAR = [
 
 
 def main():
+    # --ilk-hatada-dur: mutasyon sınavı için. Onun tek sorusu "en az bir
+    # vaka düştü mü"; ilk düşüşten sonra kalan vakaları koşturmak cevabı
+    # değiştirmez, yalnız süre yakar. Ölçüldü: 184 vakalık tam koşu ~3 dk,
+    # 42 mutasyonla ~2 saat — haftalık iş 60 dakikalık sınıra çarpıp hiç
+    # bitmiyordu ve bitmeyen mutasyon sınavı hiçbir şey söylemiyor.
+    # Argüman, ortam değişkeni değil: ablasyon iç içe bir tam koşu açar
+    # ve orada vaka sayımı eksiksiz olmalı; ortam alt sürece sızardı.
+    ilk_hatada = "--ilk-hatada-dur" in sys.argv[1:]
     gecti = basarisiz = 0
     for ad, islev in VAKALAR:
         gecici, kok = kopya()
@@ -3380,6 +3408,10 @@ def main():
         if kusur:
             print(f"  FAIL {ad}\n       → {kusur}")
             basarisiz += 1
+            if ilk_hatada:
+                print(f"\nİLK HATADA DURULDU — {gecti + basarisiz}/{len(VAKALAR)} "
+                      "vaka koşturuldu, kalanlar atlandı.")
+                return 1
         else:
             print(f"  OK   {ad}")
             gecti += 1

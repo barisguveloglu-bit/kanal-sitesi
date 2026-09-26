@@ -37,6 +37,7 @@ Yeşil kalan bir mutasyon, "o davranışı hiçbir şey korumuyor" demektir.
 import argparse
 import os
 import shutil
+import signal
 import subprocess
 import sys
 import tempfile
@@ -406,12 +407,30 @@ MUTASYONLAR = [
 ]
 
 
+# Tek sınav koşusunun süre sınırı. 300 idi; araç sınavı iç içe bir
+# ablasyon koşusu da içerdiği için yük altında 300'ü aşabiliyor ve
+# zaman aşımı "uygulanamadı" sayılıyordu — kaçan mutasyon değil ama
+# kırmızı, yani yanlış alarm.
+SINAV_SURESI = 900
+
+# Mutasyonun sorusu "en az bir vaka düştü mü" — ilk düşüşte durmak cevabı
+# değiştirmez. Yalnız bu bayrağı tanıyan sınava verilir.
+HIZLI = {"arac-sinavi.py": ["--ilk-hatada-dur"]}
+
+
 def kos(kok, betik):
-    return subprocess.run([sys.executable, os.path.join(kok, ".claude", betik)],
-                          cwd=kok, capture_output=True, text=True, timeout=300)
+    return subprocess.run([sys.executable, os.path.join(kok, ".claude", betik),
+                           *HIZLI.get(betik, [])],
+                          cwd=kok, capture_output=True, text=True,
+                          timeout=SINAV_SURESI)
 
 
 def main(argv):
+    # `timeout` ya da CI iptali SIGTERM gönderir; varsayılan davranış
+    # süreci `finally` koşmadan öldürür ve her mutasyonun geçici kopyası
+    # diskte kalır. Ölçüldü: öldürülen iki koşu /tmp'de 157 kopya, ~700 MB
+    # bıraktı. SIGTERM'i çıkışa çevirmek temizliğin koşmasını sağlar.
+    signal.signal(signal.SIGTERM, lambda *_: sys.exit(124))
     a = argparse.ArgumentParser(description="Testler gerçekten canlı mı.")
     a.add_argument("--ayrinti", action="store_true")
     secim = a.parse_args(argv)
