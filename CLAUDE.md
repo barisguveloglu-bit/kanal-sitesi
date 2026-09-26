@@ -180,6 +180,12 @@ Sürüm: `python3 .claude/surum.py goster` — işaret: `python3 .claude/logo.py
   önceliklendirir ama bunun kanıt olmadığını söyler: aynı modelin N
   kopyası aynı kör noktayı paylaşır. Depo (`rapor-deposu/`) koşuya özel
   ve `.gitignore`'da.
+- `python3 .claude/pano.py al|not|oku|bitir|temizle` — **ortak pano.**
+  `havuz.py` işi başta bölüyor ama iş sırasında paralel ajanlar birbirini
+  göremiyordu. Her ajan baktığı alanı panoya yazar; başkası o alanı
+  tutuyorsa `al` çıkış 1 verir, üstüne gidilmez. Çakışma kelimeyle değil
+  **adresle** ölçülür: aynı yol ya da biri diğerinin altı. Pano koşuya
+  özel ve `.gitignore`'da; salt okunur ajanlar da yazabilir, depo değişmez.
 - `python3 .claude/gorev.py` — alt ajana verilecek sözleşmeli brief üretir
   ve gelen raporun atıflarını denetler. Sözleşmesiz görev `kanca-gorev.py`
   tarafından gönderilmeden engellenir.
@@ -187,10 +193,10 @@ Sürüm: `python3 .claude/surum.py goster` — işaret: `python3 .claude/logo.py
   **değişken kadro**. Kaç ajan çalışacağını zorluk belirler (1-10), hangi
   görevlerin aynı ajana gideceğini **paylaşılan kaynak** belirler: aynı
   dosyaya dokunan görevler ayrılırsa biri diğerini ezer.
-- `.claude/agents/` — **21 denetçi + 5 üretici ajan** tanımı, hepsi
+- `.claude/agents/` — **22 denetçi + 5 üretici ajan** tanımı, hepsi
   **salt okunur**. Denetçi bulur ve düzeltmez; üretici üretir ama canon'a
   kural koyamaz. Kadro **Sonnet 5**, üç istisna dışında: `canon-denetci`,
-  `kurgu-denetci` ve `hikaye-yazari` **Opus**. Hak üçle sınırlı ve liste
+  `kurgu-denetci` ve `hikaye-yazari` **Opus**. Toplu, yargısız tarama için `tarama-denetci` **Haiku** (ucuz katman, `HAIKU_HAKKI` listesinde). Hak üçle sınırlı ve liste
   `dogrula.py`'de yazılı — dördüncüsü reddedilir, listedekilerden biri
   Sonnet'e düşerse o da yakalanır. Model çağrıda değil tanımda; `dogrula.py`
   hem model sapmasını, hem denetçiye verilmiş yazma aracını, hem de kadro

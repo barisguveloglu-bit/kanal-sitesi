@@ -1,4 +1,4 @@
-# Echo Orkestra v2.1.2
+# Echo Orkestra v2.1.3
 
 Bu katmanın adı **Echo**. Adın sebebi işleyişinde: her çıktı bir
 denetimden geri döner, her hata bir teste geri döner, her ölçüm sistemin
@@ -997,7 +997,7 @@ aynı dersi iki kez saydı (`durum` 16 derken `oku` 22 bastı), ve ders
 silme denetimi kör kaldı, çünkü son satırı silmek yalnızca bir
 yinelemeyi siliyordu. Değişikliğin izi zaten git'te duruyor.
 
-### Kadro — **21 denetçi ajan**
+### Kadro — **22 denetçi ajan**
 
 | # | Ajan | Ne arar |
 |---|---|---|
@@ -1016,6 +1016,15 @@ yinelemeyi siliyordu. Değişikliğin izi zaten git'te duruyor.
 | 13 | `test-denetci` | Ölü test, yanlış sebeple geçen test, kırılgan fikstür |
 | 14 | `belge-denetci` | Belgedeki iddia ile koddaki gerçek uyuşuyor mu |
 | 15 | `surum-denetci` | Sürüm dağınıklığı, üretilmiş dosyanın tazeliği |
+
+**Ucuz katman — `tarama-denetci` (Haiku).** Bir videodan alınan fikir:
+işe göre model seçimi. Toplu log taraması, sayma, listeleme gibi yargı
+gerektirmeyen işler pahalı modelin zamanını yiyordu. Model yine **çağrıda
+değil tanımda**: ayrı bir ajan, ayrı bir model, ve `dogrula.py`'deki
+`HAIKU_HAKKI` listesi — Opus hakkının tersi. Listede olmayan bir ajan
+Haiku'ya düşerse kırmızı; listedeki ajan Haiku'dan çıkarsa da kırmızı.
+Ucuz ajan **yargı vermez**, bulduğunu adresle döndürür; anlamını üst
+katman çıkarır.
 
 ### Üreticiler — **5 üretici ajan**
 

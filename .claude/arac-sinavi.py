@@ -1763,9 +1763,14 @@ def t_ajan_kadrosu_sonnet(kok):
     _dog = _iu.module_from_spec(_t)
     _t.loader.exec_module(_dog)
     opus_hakki = _dog.OPUS_HAKKI
+    # Ucuz katman da dogrula.py'den okunuyor — kural "Opus ya da Sonnet"
+    # iken "Opus, Haiku ya da Sonnet" oldu; testi değiştirmeseydik kapı
+    # yanlış şeyi savunmaya başlardı.
+    haiku_hakki = getattr(_dog, "HAIKU_HAKKI", set())
     for ad in dosyalar:
         metin = open(os.path.join(klasor, ad), encoding="utf-8").read()
-        beklenen = "opus" if ad[:-3] in opus_hakki else "sonnet"
+        beklenen = ("opus" if ad[:-3] in opus_hakki else
+                    "haiku" if ad[:-3] in haiku_hakki else "sonnet")
         if f"model: {beklenen}" not in metin:
             return f"{ad}: model {beklenen} değil"
     return None
@@ -2364,6 +2369,61 @@ def t_arama_kisa_kok_yanlis_ret_uretmiyor(kok):
     # Kapı gevşerken konu dışı soru içeri sızmamalı — ret hâlâ bir cevap.
     if dizin.ara("Bitcoin fiyatı bugün kaç dolar", 3):
         return "konu dışı soru artık reddedilmiyor — kapı fazla gevşedi"
+    return None
+
+
+def t_pano_adres_cakismasini_yakaliyor(kok):
+    """Çakışma kelimeyle değil adresle: aynı dosyanın farklı yazımı ve bir
+    klasörün altındaki dosya da çakışmadır."""
+    kos(kok, "pano.py", "al", "--ajan", "A", "--alan", "assets/js")
+    s = kos(kok, "pano.py", "al", "--ajan", "B", "--alan", "./assets/js/data.js")
+    if s.returncode != 1:
+        return f"alt yol çakışması geçti (çıkış {s.returncode})"
+    s = kos(kok, "pano.py", "al", "--ajan", "C", "--alan", "LORE.md")
+    if s.returncode != 0:
+        return f"ayrı alan reddedildi (çıkış {s.returncode})"
+    kos(kok, "pano.py", "bitir", "--ajan", "A")
+    s = kos(kok, "pano.py", "al", "--ajan", "B", "--alan", "assets/js/data.js")
+    if s.returncode != 0:
+        return "bırakılan alan hâlâ tutulu görünüyor"
+    return None
+
+
+def t_pano_depoyu_kirletmiyor(kok):
+    """Salt okunur ajanlar panoya yazıyor; depo değişirse yetki denetimi
+    onları kusurlu sayar. Pano gitignore'da olmalı."""
+    once = subprocess.run(["git", "status", "--porcelain"], cwd=kok,
+                          capture_output=True, text=True, timeout=60).stdout
+    kos(kok, "pano.py", "al", "--ajan", "A", "--alan", "LORE.md")
+    kos(kok, "pano.py", "not", "--ajan", "A", "--metin", "deneme")
+    sonra = subprocess.run(["git", "status", "--porcelain"], cwd=kok,
+                           capture_output=True, text=True, timeout=60).stdout
+    if once != sonra:
+        return "pano depoyu değiştirdi — salt okunur ajan kusurlu sayılır"
+    return None
+
+
+def t_ajan_haiku_yalniz_listede(kok):
+    """Ucuz katman adıyla yazılı. Bir denetçi sessizce Haiku'ya düşerse
+    yargı kalitesi kimse fark etmeden çöker."""
+    yol = os.path.join(kok, ".claude", "agents", "canon-denetci.md")
+    m = open(yol, encoding="utf-8").read()
+    open(yol, "w", encoding="utf-8").write(m.replace("model: opus", "model: haiku", 1))
+    s = kos(kok, "dogrula.py", "belge")
+    if s.returncode != 1 or "ucuz katman listesinde değil" not in s.stdout:
+        return f"listede olmayan Haiku yakalanmadı (çıkış {s.returncode})"
+    return None
+
+
+def t_ajan_haiku_listesi_gercek(kok):
+    """Liste yazılı ama uygulanmazsa yine yazıdır: listedeki ajan Haiku'dan
+    çıkarsa da kırmızı."""
+    yol = os.path.join(kok, ".claude", "agents", "tarama-denetci.md")
+    m = open(yol, encoding="utf-8").read()
+    open(yol, "w", encoding="utf-8").write(m.replace("model: haiku", "model: sonnet", 1))
+    s = kos(kok, "dogrula.py", "belge")
+    if s.returncode != 1 or "Haiku değil" not in s.stdout:
+        return f"listedeki ajanın Haiku'dan çıkması yakalanmadı (çıkış {s.returncode})"
     return None
 
 
@@ -3121,6 +3181,10 @@ VAKALAR = [
     ("gölge: CI sayaç yazmıyor",            t_golge_ci_sayac_yazmiyor),
     ("acil: anahtar kancaları durduruyor",  t_acil_anahtar_kancalari_durduruyor),
     ("acil: kalıcı açık yakalanıyor",       t_acil_anahtar_kalici_acik_yakalaniyor),
+    ("pano: adres çakışmasını yakalıyor",   t_pano_adres_cakismasini_yakaliyor),
+    ("pano: depoyu kirletmiyor",            t_pano_depoyu_kirletmiyor),
+    ("ajan: haiku yalnız listede",          t_ajan_haiku_yalniz_listede),
+    ("ajan: haiku listesi gerçek",          t_ajan_haiku_listesi_gercek),
 
     ("iz: sahte karşılık reddediliyor",     t_iz_sahte_karsilik_reddediliyor),
     ("iz: tekrarı kaydedebiliyor",          t_iz_tekrari_kaydedebiliyor),

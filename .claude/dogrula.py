@@ -41,6 +41,13 @@ KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OPUS_HAKKI = {"canon-denetci", "kurgu-denetci", "hikaye-yazari"}
 OPUS_TAVANI = 3
 
+# Ucuz katman: yargı gerektirmeyen toplu tarama için Haiku. Opus hakkının
+# tersi — pahalı modeli ham veriye harcamamak için. Aynı disiplin: hangi
+# ajanın ucuz olduğu burada ADIYLA yazılı. Yazılı olmasaydı, bütçe
+# sıkışınca bir denetçi sessizce Haiku'ya düşerdi ve yargı kalitesi
+# kimse fark etmeden çökerdi.
+HAIKU_HAKKI = {"tarama-denetci"}
+
 # Menüde ve site haritasında bulunması beklenen sayfalar.
 SAYFALAR = [
     "index.html",
@@ -524,6 +531,7 @@ def d_belge(r):
     if os.path.isdir(ajan_klasor):
         beklenen_model = "sonnet"
         opus_bulunan = set()
+        haiku_bulunan = set()
         for ad in sorted(os.listdir(ajan_klasor)):
             if not ad.endswith(".md"):
                 continue
@@ -545,6 +553,13 @@ def d_belge(r):
                                     f"Opus listesinde değil. Liste: "
                                     f"{', '.join(sorted(OPUS_HAKKI))}. "
                                     "Hak sayısı sınırlı; yenisi bir karar.")
+            elif model == "haiku":
+                haiku_bulunan.add(kok_ad)
+                if kok_ad not in HAIKU_HAKKI:
+                    r.hata("belge", f"agents/{ad}: Haiku verilmiş ama bu ajan "
+                                    f"ucuz katman listesinde değil. Liste: "
+                                    f"{', '.join(sorted(HAIKU_HAKKI))}. Yargı "
+                                    "veren bir ajanı ucuzlatmak bir karar.")
             elif model and model != beklenen_model:
                 r.hata("belge", f"agents/{ad}: model '{model}' — beklenen "
                                 f"'{beklenen_model}' ya da listedeki üç ajan "
@@ -573,6 +588,12 @@ def d_belge(r):
                             f"{', '.join(sorted(eksik_opus))}. Liste ile "
                             "gerçek ayrışmış.")
         if not eksik_opus and len(opus_bulunan) <= OPUS_TAVANI:
+            r.tamam()
+        eksik_haiku = HAIKU_HAKKI - haiku_bulunan
+        if eksik_haiku:
+            r.hata("belge", f"Ucuz katman listesindeki ajan(lar) Haiku değil: "
+                            f"{', '.join(sorted(eksik_haiku))}.")
+        else:
             r.tamam()
 
         # Kadro sayısı da çürüyebilir — nitekim çürüdü: 10 ajan istendi,
