@@ -244,7 +244,9 @@ def t_etki_canon_degisikliginin_etkisini_buluyor(kok):
 def t_kapi_temizken_tek_satir_kirmiziyken_tamami(kok):
     """Oturum limiti: temiz kapı pencereye tek satır girer; kırmızı kapı
     tamamını basar, çünkü düzeltmek için gerekli."""
-    s = kos(kok, "kapi.py", "sinav")
+    # CI=true kapıyı bilerek tam çıktıya zorlar; vaka CI'da da sessiz
+    # hâli ölçsün diye koşucudan devralınan değer boşaltılır.
+    s = kos(kok, "kapi.py", "sinav", ortam={"CI": ""})
     if s.returncode != 0 or len(s.stdout.strip().splitlines()) != 1:
         return f"temiz kapı tek satır değil ({len(s.stdout.splitlines())} satır)"
     s = kos(kok, "kapi.py", "sinav", "--tam")
