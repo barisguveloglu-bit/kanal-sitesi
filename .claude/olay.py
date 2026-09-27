@@ -58,6 +58,10 @@ EN_FAZLA_KAYIT = 400  # defter sınırsız büyümesin; eski kayıt bilgi vermiy
 DINLEYICILER = [
     ("PostToolUse", r"^(Edit|Write|MultiEdit|NotebookEdit)$", "kanca.py",
      "site dosyası düzenlendi → denetleyiciyi koştur (yansıt-iyileştir)"),
+    # Oturum limiti: okunan metin her mesajla yeniden gönderilir. Büyük
+    # dosyanın aralıksız okunması durdurulur, bul.py'ye yönlendirilir.
+    ("PreToolUse", r"^Read$", "kanca-buyuk.py",
+     "dosya okunacak → büyükse ve aralık yoksa durdur"),
     ("PreToolUse", r"^(Agent|Task)$", "kanca-gorev.py",
      "alt ajan gönderiliyor → sözleşmesiz görevi engelle"),
     # Bellek geliştirme döngüsünün kapanan halkası. Ders defteri kalıcı
