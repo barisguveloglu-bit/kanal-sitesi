@@ -161,7 +161,7 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # v7.91.0: ORTANCA hane -- Avaritia'dan uc mekanik.
 SURUM_NO = (7, 98, 1)
 
-SURUM_METIN = "%d.%d.%d" % SURUM_NO
+SURUM_METIN = "7.98.1.5"   # ara surum: manifest 3 hane ister, [7,98,1] kaliyor
 
 # ---------------- MIN_ENGINE_VERSION -------------------------
 # Uc pakette de tek yerden yaziliyor.
