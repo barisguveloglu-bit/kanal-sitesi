@@ -1,13 +1,13 @@
 {
   "format_version": 2,
   "header": {
-    "name": "Şimşek 7.97.2 · Oyuncu Modeli (Iron Man)",
+    "name": "Şimşek 7.98.0 · Oyuncu Modeli (Iron Man)",
     "description": "Yalnız Iron Man add-on'u kuruluysa. Normal Oyuncu Modeli yerine kur, ikisini birden değil.",
     "uuid": "6556c295-1112-4b12-8a97-135629ee6ed6",
     "version": [
       7,
-      97,
-      2
+      98,
+      0
     ],
     "min_engine_version": [
       1,
@@ -21,8 +21,8 @@
       "uuid": "41ad2a5a-1332-405c-a686-02dcda21e5fc",
       "version": [
         7,
-        97,
-        2
+        98,
+        0
       ]
     }
   ]

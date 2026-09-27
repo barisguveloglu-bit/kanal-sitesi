@@ -142,7 +142,12 @@ import {
   yedekAl, yedekYukle, yedekUnut
 } from "./yetenekler/envanter_yedek.js";
 import { YEDEK_OTOMATIK } from "./ayarlar.js";
+/* v7.98.0: WoM silahlarinin vurus animasyonlari (Epic Fight'tan
+   yeniden cevrildi). Olay tabanli -- tick'te is yapmiyor.      */
+import { womDovusKur, womDovusUnut } from "./yetenekler/wom_dovus.js";
+import { WOM_ACIK, WOM_SILAHLAR, WOM_ONEK } from "./ayarlar.js";
 gozcuKur();
+womDovusKur();
 /* v7.36: blok kirma/koyma hizi (fast_destroy, rapid_build,
    bridge_builder, nuke). Muafiyet sorusu hareket taramasiyla
    AYNI: bu oyuncunun calisan bir isi var mi? oyuncuIsSayisi
@@ -1485,6 +1490,49 @@ function marvelBilgi(oyuncu, anahtar) {
    Dort yaratik. Ozet metinleri ayarlar.js'ten URETILIYOR --
    yeni bir yaratik eklenirse menude kendiliginden dogru
    gorunur.                                                     */
+/* WEAPONS OF MIRACLES KATALOGU  (v5.0, v7.98.0'de geri geldi)
+
+   Ben 10 menusuyle AYNI is: hangi silahin ne verdigini yaziyor.
+   Bir sey SECMIYOR -- silah envanterden aliniyor, menu katalog.
+   Sira kaynaktaki sira: once benzersiz silahlar, sonra kademe. */
+function womMenusu(oyuncu) {
+  if (!WOM_ACIK) {
+    actionbarYaz(oyuncu, "§cWoM silahlari kapali (WOM_ACIK).");
+    return undefined;
+  }
+  const RENK = { COMMON: "§f", UNCOMMON: "§a", RARE: "§b", EPIC: "§d" };
+  const dugmeler = [];
+  for (const [anahtar, t] of WOM_SILAHLAR) {
+    dugmeler.push({
+      anahtar,
+      ad: (RENK[t.nadirlik] || "§f") + t.ad +
+          "\n§8" + t.hasar + " hasar · " + t.dayaniklilik + " dayanıklılık"
+    });
+  }
+  const acildi = menuAc(oyuncu,
+    "§6⚔ Weapons of Miracles §7· " + WOM_SILAHLAR.size + " silah",
+    dugmeler, -1,
+    (i) => { if (dugmeler[i]) womBilgi(oyuncu, dugmeler[i].anahtar); });
+  if (!acildi) womBilgi(oyuncu, dugmeler[0].anahtar);
+  return undefined;
+}
+
+function womBilgi(oyuncu, anahtar) {
+  const t = WOM_SILAHLAR.get(anahtar);
+  if (!t) return;
+  try {
+    oyuncu.sendMessage(
+      "§6⚔ §f" + t.ad + " §8(" + t.en + ")" +
+      "\n§8" + t.hasar + " hasar · " + t.dayaniklilik + " dayanıklılık · " +
+      t.nadirlik.toLowerCase() +
+      "\n§8eşya: §7" + WOM_ONEK + anahtar +
+      "\n§8vurdukça seri oynar · 3 sn vurmazsan başa döner");
+  } catch (e) {
+    hataYaz("wom.mesaj", e);
+  }
+  kollariIndir(oyuncu);
+}
+
 function ben10Menusu(oyuncu) {
   if (!BEN10_ACIK) {
     actionbarYaz(oyuncu, "§cBen 10 kapalı (BEN10_ACIK).");
@@ -1688,8 +1736,11 @@ function saatMenusuAc(oyuncu) {
       actionbarYaz(oyuncu, "§7⌚ Mod kapatıldı");
     }
   });
+  /* v7.98.0: `liste` NESNE olarak veriliyor. Eskiden
+     liste.map((x) => x.ad) ile DIZGI veriliyordu; menuAc
+     liste[i].ad okudugu icin her dugme "undefined" yaziyordu. */
   const acildi = menuAc(oyuncu, "§b⌚ Zaman Saati",
-                        liste.map((x) => x.ad), -1,
+                        liste, -1,
                         (i) => { if (liste[i]) liste[i].calis(); });
   if (!acildi) {
     /* Menu modulu yoksa saat yine kullanilabilir olmali:
@@ -1917,6 +1968,11 @@ function menuEkleri(oyuncu) {
             ? BEN10.get(elindekiYaratik(oyuncu)).ad
             : "insan") + ")",
       calis() { ben10Menusu(oyuncu); }
+    },
+    /* v7.98.0: WoM silah katalogu -- bilgi veriyor, secmiyor. */
+    {
+      ad: "⚔ Silahlar §8(Weapons of Miracles · " + WOM_SILAHLAR.size + ")",
+      calis() { womMenusu(oyuncu); }
     },
     {
       ad: "Bot: simsek yagdir",
@@ -2623,6 +2679,7 @@ olayaAbone("playerLeave", (olay) => {
   saatUnut(olay.playerId);
   viltrumiteUnutOyuncu(olay.playerId);
   ftechUnutOyuncu(olay.playerId);
+  womDovusUnut(olay.playerId);
   fuzyonUnut(olay.playerId);
   enerjiUnut(olay.playerId);
 

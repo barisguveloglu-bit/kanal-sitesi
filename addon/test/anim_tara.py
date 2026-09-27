@@ -141,10 +141,19 @@ ayar = open(os.path.join(KOK, "Simsek_TNT_ToprakTopu/scripts/ayarlar.js"),
             encoding="utf-8").read()
 for x in re.findall(ANIM_METIN, ayar):
     script_oynatilan.add(x)
-# v5.8: WOM_SERI ozel cozumlemesi buradaydi, mod kaldirilinca
-# olu kod oldu. (Cikardigi ders duruyor: seri adlarini kaba bir
-# regex'le okumak 27 silah adini animasyon sanip 69 sahte uyari
-# uretmisti -- tarayici da koddur, o da sinanmali.)
+# ---- WOM_SERI (v7.98.0) ----
+# wom_dovus.js animasyon adini CALISMA ANINDA kuruyor:
+# WOM_ANIM_ONEK + WOM_SERI'deki adim. Metinde tam ad gecmiyor.
+# v5.x'teki ders: seri adlarini kaba bir regex'le okumak 27 SILAH
+# adini da animasyon sanip 69 sahte uyari uretmisti. O yuzden
+# yalniz ["silah", [ ... ]] ciftinin ICTEKI dizisi okunuyor.
+_wom_onek = re.search(r'export const WOM_ANIM_ONEK\s*=\s*"([^"]+)"', ayar)
+if _wom_onek and "export const WOM_SERI" in ayar:
+    _wb = ayar.index("export const WOM_SERI")
+    _wblok = ayar[_wb:ayar.index("]);", _wb)]
+    for _ic in re.findall(r'\[\s*"[a-z0-9_]+"\s*,\s*\[([^\]]*)\]\s*\]', _wblok):
+        for _adim in re.findall(r'"([a-z0-9_]+)"', _ic):
+            script_oynatilan.add(_wom_onek.group(1) + _adim)
 
 # ---- DIS (oyunun kendi) ANIMASYONLARI ----
 # Bunlar bizim paketimizde OLMAMALI -- oyunun icinde
@@ -162,7 +171,7 @@ for x in re.findall(ANIM_METIN, ayar):
 # artmasin. "Vanilla" etiketi bagisiklik degil, AYRI DEFTER.
 BIZIM_ONEK = re.compile(r"^animation\.(simsek|simsek_bot|o_sey|kol_dusen|"
                         r"kol_gelen|recal|recal_omnitrix|drill_spin|"
-                        r"Diamondhead|prototype|ripjaws|sp_m_|pa_)")
+                        r"Diamondhead|prototype|ripjaws|sp_m_|pa_|wom\.)")
 for x in sorted(script_oynatilan):
     if x.endswith("."):
         continue          # WOM_ANIM_ONEK gibi ONEK, animasyon degil
