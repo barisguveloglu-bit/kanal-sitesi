@@ -1,4 +1,4 @@
-# Echo Orkestra v2.1.7
+# Echo Orkestra v2.1.8
 
 Bu katmanın adı **Echo**. Adın sebebi işleyişinde: her çıktı bir
 denetimden geri döner, her hata bir teste geri döner, her ölçüm sistemin
@@ -1034,6 +1034,13 @@ yinelemeyi siliyordu. Değişikliğin izi zaten git'te duruyor.
 | 13 | `test-denetci` | Ölü test, yanlış sebeple geçen test, kırılgan fikstür |
 | 14 | `belge-denetci` | Belgedeki iddia ile koddaki gerçek uyuşuyor mu |
 | 15 | `surum-denetci` | Sürüm dağınıklığı, üretilmiş dosyanın tazeliği |
+| 16 | `akis-denetci` | İş akışı, kancalar, olay dağıtıcısı, çıkış kodu sözleşmesi — kapının kendisi çalışıyor mu |
+| 17 | `celiski-denetci` | Ajan raporları birbiriyle çelişiyor mu, biri diğerinin bulgusunu geçersiz kılıyor mu |
+| 18 | `gorsel-denetci` | Sayfayı gerçek tarayıcıda ölçer — JS sonrası DOM, dar ekranda taşma |
+| 19 | `kaynak-denetci` | Gerçek dünya iddiasının kaynağı gerçekten onu söylüyor mu, kurgu gerçek diye sunulmuş mu |
+| 20 | `olukod-denetci` | Kullanılmayan CSS sınıfı, basılmayan veri alanı, çağrılmayan betik |
+| 21 | `zaman-denetci` | Tarih aritmetiği, çağ tutarlılığı, olay sırası |
+| 22 | `tarama-denetci` | Toplu ve mekanik tarama, yargısız — ucuz katman (Haiku) |
 
 **Ucuz katman — `tarama-denetci` (Haiku).** Bir videodan alınan fikir:
 işe göre model seçimi. Toplu log taraması, sayma, listeleme gibi yargı
@@ -1050,6 +1057,9 @@ katman çıkarır.
 |---|---|
 | `tarih-arastirmaci` | Gerçek tarihsel zemini kaynaklarıyla çıkarır; her maddeyi KESİN / YAYGIN KABUL / BELİRSİZ diye ayırır |
 | `hikaye-yazari` | Canon kısıtları içinde taslak yazar; taslağın canon'a **ne eklediğini kendisi listeler** |
+| `karakter-yazari` | Canon kısıtları içinde karakter, derebeyi ya da güç taslağı; güç dengesini bozmaz, `data.js` şemasına uygun önerir |
+| `duzenleyici` | Denetim bulgusuna göre taslağı onarır; yeni içerik icat etmez, her değişikliği bulgusuyla eşler |
+| `ozetleyici` | Çok sayıda raporu tek sunuma çevirir; tekrarı birleştirir, hiçbir bulguyu sessizce düşürmez |
 
 Denetçilerden ayrı sayılıyorlar çünkü **sözleşmeleri farklı**: denetçi
 bulur ve düzeltmez, üretici üretir ama canon'a kural koyamaz. Birini
@@ -1656,8 +1666,8 @@ defterine ya da iz defterine yazılır.
 
 ## Sınırlar
 
-Bunlar tahmin değil, fay enjeksiyon sınavıyla ölçüldü: **30 vaka
-(24 yakalanmalı, 6 masum)** ve **24 altın soru**. Bu sayılar `dogrula.py`
+Bunlar tahmin değil, fay enjeksiyon sınavıyla ölçüldü: **31 vaka
+(25 yakalanmalı, 6 masum)** ve **24 altın soru**. Bu sayılar `dogrula.py`
 tarafından denetleniyor — betikler değişip belge yerinde kalırsa hata verir.
 Ölçülen iki gerçek açık vardı, ikisi de kapatıldı — biri tam olarak
 kapanamadı, aşağıda:

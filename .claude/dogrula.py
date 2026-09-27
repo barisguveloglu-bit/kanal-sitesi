@@ -623,6 +623,16 @@ def d_belge(r):
             else:
                 r.tamam()
 
+        # Sayı doğruydu ama tablo çürümüştü: "22 denetçi" yazan başlığın
+        # altında 15, "5 üretici"nin altında 2 satır vardı. Sayıyı zorlamak
+        # listeyi zorlamak değil — her ajan tabloda kendi satırını taşımalı.
+        eksik = [x for x in sorted(dosyalar) if f"| `{x}` |" not in belge]
+        if eksik:
+            r.hata("belge", "DONGULER.md kadro tablosunda satırı olmayan "
+                            f"ajan: {', '.join(eksik)}")
+        else:
+            r.tamam()
+
     # Evrim döngüsü de çürür. Bir boşluk bir ajanla kapatılır, sonra o ajan
     # silinir — boşluk defterde kapalı görünmeye devam eder ve kimse aramaz.
     # Kapatılmış ama karşılığı olmayan boşluk, kapatılmamış boşluktan
