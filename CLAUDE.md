@@ -71,6 +71,16 @@ değişince `etki.py --taban HEAD` bağlı yerleri listeler. Döngüler
 `devre.py` ile sınırlıdır — çıkış `1` dur ve insana çık, çıkış `4`
 başka bir koşu aynı halkayı tutuyor, turu atla.
 
+**Oturum limiti.** Pencereye giren her metin oturum bitene kadar her
+mesajla yeniden gönderilir; limiti asıl tüketen budur. Bu yüzden:
+iş bitince Barış'a **yeni oturum** öner (devir `defter.py`'de, dersler
+açılışta gelir). Büyük dosyayı bütün okuma — `bul.py <dosya> [ad|--ara]`;
+50 KB üstünü aralıksız okumayı `kanca-buyuk.py` durdurur. Döküm, web
+sayfası gibi uzun metni önce betikle süz, sonra oku. Temiz kapı tek satır
+basar (`kapi.py`, tamamı `--tam`). PR beklerken zamanlanmış hatırlatma
+kurma: her biri oturumu uyandırıp bütün konuşmayı yeniden gönderir;
+denetimi Barış'ın bir sonraki mesajında kontrol et.
+
 **Acil kapatma: `ECHO_KAPALI=1`.** `olay.py` hiçbir işleyiciyi
 koşturmaz; sessiz değildir, deftere yazılır. `settings.json`'ın `env`
 alanına kalıcı yazma — `dogrula.py` yakalar.

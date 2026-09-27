@@ -241,6 +241,62 @@ def t_etki_canon_degisikliginin_etkisini_buluyor(kok):
     return None
 
 
+def t_kapi_temizken_tek_satir_kirmiziyken_tamami(kok):
+    """Oturum limiti: temiz kapı pencereye tek satır girer; kırmızı kapı
+    tamamını basar, çünkü düzeltmek için gerekli."""
+    s = kos(kok, "kapi.py", "sinav")
+    if s.returncode != 0 or len(s.stdout.strip().splitlines()) != 1:
+        return f"temiz kapı tek satır değil ({len(s.stdout.splitlines())} satır)"
+    s = kos(kok, "kapi.py", "sinav", "--tam")
+    if len(s.stdout.strip().splitlines()) < 10:
+        return "--tam tam çıktıyı vermedi"
+    yol = os.path.join(kok, "assets", "css", "style.css")
+    m = open(yol, encoding="utf-8").read()
+    open(yol, "w", encoding="utf-8").write(
+        m.replace("[hidden] { display: none !important; }", "", 1))
+    s = kos(kok, "kapi.py", "dogrula")
+    if s.returncode != 1 or "gizleme" not in s.stdout:
+        return f"kırmızı kapı ayrıntıyı basmadı (çıkış {s.returncode})"
+    return None
+
+
+def t_buyuk_dosya_araliksiz_okunamiyor(kok):
+    girdi = lambda **k: json.dumps({"hook_event_name": "PreToolUse",
+                                    "tool_name": "Read", "tool_input": k})
+    buyuk = os.path.join(kok, ".claude", "arac-sinavi.py")
+    kucuk = os.path.join(kok, "LORE.md")
+    for veri, beklenen in ((girdi(file_path=buyuk), 2),
+                           (girdi(file_path=buyuk, offset=10, limit=40), 0),
+                           (girdi(file_path=kucuk), 0)):
+        s = subprocess.run([sys.executable, os.path.join(kok, ".claude", "olay.py"),
+                            "dagit"], input=veri, cwd=kok, capture_output=True,
+                           text=True, timeout=60)
+        if s.returncode != beklenen:
+            return f"okuma kararı yanlış: {veri[-90:]} → {s.returncode}, {beklenen} beklenirdi"
+    if "bul.py" not in s.stderr and beklenen == 2:
+        return "yönlendirme yok"
+    return None
+
+
+def t_bul_yalniz_istenen_bolumu_veriyor(kok):
+    yol = ".claude/arac-sinavi.py"
+    s = kos(kok, "bul.py", yol, "t_bul_yalniz_istenen_bolumu_veriyor")
+    if s.returncode != 0 or "def t_bul_yalniz" not in s.stdout:
+        return f"fonksiyon bulunamadı (çıkış {s.returncode})"
+    # Kendi gövdesinde başka bir fonksiyonun adını anmak yanlış sonuç
+    # verirdi (ilk hâli öyle kırmızı yandı): ölçü, basılan TEK def satırı.
+    tanimlar = [x for x in s.stdout.splitlines() if re.search(r"^\s*\d+: def ", x)]
+    if len(tanimlar) != 1:
+        return f"istenen fonksiyonun dışına taştı ({len(tanimlar)} tanım basıldı)"
+    s = kos(kok, "bul.py", ".claude/DONGULER.md", "Araç dizini")
+    if s.returncode != 0 or "## Araç dizini" not in s.stdout:
+        return "belge bölümü bulunamadı"
+    s = kos(kok, "bul.py", yol, "boyle_bir_fonksiyon_yok")
+    if s.returncode != 1:
+        return f"olmayan ad bulunmuş sayıldı (çıkış {s.returncode})"
+    return None
+
+
 # ------------------------------------------------------------------ yargıç
 
 def _cevaplar(kok, bozma=None):
@@ -3239,6 +3295,9 @@ VAKALAR = [
     ("defter: reddedilen fikri yakalıyor",  t_defter_reddedilen_fikri_yakaliyor),
     ("defter: yarım iş açılışta görünüyor", t_defter_yarim_is_acilista_gorunuyor),
     ("etki: canon değişikliğinin etkisini buluyor", t_etki_canon_degisikliginin_etkisini_buluyor),
+    ("kapı: temizken tek satır, kırmızıyken tamamı", t_kapi_temizken_tek_satir_kirmiziyken_tamami),
+    ("fren: büyük dosya aralıksız okunamıyor", t_buyuk_dosya_araliksiz_okunamiyor),
+    ("bul: yalnız istenen bölümü veriyor",  t_bul_yalniz_istenen_bolumu_veriyor),
 
     ("yargı: kusursuz set geçiyor",         t_yargi_temiz_gecer),
     ("yargı: UYDURMA yakalanıyor",          t_yargi_uydurma_yakalar),

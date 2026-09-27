@@ -14,7 +14,7 @@
     ],
     "PreToolUse": [
       {
-        "matcher": "Agent|Task",
+        "matcher": "Agent|Task|Read",
         "hooks": [
           {
             "type": "command",

@@ -81,12 +81,36 @@ def kos(ad, sessiz=False):
     return s.returncode, cikti
 
 
+def ozet_satiri(ad, cikti):
+    """Kapının özet desenine uyan son satır."""
+    desen = KAPILAR[ad][1]
+    uyan = [x for x in cikti.splitlines() if re.search(desen, x)]
+    if uyan:
+        return uyan[-1]
+    satirlar = cikti.strip().splitlines()
+    return satirlar[-1] if satirlar else ""
+
+
 def main(argv):
+    """Temiz kapı yalnız özet satırını basar; kırmızı ya da koşmayan kapı
+    TAMAMINI basar (düzeltmek için gerekli).
+
+    Sebep oturum limiti: bir tool sonucu pencereye bir kez girer ama
+    oturum bitene kadar HER mesajla yeniden gönderilir. 189 vakalık tam
+    araç sınavı ~7,8 bin karakter; temizken bunun tek satırı yeter.
+    `--tam` ya da CI ortamı (CI=true) tam çıktıyı ister — sunucu
+    günlüğü pencereye girmez, orada ayrıntı ucuzdur.
+    """
+    tam = "--tam" in argv or os.environ.get("CI") == "true"
+    argv = [a for a in argv if a != "--tam"]
     if not argv or argv[0] not in KAPILAR:
-        print(f"Kullanım: kapi.py <{'|'.join(KAPILAR)}>")
+        print(f"Kullanım: kapi.py <{'|'.join(KAPILAR)}> [--tam]")
         return 2
     kod, cikti = kos(argv[0])
-    sys.stdout.write(cikti)
+    if kod == 0 and not tam:
+        print(ozet_satiri(argv[0], cikti))
+    else:
+        sys.stdout.write(cikti)
     return kod
 
 
