@@ -275,16 +275,33 @@ hangi izinle. Depoya bir dış dosya girerse oraya satırı eklenir.
 (Cartoon Network, Marvel, Hasbro) ayrıdır ve mod yapımcısı onu
 veremez — bu bir uyarı değil, kayıt.
 
-**İki yapımcıdan kişisel kullanım izni var (v7.94.8 · v7.94.9).**
-Kullanıcı **Bit & Byte** (Craftformers) ve **Mr. Nido** (Iron Man) ile
-doğrudan yazıştı; ikisi de kişisel kullanıma onay verdi ve **ikisi de
-aynı şartı koydu: dosyayı kimseye vermemek.**
+**İki yapımcıdan kişisel kullanım izni alınmıştı (v7.94.8 · v7.94.9),
+sonra biri genişledi.** Kullanıcı **Bit & Byte** (Craftformers) ve
+**Mr. Nido** (Iron Man) ile doğrudan yazıştı; ikisi de o gün kişisel
+kullanıma onay verdi ve ikisi de aynı şartı koydu: dosyayı kimseye
+vermemek.
 
-Bu depo herkese açık, dolayısıyla şart varlıkları buraya koymayı
-dışlıyor — commit etmek paylaşmanın en geniş hâli olurdu. İzin
-**yerel kullanımı** açıyor, depoyu değil. Marka katmanları
-(Hasbro, Marvel/Disney) ayrıca duruyor; kullanıcı dağıtmıyor ve
-videoda paylaşmıyor, kişisel oyunda sorun değil.
+- **Craftformers — şart hâlâ geçerli.** Depoya hiçbir dosyası
+  girmedi; yalnız `REFERANS_TFP.md` ölçümü var. Kişisel kullanım
+  varlığı gerekirse `addon/yerel/` altına konur, commit'lenmez.
+- **Iron Man — v7.96.2'de şart kalktı.** Kullanıcı yapımcıyı ikna
+  etti, izin **paylaşılabilir** oldu. `addon/kaynak_dis/ironman/`
+  altındaki iki JSON (`player.json`, `player.entity.json`) bu yüzden
+  depoda ve `kol_uret.py` onları üretimde birleştiriyor. **Silme.**
+  v7.97.2'den beri birleşik görünüm tanımı herkese giden pakete değil,
+  ayrı ve isteğe bağlı `Simsek_Oyuncu_Modeli_IronMan` paketine gidiyor
+  (Iron Man kurulu değilken oyuncu görünmez oluyordu).
+
+Kısıtlı izinli bir varlık için şart onu buraya koymayı dışlar: depo
+herkese açık ve commit etmek paylaşmanın en geniş hâli. Marka
+katmanları (Hasbro, Marvel/Disney) her iki durumda da ayrıca duruyor;
+kullanıcı dağıtmıyor ve videoda paylaşmıyor, kişisel oyunda sorun değil.
+
+**İzin durumunun tek güncel kaydı `addon/KAYNAKLAR.md`.** Bir izin
+genişler ya da daralırsa önce orası yazılır; buradaki özet ona uymak
+zorunda. (Bu paragraf bir düzeltmenin kaydı: v7.96.2'de izin genişledi,
+KAYNAKLAR.md yazıldı, burası yazılmadı ve iki belge v7.97.2'ye kadar
+birbirine ters durdu.)
 
 ## Yerel varlık kolu — `addon/yerel/` (v7.94.9)
 
