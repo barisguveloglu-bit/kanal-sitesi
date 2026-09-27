@@ -1,4 +1,4 @@
-# Echo Orkestra v2.1.6
+# Echo Orkestra v2.1.7
 
 Bu katmanın adı **Echo**. Adın sebebi işleyişinde: her çıktı bir
 denetimden geri döner, her hata bir teste geri döner, her ölçüm sistemin
@@ -1708,6 +1708,31 @@ denendi ve çalışıyordu". Ölçmeye başlayınca üçü de açık verdi:
 - Bu katman siteyi değiştirmez, sadece üzerinde çalışma biçimini değiştirir.
 - Uzman ajanlar sıfırdan başlar; `LORE.md` okumalarını söylemezsen okumazlar.
 - Ajan raporu delil değildir. Sayı/isim/tarih iddiasını dosyadan doğrula.
+
+## İş ve karar defteri — yarım iş ve reddedilen fikir
+
+Yarım iş `butce.py kilometre` ve `hedef.py`'de tutuluyordu; ikisi de
+koşuya özel, oturum bitince siliniyordu. Ders defteri hatayı tutuyor,
+kararı değil. Dört ayrı dış kaynak aynı boşluğu gösterdi (Backlog.md,
+reddedileni gerekçesiyle tutan hafıza, "geçmiş karar geri çağrılmıyor").
+
+`defter.py` → `is-defteri.jsonl`, **kalıcı ve depoda.** Durumlar:
+`acik`, `yarim` (devam noktası zorunlu), `askida` (insan kararı),
+`reddedildi` (gerekçe zorunlu), `bitti`. Oturum açılışında
+`kanca-defter.py` özetini basar. `oner "<fikir>"` reddedilmiş bir
+kayda benziyorsa **çıkış 3** verir: ret gerekçelendi, yeniden açmak
+insan kararı. Benzerlik kelime köküyle ölçülür, tahmindir — bu yüzden
+kapı değil soru.
+
+## Canon etki haritası — değişiklik neye dokunuyor
+
+`butunluk.py` canon ile verinin şu an tutarlı olup olmadığını ölçer;
+bir değişikliğin neye dokunduğunu söylemez. `etki.py` değişen LORE.md
+bölümünün adlarını (başlık + kalın ifadeler) çıkarır ve LORE.md'nin
+geri kalanında, `data.js`'te ve sayfalarda arar; bulunan her yer
+adresiyle listelenir (çıkış 3, insan kapısı). Metinsel eşleşmedir —
+takma adla anılan yer kaçar; liste kanıt değil kontrol listesidir.
+`--kaydet` bulguları iş defterine `acik` kayıt olarak yazar.
 
 ## Araç dizini
 

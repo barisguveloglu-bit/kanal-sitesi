@@ -1,7 +1,7 @@
 {
   "majör": 2,
   "minör": 1,
-  "yama": 6,
+  "yama": 7,
   "gecmis": [
     {
       "surum": "v1.1",
@@ -107,6 +107,11 @@
       "surum": "v2.1.6",
       "ne": "Videodan iki eksik: CLAUDE.md boyut bütçesi (8000 bayt; araç anlatımları DONGULER.md 'Araç dizini'ne taşındı, 18,7 KB → 6,2 KB) ve CLAUDE.md ↔ AGENTS.md ortak kural senkronu (14 çapa). 2 sınav vakası, 2 mutasyon.",
       "tarih": "2026-09-26"
+    },
+    {
+      "surum": "v2.1.7",
+      "ne": "Dört videodan iki eksik: kalıcı iş ve karar defteri (defter.py; yarım iş, askıdaki karar, gerekçeli ret; oturum açılışında görünür, reddedilen fikir yeniden önerilince çıkış 3) ve canon etki haritası (etki.py; LORE değişikliğinin dokunduğu yerler).",
+      "tarih": "2026-09-27"
     }
   ]
 }

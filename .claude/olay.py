@@ -73,6 +73,10 @@ DINLEYICILER = [
     # denetlenmeden giriyordu. Kırmızı zemine konan yeşil iş yeşil değil.
     ("SessionStart", r"^.*$", "kanca-duman.py",
      "oturum açıldı → zemin kırmızı mı, hızlı kapıları koştur"),
+    # Ders defteri HATAYI taşıyor; yarım iş ve verilmiş karar oturum
+    # bitince kayboluyordu (butce/hedef dosyaları koşuya özel).
+    ("SessionStart", r"^.*$", "kanca-defter.py",
+     "oturum açıldı → yarım işi ve askıdaki kararları yüzeye çıkar"),
 ]
 
 

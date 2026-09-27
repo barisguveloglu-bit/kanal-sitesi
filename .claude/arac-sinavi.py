@@ -186,6 +186,61 @@ def t_arac_sinavi_ilk_hatada_duruyor(kok):
     return None
 
 
+def t_defter_gerekcesiz_reddi_kabul_etmiyor(kok):
+    s = kos(kok, "defter.py", "ekle", "--baslik", "turnuva", "--durum", "reddedildi")
+    if s.returncode != 1:
+        return f"gerekçesiz ret kabul edildi (çıkış {s.returncode})"
+    s = kos(kok, "defter.py", "ekle", "--baslik", "x", "--durum", "yarim")
+    if s.returncode != 1:
+        return f"devam noktası olmayan yarım iş kabul edildi (çıkış {s.returncode})"
+    return None
+
+
+def t_defter_reddedilen_fikri_yakaliyor(kok):
+    """Jev'li hafıza videosunun fikri: bir kez gerekçeyle reddedilen öneri
+    yeni oturumda bilinmeden yeniden gelmesin."""
+    kos(kok, "defter.py", "ekle", "--baslik", "Yaratıcı işte turnuva: birden fazla taslak üret",
+        "--durum", "reddedildi", "--gerekce", "tek yazar yeterli")
+    s = kos(kok, "defter.py", "oner", "turnuva ile birden fazla taslak üretelim")
+    if s.returncode != 3 or "tek yazar yeterli" not in s.stdout:
+        return f"reddedilmiş fikir yakalanmadı (çıkış {s.returncode})"
+    s = kos(kok, "defter.py", "oner", "CSS kontrastını yeniden ölç")
+    if s.returncode != 0:
+        return f"alakasız fikir ret sayıldı (çıkış {s.returncode})"
+    return None
+
+
+def t_defter_yarim_is_acilista_gorunuyor(kok):
+    kos(kok, "defter.py", "ekle", "--baslik", "Etki haritası testleri",
+        "--durum", "yarim", "--devam", "arac-sinavi vakaları kaldı")
+    s = subprocess.run(
+        [sys.executable, os.path.join(kok, ".claude", "olay.py"), "dagit"],
+        input='{"hook_event_name":"SessionStart","source":"startup"}',
+        cwd=kok, capture_output=True, text=True, timeout=120)
+    if "arac-sinavi vakaları kaldı" not in s.stdout:
+        return f"yarım iş açılışta görünmedi: {s.stdout[-160:]}"
+    return None
+
+
+def t_etki_canon_degisikliginin_etkisini_buluyor(kok):
+    """Orvent'in fikri: bir şey değişince ona bağlı yerler listelensin.
+    Sarı Gülücük bölümü değişirse data.js'teki kaydı görünmeli."""
+    yol = os.path.join(kok, "LORE.md")
+    metin = open(yol, encoding="utf-8").read()
+    bas = metin.index("### Sarı Gülücük")
+    satir_sonu = metin.index("\n", bas)
+    open(yol, "w", encoding="utf-8").write(
+        metin[:satir_sonu + 1] + "\nsınav satırı\n" + metin[satir_sonu + 1:])
+    s = kos(kok, "etki.py", "--taban", "HEAD")
+    if s.returncode != 3 or "Sarı Gülücük" not in s.stdout \
+            or "assets/js/data.js:" not in s.stdout:
+        return f"etki bulunmadı (çıkış {s.returncode}): {s.stdout[-160:]}"
+    s = kos(kok, "etki.py", "--taban", "boyle-bir-ref-yok")
+    if s.returncode != 2:
+        return f"koşmayan fark 'etki yok' sayıldı (çıkış {s.returncode})"
+    return None
+
+
 # ------------------------------------------------------------------ yargıç
 
 def _cevaplar(kok, bozma=None):
@@ -3180,6 +3235,10 @@ VAKALAR = [
     ("devre: ölü kilidi bırakıyor",         t_devre_olu_kilidi_birakiyor),
     ("duman: sahipsiz worktree'yi bildiriyor", t_duman_sahipsiz_worktreei_bildiriyor),
     ("araç sınavı: ilk hatada duruyor",     t_arac_sinavi_ilk_hatada_duruyor),
+    ("defter: gerekçesiz reddi kabul etmiyor", t_defter_gerekcesiz_reddi_kabul_etmiyor),
+    ("defter: reddedilen fikri yakalıyor",  t_defter_reddedilen_fikri_yakaliyor),
+    ("defter: yarım iş açılışta görünüyor", t_defter_yarim_is_acilista_gorunuyor),
+    ("etki: canon değişikliğinin etkisini buluyor", t_etki_canon_degisikliginin_etkisini_buluyor),
 
     ("yargı: kusursuz set geçiyor",         t_yargi_temiz_gecer),
     ("yargı: UYDURMA yakalanıyor",          t_yargi_uydurma_yakalar),
