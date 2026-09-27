@@ -62,8 +62,12 @@ Hatayı düzeltmek için testi gevşetme — hata teste çevrilir
 okunur. Model tanımda: Sonnet 5; Opus yalnız `canon-denetci`,
 `kurgu-denetci`, `hikaye-yazari`; Haiku yalnız `tarama-denetci`.
 
-**Oturum açılışı.** Ders defteri (`ders.py`) ve zemin denetimi
-(`duman.py`) kendiliğinden gelir; okunmadan işe başlanmaz. Döngüler
+**Oturum açılışı.** Ders defteri (`ders.py`), iş ve karar defteri
+(`defter.py`) ve zemin denetimi (`duman.py`) kendiliğinden gelir;
+okunmadan işe başlanmaz. Yarım kalan iş `defter.py`'ye `yarim` ve devam
+noktasıyla yazılır; reddedilen öneri gerekçesiyle. Yeni bir öneriden önce
+`defter.py oner "<fikir>"` (çıkış 3: daha önce reddedildi). LORE.md
+değişince `etki.py --taban HEAD` bağlı yerleri listeler. Döngüler
 `devre.py` ile sınırlıdır — çıkış `1` dur ve insana çık, çıkış `4`
 başka bir koşu aynı halkayı tutuyor, turu atla.
 
