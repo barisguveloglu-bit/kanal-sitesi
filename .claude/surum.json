@@ -1,7 +1,7 @@
 {
   "majör": 2,
   "minör": 1,
-  "yama": 7,
+  "yama": 8,
   "gecmis": [
     {
       "surum": "v1.1",
@@ -111,6 +111,11 @@
     {
       "surum": "v2.1.7",
       "ne": "Dört videodan iki eksik: kalıcı iş ve karar defteri (defter.py; yarım iş, askıdaki karar, gerekçeli ret; oturum açılışında görünür, reddedilen fikir yeniden önerilince çıkış 3) ve canon etki haritası (etki.py; LORE değişikliğinin dokunduğu yerler).",
+      "tarih": "2026-09-27"
+    },
+    {
+      "surum": "v2.1.8",
+      "ne": "Kadro tabloları tamamlandı (22 denetçi, 5 üretici; önce 15 ve 2 satır vardı) ve dogrula.py artık her ajanın tabloda satırı olmasını zorluyor.",
       "tarih": "2026-09-27"
     }
   ]

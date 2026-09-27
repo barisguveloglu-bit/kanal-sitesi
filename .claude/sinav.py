@@ -128,6 +128,11 @@ def v_talimat_sisti(k):
     with open(p, "a", encoding="utf-8") as f:
         f.write("\n## Ek not\n\n" + "Bu aracın uzun gerekçesi. " * 120 + "\n")
 
+def v_kadro_satiri_dustu(k):
+    """Sayı doğru, tablo eksik: 22 yazan başlığın altında 15 satır vardı."""
+    duzenle(k, ".claude/DONGULER.md",
+            "| 21 | `zaman-denetci` | Tarih aritmetiği, çağ tutarlılığı, olay sırası |\n", "")
+
 # --- masum vakalar: bunlar yakalanmamalı --------------------------------
 
 def m_degisiklik_yok(k):
@@ -187,6 +192,7 @@ VAKALAR = [
     ("belge: olmayan bölüme atıf",        v_belge_olmayan_bolum,          "belge"),
     ("belge: AGENTS.md'den kural düştü",  v_agents_kural_dustu,           "belge"),
     ("belge: CLAUDE.md bütçeyi aştı",     v_talimat_sisti,                "belge"),
+    ("belge: kadro tablosundan satır düştü", v_kadro_satiri_dustu,         "belge"),
 
     ("MASUM: hiç değişiklik yok",         m_degisiklik_yok,               None),
     ("MASUM: yorumda 'outline: none'",    m_yorumda_outline,              None),
