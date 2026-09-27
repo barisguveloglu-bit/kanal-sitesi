@@ -1914,7 +1914,7 @@ def t_ajan_kadrosu_sonnet(kok):
 
 
 def t_ajan_model_sapmasi_yakalaniyor(kok):
-    """Opus hakkı üç ajanla sınırlı. Dördüncüsünü sessizce eklemek
+    """Opus hakkı dört ajanla sınırlı. Beşincisini sessizce eklemek
     mümkün olmamalı — sapmayı listedeki olmayan bir ajanda dene."""
     yol = os.path.join(kok, ".claude", "agents", "veri-denetci.md")
     if not os.path.exists(yol):
