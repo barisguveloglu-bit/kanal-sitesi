@@ -1,6 +1,6 @@
 import { system, ItemStack } from "@minecraft/server";
 import { yetenekKaydet } from "./kayit.js";
-import { blokIste } from "../butce.js";
+import { blokIste, varlikIste } from "../butce.js";
 import {
   hataYaz, gecerliMi, actionbarYaz, koniHedefleri,
   varlikKonumu, basKonumu, parcacikAt, yukseklikAraligi
@@ -152,18 +152,26 @@ yetenekKaydet({
         if (i >= hedefler.length) return true;
         if (!gecerliMi(oyuncu)) return true;
 
-        const pay = blokIste(FTECH_KOL);
-        if (pay < 1) return false;            // butce dolu, sonraki tick
-
+        /* BUTCE: OKUMA DA BIR BIRIM (v7.98.1).
+           Eskiden yalniz kirilan blok sayiliyordu; hava/sivi
+           hedefler `continue` ile gecildigi icin bos bir alanda
+           butun hedefler TEK tick'te okunuyordu. Deponun kurali
+           efsane.js'teki gibi: getBlock bir birim, setType bir
+           birim. Tick basina kirma tavani yine FTECH_KOL (kaynakta
+           kol sayisi).                                        */
         let kirilan = 0;
-        while (i < hedefler.length && kirilan < pay) {
-          const k = hedefler[i++];
+        while (i < hedefler.length && kirilan < FTECH_KOL) {
+          if (blokIste(1) < 1) return false;  // okuma: butce dolu
+          const k = hedefler[i];
+          let blok;
+          try { blok = boyut.getBlock(k); } catch (e) { blok = undefined; }
+          /* Yuklenmemis parca, hava, sivi, bedrock: atlaniyor.
+             Dayanikli bloklara kaynakta da matkap tier'i sinir. */
+          if (!blok || blok.isAir || blok.isLiquid ||
+              blok.typeId === "minecraft:bedrock") { i++; continue; }
+          if (blokIste(1) < 1) return false;  // yazma: sonraki tick yeniden okunur
+          i++;
           try {
-            const blok = boyut.getBlock(k);
-            if (!blok || blok.isAir || blok.isLiquid) continue;
-            /* Dayanikli bloklara dokunulmuyor: kaynakta da
-               matkap tier'i sinir koyuyor.                 */
-            if (blok.typeId === "minecraft:bedrock") continue;
             blok.setType("minecraft:air");
             kirilan++;
           } catch (e) {
@@ -613,22 +621,34 @@ yetenekKaydet({
         if (i >= hedefler.length) return true;
         if (!gecerliMi(oyuncu)) return true;
 
-        const pay = blokIste(FTECH_KOL);
-        if (pay < 1) return false;
-
+        /* BUTCE: OKUMA DA BIR BIRIM (v7.98.1). Eskiden yalniz
+           silinen yaprak sayiliyordu; yaprak olmayan her hedef
+           `continue` ile gecildigi icin koni (menzilde ~1600
+           nokta) TEK tick'te okunuyordu -- olcum.mjs tepe yuk
+           1644 / 56. Kural efsane.js'teki gibi: okuma bir,
+           yazma bir birim. Tick basina silme tavani FTECH_KOL. */
         let is = 0;
-        while (i < hedefler.length && is < pay) {
-          const k = hedefler[i++];
+        while (i < hedefler.length && is < FTECH_KOL) {
+          if (blokIste(1) < 1) return false;  // okuma: butce dolu
+          const k = hedefler[i];
+          let blok;
+          try { blok = boyut.getBlock(k); } catch (e) { blok = undefined; }
+          if (!blok || blok.isAir || !FTECH_YAPRAK_BLOKLAR.has(blok.typeId)) {
+            i++;
+            continue;
+          }
+          if (blokIste(1) < 1) return false;  // yazma: sonraki tick yeniden okunur
+          i++;
           try {
-            const blok = boyut.getBlock(k);
-            if (!blok || blok.isAir) continue;
-            if (!FTECH_YAPRAK_BLOKLAR.has(blok.typeId)) continue;
             const tip = blok.typeId;
             blok.setType("minecraft:air");
             is++;
             silinen++;
-            /* DROP_CHANCE 0.125 -- kaynagin kendi degeri. */
-            if (Math.random() < FTECH_YAPRAK_DUSME) {
+            /* DROP_CHANCE 0.125 -- kaynagin kendi degeri. Dusen
+               esya bir VARLIK: ortak varlik butcesinden geciyor
+               (v7.98.1; eskiden sormadan doguruyordu). Butce
+               doluysa o yaprak esya dusurmeden temizlenir.   */
+            if (Math.random() < FTECH_YAPRAK_DUSME && varlikIste(1) > 0) {
               try {
                 boyut.spawnItem(new ItemStack(tip, 1),
                                 { x: k.x + 0.5, y: k.y + 0.5, z: k.z + 0.5 });

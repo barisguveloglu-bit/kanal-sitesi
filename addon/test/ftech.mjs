@@ -347,5 +347,69 @@ console.log("=== 10. GOREV KUYRUGU IS TAVANINI YUKSELTIYOR ===");
 }
 
 console.log("");
+console.log("=== 11. TICK BUTCESI: OKUMA DA SAYILIYOR ===");
+{
+  /* v7.98.1: Kazi ve Yaprak Temizleyici yalniz BASARILI yazmayi
+     butceden sayiyordu. Hava/yaprak olmayan hedefler `continue`
+     ile gecildigi icin bos bir alanda butun koni TEK tick'te
+     okunuyordu -- olcum.mjs: ftech_yaprak tepe yuk 1644 / 56.
+     olcum.mjs takimin disinda (elle kosulan rapor) oldugu icin
+     kacti; burada kilitli.
+
+     Sahte dunya getBlock'u da setType'i da blok islemi sayiyor
+     (dunya.mjs tickBlok) -- deponun kurali efsane.js'teki
+     blokIste(2) ile ayni: okuma bir, yazma bir birim.         */
+  const tepe = (D) => Math.max(0, ...Object.values(D.sayac.tickBlok || {}));
+
+  /* Bos alan: hic yaprak yok, butun hedefler okunup geciliyor. */
+  {
+    const D = dunyaKur();
+    const o = oyuncuKur(D.boyut, { x: 1, y: 0, z: 0 }, { x: 0.5, y: 90.6, z: 0.5 });
+    o.id = "btc1"; _durum.oyuncular = [];
+    sus(); itemUseTetikle({ source: o, itemStack: { typeId: "pa:ftech_yaprak" } });
+    tickIlerlet(400); ac();
+    kontrol("yaprak temizleyici bos alanda butceyi asmiyor",
+            tepe(D) <= ayar.TICK_BLOK_BUTCESI,
+            tepe(D) + " / " + ayar.TICK_BLOK_BUTCESI);
+    kontrol("  bos alanda da isi BITIRIYOR (okuma surduruluyor)",
+            D.sayac.getBlock > ayar.TICK_BLOK_BUTCESI, D.sayac.getBlock + " okuma");
+  }
+  /* Dolu alan: her hedef yaprak, okuma + yazma. */
+  {
+    const D = dunyaKur();
+    const o = oyuncuKur(D.boyut, { x: 1, y: 0, z: 0 }, { x: 0.5, y: 90.6, z: 0.5 });
+    o.id = "btc2"; _durum.oyuncular = [];
+    for (let x = 1; x <= 10; x++)
+      for (let y = 85; y <= 95; y++)
+        for (let z = -5; z <= 5; z++)
+          D.boyut.getBlock({ x, y, z }).setType("minecraft:oak_leaves");
+    D.sayac.tickBlok = {}; D.sayac.yazilan.length = 0;
+    sus(); itemUseTetikle({ source: o, itemStack: { typeId: "pa:ftech_yaprak" } });
+    tickIlerlet(600); ac();
+    const silinen = D.sayac.yazilan.filter((b) => b.tip === "minecraft:air").length;
+    kontrol("yaprakla dolu alanda butceyi asmiyor",
+            tepe(D) <= ayar.TICK_BLOK_BUTCESI, tepe(D) + " / " + ayar.TICK_BLOK_BUTCESI);
+    kontrol("  ve yapraklari gercekten temizliyor", silinen > ayar.FTECH_KOL,
+            silinen + " yaprak");
+  }
+  /* Kazi: bos bir alanda (hava). */
+  {
+    const D = dunyaKur();
+    const o = oyuncuKur(D.boyut, { x: 1, y: 0, z: 0 }, { x: 0.5, y: 200.6, z: 0.5 });
+    o.id = "btc3"; _durum.oyuncular = [];
+    defter.ftechUnut(o.id);
+    defter.yukseltmeTak(o.id, "ftech_y_kazi");
+    D.sayac.tickBlok = {};
+    sus(); itemUseTetikle({ source: o, itemStack: { typeId: "pa:kol_ftech" } });
+    tickIlerlet(300); ac();
+    kontrol("kazi bos alanda butceyi asmiyor",
+            tepe(D) <= ayar.TICK_BLOK_BUTCESI, tepe(D) + " / " + ayar.TICK_BLOK_BUTCESI);
+  }
+  const f = readFileSync(KOK + "/Simsek_TNT_ToprakTopu/scripts/yetenekler/ftech.js", "utf8");
+  kontrol("yaprak dusurmesi varlik butcesinden geciyor",
+          /FTECH_YAPRAK_DUSME && varlikIste\(1\) > 0/.test(f));
+}
+
+console.log("");
 console.log(hata ? "HATA : " + hata : "temiz");
 process.exit(hata ? 1 : 0);

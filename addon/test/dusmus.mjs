@@ -13,7 +13,7 @@
    "geri veriyoruz" bir yorum satiri olarak kalirdi.           */
 
 import { dunyaKur, oyuncuKur } from "./dunya.mjs";
-import { tickIlerlet, esyaKaydet, _durum, sohbetTetikle } from "@minecraft/server";
+import { tickIlerlet, esyaKaydet, _durum, sohbetTetikle, blokKirTetikle } from "@minecraft/server";
 import { readFileSync, existsSync } from "node:fs";
 
 const KOK = new URL("..", import.meta.url).pathname.replace(/\/$/, "");
@@ -695,6 +695,34 @@ console.log("=== 7d. CIKIP GIREN KURBAN SECILEBILIYOR ===");
                     Math.ceil(ayar.DUSMUS_SECILME_SURE /
                               ayar.DUSMUS_TARAMA) + 5);
   kontrol("sayac bastan basladi ve SECILDI", tur >= 0, tur + " tarama");
+}
+
+console.log("");
+console.log("=== KIRILAN DUSMUS BLOGU DEFTERDEN DUSUYOR (v7.98.1) ===");
+{
+  /* dusmus.js playerBreakBlock: oyuncu deftere kayitli bir Dusmus
+     blogunu kirinca kayit silinmeli, yoksa o konum hep "Dusmus"
+     sayilir ve oraya konan HER blok bulastirir.
+
+     Bu yol v7.98.1'e kadar hic sinanmiyordu: sahte olayin
+     blogunda `dimension` yoktu, isleyici istisna atip hataYaz'a
+     dusuyordu. Asagidaki kontrol eski sahte API ile DUSER.     */
+  const { o } = kur();
+  const n = { x: Math.floor(o.location.x), y: Math.floor(o.location.y - 0.1),
+              z: Math.floor(o.location.z) };
+  blokKoy(o);
+  blokKirTetikle(o, n);
+  ilerlet(o, 3);
+  kontrol("kirilan blogun yeri artik bulastirmiyor",
+          dus.dusmusDurum(o.id) === undefined, String(dus.dusmusDurum(o.id)));
+
+  /* Karsi olcu: KIRILMAYAN blok hala bulastiriyor (kontrol bos
+     gecmesin diye).                                            */
+  const b = kur();
+  blokKoy(b.o);
+  ilerlet(b.o, 1);
+  kontrol("  kirilmayan blok hala bulastiriyor",
+          dus.dusmusDurum(b.o.id) === "yozlasiyor", String(dus.dusmusDurum(b.o.id)));
 }
 
 console.log("");

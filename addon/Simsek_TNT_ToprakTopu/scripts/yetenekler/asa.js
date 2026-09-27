@@ -389,8 +389,16 @@ export function mezarOnar() {
       if (!b) continue;
       /* SADECE HAVAYA donmus yer dolduruluyor. Araya biri bir
          sey koyduysa ona dokunulmuyor -- mezariAc()'taki ve
-         tas.js'teki ayni kural.                               */
-      if (b.isAir) b.setType(MEZAR_BLOK);
+         tas.js'teki ayni kural.
+
+         YAZMA DA BIR BIRIM (v7.98.1): `izin` okumalar icin
+         ayrilmisti, yazma sayilmiyordu -- en kotu durumda 8
+         birimle 16 islem. Butce doluysa nokta geri birakiliyor,
+         sonraki tick yeniden deneniyor.                       */
+      if (b.isAir) {
+        if (blokIste(1) < 1) { onarNokta--; break; }
+        b.setType(MEZAR_BLOK);
+      }
     } catch (e) {
       /* Parca yuklu degil: bu nokta sonraki turda denenir. */
     }
