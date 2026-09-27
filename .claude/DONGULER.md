@@ -1,4 +1,4 @@
-# Echo Orkestra v2.1.8
+# Echo Orkestra v2.1.9
 
 Bu katmanın adı **Echo**. Adın sebebi işleyişinde: her çıktı bir
 denetimden geri döner, her hata bir teste geri döner, her ölçüm sistemin
@@ -980,13 +980,15 @@ tek ajana yığdı; hepsi `LORE.md` okuduğu için.
 Bölünemeyen küme kapasiteyi aşabilir — ama sessizce değil. Sessiz aşım
 birleştirmede sürpriz üretir.
 
-**Hangi model.** Kadro **Sonnet 5**, üç istisna dışında: `canon-denetci`,
-`kurgu-denetci` ve `hikaye-yazari` **Opus**. Tanım `.claude/agents/`
+**Hangi model.** Kadro **Sonnet 5**, dört istisna dışında: `canon-denetci`,
+`kurgu-denetci`, `hikaye-yazari` ve `karakter-yazari` **Opus**. Dördüncü
+hak v2.1.9'da Barış'ın kararıyla `karakter-yazari`'ya verildi: güç
+dengesi kararı üretiyor ve yanlış bir güç taslağı kademe tablosunu bozar. Tanım `.claude/agents/`
 altında, çağrıda değil: çağrıda seçilen model unutulur, tanımdaki
 unutulamaz. Ama tanım da sessizce değişebilir, o yüzden `belge` denetimi
 her ajan dosyasını okuyor — listede olmayan biri Opus'a çıkarsa da,
-listedeki biri Sonnet'e düşerse de kırmızı yanıyor. Hak **üçle sınırlı**
-ve liste `dogrula.py`'de yazılı; dördüncüsü reddedilir.
+listedeki biri Sonnet'e düşerse de kırmızı yanıyor. Hak **dörtle sınırlı**
+ve liste `dogrula.py`'de yazılı; beşincisi reddedilir.
 
 Ders defteri (`dersler.jsonl`) şu an **28 ders** taşıyor; kalıcı ve
 depoda. Sayı burada yazılı çünkü sessiz silmeyi ancak bu yakalıyor.
@@ -1934,9 +1936,9 @@ Sürüm: `python3 .claude/surum.py goster` — işaret: `python3 .claude/logo.py
   dosyaya dokunan görevler ayrılırsa biri diğerini ezer.
 - `.claude/agents/` — **22 denetçi + 5 üretici ajan** tanımı, hepsi
   **salt okunur**. Denetçi bulur ve düzeltmez; üretici üretir ama canon'a
-  kural koyamaz. Kadro **Sonnet 5**, üç istisna dışında: `canon-denetci`,
-  `kurgu-denetci` ve `hikaye-yazari` **Opus**. Toplu, yargısız tarama için `tarama-denetci` **Haiku** (ucuz katman, `HAIKU_HAKKI` listesinde). Hak üçle sınırlı ve liste
-  `dogrula.py`'de yazılı — dördüncüsü reddedilir, listedekilerden biri
+  kural koyamaz. Kadro **Sonnet 5**, dört istisna dışında: `canon-denetci`,
+  `kurgu-denetci`, `hikaye-yazari` ve `karakter-yazari` **Opus**. Toplu, yargısız tarama için `tarama-denetci` **Haiku** (ucuz katman, `HAIKU_HAKKI` listesinde). Hak dörtle sınırlı ve liste
+  `dogrula.py`'de yazılı — beşincisi reddedilir, listedekilerden biri
   Sonnet'e düşerse o da yakalanır. Model çağrıda değil tanımda; `dogrula.py`
   hem model sapmasını, hem denetçiye verilmiş yazma aracını, hem de kadro
   sayısının belgeyle ayrışmasını yakalar.

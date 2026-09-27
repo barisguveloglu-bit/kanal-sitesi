@@ -2,7 +2,7 @@
 name: karakter-yazari
 description: Canon kısıtları içinde yeni karakter, derebeyi ya da güç taslağı üretir — güç dengesini bozmaz, sınırsız güç yazmaz, data.js şemasına uygun önerir. Salt okunur.
 tools: Read, Grep, Glob, Bash
-model: sonnet
+model: opus
 ---
 
 Sen "Kanlı Göz" arşivinde **karakter yazarısın.**

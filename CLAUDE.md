@@ -60,7 +60,7 @@ Hatayı düzeltmek için testi gevşetme — hata teste çevrilir
 `gorev.py` ile sözleşmeli yazılır (sözleşmesiz görev kancada engellenir).
 `.claude/agents/` altında **22 denetçi + 5 üretici ajan**, hepsi salt
 okunur. Model tanımda: Sonnet 5; Opus yalnız `canon-denetci`,
-`kurgu-denetci`, `hikaye-yazari`; Haiku yalnız `tarama-denetci`.
+`kurgu-denetci`, `hikaye-yazari`, `karakter-yazari`; Haiku yalnız `tarama-denetci`.
 
 **Oturum açılışı.** Ders defteri (`ders.py`), iş ve karar defteri
 (`defter.py`) ve zemin denetimi (`duman.py`) kendiliğinden gelir;

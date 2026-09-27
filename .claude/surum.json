@@ -1,7 +1,7 @@
 {
   "majör": 2,
   "minör": 1,
-  "yama": 8,
+  "yama": 9,
   "gecmis": [
     {
       "surum": "v1.1",
@@ -116,6 +116,11 @@
     {
       "surum": "v2.1.8",
       "ne": "Kadro tabloları tamamlandı (22 denetçi, 5 üretici; önce 15 ve 2 satır vardı) ve dogrula.py artık her ajanın tabloda satırı olmasını zorluyor.",
+      "tarih": "2026-09-27"
+    },
+    {
+      "surum": "v2.1.9",
+      "ne": "Opus hakkı 3 → 4: karakter-yazari Opus'a alındı (güç dengesi kararı üretiyor). dogrula.py listesi, tavanı ve belgeler güncellendi.",
       "tarih": "2026-09-27"
     }
   ]

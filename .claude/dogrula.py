@@ -27,19 +27,22 @@ import sys
 KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Barış üç ajana Opus hakkı verdi — kadronun geri kalanı Sonnet.
-# Hangi üçü olduğu BURADA yazılı, çünkü "önemli olanlar Opus olsun"
-# bir yazı olarak durursa dördüncüsü sessizce eklenir.
+# Hangi dördü olduğu BURADA yazılı, çünkü "önemli olanlar Opus olsun"
+# bir yazı olarak durursa beşincisi sessizce eklenir.
 #
 # Seçim gerekçeleri (DONGULER.md'de uzunu):
 #   canon-denetci  — hatanın bedeli en yüksek; canon bozulursa kalıcı
 #   kurgu-denetci  — en zor akıl yürütme: sebep-sonuç, güç dengesi, güdü
 #   hikaye-yazari  — tek üretken karar merkezi; taslağın zayıf yeri
 #                    tam buydu (ses ve anlatı merkezi)
+#   karakter-yazari — güç dengesi kararı üretir; yanlış bir güç taslağı
+#                    canon'a girerse bütün kademe tablosunu bozar
+#                    (v2.1.9, Barış'ın kararıyla hak 3 → 4)
 #
 # Modül düzeyinde duruyor ki arac-sinavi.py da buradan okusun — liste
 # iki yerde tutulursa biri çürür.
-OPUS_HAKKI = {"canon-denetci", "kurgu-denetci", "hikaye-yazari"}
-OPUS_TAVANI = 3
+OPUS_HAKKI = {"canon-denetci", "kurgu-denetci", "hikaye-yazari", "karakter-yazari"}
+OPUS_TAVANI = 4
 
 # Ucuz katman: yargı gerektirmeyen toplu tarama için Haiku. Opus hakkının
 # tersi — pahalı modeli ham veriye harcamamak için. Aynı disiplin: hangi
@@ -568,7 +571,7 @@ def d_belge(r):
                                     "veren bir ajanı ucuzlatmak bir karar.")
             elif model and model != beklenen_model:
                 r.hata("belge", f"agents/{ad}: model '{model}' — beklenen "
-                                f"'{beklenen_model}' ya da listedeki üç ajan "
+                                f"'{beklenen_model}' ya da listedeki dört ajan "
                                 "için 'opus'. Model değiştirmek bir karar, "
                                 "sessizce olmamalı.")
             # Denetçi ajanlar salt okunur olmalı: bulmak ile düzeltmek ayrı
@@ -582,8 +585,8 @@ def d_belge(r):
             r.tamam()
 
         # Liste yazılı olup uygulanmazsa yine yazıdır. İki yönü de denetle:
-        # tavan aşılmasın VE listedeki üç ajan gerçekten Opus olsun. İkincisi
-        # önemli: biri sessizce Sonnet'e düşerse "üç Opus var" iddiası
+        # tavan aşılmasın VE listedeki dört ajan gerçekten Opus olsun. İkincisi
+        # önemli: biri sessizce Sonnet'e düşerse "dört Opus var" iddiası
         # yalan olur ama hiçbir şey kırılmaz.
         if len(opus_bulunan) > OPUS_TAVANI:
             r.hata("belge", f"Opus tavanı {OPUS_TAVANI}, {len(opus_bulunan)} "
