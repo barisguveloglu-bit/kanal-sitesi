@@ -289,6 +289,7 @@ export function sonsuzUnut(id) {
 
 yetenekKaydet({
   kimlik: "jjk_sonsuzluk", ad: "Infinity",
+  acKapa: true,          // acikken tetik = kapat (main.js kapatmaMi)
   esyasiz: true, sira: JJK_SONSUZ_SIRA,
   olustur(oyuncu) {
     if (!JJK_SONSUZ_ACIK || !JJK_ACIK || !gecerliMi(oyuncu)) return undefined;

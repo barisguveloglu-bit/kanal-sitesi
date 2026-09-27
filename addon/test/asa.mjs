@@ -91,8 +91,13 @@ function kurbanYap(id, boyut, tip = "minecraft:zombie") {
   };
 }
 
+/* Her vurus bir tickin icinde oluyor ve o tickin kotasi tick
+   BASINDA doluyor (main.js butceSifirla). Mezar v7.98.2'den
+   beri kotadan odeniyor; burada tick ilerletmeden kotayi
+   doldurmak sersem penceresinin zamanlamasini degistirmiyor. */
 function vur(bot, kurban, kez) {
   for (let i = 0; i < kez; i++) {
+    butceSifirla();
     vurusTetikle({ damagingEntity: bot, hitEntity: kurban });
   }
 }
@@ -572,7 +577,11 @@ console.log("=== 5b. MEZAR AYAKTA KALIYOR MU (v7.43) ===");
 
   /* Butce tick basina sinirli, o yuzden birden fazla tick.
      Tam kabuk MEZAR_ONAR_BUTCE'lik dilimlerle taraniyor.    */
-  const gerekenTick = Math.ceil(mezar.k.length / ayar.MEZAR_ONAR_BUTCE) + 1;
+  /* v7.98.2: mezar kurulurken kota yetmediyse kalan noktalar
+     `p`'de bekliyor ve onarim ONCE onlari isliyor. Her biri
+     bir okuma payi yiyor ve k'ye katiliyor.                */
+  const bekleyen = mezar.p ? mezar.p.length : 0;
+  const gerekenTick = Math.ceil((mezar.k.length + 2 * bekleyen) / ayar.MEZAR_ONAR_BUTCE) + 2;
   for (let t = 0; t < gerekenTick; t++) { butceSifirla(); asa.mezarOnar(); }
 
   kontrol("  kabuk onarildi", havaSayisi() === 0,
@@ -736,6 +745,60 @@ console.log("\n=== 7. OYUNCU ASASI KALDIRILDI (v7.94.6) ===");
           ayar.ilkelSilahi("harkos"));
   kontrol("SILAH_HASARI'nda asa yok",
           ayar.silahHasari("pa:ilkel_asa") === 0);
+}
+
+console.log("");
+console.log("=== 8. MEZAR KURULUMU BLOK BUTCESINE UYUYOR (v7.98.2) ===");
+{
+  /* Kabuk 98 nokta ve TEK vurusta kuruluyordu: 98 okuma + her
+     hava noktasi icin bir yazma, kotaya sorulmadan -- tick
+     kotasi 56. Artik kota biterse okunmamis noktalar `p`'de
+     bekliyor ve onarim onlari tamamliyor.                  */
+  const { D, o } = kur("a8");
+  sus(); ilkel.ilkelCagir(o, "harkos"); ac();
+  const bot = harkosu(D);
+  const kurban = kurbanYap("k8", D.boyut);
+  vur(bot, kurban, ayar.SERSEM_VURUS);
+  const once = mezarlar.mezarSayisi();
+  const g0 = D.sayac.getBlock, s0 = D.sayac.setType;
+  vur(bot, kurban, 1);
+  const islem = (D.sayac.getBlock - g0) + (D.sayac.setType - s0);
+  kontrol("mezar kuruldu (olcum anlamli)", mezarlar.mezarSayisi() === once + 1,
+          mezarlar.mezarSayisi() + " mezar");
+  kontrol("kurulum vurusu tick kotasinin altinda", islem <= ayar.TICK_BLOK_BUTCESI,
+          islem + " <= " + ayar.TICK_BLOK_BUTCESI);
+  const mezar = mezarlar.mezarDefteri()[mezarlar.mezarSayisi() - 1];
+  kontrol("  kota yetmeyen noktalar bekleyende", !!(mezar.p && mezar.p.length > 0),
+          (mezar.p ? mezar.p.length : 0) + " bekleyen");
+
+  const tasMi = (x, y, z) => D.boyut.getBlock({ x, y, z }).typeId === ayar.MEZAR_BLOK;
+  /* Kurban havada, cevre bos: 98 noktanin 98'i de mezar tasi
+     olmali. Beklenen sayi kabugun kendisinden.            */
+  const m = mezar.m;
+  let toplamNokta = 0;
+  const r = ayar.MEZAR_YARICAP;
+  for (let x = -r - 1; x <= r + 1; x++) for (let z = -r - 1; z <= r + 1; z++)
+    for (let y = -1; y <= ayar.MEZAR_YUKSEK; y++)
+      if (Math.abs(x) > r || Math.abs(z) > r || y === -1 || y === ayar.MEZAR_YUKSEK) toplamNokta++;
+  const tasSay = () => {
+    let n = 0;
+    for (let x = -r - 1; x <= r + 1; x++) for (let z = -r - 1; z <= r + 1; z++)
+      for (let y = -1; y <= ayar.MEZAR_YUKSEK; y++)
+        if (tasMi(m[0] + x, m[1] + y, m[2] + z)) n++;
+    return n;
+  };
+  kontrol("  ilk vurusta kabuk YARIM (kontrol)", tasSay() < toplamNokta,
+          tasSay() + " / " + toplamNokta);
+  for (let t = 0; t < 40; t++) { butceSifirla(); asa.mezarOnar(); }
+  kontrol("onarim bekleyenleri tamamladi", tasSay() === toplamNokta,
+          tasSay() + " / " + toplamNokta);
+  kontrol("  bekleyen listesi silindi", mezar.p === undefined,
+          mezar.p ? mezar.p.length + " kaldi" : "yok");
+  kontrol("  hepsi k'de (acinca hepsi sokulsun)", mezar.k.length === toplamNokta,
+          mezar.k.length + " / " + toplamNokta);
+  kontrol("  kayda yazildi (dunya kapansa da bilinsin)",
+          JSON.parse(_durum.ozellikler.get(ayar.MEZAR_KAYIT_ANAHTAR))
+            .some((x) => x.k.length === toplamNokta && x.p === undefined));
 }
 
 console.log("");

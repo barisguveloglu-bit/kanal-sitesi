@@ -8,7 +8,7 @@ import { blokIste } from "../butce.js";
 import {
   AVA_ACIK, AVA_SIRA_BAS,
   AVA_DIKEN_SURE, AVA_DIKEN_ORAN, AVA_DIKEN_TAVAN, AVA_DIKEN_PARCACIK,
-  AVA_AGAC_SURE, AVA_AGAC_ARA, AVA_AGAC_PARTI, AVA_AGAC_TAVAN,
+  AVA_AGAC_SURE, AVA_AGAC_ARA, AVA_AGAC_PARTI, AVA_AGAC_TAVAN, AVA_AGAC_TARAMA,
   AVA_AGAC_MENZIL, AVA_AGAC_YAPRAK_UZAK, AVA_AGAC_KUTUK, AVA_AGAC_YAPRAK,
   AVA_BEDROCK_MENZIL, AVA_BEDROCK_SURE, AVA_BEDROCK_PARCACIK,
   AVA_BEDROCK_TIPLER,
@@ -149,38 +149,69 @@ function bakilanKutuk(oyuncu) {
 }
 
 /* Bagli kutuk ve yapraklari topla. Kaynaktaki genislik-once
-   taramanin aynisi, sinirlari bizim butcemize gore kucuk.  */
-export function agaciTara(boyut, kok) {
+   taramanin aynisi, sinirlari bizim butcemize gore kucuk.
+
+   ---- NEDEN PARCA PARCA (v7.98.2) ----
+   Eskiden tarama yetenek BASLARKEN tek karede yapiliyordu:
+   160 blokluk bir agacta 303 getBlock -- tick kotasi 56.
+   Yazma partilere bolunmustu, okuma bolunmemisti. Kota
+   getBlock'u da sayiyor (ayarlar.js TICK_BLOK_BUTCESI), yani
+   yarisini butceye sokmak yetmiyordu.
+
+   Artik tarayici durumunu tutuyor: ilerle(n) en fazla n blok
+   okuyor ve kaldigi yerden devam ediyor. Bulunan blok hemen
+   kirilabilir: komsulari BULUNDUGU anda kuyruga girdi, bir
+   daha okunmuyor.                                          */
+export function agacTarayici(boyut, kok) {
   const kuyruk = [{ k: kok.location, d: 0 }];
+  let bas = 0;                                   // shift yerine: O(1)
   const gorulen = new Set();
   const bulunan = [];
   const anahtar = (k) => k.x + "," + k.y + "," + k.z;
-  while (kuyruk.length > 0 && bulunan.length < AVA_AGAC_TAVAN) {
-    const { k, d } = kuyruk.shift();
-    const a = anahtar(k);
-    if (gorulen.has(a)) continue;
-    gorulen.add(a);
+  const bitti = () => bas >= kuyruk.length || bulunan.length >= AVA_AGAC_TAVAN;
 
-    let blok;
-    try { blok = boyut.getBlock(k); } catch (e) { continue; }
-    if (!blok) continue;
-    const tip = blok.typeId;
+  /* En fazla `izin` blok okur, okudugu sayiyi dondurur. Gorulmus
+     konum okuma harcamaz -- butce yalniz getBlock'a gidiyor.  */
+  function ilerle(izin) {
+    let okunan = 0;
+    while (okunan < izin && !bitti()) {
+      const { k, d } = kuyruk[bas++];
+      const a = anahtar(k);
+      if (gorulen.has(a)) continue;
+      gorulen.add(a);
 
-    const kutuk = sonEk(tip, AVA_AGAC_KUTUK);
-    const yaprak = sonEk(tip, AVA_AGAC_YAPRAK);
-    if (!kutuk && !yaprak) continue;
-    /* Yaprak yalniz kutuge YAKINSA aliniyor -- kaynakta da
-       `distance <= 6`. Yoksa komsu agacin yapraklari da
-       gelirdi.                                             */
-    if (yaprak && d > AVA_AGAC_YAPRAK_UZAK) continue;
+      okunan++;
+      let blok;
+      try { blok = boyut.getBlock(k); } catch (e) { continue; }
+      if (!blok) continue;
+      const tip = blok.typeId;
 
-    bulunan.push({ x: k.x, y: k.y, z: k.z });
-    for (const [dx, dy, dz] of [[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]]) {
-      kuyruk.push({ k: { x: k.x + dx, y: k.y + dy, z: k.z + dz },
-                    d: kutuk ? 0 : d + 1 });
+      const kutuk = sonEk(tip, AVA_AGAC_KUTUK);
+      const yaprak = sonEk(tip, AVA_AGAC_YAPRAK);
+      if (!kutuk && !yaprak) continue;
+      /* Yaprak yalniz kutuge YAKINSA aliniyor -- kaynakta da
+         `distance <= 6`. Yoksa komsu agacin yapraklari da
+         gelirdi.                                           */
+      if (yaprak && d > AVA_AGAC_YAPRAK_UZAK) continue;
+
+      bulunan.push({ x: k.x, y: k.y, z: k.z });
+      for (const [dx, dy, dz] of [[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]]) {
+        kuyruk.push({ k: { x: k.x + dx, y: k.y + dy, z: k.z + dz },
+                      d: kutuk ? 0 : d + 1 });
+      }
     }
+    return okunan;
   }
-  return bulunan;
+  return { bulunan, bitti, ilerle };
+}
+
+/* Tamamini bir kerede tara. BUTCESIZ: yalniz test ve olcum
+   icin. Yetenek bunu cagirmiyor, agacTarayici'yi partiyle
+   kullaniyor.                                              */
+export function agaciTara(boyut, kok) {
+  const t = agacTarayici(boyut, kok);
+  while (!t.bitti()) t.ilerle(Infinity);
+  return t.bulunan;
 }
 
 yeni("agac_devir", "Agac Devir", (oyuncu) => {
@@ -191,16 +222,29 @@ yeni("agac_devir", "Agac Devir", (oyuncu) => {
     actionbarYaz(oyuncu, "§7Bir kütüğe bak");
     return undefined;
   }
+  /* "Agac bulunamadi" dali artik yok: kok bir kutuk
+     (bakilanKutuk sordu), taramanin ilk bulgusu o.         */
   const boyut = oyuncu.dimension;
-  const liste = agaciTara(boyut, kok);
-  if (liste.length === 0) { actionbarYaz(oyuncu, "§7Ağaç bulunamadı"); return undefined; }
+  const tarayici = agacTarayici(boyut, kok);
+  const liste = tarayici.bulunan;
 
   let i = 0;
-  actionbarYaz(oyuncu, "§2🪓 §f" + liste.length + " blok devriliyor");
+  actionbarYaz(oyuncu, "§2🪓 §fAğaç devriliyor");
   return sureliIs("agac_devir", oyuncu, AVA_AGAC_SURE, AVA_AGAC_ARA, () => {
-    if (i >= liste.length) return true;            // is bitti
-    /* BUTCE: tick basina blok kotasi bu depoda kural.
-       320 blok tek karede yazilamaz.                       */
+    /* BUTCE: tick basina blok kotasi bu depoda kural ve
+       getBlock'u da sayiyor. Once okuma, sonra yazma; ikisi
+       de kendi payini istiyor.                             */
+    /* Okuma payi TEK TEK isteniyor (ftech.js ile ayni):
+       iade yolu yok, toplu istenip okunmayan pay o tick baska
+       isten eksilirdi. Kuyrugun boyu da is yol almadan
+       bilinmiyor -- okudukca buyuyor. v7.98.2'nin ilk
+       yazilisi kuyruk boyuyla sinirliyordu ve tarama cagri
+       basina 1-6 blok ilerliyordu.                          */
+    for (let n = 0; n < AVA_AGAC_TARAMA && !tarayici.bitti(); n++) {
+      if (blokIste(1) < 1) break;
+      tarayici.ilerle(1);
+    }
+    if (i >= liste.length) return tarayici.bitti();  // is bitti mi
     const izin = blokIste(Math.min(AVA_AGAC_PARTI, liste.length - i));
     if (izin === 0) return false;
     for (let k = 0; k < izin; k++) {

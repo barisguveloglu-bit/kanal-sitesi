@@ -316,6 +316,7 @@ export function berserkUnut(id) {
 
 yetenekKaydet({
   kimlik: "berserk", ad: "Berserk",
+  acKapa: true,          // acikken tetik = kapat (main.js kapatmaMi)
   esyasiz: true, sira: BERSERK_SIRA,
   olustur(oyuncu) {
     if (!BERSERK_ACIK || !gecerliMi(oyuncu)) return undefined;

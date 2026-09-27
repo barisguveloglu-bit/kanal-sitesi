@@ -12,6 +12,7 @@
    5. Agac devirme kutuk/yaprak AYRIMI yapiyor ve yapraklari
       yalniz kutuge yakinsa aliyor (komsu agaci kesmesin).
    6. Agac devirme BUTCEYE uyuyor -- tick basina parti.
+   6b. Agac TARAMASI da butceye uyuyor (v7.98.2).
    7. Bedrock kirici EN ALT KATMANI kirmiyor: kullanicinin
       tek katli dunyasinda zemini delerdi.                   */
 
@@ -261,6 +262,12 @@ console.log("=== 7. AGAC: BUTCEYE UYUYOR ===");
   is.bitir(); ac();
   kontrol("is sonunda bitiyor",
           yaz(o).indexOf("blok devrildi") !== -1, o._yazi[o._yazi.length - 1] || "");
+  /* SEYREK agac (v7.98.2): tek sira kutuk, her kutuge dort
+     hava komsusu. Tarama partisi bu yuzden az blok buluyor
+     ve yazma taramaya YETISIYOR -- "yazacak kalmadi" o an
+     "is bitti" sayilirsa agacin ustu ayakta kalir.         */
+  const kirilan = (D.sayac.boyutKomut || []).filter((k) => k.indexOf("destroy") !== -1).length;
+  kontrol("  on kutugun onu da kirildi", kirilan === 10, kirilan + " / 10");
   /* Dusursun diye `destroy` kullaniliyor: agac devirmenin
      anlami odunu almak.                                    */
   /* Komutlar sahte dunyada `sayac.boyutKomut`ta tutuluyor
@@ -331,6 +338,89 @@ console.log("=== 9. BEDROCK: SURE DOLMADAN KIRILMIYOR ===");
           D.boyut.getBlock(yer).typeId);
   kontrol("  sure kaynaktaki sayi (188 tick)",
           ayar.AVA_BEDROCK_SURE === 188, String(ayar.AVA_BEDROCK_SURE));
+}
+
+console.log("");
+console.log("=== 10. AGAC: OKUMA DA BUTCEYE UYUYOR (v7.98.2) ===");
+{
+  /* Madde 7 yalniz YAZMAYA bakiyordu ve yesildi; tarama ise
+     yetenek baslarken tek karede yapiliyordu: 5x5 yaprakli,
+     20 kat bir agacta 303 getBlock -- kota 56 ve getBlock'u
+     da sayiyor. Burada her tickin blok islemi olculuyor
+     (dunya.mjs tickBlok).                                   */
+  const D = dunyaKur();
+  sus();
+  for (let y = 70; y < 90; y++) for (let x = -2; x <= 2; x++) for (let z = -2; z <= 2; z++) {
+    D.boyut.getBlock({ x, y, z }).setType(x === 0 && z === 0 ? "minecraft:oak_log" : "minecraft:oak_leaves");
+  }
+  ac();
+  const beklenen = A.agaciTara(D.boyut, D.boyut.getBlock({ x: 0, y: 70, z: 0 })).length;
+  const o = oyuncuKur(D.boyut, { x: 0, y: 0, z: 1 }, { x: 0.5, y: 90.6, z: 3.5 });
+  o.id = "a3"; o.typeId = "minecraft:player"; o._yazi = [];
+  o.onScreenDisplay = { setActionBar(t) { o._yazi.push(String(t)); }, setTitle() {} };
+  o.getBlockFromViewDirection = () => ({ block: D.boyut.getBlock({ x: 0, y: 70, z: 0 }) });
+  _durum.oyuncular = [o]; D.boyut._varliklar = [o];
+
+  tickIlerlet(1);
+  D.sayac.tickBlok = {};
+  const oncesi = (D.sayac.boyutKomut || []).length;
+  sus();
+  const is = kayit.yetenekAl("agac_devir").olustur(o);
+  const baslarken = Math.max(0, ...Object.values(D.sayac.tickBlok));
+  for (let i = 0; i < ayar.AVA_AGAC_SURE; i++) { tickIlerlet(1); if (is.calis()) break; }
+  is.bitir(); ac();
+  const tepe = Math.max(0, ...Object.values(D.sayac.tickBlok));
+  const kirilan = (D.sayac.boyutKomut || []).length - oncesi;
+
+  kontrol("agac tavana kadar buyuk (olcum anlamli)", beklenen === ayar.AVA_AGAC_TAVAN,
+          beklenen + " blok");
+  kontrol("yetenek baslarken tarama yapmiyor", baslarken <= 1, baslarken + " okuma");
+  kontrol("tick basina okuma <= AVA_AGAC_TARAMA", tepe <= ayar.AVA_AGAC_TARAMA,
+          tepe + " <= " + ayar.AVA_AGAC_TARAMA);
+  kontrol("  ve tick kotasinin altinda", tepe <= ayar.TICK_BLOK_BUTCESI,
+          tepe + " <= " + ayar.TICK_BLOK_BUTCESI);
+  kontrol("parca parca tarama AYNI agaci buluyor", kirilan === beklenen,
+          kirilan + " = " + beklenen);
+  kontrol("sure yetiyor (is sonunda bitti)",
+          (o._yazi[o._yazi.length - 1] || "").indexOf(beklenen + " blok devrildi") !== -1,
+          o._yazi[o._yazi.length - 1] || "");
+}
+
+console.log("");
+console.log("=== 11. AGAC: BUTCESIZ TICK ISI BITIRMIYOR (v7.98.2) ===");
+{
+  /* Kota TUM oyuncular arasinda paylasiliyor. Baska bir is o
+     tickin payini bitirdiyse tarama hic ilerlemez; o an
+     yazilacak blok da kalmamissa "liste bitti" GORUNUR ama
+     agacin cogu henuz bulunmamistir. Is "tarama bitti mi"ye
+     bakmali, "liste bitti mi"ye degil.                      */
+  const B = await import("./pack/butce.js");
+  const D = dunyaKur();
+  sus();
+  for (let y = 70; y < 90; y++) D.boyut.getBlock({ x: 0, y, z: 0 }).setType("minecraft:oak_log");
+  ac();
+  const o = oyuncuKur(D.boyut, { x: 0, y: 0, z: 1 }, { x: 0.5, y: 90.6, z: 3.5 });
+  o.id = "a4"; o.typeId = "minecraft:player"; o._yazi = [];
+  o.onScreenDisplay = { setActionBar(t) { o._yazi.push(String(t)); }, setTitle() {} };
+  o.getBlockFromViewDirection = () => ({ block: D.boyut.getBlock({ x: 0, y: 70, z: 0 }) });
+  _durum.oyuncular = [o]; D.boyut._varliklar = [o];
+
+  const oncesi = (D.sayac.boyutKomut || []).length;
+  sus();
+  const is = kayit.yetenekAl("agac_devir").olustur(o);
+  let bitti = false;
+  for (let i = 0; i < ayar.AVA_AGAC_SURE && !bitti; i++) {
+    tickIlerlet(1);
+    /* Her ikinci cagrida kota bastan tukenmis: tek sira kutukte
+       bir tarama partisi yazma partisinden az blok buluyor,
+       yani yazma once yetisiyor, sonra aclik geliyor.       */
+    if (i % 4 === 2) B.blokIste(1e9);
+    bitti = is.calis();
+  }
+  is.bitir(); ac();
+  const kirilan = (D.sayac.boyutKomut || []).length - oncesi;
+  kontrol("aclik tickleri arasinda yirmi kutugun hepsi kirildi", kirilan === 20,
+          kirilan + " / 20");
 }
 
 console.log(hata ? ">>> SORUN VAR" : ">>> avaritia yerinde");

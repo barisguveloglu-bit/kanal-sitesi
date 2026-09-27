@@ -23,6 +23,12 @@ import { MEZAR_KAYIT_ANAHTAR, MEZAR_TAVAN } from "../ayarlar.js";
    tahmin yapilmiyor, cunku oyuncunun kendi yapisini silmek
    geri alinamaz bir hata olurdu.
 
+   p = (v7.98.2, istege bagli) kurulurken tick kotasi yetmedigi
+   icin HENUZ OKUNMAMIS kabuk noktalari. Onarim bunlari once
+   isliyor: havaysa mezar tasi koyup k'ye tasiyor, doluysa
+   atiyor (oyuncunun blogu -- bizim degil). Eski kayitlarda
+   yok; yoksa bos sayiliyor.
+
    i = tutsagin varlik kimligi. Varlik ID'leri dunya yeniden
    yuklenince degisebiliyor, o yuzden buna GUVENILMIYOR:
    sadece "mezar acilinca kimi serbest birakmayi denemeli"
@@ -56,7 +62,7 @@ function kaydet() {
   }
 }
 
-export function mezarEkle(boyutId, merkez, konan, tutsakId) {
+export function mezarEkle(boyutId, merkez, konan, tutsakId, bekleyen) {
   yukle();
   /* ---- TAVAN ARTIK BURADA  (v7.62) ----
      MEZAR_TAVAN denetimi yalniz mezarDoluMu()'de duruyordu ve
@@ -70,6 +76,9 @@ export function mezarEkle(boyutId, merkez, konan, tutsakId) {
     k: konan.map((n) => [n.x, n.y, n.z]),
     i: tutsakId || ""
   });
+  if (bekleyen && bekleyen.length > 0) {
+    defter[defter.length - 1].p = bekleyen.map((n) => [n.x, n.y, n.z]);
+  }
   kaydet();
   return defter[defter.length - 1];
 }
@@ -133,6 +142,13 @@ export function mezarSil(mezar) {
     return true;
   }
   return false;
+}
+
+/* Onarim bir mezarin k/p listesini degistirdiginde kalici
+   hale getirir. Yazan yine bu dosya; asa.js yalniz cagiriyor. */
+export function mezarKaydet() {
+  yukle();
+  kaydet();
 }
 
 /* Testler icin: dunya yeniden yuklenmis gibi yapar. */

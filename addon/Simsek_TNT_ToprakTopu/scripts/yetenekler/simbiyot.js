@@ -132,6 +132,7 @@ export function simbiyotBaslat(oyuncu) {
 
 yetenekKaydet({
   kimlik: "simbiyot", ad: "Simbiyot · Apex",
+  acKapa: true,          // acikken tetik = kapat (main.js kapatmaMi)
   esyasiz: true, sira: SIMBIYOT_SIRA,
   olustur(oyuncu) { return simbiyotBaslat(oyuncu); }
 });

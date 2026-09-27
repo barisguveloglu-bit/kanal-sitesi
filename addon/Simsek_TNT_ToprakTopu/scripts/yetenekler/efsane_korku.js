@@ -378,6 +378,10 @@ function sonenMesale(oyuncu, boyut, konum, simdi) {
       y: Math.floor(konum.y + (Math.random() * 6 - 2)),
       z: Math.floor(konum.z + Math.sin(aci) * uz)
     };
+    /* BUTCE (v7.98.2): OKUMA da odeniyor. Eskiden yalniz
+       sondurme odeniyordu: 60 ornek + 6 yazma = TEK olayda 66
+       blok islemi, tick kotasi 56.                          */
+    if (blokIste(1) === 0) break;
     let blok;
     try { blok = boyut.getBlock(yer); } catch (e) { continue; }
     if (!blok || EFSANE_SONME_BLOKLAR.indexOf(blok.typeId) < 0) continue;

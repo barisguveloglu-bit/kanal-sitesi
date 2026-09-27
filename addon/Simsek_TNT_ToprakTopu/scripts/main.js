@@ -509,6 +509,23 @@ function ayniIsVarMi(oyuncuId, kimlik) {
   return false;
 }
 
+/* ---- AC-KAPA YETENEGI  (v7.98.2) ----
+   Yedi yetenek (Berserk, Reishi, ROOM, Toprak Izi, Simbiyot,
+   Infinity, Savunma) acikken yeniden tetiklenince KAPANIYOR;
+   kapatma kendi olustur()'larinda yaziyor. Ama o dala hic
+   varilmiyordu: islerinin adi kimlikleriyle ayni ve
+   ayniIsVarMi ikinci tetiklemeyi olustur()'dan ONCE kesiyordu
+   (tavan da oyle). Yorumlar tersini soyluyordu; testler
+   olustur()'u dogrudan cagirdigi icin gormedi.
+
+   Kayitta `acKapa: true` olan bir yetenegin isi calisiyorsa
+   bu tetikleme bir KAPATMA: yeni is acmiyor, o yuzden tavana,
+   ayni-is kapisina, anlik frene ve enerjiye takilmiyor.     */
+function kapatmaMi(oyuncuId, kimlik) {
+  const t = yetenekAl(kimlik);
+  return !!(t && t.acKapa === true && ayniIsVarMi(oyuncuId, kimlik));
+}
+
 function isEkle(is) {
   if (OLCUM_ACIK && isler.length === 0) olcumSifirla();
   isler.push(is);
@@ -879,7 +896,8 @@ function yetenekTetikle(oyuncu, kimlikler) {
   const liste = Array.isArray(kimlikler) ? kimlikler : [kimlikler];
   if (liste.length === 0) return false;
 
-  if (oyuncuIsSayisi(oyuncu.id) >= isTavani(oyuncu.id)) return false;
+  if (oyuncuIsSayisi(oyuncu.id) >= isTavani(oyuncu.id) &&
+      !liste.some((k) => kapatmaMi(oyuncu.id, k))) return false;
 
   const simdi = system.currentTick;
   const onceki = sonKullanim.get(oyuncu.id);
@@ -893,7 +911,8 @@ function yetenekTetikle(oyuncu, kimlikler) {
     for (const kimlik of liste) {
       try {
         if (!gecerliMi(oyuncu)) return;
-        if (oyuncuIsSayisi(oyuncu.id) >= isTavani(oyuncu.id)) break;
+        const kapat = kapatmaMi(oyuncu.id, kimlik);
+        if (!kapat && oyuncuIsSayisi(oyuncu.id) >= isTavani(oyuncu.id)) break;
 
         const tanim = yetenekAl(kimlik);
         if (!tanim) {
@@ -906,7 +925,7 @@ function yetenekTetikle(oyuncu, kimlikler) {
            is acmayan anlik yetenekler (Arinma, Isinlanma...)
            ve is adi kimlikten farkli olanlar buradan gecer --
            onlarda ustuste binecek bir is zaten yok.          */
-        if (ayniIsVarMi(oyuncu.id, kimlik)) continue;
+        if (!kapat && ayniIsVarMi(oyuncu.id, kimlik)) continue;
 
         /* v7.62: KORUMALI YETENEK. Sohbetteki "can 10" etikete
            bagliyken jestten ayni 200 kalp etiketsiz aliniyordu.
@@ -918,7 +937,7 @@ function yetenekTetikle(oyuncu, kimlikler) {
 
         /* v7.62: ANLIK YETENEK FRENI. Is acan yetenekleri
            ayniIsVarMi tutuyor; is acmayanlari bu tutuyor.    */
-        if (!anlikHazirMi(oyuncu.id, kimlik)) continue;
+        if (!kapat && !anlikHazirMi(oyuncu.id, kimlik)) continue;
 
         /* olustur() tek bir is ya da IS DIZISI donebilir.
            Dizi v4.29'da lazim oldu: bot gucleri bot basina bir
@@ -931,7 +950,7 @@ function yetenekTetikle(oyuncu, kimlikler) {
            bilincli: butun yetenekleri tek seferde enerjiye
            baglamak, calisan bir sistemi sessizce bozmanin
            en kestirme yoluydu.                            */
-        if (!enerjiIste(oyuncu, tanim.enerji, tanim.ad)) continue;
+        if (!kapat && !enerjiIste(oyuncu, tanim.enerji, tanim.ad)) continue;
 
         const sonuc = tanim.olustur(oyuncu);
         if (Array.isArray(sonuc)) {

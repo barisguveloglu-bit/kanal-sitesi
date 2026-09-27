@@ -574,6 +574,30 @@ console.log("=== 9. KALICILIK ===");
           E.e404Faz("yuk1") === ayar.E404_FAZ_TAVAN, String(E.e404Faz("yuk1")));
 }
 
+console.log("\n=== 10. OKUMA DA BUTCEDEN ODENIYOR (v7.98.2) ===");
+{
+  /* Iki olay da okumayi butceye sormuyordu, yalniz yazmayi:
+     bozulma 40 ornek + 5 yazma, zemin 18 okuma + 9 yazma.
+     Kota getBlock'u da sayiyor. Kotanin yalniz 10'u
+     birakiliyor; blok islemi 10'u gecmemeli.               */
+  const olc = (isi) => {
+    const { D, o } = kur("b10_" + Math.random(), { x: 0.5, y: 80, z: 0.5 });
+    butce.butceSifirla();
+    butce.blokIste(ayar.TICK_BLOK_BUTCESI - 10);
+    const g = D.sayac.getBlock, st = D.sayac.setType;
+    sus(); isi(o, D); ac();
+    return { oku: D.sayac.getBlock - g, yaz: D.sayac.setType - st };
+  };
+  const b = olc((o, D) => E.bozulanBlok(o, D.boyut, o.location, 0));
+  kontrol("bozulma: kotanin 10'u kalinca en fazla 10 islem", b.oku + b.yaz <= 10,
+          b.oku + " okuma + " + b.yaz + " yazma");
+  kontrol("  ama okuyor (olcum anlamli)", b.oku > 0, b.oku + " okuma");
+  const z = olc((o, D) => E.yukselenZemin(o, D.boyut, o.location, 0));
+  kontrol("zemin: kotanin 10'u kalinca en fazla 10 islem", z.oku + z.yaz <= 10,
+          z.oku + " okuma + " + z.yaz + " yazma");
+  kontrol("  ama calisiyor (olcum anlamli)", z.yaz > 0, z.yaz + " yazma");
+}
+
 console.log("");
 console.log(hata ? "SONUC: HATA VAR" : "SONUC: TEMIZ");
 process.exit(hata ? 1 : 0);

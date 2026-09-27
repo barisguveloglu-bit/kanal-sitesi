@@ -395,6 +395,31 @@ console.log("\n=== 9. IKINCI IHTIMAL: TUR KAYITLI AMA DOGURULAMIYOR ===");
   dis.disVarligiUnut();
 }
 
+console.log("\n=== 10. ZEMIN ARAMASI BLOK BUTCESINE UYUYOR (v7.98.2) ===");
+{
+  /* zeminBul nokta basina 2 x DIS_ZEMIN_TARAMA okuyabiliyor ve
+     butceye sormuyordu: HER YER DOLU bir dunyada (yamacin ici)
+     sekiz nokta 64 okuma, kota 56. Kotanin yalniz 10'u
+     birakiliyor; vurus 10'dan fazla okumamali.             */
+  const B = await import("./pack/butce.js");
+  const { D, bot } = kur("d10");
+  const kurban = kurbanYap("k10", D.boyut, bot.location.x + ayar.DIS_YAKIN + 4, bot.location.z);
+  D.boyut._varliklar = [kurban];
+  const olc = (kalan) => {
+    dis.dislerUnut(bot.id);
+    butceSifirla();
+    B.blokIste(ayar.TICK_BLOK_BUTCESI - kalan);
+    const once = D.sayac.getBlock;
+    sus(); vurusTetikle({ damagingEntity: bot, hitEntity: kurban }); ac();
+    return D.sayac.getBlock - once;
+  };
+  const acik = olc(ayar.TICK_BLOK_BUTCESI);
+  kontrol("acik arazide zemin araniyor (olcum anlamli)", acik > 0, acik + " okuma");
+  D.bloklar.hepsiDolu = true;
+  const dolu = olc(10);
+  kontrol("kotanin 10'u kalinca en fazla 10 okuma", dolu <= 10, dolu + " okuma");
+}
+
 console.log("");
 console.log(hata ? ">>> SORUN VAR" : ">>> Okazor'un disleri calisiyor");
 process.exit(hata ? 1 : 0);

@@ -58,6 +58,7 @@ function anahtar(x, y, z) { return x + "," + y + "," + z; }
 
 yetenekKaydet({
   kimlik: "toprak_izi",
+  acKapa: true,          // acikken tetik = kapat (main.js kapatmaMi)
   ad: "Toprak İzi",
   esyasiz: true,
   sira: IZ_SIRA,

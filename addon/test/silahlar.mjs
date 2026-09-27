@@ -70,6 +70,10 @@ function kur(id) {
   o.getComponent = (a) => (a === "minecraft:inventory") ? envanter : undefined;
   _durum.oyuncular = [o];
   silah.defteriUnut();
+  /* Tick kotasi TICK BASINDA doluyor (main.js butceSifirla).
+     Isin v7.98.2'den beri blokIste'den odeniyor; oyunda atis
+     bir tickin icinde oluyor, burada da oyle olsun.        */
+  tickIlerlet(1);
   return { D, o };
 }
 
@@ -326,6 +330,55 @@ console.log("\n=== 11. DENGE: LAZERDEN GUCLU DEGIL ===");
     if (t.mermi) continue;
     kontrol(k + ": mermisiz ama beklemesi uzun", t.bekleme >= 30,
             t.bekleme + " tick");
+  }
+}
+
+console.log("\n=== 12. ISIN BLOK BUTCESINE UYUYOR (v7.98.2) ===");
+{
+  /* Eskiden carpmaNoktasi getBlock'u butceye sormuyordu ve
+     0.5 adimla ayni blogu iki kez okuyordu: altin revolver
+     tek atista 96 okuma, kota 56. Burada her silahin bir
+     atisinin blok islemi olculuyor (dunya.mjs tickBlok).    */
+  const B = await import("./pack/butce.js");
+  let enCok = 0, enCokAd = "";
+  for (const k of ayar.SILAHLAR.keys()) {
+    const { D, o } = kur("b_" + k);
+    const t = S(k);
+    if (t.mermi) mermiVer(o, t.mermi, 5);
+    D.boyut._varliklar = [];
+    D.sayac.tickBlok = {};
+    sus(); silah.silahAtes(o, t); ac();
+    const n = Math.max(0, ...Object.values(D.sayac.tickBlok));
+    if (n > enCok) { enCok = n; enCokAd = k; }
+    /* +z'ye duz isin: her blok BIR kez. Menzil kadar blok,
+       fazlasi degil.                                      */
+    kontrol("  " + k + ": okuma <= menzil", n <= t.menzil, n + " <= " + t.menzil);
+  }
+  kontrol("en uzun silah bile tick kotasinin altinda", enCok <= ayar.TICK_BLOK_BUTCESI,
+          enCokAd + ": " + enCok + " <= " + ayar.TICK_BLOK_BUTCESI);
+
+  /* Kota bitmisse isin o noktada DURMUS sayiliyor: menzil sonu
+     saymak bakilmamis bir duvarin arkasini vurmak olurdu.    */
+  {
+    const { D, o } = kur("b_dolu");
+    const t = S("revolver");
+    mermiVer(o, t.mermi, 5);
+    const hedef = hedefYap("hb", D.boyut, 12);
+    D.boyut._varliklar = [hedef];
+    B.blokIste(1e9);
+    sus(); silah.silahAtes(o, t); ac();
+    kontrol("kota bitikken uzaktaki hedef vurulmadi", hedef._hasar.length === 0,
+            hedef._hasar.length + " vurus");
+  }
+  {
+    const { D, o } = kur("b_bazuka");
+    const t = S("bazuka");
+    mermiVer(o, t.mermi, 3);
+    D.boyut._varliklar = [];
+    B.blokIste(1e9);
+    sus(); silah.silahAtes(o, t); ac();
+    kontrol("kota bitikken bazuka havada patlamadi", D.sayac.patlama.length === 0,
+            D.sayac.patlama.length + " patlama");
   }
 }
 

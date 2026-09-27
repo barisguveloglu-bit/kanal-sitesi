@@ -4,7 +4,7 @@ import {
 } from "../yardimcilar.js";
 import { botunSahibi } from "./_bot_defteri.js";
 import {
-  mezarEkle, mezariBul, mezarSil, tavanDoldu, mezarDefteri
+  mezarEkle, mezariBul, mezarSil, tavanDoldu, mezarDefteri, mezarKaydet
 } from "./_mezar_defteri.js";
 import { blokIste } from "../butce.js";
 import {
@@ -248,9 +248,26 @@ function mezarAc(kurban) {
   const k = varlikKonumu(kurban);
   const merkez = { x: Math.floor(k.x), y: Math.floor(k.y), z: Math.floor(k.z) };
   const konan = [];
+  /* ---- BUTCE (v7.98.2) ----
+     Kabuk 98 nokta: eskiden TEK vurusta 98 okuma + havadaki
+     her nokta icin bir yazma, kotaya hic sorulmadan -- tick
+     kotasi 56. Artik her okuma ve her yazma blokIste(1).
+     Kota biterse OKUNMAMIS noktalar deftere `p` (bekleyen)
+     olarak yaziliyor; mezarOnar() onlari sonraki ticklerde
+     ayni kuralla ("yalniz havaya") tamamliyor. Tutsak
+     sersem ve tutsagiTut() onu iceride tutuyor.           */
+  const bekleyen = [];
 
-  for (const n of MEZAR_KABUK) {
+  for (let j = 0; j < MEZAR_KABUK.length; j++) {
+    const n = MEZAR_KABUK[j];
     const p = { x: merkez.x + n.x, y: merkez.y + n.y, z: merkez.z + n.z };
+    if (blokIste(1) < 1) {
+      for (let r = j; r < MEZAR_KABUK.length; r++) {
+        const q = MEZAR_KABUK[r];
+        bekleyen.push({ x: merkez.x + q.x, y: merkez.y + q.y, z: merkez.z + q.z });
+      }
+      break;
+    }
     try {
       const blok = boyut.getBlock(p);
       if (!blok) continue;
@@ -258,6 +275,15 @@ function mezarAc(kurban) {
          cevirmek geri alinamaz bir hata olurdu. Hapis
          kafesinde de ayni kural var.                          */
       if (!blok.isAir) continue;
+      if (blokIste(1) < 1) {
+        /* Okundu ve hava, ama yazma payi yok: bu nokta ve
+           geri kalani bekleyene.                              */
+        for (let r = j; r < MEZAR_KABUK.length; r++) {
+          const q = MEZAR_KABUK[r];
+          bekleyen.push({ x: merkez.x + q.x, y: merkez.y + q.y, z: merkez.z + q.z });
+        }
+        break;
+      }
       blok.setType(MEZAR_BLOK);
       konan.push(p);
     } catch (e) {
@@ -265,6 +291,9 @@ function mezarAc(kurban) {
     }
   }
 
+  /* Hic blok konamadiysa mezar yok: ya her yer dolu ya da bu
+     tick kota bitmis. Ikinci durumda sonraki vurus yeniden
+     deniyor -- yarim kalmis bir kayit birakilmiyor.        */
   if (konan.length === 0) return false;
 
   try {
@@ -274,7 +303,7 @@ function mezarAc(kurban) {
     /* Isinlanamadi: mezar yine kuruldu, tutsak kenarda. */
   }
 
-  mezarEkle(boyut.id, merkez, konan, kurban.id);
+  mezarEkle(boyut.id, merkez, konan, kurban.id, bekleyen);
   return true;
 }
 
@@ -372,6 +401,12 @@ export function mezarOnar() {
   const izin = blokIste(MEZAR_ONAR_BUTCE);
   if (izin === 0) return;                 // butce dolu: sonraki tick
 
+  /* YARIM KURULMUS MEZAR ONCE (v7.98.2). Sira beklemiyor:
+     sirali tur bir mezari ~12 tickte bir goruyor, yeni
+     mezarin eksik duvari o kadar bekleyemez.              */
+  let harcanan = bekleyenleriKur(defter, izin);
+  if (harcanan >= izin) return;
+
   let boyut;
   try {
     boyut = world.getDimension(mezar.b);
@@ -380,7 +415,6 @@ export function mezarOnar() {
   }
   if (!boyut) { onarMezar++; onarNokta = 0; return; }
 
-  let harcanan = 0;
   while (harcanan < izin && onarNokta < mezar.k.length) {
     const n = mezar.k[onarNokta++];
     harcanan++;
@@ -405,6 +439,36 @@ export function mezarOnar() {
   }
 
   if (onarNokta >= mezar.k.length) { onarMezar++; onarNokta = 0; }
+}
+
+/* Bekleyen (`p`) noktalari olan ILK mezari isler. Donen:
+   harcanan okuma payi. Her nokta: oku; havaysa yazma payi
+   iste, mezar tasi koy, k'ye tasi; doluysa at (bizim degil).
+   Okunamazsa (parca yuklu degil) nokta bekleyende kaliyor.  */
+function bekleyenleriKur(defter, izin) {
+  const mezar = defter.find((m) => m.p && m.p.length > 0);
+  if (!mezar) return 0;
+  let boyut;
+  try { boyut = world.getDimension(mezar.b); } catch (e) { boyut = undefined; }
+  if (!boyut) return 0;
+  let harcanan = 0, degisti = false;
+  while (harcanan < izin && mezar.p.length > 0) {
+    const n = mezar.p[mezar.p.length - 1];
+    harcanan++;
+    let b;
+    try { b = boyut.getBlock({ x: n[0], y: n[1], z: n[2] }); } catch (e) { break; }
+    if (!b) break;
+    if (b.isAir) {
+      if (blokIste(1) < 1) break;          // yazma payi yok: sonraki tick
+      try { b.setType(MEZAR_BLOK); } catch (e) { break; }
+      mezar.k.push(n);
+    }
+    mezar.p.pop();
+    degisti = true;
+  }
+  if (mezar.p.length === 0) delete mezar.p;
+  if (degisti) mezarKaydet();
+  return harcanan;
 }
 
 /* Testler icin: onarim imlecini basa alir. */

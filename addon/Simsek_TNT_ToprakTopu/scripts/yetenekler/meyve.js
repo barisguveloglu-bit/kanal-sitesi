@@ -358,6 +358,7 @@ export function odaUnut(id) {
 
 yetenekKaydet({
   kimlik: "ope_oda", ad: "ROOM",
+  acKapa: true,          // acikken tetik = kapat (main.js kapatmaMi)
   esyasiz: true, sira: OPE_ODA_SIRA,
   olustur(oyuncu) {
     if (!OPE_ODA_ACIK || !MEYVE_ACIK || !gecerliMi(oyuncu)) return undefined;

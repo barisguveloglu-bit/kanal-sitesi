@@ -230,6 +230,11 @@ export function bozulanBlok(oyuncu, boyut, konum, simdi) {
       y: Math.floor(konum.y + (Math.random() * 6 - 3)),
       z: Math.floor(konum.z + Math.sin(aci) * uz)
     };
+    /* BUTCE (v7.98.2): OKUMA da odeniyor. Eskiden yalniz
+       yazma odeniyordu; 40 ornek + 5 yazma bir olayda 45 blok
+       islemiydi ve kotaya hic sorulmuyordu. Kota okumayi da
+       sayiyor (ayarlar.js TICK_BLOK_BUTCESI).               */
+    if (blokIste(1) === 0) break;
     let blok;
     try { blok = boyut.getBlock(yer); } catch (e) { continue; }
     if (!blok || E404_BOZULMA_HEDEF.indexOf(blok.typeId) < 0) continue;
@@ -297,6 +302,8 @@ export function yukselenZemin(oyuncu, boyut, konum, simdi) {
       if (n >= E404_KALDIRMA_TAVAN) break;
       const yer = { x: mx + dx, y, z: mz + dz };
       let hedef, zemin;
+      /* Iki okuma, ikisi de odeniyor (v7.98.2).            */
+      if (blokIste(2) < 2) break;
       try {
         hedef = boyut.getBlock(yer);
         zemin = boyut.getBlock({ x: yer.x, y: Math.floor(konum.y) - 1, z: yer.z });

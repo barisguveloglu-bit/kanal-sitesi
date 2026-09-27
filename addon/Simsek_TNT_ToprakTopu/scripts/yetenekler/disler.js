@@ -1,6 +1,6 @@
 import * as api from "@minecraft/server";
 import { system, world } from "@minecraft/server";
-import { varlikIste } from "../butce.js";
+import { varlikIste, blokIste } from "../butce.js";
 import {
   hataYaz, bilgiYaz, gecerliMi, varlikKonumu, parcacikHalkasi
 } from "../yardimcilar.js";
@@ -251,11 +251,18 @@ function dostNoktalari(bot) {
    y, ya da undefined.
 
    Disler havada duramaz. Vanilla da ayni sekilde zemini
-   ariyor; havadan asagi en fazla DIS_ZEMIN_TARAMA blok.    */
+   ariyor; havadan asagi en fazla DIS_ZEMIN_TARAMA blok.
+
+   BUTCE (v7.98.2): her okuma blokIste(1) ile odeniyor.
+   Eskiden odenmiyordu: dolu bir yamacta nokta basina
+   2 x DIS_ZEMIN_TARAMA okuma, sekiz noktada 64 -- tick
+   kotasi 56. Kota biterse o nokta "zemin yok" sayiliyor;
+   dis cikmiyor, tahmin edilmiyor.                         */
 function zeminBul(boyut, x, y, z) {
   const koord = { x: Math.floor(x), y: 0, z: Math.floor(z) };
   for (let d = 1; d <= DIS_ZEMIN_TARAMA; d++) {
     koord.y = Math.floor(y) + 1 - d;
+    if (blokIste(1) < 1) return undefined;
     let alt;
     try {
       alt = boyut.getBlock(koord);
@@ -264,6 +271,7 @@ function zeminBul(boyut, x, y, z) {
     }
     if (!alt || alt.isAir) continue;
     /* Ustu bos olmali, yoksa dis duvarin icinde cikar. */
+    if (blokIste(1) < 1) return undefined;
     let ust;
     try {
       ust = boyut.getBlock({ x: koord.x, y: koord.y + 1, z: koord.z });

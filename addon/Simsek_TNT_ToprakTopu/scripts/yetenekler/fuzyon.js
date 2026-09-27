@@ -114,6 +114,7 @@ function davetciBul(oyuncu) {
 
 yetenekKaydet({
   kimlik: "fuzyon",
+  acKapa: true,          // fuzyondayken tetik = ayir (main.js kapatmaMi)
   ad: "Füzyon",
   esyasiz: true,
   sira: 660,

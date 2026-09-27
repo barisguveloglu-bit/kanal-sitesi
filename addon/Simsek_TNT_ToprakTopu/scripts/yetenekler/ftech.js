@@ -342,6 +342,7 @@ yetenekKaydet({
    --------------------------------------------------------------- */
 yetenekKaydet({
   kimlik: "ftech_kavra",
+  acKapa: true,          // tutarken tetik = firlat / fuzyondayken = ayir (main.js kapatmaMi)
   ad: "F-Tech Kavrama",
   esyasiz: true,
   sira: 643,

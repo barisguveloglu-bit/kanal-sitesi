@@ -500,6 +500,7 @@ export function savunmaAc(oyuncu) {
 
 yetenekKaydet({
   kimlik: "savunma",
+  acKapa: true,          // acikken tetik = kapat (main.js kapatmaMi)
   ad: "Savunma Kipi",
   esyasiz: true,
   sira: SAVUNMA_SIRA,

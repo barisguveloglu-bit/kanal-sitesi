@@ -344,6 +344,7 @@ export function reishiUnut(id) {
 
 yetenekKaydet({
   kimlik: "reishi", ad: "Reishi Zemini",
+  acKapa: true,          // acikken tetik = kapat (main.js kapatmaMi)
   esyasiz: true, sira: REISHI_SIRA,
   olustur(oyuncu) {
     if (!REISHI_ACIK || !gecerliMi(oyuncu)) return undefined;

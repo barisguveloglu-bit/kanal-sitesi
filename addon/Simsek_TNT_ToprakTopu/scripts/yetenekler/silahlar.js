@@ -1,5 +1,5 @@
 import { system } from "@minecraft/server";
-import { patlamaIste } from "../butce.js";
+import { patlamaIste, blokIste } from "../butce.js";
 import {
   hataYaz, gecerliMi, actionbarYaz, varlikKonumu, parcacikAt
 } from "../yardimcilar.js";
@@ -179,13 +179,32 @@ function hedefleriBul(oyuncu, bas, yon, t) {
 }
 
 /* Isinin ilk DEGDIGI blok. Patlama ve iz uzunlugu icin.
-   Donen: {x,y,z,uzak} ya da menzil sonu.                    */
+   Donen: {x,y,z,uzak} ya da menzil sonu.
+
+   ---- BUTCE (v7.98.2) ----
+   Her yoklama blokIste(1) ile odeniyor -- goz_lazeri.js'teki
+   isinla ayni kural. Eskiden odenmiyordu: 0.5 adimla altin
+   revolver TEK atista 96 getBlock yapiyordu, tick kotasi 56.
+   Adim 0.5 oldugu icin ayni blok art arda iki kez okunuyordu;
+   artik bir onceki adimla ayni bloksa okuma atlaniyor (sonuc
+   ayni blok, ayni cevap).
+
+   Butce biterse isin O NOKTADA DURMUS sayiliyor (`butce:
+   true`). Menzil sonu saymak, bakilmamis bir duvarin
+   arkasini vurmak olurdu; lazer de ayni yerde duruyor.      */
 function carpmaNoktasi(boyut, bas, yon, menzil) {
   const koord = { x: 0, y: 0, z: 0 };
+  let ox, oy, oz;
   for (let d = SILAH_ADIM; d <= menzil; d += SILAH_ADIM) {
     const x = bas.x + yon.x * d, y = bas.y + yon.y * d, z = bas.z + yon.z * d;
+    const fx = Math.floor(x), fy = Math.floor(y), fz = Math.floor(z);
+    if (fx === ox && fy === oy && fz === oz) continue;   // ayni blok
+    ox = fx; oy = fy; oz = fz;
+    if (blokIste(1) < 1) {
+      return { x, y, z, uzak: d, blok: undefined, butce: true };
+    }
     try {
-      koord.x = Math.floor(x); koord.y = Math.floor(y); koord.z = Math.floor(z);
+      koord.x = fx; koord.y = fy; koord.z = fz;
       const b = boyut.getBlock(koord);
       if (b && !b.isAir) return { x, y, z, uzak: d, blok: b };
     } catch (e) {
@@ -289,7 +308,9 @@ export function silahAtes(oyuncu, t) {
   /* ---- PATLAMA (bazuka) ----
      Patlama butcesi ayri ve dusuk: tick basina bir kac tane.
      Bulunamazsa atis yine sayiliyor, sadece patlama olmuyor. */
-  if (t.patlama) {
+  /* Isin butce yuzunden kesildiyse patlama yok: o nokta bir
+     yuzey degil, bakilmamis bir yer -- havada patlardi.     */
+  if (t.patlama && !carpma.butce) {
     if (patlamaIste(1) >= 1) {
       try {
         boyut.createExplosion(

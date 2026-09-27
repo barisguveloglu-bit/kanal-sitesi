@@ -785,6 +785,34 @@ console.log("\n=== 6. ERROR 404 · ANOMALY REPHASED (v7.74) ===");
   }
 }
 
+console.log("\n=== 7. OKUMA DA BUTCEDEN ODENIYOR (v7.98.2) ===");
+{
+  /* sonenMesale 60 nokta okuyup yalniz SONDURMEYI oduyordu:
+     tek olayda 60 + 6 = 66 blok islemi, tick kotasi 56. Kota
+     getBlock'u da sayiyor.
+
+     Dunya BOS (mesale yok): her ornek okunuyor, hicbiri
+     sondurmuyor -- olculen sey saf okuma. Olay ana dongunun
+     KENDI taramasinda calisiyor (zorla, tickIlerlet sirasinda
+     da gecerli); elle cagri `sonraki` yuzunden bos donerdi.  */
+  const dunya7 = (await import("@minecraft/server")).world;
+  const { D, o } = kur("k7", { x: 0.5, y: 64, z: 0.5 });
+  dunya7.setDynamicProperty(ayar.EFSANE_KAYIT_ANAHTAR, JSON.stringify({ x: 0, z: 0 }));
+  tickIlerlet(ayar.EFSANE_KORKU_TARAMA);
+  let tepe = 0, toplam = 0;
+  zorla("sonme", (sifirla) => {
+    sifirla();
+    D.sayac.tickBlok = {};
+    tickIlerlet(ayar.EFSANE_KORKU_TARAMA);
+    const v = Object.values(D.sayac.tickBlok);
+    tepe = Math.max(0, ...v);
+    toplam = v.reduce((a, b) => a + b, 0);
+  });
+  kontrol("sonme calisti (olcum anlamli)", toplam >= 20, toplam + " okuma");
+  kontrol("tick basina blok islemi kotanin altinda", tepe <= ayar.TICK_BLOK_BUTCESI,
+          tepe + " <= " + ayar.TICK_BLOK_BUTCESI);
+}
+
 console.log("");
 console.log(hata ? ">>> SORUN VAR" : ">>> efsanenin korkusu yerinde");
 process.exit(hata ? 1 : 0);

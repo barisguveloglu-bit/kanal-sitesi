@@ -11612,6 +11612,7 @@ export const AVA_AGAC_SURE    = 200;   // tick -- kac tick acik kalsin
 export const AVA_AGAC_ARA     = 2;     // kac tickte bir parti
 export const AVA_AGAC_PARTI   = 6;     // tek partide en fazla blok
 export const AVA_AGAC_TAVAN   = 160;   // toplam blok tavani
+export const AVA_AGAC_TARAMA  = 24;    // tek partide en fazla OKUMA (v7.98.2)
 export const AVA_AGAC_MENZIL  = 6;     // baktigin kutuge uzaklik
 export const AVA_AGAC_YAPRAK_UZAK = 6; // kutukten bu kadar uzak yaprak
 /* Son ek eslesmesi -- kaynaktaki listenin aynisi.          */
