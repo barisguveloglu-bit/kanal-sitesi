@@ -168,12 +168,19 @@ console.log("=== 6. OYUNCU CIKINCA IKI IS DE DURUYOR ===");
   const { D, o } = kur("ce7", "pa:kol_kevin", "pa:kol_toprak");
   zipla(o);
   sus(); tickIlerlet(20); ac();
-  const ayrilmaAninda = D.sayac.setType;
-
+  /* v7.98.2: cikis aninda isler bitir()'lerini calistiriyor ve
+     Toprak Topu havadaki kuresini SILIYOR (eskiden kaliyordu).
+     O temizlik yalniz HAVA yaziyor; soru "is DEVAM ediyor mu",
+     yani cikistan SONRAKI tickler.                            */
+  const y0 = D.sayac.yazilan.length;
   sus();
   for (const cb of _durum.playerLeaveCb) cb({ playerId: "ce7" });
-  tickIlerlet(400);
   ac();
+  const temizlik = D.sayac.yazilan.slice(y0);
+  kontrol("cikis anindaki temizlik yalniz hava yazdi",
+          temizlik.every((b) => b.tip === "minecraft:air"), temizlik.length + " yazim");
+  const ayrilmaAninda = D.sayac.setType;
+  sus(); tickIlerlet(400); ac();
 
   kontrol("ayrildiktan sonra hicbir is devam etmedi",
           D.sayac.setType === ayrilmaAninda,

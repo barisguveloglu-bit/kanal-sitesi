@@ -82,6 +82,7 @@ export function teslimEt(oyuncu) {
        ama max_stack_size esyaya gore degisiyor ve yanlis
        tahmin edersek esya kayboluyor. Adet zaten canta
        tavaniyla sinirli.                                       */
+    let artik = 0, yigBoyu = 1;
     for (let i = 0; i < adet; i++) {
       let yigin;
       try {
@@ -89,6 +90,7 @@ export function teslimEt(oyuncu) {
       } catch (e) {
         break;   // bu kimlik uretilemiyor, digerine gec
       }
+      if (typeof yigin.maxAmount === "number" && yigin.maxAmount > 0) yigBoyu = yigin.maxAmount;
 
       let kaldi = yigin;
       try {
@@ -98,16 +100,25 @@ export function teslimEt(oyuncu) {
       }
 
       if (!kaldi) { verilen++; continue; }
+      artik++;                        // envanter dolu: sonra yigin halinde
+    }
 
-      // Envanter dolu: botun yanina birak, kaybolmasin
+    /* Envanter dolu: botun yanina YIGIN halinde birak (v7.98.2).
+       Eskiden her esya ayri ayri dogurluyordu -- dolu cantada 640
+       esya = 640 ayri varlik, kotasiz. Yigin boyu esyanin KENDI
+       tavani (maxAmount); yukaridaki "tahmin edersek kaybolur"
+       endisesi boylece yok. Kaybolmasin diye butceye baglanmadi. */
+    while (artik > 0) {
+      const n = Math.min(yigBoyu, artik);
       try {
         if (typeof yakinBot.dimension.spawnItem === "function") {
-          yakinBot.dimension.spawnItem(kaldi, yakinBot.location);
-          dusen++;
+          yakinBot.dimension.spawnItem(new ItemStack(esya, n), yakinBot.location);
+          dusen += n;
         }
       } catch (e) {
         hataYaz("teslim.spawnItem", e);
       }
+      artik -= n;
     }
   }
 

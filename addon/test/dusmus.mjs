@@ -417,7 +417,7 @@ console.log("=== 7. SECILME VE YEMIN ===");
      depoda yazilip baglanmamis kod iki kez cikti (efsane.js
      import edilmemisti, konseySilahKir hic cagrilmiyordu).   */
   const oncekiBaslik = o._baslik.length;
-  const yutuldu = sohbetTetikle(o, ayar.DUSMUS_YEMIN.toUpperCase());
+  const yutuldu = sohbetTetikle(o, ayar.DUSMUS_YEMIN.toUpperCase()); tickIlerlet(1);
   kontrol("YEMIN sohbetten gecti (dinleyici BAGLI)",
           dus.dusmusDurum(o.id) === "asker", String(dus.dusmusDurum(o.id)));
   kontrol("  buyuk harfle yazmak da sayildi", dus.dusmusDurum(o.id) === "asker");
@@ -444,7 +444,7 @@ console.log("=== 7b. BULASMAMIS OYUNCU YEMIN EDEMEZ ===");
   /* Yemin metnini duyan herkes asker olamaz: kurban degilsen
      satir SIRADAN SOHBET, yutulmamali.                      */
   const { o } = kur();
-  const yutuldu = sohbetTetikle(o, ayar.DUSMUS_YEMIN);
+  const yutuldu = sohbetTetikle(o, ayar.DUSMUS_YEMIN); tickIlerlet(1);
   kontrol("temiz oyuncunun yemini islemiyor",
           dus.dusmusDurum(o.id) === undefined);
   kontrol("  satiri sohbetten YUTMUYOR", yutuldu === false);
@@ -495,11 +495,36 @@ console.log("=== 7f. YEMININ IKI YOLU VE ASKERIN KUSAGI  (v7.63) ===");
     return { o, yuvalar };
   };
 
+  /* 0. SALT-OKUNUR AN (v7.98.2). chatSend bir BEFORE olayi: o
+     anda dunyayi degistiren her cagri istisna atar. Dinleyici
+     eskiden orada calisiyordu -- kusak "0 parca" veriliyor ve
+     isaret konuyordu. Burada o an taklit ediliyor.           */
+  {
+    const { o, yuvalar } = asker();
+    let saltOkunur = false;
+    const kap = o.getComponent("minecraft:inventory").container;
+    const eskiEkle = kap.addItem;
+    const eskiGet2 = o.getComponent.bind(o);
+    o.getComponent = (ad) => ad === "minecraft:inventory"
+      ? { container: Object.assign({}, kap, {
+            get emptySlotsCount() { return yuvalar.filter((x) => !x).length; },
+            addItem: (e) => { if (saltOkunur) throw new Error("read-only"); return eskiEkle(e); } }) }
+      : eskiGet2(ad);
+    saltOkunur = true;
+    const yut = sohbetTetikle(o, ayar.DUSMUS_YEMIN);
+    saltOkunur = false;
+    kontrol("salt-okunur anda yemin yutuldu", yut === true);
+    tickIlerlet(1);
+    const dolu = yuvalar.filter((x) => x).length;
+    kontrol("kusak salt-okunur anda DEGIL sonraki tickte verildi",
+            dolu === ayar.DUSMUS_KUSAK.length, dolu + " / " + ayar.DUSMUS_KUSAK.length + " parca");
+  }
+
   /* 1. YOL: uzun cumle (dinleyici) -- eski yol, hala calisiyor. */
   {
     const { o, yuvalar } = asker();
     kontrol("secilmis durumda", dus.dusmusDurum(o.id) === "secilmis");
-    sohbetTetikle(o, ayar.DUSMUS_YEMIN);
+    sohbetTetikle(o, ayar.DUSMUS_YEMIN); tickIlerlet(1);
     kontrol("uzun cumle ile asker oldu", dus.dusmusDurum(o.id) === "asker");
     const dolu = yuvalar.filter((x) => x).length;
     kontrol("kusak kendiliginden verildi", dolu === ayar.DUSMUS_KUSAK.length,
@@ -604,7 +629,7 @@ console.log("=== 7f. YEMININ IKI YOLU VE ASKERIN KUSAGI  (v7.63) ===");
     ilerlet(o, 1 + adim * 3);
     bekle(o, () => dus.dusmusDurum(o.id) === "secilmis",
           Math.ceil(ayar.DUSMUS_SECILME_SURE / ayar.DUSMUS_TARAMA) + 5);
-    sohbetTetikle(o, ayar.DUSMUS_YEMIN);
+    sohbetTetikle(o, ayar.DUSMUS_YEMIN); tickIlerlet(1);
     kontrol("dolu envanterde de ASKER oldu", dus.dusmusDurum(o.id) === "asker");
     kontrol("dolu envanterde HIC parca verilmedi",
             yuvalar.every((x) => x && x.typeId === "minecraft:stone"));
@@ -630,8 +655,13 @@ console.log("=== 7g. SCRIPTEVENT YOLU DINLEYICILERE DE SORUYOR ===");
   const govde = src.slice(i, j);
   kontrol("scriptevent yolu dinleyicilere soruyor",
           /dinleyicilereSor\(oyuncu, metin\)/.test(govde));
-  kontrol("chatSend yolu ayni yardimciyi kullaniyor (tek kopya)",
-          (src.match(/dinleyicilereSor\(/g) || []).length >= 3);
+  /* v7.98.2: chatSend yolu dinleyiciyi ARTIK CAGIRMIYOR -- salt-
+     okunur olay. Yalniz yan etkisiz `tani` calisiyor, is
+     system.run ile sonraki tickte.                          */
+  const cs = src.slice(src.indexOf("olay.subscribe((e) =>"), src.indexOf("function scripteventeAbone"));
+  kontrol("chatSend yolu dinleyiciyi dogrudan cagirmiyor",
+          !/dinleyicilereSor\(/.test(cs) && /dinleyiciTaniyor\(oyuncu, metin\)/.test(cs) &&
+          /system\.run\(\(\) => \{\s*try \{ sahip\(oyuncu, metin\)/.test(cs));
   kontrol("yonerge scriptevent yolunu da yaziyor",
           /scriptevent simsek:komut yemin/.test(ayar.DUSMUS_YEMIN_YONERGE));
   /* "yemin" kelimesi scriptevent satirinda da geciyor; kalip
@@ -654,7 +684,7 @@ console.log("=== 7c. ASKERIN DE TEK ZAAFI ATES ===");
   ilerlet(o, 1 + adim * 3);
   bekle(o, () => dus.dusmusDurum(o.id) === "secilmis",
         Math.ceil(ayar.DUSMUS_SECILME_SURE / ayar.DUSMUS_TARAMA) + 5);
-  sohbetTetikle(o, ayar.DUSMUS_YEMIN);
+  sohbetTetikle(o, ayar.DUSMUS_YEMIN); tickIlerlet(1);
   kontrol("asker oldu", dus.dusmusDurum(o.id) === "asker");
 
   o.location = { x: 40.5, y: 64, z: 40.5 };   // bloktan uzakta

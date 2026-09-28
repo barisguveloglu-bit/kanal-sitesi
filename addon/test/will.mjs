@@ -40,15 +40,16 @@ console.log("=== 1. ESYA: GORUNUM VE DAYANIKLILIK ===");
 
   /* GORUNUM ALTIN KILIC. Kendi ikonumuzu cizseydik "benzer"
      olurdu, "ayni" degil. Vanilla anahtarina bakiyor.      */
-  kontrol("ikonu VANILLA golden_sword",
-          c["minecraft:icon"].texture === "golden_sword",
-          c["minecraft:icon"].texture);
-  /* ...ve o anahtari BIZ tanimlamamaliyiz, yoksa vanilla
-     dokusunu EZERIZ ve kilic bizim cizdigimiz sey olur.    */
+  /* v7.98.2: "golden_sword" vanilla'da bir anahtar DEGIL (altin
+     kilic `sword` dizisinin elemani) -- ikon mor-siyahti. Kendi
+     anahtarimiz, vanilla DOSYASINA bakiyor; vanilla ezilmiyor. */
+  kontrol("ikonu kendi anahtarimiz",
+          c["minecraft:icon"].texture === "will_kilic", c["minecraft:icon"].texture);
   const it = oku(KOK + "/Simsek_Kol_Kaynak/textures/item_texture.json").texture_data;
-  kontrol("  golden_sword anahtarini BIZ tanimlamiyoruz (ezmesin)",
-          !("golden_sword" in it));
-  kontrol("  kendi will_kilic dokusu da yok", !("will_kilic" in it));
+  kontrol("  anahtar vanilla altin kilic dosyasina bakiyor",
+          it.will_kilic && it.will_kilic.textures === "textures/items/gold_sword",
+          JSON.stringify(it.will_kilic));
+  kontrol("  vanilla anahtari ezilmiyor", !("golden_sword" in it) && !("sword" in it));
 
   /* DAYANIKLILIK: netherite 2031, kullanici 5,5 kati istedi. */
   const bek = Math.ceil(2031 * 5.5);

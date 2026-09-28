@@ -433,7 +433,8 @@ yetenekKaydet({
       const benim = oyuncu.location, onun = hedef.location;
       /* IKI TARAF ICIN DE hava denetimi: yer degistirme
          karsilikli, biri duvara girerse takas bozulur.    */
-      if (!blokIste(4)) { bilgi(oyuncu, "§b⇄ §7Şu an yoğun"); return undefined; }
+      /* Dort okuma; kismi izin (v7.98.2'ye kadar gecerdi) yetmez. */
+      if (blokIste(4) < 4) { bilgi(oyuncu, "§b⇄ §7Şu an yoğun"); return undefined; }
       const bos = (k) => {
         try {
           const a = boyut.getBlock(k);

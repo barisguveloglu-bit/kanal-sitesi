@@ -342,6 +342,14 @@ function sec(oyuncu, kayit) {
 
 /* Yemin edildi mi? sohbet.js'in dinleyicisinden cagriliyor.
    Donen deger: mesaj sohbete DUSMESIN mi.                   */
+/* Yan etkisiz tanima: salt-okunur chatSend icinde cagriliyor
+   (sohbet.js dinleyiciTaniyor). Yalniz defteri OKUR.          */
+export function dusmusYeminMi(oyuncu, metin) {
+  const kayit = defter.get(oyuncu.id);
+  return !!kayit && kayit.durum === "secilmis" &&
+         sadelestir(metin) === sadelestir(DUSMUS_YEMIN);
+}
+
 export function dusmusYemin(oyuncu, metin) {
   const kayit = defter.get(oyuncu.id);
   if (!kayit || kayit.durum !== "secilmis") return false;
@@ -629,5 +637,5 @@ export function dusmusBlokEkle(boyutId, x, y, z) {
    takiliyor -- ikinci bir abonelik acmak `cancel` yarisina yol
    acardi.                                                     */
 if (DUSMUS_ACIK) {
-  sohbetDinleyiciEkle(dusmusYemin);
+  sohbetDinleyiciEkle(dusmusYemin, dusmusYeminMi);
 }

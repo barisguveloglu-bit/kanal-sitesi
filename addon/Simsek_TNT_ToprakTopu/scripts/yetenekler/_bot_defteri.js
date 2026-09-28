@@ -549,6 +549,10 @@ function evcillestir(varlik, oyuncu) {
 const evcilDeneme = new Map();
 
 function evcilDene(varlik, oyuncu, botId) {
+  /* Tavan dolduysa DENEMIYOR (v7.98.2). Eskiden sayac tavani asinca
+     da evcillestir() her taramada -- saniyede bir, her botta --
+     cagriliyordu; tavan yalniz uyariyi bir kez yaziyordu.      */
+  if ((evcilDeneme.get(botId) || 0) >= BOT_EVCIL_DENEME) return false;
   if (evcillestir(varlik, oyuncu)) {
     evcilDeneme.delete(botId);
     return true;

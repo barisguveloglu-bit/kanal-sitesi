@@ -98,6 +98,18 @@ const ISLER = {
 
 let esyaUyarisi = false;
 
+/* oyuncuId -> { durum, sayac }. v7.98.2: ust uste binen iki bot isi
+   (bot odun, sonra bot maden) oncekiDurum'u ayri ayri sakliyordu;
+   ikincisi birincinin koydugu "bekle"yi sakliyor ve SON biten is
+   botlari "bekle"de birakiyordu. Artik durum ilk iste bir kez
+   saklaniyor, son is bitince geri veriliyor.                   */
+const durusDefteri = new Map();
+export function botIsDuruslari() { return durusDefteri.size; }
+export function botIsUnut(oyuncuId) {
+  if (oyuncuId === undefined) durusDefteri.clear();
+  else durusDefteri.delete(oyuncuId);
+}
+
 /* Esyayi OLUSTURUR ama vermez. Blogu kirmadan ONCE cagriliyor:
    esya uretilemiyorsa blok da kirilmamali, yoksa kaynak yok
    olur -- bot cevheri patlatip eline hicbir sey vermez. Test
@@ -151,11 +163,14 @@ function botIsi(oyuncu, tur) {
   /* Bot calisirken DURUYOR: hem imleci sifirlamiyor (yani
      gercekten tariyor) hem de nerede calistigi belli oluyor.
      Onceki durum saklaniyor, is bitince geri veriliyor.       */
-  let oncekiDurum;
   if (BOT_IS_DURARAK) {
     try {
-      const ilk = botVarliklari(oyuncu.id)[0];
-      oncekiDurum = ilk ? ilk.kayit.durum : "takip";
+      const d = durusDefteri.get(oyuncu.id);
+      if (d) d.sayac++;
+      else {
+        const ilk = botVarliklari(oyuncu.id)[0];
+        durusDefteri.set(oyuncu.id, { durum: ilk ? ilk.kayit.durum : "takip", sayac: 1 });
+      }
       botDurum(oyuncu, "bekle");
     } catch (e) {
       hataYaz("bot_is.durdur", e);
@@ -284,7 +299,11 @@ function botIsi(oyuncu, tur) {
       // Calisirken durdurulmuslardi; takibe geri don
       if (BOT_IS_DURARAK) {
         try {
-          botDurum(oyuncu, oncekiDurum === "bekle" ? "bekle" : "takip");
+          const d = durusDefteri.get(oyuncu.id);
+          if (d && --d.sayac <= 0) {
+            durusDefteri.delete(oyuncu.id);
+            botDurum(oyuncu, d.durum === "bekle" ? "bekle" : "takip");
+          }
         } catch (e) {
           hataYaz("bot_is.durumGeri", e);
         }

@@ -227,6 +227,15 @@ console.log("=== 6. TAME() YOKKEN SCRIPT TAKIBI ===");
   kontrol("script esiginde (" + ayar.BOT_SCRIPT_MENZIL + " blok) takip etti",
           bot._isinlanma.length > once,
           (bot._isinlanma.length - once) + " isinlanma");
+
+  /* v7.98.2: tavan dolunca evcillestirme DENENMIYOR. Eskiden her
+     taramada (saniyede bir) triggerEvent + tame() suruyordu. */
+  let deneme = 0;
+  const eskiOlay = bot.triggerEvent;
+  bot.triggerEvent = function (...a) { deneme++; return eskiOlay ? eskiOlay.apply(this, a) : undefined; };
+  sus(); tickIlerlet(ayar.BOT_TARAMA * (ayar.BOT_EVCIL_DENEME + 6)); ac();
+  kontrol("tavandan sonra evcillestirme durdu",
+          deneme <= ayar.BOT_EVCIL_DENEME, deneme + " deneme (tavan " + ayar.BOT_EVCIL_DENEME + ")");
 }
 
 console.log("");
@@ -594,6 +603,25 @@ console.log("=== 18. CANTA ve TESLIM (v4.28) ===");
 
   sus(); const s2 = teslim.teslimEt(o); ac();
   kontrol("bos cantayi teslim etmek sorun cikarmadi", s2.bos === true);
+}
+{
+  /* v7.98.2: envanter DOLUYKEN tasan esyalar tek tek dogurluyordu:
+     640 esya = 640 varlik. Artik yigin halinde (maxAmount).     */
+  temizle();
+  const { D, o } = kur("bt9");
+  cagir(o);
+  defter.cantayaKoy("bt9", "minecraft:oak_log", 130);
+  const eski = o.getComponent.bind(o);
+  o.getComponent = (a) => a === "minecraft:inventory"
+    ? { container: { size: 36, emptySlotsCount: 0, addItem: (e) => e, getItem: () => undefined } }
+    : eski(a);
+  const dogan = [];
+  D.boyut.spawnItem = (e) => { dogan.push(e.amount); return {}; };
+  const teslim = await import("./pack/yetenekler/bot_teslim.js");
+  sus(); const s3 = teslim.teslimEt(o); ac();
+  kontrol("dolu envanterde esya kaybolmadi", s3.dusen === 130, JSON.stringify(s3));
+  kontrol("  yigin halinde birakildi (130 -> 3 varlik)", dogan.length === 3,
+          dogan.length + " varlik: " + dogan.join(","));
 }
 {
   /* Bot cok uzaktaysa teslim edemez: botu ormanda birakip evde
@@ -1042,6 +1070,28 @@ console.log("=== 27. CANTA HER BLOKTA DISKE YAZILMIYOR ===");
   const ham2 = _durum.ozellikler.get(ayar.BOT_KAYIT_ANAHTAR) || "";
   kontrol("cantaKaydet() cagrilinca yazildi", ham2.includes("oak_log:50"),
           ham2.slice(0, 80));
+}
+
+console.log("");
+console.log("=== UST USTE IKI BOT ISI BOTU 'BEKLE'DE BIRAKMIYOR (v7.98.2) ===");
+{
+  /* Iki is oncekiDurum'u ayri ayri sakliyordu: ikincisi birincinin
+     koydugu "bekle"yi sakliyor, son biten is botlari "bekle"de
+     birakiyordu. Bot TAKIPTEYKEN iki is ust uste aciliyor.     */
+  temizle();
+  const { D, o } = kur("bo9");
+  cagir(o);
+  const durum = () => (defter.botAl("bo9") || {}).durum;
+  kontrol("bot takipte (on kosul)", durum() !== "bekle", String(durum()));
+  sus();
+  const is1 = yetenekAl("bot_odun").olustur(o);
+  const is2 = yetenekAl("bot_maden").olustur(o);
+  ac();
+  kontrol("is sirasinda bot bekliyor", durum() === "bekle", String(durum()));
+  isiCalistir(is1, 5);
+  kontrol("  birinci is bitince HALA bekliyor (ikinci suruyor)", durum() === "bekle", String(durum()));
+  isiCalistir(is2, 5);
+  kontrol("ikisi de bitince takibe dondu", durum() !== "bekle", String(durum()));
 }
 
 console.log("");

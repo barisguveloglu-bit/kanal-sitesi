@@ -190,6 +190,7 @@ export function topIsi(atan, secenek) {
     let bitisBekliyor = false;
     let sonrakiAdim = system.currentTick;
     let patlamaNoktasi = null;
+    let temizlendi = false;
 
     function blokYaz(x, y, z, tip) {
       // Dunya sinirini istisna firlatmadan once ele al
@@ -283,6 +284,7 @@ export function topIsi(atan, secenek) {
 
         // 2) Son temizlik bittiyse patlat ve kapat
         if (bitisBekliyor) {
+          temizlendi = true;
           patlat(boyut, patlamaNoktasi, oyuncuId);
           return true;
         }
@@ -327,6 +329,29 @@ export function topIsi(atan, secenek) {
       },
 
       bitir() {
+        /* YARIDA KESILEN TOP (v7.98.2). Oyuncu cikinca is listeden
+           dogrudan siliniyor ve yalniz bitir() calisiyor; kure
+           yalniz calis() icinde siliniyordu -- havada kalici bir
+           toprak topu kaliyordu. Butceye SORULMUYOR (toprak_izi
+           ile ayni gerekce: geri almak borc). Iki merkezde de
+           (yarim kalmis bir adimin eskisi ve yenisi) yalniz HALA
+           top blogu olan nokta siliniyor.                       */
+        if (cizildi && !temizlendi) {
+          temizlendi = true;
+          const merkezler = [[merkezX, merkezY, merkezZ]];
+          if (silX !== merkezX || silY !== merkezY || silZ !== merkezZ) merkezler.push([silX, silY, silZ]);
+          for (const [mx, my, mz] of merkezler) {
+            for (const n of KURE) {
+              const y = my + n.y;
+              if (y < sinir.min || y > sinir.max) continue;
+              try {
+                _koord.x = mx + n.x; _koord.y = y; _koord.z = mz + n.z;
+                const b = boyut.getBlock(_koord);
+                if (b && b.typeId === TOP_BLOK) b.setType("minecraft:air");
+              } catch (e) { /* yuklenmemis parca */ }
+            }
+          }
+        }
         if (ayarlar.kolIndir !== false) kollariIndir(oyuncu);
       }
     };

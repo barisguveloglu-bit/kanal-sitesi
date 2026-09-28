@@ -183,7 +183,7 @@ let silahUyarisi = false;
    bunu okuyor.                                              */
 let sonSilah = false;
 
-function eldekiEsya(varlik) {
+function eldekiYigin(varlik) {
   try {
     const e = varlik.getComponent("minecraft:equippable");
     if (!e || typeof e.getEquipment !== "function") return undefined;
@@ -225,12 +225,13 @@ export function silahVer(varlik, anahtar) {
     return "okunamadi";
   }
 
-  /* eldekiEsya KIMLIK donduruyor. `.typeId` okundugu surece
-     bu erken cikis HIC tetiklenmiyordu: silah zaten elde olsa
-     bile her tazelemede setEquipment yeniden cagriliyordu.
-     Bozukluk degildi ama bosa isti. */
-  const simdiki = eldekiEsya(varlik);
-  if (simdiki === silah) return true;
+  /* DIKKAT: eldekiYigin ESYANIN KENDISINI donduruyor
+     (yardimcilar.js'teki eldekiEsya kimlik donduruyor; v7.98.2'ye
+     kadar bu fonksiyonun adi da eldekiEsya'ydi). v7.98.2'ye kadar esya dogrudan kimlikle
+     karsilastiriliyordu ve erken cikis hic tetiklenmiyordu:
+     her tazelemede setEquipment yeniden cagriliyordu.        */
+  const simdiki = eldekiYigin(varlik);
+  if (simdiki && simdiki.typeId === silah) return true;
 
   try {
     bilesen.setEquipment("Mainhand", new ItemStack(silah, 1));

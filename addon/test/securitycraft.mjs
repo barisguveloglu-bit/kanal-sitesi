@@ -261,12 +261,17 @@ console.log("=== 9. MAYIN: KURMA GECIKMESI ve TETIKLEME ===");
   }
   const erken = (D.sayac.patlama || []).length;
   /* Gecikme dolduktan sonra patlamali. */
+  let bittiTick = -1;
   for (let i = 0; i < ayar.MAYIN_KURULUM + ayar.MAYIN_ARA * 4; i++) {
-    tickIlerlet(1); if (is.calis()) break;
+    tickIlerlet(1); if (is.calis()) { bittiTick = i; break; }
   }
   is.bitir();
   ac();
   const sonra = (D.sayac.patlama || []).length;
+  /* v7.98.2: patlayinca is BITMELI -- eskiden MAYIN_SURE (60 sn)
+     boyunca acik kalip bir is yuvasini tutuyordu. */
+  kontrol("patlayinca is hemen bitti (yuva bosaldi)", bittiTick >= 0,
+          bittiTick >= 0 ? bittiTick + ". tickte" : "hala acik");
   kontrol("kurma gecikmesi bitmeden patlamadi", erken === 0,
           erken + " patlama");
   kontrol("gecikme dolunca yabanci tetikledi", sonra > 0,

@@ -367,7 +367,7 @@ yetenekKaydet({
                           z: h.z + (dz / uz) * BERSERK_YAKIN };
           /* Iki blok birden okunuyor: ayak ve bas. Biri bile
              dolu ise isinma yok -- yerinde vuruyoruz.        */
-          if (blokIste(2)) {
+          if (blokIste(2) >= 2) {        // kismi izin yetmez (v7.98.2)
             const ayak = boyut.getBlock(varis);
             const bas = boyut.getBlock({ x: varis.x, y: varis.y + 1, z: varis.z });
             if (ayak && bas && ayak.isAir && bas.isAir) {

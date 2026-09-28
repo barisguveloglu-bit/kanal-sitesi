@@ -1703,6 +1703,9 @@
     "altin_kursun": {
       "textures": "textures/item/altin_kursun"
     },
+    "will_kilic": {
+      "textures": "textures/items/gold_sword"
+    },
     "resetting_sword": {
       "textures": "textures/item/resetting_sword"
     },

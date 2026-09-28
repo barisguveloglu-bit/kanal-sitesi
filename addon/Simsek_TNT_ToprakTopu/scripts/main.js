@@ -281,7 +281,7 @@ import "./yetenekler/kalp_sifirla.js";
 import "./yetenekler/bot_cagir.js";
 import "./yetenekler/bot_geri.js";
 import "./yetenekler/bot_teslim.js";
-import "./yetenekler/bot_is.js";
+import { botIsUnut } from "./yetenekler/bot_is.js";
 import "./yetenekler/bot_derin.js";
 import "./yetenekler/asa.js";
 import "./yetenekler/bot_ilkel.js";
@@ -333,7 +333,7 @@ import { ultimateUnut } from "./yetenekler/ultimate_form.js";
 /* v6.1: Ben 10 saldirilari. ben10.js'ten "elindeki yaratik"
    fonksiyonunu kullaniyor, o yuzden ondan SONRA gelmeli --
    ayni DIKKAT geregi.                                        */
-import "./yetenekler/ben10_saldiri.js";
+import { ben10SaldiriUnut } from "./yetenekler/ben10_saldiri.js";
 
 /* DIKKAT -- SIRA ONEMLI.
    kollar.js var olan yeteneklere esya BAGLIYOR, yani bagladigi
@@ -2686,6 +2686,9 @@ olayaAbone("playerLeave", (olay) => {
   arinmaUnut(olay.playerId);
   gozcuUnut(olay.playerId);
   hareketUnut(olay.playerId);
+  afUnut(olay.playerId);           // v7.98.2: isinlanma affi defteri
+  ben10SaldiriUnut(olay.playerId); // v7.98.2: saldiri beklemeleri
+  botIsUnut(olay.playerId);        // v7.98.2: bot isi durus defteri
   nefesCikti(olay.playerId);       // v7.87: yalniz bekleme, uslup kalir
   merdivenUnut(olay.playerId);     // v7.89: savunma merdiveni durumu
   yenilmezUnut(olay.playerId);     // v7.90: zirh sarji

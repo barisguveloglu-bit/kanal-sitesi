@@ -390,5 +390,43 @@ console.log("\n=== SALT-OKUNUR KİP: KOMUT BİR TİCK SONRA (v7.79) ===");
 }
 
 console.log("");
+console.log("\n=== TAKMA AD KORUMA DISINDA KALMIYOR (v7.98.2) ===");
+{
+  /* `geriyukle` ve `esyalarim` yukle ile AYNI dala gidiyordu ama
+     KOMUT_KORUMALI'da yoktu: yetkisiz oyuncu envanter kilidini
+     takma adla aciyordu. Kural kaynaktan cikariliyor: ayni
+     `if (ad === ... || ad === ...)` dalindaki adlardan biri
+     korumaliysa hepsi korumali olmali.                      */
+  const { readFileSync: oku2 } = await import("node:fs");
+  const kod = oku2(new URL("./pack/sohbet.js", import.meta.url), "utf8");
+  const ay = await import("./pack/ayarlar.js");
+  const acik = [];
+  let dal = 0;
+  for (const m of kod.matchAll(/if \(((?:ad === "[^"]+"\s*(?:\|\|\s*)?)+)\)/g)) {
+    const adlar = [...m[1].matchAll(/"([^"]+)"/g)].map((x) => x[1]);
+    if (adlar.length < 2) continue;
+    dal++;
+    const k = adlar.filter((a) => ay.KOMUT_KORUMALI.includes(a));
+    if (k.length > 0 && k.length < adlar.length)
+      acik.push(adlar.filter((a) => !ay.KOMUT_KORUMALI.includes(a)).join("/") + " (" + k.join("/") + " korumali)");
+  }
+  kontrol("cok adli dal bulundu (olcum anlamli)", dal >= 5, dal + " dal");
+  kontrol("korumali dalin her adi korumali", acik.length === 0, acik.join(", ") || "hepsi");
+}
+
+console.log("\n=== IKI KELIMELIK AD: 'guc kullan' (v7.98.2) ===");
+{
+  /* `ad` hep tek kelime; "guc kullan" hic eslesmiyordu ve "guc" ile
+     baslayan her satir komut sayilip yutuluyordu.             */
+  const S = await import("./pack/sohbet.js");
+  kontrol("'guc bugun yorgun' sohbet, komut DEGIL", S.komutMu("guc bugun yorgun") === false);
+  kontrol("'guc kapat' komut", S.komutMu("guc kapat") === true);
+  kontrol("'guc kullan gura' komut", S.komutMu("guc kullan gura") === true);
+  const o = { id: "gk", name: "gk", hasTag: () => true, sendMessage() {} };
+  const r = S.komutCozumle(o, "guc kullan gura");
+  kontrol("  ve yetenek aramasina gidiyor", !!(r && typeof r.cevap === "string"),
+          r ? String(r.cevap).slice(0, 60) : "cozulmedi");
+}
+
 console.log(hata ? ">>> SORUN VAR" : ">>> tum sohbet/lazer testleri gecti");
 process.exit(hata ? 1 : 0);

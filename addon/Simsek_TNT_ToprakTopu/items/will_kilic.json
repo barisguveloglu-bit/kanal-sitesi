@@ -9,7 +9,7 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "golden_sword"
+        "texture": "will_kilic"
       },
       "minecraft:display_name": {
         "value": "Will1545 Kılıcı"

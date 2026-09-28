@@ -81,8 +81,16 @@ console.log("=== Oyuncu ayrilinca is iptal ===");
   console.warn = () => {};
   itemUseTetikle({ source: o, itemStack: { typeId: "minecraft:clay_ball" } });
   tickIlerlet(30);
-  const yarida = D.sayac.setType;
+  /* v7.98.2: cikis ANINDA toprak topu havadaki kuresini siliyor
+     (bitir; eskiden kure kaliyordu). O temizlik yalniz hava yaziyor
+     ve olcuye DAHIL degil: soru "is DEVAM ediyor mu".          */
+  const y0 = D.sayac.yazilan.length;
   for (const cb of _durum.playerLeaveCb) cb({ playerId: "ayrilan", playerName: "ayrilan" });
+  const temizlik = D.sayac.yazilan.slice(y0);
+  if (!temizlik.every((b) => b.tip === "minecraft:air")) {
+    console.log("cikis temizligi hava DISINDA yazdi"); hataVar = true;
+  }
+  const yarida = D.sayac.setType;
   tickIlerlet(400);
   console.warn = eskiWarn;
   console.log("ayrilma anindaki setType: " + yarida + " | 400 tick sonra: " + D.sayac.setType +

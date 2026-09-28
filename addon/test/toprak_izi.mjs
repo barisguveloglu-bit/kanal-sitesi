@@ -278,5 +278,21 @@ console.log("=== 10. OYUNCU CIKINCA DEFTER TEMIZ ===");
           /izUnut\(olay\.playerId\)/.test(fs.readFileSync("./pack/main.js", "utf8")));
 }
 
+console.log("\n=== KOTA BITIKKEN YERINDE DURAN OYUNCU (v7.98.2) ===");
+{
+  /* sonAnahtar kota ISTENMEDEN yaziliyordu: o tick kota bittiyse
+     ve oyuncu yerinde durursa altina iz hic konmuyordu.       */
+  const { D, o } = kur();
+  const is = tanim.olustur(o);
+  o.location = { x: 3.5, y: 64, z: 0.5 };
+  butce.butceSifirla(); butce.blokIste(1e9);        // bu tick kota bitik
+  is.calis();
+  const once = tipi(D, 3, 63, 0);
+  for (let i = 0; i < 3; i++) { tickIlerlet(1); yuru(is, o, 3, 0); }  // ayni blokta duruyor
+  kontrol("kota donunce yerinde durana da iz kondu",
+          tipi(D, 3, 63, 0) === ayar.IZ_BLOK, once + " -> " + tipi(D, 3, 63, 0));
+  is.bitir();
+}
+
 console.log(hata ? "\nKALDI" : "\nhepsi gecti");
 process.exit(hata ? 1 : 0);

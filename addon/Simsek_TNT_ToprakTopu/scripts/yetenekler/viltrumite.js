@@ -133,8 +133,7 @@ function ucuyorMu(oyuncu) {
   }
 }
 
-/* Konideki blogu kir. Butce ISTENIYOR -- toprak topundaki
-   kural: butce dolduysa hic kirmiyoruz, yarim is yapmiyoruz.  */
+/* Konideki blogu kir. Butce ISTENIYOR, islem basina.        */
 function koniKir(oyuncu, menzil, dusmeYuzde) {
   let boyut, merkez, yon, sinir;
   try {
@@ -157,13 +156,20 @@ function koniKir(oyuncu, menzil, dusmeYuzde) {
       }
     }
   }
-  if (!blokIste(noktalar.length)) return 0;
+  /* BUTCE (v7.98.2): her okuma ve her yazma ayri birim.
+     Eskiden `if (!blokIste(noktalar.length))` yaziyordu: kismi
+     izin (orn. 3) de "tamam" sayiliyordu ve nokta basina bir
+     birim isteniyordu -- menzil 5'te 45 nokta = 90 islem, tick
+     kotasi 56. Noktalar yakindan uzaga sirali; kota biterse
+     tunel kisa kaliyor.                                     */
   let kirilan = 0;
   for (const n of noktalar) {
     if (n.y < sinir.min || n.y > sinir.max) continue;
+    if (blokIste(1) < 1) break;
     try {
       const b = boyut.getBlock(n);
       if (!b || b.isAir || b.isLiquid) continue;
+      if (blokIste(1) < 1) break;
       /* Kirilmaz blok: bedrock ve benzeri. setType patlamiyor
          ama sonuc alinmiyor; yine de denemek zararsiz.        */
       if (Math.random() * 100 < dusmeYuzde) {

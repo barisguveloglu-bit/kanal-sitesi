@@ -383,7 +383,9 @@ yetenekKaydet({
         const y = Math.floor(k.y - 0.5);
         const a0 = Math.floor(k.x) + "," + y + "," + Math.floor(k.z);
         if (a0 === sonAnahtar) return false;   // kimildamadi
-        sonAnahtar = a0;
+        /* sonAnahtar DONGU BITINCE yaziliyor (v7.98.2): once yaziliyordu,
+           kota zeminin ortasinda bitince yerinde duran oyuncunun
+           altindaki zeminin geri kalani hic tamamlanmiyordu.      */
 
         const r = Math.max(0, REISHI_YARICAP);
         for (let dx = -r; dx <= r; dx++) {
@@ -391,19 +393,21 @@ yetenekKaydet({
             const x = Math.floor(k.x) + dx, z = Math.floor(k.z) + dz;
             const a = x + "," + y + "," + z;
             if (yazilan.has(a)) continue;
-            if (!blokIste(1)) return false;
+            if (blokIste(1) < 1) return false;          // okuma
             let blok;
             try { blok = boyut.getBlock({ x, y, z }); } catch (e) { continue; }
             /* YALNIZ HAVAYA konuyor: bu bir kopru, kazma
                degil. toprak_izi'nde de ayni ayrim var ama
                tersi -- orada havaya KONMUYOR.               */
             if (!blok || !blok.isAir) continue;
+            if (blokIste(1) < 1) return false;          // yazma
             try { blok.setType(REISHI_BLOK); } catch (e) { continue; }
             kuyruk.push({ a, x, y, z });
             yazilan.add(a);
             while (kuyruk.length > REISHI_TAVAN) geriKoy(kuyruk.shift());
           }
         }
+        sonAnahtar = a0;                       // zemin TAMAM
         return false;
       },
       bitir() {

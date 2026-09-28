@@ -129,10 +129,13 @@ yetenekKaydet({
         /* KAYNAKTAN ASIL FARK: koordinat degismediyse cikiyoruz.
            Kaynak duruyorken bile saniyede 20 setblock yapiyor. */
         if (a === sonAnahtar) return false;
-        sonAnahtar = a;
-        if (yazilan.has(a)) return false;
+        if (yazilan.has(a)) { sonAnahtar = a; return false; }
 
-        if (!blokIste(1)) return false;
+        /* Okuma + yazma = iki birim. sonAnahtar yalniz kota ALINDIKTAN
+           sonra (v7.98.2): once yaziliyordu, kota o tick bitince yerinde
+           duran oyuncunun altina iz hic konmuyordu.               */
+        if (blokIste(2) < 2) return false;
+        sonAnahtar = a;
 
         let blok;
         try { blok = boyut.getBlock({ x, y, z }); }

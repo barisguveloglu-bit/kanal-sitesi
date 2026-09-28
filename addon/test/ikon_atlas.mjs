@@ -82,10 +82,17 @@ const kuvvetDegil = [];
 const buyuk = [];
 let enBuyukOlculen = 0;
 
+/* Bilerek kullanilan VANILLA dosyalari: diskte degil oyunun
+   icinde. Adiyla listede; yeni bir yol sessizce gecmesin diye
+   kalip degil tam yol. Kaynak: Mojang bedrock-samples
+   resource_pack/textures/item_texture.json (`sword` dizisi).  */
+const VANILLA_DOSYA = new Set(["textures/items/gold_sword"]);
+
 for (const [anahtar, deger] of kayitlar) {
   const yollar = typeof deger.textures === "string"
     ? [deger.textures] : deger.textures;
   for (const y of yollar) {
+    if (VANILLA_DOSYA.has(y)) continue;
     const tam = RP + "/" + y + ".png";
     if (!existsSync(tam)) { eksikDosya.push(anahtar); continue; }
     const o = pngOlcu(tam);
@@ -132,11 +139,12 @@ for (const dosya of readdirSync(BP + "/items")) {
   const z = c["minecraft:armor"];
   if (z && Number(z.protection) > zirhTavan) asan.push(`${dosya} armor ${z.protection}`);
   /* Ikonu atlasta olmayan esya oyunda mor-siyah kare olur.
-     `will_kilic` vanilla ikonu (golden_sword) kullaniyor --
-     tek mesru istisna ve adiyla muaf.                        */
+     v7.98.2'ye kadar `golden_*` muaftu ("vanilla anahtari")
+     ama vanilla'da oyle bir anahtar YOKTU: muafiyet tam
+     yakalanmasi gereken hatayi sakliyordu. Istisna yok.      */
   const ik = c["minecraft:icon"];
   const anahtar = typeof ik === "string" ? ik : (ik && ik.texture);
-  if (anahtar && !atlas.texture_data[anahtar] && !anahtar.startsWith("golden_")) {
+  if (anahtar && !atlas.texture_data[anahtar]) {
     dokusuz.push(`${dosya} -> ${anahtar}`);
   }
 }

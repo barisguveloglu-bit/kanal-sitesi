@@ -103,7 +103,12 @@ function sureliIs(ad, oyuncu, sure, ara, adim, bitirme) {
       if (simdi - baslangic >= sure) return true;     // sure doldu
       if (simdi < sonraki) return false;
       sonraki = simdi + ara;
-      try { adim(simdi - baslangic); } catch (e) { hataYaz(ad + ".adim", e); }
+      /* Adim `true` donerse is BITER (v7.98.2) -- avaritia.js'teki
+         sureliIs ile ayni. Mayin patladiktan sonra is MAYIN_SURE
+         boyunca aciliyordu: iki yuvadan birini tutuyor, yeni
+         mayin kurulmasini (ayni-is kapisi) engelliyordu.      */
+      try { if (adim(simdi - baslangic) === true) return true; }
+      catch (e) { hataYaz(ad + ".adim", e); }
       return false;
     },
     bitir() {
@@ -369,7 +374,7 @@ yetenekKaydet({
                          (MAYIN_KURULUM / 20).toFixed(1) + " sn sonra aktif");
 
     return sureliIs("mayin", oyuncu, MAYIN_SURE, MAYIN_ARA, (gecen) => {
-      if (patladi) return;
+      if (patladi) return true;
       parcacikAt(boyut, MAYIN_PARCACIK, yer);
       /* KURMA GECIKMESI: bu sure dolmadan hicbir sey
          tetiklemiyor. Yoksa mayini kurarken yanindan gecen
@@ -404,6 +409,7 @@ yetenekKaydet({
         });
       } catch (e) { hataYaz("mayin.patlat", e); }
       if (gecerliMi(oyuncu)) actionbarYaz(oyuncu, "§c✸ §fMayın patladı");
+      return true;                                        // is bitti
     }, () => {
       if (!patladi && gecerliMi(oyuncu)) {
         actionbarYaz(oyuncu, "§7Mayın söndü §8· patlamadan");

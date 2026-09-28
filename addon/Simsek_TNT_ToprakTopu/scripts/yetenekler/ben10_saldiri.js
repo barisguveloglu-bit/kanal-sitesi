@@ -191,7 +191,9 @@ function mermiIsi(oyuncu, t) {
   const vurulan = new Set();
 
   function katiMi(x, y, z) {
-    if (y < sinir.alt || y > sinir.ust) return true;
+    /* v7.98.2: yukseklikAraligi min/max donduruyor; alt/ust
+       okunuyordu ve bu satir HIC tutmuyordu. */
+    if (y < sinir.min || y > sinir.max) return true;
     try {
       const b = boyut.getBlock({ x: Math.floor(x), y: Math.floor(y),
                                  z: Math.floor(z) });
@@ -361,4 +363,10 @@ for (const [kimlik, t] of BEN10_SALDIRI) {
 }
 
 /* Testler ve dunya degisimi icin. */
-export function ben10SaldiriUnut() { bekleme.clear(); }
+/* Oyuncu verilmezse hepsi; verilirse yalniz o oyuncunun
+   anahtarlari ("oyuncuId|kimlik"). v7.98.2'ye kadar playerLeave
+   bu defteri hic temizlemiyordu.                             */
+export function ben10SaldiriUnut(oyuncuId) {
+  if (oyuncuId === undefined) { bekleme.clear(); return; }
+  for (const k of [...bekleme.keys()]) if (k.startsWith(oyuncuId + "|")) bekleme.delete(k);
+}

@@ -68,9 +68,29 @@ export function sohbetKancalari(k) {
    Dinleyici `true` dondurursa mesaj sohbete DUSMEZ (yemin
    herkesin ekranina yazilmasin diye).                        */
 const dinleyiciler = [];
+/* fn -> tani. v7.98.2: chatSend bir BEFORE olayi, yani salt-okunur.
+   Dinleyici orada dogrudan cagriliyordu ve Dusmus yemini esya
+   veriyor, dunya kaydi yaziyor -- ikisi de o anda istisna atip
+   yutuluyordu: "0 parca verildi", kusak bir daha alinamiyor.
+   Komutlar icin v7.40/v7.79'da kurulan kalip burada da: `tani`
+   yan etkisiz (yalniz okur) ve anlik; asil is bir sonraki tick. */
+const tanilar = new Map();
 
-export function sohbetDinleyiciEkle(fn) {
-  if (typeof fn === "function") dinleyiciler.push(fn);
+export function sohbetDinleyiciEkle(fn, tani) {
+  if (typeof fn !== "function") return;
+  dinleyiciler.push(fn);
+  if (typeof tani === "function") tanilar.set(fn, tani);
+}
+
+/* Salt-okunur kipte guvenli: yalniz `tani`lar calisiyor. Sahiplenen
+   dinleyici donuyor (ya da undefined).                            */
+export function dinleyiciTaniyor(oyuncu, metin) {
+  for (const d of dinleyiciler) {
+    const t = tanilar.get(d);
+    try { if (t && t(oyuncu, metin)) return d; }
+    catch (hata) { hataYaz("sohbet.tani", hata); }
+  }
+  return undefined;
 }
 
 /* Dinleyicilere sor: biri sahiplenirse true.
@@ -156,13 +176,15 @@ export function yetkiliMi(oyuncu, ad) {
    test duser.                                              */
 const SABIT_KOMUTLAR = new Set([
   "and", "arin", "arın", "bilgi", "bot", "can", "carpik",
-  "carpik hal", "carpil", "cik", "durum", "duvar", "esyalarim",
-  "fruit", "geriyukle", "goz", "guc", "guc kullan", "jjk",
+  "carpil", "cik", "durum", "duvar", "esyalarim",
+  "fruit", "geriyukle", "goz", "guc", "jjk",
   "jujutsu", "kafes", "kalkan", "kalp", "kir", "kol", "kollar",
   "komut", "komutlar", "kurtul", "kusak", "kuşak", "kır", "lazer",
   "meyve", "savunma", "serbest", "set", "teknik", "test", "yardim",
   "yedek", "yemin", "yetenek", "yetenekler", "yukle", "çık"
 ]);
+
+const GUC_IKINCI = ["kapat", "kapa", "kullan"];
 
 export function komutMu(hamMetin) {
   let metin = sadelestir(hamMetin);
@@ -170,7 +192,13 @@ export function komutMu(hamMetin) {
   if (SOHBET_ONEK && metin.startsWith(SOHBET_ONEK)) {
     metin = metin.slice(SOHBET_ONEK.length).trim();
   }
-  const ad = metin.split(" ")[0];
+  const kelime = metin.split(" ");
+  const ad = kelime[0];
+  /* "guc" tek basina komut degil (v7.98.2): yalniz "guc kapat" ve
+     "guc kullan ...". Eskiden "guc" ile baslayan HER sohbet satiri
+     komut sayilip yutuluyor, sonra cozumleyici tanimayip hicbir
+     sey yazmiyordu -- "guc kullan gura" iz birakmadan kayboluyordu. */
+  if (ad === "guc") return GUC_IKINCI.indexOf(kelime[1]) >= 0;
   if (SABIT_KOMUTLAR.has(ad)) return true;
   /* Bu ikisi ZATEN yan etkisiz birer yuklem; kopyalanmiyor. */
   return meyveAdiMi(ad) || jjkAdiMi(ad);
@@ -506,12 +534,15 @@ export function komutCozumle(oyuncu, hamMetin) {
      ama form gunluk kullanilacak bir sey oldugu icin kendi
      kisa komutu var. sadelestir "çarpık" -> "carpik" yapiyor,
      iki yazim da tutuyor.                                    */
-  if (ad === "carpik" || ad === "carpik hal" || ad === "carpil") {
+  if (ad === "carpik" || ad === "carpil") {
     return { cevap: cagir("yetenek", oyuncu, "carpik") };
   }
 
-  if (ad === "yetenek" || ad === "yetenekler" || ad === "guc kullan") {
-    const arama = parca.slice(1).join(" ").trim();
+  /* "guc kullan gura": iki kelimelik ad. `ad` hep TEK kelime oldugu
+     icin eskiden `ad === "guc kullan"` hic eslesmiyordu (v7.98.2). */
+  const gucKullan = ad === "guc" && parca[1] === "kullan";
+  if (ad === "yetenek" || ad === "yetenekler" || gucKullan) {
+    const arama = parca.slice(gucKullan ? 2 : 1).join(" ").trim();
     return { cevap: cagir("yetenekAra", oyuncu, arama) };
   }
 
@@ -763,8 +794,15 @@ function sohbeteAbone() {
         if (!komutMu(metin)) {
           /* Komut degil. Dinleyicilere sor; biri sahiplenirse
              mesaj sohbete dusmez.                            */
-          if (dinleyicilereSor(oyuncu, metin)) { e.cancel = true; return; }
-          return;                   // normal sohbet olarak gitsin
+          const sahip = dinleyiciTaniyor(oyuncu, metin);
+          if (sahip) {
+            e.cancel = true;
+            system.run(() => {
+              try { sahip(oyuncu, metin); }
+              catch (hata) { hataYaz("sohbet.dinleyici", hata); }
+            });
+          }
+          return;                   // sahipsizse normal sohbet olarak gitsin
         }
 
         e.cancel = true;            // komut satiri sohbete dusmesin

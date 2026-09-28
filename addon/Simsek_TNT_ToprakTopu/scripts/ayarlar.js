@@ -4381,7 +4381,11 @@ export const KOMUT_ETIKET = "simsek_yetkili";
    FARKLI -- can/kalp "kendine guc ver" komutlari, bunlar ise
    ENVANTER yaziyor. Kilit acma komutlarindan degiller, yani
    hapsedilen oyuncunun cikis yolunu kapatmiyorlar.        */
-export const KOMUT_KORUMALI = ["can", "kalp", "bot", "yedek", "yukle"];
+/* v7.98.2: `geriyukle` ve `esyalarim` da. Ikisi de yukle'nin
+   takma adi (sohbet.js ayni dal) ama listede yoktu: yetkisiz
+   oyuncu kilidi takma adla aciyordu. test/sohbet.mjs artik
+   AYNI DALA giden her adin ayni korumada oldugunu sinar.   */
+export const KOMUT_KORUMALI = ["can", "kalp", "bot", "yedek", "yukle", "geriyukle", "esyalarim"];
 
 /* ---- AYNI KAPI JESTTE DE  (v7.62) ----
    Dis inceleme en ciddi bulguyu buldu ve hakliydi: sohbetteki
@@ -11922,7 +11926,10 @@ export const E404_BOZULMA_YAKIN = 6;    // bundan yakini bozulmaz
 export const E404_BOZULMA_UZAK  = 14;
 export const E404_BOZULMA_TAVAN = 5;    // en fazla kac blok
 export const E404_BOZULMA_SURE  = 200;  // 10 sn sonra geri gelir
-export const E404_BOZULMA_SES   = "block.sculk.spread";
+/* v7.98.2: "block.sculk.spread" ses TANIMI degil, sounds.json'daki
+   bir OLAY adi; playSound tanimlardan ariyor ve ses hic calmiyordu.
+   Tanimin adi "spread.sculk" (Mojang bedrock-samples). */
+export const E404_BOZULMA_SES   = "spread.sculk";
 
 /* ---- YUKSELEN ZEMIN  (LiftChunks, tersine) ----
    Kaynak zemini yukari itiyor. Biz hicbir blogu SILMIYORUZ:

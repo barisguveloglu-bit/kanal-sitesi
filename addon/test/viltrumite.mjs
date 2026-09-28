@@ -501,5 +501,30 @@ console.log("=== 9. PASIFLER (v5.7) ===");
 }
 
 console.log("");
+console.log("=== SONIK YUMRUK BLOK BUTCESINE UYUYOR (v7.98.2) ===");
+{
+  /* koniKir `if (!blokIste(noktalar.length))` diyordu: kismi izin
+     "tamam" sayiliyor, nokta basina bir birim isteniyordu --
+     dolu arazide menzil 5, 45 nokta = 90 islem, kota 56.      */
+  const B = await import("./pack/butce.js");
+  const { D, o } = kur(CEK);
+  D.bloklar.hepsiDolu = true;
+  B.butceSifirla();
+  const g0 = D.sayac.getBlock, s0 = D.sayac.setType, k0 = (D.sayac.boyutKomut || []).length;
+  yetenek("vilt_yumruk").olustur(o);
+  const islem = (D.sayac.getBlock - g0) + (D.sayac.setType - s0) +
+                ((D.sayac.boyutKomut || []).length - k0);
+  kontrol("yumruk bloklari kirdi (olcum anlamli)", islem > 0, islem + " islem");
+  kontrol("tek vurusta kotayi asmadi", islem <= ayar.TICK_BLOK_BUTCESI,
+          islem + " <= " + ayar.TICK_BLOK_BUTCESI);
+  B.butceSifirla(); B.blokIste(ayar.TICK_BLOK_BUTCESI - 3);
+  const g1 = D.sayac.getBlock;
+  vilt.viltrumiteUnut();
+  yetenek("vilt_yumruk").olustur(o);
+  kontrol("kotanin 3'u kalinca en fazla 3 okuma", D.sayac.getBlock - g1 <= 3,
+          (D.sayac.getBlock - g1) + " okuma");
+}
+
+console.log("");
 console.log(hata ? ">>> SORUN VAR" : ">>> Viltrumite Temel zirha oturdu");
 process.exit(hata ? 1 : 0);

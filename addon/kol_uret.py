@@ -8539,11 +8539,8 @@ DISMONT_CEVHER_TR = "Freedom Stone Cevheri"
 # ayni fakat dayaniklilik netherite kilicin 5,5 kati olsun."
 #
 # GORUNUM: kendi ikonumuz CIZILMEDI. Cizilen sey "benzer"
-# olurdu, "ayni" degil. Esya dogrudan VANILLA `golden_sword`
-# doku anahtarini gosteriyor. Sarti: o anahtari kendi
-# item_texture.json'umuzda TANIMLAMAYACAGIZ, yoksa vanilla
-# dokusunu ezeriz -- bu yuzden asagida `dokular` sozlugune
-# EKLENMIYOR ve test bunu kilitliyor.
+# olurdu, "ayni" degil. Esya vanilla altin kilic DOSYASINI
+# gosteriyor, kendi anahtarimiz uzerinden (asagida WILL_DOKU).
 #
 # DAYANIKLILIK: netherite kilic 2031; 2031 x 5,5 = 11170,5.
 # Yukari yuvarlandi.
@@ -8552,7 +8549,13 @@ DISMONT_CEVHER_TR = "Freedom Stone Cevheri"
 WILL_ESYA = "will_kilic"
 WILL_ESYA_TR = "Will1545 Kılıcı"
 WILL_ESYA_EN = "Will1545's Sword"
-WILL_DOKU = "golden_sword"      # VANILLA anahtari, bizim degil
+# v7.98.2: `golden_sword` diye bir vanilla anahtari YOK -- altin
+# kilic vanilla atlasta `sword` anahtarinin 4. elemani
+# (Mojang bedrock-samples item_texture.json). Ikon mor-siyahti.
+# Artik KENDI anahtarimiz, vanilla YOLUNA bakiyor: vanilla dokusu
+# ezilmiyor (farkli anahtar), gorunum yine birebir altin kilic.
+WILL_DOKU = "will_kilic"
+WILL_DOKU_YOL = "textures/items/gold_sword"   # vanilla dosyasi
 WILL_HASAR = 4
 WILL_NETHERITE = 2031           # netherite kilicin dayanikliligi
 WILL_KAT = 5.5                  # kullanicinin istedigi kat
@@ -13266,6 +13269,23 @@ def main():
                     os.remove(_artik)
             continue
         _kupa_uretilen.append((_kk, _kad, _krac, _kbic))
+    # v7.98.2: KUPALAR'dan cikarilan ya da skini eksik oldugu icin
+    # atlanan kupanin eski ciktilari diskte kaliyordu: blok
+    # yerlestirilebiliyor ama dokusu atlasta yok (mor-siyah).
+    # Uretilen kupa ve ortak dokular (odun/ip/zincir) disindaki
+    # kupa_ dosyalari siliniyor.
+    _kupa_kalsin = {KUPA_ONEK + _k for _k, _, _, _ in _kupa_uretilen}
+    _kupa_kalsin |= {KUPA_ODUN_DOKU, KUPA_IP_DOKU, KUPA_ZINCIR_DOKU}
+    for _kd, _ku in ((os.path.join(BP, "blocks"), ".json"),
+                     (os.path.join(RP, "models/blocks"), ".geo.json"),
+                     (os.path.join(RP, "textures/blocks"), ".png")):
+        if not os.path.isdir(_kd):
+            continue
+        for _kf in os.listdir(_kd):
+            if _kf.startswith(KUPA_ONEK) and _kf.endswith(_ku) and \
+                    _kf[:-len(_ku)] not in _kupa_kalsin:
+                os.remove(os.path.join(_kd, _kf))
+                print("temizlendi (kupa): %s" % _kf)
     if _kupa_uretilen:
         png_yaz(os.path.join(RP, "textures/blocks", KUPA_ODUN_DOKU + ".png"),
                 16, 16, kupa_odun_dokusu())
@@ -13319,6 +13339,7 @@ def main():
     # `golden_sword` anahtarini kullaniyor, kendi anahtarimizi
     # yazsak vanilla dokusunu ezerdik.
     yaz_json(os.path.join(BP, "items", WILL_ESYA + ".json"), will_kilici())
+    dokular[WILL_DOKU] = {"textures": WILL_DOKU_YOL}
     for _l, _a in ((en_us, WILL_ESYA_EN), (tr_tr, WILL_ESYA_TR)):
         _l.append("item.pa:%s.name=%s" % (WILL_ESYA, _a))
         _l.append("item.pa:%s=%s" % (WILL_ESYA, _a))
@@ -13833,6 +13854,12 @@ def main():
     if os.path.isdir(_attDizin):
         for _af in os.listdir(_attDizin):
             if not _af.endswith(".json"):
+                continue
+            # v7.98.2: asagidaki genel temizlik AYNI calistirmada
+            # silecegi artik attachable'lar sayilmiyor. Sayiliyordu:
+            # kaldirilan bir esyanin geometrisi bir uretim daha
+            # pakete giriyordu (v5.2 kahraman_kostum tuzaginin esi).
+            if _af[:-len(".json")] not in beklenen:
                 continue
             try:
                 _ad = json.load(open(os.path.join(_attDizin, _af),
