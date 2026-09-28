@@ -419,3 +419,51 @@ göndermek serbest — ama **"bu skin dosyası değil, sadece
 bakmak için" diye açıkça yaz.** Büyütülmüş PNG'yi Minecraft
 kabul etmez (Bedrock yalnız 64×64 ve 128×128 alıyor, 256×256
 bile almıyor).
+
+## 30 MB üstü dosyalar ve hile incelemesi — kalıcı yöntem (v7.99.5)
+
+Kullanıcının isteği: *"bundan sonra böyle takılan şeyler olursa aynı
+yöntemlerle yapalım."* Yeni sohbette de geçerli.
+
+### Dosya 30 MB'tan büyükse
+
+Sohbet uygulaması 30 MB'tan büyük eki kabul etmiyor. Bu sınır
+**uygulamanın**, bulut makinesinin değil. Kullanıcı dosyayı eklemek
+yerine yerini verir; indirmeyi makine yapar:
+
+1. Kullanıcı Google Drive'daki **dosya adını** verir → Drive
+   bağlayıcısıyla ara (`title contains '...'`), boyutu ve kimliği al.
+2. Drive bağlayıcısı büyük ikili dosyayı taşıyamaz (base64 olarak
+   bağlama sığmaz) ve dosya çoğunlukla gizlidir. O yüzden
+   kullanıcının verdiği **yedek bağlantıdan** (dosya.co vb.)
+   `curl` ile indir. dosya.co'da sayfadaki formu (`op=download2`,
+   `id`, `rand`) POST et, dönen `Location` adresini indir.
+3. İndirdiğin dosyanın boyutunu Drive'daki boyutla karşılaştır;
+   aynı değilse inceleme yapma, söyle.
+4. Dosya yalnız **scratchpad**'e iner. Depoya girmez.
+
+### Hile APK'si gelirse
+
+Kural kullanıcının kendi sözü: *"hiçbir şeyi çalıştırma, savunması
+olanların savunmalarını ekle."*
+
+- **Asla çalıştırma, kurma, yükleme.** Yalnız `unzip`, `strings`,
+  `file`, `md5sum` ve tablo okuyan küçük betikler.
+- Özellik listesi `resources.arsc`'teki `s_*` anahtarlarından ve
+  menü etiketlerinden çıkar; `addon/savunma_olc.py` tablosuyla
+  karşılaştır.
+- **Özellikler öncekilerle aynıysa yeni savunma YAZMA** — belgele
+  ve "yeni bir şey yok" de. (`REFERANS_BLOODY_APK.md` böyle.)
+- **Ama** ek savunma yazılabilecek bir şey varsa yaz: ya dosyada
+  yeni ve ölçülebilir bir özellik vardır, ya da tablodaki o
+  aileden **"acik"** durumda bekleyen bir madde vardır
+  (`python3 addon/savunma_olc.py` sonundaki liste). v7.99.5'te
+  özellikler aynıydı ama ailenin dört açık maddesi yazıldı.
+- Her savunma: önce "dürüst oyuncu suçlanmıyor" maddeleri, sonra
+  "hile yakalanıyor"; mutasyonla ısırdığı gösterilir; boşta blok
+  okunmaz.
+- Sonuç `addon/REFERANS_<AD>_APK.md` olarak yazılır: md5/sha256,
+  "çalıştırılmadı" cümlesi, paket adı, sürüm kapsamı (kullanıcının
+  oyununa bağlanabiliyor mu), izinler. `savunma_olc.py` ve
+  `REFERANS_SAVUNMA_PLANI.md` güncellenir; `test/savunma_kapsam.mjs`
+  ikisini birbirine bağlıyor.
