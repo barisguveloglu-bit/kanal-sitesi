@@ -313,3 +313,33 @@ geri alınabilen şeylere bakıyordu; kilitli eşya bir **envanter
 durumu** ve hiçbiri ona bakmıyordu. Arınmanın 9. kolu bu.
 
 Kaynak: `REFERANS_KOMUT_DOSYALARI_PSG.md`
+
+---
+
+# v7.99.4 — savunma taraması: muafiyet açığı
+
+Kullanıcı bütün savunma katmanlarının durumunu sordu. Katmanların
+hepsi açık, ana döngüye bağlı ve testleri geçiyor (gözcü 125, arınma
+84, kafes 36, merdiven 42, yenilmez 39, SecurityCraft 36, kapsam 34,
+envanter yedeği 31 madde). Kodda **bir açık** bulundu:
+
+**Aç-kapa yetenek hareket denetimini kapatıyordu.** Gözcü "kendi işi
+var" diyen oyuncuyu hız, sıçrama, yükselme ve katı blok (duvardan
+geçme) ölçümlerinin hepsinden muaf tutuyor; blok hızı ve izleyici
+kipi denetimi de aynı soruyu soruyor. Aç-kapa yetenekler (Toprak İzi,
+Savunma Kipi, Reishi, Berserk, Simbiyot, ROOM, Sonsuzluk, Kavrama,
+Füzyon) işini kapatılana kadar açık tutuyor: Toprak İzi'ni açan biri
+uçma, hız, duvardan geçme, hızlı kırma ve izleyici kipi hilelerinin
+hepsiyle gözcünün dışında kalıyordu. v7.99'un WoM muafiyeti de
+kılıcı sürekli sallayanı (yerinde vursa bile) muaf tutuyordu.
+
+Düzeltme: muafiyet artık yalnız **süren, aç-kapa olmayan** iş için
+(`main.js` `hareketMuafIsVarMi`) ve yalnız **taşıyan** WoM vuruşunun
+izi boyunca. Aç-kapa yeteneklerin hiçbiri oyuncuyu taşımıyor (tek tek
+bakıldı: Reishi altına gerçek blok koyuyor, diğerleri efekt veriyor ve
+efektin kendi dar muafiyeti var), yani kendi oyuncumuz suçlanmıyor.
+`test/hareket_muaf.mjs` uçtan uca ölçüyor: Toprak İzi açıkken hız
+hilesi 5 işaret (eski muafiyetle 0), izleyici kipi yakalanıyor.
+
+Ayrıca: Koruma Kubbesi enerji tablosunda "orta"daydı; savunma olduğu
+için bedelsize alındı (Arınma, Savunma Kipi, Kafes Kır ile aynı kural).

@@ -452,8 +452,10 @@ console.log("=== 11. KENDI YETENEKLERIMIZ SUCLANMIYOR (asil mesele) ===");
           "muafiyet 'aktif isi var mi' olmali");
   kontrol("muafiyet aktif ise bakiyor", /isVarMi/.test(kod));
   const ana = readFileSync(new URL("./pack/main.js", import.meta.url), "utf8");
-  kontrol("main.js is sayisini veriyor",
-          /hareketTara\([\s\S]{0,120}?oyuncuIsSayisi/.test(ana));
+  /* v7.99.4: is SAYISI degil "tasiyan is var mi" (ac-kapa isler
+     muaf tutmuyor). Test: hareket_muaf.mjs.                   */
+  kontrol("main.js muafiyeti suren isten veriyor",
+          /hareketTara\([\s\S]{0,120}?hareketMuafIsVarMi/.test(ana));
   kontrol("gozcu kendi dongusunu acmiyor", !/runInterval/.test(kod));
   kontrol("playerLeave hareketUnut cagiriyor",
           /playerLeave[\s\S]{0,4000}?hareketUnut\(olay\.playerId\)/.test(ana));

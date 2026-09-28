@@ -59,12 +59,26 @@ export function womKilicUnut(oyuncuId) {
 
 export function womKilicDurum(oyuncuId) { return durum.get(oyuncuId); }
 
-/* Hamle suruyor mu: aktif vurusun izi daha bitmedi. */
-export function womHareketteMi(oyuncuId) {
+/* Hamle suruyor mu: aktif vurus oyuncuyu GERCEKTEN tasiyor ve izi
+   daha bitmedi.
+
+   v7.99.4 (savunma taramasi): eskiden aktif vurus oldugu surece
+   muafti, iz bittikten 10 tick sonrasina kadar. Kilici durmadan
+   sallayan biri -- yerinde vuran bir seride bile -- hareket
+   denetiminin DISINDA kaliyordu. Simdi yalniz tasiyan vurus (iz
+   0.3 bloktan fazla gidiyor ya da oyuncuyu kaldiriyor) ve yalniz
+   iz suresince; ardindan 5 tick (inis; dusus zaten ayrica muaf).  */
+const TASIMA_ESIK = 0.3;
+function tasiyorMu(s) {
+  if (s._tasir === undefined) {
+    s._tasir = s.iz.some((p) => Math.hypot(p[0], p[1]) > TASIMA_ESIK || p[2] > TASIMA_ESIK);
+  }
+  return s._tasir;
+}
+export function womHareketteMi(oyuncuId, simdi = system.currentTick) {
   const d = durum.get(oyuncuId);
-  if (!d || !d.aktif) return false;
-  const t = system.currentTick - d.aktif.bas;
-  return t <= d.aktif.s.iz.length + 10;
+  if (!d || !d.aktif || !tasiyorMu(d.aktif.s)) return false;
+  return simdi - d.aktif.bas <= d.aktif.s.iz.length + 5;
 }
 
 /* Elde tutulan esyanin kilic kaydi, yoksa undefined. */

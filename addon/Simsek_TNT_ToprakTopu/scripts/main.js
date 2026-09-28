@@ -151,7 +151,11 @@ sahipsizGolgeKur();
    AYNI: bu oyuncunun calisan bir isi var mi? oyuncuIsSayisi
    asagida tanimli ama fonksiyon bildirimi oldugu icin burada
    cagrilabiliyor; zaten geri cagri olay aninda calisiyor.  */
-blokHizKur((kimlik) => oyuncuIsSayisi(kimlik) > 0);
+/* v7.99.4: ac-kapa is blok hizi denetimini de ortmuyor (hareket
+   muafiyetiyle ayni gerekce, hareketMuafIsVarMi). Betigin koydugu/
+   kirdigi blok oyuncu olayi uretmiyor; muafiyet yalniz oyuncunun
+   kendi eliyle yaptigi seyi yanlis alarmdan korumak icin.      */
+blokHizKur((kimlik) => hareketMuafIsVarMi(kimlik));
 /* v7.38: savastan kacis (auto_disconnect). Hasar anini
    kaydediyor; hukmu playerLeave'de veriyor.                */
 kacisKur();
@@ -432,6 +436,33 @@ function oyuncuIsSayisi(oyuncuId) {
   return liste ? liste.length : 0;
 }
 
+/* ---- HAREKET MUAFIYETI: YALNIZ SUREN, AC-KAPA OLMAYAN IS (v7.99.4) ----
+   Hareket denetimi "kendi isi var" diyen oyuncuyu hiz, sicrama,
+   yukselme VE kati blok (duvardan gecme) olcumlerinin hepsinden muaf
+   tutuyor -- modun kendi ucurma/isinlanma/atilimi yanlis alarm
+   uretmesin diye. Dogru; ama AC-KAPA bir yetenek (Toprak Izi,
+   Savunma Kipi, Reishi, Berserk, Simbiyot, ROOM, Sonsuzluk, Kavrama,
+   Fuzyon) isini kapatilana kadar ACIK tutuyor: biri Toprak Izi'ni
+   acip ucma ya da duvardan gecme hilesi kullansa gozcu hic bakmiyordu.
+   Savunma taramasi (v7.99.4) buldu.
+
+   Ac-kapa yetenekler oyuncuyu TASIMIYOR (tek tek bakildi: Reishi
+   altina gercek blok koyuyor, Fuzyon/Berserk/Simbiyot efekt veriyor
+   -- efektin kendi dar muafiyeti var, gozcu.js hareketMuaf). Yani
+   muafiyetten cikmalari kendi oyuncumuzu suclatmiyor.
+   Kaydi bulunamayan is (adi kimlik degil) muaf kaliyor: suphede
+   suclama yok, gozcu'nun genel kurali.                           */
+export function hareketMuafIsVarMi(oyuncuId) {
+  const liste = oyuncununIsleri.get(oyuncuId);
+  if (!liste) return false;
+  for (const is of liste) {
+    const t = yetenekAl(is.ad);
+    if (t && t.acKapa) continue;
+    return true;
+  }
+  return false;
+}
+
 /* Bu oyuncunun es zamanli is tavani.
 
    Herkese AYNI_ANDA; F-Tech "Gorev Kuyrugu" modulu takiliysa
@@ -596,7 +627,7 @@ system.runInterval(() => {
   if (HAREKET_ACIK && system.currentTick % HAREKET_ORNEK === 0) {
     try {
       hareketTara(world.getAllPlayers(),
-                  (kimlik) => oyuncuIsSayisi(kimlik) > 0 || womHareketteMi(kimlik));
+                  (kimlik) => hareketMuafIsVarMi(kimlik) || womHareketteMi(kimlik));
     } catch (e) {
       hataYaz("hareketTara", e);
     }

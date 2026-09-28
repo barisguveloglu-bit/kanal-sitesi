@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.99.3";
+export const SURUM = "v7.99.4";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -12428,7 +12428,7 @@ export const ENERJI_SINIF = [
   /* -- bedelsiz: kacis, savunma, yardimci -- */
   ["bedelsiz", ["arinma", "savunma", "kafes", "guc_kapat",
     "kalkan_sistemi", "yarik_dengeleyici", "nobetci", "radar", "mayin", "goz_sensoru",
-    "diken_zirhi", "vilt_savunma"]],
+    "diken_zirhi", "vilt_savunma", "kubbe"]],
   ["bedelsiz", ["poz_*", "kutlama", "sinematik", "yetkili", "sonsuzluk_durum",
     "korku_*", "tak_ftech_*", "ftech_topla", "ftech_hareket", "ftech_yaprak",
     "bot_cagir", "bot_geri", "bot_teslim", "bot_savas", "bot_odun", "bot_maden",
@@ -12444,7 +12444,7 @@ export const ENERJI_SINIF = [
     "eldiven", "coklu_simsek", "kan_yagmuru", "zirh_titan_lazeri",
     "marvel_isin_galactus", "ben_sald_atomik_nuke_winner", "vilt_gok_gurultusu"]],
   /* -- orta -- */
-  ["orta", ["alan_simsegi", "yildirim_halkasi", "kasirga", "kubbe", "toprak_topu",
+  ["orta", ["alan_simsegi", "yildirim_halkasi", "kasirga", "toprak_topu",
     "toprak_duvar", "toprak_ucus", "buz_adam", "goz_lazeri", "beden_bol", "yamult",
     "ors", "kanli_ors", "ok_yagmuru", "sarsinti", "zirh_isi_isini", "zirh_matkap",
     "marvel_isin_*", "marvel_kuvvet_alani", "ftech_kazi", "ftech_dovus",
