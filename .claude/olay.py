@@ -62,6 +62,10 @@ DINLEYICILER = [
     # dosyanın aralıksız okunması durdurulur, bul.py'ye yönlendirilir.
     ("PreToolUse", r"^Read$", "kanca-buyuk.py",
      "dosya okunacak → büyükse ve aralık yoksa durdur"),
+    # Araç yüzeyi: Echo araçları Bash'ten çağrılıyor ve hiçbir yerde
+    # sayılmıyordu. Sayaç akışı hiç durdurmaz; arac-yuzeyi.py okur.
+    ("PostToolUse", r"^Bash$", "kanca-arac.py",
+     "komut koştu → .claude araç çağrısını ve kullanım hatasını say"),
     ("PreToolUse", r"^(Agent|Task)$", "kanca-gorev.py",
      "alt ajan gönderiliyor → sözleşmesiz görevi engelle"),
     # Bellek geliştirme döngüsünün kapanan halkası. Ders defteri kalıcı

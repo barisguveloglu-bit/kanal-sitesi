@@ -80,6 +80,9 @@ OLCUM = (
     ".claude/golge.py",
     ".claude/golge.json",
     ".claude/altin-sorular.json",
+    # Vaka geçerliliği: ESLEME'nin her satırı bir insan kararı. Satır
+    # eklemek denetimi gevşetir — beyansız olmamalı.
+    ".claude/vaka-denetle.py",
     ".github/workflows/denetim.yml",
 )
 

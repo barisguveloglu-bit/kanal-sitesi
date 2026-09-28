@@ -1999,3 +1999,33 @@ Arama da en yakın parçayı verir, doğru parçayı değil: geleni oku, kabul e
 - `python3 .claude/ders.py ozetle` — **bellek pekiştirme.** Koşu
   defterinden ders adayı ayıklar. Otomatik yazmaz: bir koşu kaydı ile
   gelecekteki koşulara ait genel bir kural aynı şey değildir.
+
+### 2. araştırma turu (v3 yolu) — ölçümün kendisini ölçen araçlar
+
+Aday havuzundan dördü alındı; güven aralığı, madde ayırt ediciliği ve
+kayıt-oynatma **reddedildi** (sınavlar deterministik, harness model
+çağırmıyor — gerekçeler `defter.py`'de [6]–[8]), çekimserlik sınavı,
+kontrol listesi ve niyet izleme askıda ([9]–[11]).
+
+- `python3 .claude/kiran.py --vaka "<ad>" --iyi <ref> [--kotu HEAD]` —
+  **kıran commit'i bulur** (`git bisect run`). Ayrı bir `--shared` klonda
+  koşar (worktree değil: sınav kopyaları ortak git dizinini kirletiyordu);
+  her adımda bugünkü sınav dosyası eski kodun üstüne konur. Uçlar önce
+  doğrulanır, kararsız ya da koşamayan adım atlanır (125). Çıkış 0 bulundu,
+  3 insan (uçlar tutarsız / tek commit'e inmedi), 2 koşmadı.
+- `python3 .claude/ders.py denetle|emekli` — defterin kendisini denetler.
+  Aynı korumaya bağlı iki ders birleştirme adayıdır (çıkış 3). Metin
+  benzerliği **bilerek yok**: ölçüldü, gerçek ikiz çift ilgisiz çiftlerden
+  ayrışmıyor. "Ölü ders" iddiası da yok: hiç tetiklenmeyen koruma çalışan
+  korumayla aynı görünür. `emekli` dersi silmez; satırı gerekçesiyle kalır,
+  okuma listesinden düşer.
+- `python3 .claude/vaka-denetle.py` — **vaka geçerliliği.** `arac-sinavi.py`
+  vakasının adındaki araç gövdede (ya da çağırdığı yardımcıda) hiç
+  geçmiyorsa şüpheli (3); metin döndüren `return`'ü olmayan vaka düşemez
+  (1). Dolaylı giriş noktaları `ESLEME` tablosunda gerekçesiyle yazılı —
+  her satırı insan kararı, dosya bekçinin listesinde. Vakaya dokunmaz.
+- `python3 .claude/arac-yuzeyi.py` — hiç çağrılmayan ve sık yanlış
+  çağrılan araçları gösterir. Veriyi `kanca-arac.py` toplar
+  (`PostToolUse` → `Bash`, `arac-sayac.json`, depoda: bulut kapsayıcısı her
+  oturumda sıfırlanıyor). 10 oturumdan azsa karar vermez; dolaylı çağrılan
+  aracı saymaz; **silme önermez**, yalnız birleştirme ya da belge adayı.
