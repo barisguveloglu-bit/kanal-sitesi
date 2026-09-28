@@ -159,9 +159,9 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # hanenin 0 yerine 5'ten baslamasi bunun isareti -- 7.83.0
 # ile 7.83.5 AYNI kod, sadece numara degisti.
 # v7.91.0: ORTANCA hane -- Avaritia'dan uc mekanik.
-SURUM_NO = (7, 98, 1)
+SURUM_NO = (7, 98, 2)
 
-SURUM_METIN = "7.98.1.5"   # ara surum: manifest 3 hane ister, [7,98,1] kaliyor
+SURUM_METIN = ".".join(map(str, SURUM_NO))
 
 # ---------------- MIN_ENGINE_VERSION -------------------------
 # Uc pakette de tek yerden yaziliyor.
