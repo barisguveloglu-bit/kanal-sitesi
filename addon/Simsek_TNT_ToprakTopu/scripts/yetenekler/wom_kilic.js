@@ -5,7 +5,8 @@ import {
 import {
   WOM_KILIC_ACIK, WOM_KILIC_SERI_UNUTMA, WOM_KILIC_MENZIL, WOM_KILIC_KONI,
   WOM_KILIC_ITME_CARPAN, WOM_KILIC_ITME_ESIK, WOM_KILIC_DURDUR,
-  WOM_KILIC_BITIS_GECIS, WOM_KILIC_DENETLEYICI, WOM_KILIC_KUYRUK_HIZ
+  WOM_KILIC_BITIS_GECIS, WOM_KILIC_DENETLEYICI, WOM_KILIC_KUYRUK_HIZ,
+  WOM_KILIC_TICK_ARAMA
 } from "../ayarlar.js";
 import {
   WOM_KILIC_ESYA, WOM_KILIC_SETLER, WOM_BOS_ANIM, WOM_BOS_EL
@@ -183,6 +184,21 @@ export function koniIcinde(merkez, yon, hedef, menzil = WOM_KILIC_MENZIL,
   return cos >= Math.cos(yarimAci * Math.PI / 180);
 }
 
+/* ---- ARAMA TAVANI (v7.99.3) ----
+   Dis inceleme: butce.js blok/varlik DOGURMA/patlamayi sinirliyor,
+   varlik ARAMASINI sinirlamiyor. Hasar penceresindeki her vurus her
+   tick bir getEntities yapiyordu; kalabalik bir kavgada sinirsizdi.
+   Tick basina WOM_KILIC_TICK_ARAMA arama; hakki kalmayan vurus
+   aramayi BIR SONRAKI tick'e birakiyor. Pencerenin son tick'i
+   tavandan muaf: vurus kaybolmuyor, en fazla gecikiyor.         */
+let aramaTick = -1, aramaSay = 0;
+export function aramaHakki(simdi) {
+  if (simdi !== aramaTick) { aramaTick = simdi; aramaSay = 0; }
+  if (aramaSay >= WOM_KILIC_TICK_ARAMA) return false;
+  aramaSay++;
+  return true;
+}
+
 function vur(oyuncu, a, faz, i) {
   let pvp = true;
   try { pvp = world.gameRules.pvp !== false; } catch (e) { /* kural yok */ }
@@ -234,7 +250,12 @@ export function womKilicTick(simdi = system.currentTick) {
     try {
       hamle(oyuncu, a, t);
       a.s.fazlar.forEach((f, i) => {
-        if (sn >= f.antic - 1e-6 && sn <= f.contact + TICK) vur(oyuncu, a, f, i);
+        if (sn < f.antic - 1e-6 || sn > f.contact + TICK) return;
+        /* Pencerenin SON tick'i tavandan muaf: ertelenen vurus
+           pencereyi kacirmasin (kilic ve yumruk pencereleri iki
+           tick kadar kisa olabiliyor).                          */
+        const son = sn + TICK > f.contact + TICK - 1e-6;
+        if (son || aramaHakki(simdi)) vur(oyuncu, a, f, i);
       });
     } catch (e) {
       hataYaz("wom_kilic.tick", e);

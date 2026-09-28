@@ -243,7 +243,7 @@ import "./yetenekler/fuzyon.js";
 import { fuzyonUnut } from "./yetenekler/fuzyon.js";
 import { ftechUnutOyuncu } from "./yetenekler/ftech.js";
 import { kuyrukAcikMi } from "./yetenekler/_ftech_defteri.js";
-import { enerjiTara, enerjiIste, enerjiUnut } from "./enerji.js";
+import { enerjiTara, enerjiIste, enerjiBedeli, enerjiUnut } from "./enerji.js";
 import { willTara, willBeklemeUnut } from "./yetenekler/will_kilic.js";
 import "./yetenekler/can_ver.js";
 import "./yetenekler/kol_takas.js";
@@ -964,7 +964,8 @@ function yetenekTetikle(oyuncu, kimlikler) {
            bilincli: butun yetenekleri tek seferde enerjiye
            baglamak, calisan bir sistemi sessizce bozmanin
            en kestirme yoluydu.                            */
-        if (!kapat && !enerjiIste(oyuncu, tanim.enerji, tanim.ad)) continue;
+        /* v7.99.3: bedel artik tablodan da geliyor (enerjiBedeli). */
+        if (!kapat && !enerjiIste(oyuncu, enerjiBedeli(tanim), tanim.ad)) continue;
 
         const sonuc = tanim.olustur(oyuncu);
         /* KIMLIKSIZ IS (v7.98.2). Dort is (Marvel Sallanma,

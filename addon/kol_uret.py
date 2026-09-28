@@ -159,7 +159,7 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # hanenin 0 yerine 5'ten baslamasi bunun isareti -- 7.83.0
 # ile 7.83.5 AYNI kod, sadece numara degisti.
 # v7.91.0: ORTANCA hane -- Avaritia'dan uc mekanik.
-SURUM_NO = (7, 99, 2)
+SURUM_NO = (7, 99, 3)
 
 SURUM_METIN = ".".join(map(str, SURUM_NO))
 
@@ -474,12 +474,18 @@ def insan_hiyerarsisi(veri):
     return veri
 
 
-def yaz_json(yol, veri):
+def yaz_json(yol, veri, sikistir=False):
+    """sikistir: girintisiz (v7.99.3). Buyuk uretilmis dosyalar icin
+    -- WoM animasyonu girintiyle 0.7 MB'tan 2.3 MB'a cikiyordu; icerik
+    ayni, oyun ikisini de okuyor, telefonda 1.6 MB fark indirme."""
     os.makedirs(os.path.dirname(yol), exist_ok=True)
     if yol.endswith(".geo.json") or "/models/entity/" in yol.replace("\\", "/"):
         veri = insan_hiyerarsisi(veri)
     with open(yol, "w", encoding="utf-8") as f:
-        json.dump(veri, f, indent=2, ensure_ascii=False)
+        if sikistir:
+            json.dump(veri, f, ensure_ascii=False, separators=(",", ":"))
+        else:
+            json.dump(veri, f, indent=2, ensure_ascii=False)
         f.write("\n")
 
 
@@ -12953,7 +12959,7 @@ def main():
         _wka["animations"][WOM_BOS_ANIM] = {
             "loop": False, "animation_length": 0.05,
             "bones": {"root": {"rotation": [0, 0, 0]}}}
-        yaz_json(_wk_anim, _wka)
+        yaz_json(_wk_anim, _wka, sikistir=True)
     elif os.path.exists(_wk_anim):
         os.remove(_wk_anim)
         print("artik animasyon silindi: %s" % WOM_KILIC_ANIM_DOSYA)

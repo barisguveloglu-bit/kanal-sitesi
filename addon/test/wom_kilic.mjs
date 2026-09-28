@@ -364,6 +364,20 @@ const oto = RUINE.filter((x) => x.tur === "oto");
   W.womKilicUnut("wk3");
 }
 {
+  /* ARAMA TAVANI (v7.99.3): tick basina WOM_KILIC_TICK_ARAMA. */
+  const T = 777777, tavan = 4;
+  const haklar = Array.from({ length: tavan + 3 }, () => W.aramaHakki(T));
+  kontrol("tick basina arama tavani (" + tavan + ")",
+          haklar.filter(Boolean).length === tavan && haklar.slice(tavan).every((x) => !x), haklar.join(","));
+  kontrol("  sonraki tick'te hak yenileniyor", W.aramaHakki(T + 1) === true);
+  const kod = readFileSync(KOK + "/Simsek_TNT_ToprakTopu/scripts/yetenekler/wom_kilic.js", "utf8");
+  kontrol("  pencerenin son tick'i tavandan muaf", /son \|\| aramaHakki\(simdi\)/.test(kod));
+  /* Paketteki animasyon girintisiz: 0.7 MB'lik icerik 2.3 MB olmasin. */
+  const ham = readFileSync(KOK + "/Simsek_Kol_Kaynak/animations/wom_kilic.animation.json", "utf8");
+  kontrol("paketteki animasyon sikistirilmis (girintisiz)", !/\n  /.test(ham) && ham.length < 1.2e6,
+          (ham.length / 1e6).toFixed(2) + " MB");
+}
+{
   kontrol("koni: onde 2 blok ici", W.koniIcinde({ x: 0, y: 0, z: 0 }, { x: 0, z: 1 }, { x: 0, y: 0, z: 2 }));
   kontrol("koni: arkada disari", !W.koniIcinde({ x: 0, y: 0, z: 0 }, { x: 0, z: 1 }, { x: 0, y: 0, z: -2 }));
   kontrol("koni: menzil disi", !W.koniIcinde({ x: 0, y: 0, z: 0 }, { x: 0, z: 1 }, { x: 0, y: 0, z: 9 }));

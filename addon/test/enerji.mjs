@@ -120,7 +120,7 @@ console.log("=== 5. MERKEZI KAPI main.js'te BAGLI ===");
   const KOK = new URL("..", import.meta.url).pathname.replace(/\/$/, "");
   const m = readFileSync(KOK + "/Simsek_TNT_ToprakTopu/scripts/main.js", "utf8");
   kontrol("olustur() oncesi enerji kapisi var",
-          /enerjiIste\(oyuncu, tanim\.enerji[^)]*\)\) continue;[\s\S]{0,80}tanim\.olustur\(oyuncu\)/
+          /enerjiIste\(oyuncu, enerjiBedeli\(tanim\)[^)]*\)\) continue;[\s\S]{0,80}tanim\.olustur\(oyuncu\)/
             .test(m));
   kontrol("tick dongusunde yenilenme var",
           /enerjiTara\(oyuncular,[\s\S]{0,60}oyuncuIsSayisi/.test(m));

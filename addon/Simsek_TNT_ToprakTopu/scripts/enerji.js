@@ -3,7 +3,8 @@ import { actionbarYaz, hataYaz } from "./yardimcilar.js";
 import {
   ENERJI_ACIK, ENERJI_TAVAN, ENERJI_BASLIK,
   ENERJI_TABAN, ENERJI_ARALIK, ENERJI_EGIM, ENERJI_ORTA,
-  ENERJI_ARALIK_TICK, ENERJI_ISTE_BOSTA, ENERJI_UYARI
+  ENERJI_ARALIK_TICK, ENERJI_ISTE_BOSTA, ENERJI_UYARI,
+  ENERJI_BAGLI, ENERJI_GRUP_BEDEL, ENERJI_SINIF
 } from "./ayarlar.js";
 
 /* ================================================================
@@ -101,6 +102,29 @@ export function enerjiIste(oyuncu, bedel, ad) {
   }
   yaz(oyuncu.id, simdiki - bedel);
   return true;
+}
+
+/* ---- YETENEGIN BEDELI (v7.99.3) ----
+   Kayittaki `enerji: N` once; yoksa ayarlar.js ENERJI_SINIF'ta
+   ilk eslesen grup; hicbiri yoksa 0. Gerekce ENERJI_BAGLI'nin
+   ustunde.                                                     */
+function eslesir(desen, kimlik) {
+  return desen.endsWith("*") ? kimlik.startsWith(desen.slice(0, -1)) : desen === kimlik;
+}
+
+export function enerjiGrubu(kimlik) {
+  for (const [grup, desenler] of ENERJI_SINIF) {
+    for (const d of desenler) if (eslesir(d, kimlik)) return grup;
+  }
+  return undefined;
+}
+
+export function enerjiBedeli(tanim) {
+  if (!tanim) return 0;
+  if (typeof tanim.enerji === "number") return tanim.enerji;
+  if (!ENERJI_BAGLI) return 0;
+  const g = enerjiGrubu(tanim.kimlik);
+  return g ? (ENERJI_GRUP_BEDEL[g] || 0) : 0;
 }
 
 /* Disaridan enerji vermek (fuzyon bozulunca iade gibi). */

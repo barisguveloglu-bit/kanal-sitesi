@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.99.2";
+export const SURUM = "v7.99.3";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -12391,6 +12391,73 @@ export const FTECH_SES = "pa.ftech_kol";
    davet ederdi.                                              */
 
 export const ENERJI_ACIK   = true;
+
+/* ---- BEDELLER BAGLANDI (v7.99.3) ----
+   Dis inceleme (7.98.1 analizi) "enerji kapisi var ama hicbir
+   yetenek bedel yazmiyor" dedi; dogruydu, bilincli bir opt-in
+   idi. Kullanici baglanmasini istedi.
+
+   Tek tek 325 yetenege sayi yazmak yerine DORT GRUP ve tek tablo.
+   Gruplar yetenegin NE YAPTIGINA gore:
+     bedelsiz  kendi kaynagi olan (ruh: JJK, Bleach, meyveler,
+               karakterler, Simbiyot; mana: Mahou; enerji: Fuzyon),
+               KACIS ve savunma (Arinma, Savunma Kipi, Kafes Kir,
+               Gucu Kapat -- kilitlenen oyuncunun cikis kapisi
+               hicbir kaynakla kapanmamali), hareket, menu/secim,
+               bot komutlari, donusumler, bilgi satirlari
+     hafif     tek hedef ya da kucuk alan
+     orta      alan saldirilari, yapi kuranlar
+     agir      yikim olcegindekiler (meteor, TNT, nukleer...)
+
+   Tavan 100 ve yenilenme bosta 0.3-2.0/tick: agir iki kez, orta
+   dort kez, hafif on kez arka arkaya; bosalan enerji ~5 sn'de
+   doluyor. "Pes etmeden kac tane" freni -- yasak degil.
+
+   Kayitta `enerji: N` yazan yetenek tabloyu ezer. Tabloda OLMAYAN
+   yetenek bedelsiz; test/enerji_bedel.mjs her yetenegin tabloda
+   ACIKCA yer almasini istiyor, yeni eklenen unutulmasin diye.
+   Desen sonu "*" onek demek; ILK eslesen kazanir.              */
+export const ENERJI_BAGLI = true;
+export const ENERJI_GRUP_BEDEL = { bedelsiz: 0, hafif: 10, orta: 25, agir: 45 };
+export const ENERJI_SINIF = [
+  /* -- bedelsiz: kendi kaynagi -- */
+  ["bedelsiz", ["mahou_*", "jjk_*", "getsuga", "bankai_halka", "cero", "quincy_ok",
+    "reishi", "ruh_yol", "onibi", "alev_halesi", "ates_gayzeri", "guclu_kesik",
+    "uclu_kesik", "berserk", "tetik", "kamishini", "buto_renjin", "karakter_sec",
+    "simbiyot", "gura_*", "yami_*", "ope_*", "meyve_sec", "fuzyon"]],
+  /* -- bedelsiz: kacis, savunma, yardimci -- */
+  ["bedelsiz", ["arinma", "savunma", "kafes", "guc_kapat",
+    "kalkan_sistemi", "yarik_dengeleyici", "nobetci", "radar", "mayin", "goz_sensoru",
+    "diken_zirhi", "vilt_savunma"]],
+  ["bedelsiz", ["poz_*", "kutlama", "sinematik", "yetkili", "sonsuzluk_durum",
+    "korku_*", "tak_ftech_*", "ftech_topla", "ftech_hareket", "ftech_yaprak",
+    "bot_cagir", "bot_geri", "bot_teslim", "bot_savas", "bot_odun", "bot_maden",
+    "bot_derin", "bot_ilkel", "evrim", "kalp_*", "can_ver", "donusum", "o_sey",
+    "carpik", "kol_takas", "efsane_yapisi", "agac_devir", "bedrock_kir",
+    "madde_donustur", "elde_pisir", "nefes_sec_*"]],
+  /* -- bedelsiz: hareket -- */
+  ["bedelsiz", ["marvel_sallanma", "marvel_suzulme", "marvel_atilma", "marvel_sicrayis",
+    "marvel_faz", "marvel_gecit", "marvel_boy", "duvar_tirmanma", "orumcek_hissi",
+    "ucus", "viktor_ucus", "vilt_hiz", "vilt_firlayis", "will_sicra"]],
+  /* -- agir -- */
+  ["agir", ["meteor", "guclu_tnt", "tnt_yagmuru", "kanli_simsek", "ultimate_form",
+    "eldiven", "coklu_simsek", "kan_yagmuru", "zirh_titan_lazeri",
+    "marvel_isin_galactus", "ben_sald_atomik_nuke_winner", "vilt_gok_gurultusu"]],
+  /* -- orta -- */
+  ["orta", ["alan_simsegi", "yildirim_halkasi", "kasirga", "kubbe", "toprak_topu",
+    "toprak_duvar", "toprak_ucus", "buz_adam", "goz_lazeri", "beden_bol", "yamult",
+    "ors", "kanli_ors", "ok_yagmuru", "sarsinti", "zirh_isi_isini", "zirh_matkap",
+    "marvel_isin_*", "marvel_kuvvet_alani", "ftech_kazi", "ftech_dovus",
+    "gok_gurlemesi", "dalis_vurusu", "viktor_cember", "viktor_klon", "vilt_yaylim",
+    "vilt_darbe", "tas_*", "bot_simsek", "bot_top", "ben_sald_ates_supernova_damage",
+    "ben_sald_yanki_wall_of_sound_scream"]],
+  /* -- hafif -- */
+  ["hafif", ["tek_simsek", "yon_simsegi", "savur", "cekme", "hapis", "dondur",
+    "isin_topu", "yumruk", "yakala", "ucurma", "buz_mizragi", "buz_isini",
+    "isinlanma", "kns_*", "will_*", "viktor_*", "vilt_*", "ben_sald_*", "ben_isin_*",
+    "codeman_isini", "simsek_kilici", "ag_at", "kalkan_firlat", "cekic_cagir",
+    "yukari_yumruk", "donduran_nefes", "nefes_*", "toprak_izi", "ftech_kavra"]],
+];
 export const ENERJI_TAVAN  = 100;    // kaynaktan: chi tavani 100
 export const ENERJI_BASLIK = 100;    // dogunca dolu (playerSpawn.js:26)
 
@@ -12530,6 +12597,9 @@ export const WOM_KILIC_SERI_UNUTMA = 16;
    vuruyor; kilic kutulari elden 1.5-2.5 blok uzanıyor, dönen
    vuruslarda yay genis. Koni bunun kaba ama ucuz karsiligi.     */
 export const WOM_KILIC_MENZIL = 3.5;
+/* Tick basina en fazla bu kadar hasar aramasi (butun oyuncular
+   ortak, butce.js ile ayni mantik). Gerekce wom_kilic.js aramaHakki. */
+export const WOM_KILIC_TICK_ARAMA = 4;
 export const WOM_KILIC_KONI   = 100;
 
 /* Hamle: Epic Fight kok kaymasini oyuncuya veriyor; biz tick basina
