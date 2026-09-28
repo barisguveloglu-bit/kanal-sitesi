@@ -91,26 +91,17 @@ yaprak temizleyici) Java `elements` biçimindeydi ve depodaki
 
 Ölçümün tamamı `REFERANS_FTECH.md`.
 
-### Weapons of Miracles 2.0.178 + Epic Fight 21.17.3.1 — dövüş animasyonları, 27 silah
+### Weapons of Miracles 2.0.178 + Epic Fight 21.17.3.1 — KALDIRILDI (v7.98.2)
 
-| | |
-|---|---|
-| ne | 63 dövüş animasyonu (**çevrildi**, kopyalanmadı), 27 eşya ikonu (32×32 PNG, birebir), silah sayıları |
-| nerede | `kaynak_anim/wom/wom_dovus.animation.json` · `kaynak_anim/wom/olcu.json` · `kaynak_doku/wom_*.png` |
-| bağlandığı yer | `WOM_*` (ayarlar.js) → `yetenekler/wom_dovus.js` · `kol_uret.py` `WOM` |
-| yapımcı | Reascer (WoM) · Epic Fight Team (Yesman, Gui, Asan, Wayfarer, Fori, Ellet) |
-| lisans (dosyada yazan) | WoM: `All RIGHTS RESERVED` · Epic Fight: kod GPL-3.0, **varlıklar All Rights Reserved** (`LICENSE-ASSETS` animasyonları adıyla sayıyor) |
-| izin | **Kullanıcı ikisinden de paylaşılabilir izin aldığını bildirdi (v7.98.0).** Yazışmayı depo görmedi; bu satır o beyanın kaydı. |
+Depoda bu kaynaktan **hiçbir dosya kalmadı**. v7.98.0'da 63 dövüş
+animasyonu (çevrilmiş) ve 27 silah ikonu girmişti; v7.98.2'de kullanıcı
+ikisini de kaldırdı: oyunda bacak ve gövde ayrılıyordu (ölçüm ve gerekçe
+`REFERANS_WOM.md`, ayarlar.js "WEAPONS OF MIRACLES IKINCI KEZ KALDIRILDI").
 
-Lisans dosyaları "önceden yazılı izin olmadan hiçbir şekilde kullanılamaz"
-diyor; bu yüzden izin satırı ayrı ve açık yazıldı. İzin geri çekilirse
-kaldırılacaklar yukarıdaki üç yol + `WOM` tablosu — v5.8'de bir kez
-kaldırıldı, liste `REFERANS_WOM.md`'de.
-
-Animasyonlar Epic Fight'ın matris biçiminden Bedrock euler'ine
-`arac/ef_anim_cevir.py` ile **çevrildi**; ikonlar 2.0.178 JAR'ındakiyle
-piksel piksel aynı (ölçüldü). Ölçüm ve çevirinin tamamı `REFERANS_WOM.md`.
-Marka katmanı yok: iki mod da yapımcılarının kendi tasarımı.
+İzin kaydı tarihçe olarak duruyor: yapımcılar Reascer (WoM) ve Epic Fight
+Team; kullanıcı ikisinden de paylaşılabilir izin aldığını bildirmişti
+(v7.98.0). Lisans dosyaları: WoM `All RIGHTS RESERVED`, Epic Fight kod
+GPL-3.0 / varlıklar All Rights Reserved.
 
 ---
 

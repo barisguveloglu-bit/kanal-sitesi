@@ -1,6 +1,6 @@
 # Weapons of Miracles + Epic Fight → Şimşek TNT
 
-**Kaynaklar** (depoda durmuyor, ölçüm ve çevrilmiş çıktı duruyor):
+**Kaynaklar** (v7.98.2'den beri depoda bu kaynaktan hiçbir dosya yok):
 - `WeaponsOfMiracles-2.0.178.jar` — *Weapons of Miracles* (Reascer), NeoForge 1.21.1
 - `epic-fight-21.17.3.1-mc1.21.1-neoforge.jar` — *Epic Fight* (Epic Fight Team)
 
@@ -14,6 +14,7 @@
 | v5.5 | "karakter bildiğin dans ediyor": euler dal atlaması, Root, hiyerarşi düzeltildi. **Ölçülebilen her şey** düzeldi (180°'yi aşan sıçrama 147 → 0) |
 | v5.8 | "gene bozulmalar var" — oyunda hâlâ bozuktu, **sebebi bulunamadı**, silindi |
 | v7.98.0 | sebep ölçüldü, çevirici yeniden yazıldı, geri geldi |
+| v7.98.2 | kullanıcı sahnede gördü: "bacak ve gövde arada sırada ayrılıyor" — **ikinci kez kaldırıldı** |
 
 ## v5.5'in bulamadığı hata: çerçeve
 
@@ -193,3 +194,31 @@ python3 addon/kol_uret.py
 
 İlki animasyon listesini `ayarlar.js` `WOM_SERI`'den okuyor, çeviriyor,
 doğruluyor ve parmak izini yazıyor. Eşik aşılırsa çıkış kodu 1.
+
+## v7.98.2: neden ikinci kez kaldırıldı
+
+Kullanıcı 3B sahnede gördü: bacak ve gövde arada sırada ayrılıyor.
+Ölçüldü (bu belgedeki çıktıyla, Bedrock zinciri): **63 animasyonun
+60'ında** kalça noktası gövdeden 2 pikselden fazla kopuyor, en kötüsü
+**15.3 px** (`solar_auto_1`, `solar_auto_2`), yani neredeyse bir blok.
+
+Sebep çeviride değil, **bedenin kendisinde**:
+
+- Epic Fight'ın modeli deri gibi esneyen tek ağ: gövde eğilince
+  kalçadaki köşeler uzayıp bağlı kalıyor.
+- Bedrock oyuncusu **katı kutular**; bacaklar gövdeye değil `root`'a
+  bağlı. Gövde eğildikçe alt ucu bacakların üstünden kayıyor.
+
+Doğrulayıcı uzuvların **yönünü** ölçüyordu; eklemin **kopup
+kopmadığını** hiç sormuyordu. "Medyan 0.02°" doğruydu ama yanlış
+soruydu — v5.5'in "önizleme yalan söylüyordu" dersinin üçüncü katı.
+
+**Ders:** bir iskelet animasyonunu başka bir bedene taşırken yön
+doğruluğu yetmez; **eklem sürekliliği** (ebeveyn ile çocuğun buluştuğu
+nokta ayrılıyor mu) ayrı bir ölçü. Katı kutulu bir bedende esnek ağın
+pozu birebir tutmaz.
+
+Silinenler: `WOM_*` ayarları, 27 eşya ve ikon, `wom_dovus.js`,
+animasyon dosyası, `arac/ef_anim_cevir.py`, `arac/ef_anim_dogrula.py`,
+`arac/wom_anim_uret.py`, `test/wom.mjs`. Kod git geçmişinde
+(`f571e03`).

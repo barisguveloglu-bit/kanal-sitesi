@@ -12477,147 +12477,18 @@ export const FUZYON_PARCACIK = "minecraft:totem_particle";
 export const FUZYON_SES      = "beacon.activate";
 export const FUZYON_BOZULMA_SES = "beacon.deactivate";
 
-/* ================================================================
-   WEAPONS OF MIRACLES + EPIC FIGHT DOVUS ANIMASYONLARI   v7.98.0
-
-   Kaynak: WeaponsOfMiracles 2.0.178 (Reascer) ve Epic Fight
-   21.17.3.1 (Epic Fight Team), NeoForge 1.21.1. Ikisi de
-   "All Rights Reserved"; kullanici ikisinden de PAYLASILABILIR
-   izin aldigini bildirdi (KAYNAKLAR.md).
-
-   ---- GECMIS ----
-   v5.0'da alindi, v5.5'te uzuv kopmasi duzeltildi, v5.8'de
-   silindi: "olculebilen her sey duzelmisti ama oyunda hala
-   bozuktu". v7.98.0'da sebep OLCULDU: eski cevirici farki
-   eklemin kendi dinlenme cercevesinde aliyordu; kol ve bacakta
-   o cerceve Bedrock'a gore X etrafinda 180 derece ters, yani
-   yana acilma ve burulma TERS yone gidiyordu. Epic Fight'in
-   kendi pozuna karsi olculdu: eski cikti MEDYAN 47.8 derece
-   sapiyordu. Yeni cevirici (arac/ef_anim_cevir.py) 80.299
-   ornekte medyan 0.02, en kotu 8.9 derece. Ayrinti:
-   REFERANS_WOM.md.
-
-   ---- SAYILAR BYTECODE'DAN ----
-   WOMItems.class static{} -> lambda -> sinif.createWeaponAttributes().
-   2.0.178'de 27 silahin 27'si 2.0.176 ile ayni cikti. Tek fark
-   asalarin saldiri hizi: artik kademeye gore (StaffItem
-   typeSwitch: WOOD -2.3, STONE -2.5, IRON -2.65, GOLD -2.2,
-   DIAMOND -2.3, NETHERITE -2.45). Bedrock'ta esya basina
-   saldiri hizi YOK -- sayi burada kayit, oyunda karsiligi yok.
-
-   ---- JAVA -> BEDROCK HASARI ----
-   Java'da sayi bir DEGISTIRICI (taban yumruk 1 ustune biner),
-   Bedrock'ta minecraft:damage TOPLAM: bedrock = java + 1.
-   ================================================================ */
-export const WOM_ACIK = true;
-export const WOM_ONEK = "pa:wom_";
-
-/* anahtar -> {ad, en, hasar (Bedrock), javaHasar, javaHiz,
-                dayaniklilik, nadirlik}                          */
-export const WOM_SILAHLAR = new Map([
-  ["agony", { ad: "Izdırap", en: "Agony",
-    hasar: 6, javaHasar: 5.0, javaHiz: -2.0, dayaniklilik: 2135, nadirlik: "RARE" }],
-  ["antitheus", { ad: "Antitheus", en: "Antitheus",
-    hasar: 8, javaHasar: 7.0, javaHiz: -2.1, dayaniklilik: 6666, nadirlik: "EPIC" }],
-  ["blackstar", { ad: "Kara Yıldız", en: "Blackstar",
-    hasar: 9, javaHasar: 8.0, javaHiz: -2.7, dayaniklilik: 2135, nadirlik: "RARE" }],
-  ["ender_blaster", { ad: "Ender Tabancası", en: "Ender Blaster",
-    hasar: 7, javaHasar: 6.0, javaHiz: -0.55, dayaniklilik: 4735, nadirlik: "EPIC" }],
-  ["evil_tachi", { ad: "Kötü Ôdachi", en: "Evil Ôdachi",
-    hasar: 8, javaHasar: 7.0, javaHiz: -2.8, dayaniklilik: 1635, nadirlik: "RARE" }],
-  ["gesetz", { ad: "Gesetz", en: "Gesetz",
-    hasar: 4, javaHasar: 3.0, javaHiz: -2.5, dayaniklilik: 4157, nadirlik: "RARE" }],
-  ["herrscher", { ad: "Herrscher", en: "Herrscher",
-    hasar: 6, javaHasar: 5.0, javaHiz: -2.25, dayaniklilik: 1582, nadirlik: "RARE" }],
-  ["hollow_longsword", { ad: "Kof Uzun Kılıç", en: "Hollow Longsword",
-    hasar: 7, javaHasar: 6.0, javaHiz: -2.6, dayaniklilik: 875, nadirlik: "RARE" }],
-  ["jabberwocky", { ad: "Pençeli Eldiven", en: "Clawed Gauntlet",
-    hasar: 6, javaHasar: 5.0, javaHiz: -0.25, dayaniklilik: 782, nadirlik: "RARE" }],
-  ["moonless", { ad: "Aysız", en: "Moonless",
-    hasar: 7, javaHasar: 6.0, javaHiz: -2.3, dayaniklilik: 2135, nadirlik: "EPIC" }],
-  ["napoleon", { ad: "Napoleon", en: "Napoleon",
-    hasar: 7, javaHasar: 6.0, javaHiz: -2.5, dayaniklilik: 2135, nadirlik: "EPIC" }],
-  ["nova", { ad: "Nova", en: "Nova",
-    hasar: 5, javaHasar: 4.0, javaHiz: -2.4, dayaniklilik: 2135, nadirlik: "RARE" }],
-  ["orbit", { ad: "Yörünge", en: "Orbit",
-    hasar: 8, javaHasar: 7.0, javaHiz: -2.3, dayaniklilik: 2135, nadirlik: "RARE" }],
-  ["ruine", { ad: "Ruine", en: "Ruine",
-    hasar: 7, javaHasar: 6.2, javaHiz: -2.45, dayaniklilik: 2135, nadirlik: "RARE" }],
-  ["satsujin", { ad: "Satsujin", en: "Satsujin",
-    hasar: 7, javaHasar: 6.0, javaHiz: -1.8, dayaniklilik: 2135, nadirlik: "EPIC" }],
-  ["solar", { ad: "Güneş", en: "Solar",
-    hasar: 9, javaHasar: 8.0, javaHiz: -2.9, dayaniklilik: 2135, nadirlik: "EPIC" }],
-  ["tormented_mind", { ad: "Azap", en: "Torment",
-    hasar: 9, javaHasar: 8.0, javaHiz: -2.7, dayaniklilik: 2135, nadirlik: "RARE" }],
-  /* ---- kademe silahlari: Staff = 1 + kademe, Greataxe = 7 + kademe ---- */
-  ["wooden_staff", { ad: "Tahta Asa", en: "Wooden Staff",
-    hasar: 2, javaHasar: 1.0, javaHiz: -2.3, dayaniklilik: 59, nadirlik: "COMMON" }],
-  ["stone_staff", { ad: "Taş Asa", en: "Stone Staff",
-    hasar: 3, javaHasar: 2.0, javaHiz: -2.5, dayaniklilik: 131, nadirlik: "COMMON" }],
-  ["iron_staff", { ad: "Demir Asa", en: "Iron Staff",
-    hasar: 4, javaHasar: 3.0, javaHiz: -2.65, dayaniklilik: 250, nadirlik: "COMMON" }],
-  ["golden_staff", { ad: "Altın Asa", en: "Golden Staff",
-    hasar: 2, javaHasar: 1.0, javaHiz: -2.2, dayaniklilik: 32, nadirlik: "COMMON" }],
-  ["diamond_staff", { ad: "Elmas Asa", en: "Diamond Staff",
-    hasar: 5, javaHasar: 4.0, javaHiz: -2.3, dayaniklilik: 1561, nadirlik: "COMMON" }],
-  ["netherite_staff", { ad: "Netherite Asa", en: "Netherite Staff",
-    hasar: 6, javaHasar: 5.0, javaHiz: -2.45, dayaniklilik: 2031, nadirlik: "COMMON" }],
-  ["iron_greataxe", { ad: "Demir Balyoz Balta", en: "Iron Greataxe",
-    hasar: 10, javaHasar: 9.0, javaHiz: -2.5, dayaniklilik: 250, nadirlik: "COMMON" }],
-  ["golden_greataxe", { ad: "Altın Balyoz Balta", en: "Golden Greataxe",
-    hasar: 8, javaHasar: 7.0, javaHiz: -2.5, dayaniklilik: 32, nadirlik: "COMMON" }],
-  ["diamond_greataxe", { ad: "Elmas Balyoz Balta", en: "Diamond Greataxe",
-    hasar: 11, javaHasar: 10.0, javaHiz: -2.5, dayaniklilik: 1561, nadirlik: "COMMON" }],
-  ["netherite_greataxe", { ad: "Netherite Balyoz", en: "Netherite Greataxe",
-    hasar: 12, javaHasar: 11.0, javaHiz: -2.5, dayaniklilik: 2031, nadirlik: "COMMON" }],
-]);
-
-/* ---- DOVUS ANIMASYONLARI ----
-   WoM'un kendi animasyonlari ZATEN silah adiyla (solar_auto_1..4,
-   katana_auto_1..3...). Kendi serisi olmayan uc aile Epic Fight'in
-   TUR serisine bagli (axe_auto, fist_auto, longsword_auto).
-   Arka arkaya vurunca sirayla oynuyor; WOM_SERI_UNUTMA kadar
-   vurmazsan basa donuyor -- Epic Fight'in kombo penceresi.      */
-export const WOM_DOVUS_ACIK = true;
-export const WOM_ANIM_ONEK = "animation.wom.";
-export const WOM_SERI_UNUTMA = 60;     // tick (3 saniye)
-
-/* BIRINCI SAHISTA OYNAMIYOR (v7.98.0).
-   Birinci sahista ekranda yalniz kollar cizilir ama kollar
-   root/waist/body'nin cocugu: savurarak donen bir vurusta
-   kollar kameranin etrafinda savrulur. v5.x'te bu da vardi.
-   playAnimation'in stopExpression'i: dogru oldugu an animasyon
-   duruyor, vanilla birinci sahis vurusu devam ediyor. Baska
-   oyuncular seni ucuncu sahista gordugu icin onlarda oynar.   */
-export const WOM_DURDUR = "variable.is_first_person";
-export const WOM_BITIS_GECIS = 0.15;   // saniye -- pozdan cikis yumusakligi
-
-export const WOM_SERI = new Map([
-  ["agony", ["agony_auto_1", "agony_auto_2", "agony_auto_3", "agony_auto_4"]],
-  ["antitheus", ["antitheus_auto_1", "antitheus_auto_2", "antitheus_auto_3", "antitheus_auto_4"]],
-  ["blackstar", ["blackstar_basic_attack_1", "blackstar_basic_attack_2", "blackstar_basic_attack_3", "blackstar_basic_attack_4"]],
-  ["diamond_greataxe", ["axe_auto1", "axe_auto2"]],
-  ["diamond_staff", ["staff_auto_1", "staff_auto_2", "staff_auto_3"]],
-  ["ender_blaster", ["enderblaster_onehand_auto_1", "enderblaster_onehand_auto_2", "enderblaster_onehand_auto_3", "enderblaster_onehand_auto_4"]],
-  ["evil_tachi", ["katana_auto_1", "katana_auto_2", "katana_auto_3"]],
-  ["gesetz", ["gezets_auto_1", "gezets_auto_2", "gezets_auto_3"]],
-  ["golden_greataxe", ["axe_auto1", "axe_auto2"]],
-  ["golden_staff", ["staff_auto_1", "staff_auto_2", "staff_auto_3"]],
-  ["herrscher", ["herrscher_auto_1", "herrscher_auto_2", "herrscher_auto_3"]],
-  ["hollow_longsword", ["longsword_auto1", "longsword_auto2", "longsword_auto3"]],
-  ["iron_greataxe", ["axe_auto1", "axe_auto2"]],
-  ["iron_staff", ["staff_auto_1", "staff_auto_2", "staff_auto_3"]],
-  ["jabberwocky", ["fist_auto1", "fist_auto2", "fist_auto3"]],
-  ["moonless", ["moonless_auto_1", "moonless_auto_2", "moonless_auto_3"]],
-  ["napoleon", ["napoleon_auto_1", "napoleon_auto_2", "napoleon_auto_3", "napoleon_auto_4"]],
-  ["netherite_greataxe", ["axe_auto1", "axe_auto2"]],
-  ["netherite_staff", ["staff_auto_1", "staff_auto_2", "staff_auto_3"]],
-  ["nova", ["nova_attack_1", "nova_attack_2", "nova_attack_3", "nova_attack_4"]],
-  ["orbit", ["orbit_attack_1", "orbit_attack_2", "orbit_attack_3", "orbit_attack_4"]],
-  ["ruine", ["ruine_auto_1", "ruine_auto_2", "ruine_auto_3", "ruine_auto_4"]],
-  ["satsujin", ["katana_auto_1", "katana_auto_2", "katana_auto_3"]],
-  ["solar", ["solar_auto_1", "solar_auto_2", "solar_auto_3", "solar_auto_4"]],
-  ["stone_staff", ["staff_auto_1", "staff_auto_2", "staff_auto_3"]],
-  ["tormented_mind", ["torment_auto_1", "torment_auto_2", "torment_auto_3", "torment_auto_4"]],
-  ["wooden_staff", ["staff_auto_1", "staff_auto_2", "staff_auto_3"]],
-]);
+/* ---- WEAPONS OF MIRACLES IKINCI KEZ KALDIRILDI  (v7.98.2) ----
+   v7.98.0'da cevirici yeniden yazilip geri gelmisti (REFERANS_WOM.md).
+   Kullanici sahnede gordu: "bacak ve govde arada sirada ayriliyor".
+   Olculdu: 63 animasyonun 60'inda kalca noktasi govdeden 2 pikselden
+   fazla kopuyor, en kotusu 15 px (solar_auto_1). Sebep ceviride
+   degil GOVDENIN KENDISINDE: Epic Fight'in modeli deri gibi esneyen
+   tek ag, Bedrock oyuncusu kati kutular ve bacaklar govdeye degil
+   root'a bagli. Dogrulayici uzuv YONUNU olcuyordu, eklemin kopup
+   kopmadigini sormuyordu -- "medyan 0.02 derece" dogruydu ama yanlis
+   soruydu.
+   Kullanici ikisini de tamamen kaldirdi; yerine Bedrock icin
+   yapilmis bir mod getirecek. Silinenler: WOM_* ayarlari, 27 esya ve
+   ikon, wom_dovus.js ve animasyon dosyasi, arac/ef_anim_*.py ve
+   wom_anim_uret.py, test/wom.mjs. Envanterde kalan pa:wom_* yiginlari
+   v5.8'deki gibi "bilinmeyen esya" olur.                          */
