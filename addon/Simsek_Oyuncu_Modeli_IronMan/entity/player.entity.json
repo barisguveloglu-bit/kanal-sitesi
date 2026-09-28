@@ -433,13 +433,19 @@
           "variable.ben_gri_takim_ailesi = variable.ben_gri_takim || variable.ben_gri_takim_proto || variable.ben_gri_takim_10k;",
           "variable.ben_gulle_top_ailesi = variable.ben_gulle_top || variable.ben_gulle_top_proto || variable.ben_gulle_top_10k;",
           "variable.ben_yukseltme_cubuk_ailesi = variable.ben_yukseltme_cubuk || variable.ben_yukseltme_cubuk_proto || variable.ben_yukseltme_cubuk_10k;",
+          "variable.wom_kilic_diamond_staff = query.get_equipped_item_name('main_hand') == 'wom_diamond_staff';",
           "variable.wom_kilic_evil_tachi = query.get_equipped_item_name('main_hand') == 'wom_evil_tachi';",
+          "variable.wom_kilic_golden_staff = query.get_equipped_item_name('main_hand') == 'wom_golden_staff';",
           "variable.wom_kilic_herrscher = query.get_equipped_item_name('main_hand') == 'wom_herrscher';",
+          "variable.wom_kilic_iron_staff = query.get_equipped_item_name('main_hand') == 'wom_iron_staff';",
           "variable.wom_kilic_longsword = query.get_equipped_item_name('main_hand') == 'wom_hollow_longsword';",
+          "variable.wom_kilic_netherite_staff = query.get_equipped_item_name('main_hand') == 'wom_netherite_staff';",
           "variable.wom_kilic_nova = query.get_equipped_item_name('main_hand') == 'wom_nova';",
           "variable.wom_kilic_ruine = query.get_equipped_item_name('main_hand') == 'wom_ruine';",
           "variable.wom_kilic_satsujin = query.get_equipped_item_name('main_hand') == 'wom_satsujin';",
           "variable.wom_kilic_solar = query.get_equipped_item_name('main_hand') == 'wom_solar';",
+          "variable.wom_kilic_stone_staff = query.get_equipped_item_name('main_hand') == 'wom_stone_staff';",
+          "variable.wom_kilic_wooden_staff = query.get_equipped_item_name('main_hand') == 'wom_wooden_staff';",
           "variable.ironman_sniper = q.equipped_item_any_tag('slot.weapon.mainhand', 'ironman_sniper') && q.is_sneaking;",
           "variable.the_void_mode = q.equipped_item_any_tag('slot.armor.legs', 'sentry_powers') && q.property('arathnido:ability0') == 1;",
           "variable.off_skin = variable.the_void_mode || q.equipped_item_any_tag('slot.armor.legs', 'reed_powers');",
@@ -498,10 +504,22 @@
             "zirh_mod_guc_matkap": "variable.zirh_mod_guc && q.property('pa:matkap')"
           },
           {
+            "wom_diamond_staff_durus": "variable.wom_kilic_diamond_staff && !variable.is_first_person && !variable.is_paperdoll && !query.is_gliding && !query.is_swimming && !query.is_sleeping && query.modified_move_speed < 0.1"
+          },
+          {
+            "wom_diamond_staff_durus_ust": "variable.wom_kilic_diamond_staff && !variable.is_first_person && !variable.is_paperdoll && !query.is_gliding && !query.is_swimming && !query.is_sleeping && query.modified_move_speed >= 0.1"
+          },
+          {
             "wom_evil_tachi_durus": "variable.wom_kilic_evil_tachi && !variable.is_first_person && !variable.is_paperdoll && !query.is_gliding && !query.is_swimming && !query.is_sleeping && query.modified_move_speed < 0.1"
           },
           {
             "wom_evil_tachi_durus_ust": "variable.wom_kilic_evil_tachi && !variable.is_first_person && !variable.is_paperdoll && !query.is_gliding && !query.is_swimming && !query.is_sleeping && query.modified_move_speed >= 0.1"
+          },
+          {
+            "wom_golden_staff_durus": "variable.wom_kilic_golden_staff && !variable.is_first_person && !variable.is_paperdoll && !query.is_gliding && !query.is_swimming && !query.is_sleeping && query.modified_move_speed < 0.1"
+          },
+          {
+            "wom_golden_staff_durus_ust": "variable.wom_kilic_golden_staff && !variable.is_first_person && !variable.is_paperdoll && !query.is_gliding && !query.is_swimming && !query.is_sleeping && query.modified_move_speed >= 0.1"
           },
           {
             "wom_herrscher_durus": "variable.wom_kilic_herrscher && !variable.is_first_person && !variable.is_paperdoll && !query.is_gliding && !query.is_swimming && !query.is_sleeping && query.modified_move_speed < 0.1"
@@ -510,10 +528,22 @@
             "wom_herrscher_durus_ust": "variable.wom_kilic_herrscher && !variable.is_first_person && !variable.is_paperdoll && !query.is_gliding && !query.is_swimming && !query.is_sleeping && query.modified_move_speed >= 0.1"
           },
           {
+            "wom_iron_staff_durus": "variable.wom_kilic_iron_staff && !variable.is_first_person && !variable.is_paperdoll && !query.is_gliding && !query.is_swimming && !query.is_sleeping && query.modified_move_speed < 0.1"
+          },
+          {
+            "wom_iron_staff_durus_ust": "variable.wom_kilic_iron_staff && !variable.is_first_person && !variable.is_paperdoll && !query.is_gliding && !query.is_swimming && !query.is_sleeping && query.modified_move_speed >= 0.1"
+          },
+          {
             "wom_longsword_durus": "variable.wom_kilic_longsword && !variable.is_first_person && !variable.is_paperdoll && !query.is_gliding && !query.is_swimming && !query.is_sleeping && query.modified_move_speed < 0.1"
           },
           {
             "wom_longsword_durus_ust": "variable.wom_kilic_longsword && !variable.is_first_person && !variable.is_paperdoll && !query.is_gliding && !query.is_swimming && !query.is_sleeping && query.modified_move_speed >= 0.1"
+          },
+          {
+            "wom_netherite_staff_durus": "variable.wom_kilic_netherite_staff && !variable.is_first_person && !variable.is_paperdoll && !query.is_gliding && !query.is_swimming && !query.is_sleeping && query.modified_move_speed < 0.1"
+          },
+          {
+            "wom_netherite_staff_durus_ust": "variable.wom_kilic_netherite_staff && !variable.is_first_person && !variable.is_paperdoll && !query.is_gliding && !query.is_swimming && !query.is_sleeping && query.modified_move_speed >= 0.1"
           },
           {
             "wom_nova_durus": "variable.wom_kilic_nova && !variable.is_first_person && !variable.is_paperdoll && !query.is_gliding && !query.is_swimming && !query.is_sleeping && query.modified_move_speed < 0.1"
@@ -538,6 +568,18 @@
           },
           {
             "wom_solar_durus_ust": "variable.wom_kilic_solar && !variable.is_first_person && !variable.is_paperdoll && !query.is_gliding && !query.is_swimming && !query.is_sleeping && query.modified_move_speed >= 0.1"
+          },
+          {
+            "wom_stone_staff_durus": "variable.wom_kilic_stone_staff && !variable.is_first_person && !variable.is_paperdoll && !query.is_gliding && !query.is_swimming && !query.is_sleeping && query.modified_move_speed < 0.1"
+          },
+          {
+            "wom_stone_staff_durus_ust": "variable.wom_kilic_stone_staff && !variable.is_first_person && !variable.is_paperdoll && !query.is_gliding && !query.is_swimming && !query.is_sleeping && query.modified_move_speed >= 0.1"
+          },
+          {
+            "wom_wooden_staff_durus": "variable.wom_kilic_wooden_staff && !variable.is_first_person && !variable.is_paperdoll && !query.is_gliding && !query.is_swimming && !query.is_sleeping && query.modified_move_speed < 0.1"
+          },
+          {
+            "wom_wooden_staff_durus_ust": "variable.wom_kilic_wooden_staff && !variable.is_first_person && !variable.is_paperdoll && !query.is_gliding && !query.is_swimming && !query.is_sleeping && query.modified_move_speed >= 0.1"
           },
           "player.suit.c",
           "player.off_second_hand.c",
@@ -626,12 +668,20 @@
         "ripjaws_yavas": "animation.ripjaws.swim_slow",
         "ripjaws_hizli": "animation.ripjaws.swim_fast",
         "zirh_mod_guc_matkap": "animation.drill_spin",
+        "wom_diamond_staff_durus": "animation.wom.diamond_staff.durus",
+        "wom_diamond_staff_durus_ust": "animation.wom.diamond_staff.durus_ust",
         "wom_evil_tachi_durus": "animation.wom.evil_tachi.durus",
         "wom_evil_tachi_durus_ust": "animation.wom.evil_tachi.durus_ust",
+        "wom_golden_staff_durus": "animation.wom.golden_staff.durus",
+        "wom_golden_staff_durus_ust": "animation.wom.golden_staff.durus_ust",
         "wom_herrscher_durus": "animation.wom.herrscher.durus",
         "wom_herrscher_durus_ust": "animation.wom.herrscher.durus_ust",
+        "wom_iron_staff_durus": "animation.wom.iron_staff.durus",
+        "wom_iron_staff_durus_ust": "animation.wom.iron_staff.durus_ust",
         "wom_longsword_durus": "animation.wom.longsword.durus",
         "wom_longsword_durus_ust": "animation.wom.longsword.durus_ust",
+        "wom_netherite_staff_durus": "animation.wom.netherite_staff.durus",
+        "wom_netherite_staff_durus_ust": "animation.wom.netherite_staff.durus_ust",
         "wom_nova_durus": "animation.wom.nova.durus",
         "wom_nova_durus_ust": "animation.wom.nova.durus_ust",
         "wom_ruine_durus": "animation.wom.ruine.durus",
@@ -640,6 +690,10 @@
         "wom_satsujin_durus_ust": "animation.wom.satsujin.durus_ust",
         "wom_solar_durus": "animation.wom.solar.durus",
         "wom_solar_durus_ust": "animation.wom.solar.durus_ust",
+        "wom_stone_staff_durus": "animation.wom.stone_staff.durus",
+        "wom_stone_staff_durus_ust": "animation.wom.stone_staff.durus_ust",
+        "wom_wooden_staff_durus": "animation.wom.wooden_staff.durus",
+        "wom_wooden_staff_durus_ust": "animation.wom.wooden_staff.durus_ust",
         "player.hulkbuster.punch_first.c": "controller.animation.player.hulkbuster.punch_first",
         "player.hulkbuster.punch_first": "animation.player.hulkbuster.punch_first",
         "player.hulkbuster.first_hands": "animation.player.hulkbuster.first_hands",

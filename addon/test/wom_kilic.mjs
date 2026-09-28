@@ -59,7 +59,16 @@ const IZ = oku("kaynak_anim/wom/wom_kilic.iz.json").animasyonlar;
 console.log("\n=== 2. VERI BUTUNLUGU ===");
 {
   const setler = Object.keys(HAREKET);
-  kontrol("yedi kilic seti", setler.length === 7, setler.join(", "));
+  /* 7 kilic + 6 asa (her asa kendi saldiri hiziyla, v7.99.1). */
+  kontrol("13 set: 7 kilic + 6 asa", setler.length === 13, setler.join(", "));
+  const asalar = ["wooden_staff", "stone_staff", "iron_staff", "golden_staff",
+                  "diamond_staff", "netherite_staff"];
+  kontrol("  alti asanin hepsi", asalar.every((a) => HAREKET[a] && HAREKET[a].esyalar[0] === a));
+  /* Hiz kademesi sureye yansimis olmali: demir asa altindan yavas. */
+  const s1 = (a) => HAREKET[a].saldirilar[0].sure;
+  kontrol("  asa hizi kademeye bagli (demir > tas > altin sure)",
+          s1("iron_staff") > s1("stone_staff") && s1("stone_staff") > s1("golden_staff"),
+          asalar.map((a) => a.split("_")[0] + " " + s1(a)).join(", "));
   const eksik = [];
   for (const [ad, s] of Object.entries(HAREKET)) {
     for (const a of [s.durus, s.durus_ust, ...s.saldirilar.map((x) => x.anim)])
@@ -86,7 +95,7 @@ console.log("\n=== 2. VERI BUTUNLUGU ===");
     const d = oku("Simsek_TNT_ToprakTopu/items/" + id.slice(3) + ".json");
     return d["minecraft:item"].components["minecraft:damage"] !== k.hasar;
   });
-  kontrol("betikteki hasar esya dosyasindakiyle ayni", Object.keys(esya).length >= 7 && kotu.length === 0,
+  kontrol("betikteki hasar esya dosyasindakiyle ayni", Object.keys(esya).length >= 13 && kotu.length === 0,
           Object.keys(esya).length + " esya, uyusmayan " + kotu.map((x) => x[0]).join(","));
 }
 
@@ -180,7 +189,11 @@ function olc(animler) {
 
 const O = olc(ANIM);
 console.log("\n=== 3. KALCA KOPMUYOR ===");
-kontrol("olculen animasyon sayisi (7 durus + 38 vurus)", Object.keys(IZ).length === 45, String(Object.keys(IZ).length));
+{
+  const beklenen = Object.values(HAREKET).reduce((n, s) => n + 1 + s.saldirilar.length, 0);
+  kontrol("her durus ve vurus olculmus (" + beklenen + ")", Object.keys(IZ).length === beklenen,
+          String(Object.keys(IZ).length));
+}
 kontrol("kalca boslugu her karede < 0.5 px", O.enKotuKalca[0] < 0.5,
         O.enKotuKalca[0].toFixed(3) + " px (" + O.enKotuKalca[1] + ")");
 {

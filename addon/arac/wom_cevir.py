@@ -62,7 +62,7 @@ CIKTI_HAREKET = os.path.join(ADDON, "kaynak_anim", "wom", "wom_kilic.hareket.jso
 
 ANIM_ONEK = "animation.wom."
 
-# ---------------- KILIC SETLERI ----------------
+# ---------------- KILIC VE ASA SETLERI ----------------
 # Kaynak: WOMWeaponCapabilityPresets (setin stili, livingMotionModifier,
 # newStyleCombo) ve EpicFightMovesets. Kombo listesinin sonu Epic Fight
 # kurali: binek vurusu varsa son uc = kosu, hava, binek; yoksa son iki
@@ -121,6 +121,24 @@ KILIC = {
         "kosu": "biped/combat/solar_quemadura", "hava": "biped/combat/solar_horno",
     },
 }
+# ---- ASALAR (v7.99.1) ----
+# Alti asa ayni seti kullaniyor (data/wom/capabilities/weapons/*_staff.json
+# -> "wom:staff"), ama saldiri hizi kademeye bagli (StaffItem typeSwitch:
+# WOOD -2.3, STONE -2.5, IRON -2.65, GOLD -2.2, DIAMOND -2.3, NETHERITE
+# -2.45). Epic Fight oynatma hizini silahin hizindan aliyor; bu yuzden
+# her asa KENDI hiziyla ayri bir set. Kombo: STAFF_AUTO_1..3, kosu
+# STAFF_SQUALL, hava STAFF_KINKONG (binek var -> son uc).
+ASA_HIZ = {"wooden_staff": -2.3, "stone_staff": -2.5, "iron_staff": -2.65,
+           "golden_staff": -2.2, "diamond_staff": -2.3, "netherite_staff": -2.45}
+for _asa, _hiz in ASA_HIZ.items():
+    KILIC[_asa] = {
+        "esyalar": [_asa], "sinif": "reascer/wom/gameasset/WOMAnimations",
+        "kaynak": "wom", "hiz": 4 + _hiz,
+        "durus": "biped/living/staff_idle",
+        "oto": ["biped/combat/staff_auto_1", "biped/combat/staff_auto_2",
+                "biped/combat/staff_auto_3"],
+        "kosu": "biped/combat/staff_squall", "hava": "biped/combat/staff_kingkong",
+    }
 WOM_SINIF_KLASOR = "reascer/wom/gameasset/animations/weapons/"
 EF_SINIF = "yesman/epicfight/gameasset/Animations"
 
@@ -704,10 +722,19 @@ def main(argv):
     kaynaklar = {"wom": (wom, "assets/wom/animmodels/animations/"),
                  "ef": (ef, "assets/epicfight/animmodels/animations/")}
     ef_zaman = zamanlar(ef, EF_SINIF)
+    sinif_onbellek = {}
     animler, veri = {}, {}
     for set_ad, s in KILIC.items():
         k, onek = kaynaklar[s["kaynak"]]
-        z_tablo = zamanlar(wom, WOM_SINIF_KLASOR + s["sinif"]) if s["sinif"] else ef_zaman
+        # Sinif: tam yol ("/" iceriyorsa) ya da silah sinifi klasorunde.
+        # Ayni sinif birden cok sette (asalar): bir kez okunuyor.
+        if not s["sinif"]:
+            z_tablo = ef_zaman
+        else:
+            _yol = s["sinif"] if "/" in s["sinif"] else WOM_SINIF_KLASOR + s["sinif"]
+            if _yol not in sinif_onbellek:
+                sinif_onbellek[_yol] = zamanlar(wom, _yol)
+            z_tablo = sinif_onbellek[_yol]
 
         def yukle(yol):
             ic = onek + yol + ".json"

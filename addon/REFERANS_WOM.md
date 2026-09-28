@@ -322,3 +322,12 @@ koniye (3.5 blok, ±100°) `eşya hasarı × çarpan`.
 **Oyunda doğrulanmadı:** itme gücü ölçeği (`WOM_KILIC_ITME_CARPAN`),
 elde tutulan eşyanın dinlenme yönü, kök konumunun x işareti, oynatılan
 animasyonun duruşu ezmesi. İlk oyun denemesi bunları söyleyecek.
+
+### v7.99.1: altı asa
+
+Altısı aynı seti kullanıyor (`wom:staff`): duruş `staff_idle`, üç oto,
+koşu `staff_squall`, hava `staff_kingkong` (dikey hamle: oyuncuyu
+kaldırıyor). Saldırı hızı kademeye bağlı (`StaffItem`: tahta/elmas
+−2.3, taş −2.5, demir −2.65, altın −2.2, netherite −2.45) ve Epic
+Fight oynatma hızını ondan aldığı için her asa kendi hızına gömülmüş
+ayrı bir set. Ölçüm 81 animasyonda: yön ortancası 0.01°, kalça 0 px.

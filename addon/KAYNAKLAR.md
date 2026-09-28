@@ -94,7 +94,8 @@ yaprak temizleyici) Java `elements` biçimindeydi ve depodaki
 ### Weapons of Miracles 2.0.178 + Epic Fight 21.17.3.1 — silahlar GERI (v7.98.3), kılıç vuruşları GERI (v7.99)
 
 v7.99: 7 kılıç setinin (Ruine, Kof Uzun Kılıç, Satsujin, Evil Tachi,
-Nova, Herrscher, Solar) duruşu ve 38 vuruşu yeniden depoda:
+Nova, Herrscher, Solar) ve v7.99.1'de 6 asanın duruşu ve vuruşları
+yeniden depoda:
 `kaynak_anim/wom/wom_kilic.animation.json` (Bedrock'a **çevrilmiş**
 pozlar, dosyanın kendisi değil), `wom_kilic.hareket.json` (sınıf
 dosyalarındaki zaman ve hasar sabitleri, oyuncu hamlesi) ve
