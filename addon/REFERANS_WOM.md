@@ -272,3 +272,6 @@ dönünce kutunun alt kenarı `12 · sin θ` kadar kayıyor.
 `waist` ile verilir. `body` yalnız küçük açıyla döner. Her pozda kalça
 noktasının gövdeden ayrılmadığı ölçülür, aynı "eklem sürekliliği"
 ölçüsü.
+
+Duruş ve vuruşların silah silah ölçümü (hangi set, gövde ne kadar
+dönük, kaç blok ilerliyor, takla var mı): `REFERANS_WOM_HAREKET.md`.
