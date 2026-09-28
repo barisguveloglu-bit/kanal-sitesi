@@ -331,3 +331,19 @@ kaldırıyor). Saldırı hızı kademeye bağlı (`StaffItem`: tahta/elmas
 −2.3, taş −2.5, demir −2.65, altın −2.2, netherite −2.45) ve Epic
 Fight oynatma hızını ondan aldığı için her asa kendi hızına gömülmüş
 ayrı bir set. Ölçüm 81 animasyonda: yön ortancası 0.01°, kalça 0 px.
+
+### v7.99.2: boş el — yumruk
+
+Epic Fight'ın boş el tanımı (`CapabilityItem` EMPTY) ve eldiven seti:
+`fist_auto1..3`, koşu `fist_dash`, hava `fist_airslash`. Duruş yok:
+boş elde Epic Fight de normal duruşu (`BIPED_IDLE`) kullanıyor.
+
+- **Tetik salınım değil, vuruş** (`entityHitEntity`): boş elle blok
+  kırarken de kol sallanıyor; her tık yumruk serisi olsaydı kazarken
+  karakter sürekli yumruk atardı. Seri bir canlıya vurunca ilerliyor.
+- **Hız sınıftan:** Java boş el hızı 4.0; serinin
+  `BASIS_ATTACK_SPEED`'i 3.2 (×1.25), havanın 4.0 (×1). Koşu
+  vuruşunda temel yok, `PLAY_SPEED_MODIFIER` var: silahtan bağımsız,
+  dosya hızında. Bu kural yalnız `fist_dash`'i etkiliyor (tarandı).
+- **Hasar:** yumruk hasarı 1 × çarpan. Güneş Yumruğu açıkken onun ek
+  hasarı da işliyor.

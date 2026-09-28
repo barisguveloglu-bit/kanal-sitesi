@@ -353,7 +353,7 @@ def main(argv):
     kalca_en, merkez_en = (0.0, ""), (0.0, "")
     for set_ad, s in KILIC.items():
         k, onek = kaynaklar[s["kaynak"]]
-        isler = [(s["durus"], ANIM_ONEK + set_ad + ".durus", 1.0)]
+        isler = [(s["durus"], ANIM_ONEK + set_ad + ".durus", 1.0)] if s["durus"] else []
         for sal in hareket[set_ad]["saldirilar"]:
             yol = next(y for y in s["oto"] + [s["kosu"], s["hava"]] if y.endswith("/" + sal["ad"]))
             isler.append((yol, sal["anim"], None))

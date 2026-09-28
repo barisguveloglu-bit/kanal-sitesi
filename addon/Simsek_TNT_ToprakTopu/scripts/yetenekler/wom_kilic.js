@@ -7,7 +7,9 @@ import {
   WOM_KILIC_ITME_CARPAN, WOM_KILIC_ITME_ESIK, WOM_KILIC_DURDUR,
   WOM_KILIC_BITIS_GECIS, WOM_KILIC_DENETLEYICI, WOM_KILIC_KUYRUK_HIZ
 } from "../ayarlar.js";
-import { WOM_KILIC_ESYA, WOM_KILIC_SETLER, WOM_BOS_ANIM } from "./_wom_hareket.js";
+import {
+  WOM_KILIC_ESYA, WOM_KILIC_SETLER, WOM_BOS_ANIM, WOM_BOS_EL
+} from "./_wom_hareket.js";
 
 /* ================================================================
    WoM KILIC VURUSLARI                                        v7.99
@@ -19,6 +21,11 @@ import { WOM_KILIC_ESYA, WOM_KILIC_SETLER, WOM_BOS_ANIM } from "./_wom_hareket.j
                baslayabilir; once gelen tik KUYRUGA alinir
      fazlar    [antic, contact] hasar penceresi + DAMAGE_MODIFIER
      iz        tick basina oyuncunun kaymasi [sag, on, yukari] blok
+
+   BOS EL (v7.99.2): Epic Fight'in yumruk seti. Salinimla DEGIL,
+   bir canliya VURUNCA basliyor (entityHitEntity): bos elle blok
+   kirarken de kol sallaniyor, her tik yumruk serisi olsaydi kazarken
+   karakter surekli yumruk atardi. Kayit anahtari WOM_BOS_EL.
 
    Hangi vurus:
      havadaysan        setin hava vurusu
@@ -238,7 +245,7 @@ export function womKilicTick(simdi = system.currentTick) {
       try {
         const ekip = oyuncu.getComponent("minecraft:equippable");
         const y = ekip && ekip.getEquipment("Mainhand");
-        tip = y && y.typeId;
+        tip = y ? y.typeId : WOM_BOS_EL;
       } catch (e) { tip = undefined; }
       if (kilicKaydi(tip)) { womKilicSalla(oyuncu, tip, simdi); continue; }
     }
@@ -252,6 +259,23 @@ export function womKilicTick(simdi = system.currentTick) {
     }
   }
   return sayi;
+}
+
+/* Bos elle bir canliya vuruldu mu: yumruk serisinin siradaki adimi.
+   Saf olmasa da disari acik: test olayi dogrudan veriyor.        */
+export function womYumrukVurus(olay) {
+  const vuran = olay && olay.damagingEntity;
+  if (!vuran || vuran.typeId !== "minecraft:player") return undefined;
+  let elde;
+  try {
+    const ekip = vuran.getComponent("minecraft:equippable");
+    elde = ekip && typeof ekip.getEquipment === "function"
+      ? ekip.getEquipment("Mainhand") : undefined;
+  } catch (e) {
+    return undefined;       // eli okuyamadik: silahli olabilir, dokunma
+  }
+  if (elde) return undefined;
+  return womKilicSalla(vuran, WOM_BOS_EL);
 }
 
 export function womKilicKur() {
@@ -273,6 +297,11 @@ export function womKilicKur() {
   if (!kuruldu) {
     bilgiYaz("playerSwingStart yok (@minecraft/server < 2.5.0): WoM kilic " +
              "vuruslari kapali. Silahlar normal vuruyor.");
+  }
+  if (kilicKaydi(WOM_BOS_EL)) {
+    olayaAbone("entityHitEntity", (olay) => {
+      try { womYumrukVurus(olay); } catch (e) { hataYaz("wom_kilic.yumruk", e); }
+    });
   }
   return kuruldu;
 }

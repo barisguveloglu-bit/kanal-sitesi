@@ -159,7 +159,7 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # hanenin 0 yerine 5'ten baslamasi bunun isareti -- 7.83.0
 # ile 7.83.5 AYNI kod, sadece numara degisti.
 # v7.91.0: ORTANCA hane -- Avaritia'dan uc mekanik.
-SURUM_NO = (7, 99, 1)
+SURUM_NO = (7, 99, 2)
 
 SURUM_METIN = ".".join(map(str, SURUM_NO))
 
@@ -6523,6 +6523,8 @@ WOM_KILIC_HAREKET_DOSYA = "wom_kilic.hareket.json"
 # Kuyrugu kesmek icin: ayni denetleyicide oynayinca saldiriyi
 # degistiriyor, 1 tick'te bitiyor, vanilla/durus geri geliyor.
 WOM_BOS_ANIM = "animation.wom.bos"
+# Bos elin kayit anahtari (esya kimligi yok): yumruk seti (v7.99.2).
+WOM_BOS_EL = "bos_el"
 
 
 def wom_kilic_verisi():
@@ -6546,11 +6548,15 @@ def wom_kilic_modulu(setler):
     for set_ad, s in (setler or {}).items():
         for e in s["esyalar"]:
             esya["pa:" + WOM_ONEK + e] = {"set": set_ad, "hasar": hasar[e]}
+        if s.get("bos_el"):
+            # Bos el: oyuncunun yumruk hasari 1 (Java ve Bedrock).
+            esya[WOM_BOS_EL] = {"set": set_ad, "hasar": 1}
     satirlar = [
         "/* URETILDI -- kol_uret.py, kaynak: kaynak_anim/wom/%s." % WOM_KILIC_HAREKET_DOSYA,
         "   ELLE DUZENLEME: bir sonraki uretimde ezilir.",
         "   Zamanlar saniye (oyun zamani), iz tick basina [sag, on, yukari] blok. */",
         "export const WOM_BOS_ANIM = %s;" % json.dumps(WOM_BOS_ANIM),
+        "export const WOM_BOS_EL = %s;" % json.dumps(WOM_BOS_EL),
         "export const WOM_KILIC_ESYA = %s;" % json.dumps(esya, ensure_ascii=False,
                                                           separators=(",", ":")),
         "export const WOM_KILIC_SETLER = %s;" % json.dumps(setler or {}, ensure_ascii=False,
@@ -8026,6 +8032,8 @@ def oyuncu_modeli_paketi(surum):
     # pakette (wom_kilic.animation.json).
     _wkv = wom_kilic_verisi()
     for _wset, _wsv in sorted((_wkv or {}).items()):
+        if "durus" not in _wsv:
+            continue        # yumruk: bos elde normal durus (Epic Fight de oyle)
         _wdeg = "variable.wom_kilic_" + _wset
         d["scripts"]["pre_animation"].append("%s = %s;" % (_wdeg, " || ".join(
             "query.get_equipped_item_name('main_hand') == '%s'" % (WOM_ONEK + _we)

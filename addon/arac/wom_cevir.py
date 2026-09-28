@@ -139,6 +139,20 @@ for _asa, _hiz in ASA_HIZ.items():
                 "biped/combat/staff_auto_3"],
         "kosu": "biped/combat/staff_squall", "hava": "biped/combat/staff_kingkong",
     }
+# ---- BOS EL: YUMRUK (v7.99.2) ----
+# Epic Fight'in bos el tanimi (CapabilityItem EMPTY) ve eldiven seti:
+# FIST_AUTO1..3, kosu FIST_DASH, hava FIST_AIR_SLASH. Durus YOK: bos
+# elde Epic Fight de BIPED_IDLE (normal durus) kullaniyor.
+# Java bos el saldiri hizi 4.0; yumruklarin kendi BASIS_ATTACK_SPEED'i
+# 3.2 (seri) ve 4.0 (hava) -- oran 1.25 ve 1.0. Kosu vurusunda BASIS
+# yok, PLAY_SPEED_MODIFIER var: silah hizindan bagimsiz, dosya hizinda.
+KILIC["yumruk"] = {
+    "esyalar": [], "bos_el": True, "sinif": None, "kaynak": "ef", "hiz": 4.0,
+    "durus": None,
+    "oto": ["biped/combat/fist_auto1", "biped/combat/fist_auto2",
+            "biped/combat/fist_auto3"],
+    "kosu": "biped/combat/fist_dash", "hava": "biped/combat/fist_airslash",
+}
 WOM_SINIF_KLASOR = "reascer/wom/gameasset/animations/weapons/"
 EF_SINIF = "yesman/epicfight/gameasset/Animations"
 
@@ -303,7 +317,9 @@ def fazlari_coz(z):
             hasar.append(n if n is not None else 1.0)
     for i, f in enumerate(fazlar):
         f["hasar"] = hasar[i] if i < len(hasar) else (hasar[-1] if hasar else 1.0)
-    temel = 1.0
+    # BASIS yoksa ve PLAY_SPEED_MODIFIER varsa hiz silahtan bagimsiz:
+    # None -> cagiran dosya hizinda oynatiyor.
+    temel = None if ("PLAY_SPEED_MODIFIER" in d and "BASIS_ATTACK_SPEED" not in d) else 1.0
     for i, x in enumerate(d):
         if x == "BASIS_ATTACK_SPEED":
             n = next((y for y in d[i + 1:i + 2] if isinstance(y, float)), None)
@@ -744,16 +760,17 @@ def main(argv):
 
         # Durus: iki parca. Duruyorken butun beden; yururken yalniz ust
         # beden (bacaklari vanilla yuruyus suruyor).
-        d = yukle(s["durus"])
-        tum = set(SIRA)
-        animler[ANIM_ONEK + set_ad + ".durus"] = {
-            "loop": True, "animation_length": round(d.sure, 4),
-            "override_previous_animation": True,
-            "bones": cevir(d, d.sure, 1.0, tum, False, True)}
-        animler[ANIM_ONEK + set_ad + ".durus_ust"] = {
-            "loop": True, "animation_length": round(d.sure, 4),
-            "override_previous_animation": True,
-            "bones": cevir(d, d.sure, 1.0, UST, False, True)}
+        if s["durus"]:
+            d = yukle(s["durus"])
+            tum = set(SIRA)
+            animler[ANIM_ONEK + set_ad + ".durus"] = {
+                "loop": True, "animation_length": round(d.sure, 4),
+                "override_previous_animation": True,
+                "bones": cevir(d, d.sure, 1.0, tum, False, True)}
+            animler[ANIM_ONEK + set_ad + ".durus_ust"] = {
+                "loop": True, "animation_length": round(d.sure, 4),
+                "override_previous_animation": True,
+                "bones": cevir(d, d.sure, 1.0, UST, False, True)}
         saldirilar = []
         for tur, yollar in (("oto", s["oto"]), ("kosu", [s["kosu"]]), ("hava", [s["hava"]])):
             for yol in yollar:
@@ -762,7 +779,8 @@ def main(argv):
                 if not z:
                     raise SystemExit("ZAMAN YOK: " + yol)
                 gecis, fazlar, ozellik, temel = fazlari_coz(z)
-                hiz = max(0.5, min(2.0, s["hiz"] / temel))
+                hiz = (1.0 if s["hiz"] is None or temel is None
+                       else max(0.5, min(2.0, s["hiz"] / temel)))
                 olcek_zaman = 1.0 / hiz
                 dikey = "MOVE_VERTICAL" in ozellik
                 ad = yol.split("/")[-1]
@@ -787,10 +805,12 @@ def main(argv):
                     print("%-10s %-4s %-24s %5.2fs birak %.2fs faz %d hasar %s ileri %.1f dikey %s"
                           % (set_ad, tur, ad, a.sure * olcek_zaman, saldirilar[-1]["birakma"],
                              len(fazlar), [f["hasar"] for f in fazlar], iz[1] * 16, dikey))
-        veri[set_ad] = {"esyalar": s["esyalar"],
-                        "durus": ANIM_ONEK + set_ad + ".durus",
-                        "durus_ust": ANIM_ONEK + set_ad + ".durus_ust",
-                        "saldirilar": saldirilar}
+        veri[set_ad] = {"esyalar": s["esyalar"], "saldirilar": saldirilar}
+        if s["durus"]:
+            veri[set_ad]["durus"] = ANIM_ONEK + set_ad + ".durus"
+            veri[set_ad]["durus_ust"] = ANIM_ONEK + set_ad + ".durus_ust"
+        if s.get("bos_el"):
+            veri[set_ad]["bos_el"] = True
     os.makedirs(os.path.dirname(CIKTI_ANIM), exist_ok=True)
     with open(CIKTI_ANIM, "w", encoding="utf-8") as f:
         json.dump({"format_version": "1.8.0", "animations": animler}, f,

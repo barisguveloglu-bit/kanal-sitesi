@@ -59,8 +59,14 @@ const IZ = oku("kaynak_anim/wom/wom_kilic.iz.json").animasyonlar;
 console.log("\n=== 2. VERI BUTUNLUGU ===");
 {
   const setler = Object.keys(HAREKET);
-  /* 7 kilic + 6 asa (her asa kendi saldiri hiziyla, v7.99.1). */
-  kontrol("13 set: 7 kilic + 6 asa", setler.length === 13, setler.join(", "));
+  /* 7 kilic + 6 asa (her asa kendi saldiri hiziyla, v7.99.1) +
+     bos el yumruk seti (v7.99.2). */
+  kontrol("14 set: 7 kilic + 6 asa + yumruk", setler.length === 14, setler.join(", "));
+  const y = HAREKET.yumruk;
+  kontrol("  yumruk: bos el, esyasiz, durussuz, 3 oto + kosu + hava",
+          !!y && y.bos_el === true && y.esyalar.length === 0 && !y.durus &&
+          y.saldirilar.map((x) => x.ad).join() === "fist_auto1,fist_auto2,fist_auto3,fist_dash,fist_airslash",
+          y && y.saldirilar.map((x) => x.ad).join());
   const asalar = ["wooden_staff", "stone_staff", "iron_staff", "golden_staff",
                   "diamond_staff", "netherite_staff"];
   kontrol("  alti asanin hepsi", asalar.every((a) => HAREKET[a] && HAREKET[a].esyalar[0] === a));
@@ -71,7 +77,8 @@ console.log("\n=== 2. VERI BUTUNLUGU ===");
           asalar.map((a) => a.split("_")[0] + " " + s1(a)).join(", "));
   const eksik = [];
   for (const [ad, s] of Object.entries(HAREKET)) {
-    for (const a of [s.durus, s.durus_ust, ...s.saldirilar.map((x) => x.anim)])
+    const duruslar = s.durus ? [s.durus, s.durus_ust] : [];
+    for (const a of [...duruslar, ...s.saldirilar.map((x) => x.anim)])
       if (!ANIM[a]) eksik.push(a);
     const turler = new Set(s.saldirilar.map((x) => x.tur));
     if (!turler.has("oto") || !turler.has("kosu") || !turler.has("hava")) eksik.push(ad + ": tur");
@@ -91,11 +98,14 @@ console.log("\n=== 2. VERI BUTUNLUGU ===");
      kombo hasari onun carpani.                                   */
   const e = js.match(/export const WOM_KILIC_ESYA = (.*);\n/);
   const esya = e ? JSON.parse(e[1]) : {};
-  const kotu = Object.entries(esya).filter(([id, k]) => {
+  const kotu = Object.entries(esya).filter(([id]) => id.startsWith("pa:")).filter(([id, k]) => {
     const d = oku("Simsek_TNT_ToprakTopu/items/" + id.slice(3) + ".json");
     return d["minecraft:item"].components["minecraft:damage"] !== k.hasar;
   });
-  kontrol("betikteki hasar esya dosyasindakiyle ayni", Object.keys(esya).length >= 13 && kotu.length === 0,
+  const esyali = Object.entries(esya).filter(([id]) => id.startsWith("pa:"));
+  kontrol("bos el kaydi: yumruk seti, hasar 1",
+          !!esya.bos_el && esya.bos_el.set === "yumruk" && esya.bos_el.hasar === 1, JSON.stringify(esya.bos_el));
+  kontrol("betikteki hasar esya dosyasindakiyle ayni", esyali.length >= 13 && kotu.length === 0,
           Object.keys(esya).length + " esya, uyusmayan " + kotu.map((x) => x[0]).join(","));
 }
 
@@ -190,7 +200,7 @@ function olc(animler) {
 const O = olc(ANIM);
 console.log("\n=== 3. KALCA KOPMUYOR ===");
 {
-  const beklenen = Object.values(HAREKET).reduce((n, s) => n + 1 + s.saldirilar.length, 0);
+  const beklenen = Object.values(HAREKET).reduce((n, s) => n + (s.durus ? 1 : 0) + s.saldirilar.length, 0);
   kontrol("her durus ve vurus olculmus (" + beklenen + ")", Object.keys(IZ).length === beklenen,
           String(Object.keys(IZ).length));
 }
@@ -229,7 +239,9 @@ for (const paket of ["Simsek_Oyuncu_Modeli", "Simsek_Oyuncu_Modeli_IronMan"]) {
   const on = d.scripts.pre_animation.join("\n");
   const anim = JSON.stringify(d.scripts.animate);
   const eksik = [];
+  if (on.includes("wom_kilic_yumruk")) eksik.push("yumruk icin durus tetigi olmamali");
   for (const [set, s] of Object.entries(HAREKET)) {
+    if (!s.durus) continue;
     for (const e of s.esyalar) if (!on.includes("== 'wom_" + e + "'")) eksik.push(set + " tetik " + e);
     if (d.animations["wom_" + set + "_durus"] !== s.durus) eksik.push(set + " durus");
     if (d.animations["wom_" + set + "_durus_ust"] !== s.durus_ust) eksik.push(set + " durus_ust");
@@ -321,6 +333,35 @@ const oto = RUINE.filter((x) => x.tur === "oto");
   kontrol("kosarken ilk vurus: kosu vurusu", o._anim[1].ad === kosu.anim, o._anim[1].ad);
   kontrol("WoM olmayan esya bir sey yapmiyor", W.womKilicSalla(o, "minecraft:diamond_sword", 9100) === undefined);
   W.womKilicUnut("wk2");
+}
+{
+  /* BOS EL: vurunca yumruk serisi; elde esya varsa hicbir sey. */
+  const o = oyuncuKur("wk3");
+  o.dimension = { getEntities: () => [o] };
+  const bos = { getEquipment: () => undefined };
+  o.getComponent = (n) => (n === "minecraft:equippable" ? bos : undefined);
+  const zom = hedefKur("z3", { x: 0, y: 64, z: 1.5 });
+  const Y = HAREKET.yumruk.saldirilar;
+  _durum.varliklar = [o, zom];
+  const t0 = 20000;
+  _durum.tick = t0;
+  kontrol("bos elle vurus: yumruk 1", W.womYumrukVurus({ damagingEntity: o, hitEntity: zom }) === Y[0].ad &&
+          o._anim[0].ad === Y[0].anim, o._anim.map((x) => x.ad).join());
+  /* Birakmadan sonra (Epic Fight recovery) ikinci vurus: seri ilerler. */
+  const bir = Math.ceil(Y[0].birakma / 0.05) + 1;
+  for (let i = 1; i <= bir; i++) W.womKilicTick(t0 + i);
+  _durum.tick = t0 + bir;
+  W.womYumrukVurus({ damagingEntity: o, hitEntity: zom });
+  kontrol("  ikinci vurus: yumruk 2", o._anim[o._anim.length - 1].ad === Y[1].anim,
+          o._anim.map((x) => x.ad.split(".").pop()).join());
+  o.getComponent = (n) => (n === "minecraft:equippable" ? { getEquipment: () => ({ typeId: "minecraft:stick" }) } : undefined);
+  kontrol("elde esya varken yumruk yok", W.womYumrukVurus({ damagingEntity: o, hitEntity: zom }) === undefined);
+  kontrol("oyuncu olmayan vuran yok sayiliyor",
+          W.womYumrukVurus({ damagingEntity: { typeId: "minecraft:zombie" }, hitEntity: o }) === undefined);
+  /* Kazarken: bos elle salinim yumruk BASLATMIYOR (yalniz vurus). */
+  W.womKilicUnut("wk3");
+  kontrol("bos el salinimi (kazma) yumruk baslatmiyor", W.womKilicSalla(o, undefined) === undefined);
+  W.womKilicUnut("wk3");
 }
 {
   kontrol("koni: onde 2 blok ici", W.koniIcinde({ x: 0, y: 0, z: 0 }, { x: 0, z: 1 }, { x: 0, y: 0, z: 2 }));
