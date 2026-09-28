@@ -219,8 +219,8 @@ belli değil — uydurulmuş bir ağırlık, uydurulmuş bir yüzde
 
 | durum | sayı | ne demek |
 |---|---|---|
-| **kapalı** | **34** | bizim kodumuz görüyor |
-| açık | 14 | ölçülebilir ama yazılmadı |
+| **kapalı** | **38** | bizim kodumuz görüyor |
+| açık | 10 | ölçülebilir ama yazılmadı |
 | ayırt edilemez | 14 | sunucuya geliyor, dürüst oyundan ayrılamıyor |
 | operatör kapısı | 7 | op vermemek yeterli |
 | **imkânsız** | **32** | tamamen ekran tarafı, asla görülemez |
@@ -228,13 +228,13 @@ belli değil — uydurulmuş bir ağırlık, uydurulmuş bir yüzde
 
 ### İki yüzde
 
-- **Ham kapsam: %34** (34/101)
-- **Engellenebilirin kapsamı: %71** (34/48) ← anlamlı olan
+- **Ham kapsam: %38** (38/101)
+- **Engellenebilirin kapsamı: %79** (38/48) ← anlamlı olan
 
 Ham kapsamın tavanı 100 değil, **%48**. Görüntü ailesi (32),
 ayırt edilemeyenler (14) ve op ailesi (7) bir davranış
 paketinin ulaşabileceği yerde değil. Yani ham sayı hiçbir
-zaman %47'yi geçemez ve bugün onun **yaklaşık yedide altısındayız**.
+zaman %48'i geçemez ve bugün onun **yaklaşık beşte dördündeyiz**.
 
 **Ham sayının v7.46'daki %34'ten %32'ye DÜŞMESI bir gerileme
 değil**: FerSReD Client 13 yeni madde ekledi ve 13'ünün 8'i
@@ -256,7 +256,8 @@ yavaş. Anlamlı olan ikinci sayı ve o **%65'ten %71'e çıktı**.
 | v7.46 | 31 | %31 | %65 | süzülme kör noktası |
 | v7.47 | 32 | %32 | %67 | düşme hasarı yok |
 | v7.49 | 33 | %33 | %69 | zorla eşya takma (`item_lock`) |
-| **v7.65** | **34** | **%34** | **%71** | poz kilidinin denetleyici yuvası |
+| v7.65 | 34 | %34 | %71 | poz kilidinin denetleyici yuvası |
+| **v7.99** | **38** | **%38** | **%79** | su üstü · yavaş düşüş · blok menzili (×2) |
 
 **v7.36 → v7.38 artışı: engellenebilirin %50'sinden %63'üne**
 (altı özellik). En büyük tek sıçrama hâlâ v7.30 (Gözcü'nün
@@ -277,21 +278,21 @@ gösteriyor.
 Kaynak: `REFERANS_TOOLBOX_TR_APK.md` (Toolbox For Turkey,
 `io.mrarm.mctoolbox`).
 
-### Açık kalan 14 — sıradaki iş listesi
+### Açık kalan 10 — sıradaki iş listesi
 
 Hepsi **ölçülebilir**, sadece yazılmadı:
 
-`jesus` · `spider` · `anti_void` · `slow_falling` ·
-`auto_glide` (hareket ailesi, hepsi konum/hasar
-tutarsızlığı) · `far_bypass` · `pick_distance` (blok koyma
-mesafesi) · `auto_crystal` (koyma+vurma hızı) · `fake_death` ·
-`spammer` (sohbet hızı) · `blink` · `disabler` · `desync` ·
-`ping_spoof` (dördü de paket geciktirme ailesi).
+`spider` · `anti_void` · `auto_glide` (hareket ailesi, hepsi
+konum tutarsızlığı) · `auto_crystal` (koyma+vurma hızı) ·
+`fake_death` · `spammer` (sohbet hızı) · `blink` · `disabler` ·
+`desync` · `ping_spoof` (dördü de paket geciktirme ailesi).
 
-`no_fall` bu listedeydi, **v7.47'de kapandı**.
+`no_fall` bu listedeydi, **v7.47'de kapandı**. `jesus`,
+`slow_falling`, `far_bypass` ve `pick_distance` de buradaydı,
+**v7.99.5'te kapandı** (aşağıda).
 
 Bunların hepsi yazılsa engellenebilir kapsam **%100** olurdu,
-ham kapsam **%47**. Ondan sonrası mümkün değil.
+ham kapsam **%48**. Ondan sonrası mümkün değil.
 
 ---
 
@@ -343,3 +344,31 @@ hilesi 5 işaret (eski muafiyetle 0), izleyici kipi yakalanıyor.
 
 Ayrıca: Koruma Kubbesi enerji tablosunda "orta"daydı; savunma olduğu
 için bedelsize alındı (Arınma, Savunma Kipi, Kafes Kır ile aynı kural).
+
+
+# v7.99.5 — Alexa Special V4: Toolbox'ın altıncı kopyası, dört madde kapandı
+
+Kaynak: `REFERANS_ALEXA_APK.md`. Dosya **çalıştırılmadı**.
+Özellik listesi yeni bir şey getirmedi: 67 `s_*` anahtarının
+hepsi Toolbox ailesinin (T) bilinen listesi. Ama bu aileden
+v7.38'den beri "ölçülebilir ama yazılmadı" diye bekleyen beş
+madde vardı; kullanıcının kuralı *"savunması olanların
+savunmalarını ekle"* olduğu için dördü yazıldı:
+
+| madde | ölçüm | bedel / sınır |
+|---|---|---|
+| `jesus` | ayak altı sıvı, ayak hizası hava, dikeyde durgun · 4 örnek | yalnız Savunma Kipi açıkken (blok okuyor) |
+| `slow_falling` | havada, 3 örnek üst üste < 1,5 blok iniş | blok yalnız şüpheli seriden sonra okunuyor |
+| `far_bypass` · `pick_distance` | gözden bloğun en yakın noktasına > 7,5 blok | yaratıcı kip denetlenmiyor |
+
+Kalan tek madde `blink`: paketleri tutup birden bırakıyor.
+Sunucuda bir süre hareketsizlik ve ardından sıçrama olarak
+görünüyor ve bu **gecikmeden ayırt edilemiyor**; sıçrama kısmı
+zaten ışınlanma ölçümüne takılıyor. Açık kalıyor, dürüstçe.
+
+Toolbox ailesi için kapsam: engellenebilirin **%84'ünden %97'sine**.
+`test/gozcu_alexa.mjs` her ölçümde önce temiz oyuncunun
+suçlanmadığını (örümcek ağı, bal blok, tekne, iskele kenarı,
+nilüfer, iksirler, kendi işimiz, yaratıcı kip), sonra hilenin
+yakalandığını tutuyor; yedi mutasyonla ısırdığı doğrulandı.
+

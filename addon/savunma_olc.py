@@ -10,6 +10,7 @@ ve modul listesinden:
     REFERANS_TOOLBOX_APK.md     (65 s_* anahtari)
     REFERANS_WDBAX_APK.md       (ayni 65)
     REFERANS_BLOODY_APK.md      (ayni 65)
+    REFERANS_ALEXA_APK.md       (ayni 65, v7.99.5 -- Toolbox ailesi T)
     REFERANS_WCLIENT_APK.md     (vekil, ayri modul listesi)
 
 ---- BU YUZDE NE DEGILDIR ----
@@ -93,11 +94,14 @@ OZELLIKLER = [
     ("tpmine",           "hareket", "W",  KAPALI, "7.38", "kati blok icinde"),
     ("no_fall",          "hareket", "TF", KAPALI, "7.47",
      "esik ustu dusus + can azalmadi"),
-    ("jesus",            "hareket", "TF",  ACIK, "", "su yuzeyinde duruyor"),
+    # v7.99.5: Alexa Special V4 (Toolbox ailesi) incelemesinde kapandi.
+    ("jesus",            "hareket", "TF",  KAPALI, "7.99",
+     "ayak alti sivi + ayak hizasi hava + kose/tekne dogrulamasi"),
     ("spider",           "hareket", "W",  ACIK, "", "duvara tirmaniyor"),
     ("anti_void",        "hareket", "W",  ACIK, "", "bosluktan geri donuyor"),
     ("blink",            "hareket", "TWMF", ACIK, "", "paket geciktirme"),
-    ("slow_falling",     "hareket", "TF",  ACIK, "", "dusme hizi"),
+    ("slow_falling",     "hareket", "TF",  KAPALI, "7.99",
+     "havada ust uste 3 ornek < 1,5 blok inis + yavaslatan blok yok"),
     ("auto_sprint",      "hareket", "TWM", AYIRT, "", "insan da hep kosar"),
     ("no_slowdown",      "hareket", "T",  AYIRT, "", "istemci tarafi yavaslama"),
     ("anti_afk",         "hareket", "W",  AYIRT, "", "kucuk hareketler"),
@@ -111,8 +115,8 @@ OZELLIKLER = [
     ("haste_effect / fast_miner", "dunya", "TWM", KAPALI, "7.36", "blok kirma hizi"),
     ("bloklarla hapsetme", "dunya", "TW", KAPALI, "7.36", "Kafes Kir"),
     ("gamemode_switcher", "dunya", "W", KAPALI, "7.38", "oyun kipi denetimi"),
-    ("far_bypass",       "dunya", "T",  ACIK, "", "blok koyma mesafesi"),
-    ("pick_distance",    "dunya", "T",  ACIK, "", "blok koyma mesafesi"),
+    ("far_bypass",       "dunya", "T",  KAPALI, "7.99", "blok koyma/kirma menzili"),
+    ("pick_distance",    "dunya", "T",  KAPALI, "7.99", "blok koyma/kirma menzili"),
     ("chest_stealer",    "dunya", "TWF", AYIRT, "", "normal sandik etkilesimi"),
     ("give_item",        "dunya", "T",  OP, "", "sunucu izin vermeli"),
     ("enchant",          "dunya", "TM",  OP, "", "sunucu izin vermeli"),
@@ -196,7 +200,7 @@ OZELLIKLER = [
 
 # Savunmanin yazildigi surumler, sirayla.
 SURUMLER = ["7.27", "7.28", "7.29", "7.30", "7.31", "7.35", "7.36", "7.38",
-            "7.46", "7.47", "7.49", "7.65"]
+            "7.46", "7.47", "7.49", "7.65", "7.99"]
 
 
 def yuvarla(x):
@@ -275,7 +279,7 @@ if __name__ == "__main__":
     print("                    M = Toolbox For Turkey, F = FerSReD,")
     print("                    K = elden ele komut dosyalari) ===")
     for etiket, kosul in (
-        ("Toolbox ailesi (MH_TEAM_V5 · WDBAX · BloodyClient)",
+        ("Toolbox ailesi (MH_TEAM_V5 · WDBAX · BloodyClient · Alexa)",
          lambda o: "T" in o[2]),
         ("WClient (vekil)", lambda o: "W" in o[2]),
         ("Toolbox For Turkey (enjektor)", lambda o: "M" in o[2]),

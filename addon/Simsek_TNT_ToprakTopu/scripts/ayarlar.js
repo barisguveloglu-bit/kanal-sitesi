@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.99.4";
+export const SURUM = "v7.99.5";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -2424,6 +2424,20 @@ export const BLOK_KIRMA_ESIK  = 24;   // pencerede kirilan blok
 export const BLOK_KOYMA_ESIK  = 24;   // pencerede konulan blok
 export const BLOK_SUS         = 200;  // iki bildirim arasi en az
 
+/* ---- BLOK MENZILI  --  far_bypass · pick_distance (v7.99.5) ----
+   Alexa Special V4'un Toolbox menusundeki "Reach Fix (Online)"
+   ve "Reach"in blok tarafi: uzaktaki bloga koymak/kirmak.
+   Savunma planinda v7.38'den beri "acik".
+
+   Olcum: gozden blogun kutusunun EN YAKIN noktasina uzaklik.
+   Bedrock hayatta kalma blok erisimi ~6 blok; esik 7,5 --
+   kosarken gecikmenin bayatlattigi konuma pay. Yaratici kip
+   denetlenmiyor (erisimi zaten uzun; kipin kendisini kip
+   denetimi yakaliyor). Tek uzak koyma suclamiyor: isaret
+   olarak Gozcu defterine giriyor, GOZCU_ESIK isaret ister.   */
+export const BLOK_MENZIL_ACIK = true;
+export const BLOK_MENZIL      = 7.5;  // blok
+
 /* ---------------- SAVUNMA KIPI (v7.29) ----------------
    Kullanici: "Hadi diyelim ki vs yapacagiz, hileleri actim.
    O an nasil olacagiz?"
@@ -2700,6 +2714,60 @@ export const SUZULME_ROKET_ESYA = ["minecraft:firework_rocket"];
 export const DUSUS_ACIK = true;
 export const DUSUS_ESIK = 8;      // blok
 export const DUSUS_PAY  = 1.0;    // en az bu kadar can azalmali (puan)
+
+/* ---------------- YAVAS DUSUS  --  slow_falling (v7.99.5) ----------------
+   Alexa Special V4 (Toolbox ailesi) incelemesinden. Madde
+   savunma planinda v7.38'den beri "acik" duruyordu.
+
+   ---- ESIK NEDEN IMKANSIZ BIR HIZ ----
+   Vanilla serbest dusus (her tick v = (v - 0.08) x 0.98):
+   durgunluktan ilk 10 tickte 4,1 blok, ikinci 10 tickte 10,5.
+   Yani havada kalip ust uste UC ornek boyunca ornek basina 1,5
+   bloktan az inmek vanilla fizikte yok -- ziplamanin tepesi
+   tek ornek surer, ucuncuye yetmez.
+
+   ---- YANLIS ALARM YUZEYI ----
+   Orumcek agi, toz kar, bal blok (duvardan kayma), iskele, lav,
+   kabarcik sutunu, tatli meyve calisi dususu GERCEKTEN
+   yavaslatiyor. Bunlar blok okumadan ayirt edilemez; okuma
+   YALNIZ ust uste uc supheli ornekten SONRA yapiliyor (bosta
+   duran mod blok okumaz kurali). Supheli oyuncunun etrafi
+   okunamiyorsa suclanmiyor.
+   Su, suzulme, ucus kipi, tirmanma, binme, yavas dusme ve
+   levitasyon efekti, calisan kendi isimiz ve isinlanma affi
+   muaf.                                                        */
+export const YAVAS_DUSUS_ACIK  = true;
+export const YAVAS_DUSUS_ORNEK = 3;      // ust uste kac ornek
+export const YAVAS_DUSUS_PAY   = 1.5;    // ornek (10 tick) basina bundan az inis supheli
+export const YAVAS_DUSUS_MIN   = 0.1;    // bundan az inis "inmiyor" sayilir, supheli degil
+export const YAVAS_DUSUS_BLOK  = [       // typeId'de gecen parca -> dusus mesru yavas
+  "web", "powder_snow", "honey", "scaffolding", "lava", "water",
+  "bubble", "berry", "ladder", "vine"
+];
+
+/* ---------------- SU USTUNDE DURMA  --  jesus (v7.99.5) ----------------
+   Alexa Special V4 / FerSReD / Toolbox menusundeki "Su Uzerinde
+   Yurume". Olcut: ayagin hemen alti SIVI (su/lav), ayak hizasi
+   HAVA, dikeyde kimildamiyor -- ust uste SU_USTU_ORNEK ornek.
+
+   ---- YALNIZ SAVUNMA KIPI ACIKKEN (kati blok denetimiyle ayni) ----
+   Ornek basina iki blok okuyor. Bosta duran mod blok okumaz;
+   kapi Savunma Kipi, ucreti durustce: DUGME KAPALIYKEN JESUS
+   YAKALANMAZ.
+
+   ---- MESRU DURUMLAR ----
+   Tekne ustunde durmak, iskele/kiyi kenarinda sarkmak (oyuncu
+   0,6 genislikte; merkez suyun ustunde, kenari tasta olabilir),
+   nilufer, buz (Frost Walker buzu da buz). Esik dolunca dort
+   kose ve cevredeki tekneler okunuyor; biri destekse suc yok.
+   Nilufer ayak hizasini doldurdugu icin zaten "hava" degil.    */
+export const SU_USTU_ACIK  = true;
+export const SU_USTU_ORNEK = 4;          // ust uste kac ornek (2 sn)
+export const SU_USTU_DIKEY = 0.15;       // ornek basina bundan az dikey hareket
+export const SU_USTU_SIVI  = [
+  "minecraft:water", "minecraft:flowing_water",
+  "minecraft:lava", "minecraft:flowing_lava"
+];
 
 /* ---------------- ENVANTER YEDEGI (v7.30) ----------------
    Tehdit modelindeki DUNYA ailesinden: karsi taraf operatorse

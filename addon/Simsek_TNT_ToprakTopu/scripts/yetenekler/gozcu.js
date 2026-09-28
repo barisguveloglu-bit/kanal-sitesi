@@ -8,6 +8,10 @@ import {
   GOZCU_ETIKET, HAREKET_AF_TICK,
   SUZULME_ACIK, SUZULME_ORNEK, SUZULME_PAY, SUZULME_ROKET_TICK,
   DUSUS_ACIK, DUSUS_ESIK, DUSUS_PAY,
+  YAVAS_DUSUS_ACIK, YAVAS_DUSUS_ORNEK, YAVAS_DUSUS_PAY, YAVAS_DUSUS_MIN,
+  YAVAS_DUSUS_BLOK,
+  SU_USTU_ACIK, SU_USTU_ORNEK, SU_USTU_DIKEY, SU_USTU_SIVI,
+  BLOK_MENZIL_ACIK, BLOK_MENZIL,
   KILIT_ATLA_TIPLER,
   HAREKET_ACIK, HAREKET_HIZ, HAREKET_SICRAMA, HAREKET_ORNEK,
   HAREKET_YUKSELME, HAREKET_YUKSEK_PAY,
@@ -431,6 +435,82 @@ function dususOlc(o, iz, dy) {
   isaretle(o, o, ["düşme hasarı yok (" + yukseklik.toFixed(0) + " blok)"]);
 }
 
+/* ---- YAVAS DUSUS  --  slow_falling  (v7.99.5) ----
+   Esik ve gerekce ayarlar.js YAVAS_DUSUS_*'ta. Dusus olcumu
+   gibi muafiyetten ONCE calisiyor: hareketMuaf dusen oyuncuyu
+   "dusuyor" diye muaf tutuyor, yani arkasina konsa hic
+   calismazdi.
+
+   Kendi muafiyet listesi dususMuaf'tan AYRI: orada direnc
+   efekti var (hasari o azaltiyor) ama direnc dususu
+   yavaslatmaz -- ayni listeyi kullanmak direnc iksiri icen
+   hileciyi aklardi.                                          */
+function yavasMuaf(o, isVarMi) {
+  try {
+    if (typeof isVarMi === "function" && isVarMi(o.id)) return "kendi isi";
+    if (afVarMi(o.id)) return "af";
+    if (o.isInWater) return "suda";
+    if (o.isGliding) return "suzuluyor";
+    if (o.isFlying) return "ucus kipi";
+    if (o.isClimbing) return "tirmaniyor";
+    if (typeof o.getEffect === "function") {
+      for (const ad of ["slow_falling", "levitation"]) {
+        if (o.getEffect(ad)) return ad;
+      }
+    }
+    if (typeof o.getComponent === "function" &&
+        o.getComponent("minecraft:riding")) return "biniyor";
+  } catch (e) {
+    return "okunamadi";          // suphede kalirsa SUCLAMIYORUZ
+  }
+  return undefined;
+}
+
+/* Dususu mesru yavaslatan bir blok var mi: ayak, bas, alt ve
+   ayak hizasinda dort komsu (bal bloktan kayma duvarda olur).
+   true = var, false = hepsi okundu ve yok, undefined = okunamadi. */
+function yavaslatanBlokVarMi(o) {
+  try {
+    const boyut = o.dimension;
+    const k = o.location;
+    if (!boyut || typeof boyut.getBlock !== "function" || !k) return undefined;
+    const noktalar = [
+      [0, 0, 0], [0, 1, 0], [0, -0.5, 0],
+      [1, 0, 0], [-1, 0, 0], [0, 0, 1], [0, 0, -1]
+    ];
+    for (const [ox, oy, oz] of noktalar) {
+      const b = boyut.getBlock({ x: k.x + ox, y: k.y + oy, z: k.z + oz });
+      if (!b) return undefined;
+      const tip = b.typeId;
+      if (typeof tip !== "string") return undefined;
+      for (const parca of YAVAS_DUSUS_BLOK) {
+        if (tip.indexOf(parca) !== -1) return true;
+      }
+    }
+    return false;
+  } catch (e) {
+    return undefined;            // dunya disi / yuklenmemis parca
+  }
+}
+
+function yavasDususOlc(o, iz, dy, gecen, isVarMi) {
+  if (!YAVAS_DUSUS_ACIK) { iz.yavas = 0; return; }
+  /* Ornek araligi kayarsa (gecikme) inis 10 ticke olcekleniyor:
+     esik ornek basina yazili.                                */
+  const inis = -dy * HAREKET_ORNEK / Math.max(1, gecen);
+  if (o.isOnGround === true || inis < YAVAS_DUSUS_MIN || inis >= YAVAS_DUSUS_PAY) {
+    iz.yavas = 0; return;
+  }
+  if (yavasMuaf(o, isVarMi)) { iz.yavas = 0; return; }
+  iz.yavas = (iz.yavas || 0) + 1;
+  if (iz.yavas < YAVAS_DUSUS_ORNEK) return;
+  iz.yavas = 0;
+  /* Blok okumasi YALNIZ burada: uc supheli ornekten sonra. */
+  if (yavaslatanBlokVarMi(o) !== false) return;
+  isaretle(o, o, ["yavaş düşüş " + YAVAS_DUSUS_ORNEK + " örnek (" +
+                  inis.toFixed(2) + " blok/örnek)"]);
+}
+
 /* ---- BILDIRIM KIME GIDIYOR  (v7.44) ----
    Bir hile suclamasi herkese acik yazilmamali; ustelik
    Gozcu'nun cikardigi sey TAHMIN, kanit degil.
@@ -674,6 +754,61 @@ export function katidaMi(oyuncu) {
 }
 
 
+/* ============================================================
+   SU USTUNDE DURMA  --  jesus                        (v7.99.5)
+
+   Esikler ve mesru durumlar ayarlar.js SU_USTU_*'ta.
+   Iki asama:
+     1. her ornekte iki okuma: ayagin alti sivi mi, ayak hizasi
+        hava mi (suUstundeMi)
+     2. esik dolunca dogrulama: dort kosenin alti ve yakindaki
+        tekneler (suUstuDogrula). Biri destekse suc yok.
+   Ikinci asama ucuz degil ama supheli oyuncu basina 2 sn'de
+   bir, bosta hic calismiyor.
+   ============================================================ */
+function siviMi(b) {
+  return !!b && SU_USTU_SIVI.indexOf(b.typeId) !== -1;
+}
+
+/* true / false / undefined (olculemedi). */
+export function suUstundeMi(oyuncu) {
+  try {
+    const boyut = oyuncu.dimension;
+    const k = oyuncu.location;
+    if (!boyut || typeof boyut.getBlock !== "function" || !k) return undefined;
+    const alt = boyut.getBlock({ x: k.x, y: k.y - 0.35, z: k.z });
+    const ayak = boyut.getBlock({ x: k.x, y: k.y + 0.1, z: k.z });
+    if (!alt || !ayak) return undefined;
+    return siviMi(alt) && ayak.isAir === true;
+  } catch (e) {
+    return undefined;
+  }
+}
+
+/* true = gercekten suyun ustunde ve destek yok. */
+export function suUstuDogrula(oyuncu) {
+  try {
+    const boyut = oyuncu.dimension;
+    const k = oyuncu.location;
+    for (const [ox, oz] of [[0.3, 0.3], [0.3, -0.3], [-0.3, 0.3], [-0.3, -0.3]]) {
+      const b = boyut.getBlock({ x: k.x + ox, y: k.y - 0.35, z: k.z + oz });
+      if (!b) return undefined;
+      if (!siviMi(b) && !gecilebilirMi(b)) return false;   // kenar tasta
+    }
+    if (typeof boyut.getEntities !== "function") return undefined;
+    const yakin = boyut.getEntities({ location: k, maxDistance: 2.5 });
+    for (const v of yakin) {
+      let tip = "";
+      try { tip = String(v.typeId || ""); } catch (e) { tip = ""; }
+      if (tip.indexOf("boat") !== -1 || tip.indexOf("raft") !== -1) return false;
+    }
+    return true;
+  } catch (e) {
+    return undefined;
+  }
+}
+
+
 /* main.js her HAREKET_ORNEK tickte cagiriyor. */
 export function hareketTara(oyuncular, isVarMi) {
   if (!GOZCU_ACIK || !HAREKET_ACIK) return;
@@ -712,7 +847,9 @@ export function hareketTara(oyuncular, isVarMi) {
                         dusus: onceki ? onceki.dusus : 0,
                         dususCan: onceki ? onceki.dususCan : undefined,
                         kati: onceki ? onceki.kati : 0,
-                        katiBildirim: onceki ? onceki.katiBildirim : -99999 });
+                        katiBildirim: onceki ? onceki.katiBildirim : -99999,
+                        yavas: onceki ? onceki.yavas : 0,
+                        su: onceki ? onceki.su : 0 });
       if (!onceki) continue;
       /* Boyut degistiyse iki konum ayni uzayda degil: olcum
          yapilmiyor, yeni iz zaten yukarida yazildi.         */
@@ -720,6 +857,7 @@ export function hareketTara(oyuncular, isVarMi) {
         const yeni = izler.get(o.id);
         yeni.yukselme = 0; yeni.suzulme = 0; yeni.kati = 0;
         yeni.dusus = 0; yeni.dususCan = undefined;
+        yeni.yavas = 0; yeni.su = 0;
         continue;
       }
 
@@ -743,6 +881,8 @@ export function hareketTara(oyuncular, isVarMi) {
          ucus, tirmanma, binme ve yavas dusme / levitasyon /
          direnc.                                              */
       dususOlc(o, iz, k.y - onceki.konum.y);
+      /* YAVAS DUSUS de ayni sebeple burada (v7.99.5). */
+      yavasDususOlc(o, iz, k.y - onceki.konum.y, gecen, isVarMi);
 
       /* Efekt muafiyeti TOPTAN atlamiyor: hangi olcumu
          bagisladigi asagida tek tek belirleniyor.           */
@@ -750,7 +890,7 @@ export function hareketTara(oyuncular, isVarMi) {
         ? muaf.slice(6) : undefined;
 
       if (muaf && !efektMuaf) {
-        iz.yukselme = 0; iz.kati = 0;
+        iz.yukselme = 0; iz.kati = 0; iz.su = 0;
         /* SUZULME ARTIK TOPTAN MUAF DEGIL  (v7.46).
            Eskiden burada kosulsuz `continue` vardi: elytra
            takip suzulme durumunda kalan biri hiz, sicrama,
@@ -812,6 +952,27 @@ export function hareketTara(oyuncular, isVarMi) {
           iz.kati = 0;
           isaretle(o, o, ["katı blok içinde " + KATI_ORNEK + " örnek"]);
         }
+      }
+
+      /* SU USTUNDE DURMA -- jesus (v7.99.5). Kati denetimiyle
+         ayni kapi: Savunma Kipi acik ve oyuncu kimildamis ya da
+         sayac acik. Levitasyon / yavas dusme efekti havada
+         durmayi acikliyor, o durumda olculmuyor.             */
+      if (SU_USTU_ACIK && savunmaVarMi() &&
+          efektMuaf !== "levitation" && efektMuaf !== "slow_falling" &&
+          Math.abs(dy) < SU_USTU_DIKEY &&
+          (toplam > 0.05 || (iz.su || 0) > 0)) {
+        const ustte = suUstundeMi(o);
+        if (ustte === true) iz.su = (iz.su || 0) + 1;
+        else if (ustte === false) iz.su = 0;
+        if (iz.su >= SU_USTU_ORNEK) {
+          iz.su = 0;
+          if (suUstuDogrula(o) === true) {
+            isaretle(o, o, ["su üstünde duruyor " + SU_USTU_ORNEK + " örnek"]);
+          }
+        }
+      } else {
+        iz.su = 0;
       }
 
       /* Uc olcum de yapiliyor ve sebepler BIRLIKTE bildiriliyor.
@@ -1140,15 +1301,51 @@ export function blokOlayi(oyuncu, tur, simdi, isVarMi) {
   return sebep;
 }
 
+/* ---- BLOK MENZILI  --  far_bypass · pick_distance  (v7.99.5) ----
+   Esik ve gerekce ayarlar.js BLOK_MENZIL'de. Hiz denetimiyle
+   ayni olaya biniyor (yeni abonelik yok). Blok konumu blogun
+   KOSESI; olculen, gozden blogun birim kutusunun en yakin
+   noktasina uzaklik -- yani kenara uzanan durust oyuncu
+   kutunun merkezine gore cezalandirilmiyor.
+
+   Sonuc dogrudan yazilmiyor, Gozcu defterine ISARET olarak
+   giriyor: tek bir gecikmeli koyma suclama uretmesin.       */
+export function blokMenzilOlc(oyuncu, blok, isVarMi) {
+  if (!BLOK_MENZIL_ACIK) return null;
+  if (!oyuncu || !gecerliMi(oyuncu)) return null;
+  if (oyuncu.typeId !== "minecraft:player") return null;
+  if (typeof isVarMi === "function" && isVarMi(oyuncu.id)) return null;
+  if (kipOku(oyuncu) === "creative") return null;
+  let goz, b;
+  try {
+    goz = typeof oyuncu.getHeadLocation === "function"
+      ? oyuncu.getHeadLocation() : oyuncu.location;
+    b = blok && blok.location;
+  } catch (e) {
+    return null;                 // okuyamiyorsak suclamiyoruz
+  }
+  if (!goz || !b) return null;
+  const yakin = (g, m) => Math.max(m, Math.min(m + 1, g));
+  const d = uzaklik(goz, { x: yakin(goz.x, b.x), y: yakin(goz.y, b.y), z: yakin(goz.z, b.z) });
+  if (!(d > BLOK_MENZIL)) return null;
+  const sebep = "blok menzili " + d.toFixed(1) + " blok";
+  isaretle(oyuncu, oyuncu, [sebep]);
+  return sebep;
+}
+
 export function blokHizKur(isVarMi) {
   if (!BLOK_ACIK) return false;
   const kir = olayaAbone("playerBreakBlock", (olay) => {
     try { blokOlayi(olay.player, "kirma", system.currentTick, isVarMi); }
     catch (e) { hataYaz("gozcu.blokKirma", e); }
+    try { blokMenzilOlc(olay.player, olay.block, isVarMi); }
+    catch (e) { hataYaz("gozcu.blokMenzil", e); }
   });
   const koy = olayaAbone("playerPlaceBlock", (olay) => {
     try { blokOlayi(olay.player, "koyma", system.currentTick, isVarMi); }
     catch (e) { hataYaz("gozcu.blokKoyma", e); }
+    try { blokMenzilOlc(olay.player, olay.block, isVarMi); }
+    catch (e) { hataYaz("gozcu.blokMenzil", e); }
   });
   return kir || koy;
 }
