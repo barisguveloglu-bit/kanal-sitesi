@@ -91,7 +91,17 @@ yaprak temizleyici) Java `elements` biçimindeydi ve depodaki
 
 Ölçümün tamamı `REFERANS_FTECH.md`.
 
-### Weapons of Miracles 2.0.178 + Epic Fight 21.17.3.1 — silahlar GERI (v7.98.3), animasyonlar kaldırıldı (v7.98.2)
+### Weapons of Miracles 2.0.178 + Epic Fight 21.17.3.1 — silahlar GERI (v7.98.3), kılıç vuruşları GERI (v7.99)
+
+v7.99: 7 kılıç setinin (Ruine, Kof Uzun Kılıç, Satsujin, Evil Tachi,
+Nova, Herrscher, Solar) duruşu ve 38 vuruşu yeniden depoda:
+`kaynak_anim/wom/wom_kilic.animation.json` (Bedrock'a **çevrilmiş**
+pozlar, dosyanın kendisi değil), `wom_kilic.hareket.json` (sınıf
+dosyalarındaki zaman ve hasar sabitleri, oyuncu hamlesi) ve
+`wom_kilic.iz.json` (test için Epic Fight'ın uzuv yönleri). Üreten
+`arac/wom_cevir.py`, ölçen `arac/wom_dogrula.py`; JAR'lar depoda yok.
+Kullanıcı kararı: kendi elle yazma yerine WoM'dan türetip düzeltme
+(yol A). Gerekçe `REFERANS_WOM.md` "v7.99".
 
 v7.98.3: kullanıcı silahları geri istedi — `kaynak_doku/wom_*.png` (27 ikon, JAR'daki pikseller birebir) ve `kol_uret.py` `WOM` tablosu (27 eşya, ad, sayılar) depoda. **Epic Fight animasyonları depoda yok.** v7.98.2 kaydı: v7.98.0'da 63 dövüş
 animasyonu (çevrilmiş) ve 27 silah ikonu girmişti; v7.98.2'de kullanıcı

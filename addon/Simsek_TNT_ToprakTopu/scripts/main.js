@@ -155,6 +155,7 @@ blokHizKur((kimlik) => oyuncuIsSayisi(kimlik) > 0);
 /* v7.38: savastan kacis (auto_disconnect). Hasar anini
    kaydediyor; hukmu playerLeave'de veriyor.                */
 kacisKur();
+womKilicKur();
 
 /* v5.8: acilabilir zirh katmanlari (matkap). Yetenegi kendi
    dosyasinda kaydediyor; buradan yalniz "cekirdek elden
@@ -403,6 +404,11 @@ import {
   donusumTara, donusukMu, donusukSayisi, donusumUnutOyuncu,
   sahipsizKilikKur,
 } from "./yetenekler/donusum.js";
+/* v7.99: WoM kilic vuruslari. Is listesine girmiyor (yetenek degil,
+   silahin kendi hareketi); tick'i asagida, gozcu muafiyeti ile. */
+import {
+  womKilicKur, womKilicTick, womKilicUnut, womHareketteMi,
+} from "./yetenekler/wom_kilic.js";
 
 /* ============================================================
    MERKEZI TICK YONETICISI
@@ -578,10 +584,19 @@ system.runInterval(() => {
      Boylece yeni bir yetenek eklendiginde muafiyet
      kendiliginden gecerli oluyor -- guncellenecek bir liste
      yok.                                                    */
+  /* WoM KILIC (v7.99): hamle ve hasar penceresi. Aktif vurusu
+     olmayan oyuncu icin is yok; hareket denetiminden ONCE, ki
+     muafiyet ayni tick'in hamlesini gorsun.                  */
+  try {
+    womKilicTick();
+  } catch (e) {
+    hataYaz("womKilicTick", e);
+  }
+
   if (HAREKET_ACIK && system.currentTick % HAREKET_ORNEK === 0) {
     try {
       hareketTara(world.getAllPlayers(),
-                  (kimlik) => oyuncuIsSayisi(kimlik) > 0);
+                  (kimlik) => oyuncuIsSayisi(kimlik) > 0 || womHareketteMi(kimlik));
     } catch (e) {
       hataYaz("hareketTara", e);
     }
@@ -2694,6 +2709,7 @@ olayaAbone("playerLeave", (olay) => {
   yenilmezUnut(olay.playerId);     // v7.90: zirh sarji
   dikenUnut(olay.playerId);        // v7.91: diken zirhi penceresi
   evrimUnut(olay.playerId);        // v7.92: ben10 evrim kademesi
+  womKilicUnut(olay.playerId);     // v7.99: wom kilic serisi
   /* v7.93: sayaclari sifirliyor, ELDIVENI VE TASLARI DEGIL --
      ikisi de dunyaya yazili ve geri girince durmali.        */
   sonsuzlukCikti(olay.playerId);

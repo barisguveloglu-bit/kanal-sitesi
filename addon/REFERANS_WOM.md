@@ -275,3 +275,50 @@ noktasının gövdeden ayrılmadığı ölçülür, aynı "eklem sürekliliği"
 
 Duruş ve vuruşların silah silah ölçümü (hangi set, gövde ne kadar
 dönük, kaç blok ilerliyor, takla var mı): `REFERANS_WOM_HAREKET.md`.
+
+## v7.99: üçüncü geliş — kılıç vuruşları, bu kez kalça yerinde
+
+Kullanıcı iki yol arasından **WoM'dan türetip düzeltmeyi** seçti (elle
+sıfırdan yazma yerine). Araç `arac/wom_cevir.py`, ölçen
+`arac/wom_dogrula.py`, test `test/wom_kilic.mjs`.
+
+**Çeviride değişen beş şey:**
+
+1. Gövdenin tamamı `waist`'ten (12 px, kalça): `waist` ← Epic Fight
+   `Chest`'in dünyadaki dönüşü, `body` waist'e göre sıfır. Kalça noktası
+   tasarım gereği yerinde.
+2. Silah `rightItem`/`leftItem` kemiğine: `Tool_R`/`Tool_L`'nin dönüşü.
+   Dinlenmede iki tarafta da bıçak ileri bakıyor (Epic Fight bind:
+   `Tool_R` yerel −Z dünyada ileri).
+3. Kök kalçadan dönüyor: Epic Fight `Root`'u 12.2 px'ten döndürüyor,
+   Bedrock ayaktan. Fark kök konumuna yazılıyor (c − R·c).
+4. Kök kayması animasyonda yok, oyuncuya gidiyor: yatay her zaman;
+   dikey yalnız `MOVE_VERTICAL` varsa ve yukarıysa
+   (`ActionAnimation.correctRootJoint`). Betik tick başına itmeyle
+   uyguluyor.
+5. `Coord` eklemi (Epic Fight'ın kendi dosyaları): `Root`'un ebeveyni
+   olarak zincirde.
+
+**Zaman ve hasar kaynaktan:** her vuruşun `AttackAnimation`/`Phase`
+kurucu sabitleri: hasar penceresi `antic..contact`, sonraki vuruş
+`recovery`'de, hasar çarpanı `DAMAGE_MODIFIER`. Oynatma hızı
+`silah hızı / BASIS_ATTACK_SPEED`, animasyona gömülü.
+
+**Ölçüm (Epic Fight'ın kendi pozuna karşı, 45 animasyon):**
+
+| ölçü | sonuç |
+|---|---|
+| uzuv, kafa, göğüs, bıçak yönü | ortanca 0.04°, %99 2.99°, en kötü 4.8° |
+| kalça boşluğu | her karede **0.000 px** (v7.98.0: 60/63 animasyonda > 2 px) |
+| kalça merkezinin yatay kayması | en çok 0.8 px (kareler arası) |
+
+Test ölçüyü mutasyonla sınıyor: eğilme eski usulle `body`'ye verilince
+kalça 15.1 px kopuyor ve test düşüyor.
+
+**Hasar iki katman:** 2.5.0'da vanilla vuruşu iptal eden olay yok.
+Tıklamanın vanilla vuruşu kalıyor; Epic Fight'ın penceresinde önündeki
+koniye (3.5 blok, ±100°) `eşya hasarı × çarpan`.
+
+**Oyunda doğrulanmadı:** itme gücü ölçeği (`WOM_KILIC_ITME_CARPAN`),
+elde tutulan eşyanın dinlenme yönü, kök konumunun x işareti, oynatılan
+animasyonun duruşu ezmesi. İlk oyun denemesi bunları söyleyecek.

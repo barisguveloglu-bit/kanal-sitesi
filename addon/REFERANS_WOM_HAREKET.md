@@ -17,7 +17,11 @@ Dosyaların hiçbiri depoya alınmadı; burada yalnız sayılar var.
 | poz | animasyon JSON'ları + `biped.json` iskeleti, ileri kinematik |
 
 Kombo sırası Epic Fight kuralı: `oto…, koşu vuruşu, hava vuruşu, binek`.
-`newStyleCombo`'nun son üç öğesi bunlar.
+Binek vuruşu varsa `newStyleCombo`'nun son üç öğesi bunlar; **yoksa son
+iki** (koşu, hava). v7.99 düzeltmesi: Nova'nın iki elli setinde binek
+yok ve ilk sürüm son üçü aldığı için `nova_attack_4`'ü koşu,
+`nova_attack_dash`'i hava sanmıştı; tabloda düzeltildi, Nova'nın hava
+vuruşu `nova_attack_airslash` bu tabloda ölçülmedi.
 
 ### Okurken bulunan iki tuzak
 
@@ -209,8 +213,8 @@ baktığı yöne göre.
 | nova | oto | `nova_attack_1` | 2.50 s | %22 | 36.0 px | +0.8 px | -343° |  | ön yukarı |
 | nova | oto | `nova_attack_2` | 4.35 s | %3 | 40.2 px | +2.7 px | +95° |  | sağ yatay |
 | nova | oto | `nova_attack_3` | 4.33 s | %10 | 93.1 px | +9.1 px | +542° |  | sağ yukarı |
-| nova | kosu | `nova_attack_4` | 4.37 s | %13 | 71.9 px | +13.0 px | +576° |  | sağ-ön yukarı |
-| nova | hava | `nova_attack_dash` | 4.50 s | %13 | 78.0 px | +4.4 px | -97° |  | ön yatay |
+| nova | oto | `nova_attack_4` | 4.37 s | %13 | 71.9 px | +13.0 px | +576° |  | sağ-ön yukarı |
+| nova | kosu | `nova_attack_dash` | 4.50 s | %13 | 78.0 px | +4.4 px | -97° |  | ön yatay |
 | blackstar | oto | `blackstar_attack_1` | 3.00 s | %12 | 29.5 px | +4.2 px | -198° |  | sağ-arka yatay |
 | blackstar | oto | `blackstar_attack_2` | 3.87 s | %5 | 28.3 px | +2.4 px | -22° |  | sol-ön yatay |
 | blackstar | oto | `blackstar_attack_3` | 5.28 s | %13 | 37.2 px | +1.8 px | +277° |  | sağ aşağı |

@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.98.2";
+export const SURUM = "v7.99.0";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -12499,3 +12499,55 @@ export const FUZYON_BOZULMA_SES = "beacon.deactivate";
    ikon, wom_dovus.js ve animasyon dosyasi, arac/ef_anim_*.py ve
    wom_anim_uret.py, test/wom.mjs. Envanterde kalan pa:wom_* yiginlari
    v5.8'deki gibi "bilinmeyen esya" olur.                          */
+
+/* ---- WoM KILIC VURUSLARI  (v7.99) ----
+   Ucuncu gelis, bu kez kopmanin SEBEBI olculerek (REFERANS_WOM.md
+   "gercek Java istemcisinde gozlem"): Epic Fight govdeyi kalcadan
+   bukuyor, eski ceviri boyundan donduruyordu. Yeni cevirici
+   (arac/wom_cevir.py) egilmeyi `waist`e veriyor; kalca boslugu her
+   animasyonda 0 px (arac/wom_dogrula.py). Silahlar v7.98.3'te geri
+   gelmisti; vuruslar kilic setleriyle basliyor.
+
+   Veri: yetenekler/_wom_hareket.js (URETILDI). Mantik: wom_kilic.js.
+
+   ---- HASAR NEDEN IKI KATMAN ----
+   2.5.0'da vanilla vurusu iptal eden bir olay YOK (beforeEvents'te
+   entityHurt bulunmuyor). Tiklama aninin vanilla vurusu aynen
+   kaliyor. Ustune Epic Fight'in hasar penceresinde (antic..contact)
+   ondeki alana "esya hasari x DAMAGE_MODIFIER" veriliyor. Ayni
+   hedef 10 tick icinde iki kez vurulursa oyun yalniz FARKI
+   uyguluyor; yani vurulan hedef en buyugunu aliyor, alandaki
+   digerleri kombo hasarini.                                     */
+export const WOM_KILIC_ACIK = true;
+
+/* Seri penceresi: son vurusun animasyonu bittikten sonra bu kadar
+   tick icinde yeniden vurursan seri devam eder, yoksa basa doner.
+   Epic Fight'ta da kombo bir sure beklenince sifirlaniyor.      */
+export const WOM_KILIC_SERI_UNUTMA = 16;
+
+/* Hasar alani: oyuncunun baktigi yone gore koni. Menzil blok,
+   aci derece (yarim aci). Epic Fight bicagin kendi kutusuyla
+   vuruyor; kilic kutulari elden 1.5-2.5 blok uzanıyor, dönen
+   vuruslarda yay genis. Koni bunun kaba ama ucuz karsiligi.     */
+export const WOM_KILIC_MENZIL = 3.5;
+export const WOM_KILIC_KONI   = 100;
+
+/* Hamle: Epic Fight kok kaymasini oyuncuya veriyor; biz tick basina
+   geri itmeyle. Carpan, bloktan itme gucune -- oyunda ayarlanacak.
+   Cok kucuk adimlar atlaniyor (surtunme zaten yutuyor).          */
+export const WOM_KILIC_ITME_CARPAN = 1.0;
+export const WOM_KILIC_ITME_ESIK   = 0.01;
+
+/* Birinci sahista animasyon oynamiyor: orada ekranda yalniz kollar
+   var ve kollar govdenin cocugu -- donen bir vurusta kameranin
+   etrafinda savrulurlar. Vanilla vurus devam ediyor. Baskalari seni
+   ucuncu sahista gordugu icin onlarda oynuyor (ifade her istemcide
+   kendi baglaminda hesaplaniyor).                               */
+export const WOM_KILIC_DURDUR = "variable.is_first_person";
+export const WOM_KILIC_BITIS_GECIS = 0.2;
+export const WOM_KILIC_DENETLEYICI = "simsek_wom_kilic";
+
+/* Kuyruk: vurus "birakma" anindan sonra (Epic Fight recovery)
+   oyuncu yurumeye baslarsa animasyonun geri kalani kesiliyor --
+   yoksa ayaklar kayardi. Hiz esigi blok/tick.                    */
+export const WOM_KILIC_KUYRUK_HIZ = 0.08;

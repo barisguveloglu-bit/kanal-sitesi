@@ -159,7 +159,7 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # hanenin 0 yerine 5'ten baslamasi bunun isareti -- 7.83.0
 # ile 7.83.5 AYNI kod, sadece numara degisti.
 # v7.91.0: ORTANCA hane -- Avaritia'dan uc mekanik.
-SURUM_NO = (7, 98, 2)
+SURUM_NO = (7, 99, 0)
 
 SURUM_METIN = ".".join(map(str, SURUM_NO))
 
@@ -176,6 +176,9 @@ SURUM_METIN = ".".join(map(str, SURUM_NO))
 #
 # ---- KULLANICI SURUM BILGISINI VERDI ----
 #   Surum v26.45 · Protokol 2169 · Branch r/26_u4
+#   v7.99: v26.52 · Branch r/26_u5 (oyun kendiliginden
+#   guncelleniyor). @minecraft/server 2.5.0'a cikti:
+#   playerSwingStart (havaya sallama) 2.5.0'da kararli.
 # Minecraft Aralik 2025'te YIL TABANLI surumlemeye gecmis:
 # 1.21.132'den sonra 26.0 geliyor (minecraft.wiki). Yani
 # kullanicinin oyunu eski olcegin cok otesinde ve eklenti
@@ -6502,10 +6505,59 @@ WOM = [
 ]
 # Bedrock'ta esya nadirligi bileseni yok; ADIN RENGIYLE anlatiliyor.
 WOM_RENK = {"COMMON": "§f", "UNCOMMON": "§a", "RARE": "§b", "EPIC": "§d"}
-# Cevrilmis dovus animasyonlari. arac/ef_anim_cevir.py uretti;
-# JAR depoda durmadigi icin cikti buradan kopyalaniyor. Alt klasor
-# bilerek: kaynak_anim/ kokundeki dosyalari BEN10_ANIM temizligi
-# yonetiyor, bu dosya onun kapsaminda degil.
+# ---- KILIC VURUSLARI (v7.99) ----
+# arac/wom_cevir.py uretti, arac/wom_dogrula.py olctu (Epic Fight'in
+# kendi pozuna karsi yon ortancasi 0.04 derece, kalca boslugu 0 px).
+# JAR depoda durmadigi icin cikti kaynak_anim/wom/'dan kopyalaniyor.
+# Alt klasor bilerek: kaynak_anim/ kokundeki dosyalari BEN10_ANIM
+# temizligi yonetiyor, bunlar onun kapsaminda degil.
+#
+# Animasyonlar ANA kaynak pakete (Simsek_Kol_Kaynak) gidiyor, oyuncu
+# modeli paketine degil: saldirilar betikten playAnimation ile
+# oynuyor ve Iron Man'li oyuncu modeli paketi de ayni duruslari
+# kullaniyor -- tek dosya iki pakete birden yetiyor.
+WOM_KILIC_ACIK = True
+WOM_KILIC_KAYNAK = os.path.join(KOK, "kaynak_anim", "wom")
+WOM_KILIC_ANIM_DOSYA = "wom_kilic.animation.json"
+WOM_KILIC_HAREKET_DOSYA = "wom_kilic.hareket.json"
+# Kuyrugu kesmek icin: ayni denetleyicide oynayinca saldiriyi
+# degistiriyor, 1 tick'te bitiyor, vanilla/durus geri geliyor.
+WOM_BOS_ANIM = "animation.wom.bos"
+
+
+def wom_kilic_verisi():
+    """kaynak_anim/wom/wom_kilic.hareket.json -> setler, yoksa None."""
+    yol = os.path.join(WOM_KILIC_KAYNAK, WOM_KILIC_HAREKET_DOSYA)
+    if not WOM_KILIC_ACIK or not os.path.exists(yol):
+        return None
+    with open(yol, encoding="utf-8") as f:
+        return json.load(f)["setler"]
+
+
+def wom_esya_hasari(java_hasar):
+    """Bedrock esya hasari -- wom_esyasi ile AYNI formul."""
+    return int(round(java_hasar)) + 1
+
+
+def wom_kilic_modulu(setler):
+    """scripts/yetenekler/_wom_hareket.js: betigin okudugu veri."""
+    hasar = {w[0]: wom_esya_hasari(w[3]) for w in WOM}
+    esya = {}
+    for set_ad, s in (setler or {}).items():
+        for e in s["esyalar"]:
+            esya["pa:" + WOM_ONEK + e] = {"set": set_ad, "hasar": hasar[e]}
+    satirlar = [
+        "/* URETILDI -- kol_uret.py, kaynak: kaynak_anim/wom/%s." % WOM_KILIC_HAREKET_DOSYA,
+        "   ELLE DUZENLEME: bir sonraki uretimde ezilir.",
+        "   Zamanlar saniye (oyun zamani), iz tick basina [sag, on, yukari] blok. */",
+        "export const WOM_BOS_ANIM = %s;" % json.dumps(WOM_BOS_ANIM),
+        "export const WOM_KILIC_ESYA = %s;" % json.dumps(esya, ensure_ascii=False,
+                                                          separators=(",", ":")),
+        "export const WOM_KILIC_SETLER = %s;" % json.dumps(setler or {}, ensure_ascii=False,
+                                                            separators=(",", ":")),
+    ]
+    return "\n".join(satirlar) + "\n"
+
 
 def wom_esyasi(anahtar, tr_ad, java_hasar, dayaniklilik, nadirlik):
     """WoM silahi. Hasar +1 (Java degistirici -> Bedrock toplam);
@@ -7962,6 +8014,31 @@ def oyuncu_modeli_paketi(surum):
         if _eoz:
             _akosul += " && q.property('%s')" % _eoz
         d["scripts"]["animate"].append({_ek: _akosul})
+
+    # ---- WoM KILIC DURUSLARI (v7.99) ----
+    # Elde bir WoM kilici varken bekleme durusu. Iki parca:
+    # duruyorken butun beden, yururken yalniz ust beden (bacaklari
+    # vanilla yuruyus suruyor). override_previous_animation ile
+    # yazdigi kemiklerde vanilla'yi (tutus, saldiri donusu) eziyor.
+    # Birinci sahista YOK: orada ekranda yalniz kollar var ve vanilla
+    # vurus kalsin -- saldiri animasyonu da orada durduruluyor
+    # (ayarlar.js WOM_KILIC_DURDUR). Animasyonun kendisi ana kaynak
+    # pakette (wom_kilic.animation.json).
+    _wkv = wom_kilic_verisi()
+    for _wset, _wsv in sorted((_wkv or {}).items()):
+        _wdeg = "variable.wom_kilic_" + _wset
+        d["scripts"]["pre_animation"].append("%s = %s;" % (_wdeg, " || ".join(
+            "query.get_equipped_item_name('main_hand') == '%s'" % (WOM_ONEK + _we)
+            for _we in _wsv["esyalar"])))
+        d["animations"]["wom_%s_durus" % _wset] = _wsv["durus"]
+        d["animations"]["wom_%s_durus_ust" % _wset] = _wsv["durus_ust"]
+        _wortak = ("%s && !variable.is_first_person && !variable.is_paperdoll"
+                   " && !query.is_gliding && !query.is_swimming && !query.is_sleeping"
+                   % _wdeg)
+        d["scripts"]["animate"].append(
+            {"wom_%s_durus" % _wset: _wortak + " && query.modified_move_speed < 0.1"})
+        d["scripts"]["animate"].append(
+            {"wom_%s_durus_ust" % _wset: _wortak + " && query.modified_move_speed >= 0.1"})
 
     _rp_oyuncu = os.path.join(OMP, "entity/player.entity.json")
     yaz_json(_rp_oyuncu, v)
@@ -12853,6 +12930,28 @@ def main():
         for liste in (en_us, tr_tr):
             liste.append("item.pa:%s.name=%s" % (_fad, _ft[1]))
             liste.append("item.pa:%s=%s" % (_fad, _ft[1]))
+
+    # ---- WEAPONS OF MIRACLES: KILIC VURUSLARI (v7.99) ----
+    # Veri yoksa ikisi de TEMIZLENIYOR -- kaldirilan bir ozelligin
+    # artigini uretec kendisi toplasin (v7.95.1 dersi). Betik modulu
+    # ise HER ZAMAN yaziliyor (bos haliyle): wom_kilic.js onu import
+    # ediyor, dosya eksik olsa butun betik yuklenmezdi.
+    _wkv = wom_kilic_verisi()
+    _wk_anim = os.path.join(RP, "animations", WOM_KILIC_ANIM_DOSYA)
+    if _wkv:
+        with open(os.path.join(WOM_KILIC_KAYNAK, WOM_KILIC_ANIM_DOSYA),
+                  encoding="utf-8") as _f:
+            _wka = json.load(_f)
+        _wka["animations"][WOM_BOS_ANIM] = {
+            "loop": False, "animation_length": 0.05,
+            "bones": {"root": {"rotation": [0, 0, 0]}}}
+        yaz_json(_wk_anim, _wka)
+    elif os.path.exists(_wk_anim):
+        os.remove(_wk_anim)
+        print("artik animasyon silindi: %s" % WOM_KILIC_ANIM_DOSYA)
+    with open(os.path.join(BP, "scripts/yetenekler/_wom_hareket.js"), "w",
+              encoding="utf-8") as _f:
+        _f.write(wom_kilic_modulu(_wkv))
 
     # ---- WEAPONS OF MIRACLES (v7.98.0) ----
     # 27 silah (v7.98.3: animasyonsuz). Ayni tuzak icin
