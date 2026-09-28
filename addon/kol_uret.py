@@ -6448,8 +6448,86 @@ FTECH_ESYALAR = [
 ]
 
 
-# WEAPONS OF MIRACLES v7.98.2'de IKINCI KEZ kaldirildi: bacak ve
-# govde ayriliyordu. Gerekce: ayarlar.js ayni baslik, REFERANS_WOM.md.
+# ================================================================
+#  WEAPONS OF MIRACLES  (Epic Fight eklentisi) -- YALNIZ SILAHLAR (v7.98.3)
+# ================================================================
+# v7.98.2'de silahlar ve dovus animasyonlari birlikte kaldirildi;
+# kullanici silahlari (esya + ikon + ad) geri istedi. Epic Fight
+# animasyonlari YOK -- yerine kendi vuruslarimiz yazilacak.
+#     v5.0 -> v7.98.0
+# ================================================================
+# Kaynak: WeaponsOfMiracles 2.0.178 (Reascer). Sayilar bytecode'dan
+# (WOMItems static{} -> lambda -> sinif.createWeaponAttributes());
+# 2.0.176'dan bu yana 27'nin 27'si ayni, yalniz asalarin saldiri
+# hizi kademeye baglandi. Gerekce ve olcum: ayarlar.js WOM basligi,
+# REFERANS_WOM.md.
+#
+# bedrock hasari = java + 1 (Java'da degistirici, Bedrock'ta toplam).
+# Saldiri hizi Bedrock'ta esya basina YOK: tabloda kayit, oyunda yok.
+#
+# Ikonlar modun kendi pikselleri (kaynak_doku/wom_*.png); 27'nin
+# 27'si 2.0.178 JAR'indaki dokuyla piksel piksel ayni olculdu.
+#
+# ayarlar.js WOM_SILAHLAR ile AYNI olmak zorunda -- test sinar.
+# (anahtar, TR ad, EN ad, java hasar, java hiz, dayaniklilik, nadirlik)
+WOM_ONEK = "wom_"
+WOM = [
+    ("agony",              "Izdırap",            "Agony",              5.0, -2.0,  2135, "RARE"),
+    ("antitheus",          "Antitheus",          "Antitheus",          7.0, -2.1,  6666, "EPIC"),
+    ("blackstar",          "Kara Yıldız",        "Blackstar",          8.0, -2.7,  2135, "RARE"),
+    ("ender_blaster",      "Ender Tabancası",    "Ender Blaster",      6.0, -0.55, 4735, "EPIC"),
+    ("evil_tachi",         "Kötü Ôdachi",        "Evil Ôdachi",        7.0, -2.8,  1635, "RARE"),
+    ("gesetz",             "Gesetz",             "Gesetz",             3.0, -2.5,  4157, "RARE"),
+    ("herrscher",          "Herrscher",          "Herrscher",          5.0, -2.25, 1582, "RARE"),
+    ("hollow_longsword",   "Kof Uzun Kılıç",     "Hollow Longsword",   6.0, -2.6,   875, "RARE"),
+    ("jabberwocky",        "Pençeli Eldiven",    "Clawed Gauntlet",    5.0, -0.25,  782, "RARE"),
+    ("moonless",           "Aysız",              "Moonless",           6.0, -2.3,  2135, "EPIC"),
+    ("napoleon",           "Napoleon",           "Napoleon",           6.0, -2.5,  2135, "EPIC"),
+    ("nova",               "Nova",               "Nova",               4.0, -2.4,  2135, "RARE"),
+    ("orbit",              "Yörünge",            "Orbit",              7.0, -2.3,  2135, "RARE"),
+    ("ruine",              "Ruine",              "Ruine",              6.2, -2.45, 2135, "RARE"),
+    ("satsujin",           "Satsujin",           "Satsujin",           6.0, -1.8,  2135, "EPIC"),
+    ("solar",              "Güneş",              "Solar",              8.0, -2.9,  2135, "EPIC"),
+    ("tormented_mind",     "Azap",               "Torment",            8.0, -2.7,  2135, "RARE"),
+    ("wooden_staff",       "Tahta Asa",          "Wooden Staff",       1.0, -2.3,    59, "COMMON"),
+    ("stone_staff",        "Taş Asa",            "Stone Staff",        2.0, -2.5,   131, "COMMON"),
+    ("iron_staff",         "Demir Asa",          "Iron Staff",         3.0, -2.65,  250, "COMMON"),
+    ("golden_staff",       "Altın Asa",          "Golden Staff",       1.0, -2.2,    32, "COMMON"),
+    ("diamond_staff",      "Elmas Asa",          "Diamond Staff",      4.0, -2.3,  1561, "COMMON"),
+    ("netherite_staff",    "Netherite Asa",      "Netherite Staff",    5.0, -2.45, 2031, "COMMON"),
+    ("iron_greataxe",      "Demir Balyoz Balta", "Iron Greataxe",      9.0, -2.5,   250, "COMMON"),
+    ("golden_greataxe",    "Altın Balyoz Balta", "Golden Greataxe",    7.0, -2.5,    32, "COMMON"),
+    ("diamond_greataxe",   "Elmas Balyoz Balta", "Diamond Greataxe",  10.0, -2.5,  1561, "COMMON"),
+    ("netherite_greataxe", "Netherite Balyoz",   "Netherite Greataxe",11.0, -2.5,  2031, "COMMON"),
+]
+# Bedrock'ta esya nadirligi bileseni yok; ADIN RENGIYLE anlatiliyor.
+WOM_RENK = {"COMMON": "§f", "UNCOMMON": "§a", "RARE": "§b", "EPIC": "§d"}
+# Cevrilmis dovus animasyonlari. arac/ef_anim_cevir.py uretti;
+# JAR depoda durmadigi icin cikti buradan kopyalaniyor. Alt klasor
+# bilerek: kaynak_anim/ kokundeki dosyalari BEN10_ANIM temizligi
+# yonetiyor, bu dosya onun kapsaminda degil.
+
+def wom_esyasi(anahtar, tr_ad, java_hasar, dayaniklilik, nadirlik):
+    """WoM silahi. Hasar +1 (Java degistirici -> Bedrock toplam);
+    dayaniklilik modun kendi sayisi; saldiri hizi YOK."""
+    return {
+        "format_version": "1.20.50",
+        "minecraft:item": {
+            "description": {"identifier": "pa:" + WOM_ONEK + anahtar,
+                            "menu_category": {"category": "equipment",
+                                              "group": "itemGroup.name.sword"}},
+            "components": {
+                "minecraft:icon": {"texture": WOM_ONEK + anahtar},
+                "minecraft:display_name": {
+                    "value": WOM_RENK.get(nadirlik, "§f") + tr_ad},
+                "minecraft:max_stack_size": 1,
+                "minecraft:hand_equipped": True,
+                "minecraft:damage": int(round(java_hasar)) + 1,
+                "minecraft:durability": {"max_durability": dayaniklilik},
+                "minecraft:tags": {"tags": ["pa:wom"]},
+            },
+        },
+    }
 
 
 def ftech_esyasi(t):
@@ -12776,6 +12854,28 @@ def main():
             liste.append("item.pa:%s.name=%s" % (_fad, _ft[1]))
             liste.append("item.pa:%s=%s" % (_fad, _ft[1]))
 
+    # ---- WEAPONS OF MIRACLES (v7.98.0) ----
+    # 27 silah (v7.98.3: animasyonsuz). Ayni tuzak icin
+    # temizlik listesine de asagida ekleniyor.
+    for _wa, _wtr, _wen, _wh, _whz, _wd, _wn in WOM:
+        _wad = WOM_ONEK + _wa
+        yaz_json(os.path.join(BP, "items/%s.json" % _wad),
+                 wom_esyasi(_wa, _wtr, _wh, _wd, _wn))
+        _wk = os.path.join(DOKU_KAYNAK, _wad + ".png")
+        if os.path.exists(_wk):
+            _wy = os.path.join(RP, "textures/item/%s.png" % _wad)
+            os.makedirs(os.path.dirname(_wy), exist_ok=True)
+            shutil.copyfile(_wk, _wy)
+        else:
+            print("UYARI: %s ikonu yok (%s)" % (_wad, _wk))
+        dokular[_wad] = {"textures": "textures/item/" + _wad}
+        # Renk dil dosyasinda da: display_name dili EZIYOR ve
+        # test/denetim.mjs 4. bolum ikisinin AYNI olmasini istiyor
+        # (bir kez sessizce kaymislardi). Ikisi de ayni kaynaktan.
+        _wrenk = WOM_RENK.get(_wn, "§f")
+        for liste, ad in ((en_us, _wen), (tr_tr, _wtr)):
+            liste.append("item.pa:%s.name=%s%s" % (_wad, _wrenk, ad))
+            liste.append("item.pa:%s=%s%s" % (_wad, _wrenk, ad))
     # ---- KONSEY (v6.2) ----
     # 54 parca: 6 Konsey kostumu, 4 deri, 4 maske, 14 kol,
     # 7 asa, 5 Earl aleti, 8 zirh, 2 silah, 4 Dusmus asamasi.
@@ -13786,6 +13886,10 @@ def main():
     # (dosya sayisi 13'ten 0'a dustu).
     for _ft3 in FTECH_ESYALAR:
         beklenen.add(_ft3[0])
+    # v7.98.0: WoM silahlari. Tuzagin dorduncu kez yasanmamasi icin
+    # tablo ve bu satir AYNI commit'te yazildi.
+    for _wk3 in WOM:
+        beklenen.add(WOM_ONEK + _wk3[0])
     # v7.96.5: iksir zincirinin ara urunleri. Ayni tuzak ucuncu
     # kez: sise ve sivilar hicbir listede degil, temizlik adimi
     # onlari yazildiklari kosuda silerdi.

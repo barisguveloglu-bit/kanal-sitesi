@@ -91,9 +91,9 @@ yaprak temizleyici) Java `elements` biçimindeydi ve depodaki
 
 Ölçümün tamamı `REFERANS_FTECH.md`.
 
-### Weapons of Miracles 2.0.178 + Epic Fight 21.17.3.1 — KALDIRILDI (v7.98.2)
+### Weapons of Miracles 2.0.178 + Epic Fight 21.17.3.1 — silahlar GERI (v7.98.3), animasyonlar kaldırıldı (v7.98.2)
 
-Depoda bu kaynaktan **hiçbir dosya kalmadı**. v7.98.0'da 63 dövüş
+v7.98.3: kullanıcı silahları geri istedi — `kaynak_doku/wom_*.png` (27 ikon, JAR'daki pikseller birebir) ve `kol_uret.py` `WOM` tablosu (27 eşya, ad, sayılar) depoda. **Epic Fight animasyonları depoda yok.** v7.98.2 kaydı: v7.98.0'da 63 dövüş
 animasyonu (çevrilmiş) ve 27 silah ikonu girmişti; v7.98.2'de kullanıcı
 ikisini de kaldırdı: oyunda bacak ve gövde ayrılıyordu (ölçüm ve gerekçe
 `REFERANS_WOM.md`, ayarlar.js "WEAPONS OF MIRACLES IKINCI KEZ KALDIRILDI").
