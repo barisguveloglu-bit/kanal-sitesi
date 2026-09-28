@@ -222,3 +222,53 @@ Silinenler: `WOM_*` ayarları, 27 eşya ve ikon, `wom_dovus.js`,
 animasyon dosyası, `arac/ef_anim_cevir.py`, `arac/ef_anim_dogrula.py`,
 `arac/wom_anim_uret.py`, `test/wom.mjs`. Kod git geçmişinde
 (`f571e03`).
+
+## v7.98.2: gerçek Java istemcisinde gözlem
+
+Bedrock'a taşımadan önce orijinalin nasıl göründüğü **gerçek istemcide**
+izlendi. Kurulum (depo dışında, `/tmp`): Minecraft 1.21.1 + NeoForge
+21.1.252 + Epic Fight 21.17.3.1 + WoM 2.0.178, portablemc ile çevrimdışı
+başlatıcı, Xvfb + Mesa llvmpipe, düz dünya, yaratıcı kip. Epic Fight
+kipi `R` ile açılıyor; kapalıyken oyuncu vanilla modelle çiziliyor ve
+WoM silahı düz tutuluyor (`enable_player_vanilla_model`).
+
+Kaydedilen üç silah: `moonless` (tırpan/mızrak), `satsujin` (tachi),
+`netherite_greataxe` (balta). Görülenler:
+
+- **Kombo gerçekten zincir.** Moonless'ın 8 tıklamasında dürtme,
+  sıçrayıp dönme, iz bırakan geniş savuruş, havada ters takla, yere
+  vurma (parçacıklı) sırayla geliyor. Beden bütün olarak dönüyor,
+  sıçrıyor, yere çöküyor: kök hareketi var.
+- **Kılıç izi** (beyaz/mor yay) silahın kendisinde değil, ayrı bir efekt.
+- **En sert bükülmede bile gövde ile bacak kopmuyor.** Bel bölgesi
+  esniyor.
+
+### Neden Java'da kopmuyor: ölçüldü
+
+`epicfight.jar` → `assets/epicfight/animmodels/entity/biped.json`:
+
+| ölçü | değer |
+|---|---|
+| eklem | 20 (`Root`, `Thigh/Leg/Knee` ×2, `Torso`, `Chest`, `Head`, `Shoulder/Arm/Hand/Tool/Elbow` ×2) |
+| tepe | 260; 196'sı tek eklemli, 63'ü iki, 1'i üç |
+| karışık tepelerin 60'ı | **`Chest` + `Torso`** |
+| `Thigh_*` ebeveyni | **`Root`** (Bedrock'taki gibi, gövdeye değil) |
+| `Torso` ekseni | yerden **13 px** (kalça 12) |
+| `Chest` ekseni | **17.8 px** (gövde ortası) |
+
+Yani Java'da da bacaklar gövdeye bağlı değil. Kopmamasının iki sebebi var:
+
+1. Gövde **kalça hizasından** (13 px) dönüyor. Alt kenarı kalçanın
+   üstünde kalıyor.
+2. Göğüs bükülmesi gövdenin **ortasında** (17.8 px) ve oradaki 60 tepe
+   iki eklem arasında karışıyor. Kutunun alt yarısı yerinde duruyor.
+
+Bedrock vanilla oyuncusu (`durus_*.geo.json` ile aynı): `waist` 12 px,
+`body` **24 px (boyun)**, bacaklar `root`'un çocuğu. `waist` ≈
+`Torso`, ama `Chest`'in karşılığı yok. Gövde tek kutu. Bu yüzden `body`
+dönünce kutunun alt kenarı `12 · sin θ` kadar kayıyor.
+
+**Kendi vuruş animasyonlarımız için çıkan kural:** gövde eğilmesi
+`waist` ile verilir. `body` yalnız küçük açıyla döner. Her pozda kalça
+noktasının gövdeden ayrılmadığı ölçülür, aynı "eklem sürekliliği"
+ölçüsü.
