@@ -85,6 +85,16 @@ function gozTak(oyuncu, kademe) {
   const e = ekipman(oyuncu);
   if (!e) return;
   try {
+    /* KASK VARSA DOKUNMA (v7.98.2). Eskiden bakilmadan
+       yaziliyordu: iksiri icen oyuncunun netherite kaski geri
+       gelmemek uzere siliniyordu. gozCikar zaten ayni kurala
+       uyuyordu, gozTak uymuyordu. Yuvada bizim gozumuz (baska
+       bir kademenin) varsa degistirmek serbest -- o bizim.
+       Kask varsa goz gorunmez; kademenin gucleri yine calisir. */
+    const simdiki = e.getEquipment("Head");
+    const bizimGoz = simdiki && typeof simdiki.typeId === "string" &&
+                     simdiki.typeId.startsWith("pa:goz_");
+    if (simdiki && !bizimGoz) return;
     e.setEquipment("Head", new ItemStack(kademe.goz, 1));
   } catch (err) {
     // Goz esyasi kayitli olmayabilir; kademe yine de calisir

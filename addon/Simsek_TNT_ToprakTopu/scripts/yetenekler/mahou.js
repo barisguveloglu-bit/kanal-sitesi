@@ -3,8 +3,7 @@ import { varlikIste } from "../butce.js";
 import { yetenekKaydet } from "./kayit.js";
 import {
   hataYaz, bilgiYaz, gecerliMi, actionbarYaz, kollariIndir, parcacikAt,
-  eldekiEsya
-} from "../yardimcilar.js";
+  eldekiEsya, itmeUygula } from "../yardimcilar.js";
 import {
   MAHOU_ACIK, MAHOU_ONEK, MAHOU_TARAMA, MAHOU_MANA_TAVAN,
   MAHOU_MANA_TICK, MAHOU_BASLANGIC_MANA, MAHOU_KAYIT_ANAHTAR,
@@ -366,7 +365,7 @@ ISLER.mahou_can_emme = (oyuncu) => surekli(oyuncu, 1200, 20, (o) => {
 ISLER.mahou_yercekimi = (oyuncu) => surekli(oyuncu, 600, 2, (o) => {
   for (const v of yakindakiler(o, 10)) {
     try {
-      if (typeof v.applyKnockback === "function") v.applyKnockback(0, 0, 0, -1.4);
+      if (typeof v.applyKnockback === "function") itmeUygula(v, 0, 0, 0, -1.4);
       else if (typeof v.applyImpulse === "function") v.applyImpulse({ x: 0, y: -1.4, z: 0 });
     } catch (e) { /* itilemedi */ }
   }
@@ -435,7 +434,7 @@ ISLER.mahou_savrul = (oyuncu) => {
   for (const v of yakindakiler(oyuncu, 4)) {
     try {
       if (typeof v.applyKnockback === "function") {
-        v.applyKnockback(yon.x * 7, yon.z * 7,
+        itmeUygula(v, yon.x * 7, yon.z * 7,
                          Math.hypot(yon.x * 7, yon.z * 7), yon.y * 7);
       } else if (typeof v.applyImpulse === "function") {
         v.applyImpulse({ x: yon.x * 7, y: yon.y * 7, z: yon.z * 7 });

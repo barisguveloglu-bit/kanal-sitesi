@@ -4,8 +4,7 @@ import { elindekiYaratik } from "./ben10.js";
 import { patlamaIste } from "../butce.js";
 import {
   hataYaz, gecerliMi, actionbarYaz, kollariIndir, parcacikAt,
-  yukseklikAraligi
-} from "../yardimcilar.js";
+  yukseklikAraligi, itmeUygula } from "../yardimcilar.js";
 import {
   BEN10_SALDIRI, BEN10_SALDIRI_ACIK, BEN10_SALDIRI_BEKLEME,
   BEN10_SALDIRI_SIRA, BEN10_MERMI_HIZ_TAVAN, BEN10_MERMI_TAVAN,
@@ -130,7 +129,7 @@ function alanVur(oyuncu, t, merkez) {
           const k = h.varlik.location;
           const dx = k.x - merkez.x, dz = k.z - merkez.z;
           const uz = Math.hypot(dx, dz) || 1;
-          h.varlik.applyKnockback(dx / uz * t.itme, dz / uz * t.itme,
+          itmeUygula(h.varlik, dx / uz * t.itme, dz / uz * t.itme,
                                   t.itme, t.itme * 0.35);
         } catch (e) { /* itme her varlikta yok */ }
       }
@@ -149,7 +148,7 @@ function itKendini(oyuncu, guc) {
   try {
     const yon = oyuncu.getViewDirection();
     const yatay = Math.hypot(yon.x, yon.z) || 1;
-    oyuncu.applyKnockback(yon.x / yatay * guc, yon.z / yatay * guc,
+    itmeUygula(oyuncu, yon.x / yatay * guc, yon.z / yatay * guc,
                           guc, Math.max(0.35, yon.y * guc));
   } catch (e) {
     hataYaz("ben10_atilma.it", e);
@@ -273,7 +272,7 @@ function mermiIsi(oyuncu, t) {
           if (t.itme > 0) {
             try {
               const yatay = Math.hypot(yon.x, yon.z) || 1;
-              varlik.applyKnockback(yon.x / yatay * t.itme,
+              itmeUygula(varlik, yon.x / yatay * t.itme,
                                     yon.z / yatay * t.itme,
                                     t.itme, t.itme * 0.35);
             } catch (e) { /* itme her varlikta yok */ }

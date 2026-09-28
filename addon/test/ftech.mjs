@@ -411,5 +411,35 @@ console.log("=== 11. TICK BUTCESI: OKUMA DA SAYILIYOR ===");
 }
 
 console.log("");
+console.log("=== KAZI KORUNAN BLOGA DOKUNMUYOR (v7.98.2) ===");
+{
+  /* Kazi yalniz bedrock'u atliyordu: sandik icindekilerle
+     birlikte havaya donuyordu. Bakilan yone tas duvar, icine
+     bir sandik ve bir firin.                                */
+  const D = dunyaKur();
+  const o = oyuncuKur(D.boyut, { x: 1, y: 0, z: 0 }, { x: 0.5, y: 90.6, z: 0.5 });
+  o.id = "kz1"; _durum.oyuncular = [];
+  defter.ftechUnut(o.id);
+  defter.yukseltmeTak(o.id, "ftech_y_kazi");
+  for (let x = 1; x <= 8; x++) for (let y = 86; y <= 95; y++) for (let z = -4; z <= 4; z++)
+    D.boyut.getBlock({ x, y, z }).setType("minecraft:stone");
+  const korunan = [];
+  for (let x = 1; x <= 8; x++) for (let y = 88; y <= 92; y++) for (let z = -2; z <= 2; z++) {
+    if ((x + y + z) % 3 !== 0) continue;
+    const t = (x % 2) ? "minecraft:chest" : "minecraft:furnace";
+    D.boyut.getBlock({ x, y, z }).setType(t);
+    korunan.push({ x, y, z, t });
+  }
+  D.sayac.yazilan.length = 0;
+  sus(); itemUseTetikle({ source: o, itemStack: { typeId: "pa:kol_ftech" } });
+  tickIlerlet(300); ac();
+  const kazilan = D.sayac.yazilan.filter((b) => b.tip === "minecraft:air").length;
+  const kalan = korunan.filter((k) => D.boyut.getBlock(k).typeId === k.t).length;
+  kontrol("kazi calisti (olcum anlamli)", kazilan > 0, kazilan + " blok");
+  kontrol("sandik ve firinlarin hepsi yerinde", kalan === korunan.length,
+          kalan + " / " + korunan.length);
+}
+
+console.log("");
 console.log(hata ? "HATA : " + hata : "temiz");
 process.exit(hata ? 1 : 0);

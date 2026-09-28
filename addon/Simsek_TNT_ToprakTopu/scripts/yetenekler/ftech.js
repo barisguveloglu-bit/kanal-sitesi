@@ -3,10 +3,9 @@ import { yetenekKaydet } from "./kayit.js";
 import { blokIste, varlikIste } from "../butce.js";
 import {
   hataYaz, gecerliMi, actionbarYaz, koniHedefleri,
-  varlikKonumu, basKonumu, parcacikAt, yukseklikAraligi
-} from "../yardimcilar.js";
+  varlikKonumu, basKonumu, parcacikAt, yukseklikAraligi, itmeUygula } from "../yardimcilar.js";
 import {
-  FTECH_ACIK, FTECH_KOL, FTECH_SES,
+  FTECH_ACIK, FTECH_KOL, FTECH_SES, KORUNAN_KUME,
   FTECH_KAZI_TAVAN, FTECH_KAZI_DERINLIK,
   FTECH_DOVUS_MENZIL, FTECH_DOVUS_KOL_HEDEF, FTECH_DOVUS_ENAZ_HASAR,
   FTECH_DOVUS_BEKLEME,
@@ -165,10 +164,14 @@ yetenekKaydet({
           const k = hedefler[i];
           let blok;
           try { blok = boyut.getBlock(k); } catch (e) { blok = undefined; }
-          /* Yuklenmemis parca, hava, sivi, bedrock: atlaniyor.
-             Dayanikli bloklara kaynakta da matkap tier'i sinir. */
+          /* Yuklenmemis parca, hava, sivi ve KORUNAN_KUME
+             (bedrock, sandik, firin, komut blogu, portal...)
+             atlaniyor. v7.98.2'ye kadar yalniz bedrock
+             atlaniyordu: kazi sandigi ICINDEKILERLE birlikte
+             havaya ceviriyordu -- goz_lazeri, bot_is, bot_derin
+             bu kumeye zaten bakiyordu.                        */
           if (!blok || blok.isAir || blok.isLiquid ||
-              blok.typeId === "minecraft:bedrock") { i++; continue; }
+              KORUNAN_KUME.has(blok.typeId)) { i++; continue; }
           if (blokIste(1) < 1) return false;  // yazma: sonraki tick yeniden okunur
           i++;
           try {
@@ -386,7 +389,7 @@ yetenekKaydet({
         /* applyImpulse bu varlikta islemiyor: knockback dene */
         try {
           const yon = oyuncu.getViewDirection();
-          hedef.applyKnockback(yon.x, yon.z, hiz, yon.y * hiz + 0.2);
+          itmeUygula(hedef, yon.x, yon.z, hiz, yon.y * hiz + 0.2);
         } catch (err) {
           hataYaz("ftech_kavra.firlat", err);
         }

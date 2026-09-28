@@ -85,8 +85,13 @@ console.log("=== 1. KAYNAKTA KAPATMA DALI OLAN HER YETENEK acKapa ===");
       }
     }
   }
-  kontrol("kaynakta ac-kapa yetenegi bulundu (olcum anlamli)", beklenen.size >= 7,
+  /* Tarayici `varOlan.kapat` kalibini yakaliyor; kapatmasi baska
+     bir fonksiyonda (simbiyotBaslat) ya da baska bir bicimde
+     (Kavrama'nin firlatmasi, Fuzyon'un ayirmasi) yazili olanlari
+     yakalayamiyor. O ucu ELLE listede; ikisi birlesiyor.       */
+  kontrol("tarayici kaynakta ac-kapa yetenegi buldu (olcum anlamli)", beklenen.size >= 6,
           [...beklenen].join(", "));
+  for (const k of ["simbiyot", "ftech_kavra", "fuzyon"]) beklenen.add(k);
   for (const k of beklenen) {
     const t = kayit.yetenekAl(k);
     kontrol("  " + k + " acKapa", !!(t && t.acKapa === true));
@@ -151,6 +156,22 @@ console.log("\n=== 4. AC-KAPA OLMAYAN IS HALA USTUSTE BINMIYOR ===");
   t.olustur = gercek; t.acKapa = true;
   kontrol("acKapa kalkinca ikinci tetikleme olustur'a VARMIYOR", cagri === 1, cagri + " cagri");
   tetikle(o, "savunma");
+}
+
+console.log("\n=== 5. KIMLIKSIZ IS UST USTE BINMIYOR (v7.98.2) ===");
+{
+  /* Dort gercek is (Marvel Sallanma, Kuvvet Alani, Mahou Olum
+     Toplama, Mahou surekli buyuler) ad/oyuncuId vermiyordu:
+     tavan saymiyor, ayniIsVarMi eslestiremiyordu -- basili
+     tutunca 16 kuvvet alani. Ayni sekilde bir sahte yetenek. */
+  let acilan = 0;
+  kayit.yetenekKaydet({
+    kimlik: "t_kimliksiz", ad: "Test Kimliksiz", esyasiz: true, sira: 99999,
+    olustur() { acilan++; return { calis() { return false; } }; }
+  });
+  const { o } = kur("ak5");
+  for (let i = 0; i < 4; i++) tetikle(o, "t_kimliksiz");
+  kontrol("ayni kimliksiz is IKINCI kez acilmadi", acilan === 1, acilan + " is");
 }
 
 console.log("");

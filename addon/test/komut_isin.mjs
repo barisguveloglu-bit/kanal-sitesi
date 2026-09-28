@@ -399,6 +399,43 @@ console.log("=== 7. SIMSEK KILICI GERCEKTEN YILDIRIM DUSURUYOR ===");
 }
 
 console.log("");
+console.log("=== SIMSEK KILICI: DUNYA SINIRINDA IS BITIYOR (v7.98.2) ===");
+{
+  /* Isinin ucu dunyanin altindaysa (y=-60'ta asagi bakmak)
+     simsekDusur her noktada varlik payi harciyor ama sayiyi
+     artirmiyordu; is "kalan <= 0" bekledigi icin HIC
+     bitmiyordu -- bir is yuvasini ve tick basina butun varlik
+     kotasini oturum sonuna kadar yiyordu.                   */
+  const D = dunyaKur();
+  const o = oyuncuKur(D.boyut, { x: 0, y: -1, z: 0 }, { x: 0.5, y: -60, z: 0.5 });
+  o.id = "k10"; o.typeId = "minecraft:player";
+  o.sendMessage = () => {};
+  o.onScreenDisplay = { setActionBar: () => {} };
+  o.getHeadLocation = () => ({ x: 0.5, y: -59, z: 0.5 });
+  o.getViewDirection = () => ({ x: 0, y: -1, z: 0 });
+  o.getComponent = (ad) => ad === "minecraft:equippable"
+    ? { getEquipment: (y) => ((y || "Mainhand") === "Mainhand") ? { typeId: "minecraft:iron_sword" } : undefined }
+    : undefined;
+  o.runCommand = () => true;
+  D.boyut._varliklar = [o];
+  _durum.oyuncular = [o];
+  const { butceSifirla } = await import("./pack/butce.js");
+  tickIlerlet(ayar.ZIRH_ISIN_BEKLEME + 5);
+  sus();
+  const is = kayit.yetenekAl("simsek_kilici").olustur(o);
+  let bitti = !is, tur = 0;
+  if (is) {
+    for (; tur < 40; tur++) {
+      butceSifirla();
+      if (is.calis()) { bitti = true; break; }
+      tickIlerlet(1);
+    }
+  }
+  ac();
+  kontrol("sinir disinda is kendiliginden bitti", bitti, tur + " tur");
+}
+
+console.log("");
 console.log("=== 8. SIYAH GUC KOSTUME BAGLI ===");
 {
   /* Kapiyi kasten acik biraktigimda hicbir test dusmedi:

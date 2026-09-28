@@ -2,8 +2,7 @@ import { system } from "@minecraft/server";
 import { yetenekKaydet } from "./kayit.js";
 import {
   hataYaz, gecerliMi, basKonumu, parcacikAt, parcacikHalkasi,
-  actionbarYaz
-} from "../yardimcilar.js";
+  actionbarYaz, itmeUygula } from "../yardimcilar.js";
 import { blokIste, varlikIste } from "../butce.js";
 import { ruhCarpani, ruhOku, ruhYaz, kademeOku, yolOku, yolYaz } from "./ruh.js";
 import {
@@ -184,7 +183,7 @@ yetenekKaydet({
             v.applyDamage(HALKA_HASAR * c,
                           { cause: "entityAttack", damagingEntity: oyuncu });
             v.applyKnockback
-              ? v.applyKnockback(v.location.x - merkez.x, v.location.z - merkez.z, 2, 0.4)
+              ? itmeUygula(v, v.location.x - merkez.x, v.location.z - merkez.z, 2, 0.4)
               : undefined;
           } catch (e) { /* onemsiz */ }
         }

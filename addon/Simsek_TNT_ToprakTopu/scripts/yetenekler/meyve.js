@@ -2,8 +2,7 @@ import { system } from "@minecraft/server";
 import { yetenekKaydet, esyaninYetenekleri } from "./kayit.js";
 import {
   hataYaz, gecerliMi, eldekiEsya, basKonumu, parcacikAt,
-  parcacikHalkasi, actionbarYaz, koniHedefleri
-} from "../yardimcilar.js";
+  parcacikHalkasi, actionbarYaz, koniHedefleri, itmeUygula } from "../yardimcilar.js";
 import { blokIste, varlikIste } from "../butce.js";
 import { sadelestir } from "../sohbet.js";
 import { ruhCarpani, ruhOku, ruhYaz } from "./ruh.js";
@@ -165,10 +164,10 @@ function alanVur(oyuncu, s) {
       if (s.zayif) v.addEffect("weakness", s.zayif * 20, { amplifier: 1 });
       const k = v.location, m = oyuncu.location;
       if (s.itme && v.applyKnockback) {
-        v.applyKnockback(k.x - m.x, k.z - m.z, s.itme, s.dikey || 0.4);
+        itmeUygula(v, k.x - m.x, k.z - m.z, s.itme, s.dikey || 0.4);
       }
       if (s.cekim && v.applyKnockback) {
-        v.applyKnockback(m.x - k.x, m.z - k.z, s.cekim, 0.2);
+        itmeUygula(v, m.x - k.x, m.z - k.z, s.cekim, 0.2);
       }
       /* KARANLIGIN IPTALI: yalniz FAYDALI efektler sokuluyor.
          Zararlilara dokunmak hedefe yardim etmek olurdu.   */
@@ -203,7 +202,7 @@ yetenekKaydet({
         try {
           if (!v.applyKnockback) return;
           const k = v.location, m = oyuncu.location;
-          v.applyKnockback(k.x - m.x, k.z - m.z, GURA_GEKISHIN_ITME, 0.6);
+          itmeUygula(v, k.x - m.x, k.z - m.z, GURA_GEKISHIN_ITME, 0.6);
         } catch (e) { /* onemsiz */ }
       }
     });

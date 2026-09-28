@@ -182,9 +182,15 @@ export function dusmusUnut(oyuncuId) {
     okundu = false;
     return;
   }
-  defter.delete(oyuncuId);
+  /* OYUNCU CIKISI (v7.98.2): DEFTER SILINMIYOR. Eskiden
+     siliniyor ve dunyaya yaziliyordu -- cok oyunculuda cikan
+     bir kurban geri girdiginde kaydi yoktu: gercek zirhi
+     kaybolmustu, dusmus parcalari uzerinde kalmisti. Kayit
+     zaten "cikip girince geri verilsin" diye kalici; burada
+     yalniz oturumluk seyler birakiliyor. Kalan kayit kucuk ve
+     tarama yalniz oyundaki oyunculara bakiyor.              */
   bagisik.delete(oyuncuId);
-  yaz();
+  gercekEsya.delete(oyuncuId);
 }
 
 export function dusmusDurum(oyuncuId) {
@@ -201,43 +207,65 @@ function kap(oyuncu) {
   }
 }
 
-/* Dort yuvadaki GERCEK zirhi tipleriyle okur. */
-function zirhiOku(oyuncu) {
-  const c = kap(oyuncu);
-  if (!c) return [];
-  const liste = [];
-  for (const y of YUVALAR) {
-    let tip = "";
-    try {
-      const e = c.getEquipment(y);
-      if (e && typeof e.typeId === "string") tip = e.typeId;
-    } catch (e) { /* yuva okunamadi */ }
-    liste.push(tip);
+/* ---- ZIRH YUVA YUVA ALINIYOR (v7.98.2) ----
+   Eskiden bulasirken DORT yuvanin hepsi kaydediliyor, ama 1.
+   asama yalniz goguse ve basa parca giydiriyordu. Oyuncu
+   bacak/ayak zirhini cantaya alip bloktan inince arinma ikisini
+   YENIDEN yaratiyordu: kopyalama. Artik bir yuva, ustune
+   dusmus parcasi giydirildigi AN kaydediliyor; `null` =
+   "bu yuvaya hic dokunulmadi, geri verilecek bir sey yok".
+
+   Ayni oturumda GERCEK esya da bellekte tutuluyor: buyu,
+   dayaniklilik, ad korunsun. Dunya kaydi yine yalniz tip
+   tasiyor (boyut siniri, yaz() ustundeki not) -- cikip
+   girilirse eski davranis: tip geri geliyor.              */
+const gercekEsya = new Map();      // oyuncuId -> [ItemStack|undefined x4]
+const bizimParcaMi = (tip) => typeof tip === "string" && tip.startsWith("pa:kns_dusmus");
+
+function yuvayiAl(oyuncu, kayit, c, i) {
+  if (!kayit || !Array.isArray(kayit.zirh)) return;
+  while (kayit.zirh.length < YUVALAR.length) kayit.zirh.push(null);
+  if (kayit.zirh[i] !== null) return;             // zaten alinmis
+  let esya;
+  try { esya = c.getEquipment(YUVALAR[i]); } catch (e) { esya = undefined; }
+  const tip = esya && typeof esya.typeId === "string" ? esya.typeId : "";
+  kayit.zirh[i] = bizimParcaMi(tip) ? "" : tip;
+  if (tip && !bizimParcaMi(tip)) {
+    const liste = gercekEsya.get(oyuncu.id) || [];
+    liste[i] = esya;
+    gercekEsya.set(oyuncu.id, liste);
   }
-  return liste;
 }
 
-/* Deftere yazilan zirhi aynen geri takar. */
+/* Alinan yuvalari geri takar. Hic alinmamis yuva (null)
+   oyuncunundur, dokunulmuyor. Yuvada artik BIZIM parcamiz
+   yoksa (oyuncu baska bir sey giydi) o da ezilmiyor.      */
 function zirhiGeriVer(oyuncu, zirh) {
   const c = kap(oyuncu);
+  const bellek = gercekEsya.get(oyuncu.id) || [];
+  gercekEsya.delete(oyuncu.id);
   if (!c) return;
   for (let i = 0; i < YUVALAR.length; i++) {
+    const tip = zirh && zirh[i];
+    if (tip === null || tip === undefined) continue;
     try {
-      const tip = zirh && zirh[i];
+      const simdiki = c.getEquipment(YUVALAR[i]);
+      if (simdiki && !bizimParcaMi(simdiki.typeId)) continue;
       c.setEquipment(YUVALAR[i],
-        tip ? new ItemStack(tip, 1) : undefined);
+        bellek[i] || (tip ? new ItemStack(tip, 1) : undefined));
     } catch (e) {
       /* Esya kaydolmadiysa yuva bos kaliyor; virus yine bitti. */
     }
   }
 }
 
-function asamayiGiy(oyuncu, indis) {
+function asamayiGiy(oyuncu, indis, kayit) {
   const a = DUSMUS_ASAMALAR[indis];
   if (!a) return;
   const c = kap(oyuncu);
   if (c) {
     for (const y of a.yuvalar) {
+      yuvayiAl(oyuncu, kayit, c, YUVALAR.indexOf(y));
       try {
         c.setEquipment(y, new ItemStack(a.parca, 1));
       } catch (e) { /* parca kaydolmadi: gorunum eksik kalir */ }
@@ -268,14 +296,14 @@ function bulastir(oyuncu) {
   const kayit = {
     durum: "yozlasiyor", asama: 1,
     sonrakiTick: system.currentTick + DUSMUS_ASAMA_ARA,
-    zirh: zirhiOku(oyuncu)          // GERCEK zirh burada saklandi
+    zirh: [null, null, null, null]  // yuva, parca giydirilince aliniyor
   };
   defter.set(oyuncu.id, kayit);
   /* 1. asama HEMEN giyiliyor, bir tarama beklemiyor. Kaynakta
      da oyle: ilk asama `system.run()` icinde, aninda. Bir
      tarama beklemek "bloga bastim, hicbir sey olmadi" hissi
      verirdi.                                                */
-  asamayiGiy(oyuncu, 0);
+  asamayiGiy(oyuncu, 0, kayit);
   yaz();
 }
 
@@ -493,7 +521,7 @@ export function dusmusTara(oyuncular) {
          dorduncu asamaya varmadan. Kaynakta da boyle.       */
       if (!ustunde) { arindir(oyuncu, kayit); continue; }
       if (simdi < kayit.sonrakiTick) continue;
-      asamayiGiy(oyuncu, kayit.asama);
+      asamayiGiy(oyuncu, kayit.asama, kayit);
       kayit.asama++;
       kayit.sonrakiTick = simdi + DUSMUS_ASAMA_ARA;
       if (kayit.asama >= DUSMUS_ASAMA_SAYISI) {
@@ -528,7 +556,7 @@ export function dusmusTara(oyuncular) {
          "bedenden cikmayan zirh" tam olarak bu.             */
       if (simdi < kayit.sonrakiTick) continue;
       kayit.sonrakiTick = simdi + DUSMUS_ASAMA_ARA;
-      asamayiGiy(oyuncu, DUSMUS_ASAMA_SAYISI - 1);
+      asamayiGiy(oyuncu, DUSMUS_ASAMA_SAYISI - 1, kayit);
       continue;
     }
 
@@ -536,7 +564,7 @@ export function dusmusTara(oyuncular) {
       /* Parcalar hala bedende ve hala cikmiyor. */
       if (simdi < kayit.sonrakiTick) continue;
       kayit.sonrakiTick = simdi + DUSMUS_ASAMA_ARA;
-      asamayiGiy(oyuncu, DUSMUS_ASAMA_SAYISI - 1);
+      asamayiGiy(oyuncu, DUSMUS_ASAMA_SAYISI - 1, kayit);
       /* Yemin yonergesi kaybolmasin: secilmis ama henuz
          yemin etmemis olana araliklarla tekrarlaniyor.     */
       if (kayit.durum === "secilmis" &&
@@ -554,7 +582,7 @@ export function dusmusTara(oyuncular) {
       if (kayit.asama <= 0) { arindir(oyuncu, kayit); continue; }
       /* Tersine giyinme: bir alt asamanin gorunumu.         */
       korlukVer(oyuncu, false);
-      asamayiGiy(oyuncu, kayit.asama - 1);
+      asamayiGiy(oyuncu, kayit.asama - 1, kayit);
       yaz();
     }
   }

@@ -910,9 +910,14 @@ yetenekKaydet({
           } catch (e) {
             hataYaz("goz_lazeri.buzOr", e);
           }
-          if (buzIndeks === buzNoktalari.length) {
-            buzKalkmaTick = system.currentTick + LAZER_BUZ_SURE;
-          }
+        }
+        /* Kalkma saati DONGUNUN DISINDA (v7.98.2). Icerideyken
+           son nokta dolu bir bloga denk gelince `continue` bu
+           satiri atliyordu: saat 0'da kaliyor ve kafes kurulur
+           kurulmaz sokuluyordu (catinin altinda, magarada).  */
+        if (buzKalkmaTick === 0 && buzNoktalari.length > 0 &&
+            buzIndeks === buzNoktalari.length) {
+          buzKalkmaTick = system.currentTick + LAZER_BUZ_SURE;
         }
 
         /* Sure dolunca sok. Is BITMIYOR: kafes kalkana kadar

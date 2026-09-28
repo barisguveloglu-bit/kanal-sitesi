@@ -5,8 +5,7 @@ import { blokIste } from "../butce.js";
 import {
   hataYaz, gecerliMi, actionbarYaz, kollariIndir, parcacikAt,
   koniHedefleri, kilitliHedef, basKonumu, varlikKonumu,
-  yukseklikAraligi, olayaAbone, bilgiYaz
-} from "../yardimcilar.js";
+  yukseklikAraligi, olayaAbone, bilgiYaz, itmeUygula } from "../yardimcilar.js";
 import {
   VILTRUMITE_ACIK, VILT_MOD, VILT_TEMEL_HASAR, VILT_INDIRIM,
   VILT_ESIK, VILT_BLOK_DUSME, VILT_DIRENC, VILT_GERI_ORAN,
@@ -79,7 +78,7 @@ function it(oyuncu, yon, carpan, dikeyCarpan) {
   const dz = yon.z * carpan;
   try {
     if (typeof oyuncu.applyKnockback === "function") {
-      oyuncu.applyKnockback(dx, dz, Math.hypot(dx, dz), dy);
+      itmeUygula(oyuncu, dx, dz, Math.hypot(dx, dz), dy);
       return true;
     }
   } catch (e) { /* asagi dus */ }
@@ -107,7 +106,7 @@ function vur(hedef, hasar, vuran) {
 function firlat(hedef, yon, guc, dikey) {
   try {
     if (typeof hedef.applyKnockback === "function") {
-      hedef.applyKnockback(yon.x * guc, yon.z * guc,
+      itmeUygula(hedef, yon.x * guc, yon.z * guc,
                            Math.hypot(yon.x * guc, yon.z * guc), dikey);
       return;
     }

@@ -472,5 +472,34 @@ kontrol("izinsiz kol acilmadi (10 kol)",
 }
 
 console.log("");
+console.log("=== SAHIPSIZ KILIK YUKLENINCE SILINIYOR (v7.98.2) ===");
+{
+  /* Eski oturumun kiligi yuklenmemis bir parcadaysa oku() onu
+     bulamiyor ama kaydi yine siliyordu; kilik persistent,
+     dunyada kalici kaliyordu. Artik entityLoad'da soruluyor. */
+  const { varlikYukleTetikle } = await import("@minecraft/server");
+  const { D, o } = kur("d_sk");
+  don.donus(o);
+  const aktif = kiligi(D);
+  let sahipsizSilindi = false, aktifSilindi = false, yabanciSilindi = false;
+  const sahipsiz = { id: "eski_kilik", typeId: ayar.SEY_KILIK_KIMLIK, isValid: true,
+                     remove() { sahipsizSilindi = true; } };
+  const carpik = { id: "eski_carpik", typeId: ayar.CARPIK_KILIK_KIMLIK, isValid: true,
+                   remove() { this.silindi = true; } };
+  const yabanci = { id: "zombi1", typeId: "minecraft:zombie", isValid: true,
+                    remove() { yabanciSilindi = true; } };
+  const eskiRemove = aktif.remove;
+  aktif.remove = function () { aktifSilindi = true; return eskiRemove && eskiRemove.call(this); };
+  sus();
+  varlikYukleTetikle(sahipsiz); varlikYukleTetikle(carpik);
+  varlikYukleTetikle(aktif); varlikYukleTetikle(yabanci);
+  ac();
+  kontrol("sahipsiz O Sey kiligi silindi", sahipsizSilindi);
+  kontrol("sahipsiz Carpik kiligi silindi", carpik.silindi === true);
+  kontrol("bu oturumun kiligina DOKUNULMADI", !aktifSilindi);
+  kontrol("baska varliga dokunulmadi", !yabanciSilindi);
+}
+
+console.log("");
 console.log(hata ? ">>> SORUN VAR" : ">>> donusum calisiyor: O Sey oluyorsun");
 process.exit(hata ? 1 : 0);

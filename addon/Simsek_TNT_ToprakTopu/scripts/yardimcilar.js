@@ -642,3 +642,31 @@ export function kaliciYaz(anahtar, veri, kirp, tavan) {
     return undefined;
   }
 }
+
+/* ---- GERI ITME, IKI IMZA  (v7.98.2) ----
+   @minecraft/server 2.0.0'da imza degisti:
+     eski  applyKnockback(yonX, yonZ, yatayGuc, dikeyGuc)
+     yeni  applyKnockback({ x, z } = yon x yatayGuc, dikeyGuc)
+   Depoda 21 cagri yalniz ESKISINI kullaniyordu; 2.0.0'da hata
+   atiyor ve cevredeki try sessizce yutuyordu -- Marvel
+   sallanma/atilma, Viltrumite atilimi, meyve/JJK itmeleri
+   oyunda hic calismiyordu. cekme.js, savur.js, nefes.js ikisini
+   de deniyordu; bu, o kalibin tek yeri.
+
+   Once ESKI deneniyor: eski API'de dogru cagri o, yeni API'de
+   ise yerel tip donusumu (sayi yerine nesne) hemen hata atiyor
+   ve yeni bicime geciliyor. Hata firlatmiyor, true/false donuyor. */
+export function itmeUygula(varlik, dx, dz, yatay, dikey) {
+  try {
+    varlik.applyKnockback(dx, dz, yatay, dikey);
+    return true;
+  } catch (e) { /* 2.0.0 imzasi */ }
+  try {
+    const boy = Math.hypot(dx, dz);
+    const nx = boy > 1e-9 ? dx / boy : 0, nz = boy > 1e-9 ? dz / boy : 0;
+    varlik.applyKnockback({ x: nx * yatay, z: nz * yatay }, dikey);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}

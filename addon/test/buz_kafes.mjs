@@ -154,6 +154,32 @@ console.log("\n=== 5. KAFES KALICI BLOK BIRAKMIYOR ===");
   kontrol("blok butcesinden geciyor", /blokIste\(2\) < 2\) return false;[\s\S]{0,200}buzNoktalari/.test(src));
 }
 
+console.log("\n=== 6. SON NOKTA DOLUYKEN KAFES HEMEN KALKMIYOR (v7.98.2) ===");
+{
+  /* Kalkma saati dongunun icindeydi ve `continue` (dolu nokta)
+     onu atliyordu: kabugun SON noktasi doluysa (cati alti,
+     magara) saat 0'da kaliyor, kafes kurulur kurulmaz
+     sokuluyordu.                                            */
+  const { D, o } = kur("b6");
+  const z = kurban("z6", 0.5, 6);
+  D.boyut._varliklar = [z];
+  D.boyut.getEntities = () => [z, o];
+  const r = ayar.LAZER_BUZ_YARICAP, h = ayar.LAZER_BUZ_YUKSEK;
+  D.boyut.getBlock({ x: r, y: 90 + h, z: 6 + r }).setType("minecraft:stone");  // son nokta
+  sus();
+  mc.itemCompleteUseTetikle({ source: o, itemStack: { typeId: "pa:iksir_element" } });
+  tickIlerlet(2);
+  const kayit = await import("./pack/yetenekler/kayit.js");
+  const is = kayit.tumYetenekler().find((t) => t.kimlik === "goz_lazeri").olustur(o);
+  for (let i = 0; i < 40 && is; i++) { butceSifirla(); if (is.calis()) break; tickIlerlet(1); }
+  ac();
+  const buzSay = () => D.sayac.yazilan.filter((b) => b.tip === ayar.LAZER_BUZ_BLOK)
+    .filter((b) => D.boyut.getBlock(b).typeId === ayar.LAZER_BUZ_BLOK).length;
+  kontrol("kafes kuruldu (olcum anlamli)", D.sayac.yazilan.some((b) => b.tip === ayar.LAZER_BUZ_BLOK));
+  kontrol("40 tick sonra kafes HALA duruyor", buzSay() > 0,
+          buzSay() + " buz · sure " + ayar.LAZER_BUZ_SURE + " tick");
+}
+
 console.log("");
 console.log(hata ? ">>> SORUN VAR" : ">>> buz kafesi calisiyor");
 process.exit(hata ? 1 : 0);

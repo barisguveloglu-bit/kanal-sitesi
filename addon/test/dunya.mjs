@@ -3,6 +3,7 @@ import { system } from "@minecraft/server";
 // Sahte dunya: blok deposu + sayaclar
 export function dunyaKur(sinir = { min: -64, max: 319 }) {
   const bloklar = new Map();
+  const durumlar = new Map();   // anahtar -> { durum: deger } (v7.98.2)
   const sayac = {
     getBlock: 0, setType: 0, istisna: 0, patlama: [], dogan: [],
     varliklar: [], kaldirilan: 0,
@@ -54,6 +55,19 @@ export function dunyaKur(sinir = { min: -64, max: 319 }) {
           blokSay();
           sayac.yazilan.push({ x, y, z, tip: t });
           bloklar.set(k, t);
+          durumlar.delete(k);         // varsayilan hal: durum yok
+        },
+        /* v7.98.2: BLOK DURUMU (yon, asili mi...). Kopya donuyor;
+           setPermutation tipi ve durumu birlikte yaziyor.     */
+        get permutation() {
+          return { type: { id: this.typeId }, _durum: { ...(durumlar.get(k) || {}) } };
+        },
+        setPermutation(p) {
+          sayac.setType++;
+          blokSay();
+          sayac.yazilan.push({ x, y, z, tip: p.type.id });
+          bloklar.set(k, p.type.id);
+          durumlar.set(k, { ...(p._durum || {}) });
         },
         location: { x, y, z }
       };
@@ -224,7 +238,7 @@ export function dunyaKur(sinir = { min: -64, max: 319 }) {
     return satirlar;
   }
 
-  return { boyut, bloklar, sayac, imza };
+  return { boyut, bloklar, durumlar, sayac, imza };
 }
 
 export function oyuncuKur(boyut, bakis, bas) {

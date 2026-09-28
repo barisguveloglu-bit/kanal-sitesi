@@ -124,7 +124,12 @@ export function geciciYapiIsi(secenekler) {
     },
 
     bitir() {
+      /* Is KURULURKEN kesildiyse (oyuncu cikti, hata) sokucu
+         henuz yok. v7.98.2'ye kadar o durumda hicbir sey
+         toplanmiyordu ve yarim kubbe dunyada kaliyordu --
+         yapiOrIsi bu durumu zaten ele aliyordu.             */
       if (sokucu) sokucu.kalaniTopla();
+      else if (konan.length > 0) sokucuYap(ad, boyut, konan, blok).kalaniTopla();
       if (bittiMesaji) {
         try {
           const m = bittiMesaji(konan.length);

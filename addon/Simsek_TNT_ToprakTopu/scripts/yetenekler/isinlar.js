@@ -102,6 +102,14 @@ function simsekDusur(oyuncu, t, bas, yon, adet) {
     z: bas.z + yon.z * t.menzil
   };
   const yay = t.simsekYayilma || 0;
+  /* DUNYA SINIRI DISI (v7.98.2): noktalarin hepsi ayni y'de,
+     yani biri disaridaysa hepsi disarida. Eskiden dongu her
+     noktada varlikIste(1) harciyor ama sayiyi artirmiyordu;
+     cagiran is "kalan <= 0" beklediginden HIC bitmiyordu --
+     oyuncunun bir is yuvasini ve tick basina BUTUN varlik
+     kotasini oturum sonuna kadar yiyordu. Dusemeyecek simsek
+     "islendi" sayiliyor.                                    */
+  if (uc.y < sinir.min || uc.y > sinir.max) return adet;
   let dusen = 0;
   for (let i = 0; i < adet; i++) {
     if (varlikIste(1) === 0) break;          // butce dolu

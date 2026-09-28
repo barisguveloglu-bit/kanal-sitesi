@@ -800,17 +800,92 @@ console.log("\n=== 7. OKUMA DA BUTCEDEN ODENIYOR (v7.98.2) ===");
   dunya7.setDynamicProperty(ayar.EFSANE_KAYIT_ANAHTAR, JSON.stringify({ x: 0, z: 0 }));
   tickIlerlet(ayar.EFSANE_KORKU_TARAMA);
   let tepe = 0, toplam = 0;
+  /* Tek tur yetmiyor: ayni tickte baska bir tarama zorlanmis
+     rastgele sayiyi once tuketebiliyor (8 kosuda 1 dustu).
+     Olay cikana kadar birkac tur -- 6. bolumun kalibi.      */
   zorla("sonme", (sifirla) => {
-    sifirla();
     D.sayac.tickBlok = {};
-    tickIlerlet(ayar.EFSANE_KORKU_TARAMA);
-    const v = Object.values(D.sayac.tickBlok);
-    tepe = Math.max(0, ...v);
-    toplam = v.reduce((a, b) => a + b, 0);
+    for (let i = 0; i < 10 && toplam < 20; i++) {
+      sifirla();
+      tickIlerlet(ayar.EFSANE_KORKU_TARAMA);
+      const v = Object.values(D.sayac.tickBlok);
+      tepe = Math.max(0, ...v);
+      toplam = v.reduce((a, b) => a + b, 0);
+    }
   });
   kontrol("sonme calisti (olcum anlamli)", toplam >= 20, toplam + " okuma");
   kontrol("tick basina blok islemi kotanin altinda", tepe <= ayar.TICK_BLOK_BUTCESI,
           tepe + " <= " + ayar.TICK_BLOK_BUTCESI);
+}
+
+console.log("\n=== 8. '404: BELIRIS' DUGMESI GOLGEYI KAPATIYOR (v7.98.2) ===");
+{
+  /* Dugme ayari yaziyor ve durumda gosteriyordu ama hicbir
+     olay okumuyordu: "Beliris: Kapali" iken golge yine
+     doguyordu.                                              */
+  const dunya8 = (await import("@minecraft/server")).world;
+  const olc = (acik) => {
+    const { D, o } = kur("k8_" + acik, { x: 0.5, y: 64, z: 0.5 });
+    dunya8.setDynamicProperty(ayar.EFSANE_KAYIT_ANAHTAR, JSON.stringify({ x: 0, z: 0 }));
+    e404.e404Ayar().dogum = acik;
+    tickIlerlet(ayar.EFSANE_KORKU_TARAMA);
+    zorla("golge", (sifirla) => {
+      for (let i = 0; i < 6; i++) { sifirla(); tickIlerlet(ayar.EFSANE_KORKU_TARAMA); }
+    });
+    e404.e404Ayar().dogum = true;
+    korku.golgeleriSupur();
+    return D.sayac.dogan.filter((d) => d.tip === ayar.EFSANE_GOLGE_KIMLIK).length;
+  };
+  const acikken = olc(true);
+  const kapaliyken = olc(false);
+  kontrol("beliris aciksa golge doguyor (olcum anlamli)", acikken > 0, acikken + " golge");
+  kontrol("beliris kapaliyken golge DOGMUYOR", kapaliyken === 0, kapaliyken + " golge");
+}
+
+console.log("\n=== 9. SONEN MESALE YONUYLE GERI GELIYOR (v7.98.2) ===");
+{
+  /* Geri koyma setType(tur) ile yapiliyordu: duvar mesalesi
+     havada duran mesale, asili fener yerde duran fener olarak
+     donuyordu. Burada her mesale duvara yonlu.             */
+  const dunya9 = (await import("@minecraft/server")).world;
+  const { D, o } = kur("k9m", { x: 0.5, y: 64, z: 0.5 });
+  dunya9.setDynamicProperty(ayar.EFSANE_KAYIT_ANAHTAR, JSON.stringify({ x: 0, z: 0 }));
+  const yerler = [];
+  for (let dx = -17; dx <= 17; dx++) for (let dz = -17; dz <= 17; dz++) {
+    const d = Math.hypot(dx, dz);
+    if (d < 2 || d > 17) continue;
+    for (let dy = -2; dy <= 4; dy++) {
+      const p = { x: dx, y: 64 + dy, z: dz };
+      D.boyut.getBlock(p).setPermutation({ type: { id: "minecraft:torch" },
+                                           _durum: { torch_facing_direction: "north" } });
+      yerler.push(p);
+    }
+  }
+  let sondu = false;
+  zorla("sonme", (sifirla) => {
+    for (let i = 0; i < 10 && !sondu; i++) {
+      sifirla(); tickIlerlet(ayar.EFSANE_KORKU_TARAMA);
+      sondu = yerler.some((p) => D.boyut.getBlock(p).isAir);
+    }
+  });
+  o.location.x = 5000; o.location.z = 5000;
+  for (let i = 0; i < 5; i++) tickIlerlet(ayar.EFSANE_SONME_SURE);
+  const ak = (p) => p.x + "," + p.y + "," + p.z;
+  const yonsuz = yerler.filter((p) =>
+    !(D.durumlar.get(ak(p)) || {}).torch_facing_direction).length;
+  kontrol("mesale sondu (olcum anlamli)", sondu);
+  kontrol("hepsi geri geldi", yerler.every((p) => D.boyut.getBlock(p).typeId === "minecraft:torch"));
+  kontrol("hepsinin YONU korundu", yonsuz === 0, yonsuz + " yonsuz");
+}
+
+console.log("\n=== 10. SAHIPSIZ GOLGE YUKLENINCE SILINIYOR (v7.98.2) ===");
+{
+  const { varlikYukleTetikle } = await import("@minecraft/server");
+  let silindi = false, yabanci = false;
+  varlikYukleTetikle({ id: "eski_golge", typeId: ayar.EFSANE_GOLGE_KIMLIK, remove() { silindi = true; } });
+  varlikYukleTetikle({ id: "inek", typeId: "minecraft:cow", remove() { yabanci = true; } });
+  kontrol("bu oturumda olmayan golge silindi", silindi);
+  kontrol("baska varliga dokunulmadi", !yabanci);
 }
 
 console.log("");

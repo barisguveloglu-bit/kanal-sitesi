@@ -148,6 +148,9 @@ import { womDovusKur, womDovusUnut } from "./yetenekler/wom_dovus.js";
 import { WOM_ACIK, WOM_SILAHLAR, WOM_ONEK } from "./ayarlar.js";
 gozcuKur();
 womDovusKur();
+/* v7.98.2: yuklenen sahipsiz kilik/golge o anda siliniyor. */
+sahipsizKilikKur();
+sahipsizGolgeKur();
 /* v7.36: blok kirma/koyma hizi (fast_destroy, rapid_build,
    bridge_builder, nuke). Muafiyet sorusu hareket taramasiyla
    AYNI: bu oyuncunun calisan bir isi var mi? oyuncuIsSayisi
@@ -308,7 +311,7 @@ import "./yetenekler/bot_guc.js";
 import "./yetenekler/efsane.js";
 /* v6.6: uc duragi da gorene bir dakikalik muzik. */
 import { efsaneMuzikTara, efsaneMuzikUnut } from "./yetenekler/efsane_muzik.js";
-import { efsaneKorkuTara, efsaneKorkuUnut } from "./yetenekler/efsane_korku.js";
+import { efsaneKorkuTara, efsaneKorkuUnut, sahipsizGolgeKur } from "./yetenekler/efsane_korku.js";
 /* v6.6: skinin renginde ozel sis. */
 import { sisAc, sisKapat } from "./yetenekler/sis.js";
 /* v7.1: Void takimi -- Falen Mod V2. Vurus kancasi ve
@@ -402,7 +405,8 @@ import { seySayisi } from "./yetenekler/o_sey.js";
    sebeple: kalici bir durum oyuncunun iki is yuvasindan
    birini sonsuza kadar tutamaz.                              */
 import {
-  donusumTara, donusukMu, donusukSayisi, donusumUnutOyuncu
+  donusumTara, donusukMu, donusukSayisi, donusumUnutOyuncu,
+  sahipsizKilikKur,
 } from "./yetenekler/donusum.js";
 
 /* ============================================================
@@ -953,12 +957,25 @@ function yetenekTetikle(oyuncu, kimlikler) {
         if (!kapat && !enerjiIste(oyuncu, tanim.enerji, tanim.ad)) continue;
 
         const sonuc = tanim.olustur(oyuncu);
+        /* KIMLIKSIZ IS (v7.98.2). Dort is (Marvel Sallanma,
+           Kuvvet Alani, Mahou Olum Toplama, Mahou surekli
+           buyuler) `ad` ve `oyuncuId` vermiyordu: undefined
+           kovasina dusuyordu, yani tavan (AYNI_ANDA) onlari
+           saymiyor, ayniIsVarMi eslestiremiyor, playerLeave
+           silemiyordu -- basili tutunca 16 kuvvet alani ust
+           uste. Eksik alan burada tamamlaniyor; veren isin
+           kendi degeri korunuyor.                          */
+        const tamamla = (is) => {
+          if (is.oyuncuId === undefined) is.oyuncuId = oyuncu.id;
+          if (is.ad === undefined) is.ad = kimlik;
+          return is;
+        };
         if (Array.isArray(sonuc)) {
           for (const is of sonuc) {
-            if (is) { isEkle(is); acilan++; }
+            if (is) { isEkle(tamamla(is)); acilan++; }
           }
         } else if (sonuc) {
-          isEkle(sonuc);
+          isEkle(tamamla(sonuc));
           acilan++;
         }
       } catch (e) {

@@ -4,8 +4,7 @@ import { guctekiKahraman, gucKumesi } from "./marvel.js";
 import { elindekiYaratik } from "./ben10.js";
 import {
   hataYaz, gecerliMi, actionbarYaz, kollariIndir, parcacikAt,
-  yukseklikAraligi, basKonumu
-} from "../yardimcilar.js";
+  yukseklikAraligi, basKonumu, itmeUygula } from "../yardimcilar.js";
 import {
   MARVEL_MEKANIK_ACIK, MARVEL_TIRMANMA_GUC, MARVEL_TIRMANMA_MENZIL,
   MARVEL_TIRMANMA_TARAMA, MARVEL_CENGEL_MENZIL, MARVEL_SALLANMA_GUC,
@@ -84,7 +83,7 @@ function it(oyuncu, yon, carpan, dikeyCarpan) {
   const dz = yon.z * carpan;
   try {
     if (typeof oyuncu.applyKnockback === "function") {
-      oyuncu.applyKnockback(dx, dz, Math.hypot(dx, dz), dy);
+      itmeUygula(oyuncu, dx, dz, Math.hypot(dx, dz), dy);
       return true;
     }
   } catch (e) { /* asagidaki yola dus */ }
@@ -409,7 +408,7 @@ yetenekKaydet({
           if (uz > MARVEL_ALAN_EN_YAKIN) {
             try {
               if (typeof v.applyKnockback === "function") {
-                v.applyKnockback(-dx / uz, -dz / uz, MARVEL_ALAN_HIZ, 0.2);
+                itmeUygula(v, -dx / uz, -dz / uz, MARVEL_ALAN_HIZ, 0.2);
               } else if (typeof v.applyImpulse === "function") {
                 v.applyImpulse({
                   x: (-dx / uz) * MARVEL_ALAN_HIZ, y: 0.2,

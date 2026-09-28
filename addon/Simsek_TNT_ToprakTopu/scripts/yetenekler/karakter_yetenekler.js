@@ -2,8 +2,7 @@ import { system } from "@minecraft/server";
 import { yetenekKaydet } from "./kayit.js";
 import {
   hataYaz, gecerliMi, basKonumu, parcacikAt, parcacikHalkasi,
-  actionbarYaz, koniHedefleri
-} from "../yardimcilar.js";
+  actionbarYaz, koniHedefleri, itmeUygula } from "../yardimcilar.js";
 import { blokIste, varlikIste } from "../butce.js";
 import {
   ruhCarpani, ruhOku, ruhYaz, karakterOku, karakterYaz
@@ -93,7 +92,7 @@ function koniVur(oyuncu, secenek) {
       if (secenek.zehir) v.addEffect("poison", secenek.zehir * 20, { amplifier: 1 });
       if (secenek.itme && v.applyKnockback) {
         const k = v.location, m = oyuncu.location;
-        v.applyKnockback(k.x - m.x, k.z - m.z, secenek.itme, 0.4);
+        itmeUygula(v, k.x - m.x, k.z - m.z, secenek.itme, 0.4);
       }
       n++;
     } catch (e) { /* varlik kayboldu */ }

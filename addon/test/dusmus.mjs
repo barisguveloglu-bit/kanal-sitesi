@@ -335,7 +335,7 @@ console.log("=== 5. ATES: TEK ZAAF ===");
           /DUSMUS_CAKMAK && dusmusAtesle\(oyuncu\)/.test(kaynak));
   kontrol("tarama merkezi tick'ten cagriliyor",
           /dusmusTara\(oyuncular\)/.test(kaynak));
-  kontrol("oyuncu cikinca defter temizleniyor",
+  kontrol("oyuncu cikisi dusmusUnut'a bagli (kayit silmiyor, v7.98.2)",
           /dusmusUnut\(olay\.playerId\)/.test(kaynak));
   kontrol("cakmak ayari vanilla cakmak",
           ayar.DUSMUS_CAKMAK === "minecraft:flint_and_steel",
@@ -723,6 +723,53 @@ console.log("=== KIRILAN DUSMUS BLOGU DEFTERDEN DUSUYOR (v7.98.1) ===");
   ilerlet(b.o, 1);
   kontrol("  kirilmayan blok hala bulastiriyor",
           dus.dusmusDurum(b.o.id) === "yozlasiyor", String(dus.dusmusDurum(b.o.id)));
+}
+
+console.log("");
+console.log("=== ZIRH KOPYALANMIYOR, CIKISTA KAYBOLMUYOR (v7.98.2) ===");
+{
+  /* 1. asama yalniz Chest+Head giydiriyor. Eskiden bulasirken
+     dort yuva birden kaydediliyordu: oyuncu bacak/ayak zirhini
+     cantaya alip bloktan inince arinma ikisini YENIDEN
+     yaratiyordu -- kopyalama.                               */
+  const zirh = { Head: "minecraft:iron_helmet", Chest: "minecraft:diamond_chestplate",
+                 Legs: "minecraft:netherite_leggings", Feet: "minecraft:iron_boots" };
+  const { o } = kur(zirh);
+  blokKoy(o);
+  ilerlet(o, 1);
+  kontrol("1. asamada (on kosul)", o._yuva.Chest === "pa:kns_dusmus_1",
+          String(o._yuva.Chest));
+  const canta = [o._yuva.Legs, o._yuva.Feet];     // oyuncu cikarip cantaya aldi
+  o._yuva.Legs = undefined; o._yuva.Feet = undefined;
+  o.location = { x: 40.5, y: 64, z: 40.5 };       // bloktan indi
+  ilerlet(o, 2);
+  kontrol("arindi (on kosul)", dus.dusmusDurum(o.id) === undefined,
+          String(dus.dusmusDurum(o.id)));
+  kontrol("gogus ve bas GERI geldi",
+          o._yuva.Chest === zirh.Chest && o._yuva.Head === zirh.Head,
+          o._yuva.Chest + " / " + o._yuva.Head);
+  kontrol("cantaya alinan bacak/ayak YENIDEN YARATILMADI",
+          o._yuva.Legs === undefined && o._yuva.Feet === undefined &&
+          canta[0] === zirh.Legs,
+          o._yuva.Legs + " / " + o._yuva.Feet);
+}
+{
+  /* Cok oyunculuda cikan kurbanin kaydi siliniyordu: geri
+     girince gercek zirhi yoktu. Cikis artik kaydi silmiyor. */
+  /* Cikista bellekteki ItemStack gidiyor, kayittaki TIP kaliyor;
+     geri verme tipten yeni esya kuruyor. Sahte dunya yalniz
+     kayitli tipten ItemStack kuruyor (oyunda vanilla hep kayitli). */
+  esyaKaydet("minecraft:diamond_chestplate");
+  const { o } = kur({ Chest: "minecraft:diamond_chestplate" });
+  blokKoy(o);
+  ilerlet(o, 1);
+  dus.dusmusUnut(o.id);                            // playerLeave
+  kontrol("oyuncu cikinca kaydi DURUYOR", dus.dusmusDurum(o.id) === "yozlasiyor",
+          String(dus.dusmusDurum(o.id)));
+  o.location = { x: 40.5, y: 64, z: 40.5 };
+  ilerlet(o, 2);
+  kontrol("geri girip arininca gogusu geri geldi",
+          o._yuva.Chest === "minecraft:diamond_chestplate", String(o._yuva.Chest));
 }
 
 console.log("");

@@ -1,5 +1,5 @@
 import { system, world } from "@minecraft/server";
-import { varlikKonumu, gecerliMi, kaliciYaz, hataYaz } from "../yardimcilar.js";
+import { varlikKonumu, gecerliMi, kaliciYaz, hataYaz, olayaAbone } from "../yardimcilar.js";
 import { blokIste, varlikIste, patlamaIste } from "../butce.js";
 import { kokAl, zincirNoktasi } from "./efsane.js";
 /* TEK YONLU: error404.js buradan hicbir sey ithal etmiyor.
@@ -7,7 +7,7 @@ import { kokAl, zincirNoktasi } from "./efsane.js";
    verir -- sessiz ve bulunmasi zor bir hata sinifi.         */
 import {
   e404Duruyor, e404SiklikCarpani, fazIlerlet, fazSatiri,
-  bozulanBlok, bozuklariTazele, yukselenZemin, havaTazele,
+  bozulanBlok, bozuklariTazele, yukselenZemin, havaTazele, e404Ayar,
   bozulmusSuru
 } from "./error404.js";
 import {
@@ -337,7 +337,12 @@ function mesaleGeriKoy(kayit) {
     const b = kayit.boyut.getBlock(kayit.yer);
     if (!b) return false;
     if (b.typeId !== "minecraft:air") return true;   // baskasi doldurmus
-    b.setType(kayit.tur);
+    /* DURUMUYLA geri (v7.98.2). setType varsayilan hali
+       koyuyordu: duvar mesalesi havada duran mesale, asili
+       fener yerde duran fener olarak donuyor ve dusuyordu.
+       Defter yalniz bellekte, BlockPermutation saklanabiliyor. */
+    if (kayit.izin && typeof b.setPermutation === "function") b.setPermutation(kayit.izin);
+    else b.setType(kayit.tur);
     return true;
   } catch (e) {
     return false;      // chunk yuklu degil: defterde kalsin, sonra
@@ -387,12 +392,14 @@ function sonenMesale(oyuncu, boyut, konum, simdi) {
     if (!blok || EFSANE_SONME_BLOKLAR.indexOf(blok.typeId) < 0) continue;
     if (blokIste(1) === 0) break;                    // butce
     const tur = blok.typeId;
+    let izin;
+    try { izin = blok.permutation; } catch (e) { izin = undefined; }
     try { blok.setType("minecraft:air"); } catch (e) { continue; }
     sondu++;
     /* Defter ONCE, zamanlayici SONRA: sirasi onemli. Defter
        yazilmadan zamanlayici kurulsaydi ve arada bir istisna
        olsaydi mesale hicbir yerde kayitli olmazdi.           */
-    const kayit = { boyut, yer, tur, tik: simdi + EFSANE_SONME_SURE };
+    const kayit = { boyut, yer, tur, izin, tik: simdi + EFSANE_SONME_SURE };
     mesaleDefteri.push(kayit);
     system.runTimeout(() => {
       const j = mesaleDefteri.indexOf(kayit);
@@ -548,6 +555,22 @@ function golgeSil(golgeId) {
 }
 
 let golgeOkundu = false;
+/* Yuklenen golge bu oturumun degilse sil (v7.98.2).
+   golgeleriSupur eski kimlikleri bir kez ariyor ve kaydi
+   siliyordu; yuklenmemis parcadaki golge kaciyordu.
+   donusum.js sahipsizKilikKur ile ayni kalip.               */
+export function sahipsizGolgeKur() {
+  return olayaAbone("entityLoad", (olay) => {
+    try {
+      const v = olay && olay.entity;
+      if (!v || v.typeId !== EFSANE_GOLGE_KIMLIK || golgeler.has(v.id)) return;
+      v.remove();
+    } catch (e) {
+      hataYaz("efsane_korku.sahipsizGolge", e);
+    }
+  });
+}
+
 export function golgeleriSupur() {
   if (golgeOkundu) return;
   golgeOkundu = true;
@@ -565,6 +588,10 @@ export function golgeleriSupur() {
 
 function kacanGolge(oyuncu, boyut, konum) {
   if (!EFSANE_404_ACIK) return false;
+  /* "404: Beliris Ac/Kapa" (kaynakta CanSpawn) bu olayi
+     kapatiyor. v7.98.2'ye kadar dugme ayari yaziyor, durumda
+     gosteriyor, ama HICBIR olay okumuyordu.                 */
+  if (!e404Ayar().dogum) return false;
   if (varlikIste(1) === 0) return false;
 
   /* ARKAYA dogurulyor: onune cikip "buradayim" demek korku

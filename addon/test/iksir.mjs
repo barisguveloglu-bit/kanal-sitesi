@@ -599,6 +599,24 @@ console.log("=== NITROKSIN: DUSME HASARI YOK (v7.6) ===");
 }
 
 console.log("");
+console.log("=== 9. KASK SILINMIYOR (v7.98.2) ===");
+{
+  /* gozTak kask yuvasina bakmadan yaziyordu: iksiri icen
+     oyuncunun netherite kaski geri gelmemek uzere gidiyordu. */
+  const { o } = icen("ik3");
+  o._kafa = "minecraft:netherite_helmet";
+  sus(); ic(o, "pa:iksir_nitroksin"); tickIlerlet(4); ac();
+  kontrol("kask yerinde kaldi", o._kafa === "minecraft:netherite_helmet", String(o._kafa));
+  const adlar = new Set(o._efekt.map((e) => e.ad));
+  kontrol("  guc yine verildi", adlar.has("strength"), [...adlar].join(", "));
+  /* Kendi gozumuz yuvadaysa (baska kademe) degistirmek serbest. */
+  const { o: o2 } = icen("ik4");
+  o2._kafa = "pa:goz_yesil";
+  sus(); ic(o2, "pa:iksir_nitroksin"); tickIlerlet(4); ac();
+  kontrol("bizim gozumuz degisebiliyor", o2._kafa === "pa:goz_beyaz", String(o2._kafa));
+}
+
+console.log("");
 console.log(hata ? ">>> SORUN VAR" : ">>> tum iksir testleri gecti");
 process.exit(hata ? 1 : 0);
 

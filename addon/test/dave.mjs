@@ -307,6 +307,29 @@ console.log("=== 6. KORUMA KUBBESI ===");
 }
 
 console.log("");
+console.log("=== 6b. KUBBE KURULURKEN KESILIRSE IZ KALMIYOR (v7.98.2) ===");
+{
+  /* geciciYapiIsi.bitir yalniz SOKME asamasindaki artigi
+     topluyordu; kurulurken kesilen is (oyuncu cikti) yarim
+     kubbeyi dunyada birakiyordu.                            */
+  const { geciciYapiIsi } = await import("./pack/yetenekler/_gecici_yapi.js");
+  const { butceSifirla } = await import("./pack/butce.js");
+  const { D, o } = kur("dv9", "pa:kol_dave");
+  const noktalar = [];
+  for (let x = -4; x <= 4; x++) for (let z = -4; z <= 4; z++) noktalar.push({ x, y: 3, z });
+  const is = geciciYapiIsi({ ad: "kubbe_t", oyuncu: o, merkez: { x: 0, y: 88, z: 0 },
+                             noktalar, blok: "minecraft:barrier", sure: 100 });
+  sus(); butceSifirla(); is.calis(); ac();
+  const kurulan = () => noktalar.filter((n) =>
+    D.boyut.getBlock({ x: n.x, y: 91, z: n.z }).typeId === "minecraft:barrier").length;
+  const yarim = kurulan();
+  kontrol("tek tickte YARIM kuruldu (on kosul)", yarim > 0 && yarim < noktalar.length,
+          yarim + " / " + noktalar.length);
+  sus(); is.bitir(); ac();
+  kontrol("kesilince kurulan bloklar geri alindi", kurulan() === 0, kurulan() + " barrier kaldi");
+}
+
+console.log("");
 console.log("=== 7. KOL KAYDI ===");
 {
   const kayit = await import("./pack/yetenekler/kayit.js");

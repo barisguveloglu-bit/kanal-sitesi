@@ -3,8 +3,7 @@ import { yetenekKaydet, esyaninYetenekleri } from "./kayit.js";
 import { sadelestir } from "../sohbet.js";
 import {
   hataYaz, gecerliMi, eldekiEsya, basKonumu, parcacikAt,
-  parcacikHalkasi, actionbarYaz, koniHedefleri
-} from "../yardimcilar.js";
+  parcacikHalkasi, actionbarYaz, koniHedefleri, itmeUygula } from "../yardimcilar.js";
 import { varlikIste } from "../butce.js";
 import { ruhCarpani, ruhOku, ruhYaz } from "./ruh.js";
 import { mermiIsi } from "./ruh_yetenekler.js";
@@ -192,12 +191,12 @@ function alanVur(oyuncu, s) {
       if (s.yavas) v.addEffect("slowness", s.yavas * 20, { amplifier: 1 });
       const k = v.location, m = oyuncu.location;
       if (s.itme && v.applyKnockback) {
-        v.applyKnockback(k.x - m.x, k.z - m.z, s.itme, 0.4);
+        itmeUygula(v, k.x - m.x, k.z - m.z, s.itme, 0.4);
       }
       /* CEKIM: itmenin isareti ters. Kaynakta -50 yaziyordu,
          eksi isaret zaten bunu soyluyordu.                  */
       if (s.cekim && v.applyKnockback) {
-        v.applyKnockback(m.x - k.x, m.z - k.z, s.cekim, 0.2);
+        itmeUygula(v, m.x - k.x, m.z - k.z, s.cekim, 0.2);
       }
       vurulan++;
     } catch (e) { /* varlik kayboldu */ }
@@ -251,7 +250,7 @@ yetenekKaydet({
         try {
           if (!v.applyKnockback) return;
           const k = v.location, m = oyuncu.location;
-          v.applyKnockback(k.x - m.x, k.z - m.z, JJK_KIRMIZI_ITME, 0.5);
+          itmeUygula(v, k.x - m.x, k.z - m.z, JJK_KIRMIZI_ITME, 0.5);
         } catch (e) { /* onemsiz */ }
       }
     });

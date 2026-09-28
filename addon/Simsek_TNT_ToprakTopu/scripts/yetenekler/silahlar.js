@@ -1,8 +1,7 @@
 import { system } from "@minecraft/server";
 import { patlamaIste, blokIste } from "../butce.js";
 import {
-  hataYaz, gecerliMi, actionbarYaz, varlikKonumu, parcacikAt
-} from "../yardimcilar.js";
+  hataYaz, gecerliMi, actionbarYaz, varlikKonumu, parcacikAt, itmeUygula } from "../yardimcilar.js";
 import {
   SILAH_ACIK, SILAHLAR, SILAH_ADIM, SILAH_KALINLIK,
   SILAH_IZ_ARALIK, SILAH_IZ_PARCACIK, SILAH_TAVAN, DONDUR_GIRDI_KILIT, DONDUR_KAMERA_KILIT,
@@ -296,7 +295,7 @@ export function silahAtes(oyuncu, t) {
         const dx = bas.x - k.x, dy = bas.y - k.y, dz = bas.z - k.z;
         const uz = Math.sqrt(dx * dx + dy * dy + dz * dz) || 1;
         h.varlik.applyKnockback
-          ? h.varlik.applyKnockback(dx / uz, dz / uz, 1.6, 0.35)
+          ? itmeUygula(h.varlik, dx / uz, dz / uz, 1.6, 0.35)
           : h.varlik.applyImpulse({ x: dx / uz, y: 0.35, z: dz / uz });
       }
       vuran++;

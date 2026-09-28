@@ -2,14 +2,15 @@ import { world, system } from "@minecraft/server";
 import { varlikIste } from "../butce.js";
 import { yetenekKaydet } from "./kayit.js";
 import {
-  hataYaz, gecerliMi, actionbarYaz, kollariIndir, parcacikHalkasi, kaliciYaz
+  hataYaz, gecerliMi, actionbarYaz, kollariIndir, parcacikHalkasi, kaliciYaz,
+  olayaAbone
 } from "../yardimcilar.js";
 import {
   DONUSUM_ACIK, SEY_KILIK_KIMLIK, DONUSUM_TAZELEME, DONUSUM_SURE,
   DONUSUM_KAYIT_ANAHTAR, DONUSUM_Y_KAYMA, SEY_AD,
   DONUSUM_PARCACIK, DONUSUM_PARCACIK_ADET, DONUSUM_PARCACIK_YARICAP,
   KILIK_ONDELEME, KILIK_ONDELEME_TAVAN,
-  KILIK_DONUS_ONDELEME, KILIK_DONUS_TAVAN, DEFTER_TAVAN
+  KILIK_DONUS_ONDELEME, KILIK_DONUS_TAVAN, DEFTER_TAVAN, CARPIK_KILIK_KIMLIK
 } from "../ayarlar.js";
 
 /* ================================================================
@@ -121,6 +122,26 @@ function oku() {
   } catch (e) {
     hataYaz("donusum.oku", e);
   }
+}
+
+/* ---- SAHIPSIZ KILIK SUPURGESI (v7.98.2) ----
+   oku() eski oturumun kiliklarini world.getEntity ile ariyor ve
+   kaydi HER DURUMDA siliyordu. Yuklenmemis bir parcadaki kilik
+   bulunamiyor; kayit gidince ona bir daha kimse bakmiyordu ve
+   kiliklar minecraft:persistent -- dunyada kalici kaliyordu.
+   Artik bir kilik YUKLENDIGI anda soruluyor: bu oturumda
+   kimsenin kiligi degilse siliniyor. Kayda gerek kalmiyor.   */
+export function sahipsizKilikKur() {
+  return olayaAbone("entityLoad", (olay) => {
+    try {
+      const v = olay && olay.entity;
+      if (!v || (v.typeId !== SEY_KILIK_KIMLIK && v.typeId !== CARPIK_KILIK_KIMLIK)) return;
+      for (const k of kilikler.values()) if (k.kilikId === v.id) return;
+      v.remove();
+    } catch (e) {
+      hataYaz("donusum.sahipsizKilik", e);
+    }
+  });
 }
 
 function kiligiSil(kilikId) {
