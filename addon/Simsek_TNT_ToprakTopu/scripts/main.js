@@ -160,6 +160,8 @@ blokHizKur((kimlik) => hareketMuafIsVarMi(kimlik));
    kaydediyor; hukmu playerLeave'de veriyor.                */
 kacisKur();
 womKilicKur();
+/* v7.99.6: cekim seti (aktorlerin cani). */
+cekimKur();
 
 /* v5.8: acilabilir zirh katmanlari (matkap). Yetenegi kendi
    dosyasinda kaydediyor; buradan yalniz "cekirdek elden
@@ -413,6 +415,7 @@ import {
 import {
   womKilicKur, womKilicTick, womKilicUnut, womHareketteMi,
 } from "./yetenekler/wom_kilic.js";
+import { cekimKur, cekimTick, cekimUnut, cekimKomutu } from "./yetenekler/cekim.js";
 
 /* ============================================================
    MERKEZI TICK YONETICISI
@@ -622,6 +625,12 @@ system.runInterval(() => {
     womKilicTick();
   } catch (e) {
     hataYaz("womKilicTick", e);
+  }
+  /* CEKIM SETI (v7.99.6): aktor eylemleri, kamera, sahne. */
+  try {
+    cekimTick();
+  } catch (e) {
+    hataYaz("cekimTick", e);
   }
 
   if (HAREKET_ACIK && system.currentTick % HAREKET_ORNEK === 0) {
@@ -2742,6 +2751,7 @@ olayaAbone("playerLeave", (olay) => {
   dikenUnut(olay.playerId);        // v7.91: diken zirhi penceresi
   evrimUnut(olay.playerId);        // v7.92: ben10 evrim kademesi
   womKilicUnut(olay.playerId);     // v7.99: wom kilic serisi
+  cekimUnut(olay.playerId);        // v7.99.6: cekim kamerasi / sahnesi
   /* v7.93: sayaclari sifirliyor, ELDIVENI VE TASLARI DEGIL --
      ikisi de dunyaya yazili ve geri girince durmali.        */
   sonsuzlukCikti(olay.playerId);
@@ -3106,6 +3116,8 @@ function yetenegiCalistir(oyuncu, kimlik) {
 
 sohbetKancalari({
   durum: (oyuncu) => durumRaporu(oyuncu),
+  /* Cekim seti (v7.99.6): butun alt komutlar cekim.js'te. */
+  cekim: (oyuncu, kelimeler, ham) => cekimKomutu(oyuncu, kelimeler, false, ham),
   arindir: (oyuncu) => arindir(oyuncu),
 
   /* Jujutsu karakter secimi (v7.60). Jest sirasina ucuncu bir

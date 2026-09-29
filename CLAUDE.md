@@ -467,3 +467,25 @@ olanların savunmalarını ekle."*
   oyununa bağlanabiliyor mu), izinler. `savunma_olc.py` ve
   `REFERANS_SAVUNMA_PLANI.md` güncellenir; `test/savunma_kapsam.mjs`
   ikisini birbirine bağlıyor.
+
+## Çekim seti — video için oyun içi çekim (v7.99.6)
+
+Kullanıcı video yolu olarak **A yolunu** seçti: çekim Minecraft'ın
+içinde, kamera `/camera` ile, kayıt ekran kaydıyla; telefonda da
+çalışmalı. Kullanım rehberi **`addon/CEKIM_REHBERI.md`** — kullanıcıya
+anlatırken oradan git.
+
+- `pa:aktor` varlığı `kol_uret.py` üretiyor (BP+RP, kendi insan
+  modeli `geometry.pa_aktor`/`_ince`, skin dizisi render
+  controller'da). **Oyunun Steve/Alex dokusu bilerek yok**: pakette
+  değil (mor-siyah riski) ve Mojang'ın dosyası.
+- Skin sırası = `pa:skin` dizini. Yeni skin **sona** eklenir:
+  `addon/kaynak_doku/aktor/<ad>.png` (alfabetik, sabit listeden
+  sonra). Sıra değişirse dünyadaki aktörler skin değiştirir.
+- Komutlar `scripts/yetenekler/cekim.js` → `cekimKomutu`. Sahneler
+  `ayarlar.js` `CEKIM_SAHNELER`; her satır sohbet komutunun aynısı,
+  son satır her zaman `birak`.
+- **Çıkış garantisi:** kamera, HUD ve kameramanın görünmezliğini geri
+  alan tek yer `cekimBirak`. `test/cekim.mjs` ölçüyor.
+- Oyunda gözle bakılmamış iki şey: aktörün elindeki eşyanın çizimi
+  ve kafa takibi (rehberin 8. bölümü).

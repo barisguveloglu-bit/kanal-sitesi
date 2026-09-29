@@ -1,0 +1,166 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "pa:aktor",
+      "materials": {
+        "default": "entity_alphatest"
+      },
+      "textures": {
+        "s0": "textures/entity/ilkel_harkos",
+        "s1": "textures/entity/ilkel_raxxan",
+        "s2": "textures/entity/ilkel_miskel",
+        "s3": "textures/entity/ilkel_okazor",
+        "s4": "textures/entity/ilkel_kajaros",
+        "s5": "textures/entity/aktor/uzak_akraba",
+        "s6": "textures/entity/aktor/o_sey",
+        "s7": "textures/entity/aktor/carpik"
+      },
+      "geometry": {
+        "default": "geometry.pa_aktor",
+        "slim": "geometry.pa_aktor_ince"
+      },
+      "render_controllers": [
+        "controller.render.pa_aktor"
+      ],
+      "enable_attachables": true,
+      "spawn_egg": {
+        "base_color": "#2b2b2b",
+        "overlay_color": "#d4a017"
+      },
+      "animations": {
+        "bak": "animation.humanoid.look_at_target.default",
+        "yuru": "animation.simsek_bot.yuru",
+        "tutus": "animation.aktor.tutus",
+        "wom_diamond_staff_durus": "animation.wom.diamond_staff.durus",
+        "wom_diamond_staff_durus_ust": "animation.wom.diamond_staff.durus_ust",
+        "wom_evil_tachi_durus": "animation.wom.evil_tachi.durus",
+        "wom_evil_tachi_durus_ust": "animation.wom.evil_tachi.durus_ust",
+        "wom_golden_staff_durus": "animation.wom.golden_staff.durus",
+        "wom_golden_staff_durus_ust": "animation.wom.golden_staff.durus_ust",
+        "wom_herrscher_durus": "animation.wom.herrscher.durus",
+        "wom_herrscher_durus_ust": "animation.wom.herrscher.durus_ust",
+        "wom_iron_staff_durus": "animation.wom.iron_staff.durus",
+        "wom_iron_staff_durus_ust": "animation.wom.iron_staff.durus_ust",
+        "wom_longsword_durus": "animation.wom.longsword.durus",
+        "wom_longsword_durus_ust": "animation.wom.longsword.durus_ust",
+        "wom_netherite_staff_durus": "animation.wom.netherite_staff.durus",
+        "wom_netherite_staff_durus_ust": "animation.wom.netherite_staff.durus_ust",
+        "wom_nova_durus": "animation.wom.nova.durus",
+        "wom_nova_durus_ust": "animation.wom.nova.durus_ust",
+        "wom_ruine_durus": "animation.wom.ruine.durus",
+        "wom_ruine_durus_ust": "animation.wom.ruine.durus_ust",
+        "wom_satsujin_durus": "animation.wom.satsujin.durus",
+        "wom_satsujin_durus_ust": "animation.wom.satsujin.durus_ust",
+        "wom_solar_durus": "animation.wom.solar.durus",
+        "wom_solar_durus_ust": "animation.wom.solar.durus_ust",
+        "wom_stone_staff_durus": "animation.wom.stone_staff.durus",
+        "wom_stone_staff_durus_ust": "animation.wom.stone_staff.durus_ust",
+        "wom_wooden_staff_durus": "animation.wom.wooden_staff.durus",
+        "wom_wooden_staff_durus_ust": "animation.wom.wooden_staff.durus_ust"
+      },
+      "scripts": {
+        "pre_animation": [
+          "variable.wom_diamond_staff = query.get_equipped_item_name('main_hand') == 'wom_diamond_staff';",
+          "variable.wom_evil_tachi = query.get_equipped_item_name('main_hand') == 'wom_evil_tachi';",
+          "variable.wom_golden_staff = query.get_equipped_item_name('main_hand') == 'wom_golden_staff';",
+          "variable.wom_herrscher = query.get_equipped_item_name('main_hand') == 'wom_herrscher';",
+          "variable.wom_iron_staff = query.get_equipped_item_name('main_hand') == 'wom_iron_staff';",
+          "variable.wom_longsword = query.get_equipped_item_name('main_hand') == 'wom_hollow_longsword';",
+          "variable.wom_netherite_staff = query.get_equipped_item_name('main_hand') == 'wom_netherite_staff';",
+          "variable.wom_nova = query.get_equipped_item_name('main_hand') == 'wom_nova';",
+          "variable.wom_ruine = query.get_equipped_item_name('main_hand') == 'wom_ruine';",
+          "variable.wom_satsujin = query.get_equipped_item_name('main_hand') == 'wom_satsujin';",
+          "variable.wom_solar = query.get_equipped_item_name('main_hand') == 'wom_solar';",
+          "variable.wom_stone_staff = query.get_equipped_item_name('main_hand') == 'wom_stone_staff';",
+          "variable.wom_wooden_staff = query.get_equipped_item_name('main_hand') == 'wom_wooden_staff';"
+        ],
+        "animate": [
+          "bak",
+          "yuru",
+          {
+            "tutus": "query.is_item_equipped(0)"
+          },
+          {
+            "wom_diamond_staff_durus": "variable.wom_diamond_staff && query.modified_move_speed < 0.1"
+          },
+          {
+            "wom_diamond_staff_durus_ust": "variable.wom_diamond_staff && query.modified_move_speed >= 0.1"
+          },
+          {
+            "wom_evil_tachi_durus": "variable.wom_evil_tachi && query.modified_move_speed < 0.1"
+          },
+          {
+            "wom_evil_tachi_durus_ust": "variable.wom_evil_tachi && query.modified_move_speed >= 0.1"
+          },
+          {
+            "wom_golden_staff_durus": "variable.wom_golden_staff && query.modified_move_speed < 0.1"
+          },
+          {
+            "wom_golden_staff_durus_ust": "variable.wom_golden_staff && query.modified_move_speed >= 0.1"
+          },
+          {
+            "wom_herrscher_durus": "variable.wom_herrscher && query.modified_move_speed < 0.1"
+          },
+          {
+            "wom_herrscher_durus_ust": "variable.wom_herrscher && query.modified_move_speed >= 0.1"
+          },
+          {
+            "wom_iron_staff_durus": "variable.wom_iron_staff && query.modified_move_speed < 0.1"
+          },
+          {
+            "wom_iron_staff_durus_ust": "variable.wom_iron_staff && query.modified_move_speed >= 0.1"
+          },
+          {
+            "wom_longsword_durus": "variable.wom_longsword && query.modified_move_speed < 0.1"
+          },
+          {
+            "wom_longsword_durus_ust": "variable.wom_longsword && query.modified_move_speed >= 0.1"
+          },
+          {
+            "wom_netherite_staff_durus": "variable.wom_netherite_staff && query.modified_move_speed < 0.1"
+          },
+          {
+            "wom_netherite_staff_durus_ust": "variable.wom_netherite_staff && query.modified_move_speed >= 0.1"
+          },
+          {
+            "wom_nova_durus": "variable.wom_nova && query.modified_move_speed < 0.1"
+          },
+          {
+            "wom_nova_durus_ust": "variable.wom_nova && query.modified_move_speed >= 0.1"
+          },
+          {
+            "wom_ruine_durus": "variable.wom_ruine && query.modified_move_speed < 0.1"
+          },
+          {
+            "wom_ruine_durus_ust": "variable.wom_ruine && query.modified_move_speed >= 0.1"
+          },
+          {
+            "wom_satsujin_durus": "variable.wom_satsujin && query.modified_move_speed < 0.1"
+          },
+          {
+            "wom_satsujin_durus_ust": "variable.wom_satsujin && query.modified_move_speed >= 0.1"
+          },
+          {
+            "wom_solar_durus": "variable.wom_solar && query.modified_move_speed < 0.1"
+          },
+          {
+            "wom_solar_durus_ust": "variable.wom_solar && query.modified_move_speed >= 0.1"
+          },
+          {
+            "wom_stone_staff_durus": "variable.wom_stone_staff && query.modified_move_speed < 0.1"
+          },
+          {
+            "wom_stone_staff_durus_ust": "variable.wom_stone_staff && query.modified_move_speed >= 0.1"
+          },
+          {
+            "wom_wooden_staff_durus": "variable.wom_wooden_staff && query.modified_move_speed < 0.1"
+          },
+          {
+            "wom_wooden_staff_durus_ust": "variable.wom_wooden_staff && query.modified_move_speed >= 0.1"
+          }
+        ]
+      }
+    }
+  }
+}

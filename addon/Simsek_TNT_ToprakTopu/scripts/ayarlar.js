@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.99.5";
+export const SURUM = "v7.99.6";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -2106,6 +2106,67 @@ export const SINEMATIK_FADE    = [0.5, 0.5, 0.5];   // giris/tut/cikis sn
 export const SINEMATIK_RENK    = [1, 1, 1];         // beyaz
 /* Tavan: is takilirsa bile kamera bu ticki gecince birakilir. */
 export const SINEMATIK_TAVAN   = 400;
+
+/* ---------------- CEKIM SETI (v7.99.6) ----------------
+   Video cekimi: kamera karsisinda oynayan aktorler, hazir
+   kamera acilari ve zamanli sahneler. Kullanim rehberi
+   addon/CEKIM_REHBERI.md; komutlar sohbette "cekim ..." ya da
+   /scriptevent s:k cekim ...
+
+   ---- CIKIS GARANTISI (sinematik ile ayni kural) ----
+   Serbest kamera kendiliginden bitmez. Kamerayi, gizlenen
+   HUD'u ve kameramanin gorunmezligini geri alan TEK yer var
+   (cekimBirak) ve sahne bitince, "cekim dur"da, oyuncu
+   cikinca ve CEKIM_TAVAN dolunca calisiyor.                  */
+export const CEKIM_ACIK      = true;
+export const CEKIM_YURU      = 0.215;   // blok/tick (4,3 blok/sn -- vanilla yurume)
+export const CEKIM_KOS       = 0.28;    // blok/tick (5,6 blok/sn -- vanilla kosu)
+export const CEKIM_VARIS     = 1.6;     // hedefe bu kadar kala dur
+export const CEKIM_MENZIL    = 3.5;     // vurusun degdigi en uzak mesafe
+export const CEKIM_ITME      = 0.55;    // vurulanin geri itilmesi (yatay)
+export const CEKIM_ITME_DIKEY = 0.25;
+export const CEKIM_SERI_ARA  = 40;      // tick; bu kadar vurmazsa kombo basa doner
+export const CEKIM_TAVAN     = 6000;    // tick (5 dk) -- en uzun sahne / kamera
+export const CEKIM_ADIM      = 4;       // hareketli kamerada kac tickte bir guncelle
+export const CEKIM_YAKLASMA  = 0.6;     // kamera kesmelerinde yumusak gecis (sn)
+
+/* Hazir sahneler. Her satir [tick, "cekim komutu"] -- sohbete
+   yazilan komutun aynisi, "cekim" kelimesi olmadan. Sahne
+   calisirken tick sayaci sahnenin basindan sayiyor.
+   Aktorleri (a, b) sahneden ONCE kur: "cekim aktor a", "cekim
+   aktor b harkos". Kendi sahneni eklemek icin buraya bir liste
+   daha yaz; ad sohbette "cekim sahne <ad>".                   */
+export const CEKIM_SAHNELER = {
+  duello: [
+    [0,   "esya a pa:wom_ruine"],
+    [0,   "esya b pa:wom_solar"],
+    [0,   "bak a b"],
+    [0,   "bak b a"],
+    [0,   "kamera genis a b"],
+    [0,   "yazi §lDÜELLO"],
+    [50,  "kamera yan a b"],
+    [60,  "vur a b"],
+    [95,  "vur b a"],
+    [130, "kamera omuz a b"],
+    [135, "vur a b"],
+    [165, "vur a b"],
+    [200, "kamera omuz b a"],
+    [205, "vur b a"],
+    [240, "vur b a"],
+    [275, "kamera yorunge a b 80"],
+    [280, "vur a b"],
+    [315, "vur a b"],
+    [360, "kamera yakin b"],
+    [420, "birak"]
+  ],
+  giris: [
+    [0,   "kamera dusuk a"],
+    [40,  "git a ileri 6"],
+    [70,  "kamera takip a"],
+    [120, "kamera yakin a"],
+    [170, "birak"]
+  ]
+};
 
 /* ---------------- ARINMA (v7.28) -- SAVUNMA ----------------
    Kullanici: "biriyle vs atacagim, toolbox gibi seyler
@@ -4453,7 +4514,7 @@ export const KOMUT_ETIKET = "simsek_yetkili";
    takma adi (sohbet.js ayni dal) ama listede yoktu: yetkisiz
    oyuncu kilidi takma adla aciyordu. test/sohbet.mjs artik
    AYNI DALA giden her adin ayni korumada oldugunu sinar.   */
-export const KOMUT_KORUMALI = ["can", "kalp", "bot", "yedek", "yukle", "geriyukle", "esyalarim"];
+export const KOMUT_KORUMALI = ["can", "kalp", "bot", "yedek", "yukle", "geriyukle", "esyalarim", "cekim"];
 
 /* ---- AYNI KAPI JESTTE DE  (v7.62) ----
    Dis inceleme en ciddi bulguyu buldu ve hakliydi: sohbetteki

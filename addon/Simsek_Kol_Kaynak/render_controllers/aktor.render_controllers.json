@@ -1,0 +1,42 @@
+{
+  "format_version": "1.8.0",
+  "render_controllers": {
+    "controller.render.pa_aktor": {
+      "arrays": {
+        "textures": {
+          "Array.skin": [
+            "Texture.s0",
+            "Texture.s1",
+            "Texture.s2",
+            "Texture.s3",
+            "Texture.s4",
+            "Texture.s5",
+            "Texture.s6",
+            "Texture.s7"
+          ]
+        },
+        "geometries": {
+          "Array.geo": [
+            "Geometry.default",
+            "Geometry.default",
+            "Geometry.default",
+            "Geometry.default",
+            "Geometry.default",
+            "Geometry.default",
+            "Geometry.default",
+            "Geometry.default"
+          ]
+        }
+      },
+      "geometry": "Array.geo[query.property('pa:skin')]",
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ],
+      "textures": [
+        "Array.skin[query.property('pa:skin')]"
+      ]
+    }
+  }
+}

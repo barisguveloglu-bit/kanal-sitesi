@@ -252,9 +252,23 @@ console.log("=== 4. HER VARLIGIN CIZIMI TAM MI ===");
        gorunmez oldu; render_controllers/ klasoru bu pakette
        hic yok, yani "controller.render.X" diye bir sey yazmak
        varligi cizilmez yapar.                                */
+    /* v7.99.6: kural "vanilla olsun" degil "TANIMLI olsun"du --
+       v4.28'de bot, klasorde olmayan bir denetleyiciye baglandigi
+       icin gorunmez oldu. Ozel denetleyici artik yalniz PAKETTE
+       TANIMLIYSA geciyor (aktorun skin dizisi icin gerekli). */
+    const rcKlasor = join(RP, "render_controllers");
+    const tanimli = new Set(["controller.render.default"]);
+    if (existsSync(rcKlasor)) {
+      for (const f of readdirSync(rcKlasor)) {
+        try {
+          const j = JSON.parse(readFileSync(join(rcKlasor, f), "utf8"));
+          for (const ad of Object.keys(j.render_controllers || {})) tanimli.add(ad);
+        } catch (e) { /* bozuk dosya: tanimlamiyor sayilir */ }
+      }
+    }
     for (const rc of istemci.render_controllers || []) {
-      kontrol(kimlik + ": vanilla render controller kullaniyor",
-              rc === "controller.render.default", String(rc));
+      kontrol(kimlik + ": render controller tanimli (" + rc + ")",
+              tanimli.has(String(rc)), String(rc));
     }
   }
 }

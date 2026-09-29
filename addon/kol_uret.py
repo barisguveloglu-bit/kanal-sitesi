@@ -159,7 +159,7 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # hanenin 0 yerine 5'ten baslamasi bunun isareti -- 7.83.0
 # ile 7.83.5 AYNI kod, sadece numara degisti.
 # v7.91.0: ORTANCA hane -- Avaritia'dan uc mekanik.
-SURUM_NO = (7, 99, 5)
+SURUM_NO = (7, 99, 6)
 
 SURUM_METIN = ".".join(map(str, SURUM_NO))
 
@@ -6531,6 +6531,235 @@ WOM_KILIC_HAREKET_DOSYA = "wom_kilic.hareket.json"
 WOM_BOS_ANIM = "animation.wom.bos"
 # Bos elin kayit anahtari (esya kimligi yok): yumruk seti (v7.99.2).
 WOM_BOS_EL = "bos_el"
+
+
+# ============================================================
+# CEKIM SETI -- AKTOR VARLIGI  (v7.99.6)
+#
+# Video cekimi icin kamera karsisinda oynayan insan bicimli
+# varlik. Kullanici "A yolu"nu secti: cekim oyunun ICINDE,
+# kamera /camera ile, kayit ekran kaydiyla.
+#
+# Neden oyuncu degil ayri bir varlik: bir kisi tek basina
+# iki karakteri oynatamaz. Aktorun AI'si YOK -- ne yapacagini
+# cekim.js soyluyor (yuru, bak, oyna, vur). Hasar almiyor gibi
+# gorunmesin diye can yuksek ve her vurustan sonra doluyor
+# (kirmizi yanip sonme ve geri itilme kalsin).
+#
+# Skin dizisi SIRALI ve dizin varligin `pa:skin` ozelligi.
+# Sira bozulursa dunyadaki aktorler skin degistirir; yeni skin
+# hep SONA eklenir (kaynak_doku/aktor/ alfabetik, en sonda).
+# ============================================================
+AKTOR_KIMLIK = "pa:aktor"
+AKTOR_CAN = 1024
+AKTOR_KLASOR = "aktor"          # kaynak_doku/aktor/*.png -> kullanicinin skinleri
+# (ad, RP doku yolu, kaynak) -- kaynak None ise doku pakette zaten var
+# (Ilkel Besli'nin dokulari). OYUNUN kendi Steve/Alex dokusu BILEREK
+# yok: pakette degiller (canli.mjs "dokusu diskte" kuralini koruyor --
+# eksik doku mor-siyah cizilir) ve Mojang dokusunu pakete koymak
+# baskasinin varligini dagitmak olur.
+AKTOR_SABIT_SKIN = [
+    ("harkos", "textures/entity/ilkel_harkos", None),
+    ("raxxan", "textures/entity/ilkel_raxxan", None),
+    ("miskel", "textures/entity/ilkel_miskel", None),
+    ("okazor", "textures/entity/ilkel_okazor", None),
+    ("kajaros", "textures/entity/ilkel_kajaros", None),
+    ("uzak_akraba", "textures/entity/aktor/uzak_akraba", "Simsek_Skin/uzak_akraba.png"),
+    ("o_sey", "textures/entity/aktor/o_sey", "Simsek_Skin/uzak_akraba_o_sey.png"),
+    ("carpik", "textures/entity/aktor/carpik", "Simsek_Skin/uzak_akraba_carpik.png"),
+]
+
+
+def aktor_ince_mi(png_yolu):
+    """64x64 skinde sag kolun 4. sutunu (x=54..55, y=20..31) bossa ince kol."""
+    try:
+        from PIL import Image
+        i = Image.open(png_yolu).convert("RGBA")
+    except Exception:
+        return False
+    if i.size != (64, 64):
+        return False
+    return all(i.getpixel((x, y))[3] == 0 for x in (54, 55) for y in range(20, 32))
+
+
+def aktor_skinleri():
+    """[(ad, doku, kaynak_yolu_ya_da_None, ince)] -- sira = pa:skin dizini."""
+    kok = os.path.dirname(os.path.abspath(__file__))
+    liste = []
+    for ad, doku, kaynak in AKTOR_SABIT_SKIN:
+        yol = os.path.join(kok, kaynak) if kaynak else None
+        if kaynak and not os.path.exists(yol):
+            continue
+        ince = yol is not None and aktor_ince_mi(yol)
+        if kaynak is None and ad.startswith(("harkos", "raxxan", "miskel", "okazor", "kajaros")):
+            ilk = os.path.join(DOKU_KAYNAK, "ilkel_%s.png" % ad)
+            ince = os.path.exists(ilk) and aktor_ince_mi(ilk)
+        liste.append((ad, doku, yol, ince))
+    klasor = os.path.join(DOKU_KAYNAK, AKTOR_KLASOR)
+    if os.path.isdir(klasor):
+        for f in sorted(os.listdir(klasor)):
+            if not f.lower().endswith(".png"):
+                continue
+            ad = re.sub(r"[^a-z0-9_]", "_", os.path.splitext(f)[0].lower())
+            if any(a == ad for a, _, _, _ in liste):
+                continue
+            yol = os.path.join(klasor, f)
+            liste.append((ad, "textures/entity/aktor/" + ad, yol, aktor_ince_mi(yol)))
+    return liste
+
+
+def aktor_sunucu_varligi(skin_sayisi):
+    return {
+        "format_version": "1.21.0",
+        "minecraft:entity": {
+            "description": {
+                "identifier": AKTOR_KIMLIK,
+                "is_spawnable": False,
+                "is_summonable": True,
+                "properties": {
+                    "pa:skin": {"type": "int", "range": [0, max(0, skin_sayisi - 1)],
+                                "default": 0, "client_sync": True}
+                },
+            },
+            "components": {
+                "minecraft:type_family": {"family": ["aktor", "pa_aktor", "inanimate"]},
+                "minecraft:collision_box": {"width": 0.6, "height": 1.8},
+                "minecraft:health": {"value": AKTOR_CAN, "max": AKTOR_CAN},
+                # Dusme, bogulma, yanma yok; vurus VAR (kirmizi yanip sonsun)
+                "minecraft:damage_sensor": {"triggers": [
+                    {"cause": "fall", "deals_damage": "no"},
+                    {"cause": "drowning", "deals_damage": "no"},
+                    {"cause": "suffocation", "deals_damage": "no"},
+                    {"cause": "fire", "deals_damage": "no"},
+                    {"cause": "fire_tick", "deals_damage": "no"},
+                    {"cause": "lava", "deals_damage": "no"},
+                ]},
+                "minecraft:physics": {},
+                "minecraft:pushable": {"is_pushable": False, "is_pushable_by_piston": True},
+                "minecraft:movement": {"value": 0.25},
+                "minecraft:movement.basic": {},
+                "minecraft:jump.static": {},
+                "minecraft:nameable": {"always_show": False, "allow_name_tag_renaming": False},
+                "minecraft:persistent": {},
+                "minecraft:equipment": {},
+                "minecraft:conditional_bandwidth_optimization": {},
+            },
+        },
+    }
+
+
+def aktor_istemci_varligi(skinler, wom_setler):
+    d = {
+        "identifier": AKTOR_KIMLIK,
+        "materials": {"default": "entity_alphatest"},
+        "textures": {"s%d" % i: s[1] for i, s in enumerate(skinler)},
+        "geometry": {"default": "geometry.pa_aktor",
+                     "slim": "geometry.pa_aktor_ince"},
+        "render_controllers": ["controller.render.pa_aktor"],
+        "enable_attachables": True,
+        "spawn_egg": {"base_color": "#2b2b2b", "overlay_color": "#d4a017"},
+        "animations": {
+            "bak": "animation.humanoid.look_at_target.default",
+            "yuru": "animation.simsek_bot.yuru",
+            "tutus": "animation.aktor.tutus",
+        },
+        "scripts": {
+            "pre_animation": [],
+            "animate": ["bak", "yuru",
+                        {"tutus": "query.is_item_equipped(0)"}],
+        },
+    }
+    # WoM durusu: oyuncudaki kuralin aynisi (elde WoM esyasi -> durus).
+    for set_ad, sv in sorted((wom_setler or {}).items()):
+        if "durus" not in sv:
+            continue
+        deg = "variable.wom_%s" % set_ad
+        d["scripts"]["pre_animation"].append("%s = %s;" % (deg, " || ".join(
+            "query.get_equipped_item_name('main_hand') == '%s'" % (WOM_ONEK + e)
+            for e in sv["esyalar"])))
+        d["animations"]["wom_%s_durus" % set_ad] = sv["durus"]
+        d["animations"]["wom_%s_durus_ust" % set_ad] = sv["durus_ust"]
+        d["scripts"]["animate"].append(
+            {"wom_%s_durus" % set_ad: deg + " && query.modified_move_speed < 0.1"})
+        d["scripts"]["animate"].append(
+            {"wom_%s_durus_ust" % set_ad: deg + " && query.modified_move_speed >= 0.1"})
+    return {"format_version": "1.10.0", "minecraft:client_entity": {"description": d}}
+
+
+def aktor_geometrisi(ince):
+    """Standart 64x64 skin duzeninde insan modeli. Kemik agaci
+    anim_tara.py 7. bolumdeki OLCULMUS oyuncu agaci:
+    root -> waist -> body -> head / kollar; root -> bacaklar.
+    Vanilla geometry.humanoid.custom'a guvenilmedi: pakette
+    degil, canli.mjs "geometrisi tanimli" diye soruyor.       """
+    k = 3 if ince else 4                       # kol genisligi
+    ky = 11.5 if ince else 12                  # ince kolun ust noktasi yarim piksel asagi
+    kp = 21.5 if ince else 22
+    def kup(o, b, uv, sis=0):
+        c = {"origin": o, "size": b, "uv": uv}
+        if sis:
+            c["inflate"] = sis
+        return c
+    kemik = lambda ad, ana, pivot, kupler=None: dict(
+        [("name", ad)] + ([("parent", ana)] if ana else []) +
+        [("pivot", pivot)] + ([("cubes", kupler)] if kupler else []))
+    bones = [
+        kemik("root", None, [0, 0, 0]),
+        kemik("waist", "root", [0, 12, 0]),
+        kemik("body", "waist", [0, 24, 0], [kup([-4, 12, -2], [8, 12, 4], [16, 16])]),
+        kemik("jacket", "body", [0, 24, 0], [kup([-4, 12, -2], [8, 12, 4], [16, 32], 0.25)]),
+        kemik("head", "body", [0, 24, 0], [kup([-4, 24, -4], [8, 8, 8], [0, 0])]),
+        kemik("hat", "head", [0, 24, 0], [kup([-4, 24, -4], [8, 8, 8], [32, 0], 0.5)]),
+        kemik("rightArm", "body", [-5, kp, 0], [kup([-4 - k, ky, -2], [k, 12, 4], [40, 16])]),
+        kemik("rightSleeve", "rightArm", [-5, kp, 0], [kup([-4 - k, ky, -2], [k, 12, 4], [40, 32], 0.25)]),
+        kemik("rightItem", "rightArm", [-6, 15, 1]),
+        kemik("leftArm", "body", [5, kp, 0], [kup([4, ky, -2], [k, 12, 4], [32, 48])]),
+        kemik("leftSleeve", "leftArm", [5, kp, 0], [kup([4, ky, -2], [k, 12, 4], [48, 48], 0.25)]),
+        kemik("leftItem", "leftArm", [6, 15, 1]),
+        kemik("rightLeg", "root", [-1.9, 12, 0], [kup([-3.9, 0, -2], [4, 12, 4], [0, 16])]),
+        kemik("rightPants", "rightLeg", [-1.9, 12, 0], [kup([-3.9, 0, -2], [4, 12, 4], [0, 32], 0.25)]),
+        kemik("leftLeg", "root", [1.9, 12, 0], [kup([-0.1, 0, -2], [4, 12, 4], [16, 48])]),
+        kemik("leftPants", "leftLeg", [1.9, 12, 0], [kup([-0.1, 0, -2], [4, 12, 4], [0, 48], 0.25)]),
+    ]
+    return {"format_version": "1.12.0", "minecraft:geometry": [{
+        "description": {"identifier": "geometry.pa_aktor" + ("_ince" if ince else ""),
+                        "texture_width": 64, "texture_height": 64,
+                        "visible_bounds_width": 2, "visible_bounds_height": 3,
+                        "visible_bounds_offset": [0, 1.5, 0]},
+        "bones": bones}]}
+
+
+def aktor_render_kontrol(skinler):
+    return {
+        "format_version": "1.8.0",
+        "render_controllers": {"controller.render.pa_aktor": {
+            "arrays": {
+                "textures": {"Array.skin": ["Texture.s%d" % i for i in range(len(skinler))]},
+                "geometries": {"Array.geo": ["Geometry.slim" if s[3] else "Geometry.default"
+                                             for s in skinler]},
+            },
+            "geometry": "Array.geo[query.property('pa:skin')]",
+            "materials": [{"*": "Material.default"}],
+            "textures": ["Array.skin[query.property('pa:skin')]"],
+        }},
+    }
+
+
+def aktor_animasyonu():
+    return {"format_version": "1.8.0", "animations": {
+        "animation.aktor.tutus": {"loop": True, "bones": {
+            "rightArm": {"rotation": [-18, 0, 0]}}},
+    }}
+
+
+def aktor_modulu(skinler):
+    return ("/* URETILDI -- kol_uret.py (aktor_skinleri). ELLE DUZENLEME.\n"
+            "   Sira = varligin pa:skin dizini; yeni skin SONA eklenir. */\n"
+            "export const AKTOR_KIMLIK = %s;\n"
+            "export const AKTOR_SKINLER = %s;\n"
+            % (json.dumps(AKTOR_KIMLIK),
+               json.dumps([{"ad": s[0], "ince": bool(s[3])} for s in skinler],
+                          ensure_ascii=False)))
 
 
 def wom_kilic_verisi():
@@ -12966,6 +13195,36 @@ def main():
     with open(os.path.join(BP, "scripts/yetenekler/_wom_hareket.js"), "w",
               encoding="utf-8") as _f:
         _f.write(wom_kilic_modulu(_wkv))
+
+    # ---- CEKIM SETI: AKTOR (v7.99.6) ----
+    _aks = aktor_skinleri()
+    for _aad, _adoku, _akaynak, _aince in _aks:
+        if _akaynak:
+            _ah = os.path.join(RP, _adoku + ".png")
+            os.makedirs(os.path.dirname(_ah), exist_ok=True)
+            shutil.copyfile(_akaynak, _ah)
+    _akl = os.path.join(RP, "textures/entity/aktor")
+    if os.path.isdir(_akl):
+        _aistenen = set(os.path.basename(d) + ".png" for _, d, k, _ in _aks if k)
+        for _af in os.listdir(_akl):
+            if _af not in _aistenen:
+                os.remove(os.path.join(_akl, _af))
+                print("artik aktor skini silindi: %s" % _af)
+    yaz_json(os.path.join(BP, "entities/aktor.json"), aktor_sunucu_varligi(len(_aks)))
+    yaz_json(os.path.join(RP, "entity/aktor.entity.json"), aktor_istemci_varligi(_aks, _wkv))
+    yaz_json(os.path.join(RP, "render_controllers/aktor.render_controllers.json"),
+             aktor_render_kontrol(_aks))
+    yaz_json(os.path.join(RP, "animations/aktor.animation.json"), aktor_animasyonu())
+    yaz_json(os.path.join(RP, "models/entity/aktor.geo.json"), aktor_geometrisi(False))
+    yaz_json(os.path.join(RP, "models/entity/aktor_ince.geo.json"), aktor_geometrisi(True))
+    with open(os.path.join(BP, "scripts/yetenekler/_aktor_skinleri.js"), "w",
+              encoding="utf-8") as _f:
+        _f.write(aktor_modulu(_aks))
+    for _l, _ad in ((en_us, "Actor"), (tr_tr, "Aktör")):
+        _l.append("entity.%s.name=%s" % (AKTOR_KIMLIK, _ad))
+        _l.append("item.spawn_egg.entity.%s.name=%s Yumurtası" % (AKTOR_KIMLIK, _ad)
+                  if _ad == "Aktör" else
+                  "item.spawn_egg.entity.%s.name=%s Spawn Egg" % (AKTOR_KIMLIK, _ad))
 
     # ---- WEAPONS OF MIRACLES (v7.98.0) ----
     # 27 silah (v7.98.3: animasyonsuz). Ayni tuzak icin

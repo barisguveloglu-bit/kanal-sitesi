@@ -806,7 +806,11 @@ console.log("=== 22. ISTEMCI VARLIGI: CIZIM YOLU (v4.30) ===");
   const { readdirSync } = await import("node:fs");
   const rcVar = existsSync(RP + "/render_controllers");
   const rcDosya = rcVar ? readdirSync(RP + "/render_controllers").sort() : [];
-  const IZINLI = ["goz_anim.render_controllers.json",
+  /* v7.99.6: cekim setinin aktoru. Skin DIZISI tutuyor (her
+     aktor kendi skinini seciyor); vanilla denetleyici tek doku
+     cizer. Botun cizimine dokunmuyor -- bot yine vanilla. */
+  const IZINLI = ["aktor.render_controllers.json",
+                  "goz_anim.render_controllers.json",
                   "goz_lazer.render_controllers.json"];
   kontrol("render controller klasorunde YALNIZ izinliler var",
           rcDosya.every((f) => IZINLI.includes(f)),

@@ -27,7 +27,7 @@ import {
       oyuncu donunce kamera bambaska yere bakiyor. Burada her
       adimda kameradan oyuncuya dogru hesaplaniyor.          */
 
-function bakisAcisi(kamera, hedef) {
+export function bakisAcisi(kamera, hedef) {
   /* Minecraft duzeni: yaw 0 = +z, bati yonunde artiyor;
      pitch asagi bakinca pozitif.                            */
   const dx = hedef.x - kamera.x;

@@ -175,7 +175,7 @@ export function yetkiliMi(oyuncu, ad) {
    ve birebir karsilastiriyor. Kaymasi mumkun degil; kayarsa
    test duser.                                              */
 const SABIT_KOMUTLAR = new Set([
-  "and", "arin", "arın", "bilgi", "bot", "can", "carpik",
+  "and", "arin", "arın", "bilgi", "bot", "can", "carpik", "cekim",
   "carpil", "cik", "durum", "duvar", "esyalarim",
   "fruit", "geriyukle", "goz", "guc", "jjk",
   "jujutsu", "kafes", "kalkan", "kalp", "kir", "kol", "kollar",
@@ -546,6 +546,15 @@ export function komutCozumle(oyuncu, hamMetin) {
     return { cevap: cagir("yetenekAra", oyuncu, arama) };
   }
 
+  /* CEKIM SETI (v7.99.6). Alt komutlarin hepsi cekim.js'te.
+     "yazi" ekrana metin basiyor; sadelestirilmis hali Turkce
+     harfleri ve buyuk harfi kaybederdi, o yuzden ham metin de
+     gidiyor.                                                   */
+  if (ad === "cekim") {
+    const ham = String(hamMetin).trim().split(/\s+/).slice(2).join(" ");
+    return { cevap: cagir("cekim", oyuncu, parca.slice(1), ham) };
+  }
+
   if (ad === "yardim" || ad === "komut" || ad === "komutlar") {
     return { cevap: YARDIM };
   }
@@ -676,6 +685,7 @@ const YARDIM = [
   "§ekol§7 · butun kollari al",
   "§eguc kapat§7 · acik iksiri kapat",
   "§edurum§7 · her sey calisiyor mu, tek bakista",
+  "§ecekim§7 · ÇEKİM SETİ: aktör kur, kamera açısı, sahne (video için)",
   "§8Sohbet calismazsa: §7/scriptevent s:k can 10"
 ].join("\n");
 
