@@ -159,7 +159,7 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # hanenin 0 yerine 5'ten baslamasi bunun isareti -- 7.83.0
 # ile 7.83.5 AYNI kod, sadece numara degisti.
 # v7.91.0: ORTANCA hane -- Avaritia'dan uc mekanik.
-SURUM_NO = (7, 99, 7)
+SURUM_NO = (7, 99, 8)
 
 SURUM_METIN = ".".join(map(str, SURUM_NO))
 
@@ -6830,6 +6830,16 @@ def aktor_modulu(skinler):
 # ============================================================
 TIRPAN = "karanlik_tirpan"
 TIRPAN_PIVOT = [-6, 15, 1]          # oyuncu modelinin rightItem pivotu
+# ---- TUTUS: Antitheus'un olculmus tutusu (v7.99.8) ----
+# WoM models/item/antitheus.json: OBJ ~4,2 blok, thirdperson_righthand
+# rotation [90,0,0] (Z ekseni -> ileri), translation [7.5,-9.5,8.3] px,
+# scale 0.95. Bu, eli modelin ortasindan ~0,6 blok BICAGA dogru
+# kaydiriyor: bicak onde ~1,6 blok, sapin uzun kismi (~2,6 blok) elin
+# ARKASINDA. Ilk tasarimda tersiydi (arkada 8, onde 35 px). WoM vuruslari
+# Antitheus'un boyuna gore yapildigi icin oran ona yaklastirildi
+# (Blender onizlemesi ile bakildi, arac/bedrock_onizleme.py).
+TIRPAN_ON = 20                       # elden bicagin tabanina (px, -Z)
+TIRPAN_ARKA = 26                     # elden sapin arka ucuna (px, +Z)
 # doku seridi: sutun -> renk (16x16 dokunun ilk satiri)
 TIRPAN_RENK = {
     0: (38, 30, 48, 255),     # sap koyu
@@ -6855,7 +6865,7 @@ def tirpan_bicak_hucreleri():
     Bicak sapin ucunda (z = -36) baslayip yukari 18 px, asagi 22 px
     uzaniyor ve uclara dogru GERIYE (+z) kivriliyor. On kenar
     (z_on) kivrimli, genislik tabanda 6 px, ucta 0.            """
-    Y0, ZB = 15, -36
+    Y0, ZB = 15, -TIRPAN_ON - 1
     hucre = {}
     for yy in range(-22, 19):
         y = Y0 + yy
@@ -6879,13 +6889,15 @@ def tirpan_bicak_hucreleri():
 
 def tirpan_geometrisi():
     x0 = TIRPAN_PIVOT[0]
+    on, arka = TIRPAN_ON, TIRPAN_ARKA
     kupler = [
-        _tirpan_kup([x0 - 0.5, 14.5, -35], [1, 1, 43], 0),           # sap
-        _tirpan_kup([x0 - 0.55, 14.6, -35], [1.1, 0.4, 43], 1),      # sapin parlak cizgisi
-        _tirpan_kup([x0 - 0.75, 14.25, -3], [1.5, 1.5, 6], 7),       # kabza sargisi
-        _tirpan_kup([x0 - 1, 14, 8], [2, 2, 2], 3),                  # topuz
-        _tirpan_kup([x0 - 0.5, 14.5, 10], [1, 1, 2], 2),             # topuz sivrisi
-        _tirpan_kup([x0 - 1, 14, -38], [2, 2, 3], 2),                # bogaz halkasi
+        _tirpan_kup([x0 - 0.5, 14.5, -on], [1, 1, on + arka], 0),         # sap
+        _tirpan_kup([x0 - 0.55, 14.6, -on], [1.1, 0.4, on + arka], 1),    # sapin parlak cizgisi
+        _tirpan_kup([x0 - 0.75, 14.25, -3], [1.5, 1.5, 6], 7),            # kabza sargisi (el)
+        _tirpan_kup([x0 - 0.75, 14.25, arka - 6], [1.5, 1.5, 4], 7),      # ikinci el sargisi
+        _tirpan_kup([x0 - 1, 14, arka], [2, 2, 2], 3),                    # topuz
+        _tirpan_kup([x0 - 0.5, 14.5, arka + 2], [1, 1, 2], 2),            # topuz sivrisi
+        _tirpan_kup([x0 - 1, 14, -on - 2], [2, 2, 3], 2),                 # bogaz halkasi
     ]
     # Bicak: ayni renkli komsu hucreleri z boyunca birlestir (kup sayisi az kalsin).
     hucre = tirpan_bicak_hucreleri()

@@ -508,7 +508,18 @@ console.log("\n=== 15. KARANLIK TIRPAN ===");
           ["kosu", "hava"].every((t) => WOM_KILIC_SETLER.antitheus.saldirilar.some((x) => x.tur === t)));
   kontrol("model elin kemigine bagli (rightItem)", geo.bones[0].name === "rightItem" && geo.bones[1].parent === "rightItem");
   const zler = geo.bones[1].cubes.map((c) => c.origin[2]);
-  kontrol("sap ileri (-Z): bicak onde, topuz arkada", Math.min(...zler) < -35 && Math.max(...zler) >= 8);
+  const renkli = (r) => geo.bones[1].cubes.filter((c) => c.uv.east.uv[0] === r);
+  const parlak = renkli(6).map((c) => c.origin[2]);
+  kontrol("bicak onde (-Z), topuz arkada (+Z)",
+          parlak.length > 10 && Math.min(...parlak) < -20 && Math.max(...parlak) < 0 &&
+          renkli(3).every((c) => c.origin[2] > 20), Math.min(...zler) + " .. " + Math.max(...zler));
+  /* v7.99.8: Antitheus'un tutusu -- el bicaga yakin, sapin uzun kismi
+     elin arkasinda (WoM models/item/antitheus.json olcumu). Sap tek
+     kup: origin z = -on, boy = on + arka. */
+  const sap = renkli(0)[0];
+  const on = -sap.origin[2], arka = sap.size[2] - on;
+  kontrol("tutus Antitheus gibi: sapin eli arkasinda kalan kismi onundekinden uzun", arka > on,
+          "on " + on + " px, arka " + arka + " px");
   const oyuncuG = JSON.parse(readFileSync(KOK + "/Simsek_Oyuncu_Modeli/entity/player.entity.json", "utf8"));
   kontrol("oyuncu elinde tutunca Antitheus durusu", JSON.stringify(oyuncuG).includes("== 'karanlik_tirpan'"));
   const akt = JSON.parse(readFileSync(KOK + "/Simsek_Kol_Kaynak/entity/aktor.entity.json", "utf8"));

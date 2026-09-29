@@ -502,3 +502,8 @@ anlatırken oradan git.
   `OZEL_SILAH` + `wom_esya_adi()` — üç yer (betik verisi, oyuncu ve
   aktör duruşu) oradan okuyor.
 - CPM ve ReplayMod JAR'ları ölçüldü, alınmadı: `REFERANS_CPM_REPLAYMOD.md`.
+- **Oyuna girmeden bakmak (v7.99.8):** `addon/arac/bedrock_onizleme.py`
+  Bedrock modelini + animasyon pozunu + attachable'ı Blender'da
+  (ekransız, Cycles CPU) çiziyor. Blender depoda yok: resmi siteden
+  indirilir, SHA-256 karşılaştırılır (`REFERANS_BLENDER_MCPREP.md`).
+  Yeni bir silah ya da poz "tahminle" kurulduysa önce buna bak.
