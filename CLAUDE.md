@@ -507,3 +507,8 @@ anlatırken oradan git.
   (ekransız, Cycles CPU) çiziyor. Blender depoda yok: resmi siteden
   indirilir, SHA-256 karşılaştırılır (`REFERANS_BLENDER_MCPREP.md`).
   Yeni bir silah ya da poz "tahminle" kurulduysa önce buna bak.
+- **B yolu da açık (v7.99.9):** kullanıcı dövüş fikrini anlatır,
+  `addon/arac/blender_film.py` senaryodan altyazılı film çizer
+  (Blender + MCprep dokuları, sanal makinede). Kurallar oyunla aynı
+  (vuruş, hamle, temas, kamera açıları). Ayrıntı ve süre ölçümü:
+  `REFERANS_BLENDER_MCPREP.md` son bölüm.

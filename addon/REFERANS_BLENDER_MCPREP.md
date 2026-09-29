@@ -68,3 +68,45 @@ YouTube kapak görseli, oyun içinde yapılamayan ağır çekim ve ışık
 için. Kurulum: Blender → Düzen → Tercihler → Eklentiler →
 "Diskten yükle" → `MCprep_addon_3.6.3.zip`. Bunun için bilgisayar
 gerekiyor; telefonda çalışmaz.
+
+## v7.99.9 — film aracı: `arac/blender_film.py`
+
+Kullanıcı: *"Blender ve MCprep ile animasyonlarımızı destekle… dövüş
+fikrini anlatacağım, animasyonu sen yapacaksın."* Yani **B yolu da
+açıldı**: oyun içi çekimin (A) yanında, sanal makinede Blender ile
+çizilen film.
+
+Senaryo bir JSON: aktörler (skin, isim, silah, dövüş seti, yer),
+zamanlı olaylar (`git`, `vur` oto/kosu/hava, `savun`, `kacin`,
+`bak`, `soyle`, `anlat`, `baslik`) ve kamera atışları (oyundaki
+sekiz açının aynısı, yumuşak geçişli). Çıktı altyazılı `film.mp4`.
+
+**Oyunla aynı kurallar:** vuruş seçimi, hamle izi, temas anları,
+savunma (önden) ve darbe tepkisi `cekim.js` ile aynı mantıkta; poz
+`bedrock_onizleme.py`'nin ölçülmüş kuralı; veri `wom_kilic.hareket.json`.
+Aynı senaryo her seferinde aynı filmi verir. `test/blender_film.mjs`
+zaman çizelgesini Blender'sız sınıyor (üç mutasyonla ısırdığı görüldü).
+
+**Oyunda olmayan ama burada olan:** vuruşa `"hiz": 0.5` → ağır çekim;
+bitirici vuruşta kamera sarsıntısı; kıvılcım parçacıkları; gökyüzü
+(Nishita) ve güneş gölgesi; MCprep'in blok dokularıyla çimen ve ağaç.
+
+**Ölçülen süre (4 çekirdek, 15 GB):** Cycles CPU, 1280×720, 16 örnek
++ gürültü giderme ≈ 6–10 sn/kare. 10 sn'lik sahne (240 kare) ≈ 30–40
+dk. `--onizleme` yarım çözünürlük ve 6 örnekle ≈ 2,4 sn/kare.
+EEVEE yazılım sürücüsüyle (Mesa llvmpipe) çalışıyor ama Cycles'tan
+yavaş (9 sn/kare) — kullanılmıyor.
+
+**Renk:** Blender'ın varsayılan AgX görünümü Minecraft renklerini
+soldurdu (çimen beyaz çıktı); `Standard` + pozlama −0,45. Çimen ve
+yaprak dokuları gri tonlu (oyun biyom rengiyle boyar): Blender 5.2'de
+karışım düğümü rengi tutmadı, doku önceden boyanıyor (`boyali_doku`).
+
+```sh
+MCPREP_DOKU=.../mcprep_default/assets/minecraft/textures/block \
+blender -b -P addon/arac/blender_film.py -- senaryo.json cikti/ [--onizleme] [--kare N]
+python3 addon/arac/blender_film.py -- x cikti/ --yazi     # altyazı + mp4
+```
+
+Ses yok: Minecraft sesleri MCprep'te yok, depoya da alınamaz. Müzik ve
+efekt sesi CapCut'ta ekleniyor.
