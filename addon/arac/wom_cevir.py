@@ -121,6 +121,19 @@ KILIC = {
         "kosu": "biped/combat/solar_quemadura", "hava": "biped/combat/solar_horno",
     },
 }
+# ---- ANTITHEUS (v7.99.7) ----
+# Kullanicinin en sevdigi. Tanim WOMWeaponCapabilityPresets.ANTITHEUS:
+# ANTITHEUS_AUTO_1..4, kosu ANTITHEUS_AGRESSION, hava
+# ANTITHEUS_GUILLOTINE; zamanlar WOMAnimations'ta (ayri Anims* sinifi
+# yok). Saldiri hizi WOM tablosundan: -2.1.
+KILIC["antitheus"] = {
+    "esyalar": ["antitheus"], "sinif": "reascer/wom/gameasset/WOMAnimations",
+    "kaynak": "wom", "hiz": 4 - 2.1,
+    "durus": "biped/living/antitheus_idle",
+    "oto": ["biped/combat/antitheus_auto_1", "biped/combat/antitheus_auto_2",
+            "biped/combat/antitheus_auto_3", "biped/combat/antitheus_auto_4"],
+    "kosu": "biped/combat/antitheus_agression", "hava": "biped/combat/antitheus_guillotine",
+}
 # ---- ASALAR (v7.99.1) ----
 # Alti asa ayni seti kullaniyor (data/wom/capabilities/weapons/*_staff.json
 # -> "wom:staff"), ama saldiri hizi kademeye bagli (StaffItem typeSwitch:

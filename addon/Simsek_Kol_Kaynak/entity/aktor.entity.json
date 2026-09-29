@@ -32,6 +32,8 @@
         "bak": "animation.humanoid.look_at_target.default",
         "yuru": "animation.simsek_bot.yuru",
         "tutus": "animation.aktor.tutus",
+        "wom_antitheus_durus": "animation.wom.antitheus.durus",
+        "wom_antitheus_durus_ust": "animation.wom.antitheus.durus_ust",
         "wom_diamond_staff_durus": "animation.wom.diamond_staff.durus",
         "wom_diamond_staff_durus_ust": "animation.wom.diamond_staff.durus_ust",
         "wom_evil_tachi_durus": "animation.wom.evil_tachi.durus",
@@ -61,6 +63,7 @@
       },
       "scripts": {
         "pre_animation": [
+          "variable.wom_antitheus = query.get_equipped_item_name('main_hand') == 'wom_antitheus' || query.get_equipped_item_name('main_hand') == 'karanlik_tirpan';",
           "variable.wom_diamond_staff = query.get_equipped_item_name('main_hand') == 'wom_diamond_staff';",
           "variable.wom_evil_tachi = query.get_equipped_item_name('main_hand') == 'wom_evil_tachi';",
           "variable.wom_golden_staff = query.get_equipped_item_name('main_hand') == 'wom_golden_staff';",
@@ -80,6 +83,12 @@
           "yuru",
           {
             "tutus": "query.is_item_equipped(0)"
+          },
+          {
+            "wom_antitheus_durus": "variable.wom_antitheus && query.modified_move_speed < 0.1"
+          },
+          {
+            "wom_antitheus_durus_ust": "variable.wom_antitheus && query.modified_move_speed >= 0.1"
           },
           {
             "wom_diamond_staff_durus": "variable.wom_diamond_staff && query.modified_move_speed < 0.1"

@@ -489,3 +489,16 @@ anlatırken oradan git.
   alan tek yer `cekimBirak`. `test/cekim.mjs` ölçüyor.
 - Oyunda gözle bakılmamış iki şey: aktörün elindeki eşyanın çizimi
   ve kafa takibi (rehberin 8. bölümü).
+- **v7.99.7:** dövüş çeşitleri (vuruş türü `oto/kosu/hava`, `savun`,
+  `kacin`, darbe tepkisi), **tohumlu** otomatik dövüş (`dovus a b sn
+  tohum` — aynı tohum aynı dövüş; tekrar çekim için, test kilitliyor),
+  Türkçe altyazı (`soyle`/`anlat`/`isim` — metin sohbetin HAM
+  hâlinden gelir, sadeleştirilmişinden değil) ve işaretli noktalardan
+  geçen kamera yolu (merkezcil Catmull-Rom).
+- **Karanlık Tırpan** (`pa:karanlik_tirpan`) kullanıcının kendi
+  silahı: Antitheus'tan esinlenen kendi küp modelimiz (Antitheus'un
+  modeli Blender örgüsü, çevrilemedi), dövüş seti Antitheus'unki.
+  WoM setine WoM'dan olmayan silah eklemek için `kol_uret.py`
+  `OZEL_SILAH` + `wom_esya_adi()` — üç yer (betik verisi, oyuncu ve
+  aktör duruşu) oradan okuyor.
+- CPM ve ReplayMod JAR'ları ölçüldü, alınmadı: `REFERANS_CPM_REPLAYMOD.md`.

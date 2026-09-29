@@ -551,7 +551,7 @@ export function komutCozumle(oyuncu, hamMetin) {
      harfleri ve buyuk harfi kaybederdi, o yuzden ham metin de
      gidiyor.                                                   */
   if (ad === "cekim") {
-    const ham = String(hamMetin).trim().split(/\s+/).slice(2).join(" ");
+    const ham = String(hamMetin).trim().split(/\s+/).slice(1).join(" ");
     return { cevap: cagir("cekim", oyuncu, parca.slice(1), ham) };
   }
 

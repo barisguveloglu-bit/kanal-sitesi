@@ -132,6 +132,8 @@ Her birinin ölçümü kendi `REFERANS_*.md` dosyasında.
 | NPA | KID_SKY | `REFERANS_NPA.md` |
 | Craftformers Prime | Bit & Byte | `REFERANS_TFP.md` |
 | GeckoLib | (MIT) | `REFERANS_GECKOLIB.md` |
+| Customizable Player Models | tom5454 (MIT) | `REFERANS_CPM_REPLAYMOD.md` |
+| ReplayMod | CrushedPixel, johni0702 (GPL-3.0) | `REFERANS_CPM_REPLAYMOD.md` |
 
 Diğer `REFERANS_*.md` dosyaları da aynı düzende.
 

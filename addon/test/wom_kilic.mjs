@@ -60,8 +60,9 @@ console.log("\n=== 2. VERI BUTUNLUGU ===");
 {
   const setler = Object.keys(HAREKET);
   /* 7 kilic + 6 asa (her asa kendi saldiri hiziyla, v7.99.1) +
-     bos el yumruk seti (v7.99.2). */
-  kontrol("14 set: 7 kilic + 6 asa + yumruk", setler.length === 14, setler.join(", "));
+     bos el yumruk seti (v7.99.2) + Antitheus (v7.99.7). */
+  kontrol("15 set: 8 kilic (Antitheus dahil) + 6 asa + yumruk",
+          setler.length === 15 && setler.includes("antitheus"), setler.join(", "));
   const y = HAREKET.yumruk;
   kontrol("  yumruk: bos el, esyasiz, durussuz, 3 oto + kosu + hava",
           !!y && y.bos_el === true && y.esyalar.length === 0 && !y.durus &&
@@ -93,7 +94,23 @@ console.log("\n=== 2. VERI BUTUNLUGU ===");
   kontrol("kuyruk kesme animasyonu var", !!ANIM["animation.wom.bos"]);
   const js = readFileSync(KOK + "/Simsek_TNT_ToprakTopu/scripts/yetenekler/_wom_hareket.js", "utf8");
   const m = js.match(/export const WOM_KILIC_SETLER = (.*);\n/);
-  kontrol("betik modulu ayni veriyi tasiyor", !!m && JSON.stringify(JSON.parse(m[1])) === JSON.stringify(HAREKET));
+  /* v7.99.7: modul setin esya listesine KENDI silahlarimizi da
+     ekliyor (Karanlik Tirpan -> antitheus, kol_uret.py OZEL_SILAH).
+     Esya listesi disindaki her sey bire bir ayni olmali; fazla esya
+     yalniz pakette gercekten var olan, WoM'dan olmayan bir esya olabilir. */
+  const modul = m ? JSON.parse(m[1]) : {};
+  const fazla = [];
+  const temiz = JSON.parse(JSON.stringify(modul));
+  for (const [ad, st] of Object.entries(temiz)) {
+    const asil = (HAREKET[ad] || {}).esyalar || [];
+    for (const e of st.esyalar || []) if (!asil.includes(e)) fazla.push(e);
+    st.esyalar = (st.esyalar || []).filter((e) => asil.includes(e));
+  }
+  kontrol("betik modulu ayni veriyi tasiyor (esya ekleri disinda)",
+          !!m && JSON.stringify(temiz) === JSON.stringify(HAREKET));
+  const yanlis = fazla.filter((e) => e.startsWith("wom_") ||
+    !existsSync(KOK + "/Simsek_TNT_ToprakTopu/items/" + e + ".json"));
+  kontrol("  eklenen esyalar gercek ve WoM'dan degil", yanlis.length === 0, fazla.join(", ") || "yok");
   /* Esya hasari betikte de ESYA dosyasindakiyle ayni olmali:
      kombo hasari onun carpani.                                   */
   const e = js.match(/export const WOM_KILIC_ESYA = (.*);\n/);

@@ -37,8 +37,12 @@ const kontrol = (ad, gecti, detay = "") => {
 function dunya() {
   const varliklar = [];
   let sayi = 0;
+  const efektler = [];
   const boyut = {
     id: "minecraft:overworld",
+    _efekt: efektler,
+    spawnParticle(ad, k) { efektler.push({ tur: "parcacik", ad, k }); },
+    playSound(ad, k) { efektler.push({ tur: "ses", ad, k }); },
     getEntities(s) {
       return varliklar.filter((v) => v.isValid && (!s || !s.type || v.typeId === s.type));
     },
@@ -71,6 +75,9 @@ function dunya() {
       applyDamage(n, s) { this._hasar.push({ n, kim: s && s.damagingEntity && s.damagingEntity.id }); return true; },
       applyKnockback(a, b, c, d) { this._itme.push([a, b, c, d]); },
       getComponent() { return undefined; },
+      _dp: {},
+      setDynamicProperty(a, d) { this._dp[a] = d; },
+      getDynamicProperty(a) { return this._dp[a]; },
       remove() { this.isValid = false; }
     };
     return v;
@@ -81,7 +88,8 @@ function oyuncu(D, id = "kameraman") {
   return {
     id, typeId: "minecraft:player", name: id, isValid: true, dimension: D.boyut,
     location: { x: 0.5, y: 64, z: 0.5 },
-    _komut: [], _efekt: [], _kalkan: [], _mesaj: [],
+    _komut: [], _efekt: [], _kalkan: [], _mesaj: [], _alt: [],
+    onScreenDisplay: { setActionBar(m) { this._o._alt.push(String(m)); }, _o: null },
     getViewDirection: () => ({ x: 0, y: 0, z: 1 }),
     runCommand(k) { this._komut.push(k); return { successCount: 1 }; },
     addEffect(a, s, o) { this._efekt.push(a); },
@@ -90,6 +98,7 @@ function oyuncu(D, id = "kameraman") {
     hasTag: () => true, getTags: () => []
   };
 }
+function oyuncuK(D, id) { const o = oyuncu(D, id); o.onScreenDisplay._o = o; return o; }
 const kom = (o, metin) => C.cekimKomutu(o, metin.split(" "));
 const tick = (n) => { sus(); tickIlerlet(n); ac(); };
 const son = (o, onek) => o._komut.filter((k) => k.startsWith(onek)).slice(-1)[0];
@@ -113,7 +122,7 @@ console.log("=== 1. AKTOR KURMA ===");
 {
   C.cekimSifirla();
   const D = dunya();
-  const o = oyuncu(D);
+  const o = oyuncuK(D);
   const c1 = kom(o, "aktor a");
   const a = C.aktorBul(D.boyut, "a");
   kontrol("aktor kuruldu ve adiyla bulunuyor", !!a && a.typeId === AKTOR_KIMLIK, c1);
@@ -143,7 +152,7 @@ console.log("\n=== 2. YURUME ===");
 {
   C.cekimSifirla();
   const D = dunya();
-  const o = oyuncu(D);
+  const o = oyuncuK(D);
   kom(o, "aktor a");
   const a = C.aktorBul(D.boyut, "a");
   a._bakis = { x: 1, z: 0 };
@@ -168,7 +177,7 @@ console.log("\n=== 3. DOVUS: WoM KOMBOSU ===");
 {
   C.cekimSifirla();
   const D = dunya();
-  const o = oyuncu(D);
+  const o = oyuncuK(D);
   kom(o, "aktor a");
   kom(o, "aktor b");
   const a = C.aktorBul(D.boyut, "a"), b = C.aktorBul(D.boyut, "b");
@@ -210,7 +219,7 @@ console.log("\n=== 4. KAMERA HEDEFE BAKIYOR ===");
 {
   C.cekimSifirla();
   const D = dunya();
-  const o = oyuncu(D);
+  const o = oyuncuK(D);
   kom(o, "aktor a"); kom(o, "aktor b");
   const a = C.aktorBul(D.boyut, "a"), b = C.aktorBul(D.boyut, "b");
   a.location = { x: 0, y: 64, z: 0 }; b.location = { x: 4, y: 64, z: 0 };
@@ -251,14 +260,14 @@ console.log("\n=== 5. CIKIS GARANTISI ===");
                        o._kalkan.includes("invisibility");
   C.cekimSifirla();
   const D = dunya();
-  let o = oyuncu(D);
+  let o = oyuncuK(D);
   kom(o, "aktor a");
   kom(o, "kamera yakin a");
   kom(o, "dur");
   kontrol("'dur': kamera + HUD + gorunmezlik geri alindi", bitti(o), o._komut.join(" | "));
   kontrol("  durum temiz", C.cekimDurum().kamera === 0 && C.cekimDurum().cekimde === 0);
 
-  o = oyuncu(D, "k2");
+  o = oyuncuK(D, "k2");
   kom(o, "aktor a"); kom(o, "aktor b");
   kom(o, "sahne giris");
   kontrol("sahne basinda HUD gizlendi", o._komut.includes("hud @s hide all"));
@@ -267,13 +276,13 @@ console.log("\n=== 5. CIKIS GARANTISI ===");
   kontrol("sahne sonu ('birak' satiri): hepsi geri alindi", bitti(o));
   kontrol("  sahne defterden dustu", C.cekimDurum().sahne === 0);
 
-  o = oyuncu(D, "k3");
+  o = oyuncuK(D, "k3");
   kom(o, "aktor a");
   kom(o, "kamera takip a");
   tick(ayar.CEKIM_TAVAN + ayar.CEKIM_ADIM + 2);
   kontrol("tavan dolunca hareketli kamera birakildi", bitti(o));
 
-  o = oyuncu(D, "k4");
+  o = oyuncuK(D, "k4");
   kom(o, "kamera yakin ben");
   C.cekimUnut("k4");
   kontrol("oyuncu cikinca durumu dusuyor", C.cekimDurum().cekimde === 0);
@@ -281,7 +290,8 @@ console.log("\n=== 5. CIKIS GARANTISI ===");
 
 console.log("\n=== 6. HAZIR SAHNELER ===");
 {
-  const bilinen = new Set(["aktor", "skin", "esya", "bak", "git", "oyna", "vur", "kamera", "hud", "yazi", "birak", "dur", "sil"]);
+  const bilinen = new Set(["aktor", "skin", "esya", "bak", "git", "oyna", "vur", "kamera", "hud", "yazi", "birak", "dur", "sil",
+                           "savun", "kacin", "dovus", "soyle", "anlat", "isim", "nokta"]);
   for (const [ad, satirlar] of Object.entries(ayar.CEKIM_SAHNELER)) {
     const kotu = satirlar.filter((s) => !bilinen.has(String(s[1]).split(" ")[0]) ||
       (String(s[1]).startsWith("kamera ") && !C.KAMERA_KALIPLARI.includes(String(s[1]).split(" ")[1])));
@@ -290,7 +300,7 @@ console.log("\n=== 6. HAZIR SAHNELER ===");
   }
   C.cekimSifirla();
   const D = dunya();
-  const o = oyuncu(D);
+  const o = oyuncuK(D);
   kom(o, "aktor a"); kom(o, "aktor b harkos");
   const a = C.aktorBul(D.boyut, "a"), b = C.aktorBul(D.boyut, "b");
   a.location = { x: 0.5, y: 64, z: 0.5 }; b.location = { x: 0.5, y: 64, z: 2.8 };
@@ -308,13 +318,210 @@ console.log("\n=== 7. SOHBET BAGLANTISI ===");
 {
   C.cekimSifirla();
   const D = dunya();
-  const o = oyuncu(D, "sohbetci");
+  const o = oyuncuK(D, "sohbetci");
   kontrol("'cekim' bir komut", sohbet.komutMu("cekim aktor a") && sohbet.komutMu("çekim yardim"));
   const c = sohbet.komutCozumle(o, "çekim aktor z");
   kontrol("sohbetten aktor kuruluyor", !!C.aktorBul(D.boyut, "z") && /Aktör/.test(c && c.cevap), c && c.cevap);
   sohbet.komutCozumle(o, "cekim yazi Merhaba Dünya");
   kontrol("yazi Turkce harf ve buyuk harfi koruyor", o._komut.includes("title @s title Merhaba Dünya"));
   kontrol("komut korumali listede (op'suz herkes aktor dogurmasin)", ayar.KOMUT_KORUMALI.includes("cekim"));
+}
+
+console.log("\n=== 9. VURUS TURLERI: KOSU VE HAVA ===");
+{
+  C.cekimSifirla();
+  const D = dunya();
+  const o = oyuncuK(D);
+  kom(o, "aktor a"); kom(o, "aktor b");
+  const a = C.aktorBul(D.boyut, "a"), b = C.aktorBul(D.boyut, "b");
+  a.location = { x: 0.5, y: 64, z: 0.5 }; b.location = { x: 0.5, y: 64, z: 4.5 };
+  kom(o, "esya a pa:wom_ruine");
+  const R = WOM_KILIC_SETLER.ruine.saldirilar;
+  kom(o, "vur a b kosu");
+  kontrol("kosu vurusu setin atilmasi", a._anim.slice(-1)[0] === R.find((x) => x.tur === "kosu").anim, a._anim.slice(-1)[0]);
+  tick(60);
+  C.cekimSifirla();
+  kom(o, "esya a pa:wom_ruine");
+  a.location = { x: 0.5, y: 64, z: 0.5 };
+  kom(o, "vur a b hava");
+  const hava = R.find((x) => x.tur === "hava");
+  kontrol("hava vurusu setin hava vurusu", a._anim.slice(-1)[0] === hava.anim);
+  let enYuksek = 64;
+  for (let i = 0; i < Math.round(hava.sure * 20); i++) { tick(1); enYuksek = Math.max(enYuksek, a.location.y); }
+  const izYuk = Math.max(...hava.iz.map((p) => p[2]));
+  kontrol("hava vurusunda aktor gercekten sicriyor", enYuksek - 64 > 0.5 && Math.abs(enYuksek - 64 - izYuk) < 0.05,
+          (enYuksek - 64).toFixed(2) + " / iz " + izYuk.toFixed(2));
+  C.cekimSifirla();
+  kom(o, "esya a pa:wom_ruine");
+  const oto = R.filter((x) => x.tur === "oto");
+  kom(o, "vur a b"); tick(Math.round(oto[0].sure * 20));
+  kom(o, "vur a b kosu"); tick(20);
+  kom(o, "vur a b");
+  kontrol("atilma kombo sirasini bozmuyor (sonraki oto 2. adim)", a._anim.slice(-1)[0] === oto[1].anim, a._anim.slice(-1)[0]);
+  kontrol("sette olmayan tur reddediliyor", C.komboSec("ruine", undefined, 0, "binek") === undefined &&
+          C.komboSec("ruine", undefined, 0, "hava") !== undefined);
+}
+
+console.log("\n=== 10. SAVUNMA ===");
+{
+  C.cekimSifirla();
+  const D = dunya();
+  const o = oyuncuK(D);
+  kom(o, "aktor a"); kom(o, "aktor b");
+  const a = C.aktorBul(D.boyut, "a"), b = C.aktorBul(D.boyut, "b");
+  a.location = { x: 0.5, y: 64, z: 0.5 }; b.location = { x: 0.5, y: 64, z: 2.5 };
+  b._bakis = { x: 0, z: -1 };                          // a'ya donuk
+  kom(o, "esya a pa:wom_ruine");
+  kom(o, "savun b 60");
+  kontrol("savunma animasyonu oynadi", b._anim.includes(ayar.CEKIM_ANIM.savun));
+  kom(o, "vur a b");
+  tick(40);
+  kontrol("onden gelen vurus savunuldu: hasar yok", b._hasar.length === 0, b._hasar.length + " hasar");
+  kontrol("  kalkan sesi calindi", D.boyut._efekt.some((e) => e.ad === ayar.CEKIM_SES.savun));
+  C.cekimSifirla();
+  kom(o, "esya a pa:wom_ruine");
+  b._bakis = { x: 0, z: 1 };                           // arkasi donuk
+  a.location = { x: 0.5, y: 64, z: 0.5 }; b.location = { x: 0.5, y: 64, z: 2.5 };
+  kom(o, "savun b 60");
+  b._bakis = { x: 0, z: 1 };
+  kom(o, "vur a b");
+  tick(40);
+  kontrol("arkadan gelen vurus savunulamiyor", b._hasar.length > 0);
+  kontrol("  vurulan darbe tepkisi oynadi", b._anim.includes(ayar.CEKIM_ANIM.darbe));
+  kontrol("  vurus sesi ve parcacik", D.boyut._efekt.some((e) => e.ad === ayar.CEKIM_SES.vurus) &&
+          D.boyut._efekt.some((e) => e.ad === ayar.CEKIM_PARCACIK));
+}
+
+console.log("\n=== 11. KACINMA ===");
+{
+  C.cekimSifirla();
+  const D = dunya();
+  const o = oyuncuK(D);
+  kom(o, "aktor a");
+  const a = C.aktorBul(D.boyut, "a");
+  const olc = (yon) => {
+    a.location = { x: 0.5, y: 64, z: 0.5 }; a._bakis = { x: 0, z: 1 };
+    kom(o, "kacin a " + yon);
+    tick(ayar.CEKIM_KACIN_TICK + 2);
+    return { x: a.location.x - 0.5, z: a.location.z - 0.5 };
+  };
+  const geri = olc("geri"), sol = olc("sol"), sag = olc("sag");
+  kontrol("geri: bakis yonunun tersine " + ayar.CEKIM_KACIN + " blok",
+          Math.abs(geri.z + ayar.CEKIM_KACIN) < 1e-6 && Math.abs(geri.x) < 1e-6, JSON.stringify(geri));
+  kontrol("sol ve sag zit yonde, ayni mesafede",
+          Math.abs(sol.x + sag.x) < 1e-6 && Math.abs(Math.abs(sol.x) - ayar.CEKIM_KACIN) < 1e-6, sol.x + " / " + sag.x);
+  kontrol("kacinma animasyonu yone gore", a._anim.includes(ayar.CEKIM_ANIM.kacin_sol) && a._anim.includes(ayar.CEKIM_ANIM.kacin_sag));
+}
+
+console.log("\n=== 12. OTOMATIK DOVUS ===");
+{
+  function dovustur(tohum) {
+    C.cekimSifirla();
+    const D = dunya();
+    const o = oyuncuK(D);
+    kom(o, "aktor a"); kom(o, "aktor b");
+    const a = C.aktorBul(D.boyut, "a"), b = C.aktorBul(D.boyut, "b");
+    a.location = { x: 0.5, y: 64, z: 0.5 }; b.location = { x: 0.5, y: 64, z: 5.5 };
+    kom(o, "esya a pa:wom_ruine"); kom(o, "esya b pa:wom_solar");
+    const c = kom(o, "dovus a b 12 " + tohum);
+    tick(12 * 20 + 60);
+    return { a, b, D, c, iz: a._anim.join(",") + "|" + b._anim.join(",") };
+  }
+  const r1 = dovustur(7);
+  kontrol("dovus basladi", r1.c.startsWith("§aDövüş"), r1.c);
+  kontrol("ikisi de vurdu, ikisi de vuruldu", r1.a._hasar.length > 0 && r1.b._hasar.length > 0,
+          r1.a._hasar.length + " / " + r1.b._hasar.length);
+  const vurus = [...r1.a._anim, ...r1.b._anim].filter((x) => x.startsWith("animation.wom.")).length;
+  const tepki = [...r1.a._anim, ...r1.b._anim].filter((x) => x === ayar.CEKIM_ANIM.savun || x.startsWith("animation.aktor.kacin")).length;
+  kontrol("tek tip degil: vuruslar + savunma/kacinma", vurus >= 4 && tepki >= 1, vurus + " vurus, " + tepki + " savunma/kacinma");
+  const turler = new Set([...r1.a._anim, ...r1.b._anim].filter((x) => x.startsWith("animation.wom.")));
+  kontrol("en az 3 farkli vurus animasyonu", turler.size >= 3, [...turler].join(", "));
+  kontrol("sure dolunca dovus bitti", C.cekimDurum().dovus === 0);
+  const r2 = dovustur(7);
+  kontrol("AYNI tohum AYNI dovus (tekrar cekim icin)", r1.iz === r2.iz);
+  const r3 = dovustur(8);
+  kontrol("farkli tohum farkli dovus", r1.iz !== r3.iz);
+  kontrol("'dovus dur' durduruyor", (C.cekimSifirla(), kom(oyuncuK(dunya()), "dovus dur").startsWith("§a")));
+}
+
+console.log("\n=== 13. ALTYAZI ===");
+{
+  C.cekimSifirla();
+  const D = dunya();
+  const o = oyuncuK(D, "yazar");
+  sohbet.komutCozumle(o, "cekim aktor a");
+  const a = C.aktorBul(D.boyut, "a");
+  sohbet.komutCozumle(o, "çekim isim a Barış");
+  sohbet.komutCozumle(o, "çekim soyle a Buraya gelmemeliydin, Çağrı!");
+  const beklenen = "§eBarış§7: §fBuraya gelmemeliydin, Çağrı!";
+  kontrol("altyazi ekranda, Turkce harfler ve buyuk harf yerinde", o._alt.includes(beklenen), o._alt.slice(-1)[0]);
+  kontrol("  konusan aktor konusma animasyonu oynuyor", a._anim.includes(ayar.CEKIM_ANIM.konus));
+  const sure = C.altyaziSure("Buraya gelmemeliydin, Çağrı!");
+  tick(sure - 5);
+  kontrol("  sure boyunca yenileniyor", o._alt.filter((m) => m === beklenen).length >= 2);
+  tick(10);
+  kontrol("  sure bitince siliniyor", o._alt.slice(-1)[0] === " " && C.cekimDurum().altyazi === 0);
+  kontrol("sure metin uzunluguna gore, en az " + ayar.CEKIM_ALTYAZI_EN_AZ + " tick",
+          C.altyaziSure("a") === ayar.CEKIM_ALTYAZI_EN_AZ && C.altyaziSure("x".repeat(200)) > C.altyaziSure("x".repeat(50)));
+  C.cekimKomutu(o, ["anlat", "Yıllar", "sonra..."]);
+  kontrol("anlatici satiri (isimsiz, italik)", o._alt.slice(-1)[0] === "§7§oYıllar sonra...", o._alt.slice(-1)[0]);
+  kontrol("isim kalici ozellikte de", a._dp["cekim:isim"] === "Barış");
+}
+
+console.log("\n=== 14. KAMERA YOLU (Catmull-Rom) ===");
+{
+  C.cekimSifirla();
+  const D = dunya();
+  const o = oyuncuK(D, "yolcu");
+  o.getRotation = () => ({ x: o._rot[0], y: o._rot[1] });
+  const nokta = (x, z, yaw) => { o.location = { x, y: 64, z }; o._rot = [10, yaw]; kom(o, "nokta ekle"); };
+  kontrol("tek noktayla yol reddediliyor", (nokta(0, 0, 350), kom(o, "kamera yol 40").startsWith("§c")));
+  nokta(10, 0, 10); nokta(10, 10, 30);
+  o._komut.length = 0;
+  kom(o, "kamera yol 40");
+  const ilk = kameraCoz(son(o, "camera @s set"));
+  kontrol("yol ilk noktadan basliyor", ilk && Math.abs(ilk.poz.x) < 1e-6 && Math.abs(ilk.poz.z) < 1e-6);
+  const orta = C.yolNoktasi([{ x: 0, y: 65.6, z: 0, pitch: 10, yaw: 350 }, { x: 10, y: 65.6, z: 0, pitch: 10, yaw: 10 },
+                             { x: 10, y: 65.6, z: 10, pitch: 10, yaw: 30 }], 0.5);
+  kontrol("yol ara noktadan GECIYOR", Math.abs(orta.x - 10) < 1e-6 && Math.abs(orta.z) < 1e-6, JSON.stringify(orta));
+  kontrol("  yaw 350 -> 10 kisa yoldan (20 derece, 340 degil)", Math.abs(((orta.yaw % 360) + 360) % 360 - 10) < 1e-6);
+  tick(60);
+  const sonK = kameraCoz(son(o, "camera @s set"));
+  kontrol("yol son noktada bitiyor", sonK && Math.abs(sonK.poz.x - 10) < 0.02 && Math.abs(sonK.poz.z - 10) < 0.02,
+          sonK && JSON.stringify(sonK.poz));
+  kontrol("  kamera birakilmadi (sahne kesebilsin)", C.cekimDurum().kamera === 1);
+  kom(o, "dur");
+  kontrol("'dur' yolu da birakiyor", o._komut.includes("camera @s clear"));
+}
+
+console.log("\n=== 15. KARANLIK TIRPAN ===");
+{
+  const esya = JSON.parse(readFileSync(KOK + "/Simsek_TNT_ToprakTopu/items/karanlik_tirpan.json", "utf8"))["minecraft:item"];
+  const att = JSON.parse(readFileSync(KOK + "/Simsek_Kol_Kaynak/attachables/karanlik_tirpan.json", "utf8"))["minecraft:attachable"].description;
+  const geo = JSON.parse(readFileSync(KOK + "/Simsek_Kol_Kaynak/models/entity/karanlik_tirpan.geo.json", "utf8"))["minecraft:geometry"][0];
+  const { WOM_KILIC_ESYA } = await import("./pack/yetenekler/_wom_hareket.js");
+  kontrol("esya ve attachable ayni kimlik", esya.description.identifier === "pa:karanlik_tirpan" && att.identifier === "pa:karanlik_tirpan");
+  kontrol("dovus sistemi onu Antitheus seti sayiyor", WOM_KILIC_ESYA["pa:karanlik_tirpan"] &&
+          WOM_KILIC_ESYA["pa:karanlik_tirpan"].set === "antitheus");
+  kontrol("Antitheus seti tam: 4 kombo + atilma + hava",
+          WOM_KILIC_SETLER.antitheus && WOM_KILIC_SETLER.antitheus.saldirilar.filter((x) => x.tur === "oto").length === 4 &&
+          ["kosu", "hava"].every((t) => WOM_KILIC_SETLER.antitheus.saldirilar.some((x) => x.tur === t)));
+  kontrol("model elin kemigine bagli (rightItem)", geo.bones[0].name === "rightItem" && geo.bones[1].parent === "rightItem");
+  const zler = geo.bones[1].cubes.map((c) => c.origin[2]);
+  kontrol("sap ileri (-Z): bicak onde, topuz arkada", Math.min(...zler) < -35 && Math.max(...zler) >= 8);
+  const oyuncuG = JSON.parse(readFileSync(KOK + "/Simsek_Oyuncu_Modeli/entity/player.entity.json", "utf8"));
+  kontrol("oyuncu elinde tutunca Antitheus durusu", JSON.stringify(oyuncuG).includes("== 'karanlik_tirpan'"));
+  const akt = JSON.parse(readFileSync(KOK + "/Simsek_Kol_Kaynak/entity/aktor.entity.json", "utf8"));
+  kontrol("aktor elinde tutunca da", JSON.stringify(akt).includes("== 'karanlik_tirpan'"));
+  const dil = readFileSync(KOK + "/Simsek_Kol_Kaynak/texts/tr_TR.lang", "utf8");
+  kontrol("Turkce adi var", dil.includes("item.pa:karanlik_tirpan.name=§dKaranlık Tırpan"));
+  C.cekimSifirla();
+  const D = dunya();
+  const o = oyuncuK(D);
+  kom(o, "aktor a"); kom(o, "aktor b");
+  kom(o, "esya a pa:karanlik_tirpan");
+  kom(o, "vur a b");
+  kontrol("aktor tirpanla Antitheus vurusu atiyor", C.aktorBul(D.boyut, "a")._anim[0] === "animation.wom.antitheus.antitheus_auto_1");
 }
 
 console.log("\n=== 8. URETILEN DOSYALAR ===");

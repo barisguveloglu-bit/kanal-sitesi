@@ -159,7 +159,7 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # hanenin 0 yerine 5'ten baslamasi bunun isareti -- 7.83.0
 # ile 7.83.5 AYNI kod, sadece numara degisti.
 # v7.91.0: ORTANCA hane -- Avaritia'dan uc mekanik.
-SURUM_NO = (7, 99, 6)
+SURUM_NO = (7, 99, 7)
 
 SURUM_METIN = ".".join(map(str, SURUM_NO))
 
@@ -6511,6 +6511,21 @@ WOM = [
 ]
 # Bedrock'ta esya nadirligi bileseni yok; ADIN RENGIYLE anlatiliyor.
 WOM_RENK = {"COMMON": "§f", "UNCOMMON": "§a", "RARE": "§b", "EPIC": "§d"}
+
+# ---- KENDI SILAHLARIMIZ, WoM DOVUS SETIYLE (v7.99.7) ----
+# WoM'un bir setini kullanan ama WoM'un esyasi OLMAYAN silahlar. Adlari
+# "wom_" onekini TASIMIYOR (bizim tasarimimiz, WoM'dan gelmiyor), ama
+# dovus sistemi onlari setin esyasi gibi goruyor: betik verisi, oyuncu
+# duruslari ve aktor duruslari wom_esya_adi() uzerinden.
+#   anahtar: (set, tr ad, en ad, Bedrock hasar, dayaniklilik, nadirlik)
+OZEL_SILAH = {
+    "karanlik_tirpan": ("antitheus", "Karanlık Tırpan", "Dark Scythe", 8, 6666, "EPIC"),
+}
+
+
+def wom_esya_adi(e):
+    """Setteki esya anahtari -> esyanin adi (namespace'siz)."""
+    return e if e in OZEL_SILAH else WOM_ONEK + e
 # ---- KILIC VURUSLARI (v7.99) ----
 # arac/wom_cevir.py uretti, arac/wom_dogrula.py olctu (Epic Fight'in
 # kendi pozuna karsi yon ortancasi 0.04 derece, kalca boslugu 0 px).
@@ -6675,7 +6690,7 @@ def aktor_istemci_varligi(skinler, wom_setler):
             continue
         deg = "variable.wom_%s" % set_ad
         d["scripts"]["pre_animation"].append("%s = %s;" % (deg, " || ".join(
-            "query.get_equipped_item_name('main_hand') == '%s'" % (WOM_ONEK + e)
+            "query.get_equipped_item_name('main_hand') == '%s'" % wom_esya_adi(e)
             for e in sv["esyalar"])))
         d["animations"]["wom_%s_durus" % set_ad] = sv["durus"]
         d["animations"]["wom_%s_durus_ust" % set_ad] = sv["durus_ust"]
@@ -6746,9 +6761,44 @@ def aktor_render_kontrol(skinler):
 
 
 def aktor_animasyonu():
+    """Aktorun tepki animasyonlari (v7.99.7). Isaret kurali vanilla'dan:
+    kolda -x = ileri kaldir (bow_and_arrow -90), govdede +x = one egil
+    (sneaking +28.6). cekim.js bunlari ayri denetleyicilerde oynatiyor
+    (cekim_tepki / cekim_savun / cekim_konus), vurusla ust uste binsin.  """
+    def kare(*ciftler):
+        return {("%.2f" % t): v for t, v in ciftler}
     return {"format_version": "1.8.0", "animations": {
         "animation.aktor.tutus": {"loop": True, "bones": {
             "rightArm": {"rotation": [-18, 0, 0]}}},
+        # vurulunca geri sarsilma
+        "animation.aktor.darbe": {"animation_length": 0.4, "bones": {
+            "waist": {"rotation": kare((0, [0, 0, 0]), (0.08, [-14, 0, 0]), (0.4, [0, 0, 0]))},
+            "head": {"rotation": kare((0, [0, 0, 0]), (0.08, [-12, 0, 0]), (0.4, [0, 0, 0]))},
+            "rightArm": {"rotation": kare((0, [0, 0, 0]), (0.1, [20, 0, 15]), (0.4, [0, 0, 0]))},
+            "leftArm": {"rotation": kare((0, [0, 0, 0]), (0.1, [20, 0, -15]), (0.4, [0, 0, 0]))}}},
+        # savunma durusu: iki kol onde, hafif egik, dizler acik
+        "animation.aktor.savun": {"loop": "hold_on_last_frame", "animation_length": 0.15, "bones": {
+            "waist": {"rotation": kare((0, [0, 0, 0]), (0.15, [10, 0, 0]))},
+            "head": {"rotation": kare((0, [0, 0, 0]), (0.15, [-8, 0, 0]))},
+            "rightArm": {"rotation": kare((0, [0, 0, 0]), (0.15, [-75, -25, 0]))},
+            "leftArm": {"rotation": kare((0, [0, 0, 0]), (0.15, [-70, 35, 0]))},
+            "rightLeg": {"rotation": kare((0, [0, 0, 0]), (0.15, [-6, 0, 6]))},
+            "leftLeg": {"rotation": kare((0, [0, 0, 0]), (0.15, [6, 0, -6]))}}},
+        "animation.aktor.kacin_sol": {"animation_length": 0.35, "bones": {
+            "waist": {"rotation": kare((0, [0, 0, 0]), (0.1, [0, 0, 20]), (0.35, [0, 0, 0]))},
+            "head": {"rotation": kare((0, [0, 0, 0]), (0.1, [0, 0, -10]), (0.35, [0, 0, 0]))}}},
+        "animation.aktor.kacin_sag": {"animation_length": 0.35, "bones": {
+            "waist": {"rotation": kare((0, [0, 0, 0]), (0.1, [0, 0, -20]), (0.35, [0, 0, 0]))},
+            "head": {"rotation": kare((0, [0, 0, 0]), (0.1, [0, 0, 10]), (0.35, [0, 0, 0]))}}},
+        "animation.aktor.kacin_geri": {"animation_length": 0.35, "bones": {
+            "waist": {"rotation": kare((0, [0, 0, 0]), (0.1, [-18, 0, 0]), (0.35, [0, 0, 0]))},
+            "rightArm": {"rotation": kare((0, [0, 0, 0]), (0.1, [-30, 0, 20]), (0.35, [0, 0, 0]))},
+            "leftArm": {"rotation": kare((0, [0, 0, 0]), (0.1, [-30, 0, -20]), (0.35, [0, 0, 0]))}}},
+        # konusurken kafa ve el hareketi
+        "animation.aktor.konus": {"loop": True, "bones": {
+            "head": {"rotation": ["math.sin(query.anim_time * 540) * 4",
+                                  "math.sin(query.anim_time * 230) * 6", 0]},
+            "rightArm": {"rotation": ["-12 + math.sin(query.anim_time * 300) * 6", 0, 5]}}},
     }}
 
 
@@ -6762,13 +6812,177 @@ def aktor_modulu(skinler):
                           ensure_ascii=False)))
 
 
+
+# ============================================================
+# KARANLIK TIRPAN  (v7.99.7)
+#
+# Kullanicinin istegi: "antiheus'a benzer bir silahim olsun".
+# Antitheus'un kendi modeli bir Blender ORGUSU (516 kose, egri
+# yuzeyler) -- Bedrock'un kup modeline cevrilemiyor, alinmadi.
+# Bu, onun SEKLINDEN esinlenen kendi tasarimimiz: uzun sap, ucta
+# iki yone kivrilan hilal bicak (Antitheus'un yan gorunusu gibi).
+# Kupler 1 piksellik izgarada, Minecraft esyalari gibi pikselli.
+# Dovus seti Antitheus'unki (OZEL_SILAH).
+#
+# Yonler: rightItem kemiginin dinlenme hali. WoM cevirisinde bicak
+# dinlenmede -Z'ye (ileri) bakiyor (kaynak_anim/wom/wom_kilic.iz.json
+# "bicak" dinlenme [0, -0.09, -1.0]); sap o yuzden -Z boyunca.
+# ============================================================
+TIRPAN = "karanlik_tirpan"
+TIRPAN_PIVOT = [-6, 15, 1]          # oyuncu modelinin rightItem pivotu
+# doku seridi: sutun -> renk (16x16 dokunun ilk satiri)
+TIRPAN_RENK = {
+    0: (38, 30, 48, 255),     # sap koyu
+    1: (70, 56, 88, 255),     # sap acik
+    2: (140, 146, 160, 255),  # metal
+    3: (110, 40, 217, 255),   # topuz moru
+    4: (30, 16, 48, 255),     # bicak koyu
+    5: (64, 30, 104, 255),    # bicak orta
+    6: (199, 125, 255, 255),  # parlayan kenar
+    7: (20, 14, 26, 255),     # kabza sargisi
+}
+
+
+def _tirpan_kup(origin, size, renk):
+    yuz = {"uv": [renk, 0], "uv_size": [1, 1]}
+    return {"origin": [round(v, 3) for v in origin], "size": [round(v, 3) for v in size],
+            "uv": {f: dict(yuz) for f in ("north", "south", "east", "west", "up", "down")}}
+
+
+def tirpan_bicak_hucreleri():
+    """Hilal bicagin (y, z) hucreleri ve renkleri, 1 px izgara.
+
+    Bicak sapin ucunda (z = -36) baslayip yukari 18 px, asagi 22 px
+    uzaniyor ve uclara dogru GERIYE (+z) kivriliyor. On kenar
+    (z_on) kivrimli, genislik tabanda 6 px, ucta 0.            """
+    Y0, ZB = 15, -36
+    hucre = {}
+    for yy in range(-22, 19):
+        y = Y0 + yy
+        if yy >= 0:
+            t = yy / 18.0
+            z_on = ZB - 3 + 15 * t * t
+            gen = 6 * (1 - t) + 0.6
+        else:
+            t = -yy / 22.0
+            z_on = ZB - 3 + 20 * t * t
+            gen = 7 * (1 - t) + 0.6
+        z0 = math.floor(z_on)
+        z1 = math.floor(z_on + gen)
+        for z in range(z0, z1 + 1):
+            if z + 0.5 < z_on or z + 0.5 > z_on + gen + 0.5:
+                continue
+            derin = (z + 0.5) - z_on
+            hucre[(y, z)] = 6 if derin < 1.0 else (5 if derin < 2.2 else 4)
+    return hucre
+
+
+def tirpan_geometrisi():
+    x0 = TIRPAN_PIVOT[0]
+    kupler = [
+        _tirpan_kup([x0 - 0.5, 14.5, -35], [1, 1, 43], 0),           # sap
+        _tirpan_kup([x0 - 0.55, 14.6, -35], [1.1, 0.4, 43], 1),      # sapin parlak cizgisi
+        _tirpan_kup([x0 - 0.75, 14.25, -3], [1.5, 1.5, 6], 7),       # kabza sargisi
+        _tirpan_kup([x0 - 1, 14, 8], [2, 2, 2], 3),                  # topuz
+        _tirpan_kup([x0 - 0.5, 14.5, 10], [1, 1, 2], 2),             # topuz sivrisi
+        _tirpan_kup([x0 - 1, 14, -38], [2, 2, 3], 2),                # bogaz halkasi
+    ]
+    # Bicak: ayni renkli komsu hucreleri z boyunca birlestir (kup sayisi az kalsin).
+    hucre = tirpan_bicak_hucreleri()
+    for y in sorted({k[0] for k in hucre}):
+        zler = sorted(z for (yy, z) in hucre if yy == y)
+        i = 0
+        while i < len(zler):
+            j = i
+            renk = hucre[(y, zler[i])]
+            while j + 1 < len(zler) and zler[j + 1] == zler[j] + 1 and hucre[(y, zler[j + 1])] == renk:
+                j += 1
+            kupler.append(_tirpan_kup([x0 - 0.25, y, zler[i]], [0.5, 1, zler[j] - zler[i] + 1], renk))
+            i = j + 1
+    return {"format_version": "1.12.0", "minecraft:geometry": [{
+        "description": {"identifier": "geometry." + TIRPAN, "texture_width": 16, "texture_height": 16,
+                        "visible_bounds_width": 5, "visible_bounds_height": 5,
+                        "visible_bounds_offset": [0, 1, 0]},
+        "bones": [
+            {"name": "rightItem", "pivot": TIRPAN_PIVOT},
+            {"name": "tirpan", "parent": "rightItem", "pivot": TIRPAN_PIVOT, "cubes": kupler},
+        ]}]}
+
+
+def tirpan_dokusu(yol):
+    png_yaz(yol, 16, 16, {(x, 0): r for x, r in TIRPAN_RENK.items()})
+
+
+def tirpan_ikonu(yol):
+    """32x32 ikon MODELIN KENDISINDEN: yan gorunus 45 derece cevrilip
+    kucultuluyor (sap sol-alttan sag-uste). Model degisirse ikon da
+    kendiliginden degisir."""
+    oncelik = {6: 5, 5: 4, 4: 3, 2: 2, 3: 2, 7: 1, 1: 0, 0: 0}
+    kupler = tirpan_geometrisi()["minecraft:geometry"][0]["bones"][1]["cubes"]
+    noktalar = []
+    for c in kupler:
+        (_, y, z), (_, sy, sz) = c["origin"], c["size"]
+        renk = c["uv"]["east"]["uv"][0]
+        for k in range(int(sz * 2)):
+            for m in range(int(max(1, sy) * 2)):
+                zz, yy = z + (k + 0.5) / 2, y + (m + 0.5) / 2
+                u = -zz                                  # ileri = saga
+                v = yy - TIRPAN_PIVOT[1]                 # yukari
+                noktalar.append(((u - v) * 0.7071, (u + v) * 0.7071, renk))
+    xs = [n[0] for n in noktalar]; ys = [n[1] for n in noktalar]
+    olcek = 29.0 / max(max(xs) - min(xs), max(ys) - min(ys))
+    p = {}
+    for x, y, renk in noktalar:
+        px = int((x - min(xs)) * olcek) + 1
+        py = 30 - int((y - min(ys)) * olcek)
+        eski = p.get((px, py))
+        if eski is None or oncelik[renk] > oncelik[eski]:
+            p[(px, py)] = renk
+    png_yaz(yol, 32, 32, {k: TIRPAN_RENK[r] for k, r in p.items()})
+
+
+def tirpan_esyasi():
+    set_ad, tr_ad, _en, hasar, dayanik, nadir = OZEL_SILAH[TIRPAN]
+    return {
+        "format_version": "1.20.50",
+        "minecraft:item": {
+            "description": {"identifier": "pa:" + TIRPAN,
+                            "menu_category": {"category": "equipment",
+                                              "group": "itemGroup.name.sword"}},
+            "components": {
+                "minecraft:icon": {"texture": TIRPAN},
+                "minecraft:display_name": {"value": WOM_RENK.get(nadir, "§f") + tr_ad},
+                "minecraft:max_stack_size": 1,
+                "minecraft:hand_equipped": True,
+                "minecraft:damage": hasar,
+                "minecraft:durability": {"max_durability": dayanik},
+                "minecraft:tags": {"tags": ["pa:wom"]},
+            },
+        },
+    }
+
+
+def tirpan_attachable():
+    return {"format_version": "1.10.0", "minecraft:attachable": {"description": {
+        "identifier": "pa:" + TIRPAN,
+        "materials": {"default": "entity_alphatest", "enchanted": "entity_alphatest_glint"},
+        "textures": {"default": "textures/entity/" + TIRPAN,
+                     "enchanted": "textures/misc/enchanted_actor_glint"},
+        "geometry": {"default": "geometry." + TIRPAN},
+        "render_controllers": ["controller.render.item_default"],
+    }}}
+
 def wom_kilic_verisi():
     """kaynak_anim/wom/wom_kilic.hareket.json -> setler, yoksa None."""
     yol = os.path.join(WOM_KILIC_KAYNAK, WOM_KILIC_HAREKET_DOSYA)
     if not WOM_KILIC_ACIK or not os.path.exists(yol):
         return None
     with open(yol, encoding="utf-8") as f:
-        return json.load(f)["setler"]
+        setler = json.load(f)["setler"]
+    for _oa, _ov in OZEL_SILAH.items():
+        if _ov[0] in setler and _oa not in setler[_ov[0]]["esyalar"]:
+            setler[_ov[0]]["esyalar"].append(_oa)
+    return setler
 
 
 def wom_esya_hasari(java_hasar):
@@ -6779,10 +6993,11 @@ def wom_esya_hasari(java_hasar):
 def wom_kilic_modulu(setler):
     """scripts/yetenekler/_wom_hareket.js: betigin okudugu veri."""
     hasar = {w[0]: wom_esya_hasari(w[3]) for w in WOM}
+    hasar.update({k: v[3] for k, v in OZEL_SILAH.items()})
     esya = {}
     for set_ad, s in (setler or {}).items():
         for e in s["esyalar"]:
-            esya["pa:" + WOM_ONEK + e] = {"set": set_ad, "hasar": hasar[e]}
+            esya["pa:" + wom_esya_adi(e)] = {"set": set_ad, "hasar": hasar[e]}
         if s.get("bos_el"):
             # Bos el: oyuncunun yumruk hasari 1 (Java ve Bedrock).
             esya[WOM_BOS_EL] = {"set": set_ad, "hasar": 1}
@@ -8271,7 +8486,7 @@ def oyuncu_modeli_paketi(surum):
             continue        # yumruk: bos elde normal durus (Epic Fight de oyle)
         _wdeg = "variable.wom_kilic_" + _wset
         d["scripts"]["pre_animation"].append("%s = %s;" % (_wdeg, " || ".join(
-            "query.get_equipped_item_name('main_hand') == '%s'" % (WOM_ONEK + _we)
+            "query.get_equipped_item_name('main_hand') == '%s'" % wom_esya_adi(_we)
             for _we in _wsv["esyalar"])))
         d["animations"]["wom_%s_durus" % _wset] = _wsv["durus"]
         d["animations"]["wom_%s_durus_ust" % _wset] = _wsv["durus_ust"]
@@ -13248,6 +13463,17 @@ def main():
         for liste, ad in ((en_us, _wen), (tr_tr, _wtr)):
             liste.append("item.pa:%s.name=%s%s" % (_wad, _wrenk, ad))
             liste.append("item.pa:%s=%s%s" % (_wad, _wrenk, ad))
+    # ---- KARANLIK TIRPAN (v7.99.7) ----
+    yaz_json(os.path.join(BP, "items/%s.json" % TIRPAN), tirpan_esyasi())
+    yaz_json(os.path.join(RP, "attachables/%s.json" % TIRPAN), tirpan_attachable())
+    yaz_json(os.path.join(RP, "models/entity/%s.geo.json" % TIRPAN), tirpan_geometrisi())
+    tirpan_dokusu(os.path.join(RP, "textures/entity/%s.png" % TIRPAN))
+    tirpan_ikonu(os.path.join(RP, "textures/item/%s.png" % TIRPAN))
+    dokular[TIRPAN] = {"textures": "textures/item/" + TIRPAN}
+    _trenk = WOM_RENK.get(OZEL_SILAH[TIRPAN][5], "§f")
+    for liste, ad in ((en_us, OZEL_SILAH[TIRPAN][2]), (tr_tr, OZEL_SILAH[TIRPAN][1])):
+        liste.append("item.pa:%s.name=%s%s" % (TIRPAN, _trenk, ad))
+        liste.append("item.pa:%s=%s%s" % (TIRPAN, _trenk, ad))
     # ---- KONSEY (v6.2) ----
     # 54 parca: 6 Konsey kostumu, 4 deri, 4 maske, 14 kol,
     # 7 asa, 5 Earl aleti, 8 zirh, 2 silah, 4 Dusmus asamasi.
@@ -14262,6 +14488,7 @@ def main():
     # tablo ve bu satir AYNI commit'te yazildi.
     for _wk3 in WOM:
         beklenen.add(WOM_ONEK + _wk3[0])
+    beklenen.add(TIRPAN)          # v7.99.7: ayni tuzak -- tablo ve bu satir birlikte
     # v7.96.5: iksir zincirinin ara urunleri. Ayni tuzak ucuncu
     # kez: sise ve sivilar hicbir listede degil, temizlik adimi
     # onlari yazildiklari kosuda silerdi.

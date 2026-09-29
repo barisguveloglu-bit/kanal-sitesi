@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.99.6";
+export const SURUM = "v7.99.7";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -2130,6 +2130,46 @@ export const CEKIM_TAVAN     = 6000;    // tick (5 dk) -- en uzun sahne / kamera
 export const CEKIM_ADIM      = 4;       // hareketli kamerada kac tickte bir guncelle
 export const CEKIM_YAKLASMA  = 0.6;     // kamera kesmelerinde yumusak gecis (sn)
 
+/* ---- DOVUS CESITLERI (v7.99.7) ----
+   "Hep ayni dovus mu?" sorusunun cevabi: artik degil. Vurus
+   turleri (oto kombo, kosu atilmasi, hava), savunma, kacinma,
+   darbe tepkisi ve kendi kendine dovusen aktorler ("dovus").
+   Otomatik dovus TOHUMLA calisiyor: ayni tohum = ayni dovus,
+   ayni dovusu farkli kamera acilarindan tekrar tekrar
+   cekebilesin diye.                                          */
+export const CEKIM_SAVUN_SURE  = 22;     // tick -- savunma durusu
+export const CEKIM_SAVUN_ITME  = 0.35;   // savunulan vurusta itmenin carpani
+export const CEKIM_KACIN       = 2.4;    // blok -- kacinma adimi
+export const CEKIM_KACIN_TICK  = 6;
+export const CEKIM_SARSINTI    = [0.22, 0.25];   // guc, sn -- bitirici vurusta kamera sarsintisi
+export const CEKIM_DOVUS_TAVAN = 120;    // sn -- en uzun otomatik dovus
+export const CEKIM_ANIM = {
+  darbe: "animation.aktor.darbe",
+  savun: "animation.aktor.savun",
+  kacin_sol: "animation.aktor.kacin_sol",
+  kacin_sag: "animation.aktor.kacin_sag",
+  kacin_geri: "animation.aktor.kacin_geri",
+  konus: "animation.aktor.konus",
+  bos: "animation.wom.bos"
+};
+export const CEKIM_SES = { vurus: "game.player.hurt", savun: "item.shield.block", kacin: "mob.player.hurt" };
+export const CEKIM_PARCACIK = "minecraft:critical_hit_emitter";
+
+/* ---- ALTYAZI (v7.99.7) ----
+   Konusma satiri ekranin altinda: "Ad: metin". Sure metnin
+   uzunlugundan (okuma hizi ~15 harf/sn), en az 2,5 sn.
+   Actionbar ~3 sn sonra soluyor; her 30 tickte yenileniyor.  */
+export const CEKIM_ALTYAZI_HARF = 1.3;   // tick / harf
+export const CEKIM_ALTYAZI_EN_AZ = 50;   // tick
+export const CEKIM_ALTYAZI_YENILE = 30;
+
+/* ---- KAMERA YOLU (v7.99.7) ----
+   Oyuncunun isaretledigi noktalardan gecen yumusak yol
+   (Catmull-Rom, merkezcil: alfa 0,5). Fikir ReplayMod'un yol
+   duzenleyicisinden (REFERANS_REPLAYMOD.md); kod bizim.      */
+export const CEKIM_YOL_ALFA = 0.5;
+export const CEKIM_YOL_EN_AZ = 2;        // nokta
+
 /* Hazir sahneler. Her satir [tick, "cekim komutu"] -- sohbete
    yazilan komutun aynisi, "cekim" kelimesi olmadan. Sahne
    calisirken tick sayaci sahnenin basindan sayiyor.
@@ -2158,6 +2198,33 @@ export const CEKIM_SAHNELER = {
     [315, "vur a b"],
     [360, "kamera yakin b"],
     [420, "birak"]
+  ],
+  /* Kendi kendine dovus + kesmeler. Ayni tohum (7) her seferinde
+     ayni dovusu verir. */
+  kapisma: [
+    [0,   "bak a b"],
+    [0,   "bak b a"],
+    [0,   "kamera genis a b"],
+    [0,   "anlat Karanlık çöktü. İki savaşçı karşı karşıya."],
+    [60,  "dovus a b 18 7"],
+    [60,  "kamera yan a b"],
+    [150, "kamera omuz a b"],
+    [230, "kamera yorunge a b 120"],
+    [340, "kamera omuz b a"],
+    [400, "kamera yakin b"],
+    [440, "soyle b Bu daha bitmedi..."],
+    [520, "birak"]
+  ],
+  konusma: [
+    [0,   "bak a b"],
+    [0,   "bak b a"],
+    [0,   "kamera omuz a b"],
+    [5,   "soyle a Sonunda geldin."],
+    [80,  "kamera omuz b a"],
+    [85,  "soyle b Seni bekletmek istemedim."],
+    [160, "kamera yan a b"],
+    [165, "soyle a O zaman başlayalım."],
+    [230, "birak"]
   ],
   giris: [
     [0,   "kamera dusuk a"],

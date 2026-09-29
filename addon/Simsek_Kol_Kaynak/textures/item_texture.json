@@ -1322,6 +1322,9 @@
     "wom_netherite_greataxe": {
       "textures": "textures/item/wom_netherite_greataxe"
     },
+    "karanlik_tirpan": {
+      "textures": "textures/item/karanlik_tirpan"
+    },
     "kns_okazor": {
       "textures": "textures/item/kns_okazor"
     },

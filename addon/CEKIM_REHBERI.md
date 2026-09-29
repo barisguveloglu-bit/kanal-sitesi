@@ -73,16 +73,39 @@ Hepsi `cekim` ile başlar. `hedef` = bir aktör adı ya da `ben` (sen).
 
 | komut | ne yapar |
 |---|---|
-| `cekim vur <ad> <hedef> [set]` | Hedefe bakar ve **kombonun sıradaki vuruşunu** atar. Hamle mesafesi, vuruş anı, geri itme ve kırmızı yanıp sönme gerçek. Set yazmazsan elindeki WoM silahınınki, eli boşsa yumruk. |
+| `cekim vur <ad> <hedef> [set] [tür]` | Hedefe bakar ve vurur. Tür: `oto` (kombonun sıradaki vuruşu, varsayılan), `kosu` (koşarak atılma), `hava` (sıçrayıp tepeden vuruş — aktör gerçekten havalanır). Hamle mesafesi, vuruş anı, geri itme, kırmızı yanıp sönme, kıvılcım ve ses gerçek. Set yazmazsan elindeki silahınki, eli boşsa yumruk. Örnek: `cekim vur a b kosu`. |
+| `cekim savun <ad> [tick]` | Savunma duruşu (varsayılan 22 tick). **Önden** gelen vuruş hasar vermez, kalkan sesi çıkar, itme azalır. Arkadan gelen savunulamaz. |
+| `cekim kacin <ad> [sol\|sag\|geri] [hedef]` | Hızlı yana/geriye kaçma adımı (2,4 blok). Hedef verirsen ona göre yön alır. |
+| `cekim dovus <a> <b> [saniye] [tohum]` | **Kendi kendine dövüş.** İkisi yaklaşır, kombo atar, atılır, havadan vurur, savunur, kaçar. Aynı **tohum** + aynı başlangıç yeri = **aynı dövüş**: bir kez geniş açıdan, bir kez omuzdan çekip kurguda birleştirebilirsin. `cekim dovus dur` durdurur. |
 | `cekim oyna <ad> <animasyon>` | Tek animasyon oynatır: `cekim oyna a ruine.ruine_auto_1` ya da tam ad `animation.x.y`. |
 | `cekim animler [set]` | Setleri / bir setin vuruşlarını listeler. |
 
 Setler: `ruine`, `longsword`, `satsujin`, `evil_tachi`, `nova`,
-`herrscher`, `solar`, altı asa (`wooden_staff` … `netherite_staff`),
-`yumruk`.
+`herrscher`, `solar`, **`antitheus`**, altı asa (`wooden_staff` …
+`netherite_staff`), `yumruk`.
+
+### Karanlık Tırpan
+
+Senin silahın: `pa:karanlik_tirpan`. Antitheus'un şeklinden esinlenen
+kendi tasarımımız — uzun kara sap, ucunda iki yöne kıvrılan mor
+parlak kenarlı hilal bıçak. Elde 3D görünüyor. Dövüş seti
+**Antitheus'unki**: 4'lü kombo, koşarak atılma (agression) ve havadan
+giyotin. Aktöre vermek için: `cekim esya a pa:karanlik_tirpan`.
+Kendin tutarsan da aynı vuruşları atarsın.
 
 Arka arkaya `vur` yazdıkça kombo ilerler (1→2→3…); 2 saniye vurmazsa
 başa döner. Aktörler ölmez: can her vuruştan sonra dolar.
+
+### Altyazı (Türkçe)
+
+| komut | ne yapar |
+|---|---|
+| `cekim isim <ad> <görünen ad>` | Altyazıda görünecek ad: `cekim isim a Barış`. |
+| `cekim soyle <ad> <söz>` | Ekranın altında **"Barış: söz"**. Aktör konuşurken başını ve elini oynatır. Süre metnin uzunluğundan (en az 2,5 sn). |
+| `cekim anlat <metin>` | Anlatıcı satırı (isimsiz, italik): `cekim anlat Yıllar sonra...` |
+
+Türkçe harfler ve büyük harf korunur. Sahne satırlarında da aynı:
+`[40, "soyle a Buraya gelmemeliydin!"]`.
 
 ### Kamera
 
@@ -103,6 +126,13 @@ başa döner. Aktörler ölmez: can her vuruştan sonra dolar.
 - Kamera açılınca **sen görünmez olursun**, kadraja girmezsin.
 - `cekim kamera birak` ya da `cekim dur` kamerayı sana geri verir.
 
+**Kendi kamera yolun:** kameranın geçmesini istediğin yerlere git,
+oraya bakarken `cekim nokta ekle` yaz (her yerde bir kez). Sonra
+`cekim kamera yol 100` — kamera 100 tickte (5 sn) bu noktalardan,
+her noktada senin baktığın yöne bakarak, yumuşak bir eğriyle geçer.
+`cekim nokta sil` son noktayı, `cekim nokta temizle` hepsini siler.
+(Fikir ReplayMod'dan; Bedrock'a biz yazdık.)
+
 ### Ekran
 
 | komut | ne yapar |
@@ -115,7 +145,7 @@ başa döner. Aktörler ölmez: can her vuruştan sonra dolar.
 | komut | ne yapar |
 |---|---|
 | `cekim sahne <ad>` | Hazır sahneyi oynatır. |
-| `cekim sahneler` | Hazır sahneler: `duello`, `giris`. |
+| `cekim sahneler` | Hazır sahneler: `duello`, `kapisma` (kendi kendine dövüş + kesmeler + altyazı), `konusma` (karşılıklı diyalog), `giris`. |
 | `cekim dur` | Her şeyi durdurur, geri alır. |
 
 ## 4. Kendi sahneni yazmak
@@ -195,6 +225,10 @@ Bunlar kodda ölçülemedi, oyunda görülmesi gerekiyor:
   çizimi oyunun kendi kararı. Görünmezse söyle, başka yola geçeriz.
 - **Kafa takibi:** aktörler yakındaki oyuncuya kafa çevirebilir.
   Kamera sahnesinde sorun olursa kapatırım.
+- **Altyazı ekranın altındaki yazı satırında** (actionbar). HUD'u
+  gizlediğinde görünmesi gerekiyor; görünmezse söyle, başka yere alırız.
+- **Karanlık Tırpan'ın eldeki duruşu** tahminle kuruldu (sap ileri,
+  bıçak önde). Ters ya da kayık durursa ekran görüntüsü at, düzeltirim.
 - **Ağır çekim yok:** Bedrock'ta oyunun zamanını yavaşlatmanın yolu
   yok. Ağır çekimi kurguda yap (CapCut hız ayarı).
 - Serbest kamera oyuncunun kendi ekranında; **çok oyunculu** dünyada
