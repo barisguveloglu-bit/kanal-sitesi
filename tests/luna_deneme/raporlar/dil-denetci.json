@@ -1,0 +1,7 @@
+[
+  {"id":"D1","sonuc":"temiz","alinti":"Her şey hazır.","aciklama":"Yazım hatası yok."},
+  {"id":"D2","sonuc":"kusur","alinti":"Hiç bir","aciklama":"'Hiçbir' bitişik yazılır."},
+  {"id":"D3","sonuc":"kusur","alinti":"Herkez","aciklama":"Doğru yazım 'herkes'tir."},
+  {"id":"D4","sonuc":"temiz","alinti":"Sen de gelebilirsin.","aciklama":"'De' bağlaç olarak ayrı yazılmış; yazım hatası yok."},
+  {"id":"D5","sonuc":"kusur","alinti":"Bir çok","aciklama":"'Birçok' bitişik yazılır."}
+]

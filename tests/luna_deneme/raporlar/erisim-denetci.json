@@ -1,0 +1,38 @@
+[
+  {
+    "id": "E1",
+    "sonuc": "temiz",
+    "alinti": "<button aria-label=\"Menüyü aç\"><span aria-hidden=\"true\">☰</span></button>",
+    "aciklama": "Düğmenin erişilebilir adı aria-label ile belirtilmiş; gizli simge ada dahil edilmiyor."
+  },
+  {
+    "id": "E2",
+    "sonuc": "kusur",
+    "alinti": "<button><span aria-hidden=\"true\">×</span></button>",
+    "aciklama": "Ekran okuyucu kullanıcısı düğmenin amacını öğrenemiyor; tek içerik aria-hidden simge ve başka ad yok."
+  },
+  {
+    "id": "E3",
+    "sonuc": "kusur",
+    "alinti": "<div onclick=\"ac()\">Menüyü aç</div>",
+    "aciklama": "Klavye kullanıcısı bu div'e sekmeyle erişip etkinleştiremiyor; div kendiliğinden düğme rolü veya klavye desteği sağlamaz."
+  },
+  {
+    "id": "E4",
+    "sonuc": "kusur",
+    "alinti": "button:focus { outline: none; box-shadow: none; }",
+    "aciklama": "Klavye kullanıcısı odaklanan düğmenin konumunu görsel olarak ayırt edemiyor; odak göstergesi kaldırılmış."
+  },
+  {
+    "id": "E5",
+    "sonuc": "temiz",
+    "alinti": "<section hidden>İçerik henüz yayımlanmadı.</section>",
+    "aciklama": "hidden ile gizlenmesi bu vaka kuralınca bilinçli; bu parçada belirtilen türde klavye, ad veya odak kusuru yok."
+  },
+  {
+    "id": "E6",
+    "sonuc": "temiz",
+    "alinti": "<label for=\"arama\">Ara</label><input id=\"arama\" type=\"search\">",
+    "aciklama": "Arama alanına bağlı görünür label erişilebilir ad sağlar; belirtilen bir kusur yok."
+  }
+]
