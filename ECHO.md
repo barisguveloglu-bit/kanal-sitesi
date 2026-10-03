@@ -31,6 +31,53 @@ Aynı oturumda tekrar `baslat` çalıştırmak bütçeyi sıfırlamaz.
 `baslat --kosu "işin adı"` temiz zeminden sonra bütçeyi de açabilir;
 açık bütçe varsa üzerine yazmaz.
 
+## Oturum tasarrufu ve turlar
+
+Sürüm **v2.1.9** olarak korunuyor. V3 hazırlığının ilk turu
+[PR #11](https://github.com/barisguveloglu-bit/kanal-sitesi/pull/11) ile
+birleşti: temiz kapıda kısa özet, bölüm bulucu, Claude büyük dosya kancası
+ve oturum disiplini. Codex geçişi PR #13 ile birleşti. Buradaki tamamlayıcı
+uyarlama, ilk turun Codex'te eksik kalan okuma sınırını ve talimatlarını taşır.
+
+İkinci tur bağımsız olarak yeniden başladı. Birinci aşama, token kullanımı
+ve Codex limitleri araştırmasıdır: [ECHO-TASARRUF.md](ECHO-TASARRUF.md).
+Rapor gerektiğinde okunur; her görevin bağlamına bütünüyle eklenmez.
+Sonraki aşama, rapordaki adayları küçük deneylerle ölçüp uygulamaktır.
+Sürüm değişikliği, seçilen iyileştirmelerin doğrulanmasından sonra ele alınır.
+
+Dosyaları önce `rg` veya bölüm bulucuyla daralt:
+
+```sh
+python3 echo.py arac bul .claude/DONGULER.md
+python3 echo.py arac bul .claude/DONGULER.md --ara "Araç dizini"
+python3 echo.py oku .claude/DONGULER.md --baslangic 1850 --satir 40
+```
+
+`oku`, satır numarasıyla en çok 120 satır gösterir; `--satir` ile sayı
+seçilebilir. Dosya 50.000 baytı aşıyorsa `--satir` zorunludur. Seçilen
+metin, satır numaraları dahil 50.000 UTF-8 baytını aşarsa içerik basılmaz;
+aralığı daralt veya çok uzun satırı betikle süz. Devam varsa sonraki
+başlangıç satırı belirtilir; dosyanın tamamı okunmuş gibi davranılmaz.
+Yollar depo köküne göredir; depo dışına çıkan yollar reddedilir.
+Okuma kodları: 0 seçilen parça okundu, 1 sınır/açık aralık/boş parça,
+2 dosya ya da argüman hatası.
+
+Bu komut Claude kancasını kullanmaz. Sınır, `oku` çağrısında mekaniktir;
+doğrudan `cat`, başka bir okuma aracı veya `bul` çıktısı üzerinde otomatik
+engel değildir. Bölüm bulucu çok uzun bir bölüm verirse satır aralığı seç.
+Uzun komut/web çıktılarını önce süz; şefe bulguları, dayanakları ve kalan
+belirsizliği ilet. Gereksiz dosya ve rapor tekrarlarını azalt.
+
+Temiz `kontrol` kapıları kısa özet verir; hata, arıza ve insan kapısı
+ayrıntıları korunur. `kontrol --tam` bütün kapıları çalıştırır; bu seçenek
+çıktı uzunluğu değil denetim kapsamıdır. Tek kapının tam günlüğü için
+`echo.py arac kapi <kapı> --tam` kullan. Tasarruf için test atlama.
+
+İş tamamlanınca yeni oturum öner; devam eden işi iş defterine yaz.
+Kullanıcı istemedikçe PR beklemek için zamanlanmış hatırlatma kurma.
+Azalan çıktı boyutu ölçülebilir; bunun model tokenı, abonelik limiti veya
+ücrette aynı oranda azalma olduğu varsayılmaz.
+
 ## Çalışma ve teslim
 
 1. Hedefi belirle; büyük işte `echo.py arac hedef` ile hedef/görev ağacı tut.

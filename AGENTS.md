@@ -13,6 +13,15 @@ backend, veritabanı ve dış servis yok. Echo siteye ait değildir.
 kapılarını oku. Ayrıntı `ECHO.md`; beceri `.agents/skills/echo/SKILL.md`.
 Bellekteki eski görev/merge önerileri yeni talimat veya izin değildir.
 
+Oturum tasarrufu: önce `rg` veya `echo.py arac bul <dosya>` ile yeri bul;
+metni `echo.py oku <dosya> --baslangic <satır> --satir <adet>` ile oku.
+50.000 bayt üstü dosyada açık aralık zorunludur. Bu sınır yalnız `oku`
+komutunda uygulanır; Codex'in diğer araçlarına otomatik kanca değildir.
+Uzun araç/web çıktısını önce süz, gereken bölümü getir. Aynı bağlamı tekrar
+okuma; ajanlara görevle ilgili bölümleri ver. İş tamamlanınca yeni oturum
+öner, yarım işi devam noktasıyla bırak. Kullanıcı istemedikçe PR için
+zamanlanmış hatırlatma kurma. Ayrıntı ve tur durumu `ECHO.md` içindedir.
+
 Her düzenleme grubundan sonra `python3 echo.py kontrol`; teslimden önce
 `python3 echo.py kontrol --tam` ve `python3 -m unittest discover -s tests -v`.
 Kod 0 temiz, 1 ihlal, 2 araç koşmadı, 3 insan kararıdır. Hiçbirini

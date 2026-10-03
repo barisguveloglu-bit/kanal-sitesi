@@ -43,6 +43,58 @@ class EchoSinavi(unittest.TestCase):
         for metin in ("DERS DEFTERİ", "İŞ DEFTERİ", "[dogrula: 0]", "[butunluk: 0]"):
             self.assertIn(metin, s.stdout)
 
+    def test_okuma_buyuk_dosyada_acik_aralik_ister(self):
+        yol = self.kok / ".claude/DONGULER.md"
+        self.assertGreater(yol.stat().st_size, 50_000)
+        s = self.kos("oku", ".claude/DONGULER.md")
+        self.assertEqual(s.returncode, 1, s.stdout)
+        self.assertIn("BÜYÜK DOSYA", s.stdout)
+        self.assertNotIn("# Echo Orkestra", s.stdout)
+        s = self.kos("oku", ".claude/DONGULER.md", "--baslangic", "2", "--satir", "3")
+        self.assertEqual(s.returncode, 0, s.stdout)
+        beklenen = yol.read_text().splitlines()[1:4]
+        for no, satir in enumerate(beklenen, 2):
+            self.assertIn(f"{no:>6}: {satir}\n", s.stdout)
+        self.assertIn("--baslangic 5", s.stdout)
+
+    def test_okuma_sayfalari_satir_kaybetmez(self):
+        (self.kok / "okuma.txt").write_text("\n".join(f"kayıt-{i}" for i in range(1, 132)))
+        s = self.kos("oku", "okuma.txt")
+        self.assertEqual(s.returncode, 0, s.stdout)
+        self.assertIn("120: kayıt-120\n", s.stdout)
+        self.assertNotIn("kayıt-121", s.stdout)
+        self.assertIn("--baslangic 121", s.stdout)
+        s = self.kos("oku", "okuma.txt", "--baslangic", "121", "--satir", "120")
+        self.assertEqual(s.returncode, 0, s.stdout)
+        for no in range(121, 132):
+            self.assertIn(f"{no:>6}: kayıt-{no}\n", s.stdout)
+        self.assertNotIn("DEVAMI VAR", s.stdout)
+
+    def test_okuma_utf8_bayt_siniri_asilinca_parca_basmaz(self):
+        # Karakter sayısı küçükken UTF-8 baytı sınırı aşabilir.
+        (self.kok / "uzun.txt").write_text("ilk-satır\n" + "ğ" * 25_001)
+        s = self.kos("oku", "uzun.txt", "--satir", "2")
+        self.assertEqual(s.returncode, 1, s.stdout)
+        self.assertIn("OKUMA SINIRI", s.stdout)
+        self.assertNotIn("ilk-satır", s.stdout)
+        self.assertNotIn("ğğ", s.stdout)
+
+    def test_okuma_bozuk_yolu_ve_araligi_basari_saymaz(self):
+        dis = Path(self.gecici.name) / "dis.txt"
+        dis.write_text("depo dışı içerik")
+        (self.kok / "bag.txt").symlink_to(dis)
+        (self.kok / "dongu.txt").symlink_to("dongu.txt")
+        (self.kok / "bozuk.txt").write_bytes(b"\xff")
+        for yol in ("yok.txt", "bozuk.txt", "bag.txt", "dongu.txt", "../dis.txt", ".claude"):
+            with self.subTest(yol=yol):
+                s = self.kos("oku", yol)
+                self.assertEqual(s.returncode, 2, s.stdout)
+                self.assertNotIn("Traceback", s.stderr)
+                self.assertNotIn("depo dışı içerik", s.stdout)
+        for arg in (("--satir", "0"), ("--baslangic", "-1")):
+            self.assertEqual(self.kos("oku", "AGENTS.md", *arg).returncode, 2)
+        self.assertEqual(self.kos("oku", "AGENTS.md", "--baslangic", "999999").returncode, 1)
+
     def test_sessiz_olen_kapi_basari_sayilmaz(self):
         (self.kok / ".claude/butunluk.py").write_text("raise SystemExit(0)\n")
         s = self.kos("kontrol")
