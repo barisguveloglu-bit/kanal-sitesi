@@ -63,7 +63,7 @@ hataların altında kaybolmuş kabul edilmez.
 ```sh
 python3 echo.py roller
 python3 echo.py gorev --rol canon-denetci --konu "irade sayfasının dayanakları"
-python3 echo.py gorev --rol canon-denetci --konu "irade sayfasının dayanakları" --gonder
+python3 echo.py gorev --rol canon-denetci --konu "irade sayfasının dayanakları" --gonder --json
 ```
 
 İlk görev komutu önizlemedir. `--gonder` sözleşmeyi doğrular ve açık
@@ -73,7 +73,33 @@ alt ajan aracına verir. Alt ajan desteği yoksa aynı rolleri sırayla uygular
 ve bağımsız ajan denetimi yapılmış gibi raporlamaz.
 
 Rollerin Claude'a ait YAML `model`/`tools` alanları okunacak görevden
-çıkarılır. Model ana Codex oturumundan gelir; Sonnet/Opus/Haiku çağrısı yoktur.
+çıkarılır. **Aktif GPT model tablosu `echo-modeller.json` dosyasıdır.**
+Başlangıç dağılımı:
+
+| Görev | Model |
+|---|---|
+| Şef: planlama, dağıtma, birleştirme, son denetim | Bu Codex sohbeti |
+| `tarama-denetci`: sınırları belli toplu tarama | `gpt-6-luna` |
+| Diğer uzman rolleri: kod, canon, tutarlılık, üretim | `gpt-6.1-sol` |
+
+Bu bir başlangıç tercihi; modellerin birebir Claude eşdeğeri olduğu iddiası
+veya performans ölçümü değildir. Rol bazında tabloyu değiştir; tek görevde
+`--model gpt-6-luna` veya `--model gpt-6.1-sol` kullan. Eksik/bozuk tablo,
+eksik rol veya bilinmeyen model reddedilir, sessizce ana modele dönülmez.
+
+`--json` çıktısı doğrudan `collaboration.spawn_agent` argümanlarıdır:
+`task_name`, `model`, `fork_turns: "none"`, `message`. Şef önce komutun
+başarılı olduğunu kontrol eder, sonra bu alanları **aynen** araç çağrısına
+aktarır. Böylece model yalnız prompt'ta yazmaz, gerçek çağrıda seçilir.
+Tam geçmiş (`all`) ile model değiştirmek desteklenmediğinden sözleşme ayrı
+mesajla taşınır. Görev adı kendiliğinden benzersiz üretilir; `--ad` ile
+küçük harf/rakam/alt çizgi içeren bir ad da verilebilir.
+
+Bu JSON dosyası evrensel Codex ayarı değildir; Echo'nun çağrı hazırlığıdır.
+Şef, mevcut oturumun alt ajan aracında modelin kullanılabildiğini doğrular.
+Model erişimi yoksa bunu bildirir; başka bir model çalıştırıp seçileni
+çalıştırmış gibi raporlamaz. Model seçimini desteklemeyen bir ortamda
+bu iki modelle orkestrasyonun çalıştığı söylenemez.
 Rol salt okunur görev sözleşmesidir, işletim sistemi yetki sınırı değildir.
 Mevcut ortam salt okunur sandbox destekliyorsa onu da uygula.
 Raporları `echo.py arac gorev dogrula --rapor <dosya>` ile denetle;

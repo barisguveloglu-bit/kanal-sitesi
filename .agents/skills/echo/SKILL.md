@@ -19,8 +19,13 @@ Claude'a görev gönderme, Claude model adı seçme, API anahtarı isteme.
    `--sahip` ile bu koşuya ait sabit bir kimlik ver.
 5. Çok ajanlı çalışma kullanıcı veya geçerli talimat tarafından istenmişse:
    bütçeyi aç; `echo.py gorev --rol <ad> --konu "..." --gonder` çıktısını
-   Codex alt ajan aracına ver. Komutun kendisi ajan başlatmaz. Başarısız
-   görev üretimini gönderme. Ana oturumun modelini kullan. Uzmanlara
+   Codex alt ajan aracına ver. `--json` ile çıkan `task_name`, `model`,
+   `message` ve `fork_turns: "none"` alanlarını `spawn_agent` çağrısına
+   aynen aktar. Roller `echo-modeller.json` içinden seçilir; kullanıcı
+   görev için başka model isterse `--model` kullan. Oturumun model
+   seçeneklerinde yoksa dur ve bildir; sessizce model değiştirme.
+   Tam geçmiş çatallamasıyla model seçimini birleştirme. Komut kendisi
+   ajan başlatmaz. Başarısız görev üretimini gönderme. Uzmanlara
    yazma yetkisi verme; tek yazıcı ana ajan olsun. Alt ajan aracı yoksa
    sırayla çalış ve bunu belirt. Yeniden gönderim devre sınırı 2.
 6. Sürekli çalışma açıkça istenmişse her turdan önce devre sınırı 8,

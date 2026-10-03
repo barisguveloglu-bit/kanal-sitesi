@@ -63,6 +63,7 @@ KOK = os.path.dirname(KLASOR)
 # bekçiyi sessizce etkisizleştirir ve bunu bekçinin kendisi görmelidir.
 OLCUM = (
     "echo.py",
+    "echo-modeller.json",
     "tests/test_echo.py",
     ".agents/skills/echo/SKILL.md",
     ".claude/dogrula.py",

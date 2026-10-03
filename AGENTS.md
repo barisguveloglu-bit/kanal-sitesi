@@ -33,7 +33,11 @@ Barış'ın kararıdır. Ölçüm dosyaları değişebilir; test gevşetilmez ve
 Alt ajanları yalnız kullanıcı veya geçerli talimat istediğinde kullan.
 `echo.py gorev --rol <rol> --konu "..." --gonder` sözleşmeyi doğrular ve
 bütçe düşer; komut kendisi ajan başlatmaz. Çıkan metni mevcut Codex alt ajan
-aracına ver; model ana oturumdan gelsin. Uzmanlar salt okunur, ana ajan
+aracına ver. Modeli `echo-modeller.json` belirler; `--model` bu görev için
+seçimi değiştirir. `--json` çıktısını `spawn_agent` argümanları olarak
+kullan: `model` değerini aynen geçir, `fork_turns` değeri `none` olmalı.
+Kullanılabilir model listesini kontrol et; model yoksa sessizce değiştirme.
+Uzmanlar salt okunur, ana ajan
 tek yazıcıdır. Destek yoksa sırayla çalış, bağımsız denetim iddia etme.
 Raporların atıflarını `echo.py arac gorev dogrula` ile denetle.
 

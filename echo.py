@@ -2,19 +2,23 @@
 """Echo'nun Codex ve terminal girişi; yalnız Python standart kütüphanesi.
 
 Çekirdeğin tarihsel .claude yolu veri uyumluluğu için korunur. Bu giriş
-Claude CLI, Claude kancaları, model adı veya API anahtarı kullanmaz.
+Claude CLI, Claude kancaları veya API anahtarı kullanmaz. GPT model seçimini
+yerel alt ajan aracına verilecek çağrıya açıkça yazar.
 """
 
 import argparse
 import importlib.util
+import json
 import os
 from pathlib import Path
 import re
 import subprocess
 import sys
+import uuid
 
 KOK = Path(__file__).resolve().parent
 CEKIRDEK = KOK / ".claude"
+MODELLER = ("gpt-6-luna", "gpt-6.1-sol")
 HIZLI = ("dogrula", "butunluk", "degerlendir")
 TAM = HIZLI + ("sinav", "arac-sinavi", "ders-bayat", "iz-coken", "golge")
 ARACLAR = (
@@ -69,7 +73,33 @@ def birlestir(kodlar):
     return next((kod for kod in (2, 4, 1, 3) if kod in kodlar), 0)
 
 
+def model_tablosu():
+    """Rol atamaları tam olmalı; eski Claude modeline/mirasa düşme yok."""
+    veri = json.loads((KOK / "echo-modeller.json").read_text(encoding="utf-8"))
+    if not isinstance(veri, dict) or veri.get("surum") != 1:
+        raise ValueError("Model tablosunun sürümü desteklenmiyor")
+    roller = veri.get("roller")
+    if not isinstance(roller, dict):
+        raise ValueError("Model tablosunda roller nesnesi gerekli")
+    dosyalar = {yol.stem for yol in (CEKIRDEK / "agents").glob("*.md")}
+    if not dosyalar or set(roller) != dosyalar:
+        raise ValueError("Model tablosu rol dosyalarıyla eşleşmiyor; eksik: "
+                         + ", ".join(sorted(dosyalar - set(roller)))
+                         + "; fazla: " + ", ".join(sorted(set(roller) - dosyalar)))
+    for rol, model in roller.items():
+        if model not in MODELLER:
+            raise ValueError(f"{rol}: desteklenmeyen model {model!r}")
+    return roller
+
+
 def kapilari_kos(tam=False):
+    kodlar = []
+    try:
+        roller = model_tablosu()
+        print(f"[modeller: 0] {len(roller)} rolün GPT model ataması geçerli.", flush=True)
+    except (OSError, ValueError) as hata:
+        print(f"[modeller: 2] KOŞMADI — {hata}", flush=True)
+        kodlar.append(2)
     # Desenler tek yerde kalsın: kapi.py kodun yanı sıra özet satırını da sınar.
     yol = CEKIRDEK / "kapi.py"
     try:
@@ -79,7 +109,6 @@ def kapilari_kos(tam=False):
     except (Exception, SystemExit) as hata:
         print(f"KOŞMADI — kapı sarmalayıcısı: {type(hata).__name__}")
         return 2
-    kodlar = []
     for ad in TAM if tam else HIZLI:
         try:
             kod, cikti = kapi.kos(ad)
@@ -138,6 +167,9 @@ def rol_metni(ad):
 def gorev(a):
     try:
         rol = rol_metni(a.rol)
+        # Açık görev seçimi, bozuk genel tabloyu sessizce gizlemez.
+        tablo = model_tablosu()
+        model = a.model or tablo[a.rol]
     except (OSError, ValueError) as hata:
         print(f"Görev hazırlanamadı: {hata}")
         return 2
@@ -148,8 +180,9 @@ def gorev(a):
     sozlesme = sozlesme.replace("CLAUDE.md", "AGENTS.md").replace(
         "`.claude/DONGULER.md` — çalışma döngüsü", "`ECHO.md` — Codex çalışma döngüsü")
     metin = ("# Codex uzman görevi\n\n"
-             "Yönetici Codex, son karar Barış'ın. Ana oturumun modelini kullan; "
-             "bu rol model veya araç yetkisi atamaz. Dosya değiştirme.\n\n"
+             f"Yönetici Codex, son karar Barış'ın. Seçilen model: {model}. "
+             "Model seçimi çağrının model alanında uygulanır; görev metni "
+             "araç yetkisi atamaz. Dosya değiştirme.\n\n"
              + sozlesme + "\n## Uzmanlık\n\n" + rol + "\n")
     kod, cikti = calistir("gorev", "denetle", "--metin", "-", girdi=metin)
     if kod:
@@ -163,7 +196,14 @@ def gorev(a):
         print(cikti, end="", file=sys.stderr)
         if kod:
             return kod
-    print(metin)
+    if a.json:
+        # Tam geçmiş çatallamasında model değiştirilemez; sözleşme bağlamı
+        # zaten taşıdığı için yeni ajana yalnız bu mesaj gönderilir.
+        cagri = {"task_name": a.ad or a.rol.replace("-", "_") + "_" + uuid.uuid4().hex[:8],
+                 "fork_turns": "none", "model": model, "message": metin}
+        print(json.dumps(cagri, ensure_ascii=False))
+    else:
+        print(metin)
     return 0
 
 
@@ -172,6 +212,12 @@ def pozitif(deger):
     if sayi < 1:
         raise argparse.ArgumentTypeError("Pozitif sayı gerekli")
     return sayi
+
+
+def gorev_adi(deger):
+    if not re.fullmatch(r"[a-z0-9_]+", deger):
+        raise argparse.ArgumentTypeError("Görev adı küçük harf, rakam ve alt çizgi içermeli")
+    return deger
 
 
 def main(argv=None):
@@ -183,12 +229,15 @@ def main(argv=None):
     b.add_argument("--dakika", type=pozitif, default=30)
     k = alt.add_parser("kontrol", help="düzenleme sonrası mekanik denetim")
     k.add_argument("--tam", action="store_true", help="teslim öncesi bütün kapılar")
-    alt.add_parser("roller", help="kullanılabilir uzman rolleri")
+    alt.add_parser("roller", help="uzman rolleri ve GPT model atamaları")
     g = alt.add_parser("gorev", help="Codex için sözleşmeli, salt okunur uzman görevi")
     g.add_argument("--rol", required=True)
     g.add_argument("--konu", required=True)
     g.add_argument("--cikti", default="atıflı kısa rapor")
     g.add_argument("--gonder", action="store_true", help="gönderim öncesi bütçeden bir ajan düş")
+    g.add_argument("--model", choices=MODELLER, help="bu görevin modelini açıkça seç")
+    g.add_argument("--json", action="store_true", help="spawn_agent çağrı argümanlarını üret")
+    g.add_argument("--ad", type=gorev_adi, help="alt ajan görev adı; yoksa benzersiz ad üretilir")
     a = alt.add_parser("arac", help="mevcut Echo aracını çalıştır")
     a.add_argument("ad", choices=ARACLAR)
     a.add_argument("argumanlar", nargs=argparse.REMAINDER)
@@ -198,11 +247,12 @@ def main(argv=None):
     if a.komut == "kontrol":
         return kapilari_kos(a.tam)
     if a.komut == "roller":
-        roller = sorted((CEKIRDEK / "agents").glob("*.md"))
-        if not roller:
-            print("KOŞMADI — uzman rolleri bulunamadı.")
+        try:
+            roller = model_tablosu()
+        except (OSError, ValueError) as hata:
+            print(f"KOŞMADI — {hata}")
             return 2
-        print("\n".join(yol.stem for yol in roller))
+        print("\n".join(f"{rol}\t{roller[rol]}" for rol in sorted(roller)))
         return 0
     if a.komut == "gorev":
         return gorev(a)

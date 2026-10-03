@@ -1,0 +1,32 @@
+{
+  "surum": 1,
+  "roller": {
+    "akis-denetci": "gpt-6.1-sol",
+    "anlati-denetci": "gpt-6.1-sol",
+    "belge-denetci": "gpt-6.1-sol",
+    "canon-denetci": "gpt-6.1-sol",
+    "celiski-denetci": "gpt-6.1-sol",
+    "deneyim-denetci": "gpt-6.1-sol",
+    "dil-denetci": "gpt-6.1-sol",
+    "duzenleyici": "gpt-6.1-sol",
+    "erisim-denetci": "gpt-6.1-sol",
+    "gizlilik-denetci": "gpt-6.1-sol",
+    "gorsel-denetci": "gpt-6.1-sol",
+    "hikaye-yazari": "gpt-6.1-sol",
+    "karakter-yazari": "gpt-6.1-sol",
+    "kaynak-denetci": "gpt-6.1-sol",
+    "kesif-denetci": "gpt-6.1-sol",
+    "kurgu-denetci": "gpt-6.1-sol",
+    "mitoloji-denetci": "gpt-6.1-sol",
+    "mobil-denetci": "gpt-6.1-sol",
+    "olukod-denetci": "gpt-6.1-sol",
+    "ozetleyici": "gpt-6.1-sol",
+    "performans-denetci": "gpt-6.1-sol",
+    "surum-denetci": "gpt-6.1-sol",
+    "tarama-denetci": "gpt-6-luna",
+    "tarih-arastirmaci": "gpt-6.1-sol",
+    "test-denetci": "gpt-6.1-sol",
+    "veri-denetci": "gpt-6.1-sol",
+    "zaman-denetci": "gpt-6.1-sol"
+  }
+}

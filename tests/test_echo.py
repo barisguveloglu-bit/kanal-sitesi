@@ -1,6 +1,7 @@
 """Codex girişini gerçek çekirdek ve bozulmuş geçici depolarla sına."""
 
 import importlib.util
+import json
 import os
 from pathlib import Path
 import shutil
@@ -108,6 +109,78 @@ class EchoSinavi(unittest.TestCase):
                 self.assertTrue(metin)
                 for yasak in ("CLAUDE.md", "model:", "tools:", "Opus 5", "Sonnet"):
                     self.assertNotIn(yasak, metin)
+
+    def test_gpt_rolleri_ve_cagri_jsonu(self):
+        roller = self.kos("roller")
+        self.assertEqual(roller.returncode, 0, roller.stdout)
+        tablo = dict(satir.split("\t") for satir in roller.stdout.splitlines())
+        self.assertEqual(set(tablo), {p.stem for p in (self.kok / ".claude/agents").glob("*.md")})
+        self.assertEqual(tablo["tarama-denetci"], "gpt-6-luna")
+        self.assertEqual(tablo["canon-denetci"], "gpt-6.1-sol")
+        konu = 'Türkçe "alıntı"\nve $(komut) metni'
+        for rol in ("tarama-denetci", "canon-denetci"):
+            s = self.kos("gorev", "--rol", rol, "--konu", konu, "--json")
+            self.assertEqual(s.returncode, 0, s.stdout + s.stderr)
+            cagri = json.loads(s.stdout)
+            self.assertEqual(set(cagri), {"task_name", "fork_turns", "model", "message"})
+            self.assertEqual(cagri["fork_turns"], "none")
+            self.assertEqual(cagri["model"], tablo[rol])
+            self.assertIn(konu, cagri["message"])
+            self.assertRegex(cagri["task_name"], r"^[a-z0-9_]+$")
+
+    def test_gorev_modeli_acikca_degistirilebilir(self):
+        for model in ("gpt-6-luna", "gpt-6.1-sol"):
+            s = self.kos("gorev", "--rol", "tarama-denetci", "--konu", "tarama",
+                         "--model", model, "--json", "--ad", "ozel_ajan")
+            self.assertEqual(s.returncode, 0, s.stdout)
+            cagri = json.loads(s.stdout)
+            self.assertEqual(cagri["model"], model)
+            self.assertEqual(cagri["task_name"], "ozel_ajan")
+            self.assertIn(model, cagri["message"])
+
+    def test_bozuk_model_atamasi_butce_tuketmez(self):
+        self.assertEqual(self.kos("arac", "butce", "ac", "--kosu", "model-test").returncode, 0)
+        butce = self.kok / ".claude/butce-durumu.json"
+        once = butce.read_bytes()
+        yol = self.kok / "echo-modeller.json"
+        asil = json.loads(yol.read_text())
+        eksik = json.loads(json.dumps(asil))
+        del eksik["roller"]["canon-denetci"]
+        yabanci = json.loads(json.dumps(asil))
+        yabanci["roller"]["canon-denetci"] = "opus"
+        gecersizler = (None, "{", "[]", json.dumps(eksik), json.dumps(yabanci))
+        arg = ("gorev", "--rol", "canon-denetci", "--konu", "test", "--json", "--gonder")
+        for veri in gecersizler:
+            with self.subTest(veri=veri):
+                if veri is None:
+                    yol.unlink(missing_ok=True)
+                else:
+                    yol.write_text(veri)
+                s = self.kos(*arg)
+                self.assertEqual(s.returncode, 2, s.stdout)
+                self.assertNotIn('"message":', s.stdout)
+                self.assertEqual(butce.read_bytes(), once)
+                self.assertEqual(self.kos("kontrol").returncode, 2)
+        yol.write_text(json.dumps(asil))
+        for secim in (("--model", "opus"), ("--ad", "gecersiz/ad")):
+            s = self.kos(*arg, *secim)
+            self.assertEqual(s.returncode, 2)
+            self.assertEqual(butce.read_bytes(), once)
+
+    def test_json_gonderim_butceyi_bir_kez_tuketir(self):
+        self.assertEqual(self.kos("arac", "butce", "ac", "--kosu", "test", "--ajan-sinir", "1").returncode, 0)
+        arg = ("gorev", "--rol", "tarama-denetci", "--konu", "tarama", "--json")
+        butce = self.kok / ".claude/butce-durumu.json"
+        once = butce.read_bytes()
+        self.assertEqual(self.kos(*arg).returncode, 0)
+        self.assertEqual(butce.read_bytes(), once)
+        s = self.kos(*arg, "--gonder")
+        self.assertEqual(s.returncode, 0, s.stdout + s.stderr)
+        self.assertEqual(json.loads(s.stdout)["model"], "gpt-6-luna")
+        self.assertEqual(len(json.loads(butce.read_text())["ajanlar"]), 1)
+        s = self.kos(*arg, "--gonder")
+        self.assertEqual(s.returncode, 1)
+        self.assertNotIn('"message":', s.stdout)
 
     def test_kimliksiz_devre_reddedilir_ve_codex_kilidi_korunur(self):
         arg = ("arac", "devre", "dene", "--halka", "test", "--not", "ilk tur")
