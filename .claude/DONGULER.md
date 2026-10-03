@@ -1,5 +1,11 @@
 # Echo Orkestra v2.1.9
 
+> **Codex girişi:** Echo artık Claude kurulmadan `python3 echo.py baslat`
+> ile çalıştırılabilir. Güncel Codex yönetimi ve kanca sınırları
+> [`ECHO.md`](../ECHO.md) / [`AGENTS.md`](../AGENTS.md) içindedir.
+> Aşağıdaki Claude model/kanca anlatımları eski girişin uyumluluk kaydıdır;
+> Codex'in çağrı veya onay zincirini tanımlamaz.
+
 Bu katmanın adı **Echo**. Adın sebebi işleyişinde: her çıktı bir
 denetimden geri döner, her hata bir teste geri döner, her ölçüm sistemin
 kendisine geri döner. Yankı gibi — söylediğin şey sana geri gelir ve

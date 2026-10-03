@@ -98,6 +98,10 @@ jobs:
           [ $kod -eq 0 ] || { echo "::error title=arac-sinavi::Araç vakası düştü (çıkış $kod)"; exit 1; }
           echo "::notice title=arac-sinavi::Bütün araç vakaları beklendiği gibi"
 
+      - name: Codex girişinin sınavı
+        if: '!cancelled()'
+        run: python3 -m unittest discover -s tests -v
+
       - name: Geri getirme ölçümü (degerlendir.py)
         if: '!cancelled()'
         run: |

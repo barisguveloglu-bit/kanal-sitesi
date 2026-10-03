@@ -62,6 +62,9 @@ KOK = os.path.dirname(KLASOR)
 # `bekci.py` kendisi de listede: bekçiyi listeden çıkaran bir commit,
 # bekçiyi sessizce etkisizleştirir ve bunu bekçinin kendisi görmelidir.
 OLCUM = (
+    "echo.py",
+    "tests/test_echo.py",
+    ".agents/skills/echo/SKILL.md",
     ".claude/dogrula.py",
     ".claude/butunluk.py",
     ".claude/sinav.py",
