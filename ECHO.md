@@ -39,10 +39,11 @@ birleşti: temiz kapıda kısa özet, bölüm bulucu, Claude büyük dosya kanca
 ve oturum disiplini. Codex geçişi PR #13 ile birleşti. Buradaki tamamlayıcı
 uyarlama, ilk turun Codex'te eksik kalan okuma sınırını ve talimatlarını taşır.
 
-Eski devam notundaki A/B/E/F adaylarının açıklaması ve Claude'daki ikinci
-turun ayrıntıları depoda bulunamadı. Bunlar tamamlanmış kabul edilmez;
-ikinci tur kararları kayda alındıktan sonra kalan plan netleştirilebilir.
-Üç tur bitmeden yalnız isim değiştirerek v3 ilan edilmez.
+İkinci tur bağımsız olarak yeniden başladı. Birinci aşama, token kullanımı
+ve Codex limitleri araştırmasıdır: [ECHO-TASARRUF.md](ECHO-TASARRUF.md).
+Rapor gerektiğinde okunur; her görevin bağlamına bütünüyle eklenmez.
+Sonraki aşama, rapordaki adayları küçük deneylerle ölçüp uygulamaktır.
+Sürüm değişikliği, seçilen iyileştirmelerin doğrulanmasından sonra ele alınır.
 
 Dosyaları önce `rg` veya bölüm bulucuyla daralt:
 
