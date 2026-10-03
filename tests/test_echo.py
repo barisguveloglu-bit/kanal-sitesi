@@ -48,8 +48,13 @@ class EchoSinavi(unittest.TestCase):
         self.assertEqual(s.returncode, 2, s.stdout)
         self.assertIn("[butunluk: 2]", s.stdout)
 
-    def test_eksik_kapi_basari_sayilmaz(self):
-        (self.kok / ".claude/kapi.py").unlink()
+    def test_eksik_ve_bozuk_kapi_basari_sayilmaz(self):
+        yol = self.kok / ".claude/kapi.py"
+        yol.unlink()
+        s = self.kos("kontrol")
+        self.assertEqual(s.returncode, 2)
+        self.assertIn("KOŞMADI", s.stdout)
+        yol.write_text("raise RuntimeError('yükleme hatası')\n")
         s = self.kos("kontrol")
         self.assertEqual(s.returncode, 2)
         self.assertIn("KOŞMADI", s.stdout)

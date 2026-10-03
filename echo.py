@@ -76,7 +76,7 @@ def kapilari_kos(tam=False):
         tanim = importlib.util.spec_from_file_location("echo_kapi", yol)
         kapi = importlib.util.module_from_spec(tanim)
         tanim.loader.exec_module(kapi)
-    except (OSError, ImportError, SyntaxError, SystemExit, AttributeError) as hata:
+    except (Exception, SystemExit) as hata:
         print(f"KOŞMADI — kapı sarmalayıcısı: {type(hata).__name__}")
         return 2
     kodlar = []
