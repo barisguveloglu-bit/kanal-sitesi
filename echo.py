@@ -19,6 +19,7 @@ import uuid
 KOK = Path(__file__).resolve().parent
 CEKIRDEK = KOK / ".claude"
 MODELLER = ("gpt-6-luna", "gpt-6.1-sol")
+OKUMA_SINIRI = 50_000  # UTF-8 bayt; Claude kancasına ihtiyaç duymayan CLI sınırı.
 HIZLI = ("dogrula", "butunluk", "degerlendir")
 TAM = HIZLI + ("sinav", "arac-sinavi", "ders-bayat", "iz-coken", "golge")
 ARACLAR = (
@@ -220,6 +221,48 @@ def gorev_adi(deger):
     return deger
 
 
+def oku(a):
+    """Depodan numaralı metin oku; büyük dosyada açık satır aralığı iste."""
+    try:
+        yol = (KOK / a.dosya).resolve()
+        ad = yol.relative_to(KOK).as_posix()
+        if not yol.is_file():
+            raise ValueError("Dosya bulunamadı")
+        if yol.stat().st_size > OKUMA_SINIRI and a.satir is None:
+            print(f"BÜYÜK DOSYA — {ad}: --satir ile aralık belirt. "
+                  "İçindekiler ve bölüm araması için: echo.py arac bul <dosya>")
+            return 1
+        sinir = a.satir or 120
+        cikti, boyut, devam = [], 0, False
+        with yol.open(encoding="utf-8") as dosya:
+            for no, satir in enumerate(dosya, 1):
+                if no < a.baslangic:
+                    continue
+                if no >= a.baslangic + sinir:
+                    devam = True
+                    break
+                satir = satir.rstrip("\r\n")
+                metin = f"{no:>6}: {satir}\n"
+                boyut += len(metin.encode("utf-8"))
+                if boyut > OKUMA_SINIRI:
+                    print("OKUMA SINIRI — seçilen aralık 50.000 baytı aşıyor; "
+                          "aralığı daralt veya uzun satırı betikle süz. İçerik basılmadı.")
+                    return 1
+                cikti.append(metin)
+        if not cikti:
+            print("Seçilen aralıkta satır yok.")
+            return 1
+        print(f"OKUMA — {ad}:{a.baslangic}-{a.baslangic + len(cikti) - 1}")
+        print("".join(cikti), end="")
+        if devam:
+            print(f"DEVAMI VAR — --baslangic {a.baslangic + len(cikti)} "
+                  f"--satir {sinir} ile sürdür.")
+        return 0
+    except (OSError, ValueError, RuntimeError) as hata:
+        print(f"OKUMA KOŞMADI — {hata}")
+        return 2
+
+
 def main(argv=None):
     p = argparse.ArgumentParser(description=__doc__)
     alt = p.add_subparsers(dest="komut", required=True)
@@ -229,6 +272,10 @@ def main(argv=None):
     b.add_argument("--dakika", type=pozitif, default=30)
     k = alt.add_parser("kontrol", help="düzenleme sonrası mekanik denetim")
     k.add_argument("--tam", action="store_true", help="teslim öncesi bütün kapılar")
+    o = alt.add_parser("oku", help="depodan sınırlı, satır numaralı metin oku")
+    o.add_argument("dosya", help="depo köküne göre dosya yolu")
+    o.add_argument("--baslangic", type=pozitif, default=1)
+    o.add_argument("--satir", type=pozitif, help="en çok kaç satır; varsayılan 120, büyük dosyada zorunlu")
     alt.add_parser("roller", help="uzman rolleri ve GPT model atamaları")
     g = alt.add_parser("gorev", help="Codex için sözleşmeli, salt okunur uzman görevi")
     g.add_argument("--rol", required=True)
@@ -246,6 +293,8 @@ def main(argv=None):
         return baslat(a)
     if a.komut == "kontrol":
         return kapilari_kos(a.tam)
+    if a.komut == "oku":
+        return oku(a)
     if a.komut == "roller":
         try:
             roller = model_tablosu()
