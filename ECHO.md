@@ -74,16 +74,24 @@ ve bağımsız ajan denetimi yapılmış gibi raporlamaz.
 
 Rollerin Claude'a ait YAML `model`/`tools` alanları okunacak görevden
 çıkarılır. **Aktif GPT model tablosu `echo-modeller.json` dosyasıdır.**
-Başlangıç dağılımı:
+Dağılım: 6 rol Luna, 21 rol Sol.
 
 | Görev | Model |
 |---|---|
 | Şef: planlama, dağıtma, birleştirme, son denetim | Bu Codex sohbeti |
 | `tarama-denetci`: sınırları belli toplu tarama | `gpt-6-luna` |
+| `belge-denetci`, `veri-denetci`, `dil-denetci`: ilk inceleme | `gpt-6-luna` |
+| `erisim-denetci`, `gizlilik-denetci`: açık kurallara göre ilk inceleme | `gpt-6-luna` |
 | Diğer uzman rolleri: kod, canon, tutarlılık, üretim | `gpt-6.1-sol` |
 
-Bu bir başlangıç tercihi; modellerin birebir Claude eşdeğeri olduğu iddiası
-veya performans ölçümü değildir. Rol bazında tabloyu değiştir; tek görevde
+Luna'nın beş yeni rolü, ayrı ajan çağrılarıyla 28 kontrollü örnekte denendi:
+15 kusur bulundu, 13 doğru örneğe yanlış alarm verilmedi. Vaka dosyaları,
+özgün yanıtlar, cevap anahtarı ve yeniden puanlama komutu
+[`tests/luna_deneme/README.md`](tests/luna_deneme/README.md) içinde.
+Bu dar örnek seti genel başarı veya hız/maliyet garantisi değildir.
+Şef raporları doğrular; belirsiz veya kapsamlı bulguları gerekirse Sol'a
+yeniden inceletir. Modellerin birebir Claude eşdeğeri olduğu iddia edilmez.
+Rol bazında tabloyu değiştir; tek görevde
 `--model gpt-6-luna` veya `--model gpt-6.1-sol` kullan. Eksik/bozuk tablo,
 eksik rol veya bilinmeyen model reddedilir, sessizce ana modele dönülmez.
 

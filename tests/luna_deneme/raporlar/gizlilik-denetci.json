@@ -1,0 +1,38 @@
+[
+  {
+    "id": "G1",
+    "sonuc": "temiz",
+    "alinti": "<link rel=\"canonical\" href=\"https://arsiv.example.invalid/sayfa\">",
+    "aciklama": "Canonical bağlantı bir kaynak yüklemesi değildir; sözleşme bunu açıkça kapsam dışında bırakıyor."
+  },
+  {
+    "id": "G2",
+    "sonuc": "temiz",
+    "alinti": "<a href=\"https://youtube.example.invalid/video\" rel=\"noopener\">Videoyu aç</a>",
+    "aciklama": "Bu, kullanıcının tıklayabileceği normal bir dış bağlantıdır; sayfa açılırken veri göndermez veya kaynak yüklemez."
+  },
+  {
+    "id": "G3",
+    "sonuc": "kusur",
+    "alinti": "<img src=\"https://olcum.example.invalid/pixel.gif\"",
+    "aciklama": "Dış alan adındaki görsel, kullanıcı tıklamadan sayfa yüklenirken istenir; böylece üçüncü tarafa istek ve ziyaret bilgisi gider."
+  },
+  {
+    "id": "G4",
+    "sonuc": "kusur",
+    "alinti": "body:location.href",
+    "aciklama": "fetch ile dış adrese POST isteği yapılıyor ve sayfanın URL'si istek gövdesinde dışarı gönderiliyor."
+  },
+  {
+    "id": "G5",
+    "sonuc": "temiz",
+    "alinti": "try { localStorage.setItem(\"tema\", \"koyu\"); } catch (hata) {}",
+    "aciklama": "Tema tercihi yalnız cihazda saklanıyor; erişim try/catch ile korunduğu için depolama hatası sayfayı düşürmez."
+  },
+  {
+    "id": "G6",
+    "sonuc": "kusur",
+    "alinti": "innerHTML = decodeURIComponent(location.hash.slice(1))",
+    "aciklama": "URL hash'inden gelen metin innerHTML'e aktarılıyor; URL'den gelen içerik enjeksiyon yüzeyi oluşturur."
+  }
+]

@@ -1,0 +1,31 @@
+{
+  "rol": "belge-denetci",
+  "kural": "Her belge iddiasını verilen CLI gerçeğiyle karşılaştır. Yalnız iddianın doğruluğunu değerlendir. Bu örnekler gerçek site canon'u değildir.",
+  "gercek": "CLI: baslat hafızayı okur. gorev --gonder bütçe düşer ve görev metni üretir; ajan başlatmaz. gorev --json çıktısında model alanı vardır. --model verilmezse tarama-denetci gpt-6-luna kullanır. Yalnız gpt-6-luna ve gpt-6.1-sol kabul edilir; başka model hata verir. CLI'da --ad bulunur, --isim bulunmaz.",
+  "vakalar": [
+    {
+      "id": "B1",
+      "metin": "baslat komutu hafızayı okur."
+    },
+    {
+      "id": "B2",
+      "metin": "gorev --gonder alt ajanı kendisi başlatır."
+    },
+    {
+      "id": "B3",
+      "metin": "gorev --json çıktısında model alanı bulunur."
+    },
+    {
+      "id": "B4",
+      "metin": "--model belirtilmezse tarama-denetci her zaman gpt-6.1-sol kullanır."
+    },
+    {
+      "id": "B5",
+      "metin": "Bilinmeyen model adı hata verir."
+    },
+    {
+      "id": "B6",
+      "metin": "Göreve isim vermek için --isim kullanılır."
+    }
+  ]
+}
