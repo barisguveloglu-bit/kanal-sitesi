@@ -206,7 +206,7 @@ def m_hedef_parmak_izi_sabit(kok):
 
 def m_gorev_baglam_enjekte_etmesin(kok):
     duzenle(kok, ".claude/gorev.py",
-            "    if not a.baglamsiz:",
+            '    if not a.baglamsiz and a.alan == "canon":',
             "    if False:")
 
 

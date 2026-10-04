@@ -1,6 +1,7 @@
 """Codex girişini gerçek çekirdek ve bozulmuş geçici depolarla sına."""
 
 import importlib.util
+from concurrent.futures import ThreadPoolExecutor
 import json
 import os
 from pathlib import Path
@@ -8,7 +9,9 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import threading
 import unittest
+from unittest.mock import patch
 
 KOK = Path(__file__).resolve().parents[1]
 
@@ -233,6 +236,158 @@ class EchoSinavi(unittest.TestCase):
         s = self.kos(*arg, "--gonder")
         self.assertEqual(s.returncode, 1)
         self.assertNotIn('"message":', s.stdout)
+
+    def test_bozuk_butce_gorev_uretmez_ve_sifirlanmaz(self):
+        self.assertEqual(self.kos("arac", "butce", "ajan", "--ad", "eksik").returncode, 1)
+        self.assertEqual(self.kos("arac", "butce", "ac", "--kosu", "test").returncode, 0)
+        yol = self.kok / ".claude/butce-durumu.json"
+        asil = json.loads(yol.read_text())
+        bozuklar = ["{", "null", "[]", "{}"]
+        for alan, deger in (("ajan_sinir", 0), ("ajan_sinir", True), ("ajan_sinir", "1"),
+                            ("baslangic", float("nan")), ("baslangic", 10**400),
+                            ("ajanlar", None), ("kilometreler", [{}])):
+            bozuklar.append(json.dumps(dict(asil, **{alan: deger})))
+        for metin in bozuklar:
+            with self.subTest(metin=metin[:100]):
+                yol.write_text(metin)
+                for arg in (("gorev", "--rol", "tarama-denetci", "--konu", "test", "--json", "--gonder"),
+                            ("arac", "butce", "ac", "--kosu", "yenisi"), ("arac", "butce", "durum")):
+                    s = self.kos(*arg)
+                    self.assertEqual(s.returncode, 2, s.stdout + s.stderr)
+                    self.assertNotIn('"message":', s.stdout)
+                    self.assertNotIn("Traceback", s.stdout + s.stderr)
+                    self.assertEqual(yol.read_text(), metin)
+        yol.write_text("{")
+        self.assertEqual(self.kos("arac", "butce", "ac", "--kosu", "onarım", "--zorla").returncode, 0)
+        self.assertEqual(json.loads(yol.read_text())["kosu"], "onarım")
+
+    def test_son_butce_hakki_eszamanli_yalniz_bir_goreve_verilir(self):
+        self.assertEqual(self.kos("arac", "butce", "ac", "--kosu", "yarış", "--ajan-sinir", "1").returncode, 0)
+        kapi = threading.Barrier(8)
+        def gonder(no):
+            kapi.wait(timeout=10)
+            return self.kos("gorev", "--rol", "tarama-denetci", "--konu", "eşzamanlı test",
+                            "--alan", "kod", "--ad", f"ajan_{no}", "--json", "--gonder")
+        with ThreadPoolExecutor(max_workers=8) as havuz:
+            sonuclar = list(havuz.map(gonder, range(8)))
+        self.assertEqual(sorted(s.returncode for s in sonuclar), [0] + [1] * 7)
+        self.assertEqual(sum('"message":' in s.stdout for s in sonuclar), 1)
+        self.assertEqual(len(json.loads((self.kok / ".claude/butce-durumu.json").read_text())["ajanlar"]), 1)
+
+    def test_butce_yazma_arizasi_onceki_kaydi_korur(self):
+        self.assertEqual(self.kos("arac", "butce", "ac", "--kosu", "yazma arızası").returncode, 0)
+        yol = self.kok / ".claude/butce-durumu.json"
+        once = yol.read_bytes()
+        tanim = importlib.util.spec_from_file_location("butce_test", self.kok / ".claude/butce.py")
+        butce = importlib.util.module_from_spec(tanim)
+        tanim.loader.exec_module(butce)
+        with patch.object(butce.os, "replace", side_effect=OSError("deney: disk arızası")):
+            self.assertEqual(butce.main(["ajan", "--ad", "test"]), 2)
+        self.assertEqual(yol.read_bytes(), once)
+        self.assertFalse(list((self.kok / ".claude").glob("butce-*.tmp")))
+
+    def test_gorev_alani_canon_baglamini_acikca_secer(self):
+        arg = ("gorev", "--rol", "tarama-denetci", "--konu", "Teşup'un zaafı", "--json")
+        for alan in ("kod", "belge", "web", "gozlem"):
+            with self.subTest(alan=alan):
+                s = self.kos(*arg, "--alan", alan, "--kaynak", "echo.py:1-30")
+                self.assertEqual(s.returncode, 0, s.stdout)
+                m = json.loads(s.stdout)["message"]
+                self.assertNotIn("Hazır dayanak", m)
+                self.assertNotIn("Kapalı ve dar alanda", m)
+                self.assertIn("echo.py:1-30", m)
+                for kural in ("YETKİ: okuma", "tek yazıcı", "Uydurma", "kanıt", "Barış"):
+                    self.assertIn(kural, m)
+        m = json.loads(self.kos(*arg, "--alan", "canon").stdout)["message"]
+        self.assertIn("Hazır dayanak", m)
+        self.assertIn("Kapalı ve dar alanda", m)
+        self.assertNotIn("konu bu evrenle ilgili değil", m)
+
+    def rapor(self, metin, *arg):
+        yol = Path(self.gecici.name) / "rapor.md"
+        yol.write_text(metin)
+        return self.kos("arac", "gorev", "dogrula", "--rapor", str(yol), *arg)
+
+    def test_rapor_turleri_atifsiz_ve_bozuk_kaynagi_gecirmez(self):
+        satirlar = (self.kok / "LORE.md").read_text().splitlines()
+        no = next(i for i, s in enumerate(satirlar, 1) if "Teşup'un elinde" in s)
+        iyi = f"Barış Teşup'un elinde tutuluyor. LORE.md:{no}"
+        vakalar = [("canon", "Kaynağı verilmeyen iddia", 1),
+                   ("canon", iyi, 0), ("canon", iyi + " LORE.md:abc", 1),
+                   ("canon", iyi + " LORE.md:", 1), ("canon", "iddia LORE.md:999999", 1),
+                   ("kod", "Kod bulgusu echo.py:1-2", 0),
+                   ("kod", "Kod bulgusu echo.py:1-abc", 1),
+                   ("kod", "Kod bulgusu echo.py:999999", 1),
+                   ("kod", "Kod bulgusu ../dis.txt:1", 1),
+                   ("kod", "Kod bulgusu olmayan.py:1", 2),
+                   ("belge", "Başlık ECHO.md:1", 0),
+                   ("belge", "Kaynağı verilmeyen belge iddiası", 1),
+                   ("web", "Kaynağı verilmeyen web iddiası", 1),
+                   ("web", "Kaynak https://example.invalid:443/kanıt", 3),
+                   ("web", "Kaynak https://example.invalid:abc/kanıt", 1),
+                   ("gozlem", "Komutun çıktısı gözlendi", 0),
+                   ("gozlem", "", 1), ("gozlem", "Kaynak echo.py:1", 1)]
+        for tur, metin, kod in vakalar:
+            with self.subTest(tur=tur, metin=metin):
+                s = self.rapor(metin, "--tur", tur)
+                self.assertEqual(s.returncode, kod, s.stdout + s.stderr)
+                self.assertNotIn("Traceback", s.stdout + s.stderr)
+        self.assertEqual(self.rapor("Atıfsız eski çağrı").returncode, 1)
+        dis = Path(self.gecici.name) / "dis.txt"
+        dis.write_text("dış kaynak")
+        (self.kok / "dis-bag.txt").symlink_to(dis)
+        self.assertEqual(self.rapor("Kaynak dis-bag.txt:1", "--tur", "kod").returncode, 1)
+
+    def test_rapor_yapisal_sonucu_anlam_dogrulamasi_saymaz(self):
+        satirlar = (self.kok / "LORE.md").read_text().splitlines()
+        no = next(i for i, s in enumerate(satirlar, 1) if "Teşup'un elinde" in s)
+        # Olumsuzluk bile aynı kelimeleri paylaşabilir. Araç bunun anlamını
+        # çözemez; 0'ı genel doğruluk onayı olarak sunmamalı.
+        s = self.rapor(f"Barış Teşup'un elinde tutulmuyor. LORE.md:{no}", "--tur", "canon")
+        self.assertEqual(s.returncode, 0, s.stdout)
+        self.assertIn("YAPISAL DENETİM", s.stdout)
+        self.assertIn("anlam doğruluğu", s.stdout)
+        self.assertIn("doğrulanmadı", s.stdout)
+        self.assertNotIn("atıf doğrulandı", s.stdout)
+
+    def test_canon_dosyasinin_sonunda_hayali_satir_yok(self):
+        for metin in ("canon kaynak", "canon kaynak\n"):
+            with self.subTest(metin=metin):
+                (self.kok / "LORE.md").write_text(metin)
+                self.assertEqual(self.rapor("canon kaynak LORE.md:1").returncode, 0)
+                s = self.rapor("LORE.md:2")
+                self.assertEqual(s.returncode, 1, s.stdout)
+                self.assertIn("geçersiz aralık", s.stdout)
+
+    def test_uzantisiz_ve_gizli_kaynaklar_da_denetlenir(self):
+        (self.kok / "README").write_text("belge\n")
+        for kaynak in ("README:1", ".gitignore:1"):
+            self.assertEqual(self.rapor(f"Kaynak {kaynak}", "--tur", "belge").returncode, 0)
+        for kaynak, kod in (("README:99", 1), ("olmayan:99", 2), (".gitignore:abc", 1)):
+            s = self.rapor(f"İlk echo.py:1; ikinci {kaynak}", "--tur", "kod")
+            self.assertEqual(s.returncode, kod, s.stdout)
+
+    def test_yetki_denetimi_yapilamayinca_basari_vermez(self):
+        arg = ("--tur", "gozlem", "--mod", "okuma")
+        self.assertEqual(self.rapor("Gözlem", *arg).returncode, 0)
+        (self.kok / "yeni.txt").write_text("ana ajan değişikliği")
+        s = self.rapor("Gözlem", *arg)
+        self.assertEqual(s.returncode, 2, s.stdout)
+        self.assertIn("yazarı bu kontrolle belirlenemez", s.stdout)
+        shutil.rmtree(self.kok / ".git")
+        s = self.rapor("Gözlem", *arg)
+        self.assertEqual(s.returncode, 2, s.stdout)
+        self.assertIn("git durumu okunamadı", s.stdout)
+
+    def test_havuz_dogrulayici_arizasini_basari_saymaz(self):
+        yol = Path(self.gecici.name) / "rapor.md"
+        yol.write_text("gözlem")
+        for kod in (1, 2, 3):
+            with self.subTest(kod=kod):
+                (self.kok / ".claude/gorev.py").write_text(f"raise SystemExit({kod})\n")
+                s = self.kos("arac", "havuz", "birlestir", "--rapor", str(yol))
+                self.assertEqual(s.returncode, 1, s.stdout + s.stderr)
+                self.assertIn("SUNUMA GİTMEZ", s.stdout)
 
     def test_kimliksiz_devre_reddedilir_ve_codex_kilidi_korunur(self):
         arg = ("arac", "devre", "dene", "--halka", "test", "--not", "ilk tur")

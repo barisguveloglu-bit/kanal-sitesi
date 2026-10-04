@@ -174,8 +174,13 @@ def gorev(a):
     except (OSError, ValueError) as hata:
         print(f"Görev hazırlanamadı: {hata}")
         return 2
-    kod, sozlesme = calistir("gorev", "brief", "--konu", a.konu,
-                            "--cikti", a.cikti, "--mod", "okuma")
+    argumanlar = ["brief", "--konu", a.konu, "--cikti", a.cikti,
+                  "--mod", "okuma", "--ortam", "codex", "--alan", a.alan]
+    if a.alan != "canon":
+        argumanlar.append("--baglamsiz")
+    for kaynak in a.kaynak:
+        argumanlar += ["--kaynak", kaynak]
+    kod, sozlesme = calistir("gorev", *argumanlar)
     if kod:
         return yaz((kod, sozlesme))
     sozlesme = sozlesme.replace("CLAUDE.md", "AGENTS.md").replace(
@@ -281,6 +286,9 @@ def main(argv=None):
     g.add_argument("--rol", required=True)
     g.add_argument("--konu", required=True)
     g.add_argument("--cikti", default="atıflı kısa rapor")
+    g.add_argument("--alan", choices=("canon", "kod", "belge", "web", "gozlem"),
+                   default="canon", help="görev ve kaynak türü; canon dışında canon aranmaz")
+    g.add_argument("--kaynak", action="append", default=[], help="ilgili dosya/bölüm; tekrarlanabilir")
     g.add_argument("--gonder", action="store_true", help="gönderim öncesi bütçeden bir ajan düş")
     g.add_argument("--model", choices=MODELLER, help="bu görevin modelini açıkça seç")
     g.add_argument("--json", action="store_true", help="spawn_agent çağrı argümanlarını üret")

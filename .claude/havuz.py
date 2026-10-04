@@ -278,9 +278,13 @@ def birlestir(a):
              "--rapor", yol],
             cwd=KOK, capture_output=True, text=True, timeout=180)
         if s.returncode != 0:
+            once = len(kusurlu)
             for satir in (s.stdout or "").splitlines():
                 if satir.strip().startswith("KUSUR"):
                     kusurlu.append(f"{os.path.basename(yol)}: {satir.strip()[:110]}")
+            if len(kusurlu) == once:
+                kusurlu.append(f"{os.path.basename(yol)}: denetim tamamlanmadı "
+                               f"(çıkış {s.returncode})")
 
     print(f"BİRLEŞTİRME — {okunan}/{len(a.rapor)} rapor okundu\n")
     if kusurlu:

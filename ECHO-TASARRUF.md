@@ -168,7 +168,7 @@ Birinci turun gerçek örneği: DONGULER.md 108.339 bayt; `oku` ile seçilmiş
 40 satırın çıktısı 3.373 bayt. 28 vakalık önceki Luna denemesi sınıflandırma
 başarısını gösterir; token veya hız/maliyet kıyaslaması değildir.
 
-Yerel `butce.py` ajan sayısı ve süreyi izler. Bu mekanizma haftalık hesap
+Yerel `butce.py` gönderim hazırlığı için ayrılan hak ve süreyi izler. Bu mekanizma haftalık hesap
 bakiyesini okuyamaz, tüketilmiş tokenı ölçemez veya kota yenileyemez.
 
 ## İkinci aşama için ölçülecek adaylar
@@ -195,8 +195,56 @@ yüzdede tek kısa denemeden kesin sonuç çıkarılmaz; küçük bir görev sep
 üzerinde karşılaştırılır. Kritik kalite düşerse aday kabul edilmez.
 
 Başlangıç denetimi, canon dayanakları, zorunlu testler ve hata ayrıntıları
-tasarruf amacıyla atlanmaz. Araştırma tamamlandı; çalışma zamanı değişiklikleri
-bu adayların ölçüm aşamasında seçilecektir.
+tasarruf amacıyla atlanmaz. Araştırma tamamlandı; ilk uygulama aşağıdadır.
+
+## 4 Ekim 2026 — dış inceleme sonrası ilk uygulama
+
+İnceleme `fee9020e14adf577be3d57d5cc9fcb6910f2c030` sürümünü ele aldı.
+Bozuk bütçeyle `gorev --gonder --json` çağrısının 0 dönüp görev ürettiği
+geçici kopyada yeniden üretildi. Atıfsız rapor, bozuk adres ve okunamayan
+Git durumunun başarı sayılması da hedefli deneylerle doğrulandı.
+
+Uygulananlar:
+
+- Bütçe eksik/bozuk/geçerli ayrımı yapar; bozuk kayıt gönderimi durdurur.
+  CLI işlemleri kilit altında yürür ve kayıt atomik değiştirilir. Son hak
+  için sekiz eşzamanlı çağrıdan yalnız biri görev aldı. Yazma arızasında
+  eski kaydın korunduğu ayrıca sınandı. Sayaç gerçek ajan başlangıcını
+  izlemez; başarısız ortam çağrısına otomatik hak iadesi yapılmaz.
+- Rapor türleri canon/kod/belge/web/gozlem olarak ayrıldı. Zorunlu kaynak
+  eksikse başarı verilmez; dosya/satır aralığı ve yol sınırı denetlenir.
+  Git arızası veya kirli ağaç “doğrulanamadı” olur; yazar tahmin edilmez.
+  Birleştirici, doğrulayıcının bütün başarısız çıkışlarını reddeder.
+- Canon örtüşmesi yalnız yardımcı sinyaldir. Anlamı ters çevrilmiş cümle
+  aynı kelimelerle geçebilir; sonuç bu yüzden açıkça **yapısal denetim**
+  olarak adlandırılır. Bütün iddiaların kaynak kapsamı ve anlamı yönetici
+  incelemesidir. Web URL'si içerik kanıtı sayılmaz; araç 3 ile inceleme ister.
+- Codex görevleri kısa ortak sözleşme, seçilen alan ve ilgili rolü alır.
+  `--alan kod|belge|web|gozlem` canon aramasını/enjeksiyonunu kaldırır;
+  canon varsayılanı ve dayanakları korunur. `--kaynak` dosya/bölüm kapsamı
+  taşır. “Aramada yoksa konu ilgisizdir” hükmü kaldırıldı.
+
+Üç sabit önizlemenin UTF-8 `message` boyutu `/workspace/kanal-sitesi`
+konumunda ölçüldü; çıktı isteği varsayılan, rollerin modelleri aynı kaldı:
+
+| Rol / konu / yeni alan | Önce (bayt) | Sonra (bayt) |
+|---|---:|---:|
+| tarama-denetci / Tarayıcı önbellek ve robots altyapısını incele / kod | 4.348 | 2.740 |
+| erisim-denetci / CSS odak halkasını incele / kod | 4.582 | 2.974 |
+| canon-denetci / Teşup’un zaafını doğrula / canon | 6.230 | 4.883 |
+
+Üretim: `echo.py gorev --rol <rol> --konu <konu> --alan <alan> --json`.
+Ölçüm: `len(json.loads(stdout)["message"].encode("utf-8"))`.
+Bu önizlemeler `--gonder` kullanmadı; gerçek görev yürütmesi, token, hız,
+önbellek, kredi veya haftalık kota ölçümü değildir. Metin yaklaşık %22–37
+küçüldü; yeni sözleşmeyle kusur yakalama kalitesinin korunmuş olduğu henüz
+aynı görev/model üzerinde karşılaştırmalı bir deneyle gösterilmedi.
+
+Başlangıç/teslim/CI kapıları korunur. Değişmeyen durumun denetim sonucunu
+yeniden kullanma uygulanmadı. Sonraki deney, sabit görev sepetinde eski/yeni
+sözleşmeyle kaçan kusur, yanlış alarm, yeniden iş ve tamamlanan doğru iş
+başına toplam kullanımdır. Hız/model/ajan sayısı ayrı değişkenler olarak
+sınanmalı; hesap planı ve yenilenme saati hâlâ kullanım ekranından alınmalıdır.
 
 ## Kaynaklar
 

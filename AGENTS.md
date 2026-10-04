@@ -48,7 +48,12 @@ kullan: `model` değerini aynen geçir, `fork_turns` değeri `none` olmalı.
 Kullanılabilir model listesini kontrol et; model yoksa sessizce değiştirme.
 Uzmanlar salt okunur, ana ajan
 tek yazıcıdır. Destek yoksa sırayla çalış, bağımsız denetim iddia etme.
-Raporların atıflarını `echo.py arac gorev dogrula` ile denetle.
+Görevde `--alan canon|kod|belge|web|gozlem` ve gerekiyorsa `--kaynak`
+ile kapsamı seç; varsayılan canon'dur. Raporu `echo.py arac gorev dogrula
+--rapor <dosya> --tur <alan> --mod <mod>` ile denetle. Sonuç yalnız yapısal
+denetimdir; anlamı ayrıca incele. `okuma` modu için ayrı temiz çalışma
+kopyası gerekir; ortak ağaçta `yok` seçersen yetki denetlenmiş sayılmaz.
+Web kaynaklarını yönetici okumalı; yerel araç bu türde otomatik başarı vermez.
 
 `.claude/` tarihsel Python/bellek deposudur; Claude kurulumu gerektirmez.
 Eski `.claude/commands`, `disajan.py` ve `CLAUDE.md` Claude uyumluluğudur;
