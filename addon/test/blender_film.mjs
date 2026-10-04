@@ -61,6 +61,31 @@ def kos():
             "iz": json.dumps([(round(k["x"],6), round(k["y"],6)) for k in a])}
 r1, r2 = kos(), kos()
 r1["ayni"] = r1["iz"] == r2["iz"]
+
+# Sayisal hareket sozlesmeleri: zaman cizelgesi sabitleri degismeden kalmali.
+def olc_hiz(kos):
+    sen2 = {
+        "fps": 24, "sure": 1.0,
+        "aktorler": {"a": {"skin": "x.png", "set": "yumruk", "konum": [0, 0]}},
+        "olaylar": [{"t": 0.0, "aktor": "a", "git": [100, 0], "kos": kos}],
+        "kamera": [{"t": 0.0, "aci": "ust", "a": "a"}]
+    }
+    ak, _, _, _ = F.zaman_cizelgesi(sen2, setler, {})
+    return ak["a"].kayit[12]["x"]
+
+def olc_kacin():
+    sen2 = {
+        "fps": 24, "sure": 1.0,
+        "aktorler": {"a": {"skin": "x.png", "set": "yumruk", "konum": [0, 0], "aci": 0}},
+        "olaylar": [{"t": 0.0, "aktor": "a", "kacin": "sol"}],
+        "kamera": [{"t": 0.0, "aci": "ust", "a": "a"}]
+    }
+    ak, _, _, _ = F.zaman_cizelgesi(sen2, setler, {})
+    return ak["a"].kayit[-1]
+
+r1["olc_yuru"] = olc_hiz(False)
+r1["olc_kos"] = olc_hiz(True)
+r1["olc_kacin"] = olc_kacin()
 del r1["iz"]
 print(json.dumps(r1, ensure_ascii=False))
 `;
@@ -83,6 +108,9 @@ const [kam, bak] = r.kam_bakis[0];
 kontrol("yan kamera iki aktorun eksenine dik, ortaya bakiyor", Math.abs(kam[0] - 2) < 1e-6 && Math.abs(bak[0] - 2) < 1e-6,
         JSON.stringify(kam));
 kontrol("ayni senaryo ayni film (tekrar cekim)", r.ayni);
+kontrol("olcu: yuru 4.3 blok/sn", Math.abs(r.olc_yuru - 2.15) < 1e-6, r.olc_yuru.toFixed(3) + " / 2.150 @ 0.5 sn");
+kontrol("olcu: kos 5.6 blok/sn", Math.abs(r.olc_kos - 2.8) < 1e-6, r.olc_kos.toFixed(3) + " / 2.800 @ 0.5 sn");
+kontrol("olcu: kacin toplam 2.4 blok", Math.abs(r.olc_kacin.x + 2.4) < 1e-6, r.olc_kacin.x.toFixed(3) + " / -2.400");
 console.log("");
 console.log(hata ? ">>> SORUN VAR" : ">>> blender film cizelgesi: oyun kurallariyla ayni");
 process.exit(hata ? 1 : 0);
