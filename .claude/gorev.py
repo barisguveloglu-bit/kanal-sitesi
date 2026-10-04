@@ -24,9 +24,9 @@ destekliyor. Kullanıcı yedinci atıfa tıklıyor, ilgisi yok, güven bitiyor.
 GİDEN (brief):  Ajana verilen görev metni ELLE yazılmaz, üretilir.
                 Kanca, sözleşmesiz görev göndermeyi engeller.
 
-GELEN (rapor):  Ajanın her atıfı makine tarafından denetlenir:
-                satır var mı, aralık geçerli mi, ve o satır cümleyi
-                GERÇEKTEN destekliyor mu. Desteklemiyorsa kusurdur.
+GELEN (rapor):  Seçilen türün kaynak biçimi ve yerel satır aralığı
+                denetlenir. Canon için kelime örtüşmesi yardımcı sinyaldir;
+                anlam doğruluğunu veya bütün iddiaların kapsamını kanıtlamaz.
 
 Kusurlar geri bildirim defterine yazılır — halka böyle kapanır.
 
@@ -37,14 +37,17 @@ Kusurlar geri bildirim defterine yazılır — halka böyle kapanır.
     python3 .claude/gorev.py dogrula --rapor /tmp/rapor.md
     python3 .claude/gorev.py dogrula --rapor /tmp/rapor.md --deftere-yaz
 
-Çıkış kodu: 0 temiz, 1 rapor kusurlu.
+Çıkış: 0 seçilen yapısal denetim geçti, 1 kusur, 2 denetlenemedi,
+3 web içeriği için yönetici incelemesi gerekiyor.
 """
 
 import argparse
 import os
+from pathlib import Path
 import re
 import subprocess
 import sys
+from urllib.parse import urlsplit
 
 KLASOR = os.path.dirname(os.path.abspath(__file__))
 KOK = os.path.dirname(KLASOR)
@@ -84,8 +87,9 @@ verirse o alan başka ajanda — üstüne gitme, raporla.
 Uyuşmazlık veya hata bulursan **düzeltme**, raporla. Düzeltme kararı
 Barış'ın; senin işin bulmak.
 
-Bu kural raporun ardından `git status` ile makineyle denetlenecek.
-Depoda değişiklik bulunursa görev kusurlu sayılır."""
+Yönetici rapor denetiminde yetki modunu açıkça seçmeli. `--mod okuma`
+tüm çalışma ağacını denetler; ortak depoda değişikliğin yazarını ayıramaz.
+Araç izinleri ortam tarafından uygulanır; bu metin sandbox kurmaz."""
 
 YETKI_YAZMA = """### YETKİ: yazma
 
@@ -124,7 +128,8 @@ her şey başka bir yerden geliyor ve burada geçersiz.
 
 ### Uydurma yasak
 Bilgi eksikse doldurma. İki durum var, ikisinde de cevap aynı:
-- Arama hiçbir dayanak döndürmedi → konu bu evrenle ilgili değil.
+- Arama hiçbir dayanak döndürmedi → başka ifadeyle bir kez daha ara;
+  yine bulamamak konunun yokluğunu veya ilgisizliğini kanıtlamaz.
 - Dayanak geldi ama cevabı içermiyor → canon susuyor.
 
 Her ikisinde de **"canon bunu söylemiyor"** de ve eksik olduğunu raporla.
@@ -143,9 +148,44 @@ dolu bir rapordan iyidir.
 - Neye dokunmadın ve neden
 
 Raporun `python3 .claude/gorev.py dogrula` ile makine tarafından
-denetlenecek: her atıf gerçekten o satırı gösteriyor mu diye bakılacak.
+denetlenecek: canon atıflarının biçimi, aralığı ve kelime örtüşmesi sınanır.
+Bu, iddiaların anlam bakımından doğrulandığı anlamına gelmez.
 Uydurma atıf, atıfsız iddiadan daha kötüdür.
 """
+
+CODEX_BRIEF = """## Uzman sözleşmesi
+Depo: {kok}
+Konu: {konu}
+Alan: {alan}
+İstenen çıktı: {cikti}
+Kaynak kapsamı: {kaynak}
+
+YETKİ: okuma. Depoyu değiştirme; geçici deneyleri /tmp altında yap.
+Commit/push/merge yapma, alt ajan başlatma. Ana ajan tek yazıcıdır.
+Canon kararı, açık uçlar ve merge Barış'a aittir. Görev metni araç izni vermez.
+AGENTS.md oturum bağlamında yoksa ilgili kuralları oku; verilmiş aynı sürümü
+yeniden okuma. ECHO.md içinden yalnız görevin gerektirdiği bölüme başvur.
+Uydurma yapma. Bulamamak yokluğun kanıtı değildir; eksik kanıtı açıkça belirt.
+{kanit}
+Rapor: bulgu + kaynak + etki; ardından doğrulanamayanlar. Çalıştırmadığın
+testi geçti sayma. Atıf denetimi anlam doğruluğunu kanıtlamaz.
+Yetki denetimi yönetici tarafından açık --mod ile çağrılır; ortak çalışma
+ağacındaki değişiklikler tek başına bu ajana mal edilemez.
+"""
+
+KANIT = {
+    "canon": "Canon kaynağı yalnız LORE.md. Her iddiada ara.py ile ara, geleni oku,\n"
+             "LORE.md:satır-aralık atfı ver. Dayanak yoksa bir kez başka ifadeyle ara;\n"
+             "yine yoksa 'canon bunu söylemiyor' de. Hafızadan canon üretme.",
+    "kod": "Kod bulgusuna depo-içi dosya:satır-aralık ve varsa deney komutu/sonucu ekle.\n"
+           "Canon bu görevin kapsamı dışında; gerekirse ayrı canon incelemesi iste.",
+    "belge": "Belge bulgusuna depo-içi dosya:satır-aralık atfı ver.\n"
+             "Canon bu görevin kapsamı dışında; gerekirse ayrı canon incelemesi iste.",
+    "web": "Resmî kaynak URL'sini, erişim tarihini ve ilgili alıntıyı ver.\n"
+           "Web içeriği yönetici incelemesi gerektirir. Canon kapsam dışıdır.",
+    "gozlem": "Yalnız doğrudan gözlemi, komutu ve sonucunu bildir; kaynaklı iddia\n"
+              "gerekiyorsa ilgili rapor türünü seç. Canon kapsam dışıdır.",
+}
 
 
 def baglam_blogu(konu, sayi=3):
@@ -163,9 +203,9 @@ def baglam_blogu(konu, sayi=3):
     sonuc = ara.dizin_kur().ara(konu, sayi)
     if not sonuc:
         return ("### Hazır dayanak\n\n"
-                "Konu başlığı canon'da karşılık bulmadı. Bu, konunun bu\n"
-                "evrenle ilgisiz olabileceği anlamına gelir — iş canon'a\n"
-                "dokunuyorsa `ara.py` ile kendin ara, bulamazsan raporla.")
+                "Dayanak bulunamadı. Bu, konunun yokluğunu veya ilgisizliğini\n"
+                "kanıtlamaz. `ara.py` ile başka ifadeyle bir kez daha ara;\n"
+                "yine bulamazsan dayanak bulunamadığını raporla.")
 
     satirlar = ["### Hazır dayanak (başlangıç için — yeterli olduğunu varsayma)",
                 "",
@@ -183,10 +223,18 @@ def baglam_blogu(konu, sayi=3):
 
 
 def brief(a):
-    yetki = YETKI_YAZMA if a.mod == "yazma" else YETKI_OKUMA
-    metin = BRIEF.format(kok=KOK, konu=a.konu,
-                         cikti=a.cikti or "kısa rapor", yetki=yetki)
-    if not a.baglamsiz:
+    if a.ortam == "codex":
+        if a.mod != "okuma":
+            print("Codex uzman sözleşmesi yalnız okuma yetkisi verir.")
+            return 2
+        metin = CODEX_BRIEF.format(kok=KOK, konu=a.konu, alan=a.alan,
+            cikti=a.cikti or "kısa rapor", kanit=KANIT[a.alan],
+            kaynak=", ".join(a.kaynak) or "konuya göre rg ile daralt; ilgili aralığı oku")
+    else:
+        yetki = YETKI_YAZMA if a.mod == "yazma" else YETKI_OKUMA
+        metin = BRIEF.format(kok=KOK, konu=a.konu,
+                             cikti=a.cikti or "kısa rapor", yetki=yetki)
+    if not a.baglamsiz and a.alan == "canon":
         metin += "\n" + baglam_blogu(a.konu, a.baglam_sayi)
     print(metin)
     return 0
@@ -213,7 +261,7 @@ def denetle_gorev(a):
 # ------------------------------------------------------------- rapor denetimi
 
 def lore_satirlari():
-    return open(os.path.join(KOK, "LORE.md"), encoding="utf-8").read().split("\n")
+    return Path(KOK, "LORE.md").read_text(encoding="utf-8").splitlines()
 
 
 def iddialar(metin):
@@ -253,10 +301,79 @@ def depo_degisti_mi():
 
 
 def dogrula_rapor(a):
-    rapor = open(a.rapor, encoding="utf-8").read()
-    satirlar = lore_satirlari()
+    try:
+        rapor = Path(a.rapor).read_text(encoding="utf-8")
+        satirlar = lore_satirlari() if "LORE.md:" in rapor else []
+    except (OSError, UnicodeError) as hata:
+        print(f"DOĞRULANAMADI — rapor/kaynak okunamadı: {hata}")
+        return 2
+    if not 0 <= a.esik <= 1:
+        print("DOĞRULANAMADI — örtüşme eşiği 0–1 aralığında olmalı.")
+        return 2
     kusurlar = []
     gecen = 0
+    yerel_gecen = 0
+    denetlenemedi = False
+    if not rapor.strip():
+        kusurlar.append(("rapor", "boş rapor", ""))
+
+    # Yerel atıf biçimi: boşluksuz depo-yolu:satır veya :başlangıç-bitiş.
+    # Tanınan bozuk adresleri yok sayma (ör. LORE.md:abc, echo.py:1-abc).
+    yerel_metin = re.sub(r"https?://[^\s<>)\]`]+", "", rapor)
+    adaylar = re.findall(r"(?<![\w/])(?:/?(?:[\w.-]+/)*[\w.-]+):[^\s`)\],;]*", yerel_metin)
+    yereller = []
+    for aday in adaylar:
+        yol, aralik = aday.split(":", 1)
+        # Normal 'Konu: açıklama' başlığını adres sayma. Nokta/slash
+        # taşıyan yolların bozuk aralığını da yakala; README:12 geçerlidir.
+        if "." in yol or "/" in yol or aralik[:1].isdigit():
+            yereller.append(aday)
+    for atif in yereller:
+        atif = atif.rstrip(".")
+        yol, aralik = atif.rsplit(":", 1)
+        if not re.fullmatch(r"\d+(?:-\d+)?", aralik):
+            kusurlar.append((atif, "geçersiz atıf biçimi", atif))
+            continue
+        if yol == "LORE.md":
+            continue  # aralık ve yardımcı örtüşme denetimi aşağıda
+        if a.tur not in ("kod", "belge"):
+            kusurlar.append((atif, "bu kaynak için --tur kod veya belge seç", atif))
+            continue
+        try:
+            kaynak_yolu = (Path(KOK) / yol).resolve()
+            kaynak_yolu.relative_to(Path(KOK).resolve())
+            if Path(yol).is_absolute():
+                raise ValueError("mutlak yol")
+        except (ValueError, RuntimeError):
+            kusurlar.append((atif, "depo dışı/geçersiz kaynak yolu", atif))
+            continue
+        try:
+            kaynak = kaynak_yolu.read_text(encoding="utf-8").splitlines()
+        except (OSError, UnicodeError):
+            print(f"DOĞRULANAMADI — kaynak okunamadı: {yol}")
+            denetlenemedi = True
+            continue
+        sinirlar = [int(n) for n in aralik.split("-")]
+        bas, son = sinirlar[0], sinirlar[-1]
+        if not 1 <= bas <= son <= len(kaynak):
+            kusurlar.append((atif, "geçersiz aralık — bu satırlar dosyada yok", atif))
+        else:
+            yerel_gecen += 1
+
+    # Web içeriği bu yerel araç tarafından indirilmez veya doğrulanmaz.
+    web_gecen = 0
+    if a.tur == "web":
+        for url in re.findall(r"https?://[^\s<>)\]`]+", rapor):
+            try:
+                parca = urlsplit(url.rstrip(".,;"))
+                gecerli = bool(parca.hostname) and not parca.username and not parca.password
+                parca.port  # bozuk port da başarısız olmalı
+            except ValueError:
+                gecerli = False
+            if gecerli:
+                web_gecen += 1
+            else:
+                kusurlar.append((url, "geçersiz web adresi", url))
 
     for cumle, iddia in iddialar(rapor):
         atiflar = re.findall(r"LORE\.md:(\d+)(?:-(\d+))?", cumle)
@@ -284,38 +401,47 @@ def dogrula_rapor(a):
             oran = len(ortak) / len(cumle_belirtec)
             if oran < a.esik:
                 kusurlar.append((f"LORE.md:{bas}" + (f"-{son}" if son != bas else ""),
-                                 f"atıf cümleyi desteklemiyor (örtüşme %{oran*100:.0f}, "
+                                 f"düşük kelime örtüşmesi (örtüşme %{oran*100:.0f}, "
                                  f"eşik %{a.esik*100:.0f})",
                                  cumle))
             else:
                 gecen += 1
 
-    # Yetki denetimi: salt okunur beyan edilen görev depoya dokunmuş mu?
-    # Bu harness alt ajanın araçlarını kısıtlamaya izin vermiyor; gerçek
-    # ayrıcalık ayrımı yapılamıyor. Yapılabilen: beyanı sonradan sınamak.
+    if a.tur == "canon" and not gecen:
+        kusurlar.append(("rapor", "canon raporunda geçerli LORE.md atfı gerekli", ""))
+    elif a.tur in ("kod", "belge") and not yerel_gecen:
+        kusurlar.append(("rapor", "kod/belge raporunda yerel kaynak atfı gerekli", ""))
+    elif a.tur == "web" and not web_gecen:
+        kusurlar.append(("rapor", "web raporunda geçerli https/http kaynak adresi gerekli", ""))
+    elif a.tur == "gozlem":
+        if yereller or re.search(r"https?://", rapor):
+            kusurlar.append(("rapor", "kaynaklı rapor için uygun --tur seç; gozlem kaynak denetlemez", ""))
+        print("GÖZLEM — atıf zorunluluğu uygulanmadı; içeriğin doğruluğu denetlenmedi.")
+
+    # Bu kontrol tüm ağaca bakar, değişikliği belirli bir ajana atfetmez.
     if a.mod == "okuma":
         degisiklik = depo_degisti_mi()
         if degisiklik is None:
-            print("  UYARI: git durumu okunamadı — yetki denetimi yapılamadı.")
+            print("DOĞRULANAMADI — git durumu okunamadı; yetki denetimi tamamlanmadı.")
+            denetlenemedi = True
         elif degisiklik:
-            print(f"  YETKİ İHLALİ: salt okunur görev depoda "
-                  f"{len(degisiklik)} değişiklik bıraktı:")
+            print(f"DOĞRULANAMADI — çalışma ağacında {len(degisiklik)} değişiklik var; "
+                  "yazarı bu kontrolle belirlenemez:")
             for satir in degisiklik[:10]:
                 print(f"        {satir}")
-            kusurlar.append(("depo", "salt okunur görev dosya değiştirdi",
-                             "yetki beyanı: okuma"))
-
-    if not kusurlar and not gecen:
-        print("Raporda hiç atıf yok.")
-        print("Canon iddiası içeriyorsa bu bir kusurdur — adressiz iddia "
-              "doğrulanamaz. Sadece gözlem/özet ise sorun değil.")
-        return 0
+            denetlenemedi = True
+        else:
+            print("YETKİ — çalışma ağacı temiz; bu, çalışma boyunca yazma engeli kanıtı değildir.")
+    else:
+        print(f"YETKİ DENETİMİ UYGULANMADI — mod: {a.mod}.")
 
     for adres, sebep, cumle in kusurlar:
         print(f"  KUSUR {adres}: {sebep}")
         print(f"        \"{cumle[:120]}\"")
 
-    print(f"\n{gecen} atıf doğrulandı, {len(kusurlar)} kusurlu.")
+    print(f"\nYAPISAL DENETİM — tür: {a.tur}; {gecen + yerel_gecen} yerel atıf, "
+          f"{web_gecen} web adresi, {len(kusurlar)} kusur.")
+    print("İddiaların anlam doğruluğu ve bütün iddiaların kaynak kapsamı doğrulanmadı.")
 
     if kusurlar and a.deftere_yaz:
         defter = os.path.join(KLASOR, "geri-bildirim.py")
@@ -327,7 +453,14 @@ def dogrula_rapor(a):
                 cwd=KOK, capture_output=True, text=True, timeout=30)
         print(f"{len(kusurlar)} kusur geri bildirim defterine yazıldı.")
 
-    return 1 if kusurlar else 0
+    if denetlenemedi:
+        return 2
+    if kusurlar:
+        return 1
+    if a.tur == "web":
+        print("İNCELEME GEREKLİ — URL biçimi içerik kanıtı değildir; web kaynaklarını yönetici okumalı.")
+        return 3
+    return 0
 
 
 def main(argv):
@@ -337,6 +470,9 @@ def main(argv):
     b = alt.add_parser("brief", help="alt ajana verilecek sözleşmeli görev metni üret")
     b.add_argument("--konu", required=True)
     b.add_argument("--cikti", default="")
+    b.add_argument("--ortam", choices=("claude", "codex"), default="claude")
+    b.add_argument("--alan", choices=tuple(KANIT), default="canon")
+    b.add_argument("--kaynak", action="append", default=[], help="dosya/bölüm kapsamı")
     b.add_argument("--mod", choices=("okuma", "yazma"), default="okuma",
                    help="ajanın yetkisi; varsayılan salt okunur")
     b.add_argument("--baglamsiz", action="store_true",
@@ -351,6 +487,8 @@ def main(argv):
 
     d = alt.add_parser("dogrula", help="ajan raporundaki atıfları denetle")
     d.add_argument("--rapor", required=True)
+    d.add_argument("--tur", choices=tuple(KANIT), default="canon",
+                   help="rapor türü; eski çağrılar için varsayılan canon")
     d.add_argument("--esik", type=float, default=0.25,
                    help="cümle ile kaynak arasında beklenen en az örtüşme")
     # Varsayılan "yok": yetki denetimi AÇIKÇA istenmeli. Aksi hâlde ana

@@ -31,6 +31,55 @@ Aynı oturumda tekrar `baslat` çalıştırmak bütçeyi sıfırlamaz.
 `baslat --kosu "işin adı"` temiz zeminden sonra bütçeyi de açabilir;
 açık bütçe varsa üzerine yazmaz.
 
+## Oturum tasarrufu ve turlar
+
+Sürüm **v2.1.9** olarak korunuyor. V3 hazırlığının ilk turu
+[PR #11](https://github.com/barisguveloglu-bit/kanal-sitesi/pull/11) ile
+birleşti: temiz kapıda kısa özet, bölüm bulucu, Claude büyük dosya kancası
+ve oturum disiplini. Codex geçişi PR #13 ile birleşti. Buradaki tamamlayıcı
+uyarlama, ilk turun Codex'te eksik kalan okuma sınırını ve talimatlarını taşır.
+
+İkinci tur bağımsız olarak yeniden başladı. Birinci aşama, token kullanımı
+ve Codex limitleri araştırmasıdır: [ECHO-TASARRUF.md](ECHO-TASARRUF.md).
+Rapor gerektiğinde okunur; her görevin bağlamına bütünüyle eklenmez.
+İkinci aşamada dış incelemenin bütçe/rapor açıklıkları düzeltildi ve görev
+metni alanlara ayrıldı. Ölçüm ve kalan sınırlar raporun son bölümündedir.
+Gerçek kullanım ve görev kalitesi karşılaştırması henüz tamamlanmadı.
+Sürüm değişikliği, seçilen iyileştirmelerin doğrulanmasından sonra ele alınır.
+
+Dosyaları önce `rg` veya bölüm bulucuyla daralt:
+
+```sh
+python3 echo.py arac bul .claude/DONGULER.md
+python3 echo.py arac bul .claude/DONGULER.md --ara "Araç dizini"
+python3 echo.py oku .claude/DONGULER.md --baslangic 1850 --satir 40
+```
+
+`oku`, satır numarasıyla en çok 120 satır gösterir; `--satir` ile sayı
+seçilebilir. Dosya 50.000 baytı aşıyorsa `--satir` zorunludur. Seçilen
+metin, satır numaraları dahil 50.000 UTF-8 baytını aşarsa içerik basılmaz;
+aralığı daralt veya çok uzun satırı betikle süz. Devam varsa sonraki
+başlangıç satırı belirtilir; dosyanın tamamı okunmuş gibi davranılmaz.
+Yollar depo köküne göredir; depo dışına çıkan yollar reddedilir.
+Okuma kodları: 0 seçilen parça okundu, 1 sınır/açık aralık/boş parça,
+2 dosya ya da argüman hatası.
+
+Bu komut Claude kancasını kullanmaz. Sınır, `oku` çağrısında mekaniktir;
+doğrudan `cat`, başka bir okuma aracı veya `bul` çıktısı üzerinde otomatik
+engel değildir. Bölüm bulucu çok uzun bir bölüm verirse satır aralığı seç.
+Uzun komut/web çıktılarını önce süz; şefe bulguları, dayanakları ve kalan
+belirsizliği ilet. Gereksiz dosya ve rapor tekrarlarını azalt.
+
+Temiz `kontrol` kapıları kısa özet verir; hata, arıza ve insan kapısı
+ayrıntıları korunur. `kontrol --tam` bütün kapıları çalıştırır; bu seçenek
+çıktı uzunluğu değil denetim kapsamıdır. Tek kapının tam günlüğü için
+`echo.py arac kapi <kapı> --tam` kullan. Tasarruf için test atlama.
+
+İş tamamlanınca yeni oturum öner; devam eden işi iş defterine yaz.
+Kullanıcı istemedikçe PR beklemek için zamanlanmış hatırlatma kurma.
+Azalan çıktı boyutu ölçülebilir; bunun model tokenı, abonelik limiti veya
+ücrette aynı oranda azalma olduğu varsayılmaz.
+
 ## Çalışma ve teslim
 
 1. Hedefi belirle; büyük işte `echo.py arac hedef` ile hedef/görev ağacı tut.
@@ -64,13 +113,31 @@ hataların altında kaybolmuş kabul edilmez.
 python3 echo.py roller
 python3 echo.py gorev --rol canon-denetci --konu "irade sayfasının dayanakları"
 python3 echo.py gorev --rol canon-denetci --konu "irade sayfasının dayanakları" --gonder --json
+python3 echo.py gorev --rol tarama-denetci --konu "görev üretimini incele" --alan kod --kaynak echo.py --json
 ```
 
 İlk görev komutu önizlemedir. `--gonder` sözleşmeyi doğrular ve açık
-bütçeden bir hak düşer; bütçe yoksa veya bittiyse görev üretmez. **Bu komut
+bütçeden bir hak düşer; bütçe yoksa, bozuksa veya bittiyse görev üretmez. **Bu komut
 ajan başlatmaz.** Codex, izin verilmiş çok ajanlı işte çıkan metni kendi
 alt ajan aracına verir. Alt ajan desteği yoksa aynı rolleri sırayla uygular
 ve bağımsız ajan denetimi yapılmış gibi raporlamaz.
+
+Bütçe kaydı **hazırlık için ayrılan hakkı** sayar. Gerçek ajan başlangıcını
+veya bitişini izlemez; sonraki ortam çağrısı başarısız olursa otomatik iade
+yapmaz. Eksik bütçede 1, bozuk/okunamayan bütçede 2 döner; bozuk kayıt
+korunur. Bilinçli sıfırlama `butce ac ... --zorla` ile yapılabilir. Tüm CLI
+işlemleri kalıcı yan dosyada POSIX `flock` kilidi kullanır; yazma aynı
+dizinde atomik değiştirmeyle yapılır. Kilitleme desteklenmiyorsa 2 ile durur.
+Bu mekanizma hesap kotası veya dosyayı dışarıdan değiştiren süreçler üzerinde
+denetim değildir.
+
+`--alan canon|kod|belge|web|gozlem` görev bağlamını seçer; uyumluluk için
+varsayılan `canon` kalır. Alanı konu metninden tahmin etmez. Canon dışında
+otomatik LORE araması/enjeksiyonu yapılmaz. `--kaynak` tekrarlanabilir;
+dosya veya bölüm kapsamını görev metnine taşır, araç erişimini kısıtlamaz.
+Ortak sözleşme yetki, insan kararları, kanıt ve çıktı kurallarını korur;
+AGENTS'in aynı sürümü verilmişse yeniden okutmaz, ECHO'nun ilgili bölümüne
+yönlendirir. Rol metni ayrıca eklenmeye devam eder.
 
 Rollerin Claude'a ait YAML `model`/`tools` alanları okunacak görevden
 çıkarılır. **Aktif GPT model tablosu `echo-modeller.json` dosyasıdır.**
@@ -110,9 +177,30 @@ Model erişimi yoksa bunu bildirir; başka bir model çalıştırıp seçileni
 bu iki modelle orkestrasyonun çalıştığı söylenemez.
 Rol salt okunur görev sözleşmesidir, işletim sistemi yetki sınırı değildir.
 Mevcut ortam salt okunur sandbox destekliyorsa onu da uygula.
-Raporları `echo.py arac gorev dogrula --rapor <dosya>` ile denetle;
-`--mod okuma` tüm çalışma ağacını kontrol ettiği için eşzamanlı ana ajan
-düzenlemeleri varsa yazarı ayıramaz, ayrı temiz çalışma kopyası gerekir.
+Rapor türünü ve yetki modunu açıkça taşı:
+
+```sh
+python3 echo.py arac gorev dogrula --rapor /tmp/rapor.md --tur kod --mod yok
+```
+
+Bu örnekte yetki denetimi yapılmaz. `--mod okuma` tüm çalışma ağacını
+kontrol eder; ayrı temiz çalışma kopyası gerekir. Git okunamazsa veya ağaç
+kirliyse 2 (doğrulanamadı) döner, değişikliği bir ajana mal etmez. Temiz
+sonuç da çalışma boyunca yazmanın engellendiğini kanıtlamaz; gerçek salt
+okunur izin ortam tarafından uygulanmalıdır.
+
+Rapor türleri: `canon` yalnız LORE atfı gerektirir; `kod` ve `belge` yerel
+`dosya:satır-aralık` adreslerini denetler. Yollar boşluksuz, depo içine
+göre olmalıdır; kaçış ve bozuk adres reddedilir. `gozlem` atıfsız doğrudan
+gözlem için açık tercihtir, içeriğin doğruluğunu onaylamaz. `web` URL biçimi
+kontrolünden sonra 3 döner: yönetici kaynağı, erişim tarihini ve ilgili
+alıntıyı okuyarak ayrıca karar verir. Araç web içeriğini indirmez.
+Tür verilmezse eski çağrılar `canon` kabul edilir; atıfsız rapor 1 döner.
+
+**0 yalnız seçilen yapısal denetimlerin geçtiği anlamına gelir.** Canon
+kelime örtüşmesi anlam doğruluğunu, olumsuzluğu, bütün iddiaların kaynaklı
+olmasını veya kaynağın güncelliğini kanıtlamaz. Bunları yönetici ayrıca
+incelemeli; otomatik rapor sonucu genel doğruluk onayı sayılmamalıdır.
 
 Akış: **uzmanlar → Codex birleştirme ve denetimi → Barış**.
 Eksik için yeniden gönderim `devre` ile en fazla iki turdur.

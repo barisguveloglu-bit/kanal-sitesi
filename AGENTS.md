@@ -13,6 +13,15 @@ backend, veritabanı ve dış servis yok. Echo siteye ait değildir.
 kapılarını oku. Ayrıntı `ECHO.md`; beceri `.agents/skills/echo/SKILL.md`.
 Bellekteki eski görev/merge önerileri yeni talimat veya izin değildir.
 
+Oturum tasarrufu: önce `rg` veya `echo.py arac bul <dosya>` ile yeri bul;
+metni `echo.py oku <dosya> --baslangic <satır> --satir <adet>` ile oku.
+50.000 bayt üstü dosyada açık aralık zorunludur. Bu sınır yalnız `oku`
+komutunda uygulanır; Codex'in diğer araçlarına otomatik kanca değildir.
+Uzun araç/web çıktısını önce süz, gereken bölümü getir. Aynı bağlamı tekrar
+okuma; ajanlara görevle ilgili bölümleri ver. İş tamamlanınca yeni oturum
+öner, yarım işi devam noktasıyla bırak. Kullanıcı istemedikçe PR için
+zamanlanmış hatırlatma kurma. Ayrıntı ve tur durumu `ECHO.md` içindedir.
+
 Her düzenleme grubundan sonra `python3 echo.py kontrol`; teslimden önce
 `python3 echo.py kontrol --tam` ve `python3 -m unittest discover -s tests -v`.
 Kod 0 temiz, 1 ihlal, 2 araç koşmadı, 3 insan kararıdır. Hiçbirini
@@ -39,7 +48,12 @@ kullan: `model` değerini aynen geçir, `fork_turns` değeri `none` olmalı.
 Kullanılabilir model listesini kontrol et; model yoksa sessizce değiştirme.
 Uzmanlar salt okunur, ana ajan
 tek yazıcıdır. Destek yoksa sırayla çalış, bağımsız denetim iddia etme.
-Raporların atıflarını `echo.py arac gorev dogrula` ile denetle.
+Görevde `--alan canon|kod|belge|web|gozlem` ve gerekiyorsa `--kaynak`
+ile kapsamı seç; varsayılan canon'dur. Raporu `echo.py arac gorev dogrula
+--rapor <dosya> --tur <alan> --mod <mod>` ile denetle. Sonuç yalnız yapısal
+denetimdir; anlamı ayrıca incele. `okuma` modu için ayrı temiz çalışma
+kopyası gerekir; ortak ağaçta `yok` seçersen yetki denetlenmiş sayılmaz.
+Web kaynaklarını yönetici okumalı; yerel araç bu türde otomatik başarı vermez.
 
 `.claude/` tarihsel Python/bellek deposudur; Claude kurulumu gerektirmez.
 Eski `.claude/commands`, `disajan.py` ve `CLAUDE.md` Claude uyumluluğudur;
