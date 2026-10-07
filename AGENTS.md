@@ -150,3 +150,8 @@ Bunlar bu depoda **gerçekten yaşandı**:
   ile temizle; yetim kayıtlar bütün git işlemlerini yavaşlatır.
 
 ---
+
+
+## Echo sağlayıcı bağımsızlığı
+
+Echo'nun ortak görev sözleşmesi ChatGPT, Claude ve Codex ile kullanılabilir. Sağlayıcıya özel kullanım ve model seçimi için `ECHO-PROVIDER.md` dosyasına bak. Echo'nun kendi sözleşmesi ortam talimatlarının yerine geçmez.
