@@ -175,7 +175,7 @@ def gorev(a):
         print(f"Görev hazırlanamadı: {hata}")
         return 2
     argumanlar = ["brief", "--konu", a.konu, "--cikti", a.cikti,
-                  "--mod", "okuma", "--ortam", "codex", "--alan", a.alan]
+                  "--mod", "okuma", "--ortam", a.ortam, "--alan", a.alan]
     if a.alan != "canon":
         argumanlar.append("--baglamsiz")
     for kaynak in a.kaynak:
@@ -206,7 +206,7 @@ def gorev(a):
         # Tam geçmiş çatallamasında model değiştirilemez; sözleşme bağlamı
         # zaten taşıdığı için yeni ajana yalnız bu mesaj gönderilir.
         cagri = {"task_name": a.ad or a.rol.replace("-", "_") + "_" + uuid.uuid4().hex[:8],
-                 "fork_turns": "none", "model": model, "message": metin}
+                 "provider": a.ortam, "model": model, "fork_turns": "none", "message": metin}
         print(json.dumps(cagri, ensure_ascii=False))
     else:
         print(metin)
@@ -291,7 +291,8 @@ def main(argv=None):
     g.add_argument("--kaynak", action="append", default=[], help="ilgili dosya/bölüm; tekrarlanabilir")
     g.add_argument("--gonder", action="store_true", help="gönderim öncesi bütçeden bir ajan düş")
     g.add_argument("--model", choices=MODELLER, help="bu görevin modelini açıkça seç")
-    g.add_argument("--json", action="store_true", help="spawn_agent çağrı argümanlarını üret")
+    g.add_argument("--json", action="store_true", help="taşınabilir görev JSON'u üret")
+    g.add_argument("--ortam", choices=("chatgpt", "claude", "codex"), default="chatgpt", help="hedef AI ortamı; görev sözleşmesi sağlayıcıdan bağımsızdır")
     g.add_argument("--ad", type=gorev_adi, help="alt ajan görev adı; yoksa benzersiz ad üretilir")
     a = alt.add_parser("arac", help="mevcut Echo aracını çalıştır")
     a.add_argument("ad", choices=ARACLAR)
