@@ -139,18 +139,19 @@ class EchoSinavi(unittest.TestCase):
     def test_butce_bittiginde_gorev_verilmez(self):
         s = self.kos("gorev", "--rol", "canon-denetci", "--konu", "irade", "--gonder")
         self.assertEqual(s.returncode, 1, s.stdout)
-        self.assertNotIn("# Codex uzman görevi", s.stdout)
+        # Echo artık sağlayıcıdan bağımsız görev başlığı kullanır
+        self.assertNotIn("# Echo uzman görevi", s.stdout)
         s = self.kos("arac", "butce", "ac", "--kosu", "test", "--ajan-sinir", "1")
         self.assertEqual(s.returncode, 0, s.stdout)
         arg = ("gorev", "--rol", "canon-denetci", "--konu", "irade")
         self.assertEqual(self.kos(*arg).returncode, 0)  # önizleme tüketmez
         s = self.kos(*arg, "--gonder")
         self.assertEqual(s.returncode, 0, s.stdout + s.stderr)
-        self.assertIn("# Codex uzman görevi", s.stdout)
+        self.assertIn("# Echo uzman görevi", s.stdout)
         self.assertNotIn("CLAUDE.md", s.stdout)
         s = self.kos(*arg, "--gonder")
         self.assertEqual(s.returncode, 1)
-        self.assertNotIn("# Codex uzman görevi", s.stdout)
+        self.assertNotIn("# Echo uzman görevi", s.stdout)
 
     def test_tum_roller_model_secimini_tasimaz(self):
         tanim = importlib.util.spec_from_file_location("echo_test", self.kok / "echo.py")
@@ -177,11 +178,24 @@ class EchoSinavi(unittest.TestCase):
             s = self.kos("gorev", "--rol", rol, "--konu", konu, "--json")
             self.assertEqual(s.returncode, 0, s.stdout + s.stderr)
             cagri = json.loads(s.stdout)
-            self.assertEqual(set(cagri), {"task_name", "fork_turns", "model", "message"})
+            self.assertEqual(set(cagri), {"task_name", "fork_turns", "model", "message", "provider"})
             self.assertEqual(cagri["fork_turns"], "none")
+            self.assertEqual(cagri["provider"], "chatgpt")
             self.assertEqual(cagri["model"], tablo[rol])
             self.assertIn(konu, cagri["message"])
             self.assertRegex(cagri["task_name"], r"^[a-z0-9_]+$")
+
+    def test_gorev_saglayici_katmanlari_ayridir(self):
+        for ortam in ("chatgpt", "claude", "codex"):
+            with self.subTest(ortam=ortam):
+                s = self.kos("gorev", "--rol", "tarama-denetci",
+                             "--konu", "saglayici katmani", "--ortam", ortam, "--json")
+                self.assertEqual(s.returncode, 0, s.stdout + s.stderr)
+                cagri = json.loads(s.stdout)
+                self.assertEqual(cagri["provider"], ortam)
+                self.assertIn("# Echo uzman görevi", cagri["message"])
+                self.assertNotIn("Yönetici Codex", cagri["message"])
+                self.assertNotIn("Yönetici Claude", cagri["message"])
 
     def test_gorev_modeli_acikca_degistirilebilir(self):
         for model in ("gpt-6-luna", "gpt-6.1-sol"):
