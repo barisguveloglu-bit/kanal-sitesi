@@ -131,3 +131,8 @@ Aşağıdakiler bilinçli kararlar — "düzeltilecek eksik" değil.
   tasarımı bilerek var.
 - Betikler `defer` ile yükleniyor (ilk boyama ~%28 hızlandı). Sıra korunur,
   bozma.
+
+
+## Echo sağlayıcı bağımsızlığı
+
+Echo'nun ortak görev sözleşmesi ChatGPT, Claude ve Codex ile kullanılabilir. Sağlayıcıya özel kullanım ve model seçimi için `ECHO-PROVIDER.md` dosyasına bak. Echo'nun kendi sözleşmesi ortam talimatlarının yerine geçmez.
