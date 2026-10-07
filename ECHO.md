@@ -1,17 +1,17 @@
-# Echo — Codex ile çalışma
+# Echo — sağlayıcı bağımsız çalışma
 
-Echo'yu bu depoda **Codex yönetir**. Python araçları, dersler, iş defteri,
+Echo'yu bu depoda **ChatGPT, Claude veya Codex yönetebilir**. Yönetici ortamı kullanıcı seçer; çekirdek sağlayıcıya özel değildir. Python araçları, dersler, iş defteri,
 canon araması ve ölçüm kapıları korunur. Claude hesabı, Claude Code kurulumu,
 Anthropic bağlantısı veya OpenAI API anahtarı gerekmez. Codex'in kendi hesap
 ve model erişimi kullanılır; bu depo ayrıca model çağrısı yapmaz.
 
 ## Başlangıç
 
-Depoyu Codex'te aç ve şunu söyle:
+Depoyu seçtiğin AI ortamında aç ve şunu söyle:
 
 > Echo ile çalış. Önce başlangıç denetimini yap, sonra [yapılacak iş].
 
-Codex kökteki `AGENTS.md` kurallarını okur. Beceri destekleyen ortamlarda
+Codex `AGENTS.md`'yi otomatik keşfedebilir; Claude `CLAUDE.md`yi kullanır. ChatGPT/Work için gerekli proje talimatları görev sözleşmesiyle açıkça taşınır. Beceri destekleyen ortamlarda
 `$echo` da kullanılabilir: `.agents/skills/echo/SKILL.md`.
 Terminalden başlangıç:
 
@@ -170,7 +170,7 @@ Tam geçmiş (`all`) ile model değiştirmek desteklenmediğinden sözleşme ayr
 mesajla taşınır. Görev adı kendiliğinden benzersiz üretilir; `--ad` ile
 küçük harf/rakam/alt çizgi içeren bir ad da verilebilir.
 
-Bu JSON dosyası evrensel Codex ayarı değildir; Echo'nun çağrı hazırlığıdır.
+Bu JSON dosyası evrensel bir model/ajan ayarı değildir; Echo'nun hedef ortama taşıdığı çağrı hazırlığıdır.
 Şef, mevcut oturumun alt ajan aracında modelin kullanılabildiğini doğrular.
 Model erişimi yoksa bunu bildirir; başka bir model çalıştırıp seçileni
 çalıştırmış gibi raporlamaz. Model seçimini desteklemeyen bir ortamda
@@ -202,9 +202,9 @@ kelime örtüşmesi anlam doğruluğunu, olumsuzluğu, bütün iddiaların kayna
 olmasını veya kaynağın güncelliğini kanıtlamaz. Bunları yönetici ayrıca
 incelemeli; otomatik rapor sonucu genel doğruluk onayı sayılmamalıdır.
 
-Akış: **uzmanlar → Codex birleştirme ve denetimi → Barış**.
+Akış: **uzmanlar → seçilen yönetici AI → Barış**.
 Eksik için yeniden gönderim `devre` ile en fazla iki turdur.
-Claude onayına veya eski `disajan.py` köprüsüne ihtiyaç yoktur.
+Başka bir sağlayıcının onayına veya eski `disajan.py` köprüsüne ihtiyaç yoktur.
 
 ## Eski komutların karşılığı
 
@@ -241,3 +241,17 @@ mekanik olarak durduran bir Codex kancası vaat edilmez. Python kapıları
 
 Bu uyarlama tek başına daha hızlı veya daha doğru model garantisi vermez.
 Geçişin ölçütü aynı veriler ve testlerle Claude kurulmadan çalışabilmesidir.
+
+
+## Sağlayıcı katmanları
+
+Echo'nun ortak çekirdeği ile AI sağlayıcılarının entegrasyonları ayrıdır:
+
+- **Echo Core:** Python araçları, kanıt/rapor kuralları, bütçe, görev sözleşmesi ve dosya hafızası.
+- **ChatGPT katmanı:** ChatGPT/Work oturumu ve onun sağladığı araçlar; normal sohbet için depo bağlamı otomatik varsayılmaz.
+- **Claude katmanı:** Claude/Claude Code oturumu; `CLAUDE.md` yalnız bu ortama ait ek talimat katmanıdır.
+- **Codex katmanı:** Codex oturumu; `AGENTS.md` otomatik talimat keşfinin parçasıdır.
+
+Hiçbir sağlayıcı Echo Core'un zorunlu parçası değildir. Sağlayıcı değiştiğinde
+aynı görev sözleşmesi, kanıt kuralları ve dosya hafızası korunur; yalnız yönetici
+ortamının araç/alt-ajan adaptörü değişir.
