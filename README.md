@@ -2,12 +2,23 @@
 
 Hikayenin lore arşivi. Derleme adımı yok, kurulum yok — HTML/CSS/JS.
 
-## Echo'yu Codex ile kullanmak
+## Echo'yu ChatGPT, Claude veya Codex ile kullanmak
 
-Depoyu Codex'te aç ve **“Echo ile çalış; önce başlangıç denetimi yap”** de.
-`python3 echo.py baslat` hafızayı ve denetimleri getirir. Claude kurulumu veya
-API anahtarı gerekmez. Kullanım ve otomasyon sınırları: [ECHO.md](ECHO.md).
-Codex kuralları: [AGENTS.md](AGENTS.md).
+Echo'nun çekirdeği sağlayıcı bağımsızdır. Aynı görev sözleşmesi ChatGPT/Work,
+Claude/Claude Code veya Codex ortamında üretilebilir. Ayrıntılı sağlayıcı
+katmanı ve kullanım örnekleri için [ECHO-PROVIDER.md](ECHO-PROVIDER.md)'ye bak.
+
+Başlangıç:
+
+```sh
+python3 echo.py baslat
+python3 echo.py gorev --rol canon-denetci --konu "..." --ortam chatgpt --json
+```
+
+AI ortamının kendi talimat dosyaları ayrı katmandır: Codex için `AGENTS.md`,
+Claude Code için `CLAUDE.md`; normal ChatGPT sohbetinde depo dosyalarının
+otomatik yüklendiği varsayılmaz.
+
 
 ## Sayfalar
 
