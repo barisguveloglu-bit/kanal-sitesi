@@ -176,8 +176,10 @@ def gorev(a):
         return 2
     argumanlar = ["brief", "--konu", a.konu, "--cikti", a.cikti,
                   "--mod", "okuma", "--ortam", a.ortam, "--alan", a.alan]
-    if a.alan != "canon":
+    if a.baglamsiz or a.alan != "canon":
         argumanlar.append("--baglamsiz")
+    else:
+        argumanlar += ["--baglam-sayi", str(a.baglam_sayi)]
     for kaynak in a.kaynak:
         argumanlar += ["--kaynak", kaynak]
     kod, sozlesme = calistir("gorev", *argumanlar)
@@ -289,6 +291,8 @@ def main(argv=None):
     g.add_argument("--alan", choices=("canon", "kod", "belge", "web", "gozlem"),
                    default="canon", help="görev ve kaynak türü; canon dışında canon aranmaz")
     g.add_argument("--kaynak", action="append", default=[], help="ilgili dosya/bölüm; tekrarlanabilir")
+    g.add_argument("--baglamsiz", action="store_true", help="canon bağlamını enjekte etme")
+    g.add_argument("--baglam-sayi", type=pozitif, default=3, help="canon görevi için en fazla kaç dar bağlam parçası")
     g.add_argument("--gonder", action="store_true", help="gönderim öncesi bütçeden bir ajan düş")
     g.add_argument("--model", help="hedef ortamın model kimliği; verilmezse ChatGPT/Codex için tablo, Claude için ortam seçimi kullanılır")
     g.add_argument("--json", action="store_true", help="taşınabilir görev JSON'u üret")
