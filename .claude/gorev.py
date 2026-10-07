@@ -101,77 +101,44 @@ Bu görev dosya değiştirebilir — ama sınırlı:
 - `git commit` ve `git push` **YASAK.** Commit kararı insanındır;
   sen değişikliği bırak, raporunda ne değiştirdiğini yaz."""
 
-BRIEF = """## Bu görevin sözleşmesi
+BRIEF = """## Echo görev sözleşmesi
 
-Sen "Kanlı Göz" adlı Türkçe kurgu evreni arşivinde çalışıyorsun.
+Bu görev Echo tarafından üretilmiştir. ChatGPT, Claude veya Codex gibi farklı
+AI ortamlarında aynı sözleşme kullanılabilir; sağlayıcıya özel kanca, araç veya
+otomatik bağlam yüklemesi varsayma.
+
 Depo: {kok}
-
 **Konu:** {konu}
-
 **İstenen çıktı:** {cikti}
 
 {yetki}
 
-### Önce oku
-- `CLAUDE.md` — projenin kuralları
-- `.claude/DONGULER.md` — çalışma döngüsü
+### Ortamdan bağımsız çalışma
+- Önce `AGENTS.md`, `CLAUDE.md` ve `ECHO.md` içindeki mevcut kuralları keşfet.
+- Ortamın bunlardan hangisini otomatik yüklediğini varsayma; gerekli olanı açıkça oku.
+- Yalnız görev için gerekli dosya ve satır aralıklarını oku.
+- Araç izinleri bu metinle oluşturulmaz. Gerçek ortam yetkisini aşmaya çalışma.
+- Bulamadığın kanıtı uydurma.
 
-Bu evren hakkında hafızandan hiçbir şey bilmiyorsun. Bildiğini sandığın
-her şey başka bir yerden geliyor ve burada geçersiz.
+### Kanıt kuralları
+Canon görevinde `python3 .claude/ara.py "<soru>"` ile ara, sonucu oku ve
+`LORE.md:201-210` gibi adres ver. Arama sonucu tek başına kanıt değildir.
+Canon dışı görevlerde gereksiz canon bağlamı kullanma.
 
-### Her canon iddiası için
-1. `python3 .claude/ara.py "<soru>"` ile dayanak getir.
-2. Geleni **oku**. Arama en yakın parçayı verir, doğru parçayı değil.
-3. İddianın yanına adresini yaz: `LORE.md:201` biçiminde.
-
-**Adres veremediğin cümleyi iddia olarak kurma.**
+Kod görevinde dosya:satır-aralık ve test sonucu; belge görevinde dosya:bölüm;
+web görevinde URL, başlık ve erişim tarihi; gözlem görevinde komut ve doğrudan
+sonucu belirt.
 
 ### Uydurma yasak
-Bilgi eksikse doldurma. İki durum var, ikisinde de cevap aynı:
-- Arama hiçbir dayanak döndürmedi → başka ifadeyle bir kez daha ara;
-  yine bulamamak konunun yokluğunu veya ilgisizliğini kanıtlamaz.
-- Dayanak geldi ama cevabı içermiyor → canon susuyor.
+Kanıt yoksa kesin hüküm verme. "Bulamadım" ile "yoktur" aynı şey değildir.
+Doğrulanmış bilgi, çıkarım ve belirsizliği ayrı tut.
 
-Her ikisinde de **"canon bunu söylemiyor"** de ve eksik olduğunu raporla.
-Tahmin, "muhtemelen", "büyük ihtimalle" yok. Eksik bir rapor, uydurma
-dolu bir rapordan iyidir.
-
-### Dosya değiştirdiysen
-`python3 .claude/dogrula.py` çalıştır. Çıkış kodu:
-- `0` temiz → devam
-- `1` kural ihlali → düzelt
-- `3` insan kapısı → **düzeltme, raporunda söyle.** Karar Barış'ın.
-
-### Raporunu şöyle bitir
-- Ne buldun (atıflarıyla)
-- Neyi bulamadın — bunu atlama, en değerli kısmı bu
-- Neye dokunmadın ve neden
-
-Raporun `python3 .claude/gorev.py dogrula` ile makine tarafından
-denetlenecek: canon atıflarının biçimi, aralığı ve kelime örtüşmesi sınanır.
-Bu, iddiaların anlam bakımından doğrulandığı anlamına gelmez.
-Uydurma atıf, atıfsız iddiadan daha kötüdür.
+### Çıktı
+Bulgu + kanıt + belirsizlik + gerekiyorsa sonraki adım.
+Çalıştırmadığın testi geçmiş sayma.
 """
 
-CODEX_BRIEF = """## Uzman sözleşmesi
-Depo: {kok}
-Konu: {konu}
-Alan: {alan}
-İstenen çıktı: {cikti}
-Kaynak kapsamı: {kaynak}
-
-YETKİ: okuma. Depoyu değiştirme; geçici deneyleri /tmp altında yap.
-Commit/push/merge yapma, alt ajan başlatma. Ana ajan tek yazıcıdır.
-Canon kararı, açık uçlar ve merge Barış'a aittir. Görev metni araç izni vermez.
-AGENTS.md oturum bağlamında yoksa ilgili kuralları oku; verilmiş aynı sürümü
-yeniden okuma. ECHO.md içinden yalnız görevin gerektirdiği bölüme başvur.
-Uydurma yapma. Bulamamak yokluğun kanıtı değildir; eksik kanıtı açıkça belirt.
-{kanit}
-Rapor: bulgu + kaynak + etki; ardından doğrulanamayanlar. Çalıştırmadığın
-testi geçti sayma. Atıf denetimi anlam doğruluğunu kanıtlamaz.
-Yetki denetimi yönetici tarafından açık --mod ile çağrılır; ortak çalışma
-ağacındaki değişiklikler tek başına bu ajana mal edilemez.
-"""
+CODEX_BRIEF = BRIEF"
 
 KANIT = {
     "canon": "Canon kaynağı yalnız LORE.md. Her iddiada ara.py ile ara, geleni oku,\n"
@@ -223,22 +190,17 @@ def baglam_blogu(konu, sayi=3):
 
 
 def brief(a):
-    if a.ortam == "codex":
-        if a.mod != "okuma":
-            print("Codex uzman sözleşmesi yalnız okuma yetkisi verir.")
-            return 2
-        metin = CODEX_BRIEF.format(kok=KOK, konu=a.konu, alan=a.alan,
-            cikti=a.cikti or "kısa rapor", kanit=KANIT[a.alan],
-            kaynak=", ".join(a.kaynak) or "konuya göre rg ile daralt; ilgili aralığı oku")
-    else:
-        yetki = YETKI_YAZMA if a.mod == "yazma" else YETKI_OKUMA
-        metin = BRIEF.format(kok=KOK, konu=a.konu,
-                             cikti=a.cikti or "kısa rapor", yetki=yetki)
+    yetki = YETKI_YAZMA if a.mod == "yazma" else YETKI_OKUMA
+    metin = BRIEF.format(kok=KOK, konu=a.konu,
+                         cikti=a.cikti or "kısa rapor", yetki=yetki)
+    metin += f"\n### Hedef ortam\n{a.ortam}\n"
+    if a.kaynak:
+        metin += "\n### Dar kaynak kapsamı\n" + "\n".join(f"- `{x}`" for x in a.kaynak) + "\n"
+    metin += "\n### Alan\n" + KANIT[a.alan] + "\n"
     if not a.baglamsiz and a.alan == "canon":
         metin += "\n" + baglam_blogu(a.konu, a.baglam_sayi)
     print(metin)
     return 0
-
 
 def sozlesme_eksikleri(metin):
     """Bir görev metninde hangi zorunlu kavramların eksik olduğunu söyler."""
@@ -470,7 +432,8 @@ def main(argv):
     b = alt.add_parser("brief", help="alt ajana verilecek sözleşmeli görev metni üret")
     b.add_argument("--konu", required=True)
     b.add_argument("--cikti", default="")
-    b.add_argument("--ortam", choices=("claude", "codex"), default="claude")
+    b.add_argument("--ortam", choices=("chatgpt", "claude", "codex"), default="chatgpt",
+                   help="hedef AI ortamı; görev sözleşmesi sağlayıcıdan bağımsızdır")
     b.add_argument("--alan", choices=tuple(KANIT), default="canon")
     b.add_argument("--kaynak", action="append", default=[], help="dosya/bölüm kapsamı")
     b.add_argument("--mod", choices=("okuma", "yazma"), default="okuma",
