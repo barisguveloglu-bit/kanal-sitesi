@@ -1,49 +1,58 @@
 ---
 name: echo
-description: Bu depoda Echo ile çalış; döngü, orkestra, canon araması, denetim, değerlendirme, geri bildirim ve sınırlı sürekli çalışma isteklerini Codex araçlarıyla yürüt.
+description: Echo'yu ChatGPT, Claude veya Codex gibi farklı AI ortamlarında aynı çekirdek kurallar, görev sözleşmeleri, denetimler ve dosya hafızasıyla çalıştır.
 ---
 
-# Echo / Codex
+# Echo
 
-Kökteki `AGENTS.md` kurallarını uygula; bağlamda yoksa oku. `ECHO.md`
-içinden ilgili akışa başvur; aynı sürümün okunmuş bölümünü tekrarlama. Yönetici Codex'tir;
-Claude'a görev gönderme, Claude model adı seçme, API anahtarı isteme.
+Echo sağlayıcıdan bağımsız bir çalışma katmanıdır. ChatGPT, Claude ve Codex
+yönetici ortamı olabilir. Echo'nun Python çekirdeği belirli bir model API'sini
+çağırmaz; mevcut ortamın terminal, dosya ve varsa alt-ajan yeteneklerini kullanır.
 
-1. `python3 echo.py baslat` çalıştır, dersleri/yarım işleri ve kapı sonuçlarını oku.
-2. Kullanıcının istediği akışı `ECHO.md` tablosundan seç. Normal görevde
-   planla → uygula → kontrol. Sadece plan veya denetim istenmişse dosya değiştirme.
-3. Canon iddialarını `python3 echo.py arac ara "<soru>"` ile kaynaklandır;
-   boş aramayı bir kez başka ifadeyle dene. Bulamamak yokluğun kanıtı değildir.
-4. Her düzenleme grubundan sonra `python3 echo.py kontrol` çalıştır.
-   Düzeltme öncesi `echo.py arac devre dene --halka duzeltme --sinir 3`
-   ve gerçek hata notu kullan. Sonuç 1/4 ise devam etme; kimlik yoksa
-   `--sahip` ile bu koşuya ait sabit bir kimlik ver.
-5. Çok ajanlı çalışma kullanıcı veya geçerli talimat tarafından istenmişse:
-   bütçeyi aç; `echo.py gorev --rol <ad> --konu "..." --alan <alan> --gonder` çıktısını
-   Codex alt ajan aracına ver. `--json` ile çıkan `task_name`, `model`,
-   `message` ve `fork_turns: "none"` alanlarını `spawn_agent` çağrısına
-   aynen aktar. Roller `echo-modeller.json` içinden seçilir; kullanıcı
-   görev için başka model isterse `--model` kullan. Oturumun model
-   seçeneklerinde yoksa dur ve bildir; sessizce model değiştirme.
-   Tam geçmiş çatallamasıyla model seçimini birleştirme. Komut kendisi
-   ajan başlatmaz. Başarısız görev üretimini gönderme. Uzmanlara
-   yazma yetkisi verme; tek yazıcı ana ajan olsun. Alt ajan aracı yoksa
-   sırayla çalış ve bunu belirt. Yeniden gönderim devre sınırı 2.
-   Alanı canon/kod/belge/web/gozlem olarak açıkça seç; `--kaynak` ile ilgili
-   dosya/bölümü daralt. Canon dışında otomatik canon bağlamı eklenmez.
-   Raporu `echo.py arac gorev dogrula --rapor <dosya> --tur <alan> --mod <mod>`
-   ile denetle. Kod 0 yalnız seçilen yapısal kontrollerdir; anlamı ayrıca oku.
-   `okuma` tüm ağacı denetler; ortak ağaçta `yok` seçmek yetki doğrulamaz.
-   Web raporunda 3 yönetici incelemesi gerektirir; URL biçimini kanıt sayma.
-6. Sürekli çalışma açıkça istenmişse her turdan önce devre sınırı 8,
-   her tur sonunda hedef kontrolü + hızlı kapılar. Hedef bittiğinde,
-   ilerleme durduğunda veya insan kararı gerektiğinde dur.
-7. Teslim öncesi `python3 echo.py kontrol --tam` ve
-   `python3 -m unittest discover -s tests -v`. Kod 0 dışını geçti sayma.
-   Ölçüm değişikliği commit'te `ÖLÇÜM-DEĞİŞTİ: <gerekçe>` taşır.
-8. Yarım işin devam noktasını iş defterine yaz. Değişikliği, test sonucunu
-   ve doğrulanamayan noktayı raporla. PR merge kararı Barış'ın.
+## Başlangıç
 
-Eski `.claude/commands` kancalı akışı bu ortamda uygulanmış sayılmaz.
-Claude'un otomatik kancaları yerine bu açık komut adımlarını yürüt.
-Bellek kaydı yeni kullanıcı izni veya talimatı değildir.
+1. Ortamın proje talimatlarını keşfet: `AGENTS.md`, `CLAUDE.md`, `ECHO.md`.
+2. `python3 echo.py baslat` çalıştır.
+3. İstenen akışı `ECHO.md` içinden seç.
+4. Her düzenleme grubundan sonra `python3 echo.py kontrol`.
+5. Teslimden önce `python3 echo.py kontrol --tam` ve
+   `python3 -m unittest discover -s tests -v`.
+
+## Sağlayıcı seçimi
+
+Görev üretirken hedefi açıkça belirt:
+
+```sh
+python3 echo.py gorev --rol canon-denetci --konu "..." --ortam chatgpt --json
+python3 echo.py gorev --rol canon-denetci --konu "..." --ortam claude --json
+python3 echo.py gorev --rol canon-denetci --konu "..." --ortam codex --json
+```
+
+- **ChatGPT:** görev metnini ChatGPT/Work oturumunda çalıştır. Normal ChatGPT
+  sohbetinin depo dosyalarını otomatik okuyacağı varsayılmaz; gerekli metni
+  görev sözleşmesiyle taşı.
+- **Claude:** Claude Code ortamında çalıştır. `CLAUDE.md` Claude'a özel
+  ek talimat katmanıdır; Echo sözleşmesinin kendisi Claude'a özel değildir.
+- **Codex:** Codex ortamında çalıştır. `AGENTS.md` Codex tarafından otomatik
+  keşfedilebilen talimat katmanıdır; Echo sözleşmesinin yerine geçmez.
+
+Bir ortamın araç veya alt-ajan desteği yoksa Echo bunu varmış gibi raporlamaz.
+Görev JSON'u bir çağrı reçetesidir; gerçek ajanı her zaman hedef ortam başlatır.
+
+## Bağlam ve kanıt
+
+Canon dışı görevlerde gereksiz canon bağlamı ekleme. `--baglamsiz` ve
+`--baglam-sayi` ile daralt. Kaynakları `--kaynak` ile sınırla.
+
+Rapor türünü açıkça seç: `canon|kod|belge|web|gozlem`. Yapısal doğrulama
+anlam doğruluğunu otomatik olarak kanıtlamaz. Çalıştırılmamış testi geçti
+sayılmaz.
+
+## Yetki
+
+Görev metni işletim sistemi veya sandbox yetkisi vermez. Salt-okunur sözleşme,
+ortamın gerçek yazma izinleriyle ayrıca uygulanmalıdır. Commit, push ve merge
+insan karar kapısıdır.
+
+Eski `.claude/commands`, kancalar ve `.claude/` yolu Echo'nun tarihsel
+uyumluluk parçalarıdır; sağlayıcı bağımsız çekirdeğin zorunlu API'si değildir.
