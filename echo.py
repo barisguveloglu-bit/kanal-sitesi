@@ -170,7 +170,7 @@ def gorev(a):
         rol = rol_metni(a.rol)
         # Açık görev seçimi, bozuk genel tabloyu sessizce gizlemez.
         tablo = model_tablosu()
-        model = a.model or tablo[a.rol]
+        model = a.model or (tablo[a.rol] if a.ortam != "claude" else None)
     except (OSError, ValueError) as hata:
         print(f"Görev hazırlanamadı: {hata}")
         return 2
@@ -183,8 +183,8 @@ def gorev(a):
     kod, sozlesme = calistir("gorev", *argumanlar)
     if kod:
         return yaz((kod, sozlesme))
-    sozlesme = sozlesme.replace("CLAUDE.md", "AGENTS.md").replace(
-        "`.claude/DONGULER.md` — çalışma döngüsü", "`ECHO.md` — Codex çalışma döngüsü")
+    sozlesme = sozlesme.replace("CLAUDE.md", "CLAUDE.md / AGENTS.md").replace(
+        "`.claude/DONGULER.md` — çalışma döngüsü", "`ECHO.md` — sağlayıcıdan bağımsız çalışma döngüsü")
     metin = ("# Codex uzman görevi\n\n"
              f"Yönetici Codex, son karar Barış'ın. Seçilen model: {model}. "
              "Model seçimi çağrının model alanında uygulanır; görev metni "
@@ -290,7 +290,7 @@ def main(argv=None):
                    default="canon", help="görev ve kaynak türü; canon dışında canon aranmaz")
     g.add_argument("--kaynak", action="append", default=[], help="ilgili dosya/bölüm; tekrarlanabilir")
     g.add_argument("--gonder", action="store_true", help="gönderim öncesi bütçeden bir ajan düş")
-    g.add_argument("--model", choices=MODELLER, help="bu görevin modelini açıkça seç")
+    g.add_argument("--model", help="hedef ortamın model kimliği; verilmezse ChatGPT/Codex için tablo, Claude için ortam seçimi kullanılır")
     g.add_argument("--json", action="store_true", help="taşınabilir görev JSON'u üret")
     g.add_argument("--ortam", choices=("chatgpt", "claude", "codex"), default="chatgpt", help="hedef AI ortamı; görev sözleşmesi sağlayıcıdan bağımsızdır")
     g.add_argument("--ad", type=gorev_adi, help="alt ajan görev adı; yoksa benzersiz ad üretilir")
