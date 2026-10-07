@@ -185,8 +185,8 @@ def gorev(a):
         return yaz((kod, sozlesme))
     sozlesme = sozlesme.replace("CLAUDE.md", "CLAUDE.md / AGENTS.md").replace(
         "`.claude/DONGULER.md` — çalışma döngüsü", "`ECHO.md` — sağlayıcıdan bağımsız çalışma döngüsü")
-    metin = ("# Codex uzman görevi\n\n"
-             f"Yönetici Codex, son karar Barış'ın. Seçilen model: {model}. "
+    metin = ("# Echo uzman görevi\n\n"
+             f"Yönetici ortam: {a.ortam}. Son karar insandadır. Seçilen model: {model or 'ortam seçimi'}. "
              "Model seçimi çağrının model alanında uygulanır; görev metni "
              "araç yetkisi atamaz. Dosya değiştirme.\n\n"
              + sozlesme + "\n## Uzmanlık\n\n" + rol + "\n")
