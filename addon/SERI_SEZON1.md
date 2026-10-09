@@ -165,4 +165,9 @@ değiştirebilir** — değişirse buradan silinip yukarıya yazılır.
 
 ## Açık
 
-- (şu an yok; varsayılanlar yukarıda)
+- **Seslendirme — yeniden konuşulacak (kullanıcı, 9 Ekim gecesi):** *"normal
+  sohbette sesli konuşma var ya, onun seslerini bulsan onları kullansak."*
+  Şu anki karar "seslendirme yok, yalnız altyazı". Konuşulmadan değişmez.
+  Bakılacak: Claude uygulamasının sesli sohbet seslerine bu makineden
+  ulaşılabiliyor mu, kullanım izni bir YouTube videosunda kullanmaya
+  izin veriyor mu. Vaat yok; önce araştırılıp kullanıcıya söylenecek.
