@@ -60,6 +60,28 @@ kararı: *"bu iki evren farklı evrenler."*
 | 6 | Barış gövdesini tutarak **birkaç adım** yavaş yavaş yürüyor, sonra **bayılıyor** | El-Harkos öldü. Barış kazanıyor ama ilk dövüşü ve rakibi güçlüydü: yorgunluktan bayılıyor. 2. sahnenin aynası (aynı kadraj, roller ters); bayılma 1. sahnedeki düşüşün aynası — film iki düşüşle açılıp kapanıyor, ilki yenilgi, ikincisi zafer. |
 | 7 | Karanlık oda — **final sahnesinden SONRA** (videonun sonu), gece | Ana kötünün askerleri El-Harkos'un öldüğünü bir yolla öğrenmiş. Tam karanlık; yalnız dört beyaz göz. Kapı açıldığı an **bembeyaz** — asker o ışığın içinden siluet olarak giriyor; hüzmede yoğun toz (yıllardır açılmamış oda). Asker: *"Efendim, El-Harkos görevinde başarısız oldu."* Gözler: *"Tamam o zaman. Deney 081'i getirin."* Asker çıkar, kapı kapanır, karanlık. **Kural:** kapıdan giren ışık kötüye ULAŞMAZ — ışık şeridi yerde onun önünde biter; gözler kendi ışığıyla parlar, bedenden hiçbir yüzey aydınlanmaz. |
 
+## Replikler — TASLAK, onay bekliyor
+
+Karanlık oda replikleri kullanıcının. Gerisini kullanıcı Claude'a
+bıraktı, tek şartla: **klişe olmasın** (*"hey oradaki, dur bakalım,
+bunu sana ödeteceğim"* türü yok). Hepsi altyazı; seslendirme yok.
+
+İlke: El-Harkos konuşuyor, Barış **hiç** konuşmuyor. El-Harkos bir
+ödül avcısı gibi konuşuyor: kısa, işine bakan, duygusuz. İzleyici
+"ödül avcısı" ve "silah işlemiyor" bilgisini bu repliklerden alıyor;
+ayrı bir anlatıcıya gerek kalmıyor.
+
+| sahne | an | kim | replik |
+|---|---|---|---|
+| 1 | Barış yere düşer; El-Harkos cebinden bir kâğıt çıkarıp bakar | El-Harkos | *"Canlı ya da ölü yazıyor. Fiyat aynı."* |
+| 2 | Sırtını dönmüş yürürken, kendi kendine | El-Harkos | *"Kırk iki."* (avladığı kişi sayısı) |
+| 3 | Boş çukurun başında çömelip toprağa dokunur | El-Harkos | *"Hâlâ sıcak."* |
+| 4 | Kopyalar | — | sessiz (müzik de yok) |
+| 5 | Tırpan vücudundan kıvılcımla seker | El-Harkos | *"Bunu daha önce de denediler."* |
+| 5a | Elindeki kana bakar | El-Harkos | *"Bu… benim mi?"* |
+| 6 | Ölmeden önce, Barış'a bakarak | El-Harkos | *"Seni ucuza yazmışlar."* |
+| 7 | Karanlık oda | Asker · Gözler | kullanıcının replikleri (yukarıda) |
+
 ## Ses
 
 **Sesi Claude hazırlıyor** (kullanıcının kararı). Plan — henüz yapılmadı:
@@ -89,10 +111,7 @@ azalır (politika kesin ölçülmedi, temkin).
 - Askerin skini.
 - El-Harkos için depodaki `harkos` skini mi?
 - Hedef video süresi (çizim süresini belirliyor).
-- 1. bölümde başka replik var mı? (Şu an yalnız karanlık oda iki
-  replik; uydurulmaz.)
-- İzleyici El-Harkos'un ödül avcısı olduğunu ve "hiçbir silah
-  işlemiyor" bilgisini nereden öğreniyor (replik / afiş / anlatıcı)?
+- Replik taslağının onayı (yukarıda).
 - Barış'ın tırpanı 1. sahnede de elinde mi?
 - El-Harkos nasıl ölüyor (son darbe)?
 - Barış'ın gücünün rengi / görünüşü (ışınlanma parçacıkları).
