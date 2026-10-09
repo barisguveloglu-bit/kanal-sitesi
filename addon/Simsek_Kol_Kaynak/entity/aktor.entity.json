@@ -14,7 +14,8 @@
         "s4": "textures/entity/ilkel_kajaros",
         "s5": "textures/entity/aktor/uzak_akraba",
         "s6": "textures/entity/aktor/o_sey",
-        "s7": "textures/entity/aktor/carpik"
+        "s7": "textures/entity/aktor/carpik",
+        "s8": "textures/entity/aktor/iceman"
       },
       "geometry": {
         "default": "geometry.pa_aktor",
