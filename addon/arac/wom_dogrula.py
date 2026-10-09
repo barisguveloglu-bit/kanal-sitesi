@@ -32,7 +32,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from wom_cevir import KILIC, Kaynak, ANIM_ONEK, CIKTI_ANIM, CIKTI_HAREKET  # noqa: E402
+from wom_cevir import KILIC, Kaynak, ANIM_ONEK, CIKTI_ANIM, CIKTI_HAREKET, SOL_EL_DUZELT  # noqa: E402
 
 CIKTI_IZ = os.path.join(os.path.dirname(CIKTI_ANIM), "wom_kilic.iz.json")
 
@@ -46,7 +46,10 @@ PIVOT = {"root": [0, 0, 0], "waist": [0, 12, 0], "body": [0, 24, 0], "head": [0,
          "rightArm": [5, 22, 0], "leftArm": [-5, 22, 0], "rightItem": [6, 15, 1],
          "leftItem": [-6, 15, 1], "rightLeg": [1.9, 12, 0], "leftLeg": [-1.9, 12, 0]}
 OLCUM = {
-    "sag kol": ("rightArm", ("uzuv", "Arm_R", "Tool_R")),
+    # v7.99.10: kol YUMRUGA bakar (Tool_R'nin kaymasiz hali). Epic Fight
+    # silahi elde sap boyunca 20 px'e kadar kaydiriyor; omuz->Tool_R o
+    # karelerde yumrugun yonu degil (108 dereceye kadar sapiyordu).
+    "sag kol": ("rightArm", ("kol", "Arm_R", "Tool_R")),
     "sol kol": ("leftArm", ("uzuv", "Arm_L", "Tool_L")),
     "sag bacak": ("rightLeg", ("bacak", "Thigh_R", "Leg_R")),
     "sol bacak": ("leftLeg", ("bacak", "Thigh_L", "Leg_L")),
@@ -214,6 +217,9 @@ def rot(m):
 
 def gercek_yon(ef, olcum, t):
     tur = olcum[0]
+    if tur == "kol":
+        el = mm(ef.dunya(ef.ata[olcum[2]], t), ef.bind[olcum[2]])
+        return [a - b for a, b in zip(konum(el), konum(ef.dunya(olcum[1], t)))]
     if tur == "uzuv":
         return [a - b for a, b in zip(konum(ef.dunya(olcum[2], t)), konum(ef.dunya(olcum[1], t)))]
     if tur == "bacak":
@@ -291,11 +297,15 @@ def br_nokta(anim, kemik, p, t):
     return p
 
 
-def olc(ef, anim, olcek):
+def olc(ef, anim, olcek, sol_atla=False):
     ornek = sorted({round(i / 60.0, 4) for i in range(int(ef.sure * 60) + 1)})
     sonuc = {}
     for ad, (kemik, olcum) in OLCUM.items():
         if olcum[1] not in ef.bind or kemik not in anim["bones"]:
+            continue
+        if sol_atla and ad == "sol kol":
+            # SOL_EL_DUZELT setinde sol kol bilerek Epic Fight'tan ayrilip
+            # Bedrock'taki SAPA yoneliyor; olcusu "sol el sapta" (test).
             continue
         dinlenme = mv(C, gercek_yon(ef, olcum, None))
         h = []
@@ -321,10 +331,35 @@ def olc(ef, anim, olcek):
     return sonuc
 
 
-def iz(ef, olcek, adim=0.05):
+def iki_el_anlari(ef, olcek, adim=0.05, esik=3.0 / 16):
+    """Epic Fight'in sol eli sapa koydugu anlar: Tool_L, Tool_R'nin yerel
+    Z ekseninden (sap) `esik` blok yakin. test/tutus.mjs bu anlarda sol
+    yumrugun Bedrock'taki sapa degdigini olcuyor."""
+    out = []
+    if "Tool_L" not in ef.bind or "Tool_R" not in ef.bind:
+        return out
+    for i in range(int(ef.sure / adim + 1e-9) + 1):
+        t = round(i * adim, 4)
+        if ef.tanimsiz(t):
+            continue
+        W = ef.dunya("Tool_R", t)
+        o = konum(W)
+        e = [W[0][2], W[1][2], W[2][2]]
+        v = [a - b for a, b in zip(konum(ef.dunya("Tool_L", t)), o)]
+        u = sum(v[k] * e[k] for k in range(3))
+        if math.sqrt(max(0.0, sum(x * x for x in v) - u * u)) < esik:
+            out.append(round(t * olcek, 4))
+    return out
+
+
+def iz(ef, olcek, adim=0.05, sol_atla=False):
     out = {}
+    if sol_atla:
+        out["iki el"] = iki_el_anlari(ef, olcek, adim)
     for ad, (kemik, olcum) in OLCUM.items():
         if olcum[1] not in ef.bind:
+            continue
+        if sol_atla and ad == "sol kol":
             continue
         seri = []
         for i in range(int(ef.sure / adim + 1e-9) + 1):
@@ -366,8 +401,8 @@ def main(argv):
                 continue
             if olcek is None:
                 olcek = anim["animation_length"] / ef.sure if ef.sure else 1.0
-            izler[anim_ad] = iz(ef, olcek)
-            for olcum, hatalar in olc(ef, anim, olcek).items():
+            izler[anim_ad] = iz(ef, olcek, sol_atla=set_ad in SOL_EL_DUZELT)
+            for olcum, hatalar in olc(ef, anim, olcek, set_ad in SOL_EL_DUZELT).items():
                 m = max((h for h, _ in hatalar), default=0.0)
                 if olcum == "kalca px":
                     kalca_en = max(kalca_en, (m, anim_ad))

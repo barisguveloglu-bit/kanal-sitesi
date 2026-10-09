@@ -138,8 +138,13 @@ class Model:
                 return dis.nokta(ad, p)
             b = self.kemik[ad]
             pv = ic(b["pivot"])
-            p = [a + c for a, c in zip(mv(self.donus(ad), [p[i] - pv[i] for i in range(3)]), pv)]
             a = self.anim.get("bones", {}).get(ad, {})
+            yer = [p[i] - pv[i] for i in range(3)]
+            if "scale" in a:
+                # Bedrock: olcek pivot etrafinda, donusten ONCE (kemik uzayinda)
+                sc = deger(a["scale"], self.t)
+                yer = [yer[i] * sc[i] for i in range(3)]
+            p = [a2 + c for a2, c in zip(mv(self.donus(ad), yer), pv)]
             if "position" in a:
                 f = deger(a["position"], self.t)
                 p = [p[0] - f[0], p[1] + f[1], p[2] + f[2]]

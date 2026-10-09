@@ -178,8 +178,8 @@ KEMIK = {
     "waist":     ("Chest", None),      # govdenin TAMAMI kalcadan
     "body":      ("Chest", None),      # waist'e gore sifir
     "head":      ("Head", None),
-    "rightArm":  ("Arm_R", ("eklem", "Tool_R")),
-    "leftArm":   ("Arm_L", ("eklem", "Tool_L")),
+    "rightArm":  ("Arm_R", ("el", "Tool_R")),
+    "leftArm":   ("Arm_L", ("el", "Tool_L")),
     "rightItem": ("Tool_R", None),
     "leftItem":  ("Tool_L", None),
     "rightLeg":  ("Thigh_R", ("ayak", "Leg_R")),
@@ -566,16 +566,128 @@ def ayak_ofseti(anim, bacak):
     return uygula(devrik(rot(W)), fark([p[0], p[1], 0.0], p))
 
 
+def el_dunya(anim, ad, t):
+    """Tool_R/Tool_L'nin KAYMASIZ hali: ebeveyni (Hand) o anki pozda,
+    kendisi dinlenmedeki yerel konumunda. Yumrugun gercek yeri budur;
+    Epic Fight silahi bu noktadan sap boyunca kaydiriyor (v7.99.10)."""
+    if t is None:
+        return anim.dunya(ad)
+    return carp4(anim.dunya(anim.ata[ad], t), anim.bind[ad])
+
+
+# Sol el Bedrock uzayinda sapa oturtulan setler. Yalniz silahin kendi
+# geometrisiyle OLCULUP dogrulanan set buraya girer (v7.99.10:
+# Karanlik Tirpan -> antitheus). Digerlerinde sol kol eskisi gibi
+# Tool_L'ye yonelir; Solar ve asalarda sap, %12 uzamayla bile dirseksiz
+# kolun erisiminin disinda kaliyordu -- her biri kendi silahiyla
+# olculmeden eklenmez.
+SOL_EL_DUZELT = {"antitheus"}
+IKI_EL_ESIK = 3.0 / 16    # blok -- Tool_L sap dogrusuna bundan yakinsa iki el
+IKI_EL_GECIS = 2.0 / 16   # blok -- tek elden iki ele yumusak gecis bandi
+AKTOR_GEO = os.path.join(ADDON, "Simsek_Kol_Kaynak", "models", "entity", "aktor.geo.json")
+SOL_YUMRUK = [-6.0, 13.3, 0.5]       # ic uzay, leftItem pivotu
+SAG_YUMRUK = [6.0, 13.3, 0.5]        # ic uzay, rightItem pivotu
+SOL_UZAMA_EN = 1.12                  # sol kolun en cok uzayabilecegi oran
+SOL_DOKUNMA = 2.0                    # px -- yumruk merkezi sapa bu kadar yaklasirsa degiyor
+
+
+def iki_el_agirligi(anim, t):
+    """0: tek el, 1: Epic Fight sol eli sapin uzerine koymus."""
+    if "Tool_R" not in anim.bind or "Tool_L" not in anim.bind:
+        return 0.0
+    W = anim.dunya("Tool_R", t)
+    o = konum(W)
+    e = [W[0][2], W[1][2], W[2][2]]                  # Tool_R yerel Z = sap
+    v = fark(konum(anim.dunya("Tool_L", t)), o)
+    u = sum(v[i] * e[i] for i in range(3))
+    uzak = math.sqrt(max(0.0, sum(x * x for x in v) - u * u))
+    return max(0.0, min(1.0, (IKI_EL_ESIK + IKI_EL_GECIS - uzak) / IKI_EL_GECIS))
+
+
+def sol_el_duzelt(anim, kemikler, sure, olcek_zaman):
+    """Iki elli karelerde sol yumrugu Bedrock'taki SAPIN uzerine koyar.
+
+    Bedrock kolu dirseksiz ve govde kalcadan bukuluyor (Epic Fight
+    gogusten); ikisi birlikte sol omzu saptan uzaklastiriyor. Olcum
+    (antitheus_agression): Epic Fight'ta omuz-sap 6-9 px, bizde 11-16;
+    Epic Fight uzayinda hedef secmek yumrugu saptan 5-8 px uzakta
+    birakiyordu. Burada hedef BEDROCK uzayinda: modelin kendi zinciriyle
+    (bedrock_onizleme.Model, wom_dogrula'dan bagimsiz FK) omuz ve sap
+    bulunur, omuz merkezli kol-boyu kuresi sap dogrusunu kesiyorsa yumruk
+    oraya, kesmiyorsa sapa en yakin yere doner."""
+    import bedrock_onizleme as B
+    if not getattr(anim, "sol_duzelt", False):
+        return
+    if "leftArm" not in kemikler or "rightItem" not in kemikler:
+        return
+    zs = {float(k) / olcek_zaman for k in kemikler["leftArm"]["rotation"]}
+    zs |= {round(i * TICK / olcek_zaman, 5)
+           for i in range(int(sure * olcek_zaman / TICK) + 1)}
+    zs = sorted(t for t in zs if t <= sure + 1e-9)
+    agirlik = {t: iki_el_agirligi(anim, t) for t in zs}
+    if not any(w > 0 for w in agirlik.values()):
+        return
+    geo = B.oku(AKTOR_GEO)
+    kem = {b["name"]: b for b in geo["minecraft:geometry"][0]["bones"]}
+    omuz_ic = B.ic(kem["leftArm"]["pivot"])
+    dinlenme = kem["leftArm"].get("rotation", [0, 0, 0])
+    boy = math.dist(omuz_ic, SOL_YUMRUK)
+    eski = {"bones": {k: dict(v) for k, v in kemikler.items()}}
+    yeni, uzama, onceki = {}, {}, None
+    for t in zs:
+        tt = t * olcek_zaman
+        m = B.Model(geo, eski, tt)
+        L = m.donus("leftArm")
+        w = agirlik[t]
+        olc = 1.0
+        if w > 0:
+            om = m.nokta("leftArm", omuz_ic[:])
+            yu = m.nokta("leftArm", SOL_YUMRUK[:])
+            a = m.nokta("rightItem", SAG_YUMRUK[:])
+            b = m.nokta("rightItem", [SAG_YUMRUK[0], SAG_YUMRUK[1], SAG_YUMRUK[2] + 10.0])
+            e = normal(fark(b, a))
+            oc = fark(a, om)
+            bb = sum(oc[i] * e[i] for i in range(3))
+            c = sum(x * x for x in oc) - boy * boy
+            D = bb * bb - c
+            uf = sum((yu[i] - a[i]) * e[i] for i in range(3))
+            if D >= 0:
+                k = min((-bb - math.sqrt(D), -bb + math.sqrt(D)), key=lambda x: abs(x - uf))
+            else:
+                # Yetismiyor: sapa en yakin nokta. Kol boyu en cok %12
+                # uzar (yalniz Y, Bedrock `scale` pivot etrafinda) --
+                # yumruk sapa DEGECEK kadar, fazlasi degil.
+                k = -bb
+                eksik = math.sqrt(max(0.0, c - bb * bb + boy * boy)) - SOL_DOKUNMA
+                olc = 1.0 + w * (min(SOL_UZAMA_EN, max(1.0, eksik / boy)) - 1.0)
+            P = [a[i] + k * e[i] for i in range(3)]
+            hedef = [yu[i] + w * (P[i] - yu[i]) for i in range(3)]
+            Q = en_kucuk_donus(fark(yu, om), fark(hedef, om))
+            Pw = carp3(carp3(m.donus("root"), m.donus("waist")), m.donus("body"))
+            L = carp3(carp3(devrik(Pw), carp3(Q, Pw)), L)
+        onceki = euler_surekli(L, onceki)
+        x, y, z = onceki
+        yeni["%.4f" % tt] = [round(-x - dinlenme[0], 2), round(-y - dinlenme[1], 2), round(z - dinlenme[2], 2)]
+        uzama["%.4f" % tt] = [1.0, round(olc, 3), 1.0]
+    kemikler["leftArm"]["rotation"] = yeni
+    if any(v[1] > 1.001 for v in uzama.values()):
+        kemikler["leftArm"]["scale"] = uzama
+
+
 def uc_konum(anim, uc, t):
     tur, ad = uc
     if tur == "eklem":
         return konum(anim.dunya(ad, t))
+    if tur == "el":
+        return konum(el_dunya(anim, ad, t))
     return uygula4(anim.dunya(ad, t), ayak_ofseti(anim, ad))
 
 
 def dunya_farki(anim, bkemik, t):
     """Kemigin dunyadaki poz degisimi (dinlenmeye gore), BB ic uzayinda."""
     ek, uc = KEMIK[bkemik]
+    if bkemik == "leftArm" and not getattr(anim, "sol_duzelt", False):
+        uc = ("eklem", "Tool_L")          # v7.99.9'daki davranis
     G = carp3(rot(anim.dunya(ek, t)), devrik(rot(anim.dunya(ek))))
     if uc is not None:
         k0 = konum(anim.dunya(ek))
@@ -673,6 +785,26 @@ def kemik_cevir(anim, bkemik, sure, kok_yok=False):
     return euler
 
 
+# Silahin elde kaymasi: Bedrock kemigi -> (Epic Fight eklemi, kolu)
+EL_KAYMA = {"rightItem": ("Tool_R", "rightArm"), "leftItem": ("Tool_L", "leftArm")}
+KAYMA_ESIK = 0.05        # px -- bunun altindaki kayma yazilmaz
+
+
+def el_kaymasi(anim, bkemik, t):
+    """Silahin yumruga gore kaymasi, KOLUN yerel uzayinda, BB ic uzayi (px).
+
+    Epic Fight Tool_R'yi Hand_R'ye gore oteliyor; olcum: Antitheus'ta
+    19.8 px'e kadar ve neredeyse tamamen Tool_R'nin kendi Z ekseninde,
+    yani SAP BOYUNCA (dik bilesen <= 1.5 px). El sapi birakmiyor, sapin
+    baska yerinden tutuyor. Bedrock'ta `position` kemigin kendi
+    donusunden SONRA, ebeveyn uzayinda ekleniyor: kolun dunya donusunun
+    tersiyle kol uzayina indiriliyor."""
+    ek, kol = EL_KAYMA[bkemik]
+    v = fark(konum(anim.dunya(ek, t)), konum(el_dunya(anim, ek, t)))   # yumruk -> silah
+    v_ic = [16.0 * a for a in uygula(C, v)]
+    return uygula(devrik(dunya_farki(anim, kol, t)), v_ic)
+
+
 def kok_yukseklik(anim, t):
     """Root'un dinlenmeye gore dikey kaymasi (px)."""
     return (konum(anim.dunya("Root", t))[2] - konum(anim.dunya("Root"))[2]) * 16.0
@@ -699,6 +831,22 @@ def cevir(anim, sure, olcek_zaman, kemikler_izinli, dikey_oyuncuya, bas_look):
                          "%s + query.target_y_rotation" % v[1], v[2]]
                      for k, v in dosya.items()}
         kemikler[b] = {"rotation": dosya}
+    for b, (ek, _) in EL_KAYMA.items():
+        if b not in kemikler or ek not in anim.bind:
+            continue
+        if b == "leftItem" and not getattr(anim, "sol_duzelt", False):
+            continue                      # kol Tool_L'ye yoneliyor: kayma yok
+        zs = {float(k) / olcek_zaman for k in kemikler[b]["rotation"]}
+        zs |= {round(i * TICK / olcek_zaman, 5)
+               for i in range(int(sure * olcek_zaman / TICK) + 1)}
+        kon = {}
+        for t in sorted(t for t in zs if t <= sure + 1e-9):
+            p = el_kaymasi(anim, b, t)
+            kon["%.4f" % (t * olcek_zaman)] = [round(-p[0], 3), round(p[1], 3), round(p[2], 3)]
+        if any(abs(x) > KAYMA_ESIK for v in kon.values() for x in v):
+            kemikler[b]["position"] = kon
+    # sap kaymasindan SONRA: sap dogrusu kaymali silaha gore
+    sol_el_duzelt(anim, kemikler, sure, olcek_zaman)
     if "root" in kemikler_izinli:
         # Kalca merkezli donus + gorunumde kalan dikey kayma.
         # Donus karelerinin zamanlari + her oyun tick'i (dosya zamaninda).
@@ -769,7 +917,9 @@ def main(argv):
             ic = onek + yol + ".json"
             if not k.var(ic):
                 raise SystemExit("YOK: " + ic)
-            return Animasyon(k.json(ic), taban)
+            a = Animasyon(k.json(ic), taban)
+            a.sol_duzelt = set_ad in SOL_EL_DUZELT
+            return a
 
         # Durus: iki parca. Duruyorken butun beden; yururken yalniz ust
         # beden (bacaklari vanilla yuruyus suruyor).

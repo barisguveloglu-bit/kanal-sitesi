@@ -507,6 +507,15 @@ anlatırken oradan git.
   (ekransız, Cycles CPU) çiziyor. Blender depoda yok: resmi siteden
   indirilir, SHA-256 karşılaştırılır (`REFERANS_BLENDER_MCPREP.md`).
   Yeni bir silah ya da poz "tahminle" kurulduysa önce buna bak.
+- **Tutuş (v7.99.10):** Epic Fight silahı elde **sap boyunca** kaydırıyor
+  (Tool_R, Hand_R'ye göre 20 px'e kadar, dik bileşen ≤ 1,5 px). Kol artık
+  silaha değil **yumruğa** yöneliyor, kayma `rightItem` `position`
+  kanalına gidiyor (`arac/wom_cevir.py` `el_kaymasi`). Sol el yalnız
+  `SOL_EL_DUZELT` setlerinde (şu an `antitheus`) Bedrock uzayında sapa
+  oturtuluyor, gerekirse kol %12'ye kadar uzuyor (`scale`). Yeni bir
+  set eklemeden önce o silahın kendi geometrisiyle ölç.
+  `test/tutus.mjs` yumrukların sapta olduğunu ölçüyor; mutasyonla ısırdığı
+  gösterildi.
 - **B yolu da açık (v7.99.9):** kullanıcı dövüş fikrini anlatır,
   `addon/arac/blender_film.py` senaryodan altyazılı film çizer
   (Blender + MCprep dokuları, sanal makinede). Kurallar oyunla aynı

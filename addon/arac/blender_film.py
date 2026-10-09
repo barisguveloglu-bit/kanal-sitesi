@@ -282,7 +282,8 @@ def kanal_pozu(anim, kemik, t):
         return None
     r = B.deger(b["rotation"], t) if "rotation" in b else [0, 0, 0]
     p = B.deger(b["position"], t) if "position" in b else [0, 0, 0]
-    return r, p
+    o = B.deger(b["scale"], t) if "scale" in b else [1, 1, 1]
+    return r, p, o
 
 
 def durus_animi(a, setler):
@@ -301,7 +302,7 @@ def kare_pozu(a, k, kemikler, anims, setler):
             an = anims[temel]
             uzun = an.get("animation_length", 1.0) or 1.0
             v = kanal_pozu(an, kem, t % uzun)
-        poz[kem] = [(v or ([0, 0, 0], [0, 0, 0])), 1.0]
+        poz[kem] = [(v or ([0, 0, 0], [0, 0, 0], [1, 1, 1])), 1.0]
     # yuruyus (oyundaki animation.simsek_bot.yuru formulu)
     h = k["hizli"]
     if h > 0.01:
@@ -310,8 +311,8 @@ def kare_pozu(a, k, kemikler, anims, setler):
         for kem, isaret, genlik in (("rightLeg", 1, 40), ("leftLeg", -1, 40),
                                      ("rightArm", -1, 30), ("leftArm", 1, 30)):
             if kem in poz:
-                r, p = poz[kem][0]
-                poz[kem][0] = ([r[0] + isaret * math.cos(math.radians(aci)) * genlik * h, r[1], r[2]], p)
+                r, p, o = poz[kem][0]
+                poz[kem][0] = ([r[0] + isaret * math.cos(math.radians(aci)) * genlik * h, r[1], r[2]], p, o)
     katman = []
     e = k["eylem"]
     if e:
@@ -551,11 +552,13 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None):
     kemikler = list(govde_model.kemik.keys())
     pivot = {k: B.ic(govde_model.kemik[k]["pivot"]) for k in kemikler}
 
-    def yerel(kem, euler, poz_d):
+    def yerel(kem, euler, poz_d, olc=(1, 1, 1)):
         R = Matrix(B.bb_mat(euler))
         pv = Vector(pivot[kem])
         pos = Vector((-poz_d[0], poz_d[1], poz_d[2]))
-        L = Matrix.Translation(pos) @ Matrix.Translation(pv) @ R.to_4x4() @ Matrix.Translation(-pv)
+        # Bedrock: olcek pivot etrafinda, donusten once (bedrock_onizleme ile ayni)
+        L = (Matrix.Translation(pos) @ Matrix.Translation(pv) @ R.to_4x4()
+             @ Matrix.Diagonal((olc[0], olc[1], olc[2], 1)) @ Matrix.Translation(-pv))
         # ic uzay (px) -> Blender (blok)
         P4 = P.to_4x4()
         S = Matrix.Diagonal((1 / 16, 1 / 16, 1 / 16, 1))
@@ -571,23 +574,25 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None):
             kok.keyframe_insert("rotation_euler", frame=f + 1)
             poz, katman = kare_pozu(a, k, kemikler, anims, setler)
             for kem in kemikler:
-                (eu, ps), _ = poz[kem]
-                Mx = yerel(kem, eu, ps)
-                q, l = Mx.to_quaternion(), Mx.to_translation()
+                (eu, ps, ol), _ = poz[kem]
+                l, q, o3 = yerel(kem, eu, ps, ol).decompose()
                 for an, t_an, wgt in katman:
                     if an not in anims or wgt <= 0:
                         continue
                     v = kanal_pozu(anims[an], kem, t_an)
                     if not v:
                         continue
-                    M2 = yerel(kem, v[0], v[1])
-                    q = q.slerp(M2.to_quaternion(), wgt)
-                    l = l.lerp(M2.to_translation(), wgt)
+                    l2, q2, o2 = yerel(kem, v[0], v[1], v[2]).decompose()
+                    q = q.slerp(q2, wgt)
+                    l = l.lerp(l2, wgt)
+                    o3 = o3.lerp(o2, wgt)
                 o = kn[kem]
                 o.rotation_quaternion = q
                 o.location = l
+                o.scale = o3
                 o.keyframe_insert("rotation_quaternion", frame=f + 1)
                 o.keyframe_insert("location", frame=f + 1)
+                o.keyframe_insert("scale", frame=f + 1)
 
     # ---- kivilcimlar ----
     kivilcim_kur(bpy, efektler, fps, doku_malzemesi)
