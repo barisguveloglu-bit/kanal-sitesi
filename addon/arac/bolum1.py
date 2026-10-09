@@ -262,6 +262,11 @@ def orman():
     sen["sure"] = round(t6 + 9.5, 2)
     # 4. sahne: kopyalar -- 180 derece kurali BILEREK bozuluyor (yon kaybi)
     sen["kural180_serbest"] = [[t4 - 0.1, t5 + 0.5]]
+    # Yayin IKI parca (kullanici). Kesme: gercek Baris El-Harkos'un onunde
+    # belirdikten hemen sonra, dovus baslamadan (Part 1 merakta biter).
+    h_ = F.zaman_haritasi(sen)
+    kesme = F.kare_bul(h_, t5 + 1.0) + 1
+    sen["parcalar"] = {"part1": [1, kesme], "part2": [kesme + 1, len(h_)]}
     # ses: 3-4 muziksiz (sessizlik korkuyu buyutur), muzik dovusle girer,
     # ilk delen darbede bir an susar, 6. sahnede soner
     # isik anahtarlari SAHNELERE bagli (mutlak saniye degil): acilistaki

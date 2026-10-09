@@ -710,6 +710,9 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
     sc.cycles.device = "CPU"
     sc.cycles.samples = 6 if onizleme else senaryo.get("ornek", 16)
     sc.cycles.use_denoising = True
+    # Kareler arasi sahne verisini koru (BVH yeniden kurulmaz). Goruntuye
+    # etkisi yok -- yalniz her karedeki hazirlik suresini kisaltir.
+    sc.render.use_persistent_data = True
     # Hiz ayarlari (v7.99.10, olculdu): senaryo vermezse Blender varsayilani.
     # Gurultu giderici albedo+normal ile dokuyu korur (az ornekte camur olmasin).
     sc.cycles.denoising_input_passes = "RGB_ALBEDO_NORMAL"
@@ -1626,7 +1629,7 @@ def kivilcim_kur(bpy, efektler, fps, doku_malzemesi, harita=None):
 # ============================================================
 # 5. ALTYAZI + VIDEO (Blender disinda da calisir)
 # ============================================================
-def secili_kareler(klasor, adim=1, toplam=None):
+def secili_kareler(klasor, adim=1, toplam=None, bas=1):
     """Videoya girecek kareler: [(film_karesi_no, dosya)], 1'den adim adim.
     Kare ZAMANI dosya numarasindan gelir, sirasindan degil: 3'te bir
     cizilen onizlemede ya da yarim kalmis cizimde i/fps altyaziyi kaydirir.
@@ -1634,18 +1637,21 @@ def secili_kareler(klasor, adim=1, toplam=None):
     d = os.path.join(klasor, "kare")
     var = {int(f[:-4]): f for f in os.listdir(d) if f.endswith(".png") and f[:-4].isdigit()}
     son = toplam or max(var)
-    istenen = list(range(1, son + 1, adim))
+    istenen = list(range(bas, son + 1, adim))
     eksik = [n for n in istenen if n not in var or os.path.getsize(os.path.join(d, var[n])) == 0]
     if eksik:
         raise SystemExit("eksik/bos kare: %d tane (ilk %s)" % (len(eksik), eksik[:5]))
     return [(n, var[n]) for n in istenen]
 
 
-def altyazi_bas(klasor, adim=1):
+def altyazi_bas(klasor, adim=1, aralik=None):
+    """aralik [a, b]: yalniz o film kareleri (parca: Part 1 / Part 2).
+    Altyazi zamani FILM zamaninda kalir; video a karesinden baslar."""
     from PIL import Image, ImageDraw, ImageFont
     bilgi = json.load(open(os.path.join(klasor, "yazilar.json"), encoding="utf-8"))
     fps = bilgi["fps"]
-    kareler = secili_kareler(klasor, adim, bilgi.get("kare"))
+    a, b = aralik or (1, bilgi.get("kare"))
+    kareler = secili_kareler(klasor, adim, b, a)
     cikti = os.path.join(klasor, "altyazili")
     os.makedirs(cikti, exist_ok=True)
     for f in os.listdir(cikti):

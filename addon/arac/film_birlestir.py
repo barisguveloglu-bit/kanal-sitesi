@@ -1,6 +1,8 @@
 """Parcalari tek filme baglar: altyazi + ses + ardarda + siyah son.   v7.99.10
 
     python3 addon/arac/film_birlestir.py cikti.mp4 klasor1:senaryo1.json klasor2:senaryo2.json ... [--adim 3]
+    python3 addon/arac/film_birlestir.py part1.mp4 orman:bolum1_orman.json:part1
+    python3 addon/arac/film_birlestir.py part2.mp4 orman:bolum1_orman.json:part2 oda:bolum1_oda.json
 
 --adim N: onizleme (blender_film --adim N ile cizilmis); video fps/N'de
 akar, ses ve altyazi yine film zamaninda. Eksik kare varsa durur.
@@ -29,15 +31,24 @@ SES_ZINCIR = ("acompressor=threshold=-18dB:ratio=3:attack=5:release=120:makeup=2
               "alimiter=limit=0.89:attack=2:release=60:level=false")
 
 
-def parca(klasor, senaryo_yolu, adim=1):
+def parca(klasor, senaryo_yolu, adim=1, parca_adi=None):
+    """parca_adi ("part1"/"part2"): senaryonun "parcalar" araligi; ses ve
+    goruntu ayni araliktan kesilir (ses tam filmden uretilip dilimlenir,
+    boylece kesme noktasindaki muzik/efekt dogal devam eder)."""
     sen = B.oku(os.path.abspath(senaryo_yolu))
-    F.altyazi_bas(klasor, adim)                 # -> klasor/film.mp4 (sessiz)
-    wav = os.path.join(klasor, "ses.wav")
-    film_ses.yaz(film_ses.ses_kur(sen), wav)
+    fps0 = sen.get("fps", 24)
+    aralik = sen["parcalar"][parca_adi] if parca_adi else None
+    F.altyazi_bas(klasor, adim, aralik)         # -> klasor/film.mp4 (sessiz)
+    dilim = slice(None)
+    if aralik:
+        dilim = slice(int((aralik[0] - 1) / fps0 * film_ses.ORAN), int(aralik[1] / fps0 * film_ses.ORAN))
+    ek = "_" + parca_adi if parca_adi else ""
+    wav = os.path.join(klasor, "ses%s.wav" % ek)
+    film_ses.yaz(film_ses.ses_kur(sen)[dilim], wav)
     # stem'ler: muzik / efekt / ortam ayri (Resolve Fairlight'ta son miksaj icin)
     for ad, k in film_ses.ses_kur(sen, katmanlar=True).items():
-        film_ses.yaz(k, os.path.join(klasor, "stem_%s.wav" % ad))
-    cikti = os.path.join(klasor, "parca.mp4")
+        film_ses.yaz(k[dilim], os.path.join(klasor, "stem%s_%s.wav" % (ek, ad)))
+    cikti = os.path.join(klasor, "parca%s.mp4" % ek)
     subprocess.run(["ffmpeg", "-y", "-v", "error", "-i", os.path.join(klasor, "film.mp4"), "-i", wav,
                     "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-shortest", cikti], check=True)
     return cikti, sen.get("fps", 24) / adim
@@ -59,8 +70,8 @@ def main(argv):
     parcalar = []
     fps = 30
     for a in argv[1:]:
-        k, s = a.split(":", 1)
-        p, fps = parca(os.path.abspath(k), s, adim)
+        k, s, *pa = a.split(":")              # klasor:senaryo[:part1]
+        p, fps = parca(os.path.abspath(k), s, adim, pa[0] if pa else None)
         parcalar.append(p)
     girdi, filtre = [], []
     for i, p in enumerate(parcalar):
