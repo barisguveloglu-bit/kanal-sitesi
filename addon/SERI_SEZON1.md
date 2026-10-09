@@ -71,8 +71,12 @@ kararı: *"bu iki evren farklı evrenler."*
 - **Zamanlama elle değil:** `blender_film.py`'nin zaman çizelgesi her
   temasın, savunmanın, adımın karesini zaten biliyor; ses o karelere
   oturtulur. Görüntüyle ses aynı kaynaktan.
-- **Müzik:** CC0 sinematik parçalar (OpenGameArt). CC0 olsa da YouTube
-  Content ID yine işaretleyebilir — liste dışı bir videoda denenmeli.
+- **Müzik: VAR** (kullanıcı kararı). Yerleşim önerisi kabul edildi:
+  geri bakış (3) ve ışınlanma (4) **müziksiz** — korkuyu sessizlik
+  büyütüyor; müzik dövüşle (5) giriyor. Kaynak: CC0 sinematik
+  parçalar (OpenGameArt). CC0 olsa da YouTube Content ID yine
+  işaretleyebilir — liste dışı bir videoda denenmeli.
+- **Replikler seslendirilmiyor: yalnız altyazı** (kullanıcı kararı).
 - **Minecraft'ın kendi sesleri kullanılmıyor** (Mojang'ın dosyası,
   pakette yok — Steve/Alex dokusu kuralıyla aynı).
 
@@ -81,5 +85,15 @@ azalır (politika kesin ölçülmedi, temkin).
 
 ## Açık
 
-- Repliklerin sesi: kullanıcı kendisi mi seslendiriyor, yalnız altyazı mı?
-- Müzik isteniyor mu; isteniyorsa hangi sahnelerde.
+- Barış'ın skini (aktör listesinde yok).
+- Askerin skini.
+- El-Harkos için depodaki `harkos` skini mi?
+- Hedef video süresi (çizim süresini belirliyor).
+- 1. bölümde başka replik var mı? (Şu an yalnız karanlık oda iki
+  replik; uydurulmaz.)
+- İzleyici El-Harkos'un ödül avcısı olduğunu ve "hiçbir silah
+  işlemiyor" bilgisini nereden öğreniyor (replik / afiş / anlatıcı)?
+- Barış'ın tırpanı 1. sahnede de elinde mi?
+- El-Harkos nasıl ölüyor (son darbe)?
+- Barış'ın gücünün rengi / görünüşü (ışınlanma parçacıkları).
+- Açılış: seri adı, bölüm adı kartı.
