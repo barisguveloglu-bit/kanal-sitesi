@@ -299,6 +299,146 @@ def t_bul_yalniz_istenen_bolumu_veriyor(kok):
     return None
 
 
+def _kopyada_commit(kok, mesaj, degistir=None):
+    if degistir:
+        degistir()
+    subprocess.run(["git", "add", "-A"], cwd=kok, capture_output=True, text=True, timeout=60)
+    subprocess.run(["git", "commit", "-q", "-m", mesaj], cwd=kok,
+                   capture_output=True, text=True, timeout=60)
+    return subprocess.run(["git", "rev-parse", "HEAD"], cwd=kok, capture_output=True,
+                          text=True, timeout=60).stdout.strip()
+
+
+def t_kiran_bozan_commiti_buluyor(kok):
+    """Taban → bul.py'yi bozan commit → ilgisiz commit. Kıran commit
+    ikincisi olmalı; uçlar ters verilince arama hiç başlamamalı."""
+    taban = _kopyada_commit(kok, "sınav: taban")
+    yol = os.path.join(kok, ".claude", "bul.py")
+
+    def boz():
+        m = open(yol, encoding="utf-8").read()
+        open(yol, "w", encoding="utf-8").write(
+            m.replace('if __name__ == "__main__":', 'if __name__ == "__main__":\n    sys.exit(1)', 1))
+    bozan = _kopyada_commit(kok, "sınav: bul bozuldu", boz)
+    _kopyada_commit(kok, "sınav: ilgisiz", lambda: open(
+        os.path.join(kok, "ilgisiz.txt"), "w").write("x\n"))
+
+    vaka = "bul: yalnız istenen bölümü veriyor"
+    s = kos(kok, "kiran.py", "--vaka", vaka, "--iyi", taban, "--tekrar", "1")
+    if s.returncode != 0 or bozan[:7] not in s.stdout:
+        return f"bozan commit bulunamadı (çıkış {s.returncode}): {s.stdout[-200:]}"
+    s = kos(kok, "kiran.py", "--vaka", vaka, "--iyi", "HEAD", "--kotu", taban,
+            "--tekrar", "1")
+    if s.returncode != 3 or "UÇLAR TUTARSIZ" not in s.stdout:
+        return f"ters uçla arama başladı (çıkış {s.returncode})"
+    s = kos(kok, "kiran.py", "--vaka", "böyle bir vaka yok", "--iyi", taban)
+    if s.returncode != 2:
+        return f"olmayan vaka koşmuş sayıldı (çıkış {s.returncode})"
+    return None
+
+
+def t_ders_denetle_ikizi_buluyor_emekli_silmiyor(kok):
+    """Aynı korumaya bağlı iki ders birleştirme adayıdır (çıkış 3). Emekli
+    ders okuma listesinden düşer ama satırı defterde kalır."""
+    yol = os.path.join(kok, ".claude", "dersler.jsonl")
+    satirlar = open(yol, encoding="utf-8").read().splitlines()
+    ilk = json.loads(satirlar[0])
+    ikiz = dict(ilk, no=9001, ders="sınav: aynı korumaya bağlı ikinci ders")
+    open(yol, "a", encoding="utf-8").write(json.dumps(ikiz, ensure_ascii=False) + "\n")
+
+    s = kos(kok, "ders.py", "denetle")
+    if s.returncode != 3 or "9001" not in s.stdout or f"[{ilk['no']}]" not in s.stdout:
+        return f"ikiz koruma yakalanmadı (çıkış {s.returncode})"
+    s = kos(kok, "ders.py", "emekli", "--no", "9001", "--gerekce", "kısa")
+    if s.returncode != 1:
+        return f"gerekçesiz emeklilik kabul edildi (çıkış {s.returncode})"
+    s = kos(kok, "ders.py", "emekli", "--no", "9001",
+            "--gerekce", "sınav: birinci dersin tekrarı, aynı korumaya bağlı")
+    if s.returncode != 0:
+        return f"emeklilik yazılamadı (çıkış {s.returncode})"
+    if kos(kok, "ders.py", "denetle").returncode != 0:
+        return "emekli ders hâlâ ikiz sayılıyor"
+    if "aynı korumaya bağlı ikinci ders" in kos(kok, "ders.py", "oku").stdout:
+        return "emekli ders okuma listesinde duruyor"
+    if "9001" not in open(yol, encoding="utf-8").read():
+        return "emeklilik satırı sildi — gerekçe kayboldu"
+    return None
+
+
+def t_vaka_denetle_ad_govde_ve_dusemezi_yakaliyor(kok):
+    """Adındaki aracı çağırmayan vaka şüphelidir (3); metin döndüremeyen
+    vaka düşemez (1). Denetim vakaya dokunmaz."""
+    yol = os.path.join(kok, ".claude", "arac-sinavi.py")
+    asil = open(yol, encoding="utf-8").read()
+    s = kos(kok, "vaka-denetle.py")
+    if s.returncode != 0:
+        return f"gerçek sınav temiz değil (çıkış {s.returncode}): {s.stdout[-160:]}"
+
+    def ekle(govde, ad):
+        # Satır başına bağlı: "VAKALAR = [" dizesi bu satırın kendisinde de geçiyor.
+        m = asil.replace("\nVAKALAR = [\n", "\n" + govde + "\n\n\nVAKALAR = [\n    ("
+                         + repr(ad) + ", t_sahte),\n", 1)
+        open(yol, "w", encoding="utf-8").write(m)
+
+    ekle('def t_sahte(kok):\n    s = kos(kok, "iz.py", "durum")\n'
+         '    return "düştü" if s.returncode else None', "bul: sahte vaka")
+    once = open(yol, encoding="utf-8").read()
+    s = kos(kok, "vaka-denetle.py")
+    if s.returncode != 3 or "bul: sahte vaka" not in s.stdout:
+        return f"adındaki aracı çağırmayan vaka geçti (çıkış {s.returncode})"
+    if open(yol, encoding="utf-8").read() != once:
+        return "denetim sınav dosyasına dokundu"
+
+    ekle('def t_sahte(kok):\n    kos(kok, "bul.py", "x")\n    return None', "bul: düşemez vaka")
+    s = kos(kok, "vaka-denetle.py")
+    if s.returncode != 1 or "DÜŞEMEZ" not in s.stdout:
+        return f"düşemeyen vaka yakalanmadı (çıkış {s.returncode})"
+    return None
+
+
+def t_arac_sayaci_sayiyor_yuzey_erken_karar_vermiyor(kok):
+    """Bash'ten çağrılan Echo aracı sayılır, kullanım hatası ayrı sayılır,
+    bozuk girdi akışı durdurmaz. Rapor az veriyle aday göstermez; yeterli
+    veride dolaylı çağrılanı değil, gerçekten çağrılmayanı gösterir."""
+    def olay(komut, stderr="", oturum="s1"):
+        return json.dumps({"hook_event_name": "PostToolUse", "tool_name": "Bash",
+                           "session_id": oturum, "tool_input": {"command": komut},
+                           "tool_response": {"stdout": "", "stderr": stderr}})
+    for veri in (olay("python3 .claude/kapi.py sinav"),
+                 olay("python3 .claude/defter.py", "usage: defter.py [-h] ..."),
+                 olay("ls -la"), "{bozuk"):
+        s = subprocess.run([sys.executable, os.path.join(kok, ".claude", "olay.py"), "dagit"],
+                           input=veri, cwd=kok, capture_output=True, text=True, timeout=60)
+        if s.returncode != 0:
+            return f"sayaç akışı durdurdu (çıkış {s.returncode})"
+    sayac = os.path.join(kok, ".claude", "arac-sayac.json")
+    try:
+        d = json.load(open(sayac, encoding="utf-8"))
+    except (OSError, ValueError):
+        return "sayaç yazılmadı"
+    t = d.get("araclar", {})
+    if t.get("kapi", {}).get("cagri") != 1 or t.get("kapi", {}).get("yanlis") != 0:
+        return f"kapı çağrısı yanlış sayıldı: {t.get('kapi')}"
+    if t.get("defter", {}).get("yanlis") != 1:
+        return f"kullanım hatası sayılmadı: {t.get('defter')}"
+    if set(t) != {"kapi", "defter"}:
+        return f"Echo dışı komut sayıldı: {sorted(t)}"
+
+    s = kos(kok, "arac-yuzeyi.py")
+    if s.returncode != 0 or "VERİ YETERSİZ" not in s.stdout or "ÇAĞRILMADI" in s.stdout:
+        return f"az veriyle karar verdi (çıkış {s.returncode})"
+    d["oturum"]["sayi"] = 12
+    json.dump(d, open(sayac, "w", encoding="utf-8"))
+    s = kos(kok, "arac-yuzeyi.py")
+    if s.returncode != 3 or "kiran.py" not in s.stdout:
+        return f"hiç çağrılmayan araç gösterilmedi (çıkış {s.returncode})"
+    if "kanca-buyuk.py" in s.stdout or "sinav.py" in s.stdout or "okuyucu.py" in s.stdout:
+        return "dolaylı çağrılan araç 'çağrılmadı' sayıldı"
+    if "sil" in s.stdout.lower().replace("silme önerilmez", ""):
+        return "rapor silme öneriyor"
+    return None
+
+
 # ------------------------------------------------------------------ yargıç
 
 def _cevaplar(kok, bozma=None):
@@ -3300,6 +3440,10 @@ VAKALAR = [
     ("kapı: temizken tek satır, kırmızıyken tamamı", t_kapi_temizken_tek_satir_kirmiziyken_tamami),
     ("fren: büyük dosya aralıksız okunamıyor", t_buyuk_dosya_araliksiz_okunamiyor),
     ("bul: yalnız istenen bölümü veriyor",  t_bul_yalniz_istenen_bolumu_veriyor),
+    ("kıran: bozan commit'i buluyor",       t_kiran_bozan_commiti_buluyor),
+    ("ders: ikiz koruma aday, emekli silinmez", t_ders_denetle_ikizi_buluyor_emekli_silmiyor),
+    ("vaka denetimi: ad-gövde ve düşemez yakalanıyor", t_vaka_denetle_ad_govde_ve_dusemezi_yakaliyor),
+    ("araç yüzeyi: sayaç sayıyor, az veriyle karar yok", t_arac_sayaci_sayiyor_yuzey_erken_karar_vermiyor),
 
     ("yargı: kusursuz set geçiyor",         t_yargi_temiz_gecer),
     ("yargı: UYDURMA yakalanıyor",          t_yargi_uydurma_yakalar),

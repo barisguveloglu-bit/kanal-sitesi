@@ -25,3 +25,5 @@ __pycache__/
 
 # Paralel ajanların koşuya özel ortak panosu.
 .claude/pano.jsonl
+# kanca-arac.py sayaç kilidi (sayacın kendisi depoda)
+.claude/arac-sayac.json.kilit

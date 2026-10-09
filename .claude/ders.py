@@ -212,6 +212,16 @@ def son_kayitlar():
     return [son[no] for no in sorted(son, key=lambda x: (x is None, x))]
 
 
+def aktif_kayitlar():
+    """Emekliye ayrılmamış dersler — okunan, denetlenen, sayılan bunlar.
+
+    Emekli ders SİLİNMEZ: satırı gerekçesiyle defterde kalır, yalnızca
+    okuma listesinden düşer. Silmek iki şeyi birden kaybettirirdi: neden
+    öğrenildiğini ve neden bırakıldığını.
+    """
+    return [k for k in son_kayitlar() if not k.get("emekli")]
+
+
 def bozuk_satirlar():
     return [k for k in oku() if "_bozuk" in k]
 
@@ -272,7 +282,7 @@ def k_yaz(a):
 
 def k_oku(a):
     """Dersleri göster — oturum başında okunacak olan bu."""
-    kayitlar = son_kayitlar()
+    kayitlar = aktif_kayitlar()
     bozuk = bozuk_satirlar()
     if not kayitlar:
         print("Ders defteri boş.")
@@ -355,7 +365,7 @@ def k_bayat(a):
     durur ama iddiası boşaltılmış olur. Kızıl takım testinde tam bu
     yapıldı ve hiçbir kapı görmedi. Özet bunu görünür kılıyor.
     """
-    son = {k["no"]: k for k in son_kayitlar()}
+    son = {k["no"]: k for k in aktif_kayitlar()}
     kirik, kaymis = [], []
     for no, k in sorted(son.items()):
         if not k.get("koruma"):
@@ -409,7 +419,7 @@ def k_tazele(a):
 
 def k_korumasiz(a):
     """Mekanik koruması olmayan dersler."""
-    acik = [k for k in son_kayitlar() if not k.get("koruma")]
+    acik = [k for k in aktif_kayitlar() if not k.get("koruma")]
     if not acik:
         print("Bütün derslerin mekanik koruması var.")
         return 0
@@ -424,7 +434,7 @@ def k_korumasiz(a):
 
 def k_ara(a):
     """Konuya göre ders ara — yeni bir işe girerken."""
-    kayitlar = son_kayitlar()
+    kayitlar = aktif_kayitlar()
     terim = a.terim.lower()
     bulunan = [k for k in kayitlar
                if terim in k.get("ders", "").lower()
@@ -446,13 +456,16 @@ def k_ara(a):
 
 def k_durum(a):
     """Defterin özeti."""
-    son = son_kayitlar()
+    emekli = [k for k in son_kayitlar() if k.get("emekli")]
+    son = aktif_kayitlar()
     bozuk = bozuk_satirlar()
     korumali = [k for k in son if k.get("koruma")]
     print("DERS DEFTERİ")
     print(f"  ders        : {len(son)}")
     print(f"  korumalı    : {len(korumali)}")
     print(f"  korumasız   : {len(son) - len(korumali)}")
+    if emekli:
+        print(f"  emekli      : {len(emekli)} (defterde, okuma listesinde değil)")
     for tur in TURLER:
         n = len([k for k in son if k.get("tur") == tur])
         if n:
@@ -460,6 +473,79 @@ def k_durum(a):
     if bozuk:
         print(f"  BOZUK SATIR : {len(bozuk)}")
         return 1
+    return 0
+
+
+def k_emekli(a):
+    """Dersi emekliye ayır — Mem0'nun 'sil' işleminin geri alınabilir hâli.
+
+    Defter yalnız büyüyordu: ekle ve güncelle vardı, bırakma yoktu. Ama
+    karar insanın — bu komutu `denetle` çağırmaz, yalnız önerir. Gerekçe
+    zorunlu: gerekçesiz bırakılan ders, bir sonraki oturumda neden
+    bırakıldığı bilinmeden yeniden yazılır.
+    """
+    son = {k["no"]: k for k in son_kayitlar()}
+    if a.no not in son:
+        print(f"[{a.no}] numaralı ders yok.", file=sys.stderr)
+        return 2
+    kayit = dict(son[a.no])
+    if kayit.get("emekli"):
+        print(f"[{a.no}] zaten emekli: {kayit['emekli']['gerekce']}")
+        return 0
+    if len(a.gerekce.strip()) < 15:
+        print("Gerekçe çok kısa — neden bırakıldığını bir cümleyle yaz.", file=sys.stderr)
+        return 1
+    kayit["emekli"] = {"tarih": datetime.date.today().isoformat(),
+                       "gerekce": a.gerekce.strip()}
+    guncelle_kayit(kayit)
+    print(f"[{a.no}] emekliye ayrıldı — satırı defterde duruyor, okuma listesinden düştü.")
+    return 0
+
+
+def k_denetle(a):
+    """Defterin kendisini denetle: birleştirilecek ve bırakılacak aday.
+
+    Mekanik olarak söylenebilen tek çelişki işareti yapısal: iki ders
+    AYNI korumaya ya da aynı koruma hedefine bağlıysa ya biri öbürünün
+    tekrarıdır ya da ikisi aynı testten farklı şey bekliyordur.
+
+    Söylenemeyenler bilerek dışarıda:
+    · Metin benzerliği. Ölçüldü (28 ders): gerçek ikiz çift 0,14'te,
+      ilgisiz çiftler 0,17'de — eşik ya hiçbir şey yakalamaz ya gürültü
+      üretir.
+    · Korumalı iki dersin çelişmesi. İkisinin koruması da her CI
+      koşusunda yeşil olmak zorunda; çelişseler ikisi birden geçemezdi.
+      Çelişki ancak KORUMASIZ derslerde saklanabilir.
+    · "Ölü ders". Hiç tetiklenmeyen koruma, çalışan korumayla aynı
+      görünür — ihlal olmadığı için sessizdir. Sayaç olmadan bu iddia
+      kurulursa halka tam da çalışan dersleri siler. Korumanın gerçekten
+      yakalayıp yakalamadığını mutasyon.py ölçer.
+
+    Çıkış: 0 aday yok, 3 insan bakmalı. Hiçbir şeyi kendisi değiştirmez.
+    """
+    son = aktif_kayitlar()
+    bulgu = 0
+    for alan, ad in (("koruma", "aynı korumaya"), ("koruma_hedef", "aynı koruma hedefine")):
+        gruplar = {}
+        for k in son:
+            if k.get(alan):
+                gruplar.setdefault(k[alan], []).append(k)
+        for hedef, grup in sorted(gruplar.items()):
+            if len(grup) < 2:
+                continue
+            bulgu += 1
+            print(f"BİRLEŞTİRME ADAYI — {len(grup)} ders {ad} bağlı: {hedef}")
+            for k in grup:
+                print(f"  [{k['no']}] {k['ders']}")
+    acik = [k for k in son if not k.get("koruma")]
+    if acik:
+        print(f"Çelişkinin saklanabileceği tek yer: {len(acik)} korumasız ders "
+              f"({', '.join(str(k['no']) for k in acik)}) — `korumasiz` ile bak.")
+    if bulgu:
+        print(f"\n{bulgu} aday. Karar insanın: `ders.py koru --degistir` ya da "
+              "`ders.py emekli --no <n> --gerekce \"...\"`.")
+        return 3
+    print("Birleştirme adayı yok — iki ders aynı korumaya bağlı değil.")
     return 0
 
 
@@ -576,6 +662,14 @@ def main(argv=None):
 
     p = alt.add_parser("ozetle", help="koşu defterinden ders adayı ayıkla")
     p.set_defaults(fn=k_ozetle)
+
+    p = alt.add_parser("emekli", help="dersi gerekçesiyle emekliye ayır (silmez)")
+    p.add_argument("--no", type=int, required=True)
+    p.add_argument("--gerekce", required=True)
+    p.set_defaults(fn=k_emekli)
+
+    p = alt.add_parser("denetle", help="birleştirme adayı ara (çıkış 3: insan)")
+    p.set_defaults(fn=k_denetle)
 
     p = alt.add_parser("durum", help="defterin özeti")
     p.set_defaults(fn=k_durum)
