@@ -529,6 +529,21 @@ evren** (kullanıcının kararı: *"bu iki evren farklı evrenler"*). Seride
 Barış güç açıyor; `LORE.md` "Barış güçsüz kalacak" diyor — çelişki
 değil. Seriye ait hiçbir şey `LORE.md`'ye ya da `data.js`'e yazılmaz.
 
+**Film araçları yeni oturumda hazır gelir (v7.99.10).** `addon/arac/arac_kur.sh`
+Blender 5.2.2 + MCprep 3.6.3 dokularını **resmî kaynaktan** indirip SHA-256 /
+md5 ile doğrular, `/opt/araclar`'a kurar (`BLENDER`, `MCPREP_DOKU`); kuruluysa
+hiçbir şey indirmez. Bulut ortamının **Setup script** alanında tek satırla
+çağrılır (satır betiğin başında). İkili dosyalar depoya girmez; sürüm sabit,
+atlanacaksa betikte elle değişir. `test/arac_kur.mjs` kilitliyor.
+
+**DaVinci Resolve bu düzene alınmadı (kullanıcı istedi, ölçüldü):** Linux'ta
+ayrı ekran kartı (≥4 GB VRAM) ve 32 GB bellek istiyor, bulut makinesinde
+ekran kartı yok; ücretsiz sürümde betik/ekransız çizim yok (Studio'ya özel);
+indirme kayıt formunun arkasında ve lisansı yeniden dağıtmayı yasaklıyor.
+Resolve'dan istenen ses işi (kompresör, limiter, −14 LUFS) ffmpeg ile
+`film_birlestir.py`'de yapılıyor; müzik/efekt/ortam ayrıca stem olarak
+veriliyor, kullanıcı son miksajı kendi Resolve'unda yapabilir.
+
 Kararların tek kaydı **`addon/SERI_SEZON1.md`**: karakterler (El-Harkos,
 Ice-man / Deney 081, sezonun ana kötüsü), 1. bölümün sahne sırası,
 1080p30 kararı ve açık sorular. Orada olmayanı uydurma; sor.
