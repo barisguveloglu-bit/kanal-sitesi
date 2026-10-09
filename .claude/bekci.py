@@ -62,6 +62,22 @@ KOK = os.path.dirname(KLASOR)
 # `bekci.py` kendisi de listede: bekçiyi listeden çıkaran bir commit,
 # bekçiyi sessizce etkisizleştirir ve bunu bekçinin kendisi görmelidir.
 OLCUM = (
+    "echo.py",
+    "echo-modeller.json",
+    "tests/test_echo.py",
+    "tests/luna_deneme/degerlendir.py",
+    "tests/luna_deneme/beklenen.json",
+    "tests/luna_deneme/belge-denetci.json",
+    "tests/luna_deneme/veri-denetci.json",
+    "tests/luna_deneme/dil-denetci.json",
+    "tests/luna_deneme/erisim-denetci.json",
+    "tests/luna_deneme/gizlilik-denetci.json",
+    "tests/luna_deneme/raporlar/belge-denetci.json",
+    "tests/luna_deneme/raporlar/veri-denetci.json",
+    "tests/luna_deneme/raporlar/dil-denetci.json",
+    "tests/luna_deneme/raporlar/erisim-denetci.json",
+    "tests/luna_deneme/raporlar/gizlilik-denetci.json",
+    ".agents/skills/echo/SKILL.md",
     ".claude/dogrula.py",
     ".claude/butunluk.py",
     ".claude/sinav.py",
@@ -74,6 +90,9 @@ OLCUM = (
     # Kapıların "koştu mu" kararı burada; yumuşatılırsa bütün kapılar
     # ölü hâlde "geçti" diyebilir.
     ".claude/kapi.py",
+    ".claude/butce.py",
+    ".claude/gorev.py",
+    ".claude/havuz.py",
     # Gölgeden kapıya terfi bir kapıyı SERTLEŞTİRİR, kapıdan gölgeye
     # inmek YUMUŞATIR. İkisi de ölçen aleti değiştirir ve ikisi de bu
     # dosyada bir satır — beyansız olmamalı.

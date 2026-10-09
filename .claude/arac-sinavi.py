@@ -745,7 +745,7 @@ def t_gorev_konu_disinda_uydurmuyor(kok):
     s = kos(kok, "gorev.py", "brief", "--konu", "kuantum dolanıklık deneyi")
     if "LORE.md:" in s.stdout.split("Hazır dayanak")[-1]:
         return "konu dışı başlığa canon dayanağı uyduruldu"
-    if "karşılık bulmadı" not in s.stdout:
+    if "Dayanak bulunamadı" not in s.stdout or "kanıtlamaz" not in s.stdout:
         return "dayanak yokluğu bildirilmedi"
     return None
 
@@ -779,7 +779,7 @@ def t_gorev_uydurma_atifi_yakaliyor(kok):
     s = kos(kok, "gorev.py", "dogrula", "--rapor", yol)
     if s.returncode != 1:
         return "uydurma atıflar geçti"
-    if "desteklemiyor" not in s.stdout or "geçersiz aralık" not in s.stdout:
+    if "düşük kelime örtüşmesi" not in s.stdout or "geçersiz aralık" not in s.stdout:
         return "iki kusur türünden biri bildirilmedi"
     return None
 
@@ -1142,14 +1142,14 @@ def t_gorev_iki_mod_da_uretiliyor(kok):
 
 
 def t_gorev_yetki_ihlali_yakalaniyor(kok):
-    """Salt okunur beyan edilen görev depoya dokunduysa kusur sayılmalı."""
+    """Kirli ağaç yetki denetiminde başarı sayılmamalı, yazarı varsayılmamalı."""
     yol = os.path.join(kok, "rapor.md")
     open(yol, "w", encoding="utf-8").write(
-        "Barış Teşup'un elinde tutuluyor. LORE.md:428\n")
+        "Çalışma ağacında değişiklik gözlendi.\n")
     open(os.path.join(kok, "LORE.md"), "a", encoding="utf-8").write("\nkirlilik\n")
-    s = kos(kok, "gorev.py", "dogrula", "--rapor", yol, "--mod", "okuma")
-    if "YETKİ İHLALİ" not in s.stdout:
-        return "salt okunur görevin dosya değişikliği yakalanmadı"
+    s = kos(kok, "gorev.py", "dogrula", "--rapor", yol, "--tur", "gozlem", "--mod", "okuma")
+    if s.returncode != 2 or "yazarı bu kontrolle belirlenemez" not in s.stdout:
+        return "kirli çalışma ağacı yanlışlıkla doğrulandı veya yazarı varsayıldı"
     return None
 
 

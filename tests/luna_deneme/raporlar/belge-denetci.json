@@ -1,0 +1,8 @@
+[
+  {"id":"B1","sonuc":"temiz","alinti":"baslat komutu hafızayı okur.","aciklama":"Verilen CLI gerçeği, baslat komutunun hafızayı okuduğunu doğruluyor."},
+  {"id":"B2","sonuc":"kusur","alinti":"gorev --gonder alt ajanı kendisi başlatır.","aciklama":"CLI gerçeğine göre --gonder bütçeyi düşürür ve görev metni üretir; ajan başlatmaz."},
+  {"id":"B3","sonuc":"temiz","alinti":"gorev --json çıktısında model alanı bulunur.","aciklama":"Verilen CLI gerçeği, --json çıktısında model alanı olduğunu doğruluyor."},
+  {"id":"B4","sonuc":"kusur","alinti":"her zaman gpt-6.1-sol kullanır.","aciklama":"Gerçeğe göre --model verilmezse tarama-denetci gpt-6-luna kullanır; iddia edilen varsayılan yanlıştır."},
+  {"id":"B5","sonuc":"temiz","alinti":"Bilinmeyen model adı hata verir.","aciklama":"CLI yalnız gpt-6-luna ve gpt-6.1-sol modellerini kabul eder, diğer model adları hata verir."},
+  {"id":"B6","sonuc":"kusur","alinti":"--isim kullanılır.","aciklama":"Verilen CLI gerçeğinde --isim yoktur; --ad seçeneği bulunur."}
+]

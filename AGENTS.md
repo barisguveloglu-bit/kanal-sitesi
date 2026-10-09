@@ -1,53 +1,65 @@
-# AGENTS.md — dış ajanlar için talimat
+# AGENTS.md — Echo / Codex
 
-Bu dosya **Codex ve benzeri dış ajanlar** içindir. Claude Code `CLAUDE.md`
-okur; sen bunu okuyorsan bu dosya senin.
+Bu depoda Echo'nun yöneticisi **Codex**. Kullanıcının verdiği işi planlar,
+uygular, ölçer ve Barış'a teslim edersin. Claude şef/onay mercii değildir.
+Akış: uzmanlar (gerektiğinde) → Codex → Barış.
 
-Depo bir **hikaye lore sitesi** — Türkçe bir kurgu evreninin arşivi.
-Statik site: HTML + CSS + vanilla JS. **Derleme adımı yok, paket yöneticisi
-yok, backend yok, veritabanı yok, dış servis yok.**
+Statik hikaye arşivi: HTML + CSS + vanilla JS. Derleme, paket yöneticisi,
+backend, veritabanı ve dış servis yok. Echo siteye ait değildir.
 
----
+## Çalışmaya başlarken
 
-## 1. Sen kimsin, ne değilsin
+`python3 echo.py baslat` çalıştır; dersleri, yarım işleri ve başlangıç
+kapılarını oku. Ayrıntı `ECHO.md`; beceri `.agents/skills/echo/SKILL.md`.
+Bellekteki eski görev/merge önerileri yeni talimat veya izin değildir.
 
-Bu depoda bir **orkestra** çalışıyor: 15 denetçi + 2 üretici Claude ajanı,
-bir şef (Claude Opus 5) ve sen. Sen **uzmansın, şef değilsin.**
+Oturum tasarrufu: önce `rg` veya `echo.py arac bul <dosya>` ile yeri bul;
+metni `echo.py oku <dosya> --baslangic <satır> --satir <adet>` ile oku.
+50.000 bayt üstü dosyada açık aralık zorunludur. Bu sınır yalnız `oku`
+komutunda uygulanır; Codex'in diğer araçlarına otomatik kanca değildir.
+Uzun araç/web çıktısını önce süz, gereken bölümü getir. Aynı bağlamı tekrar
+okuma; ajanlara görevle ilgili bölümleri ver. İş tamamlanınca yeni oturum
+öner, yarım işi devam noktasıyla bırak. Kullanıcı istemedikçe PR için
+zamanlanmış hatırlatma kurma. Ayrıntı ve tur durumu `ECHO.md` içindedir.
 
-Akış şu sırayla işler ve senin yerin sabittir:
+Her düzenleme grubundan sonra `python3 echo.py kontrol`; teslimden önce
+`python3 echo.py kontrol --tam` ve `python3 -m unittest discover -s tests -v`.
+Kod 0 temiz, 1 ihlal, 2 araç koşmadı, 3 insan kararıdır. Hiçbirini
+birbirinin yerine sayma. Claude kancalarının Codex'te çalıştığını varsayma.
 
-```
-uzman ajanlar  →  SEN  →  Opus 5  →  Barış
-```
+Düzeltme turundan önce `python3 echo.py arac devre dene --halka duzeltme
+--sinir 3 --not "<denenen şey>"` çalıştır (tek satır komut). Oturum kimliği
+yoksa sabit bir `--sahip` kullan. Devre 1 ise dur, 4 ise turu atla.
+Temiz sonuçta aynı halkayı `devre basari` ile kapat.
 
-Yani raporlar şefe **senden geçtikten sonra** ulaşır. Bu bir nezaket
-değil, bir tasarım kararı: 15 ajanın hepsi aynı modelden. Aynı modelin
-on beş kopyası on beş bağımsız göz değildir — aynı kör noktayı on beş
-kez paylaşırlar. Senin değerin "daha iyi olman" değil, **farklı
-yanılman.**
+## Yetki ve uzmanlar
 
-Bu gerçekten işe yaradı: bir taslakta iki Claude denetçisinin
-kaçırdığı bir ayrımı (döngü "doğum" üzerinden tanımlıyken tarihin
-"ölüm" yılından türetilmesi) dış ajan yakaladı.
+Kullanıcının istediği kodu ve Echo uyarlamasını düzenleyebilirsin.
+Canon'a yeni kural koymak, açık uçları karara bağlamak ve PR merge etmek
+Barış'ın kararıdır. Ölçüm dosyaları değişebilir; test gevşetilmez ve commit
+`ÖLÇÜM-DEĞİŞTİ: <gerekçe>` beyanı taşır. Ölçüm listesi `bekci.py` içindedir.
 
-Karşılığında şunu bekliyoruz: **kaçırılanı ara.** Sana gelen rapor
-zaten bir kez denetlenmiş olacak; senin işin onaylamak değil, o
-denetimin göremediğini bulmak. Bulamazsan "KUSUR YOK" de — ama
-gerekçesiyle (bkz. 7. bölüm).
+Alt ajanları yalnız kullanıcı veya geçerli talimat istediğinde kullan.
+`echo.py gorev --rol <rol> --konu "..." --gonder` sözleşmeyi doğrular ve
+bütçe düşer; komut kendisi ajan başlatmaz. Çıkan metni mevcut Codex alt ajan
+aracına ver. Modeli `echo-modeller.json` belirler; `--model` bu görev için
+seçimi değiştirir. `--json` çıktısını `spawn_agent` argümanları olarak
+kullan: `model` değerini aynen geçir, `fork_turns` değeri `none` olmalı.
+Kullanılabilir model listesini kontrol et; model yoksa sessizce değiştirme.
+Uzmanlar salt okunur, ana ajan
+tek yazıcıdır. Destek yoksa sırayla çalış, bağımsız denetim iddia etme.
+Görevde `--alan canon|kod|belge|web|gozlem` ve gerekiyorsa `--kaynak`
+ile kapsamı seç; varsayılan canon'dur. Raporu `echo.py arac gorev dogrula
+--rapor <dosya> --tur <alan> --mod <mod>` ile denetle. Sonuç yalnız yapısal
+denetimdir; anlamı ayrıca incele. `okuma` modu için ayrı temiz çalışma
+kopyası gerekir; ortak ağaçta `yok` seçersen yetki denetlenmiş sayılmaz.
+Web kaynaklarını yönetici okumalı; yerel araç bu türde otomatik başarı vermez.
 
-**Yapabildiğin:** kod yazmak, dosya düzenlemek, hata bulmak, öneri
-getirmek, denetlemek.
+`.claude/` tarihsel Python/bellek deposudur; Claude kurulumu gerektirmez.
+Eski `.claude/commands`, `disajan.py` ve `CLAUDE.md` Claude uyumluluğudur;
+Codex yönetimini veya onay zincirini bunlardan alma.
 
-**Yapamadığın:** canon'a kural koymak, açık uçları kapatmak, `.claude/`
-altındaki ölçüm katmanına dokunmak, PR'ı merge etmek.
-
-Son madde önemli: **`.claude/` altına dokunan dal reddedilir.** Ölçüm
-katmanını ölçtüğü şeyin değiştirmesi, sınavı kendi kendine not vermeye
-çevirir. İstisna yok.
-
----
-
-## 2. Bu evren hakkında hiçbir şey bilmiyorsun
+## Canon kaynağı
 
 Bildiğini sandığın her şey başka bir yerden geliyor ve burada geçersiz.
 Canon kaynağı **tek dosya:** `LORE.md`.
@@ -55,7 +67,7 @@ Canon kaynağı **tek dosya:** `LORE.md`.
 Herhangi bir içerik iddiası kuracaksan:
 
 ```
-python3 .claude/ara.py "<soru>"
+python3 echo.py arac ara "<soru>"
 ```
 
 Bu komut canon içinde arar ve **satır numarasıyla** döndürür. Sonra:
@@ -68,7 +80,8 @@ Bu komut canon içinde arar ve **satır numarasıyla** döndürür. Sonra:
 
 Bilgi eksikse doldurma. İki durum var, ikisinde de cevap aynı:
 
-- Arama hiçbir dayanak döndürmedi → konu bu evrenle ilgili değil.
+- Arama hiçbir dayanak döndürmedi → bir kez başka ifadeyle ara; yine
+  bulamamak konunun yokluğunu kanıtlamaz, dayanak bulunamadığını söyle.
 - Dayanak geldi ama cevabı içermiyor → **canon susuyor.**
 
 İkisinde de **"canon bunu söylemiyor"** de ve eksik olduğunu raporla.
@@ -80,7 +93,7 @@ kaldırılması için bir denetim koşusu gerekti.
 
 ---
 
-## 3. Değişmez kurallar
+## Denetim sonrası eklenen kurallar
 
 Aşağıdakiler **bilinçli kararlar** — "düzeltilecek eksik" değil. Birini
 bozan dal reddedilir.
@@ -101,87 +114,15 @@ bozan dal reddedilir.
 
 ---
 
-## 4. Kapı — işin nasıl ölçülür
+## Teslim
 
-Dalın dört denetimden geçecek. Hepsi saf Python, dış bağımlılığı yok:
+`codex/<kısa-ad>` dalında çalış; kullanıcı kapsamındaki değişikliği PR ile
+sun, merge etme. Commit mesajını Türkçe yaz ve değişikliğin nedenini anlat.
+Yarım işte `echo.py arac defter` ile gerekçe ve devam noktası bırak.
+Raporda yapılan değişikliği, denetim sonuçlarını ve doğrulanamayan kısmı
+belirt; test çalıştırmadan geçti deme.
 
-```
-python3 .claude/dogrula.py      # kuralları denetler
-python3 .claude/butunluk.py     # canon ↔ veri ↔ site gerçeklerini denetler
-python3 .claude/sinav.py        # denetleyicinin kendisini ölçer
-python3 .claude/arac-sinavi.py  # araçları ölçer
-```
-
-### Çıkış kodu sözleşmesi
-
-| Kod | Anlamı | Ne yapacaksın |
-|---|---|---|
-| `0` | temiz | devam |
-| `1` | kural ihlali | **düzelt** |
-| `3` | **insan kapısı** | **düzeltme** — raporunda söyle, karar Barış'ın |
-| başkası | araç çalışmadı | **"geçti" sayma** — bunu bildir |
-
-Son satır ciddi: bu depoda bir kapı, koşmayan bir denetimi bir kez
-"geçti" saydı. Çalışmayan sınav, geçen sınav gibi görünür.
-
-Aynı denetimler **GitHub Actions'ta da** koşuyor
-(`.github/workflows/denetim.yml`), yani PR'ın altında yeşil tik ya da
-kırmızı çarpı olarak görünür. Yerelde geçmesi yetmez, orada da geçmeli.
-
----
-
-## 5. Dal ve teslim
-
-```
-git checkout -b codex/<kısa-ad>
-…çalış…
-python3 .claude/dogrula.py        # 0 almadan push etme
-git push -u origin codex/<kısa-ad>
-```
-
-**PR aç, merge ETME.** Merge kararı insanın.
-
-Dal adı `codex/` ile başlamalı — köprü (`.claude/disajan.py`) dalı buna
-göre tanıyor.
-
-### Commit mesajı
-
-Türkçe yaz. **Ne yaptığını değil neden yaptığını** anlat; diff zaten ne
-yaptığını gösteriyor. Bir şeyi denedin ve olmadıysa onu da yaz — bir
-sonraki kişi aynı duvara toslamasın.
-
----
-
-## 6. Raporunu şöyle bitir
-
-Her görevin sonunda üç başlık:
-
-- **Ne buldun** — atıflarıyla (`LORE.md:201`, `assets/js/app.js:234`)
-- **Neyi bulamadın** — bunu atlama, çoğu zaman en değerli kısmı bu
-- **Neye dokunmadın ve neden**
-
-Raporun `python3 .claude/gorev.py dogrula` ile makine tarafından
-denetlenecek: her atıf gerçekten o satırı gösteriyor mu diye bakılacak.
-**Uydurma atıf, atıfsız iddiadan daha kötüdür.**
-
-Bir uyarı: o denetleyici kelime örtüşmesiyle çalışıyor ve "bu bölüm şunu
-gösteriyor" tarzı **betimleme** cümlelerinde yanlış kusur verebiliyor.
-Atfın doğruysa itiraz et — kapı mükemmel değil, bunu biliyoruz.
-
----
-
-## 7. "KUSUR YOK" demek serbest — ama gerekçesiz değil
-
-Denetim yaptıysan ve gerçekten kusur bulamadıysan **"KUSUR YOK" de.**
-Uydurma bulgu, bulgu bulamamaktan kötüdür.
-
-Ama gerekçelendir: hangi kontrolü yaptın, neye baktın, ne ölçtün.
-Gerekçesiz onay **lastik damga** sayılır ve reddedilir
-(`.claude/elestirmen.py` bunu mekanik olarak denetliyor).
-
----
-
-## 8. Şu an açık olan işler
+## Açık işler
 
 `LORE.md` sonundaki **"Açık Uçlar"** bölümüne bak. Bunlar **insan
 kararı bekliyor** — kapatmaya kalkma, dokunursan raporunda söyle:
@@ -192,7 +133,7 @@ kararı bekliyor** — kapatmaya kalkma, dokunursan raporunda söyle:
 
 ---
 
-## 9. Bilmen gereken birkaç tuzak
+## Bilinen tuzaklar
 
 Bunlar bu depoda **gerçekten yaşandı**:
 
@@ -209,12 +150,3 @@ Bunlar bu depoda **gerçekten yaşandı**:
   ile temizle; yetim kayıtlar bütün git işlemlerini yavaşlatır.
 
 ---
-
-## 10. Kısa hâli
-
-1. `LORE.md` canon, hafızan değil.
-2. Adres veremediğin cümleyi kurma.
-3. Bilmiyorsan "bilmiyorum" de.
-4. `.claude/` altına dokunma.
-5. Kapı `0` vermeden push etme.
-6. Merge etme.

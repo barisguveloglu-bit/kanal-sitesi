@@ -20,6 +20,8 @@ __pycache__/
 .claude/rapor-deposu/
 .claude/elestirmen-turu.json
 .claude/butce-durumu.json
+.claude/butce-durumu.lock
+.claude/butce-*.tmp
 
 # Paralel ajanların koşuya özel ortak panosu.
 .claude/pano.jsonl

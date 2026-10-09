@@ -1,5 +1,8 @@
 # Proje Notları
 
+Bu dosya Claude Code uyumluluk girişidir. Echo'nun Codex yöneticisi
+`AGENTS.md` ve `ECHO.md` kullanır; Codex için Claude onayı gerekmez.
+
 Bu depo bir **hikaye lore sitesi**. Türkçe bir kurgu evreninin arşivi.
 
 ## Önce bunu oku

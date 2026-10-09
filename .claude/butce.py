@@ -17,7 +17,9 @@ birimi **ajan gönderimi.** Bu araç onu sayar.
 ## Ne ölçebilir, ne ölçemez
 
 **Ölçemez:** gerçek token sayısı. Buradan görünmüyor, uydurmuyoruz.
-**Ölçer:** gönderilen ajan sayısı, geçen süre, tamamlanan aşama.
+**Ölçer:** gönderim için ayrılan hak, geçen süre, tamamlanan aşama.
+Hazırlık kaydı gerçek ajan başlangıcını kanıtlamaz; ortam çağrısı başarısız
+olursa hak kendiliğinden geri verilmez.
 
 Bunlar vekil ölçütler ama işe yarayan cinsten: on ajanı birden
 göndermeden önce "kaç tane kaldı" sorusu cevaplanabilir hâle geliyor.
@@ -30,17 +32,20 @@ göndermeden önce "kaç tane kaldı" sorusu cevaplanabilir hâle geliyor.
 
 Ayrı araçlar olsalardı üçü de aynı anda unutulurdu.
 
-Çıkış kodları: 0 devam · 1 bütçe bitti · 3 insan kararı gerekiyor.
+Çıkış kodları: 0 devam · 1 bütçe yok/bitti · 2 okunamadı · 3 insan kararı.
 """
 import argparse
 import datetime
 import json
+import math
 import os
 import sys
+import tempfile
 import time
 
 KLASOR = os.path.dirname(os.path.abspath(__file__))
 DOSYA = os.path.join(KLASOR, "butce-durumu.json")
+KILIT = os.path.join(KLASOR, "butce-durumu.lock")
 
 # Bütçenin bu oranı kaldığında vites küçültme uyarısı çıkar. Kapı değil
 # uyarı: koşuyu durdurmak bütçeyi bitirmekten daha pahalı olabilir,
@@ -55,19 +60,56 @@ VARSAYILAN_DAKIKA = 90
 
 
 def oku():
-    if not os.path.exists(DOSYA):
-        return None
     try:
         with open(DOSYA, encoding="utf-8") as f:
-            return json.load(f)
-    except (ValueError, OSError):
+            d = json.load(f)
+    except FileNotFoundError:
         return None
+    # Eksik dosya ile bozuk kayıt ayrı durumlardır. Bozuk kayıt hiçbir
+    # komutta bütçesiz çalışma iznine veya sessiz sıfırlamaya dönüşmez.
+    if not isinstance(d, dict):
+        raise ValueError("Bütçe bir nesne olmalı")
+    for ad in ("baslangic", "ajan_sinir", "sure_sinir"):
+        deger = d.get(ad)
+        if (type(deger) not in (int, float) or not math.isfinite(deger)
+                or deger <= 0):
+            raise ValueError(f"Geçersiz bütçe alanı: {ad}")
+    if type(d["ajan_sinir"]) is not int:
+        raise ValueError("ajan_sinir tam sayı olmalı")
+    if not isinstance(d.get("kosu"), str) or not d["kosu"].strip():
+        raise ValueError("Koşu adı eksik")
+    if d.get("vites") not in ("tam", "tasarruf"):
+        raise ValueError("Geçersiz vites")
+    for alan in ("ajanlar", "kilometreler"):
+        if not isinstance(d.get(alan), list):
+            raise ValueError(f"Geçersiz bütçe alanı: {alan}")
+        for kayit in d[alan]:
+            if (not isinstance(kayit, dict)
+                    or not all(isinstance(kayit.get(k), str) for k in ("ad", "saat"))):
+                raise ValueError(f"Bozuk {alan} kaydı")
+            if alan == "kilometreler" and (
+                    kayit.get("durum") not in ("tamam", "yarim")
+                    or not isinstance(kayit.get("not"), str)
+                    or type(kayit.get("ajan_sayisi")) is not int):
+                raise ValueError("Bozuk kilometre kaydı")
+    return d
 
 
 def yaz(d):
-    with open(DOSYA, "w", encoding="utf-8") as f:
-        json.dump(d, f, ensure_ascii=False, indent=2)
-        f.write("\n")
+    # Aynı dizinde atomik değiştirme: yarım yazılmış JSON görünmez.
+    gecici = None
+    try:
+        with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8",
+                dir=KLASOR, prefix="butce-", suffix=".tmp", delete=False) as f:
+            gecici = f.name
+            json.dump(d, f, ensure_ascii=False, indent=2, allow_nan=False)
+            f.write("\n")
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(gecici, DOSYA)
+    finally:
+        if gecici and os.path.exists(gecici):
+            os.unlink(gecici)
 
 
 def _kalan(d):
@@ -89,7 +131,15 @@ def _oran(d):
 
 
 def k_ac(a):
-    eski = oku()
+    if a.ajan_sinir < 1 or a.dakika < 1 or not a.kosu.strip():
+        raise ValueError("Koşu adı ve pozitif bütçe sınırları gerekli")
+    try:
+        eski = oku()
+    except (ValueError, OverflowError):
+        if not a.zorla:
+            raise
+        eski = None
+        print("Bozuk bütçe --zorla ile sıfırlanıyor.")
     if eski and not a.zorla:
         print(f"Zaten açık koşu var: {eski['kosu']}")
         print("Kapatmadan yenisi açılmaz — iki bütçe aynı anda sayılamaz.")
@@ -114,9 +164,9 @@ def k_ajan(a):
     """Bir ajan gönderiminden ÖNCE çağrılır. Bütçe bittiyse reddeder."""
     d = oku()
     if d is None:
-        print("Açık bütçe yok. Bu bir hata değil — bütçesiz de çalışılır.")
+        print("REDDEDİLDİ — açık bütçe yok.")
         print("Açmak için: butce.py ac --kosu \"<ad>\"")
-        return 0
+        return 1
 
     ajan_kalan, sure_kalan, gecen = _kalan(d)
 
@@ -141,7 +191,7 @@ def k_ajan(a):
         d["vites"] = "tasarruf"
     yaz(d)
 
-    print(f"AJAN {len(d['ajanlar'])}/{d['ajan_sinir']} — {a.ad}")
+    print(f"HAK AYRILDI {len(d['ajanlar'])}/{d['ajan_sinir']} — {a.ad}")
     print(f"  kalan ajan  {ajan_kalan - 1}")
     print(f"  kalan süre  {sure_kalan / 60:.0f} dk")
 
@@ -183,7 +233,7 @@ def k_devam(a):
 
     ajan_kalan, sure_kalan, gecen = _kalan(d)
     print(f"KOŞU: {d['kosu']}")
-    print(f"  {len(d['ajanlar'])} ajan gönderildi, {gecen / 60:.0f} dk geçti")
+    print(f"  {len(d['ajanlar'])} gönderim hakkı ayrıldı, {gecen / 60:.0f} dk geçti")
     print(f"  kalan: {max(ajan_kalan, 0)} ajan, {max(sure_kalan / 60, 0):.0f} dk")
     print()
 
@@ -284,7 +334,16 @@ def main(argv=None):
     p.set_defaults(fn=k_kapat)
 
     n = a.parse_args(argv)
-    return n.fn(n)
+    try:
+        # CLI işleminin tamamı kilit altında: okuma/değiştirme/yazma tek
+        # işlem olur. Kilit dosyasını silme; bekleyenler aynı inode'u tutar.
+        import fcntl
+        with open(KILIT, "a", encoding="utf-8") as kilit:
+            fcntl.flock(kilit.fileno(), fcntl.LOCK_EX)
+            return n.fn(n)
+    except (OSError, ValueError, OverflowError, ImportError) as hata:
+        print(f"BÜTÇE DOĞRULANAMADI — {hata}")
+        return 2
 
 
 if __name__ == "__main__":
