@@ -33,7 +33,7 @@ kararı: *"bu iki evren farklı evrenler."*
 |---|---|---|
 | **Barış** | 1– | İlk dövüş deneyimi; zorlanıyor. Silahı Karanlık Tırpan (kullanıcının dilinde "mızrak"). |
 | **El-Harkos** | 1 | Ödül avcısı. Silahsız, yumrukla dövüşüyor. Avladıkları her silahla vücudunu delmeye çalışmış, hiçbiri işlememiş. Barış'ın ödülünü tamamladığını sanıyor; Barış'ın güçlerini açtığını fark etmiyor. **1. bölümde ölüyor.** Skin: depodaki `harkos`. |
-| **Ana kötü** | sezon | İki çift beyaz göz. Karanlık odada oturuyor. Askerleri var. |
+| **Ana kötü** | sezon | **Tek karakter, iki çift (dört) beyaz göz.** Karanlık odada oturuyor. Askerleri var. Bedeni, yüzü, yapısı **hiç görünmüyor** — yalnız gözler. Kullanıcının gerekçesi: klasik kötü karakter imajı ve gizem. |
 | **Ice-man** | 2 | Gerçek adı Ice-man, kod adı **Deney 081**. 2. bölümün düşmanı. Silahı **Ay Işığı Asası** (`pa:kns_asa_ayisigi`, Konsey eşyası): lacivert gövde, pençe biçimli baş, içinde buz mavisi küre. Kullanıcının gönderdiği görselle model karşılaştırılıp eşleştirildi. Modda dövüş seti yok; film için bir asa seti bağlanacak (Karanlık Tırpan'daki `OZEL_SILAH` yolu). Skin kullanıcıdan geldi (aşağıda). |
 | **Asker** | 1 | Ana kötünün askerlerinden; El-Harkos'un öldüğü haberini patronuna getiren görevli. |
 
@@ -58,12 +58,28 @@ kararı: *"bu iki evren farklı evrenler."*
 | 5 | Dövüş | Barış zorlanıyor (ilk deneyimi): ıskalama, sendeleme, tırpanın ağırlığı. Tırpan El-Harkos'a değince kan değil kıvılcım. Güç dengesi Barış'a doğru dönüyor. |
 | 5a | **İlk delen darbe** | Dövüşün dönüm noktası: Barış'ın tırpanı El-Harkos'u **ilk kez deliyor**, El-Harkos ilk kez şaşırıyor. Değdiği noktada **kan efekti**, gerçekçi. Filmde saklanan kare donması ve yavaşlatma burada harcanır; darbe iki açıdan art arda gösterilir; El-Harkos'un yüzü yakın plan; bir an sessizlik. |
 | 6 | Barış gövdesini tutarak **birkaç adım** yavaş yavaş yürüyor, sonra **bayılıyor** | El-Harkos öldü. Barış kazanıyor ama ilk dövüşü ve rakibi güçlüydü: yorgunluktan bayılıyor. 2. sahnenin aynası (aynı kadraj, roller ters); bayılma 1. sahnedeki düşüşün aynası — film iki düşüşle açılıp kapanıyor, ilki yenilgi, ikincisi zafer. |
-| 7 | Karanlık oda — **final sahnesinden SONRA** (videonun sonu) | Ana kötünün askerleri El-Harkos'un öldüğünü bir yolla öğrenmiş, patronlarına söylüyorlar. Tam karanlık, iki çift beyaz göz. Kapı açılıyor: kapı tamamen ışık, hüzmede yoğun toz (yıllardır açılmamış oda). Asker girer: *"Efendim, El-Harkos görevinde başarısız oldu."* Gözler: *"Tamam o zaman. Deney 081'i getirin."* Asker çıkar, kapıyı kapatır, karanlık. |
+| 7 | Karanlık oda — **final sahnesinden SONRA** (videonun sonu), gece | Ana kötünün askerleri El-Harkos'un öldüğünü bir yolla öğrenmiş. Tam karanlık; yalnız dört beyaz göz. Kapı açıldığı an **bembeyaz** — asker o ışığın içinden siluet olarak giriyor; hüzmede yoğun toz (yıllardır açılmamış oda). Asker: *"Efendim, El-Harkos görevinde başarısız oldu."* Gözler: *"Tamam o zaman. Deney 081'i getirin."* Asker çıkar, kapı kapanır, karanlık. **Kural:** kapıdan giren ışık kötüye ULAŞMAZ — ışık şeridi yerde onun önünde biter; gözler kendi ışığıyla parlar, bedenden hiçbir yüzey aydınlanmaz. |
+
+## Ses
+
+**Sesi Claude hazırlıyor** (kullanıcının kararı). Plan — henüz yapılmadı:
+
+- **Efektler:** CC0 (kamu malı) paketler — Kenney *Impact Sounds*,
+  *RPG Audio* (adım, kapı), *Sci-fi Sounds* (ışınlanma). Depoya girebilir,
+  `KAYNAKLAR.md`'ye satır yazılır. Eksik kalanlar (orman rüzgârı, gece
+  cırcır böcekleri, oda uğultusu, flaş vuruşu) `ffmpeg` ile üretilir.
+- **Zamanlama elle değil:** `blender_film.py`'nin zaman çizelgesi her
+  temasın, savunmanın, adımın karesini zaten biliyor; ses o karelere
+  oturtulur. Görüntüyle ses aynı kaynaktan.
+- **Müzik:** CC0 sinematik parçalar (OpenGameArt). CC0 olsa da YouTube
+  Content ID yine işaretleyebilir — liste dışı bir videoda denenmeli.
+- **Minecraft'ın kendi sesleri kullanılmıyor** (Mojang'ın dosyası,
+  pakette yok — Steve/Alex dokusu kuralıyla aynı).
 
 Kan efekti için not: kısa süreli tutulursa YouTube'da yaş sınırı riski
 azalır (politika kesin ölçülmedi, temkin).
 
 ## Açık
 
-- İki çift göz: dört gözlü **tek** bir karakter mi, **iki** kişi mi?
-- Ses ve müzik kimde (filmde şu an ses yok).
+- Repliklerin sesi: kullanıcı kendisi mi seslendiriyor, yalnız altyazı mı?
+- Müzik isteniyor mu; isteniyorsa hangi sahnelerde.
