@@ -153,6 +153,10 @@ class Aktor:
         self.z = self.taban_z
         self.gorunur = not v.get("gizli", False)
         self.esya = None         # sol eldeki esya ("kagit")
+        # bekleme animasyonu: None -> setin kendi durusu; "durus" olayiyla
+        # degisir (Baris dovus disinda olum melegi tutusu, dovuste Antitheus)
+        self.durus = v.get("durus")
+        self.durus_onceki, self.durus_t = None, -99.0
         self.hedef_aci = None    # donus: aci buna DONUS_HIZI ile yaklasir
 
 
@@ -234,6 +238,9 @@ def zaman_cizelgesi(senaryo, setler, anims):
                     a.hedef_aci = None
             if "esya" in o:
                 a.esya = o["esya"]
+            if "durus" in o:
+                a.durus_onceki, a.durus_t = a.durus or "_set", t
+                a.durus = o["durus"]
             if "z" in o:
                 a.taban_z = a.z = float(o["z"])   # cukura dustu
             if "poz" in o:
@@ -384,7 +391,8 @@ def zaman_cizelgesi(senaryo, setler, anims):
             a.kayit.append({"t": t, "x": a.poz[0], "y": a.poz[1], "z": a.z, "aci": a.aci,
                             "eylem": dict(a.eylem) if a.eylem and "anim" in a.eylem else None,
                             "tepki": [dict(r) for r in a.tepki], "mesafe": a.mesafe,
-                            "hizli": a.hizli, "gorunur": a.gorunur, "esya": a.esya})
+                            "hizli": a.hizli, "gorunur": a.gorunur, "esya": a.esya, "durus": a.durus,
+                            "durus_onceki": a.durus_onceki, "durus_t": a.durus_t})
     # altyazi FILM zamaninda: agir cekimde yazi da uzun kalir
     for y in yazilar:
         y["t"] = kare_bul(harita, y["t"]) / fps
@@ -440,22 +448,44 @@ def kanal_pozu(anim, kemik, t):
     return r, p, o
 
 
-def durus_animi(a, setler):
+def durus_animi(a, setler, k=None, ad=None):
+    """Bekleme animasyonu: kayittaki "durus" (ya da verilen ad); yoksa ya
+    da "_set" ise setin kendi durusu."""
+    ad = ad if ad is not None else (k.get("durus") if k else None)
+    if ad and ad != "_set":
+        return ad
     s = setler.get(a.set or "")
     return s.get("durus") if s else None
+
+
+DURUS_GECIS = 0.35      # sn -- bekleme durusu degisince yumusak gecis (silah sicramasin)
+
+
+NEFES_SURE = 3.6        # sn -- duran karakterin nefes dongusu
+NEFES_BAS, NEFES_GOVDE, NEFES_KOL = 1.4, 0.7, 1.2   # derece
 
 
 def kare_pozu(a, k, kemikler, anims, setler):
     """{kemik: (euler_derece, konum_dosya)} ve karisim agirliklari."""
     t = k["t"]
     poz = {}
-    temel = durus_animi(a, setler)
+    temel = durus_animi(a, setler, k)
+    eski, w_eski = None, 0.0
+    if k.get("durus_onceki") and t - k.get("durus_t", -99) < DURUS_GECIS:
+        eski = durus_animi(a, setler, ad=k["durus_onceki"])
+        u = (t - k["durus_t"]) / DURUS_GECIS
+        w_eski = 1.0 - u * u * (3 - 2 * u)
     for kem in kemikler:
         v = None
         if temel and temel in anims:
             an = anims[temel]
             uzun = an.get("animation_length", 1.0) or 1.0
             v = kanal_pozu(an, kem, t % uzun)
+        if eski and eski in anims and w_eski > 0:
+            an = anims[eski]
+            ve = kanal_pozu(an, kem, t % (an.get("animation_length", 1.0) or 1.0)) or ([0, 0, 0], [0, 0, 0], [1, 1, 1])
+            vy = v or ([0, 0, 0], [0, 0, 0], [1, 1, 1])
+            v = tuple([vy[j][i] * (1 - w_eski) + ve[j][i] * w_eski for i in range(3)] for j in range(3))
         poz[kem] = [(v or ([0, 0, 0], [0, 0, 0], [1, 1, 1])), 1.0]
     # yuruyus (oyundaki animation.simsek_bot.yuru formulu)
     h = k["hizli"]
@@ -467,6 +497,22 @@ def kare_pozu(a, k, kemikler, anims, setler):
             if kem in poz:
                 r, p, o = poz[kem][0]
                 poz[kem][0] = ([r[0] + isaret * math.cos(math.radians(aci)) * genlik * h, r[1], r[2]], p, o)
+    # nefes: duran karakter heykel gibi durmasin (kullanici: "hareketler
+    # donuk gibi"). Bas ve govde; kollar yalniz silahsizda (iki elle tutus
+    # bozulmasin). Yururken soner. Faz aktore gore: herkes ayni anda solumaz.
+    nef = max(0.0, 1.0 - min(1.0, h))
+    if nef > 0:
+        faz = (sum(map(ord, str(a.v.get("skin", "")) + str(a.v.get("isim", "")))) % 97) / 97 * 2 * math.pi
+        sn = math.sin(2 * math.pi * t / NEFES_SURE + faz)
+        ekler = [("head", NEFES_BAS, 0), ("body", NEFES_GOVDE, 0)]
+        if not a.v.get("silah"):
+            ekler += [("rightArm", NEFES_KOL, 2), ("leftArm", -NEFES_KOL, 2)]
+        for kem, gen, eks in ekler:
+            if kem in poz:
+                r, p, o = poz[kem][0]
+                r = list(r)
+                r[eks] += gen * sn * nef
+                poz[kem][0] = (r, p, o)
     katman = []
     e = k["eylem"]
     if e:
@@ -941,8 +987,14 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
             # dikilir ve yuzu El-Harkos'a doner. Dik kurulunca kalkan kolla
             # yatiyor, yandan bakan kamerada ince bir cizgi kaliyordu.
             kg.scale = (5 / 16, 7 / 16, 0.2 / 16)
-            kg.location = blender_nokta([-6.0, 12.0, -2.5]) - blender_nokta(B.ic(govde_model.kemik["leftItem"]["pivot"]))
-            kg.parent = kemik_nesne[ad]["leftItem"]
+            # MUTLAK model koordinati (govde parcalari gibi): kemik nesneleri
+            # model kokunde duruyor, donus pivot etrafinda matrisin icinde.
+            # Eskiden pivot cikariliyordu -> kagit yumruktan 6 px yana kayik
+            # havada duruyordu (kullanici: "kagitla arasinda ucurum farki").
+            # Yer: sol kol kutusunun (ic x -8..-4, y 12.., z -2..2) alt ucu;
+            # kagit yumrugun onunden 7 px ileri uzanir, alt kenari yumrukta.
+            kg.location = blender_nokta([-6.0, 11.6, -5.5])
+            kg.parent = kemik_nesne[ad]["leftArm"]
             kagitlar[ad] = kg
 
     def sabit_anahtar(ob, yol):

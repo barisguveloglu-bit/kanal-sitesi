@@ -26,6 +26,7 @@
    "isim": "Barış",
    "silah": "karanlik_tirpan",
    "set": "antitheus",
+   "durus": "animation.film.tirpan_bekle",
    "konum": [
     -1.6,
     0
@@ -46,6 +47,7 @@
    "skin": "Simsek_Kol_Kaynak/textures/entity/aktor/uzak_akraba.png",
    "silah": "karanlik_tirpan",
    "set": "antitheus",
+   "durus": "animation.film.tirpan_bekle",
    "konum": [
     0,
     0
@@ -56,6 +58,7 @@
    "skin": "Simsek_Kol_Kaynak/textures/entity/aktor/uzak_akraba.png",
    "silah": "karanlik_tirpan",
    "set": "antitheus",
+   "durus": "animation.film.tirpan_bekle",
    "konum": [
     0,
     0
@@ -66,6 +69,7 @@
    "skin": "Simsek_Kol_Kaynak/textures/entity/aktor/uzak_akraba.png",
    "silah": "karanlik_tirpan",
    "set": "antitheus",
+   "durus": "animation.film.tirpan_bekle",
    "konum": [
     0,
     0
@@ -140,6 +144,16 @@
    "t": 16.4,
    "aktor": "b",
    "gizle": true
+  },
+  {
+   "t": 16.45,
+   "aktor": "b",
+   "z": 0.0
+  },
+  {
+   "t": 16.45,
+   "aktor": "b",
+   "poz_bitir": true
   },
   {
    "t": 16.5,
@@ -322,16 +336,6 @@
   {
    "t": 34.29999999999999,
    "aktor": "b",
-   "z": 0.0
-  },
-  {
-   "t": 34.29999999999999,
-   "aktor": "b",
-   "poz_bitir": true
-  },
-  {
-   "t": 34.29999999999999,
-   "aktor": "b",
    "goster": true
   },
   {
@@ -347,6 +351,11 @@
    "t": 34.49999999999999,
    "aktor": "h",
    "bak": "b"
+  },
+  {
+   "t": 35.4,
+   "aktor": "b",
+   "durus": "_set"
   },
   {
    "t": 35.699999999999996,
@@ -480,6 +489,11 @@
    "aktor": "h",
    "poz": "yuzustu",
    "tut": true
+  },
+  {
+   "t": 64.0373333333322,
+   "aktor": "b",
+   "durus": "animation.film.tirpan_bekle"
   },
   {
    "t": 64.6373333333322,

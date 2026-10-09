@@ -34,6 +34,9 @@ CUKUR_DERIN = 0.35
 # "kaliteden hicbir sey eksiltme", "hizlandirilmis Cycles kullanmayacagiz".
 # Sekme sinirlari (3/2/1/4) ve 16 ornek v7.99.10'da kaldirildi.
 TAM_ORNEK = 4096
+# Baris'in dovus disi tutusu (film_poz.tirpan_bekle): kullanici "mizragi
+# tutusu bir garip" dedi -- Antitheus durusu tirpani bicagin dibinden tutuyordu.
+TIRPAN_BEKLE = "animation.film.tirpan_bekle"
 KAGIT_YAN = 1             # +1/-1: okuma cekiminde kameranin yani (sol el kameraya)
 BARIS_VURUS = ["antitheus_auto_1", "antitheus_auto_2", "antitheus_auto_4"]
 _sira = [0]
@@ -65,13 +68,13 @@ def orman():
         "fps": FPS, "sure": 0, "cozunurluk": [1920, 1080], "ornek": TAM_ORNEK, "uyarlamali": 0.01,
         "zemin": {"boyut": 64, "agac": 34, "tohum": 7, "aciklik": 12},
         "aktorler": {
-            "b": {"skin": SKIN_BARIS, "isim": "Barış", "silah": "karanlik_tirpan", "set": "antitheus",
+            "b": {"skin": SKIN_BARIS, "isim": "Barış", "silah": "karanlik_tirpan", "set": "antitheus", "durus": TIRPAN_BEKLE,
                   "konum": [-1.6, 0], "bak": "h"},
             # El-Harkos yatan Baris'in basinda (dovus filmde yok)
             "h": {"skin": SKIN_HARKOS, "isim": "El-Harkos", "set": "yumruk", "konum": [-0.25, 0.15], "bak": "b"},
-            "k1": {"skin": SKIN_BARIS, "silah": "karanlik_tirpan", "set": "antitheus", "konum": [0, 0], "gizli": True},
-            "k2": {"skin": SKIN_BARIS, "silah": "karanlik_tirpan", "set": "antitheus", "konum": [0, 0], "gizli": True},
-            "k3": {"skin": SKIN_BARIS, "silah": "karanlik_tirpan", "set": "antitheus", "konum": [0, 0], "gizli": True},
+            "k1": {"skin": SKIN_BARIS, "silah": "karanlik_tirpan", "set": "antitheus", "durus": TIRPAN_BEKLE, "konum": [0, 0], "gizli": True},
+            "k2": {"skin": SKIN_BARIS, "silah": "karanlik_tirpan", "set": "antitheus", "durus": TIRPAN_BEKLE, "konum": [0, 0], "gizli": True},
+            "k3": {"skin": SKIN_BARIS, "silah": "karanlik_tirpan", "set": "antitheus", "durus": TIRPAN_BEKLE, "konum": [0, 0], "gizli": True},
         },
         "olaylar": [], "kamera": [], "zaman": [],
     }
@@ -130,6 +133,12 @@ def orman():
 
     # ---- 3. SAHNE: geri bakar -- cukur bos ----
     O += [{"t": t3 - 0.1, "aktor": "b", "gizle": True},          # kesme aninda yok (izleyici gormuyor)
+          # yatma pozu GORUNMEZKEN biter: belirdigi an (4. sahne sonu) ayakta.
+          # Eskiden belirme aninda bitiyordu; izleyici Baris'in cukurda yatip
+          # kalktigini, tirpanin savruldugunu goruyordu ("mizrak isinlandiktan
+          # sonra geliyor").
+          {"t": t3 - 0.05, "aktor": "b", "z": 0.0},
+          {"t": t3 - 0.05, "aktor": "b", "poz_bitir": True},
           {"t": t3, "aktor": "h", "bak": [cx, cy]}]
     K += [{"t": t3, "aci": "yakin_on", "a": "h", "lens": 35},
           {"t": t3 + 1.4, "aci": "goz", "a": "h", "hedef": [cx, cy, 0.0], "lens": 35}]
@@ -175,15 +184,15 @@ def orman():
     # gercek Baris onunde belirir
     t5 = t4b + 1.8
     onu = ileri(ha, 2.4)
-    O += [{"t": t5 - 0.2, "aktor": "b", "z": 0.0},
-          {"t": t5 - 0.2, "aktor": "b", "poz_bitir": True},
-          {"t": t5 - 0.2, "aktor": "b", "goster": True},
+    O += [{"t": t5 - 0.2, "aktor": "b", "goster": True},
           {"t": t5 - 0.2, "aktor": "b", "isinlan": [hx + onu[0], hy + onu[1]], "yuz": "h"},
           {"t": t5, "aktor": "h", "bak": "b"}]
     K += [{"t": t5 - 0.2, "aci": "genis", "a": "b", "b": "h", "lens": 28}]
 
     # ---- 5. SAHNE: dovus (Baris ilk dovusu: once zorlaniyor) ----
     t = t5 + 1.2
+    # dovuse girerken Antitheus durusuna (0.35 sn harman: el sapta asagi kayar)
+    O += [{"t": t - 0.3, "aktor": "b", "durus": "_set"}]
     O += [{"t": t, "aktor": "b", "vur": bv(), "hedef": "h"},                  # kivilcim
           {"t": t + 1.3, "aktor": "h", "soyle": "Bunu daha önce de denediler."},
           {"t": t + 2.0, "aktor": "h", "vur": "oto", "hedef": "b"},
@@ -251,7 +260,8 @@ def orman():
     n = math.hypot(*yon) or 1
     yon = (yon[0] / n, yon[1] / n)
     hedef6 = [bx + yon[0] * 3.0, by + yon[1] * 3.0]
-    O += [{"t": t6, "aktor": "b", "poz": "govde_tut", "tut": True},
+    O += [{"t": t6 - 0.6, "aktor": "b", "durus": TIRPAN_BEKLE},          # dovus bitti: tirpan yine dik
+          {"t": t6, "aktor": "b", "poz": "govde_tut", "tut": True},
           {"t": t6 + 0.4, "aktor": "b", "git": hedef6, "adim": 0.9},
           {"t": t6 + 4.4, "aktor": "b", "poz_bitir": "govde_tut"},
           {"t": t6 + 4.4, "aktor": "b", "poz": "bayil", "tut": True, "giris": 0.05}]
