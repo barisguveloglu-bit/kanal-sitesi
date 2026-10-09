@@ -31,7 +31,7 @@ kararı: *"bu iki evren farklı evrenler."*
 
 | kim | bölüm | ne biliniyor |
 |---|---|---|
-| **Barış** | 1– | İlk dövüş deneyimi; zorlanıyor. Silahı Karanlık Tırpan (kullanıcının dilinde "mızrak"). |
+| **Barış** | 1– | İlk dövüş deneyimi; zorlanıyor. Silahı Karanlık Tırpan (kullanıcının dilinde "mızrak"). Skin: **`Simsek_Skin/uzak_akraba.png`** (aktör listesinde `uzak_akraba`) — kullanıcının seçimi. |
 | **El-Harkos** | 1 | Ödül avcısı. Silahsız, yumrukla dövüşüyor. Avladıkları her silahla vücudunu delmeye çalışmış, hiçbiri işlememiş. Barış'ın ödülünü tamamladığını sanıyor; Barış'ın güçlerini açtığını fark etmiyor. **1. bölümde ölüyor.** Skin: depodaki `harkos`. |
 | **Ana kötü** | sezon | **Tek karakter, iki çift (dört) beyaz göz.** Karanlık odada oturuyor. Askerleri var. Bedeni, yüzü, yapısı **hiç görünmüyor** — yalnız gözler. Kullanıcının gerekçesi: klasik kötü karakter imajı ve gizem. |
 | **Ice-man** | 2 | Gerçek adı Ice-man, kod adı **Deney 081**. 2. bölümün düşmanı. Silahı **Ay Işığı Asası** (`pa:kns_asa_ayisigi`, Konsey eşyası): lacivert gövde, pençe biçimli baş, içinde buz mavisi küre. Kullanıcının gönderdiği görselle model karşılaştırılıp eşleştirildi. Modda dövüş seti yok; film için bir asa seti bağlanacak (Karanlık Tırpan'daki `OZEL_SILAH` yolu). Skin kullanıcıdan geldi (aşağıda). |
@@ -107,7 +107,6 @@ azalır (politika kesin ölçülmedi, temkin).
 
 ## Açık
 
-- Barış'ın skini (aktör listesinde yok).
 - Askerin skini.
 - El-Harkos için depodaki `harkos` skini mi?
 - Hedef video süresi (çizim süresini belirliyor).
