@@ -114,7 +114,7 @@ Team; kullanıcı ikisinden de paylaşılabilir izin aldığını bildirmişti
 (v7.98.0). Lisans dosyaları: WoM `All RIGHTS RESERVED`, Epic Fight kod
 GPL-3.0 / varlıklar All Rights Reserved.
 
-### Konsey — CodeMan (Astra Studios) + BoraLo (Dragon Studios), v6.2
+### Konsey — CodeMan (Astra Studios) + BoraLo (Dragon Studios) + Falen (Trb1545), v6.2
 
 | | |
 |---|---|
@@ -128,9 +128,10 @@ burada satırı yoktu. Kullanıcıya soruldu, iznin paylaşılabilir olduğunu
 doğruladı; o soru Ay Işığı Asası'nın (`kns_asa_ayisigi`) videoda
 kullanılması üzerine sorulmuştu (`SERI_SEZON1.md`).
 
-**Açık:** `konsey_al.py` üçüncü bir kaynaktan da parça taşıyor —
-Falen (Trb1545). Soru yalnız CodeMan ve BoraLo için soruldu; Falen
-parçalarının izni bu satırda **kayıtlı değil**.
+`konsey_al.py` üçüncü bir kaynaktan da parça taşıyor: **Falen
+(Trb1545)**. Onun izni ayrıca soruldu; kullanıcı onun da
+**paylaşılabilir** izin verdiğini (o da teşekkür ederek) doğruladı.
+Üç yapımcının üçü de kayıtlı.
 
 ---
 
