@@ -68,7 +68,9 @@ def orman():
         "fps": FPS, "sure": 0, "cozunurluk": [1920, 1080], "ornek": TAM_ORNEK, "uyarlamali": 0.01,
         "zemin": {"boyut": 64, "agac": 34, "tohum": 7, "aciklik": 12},
         "aktorler": {
+            # mizrak guc uyaninca gelir (kullanici): yenik yatarken elinde yok
             "b": {"skin": SKIN_BARIS, "isim": "Barış", "silah": "karanlik_tirpan", "set": "antitheus", "durus": TIRPAN_BEKLE,
+                  "silah_gizli": True,
                   "konum": [-1.6, 0], "bak": "h"},
             # El-Harkos yatan Baris'in basinda (dovus filmde yok)
             "h": {"skin": SKIN_HARKOS, "isim": "El-Harkos", "set": "yumruk", "konum": [-0.25, 0.15], "bak": "b"},
@@ -139,6 +141,9 @@ def orman():
           # sonra geliyor").
           {"t": t3 - 0.05, "aktor": "b", "z": 0.0},
           {"t": t3 - 0.05, "aktor": "b", "poz_bitir": True},
+          # guc uyandi: mizrak artik onunla (izleyici bir dahaki gorusunde,
+          # kopyalarla birlikte, mizrakla gorur)
+          {"t": t3 - 0.05, "aktor": "b", "silah_goster": True},
           {"t": t3, "aktor": "h", "bak": [cx, cy]}]
     K += [{"t": t3, "aci": "yakin_on", "a": "h", "lens": 35},
           {"t": t3 + 1.4, "aci": "goz", "a": "h", "hedef": [cx, cy, 0.0], "lens": 35}]

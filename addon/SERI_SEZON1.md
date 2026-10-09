@@ -26,7 +26,7 @@ kararı: *"bu iki evren farklı evrenler."*
 | neden | gönderilen deneme filmi 640×360 · 24 kare/sn · 6 örnekti (önizleme ayarı) ve "çamur gibi" göründü |
 | örnek sayısı | 32–64; asıl çizimden önce tek kare ölçülerek seçilecek |
 | süre tahmini | kare başına ~25–50 sn → video dakikası başına 12–25 saat (ölçülmedi, tahmin) |
-| **tutuş — YARIM** | Kullanıcı deneme filminde tırpan tutuşunu garip buldu ve *"tekrar tekrar kontrol et"* dedi. Pivot ve bel kemiği düzeltildi (duruş ve 1. vuruşta sapma ~1 px); Antitheus'un 2–4. vuruşu, agression ve guillotine'de sağ el hâlâ 10–18 px kayık (Epic Fight Tool_R'nin el içi ötelemesi çevrilmiyor, `arac/wom_cevir.py`). **Asıl çizimden önce bitirilecek.** |
+| **tutuş — tamam** (v7.99.10; aşağıdaki not tarihçe) | Kullanıcı deneme filminde tırpan tutuşunu garip buldu ve *"tekrar tekrar kontrol et"* dedi. Pivot ve bel kemiği düzeltildi (duruş ve 1. vuruşta sapma ~1 px); Antitheus'un 2–4. vuruşu, agression ve guillotine'de sağ el hâlâ 10–18 px kayık (Epic Fight Tool_R'nin el içi ötelemesi çevrilmiyor, `arac/wom_cevir.py`). **Asıl çizimden önce bitirilecek.** |
 
 ## Karakterler
 
@@ -155,7 +155,7 @@ değiştirebilir** — değişirse buradan silinip yukarıya yazılır.
 
 - **Askerin skini:** `okazor` (koyu ton; zaten ışığın önünde siluet).
 - **Hedef süre:** ~2,5 dakika.
-- **Tırpan 1. sahnede de Barış'ın elinde;** El-Harkos'a işlemiyor.
+- ~~Tırpan 1. sahnede de Barış'ın elinde~~ — **DÜZELTİLDİ (kullanıcı, v7.99.10):** *"hikayeye göre mızrak güçlerim uyandıktan sonra geliyor."* Barış çukurda **silahsız** yatar; mızrak güç uyanınca gelir (çukurdan kaybolduğu an, görünmezken). Kopyalar ve geri dönen Barış mızraklı. Dövüş dışında mızrak **ölüm meleği tutuşuyla** (sap dik, bıçak başın üstünde; `film_poz.tirpan_bekle`), dövüşte Antitheus tutuşuyla.
 - **El-Harkos'un ölümü:** ilk delen darbeden sonra son alışverişte
   tırpan ikinci kez deliyor; dizlerinin üstüne çöküyor, son repliği
   söylüyor, yüzüstü düşüyor. Kan yine kısa.

@@ -27,6 +27,7 @@
    "silah": "karanlik_tirpan",
    "set": "antitheus",
    "durus": "animation.film.tirpan_bekle",
+   "silah_gizli": true,
    "konum": [
     -1.6,
     0
@@ -154,6 +155,11 @@
    "t": 16.45,
    "aktor": "b",
    "poz_bitir": true
+  },
+  {
+   "t": 16.45,
+   "aktor": "b",
+   "silah_goster": true
   },
   {
    "t": 16.5,

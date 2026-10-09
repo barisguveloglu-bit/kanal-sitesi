@@ -156,6 +156,9 @@ class Aktor:
         # bekleme animasyonu: None -> setin kendi durusu; "durus" olayiyla
         # degisir (Baris dovus disinda olum melegi tutusu, dovuste Antitheus)
         self.durus = v.get("durus")
+        # silah gorunur mu: "silah_gizli" ile baslar, "silah_goster" olayiyla
+        # degisir (Baris'in tirpani guc uyaninca gelir -- kullanici)
+        self.silah_gorunur = not v.get("silah_gizli", False)
         self.durus_onceki, self.durus_t = None, -99.0
         self.hedef_aci = None    # donus: aci buna DONUS_HIZI ile yaklasir
 
@@ -238,6 +241,8 @@ def zaman_cizelgesi(senaryo, setler, anims):
                     a.hedef_aci = None
             if "esya" in o:
                 a.esya = o["esya"]
+            if "silah_goster" in o:
+                a.silah_gorunur = bool(o["silah_goster"])
             if "durus" in o:
                 a.durus_onceki, a.durus_t = a.durus or "_set", t
                 a.durus = o["durus"]
@@ -392,7 +397,8 @@ def zaman_cizelgesi(senaryo, setler, anims):
                             "eylem": dict(a.eylem) if a.eylem and "anim" in a.eylem else None,
                             "tepki": [dict(r) for r in a.tepki], "mesafe": a.mesafe,
                             "hizli": a.hizli, "gorunur": a.gorunur, "esya": a.esya, "durus": a.durus,
-                            "durus_onceki": a.durus_onceki, "durus_t": a.durus_t})
+                            "durus_onceki": a.durus_onceki, "durus_t": a.durus_t,
+                            "silah": a.silah_gorunur})
     # altyazi FILM zamaninda: agir cekimde yazi da uzun kalir
     for y in yazilar:
         y["t"] = kare_bul(harita, y["t"]) / fps
@@ -915,6 +921,7 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
     govde_model = B.Model(geo)
     kok_nesne = {}
     kemik_nesne = {}
+    silah_nesneleri = {}
     for ad, a in aktorler.items():
         kok = bpy.data.objects.new("aktor_" + ad, None)
         sc.collection.objects.link(kok)
@@ -933,7 +940,8 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
         if a.v.get("silah") in SILAH:
             g, d = SILAH[a.v["silah"]]
             parcalar.append((B.Model(B.oku(g)), d, 0.0))
-        for model, doku, isik in parcalar:
+        silah_nesneleri[ad] = []
+        for sira, (model, doku, isik) in enumerate(parcalar):
             for kem, b in model.kemik.items():
                 yuzler = kemik_kupleri(model, kem)
                 if not yuzler:
@@ -956,6 +964,8 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
                 ob = bpy.data.objects.new("%s_%s_m" % (ad, kem), me)
                 sc.collection.objects.link(ob)
                 ob.parent = kn[hedef]
+                if sira > 0:
+                    silah_nesneleri[ad].append(ob)
 
     # ---- kareler: kok + kemik anahtarlari ----
     kemikler = list(govde_model.kemik.keys())
@@ -1014,7 +1024,7 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
     for ad, a in aktorler.items():
         kok = kok_nesne[ad]
         kn = kemik_nesne[ad]
-        onceki_g, onceki_e = None, None
+        onceki_g, onceki_e, onceki_s = None, None, None
         for f, k in enumerate(a.kayit[:len(kam_iz)]):
             tampona(kok, "location", f + 1, (k["x"], k["y"], k["z"]))
             # aci surekli kalsin (359 -> 1 derece gecisinde ters tur atmasin)
@@ -1031,6 +1041,11 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
                 kok.scale = (1, 1, 1) if k["gorunur"] else (0, 0, 0)
                 kok.keyframe_insert("scale", frame=f + 1)
                 onceki_g = k["gorunur"]
+            if silah_nesneleri.get(ad) and k.get("silah", True) != onceki_s:
+                for ob_ in silah_nesneleri[ad]:
+                    ob_.hide_render = not k.get("silah", True)
+                    ob_.keyframe_insert("hide_render", frame=f + 1)
+                onceki_s = k.get("silah", True)
             if ad in kagitlar and k.get("esya") != onceki_e:
                 kg = kagitlar[ad]
                 acik = k.get("esya") == "kagit"
