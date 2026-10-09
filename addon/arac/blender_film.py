@@ -242,7 +242,9 @@ def zaman_cizelgesi(senaryo, setler, anims):
                     raise ValueError("film pozu yok: %s" % o["poz"])
                 hz = float(o.get("hiz", 1.0))
                 uz = pozlar[ad_p]["animation_length"] / hz
-                a.tepki.append({"anim": ad_p, "bas": t, "hiz": hz, "ad": o["poz"],
+                # "atla": poz bu kadar saniye ONCE baslamis gibi (film Baris
+                # zaten yerde yatarken acilir -- dususu gorunmez)
+                a.tepki.append({"anim": ad_p, "bas": t - float(o.get("atla", 0.0)), "hiz": hz, "ad": o["poz"],
                                 "sure": 1e6 if o.get("tut") else uz,
                                 "tut": True, "giris": float(o.get("giris", POZ_GIRIS))})
             if "poz_bitir" in o:
@@ -507,7 +509,7 @@ def kamera_noktasi(aci, A, Bp, ilerleme=0.0, taraf=1, a0=None):
         return (orta[0] + dik[0] * u, orta[1] + dik[1] * u, orta[2] + 2.8), (orta[0], orta[1], orta[2] + 1.0)
     if aci == "yan":
         # 1.5: kacan/hamle yapan aktor yumusak takipte de kadrajda kalsin
-        u = max(3.5, ara * 1.5)
+        u = max(3.8, ara * 1.6)
         return (orta[0] + dik[0] * u, orta[1] + dik[1] * u, orta[2] + 1.5), (orta[0], orta[1], orta[2] + 1.2)
     if aci == "omuz":
         # yanal 1.6 / geri 2.0: B'ye bakis cizgisi A'nin yanindan en az
@@ -1115,7 +1117,7 @@ def _kup_ekle(bpy, merkez, boyut, malz, ad="kup"):
 def oda_kur(bpy, senaryo, doku_malzemesi, harita, fps, kam_iz):
     """7. sahne: karanlik oda (SERI_SEZON1.md).
 
-    Tam karanlik; yalniz dort beyaz goz. Kapi acildigi an BEMBEYAZ, hüzmede
+    Tam karanlik; yalniz iki beyaz goz. Kapi acildigi an BEMBEYAZ, hüzmede
     yogun toz (yillardir acilmamis oda). Kural: kapidan giren isik kotuye
     ULASMAZ -- isik seridi yerde onun onunde biter; gozler kendi isigiyla
     parlar, bedenden hicbir yuzey aydinlanmaz (bedeni zaten yok).
@@ -1206,8 +1208,9 @@ def oda_kur(bpy, senaryo, doku_malzemesi, harita, fps, kam_iz):
     gb.inputs["Base Color"].default_value = (1, 1, 1, 1)
     gb.inputs["Emission Color"].default_value = (1, 1, 1, 1)
     gb.inputs["Emission Strength"].default_value = o.get("goz_parlaklik", 6.0)
-    for (dx, dz, w, h) in ((-0.13, 0.13, 0.07, 0.045), (0.13, 0.13, 0.07, 0.045),
-                           (-0.17, -0.03, 0.12, 0.06), (0.17, -0.03, 0.12, 0.06)):
+    # IKI goz (kullanici: "ben 2 tane goz istemistim"). Ilk surum "iki cift
+    # goz" sozunu dort goz diye okumustu.
+    for (dx, dz, w, h) in ((-0.15, 0.0, 0.11, 0.055), (0.15, 0.0, 0.11, 0.055)):
         bpy.ops.mesh.primitive_plane_add(size=1, location=(0, 0, 0))
         g = bpy.context.object
         g.rotation_euler = (math.radians(90), 0, 0)
@@ -1396,6 +1399,8 @@ def zemin_kur(bpy, senaryo, doku_malzemesi, cukur_kare=1):
         cukur_nesneleri = [cob]
         if cukur_kare > 1:
             _gorun_kare(kap, cukur_kare, False)
+        else:
+            kap.hide_render = True          # cukur filmin basindan beri acik
         ks, ps, uv = [], [], []
         for (p0, p1), alt, ust in kenar:
             i0 = len(ks)

@@ -89,7 +89,9 @@ def ugultu(sure):
     return np.stack([s, s * 0.95], axis=1).astype(np.float32)
 
 
-def ses_kur(senaryo):
+def ses_kur(senaryo, katmanlar=False):
+    """Karisim (n, 2). katmanlar=True: {"efekt", "ortam", "muzik"} ayri ayri
+    (stem) -- kullanici son miksaji isterse Resolve'da kendisi yapar."""
     setler = B.oku(F.HAREKET)["setler"]
     harita = F.zaman_haritasi(senaryo)
     fps = senaryo.get("fps", 24)
@@ -123,7 +125,7 @@ def ses_kur(senaryo):
             ef.ekle(oku("bookFlip1.ogg"), film_t(t), 0.8)
         if "kapi" in o:
             ef.ekle(oku("doorOpen_1.ogg" if o["kapi"] == "ac" else "doorClose_1.ogg"), film_t(t), 1.0, 0.85)
-        if o.get("poz") in ("dus", "diz_cok", "yuzustu", "bayil"):
+        if o.get("poz") in ("dus", "diz_cok", "yuzustu", "bayil") and not o.get("atla"):
             gec = {"dus": 0.55, "diz_cok": 0.55, "yuzustu": 0.7, "bayil": 0.8}[o["poz"]]
             ef.ekle(oku("impactSoft_heavy_000.ogg"), film_t(t + gec), 1.0)
         if o.get("efekt") == "toprak":
@@ -185,11 +187,18 @@ def ses_kur(senaryo):
                 if a1 < len(zarf):
                     zarf[a1:min(len(zarf), a1 + 2 * k)] *= np.linspace(0, 1, min(len(zarf), a1 + 2 * k) - a1)
         muzik.ekle(p * zarf[:, None], t0, 0.55)
-    karisim = ef.x * 0.9 + ortam.x * 0.35 + muzik.x
+    n = int(sure * ORAN)
+    katman = {"efekt": ef.x[:n] * 0.9, "ortam": ortam.x[:n] * 0.35, "muzik": muzik.x[:n]}
+    if katmanlar:
+        return katman
+    # Burada YALNIZ tasma korumasi; asil seviye isi (kompresor + limiter +
+    # YouTube -14 LUFS) film_birlestir.py'de ffmpeg ile. Eskiden tek bir
+    # sert tepe BUTUN sesi kisiyordu.
+    karisim = katman["efekt"] + katman["ortam"] + katman["muzik"]
     tepe = np.max(np.abs(karisim)) + 1e-9
-    if tepe > 0.95:
-        karisim *= 0.95 / tepe
-    return karisim[:int(sure * ORAN)]
+    if tepe > 0.99:
+        karisim *= 0.99 / tepe
+    return karisim
 
 
 def yaz(karisim, yol):

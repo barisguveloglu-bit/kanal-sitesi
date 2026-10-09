@@ -5,11 +5,8 @@
   1920,
   1080
  ],
- "ornek": 24,
- "sekme": 3,
- "yayilma_sekme": 2,
- "parlak_sekme": 1,
- "seffaf_sekme": 4,
+ "ornek": 4096,
+ "uyarlamali": 0.01,
  "mekan": "oda",
  "pozlama": 0.0,
  "ses": {

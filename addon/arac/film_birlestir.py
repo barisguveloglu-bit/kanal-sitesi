@@ -21,6 +21,12 @@ import bedrock_onizleme as B  # noqa: E402
 import film_ses  # noqa: E402
 
 SIYAH_SON = 0.6
+# Son ses zinciri (kullanicinin arastirmasi: "dovus videosunda muzik, vurus
+# ve efekt ust uste biniyor, limiter sart"): yumusak kompresor -> YouTube
+# hedefi -14 LUFS / -1 dBTP -> tepe sinirlayici. Hepsi ffmpeg, ucretsiz.
+SES_ZINCIR = ("acompressor=threshold=-18dB:ratio=3:attack=5:release=120:makeup=2,"
+              "loudnorm=I=-14:TP=-1.5:LRA=11,"
+              "alimiter=limit=0.89:attack=2:release=60:level=false")
 
 
 def parca(klasor, senaryo_yolu, adim=1):
@@ -28,6 +34,9 @@ def parca(klasor, senaryo_yolu, adim=1):
     F.altyazi_bas(klasor, adim)                 # -> klasor/film.mp4 (sessiz)
     wav = os.path.join(klasor, "ses.wav")
     film_ses.yaz(film_ses.ses_kur(sen), wav)
+    # stem'ler: muzik / efekt / ortam ayri (Resolve Fairlight'ta son miksaj icin)
+    for ad, k in film_ses.ses_kur(sen, katmanlar=True).items():
+        film_ses.yaz(k, os.path.join(klasor, "stem_%s.wav" % ad))
     cikti = os.path.join(klasor, "parca.mp4")
     subprocess.run(["ffmpeg", "-y", "-v", "error", "-i", os.path.join(klasor, "film.mp4"), "-i", wav,
                     "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-shortest", cikti], check=True)
@@ -65,7 +74,8 @@ def main(argv):
     subprocess.run(["ffmpeg", "-y", "-v", "error"] + girdi +
                    ["-filter_complex", fc, "-map", "[v]", "-map", "[a]",
                     "-c:v", "libx264", "-preset", "slow", "-crf", "18", "-pix_fmt", "yuv420p",
-                    "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", cikti], check=True)
+                    "-af", SES_ZINCIR,
+                    "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-movflags", "+faststart", cikti], check=True)
     print("film:", cikti)
 
 

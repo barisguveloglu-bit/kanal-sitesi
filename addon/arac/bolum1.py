@@ -29,6 +29,11 @@ CUKUR_DERIN = 0.35
 # filmde KULLANILMIYOR: tirpanin sapi 0.1-0.2 sn basin icinden geciyor
 # (test/silah_govde.mjs "bilinen kalinti"; kol duzeltmesi 15 derecede
 # kapatamiyor). Sira bilerek 1-2-4.
+# KALITE: Blender'in kendi Cycles varsayilanlari -- 4096 ornek (uyarlamali,
+# esik 0.01), gurultu giderici, varsayilan isik sekmeleri. Kullanici:
+# "kaliteden hicbir sey eksiltme", "hizlandirilmis Cycles kullanmayacagiz".
+# Sekme sinirlari (3/2/1/4) ve 16 ornek v7.99.10'da kaldirildi.
+TAM_ORNEK = 4096
 KAGIT_YAN = 1             # +1/-1: okuma cekiminde kameranin yani (sol el kameraya)
 BARIS_VURUS = ["antitheus_auto_1", "antitheus_auto_2", "antitheus_auto_4"]
 _sira = [0]
@@ -53,61 +58,41 @@ def ileri(aci, d):
 
 
 def orman():
-    _sira[0] = 0
+    # 2: acilistaki iki vurus (Baris'in yenilisi) filmden cikti; dovusun
+    # vurus sirasi denetlenmis haliyle ayni kalsin diye sira oradan basliyor
+    _sira[0] = 2
     sen = {
-        "fps": FPS, "sure": 0, "cozunurluk": [1920, 1080], "ornek": 16,
-        "sekme": 3, "yayilma_sekme": 2, "parlak_sekme": 1, "seffaf_sekme": 4,
+        "fps": FPS, "sure": 0, "cozunurluk": [1920, 1080], "ornek": TAM_ORNEK, "uyarlamali": 0.01,
         "zemin": {"boyut": 64, "agac": 34, "tohum": 7, "aciklik": 12},
         "aktorler": {
             "b": {"skin": SKIN_BARIS, "isim": "Barış", "silah": "karanlik_tirpan", "set": "antitheus",
                   "konum": [-1.6, 0], "bak": "h"},
-            "h": {"skin": SKIN_HARKOS, "isim": "El-Harkos", "set": "yumruk", "konum": [1.6, 0], "bak": "b"},
+            # El-Harkos yatan Baris'in basinda (dovus filmde yok)
+            "h": {"skin": SKIN_HARKOS, "isim": "El-Harkos", "set": "yumruk", "konum": [-0.25, 0.15], "bak": "b"},
             "k1": {"skin": SKIN_BARIS, "silah": "karanlik_tirpan", "set": "antitheus", "konum": [0, 0], "gizli": True},
             "k2": {"skin": SKIN_BARIS, "silah": "karanlik_tirpan", "set": "antitheus", "konum": [0, 0], "gizli": True},
             "k3": {"skin": SKIN_BARIS, "silah": "karanlik_tirpan", "set": "antitheus", "konum": [0, 0], "gizli": True},
         },
         "olaylar": [], "kamera": [], "zaman": [],
-        # sabah -> gece: 1-4 sabah, gece dovus boyunca coker, 6-7 gece
-        "isik": [{"t": 0, "gunes": 1.7, "gok": 0.18, "yukseklik": 38, "ay": 0.0},
-                 {"t": 42, "gunes": 1.5, "gok": 0.16, "yukseklik": 28, "ay": 0.0},
-                 {"t": 62, "gunes": 0.5, "gok": 0.06, "yukseklik": 4, "ay": 0.4},
-                 # gece OKUNUR kalmali: ay 0.32 / gok 0.012'de final (ikinci
-                 # delis, diz cokme, olum, bayilma) onizlemede simsiyahti
-                 {"t": 70, "gunes": 0.0, "gok": 0.045, "yukseklik": -6, "ay": 1.3},
-                 {"t": 76, "gunes": 0.0, "gok": 0.045, "yukseklik": -6, "ay": 1.3}],
     }
     O, K = sen["olaylar"], sen["kamera"]
 
-    # ---- 1. SAHNE: El-Harkos Baris'i yeniyor (Baris zorlaniyor) ----
+    # ---- 1. SAHNE: Baris zaten cukurda yatiyor ----
+    # Kullanici: "barisin yenilmesi gosterilmeyecek, yani yerde yatacak ama
+    # onun oncesi gosterilmeyecek." Dovus ve dusus filmde YOK; film Baris
+    # cukurda yatarken, El-Harkos basinda dururken acilir.
     O += [{"t": 0.3, "baslik": "1. BÖLÜM", "sure": 2.6},
-          {"t": 2.6, "aktor": "b", "vur": bv(), "hedef": "h"},              # kivilcim: silah islemiyor
-          {"t": 3.4, "aktor": "h", "vur": "oto", "hedef": "b"},
-          {"t": 4.6, "aktor": "b", "vur": bv(), "hamle": 0.55},             # iskalar (hedefsiz)
-          {"t": 5.3, "aktor": "b", "poz": "sendele"},
-          {"t": 5.6, "aktor": "h", "vur": "oto", "hedef": "b"},
-          {"t": 6.5, "aktor": "h", "vur": "oto", "hedef": "b"}]
-    K += [{"t": 0, "aci": "genis", "a": "b", "b": "h", "lens": 28},
-          {"t": 2.5, "aci": "yan", "a": "b", "b": "h"},
-          {"t": 3.35, "aci": "dusuk", "a": "h", "b": "b", "lens": 30},     # alt aci: guc El-Harkos'ta
-          {"t": 4.5, "aci": "omuz", "a": "h", "b": "b"},                    # Baris'a yukaridan
-          {"t": 5.5, "aci": "yan", "a": "b", "b": "h"}]
-    # son darbe: kosu vurusu, Baris arkaya devrilir
-    t_son = 7.6
-    O += [{"t": t_son, "aktor": "h", "vur": "kosu", "hedef": "b", "dusur": "dus"}]
-    s = kos(dict(sen, sure=12), 11.5)
-    son_vurus = [e for e in F.zaman_cizelgesi(dict(sen, sure=12), B.oku(F.HAREKET)["setler"], {})[1]
-                 if e["tur"] in ("vurus", "savun") and e["t"] > t_son]
-    t_temas = son_vurus[-1]["t"] if son_vurus else t_son + 0.5
-    sen["zaman"].append({"t": t_temas - 0.02, "sure": 0.1, "hiz": 0.04})   # son darbede kare donar
+          {"t": 0.0, "aktor": "b", "poz": "dus", "tut": True, "atla": 5.0},
+          {"t": 0.0, "aktor": "b", "z": -CUKUR_DERIN}]
+    s = kos(dict(sen, sure=1.0), 0.5)
     b11 = s["b"]
     geri = ileri(b11["aci"], -0.95)
     cx, cy = b11["x"] + geri[0], b11["y"] + geri[1]
-    sen["zemin"]["cukur"] = {"x": cx, "y": cy, "r": 1.25, "derin": CUKUR_DERIN, "t": t_temas + 0.45}
-    O += [{"t": t_temas + 0.45, "aktor": "b", "z": -CUKUR_DERIN},
-          {"t": t_temas + 0.45, "efekt": "toprak", "nokta": [cx, cy, 0.2]}]
-    K += [{"t": t_temas - 0.25, "aci": "genis", "a": "b", "b": "h", "lens": 32}]
+    sen["zemin"]["cukur"] = {"x": cx, "y": cy, "r": 1.25, "derin": CUKUR_DERIN, "t": 0.0}
+    t_temas = 0.0
+    K += [{"t": 0.0, "aci": "genis", "a": "b", "b": "h", "lens": 28}]
     # El-Harkos kagidina bakar
-    t_k = t_temas + 2.0
+    t_k = 4.4
     O += [{"t": t_k, "aktor": "h", "bak": "b"},
           {"t": t_k + 0.3, "aktor": "h", "poz": "kagit", "tut": True},
           {"t": t_k + 0.3, "aktor": "h", "esya": "kagit"},
@@ -121,7 +106,7 @@ def orman():
     on_k = (on_k[0] / n_k, on_k[1] / n_k)
     yan_k = (-on_k[1] * KAGIT_YAN, on_k[0] * KAGIT_YAN)   # kagit tutan SOL elin tarafi
     # yukaridan, cukurda yatan Baris (ust aci: caresizlik)
-    K += [{"t": t_temas + 1.0, "aci": "elle", "kam": [cx + 1.2, cy - 1.6, 4.2], "bak": [cx, cy, 0.0], "lens": 30},
+    K += [{"t": 3.0, "aci": "elle", "kam": [cx + 1.2, cy - 1.6, 4.2], "bak": [cx, cy, 0.0], "lens": 30},
           # okuma: yandan 3/4 -- yuzune konan kamera (yakin_on) yerde yatan
           # Baris'in 1.26 blok yanina dusuyordu ve kagit kadraj disindaydi
           {"t": t_k + 0.2, "aci": "elle", "kam": [hx + yan_k[0] * 2.9 + on_k[0] * 1.2,
@@ -279,7 +264,16 @@ def orman():
     sen["kural180_serbest"] = [[t4 - 0.1, t5 + 0.5]]
     # ses: 3-4 muziksiz (sessizlik korkuyu buyutur), muzik dovusle girer,
     # ilk delen darbede bir an susar, 6. sahnede soner
-    sen["ses"] = {"ortam": "orman", "gece": [60, 76],
+    # isik anahtarlari SAHNELERE bagli (mutlak saniye degil): acilistaki
+    # dovus cikarilinca butun olaylar ~6 sn one kaydi, gece yerinde kalmali.
+    # 1-4 sabah; gece dovus boyunca coker (ikinci delis alacakaranlik); 6 gece.
+    sen["isik"] = [{"t": 0, "gunes": 1.7, "gok": 0.18, "yukseklik": 38, "ay": 0.0},
+                   {"t": t5 + 2.1, "gunes": 1.5, "gok": 0.16, "yukseklik": 28, "ay": 0.0},
+                   {"t": t_del + 5.3, "gunes": 0.5, "gok": 0.06, "yukseklik": 4, "ay": 0.4},
+                   # gece OKUNUR kalmali: ay 0.32 / gok 0.012'de final simsiyahti
+                   {"t": t6, "gunes": 0.0, "gok": 0.045, "yukseklik": -6, "ay": 1.3},
+                   {"t": t6 + 6.0, "gunes": 0.0, "gok": 0.045, "yukseklik": -6, "ay": 1.3}]
+    sen["ses"] = {"ortam": "orman", "gece": [t_del + 3.3, t6 + 6.0],
                   "muzik": [{"bas": t5 - 0.2, "bit": t6 + 3.0, "sus": [[t_del - 0.05, t_del + 1.8]]}]}
     return sen
 
@@ -292,8 +286,7 @@ def oda():
     # gozler genis kameraya dondu; yakin kamera tam o bakisin uzerinde
     YAKIN = [goz[0] + d[0] / n * 0.75, goz[1] + d[1] / n * 0.75, goz[2]]
     return {
-        "fps": FPS, "sure": 21.0, "cozunurluk": [1920, 1080], "ornek": 24,
-        "sekme": 3, "yayilma_sekme": 2, "parlak_sekme": 1, "seffaf_sekme": 4,
+        "fps": FPS, "sure": 21.0, "cozunurluk": [1920, 1080], "ornek": TAM_ORNEK, "uyarlamali": 0.01,
         "mekan": "oda", "pozlama": 0.0,
         "ses": {"ortam": "oda", "son_vurgu": 19.3},
         "oda": {"genis": 12, "derin": D, "yuks": 5, "kapi_x": kx, "goz": [-3.8, -3.6, 1.75],
