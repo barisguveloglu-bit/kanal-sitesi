@@ -26,13 +26,14 @@ kararı: *"bu iki evren farklı evrenler."*
 | neden | gönderilen deneme filmi 640×360 · 24 kare/sn · 6 örnekti (önizleme ayarı) ve "çamur gibi" göründü |
 | örnek sayısı | 32–64; asıl çizimden önce tek kare ölçülerek seçilecek |
 | süre tahmini | kare başına ~25–50 sn → video dakikası başına 12–25 saat (ölçülmedi, tahmin) |
+| **tutuş — YARIM** | Kullanıcı deneme filminde tırpan tutuşunu garip buldu ve *"tekrar tekrar kontrol et"* dedi. Pivot ve bel kemiği düzeltildi (duruş ve 1. vuruşta sapma ~1 px); Antitheus'un 2–4. vuruşu, agression ve guillotine'de sağ el hâlâ 10–18 px kayık (Epic Fight Tool_R'nin el içi ötelemesi çevrilmiyor, `arac/wom_cevir.py`). **Asıl çizimden önce bitirilecek.** |
 
 ## Karakterler
 
 | kim | bölüm | ne biliniyor |
 |---|---|---|
 | **Barış** | 1– | İlk dövüş deneyimi; zorlanıyor. Silahı Karanlık Tırpan (kullanıcının dilinde "mızrak"). Skin: **`Simsek_Skin/uzak_akraba.png`** (aktör listesinde `uzak_akraba`) — kullanıcının seçimi. |
-| **El-Harkos** | 1 | Ödül avcısı. Silahsız, yumrukla dövüşüyor. Avladıkları her silahla vücudunu delmeye çalışmış, hiçbiri işlememiş. Barış'ın ödülünü tamamladığını sanıyor; Barış'ın güçlerini açtığını fark etmiyor. **1. bölümde ölüyor.** Skin: depodaki `harkos`. |
+| **El-Harkos** | 1 | Ödül avcısı. Silahsız, yumrukla dövüşüyor. Avladıkları her silahla vücudunu delmeye çalışmış, hiçbiri işlememiş. Barış'ın ödülünü tamamladığını sanıyor; Barış'ın güçlerini açtığını fark etmiyor. **1. bölümde ölüyor.** Skin: **`kaynak_doku/ilkel_harkos.png`** ("İlkel Suikastçı El-Harkos", aktör listesinde `harkos`) — kullanıcının seçimi. |
 | **Ana kötü** | sezon | **Tek karakter, iki çift (dört) beyaz göz.** Karanlık odada oturuyor. Askerleri var. Bedeni, yüzü, yapısı **hiç görünmüyor** — yalnız gözler. Kullanıcının gerekçesi: klasik kötü karakter imajı ve gizem. |
 | **Ice-man** | 2 | Gerçek adı Ice-man, kod adı **Deney 081**. 2. bölümün düşmanı. Silahı **Ay Işığı Asası** (`pa:kns_asa_ayisigi`, Konsey eşyası): lacivert gövde, pençe biçimli baş, içinde buz mavisi küre. Kullanıcının gönderdiği görselle model karşılaştırılıp eşleştirildi. Modda dövüş seti yok; film için bir asa seti bağlanacak (Karanlık Tırpan'daki `OZEL_SILAH` yolu). Skin kullanıcıdan geldi (aşağıda). |
 | **Asker** | 1 | Ana kötünün askerlerinden; El-Harkos'un öldüğü haberini patronuna getiren görevli. |
@@ -57,7 +58,7 @@ kararı: *"bu iki evren farklı evrenler."*
 | 4 | Üç Barış ışınlanıyor | Kopyalar **dövüşmüyor**: yalnız gücün arttığını gösteriyor. Her biri kadraj kenarında, flaş ve sesle aynı karede belirip kayboluyor. 180° kuralı bilerek bozulur. Son plan tepeden: üç Barış üçgen, El-Harkos ortada küçük. |
 | 5 | Dövüş | Barış zorlanıyor (ilk deneyimi): ıskalama, sendeleme, tırpanın ağırlığı. Tırpan El-Harkos'a değince kan değil kıvılcım. Güç dengesi Barış'a doğru dönüyor. |
 | 5a | **İlk delen darbe** | Dövüşün dönüm noktası: Barış'ın tırpanı El-Harkos'u **ilk kez deliyor**, El-Harkos ilk kez şaşırıyor. Değdiği noktada **kan efekti**, gerçekçi. Filmde saklanan kare donması ve yavaşlatma burada harcanır; darbe iki açıdan art arda gösterilir; El-Harkos'un yüzü yakın plan; bir an sessizlik. |
-| 6 | Barış gövdesini tutarak **birkaç adım** yavaş yavaş yürüyor, sonra **bayılıyor** | El-Harkos öldü. Barış kazanıyor ama ilk dövüşü ve rakibi güçlüydü: yorgunluktan bayılıyor. 2. sahnenin aynası (aynı kadraj, roller ters); bayılma 1. sahnedeki düşüşün aynası — film iki düşüşle açılıp kapanıyor, ilki yenilgi, ikincisi zafer. |
+| 6 | Barış **tek eliyle** gövdesini tutarak **birkaç adım** yavaş yavaş yürüyor, sonra **bayılıyor** | El-Harkos öldü. Barış kazanıyor ama ilk dövüşü ve rakibi güçlüydü: yorgunluktan bayılıyor. 2. sahnenin aynası (aynı kadraj, roller ters); bayılma 1. sahnedeki düşüşün aynası — film iki düşüşle açılıp kapanıyor, ilki yenilgi, ikincisi zafer. |
 | 7 | Karanlık oda — **final sahnesinden SONRA** (videonun sonu), gece | Ana kötünün askerleri El-Harkos'un öldüğünü bir yolla öğrenmiş. Tam karanlık; yalnız dört beyaz göz. Kapı açıldığı an **bembeyaz** — asker o ışığın içinden siluet olarak giriyor; hüzmede yoğun toz (yıllardır açılmamış oda). Asker: *"Efendim, El-Harkos görevinde başarısız oldu."* Gözler: *"Tamam o zaman. Deney 081'i getirin."* Asker çıkar, kapı kapanır, karanlık. **Kural:** kapıdan giren ışık kötüye ULAŞMAZ — ışık şeridi yerde onun önünde biter; gözler kendi ışığıyla parlar, bedenden hiçbir yüzey aydınlanmaz. |
 
 ## Replikler — TASLAK, onay bekliyor
@@ -108,7 +109,6 @@ azalır (politika kesin ölçülmedi, temkin).
 ## Açık
 
 - Askerin skini.
-- El-Harkos için depodaki `harkos` skini mi?
 - Hedef video süresi (çizim süresini belirliyor).
 - Replik taslağının onayı (yukarıda).
 - Barış'ın tırpanı 1. sahnede de elinde mi?
