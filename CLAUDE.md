@@ -512,3 +512,14 @@ anlatırken oradan git.
   (Blender + MCprep dokuları, sanal makinede). Kurallar oyunla aynı
   (vuruş, hamle, temas, kamera açıları). Ayrıntı ve süre ölçümü:
   `REFERANS_BLENDER_MCPREP.md` son bölüm.
+
+## Animasyon serisi — LORE'dan ayrı evren (1. sezon)
+
+Kullanıcının Minecraft animasyon serisi **sitenin evreninden ayrı bir
+evren** (kullanıcının kararı: *"bu iki evren farklı evrenler"*). Seride
+Barış güç açıyor; `LORE.md` "Barış güçsüz kalacak" diyor — çelişki
+değil. Seriye ait hiçbir şey `LORE.md`'ye ya da `data.js`'e yazılmaz.
+
+Kararların tek kaydı **`addon/SERI_SEZON1.md`**: karakterler (El-Harkos,
+Ice-man / Deney 081, sezonun ana kötüsü), 1. bölümün sahne sırası,
+1080p30 kararı ve açık sorular. Orada olmayanı uydurma; sor.
