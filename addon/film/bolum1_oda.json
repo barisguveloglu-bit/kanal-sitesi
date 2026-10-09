@@ -1,0 +1,184 @@
+{
+ "fps": 30,
+ "sure": 21.0,
+ "cozunurluk": [
+  1920,
+  1080
+ ],
+ "ornek": 24,
+ "sekme": 3,
+ "yayilma_sekme": 2,
+ "parlak_sekme": 1,
+ "seffaf_sekme": 4,
+ "mekan": "oda",
+ "pozlama": 0.0,
+ "ses": {
+  "ortam": "oda",
+  "son_vurgu": 19.3
+ },
+ "oda": {
+  "genis": 12,
+  "derin": 12,
+  "yuks": 5,
+  "kapi_x": 0.0,
+  "goz": [
+   -3.8,
+   -3.6,
+   1.75
+  ],
+  "goz_aci": 30,
+  "sis": 0.05,
+  "toz": 180,
+  "huzme_aci": 34,
+  "huzme_egim": 64
+ },
+ "aktorler": {
+  "a": {
+   "skin": "Simsek_Kol_Kaynak/textures/entity/ilkel_okazor.png",
+   "isim": "Asker",
+   "konum": [
+    0.5,
+    7.2
+   ],
+   "bak": 180
+  },
+  "g": {
+   "skin": "Simsek_Kol_Kaynak/textures/entity/ilkel_okazor.png",
+   "isim": "",
+   "konum": [
+    -3.8,
+    -3.6
+   ],
+   "gizli": true
+  }
+ },
+ "olaylar": [
+  {
+   "t": 0.0,
+   "goz_bak": "kapi",
+   "sure": 0.1
+  },
+  {
+   "t": 3.0,
+   "kapi": "ac",
+   "sure": 0.9
+  },
+  {
+   "t": 3.8,
+   "aktor": "a",
+   "git": [
+    0.5,
+    2.8
+   ],
+   "adim": 2.0
+  },
+  {
+   "t": 6.2,
+   "aktor": "a",
+   "soyle": "Efendim, El-Harkos görevinde başarısız oldu."
+  },
+  {
+   "t": 9.8,
+   "aktor": "g",
+   "soyle": "Tamam o zaman. Deney 081'i getirin."
+  },
+  {
+   "t": 13.4,
+   "aktor": "a",
+   "bak": 0
+  },
+  {
+   "t": 13.6,
+   "aktor": "a",
+   "git": [
+    0.5,
+    7.6
+   ],
+   "adim": 2.2
+  },
+  {
+   "t": 16.0,
+   "kapi": "kapat",
+   "sure": 0.7
+  },
+  {
+   "t": 18.0,
+   "goz_bak": "kamera",
+   "sure": 0.45
+  }
+ ],
+ "kamera": [
+  {
+   "t": 0.0,
+   "aci": "elle",
+   "kam": [
+    4.4,
+    -4.6,
+    2.6
+   ],
+   "bak": [
+    -1.2,
+    1.0,
+    1.2
+   ],
+   "lens": 24
+  },
+  {
+   "t": 6.0,
+   "aci": "elle",
+   "kam": [
+    2.2,
+    2.0,
+    1.7
+   ],
+   "bak": "a",
+   "bak_yuks": 1.5,
+   "lens": 35
+  },
+  {
+   "t": 9.6,
+   "aci": "elle",
+   "kam": [
+    -1.4,
+    -1.2,
+    1.9
+   ],
+   "bak": [
+    -3.8,
+    -3.6,
+    1.75
+   ],
+   "lens": 40
+  },
+  {
+   "t": 13.2,
+   "aci": "elle",
+   "kam": [
+    4.4,
+    -4.6,
+    2.6
+   ],
+   "bak": [
+    -1.2,
+    1.0,
+    1.2
+   ],
+   "lens": 24
+  },
+  {
+   "t": 19.3,
+   "aci": "elle",
+   "kam": [
+    -3.0555155918371053,
+    -3.6907907814832797,
+    1.75
+   ],
+   "bak": [
+    -3.8,
+    -3.6,
+    1.75
+   ],
+   "lens": 50
+  }
+ ]
+}

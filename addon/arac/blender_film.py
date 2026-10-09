@@ -54,6 +54,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import bedrock_onizleme as B  # noqa: E402
+import film_poz  # noqa: E402
 
 KOK = B.KOK
 ANIM_WOM = "Simsek_Kol_Kaynak/animations/wom_kilic.animation.json"
@@ -71,6 +72,44 @@ MENZIL = 3.5
 KACIN, KACIN_SN = 2.4, 0.3
 ITME = 0.55
 GECIS = 0.12                  # animasyon gecisi (sn)
+POZ_GIRIS = 0.15              # poz katmaninin yumusak girisi (sn)
+_POZLAR = None
+
+
+def film_pozlari():
+    """arac/film_poz.py'nin pozlari (bir kez hesaplanir)."""
+    global _POZLAR
+    if _POZLAR is None:
+        _POZLAR = film_poz.pozlar()
+    return _POZLAR
+
+
+def zaman_haritasi(senaryo):
+    """Film karesi -> hikaye zamani. "zaman": [{"t", "sure", "hiz"}] parcalari
+    hikayenin o araligini yavaslatir (hiz 0.25 = dort kat agir cekim, 0.02 =
+    vurusta donma). Olaylar, kamera kesmeleri ve fizik HIKAYE zamaninda;
+    altyazi ve ses FILM zamaninda (kare / fps)."""
+    fps = senaryo.get("fps", 24)
+    parca = senaryo.get("zaman", [])
+    sure = senaryo["sure"]
+
+    def hiz(t):
+        h = 1.0
+        for z in parca:
+            if z["t"] <= t < z["t"] + z["sure"]:
+                h = min(h, max(0.01, float(z["hiz"])))
+        return h
+    harita, t = [0.0], 0.0
+    while t < sure - 1e-9:
+        t = min(sure, t + hiz(t) / fps)
+        harita.append(t)
+    return harita
+
+
+def kare_bul(harita, t):
+    """Hikaye zamani t'nin ilk gorundugu film karesi."""
+    import bisect
+    return min(len(harita) - 1, bisect.bisect_left(harita, t - 1e-9))
 
 
 # ============================================================
@@ -108,6 +147,10 @@ class Aktor:
         self.hizli = 0.0         # 0..1 hareket orani (yuruyus agirligi)
         self.seri = {"sira": -1, "son": -99}
         self.kayit = []          # kare basina durum
+        self.taban_z = float(v.get("z", 0.0))   # cukurda yatan aktor: zemin altinda
+        self.z = self.taban_z
+        self.gorunur = not v.get("gizli", False)
+        self.esya = None         # sol eldeki esya ("kagit")
 
 
 def vurus_sec(setler, set_ad, tur, a, t):
@@ -132,7 +175,8 @@ def zaman_cizelgesi(senaryo, setler, anims):
     """Her aktor icin kare basina (x, y, z, aci, katmanlar) + efekt ve
     altyazi listeleri. Oyun mantiginin (cekim.js) kare-zamanli karsiligi."""
     fps = senaryo.get("fps", 24)
-    kare = int(round(senaryo["sure"] * fps))
+    harita = zaman_haritasi(senaryo)
+    pozlar = film_pozlari()
     aktorler = {ad: Aktor(ad, v, setler) for ad, v in senaryo["aktorler"].items()}
     for a in aktorler.values():
         hedef = a.v.get("bak")
@@ -143,9 +187,8 @@ def zaman_cizelgesi(senaryo, setler, anims):
     olaylar = sorted(senaryo.get("olaylar", []), key=lambda o: o["t"])
     efektler, yazilar, sarsinti = [], [], []
     i = 0
-    for f in range(kare + 1):
-        t = f / fps
-        dt = 1.0 / fps
+    for f, t in enumerate(harita):
+        dt = t - harita[f - 1] if f else 1.0 / fps
         while i < len(olaylar) and olaylar[i]["t"] <= t + 1e-9:
             o = olaylar[i]
             i += 1
@@ -157,14 +200,52 @@ def zaman_cizelgesi(senaryo, setler, anims):
                 yazilar.append({"t": o["t"], "sure": o.get("sure", 2.5), "metin": o["baslik"],
                                 "tur": "baslik"})
                 continue
+            if "efekt" in o:
+                efektler.append({"t": o["t"], "tur": o["efekt"], "nokta": list(o["nokta"])})
+            if "aktor" not in o:
+                continue                      # sahne olayi (kapi, goz): Blender kurucusu okur
             a = aktorler[o["aktor"]]
             if "bak" in o:
                 h = o["bak"]
-                a.aci = yon_aci(a.poz, aktorler[h].poz) if isinstance(h, str) else float(h)
+                if isinstance(h, str):
+                    a.aci = yon_aci(a.poz, aktorler[h].poz)
+                elif isinstance(h, (list, tuple)):
+                    a.aci = yon_aci(a.poz, h)          # bir noktaya bak (cukur)
+                else:
+                    a.aci = float(h)
+            if "gizle" in o:
+                a.gorunur = False
+            if "goster" in o:
+                a.gorunur = True
+            if "isinlan" in o:
+                # mor flas eski yerde, yeni yerde belirme (gucun gostergesi)
+                efektler.append({"t": t, "tur": "isik", "nokta": [a.poz[0], a.poz[1], a.z + 1.0]})
+                a.poz = [float(o["isinlan"][0]), float(o["isinlan"][1])]
+                a.itme = [0.0, 0.0]
+                efektler.append({"t": t, "tur": "isik", "nokta": [a.poz[0], a.poz[1], a.z + 1.0]})
+                if isinstance(o.get("yuz"), str):
+                    a.aci = yon_aci(a.poz, aktorler[o["yuz"]].poz)
+            if "esya" in o:
+                a.esya = o["esya"]
+            if "z" in o:
+                a.taban_z = a.z = float(o["z"])   # cukura dustu
+            if "poz" in o:
+                ad_p = film_poz.ONEK + o["poz"]
+                if ad_p not in pozlar:
+                    raise ValueError("film pozu yok: %s" % o["poz"])
+                hz = float(o.get("hiz", 1.0))
+                uz = pozlar[ad_p]["animation_length"] / hz
+                a.tepki.append({"anim": ad_p, "bas": t, "hiz": hz, "ad": o["poz"],
+                                "sure": 1e6 if o.get("tut") else uz,
+                                "tut": True, "giris": float(o.get("giris", POZ_GIRIS))})
+            if "poz_bitir" in o:
+                for rr in a.tepki:
+                    if rr.get("ad") and (o["poz_bitir"] is True or rr["ad"] == o["poz_bitir"]):
+                        rr["sure"] = min(rr["sure"], t - rr["bas"] + GECIS)
             if "git" in o:
                 g = o["git"]
                 a.yuru = ({"hedef": g} if isinstance(g, str) else {"nokta": [float(g[0]), float(g[1])]})
-                a.yuru["hiz"] = KOS if o.get("kos") else YURU
+                a.yuru["hiz"] = float(o["adim"]) if "adim" in o else (KOS if o.get("kos") else YURU)
             if "vur" in o:
                 hedef = aktorler.get(o.get("hedef")) if o.get("hedef") else None
                 if hedef:
@@ -174,7 +255,9 @@ def zaman_cizelgesi(senaryo, setler, anims):
                 a.eylem = {"anim": s["anim"], "bas": t, "sure": s["sure"] / hiz, "hiz": hiz,
                            "iz": s["iz"], "cikis": list(a.poz), "cz": a.z, "aci": a.aci,
                            "dikey": o["vur"] == "hava" or s.get("dikey", False),
-                           "fazlar": s["fazlar"], "hedef": hedef, "vuruldu": set()}
+                           "fazlar": s["fazlar"], "hedef": hedef, "vuruldu": set(),
+                           "kan": bool(o.get("kan")), "dusur": o.get("dusur"),
+                           "iz_carpan": float(o.get("hamle", 1.0))}
                 a.seri["son"] = t + s["sure"] / hiz
                 a.yuru = None
                 a.savun_bitis = -1
@@ -192,7 +275,7 @@ def zaman_cizelgesi(senaryo, setler, anims):
             if "soyle" in o:
                 sure = o.get("sure", yazi_suresi(o["soyle"]))
                 yazilar.append({"t": o["t"], "sure": sure, "metin": o["soyle"], "tur": "soyle",
-                                "isim": a.v.get("isim", a.ad.capitalize())})
+                                "isim": a.v.get("isim", a.ad.capitalize())})   # "" -> isimsiz (ana kotu)
                 a.tepki.append({"anim": "animation.aktor.konus", "bas": t, "sure": sure})
         # ---- hareket ----
         for a in aktorler.values():
@@ -213,8 +296,9 @@ def zaman_cizelgesi(senaryo, setler, anims):
                 w = n - int(n)
                 p = [iz[k][j] + (iz[k2][j] - iz[k][j]) * w for j in range(3)]
                 on, sg = on_yon(e["aci"]), sag_yon(e["aci"])
-                a.poz = [e["cikis"][0] + on[0] * p[1] + sg[0] * p[0],
-                         e["cikis"][1] + on[1] * p[1] + sg[1] * p[0]]
+                ic_ = e.get("iz_carpan", 1.0)
+                a.poz = [e["cikis"][0] + (on[0] * p[1] + sg[0] * p[0]) * ic_,
+                         e["cikis"][1] + (on[1] * p[1] + sg[1] * p[0]) * ic_]
                 a.z = e["cz"] + (max(0.0, p[2]) if e["dikey"] else 0.0)
                 for fi, faz in enumerate(e["fazlar"]):
                     if fi in e["vuruldu"] or yerel < faz["contact"]:
@@ -232,15 +316,22 @@ def zaman_cizelgesi(senaryo, setler, anims):
                     carp = 0.35 if savundu else 1.0
                     guc = ITME * faz.get("hasar", 1) * carp
                     h.itme = [h.itme[0] + on[0] * guc * 6, h.itme[1] + on[1] * guc * 6]
-                    efektler.append({"t": t, "tur": "savun" if savundu else "vurus",
-                                     "nokta": [h.poz[0], h.poz[1], h.z + 1.2]})
+                    tur = "savun" if savundu else ("kan" if e.get("kan") else "vurus")
+                    efektler.append({"t": t, "tur": tur, "yon": list(on), "kim": a.ad, "hedef": h.ad,
+                                     "nokta": [h.poz[0] - on[0] * 0.3, h.poz[1] - on[1] * 0.3, h.z + 1.15]})
                     if not savundu:
-                        h.tepki.append({"anim": "animation.aktor.darbe", "bas": t, "sure": 0.4})
-                        if fi == len(e["fazlar"]) - 1:
+                        son = fi == len(e["fazlar"]) - 1
+                        if son and e.get("dusur"):
+                            ad_p = film_poz.ONEK + e["dusur"]
+                            h.tepki.append({"anim": ad_p, "bas": t, "hiz": 1.0, "ad": e["dusur"],
+                                            "sure": 1e6, "tut": True, "giris": 0.06})
+                        else:
+                            h.tepki.append({"anim": "animation.aktor.darbe", "bas": t, "sure": 0.4})
+                        if son:
                             sarsinti.append(t)
                 if yerel >= e["sure"] * e["hiz"]:
                     a.eylem = None
-                    a.z = 0.0
+                    a.z = a.taban_z
             elif a.yuru:
                 hedef = aktorler[a.yuru["hedef"]].poz if "hedef" in a.yuru else a.yuru["nokta"]
                 dur = VARIS if "hedef" in a.yuru else 0.05
@@ -265,7 +356,10 @@ def zaman_cizelgesi(senaryo, setler, anims):
             a.kayit.append({"t": t, "x": a.poz[0], "y": a.poz[1], "z": a.z, "aci": a.aci,
                             "eylem": dict(a.eylem) if a.eylem and "anim" in a.eylem else None,
                             "tepki": [dict(r) for r in a.tepki], "mesafe": a.mesafe,
-                            "hizli": a.hizli})
+                            "hizli": a.hizli, "gorunur": a.gorunur, "esya": a.esya})
+    # altyazi FILM zamaninda: agir cekimde yazi da uzun kalir
+    for y in yazilar:
+        y["t"] = kare_bul(harita, y["t"]) / fps
     return aktorler, efektler, yazilar, sarsinti
 
 
@@ -323,10 +417,10 @@ def kare_pozu(a, k, kemikler, anims, setler):
     for r in k["tepki"]:
         yerel = t - r["bas"]
         if r.get("tut"):
-            w = min(1.0, yerel / 0.08, max(0.0, (r["sure"] - yerel) / GECIS))
+            w = min(1.0, yerel / r.get("giris", 0.08), max(0.0, (r["sure"] - yerel) / GECIS))
         else:
             w = min(1.0, max(0.0, (r["sure"] + GECIS - yerel) / GECIS))
-        katman.append((r["anim"], yerel, max(0.0, min(1.0, w))))
+        katman.append((r["anim"], yerel * r.get("hiz", 1.0), max(0.0, min(1.0, w))))
     return poz, katman
 
 
@@ -373,24 +467,55 @@ def kamera_noktasi(aci, A, Bp, ilerleme=0.0):
     if aci == "takip":
         on = on_yon(aaci)
         return (ax - on[0] * 4 + dik[0] * 0.6, ay - on[1] * 4 + dik[1] * 0.6, az + 2.4), (bas[0] + on[0] * 2, bas[1] + on[1] * 2, bas[2])
+    if aci == "goz":
+        # aktorun gozunden (POV): bakilan B ya da baktigi yon
+        on = on_yon(aaci)
+        kam = (ax + on[0] * 0.3, ay + on[1] * 0.3, az + 1.55)
+        bak = (Bp[0], Bp[1], Bp[2] + 0.3) if Bp else (ax + on[0] * 5, ay + on[1] * 5, az + 1.0)
+        return kam, bak
+    if aci == "yakin_on":
+        # aktorun yuzune, kendi baktigi yonden (B'siz yakin plan)
+        on = on_yon(aaci)
+        return (bas[0] + on[0] * 1.4, bas[1] + on[1] * 1.4, bas[2] + 0.05), bas
     raise ValueError("kamera acisi yok: %s" % aci)
 
 
 def kamera_izi(senaryo, aktorler):
-    """Kare basina (kamera, bakilan, lens)."""
+    """Kare basina (kamera, bakilan, lens, yatik_derece, odak_aktor|None).
+    Kesme zamanlari HIKAYE zamaninda (agir cekimle uyumlu).
+    Atis alanlari: aci, a, b, gecis, lens, yatik (derece, ufku egik),
+    odak (aktor adi: alan derinligi o aktore), kam/bak (aci "elle":
+    mutlak Blender noktalari; bak aktor adi da olabilir), kaydir
+    ([dx, dy, dz] /sn: elle atista yavas kayma), hedef ([x, y, z]:
+    "goz" acisinda bakilan nokta)."""
     fps = senaryo.get("fps", 24)
     atislar = sorted(senaryo.get("kamera", []), key=lambda c: c["t"])
     kare = len(next(iter(aktorler.values())).kayit)
+    harita = zaman_haritasi(senaryo)
     cikti = []
 
     def nokta(c, f):
         k = lambda ad: (lambda r: (r["x"], r["y"], r["z"], r["aci"]))(aktorler[ad].kayit[f]) if ad else None
         sure = c.get("sure", 4.0)
-        u = (f / fps - c["t"]) / sure if c["aci"] == "yorunge" else 0.0
-        return kamera_noktasi(c["aci"], k(c["a"]), k(c.get("b")), u)
+        tt = harita[min(f, len(harita) - 1)]
+        if c["aci"] == "elle":
+            ge = tt - c["t"]
+            kd = c.get("kaydir", [0, 0, 0])
+            kam = tuple(c["kam"][i] + kd[i] * ge for i in range(3))
+            b = c["bak"]
+            if isinstance(b, str):
+                r = aktorler[b].kayit[f]
+                b = (r["x"], r["y"], r["z"] + c.get("bak_yuks", 1.3))
+            return kam, tuple(b)
+        u = (tt - c["t"]) / sure if c["aci"] == "yorunge" else 0.0
+        B_ = k(c.get("b"))
+        if c["aci"] == "goz" and c.get("hedef"):
+            h = c["hedef"]
+            B_ = (h[0], h[1], h[2] - 0.3, 0)
+        return kamera_noktasi(c["aci"], k(c["a"]), B_, u)
 
     for f in range(kare):
-        t = f / fps
+        t = harita[min(f, len(harita) - 1)]
         suan = [c for c in atislar if c["t"] <= t + 1e-9]
         c = suan[-1] if suan else atislar[0]
         kam, bak = nokta(c, f)
@@ -401,14 +526,14 @@ def kamera_izi(senaryo, aktorler):
             u = u * u * (3 - 2 * u)
             kam = tuple(e + (n - e) * u for e, n in zip(eski_k, kam))
             bak = tuple(e + (n - e) * u for e, n in zip(eski_b, bak))
-        cikti.append((kam, bak, c.get("lens", 35)))
+        cikti.append((kam, bak, c.get("lens", 35), c.get("yatik", 0.0), c.get("odak")))
     return cikti
 
 
 # ============================================================
 # 4. BLENDER
 # ============================================================
-def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None):
+def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik=None):
     import bpy
     from mathutils import Matrix, Quaternion, Vector, Euler
 
@@ -416,9 +541,11 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None):
     anims = {}
     anims.update(B.oku(ANIM_WOM)["animations"])
     anims.update(B.oku(ANIM_AKTOR)["animations"])
+    anims.update(film_pozlari())
     aktorler, efektler, yazilar, sarsinti = zaman_cizelgesi(senaryo, setler, anims)
     kam_iz = kamera_izi(senaryo, aktorler)
     fps = senaryo.get("fps", 24)
+    harita = zaman_haritasi(senaryo)
 
     bpy.ops.wm.read_factory_settings(use_empty=True)
     sc = bpy.context.scene
@@ -479,6 +606,45 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None):
     gunes.data.angle = math.radians(2)
     gunes.rotation_euler = (math.radians(55), 0, math.radians(senaryo.get("gunes_yon", 40)))
     sc.collection.objects.link(gunes)
+    ay = bpy.data.objects.new("ay", bpy.data.lights.new("ay", "SUN"))
+    ay.data.color = (0.55, 0.66, 1.0)
+    ay.data.energy = 0.0
+    ay.data.angle = math.radians(1)
+    ay.rotation_euler = (math.radians(40), 0, math.radians(senaryo.get("gunes_yon", 40) + 160))
+    sc.collection.objects.link(ay)
+    isik_anahtar = sorted(senaryo.get("isik", []), key=lambda x: x["t"])
+    if isik_anahtar:
+        # "isik": [{"t", "gunes", "gok", "yukseklik", "ay"}] -- hikaye zamaninda,
+        # aradegerli; sabahtan geceye gecis (kullanici: "ilk basta sabah sonradan gece")
+        def isik_deger(tt, ad, vars_):
+            on = [x for x in isik_anahtar if x["t"] <= tt and ad in x]
+            son = [x for x in isik_anahtar if x["t"] > tt and ad in x]
+            if not on:
+                return son[0][ad] if son else vars_
+            if not son:
+                return on[-1][ad]
+            a0, a1 = on[-1], son[0]
+            u = (tt - a0["t"]) / (a1["t"] - a0["t"])
+            u = u * u * (3 - 2 * u)
+            return a0[ad] + (a1[ad] - a0[ad]) * u
+        bg = nt.nodes["Background"]
+        adim = max(1, int(fps / 4))
+        for f in list(range(0, len(harita), adim)) + [len(harita) - 1]:
+            tt = harita[f]
+            gunes.data.energy = isik_deger(tt, "gunes", 1.7)
+            gunes.data.keyframe_insert("energy", frame=f + 1)
+            ay.data.energy = isik_deger(tt, "ay", 0.0)
+            ay.data.keyframe_insert("energy", frame=f + 1)
+            bg.inputs["Strength"].default_value = isik_deger(tt, "gok", 0.18)
+            bg.inputs["Strength"].keyframe_insert("default_value", frame=f + 1)
+            try:
+                gok.sun_elevation = math.radians(isik_deger(tt, "yukseklik", 35))
+                gok.keyframe_insert("sun_elevation", frame=f + 1)
+            except Exception:
+                pass
+            gunes.rotation_euler = (math.radians(90 - max(-10, isik_deger(tt, "yukseklik", 35))), 0,
+                                    math.radians(senaryo.get("gunes_yon", 40)))
+            gunes.keyframe_insert("rotation_euler", frame=f + 1)
 
     malz = {}
 
@@ -514,14 +680,18 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None):
     def blender_nokta(p):
         return Vector((p[0] / 16.0, -p[2] / 16.0, p[1] / 16.0))
 
-    # ---- zemin ----
-    zemin_kur(bpy, senaryo, doku_malzemesi)
-    # ufuk: oyun alaninin otesinde duz, ayni renkte genis zemin
-    ufuk = bpy.data.materials.new("ufuk")
-    ufuk.use_nodes = True
-    ufuk.node_tree.nodes["Principled BSDF"].inputs["Base Color"].default_value = (0.24, 0.42, 0.13, 1)
-    bpy.ops.mesh.primitive_plane_add(size=600, location=(0, 0, -0.01))
-    bpy.context.object.data.materials.append(ufuk)
+    if senaryo.get("mekan") == "oda":
+        gok_kapat(bpy, sc, gunes, ay)
+    else:
+        # ---- zemin ----
+        zemin_kur(bpy, senaryo, doku_malzemesi,
+                  kare_bul(harita, senaryo.get("zemin", {}).get("cukur", {}).get("t", 0.0)) + 1)
+        # ufuk: oyun alaninin otesinde duz, ayni renkte genis zemin
+        ufuk = bpy.data.materials.new("ufuk")
+        ufuk.use_nodes = True
+        ufuk.node_tree.nodes["Principled BSDF"].inputs["Base Color"].default_value = (0.24, 0.42, 0.13, 1)
+        bpy.ops.mesh.primitive_plane_add(size=600, location=(0, 0, -0.01))
+        bpy.context.object.data.materials.append(ufuk)
 
     # ---- aktorler: kemik bos nesneleri + kup parcalari ----
     geo = B.oku(GEO_AKTOR)
@@ -586,14 +756,51 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None):
         S = Matrix.Diagonal((1 / 16, 1 / 16, 1 / 16, 1))
         return S @ P4 @ L @ P4.inverted() @ S.inverted()
 
+    kagit_m = bpy.data.materials.new("kagit")
+    kagit_m.use_nodes = True
+    kagit_m.node_tree.nodes["Principled BSDF"].inputs["Base Color"].default_value = (0.86, 0.8, 0.66, 1)
+    kagitlar = {}
+    for ad, a in aktorler.items():
+        if any(k.get("esya") == "kagit" for k in a.kayit):
+            # sol yumrugun onunde 5x7 px ince kagit (leftItem'e bagli)
+            bpy.ops.mesh.primitive_cube_add(size=1)
+            kg = bpy.context.object
+            kg.data.materials.append(kagit_m)
+            kg.scale = (5 / 16, 0.2 / 16, 7 / 16)
+            kg.location = blender_nokta([-6.0, 12.0, -2.5]) - blender_nokta(B.ic(govde_model.kemik["leftItem"]["pivot"]))
+            kg.parent = kemik_nesne[ad]["leftItem"]
+            kagitlar[ad] = kg
+
+    def sabit_anahtar(ob, yol):
+        if ob.animation_data and ob.animation_data.action:
+            for fc in ob.animation_data.action.fcurves if hasattr(ob.animation_data.action, "fcurves") else []:
+                if fc.data_path == yol:
+                    for kp in fc.keyframe_points:
+                        kp.interpolation = "CONSTANT"
+
     for ad, a in aktorler.items():
         kok = kok_nesne[ad]
         kn = kemik_nesne[ad]
+        onceki_g, onceki_e = None, None
         for f, k in enumerate(a.kayit[:len(kam_iz)]):
             kok.location = (k["x"], k["y"], k["z"])
             kok.rotation_euler = (0, 0, math.radians(k["aci"]))
             kok.keyframe_insert("location", frame=f + 1)
             kok.keyframe_insert("rotation_euler", frame=f + 1)
+            if k["gorunur"] != onceki_g:
+                # gizle/goster: kok olcegi 0/1, iki ardisik karede (ara olcek yok)
+                kok.scale = (1, 1, 1) if onceki_g in (None, True) else (0, 0, 0)
+                if f:
+                    kok.keyframe_insert("scale", frame=f)
+                kok.scale = (1, 1, 1) if k["gorunur"] else (0, 0, 0)
+                kok.keyframe_insert("scale", frame=f + 1)
+                onceki_g = k["gorunur"]
+            if ad in kagitlar and k.get("esya") != onceki_e:
+                kg = kagitlar[ad]
+                acik = k.get("esya") == "kagit"
+                kg.hide_render = not acik
+                kg.keyframe_insert("hide_render", frame=f + 1)
+                onceki_e = k.get("esya")
             poz, katman = kare_pozu(a, k, kemikler, anims, setler)
             for kem in kemikler:
                 (eu, ps, ol), _ = poz[kem]
@@ -617,7 +824,7 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None):
                 o.keyframe_insert("scale", frame=f + 1)
 
     # ---- kivilcimlar ----
-    kivilcim_kur(bpy, efektler, fps, doku_malzemesi)
+    kivilcim_kur(bpy, efektler, fps, doku_malzemesi, harita)
 
     # ---- kamera ----
     kam = bpy.data.objects.new("kamera", bpy.data.cameras.new("kamera"))
@@ -625,23 +832,218 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None):
     sc.camera = kam
     kam.data.clip_start = 0.05
     rnd = random.Random(7)
-    for f, (kp, bk, lens) in enumerate(kam_iz):
-        t = f / fps
-        sars = sum(max(0.0, 1 - (t - s) / 0.3) for s in sarsinti if 0 <= t - s < 0.3)
+    sars_kare = [kare_bul(harita, s) for s in sarsinti]
+    if any(c[4] for c in kam_iz):
+        kam.data.dof.use_dof = True
+        kam.data.dof.aperture_fstop = senaryo.get("fstop", 2.2)
+    for f, (kp, bk, lens, yatik, odak) in enumerate(kam_iz):
+        sars = sum(max(0.0, 1 - (f - s) / (0.3 * fps)) for s in sars_kare if 0 <= f - s < 0.3 * fps)
         titre = Vector((rnd.uniform(-1, 1), rnd.uniform(-1, 1), rnd.uniform(-1, 1))) * 0.06 * sars
         kam.location = Vector(kp) + titre
-        kam.rotation_euler = (Vector(bk) - Vector(kp)).to_track_quat("-Z", "Y").to_euler()
+        q = (Vector(bk) - Vector(kp)).to_track_quat("-Z", "Y")
+        if yatik:
+            q = q @ Quaternion((0, 0, 1), math.radians(yatik))
+        kam.rotation_euler = q.to_euler()
         kam.data.lens = lens
         kam.keyframe_insert("location", frame=f + 1)
         kam.keyframe_insert("rotation_euler", frame=f + 1)
         kam.data.keyframe_insert("lens", frame=f + 1)
+        if kam.data.dof.use_dof:
+            if odak:
+                r_ = aktorler[odak].kayit[min(f, len(aktorler[odak].kayit) - 1)]
+                d = (Vector((r_["x"], r_["y"], r_["z"] + 1.3)) - Vector(kp)).length
+            else:
+                d = (Vector(bk) - Vector(kp)).length
+            kam.data.dof.focus_distance = d
+            kam.data.dof.keyframe_insert("focus_distance", frame=f + 1)
+
+    if senaryo.get("mekan") == "oda":
+        oda_kur(bpy, senaryo, doku_malzemesi, harita, fps, kam_iz)
 
     os.makedirs(os.path.join(klasor, "kare"), exist_ok=True)
     if tek_kare:
         sc.frame_start = sc.frame_end = tek_kare
+    if aralik:
+        sc.frame_start, sc.frame_end = max(1, aralik[0]), min(sc.frame_end, aralik[1])
+    sc.frame_step = max(1, adim)
+    # kaldigi yerden devam: var olan kareyi yeniden cizme (uzun cizimler parca parca)
+    sc.render.use_overwrite = False
+    sc.render.use_placeholder = True
     bpy.ops.render.render(animation=True)
     with open(os.path.join(klasor, "yazilar.json"), "w", encoding="utf-8") as fh:
         json.dump({"fps": fps, "yazilar": yazilar, "kare": len(kam_iz)}, fh, ensure_ascii=False)
+
+
+def gok_kapat(bpy, sc, gunes, ay):
+    """Kapali oda: dis isik yok, dunya simsiyah."""
+    sc.world.node_tree.nodes["Background"].inputs["Strength"].default_value = 0.0
+    gunes.data.energy = 0.0
+    ay.data.energy = 0.0
+
+
+def _kup_ekle(bpy, merkez, boyut, malz, ad="kup"):
+    bpy.ops.mesh.primitive_cube_add(size=1, location=merkez)
+    ob = bpy.context.object
+    ob.name = ad
+    ob.scale = boyut
+    ob.data.materials.append(malz)
+    # UV: her yuz tek blok dokusu, boyutla tekrarlanir
+    uvs = []
+    for poly in ob.data.polygons:
+        n = poly.normal
+        if abs(n.z) > 0.5:
+            sx, sy = boyut[0], boyut[1]
+        elif abs(n.x) > 0.5:
+            sx, sy = boyut[1], boyut[2]
+        else:
+            sx, sy = boyut[0], boyut[2]
+        uvs.extend((0, 0, sx, 0, sx, sy, 0, sy))
+    ob.data.uv_layers.active.data.foreach_set("uv", uvs)
+    return ob
+
+
+def oda_kur(bpy, senaryo, doku_malzemesi, harita, fps, kam_iz):
+    """7. sahne: karanlik oda (SERI_SEZON1.md).
+
+    Tam karanlik; yalniz dort beyaz goz. Kapi acildigi an BEMBEYAZ, hüzmede
+    yogun toz (yillardir acilmamis oda). Kural: kapidan giren isik kotuye
+    ULASMAZ -- isik seridi yerde onun onunde biter; gozler kendi isigiyla
+    parlar, bedenden hicbir yuzey aydinlanmaz (bedeni zaten yok).
+    "oda": {"genis", "derin", "yuks", "kapi_x", "goz": [x, y, z], "goz_aci"}
+    Sahne olaylari: {"t", "kapi": "ac"|"kapat", "sure"},
+                    {"t", "goz_bak": "kapi"|"kamera"|[x, y], "sure"}."""
+    from mathutils import Vector
+    o = senaryo.get("oda", {})
+    G, D, Y = o.get("genis", 12), o.get("derin", 12), o.get("yuks", 5)
+    kx = o.get("kapi_x", 0.0)
+    yol = MCPREP_DOKU
+    duvar = doku_malzemesi(os.path.join(yol, "deepslate_bricks.png"))
+    zemin = doku_malzemesi(os.path.join(yol, "deepslate_tiles.png"))
+    _kup_ekle(bpy, (0, 0, -0.5), (G, D, 1), zemin, "oda_zemin")
+    _kup_ekle(bpy, (0, 0, Y + 0.5), (G, D, 1), duvar, "oda_tavan")
+    _kup_ekle(bpy, (-G / 2 - 0.5, 0, Y / 2), (1, D, Y), duvar, "oda_sol")
+    _kup_ekle(bpy, (G / 2 + 0.5, 0, Y / 2), (1, D, Y), duvar, "oda_sag")
+    _kup_ekle(bpy, (0, -D / 2 - 0.5, Y / 2), (G, 1, Y), duvar, "oda_arka")
+    # kapili on duvar (y = +D/2): kapi boslugu kx..kx+1, yukseklik 2
+    yd = D / 2 + 0.5
+    sol_g = (kx + G / 2)
+    _kup_ekle(bpy, (-G / 2 + sol_g / 2, yd, Y / 2), (sol_g, 1, Y), duvar, "oda_on_sol")
+    sag_g = G / 2 - (kx + 1)
+    _kup_ekle(bpy, (kx + 1 + sag_g / 2, yd, Y / 2), (sag_g, 1, Y), duvar, "oda_on_sag")
+    _kup_ekle(bpy, (kx + 0.5, yd, 2 + (Y - 2) / 2), (1, 1, Y - 2), duvar, "oda_kapi_ust")
+    # disaridaki bembeyaz: kapinin ardinda isik saçan duz yuzey
+    beyaz = bpy.data.materials.new("kapi_beyaz")
+    beyaz.use_nodes = True
+    bb = beyaz.node_tree.nodes["Principled BSDF"]
+    bb.inputs["Base Color"].default_value = (1, 1, 1, 1)
+    bb.inputs["Emission Color"].default_value = (1, 0.98, 0.94, 1)
+    bpy.ops.mesh.primitive_plane_add(size=1, location=(kx + 0.5, D / 2 + 1.6, 1.0))
+    dis = bpy.context.object
+    dis.rotation_euler = (math.radians(90), 0, 0)
+    dis.scale = (6, 4, 1)
+    dis.data.materials.append(beyaz)
+    # kapi kanadi: mentese kx'te, 0 -> 100 derece disari acilir
+    mentese = bpy.data.objects.new("kapi_mentese", None)
+    mentese.location = (kx, D / 2 + 0.5, 0)
+    bpy.context.scene.collection.objects.link(mentese)
+    kanat = _kup_ekle(bpy, (0.5, 0, 1.0), (1, 0.18, 2), doku_malzemesi(os.path.join(yol, "dark_oak_planks.png")), "kapi")
+    kanat.parent = mentese
+    # hüzme: kapidan iceri bakan spot + odayi dolduran ince sis
+    spot = bpy.data.objects.new("kapi_spot", bpy.data.lights.new("kapi_spot", "SPOT"))
+    spot.data.spot_size = math.radians(o.get("huzme_aci", 38))
+    spot.data.spot_blend = 0.25
+    spot.data.shadow_soft_size = 0.4
+    spot.location = (kx + 0.5, D / 2 + 1.4, 1.6)
+    spot.rotation_euler = (math.radians(o.get("huzme_egim", 62)), 0, math.radians(180))
+    bpy.context.scene.collection.objects.link(spot)
+    sis = bpy.data.materials.new("sis")
+    sis.use_nodes = True
+    nt = sis.node_tree
+    for n in list(nt.nodes):
+        if n.type != "OUTPUT_MATERIAL":
+            nt.nodes.remove(n)
+    vol = nt.nodes.new("ShaderNodeVolumePrincipled")
+    vol.inputs["Density"].default_value = o.get("sis", 0.06)
+    nt.links.new(vol.outputs[0], nt.nodes["Material Output"].inputs["Volume"])
+    bpy.ops.mesh.primitive_cube_add(size=1, location=(0, 0, Y / 2))
+    sk = bpy.context.object
+    sk.scale = (G, D, Y)
+    sk.data.materials.append(sis)
+    # toz: hüzmenin icinde yavas suzulen zerreler (yalniz isikta gorunur)
+    toz_m = bpy.data.materials.new("toz")
+    toz_m.use_nodes = True
+    toz_m.node_tree.nodes["Principled BSDF"].inputs["Base Color"].default_value = (0.9, 0.88, 0.82, 1)
+    rnd = random.Random(23)
+    son = len(harita)
+    for _ in range(int(o.get("toz", 160))):
+        u = rnd.uniform(0.05, 1.0)
+        merkez = (kx + 0.5 + rnd.uniform(-0.8, 0.8) * u * 2, D / 2 - u * D * 0.6, rnd.uniform(0.1, 2.4) * (1 - u * 0.5))
+        bpy.ops.mesh.primitive_cube_add(size=rnd.uniform(0.012, 0.03), location=merkez)
+        tz = bpy.context.object
+        tz.data.materials.append(toz_m)
+        p = Vector(merkez)
+        for f in range(1, son + 1, int(fps)):
+            tz.location = p
+            tz.keyframe_insert("location", frame=f)
+            p = p + Vector((rnd.uniform(-0.05, 0.05), rnd.uniform(-0.05, 0.05), rnd.uniform(-0.03, 0.02)))
+    # gozler: tek karakter, iki cift (ust kucuk, alt buyuk); bedeni YOK
+    gz = o.get("goz", [kx - 3.5, -D / 2 + 2.0, 1.75])
+    goz_k = bpy.data.objects.new("gozler", None)
+    goz_k.location = gz
+    goz_k.rotation_euler = (0, 0, math.radians(o.get("goz_aci", 0)))
+    bpy.context.scene.collection.objects.link(goz_k)
+    gm = bpy.data.materials.new("goz")
+    gm.use_nodes = True
+    gb = gm.node_tree.nodes["Principled BSDF"]
+    gb.inputs["Base Color"].default_value = (1, 1, 1, 1)
+    gb.inputs["Emission Color"].default_value = (1, 1, 1, 1)
+    gb.inputs["Emission Strength"].default_value = o.get("goz_parlaklik", 6.0)
+    for (dx, dz, w, h) in ((-0.13, 0.13, 0.07, 0.045), (0.13, 0.13, 0.07, 0.045),
+                           (-0.17, -0.03, 0.12, 0.06), (0.17, -0.03, 0.12, 0.06)):
+        bpy.ops.mesh.primitive_plane_add(size=1, location=(0, 0, 0))
+        g = bpy.context.object
+        g.rotation_euler = (math.radians(90), 0, 0)
+        g.scale = (w, h, 1)
+        g.location = (dx, 0, dz)
+        g.data.materials.append(gm)
+        g.parent = goz_k
+    # sahne olaylari
+    acik, goz_aci = 0.0, o.get("goz_aci", 0)
+    dis_guc, spot_guc = o.get("kapi_parlaklik", 30.0), o.get("huzme_guc", 2500.0)
+
+    def anahtar_kapi(f, a):
+        mentese.rotation_euler = (0, 0, math.radians(100 * a))
+        mentese.keyframe_insert("rotation_euler", frame=f)
+        bb.inputs["Emission Strength"].default_value = dis_guc * a
+        bb.inputs["Emission Strength"].keyframe_insert("default_value", frame=f)
+        spot.data.energy = spot_guc * a
+        spot.data.keyframe_insert("energy", frame=f)
+    anahtar_kapi(1, 0.0)
+    goz_k.keyframe_insert("rotation_euler", frame=1)
+    for ol in sorted(senaryo.get("olaylar", []), key=lambda x: x["t"]):
+        f0 = kare_bul(harita, ol["t"]) + 1
+        f1 = kare_bul(harita, ol["t"] + ol.get("sure", 0.6)) + 1
+        if "kapi" in ol:
+            hedef = 1.0 if ol["kapi"] == "ac" else 0.0
+            anahtar_kapi(f0, acik)
+            anahtar_kapi(max(f1, f0 + 1), hedef)
+            acik = hedef
+        if "goz_bak" in ol:
+            h = ol["goz_bak"]
+            if h == "kapi":
+                hp = (kx + 0.5, D / 2)
+            elif h == "kamera":
+                kp = kam_iz[min(len(kam_iz) - 1, f1)][0]
+                hp = (kp[0], kp[1])
+            else:
+                hp = (h[0], h[1])
+            yeni = yon_aci((gz[0], gz[1]), hp)
+            yeni = goz_aci + ((yeni - goz_aci + 180) % 360 - 180)
+            goz_k.rotation_euler = (0, 0, math.radians(goz_aci))
+            goz_k.keyframe_insert("rotation_euler", frame=f0)
+            goz_k.rotation_euler = (0, 0, math.radians(yeni))
+            goz_k.keyframe_insert("rotation_euler", frame=max(f1, f0 + 1))
+            goz_aci = yeni
 
 
 def boyali_doku(dosya, renk, klasor):
@@ -674,7 +1076,15 @@ def kemik_kupleri(model, kem):
     return B.kupler(tek)
 
 
-def zemin_kur(bpy, senaryo, doku_malzemesi):
+def _gorun_kare(ob, f, gorunur_sonra):
+    """f karesinden itibaren gorunur (True) ya da gizli (False)."""
+    ob.hide_render = gorunur_sonra
+    ob.keyframe_insert("hide_render", frame=max(0, f - 1))
+    ob.hide_render = not gorunur_sonra
+    ob.keyframe_insert("hide_render", frame=f)
+
+
+def zemin_kur(bpy, senaryo, doku_malzemesi, cukur_kare=1):
     z = senaryo.get("zemin", {})
     n = int(z.get("boyut", 40))
     yol = MCPREP_DOKU
@@ -688,8 +1098,32 @@ def zemin_kur(bpy, senaryo, doku_malzemesi):
     cimen = (0.49, 0.73, 0.30)
     ks, ps, uv, mi = [], [], [], []
     h = n // 2
+    # "cukur": Baris'in dustugu yer zeminden ezik (kullanici: "hirpalanmis
+    # o havayi verebilelim"). Merkeze yakin bloklar `derin` kadar asagida,
+    # halka yarim derinlikte; kenarlarda toprak yuzeyi gorunur.
+    ck = z.get("cukur")
+
+    def cukur_derin(cx, cy):
+        if not ck:
+            return 0.0
+        d = math.hypot(cx - ck["x"], cy - ck["y"])
+        if d <= ck["r"]:
+            return ck["derin"]
+        if d <= ck["r"] + 0.75:
+            return ck["derin"] * 0.45
+        return 0.0
+    cukur_ust, kenar = [], []
     for x in range(-h, h):
         for y in range(-h, h):
+            dz = cukur_derin(x + 0.5, y + 0.5)
+            if dz > 0:
+                cukur_ust.append((x, y, -dz))
+                for nx, ny, kose in ((x - 1, y, ((x, y), (x, y + 1))), (x + 1, y, ((x + 1, y + 1), (x + 1, y))),
+                                     (x, y - 1, ((x + 1, y), (x, y))), (x, y + 1, ((x, y + 1), (x + 1, y + 1)))):
+                    dn = cukur_derin(nx + 0.5, ny + 0.5)
+                    if dn < dz:
+                        kenar.append((kose, -dz, -dn))
+                continue
             i0 = len(ks)
             ks += [(x, y, 0), (x + 1, y, 0), (x + 1, y + 1, 0), (x, y + 1, 0)]
             ps.append((i0, i0 + 1, i0 + 2, i0 + 3))
@@ -702,24 +1136,96 @@ def zemin_kur(bpy, senaryo, doku_malzemesi):
     me.materials.append(doku_malzemesi(os.path.join(yol, "grass_block_top.png"), renk=cimen))
     ob = bpy.data.objects.new("zemin", me)
     bpy.context.scene.collection.objects.link(ob)
+    if ck:
+        ks, ps, uv = [], [], []
+        for x, y, zz in cukur_ust:
+            i0 = len(ks)
+            ks += [(x, y, zz), (x + 1, y, zz), (x + 1, y + 1, zz), (x, y + 1, zz)]
+            ps.append((i0, i0 + 1, i0 + 2, i0 + 3))
+            uv += [(0, 0), (1, 0), (1, 1), (0, 1)]
+        me = bpy.data.meshes.new("cukur")
+        me.from_pydata(ks, [], ps)
+        lay = me.uv_layers.new()
+        for j, d in enumerate(lay.data):
+            d.uv = uv[j]
+        me.materials.append(doku_malzemesi(os.path.join(yol, "coarse_dirt.png")))
+        cob = bpy.data.objects.new("cukur", me)
+        bpy.context.scene.collection.objects.link(cob)
+        # kapak: darbe anina kadar cukurun ustunu duz cimen ortuyor
+        ks2, ps2, uv2 = [], [], []
+        for x, y, _zz in cukur_ust:
+            i0 = len(ks2)
+            ks2 += [(x, y, 0), (x + 1, y, 0), (x + 1, y + 1, 0), (x, y + 1, 0)]
+            ps2.append((i0, i0 + 1, i0 + 2, i0 + 3))
+            uv2 += [(0, 0), (1, 0), (1, 1), (0, 1)]
+        me2 = bpy.data.meshes.new("cukur_kapak")
+        me2.from_pydata(ks2, [], ps2)
+        l2 = me2.uv_layers.new()
+        for j, d in enumerate(l2.data):
+            d.uv = uv2[j]
+        me2.materials.append(doku_malzemesi(os.path.join(yol, "grass_block_top.png"), renk=cimen))
+        kap = bpy.data.objects.new("cukur_kapak", me2)
+        bpy.context.scene.collection.objects.link(kap)
+        cukur_nesneleri = [cob]
+        if cukur_kare > 1:
+            _gorun_kare(kap, cukur_kare, False)
+        ks, ps, uv = [], [], []
+        for (p0, p1), alt, ust in kenar:
+            i0 = len(ks)
+            ks += [(p0[0], p0[1], alt), (p1[0], p1[1], alt), (p1[0], p1[1], ust), (p0[0], p0[1], ust)]
+            ps.append((i0, i0 + 1, i0 + 2, i0 + 3))
+            uv += [(0, 0), (1, 0), (1, ust - alt), (0, ust - alt)]
+        me = bpy.data.meshes.new("cukur_kenar")
+        me.from_pydata(ks, [], ps)
+        lay = me.uv_layers.new()
+        for j, d in enumerate(lay.data):
+            d.uv = uv[j]
+        me.materials.append(doku_malzemesi(os.path.join(yol, "dirt.png")))
+        kob = bpy.data.objects.new("cukur_kenar", me)
+        bpy.context.scene.collection.objects.link(kob)
+        cukur_nesneleri.append(kob)
+        # sacilmis toprak: halkanin disina dusmus kucuk parcalar
+        rnd_c = random.Random(z.get("tohum", 3) + 17)
+        for _ in range(int(ck.get("parca", 22))):
+            a_ = rnd_c.uniform(0, math.tau)
+            rr = ck["r"] + rnd_c.uniform(0.4, 1.8)
+            boy = rnd_c.uniform(0.12, 0.3)
+            bpy.ops.mesh.primitive_cube_add(size=boy, location=(ck["x"] + math.cos(a_) * rr,
+                                                                ck["y"] + math.sin(a_) * rr, boy / 2))
+            pob = bpy.context.object
+            pob.rotation_euler = (0, 0, rnd_c.uniform(0, math.tau))
+            pob.data.materials.append(doku_malzemesi(os.path.join(yol, rnd_c.choice(("dirt.png", "coarse_dirt.png")))))
+            cukur_nesneleri.append(pob)
+        if cukur_kare > 1:
+            for ob_ in cukur_nesneleri:
+                _gorun_kare(ob_, cukur_kare, True)
     # agaclar: govde + yaprak kupleri, oyun alaninin disinda
     rnd = random.Random(z.get("tohum", 3))
+    bos_r = float(z.get("aciklik", 9))          # dovus alani: agacsiz aciklik yaricapi
+    dikili = []
     for _ in range(int(z.get("agac", 6))):
-        while True:
+        for _deneme in range(200):
             ax, ay = rnd.randint(-h + 2, h - 3), rnd.randint(-h + 2, h - 3)
-            if math.hypot(ax, ay) > 9:
+            if math.hypot(ax, ay) > bos_r and all(math.hypot(ax - bx, ay - by) >= 4 for bx, by in dikili):
                 break
-        boy = rnd.randint(4, 6)
+        dikili.append((ax, ay))
+        tur = rnd.choice(("oak", "oak", "birch", "dark_oak"))
+        govde = doku_malzemesi(os.path.join(yol, tur + "_log.png"))
+        yaprak = doku_malzemesi(os.path.join(yol, tur + "_leaves.png"),
+                                renk=(0.42, 0.62, 0.30) if tur == "birch" else (0.35, 0.62, 0.22))
+        boy = rnd.randint(4, 7)
         for k in range(boy):
-            kup(bpy, (ax, ay, k), doku_malzemesi(os.path.join(yol, "oak_log.png")))
+            kup(bpy, (ax, ay, k), govde)
         for dx in range(-2, 3):
             for dy in range(-2, 3):
                 for dz in (boy - 1, boy):
                     if abs(dx) == 2 and abs(dy) == 2:
                         continue
-                    kup(bpy, (ax + dx, ay + dy, dz),
-                        doku_malzemesi(os.path.join(yol, "oak_leaves.png"), renk=(0.35, 0.62, 0.22)))
-        kup(bpy, (ax, ay, boy + 1), doku_malzemesi(os.path.join(yol, "oak_leaves.png"), renk=(0.35, 0.62, 0.22)))
+                    if dx == 0 and dy == 0 and dz == boy - 1:
+                        continue
+                    kup(bpy, (ax + dx, ay + dy, dz), yaprak)
+        for dx, dy in ((0, 0), (1, 0), (-1, 0), (0, 1), (0, -1)):
+            kup(bpy, (ax + dx, ay + dy, boy + 1), yaprak)
 
 
 def kup(bpy, p, m):
@@ -730,33 +1236,122 @@ def kup(bpy, p, m):
         "uv", [c for i in range(6) for c in (0, 0, 1, 0, 1, 1, 0, 1)])
 
 
-def kivilcim_kur(bpy, efektler, fps, doku_malzemesi):
-    if not efektler:
-        return
-    m = bpy.data.materials.new("kivilcim")
+def _isik_malz(bpy, ad, renk, guc):
+    m = bpy.data.materials.new(ad)
     m.use_nodes = True
     b = m.node_tree.nodes["Principled BSDF"]
-    b.inputs["Emission Strength"].default_value = 12.0
-    m2 = m.copy()
-    b.inputs["Emission Color"].default_value = (1.0, 0.85, 0.5, 1)
-    m2.node_tree.nodes["Principled BSDF"].inputs["Emission Color"].default_value = (0.6, 0.8, 1.0, 1)
+    b.inputs["Base Color"].default_value = (*renk, 1)
+    b.inputs["Emission Color"].default_value = (*renk, 1)
+    b.inputs["Emission Strength"].default_value = guc
+    return m
+
+
+def _parca(bpy, nokta, boy, malz, f0, f1, son_nokta, ara=None):
+    """f0'da `nokta`da belirip f1'de `son_nokta`da sonen kucuk kup.
+    ara: [(kare, nokta)] -- yay (yercekimi) icin ara anahtarlar."""
+    bpy.ops.mesh.primitive_cube_add(size=boy, location=nokta)
+    ob = bpy.context.object
+    ob.data.materials.append(malz)
+    ob.scale = (0, 0, 0)
+    ob.keyframe_insert("scale", frame=max(0, f0 - 1))
+    ob.scale = (1, 1, 1)
+    ob.keyframe_insert("scale", frame=f0)
+    ob.keyframe_insert("location", frame=f0)
+    for fk, nk in (ara or []):
+        ob.location = nk
+        ob.keyframe_insert("location", frame=fk)
+    ob.location = son_nokta
+    ob.keyframe_insert("location", frame=f1)
+    return ob
+
+
+def kivilcim_kur(bpy, efektler, fps, doku_malzemesi, harita=None):
+    """Temas efektleri. Zamanlar hikaye zamaninda; kareye `harita` cevirir.
+      vurus: sari kivilcim (tirpan El-Harkos'tan sekiyor -- "silah islemiyor")
+      savun: mavi kivilcim
+      isik : isinlanma -- mor flas, kisa nokta isigi, disa sacilan parcalar
+             (renk: Karanlik Tirpan'in mor isigi, SERI_SEZON1 varsayilani)
+      kan  : ilk delen darbe -- vurus yonunde kisa sicrama, yercekimiyle
+             yay cizen damlalar, yere dustugu yerde kalan koyu leke"""
+    if not efektler:
+        return
+    kare = (lambda t: kare_bul(harita, t) + 1) if harita else (lambda t: int(t * fps) + 1)
+    sari = _isik_malz(bpy, "kivilcim", (1.0, 0.85, 0.5), 12.0)
+    mavi = _isik_malz(bpy, "kivilcim_mavi", (0.6, 0.8, 1.0), 12.0)
+    mor = _isik_malz(bpy, "isinlanma", (0.78, 0.49, 1.0), 25.0)
+    kan_m = bpy.data.materials.new("kan")
+    kan_m.use_nodes = True
+    kb = kan_m.node_tree.nodes["Principled BSDF"]
+    kb.inputs["Base Color"].default_value = (0.32, 0.01, 0.01, 1)
+    kb.inputs["Roughness"].default_value = 0.25
+    leke_m = bpy.data.materials.new("kan_leke")
+    leke_m.use_nodes = True
+    leke_m.node_tree.nodes["Principled BSDF"].inputs["Base Color"].default_value = (0.18, 0.0, 0.0, 1)
+    toprak_m = bpy.data.materials.new("toprak")
+    toprak_m.use_nodes = True
+    toprak_m.node_tree.nodes["Principled BSDF"].inputs["Base Color"].default_value = (0.24, 0.16, 0.09, 1)
     rnd = random.Random(11)
     for e in efektler:
-        for _ in range(10):
-            bpy.ops.mesh.primitive_cube_add(size=0.07, location=e["nokta"])
-            ob = bpy.context.object
-            ob.data.materials.append(m2 if e["tur"] == "savun" else m)
-            f0 = int(e["t"] * fps) + 1
-            yon = (rnd.uniform(-1, 1), rnd.uniform(-1, 1), rnd.uniform(0, 1.2))
-            ob.scale = (0, 0, 0)
-            ob.keyframe_insert("scale", frame=f0 - 1)
-            ob.scale = (1, 1, 1)
-            ob.keyframe_insert("scale", frame=f0)
-            ob.keyframe_insert("location", frame=f0)
-            ob.location = tuple(e["nokta"][i] + yon[i] * 0.6 for i in range(3))
-            ob.scale = (0, 0, 0)
-            ob.keyframe_insert("location", frame=f0 + int(0.3 * fps))
-            ob.keyframe_insert("scale", frame=f0 + int(0.3 * fps))
+        f0 = kare(e["t"])
+        n = e["nokta"]
+        if e["tur"] in ("vurus", "savun"):
+            for _ in range(10):
+                yon = (rnd.uniform(-1, 1), rnd.uniform(-1, 1), rnd.uniform(0, 1.2))
+                _parca(bpy, n, 0.07, mavi if e["tur"] == "savun" else sari, f0, f0 + int(0.3 * fps),
+                       tuple(n[i] + yon[i] * 0.6 for i in range(3)))
+        elif e["tur"] == "isik":
+            nl = bpy.data.objects.new("flas", bpy.data.lights.new("flas", "POINT"))
+            nl.data.color = (0.78, 0.49, 1.0)
+            nl.location = n
+            bpy.context.scene.collection.objects.link(nl)
+            for fk, g in ((f0 - 1, 0), (f0, 900), (f0 + int(0.12 * fps), 250), (f0 + int(0.35 * fps), 0)):
+                nl.data.energy = g
+                nl.data.keyframe_insert("energy", frame=max(0, fk))
+            for _ in range(24):
+                yon = (rnd.uniform(-1, 1), rnd.uniform(-1, 1), rnd.uniform(-0.6, 1.0))
+                bas = tuple(n[i] + yon[i] * 0.15 for i in range(3))
+                _parca(bpy, bas, rnd.uniform(0.05, 0.11), mor, f0, f0 + int(rnd.uniform(0.3, 0.55) * fps),
+                       tuple(n[i] + yon[i] * rnd.uniform(0.8, 1.4) for i in range(3)))
+        elif e["tur"] == "toprak":
+            # cukurun acildigi an: disari ve yukari sacilan toprak parcalari
+            for _ in range(40):
+                v = [rnd.uniform(-3, 3), rnd.uniform(-3, 3), rnd.uniform(1.5, 4.0)]
+                ara, yere = [], None
+                for k in range(1, 50):
+                    tt = k / fps
+                    p = (n[0] + v[0] * tt, n[1] + v[1] * tt, n[2] + v[2] * tt - 4.9 * tt * tt)
+                    if p[2] <= 0.03 and k > 2:
+                        yere = (f0 + k, (p[0], p[1], 0.03))
+                        break
+                    ara.append((f0 + k, p))
+                if yere:
+                    _parca(bpy, n, rnd.uniform(0.08, 0.2), toprak_m, f0, yere[0], yere[1], ara[:-1])
+        elif e["tur"] == "kan":
+            yon = e.get("yon", [0, 1])
+            for j in range(18):
+                v = [yon[0] * rnd.uniform(1.0, 2.6) + rnd.uniform(-0.6, 0.6),
+                     yon[1] * rnd.uniform(1.0, 2.6) + rnd.uniform(-0.6, 0.6),
+                     rnd.uniform(0.4, 2.0)]
+                ara, yere = [], None
+                for k in range(1, 40):
+                    tt = k / fps
+                    p = (n[0] + v[0] * tt, n[1] + v[1] * tt, n[2] + v[2] * tt - 4.9 * tt * tt)
+                    if p[2] <= 0.02:
+                        yere = (f0 + k, (p[0], p[1], 0.01))
+                        break
+                    ara.append((f0 + k, p))
+                if yere is None:
+                    continue
+                _parca(bpy, n, rnd.uniform(0.04, 0.08), kan_m, f0, yere[0], yere[1], ara[:-1])
+                if j % 2 == 0:
+                    # yerde kalan leke: duz kare, dusus aninda belirir
+                    bpy.ops.mesh.primitive_plane_add(size=rnd.uniform(0.06, 0.14), location=yere[1])
+                    lk = bpy.context.object
+                    lk.data.materials.append(leke_m)
+                    lk.scale = (0, 0, 0)
+                    lk.keyframe_insert("scale", frame=yere[0] - 1)
+                    lk.scale = (1, 1, 1)
+                    lk.keyframe_insert("scale", frame=yere[0])
 
 
 # ============================================================
@@ -785,7 +1380,7 @@ def altyazi_bas(klasor):
                 d.text(((W - g) / 2, H * 0.38), y["metin"], font=f, fill=(255, 255, 255, alfa))
                 continue
             f = ImageFont.truetype(YAZI_TIPI, int(H * 0.045))
-            parcalar = ([(y["isim"] + ": ", (255, 214, 90, alfa))] if y["tur"] == "soyle" else []) + \
+            parcalar = ([(y["isim"] + ": ", (255, 214, 90, alfa))] if y["tur"] == "soyle" and y.get("isim") else []) + \
                        [(y["metin"], (255, 255, 255, alfa) if y["tur"] == "soyle" else (220, 220, 220, alfa))]
             toplam = sum(d.textlength(p, font=f) for p, _ in parcalar)
             x0 = (W - toplam) / 2
@@ -810,4 +1405,9 @@ if __name__ == "__main__":
         altyazi_bas(klasor)
     else:
         tek = int(arg[arg.index("--kare") + 1]) if "--kare" in arg else None
-        blender_filmi(B.oku(os.path.abspath(arg[0])), klasor, "--onizleme" in arg, tek)
+        adim = int(arg[arg.index("--adim") + 1]) if "--adim" in arg else 1
+        aralik = [int(x) for x in arg[arg.index("--aralik") + 1].split("-")] if "--aralik" in arg else None
+        sen = B.oku(os.path.abspath(arg[0]))
+        if "--ayar" in arg:                 # ornek: --ayar '{"ornek": 4, "cozunurluk": [640, 360]}'
+            sen.update(json.loads(arg[arg.index("--ayar") + 1]))
+        blender_filmi(sen, klasor, "--onizleme" in arg, tek, adim, aralik)

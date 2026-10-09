@@ -133,6 +133,23 @@ kullanılması üzerine sorulmuştu (`SERI_SEZON1.md`).
 **paylaşılabilir** izin verdiğini (o da teşekkür ederek) doğruladı.
 Üç yapımcının üçü de kayıtlı.
 
+### Film sesi — Kenney (Impact Sounds, RPG Audio, Sci-fi Sounds) + "Battle Theme A", v7.99.10
+
+| | |
+|---|---|
+| ne | 32 kısa efekt (`.ogg`: adım, darbe, metal, kapı, kâğıt, ışınlanma, boğuk patlama) + 1 müzik (`battleThemeA.mp3`, 96 sn) |
+| nerede | `kaynak_ses/film/` |
+| bağlandığı yer | `arac/film_ses.py` → animasyon serisinin film sesi (`SERI_SEZON1.md` "Ses") |
+| izin | **CC0 (kamu malı)** — Kenney paketlerinin kendi `License.txt`'si: "Creative Commons Zero, CC0"; müzik sayfası CC0 1.0'a bağlı |
+| yapımcı | Kenney (kenney.nl) · cynicmusic (opengameart.org/content/battle-theme-a) |
+
+Dosyalar kaynaktan **birebir** kopyalandı. Paketlerin yalnız kullanılan
+dosyaları alındı. CC0 atıf istemiyor; bu satır yine de kayıt.
+Müzik için not: CC0 olsa da YouTube Content ID bir parçayı yine
+işaretleyebilir — liste dışı bir yüklemeyle denenmeli.
+Ortam sesleri (rüzgâr, gece böcekleri, oda uğultusu) dış dosya değil,
+`film_ses.py` içinde **üretiliyor**.
+
 ---
 
 ## Depoda BULUNMAYAN ama ölçümü alınan modlar

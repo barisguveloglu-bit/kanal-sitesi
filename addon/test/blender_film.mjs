@@ -83,6 +83,77 @@ const [kam, bak] = r.kam_bakis[0];
 kontrol("yan kamera iki aktorun eksenine dik, ortaya bakiyor", Math.abs(kam[0] - 2) < 1e-6 && Math.abs(bak[0] - 2) < 1e-6,
         JSON.stringify(kam));
 kontrol("ayni senaryo ayni film (tekrar cekim)", r.ayni);
+
+// ---- v7.99.10: 1. bolumun ihtiyaclari ----
+const sen2 = {
+  fps: 30, sure: 6.0,
+  zaman: [{ t: 2.0, sure: 0.5, hiz: 0.25 }],
+  aktorler: {
+    a: { skin: "x.png", isim: "Barış", silah: "karanlik_tirpan", set: "antitheus", konum: [0, 0], bak: "b" },
+    b: { skin: "y.png", isim: "El-Harkos", set: "yumruk", konum: [2.2, 0], bak: "a" },
+    k: { skin: "x.png", konum: [5, 5], gizli: true }
+  },
+  olaylar: [
+    { t: 0.2, aktor: "b", poz: "kagit", tut: true },
+    { t: 0.2, aktor: "b", esya: "kagit" },
+    { t: 1.0, aktor: "b", poz_bitir: "kagit" },
+    { t: 1.0, aktor: "b", esya: null },
+    { t: 1.2, aktor: "k", goster: true },
+    { t: 1.2, aktor: "k", isinlan: [4, 0], yuz: "b" },
+    { t: 1.6, aktor: "k", gizle: true },
+    { t: 2.0, aktor: "a", vur: "oto", hedef: "b", kan: true, dusur: "diz_cok" },
+    { t: 2.1, aktor: "b", soyle: "Bu… benim mi?" },
+    { t: 4.0, aktor: "a", git: [0, -3], adim: 1.2 }
+  ],
+  kamera: [{ t: 0, aci: "genis", a: "a", b: "b" }, { t: 2.0, aci: "goz", a: "b", hedef: [0, 0, 1] }]
+};
+const py2 = `
+import json, sys
+sys.path.insert(0, ${JSON.stringify(KOK + "arac")})
+import blender_film as F
+import bedrock_onizleme as B
+sen = json.loads(sys.stdin.read())
+setler = B.oku(F.HAREKET)["setler"]
+h = F.zaman_haritasi(sen)
+ak, ef, yz, sr = F.zaman_cizelgesi(sen, setler, {})
+kam = F.kamera_izi(sen, ak)
+a, b, k = ak["a"].kayit, ak["b"].kayit, ak["k"].kayit
+def kare(t): return F.kare_bul(h, t)
+katman = lambda r, t: sorted({x["ad"] for x in r[kare(t)]["tepki"] if x.get("ad")})
+yol = lambda r, t0, t1: ((r[kare(t1)]["x"]-r[kare(t0)]["x"])**2 + (r[kare(t1)]["y"]-r[kare(t0)]["y"])**2) ** 0.5
+print(json.dumps({
+  "kare": len(h), "beklenen": int(round((6.0 - 0.5) * 30 + 0.5 * 30 / 0.25)),
+  "kam": len(kam), "agir_dt": h[kare(2.1)+1] - h[kare(2.1)],
+  "kagit_0.5": katman(b, 0.5), "kagit_1.5": katman(b, 1.5),
+  "esya": [b[kare(0.5)]["esya"], b[kare(1.5)]["esya"]],
+  "k_gorunur": [k[kare(0.5)]["gorunur"], k[kare(1.3)]["gorunur"], k[kare(2.5)]["gorunur"]],
+  "k_x": k[kare(1.3)]["x"], "isik": len([e for e in ef if e["tur"] == "isik"]),
+  "kan": len([e for e in ef if e["tur"] == "kan"]), "vurus": len([e for e in ef if e["tur"] == "vurus"]),
+  "diz": katman(b, 3.8), "yazi_t": [y["t"] for y in yz if y["tur"] == "soyle"],
+  "yuru_hiz": yol(a, 5.0, 5.8) / 0.8, "goz_kam": kam[kare(2.6)][0]
+}, ensure_ascii=False))
+`;
+const r2 = JSON.parse(execFileSync("python3", ["-c", py2], { input: JSON.stringify(sen2), encoding: "utf8" }));
+kontrol("agir cekim: 0.5 sn x4 yavas -> film uzar", r2.kare === r2.beklenen + 1 || Math.abs(r2.kare - r2.beklenen) <= 2,
+        r2.kare + " kare (beklenen ~" + r2.beklenen + ")");
+kontrol("agir cekimde hikaye zamani kare basi 1/120 sn ilerliyor", Math.abs(r2.agir_dt - 0.25 / 30) < 1e-6,
+        r2.agir_dt.toFixed(5));
+kontrol("kamera her film karesi icin", r2.kam === r2.kare);
+kontrol("poz katmani: kagit tutuluyor, poz_bitir ile birakiliyor",
+        r2["kagit_0.5"].includes("kagit") && !r2["kagit_1.5"].includes("kagit"),
+        JSON.stringify([r2["kagit_0.5"], r2["kagit_1.5"]]));
+kontrol("kagit sol elde, sonra yok", r2.esya[0] === "kagit" && r2.esya[1] === null, JSON.stringify(r2.esya));
+kontrol("kopya: gizli -> goster -> gizle", JSON.stringify(r2.k_gorunur) === "[false,true,false]",
+        JSON.stringify(r2.k_gorunur));
+kontrol("isinlanma aktoru tasiyor, iki flas (eski + yeni yer)", Math.abs(r2.k_x - 4) < 1e-9 && r2.isik === 2,
+        "x " + r2.k_x + ", " + r2.isik + " flas");
+kontrol("delen vurus: kivilcim yerine kan", r2.kan >= 1, r2.kan + " kan, " + r2.vurus + " kivilcim");
+kontrol("son temasta hedef diz cokuyor (dusur)", r2.diz.includes("diz_cok"), JSON.stringify(r2.diz));
+kontrol("altyazi FILM zamaninda (agir cekim sonrasi kayar)", r2.yazi_t[0] > 2.1 + 0.05, String(r2.yazi_t));
+kontrol("yarali yuruyus: adim hizi uygulanıyor (1.2 blok/sn)", Math.abs(r2.yuru_hiz - 1.2) < 0.15,
+        r2.yuru_hiz.toFixed(2) + " blok/sn");
+kontrol("goz kamerasi aktorun bas hizasinda", Math.abs(r2.goz_kam[2] - 1.55) < 1e-6, JSON.stringify(r2.goz_kam));
+
 console.log("");
 console.log(hata ? ">>> SORUN VAR" : ">>> blender film cizelgesi: oyun kurallariyla ayni");
 process.exit(hata ? 1 : 0);
