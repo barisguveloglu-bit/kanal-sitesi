@@ -54,7 +54,10 @@ OLCUM = {
     "sag bacak": ("rightLeg", ("bacak", "Thigh_R", "Leg_R")),
     "sol bacak": ("leftLeg", ("bacak", "Thigh_L", "Leg_L")),
     "kafa": ("head", ("yon", "Head")),
-    "gogus": ("body", ("yon", "Chest")),
+    # v7.99.10: tek kutu govde omurga KIRISINE (Torso -> Head) bakiyor
+    # (wom_cevir.py KEMIK["waist"]); Chest'in kendi yonu iki parcali
+    # omurgada fazla egik.
+    "gogus": ("body", ("uzuv", "Torso", "Head")),
     "bicak": ("rightItem", ("bicak", "Tool_R")),
 }
 
