@@ -120,6 +120,19 @@ azalır (politika kesin ölçülmedi, temkin).
 Tarama iki katmanlı: ölçülebilen her şey betikle (kare kare sayılarla),
 ölçülemeyen her şey karelere bakılarak.
 
+**İlk önizlemeden ders (v7.99.10):** betik "0 sorun" dedi, karelere
+bakınca beş ciddi hata çıktı — ikinci katman atlanamaz. Çıkanlar ve
+kaynağında kapatılışları:
+
+| görülen | sebep | kilit |
+|---|---|---|
+| çukur solgun, dokusuz | ufuk düzlemi (z −0.01) çukurun deliğini örtüyordu | ufuk ortası boş |
+| aktör ötekini kapatıyor | alçak açı kamerayı B'nin arkasına, omuz üstü B'yi A'nın omzunun arkasına koyuyordu | `kamera_denetim.py` ORTME / ONPLAN |
+| ~1 sn gri boşluk | POV kamerası aktörün kendi kafasının içindeydi | ONPLAN (POV) |
+| final simsiyah | ay 0.32, gök 0.012 | ışık anahtarları |
+| kağıt görünmüyor | kağıt kalkan kolla yatıyordu | kağıt dinlenmede yatay |
+| 7 karede bir çizim | ışık döngüsü `adim`'ı eziyordu (1080p'yi de bozardı) | `test/blender_film.mjs` |
+
 ## Varsayılanlar — cevap beklemeden uygulandı
 
 Kullanıcı *"çizmeye başla"* dedi; aşağıdakiler soruldu ama cevap

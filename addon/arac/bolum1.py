@@ -25,6 +25,19 @@ SKIN_HARKOS = "Simsek_Kol_Kaynak/textures/entity/ilkel_harkos.png"
 SKIN_ASKER = "Simsek_Kol_Kaynak/textures/entity/ilkel_okazor.png"
 FPS = 30
 CUKUR_DERIN = 0.35
+# Baris'in vuruslari: Antitheus kombosunun 1, 2 ve 4. adimlari. 3. adim
+# filmde KULLANILMIYOR: tirpanin sapi 0.1-0.2 sn basin icinden geciyor
+# (test/silah_govde.mjs "bilinen kalinti"; kol duzeltmesi 15 derecede
+# kapatamiyor). Sira bilerek 1-2-4.
+KAGIT_YAN = 1             # +1/-1: okuma cekiminde kameranin yani (sol el kameraya)
+BARIS_VURUS = ["antitheus_auto_1", "antitheus_auto_2", "antitheus_auto_4"]
+_sira = [0]
+
+
+def bv():
+    ad = BARIS_VURUS[_sira[0] % len(BARIS_VURUS)]
+    _sira[0] += 1
+    return ad
 
 
 def kos(sen, t):
@@ -40,6 +53,7 @@ def ileri(aci, d):
 
 
 def orman():
+    _sira[0] = 0
     sen = {
         "fps": FPS, "sure": 0, "cozunurluk": [1920, 1080], "ornek": 16,
         "sekme": 3, "yayilma_sekme": 2, "parlak_sekme": 1, "seffaf_sekme": 4,
@@ -56,16 +70,19 @@ def orman():
         # sabah -> gece: 1-4 sabah, gece dovus boyunca coker, 6-7 gece
         "isik": [{"t": 0, "gunes": 1.7, "gok": 0.18, "yukseklik": 38, "ay": 0.0},
                  {"t": 42, "gunes": 1.5, "gok": 0.16, "yukseklik": 28, "ay": 0.0},
-                 {"t": 62, "gunes": 0.5, "gok": 0.06, "yukseklik": 4, "ay": 0.05},
-                 {"t": 76, "gunes": 0.0, "gok": 0.012, "yukseklik": -6, "ay": 0.32}],
+                 {"t": 62, "gunes": 0.5, "gok": 0.06, "yukseklik": 4, "ay": 0.4},
+                 # gece OKUNUR kalmali: ay 0.32 / gok 0.012'de final (ikinci
+                 # delis, diz cokme, olum, bayilma) onizlemede simsiyahti
+                 {"t": 70, "gunes": 0.0, "gok": 0.045, "yukseklik": -6, "ay": 1.3},
+                 {"t": 76, "gunes": 0.0, "gok": 0.045, "yukseklik": -6, "ay": 1.3}],
     }
     O, K = sen["olaylar"], sen["kamera"]
 
     # ---- 1. SAHNE: El-Harkos Baris'i yeniyor (Baris zorlaniyor) ----
     O += [{"t": 0.3, "baslik": "1. BÖLÜM", "sure": 2.6},
-          {"t": 2.6, "aktor": "b", "vur": "oto", "hedef": "h"},              # kivilcim: silah islemiyor
+          {"t": 2.6, "aktor": "b", "vur": bv(), "hedef": "h"},              # kivilcim: silah islemiyor
           {"t": 3.4, "aktor": "h", "vur": "oto", "hedef": "b"},
-          {"t": 4.6, "aktor": "b", "vur": "oto", "hamle": 0.55},             # iskalar (hedefsiz)
+          {"t": 4.6, "aktor": "b", "vur": bv(), "hamle": 0.55},             # iskalar (hedefsiz)
           {"t": 5.3, "aktor": "b", "poz": "sendele"},
           {"t": 5.6, "aktor": "h", "vur": "oto", "hedef": "b"},
           {"t": 6.5, "aktor": "h", "vur": "oto", "hedef": "b"}]
@@ -99,9 +116,17 @@ def orman():
           {"t": t_k + 4.0, "aktor": "h", "esya": None}]
     s = kos(dict(sen, sure=t_k), t_k - 0.01)
     hx, hy = s["h"]["x"], s["h"]["y"]
+    on_k = (cx - hx, cy - hy)
+    n_k = math.hypot(*on_k) or 1
+    on_k = (on_k[0] / n_k, on_k[1] / n_k)
+    yan_k = (-on_k[1] * KAGIT_YAN, on_k[0] * KAGIT_YAN)   # kagit tutan SOL elin tarafi
     # yukaridan, cukurda yatan Baris (ust aci: caresizlik)
     K += [{"t": t_temas + 1.0, "aci": "elle", "kam": [cx + 1.2, cy - 1.6, 4.2], "bak": [cx, cy, 0.0], "lens": 30},
-          {"t": t_k + 0.2, "aci": "yakin_on", "a": "h", "lens": 40},
+          # okuma: yandan 3/4 -- yuzune konan kamera (yakin_on) yerde yatan
+          # Baris'in 1.26 blok yanina dusuyordu ve kagit kadraj disindaydi
+          {"t": t_k + 0.2, "aci": "elle", "kam": [hx + yan_k[0] * 2.9 + on_k[0] * 1.2,
+                                                  hy + yan_k[1] * 2.9 + on_k[1] * 1.2, 1.75],
+           "bak": "h", "bak_yuks": 1.62, "lens": 35},
           {"t": t_k + 2.6, "aci": "omuz", "a": "h", "b": "b", "lens": 30}]
 
     # ---- 2. SAHNE: sirtini donup gidiyor (Baris arkada, bulanik ama gorunur) ----
@@ -113,28 +138,31 @@ def orman():
     O += [{"t": t2, "aktor": "h", "git": hedef2, "adim": 2.2},
           {"t": t2 + 3.0, "aktor": "h", "soyle": "Kırk iki."}]
     # kamera El-Harkos'un yolunun onunde, ona odakli; Baris arkada bulanik
-    K += [{"t": t2, "aci": "elle", "kam": [hedef2[0] + yon[0] * 2.2 + yon[1] * 0.6, hedef2[1] + yon[1] * 2.2 - yon[0] * 0.6, 1.5],
-           "bak": "h", "bak_yuks": 1.25, "lens": 50, "odak": "h"}]
+    K += [{"t": t2, "aci": "elle", "kam": [hedef2[0] + yon[0] * 5.0 + yon[1] * 1.0, hedef2[1] + yon[1] * 5.0 - yon[0] * 1.0, 1.5],
+           "bak": "h", "bak_yuks": 1.2, "lens": 35, "odak": "h"}]
     sen["fstop"] = 2.0
     t3 = t2 + 7.5
 
     # ---- 3. SAHNE: geri bakar -- cukur bos ----
     O += [{"t": t3 - 0.1, "aktor": "b", "gizle": True},          # kesme aninda yok (izleyici gormuyor)
           {"t": t3, "aktor": "h", "bak": [cx, cy]}]
-    K += [{"t": t3, "aci": "yakin_on", "a": "h", "lens": 45},
+    K += [{"t": t3, "aci": "yakin_on", "a": "h", "lens": 35},
           {"t": t3 + 1.4, "aci": "goz", "a": "h", "hedef": [cx, cy, 0.0], "lens": 35}]
     t3b = t3 + 3.2
     O += [{"t": t3b, "aktor": "h", "git": [cx + yon[0] * 1.6, cy + yon[1] * 1.6], "adim": 3.0}]
-    K += [{"t": t3b, "aci": "takip", "a": "h", "lens": 30}]
+    # cukurun yaninda sabit kamera: El-Harkos geri doner, cukura yaklasir
+    K += [{"t": t3b, "aci": "elle", "kam": [cx - yon[1] * 3.2 - yon[0] * 1.5, cy + yon[0] * 3.2 - yon[1] * 1.5, 1.3],
+           "bak": "h", "bak_yuks": 1.2, "lens": 30}]
     t3c = t3b + 3.2
     O += [{"t": t3c, "aktor": "h", "bak": [cx, cy]},
           {"t": t3c + 0.2, "aktor": "h", "poz": "comel_dokun"},
           {"t": t3c + 1.2, "aktor": "h", "soyle": "Hâlâ sıcak."}]
-    K += [{"t": t3c, "aci": "elle", "kam": [cx - yon[1] * 2.2, cy + yon[0] * 2.2, 0.9],
-           "bak": [cx + yon[0] * 0.9, cy + yon[1] * 0.9, 0.5], "lens": 40}]
+    # 2.2 blok / lens 40'ta diz cokmus El-Harkos'un basi kesiliyordu
+    K += [{"t": t3c, "aci": "elle", "kam": [cx - yon[1] * 3.0, cy + yon[0] * 3.0, 1.1],
+           "bak": [cx + yon[0] * 1.2, cy + yon[1] * 1.2, 0.75], "lens": 32}]
     t3d = t3c + 2.4
     O += [{"t": t3d, "aktor": "h", "poz": "etrafa_bak"}]
-    K += [{"t": t3d, "aci": "yakin_on", "a": "h", "lens": 38, "yatik": 6},
+    K += [{"t": t3d, "aci": "yakin_on", "a": "h", "lens": 32, "yatik": 6},
           {"t": t3d + 1.2, "aci": "dusuk", "a": "h", "lens": 26, "yatik": -7}]
 
     # ---- 4. SAHNE: uc Baris isinlanir (dovusmuyorlar) -- muziksiz ----
@@ -151,7 +179,7 @@ def orman():
               {"t": tt + 0.55, "aktor": ad, "gizle": True},
               {"t": tt + 0.15, "aktor": "h", "bak": yer[i]}]
     K += [{"t": t4, "aci": "omuz", "a": "h", "b": "k1", "lens": 30},
-          {"t": t4 + 1.7, "aci": "yakin_on", "a": "h", "lens": 40},
+          {"t": t4 + 1.7, "aci": "yakin_on", "a": "h", "lens": 35},
           {"t": t4 + 3.2, "aci": "omuz", "a": "h", "b": "k3", "lens": 30}]
     t4b = t4 + 4.6
     for i, ad in enumerate(("k1", "k2", "k3")):
@@ -171,32 +199,32 @@ def orman():
 
     # ---- 5. SAHNE: dovus (Baris ilk dovusu: once zorlaniyor) ----
     t = t5 + 1.2
-    O += [{"t": t, "aktor": "b", "vur": "oto", "hedef": "h"},                  # kivilcim
+    O += [{"t": t, "aktor": "b", "vur": bv(), "hedef": "h"},                  # kivilcim
           {"t": t + 1.3, "aktor": "h", "soyle": "Bunu daha önce de denediler."},
           {"t": t + 2.0, "aktor": "h", "vur": "oto", "hedef": "b"},
           {"t": t + 3.0, "aktor": "b", "kacin": "geri"},
-          {"t": t + 3.4, "aktor": "b", "vur": "oto", "hedef": "h", "hamle": 0.6},
+          {"t": t + 3.4, "aktor": "b", "vur": bv(), "hedef": "h", "hamle": 0.6},
           {"t": t + 4.9, "aktor": "h", "vur": "oto", "hedef": "b"},
           {"t": t + 5.6, "aktor": "b", "savun": 1.0},
-          {"t": t + 6.8, "aktor": "b", "vur": "oto", "hedef": "h"},
+          {"t": t + 6.8, "aktor": "b", "vur": bv(), "hedef": "h"},
           {"t": t + 8.0, "aktor": "h", "savun": 1.2},
-          {"t": t + 8.2, "aktor": "b", "vur": "oto", "hedef": "h"},
+          {"t": t + 8.2, "aktor": "b", "vur": bv(), "hedef": "h"},
           {"t": t + 9.8, "aktor": "h", "vur": "kosu", "hedef": "b"},
           {"t": t + 10.0, "aktor": "b", "kacin": "sag"},
-          {"t": t + 10.8, "aktor": "b", "vur": "oto", "hedef": "h"},
-          {"t": t + 12.4, "aktor": "b", "vur": "oto", "hedef": "h"}]
+          {"t": t + 10.8, "aktor": "b", "vur": bv(), "hedef": "h"},
+          {"t": t + 12.4, "aktor": "b", "vur": bv(), "hedef": "h"}]
     K += [{"t": t, "aci": "yan", "a": "b", "b": "h"},
-          {"t": t + 1.25, "aci": "yakin_on", "a": "h", "lens": 40},
+          {"t": t + 1.25, "aci": "omuz", "a": "b", "b": "h", "lens": 45, "odak": "h"},
           {"t": t + 2.0, "aci": "yan", "a": "b", "b": "h"},
           {"t": t + 3.4, "aci": "omuz", "a": "b", "b": "h"},
           {"t": t + 4.9, "aci": "yan", "a": "h", "b": "b"},
-          {"t": t + 6.8, "aci": "yorunge", "a": "b", "b": "h", "sure": 6.0},
+          {"t": t + 6.8, "aci": "yorunge", "a": "b", "b": "h", "sure": 18.0},
           {"t": t + 9.8, "aci": "genis", "a": "b", "b": "h", "lens": 30},
           {"t": t + 10.8, "aci": "yan", "a": "b", "b": "h"},
           {"t": t + 12.4, "aci": "dusuk", "a": "b", "b": "h", "lens": 30}]
     # 5a: ILK DELEN DARBE -- agir cekim + iki aci + yakin plan + sessizlik
     t5a = t + 15.0
-    O += [{"t": t5a, "aktor": "b", "vur": "oto", "hedef": "h", "kan": True}]
+    O += [{"t": t5a, "aktor": "b", "vur": bv(), "hedef": "h", "kan": True}]
     e5 = [e for e in F.zaman_cizelgesi(dict(sen, sure=t5a + 3), B.oku(F.HAREKET)["setler"], {})[1]
           if e["t"] > t5a and e["tur"] == "kan"]
     t_del = e5[0]["t"] if e5 else t5a + 0.6
@@ -204,12 +232,13 @@ def orman():
                      {"t": t_del - 0.05, "sure": 0.12, "hiz": 0.03},
                      {"t": t_del + 0.07, "sure": 0.6, "hiz": 0.3}]
     K += [{"t": t5a, "aci": "yan", "a": "b", "b": "h", "lens": 35},
-          {"t": t_del + 0.05, "aci": "dusuk", "a": "h", "b": "b", "lens": 28},   # ayni darbe ikinci aci
-          {"t": t_del + 0.7, "aci": "yakin_on", "a": "h", "lens": 45}]
+          # ayni darbe ikinci aci: Baris tarafindan alcak -- tirpan, kan ve
+          # iki aktor birlikte (a=h iken El-Harkos tek basina profilde kaliyordu)
+          {"t": t_del + 0.05, "aci": "dusuk", "a": "b", "b": "h", "lens": 28},
+          {"t": t_del + 0.7, "aci": "omuz", "a": "b", "b": "h", "lens": 45, "odak": "h"}]
     O += [{"t": t_del + 1.4, "aktor": "h", "poz": "kagit", "tut": True},        # eline bakar
           {"t": t_del + 2.0, "aktor": "h", "soyle": "Bu… benim mi?"},
           {"t": t_del + 4.4, "aktor": "h", "poz_bitir": "kagit"}]
-    K += [{"t": t_del + 1.4, "aci": "omuz", "a": "b", "b": "h", "lens": 40, "odak": "h"}]
     # son alisveris: El-Harkos saldirir, Baris kacar, ikinci delen darbe
     t5b = t_del + 4.8
     O += [{"t": t5b, "aktor": "h", "vur": "kosu", "hedef": "b"},
@@ -223,7 +252,10 @@ def orman():
     sen["zaman"].append({"t": t_son2 - 0.02, "sure": 0.1, "hiz": 0.04})
     O += [{"t": t_son2 + 1.4, "aktor": "h", "soyle": "Seni ucuza yazmışlar."},
           {"t": t_son2 + 4.4, "aktor": "h", "poz": "yuzustu", "tut": True}]
-    K += [{"t": t_son2 + 0.9, "aci": "yakin_on", "a": "h", "lens": 42},
+    # El-Harkos diz cokmus: kalip ayakta bas hizasina (1.62) bakiyor, konu
+    # kadrajin dibinde kaliyordu -- kamera ve bakis asagi
+    K += [{"t": t_son2 + 0.9, "aci": "omuz", "a": "b", "b": "h", "lens": 45, "odak": "h",
+           "kam_dz": -0.5, "bak_dz": -0.55},
           {"t": t_son2 + 4.2, "aci": "genis", "a": "b", "b": "h", "lens": 30}]
 
     # ---- 6. SAHNE: govdesini tutarak birkac adim, sonra bayilir (2. sahnenin aynasi) ----
@@ -238,11 +270,13 @@ def orman():
           {"t": t6 + 0.4, "aktor": "b", "git": hedef6, "adim": 0.9},
           {"t": t6 + 4.4, "aktor": "b", "poz_bitir": "govde_tut"},
           {"t": t6 + 4.4, "aktor": "b", "poz": "bayil", "tut": True, "giris": 0.05}]
-    K += [{"t": t6, "aci": "elle", "kam": [hedef6[0] + yon[0] * 2.4 + yon[1] * 0.6, hedef6[1] + yon[1] * 2.4 - yon[0] * 0.6, 1.5],
-           "bak": "b", "bak_yuks": 1.2, "lens": 50, "odak": "b"},
+    K += [{"t": t6, "aci": "elle", "kam": [hedef6[0] + yon[0] * 5.0 + yon[1] * 1.0, hedef6[1] + yon[1] * 5.0 - yon[0] * 1.0, 1.5],
+           "bak": "b", "bak_yuks": 1.1, "lens": 35, "odak": "b"},
           {"t": t6 + 5.6, "aci": "elle", "kam": [hedef6[0] + 3.5, hedef6[1] - 3.0, 3.0],
            "bak": [hedef6[0], hedef6[1], 0.3], "lens": 28, "kaydir": [0.15, -0.1, 0.12]}]
     sen["sure"] = round(t6 + 9.5, 2)
+    # 4. sahne: kopyalar -- 180 derece kurali BILEREK bozuluyor (yon kaybi)
+    sen["kural180_serbest"] = [[t4 - 0.1, t5 + 0.5]]
     # ses: 3-4 muziksiz (sessizlik korkuyu buyutur), muzik dovusle girer,
     # ilk delen darbede bir an susar, 6. sahnede soner
     sen["ses"] = {"ortam": "orman", "gece": [60, 76],

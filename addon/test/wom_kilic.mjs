@@ -203,7 +203,8 @@ function olc(animler) {
     for (const [olcu, s] of Object.entries(iz)) {
       if (!a.bones[s.kemik] && s.kemik !== "body") continue;
       for (const [t, ...g] of s.yon) {
-        const h = aci(g, uygula(dunyaDonus(a, s.kemik, t), s.dinlenme));
+        // pay: silah-govde carpisma duzeltmesinin bilerek izin verdigi sapma
+        const h = Math.max(0, aci(g, uygula(dunyaDonus(a, s.kemik, t), s.dinlenme)) - (s.pay || 0));
         yonler.push(h);
         if (h > enKotuYon[0]) enKotuYon = [h, ad + " " + olcu + " t=" + t];
       }

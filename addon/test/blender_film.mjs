@@ -12,6 +12,7 @@
    5. kamera her kare icin var ve kalip hedefe bakiyor
    6. ayni senaryo iki kez ayni cizelgeyi veriyor (tekrar cekim) */
 import { execFileSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 
 let hata = false;
 const kontrol = (ad, gecti, detay = "") => {
@@ -57,6 +58,7 @@ def kos():
             "anim": sorted(set(anim)), "ilk_anim": anim[0] if anim else None,
             "efekt": ef, "yazi": yz, "sarsinti": sr,
             "b_darbe": any(r["anim"] == "animation.aktor.darbe" for k in b for r in k["tepki"]),
+            "ara_min": min(((x["x"] - y["x"]) ** 2 + (x["y"] - y["y"]) ** 2) ** 0.5 for x, y in zip(a, b)),
             "kam_bakis": [F.kamera_noktasi("yan", (0,0,0,0), (4,0,0,0))],
             "iz": json.dumps([(round(k["x"],6), round(k["y"],6)) for k in a])}
 r1, r2 = kos(), kos()
@@ -67,8 +69,11 @@ print(json.dumps(r1, ensure_ascii=False))
 const r = JSON.parse(execFileSync("python3", ["-c", py], { input: JSON.stringify(senaryo), encoding: "utf8" }));
 kontrol("her kare icin aktor ve kamera", r.kare === 4.5 * 24 + 1 && r.kam === r.kare, r.kare + " / " + r.kam);
 kontrol("yurume: a b'ye dogru ilerledi", r.a_git > r.a_basx + 2, r.a_basx + " -> " + r.a_git.toFixed(2));
-kontrol("hamle: vurusun ilk saniyesinde aktor izin dedigi kadar one gidiyor",
-        r.hamle > 0.5 && Math.abs(r.hamle - r.hamle_iz) < 0.05, r.hamle.toFixed(2) + " / iz " + r.hamle_iz.toFixed(2));
+// v7.99.10: hamle rakibin ICINDEN gecmiyor (onizlemede Baris El-Harkos'un
+// icinden geciyordu). Iz 4.55 blok diyor; aktor one atilir, temas noktasinda durur.
+kontrol("hamle: aktor one atiliyor ama rakibin icinden gecmiyor",
+        r.hamle > 0.5 && r.hamle < r.hamle_iz && r.ara_min >= 1.049,
+        r.hamle.toFixed(2) + " blok (iz " + r.hamle_iz.toFixed(2) + "), en yakin ara " + r.ara_min.toFixed(3));
 kontrol("ilk vurus Antitheus kombosunun 1. adimi", r.ilk_anim === "animation.wom.antitheus.antitheus_auto_1", r.ilk_anim);
 kontrol("ikinci vurus kombonun 2. adimi", r.anim.includes("animation.wom.antitheus.antitheus_auto_2"), r.anim.join(", "));
 const vurus = r.efekt.filter((e) => e.tur === "vurus"), savun = r.efekt.filter((e) => e.tur === "savun");
@@ -153,6 +158,17 @@ kontrol("altyazi FILM zamaninda (agir cekim sonrasi kayar)", r2.yazi_t[0] > 2.1 
 kontrol("yarali yuruyus: adim hizi uygulanıyor (1.2 blok/sn)", Math.abs(r2.yuru_hiz - 1.2) < 0.15,
         r2.yuru_hiz.toFixed(2) + " blok/sn");
 kontrol("goz kamerasi aktorun bas hizasinda", Math.abs(r2.goz_kam[2] - 1.55) < 1e-6, JSON.stringify(r2.goz_kam));
+
+// --adim ezilmesin: blender_filmi icinde "adim" yalniz parametre olarak
+// yasar. v7.99.10'da isik dongusu "adim = fps/4" yaziyordu; 30 fps'de
+// her cizim 7 karede bir atliyordu (son 1080p dahil).
+{
+  const kaynak = readFileSync(KOK + "arac/blender_film.py", "utf8");
+  const govde = kaynak.slice(kaynak.indexOf("def blender_filmi("), kaynak.indexOf("\ndef ", kaynak.indexOf("def blender_filmi(") + 5));
+  const ezen = govde.split("\n").filter((l) => /^\s+adim\s*=/.test(l));
+  kontrol("blender_filmi --adim parametresini ezmiyor", govde.length > 1000 && ezen.length === 0,
+          ezen.length ? ezen.join(" | ").trim() : "atama yok");
+}
 
 console.log("");
 console.log(hata ? ">>> SORUN VAR" : ">>> blender film cizelgesi: oyun kurallariyla ayni");

@@ -1,6 +1,9 @@
 """Parcalari tek filme baglar: altyazi + ses + ardarda + siyah son.   v7.99.10
 
-    python3 addon/arac/film_birlestir.py cikti.mp4 klasor1:senaryo1.json klasor2:senaryo2.json ...
+    python3 addon/arac/film_birlestir.py cikti.mp4 klasor1:senaryo1.json klasor2:senaryo2.json ... [--adim 3]
+
+--adim N: onizleme (blender_film --adim N ile cizilmis); video fps/N'de
+akar, ses ve altyazi yine film zamaninda. Eksik kare varsa durur.
 
 Her klasor blender_film.py ciktisi (kare/0001.png ... + yazilar.json).
 Adimlar: altyazi (blender_film.altyazi_bas) -> ses (film_ses.py, ayni
@@ -20,31 +23,42 @@ import film_ses  # noqa: E402
 SIYAH_SON = 0.6
 
 
-def parca(klasor, senaryo_yolu):
+def parca(klasor, senaryo_yolu, adim=1):
     sen = B.oku(os.path.abspath(senaryo_yolu))
-    F.altyazi_bas(klasor)                       # -> klasor/film.mp4 (sessiz)
+    F.altyazi_bas(klasor, adim)                 # -> klasor/film.mp4 (sessiz)
     wav = os.path.join(klasor, "ses.wav")
     film_ses.yaz(film_ses.ses_kur(sen), wav)
     cikti = os.path.join(klasor, "parca.mp4")
     subprocess.run(["ffmpeg", "-y", "-v", "error", "-i", os.path.join(klasor, "film.mp4"), "-i", wav,
                     "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-shortest", cikti], check=True)
-    return cikti, sen.get("fps", 24)
+    return cikti, sen.get("fps", 24) / adim
+
+
+def boyut(video):
+    o = subprocess.run(["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries",
+                        "stream=width,height", "-of", "csv=p=0", video], capture_output=True, text=True, check=True)
+    return o.stdout.strip().replace(",", "x")
 
 
 def main(argv):
+    adim = 1
+    if "--adim" in argv:
+        i = argv.index("--adim")
+        adim = int(argv[i + 1])
+        argv = argv[:i] + argv[i + 2:]
     cikti = os.path.abspath(argv[0])
     parcalar = []
     fps = 30
     for a in argv[1:]:
         k, s = a.split(":", 1)
-        p, fps = parca(os.path.abspath(k), s)
+        p, fps = parca(os.path.abspath(k), s, adim)
         parcalar.append(p)
     girdi, filtre = [], []
     for i, p in enumerate(parcalar):
         girdi += ["-i", p]
         filtre.append("[%d:v][%d:a]" % (i, i))
     n = len(parcalar)
-    girdi += ["-f", "lavfi", "-t", str(SIYAH_SON), "-i", "color=c=black:s=1920x1080:r=%d" % fps,
+    girdi += ["-f", "lavfi", "-t", str(SIYAH_SON), "-i", "color=c=black:s=%s:r=%g" % (boyut(parcalar[0]), fps),
               "-f", "lavfi", "-t", str(SIYAH_SON), "-i", "anullsrc=r=48000:cl=stereo"]
     filtre.append("[%d:v][%d:a]" % (n, n + 1))
     fc = "".join(filtre) + "concat=n=%d:v=1:a=1[v][a]" % (n + 1)

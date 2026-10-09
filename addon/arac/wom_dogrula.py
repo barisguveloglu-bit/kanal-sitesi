@@ -32,7 +32,8 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from wom_cevir import KILIC, Kaynak, ANIM_ONEK, CIKTI_ANIM, CIKTI_HAREKET, SOL_EL_DUZELT  # noqa: E402
+from wom_cevir import (KILIC, Kaynak, ANIM_ONEK, CIKTI_ANIM, CIKTI_HAREKET, SOL_EL_DUZELT,  # noqa: E402
+                       SILAH_GEO, CARPISMA_EN)
 
 CIKTI_IZ = os.path.join(os.path.dirname(CIKTI_ANIM), "wom_kilic.iz.json")
 
@@ -355,7 +356,7 @@ def iki_el_anlari(ef, olcek, adim=0.05, esik=3.0 / 16):
     return out
 
 
-def iz(ef, olcek, adim=0.05, sol_atla=False):
+def iz(ef, olcek, adim=0.05, sol_atla=False, silah_pay=0.0):
     out = {}
     if sol_atla:
         out["iki el"] = iki_el_anlari(ef, olcek, adim)
@@ -374,6 +375,8 @@ def iz(ef, olcek, adim=0.05, sol_atla=False):
         out[ad] = {"kemik": kemik,
                    "dinlenme": [round(v, 5) for v in nrm(mv(C, gercek_yon(ef, olcum, None)))],
                    "yon": seri}
+        if silah_pay and ad in ("sag kol", "bicak"):
+            out[ad]["pay"] = silah_pay      # carpisma duzeltmesinin izinli sapmasi (derece)
     return out
 
 
@@ -404,7 +407,8 @@ def main(argv):
                 continue
             if olcek is None:
                 olcek = anim["animation_length"] / ef.sure if ef.sure else 1.0
-            izler[anim_ad] = iz(ef, olcek, sol_atla=set_ad in SOL_EL_DUZELT)
+            izler[anim_ad] = iz(ef, olcek, sol_atla=set_ad in SOL_EL_DUZELT,
+                                silah_pay=CARPISMA_EN if set_ad in SILAH_GEO else 0.0)
             for olcum, hatalar in olc(ef, anim, olcek, set_ad in SOL_EL_DUZELT).items():
                 m = max((h for h, _ in hatalar), default=0.0)
                 if olcum == "kalca px":
@@ -417,9 +421,13 @@ def main(argv):
                     merkez_en = max(merkez_en, (m, anim_ad))
                     asan += m > 1.0
                     continue
+                # Silah-govde carpisma duzeltmesi (wom_cevir.silah_carpisma_duzelt)
+                # bu setlerde sag kolu BILEREK en cok CARPISMA_EN derece ceviriyor;
+                # kol ve bicak yonunun Epic Fight'tan sapmasi o kadar serbest.
+                sinir = esik + (CARPISMA_EN if set_ad in SILAH_GEO and olcum in ("sag kol", "bicak") else 0.0)
                 for h, t in hatalar:
                     tum.append(h)
-                    asan += h > esik
+                    asan += h > sinir
                     if h > en_kotu[0]:
                         en_kotu = (h, anim_ad, olcum)
     tum.sort()
