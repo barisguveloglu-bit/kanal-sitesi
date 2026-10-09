@@ -1,0 +1,29 @@
+CIZIM PILOTU -- Blender Cycles, tam kalite (bolum1_orman.json, ek ayar yok)
+Tarih: 2026-10-09
+Senaryo ayarlari: 1920x1080, 30 fps, ornek 4096, uyarlamali 0.01, sure 74.14 sn (~2224 kare)
+
+Makine
+  cekirdek (nproc): 4
+  bellek: 15 GB (swap yok)
+  disk bos: 30 GB
+
+Dogrulama
+  Blender 5.2.2 linux-x64 SHA-256: TUTTU (84098912789dc450e95697c4184fb8a90acbe5111c2ba4aede3fecb57806a168)
+  MCprep 3.6.3 zip md5: TUTTU (22e6ac75cb2d48fed2cfa4be752af1a7)
+  MCPREP_DOKU klasoru: var
+
+Komut
+  blender -b -P addon/arac/blender_film.py -- addon/film/bolum1_orman.json /tmp/pilot_cikti --kare 500,1500
+  cikis kodu: 0
+
+Sureler (date +%s ve dosya zaman damgalari)
+  sahne kurulumu: 34 sn   (baslangic -> kare/ klasorunun olusmasi)
+  kare 500:     1514 sn   (~25 dk 14 sn; ilk kare, BVH/shader hazirligi dahil olabilir)
+  kare 1500:     367 sn   (~6 dk 7 sn)
+  toplam:       1915 sn   (~31 dk 55 sn)
+  Blender gunlugu: 0500.png 25:47.765, 1500.png 31:54.130 (Blender baslangicina gore)
+
+Kaba tahmin (tum film, ~2224 kare, bu makinede)
+  367 sn/kare ile  : ~227 saat (~9.4 gun)
+  1514 sn/kare ile : ~935 saat (~39 gun)
+  Iki kare arasindaki fark sahne icerigine bagli olabilir; iki olcum yetmez.
