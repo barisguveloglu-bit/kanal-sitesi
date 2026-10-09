@@ -440,9 +440,21 @@ def insan_hiyerarsisi(veri):
         # Olcut: gercek iskelet koku EBEVEYNSIZ ve KUPSUZDUR.
         # Oyle degilse kemik `_ic` ekiyle yeniden adlandirilip
         # cocuklari yeni ada baglaniyor.
+        #
+        # ---- WAIST ICIN OLCUT FARKLI (v7.99.10) ----
+        # Gercek `waist`in ebeveyni `root`tur; ilk yazilista ayni olcut
+        # (ebeveyni VAR mi) waist'e de uygulaniyordu ve SAGLAM waist'ler
+        # "cakisan" sayilip `waist_ic` yapiliyordu: govde, WoM'un butun
+        # govde egilmesini tasiyan waist'ten koptu (aktor, 6 Earl aleti).
+        # Kullanici filmde "tutusum garip" dedi; olcum buraya cikti.
         for ek in ("root", "waist"):
             b = adlar.get(ek)
-            if b is not None and (b.get("parent") or b.get("cubes")):
+            if b is None:
+                continue
+            cakisiyor = bool(b.get("cubes")) or (
+                bool(b.get("parent")) if ek == "root"
+                else b.get("parent") not in (None, "root"))
+            if cakisiyor:
                 yeni_ad = ek + "_ic"
                 while yeni_ad in adlar:
                     yeni_ad += "_ic"
@@ -6727,10 +6739,15 @@ def aktor_geometrisi(ince):
         kemik("hat", "head", [0, 24, 0], [kup([-4, 24, -4], [8, 8, 8], [32, 0], 0.5)]),
         kemik("rightArm", "body", [-5, kp, 0], [kup([-4 - k, ky, -2], [k, 12, 4], [40, 16])]),
         kemik("rightSleeve", "rightArm", [-5, kp, 0], [kup([-4 - k, ky, -2], [k, 12, 4], [40, 32], 0.25)]),
-        kemik("rightItem", "rightArm", [-6, 15, 1]),
+        # El noktasi Epic Fight'in OLCULMUS Tool_R'si (v7.99.10): dinlenmede
+        # kol ucundan 1,3 px yukari, (ic uzay) [6, 13.32, 0.47]. Vanilla'nin
+        # [-6, 15, 1]'i bilegin icinden geciyordu; silah yumrukta degil
+        # bilekte duruyordu ve WoM'un bilek donusleri yanlis merkezden
+        # donuyordu (kullanici: "tutusum biraz garip").
+        kemik("rightItem", "rightArm", [-6, 13.3, 0.5]),
         kemik("leftArm", "body", [5, kp, 0], [kup([4, ky, -2], [k, 12, 4], [32, 48])]),
         kemik("leftSleeve", "leftArm", [5, kp, 0], [kup([4, ky, -2], [k, 12, 4], [48, 48], 0.25)]),
-        kemik("leftItem", "leftArm", [6, 15, 1]),
+        kemik("leftItem", "leftArm", [6, 13.3, 0.5]),
         kemik("rightLeg", "root", [-1.9, 12, 0], [kup([-3.9, 0, -2], [4, 12, 4], [0, 16])]),
         kemik("rightPants", "rightLeg", [-1.9, 12, 0], [kup([-3.9, 0, -2], [4, 12, 4], [0, 32], 0.25)]),
         kemik("leftLeg", "root", [1.9, 12, 0], [kup([-0.1, 0, -2], [4, 12, 4], [16, 48])]),
@@ -6829,7 +6846,7 @@ def aktor_modulu(skinler):
 # "bicak" dinlenme [0, -0.09, -1.0]); sap o yuzden -Z boyunca.
 # ============================================================
 TIRPAN = "karanlik_tirpan"
-TIRPAN_PIVOT = [-6, 15, 1]          # oyuncu modelinin rightItem pivotu
+TIRPAN_PIVOT = [-6, 13.3, 0.5]      # aktorun rightItem'i = Epic Fight'in Tool_R'si (yumruk)
 # ---- TUTUS: Antitheus'un olculmus tutusu (v7.99.8) ----
 # WoM models/item/antitheus.json: OBJ ~4,2 blok, thirdperson_righthand
 # rotation [90,0,0] (Z ekseni -> ileri), translation [7.5,-9.5,8.3] px,
@@ -6839,7 +6856,14 @@ TIRPAN_PIVOT = [-6, 15, 1]          # oyuncu modelinin rightItem pivotu
 # Antitheus'un boyuna gore yapildigi icin oran ona yaklastirildi
 # (Blender onizlemesi ile bakildi, arac/bedrock_onizleme.py).
 TIRPAN_ON = 20                       # elden bicagin tabanina (px, -Z)
-TIRPAN_ARKA = 26                     # elden sapin arka ucuna (px, +Z)
+TIRPAN_ARKA = 36                     # elden sapin arka ucuna (px, +Z)
+# ---- IKINCI EL (v7.99.10) ----
+# Epic Fight verisinde (Tool_L, Tool_R'nin uzayinda) sol el yalniz iki
+# vurusta sapi tutuyor: antitheus_agression (61 ornegin 22'si, elin
+# 11,7..34,6 px arkasi, ortanca 28) ve antitheus_auto_1 (24-25 px).
+# Sap 26 px'te bitiyordu, sol el havada kaliyordu: 36'ya uzatildi,
+# ikinci sargi sol elin durdugu yerde.
+TIRPAN_SOL_EL = (22, 32)             # ikinci sarginin z araligi (px, elin arkasi)
 # doku seridi: sutun -> renk (16x16 dokunun ilk satiri)
 TIRPAN_RENK = {
     0: (38, 30, 48, 255),     # sap koyu
@@ -6865,7 +6889,7 @@ def tirpan_bicak_hucreleri():
     Bicak sapin ucunda (z = -36) baslayip yukari 18 px, asagi 22 px
     uzaniyor ve uclara dogru GERIYE (+z) kivriliyor. On kenar
     (z_on) kivrimli, genislik tabanda 6 px, ucta 0.            """
-    Y0, ZB = 15, -TIRPAN_ON - 1
+    Y0, ZB = TIRPAN_PIVOT[1], TIRPAN_PIVOT[2] - TIRPAN_ON - 1
     hucre = {}
     for yy in range(-22, 19):
         y = Y0 + yy
@@ -6890,14 +6914,16 @@ def tirpan_bicak_hucreleri():
 def tirpan_geometrisi():
     x0 = TIRPAN_PIVOT[0]
     on, arka = TIRPAN_ON, TIRPAN_ARKA
+    yc, zc = TIRPAN_PIVOT[1], TIRPAN_PIVOT[2]     # sapin ekseni yumruktan geciyor
+    s0, s1 = TIRPAN_SOL_EL
     kupler = [
-        _tirpan_kup([x0 - 0.5, 14.5, -on], [1, 1, on + arka], 0),         # sap
-        _tirpan_kup([x0 - 0.55, 14.6, -on], [1.1, 0.4, on + arka], 1),    # sapin parlak cizgisi
-        _tirpan_kup([x0 - 0.75, 14.25, -3], [1.5, 1.5, 6], 7),            # kabza sargisi (el)
-        _tirpan_kup([x0 - 0.75, 14.25, arka - 6], [1.5, 1.5, 4], 7),      # ikinci el sargisi
-        _tirpan_kup([x0 - 1, 14, arka], [2, 2, 2], 3),                    # topuz
-        _tirpan_kup([x0 - 0.5, 14.5, arka + 2], [1, 1, 2], 2),            # topuz sivrisi
-        _tirpan_kup([x0 - 1, 14, -on - 2], [2, 2, 3], 2),                 # bogaz halkasi
+        _tirpan_kup([x0 - 0.5, yc - 0.5, zc - on], [1, 1, on + arka], 0),          # sap
+        _tirpan_kup([x0 - 0.55, yc - 0.4, zc - on], [1.1, 0.4, on + arka], 1),     # sapin parlak cizgisi
+        _tirpan_kup([x0 - 0.75, yc - 0.75, zc - 3], [1.5, 1.5, 6], 7),             # kabza sargisi (sag el)
+        _tirpan_kup([x0 - 0.75, yc - 0.75, zc + s0], [1.5, 1.5, s1 - s0], 7),      # ikinci sargi (sol el)
+        _tirpan_kup([x0 - 1, yc - 1, zc + arka], [2, 2, 2], 3),                    # topuz
+        _tirpan_kup([x0 - 0.5, yc - 0.5, zc + arka + 2], [1, 1, 2], 2),            # topuz sivrisi
+        _tirpan_kup([x0 - 1, yc - 1, zc - on - 2], [2, 2, 3], 2),                  # bogaz halkasi
     ]
     # Bicak: ayni renkli komsu hucreleri z boyunca birlestir (kup sayisi az kalsin).
     hucre = tirpan_bicak_hucreleri()
