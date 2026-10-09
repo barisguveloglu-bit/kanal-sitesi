@@ -114,6 +114,24 @@ Team; kullanıcı ikisinden de paylaşılabilir izin aldığını bildirmişti
 (v7.98.0). Lisans dosyaları: WoM `All RIGHTS RESERVED`, Epic Fight kod
 GPL-3.0 / varlıklar All Rights Reserved.
 
+### Konsey — CodeMan (Astra Studios) + BoraLo (Dragon Studios), v6.2
+
+| | |
+|---|---|
+| ne | 60 giyilebilir/elde tutulan parça (model + doku + attachable), 68 eşya ikonu, 3 ses, 1 blok (`kns_dusmus_blok`) |
+| nerede | ham: `kaynak_geo/konsey/` · `kaynak_doku/konsey/` · `kaynak_doku/konsey_ikon/` · `kaynak_ses/konsey/` → üretim: `kns_*` adıyla iki pakete |
+| taşıyan | `konsey_al.py` (Bedrock'tan Bedrock'a: çevirme yok, yeniden adlandırma var) · `kol_uret.py` `KONSEY` tablosu |
+| izin | **Yapımcılarından alındı, paylaşılabilir.** Kullanıcının bildirimi (v7.99.9 sonrası): izni *"teşekkür ederek"* verdiler. |
+
+Bu satır geç yazıldı: Konsey varlıkları v6.2'den beri depodaydı ama
+burada satırı yoktu. Kullanıcıya soruldu, iznin paylaşılabilir olduğunu
+doğruladı; o soru Ay Işığı Asası'nın (`kns_asa_ayisigi`) videoda
+kullanılması üzerine sorulmuştu (`SERI_SEZON1.md`).
+
+**Açık:** `konsey_al.py` üçüncü bir kaynaktan da parça taşıyor —
+Falen (Trb1545). Soru yalnız CodeMan ve BoraLo için soruldu; Falen
+parçalarının izni bu satırda **kayıtlı değil**.
+
 ---
 
 ## Depoda BULUNMAYAN ama ölçümü alınan modlar
