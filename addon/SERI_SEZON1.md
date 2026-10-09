@@ -59,11 +59,12 @@ kararı: *"bu iki evren farklı evrenler."*
 | 5 | Dövüş | Barış zorlanıyor (ilk deneyimi): ıskalama, sendeleme, tırpanın ağırlığı. Tırpan El-Harkos'a değince kan değil kıvılcım. Güç dengesi Barış'a doğru dönüyor. |
 | 5a | **İlk delen darbe** | Dövüşün dönüm noktası: Barış'ın tırpanı El-Harkos'u **ilk kez deliyor**, El-Harkos ilk kez şaşırıyor. Değdiği noktada **kan efekti**, gerçekçi. Filmde saklanan kare donması ve yavaşlatma burada harcanır; darbe iki açıdan art arda gösterilir; El-Harkos'un yüzü yakın plan; bir an sessizlik. |
 | 6 | Barış **tek eliyle** gövdesini tutarak **birkaç adım** yavaş yavaş yürüyor, sonra **bayılıyor** | El-Harkos öldü. Barış kazanıyor ama ilk dövüşü ve rakibi güçlüydü: yorgunluktan bayılıyor. 2. sahnenin aynası (aynı kadraj, roller ters); bayılma 1. sahnedeki düşüşün aynası — film iki düşüşle açılıp kapanıyor, ilki yenilgi, ikincisi zafer. |
-| 7 | Karanlık oda — **final sahnesinden SONRA** (videonun sonu), gece | Ana kötünün askerleri El-Harkos'un öldüğünü bir yolla öğrenmiş. Tam karanlık; yalnız dört beyaz göz. Kapı açıldığı an **bembeyaz** — asker o ışığın içinden siluet olarak giriyor; hüzmede yoğun toz (yıllardır açılmamış oda). Asker: *"Efendim, El-Harkos görevinde başarısız oldu."* Gözler: *"Tamam o zaman. Deney 081'i getirin."* Asker çıkar, kapı kapanır, karanlık. **Kural:** kapıdan giren ışık kötüye ULAŞMAZ — ışık şeridi yerde onun önünde biter; gözler kendi ışığıyla parlar, bedenden hiçbir yüzey aydınlanmaz. |
+| 7 | Karanlık oda — **final sahnesinden SONRA** (videonun sonu), gece | Ana kötünün askerleri El-Harkos'un öldüğünü bir yolla öğrenmiş. Tam karanlık; yalnız dört beyaz göz. Kapı açıldığı an **bembeyaz** — asker o ışığın içinden siluet olarak giriyor; hüzmede yoğun toz (yıllardır açılmamış oda). Asker: *"Efendim, El-Harkos görevinde başarısız oldu."* Gözler: *"Tamam o zaman. Deney 081'i getirin."* Asker çıkar, kapı kapanır, karanlık. **Son an (kullanıcının eklemesi):** gözler askerin çıktığı kapıya bakarken **birden kameraya döner** ve **kamera ona doğru ışınlanır** (sert kesme ile aşırı yakın plan), film orada biter — dördüncü duvarın kırılması. **Kural:** kapıdan giren ışık kötüye ULAŞMAZ — ışık şeridi yerde onun önünde biter; gözler kendi ışığıyla parlar, bedenden hiçbir yüzey aydınlanmaz. |
 
-## Replikler — TASLAK, onay bekliyor
+## Replikler — onaylandı
 
-Karanlık oda replikleri kullanıcının. Gerisini kullanıcı Claude'a
+Kullanıcı bölümün anlatımını (bu replikler dahil) *"doğru anlamışsın"*
+diyerek onayladı. Karanlık oda replikleri kullanıcının. Gerisini kullanıcı Claude'a
 bıraktı, tek şartla: **klişe olmasın** (*"hey oradaki, dur bakalım,
 bunu sana ödeteceğim"* türü yok). Hepsi altyazı; seslendirme yok.
 
@@ -106,12 +107,35 @@ ayrı bir anlatıcıya gerek kalmıyor.
 Kan efekti için not: kısa süreli tutulursa YouTube'da yaş sınırı riski
 azalır (politika kesin ölçülmedi, temkin).
 
+## Denetim kuralı (kullanıcının şartı)
+
+*"İzleyiciye bozuk bir animasyon vermek kötü olur."* Çizim bitince:
+
+1. **Her sahne ayrı ayrı** taranır (N sahne → N denetim): kemik
+   kopması, silahın elden kayması, iç içe geçme, zemine gömülme,
+   kamera kesmesinde sıçrama, altyazı zamanı, ses eşleşmesi.
+2. Sonra **bütün film bir kez** baştan sona taranır (N + 1).
+3. Bulunan her bozukluk düzeltilir ve o sahne yeniden taranır.
+
+Tarama iki katmanlı: ölçülebilen her şey betikle (kare kare sayılarla),
+ölçülemeyen her şey karelere bakılarak.
+
+## Varsayılanlar — cevap beklemeden uygulandı
+
+Kullanıcı *"çizmeye başla"* dedi; aşağıdakiler soruldu ama cevap
+gelmedi, o yüzden Claude'un önerisi uygulanıyor. **Kullanıcı
+değiştirebilir** — değişirse buradan silinip yukarıya yazılır.
+
+- **Askerin skini:** `okazor` (koyu ton; zaten ışığın önünde siluet).
+- **Hedef süre:** ~2,5 dakika.
+- **Tırpan 1. sahnede de Barış'ın elinde;** El-Harkos'a işlemiyor.
+- **El-Harkos'un ölümü:** ilk delen darbeden sonra son alışverişte
+  tırpan ikinci kez deliyor; dizlerinin üstüne çöküyor, son repliği
+  söylüyor, yüzüstü düşüyor. Kan yine kısa.
+- **Gücün rengi:** Karanlık Tırpan'ın mor ışığı (ışınlanma parçacığı
+  ve flaş).
+- **Açılış kartı:** seri adı uydurulmaz; yalnız *"1. BÖLÜM"*.
+
 ## Açık
 
-- Askerin skini.
-- Hedef video süresi (çizim süresini belirliyor).
-- Replik taslağının onayı (yukarıda).
-- Barış'ın tırpanı 1. sahnede de elinde mi?
-- El-Harkos nasıl ölüyor (son darbe)?
-- Barış'ın gücünün rengi / görünüşü (ışınlanma parçacıkları).
-- Açılış: seri adı, bölüm adı kartı.
+- (şu an yok; varsayılanlar yukarıda)
