@@ -426,6 +426,28 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None):
     sc.cycles.device = "CPU"
     sc.cycles.samples = 6 if onizleme else senaryo.get("ornek", 16)
     sc.cycles.use_denoising = True
+    # Hiz ayarlari (v7.99.10, olculdu): senaryo vermezse Blender varsayilani.
+    # Gurultu giderici albedo+normal ile dokuyu korur (az ornekte camur olmasin).
+    sc.cycles.denoising_input_passes = "RGB_ALBEDO_NORMAL"
+    for anahtar, ozellik in (("sekme", "max_bounces"), ("yayilma_sekme", "diffuse_bounces"),
+                             ("parlak_sekme", "glossy_bounces"), ("seffaf_sekme", "transparent_max_bounces")):
+        if anahtar in senaryo:
+            setattr(sc.cycles, ozellik, int(senaryo[anahtar]))
+    if senaryo.get("motor") == "workbench":
+        # Hizli motor: dokulu duz isik + golge + girinti karartmasi.
+        sc.render.engine = "BLENDER_WORKBENCH"
+        sh = sc.display.shading
+        sh.light = "STUDIO"
+        sh.color_type = "TEXTURE"
+        sh.show_shadows = True
+        sh.shadow_intensity = 0.55
+        sh.show_cavity = True
+        sh.cavity_type = "WORLD"
+        sh.show_specular_highlight = False
+        sc.display.render_aa = senaryo.get("kenar", "8")
+    if "uyarlamali" in senaryo:
+        sc.cycles.use_adaptive_sampling = True
+        sc.cycles.adaptive_threshold = float(senaryo["uyarlamali"])
     en, boy = senaryo.get("cozunurluk", [1280, 720])
     if onizleme:
         en, boy = en // 2, boy // 2
