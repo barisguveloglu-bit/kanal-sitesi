@@ -175,8 +175,14 @@ CT = [[C[j][i] for j in range(3)] for i in range(3)]
 # Bedrock kemigi -> (Epic Fight eklemi, uc noktasi)
 KEMIK = {
     "root":      ("Root", None),
-    "waist":     ("Chest", None),      # govdenin TAMAMI kalcadan
-    "body":      ("Chest", None),      # waist'e gore sifir
+    # v7.99.10: govde OMURGA KIRISINE (Torso -> Head) bakiyor. Epic Fight
+    # omurgayi iki yerden (Torso 13, Chest 17.8 px) bukuyor; tek kutu
+    # govde Chest'in egimini kopyalayinca fazla yatiyordu (antitheus_auto_3
+    # 85 derece, Epic Fight'in kalca-boyun cizgisi 58) -- kullanici
+    # "masa gibi" pozu yakaladi. Kiris boynu ve omuzlari yerinde tutar;
+    # Chest'in burulmasi (omurga ekseni etrafinda) korunur.
+    "waist":     ("Chest", ("eklem", "Head", "Torso")),   # govdenin TAMAMI kalcadan
+    "body":      ("Chest", ("eklem", "Head", "Torso")),   # waist'e gore sifir
     "head":      ("Head", None),
     "rightArm":  ("Arm_R", ("el", "Tool_R")),
     "leftArm":   ("Arm_L", ("el", "Tool_L")),
@@ -604,6 +610,138 @@ def iki_el_agirligi(anim, t):
     return max(0.0, min(1.0, (IKI_EL_ESIK + IKI_EL_GECIS - uzak) / IKI_EL_GECIS))
 
 
+# Setin film/oyundaki silahinin geometrisi: carpisma onu olcuyor.
+SILAH_GEO = {"antitheus": os.path.join(ADDON, "Simsek_Kol_Kaynak", "models", "entity",
+                                       "karanlik_tirpan.geo.json")}
+CARPISMA_PAY = 0.3        # px -- silah govdeden en az bu kadar disarida
+CARPISMA_ADIM = 2.5       # derece -- arama izgarasi
+CARPISMA_EN = 35.0        # derece -- en buyuk sapma
+CARPISMA_YAYMA = 0.15     # s -- duzeltme bu surede yumusakca girip cikar
+GOVDE_KEMIK = ("head", "body", "rightLeg", "leftLeg")
+
+
+def _rx(a):
+    c, s_ = math.cos(math.radians(a)), math.sin(math.radians(a))
+    return [[1, 0, 0], [0, c, -s_], [0, s_, c]]
+
+
+def _ry(a):
+    c, s_ = math.cos(math.radians(a)), math.sin(math.radians(a))
+    return [[c, 0, s_], [0, 1, 0], [-s_, 0, c]]
+
+
+def silah_carpisma_duzelt(anim, kemikler, sure, olcek_zaman):
+    """Silah govdeye/kafaya giriyorsa yumrugun etrafinda en az aciyla cevirir.
+
+    Olcum (Karanlik Tirpan, antitheus): sapin elin 8-16 px gerisi vuruslarda
+    govdeye ve kafaya 1-4 px giriyordu; giyotinin toparlanmasinda arka uc
+    yarim saniye govdenin icinde duruyordu. Epic Fight'in kendi Antitheus
+    modeli baska bicimde; bizim tirpanin govdeyle iliskisi orada
+    tasarlanmamis. Donus merkezi YUMRUK (rightItem pivotu) oldugu icin
+    yumruk sapta kalir. Duzeltme zamana yayilir (ani sicrama yok); sol el
+    duzeltmesi bundan SONRA calisir, sapin yeni yerine oturur."""
+    import bedrock_onizleme as B
+    yol = getattr(anim, "silah_geo", None)
+    if not yol or "rightItem" not in kemikler or "rotation" not in kemikler["rightItem"]:
+        return
+    geo = B.oku(AKTOR_GEO)
+    kem = {b["name"]: b for b in geo["minecraft:geometry"][0]["bones"]}
+    piv = B.ic(kem["rightItem"]["pivot"])
+    dinlenme = kem["rightItem"].get("rotation", [0, 0, 0])
+    noktalar = []
+    for b in B.oku(yol)["minecraft:geometry"][0]["bones"]:
+        for c in b.get("cubes", []):
+            o, z = c["origin"], c["size"]
+            n = max(1, int(max(z)))
+            for j in range(n + 1):
+                u = j / n
+                q = [o[i] + z[i] / 2 for i in range(3)]
+                ek = max(range(3), key=lambda i: z[i])
+                q[ek] = o[ek] + z[ek] * u
+                noktalar.append(B.ic(q))
+    eski = {"bones": {k: dict(v) for k, v in kemikler.items()}}
+
+    def kutular(m):
+        out = []
+        for ad in GOVDE_KEMIK:
+            for c in kem[ad].get("cubes", []):
+                if c.get("inflate", 0) > 0:
+                    continue
+                o, z = c["origin"], c["size"]
+                mn = [-(o[0] + z[0]), o[1], o[2]]
+                mx = [-o[0], o[1] + z[1], o[2] + z[2]]
+                k = lambda a, b_, d: m.nokta(ad, [mx[0] if a else mn[0], mx[1] if b_ else mn[1], mx[2] if d else mn[2]])
+                c0 = k(0, 0, 0)
+                E = [fark(k(1, 0, 0), c0), fark(k(0, 1, 0), c0), fark(k(0, 0, 1), c0)]
+                L = [math.sqrt(sum(x * x for x in e)) for e in E]
+                out.append((c0, [[x / l for x in e] for e, l in zip(E, L)], L))
+        return out
+
+    def derin(m, kk, R):
+        en = -1e9
+        for p in noktalar:
+            q = [piv[i] + v for i, v in enumerate(uygula(R, fark(p, piv)))]
+            w = m.nokta("rightItem", q)
+            for c0, E, L in kk:
+                d = 1e9
+                for e, l in zip(E, L):
+                    u = sum((w[i] - c0[i]) * e[i] for i in range(3))
+                    d = min(d, u, l - u)
+                    if d < en:
+                        break
+                en = max(en, d)
+        return en
+    adaylar = sorted({(a * CARPISMA_ADIM, b * CARPISMA_ADIM)
+                      for a in range(-int(CARPISMA_EN / CARPISMA_ADIM), int(CARPISMA_EN / CARPISMA_ADIM) + 1)
+                      for b in range(-int(CARPISMA_EN / CARPISMA_ADIM), int(CARPISMA_EN / CARPISMA_ADIM) + 1)},
+                     key=lambda x: (math.hypot(*x), x))
+    zs = {float(k) / olcek_zaman for k in kemikler["rightItem"]["rotation"]}
+    zs |= {round(i / 30.0 / olcek_zaman, 5) for i in range(int(sure * olcek_zaman * 30) + 1)}
+    zs = sorted(t for t in zs if t <= sure + 1e-9)
+    birim = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+    model, kutu = {}, {}
+
+    def gerekli(t):
+        tt = t * olcek_zaman
+        if t not in model:
+            model[t] = B.Model(geo, eski, tt)
+            kutu[t] = kutular(model[t])
+        m, kk = model[t], kutu[t]
+        if derin(m, kk, birim) <= -CARPISMA_PAY:
+            return (0.0, 0.0)
+        for a, b in adaylar:
+            if derin(m, kk, carp3(_rx(a), _ry(b))) <= -CARPISMA_PAY:
+                return (a, b)
+        return adaylar[-1]
+    ham = {t: gerekli(t) for t in zs}
+    if not any(v != (0.0, 0.0) for v in ham.values()):
+        return
+    # zamana yay: her an, yakinindaki gereksinimin uclu agirlikli en buyugu
+    duz = {}
+    for t in zs:
+        en, sec = 0.0, (0.0, 0.0)
+        for t2, v in ham.items():
+            w = 1.0 - abs(t2 - t) * olcek_zaman / CARPISMA_YAYMA
+            if w <= 0 or v == (0.0, 0.0):
+                continue
+            if math.hypot(*v) * w > en:
+                en, sec = math.hypot(*v) * w, (v[0] * w, v[1] * w)
+        duz[t] = sec
+    # yayma bir ani yetersiz biraktiysa o anin kendi gereksinimi
+    for t in zs:
+        R = carp3(_rx(duz[t][0]), _ry(duz[t][1]))
+        if derin(model[t], kutu[t], R) > -CARPISMA_PAY + 0.05:
+            duz[t] = ham[t]
+    yeni, onceki = {}, None
+    for t in zs:
+        tt = t * olcek_zaman
+        L = carp3(model[t].donus("rightItem"), carp3(_rx(duz[t][0]), _ry(duz[t][1])))
+        onceki = euler_surekli(L, onceki)
+        x, y, z = onceki
+        yeni["%.4f" % tt] = [round(-x - dinlenme[0], 2), round(-y - dinlenme[1], 2), round(z - dinlenme[2], 2)]
+    kemikler["rightItem"]["rotation"] = yeni
+
+
 def sol_el_duzelt(anim, kemikler, sure, olcek_zaman):
     """Iki elli karelerde sol yumrugu Bedrock'taki SAPIN uzerine koyar.
 
@@ -690,9 +828,10 @@ def dunya_farki(anim, bkemik, t):
         uc = ("eklem", "Tool_L")          # v7.99.9'daki davranis
     G = carp3(rot(anim.dunya(ek, t)), devrik(rot(anim.dunya(ek))))
     if uc is not None:
-        k0 = konum(anim.dunya(ek))
-        c0 = fark(uc_konum(anim, uc, None), k0)
-        c = fark(uc_konum(anim, uc, t), konum(anim.dunya(ek, t)))
+        taban = uc[2] if len(uc) > 2 else ek
+        k0 = konum(anim.dunya(taban))
+        c0 = fark(uc_konum(anim, uc[:2], None), k0)
+        c = fark(uc_konum(anim, uc[:2], t), konum(anim.dunya(taban, t)))
         G = carp3(en_kucuk_donus(uygula(G, c0), c), G)
     return carp3(carp3(C, dik_yap(G)), CT)
 
@@ -805,6 +944,55 @@ def el_kaymasi(anim, bkemik, t):
     return uygula(devrik(dunya_farki(anim, kol, t)), v_ic)
 
 
+ZEMIN_ORNEK = 1.0 / 60   # s -- zemin olcumunun sikligi (oyun zamaninda)
+ZEMIN_PAY = 0.05          # px -- bundan kucuk gomulme yazilmaz
+
+
+def zemin_duzelt(kemikler, sure_oyun):
+    """Ayaklar zeminin altina inerse kok o kadar kaldirilir.
+
+    Epic Fight vuruslarda kalcayi alcaltiyor (comelme, 5-7 px) ve dizi
+    bukuyor; ayak yerde kaliyor. Bedrock bacagi DIZSIZ tek kutu: kalca
+    alcalinca ayak zemine gomuluyordu (olcum: antitheus_auto_2 8.75 px,
+    yarim blok). Kullanici: "ayaklari yerin icine girmesi... bozuk bir
+    dovus veremeyiz." Her karede iki bacagin (alt katman, sisirmesiz)
+    en alt noktasi bedrock_onizleme.Model ile olculur; zeminin altindaysa
+    kokun Y konumuna eklenir. Havadaki kareye dokunulmaz."""
+    import bedrock_onizleme as B
+    if "root" not in kemikler:
+        return
+    geo = B.oku(AKTOR_GEO)
+    kem = {b["name"]: b for b in geo["minecraft:geometry"][0]["bones"]}
+    anim = {"bones": kemikler}
+    kok = kemikler["root"].get("position", {"0.0000": [0.0, 0.0, 0.0]})
+
+    def en_alt(t):
+        m = B.Model(geo, anim, t)
+        y = 1e9
+        for ad in ("rightLeg", "leftLeg"):
+            for c in kem[ad].get("cubes", []):
+                if c.get("inflate", 0) > 0:
+                    continue
+                o, z = c["origin"], c["size"]
+                for a in (0, 1):
+                    for b in (0, 1):
+                        for d in (0, 1):
+                            p = m.nokta(ad, [-(o[0] + z[0] * a), o[1] + z[1] * d, o[2] + z[2] * b])
+                            y = min(y, p[1])
+        return y
+    zs = sorted({float(k) for k in kok} |
+                {round(i * ZEMIN_ORNEK, 5) for i in range(int(sure_oyun / ZEMIN_ORNEK) + 1)})
+    zs = [t for t in zs if t <= sure_oyun + 1e-9]
+    kalk = {t: max(0.0, -en_alt(t)) for t in zs}
+    if max(kalk.values()) <= ZEMIN_PAY:
+        return
+    yeni = {}
+    for t in zs:
+        p = B.deger(kok, t)
+        yeni["%.4f" % t] = [round(p[0], 3), round(p[1] + kalk[t], 3), round(p[2], 3)]
+    kemikler["root"]["position"] = yeni
+
+
 def kok_yukseklik(anim, t):
     """Root'un dinlenmeye gore dikey kaymasi (px)."""
     return (konum(anim.dunya("Root", t))[2] - konum(anim.dunya("Root"))[2]) * 16.0
@@ -845,7 +1033,8 @@ def cevir(anim, sure, olcek_zaman, kemikler_izinli, dikey_oyuncuya, bas_look):
             kon["%.4f" % (t * olcek_zaman)] = [round(-p[0], 3), round(p[1], 3), round(p[2], 3)]
         if any(abs(x) > KAYMA_ESIK for v in kon.values() for x in v):
             kemikler[b]["position"] = kon
-    # sap kaymasindan SONRA: sap dogrusu kaymali silaha gore
+    # sap kaymasindan SONRA, sol elden ONCE: sol el sapin son yerine oturur
+    silah_carpisma_duzelt(anim, kemikler, sure, olcek_zaman)
     sol_el_duzelt(anim, kemikler, sure, olcek_zaman)
     if "root" in kemikler_izinli:
         # Kalca merkezli donus + gorunumde kalan dikey kayma.
@@ -870,6 +1059,8 @@ def cevir(anim, sure, olcek_zaman, kemikler_izinli, dikey_oyuncuya, bas_look):
             if any(abs(o - 1.0) > 0.01 for o in olc):
                 kemikler["root"]["scale"] = {"%.4f" % (t * olcek_zaman): round(o, 3)
                                              for t, o in zip(ts, olc) if t <= sure + 1e-9}
+        # olcekten SONRA: olcek de bacagin boyunu degistiriyor
+        zemin_duzelt(kemikler, sure * olcek_zaman)
     return kemikler
 
 
@@ -919,6 +1110,7 @@ def main(argv):
                 raise SystemExit("YOK: " + ic)
             a = Animasyon(k.json(ic), taban)
             a.sol_duzelt = set_ad in SOL_EL_DUZELT
+            a.silah_geo = SILAH_GEO.get(set_ad)
             return a
 
         # Durus: iki parca. Duruyorken butun beden; yururken yalniz ust
