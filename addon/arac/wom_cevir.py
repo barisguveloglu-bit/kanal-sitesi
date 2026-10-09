@@ -712,15 +712,32 @@ def silah_carpisma_duzelt(anim, kemikler, sure, olcek_zaman):
             zs.add(t)
     zs = sorted(t for t in zs if t <= sure + 1e-9)
     sinir = math.radians(CARPISMA_EN)
-    gerek = {}
-    for t in zs:
-        m = B.Model(geo, eski, t * olcek_zaman)
-        kk = kutular(m)
-        om = m.nokta("rightArm", omuz_ic[:])
-        tm = B.Model(B.oku(yol))
-        dunya = [tm.nokta(_silah_kemik(yol), p[:], m) for p in noktalar]
-        toplam = [0.0, 0.0, 0.0]
-        for _ in range(12):
+    tm_ = B.Model(B.oku(yol))
+    sk = _silah_kemik(yol)
+    onbellek = {}
+
+    def durum(t):
+        """(model, kutular, omuz, silah noktalari, govde donusu) -- t'de, duzeltmesiz."""
+        if t not in onbellek:
+            m = B.Model(geo, eski, t * olcek_zaman)
+            onbellek[t] = (m, kutular(m), m.nokta("rightArm", omuz_ic[:]),
+                           [tm_.nokta(sk, p[:], m) for p in noktalar],
+                           carp3(carp3(m.donus("root"), m.donus("waist")), m.donus("body")))
+        return onbellek[t]
+
+    def derinlik(t, toplam):
+        """Kol omuz etrafinda `toplam` (dunya ekseni*aci) donunce en derin batma."""
+        _m, kk, om, dunya, _p = durum(t)
+        Q = _dondur(toplam, math.sqrt(sum(x * x for x in toplam)))
+        return max(batma([om[i] + v for i, v in enumerate(uygula(Q, fark(w0, om)))], kk)[0] for w0 in dunya)
+
+    def coz(t):
+        """Tork yontemi; en iyi (en sig) cozumu saklar. 12 adimda iki kutu
+        arasinda takilip 0.45 px batik kalabiliyordu (auto_2 t=0.21)."""
+        _m, kk, om, dunya, _p = durum(t)
+        toplam, en_iyi = [0.0, 0.0, 0.0], (1e9, [0.0, 0.0, 0.0])
+        adim_en = math.radians(3.0)
+        for _ in range(40):
             Q = _dondur(toplam, math.sqrt(sum(x * x for x in toplam)))
             tork, en = [0.0, 0.0, 0.0], -1e9
             for w0 in dunya:
@@ -734,20 +751,26 @@ def silah_carpisma_duzelt(anim, kemikler, sure, olcek_zaman):
                           rr[0] * itme[1] - rr[1] * itme[0]]
                     r2 = sum(x * x for x in rr) or 1.0
                     tork = [tork[i] + cr[i] / r2 for i in range(3)]
+            if en < en_iyi[0] - 1e-6:
+                en_iyi = (en, list(toplam))
+            elif en > en_iyi[0] + 1e-6:
+                adim_en *= 0.6                      # kotulesti: adimi kucult
             if en <= -CARPISMA_PAY:
                 break
             n = math.sqrt(sum(x * x for x in tork))
             if n < 1e-9:
                 break
-            adim = min(math.radians(3.0), n)
-            toplam = [toplam[i] + tork[i] / n * adim for i in range(3)]
+            toplam = [toplam[i] + tork[i] / n * min(adim_en, n) for i in range(3)]
             m_ = math.sqrt(sum(x * x for x in toplam))
             if m_ > sinir:
                 toplam = [x / m_ * sinir for x in toplam]
-                break
+        return en_iyi[1]
+
+    gerek = {}
+    for t in zs:
+        toplam = coz(t)
         # dunya ekseni -> govde (kolun ebeveyni) uzayina: zamanda yumusatmak icin
-        Pw = carp3(carp3(m.donus("root"), m.donus("waist")), m.donus("body"))
-        gerek[t] = uygula(devrik(Pw), toplam)
+        gerek[t] = uygula(devrik(durum(t)[4]), toplam)
     if not any(math.sqrt(sum(x * x for x in v)) > 1e-4 for v in gerek.values()):
         return
     yay = CARPISMA_YAYMA / olcek_zaman
@@ -767,6 +790,21 @@ def silah_carpisma_duzelt(anim, kemikler, sure, olcek_zaman):
                 ag += w
                 top = [top[i] + v[i] * w for i in range(3)]
         duz[t] = [x / ag for x in top] if ag else [0.0, 0.0, 0.0]
+    # DOGRULAMA: yayilan duzeltme baska bir anda silahi govdeye sokabiliyor
+    # (auto_2: t=0.1'de gerek 0, yayilan 14.7 derece tirpani bacaga 1.8 px
+    # soktu). Her an yeniden olculur; batiyorsa duzgun degere en yakin,
+    # batmayan aday secilir (kucultulmus duzgun deger ya da o anin cozumu).
+    for t in zs:
+        Pw = durum(t)[4]
+        if derinlik(t, uygula(Pw, duz[t])) <= -CARPISMA_PAY * 0.5:
+            continue
+        adaylar = [[x * k for x in duz[t]] for k in (0.85, 0.7, 0.55, 0.4, 0.25, 0.1, 0.0)] + [gerek[t]]
+        olc = [(derinlik(t, uygula(Pw, c)), c) for c in adaylar]
+        iyi = [c for d, c in olc if d <= -CARPISMA_PAY * 0.5]
+        if iyi:
+            duz[t] = min(iyi, key=lambda c: sum((c[i] - duz[t][i]) ** 2 for i in range(3)))
+        else:
+            duz[t] = min(olc, key=lambda x: x[0])[1]
     yeni, onceki = {}, None
     for t in zs:
         tt = t * olcek_zaman
