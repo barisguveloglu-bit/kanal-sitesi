@@ -81,11 +81,12 @@ def main(argv):
     girdi += ["-f", "lavfi", "-t", str(SIYAH_SON), "-i", "color=c=black:s=%s:r=%g" % (boyut(parcalar[0]), fps),
               "-f", "lavfi", "-t", str(SIYAH_SON), "-i", "anullsrc=r=48000:cl=stereo"]
     filtre.append("[%d:v][%d:a]" % (n, n + 1))
-    fc = "".join(filtre) + "concat=n=%d:v=1:a=1[v][a]" % (n + 1)
+    # ses zinciri filtre grafiginin ICINDE: ffmpeg -af ile -filter_complex'i
+    # birlikte kabul etmiyor (cikis 234)
+    fc = "".join(filtre) + "concat=n=%d:v=1:a=1[v][a0];[a0]%s[a]" % (n + 1, SES_ZINCIR)
     subprocess.run(["ffmpeg", "-y", "-v", "error"] + girdi +
                    ["-filter_complex", fc, "-map", "[v]", "-map", "[a]",
                     "-c:v", "libx264", "-preset", "slow", "-crf", "18", "-pix_fmt", "yuv420p",
-                    "-af", SES_ZINCIR,
                     "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-movflags", "+faststart", cikti], check=True)
     print("film:", cikti)
 
