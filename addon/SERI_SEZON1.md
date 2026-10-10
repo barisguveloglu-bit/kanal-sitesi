@@ -223,11 +223,16 @@ virüsünü üretiyor.
 - **Bulaşma:** ısırıkla. Örnek: bir zombi köydeki bir insanı ısırır, virüs
   ısırıktan girer; **önce bedene alışır, sonra buzlaşma başlar.**
 - **Tedavi:** kökünden kazımanın yolu, Minecraft'ta zombi köylüyü normal
-  köylüye çevirmenin yollarıyla **aynı** (oyunda: zayıflık iksiri + altın
-  elma — kullanıcıya teyit ettirilecek).
+  köylüye çevirmenin yollarıyla **aynı**: **zayıflık iksiri + altın elma**
+  (kullanıcı teyit etti).
 - **Neden çözülemiyor:** tek bir hanedan buna kalkışırsa **yeterli malzemesi
   yok**; hanedanların ve krallıkların kendi çıkarları var ve **kimse kimseye
   güvenmiyor** — bu yüzden neredeyse imkânsız.
+- **İyileştikten sonra (kullanıcı):** Barış **kendi hanedanına** gidiyor. O
+  hanedan, Ice-man ordusunun bulunduğu **Doğu bölgesine biraz yakın**; soğuk
+  bu yüzden ağır hissediliyor (6. sahnedeki üşüme). Hanedan tasarımı ayrıca
+  konuşulacak (kullanıcının aklında bir şeyler var). Kullanıcı komut/komut
+  bloğu hakkında bir şey söyleyip *"neyse"* dedi — kayda geçmedi.
 - Açık: buzlaşan kişi Ice-man'in ordusuna mı katılıyor; virüs yalnız insanlara
   mı, başka ırklara da mı geçiyor; ısırıktan buzlaşmaya ne kadar sürüyor.
 
