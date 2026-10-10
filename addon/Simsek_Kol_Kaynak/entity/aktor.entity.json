@@ -16,7 +16,9 @@
         "s6": "textures/entity/aktor/o_sey",
         "s7": "textures/entity/aktor/carpik",
         "s8": "textures/entity/aktor/iceman",
-        "s9": "textures/entity/aktor/omer"
+        "s9": "textures/entity/aktor/omer",
+        "s10": "textures/entity/aktor/sur_askeri_gri",
+        "s11": "textures/entity/aktor/sur_askeri_safak"
       },
       "geometry": {
         "default": "geometry.pa_aktor",

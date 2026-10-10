@@ -247,11 +247,18 @@ virüsünü üretiyor.
   cebe) Barış'ın evrenindeki **gelişmiş hâlini** giyerler; zırh **bütün bedeni
   kaplar**. **Birinci kuralları: kimliklerini asla belli etmemek.** Bu, hanedanın
   sur askerleri için temel kural.
-  - Skin: kullanıcı iki tane gönderdi (64×64, saydamlık sağlam, kalın kol):
-    `sur_askeri_1` (gri, md5 d0df399e58bb88f86901dbe2851de060) ve
-    `sur_askeri_2` (kırmızı omuzlu, md5 ae59d49d831ef53b198159935aba2809).
-    Şimdilik yalnız scratchpad'de; kimin yaptığı / izni sorulmadan depoya girmez
-    (`KAYNAKLAR.md` kuralı). İki skinin farkı (rütbe mi?) soruldu.
+  - **Skinler kullanıcının kendi yaptığı** (*"ben yaptım, kaydet"*). Aktöre
+    eklendi: `kaynak_doku/aktor/sur_askeri_gri.png` (**pa:skin 10**, md5
+    d0df399e58bb88f86901dbe2851de060) ve `sur_askeri_safak.png` (**pa:skin 11**,
+    kırmızı omuzlu, md5 ae59d49d831ef53b198159935aba2809). 64×64, kalın kol.
+  - **Şafak (kızıl) zırh:** güneşin yeni doğduğu saatte kızıl tonlar öne çıkar.
+    Bu askerler şafakta çıkar; bir saldırı olursa gizlenebilmek için saklanır,
+    sonra hamlelerini yaparlar.
+  - **Gri zırh:** rengi hanedanın komutanları **oyla** seçmiş; özel bir nedeni yok.
+  - **Zırhın bedeli:** dayanıklılığı çok artırır ama **ağırlığı yüzünden
+    yavaşlatır**. Savaşta bu askerler **ön savunmayı** oluşturur. Düşman birliği
+    büyükse **daha hafif zırhlı, kalkanlı** bir birlik çıkarılır; **golemler** de
+    yardım eder.
   - Konsey'in beş karakteri önizlemeyle gösterilmişti; sur askeri için
     kullanılmıyorlar (Harkos = El-Harkos, Okazor = ana kötünün askeri).
 

@@ -14,11 +14,15 @@
             "Texture.s6",
             "Texture.s7",
             "Texture.s8",
-            "Texture.s9"
+            "Texture.s9",
+            "Texture.s10",
+            "Texture.s11"
           ]
         },
         "geometries": {
           "Array.geo": [
+            "Geometry.default",
+            "Geometry.default",
             "Geometry.default",
             "Geometry.default",
             "Geometry.default",
