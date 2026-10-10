@@ -247,6 +247,20 @@ virüsünü üretiyor.
   hanedandan **kaçan ya da isyan eden asker yok**. Buna karşılık asker ile
   komutan arasında **sıkı bir disiplin** var. Sur askerlerinin kuralları
   netleştiriliyor (taslak kullanıcıya sunuldu, onay bekliyor).
+- **Kral:** hanedanın onaylanmış bir **kralı** var.
+- **Sur askeri seçimi ve unutma iksiri (kullanıcı, 2026-10-10):**
+  - Adayların kimliği hakkında **ayrıntılı raporlar** komutanlara verilir;
+    yüzlerinin **genel şeması** da çizilir. Yani seçim sırasında komutanlar
+    askerlerin kimliğini bilir.
+  - Komutan adayları seçer; onayladığı kâğıtları oturduğu odanın **kapısının
+    dışındaki iki askere** verir. Onlar kâğıtları **gerekli birime** ulaştırır,
+    birim onaylar ve adaylar asker olarak seçilmiş olur.
+  - Hanedanın **yeni geliştirdiği bir iksir** var: kralın onayladığı **bilim
+    insanları ve büyücüler** yapmış. Komutanların kuralı gereği seçimden sonra
+    içilir; komutanın hafızasından **raporların verildiği andan seçimin
+    bittiği âna kadarki süreyi siler**. Kesin bir süre sınırı yok, **bir gün
+    içinde içilmesi tavsiye ediliyor**.
+  - Sonuç: seçimden sonra komutanlar bile kimin sur askeri olduğunu hatırlamaz.
 - **Surların üstünde askerler — sur askerleri (kullanıcı, 2026-10-10).**
   Normal insan gibi görünmezler: Osmanlı dönemindeki zincir zırhların (cevşen /
   cebe) Barış'ın evrenindeki **gelişmiş hâlini** giyerler; zırh **bütün bedeni
