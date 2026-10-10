@@ -242,6 +242,11 @@ virüsünü üretiyor.
   **köylüler**; bazı evlerde **insanlar** — köylü ve insan bir arada.
 - **Ortada**, dağ gibi yüksek bir yerin üstünde **hanedanın ana yapısı**; oraya
   **merdivenle** çıkılıyor.
+- **Siyasi yapı (kullanıcı, 2026-10-10):** oldukça iyi. Komutanlar birbiriyle
+  iyi anlaşıyor, radikal bir kesim yok. Askerler komutanlarla iyi anlaşıyor;
+  hanedandan **kaçan ya da isyan eden asker yok**. Buna karşılık asker ile
+  komutan arasında **sıkı bir disiplin** var. Sur askerlerinin kuralları
+  netleştiriliyor (taslak kullanıcıya sunuldu, onay bekliyor).
 - **Surların üstünde askerler — sur askerleri (kullanıcı, 2026-10-10).**
   Normal insan gibi görünmezler: Osmanlı dönemindeki zincir zırhların (cevşen /
   cebe) Barış'ın evrenindeki **gelişmiş hâlini** giyerler; zırh **bütün bedeni
