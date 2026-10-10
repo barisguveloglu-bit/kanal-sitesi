@@ -42,7 +42,11 @@ DEPO_KLASOR = "film"
 # Cizim sirasi: Part 1 once (senaryonun "parcalar" sirasi), sonra Part 2,
 # sonra karanlik oda (Part 2'nin sonuna eklenir).
 FILM = ["film/bolum1_orman.json", "film/bolum1_oda.json"]
-BLOK = 10            # paket = en cok 10 kare (6-25 dk/kare -> 1-4 saatlik is)
+BLOK = 3             # paket = en cok 3 kare (6-28 dk/kare -> en cok ~1,5 saatlik is)
+# 10'du. v7.99.10'da hesap limiti doldu, isci oturumlarinin bekleme dongusu
+# yenilenemedi, makineler geri alindi: 10 karelik genis plan blogu (~4,7 saat)
+# bitmeden 20 isci durdu ve TEK paket itilmedi. Blok, bir bekleme dongusunden
+# (100-110 dk) kisa olmali ki her dongude en az bir paket guvene girsin.
 # Cizimi etkileyen girdiler: degisirlerse ayni senaryonun kareleri farkli
 # goruntu verebilir. Kunyeye agac ozeti yazilir, durum raporu karisimi soyler.
 GIRDI_KLASORLER = ["addon/arac", "addon/film", "addon/kaynak_anim", "addon/kaynak_doku",

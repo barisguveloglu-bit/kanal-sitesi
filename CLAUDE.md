@@ -548,7 +548,7 @@ veriliyor, kullanıcı son miksajı kendi Resolve'unda yapabilir.
 başına 6–25 dk; hız yalnız paralellikten gelir. `addon/arac/cizim_dagit.py
 istem --isci 12` her oturuma verilecek tam metni üretir; oturum
 `cizim_isci.py --isci k/12 --arka` çalıştırır, `--bekle` ile ayakta tutar.
-Bloklar 10 kare, **serpiştirilmiş** (k. blok → k mod N; ağır sahne yayılır),
+Bloklar 3 kare (v7.99.10'da 10'du; limit dolunca yarım kalan 4,7 saatlik bloklar kayboldu), **serpiştirilmiş** (k. blok → k mod N; ağır sahne yayılır),
 herkes önce Part 1'i çizer. Her blok **kayıpsız** paketlenir (x264rgb crf 0
 ya da FFV1, ikisi de denenir, geri açılıp piksel md5'i tutan en küçüğü
 kalır) ve hemen **gizli** `barisguveloglu-bit/already-exists` deposuna
@@ -559,7 +559,18 @@ Makine geri alınırsa aynı komut kaldığı yerden sürer (depodaki blok
 tahmini bitişi, `eksik --yeni M` yeniden dağıtımı verir; `cizim_topla.py
 --hedef <depo dışı>` kareleri doğrulayarak açar ve `film_birlestir.py`
 komutlarını yazar. İşçiye **`--ayar` verilmez** (kalite kilidi; yanlış
-boyutlu kare depoya giremez). `test/cizim_dagit.mjs` Blender'sız ölçüyor.
+boyutlu kare depoya giremez).
+
+**Hesap limiti asıl darboğaz (v7.99.10, ölçüldü).** Çizim token harcamaz ama
+her işçi oturumu ~100 dk'da bir bekleme döngüsünü yenilemek için bir model
+turu ister (~100k bağlam; önbellek 1 saatte düştüğü için her tur baştan
+yazılır). Bir günde 54 Opus işçi oturumu açılınca kullanıcının 5 saatlik
+limiti doldu; işçiler döngüyü yenileyemedi, makineler geri alındı, 10
+karelik bloklar bitmeden hepsi durdu ve gizli depoya tek paket girmedi.
+Kurallar: **işçi oturumları `claude-haiku-5-5` ile açılır** (iş yalnız komut
+çalıştırıp döngü yenilemek; çizim kalitesi Blender'da, modelle ilgisi yok),
+blok 3 kare, ana oturum seyrek denetler. Limit dolarsa sıfırlanınca
+`eksik --yeni` ile kalan iş yeniden dağıtılır. `test/cizim_dagit.mjs` Blender'sız ölçüyor.
 
 Kararların tek kaydı **`addon/SERI_SEZON1.md`**: karakterler (El-Harkos,
 Ice-man / Deney 081, sezonun ana kötüsü), 1. bölümün sahne sırası,

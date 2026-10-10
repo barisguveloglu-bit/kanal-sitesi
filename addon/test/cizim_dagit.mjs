@@ -106,7 +106,7 @@ kontrol("film: orman 2456 kare (part1 1-1066, part2 1067-2456) + oda 631",
         JSON.stringify(gercek));
 const sira = (kok) => gercek.findIndex((g) => g[0] === kok);
 let bolmeTamam = true, sinirTamam = true, siraTamam = true, serpTamam = true, dengeTamam = true, bolmeDetay = "";
-for (const [n, blok] of [[1, 10], [2, 10], [5, 10], [12, 10], [13, 10], [12, 7]]) {
+for (const [n, blok] of [[1, 10], [2, 10], [5, 10], [12, 10], [13, 10], [12, 7], [30, 3]]) {
   const plan = JSON.parse(py([ARAC + "cizim_dagit.py", "plan", "--isci", String(n), "--blok", String(blok), "--json"]));
   const say = new Map();
   const sahip = [];
@@ -130,7 +130,7 @@ for (const [n, blok] of [[1, 10], [2, 10], [5, 10], [12, 10], [13, 10], [12, 7]]
   const yuk = plan.map((l) => l.reduce((s, [, a, b]) => s + b - a + 1, 0));
   if (Math.max(...yuk) - Math.min(...yuk) > 2 * blok) dengeTamam = false;
 }
-kontrol("her kare tam BIR kez (N = 1, 2, 5, 12, 13; blok 10 ve 7)", bolmeTamam, bolmeDetay);
+kontrol("her kare tam BIR kez (N = 1, 2, 5, 12, 13, 30; blok 10, 7 ve 3)", bolmeTamam, bolmeDetay);
 kontrol("blok bolum sinirini asmiyor, blok boyunu gecmiyor", sinirTamam);
 kontrol("her iscinin listesi cizim sirasinda (Part 1 -> Part 2 -> oda)", siraTamam);
 kontrol("serpistirme: ardisik iki blok hicbir zaman ayni iscide degil", serpTamam);
