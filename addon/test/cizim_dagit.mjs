@@ -20,6 +20,9 @@
               baslayan isci depodakileri CIZMIYOR, Blender'in birakdigi 0
               baytlik yer tutucuyu silip yeniden ciziyor; disk tamamen
               gitse de (yeni calisma + yeni klon) hicbir sey cizilmiyor
+   4c. ANINDA  biten kare blogun sonunu beklemeden, Blender sonraki
+              kareyi cizerken depoya giriyor; isci + Blender SIGKILL ile
+              olse de (kullanim limiti, makine geri alindi) o kare depoda
    5. KALITE  yanlis boyutlu (onizleme) kare depoya giremiyor; topla
               herkese acik depoya yazmayi reddediyor
 
@@ -29,7 +32,8 @@
      paketle crf 0 -> 12 ve md5 karsilastirmasi atlandi -> 2. kayipsiz dustu
      blok_isle depo atlamasi kaldirildi              -> 4. yeniden cizmiyor dustu
      ciz yer tutucu silme kaldirildi                 -> 4. devam (isci cikis) dustu
-     gonder reddedilince yeniden deneme kaldirildi   -> 3. itme yarisi dustu  */
+     gonder reddedilince yeniden deneme kaldirildi   -> 3. itme yarisi dustu
+     ciz yoklamada hazir(True) cagrisi kaldirildi    -> 4c. aninda dustu  */
 import { execFileSync, spawn } from "node:child_process";
 import { mkdtempSync, writeFileSync, readFileSync, existsSync, chmodSync, rmSync, mkdirSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -88,6 +92,8 @@ for f in range(a, b + 1):
     open(p, "wb").close()                      # yer tutucu
     if dur and f >= dur:
         sys.exit(1)                             # cizim yarida kesildi
+    if int(os.environ.get("SAHTE_UYKU", "0")) == f:
+        import time; time.sleep(120)            # uzun kare: isci bu sirada olduruluyor
     uret.png(p, kok, f, w, h)
     with open(os.environ["SAHTE_KAYIT"] + ".kare", "a") as fh:
         fh.write("%s %d\\n" % (kok, f))
@@ -274,20 +280,20 @@ console.log("4. kaldigi yerden devam");
   kontrol("kesilen isci hata ile cikti, kare 10'un 0 baytlik yer tutucusu kaldi", r1.kod !== 0 && existsSync(yerTutucu) && statSync(yerTutucu).size === 0, "kod " + r1.kod);
   const d = dagitPy("durum", "--depo", join(T, "u4_durum"), "--uzak", uzak);
   const a = d.senaryolar.find((s) => s.kok === "deneme_a"), b = d.senaryolar.find((s) => s.kok === "deneme_b");
-  kontrol("durum: eksik = a part1 9-12, a part2 13-25, b 1-10; kalan 27",
-          JSON.stringify(a.bolumler.map((x) => x.eksik)) === "[[[9,12]],[[13,25]]]" && JSON.stringify(b.bolumler[0].eksik) === "[[1,10]]" && d.kalan === 27,
+  kontrol("durum: kesilen blogun biten karesi (9) depoda; eksik = a part1 10-12, a part2 13-25, b 1-10; kalan 26",
+          JSON.stringify(a.bolumler.map((x) => x.eksik)) === "[[[10,12]],[[13,25]]]" && JSON.stringify(b.bolumler[0].eksik) === "[[1,10]]" && d.kalan === 26,
           JSON.stringify([a.bolumler.map((x) => x.eksik), b.bolumler[0].eksik, d.kalan]));
   const e = dagitPy("eksik", "--depo", join(T, "u4_durum"), "--uzak", uzak, "--yeni", "3");
   const kap = new Map();
   for (const liste of e.bloklar) for (const [kok, x, y] of liste) for (let f = x; f <= y; f++) kap.set(kok + " " + f, (kap.get(kok + " " + f) || 0) + 1);
-  const bekle = [9, 10, 11, 12, ...Array.from({ length: 13 }, (_, i) => 13 + i)].map((f) => "deneme_a " + f).concat([...Array(10)].map((_, i) => "deneme_b " + (i + 1)));
+  const bekle = [10, 11, 12, ...Array.from({ length: 13 }, (_, i) => 13 + i)].map((f) => "deneme_a " + f).concat([...Array(10)].map((_, i) => "deneme_b " + (i + 1)));
   kontrol("eksik --yeni 3: eksik kareleri tam bir kez kapsiyor, 3 isciye yayilmis, --is komutlari var",
           kap.size === bekle.length && bekle.every((k) => kap.get(k) === 1) && e.bloklar.every((l) => l.length > 0) && e.isler.every((s) => /^--is deneme_a:/.test(s) || /^--is deneme_b:/.test(s)),
           JSON.stringify(e.isler));
   const r2 = await isci([...ortak, "--depo", join(T, "u4_d"), "--calisma", join(T, "u4_c")], { SAHTE_KAYIT: k2 });
   const ikinci = kareKaydi(k2);
   kontrol("yeniden baslayan isci bitti", r2.kod === 0, r2.kod ? r2.cikti.slice(-300) : "");
-  kontrol("depodaki 1-8 YENIDEN CIZILMEDI; yerelde gecerli kare 9 da cizilmedi", !ikinci.some((s) => /^deneme_a [1-9]$/.test(s)), ikinci.slice(0, 4).join(", "));
+  kontrol("depodaki 1-9 YENIDEN CIZILMEDI", !ikinci.some((s) => /^deneme_a [1-9]$/.test(s)), ikinci.slice(0, 4).join(", "));
   kontrol("yer tutucu (kare 10) silinip yeniden cizildi", ikinci.includes("deneme_a 10"));
   kontrol("ikinci kosuda cizilen = tam olarak eksik kalanlar (26 kare)", ikinci.length === 26, String(ikinci.length));
   const r3 = await isci([...ortak, "--depo", join(T, "u4_d_yeni"), "--calisma", join(T, "u4_c_yeni")], { SAHTE_KAYIT: k3 });
@@ -307,13 +313,44 @@ console.log("4b. girdi degisince yereldeki eski kareler");
   const k1 = join(T, "u4b_b1.log"), k2 = join(T, "u4b_b2.log");
   const ortak = ["--isci", "1/1", "--uzak", uzak, "--depo", join(T, "u4b_d"), "--calisma", join(T, "u4b_c")];
   const r1 = await isci(ortak, { SAHTE_KAYIT: k1, SAHTE_DUR: "10", CIZIM_GIRDI: "eski_kod" });
-  const kare9 = join(T, "u4b_c", "deneme_a", "kare", "0009.png");
-  kontrol("kesilen isci: kare 9 yerelde gecerli duruyor (eski girdiyle)", r1.kod !== 0 && existsSync(kare9) && statSync(kare9).size > 0);
+  // Blender kare 10'u bitirdi, isci itemeden oldu: kare yerelde eski girdiyle duruyor
+  const kare10 = join(T, "u4b_c", "deneme_a", "kare", "0010.png");
+  py(["-c", `import sys; sys.path.insert(0, ${JSON.stringify(T)}); import uret; uret.png(${JSON.stringify(kare10)}, "deneme_a", 10, 48, 27)`]);
+  kontrol("kesilen isci: kare 10 yerelde gecerli duruyor (eski girdiyle)", r1.kod !== 0 && existsSync(kare10) && statSync(kare10).size > 0);
   const r2 = await isci(ortak, { SAHTE_KAYIT: k2, CIZIM_GIRDI: "yeni_kod" });
   const ikinci = kareKaydi(k2);
-  kontrol("girdi degisti: yereldeki kare 9 SILINIP yeni girdiyle yeniden cizildi", r2.kod === 0 && ikinci.includes("deneme_a 9") && /baska girdiyle cizilmis/.test(r2.cikti),
+  kontrol("girdi degisti: yereldeki kare 10 SILINIP yeni girdiyle yeniden cizildi", r2.kod === 0 && ikinci.includes("deneme_a 10") && /baska girdiyle cizilmis/.test(r2.cikti),
           r2.kod ? r2.cikti.slice(-300) : ikinci.slice(0, 4).join(", "));
-  kontrol("depodaki paketler (1-8) yine yeniden cizilmedi", !ikinci.some((s) => /^deneme_a [1-8]$/.test(s)));
+  kontrol("depodaki paketler (1-9) yine yeniden cizilmedi", !ikinci.some((s) => /^deneme_a [1-9]$/.test(s)));
+}
+
+// ============ 4c. BITEN KARE ANINDA DEPODA ============
+// Kullanim limiti dolunca oturum oluyor, makine geri aliniyor: isci de
+// Blender da haber vermeden gidiyor. Blok sonunu bekleyen isci o ana kadar
+// biten kareleri de kaybederdi (v7.99.10'da 10 karelik bloklar boyle gitti).
+console.log("4c. biten kare aninda depoda (isci olse de)");
+{
+  const uzak = ciplakDepo("u4c");
+  const kayit = join(T, "u4c.log");
+  const p = spawn("python3", [ARAC + "cizim_isci.py", "--kurma", "--blok", "4", "--senaryolar", SENLER, "--is", "deneme_a:1-4",
+    "--depo", join(T, "u4c_d"), "--uzak", uzak, "--calisma", join(T, "u4c_c")],
+    { env: { ...process.env, BLENDER: join(T, "blender"), SAHTE_KAYIT: kayit, SAHTE_UYKU: "3", CIZIM_YOKLAMA_SN: "0.3" }, cwd: KANAL, detached: true, stdio: "ignore" });
+  const depodaki = () => {
+    const s = new Set();
+    for (const y of git(join(T, "u4c.git"), "ls-tree", "-r", "--name-only", "main").split("\n")) {
+      const m = /^film\/deneme_a\/(\d+)-(\d+)\.mkv$/.exec(y);
+      if (m) for (let f = Number(m[1]); f <= Number(m[2]); f++) s.add(f);
+    }
+    return s;
+  };
+  let d = new Set();
+  for (let i = 0; i < 150 && !(d.has(1) && d.has(2)); i++) { await new Promise((r) => setTimeout(r, 200)); d = depodaki(); }
+  const blenderCalisiyor = !kareKaydi(kayit).includes("deneme_a 3");
+  try { process.kill(-p.pid, "SIGKILL"); } catch {}
+  await new Promise((r) => setTimeout(r, 300));
+  d = depodaki();
+  kontrol("kare 1-2 Blender kare 3'u cizerken depoya girdi (blok sonu beklenmedi)", d.has(1) && d.has(2) && blenderCalisiyor, JSON.stringify([...d]));
+  kontrol("isci + Blender SIGKILL ile oldu: 1-2 depoda kaldi, cizilmeyen 3-4 depoda yok", d.has(1) && d.has(2) && !d.has(3) && !d.has(4), JSON.stringify([...d]));
 }
 
 // ============ 5. KALITE KILIDI ============

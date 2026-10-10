@@ -583,6 +583,19 @@ klonda (`clone_depth 1`) sabit commit bulunamıyordu: `source_revision`'a
 commit'in kendisi verilir. Limitten sonra temiz yeniden dağıtım:
 `scratchpad/plan/plan9.py N` (kalan bloklar, Part 1 önce, eşit).
 
+**v7.99.12 — kare bitince anında depoya.** Kullanıcının önerisi: limit
+%90'a gelince uyarı al, işçilerin işini yedekle, limit dolunca oradan
+sürdür. Uyarı kısmı yapılamıyor (oturumda limit yüzdesini gösteren bir
+şey yok; limit dolunca ana oturum da duruyor) ama amaç uyarısız
+karşılandı: `cizim_isci.py` artık blok sonunu beklemiyor, Blender bir
+sonraki kareyi çizerken biten kareyi paketleyip itiyor (yoklama 30 sn).
+Oturum ölünce kaybolan en fazla o an çizilen kare; yeniden başlayan işçi
+depodaki her kareyi atlıyor (`biten_kareler` zaten kare düzeyinde).
+`test/cizim_dagit.mjs` 4c işçiyi ve Blender'ı SIGKILL ile öldürüp ölçüyor;
+yoklamadaki itme kaldırılınca düştüğü gösterildi. Çalışan işçiler eski
+commit'te kalır (yarıdaki bloklarını kaybetmesinler diye); yenisi yalnız
+yeniden açılan işçilere verilir.
+
 Yayın kuralları (Mojang kullanım kılavuzu, her videodan önce): **`addon/REFERANS_MOJANG_KILAVUZ.md`**.
 
 Kararların tek kaydı **`addon/SERI_SEZON1.md`**: karakterler (El-Harkos,

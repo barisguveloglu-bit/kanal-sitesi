@@ -14,10 +14,14 @@ Ne yapar:
      once) sirayla cizer. Her bloktan once depoya bakar: kareleri zaten
      itilmisse ATLAR (kaldigi yerden devam; makine geri alinip yeni
      makinede baslasa da ayni komut yeter).
-  4. Her blok bitince kareleri KAYIPSIZ paketler (cizim_ortak.paketle),
+  4. Her KARE bitince -- blogun bitmesini beklemeden, Blender o sirada
+     sonraki kareyi cizerken -- kareyi KAYIPSIZ paketler (cizim_ortak.paketle),
      geri acip piksel piksel karsilastirir, gizli depoya iter. Itme
-     reddedilirse fetch + yeni ucun ustune yeniden kurar.
-  5. Itilen bloğun PNG'lerini siler (disk dolmasin).
+     reddedilirse fetch + yeni ucun ustune yeniden kurar. Boylece oturum
+     olurse (kullanim limiti dolar, makine geri alinir) kaybolan en fazla
+     o an cizilmekte olan karedir; yeniden baslayan isci depodaki her kareyi
+     ATLAR (kare duzeyinde devam). Bekleme YOKLAMA_SN (30 sn) -- kare 6-25 dk.
+  5. Blok bitince PNG'lerini siler (disk dolmasin).
 
 KALITE KILIDI: Blender'a --ayar VERILMEZ (senaryonun kendi tam kalite ayari:
 1920x1080, 4096 ornek uyarlamali). Ciziken kare boyutu senaryonun
@@ -50,6 +54,7 @@ from cizim_ortak import log  # noqa: E402
 VARSAYILAN_DEPO = os.path.expanduser("~/cizim_depo")
 VARSAYILAN_CALISMA = "/tmp/cizim"
 CIZIM_DENEME = 3            # ayni araligi en cok kac kez Blender'a ver
+YOKLAMA_SN = float(os.environ.get("CIZIM_YOKLAMA_SN", "30"))  # biten kareye kac sn'de bir bakilir (ortam: yalniz test)
 
 
 def araclari_hazirla(kurma):
@@ -112,8 +117,10 @@ def eski_kareleri_temizle(kare):
         fh.write(imza + "\n")
 
 
-def ciz(bilgi, a, b, calisma):
-    """a..b karelerini Blender ile cizer (eksik olanlari). (sure_sn, cizilen)"""
+def ciz(bilgi, a, b, calisma, hazir):
+    """a..b karelerini Blender ile cizer (eksik olanlari). Blender calisirken
+    her YOKLAMA_SN'de bir hazir(True) cagrilir: biten kare beklemeden itilir.
+    hazir(False) Blender'dan ONCE: yerelde (ayni girdiyle) kalmis kareler."""
     klasor = os.path.join(calisma, bilgi["kok"])
     kare = os.path.join(klasor, "kare")
     os.makedirs(kare, exist_ok=True)
@@ -126,6 +133,7 @@ def ciz(bilgi, a, b, calisma):
                 if os.path.exists(p):
                     os.remove(p)          # yer tutucu / yarim / yanlis boyut
                 eksik.append(f)
+        hazir(False)
         if not eksik:
             return
         komut = [os.environ["BLENDER"], "-b", "-P", os.path.join(O.ADDON, "arac", "blender_film.py"), "--",
@@ -133,22 +141,71 @@ def ciz(bilgi, a, b, calisma):
         kayit = os.path.join(klasor, "blender_%04d-%04d.log" % (a, b))
         log("ciziliyor %s %d-%d (%d kare)%s" % (bilgi["kok"], min(eksik), max(eksik), len(eksik),
                                                "" if deneme == 0 else ", deneme %d" % (deneme + 1)))
-        t0 = time.time()
         with open(kayit, "wb") as fh:
-            kod = subprocess.run(komut, stdout=fh, stderr=subprocess.STDOUT).returncode
-        sure = time.time() - t0
+            blender = subprocess.Popen(komut, stdout=fh, stderr=subprocess.STDOUT)
+            try:
+                while True:
+                    try:
+                        kod = blender.wait(timeout=YOKLAMA_SN)
+                        break
+                    except subprocess.TimeoutExpired:
+                        try:
+                            hazir(True)
+                        except Exception as e:    # ag hatasi cizimi oldurmesin; kare diskte, sonra yine denenir
+                            log("ara itme olmadi (%s); sonraki yoklamada yeniden" % e)
+            except BaseException:
+                blender.kill()            # isci duruyorsa Blender oksuz kalmasin
+                blender.wait()
+                raise
+        hazir(True)
         if kod != 0:
             log("Blender cikis kodu %d; son satirlar:" % kod)
             sys.stdout.write("".join(open(kayit, encoding="utf-8", errors="replace").readlines()[-15:]))
-        yeni = [f for f in eksik if O.kare_gecerli(os.path.join(kare, "%04d.png" % f), bilgi["cozunurluk"])]
-        ciz.olcum = (ciz.olcum[0] + sure, ciz.olcum[1] + len(yeni))
     kalan = [f for f in range(a, b + 1) if not O.kare_gecerli(os.path.join(kare, "%04d.png" % f), bilgi["cozunurluk"])]
     if kalan:
         raise SystemExit("HATA: %s %d-%d: %d deneme sonra %d kare cizilemedi (ilk %s); bkz. %s"
                          % (bilgi["kok"], a, b, CIZIM_DENEME, len(kalan), kalan[:5], kayit))
 
 
-ciz.olcum = (0.0, 0)
+def paket_gonder(bilgi, x, y, arg, ozet, sure, cizilen):
+    """x..y karelerini kayipsiz paketleyip gizli depoya iter."""
+    kok = bilgi["kok"]
+    paket_klasor = os.path.join(arg.calisma, "paket")
+    os.makedirs(paket_klasor, exist_ok=True)
+    mkv = os.path.join(paket_klasor, "%s_%04d-%04d.mkv" % (kok, x, y))
+    kunye = O.paketle(os.path.join(arg.calisma, kok, "kare"), x, y, bilgi["fps"], mkv)
+    if kunye["boyut"] != bilgi["cozunurluk"]:
+        raise SystemExit("HATA: kare boyutu %s, senaryo %s -- tam kalite degil, ITILMEDI"
+                         % (kunye["boyut"], bilgi["cozunurluk"]))
+    kunye.update({"senaryo": kok, "senaryo_sha256": bilgi["sha256"], "isci": arg.kimlik,
+                  "makine": socket.gethostname(), "cizim_sn": round(sure, 1), "cizilen": cizilen,
+                  "bitis": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())})
+    kunye.update(O.girdi_ozeti())
+    kunye_yol = mkv[:-4] + ".json"
+    with open(kunye_yol, "w", encoding="utf-8") as fh:
+        json.dump(kunye, fh, ensure_ascii=False, indent=1)
+    dosyalar = {O.paket_yolu(kok, x, y, "mkv"): mkv, O.paket_yolu(kok, x, y, "json"): kunye_yol}
+    yazilar = os.path.join(arg.calisma, kok, "yazilar.json")
+    yazilar_yol = "%s/%s/yazilar.json" % (O.DEPO_KLASOR, kok)
+
+    def gerekli_mi(paketler, depo_yazilar):
+        if all(f in O.biten_kareler(paketler, kok) for f in range(x, y + 1)):
+            return {}                 # bu arada baskasi itti
+        d = dict(dosyalar)
+        if kok not in depo_yazilar and os.path.exists(yazilar):
+            d[yazilar_yol] = yazilar
+        return d
+    commit = O.gonder(arg.depo, dosyalar, "cizim: %s %04d-%04d (isci %s, %s, %.1f MB)"
+                      % (kok, x, y, arg.kimlik, kunye["kodek"], kunye["bayt"] / 1e6), gerekli_mi)
+    if commit:
+        log("itildi %s %d-%d  %s  %.2f MB/kare  %s  %s"
+            % (kok, x, y, kunye["kodek"], kunye["bayt"] / 1e6 / (y - x + 1),
+               "%.0f sn/kare" % (sure / cizilen) if cizilen else "", commit[:10]))
+        ozet["itilen"] += y - x + 1
+    else:
+        log("itilmedi %s %d-%d: baska isci ayni kareleri itmis" % (kok, x, y))
+    os.remove(mkv)
+    os.remove(kunye_yol)
 
 
 def blok_isle(bilgi, a, b, arg, ozet):
@@ -161,50 +218,28 @@ def blok_isle(bilgi, a, b, arg, ozet):
         log("atlandi %s %d-%d (depoda var)" % (kok, a, b))
         ozet["atlanan"] += b - a + 1
         return
+    kare = os.path.join(arg.calisma, kok, "kare")
     for x, y in O.sikistir(eksik):
-        ciz.olcum = (0.0, 0)
-        ciz(bilgi, x, y, arg.calisma)
-        sure, cizilen = ciz.olcum
-        paket_klasor = os.path.join(arg.calisma, "paket")
-        os.makedirs(paket_klasor, exist_ok=True)
-        mkv = os.path.join(paket_klasor, "%s_%04d-%04d.mkv" % (kok, x, y))
-        kunye = O.paketle(os.path.join(arg.calisma, kok, "kare"), x, y, bilgi["fps"], mkv)
-        if kunye["boyut"] != bilgi["cozunurluk"]:
-            raise SystemExit("HATA: kare boyutu %s, senaryo %s -- tam kalite degil, ITILMEDI"
-                             % (kunye["boyut"], bilgi["cozunurluk"]))
-        kunye.update({"senaryo": kok, "senaryo_sha256": bilgi["sha256"], "isci": arg.kimlik,
-                      "makine": socket.gethostname(), "cizim_sn": round(sure, 1), "cizilen": cizilen,
-                      "bitis": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())})
-        kunye.update(O.girdi_ozeti())
-        kunye_yol = mkv[:-4] + ".json"
-        with open(kunye_yol, "w", encoding="utf-8") as fh:
-            json.dump(kunye, fh, ensure_ascii=False, indent=1)
-        dosyalar = {O.paket_yolu(kok, x, y, "mkv"): mkv, O.paket_yolu(kok, x, y, "json"): kunye_yol}
-        yazilar = os.path.join(arg.calisma, kok, "yazilar.json")
-        yazilar_yol = "%s/%s/yazilar.json" % (O.DEPO_KLASOR, kok)
+        itilen = set()
+        son = [time.time()]
 
-        def gerekli_mi(paketler, depo_yazilar):
-            if all(f in O.biten_kareler(paketler, kok) for f in range(x, y + 1)):
-                return {}                 # bu arada baskasi itti
-            d = dict(dosyalar)
-            if kok not in depo_yazilar and os.path.exists(yazilar):
-                d[yazilar_yol] = yazilar
-            return d
-        commit = O.gonder(arg.depo, dosyalar, "cizim: %s %04d-%04d (isci %s, %s, %.1f MB)"
-                          % (kok, x, y, arg.kimlik, kunye["kodek"], kunye["bayt"] / 1e6), gerekli_mi)
-        if commit:
-            log("itildi %s %d-%d  %s  %.2f MB/kare  %s  %s"
-                % (kok, x, y, kunye["kodek"], kunye["bayt"] / 1e6 / (y - x + 1),
-                   "%.0f sn/kare" % (sure / cizilen) if cizilen else "", commit[:10]))
-            ozet["itilen"] += y - x + 1
-        else:
-            log("itilmedi %s %d-%d: baska isci ayni kareleri itmis" % (kok, x, y))
+        def hazir(cizildi, x=x, y=y, itilen=itilen, son=son):
+            """Bitmis ama itilmemis kareleri HEMEN iter (Blender calisirken de)."""
+            bitmis = [f for f in range(x, y + 1) if f not in itilen
+                      and O.kare_gecerli(os.path.join(kare, "%04d.png" % f), bilgi["cozunurluk"])]
+            if not bitmis:
+                return
+            simdi = time.time()
+            sure, son[0] = (simdi - son[0] if cizildi else 0.0), simdi
+            for p, q in O.sikistir(bitmis):
+                n = q - p + 1
+                paket_gonder(bilgi, p, q, arg, ozet, sure * n / len(bitmis), n if cizildi else 0)
+                itilen.update(range(p, q + 1))
+        ciz(bilgi, x, y, arg.calisma, hazir)
         for f in range(x, y + 1):
-            p = os.path.join(arg.calisma, kok, "kare", "%04d.png" % f)
+            p = os.path.join(kare, "%04d.png" % f)
             if os.path.exists(p):
                 os.remove(p)
-        os.remove(mkv)
-        os.remove(kunye_yol)
 
 
 def calis(arg):
