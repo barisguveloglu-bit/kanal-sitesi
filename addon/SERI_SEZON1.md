@@ -166,6 +166,20 @@ değiştirebilir** — değişirse buradan silinip yukarıya yazılır.
   ve flaş).
 - **Açılış kartı:** seri adı uydurulmaz; yalnız *"1. BÖLÜM"*.
 
+## 2. bölüm — kullanıcının planı (2026-10-10)
+
+Kullanıcının kendi sözü: *"2. bölümün süresi uzayacak ama partlar bu sefer
+1-2 değil birden fazla olacak… salı günü başlayacağımı düşünüyorum, pazara
+kadar yaparız."*
+
+- 1. bölümden **uzun**; yayın **ikiden fazla parça**.
+- Çalışma salı başlıyor, hedef pazar.
+- Hikâyesi henüz yok — burada olmayanı uydurma, kullanıcı anlatınca yazılır.
+- Ölçüden çıkan not: 1. bölüm (~103 sn) 22 işçiyle ~1,5–2 gün çiziliyor ve
+  asıl darboğaz hesap limiti. Daha uzun bölümde her parça önizlemesi
+  onaylanır onaylanmaz çizime girmeli; sonraki parça yazılırken önceki
+  çizilir (parçalar sırayla yayına hazır olur).
+
 ## Açık
 
 - **Seslendirme — yeniden konuşulacak (kullanıcı, 9 Ekim gecesi):** *"normal
