@@ -345,8 +345,13 @@ def bloblari_getir(depo, oidler):
         return
     var = set(git(depo, "cat-file", "--batch-all-objects", "--batch-check=%(objectname)").stdout.decode().split())
     eksik = [o for o in oidler if o not in var]
+    # negotiationAlgorithm=noop SART: yoksa istemci yerel commit'lerini "have"
+    # diye yollar, sunucu o commit'lerden ulasilan blob'lari bizde var sanip
+    # gondermez ("did not send all necessary objects"). Yerel test deposunda
+    # cikmiyordu; gercek GitHub'da 2 MB'lik .mkv bloblarinda cikti (v7.99.10).
     for i in range(0, len(eksik), 200):
-        git(depo, "fetch", "-q", "--no-write-fetch-head", "origin", *eksik[i:i + 200])
+        git(depo, "-c", "fetch.negotiationAlgorithm=noop", "fetch", "-q", "--no-write-fetch-head",
+            "--no-tags", "--filter=blob:none", "origin", *eksik[i:i + 200])
 
 
 def blob_oku(depo, oid):
