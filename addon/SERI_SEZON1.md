@@ -253,9 +253,16 @@ ve başka yaratıklar. Hepsi buzla ilişkili.
   hâlleriyle — ve **insanlar**. İnsan skinlerini kullanıcı bulup indirme linkini
   verecek; her biri `KAYNAKLAR.md` üç kademe kuralına göre kaydedilir.
 
-**Hâlâ açık:** cadı soylarının bölgeleri; parça sayısı ve sınırları; Barış'ın
-kulübede nerede uyandığı ve kitabın nerede durduğu (asıl kulübede yatak ve
-kitaplık yok — "aynısı" kararıyla birlikte sorulacak).
+- **Kulübeye eklenenler (kullanıcı):** asıl kulübede olmayan **yatak** ve
+  **kitaplık** bizim eklememiz — kulübe *"bunlar eklenmiş şekilde"* olacak.
+  Barış yatakta uyanır, ateş kitabı kitaplıktan. Dokular MCprep paketinde var
+  (ölçüldü: `bookshelf`, `*_bed_*`, `lectern_top`, `cauldron_side`,
+  `crafting_table_front`, `spruce_planks`, `oak_log`, `flower_pot`,
+  `red_mushroom`, `lily_pad`, `vine`). Kulübeyi kuran kod henüz yok; onaydan
+  sonra `blender_film.py`'ye blok blok yapı kurucu olarak yazılır.
+
+**Hâlâ açık:** cadı soylarının bölgeleri; parça sayısı ve sınırları; yatağın
+rengi ve başka eşya istenip istenmediği.
 
 **Mojang kısıtı (kullanıcı, 2026-10-10):** kullanıcı "Mojang'a ait hiçbir
 şey kullanmama" kararının kendisini kısıtladığını, Mojang'a yazıp izin
