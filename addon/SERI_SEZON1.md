@@ -366,9 +366,12 @@ el kaynaklarımız aynı yönde. Her videoda uyulacaklar:
 
 ## Açık
 
-- **Seslendirme — yeniden konuşulacak (kullanıcı, 9 Ekim gecesi):** *"normal
+- **Seslendirme — KAPANDI (kullanıcı, 10 Ekim gecesi):** *"altyazılı devam,
+  bundan sonra her bölümde her part'ta altyazılı olacak."* Seslendirme yok;
+  bütün bölümler ve parçalar altyazılı. (9 Ekim'deki "sesli sohbet sesleri"
+  fikri bu kararla düştü; araştırılmasına gerek kalmadı.)
+- ~~Seslendirme — yeniden konuşulacak (kullanıcı, 9 Ekim gecesi):~~ *"normal
   sohbette sesli konuşma var ya, onun seslerini bulsan onları kullansak."*
-  Şu anki karar "seslendirme yok, yalnız altyazı". Konuşulmadan değişmez.
   Bakılacak: Claude uygulamasının sesli sohbet seslerine bu makineden
   ulaşılabiliyor mu, kullanım izni bir YouTube videosunda kullanmaya
   izin veriyor mu. Vaat yok; önce araştırılıp kullanıcıya söylenecek.
