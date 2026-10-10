@@ -614,7 +614,7 @@ def iki_el_agirligi(anim, t):
 SILAH_GEO = {"antitheus": os.path.join(ADDON, "Simsek_Kol_Kaynak", "models", "entity",
                                        "karanlik_tirpan.geo.json")}
 CARPISMA_PAY = 0.3        # px -- silah govdeden en az bu kadar disarida
-CARPISMA_EN = 25.0        # derece -- kolun en buyuk ek donusu (15'te auto_1 1.3 px batik kaliyordu)
+CARPISMA_EN = 35.0        # derece -- kolun en buyuk ek donusu (15'te auto_1 1.3 px, 25'te 0.83 px batik kaliyordu)
 CARPISMA_YAYMA = 0.15     # s -- duzeltme bu surede yumusakca girip cikar
 CARPISMA_TARA = 120       # Hz -- anahtar kare arasi batma taramasi
 GOVDE_KEMIK = ("head", "body", "rightLeg", "leftLeg")
@@ -790,6 +790,26 @@ def silah_carpisma_duzelt(anim, kemikler, sure, olcek_zaman):
                 ag += w
                 top = [top[i] + v[i] * w for i in range(3)]
         duz[t] = [x / ag for x in top] if ag else [0.0, 0.0, 0.0]
+    # SIKLASTIRMA: duzeltmenin etkin oldugu yerlerde CARPISMA_TARA (120 Hz)
+    # anahtar kare. Seyrek anahtarlar arasindaki Euler gecisi tirpani yeniden
+    # sokuyordu (auto_1 t=0.338: anahtarlarda temiz, arada kafada 0.62 px).
+    import bisect
+    aktif = sorted(t for t in zs if math.sqrt(sum(x * x for x in duz[t])) > 1e-3)
+    pencere = 2.0 / CARPISMA_TARA / olcek_zaman
+    ekle = []
+    for i in range(int(sure * olcek_zaman * CARPISMA_TARA) + 1):
+        t = round(i / CARPISMA_TARA / olcek_zaman, 5)
+        if t in duz or t > sure + 1e-9 or not aktif:
+            continue
+        j = bisect.bisect_left(aktif, t)
+        if min(abs(aktif[k] - t) for k in (j - 1, j) if 0 <= k < len(aktif)) <= pencere:
+            ekle.append(t)
+    for t in ekle:
+        j = bisect.bisect_left(zs, t)
+        t0, t1 = zs[max(0, j - 1)], zs[min(len(zs) - 1, j)]
+        u = 0.0 if t1 == t0 else (t - t0) / (t1 - t0)
+        duz[t] = [duz[t0][i] * (1 - u) + duz[t1][i] * u for i in range(3)]
+    zs = sorted(set(zs) | set(ekle))
     # DOGRULAMA: yayilan duzeltme baska bir anda silahi govdeye sokabiliyor
     # (auto_2: t=0.1'de gerek 0, yayilan 14.7 derece tirpani bacaga 1.8 px
     # soktu). Her an yeniden olculur; batiyorsa duzgun degere en yakin,
@@ -798,6 +818,8 @@ def silah_carpisma_duzelt(anim, kemikler, sure, olcek_zaman):
         Pw = durum(t)[4]
         if derinlik(t, uygula(Pw, duz[t])) <= -CARPISMA_PAY * 0.5:
             continue
+        if t not in gerek:                      # siklastirmada eklenen an
+            gerek[t] = uygula(devrik(Pw), coz(t))
         adaylar = [[x * k for x in duz[t]] for k in (0.85, 0.7, 0.55, 0.4, 0.25, 0.1, 0.0)] + [gerek[t]]
         olc = [(derinlik(t, uygula(Pw, c)), c) for c in adaylar]
         iyi = [c for d, c in olc if d <= -CARPISMA_PAY * 0.5]
