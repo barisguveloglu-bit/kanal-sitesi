@@ -233,6 +233,21 @@ virüsünü üretiyor.
   bu yüzden ağır hissediliyor (6. sahnedeki üşüme). Hanedan tasarımı ayrıca
   konuşulacak (kullanıcının aklında bir şeyler var). Kullanıcı komut/komut
   bloğu hakkında bir şey söyleyip *"neyse"* dedi — kayda geçmedi.
+
+**Barış'ın hanedanı = Komutan Ömer'in bağlı olduğu insan hanedanı (kullanıcı,
+2026-10-10).** Yerleşimin tasarımı:
+- **Yuvarlak** bir yapı; dış çeperi **surlar**, surlar köy evlerinin **hemen
+  dibinde**.
+- İçinde **birden fazla sıradan köylü evi** (Minecraft köy evleri); **golemler**,
+  **köylüler**; bazı evlerde **insanlar** — köylü ve insan bir arada.
+- **Ortada**, dağ gibi yüksek bir yerin üstünde **hanedanın ana yapısı**; oraya
+  **merdivenle** çıkılıyor.
+- **Surların üstünde askerler.** Skin henüz seçilmedi: kullanıcı modumuzda
+  "konsey askeri" diye bir skin sordu — o adla bir skin YOK. Konsey'in beş
+  karakteri (Okazor, Miskel, Kajaros, Raxxan, Harkos) önizlemeyle gösterildi.
+  Dikkat: Harkos = El-Harkos, Okazor = 1. bölümde ana kötünün askeri — insan
+  hanedanının muhafızı olurlarsa izleyici karıştırabilir; karar kullanıcıda.
+
 - Açık: buzlaşan kişi Ice-man'in ordusuna mı katılıyor; virüs yalnız insanlara
   mı, başka ırklara da mı geçiyor; ısırıktan buzlaşmaya ne kadar sürüyor.
 
