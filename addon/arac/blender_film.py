@@ -108,6 +108,21 @@ def zaman_haritasi(senaryo):
     return harita
 
 
+def esya_anahtarlari(kayit, esya="kagit"):
+    """Eldeki esyanin gorunurluk anahtarlari: [(film_karesi, acik)].
+    Ilk karede HER ZAMAN anahtar var. Eskiden yalniz degisimde yaziliyordu;
+    ilk karede esya yokken anahtar yazilmiyor, ilk anahtar "acik" oluyor ve
+    Blender onu geriye uzatip kagidi 1. kareden gosteriyordu (v1 tam
+    kalite cizimi: El-Harkos'un elinde acilistan itibaren beyaz tahta)."""
+    cikti, onceki = [], object()
+    for f, k in enumerate(kayit):
+        e = k.get("esya")
+        if e != onceki:
+            cikti.append((f + 1, e == esya))
+            onceki = e
+    return cikti
+
+
 def kare_bul(harita, t):
     """Hikaye zamani t'nin ilk gorundugu film karesi."""
     import bisect
@@ -1024,7 +1039,11 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
     for ad, a in aktorler.items():
         kok = kok_nesne[ad]
         kn = kemik_nesne[ad]
-        onceki_g, onceki_e, onceki_s = None, None, None
+        onceki_g, onceki_s = None, None
+        if ad in kagitlar:                 # ilk karede de anahtar (bkz. esya_anahtarlari)
+            for f_, acik in esya_anahtarlari(a.kayit[:len(kam_iz)]):
+                kagitlar[ad].hide_render = not acik
+                kagitlar[ad].keyframe_insert("hide_render", frame=f_)
         for f, k in enumerate(a.kayit[:len(kam_iz)]):
             tampona(kok, "location", f + 1, (k["x"], k["y"], k["z"]))
             # aci surekli kalsin (359 -> 1 derece gecisinde ters tur atmasin)
@@ -1046,12 +1065,6 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
                     ob_.hide_render = not k.get("silah", True)
                     ob_.keyframe_insert("hide_render", frame=f + 1)
                 onceki_s = k.get("silah", True)
-            if ad in kagitlar and k.get("esya") != onceki_e:
-                kg = kagitlar[ad]
-                acik = k.get("esya") == "kagit"
-                kg.hide_render = not acik
-                kg.keyframe_insert("hide_render", frame=f + 1)
-                onceki_e = k.get("esya")
             poz, katman = kare_pozu(a, k, kemikler, anims, setler)
             for kem in kemikler:
                 (eu, ps, ol), _ = poz[kem]

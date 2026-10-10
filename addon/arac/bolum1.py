@@ -103,7 +103,9 @@ def orman():
           {"t": t_k + 0.3, "aktor": "h", "esya": "kagit"},
           {"t": t_k + 1.0, "aktor": "h", "soyle": "Canlı ya da ölü yazıyor. Fiyat aynı."},
           {"t": t_k + 4.0, "aktor": "h", "poz_bitir": "kagit"},
-          {"t": t_k + 4.0, "aktor": "h", "esya": None}]
+          # kagit kol INERKEN kaybolur (poz GECIS 0.12 sn'de biter): t_k+4.0'da
+          # kol hala havadayken bir anda yok oluyordu (omuz cekiminde gorunur)
+          {"t": t_k + 4.1, "aktor": "h", "esya": None}]
     s = kos(dict(sen, sure=t_k), t_k - 0.01)
     hx, hy = s["h"]["x"], s["h"]["y"]
     on_k = (cx - hx, cy - hy)

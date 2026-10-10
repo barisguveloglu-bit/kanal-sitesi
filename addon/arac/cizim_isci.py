@@ -89,11 +89,35 @@ def isleri_kur(arg, bilgiler):
     return [(adlar[kok], a, b) for kok, a, b, _ in O.dagit(O.bloklar(bilgiler, arg.blok), n)[k - 1]]
 
 
+def eski_kareleri_temizle(kare):
+    """Yerelde kalan kareler BASKA bir girdiyle (kod/senaryo/doku) cizildiyse
+    siler. Yoksa isci yeniden basladiginda eski kodla cizilmis gecerli
+    kareleri "zaten var" sayip pakete koyar. (v1 tam kalite ciziminde kagit
+    hatasi duzeltilip isci yeniden baslatilacakti; yerelde eski kodla
+    cizilmis 1-9. kareler duruyordu -- elle silindi, artik isci siliyor.)"""
+    gk = O.girdi_ozeti()
+    imza = gk["girdi"] + ("+kirli" if gk["kirli"] else "")
+    yol = os.path.join(kare, ".girdi")
+    onceki = open(yol, encoding="utf-8").read().strip() if os.path.exists(yol) else None
+    if onceki == imza:
+        return
+    eskiler = [x for x in os.listdir(kare) if x.endswith(".png")]
+    if eskiler and onceki is not None:
+        log("yereldeki %d kare baska girdiyle cizilmis (%s -> %s): siliniyor" % (len(eskiler), onceki, imza))
+    elif eskiler:
+        log("yereldeki %d karenin girdisi bilinmiyor: siliniyor" % len(eskiler))
+    for x in eskiler:
+        os.remove(os.path.join(kare, x))
+    with open(yol, "w", encoding="utf-8") as fh:
+        fh.write(imza + "\n")
+
+
 def ciz(bilgi, a, b, calisma):
     """a..b karelerini Blender ile cizer (eksik olanlari). (sure_sn, cizilen)"""
     klasor = os.path.join(calisma, bilgi["kok"])
     kare = os.path.join(klasor, "kare")
     os.makedirs(kare, exist_ok=True)
+    eski_kareleri_temizle(kare)
     for deneme in range(CIZIM_DENEME):
         eksik = []
         for f in range(a, b + 1):

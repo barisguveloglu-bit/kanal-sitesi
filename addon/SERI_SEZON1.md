@@ -146,6 +146,9 @@ kaynağında kapatılışları:
 | final simsiyah | ay 0.32, gök 0.012 | ışık anahtarları |
 | kağıt görünmüyor | kağıt kalkan kolla yatıyordu | kağıt dinlenmede yatay |
 | 7 karede bir çizim | ışık döngüsü `adim`'ı eziyordu (1080p'yi de bozardı) | `test/blender_film.mjs` |
+| **tam kalite** 9. karede El-Harkos'un elinde beyaz tahta (kullanıcı: *"o sorunu da düzelt"*) | kağıdın ilk karesine anahtar yazılmıyordu; Blender "açık" anahtarını geriye uzatıp kağıdı açılıştan 4,7 sn'ye kadar gösterdi (önizlemede de vardı) | `esya_anahtarlari` + `test/blender_film.mjs` |
+| kağıt kol havadayken bir anda yok | `esya: null` `poz_bitir` ile aynı andaydı | kol inerken kaybolur (t_k+4.1) |
+| düzeltmeden sonra yerelde eski kodla çizilmiş kareler | işçi diskteki geçerli kareyi "var" sayıyordu | `.girdi` imzası; `test/cizim_dagit.mjs` 4b |
 
 ## Varsayılanlar — cevap beklemeden uygulandı
 

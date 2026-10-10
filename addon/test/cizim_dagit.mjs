@@ -297,6 +297,25 @@ console.log("4. kaldigi yerden devam");
   kontrol("topla: 35/35 kare bire bir", t.kod === 0 && t.ayni === 35, String(t.ayni));
 }
 
+// ============ 4b. KOD DEGISINCE YERELDEKI ESKI KARELER ============
+// v1 tam kalite ciziminde kagit hatasi bulundu, kod duzeltildi, isci yeniden
+// baslatilacakti: yerelde ESKI kodla cizilmis gecerli kareler duruyordu ve
+// isci onlari "zaten var" sayip pakete koyacakti.
+console.log("4b. girdi degisince yereldeki eski kareler");
+{
+  const uzak = ciplakDepo("u4b");
+  const k1 = join(T, "u4b_b1.log"), k2 = join(T, "u4b_b2.log");
+  const ortak = ["--isci", "1/1", "--uzak", uzak, "--depo", join(T, "u4b_d"), "--calisma", join(T, "u4b_c")];
+  const r1 = await isci(ortak, { SAHTE_KAYIT: k1, SAHTE_DUR: "10", CIZIM_GIRDI: "eski_kod" });
+  const kare9 = join(T, "u4b_c", "deneme_a", "kare", "0009.png");
+  kontrol("kesilen isci: kare 9 yerelde gecerli duruyor (eski girdiyle)", r1.kod !== 0 && existsSync(kare9) && statSync(kare9).size > 0);
+  const r2 = await isci(ortak, { SAHTE_KAYIT: k2, CIZIM_GIRDI: "yeni_kod" });
+  const ikinci = kareKaydi(k2);
+  kontrol("girdi degisti: yereldeki kare 9 SILINIP yeni girdiyle yeniden cizildi", r2.kod === 0 && ikinci.includes("deneme_a 9") && /baska girdiyle cizilmis/.test(r2.cikti),
+          r2.kod ? r2.cikti.slice(-300) : ikinci.slice(0, 4).join(", "));
+  kontrol("depodaki paketler (1-8) yine yeniden cizilmedi", !ikinci.some((s) => /^deneme_a [1-8]$/.test(s)));
+}
+
 // ============ 5. KALITE KILIDI ============
 console.log("5. kalite kilidi");
 {

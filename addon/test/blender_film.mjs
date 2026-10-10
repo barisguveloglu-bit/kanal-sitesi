@@ -159,6 +159,38 @@ kontrol("yarali yuruyus: adim hizi uygulanıyor (1.2 blok/sn)", Math.abs(r2.yuru
         r2.yuru_hiz.toFixed(2) + " blok/sn");
 kontrol("goz kamerasi aktorun bas hizasinda", Math.abs(r2.goz_kam[2] - 1.55) < 1e-6, JSON.stringify(r2.goz_kam));
 
+// Kagit yalniz okurken gorunur. v1 tam kalite ciziminde ilk karede anahtar
+// yazilmadigi icin kagit ACILISTAN itibaren El-Harkos'un elindeydi (kol
+// asagida, yatay beyaz tahta gibi). Gercek 1. bolum senaryosuyla olculur.
+{
+  const r = JSON.parse(execFileSync("python3", ["-c", `
+import json, sys
+sys.path.insert(0, ${JSON.stringify(KOK + "arac")})
+import blender_film as F
+import bedrock_onizleme as B
+sen = json.load(open(${JSON.stringify(KOK + "film/bolum1_orman.json")}))
+setler = B.oku(F.HAREKET)["setler"]
+h = F.zaman_haritasi(sen)
+ak, ef, yz, sr = F.zaman_cizelgesi(sen, setler, {})
+kayit = ak["h"].kayit
+an = F.esya_anahtarlari(kayit)
+# her karede anahtarlardan cikan durum = kayittaki esya
+durum, i, uyum = None, 0, True
+for f in range(1, len(kayit) + 1):
+    while i < len(an) and an[i][0] <= f:
+        durum = an[i][1]; i += 1
+    uyum = uyum and durum == (kayit[f - 1].get("esya") == "kagit")
+acik = [f for f in range(1, len(kayit) + 1) if kayit[f - 1].get("esya") == "kagit"]
+print(json.dumps({"ilk": an[0], "uyum": uyum, "bas": h[acik[0] - 1], "son": h[acik[-1] - 1], "say": len(acik),
+                  "ozel": F.esya_anahtarlari([{"esya": None}, {"esya": "kagit"}, {"esya": None}])}))
+`], { encoding: "utf8" }));
+  kontrol("kagit 1. karede KAPALI anahtarla basliyor", JSON.stringify(r.ilk) === "[1,false]", JSON.stringify(r.ilk));
+  kontrol("anahtarlar her karede senaryodaki esyayla ayni", r.uyum);
+  kontrol("kagit yalniz okuma araliginda (4.7-8.5 sn)", r.bas >= 4.69 && r.son < 8.5 && r.say > 0,
+          r.say + " kare, " + r.bas.toFixed(2) + "-" + r.son.toFixed(2) + " sn");
+  kontrol("esya None ile baslasa da ilk kare anahtarli", JSON.stringify(r.ozel) === "[[1,false],[2,true],[3,false]]", JSON.stringify(r.ozel));
+}
+
 // --adim ezilmesin: blender_filmi icinde "adim" yalniz parametre olarak
 // yasar. v7.99.10'da isik dongusu "adim = fps/4" yaziyordu; 30 fps'de
 // her cizim 7 karede bir atliyordu (son 1080p dahil).

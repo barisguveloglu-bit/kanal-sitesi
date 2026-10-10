@@ -436,8 +436,8 @@ def girdi_ozeti():
     kirli = subprocess.run(["git", "-C", KOK, "status", "--porcelain", "--"] + GIRDI_KLASORLER,
                            capture_output=True).stdout.decode().strip() != ""
     commit = subprocess.run(["git", "-C", KOK, "rev-parse", "HEAD"], capture_output=True).stdout.decode().strip()
-    return {"girdi": hashlib.sha256("\n".join(parca).encode()).hexdigest()[:16], "kirli": kirli,
-            "kanal_commit": commit}
+    girdi = os.environ.get("CIZIM_GIRDI") or hashlib.sha256("\n".join(parca).encode()).hexdigest()[:16]  # ortam: yalniz test
+    return {"girdi": girdi, "kirli": kirli, "kanal_commit": commit}
 
 
 def log(*parca):
