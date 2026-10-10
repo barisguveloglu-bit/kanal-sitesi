@@ -241,9 +241,21 @@ ve başka yaratıklar. Hepsi buzla ilişkili.
 - Cadı soylarından hangilerinin hangi bölgelerde yaşadığı ya da yaşamadığı
   **henüz bilinmiyor** — kullanıcının bilgisi, ileride paylaşacak.
 
-**Açık (sorulacak, uydurulmayacak):** cadının adı ve neden Barış'ı
-kurtardığı; ev onun mu; cadı soylarının bölgeleri; Ice-man ordusunun
-görünüşü; parça sayısı ve sınırları.
+**Cevaplananlar (kullanıcı, 2026-10-10; mikrofonla yazıyor, "şikayet hatsanı"
+= "hikâye taslağını", "aysima" = "Ice-man"):**
+- **Cadının adı:** henüz yok. Yorumlara göre ileride kullanıcı verecek; uydurulmaz.
+- **Barış'ı neden kurtardığı:** *"gizli kalsın"* — filmde açıklanmaz, tahmin yazılmaz.
+- **Bataklıktaki ev cadının.** Tasarım: Minecraft'ın **bataklık kulübesi (cadı
+  kulübesi) ile aynısı** (*"o kulübenin aynısı olacak"*). Blok blok ölçülerek
+  kurulur, tahminle değil; Mojang'ın yapı dosyası depoya girmez, sahne bizim
+  betiğimizle kurulur (orman sahnesi gibi).
+- **Ice-man ordusu:** zombi, iskelet, creeper — **bizim modellerimiz**, buzlaşmış
+  hâlleriyle — ve **insanlar**. İnsan skinlerini kullanıcı bulup indirme linkini
+  verecek; her biri `KAYNAKLAR.md` üç kademe kuralına göre kaydedilir.
+
+**Hâlâ açık:** cadı soylarının bölgeleri; parça sayısı ve sınırları; Barış'ın
+kulübede nerede uyandığı ve kitabın nerede durduğu (asıl kulübede yatak ve
+kitaplık yok — "aynısı" kararıyla birlikte sorulacak).
 
 **Mojang kısıtı (kullanıcı, 2026-10-10):** kullanıcı "Mojang'a ait hiçbir
 şey kullanmama" kararının kendisini kısıtladığını, Mojang'a yazıp izin
