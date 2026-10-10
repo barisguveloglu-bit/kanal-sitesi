@@ -243,7 +243,25 @@ istemek istediğini söyledi. Bizim kuralımız kendi koyduğumuz bir temkin
 (Mojang dosyaları depoya/pakete girmiyor, Minecraft sesleri yok);
 Mojang'ın kullanım yönergeleri videoya ve reklam gelirine genel olarak
 izin veriyor görünüyor ama resmî metin o gün okunamadı (minecraft.net
-503 verdi). Karar kullanıcıda; cevap gelirse buraya yazılır.
+503 verdi).
+
+**KARAR (kullanıcı, 2026-10-10): Mojang'a yazılmıyor; Minecraft Kullanım
+Kılavuzu'na uyularak zombi, iskelet, creeper, golem filmde kullanılabilir.**
+Kullanıcının kendi araştırması (Google'ın yapay zekâ özeti) ve bizim ikinci
+el kaynaklarımız aynı yönde. Her videoda uyulacaklar:
+- Açıklamada: *"NOT AN OFFICIAL MINECRAFT PRODUCT. NOT APPROVED BY OR
+  ASSOCIATED WITH MOJANG OR MICROSOFT."* (güncel kılavuzda "OR
+  MICROSOFT" ekli olabilir; eklemek zarar vermez). **Part 1 dahil.**
+- Başlık "Minecraft" ile başlamaz: "<Ad> - Bir Minecraft Animasyonu".
+- Resmî Minecraft logosu kapakta/videoda kullanılmaz.
+- Minecraft müziği kullanılmaz (Content ID); bizde zaten CC0 müzik var.
+- Videoda yeterince **özgün içerik** olmalı (reklam geliri şartı) — bizim
+  filmler kendi hikâyemiz, kendi karakterlerimiz.
+- **Ayrı kural, değişmedi:** Mojang dosyaları (doku, ses, model) herkese
+  açık depoya ve pakete girmez. Filmde gerekirse yalnız çizim makinesinde
+  kullanılır (MCprep'in yaratık iskeletleri resmî kaynaktan kurulumla gelir).
+- Yayından önce resmî sayfa bir kez okunup bu liste doğrulanmalı
+  (minecraft.net/usage-guidelines).
 
 ## Açık
 
