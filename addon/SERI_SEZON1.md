@@ -200,6 +200,15 @@ dediği). Silahı zaten kayıtlı: Ay Işığı Asası.
 Ice-man hakkında: ortaya çıktığı günden beri ülkeler arası bir
 **soğukluk** hissettirmiş. Bir **ordusu** olacak.
 
+**Ice-man ordusu (kullanıcı, 2026-10-10):** Ice-man **yeni bir dönem
+açıyor**. Ordusu **ele geçirdiği köylere göre** şekilleniyor: iskeletler,
+zombiler, golemler; o köylerin hanedanına ait **farklı farklı creeper'lar**
+ve başka yaratıklar. Hepsi buzla ilişkili.
+- **Mojang izin verirse:** Minecraft'ın kendi yaratıkları (buz hâlleriyle).
+- **İzin yoksa:** kendi buz modellerimiz, kendi dokularımızla — El-Harkos
+  ve aktörlerde olduğu gibi. Mojang'ın modeli/dokusu depoya girmez.
+- Henüz belli değil: hangi köyler, hangi hanedanlar, creeper çeşitleri.
+
 **Kitabın metni (Claude yazdı — kullanıcı onayladı: *"kitap metni güzel olmuş"*):**
 
 > ATEŞİN KİTABI
