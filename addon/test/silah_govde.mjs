@@ -107,11 +107,13 @@ print(json.dumps(r))
 `;
 const r = JSON.parse(execFileSync("python3", ["-c", py], { cwd: KOK, encoding: "utf8", maxBuffer: 1 << 24 }));
 kontrol("Antitheus animasyonlari olculdu", r.anim >= 7, r.anim + " animasyon, " + r.ince + " anahtar kare ayrica");
-// BILINEN KALINTI: antitheus_auto_3'te sap 0.1-0.2 sn basin icinden geciyor;
-// kol duzeltmesi 15 derece sinirinda kapatamiyor (3.8 -> 2.7 px). Filmde bu
-// vurus KULLANILMIYOR (arac/bolum1.py BARIS_VURUS: 1-2-4). Ust sinir
-// kotulesmeyi yakalasin diye: 3.0 px.
-const BILINEN = { antitheus_auto_3: 3.0 };
+// Bilinen kalinti YOK (v7.99.10): eskiden auto_3 icin 3.0 px istisnasi
+// vardi. Dogrulamali duzeltmeden (yayilan duzeltme her anda yeniden
+// olculuyor, etkin bolgede 120 Hz anahtar, tavan 35 derece) sonra hepsi
+// 0.5 px altinda: auto_1 0.08, auto_2 0.29, auto_3 0.44. 240 Hz olcumde
+// auto_1'de tek bir ornek (t=0.3375, 4 ms = 0.1 kare) kafaya 0.62 px;
+// film karesine denk gelmesi pratikte imkansiz, kayit icin burada.
+const BILINEN = {};
 const asan = Object.entries(r.her).filter(([k, v]) => v[0] > (BILINEN[k] ?? 0.5));
 kontrol("tirpan kafa/govde/bacaga girmiyor (0.5 px; bilinen kalinti haric)", asan.length === 0,
         asan.length ? asan.map(([k, v]) => k + " " + v[0] + "px t=" + v[1] + " " + v[2]).join(", ")
