@@ -34,7 +34,7 @@ kararı: *"bu iki evren farklı evrenler."*
 |---|---|---|
 | **Barış** | 1– | İlk dövüş deneyimi; zorlanıyor. Silahı Karanlık Tırpan (kullanıcının dilinde "mızrak"). Skin: **`Simsek_Skin/uzak_akraba.png`** (aktör listesinde `uzak_akraba`) — kullanıcının seçimi. |
 | **El-Harkos** | 1 | Ödül avcısı. Silahsız, yumrukla dövüşüyor. Avladıkları her silahla vücudunu delmeye çalışmış, hiçbiri işlememiş. Barış'ın ödülünü tamamladığını sanıyor; Barış'ın güçlerini açtığını fark etmiyor. **1. bölümde ölüyor.** Skin: **`kaynak_doku/ilkel_harkos.png`** ("İlkel Suikastçı El-Harkos", aktör listesinde `harkos`) — kullanıcının seçimi. |
-| **Ana kötü** | sezon | **Tek karakter, iki çift (dört) beyaz göz.** Karanlık odada oturuyor. Askerleri var. Bedeni, yüzü, yapısı **hiç görünmüyor** — yalnız gözler. Kullanıcının gerekçesi: klasik kötü karakter imajı ve gizem. |
+| **Ana kötü** | sezon | **Tek karakter, iki beyaz göz** (v7.99.10 düzeltmesi; ilk yazım "iki çift" idi). Karanlık odada oturuyor. Askerleri var. Bedeni, yüzü, yapısı **hiç görünmüyor** — yalnız gözler. Kullanıcının gerekçesi: klasik kötü karakter imajı ve gizem. |
 | **Ice-man** | 2 | Gerçek adı Ice-man, kod adı **Deney 081**. 2. bölümün düşmanı. Silahı **Ay Işığı Asası** (`pa:kns_asa_ayisigi`, Konsey eşyası): lacivert gövde, pençe biçimli baş, içinde buz mavisi küre. Kullanıcının gönderdiği görselle model karşılaştırılıp eşleştirildi. Modda dövüş seti yok; film için bir asa seti bağlanacak (Karanlık Tırpan'daki `OZEL_SILAH` yolu). Skin kullanıcıdan geldi (aşağıda). |
 | **Asker** | 1 | Ana kötünün askerlerinden; El-Harkos'un öldüğü haberini patronuna getiren görevli. |
 
@@ -179,6 +179,47 @@ kadar yaparız."*
   asıl darboğaz hesap limiti. Daha uzun bölümde her parça önizlemesi
   onaylanır onaylanmaz çizime girmeli; sonraki parça yazılırken önceki
   çizilir (parçalar sırayla yayına hazır olur).
+
+### Hikâye — İLK TASLAK (kullanıcı, 2026-10-10; değişebilir)
+
+Kullanıcı: *"ilk taslak, sonradan değişebilir."* 1. bölümün devamı;
+kötü **Ice-man / Deney 081** (1. bölümün sonunda gözlerin "getirin"
+dediği). Silahı zaten kayıtlı: Ay Işığı Asası.
+
+| # | sahne | not |
+|---|---|---|
+| 1 | Barış yerde, baygın yatıyor (ilk dövüş fazla yordu) | 1. bölümün son sahnesinin devamı |
+| 2 | Uzaktan **el lambasıyla** biri geliyor | **Barış'ın gözünden** (POV); geleni yalnız **bulanık yüzüyle** görüyoruz |
+| 3 | Barış bir yerde uyanıyor, nerede olduğunu anlamaya çalışıyor | artık POV değil, normal kamera açısı |
+| 4 | Bir **kitap** görüyor, okuyor | kitapta **ateş büyüleri**; yazı ekranda tam okunmuyor, okuduğunu varsayıyoruz. Metni Claude yazıyor (aşağıda, onay bekliyor) |
+| 5 | Kitabı yerine koyuyor; **ağrılarının birden geçtiğini** fark ediyor | |
+| 6 | Bulunduğu **bataklıktaki evden** çıkıp yürümeye başlıyor; hafif bir **üşüme** hissi | |
+| 7 | Kesme: **Komutan Ömer** (yeni karakter) | oda **ışıklarla dolu, biraz şaşalı**: büyük bir haritanın serildiği, ülkelerin birbirine karşı plan kurduğu bir **savaş/toplantı odası** |
+| 8 | Biri kapıyı tıklatıp giriyor: *"Efendim, Doğu bölgesinden çok büyük buz dalgaları hissediyoruz. Hanedanımızın büyücüleri öyle hissetti."* Ömer: *"Tamam."* | |
+
+Ice-man hakkında: ortaya çıktığı günden beri ülkeler arası bir
+**soğukluk** hissettirmiş. Bir **ordusu** olacak.
+
+**Kitabın metni (taslak, Claude — kullanıcı onayı bekliyor):**
+
+> ATEŞİN KİTABI
+> Ateş, istemeyenin elinde söner; isteyenin elinde büyür.
+> I. Kıvılcım — Avucunu aç, nefesini tut, sıcaklığı parmak uçlarına çağır.
+> II. Alev Kalkanı — Korku soğuktur. Ateşi göğsünde topla, etrafına çevir.
+> III. Kor Yürüyüşü — Ayağının altındaki toprağı ısıt; buz seni tutamaz.
+> Uyarı: Ateş, onu çağıranın canından yer. Yorgun bedenle büyü yapılmaz.
+
+**Açık (sorulacak, uydurulmayacak):** el lambalı kişi kim; ev kimin;
+Komutan Ömer kimin tarafında, "hanedan" hangisi; Ice-man ordusunun
+görünüşü; parça sayısı ve sınırları.
+
+**Mojang kısıtı (kullanıcı, 2026-10-10):** kullanıcı "Mojang'a ait hiçbir
+şey kullanmama" kararının kendisini kısıtladığını, Mojang'a yazıp izin
+istemek istediğini söyledi. Bizim kuralımız kendi koyduğumuz bir temkin
+(Mojang dosyaları depoya/pakete girmiyor, Minecraft sesleri yok);
+Mojang'ın kullanım yönergeleri videoya ve reklam gelirine genel olarak
+izin veriyor görünüyor ama resmî metin o gün okunamadı (minecraft.net
+503 verdi). Karar kullanıcıda; cevap gelirse buraya yazılır.
 
 ## Açık
 
