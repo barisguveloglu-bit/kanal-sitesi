@@ -242,11 +242,18 @@ virüsünü üretiyor.
   **köylüler**; bazı evlerde **insanlar** — köylü ve insan bir arada.
 - **Ortada**, dağ gibi yüksek bir yerin üstünde **hanedanın ana yapısı**; oraya
   **merdivenle** çıkılıyor.
-- **Surların üstünde askerler.** Skin henüz seçilmedi: kullanıcı modumuzda
-  "konsey askeri" diye bir skin sordu — o adla bir skin YOK. Konsey'in beş
-  karakteri (Okazor, Miskel, Kajaros, Raxxan, Harkos) önizlemeyle gösterildi.
-  Dikkat: Harkos = El-Harkos, Okazor = 1. bölümde ana kötünün askeri — insan
-  hanedanının muhafızı olurlarsa izleyici karıştırabilir; karar kullanıcıda.
+- **Surların üstünde askerler — sur askerleri (kullanıcı, 2026-10-10).**
+  Normal insan gibi görünmezler: Osmanlı dönemindeki zincir zırhların (cevşen /
+  cebe) Barış'ın evrenindeki **gelişmiş hâlini** giyerler; zırh **bütün bedeni
+  kaplar**. **Birinci kuralları: kimliklerini asla belli etmemek.** Bu, hanedanın
+  sur askerleri için temel kural.
+  - Skin: kullanıcı iki tane gönderdi (64×64, saydamlık sağlam, kalın kol):
+    `sur_askeri_1` (gri, md5 d0df399e58bb88f86901dbe2851de060) ve
+    `sur_askeri_2` (kırmızı omuzlu, md5 ae59d49d831ef53b198159935aba2809).
+    Şimdilik yalnız scratchpad'de; kimin yaptığı / izni sorulmadan depoya girmez
+    (`KAYNAKLAR.md` kuralı). İki skinin farkı (rütbe mi?) soruldu.
+  - Konsey'in beş karakteri önizlemeyle gösterilmişti; sur askeri için
+    kullanılmıyorlar (Harkos = El-Harkos, Okazor = ana kötünün askeri).
 
 - Açık: buzlaşan kişi Ice-man'in ordusuna mı katılıyor; virüs yalnız insanlara
   mı, başka ırklara da mı geçiyor; ısırıktan buzlaşmaya ne kadar sürüyor.
