@@ -185,6 +185,11 @@ kadar yaparız."*
 
 ### Hikâye — İLK TASLAK (kullanıcı, 2026-10-10; değişebilir)
 
+**ONAY BEKLİYOR (2026-10-10):** kullanıcı *"henüz ben bunları onaylamadım … beni bekle"*
+dedi. Sıra: 1. bölümün Part 1'i tam kalite çizilir, ses/müzik eklenir, kullanıcıya
+teslim edilir ve **orada beklenir**. Onay gelmeden 2. bölümün senaryo JSON'u,
+çekimi ya da çizimi başlamaz.
+
 Kullanıcı: *"ilk taslak, sonradan değişebilir."* 1. bölümün devamı;
 kötü **Ice-man / Deney 081** (1. bölümün sonunda gözlerin "getirin"
 dediği). Silahı zaten kayıtlı: Ay Işığı Asası.
