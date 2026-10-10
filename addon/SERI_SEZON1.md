@@ -260,8 +260,11 @@ el kaynaklarımız aynı yönde. Her videoda uyulacaklar:
 - **Ayrı kural, değişmedi:** Mojang dosyaları (doku, ses, model) herkese
   açık depoya ve pakete girmez. Filmde gerekirse yalnız çizim makinesinde
   kullanılır (MCprep'in yaratık iskeletleri resmî kaynaktan kurulumla gelir).
-- Yayından önce resmî sayfa bir kez okunup bu liste doğrulanmalı
-  (minecraft.net/usage-guidelines).
+- **Resmî sayfa 2026-10-10'da okundu** → tam liste ve gerekçeler:
+  **`REFERANS_MOJANG_KILAVUZ.md`**. Doğrulanan: uyarı metninde "OR
+  MICROSOFT" VAR. Yeni çıkan iki madde: başlık kartı oyun içeriğinin
+  dışına (ayrı karta) konur; kılavuz "violence / mature content"i
+  markaya zararlı sayıyor → kan efekti kararı kullanıcıda.
 
 ## Açık
 

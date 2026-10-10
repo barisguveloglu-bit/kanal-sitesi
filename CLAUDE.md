@@ -572,6 +572,8 @@ Kurallar: **işçi oturumları `claude-haiku-5-5` ile açılır** (iş yalnız k
 blok 3 kare, ana oturum seyrek denetler. Limit dolarsa sıfırlanınca
 `eksik --yeni` ile kalan iş yeniden dağıtılır. `test/cizim_dagit.mjs` Blender'sız ölçüyor.
 
+Yayın kuralları (Mojang kullanım kılavuzu, her videodan önce): **`addon/REFERANS_MOJANG_KILAVUZ.md`**.
+
 Kararların tek kaydı **`addon/SERI_SEZON1.md`**: karakterler (El-Harkos,
 Ice-man / Deney 081, sezonun ana kötüsü), 1. bölümün sahne sırası,
 1080p30 kararı ve açık sorular. Orada olmayanı uydurma; sor.
