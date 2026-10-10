@@ -585,9 +585,12 @@ commit'in kendisi verilir. Limitten sonra temiz yeniden dağıtım:
 
 **v7.99.12 — kare bitince anında depoya.** Kullanıcının önerisi: limit
 %90'a gelince uyarı al, işçilerin işini yedekle, limit dolunca oradan
-sürdür. Uyarı kısmı yapılamıyor (oturumda limit yüzdesini gösteren bir
-şey yok; limit dolunca ana oturum da duruyor) ama amaç uyarısız
-karşılandı: `cizim_isci.py` artık blok sonunu beklemiyor, Blender bir
+sürdür. Yüzde görünmüyor: `get_session` çıktısındaki
+`external_metadata.rate_limit_info` yalnız pencereyi (`five_hour`),
+durumu (`status`, ölçüldüğünde `allowed`) ve sıfırlanma anını
+(`resetsAt`, epoch sn) veriyor — denetimde ilk bakılan yer o. Limit
+dolunca ana oturum da durduğu için "uyarı gelince yedekle" güvenilmez;
+amaç uyarısız karşılandı: `cizim_isci.py` artık blok sonunu beklemiyor, Blender bir
 sonraki kareyi çizerken biten kareyi paketleyip itiyor (yoklama 30 sn).
 Oturum ölünce kaybolan en fazla o an çizilen kare; yeniden başlayan işçi
 depodaki her kareyi atlıyor (`biten_kareler` zaten kare düzeyinde).
