@@ -217,6 +217,20 @@ ve başka yaratıklar. Hepsi buzla ilişkili.
   ve aktörlerde olduğu gibi. Mojang'ın modeli/dokusu depoya girmez.
 - Henüz belli değil: hangi köyler, hangi hanedanlar, creeper çeşitleri.
 
+**Buz virüsü (kullanıcı, 2026-10-10):** Ice-man, **Barış onu yenene kadar**
+buzlaşmış bir **virüs** yayıyor; seviyesi ilerledikçe kendi ordusundan kendi
+virüsünü üretiyor.
+- **Bulaşma:** ısırıkla. Örnek: bir zombi köydeki bir insanı ısırır, virüs
+  ısırıktan girer; **önce bedene alışır, sonra buzlaşma başlar.**
+- **Tedavi:** kökünden kazımanın yolu, Minecraft'ta zombi köylüyü normal
+  köylüye çevirmenin yollarıyla **aynı** (oyunda: zayıflık iksiri + altın
+  elma — kullanıcıya teyit ettirilecek).
+- **Neden çözülemiyor:** tek bir hanedan buna kalkışırsa **yeterli malzemesi
+  yok**; hanedanların ve krallıkların kendi çıkarları var ve **kimse kimseye
+  güvenmiyor** — bu yüzden neredeyse imkânsız.
+- Açık: buzlaşan kişi Ice-man'in ordusuna mı katılıyor; virüs yalnız insanlara
+  mı, başka ırklara da mı geçiyor; ısırıktan buzlaşmaya ne kadar sürüyor.
+
 **Kitabın metni (Claude yazdı — kullanıcı onayladı: *"kitap metni güzel olmuş"*):**
 
 > ATEŞİN KİTABI
@@ -255,14 +269,14 @@ ve başka yaratıklar. Hepsi buzla ilişkili.
 
 - **Kulübeye eklenenler (kullanıcı):** asıl kulübede olmayan **yatak** ve
   **kitaplık** bizim eklememiz — kulübe *"bunlar eklenmiş şekilde"* olacak.
-  Barış yatakta uyanır, ateş kitabı kitaplıktan. Dokular MCprep paketinde var
+  Barış yatakta uyanır (yatak **kırmızı**), ateş kitabı kitaplıktan. Dokular MCprep paketinde var
   (ölçüldü: `bookshelf`, `*_bed_*`, `lectern_top`, `cauldron_side`,
   `crafting_table_front`, `spruce_planks`, `oak_log`, `flower_pot`,
   `red_mushroom`, `lily_pad`, `vine`). Kulübeyi kuran kod henüz yok; onaydan
   sonra `blender_film.py`'ye blok blok yapı kurucu olarak yazılır.
 
-**Hâlâ açık:** cadı soylarının bölgeleri; parça sayısı ve sınırları; yatağın
-rengi ve başka eşya istenip istenmediği.
+**Hâlâ açık:** cadı soylarının bölgeleri; parça sayısı ve sınırları; başka
+eşya istenip istenmediği.
 
 **Mojang kısıtı (kullanıcı, 2026-10-10):** kullanıcı "Mojang'a ait hiçbir
 şey kullanmama" kararının kendisini kısıtladığını, Mojang'a yazıp izin
