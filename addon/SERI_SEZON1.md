@@ -261,6 +261,10 @@ virüsünü üretiyor.
     bittiği âna kadarki süreyi siler**. Kesin bir süre sınırı yok, **bir gün
     içinde içilmesi tavsiye ediliyor**.
   - Sonuç: seçimden sonra komutanlar bile kimin sur askeri olduğunu hatırlamaz.
+  - **Kâğıtlar yok edilir.** Onaylayan birimin **gözleri sıkı bir bezle
+    bağlanır**; onayı gözü kapalı verirler. Yıllardır yaptıkları için nereye
+    onay koyacakları onlarda **refleks** olmuştur — yani birim de adayların
+    kimliğini görmez.
 - **Surların üstünde askerler — sur askerleri (kullanıcı, 2026-10-10).**
   Normal insan gibi görünmezler: Osmanlı dönemindeki zincir zırhların (cevşen /
   cebe) Barış'ın evrenindeki **gelişmiş hâlini** giyerler; zırh **bütün bedeni

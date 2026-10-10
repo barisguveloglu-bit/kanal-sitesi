@@ -572,6 +572,17 @@ Kurallar: **işçi oturumları `claude-haiku-5-5` ile açılır** (iş yalnız k
 blok 3 kare, ana oturum seyrek denetler. Limit dolarsa sıfırlanınca
 `eksik --yeni` ile kalan iş yeniden dağıtılır. `test/cizim_dagit.mjs` Blender'sız ölçüyor.
 
+**v7.99.11 dersleri (10 Ekim, ölçüldü):** limit aynı gün iki kez daha doldu
+(14:19 ve 17:45 UTC) ve her seferinde BÜTÜN bulut işçileri öldü. İkincisinde
+~2 saatte doldu: o pencerede ~87 oturum açılıp kapanmıştı (yeniden
+dağıtımlar) ve ana oturum çok adım atmıştı. **Oturum açıp kapatmak pahalı;
+plan bir kez kurulur, oynanmaz.** Ayrıca hesapta **aynı anda ~48 oturum**
+çalışabiliyor: fazlası PENDING bekliyor ve kullanıcının kendi oturumunu da
+bekletiyor — işçi sayısı kullanıcıya yer bırakacak kadar tutulur. Sığ
+klonda (`clone_depth 1`) sabit commit bulunamıyordu: `source_revision`'a
+commit'in kendisi verilir. Limitten sonra temiz yeniden dağıtım:
+`scratchpad/plan/plan9.py N` (kalan bloklar, Part 1 önce, eşit).
+
 Yayın kuralları (Mojang kullanım kılavuzu, her videodan önce): **`addon/REFERANS_MOJANG_KILAVUZ.md`**.
 
 Kararların tek kaydı **`addon/SERI_SEZON1.md`**: karakterler (El-Harkos,
