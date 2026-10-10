@@ -200,7 +200,7 @@ dediği). Silahı zaten kayıtlı: Ay Işığı Asası.
 Ice-man hakkında: ortaya çıktığı günden beri ülkeler arası bir
 **soğukluk** hissettirmiş. Bir **ordusu** olacak.
 
-**Kitabın metni (taslak, Claude — kullanıcı onayı bekliyor):**
+**Kitabın metni (Claude yazdı — kullanıcı onayladı: *"kitap metni güzel olmuş"*):**
 
 > ATEŞİN KİTABI
 > Ateş, istemeyenin elinde söner; isteyenin elinde büyür.
@@ -209,8 +209,23 @@ Ice-man hakkında: ortaya çıktığı günden beri ülkeler arası bir
 > III. Kor Yürüyüşü — Ayağının altındaki toprağı ısıt; buz seni tutamaz.
 > Uyarı: Ateş, onu çağıranın canından yer. Yorgun bedenle büyü yapılmaz.
 
-**Açık (sorulacak, uydurulmayacak):** el lambalı kişi kim; ev kimin;
-Komutan Ömer kimin tarafında, "hanedan" hangisi; Ice-man ordusunun
+**Dünya — kullanıcının anlattığı (2026-10-10):**
+- Birden fazla **hanedan ve krallık** var; her biri **farklı bölgede**
+  yaşıyor ve her birinin **ırkı farklı**. **End'de ve Nether'da** da
+  krallıklar var.
+- **Komutan Ömer:** **insanlara** ait hanedanın askerî bir bölgesindeki
+  komutan.
+- **El lambalı kişi:** **cadı** ırkından.
+- **Cadıların geçmişi:** bir zamanlar insan topluluğunun içinde
+  yaşıyorlardı; insanlar onları hor gördü, "tanrının kutsamadıkları"
+  diye ayırdı. Bazıları idam edildi, bazıları kaçabildi. Bu, **Barış'ın
+  çağından 5000 yıl önce**, daha ilkel bir dönemde oldu — o yüzden
+  kullanıcı "krallık/hanedan" değil **"insan topluluğu"** diyor.
+- Cadı soylarından hangilerinin hangi bölgelerde yaşadığı ya da yaşamadığı
+  **henüz bilinmiyor** — kullanıcının bilgisi, ileride paylaşacak.
+
+**Açık (sorulacak, uydurulmayacak):** cadının adı ve neden Barış'ı
+kurtardığı; ev onun mu; cadı soylarının bölgeleri; Ice-man ordusunun
 görünüşü; parça sayısı ve sınırları.
 
 **Mojang kısıtı (kullanıcı, 2026-10-10):** kullanıcı "Mojang'a ait hiçbir
