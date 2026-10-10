@@ -149,6 +149,8 @@ kaynağında kapatılışları:
 | **tam kalite** 9. karede El-Harkos'un elinde beyaz tahta (kullanıcı: *"o sorunu da düzelt"*) | kağıdın ilk karesine anahtar yazılmıyordu; Blender "açık" anahtarını geriye uzatıp kağıdı açılıştan 4,7 sn'ye kadar gösterdi (önizlemede de vardı) | `esya_anahtarlari` + `test/blender_film.mjs` |
 | kağıt kol havadayken bir anda yok | `esya: null` `poz_bitir` ile aynı andaydı | kol inerken kaybolur (t_k+4.1) |
 | düzeltmeden sonra yerelde eski kodla çizilmiş kareler | işçi diskteki geçerli kareyi "var" sayıyordu | `.girdi` imzası; `test/cizim_dagit.mjs` 4b |
+| **kan efekti — kullanıcı B'yi seçti** (Mojang kılavuzu "violence / mature content") | 18 damladan her 3'ü biri çizilir, %60 boy, daha koyu; **yerdeki lekeler aynı** (aynı rnd dizisi) | önizlemeyle ölçüldü: uçuş kareleri değişti, kan yere indikten sonraki kareler (1630, 1980) eski kodla **piksel piksel aynı**. Kan uçuşu: 1577–1618 ve 1919–1969 → bu kareler yeni kodla ayrı işçilerde çizilir, ana işçiler depoda bulup atlar |
+| başlık kartı sahnenin üstündeydi (Mojang: "title card ... outside of the actual game content") | `altyazi_bas` başlığı sahneye basmıyor; `film_birlestir` sahneden önce 2,5 sn siyah kart koyuyor | `test/baslik_karti.mjs` (mutasyonla ısırdı) |
 
 ## Varsayılanlar — cevap beklemeden uygulandı
 

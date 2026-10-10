@@ -65,6 +65,10 @@ SILAH = {"karanlik_tirpan": ("Simsek_Kol_Kaynak/models/entity/karanlik_tirpan.ge
                              "Simsek_Kol_Kaynak/textures/entity/karanlik_tirpan.png")}
 MCPREP_DOKU = os.environ.get("MCPREP_DOKU", "")      # .../mcprep_default/assets/minecraft/textures/block
 YAZI_TIPI = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
+# Mojang kullanim kilavuzu: "title card ... outside of the actual game
+# content". Baslik sahnenin ustune basilmaz; film_birlestir onu sahneden
+# ONCE ayri siyah karta koyar (REFERANS_MOJANG_KILAVUZ.md madde 7).
+BASLIK_SAHNEDE = False
 TICK = 20.0
 YURU, KOS = 4.3, 5.6          # blok/sn (vanilla)
 VARIS = 1.6
@@ -1592,6 +1596,16 @@ def _isik_malz(bpy, ad, renk, guc):
     return m
 
 
+# Kan (kullanicinin B secimi, v7.99.10, Mojang kilavuzu "violence / mature
+# content" maddesi): kan kalir ama AZ ve KUCUK -- 18 damladan her 3'unden
+# biri, %60 boy, daha koyu. Yerdeki lekeler DEGISMEDI (yerleri ayni rnd
+# dizisinden geliyor): boylece ucus disindaki kareler eski kodla cizilmis
+# karelerle bire bir ayni kalir (cizim surerken degisti).
+KAN_GORUNEN = 3
+KAN_OLCEK = 0.6
+KAN_RENK = (0.20, 0.0, 0.0, 1)
+
+
 def _parca(bpy, nokta, boy, malz, f0, f1, son_nokta, ara=None, kalici=False):
     """f0'da `nokta`da belirip f1'de `son_nokta`da sonen kucuk kup.
     ara: [(kare, nokta)] -- yay (yercekimi) icin ara anahtarlar.
@@ -1633,7 +1647,7 @@ def kivilcim_kur(bpy, efektler, fps, doku_malzemesi, harita=None):
     kan_m = bpy.data.materials.new("kan")
     kan_m.use_nodes = True
     kb = kan_m.node_tree.nodes["Principled BSDF"]
-    kb.inputs["Base Color"].default_value = (0.32, 0.01, 0.01, 1)
+    kb.inputs["Base Color"].default_value = KAN_RENK
     kb.inputs["Roughness"].default_value = 0.25
     leke_m = bpy.data.materials.new("kan_leke")
     leke_m.use_nodes = True
@@ -1695,7 +1709,9 @@ def kivilcim_kur(bpy, efektler, fps, doku_malzemesi, harita=None):
                     ara.append((f0 + k, p))
                 if yere is None:
                     continue
-                _parca(bpy, n, rnd.uniform(0.04, 0.08), kan_m, f0, yere[0], yere[1], ara[:-1])
+                boy = rnd.uniform(0.04, 0.08)        # rnd dizisi AYNI kalir: lekelerin yeri buradan
+                if j % KAN_GORUNEN == 0:
+                    _parca(bpy, n, boy * KAN_OLCEK, kan_m, f0, yere[0], yere[1], ara[:-1])
                 if j % 2 == 0:
                     # yerde kalan leke: duz kare, dusus aninda belirir
                     bl = rnd.uniform(0.06, 0.14)
@@ -1746,6 +1762,8 @@ def altyazi_bas(klasor, adim=1, aralik=None):
                 continue
             yerel = t - y["t"]
             alfa = int(255 * min(1.0, yerel / 0.25, (y["sure"] - yerel) / 0.25))
+            if y["tur"] == "baslik" and not BASLIK_SAHNEDE:
+                continue                      # ayri kart: film_birlestir.baslik_karti
             if y["tur"] == "baslik":
                 f = ImageFont.truetype(YAZI_TIPI, int(H * 0.12))
                 g = d.textlength(y["metin"], font=f)

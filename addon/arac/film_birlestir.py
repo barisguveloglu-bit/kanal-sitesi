@@ -54,6 +54,35 @@ def parca(klasor, senaryo_yolu, adim=1, parca_adi=None):
     return cikti, sen.get("fps", 24) / adim
 
 
+KART_SURE = 2.5
+
+
+def baslik_karti(klasor, senaryo_yolu, parca_adi, cikti_png, wh):
+    """Parcanin araligina dusen "baslik" yazilarindan siyah kart (PNG).
+    Mojang kilavuzu: baslik karti oyun iceriginin DISINDA olmali. Yoksa None."""
+    from PIL import Image, ImageDraw, ImageFont
+    sen = B.oku(os.path.abspath(senaryo_yolu))
+    fps0 = sen.get("fps", 24)
+    a, b = sen["parcalar"][parca_adi] if parca_adi else (1, 10 ** 9)
+    yol = os.path.join(klasor, "yazilar.json")
+    if not os.path.exists(yol):
+        return None
+    import json
+    metin = [y["metin"] for y in json.load(open(yol, encoding="utf-8"))["yazilar"]
+             if y.get("tur") == "baslik" and (a - 1) / fps0 <= y["t"] < b / fps0]
+    if not metin:
+        return None
+    W, H = wh
+    im = Image.new("RGB", (W, H), (0, 0, 0))
+    d = ImageDraw.Draw(im)
+    f = ImageFont.truetype(F.YAZI_TIPI, int(H * 0.12))
+    yazi = "  ".join(metin)
+    g = d.textlength(yazi, font=f)
+    d.text(((W - g) / 2, H * 0.44), yazi, font=f, fill=(255, 255, 255))
+    im.save(cikti_png)
+    return cikti_png
+
+
 def boyut(video):
     o = subprocess.run(["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries",
                         "stream=width,height", "-of", "csv=p=0", video], capture_output=True, text=True, check=True)
@@ -67,20 +96,34 @@ def main(argv):
         adim = int(argv[i + 1])
         argv = argv[:i] + argv[i + 2:]
     cikti = os.path.abspath(argv[0])
-    parcalar = []
+    parcalar, kartlar = [], []
     fps = 30
     for a in argv[1:]:
         k, s, *pa = a.split(":")              # klasor:senaryo[:part1]
         p, fps = parca(os.path.abspath(k), s, adim, pa[0] if pa else None)
+        kart = baslik_karti(os.path.abspath(k), s, pa[0] if pa else None,
+                            os.path.join(os.path.abspath(k), "baslik_karti.png"),
+                            [int(x) for x in boyut(p).split("x")])
+        if kart and not kartlar and not parcalar:
+            kartlar.append(kart)              # yalniz filmin basinda
         parcalar.append(p)
     girdi, filtre = [], []
-    for i, p in enumerate(parcalar):
+    j = 0
+    for kart in kartlar:
+        # kart: sessiz, yumusak giris/cikis; sahnenin ustune degil ONUNE
+        girdi += ["-loop", "1", "-framerate", "%g" % fps, "-t", str(KART_SURE), "-i", kart,
+                  "-f", "lavfi", "-t", str(KART_SURE), "-i", "anullsrc=r=48000:cl=stereo"]
+        filtre.append("[%d:v]format=yuv420p,fade=t=in:st=0:d=0.3,fade=t=out:st=%g:d=0.3[k%d];[k%d][%d:a]"
+                      % (j, KART_SURE - 0.3, j, j, j + 1))
+        j += 2
+    for p in parcalar:
         girdi += ["-i", p]
-        filtre.append("[%d:v][%d:a]" % (i, i))
-    n = len(parcalar)
+        filtre.append("[%d:v][%d:a]" % (j, j))
+        j += 1
+    n = len(parcalar) + len(kartlar)
     girdi += ["-f", "lavfi", "-t", str(SIYAH_SON), "-i", "color=c=black:s=%s:r=%g" % (boyut(parcalar[0]), fps),
               "-f", "lavfi", "-t", str(SIYAH_SON), "-i", "anullsrc=r=48000:cl=stereo"]
-    filtre.append("[%d:v][%d:a]" % (n, n + 1))
+    filtre.append("[%d:v][%d:a]" % (j, j + 1))
     # ses zinciri filtre grafiginin ICINDE: ffmpeg -af ile -filter_complex'i
     # birlikte kabul etmiyor (cikis 234)
     fc = "".join(filtre) + "concat=n=%d:v=1:a=1[v][a0];[a0]%s[a]" % (n + 1, SES_ZINCIR)
