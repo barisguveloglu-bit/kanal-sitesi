@@ -544,6 +544,23 @@ Resolve'dan istenen ses işi (kompresör, limiter, −14 LUFS) ffmpeg ile
 `film_birlestir.py`'de yapılıyor; müzik/efekt/ortam ayrıca stem olarak
 veriliyor, kullanıcı son miksajı kendi Resolve'unda yapabilir.
 
+**Tam kalite çizim birden çok bulut oturumuna dağıtılır.** Bir makine kare
+başına 6–25 dk; hız yalnız paralellikten gelir. `addon/arac/cizim_dagit.py
+istem --isci 12` her oturuma verilecek tam metni üretir; oturum
+`cizim_isci.py --isci k/12 --arka` çalıştırır, `--bekle` ile ayakta tutar.
+Bloklar 10 kare, **serpiştirilmiş** (k. blok → k mod N; ağır sahne yayılır),
+herkes önce Part 1'i çizer. Her blok **kayıpsız** paketlenir (x264rgb crf 0
+ya da FFV1, ikisi de denenir, geri açılıp piksel md5'i tutan en küçüğü
+kalır) ve hemen **gizli** `barisguveloglu-bit/already-exists` deposuna
+itilir (`film/<senaryo>/<aaaa>-<bbbb>.mkv` + `.json` künye). Neden gizli:
+film yayından önce bu depoda **görünmemeli** — buraya kare/video koyma.
+Makine geri alınırsa aynı komut kaldığı yerden sürer (depodaki blok
+çizilmez, Blender'ın 0 baytlık yer tutucusu silinir). `durum` ilerleme ve
+tahmini bitişi, `eksik --yeni M` yeniden dağıtımı verir; `cizim_topla.py
+--hedef <depo dışı>` kareleri doğrulayarak açar ve `film_birlestir.py`
+komutlarını yazar. İşçiye **`--ayar` verilmez** (kalite kilidi; yanlış
+boyutlu kare depoya giremez). `test/cizim_dagit.mjs` Blender'sız ölçüyor.
+
 Kararların tek kaydı **`addon/SERI_SEZON1.md`**: karakterler (El-Harkos,
 Ice-man / Deney 081, sezonun ana kötüsü), 1. bölümün sahne sırası,
 1080p30 kararı ve açık sorular. Orada olmayanı uydurma; sor.
