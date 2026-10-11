@@ -46,10 +46,37 @@ ifade (`PYTHON_SURUCU 0`) — betik izni olmadan da çalışıyor.
 - Kontrol paneli ve kemik şekilleri çizilmesin: yalnız `Mesh` ve
   `Rig [only append this]` koleksiyonları çizilir, `FacePanel` gizlenir.
 
+## Hangi kontrol ne yapar — denenerek ölçüldü (34 kılavuz çizimi)
+
+Kılavuz sayfaları: `scratchpad/thomas/kilavuz*/goz_kilavuz*.png` (kullanıcıya
+gösterildi). "Çalışmadı" yazan satırlar da ölçüm — bir daha denenmesin.
+
+| kontrol | nerede | ne yapar | ölçülen |
+|---|---|---|---|
+| göz türü | `Main_Properties["Eye type"]` | **1** = gerçekçi göz (beyaz, iki renkli iris kenarı, koyu bebek, yansıma noktası); **0** = tek renkli düz göz (`*_EyeSC`); **2** = doku deseni | 3 → 2'nin 0. deseniyle aynı (geçersiz, kullanma) |
+| desen | `Main_Properties["Eye texture type"]` (yalnız tip 2) | `eyes.jpg` atlası: 4 desen (üst sıra) + yansıma maskeleri (alt sıra); `*_EyeSC` ile boyanır | 0 = yumuşak çerçeveli bebek, 1 = vurgulu kare bebek, 2 = bulanık bulut, 3 = yuvarlatılmış bebek |
+| iki ayrı göz | `Main_Properties["Different eyes colour"]` | `2_*` girişleri **karakterin sol gözüne** uygulanır | sürücülü — malzemeye elle yazılırsa ezilir |
+| iris rengi | `*_Color1` (üst), `*_Color2` (alt) | iris kenarının iki tonu | yeşil denendi, çalışıyor |
+| bebek / yansıma | `*_Pupil`, `*_Reflection` | bebek rengi, yansıma noktası rengi | |
+| bebek boyutu | **`*_RimSize`** | büyüdükçe renkli kenar daralır, bebek büyür | 2,5'te kenar kayboluyor. `Pupils_controller` ölçeği **çalışmadı** |
+| ışıma | `*_Emission` | gözün kendi rengiyle ışık | 3 hafif, 6 belirgin, **15 güçlü (kırmızı kalıyor)**, 30 iris pembe-beyaza döner |
+| ışık yayılması | `Blow_Out` (tamsayı) | hâlenin genişliği | 1 dar, 12 geniş |
+| yüzey | `Roughness` | parlaklık | |
+| bakış (bebek) | `Eye.L` / `Eye.R` konumu | **Y = yukarı/aşağı**; **Z = sağ/sol, iki gözde ters işaret** (L z −, R z + → ekranın sağına bakar) | sınır: L y ±0,1 z −0,15…0,05; R y ±0,1 z −0,05…0,15. `Pupils_controller.001` **çalışmadı** |
+| göz kapağı | `iUI_Blink.L` / `iUI_Blink.r` Y | −0,052 kapalı, −0,026 yarı, 0 normal, +0,052 iyice açık | tek göz ayrı |
+| göz yüksekliği | `Eyes_UP_DOWN` Y | iki göz birlikte yüzde kayar | −0,184…+0,11; skinin boyalı gözü yerinde kalır — skin gözsüzse temiz |
+| göz şekli | her gözde 8 kol: `Bone.011…026, .035` (`CS_Eye_1…8.L/R`) | göz kapağı hattını büker (kızgın, kısık, şaşkın) | kol 1 = üst köşe, kol 2 = üst kapağın kavisi |
+| bakış takibi | `Main_Properties["Eyes tracker"]`, `EyesTracker` (IK) | gözler bir hedefi izler | varsayılan açık; ayrıca denenmedi |
+| kaşlar | `Eyebrow_control*`, `L/R.Eyebrow_*` | kaş yüksekliği, bükme, germe | kullanıcı yalnız göz istedi — kullanılmıyor |
+
+Kullanılmayanlar (kullanıcının kararı): yanak kızarıklığı (`blush`), kirpik
+(`eye_lashes`), kan lekesi, ağız şekilleri.
+
 ## İlk önizleme
 
 Çarpık skin, karanlık oda, sağ göz kapalı (`iUI_Blink.r = −0,052`), sol göz
 açık, `2_Color1/2` kırmızı, `2_Emission = 6`: kırmızı ışıyan göz bebeği, kapalı
-gözde skinin pikselleri. 48 örnek, 640×640 — kullanıcıya gösterildi, onay
-bekliyor. Betik: çalışma kopyası scratchpad'de; filme bağlanırken
+gözde skinin pikselleri. 48 örnek, 640×640. Kullanıcı: *"bayağı havalı
+görünüyor"*, **ışıma daha güçlü olsun** → 15 / 15 + Blow Out 12 / 30 + Blow Out 12
+karşılaştırması gösterildi, seçim bekleniyor. Betik: çalışma kopyası scratchpad'de; filme bağlanırken
 `addon/arac/` altına düzgün araç olarak yazılır.
