@@ -81,5 +81,46 @@ görünüyor"*, **ışıma daha güçlü olsun** → 15 / 15 + Blow Out 12 / 30 
 karşılaştırması gösterildi. **Seçim (kullanıcı, 2026-10-11): `*_Emission = 30`
 + `Blow_Out = 12`** — en güçlü ışıma, en geniş hâle. 30'da irisin pembe-beyaza
 kaydığı karşılaştırmada gösterilmişti; bilinerek seçildi, "düzeltilecek renk"
-değil. Betik: çalışma kopyası scratchpad'de; filme bağlanırken
-`addon/arac/` altına düzgün araç olarak yazılır.
+değil.
+
+## Filme bağlantı — `arac/thomas_goz.py` (v7.99.13)
+
+Senaryo:
+
+```json
+"aktorler": {"b": {"skin": "...", "goz": {"kalip": "kirmizi", "sag": {"isima": 0}}}},
+"kamera":   [{"t": 6.0, "aci": "elle", "goz": "thomas"}],
+"olaylar":  [{"t": 6.2, "aktor": "b", "goz_kapak": {"sag": -1, "sol": 0.4}, "sure": 0.2},
+             {"t": 7.0, "aktor": "b", "goz_bakis": [0.5, 0], "sure": 0.3}]
+```
+
+- `goz` ayarı olan aktöre Thomas kafası kurulur; yalnız `goz: "thomas"`
+  olan planlarda görünür, öteki planlarda bizim kafamız (*"bir o bir o"*).
+  Plan seçimi `kamera_izi` ile aynı kural.
+- `kalip: "kirmizi"` = kullanıcının seçtiği ayar (iris kırmızı, Emission
+  30, Blow Out 12). Anahtarlar: `iris`, `iris2`, `bebek`, `sc`, `yansima`,
+  `isima`, `bebek_boyu`, `yayilma`; `sol`/`sag` yalnız o göze.
+- Kapak −1…1 → `iUI_Blink` ±0,052; bakış −1…1 → `Eye.L/R` ±0,1, ölçülen
+  sınırlarda kırpılır.
+- Yalnız `Head_Deform`/`Head_NoDeform` (seçimi iskeletin sürücüsü yapar) ve
+  `Eyes` çizilir; gövde, kol, kaş, diş, dil, katman çıkıntıları gizli.
+- Plan dışında iskelet **uzağa taşınır**, gizlenmez: kafa nesnelerinin
+  görünürlüğü sürücülü, anahtar sürücüyle çakışırdı.
+- **Hizalama:** iskeletin dinlenme kafası (0,48 birim) bizim kafaya (0,5)
+  ölçeklenip yüz yönüne döndürülür. Yüz yönü **kafa merkezinden yüz
+  dokusunun ortasına** alınır, yüzey normalinden değil: bizim küpler ters
+  sarılı, normal içe bakıyor — ilk denemede kafa 180° ters oturdu.
+- `arac_kur.sh` iskeleti resmî siteden indirir, SHA-256 ile doğrular,
+  yalnız `assets/rigs/Thomas Rig Legacy.blend`'i açar (`THOMAS_RIG`).
+- `test/goz_thomas.mjs` Blender'sız kısmı kilitliyor.
+
+## Açık bulgu — bizim film aracı skinleri aynalıyor
+
+Aynı skin (çarpık) üç iskelette önden çizildi: Thomas Rig ve MCprep'in
+*Simple Rig*'i (iki bağımsız Minecraft iskeleti) yüz dokusunu **dosyadaki
+gibi** gösteriyor; bizim film aracı **yatay ayna**. Kaynak
+`bedrock_onizleme.kupler`: iç uzayda x ters, UV köşe ataması düz
+(docstring bunu zaten "bir ayna kadar sapabilir" diye yazıyordu).
+1. bölüm (Part 1 + 2) bu hâliyle çizildi. Düzeltme 2. bölümden itibaren
+önerildi; **karar kullanıcının** (1. bölümle süreklilik). Düzeltilmeden
+önce aynı filmde Thomas planı ile bizim plan arasında yüz aynalanır.

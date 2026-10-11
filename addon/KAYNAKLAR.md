@@ -171,8 +171,15 @@ Her birinin ölçümü kendi `REFERANS_*.md` dosyasında.
 | Customizable Player Models | tom5454 (MIT) | `REFERANS_CPM_REPLAYMOD.md` |
 | ReplayMod | CrushedPixel, johni0702 (GPL-3.0) | `REFERANS_CPM_REPLAYMOD.md` |
 | MCprep (Blender eklentisi) | TheDuckCow (GPL-3.0) | `REFERANS_BLENDER_MCPREP.md` |
+| Thomas Rig Legacy 1.2.8 (Blender eklentisi, göz sistemi) | BlueEvilGFX — Thomas Animation'ın *Thomas Rig*'inden (GPL-3.0-or-later) | `REFERANS_THOMAS_RIG.md` |
 
 Diğer `REFERANS_*.md` dosyaları da aynı düzende.
+
+MCprep dokuları ve Thomas Rig Legacy iskeleti filmde **kullanılıyor** ama
+**depoya girmiyor**: çizim makinesine kurulumda (`arac/arac_kur.sh`)
+resmî kaynaktan indirilir, sağlama toplamıyla doğrulanır. Thomas
+paketinden yalnız iskelet `.blend`'i açılır; içindeki Mojang dokuları
+(`Steve-base.png`, vanilla zırh) alınmaz — skin her zaman bizimki.
 
 ---
 

@@ -55,6 +55,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import bedrock_onizleme as B  # noqa: E402
 import film_poz  # noqa: E402
+import thomas_goz  # noqa: E402
 
 KOK = B.KOK
 ANIM_WOM = "Simsek_Kol_Kaynak/animations/wom_kilic.animation.json"
@@ -1166,6 +1167,9 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
                 d = (Vector(bk) - Vector(kp)).length
             tampona(kam.data.dof, "focus_distance", f + 1, (d,))
     toplu_anahtar(bpy, tampon, kam)
+
+    # ---- Thomas gozleri: goz ayarli aktorler, goz="thomas" planlarda (REFERANS_THOMAS_RIG.md) ----
+    thomas_goz.kur(bpy, senaryo, harita, aktorler, kemik_nesne, kare_bul, B.yol)
 
     if senaryo.get("mekan") == "oda":
         oda_kur(bpy, senaryo, doku_malzemesi, harita, fps, kam_iz)
