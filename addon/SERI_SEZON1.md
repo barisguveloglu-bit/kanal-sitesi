@@ -306,6 +306,9 @@ dediği). Silahı zaten kayıtlı: Ay Işığı Asası.
       azalır, umut azaldıkça hapis yaklaşır.
     - Birleşim: uyku maddesi gizli kalır; güç payı izleyicinin gözü önünde,
       yavaş yavaş Barış'ın aleyhine işler.
+    - **Göz sistemi (kullanıcının kararı, 2026-10-11):** göz sahneleri Thomas
+      Rig Legacy'nin gözleriyle çizilir — yalnız göz, yanak/kirpik süsü yok.
+      Ölçüm ve kurallar: `REFERANS_THOMAS_RIG.md`.
     - **İzleyici maddeleri SONRADAN öğrenir** (kullanıcı): 3. bölümde Barış
       **kendi hanedanında, kendi evinde** yatarken uyanır; **çarpık skinle bir
       gözünü açar ve göz kıpkırmızıdır** — uyku maddesinin işlediği böyle
