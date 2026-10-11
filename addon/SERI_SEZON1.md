@@ -273,8 +273,22 @@ dediği). Silahı zaten kayıtlı: Ay Işığı Asası.
   Not: Uzak Akraba / Çarpık Hal kaynağı LORE.md'nin EK dosyaları; seriye
   katmak kullanıcının kararı (2026-10-11). Skin dosyası depoda bizim; dış
   varlık değil (`KAYNAKLAR.md`'de satırı yok).
-- Açık (kullanıcıya soruldu): Barış ruhun içinde olduğunu biliyor mu;
-  ağrıların geçme sebebi belli mi.
+- **Barış biliyor mu — 3. bölümde öğreniyor** (kullanıcı, 2026-10-11; ilk
+  fikir, değişebilir):
+  - Satanachia kendini Barış'a **Barış'ın kendi güçlerinden biri** olarak
+    tanıtıyor — yani onu **kandırıyor**.
+  - Bir **kâğıt** çıkarıp imzalamasını istiyor; Barış imzalıyor, Satanachia
+    **şeytani bir şekilde gülümsüyor**. O kâğıt aslında Barış'ın
+    **iradesini kıran** bir kâğıt.
+  - **Ele geçirme kuralı:** bu kadar büyük kin besleyen bir ruh, bir insanın
+    bedenini ele geçirmek için türlü oyunlar oynar; ele geçirebilirse beden
+    onundur. Ama o insan **hâlâ kurtulabileceğine inanıyorsa** kontrolü geri
+    alabilir: **umutlu** olan kurtulabilir; **umutsuz ve yenik düşen** zihninin
+    bir köşesinde **hapis kalır** ve ruhun yaptıklarını izlemek zorunda kalır
+    — beden onundur, kontrol eden başkasıdır.
+  - **Barış'ın neden imzaladığı henüz yok** — kullanıcı düşünecek
+    (*"bu kadar kolay bir şekilde değiştirebilirim, bilmiyorum"*); uydurulmaz.
+- Açık (kullanıcıya soruldu): ağrıların geçme sebebi belli mi.
 
 Ice-man hakkında: ortaya çıktığı günden beri ülkeler arası bir
 **soğukluk** hissettirmiş. Bir **ordusu** olacak.
