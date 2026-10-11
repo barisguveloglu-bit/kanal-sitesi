@@ -78,5 +78,8 @@ Kullanılmayanlar (kullanıcının kararı): yanak kızarıklığı (`blush`), k
 açık, `2_Color1/2` kırmızı, `2_Emission = 6`: kırmızı ışıyan göz bebeği, kapalı
 gözde skinin pikselleri. 48 örnek, 640×640. Kullanıcı: *"bayağı havalı
 görünüyor"*, **ışıma daha güçlü olsun** → 15 / 15 + Blow Out 12 / 30 + Blow Out 12
-karşılaştırması gösterildi, seçim bekleniyor. Betik: çalışma kopyası scratchpad'de; filme bağlanırken
+karşılaştırması gösterildi. **Seçim (kullanıcı, 2026-10-11): `*_Emission = 30`
++ `Blow_Out = 12`** — en güçlü ışıma, en geniş hâle. 30'da irisin pembe-beyaza
+kaydığı karşılaştırmada gösterilmişti; bilinerek seçildi, "düzeltilecek renk"
+değil. Betik: çalışma kopyası scratchpad'de; filme bağlanırken
 `addon/arac/` altına düzgün araç olarak yazılır.

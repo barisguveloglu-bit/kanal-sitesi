@@ -311,7 +311,9 @@ dediği). Silahı zaten kayıtlı: Ay Işığı Asası.
       Ölçüm ve kurallar: `REFERANS_THOMAS_RIG.md`. Sahneye göre seçilir: bazı
       planlar bizim sistemimiz, bazıları bu gözler (kullanıcı: *"bir o bir o"*).
       Kırmızı göz önizlemesi: *"bayağı havalı görünüyor"*; **ışıma daha güçlü
-      olacak** (önizlemede `2_Emission = 6` idi).
+      olacak** (önizlemede `2_Emission = 6` idi). **Seçilen: `Emission = 30`
+      + `Blow_Out = 12`** (kullanıcı, 2026-10-11) — irisin pembe-beyaza
+      kaydığı bilinerek seçildi.
 - **3. bölüm — genel odak Barış–Satanachia ikilisi** (kullanıcı, 2026-10-11).
   **Barış'ın yeni formu: elleri canavarımsı** (kullanıcı, 2026-10-11):
   - **Ne zaman:** Barış **Satanachia'nın güçlerini kullandığında** — formu
