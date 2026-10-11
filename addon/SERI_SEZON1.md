@@ -183,6 +183,14 @@ değiştirebilir** — değişirse buradan silinip yukarıya yazılır.
 - **Gücün rengi:** Karanlık Tırpan'ın mor ışığı (ışınlanma parçacığı
   ve flaş).
 - **Açılış kartı:** seri adı uydurulmaz; yalnız *"1. BÖLÜM"*.
+- **Seri adı — KARAR (kullanıcı, 2026-10-11): _Karanlık Tırpan_.**
+  Kullanıcı adı Claude'a bıraktı (*"serinin adı sence ne olsun, o izni
+  sana veriyorum"*). Gerekçe: Barış'ın silahı ve gücünün rengi bütün
+  sezon boyunca duruyor (El-Harkos ve Deney 081 tek bölümlük). Aramada
+  aynı adlı bir Minecraft animasyonu çıkmadı (2026-10-11). YouTube
+  başlığı: *"Karanlık Tırpan | 1. Bölüm · Part 1 - Bir Minecraft
+  Animasyonu"* ("Minecraft" ikinci başlıkta). Açılış kartı değişmedi
+  (yalnız "1. BÖLÜM"); seri adını karta koymak ayrı bir karar.
 
 ## 2. bölüm — kullanıcının planı (2026-10-10)
 
