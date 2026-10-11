@@ -23,6 +23,12 @@ import bedrock_onizleme as B  # noqa: E402
 import film_ses  # noqa: E402
 
 SIYAH_SON = 0.6
+# loudnorm tek geciste hedefi tutturmuyor: 38 sn'lik Part 1 denemesinde
+# -14 yerine -11.3 LUFS olculdu (v7.99.12). Bu yuzden film once kayipsiz
+# sesle (FLAC) ara dosyaya yazilir, butunlesik yukseklik OLCULUR, fark
+# dogrusal kazancla kapatilir (video kopyalanir, AAC yalniz bir kez).
+HEDEF_LUFS = -14.0
+SON_SES = "volume=%.2fdB,alimiter=limit=0.84:attack=2:release=60:level=false"
 # Son ses zinciri (kullanicinin arastirmasi: "dovus videosunda muzik, vurus
 # ve efekt ust uste biniyor, limiter sart"): yumusak kompresor -> YouTube
 # hedefi -14 LUFS / -1 dBTP -> tepe sinirlayici. Hepsi ffmpeg, ucretsiz.
@@ -127,11 +133,52 @@ def main(argv):
     # ses zinciri filtre grafiginin ICINDE: ffmpeg -af ile -filter_complex'i
     # birlikte kabul etmiyor (cikis 234)
     fc = "".join(filtre) + "concat=n=%d:v=1:a=1[v][a0];[a0]%s[a]" % (n + 1, SES_ZINCIR)
+    ara = cikti + ".ara.mkv"
     subprocess.run(["ffmpeg", "-y", "-v", "error"] + girdi +
                    ["-filter_complex", fc, "-map", "[v]", "-map", "[a]",
                     "-c:v", "libx264", "-preset", "slow", "-crf", "18", "-pix_fmt", "yuv420p",
-                    "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-movflags", "+faststart", cikti], check=True)
+                    "-c:a", "flac", "-ar", "48000", ara], check=True)
+    olcu, kazanc, sonra = ses_ayarla(ara, cikti)
+    os.remove(ara)
+    print("ses: once %.1f LUFS, kazanc %+.2f dB, sonra %.1f LUFS, tepe %.1f dBTP"
+          % (olcu["I"], kazanc, sonra["I"], sonra["TP"]))
     print("film:", cikti)
+
+
+def ses_ayarla(ara, cikti):
+    """ara (video + kayipsiz ses) -> cikti (.mp4): video KOPYA, ses HEDEF_LUFS'a
+    olculerek getirilir, AAC'ye bir kez cevrilir. (once, kazanc, sonra) doner."""
+    olcu = yukseklik(ara)
+    kazanc = 0.0
+    if olcu["I"] > -50:                       # sessiz parcayi (test, bos ses) yukseltme
+        # butunlesik yukseklik kazanca dogrusal degil (mutlak -70 LUFS kapisi
+        # sessiz bloklari kazancla birlikte disari atiyor: -2.7 dB -> -13.5,
+        # -14 degil). Kazanc yalniz sesle (hizli) olculerek yaklastirilir.
+        kazanc = HEDEF_LUFS - olcu["I"]
+        for _ in range(4):
+            kazanc = max(-12.0, min(12.0, kazanc))
+            dene = ara + ".flac"
+            subprocess.run(["ffmpeg", "-y", "-v", "error", "-i", ara, "-map", "0:a", "-af", SON_SES % kazanc,
+                            "-c:a", "flac", dene], check=True)
+            fark = HEDEF_LUFS - yukseklik(dene)["I"]
+            os.remove(dene)
+            if abs(fark) < 0.15:
+                break
+            kazanc += fark
+    subprocess.run(["ffmpeg", "-y", "-v", "error", "-i", ara, "-map", "0:v", "-map", "0:a", "-c:v", "copy",
+                    "-af", SON_SES % kazanc,
+                    "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-movflags", "+faststart", cikti], check=True)
+    return olcu, kazanc, yukseklik(cikti)
+
+
+def yukseklik(dosya):
+    """EBU R128 butunlesik yukseklik (LUFS) ve gercek tepe (dBTP)."""
+    c = subprocess.run(["ffmpeg", "-nostats", "-v", "info", "-i", dosya, "-map", "0:a",
+                        "-af", "ebur128=peak=true", "-f", "null", "-"], capture_output=True, text=True).stderr
+    ozet = c[c.rindex("Summary:"):]
+    i = float(ozet.split("I:")[1].split("LUFS")[0])
+    tp = float(ozet.split("Peak:")[-1].split("dBFS")[0])
+    return {"I": i, "TP": tp}
 
 
 if __name__ == "__main__":

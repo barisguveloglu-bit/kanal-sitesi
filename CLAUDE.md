@@ -599,6 +599,16 @@ yoklamadaki itme kaldırılınca düştüğü gösterildi. Çalışan işçiler 
 commit'te kalır (yarıdaki bloklarını kaybetmesinler diye); yenisi yalnız
 yeniden açılan işçilere verilir.
 
+**v7.99.12 — ses seviyesi ölçülerek.** `film_birlestir.py`'nin tek
+geçişli `loudnorm`'u hedefi tutturmuyordu: 38 sn'lik gerçek Part 1
+denemesinde −14 yerine **−11,3 LUFS** ölçüldü. Artık film önce kayıpsız
+sesle (FLAC) ara dosyaya yazılıyor, yükseklik ölçülüyor, fark doğrusal
+kazançla kapatılıyor (`ses_ayarla`; video kopyalanır, AAC yalnız bir
+kez). Tek seferlik kazanç da yetmiyor (mutlak −70 LUFS kapısı yüzünden
+−2,7 dB → −13,5), kazanç yalnız sesle ölçülerek yineleniyor.
+`test/ses_seviye.mjs` gerçek Part 1 sesiyle ölçüyor; kazanç kapatılınca
+ve yineleme kaldırılınca düştüğü gösterildi.
+
 Yayın kuralları (Mojang kullanım kılavuzu, her videodan önce): **`addon/REFERANS_MOJANG_KILAVUZ.md`**.
 
 Kararların tek kaydı **`addon/SERI_SEZON1.md`**: karakterler (El-Harkos,
