@@ -258,9 +258,11 @@ dediği). Silahı zaten kayıtlı: Ay Işığı Asası.
   (kullanıcı: *"siyah bir top çiz, bulutlu ruh olarak uygun"*).
 - 5. sahnede **ağrıların birden geçmesi Satanachia ile ilgili DEĞİL**
   (kullanıcı). Ağrıların neden geçtiği henüz söylenmedi.
+- **Dünyaya geçişi:** cadının Nether'a gidip gelirken açtığı **geçitten**.
+  Cadı fark etmedi — ruhun **gücünü bile algılayamadı** (kullanıcı).
 - Açık (kullanıcıya soruldu): "uyumadan önce" ne demek (Barış uyanmadan
-  önce mi); ruh dünyaya nasıl geçti; hangi sahneler arasında gösteriliyor;
-  Barış ruhun içinde olduğunu biliyor mu; ağrıların geçme sebebi belli mi.
+  önce mi); hangi sahneler arasında gösteriliyor; Barış ruhun içinde
+  olduğunu biliyor mu; ağrıların geçme sebebi belli mi.
 
 Ice-man hakkında: ortaya çıktığı günden beri ülkeler arası bir
 **soğukluk** hissettirmiş. Bir **ordusu** olacak.
