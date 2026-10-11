@@ -290,9 +290,23 @@ dediği). Silahı zaten kayıtlı: Ay Işığı Asası.
     Satanachia Barış hakkında her şeyi biliyor ve güçlerinin değerli olduğunu
     görüyor. *"Yanlışlıkla başka bir şey imzalattım, özür dilerim, bunu da
     imzalayabilir misin?"* diyor ve bu sefer **hiç baskı yapmadan** Barış'ın
-    imzalamasını bekliyor. Kâğıdın içeriği **henüz yok**; kullanıcının örneği
-    Jujutsu Kaisen'deki Sukuna–Itadori bağlayıcı yemini (*"birebir
-    kopyalamayacağız ama fikir aynı"*). Claude seçenek sundu, karar kullanıcıda.
+    imzalamasını bekliyor. Kullanıcının örneği Jujutsu Kaisen'deki
+    Sukuna–Itadori bağlayıcı yemini (*"birebir kopyalamayacağız ama fikir
+    aynı"*).
+    **İçeriği — kullanıcı kabul etti (2026-10-11): A + C birleşimi** (Claude'un
+    önerisi). Kâğıt, ilk "yanlışlığı" düzelten bir kâğıt gibi sunulur; Barış
+    özgürlüğünü geri aldığını sanıp baskısız imzalar. İçindeki iki madde:
+    - **A — Uyku maddesi:** Barış uyurken beden Satanachia'nındır, uyanınca
+      geri verilir; "uyurken kimseye zarar vermem". Barış bu maddeyi
+      **unutur** (izleyici bilir, Barış bilmez). Satanachia geceleri kimseye
+      dokunmadan kendi işlerini yürütür — ne yaptığı henüz yok, uydurulmaz.
+    - **C — Güç payı maddesi:** Barış Satanachia'nın gücünü istediği zaman
+      kullanabilir. Gizli kısmı: **her kullanımda Barış'ın umudundan bir parça
+      Satanachia'ya geçer** — ele geçirme kuralına bağlı: güce yaslandıkça umut
+      azalır, umut azaldıkça hapis yaklaşır.
+    - Birleşim: uyku maddesi gizli kalır; güç payı izleyicinin gözü önünde,
+      yavaş yavaş Barış'ın aleyhine işler.
+    - Açık: izleyici maddeleri imza anında mı görüyor, sonra mı öğreniyor.
   - **Konuşma yeri:** Barış ile Satanachia normal bir ortamda değil, Barış'ın
     **zihin ortamında** konuşuyor (kullanıcı).
   - **Neden imzaladı (kullanıcı, kesin değil — "olabilir"):** karşısında en
