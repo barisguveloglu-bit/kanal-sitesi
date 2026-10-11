@@ -264,9 +264,15 @@ dediği). Silahı zaten kayıtlı: Ay Işığı Asası.
   önce, kullanıcı teyit etti); filmde 2. sahne (cadının gelişi) ile 3. sahne
   (uyanış) **arasında** gösterilir. Kullanıcı: *"arası titresin biraz"* — o
   aralıkta görüntü biraz titrer.
-- Kullanıcı bu an için **`carpik` skinini** sordu (eklentideki "Uzak Akraba ·
-  Çarpık Hal", çekim setinde aktör skini `carpik`); nasıl kullanılacağı
-  soruldu, cevap bekleniyor.
+- **Çarpık hâl (kullanıcının kararı):** ruh girerken, görüntü titrerken Barış
+  **bir anlığına `carpik` skinine dönüşür** (eklentideki "Uzak Akraba · Çarpık
+  Hal"; çekim setinde aktör skini `carpik`, `Simsek_Skin/uzak_akraba_carpik.png`).
+  Anlamı (kullanıcı): *"Satanachia normalde daha ürkütücü, çok daha korkunç;
+  Barış daha normal gözükebilmek [için] bu forma bürünmüştür"* — çarpık hâl
+  Satanachia'nın gerçek görünüşü değil, onun yumuşatılmış hâli.
+  Not: Uzak Akraba / Çarpık Hal kaynağı LORE.md'nin EK dosyaları; seriye
+  katmak kullanıcının kararı (2026-10-11). Skin dosyası depoda bizim; dış
+  varlık değil (`KAYNAKLAR.md`'de satırı yok).
 - Açık (kullanıcıya soruldu): Barış ruhun içinde olduğunu biliyor mu;
   ağrıların geçme sebebi belli mi.
 
