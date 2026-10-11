@@ -260,9 +260,15 @@ dediği). Silahı zaten kayıtlı: Ay Işığı Asası.
   (kullanıcı). Ağrıların neden geçtiği henüz söylenmedi.
 - **Dünyaya geçişi:** cadının Nether'a gidip gelirken açtığı **geçitten**.
   Cadı fark etmedi — ruhun **gücünü bile algılayamadı** (kullanıcı).
-- Açık (kullanıcıya soruldu): "uyumadan önce" ne demek (Barış uyanmadan
-  önce mi); hangi sahneler arasında gösteriliyor; Barış ruhun içinde
-  olduğunu biliyor mu; ağrıların geçme sebebi belli mi.
+- **Zamanı ve yeri:** Barış **uyanmadan önce** ("uyumadan önce" = uyanmadan
+  önce, kullanıcı teyit etti); filmde 2. sahne (cadının gelişi) ile 3. sahne
+  (uyanış) **arasında** gösterilir. Kullanıcı: *"arası titresin biraz"* — o
+  aralıkta görüntü biraz titrer.
+- Kullanıcı bu an için **`carpik` skinini** sordu (eklentideki "Uzak Akraba ·
+  Çarpık Hal", çekim setinde aktör skini `carpik`); nasıl kullanılacağı
+  soruldu, cevap bekleniyor.
+- Açık (kullanıcıya soruldu): Barış ruhun içinde olduğunu biliyor mu;
+  ağrıların geçme sebebi belli mi.
 
 Ice-man hakkında: ortaya çıktığı günden beri ülkeler arası bir
 **soğukluk** hissettirmiş. Bir **ordusu** olacak.
