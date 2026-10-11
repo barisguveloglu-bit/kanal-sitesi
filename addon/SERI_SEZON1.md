@@ -154,6 +154,7 @@ kaynağında kapatılışları:
 | başlık kartı sahnenin üstündeydi (Mojang: "title card ... outside of the actual game content") | `altyazi_bas` başlığı sahneye basmıyor; `film_birlestir` sahneden önce 2,5 sn siyah kart koyuyor | `test/baslik_karti.mjs` (mutasyonla ısırdı) |
 | **tam kalite Part 1 denetimi (v7.99.12):** 849, 900, 945'te El-Harkos tek kare 18° dönüp geri geliyor | 592'de başlayan yürüyüşü çarpışma yüzünden hedefe 5 cm kala takılıyor, bitmiyor; yürüyüş yönü her karede "bak"ı eziyor | `tek_kare_donus_suz` yalnız bu üç kareyi değiştiriyor, üçü yeniden çizildi; `test/tek_kare_donus.mjs` |
 | Part 1 sesi −11,3 LUFS (hedef −14) | tek geçişli `loudnorm` | `film_birlestir.ses_ayarla` ölçerek; `test/ses_seviye.mjs` |
+| ortam sesi (orman rüzgârı) −80 LUFS: müzik/efekt olmayan her an tamamen sessiz | `ruzgar()` yüksek geçireni yalnız sol kanaldan hesaplıyor, ölçeği kenar artığına göre alıyordu (~30 dB kısık) | her kanal ayrı, kenar payı atılıyor, RMS'e göre; rüzgâr −37 LUFS; `test/ses_seviye.mjs` 2c |
 
 **Bilinen hata — 2. bölümden ÖNCE düzelt: takılan yürüyüş.** `git`
 komutunun hedefine çarpışma yüzünden ulaşamayan aktör yürüyüşü hiç

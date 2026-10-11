@@ -57,13 +57,27 @@ class Kanal:
         self.x[i:j] += ses[:j - i] * ses_duzey
 
 
+RUZGAR_PAY = 4800             # yuksek geciren pencere (0.1 sn) = kenar payi
+
+
 def ruzgar(sure, rnd):
-    """Kahverengi gurultu + yavas dalgalanma: orman ruzgari."""
+    """Kahverengi gurultu + yavas dalgalanma: orman ruzgari.
+
+    v7.99.12 (Part 1 tam kalite denetimi, ortam katmani -80 LUFS olculdu):
+    yuksek geciren suzgec yalniz SOL kanaldan hesaplanip iki kanaldan da
+    cikariliyordu (sag kanalda kahverengi gurultunun dev kaymasi kaliyordu)
+    ve olcek en buyuk TEPEYE gore aliniyordu -- o tepe bu kaymaydi ve
+    konvolusyonun kenar artigiydi; ruzgarin kendisi ~30 dB kisik kaliyordu.
+    Simdi her kanal ayri suzuluyor, kenar payi atiliyor, olcek RMS'e gore."""
     n = int(sure * ORAN) + ORAN
-    w = rnd.standard_normal((n, 2)).astype(np.float32)
+    w = rnd.standard_normal((n + 2 * RUZGAR_PAY, 2)).astype(np.float64)
     b = np.cumsum(w, axis=0)
-    b -= np.convolve(b[:, 0], np.ones(4800) / 4800, mode="same")[:, None]
-    b /= np.max(np.abs(b)) + 1e-9
+    pencere = np.ones(RUZGAR_PAY) / RUZGAR_PAY
+    for c in range(2):
+        b[:, c] -= np.convolve(b[:, c], pencere, mode="same")
+    b = b[RUZGAR_PAY:RUZGAR_PAY + n]
+    b /= 4.0 * float(np.sqrt(np.mean(b ** 2))) + 1e-9     # tepe ~4 sigma
+    b = np.clip(b, -1.0, 1.0).astype(np.float32)
     t = np.arange(n) / ORAN
     lfo = 0.6 + 0.4 * np.sin(2 * np.pi * 0.07 * t + 1.3) * np.sin(2 * np.pi * 0.023 * t)
     return b * lfo[:, None] * 0.35
@@ -161,7 +175,7 @@ def ses_kur(senaryo, katmanlar=False):
         ortam.x[:] += ugultu(sure)[:len(ortam.x)] * 0.8
     else:
         r = ruzgar(sure, rnd)[:len(ortam.x)]
-        ortam.x[:] += r * 0.5
+        ortam.x[:] += r * 1.6          # ~-37 LUFS: sessiz anda duyulur, dovuste kaybolur (v7.99.12 olculdu)
         if "gece" in cfg:
             t0, t1 = film_t(cfg["gece"][0]), film_t(cfg["gece"][1])
             tt = np.arange(len(ortam.x)) / ORAN

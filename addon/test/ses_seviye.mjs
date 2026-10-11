@@ -10,8 +10,13 @@
    3. video KOPYALANIYOR (yeniden sikistirilmiyor: ayni paket boyutu)
    4. sessiz parca YUKSELTILMIYOR (kazanc 0)
    2b. GERCEK Part 1 sesi (film_ses + ayni zincir) yine -14 +- 0.3
+   2c. ortam (ruzgar) -42..-32 LUFS, iki kanal dengeli, basta tik yok
+       (eskiden -80: suzgec yalniz sol kanaldan, olcek kenar artigindan)
    Mutasyonla isirdigi gosterildi: kazanc 0'a sabitlenince 1-2-2b dustu;
-   yineleme dongusu kaldirilinca 2b dustu. */
+   eski ruzgar() geri konunca 2c dustu. Yineleme dongusu: ilk olcumde
+   (ortam -80 LUFS iken) gercek ses tek kazancla -13.5 veriyordu; ortam
+   duzelince tek kazanc da tutuyor -- dongu guvenlik payi, SU AN hicbir
+   kontrol onu isirmiyor (durust kayit). */
 import { execFileSync } from "node:child_process";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -49,21 +54,38 @@ try {
   const b = ayarla("kapi.mkv", "kapi.mp4");
   kontrol("kisik bolumlu ses de -14 +- 0.3 LUFS (yineleme)", Math.abs(b.sonra.I + 14) <= 0.3,
           `once ${b.once.I}, kazanc ${b.kazanc.toFixed(2)}, sonra ${b.sonra.I}`);
-  // 2b. GERCEK Part 1 sesi (film_ses, ayni zincir): -2.7 dB tek seferde -13.5 veriyordu
+  // 2b. GERCEK Part 1 efekt + muzigi (ortamsiz, aralar sessiz): tek kazanc tutmuyordu
   const KOK = new URL("../", import.meta.url).pathname;
   execFileSync("python3", ["-c", `
 import sys, subprocess; sys.path.insert(0, ${JSON.stringify(ARAC)})
 import film_ses, film_birlestir as B, bedrock_onizleme as O
 sen = O.oku(${JSON.stringify(KOK + "film/bolum1_orman.json")})
 a, b = sen["parcalar"]["part1"]
-k = film_ses.ses_kur(sen)[int((a - 1) / sen["fps"] * film_ses.ORAN):int(b / sen["fps"] * film_ses.ORAN)]
+kat = film_ses.ses_kur(sen, katmanlar=True)   # ortamsiz: efekt + muzik, aralarinda sessizlik (kapi etkisi)
+k = (kat["efekt"] + kat["muzik"])[int((a - 1) / sen["fps"] * film_ses.ORAN):int(b / sen["fps"] * film_ses.ORAN)]
 film_ses.yaz(k, "p1.wav")
 subprocess.run(["ffmpeg", "-y", "-v", "error", "-f", "lavfi", "-i", "color=c=gray:s=160x90:r=10", "-i", "p1.wav",
                 "-filter_complex", "[1:a]" + B.SES_ZINCIR + "[a]", "-map", "0:v", "-map", "[a]", "-shortest",
                 "-c:v", "libx264", "-crf", "30", "-c:a", "flac", "-ar", "48000", "gercek.mkv"], check=True)`], { cwd: T });
   const g = ayarla("gercek.mkv", "gercek.mp4");
-  kontrol("gercek Part 1 sesi -14 +- 0.3 LUFS (tek kazanc tutmuyor, yineleme sart)", Math.abs(g.sonra.I + 14) <= 0.3,
+  kontrol("gercek Part 1 efekt+muzik (sessiz aralarla) -14 +- 0.3 LUFS (tek kazanc tutmuyor, yineleme sart)", Math.abs(g.sonra.I + 14) <= 0.3,
           `once ${g.once.I}, kazanc ${g.kazanc.toFixed(2)}, sonra ${g.sonra.I}`);
+  // 2c. ORTAM (ruzgar) gercekten duyulur: eskiden -80 LUFS (kanal + olcek hatasi)
+  const ortam = JSON.parse(execFileSync("python3", ["-c", `
+import sys, json, subprocess, re; sys.path.insert(0, ${JSON.stringify(ARAC)})
+import film_ses, bedrock_onizleme as O, numpy as np
+sen = O.oku(${JSON.stringify(KOK + "film/bolum1_orman.json")})
+a, b = sen["parcalar"]["part1"]
+x = film_ses.ses_kur(sen, katmanlar=True)["ortam"][int((a - 1) / sen["fps"] * film_ses.ORAN):int(b / sen["fps"] * film_ses.ORAN)]
+film_ses.yaz(x, "ortam.wav")
+c = subprocess.run(["ffmpeg", "-nostats", "-i", "ortam.wav", "-af", "ebur128", "-f", "null", "-"], capture_output=True, text=True).stderr
+i = float(c[c.rindex("Summary:"):].split("I:")[1].split("LUFS")[0])
+sol, sag = (float(np.sqrt(np.mean(x[:, k] ** 2))) for k in (0, 1))
+print(json.dumps({"I": i, "denge": sag / max(sol, 1e-12), "bas": float(np.abs(x[:4800]).max()) / max(float(np.abs(x).max()), 1e-12)}))`],
+    { encoding: "utf8", cwd: T }).trim());
+  kontrol("ortam (orman ruzgari) -42..-32 LUFS -- sessiz anda duyulur", ortam.I >= -42 && ortam.I <= -32, String(ortam.I));
+  kontrol("ortam iki kanal dengeli (sag/sol RMS 0.7..1.4)", ortam.denge > 0.7 && ortam.denge < 1.4, ortam.denge.toFixed(2));
+  kontrol("ortamin basinda kenar artigi (tik) yok", ortam.bas < 1.0, ortam.bas.toFixed(2));
   // 3. video kopya
   kontrol("video yeniden sikistirilmadi (paketler bire bir)", videoBoyu("yuksek.mkv") === videoBoyu("yuksek.mp4"));
   // 4. sessiz parca
