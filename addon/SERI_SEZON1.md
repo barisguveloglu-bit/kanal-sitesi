@@ -183,7 +183,11 @@ değiştirebilir** — değişirse buradan silinip yukarıya yazılır.
 - **Gücün rengi:** Karanlık Tırpan'ın mor ışığı (ışınlanma parçacığı
   ve flaş).
 - **Açılış kartı:** seri adı uydurulmaz; yalnız *"1. BÖLÜM"*.
-- **Seri adı — KARAR (kullanıcı, 2026-10-11): _Karanlık Tırpan_.**
+- **1. sezonun adı — KARAR (kullanıcı, 2026-10-11): _Karanlık Tırpan_.**
+  **Ad sezona ait, seriye değil:** kullanıcının sözü *"serinin 1. sezon
+  adı bu olsun, 2. sezonda değişecek; yeni sezonlar geldikçe farklı
+  adlarla sunacağız."* 2. sezonun adı o sezon gelince konur; bu ad ona
+  taşınmaz.
   Kullanıcı adı Claude'a bıraktı (*"serinin adı sence ne olsun, o izni
   sana veriyorum"*). Gerekçe: Barış'ın silahı ve gücünün rengi bütün
   sezon boyunca duruyor (El-Harkos ve Deney 081 tek bölümlük). Aramada
