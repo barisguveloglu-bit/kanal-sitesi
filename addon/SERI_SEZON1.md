@@ -243,6 +243,20 @@ dediği). Silahı zaten kayıtlı: Ay Işığı Asası.
 | 7 | Kesme: **Komutan Ömer** (yeni karakter) | oda **ışıklarla dolu, biraz şaşalı**: büyük bir haritanın serildiği, ülkelerin birbirine karşı plan kurduğu bir **savaş/toplantı odası** |
 | 8 | Biri kapıyı tıklatıp giriyor: *"Efendim, Doğu bölgesinden çok büyük buz dalgaları hissediyoruz. Hanedanımızın büyücüleri öyle hissetti."* Ömer: *"Tamam."* | |
 
+**Nether komutanının ruhu (kullanıcı, 2026-10-11; mikrofonla anlattı):**
+- Cadı Barış'ı evine bıraktıktan sonra **Nether'a** gidiyor (kullanıcı:
+  *"büyük ihtimalle malzeme toplamak için"*).
+- O sırada **Nether ordusunun en büyük komutanının ruhu** — Nether'ın en
+  güçlü ve en acımasız ruhu, büyük bir **kinle** yanıyor — **dünyaya
+  giriyor**, ilk olarak Barış'ı görüyor ve **onun bedenine giriyor**.
+- Kullanıcının sözü: *"cadı onu evine bıraktıktan sonra uyumadan önce
+  güçlü ve nether'ın en acımasız ruhu nether ordusunun en büyük komutanı
+  karakterimize giriyor"*.
+- Açık (kullanıcıya soruldu): "uyumadan önce" ne demek (Barış uyanmadan
+  önce mi); ruh dünyaya nasıl geçti; bu an filmde gösteriliyor mu, hangi
+  sahneler arasında; 5. sahnede ağrıların birden geçmesiyle ilgisi var mı;
+  Barış ruhun içinde olduğunu biliyor mu; komutanın adı (yok, uydurulmaz).
+
 Ice-man hakkında: ortaya çıktığı günden beri ülkeler arası bir
 **soğukluk** hissettirmiş. Bir **ordusu** olacak.
 
@@ -323,8 +337,10 @@ virüsünü üretiyor.
   - Konsey'in beş karakteri önizlemeyle gösterilmişti; sur askeri için
     kullanılmıyorlar (Harkos = El-Harkos, Okazor = ana kötünün askeri).
 
-- Açık: buzlaşan kişi Ice-man'in ordusuna mı katılıyor; virüs yalnız insanlara
-  mı, başka ırklara da mı geçiyor; ısırıktan buzlaşmaya ne kadar sürüyor.
+- **Cevaplandı (kullanıcı, 2026-10-11):** buzlaşan kişi **otomatik olarak**
+  Ice-man'in ordusuna katılıyor.
+- Açık: virüs yalnız insanlara mı, başka ırklara da mı geçiyor; ısırıktan
+  buzlaşmaya ne kadar sürüyor.
 
 **Kitabın metni (Claude yazdı — kullanıcı onayladı: *"kitap metni güzel olmuş"*):**
 
