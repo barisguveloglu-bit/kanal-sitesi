@@ -308,7 +308,14 @@ dediği). Silahı zaten kayıtlı: Ay Işığı Asası.
       yavaş yavaş Barış'ın aleyhine işler.
     - **Göz sistemi (kullanıcının kararı, 2026-10-11):** göz sahneleri Thomas
       Rig Legacy'nin gözleriyle çizilir — yalnız göz, yanak/kirpik süsü yok.
-      Ölçüm ve kurallar: `REFERANS_THOMAS_RIG.md`.
+      Ölçüm ve kurallar: `REFERANS_THOMAS_RIG.md`. Sahneye göre seçilir: bazı
+      planlar bizim sistemimiz, bazıları bu gözler (kullanıcı: *"bir o bir o"*).
+      Kırmızı göz önizlemesi: *"bayağı havalı görünüyor"*; **ışıma daha güçlü
+      olacak** (önizlemede `2_Emission = 6` idi).
+- **3. bölüm — genel odak Barış–Satanachia ikilisi** (kullanıcı, 2026-10-11).
+  **Barış'ın yeni formu: elleri canavarımsı.** Ayrıntı henüz yok (ne zaman
+  çıktığı, ellerin görünüşü, bedenin geri kalanı, kontrol kimde) — soruldu,
+  uydurulmaz. Gözlerin bu formda kullanımı sonra konuşulacak.
     - **İzleyici maddeleri SONRADAN öğrenir** (kullanıcı): 3. bölümde Barış
       **kendi hanedanında, kendi evinde** yatarken uyanır; **çarpık skinle bir
       gözünü açar ve göz kıpkırmızıdır** — uyku maddesinin işlediği böyle
