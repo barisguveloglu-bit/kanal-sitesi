@@ -152,6 +152,18 @@ kaynağında kapatılışları:
 | düzeltmeden sonra yerelde eski kodla çizilmiş kareler | işçi diskteki geçerli kareyi "var" sayıyordu | `.girdi` imzası; `test/cizim_dagit.mjs` 4b |
 | **kan efekti — kullanıcı B'yi seçti** (Mojang kılavuzu "violence / mature content") | 18 damladan her 3'ü biri çizilir, %60 boy, daha koyu; **yerdeki lekeler aynı** (aynı rnd dizisi) | önizlemeyle ölçüldü: uçuş kareleri değişti, kan yere indikten sonraki kareler (1630, 1980) eski kodla **piksel piksel aynı**. Kan uçuşu: 1577–1618 ve 1919–1969 → bu kareler yeni kodla ayrı işçilerde çizilir, ana işçiler depoda bulup atlar |
 | başlık kartı sahnenin üstündeydi (Mojang: "title card ... outside of the actual game content") | `altyazi_bas` başlığı sahneye basmıyor; `film_birlestir` sahneden önce 2,5 sn siyah kart koyuyor | `test/baslik_karti.mjs` (mutasyonla ısırdı) |
+| **tam kalite Part 1 denetimi (v7.99.12):** 849, 900, 945'te El-Harkos tek kare 18° dönüp geri geliyor | 592'de başlayan yürüyüşü çarpışma yüzünden hedefe 5 cm kala takılıyor, bitmiyor; yürüyüş yönü her karede "bak"ı eziyor | `tek_kare_donus_suz` yalnız bu üç kareyi değiştiriyor, üçü yeniden çizildi; `test/tek_kare_donus.mjs` |
+| Part 1 sesi −11,3 LUFS (hedef −14) | tek geçişli `loudnorm` | `film_birlestir.ses_ayarla` ölçerek; `test/ses_seviye.mjs` |
+
+**Bilinen hata — 2. bölümden ÖNCE düzelt: takılan yürüyüş.** `git`
+komutunun hedefine çarpışma yüzünden ulaşamayan aktör yürüyüşü hiç
+bitirmiyor ve o sürede verilen her `bak` yürüyüş yönüyle eziliyor. 1.
+bölümde El-Harkos'un 848 (k1), 899 (k2), 944 (k3) ve 1036 (Barış) `bak`
+komutları bu yüzden uygulanmadı; tek karelik titremeler süzgeçle kapatıldı.
+Kök düzeltme (engelde takılan yürüyüşü bitirmek) bu bölümde **bilerek
+yapılmadı**: ölçüldü, Part 1'de 850–1038'i ve Part 2'nin 1094–2456'sını
+değiştiriyor (onaylanmış ve çizilmiş kareler). Yeni senaryoda önce
+düzeltilir, sonra çizilir.
 
 ## Varsayılanlar — cevap beklemeden uygulandı
 

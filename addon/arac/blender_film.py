@@ -200,7 +200,7 @@ def vurus_sec(setler, set_ad, tur, a, t):
     return oto[a.seri["sira"]]
 
 
-def zaman_cizelgesi(senaryo, setler, anims):
+def zaman_cizelgesi(senaryo, setler, anims, suz=True):
     """Her aktor icin kare basina (x, y, z, aci, katmanlar) + efekt ve
     altyazi listeleri. Oyun mantiginin (cekim.js) kare-zamanli karsiligi."""
     fps = senaryo.get("fps", 24)
@@ -421,7 +421,34 @@ def zaman_cizelgesi(senaryo, setler, anims):
     # altyazi FILM zamaninda: agir cekimde yazi da uzun kalir
     for y in yazilar:
         y["t"] = kare_bul(harita, y["t"]) / fps
+    if suz:
+        tek_kare_donus_suz(aktorler)
     return aktorler, efektler, yazilar, sarsinti
+
+
+def tek_kare_donus_suz(aktorler):
+    """Bir karede donup bir sonraki karede geri gelen govde acisini komsusuna
+    esitler; {aktor: [kare, ...]} (1 tabanli) doner. Baska hicbir kare degismez.
+
+    v7.99.12 denetimi: El-Harkos'un 592'de baslayan yuruyusu carpisma yuzunden
+    hedefe 5 cm kala takiliyor, bitmiyordu; yuruyus yonu her karede "bak"i
+    eziyordu ve her "bak" TEK KARELIK 18 derecelik titreme birakiyordu
+    (Part 1: 849, 900, 945). Kok neden (takilan yuruyus) bu bolumde
+    BILEREK duzeltilmedi: duzeltmek 850-1038 ve Part 2'nin neredeyse
+    tamamini degistiriyor. Bkz. SERI_SEZON1.md, bilinen hatalar."""
+    duzelen = {}
+    for ad, a in aktorler.items():
+        k = a.kayit
+        for f in range(1, len(k) - 1):
+            if (abs(_aci_farki(k[f]["aci"], k[f - 1]["aci"])) > 0.5
+                    and abs(_aci_farki(k[f + 1]["aci"], k[f - 1]["aci"])) < 0.5):
+                k[f]["aci"] = k[f - 1]["aci"]
+                duzelen.setdefault(ad, []).append(f + 1)
+    return duzelen
+
+
+def _aci_farki(x, y):
+    return (x - y + 180.0) % 360.0 - 180.0
 
 
 def _parca_kesiyor(p0, p1, c, r):
