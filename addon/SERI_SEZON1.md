@@ -286,9 +286,14 @@ dediği). Silahı zaten kayıtlı: Ay Işığı Asası.
     alabilir: **umutlu** olan kurtulabilir; **umutsuz ve yenik düşen** zihninin
     bir köşesinde **hapis kalır** ve ruhun yaptıklarını izlemek zorunda kalır
     — beden onundur, kontrol eden başkasıdır.
-  - **Barış'ın neden imzaladığı henüz yok** — kullanıcı düşünecek
-    (*"bu kadar kolay bir şekilde değiştirebilirim, bilmiyorum"*); uydurulmaz.
-- Açık (kullanıcıya soruldu): ağrıların geçme sebebi belli mi.
+  - **Konuşma yeri:** Barış ile Satanachia normal bir ortamda değil, Barış'ın
+    **zihin ortamında** konuşuyor (kullanıcı).
+  - **Neden imzaladı (kullanıcı, kesin değil — "olabilir"):** karşısında en
+    büyük komutanlardan biri var; muhtemelen **zihinsel olarak büyük baskı**
+    uygulayıp onu zorladı, Barış öyle imzalamış olabilir.
+- **Ağrıların geçmesi — 2. bölümde GİZLİ kalır** (kullanıcı). İzleyicide
+  *"cadı onunla ilgilenmiş"* algısı bırakılmak isteniyor; filmde sebep
+  söylenmez, tahmin yazılmaz.
 
 Ice-man hakkında: ortaya çıktığı günden beri ülkeler arası bir
 **soğukluk** hissettirmiş. Bir **ordusu** olacak.
