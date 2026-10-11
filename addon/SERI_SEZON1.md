@@ -252,10 +252,15 @@ dediği). Silahı zaten kayıtlı: Ay Işığı Asası.
 - Kullanıcının sözü: *"cadı onu evine bıraktıktan sonra uyumadan önce
   güçlü ve nether'ın en acımasız ruhu nether ordusunun en büyük komutanı
   karakterimize giriyor"*.
+- **Adı: Satanachia** (kullanıcı: *"isim olarak güzel seçtim, komutan adı
+  bu olsun"*).
+- **Filmde gösteriliyor.** Ruh **siyah, bulutlu bir küre** olarak çizilir
+  (kullanıcı: *"siyah bir top çiz, bulutlu ruh olarak uygun"*).
+- 5. sahnede **ağrıların birden geçmesi Satanachia ile ilgili DEĞİL**
+  (kullanıcı). Ağrıların neden geçtiği henüz söylenmedi.
 - Açık (kullanıcıya soruldu): "uyumadan önce" ne demek (Barış uyanmadan
-  önce mi); ruh dünyaya nasıl geçti; bu an filmde gösteriliyor mu, hangi
-  sahneler arasında; 5. sahnede ağrıların birden geçmesiyle ilgisi var mı;
-  Barış ruhun içinde olduğunu biliyor mu; komutanın adı (yok, uydurulmaz).
+  önce mi); ruh dünyaya nasıl geçti; hangi sahneler arasında gösteriliyor;
+  Barış ruhun içinde olduğunu biliyor mu; ağrıların geçme sebebi belli mi.
 
 Ice-man hakkında: ortaya çıktığı günden beri ülkeler arası bir
 **soğukluk** hissettirmiş. Bir **ordusu** olacak.
