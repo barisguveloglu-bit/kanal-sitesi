@@ -95,7 +95,10 @@ def orman():
     cx, cy = b11["x"] + geri[0], b11["y"] + geri[1]
     sen["zemin"]["cukur"] = {"x": cx, "y": cy, "r": 1.25, "derin": CUKUR_DERIN, "t": 0.0}
     t_temas = 0.0
-    K += [{"t": 0.0, "aci": "genis", "a": "b", "b": "h", "lens": 28}]
+    # acilis yavasca yaklasir (v7.99.12, kullanici: "izleyiciyi ekranda tutmak
+    # onemli" -- ilk 4.4 sn hicbir sey kipirdamiyordu). Genis: ilk karedeki
+    # kamera->bakis yonunde 0.4 m/sn (olculdu: 6.26 m, 3 sn'de 1.2 m yaklasir).
+    K += [{"t": 0.0, "aci": "genis", "a": "b", "b": "h", "lens": 28, "kaydir": [-0.0423, 0.3808, -0.1149]}]
     # El-Harkos kagidina bakar
     t_k = 4.4
     O += [{"t": t_k, "aktor": "h", "bak": "b"},
@@ -113,7 +116,9 @@ def orman():
     on_k = (on_k[0] / n_k, on_k[1] / n_k)
     yan_k = (-on_k[1] * KAGIT_YAN, on_k[0] * KAGIT_YAN)   # kagit tutan SOL elin tarafi
     # yukaridan, cukurda yatan Baris (ust aci: caresizlik)
-    K += [{"t": 3.0, "aci": "elle", "kam": [cx + 1.2, cy - 1.6, 4.2], "bak": [cx, cy, 0.0], "lens": 30},
+    yak = 0.375 / math.sqrt(1.2 ** 2 + 1.6 ** 2 + 4.2 ** 2)          # tepeden: Baris'a 0.375 m/sn iner
+    K += [{"t": 3.0, "aci": "elle", "kam": [cx + 1.2, cy - 1.6, 4.2], "bak": [cx, cy, 0.0], "lens": 30,
+           "kaydir": [round(-1.2 * yak, 4), round(1.6 * yak, 4), round(-4.2 * yak, 4)]},
           # okuma: yandan 3/4 -- yuzune konan kamera (yakin_on) yerde yatan
           # Baris'in 1.26 blok yanina dusuyordu ve kagit kadraj disindaydi
           {"t": t_k + 0.2, "aci": "elle", "kam": [hx + yan_k[0] * 2.9 + on_k[0] * 1.2,

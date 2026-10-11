@@ -726,6 +726,14 @@ def kamera_izi(senaryo, aktorler):
             # (aktor donunce kamera yuzun onunde savrulmasin)
             ay.setdefault("kam", kam)
             kam = ay["kam"]
+        if c.get("kaydir"):
+            # elle olmayan cekimde de yavas kayma (v7.99.12: acilistaki "genis"
+            # cekim 3 sn kipirdamiyordu). Cekimin turu degismez: 180 kilidi ve
+            # taraf secimi kamera_noktasi'ndan, kaymadan once -- sonraki
+            # cekimler ayni kalir (turu "elle"ye cevirmek 2170'e kadar
+            # kamerayi degistiriyordu, olculdu).
+            ge = tt - c["t"]
+            kam = tuple(kam[i] + c["kaydir"][i] * ge for i in range(3))
         return kam, bak
 
     def atis_ay(c, f, no, A, B_):

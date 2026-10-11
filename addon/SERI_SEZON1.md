@@ -156,6 +156,8 @@ kaynağında kapatılışları:
 | Part 1 sesi −11,3 LUFS (hedef −14) | tek geçişli `loudnorm` | `film_birlestir.ses_ayarla` ölçerek; `test/ses_seviye.mjs` |
 | ortam sesi (orman rüzgârı) −80 LUFS: müzik/efekt olmayan her an tamamen sessiz | `ruzgar()` yüksek geçireni yalnız sol kanaldan hesaplıyor, ölçeği kenar artığına göre alıyordu (~30 dB kısık) | her kanal ayrı, kenar payı atılıyor, RMS'e göre; rüzgâr −37 LUFS; `test/ses_seviye.mjs` 2c |
 
+| açılış 4,4 sn hiç kıpırdamıyordu (kare 1–132; başlık kartıyla ~7 sn) — kullanıcı (b)'yi seçti: *"izleyiciyi ekranda tutmak önemli"* | senaryoda o aralıkta hareket yoktu; "1. BÖLÜM" yazısı ayrı karta taşınınca sahne boş kaldı | ilk iki plana `kaydir` (geniş: 0,4 m/sn, tepeden: 0,375 m/sn); kamera kodu `kaydir`'ı her plan türünde uyguluyor, tür değişmediği için 180 kilidi aynı — **yalnız 2–138 değişiyor** (ölçüldü; türü "elle"ye çevirmek 2170'e kadar değiştiriyordu); 1–138 yeniden çizildi |
+
 **Bilinen hata — 2. bölümden ÖNCE düzelt: takılan yürüyüş.** `git`
 komutunun hedefine çarpışma yüzünden ulaşamayan aktör yürüyüşü hiç
 bitirmiyor ve o sürede verilen her `bak` yürüyüş yönüyle eziliyor. 1.
