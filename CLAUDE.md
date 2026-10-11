@@ -578,7 +578,13 @@ blok 3 kare, ana oturum seyrek denetler. Limit dolarsa sıfırlanınca
 dağıtımlar) ve ana oturum çok adım atmıştı. **Oturum açıp kapatmak pahalı;
 plan bir kez kurulur, oynanmaz.** Ayrıca hesapta **aynı anda ~48 oturum**
 çalışabiliyor: fazlası PENDING bekliyor ve kullanıcının kendi oturumunu da
-bekletiyor — işçi sayısı kullanıcıya yer bırakacak kadar tutulur. Sığ
+bekletiyor — işçi sayısı kullanıcıya yer bırakacak kadar tutulur.
+**v7.99.12'de ölçüldü: sırada (PENDING) kalan oturum, yer boşalınca
+KENDİLİĞİNDEN BAŞLAMIYOR** — 33 işçi böyle 45 dk boşa bekledi, sonradan
+açılanlar ise hemen başladı. Kural: işçiyi açtıktan ~1 dk sonra
+`get_session`'a bak; `PENDING` + `disconnected` ise arşivle, yer açılınca
+aynı işle yeniden aç. Bitmiş oturum yer tutmuyor; arşivlenen bağlı
+oturumun yeri gecikmeyle boşalıyor. Sığ
 klonda (`clone_depth 1`) sabit commit bulunamıyordu: `source_revision`'a
 commit'in kendisi verilir. Limitten sonra temiz yeniden dağıtım:
 `scratchpad/plan/plan9.py N` (kalan bloklar, Part 1 önce, eşit).
