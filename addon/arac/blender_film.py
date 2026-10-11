@@ -1824,10 +1824,15 @@ def altyazi_bas(klasor, adim=1, aralik=None):
                 d.text((x0, yy), p, font=f, fill=renk)
                 x0 += d.textlength(p, font=f)
         im.save(os.path.join(cikti, "%04d.png" % (i + 1)))
+    # BT.709 matris + etiket (ffmpeg varsayilani BT.601 ve etiketsiz: HD'de
+    # yesiller koyu gorunuyordu, v7.99.12 uzun denetim). crf 8: bu bir ARA
+    # dosya, son kodlama film_birlestir'de bir kez yapilir.
     subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-framerate", "%g" % (fps / adim),
                     "-i", os.path.join(klasor, "altyazili", "%04d.png"),
-                    "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "18",
-                    os.path.join(klasor, "film.mp4")], check=True)
+                    "-vf", "scale=out_color_matrix=bt709:out_range=tv,format=yuv420p",
+                    "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "8",
+                    "-colorspace", "bt709", "-color_primaries", "bt709", "-color_trc", "bt709",
+                    "-color_range", "tv", os.path.join(klasor, "film.mp4")], check=True)
 
 
 if __name__ == "__main__":

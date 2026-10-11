@@ -9,9 +9,9 @@ akar, ses ve altyazi yine film zamaninda. Eksik kare varsa durur.
 
 Her klasor blender_film.py ciktisi (kare/0001.png ... + yazilar.json).
 Adimlar: altyazi (blender_film.altyazi_bas) -> ses (film_ses.py, ayni
-senaryodan) -> parca.mp4; sonra parcalar ardarda, en sona 0.6 sn siyah
-(dorduncu duvar: "ondan sonra bitsin"). YouTube icin H.264 + AAC,
-+faststart (yukleme yarim kalsa da oynar).
+senaryodan) -> parca.mkv (ses KAYIPSIZ); sonra parcalar ardarda, en sona
+0.6 sn siyah (dorduncu duvar: "ondan sonra bitsin"). YouTube icin H.264
+(BT.709 matris + etiket) + AAC 384k, +faststart (yukleme yarim kalsa da oynar).
 """
 import os
 import subprocess
@@ -32,9 +32,22 @@ SON_SES = "volume=%.2fdB,alimiter=limit=0.84:attack=2:release=60:level=false"
 # Son ses zinciri (kullanicinin arastirmasi: "dovus videosunda muzik, vurus
 # ve efekt ust uste biniyor, limiter sart"): yumusak kompresor -> YouTube
 # hedefi -14 LUFS / -1 dBTP -> tepe sinirlayici. Hepsi ffmpeg, ucretsiz.
+# loudnorm BURADA YOK (v7.99.12 uzun denetim): tek geciste dinamik kipte
+# calisiyor, yani otomatik kazanc gibi -- muziksiz Part 1'de yalniz ruzgarin
+# oldugu anlari ~+20 dB yukseltti (tasarlanan -37 LUFS esinti -14'e cikti,
+# adim sesleri ruzgarin altinda kaldi). Hedef -14 LUFS ses_ayarla'da OLCULEREK
+# ve DOGRUSAL kazancla tutturuluyor; miksajin kendi dengesi korunuyor.
 SES_ZINCIR = ("acompressor=threshold=-18dB:ratio=3:attack=5:release=120:makeup=2,"
-              "loudnorm=I=-14:TP=-1.5:LRA=11,"
               "alimiter=limit=0.89:attack=2:release=60:level=false")
+# Video: kareler sRGB (BT.709 primerleri). ffmpeg RGB->YUV'de varsayilan
+# BT.601 matrisini kullanip etiket koymuyordu; oynaticilar ve YouTube HD'yi
+# BT.709 sayiyor -> yesiller ~6.7 seviye koyu gorunuyordu (olculdu).
+RENK_ETIKET = ["-colorspace", "bt709", "-color_primaries", "bt709", "-color_trc", "bt709", "-color_range", "tv"]
+RENK_SUZGEC = "scale=out_color_matrix=bt709:out_range=tv,format=yuv420p"
+# YouTube onerisi: 1080p30 SDR icin yuksek bit hizli H.264, kapali GOP,
+# GOP = kare hizinin yarisi; stereo AAC 384 kbps.
+VIDEO_CIKIS = ["-c:v", "libx264", "-preset", "slow", "-crf", "16", "-g", "15", "-bf", "2"] + RENK_ETIKET
+SES_BIT = "384k"
 
 
 def parca(klasor, senaryo_yolu, adim=1, parca_adi=None):
@@ -54,9 +67,10 @@ def parca(klasor, senaryo_yolu, adim=1, parca_adi=None):
     # stem'ler: muzik / efekt / ortam ayri (Resolve Fairlight'ta son miksaj icin)
     for ad, k in film_ses.ses_kur(sen, katmanlar=True).items():
         film_ses.yaz(k[dilim], os.path.join(klasor, "stem%s_%s.wav" % (ek, ad)))
-    cikti = os.path.join(klasor, "parca%s.mp4" % ek)
+    # ses KAYIPSIZ kalir (FLAC): AAC'ye yalniz son adimda, bir kez cevrilir
+    cikti = os.path.join(klasor, "parca%s.mkv" % ek)
     subprocess.run(["ffmpeg", "-y", "-v", "error", "-i", os.path.join(klasor, "film.mp4"), "-i", wav,
-                    "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-shortest", cikti], check=True)
+                    "-c:v", "copy", "-c:a", "flac", "-shortest", cikti], check=True)
     return cikti, sen.get("fps", 24) / adim
 
 
@@ -119,8 +133,8 @@ def main(argv):
         # kart: sessiz, yumusak giris/cikis; sahnenin ustune degil ONUNE
         girdi += ["-loop", "1", "-framerate", "%g" % fps, "-t", str(KART_SURE), "-i", kart,
                   "-f", "lavfi", "-t", str(KART_SURE), "-i", "anullsrc=r=48000:cl=stereo"]
-        filtre.append("[%d:v]format=yuv420p,fade=t=in:st=0:d=0.3,fade=t=out:st=%g:d=0.3[k%d];[k%d][%d:a]"
-                      % (j, KART_SURE - 0.3, j, j, j + 1))
+        filtre.append("[%d:v]%s,fade=t=in:st=0:d=0.3,fade=t=out:st=%g:d=0.3[k%d];[k%d][%d:a]"
+                      % (j, RENK_SUZGEC, KART_SURE - 0.3, j, j, j + 1))
         j += 2
     for p in parcalar:
         girdi += ["-i", p]
@@ -135,9 +149,8 @@ def main(argv):
     fc = "".join(filtre) + "concat=n=%d:v=1:a=1[v][a0];[a0]%s[a]" % (n + 1, SES_ZINCIR)
     ara = cikti + ".ara.mkv"
     subprocess.run(["ffmpeg", "-y", "-v", "error"] + girdi +
-                   ["-filter_complex", fc, "-map", "[v]", "-map", "[a]",
-                    "-c:v", "libx264", "-preset", "slow", "-crf", "18", "-pix_fmt", "yuv420p",
-                    "-c:a", "flac", "-ar", "48000", ara], check=True)
+                   ["-filter_complex", fc, "-map", "[v]", "-map", "[a]"] + VIDEO_CIKIS +
+                   ["-pix_fmt", "yuv420p", "-c:a", "flac", "-ar", "48000", ara], check=True)
     olcu, kazanc, sonra = ses_ayarla(ara, cikti)
     os.remove(ara)
     print("ses: once %.1f LUFS, kazanc %+.2f dB, sonra %.1f LUFS, tepe %.1f dBTP"
@@ -167,7 +180,7 @@ def ses_ayarla(ara, cikti):
             kazanc += fark
     subprocess.run(["ffmpeg", "-y", "-v", "error", "-i", ara, "-map", "0:v", "-map", "0:a", "-c:v", "copy",
                     "-af", SON_SES % kazanc,
-                    "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-movflags", "+faststart", cikti], check=True)
+                    "-c:a", "aac", "-b:a", SES_BIT, "-ar", "48000", "-movflags", "+faststart", cikti], check=True)
     return olcu, kazanc, yukseklik(cikti)
 
 

@@ -12,7 +12,11 @@
    2b. GERCEK Part 1 sesi (film_ses + ayni zincir) yine -14 +- 0.3
    2c. ortam (ruzgar) -42..-32 LUFS, iki kanal dengeli, basta tik yok
        (eskiden -80: suzgec yalniz sol kanaldan, olcek kenar artigindan)
+   2d. ruzgarin tek basina oldugu an DINAMIK yukseltilmiyor (loudnorm tek
+       geciste otomatik kazanc gibiydi: muziksiz Part 1'de ~+20 dB, v7.99.12
+       uzun denetim) -- fark yalniz dogrusal kazanc + kompresor makyaji
    Mutasyonla isirdigi gosterildi: kazanc 0'a sabitlenince 1-2-2b dustu;
+   loudnorm SES_ZINCIR'e geri konunca 2d dustu;
    eski ruzgar() geri konunca 2c dustu. Yineleme dongusu: ilk olcumde
    (ortam -80 LUFS iken) gercek ses tek kazancla -13.5 veriyordu; ortam
    duzelince tek kazanc da tutuyor -- dongu guvenlik payi, SU AN hicbir
@@ -86,6 +90,34 @@ print(json.dumps({"I": i, "denge": sag / max(sol, 1e-12), "bas": float(np.abs(x[
   kontrol("ortam (orman ruzgari) -42..-32 LUFS -- sessiz anda duyulur", ortam.I >= -42 && ortam.I <= -32, String(ortam.I));
   kontrol("ortam iki kanal dengeli (sag/sol RMS 0.7..1.4)", ortam.denge > 0.7 && ortam.denge < 1.4, ortam.denge.toFixed(2));
   kontrol("ortamin basinda kenar artigi (tik) yok", ortam.bas < 1.0, ortam.bas.toFixed(2));
+  // 2d. ORTAM DINAMIK YUKSELTILMIYOR: tam Part 1 miksaji (ortam dahil), ilk 0.5-4.0 sn
+  //     yalniz ruzgar (efekt/muzik yok); cikista RMS farki ~ dogrusal kazanc olmali
+  const dn = JSON.parse(execFileSync("python3", ["-c", `
+import sys, json, subprocess, wave; sys.path.insert(0, ${JSON.stringify(ARAC)})
+import numpy as np, film_ses, film_birlestir as B, bedrock_onizleme as O
+sen = O.oku(${JSON.stringify(KOK + "film/bolum1_orman.json")})
+a, b = sen["parcalar"]["part1"]
+x = film_ses.ses_kur(sen)[int((a - 1) / sen["fps"] * film_ses.ORAN):int(b / sen["fps"] * film_ses.ORAN)]
+film_ses.yaz(x, "tam.wav")
+subprocess.run(["ffmpeg", "-y", "-v", "error", "-f", "lavfi", "-i", "color=c=gray:s=160x90:r=10", "-i", "tam.wav",
+                "-filter_complex", "[1:a]" + B.SES_ZINCIR + "[a]", "-map", "0:v", "-map", "[a]", "-shortest",
+                "-c:v", "libx264", "-crf", "30", "-c:a", "flac", "-ar", "48000", "tam.mkv"], check=True)
+o, k, s = B.ses_ayarla("tam.mkv", "tam.mp4")
+subprocess.run(["ffmpeg", "-y", "-v", "error", "-i", "tam.mp4", "-map", "0:a", "-c:a", "pcm_s16le", "tam_son.wav"], check=True)
+def rms(p, t0, t1):
+    w = wave.open(p); sr = w.getframerate(); y = np.frombuffer(w.readframes(w.getnframes()), dtype=np.int16).astype(np.float64) / 32768
+    y = y.reshape(-1, w.getnchannels())[int(t0 * sr):int(t1 * sr)]
+    return 20 * np.log10(np.sqrt((y ** 2).mean()) + 1e-12)
+import re, math
+mk = re.search(r"makeup=([0-9.]+)", B.SES_ZINCIR)          # acompressor makeup DOGRUSAL carpan (dB degil)
+makyaj = 20 * math.log10(float(mk.group(1))) if mk else 0.0
+print(json.dumps({"once": rms("tam.wav", 0.5, 4.0), "sonra": rms("tam_son.wav", 0.5, 4.0), "kazanc": k, "makyaj": makyaj}))`],
+    { encoding: "utf8", cwd: T }).trim());
+  const artis = dn.sonra - dn.once;
+  kontrol("ruzgarin tek oldugu an dinamik yukseltilmiyor (artis - kazanc - makyaj <= 2 dB)",
+          artis - dn.kazanc - dn.makyaj <= 2.0,
+          `once ${dn.once.toFixed(1)} dBFS, sonra ${dn.sonra.toFixed(1)} dBFS, kazanc ${dn.kazanc.toFixed(2)} dB, ` +
+          `kompresor makyaji ${dn.makyaj.toFixed(2)} dB`);
   // 3. video kopya
   kontrol("video yeniden sikistirilmadi (paketler bire bir)", videoBoyu("yuksek.mkv") === videoBoyu("yuksek.mp4"));
   // 4. sessiz parca
