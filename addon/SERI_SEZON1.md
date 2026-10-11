@@ -155,7 +155,10 @@ kaynağında kapatılışları:
 | **tam kalite Part 1 denetimi (v7.99.12):** 849, 900, 945'te El-Harkos tek kare 18° dönüp geri geliyor | 592'de başlayan yürüyüşü çarpışma yüzünden hedefe 5 cm kala takılıyor, bitmiyor; yürüyüş yönü her karede "bak"ı eziyor | `tek_kare_donus_suz` yalnız bu üç kareyi değiştiriyor, üçü yeniden çizildi; `test/tek_kare_donus.mjs` |
 | Part 1 sesi −11,3 LUFS (hedef −14) | tek geçişli `loudnorm` | `film_birlestir.ses_ayarla` ölçerek; `test/ses_seviye.mjs` |
 | ortam sesi (orman rüzgârı) −80 LUFS: müzik/efekt olmayan her an tamamen sessiz | `ruzgar()` yüksek geçireni yalnız sol kanaldan hesaplıyor, ölçeği kenar artığına göre alıyordu (~30 dB kısık) | her kanal ayrı, kenar payı atılıyor, RMS'e göre; rüzgâr −37 LUFS; `test/ses_seviye.mjs` 2c |
-
+| **Part 1 uzun denetimi (v7.99.12):** YouTube'da yeşiller ~6,7 seviye koyu | ffmpeg RGB→YUV'de varsayılan BT.601 matrisini kullanıp etiket koymuyordu; oynatıcılar ve YouTube HD'yi BT.709 sayıyor | `altyazi_bas` ve son kodlama BT.709 matris + etiket; `test/renk_kodlama.mjs` |
+| sessiz anlarda rüzgâr ~+20 dB yükseliyor, ayak sesleri rüzgârın altında kalıyordu | tek geçişli `loudnorm` dinamik kipte, otomatik kazanç gibi çalışıyordu | `loudnorm` çıkarıldı; −14 LUFS ölçülerek, doğrusal kazançla; `test/ses_seviye.mjs` 2d |
+| ses iki kez AAC'ye çevriliyordu | parça ara dosyasında ses AAC idi | ara dosya FLAC, AAC yalnız sonda bir kez (384k); `test/renk_kodlama.mjs` |
+| Part 1'in sonunda, siyaha geçişte tık | parçanın sesi müziğin ortasından dilimleniyor; ses tek örnekte −14 dBFS'ten sıfıra iniyordu (sıçrama filmdeki normal sıçramaların ~22 katı) | iki uca 10 ms geçiş (`kenar_yumusat`, stem'ler dahil); yeniden birleştirmede görüntü bire bir aynı kaldı (1159 karenin piksel özeti eşit); `test/ses_kenar.mjs` |
 | açılış 4,4 sn hiç kıpırdamıyordu (kare 1–132; başlık kartıyla ~7 sn) — kullanıcı (b)'yi seçti: *"izleyiciyi ekranda tutmak önemli"* | senaryoda o aralıkta hareket yoktu; "1. BÖLÜM" yazısı ayrı karta taşınınca sahne boş kaldı | ilk iki plana `kaydir` (geniş: 0,4 m/sn, tepeden: 0,375 m/sn); kamera kodu `kaydir`'ı her plan türünde uyguluyor, tür değişmediği için 180 kilidi aynı — **yalnız 2–138 değişiyor** (ölçüldü; türü "elle"ye çevirmek 2170'e kadar değiştiriyordu); 1–138 yeniden çizildi |
 
 **Bilinen hata — 2. bölümden ÖNCE düzelt: takılan yürüyüş.** `git`

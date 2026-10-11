@@ -17,6 +17,8 @@ import os
 import subprocess
 import sys
 
+import numpy as np
+
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import blender_film as F  # noqa: E402
 import bedrock_onizleme as B  # noqa: E402
@@ -48,6 +50,25 @@ RENK_SUZGEC = "scale=out_color_matrix=bt709:out_range=tv,format=yuv420p"
 # GOP = kare hizinin yarisi; stereo AAC 384 kbps.
 VIDEO_CIKIS = ["-c:v", "libx264", "-preset", "slow", "-crf", "16", "-g", "15", "-bf", "2"] + RENK_ETIKET
 SES_BIT = "384k"
+# Parcanin ses kenarlari: dilim muzigin/efektin ortasindan kesiyor ve tek
+# ornekte sifira inen ses tik yapiyordu (v7.99.12 uzun denetim: Part 1'in
+# sonunda, siyaha geciste ses -14 dBFS'ten tek ornekte sifira iniyordu;
+# sicrama filmdeki normal sicramalarin ~22 kati). Iki uca KENAR_MS'lik
+# dogrusal gecis: kesim yine sert duyulur, tik gider. Stem'lere de ayni
+# gecis uygulanir (miksajla ornek ornek hizali kalsinlar).
+KENAR_MS = 10
+
+
+def kenar_yumusat(ses, ms=KENAR_MS):
+    """(n, 2) sesin ilk ve son `ms` milisaniyesi: 0'dan ve 0'a dogrusal gecis.
+    Ortadaki ornekler degismez; kisa seste gecis sesin yarisini asmaz."""
+    ses = np.array(ses, dtype=np.float32, copy=True)
+    k = min(int(film_ses.ORAN * ms / 1000), len(ses) // 2)
+    if k > 0:
+        r = np.linspace(0.0, 1.0, k, endpoint=False, dtype=np.float32)[:, None]
+        ses[:k] *= r
+        ses[len(ses) - k:] *= r[::-1]
+    return ses
 
 
 def parca(klasor, senaryo_yolu, adim=1, parca_adi=None):
@@ -63,10 +84,10 @@ def parca(klasor, senaryo_yolu, adim=1, parca_adi=None):
         dilim = slice(int((aralik[0] - 1) / fps0 * film_ses.ORAN), int(aralik[1] / fps0 * film_ses.ORAN))
     ek = "_" + parca_adi if parca_adi else ""
     wav = os.path.join(klasor, "ses%s.wav" % ek)
-    film_ses.yaz(film_ses.ses_kur(sen)[dilim], wav)
+    film_ses.yaz(kenar_yumusat(film_ses.ses_kur(sen)[dilim]), wav)
     # stem'ler: muzik / efekt / ortam ayri (Resolve Fairlight'ta son miksaj icin)
     for ad, k in film_ses.ses_kur(sen, katmanlar=True).items():
-        film_ses.yaz(k[dilim], os.path.join(klasor, "stem%s_%s.wav" % (ek, ad)))
+        film_ses.yaz(kenar_yumusat(k[dilim]), os.path.join(klasor, "stem%s_%s.wav" % (ek, ad)))
     # ses KAYIPSIZ kalir (FLAC): AAC'ye yalniz son adimda, bir kez cevrilir
     cikti = os.path.join(klasor, "parca%s.mkv" % ek)
     subprocess.run(["ffmpeg", "-y", "-v", "error", "-i", os.path.join(klasor, "film.mp4"), "-i", wav,
