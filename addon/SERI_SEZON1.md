@@ -306,7 +306,11 @@ dediği). Silahı zaten kayıtlı: Ay Işığı Asası.
       azalır, umut azaldıkça hapis yaklaşır.
     - Birleşim: uyku maddesi gizli kalır; güç payı izleyicinin gözü önünde,
       yavaş yavaş Barış'ın aleyhine işler.
-    - Açık: izleyici maddeleri imza anında mı görüyor, sonra mı öğreniyor.
+    - **İzleyici maddeleri SONRADAN öğrenir** (kullanıcı): 3. bölümde Barış
+      **kendi hanedanında, kendi evinde** yatarken uyanır; **çarpık skinle bir
+      gözünü açar ve göz kıpkırmızıdır** — uyku maddesinin işlediği böyle
+      gösterilir. Teknik not: çarpık skinde tek gözü kırmızı yapmak için doku
+      varyantı ya da göze ışık gerekir; üretimde ölçülüp önizlemeyle onaylatılır.
   - **Konuşma yeri:** Barış ile Satanachia normal bir ortamda değil, Barış'ın
     **zihin ortamında** konuşuyor (kullanıcı).
   - **Neden imzaladı (kullanıcı, kesin değil — "olabilir"):** karşısında en
