@@ -313,9 +313,18 @@ dediği). Silahı zaten kayıtlı: Ay Işığı Asası.
       Kırmızı göz önizlemesi: *"bayağı havalı görünüyor"*; **ışıma daha güçlü
       olacak** (önizlemede `2_Emission = 6` idi).
 - **3. bölüm — genel odak Barış–Satanachia ikilisi** (kullanıcı, 2026-10-11).
-  **Barış'ın yeni formu: elleri canavarımsı.** Ayrıntı henüz yok (ne zaman
-  çıktığı, ellerin görünüşü, bedenin geri kalanı, kontrol kimde) — soruldu,
-  uydurulmaz. Gözlerin bu formda kullanımı sonra konuşulacak.
+  **Barış'ın yeni formu: elleri canavarımsı** (kullanıcı, 2026-10-11):
+  - **Ne zaman:** Barış **Satanachia'nın güçlerini kullandığında** — formu
+    o gücün Barış'ın bedenindeki etkisi (ikinci kâğıdın güç payı maddesiyle
+    bağlantılı).
+  - **Eller:** değişiyor ve **daha da büyüyor**. Tam tasarım henüz yok —
+    kullanıcının aklında fikirler var, kendisi belirleyecek; uydurulmaz.
+  - **Skin:** çarpık hâl (`carpik`).
+  - **Kontrol:** formdayken bedeni **Satanachia** yönetiyor.
+  - **Kalite şartı (kullanıcı):** ellerin 3B modeli için *"aşırı şekilde
+    uğraşacağız"* — izleyiciye en iyi görüntü verilir. Model bizim küplerimizle
+    kurulur (Karanlık Tırpan gibi), önizlemeyle onaylatılır.
+  - Gözlerin bu formda kullanımı sonra konuşulacak.
     - **İzleyici maddeleri SONRADAN öğrenir** (kullanıcı): 3. bölümde Barış
       **kendi hanedanında, kendi evinde** yatarken uyanır; **çarpık skinle bir
       gözünü açar ve göz kıpkırmızıdır** — uyku maddesinin işlediği böyle
