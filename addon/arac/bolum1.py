@@ -284,6 +284,11 @@ def orman():
     sen["sure"] = round(t6 + 9.5, 2)
     # 4. sahne: kopyalar -- 180 derece kurali BILEREK bozuluyor (yon kaybi)
     sen["kural180_serbest"] = [[t4 - 0.1, t5 + 0.5]]
+    # El-Harkos'un yuruyusu cukur kenarinda takili kaliyor; 4. sahnede her
+    # kopyaya (ve sonda Barisa) donebilsin diye yuruyus yonu bak'i ezmez.
+    # Bitis t5 + 0.5: Baris'a donmus olur, Part 1 bitmeden eski davranisa
+    # doner (yuruyus yonu = Baris yonu, Part 2 degismez -- olculdu).
+    sen["bak_serbest"] = [[t4 - 0.05, t5 + 0.5]]
     # Yayin IKI parca (kullanici). Kesme: gercek Baris El-Harkos'un onunde
     # belirdikten hemen sonra, dovus baslamadan (Part 1 merakta biter).
     h_ = F.zaman_haritasi(sen)

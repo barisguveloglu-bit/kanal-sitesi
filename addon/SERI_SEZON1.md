@@ -162,11 +162,19 @@ kaynağında kapatılışları:
 komutunun hedefine çarpışma yüzünden ulaşamayan aktör yürüyüşü hiç
 bitirmiyor ve o sürede verilen her `bak` yürüyüş yönüyle eziliyor. 1.
 bölümde El-Harkos'un 848 (k1), 899 (k2), 944 (k3) ve 1036 (Barış) `bak`
-komutları bu yüzden uygulanmadı; tek karelik titremeler süzgeçle kapatıldı.
-Kök düzeltme (engelde takılan yürüyüşü bitirmek) bu bölümde **bilerek
-yapılmadı**: ölçüldü, Part 1'de 850–1038'i ve Part 2'nin 1094–2456'sını
-değiştiriyor (onaylanmış ve çizilmiş kareler). Yeni senaryoda önce
-düzeltilir, sonra çizilir.
+komutları bu yüzden uygulanmadı: 4. sahnede kopyalara hiç dönmedi (k2 tam
+arkasında belirdi). Tek karelik titremeler önce süzgeçle kapatılmıştı.
+
+**v7.99.12 uzun denetim — 4. sahne için kapatıldı (kullanıcı: "17:40'ta
+gönder, paralel düzelt").** Senaryoya `bak_serbest` aralığı eklendi
+(`bolum1.py`, 4. sahne: k1'in belirmesinden Barış'a dönüşten 0,5 sn
+sonrasına); o aralıkta yürüyüş yönü `bak`'ı ezmez. Ölçüldü: yalnız
+**849–1038** değişiyor (190 kare, yeniden çizildi), Part 2 (1067+) konum,
+açı, kamera, eylem, efekt ve altyazı olarak bire bir aynı (çizilmiş Part 2
+kareleri geçerli). `test/tek_kare_donus.mjs` kilitliyor.
+**Genel kök düzeltme** (engelde takılan yürüyüşü bitirmek) hâlâ yapılmadı:
+Part 2'nin 1094–2456'sını değiştirir. Yeni senaryoda önce düzeltilir,
+sonra çizilir.
 
 ## Varsayılanlar — cevap beklemeden uygulandı
 

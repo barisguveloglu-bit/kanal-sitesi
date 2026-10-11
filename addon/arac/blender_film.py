@@ -217,6 +217,11 @@ def zaman_cizelgesi(senaryo, setler, anims, suz=True):
         elif isinstance(hedef, (int, float)):
             a.aci = float(hedef)
     olaylar = sorted(senaryo.get("olaylar", []), key=lambda o: o["t"])
+    # "bak_serbest" araliginda yuruyus yonu "bak"i EZMEZ. Engelde takilan
+    # yuruyus hic bitmiyor ve her kare yuruyus yonunu hedef aci yapiyordu:
+    # 1. bolumun 4. sahnesinde El-Harkos kopyalara hic donmedi (v7.99.12
+    # denetimi). Aralik disinda davranis eskisi gibi (Part 2 bire bir ayni).
+    bak_serbest = senaryo.get("bak_serbest", [])
     efektler, yazilar, sarsinti = [], [], []
     i = 0
     for f, t in enumerate(harita):
@@ -400,7 +405,8 @@ def zaman_cizelgesi(senaryo, setler, anims, suz=True):
                 else:
                     adim = min(a.yuru["hiz"] * dt, uz - dur)
                     a.poz = [a.poz[0] + dx / uz * adim, a.poz[1] + dy / uz * adim]
-                    a.hedef_aci = yon_aci((0, 0), (dx, dy))
+                    if not any(b0 <= t <= b1 for b0, b1 in bak_serbest):
+                        a.hedef_aci = yon_aci((0, 0), (dx, dy))
             # geri itilme: sonumlenen hiz
             if abs(a.itme[0]) + abs(a.itme[1]) > 1e-4:
                 a.poz = [a.poz[0] + a.itme[0] * dt, a.poz[1] + a.itme[1] * dt]

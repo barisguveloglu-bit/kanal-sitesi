@@ -1,14 +1,23 @@
-/* TEK KARELIK DONUS -- blender_film.tek_kare_donus_suz           v7.99.12
+/* TEK KARELIK DONUS + 4. SAHNE BAKISLARI                         v7.99.12
 
    Part 1 denetiminde kare 900'de El-Harkos bir kare 18 derece donup geri
    geliyordu (849 ve 945'te de). Sebep: 592'de baslayan yuruyusu carpisma
-   yuzunden bitmiyor, yuruyus yonu her karede "bak"i eziyor.
+   yuzunden bitmiyor, yuruyus yonu her karede "bak"i eziyordu -- 4. sahnede
+   kopyalara hic donmedi (k2 tam arkasinda belirdi, donmedi).
+   Ilk cozum (db74bfd) yalniz tek karelik sivriyi suzuyordu. Uzun denetimde
+   kok neden 4. sahne icin kapatildi: senaryonun "bak_serbest" araliginda
+   yuruyus yonu bak'i ezmez. Aralik disinda davranis eskisiyle ayni.
    1. iki senaryoda da hicbir aktorde tek karelik aci sivrisi yok
-   2. suzgec YALNIZ 849, 900, 945'i degistiriyor (baska aktor, baska kare,
-      kamera degismiyor -- cizilmis kareler gecerli kaliyor)
-   3. o karelerde aci komsusuyla ayni
-   4. kok neden (takilan yuruyus) bu bolumde bilerek duruyor: kayitli
-   Mutasyonla isirdigi gosterildi: suzgec cagrisi kaldirilinca 1-2-3 dustu. */
+   2. sivriler kaynaginda yok: suzgec orman ve oda'da HIC kare degistirmiyor
+      (guvenlik agi olarak kaliyor)
+   3. El-Harkos her kopyaya donuyor (bak'tan 0.3 sn sonra < 5 derece)
+   4. bak_serbest yalniz 849-1038'i degistiriyor; Part 2 (1067+) konum,
+      aci, kamera, eylem, efekt ve altyazi olarak BIRE BIR ayni (cizilmis
+      Part 2 kareleri gecerli kaliyor)
+   5. genel kok duzeltme (takilan yuruyusu bitirmek) 2. bolumden once:
+      SERI_SEZON1.md'de bilinen hata olarak kayitli
+   Mutasyonla isirdigi gosterildi: aralik kosulu kaldirilinca 3 dustu;
+   aralik Part 2'ye uzatilinca 4 dustu. */
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 
@@ -19,40 +28,71 @@ const kontrol = (ad, gecti, detay = "") => {
 };
 const ADDON = new URL("../", import.meta.url).pathname;
 const r = JSON.parse(execFileSync("python3", ["-c", `
-import sys, json; sys.path.insert(0, "arac")
+import sys, json, copy; sys.path.insert(0, "arac")
 import blender_film as F, bedrock_onizleme as B
 setler = B.oku(F.HAREKET)["setler"]
 n = lambda d: (d + 180) % 360 - 180
+def temiz(v):
+    if isinstance(v, dict): return {k: (getattr(x, "ad", None) if k == "hedef" else temiz(x)) for k, x in v.items() if k != "vuruldu"}
+    if isinstance(v, list): return [temiz(x) for x in v]
+    return v
 cikti = {}
 for ad in ("bolum1_orman", "bolum1_oda"):
     sen = B.oku("film/%s.json" % ad)
     ham, *_ = F.zaman_cizelgesi(sen, setler, {}, suz=False)
     duz, *_ = F.zaman_cizelgesi(sen, setler, {})
-    kh, kd = F.kamera_izi(sen, ham), F.kamera_izi(sen, duz)
     sivri = {a: [f + 1 for f in range(1, len(k.kayit) - 1)
                  if abs(n(k.kayit[f]["aci"] - k.kayit[f - 1]["aci"])) > 0.5
                  and abs(n(k.kayit[f + 1]["aci"] - k.kayit[f - 1]["aci"])) < 0.5] for a, k in duz.items()}
     fark = sorted({"%s:%d" % (a, f + 1) for a in ham for f in range(len(ham[a].kayit))
                    if any(ham[a].kayit[f][x] != duz[a].kayit[f][x] for x in ("x", "y", "z", "aci"))})
-    kam = [f + 1 for f in range(len(kh)) if kh[f][:3] != kd[f][:3]]
-    komsu = {str(f): abs(n(duz["h"].kayit[f - 1]["aci"] - duz["h"].kayit[f - 2]["aci"])) < 1e-9
-             for f in (849, 900, 945)} if ad == "bolum1_orman" else {}
-    cikti[ad] = {"sivri": {a: v for a, v in sivri.items() if v}, "fark": fark, "kam": kam, "komsu": komsu}
+    cikti[ad] = {"sivri": {a: v for a, v in sivri.items() if v}, "suzgec": fark}
+    if ad != "bolum1_orman":
+        continue
+    # 3. her kopyaya donus: bak olayindan 0.3 sn sonra
+    fps = sen["fps"]
+    don = {}
+    for o in sen["olaylar"]:
+        if o.get("aktor") == "h" and isinstance(o.get("bak"), list) \
+                and any(b0 <= o["t"] <= b1 for b0, b1 in sen.get("bak_serbest", [])):
+            f = int(round((o["t"] + 0.3) * fps))
+            h = duz["h"].kayit[f]
+            don["%.2f" % o["t"]] = round(abs(n(h["aci"] - F.yon_aci((h["x"], h["y"]), o["bak"]))), 2)
+    cikti[ad]["donus"] = don
+    # 4. bak_serbest olmadan: degisen kareler ve Part 2 kimligi
+    eski = copy.deepcopy(sen); eski.pop("bak_serbest", None)
+    e, ef_e, ya_e, *_ = F.zaman_cizelgesi(eski, setler, {})
+    y, ef_y, ya_y, *_ = F.zaman_cizelgesi(sen, setler, {})
+    ke, ky = F.kamera_izi(eski, e), F.kamera_izi(sen, y)
+    p2 = sen["parcalar"]["part2"][0]
+    degisen = [f + 1 for f in range(len(e["h"].kayit))
+               if any(abs(e[a].kayit[f][x] - y[a].kayit[f][x]) > 1e-6 for a in e for x in ("x", "y", "z"))
+               or any(abs(n(e[a].kayit[f]["aci"] - y[a].kayit[f]["aci"])) > 1e-6 for a in e)
+               or any(abs(p - q) > 1e-6 for p, q in zip(list(ke[f][0]) + list(ke[f][1]), list(ky[f][0]) + list(ky[f][1])))]
+    p2_alan = sum(1 for f in range(p2 - 1, len(e["h"].kayit)) for a in e for k in e[a].kayit[f]
+                  if k != "aci" and temiz(e[a].kayit[f][k]) != temiz(y[a].kayit[f][k]))
+    cikti[ad].update({"ilk": degisen[0] if degisen else None, "son": degisen[-1] if degisen else None,
+                      "adet": len(degisen), "p2": [f for f in degisen if f >= p2][:5], "p2_alan": p2_alan,
+                      "efekt_ayni": ef_e == ef_y, "yazi_ayni": ya_e == ya_y, "aralik": sen.get("bak_serbest")})
 print(json.dumps(cikti))`], { encoding: "utf8", cwd: ADDON }).trim());
 
 const o = r.bolum1_orman, d = r.bolum1_oda;
 kontrol("orman: hicbir aktorde tek karelik donus yok", Object.keys(o.sivri).length === 0, JSON.stringify(o.sivri));
 kontrol("oda: hicbir aktorde tek karelik donus yok", Object.keys(d.sivri).length === 0, JSON.stringify(d.sivri));
-kontrol("suzgec yalniz h:849, h:900, h:945'i degistiriyor", JSON.stringify(o.fark) === JSON.stringify(["h:849", "h:900", "h:945"]),
-        JSON.stringify(o.fark));
-kontrol("oda sahnesinde hicbir kare degismiyor", d.fark.length === 0, JSON.stringify(d.fark));
-kontrol("kamera hicbir karede degismiyor", o.kam.length === 0 && d.kam.length === 0, JSON.stringify([o.kam, d.kam]));
-kontrol("849/900/945'te aci onceki kareyle ayni", Object.values(o.komsu).length === 3 && Object.values(o.komsu).every(Boolean),
-        JSON.stringify(o.komsu));
+kontrol("sivriler kaynaginda yok: suzgec orman'da hic kare degistirmiyor", o.suzgec.length === 0, JSON.stringify(o.suzgec));
+kontrol("oda sahnesinde suzgec hic kare degistirmiyor", d.suzgec.length === 0, JSON.stringify(d.suzgec));
+const don = Object.values(o.donus);
+kontrol("El-Harkos 3 kopyaya da donuyor (bak'tan 0.3 sn sonra < 5 derece)", don.length === 3 && don.every((x) => x < 5),
+        JSON.stringify(o.donus));
+kontrol("bak_serbest yalniz 849-1038'i degistiriyor", o.ilk === 849 && o.son === 1038 && o.adet === 190,
+        `${o.ilk}-${o.son}, ${o.adet} kare, aralik ${JSON.stringify(o.aralik)}`);
+kontrol("Part 2 bire bir ayni (konum/aci/kamera + diger alanlar)", o.p2.length === 0 && o.p2_alan === 0,
+        JSON.stringify([o.p2, o.p2_alan]));
+kontrol("efektler ve altyazilar degismiyor", o.efekt_ayni && o.yazi_ayni);
 const kayit = readFileSync(ADDON + "SERI_SEZON1.md", "utf8");
-kontrol("kok neden (takilan yuruyus) SERI_SEZON1.md'de bilinen hata olarak kayitli",
-        kayit.includes("Bilinen hata") && kayit.includes("takılan yürüyüş"));
+kontrol("genel kok duzeltme SERI_SEZON1.md'de bilinen hata olarak kayitli",
+        kayit.includes("Bilinen hata") && kayit.includes("takılan yürüyüş") && kayit.includes("bak_serbest"));
 
 console.log("");
-console.log(hata ? ">>> SORUN VAR" : ">>> tek karelik donus: yok; yalniz 849/900/945 duzeldi");
+console.log(hata ? ">>> SORUN VAR" : ">>> 4. sahne: El-Harkos kopyalara donuyor; Part 2 degismedi");
 process.exit(hata ? 1 : 0);
