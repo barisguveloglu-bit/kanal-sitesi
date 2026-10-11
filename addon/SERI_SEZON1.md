@@ -286,6 +286,13 @@ dediği). Silahı zaten kayıtlı: Ay Işığı Asası.
     alabilir: **umutlu** olan kurtulabilir; **umutsuz ve yenik düşen** zihninin
     bir köşesinde **hapis kalır** ve ruhun yaptıklarını izlemek zorunda kalır
     — beden onundur, kontrol eden başkasıdır.
+  - **İkinci kâğıt (kullanıcının fikri, 2026-10-11):** imzadan sonra
+    Satanachia Barış hakkında her şeyi biliyor ve güçlerinin değerli olduğunu
+    görüyor. *"Yanlışlıkla başka bir şey imzalattım, özür dilerim, bunu da
+    imzalayabilir misin?"* diyor ve bu sefer **hiç baskı yapmadan** Barış'ın
+    imzalamasını bekliyor. Kâğıdın içeriği **henüz yok**; kullanıcının örneği
+    Jujutsu Kaisen'deki Sukuna–Itadori bağlayıcı yemini (*"birebir
+    kopyalamayacağız ama fikir aynı"*). Claude seçenek sundu, karar kullanıcıda.
   - **Konuşma yeri:** Barış ile Satanachia normal bir ortamda değil, Barış'ın
     **zihin ortamında** konuşuyor (kullanıcı).
   - **Neden imzaladı (kullanıcı, kesin değil — "olabilir"):** karşısında en
