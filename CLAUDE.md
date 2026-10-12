@@ -521,6 +521,18 @@ anlatırken oradan git.
   (Blender + MCprep dokuları, sanal makinede). Kurallar oyunla aynı
   (vuruş, hamle, temas, kamera açıları). Ayrıntı ve süre ölçümü:
   `REFERANS_BLENDER_MCPREP.md` son bölüm.
+- **Zemin ve yatış (v7.99.14, kullanıcı: "yerde yatarken havada
+  yatıyormuş gibi"):** filmde aktör ayak izinin (0,6×0,6) altındaki en
+  yüksek bloğa basar (`blender_film.zemin_yuksekligi`); çukuru çizen
+  `zemin_kur` aynı `cukur_derinligi`'ni kullanır — ikisini ayırma, aktör
+  görünen zeminden kopar. Yere yatan bir poz yazarken ya da yatış yeri
+  seçerken `arac/zemin_denetim.py`'ye sor: baş/gövde/bacakların alt
+  yüzünün ≥ %90'ı zeminde, ayaktaki aktöre ≥ 0,45 blok (`test/zemin.mjs`).
+  Elle yükseklik (`"z"` olayı) yalnız sahne isterse; `null` zemine döndürür.
+- **Karanlık kötü (v7.99.14):** oda sahnesinde `oda.kotu` aktörüne hiçbir
+  ışık ulaşmaz ve kompozitörde bedeninin kapladığı piksellerde yalnız kendi
+  gözlerinin ışık grubu kalır (`kotu_karanlik_kur`). Işık bağlaması yetmedi:
+  kapı açıkken kamerayla kötü arasındaki aydınlık sis onu griye çeviriyordu.
 
 ## Animasyon serisi — LORE'dan ayrı evren (1. sezon)
 

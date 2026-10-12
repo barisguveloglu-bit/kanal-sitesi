@@ -18,7 +18,8 @@
         "s8": "textures/entity/aktor/iceman",
         "s9": "textures/entity/aktor/omer",
         "s10": "textures/entity/aktor/sur_askeri_gri",
-        "s11": "textures/entity/aktor/sur_askeri_safak"
+        "s11": "textures/entity/aktor/sur_askeri_safak",
+        "s12": "textures/entity/aktor/zifiri_kotu"
       },
       "geometry": {
         "default": "geometry.pa_aktor",

@@ -170,8 +170,11 @@ class Aktor:
         self.hizli = 0.0         # 0..1 hareket orani (yuruyus agirligi)
         self.seri = {"sira": -1, "son": -99}
         self.kayit = []          # kare basina durum
-        self.taban_z = float(v.get("z", 0.0))   # cukurda yatan aktor: zemin altinda
-        self.z = self.taban_z
+        # elle yukseklik (cukurda yatan aktor); None: bastigi zemini izler
+        self.taban_z = None if v.get("z") is None else float(v["z"])
+        self.z = self.taban_z or 0.0
+        self.zemin = None        # izlenen zemin (yumusatilmis)
+        self.dikey = 0.0         # hava vurusunun zeminden yuksekligi
         self.gorunur = not v.get("gizli", False)
         self.esya = None         # sol eldeki esya ("kagit")
         # bekleme animasyonu: None -> setin kendi durusu; "durus" olayiyla
@@ -206,6 +209,38 @@ def vurus_sec(setler, set_ad, tur, a, t):
     return oto[a.seri["sira"]]
 
 
+AYAK_YARI = 0.3              # Minecraft oyuncu ayak izi 0,6 x 0,6 blok
+ZEMIN_SURE = 0.05            # cukura inis/cikis zaman sabiti (sn, hikaye zamani)
+
+
+def cukur_derinligi(ck, cx, cy):
+    """Cukurun (cx, cy) blok merkezindeki derinligi. zemin_kur bu
+    fonksiyonla CIZER, zaman cizelgesi bununla BASAR -- ikisi ayri
+    kalirsa aktor gorunen zeminden kopar."""
+    if not ck:
+        return 0.0
+    d = math.hypot(cx - ck["x"], cy - ck["y"])
+    if d <= ck["r"]:
+        return ck["derin"]
+    if d <= ck["r"] + 0.75:
+        return ck["derin"] * 0.45
+    return 0.0
+
+
+def zemin_yuksekligi(senaryo, x, y, t, yari=AYAK_YARI):
+    """Aktorun bastigi zemin (blok): ayak izinin degdigi bloklarin EN
+    YUKSEGI, Minecraft'taki gibi. Cukur `t`'den once kapakli (duz cimen).
+    v7.99.14 (kullanici, Part 2: "yavas yavas yuruyup yere yatiyor ya,
+    o zaman ucuyormus gibi oluyor"): aktorler hep z = 0'da duruyordu;
+    Baris 65. saniyede cukurun ortasindan zemin hizasinda gecti, dovusun
+    basinda (kare 1067-1301) cukurun 0,35 blok ustunde durdu."""
+    ck = senaryo.get("zemin", {}).get("cukur")
+    if not ck or t < ck.get("t", 0.0):
+        return 0.0
+    return -min(cukur_derinligi(ck, math.floor(x + dx) + 0.5, math.floor(y + dy) + 0.5)
+                for dx in (-yari, yari) for dy in (-yari, yari))
+
+
 def zaman_cizelgesi(senaryo, setler, anims, suz=True):
     """Her aktor icin kare basina (x, y, z, aci, katmanlar) + efekt ve
     altyazi listeleri. Oyun mantiginin (cekim.js) kare-zamanli karsiligi."""
@@ -226,7 +261,8 @@ def zaman_cizelgesi(senaryo, setler, anims, suz=True):
     # "bak_serbest" araliginda yuruyus yonu "bak"i EZMEZ. Engelde takilan
     # yuruyus hic bitmiyor ve her kare yuruyus yonunu hedef aci yapiyordu:
     # 1. bolumun 4. sahnesinde El-Harkos kopyalara hic donmedi (v7.99.12
-    # denetimi). Aralik disinda davranis eskisi gibi (Part 2 bire bir ayni).
+    # denetimi). Aralik disinda davranis eskisi gibi; araliklar birbirine
+    # sizmiyor (test/tek_kare_donus.mjs her araligi ayri olcuyor).
     bak_serbest = senaryo.get("bak_serbest", [])
     efektler, yazilar, sarsinti = [], [], []
     i = 0
@@ -277,7 +313,8 @@ def zaman_cizelgesi(senaryo, setler, anims, suz=True):
                 a.durus_onceki, a.durus_t = a.durus or "_set", t
                 a.durus = o["durus"]
             if "z" in o:
-                a.taban_z = a.z = float(o["z"])   # cukura dustu
+                # sayi: elle yukseklik (cukura dustu); null: zemini izle
+                a.taban_z = None if o["z"] is None else float(o["z"])
             if "poz" in o:
                 ad_p = film_poz.ONEK + o["poz"]
                 if ad_p not in pozlar:
@@ -304,7 +341,7 @@ def zaman_cizelgesi(senaryo, setler, anims, suz=True):
                 s = vurus_sec(setler, o.get("set") or a.set, o["vur"], a, t)
                 hiz = float(o.get("hiz", 1.0))
                 a.eylem = {"anim": s["anim"], "bas": t, "sure": s["sure"] / hiz, "hiz": hiz,
-                           "iz": s["iz"], "cikis": list(a.poz), "cz": a.z, "aci": vur_aci,
+                           "iz": s["iz"], "cikis": list(a.poz), "aci": vur_aci,
                            "dikey": o["vur"] == "hava" or s.get("dikey", False),
                            "fazlar": s["fazlar"], "hedef": hedef, "vuruldu": set(),
                            "kan": bool(o.get("kan")), "dusur": o.get("dusur"),
@@ -367,7 +404,7 @@ def zaman_cizelgesi(senaryo, setler, anims, suz=True):
                 eski = e.get("ham", e["cikis"])
                 a.poz = [a.poz[0] + ham[0] - eski[0], a.poz[1] + ham[1] - eski[1]]
                 e["ham"] = ham
-                a.z = e["cz"] + (max(0.0, p[2]) * a.olcek if e["dikey"] else 0.0)
+                a.dikey = max(0.0, p[2]) * a.olcek if e["dikey"] else 0.0
                 # temas yonu GERCEK konumdan: hamle rakibin otesine gecemez
                 carpisma_coz(a, onceki)
                 for fi, faz in enumerate(e["fazlar"]):
@@ -401,7 +438,7 @@ def zaman_cizelgesi(senaryo, setler, anims, suz=True):
                             sarsinti.append(t)
                 if yerel >= e["sure"] * e["hiz"]:
                     a.eylem = None
-                    a.z = a.taban_z
+                    a.dikey = 0.0
             elif a.yuru:
                 hedef = aktorler[a.yuru["hedef"]].poz if "hedef" in a.yuru else a.yuru["nokta"]
                 dur = (VARIS * (a.olcek + aktorler[a.yuru["hedef"]].olcek) / 2) if "hedef" in a.yuru else 0.05
@@ -425,6 +462,15 @@ def zaman_cizelgesi(senaryo, setler, anims, suz=True):
             hedef_h = min(1.3, (yol / dt) / YURU) if yuruyor else 0.0
             a.hizli += (hedef_h - a.hizli) * 0.35
             a.tepki = [r for r in a.tepki if t - r["bas"] <= r["sure"] + GECIS]
+            # zemin: ayagin altindaki en yuksek blok. Basamaga CIKIS aninda
+            # (Minecraft'taki gibi; yumusatilinca ayak basamagin icine giriyordu),
+            # INIS ZEMIN_SURE ile yumusak (hikaye zamani)
+            hz_ = zemin_yuksekligi(senaryo, a.poz[0], a.poz[1], t)
+            if a.zemin is None or hz_ >= a.zemin:
+                a.zemin = hz_
+            else:
+                a.zemin += (hz_ - a.zemin) * (1.0 - math.exp(-dt / ZEMIN_SURE))
+            a.z = (a.taban_z if a.taban_z is not None else a.zemin) + a.dikey
             a.kayit.append({"t": t, "x": a.poz[0], "y": a.poz[1], "z": a.z, "aci": a.aci,
                             "eylem": dict(a.eylem) if a.eylem and "anim" in a.eylem else None,
                             "tepki": [dict(r) for r in a.tepki], "mesafe": a.mesafe,
@@ -1015,6 +1061,7 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
     kemik_nesne = {}
     silah_nesneleri = {}
     aktor_model = {}
+    aktor_parcalari = {}      # aktor -> cizilen orgu nesneleri (oda: kotunun isik baglamasi)
     for ad, a in aktorler.items():
         model_a = aktor_model[ad] = aktor_modeli(a)
         kok = bpy.data.objects.new("aktor_" + ad, None)
@@ -1066,6 +1113,7 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
                 ob = bpy.data.objects.new("%s_%s_m" % (ad, kem), me)
                 sc.collection.objects.link(ob)
                 ob.parent = kn[hedef]
+                aktor_parcalari.setdefault(ad, []).append(ob)
                 if sira > 0:
                     silah_nesneleri[ad].append(ob)
 
@@ -1246,7 +1294,7 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
     thomas_goz.kur(bpy, senaryo, harita, aktorler, kemik_nesne, kare_bul, B.yol)
 
     if senaryo.get("mekan") == "oda":
-        oda_kur(bpy, senaryo, doku_malzemesi, harita, fps, kam_iz)
+        oda_kur(bpy, senaryo, doku_malzemesi, harita, fps, kam_iz, aktor_parcalari, kemik_nesne)
 
     os.makedirs(os.path.join(klasor, "kare"), exist_ok=True)
     if isinstance(tek_kare, list):           # denetim: secili kareler, tek kurulumla
@@ -1299,6 +1347,60 @@ def gok_kapat(bpy, sc, gunes, ay):
     ay.data.energy = 0.0
 
 
+KOTU_GOZ_GRUBU = "kotu_goz"
+
+
+def kotu_karanlik_kur(bpy, beden, gozler):
+    """Kotunun bedeninin kapladigi piksellerde YALNIZ kendi gozlerinin isigi kalir.
+
+    Kullanici (2026-10-12, onizlemede x8 bakinca): "340 daha beyaz, 610 kare
+    siyah". Olculdu (960x540, 64 ornek): 340'ta beden 6,69/255, sis gizlenince
+    0,08/255 -- bedene isik GELMIYOR; griyi kamerayla kotu arasindaki SIS
+    veriyor (kapi acik, hüzme odayi aydinlatiyor). 610'da kapi kapali, sisi
+    yalniz gozler aydinlatiyor, o yuzden siyah. Ayni kotu iki planda farkli
+    gorunuyordu.
+    Isik baglamasi bunu cozemez: sis kotunun onunde, odanin ortasinda; sisi
+    kapi isigindan dislamak hüzmeyi de yok eder. O yuzden kompozitorde:
+    bedenin kapsami (Cryptomatte, kenar yumusakligi ve alan derinligi dahil)
+    icinde goruntu = gozlerin isik grubu (ayni gurultu gidericiden gecmis),
+    disinda goruntu aynen. Gozler ayri nesne, bedenin onunde: kapsamin
+    disinda kalir, kendileri degismez. Kapi kapaliyken (610) iki yol ayni
+    sonucu verir; kotu kadrajda degilse kapsam 0, kare bire bir eskisi."""
+    sc = bpy.context.scene
+    vl = sc.view_layers[0]
+    grup = vl.lightgroups.add(name=KOTU_GOZ_GRUBU)
+    for g in gozler:
+        g.lightgroup = grup.name
+    vl.use_pass_cryptomatte_object = True
+    vl.cycles.denoising_store_passes = True
+    ng = bpy.data.node_groups.new("kotu_karanlik", "CompositorNodeTree")
+    ng.interface.new_socket("Image", in_out="OUTPUT", socket_type="NodeSocketColor")
+    rl = ng.nodes.new("CompositorNodeRLayers")
+    rl.scene = sc
+    rl.layer = vl.name
+    cr = ng.nodes.new("CompositorNodeCryptomatteV2")
+    cr.source = "RENDER"
+    cr.scene = sc
+    cr.layer_name = vl.name + ".CryptoObject"
+    cr.matte_id = ",".join(ob.name for ob in beden)
+    gg = ng.nodes.new("CompositorNodeDenoise")
+    mx = ng.nodes.new("ShaderNodeMix")
+    mx.data_type = "RGBA"
+    cikis = ng.nodes.new("NodeGroupOutput")
+    soket = lambda n, kim: next(s for s in n if s.identifier == kim)
+    ng.links.new(rl.outputs["Image"], cr.inputs["Image"])
+    ng.links.new(rl.outputs["Combined_" + grup.name], gg.inputs["Image"])
+    ng.links.new(rl.outputs["Denoising Albedo"], gg.inputs["Albedo"])
+    ng.links.new(rl.outputs["Denoising Normal"], gg.inputs["Normal"])
+    ng.links.new(cr.outputs["Matte"], soket(mx.inputs, "Factor_Float"))
+    ng.links.new(rl.outputs["Image"], soket(mx.inputs, "A_Color"))
+    ng.links.new(gg.outputs["Image"], soket(mx.inputs, "B_Color"))
+    ng.links.new(soket(mx.outputs, "Result_Color"), cikis.inputs[0])
+    sc.compositing_node_group = ng
+    sc.render.use_compositing = True
+    return ng
+
+
 def _kup_ekle(bpy, merkez, boyut, malz, ad="kup"):
     bpy.ops.mesh.primitive_cube_add(size=1, location=merkez)
     ob = bpy.context.object
@@ -1320,13 +1422,14 @@ def _kup_ekle(bpy, merkez, boyut, malz, ad="kup"):
     return ob
 
 
-def oda_kur(bpy, senaryo, doku_malzemesi, harita, fps, kam_iz):
+def oda_kur(bpy, senaryo, doku_malzemesi, harita, fps, kam_iz, aktor_parcalari=None, kemik_nesne=None):
     """7. sahne: karanlik oda (SERI_SEZON1.md).
 
     Tam karanlik; yalniz iki beyaz goz. Kapi acildigi an BEMBEYAZ, hüzmede
     yogun toz (yillardir acilmamis oda). Kural: kapidan giren isik kotuye
     ULASMAZ -- isik seridi yerde onun onunde biter; gozler kendi isigiyla
-    parlar, bedenden hicbir yuzey aydinlanmaz (bedeni zaten yok).
+    parlar, bedenden hicbir yuzey aydinlanmaz (beden "kotu" aktoru, isik
+    baglamasiyla butun isiklardan dislanir -- v7.99.14).
     "oda": {"genis", "derin", "yuks", "kapi_x", "goz": [x, y, z], "goz_aci"}
     Sahne olaylari: {"t", "kapi": "ac"|"kapat", "sure"},
                     {"t", "goz_bak": "kapi"|"kamera"|[x, y], "sure"}."""
@@ -1402,12 +1505,24 @@ def oda_kur(bpy, senaryo, doku_malzemesi, harita, fps, kam_iz):
             tz.location = p
             tz.keyframe_insert("location", frame=f)
             p = p + Vector((rnd.uniform(-0.05, 0.05), rnd.uniform(-0.05, 0.05), rnd.uniform(-0.03, 0.02)))
-    # gozler: tek karakter, iki cift (ust kucuk, alt buyuk); bedeni YOK
+    # gozler: tek karakter, iki goz; beden senaryodaki "kotu" aktoru (karanlikta, asagida)
     gz = o.get("goz", [kx - 3.5, -D / 2 + 2.0, 1.75])
+    kotu = o.get("kotu")
     goz_k = bpy.data.objects.new("gozler", None)
-    goz_k.location = gz
-    goz_k.rotation_euler = (0, 0, math.radians(o.get("goz_aci", 0)))
     bpy.context.scene.collection.objects.link(goz_k)
+    if kotu:
+        # gozler KAFAYA bagli: kotu donunce kafasiyla doner. Kafanin yerel
+        # uzayi model uzayi (Blender ekseni, blok): yuz +Y'de 0.25'te; gozler
+        # yuzun 0.004 onunde, eskisiyle ayni yukseklik ve aralikta.
+        # (Ilk denemede gozler kendi merkezleri etrafinda doniyordu: son
+        # 73 derecelik donuste sol goz kafanin icinde kaldi -- onizleme.)
+        if any("goz_bak" in ol for ol in senaryo.get("olaylar", [])):
+            raise ValueError("oda: kotu aktoru varken goz_bak kullanilmaz -- kotuye 'bak' olayi ver")
+        goz_k.parent = kemik_nesne[kotu]["head"]
+        goz_k.location = (0.0, 0.25 + 0.004, gz[2])
+    else:
+        goz_k.location = gz
+        goz_k.rotation_euler = (0, 0, math.radians(o.get("goz_aci", 0)))
     gm = bpy.data.materials.new("goz")
     gm.use_nodes = True
     gb = gm.node_tree.nodes["Principled BSDF"]
@@ -1424,6 +1539,41 @@ def oda_kur(bpy, senaryo, doku_malzemesi, harita, fps, kam_iz):
         g.location = (dx, 0, dz)
         g.data.materials.append(gm)
         g.parent = goz_k
+    # KOTUNUN BEDENI (kullanici, 2026-10-12): "karanlik gozukmesi lazimdi,
+    # isigin gelmemesi lazimdi ... bedeni yok sadece gozu var". Ilk cizimde
+    # beden hic yoktu, duvarin isigi gozlerin arasindan gorunuyordu. Beden
+    # senaryodaki "kotu" aktoru (kullanicinin skini); HICBIR isik ona
+    # ulasmaz: kapi spotu, kapinin ardindaki parlak yuzey ve gozlerin kendi
+    # isigi bedeni ISIK BAGLAMASIYLA disarida birakir (yalniz dislama:
+    # odanin geri kalani eskisi gibi aydinlanir).
+    # Isik baglamasi YALNIZ dogrudan isigi keser: zeminden ve sisten seken
+    # isik dislanan bir kupu yine aydinlatti (olculdu: 208 -> 91) ve ilk
+    # onizlemede kotunun taci karanlikta parladi. O yuzden beden malzemesi
+    # SIMSIYAH: renk yok, yansima yok; skinden yalniz saydamlik (tacin ve
+    # katmanlarin silueti skindeki gibi kalsin).
+    kotu_parca = (aktor_parcalari or {}).get(kotu, [])
+    if kotu_parca:
+        kc = bpy.data.collections.new("kotu_beden")
+        siyahlar = {}
+        for ob in kotu_parca:
+            kc.objects.link(ob)
+            for i, m in enumerate(ob.data.materials):
+                if m.name not in siyahlar:
+                    k = m.copy()
+                    k.name = m.name + "_zifiri"
+                    bs = k.node_tree.nodes["Principled BSDF"]
+                    for l in list(bs.inputs["Base Color"].links):
+                        k.node_tree.links.remove(l)
+                    bs.inputs["Base Color"].default_value = (0, 0, 0, 1)
+                    bs.inputs["Specular IOR Level"].default_value = 0.0
+                    bs.inputs["Roughness"].default_value = 1.0
+                    siyahlar[m.name] = k
+                ob.data.materials[i] = siyahlar[m.name]
+        for co in kc.collection_objects:
+            co.light_linking.link_state = "EXCLUDE"
+        for em in [spot, dis] + list(goz_k.children):
+            em.light_linking.receiver_collection = kc
+        kotu_karanlik_kur(bpy, kotu_parca, list(goz_k.children))
     # sahne olaylari
     acik, goz_aci = 0.0, o.get("goz_aci", 0)
     dis_guc, spot_guc = o.get("kapi_parlaklik", 30.0), o.get("huzme_guc", 2500.0)
@@ -1540,14 +1690,7 @@ def zemin_kur(bpy, senaryo, doku_malzemesi, cukur_kare=1):
     ck = z.get("cukur")
 
     def cukur_derin(cx, cy):
-        if not ck:
-            return 0.0
-        d = math.hypot(cx - ck["x"], cy - ck["y"])
-        if d <= ck["r"]:
-            return ck["derin"]
-        if d <= ck["r"] + 0.75:
-            return ck["derin"] * 0.45
-        return 0.0
+        return cukur_derinligi(ck, cx, cy)
     cukur_ust, kenar = [], []
     for x in range(-h, h):
         for y in range(-h, h):

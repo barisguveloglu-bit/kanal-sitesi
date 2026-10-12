@@ -27,7 +27,8 @@
   "sis": 0.05,
   "toz": 180,
   "huzme_aci": 34,
-  "huzme_egim": 64
+  "huzme_egim": 64,
+  "kotu": "g"
  },
  "aktorler": {
   "a": {
@@ -40,21 +41,16 @@
    "bak": 180
   },
   "g": {
-   "skin": "Simsek_Kol_Kaynak/textures/entity/ilkel_okazor.png",
+   "skin": "Simsek_Kol_Kaynak/textures/entity/aktor/zifiri_kotu.png",
    "isim": "",
    "konum": [
-    -3.8,
-    -3.6
+    -3.9308,
+    -3.892
    ],
-   "gizli": true
+   "aci": -24.128
   }
  },
  "olaylar": [
-  {
-   "t": 0.0,
-   "goz_bak": "kapi",
-   "sure": 0.1
-  },
   {
    "t": 3.0,
    "kapi": "ac",
@@ -100,8 +96,11 @@
   },
   {
    "t": 18.0,
-   "goz_bak": "kamera",
-   "sure": 0.45
+   "aktor": "g",
+   "bak": [
+    4.4,
+    -4.6
+   ]
   }
  ],
  "kamera": [
@@ -141,8 +140,8 @@
     1.9
    ],
    "bak": [
-    -3.8,
-    -3.6,
+    -3.827,
+    -3.6602,
     1.75
    ],
    "lens": 40
@@ -166,16 +165,13 @@
    "t": 19.3,
    "aci": "elle",
    "kam": [
-    -3.0555155918371053,
-    -3.6907907814832797,
+    -2.9304,
+    -3.977,
     1.75
    ],
-   "bak": [
-    -3.8,
-    -3.6,
-    1.75
-   ],
-   "lens": 50
+   "bak": "g",
+   "lens": 50,
+   "bak_yuks": 1.75
   }
  ]
 }

@@ -240,12 +240,22 @@ def pozlar():
     zemine_oturt(geo, P["diz_cok"], [0.0, 0.2, 0.4, 0.6])
 
     # ---- yuzustu: diz cokmusken one devrilir ----
+    # YERE DEGEN SON HAL (v7.99.14, kullanici Part 2'de: "yerde yatarken
+    # havada yatiyormus gibi"). Olculdu: kafa 30 derece yana donukken 8 px
+    # kafa kupunun KOSESI asagi bakiyordu (4 x (cos30 + sin30) = 5,46 px),
+    # zemine_oturt modeli o koseye gore kaldiriyordu -> govde, kollar ve
+    # bacaklar 3,46 px (0,22 blok) havada, yere yalniz kafa degiyordu.
+    # Kafa 8 px, govde 4 px derin: ikisi birden yere degsin diye kafa tam
+    # yana doner (yanak yerde, kesit eksene hizali: 4 px) ve ust govde
+    # belden 10 derece kalkar (omuzlar kafanin boyu kadar yukarda, kalca
+    # yerde). Izgara aramasiyla bulundu; bas, govde, iki bacak, iki kol
+    # en alt noktalari <= 0,1 px (test/yatma.mjs olcuyor).
     P["yuzustu"] = _a(0.8, {
         "root": {"rotation": {"0.0": [0, 0, 0], "0.5": [60, 0, 0], "0.8": [90, 0, 0]}},
         "rightLeg": {"rotation": {"0.0": [90, 0, 0], "0.8": [0, 0, 4]}},
         "leftLeg": {"rotation": {"0.0": [90, 0, 0], "0.8": [0, 0, -4]}},
-        "waist": {"rotation": {"0.0": [12, 0, 0], "0.8": [0, 0, 0]}},
-        "head": {"rotation": {"0.0": [10, 0, 0], "0.8": [0, 30, 0]}},
+        "waist": {"rotation": {"0.0": [12, 0, 0], "0.8": [-10, 0, 0]}},
+        "head": {"rotation": {"0.0": [10, 0, 0], "0.8": [10, 90, 0]}},
         "rightArm": {"rotation": {"0.0": [-10, 0, 8], "0.8": [0, 0, 15]}},
         "leftArm": {"rotation": {"0.0": [-10, 0, -8], "0.8": [0, 0, -15]}},
     })
@@ -261,14 +271,21 @@ def pozlar():
     P["govde_tut"]["_cozum"] = {"sol_el_karin_hatasi_px": round(hata, 2)}
 
     # ---- bayil: yurumeden dizleri bosalip one-yana yigilir ----
+    # YERE DEGEN SON HAL (v7.99.14, yuzustu ile ayni bulgu): eskisi 22
+    # derece yana yatik ve sol kolun USTUNDE duruyordu -- duz zeminde bile
+    # govde 4,23 px, bacaklar 4,3-5,0 px havada (kol X -10 yere giriyor,
+    # bacaklar X -6/+5 biri yere biri havaya). Yan yatma devrilirken kalir,
+    # sonda sifirlanir; kafa sola tam doner (yanak yerde), ust govde belden
+    # 10 derece kalkar, sag kol basin ustunde yere uzanir. Izgara aramasi:
+    # bas, govde, bacaklar, kollar <= 0,1 px (test/yatma.mjs).
     P["bayil"] = _a(1.0, {
-        "root": {"rotation": {"0.0": [0, 0, 0], "0.35": [15, 0, 0], "0.75": [80, 0, 18], "1.0": [90, 0, 22]}},
-        "waist": {"rotation": {"0.0": [14, 0, 0], "0.35": [25, 0, 0], "1.0": [0, 0, 0]}},
-        "rightLeg": {"rotation": {"0.0": [0, 0, 0], "0.35": [-25, 0, 0], "1.0": [-6, 0, 6]}},
-        "leftLeg": {"rotation": {"0.0": [0, 0, 0], "0.35": [20, 0, 0], "1.0": [5, 0, -4]}},
-        "rightArm": {"rotation": {"0.0": [0, 0, 0], "0.5": [-40, 0, 20], "1.0": [-160, 0, 20]}},
-        "leftArm": {"rotation": {"0.0": kol, "0.5": [-30, 0, -10], "1.0": [-10, 0, -20]}},
-        "head": {"rotation": {"0.0": [8, 0, 0], "1.0": [0, -40, 0]}},
+        "root": {"rotation": {"0.0": [0, 0, 0], "0.35": [15, 0, 0], "0.75": [80, 0, 8], "1.0": [90, 0, 0]}},
+        "waist": {"rotation": {"0.0": [14, 0, 0], "0.35": [25, 0, 0], "1.0": [-10, 0, 0]}},
+        "rightLeg": {"rotation": {"0.0": [0, 0, 0], "0.35": [-25, 0, 0], "1.0": [0, 0, 6]}},
+        "leftLeg": {"rotation": {"0.0": [0, 0, 0], "0.35": [20, 0, 0], "1.0": [0, 0, -4]}},
+        "rightArm": {"rotation": {"0.0": [0, 0, 0], "0.5": [-40, 0, 20], "1.0": [-163, -10, 25]}},
+        "leftArm": {"rotation": {"0.0": kol, "0.5": [-30, 0, -10], "1.0": [0, 0, -20]}},
+        "head": {"rotation": {"0.0": [8, 0, 0], "1.0": [-10, -90, 0]}},
     })
     zemine_oturt(geo, P["bayil"], [0.0, 0.15, 0.35, 0.55, 0.75, 0.9, 1.0])
 

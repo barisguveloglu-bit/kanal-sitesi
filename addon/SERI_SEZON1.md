@@ -34,7 +34,7 @@ kararı: *"bu iki evren farklı evrenler."*
 |---|---|---|
 | **Barış** | 1– | İlk dövüş deneyimi; zorlanıyor. Silahı Karanlık Tırpan (kullanıcının dilinde "mızrak"). Skin: **`Simsek_Skin/uzak_akraba.png`** (aktör listesinde `uzak_akraba`) — kullanıcının seçimi. |
 | **El-Harkos** | 1 | Ödül avcısı. Silahsız, yumrukla dövüşüyor. Avladıkları her silahla vücudunu delmeye çalışmış, hiçbiri işlememiş. Barış'ın ödülünü tamamladığını sanıyor; Barış'ın güçlerini açtığını fark etmiyor. **1. bölümde ölüyor.** Skin: **`kaynak_doku/ilkel_harkos.png`** ("İlkel Suikastçı El-Harkos", aktör listesinde `harkos`) — kullanıcının seçimi. |
-| **Ana kötü** | sezon | **Tek karakter, iki beyaz göz** (v7.99.10 düzeltmesi; ilk yazım "iki çift" idi). Karanlık odada oturuyor. Askerleri var. Bedeni, yüzü, yapısı **hiç görünmüyor** — yalnız gözler. Kullanıcının gerekçesi: klasik kötü karakter imajı ve gizem. |
+| **Ana kötü** | sezon | **Tek karakter, iki beyaz göz** (v7.99.10 düzeltmesi; ilk yazım "iki çift" idi). Karanlık odada oturuyor. Askerleri var. Bedeni, yüzü, yapısı **hiç görünmüyor** — yalnız gözler. Kullanıcının gerekçesi: klasik kötü karakter imajı ve gizem. **Düzeltme (kullanıcı, 2026-10-12, Part 2'yi izleyince):** bedeni VAR ama karanlıkta — *"karanlık gözükmesi lazımdı yani ışığın gelmemesi lazımdı fakat ışık geliyor ve yani bedeni yok sadece gözü var"*. İlk çizimde beden hiç yoktu, duvarın ışığı gözlerin arasından görünüyordu. Beden **kullanıcının yaptığı skin**: `kaynak_doku/aktor/zifiri_kotu.png`. İlk gönderilen (taçlı, md5 `2415e5d9…`) önizlemede görülünce kullanıcı ikincisini seçti: *"onun yerine bunu kullansana, bunu da ben yaptım; sadece ışık gelmeyecek şekilde ayarla veya onun olduğu alana karaltı ekle"* — elmas miğferli, kırmızı-gri ceketli skin, 64×64 RGBA, geniş kol, temel katman tam opak, gelen dosya bire bir (md5 `f40137a84c07b6cfc176dbd99d5e7f7b`). Hiçbir ışık bedene ulaşmaz (kapı ışığı da gözlerin parıltısı da): simsiyah siluet + iki beyaz göz. Skinin renkleri karanlıkta görünmez; görünen, siluetidir (miğferin ve ceketin dış çizgisi). |
 | **Ice-man** | 2 | Gerçek adı Ice-man, kod adı **Deney 081**. 2. bölümün düşmanı. Silahı **Ay Işığı Asası** (`pa:kns_asa_ayisigi`, Konsey eşyası): lacivert gövde, pençe biçimli baş, içinde buz mavisi küre. Kullanıcının gönderdiği görselle model karşılaştırılıp eşleştirildi. Modda dövüş seti yok; film için bir asa seti bağlanacak (Karanlık Tırpan'daki `OZEL_SILAH` yolu). Skin kullanıcıdan geldi (aşağıda). |
 | **Komutan Ömer** | 2 | İnsanlara ait hanedanın askerî bir bölgesindeki komutan; ışıklı, harita masalı savaş odasında. Skin: **`kaynak_doku/aktor/omer.png`** — kullanıcının kendi yaptığı skin (2026-10-10), aktör listesinde `omer` (10. sıra, `pa:skin` = 9), 64×64 RGBA, geniş kol, md5 `35bfb612ddac5cce9ea74c59e106a33d`. |
 | **Asker** | 1 | Ana kötünün askerlerinden; El-Harkos'un öldüğü haberini patronuna getiren görevli. |
@@ -175,6 +175,10 @@ sonrasına); o aralıkta yürüyüş yönü `bak`'ı ezmez. Ölçüldü: yalnız
 **849–1038** değişiyor (190 kare, yeniden çizildi), Part 2 (1067+) konum,
 açı, kamera, eylem, efekt ve altyazı olarak bire bir aynı (çizilmiş Part 2
 kareleri geçerli). `test/tek_kare_donus.mjs` kilitliyor.
+*v7.99.14:* Part 2 yatma/zemin düzeltmesiyle yeniden çiziliyor ve Part 2'ye
+ikinci bir aralık girdi (El-Harkos devrilirken Barış ona bakarak geri adım
+atıyor, 62,9–63,8 sn). Test iki aralığı ayrı ölçüyor: Part 1 aralığı Part 2'ye
+hiç dokunmuyor, Part 2 aralığı yalnız kendi 36 karesini (2120–2155) değiştiriyor.
 **Genel kök düzeltme** (engelde takılan yürüyüşü bitirmek) hâlâ yapılmadı:
 Part 2'nin 1094–2456'sını değiştirir. Yeni senaryoda önce düzeltilir,
 sonra çizilir.
@@ -533,6 +537,52 @@ el kaynaklarımız aynı yönde. Her videoda uyulacaklar:
   MICROSOFT" VAR. Yeni çıkan iki madde: başlık kartı oyun içeriğinin
   dışına (ayrı karta) konur; kılavuz "violence / mature content"i
   markaya zararlı sayıyor → kan efekti kararı kullanıcıda.
+
+## Part 2 düzeltmeleri (kullanıcı, 2026-10-12 — *"bozuk bir şey sunamayız asla"*)
+
+Kullanıcı Part 2'yi indirip izledi, üç sorun buldu; düzeltilmeden yayın yok.
+
+- **Dövüş dengesiz:** *"ben 5 tane vuruyorum adam bir tane vuruyor"* —
+  ölçüldü: Barış 8 saldırı (Antitheus kombosu, 1,7–2,5 sn), El-Harkos 4
+  (tek yumruk, 0,4 sn). Kullanıcı: dövüş **çukurun hemen yanında**; insan
+  *"azıcık ortamda etkileşime girer, mesela ağaç falan fırlatır — birazcık
+  abartmış oldum tabii"*. Öneri v2 (onay bekliyor): El-Harkos karşılık
+  veren seriler; Barış çukurun kenarına düşüp kalkar; ıskalanan yumruk
+  yere vurur, toprak sıçrar; El-Harkos çukur kenarından blok söküp fırlatır,
+  Barış tırpanla böler. Replikler, kâğıt, kanlı vuruşlar, diz çöküş, ölüm aynı.
+- **Kötünün bedeni yok:** yukarıda (Karakterler, Ana kötü). İkinci bulgu
+  (kullanıcı, 8 kat parlatılmış önizlemeye bakınca): *"340 daha beyaz, 610 kare
+  siyah"*. Ölçüldü: 340'ta beden 6,69/255; sis gizlenince 0,08/255 — ışık
+  bedene gelmiyordu, griyi kamerayla kötü arasındaki **aydınlanmış sis**
+  veriyordu (kapı açık). 610'da kapı kapalı, sisi yalnız gözler aydınlatıyor.
+  Düzeltme `blender_film.kotu_karanlik_kur`: bedenin kapladığı piksellerde
+  yalnız kendi gözlerinin ışığı kalır (Cryptomatte kapsamı + gözlerin ışık
+  grubu). Sonuç: 340 beden 1,62/255 (gözlerin kendi parıltısı), duvar aynı
+  (11,02), 610 bire bir aynı (fark 0).
+- **Havada yatma / havada yürüme:** kullanıcı: *"yavaş yavaş yürüyüp yere
+  yatıyor ya, o zaman uçuyormuş gibi oluyor; azıcık daha yürüsün, orada öyle
+  yatsın"*. Ölçüldü, üç ayrı sebep (`arac/zemin_denetim.py`, `test/zemin.mjs`):
+  1. **Poz:** yüzüstü'de kafa 30° yana dönüktü, 8 px kafa küpünün köşesi
+     gövdeyi 3,46 px (0,22 blok) kaldırıyordu; bayıl'da gövde sol kolun
+     üstündeydi, düz zeminde bile 4,2 px havada. Düzeltme (ızgara araması):
+     kafa tam yana döner (yanak yerde), üst gövde belden 10° kalkar (omuzlar
+     kafanın boyu kadar yukarıda, kalça yerde); bütün parçalar ≤ 0,1 px.
+  2. **Zemin:** aktörler hep z = 0'daydı; çukurun üstünden zemin hizasında
+     yürüdüler (Part 2'de Barış 314 kare, dövüşün başında 0,35 blok havada).
+     Artık aktör ayak izinin (0,6×0,6) altındaki en yüksek bloğa basar
+     (`blender_film.zemin_yuksekligi`; çukuru çizen `zemin_kur` aynı
+     `cukur_derinligi`'ni kullanır); basamağa çıkış anında, iniş yumuşak.
+     Part 1'deki `"z": 0.0` olayı (16,45 sn) `null` oldu: çukurdan çıkınca
+     zemini izler. Part 1 teslim edildi, yeniden çizilmiyor.
+  3. **Yer:** Barış çukurun halkasına bayılıyordu (bacakların alt yüzünün
+     yarısı boşta); El-Harkos yüzüstü düşerken kafası Barış'ın ayaklarının
+     0,165 blok içine giriyordu. Senaryo: El-Harkos devrilirken Barış ona
+     bakarak 0,8 blok geri adım atar (çukurun basamağına iner; ara 0,64
+     blok); sonra aynı uzunlukta (2,95 blok) yürür ve çukurdan uzakta, düz
+     çimende bayılır (`[-4.45, -1.65]`); son kamera aynı ölçüde kaydırıldı.
+  Bilinen, dokunulmadı: Part 1'in başında çukurda sırtüstü yatan Barış'ta
+  (`dus` pozu) aynı kafa kusuru var — gövde 2,7 px havada. Part 1 teslim
+  edildi; istenirse o kareler ayrıca düzeltilir.
 
 ## Açık
 
