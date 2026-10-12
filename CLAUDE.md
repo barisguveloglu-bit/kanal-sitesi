@@ -572,6 +572,12 @@ tahmini bitişi, `eksik --yeni M` yeniden dağıtımı verir; `cizim_topla.py
 --hedef <depo dışı>` kareleri doğrulayarak açar ve `film_birlestir.py`
 komutlarını yazar. İşçiye **`--ayar` verilmez** (kalite kilidi; yanlış
 boyutlu kare depoya giremez).
+**Yeniden çizim (v7.99.14):** senaryoya `"cizim_surum": n` (n ≥ 2) yazılır;
+bloklar gizli depoda ayrı klasöre (`film/<ad>_s<n>/`) gider. Eski bloklar
+silinmez — silen commit otomatik izin sisteminde reddedildi, ekleme yolu
+seçildi. Yeni sürüm kendi klasöründe TAM çizilir, eskiye geri düşülmez
+(yarım kalan çizimde eksik kare sessizce eski sürümden gelmesin).
+`test/cizim_dagit.mjs` 6. bölüm.
 
 **Hesap limiti asıl darboğaz (v7.99.10, ölçüldü).** Çizim token harcamaz ama
 her işçi oturumu ~100 dk'da bir bekleme döngüsünü yenilemek için bir model

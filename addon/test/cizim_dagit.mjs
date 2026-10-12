@@ -25,6 +25,10 @@
               olse de (kullanim limiti, makine geri alindi) o kare depoda
    5. KALITE  yanlis boyutlu (onizleme) kare depoya giremiyor; topla
               herkese acik depoya yazmayi reddediyor
+   6. SURUM   "cizim_surum": 2 -- yeniden cizim gizli depoda AYRI klasore
+              (film/<ad>_s2/) gider: eski bloklar yerinde ve DOKUNULMADAN
+              kalir, yeni surum atlanmadan TAM cizilir, topla yeni klasoru
+              acar (v7.99.14: eski bloklari silen commit reddedildi)
 
    Mutasyonla isirdigi gosterildi (her biri bozuldu, test DUSTU, geri alindi):
      dagit "i % n" -> ardisik dagitim               -> 1. serpistirme dustu
@@ -33,7 +37,8 @@
      blok_isle depo atlamasi kaldirildi              -> 4. yeniden cizmiyor dustu
      ciz yer tutucu silme kaldirildi                 -> 4. devam (isci cikis) dustu
      gonder reddedilince yeniden deneme kaldirildi   -> 3. itme yarisi dustu
-     ciz yoklamada hazir(True) cagrisi kaldirildi    -> 4c. aninda dustu  */
+     ciz yoklamada hazir(True) cagrisi kaldirildi    -> 4c. aninda dustu
+     senaryo_bilgi cizim_surum yok sayildi           -> 6. surum (tam cizildi) dustu  */
 import { execFileSync, spawn } from "node:child_process";
 import { mkdtempSync, writeFileSync, readFileSync, existsSync, chmodSync, rmSync, mkdirSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -107,8 +112,8 @@ const gercek = JSON.parse(py(["-c", `
 import sys, json; sys.path.insert(0, ${JSON.stringify(ARAC)})
 import cizim_ortak as O
 print(json.dumps([[s["kok"], s["toplam"], s["bolumler"]] for s in O.senaryolar()]))`]));
-kontrol("film: orman 2456 kare (part1 1-1066, part2 1067-2456) + oda 631",
-        JSON.stringify(gercek) === JSON.stringify([["bolum1_orman", 2456, [["part1", 1, 1066], ["part2", 1067, 2456]]], ["bolum1_oda", 631, [["tum", 1, 631]]]]),
+kontrol("film: orman 2456 kare (part1 1-1066, part2 1067-2456) + oda 631 (2. cizim surumu)",
+        JSON.stringify(gercek) === JSON.stringify([["bolum1_orman", 2456, [["part1", 1, 1066], ["part2", 1067, 2456]]], ["bolum1_oda_s2", 631, [["tum", 1, 631]]]]),
         JSON.stringify(gercek));
 const sira = (kok) => gercek.findIndex((g) => g[0] === kok);
 let bolmeTamam = true, sinirTamam = true, siraTamam = true, serpTamam = true, dengeTamam = true, bolmeDetay = "";
@@ -365,6 +370,34 @@ console.log("5. kalite kilidi");
   try { py([ARAC + "cizim_topla.py", "--hedef", join(KANAL, "addon", "film_kare_deneme"), "--depo", join(T, "u5_d"), "--uzak", uzak, "--senaryolar", SENLER]); }
   catch (e) { red = /herkese acik/.test(String(e.stderr) + String(e.stdout)); }
   kontrol("topla herkese acik depoya (kanal-sitesi) yazmayi reddediyor", red && !existsSync(join(KANAL, "addon", "film_kare_deneme")));
+}
+
+// ============ 6. SURUM: yeniden cizim ayri klasore, eskiye dokunulmaz ============
+console.log("6. surum (cizim_surum)");
+{
+  const uzak = ciplakDepo("u6");
+  const yol = join(SEN, "deneme_s.json");
+  writeFileSync(yol, JSON.stringify({ fps: 10, sure: 0.3, cozunurluk: [48, 27] }));
+  const r1 = await isci(["--is", "deneme_s:1-4", "--senaryolar", yol, "--depo", join(T, "u6_d"), "--uzak", uzak, "--calisma", join(T, "u6_c1")],
+    { SAHTE_KAYIT: join(T, "u6a.log") });
+  const eskiAgac = git(join(T, "u6.git"), "rev-parse", "main:film/deneme_s");
+  writeFileSync(yol, JSON.stringify({ fps: 10, sure: 0.3, cozunurluk: [48, 27], cizim_surum: 2 }));
+  const r2 = await isci(["--is", "deneme_s_s2:1-4", "--senaryolar", yol, "--depo", join(T, "u6_d"), "--uzak", uzak, "--calisma", join(T, "u6_c2")],
+    { SAHTE_KAYIT: join(T, "u6b.log") });
+  const agac = git(join(T, "u6.git"), "ls-tree", "-r", "--name-only", "main").split("\n");
+  const say = (k) => agac.filter((x) => x.startsWith("film/" + k + "/") && x.endsWith(".mkv")).length;
+  kontrol("surum 2: yeni surum kendi klasorunde TAM cizildi (eski bloklar varken atlanmadi)",
+          r1.kod === 0 && r2.kod === 0 && kareKaydi(join(T, "u6b.log")).length === 4 && say("deneme_s_s2") > 0,
+          `kod ${r1.kod}/${r2.kod}, ikinci kosuda cizilen ${kareKaydi(join(T, "u6b.log")).length}, s2 paket ${say("deneme_s_s2")}`);
+  kontrol("surum 2: eski klasor yerinde ve DOKUNULMADI (agac ozeti ayni)",
+          say("deneme_s") > 0 && git(join(T, "u6.git"), "rev-parse", "main:film/deneme_s") === eskiAgac, `eski paket ${say("deneme_s")}`);
+  const hedef = join(T, "u6_hedef");
+  let tk = 0, tc = "";
+  try { tc = py([ARAC + "cizim_topla.py", "--hedef", hedef, "--depo", join(T, "u6_topla_depo"), "--uzak", uzak, "--senaryolar", yol]); }
+  catch (e) { tk = e.status; tc = String(e.stdout) + String(e.stderr); }
+  kontrol("surum 2: topla yeni klasoru aciyor (4 kare)",
+          tk === 0 && [1, 2, 3, 4].every((f) => existsSync(join(hedef, "deneme_s_s2", "kare", String(f).padStart(4, "0") + ".png"))),
+          "kod " + tk + (tk ? " " + tc.trim().split("\n").slice(-3).join(" | ") : ""));
 }
 
 rmSync(T, { recursive: true, force: true });

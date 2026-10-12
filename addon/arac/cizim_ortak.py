@@ -78,7 +78,17 @@ def senaryo_bilgi(yol):
             raise SystemExit("HATA: %s parcalar %d'de bitiyor, film %d kare" % (yol, beklenen - 1, toplam))
     else:
         bolumler = [("tum", 1, toplam)]
-    return {"kok": os.path.splitext(os.path.basename(yol))[0], "yol": yol, "toplam": toplam,
+    # "cizim_surum": n (n >= 2) -- senaryonun yeniden cizimi gizli depoda AYRI
+    # klasore gider (film/<ad>_s<n>/). Eski bloklar silinmez, dokunulmaz; yeni
+    # surum kendi klasorunde TAM cizilir, eskiye geri dusulmez (yarim kalan bir
+    # yeniden cizimde eksik kare sessizce eski surumden gelmesin). v7.99.14:
+    # Part 2 duzeltmesinde eski bloklari silen commit reddedildi -- ekleme yolu.
+    ad = os.path.splitext(os.path.basename(yol))[0]
+    surum = int(sen.get("cizim_surum", 1))
+    if surum < 1:
+        raise SystemExit("HATA: %s cizim_surum %r" % (yol, surum))
+    kok = ad if surum == 1 else "%s_s%d" % (ad, surum)
+    return {"kok": kok, "ad": ad, "surum": surum, "yol": yol, "toplam": toplam,
             "fps": sen.get("fps", 24), "cozunurluk": list(sen.get("cozunurluk", [1920, 1080])),
             "bolumler": bolumler, "sha256": hashlib.sha256(ham).hexdigest()}
 
