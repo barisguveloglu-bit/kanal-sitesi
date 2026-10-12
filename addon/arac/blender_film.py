@@ -1294,7 +1294,8 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
     thomas_goz.kur(bpy, senaryo, harita, aktorler, kemik_nesne, kare_bul, B.yol)
 
     if senaryo.get("mekan") == "oda":
-        oda_kur(bpy, senaryo, doku_malzemesi, harita, fps, kam_iz, aktor_parcalari, kemik_nesne)
+        oda_kur(bpy, senaryo, doku_malzemesi, harita, fps, kam_iz, aktor_parcalari, kemik_nesne,
+                {ad: a.kayit for ad, a in aktorler.items()})
 
     os.makedirs(os.path.join(klasor, "kare"), exist_ok=True)
     if isinstance(tek_kare, list):           # denetim: secili kareler, tek kurulumla
@@ -1348,9 +1349,10 @@ def gok_kapat(bpy, sc, gunes, ay):
 
 
 KOTU_GOZ_GRUBU = "kotu_goz"
+KOTU_KARANLIK = (2.2, 3.5)   # karanlik bolge: bu yaricapa kadar TAM karanlik, ikincisinde normal (blok)
 
 
-def kotu_karanlik_kur(bpy, beden, gozler):
+def kotu_karanlik_kur(bpy, beden, gozler, merkez=None, yaricap=KOTU_KARANLIK, sis=None):
     """Kotunun bedeninin kapladigi piksellerde YALNIZ kendi gozlerinin isigi kalir.
 
     Kullanici (2026-10-12, onizlemede x8 bakinca): "340 daha beyaz, 610 kare
@@ -1365,7 +1367,21 @@ def kotu_karanlik_kur(bpy, beden, gozler):
     icinde goruntu = gozlerin isik grubu (ayni gurultu gidericiden gecmis),
     disinda goruntu aynen. Gozler ayri nesne, bedenin onunde: kapsamin
     disinda kalir, kendileri degismez. Kapi kapaliyken (610) iki yol ayni
-    sonucu verir; kotu kadrajda degilse kapsam 0, kare bire bir eskisi."""
+    sonucu verir; kotu kadrajda degilse kapsam 0, kare bire bir eskisi.
+
+    KARANLIK BOLGE (kullanici, ayni gun, 8 kat parlatilmis 340'a bakinca):
+    "sadece karakterin kendisine karaltı uygulanmış ... etrafı da karanlık
+    kendisi de karanlık, sadece gözleri gözükecek". Kotunun merkezine
+    (`merkez`, kokun 1 blok ustu) `yaricap[0]`'dan yakin her yuzey (duvar,
+    zemin, toz) TAM karanlik, `yaricap[1]`'e kadar yumusakca normale doner:
+    piksel, ilk carptigi yuzeyin dunya konumuna (Position gecisi) gore
+    karartilir; karanlikta yine yalniz gozlerin isik grubu kalir. 340'ta
+    arkasindaki duvarlar 2,1 blokta -- ic yaricap 2,2 onlari tam kapsar.
+    Konum ana katmandan ALINMAZ: sis isinlarin bir kismini duvara varmadan
+    saciyor, ortalama konum kayiyor ve maske gurultulu cikiyordu (ilk
+    onizleme: 340'ta duvarlar aydinlik kaldi, sag yari karincalandi). Konum
+    ayri, sissiz, 4 ornekli bir katmandan ("kotu_konum") okunur; o katman
+    yalniz konum verir, gurultu gidericiden gecmez (ucuz)."""
     sc = bpy.context.scene
     vl = sc.view_layers[0]
     grup = vl.lightgroups.add(name=KOTU_GOZ_GRUBU)
@@ -1392,7 +1408,40 @@ def kotu_karanlik_kur(bpy, beden, gozler):
     ng.links.new(rl.outputs["Combined_" + grup.name], gg.inputs["Image"])
     ng.links.new(rl.outputs["Denoising Albedo"], gg.inputs["Albedo"])
     ng.links.new(rl.outputs["Denoising Normal"], gg.inputs["Normal"])
-    ng.links.new(cr.outputs["Matte"], soket(mx.inputs, "Factor_Float"))
+    kapsam = cr.outputs["Matte"]
+    if merkez is not None:
+        vk = sc.view_layers.new("kotu_konum")
+        vk.samples = 4
+        vk.cycles.use_denoising = False
+        vk.use_pass_position = True
+        if sis is not None:
+            ks = bpy.data.collections.new("kotu_sis")
+            sc.collection.children.link(ks)
+            for c in list(sis.users_collection):
+                c.objects.unlink(sis)
+            ks.objects.link(sis)
+            vk.layer_collection.children[ks.name].exclude = True
+        rk = ng.nodes.new("CompositorNodeRLayers")
+        rk.scene = sc
+        rk.layer = vk.name
+        uz = ng.nodes.new("ShaderNodeVectorMath")
+        uz.operation = "DISTANCE"
+        ng.links.new(rk.outputs["Position"], uz.inputs[0])
+        uz.inputs[1].default_value = tuple(merkez)
+        mr = ng.nodes.new("ShaderNodeMapRange")
+        mr.interpolation_type = "SMOOTHSTEP"
+        mr.clamp = True
+        ng.links.new(soket(uz.outputs, "Value"), soket(mr.inputs, "Value"))
+        soket(mr.inputs, "From Min").default_value = yaricap[0]
+        soket(mr.inputs, "From Max").default_value = yaricap[1]
+        soket(mr.inputs, "To Min").default_value = 1.0
+        soket(mr.inputs, "To Max").default_value = 0.0
+        en = ng.nodes.new("ShaderNodeMath")
+        en.operation = "MAXIMUM"
+        ng.links.new(kapsam, en.inputs[0])
+        ng.links.new(soket(mr.outputs, "Result"), en.inputs[1])
+        kapsam = en.outputs[0]
+    ng.links.new(kapsam, soket(mx.inputs, "Factor_Float"))
     ng.links.new(rl.outputs["Image"], soket(mx.inputs, "A_Color"))
     ng.links.new(gg.outputs["Image"], soket(mx.inputs, "B_Color"))
     ng.links.new(soket(mx.outputs, "Result_Color"), cikis.inputs[0])
@@ -1422,7 +1471,8 @@ def _kup_ekle(bpy, merkez, boyut, malz, ad="kup"):
     return ob
 
 
-def oda_kur(bpy, senaryo, doku_malzemesi, harita, fps, kam_iz, aktor_parcalari=None, kemik_nesne=None):
+def oda_kur(bpy, senaryo, doku_malzemesi, harita, fps, kam_iz, aktor_parcalari=None, kemik_nesne=None,
+            aktor_kayit=None):
     """7. sahne: karanlik oda (SERI_SEZON1.md).
 
     Tam karanlik; yalniz iki beyaz goz. Kapi acildigi an BEMBEYAZ, hüzmede
@@ -1573,7 +1623,11 @@ def oda_kur(bpy, senaryo, doku_malzemesi, harita, fps, kam_iz, aktor_parcalari=N
             co.light_linking.link_state = "EXCLUDE"
         for em in [spot, dis] + list(goz_k.children):
             em.light_linking.receiver_collection = kc
-        kotu_karanlik_kur(bpy, kotu_parca, list(goz_k.children))
+        kayit = aktor_kayit[kotu] if aktor_kayit else []
+        if kayit and any(abs(r["x"] - kayit[0]["x"]) + abs(r["y"] - kayit[0]["y"]) > 1e-6 for r in kayit):
+            raise ValueError("oda: kotu yer degistiriyor, karanlik bolgenin merkezi sabit")
+        merkez = (kayit[0]["x"], kayit[0]["y"], kayit[0]["z"] + 1.0) if kayit else None
+        kotu_karanlik_kur(bpy, kotu_parca, list(goz_k.children), merkez, tuple(o.get("karanlik", KOTU_KARANLIK)), sk)
     # sahne olaylari
     acik, goz_aci = 0.0, o.get("goz_aci", 0)
     dis_guc, spot_guc = o.get("kapi_parlaklik", 30.0), o.get("huzme_guc", 2500.0)

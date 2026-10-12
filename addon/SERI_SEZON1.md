@@ -559,6 +559,13 @@ Kullanıcı Part 2'yi indirip izledi, üç sorun buldu; düzeltilmeden yayın yo
   yalnız kendi gözlerinin ışığı kalır (Cryptomatte kapsamı + gözlerin ışık
   grubu). Sonuç: 340 beden 1,62/255 (gözlerin kendi parıltısı), duvar aynı
   (11,02), 610 bire bir aynı (fark 0).
+  Üçüncü bulgu (kullanıcı): *"sadece karakterin kendisine karaltı uygulanmış ...
+  etrafı da karanlık kendisi de karanlık, sadece gözleri gözükecek"*. Karanlık
+  bölge eklendi: kötünün merkezine 2,2 bloktan yakın her yüzey tam karanlık,
+  3,5 bloğa kadar yumuşakça normale döner; içinde yine yalnız gözlerin ışığı.
+  Konum sissiz ayrı bir katmandan okunur (ana katmanın konumu sisle kayıyordu,
+  ilk denemede maske karıncalandı). 340: kare ortalaması 2,53/255, yalnız
+  gözler görünüyor. `test/kotu_karanlik.mjs`.
 - **Havada yatma / havada yürüme:** kullanıcı: *"yavaş yavaş yürüyüp yere
   yatıyor ya, o zaman uçuyormuş gibi oluyor; azıcık daha yürüsün, orada öyle
   yatsın"*. Ölçüldü, üç ayrı sebep (`arac/zemin_denetim.py`, `test/zemin.mjs`):
