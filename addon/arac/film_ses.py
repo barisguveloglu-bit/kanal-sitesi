@@ -161,6 +161,20 @@ def ses_kur(senaryo, katmanlar=False):
         elif e["tur"] == "kan":
             ef.ekle(oku("impactPunch_heavy_00%d.ogg" % (int(e["t"]) % 2)), t, 1.2)
             ef.ekle(oku("knifeSlice.ogg"), t, 0.9)
+        # dovus v2 (v7.99.14): yere inen yumruk, kopan parca, firlatma, kirilma, dusus
+        elif e["tur"] == "toprak" and e.get("ses") == "yer_vurus":
+            ef.ekle(oku("impactPunch_heavy_001.ogg"), t, 1.1)
+            ef.ekle(oku("impactMining_000.ogg"), t, 0.9)
+            ef.ekle(oku("lowFrequency_explosion_001.ogg"), t, 0.5)
+        elif e["tur"] == "toprak" and e.get("ses") == "parca_kir":
+            ef.ekle(oku("knifeSlice.ogg"), t, 0.8)
+            ef.ekle(oku("impactMining_000.ogg"), t, 1.0)
+            ef.ekle(oku("impactSoft_heavy_000.ogg"), t, 0.5)
+        elif e["tur"] == "dusus":
+            ef.ekle(oku("impactSoft_heavy_001.ogg" if e.get("ses") == "parca_yere" else "impactSoft_heavy_000.ogg"),
+                    t, 0.6 if e.get("ses") == "parca_yere" else 1.0)
+        elif e["tur"] == "firlat":
+            ef.ekle(oku("cloth2.ogg"), t, 0.9, 0.7)
     # ---- donma anlari: boguk vurgu ----
     for z in senaryo.get("zaman", []):
         if z["hiz"] < 0.1:

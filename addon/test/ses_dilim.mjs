@@ -47,8 +47,8 @@ for b in range(1, 3001):
         s["bozuk"].append(b)
 print(json.dumps(s))`], { encoding: "utf8", cwd: KOK }).trim().split("\n").pop());
 
-kontrol("1. bolum araliklari: ses dilimi kare suresine TAM esit (Part 2 orman 1067-2456 dahil)",
-        r.parca.length >= 2 && r.parca.every(p => p[4] === p[5]) && r.parca.some(p => p[2] === 1067 && p[3] === 2456),
+kontrol("1. bolum araliklari: ses dilimi kare suresine TAM esit (Part 2 orman 1067-2645 dahil)",
+        r.parca.length >= 2 && r.parca.every(p => p[4] === p[5]) && r.parca.some(p => p[2] === 1067 && p[3] === 2645),
         r.parca.map(p => `${p[1]} ${p[2]}-${p[3]}: ${p[4]}/${p[5]}`).join(", "));
 kontrol("2. 1..3000 butun sinirlar: tam boy ve bitisik", r.bozuk.length === 0, `${r.bozuk.length} bozuk sinir ${r.bozuk.slice(0, 6).join(",")}`);
 

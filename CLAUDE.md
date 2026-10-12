@@ -533,6 +533,19 @@ anlatırken oradan git.
   ışık ulaşmaz ve kompozitörde bedeninin kapladığı piksellerde yalnız kendi
   gözlerinin ışık grubu kalır (`kotu_karanlik_kur`). Işık bağlaması yetmedi:
   kapı açıkken kamerayla kötü arasındaki aydınlık sis onu griye çeviriyordu.
+  Kompozitör **CPU'da** çalışır (`compositor_device = "CPU"`): Blender
+  5.2'nin varsayılanı GPU ve EGL bağlamı açıyor; bulut işçisinde `libEGL.so.1`
+  yok, oda işçisi o01 bu yüzden durdu. İşçiye paket kurdurmak yerine EGL'siz
+  yol seçildi (ölçüldü: CPU aygıtında hiç EGL yüklenmiyor).
+- **Dövüş v2 (v7.99.14):** yere vuran, blok kaldırıp atan, düşüp kalkan
+  dövüş `zaman_cizelgesi` içinde fizikle kurulur (`toprak_parcalari`, kaçışta
+  dokunulmazlık, `itme`). Elle çekim (`"aci": "elle"`) `a`/`b` taşırsa
+  kamera denetimi ikisini de konu sayar — hızlı eksen dönüşlü an (kaçış,
+  fırlatma) için sabit kamerayı böyle yaz. Kalıp açılar (`yan`, `dusuk`,
+  `omuz`) ayakta duran aktöre göre kurulu: diz çöken, yatan ya da birbirine
+  giren aktörde denetim temiz dese de kadraj bozulabiliyor. Yeni dövüş
+  çekimini çizime vermeden önce **her çekimden bir önizleme karesi çiz**
+  (v7.99.14'te yedi çekim ve çizimi çökerten bir hata böyle bulundu).
 
 ## Animasyon serisi — LORE'dan ayrı evren (1. sezon)
 

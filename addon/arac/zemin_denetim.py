@@ -27,7 +27,7 @@ import bedrock_onizleme as B  # noqa: E402
 import blender_film as F  # noqa: E402
 import film_poz as FP  # noqa: E402
 
-YATIS = ("yuzustu", "bayil")      # yere yatan pozlar (son hali yere oturur)
+YATIS = ("yuzustu", "bayil", "dus")   # yere yatan pozlar (son hali yere oturur)
 ANA = ("head", "body", "rightLeg", "leftLeg")
 DESTEK_ESIK = 0.9                 # ana parcanin alt yuzunun en az %90'i zeminde
 ARA_ESIK = 0.45                   # yatan beden ile ayaktaki aktorun koku arasi (blok)
@@ -67,16 +67,13 @@ def poz_bosluklari(poz, t):
     return {ad: round(v - taban, 3) for ad, v in alt.items()}
 
 
-def _ileri(m):
-    """Yatan pozda kafanin model uzayindaki yonu: +1 ya da -1 (model -Z'ye bakar)."""
-    bas = _kutu_noktalari(m, "head")
-    return 1.0 if sum(p[2] for p in bas) / len(bas) > 0 else -1.0
-
-
-def _dunya(kok, aci, s, yanal, p):
+def _dunya(kok, aci, yanal, p):
+    """Model ic uzayi (px) -> dunya (x, y). Model -Z'ye bakar: ileri = -z.
+    (Ilk yazimda yon kafadan tahmin ediliyordu -- "kafa one duser" yuzustu
+    ve bayilda tutuyordu, sirtustu dususte beden ters yone yaziliyordu.)"""
     on, sg = F.on_yon(aci), F.sag_yon(aci)
-    return (kok[0] + sg[0] * yanal * p[0] / 16 + on[0] * s * p[2] / 16,
-            kok[1] + sg[1] * yanal * p[0] / 16 + on[1] * s * p[2] / 16)
+    return (kok[0] + sg[0] * yanal * p[0] / 16 - on[0] * p[2] / 16,
+            kok[1] + sg[1] * yanal * p[0] / 16 - on[1] * p[2] / 16)
 
 
 def iz(poz, t, kok, aci, yanal=1.0):
@@ -84,8 +81,7 @@ def iz(poz, t, kok, aci, yanal=1.0):
     yonu de olcmek icin (+1/-1) -- ayna sorusu bu denetimi etkilemesin."""
     geo, P = _hazir()
     m = B.Model(geo, P[FP.ONEK + poz], t)
-    s = _ileri(m)
-    return [_dunya(kok, aci, s, yanal, p) for ad in m.kemik for p in _kutu_noktalari(m, ad)]
+    return [_dunya(kok, aci, yanal, p) for ad in m.kemik for p in _kutu_noktalari(m, ad)]
 
 
 def destek_orani(sen, poz, t, kok, aci, z_taban, yanal=1.0, n=6):
@@ -94,7 +90,6 @@ def destek_orani(sen, poz, t, kok, aci, z_taban, yanal=1.0, n=6):
     geo, P = _hazir()
     ck = sen.get("zemin", {}).get("cukur")
     m = B.Model(geo, P[FP.ONEK + poz], t)
-    s = _ileri(m)
     out = {}
     for ad in ANA:
         pts = _kutu_noktalari(m, ad, n)
@@ -102,7 +97,7 @@ def destek_orani(sen, poz, t, kok, aci, z_taban, yanal=1.0, n=6):
         taban = [p for p in pts if p[1] <= alt + 0.3]
         iyi = 0
         for p in taban:
-            x, y = _dunya(kok, aci, s, yanal, p)
+            x, y = _dunya(kok, aci, yanal, p)
             iyi += abs(-F.cukur_derinligi(ck, math.floor(x) + 0.5, math.floor(y) + 0.5) - z_taban) < 0.01
         out[ad] = round(iyi / len(taban), 3)
     return out
@@ -142,11 +137,14 @@ def denetle(sen, aralik=None, ak=None):
             if fark < -1e-6 or (fark > KOPUK_ESIK and i - inis > INIS_KARE):
                 kopuk.append([ad, f, round(fark, 3)])
     yatis = []
-    for o in sorted(sen.get("olaylar", []), key=lambda o: o["t"]):
-        if o.get("poz") not in YATIS or "aktor" not in o:
-            continue
+    # poz olayi ile yatanlar + vurusla dusurulenler (dovus v2: dusur "dus")
+    adaylar = [(o["t"], o["aktor"], o["poz"], float(o.get("hiz", 1.0))) for o in sen.get("olaylar", [])
+               if o.get("poz") in YATIS and "aktor" in o and not o.get("atla")]
+    adaylar += [(t0, ad, pz, 1.0) for ad, a in ak.items() for t0, pz in a.dusuler if pz in YATIS]
+    for t0, ad_, poz_, hiz_ in sorted(adaylar):
+        o = {"t": t0, "aktor": ad_, "poz": poz_}
         uz = P[FP.ONEK + o["poz"]]["animation_length"]
-        t_son = o["t"] + uz / float(o.get("hiz", 1.0))
+        t_son = o["t"] + uz / hiz_
         f = F.kare_bul(harita, t_son)
         if not (a0 <= f + 1 <= a1):
             continue

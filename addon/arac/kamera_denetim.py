@@ -91,10 +91,14 @@ def govde(r):
 def konular(c):
     """[(aktor, hedef_yuksekligi)]: cekimin kadrajda olmasi gereken konusu.
     Yakin planda bas (1.62), digerlerinde govde ortasi (1.2). Alcak aci ve
-    takip tek kisilik: yalniz a. Omuz ustu: konu b."""
+    takip tek kisilik: yalniz a. Omuz ustu: konu b. Elle: bakilan aktor
+    ve varsa a/b."""
     aci = c["aci"]
     if aci == "elle":
-        return [(c["bak"], c.get("bak_yuks", 1.3))] if isinstance(c.get("bak"), str) else []
+        # elle cekimde a/b yazildiysa ikisi de konu (sabit kamerali iki
+        # kisilik cekim: bakis bir noktaya, kadrajda iki aktor -- dovus v2)
+        k = [(c["bak"], c.get("bak_yuks", 1.3))] if isinstance(c.get("bak"), str) else []
+        return k + [(x, 1.0) for x in (c.get("a"), c.get("b")) if x and x != c.get("bak")]
     if aci == "goz":
         return []
     if aci in ("yakin", "yakin_on"):

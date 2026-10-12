@@ -178,13 +178,21 @@ def pozlar():
     P = {}
 
     # ---- dus: arkaya devrilip sirtustu yere yatar (1. sahne son darbe) ----
+    # YERE DEGEN SON HAL (v7.99.14): eskisinde kafanin arkasi omuzlari
+    # kaldiriyordu -- govde 2,74 px, bacaklar 1,9-2,8 px havada (Part 1'in
+    # basinda cukurda yatan Baris; Part 1 teslim edildi, yeniden cizilmiyor).
+    # Izgara aramasi: ust govde belden 8 derece kalkik, cene 15 derece gogse,
+    # kollar YANLARDA (dovus v2 zemin testi: basin ustunde acik kollar
+    # omuzdan 0,53-0,65 px havada kaliyordu; ikinci arama: kol x 0, yana
+    # 15 derece) -- butun ana parcalar <= 0,05 px.
     P["dus"] = _a(0.7, {
         "root": {"rotation": {"0.0": [0, 0, 0], "0.25": [-35, 0, 0], "0.55": [-90, 0, 0], "0.7": [-90, 0, 0]}},
-        "rightArm": {"rotation": {"0.0": [0, 0, 0], "0.3": [-150, 0, 20], "0.55": [-170, 0, 25], "0.7": [-175, 0, 30]}},
-        "leftArm": {"rotation": {"0.0": [0, 0, 0], "0.3": [-140, 0, -20], "0.55": [-165, 0, -25], "0.7": [-170, 0, -30]}},
-        "head": {"rotation": {"0.0": [0, 0, 0], "0.3": [-25, 0, 0], "0.55": [10, 0, 0], "0.7": [0, 12, 0]}},
-        "rightLeg": {"rotation": {"0.0": [0, 0, 0], "0.55": [-8, 0, 6], "0.7": [-5, 0, 8]}},
-        "leftLeg": {"rotation": {"0.0": [0, 0, 0], "0.55": [6, 0, -6], "0.7": [4, 0, -8]}},
+        "waist": {"rotation": {"0.0": [0, 0, 0], "0.55": [4, 0, 0], "0.7": [8, 0, 0]}},
+        "rightArm": {"rotation": {"0.0": [0, 0, 0], "0.3": [-70, 0, 30], "0.55": [-20, 0, 25], "0.7": [0, 0, 15]}},
+        "leftArm": {"rotation": {"0.0": [0, 0, 0], "0.3": [-60, 0, -30], "0.55": [-15, 0, -25], "0.7": [0, 0, -15]}},
+        "head": {"rotation": {"0.0": [0, 0, 0], "0.3": [-25, 0, 0], "0.55": [10, 0, 0], "0.7": [15, 0, 0]}},
+        "rightLeg": {"rotation": {"0.0": [0, 0, 0], "0.55": [-8, 0, 6], "0.7": [0, 0, 8]}},
+        "leftLeg": {"rotation": {"0.0": [0, 0, 0], "0.55": [6, 0, -6], "0.7": [0, 0, -8]}},
     })
     zemine_oturt(geo, P["dus"], [0.0, 0.1, 0.25, 0.4, 0.55, 0.7])
 
@@ -288,6 +296,84 @@ def pozlar():
         "head": {"rotation": {"0.0": [8, 0, 0], "1.0": [-10, -90, 0]}},
     })
     zemine_oturt(geo, P["bayil"], [0.0, 0.15, 0.35, 0.55, 0.75, 0.9, 1.0])
+
+    # ---- kalk: sirtustu yatistan dogrulup ayaga kalkar (dovus v2, v7.99.14) ----
+    # Yatarken kalca ayaklarin 12 px ARKASINDA (olculdu). Dogrulurken kok o
+    # kadar geri kayar: kalca yerinde kalir; kalkarken beden ayaklarin ustune
+    # one gelir, ayaklar kaymaz. Bacaklar dogrulurken dunyada yatay kalir
+    # (kok + bacak acisi sabit -90).
+    P["kalk"] = _a(1.2, {
+        "root": {"rotation": {"0.0": [-90, 0, 0], "0.35": [0, 0, 0], "1.2": [0, 0, 0]},
+                 "position": {"0.0": [0, 0, 0], "0.35": [0, 0, 12], "0.7": [0, 0, 6], "1.0": [0, 0, 0], "1.2": [0, 0, 0]}},
+        "waist": {"rotation": {"0.0": [8, 0, 0], "0.35": [25, 0, 0], "0.7": [45, 0, 0], "1.0": [0, 0, 0]}},
+        "head": {"rotation": {"0.0": [15, 0, 0], "0.35": [5, 0, 0], "0.7": [-5, 0, 0], "1.0": [0, 0, 0]}},
+        "rightLeg": {"rotation": {"0.0": [0, 0, 8], "0.35": [-90, 0, 6], "0.7": [-45, 0, 4], "1.0": [0, 0, 0]}},
+        "leftLeg": {"rotation": {"0.0": [0, 0, -8], "0.35": [-90, 0, -6], "0.7": [-45, 0, -4], "1.0": [0, 0, 0]}},
+        "rightArm": {"rotation": {"0.0": [0, 0, 15], "0.35": [25, 0, 20], "0.7": [-35, 0, 12], "1.0": [0, 0, 0]}},
+        "leftArm": {"rotation": {"0.0": [0, 0, -15], "0.35": [25, 0, -20], "0.7": [-35, 0, -12], "1.0": [0, 0, 0]}},
+    })
+    zemine_oturt(geo, P["kalk"], [0.0, 0.1, 0.2, 0.35, 0.5, 0.6, 0.7, 0.85, 1.0, 1.2])
+
+    # ---- yere_yumruk: El-Harkos'un iskalayan yumrugu yere iner (dovus v2) ----
+    # Yumruk TAM zemine (yumruk yarisi 2 px yukarida), ayaklar yerde. Dizsiz
+    # bacakla ayakta egilince yumruk yere yetismiyordu (bel 85 dereceyle bile
+    # 1,76 px havada -- olculdu); comel_dokun gibi DIZ COKEREK vurur. Once
+    # beden zemine oturtulur, sonra kol hedefe ARANIR.
+    yy = {"waist": [45, 0, 0], "head": [-15, 0, 0], "rightLeg": [90, 0, 3], "leftLeg": [90, 0, -3],
+          "leftArm": [10, 0, -25], "rightArm": [-60, 0, 5]}
+    oturt = _a(0.1, {k: {"rotation": {"0.0": v, "0.1": v}} for k, v in yy.items()})
+    zemine_oturt(geo, oturt, [0.0])
+    kok_y = oturt["bones"]["root"]["position"]["0.000"]
+    durus_y = {"bones": dict({k: {"rotation": v} for k, v in yy.items()}, root={"position": kok_y})}
+    m = B.Model(geo, durus_y, 0)
+    omz = m.nokta("rightArm", [5.0, 22.0, 0.0])
+    hedef = [omz[0] + 0.5, 2.0, omz[2] - 2.0]            # omzun hemen onunde, yerden 2 px
+    kol, hata = kol_ara(geo, "rightArm", SAG_YUMRUK, hedef, durus_y)
+    yy["rightArm"] = kol
+    vur = {k: v for k, v in yy.items()}
+    P["yere_yumruk"] = _a(1.3, {
+        "root": {"position": {"0.0": [0, 0, 0], "0.2": [0, 0, 0], "0.42": kok_y, "1.0": kok_y, "1.3": [0, 0, 0]}},
+        "waist": {"rotation": {"0.0": [0, 0, 0], "0.2": [-10, 0, 0], "0.42": vur["waist"], "0.7": vur["waist"], "1.0": [25, 0, 0], "1.3": [0, 0, 0]}},
+        "head": {"rotation": {"0.0": [0, 0, 0], "0.2": [-10, 0, 0], "0.42": vur["head"], "1.0": [-5, 0, 0], "1.3": [0, 0, 0]}},
+        "rightLeg": {"rotation": {"0.0": [0, 0, 0], "0.2": [0, 0, 0], "0.42": vur["rightLeg"], "1.0": vur["rightLeg"], "1.3": [0, 0, 0]}},
+        "leftLeg": {"rotation": {"0.0": [0, 0, 0], "0.2": [0, 0, 0], "0.42": vur["leftLeg"], "1.0": vur["leftLeg"], "1.3": [0, 0, 0]}},
+        "leftArm": {"rotation": {"0.0": [0, 0, 0], "0.2": [-20, 0, -15], "0.42": vur["leftArm"], "1.0": [0, 0, -15], "1.3": [0, 0, 0]}},
+        "rightArm": {"rotation": {"0.0": [0, 0, 0], "0.2": [-175, 0, 10], "0.42": kol, "0.7": kol, "1.0": [-30, 0, 10], "1.3": [0, 0, 0]}},
+    })
+    temas = B.Model(geo, {"bones": dict({k: {"rotation": v} for k, v in vur.items()}, root={"position": kok_y})}, 0).nokta("rightArm", SAG_YUMRUK[:])
+    P["yere_yumruk"]["_cozum"] = {"temas_t": 0.42, "yumruk_hatasi_px": round(hata, 2), "temas": [round(v, 3) for v in temas]}
+
+    # ---- blok_al / blok_at: yerdeki toprak parcasini kaldirip firlatir (dovus v2) ----
+    # Parca 0,5 blok (8 px); iki yumruk yanlarindan kavrar (merkez +-6 px),
+    # yerden 4 px yukarida, 12 px onde. Comel (diz + bel) comel_dokun'unki.
+    cdur = {"bones": {"rightLeg": {"rotation": [90, 0, 3]}, "leftLeg": {"rotation": [90, 0, -3]},
+                      "waist": {"rotation": [38, 0, 0]}, "head": {"rotation": [20, 0, 0]}}}
+    oturt = _a(0.1, {k: {"rotation": {"0.0": v["rotation"], "0.1": v["rotation"]}} for k, v in cdur["bones"].items()})
+    zemine_oturt(geo, oturt, [0.0])
+    kok_c = oturt["bones"]["root"]["position"]["0.000"]
+    cdur["bones"]["root"] = {"position": kok_c}
+    sag_k, h1 = kol_ara(geo, "rightArm", SAG_YUMRUK, [6.0, 4.0, -12.0], cdur)
+    sol_k, h2 = kol_ara(geo, "leftArm", SOL_YUMRUK, [-6.0, 4.0, -12.0], cdur)
+    ust = {"rightArm": [-172, 0, 0], "leftArm": [-172, 0, 0], "waist": [-6, 0, 0], "head": [-12, 0, 0]}
+    P["blok_al"] = _a(1.6, {
+        "root": {"position": {"0.0": [0, 0, 0], "0.45": kok_c, "0.7": kok_c, "1.25": [0, 0, 0], "1.6": [0, 0, 0]}},
+        "rightLeg": {"rotation": {"0.0": [0, 0, 0], "0.45": [90, 0, 3], "0.7": [90, 0, 3], "1.25": [0, 0, 0]}},
+        "leftLeg": {"rotation": {"0.0": [0, 0, 0], "0.45": [90, 0, -3], "0.7": [90, 0, -3], "1.25": [0, 0, 0]}},
+        "waist": {"rotation": {"0.0": [0, 0, 0], "0.45": [38, 0, 0], "0.7": [38, 0, 0], "1.25": ust["waist"], "1.6": ust["waist"]}},
+        "head": {"rotation": {"0.0": [0, 0, 0], "0.45": [20, 0, 0], "0.7": [20, 0, 0], "1.25": ust["head"], "1.6": ust["head"]}},
+        "rightArm": {"rotation": {"0.0": [0, 0, 0], "0.45": sag_k, "0.7": sag_k, "1.25": ust["rightArm"], "1.6": ust["rightArm"]}},
+        "leftArm": {"rotation": {"0.0": [0, 0, 0], "0.45": sol_k, "0.7": sol_k, "1.25": ust["leftArm"], "1.6": ust["leftArm"]}},
+    })
+    P["blok_al"]["_cozum"] = {"kavra_t": 0.45, "yumruk_hatasi_px": [round(h1, 2), round(h2, 2)]}
+    P["blok_at"] = _a(0.7, {
+        "waist": {"rotation": {"0.0": ust["waist"], "0.12": [-15, 0, 0], "0.3": [20, 0, 0], "0.5": [25, 0, 0], "0.7": [8, 0, 0]}},
+        "head": {"rotation": {"0.0": ust["head"], "0.12": [-15, 0, 0], "0.3": [0, 0, 0], "0.7": [0, 0, 0]}},
+        "rightArm": {"rotation": {"0.0": ust["rightArm"], "0.12": [-195, 0, 0], "0.3": [-95, 0, 0], "0.5": [-45, 0, 0], "0.7": [-20, 0, 0]}},
+        "leftArm": {"rotation": {"0.0": ust["leftArm"], "0.12": [-195, 0, 0], "0.3": [-95, 0, 0], "0.5": [-45, 0, 0], "0.7": [-20, 0, 0]}},
+        "rightLeg": {"rotation": {"0.0": [0, 0, 0], "0.3": [-15, 0, 0], "0.7": [0, 0, 0]}},
+        "leftLeg": {"rotation": {"0.0": [0, 0, 0], "0.3": [10, 0, 0], "0.7": [0, 0, 0]}},
+    })
+    P["blok_at"]["_cozum"] = {"birak_t": 0.24}
 
     # ---- tirpan_bekle: olum melegi tutusu (dovus disinda Baris ve kopyalar) ----
     # Sap dik, el sapin alt ucte birinde, bicak basin ustunde one bakar.

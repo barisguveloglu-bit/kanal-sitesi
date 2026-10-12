@@ -22,7 +22,8 @@
    IKINCI bir aralik girdi: El-Harkos one devrilirken Baris ona bakarak geri
    adim atiyor (62,9-63,8 sn). 4 artik iki araligi AYRI olcuyor: Part 1
    araligi yine yalniz 849-1038'i degistiriyor ve Part 2'ye HIC dokunmuyor;
-   Part 2 araligi yalniz kendi geri adimini (62,9-65,5 sn) degistiriyor. */
+   Part 2 araligi yalniz kendi geri adimini (aralik basi + 2,6 sn; dovus
+   v1'de 62,9-65,5, v2'de 69,2-71,8) degistiriyor. */
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 
@@ -39,7 +40,10 @@ setler = B.oku(F.HAREKET)["setler"]
 n = lambda d: (d + 180) % 360 - 180
 def temiz(v):
     if isinstance(v, dict): return {k: (getattr(x, "ad", None) if k == "hedef" else temiz(x)) for k, x in v.items() if k != "vuruldu"}
-    if isinstance(v, list): return [temiz(x) for x in v]
+    if isinstance(v, (list, tuple)): return [temiz(x) for x in v]
+    # 1e-9: Part 1'in bakisi Part 2'deki bir konumu son basamakta oynatabiliyor
+    # (dovus v2: toprak efektinin x'i 1e-15 farkli cikti; konum denetimi 1e-6)
+    if isinstance(v, float): return round(v, 9)
     return v
 cikti = {}
 for ad in ("bolum1_orman", "bolum1_oda"):
@@ -88,10 +92,10 @@ for ad in ("bolum1_orman", "bolum1_oda"):
     cikti[ad]["p2_aralik"] = {"aralik": p2_ar, "adet": len(degisen2),
                               "ilk": degisen2[0] if degisen2 else None, "son": degisen2[-1] if degisen2 else None,
                               "alt": F.kare_bul(hr, p2_ar[0][0]) + 1 if p2_ar else None,
-                              "ust": F.kare_bul(hr, 65.5) + 1}
+                              "ust": F.kare_bul(hr, p2_ar[0][0] + 2.6) + 1 if p2_ar else None}
     cikti[ad].update({"ilk": degisen[0] if degisen else None, "son": degisen[-1] if degisen else None,
                       "adet": len(degisen), "p2": [f for f in degisen if f >= p2][:5], "p2_alan": p2_alan,
-                      "efekt_ayni": ef_e == ef_y, "yazi_ayni": ya_e == ya_y, "aralik": sen.get("bak_serbest")})
+                      "efekt_ayni": temiz(ef_e) == temiz(ef_y), "yazi_ayni": temiz(ya_e) == temiz(ya_y), "aralik": sen.get("bak_serbest")})
 print(json.dumps(cikti))`], { encoding: "utf8", cwd: ADDON }).trim());
 
 const o = r.bolum1_orman, d = r.bolum1_oda;

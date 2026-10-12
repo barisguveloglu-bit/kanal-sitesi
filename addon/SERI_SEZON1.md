@@ -538,6 +538,33 @@ el kaynaklarımız aynı yönde. Her videoda uyulacaklar:
   dışına (ayrı karta) konur; kılavuz "violence / mature content"i
   markaya zararlı sayıyor → kan efekti kararı kullanıcıda.
 
+### Dövüş tarzı (kullanıcı, 2026-10-12)
+
+Kullanıcının sözü: *"2. bölümde bayağı bayağı efekt kullanacağız, yani ortam
+direkt kullanılacak, dövüş detaylı; 'ben 5 vurdum o bir vurdu' gibi
+olmayacak."*
+
+- **Karşılıklı:** her hamleye bir karşılık var. Taraflar birbirinin **zayıf
+  noktasını** düşünüyor, ötekinin **yapacağı hamleyi tahmin etmeye**
+  çalışıyor.
+- **Kullanıcının saydığı örnekler** (kimin yaptığı söylenmedi):
+  - biri **ateş topu** atıyor, öteki **yarım küre bir kalkanın** içinde
+    korunmaya çalışıyor;
+  - biri **asker gönderiyor**, öteki askerleri durdurmaya çalışıyor.
+- **Ortam dövüşün parçası** (1. bölüm Part 2'deki blok fırlatmanın çok daha
+  geniş hâli).
+- **Açık soru:** hamlelerin kime ait olduğu. Akla yatan eşleşme — Barış
+  ateş büyüsünü 4. sahnedeki kitaptan öğreniyor, askerler Ice-man ordusu —
+  **kullanıcıya sorulacak, yazılmadı.**
+- **Teknik durum (ölçüm, karar değil):** var olan — balistik mermi (yol,
+  kavrama, kırılma; `toprak_parcalari`), kıvılcım/kan/toprak parçacıkları,
+  ışık flaşı, donma/yavaşlatma, çok aktörlü zaman çizelgesi, kamera
+  denetimi. Yazılacak — ışık saçan ateş topu (iz + patlama), yarı saydam
+  kalkan kubbesi (çarpınca dalga), kalabalık asker (birden çok aktörün
+  çarpışmadan yürümesi), kırılan/devrilen ortam. Efektli dövüş çizimi
+  uzatır; hesap limiti asıl darboğaz olduğu için 2. bölümde her parça
+  önizlemeyle onaylanıp hemen çizime girmeli (yukarıdaki not).
+
 ## Part 2 düzeltmeleri (kullanıcı, 2026-10-12 — *"bozuk bir şey sunamayız asla"*)
 
 Kullanıcı Part 2'yi indirip izledi, üç sorun buldu; düzeltilmeden yayın yok.
@@ -546,10 +573,39 @@ Kullanıcı Part 2'yi indirip izledi, üç sorun buldu; düzeltilmeden yayın yo
   ölçüldü: Barış 8 saldırı (Antitheus kombosu, 1,7–2,5 sn), El-Harkos 4
   (tek yumruk, 0,4 sn). Kullanıcı: dövüş **çukurun hemen yanında**; insan
   *"azıcık ortamda etkileşime girer, mesela ağaç falan fırlatır — birazcık
-  abartmış oldum tabii"*. Öneri v2 (onay bekliyor): El-Harkos karşılık
-  veren seriler; Barış çukurun kenarına düşüp kalkar; ıskalanan yumruk
-  yere vurur, toprak sıçrar; El-Harkos çukur kenarından blok söküp fırlatır,
-  Barış tırpanla böler. Replikler, kâğıt, kanlı vuruşlar, diz çöküş, ölüm aynı.
+  abartmış oldum tabii"*. Öneri v2 **onaylandı** (*"azıcık daha uzatabilir
+  misin, bir iki saniye daha ekle bazı yerlerde"*) ve yapıldı: dövüş
+  (35,6–50,7 sn) yeniden yazıldı, sonrası **+6,3 sn** kaydı; orman 2456 →
+  **2645 kare** (Part 2: 1067–2645), `cizim_surum` 2.
+  Sayılar (Part 2, 35,5 sn sonrası): Barış 8 → 7 saldırı, El-Harkos 4 → **12**
+  (8 yumruk, 2 hücum, yere yumruk, blok fırlatma). El-Harkos'un iki serisini
+  Barış savuşturuyor, üçüncüsü onu fırlatıyor; Barış sırtüstü düşüp kalkıyor
+  (`dus` + yeni `kalk`); bir seri isabet ediyor, Barış sendeliyor; hücumu
+  kaçışla boşa çıkıyor. Iskalanan yumruk yere iner, toprak sıçrar ve önüne
+  bir **toprak bloğu** fırlar; El-Harkos onu iki eliyle kaldırıp atar
+  (`yere_yumruk`, `blok_al`, `blok_at` — eller bloğu tutuyor, 0,15 blok
+  denetimli), Barış tırpanla havada böler. Replikler, kâğıt, kanlı vuruşlar,
+  diz çöküş, ölüm aynı.
+  Onaylanan öneriden üç küçük sapma (uygulamada çıktı): blok fırlatma yer
+  yumruğunun hemen ardından geliyor (blok oradan çıkıyor); El-Harkos güneyden
+  saldırıyor ki Barış kuzeye, çukurun dışına fırlasın (çukurun halkasına
+  düşen beden yarı boşta yatıyordu); süre +4,5 değil +6,3 sn (uzatma isteği).
+  Mekanik (`blender_film.py`): kaçış anında vuruş geçmez; vuruşa `itme`
+  çarpanı; `dusur` ile düşen aktör de zemin denetiminden geçer; toprak
+  bloğunun yaşamı `toprak_parcalari` (yere vuruş → sıçrama → kavrama →
+  balistik uçuş → kırılma). Kamera denetimi yeni dövüşte iki çekim buldu
+  (fırlatmadan sonra alçak açı Barış'ı 40° kadraj dışına atıyordu; kaçışta
+  eksen 62° döndüğü için geniş açı bir karede 0,8 blok sıçrıyordu); ikisi de
+  sabit kameralı çekim oldu, denetim artık elle çekimde `a`/`b`'yi de konu
+  sayıyor. Sonra her çekimden bir kare çizildi (640×360) ve denetimin
+  ölçemediği sorunlar çıktı: kalıp açılar ayaktaki aktöre göre kurulu —
+  diz çöken El-Harkos'un yumruğu kadraj dışındaydı, bloğu kaldırırken
+  kadraj gökyüzüydü, atılmada ve fırlatmada bir gövde ötekini örtüyordu,
+  kaçan Barış kameraya yaklaşıp başı kadrajdan taşıyordu, yere düşen Barış
+  kenarda kesikti. Çekimler elle kuruldu: profilden atılma + yer yumruğu
+  (tek çekim), alttan kaldırış, yüksekten fırlatış, alttan kesiş; aralarında
+  ≥ 30°. Önizleme ayrıca çizimi ilk karede çökerten bir hatayı yakaladı
+  (noktasız `parca` efekti, `KeyError`) — işçiler başlamadan.
 - **Kötünün bedeni yok:** yukarıda (Karakterler, Ana kötü). İkinci bulgu
   (kullanıcı, 8 kat parlatılmış önizlemeye bakınca): *"340 daha beyaz, 610 kare
   siyah"*. Ölçüldü: 340'ta beden 6,69/255; sis gizlenince 0,08/255 — ışık
@@ -587,9 +643,11 @@ Kullanıcı Part 2'yi indirip izledi, üç sorun buldu; düzeltilmeden yayın yo
      bakarak 0,8 blok geri adım atar (çukurun basamağına iner; ara 0,64
      blok); sonra aynı uzunlukta (2,95 blok) yürür ve çukurdan uzakta, düz
      çimende bayılır (`[-4.45, -1.65]`); son kamera aynı ölçüde kaydırıldı.
-  Bilinen, dokunulmadı: Part 1'in başında çukurda sırtüstü yatan Barış'ta
-  (`dus` pozu) aynı kafa kusuru var — gövde 2,7 px havada. Part 1 teslim
-  edildi; istenirse o kareler ayrıca düzeltilir.
+  `dus` pozu da düzeltildi (dövüş v2'de Barış onunla düşüyor): kafanın arkası
+  omuzları kaldırıyordu, sonra başın üstündeki kollar omuzdan 0,65 px havada
+  kaldı; kollar yanlara alındı, bütün ana parçalar ≤ 0,05 px. Part 1'in
+  başında çukurda yatan Barış eski pozla çizildi (gövde 2,7 px havada);
+  Part 1 teslim edildi, istenirse o kareler ayrıca düzeltilir.
 
 ## Açık
 

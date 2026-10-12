@@ -112,8 +112,8 @@ const gercek = JSON.parse(py(["-c", `
 import sys, json; sys.path.insert(0, ${JSON.stringify(ARAC)})
 import cizim_ortak as O
 print(json.dumps([[s["kok"], s["toplam"], s["bolumler"]] for s in O.senaryolar()]))`]));
-kontrol("film: orman 2456 kare (part1 1-1066, part2 1067-2456) + oda 631 (2. cizim surumu)",
-        JSON.stringify(gercek) === JSON.stringify([["bolum1_orman", 2456, [["part1", 1, 1066], ["part2", 1067, 2456]]], ["bolum1_oda_s2", 631, [["tum", 1, 631]]]]),
+kontrol("film: orman 2645 kare (part1 1-1066, part2 1067-2645) + oda 631 (ikisi de 2. cizim surumu)",
+        JSON.stringify(gercek) === JSON.stringify([["bolum1_orman_s2", 2645, [["part1", 1, 1066], ["part2", 1067, 2645]]], ["bolum1_oda_s2", 631, [["tum", 1, 631]]]]),
         JSON.stringify(gercek));
 const sira = (kok) => gercek.findIndex((g) => g[0] === kok);
 let bolmeTamam = true, sinirTamam = true, siraTamam = true, serpTamam = true, dengeTamam = true, bolmeDetay = "";

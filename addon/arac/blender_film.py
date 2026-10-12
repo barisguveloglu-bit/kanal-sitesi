@@ -174,6 +174,7 @@ class Aktor:
         self.taban_z = None if v.get("z") is None else float(v["z"])
         self.z = self.taban_z or 0.0
         self.zemin = None        # izlenen zemin (yumusatilmis)
+        self.dusuler = []        # [(t, poz)] vurusla yere dusurulme (zemin denetimi okur)
         self.dikey = 0.0         # hava vurusunun zeminden yuksekligi
         self.gorunur = not v.get("gizli", False)
         self.esya = None         # sol eldeki esya ("kagit")
@@ -239,6 +240,132 @@ def zemin_yuksekligi(senaryo, x, y, t, yari=AYAK_YARI):
         return 0.0
     return -min(cukur_derinligi(ck, math.floor(x + dx) + 0.5, math.floor(y + dy) + 0.5)
                 for dx in (-yari, yari) for dy in (-yari, yari))
+
+
+DUSUS_SES = {"dus": 0.55, "diz_cok": 0.55, "yuzustu": 0.7, "bayil": 0.8}
+PARCA_BOY = 0.5              # yerden kopan toprak parcasi (blok)
+
+
+def _dunya_nokta(r, p):
+    """Aktor kaydi r (x, y, z, aci) + model ic uzayi noktasi p (px) -> dunya (blok).
+    Model -Z'ye bakar (ileri = -z); ic uzayda +x karakterin sagi."""
+    on, sg = on_yon(r["aci"]), sag_yon(r["aci"])
+    return (r["x"] + sg[0] * p[0] / 16 - on[0] * p[2] / 16,
+            r["y"] + sg[1] * p[0] / 16 - on[1] * p[2] / 16,
+            r["z"] + p[1] / 16)
+
+
+def _eller(pozlar, poz, yerel):
+    """Pozun `yerel` anindaki iki yumrugun orta noktasi (model ic uzayi, px)."""
+    a = pozlar[film_poz.ONEK + poz]
+    m = B.Model(film_poz._geo(), a, min(yerel, a["animation_length"]))
+    s = m.nokta("rightArm", list(film_poz.SAG_YUMRUK))
+    l_ = m.nokta("leftArm", list(film_poz.SOL_YUMRUK))
+    return [(s[i] + l_[i]) / 2 for i in range(3)]
+
+
+def toprak_parcalari(senaryo, olaylar, aktorler, harita, pozlar, efektler, sarsinti):
+    """Dovus v2 (kullanici: "insan azicik ortamla etkilesime girer"): yere
+    inen yumruk toprak sacar ve bir parca koparir; ayni aktor parcayi yerden
+    alir (blok_al), firlatir (blok_at), hedefin vurusunda parca kirilir.
+      {"aktor", "poz": "yere_yumruk", "yer_vurus": {"parca": ad}}
+      {"aktor", "poz": "blok_al", "tut": true, "parca_al": ad}
+      {"aktor", "poz": "blok_at", "parca_at": {"parca": ad, "hedef": aktor, "kir": t}}
+    Parca kopunca blok_al'in kavrama noktasina (aktorun 12 px onu) duser;
+    aktor arada yer degistirirse ya da eller parcaya varmazsa HATA (sessizce
+    havada tutulan parca olmasin). Iz hikaye zamaninda: [(t, x, y, z, donus)]."""
+    fps = senaryo.get("fps", 24)
+    kayit = lambda ad, t_: aktorler[ad].kayit[kare_bul(harita, t_)]
+    parca = {}
+    for o in olaylar:
+        if "aktor" not in o:
+            continue
+        ad = o["aktor"]
+        if "yer_vurus" in o:
+            c = pozlar[film_poz.ONEK + "yere_yumruk"]["_cozum"]
+            tc = o["t"] + c["temas_t"]
+            r = kayit(ad, tc)
+            p = _dunya_nokta(r, c["temas"])
+            yz = zemin_yuksekligi(senaryo, p[0], p[1], tc)
+            efektler.append({"t": tc, "tur": "toprak", "nokta": [p[0], p[1], yz + 0.05], "guc": 0.55,
+                             "ses": "yer_vurus", "kim": ad})
+            sarsinti.append(tc)
+            pid = o["yer_vurus"].get("parca")
+            if pid:
+                hedef = _dunya_nokta(r, [0.0, 0.0, -12.0])
+                hz = zemin_yuksekligi(senaryo, hedef[0], hedef[1], tc) + PARCA_BOY / 2
+                parca[pid] = {"iz": [], "kopus": tc, "yer": (hedef[0], hedef[1], hz), "kim": ad,
+                              "duruyor": (r["x"], r["y"], r["aci"])}
+                uc = 0.45
+                for k in range(int(uc * fps) + 1):
+                    u = k / (uc * fps)
+                    x = p[0] + (hedef[0] - p[0]) * u
+                    y = p[1] + (hedef[1] - p[1]) * u
+                    z = (yz + 0.1) + (hz - yz - 0.1) * u + 0.9 * 4 * u * (1 - u)
+                    parca[pid]["iz"].append((tc + k / fps, x, y, z, 540.0 * k / fps))
+                efektler.append({"t": tc + uc, "tur": "dusus", "nokta": list(parca[pid]["yer"]), "ses": "parca_yere"})
+        if "parca_al" in o:
+            pid = o["parca_al"]
+            if pid not in parca:
+                raise ValueError("parca_al: %s yok (once yer_vurus)" % pid)
+            pc = parca[pid]
+            r = kayit(ad, o["t"])
+            if ad != pc["kim"] or math.hypot(r["x"] - pc["duruyor"][0], r["y"] - pc["duruyor"][1]) > 0.02 \
+                    or abs((r["aci"] - pc["duruyor"][2] + 180) % 360 - 180) > 1.0:
+                raise ValueError("parca_al: %s parcayi kopardigi yerde ve yonde degil" % ad)
+            pc["al"] = (o["t"], pozlar[film_poz.ONEK + "blok_al"]["_cozum"]["kavra_t"])
+        if "parca_at" in o:
+            q = o["parca_at"]
+            pid = q["parca"]
+            pc = parca.get(pid)
+            if not pc or "al" not in pc:
+                raise ValueError("parca_at: %s elde degil" % pid)
+            t_al, kavra = pc["al"]
+            tg = t_al + kavra
+            ham = _dunya_nokta(kayit(ad, tg), _eller(pozlar, "blok_al", kavra))
+            if math.dist(ham, pc["yer"]) > 0.15:
+                raise ValueError("parca_al: eller parcaya %.2f blok uzak" % math.dist(ham, pc["yer"]))
+            # dinlenme: koptuktan kavrayisa kadar yerinde
+            son = pc["iz"][-1]
+            t_ = son[0]
+            while t_ + 1.0 / fps < tg:
+                t_ += 1.0 / fps
+                pc["iz"].append((t_, pc["yer"][0], pc["yer"][1], pc["yer"][2], son[4]))
+            birak = o["t"] + pozlar[film_poz.ONEK + "blok_at"]["_cozum"]["birak_t"]
+            t_ = tg
+            while t_ <= birak:
+                if t_ < o["t"]:
+                    el = _eller(pozlar, "blok_al", t_ - t_al)
+                else:
+                    el = _eller(pozlar, "blok_at", t_ - o["t"])
+                w = _dunya_nokta(kayit(ad, t_), el)
+                pc["iz"].append((t_, w[0], w[1], w[2], son[4]))
+                t_ += 1.0 / fps
+            r0 = pc["iz"][-1]
+            kir = float(q["kir"])
+            T = kir - r0[0]
+            if not 0.15 <= T <= 1.5:
+                raise ValueError("parca_at: ucus %.2f sn (birakis %.2f, kirilma %.2f)" % (T, r0[0], kir))
+            rh = kayit(q["hedef"], kir)
+            on = on_yon(rh["aci"])
+            Q = (rh["x"] + on[0] * 0.45, rh["y"] + on[1] * 0.45, rh["z"] + 1.25)
+            g = 9.8
+            v = [(Q[0] - r0[1]) / T, (Q[1] - r0[2]) / T, (Q[2] - r0[3] + 0.5 * g * T * T) / T]
+            k = 1
+            while k / fps <= T:
+                tt = k / fps
+                pc["iz"].append((r0[0] + tt, r0[1] + v[0] * tt, r0[2] + v[1] * tt,
+                                 r0[3] + v[2] * tt - 0.5 * g * tt * tt, r0[4] + 720.0 * tt))
+                k += 1
+            pc["kir"] = kir
+            efektler.append({"t": kir, "tur": "toprak", "nokta": list(Q), "guc": 0.6, "doku": True, "parca_boy": 1.5,
+                             "ses": "parca_kir", "kim": q["hedef"]})
+            efektler.append({"t": r0[0], "tur": "firlat", "nokta": [r0[1], r0[2], r0[3]], "ses": "firlat"})
+    for pid, pc in parca.items():
+        if "kir" not in pc:
+            raise ValueError("parca %s kirilmadi (parca_at yok)" % pid)
+        efektler.append({"t": pc["kopus"], "tur": "parca", "ad": pid, "iz": pc["iz"], "kir": pc["kir"],
+                         "boy": PARCA_BOY})
 
 
 def zaman_cizelgesi(senaryo, setler, anims, suz=True):
@@ -345,7 +472,7 @@ def zaman_cizelgesi(senaryo, setler, anims, suz=True):
                            "dikey": o["vur"] == "hava" or s.get("dikey", False),
                            "fazlar": s["fazlar"], "hedef": hedef, "vuruldu": set(),
                            "kan": bool(o.get("kan")), "dusur": o.get("dusur"),
-                           "iz_carpan": float(o.get("hamle", 1.0))}
+                           "iz_carpan": float(o.get("hamle", 1.0)), "itme": float(o.get("itme", 1.0))}
                 a.seri["son"] = t + s["sure"] / hiz
                 a.yuru = None
                 a.savun_bitis = -1
@@ -414,6 +541,8 @@ def zaman_cizelgesi(senaryo, setler, anims, suz=True):
                     h = e["hedef"]
                     if not h:
                         continue
+                    if h.eylem and "kacin" in h.eylem:
+                        continue                    # kacarken darbe almaz (Epic Fight'ta oyle; dovus v2)
                     if math.hypot(h.poz[0] - a.poz[0], h.poz[1] - a.poz[1]) > MENZIL * (a.olcek + h.olcek) / 2:
                         continue
                     hon = on_yon(h.aci)
@@ -421,7 +550,7 @@ def zaman_cizelgesi(senaryo, setler, anims, suz=True):
                     gb = math.hypot(*gel) or 1
                     savundu = t <= h.savun_bitis and (hon[0] * gel[0] + hon[1] * gel[1]) / gb > 0.3
                     carp = 0.35 if savundu else 1.0
-                    guc = ITME * faz.get("hasar", 1) * carp
+                    guc = ITME * faz.get("hasar", 1) * carp * e.get("itme", 1.0)
                     h.itme = [h.itme[0] + on[0] * guc * 6, h.itme[1] + on[1] * guc * 6]
                     tur = "savun" if savundu else ("kan" if e.get("kan") else "vurus")
                     efektler.append({"t": t, "tur": tur, "yon": list(on), "kim": a.ad, "hedef": h.ad,
@@ -432,6 +561,9 @@ def zaman_cizelgesi(senaryo, setler, anims, suz=True):
                             ad_p = film_poz.ONEK + e["dusur"]
                             h.tepki.append({"anim": ad_p, "bas": t, "hiz": 1.0, "ad": e["dusur"],
                                             "sure": 1e6, "tut": True, "giris": 0.06})
+                            efektler.append({"t": t + DUSUS_SES.get(e["dusur"], 0.55), "tur": "dusus",
+                                             "nokta": [h.poz[0], h.poz[1], h.z]})
+                            h.dusuler.append((t, e["dusur"]))
                         else:
                             h.tepki.append({"anim": "animation.aktor.darbe", "bas": t, "sure": 0.4})
                         if son:
@@ -482,6 +614,7 @@ def zaman_cizelgesi(senaryo, setler, anims, suz=True):
         y["t"] = kare_bul(harita, y["t"]) / fps
     if suz:
         tek_kare_donus_suz(aktorler)
+    toprak_parcalari(senaryo, olaylar, aktorler, harita, pozlar, efektler, sarsinti)
     return aktorler, efektler, yazilar, sarsinti
 
 
@@ -1256,7 +1389,8 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
                     tampona(o, "scale", f + 1, o3)
 
     # ---- kivilcimlar ----
-    kivilcim_kur(bpy, efektler, fps, doku_malzemesi, harita)
+    kivilcim_kur(bpy, efektler, fps, doku_malzemesi, harita,
+                 zemin=lambda x, y, t_: zemin_yuksekligi(senaryo, x, y, t_))
 
     # ---- kamera ----
     kam = bpy.data.objects.new("kamera", bpy.data.cameras.new("kamera"))
@@ -1447,6 +1581,10 @@ def kotu_karanlik_kur(bpy, beden, gozler, merkez=None, yaricap=KOTU_KARANLIK, si
     ng.links.new(soket(mx.outputs, "Result_Color"), cikis.inputs[0])
     sc.compositing_node_group = ng
     sc.render.use_compositing = True
+    # CPU: Blender 5.2'de kompozitorun varsayilan aygiti GPU ve EGL baglami
+    # aciyor (olculdu: LD_DEBUG'da 2 libEGL yuklemesi, CPU'da 0). Bulut
+    # iscisinde libEGL yok -- oda iscisi o01 "libEGL.so.1 missing" ile durdu.
+    sc.render.compositor_device = "CPU"
     return ng
 
 
@@ -1946,7 +2084,7 @@ def _parca(bpy, nokta, boy, malz, f0, f1, son_nokta, ara=None, kalici=False):
     return ob
 
 
-def kivilcim_kur(bpy, efektler, fps, doku_malzemesi, harita=None):
+def kivilcim_kur(bpy, efektler, fps, doku_malzemesi, harita=None, zemin=None):
     """Temas efektleri. Zamanlar hikaye zamaninda; kareye `harita` cevirir.
       vurus: sari kivilcim (tirpan El-Harkos'tan sekiyor -- "silah islemiyor")
       savun: mavi kivilcim
@@ -1975,7 +2113,7 @@ def kivilcim_kur(bpy, efektler, fps, doku_malzemesi, harita=None):
     rnd = random.Random(11)
     for e in efektler:
         f0 = kare(e["t"])
-        n = e["nokta"]
+        n = e.get("nokta")          # "parca" noktasiz: yolu "iz"de (dovus v2)
         if e["tur"] in ("vurus", "savun"):
             for _ in range(10):
                 yon = (rnd.uniform(-1, 1), rnd.uniform(-1, 1), rnd.uniform(0, 1.2))
@@ -1995,20 +2133,52 @@ def kivilcim_kur(bpy, efektler, fps, doku_malzemesi, harita=None):
                 _parca(bpy, bas, rnd.uniform(0.05, 0.11), mor, f0, f0 + int(rnd.uniform(0.3, 0.55) * fps),
                        tuple(n[i] + yon[i] * rnd.uniform(0.8, 1.4) for i in range(3)))
         elif e["tur"] == "toprak":
-            # cukurun acildigi an: disari ve yukari sacilan toprak parcalari
-            for j in range(22):
-                v = [rnd.uniform(-2.6, 2.6), rnd.uniform(-2.6, 2.6), rnd.uniform(1.5, 3.6)]
+            # cukurun acildigi an: disari ve yukari sacilan toprak parcalari.
+            # "guc" (dovus v2): yere inen yumruk / kirilan parca -- daha az
+            # ve daha yavas parca. Parcalar ARAZIYE iner (cukurun tabani
+            # -0,35): eskiden hep z = 0'a iniyor, cukurda havada kaliyordu.
+            # Rastgele dizi "guc"suz efektte eskisiyle ayni.
+            guc = e.get("guc", 1.0)
+            malz = doku_malzemesi(os.path.join(MCPREP_DOKU, "dirt.png")) if e.get("doku") else toprak_m
+            for j in range(int(round(22 * min(1.0, 0.25 + guc)))):
+                v = [rnd.uniform(-2.6, 2.6) * guc, rnd.uniform(-2.6, 2.6) * guc, rnd.uniform(1.5, 3.6) * (0.5 + guc / 2)]
                 ara, yere = [], None
                 for k in range(1, 50):
                     tt = k / fps
                     p = (n[0] + v[0] * tt, n[1] + v[1] * tt, n[2] + v[2] * tt - 4.9 * tt * tt)
-                    if p[2] <= 0.03 and k > 2:
-                        yere = (f0 + k, (p[0], p[1], 0.03))
+                    yz = zemin(p[0], p[1], e["t"]) if zemin else 0.0
+                    if p[2] <= yz + 0.03 and k > 2:
+                        yere = (f0 + k, (p[0], p[1], yz + 0.03))
                         break
                     ara.append((f0 + k, p))
                 if yere:
                     # yarisi yerde kalir (ezik zeminin cevresi), gerisi toz olup kaybolur
-                    _parca(bpy, n, rnd.uniform(0.06, 0.13), toprak_m, f0, yere[0], yere[1], ara[:-1], kalici=j % 2 == 0)
+                    _parca(bpy, n, rnd.uniform(0.06, 0.13) * e.get("parca_boy", 1.0), malz, f0, yere[0], yere[1], ara[:-1],
+                           kalici=j % 2 == 0)
+        elif e["tur"] == "parca":
+            # yerden kopan toprak parcasi: koptugu andan kirildigi ana kadar
+            # izi kare kare (hikaye zamani -> kare), yuvarlanarak
+            iz = e["iz"]
+            ob = _kup_nesne(bpy, doku_malzemesi(os.path.join(MCPREP_DOKU, "dirt.png")), e["boy"], iz[0][1:4])
+            ob.name = "parca_" + e["ad"]
+            ob.scale = (0, 0, 0)
+            ob.keyframe_insert("scale", frame=max(0, f0 - 1))
+            ob.scale = (e["boy"],) * 3
+            ob.keyframe_insert("scale", frame=f0)
+            gorulen = set()
+            for tt, x, y, z, don in iz:
+                fk = kare(tt)
+                if fk in gorulen:
+                    continue
+                gorulen.add(fk)
+                ob.location = (x, y, z)
+                ob.keyframe_insert("location", frame=fk)
+                ob.rotation_euler = (math.radians(don * 0.4), math.radians(don * 0.25), math.radians(don))
+                ob.keyframe_insert("rotation_euler", frame=fk)
+            fk = kare(e["kir"])
+            ob.keyframe_insert("scale", frame=fk)
+            ob.scale = (0, 0, 0)
+            ob.keyframe_insert("scale", frame=fk + 1)
         elif e["tur"] == "kan":
             yon = e.get("yon", [0, 1])
             for j in range(18):

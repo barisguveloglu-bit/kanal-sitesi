@@ -15,7 +15,8 @@
    3. kompozitor: bedenin kapsami (Cryptomatte) ile karanlik bolgenin
       buyugu; icinde yalniz gozlerin isik grubu (gurultu gidericiden
       gecmis); konum SISSIZ ayri katmandan (ana katmanin konumu sisle
-      kayiyor, ilk onizlemede maske karincalandi)
+      kayiyor, ilk onizlemede maske karincalandi); kompozitor CPU'da (GPU
+      aygiti EGL istiyor, bulut iscisinde yok -- oda iscisi o01 durdu)
    4. son yakin plan kotuye bagli (kamera denetimi onu konu sayiyor)
    Mutasyonla isirdigi gosterildi: sis katmandan dislanmayinca 3,
    skin md5'i degisince 1 dustu. */
@@ -48,7 +49,8 @@ out["komp"] = {"crypto": "CompositorNodeCryptomatteV2" in kk and "matte_id" in k
                "buyuk": 'operation = "MAXIMUM"' in kk and '"SMOOTHSTEP"' in kk,
                "sissiz": 'view_layers.new("kotu_konum")' in kk and ".exclude = True" in kk and "rk.outputs[\\"Position\\"]" in kk,
                "ana_konum_yok": "rl.outputs[\\"Position\\"]" not in kk,
-               "cagri": "kotu_karanlik_kur(bpy, kotu_parca" in oda and ", sk)" in oda}
+               "cagri": "kotu_karanlik_kur(bpy, kotu_parca" in oda and ", sk)" in oda,
+               "cpu": 'compositor_device = "CPU"' in kk}
 son = [c for c in sen["kamera"] if c["t"] == max(c2["t"] for c2 in sen["kamera"])][0]
 out["son_kamera"] = son.get("bak")
 print(json.dumps(out))`], { encoding: "utf8", cwd: KOK }).trim().split("\n").pop());
