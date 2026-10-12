@@ -18,6 +18,9 @@
    9. kamera: olcek 1 iken sonuc BIREBIR eskisi (4'lu ve 5'li girdi ayni),
       1,5'te bas yuksekligi 1,5 kat
   10. turetilen geometri bicim_dogrula'dan geciyor
+  11. dovus mesafesi boyla buyur: form ile normal aktor arasi en az
+      CARPISMA_ARA x (1,5 + 1) / 2; iki normal aktor yine CARPISMA_ARA
+      (hareket onizlemesinde form tirpanla vururken rakibin icine giriyordu)
    Mutasyonla isirdigi gosterildi (PYTHONDONTWRITEBYTECODE=1): OLCEK 1.4 ->
    1 ve 7 dustu; ek kolun parent'i "body" -> 2 ve 5; "alt" z acisi 0 -> 5
    ve 6; sol aynada z isareti ters -> 4 ve 5; adim bolmesi silinince 8;
@@ -88,6 +91,22 @@ s["kamera"] = {"n": n, "fark": fark,
                "bas1": Fm.kamera_noktasi("yakin_on", (0, 0, 0, 0), None)[1][2],
                "bas15": Fm.kamera_noktasi("yakin_on", (0, 0, 0, 0, 1.5), None)[1][2],
                "goz15": Fm.kamera_noktasi("goz", (0, 0, 0, 0, 1.5), None)[0][2]}
+import math
+setler = B.oku(Fm.HAREKET)["setler"]
+def en_yakin(form):
+    sen = {"fps": 30, "sure": 6.0,
+           "aktorler": {"f": dict({"skin": "Simsek_Kol_Kaynak/textures/entity/aktor/uzak_akraba.png", "silah": "karanlik_tirpan",
+                                   "set": "antitheus", "konum": [-4.0, 0], "bak": "h"}, **({"form": "alt"} if form else {})),
+                         "h": {"skin": "Simsek_Kol_Kaynak/textures/entity/ilkel_harkos.png", "konum": [3.0, 0], "bak": "f"}},
+           "olaylar": [{"t": 0.3, "aktor": "f", "git": [0.6, 0.0], "adim": 2.2},
+                       {"t": 2.9, "aktor": "f", "durus": "_set"},
+                       {"t": 3.2, "aktor": "f", "vur": "antitheus_auto_1", "hedef": "h"},
+                       {"t": 4.5, "aktor": "f", "vur": "antitheus_auto_4", "hedef": "h"}],
+           "kamera": [{"t": 0, "aci": "yan", "a": "f", "b": "h"}]}
+    ak, ef, _, _ = Fm.zaman_cizelgesi(sen, setler, {})
+    d = min(math.hypot(a["x"] - b["x"], a["y"] - b["y"]) for a, b in zip(ak["f"].kayit, ak["h"].kayit))
+    return d, sum(1 for e in ef if e.get("tur") in ("vurus", "kan", "savun"))
+s["mesafe"] = {"form": en_yakin(True), "normal": en_yakin(False), "ara": Fm.CARPISMA_ARA}
 print(json.dumps(s))`], { encoding: "utf8", cwd: KOK }).trim().split("\n").pop());
 
 const seri = readFileSync(KOK + "SERI_SEZON1.md", "utf8");
@@ -130,6 +149,12 @@ kontrol("9. kamera: olcek 1 iken birebir eski (4'lu = 5'li), 1,5'te bas ve goz y
         `${km.n} cekim, ${km.fark} fark; bas ${km.bas1.toFixed(3)} -> ${km.bas15.toFixed(3)}`);
 kontrol("10. turetilen geometri bicim_dogrula'dan geciyor (iki yerlesim)",
         Object.values(K).every(k => k.bicim.length === 0), Object.values(K).map(k => k.bicim.length).join(","));
+
+const ms = r.mesafe;
+kontrol("11. dovus mesafesi boyla buyur: form-normal >= ara x 1,25; normal-normal >= ara; vuruslar yine isabet ediyor",
+        ms.form[0] >= ms.ara * 1.25 - 1e-6 && ms.normal[0] >= ms.ara - 1e-6 && ms.normal[0] < ms.ara * 1.25 - 0.05 &&
+        ms.form[1] > 0 && ms.normal[1] > 0,
+        `form ${ms.form[0].toFixed(3)} (${ms.form[1]} vurus), normal ${ms.normal[0].toFixed(3)} (${ms.normal[1]} vurus), ara ${ms.ara}`);
 
 console.log("");
 console.log(hata ? ">>> SORUN VAR" : ">>> Baris'in formu: 1,5 kat, dort kol, carpismasiz, eski filmler degismedi");

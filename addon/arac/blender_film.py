@@ -357,7 +357,8 @@ def zaman_cizelgesi(senaryo, setler, anims, suz=True):
                 w = n - int(n)
                 p = [iz[k][j] + (iz[k2][j] - iz[k][j]) * w for j in range(3)]
                 on, sg = on_yon(e["aci"]), sag_yon(e["aci"])
-                ic_ = e.get("iz_carpan", 1.0)
+                # hamle izi formda 1,5 kat: buyuk beden buyuk adim atar
+                ic_ = e.get("iz_carpan", 1.0) * a.olcek
                 ham = [e["cikis"][0] + (on[0] * p[1] + sg[0] * p[0]) * ic_,
                        e["cikis"][1] + (on[1] * p[1] + sg[1] * p[0]) * ic_]
                 # ARTISLA: engelde duran aktorde hamlenin kalani birikmesin
@@ -366,7 +367,7 @@ def zaman_cizelgesi(senaryo, setler, anims, suz=True):
                 eski = e.get("ham", e["cikis"])
                 a.poz = [a.poz[0] + ham[0] - eski[0], a.poz[1] + ham[1] - eski[1]]
                 e["ham"] = ham
-                a.z = e["cz"] + (max(0.0, p[2]) if e["dikey"] else 0.0)
+                a.z = e["cz"] + (max(0.0, p[2]) * a.olcek if e["dikey"] else 0.0)
                 # temas yonu GERCEK konumdan: hamle rakibin otesine gecemez
                 carpisma_coz(a, onceki)
                 for fi, faz in enumerate(e["fazlar"]):
@@ -376,7 +377,7 @@ def zaman_cizelgesi(senaryo, setler, anims, suz=True):
                     h = e["hedef"]
                     if not h:
                         continue
-                    if math.hypot(h.poz[0] - a.poz[0], h.poz[1] - a.poz[1]) > MENZIL:
+                    if math.hypot(h.poz[0] - a.poz[0], h.poz[1] - a.poz[1]) > MENZIL * (a.olcek + h.olcek) / 2:
                         continue
                     hon = on_yon(h.aci)
                     gel = (a.poz[0] - h.poz[0], a.poz[1] - h.poz[1])
@@ -387,7 +388,7 @@ def zaman_cizelgesi(senaryo, setler, anims, suz=True):
                     h.itme = [h.itme[0] + on[0] * guc * 6, h.itme[1] + on[1] * guc * 6]
                     tur = "savun" if savundu else ("kan" if e.get("kan") else "vurus")
                     efektler.append({"t": t, "tur": tur, "yon": list(on), "kim": a.ad, "hedef": h.ad,
-                                     "nokta": [h.poz[0] - on[0] * 0.3, h.poz[1] - on[1] * 0.3, h.z + 1.15]})
+                                     "nokta": [h.poz[0] - on[0] * 0.3, h.poz[1] - on[1] * 0.3, h.z + 1.15 * h.olcek]})
                     if not savundu:
                         son = fi == len(e["fazlar"]) - 1
                         if son and e.get("dusur"):
@@ -403,7 +404,7 @@ def zaman_cizelgesi(senaryo, setler, anims, suz=True):
                     a.z = a.taban_z
             elif a.yuru:
                 hedef = aktorler[a.yuru["hedef"]].poz if "hedef" in a.yuru else a.yuru["nokta"]
-                dur = VARIS if "hedef" in a.yuru else 0.05
+                dur = (VARIS * (a.olcek + aktorler[a.yuru["hedef"]].olcek) / 2) if "hedef" in a.yuru else 0.05
                 dx, dy = hedef[0] - a.poz[0], hedef[1] - a.poz[1]
                 uz = math.hypot(dx, dy)
                 if uz <= dur:
@@ -483,16 +484,21 @@ def _carpisma(a, onceki, aktorler):
         for b2 in aktorler.values():
             if b2 is a or not b2.gorunur:
                 continue
+            # Baris'in formu (1,5 kat): gerekli ara iki bedenin boyuyla buyur
+            # (formun govdesi ve vurusta one egilisi de 1,5 kat; sabit 1.05'te
+            # tirpanla vururken rakibin icine giriyordu -- hareket onizlemesi).
+            # Iki aktor de normal boydayken ara birebir CARPISMA_ARA.
+            ara = CARPISMA_ARA * (a.olcek + b2.olcek) / 2
             d_eski = math.hypot(onceki[0] - b2.poz[0], onceki[1] - b2.poz[1])
             d_yeni = math.hypot(a.poz[0] - b2.poz[0], a.poz[1] - b2.poz[1])
-            gecti = d_eski >= CARPISMA_ARA * 0.999 and _parca_kesiyor(onceki, a.poz, b2.poz, CARPISMA_ARA)
-            if (d_yeni < CARPISMA_ARA and d_yeni < d_eski) or gecti:
+            gecti = d_eski >= ara * 0.999 and _parca_kesiyor(onceki, a.poz, b2.poz, ara)
+            if (d_yeni < ara and d_yeni < d_eski) or gecti:
                 # GELDIGI taraftan temas noktasinda durur: hamle tek karede
                 # rakibin otesine gecebiliyor; yeni konuma gore cozmek onu
                 # arkaya isinliyordu (kamera denetimi yakaladi)
                 dx, dy = onceki[0] - b2.poz[0], onceki[1] - b2.poz[1]
                 d = math.hypot(dx, dy) or 1.0
-                a.poz = [b2.poz[0] + dx / d * CARPISMA_ARA, b2.poz[1] + dy / d * CARPISMA_ARA]
+                a.poz = [b2.poz[0] + dx / d * ara, b2.poz[1] + dy / d * ara]
 
 
 def yazi_suresi(metin):
