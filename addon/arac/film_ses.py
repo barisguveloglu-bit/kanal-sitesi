@@ -201,7 +201,10 @@ def ses_kur(senaryo, katmanlar=False):
                 if a1 < len(zarf):
                     zarf[a1:min(len(zarf), a1 + 2 * k)] *= np.linspace(0, 1, min(len(zarf), a1 + 2 * k) - a1)
         muzik.ekle(p * zarf[:, None], t0, 0.55)
-    n = int(sure * ORAN)
+    # TAM SAYI: int(sure * ORAN) 2456 karede (81.8666.. sn) 3929599.9999999995
+    # -> 3929599 veriyordu, ses goruntuden 1 ornek kisa kaliyordu (Part 2'de
+    # parcanin son karesi dustu; v7.99.14, test/ses_dilim.mjs)
+    n = int(round(len(harita) * ORAN / fps))
     katman = {"efekt": ef.x[:n] * 0.9, "ortam": ortam.x[:n] * 0.35, "muzik": muzik.x[:n]}
     if katmanlar:
         return katman

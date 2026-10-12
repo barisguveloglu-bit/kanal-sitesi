@@ -101,9 +101,28 @@ def parca(klasor, senaryo_yolu, adim=1, parca_adi=None):
         film_ses.yaz(kenar_yumusat(k[dilim]), os.path.join(klasor, "stem%s_%s.wav" % (ek, ad)))
     # ses KAYIPSIZ kalir (FLAC): AAC'ye yalniz son adimda, bir kez cevrilir
     cikti = os.path.join(klasor, "parca%s.mkv" % ek)
-    subprocess.run(["ffmpeg", "-y", "-v", "error", "-i", os.path.join(klasor, "film.mp4"), "-i", wav,
-                    "-c:v", "copy", "-c:a", "flac", "-shortest", cikti], check=True)
+    parca_kaydet(os.path.join(klasor, "film.mp4"), wav, sen.get("fps", 24) / adim, cikti)
     return cikti, sen.get("fps", 24) / adim
+
+
+def kare_say(video):
+    """Video akisindaki kare (paket) sayisi -- kodu cozmeden, hizli."""
+    c = subprocess.run(["ffprobe", "-v", "error", "-select_streams", "v:0", "-count_packets",
+                        "-show_entries", "stream=nb_read_packets", "-of", "csv=p=0", video],
+                       capture_output=True, text=True, check=True)
+    return int(c.stdout.strip().split(",")[0])
+
+
+def parca_kaydet(film, wav, fps, cikti):
+    """Goruntu (kopya) + ses (FLAC) -> parca. "-shortest" KULLANILMAZ:
+    ses ile goruntu esit ya da ses 1 ornek kisa oldugunda son video karesini
+    atiyordu (Part 2'de orman 2456; v7.99.14). Goruntunun BUTUN kareleri
+    alinir, ses tam o sureye doldurulup kesilir (apad + atrim)."""
+    n = kare_say(film)
+    ornek = int(round(n * film_ses.ORAN / fps))
+    subprocess.run(["ffmpeg", "-y", "-v", "error", "-i", film, "-i", wav, "-map", "0:v", "-map", "1:a",
+                    "-c:v", "copy", "-frames:v", str(n), "-af", "apad,atrim=end_sample=%d" % ornek,
+                    "-c:a", "flac", cikti], check=True)
 
 
 KART_SURE = 2.5
