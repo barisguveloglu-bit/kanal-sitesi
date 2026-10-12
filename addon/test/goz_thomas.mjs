@@ -17,9 +17,13 @@
    9. depoda Mojang dokusu yok (Steve-base.png), KAYNAKLAR.md'de satir var,
       blender_film kur()'u cagiriyor, yuz yonu yuzey normalinden ALINMIYOR
       (ilk denemede kupler ters sarili oldugu icin kafa 180 derece ters oturdu)
+  10. "mavi" kalip = kullanicinin on fotografindaki goz (sRGB 140,209,255 ->
+      dogrusal), isimasiz; tek goze ayri kalip ("sag": {"kalip": "mavi"})
+      yalniz o gozu degistiriyor; bilinmeyen goz kalibi HATA (v7.99.14)
    Mutasyonla isirdigi gosterildi: isima 15 -> 1-3 dustu; BAKIS_ISARET ters ->
    5 ve 7 dustu; plan secimi "<" -> 6 dustu; arac_kur'da SHA kontrolu silinince
-   8 dustu; _yuz_yonu p.normal'a donunce 9 dustu. (Mutasyonu
+   8 dustu; _yuz_yonu p.normal'a donunce 9 dustu; mavi iris 0.3 olunca ve tek
+   goz kalibi uygulanmayinca 10 dustu. (Mutasyonu
    PYTHONDONTWRITEBYTECODE=1 ile kos: ayni saniyede ayni boyda degisen dosyada
    Python eski .pyc'yi kullaniyor -- ilk denemede yanlis maddeler dustu.) */
 import { execFileSync } from "node:child_process";
@@ -66,6 +70,16 @@ except ValueError:
 s["plansiz"] = T.plan(dict(sen, kamera=[{"t": 0, "aci": "elle"}]), h, {"a": {"goz": {"kalip": "kirmizi"}}})
 s["plan"] = T.plan(sen, h, {"a": {"goz": {"kalip": "kirmizi"}}, "b": {}})
 ol = T.goz_olaylari(sen, h, "a", F.kare_bul)
+def lin(c):
+    c = c / 255.0
+    return round(c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4, 3)
+fm = T.goz_ayari({"kalip": "kirmizi", "sag": {"kalip": "mavi"}})
+try:
+    T.goz_ayari({"kalip": "kirmizi", "sol": {"kalip": "yok"}}); kh = False
+except ValueError:
+    kh = True
+s["mavi"] = {"kalip": T.KALIPLAR["mavi"], "foto": [lin(140), lin(209), lin(255)], "sag": fm["sag"], "sol": fm["sol"],
+             "ortak": fm["ortak"], "hata": kh}
 s["olay"] = {"kapak": ol["kapak"], "bakis_z": [(f, v["L"][2], v["R"][2]) for f, v in ol["bakis"]],
              "f_kapak": [F.kare_bul(h, 1.2) + 1, F.kare_bul(h, 1.4) + 1]}
 try:
@@ -121,6 +135,12 @@ kontrol("9. Mojang dokusu yok, KAYNAKLAR'da satir var, film kur()'u cagiriyor, y
         !/Steve-base\.png|thomas_rig_legacy\.blend/i.test(izli) && /\| Thomas Rig Legacy[^|]*\| BlueEvilGFX/.test(kaynaklar) &&
         /thomas_goz\.kur\(bpy, senaryo, harita, aktorler, kemik_nesne, kare_bul, B\.yol\)/.test(film) &&
         yuz.includes("p.center - merkez") && !/return p\.normal/.test(yuz), "");
+
+const mv = r.mavi;
+kontrol("10. mavi kalip = kullanicinin fotografindaki goz, isimasiz; tek goze ayri kalip yalniz o gozu degistiriyor",
+        mv.kalip.iris.join() === mv.foto.join() && mv.kalip.isima === 0 && mv.sag.iris.join() === mv.foto.join() &&
+        mv.sag.isima === 0 && mv.sol.iris.join() === "1,0,0" && mv.sol.isima === 30 && mv.ortak.yayilma === 12 && mv.hata,
+        "foto " + mv.foto.join(",") + " sag " + mv.sag.iris.join(","));
 
 console.log("");
 console.log(hata ? ">>> SORUN VAR" : ">>> Thomas gozleri: kullanicinin ayari, olculen sinirlar, resmi kaynak");

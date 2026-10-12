@@ -38,6 +38,13 @@ import os
 KALIPLAR = {
     "kirmizi": {"iris": [1.0, 0.0, 0.0], "iris2": [0.55, 0.0, 0.0], "sc": [1.0, 0.15, 0.1],
                 "bebek": [0.04, 0.0, 0.0], "isima": 30.0, "yayilma": 12},
+    # Baris'in KENDI gozu (kullanici, 2026-10-12: gonderdigi on fotograftaki
+    # goz; sRGB 140, 209, 255 -> dogrusal). Formda kirmizi olmayan goz bu
+    # (beden forma tam alismadi). Isima yok. iris2 ayni rengin koyusu (x0.45),
+    # bebek koyu: fotograftaki goz duz bir piksel, gercekci gozun (Eye type 1)
+    # bebegi oradan cikmiyor -- olculen yalniz iris rengi.
+    "mavi": {"iris": [0.262, 0.638, 1.0], "iris2": [0.118, 0.287, 0.45], "sc": [0.262, 0.638, 1.0],
+             "bebek": [0.02, 0.02, 0.03], "isima": 0.0},
 }
 # ayar anahtari -> dugum grubu girisinin soneki (onek 1_ = sag goz, 2_ = sol goz)
 GIRIS = {"iris": "Color1", "iris2": "Color2", "bebek": "Pupil", "sc": "EyeSC",
@@ -85,11 +92,19 @@ def goz_ayari(v):
     ortak.update({k: x for k, x in v.items() if k not in ("kalip", "sol", "sag")})
     gozler = {}
     for taraf in ("sol", "sag"):
-        ozel = v.get(taraf) or {}
+        ozel = dict(v.get(taraf) or {})
+        # tek goze ayri kalip: {"kalip": "kirmizi", "sag": {"kalip": "mavi"}}
+        # (formda bir goz kirmizi, obur goz Baris'in kendi gozu)
+        k_t = ozel.pop("kalip", None)
+        if k_t is not None and k_t not in KALIPLAR:
+            raise ValueError("%s gozde bilinmeyen kalip: %s (bilinenler: %s)" % (taraf, k_t, ", ".join(KALIPLAR)))
         for k in ozel:
             if k not in GIRIS:
                 raise ValueError("%s gozde bilinmeyen anahtar: %s" % (taraf, k))
-        gozler[taraf] = dict({k: x for k, x in ortak.items() if k in GIRIS}, **ozel)
+        taban = {k: x for k, x in ortak.items() if k in GIRIS}
+        if k_t is not None:
+            taban.update({k: x for k, x in KALIPLAR[k_t].items() if k in GIRIS})
+        gozler[taraf] = dict(taban, **ozel)
     return {"sol": gozler["sol"], "sag": gozler["sag"],
             "ortak": {k: x for k, x in ortak.items() if k in ORTAK_GIRIS},
             "ayri": bool(v.get("sol") or v.get("sag"))}

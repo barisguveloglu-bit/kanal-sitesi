@@ -55,6 +55,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import bedrock_onizleme as B  # noqa: E402
 import film_poz  # noqa: E402
+import form_model  # noqa: E402
 import thomas_goz  # noqa: E402
 
 KOK = B.KOK
@@ -181,6 +182,10 @@ class Aktor:
         self.silah_gorunur = not v.get("silah_gizli", False)
         self.durus_onceki, self.durus_t = None, -99.0
         self.hedef_aci = None    # donus: aci buna DONUS_HIZI ile yaklasir
+        # Baris'in formu (form_model.py): 1,5 kat + iki ek kol. Ayar burada
+        # cozulur -- yanlis yazilmis "form" cizim baslamadan HATA verir.
+        self.form = form_model.form_ayari(v.get("form"))
+        self.olcek = self.form["olcek"] if self.form else 1.0
 
 
 def vurus_sec(setler, set_ad, tur, a, t):
@@ -550,7 +555,9 @@ def kare_pozu(a, k, kemikler, anims, setler):
     h = k["hizli"]
     if h > 0.01:
         # MoLang math.cos derece aliyor: cos(modified_distance_moved * 38.17)
-        aci = k["mesafe"] * 38.17
+        # Formda adim 1,5 kat uzun: ayni yolda bacak 1,5 kat yavas donmezse
+        # ayak yerde kayar (olcek 1 iken bolme birebir -- eski filmler ayni).
+        aci = k["mesafe"] * 38.17 / a.olcek
         for kem, isaret, genlik in (("rightLeg", 1, 40), ("leftLeg", -1, 40),
                                      ("rightArm", -1, 30), ("leftArm", 1, 30)):
             if kem in poz:
@@ -593,13 +600,19 @@ def kare_pozu(a, k, kemikler, anims, setler):
 # 3. KAMERA -- cekim.js kameraNoktasi'nin karsiligi
 # ============================================================
 def kamera_noktasi(aci, A, Bp, ilerleme=0.0, taraf=1, a0=None):
-    """A, Bp: (x, y, z, bakis_acisi). Doner (kamera, bakilan) Blender koordinati.
+    """A, Bp: (x, y, z, bakis_acisi[, olcek]). Doner (kamera, bakilan) Blender koordinati.
     taraf: -1 kamerayi a->b ekseninin obur yanina alir (180 derece kilidi
-    kamera_izi'de). a0: yorungenin baslangic acisi (cekim basinda sabit)."""
-    ax, ay, az, aaci = A
-    bas = (ax, ay, az + 1.62)
+    kamera_izi'de). a0: yorungenin baslangic acisi (cekim basinda sabit).
+    olcek: aktorun boy carpani (Baris'in formu 1,5 -- form_model.py). Basa
+    bagli yukseklik ve uzakliklar onunla carpilir; iki kisilik cekimde
+    buyuk olaninki. Olcek 1 iken her sayi birebir eskisi (1.0 ile carpim)."""
+    ax, ay, az, aaci = A[:4]
+    sa = A[4] if len(A) > 4 else 1.0
+    sb = (Bp[4] if len(Bp) > 4 else 1.0) if Bp else sa
+    s2 = max(sa, sb)
+    bas = (ax, ay, az + 1.62 * sa)
     if Bp:
-        bx, by, bz, _ = Bp
+        bx, by, bz = Bp[:3]
         orta = ((ax + bx) / 2, (ay + by) / 2, (az + bz) / 2)
         dx, dy = bx - ax, by - ay
         ara = math.hypot(dx, dy) or 1e-6
@@ -610,59 +623,61 @@ def kamera_noktasi(aci, A, Bp, ilerleme=0.0, taraf=1, a0=None):
         eksen = on_yon(aaci)
     dik = (eksen[1] * taraf, -eksen[0] * taraf)
     if aci == "genis":
-        u = max(6, ara * 1.6)
-        return (orta[0] + dik[0] * u, orta[1] + dik[1] * u, orta[2] + 2.8), (orta[0], orta[1], orta[2] + 1.0)
+        u = max(6 * s2, ara * 1.6)
+        return (orta[0] + dik[0] * u, orta[1] + dik[1] * u, orta[2] + 2.8 * s2), (orta[0], orta[1], orta[2] + 1.0 * s2)
     if aci == "yan":
         # 1.5: kacan/hamle yapan aktor yumusak takipte de kadrajda kalsin
-        u = max(3.8, ara * 1.6)
-        return (orta[0] + dik[0] * u, orta[1] + dik[1] * u, orta[2] + 1.5), (orta[0], orta[1], orta[2] + 1.2)
+        u = max(3.8 * s2, ara * 1.6)
+        return (orta[0] + dik[0] * u, orta[1] + dik[1] * u, orta[2] + 1.5 * s2), (orta[0], orta[1], orta[2] + 1.2 * s2)
     if aci == "omuz":
         # yanal 1.6 / geri 2.0: B'ye bakis cizgisi A'nin yanindan en az
         # 0.55 blok gecer (gövde yari genisligi 0.25 + kol). 0.9 / 2.2'de
         # 0.29'du: B, A'nin omzunun ARKASINDA kaliyordu (onizleme).
         # aktorler yakinken (1 blok) 1.6 yetmiyordu: yanal kayma B'ye bakis
         # cizgisini A'dan en az 0.75 blok uzak tutacak kadar (1.6-2.4)
-        yanal = min(2.4, max(1.6, 0.75 * (2.0 + ara) / max(ara, 0.5)))
-        kam = (ax - eksen[0] * 2.0 + dik[0] * yanal, ay - eksen[1] * 2.0 + dik[1] * yanal, az + 2.0)
-        bak = (Bp[0], Bp[1], Bp[2] + 1.62) if Bp else (ax + eksen[0] * 5, ay + eksen[1] * 5, az + 1.62)
+        yanal = min(2.4, max(1.6, 0.75 * (2.0 + ara) / max(ara, 0.5))) * sa
+        kam = (ax - eksen[0] * 2.0 * sa + dik[0] * yanal, ay - eksen[1] * 2.0 * sa + dik[1] * yanal, az + 2.0 * sa)
+        bak = (Bp[0], Bp[1], Bp[2] + 1.62 * sb) if Bp else (ax + eksen[0] * 5, ay + eksen[1] * 5, az + 1.62 * sa)
         return kam, bak
     if aci == "yakin":
         on = eksen if Bp else on_yon(aaci)
-        return (bas[0] + on[0] * 2.0, bas[1] + on[1] * 2.0, bas[2] + 0.1), (bas[0], bas[1], bas[2] - 0.15)
+        return (bas[0] + on[0] * 2.0 * sa, bas[1] + on[1] * 2.0 * sa, bas[2] + 0.1 * sa), (bas[0], bas[1], bas[2] - 0.15 * sa)
     if aci == "ust":
-        return (orta[0] + 0.01, orta[1], orta[2] + 9), orta
+        return (orta[0] + 0.01, orta[1], orta[2] + 9 * s2), orta
     if aci == "dusuk":
         if Bp:
             # YANDAN alcak: A'nin onune 2.6 blok koymak, dovus mesafesinde
             # (1-2 blok) kamerayi B'nin ARKASINA atiyordu -- B kadraji kapatti.
             # bakis A'nin basi ile B arasina (A'ya yakin): yalniz A'nin basina
             # bakinca B kadraj kenarina kaciyordu (ilk delisin ikinci acisi)
-            return ((ax + eksen[0] * 0.5 + dik[0] * 2.5, ay + eksen[1] * 0.5 + dik[1] * 2.5, az + 0.3),
-                    (ax * 0.6 + bx * 0.4, ay * 0.6 + by * 0.4, bas[2] + 0.1))
+            return ((ax + eksen[0] * 0.5 + dik[0] * 2.5 * s2, ay + eksen[1] * 0.5 + dik[1] * 2.5 * s2, az + 0.3),
+                    (ax * 0.6 + bx * 0.4, ay * 0.6 + by * 0.4, bas[2] + 0.1 * sa))
         on = on_yon(aaci)
-        return (ax + on[0] * 2.6 + dik[0] * 0.8, ay + on[1] * 2.6 + dik[1] * 0.8, az + 0.3), (bas[0], bas[1], bas[2] + 0.2)
+        return ((ax + on[0] * 2.6 * sa + dik[0] * 0.8 * sa, ay + on[1] * 2.6 * sa + dik[1] * 0.8 * sa, az + 0.3),
+                (bas[0], bas[1], bas[2] + 0.2 * sa))
     if aci == "yorunge":
-        r = max(4.5, ara * 1.3)
+        r = max(4.5 * s2, ara * 1.3)
         a0 = (math.atan2(dik[0], dik[1]) if a0 is None else a0) + ilerleme * math.pi * 2
-        return (orta[0] + math.sin(a0) * r, orta[1] + math.cos(a0) * r, orta[2] + 2.2), (orta[0], orta[1], orta[2] + 1.1)
+        return (orta[0] + math.sin(a0) * r, orta[1] + math.cos(a0) * r, orta[2] + 2.2 * s2), (orta[0], orta[1], orta[2] + 1.1 * s2)
     if aci == "takip":
         on = on_yon(aaci)
-        return (ax - on[0] * 4 + dik[0] * 0.6, ay - on[1] * 4 + dik[1] * 0.6, az + 2.4), (bas[0] + on[0] * 2, bas[1] + on[1] * 2, bas[2])
+        return ((ax - on[0] * 4 * sa + dik[0] * 0.6 * sa, ay - on[1] * 4 * sa + dik[1] * 0.6 * sa, az + 2.4 * sa),
+                (bas[0] + on[0] * 2 * sa, bas[1] + on[1] * 2 * sa, bas[2]))
     if aci == "goz":
         # aktorun gozunden (POV): bakilan B ya da baktigi yon. Kamera BAKIS
         # yonunde basin disina konur: aktor hedefe donerken (540 derece/sn)
         # yuzunun yonuyle konmus kamera kendi kafasinin icinde kaliyordu.
-        bak = (Bp[0], Bp[1], Bp[2] + 0.3) if Bp else (ax + on_yon(aaci)[0] * 5, ay + on_yon(aaci)[1] * 5, az + 1.0)
+        bak = (Bp[0], Bp[1], Bp[2] + 0.3 * sb) if Bp else (ax + on_yon(aaci)[0] * 5, ay + on_yon(aaci)[1] * 5, az + 1.0 * sa)
         bx_, by_ = bak[0] - ax, bak[1] - ay
         n_ = math.hypot(bx_, by_) or 1e-6
         on = (bx_ / n_, by_ / n_)
-        kam = (ax + on[0] * 0.4, ay + on[1] * 0.4, az + 1.55)
+        kam = (ax + on[0] * 0.4 * sa, ay + on[1] * 0.4 * sa, az + 1.55 * sa)
         return kam, bak
     if aci == "yakin_on":
         # aktorun yuzune, kendi baktigi yonden (B'siz yakin plan)
         on = on_yon(aaci)
         # 2 blok: bas + omuzlar (1.4'te yuz kadraji tasiyordu -- onizleme)
-        return (bas[0] + on[0] * 2.2, bas[1] + on[1] * 2.2, bas[2] + 0.05), (bas[0], bas[1], bas[2] - 0.15)
+        return (bas[0] + on[0] * 2.2 * sa, bas[1] + on[1] * 2.2 * sa, bas[2] + 0.05 * sa), (bas[0], bas[1], bas[2] - 0.15 * sa)
     raise ValueError("kamera acisi yok: %s" % aci)
 
 
@@ -699,7 +714,7 @@ def kamera_izi(senaryo, aktorler):
 
     def kayit(ad, f):
         r = aktorler[ad].kayit[min(f, len(aktorler[ad].kayit) - 1)]
-        return (r["x"], r["y"], r["z"], r["aci"])
+        return (r["x"], r["y"], r["z"], r["aci"], aktorler[ad].olcek)
 
     def taraf_isareti(a, b, kp):
         ex, ey = b[0] - a[0], b[1] - a[1]
@@ -714,7 +729,7 @@ def kamera_izi(senaryo, aktorler):
             b = c["bak"]
             if isinstance(b, str):
                 r = aktorler[b].kayit[f]
-                b = (r["x"], r["y"], r["z"] + c.get("bak_yuks", 1.3))
+                b = (r["x"], r["y"], r["z"] + c.get("bak_yuks", 1.3 * aktorler[b].olcek))
             return kam, tuple(b)
         A = kayit(c["a"], f) if c.get("a") else None
         B_ = kayit(c["b"], f) if c.get("b") else None
@@ -980,24 +995,44 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
     # ---- aktorler: kemik bos nesneleri + kup parcalari ----
     geo = B.oku(GEO_AKTOR)
     govde_model = B.Model(geo)
+    # Baris'in formu (form_model.py): ek kollu model, yerlesim basina bir kez.
+    # Formsuz aktor govde_model'i kullanir -- onun modeli hic degismez.
+    form_modelleri = {}
+
+    def aktor_modeli(a):
+        if not a.form:
+            return govde_model
+        if a.form["kol"] not in form_modelleri:
+            form_modelleri[a.form["kol"]] = B.Model(form_model.form_geo(geo, a.form["kol"]))
+        return form_modelleri[a.form["kol"]]
     kok_nesne = {}
     kemik_nesne = {}
     silah_nesneleri = {}
+    aktor_model = {}
     for ad, a in aktorler.items():
+        model_a = aktor_model[ad] = aktor_modeli(a)
         kok = bpy.data.objects.new("aktor_" + ad, None)
         sc.collection.objects.link(kok)
         kok_nesne[ad] = kok
+        # formun 1,5 kati AYRI bir bosta: kok olcegi gorunurluk icin 0/1
+        # anahtarlaniyor (asagida), oraya yazilsa ilk gizle/goster silerdi
+        ust = kok
+        if a.olcek != 1.0:
+            ust = bpy.data.objects.new("aktor_%s_olcek" % ad, None)
+            sc.collection.objects.link(ust)
+            ust.parent = kok
+            ust.scale = (a.olcek, a.olcek, a.olcek)
         kn = {}
-        for kem, b in govde_model.kemik.items():
+        for kem, b in model_a.kemik.items():
             o = bpy.data.objects.new("%s_%s" % (ad, kem), None)
             o.rotation_mode = "QUATERNION"
             sc.collection.objects.link(o)
             kn[kem] = o
-        for kem, b in govde_model.kemik.items():
+        for kem, b in model_a.kemik.items():
             ana = b.get("parent")
-            kn[kem].parent = kn[ana] if ana else kok
+            kn[kem].parent = kn[ana] if ana else ust
         kemik_nesne[ad] = kn
-        parcalar = [(govde_model, a.v["skin"], 0.0)]
+        parcalar = [(model_a, a.v["skin"], 0.0)]
         if a.v.get("silah") in SILAH:
             g, d = SILAH[a.v["silah"]]
             parcalar.append((B.Model(B.oku(g)), d, 0.0))
@@ -1032,9 +1067,9 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
     kemikler = list(govde_model.kemik.keys())
     pivot = {k: B.ic(govde_model.kemik[k]["pivot"]) for k in kemikler}
 
-    def yerel(kem, euler, poz_d, olc=(1, 1, 1)):
+    def yerel(kem, euler, poz_d, olc=(1, 1, 1), pv=None):
         R = Matrix(B.bb_mat(euler))
-        pv = Vector(pivot[kem])
+        pv = Vector(pivot[kem] if pv is None else pv)
         pos = Vector((-poz_d[0], poz_d[1], poz_d[2]))
         # Bedrock: olcek pivot etrafinda, donusten once (bedrock_onizleme ile ayni)
         L = (Matrix.Translation(pos) @ Matrix.Translation(pv) @ R.to_4x4()
@@ -1090,6 +1125,11 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
             for f_, acik in esya_anahtarlari(a.kayit[:len(kam_iz)]):
                 kagitlar[ad].hide_render = not acik
                 kagitlar[ad].keyframe_insert("hide_render", frame=f_)
+        if a.form:
+            # ek kollar (form_model.py): ana kolun alt kemigi; kendi pivotlari
+            # yerlesime gore degisir, govde_model'in pivot tablosunda yok
+            pivot_ek = {ek: B.ic(aktor_model[ad].kemik[ek]["pivot"]) for ek in form_model.EK_KOL}
+            faz_a = (sum(map(ord, str(a.v.get("skin", "")) + str(a.v.get("isim", "")))) % 97) / 97 * 2 * math.pi
         for f, k in enumerate(a.kayit[:len(kam_iz)]):
             tampona(kok, "location", f + 1, (k["x"], k["y"], k["z"]))
             # aci surekli kalsin (359 -> 1 derece gecisinde ters tur atmasin)
@@ -1112,6 +1152,7 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
                     ob_.keyframe_insert("hide_render", frame=f + 1)
                 onceki_s = k.get("silah", True)
             poz, katman = kare_pozu(a, k, kemikler, anims, setler)
+            son_kol = {}
             for kem in kemikler:
                 (eu, ps, ol), _ = poz[kem]
                 l, q, o3 = yerel(kem, eu, ps, ol).decompose()
@@ -1125,6 +1166,8 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
                     q = q.slerp(q2, wgt)
                     l = l.lerp(l2, wgt)
                     o3 = o3.lerp(o2, wgt)
+                if a.form and kem in form_model.EK_KOL.values():
+                    son_kol[kem] = (l.copy(), q.copy(), o3.copy())
                 o = kn[kem]
                 onq = tampon.get((o, "rotation_quaternion"))
                 if onq and sum(x * y for x, y in zip(onq[-1][1], q)) < 0:
@@ -1132,6 +1175,31 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
                 tampona(o, "rotation_quaternion", f + 1, q)
                 tampona(o, "location", f + 1, l)
                 tampona(o, "scale", f + 1, o3)
+            if a.form:
+                for ek, ana in form_model.EK_KOL.items():
+                    # Ek kol ana kolun alt kemigi: ana kolla birlikte doner.
+                    # Ana kol TAKIP_SINIR'dan cok donerse ek kol o acida kalir;
+                    # ana kolun olcegi (WoM sol el uzatmasi) ek kola gecmez.
+                    # Yerel donusum = Mm^-1 . Mc . sallanma (Mc: sinirli donus,
+                    # ana kolun pivotu etrafinda, ana kolun oteleme payiyla).
+                    lm, qm, om = son_kol[ana]
+                    if qm.w < 0:
+                        qm = -qm
+                    w = form_model.sinir_orani(math.degrees(qm.angle))
+                    qc = Quaternion().slerp(qm, w) if w < 1.0 else qm
+                    pm = blender_nokta(pivot[ana])
+                    tas = lm - (pm - qm @ pm)
+                    Mc = Matrix.Translation(tas + pm - qc @ pm) @ qc.to_matrix().to_4x4()
+                    L = (Matrix.LocRotScale(lm, qm, om).inverted() @ Mc
+                         @ yerel(ek, [0, 0, form_model.sallanma(k["t"], ek, faz_a)], [0, 0, 0], pv=pivot_ek[ek]))
+                    l, q, o3 = L.decompose()
+                    o = kn[ek]
+                    onq = tampon.get((o, "rotation_quaternion"))
+                    if onq and sum(x * y for x, y in zip(onq[-1][1], q)) < 0:
+                        q = -q
+                    tampona(o, "rotation_quaternion", f + 1, q)
+                    tampona(o, "location", f + 1, l)
+                    tampona(o, "scale", f + 1, o3)
 
     # ---- kivilcimlar ----
     kivilcim_kur(bpy, efektler, fps, doku_malzemesi, harita)
@@ -1162,7 +1230,7 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
         if kam.data.dof.use_dof:
             if odak:
                 r_ = aktorler[odak].kayit[min(f, len(aktorler[odak].kayit) - 1)]
-                d = (Vector((r_["x"], r_["y"], r_["z"] + 1.3)) - Vector(kp)).length
+                d = (Vector((r_["x"], r_["y"], r_["z"] + 1.3 * aktorler[odak].olcek)) - Vector(kp)).length
             else:
                 d = (Vector(bk) - Vector(kp)).length
             tampona(kam.data.dof, "focus_distance", f + 1, (d,))

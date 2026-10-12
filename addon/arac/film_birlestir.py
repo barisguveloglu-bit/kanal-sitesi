@@ -71,6 +71,19 @@ def kenar_yumusat(ses, ms=KENAR_MS):
     return ses
 
 
+def ses_dilimi(aralik, fps0, oran=None):
+    """Kare araligi [a, b] (1'den, b dahil) -> sesin ornek dilimi. TAM SAYI
+    aritmetigi: eskiden int(b / fps * ORAN) idi ve 2456/30*48000 kayan
+    noktada 3929599.9999999995 cikiyordu -> ses goruntuden 1 ornek kisa ->
+    "-shortest" parcanin SON KARESINI atiyordu (Part 2'de orman 2456
+    filme girmedi, oda'ya geciste 1 karelik bosluk; v7.99.14'te olculdu).
+    Part 1'in siniri (1066) tam sayiya denk geldigi icin orada gorunmedi."""
+    if not aralik:
+        return slice(None)
+    oran = oran or film_ses.ORAN
+    return slice(int(round((aralik[0] - 1) * oran / fps0)), int(round(aralik[1] * oran / fps0)))
+
+
 def parca(klasor, senaryo_yolu, adim=1, parca_adi=None):
     """parca_adi ("part1"/"part2"): senaryonun "parcalar" araligi; ses ve
     goruntu ayni araliktan kesilir (ses tam filmden uretilip dilimlenir,
@@ -79,9 +92,7 @@ def parca(klasor, senaryo_yolu, adim=1, parca_adi=None):
     fps0 = sen.get("fps", 24)
     aralik = sen["parcalar"][parca_adi] if parca_adi else None
     F.altyazi_bas(klasor, adim, aralik)         # -> klasor/film.mp4 (sessiz)
-    dilim = slice(None)
-    if aralik:
-        dilim = slice(int((aralik[0] - 1) / fps0 * film_ses.ORAN), int(aralik[1] / fps0 * film_ses.ORAN))
+    dilim = ses_dilimi(aralik, fps0)
     ek = "_" + parca_adi if parca_adi else ""
     wav = os.path.join(klasor, "ses%s.wav" % ek)
     film_ses.yaz(kenar_yumusat(film_ses.ses_kur(sen)[dilim]), wav)

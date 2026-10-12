@@ -102,6 +102,10 @@ Senaryo:
   `isima`, `bebek_boyu`, `yayilma`; `sol`/`sag` yalnız o göze.
 - Kapak −1…1 → `iUI_Blink` ±0,052; bakış −1…1 → `Eye.L/R` ±0,1, ölçülen
   sınırlarda kırpılır.
+- `kalip: "mavi"` = Barış'ın kendi gözü (kullanıcının fotoğrafındaki göz,
+  sRGB 140, 209, 255 → doğrusal 0,262 / 0,638 / 1,0), ışımasız. Tek göze
+  ayrı kalıp verilebilir: `"sag": {"kalip": "mavi"}` (v7.99.14) — formda
+  bir göz kırmızı, öteki Barış'ın kendi gözü.
 - Yalnız `Head_Deform`/`Head_NoDeform` (seçimi iskeletin sürücüsü yapar) ve
   `Eyes` çizilir; gövde, kol, kaş, diş, dil, katman çıkıntıları gizli.
 - Plan dışında iskelet **uzağa taşınır**, gizlenmez: kafa nesnelerinin

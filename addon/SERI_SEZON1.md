@@ -315,23 +315,55 @@ dediği). Silahı zaten kayıtlı: Ay Işığı Asası.
       + `Blow_Out = 12`** (kullanıcı, 2026-10-11) — irisin pembe-beyaza
       kaydığı bilinerek seçildi.
 - **3. bölüm — genel odak Barış–Satanachia ikilisi** (kullanıcı, 2026-10-11).
-  **Barış'ın yeni formu: elleri canavarımsı** (kullanıcı, 2026-10-11):
+  **Barış'ın yeni formu** (kullanıcı, 2026-10-11; ayrıntılar 2026-10-12 sabah):
   - **Ne zaman:** Barış **Satanachia'nın güçlerini kullandığında** — formu
     o gücün Barış'ın bedenindeki etkisi (ikinci kâğıdın güç payı maddesiyle
     bağlantılı).
-  - **Eller:** değişiyor ve **daha da büyüyor**. Tam tasarım henüz yok —
-    kullanıcının aklında fikirler var, kendisi belirleyecek; uydurulmaz.
+  - **Eller: NORMAL kalıyor** (kullanıcı, 2026-10-12: *"daha büyük yani daha
+    iri dediğim eller normal kalacak"*). İlk taslaktaki "elleri canavarımsı,
+    eller değişiyor" düştü.
+  - **İki kol daha çıkıyor** — toplam dört kol (kullanıcı: *"2 tane daha kolu
+    çıkacak"*). **Nereden çıktığı söylenmedi:** model varsayılan olarak ana
+    kolların hemen altına kuruldu; başka yerleşimler önizlemeyle gösterilir,
+    **karar kullanıcının**.
+  - **Boyut: Barış'ın 1,5 katı** (kullanıcı: *"şimdi barış'ın boyutu ne ise
+    onun bir buçuk katı"*). "Daha büyük, iri yapılı" bu demek: oranlar aynı,
+    bütün beden 1,5 kat ölçeklenir.
+  - **Gözler değişiyor — zaten belirlendi:** Thomas gözleri, kırmızı kalıp
+    (Emission 30 + Blow Out 12). **Bir göz kırmızı**, çünkü Barış'ın bedeni
+    forma **tam alışamadı**; tam alışsaydı iki gözü de kırmızı olurdu.
+    **Sonraki bölümlerde iki göz de kırmızı** olacak (kullanıcı). Hangi gözün
+    kırmızı olduğu söylenmedi — varsayılan, kullanıcının beğendiği ilk
+    önizlemedeki gibi **sol göz**.
+  - **Kırmızı olmayan göz: Barış'ın kendi gözü, açık mavi** (kullanıcı,
+    2026-10-12): 4 fotoğraf gönderdi; *"ön tarafını gösterdiğim göz"* —
+    fotoğraftaki skinde kırmızı benek yok, *"kırmızılıkların olmadığını
+    düşün"*: fotoğraflar yalnız göz için. Renk fotoğraftan ölçüldü: sRGB
+    **140, 209, 255** → Thomas kalıbı `mavi` (`arac/thomas_goz.py`, ışıma
+    yok). Formun göz ayarı: `"goz": {"kalip": "kirmizi", "sag": {"kalip":
+    "mavi"}}`; sonraki bölümlerde iki göz kırmızı: `"goz": {"kalip": "kirmizi"}`.
   - **Skin:** çarpık hâl (`carpik`).
   - **Kontrol:** formdayken bedeni **Satanachia** yönetiyor.
   - **Kalite şartı (kullanıcı):** ellerin 3B modeli için *"aşırı şekilde
     uğraşacağız"* — izleyiciye en iyi görüntü verilir. Model bizim küplerimizle
-    kurulur (Karanlık Tırpan gibi), önizlemeyle onaylatılır.
-  - Gözlerin bu formda kullanımı sonra konuşulacak.
-    - **İzleyici maddeleri SONRADAN öğrenir** (kullanıcı): 3. bölümde Barış
-      **kendi hanedanında, kendi evinde** yatarken uyanır; **çarpık skinle bir
-      gözünü açar ve göz kıpkırmızıdır** — uyku maddesinin işlediği böyle
-      gösterilir. **3. bölümün SON sahnesi** (kullanıcı). Teknik not: çarpık skinde tek gözü kırmızı yapmak için doku
-      varyantı ya da göze ışık gerekir; üretimde ölçülüp önizlemeyle onaylatılır.
+    kurulur (Karanlık Tırpan gibi), önizlemeyle onaylatılır. Model işi
+    2026-10-12 sabahı başladı (kullanıcı: *"hemen modellemelere başla"*).
+  - **Model (v7.99.14, `arac/form_model.py`):** ana aktör modeli + iki ek
+    kol, bütün beden 1,5 kat. Ek kollar ana kolun dokusunu kullanır ve ana
+    kola **bağlıdır** (depodaki Ben 10 Dört Kol modelindeki gibi): ana kolla
+    birlikte döner, 40°'den büyük vuruşlarda geride kalır, kendi omzunda
+    hafifçe sallanır. Senaryoda aktöre `"form": "alt"` (ya da `"omuz"`).
+    Yerleşim seçenekleri: `alt` (ana kolun hemen altı ve arkası, 22° dışa;
+    varsayılan) ve `omuz` (omuz hizasından yelpaze, 45°). Sırttan kanat gibi
+    çıkan üçüncü seçenek denendi, ölçümde ek kollar birbirine ya da ana kola
+    giriyordu — konmadı. Seçim kullanıcının. Kollar hiçbir yürüyüş pozunda
+    ana kola, başa, bacaklara girmiyor: `test/form_model.mjs` ölçüyor.
+  - **İzleyici maddeleri SONRADAN öğrenir** (kullanıcı): 3. bölümde Barış
+    **kendi hanedanında, kendi evinde** yatarken uyanır; **çarpık skinle bir
+    gözünü açar ve göz kıpkırmızıdır** — uyku maddesinin işlediği böyle
+    gösterilir. **3. bölümün SON sahnesi** (kullanıcı). Teknik not: tek
+    kırmızı göz Thomas gözleriyle çiziliyor (`arac/thomas_goz.py`, öteki
+    göze `sag`/`sol` ile ayrı ayar) — doku varyantı gerekmiyor.
   - **Konuşma yeri:** Barış ile Satanachia normal bir ortamda değil, Barış'ın
     **zihin ortamında** konuşuyor (kullanıcı).
   - **Neden imzaladı (kullanıcı, kesin değil — "olabilir"):** karşısında en
