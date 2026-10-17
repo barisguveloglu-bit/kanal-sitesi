@@ -414,6 +414,13 @@ virüsünü üretiyor.
   **köylüler**; bazı evlerde **insanlar** — köylü ve insan bir arada.
 - **Ortada**, dağ gibi yüksek bir yerin üstünde **hanedanın ana yapısı**; oraya
   **merdivenle** çıkılıyor.
+- **Kurulum (kullanıcı, 2026-10-17): kendi hanedanımızı kuruyoruz.** Kullanıcının
+  gösterdiği Sketchfab haritası (*Survival - Village Castle Map 400x400 v0.1*,
+  yapan requlogia) yalnız **görsel referans**: Sketchfab'da indirilemez
+  işaretli, lisansı yok (bütün haklar yapanın), dosya alınmadı. Kurucu, orman
+  sahnesi gibi `blender_film.py`'de blok blok yazılacak; henüz yazılmadı.
+  Tasarımın kaydı bu maddeler; kullanıcının aklında ek ayrıntılar var, henüz
+  anlatılmadı.
 - **Siyasi yapı (kullanıcı, 2026-10-10):** oldukça iyi. Komutanlar birbiriyle
   iyi anlaşıyor, radikal bir kesim yok. Askerler komutanlarla iyi anlaşıyor;
   hanedandan **kaçan ya da isyan eden asker yok**. Buna karşılık asker ile
@@ -485,6 +492,31 @@ virüsünü üretiyor.
   kullanıcı "krallık/hanedan" değil **"insan topluluğu"** diyor.
 - Cadı soylarından hangilerinin hangi bölgelerde yaşadığı ya da yaşamadığı
   **henüz bilinmiyor** — kullanıcının bilgisi, ileride paylaşacak.
+
+**Barış'ın geçmişi, kız arkadaşı ve cadıların iki yolu (kullanıcı, 2026-10-17;
+mikrofonla anlattı, özeti onayladı):**
+- **Ailesi:** soylu, kraliyet ailesine yakın bir aileydi. Entrikalar sonucu
+  dağıtıldı ve **cadı soyundan geldiği şüphesiyle idam edildi**; krallık
+  cadıları hiç sevmiyor.
+- **Barış'ı aile dostları büyüttü:** geriye yalnız onlar kaldı; kimi okuttu,
+  kimi evinde yaşattı.
+- **Kız arkadaşı:** genç ve yetenekli bir **büyücü**, cadı değil (kullanıcı:
+  *"kız arkadaş cadı değil yetenekli büyücü dedim ya"*). Bir gün tanışmışlar,
+  *"birlikte geçindiler"*. Adı ve skini henüz yok.
+- **Cadı ve büyücü:** kullanıcının sözü *"ikisi de aynı şey"*. Aradaki fark
+  (cadı bir ırk, büyücü büyü yapan bir insan mı) soruldu, cevap bekliyor.
+- **Cadıların iki yolu:** **Işık Yolu** (iyi) ve **Karanlık Yolu** (kötü).
+  5000 yıl önce cadıların bir kısmı idam edildi, bir kısmı kaçtı; bundan
+  **500 yıl sonra** iki kardeş bu iki yolu kurup ayrıldı ve birbirine düşman
+  oldu. Karanlık Yolu'nu kuran kardeşin sözü *"insanlar bizi hor gördü"*,
+  Işık Yolu'nu kuranınki *"hor görmediler, yanlış anlaşıldık"*. Takipçileri
+  de onların peşinden gitti. **Bugün cadılar anlaşma içinde.**
+- **İki kardeş filmde yalnız simsiyah siluet** (kullanıcı: *"tamamen kapkara
+  olacaklar"*). Hangi sahnede, kimin anlatımıyla görünecekleri henüz yok.
+- **Barış'ı kurtaran el lambalı cadı Işık Yolu'ndan.**
+- **2. bölümün sırası (ekleme):** 6. sahne (bataklıktaki evden çıkış) → 7–8
+  (Ömer) → Barış **yalnız kız arkadaşının evine** uğrar → o sırada **Ice-man
+  hanedana baskın yapar**; Barış aile dostlarının evine gidemez.
 
 **Cevaplananlar (kullanıcı, 2026-10-10; mikrofonla yazıyor, "şikayet hatsanı"
 = "hikâye taslağını", "aysima" = "Ice-man"):**
