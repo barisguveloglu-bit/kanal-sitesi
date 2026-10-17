@@ -546,6 +546,12 @@ anlatırken oradan git.
   giren aktörde denetim temiz dese de kadraj bozulabiliyor. Yeni dövüş
   çekimini çizime vermeden önce **her çekimden bir önizleme karesi çiz**
   (v7.99.14'te yedi çekim ve çizimi çökerten bir hata böyle bulundu).
+- **Yetenek haritası (v7.99.14):** film aracının bugün neyi yapıp neyi
+  yapamadığı (hamle, poz, efekt, kamera, sahne), geçmiş hatalar ve onları
+  yakalayan katman, çizim maliyeti `addon/FILM_YETENEK_HARITASI.md`'de;
+  yeni bir dövüş ya da sahne konuşulurken önce oraya bak. **Kural:** film
+  aracına yeni bir hamle, efekt, kamera ya da sahne eklenince harita
+  **aynı commit'te** güncellenir.
 
 ## Animasyon serisi — LORE'dan ayrı evren (1. sezon)
 
