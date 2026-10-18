@@ -113,7 +113,10 @@ if ! command -v ffmpeg >/dev/null 2>&1; then
     echo "UYARI: ffmpeg yok ve apt-get de yok; birlestirme calismaz." >&2
   fi
 fi
-python3 -c "import numpy, PIL" 2>/dev/null || pip install -q numpy pillow
+# "python3 -m pip": duz "pip" baska bir Python'a kurabiliyor (olculdu: PATH'teki
+# python3 3.11, pip 3.13'unku -- kurulum "basarili" ama birlestirme numpy bulamadi)
+python3 -c "import numpy, PIL" 2>/dev/null || python3 -m pip install -q numpy pillow
+python3 -c "import numpy, PIL" || { echo "HATA: numpy/Pillow python3 icin kurulamadi" >&2; exit 1; }
 
 # ---- ortam degiskenleri ----
 cat > "$KOK/film_araclari.sh" <<EOF
