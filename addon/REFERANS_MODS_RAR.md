@@ -30,7 +30,8 @@ her sayı o okumadan geliyor; tahmin olan yerler "tahmin" diye yazılı.
 
 Drive'da aynı adla **ikinci bir dosya** daha var (2026-10-04, 147.770.769
 bayt, kimlik `1mEtGIo1hl4XQCgIIj67E7sZ51pm0vPLY`). Bu belge yalnız 20 Eylül
-tarihli olanı kapsıyor.
+tarihli olanı kapsıyor. Ekim dosyası tamamen ayrı bir paket (Fabric 26.2,
+köylü–yağmacı savaşı): `REFERANS_MODS_RAR_EKIM.md`.
 
 ## 2. Kısa cevap: bu paket ne
 
@@ -203,6 +204,104 @@ Super Steve'in kostümü güç vermiyor (kozmetik). Superman 23, Thor 25,
 Batman 16 ayrı kostüm sınıfına sahip; güç listesi kostümler arasında
 birleştirildi.
 
+**Karakter değerleri (sınıflardan ölçüldü).** Her karakterin mana ve
+dayanıklılık (stamina) üst sınırı, tarafı ve kostüm malzemesi kostüm
+sınıfında sabit olarak yazılı. Güçler bu iki çubuktan harcıyor
+(bölüm 5.1 başı). Çekirdek sınıfın varsayılanı 100 / 100.
+
+| karakter | paket | taraf | mana | dayanıklılık | toplam | kostüm malzemesi |
+|---|---|---|---|---|---|---|
+| Kratos | Misc | — | 190 | 185 | 375 | kumaş |
+| Son Goku | Anime | iyi | 185 | 165 | 350 | kumaş |
+| Saitama | Anime | iyi | 100 | 250 | 350 | kumaş |
+| Flash | Superheroes | iyi | 165 | 185 | 350 | zincir |
+| Green Lantern | Superheroes | iyi | 220 | 130 | 350 | zincir |
+| Hulk | Superheroes | iyi | 150 | 200 | 350 | kumaş |
+| Thor | Superheroes | iyi | 200 | 150 | 350 | zincir |
+| Reverse-Flash | Superheroes | kötü | 170 | 175 | 345 | zincir |
+| Superman | Superheroes | iyi | 165 | 180 | 345 | kumaş |
+| Nova | Superheroes | iyi | 220 | 120 | 340 | metal |
+| Silver Surfer | Superheroes | iyi | 190 | 150 | 340 | metal |
+| Supergirl | Superheroes | iyi | 150 | 190 | 340 | kumaş |
+| Wonder Woman | Superheroes | iyi | 140 | 200 | 340 | zincir |
+| Aquaman | Superheroes | iyi | 180 | 150 | 330 | zincir |
+| Blue Beetle | Superheroes | iyi | 160 | 145 | 305 | metal |
+| Boruto TBV | Anime | — | 160 | 140 | 300 | — |
+| Kawaki TBV | Anime | — | 170 | 130 | 300 | — |
+| White Ranger: DT | Power Rangers | — | 160 | 140 | 300 | kumaş |
+| Green Ranger: MM | Power Rangers | — | 150 | 140 | 290 | kumaş |
+| White Ranger: MM | Power Rangers | — | 140 | 150 | 290 | kumaş |
+| Red Ranger: MM | Power Rangers | — | 165 | 120 | 285 | kumaş |
+| Zero | Misc | — | 125 | 155 | 280 | metal |
+| Black Ranger: MM | Power Rangers | — | 140 | 140 | 280 | — |
+| Blue Ranger: MM | Power Rangers | — | 150 | 130 | 280 | kumaş |
+| Omni-Man | Superheroes | kötü | 100 | 180 | 280 | kumaş |
+| Arthur Leywin | Anime | iyi | 145 | 130 | 275 | kumaş |
+| Kakashi Hatake | Anime | iyi | 165 | 110 | 275 | kumaş |
+| Naruto Shippuden | Anime | — | 165 | 110 | 275 | — |
+| Ryomen Sukuna | Anime | kötü | 165 | 110 | 275 | kumaş |
+| Invincible | Superheroes | kötü | 100 | 175 | 275 | kumaş |
+| Sasuke Shippuden | Anime | — | 165 | 105 | 270 | — |
+| Boruto Ōtsutsuki | Anime | iyi | 145 | 120 | 265 | kumaş |
+| Kawaki Ōtsutsuki | Anime | tarafsız | 150 | 115 | 265 | kumaş |
+| Naruto Uzumaki | Anime | iyi | 165 | 100 | 265 | kumaş |
+| Sasuke Uchiha | Anime | iyi | 160 | 105 | 265 | kumaş |
+| Symbiote Spider-Man | Superheroes | tarafsız | 120 | 135 | 255 | kumaş |
+| Homelander | Superheroes | kötü | 130 | 120 | 250 | kumaş |
+| Iron Man | Superheroes | iyi | 150 | 100 | 250 | metal |
+| Iron Man Stealth | Superheroes | — | 115 | 135 | 250 | — |
+| Spider-Man | Superheroes | iyi | 130 | 120 | 250 | kumaş |
+| Spider-Man 2099 | Superheroes | iyi | 115 | 135 | 250 | kumaş |
+| Wolverine | Superheroes | iyi | 110 | 140 | 250 | kumaş |
+| Green Goblin | Superheroes | kötü | 125 | 120 | 245 | zincir |
+| Speed Demon | Superheroes | kötü | 110 | 135 | 245 | kumaş |
+| Moon Knight | Superheroes | iyi | 115 | 125 | 240 | kumaş |
+| Scorpion | Superheroes | kötü | 110 | 130 | 240 | metal |
+| Shocker | Superheroes | kötü | 130 | 105 | 235 | kumaş |
+| Captain America | Superheroes | iyi | 100 | 130 | 230 | kumaş |
+| Hawkeye | Superheroes | iyi | 110 | 120 | 230 | kumaş |
+| Kingpin | Superheroes | kötü | 110 | 120 | 230 | kumaş |
+| Vulture | Superheroes | kötü | 110 | 120 | 230 | kumaş |
+| Batman | Superheroes | iyi | 100 | 125 | 225 | kumaş |
+| Batman Beyond | Superheroes | iyi | 100 | 125 | 225 | kumaş |
+| Daredevil | Superheroes | iyi | 105 | 120 | 225 | kumaş |
+| Prowler | Superheroes | kötü | 105 | 120 | 225 | kumaş |
+| Robin | Superheroes | iyi | 100 | 125 | 225 | kumaş |
+| Bullseye | Superheroes | iyi | 100 | 120 | 220 | kumaş |
+| Joker | Superheroes | kötü | 100 | 120 | 220 | kumaş |
+| Black Widow | Superheroes | iyi | 105 | 110 | 215 | kumaş |
+| Steve | Çekirdek | — | 100 | 100 | 200 | — |
+
+Uçlar: en çok mana **Green Lantern ve Nova (220)**, en çok dayanıklılık
+**Saitama (250)**, toplamda en yüksek **Kratos (375)**.
+
+**Modun kendi veri hataları (ölçüldü):** Invincible "kötü", Bullseye "iyi"
+işaretli. Invincible'ın sınıfı Omni-Man'inkinden kopyalanmış görünüyor.
+Onlarca karakterin taraf alanı boş (`—`).
+
+**Ustalık (mastery) sistemi yarım.** Perk, yükseltme ve ustalık ödülü
+yalnız beş karakterde dolu. Kendi görev listesi olan yalnız iki karakter
+var:
+
+| karakter | perk'ler | yükseltme | ustalık ödülü | geliştirme |
+|---|---|---|---|---|
+| Superman | Solar Regeneration, Powerhouse, Scorching Vision | Superman Upgrade | X-Kryptonite Shard | +1 Health |
+| Spider-Man 2099 | Accelerated Spider, Decoy Vulnerability, Sharpered Talons | Spider-Man 2099 Upgrade | Vial of Spider DNA | +1 Speed |
+| Spider-Man | Spider Physique, Enhanced Webbing, Hyper Awareness | Spider-Man Upgrade | — | +1 Strength |
+| Batman | Batarang Upgrade, Enhanced Cape, Stealth Mastery | Batman Upgrade | — | +1 Acrobatics |
+| Steve (çekirdek) | Stealth Mastery, Combat Mastery, Scorching Vision | Steve Upgrade | Etherean | +1 Strength |
+
+Görevler `(adet, hedef, puan)` üçlüsü. Puan büyük olasılıkla adet başına
+ustalık puanı (SP); bytecode'dan birimi kesinleşmedi. Superman'in 11
+standart görevi: 1 Kryptonian Etherean yap (75), 20'şer zombi / creeper /
+iskelet / boğulmuş (1), 10 enderman / blaze / vindicator (2), 10 evoker
+(3), 5 cadı (2), 10 Rift Wisp (6). 14 zor görevi: 5 Kryptonian Etherean
+(80), 50 zombi (2), **1 Warden (300)**, 10 Ravager (4), 20 evoker / blaze
+/ vindicator (3–4), 10 cadı (4), 20 Piglin Brute (6), **2 Elder Guardian
+(125)**, 10 Wither (3), 30 enderman (3), **10 Fractured Echo (75)**, 20
+Rift Wisp (7). Spider-Man 2099'un listesi aynı, yalnız Etherean'ı
+Webwoven.
+
 **Anime — 9 karakter (12 form):**
 
 | karakter | karaktere özgü güçler (seçme) |
@@ -370,6 +469,44 @@ Castle, Inca Temple…). Binek yaratıkların kendi tuşları var (bölüm 9.4).
 
 Vanilla zindanların yerine çok katlı büyük zindanlar ("Roguelike Dungeons"
 ın devamı). Tek yapı türü: `dungeon`.
+
+### 6.5 Bossların ve yaratıkların canı ve hasarı
+
+Değerler varlık sınıflarının `createAttributes` metodundan okundu
+(`MAX_HEALTH`, `ATTACK_DAMAGE`, `ARMOR`). Bunlar taban değerler;
+Cataclysm'in ayar dosyasındaki can ve saldırı çarpanları varsayılan olarak
+1. Karşılaştırma için: Wither 300, Warden 500 can.
+
+| varlık | mod | can | hasar | zırh |
+|---|---|---|---|---|
+| **The King** | Craziness Awakened | **1024** | **200** | 60 |
+| The Kraken | Craziness Awakened | 1024 | 40 | 10 |
+| Mobzilla | Craziness Awakened | 1024 | 1 | 50 |
+| Kingpin (görev bossu) | Legends-Superheroes | 1024 | 40 | 15 |
+| Vulture, Speed Demon, Shocker, Scorpion, Prowler, Bullseye (görev bossları) | Legends-Superheroes | 1024 | 25 | 10–15 |
+| Great Ape (Oozaru) | Legends-Anime | 1000 | 40 | 18 |
+| Ultimate Golem | Craziness Awakened | 800 | 50 | 45 |
+| Undead Legionnaire | Legends-Misc | 800 | 48 | 12 |
+| Rhyno Beetle | Craziness Awakened | 750 | 35 | 7 |
+| Shadow Eidolon | Legends çekirdek | 750 | 15 | 6,5 |
+| Netherite Monstrosity | Cataclysm | 600 | 25 | 12 |
+| Luxtructosaurus | Alex's Caves | 600 | 12 | 20 |
+| Robo Jeffery | Craziness Awakened | 550 | 40 | 18 |
+| Megalodon | Legends çekirdek | 500 | 16,5 | — |
+| Tremorzilla | Alex's Caves | 500 | 30 | 10 |
+| Ignis, Ancient Remnant | Cataclysm | 450 | 14 / 25 | 10 / 12 |
+| Fractured Echo | Legends çekirdek | 450 | 14 | 10 |
+| Maledictus | Cataclysm | 420 | 13 | 10 |
+| The Leviathan | Cataclysm | 400 | 15 | 10 |
+| The Harbinger, Scylla | Cataclysm | 390 | 9 / 18 | 12 |
+| Momoshiki Ōtsutsuki | Legends-Anime | 350 | 0,8 | 12 |
+| Ender Guardian | Cataclysm | 333 | 16 | **20** |
+
+**1024 bir tavan.** Vanilla'da can özniteliğinin üst sınırı 1024;
+Legends'in yedi görev bossu ile Craziness'ın üç devi tam bu sınırda.
+Paketteki **AttributeFix** bu tavanı yükseltiyor; o yüzden pakette olması
+anlamlı. Değer kodda doğrudan 1024 yazılı; modlar büyük olasılıkla
+vanilla tavanına göre ayarlamış.
 
 ## 7. C katmanı — yıkım ve oyuncaklar
 
@@ -588,8 +725,10 @@ var).
 
 **Yapılamayan kostümler (ölçüldü):** Invincible, Nova, Omni-Man, Scorpion,
 Super Steve ve Symbiote Spider-Man'in `getRecipe` metodu **boş liste**
-döndürüyor. Nexus'ta yapılamıyorlar. Nasıl edinildikleri bytecode'dan
-çıkmadı (yaratıcı mod ya da bir olay olabilir).
+döndürüyor. Nexus'ta yapılamıyorlar. Symbiote Spider-Man'e Spider-Man
+sınıfları atıf yapıyor; tahmin: Spider-Man simbiyota bulaşınca bu kostüme
+dönüşüyor. Diğer beşine kostüm sınıfı dışından kostüm veren bir kod
+bulunamadı. Bunlar ya yaratıcı moda özel ya da yapım aşamasında.
 
 **Modun kendi hatası (ölçüldü):** Blue Beetle ve Silver Surfer, Shocker'ın
 tarifini **birebir** kullanıyor (16 Yellow Fabric, 10 Brown Fabric, 4
