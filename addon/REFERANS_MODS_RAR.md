@@ -592,7 +592,7 @@ Aperture'un Portal Gun'ı).
 | **Chipped** (6967 blok) + **Rechiseled** (2418) + köprüsü | dekor blok varyantları, keski ile dönüştürme |
 | **Secret Doors** | 158 gizli kapı / kapak (kütük, tuğla, kitaplık görünümlü) |
 | **Supplementaries** | vanilla tarzı işlevsel bloklar (225 blok) |
-| **Cuffed 1.3.15** | **hapishane seti**: kelepçe, pranga, bacak zinciri, anahtar, maymuncuk, hücre kapısı, güçlendirilmiş taş, giyotin, teşhir boyunduruğu, kasa. 16 büyü (Silence: kelepçeli kişinin manasını boşaltır; Curse of Binding: ölünce de kalır…). Kelepçeliyken başka modların hareket tuşlarını (ParCool, Epic Fight kaçış) da kilitliyor |
+| **Cuffed 1.3.15** | **hapishane seti**: kelepçe, pranga, bacak zinciri, anahtar, maymuncuk, hücre kapısı, güçlendirilmiş taş, giyotin, teşhir boyunduruğu, kasa. 6 kendi büyüsü + vanilla Unbreaking ve Curse of Binding (ölünce de kalır). Silence yalnız Ars Nouveau / Iron's Spells / Mana and Artifice manasını boşaltıyor, üçü de pakette yok. ParCool tuşlarını da kilitliyor, ParCool da pakette yok. **Box of Possessions** kolları bağlı oyuncunun zırhını alıyor (bölüm 17) |
 | **Traveler's Backpack** | yükseltilebilir sırt çantaları, 25 çanta yeteneği |
 | **OreExcavation** | damarı / ağacı tek seferde kazma |
 | **JEI** | tarif görüntüleyici |
@@ -1113,7 +1113,124 @@ Betiklerden (`kubejs_scripts/superman/*.js`, `sentry/void_meter.js`):
   içinde bastırıyor, **virüs** oyuncu ve yaratık güçlerini kapatıyor,
   **Chest Blast** isabet ettiğinde güç söküyor (bölüm 5.3).
 
-## 17. Açık sorular — kullanıcının kararı
+## 17. Yeşil Fener'in kostümünü çalmak — Cuffed ile
+
+Kullanıcının isteği: *"amacımız Yeşil Fener'in süper kahraman setine sahip
+birinin setini çalmak… bu modda blokların set çalabildiğini öğrendim, beni
+kontrol et."*
+
+Sınıflar yürütülmedi. Değerler `Cuffed-1.20.1-1.3.15.jar` ve Legends
+jar'larının bytecode'undan, yapılandırma varsayılanları
+`CuffedServerConfig`'ten okundu.
+
+### 17.1 İddianın kontrolü
+
+**Hiçbir blok kostüm sökmüyor.** Başka bir oyuncunun zırhını alan tek şey
+bir **eşya**, Cuffed'ın **Box of Possessions**'ı (5 kâğıt). İşin yarısını
+ise bir blok yapabiliyor: **fırlatıcı** (dispenser), önündeki bloktaki
+oyuncuya kelepçe takıyor. "Bloklar set çalıyor" duyumu büyük ihtimalle bu
+ikisinin birleşimi.
+
+### 17.2 Arama (frisk) kuralları
+
+| kural | kaynak |
+|---|---|
+| Hedef bir oyuncu olmalı ve **kolları bağlı** olmalı | `ModServerEvents.playerInteractEntity` |
+| Arayan kendisi tutuklu olmamalı ve **ana elinde boş kutu** tutmalı | aynı yer |
+| Açılan ekranda hedefin **4 zırh yuvası**, sol eli, envanteri ve kısayol çubuğu var | `FriskingContainer.getSlot`: 0–3 → 39/38/37/36 |
+| Her eşya için sol tık **40 tick (2 sn) basılı** tutuluyor | `FriskingScreen.TICKS_TO_TAKE` |
+| Hedefe eşya **konamıyor** (`mayPlace` false). Almayı kısıtlayan kural yok, Curse of Binding'li zırh da çıkıyor | `FriskingSlot` |
+
+### 17.3 Kelepçeler (varsayılan yapılandırma)
+
+`Require Low Health To Restrain` varsayılanı **kapalı**, yani tam canlı
+birine de kelepçe takılıyor. Sunucu bu ayarı açarsa hedefin canı %30'un
+altında olmalı. Kelepçe, takan kişinin baktığı uzva geçiyor: aynı
+Handcuffs eşyası kola da bacağa da takılabiliyor.
+
+| bağ | tarif | kurban ne yapamaz | kırarak kurtulma payı | maymuncuk (ilerleme / hız artışı) | kırılınca düşer mi |
+|---|---|---|---|---|---|
+| Handcuffs → kol | 1 zincir + 2 demir külçe | eşya kullanamaz, blok kıramaz | 40 | 6 / 12 | hayır |
+| Fuzzy Handcuffs → kol | — | aynı | 30 | 6 / 14 | hayır |
+| Shackles → kol | 2 demir külçe + 1 demir parçası | **yalnız** saldırı ve blok kırma kapalı, eşya kullanabiliyor | 15 | 8 / 10 | hayır |
+| Duck Tape → kol | 3 kâğıt + 1 yumurta | eşya kullanamaz, blok kıramaz | 5 | açılmıyor | evet |
+| Handcuffs / Duck Tape → bacak | yukarıdaki | **yürüyemez**, zıplayamaz, koşamaz | ayrı ayar, eşlenmedi | — | — |
+| Shackles → bacak | yukarıdaki | yürür, zıplayamaz, koşamaz | ayrı ayar, eşlenmedi | — | — |
+
+- **Kilitlenen tuşlar.** Handcuffs, Fuzzy Handcuffs ve Duck Tape kolları
+  bağlarken saldırı, kullan, envanter, at, el değiştir, orta tık ve 1–9
+  kısayol tuşlarını kilitliyor (`AbstractArmRestraint.getBlockedKeyCodes`).
+  Shackles yalnız saldırıyı kilitliyor. İkisi de ParCool tuşlarını
+  kilitliyor ama ParCool bu pakette yok.
+- **Komut yasağı.** Bacağı bağlı olduğu için yürüyemeyen ve op olmayan
+  oyuncu **hiçbir komut** kullanamıyor. Komut "You cannot do this right
+  now." mesajıyla iptal ediliyor (`ModServerEvents.onCommand`), yani /home,
+  /spawn ya da /tpa ile kaçamıyor. Hareket de oyuncunun elinden alınıyor
+  (`EntityMixin.isControlledByLocalInstance`).
+- **Fırlatıcı.** Handcuffs, Fuzzy Handcuffs, Shackles ve boş Bundle için
+  fırlatıcı davranışı kayıtlı (`CuffedMod`); Bundle başa geçiriliyor.
+  Fırlatıcı, yüzünün önündeki bloktaki oyuncuya kelepçe takıyor
+  (`AbstractRestraintItem.dispenseRestraint`). Duck Tape için kayıt yok.
+  Fırlatıcının kelepçeyi hangi uzva taktığı oyunda denenmedi; kod önce kolu
+  deniyor.
+- **Büyüler.** Kelepçeye büyü masasında altı büyü basılabiliyor: vanilla
+  Unbreaking ve Curse of Binding ile Cuffed'ın Imbue, Famine, Shroud ve
+  Exhaust büyüleri.
+  - **Shroud:** kurbanı kör ediyor.
+  - **Exhaust:** güçsüzlük ve kazma yorgunluğu veriyor.
+  - **Curse of Binding:** kelepçe ölünce de kalıyor.
+  - **Unbreaking:** kırma bekleme süresini uzatıyor.
+  - **Imbue:** kelepçeyi takana gelen hasarın bir kısmını kurbana aktarıyor.
+  - **Silence** (masada çıkmıyor) bu pakette **işe yaramaz**. Yalnız Ars
+    Nouveau, Iron's Spells ve Mana and Artifice manasını boşaltıyor
+    (`*Compat.DrainMana`); üçü de pakette yok ve Legends manasına
+    dokunmuyor.
+- **Kurtarma.** Handcuffs Key 4 bakır külçe, Shackles Key 4 kırık taştan
+  yapılıyor. Anahtarı belli bir kelepçeye bağlayan bir eşleşme kodda
+  görülmedi (tahmin: her anahtar her kelepçeyi açıyor). Lockpick 2 çubuk ve
+  2 demir parçasından yapılıyor.
+- **Pillory.** Kolları bağlı oyuncuyu yerinde tutuyor (`canDetainPlayer`).
+  İçindeki oyuncu eşya kullanamıyor, ama varsayılan ayarda eğilme tuşuna
+  art arda basarak çıkabiliyor.
+
+### 17.4 Yeşil Fener tarafı
+
+- **Dört parçanın hepsi şart.** `GreenLantern.onUpdate` ilk iş
+  `hasArmorOn` soruyor: kostümün tanımladığı her zırh yuvasında tam o eşya
+  yoksa hiçbir güç ve pasif kurulmuyor. Parçalar Mask, Body, Leggings ve
+  Boots. **Tek parça alınınca Yeşil Fener söner** (kod böyle; oyunda gözle
+  bakılmadı).
+- **Sahip kilidi yok.** `LegendsSuit.canEquip` her zaman true dönüyor ve
+  hiçbir kostüm bunu değiştirmiyor. Dört parçayı giyen herkes Yeşil Fener
+  olur.
+- **Pil herkese çalışıyor.** Willpower Battery yalnız aktif karakterin
+  `IWillpower` olup olmadığına bakıyor.
+- **Ölünce düşüyor.** Legends'ın ölüm olayı (`LegendsEvents.onLivingDrop`)
+  yalnız parşömen ekliyor, kostümü silmiyor. `keepInventory` kapalıysa
+  öldürmek de dört parçayı yere bırakır.
+- **Kelepçe Legends yeteneklerini kesmiyor.** Kilitli tuş listesinde Legends
+  tuşu yok ve paketteki hiçbir mod Cuffed'a bağlı değil (Cuffed'ın
+  sınıflarına başvuran tek jar Cuffed'ın kendisi). Kolları bağlı bir Yeşil
+  Fener ışın, patlama, kalkan ve yapı gibi yeteneklerini tuşlarıyla hâlâ
+  kullanabilir. Kol kelepçesi hareketi serbest bıraktığı için uçabilir de.
+  Bacak bağı hareketi kesiyor; Legends uçuşu da istemci hareketiyle
+  çalışıyorsa uçuşu da keser (oyunda bakılmadı).
+
+### 17.5 Sıra
+
+1. Hedefin önce **kollarını** bağla: saldırıyı ve eşya kullanmayı keser,
+   aramayı da açar.
+2. Hemen ardından **bacaklarını** bağla: yürümeyi, büyük ihtimalle uçmayı
+   ve bütün komutları keser.
+3. Boş kutuyla ara ve **önce tek bir parçayı** al. Bu 2 saniye sürer ve
+   Yeşil Fener söner. Sonra kalan üç parçayı ve envanterdeki pil, yüzük ve
+   Etherean'ı al.
+4. Dört parçayı giy.
+
+Daha ucuz yol: kostümü Nexus'ta yapmak yaklaşık 122 ham malzeme tutuyor
+(bölüm 13; 94 kostüm arasında 32. sırada).
+
+## 18. Açık sorular — kullanıcının kararı
 
 Bu belge yalnız ölçüm. Neyin eklentiye taşınacağı yazılmadı:
 
