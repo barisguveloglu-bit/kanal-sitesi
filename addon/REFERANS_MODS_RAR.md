@@ -1018,7 +1018,102 @@ Sınıflandırma bir sezgisel kurala dayanıyor: blok adı bir BlockEntity
 sınıfıyla eşleşiyorsa işlevli sayıldı. Yanlış eşleşmeler ayıklandı;
 sayılar yaklaşık.
 
-## 16. Açık sorular — kullanıcının kararı
+## 16. Zayıf noktalar ve güçlendirilmiş formlar
+
+Kullanıcı (dördüncü istek): *"belirli karakterlerin zayıf noktaları nedir,
+bu karakterlerin ayrı güçlendirilmiş formları var mı?"*
+
+**Yöntem.** Beş şey ölçüldü:
+1. karakter türü arayüzleri (`IKryptonian`, `ITech`, `IKi`…) ve onlara
+   özel davranan kod (`instanceof`),
+2. `MobEffectCategory.HARMFUL` ile kaydedilen **45 ceza efekti**,
+3. her kostümün `onUpdate`'inde gücü kesen koşullar ve sayaç eşikleri,
+4. `addImmunity` bağışıklıkları,
+5. form ve dönüşüm yetenekleri.
+
+Sınıflar yürütülmedi; değerler bytecode'dan.
+
+### 16.1 Karakter karakter
+
+| karakter | zayıf nokta (ölçülen) | güçlendirilmiş form / hâl |
+|---|---|---|
+| **Superman, Supergirl** | **Güneş enerjisi** (0–100): yalnız gündüz ve gökyüzü görünürken dolar (`isInDirectSunlight`), gölgede ve gece boşalır. Güç kademesi enerjiye bağlı: Strength 16 / 15 / 14 / 13 (enerji >95 / >75 / >50 / altı). **Kriptonit:** elinde Kryptonite Cluster tutan biri 10 blok, Shard tutan 5 blok içindeyse, Kryptonite Knuckles takan biri vurursa ya da Kryptonite Cluster bloğu yakınsa 5 saniye **Kryptonite Poison**: Strength yarıya (16 → 8), Fortitude 7 → 3, uçuş ve hız ancak enerji ≥ 90 iken kalıyor. **Solar Drainage** varken bütün güçler kapanıyor, yalnız can kalıyor. | **Anti-Kryptonite kostümü**: kriptonite tam bağışık ve Solar Drainage'ı hiç sormuyor; zayıflığı ortadan kaldıran alt form. **Super Flare** ancak enerji tam 100'ken açılıyor; sınıfı Solar Drainage'ı da anıyor (tahmin: kullanınca güç bir süre kesiliyor). Solar Amplification; Clark Kent kılığı (model değişimi). Solar Regeneration perk'i güneşte 100 tickte bir 5 can verir ve şarjı hızlandırır |
+| **Hulk** | Dönüşmeden yalnız canı var. Dönüşümün sonunda **Gamma Depletion** (öznitelik değiştiricileri sökülüyor). | **Hulk Out!** → bütün değerler **Gamma Rage** sayacına bağlı: ≥98'de Strength 19, Speed 10, Fortitude 9, Regeneration 6; <10'da Strength 11, Speed 5, Fortitude 4. Öfkelendikçe güçleniyor. Raged Frenzy, Gamma Nuke. Zehir, Wither ve Gamma zehrine bağışık |
+| **Power Rangers** (6) | Morph olmadan güç yok: kostüm sınıfı her tickte `MORPHED` soruyor. | **It's Morphin Time!** Ayrıca Unrelenting Will açıkken Strength 12 (değilse 11), Acrobatics 10 (8), Speed 5 (3); Dragon Shield açıkken Fortitude 6 (4). White Ranger (Dino Thunder): **Super Dino Mode** |
+| **Son Goku** | Formlar **Ki** sayacına bağlı. | Temel → **Super Saiyan** (Ki ≥100) → **Super Saiyan God** (≥200) → **Super Saiyan Blue** (≥300). **Ultra Instinct** bu Ki formlarının hepsini geçersiz kılıyor. **Kaioken** yalnız temel formda ya da SSJ Blue'da ("Kaioken requires Base or Super Saiyan Blue"); mana yeteneklerinin hasarını artırıyor. Great Ape (Oozaru) ayrı bir boss varlık (1000 can) |
+| **Naruto** | Chakra Depletion ve Chakra Burn (jutsu bedeli). | **Öfke sayacı** → **One-Tailed Cloak** (Naruto) / **Three-Tailed Cloak** (Shippuden): Kurama Fist, Kurama Claw Flurry, Vermillion Rasengan, Chakra Arms açılıyor. Jinchuriki Charge |
+| **Sasuke** | Curse Mark sayacı %90'ın altındaysa form yok ("Need above 90% Curse Mark Meter"). | **Curse Mark** ve **Curse Mark V2** (uçuş dahil) |
+| **Boruto, Kawaki** | **Karma Seal**'in bedeli: **Exhausted** ve **Anti-Heal**. | Karma Seal; Kawaki'de **Kokugan** (Two Spokes / Eight Spokes); Boruto TBV'de Cloak Off |
+| **Saitama** | — | **Casual Wear ↔ Serious Mode** (model değişimi); Omnidirectional Serious Punch. Dayanıklılık 250 (en yüksek) |
+| **Ryomen Sukuna** | Reverse Curse Technique sonrası **Jujutsu Fatigue**. | **Malevolent Shrine** (alan açılımı), Dismantle Barrage |
+| **Arthur Leywin** | — | **Realmheart → Realmheart Unleashed**, Mirage Walk |
+| **Thor** | Silah yetenekleri silahsız çalışmıyor ("Must have weapon equipped to perform task"). | **Civilian Form ↔ Suit Up** (model değişimi), **God of Thunder** (God Blast ile takas; God Blast enerji sayacı). Stormbreaker'lı sürümde Weapon of a King |
+| **Iron Man ve teknolojik kostümler** (`ITech`: Iron Man, Batman, Batman Beyond, Robin, Spider-Man'in teknolojik kostümleri) | **EMP:** EMP efekti gadget'ları kapatıyor; Detective Mode, Armor Overdrive ve Sentry Mode EMP'deyken çalışmıyor. EMP'yi Electric Web, Hawkeye'ın Taser Arrow'u, EMP Pulse, Pulse Cannon gibi yetenekler veriyor. | **Armor Overdrive** (bitince JARVIS Weapons Offline, yere çakılma); Iron Man Stealth: Ghost Protocol. Zehir ve kanamaya bağışık |
+| **Wolverine** | — | **Primal Rage** (600 tick), **Berserker Rage** (1200 tick), Berserker Barrage |
+| **Symbiote Spider-Man** | — | **Symbiote Rage Meter** → **Symbiote's Rage**; Inkfade |
+| **Kingpin** | — | **Unstoppable** (1200 tick): sersemleme, yere düşme, yatırılma ve donmaya karşı bağışık |
+| **Invincible** | — | **Viltrumite Rage** |
+| **Moon Knight** | — | **Khonshu's Avatar** (sınıfı `KHONSHU_RESURRECTION` anıyor) |
+| **Speed Demon** | Adrenal Overdrive bitince **Adrenaline Exhaustion**. | **Adrenal Overdrive**, Whiplash Barrage |
+| **Flash, Reverse-Flash** | — | Adjustable Speed (kostüm sınıfında 6–9 eşikleri var; tahmin: hız kademesi), Overclock, Reverse-Flash'ta Speed Mirage |
+| **Homelander (Absolute)** | — | **Turn-Based Mode** |
+| **Kratos** | — | **Spartan Rage**, Poseidon's Rage |
+| **Daredevil** | Körlük zayıflık değil: körlüğe, karanlığa, flaşa ve sindirilmeye **bağışık**. | LET THE DEVIL OUT!!!!! |
+| **Captain America, Wonder Woman** | Wither'e bağışık (Cap ayrıca bulantıya). | — |
+
+**Bağışıklık deseni:** Legends karakterlerinin çoğu zehre bağışık
+(`addImmunity POISON`). Zero ve Iron Man ayrıca kanamaya, Zero ve Hulk
+Wither'e bağışık.
+
+### 16.2 Herkese uygulanabilen ceza efektleri (45'ten öne çıkanlar)
+
+| efekt | ne yapıyor / nereden geliyor |
+|---|---|
+| **Exhausted** | hareket, koşu ve uçuş dayanıklılık yer; sürekli Yavaşlık V ve Güçsüzlük V. Anime dönüşümlerinin ve Karma Seal'in bedeli |
+| **Vulnerable**, **Staggered**, **Grounded**, **Prone**, **Dazed**, **Cripple** | savunmasız kalma, sendeleme, yere çakılma, yatırılma; dövüş yeteneklerinin çoğu bunları veriyor |
+| **Anti-Heal**, **Bleeding**, **Necrosis**, **Corroded**, **Frostbite** | iyileşmeyi kesme ve süren hasarlar (Bullseye'ın bıçakları, Scorpion'un asidi, buz yetenekleri) |
+| **EMP** | teknolojik kostümlerin gadget'larını kapatıyor |
+| **Flashed**, **Intimidated**, **Coerced**, **Inverted Controls**, **Brain Fracture**, **Seizure** | körleştirme, sindirme, kontrol ters çevirme (Sharingan Genjutsu), zihin saldırıları |
+| **Kryptonite Poison**, **Solar Drainage**, **Gamma Poison**, **Gamma Depletion**, **Chakra Burn**, **Jujutsu Fatigue** | karaktere özgü (16.1) |
+| **Webbed Up**, **Bola Snared**, **Stone** (Medusa's Gaze), **Buried** | hareketsiz bırakma |
+
+### 16.3 PowerBorne (Palladium) — Superman ve Sentry
+
+Betiklerden (`kubejs_scripts/superman/*.js`, `sentry/void_meter.js`):
+
+- **Superman'in güneş şarjı:** üst sınır yükseltmeyle **100 / 200 / 350
+  / 500**. Güneşte (gökyüzü parlaklığı >12) tick başına 0,025 / 0,05 /
+  0,075 / 0,09 dolar, ay ışığında 0,05. Y 210'un üstünde ×1,25.
+  Yeteneklerin bedeli: Thunderclap 7, Super Punch 5, Flight Boost 4; Heat
+  Vision tick başına 0,10, Freeze Breath 0,08, süper hız 0,025.
+- **Kriptonit:** elinde Cluster ya da Shard tutan biri **4 blok**
+  içindeyse ya da 4 blok içinde Kryptonite Cluster bloğu varsa 5 saniye
+  zehirlenme; zehirliyken şarj tick başına 0,2 boşalıyor.
+- **Super Flare:** 25 blokta tutuşturma ve en fazla 50 hasar; sonunda
+  **Solar Exhaustion 600 tick (30 sn)**.
+- **Sun Totem:** güneşte enerji topluyor (yükseklikle 3–8). **5000'e
+  ulaşınca:** oyuncuda Superman gücü varsa şarjı dolduruyor; hiç
+  PowerBorne gücü yoksa **Superman gücünü veriyor**; başka bir PowerBorne
+  gücü varsa hiçbir şey yapmıyor. PowerBorne'da Superman'e böyle dönüşülüyor.
+- **Sentry'nin zayıflığı Void:** sayacı en fazla 200. Hasar aldıkça ve
+  öldürdükçe (oyuncu öldürmek +15) ve karanlıkta yükseliyor. Işıkta,
+  uyuyunca (−50) ve zamanla düşüyor. Sayaç 10'u geçince her 100 tickte %1–%20
+  arası bir "corruption" ihtimali var (tahmin: Void'in kontrolü ele
+  alması).
+
+### 16.4 Symbiote modu ve Compound V
+
+- **Simbiyot:** **ateş** (ateşe ya da lava girince simbiyot panikliyor
+  ve bedeni dışarı çekiyor, bağa ateş hasarı var), **çan** (çalan çan
+  yarıçap içinde sersemletiyor, `BELL_STUN_*`), **Warden'in sonik
+  patlaması** (ek çarpan, `SONIC_BOOM_BONUS_MULT`; yalnız SCULK suşu
+  dirençli). Su altında hava biterken bedeni yukarı çekiyor. Varsayılan
+  sayılar hesaplanan alanlarda; okunamadı.
+- **Compound V:** **Anti-V** gücü siliyor, **Nullify** gücü 10 blok
+  içinde bastırıyor, **virüs** oyuncu ve yaratık güçlerini kapatıyor,
+  **Chest Blast** isabet ettiğinde güç söküyor (bölüm 5.3).
+
+## 17. Açık sorular — kullanıcının kararı
 
 Bu belge yalnız ölçüm. Neyin eklentiye taşınacağı yazılmadı:
 
