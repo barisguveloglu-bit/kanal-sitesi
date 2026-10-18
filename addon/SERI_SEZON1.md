@@ -502,7 +502,30 @@ mikrofonla anlattı, özeti onayladı):**
   kimi evinde yaşattı.
 - **Kız arkadaşı:** genç ve yetenekli bir **büyücü**, cadı değil (kullanıcı:
   *"kız arkadaş cadı değil yetenekli büyücü dedim ya"*). Bir gün tanışmışlar,
-  *"birlikte geçindiler"*. Adı ve skini henüz yok.
+  *"birlikte geçindiler"*. **Skin: Zisa** — kullanıcının kendi yaptığı skin
+  (*"skin ben yaptım, kız arkadaş rolünü oynacak"*), ad Cermen
+  mitolojisinden (kullanıcı mitolojiden bir ad istedi, Claude'un iki
+  önerisinden Zisa'yı seçti). `kaynak_doku/aktor/zisa.png`, aktör listesinde
+  `zisa` (14. sıra, `pa:skin` = 13; mevcut numaralar kaymadı), 64×64 RGBA,
+  **ince kol** (Alex tipi), gelen dosya bire bir (md5
+  `b3f33291b33b539e38da0cabb61364d3`). Uzun beyaz saç, dış katmanda siyah taç,
+  kırmızı gözler. **Karakterin adı da Zisa** (kullanıcı, 2026-10-18: *"evet
+  öyle"*). **Film aracı ince
+  kolu bugün çizmiyor** (yalnız 4 px kollu model): filme girmeden önce ince
+  kollu model film aracına bağlanmalı. Araç skinleri yatay da aynalıyor (en
+  çok bacak deseninde görünüyor); ayna kararı kullanıcıda (2026-10-17
+  önizlemesi).
+- **Zisa (kullanıcı, 2026-10-18):**
+  - **Kraliyet büyücülüğü:** yetenekleri ve başarısıyla kraliyet büyücülüğüne
+    aday seçildi. Adaylar sırayla, tek tek seçiliyordu, bir sınav
+    yapılacaktı; Ice-man saldırınca süreç mecburen durduruldu.
+  - **Kavrama:** olağanüstü bir kavrama yeteneği var; bir konuyu ya da işi
+    çok hızlı kavrıyor.
+  - **Barış:** onu seviyor, meraklı ve komik buluyor.
+  - **Büyüler:** olağanüstü büyüler yapabiliyor; bazılarını kraliyet
+    büyücüleri bile zor yapıyor. Minecraft'taki etkiler bu dünyada da var:
+    2. bölümde **koruma büyüsü** (Minecraft'taki Direnç gibi) ve **Saldırı
+    II** (Minecraft'taki Güç II gibi) görülüyor.
 - **Cadı ve büyücü:** kullanıcının sözü *"ikisi de aynı şey"*. Aradaki fark
   (cadı bir ırk, büyücü büyü yapan bir insan mı) soruldu, cevap bekliyor.
 - **Cadıların iki yolu:** **Işık Yolu** (iyi) ve **Karanlık Yolu** (kötü).
@@ -596,6 +619,61 @@ olmayacak."*
   çarpışmadan yürümesi), kırılan/devrilen ortam. Efektli dövüş çizimi
   uzatır; hesap limiti asıl darboğaz olduğu için 2. bölümde her parça
   önizlemeyle onaylanıp hemen çizime girmeli (yukarıdaki not).
+
+### Baskın — 2. bölümün dövüşü (kullanıcı, 2026-10-17/18; mikrofonla anlattı)
+
+Yalnız kullanıcının anlattıkları. Mikrofon hatası olabilecek sözler tırnak
+içinde, okunuşu yanında; doğrulanmayanlar öyle işaretli.
+
+- **Saat:** öğlen.
+- **Açılış:** Barış ile Zisa evde konuşurken dışarıdan sesler geliyor.
+  Askerler *"Hey, gelin gelin, saldırı var!"* diye bağırıp saldırının olduğu
+  yere koşuyor. İkisi askerlerin koştuğu yere bakıyor: orada büyük bir
+  **fırtına** var. Saldırı hanedanın *"hiç kısmından"* giriyor (anlaşılmadı;
+  sorulacak).
+- **Sur:** çok sayıda **creeper** suru patlatıyor; ardından **iskeletler ve
+  zombiler** giriyor. Zombilerle askerler savaşıyor.
+- **Barış çıkıyor:** *"Gideceğim, onlara yardım edeceğim"* diyor. Zisa: bu
+  hâlinle yapamazsın, *"yüklerim de yok"* ("güçlerin de yok" diye okundu,
+  doğrulanmadı), kendini tehlikeye atamazsın. Zisa, Barış'ın güçlerinin
+  uyandığını bilmiyor. Barış bir anda **Antitheus'u çıkarıyor** (kullanıcının
+  sözü; Karanlık Tırpan olduğu doğrulanmadı), **camı kırıp aşağı atlıyor**,
+  koşmaya başlıyor.
+- **Zisa'nın koruma büyüsü:** Zisa Barış'a koruma büyüsü yapıyor. Barış bunu
+  iskeletlerin okları çarpıp işlemeden **geri sekince** fark ediyor.
+- **Ömer:** elinde bir **topuzla** geliyor. Ice-man bir **buz duvarı**
+  oluşturuyor; Ömer topuzla vuruyor, duvarı **kıramıyor**. Sonra hanedana
+  daha fazla zarar veremesinler diye hanedana ilerleyen **orduyla
+  savaşıyor**. **Topuz kendi modelimiz** olacak (kullanıcı, 2026-10-18).
+  Blender'da, MCprep'te ve toplulukta açık lisanslı, Minecraft tarzında
+  hazır bir topuz bulunamadı.
+- **Donma:** Zisa, Ice-man'in **zayıf noktasını** anlıyor (ne olduğu henüz
+  seçilmedi). Ama Ice-man Barış'ı buz güçleriyle **donduruyor**: *"Bu kadar
+  kolaysın."* Ordusuna: *"O kızı da getirin, ordumuzun büyücüsü olabilir."*
+- **Ateş:** Barış buzun içinde bağırıyor, **gözleri parlıyor**. Cadının
+  evinde öğrendiği ateş büyülerinin **temel mantığını** kavradığı için artık
+  ateşe yönelik büyüler yapabiliyor.
+- **Mekan değişimi:** dövüş tek mekanda kalmıyor; güçlü bir darbe rakibi
+  itince mekan değişiyor.
+- **Son:** son mekanda biraz **jeot** (geode) biçimli bir **lav çukuru** var
+  (kullanıcının sözü *"lavuk çukuru"*). Barış Ice-man'i lav çukuruna
+  düşürüyor (*"teklifi"*, "tekmeyle" diye okundu, doğrulanmadı) ve **Ice-man
+  ölüyor**.
+- **Ordu:** **büyük** olacak (kullanıcı: *"bayağı büyük bir ordu yap"*).
+  Patronları ölünce etrafa **dağılıyor** (*"tek onları o yöne eğitim"*,
+  "yönetecek kimse kalmadığı için" diye okundu, doğrulanmadı).
+- **Açık:**
+  - Ice-man'in zayıf noktası: Claude üç seçenek sundu (asadaki küre,
+    fırtınanın gözü, sıcak), seçilmedi.
+  - Lav çukurunun yeri; mekanların sayısı ve sırası.
+  - Seslendirme: kayıtta "yalnız altyazı" kararı duruyor. Kullanıcı
+    askerlerin bağırışları için *"sesleri sen yaparsın veya ElevenLabs ile
+    yaparız"* dedi; hangisi olacağı seçilmedi.
+  - Saldırı II'nin rengi: Minecraft'taki koyu kırmızı mı, Zisa'ya özgü bir
+    renk mi?
+  - Topuzun biçimi.
+  - Claude'un dövüş önerisi (beş mekan, yedi düşünme anı) sohbette sunuldu,
+    onaylanmadı; kayda geçmedi.
 
 ## Part 2 düzeltmeleri (kullanıcı, 2026-10-12 — *"bozuk bir şey sunamayız asla"*)
 

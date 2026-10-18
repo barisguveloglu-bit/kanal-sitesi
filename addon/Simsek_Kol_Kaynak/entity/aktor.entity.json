@@ -19,7 +19,8 @@
         "s9": "textures/entity/aktor/omer",
         "s10": "textures/entity/aktor/sur_askeri_gri",
         "s11": "textures/entity/aktor/sur_askeri_safak",
-        "s12": "textures/entity/aktor/zifiri_kotu"
+        "s12": "textures/entity/aktor/zifiri_kotu",
+        "s13": "textures/entity/aktor/zisa"
       },
       "geometry": {
         "default": "geometry.pa_aktor",

@@ -17,7 +17,8 @@
             "Texture.s9",
             "Texture.s10",
             "Texture.s11",
-            "Texture.s12"
+            "Texture.s12",
+            "Texture.s13"
           ]
         },
         "geometries": {
@@ -34,7 +35,8 @@
             "Geometry.default",
             "Geometry.default",
             "Geometry.default",
-            "Geometry.default"
+            "Geometry.default",
+            "Geometry.slim"
           ]
         }
       },
