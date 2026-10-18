@@ -647,8 +647,8 @@ içinde, okunuşu yanında; doğrulanmayanlar öyle işaretli.
   savaşıyor**. **Topuz kendi modelimiz** olacak (kullanıcı, 2026-10-18).
   Blender'da, MCprep'te ve toplulukta açık lisanslı, Minecraft tarzında
   hazır bir topuz bulunamadı.
-- **Donma:** Zisa, Ice-man'in **zayıf noktasını** anlıyor (ne olduğu henüz
-  seçilmedi). Ama Ice-man Barış'ı buz güçleriyle **donduruyor**: *"Bu kadar
+- **Donma:** Zisa, Ice-man'in **zayıf noktasını** anlıyor (asadaki küre;
+  aşağıda, dövüşün yapısında). Ama Ice-man Barış'ı buz güçleriyle **donduruyor**: *"Bu kadar
   kolaysın."* Ordusuna: *"O kızı da getirin, ordumuzun büyücüsü olabilir."*
 - **Ateş:** Barış buzun içinde bağırıyor, **gözleri parlıyor**. Cadının
   evinde öğrendiği ateş büyülerinin **temel mantığını** kavradığı için artık
@@ -662,18 +662,56 @@ içinde, okunuşu yanında; doğrulanmayanlar öyle işaretli.
 - **Ordu:** **büyük** olacak (kullanıcı: *"bayağı büyük bir ordu yap"*).
   Patronları ölünce etrafa **dağılıyor** (*"tek onları o yöne eğitim"*,
   "yönetecek kimse kalmadığı için" diye okundu, doğrulanmadı).
+- **Dövüşün yapısı: beş mekan, yedi düşünme anı.** Claude önerdi, kullanıcı
+  onayladı (2026-10-18: *"yok onayladım"*). Zayıf nokta ve lav çukurunun
+  yeri önerinin içinde geçtiği gibi yazıldı.
+  1. **Sur gediği (kuşatma):** hanedan öğle güneşinde; doğudan gelen fırtına
+     göğün yarısını karartıyor, ovada büyük ordu bekliyor.
+     *Düşünme 1 (Ice-man):* okçular creeper'ları sura varmadan vuruyor;
+     Ice-man fırtınayı koyulaştırıp creeper'ları karın içinde saklıyor ve sur
+     patlıyor. Gedikte ağır zırhlı sur askerleri duvar gibi duruyor, zombiler
+     geçemiyor; Ice-man iskeletleri molozun üstüne çıkarıp askerlerin
+     üstünden ok yağdırıyor.
+  2. **Sokaklar:** Barış pencereden inip gediğe koşuyor; dar sokakta ilk
+     zombilerle zorlanıyor. *Düşünme 2 (Barış):* oklar çarpıp sekince
+     kalkanı fark ediyor ve okların arasından yürüyüp iskeletlerin üstüne
+     gidiyor. Ardından Saldırı II: vuruşları ağırlaşıyor, zombiler çitlere
+     ve duvarlara savruluyor (dövüşün ilk yükselmesi).
+  3. **Meydan (dip noktası):** Ice-man kendisi geliyor. *Düşünme 3
+     (Ice-man):* Barış ışınlanıyor, kar belireceği yerde girdap yapıyor;
+     Ice-man bunu okuyup Barış'ı belirdiği anda donduruyor: *"Bu kadar
+     kolaysın."* *Düşünme 4 (Zisa):* zayıf noktayı o an görüyor: **asadaki
+     küre her büyük büyüden sonra bir an sönüyor.** *"O kızı da getirin"*;
+     askerler Zisa'ya yürüyor. Barış buzun içinde bağırıyor, gözleri
+     parlıyor, buz içeriden turuncu ışıkla çatlıyor. *1. mekan değişimi:*
+     Barış'ın ilk ateşli darbesi Ice-man'i bir evin duvarından geçirip
+     merdivenlerin dibine fırlatıyor.
+  4. **Ana yapıya çıkan merdivenler:** *Düşünme 5 (Barış):* Ice-man
+     merdivenleri buzla kaplıyor, Barış kayıyor; Kor Yürüyüşü ile ayağının
+     altını ısıtıyor ve buz onu tutamıyor. Kıvılcım'a karşı yarım küre buz
+     kalkanı geliyor; kalkan yerden büyüyor, ısıtılmış zeminde büyüyemiyor.
+     *Düşünme 6 (Ice-man):* ateşin Barış'ı yorduğunu görüyor (*"Ateş, onu
+     çağıranın canından yer"*) ve merdivene asker dalgaları yolluyor;
+     aşağıda sur askerleri ve Zisa dalgaları durduruyor. *2. mekan
+     değişimi:* Ice-man yerden bir buz sütunu çıkarıyor, kaya kırılıyor,
+     ikisi **ortadaki tepenin içindeki** boşluğa düşüyor.
+  5. **Jeot biçimli lav çukuru (final, tepenin içinde):** kristal duvarlar,
+     ortada lav, mağarayı lavın turuncu ışığı aydınlatıyor; sıcakta Ice-man
+     zayıflıyor. Üstünde dövüşebileceği bir zemin için lavın yüzünü
+     donduruyor; Minecraft'taki gibi su lavla buluşunca kabuk bağlıyor, buhar
+     çıkıyor. Bu dev büyüden sonra küre sönüyor. *Düşünme 7 (Barış, hamleyi
+     tahmin):* Barış tam bunu bekliyordu; kabuğu Kor Yürüyüşü ile ısıtıp
+     çatlatıyor ve Ice-man'i lav çukuruna düşürüyor. Ağır çekim yalnız bu
+     anda. Ordu patronunu kaybedince dağılıyor.
+  - Ömer'in buz duvarının bu yapıda nereye düştüğü söylenmedi. Claude
+    meydanı (3. mekan) önerdi; onaylanmadı.
 - **Açık:**
-  - Ice-man'in zayıf noktası: Claude üç seçenek sundu (asadaki küre,
-    fırtınanın gözü, sıcak), seçilmedi.
-  - Lav çukurunun yeri; mekanların sayısı ve sırası.
   - Seslendirme: kayıtta "yalnız altyazı" kararı duruyor. Kullanıcı
     askerlerin bağırışları için *"sesleri sen yaparsın veya ElevenLabs ile
     yaparız"* dedi; hangisi olacağı seçilmedi.
   - Saldırı II'nin rengi: Minecraft'taki koyu kırmızı mı, Zisa'ya özgü bir
     renk mi?
   - Topuzun biçimi.
-  - Claude'un dövüş önerisi (beş mekan, yedi düşünme anı) sohbette sunuldu,
-    onaylanmadı; kayda geçmedi.
 
 ## Part 2 düzeltmeleri (kullanıcı, 2026-10-12 — *"bozuk bir şey sunamayız asla"*)
 
