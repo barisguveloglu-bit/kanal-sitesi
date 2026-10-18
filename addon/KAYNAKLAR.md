@@ -164,6 +164,7 @@ Her birinin ölçümü kendi `REFERANS_*.md` dosyasında.
 | Pinnacle of Evolution | Gorrini | `REFERANS_BEN10.md` |
 | Ionstrike (Max Steel) | Bionic | `REFERANS_IONSTRIKE.md` |
 | Symbiote | kitigawa | `REFERANS_SIMBIYOT.md` |
+| `mods.rar` (Forge 1.20.1, 54 jar: Ballistix, Compound V, Legends…) | çeşitli — tablo belgede | `REFERANS_MODS_RAR.md` |
 | NarutoMod | AHZNB | `REFERANS_NARUTO.md` |
 | NPA | KID_SKY | `REFERANS_NPA.md` |
 | Craftformers Prime | Bit & Byte | `REFERANS_TFP.md` |
