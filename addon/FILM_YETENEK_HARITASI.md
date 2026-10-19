@@ -54,7 +54,8 @@ sabiti ya da kayıtlı ölçüm.
   (`--vdb`), Quaternius dövüş animasyonları (yumruk, yuvarlanma, kalkan,
   fırlatma, yerden kalkış, büyü atma), MCprep yaratık rig'leri. Yukarıdaki
   "Yok" maddelerinin bir kısmı bunlarla kapanabilir; film aracı henüz hiçbirini
-  okumuyor. Ölçüm ve eşleme: `REFERANS_HAZIR_PAKETLER.md`.
+  okumuyor. Ölçüm (Cycles denemesi dahil): `REFERANS_HAZIR_PAKETLER.md`;
+  2. bölümde hangisi nerede: `SERI_SEZON1.md` ("4 part kesimi").
 
 **Kamera**
 - Hazır:

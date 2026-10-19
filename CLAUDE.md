@@ -599,10 +599,14 @@ anlatırken oradan git.
   `$FILM_PAKETLER`'e (`/opt/araclar/paketler`) kurar; gerçekçi VDB patlamaları
   yalnız `--vdb` ile. Pooka ve Quaternius gizli `already-exists` deposunun
   `araclar` dalından iner: oturumda o depoya erişim yoksa önce `add_repo`.
-  **Hiçbiri film aracına bağlı değil**; ölçüm, izin, Mojang dokusu temizliği
-  ve 2. bölüm eşlemesi `addon/REFERANS_HAZIR_PAKETLER.md`'de. Bağlamadan önce
-  her efektten bir önizleme karesi çiz (Pooka sahnesi EEVEE'ydi, Cycles'ta
-  denenmedi).
+  **Hiçbiri film aracına bağlı değil**; ölçüm, izin ve Mojang dokusu
+  temizliği `addon/REFERANS_HAZIR_PAKETLER.md`'de, 2. bölümde hangisinin
+  nerede kullanılacağı `addon/SERI_SEZON1.md`'de ("4 part kesimi"). Bağlamadan
+  önce her efektten bir önizleme karesi çiz. Pooka sahnesi EEVEE; seçilen
+  efektler Cycles'ta tek tek çizildi. **Tuzak:** Pooka dosyasındaki 92
+  koleksiyonun 82'si görünüm katmanından dışlanmış. İçlerindeki nesne
+  `hide_render` kapalıyken de boş çıkar; önce koleksiyonu ve üstlerini aç
+  (bu, dört efekti yanlışlıkla "çalışmıyor" diye yazdırdı).
 
 ## Animasyon serisi — LORE'dan ayrı evren (1. sezon)
 

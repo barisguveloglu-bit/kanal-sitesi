@@ -7,9 +7,11 @@ nereden geldiklerini, hangi izinle kullanıldıklarını ve neyin henüz
 denenmediğini tutar.
 
 **Hiçbiri film aracına (`blender_film.py`) bağlı değil.** Kurulu ve ölçülü
-duruyorlar; hangisinin hangi sahnede kullanılacağı 2. bölümün kararı.
-Bağlamadan önce her efektten **bir önizleme karesi çiz** (CLAUDE.md, dövüş v2
-kuralı): aşağıdaki "denenmedi" maddeleri o önizlemeyle kapanır.
+duruyorlar. Hangisinin 2. bölümün hangi sahnesinde kullanılacağı
+kararlaştırıldı: `SERI_SEZON1.md`, "4 part kesimi ve hazır paketler"
+(Claude'un kararı, kullanıcı bıraktı). Bağlamadan önce her efektten **bir
+önizleme karesi çiz** (CLAUDE.md, dövüş v2 kuralı): aşağıdaki "denenmedi"
+maddeleri o önizlemeyle kapanır.
 
 ## Kurulum
 
@@ -65,8 +67,9 @@ herkese açık depoya girmez, yalnız gizli dalda (kullanıcının onayıyla,
   değiştiricisi, 15 parçacık sistemi, 172 malzeme. **Python metni yok.**
 - Yüklemede 9 bağımlılık döngüsü uyarısı (havai fişek renk değiştirici ve
   büyü masası malzemeleri); dosyayı açmayı engellemiyor.
-- Sahne motoru **EEVEE**. Bulut işçisinde EEVEE yok (ekran kartı/EGL yok,
-  bkz. CLAUDE.md "Karanlık kötü"); efektler **Cycles'ta denenmedi**.
+- Sahne motoru **EEVEE**, 60 fps. Bulut işçisinde EEVEE yok (ekran kartı/EGL
+  yok, bkz. CLAUDE.md "Karanlık kötü"); efektler Cycles'ta tek tek denendi,
+  aşağıda "Cycles denemesi".
 - Dövüşe yarayacak koleksiyonlar: `Explotion All`, `Explotion GeometryNode`,
   `Smoke Explotion GeometryNode`, `Eevee Motion Explosion` (patlama);
   `Applied Lightning`, `Lightning Hook`, `Lightning Solid` (yıldırım);
@@ -101,6 +104,39 @@ gizli dala giden kopyada:
 
 `$ARAC_KOK` `/opt/araclar` değilse MCprep'e giden 174 yol kırılır: dosya
 açıldıktan sonra yolların kökü değiştirilir.
+
+### Cycles denemesi (2026-10-19)
+
+Blender 5.2.2, Cycles CPU, 24 örnek, 640×360, nötr gri dünya ve bir güneş.
+Her efekt **tek başına** çizildi (geri kalan her şey `hide_render`);
+simülasyonlu olanlar kare kare ilerletildi. Betikler depoda değil.
+
+**Tuzak — dışlanmış koleksiyonlar.** Dosyadaki 92 koleksiyonun 82'si görünüm
+katmanından dışlanmış (`layer_collection.exclude`): parçacık kaynakları
+(`Crit Particles`, `Soul Particals`, `Snow Particles` …), `Simulation Node
+Effects` ve `Unused` altındaki her şey. Böyle bir koleksiyondaki nesne,
+`hide_render` kapalı olsa da **boş çizilir**; önce kendi koleksiyonu ve
+üstleri açılır. İlk denemede kritik vuruş, ruh, sculk ruhu simülasyonu ve
+kasırga bu yüzden boş çıktı ve "çalışmıyor" diye yazıldı. Bu yanlıştı ve
+düzeltildi. Dağıtıcı nesneler (`Simple Partical Distribution`, `Simple
+effects`) açık koleksiyonda, doğrudan çiziliyor.
+
+| durum | efektler |
+|---|---|
+| çiziliyor | `Explotion All` (patlama), `Applied Lightning` (yıldırım), `Enchantment Particals Simple` (büyü harfleri), `Flame box` (alev), `Large Smoke Simple` (duman), `Light Rays` (ışık huzmesi; varsayılanı pembe), `Magic Circle flame`, `Nether Portal Particals Simple`, `Potion particals` (yeşil), `Snow Simple`, `Wind Simple`, `Delta Ash Simple` (kül), `Simple Effect`, `Smoke Simple Torch area` (meşale dumanı), `Spawner` (spawner alevi), `Warden Blast GeoNode` (şok halkası, camgöbeği) |
+| koleksiyonu açılınca çiziliyor | `Crit Particles.000–.004` (kritik vuruşun 5 karesi; dokusuz, düz beyaz-gri örgü), `Soul.000` (ruh), `Sculk Soul Simulation Nodes` (sculk ruhu, camgöbeği), `Smoke Progretion Curve.001` (kasırga: 45 m'lik sütun ve uçuşan bloklar; yazarın `Unused` koleksiyonunda) |
+| boş | `Summoning circle`: şeklini `shapes-34437_640.png` stok resminden okuyor, resim temiz kopyadan çıkarıldığı için 0 köşe. `Leafy Wind GeoNodes` (`Unused`): koleksiyonu açılınca da boş, sebebi ölçülmedi. |
+
+**Zamanlama.** `Explotion All` (60 fps): 1. karede yok, 5–35. karelerde dolu,
+50. karede bitmek üzere, 80'den sonra boş. Patlama ~0,1–0,8 sn arasında
+görünüyor. Filmimiz 30 fps, kare sayısı yarıya iner. MCprep'in iki TNT
+sahnesi (24 fps, 130 kare, EEVEE) de Cycles'ta çiziliyor:
+`tnt_explosion_instant` 2–14. karelerde görünür, 22'de boş (~0,1–0,6 sn).
+`tnt_explosion` (fitilli) 2–30. karelerin hepsinde çizim var (30'da
+azalıyor; sonrası ölçülmedi).
+
+**Maliyet.** Tek başına bir efekt karesi bu ayarda 1–10 sn sürdü. Filmin tam
+kalitesinde, sahnenin içinde ölçülmedi.
 
 ## Quaternius Universal Animation Library 1 ve 2 [Standard]
 
@@ -166,9 +202,13 @@ pahalı, kare başına 6–25 dk'lık bütçemizi büyütür. Önce tek kare ön
   FancyFeet, Simple Rig ve Simple Slim Rig (Boxscape), VMcomix Rig v2,
   StoryMode Jesse.
 - **Yaratık rig'leri (~30):** zombi, iskelet, illager'lar, demir golem,
-  warden, blaze, kurt … (2. bölümdeki "asker gönderme" için).
-- **Efektler:** `tnt_explosion`, `tnt_explosion_instant`, TheDuckCow'un
-  parçacıkları, Th3pooka'nın hava efektleri.
+  warden, blaze, kurt … (2. bölümdeki "asker gönderme" için). Ordu için
+  seçilenler: `hostile/stray - thefunnypie2.blend` (buz iskeleti),
+  `hostile/Zombie - HissingCreeper.blend`, `hostile/creeper - TheDuckCow.blend`,
+  `friendly/Iron Golem - Trainguy.blend`. **Henüz çizilmedi.**
+- **Efektler:** `tnt_explosion`, `tnt_explosion_instant` (ikisi de Cycles'ta
+  çiziliyor, yukarıda "Cycles denemesi"), TheDuckCow'un parçacıkları,
+  Th3pooka'nın hava efektleri.
 
 MCprep GPL-3.0; rig'ler dosya adlarında yapımcılarıyla dağıtılıyor.
 
@@ -181,12 +221,10 @@ MCprep GPL-3.0; rig'ler dosya adlarında yapımcılarıyla dağıtılıyor.
 - Ücretli paketler (BlendAtlas BPS animasyonları, Elemental VFX vb.):
   Pooka + Kenney + Quaternius'un kapatmadığı bir ihtiyaç çıkmadıkça gerek yok.
 
-## 2. bölüm fikirleriyle eşleşme (öneri, karar değil)
+## 2. bölümdeki kullanım
 
-| fikir (SERI_SEZON1.md) | aday |
-|---|---|
-| ateş topu | `Spell_Simple_*` (atış), yolda Kenney ateşi / Pooka spawner alevi, çarpınca Pooka patlaması + duman |
-| yarım küre kalkan | hiçbir pakette yok → kendi kubbe + kenar parlaması gölgelendiricimiz; poz `Idle_Shield_Loop` |
-| asker gönderme / durdurma | MCprep yaratık rig'leri; `Zombie_*` yürüyüşleri |
-| ortamı kullanma | `OverhandThrow` (blok fırlatma), `yer_vurus` (zaten var) |
-| vuruş anı | Pooka `Crit Particles`, `Hit_Chest/Head`, `Hit_Knockback` |
+Burada eskiden bir öneri tablosu duruyordu. O tablo karara dönüştü ve karar
+**yalnız** `SERI_SEZON1.md`'de ("4 part kesimi ve hazır paketler",
+2026-10-19); iki belge birbirine ters düşmesin diye burada tekrar yazılmadı.
+Tablodan kalan bir bilgi: yarım küre buz kalkanının hiçbir pakette karşılığı
+yok, kendi kubbe ve kenar parlaması gölgelendiricimiz yazılacak.

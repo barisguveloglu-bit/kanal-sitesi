@@ -33,7 +33,7 @@ kararı: *"bu iki evren farklı evrenler."*
 
 | kim | bölüm | ne biliniyor |
 |---|---|---|
-| **Barış** | 1– | İlk dövüş deneyimi; zorlanıyor. Silahı Karanlık Tırpan (kullanıcının dilinde "mızrak"). Skin: **`Simsek_Skin/uzak_akraba.png`** (aktör listesinde `uzak_akraba`) — kullanıcının seçimi. |
+| **Barış** | 1– | **21 yaşında** (kullanıcı, 2026-10-19). İlk dövüş deneyimi; zorlanıyor. Silahı Karanlık Tırpan (kullanıcının dilinde "mızrak"). Skin: **`Simsek_Skin/uzak_akraba.png`** (aktör listesinde `uzak_akraba`) — kullanıcının seçimi. |
 | **El-Harkos** | 1 | Ödül avcısı. Silahsız, yumrukla dövüşüyor. Avladıkları her silahla vücudunu delmeye çalışmış, hiçbiri işlememiş. Barış'ın ödülünü tamamladığını sanıyor; Barış'ın güçlerini açtığını fark etmiyor. **1. bölümde ölüyor.** Skin: **`kaynak_doku/ilkel_harkos.png`** ("İlkel Suikastçı El-Harkos", aktör listesinde `harkos`) — kullanıcının seçimi. |
 | **Ana kötü** | sezon | **Tek karakter, iki beyaz göz** (v7.99.10 düzeltmesi; ilk yazım "iki çift" idi). Karanlık odada oturuyor. Askerleri var. Bedeni, yüzü, yapısı **hiç görünmüyor** — yalnız gözler. Kullanıcının gerekçesi: klasik kötü karakter imajı ve gizem. **Düzeltme (kullanıcı, 2026-10-12, Part 2'yi izleyince):** bedeni VAR ama karanlıkta — *"karanlık gözükmesi lazımdı yani ışığın gelmemesi lazımdı fakat ışık geliyor ve yani bedeni yok sadece gözü var"*. İlk çizimde beden hiç yoktu, duvarın ışığı gözlerin arasından görünüyordu. Beden **kullanıcının yaptığı skin**: `kaynak_doku/aktor/zifiri_kotu.png`. İlk gönderilen (taçlı, md5 `2415e5d9…`) önizlemede görülünce kullanıcı ikincisini seçti: *"onun yerine bunu kullansana, bunu da ben yaptım; sadece ışık gelmeyecek şekilde ayarla veya onun olduğu alana karaltı ekle"* — elmas miğferli, kırmızı-gri ceketli skin, 64×64 RGBA, geniş kol, temel katman tam opak, gelen dosya bire bir (md5 `f40137a84c07b6cfc176dbd99d5e7f7b`). Hiçbir ışık bedene ulaşmaz (kapı ışığı da gözlerin parıltısı da): simsiyah siluet + iki beyaz göz. Skinin renkleri karanlıkta görünmez; görünen, siluetidir (miğferin ve ceketin dış çizgisi). |
 | **Ice-man** | 2 | Gerçek adı Ice-man, kod adı **Deney 081**. 2. bölümün düşmanı. Silahı **Ay Işığı Asası** (`pa:kns_asa_ayisigi`, Konsey eşyası): lacivert gövde, pençe biçimli baş, içinde buz mavisi küre. Kullanıcının gönderdiği görselle model karşılaştırılıp eşleştirildi. Modda dövüş seti yok; film için bir asa seti bağlanacak (Karanlık Tırpan'daki `OZEL_SILAH` yolu). Skin kullanıcıdan geldi (aşağıda). |
@@ -224,8 +224,8 @@ kadar yaparız."*
   uzatmayalım … süreyi azaltınca daha iyi olmuyor"*; *"3:50 dakika dedim"*).
   Kural: hiçbir part 1. bölümün en uzun partından (Part 2, 73,7 sn) uzun
   olmaz, parçalar da gereksiz kısaltılmaz. Hesap (Claude): **4 part**, her
-  biri ~57,5 sn. Kesme yerleri henüz seçilmedi. Çizim maliyeti ~1560
-  makine-saati (film saniyesi başına ~6,8; 1. bölümün Part 2'si ~500'dü).
+  biri ~57,5 sn. Kesme yerleri aşağıda (**4 part kesimi**). Çizim maliyeti
+  ~1560 makine-saati (film saniyesi başına ~6,8; 1. bölümün Part 2'si ~500'dü).
 - Çalışma salı başlıyor, hedef pazar.
 - Hikâyesi henüz yok — burada olmayanı uydurma, kullanıcı anlatınca yazılır.
 - Ölçüden çıkan not: 1. bölüm (~103 sn) 22 işçiyle ~1,5–2 gün çiziliyor ve
@@ -509,7 +509,8 @@ mikrofonla anlattı, özeti onayladı):**
 - **Barış'ı aile dostları büyüttü:** geriye yalnız onlar kaldı; kimi okuttu,
   kimi evinde yaşattı.
 - **Kız arkadaşı:** genç ve yetenekli bir **büyücü**, cadı değil (kullanıcı:
-  *"kız arkadaş cadı değil yetenekli büyücü dedim ya"*). Bir gün tanışmışlar,
+  *"kız arkadaş cadı değil yetenekli büyücü dedim ya"*); **yarı insan yarı
+  Endra** (2026-10-19, aşağıda). Bir gün tanışmışlar,
   *"birlikte geçindiler"*. **Skin: Zisa** — kullanıcının kendi yaptığı skin
   (*"skin ben yaptım, kız arkadaş rolünü oynacak"*), ad Cermen
   mitolojisinden (kullanıcı mitolojiden bir ad istedi, Claude'un iki
@@ -534,6 +535,97 @@ mikrofonla anlattı, özeti onayladı):**
     büyücüleri bile zor yapıyor. Minecraft'taki etkiler bu dünyada da var:
     2. bölümde **koruma büyüsü** (Minecraft'taki Direnç gibi) ve **Saldırı
     II** (Minecraft'taki Güç II gibi) görülüyor.
+  - **Büyü işareti (kullanıcı, 2026-10-19):** büyü yaptığını belirten tek
+    şey **alnındaki bir sembol; büyü yaparken parlıyor** (*"oraya bir tane
+    sembol çizeceğiz, o sembol büyü yaptığında parlasın"*). Alın perçemin
+    altında kaldığı için saçlar **hafifçe kalkıyor** ki parlama görünsün,
+    dik yukarı değil (*"hafif uçması gerekiyor, direkt yukarıya uçarsa pek
+    olmaz gibi geliyor"*). Sembol, kullanıcının bulduğu cadılık sembolleri
+    tablosundaki **Tanrıça** (*"Öpücük yanındaki sembolü koy, tanrıça"*):
+    sırt sırta iki hilal, `)(`. Tablonun resmi hiçbir yere girmiyor; biçim
+    bizim çizimimiz.
+    - Taslak (Claude, onay bekliyor): perçem dış katmanın 1–6. sütunu, altı
+      ayrı tel, menteşe tacın hemen altında. Büyüde teller yanlara açılıyor
+      (ortadakiler 32°, sonrakiler 24° ve 14°), ~26° öne-yukarı kalkıyor ve
+      titriyor. Alın 6×3 skin pikseli; bu boyda hilal çizilemediği için
+      sembol ayrı bir katman ve skin pikselinin 8 katı çözünürlükte.
+      Dinlenmede görünüm skinin aynısı (dört yandan piksel piksel ölçüldü);
+      kullanıcının skin dosyası değişmiyor.
+    - Film aracında bugün yok: ince kol, perçem telleri, alın katmanı ve
+      parlamayı başlatan bir olay yazılacak.
+    - Açık: parlama rengi; açılma miktarı; aynı renk Zisa'nın bütün
+      büyülerinin (Saldırı II dahil) rengi mi.
+  - **Irkı: yarı insan yarı Endra (kullanıcı, 2026-10-19):** önce *"Zisa ve
+    onun ailesi aslında dünyalı değil, yani insan değil; The End'de bir
+    Endra"* dedi, aynı gün düzeltti: *"bu tam bir Endra değil, yarı insan
+    yarı Endra."* Ailesinden hangisinin Endra olduğu söylenmedi. Kullanıcının
+    saydığı güçler ve özellikler (yarı Endra olmanın bunları nasıl
+    etkilediği söylenmedi; Ender Armblades'i kullanıyor):
+    - **Ender Armblades:** kol bıçaklarını ikinci bir doğasıymış gibi
+      zahmetsizce çağırıp kullanma. Bıçağın görünüşü (kullanıcı,
+      2026-10-19):
+      - **Renk, çekirdekten dışa:** tek renk düz bir mor değil. Tam
+        ortadaki iç çekirdek göz alıcı saf beyaz, beyazın hemen etrafındaki
+        çerçeve parlak neon pembe/eflatun (magenta), en dıştaki keskin
+        piksel kenarlar koyu mor. Karanlıkta kendi ışığını yayıyor.
+      - **Kalınlık ve kesim:** kâğıt gibi düz değil; Minecraft'ın standart
+        3B eşya kalınlığında (~1 piksel derinlik), kenarları merdiven
+        basamağı gibi pikselli, uçları 45 derecelik keskin açılarla
+        sivriliyor.
+      - **Kola bağlanma:** bıçak elle kavranmıyor; el ve parmaklar serbest
+        (bıçak açıkken de büyü yapabiliyor ya da yumruk atabiliyor). Bıçak
+        bilekliğin/zırhın dış yüzeyinden birkaç milimetre dışarıda, havada
+        asılıymış gibi duruyor; kola saf bir enerji bağıyla kilitli.
+      - **Belirme ve kaybolma:** çağrıldığı anda ön koldan dışarıya doğru mor
+        şimşekler ve parçacıklar saçarak saliseler içinde uzuyor;
+        kapatıldığında duman ve mor enerji zerrelerine dönüşüp havada
+        dağılıyor.
+      - **Biçim: kullanıcının kendi çizimi** (2026-10-19, tablette bir-iki
+        günde çizdi; *"renk detaylarını sen eklersin, beyaz çizdim"*).
+        Piksel ızgarası 24×56, 444 beyaz piksel, sağ-sol simetrik; ikinci
+        gönderilen 2K çizim aynı ızgarayı bire bir verdi (0 piksel fark).
+        Uç yukarıda, dirsekteki taban kanatlı; içinde yarıklar, uzun bir
+        boşluk ve tabanda haç biçimli bir delik var.
+      - Taslak (Claude, onay bekliyor): renk katmanları çizimin dışına
+        ekleniyor: çizimin beyazı çekirdek, çevresinde 1 piksel magenta,
+        onun dışında 1 piksel koyu mor (28×60). Rengi çizimin içine koyan
+        yorum da denendi; beyazın çoğu kayboluyordu. Bir bıçak pikseli
+        skin pikselinin üçte biri, kalınlık bir bıçak pikseli; boy ~20
+        skin pikseli (dirsekten yumruğun ~13 piksel ötesine). Bileklikten
+        0,5 piksel boşluk, iki küçük enerji bağı.
+    - **Ender Boost:** kendi fiziksel gücünü, hızını ve dayanıklılığını Ender
+      büyüsüyle anında katlama.
+    - **Ender Refinement:** elindeki fiziksel silahları Ender enerjisiyle
+      kaplayıp keskinliğini ve yıkıcılığını artırma.
+    - **Ender Heal:** hedefin üzerindeki zehirleri, lanetleri ya da zihin
+      bozulmalarını arındırıp tersine çevirme.
+    - **End Blessing (Kutsama Bahşetme):** End dışındaki ölümlü varlıklara
+      (örneğin insanlara) kendi Ender gücünden bir parça aktarıp onları
+      güçlendirme.
+    - **Dreamscape (zihin/rüya boyutu) erişimi:** bir zihin kontrolcüsünün
+      (Mentokinetic) etkilediği yapıya dokunarak doğrudan hedefin zihin/rüya
+      boyutuna girebilme.
+    - **Yaşlanma:** gerçekte 300 yaşındaki bir Endra, görünüş ve biyolojik
+      dinçlik bakımından 33–34 yaşındaki bir insanla aynı durumda; 500
+      yaşında bile fiziksel olarak ~43 yaşında görünür.
+    - **Su:** suya karşı körelmiş, kalıtsal bir hoşnutsuzlukları var; ama
+      sıradan Enderman'lerin aksine sudan hiç hasar almıyorlar.
+    - **Irksal dezavantaj (kullanıcı, 2026-10-19):** *"yarı insan olduğu için
+      yeteneklerini tam anlamıyla kullanamıyor, ırksal bir dezavantaj var."*
+      Sınırın biçimi (hangi güç, ne kadar, bedeli ne) söylenmedi.
+    - **Yaş (kullanıcı, 2026-10-19): 21**, gerçek yaşı da görünüşü de
+      (*"ikisi de eşit, 21 21"*; Barış da 21). Claude'un önerisiyle seçildi:
+      kullanıcının iki sayısı (300 yaşında 33–34, 500 yaşında ~43) Endra'nın
+      ~20 yaşına kadar insan gibi büyüyüp sonra ~21 kat yavaş yaşlandığını
+      veriyor. 21 yaşında bu fark henüz görünmüyor; ileride Barış
+      yaşlanırken Zisa çok daha yavaş yaşlanacak. Yarı Endra'nın tam hızı
+      söylenmedi.
+    - Açık: koruma büyüsü ve Saldırı II birer End Blessing mi; bu güçlerden
+      hangisi 2. bölümde ekranda görünüyor (Ender Armblades görünecek:
+      *"o şekil bir şey gözükecek"*; hangi sahnede olduğu söylenmedi);
+      bıçak çağrılırken alın sembolü de parlıyor mu; krallıktakiler onun Endra
+      olduğunu biliyor mu (kraliyet büyücülüğü adaylığı, krallığın cadı
+      düşmanlığı); ailesinden hangisi Endra; liste bir kaynaktan mı geldi.
 - **Cadı ve büyücü:** kullanıcının sözü *"ikisi de aynı şey"*. Aradaki fark
   (cadı bir ırk, büyücü büyü yapan bir insan mı) soruldu, cevap bekliyor.
 - **Cadıların iki yolu:** **Işık Yolu** (iyi) ve **Karanlık Yolu** (kötü).
@@ -569,8 +661,8 @@ mikrofonla anlattı, özeti onayladı):**
   `red_mushroom`, `lily_pad`, `vine`). Kulübeyi kuran kod henüz yok; onaydan
   sonra `blender_film.py`'ye blok blok yapı kurucu olarak yazılır.
 
-**Hâlâ açık:** cadı soylarının bölgeleri; parça sayısı ve sınırları; başka
-eşya istenip istenmediği.
+**Hâlâ açık:** cadı soylarının bölgeleri; başka eşya istenip istenmediği.
+(Parça sayısı ve sınırları kapandı: aşağıda, 4 part kesimi.)
 
 **Mojang kısıtı (kullanıcı, 2026-10-10):** kullanıcı "Mojang'a ait hiçbir
 şey kullanmama" kararının kendisini kısıtladığını, Mojang'a yazıp izin
@@ -734,6 +826,94 @@ içinde, okunuşu yanında; doğrulanmayanlar öyle işaretli.
     yaparız"* dedi; hangisi olacağı seçilmedi.
   - Saldırı II'nin rengi: Minecraft'taki koyu kırmızı mı, Zisa'ya özgü bir
     renk mi?
+
+### 4 part kesimi ve hazır paketler (Claude'un kararı, 2026-10-19)
+
+Kullanıcı ikisini de Claude'a bıraktı. Paketler için: *"Bunu sen karar
+vereceksin, en uygununu seçmeye çalış"*. Partlar için: *"2. bölümü 4 parta
+bölmek tamam, onu da böyle yapalım"*. Hikâyeye yeni olay eklenmedi;
+yukarıdaki sahneler bölündü ve onları çizecek hazır parçalar seçildi.
+Süreler tahmin: her part senaryosu yazılırken ölçülür (tavan 73,7 sn,
+hedef ~57,5).
+
+**Kesim:** her part bir dönüş noktasında biter.
+
+| part | sahneler | biter | süre |
+|---|---|---|---|
+| **1 — Uyanış** | Barış baygın · el lambalı cadı (POV) · Satanachia geçitten girer · kulübede uyanış · ateş kitabı · ağrıların geçmesi · kulübeden çıkış, üşüme · Ömer'in odası, buz dalgası haberi · Barış Zisa'nın evinde | evde, baskından hemen önce | ~57 sn |
+| **2 — Baskın** | evde konuşma, sesler, *"saldırı var!"*, fırtına · 1. mekan sur gediği (Düşünme 1) · Barış'ın çıkışı: Antitheus, cam, atlayış · Zisa'nın koruma büyüsü | Barış koşarak sokağa girerken | ~57 sn |
+| **3 — Dip noktası** | 2. mekan sokaklar (Düşünme 2, Saldırı II) · Ömer ve buz duvarı · 3. mekan meydan (Düşünme 3–4): donma, *"Bu kadar kolaysın"*, zayıf nokta, *"O kızı da getirin"*, buzun çatlaması | 1. mekan değişimi: ateşli darbe Ice-man'i duvardan geçirir | ~57 sn |
+| **4 — Final** | 4. mekan merdivenler (Düşünme 5–6) · 2. mekan değişimi, tepenin içine düşüş · 5. mekan jeot lav çukuru (Düşünme 7), ağır çekim, Ice-man'in ölümü · ordunun dağılması | ordu dağılırken | ~57 sn |
+
+- Ömer'in buz duvarı Part 3'e, meydana kondu (Claude'un önceki önerisi);
+  yeri hâlâ kullanıcının onayını bekliyor, değişirse Part 2 ile 3 arası kayar.
+- Çizim: part başına ~390 makine-saati (1. bölümün ortalaması). Efektli
+  sahnelerde ölçülmedi; her çekimin ilk önizleme karesi ölçer.
+- Sıra: Part 1 en az efekti istiyor. Önizlemesi onaylanınca çizime girer;
+  o çizilirken Part 2'nin kurucuları (hanedan, ordu) yazılır.
+- Her partın film aracında yazılacakları (bugün yok, `FILM_YETENEK_HARITASI.md`):
+  1 — bataklık kulübesi, ışıklı harita odası, kitap ve el lambası, POV
+  bulanıklığı, görüntü titremesi, Satanachia küresi, Zisa'nın ince kollu modeli;
+  2 — hanedan (sur, köy evleri, tepe, merdiven), fırtına, ordu, ok, cam kırılması,
+  pencereden atlayış, Zisa'nın büyü işareti (perçem telleri, alın sembolü); 3 — Saldırı II, buz duvarı, kar girdabı, donma kabı, duvar
+  delinmesi; 4 — buz kaplı merdiven, Kor Yürüyüşü, Kıvılcım, yarım küre buz
+  kalkanı, buz sütunu, jeot ve lav, lavın donması.
+
+**Hazır paketler — hangi sahnede ne.** Aşağıda adı geçen her Pooka efekti
+ve MCprep TNT'si Cycles'ta tek başına çizildi (`REFERANS_HAZIR_PAKETLER.md`,
+"Cycles denemesi"); **Kenney resimleri ve MCprep yaratıkları henüz
+çizilmedi**. İlke: önce film aracında zaten olan (kıvılcım: vuruşta sarı,
+savunmada mavi; mor ışınlanma flaşı; uçan ve kırılan blok; temas sesleri),
+sonra Minecraft tarzı olan (Pooka, MCprep); Kenney yalnız ikisinde de
+karşılığı olmayan için.
+
+- **Part 1:** Satanachia'nın geçidi → Pooka **Nether geçidi parçacıkları**
+  (mor, Minecraft'taki gibi); ruhun siyah bulutlu küresi → bizim küre +
+  Kenney **siyah duman**; kulübeden çıkıştaki üşüme → çok seyrek Pooka **kar**
+  (doğudan gelen soğuk); Ömer'in ışıklı odası → Pooka **ışık huzmesi**
+  (pembe varsayılanı beyaz-sarıya çekilir) ve **alev** + meşale dumanı.
+- **Part 2:** fırtına → yoğun Pooka **kar**, Kenney **beyaz duman** (fırtına
+  duvarı), bulutta ara ara Pooka **yıldırım**; sur patlaması → Pooka
+  **patlama** (creeper başına bir) + Kenney siyah duman + filmdeki **uçan
+  blok** (moloz); Zisa'nın koruma büyüsü → Zisa'nın **alın sembolü** parlar
+  (kullanıcının kararı, Zisa bölümünde) ve Barış'ın çevresinde Pooka **iksir
+  parçacığı** (Minecraft'taki etki gibi); seken oklara filmdeki mavi
+  **savunma kıvılcımı**.
+- **Part 3:** Saldırı II → Pooka iksir parçacığı (rengi açık soru) + ağır
+  vuruşta Pooka **kritik vuruş** parçacığı + Kenney **savurma izi** (Minecraft'ın
+  süpürme vuruşu gibi); zombiler çite ve duvara çarparken qubodup **darbe
+  sesi**; Ömer'in topuzu buz duvarına → filmdeki mavi savunma kıvılcımı ve
+  **metal temas** sesi (duvar kırılmıyor, kritik vuruş parçacığı bu yüzden
+  yok); Ice-man'in her büyük büyüsü → asadaki küreden Pooka **şok halkası**
+  (camgöbeği), ardından küre söner (Zisa'nın gördüğü zayıf noktayı izleyici
+  de görür); ışınlanma → var olan mor flaş +
+  Pooka Nether geçidi parçacıkları; kar girdabı → Pooka kar taneleri bizim
+  spiralimizle + Kenney **girdap** (Pooka'nın hazır kasırgası 45 m'lik bir
+  sütun; buradaki girdap ışınlanma noktasında küçük bir ipucu); buzun
+  turuncu çatlaması → Kenney **alev** + filmdeki sarı kıvılcım; duvardan geçiş
+  → MCprep **TNT patlaması** (koyu moloz) + Pooka **duman** + filmdeki
+  **kırılan blok** (evin duvarı).
+- **Part 4:** Kor Yürüyüşü → Kenney **yanık izi** ve küçük alev + eriyen buzdan
+  Pooka meşale dumanı; Kıvılcım → Kenney **ateş izi**, çarpınca filmdeki sarı
+  kıvılcım; buz sütunu ve lavın donması → Pooka şok halkası; lav çukurunun
+  havası → Pooka **kül** (Nether'in bazalt deltalarındaki gibi); lav donunca
+  buhar → Pooka **duman** + Kenney beyaz duman; Ice-man'in düşüşü → Kenney
+  alev + filmdeki sarı kıvılcım; aşağıda dalgaları durduran Zisa → alın
+  sembolü ve iksir parçacığı (Part 2'deki gibi).
+- **Ordu:** MCprep rig'leri — iskeletler **Stray** (Minecraft'ın buz iskeleti),
+  zombiler, creeper'lar, golemler (demir golem); buzlaşmış görünüm bizim
+  malzememiz. Zombi yürüyüşü Quaternius **Zombie_Walk_Fwd_Loop**. Mojang
+  modelleri yalnız çizim makinesinde (kullanım kılavuzu kararı).
+- **Hareket (Quaternius, aktarma henüz denenmedi):** Zisa'nın ve Barış'ın büyü
+  atışı **Spell_Simple_***, pencereden atlayış **Jump_***, Ice-man'in duvardan
+  fırlatılışı **Hit_Knockback**, tepenin içine düştükten sonra kalkış
+  **LayToIdle**.
+- **Kullanılmayanlar:** JangaFX VDB'leri (gerçekçi hacim, Minecraft tarzına
+  uymuyor, Cycles CPU'da pahalı); Pooka'nın kasırgası (yazarın `Unused`
+  koleksiyonunda, 45 m'lik sütun: girdap için ölçeği yanlış); sculk ruhu
+  simülasyonu (çiziliyor ama camgöbeği; Satanachia'nın ruhu kullanıcının
+  tarifiyle siyah bulutlu küre); çağırma çemberi (şeklini bir stok resimden
+  okuyor, o resim temiz kopyadan çıkarıldığı için boş).
 
 ## Part 2 düzeltmeleri (kullanıcı, 2026-10-12 — *"bozuk bir şey sunamayız asla"*)
 
