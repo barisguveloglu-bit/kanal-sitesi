@@ -814,10 +814,58 @@ Artık `belge` denetimi onu da sayıyor.
 yeni eklenmişti ama **testi yazılmamıştı.** Özellik vardı, koruması yoktu.
 Mutasyon sınavı tam olarak bunun için var.
 
+### Otomatik mutantlar — aklına gelmeyeni bulmak
+
+Elle yazılan mutasyon, yazanın aklına gelen davranışı korur. Aklına
+gelmeyeni bulmanın yolu mutantı bir operatör kümesiyle makineye
+ürettirmektir [K5][K6]:
+
+```
+python3 .claude/mutasyon.py --otomatik 0     # hepsi
+python3 .claude/mutasyon.py --otomatik 40    # rastgele 40'lık örneklem (--tohum ile tekrarlanır)
+```
+
+Operatörler `dogrula.py`'deki her `d_*` denetimine uygulanır:
+karşılaştırmayı ters çevir (`==`↔`!=`, `<`↔`>=`, `in`↔`not in`), "ve"yi
+"veya" yap, `not`'u kaldır, `r.hata(...)` / `r.kapi(...)` çağrısını sil.
+Önce hiç bozulmamış kaynak aynı yoldan geçirilir (kontrol koşusu): o bile
+düşerse ölçüm geçersizdir, sonuç basılmaz. Her mutant kendi geçici
+kopyasında koştuğu için mutantlar birbirinden bağımsızdır; `--is` ile aynı
+anda koşarlar (varsayılan: çekirdek sayısı, en fazla 4) — mutasyon
+testinin bilinen temel sorunu maliyettir [K6].
+
+**İlk koşu: 131 mutanttan 95'i öldü (%73), 36'sı yaşadı.** Yaşayanların
+9'u eşdeğer mutanttı [K6], yani davranışı değiştirmiyordu: sadece "geçen
+denetim" sayacını oynatan `r.tamam()` dalları, sadece hata mesajının
+içeriğini değiştiren bir karşılaştırma, her zaman ikisi birden doğru olan
+koşullar (iki dosya da hep var; her altın sorunun hem satırı hem gerçeği
+var). Kalan 27'si gerçek boşluktu ve hepsi aynı türdendi: **dal yazılmış,
+hiç denenmemiş.**
+
+- `--bg` tanımı silinince kontrast denetimi hiçbir şey ölçmeden temiz
+  diyordu; o hata satırını silen mutant yaşadı.
+- Kontrast döngüsünde `in` → `not in` yaşadı: dokuz rengin hiçbiri
+  ölçülmese sınav yine yeşildi. Tek kontrast tuzağı `--text-3`'ü
+  bozuyordu, o renk kart zemininde ayrıca ölçüldüğü için yakalanıyordu.
+  Gerçek bir gerileme — kötü taraf metnine kan renginin (#c0271f, 3.35:1)
+  geri dönmesi — fark edilmeden geçerdi.
+- Kart zeminindeki ölçüm 4.51:1, sınırın hemen üstünde; o ölçümü kapatan
+  mutant da yaşıyordu.
+- CSS içinden `@import` ile dış yazı tipi, formsuz parola alanı, bozuk
+  `settings.json`, mandal ile tabanının birlikte silinmesi, eşiğin sabit
+  yerine `float("0.90")` diye yazılması (değer aynı, mandal okuyamıyor),
+  belgedeki sayı cümlelerinin biçimini kaybetmesi, belgelenmemiş komut.
+
+Her biri için bir sınav vakası yazıldı: 22 vaka, 20'si tuzak, 2'si masum.
+Masum vakalar da mutant öldürüyor: `<link rel="license">` dışarıya
+işaret eder ama bir şey yüklemez — "veya"yı "ve" yapan mutant onu dış
+kaynak sanıyordu; CSS'te sitenin kendi mutlak adresi de dış sunucu
+değildir — "ve"yi "veya" yapan mutant onu da yasaklıyordu.
+
 ## Sınırlar
 
-Bunlar tahmin değil, fay enjeksiyon sınavıyla ölçüldü: **67 vaka
-(56 yakalanmalı, 11 masum)** ve **20 altın soru**. Bu sayılar `dogrula.py`
+Bunlar tahmin değil, fay enjeksiyon sınavıyla ölçüldü: **90 vaka
+(77 yakalanmalı, 13 masum)** ve **20 altın soru**. Bu sayılar `dogrula.py`
 tarafından denetleniyor — betikler değişip belge yerinde kalırsa hata verir.
 Ölçülen iki gerçek açık vardı, ikisi de kapatıldı — biri tam olarak
 kapanamadı, aşağıda:
@@ -838,7 +886,8 @@ kapanamadı, aşağıda:
   kadar küçük olduğu sayıyla görünüyor: isabet@3 %95 ama %95 Wilson aralığı
   **[%76–%99]** [K12][K13]. Aralığın alt ucu %90 eşiğinin altında; yani 20
   soruyla "eşiğin üstündeyiz" demek istatistiksel olarak kanıtlanamıyor.
-  Parametreleri
+  Oran %95'te kalırsa bunun için yaklaşık **140 soru** gerekir: 133/140'ın
+  Wilson alt ucu %90.04. Parametreleri
   bu sete uydurarak "iyileştirmek" mümkün ve yanıltıcı — nitekim bir tarama
   tek hücrelik bir tepe gösterdi ve o tepe reddedildi, sorun yapısal
   düzeltmeyle çözüldü. Set büyüdükçe ölçüm gerçeğe yaklaşır; büyütmenin
@@ -903,6 +952,27 @@ Döngülerin içi ölçülüydü; kenarları değildi. Bu tur sistemi dışarıd
 Her birinin karşılığı yukarıda bir denetim, kanca ya da araç olarak duruyor
 ve her biri fay, araç ya da mutasyon sınavında ölçülüyor. Bu sistemin kuralı
 burada da geçerli: **eklenen her koruma, kendisini koruyan bir testle geldi.**
+
+### Üçüncü tur: kaynaklı geliştirmeler
+
+Bu tur zayıf yeri tahminle değil ölçüyle aradı ve her düzeltmeyi bir
+kaynağa bağladı. Ayrıntılar ilgili bölümlerde; özet:
+
+| Açık | Önce | Sonra | Dayanak |
+|---|---|---|---|
+| Aksansız soru ("Tesup'un zaafi nedir") | isabet@3 %60 | %95, normal soruyla aynı | [K11] |
+| Türkçe olmayan klavyede büyük harf ("AHRIMAN KIMI KILITLIYOR") | sonuç yok | ilk sonuçta doğru yer | [K11] |
+| Yazım değişmezliği ölçülmüyordu | — | 150 çift, %100 eşik | [K9][K10] |
+| Oranlar tek sayıydı | isabet@3 %95 | %95 [%76–%99] | [K12][K13] |
+| Açılış kancası defter metnini talimatla aynı kanaldan veriyordu | işaretsiz | veri bloğu, satır sınırı, şüpheli kalıp işareti | [K7][K8] |
+| Erişilebilirlikte sadece kontrast ve odak halkası ölçülüyordu | 2 ölçü | + dil, başlık, `alt`, erişilebilir ad, yakınlaştırma, başlık düzeyi | [K14][K15] |
+| Mekanizmaların dayanağı yazılı değildi | — | 20 kaynak; `belge` atıfları sayıyor | — |
+| Elle yazılan mutasyon kendi kör noktasını göremiyordu | 55 elle | + operatörle üretilen; 27 boşluk kapandı | [K5][K6] |
+
+Ölçülemeyen kısım da yazılı kalsın: değişmezlik eşiği %100 ama 150 çift
+yine aynı 20 altın sorudan türüyor — setin küçüklüğü (Sınırlar) burada da
+geçerli. Erişilebilirlik denetimi WCAG'nin makineyle ölçülebilen tabanıdır;
+klavyeyle gezinme ve ekran okuyucu deneyimi hâlâ elle denenir.
 
 ## Kaynaklar
 

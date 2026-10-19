@@ -248,6 +248,10 @@ def v_erisim_yakinlastirma_kapali(k):
     duzenle(k, "irade.html", 'content="width=device-width, initial-scale=1"',
             'content="width=device-width, initial-scale=1, user-scalable=no"')
 
+def v_erisim_bos_baslik(k):
+    """Başlık etiketi duruyor ama boş: sekme ve ekran okuyucu adsız kalır."""
+    duzenle(k, "404.html", "<title>Kayıt bulunamadı — Kanlı Göz</title>", "<title> </title>")
+
 def v_erisim_baslik_atliyor(k):
     duzenle(k, "404.html", "<h1>Bu sayfa arşivde yok</h1>",
             "<h1>Bu sayfa arşivde yok</h1>\n    <h4>Atlanan düzey</h4>")
@@ -276,6 +280,105 @@ def v_belge_denetim_tablosu(k):
     if not adet:
         raise AssertionError("DONGULER.md denetim tablosunda `gizlilik` satırı yok")
     open(p, "w", encoding="utf-8").write(yeni)
+
+# --- otomatik mutantların bulduğu boşluklar ------------------------------
+# `mutasyon.py --otomatik 0` denetleyiciyi operatörlerle bozdu; aşağıdaki her
+# vaka, sınavın hiç denemediği bir dalı deniyor. O dal silinse ya da
+# tersine çevrilse sınav yeşil kalıyordu.
+
+def _belge_kalibi_boz(k, desen, ne):
+    """Belgedeki sayı cümlesinin kalın işaretini sil: sayı yerinde, biçim yok."""
+    p = os.path.join(k, ".claude", "DONGULER.md")
+    s = open(p, encoding="utf-8").read()
+    yeni, adet = re.subn(desen, lambda m: m.group(0).replace("**", ""), s, count=1)
+    if not adet:
+        raise AssertionError(f"DONGULER.md'de {ne} cümlesi bulunamadı")
+    open(p, "w", encoding="utf-8").write(yeni)
+
+def v_video_gecerli_baglanti(k):
+    """Kısa YouTube adresi (youtu.be) biçimce geçerli — yine de insan onayı ister."""
+    duzenle(k, "assets/js/data.js", 'baslangic: { kimlik: "", baglanti: "", baslik: "" }',
+            'baslangic: { kimlik: "", baglanti: "https://youtu.be/dQw4w9WgXcQ", baslik: "" }')
+
+def v_kontrast_zemin_yok(k):
+    """Zemin rengi yoksa ölçüm yapılamaz — sessizce geçmek ölçülmüş gibi görünür."""
+    duzenle(k, "assets/css/style.css", "  --bg: #0a0a0c;\n", "")
+
+def v_kontrast_kotu_metin(k):
+    """Kötü taraf metnine kan rengi geri döndü: 3.35:1. Sadece --bg'ye karşı ölçülür."""
+    duzenle(k, "assets/css/style.css", "--kotu-metin: #e04d44;", "--kotu-metin: #c0271f;")
+
+def v_kontrast_kart_zemini(k):
+    """Kart zemini açıldı: --text-3 ana zeminde 5.0:1 geçer, kartta 4.13:1 kalır."""
+    duzenle(k, "assets/css/style.css", "--bg-3: #17171e;", "--bg-3: #1f1f28;")
+
+def v_lore_tabloda_satir_yok(k):
+    duzenle(k, "LORE.md", "| 42 | Konya | **Telipinu** |", "| 420 | Konya | **Telipinu** |")
+
+def v_veri_gecersiz_taraf(k):
+    duzenle(k, "assets/js/data.js", "unvan: \"Kanlı Göz'ün Taşıyıcısı\",\n    taraf: \"iyi\",",
+            "unvan: \"Kanlı Göz'ün Taşıyıcısı\",\n    taraf: \"kahraman\",")
+
+def v_veri_il_eksik(k):
+    duzenle(k, "assets/js/data.js",
+            '  { plaka: 42, il: "Konya", komutan: "orta", ad: "Telipinu", '
+            'kim: "öfkelenip kaybolan bereket tanrısı" },\n', "")
+
+def v_veri_olmayan_komutan(k):
+    duzenle(k, "assets/js/data.js", 'il: "Konya", komutan: "orta"', 'il: "Konya", komutan: "kuzey"')
+
+def v_gizlilik_parola(k):
+    """Form olmadan da giriş alanı eklenebilir — form denetimi bunu görmez."""
+    duzenle(k, "soru-cevap.html", "</main>",
+            '<label>Şifre <input type="password" name="sifre"></label>\n</main>')
+
+def v_gizlilik_dis_stil(k):
+    duzenle(k, "index.html", '  <link rel="stylesheet" href="assets/css/style.css">',
+            '  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter">\n'
+            '  <link rel="stylesheet" href="assets/css/style.css">')
+
+def v_gizlilik_css_import(k):
+    """Yazı tipi CSS içinden de çekilebilir — HTML'de hiçbir iz kalmaz."""
+    p = os.path.join(k, "assets", "css", "animasyon.css")
+    s = open(p, encoding="utf-8").read()
+    open(p, "w", encoding="utf-8").write(
+        '@import url("https://fonts.googleapis.com/css2?family=Inter");\n' + s)
+
+def v_kanca_bozuk_ayar(k):
+    """Bozuk JSON bütün kancaları birden kapatır."""
+    duzenle(k, ".claude/settings.json", "{", "{ bozuk,", 1)
+
+def v_mandal_arac_ve_taban_silindi(k):
+    """İkisi birden silinse de taban HEAD'de duruyor: silme yine görünür."""
+    os.remove(os.path.join(k, ".claude", "mandal.py"))
+    os.remove(os.path.join(k, ".claude", "mandal.json"))
+
+def v_mandal_bozuk_arac(k):
+    with open(os.path.join(k, ".claude", "mandal.py"), "a", encoding="utf-8") as f:
+        f.write("\ndef bozuk( sozdizimi\n")
+
+def v_mandal_esik_ifadeyle(k):
+    """Eşik sabit yerine ifadeyle yazıldı: değer aynı, ama mandal artık okuyamıyor.
+    Okunamayan ölçü korunmayan ölçüdür — sessizce geçilmemeli."""
+    duzenle(k, ".claude/degerlendir.py", "ESIK_ISABET3 = 0.90", 'ESIK_ISABET3 = float("0.90")')
+
+def v_belge_sinav_bozuk(k):
+    """Ölçülen araç bozulunca denetleyici çökmemeli, bozukluğu söylemeli."""
+    with open(os.path.join(k, ".claude", "sinav.py"), "a", encoding="utf-8") as f:
+        f.write("\ndef bozuk( sozdizimi\n")
+
+def v_belge_vaka_cumlesi_yok(k):
+    _belge_kalibi_boz(k, r"\*\*\d+ vaka\s*\n?\s*\(\d+ yakalanmalı, \d+ masum\)\*\*", "vaka sayısı")
+
+def v_belge_altin_cumlesi_yok(k):
+    _belge_kalibi_boz(k, r"\*\*\d+ altın soru\*\*", "altın soru")
+
+def v_belge_mutasyon_cumlesi_yok(k):
+    _belge_kalibi_boz(k, r"\*\*\d+ mutasyon\*\*", "mutasyon sayısı")
+
+def v_belge_belgesiz_komut(k):
+    with open(os.path.join(k, ".claude", "commands", "yeni.md"), "w", encoding="utf-8") as f:
+        f.write("# Yeni\n\nKimsenin bilmediği bir komut.\n")
 
 # --- masum vakalar: bunlar yakalanmamalı --------------------------------
 
@@ -325,6 +428,18 @@ def m_etiketli_ikon_baglanti(k):
     """Metni olmayan ama aria-label taşıyan bağlantının bir adı vardır."""
     duzenle(k, "soru-cevap.html", "</main>",
             '<a href="index.html" aria-label="Ana sayfa"><span aria-hidden="true">←</span></a>\n</main>')
+
+def m_lisans_baglantisi(k):
+    """<link rel="license"> bir şey yüklemez — dışarıya işaret eder, o kadar."""
+    duzenle(k, "index.html", '  <link rel="icon"',
+            '  <link rel="license" href="https://creativecommons.org/licenses/by/4.0/">\n'
+            '  <link rel="icon"')
+
+def m_css_kendi_adresi(k):
+    """Sitenin kendi mutlak adresi dış sunucu değildir."""
+    with open(os.path.join(k, "assets", "css", "style.css"), "a", encoding="utf-8") as f:
+        f.write('\n.kendi-adres { background: url("https://barisguveloglu-bit.github.io/'
+                'kanal-sitesi/assets/favicon.svg"); }\n')
 
 def m_yeni_karakter_lore_ile(k):
     """data.js'e karakter eklendi ve LORE.md'ye de eklendi — senkron."""
@@ -393,6 +508,27 @@ VAKALAR = [
     ("erişim: metinsiz bağlantı",         v_erisim_metinsiz_baglanti,     "erisim"),
     ("erişim: yakınlaştırma kapalı",      v_erisim_yakinlastirma_kapali,  "erisim"),
     ("erişim: başlık düzeyi atlıyor",     v_erisim_baslik_atliyor,        "erisim"),
+    ("erişim: boş sayfa başlığı",         v_erisim_bos_baslik,            "erisim"),
+    ("KAPI: geçerli youtu.be bağlantısı", v_video_gecerli_baglanti,       "video"),
+    ("kontrast: --bg tanımı silindi",     v_kontrast_zemin_yok,           "kontrast"),
+    ("kontrast: --kotu-metin kan rengi",  v_kontrast_kotu_metin,          "kontrast"),
+    ("kontrast: kart zemini açıldı",      v_kontrast_kart_zemini,         "kontrast"),
+    ("lore: il LORE tablosunda yok",      v_lore_tabloda_satir_yok,       "lore"),
+    ("veri: geçersiz taraf",              v_veri_gecersiz_taraf,          "veri"),
+    ("veri: il eksik (80/81)",            v_veri_il_eksik,                "veri"),
+    ("veri: olmayan komutana bağlı",      v_veri_olmayan_komutan,         "veri"),
+    ("gizlilik: parola alanı (formsuz)",  v_gizlilik_parola,              "gizlilik"),
+    ("gizlilik: dış stil dosyası",        v_gizlilik_dis_stil,            "gizlilik"),
+    ("gizlilik: CSS içinden @import",     v_gizlilik_css_import,          "gizlilik"),
+    ("kanca: settings.json bozuk",        v_kanca_bozuk_ayar,             "kanca"),
+    ("KAPI: mandal ve tabanı silindi",    v_mandal_arac_ve_taban_silindi, "mandal"),
+    ("mandal: araçta sözdizimi hatası",   v_mandal_bozuk_arac,            "mandal"),
+    ("mandal: eşik ifadeyle yazıldı",     v_mandal_esik_ifadeyle,         "mandal"),
+    ("belge: sinav.py bozuk",             v_belge_sinav_bozuk,            "belge"),
+    ("belge: vaka cümlesi biçimsiz",      v_belge_vaka_cumlesi_yok,       "belge"),
+    ("belge: altın soru cümlesi biçimsiz", v_belge_altin_cumlesi_yok,     "belge"),
+    ("belge: mutasyon cümlesi biçimsiz",  v_belge_mutasyon_cumlesi_yok,   "belge"),
+    ("belge: belgelenmemiş komut",        v_belge_belgesiz_komut,         "belge"),
 
     ("MASUM: hiç değişiklik yok",         m_degisiklik_yok,               None),
     ("MASUM: yorumda fetch()",            m_yorumda_fetch,                None),
@@ -406,6 +542,8 @@ VAKALAR = [
     ("KAPI: gerçek video eklendi",        m_gercek_video,                 "video"),
     ("MASUM: karakter + LORE birlikte",   m_yeni_karakter_lore_ile,       None),
     ("MASUM: belgeye alakasız cümle",     m_belge_alakasiz_duzenleme,     None),
+    ("MASUM: <link rel=license> dışarıya", m_lisans_baglantisi,           None),
+    ("MASUM: CSS'te sitenin kendi adresi", m_css_kendi_adresi,            None),
 ]
 
 
