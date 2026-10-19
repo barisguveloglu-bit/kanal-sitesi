@@ -552,6 +552,16 @@ anlatırken oradan git.
   yeni bir dövüş ya da sahne konuşulurken önce oraya bak. **Kural:** film
   aracına yeni bir hamle, efekt, kamera ya da sahne eklenince harita
   **aynı commit'te** güncellenir.
+- **Hazır paketler (v7.99.15):** `arac_kur.sh` efekt (Pooka'nın Minecraft
+  efektleri, Kenney parçacık/duman), animasyon (Quaternius UAL 1–2: yumruk,
+  yuvarlanma, kalkan, fırlatma, yerden kalkış, büyü atma) ve ses paketlerini
+  `$FILM_PAKETLER`'e (`/opt/araclar/paketler`) kurar; gerçekçi VDB patlamaları
+  yalnız `--vdb` ile. Pooka ve Quaternius gizli `already-exists` deposunun
+  `araclar` dalından iner: oturumda o depoya erişim yoksa önce `add_repo`.
+  **Hiçbiri film aracına bağlı değil**; ölçüm, izin, Mojang dokusu temizliği
+  ve 2. bölüm eşlemesi `addon/REFERANS_HAZIR_PAKETLER.md`'de. Bağlamadan önce
+  her efektten bir önizleme karesi çiz (Pooka sahnesi EEVEE'ydi, Cycles'ta
+  denenmedi).
 
 ## Animasyon serisi — LORE'dan ayrı evren (1. sezon)
 

@@ -47,6 +47,12 @@ sabiti ya da kayıtlı ölçüm.
   - şiddeti ayarlanabilen sarsıntı, görüntü titremesi;
   - kararma ve beyaz geçiş;
   - yumuşak hız rampası (`zaman` aralıkları basamak gibi değişiyor).
+- **Kurulu ama bağlı değil (v7.99.15):** ateş, duman, patlama, yıldırım,
+  kritik vuruş ve büyü parçacıkları (Pooka, Kenney), gerçekçi VDB patlamaları
+  (`--vdb`), Quaternius dövüş animasyonları (yumruk, yuvarlanma, kalkan,
+  fırlatma, yerden kalkış, büyü atma), MCprep yaratık rig'leri. Yukarıdaki
+  "Yok" maddelerinin bir kısmı bunlarla kapanabilir; film aracı henüz hiçbirini
+  okumuyor. Ölçüm ve eşleme: `REFERANS_HAZIR_PAKETLER.md`.
 
 **Kamera**
 - Hazır:

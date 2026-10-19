@@ -181,6 +181,30 @@ resmî kaynaktan indirilir, sağlama toplamıyla doğrulanır. Thomas
 paketinden yalnız iskelet `.blend`'i açılır; içindeki Mojang dokuları
 (`Steve-base.png`, vanilla zırh) alınmaz — skin her zaman bizimki.
 
+### Film için hazır paketler (v7.99.15) — depoda değil, kurulumda iner
+
+Kullanıcının isteğiyle (*"dövüş sahneleri yaparken işe yarayacak"*) ölçülüp
+kuruluma bağlandı; ölçüm ve kullanım kuralları `REFERANS_HAZIR_PAKETLER.md`.
+Hiçbiri bu depoya girmedi; `arac/arac_kur.sh` her dosyayı sabit SHA-256 ile
+doğrulayarak `/opt/araclar/paketler/` altına kurar.
+
+| paket | yapımcı | izin | nereden iner |
+|---|---|---|---|
+| Particle Pack, Smoke Particle Assets | Kenney | CC0 (kendi `License.txt`'si) | OpenGameArt |
+| Punch (yumruk sesi) | qubodup | CC0 | OpenGameArt |
+| Free EmberGen VDB'leri (4 set, `--vdb`) | JangaFX | CC0 (kendi `LICENSE.txt`'si) | jangafx.com → MediaFire |
+| Universal Animation Library 1 ve 2 [Standard] | Quaternius | CC0 (kendi `License.txt`'si) | gizli `already-exists` deposunun `araclar` dalı (itch.io makineden indirilemiyor; kullanıcı indirdi) |
+| MineCraft Effects for Blender | Th3pooka | yapımcı: *"Use it for anything ... ANY of your projects"*; yeniden dağıtım yazılı değil | **yalnız** gizli `araclar` dalı, kullanıcının onayıyla (2026-10-18) |
+
+Pooka dosyasının gizli daldaki kopyası **temizlendi**: içine gömülü Mojang
+dokuları MCprep'teki aynı adlı dokulara bağlandı, karşılığı olmayanlar,
+başkalarına ait dokular (bir arkadaşının skini, BSS/Rymdnisse/Twilight
+Forest dokuları, stok resimler) ve "Minecraft Italic" yazı tipi çıkarıldı.
+Ayrıntı ve SHA-256'lar `REFERANS_HAZIR_PAKETLER.md`'de.
+
+**Alınmadı:** BPS Rig v4 (lisans yazılı değil), Ice Cube rig (lisans
+dosyası bulunamadı).
+
 ---
 
 ## Kural
