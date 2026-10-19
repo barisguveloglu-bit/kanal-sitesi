@@ -46,6 +46,9 @@ Pages onu da yayınlıyor** (`LORE.md` ve bu dosya dahil; ayrıntı DONGULER.md
   sorulur.
 - Oturum açılırken `.claude/kanca-acilis.py` denetim sonucunu, açık hedefi,
   açık işi, açık devreyi ve bekleyen geri bildirimi bağlama koyar.
+- Yazma yetkili alt ajan ayrı çalışma ağacında (`isolation: "worktree"`)
+  ya da ayrı bulut oturumunda koşar; `.claude/kanca-gorev.py` yalıtımsız
+  yazma görevini göndermez. Ayrıntı: `/orkestra`.
 - `python3 .claude/mandal.py kontrol` — ölçü gevşedi mi (silinen vaka,
   düşen eşik, büyüyen sınır). Gevşeme insan kararıdır.
 - `python3 .claude/saglik.py --kaydet` — bütün ölçümler tek komutta;

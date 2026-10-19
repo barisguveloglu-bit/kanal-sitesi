@@ -457,6 +457,23 @@ pahalıya:
 görüntüsü) bunların hiçbirinde yok; bu site için gerekmiyor da — sayfaya
 bakmak gerekirse konteynerdeki başsız Chromium yeter.
 
+**Kural ve zorlaması.** Ajanın ortamı yetkisine göre seçilir: salt okunur
+ajan aynı konteynerde koşar; **yazma yetkili ajan ayrı çalışma ağacında**
+(ya da ayrı bulut oturumunda) koşar. Bu bir rica değil — `kanca-gorev.py`
+`YETKİ: yazma` beyanlı bir `Agent` görevini `isolation: "worktree"`
+olmadan **göndermez.** Üç ayrıntı daha mekanik:
+
+- **Ağaç dalın HEAD'inden açılır** (`settings.json` → `worktree.baseRef:
+  "head"`). Varsayılan `origin/main`'den açmaktı: ajan dalın son hâlini
+  değil, eski kodu düzenlerdi.
+- **Kirli ağaçta yazma ajanı gönderilmez.** Ayrı ağaç commit edilmemiş
+  değişikliği görmez; önce commit, sonra görev.
+- **Yazma brief'i ana deponun yolunu vermez.** "Depo: /home/…" yazan bir
+  brief, ajanı yalıtımı atlayıp doğrudan ana ağaca yazmaya çağırırdı.
+
+Değişiklik ana ağaca kendiliğinden geçmez: orkestratör ajanın ağacında
+denetimi koşturur, farkı okur, sonra birleştirir (`/orkestra` 3. adım).
+
 **Gelen — rapor makineye doğrulatılır.**
 
 ```
@@ -722,7 +739,7 @@ yakalamadığına bak. Burada **başarısızlık iyi haberdir** — mutasyon
 yakalandı demektir. Yeşil kalan bir mutasyon, "o davranışı hiçbir şey
 korumuyor" demektir.
 
-**41 mutasyon** var: kesici hiç kesmesin, yargıç uydurmayı görmesin,
+**45 mutasyon** var: kesici hiç kesmesin, yargıç uydurmayı görmesin,
 sözleşme kapısı açılsın, arama "bilmiyorum" diyemesin, ham iz özete girsin,
 denetleyici yeni dosyaya kör kalsın, mandal gevşemeyi görmesin, tur sonu
 kapısı bloklamasın, açılış bekleyen kararı göstermesin…

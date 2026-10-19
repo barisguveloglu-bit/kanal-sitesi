@@ -37,7 +37,22 @@ işlerdir, düzeltme kararı insanındır. `yazma` sadece gerçekten dosya
 değişecekse — o modda bile `git commit` ve `git push` yasak.
 
 Çıkan sözleşmeyi görevin başına koy, altına o parçaya özel ayrıntıları ekle.
-Sonra `Agent` ile gönder; bağımsız olanları **aynı anda** başlat.
+Sonra gönder; bağımsız olanları **aynı anda** başlat.
+
+**Ortamı yetki seçer:**
+
+| Görev | Nasıl gönderilir |
+|---|---|
+| `--mod okuma` (araştırma, doğrulama) | `Agent` — aynı konteyner, ek yalıtım gerekmez |
+| `--mod yazma` | `Agent` + `isolation: "worktree"` — ayrı çalışma ağacı |
+| Uzun süren iş ya da aynı anda 2+ yazma ajanı | Ayrı bulut oturumu (`create_session`) — dalı önce push et, `source_revision` olarak ver |
+
+Grafik masaüstü (computer use) bu proje için kullanılmaz; sayfaya bakmak
+gerekirse konteynerdeki başsız Chromium yeter.
+
+Yazma görevinden önce **çalışma ağacını commit et:** ayrı ağaç HEAD'den
+açılır, commit edilmemiş değişikliği görmez. Kanca hem yalıtımsız yazma
+görevini hem kirli ağaçta açılacak yazma ajanını **göndermez.**
 
 Sözleşme isteğe bağlı değil: `PreToolUse` kancası sözleşmesiz görevi
 **göndermez**, eksik kavramları söyleyip geri çevirir. Bunun sebebi basit —
@@ -55,7 +70,30 @@ python3 .claude/gorev.py dogrula --rapor <dosya> --mod okuma --deftere-yaz
 `--mod okuma` verirsen atıfların yanı sıra **yetki de denetlenir**: salt
 okunur beyan edilen ajan depoya dokunmuşsa yakalanır. Bu harness alt
 ajanın araçlarını kısıtlamaya izin vermiyor — yani gerçek ayrıcalık
-ayrımı yapılamıyor; yapılabilen, beyanı sonradan sınamak.
+ayrımı yapılamıyor; yapılabilen, beyanı sonradan sınamak ve yazma
+ajanını yalıtmak.
+
+**Yazma ajanının değişikliği kendiliğinden ana ağaca geçmez.** Ajan bir
+değişiklik bıraktıysa sonuçta ayrı ağacın yolu gelir. Ajan commit etmez
+(brief yasaklıyor), yani değişiklik o ağaçta commit edilmemiş durur.
+Almadan önce:
+
+```
+cd <ajanın ağacı> && python3 .claude/dogrula.py    # temiz olmalı
+git -C <ajanın ağacı> add -A
+git -C <ajanın ağacı> diff --cached                  # neyi değiştirdiğini kendin oku
+```
+
+Temizse ve fark brief'in kapsamındaysa ana ağaca uygula:
+
+```
+git -C <ajanın ağacı> diff --cached > /tmp/ajan.diff && git apply /tmp/ajan.diff
+```
+
+Değişiklik ana ağaçta commit edilmemiş olarak durur: tur sonu kapısı onu
+da denetler, commit her zamanki gibi kapıdan geçer. Kapsam dışı değişiklik
+varsa uygulama — yeni görev ver ya da Barış'a sor. Ayrı bulut oturumunda
+çalışan ajanın sonucu kendi dalında gelir; aynı denetim orada da geçerli.
 
 Her atıfın gerçekten o satırı gösterip göstermediğine bakar. Ajan raporu
 düzgün Türkçeyle gelir ve doğru **görünür**; en yaygın hata "dayanaklı

@@ -279,6 +279,30 @@ def m_kapi_her_git_komutunu_gonderim_saysin(kok):
             r'GONDERIM = re.compile(r"\bgit\b[^\n;&|]*\b(commit|push)\b")')
 
 
+def m_gorev_yazmayi_yalitimsiz_gondersin(kok):
+    duzenle(kok, ".claude/kanca-gorev.py",
+            "    if yalitim not in YALITIMLI:",
+            "    if False:")
+
+
+def m_gorev_kirli_agaci_gormesin(kok):
+    duzenle(kok, ".claude/kanca-gorev.py",
+            "    if kirli_agac(kok):",
+            "    if False:")
+
+
+def m_gorev_brief_ana_depoyu_versin(kok):
+    duzenle(kok, ".claude/gorev.py",
+            '    depo = KOK if a.mod != "yazma" else (',
+            "    depo = KOK if True else (")
+
+
+def m_ayar_agaci_mainden_acsin(kok):
+    duzenle(kok, ".claude/settings.json",
+            '"baseRef": "head"',
+            '"baseRef": "fresh"')
+
+
 def m_gorev_uzak_oturumu_gormesin(kok):
     """Sözleşme kancası yine sadece yerel alt ajanı dinlesin."""
     duzenle(kok, ".claude/settings.json",
@@ -384,6 +408,11 @@ MUTASYONLAR = [
     ("görev: uzak oturumu görmüyor",     m_gorev_uzak_oturumu_gormesin,      "arac-sinavi.py"),
     ("denetleyici: silinen mandala kör", m_dogrula_silinen_mandali_gormesin, "sinav.py"),
     ("kapı: her git komutu gönderim",    m_kapi_her_git_komutunu_gonderim_saysin, "arac-sinavi.py"),
+
+    ("yalıtım: yazma ajanı ana ağaçta",  m_gorev_yazmayi_yalitimsiz_gondersin, "arac-sinavi.py"),
+    ("yalıtım: kirli ağacı görmüyor",    m_gorev_kirli_agaci_gormesin,       "arac-sinavi.py"),
+    ("yalıtım: brief ana depoyu veriyor", m_gorev_brief_ana_depoyu_versin,   "arac-sinavi.py"),
+    ("yalıtım: ağaç main'den açılıyor",  m_ayar_agaci_mainden_acsin,         "arac-sinavi.py"),
 ]
 
 

@@ -57,6 +57,9 @@
       }
     ]
   },
+  "worktree": {
+    "baseRef": "head"
+  },
   "permissions": {
     "allow": [
       "Bash(python3 .claude/dogrula.py:*)",

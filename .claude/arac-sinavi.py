@@ -707,6 +707,93 @@ def t_gorev_uzak_oturum_da_sozlesmeye_tabi(kok):
     return None
 
 
+# ------------------------------------------------ yazma ajanının yalıtımı
+
+def _commitle(kok, mesaj="sinav"):
+    """Kopyanın çalışma ağacını commit et — temiz bir HEAD gerektiren vakalar için."""
+    git = ["git", "-c", "user.name=sinav", "-c", "user.email=sinav@yerel",
+           "-c", "commit.gpgsign=false"]
+    subprocess.run(git + ["add", "-A"], cwd=kok, capture_output=True, timeout=60)
+    c = subprocess.run(git + ["commit", "-qm", mesaj, "--no-verify", "--allow-empty"],
+                       cwd=kok, capture_output=True, text=True, timeout=60)
+    if c.returncode != 0:
+        raise AssertionError(f"kopyada commit olmadı: {c.stderr.strip()[:80]}")
+
+
+def _gorev_gonder(kok, mod="yazma", isolation=None, arac="Agent"):
+    brief = kos(kok, "gorev.py", "brief", "--konu", "karakter kartındaki ünvanı düzelt",
+                "--cikti", "değişen dosyaların listesi", "--mod", mod, "--baglamsiz").stdout
+    girdi = {"prompt": brief, "description": "kart düzeltme"}
+    if isolation:
+        girdi["isolation"] = isolation
+    return subprocess.run([sys.executable, os.path.join(kok, ".claude", "kanca-gorev.py")],
+                          cwd=kok, input=json.dumps({"tool_name": arac, "tool_input": girdi}),
+                          capture_output=True, text=True, timeout=60)
+
+
+def t_yalitim_yazma_ajani_yalitimsiz_gitmiyor(kok):
+    """Ana ağaçta koşan yazma ajanının hatası doğrudan ana ağaca düşer."""
+    s = _gorev_gonder(kok)
+    if s.returncode != 2:
+        return f"yalıtımsız yazma ajanı gönderildi (çıkış {s.returncode})"
+    if "worktree" not in s.stderr:
+        return "engellendi ama çözüm (isolation: worktree) söylenmedi"
+    return None
+
+
+def t_yalitim_worktree_ile_gidiyor(kok):
+    _commitle(kok)
+    s = _gorev_gonder(kok, isolation="worktree")
+    if s.returncode != 0:
+        return f"ayrı çalışma ağacındaki yazma ajanı engellendi (çıkış {s.returncode})"
+    return None
+
+
+def t_yalitim_kirli_agacta_gitmiyor(kok):
+    """Ayrı ağaç HEAD'den açılır; commit edilmemiş değişikliği görmez."""
+    _commitle(kok)
+    with open(os.path.join(kok, "README.md"), "a", encoding="utf-8") as f:
+        f.write("\ncommit edilmemiş satır\n")
+    s = _gorev_gonder(kok, isolation="worktree")
+    if s.returncode != 2:
+        return f"kirli ağaçta yazma ajanı gönderildi (çıkış {s.returncode}) — eski kodu düzenleyecek"
+    return None
+
+
+def t_yalitim_okuma_ajanina_karismiyor(kok):
+    s = _gorev_gonder(kok, mod="okuma")
+    if s.returncode != 0:
+        return f"salt okunur ajan yalıtım yüzünden engellendi (çıkış {s.returncode})"
+    return None
+
+
+def t_yalitim_uzak_oturuma_karismiyor(kok):
+    """create_session zaten ayrı bir bulut bilgisayarı açar."""
+    s = _gorev_gonder(kok, arac="mcp__claude-code-remote__create_session")
+    if s.returncode != 0:
+        return f"ayrı bulut oturumu yalıtım yüzünden engellendi (çıkış {s.returncode})"
+    return None
+
+
+def t_yalitim_brief_ana_depoyu_vermiyor(kok):
+    """Yazma brief'i ana depo yolunu 'çalışacağın yer' diye vermemeli."""
+    o = kos(kok, "gorev.py", "brief", "--konu", "x", "--mod", "okuma", "--baglamsiz").stdout
+    y = kos(kok, "gorev.py", "brief", "--konu", "x", "--mod", "yazma", "--baglamsiz").stdout
+    if f"Depo: {kok}" not in o:
+        return "okuma brief'i depo yolunu vermiyor (vaka bayatlamış)"
+    if f"Depo: {kok}" in y:
+        return "yazma brief'i ana depoyu çalışma yeri olarak veriyor — yalıtım delinir"
+    return None
+
+
+def t_yalitim_agac_headden_aciliyor(kok):
+    """Varsayılan (fresh) ağaç origin/main'den açılır: ajan eski kodu düzenler."""
+    ayar = json.load(open(os.path.join(kok, ".claude", "settings.json"), encoding="utf-8"))
+    if (ayar.get("worktree") or {}).get("baseRef") != "head":
+        return "ayrı çalışma ağacı dalın HEAD'inden açılmıyor"
+    return None
+
+
 # --------------------------------------------- kapı kancası (tur sonu, commit)
 
 def _degistir(kok, yol, eski, yeni):
@@ -875,13 +962,7 @@ def _mandal_taban(kok):
     s = kos(kok, "mandal.py", "kaydet")
     if s.returncode != 0:
         raise AssertionError(f"taban alınamadı: {s.stdout.strip()[:80]}")
-    git = ["git", "-c", "user.name=sinav", "-c", "user.email=sinav@yerel",
-           "-c", "commit.gpgsign=false"]
-    subprocess.run(git + ["add", "-A"], cwd=kok, capture_output=True, timeout=60)
-    c = subprocess.run(git + ["commit", "-qm", "sinav tabani", "--no-verify"],
-                       cwd=kok, capture_output=True, text=True, timeout=60)
-    if c.returncode != 0:
-        raise AssertionError(f"kopyada commit olmadı: {c.stderr.strip()[:80]}")
+    _commitle(kok, "sinav tabani")
 
 
 def t_mandal_gevsemeyi_yakaliyor(kok):
@@ -1029,6 +1110,14 @@ VAKALAR = [
     ("geri bildirim: kaynaksızı insana bırakıyor", t_geribildirim_kaynaksizi_insana_biraktiyor),
 
     ("görev: uzak oturum da sözleşmeye tabi", t_gorev_uzak_oturum_da_sozlesmeye_tabi),
+
+    ("yalıtım: yazma ajanı yalıtımsız gitmiyor", t_yalitim_yazma_ajani_yalitimsiz_gitmiyor),
+    ("yalıtım: ayrı ağaçla gidiyor",        t_yalitim_worktree_ile_gidiyor),
+    ("yalıtım: kirli ağaçta gitmiyor",      t_yalitim_kirli_agacta_gitmiyor),
+    ("yalıtım: okuma ajanına karışmıyor",   t_yalitim_okuma_ajanina_karismiyor),
+    ("yalıtım: uzak oturuma karışmıyor",    t_yalitim_uzak_oturuma_karismiyor),
+    ("yalıtım: brief ana depoyu vermiyor",  t_yalitim_brief_ana_depoyu_vermiyor),
+    ("yalıtım: ağaç HEAD'den açılıyor",     t_yalitim_agac_headden_aciliyor),
 
     ("kapı: Bash'le bozulan tur bitmiyor",  t_kapi_tur_sonu_kirmiziyi_durduruyor),
     ("kapı: ikinci kez bloklamıyor",        t_kapi_tur_sonu_ikinci_kez_bloklamiyor),
