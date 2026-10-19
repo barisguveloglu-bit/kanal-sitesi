@@ -895,6 +895,23 @@ Mutasyon skoru eşdeğer mutantları paydadan çıkarır [K6]. Çıkış kodu ar
 anlam taşıyor: `0` yaşayan her mutant kayıtlı eşdeğer, `3` yeni bir
 yaşayan (ya da bozuk kayıt) var.
 
+**Son koşu (149 nokta): 145/145 öldü (%100)**, 4 kayıtlı eşdeğer paydadan
+çıkarıldı, çıkış `0`. Süre 18 dakikadan **9 dakikaya** indi (aynı makine,
+4 paralel kopya). Eşdeğerler paydadan çıkarılınca üç koşunun skoru:
+%78 → %99 → %100.
+
+**Aracın kendi açığı.** Ardından koşan tam sağlık ölçümü kırmızı çıktı:
+yeni yazılan iki elle mutasyon "kaçtı". Kusur testlerde değil araçtaydı.
+İkisi de `mutasyon.py`'nin kendisini bozuyordu ve aradıkları metin kendi
+tanımlarında dize olarak da geçiyordu; `duzenle` ilk eşleşmeyi
+değiştirdiği için kodu değil kendi dizesini bozdu — mutasyon hiç
+uygulanmadı. Bütün mutasyonların hedefleri sayılınca üçüncü bir belirsiz
+hedef çıktı: `erisim` eklenince "yeni dosyaya kör" mutasyonunun hedefi iki
+yerde geçer olmuştu ve doğru yere sadece sıra şansıyla düşüyordu.
+`duzenle` artık hedefin **tam bir kez** geçmesini şart koşuyor; belirsiz
+hedef sessizce yanlış yere düşmek yerine "uygulanamadı" diye sayılır.
+`arac-sinavi.py` bu kuralı da sınıyor.
+
 ## Sınırlar
 
 Bunlar tahmin değil, fay enjeksiyon sınavıyla ölçüldü: **90 vaka
@@ -1000,7 +1017,7 @@ kaynağa bağladı. Ayrıntılar ilgili bölümlerde; özet:
 | Açılış kancası defter metnini talimatla aynı kanaldan veriyordu | işaretsiz | veri bloğu, satır sınırı, şüpheli kalıp işareti | [K7][K8] |
 | Erişilebilirlikte sadece kontrast ve odak halkası ölçülüyordu | 2 ölçü | + dil, başlık, `alt`, erişilebilir ad, yakınlaştırma, başlık düzeyi | [K14][K15] |
 | Mekanizmaların dayanağı yazılı değildi | — | 20 kaynak; `belge` atıfları sayıyor | — |
-| Elle yazılan mutasyon kendi kör noktasını göremiyordu | 45 elle yazılmış | 58 elle + 149 noktada operatörle üretilen; yaşayan her mutant ya vakayla kapandı ya gerekçeli eşdeğer | [K5][K6] |
+| Elle yazılan mutasyon kendi kör noktasını göremiyordu | 45 elle yazılmış | 58 elle + 149 noktada operatörle üretilen; skor %78 → %100, yaşayan her mutant gerekçeli eşdeğer | [K5][K6] |
 
 Ölçülemeyen kısım da yazılı kalsın: değişmezlik eşiği %100 ama 150 çift
 yine aynı 20 altın sorudan türüyor — setin küçüklüğü (Sınırlar) burada da

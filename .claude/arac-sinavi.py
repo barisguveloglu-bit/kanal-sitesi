@@ -799,6 +799,19 @@ def t_sinav_ilk_hatada_duruyor(kok):
     return None
 
 
+def t_mutasyon_belirsiz_hedefi_reddediyor(kok):
+    """İki yerde geçen hedefin ilkini değiştirmek mutasyonu sessizce boşa
+    düşürebilir — nitekim düşürdü. Belirsiz hedef reddedilmeli."""
+    m = _mutasyon_modulu(kok)
+    with open(os.path.join(kok, "belirsiz.txt"), "w", encoding="utf-8") as f:
+        f.write("x = 1\nx = 1\n")
+    try:
+        m.duzenle(kok, "belirsiz.txt", "x = 1", "x = 2")
+    except AssertionError:
+        return None
+    return "iki yerde geçen hedef sessizce ilk eşleşmede değiştirildi"
+
+
 # ------------------------------------------------ yazma ajanının yalıtımı
 
 def _commitle(kok, mesaj="sinav"):
@@ -1251,6 +1264,7 @@ VAKALAR = [
     ("otomatik: eşdeğer kaydı ayırıyor",    t_otomatik_esdeger_kaydi_ayiriyor),
     ("otomatik: eşdeğer kaydı bayat değil", t_otomatik_esdeger_kaydi_bayat_degil),
     ("sınav: ilk hatada duruyor",           t_sinav_ilk_hatada_duruyor),
+    ("mutasyon: belirsiz hedef reddediliyor", t_mutasyon_belirsiz_hedefi_reddediyor),
 
     ("yalıtım: yazma ajanı yalıtımsız gitmiyor", t_yalitim_yazma_ajani_yalitimsiz_gitmiyor),
     ("yalıtım: ayrı ağaçla gidiyor",        t_yalitim_worktree_ile_gidiyor),

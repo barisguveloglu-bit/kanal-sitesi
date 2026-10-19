@@ -57,8 +57,14 @@ def duzenle(kok, yol, eski, yeni):
     p = os.path.join(kok, yol)
     with open(p, encoding="utf-8") as f:
         s = f.read()
-    if eski not in s:
-        raise AssertionError(f"mutasyon uygulanamadı: {yol} içinde yok → {eski[:70]!r}")
+    # Hedef tam bir kez geçmeli. Birden fazla yerde geçen hedefin ilkini
+    # değiştirmek mutasyonu sessizce yanlış yere düşürebilir — nitekim
+    # düşürdü: mutasyon.py'yi bozan iki mutasyon, hedef metni kendi
+    # tanımlarında bulup kodu değil kendi dizelerini değiştiriyordu.
+    adet = s.count(eski)
+    if adet != 1:
+        ne = "yok" if adet == 0 else f"{adet} yerde geçiyor, hedef belirsiz"
+        raise AssertionError(f"mutasyon uygulanamadı: {yol} içinde {ne} → {eski[:70]!r}")
     with open(p, "w", encoding="utf-8") as f:
         f.write(s.replace(eski, yeni, 1))
 
@@ -166,9 +172,11 @@ def m_dogrula_odagi_gormesin(kok):
 def m_dogrula_yeni_dosyaya_kor(kok):
     """Elle yazılmış dosya listesine geri dön — goz.js yine kör noktada."""
     duzenle(kok, ".claude/dogrula.py",
-            '    for dosya in varlik_dosyalari("js", ".js"):\n        js = js_yorumlari_at(oku(dosya))',
+            '    for dosya in varlik_dosyalari("js", ".js"):\n        js = js_yorumlari_at(oku(dosya))\n'
+            '        for eslesme in re.finditer(r"style',
             '    for dosya in ("assets/js/app.js", "assets/js/animasyon.js", "assets/js/gizli.js"):\n'
-            '        js = js_yorumlari_at(oku(dosya))')
+            '        js = js_yorumlari_at(oku(dosya))\n'
+            '        for eslesme in re.finditer(r"style')
 
 
 def m_dogrula_veri_kanallarina_kor(kok):
@@ -375,15 +383,17 @@ def m_dogrula_tanimsiz_atifa_kor(kok):
             "    for no in []:")
 
 
+# Bu dosyayı bozan mutasyonlarda hedef dize parça parça yazılır: düz
+# yazılsa tanımın kendisi de eşleşir ve hedef belirsizleşir.
 def m_otomatik_suzgec_her_kosulu_yutsun(kok):
     duzenle(kok, ".claude/mutasyon.py",
-            "        if not dugum.orelse and all(map(_tamam_mi, dugum.body)):",
+            "        if not dugum.orelse and all(map(" "_tamam_mi, dugum.body)):",
             "        if True:")
 
 
 def m_otomatik_esdeger_kaydi_hepsini_affetsin(kok):
     duzenle(kok, ".claude/mutasyon.py",
-            "    bilinmeyen = [n for n in hayatta if nokta_anahtari(n) not in kayit]",
+            "    bilinmeyen = [n for n in hayatta if " "nokta_anahtari(n) not in kayit]",
             "    bilinmeyen = []")
 
 
