@@ -17,9 +17,9 @@ harici kural setine test ettir.
 python3 .claude/dogrula.py
 ```
 
-On altı başlık denetlenir: `menu`, `harita`, `gizleme`, `odak`, `defer`,
-`sahte`, `video`, `kontrast`, `lore`, `veri`, `gizlilik`, `baglanti`,
-`capa`, `kanca`, `mandal`, `belge`. Her birinin neye baktığı
+On yedi başlık denetlenir: `menu`, `harita`, `gizleme`, `odak`, `defer`,
+`sahte`, `video`, `kontrast`, `lore`, `veri`, `gizlilik`, `erisim`,
+`baglanti`, `capa`, `kanca`, `mandal`, `belge`. Her birinin neye baktığı
 `.claude/DONGULER.md` denetim tablosunda.
 Tek başlık için: `python3 .claude/dogrula.py kontrast`
 

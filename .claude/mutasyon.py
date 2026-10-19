@@ -35,11 +35,14 @@ Yeşil kalan bir mutasyon, "o davranışı hiçbir şey korumuyor" demektir.
 """
 
 import argparse
+import ast
 import os
+import random
 import shutil
 import subprocess
 import sys
 import tempfile
+from concurrent.futures import ThreadPoolExecutor
 
 KAYNAK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -303,6 +306,69 @@ def m_ayar_agaci_mainden_acsin(kok):
             '"baseRef": "fresh"')
 
 
+def m_ara_aksani_katlamasin(kok):
+    """Aksan katlaması yokken aksansız yazılan soruların %40'ı kayboluyordu."""
+    duzenle(kok, ".claude/ara.py",
+            '    kelimeler = re.findall(r"[0-9a-z]+", katla(metin))',
+            '    kelimeler = re.findall(r"[0-9a-zçğıöşü]+", turkce_kucult(metin))')
+
+
+def m_degerlendir_wald_aralik(kok):
+    """Wilson merkezi yerine p: küçük n'de güvenilmez Wald aralığına döner."""
+    duzenle(kok, ".claude/degerlendir.py",
+            "    return max(0.0, merkez - yari), min(1.0, merkez + yari)",
+            "    return max(0.0, p - yari), min(1.0, p + yari)")
+
+
+def m_acilis_veriyi_ayirmasin(kok):
+    """Defter metni yine özetin arasına, talimat gibi karışsın."""
+    duzenle(kok, ".claude/kanca-acilis.py",
+            "        ozet += [VERI_BASI] + veri[:yer] + [VERI_SONU]",
+            "        ozet += veri[:yer]")
+
+
+def m_acilis_satiri_kirpmasin(kok):
+    duzenle(kok, ".claude/kanca-acilis.py", "SATIR_SINIRI = 160", "SATIR_SINIRI = 10 ** 6")
+
+
+def m_acilis_kapanisi_etkisizlestirmesin(kok):
+    duzenle(kok, ".claude/kanca-acilis.py",
+            '    satir = satir.replace("---", "—")',
+            "    satir = satir")
+
+
+def m_dogrula_dile_kor(kok):
+    duzenle(kok, ".claude/dogrula.py",
+            """        if not re.search(r'<html\\b[^>]*\\blang\\s*=\\s*"tr"', html):""",
+            "        if False:")
+
+
+def m_dogrula_baslik_sirasina_kor(kok):
+    duzenle(kok, ".claude/dogrula.py",
+            "            if onceki and duzey > onceki + 1:",
+            "            if False:")
+
+
+def m_dogrula_sablon_gorseline_kor(kok):
+    duzenle(kok, ".claude/dogrula.py",
+            '            if not re.search(r"\\balt\\s*=", etiket.group(0)):\n'
+            "                satir = js[:etiket.start()]",
+            "            if False:\n"
+            "                satir = js[:etiket.start()]")
+
+
+def m_dogrula_adsiz_ogeye_kor(kok):
+    duzenle(kok, ".claude/dogrula.py",
+            "                if not metin.strip() and not re.search(",
+            "                if False and not re.search(")
+
+
+def m_dogrula_tanimsiz_atifa_kor(kok):
+    duzenle(kok, ".claude/dogrula.py",
+            "    for no in sorted(kullanilan - set(tanimli)):",
+            "    for no in []:")
+
+
 def m_gorev_uzak_oturumu_gormesin(kok):
     """Sözleşme kancası yine sadece yerel alt ajanı dinlesin."""
     duzenle(kok, ".claude/settings.json",
@@ -413,6 +479,20 @@ MUTASYONLAR = [
     ("yalıtım: kirli ağacı görmüyor",    m_gorev_kirli_agaci_gormesin,       "arac-sinavi.py"),
     ("yalıtım: brief ana depoyu veriyor", m_gorev_brief_ana_depoyu_versin,   "arac-sinavi.py"),
     ("yalıtım: ağaç main'den açılıyor",  m_ayar_agaci_mainden_acsin,         "arac-sinavi.py"),
+
+    ("arama: aksanı katlamıyor",         m_ara_aksani_katlamasin,            "degerlendir.py"),
+    ("istatistik: Wald aralığına döndü", m_degerlendir_wald_aralik,          "arac-sinavi.py"),
+
+    ("açılış: veri ayrılmıyor",          m_acilis_veriyi_ayirmasin,          "arac-sinavi.py"),
+    ("açılış: satır kırpılmıyor",        m_acilis_satiri_kirpmasin,          "arac-sinavi.py"),
+    ("açılış: blok içeriden kapanıyor",  m_acilis_kapanisi_etkisizlestirmesin, "arac-sinavi.py"),
+
+    ("erişim: sayfa diline kör",         m_dogrula_dile_kor,                 "sinav.py"),
+    ("erişim: başlık sırasına kör",      m_dogrula_baslik_sirasina_kor,      "sinav.py"),
+    ("erişim: şablon görseline kör",     m_dogrula_sablon_gorseline_kor,     "sinav.py"),
+    ("erişim: adsız öğeye kör",          m_dogrula_adsiz_ogeye_kor,          "sinav.py"),
+
+    ("kaynakça: tanımsız atıfa kör",     m_dogrula_tanimsiz_atifa_kor,       "sinav.py"),
 ]
 
 
@@ -421,40 +501,219 @@ def kos(kok, betik):
                           cwd=kok, capture_output=True, text=True, timeout=300)
 
 
+def kopyada_dene(degistir, sinav):
+    """Deponun kopyasında değişikliği uygula, sınavı koş, sonucu döndür.
+
+    Dönüş: ("yakalandi" | "kacti" | "hata", ayrıntı)
+    """
+    gecici = tempfile.mkdtemp()
+    kok = os.path.join(gecici, "depo")
+    try:
+        shutil.copytree(KAYNAK, kok)
+        durum = os.path.join(kok, ".claude", "devre-durumu.json")
+        if os.path.exists(durum):
+            os.remove(durum)
+        degistir(kok)
+        sonuc = kos(kok, sinav)
+        return ("yakalandi" if sonuc.returncode != 0 else "kacti"), ""
+    except AssertionError as e:
+        return "hata", str(e)
+    except Exception as e:
+        return "hata", f"{type(e).__name__}: {e}"
+    finally:
+        shutil.rmtree(gecici, ignore_errors=True)
+
+
+def paralel(isler, is_sayisi):
+    """Bağımsız kopyalarda koşan işleri aynı anda yürütür, SIRAYI korur.
+
+    Mutasyon testinin bilinen temel sorunu maliyettir [K6]: her mutant bir
+    sınav koşusu demek. Her mutant kendi geçici kopyasında koştuğu için
+    birbirinden bağımsız — aynı anda koşturmak sonucu değiştirmez, süreyi
+    kısaltır.
+    """
+    with ThreadPoolExecutor(max_workers=max(1, is_sayisi)) as havuz:
+        return list(havuz.map(lambda f: f(), isler))
+
+
+# ------------------------------------------------------- otomatik mutantlar
+# Elle yazılan mutasyonlar, yazanın aklına gelen davranışları korur. Aklına
+# GELMEYENİ bulmanın yolu, mutantı bir operatör kümesiyle makineye
+# ürettirmek [K5][K6]: her karşılaştırmayı ters çevir, her "ve"yi "veya"
+# yap, her "değil"i kaldır, her hata bildirimini sil — ve sınavın her birini
+# yakalayıp yakalamadığına bak.
+#
+# Hayatta kalan bir mutant iki şeyden biridir: ya hiçbir testin korumadığı
+# bir davranış, ya da programın davranışını hiç değiştirmeyen "eşdeğer" bir
+# mutant. Eşdeğer mutant sorunu mutasyon testinin bilinen temel
+# sorunlarından biri [K6]; ikisini ayırmak insan işi. Bu yüzden hayatta
+# kalan mutant hata değil, insan kapısıdır (çıkış 3).
+
+KARSILASTIRMA = {
+    ast.Eq: ast.NotEq, ast.NotEq: ast.Eq, ast.Lt: ast.GtE, ast.GtE: ast.Lt,
+    ast.Gt: ast.LtE, ast.LtE: ast.Gt, ast.In: ast.NotIn, ast.NotIn: ast.In,
+    ast.Is: ast.IsNot, ast.IsNot: ast.Is,
+}
+OTOMATIK_DOSYA = ".claude/dogrula.py"
+OTOMATIK_ONEK = "d_"          # sadece denetim fonksiyonları
+OTOMATIK_SINAV = "sinav.py"
+
+
+class _Mutator(ast.NodeTransformer):
+    """Hedef fonksiyonlardaki mutasyon noktalarını sırayla sayar.
+
+    hedef=None: sadece sayar ve listeler. hedef=k: k numaralı noktayı değiştirir.
+    Sayma sırası her ayrıştırmada aynıdır; numara iki koşu arasında aynı
+    noktayı gösterir (kod değişmedikçe).
+    """
+
+    def __init__(self, onek, hedef=None):
+        self.onek, self.hedef, self.sayac = onek, hedef, 0
+        self.noktalar = []   # (fonksiyon, satır, açıklama)
+        self._fonksiyon = None
+
+    def visit_FunctionDef(self, dugum):
+        if not dugum.name.startswith(self.onek):
+            return dugum
+        onceki, self._fonksiyon = self._fonksiyon, dugum.name
+        self.generic_visit(dugum)
+        self._fonksiyon = onceki
+        return dugum
+
+    def _nokta(self, dugum, aciklama):
+        if self._fonksiyon is None:
+            return False
+        no, self.sayac = self.sayac, self.sayac + 1
+        self.noktalar.append((self._fonksiyon, getattr(dugum, "lineno", 0), aciklama))
+        return no == self.hedef
+
+    def visit_Compare(self, dugum):
+        self.generic_visit(dugum)
+        if len(dugum.ops) == 1 and type(dugum.ops[0]) in KARSILASTIRMA:
+            yeni = KARSILASTIRMA[type(dugum.ops[0])]
+            if self._nokta(dugum, f"{type(dugum.ops[0]).__name__} → {yeni.__name__}"):
+                dugum.ops = [yeni()]
+        return dugum
+
+    def visit_BoolOp(self, dugum):
+        self.generic_visit(dugum)
+        yeni = ast.Or if isinstance(dugum.op, ast.And) else ast.And
+        if self._nokta(dugum, f"{type(dugum.op).__name__} → {yeni.__name__}"):
+            dugum.op = yeni()
+        return dugum
+
+    def visit_UnaryOp(self, dugum):
+        self.generic_visit(dugum)
+        if isinstance(dugum.op, ast.Not) and self._nokta(dugum, "not kaldırıldı"):
+            return dugum.operand
+        return dugum
+
+    def visit_Expr(self, dugum):
+        self.generic_visit(dugum)
+        c = dugum.value
+        if (isinstance(c, ast.Call) and isinstance(c.func, ast.Attribute)
+                and c.func.attr in ("hata", "kapi")
+                and isinstance(c.func.value, ast.Name) and c.func.value.id == "r"
+                and self._nokta(dugum, f"r.{c.func.attr}(...) silindi")):
+            return ast.Pass()
+        return dugum
+
+
+def otomatik_noktalar(metin):
+    m = _Mutator(OTOMATIK_ONEK)
+    m.visit(ast.parse(metin))
+    return m.noktalar
+
+
+def otomatik_mutant(metin, no):
+    """no numaralı noktası değiştirilmiş kaynak. no=None: değiştirilmemiş
+    ama aynı yoldan (ayrıştır → yeniden yaz) geçmiş kaynak — kontrol koşusu."""
+    agac = _Mutator(OTOMATIK_ONEK, hedef=no).visit(ast.parse(metin))
+    return ast.unparse(ast.fix_missing_locations(agac))
+
+
+def otomatik(secim):
+    with open(os.path.join(KAYNAK, OTOMATIK_DOSYA), encoding="utf-8") as f:
+        metin = f.read()
+    noktalar = otomatik_noktalar(metin)
+    sira = list(range(len(noktalar)))
+    if secim.otomatik and secim.otomatik < len(sira):
+        sira = sorted(random.Random(secim.tohum).sample(sira, secim.otomatik))
+
+    def yazici(icerik):
+        def degistir(kok):
+            with open(os.path.join(kok, OTOMATIK_DOSYA), "w", encoding="utf-8") as f:
+                f.write(icerik)
+        return degistir
+
+    # Kontrol: yeniden yazma yolu tek başına sınavı düşürüyorsa her mutant
+    # "yakalandı" görünür — ölçü anlamsızlaşır. Önce yolun temiz olduğunu gör.
+    kontrol, ayrinti = kopyada_dene(yazici(otomatik_mutant(metin, None)), OTOMATIK_SINAV)
+    if kontrol != "kacti":
+        print(f"KONTROL DÜŞTÜ: değiştirilmemiş kaynak yeniden yazılınca "
+              f"{OTOMATIK_SINAV} geçmedi ({kontrol} {ayrinti}). Ölçüm yapılamaz.")
+        return 1
+
+    isler = []
+    for no in sira:
+        icerik = otomatik_mutant(metin, no)
+        try:
+            compile(icerik, OTOMATIK_DOSYA, "exec")
+        except SyntaxError:
+            isler.append(lambda: ("hata", "geçersiz mutant"))
+            continue
+        isler.append(lambda d=yazici(icerik): kopyada_dene(d, OTOMATIK_SINAV))
+    sonuclar = paralel(isler, secim.is_sayisi)
+
+    olen = sum(1 for d, _ in sonuclar if d == "yakalandi")
+    hayatta = [(noktalar[no], ayr) for no, (d, ayr) in zip(sira, sonuclar) if d == "kacti"]
+    gecersiz = sum(1 for d, _ in sonuclar if d == "hata")
+    print(f"Otomatik mutantlar — {OTOMATIK_DOSYA}, {OTOMATIK_ONEK}* fonksiyonları: "
+          f"{len(noktalar)} nokta, {len(sira)} denendi (tohum {secim.tohum}).")
+    for (fonk, satir, aciklama), _ in hayatta:
+        print(f"  HAYATTA  {fonk}:{satir:<5} {aciklama}")
+    gecerli = len(sira) - gecersiz
+    print(f"\nSkor: {olen}/{gecerli} mutant öldürüldü"
+          + (f" (%{100 * olen / gecerli:.0f})" if gecerli else "")
+          + (f", {gecersiz} geçersiz mutant atlandı" if gecersiz else "") + ".")
+    if hayatta:
+        print(f"{len(hayatta)} mutant hayatta. Her biri ya eksik bir test ya da "
+              "davranışı değiştirmeyen\n(eşdeğer) bir mutant — ayırmak insan işi. "
+              "Eksik testse sinav.py'ye vaka ekle.")
+        return 3
+    return 0
+
+
 def main(argv):
     a = argparse.ArgumentParser(description="Testler gerçekten canlı mı.")
     a.add_argument("--ayrinti", action="store_true")
+    a.add_argument("--is", dest="is_sayisi", type=int,
+                   default=min(4, os.cpu_count() or 1),
+                   help="aynı anda koşacak kopya sayısı")
+    a.add_argument("--otomatik", type=int, default=None, metavar="N",
+                   help="elle yazılanlar yerine N otomatik mutant dene (0 = hepsi)")
+    a.add_argument("--tohum", type=int, default=0)
     secim = a.parse_args(argv)
 
-    yakalandi = kacti = hata = 0
-    for ad, mutasyon, sinav in MUTASYONLAR:
-        gecici = tempfile.mkdtemp()
-        kok = os.path.join(gecici, "depo")
-        try:
-            shutil.copytree(KAYNAK, kok)
-            durum = os.path.join(kok, ".claude", "devre-durumu.json")
-            if os.path.exists(durum):
-                os.remove(durum)
-            mutasyon(kok)
-            sonuc = kos(kok, sinav)
+    if secim.otomatik is not None:
+        return otomatik(secim)
 
-            if sonuc.returncode != 0:
-                yakalandi += 1
-                if secim.ayrinti:
-                    print(f"  OK   {ad:36} → {sinav} düştü")
-            else:
-                kacti += 1
-                print(f"  KAÇTI {ad:35} → {sinav} YEŞİL KALDI")
-                print(f"        Bu davranışı hiçbir test korumuyor. "
-                      f"{sinav} dosyasına vaka ekle.")
-        except AssertionError as e:
+    sonuclar = paralel([lambda m=m, s=s: kopyada_dene(m, s) for _, m, s in MUTASYONLAR],
+                       secim.is_sayisi)
+    yakalandi = kacti = hata = 0
+    for (ad, _, sinav), (durum, ayrinti) in zip(MUTASYONLAR, sonuclar):
+        if durum == "yakalandi":
+            yakalandi += 1
+            if secim.ayrinti:
+                print(f"  OK   {ad:36} → {sinav} düştü")
+        elif durum == "kacti":
+            kacti += 1
+            print(f"  KAÇTI {ad:35} → {sinav} YEŞİL KALDI")
+            print(f"        Bu davranışı hiçbir test korumuyor. "
+                  f"{sinav} dosyasına vaka ekle.")
+        else:
             hata += 1
-            print(f"  ??   {ad:36} → {e}")
-        except Exception as e:
-            hata += 1
-            print(f"  ??   {ad:36} → {type(e).__name__}: {e}")
-        finally:
-            shutil.rmtree(gecici, ignore_errors=True)
+            print(f"  ??   {ad:36} → {ayrinti}")
 
     toplam = len(MUTASYONLAR)
     print(f"\n{yakalandi}/{toplam} mutasyon yakalandı.")

@@ -49,7 +49,7 @@ GECMIS = os.path.join(KOK, ".claude", "saglik-gecmisi.jsonl")
 # Sayımlar (kaç vaka, kaç denetim) burada YOK: içerik değişince doğal olarak
 # oynarlar ve gürültü üretirler; düşmelerini mandal.py zaten yakalıyor.
 IZLENEN = ("degerlendir.isabet1", "degerlendir.isabet3",
-           "degerlendir.mrr", "degerlendir.kapsama")
+           "degerlendir.mrr", "degerlendir.kapsama", "degerlendir.degismezlik")
 
 
 def _yuzde(metin, etiket):
@@ -75,7 +75,8 @@ def ayristir_sinav(cikti):
 def ayristir_degerlendir(cikti):
     o = {"degerlendir.isabet1": _yuzde(cikti, "isabet@1"),
          "degerlendir.isabet3": _yuzde(cikti, "isabet@3"),
-         "degerlendir.kapsama": _yuzde(cikti, "gerçek kapsama")}
+         "degerlendir.kapsama": _yuzde(cikti, "gerçek kapsama"),
+         "degerlendir.degismezlik": _yuzde(cikti, "değişmezlik")}
     m = re.search(r"MRR\s+([0-9.]+)", cikti)
     if m:
         o["degerlendir.mrr"] = float(m.group(1))

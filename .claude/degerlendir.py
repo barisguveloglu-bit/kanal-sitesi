@@ -32,6 +32,7 @@ farklı:
 
 import argparse
 import json
+import math
 import os
 import sys
 
@@ -49,6 +50,41 @@ ESIK_KONU_DISI = 1.00
 ESIK_CEVAPSIZ = 1.00
 
 SAYI = 3
+
+# Değişmezlik (metamorfik) sınavı [K9][K10]: aynı soru farklı yazılınca
+# aynı yere varmalı. Soru-cevap YouTube yorumlarında yapılıyor ve oradaki
+# yazım çeşitliliği gerçek: Türkçe karakter kullanmamak, caps lock,
+# noktalama, fazladan boşluk. Bunların hiçbiri sorunun ANLAMINI değiştirmez;
+# değiştirdiği tek şey arayanın klavyesi. Sonuç değişirse kusur aramadadır.
+#
+# Bu sınav ilk koşusunda gerçek bir açık buldu: aksansız yazılan altın
+# sorularda isabet@3 %95'ten %60'a düşüyordu (bkz. ara.py, KATLAMA).
+DONUSUMLER = (
+    ("aksansız", lambda s: s.translate(str.maketrans("çğıöşüÇĞİÖŞÜâîû",
+                                                     "cgiosuCGIOSUaiu"))),
+    ("büyük harf (Türkçe klavye)", lambda s: s.replace("i", "İ").replace("ı", "I").upper()),
+    ("büyük harf (Türkçe olmayan klavye)", str.upper),
+    ("noktalama", lambda s: s + "?!"),
+    ("fazla boşluk", lambda s: "  " + "   ".join(s.split()) + " "),
+)
+ESIK_DEGISMEZLIK = 1.00
+
+
+def wilson(basari, n, z=1.96):
+    """%95 Wilson skor aralığı [K12][K13].
+
+    Altın set 20 soru: tek soru beş puan. Bir oranı aralıksız yazmak,
+    olduğundan kesin göstermek demek. Küçük n'de yaygın "p ± 1.96·√(p(1-p)/n)"
+    (Wald) aralığı güvenilmez — 19/20 için [0.85, 1.05] verir, 1'i aşar.
+    Wilson aralığı küçük n için önerilen yöntem: 19/20 → [0.76, 0.99].
+    """
+    if n <= 0:
+        return 0.0, 1.0
+    p = basari / n
+    payda = 1 + z * z / n
+    merkez = (p + z * z / (2 * n)) / payda
+    yari = z * math.sqrt(p * (1 - p) / n + z * z / (4 * n * n)) / payda
+    return max(0.0, merkez - yari), min(1.0, merkez + yari)
 
 
 def kapsiyor(parca, satir):
@@ -127,6 +163,41 @@ def main(argv):
             nasil = "dayanak verdi, cevap yok" if sonuc else "hiç dayanak yok"
             satirlar.append(f"  {'OK  (' + nasil + ')':52} {vaka['soru']}")
 
+    # Değişmezlik: her soru, her dönüşümle, aynı ilk üç parçayı getirmeli;
+    # konu dışı soru dönüşünce de reddedilmeli; cevapsız soru dönüşünce de
+    # sahte delil üretmemeli.
+    def adresler(soru):
+        return [p.adres for _, p in dizin.ara(soru, SAYI)]
+
+    degismez = cift = 0
+    for vaka in altin["sorular"]:
+        taban = adresler(vaka["soru"])
+        for ad, donustur in DONUSUMLER:
+            cift += 1
+            if adresler(donustur(vaka["soru"])) == taban:
+                degismez += 1
+            else:
+                kacaklar.append((vaka["soru"], f"DEĞİŞTİ ({ad})"))
+                satirlar.append(f"  {'DEĞİŞTİ (' + ad + ')':52} {donustur(vaka['soru'])}")
+    for soru in altin["konu_disi"]:
+        for ad, donustur in DONUSUMLER:
+            cift += 1
+            if not dizin.ara(donustur(soru), SAYI):
+                degismez += 1
+            else:
+                kacaklar.append((soru, f"KONU DIŞI SIZINTI ({ad})"))
+                satirlar.append(f"  {'KONU DIŞI SIZINTI (' + ad + ')':52} {donustur(soru)}")
+    for vaka in altin["cevapsiz"]:
+        for ad, donustur in DONUSUMLER:
+            cift += 1
+            sonuc = dizin.ara(donustur(vaka["soru"]), SAYI)
+            govde = ara.turkce_kucult("\n".join(p.metin for _, p in sonuc))
+            if not any(ara.turkce_kucult(o) in govde for o in vaka["olmamali"]):
+                degismez += 1
+            else:
+                kacaklar.append((vaka["soru"], f"SAHTE DELİL ({ad})"))
+                satirlar.append(f"  {'SAHTE DELİL (' + ad + ')':52} {donustur(vaka['soru'])}")
+
     m = len(altin["konu_disi"]) or 1
     c = len(altin["cevapsiz"]) or 1
     olcum = {
@@ -136,20 +207,34 @@ def main(argv):
         "gercek_kapsama": kapsama / n,
         "konu_disi_dogru": konu_disi_gecen / m,
         "cevapsiz_dogru": cevapsiz_gecen / c,
+        "degismezlik": degismez / (cift or 1),
+    }
+    aralik = {
+        "isabet@1": wilson(isabet1, n),
+        "isabet@3": wilson(isabet3, n),
+        "gercek_kapsama": wilson(kapsama, n),
     }
 
+    def oran(ad):
+        alt, ust = aralik[ad]
+        return f"{olcum[ad]:.0%}   [%{alt * 100:.0f}–%{ust * 100:.0f}]"
+
     if secim.json:
-        print(json.dumps(olcum, ensure_ascii=False, indent=2))
+        print(json.dumps({**olcum, "aralik_95": aralik}, ensure_ascii=False, indent=2))
     else:
         if secim.ayrinti or kacaklar:
             print("\n".join(satirlar) + "\n")
         print(f"soru sayısı        {n} (+{m} konu dışı, +{c} cevapsız)")
-        print(f"isabet@1           {olcum['isabet@1']:.0%}")
-        print(f"isabet@3           {olcum['isabet@3']:.0%}   (eşik {ESIK_ISABET3:.0%})")
+        print(f"isabet@1           {oran('isabet@1')}")
+        print(f"isabet@3           {oran('isabet@3')}   (eşik {ESIK_ISABET3:.0%})")
         print(f"MRR                {olcum['MRR']:.3f}")
-        print(f"gerçek kapsama     {olcum['gercek_kapsama']:.0%}   (eşik {ESIK_KAPSAMA:.0%})")
+        print(f"gerçek kapsama     {oran('gercek_kapsama')}   (eşik {ESIK_KAPSAMA:.0%})")
         print(f"konu dışı doğru    {olcum['konu_disi_dogru']:.0%}   (eşik {ESIK_KONU_DISI:.0%})")
         print(f"sahte delil yok    {olcum['cevapsiz_dogru']:.0%}   (eşik {ESIK_CEVAPSIZ:.0%})")
+        print(f"değişmezlik        {olcum['degismezlik']:.0%}   "
+              f"({cift} yazım çifti, eşik {ESIK_DEGISMEZLIK:.0%})")
+        print("Köşeli parantez: %95 Wilson aralığı. Aralığın alt ucu eşiğin altındaysa "
+              "set, eşiği aştığımızı kanıtlamaya yetecek büyüklükte değil.")
 
     dustu = []
     if olcum["isabet@3"] < ESIK_ISABET3:
@@ -160,6 +245,8 @@ def main(argv):
         dustu.append("konu dışı reddi")
     if olcum["cevapsiz_dogru"] < ESIK_CEVAPSIZ:
         dustu.append("sahte delil sızıntısı")
+    if olcum["degismezlik"] < ESIK_DEGISMEZLIK:
+        dustu.append("yazım değişmezliği")
 
     if dustu:
         print(f"\nEŞİK ALTINDA: {', '.join(dustu)}.")

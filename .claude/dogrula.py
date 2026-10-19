@@ -19,6 +19,7 @@ Siteye hiçbir şey eklemez, sadece okur.
 Çıkış kodu: 0 = temiz, 1 = kural ihlali, 3 = insan onayı gerekiyor.
 """
 
+import glob
 import os
 import re
 import sys
@@ -548,6 +549,74 @@ def d_gizlilik(r):
     r.tamam()
 
 
+def d_erisim(r):
+    """Erişilebilirliğin makineyle ölçülebilen tabanı (WCAG 2.2) [K14][K15].
+
+    Kontrast ve odak halkası zaten ölçülüyordu; ama ekran okuyucunun ve
+    yakınlaştırmanın dayandığı temel işaretlemeye hiçbir şey bakmıyordu.
+    Bunlar bugün yerinde — denetim onları yerinde TUTMAK için:
+
+      3.1.1  sayfa dili     <html lang="tr">: ekran okuyucu Türkçe okusun
+      2.4.2  sayfa başlığı  boş olmayan <title>
+      1.1.1  metin dışı     her <img> bir alt taşır (süsse alt="")
+      4.1.2  ad             metinsiz bağlantı / düğme bir ad taşır
+      1.4.4  yeniden boyut  viewport yakınlaştırmayı kapatmaz
+      başlık sırası         derine inerken düzey atlanmaz (h2 → h4) [K15]
+    """
+    for dosya in html_dosyalari():
+        html = html_yorumlari_at(oku(dosya))
+
+        if not re.search(r'<html\b[^>]*\blang\s*=\s*"tr"', html):
+            r.hata("erisim", f"{dosya}: <html lang=\"tr\"> yok — ekran okuyucu "
+                             "metni yanlış dilde seslendirir (WCAG 3.1.1).")
+        baslik = re.search(r"<title>(.*?)</title>", html, re.S)
+        if not baslik or not baslik.group(1).strip():
+            r.hata("erisim", f"{dosya}: boş ya da eksik <title> (WCAG 2.4.2).")
+
+        for etiket in re.finditer(r"<img\b[^>]*>", html):
+            if not re.search(r"\balt\s*=", etiket.group(0)):
+                satir = html[:etiket.start()].count("\n") + 1
+                r.hata("erisim", f"{dosya}:{satir} <img> alt taşımıyor; süsse "
+                                 "alt=\"\" yaz (WCAG 1.1.1).")
+
+        for ad, kalip in (("bağlantı", r"<a\b([^>]*)>(.*?)</a>"),
+                          ("düğme", r"<button\b([^>]*)>(.*?)</button>")):
+            for eslesme in re.finditer(kalip, html, re.S):
+                oznitelik, ic = eslesme.groups()
+                metin = re.sub(r"<[^>]+>", "", re.sub(
+                    r'<[^>]*aria-hidden\s*=\s*"true"[^>]*>.*?</[^>]+>', "", ic, flags=re.S))
+                if not metin.strip() and not re.search(r"\baria-label(ledby)?\s*=\s*\"[^\"]+",
+                                                       oznitelik):
+                    satir = html[:eslesme.start()].count("\n") + 1
+                    r.hata("erisim", f"{dosya}:{satir} metinsiz {ad}: ekran okuyucu "
+                                     "ne olduğunu söyleyemez (WCAG 4.1.2).")
+
+        bakis = re.search(r'<meta\b[^>]*name\s*=\s*"viewport"[^>]*>', html)
+        if bakis and re.search(r"user-scalable\s*=\s*(no|0)|maximum-scale\s*=\s*1(\.0*)?\b",
+                               bakis.group(0)):
+            r.hata("erisim", f"{dosya}: viewport yakınlaştırmayı kapatıyor (WCAG 1.4.4).")
+
+        onceki = 0
+        for eslesme in re.finditer(r"<h([1-6])\b", html):
+            duzey = int(eslesme.group(1))
+            if onceki and duzey > onceki + 1:
+                satir = html[:eslesme.start()].count("\n") + 1
+                r.hata("erisim", f"{dosya}:{satir} başlık düzeyi atlıyor "
+                                 f"(h{onceki} → h{duzey}).")
+            onceki = duzey
+        r.tamam()
+
+    # JS ile basılan görseller de aynı kurala tabi: şablon dizesindeki <img>.
+    for dosya in varlik_dosyalari("js", ".js"):
+        js = js_yorumlari_at(oku(dosya))
+        for etiket in re.finditer(r"<img\b[^>]*>", js):
+            if not re.search(r"\balt\s*=", etiket.group(0)):
+                satir = js[:etiket.start()].count("\n") + 1
+                r.hata("erisim", f"{dosya}:{satir} şablondaki <img> alt taşımıyor "
+                                 "(WCAG 1.1.1).")
+    r.tamam()
+
+
 def sayfa_kimlikleri(dosya, _onbellek={}):
     """Bir sayfada #parca olarak hedeflenebilecek kimlikler.
 
@@ -840,6 +909,35 @@ def d_belge(r):
         else:
             r.tamam()
 
+    # Kaynakça: kaynaksız atıf yok, atıfsız kaynak yok, adressiz kaynak yok.
+    # Bu katmanın kuralı canon için neyse kendisi için de o: her iddia
+    # kontrol edilebilir bir adrese bağlanır.
+    tanimli = {}
+    _, ayrac, kaynakca = belge.partition("\n## Kaynaklar")
+    if ayrac:
+        for no, satir in re.findall(r"(?m)^- \*\*\[K(\d+)\]\*\*(.*)$", kaynakca):
+            tanimli[int(no)] = satir
+    # Atıf belgenin HER yerinde aranır — kaynakça bölümünün içi dahil; sadece
+    # tanım işaretinin kendisi atıf sayılmaz.
+    metinler = [re.sub(r"(?m)^- \*\*\[K\d+\]\*\*", "", belge)]
+    for yol in sorted(glob.glob(os.path.join(KOK, ".claude", "*.py"))
+                      + glob.glob(os.path.join(KOK, ".claude", "commands", "*.md"))
+                      + [os.path.join(KOK, "CLAUDE.md")]):
+        if os.path.exists(yol):
+            with open(yol, encoding="utf-8") as f:
+                metinler.append(f.read())
+    kullanilan = {int(n) for m in metinler for n in re.findall(r"\[K(\d+)\]", m)}
+    for no in sorted(kullanilan - set(tanimli)):
+        r.hata("belge", f"[K{no}] atfı var ama DONGULER.md Kaynaklar bölümünde tanımlı değil.")
+    for no in sorted(set(tanimli) - kullanilan):
+        r.hata("belge", f"[K{no}] kaynağı tanımlı ama hiçbir yerde atıf almıyor.")
+    for no, satir in sorted(tanimli.items()):
+        if not re.search(r"https?://|doi\.org/|\b10\.\d{4,}/", satir):
+            r.hata("belge", f"[K{no}] kaynağının adresi (bağlantı ya da DOI) yok — "
+                            "doğrulanamayan kaynak, kaynak değildir.")
+    if tanimli or kullanilan:
+        r.tamam()
+
     # Belgelenmemiş denetim, komut ya da araç: var ama kimse bilmiyor.
     for anahtar in DENETIMLER:
         if f"| `{anahtar}` |" not in belge:
@@ -870,6 +968,7 @@ DENETIMLER = {
     "lore": ("LORE ↔ data senkronu", d_lore),
     "veri": ("data.js iç tutarlılığı", d_veri),
     "gizlilik": ("Veri toplamama / dış servis yok", d_gizlilik),
+    "erisim": ("Erişilebilirlik tabanı (WCAG 2.2)", d_erisim),
     "baglanti": ("İç bağlantı bütünlüğü", d_baglanti),
     "capa": ("Altın set satır çapası", d_capa),
     "kanca": ("Kanca sağlığı", d_kanca),

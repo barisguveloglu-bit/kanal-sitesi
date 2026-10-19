@@ -212,6 +212,46 @@ def v_mandal_vaka_silindi_belge_de(k):
 def v_mandal_kesici_sinir_buyudu(k):
     duzenle(k, ".claude/kanca.py", '"--sinir", "3"', '"--sinir", "30"')
 
+def v_belge_tanimsiz_atif(k):
+    """Kaynakçada olmayan bir kaynağa atıf. (Atıf burada parça parça yazılıyor:
+    düz yazılsa bu dosyanın kendisi tanımsız atıf taşırdı.)"""
+    with open(os.path.join(k, ".claude", "DONGULER.md"), "a", encoding="utf-8") as f:
+        f.write("\nBu cümle bir kaynağa dayanıyor [K" + "99].\n")
+
+def v_belge_adressiz_kaynak(k):
+    p = os.path.join(k, ".claude", "DONGULER.md")
+    s = open(p, encoding="utf-8").read()
+    yeni, adet = re.subn(r"(?m)^- \*\*\[K12\]\*\*.*$", "- **[K12]** Wilson (1927).", s, count=1)
+    if not adet:
+        raise AssertionError("DONGULER.md'de [K12] tanımı yok")
+    open(p, "w", encoding="utf-8").write(yeni)
+
+def v_belge_atifsiz_kaynak(k):
+    with open(os.path.join(k, ".claude", "DONGULER.md"), "a", encoding="utf-8") as f:
+        f.write("\n- **[K" + "98]** Hiçbir yerde kullanılmayan kaynak. https://ornek.org\n")
+
+def v_erisim_dil_silindi(k):
+    duzenle(k, "index.html", '<html lang="tr">', "<html>")
+
+def v_erisim_altsiz_gorsel(k):
+    duzenle(k, "index.html", "</main>", '<img src="assets/favicon.svg">\n</main>')
+
+def v_erisim_sablonda_altsiz_gorsel(k):
+    """JS ile basılan kapak görseli — HTML'de görünmez, şablonda durur."""
+    duzenle(k, "assets/js/app.js", 'alt="" width="480"', 'width="480"')
+
+def v_erisim_metinsiz_baglanti(k):
+    duzenle(k, "soru-cevap.html", "</main>",
+            '<a href="index.html"><span aria-hidden="true">→</span></a>\n</main>')
+
+def v_erisim_yakinlastirma_kapali(k):
+    duzenle(k, "irade.html", 'content="width=device-width, initial-scale=1"',
+            'content="width=device-width, initial-scale=1, user-scalable=no"')
+
+def v_erisim_baslik_atliyor(k):
+    duzenle(k, "404.html", "<h1>Bu sayfa arşivde yok</h1>",
+            "<h1>Bu sayfa arşivde yok</h1>\n    <h4>Atlanan düzey</h4>")
+
 def v_mandal_araci_silindi(k):
     """Mandalın kendisini silmek bütün ölçüleri tek hamlede gevşetir."""
     os.remove(os.path.join(k, ".claude", "mandal.py"))
@@ -277,6 +317,15 @@ def m_esik_sikilasti(k):
     """Mandal tek yönlüdür: sıkılaşma kapı açmaz."""
     duzenle(k, ".claude/degerlendir.py", "ESIK_KAPSAMA = 0.90", "ESIK_KAPSAMA = 0.95")
 
+def m_susleme_gorseli_bos_alt(k):
+    """Süs görseli alt="" taşır — bu bir eksik değil, doğru işaretleme."""
+    duzenle(k, "index.html", "</main>", '<img src="assets/favicon.svg" alt="">\n</main>')
+
+def m_etiketli_ikon_baglanti(k):
+    """Metni olmayan ama aria-label taşıyan bağlantının bir adı vardır."""
+    duzenle(k, "soru-cevap.html", "</main>",
+            '<a href="index.html" aria-label="Ana sayfa"><span aria-hidden="true">←</span></a>\n</main>')
+
 def m_yeni_karakter_lore_ile(k):
     """data.js'e karakter eklendi ve LORE.md'ye de eklendi — senkron."""
     duzenle(k, "assets/js/data.js", '    ad: "Sarı Gülücük",',
@@ -335,11 +384,22 @@ VAKALAR = [
     ("KAPI: vaka silindi, belge uyduruldu", v_mandal_vaka_silindi_belge_de, "mandal"),
     ("KAPI: kesici sınırı büyütüldü",     v_mandal_kesici_sinir_buyudu,   "mandal"),
     ("KAPI: mandal aracı silindi",        v_mandal_araci_silindi,         "mandal"),
+    ("belge: tanımsız atıf",              v_belge_tanimsiz_atif,          "belge"),
+    ("belge: adressiz kaynak",            v_belge_adressiz_kaynak,        "belge"),
+    ("belge: atıfsız kaynak",             v_belge_atifsiz_kaynak,         "belge"),
+    ("erişim: sayfa dili silindi",        v_erisim_dil_silindi,           "erisim"),
+    ("erişim: alt'sız görsel",            v_erisim_altsiz_gorsel,         "erisim"),
+    ("erişim: şablonda alt'sız görsel",   v_erisim_sablonda_altsiz_gorsel, "erisim"),
+    ("erişim: metinsiz bağlantı",         v_erisim_metinsiz_baglanti,     "erisim"),
+    ("erişim: yakınlaştırma kapalı",      v_erisim_yakinlastirma_kapali,  "erisim"),
+    ("erişim: başlık düzeyi atlıyor",     v_erisim_baslik_atliyor,        "erisim"),
 
     ("MASUM: hiç değişiklik yok",         m_degisiklik_yok,               None),
     ("MASUM: yorumda fetch()",            m_yorumda_fetch,                None),
     ("MASUM: dışarıya bağlantı vermek",   m_dis_baglanti_gitmek,          None),
     ("MASUM: eşik sıkılaştı",             m_esik_sikilasti,               None),
+    ("MASUM: süs görseli alt=\"\"",        m_susleme_gorseli_bos_alt,      None),
+    ("MASUM: aria-label'lı ikon bağlantı", m_etiketli_ikon_baglanti,      None),
     ("MASUM: yorumda 'outline: none'",    m_yorumda_outline,              None),
     ("MASUM: :focus-visible outline",     m_focus_visible_outline,        None),
     ("MASUM: SVG dizesinde opacity=0",    m_svg_opacity,                  None),

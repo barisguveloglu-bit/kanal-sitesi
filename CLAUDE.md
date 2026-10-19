@@ -33,8 +33,9 @@ Pages onu da yayınlıyor** (`LORE.md` ve bu dosya dahil; ayrıntı DONGULER.md
 
 - `python3 .claude/dogrula.py` — yukarıdaki kuralları makine tarafından
   denetler (menü, site haritası, gizleme, odak, `defer`, sahte içerik,
-  yeni video, kontrast, LORE senkronu, veri tutarlılığı, gizlilik, bağlantı
-  bütünlüğü, altın set çapası, kanca sağlığı, ölçü mandalı, belge senkronu).
+  yeni video, kontrast, LORE senkronu, veri tutarlılığı, gizlilik,
+  erişilebilirlik, bağlantı bütünlüğü, altın set çapası, kanca sağlığı, ölçü
+  mandalı, belge ve kaynakça senkronu).
   Dış bağımlılığı yok.
   Çıkış kodu `0` temiz, `1` kural ihlali, `3` insan onayı gerekiyor.
 - Bir `.html`/`.css`/`.js`/`.xml` ya da `LORE.md` düzenlendiğinde bu denetim
@@ -54,13 +55,17 @@ Pages onu da yayınlıyor** (`LORE.md` ve bu dosya dahil; ayrıntı DONGULER.md
 - `python3 .claude/saglik.py --kaydet` — bütün ölçümler tek komutta;
   önceki koşuya göre eşiğin üstündeki gerilemeyi de söyler.
 - `python3 .claude/ara.py "<soru>"` — canon içinde arar, cevabı **satır
-  numarasıyla** döndürür. Bu evren hakkında hafızadan cevap verme; her
-  iddiayı `LORE.md:201` gibi adresle.
+  numarasıyla** döndürür. Aksansız ve büyük harfle yazılan soruları da
+  bulur (YouTube yorumlarında yazım böyle). Bu evren hakkında hafızadan
+  cevap verme; her iddiayı `LORE.md:201` gibi adresle.
 - `python3 .claude/sinav.py`, `python3 .claude/degerlendir.py` ve
   `python3 .claude/arac-sinavi.py` — sırasıyla denetleyiciyi, aramayı ve
   araçları (kesici, yargıç, geri bildirim, kanca) ölçer.
 - `python3 .claude/mutasyon.py` — testlerin kendisini ölçer: aracı kasten
   bozar, sınavın yakalayıp yakalamadığına bakar. Ölü test buradan çıkar.
+  `--otomatik 0` mutantları makineye ürettirir; aklına gelmeyen boşluğu bulur.
+- Mekanizmaların dayandığı kaynaklar `DONGULER.md` sonunda (`[K1]`…);
+  `belge` denetimi atıflarla kaynakçayı birbirine bağlı tutar.
 - `python3 .claude/gorev.py` — alt ajana verilecek sözleşmeli brief üretir
   ve gelen raporun atıflarını denetler. Sözleşmesiz görev `kanca-gorev.py`
   tarafından gönderilmeden engellenir.

@@ -58,7 +58,10 @@ diye sorar. İkisi karıştırılırsa ölçüm, ölçtüğü şeyin parçası o
 
 Kritik ayrım — orkestratör tek seferde dağıtıp toplarsa bu bir **iş akışı**
 olur. Gelen sonuçtaki eksiğe göre yeniden görev veriyorsa **döngü** olur.
-`/orkestra` 4. adımda bunu zorunlu tutuyor.
+`/orkestra` 4. adımda bunu zorunlu tutuyor. Ayrım Anthropic'in tanımıyla
+aynı: iş akışında yol önceden yazılıdır, ajanda model kendi sürecini
+yönetir — ve ajan her adımda ortamdan "gerçek" geri bildirim almalı, bir
+durma koşulu (en fazla tur) taşımalıdır [K1].
 
 ## Döngünün durduğu yer
 
@@ -102,6 +105,7 @@ dışa bağımlılığı yok, sadece Python 3 standart kütüphanesi:
 | `lore` | `data.js`'teki adlar (karakter, kademe, komutan, mafya, icraat) `LORE.md`'de geçiyor mu; 81 derebeyi **satır satır** (plaka + il + ad) eşleşiyor mu |
 | `veri` | `data.js` kendi içinde tutarlı mı: tekil kimlik, geçerli taraf, 81 il tam, `ad: null` yok, komutan bağı gerçek |
 | `gizlilik` | Form, parola alanı, çerez, `fetch`/XHR/`sendBeacon`/WebSocket, dış sunucudan betik/stil/görsel yükleme, paket yöneticisi izi var mı |
+| `erisim` | Sayfa dili, boş olmayan başlık, her görselde `alt` (JS şablonları dahil), metinsiz bağlantı ya da düğme, yakınlaştırmayı kapatan viewport, başlık düzeyi atlama — WCAG 2.2 tabanı [K14][K15] |
 | `baglanti` | Her iç `href`/`src`, canonical/paylaşım adresi, site haritası girdisi ve `data.js` `yol` alanı var olan bir dosyaya — `#parça` varsa var olan bir kimliğe — gidiyor mu |
 | `capa` | Altın setin her satır numarası hâlâ kendi gerçeğini içeren satırı mı gösteriyor; kaydıysa yeni satırı söyler, gerçek silindiyse **insan kapısı** |
 | `kanca` | `settings.json` okunuyor mu, bağlı her kanca betiği var ve derleniyor mu |
@@ -155,13 +159,22 @@ python3 .claude/ara.py --sayi 5 --tam "Konya derebeyi"
 ```
 
 Gömme, vektör veritabanı, dış servis **yok** — 470 satırlık Türkçe bir metin
-için BM25 fazlasıyla yeterli ve her koşuda aynı sonucu verir. Test edilebilir
+için BM25 [K17] fazlasıyla yeterli ve her koşuda aynı sonucu verir. Test edilebilir
 olmasının şartı bu: rastgele bir sistem ölçülemez.
 
-Türkçe için üç şey özel olarak yapıldı, üçü de ölçümle bulundu:
+Türkçe için dört şey özel olarak yapıldı, dördü de ölçümle bulundu:
 
 - **Sondan eklemeli dil.** "iradesi / iradeye / irade" aynı köke inmeli;
-  ön ek eşleştirmesiyle çözüldü.
+  ön ek eşleştirmesiyle çözüldü. Beş harflik ön ek, Türkçe bilgi erişiminde
+  büyük ölçekli deneylerle etkili bulunmuş bir yöntem [K16].
+- **Aksansız yazım.** "Tesup'un zaafi nedir" ile "Teşup'un zaafı nedir"
+  aynı soru. Soru-cevap YouTube yorumlarında yapılıyor; orada Türkçe
+  karakter kullanmamak çok yaygın. Ölçüldü: aksansız yazılan altın
+  sorularda isabet@3 %95'ten **%60'a** düşüyordu; Türkçe olmayan klavyede
+  büyük harfle yazılan "AHRIMAN KIMI KILITLIYOR" hiç sonuç döndürmüyordu
+  ("I" harfi "ı" okunuyordu). Terimler artık aksanı katlanmış biçimde
+  eşleniyor — bilgi erişiminde yerleşik yöntem: kullanıcılar sorguyu çoğu
+  zaman aksansız yazar [K11]. Normal sorulardaki ölçüler değişmedi.
 - **Sayı adları.** "dördüncü irade kademesi" ile `| 4 | Güçlü İrade |`
   arasında tek ortak harf yok; sayı adları rakama indirgeniyor.
 - **Tablo hücreleri sütun adıyla eşleşiyor.** "Zaafı" kelimesi veri
@@ -245,6 +258,27 @@ veriyor ve puanlamadan bağımsız.
 Eşikler ölçülerek konuldu, hedef olarak değil. Düşen bir sayıyı eşiği
 indirerek yeşile döndürmek, testin ölçtüğü şeyi azaltmaktır.
 
+### Değişmezlik — aynı soru, farklı klavye
+
+Davranış testinin bir türü: girdiyi anlamını değiştirmeyecek biçimde boz,
+çıktının değişmediğini doğrula [K9]. Metamorfik testin temel fikri de bu:
+doğru cevabı bilmeden, iki koşu arasındaki ilişkiyi sına [K10].
+
+`degerlendir.py` her altın soruyu beş biçimde daha soruyor: aksansız,
+Türkçe klavyede büyük harf, Türkçe olmayan klavyede büyük harf, noktalamalı,
+fazla boşluklu. İlk üç sonuç değişmemeli; konu dışı soru dönüşünce de
+reddedilmeli; cevapsız soru dönüşünce de sahte delil üretmemeli. 150 yazım
+çifti, eşik %100.
+
+İlk koşusunda gerçek bir açık buldu: aksansız yazılan sorularda isabet@3
+%60'a düşüyordu (yukarıda, "Aksansız yazım").
+
+**Oranlar artık aralıkla yazılıyor.** 20 soruda tek soru beş puan;
+aralıksız yazılan bir oran olduğundan kesin görünür. `degerlendir.py`
+%95 Wilson aralığını basıyor [K12]: küçük n için önerilen yöntem bu —
+yaygın Wald aralığı küçük n'de güvenilmez [K13] ve 19/20 için 1'i aşan
+[0.85, 1.05] gibi anlamsız bir aralık verir. Wilson: [0.76, 0.99].
+
 ## Geri bildirim — hatanın kalıcı teste dönüşmesi
 
 Model ağırlıklarını eğitemeyiz; gerek de yok. Bir ajan sisteminde geri
@@ -305,7 +339,7 @@ ikisi de yarım kalır.
 
 ## Bağlam yönetimi ve epizodik bellek
 
-Uzun koşuların sessiz düşmanı **bağlam çürümesi**: alakasız araç
+Uzun koşuların sessiz düşmanı **bağlam çürümesi** [K19]: alakasız araç
 çıktıları, tekrar okumalar ve çözülmüş turların ayrıntısı birikir. Model
 hata vermez, sadece sinyale daha az dikkat eder — yirminci turda hâlâ
 çalışıyor görünür ama ne yaptığını bilmez.
@@ -340,6 +374,10 @@ Bu aynı zamanda epizodik bellek: defter git'te durduğu için her yeni
 koşu, önceki koşuların neyi denediğini ve neyi çözemediğini görür.
 
 ## Devre kesici — sınırın yazı olmaktan çıkması
+
+Ad ve fikir dağıtık sistemlerden geliyor: hata sayısı bir eşiği geçince
+devre "açılır" ve korunan çağrı bir süre hiç denenmez [K2]. Burada korunan
+şey bir uzak servis değil, modelin kendi döngüsü.
 
 Komut dosyalarında "en fazla 3 tur" yazıyordu. Bu bir sınır değil, bir
 ricaydı: sınırı uygulayacak olan, sınırı aşmak isteyen tarafın kendisi.
@@ -390,6 +428,11 @@ deftere geçiyor.
   komutuyla okur.
 
 ## Sınırlı otonom döngü (Ralph Wiggum)
+
+Adı Geoffrey Huntley'in tekniğinden: en saf hâliyle aynı istemi bir
+ajana döngü içinde tekrar tekrar veren bir kabuk döngüsü [K3]. Buradaki
+fark, döngünün iki ucunun da bağlı olması: durma koşulu deterministik bir
+kapı, üst sınırı devre kesici.
 
 `/surekli` uzun soluklu, kendi kendine dönen döngü. Diğerlerinden iki farkı
 var: durma koşulu bir insanın kanaati değil **deterministik kapı**
@@ -496,7 +539,9 @@ getirip yine de yanlış okumak, fazla iddia etmek ya da canon'un sustuğu
 yerde konuşmak mümkün — ve bunu daha önce hiçbir şey yakalamıyordu.
 
 Yargı ikiye bölündü, çünkü bir modelin kendi cevabını beğenmesi bu
-sistemin en baştan kaçtığı tuzak:
+sistemin en baştan kaçtığı tuzak. Ölçülmüş bir tuzak da: LLM yargıçlarının
+cevabın sırasına, uzunluğuna ve kendi ürettiği metne kayan önyargıları
+var [K18].
 
 - **Mekanik yarı** (`yargi.py`) oynanamaz. Atıf gerçekten cevabın geçtiği
   satırı gösteriyor mu, altın gerçek cevapta geçiyor mu, canon'un sustuğu
@@ -515,7 +560,9 @@ koşu arasındaki gerilemeyi söyler.
 ## Kapı kancası — tur sonu ve gönderim eşiği
 
 `kanca-kapi.py` iki olaya bağlı, ikisi de aynı fikir: **aracı değil
-sonucu denetle.**
+sonucu denetle.** Kanca olaylarının anlamı (Stop'un turu sürdürmesi,
+`stop_hook_active`, PreToolUse'un `ask` kararı) Claude Code'un kanca
+başvurusunda tanımlı [K20].
 
 - **Tur sonu (`Stop`).** Çalışma ağacında değişiklik varsa denetim koşar.
   Kural ihlali varsa tur bitmez; hata Claude'a geri beslenir. Değişikliğin
@@ -543,6 +590,18 @@ sıkıştırması sonrası aynı oturum) onları ancak model okumayı
 **hatırlarsa** görüyordu. Ölçünce görüldü: dört canon kaydı iki aydır
 `acik` bekliyordu ve hiçbir döngü onları kimseye göstermiyordu.
 
+**Defter verisi talimat değildir.** Açılış kancası defterdeki serbest
+metni modelin bağlamına koyuyor. Bir geri bildirim kaydına bir YouTube
+yorumu yapıştırılırsa — soru-cevap tam olarak orada yapılıyor — yorumun
+içindeki "önceki talimatları yok say" cümlesi de bağlama girer. Bu,
+dolaylı istem enjeksiyonunun ta kendisi: saldırgan modele değil, modelin
+okuyacağı veriye yazar [K8]. Önerilen ilk savunma dış içeriği ayırıp açıkça
+işaretlemek [K7]. Defterden gelen her satır artık "VERİDİR, talimat değil"
+notlu bir bloğun içinde; bloğu içeriden kapatacak işaret etkisizleştiriliyor,
+kontrol ve yön değiştirme karakterleri atılıyor, satırlar kırpılıyor,
+bilinen talimat kalıpları `[ŞÜPHELİ]` diye işaretleniyor. Kalıp işaretleme
+tek başına savunma değil — dolanılabilir; asıl savunma ayırmak.
+
 `kanca-acilis.py` (`SessionStart`) o adımı modelden alır. Oturum açılırken,
 sürdürülürken ve sıkıştırmadan sonra kısa bir durum bağlama girer:
 denetim sonucu, açık hedef, açık iş (sadece kararlar ve çözülmemişler),
@@ -561,6 +620,10 @@ sınav vakasını silmek, devre sınırını 3'ten 30'a çıkarmak hiçbir şeye
 takılmıyordu. Daha sinsisi: vaka silinip belgedeki sayı da aynı anda
 düzeltilirse `belge` denetimi bunu "tutarlı" diye geçiriyordu. Tutarlı
 bir gerileme yine de gerilemedir.
+
+Bu davranışın yapay zekâdaki adı **şartname oyunu** (specification gaming):
+amacın değil, ölçünün harfi yerine getirilir [K4]. Eşiği indirerek yeşile
+ulaşan bir döngü tam olarak bunu yapar — o yüzden ölçünün kendisi korunuyor.
 
 ```
 python3 .claude/mandal.py olc                       # şu anki ölçüler
@@ -734,12 +797,12 @@ kalır. Denendi ve oldu: uydurma testi devre dışı bırakıldığında **üç
 python3 .claude/mutasyon.py
 ```
 
-Klasik mutasyon testi: ölçülen şeyi kasten boz, testin yakalayıp
+Klasik mutasyon testi [K5]: ölçülen şeyi kasten boz, testin yakalayıp
 yakalamadığına bak. Burada **başarısızlık iyi haberdir** — mutasyon
 yakalandı demektir. Yeşil kalan bir mutasyon, "o davranışı hiçbir şey
 korumuyor" demektir.
 
-**45 mutasyon** var: kesici hiç kesmesin, yargıç uydurmayı görmesin,
+**55 mutasyon** var: kesici hiç kesmesin, yargıç uydurmayı görmesin,
 sözleşme kapısı açılsın, arama "bilmiyorum" diyemesin, ham iz özete girsin,
 denetleyici yeni dosyaya kör kalsın, mandal gevşemeyi görmesin, tur sonu
 kapısı bloklamasın, açılış bekleyen kararı göstermesin…
@@ -753,8 +816,8 @@ Mutasyon sınavı tam olarak bunun için var.
 
 ## Sınırlar
 
-Bunlar tahmin değil, fay enjeksiyon sınavıyla ölçüldü: **56 vaka
-(47 yakalanmalı, 9 masum)** ve **20 altın soru**. Bu sayılar `dogrula.py`
+Bunlar tahmin değil, fay enjeksiyon sınavıyla ölçüldü: **67 vaka
+(56 yakalanmalı, 11 masum)** ve **20 altın soru**. Bu sayılar `dogrula.py`
 tarafından denetleniyor — betikler değişip belge yerinde kalırsa hata verir.
 Ölçülen iki gerçek açık vardı, ikisi de kapatıldı — biri tam olarak
 kapanamadı, aşağıda:
@@ -771,7 +834,11 @@ kapanamadı, aşağıda:
   %95 — yani yaklaşık yirmi sorudan biri ilk üçte doğru yeri getirmiyor.
   Gelen metni okumak hâlâ şart; `/sor` bu yüzden "getirdiğini kabul etme"
   adımı içeriyor.
-- **Eşikler 20 soruluk bir sete göre ölçüldü.** Küçük bir set. Parametreleri
+- **Eşikler 20 soruluk bir sete göre ölçüldü.** Küçük bir set — ve artık ne
+  kadar küçük olduğu sayıyla görünüyor: isabet@3 %95 ama %95 Wilson aralığı
+  **[%76–%99]** [K12][K13]. Aralığın alt ucu %90 eşiğinin altında; yani 20
+  soruyla "eşiğin üstündeyiz" demek istatistiksel olarak kanıtlanamıyor.
+  Parametreleri
   bu sete uydurarak "iyileştirmek" mümkün ve yanıltıcı — nitekim bir tarama
   tek hücrelik bir tepe gösterdi ve o tepe reddedildi, sorun yapısal
   düzeltmeyle çözüldü. Set büyüdükçe ölçüm gerçeğe yaklaşır; büyütmenin
@@ -836,3 +903,33 @@ Döngülerin içi ölçülüydü; kenarları değildi. Bu tur sistemi dışarıd
 Her birinin karşılığı yukarıda bir denetim, kanca ya da araç olarak duruyor
 ve her biri fay, araç ya da mutasyon sınavında ölçülüyor. Bu sistemin kuralı
 burada da geçerli: **eklenen her koruma, kendisini koruyan bir testle geldi.**
+
+## Kaynaklar
+
+Bu katmandaki mekanizmaların dayandığı kaynaklar. Kodda ve bu belgede
+köşeli parantez içinde K ve numarayla geçer. `belge` denetimi üç şeyi ölçer: her atfın burada tanımlı
+olduğunu, her kaynağın en az bir yerde atıf aldığını ve her kaydın bir
+adres (bağlantı ya da DOI) taşıdığını. Bu katmanın canon için koyduğu
+kural kendisi için de geçerli: her iddia kontrol edilebilir bir adrese
+bağlanır.
+
+- **[K1]** Schluntz, E., Zhang, B. (2024, 19 Aralık). *Building effective agents.* Anthropic. https://www.anthropic.com/engineering/building-effective-agents — iş akışı ile ajan ayrımı; ajanın her adımda ortamdan "gerçek" geri bildirim alması; durma koşulu (en fazla tur).
+- **[K2]** Fowler, M. (2014, 6 Mart). *CircuitBreaker.* https://martinfowler.com/bliki/CircuitBreaker.html — örüntüyü Nygard, M. T., *Release It!* (Pragmatic Bookshelf, 2007) kitabından aktarır: eşiği aşan hata sayısında devre açılır, çağrı denenmez.
+- **[K3]** Huntley, G. (2025, 14 Temmuz). *Ralph Wiggum as a "software engineer".* https://ghuntley.com/ralph/ — "en saf hâliyle Ralph bir Bash döngüsüdür".
+- **[K4]** Krakovna, V. vd. (2020, 21 Nisan). *Specification gaming: the flip side of AI ingenuity.* DeepMind. https://deepmind.google/discover/blog/specification-gaming-the-flip-side-of-ai-ingenuity/ — ölçünün harfini yerine getirip amacı kaçırmak.
+- **[K5]** DeMillo, R. A., Lipton, R. J., Sayward, F. G. (1978). Hints on Test Data Selection: Help for the Practicing Programmer. *IEEE Computer* 11(4):34–41. https://doi.org/10.1109/C-M.1978.218136 — mutasyon testinin temeli; basit hataları yakalayan testin karmaşıkları da yakalaması (eşleşme etkisi).
+- **[K6]** Jia, Y., Harman, M. (2011). An Analysis and Survey of the Development of Mutation Testing. *IEEE Transactions on Software Engineering* 37(5):649–678. https://doi.org/10.1109/TSE.2010.62 — alanın kapsamlı taraması; hesaplama maliyeti ve eşdeğer mutant sorunları.
+- **[K7]** OWASP (2025). *LLM01:2025 Prompt Injection.* OWASP Top 10 for LLM Applications 2025. https://genai.owasp.org/llmrisk/llm01-prompt-injection/ — dolaylı enjeksiyonun tanımı; "güvenilmeyen içeriği ayır ve açıkça işaretle".
+- **[K8]** Greshake, K., Abdelnabi, S., Mishra, S., Endres, C., Holz, T., Fritz, M. (2023). Not what you've signed up for: Compromising Real-World LLM-Integrated Applications with Indirect Prompt Injection. https://arxiv.org/abs/2302.12173 — saldırganın modele değil, modelin okuyacağı veriye yazması.
+- **[K9]** Ribeiro, M. T., Wu, T., Guestrin, C., Singh, S. (2020). Beyond Accuracy: Behavioral Testing of NLP Models with CheckList. *ACL 2020*, 4902–4912. https://doi.org/10.18653/v1/2020.acl-main.442 — değişmezlik (INV) testleri: anlamı korunan bozulmada çıktı değişmemeli.
+- **[K10]** Chen, T. Y., Cheung, S. C., Yiu, S. M. (1998). Metamorphic testing: a new approach for generating next test cases. Teknik rapor HKUST-CS98-01. https://arxiv.org/abs/2002.12543 — doğru cevabı bilmeden, koşular arası ilişkiyi sınamak.
+- **[K11]** Manning, C. D., Raghavan, P., Schütze, H. (2008). *Introduction to Information Retrieval*, §2.2.3 (aksanlar; büyük/küçük harf katlama). Cambridge University Press. https://nlp.stanford.edu/IR-book/html/htmledition/accents-and-diacritics-1.html — kullanıcılar sorguyu çoğu zaman aksansız yazar; terimleri aksansız biçimde eşlemek uygun olabilir.
+- **[K12]** Wilson, E. B. (1927). Probable inference, the law of succession, and statistical inference. *Journal of the American Statistical Association* 22(158):209–212. https://doi.org/10.1080/01621459.1927.10502953 — Wilson skor aralığı.
+- **[K13]** Brown, L. D., Cai, T. T., DasGupta, A. (2001). Interval Estimation for a Binomial Proportion. *Statistical Science* 16(2):101–133. https://doi.org/10.1214/ss/1009213286 — Wald aralığının düzensiz kapsaması; küçük n için Wilson önerisi.
+- **[K14]** W3C (2023; güncelleme 12 Aralık 2024). *Web Content Accessibility Guidelines (WCAG) 2.2.* W3C Recommendation. https://www.w3.org/TR/WCAG22/ — 1.1.1 metin dışı içerik, 1.4.4 metni yeniden boyutlandırma, 2.4.2 sayfa başlığı, 3.1.1 sayfa dili, 4.1.2 ad/rol/değer.
+- **[K15]** W3C WAI. *Headings* — Page Structure Tutorial. https://www.w3.org/WAI/tutorials/page-structure/headings/ — "başlık düzeyi atlamak kafa karıştırabilir, mümkün olduğunca kaçınılmalı"; alt bölüm kapanırken atlamak serbest.
+- **[K16]** Can, F., Kocberber, S., Balcik, E., Kaynak, C., Ocalan, H. C., Vursavas, O. M. (2006). First large-scale information retrieval experiments on Turkish texts. *SIGIR 2006*, 627–628. https://doi.org/10.1145/1148170.1148288 — Türkçede 5 harflik ön ekle kesmenin etkili bir erişim ortamı sağlaması. Ayrıca: Can vd. (2008), Information retrieval on Turkish texts, *JASIST* 59(3):407–421, https://doi.org/10.1002/asi.20750.
+- **[K17]** Robertson, S., Zaragoza, H. (2009). The Probabilistic Relevance Framework: BM25 and Beyond. *Foundations and Trends in Information Retrieval* 3(4):333–389. https://doi.org/10.1561/1500000019 — BM25.
+- **[K18]** Zheng, L. vd. (2023). Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena. *NeurIPS 2023 Datasets and Benchmarks.* https://arxiv.org/abs/2306.05685 — LLM yargıçlarında konum, uzunluk ve kendini kayırma önyargıları.
+- **[K19]** Hong, K., Troynikov, A., Huber, J. (2025, 14 Temmuz). *Context Rot: How Increasing Input Tokens Impacts LLM Performance.* Chroma. https://research.trychroma.com/context-rot — girdi uzadıkça, basit görevlerde bile performansın güvenilmezleşmesi.
+- **[K20]** Anthropic. *Hooks reference* — Claude Code belgeleri. https://code.claude.com/docs/en/hooks — Stop olayının turu sürdürmesi, PreToolUse `permissionDecision` (allow / deny / ask / defer), SessionStart `additionalContext`.
