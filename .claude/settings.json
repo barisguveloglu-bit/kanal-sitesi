@@ -14,12 +14,44 @@
     ],
     "PreToolUse": [
       {
-        "matcher": "Agent|Task",
+        "matcher": "Agent|Task|mcp__claude-code-remote__create_session",
         "hooks": [
           {
             "type": "command",
             "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/kanca-gorev.py\"",
             "timeout": 30
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/kanca-kapi.py\"",
+            "timeout": 60
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/kanca-kapi.py\"",
+            "timeout": 60
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/kanca-acilis.py\"",
+            "timeout": 60
           }
         ]
       }
@@ -28,6 +60,9 @@
   "permissions": {
     "allow": [
       "Bash(python3 .claude/dogrula.py:*)",
+      "Bash(python3 .claude/saglik.py:*)",
+      "Bash(python3 .claude/mandal.py olc)",
+      "Bash(python3 .claude/mandal.py kontrol)",
       "Bash(git status:*)",
       "Bash(git diff:*)",
       "Bash(git log:*)",

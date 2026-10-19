@@ -39,7 +39,7 @@ def kopya():
     kok = os.path.join(gecici, "depo")
     shutil.copytree(KAYNAK, kok)
     # Kalıcı durum kopyaya taşınmasın; her vaka temiz başlasın.
-    for artik in (".claude/devre-durumu.json",):
+    for artik in (".claude/devre-durumu.json", ".claude/saglik-gecmisi.jsonl"):
         yol = os.path.join(kok, artik)
         if os.path.exists(yol):
             os.remove(yol)
@@ -685,6 +685,294 @@ def t_geribildirim_kaynaksizi_insana_biraktiyor(kok):
     return None
 
 
+# ------------------------------------------- alt ajanın başka kapıdan çıkışı
+
+def t_gorev_uzak_oturum_da_sozlesmeye_tabi(kok):
+    """Ajana kendi bulut bilgisayarını vermenin yolu ayrı bir oturum açmak
+    (create_session). Sözleşme kancası sadece Agent/Task'ı dinlerse, o yoldan
+    giden görev sözleşmesiz çıkar — kural bir kapıda durur, öbüründen geçilir."""
+    import re as _re
+    ayar = json.load(open(os.path.join(kok, ".claude", "settings.json"), encoding="utf-8"))
+    eslesenler = [g.get("matcher", "") for g in ayar["hooks"].get("PreToolUse", [])
+                  if any("kanca-gorev.py" in k.get("command", "") for k in g.get("hooks", []))]
+    for arac in ("Agent", "Task", "mcp__claude-code-remote__create_session"):
+        if not any(_re.fullmatch(m, arac) for m in eslesenler):
+            return f"sözleşme kancası {arac} ile açılan görevi görmüyor"
+    olay = json.dumps({"tool_name": "mcp__claude-code-remote__create_session",
+                       "tool_input": {"prompt": "Siteye yeni karakter ekle ve pushla."}})
+    s = subprocess.run([sys.executable, os.path.join(kok, ".claude", "kanca-gorev.py")],
+                       cwd=kok, input=olay, capture_output=True, text=True, timeout=60)
+    if s.returncode != 2:
+        return f"sözleşmesiz uzak oturum gönderildi (çıkış {s.returncode})"
+    return None
+
+
+# --------------------------------------------- kapı kancası (tur sonu, commit)
+
+def _degistir(kok, yol, eski, yeni):
+    p = os.path.join(kok, yol)
+    s = open(p, encoding="utf-8").read()
+    if eski not in s:
+        raise AssertionError(f"{yol} içinde yok: {eski[:60]!r}")
+    open(p, "w", encoding="utf-8").write(s.replace(eski, yeni, 1))
+
+
+def _boz(kok):
+    """Bash'in yapacağı gibi doğrudan yaz — hiçbir düzenleme kancası tetiklenmez."""
+    _degistir(kok, "assets/css/style.css", "[hidden] { display: none !important; }", "")
+
+
+def _kapi(kok, olay):
+    return subprocess.run([sys.executable, os.path.join(kok, ".claude", "kanca-kapi.py")],
+                          cwd=kok, input=json.dumps(olay), capture_output=True,
+                          text=True, timeout=120)
+
+
+def _bash(komut):
+    return {"hook_event_name": "PreToolUse", "tool_name": "Bash",
+            "tool_input": {"command": komut}}
+
+
+def t_kapi_tur_sonu_kirmiziyi_durduruyor(kok):
+    """Bash ile bozulan dosya: düzenleme kancası görmedi, tur sonu görmeli."""
+    _boz(kok)
+    s = _kapi(kok, {"hook_event_name": "Stop", "stop_hook_active": False})
+    if s.returncode != 2:
+        return f"kırmızı ağaçta tur bitti (çıkış {s.returncode})"
+    if "gizleme" not in s.stderr:
+        return "engellendi ama hata Claude'a geri beslenmedi"
+    return None
+
+
+def t_kapi_tur_sonu_ikinci_kez_bloklamiyor(kok):
+    """stop_hook_active iken yeniden bloklamak sonsuz döngüdür."""
+    _boz(kok)
+    s = _kapi(kok, {"hook_event_name": "Stop", "stop_hook_active": True})
+    if s.returncode != 0:
+        return f"ikinci denemede yine blokladı (çıkış {s.returncode}) — sonsuz döngü"
+    if "systemMessage" not in s.stdout:
+        return "bıraktı ama kırmızıyı kullanıcıya göstermedi"
+    return None
+
+
+def t_kapi_insan_kapisinda_tur_bitebilir(kok):
+    """Kapı olayı hata değil: model tam da soru sormak için duruyor olabilir."""
+    _degistir(kok, "assets/js/data.js", 'baslangic: { kimlik: ""',
+              'baslangic: { kimlik: "Kj8mN2pQ4rT"')
+    s = _kapi(kok, {"hook_event_name": "Stop", "stop_hook_active": False})
+    if s.returncode != 0:
+        return f"insan kapısında turu bitirtmedi (çıkış {s.returncode})"
+    if "insan kapısı" not in s.stdout:
+        return "kapı olayı kullanıcıya gösterilmedi"
+    return None
+
+
+def t_kapi_temiz_turda_sessiz(kok):
+    s = _kapi(kok, {"hook_event_name": "Stop", "stop_hook_active": False})
+    if s.returncode != 0 or s.stdout.strip() or s.stderr.strip():
+        return f"temiz ağaçta tura karıştı (çıkış {s.returncode})"
+    return None
+
+
+def t_kapi_kirmizi_commit_insana_soruluyor(kok):
+    _boz(kok)
+    s = _kapi(kok, _bash("git add -A && git commit -m 'yarım iş'"))
+    try:
+        karar = json.loads(s.stdout)["hookSpecificOutput"]["permissionDecision"]
+    except (ValueError, KeyError, TypeError):
+        return f"kırmızı commit için karar üretilmedi: {s.stdout.strip()[:80]!r}"
+    if karar != "ask":
+        return f"kırmızı commit insana sorulmadı (karar: {karar})"
+    return None
+
+
+def t_kapi_temiz_commite_karismiyor(kok):
+    s = _kapi(kok, _bash("git commit -m 'temiz iş'"))
+    if s.returncode != 0 or s.stdout.strip():
+        return f"temiz ağaçta commit'e karıştı: {s.stdout.strip()[:80]!r}"
+    return None
+
+
+def t_kapi_baska_komuta_karismiyor(kok):
+    """Gönderim olmayan komut — `git stash push` dahil — kırmızı ağaçta da serbest."""
+    _boz(kok)
+    for komut in ("ls -la assets", "git stash push", "git log --grep commit"):
+        s = _kapi(kok, _bash(komut))
+        if s.returncode != 0 or s.stdout.strip():
+            return f"gönderim olmayan bir komuta karıştı: {komut}"
+    return None
+
+
+# ------------------------------------------------------- oturum açılış kancası
+
+def _acilis(kok):
+    s = subprocess.run([sys.executable, os.path.join(kok, ".claude", "kanca-acilis.py")],
+                       cwd=kok, input=json.dumps({"hook_event_name": "SessionStart",
+                                                  "source": "startup"}),
+                       capture_output=True, text=True, timeout=120)
+    try:
+        return s.returncode, json.loads(s.stdout)["hookSpecificOutput"]["additionalContext"]
+    except (ValueError, KeyError, TypeError):
+        return s.returncode, None
+
+
+def _acik_kayit(kok, soru="açılış sınavı kaydı"):
+    with open(os.path.join(kok, ".claude", "geri-bildirim.jsonl"), "a", encoding="utf-8") as f:
+        f.write(json.dumps({"tarih": "2026-01-01", "tur": "canon", "soru": soru,
+                            "yanlis": "x", "dogru": "y", "kaynak": "LORE.md:1",
+                            "durum": "acik"}, ensure_ascii=False) + "\n")
+
+
+def t_acilis_bekleyen_kaydi_gosteriyor(kok):
+    _acik_kayit(kok)
+    kod, baglam = _acilis(kok)
+    if baglam is None:
+        return f"açılış bağlamı üretilmedi (çıkış {kod})"
+    if "Bekleyen geri bildirim" not in baglam:
+        return "açık geri bildirim kaydı açılışta gösterilmedi"
+    return None
+
+
+def t_acilis_kirmiziyi_soyluyor(kok):
+    _boz(kok)
+    _, baglam = _acilis(kok)
+    if baglam is None or "KIRMIZI" not in baglam:
+        return "kırmızı ağaç açılışta söylenmedi"
+    return None
+
+
+def t_acilis_uzun_bolum_digerlerini_itmiyor(kok):
+    """Uzun bir seyir defteri, bekleyen insan kararlarını bağlamdan itmemeli."""
+    _acik_kayit(kok)
+    with open(os.path.join(kok, ".claude", "seyir.jsonl"), "w", encoding="utf-8") as f:
+        f.write(json.dumps({"tur": "baslangic", "is": "uzun iş", "hedef": ""}) + "\n")
+        for i in range(60):
+            f.write(json.dumps({"tur": "karar", "is": "uzun iş", "ne": f"karar {i}",
+                                "neden": "sınav"}, ensure_ascii=False) + "\n")
+    _, baglam = _acilis(kok)
+    if baglam is None:
+        return "açılış bağlamı üretilmedi"
+    if len(baglam.splitlines()) > 40:
+        return f"açılış bağlamı {len(baglam.splitlines())} satır — sınır yok"
+    if "Bekleyen geri bildirim" not in baglam:
+        return "uzun seyir bölümü bekleyen kararları bağlamdan itti"
+    return None
+
+
+def t_acilis_bozuk_defterde_cokmuyor(kok):
+    with open(os.path.join(kok, ".claude", "geri-bildirim.jsonl"), "a", encoding="utf-8") as f:
+        f.write("{bozuk json satırı\n")
+    kod, baglam = _acilis(kok)
+    if kod != 0 or baglam is None:
+        return f"bozuk defter açılışı düşürdü (çıkış {kod})"
+    return None
+
+
+# ------------------------------------------------------------------ mandal
+
+def _mandal_taban(kok):
+    """Kopyada tabanı al ve commit et — HEAD'deki taban gerçekten var olsun."""
+    s = kos(kok, "mandal.py", "kaydet")
+    if s.returncode != 0:
+        raise AssertionError(f"taban alınamadı: {s.stdout.strip()[:80]}")
+    git = ["git", "-c", "user.name=sinav", "-c", "user.email=sinav@yerel",
+           "-c", "commit.gpgsign=false"]
+    subprocess.run(git + ["add", "-A"], cwd=kok, capture_output=True, timeout=60)
+    c = subprocess.run(git + ["commit", "-qm", "sinav tabani", "--no-verify"],
+                       cwd=kok, capture_output=True, text=True, timeout=60)
+    if c.returncode != 0:
+        raise AssertionError(f"kopyada commit olmadı: {c.stderr.strip()[:80]}")
+
+
+def t_mandal_gevsemeyi_yakaliyor(kok):
+    _mandal_taban(kok)
+    _degistir(kok, ".claude/degerlendir.py", "ESIK_ISABET3 = 0.90", "ESIK_ISABET3 = 0.80")
+    s = kos(kok, "mandal.py", "kontrol")
+    if s.returncode != 3:
+        return f"düşen eşik kapıya çıkmadı (çıkış {s.returncode})"
+    return None
+
+
+def t_mandal_sikilasmayi_geciriyor(kok):
+    _mandal_taban(kok)
+    _degistir(kok, ".claude/degerlendir.py", "ESIK_KAPSAMA = 0.90", "ESIK_KAPSAMA = 0.95")
+    s = kos(kok, "mandal.py", "kontrol")
+    if s.returncode != 0:
+        return f"sıkılaşma kapı açtı (çıkış {s.returncode}) — mandal iki yönlü olmamalı"
+    return None
+
+
+def t_mandal_gerekcesiz_kaydetmiyor(kok):
+    _mandal_taban(kok)
+    _degistir(kok, ".claude/degerlendir.py", "ESIK_ISABET3 = 0.90", "ESIK_ISABET3 = 0.80")
+    s = kos(kok, "mandal.py", "kaydet")
+    if s.returncode != 1:
+        return f"gerekçesiz gevşeme reddedilmedi (çıkış {s.returncode})"
+    taban = json.load(open(os.path.join(kok, ".claude", "mandal.json"), encoding="utf-8"))
+    if taban["olculer"].get("degerlendir.isabet3") != 0.9:
+        return "gerekçesiz gevşeme tabana yazıldı"
+    return None
+
+
+def t_mandal_tabani_gevsetmek_ise_yaramiyor(kok):
+    """Ölçüyü ve tabanı aynı anda gevşetmek: HEAD'deki taban hâlâ geçerli."""
+    _mandal_taban(kok)
+    _degistir(kok, ".claude/degerlendir.py", "ESIK_ISABET3 = 0.90", "ESIK_ISABET3 = 0.80")
+    kos(kok, "mandal.py", "kaydet", "--gerekce", "model kendi kendine izin verdi")
+    s = kos(kok, "mandal.py", "kontrol")
+    if s.returncode != 3:
+        return "çalışma ağacındaki taban gevşetilince kapı kapandı — HEAD yok sayılıyor"
+    return None
+
+
+def t_mandal_olcu_kaybini_yakaliyor(kok):
+    """Ölçünün kendisini listeden çıkarmak en sessiz gevşetmedir."""
+    _mandal_taban(kok)
+    _degistir(kok, ".claude/mandal.py",
+              '    ("kanca.devre_sinir",       "asagi",  "düzenleme kancasının tur sınırı"),\n', "")
+    s = kos(kok, "mandal.py", "kontrol")
+    if s.returncode != 3:
+        return f"ölçülmeyen ölçü kapıya çıkmadı (çıkış {s.returncode})"
+    return None
+
+
+# ------------------------------------------------------------------ sağlık
+
+def t_saglik_gerilemeyi_yakaliyor(kok):
+    """Eşiği geçen ama önceki koşudan düşen ölçü yeşil sayılmamalı."""
+    with open(os.path.join(kok, ".claude", "saglik-gecmisi.jsonl"), "w", encoding="utf-8") as f:
+        f.write(json.dumps({"tarih": "2026-01-01T00:00:00", "durum": "yesil", "tam": True,
+                            "olcum": {"degerlendir.isabet1": 0.99, "degerlendir.isabet3": 1.0,
+                                      "degerlendir.mrr": 0.99,
+                                      "degerlendir.kapsama": 1.0}}) + "\n")
+    s = kos(kok, "saglik.py", "--sadece", "arama")
+    if s.returncode != 3:
+        return f"eşiğin üstündeki gerileme kapıya çıkmadı (çıkış {s.returncode})"
+    if "gerileme" not in s.stdout.lower():
+        return "gerileme raporlanmadı"
+    return None
+
+
+def t_saglik_kirmiziyi_soyluyor(kok):
+    _boz(kok)
+    s = kos(kok, "saglik.py", "--sadece", "denetim")
+    if s.returncode != 1:
+        return f"kırmızı denetim sağlıkta yeşil göründü (çıkış {s.returncode})"
+    return None
+
+
+def t_saglik_kismi_kosu_tam_sayilmiyor(kok):
+    """Tek adımlık koşu 'son tam ölçüm' yerine geçmemeli."""
+    kos(kok, "saglik.py", "--sadece", "denetim", "--kaydet")
+    yol = os.path.join(kok, ".claude", "saglik-gecmisi.jsonl")
+    if not os.path.exists(yol):
+        return "--kaydet geçmişe yazmadı"
+    son = [json.loads(s) for s in open(yol, encoding="utf-8") if s.strip()][-1]
+    if son.get("tam") is not False:
+        return "kısmi koşu tam ölçüm diye kaydedildi"
+    return None
+
+
 VAKALAR = [
     ("devre: sınırda kesiyor",              t_devre_sinirda_kesiyor),
     ("devre: başarı sayacı sıfırlıyor",     t_devre_basari_sifirliyor),
@@ -739,6 +1027,31 @@ VAKALAR = [
     ("geri bildirim: vakaya çeviriyor",     t_geribildirim_vakaya_ceviriyor),
     ("geri bildirim: yineleneni kapatıyor", t_geribildirim_yineleneni_kapatiyor),
     ("geri bildirim: kaynaksızı insana bırakıyor", t_geribildirim_kaynaksizi_insana_biraktiyor),
+
+    ("görev: uzak oturum da sözleşmeye tabi", t_gorev_uzak_oturum_da_sozlesmeye_tabi),
+
+    ("kapı: Bash'le bozulan tur bitmiyor",  t_kapi_tur_sonu_kirmiziyi_durduruyor),
+    ("kapı: ikinci kez bloklamıyor",        t_kapi_tur_sonu_ikinci_kez_bloklamiyor),
+    ("kapı: insan kapısında tur bitebilir", t_kapi_insan_kapisinda_tur_bitebilir),
+    ("kapı: temiz turda sessiz",            t_kapi_temiz_turda_sessiz),
+    ("kapı: kırmızı commit insana soruluyor", t_kapi_kirmizi_commit_insana_soruluyor),
+    ("kapı: temiz commit'e karışmıyor",     t_kapi_temiz_commite_karismiyor),
+    ("kapı: başka komuta karışmıyor",       t_kapi_baska_komuta_karismiyor),
+
+    ("açılış: bekleyen kaydı gösteriyor",   t_acilis_bekleyen_kaydi_gosteriyor),
+    ("açılış: kırmızıyı söylüyor",          t_acilis_kirmiziyi_soyluyor),
+    ("açılış: uzun bölüm ötekini itmiyor",  t_acilis_uzun_bolum_digerlerini_itmiyor),
+    ("açılış: bozuk defterde çökmüyor",     t_acilis_bozuk_defterde_cokmuyor),
+
+    ("mandal: gevşeme yakalanıyor",         t_mandal_gevsemeyi_yakaliyor),
+    ("mandal: sıkılaşma geçiyor",           t_mandal_sikilasmayi_geciriyor),
+    ("mandal: gerekçesiz kaydetmiyor",      t_mandal_gerekcesiz_kaydetmiyor),
+    ("mandal: taban gevşetmek işe yaramıyor", t_mandal_tabani_gevsetmek_ise_yaramiyor),
+    ("mandal: ölçü kaybı yakalanıyor",      t_mandal_olcu_kaybini_yakaliyor),
+
+    ("sağlık: eşik üstü gerileme yakalanıyor", t_saglik_gerilemeyi_yakaliyor),
+    ("sağlık: kırmızı yeşil görünmüyor",    t_saglik_kirmiziyi_soyluyor),
+    ("sağlık: kısmi koşu tam sayılmıyor",   t_saglik_kismi_kosu_tam_sayilmiyor),
 ]
 
 

@@ -150,8 +150,146 @@ def m_dogrula_kontrasti_gormesin(kok):
 
 def m_dogrula_odagi_gormesin(kok):
     duzenle(kok, ".claude/dogrula.py",
-            '        if ":focus-visible" in secici:\n            continue',
-            '        if True:\n            continue')
+            '            if ":focus-visible" in secici:\n                continue',
+            '            if True:\n                continue')
+
+
+def m_dogrula_yeni_dosyaya_kor(kok):
+    """Elle yazılmış dosya listesine geri dön — goz.js yine kör noktada."""
+    duzenle(kok, ".claude/dogrula.py",
+            '    for dosya in varlik_dosyalari("js", ".js"):\n        js = js_yorumlari_at(oku(dosya))',
+            '    for dosya in ("assets/js/app.js", "assets/js/animasyon.js", "assets/js/gizli.js"):\n'
+            '        js = js_yorumlari_at(oku(dosya))')
+
+
+def m_dogrula_veri_kanallarina_kor(kok):
+    duzenle(kok, ".claude/dogrula.py",
+            "        for desen, ne in VERI_KANALLARI:",
+            "        for desen, ne in ():")
+
+
+def m_dogrula_dis_kaynaga_kor(kok):
+    duzenle(kok, ".claude/dogrula.py",
+            "                if sunucu and sunucu not in IZINLI_DIS_SUNUCU:\n"
+            "                    satir = html[:etiket.start()]",
+            "                if False:\n"
+            "                    satir = html[:etiket.start()]")
+
+
+def m_dogrula_bagliyi_gormesin(kok):
+    duzenle(kok, ".claude/dogrula.py",
+            "        if not os.path.exists(os.path.join(KOK, yol)):\n            r.hata(\"baglanti\"",
+            "        if False:\n            r.hata(\"baglanti\"")
+
+
+def m_dogrula_derin_bagliyi_gormesin(kok):
+    duzenle(kok, ".claude/dogrula.py",
+            'elif parca and yol.endswith(".html") and parca not in sayfa_kimlikleri(yol):',
+            "elif False:")
+
+
+def m_dogrula_capaya_kor(kok):
+    duzenle(kok, ".claude/dogrula.py",
+            "        if any(g.lower() in metin for g in gercekler):",
+            "        if True:")
+
+
+def m_dogrula_derebeyi_satirina_kor(kok):
+    duzenle(kok, ".claude/dogrula.py",
+            "        elif beklenen != (il, ad):",
+            "        elif False:")
+
+
+def m_dogrula_bos_derebeyine_kor(kok):
+    duzenle(kok, ".claude/dogrula.py",
+            "        if not re.search(r'\\bad\\s*:\\s*\"[^\"]+\"', satir):",
+            "        if False:")
+
+
+def m_dogrula_sozdizimine_kor(kok):
+    duzenle(kok, ".claude/dogrula.py",
+            '                            compile(f.read(), yol, "exec")',
+            "                            f.read()")
+
+
+def m_dogrula_belgesiz_araca_kor(kok):
+    duzenle(kok, ".claude/dogrula.py",
+            '        if dosya.endswith(".py") and dosya not in belge:',
+            "        if False:")
+
+
+def m_mandal_gevsemeyi_gormesin(kok):
+    duzenle(kok, ".claude/mandal.py",
+            '        (sonuc["gevsedi"] if gevsedi else sonuc["siki"]).append((ad, eski, yeni, yon))',
+            '        sonuc["siki"].append((ad, eski, yeni, yon))')
+
+
+def m_mandal_head_tabanini_yok_saysin(kok):
+    duzenle(kok, ".claude/mandal.py",
+            "    head = _git_goster(kok, TABAN_YOLU)",
+            "    head = None")
+
+
+def m_mandal_gerekcesiz_kaydetsin(kok):
+    duzenle(kok, ".claude/mandal.py",
+            '    if s["gevsedi"] and not a.gerekce.strip():',
+            "    if False:")
+
+
+def m_kapi_tur_sonu_bloklamasin(kok):
+    duzenle(kok, ".claude/kanca-kapi.py",
+            '          file=sys.stderr)\n    return 2',
+            '          file=sys.stderr)\n    return 0')
+
+
+def m_kapi_sonsuz_donguye_girsin(kok):
+    duzenle(kok, ".claude/kanca-kapi.py",
+            '    if olay.get("stop_hook_active"):',
+            "    if False:")
+
+
+def m_kapi_commiti_sormasin(kok):
+    duzenle(kok, ".claude/kanca-kapi.py",
+            '"permissionDecision": "ask",',
+            '"permissionDecision": "allow",')
+
+
+def m_acilis_bekleyeni_gostermesin(kok):
+    duzenle(kok, ".claude/kanca-acilis.py",
+            '            if k.get("durum") == "acik"]',
+            "            if False]")
+
+
+def m_acilis_bolumu_kirpmasin(kok):
+    duzenle(kok, ".claude/kanca-acilis.py",
+            "kirp(s.stdout, 14)",
+            "kirp(s.stdout, 10 ** 6)")
+
+
+def m_dogrula_silinen_mandali_gormesin(kok):
+    duzenle(kok, ".claude/dogrula.py",
+            '            r.kapi("mandal", "mandal.py yok ama',
+            '            print("mandal", "mandal.py yok ama')
+
+
+def m_kapi_her_git_komutunu_gonderim_saysin(kok):
+    """Eski geniş kalıp: `git stash push` da commit kapısına takılıyordu."""
+    duzenle(kok, ".claude/kanca-kapi.py",
+            r'GONDERIM = re.compile(r"\bgit(?:\s+-{1,2}[\w-]+(?:[= ](?!commit\b|push\b)\S+)?)*\s+(commit|push)\b")',
+            r'GONDERIM = re.compile(r"\bgit\b[^\n;&|]*\b(commit|push)\b")')
+
+
+def m_gorev_uzak_oturumu_gormesin(kok):
+    """Sözleşme kancası yine sadece yerel alt ajanı dinlesin."""
+    duzenle(kok, ".claude/settings.json",
+            '"matcher": "Agent|Task|mcp__claude-code-remote__create_session"',
+            '"matcher": "Agent|Task"')
+
+
+def m_saglik_gerilemeyi_gormesin(kok):
+    duzenle(kok, ".claude/saglik.py",
+            "        if a is not None and b is not None and b < a - 1e-9:",
+            "        if False:")
 
 
 def m_dogrula_belgeyi_gormesin(kok):
@@ -218,6 +356,34 @@ MUTASYONLAR = [
     ("denetleyici: belge kör",           m_dogrula_belgeyi_gormesin,         "sinav.py"),
 
     ("arama: bilmiyorum diyemiyor",      m_ara_bilmiyorum_diyemesin,         "degerlendir.py"),
+
+    ("denetleyici: yeni dosyaya kör",    m_dogrula_yeni_dosyaya_kor,         "sinav.py"),
+    ("denetleyici: veri kanalına kör",   m_dogrula_veri_kanallarina_kor,     "sinav.py"),
+    ("denetleyici: dış kaynağa kör",     m_dogrula_dis_kaynaga_kor,          "sinav.py"),
+    ("denetleyici: kırık bağlantıya kör", m_dogrula_bagliyi_gormesin,        "sinav.py"),
+    ("denetleyici: derin bağlantıya kör", m_dogrula_derin_bagliyi_gormesin,  "sinav.py"),
+    ("denetleyici: çapaya kör",          m_dogrula_capaya_kor,               "sinav.py"),
+    ("denetleyici: derebeyi satırına kör", m_dogrula_derebeyi_satirina_kor,  "sinav.py"),
+    ("denetleyici: boş derebeyine kör",  m_dogrula_bos_derebeyine_kor,       "sinav.py"),
+    ("denetleyici: sözdizimine kör",     m_dogrula_sozdizimine_kor,          "sinav.py"),
+    ("denetleyici: belgesiz araca kör",  m_dogrula_belgesiz_araca_kor,       "sinav.py"),
+
+    ("mandal: gevşemeyi görmüyor",       m_mandal_gevsemeyi_gormesin,        "arac-sinavi.py"),
+    ("mandal: HEAD tabanını yok sayıyor", m_mandal_head_tabanini_yok_saysin, "arac-sinavi.py"),
+    ("mandal: gerekçesiz kaydediyor",    m_mandal_gerekcesiz_kaydetsin,      "arac-sinavi.py"),
+
+    ("kapı: tur sonu bloklamıyor",       m_kapi_tur_sonu_bloklamasin,        "arac-sinavi.py"),
+    ("kapı: sonsuz döngü koruması yok",  m_kapi_sonsuz_donguye_girsin,       "arac-sinavi.py"),
+    ("kapı: kırmızı commit'i sormuyor",  m_kapi_commiti_sormasin,            "arac-sinavi.py"),
+
+    ("açılış: bekleyeni göstermiyor",    m_acilis_bekleyeni_gostermesin,     "arac-sinavi.py"),
+    ("açılış: bölüm kırpılmıyor",        m_acilis_bolumu_kirpmasin,          "arac-sinavi.py"),
+
+    ("sağlık: gerilemeyi görmüyor",      m_saglik_gerilemeyi_gormesin,       "arac-sinavi.py"),
+
+    ("görev: uzak oturumu görmüyor",     m_gorev_uzak_oturumu_gormesin,      "arac-sinavi.py"),
+    ("denetleyici: silinen mandala kör", m_dogrula_silinen_mandali_gormesin, "sinav.py"),
+    ("kapı: her git komutu gönderim",    m_kapi_her_git_komutunu_gonderim_saysin, "arac-sinavi.py"),
 ]
 
 

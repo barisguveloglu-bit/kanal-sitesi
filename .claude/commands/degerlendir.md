@@ -39,7 +39,7 @@ python3 .claude/mutasyon.py
 
 Araçları kasten bozup sınavın yakalayıp yakalamadığına bakar. Kaçan her
 mutasyon, hiçbir testin korumadığı bir davranış demektir — testin var
-olması yetmez, **canlı** olması gerekir. Yavaştır (~2 dk), her koşuda
+olması yetmez, **canlı** olması gerekir. Yavaştır (~6 dk), her koşuda
 değil; test eklendiğinde ve commit öncesi çalıştır.
 
 ## 4. Geri getirme evali

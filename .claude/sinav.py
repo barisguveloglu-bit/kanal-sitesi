@@ -116,6 +116,127 @@ def v_lore_uydurma_karakter(k):
     duzenle(k, "assets/js/data.js", '    ad: "Sarı Gülücük",',
             '    ad: "Çelik Pençeli Kasap",')
 
+# --- kör noktalar: elle yazılmış dosya listesinin dışında kalanlar ----------
+
+def v_gizleme_opacity_yeni_dosya(k):
+    """goz.js eskiden hiç taranmıyordu — dosya listesi elle yazılmıştı."""
+    duzenle(k, "assets/js/goz.js", "function ",
+            'function gizle(e) { e.style.opacity = "0"; }\nfunction ', 1)
+
+def v_odak_ikinci_stil_dosyasi(k):
+    with open(os.path.join(k, "assets/css/animasyon.css"), "a", encoding="utf-8") as f:
+        f.write("\n.kart:focus { outline: none; }\n")
+
+def v_lore_derebeyi_yer_degisti(k):
+    """İki ad da LORE'da geçiyor — sadece satır eşleşmesi yakalayabilir."""
+    duzenle(k, "assets/js/data.js", 'il: "Konya", komutan: "orta", ad: "Telipinu"',
+            'il: "Konya", komutan: "orta", ad: "Anahita"')
+    duzenle(k, "assets/js/data.js", 'il: "Van", komutan: "dogu", ad: "Anahita"',
+            'il: "Van", komutan: "dogu", ad: "Telipinu"')
+
+def v_lore_uydurma_komutan(k):
+    duzenle(k, "assets/js/data.js", '    ad: "Nemesis",', '    ad: "Kara Fırtına",')
+
+def v_veri_derebeyi_bos(k):
+    duzenle(k, "assets/js/data.js", 'ad: "Telipinu", kim:', 'ad: null, kim:')
+
+def v_veri_yinelenen_kimlik(k):
+    duzenle(k, "assets/js/data.js", 'id: "sari-gulucuk",', 'id: "cips-yiyen-adam",')
+
+def v_gizlilik_analitik(k):
+    duzenle(k, "index.html", "</head>",
+            '  <script defer src="https://www.googletagmanager.com/gtag/js?id=G-X"></script>\n</head>')
+
+def v_gizlilik_fetch(k):
+    duzenle(k, "assets/js/app.js", "function kacir(s) {",
+            'fetch("https://ornek.com/topla", { method: "POST" });\nfunction kacir(s) {')
+
+def v_gizlilik_form(k):
+    duzenle(k, "soru-cevap.html", "</main>",
+            '<form action="https://ornek.com/soru"><input name="eposta"></form>\n</main>')
+
+def v_gizlilik_cerez(k):
+    duzenle(k, "assets/js/animasyon.js", "  function goster(el) {",
+            '  document.cookie = "ziyaret=1";\n  function goster(el) {')
+
+def v_gizlilik_paket(k):
+    with open(os.path.join(k, "package.json"), "w", encoding="utf-8") as f:
+        f.write('{ "name": "kanli-goz", "scripts": { "build": "vite build" } }\n')
+
+def v_baglanti_kimlik_degisti(k):
+    """Karakterin kimliği değişti; efsane.html ve mafya.html'deki derin bağlantı koptu."""
+    duzenle(k, "assets/js/data.js", 'id: "kameraci-baris",', 'id: "kameraci",')
+
+def v_baglanti_paylasim_gorseli(k):
+    duzenle(k, "index.html", "og-kanli-goz.png", "og-kanli-goz.jpg")
+
+def v_baglanti_data_yolu(k):
+    duzenle(k, "assets/js/data.js", 'yol: "irade.html",', 'yol: "irada.html",')
+
+def v_capa_satir_kaydi(k):
+    """LORE.md'nin başına iki satır girdi: altın setin bütün satırları kaydı."""
+    duzenle(k, "LORE.md", "# Kanlı Göz — Evren Kaynağı (Canon)\n",
+            "# Kanlı Göz — Evren Kaynağı (Canon)\n\nYeni bir giriş paragrafı.\n")
+
+def v_capa_gercek_silindi(k):
+    """Altın gerçek canon'dan tamamen çıktı — düzeltme değil, karar."""
+    duzenle(k, "LORE.md", "1735", "1736", sayi=-1)
+
+def v_kanca_sozdizimi(k):
+    with open(os.path.join(k, ".claude", "kanca.py"), "a", encoding="utf-8") as f:
+        f.write("\ndef bozuk( sozdizimi\n")
+
+def v_kanca_olmayan_betik(k):
+    duzenle(k, ".claude/settings.json", "kanca-gorev.py", "kanca-gorevi.py")
+
+def v_mandal_esik_dustu(k):
+    duzenle(k, ".claude/degerlendir.py", "ESIK_ISABET3 = 0.90", "ESIK_ISABET3 = 0.80")
+
+def v_mandal_vaka_silindi_belge_de(k):
+    """Vaka silindi VE belge buna göre düzeltildi — `belge` bunu tutarlı görür.
+
+    Tutarlı bir gerileme yine de gerilemedir; sadece mandal yakalayabilir.
+    """
+    duzenle(k, ".claude/sinav.py",
+            '    ("MASUM: belgeye alakasız cümle",     m_belge_alakasiz_duzenleme,     None),\n', "")
+    p = os.path.join(k, ".claude", "DONGULER.md")
+    s = open(p, encoding="utf-8").read()
+    yeni, adet = re.subn(
+        r"\*\*(\d+) vaka(\s*)\((\d+) yakalanmalı, (\d+) masum\)\*\*",
+        lambda m: f"**{int(m.group(1)) - 1} vaka{m.group(2)}({m.group(3)} yakalanmalı, "
+                  f"{int(m.group(4)) - 1} masum)**", s, count=1)
+    if not adet:
+        raise AssertionError("DONGULER.md'de vaka sayısı cümlesi bulunamadı")
+    open(p, "w", encoding="utf-8").write(yeni)
+
+def v_mandal_kesici_sinir_buyudu(k):
+    duzenle(k, ".claude/kanca.py", '"--sinir", "3"', '"--sinir", "30"')
+
+def v_mandal_araci_silindi(k):
+    """Mandalın kendisini silmek bütün ölçüleri tek hamlede gevşetir."""
+    os.remove(os.path.join(k, ".claude", "mandal.py"))
+
+def v_belge_mutasyon_sayisi(k):
+    p = os.path.join(k, ".claude", "DONGULER.md")
+    s = open(p, encoding="utf-8").read()
+    yeni, adet = re.subn(r"\*\*(\d+) mutasyon\*\*",
+                         lambda m: f"**{int(m.group(1)) + 3} mutasyon**", s, count=1)
+    if not adet:
+        raise AssertionError("DONGULER.md'de '**N mutasyon**' kalıbı bulunamadı")
+    open(p, "w", encoding="utf-8").write(yeni)
+
+def v_belge_belgesiz_arac(k):
+    with open(os.path.join(k, ".claude", "yeni-arac.py"), "w", encoding="utf-8") as f:
+        f.write("print('kimse beni bilmiyor')\n")
+
+def v_belge_denetim_tablosu(k):
+    p = os.path.join(k, ".claude", "DONGULER.md")
+    s = open(p, encoding="utf-8").read()
+    yeni, adet = re.subn(r"(?m)^\| `gizlilik` \|.*\n", "", s, count=1)
+    if not adet:
+        raise AssertionError("DONGULER.md denetim tablosunda `gizlilik` satırı yok")
+    open(p, "w", encoding="utf-8").write(yeni)
+
 # --- masum vakalar: bunlar yakalanmamalı --------------------------------
 
 def m_degisiklik_yok(k):
@@ -140,6 +261,21 @@ def m_belge_alakasiz_duzenleme(k):
     """Belgeye sayı içermeyen bir cümle eklemek yanlış alarm üretmemeli."""
     with open(os.path.join(k, ".claude", "DONGULER.md"), "a", encoding="utf-8") as f:
         f.write("\n\nEk not: bu satırın hiçbir sayıyla ilgisi yok.\n")
+
+def m_yorumda_fetch(k):
+    """Yorum içindeki fetch() bir ağ isteği değildir."""
+    duzenle(k, "assets/js/app.js", "function kacir(s) {",
+            "// Not: fetch() kullanmıyoruz, site hiçbir yere istek atmaz.\nfunction kacir(s) {")
+
+def m_dis_baglanti_gitmek(k):
+    """Dışarıya BAĞLANTI vermek serbest; dışarıdan bir şey YÜKLEMEK değil."""
+    duzenle(k, "soru-cevap.html", "</main>",
+            '<p><a href="https://www.youtube.com/@mahmutguveloglu473" target="_blank" '
+            'rel="noopener">Kanal</a></p>\n</main>')
+
+def m_esik_sikilasti(k):
+    """Mandal tek yönlüdür: sıkılaşma kapı açmaz."""
+    duzenle(k, ".claude/degerlendir.py", "ESIK_KAPSAMA = 0.90", "ESIK_KAPSAMA = 0.95")
 
 def m_yeni_karakter_lore_ile(k):
     """data.js'e karakter eklendi ve LORE.md'ye de eklendi — senkron."""
@@ -173,8 +309,37 @@ VAKALAR = [
     ("belge: vaka sayısı kaydı",          v_belge_vaka_sayisi,            "belge"),
     ("belge: altın soru sayısı kaydı",    v_belge_altin_sayisi,           "belge"),
     ("belge: olmayan bölüme atıf",        v_belge_olmayan_bolum,          "belge"),
+    ("belge: mutasyon sayısı kaydı",      v_belge_mutasyon_sayisi,        "belge"),
+    ("belge: belgelenmemiş araç",         v_belge_belgesiz_arac,          "belge"),
+    ("belge: denetim tablodan düştü",     v_belge_denetim_tablosu,        "belge"),
+
+    ("gizleme: yeni dosyada opacity=0",   v_gizleme_opacity_yeni_dosya,   "gizleme"),
+    ("odak: ikinci stil dosyası",         v_odak_ikinci_stil_dosyasi,     "odak"),
+    ("lore: derebeyleri yer değiştirdi",  v_lore_derebeyi_yer_degisti,    "lore"),
+    ("lore: uydurma komutan",             v_lore_uydurma_komutan,         "lore"),
+    ("veri: derebeyi adı boş",            v_veri_derebeyi_bos,            "veri"),
+    ("veri: yinelenen karakter kimliği",  v_veri_yinelenen_kimlik,        "veri"),
+    ("gizlilik: analitik betiği",         v_gizlilik_analitik,            "gizlilik"),
+    ("gizlilik: fetch ile veri gönderme", v_gizlilik_fetch,               "gizlilik"),
+    ("gizlilik: form eklendi",            v_gizlilik_form,                "gizlilik"),
+    ("gizlilik: çerez yazılıyor",         v_gizlilik_cerez,               "gizlilik"),
+    ("gizlilik: paket yöneticisi",        v_gizlilik_paket,               "gizlilik"),
+    ("bağlantı: karakter kimliği değişti", v_baglanti_kimlik_degisti,     "baglanti"),
+    ("bağlantı: paylaşım görseli yok",    v_baglanti_paylasim_gorseli,    "baglanti"),
+    ("bağlantı: data.js yolu kırık",      v_baglanti_data_yolu,           "baglanti"),
+    ("çapa: LORE satırları kaydı",        v_capa_satir_kaydi,             "capa"),
+    ("KAPI: altın gerçek canon'dan çıktı", v_capa_gercek_silindi,         "capa"),
+    ("kanca: betikte sözdizimi hatası",   v_kanca_sozdizimi,              "kanca"),
+    ("kanca: olmayan betiğe bağlı",       v_kanca_olmayan_betik,          "kanca"),
+    ("KAPI: eşik düşürüldü",              v_mandal_esik_dustu,            "mandal"),
+    ("KAPI: vaka silindi, belge uyduruldu", v_mandal_vaka_silindi_belge_de, "mandal"),
+    ("KAPI: kesici sınırı büyütüldü",     v_mandal_kesici_sinir_buyudu,   "mandal"),
+    ("KAPI: mandal aracı silindi",        v_mandal_araci_silindi,         "mandal"),
 
     ("MASUM: hiç değişiklik yok",         m_degisiklik_yok,               None),
+    ("MASUM: yorumda fetch()",            m_yorumda_fetch,                None),
+    ("MASUM: dışarıya bağlantı vermek",   m_dis_baglanti_gitmek,          None),
+    ("MASUM: eşik sıkılaştı",             m_esik_sikilasti,               None),
     ("MASUM: yorumda 'outline: none'",    m_yorumda_outline,              None),
     ("MASUM: :focus-visible outline",     m_focus_visible_outline,        None),
     ("MASUM: SVG dizesinde opacity=0",    m_svg_opacity,                  None),
@@ -221,6 +386,11 @@ def main():
                 else:
                     not_ = "KAÇIRDI — denetleyici temiz dedi" if kod == 0 else \
                            f"yanlış başlıkta yakalandı: {cikti.strip().splitlines()[1:2]}"
+                # KAPI vakası "hata" diye bildirilirse anlamı değişir: model
+                # soru sormak yerine düzeltmeye girişir. Çıkış kodu da ölçülür.
+                if ok and ad.startswith("KAPI") and kod != 3:
+                    ok = False
+                    not_ = f"kapı yerine hata olarak bildirildi (çıkış {kod}): {not_}"
 
             isaret = "OK " if ok else "FAIL"
             satirlar.append(f"  {isaret} {ad}\n       → {not_}")

@@ -27,16 +27,29 @@ yapmadan önce o dosyayı oku — karakterler, güçler ve efsane orada tanıml�
 
 ## Çalışma döngüsü
 
-`.claude/` altında bir iş akışı katmanı var — **siteye ait değil, yayına
-çıkmıyor.** Ayrıntı: [`.claude/DONGULER.md`](.claude/DONGULER.md).
+`.claude/` altında bir iş akışı katmanı var — **siteye ait değil, ama GitHub
+Pages onu da yayınlıyor** (`LORE.md` ve bu dosya dahil; ayrıntı DONGULER.md
+"Yayın sınırı"). Ayrıntı: [`.claude/DONGULER.md`](.claude/DONGULER.md).
 
 - `python3 .claude/dogrula.py` — yukarıdaki kuralları makine tarafından
   denetler (menü, site haritası, gizleme, odak, `defer`, sahte içerik,
-  yeni video, kontrast, LORE senkronu, belge senkronu).
+  yeni video, kontrast, LORE senkronu, veri tutarlılığı, gizlilik, bağlantı
+  bütünlüğü, altın set çapası, kanca sağlığı, ölçü mandalı, belge senkronu).
   Dış bağımlılığı yok.
   Çıkış kodu `0` temiz, `1` kural ihlali, `3` insan onayı gerekiyor.
 - Bir `.html`/`.css`/`.js`/`.xml` ya da `LORE.md` düzenlendiğinde bu denetim
   `.claude/kanca.py` üzerinden kendiliğinden çalışır.
+- Tur biterken ve `git commit`/`git push` öncesinde `.claude/kanca-kapi.py`
+  aynı denetimi çalışma ağacına uygular — Bash ile yapılan düzenlemeler
+  dahil. Kırmızı biten tur bir kez geri çevrilir (sonsuz döngü olmasın diye
+  ikincisinde bırakılır ama kullanıcıya gösterilir); kırmızı commit insana
+  sorulur.
+- Oturum açılırken `.claude/kanca-acilis.py` denetim sonucunu, açık hedefi,
+  açık işi, açık devreyi ve bekleyen geri bildirimi bağlama koyar.
+- `python3 .claude/mandal.py kontrol` — ölçü gevşedi mi (silinen vaka,
+  düşen eşik, büyüyen sınır). Gevşeme insan kararıdır.
+- `python3 .claude/saglik.py --kaydet` — bütün ölçümler tek komutta;
+  önceki koşuya göre eşiğin üstündeki gerilemeyi de söyler.
 - `python3 .claude/ara.py "<soru>"` — canon içinde arar, cevabı **satır
   numarasıyla** döndürür. Bu evren hakkında hafızadan cevap verme; her
   iddiayı `LORE.md:201` gibi adresle.
@@ -59,7 +72,8 @@ yapmadan önce o dosyayı oku — karakterler, güçler ve efsane orada tanıml�
 - `python3 .claude/geri-bildirim.py` — yanlış çıkan bir cevabı kalıcı test
   vakasına çevirir.
 - Komutlar: `/dongu` (tam akış), `/planla` (sadece plan), `/sor` (dayanaklı
-  cevap), `/denetle` (sadece denetim), `/degerlendir` (sistemin ölçümü), `/yargila` (cevap kalitesi),
+  cevap), `/denetle` (sadece denetim), `/degerlendir` (sistemin ölçümü),
+  `/saglik` (bütün ölçümler tek komutta), `/yargila` (cevap kalitesi),
   `/geri-bildirim` (hatayı teste çevir), `/surekli` (sınırlı otonom döngü),
   `/orkestra` (çok parçalı büyük iş).
 
@@ -78,6 +92,8 @@ irade kademelerinin son hâli, Yılmaz sonrası zaman çizelgesi (1730 mu 1731 m
 ve video bağlantıları.
 
 **Derebeyi isimleri kapandı** — 81 ilin 81'i de dolu, `ad: null` kalmadı.
+Artık iddia değil ölçü: `veri` denetimi 81'i, `lore` denetimi her satırın
+LORE.md'deki tabloyla eşleşmesini sayıyor.
 
 ## Denetim sonrası eklenen kurallar
 
