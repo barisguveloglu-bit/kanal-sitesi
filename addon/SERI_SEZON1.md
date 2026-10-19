@@ -544,23 +544,39 @@ mikrofonla anlattı, özeti onayladı):**
     tablosundaki **Tanrıça** (*"Öpücük yanındaki sembolü koy, tanrıça"*):
     sırt sırta iki hilal, `)(`. Tablonun resmi hiçbir yere girmiyor; biçim
     bizim çizimimiz.
-    - Taslak (Claude, onay bekliyor): perçem dış katmanın 1–6. sütunu, altı
-      ayrı tel, menteşe tacın hemen altında. Büyüde teller yanlara açılıyor
-      (ortadakiler 32°, sonrakiler 24° ve 14°), ~26° öne-yukarı kalkıyor ve
-      titriyor. Alın 6×3 skin pikseli; bu boyda hilal çizilemediği için
-      sembol ayrı bir katman ve skin pikselinin 8 katı çözünürlükte.
-      Dinlenmede görünüm skinin aynısı (dört yandan piksel piksel ölçüldü);
-      kullanıcının skin dosyası değişmiyor.
+    - **Renk: mor** (kullanıcı, 2026-10-19: *"mor kullanalım"*; Claude
+      Ender'le uyumu için önermişti). Saldırı II'nin rengi de bununla kapandı:
+      Zisa'nın büyü rengi mor.
+    - **Açılma: ilk taslaktan biraz az** (kullanıcı: *"taslaktakinden
+      birazcık daha az olsun"*). Taslakta perçem dış katmanın 1–6. sütunu,
+      altı ayrı tel, menteşe tacın hemen altında; teller yanlara açılıyor
+      (ortadakiler 26°, sonrakiler 19° ve 11°; ilk taslak 32/24/14'tü),
+      ~21° öne-yukarı kalkıyor ve titriyor. Alın 6×3 skin pikseli; bu boyda
+      hilal çizilemediği için sembol ayrı bir katman ve skin pikselinin 8
+      katı çözünürlükte. Dinlenmede görünüm skinin aynısı (dört yandan piksel
+      piksel ölçüldü); kullanıcının skin dosyası değişmiyor.
+    - **Ender Armblades çağrılırken de parlıyor** (kullanıcı: *"evet parlıyor
+      ama belli olmuyor, ama ışık çıkacak; o detayı ekle"*): perçem kalkmıyor,
+      sembol saçın altında kalıyor, ışığı saçın arasından sızıyor. Taslakta
+      teller sembolün renginde hafifçe ışıyor (ortadakiler en çok) ve perçemle
+      alın arasındaki küçük bir ışık yüze vuruyor.
     - Film aracında bugün yok: ince kol, perçem telleri, alın katmanı ve
       parlamayı başlatan bir olay yazılacak.
-    - Açık: parlama rengi; açılma miktarı; aynı renk Zisa'nın bütün
-      büyülerinin (Saldırı II dahil) rengi mi.
   - **Irkı: yarı insan yarı Endra (kullanıcı, 2026-10-19):** önce *"Zisa ve
     onun ailesi aslında dünyalı değil, yani insan değil; The End'de bir
     Endra"* dedi, aynı gün düzeltti: *"bu tam bir Endra değil, yarı insan
-    yarı Endra."* Ailesinden hangisinin Endra olduğu söylenmedi. Kullanıcının
-    saydığı güçler ve özellikler (yarı Endra olmanın bunları nasıl
-    etkilediği söylenmedi; Ender Armblades'i kullanıyor):
+    yarı Endra."*
+    - **Ailesi (kullanıcı, 2026-10-19):** **babası Endra**, annesi insan. O
+      dönemde The End'de bir iç karışıklık vardı; babası dünyaya göç etmek
+      zorunda kaldı. Bu krallık seçildi, çünkü The End'deki o krallıkla
+      insanlar arasında bir ittifak vardı (kullanıcının mikrofonla söylediği
+      "iltifat" ittifak diye okundu); buraya yerleştiler. Babası annesiyle
+      Zisa doğmadan önce tanıştı, evlendiler. **Krallık onun farklı bir
+      soydan geldiğini biliyor.**
+    - Güç listesi kullanıcının kendi buluşu (*"tamamen hayal gücümle
+      yaptığım şeyler"*), bir kaynaktan gelmedi.
+    - **Güçleri ve özellikleri** (kullanıcının saydığı; yarı Endra olmanın
+      bunları nasıl etkilediği aşağıda "ırksal dezavantaj"ta):
     - **Ender Armblades:** kol bıçaklarını ikinci bir doğasıymış gibi
       zahmetsizce çağırıp kullanma. Bıçağın görünüşü (kullanıcı,
       2026-10-19):
@@ -620,12 +636,9 @@ mikrofonla anlattı, özeti onayladı):**
       veriyor. 21 yaşında bu fark henüz görünmüyor; ileride Barış
       yaşlanırken Zisa çok daha yavaş yaşlanacak. Yarı Endra'nın tam hızı
       söylenmedi.
-    - Açık: koruma büyüsü ve Saldırı II birer End Blessing mi; bu güçlerden
-      hangisi 2. bölümde ekranda görünüyor (Ender Armblades görünecek:
-      *"o şekil bir şey gözükecek"*; hangi sahnede olduğu söylenmedi);
-      bıçak çağrılırken alın sembolü de parlıyor mu; krallıktakiler onun Endra
-      olduğunu biliyor mu (kraliyet büyücülüğü adaylığı, krallığın cadı
-      düşmanlığı); ailesinden hangisi Endra; liste bir kaynaktan mı geldi.
+    - Açık: koruma büyüsü ve Saldırı II birer End Blessing mi; Ender
+      Armblades hangi sahnede görünüyor (*"o şekil bir şey gözükecek"*);
+      ırksal dezavantajın biçimi.
 - **Cadı ve büyücü:** kullanıcının sözü *"ikisi de aynı şey"*. Aradaki fark
   (cadı bir ırk, büyücü büyü yapan bir insan mı) soruldu, cevap bekliyor.
 - **Cadıların iki yolu:** **Işık Yolu** (iyi) ve **Karanlık Yolu** (kötü).
@@ -818,14 +831,13 @@ içinde, okunuşu yanında; doğrulanmayanlar öyle işaretli.
      tahmin):* Barış tam bunu bekliyordu; kabuğu Kor Yürüyüşü ile ısıtıp
      çatlatıyor ve Ice-man'i lav çukuruna düşürüyor. Ağır çekim yalnız bu
      anda. Ordu patronunu kaybedince dağılıyor.
-  - Ömer'in buz duvarının bu yapıda nereye düştüğü söylenmedi. Claude
-    meydanı (3. mekan) önerdi; onaylanmadı.
-- **Açık:**
-  - Seslendirme: kayıtta "yalnız altyazı" kararı duruyor. Kullanıcı
-    askerlerin bağırışları için *"sesleri sen yaparsın veya ElevenLabs ile
-    yaparız"* dedi; hangisi olacağı seçilmedi.
-  - Saldırı II'nin rengi: Minecraft'taki koyu kırmızı mı, Zisa'ya özgü bir
-    renk mi?
+  - Ömer'in buz duvarı **meydanda** (3. mekan): Claude önerdi, kullanıcı
+    onayladı (2026-10-19, *"tamam"*).
+- **Kapanan sorular (kullanıcı, 2026-10-19):**
+  - Seslendirme: askerlerin bağırışları **yalnız altyazı** (*"altyazı
+    olsun"*). Kullanıcı daha önce *"sesleri sen yaparsın veya ElevenLabs ile
+    yaparız"* demişti; altyazı seçildi.
+  - Saldırı II'nin rengi: **mor**, Zisa'nın büyü rengi (Zisa bölümünde).
 
 ### 4 part kesimi ve hazır paketler (Claude'un kararı, 2026-10-19)
 
@@ -845,8 +857,8 @@ hedef ~57,5).
 | **3 — Dip noktası** | 2. mekan sokaklar (Düşünme 2, Saldırı II) · Ömer ve buz duvarı · 3. mekan meydan (Düşünme 3–4): donma, *"Bu kadar kolaysın"*, zayıf nokta, *"O kızı da getirin"*, buzun çatlaması | 1. mekan değişimi: ateşli darbe Ice-man'i duvardan geçirir | ~57 sn |
 | **4 — Final** | 4. mekan merdivenler (Düşünme 5–6) · 2. mekan değişimi, tepenin içine düşüş · 5. mekan jeot lav çukuru (Düşünme 7), ağır çekim, Ice-man'in ölümü · ordunun dağılması | ordu dağılırken | ~57 sn |
 
-- Ömer'in buz duvarı Part 3'e, meydana kondu (Claude'un önceki önerisi);
-  yeri hâlâ kullanıcının onayını bekliyor, değişirse Part 2 ile 3 arası kayar.
+- Ömer'in buz duvarı Part 3'te, meydanda (Claude önerdi, kullanıcı
+  onayladı, 2026-10-19).
 - Çizim: part başına ~390 makine-saati (1. bölümün ortalaması). Efektli
   sahnelerde ölçülmedi; her çekimin ilk önizleme karesi ölçer.
 - Sıra: Part 1 en az efekti istiyor. Önizlemesi onaylanınca çizime girer;
@@ -879,7 +891,7 @@ karşılığı olmayan için.
   (kullanıcının kararı, Zisa bölümünde) ve Barış'ın çevresinde Pooka **iksir
   parçacığı** (Minecraft'taki etki gibi); seken oklara filmdeki mavi
   **savunma kıvılcımı**.
-- **Part 3:** Saldırı II → Pooka iksir parçacığı (rengi açık soru) + ağır
+- **Part 3:** Saldırı II → Pooka iksir parçacığı (mor, Zisa'nın büyü rengi) + ağır
   vuruşta Pooka **kritik vuruş** parçacığı + Kenney **savurma izi** (Minecraft'ın
   süpürme vuruşu gibi); zombiler çite ve duvara çarparken qubodup **darbe
   sesi**; Ömer'in topuzu buz duvarına → filmdeki mavi savunma kıvılcımı ve
