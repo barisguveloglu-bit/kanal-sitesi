@@ -446,6 +446,7 @@
           "variable.wom_kilic_satsujin = query.get_equipped_item_name('main_hand') == 'wom_satsujin';",
           "variable.wom_kilic_solar = query.get_equipped_item_name('main_hand') == 'wom_solar';",
           "variable.wom_kilic_stone_staff = query.get_equipped_item_name('main_hand') == 'wom_stone_staff';",
+          "variable.wom_kilic_topuz = query.get_equipped_item_name('main_hand') == 'osmanli_topuzu';",
           "variable.wom_kilic_wooden_staff = query.get_equipped_item_name('main_hand') == 'wom_wooden_staff';",
           "variable.ironman_sniper = q.equipped_item_any_tag('slot.weapon.mainhand', 'ironman_sniper') && q.is_sneaking;",
           "variable.the_void_mode = q.equipped_item_any_tag('slot.armor.legs', 'sentry_powers') && q.property('arathnido:ability0') == 1;",
@@ -583,6 +584,12 @@
             "wom_stone_staff_durus_ust": "variable.wom_kilic_stone_staff && !variable.is_first_person && !variable.is_paperdoll && !query.is_gliding && !query.is_swimming && !query.is_sleeping && query.modified_move_speed >= 0.1"
           },
           {
+            "wom_topuz_durus": "variable.wom_kilic_topuz && !variable.is_first_person && !variable.is_paperdoll && !query.is_gliding && !query.is_swimming && !query.is_sleeping && query.modified_move_speed < 0.1"
+          },
+          {
+            "wom_topuz_durus_ust": "variable.wom_kilic_topuz && !variable.is_first_person && !variable.is_paperdoll && !query.is_gliding && !query.is_swimming && !query.is_sleeping && query.modified_move_speed >= 0.1"
+          },
+          {
             "wom_wooden_staff_durus": "variable.wom_kilic_wooden_staff && !variable.is_first_person && !variable.is_paperdoll && !query.is_gliding && !query.is_swimming && !query.is_sleeping && query.modified_move_speed < 0.1"
           },
           {
@@ -701,6 +708,8 @@
         "wom_solar_durus_ust": "animation.wom.solar.durus_ust",
         "wom_stone_staff_durus": "animation.wom.stone_staff.durus",
         "wom_stone_staff_durus_ust": "animation.wom.stone_staff.durus_ust",
+        "wom_topuz_durus": "animation.wom.topuz.durus",
+        "wom_topuz_durus_ust": "animation.wom.topuz.durus_ust",
         "wom_wooden_staff_durus": "animation.wom.wooden_staff.durus",
         "wom_wooden_staff_durus_ust": "animation.wom.wooden_staff.durus_ust",
         "player.hulkbuster.punch_first.c": "controller.animation.player.hulkbuster.punch_first",

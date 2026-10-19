@@ -1,6 +1,6 @@
 # Film aracı — yetenek haritası
 
-v7.99.14 · 2026-10-17. Kaynak: `arac/blender_film.py`, `film_poz.py`,
+v7.99.15 · 2026-10-19 (Osmanlı Topuzu, balta seti ve dizli bacak eklendi; ilk hâli v7.99.14 · 2026-10-17). Kaynak: `arac/blender_film.py`, `film_poz.py`,
 `kamera_denetim.py`, `zemin_denetim.py`, `form_model.py`, `thomas_goz.py`,
 `film_ses.py`, `film_birlestir.py` ve `test/` altındaki film testleri.
 Kod okunarak çıkarıldı; bu bir envanter, karar değil. Sayılar ya kod
@@ -13,17 +13,19 @@ sabiti ya da kayıtlı ölçüm.
   - **Hareket:** `git` (yürüme 4,3, koşma 5,6 blok/sn; `adim` ile elle hız), `bak` (540°/sn), `kacin` geri/sağ/sol (2,4 blok, 0,3 sn; kaçış sırasında vuruş geçmez), `isinlan` (iki mor flaş), `gizle`/`goster`.
   - **Saldırı:** `vur` türleri `oto` (kombo sırası; 2 sn ara verilince başa döner), `kosu`, `hava` (havaya kalkan vuruş) ya da vuruşun adı. Ayarları: `hiz`, `hamle` (atılma çarpanı), `itme`, `kan`, `dusur` (vuruşla yere düşürme). Temas anı ve hamle izi oyundaki WoM verisinden geliyor; menzil 3,5 blok.
   - **Savunma ve tepki:** `savun` (süreli) önden gelen vuruşun itmesini %35'e indirir, darbe tepkisi oynatmaz. Darbe tepkisi (0,4 sn) otomatik. İki aktörün merkezleri arasında en az 1,05 blok kalır.
-- Dövüş setleri (15):
+- Dövüş setleri (17):
   - `antitheus` (Barış): `auto_1/2/4`, koşu vuruşu `agression`, hava vuruşu `guillotine`.
   - `yumruk` (El-Harkos).
   - 6 asa seti: `staff_auto_1–3`, `squall`, `kingkong`.
+  - `topuz` (Ömer, v7.99.15): Epic Fight baltasından **türetilmiş** (`arac/wom_cevir.py` `TURETILMIS`): `axe_auto1/2`, koşu `axe_dash`, hava `axe_airslash`, bekleme duruşu Epic Fight'ın normal duruşu. Vuruşlar, süreler, hasar ve hamle baltayla aynı (hız demir balta, 0,9). Silah elde kaymıyor; çarpışma düzeltmesi önce kolda, kalanı bilekte, ikisi de izlemeli.
+  - `balta` (v7.99.15): Epic Fight'ın tek elli baltası; eşyası yok, yalnız topuzun tabanı.
   - ruine, longsword, satsujin, evil_tachi, nova, herrscher, solar.
 - Ortam: `yer_vurus` (yumruk yere iner, toprak sıçrar, önüne 0,5 blokluk bir blok kopar) → `parca_al` (iki elle; el ile blok arası ≤ 0,15 blok denetleniyor) → `parca_at` (balistik uçuş 0,15–1,5 sn, hedefin önünde kırılır).
 - Yok:
   - büyü ya da mermi saldırısı, kalkan, bir aktörü tutup fırlatma, aynı anda birden çok kişiye vuruş;
   - yol bulma, engelden dolaşma, zıplama, tırmanma, uçma;
   - ağaç devirme, blok kırma, topraktan başka blok türü;
-  - **Karanlık Tırpan dışında çizilen silah modeli.** Ay Işığı Asası'nın modeli eklentide var ama filme bağlı değil; başka setle dövüşen aktör eli boş savurur.
+  - **Karanlık Tırpan ve Osmanlı Topuzu dışında çizilen silah modeli.** Ay Işığı Asası'nın modeli eklentide var ama filme bağlı değil; başka setle dövüşen aktör eli boş savurur.
 
 **Poz** (`film_poz`, 14)
 - Hazır:
@@ -69,7 +71,8 @@ sabiti ya da kayıtlı ölçüm.
   - skin ve isim;
   - `form`: 1,5 kat boy ve iki ek kol (`alt` ya da `omuz`);
   - Thomas gözleri: `kirmizi`/`mavi` kalıp, her göze ayrı ayar, `goz_kapak`, `goz_bakis`; planda `goz: "thomas"` ile açılır;
-  - `silah_gizli`/`silah_goster`, `durus`, sol elde kâğıt.
+  - `silah`: `karanlik_tirpan` (Barış) ya da `osmanli_topuzu` (Ömer); `silah_gizli`/`silah_goster`, `durus`, sol elde kâğıt;
+  - `diz: true` (v7.99.15): bacak uyluk + baldır, diz açısı Epic Fight'ın (`wom_cevir.py --diz`; dövüş setlerinin bütün duruş ve vuruşlarında). Yazılmazsa eski düz bacak; oyundaki model değişmez.
 - Yok:
   - ağız ve yüz ifadesi;
   - zombi, iskelet, creeper, golem modeli (yalnız insan aktör var);
@@ -138,6 +141,7 @@ sabiti ya da kayıtlı ölçüm.
 - Part 2'de dövüş dengesizdi (8 saldırıya 4).
 - Part 2'de kötünün bedeni yoktu ve griydi (kilit: `kotu_karanlik.mjs`).
 - Part 2'de aktörler havada yatıyor ve yürüyordu (kilit: `zemin.mjs`).
+- Topuz önizlemesinde "ayaklar yerden kesiliyor" (2026-10-18): dizsiz bacak eğilince yere tek köşesiyle basıyordu (asanın `staff_auto_3`'ü: destek bacağı 25° eğik, tabanın öbür köşeleri 1–2 px havada). Dizli bacakla kapandı (kilit: `diz.mjs`). Asanın `kingkong`'unda beden inişten sonra 2,1 px havada kalıyor (aşağıda, açık).
 
 **Tam kalite çıktının uzun denetimi**
 - 849, 900 ve 945. karelerde tek kare 18° dönüş vardı; El-Harkos kopyalara dönmüyordu. Sebep takılan yürüyüş (kilit: `tek_kare_donus.mjs`).
@@ -145,6 +149,13 @@ sabiti ya da kayıtlı ölçüm.
 - Renk BT.601'le kodlanıyordu (kilit: `renk_kodlama.mjs`).
 - Ses: −11,3 LUFS, −80 LUFS rüzgâr, sessiz anda +20 dB yükselme, iki kez AAC kodlama, sonda tık (kilit: `ses_seviye.mjs`, `ses_kenar.mjs`).
 - Birleştirmede Part 2'nin son karesi düşüyordu (kilit: `ses_dilim.mjs`).
+
+**Silah ölçümü** (çizimden önce, `topuz.mjs`)
+- Demir asada el sap boyunca 5–26 px kayıyordu; 17 px'lik topuzda yumruk silahın dışına çıkardı. Asa beş vuruşun üçünde sapın arka ucuyla vuruyor, sol yumruk sapın 14–16 px gerisini tutuyordu (görünmeyen bir sap).
+- Çarpışma düzeltmesi yalnız küplerin orta çizgisine bakıyordu, köşeleri 0,9 px kaçırıyordu (`silah_kose`).
+- Uzun kılıçta topuz beş vuruşun beşinde bedene giriyordu (düzeltmesiz toplam 2,5 sn, havada vuruşta kafada 3,6 px, `auto1`'in bitişinde yumruk gövdede). Sıfırdan çözüm derin batmada takılıyordu: itmeler birbirini götürüyor (`auto1` t=0,7: tork 8°'de durdu, kaba arama 37°'de temiz). İzlemeyle temizlemek kolu 48°, bileği 50° çeviriyordu.
+- On bir set topuzun modeliyle, düzeltmesiz ölçüldü (bedene 0,5 px'ten derin batma süresi, toplam): balta 0,95 sn, asa 1,3, herrscher 1,6, uzun kılıç 2,5, Epic Fight tek elli kılıç 2,5, nova 2,65, evil_tachi 3,35, solar 5,1, antitheus 5,4, ruine 6,15, satsujin 8,6. Balta dört vuruşun dördünde başı önde, sol el sapı hiç tutmuyor; Epic Fight Minecraft'ın topuzunu da balta sayıyor. Kullanıcı baltayı seçti (2026-10-19).
+- Baltadan türetilmiş topuz: en derin batma 0,40 px (eşik 0,5); düzeltme kolda en çok 35° (yalnız `axe_auto2`'nin kalkışı: düzeltmesiz topuz kafanın içinden 2,5 px geçiyordu, 0,35 sn'de sıfıra iner), bilekte en çok 25,6°. Bekleme duruşu baltanınkiyle bire bir.
 
 **Süre ölçümü**
 - Tek tek anahtar kare yazmak sahne kurulumunu 12 dk yapıyordu; anahtarlar toplu yazılıyor.
@@ -167,6 +178,8 @@ sabiti ya da kayıtlı ölçüm.
 - **Takılan yürüyüş:** kök düzeltmesi yapılmadı (SERI_SEZON1, "bilinen hata"). Kalabalık sahneler bunu sık tetikler.
 - **Skin aynası:** düzeltip düzeltmemek kullanıcının kararı. Düzeltilmezse Thomas planıyla bizim plan arasında yüz aynalanır.
 - **Antitheus `auto_3`:** kullanılmıyor, çünkü sap 0,1–0,2 sn boyunca başın içinden geçiyor.
+- **Zıplayan vuruşta iniş:** Barış'ın `guillotine`'inde beden inişten sonra 6,7 px, asaların `kingkong`'unda 2,1 px havada kalıyor; düzeltilmedi. Part 2 çizilirken `antitheus` setine dokunulmadı.
+- **Film pozlarında diz yok:** dizli aktörde de `diz_cok`, `dus`, `yuzustu` gibi film pozlarında baldır düz kalır (diz kanalı yalnız dövüş setlerinin animasyonlarında).
 
 ## Maliyet ölçüsü
 
@@ -174,7 +187,13 @@ sabiti ya da kayıtlı ölçüm.
 - **Ağır çekim ve donma:** bu kareler de tek tek çiziliyor; film süresi, hikâye süresinin hıza bölümü kadar uzuyor. 1. bölümdeki 0,12 sn'lik donma (hız 0,03) 4 sn film tuttu, yaklaşık 27 makine-saati.
 - **Taslak:** tek ölçüm `--onizleme` için var: 640×360, 6 örnek, kare başına ≈ 2,4 sn (4 çekirdek, v7.99.9). Bu hızla 74 sn yaklaşık 1,5 makine-saati. 960×540'ta, sisli ya da efektli sahnede ölçülmedi.
 
-## Test koşusu (2026-10-17)
+## Test koşusu (2026-10-19, v7.99.15)
+
+- **Tam takım** (`kos.sh`'in aynısı, `cizim_dagit.mjs` hariç): 164 testin 163'ü geçti, 32 dk. Düşen `efsane_dunyasi.mjs` (gökyüzü paketinin sürümü 7.94.0, ana paket 7.99.8): HEAD'de de düşüyor, bu işle ilgisi yok.
+- **Yeni testler:** `topuz.mjs` (eşya, baltadan türetilmiş set, tutuş, çarpışma, mutasyon) ve `diz.mjs` (geometri, Epic Fight'ın diz açısı, film aracı, mutasyon).
+- **Blender'da ölçülen:** dizli aktör film aracında çiziliyor (Ömer topuzla, iki balta vuruşu); `diz` yazılmayan senaryoda HEAD'in film aracıyla bugünkü aynı kareyi **piksel piksel aynı** çiziyor (1. bölüm etkilenmiyor).
+
+### Önceki koşu (2026-10-17)
 
 - **Çalıştırılan:** Blender gerektirmeyen 16 film testi; 122 madde geçti, 0 düştü. Testler: `blender_film`, `kamera_denetim`, `zemin`, `tek_kare_donus`, `kotu_karanlik`, `form_model`, `goz_thomas`, `baslik_karti`, `renk_kodlama`, `ses_dilim`, `ses_kenar`, `ses_seviye`, `tutus`, `silah_govde` (tek başına ~20 dk), `onizleme`, `arac_kur`.
 - **Bilerek çalıştırılmayan:** `cizim_dagit.mjs` (çizim işçilerini taklit ediyor) ve `wom_kilic.mjs` (oyun içi eklenti testi). Blender bu makinede kurulu değildi.

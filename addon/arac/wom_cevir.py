@@ -3,6 +3,8 @@
 
 Kullanim:
     python3 addon/arac/wom_cevir.py <wom_kok> <epicfight_kok> [--rapor]
+    python3 addon/arac/wom_cevir.py --turet      # JAR'siz: yalniz TURETILMIS setler
+    python3 addon/arac/wom_cevir.py --diz <wom_kok> <epicfight_kok>   # yalniz dizli film bacagi
 
 <wom_kok>, <epicfight_kok>: JAR'in kendisi ya da acilmis klasoru
 (Weapons of Miracles 2.0.178, Epic Fight 21.17.3.1). Sinif
@@ -165,6 +167,20 @@ KILIC["yumruk"] = {
     "oto": ["biped/combat/fist_auto1", "biped/combat/fist_auto2",
             "biped/combat/fist_auto3"],
     "kosu": "biped/combat/fist_dash", "hava": "biped/combat/fist_airslash",
+}
+# ---- BALTA (v7.99.15) ----
+# Epic Fight'in tek elli balta seti (EpicFightMovesets.AXE_1H): AXE_AUTO1,
+# AXE_AUTO2, kosu AXE_DASH, hava AXE_AIRSLASH; durus degistirilmiyor
+# (yalniz BLOCK -> SWORD_GUARD), yani BIPED_IDLE. Epic Fight Minecraft'in
+# topuzunu da bu ture sayiyor (data/minecraft/capabilities/weapons/
+# mace.json: "epicfight:axe"). ESYASI YOK: Osmanli Topuzu'nun tabani
+# (TURETILMIS["topuz"]); kol_uret esyasiz sete oyunda durus baglamiyor.
+# Hiz demir baltanin (4 - 3.1; kullanici, 2026-10-19).
+KILIC["balta"] = {
+    "esyalar": [], "sinif": None, "kaynak": "ef", "hiz": 4 - 3.1,
+    "durus": "biped/living/idle",
+    "oto": ["biped/combat/axe_auto1", "biped/combat/axe_auto2"],
+    "kosu": "biped/combat/axe_dash", "hava": "biped/combat/axe_airslash",
 }
 WOM_SINIF_KLASOR = "reascer/wom/gameasset/animations/weapons/"
 EF_SINIF = "yesman/epicfight/gameasset/Animations"
@@ -618,6 +634,7 @@ CARPISMA_EN = 35.0        # derece -- kolun en buyuk ek donusu (15'te auto_1 1.3
 CARPISMA_YAYMA = 0.15     # s -- duzeltme bu surede yumusakca girip cikar
 CARPISMA_TARA = 120       # Hz -- anahtar kare arasi batma taramasi
 GOVDE_KEMIK = ("head", "body", "rightLeg", "leftLeg")
+KOL_PAY = 0.7             # px -- silahi tasiyan kolun kutusu bu kadar kucultulur: KOL_PAY - CARPISMA_PAY (0.4 px) sig siyirma duzeltilmez
 
 
 def _dondur(eksen, aci):
@@ -649,12 +666,27 @@ def silah_carpisma_duzelt(anim, kemikler, sure, olcek_zaman):
     sonra uclu bulaniklik: tepe gereksinim kaybolmaz, sicrama olmaz)."""
     import bedrock_onizleme as B
     yol = getattr(anim, "silah_geo", None)
-    if not yol or "rightArm" not in kemikler or "rotation" not in kemikler["rightArm"]:
+    # v7.99.15: donen eklem secilebilir. Elde kayma kanali yoksa (turetilmis
+    # topuz) silah YUMRUGUN etrafinda donebilir: bilek. Olcum (kingkong
+    # t=0.8): kolu 35 derece cevirmek 0.36 px batik birakiyordu, bilegi
+    # 10-15 derece cevirmek temizliyor -- kolun hareketi Epic Fight'taki kalir.
+    eklem = getattr(anim, "carpisma_eklem", "rightArm")
+    if not yol or eklem not in kemikler or "rotation" not in kemikler[eklem]:
         return
     geo = B.oku(AKTOR_GEO)
     kem = {b["name"]: b for b in geo["minecraft:geometry"][0]["bones"]}
-    omuz_ic = B.ic(kem["rightArm"]["pivot"])
-    dinlenme = kem["rightArm"].get("rotation", [0, 0, 0])
+    omuz_ic = B.ic(kem[eklem]["pivot"])
+    dinlenme = kem[eklem].get("rotation", [0, 0, 0])
+    zincir, x = [], ATA[eklem]                # eklemin ebeveynleri, kokten
+    while x:
+        zincir.insert(0, x)
+        x = ATA[x]
+
+    def ust_donus(m):
+        R = [[1.0, 0, 0], [0, 1.0, 0], [0, 0, 1.0]]
+        for x in zincir:
+            R = carp3(R, m.donus(x))
+        return R
     noktalar = []
     for b in B.oku(yol)["minecraft:geometry"][0]["bones"]:
         for c in b.get("cubes", []):
@@ -665,15 +697,43 @@ def silah_carpisma_duzelt(anim, kemikler, sure, olcek_zaman):
                 q = [o[i] + z[i] / 2 for i in range(3)]
                 q[ek] = o[ek] + z[ek] * j / n
                 noktalar.append(B.ic(q))
+            # v7.99.15: genis kuplu silahta (topuz: 2.6 px bilezik) orta
+            # cizgi yetmiyor -- kose 0.9 px govdeye giriyordu. Istenirse
+            # kup koseleri de (tirpanin ciktisi degismesin diye varsayilan yok).
+            if getattr(anim, "silah_kose", False):
+                for u in (0, 1):
+                    for v in (0, 1):
+                        for w in (0, 1):
+                            q = B.ic([o[0] + z[0] * u, o[1] + z[1] * v, o[2] + z[2] * w])
+                            if q not in noktalar:
+                                noktalar.append(q)
     eski = {"bones": {k: dict(v) for k, v in kemikler.items()}}
+    # sol el silahi tutmuyorsa (turetilmis set, sol kol durusta) o da engel
+    govde_kemik = getattr(anim, "carpisma_kemik", GOVDE_KEMIK)
+    # Bilek donunce silah SAG KOLA da girebilir (olcum: kingkong t=0.8,
+    # 1.03 px). Kabza yumrugun icinde: dinlenmede kolun kutusunun icindeki
+    # noktalar kolu engel saymaz, digerleri sayar. Kolun kutusu KOL_PAY
+    # kadar kucultulur: topuzun dibi asanin tutusunda yumruga 0.13-0.16 px
+    # degiyor ve tam kutu bilegi bekleme durusu dahil her yerde 12-35
+    # derece ceviriyordu (gorunmeyen bir siyirma icin).
+    kol_engel = getattr(anim, "carpisma_kol", False)
+    _kc = kem["rightArm"]["cubes"][0]
+    _kmn, _kmx = B.ic([_kc["origin"][0] + _kc["size"][0], 0, 0])[0], B.ic([_kc["origin"][0], 0, 0])[0]
+    uzak = [not (_kmn - 0.01 <= q[0] <= _kmx + 0.01 and
+                 _kc["origin"][1] - 0.01 <= q[1] <= _kc["origin"][1] + _kc["size"][1] + 0.01 and
+                 _kc["origin"][2] - 0.01 <= q[2] <= _kc["origin"][2] + _kc["size"][2] + 0.01)
+            for q in noktalar]
 
     def kutular(m):
+        """(govde kutulari, govde + sag kol): uzak nokta ikincisine bakar."""
         out = []
-        for ad in GOVDE_KEMIK:
+        for ad in govde_kemik + (("rightArm",) if kol_engel else ()):
             for c in kem[ad].get("cubes", []):
                 if c.get("inflate", 0) > 0:
                     continue
                 o, z = c["origin"], c["size"]
+                if ad == "rightArm":
+                    o, z = [x + KOL_PAY for x in o], [x - 2 * KOL_PAY for x in z]
                 mn = [-(o[0] + z[0]), o[1], o[2]]
                 mx = [-o[0], o[1] + z[1], o[2] + z[2]]
                 k = lambda a, b_, d: m.nokta(ad, [mx[0] if a else mn[0], mx[1] if b_ else mn[1], mx[2] if d else mn[2]])
@@ -681,7 +741,8 @@ def silah_carpisma_duzelt(anim, kemikler, sure, olcek_zaman):
                 E = [fark(k(1, 0, 0), c0), fark(k(0, 1, 0), c0), fark(k(0, 0, 1), c0)]
                 L = [math.sqrt(sum(x * x for x in e)) for e in E]
                 out.append((c0, [[x / l for x in e] for e, l in zip(E, L)], L))
-        return out
+        n_govde = sum(len([c for c in kem[ad].get("cubes", []) if c.get("inflate", 0) <= 0]) for ad in govde_kemik)
+        return out[:n_govde], out
 
     def batma(w, kk):
         """(derinlik, disari normal) -- en derin kutuya gore."""
@@ -698,7 +759,7 @@ def silah_carpisma_duzelt(anim, kemikler, sure, olcek_zaman):
                 en, nor = d, n_
         return en, nor
 
-    zs = {float(k) / olcek_zaman for k in kemikler["rightArm"]["rotation"]}
+    zs = {float(k) / olcek_zaman for k in kemikler[eklem]["rotation"]}
     zs |= {round(i / 30.0 / olcek_zaman, 5) for i in range(int(sure * olcek_zaman * 30) + 1)}
     # Hizli savurus iki anahtar karenin ARASINDA batabiliyor (guillotine:
     # 0.442 ve 0.467'de temiz, 0.450'de bacakta 1.2 px). Duzeltilmemis
@@ -708,10 +769,10 @@ def silah_carpisma_duzelt(anim, kemikler, sure, olcek_zaman):
         t = round(i / CARPISMA_TARA / olcek_zaman, 5)
         m = B.Model(geo, eski, t * olcek_zaman)
         kk = kutular(m)
-        if max(batma(tm0.nokta(_silah_kemik(yol), p[:], m), kk)[0] for p in noktalar) > -CARPISMA_PAY - 1.0:
+        if max(batma(tm0.nokta(_silah_kemik(yol), p[:], m), kk[u])[0] for p, u in zip(noktalar, uzak)) > -CARPISMA_PAY - 1.0:
             zs.add(t)
     zs = sorted(t for t in zs if t <= sure + 1e-9)
-    sinir = math.radians(CARPISMA_EN)
+    sinir = math.radians(getattr(anim, "carpisma_en", CARPISMA_EN))
     tm_ = B.Model(B.oku(yol))
     sk = _silah_kemik(yol)
     onbellek = {}
@@ -720,29 +781,31 @@ def silah_carpisma_duzelt(anim, kemikler, sure, olcek_zaman):
         """(model, kutular, omuz, silah noktalari, govde donusu) -- t'de, duzeltmesiz."""
         if t not in onbellek:
             m = B.Model(geo, eski, t * olcek_zaman)
-            onbellek[t] = (m, kutular(m), m.nokta("rightArm", omuz_ic[:]),
-                           [tm_.nokta(sk, p[:], m) for p in noktalar],
-                           carp3(carp3(m.donus("root"), m.donus("waist")), m.donus("body")))
+            onbellek[t] = (m, kutular(m), m.nokta(eklem, omuz_ic[:]),
+                           [tm_.nokta(sk, p[:], m) for p in noktalar], ust_donus(m))
         return onbellek[t]
 
     def derinlik(t, toplam):
         """Kol omuz etrafinda `toplam` (dunya ekseni*aci) donunce en derin batma."""
         _m, kk, om, dunya, _p = durum(t)
         Q = _dondur(toplam, math.sqrt(sum(x * x for x in toplam)))
-        return max(batma([om[i] + v for i, v in enumerate(uygula(Q, fark(w0, om)))], kk)[0] for w0 in dunya)
+        return max(batma([om[i] + v for i, v in enumerate(uygula(Q, fark(w0, om)))], kk[u])[0]
+                   for w0, u in zip(dunya, uzak))
 
-    def coz(t):
+    def coz(t, bas=None):
         """Tork yontemi; en iyi (en sig) cozumu saklar. 12 adimda iki kutu
-        arasinda takilip 0.45 px batik kalabiliyordu (auto_2 t=0.21)."""
+        arasinda takilip 0.45 px batik kalabiliyordu (auto_2 t=0.21).
+        bas: baslangic (dunya ekseni*aci); yoksa sifirdan."""
         _m, kk, om, dunya, _p = durum(t)
-        toplam, en_iyi = [0.0, 0.0, 0.0], (1e9, [0.0, 0.0, 0.0])
+        toplam = list(bas) if bas else [0.0, 0.0, 0.0]
+        en_iyi = (1e9, list(toplam))
         adim_en = math.radians(3.0)
         for _ in range(40):
             Q = _dondur(toplam, math.sqrt(sum(x * x for x in toplam)))
             tork, en = [0.0, 0.0, 0.0], -1e9
-            for w0 in dunya:
+            for w0, u in zip(dunya, uzak):
                 w = [om[i] + v for i, v in enumerate(uygula(Q, fark(w0, om)))]
-                d, nor = batma(w, kk)
+                d, nor = batma(w, kk[u])
                 en = max(en, d)
                 if d > -CARPISMA_PAY:
                     rr = fark(w, om)
@@ -771,6 +834,61 @@ def silah_carpisma_duzelt(anim, kemikler, sure, olcek_zaman):
         toplam = coz(t)
         # dunya ekseni -> govde (kolun ebeveyni) uzayina: zamanda yumusatmak icin
         gerek[t] = uygula(devrik(durum(t)[4]), toplam)
+    takip = getattr(anim, "carpisma_takip", False)
+
+    def kucult(t, v):
+        """Temiz cozum ayni yonde sifira dogru kuculur (ikiye bolme)."""
+        alt, ust = 0.0, 1.0
+        for _ in range(8):
+            o = (alt + ust) / 2
+            if derinlik(t, [x * o for x in v]) <= -CARPISMA_PAY:
+                ust = o
+            else:
+                alt = o
+        return [x * ust for x in v]
+
+    def dene(t, bas):
+        """(derinlik, dunya ekseni*aci): temizse en kucuk aciya inmis."""
+        v = coz(t, bas)
+        d = derinlik(t, v)
+        if d <= -CARPISMA_PAY:
+            v = kucult(t, v)
+            d = derinlik(t, v)
+        return d, v
+
+    def daha_iyi(a, b):
+        ta, tb = a[0] <= -CARPISMA_PAY, b[0] <= -CARPISMA_PAY
+        if ta != tb:
+            return ta
+        if ta:
+            return sum(x * x for x in a[1]) < sum(x * x for x in b[1])
+        return a[0] < b[0] - 1e-6
+    if takip:
+        # v7.99.15 IZLEME (turetilmis topuz): her an sifirdan cozulunce derin
+        # batmada itmeler birbirini goturuyor. Olcum, uzun kilic auto1 t=0.7:
+        # yumruk govdede, topuz govdeden boydan boya; sifirdan tork 8
+        # derecede takiliyor, kaba arama 37 derecede temiz. Batma yavas
+        # basliyor: bir onceki anin cozumunden baslayan cozum, cozum yolunu
+        # izler. Ileri ve geri iki gecis (batma basta ya da sonda derin olabilir).
+        sonuc = {}
+        for t in zs:
+            v = uygula(durum(t)[4], gerek[t])
+            d = derinlik(t, v)
+            if d <= -CARPISMA_PAY:
+                v = kucult(t, v)
+                d = derinlik(t, v)
+            sonuc[t] = (d, v)
+        for sira in (zs, zs[::-1]):
+            onceki = None                       # ebeveyn uzayinda
+            for t in sira:
+                Pw = durum(t)[4]
+                if sonuc[t][0] > -CARPISMA_PAY and onceki and sum(x * x for x in onceki) > 1e-12:
+                    aday = dene(t, uygula(Pw, onceki))
+                    if daha_iyi(aday, sonuc[t]):
+                        sonuc[t] = aday
+                onceki = uygula(devrik(Pw), sonuc[t][1])
+        for t in zs:
+            gerek[t] = uygula(devrik(durum(t)[4]), sonuc[t][1])
     if not any(math.sqrt(sum(x * x for x in v)) > 1e-4 for v in gerek.values()):
         return
     yay = CARPISMA_YAYMA / olcek_zaman
@@ -819,7 +937,7 @@ def silah_carpisma_duzelt(anim, kemikler, sure, olcek_zaman):
         if derinlik(t, uygula(Pw, duz[t])) <= -CARPISMA_PAY * 0.5:
             continue
         if t not in gerek:                      # siklastirmada eklenen an
-            gerek[t] = uygula(devrik(Pw), coz(t))
+            gerek[t] = uygula(devrik(Pw), dene(t, uygula(Pw, duz[t]))[1] if takip else coz(t))
         adaylar = [[x * k for x in duz[t]] for k in (0.85, 0.7, 0.55, 0.4, 0.25, 0.1, 0.0)] + [gerek[t]]
         olc = [(derinlik(t, uygula(Pw, c)), c) for c in adaylar]
         iyi = [c for d, c in olc if d <= -CARPISMA_PAY * 0.5]
@@ -831,14 +949,14 @@ def silah_carpisma_duzelt(anim, kemikler, sure, olcek_zaman):
     for t in zs:
         tt = t * olcek_zaman
         m = B.Model(geo, eski, tt)
-        Pw = carp3(carp3(m.donus("root"), m.donus("waist")), m.donus("body"))
+        Pw = ust_donus(m)
         v = uygula(Pw, duz[t])
         Q = _dondur(v, math.sqrt(sum(x * x for x in v)))
-        L = carp3(carp3(devrik(Pw), carp3(Q, Pw)), m.donus("rightArm"))
+        L = carp3(carp3(devrik(Pw), carp3(Q, Pw)), m.donus(eklem))
         onceki = euler_surekli(L, onceki)
         x, y, z = onceki
         yeni["%.4f" % tt] = [round(-x - dinlenme[0], 2), round(-y - dinlenme[1], 2), round(z - dinlenme[2], 2)]
-    kemikler["rightArm"]["rotation"] = yeni
+    kemikler[eklem]["rotation"] = yeni
 
 
 def _silah_kemik(yol):
@@ -926,9 +1044,10 @@ def uc_konum(anim, uc, t):
     return uygula4(anim.dunya(ad, t), ayak_ofseti(anim, ad))
 
 
-def dunya_farki(anim, bkemik, t):
-    """Kemigin dunyadaki poz degisimi (dinlenmeye gore), BB ic uzayinda."""
-    ek, uc = KEMIK[bkemik]
+def dunya_farki(anim, bkemik, t, kemik=None):
+    """Kemigin dunyadaki poz degisimi (dinlenmeye gore), BB ic uzayinda.
+    kemik: KEMIK yerine kullanilacak tablo (dizli film bacagi, DIZ_KEMIK)."""
+    ek, uc = (kemik or KEMIK)[bkemik]
     if bkemik == "leftArm" and not getattr(anim, "sol_duzelt", False):
         uc = ("eklem", "Tool_L")          # v7.99.9'daki davranis
     G = carp3(rot(anim.dunya(ek, t)), devrik(rot(anim.dunya(ek))))
@@ -941,14 +1060,14 @@ def dunya_farki(anim, bkemik, t):
     return carp3(carp3(C, dik_yap(G)), CT)
 
 
-def yerel_donus(anim, bkemik, t, kok_yok=False):
-    G = dunya_farki(anim, bkemik, t)
-    a = ATA[bkemik]
+def yerel_donus(anim, bkemik, t, kok_yok=False, kemik=None, ata=None):
+    G = dunya_farki(anim, bkemik, t, kemik)
+    a = (ata or ATA)[bkemik]
     if a is None or (kok_yok and a == "root"):
         # Kok yazilmiyorsa (ust beden durusu) waist kokun donusunu da
         # tasiyor: dunyadaki farkin tamami.
         return G
-    return carp3(devrik(dunya_farki(anim, a, t)), G)
+    return carp3(devrik(dunya_farki(anim, a, t, kemik)), G)
 
 
 # ---------------- euler ----------------
@@ -997,12 +1116,12 @@ def aci_farki(a, b):
     return math.degrees(math.acos(max(-1.0, min(1.0, (iz - 1) / 2))))
 
 
-def kemik_cevir(anim, bkemik, sure, kok_yok=False):
+def kemik_cevir(anim, bkemik, sure, kok_yok=False, kemik=None, ata=None):
     ornek = {}
 
     def poz(t):
         if t not in ornek:
-            ornek[t] = yerel_donus(anim, bkemik, t, kok_yok)
+            ornek[t] = yerel_donus(anim, bkemik, t, kok_yok, kemik, ata)
         return ornek[t]
     zs = sorted({t for t in anim.anahtar if t <= sure + 1e-9} | {0.0, round(sure, 4)})
     euler, onceki = {}, None
@@ -1053,7 +1172,7 @@ ZEMIN_ORNEK = 1.0 / 60   # s -- zemin olcumunun sikligi (oyun zamaninda)
 ZEMIN_PAY = 0.05          # px -- bundan kucuk gomulme yazilmaz
 
 
-def zemin_duzelt(kemikler, sure_oyun):
+def zemin_duzelt(kemikler, sure_oyun, geo=None, bacaklar=("rightLeg", "leftLeg")):
     """Ayaklar zeminin altina inerse kok o kadar kaldirilir.
 
     Epic Fight vuruslarda kalcayi alcaltiyor (comelme, 5-7 px) ve dizi
@@ -1062,11 +1181,12 @@ def zemin_duzelt(kemikler, sure_oyun):
     yarim blok). Kullanici: "ayaklari yerin icine girmesi... bozuk bir
     dovus veremeyiz." Her karede iki bacagin (alt katman, sisirmesiz)
     en alt noktasi bedrock_onizleme.Model ile olculur; zeminin altindaysa
-    kokun Y konumuna eklenir. Havadaki kareye dokunulmaz."""
+    kokun Y konumuna eklenir. Havadaki kareye dokunulmaz.
+    geo / bacaklar: dizli film bacagi icin (taban baldirda, DIZ_KEMIK)."""
     import bedrock_onizleme as B
     if "root" not in kemikler:
         return
-    geo = B.oku(AKTOR_GEO)
+    geo = geo or B.oku(AKTOR_GEO)
     kem = {b["name"]: b for b in geo["minecraft:geometry"][0]["bones"]}
     anim = {"bones": kemikler}
     kok = kemikler["root"].get("position", {"0.0000": [0.0, 0.0, 0.0]})
@@ -1074,7 +1194,7 @@ def zemin_duzelt(kemikler, sure_oyun):
     def en_alt(t):
         m = B.Model(geo, anim, t)
         y = 1e9
-        for ad in ("rightLeg", "leftLeg"):
+        for ad in bacaklar:
             for c in kem[ad].get("cubes", []):
                 if c.get("inflate", 0) > 0:
                     continue
@@ -1142,23 +1262,8 @@ def cevir(anim, sure, olcek_zaman, kemikler_izinli, dikey_oyuncuya, bas_look):
     silah_carpisma_duzelt(anim, kemikler, sure, olcek_zaman)
     sol_el_duzelt(anim, kemikler, sure, olcek_zaman)
     if "root" in kemikler_izinli:
-        # Kalca merkezli donus + gorunumde kalan dikey kayma.
-        # Donus karelerinin zamanlari + her oyun tick'i (dosya zamaninda).
-        zs = {float(k) / olcek_zaman for k in kemikler["root"]["rotation"]}
-        zs |= {round(i * TICK / olcek_zaman, 5)
-               for i in range(int(sure * olcek_zaman / TICK) + 1)}
-        zs = sorted(t for t in zs if t <= sure + 1e-9)
-        kon = {}
-        c = [0.0, KALCA_PX, 0.0]
-        for t in zs:
-            R = dunya_farki(anim, "root", t)
-            Rc = uygula(R, c)
-            dy = kok_yukseklik(anim, t)
-            if dikey_oyuncuya:
-                dy = min(dy, 0.0)
-            p = [c[0] - Rc[0], c[1] - Rc[1] + dy, c[2] - Rc[2]]
-            kon["%.4f" % (t * olcek_zaman)] = [round(-p[0], 3), round(p[1], 3), round(p[2], 3)]
-        kemikler["root"]["position"] = kon
+        kemikler["root"]["position"] = kok_konumu(anim, sure, olcek_zaman, dikey_oyuncuya,
+                                                  kemikler["root"]["rotation"])
         if "Root" in anim.olcek:
             ts, olc = anim.olcek["Root"]
             if any(abs(o - 1.0) > 0.01 for o in olc):
@@ -1167,6 +1272,26 @@ def cevir(anim, sure, olcek_zaman, kemikler_izinli, dikey_oyuncuya, bas_look):
         # olcekten SONRA: olcek de bacagin boyunu degistiriyor
         zemin_duzelt(kemikler, sure * olcek_zaman)
     return kemikler
+
+
+def kok_konumu(anim, sure, olcek_zaman, dikey_oyuncuya, kok_donus):
+    """Kalca merkezli donus + gorunumde kalan dikey kayma. Donus
+    karelerinin zamanlari + her oyun tick'i (dosya zamaninda)."""
+    zs = {float(k) / olcek_zaman for k in kok_donus}
+    zs |= {round(i * TICK / olcek_zaman, 5)
+           for i in range(int(sure * olcek_zaman / TICK) + 1)}
+    zs = sorted(t for t in zs if t <= sure + 1e-9)
+    kon = {}
+    c = [0.0, KALCA_PX, 0.0]
+    for t in zs:
+        R = dunya_farki(anim, "root", t)
+        Rc = uygula(R, c)
+        dy = kok_yukseklik(anim, t)
+        if dikey_oyuncuya:
+            dy = min(dy, 0.0)
+        p = [c[0] - Rc[0], c[1] - Rc[1] + dy, c[2] - Rc[2]]
+        kon["%.4f" % (t * olcek_zaman)] = [round(-p[0], 3), round(p[1], 3), round(p[2], 3)]
+    return kon
 
 
 def hareket(anim, sure, olcek_zaman, dikey_oyuncuya):
@@ -1184,8 +1309,242 @@ def hareket(anim, sure, olcek_zaman, dikey_oyuncuya):
     return iz
 
 
+# ---------------- turetilmis setler (v7.99.15) ----------------
+# WoM'da karsiligi olmayan kendi silahimiz icin bir setin BEDROCK
+# ciktisindan kopya. JAR gerekmiyor: taban set bu dosyanin kendi
+# ciktisindan okunuyor (--turet). Tam cevirme de yazmadan once ayni
+# adimi calistiriyor: yeniden cevirince set kaybolmuyor.
+#   taban: topuz Epic Fight'in BALTASINDAN (kullanici, 2026-10-19). Ilk
+#       taban demir asaydi: 5 vurusun 3'unde (auto_2, auto_3, squall) sapin
+#       ARKA ucuyla vuruyor -- topuzda bas geride, Omer dibiyle vururdu.
+#       Ikincisi uzun kilic: duzeltmesiz topuz bes vurusun besinde bedene
+#       giriyordu (toplam 2.5 s, havada vurusta kafada 3.6 px, auto1'in
+#       bitisinde yumruk govdede); temizlemek kolu 48, bilegi 50 derece
+#       ceviriyordu. On bir set olculdu (Omer'in modeliyle, duzeltmesiz):
+#       balta en az batan (toplam 0.95 s), dort vurusun dordunde bas
+#       onde, sol el sapi hic tutmuyor; Epic Fight topuzu da balta sayiyor.
+#   el_kaymasi False: rightItem `position` silinir (baltada en cok
+#       0.73 px; asada 5-26 px'ti, 17 px'lik topuzda yumruk silahin disina
+#       cikardi).
+#   silah_geo: carpisma duzeltmesi bu modelle, kup koseleriyle yapilir;
+#       silah tek elli, sol kol da engel. Once kol (omuz) cevrilir; kayma
+#       yoksa kalani BILEKTE (silah yumrugun etrafinda doner, sag kol da
+#       engel). Asada olculdu: kolu 35 derece cevirmek kingkong'u 0.9 px
+#       batik birakiyordu, yalniz bilek auto_3'te topuzun dibini sol koldan
+#       cikaramiyordu (1.47 px). Iki gecis de IZLEMELI (carpisma_takip).
+#       Olcum, balta auto2 (topuz kalkista kafanin icinden 2.5 px geciyor):
+#       izlemesiz 0.54 px batik kaliyor (sag on kol, esik 0.5), bilek 33
+#       derece; izlemeyle 0.40 px, bilek 25.6. Obur uc vurus ikisinde de ayni.
+TURETILMIS = {
+    "topuz": {"taban": "balta", "el_kaymasi": False,
+              "silah_geo": os.path.join(ADDON, "Simsek_Kol_Kaynak", "models", "entity",
+                                        "osmanli_topuzu.geo.json")},
+}
+
+
+def turet(animler, veri):
+    """TURETILMIS setleri taban setin ciktisindan yeniden kurar (yerinde).
+    Once eski turetilmis setler ve animasyonlari silinir: tablodan
+    cikarilan set dosyada artik birakmaz."""
+    import copy
+    import types
+    for ad in [a for a, v in veri.items() if "taban" in v]:
+        del veri[ad]
+        for a_ad in [a for a in animler if a.startswith(ANIM_ONEK + ad + ".")]:
+            del animler[a_ad]
+    for ad, k in TURETILMIS.items():
+        if not os.path.exists(k["silah_geo"]):
+            raise SystemExit("YOK: %s (once kol_uret.py)" % k["silah_geo"])
+        taban = veri[k["taban"]]
+        eski, yeni = ANIM_ONEK + k["taban"] + ".", ANIM_ONEK + ad + "."
+        engel = GOVDE_KEMIK + ("leftArm",)
+        kol = types.SimpleNamespace(silah_geo=k["silah_geo"], silah_kose=True, carpisma_kemik=engel,
+                                    carpisma_takip=True)
+        bilek = types.SimpleNamespace(silah_geo=k["silah_geo"], silah_kose=True, carpisma_kemik=engel,
+                                      carpisma_eklem="rightItem", carpisma_kol=True, carpisma_takip=True)
+        v = copy.deepcopy(taban)
+        v["esyalar"], v["taban"] = [], k["taban"]
+        for d in ("durus", "durus_ust"):
+            v[d] = yeni + taban[d][len(eski):]
+        for x in v["saldirilar"]:
+            x["anim"] = yeni + x["anim"][len(eski):]
+        for a_ad in [taban["durus"], taban["durus_ust"]] + [x["anim"] for x in taban["saldirilar"]]:
+            a = copy.deepcopy(animler[a_ad])
+            kem = a["bones"]
+            if not k["el_kaymasi"] and "rightItem" in kem:
+                kem["rightItem"].pop("position", None)
+            silah_carpisma_duzelt(kol, kem, a["animation_length"], 1.0)
+            if not k["el_kaymasi"]:
+                silah_carpisma_duzelt(bilek, kem, a["animation_length"], 1.0)
+            animler[yeni + a_ad[len(eski):]] = a
+        veri[ad] = v
+
+
+# ---------------- dizli film bacagi (v7.99.15) ----------------
+# Kullanici (2026-10-18): "Evet, filme diz ekle". Epic Fight'in bacagi iki
+# parca (Thigh -> Leg; kalca 12.18, diz 6.18 px), Bedrock'unki tek kutu ve
+# cevirme kalcadan AYAGA bakiyordu: diz bukulmesi kayboluyordu. Olcum
+# (JAR'dan): hold_longsword'da dizler 15-24 derece, longsword_auto1'de
+# 21-102 derece bukuk. Film araci dizli bacak kullaniyor (arac/diz_model.py);
+# onun icin uyluk DIZE, baldir AYAGA bakar. Kok, duz bacak icin yapilan
+# zemin yukseltmesi OLMADAN (Epic Fight'in kalcasi) hesaplanir, sonra
+# dizli bacakla yeniden olculur (taban zemine girmesin).
+# Yalniz film okur: oyunun animasyon dosyasi (CIKTI_ANIM) DEGISMEZ.
+CIKTI_DIZ = os.path.join(ADDON, "kaynak_anim", "wom", "wom_kilic_diz.animation.json")
+CIKTI_DIZ_IZ = os.path.join(ADDON, "kaynak_anim", "wom", "wom_kilic_diz.iz.json")
+DIZ_KEMIK = dict(KEMIK, rightLeg=("Thigh_R", ("eklem", "Leg_R")), leftLeg=("Thigh_L", ("eklem", "Leg_L")),
+                 rightLegAlt=("Leg_R", ("ayak", "Leg_R")), leftLegAlt=("Leg_L", ("ayak", "Leg_L")))
+DIZ_ATA = dict(ATA, rightLegAlt="rightLeg", leftLegAlt="leftLeg")
+DIZ_BACAK = ("rightLeg", "leftLeg", "rightLegAlt", "leftLegAlt")
+
+
+def diz_cevir(anim, sure, olcek_zaman, dikey_oyuncuya, kemikler):
+    """Dizli bacak kanallari {kemik: {...}} -- duz ceviriye (kemikler) ust uste
+    binecek kadari: dort bacak kemiginin donusu ve kokun konumu."""
+    import bedrock_onizleme as B
+    import diz_model as DM
+    cikti = {}
+    for b in DIZ_BACAK:
+        euler = kemik_cevir(anim, b, sure, False, DIZ_KEMIK, DIZ_ATA)
+        cikti[b] = {"rotation": {"%.4f" % (t * olcek_zaman): [round(-x, 2), round(-y, 2), round(z, 2)]
+                                 for t, (x, y, z) in sorted(euler.items())}}
+    tam = {k: dict(v) for k, v in kemikler.items()}
+    tam.update({k: dict(v) for k, v in cikti.items()})
+    tam["root"]["position"] = kok_konumu(anim, sure, olcek_zaman, dikey_oyuncuya, kemikler["root"]["rotation"])
+    zemin_duzelt(tam, sure * olcek_zaman, DM.dizli_geo(B.oku(AKTOR_GEO)), tuple(DM.ALT.values()))
+    cikti["root"] = {"position": tam["root"]["position"]}
+    return cikti
+
+
+def diz_izi(anim, sure, olcek_zaman):
+    """Epic Fight'in diz bukulmesi (derece), oyun zamaninda her tick:
+    [[t, sag, sol], ...]. test/diz.mjs bizim cevirimizi buna karsi olcuyor."""
+    out = []
+    for i in range(int(round(sure * olcek_zaman / TICK)) + 1):
+        t = min(sure, i * TICK / olcek_zaman)
+        satir = [round(t * olcek_zaman, 4)]
+        for yan in ("R", "L"):
+            H = konum(anim.dunya("Thigh_" + yan, t))
+            K = konum(anim.dunya("Leg_" + yan, t))
+            A = uygula4(anim.dunya("Leg_" + yan, t), ayak_ofseti(anim, "Leg_" + yan))
+            u, v = fark(K, H), fark(A, K)
+            c = sum(u[k] * v[k] for k in range(3)) / math.sqrt(sum(x * x for x in u) * sum(x * x for x in v))
+            satir.append(round(math.degrees(math.acos(max(-1.0, min(1.0, c)))), 2))
+        out.append(satir)
+    return out
+
+
+def diz_turet(diz):
+    """TURETILMIS setlerin dizli bacagi taban setinkidir (bacak ve kok
+    turetmede degismiyor): taban setin kayitlari turetilmis adla kopyalanir."""
+    # cevrilmis setin olmayan her kayit turetilmistir: silinir, yeniden kurulur
+    # (tablodan cikarilan turetilmis set dosyada artik birakmaz)
+    for ad in [a for a in diz if a[len(ANIM_ONEK):].split(".")[0] not in KILIC]:
+        del diz[ad]
+    for ad, k in TURETILMIS.items():
+        eski, yeni = ANIM_ONEK + k["taban"] + ".", ANIM_ONEK + ad + "."
+        for a in [a for a in diz if a.startswith(eski)]:
+            diz[yeni + a[len(eski):]] = diz[a]
+
+
+def diz_yaz(diz, iz):
+    with open(CIKTI_DIZ, "w", encoding="utf-8") as f:
+        json.dump({"format_version": "1.8.0", "animations": diz}, f, ensure_ascii=False, separators=(",", ":"))
+        f.write("\n")
+    with open(CIKTI_DIZ_IZ, "w", encoding="utf-8") as f:
+        json.dump({"aciklama": "Epic Fight'in diz bukulmesi (derece), oyun zamani: [t, sag, sol]. "
+                               "Ureten: arac/wom_cevir.py --diz. Elle duzenleme.", "animasyonlar": iz},
+                  f, ensure_ascii=False, separators=(",", ":"))
+        f.write("\n")
+
+
+def diz_main(argv):
+    """--diz <wom_kok> <epicfight_kok>: yalniz dizli film bacagi. Duz
+    cevirinin kendisi (CIKTI_ANIM) okunur, yazilmaz."""
+    wom, ef = Kaynak(argv[0]), Kaynak(argv[1])
+    taban = ef.json("assets/epicfight/animmodels/entity/biped.json")
+    kaynaklar = {"wom": (wom, "assets/wom/animmodels/animations/"),
+                 "ef": (ef, "assets/epicfight/animmodels/animations/")}
+    with open(CIKTI_ANIM, encoding="utf-8") as f:
+        animler = json.load(f)["animations"]
+    with open(CIKTI_HAREKET, encoding="utf-8") as f:
+        veri = json.load(f)["setler"]
+    ef_zaman = zamanlar(ef, EF_SINIF)
+    sinif_onbellek = {}
+    diz, iz = {}, {}
+    for set_ad, s in KILIC.items():
+        k, onek = kaynaklar[s["kaynak"]]
+        if not s["sinif"]:
+            z_tablo = ef_zaman
+        else:
+            _yol = s["sinif"] if "/" in s["sinif"] else WOM_SINIF_KLASOR + s["sinif"]
+            if _yol not in sinif_onbellek:
+                sinif_onbellek[_yol] = zamanlar(wom, _yol)
+            z_tablo = sinif_onbellek[_yol]
+        isler = []
+        if s["durus"]:
+            isler.append((s["durus"], ANIM_ONEK + set_ad + ".durus", False, 1.0))
+        dikey = {x["anim"]: x["dikey"] for x in veri[set_ad]["saldirilar"]}
+        for tur, yollar in (("oto", s["oto"]), ("kosu", [s["kosu"]]), ("hava", [s["hava"]])):
+            for yol in yollar:
+                tam = ANIM_ONEK + set_ad + "." + yol.split("/")[-1]
+                # olcek tam cevirinin AYNISI (sinif dosyasindaki temel hiz):
+                # duz cevirinin yuvarlanmis suresinden bolmek anahtar kare
+                # zamanlarini kaydiriyordu (53 animasyon, 1202 anahtar).
+                temel = fazlari_coz(z_tablo[yol])[3]
+                hiz = (1.0 if s["hiz"] is None or temel is None
+                       else max(0.5, min(2.0, s["hiz"] / temel)))
+                isler.append((yol, tam, dikey[tam], 1.0 / hiz))
+        for yol, tam, dik, olcek_zaman in isler:
+            a = Animasyon(k.json(onek + yol + ".json"), taban)
+            if "Thigh_R" not in a.bind or "Leg_R" not in a.bind:
+                continue
+            diz[tam] = {"animation_length": animler[tam]["animation_length"],
+                        "bones": diz_cevir(a, a.sure, olcek_zaman, dik, animler[tam]["bones"])}
+            iz[tam] = diz_izi(a, a.sure, olcek_zaman)
+    diz_turet(diz)
+    diz_yaz(diz, iz)
+    print("dizli bacak: %d animasyon" % len(diz))
+    return 0
+
+
+def yaz(animler, veri):
+    os.makedirs(os.path.dirname(CIKTI_ANIM), exist_ok=True)
+    with open(CIKTI_ANIM, "w", encoding="utf-8") as f:
+        json.dump({"format_version": "1.8.0", "animations": animler}, f,
+                  ensure_ascii=False, separators=(",", ":"))
+        f.write("\n")
+    with open(CIKTI_HAREKET, "w", encoding="utf-8") as f:
+        json.dump({"kaynak": {"wom": "2.0.178", "epicfight": "21.17.3.1"}, "setler": veri},
+                  f, ensure_ascii=False, separators=(",", ":"))
+        f.write("\n")
+
+
+def turet_main():
+    """--turet: JAR'siz. Depodaki ciktiyi okuyup turetilmis setleri kurar."""
+    with open(CIKTI_ANIM, encoding="utf-8") as f:
+        animler = json.load(f)["animations"]
+    with open(CIKTI_HAREKET, encoding="utf-8") as f:
+        veri = json.load(f)["setler"]
+    turet(animler, veri)
+    yaz(animler, veri)
+    if os.path.exists(CIKTI_DIZ):
+        with open(CIKTI_DIZ, encoding="utf-8") as f:
+            diz = json.load(f)["animations"]
+        with open(CIKTI_DIZ_IZ, encoding="utf-8") as f:
+            iz = json.load(f)["animasyonlar"]
+        diz_turet(diz)
+        diz_yaz(diz, iz)
+    print("turetildi: %s" % ", ".join(sorted(TURETILMIS)))
+    return 0
+
+
 # ---------------- ana ----------------
 def main(argv):
+    if argv[:1] == ["--turet"]:
+        return turet_main()
+    if argv[:1] == ["--diz"]:
+        return diz_main(argv[1:])
     if len(argv) < 2:
         print(__doc__)
         return 2
@@ -1197,6 +1556,7 @@ def main(argv):
     ef_zaman = zamanlar(ef, EF_SINIF)
     sinif_onbellek = {}
     animler, veri = {}, {}
+    diz, diz_iz = {}, {}
     for set_ad, s in KILIC.items():
         k, onek = kaynaklar[s["kaynak"]]
         # Sinif: tam yol ("/" iceriyorsa) ya da silah sinifi klasorunde.
@@ -1227,6 +1587,11 @@ def main(argv):
                 "loop": True, "animation_length": round(d.sure, 4),
                 "override_previous_animation": True,
                 "bones": cevir(d, d.sure, 1.0, tum, False, True)}
+            if "Thigh_R" in d.bind and "Leg_R" in d.bind:
+                _ad = ANIM_ONEK + set_ad + ".durus"
+                diz[_ad] = {"animation_length": round(d.sure, 4),
+                            "bones": diz_cevir(d, d.sure, 1.0, False, animler[_ad]["bones"])}
+                diz_iz[_ad] = diz_izi(d, d.sure, 1.0)
             animler[ANIM_ONEK + set_ad + ".durus_ust"] = {
                 "loop": True, "animation_length": round(d.sure, 4),
                 "override_previous_animation": True,
@@ -1249,6 +1614,10 @@ def main(argv):
                     "loop": False, "animation_length": round(a.sure * olcek_zaman, 4),
                     "override_previous_animation": True,
                     "bones": cevir(a, a.sure, olcek_zaman, set(SIRA), dikey, False)}
+                if "Thigh_R" in a.bind and "Leg_R" in a.bind:
+                    diz[tam] = {"animation_length": round(a.sure * olcek_zaman, 4),
+                                "bones": diz_cevir(a, a.sure, olcek_zaman, dikey, animler[tam]["bones"])}
+                    diz_iz[tam] = diz_izi(a, a.sure, olcek_zaman)
                 son_faz = max((f["recovery"] for f in fazlar), default=a.sure)
                 saldirilar.append({
                     "ad": ad, "anim": tam, "tur": tur,
@@ -1271,16 +1640,11 @@ def main(argv):
             veri[set_ad]["durus_ust"] = ANIM_ONEK + set_ad + ".durus_ust"
         if s.get("bos_el"):
             veri[set_ad]["bos_el"] = True
-    os.makedirs(os.path.dirname(CIKTI_ANIM), exist_ok=True)
-    with open(CIKTI_ANIM, "w", encoding="utf-8") as f:
-        json.dump({"format_version": "1.8.0", "animations": animler}, f,
-                  ensure_ascii=False, separators=(",", ":"))
-        f.write("\n")
-    with open(CIKTI_HAREKET, "w", encoding="utf-8") as f:
-        json.dump({"kaynak": {"wom": "2.0.178", "epicfight": "21.17.3.1"}, "setler": veri},
-                  f, ensure_ascii=False, separators=(",", ":"))
-        f.write("\n")
-    print("yazildi: %d animasyon, %d set" % (len(animler), len(veri)))
+    turet(animler, veri)
+    yaz(animler, veri)
+    diz_turet(diz)
+    diz_yaz(diz, diz_iz)
+    print("yazildi: %d animasyon, %d set (dizli bacak %d)" % (len(animler), len(veri), len(diz)))
     return 0
 
 

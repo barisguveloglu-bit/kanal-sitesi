@@ -64,6 +64,8 @@
         "wom_solar_durus_ust": "animation.wom.solar.durus_ust",
         "wom_stone_staff_durus": "animation.wom.stone_staff.durus",
         "wom_stone_staff_durus_ust": "animation.wom.stone_staff.durus_ust",
+        "wom_topuz_durus": "animation.wom.topuz.durus",
+        "wom_topuz_durus_ust": "animation.wom.topuz.durus_ust",
         "wom_wooden_staff_durus": "animation.wom.wooden_staff.durus",
         "wom_wooden_staff_durus_ust": "animation.wom.wooden_staff.durus_ust"
       },
@@ -82,6 +84,7 @@
           "variable.wom_satsujin = query.get_equipped_item_name('main_hand') == 'wom_satsujin';",
           "variable.wom_solar = query.get_equipped_item_name('main_hand') == 'wom_solar';",
           "variable.wom_stone_staff = query.get_equipped_item_name('main_hand') == 'wom_stone_staff';",
+          "variable.wom_topuz = query.get_equipped_item_name('main_hand') == 'osmanli_topuzu';",
           "variable.wom_wooden_staff = query.get_equipped_item_name('main_hand') == 'wom_wooden_staff';"
         ],
         "animate": [
@@ -167,6 +170,12 @@
           },
           {
             "wom_stone_staff_durus_ust": "variable.wom_stone_staff && query.modified_move_speed >= 0.1"
+          },
+          {
+            "wom_topuz_durus": "variable.wom_topuz && query.modified_move_speed < 0.1"
+          },
+          {
+            "wom_topuz_durus_ust": "variable.wom_topuz && query.modified_move_speed >= 0.1"
           },
           {
             "wom_wooden_staff_durus": "variable.wom_wooden_staff && query.modified_move_speed < 0.1"

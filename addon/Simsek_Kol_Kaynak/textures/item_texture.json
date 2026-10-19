@@ -1325,6 +1325,9 @@
     "karanlik_tirpan": {
       "textures": "textures/item/karanlik_tirpan"
     },
+    "osmanli_topuzu": {
+      "textures": "textures/item/osmanli_topuzu"
+    },
     "kns_okazor": {
       "textures": "textures/item/kns_okazor"
     },

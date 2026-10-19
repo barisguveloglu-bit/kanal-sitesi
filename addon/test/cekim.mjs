@@ -535,6 +535,20 @@ console.log("\n=== 15. KARANLIK TIRPAN ===");
   kontrol("aktor tirpanla Antitheus vurusu atiyor", C.aktorBul(D.boyut, "a")._anim[0] === "animation.wom.antitheus.antitheus_auto_1");
 }
 
+console.log("\n=== 15b. OSMANLI TOPUZU (v7.99.15) ===");
+{
+  /* Esya, model ve tutus olcusu topuz.mjs'te; burada cekim seti:
+     aktorun elindeki topuz baltadan turetilmis seti oynatiyor. */
+  C.cekimSifirla();
+  const D = dunya();
+  const o = oyuncuK(D);
+  kom(o, "aktor a"); kom(o, "aktor b");
+  kom(o, "esya a pa:osmanli_topuzu");
+  kom(o, "vur a b");
+  kontrol("aktor topuzla topuz setinin vurusunu atiyor", C.aktorBul(D.boyut, "a")._anim[0] === "animation.wom.topuz.axe_auto1",
+          C.aktorBul(D.boyut, "a")._anim[0]);
+}
+
 console.log("\n=== 8. URETILEN DOSYALAR ===");
 {
   const bp = JSON.parse(readFileSync(KOK + "/Simsek_TNT_ToprakTopu/entities/aktor.json", "utf8"))["minecraft:entity"];

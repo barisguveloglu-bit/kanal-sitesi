@@ -55,16 +55,23 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import bedrock_onizleme as B  # noqa: E402
 import film_poz  # noqa: E402
+import diz_model  # noqa: E402
 import form_model  # noqa: E402
 import thomas_goz  # noqa: E402
 
 KOK = B.KOK
 ANIM_WOM = "Simsek_Kol_Kaynak/animations/wom_kilic.animation.json"
 ANIM_AKTOR = "Simsek_Kol_Kaynak/animations/aktor.animation.json"
+# v7.99.15: dizli bacak (yalniz film; "diz": true aktor). Epic Fight'in diz
+# kanallari duz animasyonun USTUNE biner (arac/wom_cevir.py --diz).
+ANIM_DIZ = "kaynak_anim/wom/wom_kilic_diz.animation.json"
 HAREKET = "kaynak_anim/wom/wom_kilic.hareket.json"
 GEO_AKTOR = "Simsek_Kol_Kaynak/models/entity/aktor.geo.json"
 SILAH = {"karanlik_tirpan": ("Simsek_Kol_Kaynak/models/entity/karanlik_tirpan.geo.json",
-                             "Simsek_Kol_Kaynak/textures/entity/karanlik_tirpan.png")}
+                             "Simsek_Kol_Kaynak/textures/entity/karanlik_tirpan.png"),
+         # v7.99.15: Omer'in silahi; seti "topuz" (Epic Fight baltasindan turetilmis)
+         "osmanli_topuzu": ("Simsek_Kol_Kaynak/models/entity/osmanli_topuzu.geo.json",
+                            "Simsek_Kol_Kaynak/textures/entity/osmanli_topuzu.png")}
 MCPREP_DOKU = os.environ.get("MCPREP_DOKU", "")      # .../mcprep_default/assets/minecraft/textures/block
 YAZI_TIPI = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
 # Mojang kullanim kilavuzu: "title card ... outside of the actual game
@@ -190,6 +197,8 @@ class Aktor:
         # cozulur -- yanlis yazilmis "form" cizim baslamadan HATA verir.
         self.form = form_model.form_ayari(v.get("form"))
         self.olcek = self.form["olcek"] if self.form else 1.0
+        # dizli bacak (diz_model.py): yanlis yazilmis "diz" de cizimden once HATA
+        self.diz = diz_model.diz_ayari(v.get("diz"))
 
 
 def vurus_sec(setler, set_ad, tur, a, t):
@@ -1016,6 +1025,10 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
     kam_iz = kamera_izi(senaryo, aktorler)
     fps = senaryo.get("fps", 24)
     harita = zaman_haritasi(senaryo)
+    # dizli aktor: ayni adli WoM animasyonlarinin dizli hali (bacaklar + kok)
+    anims_diz = anims
+    if any(a.diz for a in aktorler.values()):
+        anims_diz = dict(anims, **diz_model.bindir(anims, B.oku(ANIM_DIZ)["animations"]))
 
     bpy.ops.wm.read_factory_settings(use_empty=True)
     sc = bpy.context.scene
@@ -1185,11 +1198,13 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
     form_modelleri = {}
 
     def aktor_modeli(a):
-        if not a.form:
+        if not a.form and not a.diz:
             return govde_model
-        if a.form["kol"] not in form_modelleri:
-            form_modelleri[a.form["kol"]] = B.Model(form_model.form_geo(geo, a.form["kol"]))
-        return form_modelleri[a.form["kol"]]
+        anahtar = (a.form["kol"] if a.form else None, a.diz)
+        if anahtar not in form_modelleri:
+            g = form_model.form_geo(geo, a.form["kol"]) if a.form else geo
+            form_modelleri[anahtar] = B.Model(diz_model.dizli_geo(g) if a.diz else g)
+        return form_modelleri[anahtar]
     kok_nesne = {}
     kemik_nesne = {}
     silah_nesneleri = {}
@@ -1253,6 +1268,8 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
     # ---- kareler: kok + kemik anahtarlari ----
     kemikler = list(govde_model.kemik.keys())
     pivot = {k: B.ic(govde_model.kemik[k]["pivot"]) for k in kemikler}
+    _dizli = B.Model(diz_model.dizli_geo(geo))
+    pivot.update({k: B.ic(_dizli.kemik[k]["pivot"]) for k in diz_model.ALT_KEMIKLER})
 
     def yerel(kem, euler, poz_d, olc=(1, 1, 1), pv=None):
         R = Matrix(B.bb_mat(euler))
@@ -1338,15 +1355,17 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
                     ob_.hide_render = not k.get("silah", True)
                     ob_.keyframe_insert("hide_render", frame=f + 1)
                 onceki_s = k.get("silah", True)
-            poz, katman = kare_pozu(a, k, kemikler, anims, setler)
+            anims_a = anims_diz if a.diz else anims
+            kemikler_a = kemikler + list(diz_model.ALT_KEMIKLER) if a.diz else kemikler
+            poz, katman = kare_pozu(a, k, kemikler_a, anims_a, setler)
             son_kol = {}
-            for kem in kemikler:
+            for kem in kemikler_a:
                 (eu, ps, ol), _ = poz[kem]
                 l, q, o3 = yerel(kem, eu, ps, ol).decompose()
                 for an, t_an, wgt in katman:
-                    if an not in anims or wgt <= 0:
+                    if an not in anims_a or wgt <= 0:
                         continue
-                    v = kanal_pozu(anims[an], kem, t_an)
+                    v = kanal_pozu(anims_a[an], kem, t_an)
                     if not v:
                         continue
                     l2, q2, o2 = yerel(kem, v[0], v[1], v[2]).decompose()

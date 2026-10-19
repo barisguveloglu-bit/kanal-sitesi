@@ -501,6 +501,47 @@ anlatırken oradan git.
   WoM setine WoM'dan olmayan silah eklemek için `kol_uret.py`
   `OZEL_SILAH` + `wom_esya_adi()` — üç yer (betik verisi, oyuncu ve
   aktör duruşu) oradan okuyor.
+- **Osmanlı Topuzu** (`pa:osmanli_topuzu`, v7.99.15) Ömer'in silahı:
+  kendi küp modelimiz (`kol_uret.py` `TOPUZ_*`), dövüş seti Epic Fight
+  **baltasından türetilmiş** `topuz` seti (`arac/wom_cevir.py`
+  `TURETILMIS`), hızı demir baltanınki. Kullanıcı önce demir asayı, sonra
+  uzun kılıcı seçmişti; ölçümde ikisinde de topuz bedene giriyordu. On
+  bir set topuzun kendi modeliyle ölçüldü, en az batan balta; Epic Fight
+  Minecraft'ın topuzunu da balta sayıyor. `balta` seti **eşyasız**, yalnız
+  taban: `kol_uret.py` eşyasız sete oyunda duruş bağlamıyor (bağlasa boş
+  bir MoLang ifadesi yazardı). El kayması yok; çarpışma önce kolda sonra
+  bilekte (küp köşeleriyle) ve iki geçiş de **izlemeli**
+  (`carpisma_takip`): her an bir önceki anın çözümünden başlıyor, çünkü
+  sıfırdan çözüm derin batmada takılıyordu (itmeler birbirini götürüyor).
+  İzleme yalnız türetilmiş sette açık; Barış'ın tırpanının çıktısı eski
+  düzelticiyle bire bir aynı (ölçüldü). Türetme JAR istemiyor ama
+  topuzun **üretilmiş** modelini okuyor; model değişirse sıra:
+  `kol_uret.py` → `python3 arac/wom_cevir.py --turet` → `kol_uret.py`.
+  `test/topuz.mjs` kilitliyor.
+- **Dizli bacak (v7.99.15, kullanıcı: "Evet, filme diz ekle"):** filmde
+  aktöre `"diz": true` → bacak uyluk + baldır (`arac/diz_model.py`).
+  Oyundaki model değişmez, 1. bölümün senaryoları da: yazılmazsa film bire
+  bir eskisi. Diz açısı **uydurulmaz**: Epic Fight'ın bacağı iki parça;
+  `wom_cevir.py` uyluğu dize, baldırı ayağa bakacak şekilde ayrıca çevirir
+  (`kaynak_anim/wom/wom_kilic_diz.animation.json`; tam çevirme yazıyor,
+  `--diz <wom_jar> <ef_jar>` yalnız onu, `--turet` türetilmiş setin dizini
+  tabandan kopyalıyor). Kendi ters kinematiğimizle kurulan ilk deneme
+  geri alındı (bekleme duruşunda dizler 41–49° bükülüyordu). JAR'lar
+  depoya girmez: Modrinth'ten indirilir, SHA-1 karşılaştırılır (WoM
+  2.0.178 `b507eb376778cfd1cbecec2841c38891b26a7349`, Epic Fight
+  21.17.3.1 `fb199b7bbea2fc402da28ab586e73f47e32f8fc0`). `test/diz.mjs`
+  kilitliyor.
+- **Tam çevirme (v7.99.15'te ölçüldü):** `python3 addon/arac/wom_cevir.py
+  <wom_jar> <ef_jar>` **50 dk** sürüyor (en yavaşı Barış'ın tırpan
+  düzeltmesi ve topuzun izlemeli türetmesi); arka plan görevinin 30 dk'lık
+  varsayılan sınırına takılıp durdu, 2 saatlik sınırla koş. Ardından
+  `wom_dogrula.py` (aynı iki JAR; kalça izini yazar, `HATA: 0` olmalı) ve
+  `kol_uret.py`. Yeniden çevirme öbür setlerde yalnız **sıfırın işaretini**
+  değiştirebiliyor (`-0.0` ↔ `0.0`; v7.99.15'te 5 sette 196 yer): değer aynı.
+  Sebep çevirici değil: HEAD'in kendi çeviricisi de aynı makinede aynı farkı
+  verdi (depodaki dosya daha önceki bir koşudan). Mevcut setlerin eski
+  metni korundu. `--diz` yolu tam çevirmenin diz dosyasını bire bir
+  üretiyor (1 dk).
 - CPM ve ReplayMod JAR'ları ölçüldü, alınmadı: `REFERANS_CPM_REPLAYMOD.md`.
 - **Oyuna girmeden bakmak (v7.99.8):** `addon/arac/bedrock_onizleme.py`
   Bedrock modelini + animasyon pozunu + attachable'ı Blender'da

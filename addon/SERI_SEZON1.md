@@ -26,6 +26,7 @@ kararı: *"bu iki evren farklı evrenler."*
 | neden | gönderilen deneme filmi 640×360 · 24 kare/sn · 6 örnekti (önizleme ayarı) ve "çamur gibi" göründü |
 | örnek sayısı | 32–64; asıl çizimden önce tek kare ölçülerek seçilecek |
 | süre tahmini | kare başına ~25–50 sn → video dakikası başına 12–25 saat (ölçülmedi, tahmin) |
+| **dizli bacak** (v7.99.15) | Kullanıcı topuz önizlemesinde *"ayakları karakterin yerden kesiliyor"* dedi, sonra *"Evet, filme diz ekle"* (2026-10-18). Yalnız film: senaryoda aktöre `"diz": true`, bacak uyluk + baldır, diz açısı Epic Fight'ın kendisi (`arac/diz_model.py`, `wom_cevir.py --diz`). Oyundaki model ve 1. bölümün senaryoları değişmez. |
 | **tutuş — tamam** (v7.99.10; aşağıdaki not tarihçe) | Kullanıcı deneme filminde tırpan tutuşunu garip buldu ve *"tekrar tekrar kontrol et"* dedi. Pivot ve bel kemiği düzeltildi (duruş ve 1. vuruşta sapma ~1 px); Antitheus'un 2–4. vuruşu, agression ve guillotine'de sağ el hâlâ 10–18 px kayık (Epic Fight Tool_R'nin el içi ötelemesi çevrilmiyor, `arac/wom_cevir.py`). **Asıl çizimden önce bitirilecek.** |
 
 ## Karakterler
@@ -218,6 +219,13 @@ Kullanıcının kendi sözü: *"2. bölümün süresi uzayacak ama partlar bu se
 kadar yaparız."*
 
 - 1. bölümden **uzun**; yayın **ikiden fazla parça**.
+- **Süre: toplam 3:50 (230 sn), part formatında** (kullanıcı, 2026-10-18:
+  *"bu partları toplam saniye olarak toplarsan 3.50 dakika olsun … süreyi
+  uzatmayalım … süreyi azaltınca daha iyi olmuyor"*; *"3:50 dakika dedim"*).
+  Kural: hiçbir part 1. bölümün en uzun partından (Part 2, 73,7 sn) uzun
+  olmaz, parçalar da gereksiz kısaltılmaz. Hesap (Claude): **4 part**, her
+  biri ~57,5 sn. Kesme yerleri henüz seçilmedi. Çizim maliyeti ~1560
+  makine-saati (film saniyesi başına ~6,8; 1. bölümün Part 2'si ~500'dü).
 - Çalışma salı başlıyor, hedef pazar.
 - Hikâyesi henüz yok — burada olmayanı uydurma, kullanıcı anlatınca yazılır.
 - Ölçüden çıkan not: 1. bölüm (~103 sn) 22 işçiyle ~1,5–2 gün çiziliyor ve
@@ -646,7 +654,22 @@ içinde, okunuşu yanında; doğrulanmayanlar öyle işaretli.
   daha fazla zarar veremesinler diye hanedana ilerleyen **orduyla
   savaşıyor**. **Topuz kendi modelimiz** olacak (kullanıcı, 2026-10-18).
   Blender'da, MCprep'te ve toplulukta açık lisanslı, Minecraft tarzında
-  hazır bir topuz bulunamadı.
+  hazır bir topuz bulunamadı. Biçimi **Osmanlı topuzu** (Claude önerdi,
+  kullanıcı onayladı: *"Bunuda onaylıyorum"*): dilimli küre baş, altın
+  bilezik, kırmızı deri kabza, 17 px. Oyunda da eşya, adı **"Osmanlı
+  Topuzu"** (`pa:osmanli_topuzu`); **elin sapta kayması kapalı**
+  (kullanıcı, 2026-10-18: *"Tamamdır onaylıyorum"*). Dövüş seti **Epic
+  Fight'ın balta seti**, hızı **demir baltanınki (0,9)** (kullanıcı,
+  2026-10-19, seçenekli soruda ikisi de). Önce demir asa onaylanmış, sonra
+  uzun kılıç seçilmişti; ölçümde ikisi de topuza uymadı: asa beş vuruşun
+  üçünde sapın arka ucuyla vuruyor, uzun kılıçta topuz beş vuruşun beşinde
+  bedene giriyor (havada vuruşta kafanın içinden). Epic Fight Minecraft'ın
+  kendi topuzunu da balta sayıyor. Set baltadan türetilmiş `topuz` seti
+  (`arac/wom_cevir.py` `TURETILMIS`): iki seri vuruş, koşu ve hava vuruşu;
+  bekleme duruşu Epic Fight'ın normal duruşu. Eşyanın oyundaki değerleri
+  (hasar 7, dayanıklılık 500, nadirlik RARE) yalnız eşya dosyasının istediği
+  yer tutucular; film onları okumuyor ve kullanıcı oyunda denemeyecek
+  (2026-10-19: *"oyunda denemeyeceğim ki"*).
 - **Donma:** Zisa, Ice-man'in **zayıf noktasını** anlıyor (asadaki küre;
   aşağıda, dövüşün yapısında). Ama Ice-man Barış'ı buz güçleriyle **donduruyor**: *"Bu kadar
   kolaysın."* Ordusuna: *"O kızı da getirin, ordumuzun büyücüsü olabilir."*
@@ -711,7 +734,6 @@ içinde, okunuşu yanında; doğrulanmayanlar öyle işaretli.
     yaparız"* dedi; hangisi olacağı seçilmedi.
   - Saldırı II'nin rengi: Minecraft'taki koyu kırmızı mı, Zisa'ya özgü bir
     renk mi?
-  - Topuzun biçimi.
 
 ## Part 2 düzeltmeleri (kullanıcı, 2026-10-12 — *"bozuk bir şey sunamayız asla"*)
 

@@ -60,9 +60,16 @@ console.log("\n=== 2. VERI BUTUNLUGU ===");
 {
   const setler = Object.keys(HAREKET);
   /* 7 kilic + 6 asa (her asa kendi saldiri hiziyla, v7.99.1) +
-     bos el yumruk seti (v7.99.2) + Antitheus (v7.99.7). */
-  kontrol("15 set: 8 kilic (Antitheus dahil) + 6 asa + yumruk",
-          setler.length === 15 && setler.includes("antitheus"), setler.join(", "));
+     bos el yumruk seti (v7.99.2) + Antitheus (v7.99.7) + Epic Fight'in
+     baltasi (v7.99.15, esyasiz: topuzun tabani). Ustune baltadan
+     TURETILMIS topuz seti: Epic Fight'tan cevrilmedi, kendi testi var
+     (topuz.mjs). */
+  const cevrilen = setler.filter((s) => !HAREKET[s].taban);
+  kontrol("16 cevrilmis set: 8 kilic (Antitheus dahil) + 6 asa + yumruk + balta",
+          cevrilen.length === 16 && cevrilen.includes("antitheus") && cevrilen.includes("balta"), cevrilen.join(", "));
+  kontrol("  turetilmis set yalniz topuz (baltadan)",
+          setler.length === 17 && !!HAREKET.topuz && HAREKET.topuz.taban === "balta",
+          setler.filter((s) => HAREKET[s].taban).join(", "));
   const y = HAREKET.yumruk;
   kontrol("  yumruk: bos el, esyasiz, durussuz, 3 oto + kosu + hava",
           !!y && y.bos_el === true && y.esyalar.length === 0 && !y.durus &&
@@ -218,7 +225,10 @@ function olc(animler) {
 const O = olc(ANIM);
 console.log("\n=== 3. KALCA KOPMUYOR ===");
 {
-  const beklenen = Object.values(HAREKET).reduce((n, s) => n + (s.durus ? 1 : 0) + s.saldirilar.length, 0);
+  /* Turetilmis set Epic Fight'in pozu degil (sol kol ve sag kolun
+     carpisma duzeltmesi bilerek farkli): olcusu topuz.mjs'te. */
+  const beklenen = Object.values(HAREKET).filter((s) => !s.taban)
+    .reduce((n, s) => n + (s.durus ? 1 : 0) + s.saldirilar.length, 0);
   kontrol("her durus ve vurus olculmus (" + beklenen + ")", Object.keys(IZ).length === beklenen,
           String(Object.keys(IZ).length));
 }
@@ -252,6 +262,11 @@ kontrol("en kotu < 15 derece", O.enKotuYon[0] < 15, O.enKotuYon[0].toFixed(1) + 
 }
 
 console.log("\n=== 5. OYUNCU MODELI ===");
+/* kol_uret OZEL_SILAH esyalarini sete ekliyor (topuz); betik verisi o
+   birlesik hali tasiyor. Esyasi hic olmayan set (balta: topuzun tabani)
+   elde tutulamaz: tetigi yazilsa bos bir MoLang ifadesi olurdu. */
+const BIRLESIK = JSON.parse(readFileSync(KOK + "/Simsek_TNT_ToprakTopu/scripts/yetenekler/_wom_hareket.js", "utf8")
+  .match(/export const WOM_KILIC_SETLER = (.*);\n/)[1]);
 for (const paket of ["Simsek_Oyuncu_Modeli", "Simsek_Oyuncu_Modeli_IronMan"]) {
   const d = oku(paket + "/entity/player.entity.json")["minecraft:client_entity"].description;
   const on = d.scripts.pre_animation.join("\n");
@@ -260,13 +275,18 @@ for (const paket of ["Simsek_Oyuncu_Modeli", "Simsek_Oyuncu_Modeli_IronMan"]) {
   if (on.includes("wom_kilic_yumruk")) eksik.push("yumruk icin durus tetigi olmamali");
   for (const [set, s] of Object.entries(HAREKET)) {
     if (!s.durus) continue;
+    if (!BIRLESIK[set].esyalar.length) {
+      if (on.includes("wom_kilic_" + set) || d.animations["wom_" + set + "_durus"]) eksik.push(set + " esyasiz ama tetigi var");
+      continue;
+    }
     for (const e of s.esyalar) if (!on.includes("== 'wom_" + e + "'")) eksik.push(set + " tetik " + e);
     if (d.animations["wom_" + set + "_durus"] !== s.durus) eksik.push(set + " durus");
     if (d.animations["wom_" + set + "_durus_ust"] !== s.durus_ust) eksik.push(set + " durus_ust");
     if (!anim.includes("wom_" + set + "_durus\":\"variable.wom_kilic_" + set + " && !variable.is_first_person"))
       eksik.push(set + " kosul");
   }
-  kontrol(paket + ": her set tetik + iki durus + birinci sahis disi", eksik.length === 0, eksik.slice(0, 3).join(" | "));
+  kontrol(paket + ": her set tetik + iki durus + birinci sahis disi; esyasiz sete tetik yok", eksik.length === 0,
+          eksik.slice(0, 3).join(" | "));
 }
 
 console.log("\n=== 6. BETIK ===");
@@ -390,9 +410,12 @@ const oto = RUINE.filter((x) => x.tur === "oto");
   kontrol("  sonraki tick'te hak yenileniyor", W.aramaHakki(T + 1) === true);
   const kod = readFileSync(KOK + "/Simsek_TNT_ToprakTopu/scripts/yetenekler/wom_kilic.js", "utf8");
   kontrol("  pencerenin son tick'i tavandan muaf", /son \|\| aramaHakki\(simdi\)/.test(kod));
-  /* Paketteki animasyon girintisiz: 0.7 MB'lik icerik 2.3 MB olmasin. */
+  /* Paketteki animasyon girintisiz. Olcum (v7.99.15, uzun kilicli topuzla
+     16 set): girintisiz 1.25 MB, iki bosluk girintiyle 4.24 MB. Tavan
+     ikisinin arasinda; set eklendikce girintisiz boyut buyur, girinti
+     geri gelirse 3 kat birden. */
   const ham = readFileSync(KOK + "/Simsek_Kol_Kaynak/animations/wom_kilic.animation.json", "utf8");
-  kontrol("paketteki animasyon sikistirilmis (girintisiz)", !/\n  /.test(ham) && ham.length < 1.2e6,
+  kontrol("paketteki animasyon sikistirilmis (girintisiz)", !/\n  /.test(ham) && ham.length < 1.6e6,
           (ham.length / 1e6).toFixed(2) + " MB");
 }
 {

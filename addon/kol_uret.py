@@ -6532,6 +6532,10 @@ WOM_RENK = {"COMMON": "§f", "UNCOMMON": "§a", "RARE": "§b", "EPIC": "§d"}
 #   anahtar: (set, tr ad, en ad, Bedrock hasar, dayaniklilik, nadirlik)
 OZEL_SILAH = {
     "karanlik_tirpan": ("antitheus", "Karanlık Tırpan", "Dark Scythe", 8, 6666, "EPIC"),
+    # v7.99.15: set WoM'un degil, Epic Fight baltasinin TURETILMIS kopyasi
+    # (arac/wom_cevir.py TURETILMIS). Hasar, dayaniklilik ve nadirlik
+    # kullanicinin onayina sunulan ilk deger.
+    "osmanli_topuzu": ("topuz", "Osmanlı Topuzu", "Ottoman Mace", 7, 500, "RARE"),
 }
 
 
@@ -6698,8 +6702,8 @@ def aktor_istemci_varligi(skinler, wom_setler):
     }
     # WoM durusu: oyuncudaki kuralin aynisi (elde WoM esyasi -> durus).
     for set_ad, sv in sorted((wom_setler or {}).items()):
-        if "durus" not in sv:
-            continue
+        if "durus" not in sv or not sv["esyalar"]:
+            continue        # esyasiz set (balta: topuzun tabani) elde tutulamaz
         deg = "variable.wom_%s" % set_ad
         d["scripts"]["pre_animation"].append("%s = %s;" % (deg, " || ".join(
             "query.get_equipped_item_name('main_hand') == '%s'" % wom_esya_adi(e)
@@ -6979,16 +6983,17 @@ def tirpan_ikonu(yol):
     png_yaz(yol, 32, 32, {k: TIRPAN_RENK[r] for k, r in p.items()})
 
 
-def tirpan_esyasi():
-    set_ad, tr_ad, _en, hasar, dayanik, nadir = OZEL_SILAH[TIRPAN]
+def ozel_silah_esyasi(anahtar):
+    """OZEL_SILAH esyasi (tirpan, topuz): ikonu ve kimligi kendi anahtari."""
+    set_ad, tr_ad, _en, hasar, dayanik, nadir = OZEL_SILAH[anahtar]
     return {
         "format_version": "1.20.50",
         "minecraft:item": {
-            "description": {"identifier": "pa:" + TIRPAN,
+            "description": {"identifier": "pa:" + anahtar,
                             "menu_category": {"category": "equipment",
                                               "group": "itemGroup.name.sword"}},
             "components": {
-                "minecraft:icon": {"texture": TIRPAN},
+                "minecraft:icon": {"texture": anahtar},
                 "minecraft:display_name": {"value": WOM_RENK.get(nadir, "§f") + tr_ad},
                 "minecraft:max_stack_size": 1,
                 "minecraft:hand_equipped": True,
@@ -7000,15 +7005,135 @@ def tirpan_esyasi():
     }
 
 
-def tirpan_attachable():
+def ozel_silah_attachable(anahtar):
     return {"format_version": "1.10.0", "minecraft:attachable": {"description": {
-        "identifier": "pa:" + TIRPAN,
+        "identifier": "pa:" + anahtar,
         "materials": {"default": "entity_alphatest", "enchanted": "entity_alphatest_glint"},
-        "textures": {"default": "textures/entity/" + TIRPAN,
+        "textures": {"default": "textures/entity/" + anahtar,
                      "enchanted": "textures/misc/enchanted_actor_glint"},
-        "geometry": {"default": "geometry." + TIRPAN},
+        "geometry": {"default": "geometry." + anahtar},
         "render_controllers": ["controller.render.item_default"],
     }}}
+
+
+# ============================================================
+# OSMANLI TOPUZU  (v7.99.15)
+#
+# Kullanicinin istegi (2026-10-18): 2. bolumde Omer'in silahi, "kendi
+# topuz modelimizi yapalim"; oyunda da esya. Hazir paketlerin hicbiri
+# alinamadi (lisanssiz ya da kup degil). Bicim kullanicinin onayladigi
+# Osmanli topuzu: dilimli kure bas, altin bilezik ve tepelik, kirmizi
+# deri kabza, 17 px. Duzen tirpaninki: rightItem pivotu yumruk, silah
+# dinlenmede -Z'ye bakiyor; bas onde (-Z), dip arkada (+Z).
+#
+# Dovus seti Epic Fight baltasinin TURETILMIS kopyasi (arac/wom_cevir.py
+# TURETILMIS["topuz"]; kullanicinin secimi). Once demir asa, sonra uzun
+# kilic denendi: asa 5 vurusun 3'unde sapin arka ucuyla vuruyor, uzun
+# kilicta topuz 5 vurusun 5'inde bedene giriyordu. Turetilmis sette
+# kayma yok; yumruk 4 px'lik kabzada kalir.
+# ============================================================
+TOPUZ = "osmanli_topuzu"
+TOPUZ_PIVOT = TIRPAN_PIVOT          # yumruk (aktorun rightItem'i)
+TOPUZ_BAS_CAP = 6                   # basin capi (px): 1 px izgarada piksel kure
+TOPUZ_BAS_BOY = 6                   # basin sap boyunca uzunlugu (px)
+TOPUZ_DILIM = 6                     # basin dilimleri: acik/koyu sirayla
+TOPUZ_BAS_UST = -5.7                # basin sapa degdigi yer (yumruga gore, px)
+TOPUZ_KABZA = (-1.5, 2.5)           # deri kabza (yumruga gore z araligi, px); yumruk 4 px
+TOPUZ_RENK = {
+    0: (46, 48, 56, 255),       # koyu celik (sap)
+    1: (112, 118, 132, 255),    # celik orta (dilim araligi)
+    2: (176, 182, 196, 255),    # celik acik (dilim)
+    3: (226, 230, 238, 255),    # celik parlak
+    4: (122, 82, 20, 255),      # altin koyu
+    5: (212, 162, 48, 255),     # altin
+    6: (248, 212, 106, 255),    # altin parlak
+    7: (124, 22, 30, 255),      # kirmizi deri
+    8: (74, 12, 18, 255),       # kirmizi deri koyu (sargi cizgisi)
+}
+
+
+def _topuz_kup(z0, z1, gx, gy, renk):
+    """Sap ekseninde ortali kutu: x/y genislik, z araligi (yumruga gore)."""
+    x0, yc, zc = TOPUZ_PIVOT
+    return _tirpan_kup([x0 - gx / 2, yc - gy / 2, zc + z0], [gx, gy, z1 - z0], renk)
+
+
+def topuz_bas_kupleri():
+    """Dilimli kure: sap eksenine paralel 1 px sutunlar. Sutunun boyu
+    kurenin o yaricaptaki kalinligi (yarim piksele yuvarli), rengi
+    bulundugu dilim."""
+    x0, yc, zc = TOPUZ_PIVOT
+    r, a = TOPUZ_BAS_CAP / 2.0, TOPUZ_BAS_BOY / 2.0
+    zh = zc + TOPUZ_BAS_UST - a                       # basin merkezi
+    kupler = []
+    for i in range(TOPUZ_BAS_CAP):
+        for j in range(TOPUZ_BAS_CAP):
+            dx, dy = -r + i + 0.5, -r + j + 0.5
+            rho2 = (dx * dx + dy * dy) / (r * r)
+            if rho2 > 1.0:
+                continue
+            yari = max(0.5, round(a * math.sqrt(1.0 - rho2) * 2) / 2.0)
+            dilim = int((math.atan2(dy, dx) % (2 * math.pi)) / (2 * math.pi / TOPUZ_DILIM))
+            kupler.append(_tirpan_kup([x0 + dx - 0.5, yc + dy - 0.5, zh - yari], [1, 1, 2 * yari],
+                                      2 if dilim % 2 == 0 else 1))
+    return kupler
+
+
+def topuz_geometrisi():
+    k0, k1 = TOPUZ_KABZA
+    ust = TOPUZ_BAS_UST - TOPUZ_BAS_BOY                 # basin on ucu
+    kupler = [
+        _topuz_kup(k1 + 1.0, k1 + 1.5, 1.0, 1.0, 6),     # dip sivrisi
+        _topuz_kup(k1, k1 + 1.0, 2.2, 2.2, 5),           # dip topu
+        _topuz_kup(k0, k1, 1.8, 1.8, 7),                 # deri kabza (yumruk z = 0)
+        _topuz_kup(-0.9, -0.5, 1.95, 1.95, 8),           # sargi cizgileri
+        _topuz_kup(0.7, 1.1, 1.95, 1.95, 8),
+        _topuz_kup(k0 - 0.4, k0, 2.2, 2.2, 5),           # kabza ustu halka
+        _topuz_kup(-4.4, k0 - 0.4, 1.4, 1.4, 0),         # celik sap
+        _topuz_kup(-5.2, -4.4, 2.6, 2.6, 5),             # bilezik
+        _topuz_kup(TOPUZ_BAS_UST, -5.2, 2.0, 2.0, 4),    # boyun
+        _topuz_kup(ust - 0.8, ust, 2.0, 2.0, 5),         # tepelik
+        _topuz_kup(ust - 1.3, ust - 0.8, 1.0, 1.0, 6),   # tepelik ucu
+    ] + topuz_bas_kupleri()
+    return {"format_version": "1.12.0", "minecraft:geometry": [{
+        "description": {"identifier": "geometry." + TOPUZ, "texture_width": 16, "texture_height": 16,
+                        "visible_bounds_width": 3, "visible_bounds_height": 3,
+                        "visible_bounds_offset": [0, 1, 0]},
+        "bones": [
+            {"name": "rightItem", "pivot": TOPUZ_PIVOT},
+            {"name": "topuz", "parent": "rightItem", "pivot": TOPUZ_PIVOT, "cubes": kupler},
+        ]}]}
+
+
+def topuz_dokusu(yol):
+    png_yaz(yol, 16, 16, {(x, 0): r for x, r in TOPUZ_RENK.items()})
+
+
+def topuz_ikonu(yol):
+    """32x32 ikon MODELIN KENDISINDEN: yandan (+x) bakis, 45 derece
+    (bas sag-ustte). Tirpaninkinden farki derinlik: bas iki boyutlu
+    degil, her noktada bakana en yakin kupun rengi gorunur."""
+    kupler = topuz_geometrisi()["minecraft:geometry"][0]["bones"][1]["cubes"]
+    noktalar = []
+    for c in kupler:
+        (x, y, z), (sx, sy, sz) = c["origin"], c["size"]
+        renk = c["uv"]["east"]["uv"][0]
+        for k in range(int(round(sz * 4))):
+            for m in range(int(round(sy * 4))):
+                zz, yy = z + (k + 0.5) / 4, y + (m + 0.5) / 4
+                u = -zz                                  # ileri = saga
+                v = yy - TOPUZ_PIVOT[1]                  # yukari
+                noktalar.append(((u - v) * 0.7071, (u + v) * 0.7071, x + sx, renk))
+    xs = [n[0] for n in noktalar]; ys = [n[1] for n in noktalar]
+    olcek = 29.0 / max(max(xs) - min(xs), max(ys) - min(ys))
+    p = {}
+    for x, y, derin, renk in noktalar:
+        px = int((x - min(xs)) * olcek) + 1
+        py = 30 - int((y - min(ys)) * olcek)
+        if (px, py) not in p or derin > p[(px, py)][0]:
+            p[(px, py)] = (derin, renk)
+    png_yaz(yol, 32, 32, {k: TOPUZ_RENK[r] for k, (_d, r) in p.items()})
+
 
 def wom_kilic_verisi():
     """kaynak_anim/wom/wom_kilic.hareket.json -> setler, yoksa None."""
@@ -8522,6 +8647,8 @@ def oyuncu_modeli_paketi(surum):
     for _wset, _wsv in sorted((_wkv or {}).items()):
         if "durus" not in _wsv:
             continue        # yumruk: bos elde normal durus (Epic Fight de oyle)
+        if not _wsv["esyalar"]:
+            continue        # balta: esyasi yok, yalniz topuzun tabani (wom_cevir TURETILMIS)
         _wdeg = "variable.wom_kilic_" + _wset
         d["scripts"]["pre_animation"].append("%s = %s;" % (_wdeg, " || ".join(
             "query.get_equipped_item_name('main_hand') == '%s'" % wom_esya_adi(_we)
@@ -13502,16 +13629,23 @@ def main():
             liste.append("item.pa:%s.name=%s%s" % (_wad, _wrenk, ad))
             liste.append("item.pa:%s=%s%s" % (_wad, _wrenk, ad))
     # ---- KARANLIK TIRPAN (v7.99.7) ----
-    yaz_json(os.path.join(BP, "items/%s.json" % TIRPAN), tirpan_esyasi())
-    yaz_json(os.path.join(RP, "attachables/%s.json" % TIRPAN), tirpan_attachable())
+    yaz_json(os.path.join(BP, "items/%s.json" % TIRPAN), ozel_silah_esyasi(TIRPAN))
+    yaz_json(os.path.join(RP, "attachables/%s.json" % TIRPAN), ozel_silah_attachable(TIRPAN))
     yaz_json(os.path.join(RP, "models/entity/%s.geo.json" % TIRPAN), tirpan_geometrisi())
     tirpan_dokusu(os.path.join(RP, "textures/entity/%s.png" % TIRPAN))
     tirpan_ikonu(os.path.join(RP, "textures/item/%s.png" % TIRPAN))
-    dokular[TIRPAN] = {"textures": "textures/item/" + TIRPAN}
-    _trenk = WOM_RENK.get(OZEL_SILAH[TIRPAN][5], "§f")
-    for liste, ad in ((en_us, OZEL_SILAH[TIRPAN][2]), (tr_tr, OZEL_SILAH[TIRPAN][1])):
-        liste.append("item.pa:%s.name=%s%s" % (TIRPAN, _trenk, ad))
-        liste.append("item.pa:%s=%s%s" % (TIRPAN, _trenk, ad))
+    # ---- OSMANLI TOPUZU (v7.99.15) ----
+    yaz_json(os.path.join(BP, "items/%s.json" % TOPUZ), ozel_silah_esyasi(TOPUZ))
+    yaz_json(os.path.join(RP, "attachables/%s.json" % TOPUZ), ozel_silah_attachable(TOPUZ))
+    yaz_json(os.path.join(RP, "models/entity/%s.geo.json" % TOPUZ), topuz_geometrisi())
+    topuz_dokusu(os.path.join(RP, "textures/entity/%s.png" % TOPUZ))
+    topuz_ikonu(os.path.join(RP, "textures/item/%s.png" % TOPUZ))
+    for _oz in (TIRPAN, TOPUZ):
+        dokular[_oz] = {"textures": "textures/item/" + _oz}
+        _trenk = WOM_RENK.get(OZEL_SILAH[_oz][5], "§f")
+        for liste, ad in ((en_us, OZEL_SILAH[_oz][2]), (tr_tr, OZEL_SILAH[_oz][1])):
+            liste.append("item.pa:%s.name=%s%s" % (_oz, _trenk, ad))
+            liste.append("item.pa:%s=%s%s" % (_oz, _trenk, ad))
     # ---- KONSEY (v6.2) ----
     # 54 parca: 6 Konsey kostumu, 4 deri, 4 maske, 14 kol,
     # 7 asa, 5 Earl aleti, 8 zirh, 2 silah, 4 Dusmus asamasi.
@@ -14527,6 +14661,7 @@ def main():
     for _wk3 in WOM:
         beklenen.add(WOM_ONEK + _wk3[0])
     beklenen.add(TIRPAN)          # v7.99.7: ayni tuzak -- tablo ve bu satir birlikte
+    beklenen.add(TOPUZ)           # v7.99.15: ayni tuzak, ayni commit
     # v7.96.5: iksir zincirinin ara urunleri. Ayni tuzak ucuncu
     # kez: sise ve sivilar hicbir listede degil, temizlik adimi
     # onlari yazildiklari kosuda silerdi.

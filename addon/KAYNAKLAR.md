@@ -104,6 +104,14 @@ dosyalarındaki zaman ve hasar sabitleri, oyuncu hamlesi) ve
 Kullanıcı kararı: kendi elle yazma yerine WoM'dan türetip düzeltme
 (yol A). Gerekçe `REFERANS_WOM.md` "v7.99".
 
+v7.99.15: Epic Fight'ın tek elli balta seti (`AXE_1H`: `axe_auto1/2`,
+`axe_dash`, `axe_airslash`, duruş `BIPED_IDLE`) aynı dosyada, eşyasız
+`balta` seti olarak: Osmanlı Topuzu'nun (`topuz`) tabanı. Filmdeki dizli
+bacak için Epic Fight'ın uyluk ve baldır açıları da çevrildi:
+`kaynak_anim/wom/wom_kilic_diz.animation.json` ve `wom_kilic_diz.iz.json`
+(çevrilmiş pozlar ve ölçülen diz açıları; JAR'ın dosyası değil). İzin
+aşağıdaki kayıt (Epic Fight Team, paylaşılabilir).
+
 v7.98.3: kullanıcı silahları geri istedi — `kaynak_doku/wom_*.png` (27 ikon, JAR'daki pikseller birebir) ve `kol_uret.py` `WOM` tablosu (27 eşya, ad, sayılar) depoda. **Epic Fight animasyonları depoda yok.** v7.98.2 kaydı: v7.98.0'da 63 dövüş
 animasyonu (çevrilmiş) ve 27 silah ikonu girmişti; v7.98.2'de kullanıcı
 ikisini de kaldırdı: oyunda bacak ve gövde ayrılıyordu (ölçüm ve gerekçe
