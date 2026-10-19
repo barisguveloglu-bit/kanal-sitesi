@@ -731,6 +731,74 @@ def t_istatistik_wilson_araligi(kok):
     return None
 
 
+# ------------------------------------------------ otomatik mutasyon
+
+def _mutasyon_modulu(kok):
+    import importlib.util
+    tanim = importlib.util.spec_from_file_location(
+        "_mutasyon_" + str(abs(hash(kok))), os.path.join(kok, ".claude", "mutasyon.py"))
+    modul = importlib.util.module_from_spec(tanim)
+    tanim.loader.exec_module(modul)
+    return modul
+
+
+def t_otomatik_tamam_kosulu_uretilmiyor(kok):
+    """Sadece r.tamam() koruyan koşulun mutantı hükmü değiştiremez — üretilmemeli.
+    Hata bildiren koşul ise üretilmeye devam etmeli: süzgeç her şeyi yutmasın."""
+    m = _mutasyon_modulu(kok)
+    kaynak = ("def d_ornek(r):\n"
+              "    if not a:\n"
+              "        r.tamam()\n"
+              "    if not b:\n"
+              "        r.hata('ornek', 'b yok')\n")
+    ifadeler = {(n[2], n[3]) for n in m.otomatik_noktalar(kaynak)}
+    if ("not kaldırıldı", "not a") in ifadeler:
+        return "sadece r.tamam() koruyan koşul mutasyona girdi"
+    if ("not kaldırıldı", "not b") not in ifadeler:
+        return f"hata bildiren koşul mutasyondan çıktı: {sorted(ifadeler)}"
+    return None
+
+
+def t_otomatik_esdeger_kaydi_ayiriyor(kok):
+    """Kayıt ifadeye bağlı: satır kayınca da tanınmalı, başka ifade affedilmemeli."""
+    m = _mutasyon_modulu(kok)
+    kayit = {("d_ornek", "not kaldırıldı", "not a"): "gerekçe"}
+    hayatta = [("d_ornek", 40, "not kaldırıldı", "not a"),   # satırı kaymış, ifade aynı
+               ("d_ornek", 12, "not kaldırıldı", "not b")]
+    bilinmeyen, kayitli = m.esdeger_ayir(hayatta, kayit)
+    if [n[3] for n in bilinmeyen] != ["not b"]:
+        return f"kayıtsız mutant affedildi ya da kayboldu: {bilinmeyen}"
+    if [n[3] for n, _ in kayitli] != ["not a"]:
+        return f"satırı kayan kayıtlı eşdeğer tanınmadı: {kayitli}"
+    return None
+
+
+def t_otomatik_esdeger_kaydi_bayat_degil(kok):
+    """Her kayıtlı eşdeğer bugünkü denetleyicide gerçek bir noktaya karşılık gelmeli.
+    İfadesi koddan çıkan kayıt bir gün başka bir mutantı haksız affeder."""
+    m = _mutasyon_modulu(kok)
+    with open(os.path.join(kok, m.OTOMATIK_DOSYA), encoding="utf-8") as f:
+        tum = {m.nokta_anahtari(n) for n in m.otomatik_noktalar(f.read())}
+    bayat = [a for a in m.ESDEGER if a not in tum]
+    if bayat:
+        return f"bayat eşdeğer kaydı (mutasyon.py ESDEGER'i güncelle): {bayat}"
+    return None
+
+
+def t_sinav_ilk_hatada_duruyor(kok):
+    """--ilk-hatada-dur: ilk başarısız vakada durur, hüküm yine kırmızı."""
+    with open(os.path.join(kok, ".claude", "dogrula.py"), "w", encoding="utf-8") as f:
+        f.write("import sys\nprint('TEMİZ')\nsys.exit(0)\n")
+    s = subprocess.run([sys.executable, os.path.join(kok, ".claude", "sinav.py"),
+                        "--ilk-hatada-dur"], cwd=kok, capture_output=True, text=True,
+                       timeout=300)
+    if s.returncode != 1:
+        return f"çıkış {s.returncode}, beklenen 1"
+    if "0/1 vaka" not in s.stdout:
+        return f"ilk hatada durmadı: {s.stdout.strip().splitlines()[-1:]}"
+    return None
+
+
 # ------------------------------------------------ yazma ajanının yalıtımı
 
 def _commitle(kok, mesaj="sinav"):
@@ -1178,6 +1246,11 @@ VAKALAR = [
     ("görev: uzak oturum da sözleşmeye tabi", t_gorev_uzak_oturum_da_sozlesmeye_tabi),
 
     ("istatistik: Wilson aralığı doğru",    t_istatistik_wilson_araligi),
+
+    ("otomatik: tamam koşulu üretilmiyor",  t_otomatik_tamam_kosulu_uretilmiyor),
+    ("otomatik: eşdeğer kaydı ayırıyor",    t_otomatik_esdeger_kaydi_ayiriyor),
+    ("otomatik: eşdeğer kaydı bayat değil", t_otomatik_esdeger_kaydi_bayat_degil),
+    ("sınav: ilk hatada duruyor",           t_sinav_ilk_hatada_duruyor),
 
     ("yalıtım: yazma ajanı yalıtımsız gitmiyor", t_yalitim_yazma_ajani_yalitimsiz_gitmiyor),
     ("yalıtım: ayrı ağaçla gidiyor",        t_yalitim_worktree_ile_gidiyor),

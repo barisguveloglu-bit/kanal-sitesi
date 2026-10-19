@@ -802,7 +802,7 @@ yakalamadığına bak. Burada **başarısızlık iyi haberdir** — mutasyon
 yakalandı demektir. Yeşil kalan bir mutasyon, "o davranışı hiçbir şey
 korumuyor" demektir.
 
-**55 mutasyon** var: kesici hiç kesmesin, yargıç uydurmayı görmesin,
+**58 mutasyon** var: kesici hiç kesmesin, yargıç uydurmayı görmesin,
 sözleşme kapısı açılsın, arama "bilmiyorum" diyemesin, ham iz özete girsin,
 denetleyici yeni dosyaya kör kalsın, mandal gevşemeyi görmesin, tur sonu
 kapısı bloklamasın, açılış bekleyen kararı göstermesin…
@@ -832,7 +832,9 @@ karşılaştırmayı ters çevir (`==`↔`!=`, `<`↔`>=`, `in`↔`not in`), "ve
 düşerse ölçüm geçersizdir, sonuç basılmaz. Her mutant kendi geçici
 kopyasında koştuğu için mutantlar birbirinden bağımsızdır; `--is` ile aynı
 anda koşarlar (varsayılan: çekirdek sayısı, en fazla 4) — mutasyon
-testinin bilinen temel sorunu maliyettir [K6].
+testinin bilinen temel sorunu maliyettir [K6]. `--otomatik N` rastgele
+örneklem alır; mutant örneklemesi de bilinen maliyet azaltma
+yollarından biridir [K6].
 
 **İlk koşu: 131 mutanttan 95'i öldü (%73), 36'sı yaşadı.** Yaşayanların
 9'u eşdeğer mutanttı [K6], yani davranışı değiştirmiyordu: sadece "geçen
@@ -861,6 +863,37 @@ Masum vakalar da mutant öldürüyor: `<link rel="license">` dışarıya
 işaret eder ama bir şey yüklemez — "veya"yı "ve" yapan mutant onu dış
 kaynak sanıyordu; CSS'te sitenin kendi mutlak adresi de dış sunucu
 değildir — "ve"yi "veya" yapan mutant onu da yasaklıyordu.
+
+**İkinci koşu** (`erisim` ve kaynakça denetimi eklenmişti, 155 nokta):
+143'ü öldü (%92). Yaşayan 12'nin 10'u eşdeğerdi; ikisi yeni yazılan
+`erisim` kodundaydı — boş `<title>` hiç denenmiyordu. Vakası eklendi.
+
+Aynı koşu iki ölçülmüş sorun daha gösterdi:
+
+- **18 dakika sürdü** (4 paralel kopya). Her mutant 90 vakalık sınavın
+  tamamını koşuyordu; oysa mutantı öldürmeye tek başarısız vaka yeter.
+  Mutasyon sınavı artık `sinav.py --ilk-hatada-dur` koşuyor: yaşayan
+  mutantın süresi değişmez (bütün vakaları geçmek zorunda), ölenin süresi
+  kısalır. Hesaplama maliyeti mutasyon testini pratikten uzak tutan
+  bilinen sorundur [K6].
+- **Çıkış kodu hep 3'tü.** Eşdeğer mutantlar her koşuda yeniden "hayatta"
+  görünüyordu; kapı her seferinde aynı on mutant için açılıyordu ve yeni
+  bir boşluk bu gürültünün içinde kayboluyordu. Eşdeğerliği makine
+  genelde çözemez, ayırmak insan emeği ister [K6] — o emek bir kez
+  harcanmalı:
+  - Sadece `r.tamam()` çağıran koşullar artık mutasyona girmiyor.
+    `tamam()` geçen denetim sayacıdır, çıkış koduna girmez; böyle bir
+    koşulun her mutantı tanım gereği eşdeğerdir. 6 nokta eksildi.
+  - Kalan dört eşdeğer, gerekçesiyle `mutasyon.py` içindeki `ESDEGER`
+    kaydına yazıldı. Anahtar satır numarası değil ifadenin kendisi: kod
+    kayınca kayıt bozulmaz, ifade değişince kayıt düşer ve mutant yeniden
+    incelenir. Koddan çıkmış ya da artık öldürülen kayıt da kapı açar —
+    kayıt bir gün başka bir mutantı haksız affetmesin. `arac-sinavi.py`
+    her koşuda kaydın bayat olmadığını denetliyor.
+
+Mutasyon skoru eşdeğer mutantları paydadan çıkarır [K6]. Çıkış kodu artık
+anlam taşıyor: `0` yaşayan her mutant kayıtlı eşdeğer, `3` yeni bir
+yaşayan (ya da bozuk kayıt) var.
 
 ## Sınırlar
 
@@ -967,7 +1000,7 @@ kaynağa bağladı. Ayrıntılar ilgili bölümlerde; özet:
 | Açılış kancası defter metnini talimatla aynı kanaldan veriyordu | işaretsiz | veri bloğu, satır sınırı, şüpheli kalıp işareti | [K7][K8] |
 | Erişilebilirlikte sadece kontrast ve odak halkası ölçülüyordu | 2 ölçü | + dil, başlık, `alt`, erişilebilir ad, yakınlaştırma, başlık düzeyi | [K14][K15] |
 | Mekanizmaların dayanağı yazılı değildi | — | 20 kaynak; `belge` atıfları sayıyor | — |
-| Elle yazılan mutasyon kendi kör noktasını göremiyordu | 55 elle | + operatörle üretilen; 27 boşluk kapandı | [K5][K6] |
+| Elle yazılan mutasyon kendi kör noktasını göremiyordu | 45 elle yazılmış | 58 elle + 149 noktada operatörle üretilen; yaşayan her mutant ya vakayla kapandı ya gerekçeli eşdeğer | [K5][K6] |
 
 Ölçülemeyen kısım da yazılı kalsın: değişmezlik eşiği %100 ama 150 çift
 yine aynı 20 altın sorudan türüyor — setin küçüklüğü (Sınırlar) burada da
@@ -988,7 +1021,7 @@ bağlanır.
 - **[K3]** Huntley, G. (2025, 14 Temmuz). *Ralph Wiggum as a "software engineer".* https://ghuntley.com/ralph/ — "en saf hâliyle Ralph bir Bash döngüsüdür".
 - **[K4]** Krakovna, V. vd. (2020, 21 Nisan). *Specification gaming: the flip side of AI ingenuity.* DeepMind. https://deepmind.google/discover/blog/specification-gaming-the-flip-side-of-ai-ingenuity/ — ölçünün harfini yerine getirip amacı kaçırmak.
 - **[K5]** DeMillo, R. A., Lipton, R. J., Sayward, F. G. (1978). Hints on Test Data Selection: Help for the Practicing Programmer. *IEEE Computer* 11(4):34–41. https://doi.org/10.1109/C-M.1978.218136 — mutasyon testinin temeli; basit hataları yakalayan testin karmaşıkları da yakalaması (eşleşme etkisi).
-- **[K6]** Jia, Y., Harman, M. (2011). An Analysis and Survey of the Development of Mutation Testing. *IEEE Transactions on Software Engineering* 37(5):649–678. https://doi.org/10.1109/TSE.2010.62 — alanın kapsamlı taraması; hesaplama maliyeti ve eşdeğer mutant sorunları.
+- **[K6]** Jia, Y., Harman, M. (2011). An Analysis and Survey of the Development of Mutation Testing. *IEEE Transactions on Software Engineering* 37(5):649–678. https://doi.org/10.1109/TSE.2010.62 — alanın kapsamlı taraması. Mutasyon skoru: öldürülen mutantların eşdeğer olmayan mutantlara oranı. Hesaplama maliyeti ve maliyet azaltma (mutant örneklemesi dahil). Eşdeğerlik karar verilemez olduğundan eşdeğer mutantı ayırmak çoğu zaman insan emeği ister.
 - **[K7]** OWASP (2025). *LLM01:2025 Prompt Injection.* OWASP Top 10 for LLM Applications 2025. https://genai.owasp.org/llmrisk/llm01-prompt-injection/ — dolaylı enjeksiyonun tanımı; "güvenilmeyen içeriği ayır ve açıkça işaretle".
 - **[K8]** Greshake, K., Abdelnabi, S., Mishra, S., Endres, C., Holz, T., Fritz, M. (2023). Not what you've signed up for: Compromising Real-World LLM-Integrated Applications with Indirect Prompt Injection. https://arxiv.org/abs/2302.12173 — saldırganın modele değil, modelin okuyacağı veriye yazması.
 - **[K9]** Ribeiro, M. T., Wu, T., Guestrin, C., Singh, S. (2020). Beyond Accuracy: Behavioral Testing of NLP Models with CheckList. *ACL 2020*, 4902–4912. https://doi.org/10.18653/v1/2020.acl-main.442 — değişmezlik (INV) testleri: anlamı korunan bozulmada çıktı değişmemeli.

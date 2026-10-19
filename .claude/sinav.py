@@ -557,10 +557,15 @@ def kos(kok):
     return s.returncode, s.stdout + s.stderr
 
 
-def main():
+def main(argv):
+    # Mutasyon sınavı bir mutantı öldürmek için tek başarısız vaka bekler;
+    # kalan vakaları koşmak hükmü değiştirmez, sadece süreyi uzatır.
+    ilk_hatada_dur = "--ilk-hatada-dur" in argv
     gecti = basarisiz = 0
     satirlar = []
     for ad, islev, beklenen in VAKALAR:
+        if ilk_hatada_dur and basarisiz:
+            break
         with tempfile.TemporaryDirectory() as gecici:
             kok = os.path.join(gecici, "depo")
             kopyala(kok)
@@ -601,4 +606,4 @@ def main():
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(main(sys.argv[1:]))

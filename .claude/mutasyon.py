@@ -32,6 +32,12 @@ Yeşil kalan bir mutasyon, "o davranışı hiçbir şey korumuyor" demektir.
     python3 .claude/mutasyon.py --ayrinti
 
 Çıkış kodu: 0 bütün mutasyonlar yakalandı, 1 en az biri kaçtı.
+
+    python3 .claude/mutasyon.py --otomatik 0
+
+Otomatik mutantlarda çıkış: 0 yaşayan her mutant kayıtlı eşdeğer, 3 kayıtsız
+yaşayan ya da bayat/yanlış eşdeğer kaydı var (insan kapısı), 1 kontrol
+koşusu düştü (ölçüm geçersiz).
 """
 
 import argparse
@@ -369,6 +375,24 @@ def m_dogrula_tanimsiz_atifa_kor(kok):
             "    for no in []:")
 
 
+def m_otomatik_suzgec_her_kosulu_yutsun(kok):
+    duzenle(kok, ".claude/mutasyon.py",
+            "        if not dugum.orelse and all(map(_tamam_mi, dugum.body)):",
+            "        if True:")
+
+
+def m_otomatik_esdeger_kaydi_hepsini_affetsin(kok):
+    duzenle(kok, ".claude/mutasyon.py",
+            "    bilinmeyen = [n for n in hayatta if nokta_anahtari(n) not in kayit]",
+            "    bilinmeyen = []")
+
+
+def m_sinav_ilk_hatada_durmasin(kok):
+    duzenle(kok, ".claude/sinav.py",
+            "        if ilk_hatada_dur and basarisiz:",
+            "        if False:")
+
+
 def m_gorev_uzak_oturumu_gormesin(kok):
     """Sözleşme kancası yine sadece yerel alt ajanı dinlesin."""
     duzenle(kok, ".claude/settings.json",
@@ -493,11 +517,22 @@ MUTASYONLAR = [
     ("erişim: adsız öğeye kör",          m_dogrula_adsiz_ogeye_kor,          "sinav.py"),
 
     ("kaynakça: tanımsız atıfa kör",     m_dogrula_tanimsiz_atifa_kor,       "sinav.py"),
+
+    ("otomatik: süzgeç her koşulu yutar", m_otomatik_suzgec_her_kosulu_yutsun, "arac-sinavi.py"),
+    ("otomatik: kayıt hepsini affeder",  m_otomatik_esdeger_kaydi_hepsini_affetsin, "arac-sinavi.py"),
+    ("sınav: ilk hatada durmuyor",       m_sinav_ilk_hatada_durmasin,        "arac-sinavi.py"),
 ]
 
 
+# Mutantı öldürmeye tek başarısız vaka yeter; destekleyen sınav ilk hatada
+# durur. Yaşayan mutantın süresi değişmez (bütün vakalar geçmek zorunda),
+# ölen mutantınki kısalır.
+HIZLI = {"sinav.py": ("--ilk-hatada-dur",)}
+
+
 def kos(kok, betik):
-    return subprocess.run([sys.executable, os.path.join(kok, ".claude", betik)],
+    return subprocess.run([sys.executable, os.path.join(kok, ".claude", betik),
+                           *HIZLI.get(betik, ())],
                           cwd=kok, capture_output=True, text=True, timeout=300)
 
 
@@ -558,18 +593,47 @@ OTOMATIK_DOSYA = ".claude/dogrula.py"
 OTOMATIK_ONEK = "d_"          # sadece denetim fonksiyonları
 OTOMATIK_SINAV = "sinav.py"
 
+# Kayıtlı eşdeğer mutantlar. Bir mutantın eşdeğer olduğuna karar vermek insan
+# işi [K6]; karar bir kez verilir ve gerekçesiyle burada durur, her koşuda
+# yeniden tartışılmaz. Anahtar satır numarası değil ifadenin kendisi: kod
+# kayınca kayıt bozulmaz, ifade değişince kayıt düşer ve mutant yeniden
+# incelenir. Kayıtlı ama artık bulunmayan ya da öldürülen kayıt kapıdır.
+ESDEGER = {
+    ("d_kontrast", "And → Or", '"--bg-3" in d and "--text-3" in d'):
+        "İki değişken de ölçülmüş paletin parçası. Fark yalnızca biri paletten "
+        "silinirse çıkar: mutant çöker, asıl kod o çifti ölçmeden geçer.",
+    ("d_veri", "Gt → LtE", "plakalar.count(p) > 1"):
+        "Sadece hata mesajındaki 'yinelenen' listesini değiştirir; hata zaten "
+        "verilmiştir, hüküm aynı.",
+    ("d_capa", "Or → And", "not satir or not gercekler"):
+        "Her altın soru hem satır hem gerçek taşıyor; degerlendir.py ve yargi.py "
+        "gerçeksiz soruda zaten çöker. Fark yalnızca şema dışı kayıtta çıkar.",
+    ("d_belge", "And → Or", "os.path.exists(talimat_yolu) and os.path.exists(lore_yolu)"):
+        "Fark yalnızca CLAUDE.md ya da LORE.md silinmişken çıkar: mutant çöker, "
+        "asıl kod bu denetimi atlar.",
+}
+
+
+def _tamam_mi(dugum):
+    """`r.tamam()` ifadesi mi — geçen denetim sayacı; çıkış koduna girmez."""
+    c = getattr(dugum, "value", None)
+    return (isinstance(dugum, ast.Expr) and isinstance(c, ast.Call)
+            and isinstance(c.func, ast.Attribute) and c.func.attr == "tamam"
+            and isinstance(c.func.value, ast.Name) and c.func.value.id == "r")
+
 
 class _Mutator(ast.NodeTransformer):
     """Hedef fonksiyonlardaki mutasyon noktalarını sırayla sayar.
 
     hedef=None: sadece sayar ve listeler. hedef=k: k numaralı noktayı değiştirir.
     Sayma sırası her ayrıştırmada aynıdır; numara iki koşu arasında aynı
-    noktayı gösterir (kod değişmedikçe).
+    noktayı gösterir (kod değişmedikçe). metin verilirse her noktanın
+    kaynaktaki ifadesi de kaydedilir — eşdeğer kaydının anahtarı odur.
     """
 
-    def __init__(self, onek, hedef=None):
-        self.onek, self.hedef, self.sayac = onek, hedef, 0
-        self.noktalar = []   # (fonksiyon, satır, açıklama)
+    def __init__(self, onek, hedef=None, metin=None):
+        self.onek, self.hedef, self.sayac, self.metin = onek, hedef, 0, metin
+        self.noktalar = []   # (fonksiyon, satır, açıklama, ifade)
         self._fonksiyon = None
 
     def visit_FunctionDef(self, dugum):
@@ -584,8 +648,19 @@ class _Mutator(ast.NodeTransformer):
         if self._fonksiyon is None:
             return False
         no, self.sayac = self.sayac, self.sayac + 1
-        self.noktalar.append((self._fonksiyon, getattr(dugum, "lineno", 0), aciklama))
+        ifade = ast.get_source_segment(self.metin, dugum) if self.metin else None
+        self.noktalar.append((self._fonksiyon, getattr(dugum, "lineno", 0), aciklama,
+                              " ".join((ifade or "").split())))
         return no == self.hedef
+
+    def visit_If(self, dugum):
+        # Sadece r.tamam() çağıran bir koşul hükmü değiştiremez: tamam()
+        # geçen denetim sayacıdır, çıkış koduna girmez. Böyle bir koşulun her
+        # mutantı tanım gereği eşdeğerdir — üretmek sadece gürültü ve süre.
+        if not dugum.orelse and all(map(_tamam_mi, dugum.body)):
+            return dugum
+        self.generic_visit(dugum)
+        return dugum
 
     def visit_Compare(self, dugum):
         self.generic_visit(dugum)
@@ -620,9 +695,22 @@ class _Mutator(ast.NodeTransformer):
 
 
 def otomatik_noktalar(metin):
-    m = _Mutator(OTOMATIK_ONEK)
+    m = _Mutator(OTOMATIK_ONEK, metin=metin)
     m.visit(ast.parse(metin))
     return m.noktalar
+
+
+def nokta_anahtari(nokta):
+    """Satır numarası anahtara girmez: kod kayınca kayıt bozulmasın."""
+    fonksiyon, _, aciklama, ifade = nokta
+    return (fonksiyon, aciklama, ifade)
+
+
+def esdeger_ayir(hayatta, kayit):
+    """Yaşayan mutantları ayır: (bilinmeyen, [(kayıtlı eşdeğer, gerekçe)])."""
+    bilinmeyen = [n for n in hayatta if nokta_anahtari(n) not in kayit]
+    kayitli = [(n, kayit[nokta_anahtari(n)]) for n in hayatta if nokta_anahtari(n) in kayit]
+    return bilinmeyen, kayitli
 
 
 def otomatik_mutant(metin, no):
@@ -666,20 +754,42 @@ def otomatik(secim):
     sonuclar = paralel(isler, secim.is_sayisi)
 
     olen = sum(1 for d, _ in sonuclar if d == "yakalandi")
-    hayatta = [(noktalar[no], ayr) for no, (d, ayr) in zip(sira, sonuclar) if d == "kacti"]
+    hayatta = [noktalar[no] for no, (d, _) in zip(sira, sonuclar) if d == "kacti"]
     gecersiz = sum(1 for d, _ in sonuclar if d == "hata")
+    bilinmeyen, kayitli = esdeger_ayir(hayatta, ESDEGER)
+    # Kayıt da çürür: ifade koddan çıktıysa ya da kayıtlı mutant artık
+    # ölüyorsa, kayıt yanlıştır — bir gün başka bir mutantı haksız affeder.
+    tum = {nokta_anahtari(n) for n in noktalar}
+    olen_anahtar = {nokta_anahtari(noktalar[no])
+                    for no, (d, _) in zip(sira, sonuclar) if d == "yakalandi"}
+    bayat = [a for a in ESDEGER if a not in tum]
+    yanlis = [a for a in ESDEGER if a in olen_anahtar]
+
     print(f"Otomatik mutantlar — {OTOMATIK_DOSYA}, {OTOMATIK_ONEK}* fonksiyonları: "
           f"{len(noktalar)} nokta, {len(sira)} denendi (tohum {secim.tohum}).")
-    for (fonk, satir, aciklama), _ in hayatta:
-        print(f"  HAYATTA  {fonk}:{satir:<5} {aciklama}")
-    gecerli = len(sira) - gecersiz
-    print(f"\nSkor: {olen}/{gecerli} mutant öldürüldü"
-          + (f" (%{100 * olen / gecerli:.0f})" if gecerli else "")
-          + (f", {gecersiz} geçersiz mutant atlandı" if gecersiz else "") + ".")
-    if hayatta:
-        print(f"{len(hayatta)} mutant hayatta. Her biri ya eksik bir test ya da "
+    for fonk, satir, aciklama, ifade in bilinmeyen:
+        print(f"  HAYATTA  {fonk}:{satir:<5} {aciklama:16} {ifade[:70]}")
+    for (fonk, satir, aciklama, ifade), gerekce in kayitli:
+        print(f"  eşdeğer  {fonk}:{satir:<5} {aciklama:16} {ifade[:70]}")
+        if secim.ayrinti:
+            print(f"           {gerekce}")
+    for a in bayat:
+        print(f"  BAYAT KAYIT  {a} — ifade kodda yok; ESDEGER'den sil ya da güncelle.")
+    for a in yanlis:
+        print(f"  YANLIŞ KAYIT {a} — mutant öldü, eşdeğer değilmiş; ESDEGER'den sil.")
+
+    # Mutasyon skoru eşdeğer mutantları paydadan çıkarır [K6].
+    payda = len(sira) - gecersiz - len(kayitli)
+    print(f"\nSkor: {olen}/{payda} mutant öldürüldü"
+          + (f" (%{100 * olen / payda:.0f})" if payda else "")
+          + (f"; {len(kayitli)} kayıtlı eşdeğer paydadan çıkarıldı" if kayitli else "")
+          + (f"; {gecersiz} geçersiz mutant atlandı" if gecersiz else "") + ".")
+    if bilinmeyen:
+        print(f"{len(bilinmeyen)} mutant hayatta. Her biri ya eksik bir test ya da "
               "davranışı değiştirmeyen\n(eşdeğer) bir mutant — ayırmak insan işi. "
-              "Eksik testse sinav.py'ye vaka ekle.")
+              "Eksik testse sinav.py'ye vaka ekle;\neşdeğerse gerekçesiyle "
+              "ESDEGER'e yaz.")
+    if bilinmeyen or bayat or yanlis:
         return 3
     return 0
 
