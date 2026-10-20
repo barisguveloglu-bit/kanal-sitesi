@@ -156,6 +156,9 @@ Yani kötüler, kırılması imkânsıza en yakın olan şeyi kırmak zorunda.
 - Gizemli Çocuk ile aynı fiziksel özellikler.
 - **Elektriği tam anlamıyla kontrol eder.**
 - Aşırı kurnaz.
+- **Zaafı: kibir.** Gücünün sınırı yok, ama kendine olan güveninin de yok.
+  Küçük gördüğünü hesaba katmaz; yenilirse gücü yetmediği için değil,
+  gerekmez sandığı için yenilir.
 - **Savaşsız dünya fikri onun.** Kardeşi sonradan katıldı.
 - **Üç komutan derebeyi** doğrudan ona rapor verir; onların altında 81 il derebeyi var.
 - Mafya sloganı **"O gerçek barışı bulacak"** cümlesindeki "o" kendisi.
@@ -166,7 +169,7 @@ Yani kötüler, kırılması imkânsıza en yakın olan şeyi kırmak zorunda.
 
 Kötülerin ağı **dört kademeli**:
 
-| Seviye | Kim | Görev |
+| Kademe | Kim | Görev |
 |---|---|---|
 | 1 | Gizemli Çocuğun Abisi | Asıl patron. Fikrin sahibi. |
 | 2 | Gizemli Çocuk | Kardeşi. Fikre katıldı. |
@@ -180,9 +183,9 @@ Her komutanın adı, **yönettiği toprakların mitolojisinden** geliyor:
 
 | Cephe | Komutan | Mitoloji | Kim? | Bölge |
 |---|---|---|---|---|
-| Batı | **Nemesis** | Yunan | İntikam ve ilahi adalet tanrıçası | Marmara, Ege, Batı Akdeniz |
-| Orta | **Teşup** | Hitit | Fırtına tanrısı, elinde yıldırım | İç Anadolu, Batı Karadeniz, Çukurova |
-| Doğu | **Ahriman** | Pers | Yıkımın ruhu, iyiliğin karşıtı | Doğu Anadolu, Güneydoğu, Doğu Karadeniz |
+| Batı | **Nemesis** | Yunan | İntikam ve ilahi adalet tanrıçası | Marmara, Ege, Batı Akdeniz, Batı Karadeniz kıyısı (Düzce–Bartın) |
+| Orta | **Teşup** | Hitit | Fırtına tanrısı, elinde yıldırım | İç Anadolu, Orta Karadeniz (Karabük–Trabzon), Çukurova |
+| Doğu | **Ahriman** | Pers | Yıkımın ruhu, iyiliğin karşıtı | Doğu Anadolu, Güneydoğu, Karadeniz'in doğu ucu (Rize, Artvin, Gümüşhane, Bayburt) |
 
 **Nemesis** — haksızlığı bitirmek için kurulmuş bir mafyada, adı doğrudan
 adaleti anlatan komutan. Kendi ölçüsünü kendi koyuyor.
@@ -353,6 +356,9 @@ Bu, iyilere zaman kazandıran tek şey.
 | Sarı Gülücük | — | Zekâ ve icat |
 | Samara Kadın | — | Zihin kontrolü |
 | Cips Yiyen Adam | 2 tır | Normal form |
+| Nemesis | 3 tır | Batı Cephesi Komutanı |
+| Teşup | 3 tır | Orta Cephe Komutanı |
+| Ahriman | 3 tır | Doğu Cephesi Komutanı |
 | Gizemli Çocuk | 4 tır | + temel elektrik |
 | Gizemli Çocuğun Abisi | 4 tır | + tam elektrik kontrolü |
 | Yoğurt Yiyen Adam | 5 tır | Cips Yiyen Adam'ın savaş modu |

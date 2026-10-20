@@ -2,6 +2,13 @@
 
 Hikayenin lore arşivi. Derleme adımı yok, kurulum yok — HTML/CSS/JS.
 
+## Echo'yu Codex ile kullanmak
+
+Depoyu Codex'te aç ve **“Echo ile çalış; önce başlangıç denetimi yap”** de.
+`python3 echo.py baslat` hafızayı ve denetimleri getirir. Claude kurulumu veya
+API anahtarı gerekmez. Kullanım ve otomasyon sınırları: [ECHO.md](ECHO.md).
+Codex kuralları: [AGENTS.md](AGENTS.md).
+
 ## Sayfalar
 
 | Dosya | İçerik |

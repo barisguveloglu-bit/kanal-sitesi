@@ -34,6 +34,7 @@ gevşeyen ölçü ya da eşiğin üstünde gerileme).
 """
 
 import argparse
+import hashlib
 import json
 import os
 import re
@@ -44,6 +45,7 @@ from datetime import datetime
 
 KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GECMIS = os.path.join(KOK, ".claude", "saglik-gecmisi.jsonl")
+ALTIN = os.path.join(KOK, ".claude", "altin-sorular.json")
 
 # Eşiğin üstünde izlenen kalite ölçüleri — hepsi "büyük iyidir".
 # Sayımlar (kaç vaka, kaç denetim) burada YOK: içerik değişince doğal olarak
@@ -97,6 +99,8 @@ ADIMLAR = (
     # (anahtar, betik, argümanlar, ayrıştırıcı, zaman aşımı sn, hızlıda atlanır mı)
     ("denetim",  "dogrula.py",     (),            ayristir_dogrula,     120, False),
     ("mandal",   "mandal.py",      ("kontrol",),  lambda c: {},         60,  False),
+    # Canon ↔ veri ↔ site: dogrula kuralları, bütünlük gerçekleri ölçer.
+    ("butunluk", "butunluk.py",    (),            lambda c: {},         300, False),
     ("sinav",    "sinav.py",       (),            ayristir_sinav,       600, False),
     ("arama",    "degerlendir.py", (),            ayristir_degerlendir, 300, False),
     ("araclar",  "arac-sinavi.py", (),            ayristir_arac,        900, False),
@@ -129,8 +133,35 @@ def gecmis_oku():
     return kayitlar
 
 
+def altin_parmak_izi():
+    """Arama ölçülerinin hangi altın sete karşı alındığı.
+
+    Oran ancak aynı sete karşı kıyaslanır. Set büyüyünce isabet düşebilir
+    (zor soru eklendi) ya da yükselebilir (kolay soru eklendi); ikisi de
+    arama hakkında bir şey söylemez. Nitekim söylemedi: iki dal birleşince
+    set 20'den 24 soruya çıktı, isabet@3 0.95 → 0.92 "gerileme" göründü —
+    oysa aynı 24 soruda iki dalın arama sonucu birebir aynıydı.
+    """
+    try:
+        with open(ALTIN, "rb") as f:
+            return hashlib.sha256(f.read()).hexdigest()[:12]
+    except OSError:
+        return None
+
+
+def set_degisti(onceki, simdi):
+    return (onceki or {}).get("altin.parmak_izi") != simdi.get("altin.parmak_izi")
+
+
 def gerilemeler(onceki, simdi):
-    """Önceki koşuya göre düşen kalite ölçüleri — eşiği geçseler bile."""
+    """Önceki koşuya göre düşen kalite ölçüleri — eşiği geçseler bile.
+
+    Arama ölçüleri yalnız AYNI altın sete karşı alınmışsa kıyaslanır.
+    Önceki kayıtta parmak izi yoksa da kıyaslanmaz: bilinmeyen set, aynı set
+    sayılamaz.
+    """
+    if set_degisti(onceki, simdi):
+        return []
     sonuc = []
     for ad in IZLENEN:
         a, b = (onceki or {}).get(ad), simdi.get(ad)
@@ -169,8 +200,13 @@ def k_kos(a):
             kirmizi.append(ad)
         satirlar.append(f"  {isaret}  {ad:13} {ozet[:90]}")
 
+    if "degerlendir.isabet3" in olcum:
+        olcum["altin.parmak_izi"] = altin_parmak_izi()
     onceki = next((k for k in reversed(gecmis_oku()) if k.get("olcum")), None)
     geri = gerilemeler(onceki and onceki["olcum"], olcum)
+    if onceki and "degerlendir.isabet3" in olcum and set_degisti(onceki["olcum"], olcum):
+        satirlar.append("  NOT   altın set önceki kayıttan farklı — arama ölçüleri "
+                        "kıyaslanmadı (oran ancak aynı sete karşı kıyaslanır).")
 
     print("\n".join(satirlar))
     if geri:

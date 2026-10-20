@@ -22,13 +22,29 @@ Tek dosyalık iş, küçük düzeltme, tek konu → orkestraya gerek yok.
 
 ## Döngü
 
-**1 — Böl.** Hedefi bağımsız parçalara ayır. Her parça için yaz:
-ne isteniyor, hangi dosyalar, hangi çıktı bekleniyor.
+**1 — Böl ve havuza koy.** Kadroyu **elle sayma, hesaplat:**
+
+```
+python3 .claude/havuz.py ekle --is "<görev>" --zorluk 3 --kaynak assets/js/data.js
+python3 .claude/havuz.py kadro
+```
+
+Kadro büyüklüğü sabit değil, **1-10 arası ve zorluktan çıkıyor.** İki kural
+mekanik:
+
+- **Aynı kaynağa dokunan görevler aynı ajana gider.** Ayrılırsa çakışırlar:
+  ikisi de aynı satırı değiştirir, biri diğerini ezer ve bu ancak
+  birleştirmede görünür. Zincirleme de sayılır.
+- **Bağımsız görevler bölünür.** Birbirini beklemezler.
+
+Yani hangi görevlerin toplanacağını **görev tipi** belirliyor, kadro değil.
+Kapasiteyi aşan bölünemez küme sessiz kalmaz, raporlanır.
 
 **2 — Dağıt.** Görev metnini **elle yazma, üret:**
 
 ```
-python3 .claude/gorev.py brief --konu "<ne isteniyor>" --cikti "<beklenen çıktı>" --mod okuma
+python3 .claude/havuz.py dagit          # havuzdaki her ajan için sözleşme
+python3 .claude/gorev.py brief --konu "<ne isteniyor>" --mod okuma   # tek görev
 ```
 
 `--mod` ajanın **yetkisini** belirler ve varsayılan `okuma` (salt okunur).
@@ -61,7 +77,38 @@ Sözleşme isteğe bağlı değil: `PreToolUse` kancası sözleşmesiz görevi
 Araştırma/denetim işleri için `Explore`, çok adımlı işler için
 `general-purpose` uygun.
 
-**3 — Birleştir.** Önce raporu **makineye doğrulat**, sonra oku:
+### Uzman Claude değilse — dış ajan
+
+Bir parçayı Claude dışında bir ajana (Codex, ChatGPT) verecekseniz görev
+metnini `gorev.py` değil `disajan.py` üretir. İki ayrı kip var ve seçim
+ajanın **depoya erişip erişemediğine** göre yapılır:
+
+| Ajanın durumu | Kip | Teslim biçimi |
+|---|---|---|
+| Depoya erişiyor, `git` çalıştırabiliyor | `disajan.py brief --dal codex/<ad>` | dal push eder, PR açar |
+| Sadece sohbet — depo yok, komut yok | `disajan.py sohbet --dosya <yol> --imza "<satır>"` | `ESKI`/`YENI` bloğu döner |
+
+Sohbet kipinde değişecek parça ve canon alıntısı brief'in **içine** konur:
+dosya okuyamayan bir ajana "dosyayı oku" demek, ona tahmin ettirmektir.
+Cevap `disajan.py uygula` ile işlenir — ESKI bloğu dosyada bulunmalı ve
+tek olmalı, yoksa reddedilir.
+
+Her iki kipte de sonuç `disajan.py kapi` ile üç ölçümden geçer. Dış ajanın
+çıktısına "başka bir yapay zeka yazdı" diye güvenilmez; aynı duvardan
+Claude'un işi de geçiyor. `.claude/` altına dokunan dal doğrudan
+reddedilir — sınavı gevşeterek geçmek geçmek değildir.
+
+Taşıma insan üzerinden olduğunda döngü bozulmaz, sadece kablosu değişir:
+şef sensin, kapı mekanik, karar Barış'ın.
+
+**3 — Birleştir.** Önce bütün raporları **makineye doğrulat**:
+
+```
+python3 .claude/havuz.py birlestir --rapor r1.md r2.md r3.md
+```
+
+Kusurlu rapor **sunuma gitmez** — dayanağı denetlenmemiş rapor delil
+değildir. Tek rapor için:
 
 ```
 python3 .claude/gorev.py dogrula --rapor <dosya> --mod okuma --deftere-yaz
@@ -121,8 +168,48 @@ python3 .claude/devre.py dene --halka orkestra --sinir 2 --not "<hangi boşluk>"
 Çıkış kodu **1 ise yeniden gönderme.** Elindekiyle devam et ve neyin
 çözülemediğini açıkça söyle. Bitince: `python3 .claude/devre.py basari --halka orkestra`
 
-**5 — Denetle.** Birleştirme bittiğinde `python3 .claude/dogrula.py`
-çalıştır. Uzmanlar dosya değiştirdiyse bu şart.
+**5 — Codex.** Raporlar doğrulandıktan sonra **dış ajana gider.**
+`disajan.py sohbet` ile brief üret, gelen metni `disajan.py uygula` ile
+işle. Codex hem derler hem denetler: uzmanların bulduklarını tek okunur
+metne çevirir **ve** kaçırdıklarını arar.
+
+> **Bu adım atlanamaz.** Akış şu sırayla işler:
+> **uzman ajanlar → Codex → Opus 5 → Barış.**
+> Hiçbir rapor Codex'e uğramadan Opus 5 kontrolüne çıkmaz.
+
+Neden zorunlu: 15 ajanın hepsi aynı modelden. Aynı modelin on beş
+kopyası, on beş bağımsız göz değildir — aynı kör noktayı on beş kez
+paylaşırlar. Codex başka bir taraftan bakıyor; değeri "daha iyi olması"
+değil, **farklı yanılması.**
+
+Bu gerçekten işe yaradı: 1428 taslağında iki Claude denetçisinin
+kaçırdığı doğum/ölüm ayrımını Codex yakaladı (`LORE.md:13` döngüyü
+"doğar" ile tanımlıyor, 1728 ise ölüm yılı).
+
+Codex'in çıktısı da **denetimden geçer** — "başka bir yapay zeka
+söyledi" güven sebebi değildir. Gelen raporu oku, atıflarını
+`gorev.py dogrula` ile ölç, kendi içinde çelişiyorsa söyle. (Aynı
+koşuda Codex bir maddeyi başlıkta "bozuyor" diye etiketleyip
+gerekçesinde "çelişki kurulamıyor" dedi.)
+
+Codex fazla sert davranabilir de: taslağı canon'un **kendine
+uygulamadığı** bir standarda tuttuğu bir madde vardı. Şef olarak
+işin gelen denetimi de tartmak, olduğu gibi geçirmek değil.
+
+**6 — Opus 5 kontrolü.** `python3 .claude/dogrula.py` çalıştır.
+Uzmanlar dosya değiştirdiyse bu şart.
+
+Hata varsa iş 4. adıma (yeniden gönder) döner, temizse Barış'a çıkar.
+Barış'a çıkan şey, **kapıdan geçmiş** olandır.
+
+**7 — Kapat.** Bir parça bir geri bildirim kaydını çözdüyse kaydı
+**koruyan testi adıyla** kapat:
+
+```
+python3 .claude/geri-bildirim.py kapat --no <n> --vaka "<sınav vakası>"
+```
+
+Testsiz kapatılan hata, düzeltilmiş değil ertelenmiş hatadır.
 
 ## İnsan kapısı
 

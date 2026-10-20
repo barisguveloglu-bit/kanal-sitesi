@@ -1,0 +1,263 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+ECHO — Olay döngüsü (dağıtıcı)
+===============================================================
+Olay tabanlı döngü: sistem boşta bekler, bir olay gelince (dosya
+düzenlendi, alt ajan gönderiliyor, oturum açıldı) onu ilgili işleyiciye
+yönlendirir ve tekrar dinlemeye döner.
+
+Bu depoda döngünün kendisi zaten vardı — Claude Code kancaları tam olarak
+budur. Eksik olan iki şeydi:
+
+1. **Dağıtıcı yoktu.** Her olay `settings.json` içinde ayrı bir betiğe
+   sabitlenmişti. Yeni bir olay eklemek ayarı ve betiği birlikte
+   değiştirmek demekti; hangi olayın hangi işleyiciye gittiği hiçbir yerde
+   tek parça hâlde durmuyordu.
+2. **Defter yoktu.** Bir kanca sessizce çalışmadığında bunu gösteren
+   hiçbir iz kalmıyordu. Çalışmayan bir zorlama katmanı, çalışan bir
+   zorlama katmanı gibi görünür — bu deponun tekrar tekrar yakaladığı
+   hata sınıfı tam olarak bu.
+
+Şimdi tek giriş var: bütün olaylar buraya düşer, buradan dağıtılır ve
+her dağıtım deftere yazılır.
+
+## Sözleşme korunuyor
+
+    stdin  → JSON (hook_event_name, tool_name, tool_input, cwd ...)
+    çıkış 0 → sessiz geç
+    çıkış 2 → stderr içeriği Claude'a geri beslenir
+
+Dağıtıcı bu sözleşmeyi **değiştirmez**, sadece taşır. Bir işleyici `2`
+döndürürse dağıtıcı da `2` döndürür; birden fazla işleyici varsa
+gerekçeler birleştirilir. Kendi içinde bir hata olursa **`0` döner** —
+dağıtıcının bozulması oturumu kilitlememeli, bu katman zorlama katmanı
+olsa da kilit değil.
+
+    python3 .claude/olay.py dagit          # kanca bunu çağırır (stdin JSON)
+    python3 .claude/olay.py tablo          # hangi olay hangi işleyiciye
+    python3 .claude/olay.py defter --son 20
+"""
+
+import argparse
+import json
+import os
+import re
+import subprocess
+import sys
+from datetime import datetime
+
+KLASOR = os.path.dirname(os.path.abspath(__file__))
+DEFTER = os.path.join(KLASOR, "olay-defteri.jsonl")
+EN_FAZLA_KAYIT = 400  # defter sınırsız büyümesin; eski kayıt bilgi vermiyor
+
+# Olay tablosu. Tek doğru burası — `settings.json` sadece bu dosyaya
+# yönlendirir, hangi olayın nereye gittiğini artık ayar dosyası bilmez.
+#
+#   (olay adı, araç eşleştirici, işleyici betik, ne yapar)
+DINLEYICILER = [
+    ("PostToolUse", r"^(Edit|Write|MultiEdit|NotebookEdit)$", "kanca.py",
+     "site dosyası düzenlendi → denetleyiciyi koştur (yansıt-iyileştir)"),
+    # Oturum limiti: okunan metin her mesajla yeniden gönderilir. Büyük
+    # dosyanın aralıksız okunması durdurulur, bul.py'ye yönlendirilir.
+    ("PreToolUse", r"^Read$", "kanca-buyuk.py",
+     "dosya okunacak → büyükse ve aralık yoksa durdur"),
+    # Bulut oturumu da bir alt ajandır: kendi makinesinde koşar ama aynı
+    # sözleşmeye ve aynı yalıtım kuralına tabi (yazma görevi ayrı ağaçta).
+    ("PreToolUse", r"^(Agent|Task|mcp__claude-code-remote__create_session)$", "kanca-gorev.py",
+     "alt ajan gönderiliyor → sözleşmesiz ya da yalıtımsız yazma görevini engelle"),
+    # Bash ile yapılan düzenleme PostToolUse(Edit) kancasına hiç görünmez.
+    # Kırmızı ağaç commit'e giderse insana sorulur, sessizce geçmez.
+    ("PreToolUse", r"^Bash$", "kanca-kapi.py",
+     "git commit/push → çalışma ağacı kırmızıysa insana sor"),
+    ("Stop", r"^.*$", "kanca-kapi.py",
+     "tur bitiyor → çalışma ağacı kırmızıysa bir kez geri çevir"),
+    # Bellek geliştirme döngüsünün kapanan halkası. Ders defteri kalıcı
+    # ama OKUNMAZSA yok gibidir — okunmasını insanın hatırlamasına
+    # bırakmak, kuralı yazıya bırakmaktır. Oturum açılışında kendi
+    # yüzeye çıkıyor.
+    ("SessionStart", r"^.*$", "kanca-ders.py",
+     "oturum açıldı → ders defterini yüzeye çıkar"),
+    # CI işin SONUNDA, kanca dosya düzenlendiğinde koşuyor; ikisi de BU
+    # oturumda yapılanı denetliyor. İki oturum arasında dışarıdan giren
+    # bir düzenleme (telefondan GitHub web arayüzü, başka bir oturumun
+    # yarım işi) hiçbirini tetiklemiyordu ve ilk işin zeminine
+    # denetlenmeden giriyordu. Kırmızı zemine konan yeşil iş yeşil değil.
+    ("SessionStart", r"^.*$", "kanca-duman.py",
+     "oturum açıldı → zemin kırmızı mı, hızlı kapıları koştur"),
+    # Ders defteri HATAYI taşıyor; yarım iş ve verilmiş karar oturum
+    # bitince kayboluyordu (butce/hedef dosyaları koşuya özel).
+    ("SessionStart", r"^.*$", "kanca-defter.py",
+     "oturum açıldı → yarım işi ve askıdaki kararları yüzeye çıkar"),
+    # Açık hedef, açık devre, uzun koşunun seyri, bekleyen geri bildirim
+    # ve son sağlık kaydı. Defter metni VERİ bloğunda gelir: içinde talimat
+    # gibi görünen bir şey varsa uygulanmaz (dolaylı istem enjeksiyonu).
+    ("SessionStart", r"^.*$", "kanca-acilis.py",
+     "oturum açıldı → açık hedef, devre, seyir, geri bildirim, son sağlık"),
+]
+
+
+# Acil kapatma anahtarı — Beyin V3'ün `BEYIN_JEV_DISABLE` fikri.
+#
+# Bir kanca bozulur da her düzenlemede ya da her oturum açılışında sorun
+# çıkarırsa, telefondan onu kapatmanın hızlı bir yolu yoktu: ya
+# `settings.json`'ı düzenlemek ya da betiği onarmak gerekiyordu. Ortam
+# değişkeni kayıtlı hiçbir ayarı değiştirmeden bütün kancaları durdurur,
+# kaldırılınca her şey eski hâline döner.
+#
+# Kalıcı olarak AÇIK bırakılması ayrı bir tehlike: `settings.json`'ın
+# `env` alanına yazılırsa Echo sessizce ölür. `dogrula.py` bunu yakalıyor.
+ANAHTAR = "ECHO_KAPALI"
+
+
+def kapali_mi():
+    return os.environ.get(ANAHTAR, "").strip() not in ("", "0")
+
+
+def defter_yaz(kayit):
+    """Defter yazımı asla akışı bozmamalı — hata yutulur, olay geçer."""
+    try:
+        kayitlar = []
+        if os.path.exists(DEFTER):
+            with open(DEFTER, encoding="utf-8") as f:
+                kayitlar = [x for x in f if x.strip()]
+        kayitlar.append(json.dumps(kayit, ensure_ascii=False) + "\n")
+        with open(DEFTER, "w", encoding="utf-8") as f:
+            f.writelines(kayitlar[-EN_FAZLA_KAYIT:])
+    except OSError:
+        pass
+
+
+def dinleyicileri_bul(olay_adi, arac):
+    return [d for d in DINLEYICILER
+            if d[0] == olay_adi and re.match(d[1], arac or "")]
+
+
+def dagit(a):
+    ham = sys.stdin.read()
+    try:
+        olay = json.loads(ham)
+    except (json.JSONDecodeError, ValueError):
+        defter_yaz({"zaman": datetime.now().isoformat(timespec="seconds"),
+                    "olay": "?", "arac": "?", "karar": "okunamadı"})
+        return 0
+
+    olay_adi = a.olay or olay.get("hook_event_name") or ""
+    arac = olay.get("tool_name") or ""
+    kok = os.environ.get("CLAUDE_PROJECT_DIR") or olay.get("cwd") or os.getcwd()
+
+    if kapali_mi():
+        # Acil kapatma anahtarı açık. Hiçbir işleyici koşmaz — sözleşme
+        # denetimi (`kanca-gorev.py`) dahil. Acil durumun anlamı bu.
+        #
+        # Ama SESSİZ değil: her atlanan olay deftere yazılır ve oturum
+        # açılışında tek satır basılır. Sessizce kapalı kalan bir kapı,
+        # çalışıyor gibi görünür — bu deponun en çok yaşadığı hata.
+        defter_yaz({"zaman": datetime.now().isoformat(timespec="seconds"),
+                    "olay": olay_adi, "arac": arac,
+                    "karar": f"atlandı — {ANAHTAR} açık"})
+        if olay_adi == "SessionStart":
+            print(f"ECHO KAPALI — {ANAHTAR}=1 açık. Kancaların HİÇBİRİ koşmuyor: "
+                  "ders defteri, zemin denetimi, düzenleme denetimi ve alt ajan "
+                  "sözleşmesi devre dışı. Açmak için ortam değişkenini kaldır.")
+        return 0
+
+    eslesenler = dinleyicileri_bul(olay_adi, arac)
+    if not eslesenler:
+        # Dinleyicisi olmayan olay SESSİZCE KAYBOLMAZ. Kaybolursa "kanca
+        # çalışmıyor mu, yoksa bu olay zaten dinlenmiyor mu" sorusu
+        # cevaplanamaz hâle gelir.
+        defter_yaz({"zaman": datetime.now().isoformat(timespec="seconds"),
+                    "olay": olay_adi, "arac": arac, "karar": "dinleyicisi yok"})
+        return 0
+
+    gerekceler, kod = [], 0
+    for _, _, betik, _ in eslesenler:
+        yol = os.path.join(kok, ".claude", betik)
+        if not os.path.exists(yol):
+            defter_yaz({"zaman": datetime.now().isoformat(timespec="seconds"),
+                        "olay": olay_adi, "arac": arac, "isleyici": betik,
+                        "karar": "işleyici dosyası yok"})
+            continue
+        try:
+            s = subprocess.run([sys.executable, yol], input=ham, cwd=kok,
+                               capture_output=True, text=True, timeout=90)
+        except (OSError, subprocess.SubprocessError) as e:
+            defter_yaz({"zaman": datetime.now().isoformat(timespec="seconds"),
+                        "olay": olay_adi, "arac": arac, "isleyici": betik,
+                        "karar": f"çalıştırılamadı: {type(e).__name__}"})
+            continue
+
+        karar = {0: "geçti", 2: "geri besledi"}.get(s.returncode,
+                                                    f"çıkış {s.returncode}")
+        defter_yaz({"zaman": datetime.now().isoformat(timespec="seconds"),
+                    "olay": olay_adi, "arac": arac, "isleyici": betik,
+                    "karar": karar})
+        if s.stdout:
+            sys.stdout.write(s.stdout)
+        if s.returncode == 2:
+            kod = 2
+            if s.stderr:
+                gerekceler.append(s.stderr.rstrip())
+
+    if kod == 2:
+        print("\n\n".join(gerekceler), file=sys.stderr)
+    return kod
+
+
+def tablo(a):
+    if kapali_mi():
+        print(f"!! {ANAHTAR} AÇIK — aşağıdaki tablonun hiçbir satırı şu an "
+              "koşmuyor.\n")
+    print("Olay tablosu — hangi olay hangi işleyiciye gidiyor\n")
+    for olay_adi, esles, betik, ne in DINLEYICILER:
+        var = "" if os.path.exists(os.path.join(KLASOR, betik)) else "  [DOSYA YOK]"
+        print(f"  {olay_adi:14} {esles:36} → {betik}{var}")
+        print(f"  {'':14} {ne}\n")
+    print("Dinleyicisi olmayan olaylar sessizce düşmez, deftere "
+          "'dinleyicisi yok' olarak yazılır.")
+    return 0
+
+
+def defter(a):
+    if not os.path.exists(DEFTER):
+        print("Defter boş — henüz olay dağıtılmadı.")
+        return 0
+    with open(DEFTER, encoding="utf-8") as f:
+        kayitlar = [json.loads(x) for x in f if x.strip()]
+    if a.karar:
+        kayitlar = [k for k in kayitlar if k.get("karar") == a.karar]
+    print(f"Son {min(a.son, len(kayitlar))} olay ({len(kayitlar)} kayıt)\n")
+    for k in kayitlar[-a.son:]:
+        isleyici = k.get("isleyici", "—")
+        print(f"  {k['zaman']}  {k['olay']:13} {k['arac']:14} "
+              f"{isleyici:16} {k['karar']}")
+    return 0
+
+
+def main(argv):
+    a = argparse.ArgumentParser(description="Echo olay döngüsü dağıtıcısı.")
+    alt = a.add_subparsers(dest="komut", required=True)
+
+    p = alt.add_parser("dagit", help="stdin'deki olayı işleyicisine yönlendir")
+    p.add_argument("--olay", help="olay adını elle ver (JSON'da yoksa)")
+    p.set_defaults(islev=dagit)
+
+    p = alt.add_parser("tablo", help="olay → işleyici tablosu")
+    p.set_defaults(islev=tablo)
+
+    p = alt.add_parser("defter", help="dağıtım geçmişi")
+    p.add_argument("--son", type=int, default=20)
+    p.add_argument("--karar", help="sadece bu kararı süz (örn. 'geri besledi')")
+    p.set_defaults(islev=defter)
+
+    secim = a.parse_args(argv)
+    return secim.islev(secim)
+
+
+if __name__ == "__main__":
+    try:
+        sys.exit(main(sys.argv[1:]))
+    except Exception:
+        # Dağıtıcının kendi hatası oturumu kilitlemez.
+        sys.exit(0)

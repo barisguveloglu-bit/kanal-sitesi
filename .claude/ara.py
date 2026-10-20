@@ -3,7 +3,7 @@
 """
 KANLI GÖZ — Canon geri getirme (RAG'in "R"si)
 ===============================================================
-`LORE.md` 437 satır ve büyüyor. Bir soruya cevap vermek için dosyanın
+`LORE.md` birkaç yüz satır ve büyüyor. Bir soruya cevap vermek için dosyanın
 tamamını okumak hem pahalı hem de asıl sorunu çözmüyor: sorun hız değil,
 **dayanak.**
 
@@ -13,7 +13,7 @@ Bu betik canon'u parçalara ayırıp soruya en yakın parçaları
 Uydurma ile alıntı arasındaki fark budur.
 
 Dışa bağımlılığı yok. Gömme (embedding) yok, vektör veritabanı yok —
-437 satırlık Türkçe bir metin için BM25 fazlasıyla yeterli ve
+birkaç yüz satırlık Türkçe bir metin için BM25 fazlasıyla yeterli ve
 her koşuda aynı sonucu verir (test edilebilir olmasının şartı bu).
 
     python3 .claude/ara.py "Teşup'un zaafı ne"
@@ -37,6 +37,11 @@ DURAK = {
     "ve", "ile", "bir", "bu", "şu", "o", "da", "de", "ki", "mi", "mı", "mu",
     "ne", "için", "gibi", "ama", "çok", "daha", "en", "her", "kim", "nedir",
     "nasıl", "neden", "hangi", "kaç", "var", "yok", "olan", "olarak", "ise",
+    # "bile" bir edat ("haberi bile yok"), içerik taşımıyor. Durak listesinde
+    # olmaması uzun süre zararsızdı; kesilmiş kökü 4 harflik kelimeyle
+    # tanıyan kural gelince "react BİLEŞeni" onunla eşleşip konu dışı
+    # soruyu içeri aldı.
+    "bile",
 }
 
 # Ön ek uzunluğu: Türkçe sondan eklemeli, "iradesi/iradeye/irade" aynı köke
@@ -55,11 +60,27 @@ SAYILAR = {
     "birinci": "1", "ilk": "1",
 }
 
+# Ağız dili → yazı dili. Soru telefondan, konuşur gibi yazılıyor; canon
+# yazı dilinde. "barışı nerde saklıyolar" sorusu cevabı canon'da olduğu
+# hâlde reddediliyordu: "nerde" canon'da hiç geçmiyor, "nerede" geçiyor.
+#
+# Tek tek soru değil SINIF düzeltiliyor: yer zarflarının ağızdaki kısa
+# hâlleri. Sayı adlarının rakama indirgenmesiyle aynı yaklaşım. Liste
+# kasten kısa — her eklenen kelime, konu dışı reddini gevşetebilir ve
+# `degerlendir.py` onu ölçüyor.
+AGIZ = {
+    "nerde": "nerede", "burda": "burada", "orda": "orada", "şurda": "şurada",
+    "nerden": "nereden", "burdan": "buradan", "ordan": "oradan",
+}
+
 # parcala() kelimeleri katlanmış biçimde görür; listeler de aynı biçimde
-# aranmalı, yoksa "üç" artık "uc" olarak geldiği için hiç eşleşmez.
+# aranmalı, yoksa "üç" artık "uc", "şurda" "surda" olarak geldiği için
+# hiç eşleşmez.
 SAYILAR_KATLI = {k.translate(str.maketrans("çğıöşü", "cgiosu")): v
                  for k, v in SAYILAR.items()}
 DURAK_KATLI = {d.translate(str.maketrans("çğıöşü", "cgiosu")) for d in DURAK}
+AGIZ_KATLI = {k.translate(str.maketrans("çğıöşü", "cgiosu")):
+              v.translate(str.maketrans("çğıöşü", "cgiosu")) for k, v in AGIZ.items()}
 
 
 def turkce_kucult(s):
@@ -90,6 +111,7 @@ def parcala(metin):
     kelimeler = re.findall(r"[0-9a-z]+", katla(metin))
     cikti = []
     for k in kelimeler:
+        k = AGIZ_KATLI.get(k, k)
         k = SAYILAR_KATLI.get(k, k)
         if k in DURAK_KATLI or len(k) < 2 and not k.isdigit():
             continue
@@ -130,6 +152,14 @@ class Parca:
 def lore_parcala(yol):
     """LORE.md'yi başlıklara göre böler; tablo satırlarını ayrıca indeksler."""
     satirlar = open(os.path.join(KOK, yol), encoding="utf-8").read().split("\n")
+    # Dosya satırsonuyla bitiyorsa `split` sonda boş bir eleman bırakır ve
+    # `len(satirlar)` gerçek satır sayısından bir fazla olur. Son parçanın
+    # bitişi oradan geliyordu: son parçanın adresi dosyanın son satırından
+    # bir sonrasını gösteriyordu — var olmayan bir satıra atıf. Elle
+    # yazılmış vakaların hiçbiri dosya SONUNU sınamamıştı; özellik sınavı
+    # ilk koşusunda buldu.
+    if satirlar and satirlar[-1] == "":
+        satirlar.pop()
     parcalar = []
     yigin = {}          # seviye -> başlık
     bas, baslik = 0, "(giriş)"
@@ -280,11 +310,38 @@ class Dizin:
         return toplam
 
     def soz_dagari_kapsamasi(self, sorgu):
-        """Sorgu kelimelerinin kaçı canon'da hiç geçiyor?"""
+        """Sorgu kelimelerinin kaçı canon'da hiç geçiyor?
+
+        Kesilmiş kök, ilk 4 harfiyle de tanınır. Kökler KOK_UZUNLUK'ta
+        kesiliyor ve 4 harflik bir kök ek alınca ekin harfi köke taşıyor:
+        `ağaçtan` → `ağaçt` ama canon'da `ağaç`; `sıvıyı` → `sıvıy` ama
+        canon'da `sıvı`. Bu kapı "bu soru canon'un dünyasında mı" sorusunu
+        cevaplıyor, ve taşan bir ek o sorunun cevabını değiştirmemeli.
+
+        30 soruluk deneme sınavında bulundu: cevabı canon'da olan soru
+        "dayanak yok" diye reddediliyordu. Yalnız KAPIYA uygulanıyor, puana
+        değil — puanlama tam kökle kalıyor, yoksa kısa kökler her yerde
+        eşleşip sıralamayı bulandırır.
+
+        Eşleşme DAR tutuluyor: canon'da tam 4 harflik bir KELİME olmalı ve
+        kesilmiş kök onunla başlamalı. İlk hâli canon belirteçlerinin ilk 4
+        harfine bakıyordu ve konu dışı reddini %100'den %50'ye düşürdü:
+        "react bileşeni" canon'daki "bile"yle, "kuantum deneyi" canon'daki
+        "denetleyici"yle eşleşti. Ekin taşması tam olarak "4 harflik kelime
+        + ek" durumu; kural o kadarını tanıyor, fazlasını değil.
+        """
         benzersiz = set(sorgu)
         if not benzersiz:
             return 0.0
-        return sum(1 for t in benzersiz if self.df.get(t, 0) > 0) / len(benzersiz)
+        if not hasattr(self, "_kisa_kelimeler"):
+            self._kisa_kelimeler = {t for t in self.df if len(t) == KOK_UZUNLUK - 1}
+
+        def taniniyor(t):
+            if self.df.get(t, 0) > 0:
+                return True
+            return len(t) == KOK_UZUNLUK and t[:KOK_UZUNLUK - 1] in self._kisa_kelimeler
+
+        return sum(1 for t in benzersiz if taniniyor(t)) / len(benzersiz)
 
     def ara(self, soru, sayi=3):
         """'Bilmiyorum' bir cevaptır — sorgu canon'un dünyasında değilse boş döner."""

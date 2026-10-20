@@ -1,0 +1,27 @@
+{
+  "belge-denetci": [
+    "B2",
+    "B4",
+    "B6"
+  ],
+  "veri-denetci": [
+    "V2",
+    "V3",
+    "V5"
+  ],
+  "dil-denetci": [
+    "D2",
+    "D3",
+    "D5"
+  ],
+  "erisim-denetci": [
+    "E2",
+    "E3",
+    "E4"
+  ],
+  "gizlilik-denetci": [
+    "G3",
+    "G4",
+    "G6"
+  ]
+}

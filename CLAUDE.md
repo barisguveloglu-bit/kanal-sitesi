@@ -1,5 +1,8 @@
 # Proje Notları
 
+Bu dosya Claude Code uyumluluk girişidir. Echo'nun Codex yöneticisi
+`AGENTS.md` ve `ECHO.md` kullanır; Codex için Claude onayı gerekmez.
+
 Bu depo bir **hikaye lore sitesi**. Türkçe bir kurgu evreninin arşivi.
 
 ## Önce bunu oku
@@ -27,71 +30,84 @@ yapmadan önce o dosyayı oku — karakterler, güçler ve efsane orada tanıml�
 
 ## Çalışma döngüsü
 
-`.claude/` altında bir iş akışı katmanı var — **siteye ait değil, ama GitHub
-Pages onu da yayınlıyor** (`LORE.md` ve bu dosya dahil; ayrıntı DONGULER.md
-"Yayın sınırı"). Ayrıntı: [`.claude/DONGULER.md`](.claude/DONGULER.md).
+`.claude/` altında **Echo** adlı bir iş akışı katmanı var — **siteye ait
+değil, ama GitHub Pages onu da yayınlıyor** (DONGULER.md "Yayın sınırı").
+Bu dosya her oturumda baştan sona bağlama yükleniyor; burada yalnız
+**her oturumda geçerli kurallar** duruyor.
+Her aracın ne yaptığı ve neden var olduğu:
+[`.claude/DONGULER.md`](.claude/DONGULER.md) → **Araç dizini**.
+Bu dosyanın boyut bütçesi `dogrula.py`'de; aşılırsa ayrıntı oraya taşınır.
+Sürüm: `python3 .claude/surum.py goster` — işaret: `python3 .claude/logo.py yaz`
+(`.claude/marka/` altındaki SVG'ler üretilmiş dosyalar, elle düzenlenmez.)
 
-- `python3 .claude/dogrula.py` — yukarıdaki kuralları makine tarafından
-  denetler (menü, site haritası, gizleme, odak, `defer`, sahte içerik,
-  yeni video, kontrast, LORE senkronu, veri tutarlılığı, gizlilik,
-  erişilebilirlik, bağlantı bütünlüğü, altın set çapası, kanca sağlığı, ölçü
-  mandalı, belge ve kaynakça senkronu).
-  Dış bağımlılığı yok.
-  Çıkış kodu `0` temiz, `1` kural ihlali, `3` insan onayı gerekiyor.
-- Bir `.html`/`.css`/`.js`/`.xml` ya da `LORE.md` düzenlendiğinde bu denetim
-  `.claude/kanca.py` üzerinden kendiliğinden çalışır.
-- Tur biterken ve `git commit`/`git push` öncesinde `.claude/kanca-kapi.py`
-  aynı denetimi çalışma ağacına uygular — Bash ile yapılan düzenlemeler
-  dahil. Kırmızı biten tur bir kez geri çevrilir (sonsuz döngü olmasın diye
-  ikincisinde bırakılır ama kullanıcıya gösterilir); kırmızı commit insana
-  sorulur.
-- Oturum açılırken `.claude/kanca-acilis.py` denetim sonucunu, açık hedefi,
-  açık işi, açık devreyi ve bekleyen geri bildirimi bağlama koyar.
-- Yazma yetkili alt ajan ayrı çalışma ağacında (`isolation: "worktree"`)
-  ya da ayrı bulut oturumunda koşar; `.claude/kanca-gorev.py` yalıtımsız
-  yazma görevini göndermez. Ayrıntı: `/orkestra`.
-- `python3 .claude/mandal.py kontrol` — ölçü gevşedi mi (silinen vaka,
-  düşen eşik, büyüyen sınır). Gevşeme insan kararıdır.
-- `python3 .claude/saglik.py --kaydet` — bütün ölçümler tek komutta;
-  önceki koşuya göre eşiğin üstündeki gerilemeyi de söyler.
-- `python3 .claude/ara.py "<soru>"` — canon içinde arar, cevabı **satır
-  numarasıyla** döndürür. Aksansız ve büyük harfle yazılan soruları da
-  bulur (YouTube yorumlarında yazım böyle). Bu evren hakkında hafızadan
-  cevap verme; her iddiayı `LORE.md:201` gibi adresle.
-- `python3 .claude/sinav.py`, `python3 .claude/degerlendir.py` ve
-  `python3 .claude/arac-sinavi.py` — sırasıyla denetleyiciyi, aramayı ve
-  araçları (kesici, yargıç, geri bildirim, kanca) ölçer.
-- `python3 .claude/mutasyon.py` — testlerin kendisini ölçer: aracı kasten
-  bozar, sınavın yakalayıp yakalamadığına bakar. Ölü test buradan çıkar.
-  `--otomatik 0` mutantları makineye ürettirir; aklına gelmeyen boşluğu bulur.
-- Mekanizmaların dayandığı kaynaklar `DONGULER.md` sonunda (`[K1]`…);
-  `belge` denetimi atıflarla kaynakçayı birbirine bağlı tutar.
-- `python3 .claude/gorev.py` — alt ajana verilecek sözleşmeli brief üretir
-  ve gelen raporun atıflarını denetler. Sözleşmesiz görev `kanca-gorev.py`
-  tarafından gönderilmeden engellenir.
-- `python3 .claude/hedef.py` — değişmez hedef sözleşmesi ve görev ağacı.
-  Hedefin parmak izi alınır; sessiz hedef kayması `kontrol` ile yakalanır.
-- `python3 .claude/seyir.py` — uzun koşuların hafızası. `ozet` yeni tura
-  kararları ve çözülmemişleri verir, ham tur izini vermez (bağlam çürümesi).
-- `python3 .claude/devre.py` — döngülere mekanik tur sınırı koyar (devre
-  kesici). Üç sınır: tur sayısı, duvar saati ve ilerleme (tekrar/salınım).
-- `python3 .claude/yargi.py` — verilen cevapları altın sete karşı yargılar:
-  atıf gerçekten doğru satırı gösteriyor mu, uydurma var mı.
-- `python3 .claude/geri-bildirim.py` — yanlış çıkan bir cevabı kalıcı test
-  vakasına çevirir.
-- Komutlar: `/dongu` (tam akış), `/planla` (sadece plan), `/sor` (dayanaklı
-  cevap), `/denetle` (sadece denetim), `/degerlendir` (sistemin ölçümü),
-  `/saglik` (bütün ölçümler tek komutta), `/yargila` (cevap kalitesi),
-  `/geri-bildirim` (hatayı teste çevir), `/surekli` (sınırlı otonom döngü),
-  `/orkestra` (çok parçalı büyük iş).
+**Kapılar.** `python3 .claude/dogrula.py` yukarıdaki kuralları makine
+tarafından denetler. Çıkış kodu `0` temiz, `1` kural ihlali, `3` insan
+onayı gerekiyor; **0/1/3 dışında bir kod "geçti" sayılmaz.**
+`.html`/`.css`/`.js`/`.xml` ya da `LORE.md` düzenlenince kendiliğinden
+koşar (`settings.json` → `olay.py dagit` → `kanca.py`); GitHub'da
+`.github/workflows/denetim.yml` her push ve PR'da aynılarını koşturur.
+Tur sonunda ve `git commit`/`push` öncesinde `kanca-kapi.py` aynı denetimi
+çalışma ağacına uygular (Bash düzenlemeleri dahil); kırmızı commit insana
+sorulur. Commit'ten önce hepsi: `python3 .claude/kapi.py <dogrula|butunluk|sinav|arac-sinavi|degerlendir>`
+— kod 0 dönüp özet basmayan kapı **koşmadı** sayılır. Bütünlük sınavı
+canon ↔ veri ↔ site tutarlılığını ölçer (78 vaka).
 
-Bu katman Claude Code'a bağlı: betikler kabuk, kancalar hook sistemi ister.
-claude.ai tarafında kullanmak için `.claude/tasima/claude-projesi.md` —
-kurallar taşınır, zorlama taşınmaz.
+**Canon hakkında cevap.** `python3 .claude/ara.py "<soru>"` canon içinde
+arar ve satır numarası döndürür. Bu evren hakkında **hafızadan cevap
+verme**; her iddiayı `LORE.md:201` gibi adresle. Arama en yakın parçayı
+verir, doğru parçayı değil: geleni oku, kabul etme.
+
+**Ölçüm katmanı.** Ölçen dosyalara (`bekci.py` listesi) dokunan commit,
+mesajında `ÖLÇÜM-DEĞİŞTİ: <gerekçe>` satırı taşır; merge kararı insanın.
+Hatayı düzeltmek için testi gevşetme — hata teste çevrilir
+(`geri-bildirim.py`, `iz.py`), kural değil. `mandal.py kontrol` gevşeyen
+ölçüyü (silinen vaka, düşen eşik) yakalar; gevşeme insan kararıdır.
+`saglik.py --kaydet` bütün ölçümleri tek komutta koşar.
+
+**Alt ajanlar.** Gönderimden önce `python3 .claude/butce.py ajan`; brief
+`gorev.py` ile sözleşmeli yazılır (sözleşmesiz görev kancada engellenir).
+Yazma yetkili ajan ayrı çalışma ağacında (`isolation: "worktree"`) ya da
+ayrı bulut oturumunda koşar; yalıtımsız yazma görevi gönderilmez.
+`.claude/agents/` altında **22 denetçi + 5 üretici ajan**, hepsi salt
+okunur. Model tanımda: Sonnet 5; Opus yalnız `canon-denetci`,
+`kurgu-denetci`, `hikaye-yazari`, `karakter-yazari`; Haiku yalnız `tarama-denetci`.
+
+**Oturum açılışı.** Ders defteri (`ders.py`), iş ve karar defteri
+(`defter.py`) ve zemin denetimi (`duman.py`) kendiliğinden gelir;
+okunmadan işe başlanmaz. Yarım kalan iş `defter.py`'ye `yarim` ve devam
+noktasıyla yazılır; reddedilen öneri gerekçesiyle. Yeni bir öneriden önce
+`defter.py oner "<fikir>"` (çıkış 3: daha önce reddedildi). LORE.md
+değişince `etki.py --taban HEAD` bağlı yerleri listeler. Döngüler
+`devre.py` ile sınırlıdır — çıkış `1` dur ve insana çık, çıkış `4`
+başka bir koşu aynı halkayı tutuyor, turu atla.
+
+**Oturum limiti.** Pencereye giren her metin oturum bitene kadar her
+mesajla yeniden gönderilir; limiti asıl tüketen budur. Bu yüzden:
+iş bitince Barış'a **yeni oturum** öner (devir `defter.py`'de, dersler
+açılışta gelir). Büyük dosyayı bütün okuma — `bul.py <dosya> [ad|--ara]`;
+50 KB üstünü aralıksız okumayı `kanca-buyuk.py` durdurur. Döküm, web
+sayfası gibi uzun metni önce betikle süz, sonra oku. Temiz kapı tek satır
+basar (`kapi.py`, tamamı `--tam`). PR beklerken zamanlanmış hatırlatma
+kurma: her biri oturumu uyandırıp bütün konuşmayı yeniden gönderir;
+denetimi Barış'ın bir sonraki mesajında kontrol et.
+
+**Acil kapatma: `ECHO_KAPALI=1`.** `olay.py` hiçbir işleyiciyi
+koşturmaz; sessiz değildir, deftere yazılır. `settings.json`'ın `env`
+alanına kalıcı yazma — `dogrula.py` yakalar.
+
+**AGENTS.md.** Dış ajanlar (Codex) bu dosyayı değil `AGENTS.md`'yi
+okur. Sitenin değişmez kuralları ve açık işler **ikisinde de** yazılı
+olmalı; birinde değişen kural öbüründe de değişir (`dogrula.py`
+ortak kural çapalarını iki dosyada arar).
+
+Komutlar: `/dongu` (tam akış), `/planla` (sadece plan), `/sor` (dayanaklı
+cevap), `/denetle` (sadece denetim), `/degerlendir` (sistemin ölçümü),
+`/saglik` (bütün ölçümler), `/yargila` (cevap kalitesi),
+`/geri-bildirim` (hatayı teste çevir),
+`/surekli` (sınırlı otonom döngü), `/orkestra` (çok parçalı büyük iş).
 
 Denetleyici kural ihlalini yakalar ama canon'un anlamca tutarlı olduğunu
 göremez — içerik değişikliğinde `LORE.md`'yi yine de okumak gerekiyor.
-Arama da en yakın parçayı verir, doğru parçayı değil: geleni oku, kabul etme.
 
 ## Bekleyen işler
 
@@ -100,8 +116,6 @@ irade kademelerinin son hâli, Yılmaz sonrası zaman çizelgesi (1730 mu 1731 m
 ve video bağlantıları.
 
 **Derebeyi isimleri kapandı** — 81 ilin 81'i de dolu, `ad: null` kalmadı.
-Artık iddia değil ölçü: `veri` denetimi 81'i, `lore` denetimi her satırın
-LORE.md'deki tabloyla eşleşmesini sayıyor.
 
 ## Denetim sonrası eklenen kurallar
 

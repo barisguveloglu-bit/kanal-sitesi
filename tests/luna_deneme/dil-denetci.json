@@ -1,0 +1,27 @@
+{
+  "rol": "dil-denetci",
+  "kural": "Yalnız kesin Türkçe yazım hatalarını işaretle; üslup önerisi üretme. Metinler bağımsız örnektir, canon iddiası değildir.",
+  "gercek": "Standart Türkçe yazım kuralları.",
+  "vakalar": [
+    {
+      "id": "D1",
+      "metin": "Her şey hazır."
+    },
+    {
+      "id": "D2",
+      "metin": "Hiç bir hata kalmadı."
+    },
+    {
+      "id": "D3",
+      "metin": "Herkez hazır."
+    },
+    {
+      "id": "D4",
+      "metin": "Sen de gelebilirsin."
+    },
+    {
+      "id": "D5",
+      "metin": "Bir çok kayıt incelendi."
+    }
+  ]
+}

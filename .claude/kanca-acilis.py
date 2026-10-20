@@ -22,8 +22,10 @@ seçilmiş bağlam — seyir.py'deki "Select" işleminin otomatiği.
 Kural: kısa kalır. Uzun bir açılış özeti, önlemeye çalıştığı bağlam
 şişmesinin kendisidir. Her bölüm sadece söyleyecek bir şeyi varsa basılır.
 
-Kanca sözleşmesi (SessionStart):
-  stdout JSON → hookSpecificOutput.additionalContext bağlama eklenir
+Kanca sözleşmesi (SessionStart, `olay.py dagit` üzerinden):
+  stdout düz metin → bağlama eklenir. JSON değil: olay.py açılıştaki bütün
+  dinleyicilerin çıktısını art arda basar; tek bir JSON nesnesi düz metnin
+  arasına karışınca bağlama ham dize olarak girer.
   çıkış 0 her zaman — açılış kancası hiçbir koşulda oturumu durdurmaz
 """
 
@@ -190,10 +192,7 @@ def main():
         yer = max(0, EN_FAZLA_SATIR - len(ozet) - 2)
         ozet += [VERI_BASI] + veri[:yer] + [VERI_SONU]
 
-    print(json.dumps({"hookSpecificOutput": {
-        "hookEventName": "SessionStart",
-        "additionalContext": "\n".join(ozet),
-    }}, ensure_ascii=False))
+    print("\n".join(ozet))
     return 0
 
 

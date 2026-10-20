@@ -45,6 +45,7 @@ import ast
 import os
 import random
 import shutil
+import signal
 import subprocess
 import sys
 import tempfile
@@ -112,9 +113,16 @@ def m_yargi_eksigi_saymasin(kok):
 
 
 def m_yargi_atif_isabetini_gormesin(kok):
+    """Atıf geçerli ama YANLIŞ satırı gösteriyor — üretimdeki en yaygın hata.
+
+    Mutasyon bir kez bayatladı: altın set şeması tek satırdan listeye
+    geçince hedef satır değişti ve mutasyon "uygulanamadı" dedi. Bayat
+    mutasyon, ölü test kadar yanıltıcı değil ama aynı yönde bir körlük —
+    o davranış o koşuda hiç sınanmamış olur.
+    """
     duzenle(kok, ".claude/yargi.py",
-            "elif not any(b <= vaka[\"satir\"] <= s for b, s in araliklar):",
-            "elif False:")
+            "            elif not any(b <= no <= s for b, s in araliklar",
+            "            elif False and any(b <= no <= s for b, s in araliklar")
 
 
 def m_gorev_sozlesme_kapisi_acilsin(kok):
@@ -207,7 +215,7 @@ def m_dogrula_derin_bagliyi_gormesin(kok):
 
 def m_dogrula_capaya_kor(kok):
     duzenle(kok, ".claude/dogrula.py",
-            "        if any(g.lower() in metin for g in gercekler):",
+            "        if not kayan:",
             "        if True:")
 
 
@@ -225,8 +233,8 @@ def m_dogrula_bos_derebeyine_kor(kok):
 
 def m_dogrula_sozdizimine_kor(kok):
     duzenle(kok, ".claude/dogrula.py",
-            '                            compile(f.read(), yol, "exec")',
-            "                            f.read()")
+            '                compile(f.read(), yol, "exec")',
+            "                f.read()")
 
 
 def m_dogrula_belgesiz_araca_kor(kok):
@@ -403,11 +411,17 @@ def m_sinav_ilk_hatada_durmasin(kok):
             "        if False:")
 
 
+def m_saglik_baska_sete_de_kiyaslasin(kok):
+    duzenle(kok, ".claude/saglik.py",
+            '    return (onceki or {}).get("altin.parmak_izi") != simdi.get("altin.parmak_izi")',
+            "    return False")
+
+
 def m_gorev_uzak_oturumu_gormesin(kok):
     """Sözleşme kancası yine sadece yerel alt ajanı dinlesin."""
-    duzenle(kok, ".claude/settings.json",
-            '"matcher": "Agent|Task|mcp__claude-code-remote__create_session"',
-            '"matcher": "Agent|Task"')
+    duzenle(kok, ".claude/olay.py",
+            'r"^(Agent|Task|mcp__claude-code-remote__create_session)$"',
+            'r"^(Agent|Task)$"')
 
 
 def m_saglik_gerilemeyi_gormesin(kok):
@@ -420,6 +434,18 @@ def m_dogrula_belgeyi_gormesin(kok):
     duzenle(kok, ".claude/dogrula.py",
             "        elif [int(g) for g in eslesme.groups()] != [toplam, tuzak, masum]:",
             "        elif False:")
+
+
+def m_dogrula_talimat_butcesi_kor(kok):
+    duzenle(kok, ".claude/dogrula.py",
+            "    if boyut > TALIMAT_BUTCESI:",
+            "    if False:")
+
+
+def m_dogrula_agents_senkronu_kor(kok):
+    duzenle(kok, ".claude/dogrula.py",
+            "        if yer:\n            eksik.append(",
+            "        if False:\n            eksik.append(")
 
 
 def m_ara_bilmiyorum_diyemesin(kok):
@@ -448,11 +474,189 @@ def m_hedef_parmak_izi_sabit(kok):
 
 def m_gorev_baglam_enjekte_etmesin(kok):
     duzenle(kok, ".claude/gorev.py",
-            "    if not a.baglamsiz:",
+            '    if not a.baglamsiz and a.alan == "canon":',
             "    if False:")
 
 
+def m_surum_dokuzu_asabilsin(kok):
+    duzenle(kok, ".claude/surum.py",
+            '    if y["yama"] < EN_FAZLA:',
+            "    if True:")
+
+
+def m_dogrula_surumu_gormesin(kok):
+    duzenle(kok, ".claude/dogrula.py",
+            "            elif eslesme.group(1) != beklenen:",
+            "            elif False:")
+
+
+def m_logo_surumu_gomsun(kok):
+    """Numarayı gövdeye çakmak: bugün doğru, v1.2'de sessizce yanlış."""
+    duzenle(kok, ".claude/logo.py",
+            '    """İşaret + yazı + sürüm. Sürüm numarası surum.json\'dan geliyor."""',
+            '    surum_metni = "v1.1"')
+
+
+def m_dogrula_logoyu_gormesin(kok):
+    duzenle(kok, ".claude/dogrula.py",
+            "            sorunlar = logo.bayat()",
+            "            sorunlar = []")
+
+
+def m_butunluk_plaka_gormesin(kok):
+    duzenle(kok, ".claude/butunluk.py",
+            "              if i[\"plaka\"] in PLAKALAR and i[\"il\"] != PLAKALAR[i[\"plaka\"]]]",
+            "              if False]")
+
+
+def m_butunluk_siralamayi_gormesin(kok):
+    duzenle(kok, ".claude/butunluk.py",
+            "                    if e.group(0).lower() not in kanon:",
+            "                    if False:")
+
+
+def m_okuyucu_zinciri_kirsin(kok):
+    """Dizgi zinciri birleşmezse uzun metinler yarım okunur — sessizce."""
+    duzenle(kok, ".claude/okuyucu.py",
+            "        parcalar = [self.dizgi()]",
+            "        return self.dizgi()\n        parcalar = [self.dizgi()]")
+
+
+def m_dogrula_altin_kaymasini_gormesin(kok):
+    duzenle(kok, ".claude/dogrula.py",
+            "            if not any(g.lower() in metin for g in gercekler):",
+            "            if False:")
+
+
+def m_olay_kodu_yutsun(kok):
+    """Dağıtıcı işleyicinin çıkış kodunu yutarsa zorlama katmanı ölür —
+    ve hiçbir yerde bağırmaz, çünkü sınavlar betikleri doğrudan çağırıyor."""
+    duzenle(kok, ".claude/olay.py",
+            "        if s.returncode == 2:\n            kod = 2",
+            "        if False:\n            kod = 2")
+
+
+def m_olay_bilinmeyeni_sessizce_dussun(kok):
+    duzenle(kok, ".claude/olay.py",
+            '                    "olay": olay_adi, "arac": arac, "karar": "dinleyicisi yok"})',
+            '                    "olay": olay_adi, "arac": arac, "karar": "gecti"})')
+
+
+def m_eniyile_kisiri_gormesin(kok):
+    duzenle(kok, ".claude/eniyile.py",
+            "    if kisir >= KISIR_TUR_SINIRI:",
+            "    if False:")
+
+
+def m_eniyile_puani_ikilesin(kok):
+    """Kısmi puanı ikiliye indirmek bu döngünün varlık sebebini siler."""
+    duzenle(kok, ".claude/eniyile.py",
+            "        return temiz / toplam, bulgular, False",
+            "        return 0.0, bulgular, False")
+
+
+def m_eniyile_kapiyi_optimize_etsin(kok):
+    duzenle(kok, ".claude/eniyile.py",
+            "    if kapi:",
+            "    if False:")
+
+
+def m_tirmanma_onbellegi_temizlemesin(kok):
+    """Önbellek geçersizleşmezse tırmanış hiçbir şey ölçmez ve her komşu
+    'eşit' çıkar — sahte plato. Ölçmediğini ölçtüğünü sanmak."""
+    duzenle(kok, ".claude/tirmanma.py",
+            '    shutil.rmtree(os.path.join(kok, ".claude", "__pycache__"), ignore_errors=True)\n    ortam = dict(os.environ, PYTHONDONTWRITEBYTECODE="1")',
+            "    ortam = dict(os.environ)")
+
+
+def m_tirmanma_kapiyi_gormesin(kok):
+    duzenle(kok, ".claude/tirmanma.py",
+            "        return self.konu_disi >= 100 and self.sahte >= 100 and self.kapsama >= 90",
+            "        return True")
+
+
+def m_elestirmen_lastik_damgayi_gormesin(kok):
+    duzenle(kok, ".claude/elestirmen.py",
+            "    if onay and mekanik:",
+            "    if False:")
+
+
+def m_elestirmen_sessiz_onayi_kabul_etsin(kok):
+    duzenle(kok, ".claude/elestirmen.py",
+            "    if not bulgular and not onay:",
+            "    if False:")
+
+
+def m_elestirmen_uydurma_atifi_gormesin(kok):
+    duzenle(kok, ".claude/elestirmen.py",
+            "            if not (1 <= int(no) <= satir_sayisi):",
+            "            if False:")
+
+
+def m_tdd_gecen_testle_baslasin(kok):
+    """Kırmızı kapısı kapanırsa TDD bir hatırlatmaya dönüşür."""
+    duzenle(kok, ".claude/tdd.py",
+            "    if sonuc is None:\n        # KAPI.",
+            "    if False:\n        # KAPI.")
+
+
+def m_tdd_kirmizisiz_yesile_izin_versin(kok):
+    duzenle(kok, ".claude/tdd.py",
+            '    if a.vaka not in d or d[a.vaka].get("asama") != "kirmizi":',
+            "    if False:")
+
+
+def m_tdd_test_silmeye_izin_versin(kok):
+    duzenle(kok, ".claude/tdd.py",
+            "    if onceki is not None and sayi < onceki:",
+            "    if False:")
+
+
+def m_geri_bildirim_testsiz_kapatsin(kok):
+    """Kapatma kapısı açılırsa halka kapanmış GÖRÜNÜR ama kapanmaz."""
+    duzenle(kok, ".claude/geri-bildirim.py",
+            "    if a.vaka not in vakalar:",
+            "    if False:")
+
+
+def m_geri_bildirim_korumasizi_gormesin(kok):
+    duzenle(kok, ".claude/geri-bildirim.py",
+            "            sorunlu.append((i, k, \"koruyan vaka belirtilmemiş\"))",
+            "            pass")
+
+
 MUTASYONLAR = [
+    ("geri bildirim: testsiz kapatıyor", m_geri_bildirim_testsiz_kapatsin,   "arac-sinavi.py"),
+    ("geri bildirim: korumasızı görmüyor", m_geri_bildirim_korumasizi_gormesin, "arac-sinavi.py"),
+
+    ("tırmanma: önbellek temizlenmiyor", m_tirmanma_onbellegi_temizlemesin,  "arac-sinavi.py"),
+    ("tırmanma: kapıyı görmüyor",        m_tirmanma_kapiyi_gormesin,         "arac-sinavi.py"),
+
+    ("eleştirmen: lastik damgayı görmüyor", m_elestirmen_lastik_damgayi_gormesin, "arac-sinavi.py"),
+    ("eleştirmen: sessiz onayı kabul ediyor", m_elestirmen_sessiz_onayi_kabul_etsin, "arac-sinavi.py"),
+    ("eleştirmen: uydurma atıfı görmüyor", m_elestirmen_uydurma_atifi_gormesin, "arac-sinavi.py"),
+
+    ("tdd: geçen testle başlıyor",       m_tdd_gecen_testle_baslasin,        "arac-sinavi.py"),
+    ("tdd: kırmızısız yeşile geçiyor",   m_tdd_kirmizisiz_yesile_izin_versin, "arac-sinavi.py"),
+    ("tdd: test silmeye izin veriyor",   m_tdd_test_silmeye_izin_versin,     "arac-sinavi.py"),
+
+    ("olay: çıkış kodunu yutuyor",       m_olay_kodu_yutsun,                 "arac-sinavi.py"),
+    ("olay: bilinmeyeni sessizce düşürüyor", m_olay_bilinmeyeni_sessizce_dussun, "arac-sinavi.py"),
+    ("eniyile: kısırlığı görmüyor",      m_eniyile_kisiri_gormesin,          "arac-sinavi.py"),
+    ("eniyile: puanı ikili yapıyor",     m_eniyile_puani_ikilesin,           "arac-sinavi.py"),
+    ("eniyile: kapıyı optimize ediyor",  m_eniyile_kapiyi_optimize_etsin,    "arac-sinavi.py"),
+
+    ("bütünlük: plaka hatasını görmüyor", m_butunluk_plaka_gormesin,          "arac-sinavi.py"),
+    ("bütünlük: sıralamayı görmüyor",     m_butunluk_siralamayi_gormesin,     "arac-sinavi.py"),
+    ("okuyucu: dizgi zinciri kırık",      m_okuyucu_zinciri_kirsin,           "arac-sinavi.py"),
+    ("belge: altın set kaymasını görmüyor", m_dogrula_altin_kaymasini_gormesin, "arac-sinavi.py"),
+
+    ("sürüm: yama 9'u aşabiliyor",       m_surum_dokuzu_asabilsin,           "arac-sinavi.py"),
+    ("sürüm: belge kaymasını görmüyor",  m_dogrula_surumu_gormesin,          "arac-sinavi.py"),
+
+    ("logo: sürüm gövdeye çakılı",       m_logo_surumu_gomsun,               "arac-sinavi.py"),
+    ("logo: bayatlığı görmüyor",         m_dogrula_logoyu_gormesin,          "arac-sinavi.py"),
+
     ("görev: bağlam enjekte etmiyor",    m_gorev_baglam_enjekte_etmesin,     "arac-sinavi.py"),
 
     ("hedef: kaymayı görmüyor",          m_hedef_kaymayi_gormesin,           "arac-sinavi.py"),
@@ -478,6 +682,8 @@ MUTASYONLAR = [
     ("denetleyici: kontrast kör",        m_dogrula_kontrasti_gormesin,       "sinav.py"),
     ("denetleyici: odak kör",            m_dogrula_odagi_gormesin,           "sinav.py"),
     ("denetleyici: belge kör",           m_dogrula_belgeyi_gormesin,         "sinav.py"),
+    ("denetleyici: talimat bütçesi kör", m_dogrula_talimat_butcesi_kor,      "sinav.py"),
+    ("denetleyici: AGENTS senkronu kör", m_dogrula_agents_senkronu_kor,      "sinav.py"),
 
     ("arama: bilmiyorum diyemiyor",      m_ara_bilmiyorum_diyemesin,         "degerlendir.py"),
 
@@ -531,19 +737,27 @@ MUTASYONLAR = [
     ("otomatik: süzgeç her koşulu yutar", m_otomatik_suzgec_her_kosulu_yutsun, "arac-sinavi.py"),
     ("otomatik: kayıt hepsini affeder",  m_otomatik_esdeger_kaydi_hepsini_affetsin, "arac-sinavi.py"),
     ("sınav: ilk hatada durmuyor",       m_sinav_ilk_hatada_durmasin,        "arac-sinavi.py"),
+    ("sağlık: başka sete de kıyaslıyor", m_saglik_baska_sete_de_kiyaslasin,  "arac-sinavi.py"),
 ]
 
 
-# Mutantı öldürmeye tek başarısız vaka yeter; destekleyen sınav ilk hatada
-# durur. Yaşayan mutantın süresi değişmez (bütün vakalar geçmek zorunda),
-# ölen mutantınki kısalır.
-HIZLI = {"sinav.py": ("--ilk-hatada-dur",)}
+# Tek sınav koşusunun süre sınırı. 300 idi; araç sınavı iç içe bir
+# ablasyon koşusu da içerdiği için yük altında 300'ü aşabiliyor ve
+# zaman aşımı "uygulanamadı" sayılıyordu — kaçan mutasyon değil ama
+# kırmızı, yani yanlış alarm.
+SINAV_SURESI = 900
+
+# Mutasyonun sorusu "en az bir vaka düştü mü" — ilk düşüşte durmak cevabı
+# değiştirmez. Yaşayan mutantın süresi değişmez (bütün vakalar geçmek
+# zorunda), ölenin süresi kısalır. Yalnız bu bayrağı tanıyan sınava verilir.
+HIZLI = {"sinav.py": ["--ilk-hatada-dur"], "arac-sinavi.py": ["--ilk-hatada-dur"]}
 
 
 def kos(kok, betik):
     return subprocess.run([sys.executable, os.path.join(kok, ".claude", betik),
-                           *HIZLI.get(betik, ())],
-                          cwd=kok, capture_output=True, text=True, timeout=300)
+                           *HIZLI.get(betik, [])],
+                          cwd=kok, capture_output=True, text=True,
+                          timeout=SINAV_SURESI)
 
 
 def kopyada_dene(degistir, sinav):
@@ -805,6 +1019,11 @@ def otomatik(secim):
 
 
 def main(argv):
+    # `timeout` ya da CI iptali SIGTERM gönderir; varsayılan davranış
+    # süreci `finally` koşmadan öldürür ve her mutasyonun geçici kopyası
+    # diskte kalır. Ölçüldü: öldürülen iki koşu /tmp'de 157 kopya, ~700 MB
+    # bıraktı. SIGTERM'i çıkışa çevirmek temizliğin koşmasını sağlar.
+    signal.signal(signal.SIGTERM, lambda *_: sys.exit(124))
     a = argparse.ArgumentParser(description="Testler gerçekten canlı mı.")
     a.add_argument("--ayrinti", action="store_true")
     a.add_argument("--is", dest="is_sayisi", type=int,

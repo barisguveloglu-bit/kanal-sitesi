@@ -187,7 +187,8 @@ def v_kanca_sozdizimi(k):
         f.write("\ndef bozuk( sozdizimi\n")
 
 def v_kanca_olmayan_betik(k):
-    duzenle(k, ".claude/settings.json", "kanca-gorev.py", "kanca-gorevi.py")
+    """Kancalar olay.py üzerinden dağıtılıyor: kırık yol dinleyici tablosunda."""
+    duzenle(k, ".claude/olay.py", '"kanca-gorev.py",', '"kanca-gorevi.py",')
 
 def v_mandal_esik_dustu(k):
     duzenle(k, ".claude/degerlendir.py", "ESIK_ISABET3 = 0.90", "ESIK_ISABET3 = 0.80")
@@ -379,6 +380,22 @@ def v_belge_mutasyon_cumlesi_yok(k):
 def v_belge_belgesiz_komut(k):
     with open(os.path.join(k, ".claude", "commands", "yeni.md"), "w", encoding="utf-8") as f:
         f.write("# Yeni\n\nKimsenin bilmediği bir komut.\n")
+def v_agents_kural_dustu(k):
+    """CLAUDE.md'deki kural AGENTS.md'den düşerse Codex onu bilmeden
+    çalışır; hiçbir kapı talimatı ölçmüyordu."""
+    duzenle(k, "AGENTS.md", "outline: none", "odak stilini sade tut")
+
+def v_talimat_sisti(k):
+    """CLAUDE.md her oturumda bağlama giriyor; araç ayrıntısı oraya
+    geri dolarsa yakalanmalı."""
+    p = os.path.join(k, "CLAUDE.md")
+    with open(p, "a", encoding="utf-8") as f:
+        f.write("\n## Ek not\n\n" + "Bu aracın uzun gerekçesi. " * 120 + "\n")
+
+def v_kadro_satiri_dustu(k):
+    """Sayı doğru, tablo eksik: 22 yazan başlığın altında 15 satır vardı."""
+    duzenle(k, ".claude/DONGULER.md",
+            "| 21 | `zaman-denetci` | Tarih aritmetiği, çağ tutarlılığı, olay sırası |\n", "")
 
 # --- masum vakalar: bunlar yakalanmamalı --------------------------------
 
@@ -529,6 +546,9 @@ VAKALAR = [
     ("belge: altın soru cümlesi biçimsiz", v_belge_altin_cumlesi_yok,     "belge"),
     ("belge: mutasyon cümlesi biçimsiz",  v_belge_mutasyon_cumlesi_yok,   "belge"),
     ("belge: belgelenmemiş komut",        v_belge_belgesiz_komut,         "belge"),
+    ("belge: AGENTS.md'den kural düştü",  v_agents_kural_dustu,           "belge"),
+    ("belge: CLAUDE.md bütçeyi aştı",     v_talimat_sisti,                "belge"),
+    ("belge: kadro tablosundan satır düştü", v_kadro_satiri_dustu,         "belge"),
 
     ("MASUM: hiç değişiklik yok",         m_degisiklik_yok,               None),
     ("MASUM: yorumda fetch()",            m_yorumda_fetch,                None),

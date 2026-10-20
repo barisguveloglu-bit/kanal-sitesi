@@ -70,6 +70,10 @@ Biri dolduğunda kesilir.
 Çıkış kodu **1 ise DUR.** Başka bir açıdan denemeye kalkma — sınıra ulaşmış
 bir döngünün bir sonraki turu, öncekilerden daha iyi olmuyor.
 
+Çıkış kodu **4 ise bu turu ATLA** (çakışma): aynı halka başka bir koşuda
+hâlâ açık. Önceki tur bitmeden yenisi başlamış demektir — üstüne binme,
+ikisi aynı alana girer. Zamanlanmış döngüdeysen aralığı büyüt.
+
 İş bittiğinde:
 
 ```

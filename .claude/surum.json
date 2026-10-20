@@ -1,0 +1,127 @@
+{
+  "majör": 2,
+  "minör": 1,
+  "yama": 9,
+  "gecmis": [
+    {
+      "surum": "v1.1",
+      "ne": "denetimden sonra kurulan tam katman — 15 döngü, 4 ölçüm katı",
+      "tarih": "2026-08-12"
+    },
+    {
+      "surum": "v1.1.1",
+      "ne": "Değerlendirici-optimize edici ve olay döngüsü eklendi",
+      "tarih": "2026-08-13"
+    },
+    {
+      "surum": "v1.1.2",
+      "ne": "Tepe tırmanma, eleştirmen-üretici ve TDD döngüleri eklendi",
+      "tarih": "2026-08-13"
+    },
+    {
+      "surum": "v1.1.3",
+      "ne": "15 denetçi + 2 üretici kadrosu, görev havuzu, dış ajan köprüsü ve hedef/seyir/devre halkaları tek akışta birleştirildi; kadro ilk kez tam çalıştırıldı",
+      "tarih": "2026-08-16"
+    },
+    {
+      "surum": "v2.0",
+      "ne": "Echo Orkestra — ad ve majör sürüm değişti. 15 denetçi + 2 üretici Sonnet 5 kadrosu, görev havuzu, dış ajan (Codex) köprüsü ve hedef/seyir/devre halkaları tek akış. Majör artış Barış'ın kararı: yama zinciri (v1.1.9→v1.2) kademeli büyüme içindir, bu bir sürüm atlaması değil bilinçli bir ana sürüm.",
+      "tarih": "2026-08-16"
+    },
+    {
+      "surum": "v2.0.1",
+      "ne": "Kadro 17'den 26'ya çıktı (21 denetçi + 5 üretici); üç ajan Opus'a alındı; evrim döngüsü eklendi — girilen işe göre eksik yetenekleri hesaplayan, bilinmeyen alanı insan kapısına çıkaran, boşluğu ancak gerçekten var olan bir karşılıkla kapattıran halka",
+      "tarih": "2026-09-14"
+    },
+    {
+      "surum": "v2.0.2",
+      "ne": "Bellek geliştirme döngüsü onarıldı (ders.py — kalıcı defter + oturum açılışında otomatik yüzeye çıkma) ve eleştirmen-aktör döngüsüne sürücü eklendi (tur: yakınsama ölçümü, tekrarlayan yerde insan kapısı)",
+      "tarih": "2026-09-14"
+    },
+    {
+      "surum": "v2.0.3",
+      "ne": "Bütçe/kilometre döngüsü (butce.py), uyarlanabilir döngü seçimi (evrim.py dongu) ve bellek pekiştirme (ders.py ozetle) eklendi",
+      "tarih": "2026-09-14"
+    },
+    {
+      "surum": "v2.0.4",
+      "ne": "Kızıl takım testinin üç ölçülmüş boşluğu kapatıldı: CLAUDE.md sayı denetimi, ölü CSS sınıfı denetimi, ders defteri silme denetimi",
+      "tarih": "2026-09-19"
+    },
+    {
+      "surum": "v2.0.5",
+      "ne": "Ders defteri korumaları artık doğrulanıyor: serbest metin reddediliyor, korumanın içerik özeti saklanıyor (kaymış koruma görünür), aynı ders --degistir olmadan başka korumaya bağlanamıyor. Defter satırı yerinde güncelleniyor.",
+      "tarih": "2026-09-22"
+    },
+    {
+      "surum": "v2.0.6",
+      "ne": "Dış ajan kapısı vakaları dal adı yerine commit kimliğine bağlandı: ayrık HEAD'de (GitHub PR koşusu) taban ile dal aynı yeri gösteriyor ve ihlal görünmüyordu.",
+      "tarih": "2026-09-22"
+    },
+    {
+      "surum": "v2.0.7",
+      "ne": "İz analizi (iz.py) ve rapor okuyucu (rapor.py) eklendi: koşular arası hata kümelemesi — yer kümesi ölçüm, şekil kümesi insan kapısı; hiçbir kuralı kendiliğinden değiştirmez. Raporlar pencereye yüklenmeden sorgulanıyor, parça parça özyinelemeli okuma.",
+      "tarih": "2026-09-22"
+    },
+    {
+      "surum": "v2.0.8",
+      "ne": "Dört halka: ölçüm katmanı bekçisi (beyansız değişikliği taban commit'ine karşı yakalar), oturum başı duman testi (iki oturum arası dışarıdan gireni yakalar), özellik sınavı (kural yaz, girdiyi makine üretsin), halka ablasyonu (kaldır, kimse fark ediyor mu).",
+      "tarih": "2026-09-22"
+    },
+    {
+      "surum": "v2.0.9",
+      "ne": "Ablasyon özyinelemesi kırıldı: sınav ablasyon vakası koşturuyor, ablasyon sınav koşturuyordu; sınav 60 sn'den 1 dk 44 sn'ye çıkmış ve tam tarama zaman aşımına girmişti.",
+      "tarih": "2026-09-22"
+    },
+    {
+      "surum": "v2.1",
+      "ne": "Ablasyon ölçümü düzeltildi: boş kabuk içe aktarılınca sınavı çıkış 0 ile öldürüyordu ve iki halka yanlışlıkla KANITSIZ ilan edilmişti. Kanıt artık çıkış kodu değil, sınavın özet satırı.",
+      "tarih": "2026-09-22"
+    },
+    {
+      "surum": "v2.1.1",
+      "ne": "Beyin V3'ten iki fikir: gölge modu (yeni kapı önce gölgede koşar, kanıtla ve insan kararıyla kapıya terfi eder) ve acil kapatma anahtarı (ECHO_KAPALI=1 bütün kancaları durdurur, sessiz değil; kalıcı açık bırakılırsa dogrula.py yakalar).",
+      "tarih": "2026-09-22"
+    },
+    {
+      "surum": "v2.1.2",
+      "ne": "Deneme sınavı (5×6 soru) iki katmanlı bir hata buldu: arama cevabı canon'da olan soruları reddediyordu (kök taşması, ağız dili), /sor da boş sonucu 'konu dışı' okuyordu. Altın set 20→24, arama ve /sor düzeltildi.",
+      "tarih": "2026-09-22"
+    },
+    {
+      "surum": "v2.1.3",
+      "ne": "Videodan iki fikir: işe göre model seçimi (ucuz Haiku katmanı tarama-denetci, HAIKU_HAKKI listesiyle) ve paralel ajanlar için adres tabanlı ortak pano (pano.py).",
+      "tarih": "2026-09-26"
+    },
+    {
+      "surum": "v2.1.4",
+      "ne": "Kendi yalan denetimi: duman ve CI ölü kapıya 'tutarlı' diyordu (kapi.py ile özet satırı zorunlu); dogrula bağımlılığın sys.exit'ini yutuyordu; bütünlük sınavı canon il tablosunu data.js ile hiç karşılaştırmıyordu.",
+      "tarih": "2026-09-26"
+    },
+    {
+      "surum": "v2.1.5",
+      "ne": "Videodan iki eksik: devre.py çakışma kilidi (turu aralıktan uzun süren döngü kendi üstüne binmesin, çıkış 4); duman.py sahipsiz worktree uyarısı (korumasız 'worktree sızdırır' dersi artık vakayla korunuyor).",
+      "tarih": "2026-09-26"
+    },
+    {
+      "surum": "v2.1.6",
+      "ne": "Videodan iki eksik: CLAUDE.md boyut bütçesi (8000 bayt; araç anlatımları DONGULER.md 'Araç dizini'ne taşındı, 18,7 KB → 6,2 KB) ve CLAUDE.md ↔ AGENTS.md ortak kural senkronu (14 çapa). 2 sınav vakası, 2 mutasyon.",
+      "tarih": "2026-09-26"
+    },
+    {
+      "surum": "v2.1.7",
+      "ne": "Dört videodan iki eksik: kalıcı iş ve karar defteri (defter.py; yarım iş, askıdaki karar, gerekçeli ret; oturum açılışında görünür, reddedilen fikir yeniden önerilince çıkış 3) ve canon etki haritası (etki.py; LORE değişikliğinin dokunduğu yerler).",
+      "tarih": "2026-09-27"
+    },
+    {
+      "surum": "v2.1.8",
+      "ne": "Kadro tabloları tamamlandı (22 denetçi, 5 üretici; önce 15 ve 2 satır vardı) ve dogrula.py artık her ajanın tabloda satırı olmasını zorluyor.",
+      "tarih": "2026-09-27"
+    },
+    {
+      "surum": "v2.1.9",
+      "ne": "Opus hakkı 3 → 4: karakter-yazari Opus'a alındı (güç dengesi kararı üretiyor). dogrula.py listesi, tavanı ve belgeler güncellendi.",
+      "tarih": "2026-09-27"
+    }
+  ]
+}

@@ -12,9 +12,6 @@
 /* Kanalın adresi — hem alt bilgide hem gizli sayfada kullanılıyor */
 const KANAL = "https://www.youtube.com/@mahmutguveloglu473";
 
-/* Sitenin yayındaki adresi — paylaşım önizlemeleri ve site haritası için */
-const SITE_ADRESI = "https://barisguveloglu-bit.github.io/kanal-sitesi/";
-
 /*
  * VİDEOLAR — sitenin YouTube tarafı.
  * ---------------------------------------------------------------
@@ -204,11 +201,11 @@ const KARAKTERLER = [
       "İcat yapabilme",
       "Tuzak kurabilme",
       "Kendi şirketi (ayı kapanı)",
-      "Para sıkıntısı yok",
+      "Parası sınırlı",
     ],
     detay:
-      "Şu anda ağır yaralı Samara Kadın ile ilgileniyor. Fiziksel gücü olmayan " +
-      "ama masanın üstündeki en tehlikeli ikinci beyin olan karakter.",
+      "Şu anda ağır yaralı Samara Kadın ile ilgileniyor. Fiziksel gücü yok; " +
+      "masaya zekâsıyla ve kurduğu tuzaklarla oturuyor.",
   },
   {
     id: "samara-kadin",
@@ -279,10 +276,14 @@ const KARAKTERLER = [
       "Elektriğe tam hâkimiyet",
       "Üç komutan, 81 il derebeyi",
       "Savaşsız dünya fikrinin sahibi",
+      "Zaafı: kibir",
     ],
     detay:
       "Hikayenin asıl patronu ve fikrin sahibi. Kavgasız bir dünya onun " +
       "düşüncesiydi; kardeşi Gizemli Çocuk sonradan ona katıldı. " +
+      "Gücünün sınırı yok, kendine güveninin de yok: küçük gördüğünü " +
+      "hesaba katmaz. Yenilirse gücü yetmediği için değil, gerekmez " +
+      "sandığı için yenilir. " +
       "\"O gerçek barışı bulacak\" cümlesindeki \"o\" işte bu adam.",
   },
 ];
@@ -470,7 +471,7 @@ const KOMUTANLAR = [
       "Ayrıca biriktirdiği hasarın bir sınırı var; taşarsa kendisi çöküyor.",
     iradeKademe: 4,
     not:
-      "Marmara, Ege ve Batı Akdeniz — Trakya'dan Antalya'ya 27 il. " +
+      "Marmara, Ege, Batı Akdeniz ve Batı Karadeniz kıyısı — Trakya'dan Antalya'ya 27 il. " +
       "Cips Yiyen Adam'ın en büyük kozu olan ham güç, ona karşı en büyük zaafı.",
   },
   {
@@ -484,7 +485,7 @@ const KOMUTANLAR = [
     gucAdi: "Basınç ve Fırtına",
     gucAciklama:
       "Hava basıncını kontrol ediyor. Kasırga çıkarıyor, şok dalgasıyla " +
-      "insanı yere çiviliyor. Ama yıldırım atamıyor — o abisinde.",
+      "insanı yere çiviliyor. Ama yıldırım atamıyor — yıldırım kontrolü Gizemli Çocuğun Abisi'nde.",
     ozellikler: [
       "3 tır kaldırma gücü",
       "Hava basıncı kontrolü",
@@ -497,7 +498,7 @@ const KOMUTANLAR = [
       "sıradan bir savaşçıya dönüyor.",
     iradeKademe: 3,
     not:
-      "İç Anadolu, Batı Karadeniz ve Çukurova — başkenti kapsayan 27 il. " +
+      "İç Anadolu, Orta Karadeniz ve Çukurova — başkenti kapsayan 27 il. " +
       "Fırtına tanrısının adını taşıyor ama gerçek yıldırım abinin elinde. " +
       "Üçü arasında iradesi en zayıf olan da o.\n\n" +
       "Barış şu anda onun cephesinde tutuluyor. Elindeki en değerli şeyi " +
@@ -527,7 +528,7 @@ const KOMUTANLAR = [
       "Ayrıca temas etmesi şart — uzaktan hiçbir şey yapamıyor.",
     iradeKademe: 4,
     not:
-      "Doğu Anadolu, Güneydoğu ve Doğu Karadeniz — en sert coğrafyadaki 27 il. " +
+      "Doğu Anadolu, Güneydoğu ve Karadeniz'in doğu ucu — en sert coğrafyadaki 27 il. " +
       "Sarı Gülücük'ün bütün icat ve tuzak avantajını silen adam.",
   },
 ];

@@ -1,0 +1,31 @@
+{
+  "rol": "gizlilik-denetci",
+  "kural": "Her parça bağımsız değerlendirilir. Sözleşme: sayfa açılırken dış kaynak yüklenmez, kullanıcı verisi dışarı gönderilmez. Normal dış bağlantıya kullanıcı tıklayabilir; canonical yükleme değildir. try/catch içindeki yalnız cihazda tutulan tercih serbesttir. URL'den gelen metni innerHTML'e vermek kusurdur. Kod parçalarını çalıştırma ve ağ isteği yapma.",
+  "gercek": "Sadece statik kod incelemesi. Veri toplama ile yerel tercih saklama birbirinden ayrılmalıdır.",
+  "vakalar": [
+    {
+      "id": "G1",
+      "metin": "<link rel=\"canonical\" href=\"https://arsiv.example.invalid/sayfa\">"
+    },
+    {
+      "id": "G2",
+      "metin": "<a href=\"https://youtube.example.invalid/video\" rel=\"noopener\">Videoyu aç</a>"
+    },
+    {
+      "id": "G3",
+      "metin": "<img src=\"https://olcum.example.invalid/pixel.gif\" alt=\"\">"
+    },
+    {
+      "id": "G4",
+      "metin": "fetch(\"https://olcum.example.invalid/iz\", {method:\"POST\",body:location.href});"
+    },
+    {
+      "id": "G5",
+      "metin": "try { localStorage.setItem(\"tema\", \"koyu\"); } catch (hata) {}"
+    },
+    {
+      "id": "G6",
+      "metin": "document.querySelector(\"#sonuc\").innerHTML = decodeURIComponent(location.hash.slice(1));"
+    }
+  ]
+}

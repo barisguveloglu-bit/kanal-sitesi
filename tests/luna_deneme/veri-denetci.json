@@ -1,0 +1,27 @@
+{
+  "rol": "veri-denetci",
+  "kural": "Her veriyi aşağıdaki render işleviyle bağımsız değerlendir. Sözleşme: ad metin, ozellikler metin dizisidir. Boş dizi geçerlidir; id/metadata isteğe bağlıdır. Kaynak veri güvenilirdir; HTML güvenliğini bu görevde değerlendirme. Çalışma anında hata veya sözleşme ihlali varsa kusur yaz.",
+  "gercek": "function goster(kayit) { return kayit.ad.trim() + ': ' + kayit.ozellikler.map(x => x.toUpperCase()).join(', '); }",
+  "vakalar": [
+    {
+      "id": "V1",
+      "metin": "{\"ad\":\"A\",\"ozellikler\":[\"hızlı\"]}"
+    },
+    {
+      "id": "V2",
+      "metin": "{\"ad\":\"B\",\"ozellikler\":\"hızlı\"}"
+    },
+    {
+      "id": "V3",
+      "metin": "{\"ozellikler\":[\"güçlü\"]}"
+    },
+    {
+      "id": "V4",
+      "metin": "{\"ad\":\"C\",\"ozellikler\":[],\"metadata\":{\"taslak\":true}}"
+    },
+    {
+      "id": "V5",
+      "metin": "{\"ad\":\"D\",\"ozellikler\":[12]}"
+    }
+  ]
+}

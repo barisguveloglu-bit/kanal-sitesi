@@ -5,12 +5,12 @@
     "'gecmis' her gevşemeyi gerekçesiyle tutar."
   ],
   "olculer": {
-    "sinav.vaka": 90,
-    "sinav.tuzak": 77,
+    "sinav.vaka": 93,
+    "sinav.tuzak": 80,
     "sinav.masum": 13,
-    "arac_sinavi.vaka": 80,
-    "mutasyon.sayi": 58,
-    "altin.soru": 20,
+    "arac_sinavi.vaka": 228,
+    "mutasyon.sayi": 84,
+    "altin.soru": 24,
     "altin.konu_disi": 4,
     "altin.cevapsiz": 6,
     "dogrula.denetim": 17,

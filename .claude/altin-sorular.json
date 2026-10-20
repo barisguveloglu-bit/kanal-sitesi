@@ -24,21 +24,21 @@
     },
     {
       "soru": "Teşup'un zaafı nedir",
-      "satir": 201,
+      "satir": 204,
       "gercekler": [
         "Kapalı ve dar alanda"
       ]
     },
     {
       "soru": "Ahriman'ın gücü ne yapar",
-      "satir": 202,
+      "satir": 205,
       "gercekler": [
         "Çürütme"
       ]
     },
     {
       "soru": "Barış nerede tutuluyor",
-      "satir": 428,
+      "satir": 434,
       "gercekler": [
         "Teşup'un elinde"
       ]
@@ -52,14 +52,14 @@
     },
     {
       "soru": "Konya'nın derebeyi kim",
-      "satir": 286,
+      "satir": 289,
       "gercekler": [
         "Telipinu"
       ]
     },
     {
       "soru": "Van ilinin derebeyi kim",
-      "satir": 327,
+      "satir": 330,
       "gercekler": [
         "Anahita"
       ]
@@ -73,14 +73,14 @@
     },
     {
       "soru": "güçler nereden geliyor kaynağı ne",
-      "satir": 366,
+      "satir": 372,
       "gercekler": [
         "ağacın özünden"
       ]
     },
     {
       "soru": "Samara Kadın neden ihanet etti",
-      "satir": 424,
+      "satir": 430,
       "gercekler": [
         "iradesi olmayan"
       ]
@@ -94,7 +94,7 @@
     },
     {
       "soru": "mafya yapısı kaç kademeli",
-      "satir": 167,
+      "satir": 170,
       "gercekler": [
         "dört kademeli"
       ]
@@ -108,14 +108,14 @@
     },
     {
       "soru": "Barış'ın ailesine ne oldu",
-      "satir": 411,
+      "satir": 417,
       "gercekler": [
         "kaza gibi göründü"
       ]
     },
     {
       "soru": "beyin yıkama yöntemi nereye yazılmıştı",
-      "satir": 395,
+      "satir": 401,
       "gercekler": [
         "gövde"
       ]
@@ -136,19 +136,56 @@
     },
     {
       "soru": "komutanlar kaç tır kaldırıyor",
-      "satir": 193,
+      "satir": [
+        196,
+        359
+      ],
       "gercekler": [
         "3 tır"
       ],
-      "_kaynak": "geri bildirim 2026-08-12"
+      "_kaynak": "geri bildirim 2026-08-12",
+      "_not": "canon aynı gerçeği iki yerde söylüyor: 193 anlatı, 356 iç referans tablosu. İkisi de doğru adres."
     },
     {
       "soru": "Ahriman kimi kilitliyor",
-      "satir": 206,
+      "satir": 209,
       "gercekler": [
         "Sarı Gülücük"
       ],
       "_kaynak": "geri bildirim 2026-08-12"
+    },
+    {
+      "soru": "barışı nerde saklıyolar",
+      "satir": 434,
+      "gercekler": [
+        "Teşup"
+      ],
+      "_kaynak": "geri bildirim 2026-09-22"
+    },
+    {
+      "soru": "Ağaçtan akan tatlı sıvıyı kimler içti",
+      "satir": 70,
+      "gercekler": [
+        "cariyeler"
+      ],
+      "_kaynak": "geri bildirim 2026-09-22"
+    },
+    {
+      "soru": "Cips Yiyen Adam'ı kim kilitliyor",
+      "satir": 208,
+      "gercekler": [
+        "Nemesis"
+      ],
+      "_kaynak": "geri bildirim 2026-09-22"
+    },
+    {
+      "soru": "Elektrik kullanan kardeşlerden hangisi daha güçlü",
+      "satir": 363,
+      "gercekler": [
+        "Abisi"
+      ],
+      "_kaynak": "geri bildirim 2026-09-22",
+      "_duzeltme": "ilk kayıtta dayanak LORE.md:157 verilmişti; o satırda 'abisi' geçmiyor — kayma denetimi yakaladı"
     }
   ],
   "_konu_disi_aciklama": [

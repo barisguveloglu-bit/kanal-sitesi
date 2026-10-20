@@ -20,11 +20,43 @@ Siteye hiçbir şey eklemez, sadece okur.
 """
 
 import glob
+import json
 import os
 import re
 import sys
 
 KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+# Barış üç ajana Opus hakkı verdi — kadronun geri kalanı Sonnet.
+# Hangi dördü olduğu BURADA yazılı, çünkü "önemli olanlar Opus olsun"
+# bir yazı olarak durursa beşincisi sessizce eklenir.
+#
+# Seçim gerekçeleri (DONGULER.md'de uzunu):
+#   canon-denetci  — hatanın bedeli en yüksek; canon bozulursa kalıcı
+#   kurgu-denetci  — en zor akıl yürütme: sebep-sonuç, güç dengesi, güdü
+#   hikaye-yazari  — tek üretken karar merkezi; taslağın zayıf yeri
+#                    tam buydu (ses ve anlatı merkezi)
+#   karakter-yazari — güç dengesi kararı üretir; yanlış bir güç taslağı
+#                    canon'a girerse bütün kademe tablosunu bozar
+#                    (v2.1.9, Barış'ın kararıyla hak 3 → 4)
+#
+# Modül düzeyinde duruyor ki arac-sinavi.py da buradan okusun — liste
+# iki yerde tutulursa biri çürür.
+OPUS_HAKKI = {"canon-denetci", "kurgu-denetci", "hikaye-yazari", "karakter-yazari"}
+OPUS_TAVANI = 4
+
+# Ucuz katman: yargı gerektirmeyen toplu tarama için Haiku. Opus hakkının
+# tersi — pahalı modeli ham veriye harcamamak için. Aynı disiplin: hangi
+# ajanın ucuz olduğu burada ADIYLA yazılı. Yazılı olmasaydı, bütçe
+# sıkışınca bir denetçi sessizce Haiku'ya düşerdi ve yargı kalitesi
+# kimse fark etmeden çökerdi.
+HAIKU_HAKKI = {"tarama-denetci"}
+
+# Bağımlı araçları içe aktarırken `Exception` değil `(Exception, SystemExit)`
+# yakalanıyor. `sys.exit()` bir Exception değil; bağımlılık içe aktarılırken
+# çıkış çağırırsa bu denetleyici tek satır basmadan, çoğu zaman 0 koduyla
+# ölüyordu — "bozuk araç denetimi çökertmesin" koruması tam o durumda
+# işlemiyordu. Kapı sarmalayıcısı (`kapi.py`) bunu ilk ölçümünde yakaladı.
 
 # Menüde ve site haritasında bulunması beklenen sayfalar.
 SAYFALAR = [
@@ -712,14 +744,21 @@ def d_capa(r):
         satir, gercekler = soru.get("satir"), soru.get("gercekler") or []
         if not satir or not gercekler:
             continue
-        metin = lore[satir - 1].lower() if 0 < satir <= len(lore) else ""
-        if any(g.lower() in metin for g in gercekler):
+        # Cevabı birden fazla yerde olan soru satır LİSTESİ taşır ("komutanlar
+        # kaç tır kaldırıyor": düzyazı ve tablo). Listedeki her satır kendi
+        # başına doğru yer olmalı — biri kayarsa o satır söylenir.
+        satirlar = satir if isinstance(satir, list) else [satir]
+        kayan = [n for n in satirlar
+                 if not (0 < n <= len(lore)
+                         and any(g.lower() in lore[n - 1].lower() for g in gercekler))]
+        if not kayan:
             r.tamam()
             continue
         yeni = [i + 1 for i, s in enumerate(lore)
                 if any(g.lower() in s.lower() for g in gercekler)]
         if yeni:
-            r.hata("capa", f"altin-sorular.json: \"{soru['soru']}\" → LORE.md:{satir} "
+            r.hata("capa", f"altin-sorular.json: \"{soru['soru']}\" → "
+                           f"LORE.md:{', '.join(map(str, kayan))} "
                            f"artık \"{gercekler[0]}\" içermiyor; satır kaymış → "
                            f"LORE.md:{', '.join(map(str, yeni[:3]))}. Altın seti güncelle.")
         else:
@@ -750,23 +789,52 @@ def d_kanca(r):
                         "dosyası, içindeki BÜTÜN kancaları kapatır.")
         return
 
+    calisan = {}        # betik → onu çalıştıran ilk olay
+    yonlenen = set()    # settings.json'ın olay.py'ye yönlendirdiği olaylar
     for olay, gruplar in (ayar.get("hooks") or {}).items():
         for grup in gruplar:
             for kanca in grup.get("hooks", []):
                 for betik in re.findall(r"\.claude/([\w.-]+\.py)", kanca.get("command", "")):
-                    yol = os.path.join(KOK, ".claude", betik)
-                    if not os.path.exists(yol):
-                        r.hata("kanca", f"{olay} kancası .claude/{betik} çağırıyor, "
-                                        "dosya yok.")
-                        continue
-                    try:
-                        with open(yol, encoding="utf-8") as f:
-                            compile(f.read(), yol, "exec")
-                    except SyntaxError as e:
-                        r.hata("kanca", f".claude/{betik}:{e.lineno} sözdizimi hatası — "
-                                        f"{olay} kancası sessizce devre dışı kalır.")
-                    else:
-                        r.tamam()
+                    calisan.setdefault(betik, olay)
+                    if betik == "olay.py":
+                        yonlenen.add(olay)
+
+    # Dağıtıcı: settings.json yalnız olay.py'yi çağırıyor, asıl işleyiciler
+    # olay.py'deki DINLEYICILER tablosunda. Sağlık oradan ölçülmezse bozuk
+    # bir işleyici bu denetime hiç görünmez — nitekim görünmüyordu.
+    dagitici = os.path.join(KOK, ".claude", "olay.py")
+    if yonlenen and os.path.exists(dagitici):
+        import ast as _ast
+        try:
+            with open(dagitici, encoding="utf-8") as f:
+                agac = _ast.parse(f.read())
+            tablo = next(_ast.literal_eval(d.value) for d in agac.body
+                         if isinstance(d, _ast.Assign)
+                         and any(getattr(h, "id", "") == "DINLEYICILER" for h in d.targets))
+        except (SyntaxError, ValueError, StopIteration) as e:
+            r.hata("kanca", f".claude/olay.py dinleyici tablosu okunamıyor "
+                            f"({type(e).__name__}) — bütün kancalar oradan geçiyor.")
+            tablo = []
+        for olay, _, betik, _ in tablo:
+            if olay not in yonlenen:
+                r.hata("kanca", f"olay.py'de {olay} → {betik} dinleyicisi var ama "
+                                f"settings.json {olay} olayını olay.py'ye yönlendirmiyor "
+                                "— hiç çalışmaz.")
+            calisan.setdefault(betik, olay)
+
+    for betik, olay in calisan.items():
+        yol = os.path.join(KOK, ".claude", betik)
+        if not os.path.exists(yol):
+            r.hata("kanca", f"{olay} kancası .claude/{betik} çağırıyor, dosya yok.")
+            continue
+        try:
+            with open(yol, encoding="utf-8") as f:
+                compile(f.read(), yol, "exec")
+        except SyntaxError as e:
+            r.hata("kanca", f".claude/{betik}:{e.lineno} sözdizimi hatası — "
+                            f"{olay} kancası sessizce devre dışı kalır.")
+        else:
+            r.tamam()
 
 
 def d_mandal(r):
@@ -832,7 +900,7 @@ def d_belge(r):
             tanim = importlib.util.spec_from_file_location("_sinav", sinav_yolu)
             modul = importlib.util.module_from_spec(tanim)
             tanim.loader.exec_module(modul)
-        except Exception as e:
+        except (Exception, SystemExit) as e:
             r.hata("belge", f"sinav.py okunamadı ({type(e).__name__}: {e}). "
                             "Vaka sayısı doğrulanamadı — önce onu düzelt.")
             modul = None
@@ -876,6 +944,408 @@ def d_belge(r):
             else:
                 r.tamam()
 
+    surum_yolu = os.path.join(KOK, ".claude", "surum.py")
+    if os.path.exists(surum_yolu):
+        # surum.py'yi modül olarak yüklüyoruz: hem sürüm metnini hem ADI
+        # oradan alalım diye. Önce surum.json elle ayrıştırılıyordu ve
+        # ad ("Echo") burada sabit yazılıydı — iki ayrı çürüme kapısı.
+        try:
+            _t = importlib.util.spec_from_file_location("_sur", surum_yolu)
+            sur = importlib.util.module_from_spec(_t)
+            _t.loader.exec_module(sur)
+            beklenen = sur.metin(sur.oku())
+        except (Exception, SystemExit) as e:
+            r.hata("belge", f"surum.py okunamadı: {e}")
+            beklenen = None
+        if beklenen:
+            # Ad da surum.py'den geliyor — burada elle yazılıydı ve ad
+            # değiştiği gün bu denetim adı yanlış olan bir başlığı
+            # sessizce onaylardı.
+            ad = re.escape(sur.AD)
+            eslesme = re.search(rf"^# {ad} (v\d+\.\d+(?:\.\d+)?)", belge, re.M)
+            if not eslesme:
+                r.hata("belge", f"DONGULER.md başlığı '# {sur.AD} vX.Y' "
+                                "biçiminde değil.")
+            elif eslesme.group(1) != beklenen:
+                r.hata("belge", f"sürüm uyuşmuyor: surum.json {beklenen} diyor, "
+                                f"DONGULER.md başlığı {eslesme.group(1)} yazıyor. "
+                                "Sürüm yükseltince belgeyi de güncelle.")
+            else:
+                r.tamam()
+
+    # Altın setteki satır numaraları MUTLAK. `LORE.md`'ye yukarıdan bir satır
+    # eklendiği anda aşağıdaki her atıf kayar ve hiçbir şey bağırmaz: ölçüm
+    # sessizce yanlış yeri gösterir, isabet@k düşer, yargıç haksız kusur
+    # bulur. Nitekim oldu — tır tablosuna üç satır eklendi, beş altın soru
+    # birden kaydı ve bunu ancak sabit atıflı bir araç vakası fark etti.
+    # Şimdi mekanik: her numaranın gösterdiği satır, o sorunun gerçeğini
+    # gerçekten taşıyor mu.
+    altin_yolu = os.path.join(KOK, ".claude", "altin-sorular.json")
+    lore_yolu = os.path.join(KOK, "LORE.md")
+    if os.path.exists(altin_yolu) and os.path.exists(lore_yolu):
+        import json as _json
+        satirlar = open(lore_yolu, encoding="utf-8").read().splitlines()
+        with open(altin_yolu, encoding="utf-8") as f:
+            sorular = _json.load(f)["sorular"]
+        kaymis = []
+        for soru in sorular:
+            ham, gercekler = soru.get("satir"), soru.get("gercekler") or []
+            numaralar = ham if isinstance(ham, list) else [ham]
+            if not gercekler or not all(isinstance(n, int) for n in numaralar):
+                continue
+            # Gerçek LORE'un HİÇBİR yerinde yoksa bu kayma değil canon
+            # değişikliğidir: `capa` insan kapısına çıkarır. Burada hata
+            # saymak, Barış'ın kararını "düzeltilecek kusur" diye modele vermek
+            # olurdu.
+            if not any(g.lower() in s.lower() for s in satirlar for g in gercekler):
+                continue
+            for no in numaralar:
+                if not (1 <= no <= len(satirlar)):
+                    kaymis.append(f"{soru['soru']!r} → {no}. satır dosyada yok")
+                    continue
+                metin = satirlar[no - 1].lower()
+                if not any(g.lower() in metin for g in gercekler):
+                    kaymis.append(f"{soru['soru']!r} → LORE.md:{no} artık "
+                                  f"{gercekler[0]!r} içermiyor")
+        for k in kaymis:
+            r.hata("belge", f"altın set kaymış: {k}")
+        if not kaymis:
+            r.tamam()
+
+    # Alt ajanların modeli TANIMDA duruyor, çağrıda değil. Sebebi: çağrıda
+    # seçilen model unutulur, tanımdaki unutulamaz. Ama tanım da sessizce
+    # değişebilir — bu yüzden denetleniyor. "Sonnet olsun" bir yazıysa
+    # uygulanmayan kuraldır.
+    ajan_klasor = os.path.join(KOK, ".claude", "agents")
+    if os.path.isdir(ajan_klasor):
+        beklenen_model = "sonnet"
+        opus_bulunan = set()
+        haiku_bulunan = set()
+        for ad in sorted(os.listdir(ajan_klasor)):
+            if not ad.endswith(".md"):
+                continue
+            metin = open(os.path.join(ajan_klasor, ad), encoding="utf-8").read()
+            on = re.match(r"---\n(.*?)\n---", metin, re.S)
+            if not on:
+                r.hata("belge", f"agents/{ad}: ön bilgi (frontmatter) yok.")
+                continue
+            alanlar = dict(re.findall(r"^(\w+):\s*(.+)$", on.group(1), re.M))
+            for zorunlu in ("name", "description", "model", "tools"):
+                if zorunlu not in alanlar:
+                    r.hata("belge", f"agents/{ad}: '{zorunlu}' alanı eksik.")
+            model = alanlar.get("model", "").strip()
+            kok_ad = ad[:-3]
+            if model == "opus":
+                opus_bulunan.add(kok_ad)
+                if kok_ad not in OPUS_HAKKI:
+                    r.hata("belge", f"agents/{ad}: Opus verilmiş ama bu ajan "
+                                    f"Opus listesinde değil. Liste: "
+                                    f"{', '.join(sorted(OPUS_HAKKI))}. "
+                                    "Hak sayısı sınırlı; yenisi bir karar.")
+            elif model == "haiku":
+                haiku_bulunan.add(kok_ad)
+                if kok_ad not in HAIKU_HAKKI:
+                    r.hata("belge", f"agents/{ad}: Haiku verilmiş ama bu ajan "
+                                    f"ucuz katman listesinde değil. Liste: "
+                                    f"{', '.join(sorted(HAIKU_HAKKI))}. Yargı "
+                                    "veren bir ajanı ucuzlatmak bir karar.")
+            elif model and model != beklenen_model:
+                r.hata("belge", f"agents/{ad}: model '{model}' — beklenen "
+                                f"'{beklenen_model}' ya da listedeki dört ajan "
+                                "için 'opus'. Model değiştirmek bir karar, "
+                                "sessizce olmamalı.")
+            # Denetçi ajanlar salt okunur olmalı: bulmak ile düzeltmek ayrı
+            # işler ve düzeltme kararı insanın.
+            araclar = alanlar.get("tools", "")
+            for yazan in ("Edit", "Write", "MultiEdit", "NotebookEdit"):
+                if yazan in araclar:
+                    r.hata("belge", f"agents/{ad}: denetçi ajana yazma aracı "
+                                    f"verilmiş ({yazan}). Bulmak ile düzeltmek "
+                                    "ayrı işlerdir.")
+            r.tamam()
+
+        # Liste yazılı olup uygulanmazsa yine yazıdır. İki yönü de denetle:
+        # tavan aşılmasın VE listedeki dört ajan gerçekten Opus olsun. İkincisi
+        # önemli: biri sessizce Sonnet'e düşerse "dört Opus var" iddiası
+        # yalan olur ama hiçbir şey kırılmaz.
+        if len(opus_bulunan) > OPUS_TAVANI:
+            r.hata("belge", f"Opus tavanı {OPUS_TAVANI}, {len(opus_bulunan)} "
+                            f"ajanda Opus var: {', '.join(sorted(opus_bulunan))}")
+        eksik_opus = OPUS_HAKKI - opus_bulunan
+        if eksik_opus:
+            r.hata("belge", f"Opus listesindeki ajan(lar) Opus değil: "
+                            f"{', '.join(sorted(eksik_opus))}. Liste ile "
+                            "gerçek ayrışmış.")
+        if not eksik_opus and len(opus_bulunan) <= OPUS_TAVANI:
+            r.tamam()
+        eksik_haiku = HAIKU_HAKKI - haiku_bulunan
+        if eksik_haiku:
+            r.hata("belge", f"Ucuz katman listesindeki ajan(lar) Haiku değil: "
+                            f"{', '.join(sorted(eksik_haiku))}.")
+        else:
+            r.tamam()
+
+        # Kadro sayısı da çürüyebilir — nitekim çürüdü: 10 ajan istendi,
+        # 7 tane yapıldı ve bunu ancak Barış fark etti. Sayı belgede
+        # yazıyorsa denetlenmeli.
+        # İki ayrı kadro: denetçiler (bulur, düzeltmez) ve üreticiler
+        # (araştırır/yazar). Ayrı sayılıyorlar çünkü ayrı sözleşmeleri var
+        # ve birini diğerinin yerine koymak sessiz bir yetki genişlemesidir.
+        dosyalar = [x[:-3] for x in os.listdir(ajan_klasor) if x.endswith(".md")]
+        for etiket, sayi in (("denetçi", len([x for x in dosyalar
+                                              if x.endswith("-denetci")])),
+                             ("üretici", len([x for x in dosyalar
+                                              if not x.endswith("-denetci")]))):
+            eslesme = re.search(rf"\*\*(\d+) {etiket} ajan\*\*", belge)
+            if not eslesme:
+                r.hata("belge", f"DONGULER.md: {etiket} sayısı cümlesi yok. "
+                                f"Biçim: **N {etiket} ajan**")
+            elif int(eslesme.group(1)) != sayi:
+                r.hata("belge", f"DONGULER.md: {sayi} {etiket} ajan var, "
+                                f"belge {eslesme.group(1)} yazıyor.")
+            else:
+                r.tamam()
+
+        # Sayı doğruydu ama tablo çürümüştü: "22 denetçi" yazan başlığın
+        # altında 15, "5 üretici"nin altında 2 satır vardı. Sayıyı zorlamak
+        # listeyi zorlamak değil — her ajan tabloda kendi satırını taşımalı.
+        eksik = [x for x in sorted(dosyalar) if f"| `{x}` |" not in belge]
+        if eksik:
+            r.hata("belge", "DONGULER.md kadro tablosunda satırı olmayan "
+                            f"ajan: {', '.join(eksik)}")
+        else:
+            r.tamam()
+
+    # Evrim döngüsü de çürür. Bir boşluk bir ajanla kapatılır, sonra o ajan
+    # silinir — boşluk defterde kapalı görünmeye devam eder ve kimse aramaz.
+    # Kapatılmış ama karşılığı olmayan boşluk, kapatılmamış boşluktan
+    # kötüdür. Açık boşluk hata DEĞİL (devam eden iştir); çöken kapanış
+    # hatadır.
+    evrim_yolu = os.path.join(KOK, ".claude", "evrim.py")
+    if os.path.exists(evrim_yolu):
+        try:
+            tanim = importlib.util.spec_from_file_location("_evr", evrim_yolu)
+            evr = importlib.util.module_from_spec(tanim)
+            tanim.loader.exec_module(evr)
+        except (Exception, SystemExit) as e:
+            r.hata("belge", f"evrim.py okunamadı ({type(e).__name__}: {e}).")
+            evr = None
+        if evr is not None:
+            coken = [k for k in evr.defter_oku()
+                     if k.get("tur") == "kapanis"
+                     and not evr.var_mi(k.get("karsilik", ""))]
+            if coken:
+                for k in coken:
+                    r.hata("belge", f"evrim boşluğu [{k['no']}] "
+                                    f"'{k.get('karsilik')}' ile kapatılmış "
+                                    "ama o karşılık artık yok.")
+            else:
+                r.tamam()
+            # ALANLAR tablosu da gerçekle ayrışabilir: bir alan var olmayan
+            # bir ajana işaret ediyorsa o alan sessizce ölçülemez hâle gelir.
+            hayalet = sorted({g for v in evr.ALANLAR.values()
+                              for g in v if not evr.var_mi(g)})
+            if hayalet:
+                r.hata("belge", "evrim ALANLAR tablosu var olmayan yeteneğe "
+                                f"işaret ediyor: {', '.join(hayalet)}")
+            else:
+                r.tamam()
+
+    # Kızıl takım testinde ders defterinden son kayıt sessizce silindi ve
+    # HİÇBİR kapı görmedi. Hafızanın kendisi korumasızdı: unutturmak
+    # serbestti.
+    #
+    # İki ayrı delik, iki ayrı denetim gerekiyor:
+    #   ortadan silme  → numara dizisi kopar (1,2,4…)
+    #   sondan silme   → dizi bozulmaz, sayı düşer; belgeyle karşılaştır
+    # Yalnız biri yapılsaydı diğeri açık kalırdı — testte silinen kayıt
+    # tam olarak sondakiydi.
+    ders_yolu = os.path.join(KOK, ".claude", "ders.py")
+    if os.path.exists(ders_yolu):
+        try:
+            tanim = importlib.util.spec_from_file_location("_ders", ders_yolu)
+            drs = importlib.util.module_from_spec(tanim)
+            tanim.loader.exec_module(drs)
+        except (Exception, SystemExit) as e:
+            r.hata("belge", f"ders.py okunamadı ({type(e).__name__}: {e}).")
+            drs = None
+        if drs is not None:
+            kayitlar = [k for k in drs.oku() if "_bozuk" not in k]
+            bozuk = [k for k in drs.oku() if "_bozuk" in k]
+            nolar = sorted({k.get("no") for k in kayitlar
+                            if isinstance(k.get("no"), int)})
+            if bozuk:
+                r.hata("belge", f"dersler.jsonl: {len(bozuk)} bozuk satır.")
+            elif nolar and nolar != list(range(1, len(nolar) + 1)):
+                eksik = sorted(set(range(1, max(nolar) + 1)) - set(nolar))
+                r.hata("belge", f"dersler.jsonl: numara dizisi kopuk, "
+                                f"eksik ders: {eksik}. Ders silmek sessiz "
+                                "olmamalı — unutturmak da bir karardır.")
+            else:
+                r.tamam()
+
+            eslesme = re.search(r"\*\*(\d+) ders\*\*", belge)
+            if not eslesme:
+                r.hata("belge", "DONGULER.md: ders sayısı cümlesi yok. "
+                                "Biçim: **N ders**")
+            elif int(eslesme.group(1)) != len(nolar):
+                r.hata("belge", f"DONGULER.md: defterde {len(nolar)} ders var, "
+                                f"belge {eslesme.group(1)} yazıyor.")
+            else:
+                r.tamam()
+
+    # Acil kapatma anahtarı KALICI olarak açık bırakılmış mı?
+    #
+    # `ECHO_KAPALI` bir ortam değişkeni: oturumluk, geçici, telefondan hızlı
+    # kapatmak için. Ama `settings.json`'ın `env` alanına yazılırsa her
+    # oturumda açık gelir ve Echo sessizce ölür — kancaların hiçbiri koşmaz,
+    # ve bunu fark edecek olan kancalar da koşmaz. Kilit dışarıdan bakan bu
+    # denetim; dağıtıcının kendisi bunu göremez, çünkü o da kapalıdır.
+    for ayar_adi in ("settings.json", "settings.local.json"):
+        ayar_yolu = os.path.join(KOK, ".claude", ayar_adi)
+        if not os.path.exists(ayar_yolu):
+            continue
+        try:
+            ayar = json.load(open(ayar_yolu, encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        deger = str((ayar.get("env") or {}).get("ECHO_KAPALI", "")).strip()
+        if deger not in ("", "0"):
+            r.hata("belge", f".claude/{ayar_adi}: ECHO_KAPALI kalıcı olarak "
+                            "açık — bütün kancalar her oturumda devre dışı. "
+                            "Acil anahtar geçici olmalı; ortam değişkeni "
+                            "olarak ver, ayar dosyasına yazma.")
+        else:
+            r.tamam()
+
+    butunluk_yolu = os.path.join(KOK, ".claude", "butunluk.py")
+    if os.path.exists(butunluk_yolu):
+        try:
+            tanim = importlib.util.spec_from_file_location("_but", butunluk_yolu)
+            but = importlib.util.module_from_spec(tanim)
+            tanim.loader.exec_module(but)
+        except (Exception, SystemExit) as e:
+            r.hata("belge", f"butunluk.py okunamadı ({type(e).__name__}: {e}). "
+                            "Bütünlük vaka sayısı doğrulanamadı.")
+            but = None
+        if but is not None:
+            sayi = len(but.VAKALAR)
+            eslesme = re.search(r"\*\*(\d+) bütünlük vakası\*\*", belge)
+            if not eslesme:
+                r.hata("belge", "DONGULER.md: bütünlük vaka sayısı cümlesi yok. "
+                                "Biçim: **N bütünlük vakası**")
+            elif int(eslesme.group(1)) != sayi:
+                r.hata("belge", f"DONGULER.md: bütünlük sınavı {sayi} vaka, "
+                                f"belge {eslesme.group(1)} yazıyor.")
+            else:
+                r.tamam()
+
+            # Kızıl takım testi bunu açık bıraktı: CLAUDE.md'deki
+            # "(75 vaka)" 80 yapıldığında hiçbir denetim görmedi.
+            # DONGULER.md'nin sayıları zorlanıyordu ama projenin ASIL
+            # talimat dosyasınınki zorlanmıyordu — ve ajanlar önce onu
+            # okuyor. Yanlış sayı en çok orada zarar verir.
+            talimat_yolu = os.path.join(KOK, "CLAUDE.md")
+            if os.path.exists(talimat_yolu):
+                talimat = open(talimat_yolu, encoding="utf-8").read()
+                t_es = re.search(r"\((\d+) vaka\)", talimat)
+                if not t_es:
+                    r.hata("belge", "CLAUDE.md: bütünlük vaka sayısı cümlesi "
+                                    "yok. Biçim: (N vaka)")
+                elif int(t_es.group(1)) != sayi:
+                    r.hata("belge", f"CLAUDE.md: bütünlük sınavı {sayi} vaka, "
+                                    f"talimat {t_es.group(1)} yazıyor.")
+                else:
+                    r.tamam()
+
+    # LORE.md'nin satır sayısı belgede üç yerde yazılıydı ve üçü de
+    # çürümüştü — üstelik iki farklı yanlış sayıyla (437 ve 470).
+    #
+    # İlk çözümüm sayıyı gerçekle karşılaştırmaktı. Yanlıştı: sınavın
+    # masum vakası (canon'a satır ekleyen meşru bir düzenleme) anında
+    # yanlış alarm verdi. O denetim, her canon düzenlemesini belge
+    # güncelleme angaryasına çevirirdi.
+    #
+    # Asıl mesele şu: o cümlenin derdi kesin sayı değil ÖLÇEK — "BM25'in
+    # yeteceği kadar küçük". Kesin sayı orada hiç durmamalıydı. Denetim
+    # artık sayıyı doğrulamıyor, sayının VARLIĞINI reddediyor. Tek
+    # istisna 2000: o bir ölçüm değil, yeniden bakma eşiği.
+    #
+    # Ve yalnızca DONGULER.md'ye bakmak yetmiyordu: kızıl takım testinden
+    # sonra `ara.py`'nin docstring'inde aynı çürümüş sayının (437) hâlâ
+    # durduğu bulundu. Kuralı bir dosyada zorlamak, onu öbür dosyalarda
+    # serbest bırakmaktır. Artık `.claude/*.py` de taranıyor.
+    taranan = {"DONGULER.md": belge}
+    for ad in sorted(os.listdir(os.path.join(KOK, ".claude"))):
+        if ad.endswith(".py"):
+            yol = os.path.join(KOK, ".claude", ad)
+            taranan[ad] = open(yol, encoding="utf-8").read()
+
+    kacaklar = []
+    for ad, metin in taranan.items():
+        for s in re.findall(r"\b(\d+) satır(?:lık)?\b", metin):
+            # Hangi sayı çürür, hangisi çürümez? Ölçtüm: bu depodaki
+            # meşru "N satır" ifadeleri küçük ve sabit şeylere ait —
+            # 27 satırlık tablo, 81 satırlık il listesi, 125 satırlık
+            # ölü CSS bloğu. Çürüyen tek sayı LORE.md'nin uzunluğu ve
+            # o birkaç yüz mertebesinde.
+            #
+            # Bu bir sezgi, kesin kural değil: aralığa giren meşru bir
+            # sayı çıkarsa burayı değiştirmek gerekir, sayıyı silmek
+            # değil. 2000 hariç — o bir ölçüm değil, yeniden bakma eşiği.
+            n = int(s)
+            if 300 <= n <= 3000 and n != 2000:
+                kacaklar.append(f"{ad}:{s}")
+    if kacaklar:
+        r.hata("belge", f"LORE.md uzunluğu için kesin satır sayısı yazılmış "
+                        f"({', '.join(sorted(set(kacaklar)))}). Bu sayı her "
+                        f"canon düzenlemesinde çürür — ölçek yaz "
+                        f"('birkaç yüz satır'), sayı yazma.")
+    else:
+        r.tamam()
+
+    mutasyon_yolu = os.path.join(KOK, ".claude", "mutasyon.py")
+    if os.path.exists(mutasyon_yolu):
+        try:
+            tanim = importlib.util.spec_from_file_location("_mut", mutasyon_yolu)
+            mut = importlib.util.module_from_spec(tanim)
+            tanim.loader.exec_module(mut)
+        except (Exception, SystemExit) as e:
+            r.hata("belge", f"mutasyon.py okunamadı ({type(e).__name__}: {e}). "
+                            "Mutasyon sayısı doğrulanamadı.")
+            mut = None
+        if mut is not None:
+            sayi = len(mut.MUTASYONLAR)
+            eslesme = re.search(r"\*\*(\d+) mutasyon\*\*", belge)
+            if not eslesme:
+                r.hata("belge", "DONGULER.md: mutasyon sayısı cümlesi bulunamadı. "
+                                "Biçim: **N mutasyon**")
+            elif int(eslesme.group(1)) != sayi:
+                r.hata("belge", f"DONGULER.md: mutasyon {sayi} tane, belge "
+                                f"{eslesme.group(1)} yazıyor.")
+            else:
+                r.tamam()
+
+    # Logo üretilmiş bir dosya: sürüm numarası içinde geçiyor. Elle
+    # düzenlenirse ilk `logo.py yaz`da sessizce silinir, sürüm değişirse
+    # bayat kalır. İkisi de aynı sınıftan çürüme — üreteçle karşılaştır.
+    logo_yolu = os.path.join(KOK, ".claude", "logo.py")
+    if os.path.exists(logo_yolu):
+        try:
+            tanim = importlib.util.spec_from_file_location("_logo", logo_yolu)
+            logo = importlib.util.module_from_spec(tanim)
+            tanim.loader.exec_module(logo)
+        except (Exception, SystemExit) as e:
+            r.hata("belge", f"logo.py okunamadı ({type(e).__name__}: {e}). "
+                            "Logo dosyaları doğrulanamadı.")
+            logo = None
+        if logo is not None:
+            sorunlar = logo.bayat()
+            for s in sorunlar:
+                r.hata("belge", s)
+            if not sorunlar:
+                r.tamam()
+
     altin_yolu = os.path.join(KOK, ".claude", "altin-sorular.json")
     if os.path.exists(altin_yolu):
         import json as _json
@@ -887,24 +1357,6 @@ def d_belge(r):
                             "Biçim: **N altın soru**")
         elif int(eslesme.group(1)) != sayi:
             r.hata("belge", f"DONGULER.md: altın sette {sayi} soru var, "
-                            f"belge {eslesme.group(1)} yazıyor.")
-        else:
-            r.tamam()
-
-    # Mutasyon sayısı da aynı biçimde çürüdü: belge "15 mutasyon" yazarken
-    # betikte 19 vardı. Dosyayı içe aktarmak yerine girdileri sayıyoruz —
-    # mutasyon.py çalıştırılmadan da ölçülebilsin.
-    mutasyon_yolu = os.path.join(KOK, ".claude", "mutasyon.py")
-    if os.path.exists(mutasyon_yolu):
-        kaynak = open(mutasyon_yolu, encoding="utf-8").read()
-        liste = blok_al(kaynak, "MUTASYONLAR = [")
-        sayi = len(re.findall(r'(?m)^\s*\("[^"]+",\s*m_\w+,', liste))
-        eslesme = re.search(r"\*\*(\d+) mutasyon\*\*", belge)
-        if not eslesme:
-            r.hata("belge", "DONGULER.md: mutasyon sayısı cümlesi bulunamadı. "
-                            "Biçim: **N mutasyon**")
-        elif int(eslesme.group(1)) != sayi:
-            r.hata("belge", f"DONGULER.md: mutasyon sınavında {sayi} mutasyon var, "
                             f"belge {eslesme.group(1)} yazıyor.")
         else:
             r.tamam()
@@ -954,6 +1406,74 @@ def d_belge(r):
             r.hata("belge", f"DONGULER.md: .claude/{dosya} hiç anılmıyor — "
                             "belgelenmemiş araç.")
     r.tamam()
+
+    talimat_belgeleri(r)
+
+
+# CLAUDE.md her oturumda baştan sona bağlama yükleniyor. 18 KB'a çıkmıştı:
+# araçların tarihçesi, her oturumda gereken kuralla aynı yerde duruyordu.
+# Sınır bayt cinsinden, çünkü bağlama giren şey bayt; satır sayısı uzun
+# satırla kandırılır. Taşınınca 6,2 KB kaldı — bütçe ~%30 pay bırakıyor.
+# Aşılırsa çözüm bütçeyi büyütmek değil, ayrıntıyı DONGULER.md'ye taşımak.
+TALIMAT_BUTCESI = 8000
+
+# Sitenin değişmez kuralları ve açık işler — CLAUDE.md (Claude) ile
+# AGENTS.md (Codex) İKİSİNDE de yazılı olmalı. Biri değişip öbürü
+# unutulursa iki ajan farklı kurala göre çalışır ve hiçbir kapı bunu
+# görmez: dış ajan kapısı kod ölçer, talimat ölçmez. Çapa kısa ve iki
+# dosyada da doğal geçen bir ifade; biçim (**, `) ve büyük harf yok sayılır.
+ORTAK_KURALLAR = (
+    ("HTML'e dokunma", "yeni içerik data.js'e"),
+    ("senkron kalmalı", "LORE ↔ data"),
+    ("Türkçe", "arayüz ve kod adları"),
+    ("sahte içerik yasak", "sahte içerik"),
+    ("opacity: 0", "gizleme yöntemi"),
+    ("[hidden] { display: none !important; }", "gizleme kuralı"),
+    ("outline: none", "odak halkası"),
+    ("4.5:1", "ölçülmüş kontrast"),
+    ("defer", "betik yükleme"),
+    ("sitemap.xml", "menü + site haritası"),
+    ("kullanıcı verisi toplanmıyor", "veri toplamama"),
+    ("kademelerinin son hâli", "açık iş: irade kademeleri"),
+    ("1730 mu 1731 mi", "açık iş: zaman çizelgesi"),
+    ("video bağlantıları", "açık iş: videolar"),
+)
+
+
+def _sade(metin):
+    metin = metin.replace("İ", "i").replace("I", "ı").lower()
+    return re.sub(r"[*`]", "", metin)
+
+
+def talimat_belgeleri(r):
+    claude = os.path.join(KOK, "CLAUDE.md")
+    agents = os.path.join(KOK, "AGENTS.md")
+    if not os.path.exists(claude):
+        return
+    boyut = os.path.getsize(claude)
+    if boyut > TALIMAT_BUTCESI:
+        r.hata("belge", f"CLAUDE.md {boyut} bayt, bütçe {TALIMAT_BUTCESI}. Bu "
+                        "dosya her oturumda bağlama yükleniyor — araç ayrıntısını "
+                        "DONGULER.md 'Araç dizini'ne taşı, bütçeyi büyütme.")
+    else:
+        r.tamam()
+
+    if not os.path.exists(agents):
+        return
+    c = _sade(open(claude, encoding="utf-8").read())
+    g = _sade(open(agents, encoding="utf-8").read())
+    eksik = []
+    for capa, ne in ORTAK_KURALLAR:
+        s = _sade(capa)
+        yer = [ad for ad, metin in (("CLAUDE.md", c), ("AGENTS.md", g))
+               if s not in metin]
+        if yer:
+            eksik.append(f"{ne} ('{capa}') → {', '.join(yer)}'de yok")
+    if eksik:
+        r.hata("belge", "CLAUDE.md ↔ AGENTS.md ayrıştı; bir ajan kuralı "
+                        "bilmeden çalışıyor: " + "; ".join(eksik))
+    else:
+        r.tamam()
 
 
 DENETIMLER = {
