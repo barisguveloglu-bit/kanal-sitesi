@@ -103,8 +103,9 @@ ADIMLAR = (
     ("butunluk", "butunluk.py",    (),            lambda c: {},         300, False),
     ("sinav",    "sinav.py",       (),            ayristir_sinav,       600, False),
     ("arama",    "degerlendir.py", (),            ayristir_degerlendir, 300, False),
-    ("araclar",  "arac-sinavi.py", (),            ayristir_arac,        900, False),
-    ("mutasyon", "mutasyon.py",    (),            ayristir_mutasyon,    1800, True),
+    # Birleşik araç sınavı tek başına ~13 dk sürüyor; sınır ona göre.
+    ("araclar",  "arac-sinavi.py", (),            ayristir_arac,        2400, False),
+    ("mutasyon", "mutasyon.py",    (),            ayristir_mutasyon,    5400, True),
 )
 ANAHTARLAR = tuple(adim[0] for adim in ADIMLAR)
 

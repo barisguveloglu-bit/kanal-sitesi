@@ -1938,6 +1938,13 @@ araç en zayıf halkayı değil **en az sınanmış** halkayı silerdi — tam
 tersi bir seçim. Bu da reddedilen kategoriyle aynı ilke: ölçülen şeyin
 ölçen kuralı değiştirme yetkisi olmamalı.
 
+**Zemin denetimi ilk düşüşte duruyor.** İki dal birleşince sınavların tam
+koşusu ~13 dakikaya çıktı; zemin denetimi ikisini de sonuna kadar koşuyordu
+ve "kirli zeminde ölçmüyor" vakası 300 sn sınırına çarpıp düştü. Zeminin
+sorusu "düşen var mı" — ilk düşüşte cevap belli. Kirli zemin artık ~10 sn'de
+söyleniyor; sayı "en az N" diye yazılıyor. Halka ölçümü tam koşuyla kalıyor:
+orada kaç vakanın düştüğü sıralamayı belirliyor.
+
 ## İz analizi — koşular arası hata döngüsü
 
 Tepe tırmanma döngüsünün eksik ayağıydı. Her halka **kendi turuna**
