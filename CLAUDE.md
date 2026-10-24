@@ -713,6 +713,14 @@ Kararların tek kaydı **`addon/SERI_SEZON1.md`**: karakterler (El-Harkos,
 Ice-man / Deney 081, sezonun ana kötüsü), 1. bölümün sahne sırası,
 1080p30 kararı ve açık sorular. Orada olmayanı uydurma; sor.
 
+**Ortak çalışma — Astra (2026-10-24).** Kullanıcı ikinci bir takım arkadaşı
+ekledi: Astra (OpenAI, ChatGPT / Codex). Sözleşme
+**`addon/ORTAK_CALISMA.md`**, Astra'ya verilen metin `addon/ASTRA_TANITIM.md`.
+Astra senaryo taslağını, araştırmayı ve denetimi yapıyor; Claude kodu,
+çizimi, düzeltmeleri ve karar kaydını (tek yazar). Kod PR ile gelir
+(`astra/...` dalları). Denetim gizli depoda issue olarak açılır, taslak
+kareler gizli depoda `ortak` dalında durur.
+
 **Barış'ın formu — `addon/arac/form_model.py` (v7.99.14).** Senaryoda
 aktöre `"form": "alt"` (ya da `"omuz"`): ana aktör modeli + iki ek kol,
 bütün beden 1,5 kat. Ek kollar ana kolun **alt kemiği** (depodaki Ben 10
