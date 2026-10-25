@@ -719,7 +719,9 @@ ekledi: Astra (OpenAI, ChatGPT / Codex). Sözleşme
 Astra senaryo taslağını, araştırmayı ve denetimi yapıyor; Claude kodu,
 çizimi, düzeltmeleri ve karar kaydını (tek yazar). Kod PR ile gelir
 (`astra/...` dalları). Denetim gizli depoda issue olarak açılır, taslak
-kareler gizli depoda `ortak` dalında durur.
+kareler gizli depoda `ortak` dalında durur. Astra videoyu izleyemiyor:
+taslak `addon/arac/denetim_pafta.py` ile kare numaralı paftaya dökülür
+(`test/denetim_pafta.mjs`).
 
 **Barış'ın formu — `addon/arac/form_model.py` (v7.99.14).** Senaryoda
 aktöre `"form": "alt"` (ya da `"omuz"`): ana aktör modeli + iki ek kol,

@@ -67,6 +67,11 @@ ANIM_AKTOR = "Simsek_Kol_Kaynak/animations/aktor.animation.json"
 ANIM_DIZ = "kaynak_anim/wom/wom_kilic_diz.animation.json"
 HAREKET = "kaynak_anim/wom/wom_kilic.hareket.json"
 GEO_AKTOR = "Simsek_Kol_Kaynak/models/entity/aktor.geo.json"
+# v7.99.15: ince kollu (Alex) skin. Oyunda kol_uret.py ayni skine bu modeli
+# veriyor (render controller'da "slim"); film ayni olcuyle secer (skin_ince_mi).
+# Iki geometride yalniz bu dort kemik farkli: kol 3 px, pivot y 21.5.
+GEO_AKTOR_INCE = "Simsek_Kol_Kaynak/models/entity/aktor_ince.geo.json"
+INCE_KEMIKLER = ("rightArm", "rightSleeve", "leftArm", "leftSleeve")
 SILAH = {"karanlik_tirpan": ("Simsek_Kol_Kaynak/models/entity/karanlik_tirpan.geo.json",
                              "Simsek_Kol_Kaynak/textures/entity/karanlik_tirpan.png"),
          # v7.99.15: Omer'in silahi; seti "topuz" (Epic Fight baltasindan turetilmis)
@@ -160,6 +165,44 @@ def sag_yon(aci):
     return (math.cos(a), math.sin(a))
 
 
+def ince_ayari(v):
+    """Senaryodaki "ince" alani: yazilmazsa None (skinden olculur), ya da
+    true / false. Baska deger HATA (sessiz varsayilan yok)."""
+    if v is None or isinstance(v, bool):
+        return v
+    raise ValueError("ince ayari: %r (true, false ya da hic yazilmaz)" % (v,))
+
+
+def skin_ince_mi(gen, yuk, alfa):
+    """kol_uret.aktor_ince_mi'nin olcusu, okuyucudan bagimsiz: 64x64 skinde
+    sag kolun 4. sutunu (x 54..55, y 20..31) bossa ince kol. alfa(x, y)
+    0..1, y yukaridan asagi (PNG sirasi). Film Blender'in Python'unda
+    calisiyor ve orada PIL yok: okuyucu bpy, olcu bu."""
+    if (gen, yuk) != (64, 64):
+        return False
+    return all(alfa(x, y) == 0 for x in (54, 55) for y in range(20, 32))
+
+
+def bpy_alfa(px, gen, yuk):
+    """bpy Image.pixels (RGBA float, satirlar ALTTAN uste) -> alfa(x, y),
+    y yukaridan asagi."""
+    return lambda x, y: px[((yuk - 1 - y) * gen + x) * 4 + 3]
+
+
+def aktor_geosu(geo, geo_ince, ince, form, diz):
+    """Aktorun film geometrisi: taban (genis ya da ince kol) -> form -> diz."""
+    taban = geo_ince if ince else geo
+    g = form_model.form_geo(taban, form["kol"]) if form else taban
+    return diz_model.dizli_geo(g) if diz else g
+
+
+def kol_pivotlari(model, ince):
+    """Ince kollu aktorun kol pivotlari (ic uzay; y 21.5, oyundaki gibi).
+    Genis aktorde BOS: yerel() ortak pivot tablosunu okur, eski filmler
+    bire bir eskisi."""
+    return {k: B.ic(model.kemik[k]["pivot"]) for k in INCE_KEMIKLER} if ince else {}
+
+
 class Aktor:
     def __init__(self, ad, v, setler):
         self.ad = ad
@@ -199,6 +242,11 @@ class Aktor:
         self.olcek = self.form["olcek"] if self.form else 1.0
         # dizli bacak (diz_model.py): yanlis yazilmis "diz" de cizimden once HATA
         self.diz = diz_model.diz_ayari(v.get("diz"))
+        # ince kol (Alex): None -> sahne kurulurken skinden olculur, oyundaki
+        # gibi. Formun ek kollari genis kola gore olculdu; ince kolla HATA.
+        self.ince = ince_ayari(v.get("ince"))
+        if self.ince and self.form:
+            raise ValueError("%s: form ince kolla olculmedi" % ad)
 
 
 def vurus_sec(setler, set_ad, tur, a, t):
@@ -1192,26 +1240,41 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
 
     # ---- aktorler: kemik bos nesneleri + kup parcalari ----
     geo = B.oku(GEO_AKTOR)
+    geo_ince = B.oku(GEO_AKTOR_INCE)
     govde_model = B.Model(geo)
     # Baris'in formu (form_model.py): ek kollu model, yerlesim basina bir kez.
-    # Formsuz aktor govde_model'i kullanir -- onun modeli hic degismez.
+    # Formsuz, dizsiz, genis kollu aktor govde_model'i kullanir -- onun modeli
+    # hic degismez.
     form_modelleri = {}
 
-    def aktor_modeli(a):
-        if not a.form and not a.diz:
+    def ince_mi(a):
+        if a.ince is not None:
+            return a.ince
+        im = bpy.data.images.load(B.yol(a.v["skin"]))
+        try:
+            w, h = im.size
+            return skin_ince_mi(w, h, bpy_alfa(im.pixels[:], w, h))
+        finally:
+            bpy.data.images.remove(im)
+
+    def aktor_modeli(a, ince):
+        if ince and a.form:
+            raise ValueError("%s: skin ince kollu, form ince kolla olculmedi"
+                             " (\"ince\": false yazilabilir)" % a.ad)
+        if not a.form and not a.diz and not ince:
             return govde_model
-        anahtar = (a.form["kol"] if a.form else None, a.diz)
+        anahtar = (a.form["kol"] if a.form else None, a.diz, ince)
         if anahtar not in form_modelleri:
-            g = form_model.form_geo(geo, a.form["kol"]) if a.form else geo
-            form_modelleri[anahtar] = B.Model(diz_model.dizli_geo(g) if a.diz else g)
+            form_modelleri[anahtar] = B.Model(aktor_geosu(geo, geo_ince, ince, a.form, a.diz))
         return form_modelleri[anahtar]
+    aktor_ince = {ad: ince_mi(a) for ad, a in aktorler.items()}
     kok_nesne = {}
     kemik_nesne = {}
     silah_nesneleri = {}
     aktor_model = {}
     aktor_parcalari = {}      # aktor -> cizilen orgu nesneleri (oda: kotunun isik baglamasi)
     for ad, a in aktorler.items():
-        model_a = aktor_model[ad] = aktor_modeli(a)
+        model_a = aktor_model[ad] = aktor_modeli(a, aktor_ince[ad])
         kok = bpy.data.objects.new("aktor_" + ad, None)
         sc.collection.objects.link(kok)
         kok_nesne[ad] = kok
@@ -1334,6 +1397,7 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
             # yerlesime gore degisir, govde_model'in pivot tablosunda yok
             pivot_ek = {ek: B.ic(aktor_model[ad].kemik[ek]["pivot"]) for ek in form_model.EK_KOL}
             faz_a = (sum(map(ord, str(a.v.get("skin", "")) + str(a.v.get("isim", "")))) % 97) / 97 * 2 * math.pi
+        pv_a = kol_pivotlari(aktor_model[ad], aktor_ince[ad])
         for f, k in enumerate(a.kayit[:len(kam_iz)]):
             tampona(kok, "location", f + 1, (k["x"], k["y"], k["z"]))
             # aci surekli kalsin (359 -> 1 derece gecisinde ters tur atmasin)
@@ -1361,14 +1425,14 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
             son_kol = {}
             for kem in kemikler_a:
                 (eu, ps, ol), _ = poz[kem]
-                l, q, o3 = yerel(kem, eu, ps, ol).decompose()
+                l, q, o3 = yerel(kem, eu, ps, ol, pv=pv_a.get(kem)).decompose()
                 for an, t_an, wgt in katman:
                     if an not in anims_a or wgt <= 0:
                         continue
                     v = kanal_pozu(anims_a[an], kem, t_an)
                     if not v:
                         continue
-                    l2, q2, o2 = yerel(kem, v[0], v[1], v[2]).decompose()
+                    l2, q2, o2 = yerel(kem, v[0], v[1], v[2], pv=pv_a.get(kem)).decompose()
                     q = q.slerp(q2, wgt)
                     l = l.lerp(l2, wgt)
                     o3 = o3.lerp(o2, wgt)

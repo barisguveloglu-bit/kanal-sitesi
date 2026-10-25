@@ -68,7 +68,7 @@ da `— Astra`.
 3. Kullanıcı onaylar; Claude kayda geçirir ve eksik araç işlerini çıkarır.
 4. Claude eksikleri yazar; Astra PR'ı inceler.
 5. Claude düşük kaliteli taslağı ve denetim paftalarını (kare numaralı) gizli
-   depoya iter.
+   depoya iter (aşağıda, "Denetim paftası").
 6. Astra taslağı denetler, Claude düzeltir. En fazla iki tur.
 7. Kullanıcı onaylarsa tam kalite çizim başlar.
 8. Astra son denetimi yapar: kareler, ses, Mojang kuralları. Claude gereken
@@ -97,7 +97,7 @@ Kaynak: <commit> · <klasör>
 
 | # | çekim | kare | ciddiyet | tür | ne görünüyor | öneri |
 |---|---|---|---|---|---|---|
-| 1 | 3b | 412–418 | kritik | zemin | Barış'ın sol ayağı 2 px havada | ... |
+| 1 | 7 | 412–418 | kritik | zemin | Barış'ın sol ayağı 2 px havada | ... |
 
 Özet: kritik n · orta n · küçük n. Temiz çekimler: ...
 — Astra
@@ -120,6 +120,27 @@ Kaynak: <commit> · <klasör>
   - ses: seviye, tık, senkron
   - hikâye: kayıtla çelişki
   - kural: Mojang kılavuzu
+
+## Denetim paftası
+
+Astra videoyu doğrudan izleyemediği için kareler pafta olarak verilir.
+Paftaları `arac/denetim_pafta.py` çizer; çizim klasöründen ya da videodan
+çalışır. Çıktı (`pafta_01.png …`, dizin `pafta.md`, `pafta.json`) gizli
+depoda taslağın klasörüne gider: `ortak/taslak/<bölüm>-<part>/<sürüm>/`.
+
+- **Küçük resmin altı:** `Ç7 · K 412 · 13,70 sn` (çekim, kare, film zamanı).
+  Sarı satır o an ekrandaki altyazı. Raporda bu numaralar kullanılır.
+- **Seçim:** her çekimin ilk ve son karesi ve her 0,5 sn'de bir kare. Her
+  çekim yeni satırdan başlar.
+- **Kırmızı çerçeve, "TEK KARE":** bütün kareyi bozan tek karelik hata:
+  siyah ya da boş kare, ışık titremesi, başka yerden gelmiş kare. Gri
+  çerçeveli komşularıyla birlikte gösterilir; flaş da sayılabilir, kararı
+  denetleyen verir. Bütün liste `pafta.md`'nin sonunda. Bir aktörün tek
+  karelik poz hatası gibi **yerel** hatalar burada aranmaz (dövüşün hızlı
+  hareketinden ayrılamadı); onlar çizimden önce zaman çizelgesinde
+  denetleniyor. Örnekleme arasında kalan kareler ancak gözle görülür.
+- **Tam çözünürlük:** gereken karelerin numaraları raporda yazılır, Claude o
+  kareleri gizli depoya iter.
 
 ## Senaryo taslağı şablonu
 

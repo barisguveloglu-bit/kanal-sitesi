@@ -520,8 +520,9 @@ mikrofonla anlattı, özeti onayladı):**
   `b3f33291b33b539e38da0cabb61364d3`). Uzun beyaz saç, dış katmanda siyah taç,
   kırmızı gözler. **Karakterin adı da Zisa** (kullanıcı, 2026-10-18: *"evet
   öyle"*). **Film aracı ince
-  kolu bugün çizmiyor** (yalnız 4 px kollu model): filme girmeden önce ince
-  kollu model film aracına bağlanmalı. Araç skinleri yatay da aynalıyor (en
+  kolu v7.99.15'ten beri çiziyor** (2026-10-25): skin ince kolluysa model
+  kendiliğinden seçiliyor, oyundaki gibi (`FILM_YETENEK_HARITASI.md`).
+  Araç skinleri yatay da aynalıyor (en
   çok bacak deseninde görünüyor); ayna kararı kullanıcıda (2026-10-17
   önizlemesi).
 - **Zisa (kullanıcı, 2026-10-18):**
@@ -560,7 +561,7 @@ mikrofonla anlattı, özeti onayladı):**
       sembol saçın altında kalıyor, ışığı saçın arasından sızıyor. Taslakta
       teller sembolün renginde hafifçe ışıyor (ortadakiler en çok) ve perçemle
       alın arasındaki küçük bir ışık yüze vuruyor.
-    - Film aracında bugün yok: ince kol, perçem telleri, alın katmanı ve
+    - Film aracında bugün yok: perçem telleri, alın katmanı ve
       parlamayı başlatan bir olay yazılacak.
   - **Irkı: yarı insan yarı Endra (kullanıcı, 2026-10-19):** önce *"Zisa ve
     onun ailesi aslında dünyalı değil, yani insan değil; The End'de bir
@@ -865,7 +866,7 @@ hedef ~57,5).
   o çizilirken Part 2'nin kurucuları (hanedan, ordu) yazılır.
 - Her partın film aracında yazılacakları (bugün yok, `FILM_YETENEK_HARITASI.md`):
   1 — bataklık kulübesi, ışıklı harita odası, kitap ve el lambası, POV
-  bulanıklığı, görüntü titremesi, Satanachia küresi, Zisa'nın ince kollu modeli;
+  bulanıklığı, görüntü titremesi, Satanachia küresi;
   2 — hanedan (sur, köy evleri, tepe, merdiven), fırtına, ordu, ok, cam kırılması,
   pencereden atlayış, Zisa'nın büyü işareti (perçem telleri, alın sembolü); 3 — Saldırı II, buz duvarı, kar girdabı, donma kabı, duvar
   delinmesi; 4 — buz kaplı merdiven, Kor Yürüyüşü, Kıvılcım, yarım küre buz

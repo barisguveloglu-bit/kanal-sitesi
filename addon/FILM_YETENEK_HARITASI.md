@@ -1,6 +1,6 @@
 # Film aracı — yetenek haritası
 
-v7.99.15 · 2026-10-19 (Osmanlı Topuzu, balta seti ve dizli bacak eklendi; ilk hâli v7.99.14 · 2026-10-17). Kaynak: `arac/blender_film.py`, `film_poz.py`,
+v7.99.15 · 2026-10-25 (ince kollu model eklendi; 2026-10-19'da Osmanlı Topuzu, balta seti ve dizli bacak; ilk hâli v7.99.14 · 2026-10-17). Kaynak: `arac/blender_film.py`, `film_poz.py`,
 `kamera_denetim.py`, `zemin_denetim.py`, `form_model.py`, `thomas_goz.py`,
 `film_ses.py`, `film_birlestir.py` ve `test/` altındaki film testleri.
 Kod okunarak çıkarıldı; bu bir envanter, karar değil. Sayılar ya kod
@@ -74,6 +74,7 @@ sabiti ya da kayıtlı ölçüm.
   - Thomas gözleri: `kirmizi`/`mavi` kalıp, her göze ayrı ayar, `goz_kapak`, `goz_bakis`; planda `goz: "thomas"` ile açılır;
   - `silah`: `karanlik_tirpan` (Barış) ya da `osmanli_topuzu` (Ömer); `silah_gizli`/`silah_goster`, `durus`, sol elde kâğıt;
   - `diz: true` (v7.99.15): bacak uyluk + baldır, diz açısı Epic Fight'ın (`wom_cevir.py --diz`; dövüş setlerinin bütün duruş ve vuruşlarında). Yazılmazsa eski düz bacak; oyundaki model değişmez.
+  - İnce kol (v7.99.15, Alex tipi, 3 px): skin ince kolluysa model `aktor_ince.geo.json`, kollar kendi pivotlarında (y 21,5) döner. Yazılmazsa skinden oyundaki ölçüyle anlaşılır (`kol_uret.aktor_ince_mi`: sağ kolun 4. sütunu boş); `ince: true`/`false` elle, `form` ile birlikte hata. Bugün ince olan tek skin Zisa'nınki; 1. bölümün skinleri geniş, çizimleri değişmedi.
 - Yok:
   - ağız ve yüz ifadesi;
   - zombi, iskelet, creeper, golem modeli (yalnız insan aktör var);
@@ -105,6 +106,7 @@ sabiti ya da kayıtlı ölçüm.
 - Tam kalite: 1920×1080, 30 fps, 4096 örnek. Yarıda kalırsa kaldığı yerden sürer.
 - Aynı senaryo her seferinde aynı hareketi verir: taslakta görülen dövüş tam kalitede bire bir aynı oynar (`blender_film.mjs`).
 - Blender'sız denetim: `kamera_denetim` (9 kural), `zemin_denetim`, tek kare dönüş süzgeci.
+- Denetim paftası (v7.99.15, `denetim_pafta.py`): çizimden ya da videodan çekim çekim kare numaralı pafta; altyazı her karenin altında. Bütün kareyi bozan tek karelik hatayı (siyah kare, ışık titremesi, başka yerden gelmiş kare) ölçüp kırmızı çerçeveyle gösterir. Yerel tek kare hatasını aramaz. Astra'nın denetimi bunun üstüne kurulu (`ORTAK_CALISMA.md`).
 
 ## 1. bölümde ne kullanıldı
 
@@ -133,6 +135,7 @@ sabiti ya da kayıtlı ölçüm.
 - Thomas kafası 180° ters oturdu.
 - Form rakibin içine giriyordu.
 - Dövüş v2'de beş kadraj hatası ve çizimi ilk karede çökerten `KeyError`.
+- Zisa'nın ince kollu skini 4 px kollu modele giydiriliyordu: kolun boş dış sütunu kenarda kırık bir şerit olarak görünüyordu (kilit: `ince_kol.mjs`).
 
 **Kullanıcının izlemesi**
 - Tırpan tutuşu: sağ el 10–18 px kayıktı (kilit: `tutus.mjs`, `silah_govde.mjs`).
@@ -181,6 +184,7 @@ sabiti ya da kayıtlı ölçüm.
 - **Antitheus `auto_3`:** kullanılmıyor, çünkü sap 0,1–0,2 sn boyunca başın içinden geçiyor.
 - **Zıplayan vuruşta iniş:** Barış'ın `guillotine`'inde beden inişten sonra 6,7 px, asaların `kingkong`'unda 2,1 px havada kalıyor; düzeltilmedi. Part 2 çizilirken `antitheus` setine dokunulmadı.
 - **Film pozlarında diz yok:** dizli aktörde de `diz_cok`, `dus`, `yuzustu` gibi film pozlarında baldır düz kalır (diz kanalı yalnız dövüş setlerinin animasyonlarında).
+- **İnce kolda el:** silahın ve kâğıdın tutma noktası geniş kolunki, ince elde yarım piksel dışta kalır (oyunda da öyle). Zisa'nın bıçakları elde tutulmuyor; ölçülmedi. Denetimler ince kolu ayırmıyor ama etkilenmiyor da: zemin denetimi kollara bakmıyor, kamera denetimi aktörü kaba bir silindirle ölçüyor.
 
 ## Maliyet ölçüsü
 
@@ -188,13 +192,22 @@ sabiti ya da kayıtlı ölçüm.
 - **Ağır çekim ve donma:** bu kareler de tek tek çiziliyor; film süresi, hikâye süresinin hıza bölümü kadar uzuyor. 1. bölümdeki 0,12 sn'lik donma (hız 0,03) 4 sn film tuttu, yaklaşık 27 makine-saati.
 - **Taslak:** tek ölçüm `--onizleme` için var: 640×360, 6 örnek, kare başına ≈ 2,4 sn (4 çekirdek, v7.99.9). Bu hızla 74 sn yaklaşık 1,5 makine-saati. 960×540'ta, sisli ya da efektli sahnede ölçülmedi.
 
-## Test koşusu (2026-10-19, v7.99.15)
+## Test koşusu (2026-10-25, v7.99.15)
+
+- **Tam takım** (`kos.sh`'in aynısı, `cizim_dagit.mjs` hariç): 165 testin 164'ü geçti, 37 dk. Düşen yine `efsane_dunyasi.mjs` (aşağıda). `denetim_pafta.mjs` takım başladıktan sonra yazıldı; ayrı koşuldu, geçti.
+- **Yeni testler:** `ince_kol.mjs` (geometri, oyunla aynı ölçü, Blender'ın satır sırası, ayar, mutasyon) ve `denetim_pafta.mjs` (çekim, zaman, altyazı, tek kare, video, güvenlik, mutasyon). İkisinde de kod kasıtlı bozulunca ilgili kontrol düşüyor.
+- **Blender'da ölçülen:**
+  - İnce kol algılaması Blender'ın kendi okumasıyla da aynı: 11 skinden yalnız Zisa'nınki ince.
+  - Geniş kollu sahne (düz, dizli ve formlu aktör, üç kare) eski ve yeni film aracında **piksel piksel aynı**.
+  - Denetim paftası gerçek bir dövüş önizlemesinde (1. bölüm 1140–1330, 191 kare, 28,5 dk çizim) yanlış alarm vermedi. Aynı karelere eklenen siyah kare, ±%8 ışık titremesi ve başka çekimden gelmiş kare yakalandı; 4 px kamera kayması ve sırası karışmış kare yakalanmadı (aranmıyor).
+
+### Önceki koşu (2026-10-19)
 
 - **Tam takım** (`kos.sh`'in aynısı, `cizim_dagit.mjs` hariç): 164 testin 163'ü geçti, 32 dk. Düşen `efsane_dunyasi.mjs` (gökyüzü paketinin sürümü 7.94.0, ana paket 7.99.8): HEAD'de de düşüyor, bu işle ilgisi yok.
 - **Yeni testler:** `topuz.mjs` (eşya, baltadan türetilmiş set, tutuş, çarpışma, mutasyon) ve `diz.mjs` (geometri, Epic Fight'ın diz açısı, film aracı, mutasyon).
 - **Blender'da ölçülen:** dizli aktör film aracında çiziliyor (Ömer topuzla, iki balta vuruşu); `diz` yazılmayan senaryoda HEAD'in film aracıyla bugünkü aynı kareyi **piksel piksel aynı** çiziyor (1. bölüm etkilenmiyor).
 
-### Önceki koşu (2026-10-17)
+### Daha önceki koşu (2026-10-17)
 
 - **Çalıştırılan:** Blender gerektirmeyen 16 film testi; 122 madde geçti, 0 düştü. Testler: `blender_film`, `kamera_denetim`, `zemin`, `tek_kare_donus`, `kotu_karanlik`, `form_model`, `goz_thomas`, `baslik_karti`, `renk_kodlama`, `ses_dilim`, `ses_kenar`, `ses_seviye`, `tutus`, `silah_govde` (tek başına ~20 dk), `onizleme`, `arac_kur`.
 - **Bilerek çalıştırılmayan:** `cizim_dagit.mjs` (çizim işçilerini taklit ediyor) ve `wom_kilic.mjs` (oyun içi eklenti testi). Blender bu makinede kurulu değildi.
