@@ -98,7 +98,7 @@ tek özelliğini anlatıyor.)*
 | 2 | Zayıf İrade | Aşık olur. Emirlerin neredeyse tamamına uyar. |
 | 3 | Dirençli İrade | Aşık olur. Emirler zorlayıcı gelir, bazılarını reddedebilir. |
 | 4 | Güçlü İrade | Aşık olur ama **emirler hiç işlemez**. Bilinç tamamen kendisinde. |
-| 5 | Kanlı Göz İradesi | 300 yılda bir. Kırılması neredeyse imkânsız. |
+| 5 | Kanlı Göz İradesi | Aşık olur — **Kanlı Göz onu bundan koruyamaz.** Ama emirler işlemez, saf bir köleye dönüşmez. 300 yılda bir doğar; kırılması neredeyse imkânsız. |
 
 **Önemli kural:** Aşık olmak ile itaat etmek aynı şey değildir.
 İrade yükseldikçe *aşk kalır, itaat kaybolur*.
@@ -456,6 +456,8 @@ yazmayın.
 ### Açık — irade kademeleri
 `LORE.md:93` **DURUM: TASLAK.** Beş kademeli tablo bir öneri olarak duruyor,
 birlikte detaylandırılacak. Kademe adları ve sınırları değişebilir.
+Karara bağlanan tek hücre: 5. kademede Samara Kadın'ın etkisi (Barış, 25 Ekim
+2026) — aşık olur, Kanlı Göz onu bundan koruyamaz; emirler işlemez.
 
 Bağlı olduğu yerler: karakterlerin `iradeKademe` değerleri, komutanların
 irade sütunu, `irade.html`.

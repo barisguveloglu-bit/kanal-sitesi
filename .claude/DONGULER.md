@@ -2101,7 +2101,7 @@ defterine ya da iz defterine yazılır.
 ## Sınırlar
 
 Bunlar tahmin değil, fay enjeksiyon sınavıyla ölçüldü: **99 vaka
-(85 yakalanmalı, 14 masum)** ve **25 altın soru**. Bu sayılar `dogrula.py`
+(85 yakalanmalı, 14 masum)** ve **26 altın soru**. Bu sayılar `dogrula.py`
 tarafından denetleniyor — betikler değişip belge yerinde kalırsa hata verir.
 Ölçülen iki gerçek açık vardı, ikisi de kapatıldı — biri tam olarak
 kapanamadı, aşağıda:
@@ -2207,8 +2207,8 @@ kaynağa bağladı. Ayrıntılar ilgili bölümlerde; özet:
 | Mekanizmaların dayanağı yazılı değildi | — | 20 kaynak; `belge` atıfları sayıyor | — |
 | Elle yazılan mutasyon kendi kör noktasını göremiyordu | 45 elle yazılmış | 58 elle + 149 noktada operatörle üretilen; skor %78 → %100, yaşayan her mutant gerekçeli eşdeğer | [K5][K6] |
 
-Ölçülemeyen kısım da yazılı kalsın: değişmezlik eşiği %100 ama 175 çift
-yine aynı 25 altın sorudan türüyor — setin küçüklüğü (Sınırlar) burada da
+Ölçülemeyen kısım da yazılı kalsın: değişmezlik eşiği %100 ama 180 çift
+yine aynı 26 altın sorudan türüyor — setin küçüklüğü (Sınırlar) burada da
 geçerli. Erişilebilirlik denetimi WCAG'nin makineyle ölçülebilen tabanıdır;
 klavyeyle gezinme ve ekran okuyucu deneyimi hâlâ elle denenir.
 

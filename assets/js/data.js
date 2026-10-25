@@ -409,7 +409,7 @@ const IRADE_KADEMELERI = [
   {
     kademe: 5,
     ad: "Kanlı Göz İradesi",
-    etki: "300 yılda bir doğar. Kırılması neredeyse imkânsızdır.",
+    etki: "Aşık olur; Kanlı Göz onu bundan koruyamaz. Ama emirler işlemez, saf bir köleye dönüşmez. 300 yılda bir doğar, kırılması neredeyse imkânsızdır.",
     ornek: "Kameracı Barış",
   },
 ];
