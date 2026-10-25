@@ -121,6 +121,9 @@ OLCUM = (
     ".claude/kanca-duman.py",
     ".claude/kanca-gorev.py",
     ".claude/veriblok.py",
+    # Sınav kopyası: beş sınav aracı depoyu buradan kopyalıyor. Kopya
+    # kaynakla durum paylaşırsa sınav yanlış sebeple yeşil ya da kırmızı olur.
+    ".claude/depokopya.py",
     # Dış ajan kapısı: neye dokunamayacağı burada yazılı.
     ".claude/disajan.py",
     # Talimat belgeleri: kuralın kendisi. Kuralı gevşeten bir satır, ölçüyü
