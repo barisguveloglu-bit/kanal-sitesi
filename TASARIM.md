@@ -152,8 +152,9 @@ Taşıyıcının beyni yeterince yıkanırsa, yıkayanlara **tek bir dilek hakk�
 Kötülerin dileği: kavgasız bir dünya. Ama bunu güçle kurmak istiyorlar.
 Aradıkları taşıyıcının adı da **Barış** — cümle iki anlama birden geliyor.
 
-Efsane unutuldu çünkü taşıyıcı isimlerinin kazındığı ağaç **1728'de**
-Osmanlı sarayının önüne dikildi, sonra kesilip ziyafetlerde tüketildi.
+Efsane unutuldu çünkü taşıyıcı isimlerinin kazındığı ağaç **Lâle Devri'nde**
+Osmanlı sarayının önüne dikildi, sonra 1731–1735'te kesilip ziyafetlerde
+tüketildi.
 
 Ton: **karanlık, gizemli, ağır.** Kayıp bir tarih ve gizli bir tehdit hissi.
 Kahramanlık değil, tedirginlik.
