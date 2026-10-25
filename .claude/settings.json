@@ -14,7 +14,18 @@
     ],
     "PreToolUse": [
       {
-        "matcher": "Agent|Task|Read",
+        "matcher": "Agent|Task|Read|Bash|mcp__claude-code-remote__create_session",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/olay.py\" dagit",
+            "timeout": 60
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
         "hooks": [
           {
             "type": "command",
@@ -30,15 +41,21 @@
           {
             "type": "command",
             "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/olay.py\" dagit",
-            "timeout": 30
+            "timeout": 60
           }
         ]
       }
     ]
   },
+  "worktree": {
+    "baseRef": "head"
+  },
   "permissions": {
     "allow": [
       "Bash(python3 .claude/dogrula.py:*)",
+      "Bash(python3 .claude/saglik.py:*)",
+      "Bash(python3 .claude/mandal.py olc)",
+      "Bash(python3 .claude/mandal.py kontrol)",
       "Bash(git status:*)",
       "Bash(git diff:*)",
       "Bash(git log:*)",

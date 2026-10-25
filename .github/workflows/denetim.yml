@@ -193,7 +193,9 @@ jobs:
     # sırayı tıkar — elle ve haftada bir yeterli.
     if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    # Birleşik sınavlarla (93 + 228 vaka, 84 mutasyon) ölçüldü: 58 dk.
+    # 60 dk sınırda kalınca zaman aşımı ölü test gibi kırmızı yanar.
+    timeout-minutes: 90
 
     steps:
       - uses: actions/checkout@v4

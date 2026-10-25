@@ -31,8 +31,9 @@ yapmadan önce o dosyayı oku — karakterler, güçler ve efsane orada tanıml�
 ## Çalışma döngüsü
 
 `.claude/` altında **Echo** adlı bir iş akışı katmanı var — **siteye ait
-değil, yayına çıkmıyor.** Bu dosya her oturumda baştan sona bağlama
-yükleniyor; burada yalnız **her oturumda geçerli kurallar** duruyor.
+değil, ama GitHub Pages onu da yayınlıyor** (DONGULER.md "Yayın sınırı").
+Bu dosya her oturumda baştan sona bağlama yükleniyor; burada yalnız
+**her oturumda geçerli kurallar** duruyor.
 Her aracın ne yaptığı ve neden var olduğu:
 [`.claude/DONGULER.md`](.claude/DONGULER.md) → **Araç dizini**.
 Bu dosyanın boyut bütçesi `dogrula.py`'de; aşılırsa ayrıntı oraya taşınır.
@@ -45,7 +46,9 @@ onayı gerekiyor; **0/1/3 dışında bir kod "geçti" sayılmaz.**
 `.html`/`.css`/`.js`/`.xml` ya da `LORE.md` düzenlenince kendiliğinden
 koşar (`settings.json` → `olay.py dagit` → `kanca.py`); GitHub'da
 `.github/workflows/denetim.yml` her push ve PR'da aynılarını koşturur.
-Commit'ten önce hepsi: `python3 .claude/kapi.py <dogrula|butunluk|sinav|arac-sinavi|degerlendir>`
+Tur sonunda ve `git commit`/`push` öncesinde `kanca-kapi.py` aynı denetimi
+çalışma ağacına uygular (Bash düzenlemeleri dahil); kırmızı commit insana
+sorulur. Commit'ten önce hepsi: `python3 .claude/kapi.py <dogrula|butunluk|sinav|arac-sinavi|degerlendir>`
 — kod 0 dönüp özet basmayan kapı **koşmadı** sayılır. Bütünlük sınavı
 canon ↔ veri ↔ site tutarlılığını ölçer (78 vaka).
 
@@ -57,10 +60,14 @@ verir, doğru parçayı değil: geleni oku, kabul etme.
 **Ölçüm katmanı.** Ölçen dosyalara (`bekci.py` listesi) dokunan commit,
 mesajında `ÖLÇÜM-DEĞİŞTİ: <gerekçe>` satırı taşır; merge kararı insanın.
 Hatayı düzeltmek için testi gevşetme — hata teste çevrilir
-(`geri-bildirim.py`, `iz.py`), kural değil.
+(`geri-bildirim.py`, `iz.py`), kural değil. `mandal.py kontrol` gevşeyen
+ölçüyü (silinen vaka, düşen eşik) yakalar; gevşeme insan kararıdır.
+`saglik.py --kaydet` bütün ölçümleri tek komutta koşar.
 
 **Alt ajanlar.** Gönderimden önce `python3 .claude/butce.py ajan`; brief
 `gorev.py` ile sözleşmeli yazılır (sözleşmesiz görev kancada engellenir).
+Yazma yetkili ajan ayrı çalışma ağacında (`isolation: "worktree"`) ya da
+ayrı bulut oturumunda koşar; yalıtımsız yazma görevi gönderilmez.
 `.claude/agents/` altında **22 denetçi + 5 üretici ajan**, hepsi salt
 okunur. Model tanımda: Sonnet 5; Opus yalnız `canon-denetci`,
 `kurgu-denetci`, `hikaye-yazari`, `karakter-yazari`; Haiku yalnız `tarama-denetci`.
@@ -95,7 +102,8 @@ ortak kural çapalarını iki dosyada arar).
 
 Komutlar: `/dongu` (tam akış), `/planla` (sadece plan), `/sor` (dayanaklı
 cevap), `/denetle` (sadece denetim), `/degerlendir` (sistemin ölçümü),
-`/yargila` (cevap kalitesi), `/geri-bildirim` (hatayı teste çevir),
+`/saglik` (bütün ölçümler), `/yargila` (cevap kalitesi),
+`/geri-bildirim` (hatayı teste çevir),
 `/surekli` (sınırlı otonom döngü), `/orkestra` (çok parçalı büyük iş).
 
 Denetleyici kural ihlalini yakalar ama canon'un anlamca tutarlı olduğunu

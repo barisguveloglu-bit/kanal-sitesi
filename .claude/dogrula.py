@@ -19,6 +19,7 @@ Siteye hiçbir şey eklemez, sadece okur.
 Çıkış kodu: 0 = temiz, 1 = kural ihlali, 3 = insan onayı gerekiyor.
 """
 
+import glob
 import json
 import os
 import re
@@ -74,6 +75,29 @@ HARITA_DISI = {"404.html", "gizli.html"}  # gizli.html noindex, haritaya girmez
 
 AA_SINIR = 4.5  # WCAG AA — normal boyut metin
 
+SITE_ADRESI = "https://barisguveloglu-bit.github.io/kanal-sitesi/"
+
+# CLAUDE.md: "Sitede hiç kullanıcı verisi toplanmıyor. Form yok, giriş yok,
+# çerez yok." ve "hiçbir dış servise bağlı değil". Veri dışarı ancak bu
+# kanallardan çıkabilir. localStorage burada YOK: cihazdan çıkmaz, tercih
+# hatırlamak için bilerek kullanılıyor.
+VERI_KANALLARI = (
+    (r"document\.cookie", "çerez (document.cookie)"),
+    (r"\bfetch\s*\(", "ağ isteği (fetch)"),
+    (r"\bXMLHttpRequest\b", "ağ isteği (XMLHttpRequest)"),
+    (r"\bsendBeacon\b", "izleme isteği (sendBeacon)"),
+    (r"\bnew\s+WebSocket\b", "kalıcı bağlantı (WebSocket)"),
+    (r"\bnew\s+EventSource\b", "sunucu akışı (EventSource)"),
+)
+# Dış kaynaktan bir şey YÜKLEMEK ziyaretçinin adresini o servise verir.
+# Tek istisna YouTube: kanalın kendisi, video kapakları oradan geliyor.
+IZINLI_DIS_SUNUCU = ("i.ytimg.com", "img.youtube.com",
+                     "www.youtube.com", "www.youtube-nocookie.com")
+YUKLEYEN_REL = {"stylesheet", "preload", "modulepreload", "prefetch",
+                "preconnect", "dns-prefetch", "icon"}
+PAKET_IZLERI = ("package.json", "package-lock.json", "yarn.lock",
+                "pnpm-lock.yaml", "node_modules")
+
 
 # ----------------------------------------------------------------- yardımcılar
 
@@ -120,6 +144,23 @@ def git_goster(yol):
 
 def html_dosyalari():
     return sorted(a for a in os.listdir(KOK) if a.endswith(".html"))
+
+
+def varlik_dosyalari(klasor, uzanti):
+    """assets/<klasor> altındaki bütün dosyalar — elle yazılmış liste değil.
+
+    Elle yazılan liste yeni dosyayı kör noktaya düşürüyordu: goz.js hiçbir
+    gizleme denetimine, animasyon.css hiçbir odak denetimine girmiyordu.
+    Kural dosya eklenince kendiliğinden genişlemeli.
+    """
+    yol = os.path.join(KOK, "assets", klasor)
+    if not os.path.isdir(yol):
+        return []
+    return sorted(f"assets/{klasor}/{a}" for a in os.listdir(yol) if a.endswith(uzanti))
+
+
+def html_yorumlari_at(html):
+    return re.sub(r"<!--.*?-->", "", html, flags=re.S)
 
 
 def yorumlari_at(css):
@@ -243,7 +284,7 @@ def d_gizleme(r):
 
     # Gizleme opacity ile yapılmamalı. Bu bir uyarı değil hatadır: hareket
     # azaltma açıkken opacity ile gizlenen şey bir daha ASLA görünmez.
-    for dosya in ("assets/js/app.js", "assets/js/animasyon.js", "assets/js/gizli.js"):
+    for dosya in varlik_dosyalari("js", ".js"):
         js = js_yorumlari_at(oku(dosya))
         for eslesme in re.finditer(r"style\.opacity\s*=\s*['\"]?0(\.0+)?['\"]?", js):
             satir = js[:eslesme.start()].count("\n") + 1
@@ -254,19 +295,21 @@ def d_gizleme(r):
 
 
 def d_odak(r):
-    """Odak halkası silinmiş mi."""
-    css = yorumlari_at(oku("assets/css/style.css"))
-    bulundu = False
-    for eslesme in re.finditer(r"outline\s*:\s*(none|0)\b", css):
-        onceki = css.rfind("{", 0, eslesme.start())
-        secici = css[max(0, css.rfind("}", 0, onceki)) + 1:onceki]
-        if ":focus-visible" in secici:
-            continue  # tasarımın kendi kuralı
-        satir = css[:eslesme.start()].count("\n") + 1
-        r.hata("odak", f"style.css:{satir} `outline: none` — odak halkası silinemez.")
-        bulundu = True
-    if not bulundu:
-        r.tamam()
+    """Odak halkası silinmiş mi — bütün stil dosyalarında."""
+    for dosya in varlik_dosyalari("css", ".css"):
+        css = yorumlari_at(oku(dosya))
+        bulundu = False
+        for eslesme in re.finditer(r"outline\s*:\s*(none|0)\b", css):
+            onceki = css.rfind("{", 0, eslesme.start())
+            secici = css[max(0, css.rfind("}", 0, onceki)) + 1:onceki]
+            if ":focus-visible" in secici:
+                continue  # tasarımın kendi kuralı
+            satir = css[:eslesme.start()].count("\n") + 1
+            r.hata("odak", f"{os.path.basename(dosya)}:{satir} `outline: none` — "
+                           "odak halkası silinemez.")
+            bulundu = True
+        if not bulundu:
+            r.tamam()
 
 
 def d_defer(r):
@@ -390,16 +433,447 @@ def d_lore(r):
     lore = oku("LORE.md")
     js = oku("assets/js/data.js")
 
-    for blok_adi in ("const KARAKTERLER = [", "const IRADE_KADEMELERI = ["):
+    # Eskiden sadece karakterler ve kademeler bakılıyordu; komutanlar, mafya
+    # tepesi ve icraat sahipleri hiçbir denetime girmiyordu.
+    for blok_adi, alan in (("const KARAKTERLER = [", "ad"),
+                           ("const IRADE_KADEMELERI = [", "ad"),
+                           ("const MAFYA_TEPE = [", "ad"),
+                           ("const KOMUTANLAR = [", "ad"),
+                           ("const ICRAATLER = [", "karakter")):
         blok = js_yorumlari_at(blok_al(js, blok_adi))
         if not blok:
             continue
-        for ad in re.findall(r'\bad\s*:\s*"([^"]+)"', blok):
+        for ad in re.findall(r'\b' + alan + r'\s*:\s*"([^"]+)"', blok):
             if ad not in lore:
                 r.hata("lore", f"data.js'te \"{ad}\" var, LORE.md'de yok. "
                                "İçerik değişince ikisi senkron kalmalı.")
             else:
                 r.tamam()
+
+    # 81 derebeyi iki dosyada da TABLO olarak duruyor. Adın LORE'da bir yerde
+    # geçmesi yetmez: iki ilin derebeyi yer değiştirse ikisi de "geçiyor" olur.
+    # Satır satır eşleşmeli — plaka, il ve ad birlikte.
+    canon = {int(p): (il.strip(), ad.strip()) for p, il, ad in re.findall(
+        r"(?m)^\|\s*(\d+)\s*\|\s*([^|]+?)\s*\|\s*\*\*([^*]+)\*\*\s*\|", lore)}
+    blok = js_yorumlari_at(blok_al(js, "const IL_DEREBEYLERI = ["))
+    for plaka, il, ad in re.findall(
+            r'plaka\s*:\s*(\d+)\s*,\s*il\s*:\s*"([^"]+)"[^}]*?\bad\s*:\s*"([^"]+)"', blok):
+        beklenen = canon.get(int(plaka))
+        if beklenen is None:
+            r.hata("lore", f"data.js: {plaka} plakalı il ({il}) LORE.md derebeyi "
+                           "tablosunda yok.")
+        elif beklenen != (il, ad):
+            r.hata("lore", f"data.js: {plaka} → {il} / {ad}, ama LORE.md "
+                           f"{beklenen[0]} / {beklenen[1]} diyor.")
+        else:
+            r.tamam()
+
+
+def d_veri(r):
+    """data.js kendi içinde tutarlı mı — CLAUDE.md'deki iddialar ölçülsün.
+
+    "81 ilin 81'i de dolu, ad: null kalmadı" CLAUDE.md'de yazılı bir
+    iddiaydı, hiçbir denetim ona bakmıyordu. Yazı olarak duran iddia,
+    bir sonraki düzenlemede sessizce yalana dönüşür.
+    """
+    js = js_yorumlari_at(oku("assets/js/data.js"))
+
+    # Kimlikler tekil olmalı — derin bağlantı (karakterler.html#kimlik) buna dayanıyor.
+    kimlikler = re.findall(r'\bid\s*:\s*"([^"]+)"', blok_al(js, "const KARAKTERLER = ["))
+    for k in sorted({k for k in kimlikler if kimlikler.count(k) > 1}):
+        r.hata("veri", f"data.js: KARAKTERLER içinde `id: \"{k}\"` birden fazla.")
+    if kimlikler:
+        r.tamam()
+
+    gecerli_taraf = {"iyi", "kotu", "belirsiz"}
+    for blok_adi in ("const KARAKTERLER = [", "const ICRAATLER = ["):
+        for taraf in re.findall(r'\btaraf\s*:\s*"([^"]*)"', blok_al(js, blok_adi)):
+            if taraf not in gecerli_taraf:
+                r.hata("veri", f"data.js: {blok_adi.split()[1]} içinde geçersiz "
+                               f"`taraf: \"{taraf}\"` (iyi / kotu / belirsiz).")
+
+    blok = blok_al(js, "const IL_DEREBEYLERI = [")
+    satirlar = re.findall(r"\{[^{}]*\bplaka\s*:[^{}]*\}", blok)
+    plakalar = [int(p) for p in re.findall(r"\bplaka\s*:\s*(\d+)", blok)]
+    if sorted(plakalar) != list(range(1, 82)):
+        eksik = sorted(set(range(1, 82)) - set(plakalar))
+        fazla = sorted({p for p in plakalar if plakalar.count(p) > 1})
+        r.hata("veri", f"data.js: IL_DEREBEYLERI 81 ili tam kapsamıyor "
+                       f"({len(plakalar)} kayıt; eksik {eksik[:5]}, yinelenen {fazla[:5]}).")
+    else:
+        r.tamam()
+
+    komutanlar = set(re.findall(r'\bid\s*:\s*"([^"]+)"', blok_al(js, "const KOMUTANLAR = [")))
+    for satir in satirlar:
+        plaka = re.search(r"\bplaka\s*:\s*(\d+)", satir).group(1)
+        if not re.search(r'\bad\s*:\s*"[^"]+"', satir):
+            r.hata("veri", f"data.js: {plaka} plakalı ilin derebeyi adı boş "
+                           "(ad: null). CLAUDE.md 81/81 dolu diyor.")
+        komutan = re.search(r'\bkomutan\s*:\s*"([^"]*)"', satir)
+        if komutanlar and (not komutan or komutan.group(1) not in komutanlar):
+            r.hata("veri", f"data.js: {plaka} plakalı il var olmayan bir komutana "
+                           f"bağlı ({komutan.group(1) if komutan else 'yok'}).")
+    if satirlar:
+        r.tamam()
+
+
+def d_gizlilik(r):
+    """Veri toplamama ve dış servise bağlanmama kuralı.
+
+    CLAUDE.md'nin en temel kuralı buydu ve hiçbir denetim ona bakmıyordu.
+    Bir analitik betiği, bir yazı tipi CDN'i ya da tek bir fetch() sitenin
+    ziyaretçi hakkında bir yere bilgi göndermesi demektir.
+    """
+    site_sunucusu = re.match(r"https?://([^/]+)", SITE_ADRESI).group(1)
+
+    def dis_sunucu(adres):
+        m = re.match(r"(?:https?:)?//([^/\"'?#]+)", adres.strip())
+        if not m or m.group(1) == site_sunucusu:
+            return None
+        return m.group(1)
+
+    for dosya in html_dosyalari():
+        html = html_yorumlari_at(oku(dosya))
+        if re.search(r"<form\b", html, re.I):
+            r.hata("gizlilik", f"{dosya}: <form> var. Sitede form yok — soru-cevap "
+                               "YouTube yorumlarında.")
+        if re.search(r'type\s*=\s*"password"', html, re.I):
+            r.hata("gizlilik", f"{dosya}: parola alanı var. Sitede giriş yok.")
+        for etiket in re.finditer(r"<(script|link|iframe|img|audio|video|source|embed|object)\b[^>]*>",
+                                  html, re.I):
+            govde = etiket.group(0)
+            if etiket.group(1).lower() == "link":
+                rel = re.search(r'rel\s*=\s*"([^"]*)"', govde)
+                if not rel or not (set(rel.group(1).lower().split()) & YUKLEYEN_REL):
+                    continue  # canonical gibi — bir şey yüklemiyor
+            for adres in re.findall(r'\b(?:src|href|data)\s*=\s*"([^"]*)"', govde):
+                sunucu = dis_sunucu(adres)
+                if sunucu and sunucu not in IZINLI_DIS_SUNUCU:
+                    satir = html[:etiket.start()].count("\n") + 1
+                    r.hata("gizlilik", f"{dosya}:{satir} dış kaynak yükleniyor → {sunucu}. "
+                                       "Site hiçbir dış servise bağlı değil.")
+        r.tamam()
+
+    kaynaklar = [(d, js_yorumlari_at(oku(d))) for d in varlik_dosyalari("js", ".js")]
+    kaynaklar += [(d, html_yorumlari_at(oku(d))) for d in html_dosyalari()]
+    for dosya, metin in kaynaklar:
+        for desen, ne in VERI_KANALLARI:
+            for eslesme in re.finditer(desen, metin):
+                satir = metin[:eslesme.start()].count("\n") + 1
+                r.hata("gizlilik", f"{dosya}:{satir} {ne}. Sitede veri toplanmıyor, "
+                                   "backend yok — önce Barış'a sor.")
+    r.tamam()
+
+    for dosya in varlik_dosyalari("css", ".css"):
+        css = yorumlari_at(oku(dosya))
+        for eslesme in re.finditer(r"(?:@import\s+|url\(\s*)['\"]?((?:https?:)?//[^'\")\s]+)", css):
+            sunucu = dis_sunucu(eslesme.group(1))
+            if sunucu and sunucu not in IZINLI_DIS_SUNUCU:
+                satir = css[:eslesme.start()].count("\n") + 1
+                r.hata("gizlilik", f"{os.path.basename(dosya)}:{satir} dış kaynak "
+                                   f"yükleniyor → {sunucu}.")
+        r.tamam()
+
+    for iz in PAKET_IZLERI:
+        if os.path.exists(os.path.join(KOK, iz)):
+            r.hata("gizlilik", f"kökte {iz} var. Derleme adımı ve paket yöneticisi "
+                               "yok — sadelik bilinçli bir tercih.")
+    r.tamam()
+
+
+def d_erisim(r):
+    """Erişilebilirliğin makineyle ölçülebilen tabanı (WCAG 2.2) [K14][K15].
+
+    Kontrast ve odak halkası zaten ölçülüyordu; ama ekran okuyucunun ve
+    yakınlaştırmanın dayandığı temel işaretlemeye hiçbir şey bakmıyordu.
+    Bunlar bugün yerinde — denetim onları yerinde TUTMAK için:
+
+      3.1.1  sayfa dili     <html lang="tr">: ekran okuyucu Türkçe okusun
+      2.4.2  sayfa başlığı  boş olmayan <title>
+      1.1.1  metin dışı     her <img> bir alt taşır (süsse alt="")
+      4.1.2  ad             metinsiz bağlantı / düğme bir ad taşır
+      1.4.4  yeniden boyut  viewport yakınlaştırmayı kapatmaz
+      başlık sırası         derine inerken düzey atlanmaz (h2 → h4) [K15]
+    """
+    for dosya in html_dosyalari():
+        html = html_yorumlari_at(oku(dosya))
+
+        if not re.search(r'<html\b[^>]*\blang\s*=\s*"tr"', html):
+            r.hata("erisim", f"{dosya}: <html lang=\"tr\"> yok — ekran okuyucu "
+                             "metni yanlış dilde seslendirir (WCAG 3.1.1).")
+        baslik = re.search(r"<title>(.*?)</title>", html, re.S)
+        if not baslik or not baslik.group(1).strip():
+            r.hata("erisim", f"{dosya}: boş ya da eksik <title> (WCAG 2.4.2).")
+
+        for etiket in re.finditer(r"<img\b[^>]*>", html):
+            if not re.search(r"\balt\s*=", etiket.group(0)):
+                satir = html[:etiket.start()].count("\n") + 1
+                r.hata("erisim", f"{dosya}:{satir} <img> alt taşımıyor; süsse "
+                                 "alt=\"\" yaz (WCAG 1.1.1).")
+
+        for ad, kalip in (("bağlantı", r"<a\b([^>]*)>(.*?)</a>"),
+                          ("düğme", r"<button\b([^>]*)>(.*?)</button>")):
+            for eslesme in re.finditer(kalip, html, re.S):
+                oznitelik, ic = eslesme.groups()
+                metin = re.sub(r"<[^>]+>", "", re.sub(
+                    r'<[^>]*aria-hidden\s*=\s*"true"[^>]*>.*?</[^>]+>', "", ic, flags=re.S))
+                if not metin.strip() and not re.search(r"\baria-label(ledby)?\s*=\s*\"[^\"]+",
+                                                       oznitelik):
+                    satir = html[:eslesme.start()].count("\n") + 1
+                    r.hata("erisim", f"{dosya}:{satir} metinsiz {ad}: ekran okuyucu "
+                                     "ne olduğunu söyleyemez (WCAG 4.1.2).")
+
+        bakis = re.search(r'<meta\b[^>]*name\s*=\s*"viewport"[^>]*>', html)
+        if bakis and re.search(r"user-scalable\s*=\s*(no|0)|maximum-scale\s*=\s*1(\.0*)?\b",
+                               bakis.group(0)):
+            r.hata("erisim", f"{dosya}: viewport yakınlaştırmayı kapatıyor (WCAG 1.4.4).")
+
+        onceki = 0
+        for eslesme in re.finditer(r"<h([1-6])\b", html):
+            duzey = int(eslesme.group(1))
+            if onceki and duzey > onceki + 1:
+                satir = html[:eslesme.start()].count("\n") + 1
+                r.hata("erisim", f"{dosya}:{satir} başlık düzeyi atlıyor "
+                                 f"(h{onceki} → h{duzey}).")
+            onceki = duzey
+        r.tamam()
+
+    # JS ile basılan görseller de aynı kurala tabi: şablon dizesindeki <img>.
+    for dosya in varlik_dosyalari("js", ".js"):
+        js = js_yorumlari_at(oku(dosya))
+        for etiket in re.finditer(r"<img\b[^>]*>", js):
+            if not re.search(r"\balt\s*=", etiket.group(0)):
+                satir = js[:etiket.start()].count("\n") + 1
+                r.hata("erisim", f"{dosya}:{satir} şablondaki <img> alt taşımıyor "
+                                 "(WCAG 1.1.1).")
+    r.tamam()
+
+
+def sayfa_kimlikleri(dosya, _onbellek={}):
+    """Bir sayfada #parca olarak hedeflenebilecek kimlikler.
+
+    Statik `id="..."` yetmez: karakter kartları JS ile basılıyor ve
+    kimliklerini data.js'ten alıyor (karakterler.html#kameraci-baris).
+    """
+    if dosya not in _onbellek:
+        html = html_yorumlari_at(oku(dosya))
+        kimlik = set(re.findall(r'\b(?:id|name)\s*=\s*"([^"$]+)"', html))
+        kimlik |= set(re.findall(r'\bid\s*:\s*"([^"]+)"', js_yorumlari_at(oku("assets/js/data.js"))))
+        _onbellek[dosya] = kimlik
+    return _onbellek[dosya]
+
+
+def d_baglanti(r):
+    """İç bağlantılar ve kaynaklar gerçekten var olan bir yere mi gidiyor.
+
+    Statik sitenin en tipik çürümesi: bir dosya yeniden adlandırılır, bir
+    karakterin kimliği değişir, bağlantı sessizce 404'e döner. Menü denetimi
+    sadece menüye bakıyordu; sayfa içi bağlantılara, paylaşım görseline,
+    canonical adreslere ve data.js'teki `yol` alanlarına hiçbir şey bakmıyordu.
+    """
+    def coz(adres, kaynak):
+        adres = adres.strip()
+        if not adres or adres.startswith(("mailto:", "tel:", "data:", "javascript:")) \
+                or "${" in adres:
+            return None
+        if adres.startswith(SITE_ADRESI):
+            adres = adres[len(SITE_ADRESI):] or "index.html"
+        elif re.match(r"(?:[a-z]+:)?//", adres):
+            return None  # dış bağlantıya gitmek (yüklemek değil) serbest
+        yol, _, parca = adres.partition("#")
+        yol = yol.split("?")[0]
+        if not yol:
+            yol = kaynak
+        elif yol.endswith("/"):
+            yol += "index.html"
+        return yol, parca
+
+    def denetle(adres, kaynak, nerede):
+        cozulen = coz(adres, kaynak)
+        if cozulen is None:
+            return
+        yol, parca = cozulen
+        if not os.path.exists(os.path.join(KOK, yol)):
+            r.hata("baglanti", f"{nerede}: `{adres}` → {yol} yok.")
+        elif parca and yol.endswith(".html") and parca not in sayfa_kimlikleri(yol):
+            r.hata("baglanti", f"{nerede}: `{adres}` → {yol} içinde #{parca} yok.")
+        else:
+            r.tamam()
+
+    for dosya in html_dosyalari():
+        html = html_yorumlari_at(oku(dosya))
+        for eslesme in re.finditer(r'\b(?:href|src)\s*=\s*"([^"]*)"', html):
+            satir = html[:eslesme.start()].count("\n") + 1
+            denetle(eslesme.group(1), dosya, f"{dosya}:{satir}")
+        for eslesme in re.finditer(r'\bcontent\s*=\s*"(' + re.escape(SITE_ADRESI) + r'[^"]*)"', html):
+            satir = html[:eslesme.start()].count("\n") + 1
+            denetle(eslesme.group(1), dosya, f"{dosya}:{satir}")
+
+    for adres in re.findall(r"<loc>([^<]+)</loc>", oku("sitemap.xml")):
+        denetle(adres, "index.html", "sitemap.xml")
+
+    js = js_yorumlari_at(oku("assets/js/data.js"))
+    for eslesme in re.finditer(r'\byol\s*:\s*"([^"]+)"', js):
+        satir = js[:eslesme.start()].count("\n") + 1
+        denetle(eslesme.group(1), "index.html", f"data.js:{satir}")
+
+
+def d_capa(r):
+    """Altın setin satır numaraları hâlâ doğru satırı mı gösteriyor.
+
+    Altın set LORE.md'ye satır numarasıyla bağlı. LORE.md düzenlenince
+    satırlar kayar — ama bunu sadece degerlendir.py görüyordu, o da elle
+    çalıştırılınca. Kanca LORE.md düzenlemesinde sadece bu betiği çağırıyor;
+    kayma ancak bir sonraki ölçümde, çoğu zaman günler sonra fark ediliyordu.
+
+    Her altın sorunun satırı, kendi gerçeklerinden en az birini içermek
+    zorunda. İçermiyorsa iki ihtimal var ve ayrı ele alınıyor:
+      - gerçek başka satıra kaymış  → hata, yeni satır numarası söylenir
+      - gerçek LORE.md'den silinmiş → insan kapısı: canon değişmiş olabilir,
+        ölçümü kimin uyduracağına Barış karar verir
+    """
+    import json as _json
+    yol = os.path.join(KOK, ".claude", "altin-sorular.json")
+    if not os.path.exists(yol):
+        return
+    with open(yol, encoding="utf-8") as f:
+        sorular = _json.load(f).get("sorular", [])
+    lore = oku("LORE.md").splitlines()
+
+    for soru in sorular:
+        satir, gercekler = soru.get("satir"), soru.get("gercekler") or []
+        if not satir or not gercekler:
+            continue
+        # Cevabı birden fazla yerde olan soru satır LİSTESİ taşır ("komutanlar
+        # kaç tır kaldırıyor": düzyazı ve tablo). Listedeki her satır kendi
+        # başına doğru yer olmalı — biri kayarsa o satır söylenir.
+        satirlar = satir if isinstance(satir, list) else [satir]
+        kayan = [n for n in satirlar
+                 if not (0 < n <= len(lore)
+                         and any(g.lower() in lore[n - 1].lower() for g in gercekler))]
+        if not kayan:
+            r.tamam()
+            continue
+        yeni = [i + 1 for i, s in enumerate(lore)
+                if any(g.lower() in s.lower() for g in gercekler)]
+        if yeni:
+            r.hata("capa", f"altin-sorular.json: \"{soru['soru']}\" → "
+                           f"LORE.md:{', '.join(map(str, kayan))} "
+                           f"artık \"{gercekler[0]}\" içermiyor; satır kaymış → "
+                           f"LORE.md:{', '.join(map(str, yeni[:3]))}. Altın seti güncelle.")
+        else:
+            r.kapi("capa", f"altin-sorular.json: \"{soru['soru']}\" için gerçek "
+                           f"\"{gercekler[0]}\" LORE.md'de HİÇ yok.\n"
+                           "        Canon değişmiş olabilir. Altın seti kendi başına "
+                           "uydurma — Barış'a sor.")
+
+
+def d_kanca(r):
+    """Kancalar gerçekten çalışabilir durumda mı.
+
+    Kancanın bozulması sessizdir: settings.json'da yanlış bir yol ya da
+    betikte bir sözdizimi hatası, Claude Code'da sadece küçük bir uyarı
+    üretir ve döngü kendiliğinden KAPANIR. Kimse "kanca çalışmadı" demez;
+    denetim yapılmamıştır, o kadar.
+    """
+    import json as _json
+    ayar_yolu = os.path.join(KOK, ".claude", "settings.json")
+    if not os.path.exists(ayar_yolu):
+        r.uyari("kanca", ".claude/settings.json yok — hiçbir kanca çalışmıyor.")
+        return
+    try:
+        with open(ayar_yolu, encoding="utf-8") as f:
+            ayar = _json.load(f)
+    except ValueError as e:
+        r.hata("kanca", f".claude/settings.json okunamıyor ({e}). Bozuk ayar "
+                        "dosyası, içindeki BÜTÜN kancaları kapatır.")
+        return
+
+    calisan = {}        # betik → onu çalıştıran ilk olay
+    yonlenen = set()    # settings.json'ın olay.py'ye yönlendirdiği olaylar
+    for olay, gruplar in (ayar.get("hooks") or {}).items():
+        for grup in gruplar:
+            for kanca in grup.get("hooks", []):
+                for betik in re.findall(r"\.claude/([\w.-]+\.py)", kanca.get("command", "")):
+                    calisan.setdefault(betik, olay)
+                    if betik == "olay.py":
+                        yonlenen.add(olay)
+
+    # Dağıtıcı: settings.json yalnız olay.py'yi çağırıyor, asıl işleyiciler
+    # olay.py'deki DINLEYICILER tablosunda. Sağlık oradan ölçülmezse bozuk
+    # bir işleyici bu denetime hiç görünmez — nitekim görünmüyordu.
+    dagitici = os.path.join(KOK, ".claude", "olay.py")
+    if yonlenen and os.path.exists(dagitici):
+        import ast as _ast
+        try:
+            with open(dagitici, encoding="utf-8") as f:
+                agac = _ast.parse(f.read())
+            tablo = next(_ast.literal_eval(d.value) for d in agac.body
+                         if isinstance(d, _ast.Assign)
+                         and any(getattr(h, "id", "") == "DINLEYICILER" for h in d.targets))
+        except (SyntaxError, ValueError, StopIteration) as e:
+            r.hata("kanca", f".claude/olay.py dinleyici tablosu okunamıyor "
+                            f"({type(e).__name__}) — bütün kancalar oradan geçiyor.")
+            tablo = []
+        for olay, _, betik, _ in tablo:
+            if olay not in yonlenen:
+                r.hata("kanca", f"olay.py'de {olay} → {betik} dinleyicisi var ama "
+                                f"settings.json {olay} olayını olay.py'ye yönlendirmiyor "
+                                "— hiç çalışmaz.")
+            calisan.setdefault(betik, olay)
+
+    for betik, olay in calisan.items():
+        yol = os.path.join(KOK, ".claude", betik)
+        if not os.path.exists(yol):
+            r.hata("kanca", f"{olay} kancası .claude/{betik} çağırıyor, dosya yok.")
+            continue
+        try:
+            with open(yol, encoding="utf-8") as f:
+                compile(f.read(), yol, "exec")
+        except SyntaxError as e:
+            r.hata("kanca", f".claude/{betik}:{e.lineno} sözdizimi hatası — "
+                            f"{olay} kancası sessizce devre dışı kalır.")
+        else:
+            r.tamam()
+
+
+def d_mandal(r):
+    """Ölçü gevşetildi mi — eşik düştü, vaka silindi, sınır büyüdü mü.
+
+    "Eşik indirerek, vaka silerek yeşile ulaşmak yasak" /surekli içinde
+    yazıyordu, ama sadece yazıyordu. Asıl kontrol mandal.py'de.
+    """
+    import importlib.util
+    yol = os.path.join(KOK, ".claude", "mandal.py")
+    if not os.path.exists(yol):
+        # Mandalın kendisini silmek, bütün ölçüleri tek hamlede gevşetmektir.
+        # Taban duruyorsa (yerelde ya da HEAD'de) araç bilinçli olarak vardı.
+        if os.path.exists(os.path.join(KOK, ".claude", "mandal.json")) or \
+                git_goster(".claude/mandal.json") is not None:
+            r.kapi("mandal", "mandal.py yok ama ölçü tabanı duruyor — mandal "
+                             "silinmiş. Ölçü korumasız kaldı; Barış onaylamadıysa geri getir.")
+        return
+    try:
+        tanim = importlib.util.spec_from_file_location("_mandal", yol)
+        mandal = importlib.util.module_from_spec(tanim)
+        tanim.loader.exec_module(mandal)
+        sonuc = mandal.karsilastir(KOK)
+    except Exception as e:
+        r.hata("mandal", f"mandal.py çalışmadı ({type(e).__name__}: {e}).")
+        return
+    for ad, mesaj in sonuc["olcum_hatasi"]:
+        r.hata("mandal", f"{ad} ölçülemedi: {mesaj}")
+    kural = {"yukari": "düşmemeli", "asagi": "büyümemeli", "esit": "onaysız değişmemeli"}
+    for ad, taban, simdi, yon in sonuc["gevsedi"]:
+        r.kapi("mandal", f"{ad}: taban {taban}, şimdi {simdi} — ölçü gevşedi "
+                         f"({kural.get(yon, 'değişmemeli')}).\n"
+                         "        Bilinçli bir karar değilse geri al. Barış onaylarsa: "
+                         "python3 .claude/mandal.py kaydet --gerekce \"...\"")
+    for ad, taban, simdi, _ in sonuc["siki"]:
+        r.uyari("mandal", f"{ad}: taban {taban} → {simdi}. Mandalı ilerlet: "
+                          "python3 .claude/mandal.py kaydet")
+    if not sonuc["gevsedi"] and not sonuc["olcum_hatasi"]:
+        r.tamam()
 
 
 def d_belge(r):
@@ -518,6 +992,12 @@ def d_belge(r):
             ham, gercekler = soru.get("satir"), soru.get("gercekler") or []
             numaralar = ham if isinstance(ham, list) else [ham]
             if not gercekler or not all(isinstance(n, int) for n in numaralar):
+                continue
+            # Gerçek LORE'un HİÇBİR yerinde yoksa bu kayma değil canon
+            # değişikliğidir: `capa` insan kapısına çıkarır. Burada hata
+            # saymak, Barış'ın kararını "düzeltilecek kusur" diye modele vermek
+            # olurdu.
+            if not any(g.lower() in s.lower() for s in satirlar for g in gercekler):
                 continue
             for no in numaralar:
                 if not (1 <= no <= len(satirlar)):
@@ -881,6 +1361,52 @@ def d_belge(r):
         else:
             r.tamam()
 
+    # Kaynakça: kaynaksız atıf yok, atıfsız kaynak yok, adressiz kaynak yok.
+    # Bu katmanın kuralı canon için neyse kendisi için de o: her iddia
+    # kontrol edilebilir bir adrese bağlanır.
+    tanimli = {}
+    _, ayrac, kaynakca = belge.partition("\n## Kaynaklar")
+    if ayrac:
+        for no, satir in re.findall(r"(?m)^- \*\*\[K(\d+)\]\*\*(.*)$", kaynakca):
+            tanimli[int(no)] = satir
+    # Atıf belgenin HER yerinde aranır — kaynakça bölümünün içi dahil; sadece
+    # tanım işaretinin kendisi atıf sayılmaz.
+    metinler = [re.sub(r"(?m)^- \*\*\[K\d+\]\*\*", "", belge)]
+    for yol in sorted(glob.glob(os.path.join(KOK, ".claude", "*.py"))
+                      + glob.glob(os.path.join(KOK, ".claude", "commands", "*.md"))
+                      + [os.path.join(KOK, "CLAUDE.md")]):
+        if os.path.exists(yol):
+            with open(yol, encoding="utf-8") as f:
+                metinler.append(f.read())
+    kullanilan = {int(n) for m in metinler for n in re.findall(r"\[K(\d+)\]", m)}
+    for no in sorted(kullanilan - set(tanimli)):
+        r.hata("belge", f"[K{no}] atfı var ama DONGULER.md Kaynaklar bölümünde tanımlı değil.")
+    for no in sorted(set(tanimli) - kullanilan):
+        r.hata("belge", f"[K{no}] kaynağı tanımlı ama hiçbir yerde atıf almıyor.")
+    for no, satir in sorted(tanimli.items()):
+        if not re.search(r"https?://|doi\.org/|\b10\.\d{4,}/", satir):
+            r.hata("belge", f"[K{no}] kaynağının adresi (bağlantı ya da DOI) yok — "
+                            "doğrulanamayan kaynak, kaynak değildir.")
+    if tanimli or kullanilan:
+        r.tamam()
+
+    # Belgelenmemiş denetim, komut ya da araç: var ama kimse bilmiyor.
+    for anahtar in DENETIMLER:
+        if f"| `{anahtar}` |" not in belge:
+            r.hata("belge", f"DONGULER.md: `{anahtar}` denetimi denetim tablosunda yok.")
+        else:
+            r.tamam()
+    komut_klasoru = os.path.join(KOK, ".claude", "commands")
+    if os.path.isdir(komut_klasoru):
+        for dosya in sorted(os.listdir(komut_klasoru)):
+            if dosya.endswith(".md") and f"`/{dosya[:-3]}" not in belge:
+                r.hata("belge", f"DONGULER.md: /{dosya[:-3]} komutu komut tablosunda yok.")
+    for dosya in sorted(os.listdir(os.path.join(KOK, ".claude"))):
+        if dosya.endswith(".py") and dosya not in belge:
+            r.hata("belge", f"DONGULER.md: .claude/{dosya} hiç anılmıyor — "
+                            "belgelenmemiş araç.")
+    r.tamam()
+
     talimat_belgeleri(r)
 
 
@@ -960,6 +1486,13 @@ DENETIMLER = {
     "video": ("Yeni video (insan kapısı)", d_video),
     "kontrast": ("Renk kontrastı", d_kontrast),
     "lore": ("LORE ↔ data senkronu", d_lore),
+    "veri": ("data.js iç tutarlılığı", d_veri),
+    "gizlilik": ("Veri toplamama / dış servis yok", d_gizlilik),
+    "erisim": ("Erişilebilirlik tabanı (WCAG 2.2)", d_erisim),
+    "baglanti": ("İç bağlantı bütünlüğü", d_baglanti),
+    "capa": ("Altın set satır çapası", d_capa),
+    "kanca": ("Kanca sağlığı", d_kanca),
+    "mandal": ("Ölçü mandalı (insan kapısı)", d_mandal),
     "belge": ("Belge ↔ betik senkronu", d_belge),
 }
 
@@ -981,6 +1514,9 @@ def main(argv):
             islev(r)
         except FileNotFoundError as e:
             r.hata(anahtar, f"dosya bulunamadı: {e.filename}")
+        except Exception as e:
+            # Bir denetimin çökmesi diğerlerini görünmez kılmamalı.
+            r.hata(anahtar, f"denetim çöktü ({type(e).__name__}: {e}).")
 
     if r.hatalar:
         print("HATA")

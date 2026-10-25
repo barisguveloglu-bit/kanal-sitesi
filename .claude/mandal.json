@@ -1,0 +1,31 @@
+{
+  "_aciklama": [
+    "Ölçü mandalı tabanı — mandal.py yazar, elle düzenlenmez.",
+    "Değerler sadece sıkılaşma yönünde ilerler. Gevşeme insan kararıdır:",
+    "'gecmis' her gevşemeyi gerekçesiyle tutar."
+  ],
+  "olculer": {
+    "sinav.vaka": 93,
+    "sinav.tuzak": 80,
+    "sinav.masum": 13,
+    "arac_sinavi.vaka": 228,
+    "mutasyon.sayi": 84,
+    "altin.soru": 24,
+    "altin.konu_disi": 4,
+    "altin.cevapsiz": 6,
+    "dogrula.denetim": 17,
+    "dogrula.aa_sinir": 4.5,
+    "degerlendir.isabet3": 0.9,
+    "degerlendir.kapsama": 0.9,
+    "degerlendir.konu_disi": 1,
+    "degerlendir.cevapsiz": 1,
+    "degerlendir.degismezlik": 1,
+    "gorev.atif_esik": 0.25,
+    "devre.varsayilan_sinir": 3,
+    "devre.varsayilan_sure": 1800,
+    "devre.tekrar_sinir": 3,
+    "kanca.devre_sinir": 3,
+    "ara.soz_dagari_esik": 0.5
+  },
+  "gecmis": []
+}

@@ -135,16 +135,22 @@ def kos(kok, betik, *arg):
         return None
 
 
-def dusenler(kok):
+def dusenler(kok, ilk_hatada=False):
     """Sınavlarda düşen vaka sayısı. None = sınav koşmadı.
 
     Düşen sayısı FAIL satırı sayarak değil, ÖZETTEN türetiliyor: sınav
     "N/M vaka beklendiği gibi davrandı" diyorsa düşen M-N'dir. FAIL
     saymak, hiç satır basmayan bir sınavı sıfır düşen gösteriyordu.
+
+    ilk_hatada: yalnız "düşen var mı" sorusu için (zemin denetimi). İlk
+    düşüşte durur; dönen sayı "en az" demektir. Sınavlar büyüyünce tam koşu
+    ~13 dakikaya çıktı ve kirli zemini söylemek o kadar beklemeyi gerektirmez.
     """
     toplam = 0
     for betik in ("sinav.py", "arac-sinavi.py"):
-        s = kos(kok, betik)
+        if ilk_hatada and toplam:
+            break
+        s = kos(kok, betik, *(("--ilk-hatada-dur",) if ilk_hatada else ()))
         if s is None:
             return None
         if s.returncode not in (0, 1):
@@ -162,7 +168,7 @@ def dusenler(kok):
 
 
 def zemin_temiz(kok):
-    n = dusenler(kok)
+    n = dusenler(kok, ilk_hatada=True)
     return n == 0, n
 
 
@@ -249,7 +255,7 @@ def main(argv=None):
         return 1
     if not temiz:
         print("ZEMİN KİRLİ — ablasyon yapılamaz.")
-        print(f"Ablasyonsuz koşuda {n} vaka düşüyor.")
+        print(f"Ablasyonsuz koşuda en az {n} vaka düşüyor.")
         print("Önce zemini yeşile getir; kirli zeminde 'vaka düştü' hiçbir")
         print("şey söylemez.")
         return 1

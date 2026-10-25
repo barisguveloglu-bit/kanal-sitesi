@@ -98,6 +98,13 @@ OLCUM = (
     # dosyada bir satır — beyansız olmamalı.
     ".claude/golge.py",
     ".claude/golge.json",
+    # Ölçünün gevşemesini mandal yakalar; mandalı ya da tabanını yumuşatan
+    # commit o korumayı sessizce kaldırır. Sağlık turu ve tur sonu kapısı
+    # da "yeşil mi" kararını veren yerler.
+    ".claude/mandal.py",
+    ".claude/mandal.json",
+    ".claude/saglik.py",
+    ".claude/kanca-kapi.py",
     ".claude/altin-sorular.json",
     ".github/workflows/denetim.yml",
 )

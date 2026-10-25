@@ -22,8 +22,10 @@ python3 .claude/surum.py yukselt --ne "<bu sürümde ne değişti>"
 ```
 
 Bu klasör siteye ait değil. Site hâlâ derleme adımı olmayan, backend'siz,
-veri toplamayan statik bir arşiv — **buradaki hiçbir şey yayına çıkmıyor.**
-Bu katman sadece *site üzerinde çalışırken* kullanılan iş akışı.
+veri toplamayan statik bir arşiv. Bu katman sadece *site üzerinde
+çalışırken* kullanılan iş akışı — **ama yayından ayrı değil:** GitHub Pages
+deponun tamamını yayınlıyor, bu dosya da adresiyle açılabiliyor (ölçüldü,
+aşağıda "Yayın sınırı").
 
 ## Neden iç içe, yan yana değil
 
@@ -55,7 +57,17 @@ KAT 4   Yansıt-İyileştir     dogrula.py'ye test ettir           │
    Kapıya bağlı uzun soluklu koşu:     SINIRLI DÖNGÜ (/surekli)
    KAT 4'ün puanlı hâli:               DEĞERLENDİRİCİ-OPTİMİZE (eniyile.py)
    Bütün katları tetikleyen dış uyarı: OLAY DÖNGÜSÜ (olay.py)
+   Turun ve gönderimin eşiği:          KAPI KANCASI (kanca-kapi.py)
+   Oturumun girişi:                    AÇILIŞ KANCASI (kanca-acilis.py)
+   Ölçünün kendisinin korunması:       MANDAL (mandal.py)
+   Dış halkanın tek komutu + eğilimi:  SAĞLIK (saglik.py, /saglik)
 ```
+
+Son dördü bu katmanın **kenarlarını** kapatıyor. İç döngüler bir işin
+ortasında çalışıyordu; ama işin başı (oturum açılırken hafıza kimse
+istemeden okunuyor mu), sonu (tur kırmızı biterken ya da commit edilirken
+bir şey duruyor mu) ve ölçünün kendisi (eşik sessizce gevşetilebiliyor mu)
+hiçbir döngünün sorumluluğunda değildi.
 
 Okuma yönü şöyle: orkestratör bir parçayı bir uzmana verir; uzman o parça
 için **kendi** planını çıkarır; plandaki her adımı ReAct turuyla yürütür;
@@ -68,7 +80,10 @@ diye sorar. İkisi karıştırılırsa ölçüm, ölçtüğü şeyin parçası o
 
 Kritik ayrım — orkestratör tek seferde dağıtıp toplarsa bu bir **iş akışı**
 olur. Gelen sonuçtaki eksiğe göre yeniden görev veriyorsa **döngü** olur.
-`/orkestra` 4. adımda bunu zorunlu tutuyor.
+`/orkestra` 4. adımda bunu zorunlu tutuyor. Ayrım Anthropic'in tanımıyla
+aynı: iş akışında yol önceden yazılıdır, ajanda model kendi sürecini
+yönetir — ve ajan her adımda ortamdan "gerçek" geri bildirim almalı, bir
+durma koşulu (en fazla tur) taşımalıdır [K1].
 
 ## Döngünün durduğu yer
 
@@ -79,6 +94,7 @@ Her döngünün bir çıkış koşulu var, yoksa sonsuza kadar döner:
 | Yansıt-İyileştir | Denetim temiz ya da 3 tur doldu | **Mekanik** — `devre.py` + kanca |
 | Orkestratör | Boşluk kalmadı ya da 2 kez yeniden gönderildi | **Mekanik** — `devre.py` |
 | Sınırlı döngü | Kapı yeşil ya da 8 tur doldu | **Mekanik** — `devre.py` |
+| Tur sonu kapısı | Denetim temiz ya da ikinci durma denemesi | **Mekanik** — `stop_hook_active` |
 | Planla-Uygula | Plandaki alt görevler bitti | Plan listesi |
 | ReAct | Gözlem planı doğruladı | Gözlemin kendisi |
 | İnsan onayı | Cevap geldi | İnsan |
@@ -102,14 +118,21 @@ dışa bağımlılığı yok, sadece Python 3 standart kütüphanesi:
 |---|---|
 | `menu` | Menü her HTML'de yazılı mı, bağlantı eksik mi (JS'siz navigasyon) |
 | `harita` | `sitemap.xml` eksiksiz mi; `gizli.html` haritaya sızmış mı |
-| `gizleme` | `[hidden]` kuralı duruyor mu; JS'te `opacity = 0` ile gizleme var mı |
-| `odak` | `outline: none` yazılmış mı (`:focus-visible` hariç) |
+| `gizleme` | `[hidden]` kuralı duruyor mu; **bütün** JS dosyalarında `opacity = 0` ile gizleme var mı |
+| `odak` | **Bütün** stil dosyalarında `outline: none` yazılmış mı (`:focus-visible` hariç) |
 | `defer` | Dış betikler `defer` ile mi yükleniyor, `async` sırayı bozuyor mu |
 | `sahte` | Biçimi bozuk video kimliği, "yakında" başlığı, YouTube olmayan bağlantı |
 | `video` | `VIDEOLAR`'a HEAD'de olmayan kimlik girdi mi → **insan kapısı** |
 | `kontrast` | Renk çiftlerini WCAG AA (4.5:1) sınırına karşı **ölçer** |
-| `lore` | `data.js`'teki adlar `LORE.md`'de geçiyor mu |
-| `belge` | Bu belgedeki sayılar betiklerin gerçeğiyle uyuşuyor mu |
+| `lore` | `data.js`'teki adlar (karakter, kademe, komutan, mafya, icraat) `LORE.md`'de geçiyor mu; 81 derebeyi **satır satır** (plaka + il + ad) eşleşiyor mu |
+| `veri` | `data.js` kendi içinde tutarlı mı: tekil kimlik, geçerli taraf, 81 il tam, `ad: null` yok, komutan bağı gerçek |
+| `gizlilik` | Form, parola alanı, çerez, `fetch`/XHR/`sendBeacon`/WebSocket, dış sunucudan betik/stil/görsel yükleme, paket yöneticisi izi var mı |
+| `erisim` | Sayfa dili, boş olmayan başlık, her görselde `alt` (JS şablonları dahil), metinsiz bağlantı ya da düğme, yakınlaştırmayı kapatan viewport, başlık düzeyi atlama — WCAG 2.2 tabanı [K14][K15] |
+| `baglanti` | Her iç `href`/`src`, canonical/paylaşım adresi, site haritası girdisi ve `data.js` `yol` alanı var olan bir dosyaya — `#parça` varsa var olan bir kimliğe — gidiyor mu |
+| `capa` | Altın setin her satır numarası hâlâ kendi gerçeğini içeren satırı mı gösteriyor; kaydıysa yeni satırı söyler, gerçek silindiyse **insan kapısı** |
+| `kanca` | `settings.json` okunuyor mu, bağlı her kanca betiği var ve derleniyor mu |
+| `mandal` | Vaka/mutasyon/altın soru sayısı düştü mü, eşik gevşedi mi, sınır büyüdü mü → **insan kapısı** |
+| `belge` | Bu belgedeki sayılar betiklerin gerçeğiyle uyuşuyor mu; her denetim, komut ve araç burada anılıyor mu |
 
 ```
 python3 .claude/dogrula.py            # hepsi
@@ -135,6 +158,10 @@ ve hata varsa sonuç Claude'a geri besleniyor. Yani iyileştirme turu
 sen fark etmeden aynı turda başlıyor. `.claude/` içindeki düzenlemeler
 kancayı tetiklemez.
 
+Bu kanca bir **araca** bağlı: Edit / Write. Bash ile (`sed -i`, heredoc)
+yapılan düzenleme onu hiç tetiklemiyordu. O delik artık tur sonunda
+kapanıyor — aşağıda "Kapı kancası".
+
 Betiğin **göremediği** şey: canon'un anlamca tutarlı olup olmadığı.
 Adların iki dosyada da geçtiğini görür, aynı şeyi söylediklerini göremez.
 O kısım hâlâ okumakla oluyor.
@@ -154,13 +181,22 @@ python3 .claude/ara.py --sayi 5 --tam "Konya derebeyi"
 ```
 
 Gömme, vektör veritabanı, dış servis **yok** — birkaç yüz satırlık Türkçe bir metin
-için BM25 fazlasıyla yeterli ve her koşuda aynı sonucu verir. Test edilebilir
+için BM25 [K17] fazlasıyla yeterli ve her koşuda aynı sonucu verir. Test edilebilir
 olmasının şartı bu: rastgele bir sistem ölçülemez.
 
-Türkçe için üç şey özel olarak yapıldı, üçü de ölçümle bulundu:
+Türkçe için dört şey özel olarak yapıldı, dördü de ölçümle bulundu:
 
 - **Sondan eklemeli dil.** "iradesi / iradeye / irade" aynı köke inmeli;
-  ön ek eşleştirmesiyle çözüldü.
+  ön ek eşleştirmesiyle çözüldü. Beş harflik ön ek, Türkçe bilgi erişiminde
+  büyük ölçekli deneylerle etkili bulunmuş bir yöntem [K16].
+- **Aksansız yazım.** "Tesup'un zaafi nedir" ile "Teşup'un zaafı nedir"
+  aynı soru. Soru-cevap YouTube yorumlarında yapılıyor; orada Türkçe
+  karakter kullanmamak çok yaygın. Ölçüldü: aksansız yazılan altın
+  sorularda isabet@3 %95'ten **%60'a** düşüyordu; Türkçe olmayan klavyede
+  büyük harfle yazılan "AHRIMAN KIMI KILITLIYOR" hiç sonuç döndürmüyordu
+  ("I" harfi "ı" okunuyordu). Terimler artık aksanı katlanmış biçimde
+  eşleniyor — bilgi erişiminde yerleşik yöntem: kullanıcılar sorguyu çoğu
+  zaman aksansız yazar [K11]. Normal sorulardaki ölçüler değişmedi.
 - **Sayı adları.** "dördüncü irade kademesi" ile `| 4 | Güçlü İrade |`
   arasında tek ortak harf yok; sayı adları rakama indirgeniyor.
 - **Tablo hücreleri sütun adıyla eşleşiyor.** "Zaafı" kelimesi veri
@@ -244,6 +280,27 @@ veriyor ve puanlamadan bağımsız.
 Eşikler ölçülerek konuldu, hedef olarak değil. Düşen bir sayıyı eşiği
 indirerek yeşile döndürmek, testin ölçtüğü şeyi azaltmaktır.
 
+### Değişmezlik — aynı soru, farklı klavye
+
+Davranış testinin bir türü: girdiyi anlamını değiştirmeyecek biçimde boz,
+çıktının değişmediğini doğrula [K9]. Metamorfik testin temel fikri de bu:
+doğru cevabı bilmeden, iki koşu arasındaki ilişkiyi sına [K10].
+
+`degerlendir.py` her altın soruyu beş biçimde daha soruyor: aksansız,
+Türkçe klavyede büyük harf, Türkçe olmayan klavyede büyük harf, noktalamalı,
+fazla boşluklu. İlk üç sonuç değişmemeli; konu dışı soru dönüşünce de
+reddedilmeli; cevapsız soru dönüşünce de sahte delil üretmemeli. Her altın,
+konu dışı ve cevapsız soru için beş çift; eşik %100.
+
+İlk koşusunda gerçek bir açık buldu: aksansız yazılan sorularda isabet@3
+%60'a düşüyordu (yukarıda, "Aksansız yazım").
+
+**Oranlar artık aralıkla yazılıyor.** 20-25 soruda tek soru dört-beş puan;
+aralıksız yazılan bir oran olduğundan kesin görünür. `degerlendir.py`
+%95 Wilson aralığını basıyor [K12]: küçük n için önerilen yöntem bu —
+yaygın Wald aralığı küçük n'de güvenilmez [K13] ve 19/20 için 1'i aşan
+[0.85, 1.05] gibi anlamsız bir aralık verir. Wilson: [0.76, 0.99].
+
 ## Geri bildirim — hatanın kalıcı teste dönüşmesi
 
 Model ağırlıklarını eğitemeyiz; gerek de yok. Bir ajan sisteminde geri
@@ -304,7 +361,7 @@ ikisi de yarım kalır.
 
 ## Bağlam yönetimi ve epizodik bellek
 
-Uzun koşuların sessiz düşmanı **bağlam çürümesi**: alakasız araç
+Uzun koşuların sessiz düşmanı **bağlam çürümesi** [K19]: alakasız araç
 çıktıları, tekrar okumalar ve çözülmüş turların ayrıntısı birikir. Model
 hata vermez, sadece sinyale daha az dikkat eder — yirminci turda hâlâ
 çalışıyor görünür ama ne yaptığını bilmez.
@@ -339,6 +396,10 @@ Bu aynı zamanda epizodik bellek: defter git'te durduğu için her yeni
 koşu, önceki koşuların neyi denediğini ve neyi çözemediğini görür.
 
 ## Devre kesici — sınırın yazı olmaktan çıkması
+
+Ad ve fikir dağıtık sistemlerden geliyor: hata sayısı bir eşiği geçince
+devre "açılır" ve korunan çağrı bir süre hiç denenmez [K2]. Burada korunan
+şey bir uzak servis değil, modelin kendi döngüsü.
 
 Komut dosyalarında "en fazla 3 tur" yazıyordu. Bu bir sınır değil, bir
 ricaydı: sınırı uygulayacak olan, sınırı aşmak isteyen tarafın kendisi.
@@ -397,6 +458,11 @@ deftere geçiyor.
 
 ## Sınırlı otonom döngü (Ralph Wiggum)
 
+Adı Geoffrey Huntley'in tekniğinden: en saf hâliyle aynı istemi bir
+ajana döngü içinde tekrar tekrar veren bir kabuk döngüsü [K3]. Buradaki
+fark, döngünün iki ucunun da bağlı olması: durma koşulu deterministik bir
+kapı, üst sınırı devre kesici.
+
 `/surekli` uzun soluklu, kendi kendine dönen döngü. Diğerlerinden iki farkı
 var: durma koşulu bir insanın kanaati değil **deterministik kapı**
 (`dogrula` + `sinav` + `degerlendir` aynı anda yeşil), ve her turda hafıza
@@ -426,10 +492,16 @@ kuraldır — hele uygulaması gereken taraf acelesi olan taraf ise.
 python3 .claude/gorev.py brief --konu "..." --cikti "..."
 ```
 
-`PreToolUse` kancası sözleşmesiz görevi **göndermez**: uydurma yasağı,
+`PreToolUse` kancası (`kanca-gorev.py`) sözleşmesiz görevi **göndermez**: uydurma yasağı,
 canon kaynağı ve atıf zorunluluğu geçmiyorsa hangisinin eksik olduğunu
 söyleyip geri çevirir. Devre kesicideki mantığın aynısı — kural süreç
 dışına taşındığı an rica olmaktan çıkar.
+
+**Kapı tek değil.** Bir görev alt ajana iki yoldan gidebilir: aynı konteynerde
+çalışan alt ajan (`Agent`/`Task`) ya da kendi bulut bilgisayarında açılan ayrı
+bir oturum (`create_session`). Kanca eskiden sadece ilkini dinliyordu — ajana
+kendi makinesini vermek, sözleşmeyi atlamanın yolu olurdu. Artık ikisi de
+aynı kapıdan geçiyor.
 
 **Yetki beyanı zorunlu.** Her brief `YETKİ: okuma` ya da `YETKİ: yazma`
 içermek zorunda; kanca beyansız görevi de göndermez. Salt okunur mod
@@ -439,6 +511,40 @@ Dürüst sınır: bu harness alt ajanın **araç kümesini kısıtlamaya izin
 vermiyor**, yani gerçek ayrıcalık ayrımı yapılamıyor. Yapılabilen,
 beyanı sonradan sınamak — `dogrula --mod okuma` çalışma ağacına bakıp
 salt okunur ajanın dosya değiştirip değiştirmediğini yakalıyor.
+
+### Ajana kendi makinesini vermek
+
+Ayrıcalık ayrımının yapılamadığı yerde **yalıtım** yapılabilir. Bulut
+oturumunun kendisi zaten ayrı bir Linux konteyneri (kabuk, git, Python,
+başsız Chromium). Alt ajana ondan da ayrı bir alan vermenin yolları, ucuzdan
+pahalıya:
+
+| Yol | Ne verir | Bedeli |
+|---|---|---|
+| `Agent` + `isolation: "worktree"` | Aynı konteynerde **ayrı bir çalışma ağacı** — yazma yetkili ajanın değişikliği ana ağaca birleştirilene kadar dokunmaz | Ucuz; disk ve işlemci ortak |
+| `create_session` (ayrı bulut oturumu) | **Ayrı bir bulut bilgisayarı**: kendi konteyneri, kendi dalı; telefondan ayrıca izlenebilir | Her oturum ayrı kullanım; sonuç mesajla ya da olay listesiyle gelir |
+| `Agent` + `isolation: "remote"` | Alt ajanı uzak bir bulut ortamında koşturur | Erişimi kademeli açılıyor; her hesapta yok |
+
+Üçünde de sözleşme kancası geçerli. Grafik masaüstü (fare, klavye, ekran
+görüntüsü) bunların hiçbirinde yok; bu site için gerekmiyor da — sayfaya
+bakmak gerekirse konteynerdeki başsız Chromium yeter.
+
+**Kural ve zorlaması.** Ajanın ortamı yetkisine göre seçilir: salt okunur
+ajan aynı konteynerde koşar; **yazma yetkili ajan ayrı çalışma ağacında**
+(ya da ayrı bulut oturumunda) koşar. Bu bir rica değil — `kanca-gorev.py`
+`YETKİ: yazma` beyanlı bir `Agent` görevini `isolation: "worktree"`
+olmadan **göndermez.** Üç ayrıntı daha mekanik:
+
+- **Ağaç dalın HEAD'inden açılır** (`settings.json` → `worktree.baseRef:
+  "head"`). Varsayılan `origin/main`'den açmaktı: ajan dalın son hâlini
+  değil, eski kodu düzenlerdi.
+- **Kirli ağaçta yazma ajanı gönderilmez.** Ayrı ağaç commit edilmemiş
+  değişikliği görmez; önce commit, sonra görev.
+- **Yazma brief'i ana deponun yolunu vermez.** "Depo: /home/…" yazan bir
+  brief, ajanı yalıtımı atlayıp doğrudan ana ağaca yazmaya çağırırdı.
+
+Değişiklik ana ağaca kendiliğinden geçmez: orkestratör ajanın ağacında
+denetimi koşturur, farkı okur, sonra birleştirir (`/orkestra` 3. adım).
 
 **Gelen — rapor makineye doğrulatılır.**
 
@@ -462,7 +568,9 @@ getirip yine de yanlış okumak, fazla iddia etmek ya da canon'un sustuğu
 yerde konuşmak mümkün — ve bunu daha önce hiçbir şey yakalamıyordu.
 
 Yargı ikiye bölündü, çünkü bir modelin kendi cevabını beğenmesi bu
-sistemin en baştan kaçtığı tuzak:
+sistemin en baştan kaçtığı tuzak. Ölçülmüş bir tuzak da: LLM yargıçlarının
+cevabın sırasına, uzunluğuna ve kendi ürettiği metne kayan önyargıları
+var [K18].
 
 - **Mekanik yarı** (`yargi.py`) oynanamaz. Atıf gerçekten cevabın geçtiği
   satırı gösteriyor mu, altın gerçek cevapta geçiyor mu, canon'un sustuğu
@@ -477,6 +585,151 @@ gelir. Aynı oturumda cevaplayıp kendini puanlamak ölçüm değildir.
 
 Koşular `.claude/yargi-gecmisi.jsonl` içinde birikir; `gecmis` komutu iki
 koşu arasındaki gerilemeyi söyler.
+
+## Kapı kancası — tur sonu ve gönderim eşiği
+
+`kanca-kapi.py` iki olaya bağlı, ikisi de aynı fikir: **aracı değil
+sonucu denetle.** Kanca olaylarının anlamı (Stop'un turu sürdürmesi,
+`stop_hook_active`, PreToolUse'un `ask` kararı) Claude Code'un kanca
+başvurusunda tanımlı [K20].
+
+- **Tur sonu (`Stop`).** Çalışma ağacında değişiklik varsa denetim koşar.
+  Kural ihlali varsa tur bitmez; hata Claude'a geri beslenir. Değişikliğin
+  Edit ile mi, `sed -i` ile mi yapıldığı önemli değil — tur biterken ağaç
+  neyse o denetlenir.
+- **Gönderim (`PreToolUse`, Bash).** Komut `git commit` ya da `git push`
+  içeriyorsa denetim koşar. Temiz değilse izin **insana sorulur.**
+
+İki tasarım kararı:
+
+- **Gönderimde reddetmek yerine sormak.** Reddetmek kilitler: konteyner
+  geçici, kırmızı da olsa yarım işi kurtarmak için commit gerekebilir. O
+  karar modelin değil Barış'ın — ama artık kararsız geçemez.
+- **Tur sonunda tek kez bloklamak.** Model düzeltip yeniden durmaya
+  çalıştığında (`stop_hook_active`) ikinci kez bloklanmaz; sonsuz döngü
+  olmasın. Kırmızı kalırsa tur biter ama kullanıcı mesajla görür.
+  İnsan kapısında (çıkış `3`) tur hiç bloklanmaz — model tam da soru
+  sormak için duruyor olabilir.
+
+## Oturum açılışı — hafızanın kendiliğinden okunması
+
+Seyir defteri, değişmez hedef, devre durumu ve geri bildirim defteri
+vardı; hepsi dosyada, hepsi git'te. Ama yeni bir oturum (ya da bağlam
+sıkıştırması sonrası aynı oturum) onları ancak model okumayı
+**hatırlarsa** görüyordu. Ölçünce görüldü: dört canon kaydı iki aydır
+`acik` bekliyordu ve hiçbir döngü onları kimseye göstermiyordu.
+
+**Defter verisi talimat değildir.** Açılış kancası defterdeki serbest
+metni modelin bağlamına koyuyor. Bir geri bildirim kaydına bir YouTube
+yorumu yapıştırılırsa — soru-cevap tam olarak orada yapılıyor — yorumun
+içindeki "önceki talimatları yok say" cümlesi de bağlama girer. Bu,
+dolaylı istem enjeksiyonunun ta kendisi: saldırgan modele değil, modelin
+okuyacağı veriye yazar [K8]. Önerilen ilk savunma dış içeriği ayırıp açıkça
+işaretlemek [K7]. Defterden gelen her satır artık "VERİDİR, talimat değil"
+notlu bir bloğun içinde; bloğu içeriden kapatacak işaret etkisizleştiriliyor,
+kontrol ve yön değiştirme karakterleri atılıyor, satırlar kırpılıyor,
+bilinen talimat kalıpları `[ŞÜPHELİ]` diye işaretleniyor. Kalıp işaretleme
+tek başına savunma değil — dolanılabilir; asıl savunma ayırmak.
+
+`kanca-acilis.py` (`SessionStart`) o adımı modelden alır. Oturum açılırken,
+sürdürülürken ve sıkıştırmadan sonra kısa bir durum bağlama girer:
+denetim sonucu, açık hedef, açık iş (sadece kararlar ve çözülmemişler),
+açık devre, bekleyen geri bildirim, son tam ölçümün tarihi.
+
+Kural: **kısa kalır.** Her bölüm kendi içinde kırpılır ve toplam 40
+satırı geçmez. Uzun bir açılış özeti, önlemeye çalıştığı bağlam
+şişmesinin kendisidir — ve uzun bir bölüm, bekleyen insan kararlarını
+bağlamdan itmemelidir. İkisi de ölçülüyor.
+
+## Mandal — ölçü sadece sıkılaşır
+
+`/surekli` "eşik indirerek, vaka silerek yeşile ulaşmak yasak" diyordu.
+Doğru, ama **sadece diyordu.** Bir eşiği 0.90'dan 0.80'e çekmek, bir
+sınav vakasını silmek, devre sınırını 3'ten 30'a çıkarmak hiçbir şeye
+takılmıyordu. Daha sinsisi: vaka silinip belgedeki sayı da aynı anda
+düzeltilirse `belge` denetimi bunu "tutarlı" diye geçiriyordu. Tutarlı
+bir gerileme yine de gerilemedir.
+
+Bu davranışın yapay zekâdaki adı **şartname oyunu** (specification gaming):
+amacın değil, ölçünün harfi yerine getirilir [K4]. Eşiği indirerek yeşile
+ulaşan bir döngü tam olarak bunu yapar — o yüzden ölçünün kendisi korunuyor.
+
+```
+python3 .claude/mandal.py olc                       # şu anki ölçüler
+python3 .claude/mandal.py kontrol                   # tabana göre durum
+python3 .claude/mandal.py kaydet                    # sıkılaşınca tabanı ilerlet
+python3 .claude/mandal.py kaydet --gerekce "..."    # onaylı gevşemeyi kayda geçir
+```
+
+İzlenen ölçüler: vaka, tuzak, masum, araç vakası, mutasyon ve altın
+soru sayıları; denetim başlığı sayısı; kontrast, geri getirme ve atıf
+eşikleri; devre kesicinin tur, süre ve tekrar sınırları; aramanın
+"bilmiyorum" eşiği. Her birinin **yönü kodda yazılı**, taban dosyasında
+değil — yoksa yönü çevirmek de bir gevşetme yolu olurdu.
+
+Üç ayrıntı:
+
+- **Araçları çalıştırmadan ölçer** (kaynak kodu ayrıştırarak). Ölçtüğü
+  şeyi çalıştırsaydı, bozuk bir araç mandalı da bozardı.
+- **İki tabanın sıkı olanına karşı kıyaslar:** HEAD'deki ve çalışma
+  ağacındaki. Ölçüyü ve tabanı aynı anda gevşetmek işe yaramaz; HEAD'deki
+  taban ancak commit ile değişir, commit de kapı kancasından geçer.
+- **Gevşeme hata değil, insan kapısıdır.** Bir vakayı silmenin meşru
+  sebebi olabilir; ama o karar Barış'ın. `kaydet` gerekçesiz gevşemeyi
+  yazmaz, gerekçeli olanı `gecmis` listesine geçirir.
+
+## Sağlık — dış halkanın tek komutu ve eğilim hafızası
+
+Dış halka vardı ama kendiliğinden dönmüyordu: komut tablosu `/degerlendir`
+için "ayda bir" diyordu ve bunu hatırlayacak bir şey yoktu. Dört ölçüm dört
+ayrı komuttu.
+
+```
+python3 .claude/saglik.py --kaydet          # hepsi + geçmişe yaz
+python3 .claude/saglik.py --hizli           # mutasyonu atla
+python3 .claude/saglik.py --sadece arama    # tek adım
+python3 .claude/saglik.py gecmis            # eğilim
+```
+
+İkinci kazanç daha önemli: **eşiğin üstündeki gerileme.** Eşikler tabandır;
+isabet@3 %95'ten %91'e düşerse eşik (%90) hâlâ geçer ve her şey yeşil
+görünür. `saglik.py` her kayıtlı koşuyu bir öncekiyle kıyaslar, düşen
+kalite ölçüsünü söyler ve insan kapısına çıkar. Sayıların düşmesine mandal
+bakar; burası ölçümün **kalitesine** bakar.
+
+Kayıt `tam` alanı taşır: tek adımlık bir koşu "son tam ölçüm" yerine
+geçmez. Açılış kancası son tam ölçümün tarihini buradan okur.
+
+**Oran ancak aynı sete karşı kıyaslanır.** Sağlık kaydı arama ölçülerinin
+yanına altın setin parmak izini de yazar; set değiştiyse kıyas yapılmaz ve
+bu açıkça söylenir. Sebep ölçüldü: iki dal birleşince set 20'den 24 soruya
+çıktı ve isabet@3 0.95 → 0.92 "gerileme" göründü — oysa aynı 24 soruda iki
+dalın arama sonucu birebir aynıydı. Zor soru eklemek oranı düşürür, kolay
+soru eklemek yükseltir; ikisi de arama hakkında bir şey söylemez.
+
+## Yayın sınırı — `.claude/` herkese açık
+
+Bu belge baştan beri "buradaki hiçbir şey yayına çıkmıyor" diyordu.
+Ölçüldü ve yanlış çıktı: depoda `.nojekyll` var, GitHub Pages deponun
+tamamını olduğu gibi yayınlıyor.
+
+| Adres | Durum |
+|---|---|
+| `/kanal-sitesi/.claude/DONGULER.md` | 200 — herkes açabilir |
+| `/kanal-sitesi/.claude/settings.json` | 200 |
+| `/kanal-sitesi/CLAUDE.md` | 200 |
+| `/kanal-sitesi/LORE.md` | 200 — canon'un tamamı |
+
+İçeride gizli anahtar ya da kişisel veri **yok**. Ama somut bir çelişki
+var: site sıralı güç tablosunu **bilerek** göstermiyor ("en üstteki
+yenilmez" sözü vermesin diye), oysa o tablo `LORE.md`'nin "Tır Değerleri
+(iç referans)" bölümünde duruyor ve adresiyle herkese açık. `robots.txt`
+bunu çözmez — kendi yorumunun dediği gibi, adres yazmak gizlemez, duyurur.
+
+Kalıcı çözüm yayın kaynağını değiştirmek — örneğin sadece site
+dosyalarını yayınlayan bir Pages iş akışı ya da siteyi bir alt klasöre
+taşımak. İkisi de yayın düzenini değiştirir; **karar Barış'ın**, bu
+yüzden uygulanmadı.
 
 ## Bağlantı haritası — hangi döngü neye bağlı
 
@@ -502,6 +755,10 @@ Hiçbir döngü tek başına durmuyor. Her birinin bir **girdisi**, bir
 | **Tepe tırmanma** | `tirmanma.py` | `degerlendir.py` altın seti | Aday ayar → **insan onayı** (asla kendiliğinden uygulanmaz) |
 | **Eleştirmen-üretici** | `elestirmen.py` | Ajan + mekanik denetleyiciler | Bulgular üreticiye; lastik damga reddedilir |
 | **TDD** | `tdd.py` | `arac-sinavi.py` + `butunluk.py` | Kırmızı → yeşil → düzenle; koruma azalamaz |
+| Kapı kancası | `kanca-kapi.py` | Çalışma ağacının sonucu (araç değil) | Kırmızı tur → Yansıtma'ya; kırmızı commit → İnsan onayına |
+| Açılış kancası | `kanca-acilis.py` | Seyir, hedef, devre, geri bildirim defterleri | Yeni oturumu dayanaklı başlatır → Planla-Uygula |
+| Mandal | `mandal.py` + `dogrula mandal` | HEAD'deki ve yereldeki tabanın sıkısı | Gevşeme → İnsan onayına |
+| Sağlık | `saglik.py` + `/saglik` | Bütün ölçümler + geçmiş | Eşik üstü gerileme → İnsan onayına; kayıt → Açılış kancasına |
 
 İki yeni halkanın yeri şu: **olay döngüsü en dışta**, çünkü diğerlerini
 başlatan şey o — bir dosya düzenlenmeden yansıtma turu hiç başlamaz.
@@ -533,6 +790,7 @@ düzeltme işi doğurur, düzeltme yine bu döngülerden geçer.
 | `/sor <soru>` | Dayanaklı canon cevabı | "Bu evrende şu nasıldı?" |
 | `/denetle [düzelt]` | Sadece KAT 4 | "Bir şey bozuldu mu?" |
 | `/degerlendir` | Dış halka ölçümü | Değişiklikten sonra, ayda bir |
+| `/saglik [hızlı]` | Bütün ölçümler tek komutta + eğilim | Zamanlanmış işin komutu; büyük değişiklikten önce ve sonra |
 | `/geri-bildirim <ne yanlıştı>` | Hatayı teste çevirir | Bir cevap yanlış çıktığında |
 | `/yargila` | Cevap kalitesi yargısı | Canon cevaplarına güven ölçmek |
 | `/surekli <hedef>` | Sınırlı otonom döngü | Kapı yeşerene kadar dönmesi gereken uzun iş |
@@ -563,7 +821,8 @@ Bunun pratikteki karşılığı:
 
 Sen hiç bakmadan çalışması gereken bir iş varsa (örneğin haftada bir
 denetim turu) Routine kurulabilir — belirli aralıkla kendi başına açılıp
-verdiğin komutu çalıştırır, sonucu bildirir. Kurulmadı; istersen kurarız.
+verdiğin komutu çalıştırır, sonucu bildirir. Çalıştıracağı komut artık
+hazır: `/saglik`. Routine'in kendisi kurulmadı; istersen kurarız.
 
 ## Claude Code dışında
 
@@ -600,14 +859,16 @@ kalır. Denendi ve oldu: uydurma testi devre dışı bırakıldığında **üç
 python3 .claude/mutasyon.py
 ```
 
-Klasik mutasyon testi: ölçülen şeyi kasten boz, testin yakalayıp
+Klasik mutasyon testi [K5]: ölçülen şeyi kasten boz, testin yakalayıp
 yakalamadığına bak. Burada **başarısızlık iyi haberdir** — mutasyon
 yakalandı demektir. Yeşil kalan bir mutasyon, "o davranışı hiçbir şey
 korumuyor" demektir.
 
-**44 mutasyon** var: kesici hiç kesmesin, yargıç uydurmayı görmesin,
+**84 mutasyon** var: kesici hiç kesmesin, yargıç uydurmayı görmesin,
 sözleşme kapısı açılsın, arama "bilmiyorum" diyemesin, ham iz özete girsin,
-sürüm yamayı dokuzdan öteye taşısın, logo sürümü gövdeye çakılsın…
+denetleyici yeni dosyaya kör kalsın, mandal gevşemeyi görmesin, tur sonu
+kapısı bloklamasın, açılış bekleyen kararı göstermesin, sürüm yamayı
+dokuzdan öteye taşısın, logo sürümü gövdeye çakılsın…
 
 Bu sayı da belgeye elle yazılıyor, yani o da çürüyebilir — nitekim çürüdü:
 belge 15 derken gerçek 23'tü. `belge` denetimi artık bu sayıyı da tutuyor.
@@ -637,6 +898,104 @@ v1.1.2 koşusunda iki şey birden çıktı ve ikisi de farklı bir körlük tür
 İlk koşusunda bir kaçak buldu ve o kaçak öğreticiydi: ilerleme denetçisi
 yeni eklenmişti ama **testi yazılmamıştı.** Özellik vardı, koruması yoktu.
 Mutasyon sınavı tam olarak bunun için var.
+
+### Otomatik mutantlar — aklına gelmeyeni bulmak
+
+Elle yazılan mutasyon, yazanın aklına gelen davranışı korur. Aklına
+gelmeyeni bulmanın yolu mutantı bir operatör kümesiyle makineye
+ürettirmektir [K5][K6]:
+
+```
+python3 .claude/mutasyon.py --otomatik 0     # hepsi
+python3 .claude/mutasyon.py --otomatik 40    # rastgele 40'lık örneklem (--tohum ile tekrarlanır)
+```
+
+Operatörler `dogrula.py`'deki her `d_*` denetimine uygulanır:
+karşılaştırmayı ters çevir (`==`↔`!=`, `<`↔`>=`, `in`↔`not in`), "ve"yi
+"veya" yap, `not`'u kaldır, `r.hata(...)` / `r.kapi(...)` çağrısını sil.
+Önce hiç bozulmamış kaynak aynı yoldan geçirilir (kontrol koşusu): o bile
+düşerse ölçüm geçersizdir, sonuç basılmaz. Her mutant kendi geçici
+kopyasında koştuğu için mutantlar birbirinden bağımsızdır; `--is` ile aynı
+anda koşarlar (varsayılan: çekirdek sayısı, en fazla 4) — mutasyon
+testinin bilinen temel sorunu maliyettir [K6]. `--otomatik N` rastgele
+örneklem alır; mutant örneklemesi de bilinen maliyet azaltma
+yollarından biridir [K6].
+
+**İlk koşu: 131 mutanttan 95'i öldü (%73), 36'sı yaşadı.** Yaşayanların
+9'u eşdeğer mutanttı [K6], yani davranışı değiştirmiyordu: sadece "geçen
+denetim" sayacını oynatan `r.tamam()` dalları, sadece hata mesajının
+içeriğini değiştiren bir karşılaştırma, her zaman ikisi birden doğru olan
+koşullar (iki dosya da hep var; her altın sorunun hem satırı hem gerçeği
+var). Kalan 27'si gerçek boşluktu ve hepsi aynı türdendi: **dal yazılmış,
+hiç denenmemiş.**
+
+- `--bg` tanımı silinince kontrast denetimi hiçbir şey ölçmeden temiz
+  diyordu; o hata satırını silen mutant yaşadı.
+- Kontrast döngüsünde `in` → `not in` yaşadı: dokuz rengin hiçbiri
+  ölçülmese sınav yine yeşildi. Tek kontrast tuzağı `--text-3`'ü
+  bozuyordu, o renk kart zemininde ayrıca ölçüldüğü için yakalanıyordu.
+  Gerçek bir gerileme — kötü taraf metnine kan renginin (#c0271f, 3.35:1)
+  geri dönmesi — fark edilmeden geçerdi.
+- Kart zeminindeki ölçüm 4.51:1, sınırın hemen üstünde; o ölçümü kapatan
+  mutant da yaşıyordu.
+- CSS içinden `@import` ile dış yazı tipi, formsuz parola alanı, bozuk
+  `settings.json`, mandal ile tabanının birlikte silinmesi, eşiğin sabit
+  yerine `float("0.90")` diye yazılması (değer aynı, mandal okuyamıyor),
+  belgedeki sayı cümlelerinin biçimini kaybetmesi, belgelenmemiş komut.
+
+Her biri için bir sınav vakası yazıldı: 22 vaka, 20'si tuzak, 2'si masum.
+Masum vakalar da mutant öldürüyor: `<link rel="license">` dışarıya
+işaret eder ama bir şey yüklemez — "veya"yı "ve" yapan mutant onu dış
+kaynak sanıyordu; CSS'te sitenin kendi mutlak adresi de dış sunucu
+değildir — "ve"yi "veya" yapan mutant onu da yasaklıyordu.
+
+**İkinci koşu** (`erisim` ve kaynakça denetimi eklenmişti, 155 nokta):
+143'ü öldü (%92). Yaşayan 12'nin 10'u eşdeğerdi; ikisi yeni yazılan
+`erisim` kodundaydı — boş `<title>` hiç denenmiyordu. Vakası eklendi.
+
+Aynı koşu iki ölçülmüş sorun daha gösterdi:
+
+- **18 dakika sürdü** (4 paralel kopya). Her mutant 90 vakalık sınavın
+  tamamını koşuyordu; oysa mutantı öldürmeye tek başarısız vaka yeter.
+  Mutasyon sınavı artık `sinav.py --ilk-hatada-dur` koşuyor: yaşayan
+  mutantın süresi değişmez (bütün vakaları geçmek zorunda), ölenin süresi
+  kısalır. Hesaplama maliyeti mutasyon testini pratikten uzak tutan
+  bilinen sorundur [K6].
+- **Çıkış kodu hep 3'tü.** Eşdeğer mutantlar her koşuda yeniden "hayatta"
+  görünüyordu; kapı her seferinde aynı on mutant için açılıyordu ve yeni
+  bir boşluk bu gürültünün içinde kayboluyordu. Eşdeğerliği makine
+  genelde çözemez, ayırmak insan emeği ister [K6] — o emek bir kez
+  harcanmalı:
+  - Sadece `r.tamam()` çağıran koşullar artık mutasyona girmiyor.
+    `tamam()` geçen denetim sayacıdır, çıkış koduna girmez; böyle bir
+    koşulun her mutantı tanım gereği eşdeğerdir. 6 nokta eksildi.
+  - Kalan dört eşdeğer, gerekçesiyle `mutasyon.py` içindeki `ESDEGER`
+    kaydına yazıldı. Anahtar satır numarası değil ifadenin kendisi: kod
+    kayınca kayıt bozulmaz, ifade değişince kayıt düşer ve mutant yeniden
+    incelenir. Koddan çıkmış ya da artık öldürülen kayıt da kapı açar —
+    kayıt bir gün başka bir mutantı haksız affetmesin. `arac-sinavi.py`
+    her koşuda kaydın bayat olmadığını denetliyor.
+
+Mutasyon skoru eşdeğer mutantları paydadan çıkarır [K6]. Çıkış kodu artık
+anlam taşıyor: `0` yaşayan her mutant kayıtlı eşdeğer, `3` yeni bir
+yaşayan (ya da bozuk kayıt) var.
+
+**Son koşu (149 nokta): 145/145 öldü (%100)**, 4 kayıtlı eşdeğer paydadan
+çıkarıldı, çıkış `0`. Süre 18 dakikadan **9 dakikaya** indi (aynı makine,
+4 paralel kopya). Eşdeğerler paydadan çıkarılınca üç koşunun skoru:
+%78 → %99 → %100.
+
+**Aracın kendi açığı.** Ardından koşan tam sağlık ölçümü kırmızı çıktı:
+yeni yazılan iki elle mutasyon "kaçtı". Kusur testlerde değil araçtaydı.
+İkisi de `mutasyon.py`'nin kendisini bozuyordu ve aradıkları metin kendi
+tanımlarında dize olarak da geçiyordu; `duzenle` ilk eşleşmeyi
+değiştirdiği için kodu değil kendi dizesini bozdu — mutasyon hiç
+uygulanmadı. Bütün mutasyonların hedefleri sayılınca üçüncü bir belirsiz
+hedef çıktı: `erisim` eklenince "yeni dosyaya kör" mutasyonunun hedefi iki
+yerde geçer olmuştu ve doğru yere sadece sıra şansıyla düşüyordu.
+`duzenle` artık hedefin **tam bir kez** geçmesini şart koşuyor; belirsiz
+hedef sessizce yanlış yere düşmek yerine "uygulanamadı" diye sayılır.
+`arac-sinavi.py` bu kuralı da sınıyor.
 
 ## Değerlendirici-Optimize Edici — puanlı yansıtma
 
@@ -1579,6 +1938,13 @@ araç en zayıf halkayı değil **en az sınanmış** halkayı silerdi — tam
 tersi bir seçim. Bu da reddedilen kategoriyle aynı ilke: ölçülen şeyin
 ölçen kuralı değiştirme yetkisi olmamalı.
 
+**Zemin denetimi ilk düşüşte duruyor.** İki dal birleşince sınavların tam
+koşusu ~13 dakikaya çıktı; zemin denetimi ikisini de sonuna kadar koşuyordu
+ve "kirli zeminde ölçmüyor" vakası 300 sn sınırına çarpıp düştü. Zeminin
+sorusu "düşen var mı" — ilk düşüşte cevap belli. Kirli zemin artık ~10 sn'de
+söyleniyor; sayı "en az N" diye yazılıyor. Halka ölçümü tam koşuyla kalıyor:
+orada kaç vakanın düştüğü sıralamayı belirliyor.
+
 ## İz analizi — koşular arası hata döngüsü
 
 Tepe tırmanma döngüsünün eksik ayağıydı. Her halka **kendi turuna**
@@ -1674,8 +2040,8 @@ defterine ya da iz defterine yazılır.
 
 ## Sınırlar
 
-Bunlar tahmin değil, fay enjeksiyon sınavıyla ölçüldü: **31 vaka
-(25 yakalanmalı, 6 masum)** ve **24 altın soru**. Bu sayılar `dogrula.py`
+Bunlar tahmin değil, fay enjeksiyon sınavıyla ölçüldü: **93 vaka
+(80 yakalanmalı, 13 masum)** ve **24 altın soru**. Bu sayılar `dogrula.py`
 tarafından denetleniyor — betikler değişip belge yerinde kalırsa hata verir.
 Ölçülen iki gerçek açık vardı, ikisi de kapatıldı — biri tam olarak
 kapanamadı, aşağıda:
@@ -1692,7 +2058,14 @@ kapanamadı, aşağıda:
   %95 — yani yaklaşık yirmi sorudan biri ilk üçte doğru yeri getirmiyor.
   Gelen metni okumak hâlâ şart; `/sor` bu yüzden "getirdiğini kabul etme"
   adımı içeriyor.
-- **Eşikler 20 soruluk bir sete göre ölçüldü.** Küçük bir set. Parametreleri
+- **Eşikler küçük bir sete göre ölçüldü.** Ne kadar küçük olduğu artık
+  sayıyla görünüyor: 24 soruda isabet@3 %92, %95 Wilson aralığı
+  **[%74–%98]** [K12][K13]. Aralığın alt ucu %90 eşiğinin altında; yani bu
+  setle "eşiğin üstündeyiz" demek istatistiksel olarak kanıtlanamıyor. Oran
+  %95 olsaydı bunun için yaklaşık **140 soru** gerekirdi (133/140'ın alt ucu
+  %90.04); bugünkü %92 eşiğe o kadar yakın ki **~870 soru** ister. Pratik
+  sonuç: eşiğin hemen üstündeki bir oran küçük setle kanıtlanamaz, ancak
+  izlenir. Parametreleri
   bu sete uydurarak "iyileştirmek" mümkün ve yanıltıcı — nitekim bir tarama
   tek hücrelik bir tepe gösterdi ve o tepe reddedildi, sorun yapısal
   düzeltmeyle çözüldü. Set büyüdükçe ölçüm gerçeğe yaklaşır; büyütmenin
@@ -1722,10 +2095,62 @@ denendi ve çalışıyordu". Ölçmeye başlayınca üçü de açık verdi:
   sözdizimi hatası `dogrula.py`'yi izleme yığınıyla düşürüyordu — yani
   bir aracın bozulması bütün kuralları görünmez kılıyordu. Denetleyici,
   ölçtüğü araçtan sağlam olmak zorunda; artık hata olarak bildirip
-  geri kalan 82 denetimi koşuyor.
+  geri kalan denetimleri koşuyor. Aynı ilke sonradan genelleşti: herhangi
+  bir denetimin çökmesi artık sadece kendi başlığını düşürüyor.
 - Bu katman siteyi değiştirmez, sadece üzerinde çalışma biçimini değiştirir.
 - Uzman ajanlar sıfırdan başlar; `LORE.md` okumalarını söylemezsen okumazlar.
 - Ajan raporu delil değildir. Sayı/isim/tarih iddiasını dosyadan doğrula.
+
+### İkinci tur: döngülerin kenarında çıkan açıklar
+
+Döngülerin içi ölçülüydü; kenarları değildi. Bu tur sistemi dışarıdan okuyup
+"hangi alana hiçbir döngü bakmıyor" diye sordu. Bulunanlar:
+
+- **Kör nokta dosyaları.** `gizleme` ve `odak` elle yazılmış dosya listesine
+  bakıyordu: `goz.js` ve `animasyon.css` hiçbir denetime girmiyordu. Daha
+  kötüsü, sınavdaki "SVG dizesinde opacity=0" masum vakası `goz.js`'i
+  değiştiriyordu — dosya hiç taranmadığı için **yanlış sebeple** geçiyordu.
+- **En temel kural ölçülmüyordu.** "Veri toplanmıyor, dış servis yok"
+  CLAUDE.md'nin ilk kuralıydı; tek bir `fetch()` ya da analitik betiği
+  hiçbir denetime takılmazdı.
+- **İddia olarak duran sayılar.** "81 ilin 81'i dolu" yazılıydı, ölçülmüyordu.
+  İki ilin derebeyi yer değiştirse iki ad da LORE'da "geçtiği" için `lore`
+  temiz derdi.
+- **Kırık bağlantıya kimse bakmıyordu.** Bir karakterin kimliği değişince
+  `efsane.html` ve `mafya.html`'deki derin bağlantı sessizce kopardı.
+- **Altın set kayması geç fark ediliyordu.** Kanca LORE düzenlemesinde sadece
+  denetleyiciyi çağırıyordu; satır kayması ancak elle koşulan bir sonraki
+  değerlendirmede görülüyordu.
+- **Bash ile düzenleme ve kırmızı commit** hiçbir kapıya takılmıyordu.
+- **Hafıza okunmuyordu:** dört canon kaydı iki aydır açık bekliyordu.
+- **Ölçü gevşetilebiliyordu** ve **eşiğin üstündeki gerileme** görünmüyordu.
+- **Belge çürümüştü:** mutasyon sayısı (15 yazıyor, 19 vardı) ve "yayına
+  çıkmıyor" iddiası.
+
+Her birinin karşılığı yukarıda bir denetim, kanca ya da araç olarak duruyor
+ve her biri fay, araç ya da mutasyon sınavında ölçülüyor. Bu sistemin kuralı
+burada da geçerli: **eklenen her koruma, kendisini koruyan bir testle geldi.**
+
+### Üçüncü tur: kaynaklı geliştirmeler
+
+Bu tur zayıf yeri tahminle değil ölçüyle aradı ve her düzeltmeyi bir
+kaynağa bağladı. Ayrıntılar ilgili bölümlerde; özet:
+
+| Açık | Önce | Sonra | Dayanak |
+|---|---|---|---|
+| Aksansız soru ("Tesup'un zaafi nedir") | isabet@3 %60 | normal soruyla aynı (değişmezlik %100) | [K11] |
+| Türkçe olmayan klavyede büyük harf ("AHRIMAN KIMI KILITLIYOR") | sonuç yok | ilk sonuçta doğru yer | [K11] |
+| Yazım değişmezliği ölçülmüyordu | — | 170 çift (24 altın soruyla), %100 eşik | [K9][K10] |
+| Oranlar tek sayıydı | isabet@3 %92 | %92 [%74–%98] | [K12][K13] |
+| Açılış kancası defter metnini talimatla aynı kanaldan veriyordu | işaretsiz | veri bloğu, satır sınırı, şüpheli kalıp işareti | [K7][K8] |
+| Erişilebilirlikte sadece kontrast ve odak halkası ölçülüyordu | 2 ölçü | + dil, başlık, `alt`, erişilebilir ad, yakınlaştırma, başlık düzeyi | [K14][K15] |
+| Mekanizmaların dayanağı yazılı değildi | — | 20 kaynak; `belge` atıfları sayıyor | — |
+| Elle yazılan mutasyon kendi kör noktasını göremiyordu | 45 elle yazılmış | 58 elle + 149 noktada operatörle üretilen; skor %78 → %100, yaşayan her mutant gerekçeli eşdeğer | [K5][K6] |
+
+Ölçülemeyen kısım da yazılı kalsın: değişmezlik eşiği %100 ama 170 çift
+yine aynı 24 altın sorudan türüyor — setin küçüklüğü (Sınırlar) burada da
+geçerli. Erişilebilirlik denetimi WCAG'nin makineyle ölçülebilen tabanıdır;
+klavyeyle gezinme ve ekran okuyucu deneyimi hâlâ elle denenir.
 
 ## İş ve karar defteri — yarım iş ve reddedilen fikir
 
@@ -1765,7 +2190,7 @@ Aşağıdaki metin taşındığı hâliyle duruyor; her aracın ayrıntılı bö
 bu belgenin yukarısında.
 
 `.claude/` altında **Echo** adlı bir iş akışı katmanı var — **siteye ait
-değil, yayına çıkmıyor.** Ayrıntı: [`.claude/DONGULER.md`](.claude/DONGULER.md).
+değil, ama GitHub Pages onu da yayınlıyor** ("Yayın sınırı"). Ayrıntı: [`.claude/DONGULER.md`](.claude/DONGULER.md).
 Sürüm: `python3 .claude/surum.py goster` — işaret: `python3 .claude/logo.py yaz`
 (`.claude/marka/` altındaki SVG'ler üretilmiş dosyalar, elle düzenlenmez.)
 
@@ -2005,3 +2430,52 @@ Arama da en yakın parçayı verir, doğru parçayı değil: geleni oku, kabul e
 - `python3 .claude/ders.py ozetle` — **bellek pekiştirme.** Koşu
   defterinden ders adayı ayıklar. Otomatik yazmaz: bir koşu kaydı ile
   gelecekteki koşulara ait genel bir kural aynı şey değildir.
+- `python3 .claude/bul.py <dosya> [ad|--ara <söz>]` — büyük dosyanın
+  tamamını değil lazım olan parçasını verir (içindekiler, tek fonksiyon ya
+  da bölüm, sözün geçtiği satırlar). `kanca-buyuk.py` 50 KB üstü dosyanın
+  aralıksız okunmasını durdurup buraya yönlendirir.
+- `kanca-kapi.py` — tur sonu ve `git commit`/`push` kapısı (`olay.py`
+  üzerinden). Denetimi düzenlemeye değil çalışma ağacına uygular; Bash ile
+  yapılan değişiklik de yakalanır. Kırmızı tur bir kez geri çevrilir,
+  kırmızı commit insana sorulur. Ayrıntı: "Kapı kancası".
+- `kanca-acilis.py` — oturum açılışında açık hedef, açık devre, seyir,
+  bekleyen geri bildirim ve son sağlık kaydı; defter metni işaretli veri
+  bloğunda gelir (dolaylı istem enjeksiyonu). Ayrıntı: "Oturum açılışı".
+- `python3 .claude/mandal.py olc|kontrol|kaydet` — ölçü mandalı: silinen
+  vaka, düşen eşik, büyüyen sınır insan kapısıdır. `bekci.py` ölçen
+  aletin DEĞİŞTİĞİNİ yakalar, mandal ölçünün GEVŞEDİĞİNİ; ikisi ayrı
+  soruyu cevaplar. Ayrıntı: "Mandal".
+- `python3 .claude/saglik.py [--hizli] [--kaydet]` ve `/saglik` — bütün
+  ölçümler tek komutta, önceki kayda göre eşik üstü gerileme. Haftalık
+  zamanlanmış tur bunu koşar. Ayrıntı: "Sağlık".
+
+
+## Kaynaklar
+
+Bu katmandaki mekanizmaların dayandığı kaynaklar. Kodda ve bu belgede
+köşeli parantez içinde K ve numarayla geçer. `belge` denetimi üç şeyi ölçer: her atfın burada tanımlı
+olduğunu, her kaynağın en az bir yerde atıf aldığını ve her kaydın bir
+adres (bağlantı ya da DOI) taşıdığını. Bu katmanın canon için koyduğu
+kural kendisi için de geçerli: her iddia kontrol edilebilir bir adrese
+bağlanır.
+
+- **[K1]** Schluntz, E., Zhang, B. (2024, 19 Aralık). *Building effective agents.* Anthropic. https://www.anthropic.com/engineering/building-effective-agents — iş akışı ile ajan ayrımı; ajanın her adımda ortamdan "gerçek" geri bildirim alması; durma koşulu (en fazla tur).
+- **[K2]** Fowler, M. (2014, 6 Mart). *CircuitBreaker.* https://martinfowler.com/bliki/CircuitBreaker.html — örüntüyü Nygard, M. T., *Release It!* (Pragmatic Bookshelf, 2007) kitabından aktarır: eşiği aşan hata sayısında devre açılır, çağrı denenmez.
+- **[K3]** Huntley, G. (2025, 14 Temmuz). *Ralph Wiggum as a "software engineer".* https://ghuntley.com/ralph/ — "en saf hâliyle Ralph bir Bash döngüsüdür".
+- **[K4]** Krakovna, V. vd. (2020, 21 Nisan). *Specification gaming: the flip side of AI ingenuity.* DeepMind. https://deepmind.google/discover/blog/specification-gaming-the-flip-side-of-ai-ingenuity/ — ölçünün harfini yerine getirip amacı kaçırmak.
+- **[K5]** DeMillo, R. A., Lipton, R. J., Sayward, F. G. (1978). Hints on Test Data Selection: Help for the Practicing Programmer. *IEEE Computer* 11(4):34–41. https://doi.org/10.1109/C-M.1978.218136 — mutasyon testinin temeli; basit hataları yakalayan testin karmaşıkları da yakalaması (eşleşme etkisi).
+- **[K6]** Jia, Y., Harman, M. (2011). An Analysis and Survey of the Development of Mutation Testing. *IEEE Transactions on Software Engineering* 37(5):649–678. https://doi.org/10.1109/TSE.2010.62 — alanın kapsamlı taraması. Mutasyon skoru: öldürülen mutantların eşdeğer olmayan mutantlara oranı. Hesaplama maliyeti ve maliyet azaltma (mutant örneklemesi dahil). Eşdeğerlik karar verilemez olduğundan eşdeğer mutantı ayırmak çoğu zaman insan emeği ister.
+- **[K7]** OWASP (2025). *LLM01:2025 Prompt Injection.* OWASP Top 10 for LLM Applications 2025. https://genai.owasp.org/llmrisk/llm01-prompt-injection/ — dolaylı enjeksiyonun tanımı; "güvenilmeyen içeriği ayır ve açıkça işaretle".
+- **[K8]** Greshake, K., Abdelnabi, S., Mishra, S., Endres, C., Holz, T., Fritz, M. (2023). Not what you've signed up for: Compromising Real-World LLM-Integrated Applications with Indirect Prompt Injection. https://arxiv.org/abs/2302.12173 — saldırganın modele değil, modelin okuyacağı veriye yazması.
+- **[K9]** Ribeiro, M. T., Wu, T., Guestrin, C., Singh, S. (2020). Beyond Accuracy: Behavioral Testing of NLP Models with CheckList. *ACL 2020*, 4902–4912. https://doi.org/10.18653/v1/2020.acl-main.442 — değişmezlik (INV) testleri: anlamı korunan bozulmada çıktı değişmemeli.
+- **[K10]** Chen, T. Y., Cheung, S. C., Yiu, S. M. (1998). Metamorphic testing: a new approach for generating next test cases. Teknik rapor HKUST-CS98-01. https://arxiv.org/abs/2002.12543 — doğru cevabı bilmeden, koşular arası ilişkiyi sınamak.
+- **[K11]** Manning, C. D., Raghavan, P., Schütze, H. (2008). *Introduction to Information Retrieval*, §2.2.3 (aksanlar; büyük/küçük harf katlama). Cambridge University Press. https://nlp.stanford.edu/IR-book/html/htmledition/accents-and-diacritics-1.html — kullanıcılar sorguyu çoğu zaman aksansız yazar; terimleri aksansız biçimde eşlemek uygun olabilir.
+- **[K12]** Wilson, E. B. (1927). Probable inference, the law of succession, and statistical inference. *Journal of the American Statistical Association* 22(158):209–212. https://doi.org/10.1080/01621459.1927.10502953 — Wilson skor aralığı.
+- **[K13]** Brown, L. D., Cai, T. T., DasGupta, A. (2001). Interval Estimation for a Binomial Proportion. *Statistical Science* 16(2):101–133. https://doi.org/10.1214/ss/1009213286 — Wald aralığının düzensiz kapsaması; küçük n için Wilson önerisi.
+- **[K14]** W3C (2023; güncelleme 12 Aralık 2024). *Web Content Accessibility Guidelines (WCAG) 2.2.* W3C Recommendation. https://www.w3.org/TR/WCAG22/ — 1.1.1 metin dışı içerik, 1.4.4 metni yeniden boyutlandırma, 2.4.2 sayfa başlığı, 3.1.1 sayfa dili, 4.1.2 ad/rol/değer.
+- **[K15]** W3C WAI. *Headings* — Page Structure Tutorial. https://www.w3.org/WAI/tutorials/page-structure/headings/ — "başlık düzeyi atlamak kafa karıştırabilir, mümkün olduğunca kaçınılmalı"; alt bölüm kapanırken atlamak serbest.
+- **[K16]** Can, F., Kocberber, S., Balcik, E., Kaynak, C., Ocalan, H. C., Vursavas, O. M. (2006). First large-scale information retrieval experiments on Turkish texts. *SIGIR 2006*, 627–628. https://doi.org/10.1145/1148170.1148288 — Türkçede 5 harflik ön ekle kesmenin etkili bir erişim ortamı sağlaması. Ayrıca: Can vd. (2008), Information retrieval on Turkish texts, *JASIST* 59(3):407–421, https://doi.org/10.1002/asi.20750.
+- **[K17]** Robertson, S., Zaragoza, H. (2009). The Probabilistic Relevance Framework: BM25 and Beyond. *Foundations and Trends in Information Retrieval* 3(4):333–389. https://doi.org/10.1561/1500000019 — BM25.
+- **[K18]** Zheng, L. vd. (2023). Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena. *NeurIPS 2023 Datasets and Benchmarks.* https://arxiv.org/abs/2306.05685 — LLM yargıçlarında konum, uzunluk ve kendini kayırma önyargıları.
+- **[K19]** Hong, K., Troynikov, A., Huber, J. (2025, 14 Temmuz). *Context Rot: How Increasing Input Tokens Impacts LLM Performance.* Chroma. https://research.trychroma.com/context-rot — girdi uzadıkça, basit görevlerde bile performansın güvenilmezleşmesi.
+- **[K20]** Anthropic. *Hooks reference* — Claude Code belgeleri. https://code.claude.com/docs/en/hooks — Stop olayının turu sürdürmesi, PreToolUse `permissionDecision` (allow / deny / ask / defer), SessionStart `additionalContext`.

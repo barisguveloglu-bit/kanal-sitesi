@@ -95,6 +95,8 @@ YETKI_YAZMA = """### YETKİ: yazma
 
 Bu görev dosya değiştirebilir — ama sınırlı:
 
+- Ayrı bir çalışma ağacında çalışıyorsun. Değişikliğin, doğrulanıp
+  birleştirilene kadar ana depoya geçmez — ana depoya kendin yazma.
 - Sadece görevde adı geçen dosyalara dokun.
 - Her düzenlemeden sonra `python3 .claude/dogrula.py` çalıştır.
 - Çıkış kodu `3` (insan kapısı) alırsan **düzeltme, raporunda söyle.**
@@ -232,7 +234,13 @@ def brief(a):
             kaynak=", ".join(a.kaynak) or "konuya göre rg ile daralt; ilgili aralığı oku")
     else:
         yetki = YETKI_YAZMA if a.mod == "yazma" else YETKI_OKUMA
-        metin = BRIEF.format(kok=KOK, konu=a.konu,
+        # Yazma görevi ayrı bir çalışma ağacında koşar (kanca-gorev.py bunu
+        # zorunlu tutuyor). Ana deponun yolunu "çalışacağın yer" diye vermek,
+        # ajanı yalıtımı atlayıp doğrudan oraya yazmaya çağırmak olurdu.
+        depo = KOK if a.mod != "yazma" else (
+            f"kendi çalışma dizinin — ayrı bir çalışma ağacındasın. Ana depoya "
+            f"(`{KOK}`) yazma; bütün yollar kendi dizinine göre.")
+        metin = BRIEF.format(kok=depo, konu=a.konu,
                              cikti=a.cikti or "kısa rapor", yetki=yetki)
     if not a.baglamsiz and a.alan == "canon":
         metin += "\n" + baglam_blogu(a.konu, a.baglam_sayi)
@@ -245,6 +253,20 @@ def sozlesme_eksikleri(metin):
     kucuk = ara.turkce_kucult(metin)
     return [ad for ad, anahtarlar in ZORUNLU.items()
             if not any(ara.turkce_kucult(k) in kucuk for k in anahtarlar)]
+
+
+def yetki_modu(metin):
+    """Görev metnindeki yetki beyanı: "yazma", "okuma" ya da None.
+
+    İkisi birden geçiyorsa "yazma" döner — şüphede geniş yetkiyi varsay,
+    yalıtımı ona göre iste.
+    """
+    kucuk = ara.turkce_kucult(metin)
+    if ara.turkce_kucult("YETKİ: yazma") in kucuk:
+        return "yazma"
+    if ara.turkce_kucult("YETKİ: okuma") in kucuk:
+        return "okuma"
+    return None
 
 
 def denetle_gorev(a):

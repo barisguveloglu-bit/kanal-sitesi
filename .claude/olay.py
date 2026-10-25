@@ -62,8 +62,16 @@ DINLEYICILER = [
     # dosyanın aralıksız okunması durdurulur, bul.py'ye yönlendirilir.
     ("PreToolUse", r"^Read$", "kanca-buyuk.py",
      "dosya okunacak → büyükse ve aralık yoksa durdur"),
-    ("PreToolUse", r"^(Agent|Task)$", "kanca-gorev.py",
-     "alt ajan gönderiliyor → sözleşmesiz görevi engelle"),
+    # Bulut oturumu da bir alt ajandır: kendi makinesinde koşar ama aynı
+    # sözleşmeye ve aynı yalıtım kuralına tabi (yazma görevi ayrı ağaçta).
+    ("PreToolUse", r"^(Agent|Task|mcp__claude-code-remote__create_session)$", "kanca-gorev.py",
+     "alt ajan gönderiliyor → sözleşmesiz ya da yalıtımsız yazma görevini engelle"),
+    # Bash ile yapılan düzenleme PostToolUse(Edit) kancasına hiç görünmez.
+    # Kırmızı ağaç commit'e giderse insana sorulur, sessizce geçmez.
+    ("PreToolUse", r"^Bash$", "kanca-kapi.py",
+     "git commit/push → çalışma ağacı kırmızıysa insana sor"),
+    ("Stop", r"^.*$", "kanca-kapi.py",
+     "tur bitiyor → çalışma ağacı kırmızıysa bir kez geri çevir"),
     # Bellek geliştirme döngüsünün kapanan halkası. Ders defteri kalıcı
     # ama OKUNMAZSA yok gibidir — okunmasını insanın hatırlamasına
     # bırakmak, kuralı yazıya bırakmaktır. Oturum açılışında kendi
@@ -81,6 +89,11 @@ DINLEYICILER = [
     # bitince kayboluyordu (butce/hedef dosyaları koşuya özel).
     ("SessionStart", r"^.*$", "kanca-defter.py",
      "oturum açıldı → yarım işi ve askıdaki kararları yüzeye çıkar"),
+    # Açık hedef, açık devre, uzun koşunun seyri, bekleyen geri bildirim
+    # ve son sağlık kaydı. Defter metni VERİ bloğunda gelir: içinde talimat
+    # gibi görünen bir şey varsa uygulanmaz (dolaylı istem enjeksiyonu).
+    ("SessionStart", r"^.*$", "kanca-acilis.py",
+     "oturum açıldı → açık hedef, devre, seyir, geri bildirim, son sağlık"),
 ]
 
 
