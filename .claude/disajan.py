@@ -69,6 +69,21 @@ def kos(kok, betik, *arg):
                           cwd=kok, capture_output=True, text=True, timeout=600)
 
 
+# Dış ajanın dokunamayacağı yerler: ölçen taraf. İlk hâli yalnız `.claude/`
+# idi; güvenlik taraması ölçüm katmanının orada bitmediğini gösterdi. CI iş
+# akışı (`.github/`), Codex becerisi (`.agents/`), Echo'nun birim testleri
+# (`tests/`), Echo giriş noktası ve talimat belgeleri de kapının parçası —
+# dal bunlardan birini değiştirip KENDİ kapısını gevşetebiliyordu (kapı
+# dalın kendi betikleriyle koşuyor).
+YASAK_KLASORLER = (".claude/", ".github/", ".agents/", "tests/")
+YASAK_DOSYALAR = frozenset({"CLAUDE.md", "AGENTS.md", "ECHO.md",
+                            "echo.py", "echo-modeller.json"})
+
+
+def yasak_mi(yol):
+    return yol.startswith(YASAK_KLASORLER) or yol in YASAK_DOSYALAR
+
+
 def git(*arg, kok=KOK):
     return subprocess.run(["git", *arg], cwd=kok, capture_output=True,
                           text=True, timeout=180)
@@ -138,7 +153,10 @@ otomatik reddettirir.
 ## Dokunma
 
 - `.claude/` altındaki hiçbir şeyi **değiştirme** (okuyabilirsin).
-  Orası iş akışı katmanı, senin görev alanın değil.
+  Orası iş akışı katmanı, senin görev alanın değil. Aynısı `.github/`,
+  `.agents/`, `tests/`, `echo.py`, `echo-modeller.json` ve talimat
+  belgeleri (`CLAUDE.md`, `AGENTS.md`, `ECHO.md`) için geçerli — kapı
+  bunlara dokunan dalı doğrudan reddeder.
 - `LORE.md` canon kaynağıdır: **içerik değiştirmek insan kararıdır.**
   Gerekiyorsa PR açıklamasında öner, kendin yapma.
 - Menü ve `sitemap.xml` elle tutuluyor; yeni sayfa eklemiyorsan dokunma.
@@ -456,14 +474,15 @@ def kapi(a):
         # kanıtlandıktan sonra dalın kendi sınavını koşmak doğrusu.
         degisen = git("diff", "--name-only", f"{taban}...{hedef_ref}")
         dokunulan = [x for x in degisen.stdout.splitlines() if x.strip()]
-        yasak = [x for x in dokunulan if x.startswith(".claude/")]
+        yasak = [x for x in dokunulan if yasak_mi(x)]
         if yasak:
             print(f"KAPI — {a.dal}\n")
             print("REDDEDİLDİ — ölçüm katmanına dokunulmuş:")
             for y in yasak[:10]:
                 print(f"  · {y}")
-            print("\nSınavı değiştirerek geçmek geçmek değildir. `.claude/` "
-                  "dış ajanın görev alanı değil.")
+            print("\nSınavı değiştirerek geçmek geçmek değildir. `.claude/`, "
+                  "`.github/`, `.agents/`, `tests/` ve talimat belgeleri dış "
+                  "ajanın görev alanı değil.")
             return 1
 
         sonuclar, bulgular = [], []

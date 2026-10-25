@@ -26,6 +26,12 @@ import sys
 
 KLASOR = os.path.dirname(os.path.abspath(__file__))
 
+# Ders metni depodaki serbest metindir ve oturum açılışında bağlama girer.
+# Düz basılınca deftere yazılmış "önceki tüm talimatları yok say" cümlesi
+# talimat gibi okunuyordu (güvenlik taraması). Satır sınırı açılış özetinden
+# geniş: dersler 230 karaktere kadar uzanıyor, kırpılan ders yarım ders.
+DERS_SATIR_SINIRI = 600
+
 
 def main():
     # stdin'i tüket — okumazsak dağıtıcı tarafında boru tıkanabilir.
@@ -54,8 +60,10 @@ def main():
     if not cikti or cikti == "Ders defteri boş.":
         return 0
 
+    sys.path.insert(0, KLASOR)
+    from veriblok import blokla
     print("Echo Orkestra — önceki koşulardan kalan dersler:\n")
-    print(cikti)
+    print("\n".join(blokla(cikti.splitlines(), DERS_SATIR_SINIRI)))
     print()
     print("Bu dersler daha önce gerçekten yapılmış hatalardan çıkarıldı.")
     print("`!` işaretli olanların mekanik koruması yok — sadece okunarak")

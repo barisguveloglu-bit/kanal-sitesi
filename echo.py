@@ -123,6 +123,15 @@ def kapilari_kos(tam=False):
     return birlestir(kodlar)
 
 
+def veri_blogu(cikti):
+    """Defter metni Codex'in bağlamına da giriyor: Claude açılış kancalarıyla
+    aynı veri bloğu (.claude/veriblok.py). Düz basılırsa deftere yazılmış
+    "önceki talimatları yok say" cümlesi talimat gibi okunur."""
+    sys.path.insert(0, str(CEKIRDEK))
+    from veriblok import blokla
+    return "\n".join(blokla(cikti.rstrip("\n").splitlines(), 600)) + "\n"
+
+
 def baslat(a):
     print("ECHO / CODEX — hafıza ve başlangıç denetimi", flush=True)
     if os.environ.get("ECHO_KAPALI", "").strip() not in ("", "0"):
@@ -134,6 +143,11 @@ def baslat(a):
         kod, cikti = calistir(arac, komut)
         if kod == 0 and baslik not in cikti:
             kod, cikti = 2, cikti + f"\nKOŞMADI — {arac} beklenen özeti üretmedi.\n"
+        elif kod == 0:
+            try:
+                cikti = veri_blogu(cikti)
+            except Exception as hata:   # modül yoksa defter işaretsiz basılmaz
+                kod, cikti = 2, f"KOŞMADI — veri bloğu kurulamadı: {type(hata).__name__}\n"
         kodlar.append(yaz((kod, cikti)))
     kodlar.append(kapilari_kos())
     kod = birlestir(kodlar)

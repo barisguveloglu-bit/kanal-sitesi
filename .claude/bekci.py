@@ -107,6 +107,27 @@ OLCUM = (
     ".claude/kanca-kapi.py",
     ".claude/altin-sorular.json",
     ".github/workflows/denetim.yml",
+    # Kapının kendisi. Güvenlik taraması: olay.py'den kapı satırlarını
+    # silen, settings.json eşleştiricisini daraltan ya da bir kancayı
+    # boşaltan commit beyansız geçiyordu — listede yalnız kanca-kapi.py
+    # vardı. Kancayı ve onu çağıran yolu değiştiren, ölçen aleti değiştirir.
+    ".claude/settings.json",
+    ".claude/olay.py",
+    ".claude/kanca.py",
+    ".claude/kanca-acilis.py",
+    ".claude/kanca-buyuk.py",
+    ".claude/kanca-defter.py",
+    ".claude/kanca-ders.py",
+    ".claude/kanca-duman.py",
+    ".claude/kanca-gorev.py",
+    ".claude/veriblok.py",
+    # Dış ajan kapısı: neye dokunamayacağı burada yazılı.
+    ".claude/disajan.py",
+    # Talimat belgeleri: kuralın kendisi. Kuralı gevşeten bir satır, ölçüyü
+    # gevşeten bir satırla aynı etkiyi yapar — merge kararı insanın.
+    "CLAUDE.md",
+    "AGENTS.md",
+    "ECHO.md",
 )
 
 BEYAN = re.compile(r"^\s*ÖLÇÜM-DEĞİŞTİ\s*:\s*(\S.*)$", re.MULTILINE)

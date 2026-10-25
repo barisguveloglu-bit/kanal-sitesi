@@ -52,6 +52,8 @@ import tempfile
 from concurrent.futures import ThreadPoolExecutor
 
 KAYNAK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from depokopya import depoyu_kopyala  # noqa: E402  (worktree yalıtımı)
 
 
 def duzenle(kok, yol, eski, yeni):
@@ -350,13 +352,80 @@ def m_acilis_veriyi_ayirmasin(kok):
 
 
 def m_acilis_satiri_kirpmasin(kok):
-    duzenle(kok, ".claude/kanca-acilis.py", "SATIR_SINIRI = 160", "SATIR_SINIRI = 10 ** 6")
+    # Temizleme kuralı veriblok.py'ye taşındı; üç açılış kancası oradan alıyor.
+    duzenle(kok, ".claude/veriblok.py", "SATIR_SINIRI = 160", "SATIR_SINIRI = 10 ** 6")
 
 
 def m_acilis_kapanisi_etkisizlestirmesin(kok):
-    duzenle(kok, ".claude/kanca-acilis.py",
+    duzenle(kok, ".claude/veriblok.py",
             '    satir = satir.replace("---", "—")',
             "    satir = satir")
+
+
+# --------------------------------------------- güvenlik taraması kapıları
+
+def m_ders_kancasi_veriyi_ayirmasin(kok):
+    """Ders defteri yine düz basılsın — taramadaki açığın kendisi."""
+    duzenle(kok, ".claude/kanca-ders.py",
+            '    print("\\n".join(blokla(cikti.splitlines(), DERS_SATIR_SINIRI)))',
+            "    print(cikti)")
+
+
+def m_defter_kancasi_veriyi_ayirmasin(kok):
+    duzenle(kok, ".claude/kanca-defter.py",
+            '    print("\\n".join(blokla(cikti.splitlines(), DEFTER_SATIR_SINIRI)))',
+            "    print(cikti)")
+
+
+def m_veriblok_rol_taklidini_tanimasin(kok):
+    duzenle(kok, ".claude/veriblok.py", "(sistem|system|assistant|asistan)", "(_yok_)")
+
+
+def m_veriblok_kacisi_cozmesin(kok):
+    """Denetim ham satıra baksın: kaçışla yazılmış talimat görünmez olur."""
+    duzenle(kok, ".claude/veriblok.py",
+            "            if any(supheli_mi(m) for m in (satir, _cozulmus(satir))):",
+            "            if supheli_mi(satir):")
+
+
+def m_dogrula_defteri_taramasin(kok):
+    duzenle(kok, ".claude/dogrula.py", "    bulunan = defter_taramasi(KOK)", "    bulunan = []")
+
+
+def m_dogrula_zorunlu_kapiya_kor(kok):
+    """Taramadan önceki hâl: var olanın sağlığı ölçülür, olması gerekenin
+    varlığı ölçülmez."""
+    duzenle(kok, ".claude/dogrula.py",
+            "    for olay, araclar, betik in ZORUNLU_KANCALAR:",
+            "    for olay, araclar, betik in ():")
+
+
+def m_dogrula_eslestiriciye_bakmasin(kok):
+    duzenle(kok, ".claude/dogrula.py",
+            '                        if _matcher_tutar(grup.get("matcher"), arac)\n', "")
+
+
+def m_dogrula_kardes_modulu_aramasin(kok):
+    duzenle(kok, ".claude/dogrula.py",
+            '        for modul in re.findall(r"^\\s*from\\s+(\\w+)\\s+import", kaynak, re.M):',
+            "        for modul in ():")
+
+
+def m_kapi_github_yazmayi_sormasin(kok):
+    duzenle(kok, ".claude/kanca-kapi.py",
+            "        return uzak_yazma_oncesi(olay)", "        return 0")
+
+
+def m_disajan_yalniz_claude_yasaklasin(kok):
+    duzenle(kok, ".claude/disajan.py",
+            "    return yol.startswith(YASAK_KLASORLER) or yol in YASAK_DOSYALAR",
+            '    return yol.startswith(".claude/")')
+
+
+def m_depokopya_worktree_paylassin(kok):
+    """Kopya worktree'nin `.git` dosyasını taşısın — paylaşılan dizine yazar."""
+    duzenle(kok, ".claude/depokopya.py",
+            "    if not os.path.isfile(git_yolu):", "    if True:")
 
 
 def m_dogrula_dile_kor(kok):
@@ -726,6 +795,17 @@ MUTASYONLAR = [
     ("açılış: veri ayrılmıyor",          m_acilis_veriyi_ayirmasin,          "arac-sinavi.py"),
     ("açılış: satır kırpılmıyor",        m_acilis_satiri_kirpmasin,          "arac-sinavi.py"),
     ("açılış: blok içeriden kapanıyor",  m_acilis_kapanisi_etkisizlestirmesin, "arac-sinavi.py"),
+    ("ders kancası: veri ayrılmıyor",    m_ders_kancasi_veriyi_ayirmasin,    "arac-sinavi.py"),
+    ("iş defteri kancası: veri ayrılmıyor", m_defter_kancasi_veriyi_ayirmasin, "arac-sinavi.py"),
+    ("veri bloğu: rol taklidine kör",    m_veriblok_rol_taklidini_tanimasin, "arac-sinavi.py"),
+    ("veri bloğu: kaçışı çözmüyor",      m_veriblok_kacisi_cozmesin,         "sinav.py"),
+    ("denetim: defteri taramıyor",       m_dogrula_defteri_taramasin,        "sinav.py"),
+    ("denetim: zorunlu kapıya kör",      m_dogrula_zorunlu_kapiya_kor,       "sinav.py"),
+    ("denetim: eşleştiriciye bakmıyor",  m_dogrula_eslestiriciye_bakmasin,   "sinav.py"),
+    ("denetim: kardeş modülü aramıyor",  m_dogrula_kardes_modulu_aramasin,   "sinav.py"),
+    ("kapı: GitHub yazmayı sormuyor",    m_kapi_github_yazmayi_sormasin,     "arac-sinavi.py"),
+    ("disajan: yalnız .claude/ yasak",   m_disajan_yalniz_claude_yasaklasin, "arac-sinavi.py"),
+    ("kopya: worktree'yi paylaşıyor",    m_depokopya_worktree_paylassin,     "arac-sinavi.py"),
 
     ("erişim: sayfa diline kör",         m_dogrula_dile_kor,                 "sinav.py"),
     ("erişim: başlık sırasına kör",      m_dogrula_baslik_sirasina_kor,      "sinav.py"),
@@ -768,7 +848,7 @@ def kopyada_dene(degistir, sinav):
     gecici = tempfile.mkdtemp()
     kok = os.path.join(gecici, "depo")
     try:
-        shutil.copytree(KAYNAK, kok)
+        depoyu_kopyala(KAYNAK, kok)
         durum = os.path.join(kok, ".claude", "devre-durumu.json")
         if os.path.exists(durum):
             os.remove(durum)
