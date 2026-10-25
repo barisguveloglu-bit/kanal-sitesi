@@ -917,13 +917,14 @@ yakalamadığına bak. Burada **başarısızlık iyi haberdir** — mutasyon
 yakalandı demektir. Yeşil kalan bir mutasyon, "o davranışı hiçbir şey
 korumuyor" demektir.
 
-**95 mutasyon** var: kesici hiç kesmesin, yargıç uydurmayı görmesin,
+**96 mutasyon** var: kesici hiç kesmesin, yargıç uydurmayı görmesin,
 sözleşme kapısı açılsın, arama "bilmiyorum" diyemesin, ham iz özete girsin,
 denetleyici yeni dosyaya kör kalsın, mandal gevşemeyi görmesin, tur sonu
 kapısı bloklamasın, açılış bekleyen kararı göstermesin, sürüm yamayı
 dokuzdan öteye taşısın, logo sürümü gövdeye çakılsın, ders defteri yine
 düz basılsın, zorunlu kapı silinince denetim sussun, sınav kopyası
-worktree'yi paylaşsın…
+worktree'yi paylaşsın, efsane sayfası canon'dan ayrışsa da
+bütünlük sınavı sussun…
 
 Bu sayı da belgeye elle yazılıyor, yani o da çürüyebilir — nitekim çürüdü:
 belge 15 derken gerçek 23'tü. `belge` denetimi artık bu sayıyı da tutuyor.
@@ -1273,7 +1274,7 @@ kararı dışarıdaki koşucu veriyor. Taklit etmek **yanlış bir yeşil**
 |---|---|---|
 | `sinav.py` | denetleyiciyi — fay enjeksiyonu | 28 |
 | `arac-sinavi.py` | araçları — devre, yargıç, görev, logo, olay, tırmanma, eleştirmen, TDD, dış ajan, havuz, kadro | 121 |
-| `butunluk.py` | **içeriği** — canon ↔ veri ↔ site | **78 bütünlük vakası** |
+| `butunluk.py` | **içeriği** — canon ↔ veri ↔ site | **79 bütünlük vakası** |
 
 ```
 python3 .claude/butunluk.py
@@ -2100,7 +2101,7 @@ defterine ya da iz defterine yazılır.
 ## Sınırlar
 
 Bunlar tahmin değil, fay enjeksiyon sınavıyla ölçüldü: **99 vaka
-(85 yakalanmalı, 14 masum)** ve **24 altın soru**. Bu sayılar `dogrula.py`
+(85 yakalanmalı, 14 masum)** ve **25 altın soru**. Bu sayılar `dogrula.py`
 tarafından denetleniyor — betikler değişip belge yerinde kalırsa hata verir.
 Ölçülen iki gerçek açık vardı, ikisi de kapatıldı — biri tam olarak
 kapanamadı, aşağıda:
@@ -2206,8 +2207,8 @@ kaynağa bağladı. Ayrıntılar ilgili bölümlerde; özet:
 | Mekanizmaların dayanağı yazılı değildi | — | 20 kaynak; `belge` atıfları sayıyor | — |
 | Elle yazılan mutasyon kendi kör noktasını göremiyordu | 45 elle yazılmış | 58 elle + 149 noktada operatörle üretilen; skor %78 → %100, yaşayan her mutant gerekçeli eşdeğer | [K5][K6] |
 
-Ölçülemeyen kısım da yazılı kalsın: değişmezlik eşiği %100 ama 170 çift
-yine aynı 24 altın sorudan türüyor — setin küçüklüğü (Sınırlar) burada da
+Ölçülemeyen kısım da yazılı kalsın: değişmezlik eşiği %100 ama 175 çift
+yine aynı 25 altın sorudan türüyor — setin küçüklüğü (Sınırlar) burada da
 geçerli. Erişilebilirlik denetimi WCAG'nin makineyle ölçülebilen tabanıdır;
 klavyeyle gezinme ve ekran okuyucu deneyimi hâlâ elle denenir.
 
@@ -2275,7 +2276,7 @@ Sürüm: `python3 .claude/surum.py goster` — işaret: `python3 .claude/logo.py
   `python3 .claude/arac-sinavi.py` — sırasıyla denetleyiciyi, aramayı ve
   araçları (kesici, yargıç, geri bildirim, kanca) ölçer.
 - `python3 .claude/butunluk.py` — canon ↔ veri ↔ site bütünlüğünü ölçer
-  (78 vaka): 81 ilin plakası resmî kodla eşleşiyor mu, canon'daki il
+  (79 vaka): 81 ilin plakası resmî kodla eşleşiyor mu, canon'daki il
   tablosu satır satır `data.js` ile aynı mı, aynı derebeyi iki
   ile atanmış mı, `data.js`'teki her isim `LORE.md`'de geçiyor mu, canon'da
   dayanağı olmayan sıralama iddiası var mı. `dogrula.py` kuralları denetler,

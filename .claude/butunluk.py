@@ -922,6 +922,34 @@ def h12_kapatilmis_celiski_geri_gelmemis():
 
 
 
+def h13_vakayiname_sitede_canonla_ayni():
+    """Efsane sayfasındaki vakayiname, canon tablosuyla yıl yıl aynı mı.
+
+    `efsane.html` vakayinameyi eski belge görünümünde ELLE yazılmış HTML
+    olarak taşıyor; `data.js`'ten üretilmiyor. Canon'daki bir tarih
+    değişip sayfa unutulursa hiçbir vaka bunu görmüyordu — 1730 → 1731
+    kararı (Barış, 25 Ekim 2026) tam bu iki yere dokunan ilk değişiklikti.
+    Sıra da ölçülüyor: vakayiname bir kronoloji, satır yer değiştirirse
+    anlatı bozulur. Metnin anlamını canon-denetci okur; burada yıllar.
+    """
+    def sade(y):
+        return re.sub(r"\s+", " ", y.replace("*", "").replace("-", "–")).strip()
+
+    e = re.search(r"^### Ağacın sonu — vakayiname\n(.*?)(?=^#{2,3} |^\*\*|^> )",
+                  K.lore, re.M | re.S)
+    if not e:
+        return "canon'da 'Ağacın sonu — vakayiname' tablosu bulunamadı"
+    canon = [sade(m) for m in re.findall(r"^\|\s*([^|]+?)\s*\|", e.group(1), re.M)]
+    canon = [y for y in canon if y and y != "Tarih" and not set(y) <= set("–: ")]
+    sayfa = [sade(y) for y in re.findall(r'<div class="eski-yil">([^<]+)</div>',
+                                          K.html.get("efsane.html", ""))]
+    if not canon or not sayfa:
+        return f"vakayiname okunamadı (canon {len(canon)}, efsane.html {len(sayfa)} satır)"
+    if canon != sayfa:
+        return f"vakayiname ayrıştı — canon {canon} ≠ efsane.html {sayfa}"
+    return None
+
+
 VAKALAR = [
     ("veri", "il: 81 kayıt var", a01_seksen_bir_kayit),
     ("veri", "il: plakalar eksiksiz", a02_plakalar_eksiksiz),
@@ -996,6 +1024,7 @@ VAKALAR = [
     ("canon", "canon: kanal adresi tutarlı", h06_kanal_adresi_tutarli),
     ("canon", "canon: site adresi haritayla aynı", h07_site_adresi_haritayla_ayni),
     ("canon", "canon: taslak kesin sunulmuyor", h09_acik_uclar_kesin_sunulmuyor),
+    ("canon", "canon: vakayiname sitede canonla aynı", h13_vakayiname_sitede_canonla_ayni),
 
     ("canon", "canon: kapatılmış çelişki geri gelmemiş", h12_kapatilmis_celiski_geri_gelmemis),
     ("canon", "canon: dış sıralama iddiası yok", h11_sitede_canon_disi_siralama_yok),

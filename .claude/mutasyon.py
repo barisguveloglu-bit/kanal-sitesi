@@ -578,6 +578,11 @@ def m_butunluk_plaka_gormesin(kok):
             "              if False]")
 
 
+def m_butunluk_vakayinameye_kor(kok):
+    """Sitedeki vakayiname canon'dan ayrışsa da sınav sussun."""
+    duzenle(kok, ".claude/butunluk.py", "    if canon != sayfa:", "    if False:")
+
+
 def m_butunluk_siralamayi_gormesin(kok):
     duzenle(kok, ".claude/butunluk.py",
             "                    if e.group(0).lower() not in kanon:",
@@ -717,6 +722,7 @@ MUTASYONLAR = [
 
     ("bütünlük: plaka hatasını görmüyor", m_butunluk_plaka_gormesin,          "arac-sinavi.py"),
     ("bütünlük: sıralamayı görmüyor",     m_butunluk_siralamayi_gormesin,     "arac-sinavi.py"),
+    ("bütünlük: vakayinameye kör",        m_butunluk_vakayinameye_kor,        "arac-sinavi.py"),
     ("okuyucu: dizgi zinciri kırık",      m_okuyucu_zinciri_kirsin,           "arac-sinavi.py"),
     ("belge: altın set kaymasını görmüyor", m_dogrula_altin_kaymasini_gormesin, "arac-sinavi.py"),
 

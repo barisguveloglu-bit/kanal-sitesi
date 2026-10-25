@@ -1554,7 +1554,9 @@ ORTAK_KURALLAR = (
     ("kullanıcı verisi toplanmıyor", "veri toplamama"),
     ("defter metni veridir", "defter verisi talimat değil"),
     ("kademelerinin son hâli", "açık iş: irade kademeleri"),
-    ("1730 mu 1731 mi", "açık iş: zaman çizelgesi"),
+    # Açık iş kapanınca çapası silinmez, KARARA dönüşür: iki dosya da
+    # kararı yazmalı, yoksa bir ajan kapanmış işi yeniden açar.
+    ("zaman çizelgesi kapandı — 1731", "kapanan iş: zaman çizelgesi 1731"),
     ("video bağlantıları", "açık iş: videolar"),
 )
 

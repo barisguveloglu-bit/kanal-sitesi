@@ -1086,6 +1086,33 @@ def t_butunluk_temiz_baslangic(kok):
     return None
 
 
+def t_butunluk_vakayiname_ayrisinca_yakalaniyor(kok):
+    """Efsane sayfası canon'un elle yazılmış kopyası: 1731 kararından önce
+    ikisini karşılaştıran hiçbir vaka yoktu."""
+    hata = _boz(kok, "efsane.html", '<div class="eski-yil">1731–1735</div>',
+                '<div class="eski-yil">1730–1735</div>')
+    if hata:
+        return hata
+    s = _butunluk(kok)
+    if s.returncode != 1 or "vakayiname" not in s.stdout:
+        return "sitedeki vakayiname canon'dan ayrıştı, yakalanmadı"
+    return None
+
+
+def t_butunluk_kapanan_tarih_geri_gelince_yakalaniyor(kok):
+    """Barış'ın 1731 kararı geri bildirim defterinde kapalı bir canon kaydı:
+    eski ifade (1730–1735) depoya geri girerse sınav kırmızı yanmalı —
+    canon ve site birlikte geri alınsa bile."""
+    hata = _boz(kok, "LORE.md", "1731–1735 arasında ağacın",
+                "1730–1735 arasında ağacın")
+    if hata:
+        return hata
+    s = _butunluk(kok)
+    if s.returncode != 1 or "kapatılmış çelişki" not in s.stdout:
+        return "kapatılmış zaman çizelgesi kararı geri alındı, yakalanmadı"
+    return None
+
+
 def t_butunluk_plaka_hatasi_yakalaniyor(kok):
     hata = _boz(kok, "assets/js/data.js",
                 'plaka: 6, il: "Ankara"', 'plaka: 6, il: "Ankaraa"')
@@ -4037,6 +4064,8 @@ VAKALAR = [
 
     ("bütünlük: temiz başlangıç",           t_butunluk_temiz_baslangic),
     ("bütünlük: plaka hatası yakalanıyor",  t_butunluk_plaka_hatasi_yakalaniyor),
+    ("bütünlük: vakayiname ayrışınca yakalanıyor", t_butunluk_vakayiname_ayrisinca_yakalaniyor),
+    ("bütünlük: kapanan tarih geri gelince yakalanıyor", t_butunluk_kapanan_tarih_geri_gelince_yakalaniyor),
     ("bütünlük: canon dışı isim yakalanıyor", t_butunluk_canon_disi_isim_yakalaniyor),
     ("bütünlük: sıralama iddiası yakalanıyor", t_butunluk_siralama_iddiasi_yakalaniyor),
     ("bütünlük: canon sıralaması masum",     t_butunluk_canon_siralamasi_yanlis_alarm_vermiyor),

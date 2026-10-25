@@ -50,7 +50,7 @@ Tur sonunda ve `git commit`/`push` öncesinde `kanca-kapi.py` aynı denetimi
 çalışma ağacına uygular (Bash düzenlemeleri dahil); kırmızı commit insana
 sorulur. Commit'ten önce hepsi: `python3 .claude/kapi.py <dogrula|butunluk|sinav|arac-sinavi|degerlendir>`
 — kod 0 dönüp özet basmayan kapı **koşmadı** sayılır. Bütünlük sınavı
-canon ↔ veri ↔ site tutarlılığını ölçer (78 vaka).
+canon ↔ veri ↔ site tutarlılığını ölçer (79 vaka).
 
 **Canon hakkında cevap.** `python3 .claude/ara.py "<soru>"` canon içinde
 arar ve satır numarası döndürür. Bu evren hakkında **hafızadan cevap
@@ -113,8 +113,9 @@ göremez — içerik değişikliğinde `LORE.md`'yi yine de okumak gerekiyor.
 ## Bekleyen işler
 
 `LORE.md` dosyasının sonundaki "Açık Uçlar" bölümüne bak. Şu an açık olanlar:
-irade kademelerinin son hâli, Yılmaz sonrası zaman çizelgesi (1730 mu 1731 mi)
-ve video bağlantıları.
+irade kademelerinin son hâli ve video bağlantıları.
+
+**Zaman çizelgesi kapandı — 1731** (Barış'ın kararı: ölümden 3 yıl sonra).
 
 **Derebeyi isimleri kapandı** — 81 ilin 81'i de dolu, `ad: null` kalmadı.
 

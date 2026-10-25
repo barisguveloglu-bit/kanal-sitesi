@@ -49,8 +49,8 @@ Arama **en yakın** parçayı verir, **doğru** parçayı değil. Geleni oku.
 
 3. **Çağ uyumsuzluğu.** Bir olay, gerçek tarihsel bir döneme
    bağlanmışsa o dönemin gerçeğiyle uyuyor mu? (Örnek: III. Ahmed
-   1 Ekim 1730'da tahttan indi — "1731'de III. Ahmed devrinde" demek
-   çağ hatasıdır.)
+   1730 sonbaharında tahttan indi — kaynaklarda gün 30 Eylül ile 2 Ekim
+   arasında değişiyor — "1731'de III. Ahmed devrinde" demek çağ hatasıdır.)
 
 4. **Sıra bozukluğu.** Sonuç sebepten önce geliyor mu? Bir karakter,
    doğmadan önce bir olayda mı? Bir nesne, var olmadan önce mi
@@ -62,7 +62,8 @@ Arama **en yakın** parçayı verir, **doğru** parçayı değil. Geleni oku.
    bölümleri uyuşuyor mu?
 
 6. **Açık uçla çakışma.** `LORE.md` sonundaki "Açık Uçlar" bölümünde
-   **karara bağlanmamış** bir tarih varsa (şu an 1730 mu 1731 mi),
+   **karara bağlanmamış** bir tarih varsa (zaman çizelgesi 1731 olarak
+   kapandı; kapanmış karar da değiştirilemez, yalnız Barış değiştirir),
    hiçbir metin onu kesin dille yazamaz. Yazıyorsa bu **insan kapısıdır**
    — düzeltme, işaretle.
 

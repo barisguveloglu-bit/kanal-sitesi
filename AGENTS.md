@@ -129,8 +129,10 @@ belirt; test çalıştırmadan geçti deme.
 kararı bekliyor** — kapatmaya kalkma, dokunursan raporunda söyle:
 
 - İrade kademelerinin son hâli (`LORE.md:93` — DURUM: TASLAK)
-- Yılmaz sonrası zaman çizelgesi (1730 mu 1731 mi)
 - Video bağlantıları (gerçek kimlikler girilmedi, o yüzden bölümler gizli)
+
+**Zaman çizelgesi kapandı — 1731** (Barış'ın kararı: ölümden 3 yıl sonra).
+Kapanmış bir kararı değiştirmek de insan kararıdır.
 
 ---
 
