@@ -754,11 +754,18 @@ noktası şu: **kapı vardı, ama kapının kendisi korunmuyordu.**
 Her kapı bir sınav vakasıyla (denetleyici sınavı ve araç sınavı) ve onu
 bozan bir mutasyonla ölçülüyor.
 
-**Depodan çözülemeyen tek parça: dal koruması.** `main` ve canlı dal
-korumasız; yazma yetkisi olan herkes (ve her ajan) CI'ı beklemeden
-doğrudan gönderebilir. Bu bir GitHub ayarı, betikle kurulamaz: Settings →
-Branches → kural ekle → "Require a pull request before merging" ve
-"Require status checks to pass" → `Dört kapı`. Karar Barış'ın.
+**Dal koruması — depo dışında, GitHub ayarı.** Barış 26 Ekim 2026'da
+`canli-koruma` adlı ruleset'i kurdu (Settings → Rules → Rulesets).
+Hedefleri: `main` ve canlı dal `claude/merhaba-s5l7yl`. Kurallar: silme
+ve force push engeli, PR zorunlu (0 onay — depo tek kişilik, kendi PR'ını
+onaylayamaz), `Dört kapı` yeşil olmadan birleştirme yok ("up to date"
+şartı kapalı). Bypass listesi boş. Böylece doğrudan push — MCP'nin
+`push_files`'ı ve telefondan push dahil — canlı dala ulaşamaz; `ccr-*`
+ve `claude/*` çalışma dalları serbest kalır, PR kaynağı onlar.
+Betikle kurulmaz ve depodan doğrulanmaz: durumu
+`GET /repos/barisguveloglu-bit/kanal-sitesi/rules/branches/<dal>` gösterir.
+Dal adı büyük/küçük harfe duyarlı — ilk kurulumda `Main` yazılmış,
+`main` korumasız kalmıştı; API'den okunarak bulundu.
 
 ## Yayın sınırı — `.claude/` herkese açık
 
