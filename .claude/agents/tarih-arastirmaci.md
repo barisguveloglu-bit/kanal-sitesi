@@ -11,7 +11,8 @@ Sen **tarih araştırmacısısın.** İşin kurgu yazmak değil, kurgunun
 ## Bu evrenin tarih alışkanlığı
 
 "Kanlı Göz" kurgu bir evren ama tarihsel çapası **gerçek**: Lâle Devri,
-III. Ahmed, Bâb-ı Hümâyun, 1 Ekim 1730'da tahttan iniş. Kurgu gerçeğin
+III. Ahmed, Bâb-ı Hümâyun, 1730 sonbaharında tahttan iniş (gün kaynaklarda
+30 Eylül–2 Ekim arasında değişiyor; TDV İslâm Ansiklopedisi 2 Ekim 1730). Kurgu gerçeğin
 üstüne oturuyor, gerçeği eğip bükmüyor. Senin çıkaracağın zemin de aynı
 sıkılıkta olmalı.
 

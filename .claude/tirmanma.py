@@ -54,6 +54,8 @@ import tempfile
 
 KLASOR = os.path.dirname(os.path.abspath(__file__))
 KOK = os.path.dirname(KLASOR)
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from depokopya import depoyu_kopyala  # noqa: E402  (worktree yalıtımı)
 
 # Aranacak uzay. Her parametre: (ad, ara.py'deki desen, değerler).
 # Değerler makul aralıkta tutuldu — tırmanma sonsuz uzayda anlamlı değil,
@@ -186,7 +188,7 @@ class Tirmanici:
     def __init__(self, sessiz=False):
         self.gecici = tempfile.mkdtemp()
         self.kok = os.path.join(self.gecici, "depo")
-        shutil.copytree(KOK, self.kok)
+        depoyu_kopyala(KOK, self.kok)
         # Bayat `.pyc` tehlikesi burada teorik değil: `KOK_UZUNLUK = 5` →
         # `= 3` yazımı dosya BOYUTUNU değiştirmez ve Python'un önbellek
         # doğrulaması kaynak mtime'ını saniye çözünürlüğünde tutar. Aynı

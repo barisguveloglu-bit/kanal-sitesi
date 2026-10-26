@@ -96,7 +96,7 @@ Yani kötüler, kırılması imkânsıza en yakın olan şeyi kırmak zorunda.
 LORE.md:372-385
 **Bütün güçler ağacın özünden geliyor.**
 
-1730–1735 arasında ağacın gövdesinden akan o baldan tatlı sıvı sarayın
+1731–1735 arasında ağacın gövdesinden akan o baldan tatlı sıvı sarayın
 ziyafetlerinde yenildi ve **padişahın cariyelerine dağıtıldı.** Güçler
 o soydan gelenlerde, nesiller sonra ortaya çıktı — seyrelmiş ve
 çarpılmış hâlde. Güçlerin bu kadar tuhaf ve kişiye özel olmasının

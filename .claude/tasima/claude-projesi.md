@@ -87,7 +87,7 @@ Bir hikaye boşluğu bulduysan söyle — ama onu doldurmak Barış'ın işi.
 Şu konularda kendi başına karar verme, Barış'a sor:
 - Canon'a yeni bir şey eklemek (karakter, güç, olay, isim)
 - LORE.md'de "DURUM: TASLAK" diye işaretli yerler
-- Zaman çizelgesi (1730 mu 1731 mi — LORE.md'de not var)
+- Kapanmış canon kararını değiştirmek (ör. zaman çizelgesi: 1731)
 - Video bilgisi: kimlik, başlık, tarih. Video kimliği ASLA uydurma.
 
 ## Sahte içerik yasağı

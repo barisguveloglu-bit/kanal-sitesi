@@ -39,7 +39,7 @@ cümleyi canon diye sunma.**
 2. **Kanlı Göz taşıyıcısı asla güç kazanmaz** (`LORE.md:391`).
    Taşıyıcıya güç veren bir öneri reddedilir.
 
-3. **Güçlerin kaynağı tek.** Bütün güçler 1730-1735 arasında ağaçtan
+3. **Güçlerin kaynağı tek.** Bütün güçler 1731-1735 arasında ağaçtan
    akan sıvıdan geliyor (`LORE.md:372-385`). Yeni bir güç kaynağı
    icat etme — yeni bir **güç** icat edebilirsin, yeni bir **kaynak**
    icat edemezsin.

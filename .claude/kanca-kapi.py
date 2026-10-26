@@ -39,6 +39,13 @@ kararsız geçemez.
     PreToolUse (Bash)    komut git commit / git push değilse sessiz geç.
                          Öyleyse denetle; temiz değilse izni insana sor.
 
+    PreToolUse (GitHub   push_files, create_or_update_file, delete_file,
+      MCP yazma aracı)   merge_pull_request, enable_pr_auto_merge — HER
+                         ZAMAN insana sor. Bu araçlar çalışma ağacından
+                         değil araç girdisinden yazar: yerel denetim neyin
+                         gittiğini görmez, commit kapısı hiç tetiklenmez
+                         (güvenlik taraması). Merge kararı zaten insanın.
+
 Kanca sözleşmesi:
   çıkış 0 → geç (stdout'ta JSON varsa Claude Code onu okur)
   çıkış 2 → engelle, stderr Claude'a geri beslenir
@@ -56,6 +63,12 @@ KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # `git -C . push`, `git -c a=b commit` dahil; `git stash push` ve
 # `git log --grep commit` hariç (onlar gönderim değil).
 GONDERIM = re.compile(r"\bgit(?:\s+-{1,2}[\w-]+(?:[= ](?!commit\b|push\b)\S+)?)*\s+(commit|push)\b")
+
+
+# GitHub'a yerel git'i atlayarak yazan MCP araçları. Ad öneki bağlayıcıya
+# göre değişebiliyor (mcp__github__, mcp__plugin_github__ ...).
+UZAK_YAZMA = re.compile(r"^mcp__[\w-]*github[\w-]*__(push_files|create_or_update_file|"
+                        r"delete_file|merge_pull_request|enable_pr_auto_merge)$")
 
 
 def denetle():
@@ -143,6 +156,24 @@ def gonderim_oncesi(olay):
     return 0
 
 
+def uzak_yazma_oncesi(olay):
+    arac = olay.get("tool_name") or ""
+    girdi = olay.get("tool_input") or {}
+    hedef = "/".join(str(girdi[k]) for k in ("owner", "repo") if girdi.get(k))
+    for anahtar, etiket in (("branch", "dal"), ("pullNumber", "PR")):
+        if girdi.get(anahtar):
+            hedef += f" {etiket} {girdi[anahtar]}"
+    json_bas({"hookSpecificOutput": {
+        "hookEventName": "PreToolUse",
+        "permissionDecision": "ask",
+        "permissionDecisionReason":
+            f"Kanlı Göz kapısı — {arac.rsplit('__', 1)[-1]} GitHub'a yerel git'i "
+            f"atlayarak yazıyor ({hedef.strip() or 'hedef belirtilmemiş'}). Yerel "
+            "denetim bu içeriği görmedi; merge ve doğrudan yazma kararı Barış'ın.",
+    }})
+    return 0
+
+
 def main():
     try:
         olay = json.load(sys.stdin)
@@ -153,6 +184,8 @@ def main():
         return tur_sonu(olay)
     if ad == "PreToolUse" and olay.get("tool_name") == "Bash":
         return gonderim_oncesi(olay)
+    if ad == "PreToolUse" and UZAK_YAZMA.match(olay.get("tool_name") or ""):
+        return uzak_yazma_oncesi(olay)
     return 0
 
 

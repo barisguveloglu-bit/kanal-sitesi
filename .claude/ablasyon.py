@@ -59,6 +59,8 @@ import sys
 import tempfile
 
 KAYNAK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from depokopya import depoyu_kopyala  # noqa: E402  (worktree yalıtımı)
 KLASOR = os.path.join(KAYNAK, ".claude")
 
 # Ablasyona girmeyenler.
@@ -107,7 +109,7 @@ def halkalar():
 def kopya():
     gecici = tempfile.mkdtemp()
     kok = os.path.join(gecici, "depo")
-    shutil.copytree(KAYNAK, kok)
+    depoyu_kopyala(KAYNAK, kok)
     return gecici, kok
 
 

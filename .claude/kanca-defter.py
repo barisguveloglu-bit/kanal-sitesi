@@ -16,6 +16,10 @@ import sys
 
 KLASOR = os.path.dirname(os.path.abspath(__file__))
 
+# Yarım işin devam notu serbest metindir; bağlama veri bloğunda girer
+# (veriblok.py). Sınır geniş: devam notu kırpılırsa devir yarım kalır.
+DEFTER_SATIR_SINIRI = 600
+
 
 def main():
     try:
@@ -34,7 +38,10 @@ def main():
     # Boş defteri cümlenin TAMAMIYLA tanı (kanca-ders.py'deki ders).
     if s.returncode != 0 or not cikti or cikti == "İş defteri boş.":
         return 0
-    print(cikti)
+    sys.path.insert(0, KLASOR)
+    from veriblok import blokla
+    print("İş defteri (defter.py ozet):")
+    print("\n".join(blokla(cikti.splitlines(), DEFTER_SATIR_SINIRI)))
     return 0
 
 

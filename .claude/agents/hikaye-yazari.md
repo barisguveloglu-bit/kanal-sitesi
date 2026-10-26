@@ -29,7 +29,7 @@ Bunları **bozamazsın**, hikaye bunların içinde kurulur:
 2. Taşıyıcı adını **ağaca yazdırır**; efsane böyle aktarılıyordu.
 3. **Güçler uyanmayabilir.** Yılmaz güçleri uyanmadığı için karşılık
    veremedi — taşıyıcı olmak yenilmez olmak demek değil.
-4. Sitede **sıralı güç tablosu yok** (`LORE.md:344`). "En güçlü taşıyıcı"
+4. Sitede **sıralı güç tablosu yok** (`LORE.md:347`). "En güçlü taşıyıcı"
    gibi bir cümle kurma.
 5. Taşıyıcının ayırt edici özelliği **iradesi**. Adı bile bunu anlatıyor
    (Yılmaz: yılmayan; Barış: barış).

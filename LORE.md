@@ -65,18 +65,18 @@ Geriye iki şey kaldı: ağaca kazınmış adı ve nasıl öldüğü.
 |---|---|
 | Lâle Devri | Ağaç, görkemli olduğu için yerinden söktürülüp **Bâb-ı Hümâyun** önüne dikilir. Üzerindeki isimlere kimse dikkat etmez. |
 | **1728** | Yılmaz saraya çıkar, ağacın yerine iadesini ister; isimlerin evvelkilere ait olduğunu, bunun saygısızlık olduğunu söyler. **III. Ahmed yanlış anlar**, Yılmaz'ın kellesi cellatlar eliyle vurulur. **Güçleri henüz uyanmadığı için karşılık veremez.** |
-| **1730** | III. Ahmed tahttan iner (1 Ekim 1730). I. Mahmud devrinde ağacın imar işlerinde kullanılmasına karar verilir. |
-| **1730** | Keresteciler gövdenin bazı yerlerinden **bal gibi bir sıvı** aktığını görür. Tadarlar: **baldan tatlı.** |
-| 1730–1735 | Gövde parça parça kesilir, sarayın ziyafetlerinde kullanılır, sıvısı **padişahın cariyelerine** dağıtılır. |
+| **1731** | III. Ahmed 1730'da tahttan inmiştir. **Yılmaz'ın ölümünden üç yıl sonra**, I. Mahmud devrinde, ağacın imar işlerinde kullanılmasına karar verilir. |
+| **1731** | Keresteciler gövdenin bazı yerlerinden **bal gibi bir sıvı** aktığını görür. Tadarlar: **baldan tatlı.** |
+| 1731–1735 | Gövde parça parça kesilir, sarayın ziyafetlerinde kullanılır, sıvısı **padişahın cariyelerine** dağıtılır. |
 | **1735** | Sıvı kesilir, ilgi biter, bakımsızlıktan **ağaç kurur.** |
 
 **Ağaç kendiliğinden ölmedi.** Önce yerinden söküldü, sonra yenildi, sonra unutuldu.
 Efsanenin unutulma sebebi doğa değil, insan.
 
-> **Tarih notu:** Kullanıcı "2 yıl sonra, 1731" demişti. 1728+2=1730 ve
-> III. Ahmed 1 Ekim 1730'da tahttan indiği için 1730, hem "2 yıl sonra"yı
-> hem "I. Mahmud devri"ni aynı anda doğru kılıyor. 1731 tercih edilirse
-> "3 yıl sonra" olmalı.
+> **Tarih notu — karar: 1731** (Barış, 25 Ekim 2026). İlk anlatımdaki "2 yıl
+> sonra, 1731" kendi içinde tutmuyordu; yıl korundu: karar Yılmaz'ın ölümünden
+> **3 yıl sonra**, I. Mahmud devrinde. III. Ahmed'in tahttan indiği gün
+> kaynaklarda 30 Eylül–2 Ekim 1730 arasında değişiyor; canon gün vermez.
 
 Sitede bu bölüm **eski bir belge gibi** gösteriliyor (eskimiş kâğıt, sepya
 tonlar, eski dil, vakayiname) — sayfanın geri kalanından kasten ayrışıyor.
@@ -98,7 +98,7 @@ tek özelliğini anlatıyor.)*
 | 2 | Zayıf İrade | Aşık olur. Emirlerin neredeyse tamamına uyar. |
 | 3 | Dirençli İrade | Aşık olur. Emirler zorlayıcı gelir, bazılarını reddedebilir. |
 | 4 | Güçlü İrade | Aşık olur ama **emirler hiç işlemez**. Bilinç tamamen kendisinde. |
-| 5 | Kanlı Göz İradesi | 300 yılda bir. Kırılması neredeyse imkânsız. |
+| 5 | Kanlı Göz İradesi | Aşık olur — **Kanlı Göz onu bundan koruyamaz.** Ama emirler işlemez, saf bir köleye dönüşmez. 300 yılda bir doğar; kırılması neredeyse imkânsız. |
 
 **Önemli kural:** Aşık olmak ile itaat etmek aynı şey değildir.
 İrade yükseldikçe *aşk kalır, itaat kaybolur*.
@@ -371,7 +371,7 @@ Bu, iyilere zaman kazandıran tek şey.
 
 **Bütün güçler ağacın özünden geliyor.**
 
-1730–1735 arasında ağacın gövdesinden akan o baldan tatlı sıvı sarayın
+1731–1735 arasında ağacın gövdesinden akan o baldan tatlı sıvı sarayın
 ziyafetlerinde yenildi ve **padişahın cariyelerine dağıtıldı.** Güçler o
 soydan gelenlerde, nesiller sonra ortaya çıktı — seyrelmiş ve çarpılmış
 hâlde. Güçlerin bu kadar tuhaf ve kişiye özel olmasının sebebi bu:
@@ -456,23 +456,24 @@ yazmayın.
 ### Açık — irade kademeleri
 `LORE.md:93` **DURUM: TASLAK.** Beş kademeli tablo bir öneri olarak duruyor,
 birlikte detaylandırılacak. Kademe adları ve sınırları değişebilir.
+Karara bağlanan tek hücre: 5. kademede Samara Kadın'ın etkisi (Barış, 25 Ekim
+2026) — aşık olur, Kanlı Göz onu bundan koruyamaz; emirler işlemez.
 
 Bağlı olduğu yerler: karakterlerin `iradeKademe` değerleri, komutanların
 irade sütunu, `irade.html`.
-
-### Açık — Yılmaz'ın ölümü sonrası zaman çizelgesi
-`LORE.md:76-79` iki seçenek arasında karar bekliyor:
-
-- **1730** — "2 yıl sonra"yı ve "I. Mahmud devri"ni aynı anda doğru kılar
-  (III. Ahmed 1 Ekim 1730'da tahttan indi). Şu an metinde bu kullanılıyor.
-- **1731** — tercih edilirse metindeki "2 yıl sonra" ifadesi
-  "3 yıl sonra" olarak düzeltilmeli.
 
 ### Açık — video bağlantıları
 `assets/js/data.js` içindeki `VIDEOLAR` boş. Bu **bilinçli**: boş kalan
 bölüm siteye hiç basılmıyor, ziyaretçi sahte kart görmüyor. Gerçek video
 kimliklerini yalnızca Barış verebilir; denetleyici uydurma kimliği
 insan onayına takar.
+
+### Kapandı — Yılmaz'ın ölümü sonrası zaman çizelgesi
+Barış'ın kararı (25 Ekim 2026): **1731.** Ağacın kullanılmasına Yılmaz'ın
+ölümünden **3 yıl sonra**, I. Mahmud devrinde karar verilir; kesim ve sıvı
+1731–1735 arasındadır. Vakayiname (`LORE.md:68-70`), tarih notu
+(`LORE.md:76-79`) ve "Güçlerin Kaynağı" buna göre düzeltildi; site
+(`efsane.html`) aynı yılları gösteriyor.
 
 ### Kapandı — 81 il derebeyi
 Bu iş **bitti.** 81 ilin 81'inde de isim var, hem `LORE.md`'de hem

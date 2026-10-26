@@ -70,6 +70,11 @@ DINLEYICILER = [
     # Kırmızı ağaç commit'e giderse insana sorulur, sessizce geçmez.
     ("PreToolUse", r"^Bash$", "kanca-kapi.py",
      "git commit/push → çalışma ağacı kırmızıysa insana sor"),
+    # GitHub MCP yazma araçları çalışma ağacını atlar: commit kapısı onları
+    # hiç görmez. Her çağrı insana sorulur (merge kararı zaten insanın).
+    ("PreToolUse", r"^mcp__[\w-]*github[\w-]*__(push_files|create_or_update_file|"
+                   r"delete_file|merge_pull_request|enable_pr_auto_merge)$", "kanca-kapi.py",
+     "GitHub'a yerel git'i atlayarak yazma → her zaman insana sor"),
     ("Stop", r"^.*$", "kanca-kapi.py",
      "tur bitiyor → çalışma ağacı kırmızıysa bir kez geri çevir"),
     # Bellek geliştirme döngüsünün kapanan halkası. Ders defteri kalıcı
