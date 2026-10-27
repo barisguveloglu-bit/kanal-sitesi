@@ -1,0 +1,67 @@
+# SIMSEK DUELLO ARENASI -- sunucu konsoluna giden komutlar.   v7.99.16
+#
+# arena_kur.py bunlari SIRAYLA gonderir ve her birinin cevabini denetler.
+# Elle de calisir: sunucu konsoluna satir satir yapistir (arena bozulursa
+# onarim da budur).
+#
+# ---- NEDEN BOYLE ----
+# * GOKTE (y 290-307): dogal arazi oraya cikmaz (en yuksek dag ~y 256),
+#   yani hangi tohumla olusursa olsun arena bos havaya kurulur.
+# * KAPALI KUTU, gorunmez duvar ve tavan (barrier): inci, ruzgar yuku ya
+#   da savrulma oyuncuyu arenanin disina atamaz; kirilamaz, patlamadan
+#   etkilenmez. Zemin bedrock: o da kirilmaz ve patlamaya dayanir.
+# * ACIK ALAN, SAKLANACAK YER YOK: ESP / xray / minimap bir davranis
+#   paketinin goremeyecegi hileler. Onlara karsi tek gercek savunma
+#   bilgi saklamayan bir dovus yeri (REFERANS_WCLIENT_APK.md).
+# * Ic alan 40x40, yukseklik 16.
+#
+# Bolge oyuncu yokken yuklu degil; tickingarea onu yukletiyor ve arena
+# hep yuklu kaliyor (9 chunk).
+tickingarea add 0 290 0 41 307 41 simsek_arena true
+
+# Kabuk: zemin + duvarlar + tavan barrier, ici HAVA (hollow ici bosaltir).
+fill 0 290 0 41 307 41 barrier hollow
+# Zemin bedrock.
+fill 0 290 0 41 290 41 bedrock
+# Kenari gorunsun diye duvarin en alt sirasi bedrock (gorunmez duvara
+# carpmadan nerede bittigi belli olsun).
+fill 0 291 0 41 291 0 bedrock
+fill 0 291 41 41 291 41 bedrock
+fill 0 291 0 0 291 41 bedrock
+fill 41 291 0 41 291 41 bedrock
+
+# Dogus tam ortada, zeminin ustunde.
+setworldspawn 20 291 20
+gamerule spawnradius 0
+
+# ---- DOVUS KURALLARI ----
+# Esya kaybolmaz (deponun "oyuncu esyasi asla kaybolmaz" kurali) ve
+# yerde esya yigini olmaz.
+gamerule keepinventory true
+gamerule pvp true
+gamerule falldamage true
+gamerule showdeathmessages true
+# Arenaya yaratik dogmaz, yaratik blok bozmaz, ates yayilmaz.
+gamerule domobspawning false
+gamerule mobgriefing false
+gamerule dofiretick false
+gamerule doinsomnia false
+# Hep ogle ve acik hava: karanlik ya da yagmur kimseye ustunluk vermez
+# (yagmur riptide'i da acar).
+gamerule dodaylightcycle false
+gamerule doweathercycle false
+time set noon
+weather clear
+difficulty normal
+gamerule commandblockoutput false
+
+# ---- DOGRULAMA ----
+testforblock 20 290 20 bedrock
+testforblock 0 290 0 bedrock
+testforblock 41 290 41 bedrock
+testforblock 0 300 0 barrier
+testforblock 41 300 41 barrier
+testforblock 20 307 20 barrier
+testforblock 20 291 0 bedrock
+testforblock 20 295 20 air
+testforblock 1 306 1 air

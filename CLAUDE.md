@@ -468,6 +468,40 @@ olanların savunmalarını ekle."*
   `REFERANS_SAVUNMA_PLANI.md` güncellenir; `test/savunma_kapsam.mjs`
   ikisini birbirine bağlıyor.
 
+## Düello sunucusu — `addon/sunucu/` (v7.99.16)
+
+Kullanıcının kararı: dövüşler kendi Bedrock Dedicated Server'ımızda,
+Mojang'ın sıkı ayarları açık, yalnız izin listesindekiler girer
+(*"BDS + sıkı ayarlar + izin listesi tamam"*). Rehber:
+**`addon/SUNUCU_REHBERI.md`**; kilitler `test/sunucu.mjs`.
+
+- **BDS ikilisi depoya girmez.** `sunucu_kur.sh` resmî adresten indirir,
+  SHA-256'yı karşılaştırır; hedef depo içindeyse reddeder. Sürüm sabit
+  (1.26.52.3); atlarken `BDS_SURUM` + `BDS_SHA256` elle değişir, sonra
+  `node addon/test/sunucu.mjs` ve `python3 addon/sunucu/acilis_dene.py`.
+- `sunucu/sunucu.properties` BDS'in dosyasının YERİNE geçmiyor: Mojang'ın
+  o sürümle gelen dosyası taban, yalnız bizim anahtarlar değişiyor.
+  Gerçek dosyada olmayan bir ayarı yazma (`server-authoritative-block-breaking`
+  belgede var, 1.26.52.3'te yok).
+- **`addon/yerel/` sunucuya asla kurulmaz:** sunucu görünüm paketini
+  bağlanan herkese gönderir, yani kurmak paylaşmaktır.
+- `acilis_dene.py` eklentinin **gerçek motordaki** açılışını ölçüyor;
+  `test/` ise sahte `@minecraft/server`'a karşı çalışıyor. İlk koşuda
+  (2026-10-27) motor, sahtenin göremediği hatalar buldu; liste rehberin
+  "Gerçek motorun eklentide bulduğu hatalar" bölümünde, **düzeltilmedi**.
+- Claude'un bulut oturumu sunucuyu **barındıramaz** (geçici, dışarıdan
+  bağlantı yok); burada yalnız kurulum ve açılış denenir.
+- **Düello yeri (kullanıcı: "dövüşler yapılacak yer olmalı"):** gökte
+  kapalı arena (`sunucu/arena.komut`, bedrock zemin, barrier duvar/tavan)
+  ve **macera kipi** (blok ailesi oyun kuralıyla kapanıyor). Konsol
+  cevapları ölçülerek yazıldı: oyuncu yokken bölge yüklü değil, önce
+  `tickingarea`; yeniden açılışta ilk `fill` bir kez bekletilir.
+- **`raknet` bu makinede açılmıyor** (IPv6 yok, 19133 açılamayınca BDS
+  kapanıyor); `nethernet` + sabit `server-udp-ports` seçildi.
+- Python betikleri bayt kodu yazmıyor (`sys.dont_write_bytecode`,
+  `python3 -B`): mutasyon denemesinde aynı saniyede aynı boyutta değişen
+  dosyanın bayat kodu koştu.
+
 ## Çekim seti — video için oyun içi çekim (v7.99.6)
 
 Kullanıcı video yolu olarak **A yolunu** seçti: çekim Minecraft'ın
