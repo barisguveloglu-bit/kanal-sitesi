@@ -1,9 +1,9 @@
 """DENETIM PAFTASI -- kare numarali temas sayfalari              v7.99.15
 
-Astra (ORTAK_CALISMA.md) videoyu dogrudan izleyemiyor, kareleri resim
-olarak okuyor. Bu arac bir cizimin karelerinden ya da videodan cekim cekim
-pafta cizer: her kucuk resmin altinda cekim, kare numarasi, film zamani ve
-o an ekrandaki altyazi. Denetim raporu bu numaralarla yazilir (kare 412-418).
+Gemini (GEMINI_ISCI.md) videoyu saniyede bir kare goruyor; tek karelik
+hatayi kacirir ve kare numarasi bilmez. Bu arac bir cizimin karelerinden
+ya da videodan cekim cekim pafta cizer: her kucuk resmin altinda cekim,
+kare numarasi, film zamani ve o an ekrandaki altyazi. Denetim raporu bu numaralarla yazilir (kare 412-418).
 
     python3 addon/arac/denetim_pafta.py <cizim> --cikti <depo disi> [--senaryo addon/film/x.json]
         [--baslik "2-1 taslak s1"] [--her 0.5] [--sutun 3] [--satir 3] [--en 640]
@@ -429,7 +429,7 @@ def dizin_md(d):
          "Kaynak: `%s` · kare %d–%d (%d kare var) · %g fps · her %s sn · %d pafta" % (
              d["kaynak"], d["aralik"][0], d["aralik"][1], d["kare_sayisi"], fps, sn(d["her"]), len(d["paftalar"])),
          "",
-         "Rapor `ORTAK_CALISMA.md`'deki şablonla yazılır; çekim ve kare numaraları buradaki.",
+         "Rapor `GEMINI_ISCI.md`'deki Film denetçisi tablosuyla yazılır; çekim ve kare numaraları buradaki.",
          "Zaman film zamanı: kare k = (k − 1) / fps sn.", "",
          "| çekim | açı | kare | süre (sn) | pafta | altyazı (başladığı kare) |", "|---|---|---|---|---|---|"]
     for c in d["cekimler"]:

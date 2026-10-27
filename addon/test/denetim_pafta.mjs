@@ -1,6 +1,6 @@
 /* DENETIM PAFTASI -- kare numarali temas sayfalari              v7.99.15
 
-   Astra kareleri resim olarak okuyor (ORTAK_CALISMA.md); arac/denetim_pafta.py
+   Gemini videoyu saniyede bir kare goruyor (GEMINI_ISCI.md); arac/denetim_pafta.py
    cizimden ya da videodan cekim cekim pafta cizer, raporlar oradaki kare
    numaralariyla yazilir. Sentetik bir cizim uzerinde olculur: 100 kare,
    10 fps, kesme 31'de, kendi boyu kadar hizli giden bir kutu, gurultu ve

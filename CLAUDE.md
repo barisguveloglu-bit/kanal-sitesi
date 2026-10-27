@@ -713,15 +713,15 @@ Kararların tek kaydı **`addon/SERI_SEZON1.md`**: karakterler (El-Harkos,
 Ice-man / Deney 081, sezonun ana kötüsü), 1. bölümün sahne sırası,
 1080p30 kararı ve açık sorular. Orada olmayanı uydurma; sor.
 
-**Ortak çalışma — Astra (2026-10-24).** Kullanıcı ikinci bir takım arkadaşı
-ekledi: Astra (OpenAI, ChatGPT / Codex). Sözleşme
-**`addon/ORTAK_CALISMA.md`**, Astra'ya verilen metin `addon/ASTRA_TANITIM.md`.
-Astra senaryo taslağını, araştırmayı ve denetimi yapıyor; Claude kodu,
-çizimi, düzeltmeleri ve karar kaydını (tek yazar). Kod PR ile gelir
-(`astra/...` dalları). Denetim gizli depoda issue olarak açılır, taslak
-kareler gizli depoda `ortak` dalında durur. Astra videoyu izleyemiyor:
-taslak `addon/arac/denetim_pafta.py` ile kare numaralı paftaya dökülür
-(`test/denetim_pafta.mjs`).
+**Gemini işçi (2026-10-26).** Kullanıcı Astra'dan (ChatGPT) vazgeçti;
+yerine Gemini 4 Argon (Google AI Pro, Gemini uygulaması) Claude'un
+**işçisi**, takım arkadaşı değil. GitHub'a bağlı değil, **asla kod
+yazmaz**; iş kullanıcının üzerinden yürür (Claude görev metnini yazar,
+kullanıcı Gemini'ye verir, cevabı getirir, Claude doğrular). Üç görevi
+var: denetim, kaynak ve lisans araştırması, görsel taslak ve kapak.
+Kurallar, Gem talimatları ve Argon'u kullanma dersleri:
+**`addon/GEMINI_ISCI.md`**. Gemini videoyu saniyede bir kare görüyor; tek
+kare için `addon/arac/denetim_pafta.py` (`test/denetim_pafta.mjs`).
 
 **Barış'ın formu — `addon/arac/form_model.py` (v7.99.14).** Senaryoda
 aktöre `"form": "alt"` (ya da `"omuz"`): ana aktör modeli + iki ek kol,

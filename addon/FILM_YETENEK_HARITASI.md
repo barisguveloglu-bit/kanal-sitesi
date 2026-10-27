@@ -106,7 +106,7 @@ sabiti ya da kayıtlı ölçüm.
 - Tam kalite: 1920×1080, 30 fps, 4096 örnek. Yarıda kalırsa kaldığı yerden sürer.
 - Aynı senaryo her seferinde aynı hareketi verir: taslakta görülen dövüş tam kalitede bire bir aynı oynar (`blender_film.mjs`).
 - Blender'sız denetim: `kamera_denetim` (9 kural), `zemin_denetim`, tek kare dönüş süzgeci.
-- Denetim paftası (v7.99.15, `denetim_pafta.py`): çizimden ya da videodan çekim çekim kare numaralı pafta; altyazı her karenin altında. Bütün kareyi bozan tek karelik hatayı (siyah kare, ışık titremesi, başka yerden gelmiş kare) ölçüp kırmızı çerçeveyle gösterir. Yerel tek kare hatasını aramaz. Astra'nın denetimi bunun üstüne kurulu (`ORTAK_CALISMA.md`).
+- Denetim paftası (v7.99.15, `denetim_pafta.py`): çizimden ya da videodan çekim çekim kare numaralı pafta; altyazı her karenin altında. Bütün kareyi bozan tek karelik hatayı (siyah kare, ışık titremesi, başka yerden gelmiş kare) ölçüp kırmızı çerçeveyle gösterir. Yerel tek kare hatasını aramaz. Gemini'nin denetimi bunun üstüne kurulu (`GEMINI_ISCI.md`).
 
 ## 1. bölümde ne kullanıldı
 
