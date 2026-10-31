@@ -16,6 +16,7 @@ git'e girmez, komutlarla yeniden üretilir.
 | Synfig 1.5.1 *(isteğe bağlı)* | Claude'un bulut makinesi | Ücretsiz (GPL) | Anahtar kare arası ara hareket (tween), iskelet |
 | GIMP 3.2.6 *(isteğe bağlı)* | Claude'un bulut makinesi | Ücretsiz (GPL) | Küçük resim, fotoğraf düzeltme, toplu iş |
 | Kdenlive 26.08.2 + MLT 7.43 *(isteğe bağlı)* | Claude'un bulut makinesi | Ücretsiz (GPL) | Açık biçimli zaman çizelgesi, ekransız render (`melt`) |
+| DaVinci Resolve 21 | Yalnız senin bilgisayarın (Windows/macOS/Linux) | Ücretsiz; Studio ücretli (31 Ekim 2026'da $236, normali $295) | Uzun video kurgusu, renk, Fusion ile efekt. Bulutta çalışmaz: ekran kartı ister, ekransız mod ve dış betik desteği yalnız Studio'da |
 | Tahoma2D 1.6.3 | Yalnız senin bilgisayarın (kurulmadı, aşağıya bak) | Ücretsiz, açık kaynak | Kukla/tween animasyon, kamera hareketi |
 | CapCut PC | Senin bilgisayarın (Windows/macOS) | Ücretsiz, bazı özellikler Pro | Hızlı kurgu, altyazı, Shorts |
 | Premiere Pro | Senin bilgisayarın (Windows/macOS) | Ücretli (7 günlük deneme) | Çok katmanlı, uzun kurgu |
@@ -266,6 +267,11 @@ Bayrak ölçüleri resmî:
   <https://launchpad.net/~inkscape.dev/+archive/ubuntu/stable>
 - GIMP 3.2.6: <https://download.gimp.org/gimp/v3.2/linux/>
 - Kdenlive 26.08.2: <https://download.kde.org/stable/kdenlive/26.08/linux/>
+- DaVinci Resolve 21 (ücretsiz, Mac/Windows/Linux): <https://www.blackmagicdesign.com/products/davinciresolve>;
+  ekransız mod ve betik desteğinin Studio'ya özgü olması:
+  <https://thepostflow.com/post-production/video-editing/resolve-studio-vs-free/>;
+  Linux'taki ücretsiz sürümde H.264/AAC sorunu (eski raporlar):
+  <https://www.provideocoalition.com/aac-audio-kdenlive-beats-davinci-resolve-studio-on-linux/>
 - Tahoma2D sürümleri: <https://github.com/tahoma2d/tahoma2d/releases>
 - Synfig sürümleri: <https://github.com/synfig/synfig/releases>
 - Countryball kuralları: <https://en.wikipedia.org/wiki/Rules_of_Countryballs>
