@@ -77,6 +77,7 @@ Edit → Setup script) yapıştır, her oturum hazır başlar.
 | `bolum01.py` | Deneme bölümü: senaryo, zaman çizelgesi, kamera, render, kit dışa aktarımı |
 | `uc_boyut.py` + `blender_sahne.py` | 3D deneme: doku üretimi + Blender'da ekransız render |
 | `krita_sahne.py` | Sahneyi katmanlara ayırıp `.ora` yazar, Krita'ya `.kra`'ya çevirtir ve piksel karşılaştırmasıyla doğrular |
+| `ARASTIRMA.md` | Countryballs edit ve animasyon türlerinin araştırması: neyin izlendiği, teknik, telif, YouTube kuralları |
 | `kur.sh` | Kurulum; her indirme yayıncının SHA-256 değeriyle ya da apt imzasıyla doğrulanır |
 | `araclari_sina.py` | Araç sınaması: Inkscape 4K vektör çıktısı, Synfig ara hareket, GIMP toplu iş, MLT zaman çizelgesi render, Krita gidiş-dönüş, Blender ekransız Python |
 
