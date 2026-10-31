@@ -25,3 +25,6 @@ __pycache__/
 
 # Paralel ajanların koşuya özel ortak panosu.
 .claude/pano.jsonl
+
+# Video üretim çıktıları — komutla yeniden üretilir (video/README.md).
+video/cikti/
