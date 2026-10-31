@@ -11,6 +11,7 @@ git'e girmez, komutlarla yeniden üretilir.
 | Python + pycairo | Claude'un bulut makinesi (Linux) | Ücretsiz | 2D çizim ve animasyon (kodla) |
 | FFmpeg 6.1 | Claude'un bulut makinesi | Ücretsiz | Kodlama, ses ölçümü, birleştirme |
 | Blender 5.2.3 LTS | Claude'un bulut makinesi (+ istersen senin bilgisayarın) | Ücretsiz (GPL) | Arada sırada 3D; 2D için Grease Pencil |
+| Krita 5.3.4.1 | Claude'un bulut makinesi + senin bilgisayarın (Windows/macOS/Linux) | Ücretsiz (GPL) | Elle çizim, kare kare animasyon, katmanlı sahne |
 | CapCut PC | Senin bilgisayarın (Windows/macOS) | Ücretsiz, bazı özellikler Pro | Hızlı kurgu, altyazı, Shorts |
 | Premiere Pro | Senin bilgisayarın (Windows/macOS) | Ücretli (7 günlük deneme) | Çok katmanlı, uzun kurgu |
 
@@ -24,11 +25,12 @@ açabileceği dosyaları üretir: saydam PNG, SVG, WAV ve MP4.
 ## Hızlı başlangıç
 
 ```bash
-bash video/kur.sh                 # ffmpeg, pycairo, Baloo 2 yazı tipi, Blender
+bash video/kur.sh                 # ffmpeg, pycairo, Baloo 2 yazı tipi, Blender, Krita
 python3 video/bolum01.py          # deneme videosu + ses katmanları + kit
 python3 video/bolum01.py --hizli  # yarım çözünürlükte hızlı önizleme
 python3 video/bolum01.py --kare 13.6   # tek kare kontrolü
 python3 video/uc_boyut.py         # 3D Türkiye topu (Blender, Cycles CPU)
+python3 video/krita_sahne.py      # Krita için katmanlı sahne (.kra), doğrulamalı
 ```
 
 Bulut konteyneri geçici; oturum bitince kurulan programlar silinir.
@@ -44,6 +46,7 @@ Edit → Setup script) yapıştır, her oturum hazır başlar.
 | `ses.py` | Müzik (Karplus-Strong telli çalgı) ve efektlerin sentezi |
 | `bolum01.py` | Deneme bölümü: senaryo, zaman çizelgesi, kamera, render, kit dışa aktarımı |
 | `uc_boyut.py` + `blender_sahne.py` | 3D deneme: doku üretimi + Blender'da ekransız render |
+| `krita_sahne.py` | Sahneyi katmanlara ayırıp `.ora` yazar, Krita'ya `.kra`'ya çevirtir ve piksel karşılaştırmasıyla doğrular |
 | `kur.sh` | Kurulum (Blender'ı resmî SHA-256 değeriyle doğrular) |
 
 ## Çıktılar (`video/cikti/`)
@@ -63,6 +66,9 @@ Edit → Setup script) yapıştır, her oturum hazır başlar.
   (gök, bulutlar, ön plan).
 - `kit/ses/`: efektler tek tek ve 104 BPM müzik döngüsü.
 - `3d_turkiye.png`: Blender 3D denemesi.
+- `krita/sahne01.kra`: Krita'da açılan 10 katmanlı sahne (gök, bulutlar, ön plan,
+  gölgeler, iki karakter, iki nesne, gizli örnek balon, boş "Çizim" katmanı).
+  Aynısı `sahne01.ora` olarak da var (GIMP ve MyPaint de açar).
 
 ## CapCut PC'de kullanım
 
@@ -99,6 +105,33 @@ Adobe'nin yardım sayfalarındaki akış:
 4. Yumuşak hareket için anahtar kareye sağ tıkla → **Ease In / Ease Out**
    (Bezier). Hız grafiğinden ince ayar yapılır.
 5. Sesler: A1'e `muzik.wav`, A2'ye `efektler.wav`; seslendirme gelince A3.
+
+## Krita'da kullanım
+
+Krita bir çizim ve kare kare animasyon programı. Countryball'da en çok iki
+yerde işe yarıyor: topları ve nesneleri **elle** çizmek (Polandball geleneği
+daire aracı kullanmaz) ve ter, toz, hız çizgisi, patlama gibi elle
+çizilen efektleri kare kare canlandırmak.
+
+1. `cikti/krita/sahne01.kra`'yı aç. Katmanlar ayrı; **Çizim** katmanına
+   doğrudan çizebilirsin, karakterleri taşıyabilir ya da gizleyebilirsin.
+2. Kare kare animasyon için **Animation** çalışma alanına geç; bir katmanı
+   zaman çizelgesine ekleyip her kareye çiz. Soğan kabuğu (onion skin) önceki
+   ve sonraki kareleri soluk gösterir.
+3. **File → Render Animation** ile PNG dizisi ya da video çıkar. Krita 5.2'den
+   beri kendi içinde FFmpeg'in bir parçasını taşıyor, ayrı kurulum gerekmiyor.
+   Çıkan saydam PNG dizisi CapCut'a ya da Premiere'e katman olarak girer.
+
+Bulut tarafında Krita ekransız çalışıyor; elle çizemiyorum ama Krita
+dosyalarını üretebiliyor, açabiliyor ve dışa aktarabiliyorum:
+
+```bash
+krita sahne.kra --export --export-filename sahne.png          # tek kare
+krita --export-sequence --export-filename kare.png anim.kra   # animasyon karelerini PNG dizisi yap
+```
+
+Yani senin Krita'da çizdiğin `.kra` dosyasını bana verirsen, onu karelere
+çevirip kurguya ya da benim sahnelerime katabilirim.
 
 ## İş bölümü önerisi
 
@@ -152,6 +185,13 @@ Bayrak ölçüleri resmî:
   <https://capcut.com/resource/capcut-for-windows>,
   <https://capcut.com/resource/download-capcut-for-mac>
 - Blender sürümleri: <https://download.blender.org/release/Blender5.2/>
+- Krita indirme (kararlı sürüm 5.3.4.1): <https://krita.org/en/download/>,
+  dosyalar: <https://download.kde.org/stable/krita/5.3.4.1/>
+- Krita komut satırı (`--export`, `--export-sequence`):
+  <https://docs.krita.org/en/reference_manual/linux_command_line.html>
+- Krita ile animasyon: <https://docs.krita.org/en/user_manual/animation.html>
+- Krita animasyon dışa aktarma:
+  <https://docs.krita.org/en/reference_manual/render_animation.html>
 - Countryball kuralları: <https://en.wikipedia.org/wiki/Rules_of_Countryballs>
 - Türk bayrağı ölçüleri: <https://en.wikipedia.org/wiki/Flag_of_Turkey>
 - Union Jack ölçü ve renkleri: <https://en.wikipedia.org/wiki/Union_Jack>
