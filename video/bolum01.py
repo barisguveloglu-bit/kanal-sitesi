@@ -38,11 +38,19 @@ BALONLAR = [
     dict(kim="turkiye", metin="BEN.", bas=8.2, bit=9.55, hiz=0, x=TX + 30, y=320, boyut=86),
     dict(kim="ingiltere", metin="Peki...\nsenin çayına biraz\nsüt koyabilir miyim?",
          bas=10.25, bit=12.85, hiz=24, x=IX - 70, y=245),
-    dict(kim="turkiye", metin="HAYIR!", bas=13.45, bit=15.35, hiz=0, x=TX + 200, y=352,
-         boyut=96, tip="bagir"),
+    # Balon sağ üstte: Osmanlı'nın fesi görünür kalsın; kuyruk fesin yanına.
+    dict(kim="turkiye", metin="HAYIR!", bas=13.45, bit=15.35, hiz=0, x=TX + 430, y=322,
+         boyut=96, tip="bagir", kuyruk=(0.62, -1.72)),
     dict(kim="ingiltere", metin="...Tamam.", bas=15.75, bit=17.25, hiz=10, x=IX - 40, y=330,
          boyut=40),
 ]
+
+# "HAYIR!" anında Türkiye, Osmanlı İmparatorluğu'na (1844–1914) dönüşür;
+# "...Tamam."dan sonra bir duman bulutuyla geri döner.
+DONUSUM, GERI_DONUS = 13.45, 16.55
+# Dönüşen karakter. --osmanli-bayrak yesil: tarihsel olarak tartışmalı yeşil
+# üç hilalli bayrak; o durumda şeritte yıl yazılmaz.
+OSMANLI_KIM = z.OSMANLI
 
 GIRIS_ZIPLAMALARI = [(0.30, 2150, 1860), (0.83, 1860, 1570), (1.36, 1570, IX)]
 ZIPLAMA_SURESI = 0.45
@@ -130,6 +138,10 @@ def turkiye_durumu(t):
     elif 15.6 <= t < 17.4:
         d["goz"] = "gururlu"
     d["ezilme"] += konusma(t, "turkiye")
+    osmanli = DONUSUM <= t < GERI_DONUS
+    d["kim"] = OSMANLI_KIM if osmanli else z.TURKIYE
+    d["kirmizi"] = yumusak(ara(t, DONUSUM + 0.05, DONUSUM + 0.3)) * (1 - yumusak(ara(t, 15.35, 15.75)))
+    d["fes_dusus"] = 1.3 * (1 - geri(ara(t, DONUSUM, DONUSUM + 0.28))) if osmanli else 0.0
     return d
 
 
@@ -174,9 +186,9 @@ def kamera(t):
     mx = 960 + (700 - 960) * k1
     my = 540 + (600 - 540) * k1
     k2 = yumusak(ara(t, 13.38, 13.5)) * (1 - yumusak(ara(t, 15.35, 15.95)))
-    z_ = z_ + (1.32 - z_) * k2
-    mx = mx + (720 - mx) * k2
-    my = my + (575 - my) * k2
+    z_ = z_ + (1.22 - z_) * k2
+    mx = mx + (810 - mx) * k2
+    my = my + (560 - my) * k2
     sar = 16 * math.exp(-(t - 13.45) * 2.5) if 13.45 <= t < 15.2 else 0.0
     return z_, mx, my, sar * math.sin(t * 97), sar * math.cos(t * 83), k2
 
@@ -208,10 +220,19 @@ class Sahne:
         if t > 0.3:
             fincan_y -= ing["yukseklik"]
 
-        for kim, d in ((z.TURKIYE, tr), (z.INGILTERE, ing)):
+        guc = yumusak(ara(t, DONUSUM, DONUSUM + 0.15)) * (1 - yumusak(ara(t, 15.3, 15.9)))
+        z.isinlar(c, tr["x"], ZEMIN - R - tr["yukseklik"], 0.8 * R, 4.2 * R, 20, t * 0.5,
+                  (0.55, 0.02, 0.05), 0.55 * guc)
+        for kim, d in ((tr["kim"], tr), (z.INGILTERE, ing)):
             z.top_ciz(c, kim, d["x"], ZEMIN, R, yukseklik=d["yukseklik"],
                       ezilme=d["ezilme"], egim=d["egim"], yon=d["yon"],
-                      goz=d["goz"], acik=d["acik"], matris=m, kal=kal)
+                      goz=d["goz"], acik=d["acik"], matris=m, kal=kal,
+                      kirmizi_goz=d.get("kirmizi", 0.0),
+                      aksesuar_ayar={"fes_dusus": d.get("fes_dusus", 0.0), "t": t})
+        if DONUSUM <= t < DONUSUM + 0.45:
+            k = ara(t, DONUSUM, DONUSUM + 0.45)
+            c.arc(tr["x"], ZEMIN - R, R * (1 + 4 * k), 0, 2 * math.pi)
+            z.boya(c, cizgi=(1, 1, 1, 1 - k), kalinlik=26 * (1 - k), matris=m)
 
         z.cay_bardagi(c, bardak_x, bardak_y, 1.05, t, matris=m)
         z.fincan(c, fincan_x, fincan_y, 0.9, matris=m, kulp=-1)
@@ -222,6 +243,7 @@ class Sahne:
                 z.yildiz_parilti(c, bardak_x + dx, bardak_y + dy, 26 * math.sin(math.pi * k),
                                  t * 2 + i, alfa=0.95)
 
+        z.duman(c, tr["x"], ZEMIN - R, R * 1.1, ara(t, GERI_DONUS - 0.1, GERI_DONUS + 0.45))
         self._sut(c, t, ing, bardak_x, bardak_y, m)
         self._ter(c, t, ing, m)
         if 12.85 <= t < 13.5:
@@ -237,6 +259,11 @@ class Sahne:
             g.add_color_stop_rgba(0, 1, 0, 0, 0)
             g.add_color_stop_rgba(1, 0.85, 0, 0, 0.5 * kizgin * (0.8 + 0.2 * math.sin(t * 12)))
             c.set_source(g)
+            c.paint()
+        self._unvan(c, t)
+        parlama = 1 - ara(t, DONUSUM, DONUSUM + 0.3)
+        if DONUSUM <= t and parlama > 0:
+            c.set_source_rgba(1, 1, 1, 0.9 * parlama)
             c.paint()
         self._kapanis(c, t)
         perde = max(1 - ara(t, 0, 0.5), ara(t, SURE - 0.6, SURE))
@@ -279,8 +306,48 @@ class Sahne:
             gorunen = max(0, (t - b["bas"] - 0.1) * b["hiz"])
         tepe = ZEMIN - d["yukseklik"] - 2 * R - (110 if b["kim"] == "ingiltere" else 18)
         kuyruk = (d["x"] + 0.25 * R * d["yon"], tepe)
+        if "kuyruk" in b:
+            kx, ky = b["kuyruk"]
+            kuyruk = (d["x"] + kx * R, ZEMIN - d["yukseklik"] + ky * R)
         z.balon(c, b["metin"], b["x"], b["y"], kuyruk, boyut=b.get("boyut", 46),
                 gorunen=gorunen, olcek=olcek, tip=b.get("tip", "normal"), matris=m)
+
+    def _unvan(self, c, t):
+        """'OSMANLI İMPARATORLUĞU · 1844–1914' şeridi, damga gibi iner."""
+        if not DONUSUM + 0.1 <= t < 15.4:
+            return
+        giris = ara(t, DONUSUM + 0.1, DONUSUM + 0.3)
+        alfa = giris * (1 - ara(t, 15.15, 15.4))
+        olcek = 1 + 0.6 * (1 - yumusak(giris))
+        c.save()
+        c.translate(W / 2, 1000)
+        c.scale(olcek, olcek)
+        c.rectangle(-W / 2 - 20, -62, W + 40, 124)
+        c.set_source_rgba(0.35, 0.02, 0.05, 0.88 * alfa)
+        c.fill()
+        for y in (-62, 58):
+            c.rectangle(-W / 2 - 20, y, W + 40, 4)
+            c.set_source_rgba(0.85, 0.66, 0.2, alfa)
+            c.fill()
+        z.yazi_ayarla(c, 72, 800)
+        baslik = "OSMANLI İMPARATORLUĞU"
+        uz = c.text_extents(baslik)
+        z.yazi_ayarla(c, 34, 600)
+        yil = "1844–1914" if OSMANLI_KIM is z.OSMANLI else ""
+        uz2 = c.text_extents(yil)
+        toplam = uz.x_advance + (36 + uz2.x_advance if yil else 0)
+        z.yazi_ayarla(c, 72, 800)
+        c.move_to(-toplam / 2, 24)
+        c.text_path(baslik)
+        yol = c.copy_path()
+        z.boya(c, cizgi=(0, 0, 0, alfa), kalinlik=10, matris=c.get_matrix())
+        c.append_path(yol)
+        z.boya(c, dolgu=(0.98, 0.84, 0.36, alfa))
+        z.yazi_ayarla(c, 34, 600)
+        c.move_to(-toplam / 2 + uz.x_advance + 36, 18)
+        c.set_source_rgba(1, 0.95, 0.85, 0.9 * alfa)
+        c.show_text(yil)
+        c.restore()
 
     def _kapanis(self, c, t):
         if t < 17.4:
@@ -370,6 +437,10 @@ def ses_uret(klasor):
     e("cizik", 12.80, 0.0, 1.0)
     e("dram", 12.91, 0.0, 1.0)
     e("huu", 13.25, -0.2, 0.9)
+    for zaman_, kat in ((DONUSUM, 1.0), (14.0, 0.8), (14.27, 0.7), (14.8, 0.9)):
+        e("davul", zaman_, -0.15, kat)
+    e("parlama_sesi", DONUSUM + 0.12, -0.2, 1.0)
+    e("puf", GERI_DONUS - 0.08, -0.3, 1.0)
     e("uzgun_tuba", 15.9, 0.35)
     e("kapanis_pop", 16.15, 0.3)
     e("zil", 17.5, 0.0, 0.7)
@@ -457,7 +528,17 @@ def kit_uret(klasor):
     ses_k = klasor / "ses"
     for k in (kar, nes, ses_k):
         k.mkdir(parents=True, exist_ok=True)
-    for kim in (z.TURKIYE, z.INGILTERE):
+    for kim in (z.OSMANLI, z.OSMANLI_YESIL):
+        for yon_ad, yon in YONLER.items():
+            for goz, kirmizi, ek in (("kizgin", 1.0, "kizgin-kirmizi-goz"), ("normal", 0.0, "normal")):
+                if kim is z.OSMANLI and goz == "normal":
+                    continue  # kırmızı bayraklı Osmanlı'nın normal hâli aşağıdaki döngüde
+                def ciz(c, kim=kim, yon=yon, goz=goz, kirmizi=kirmizi):
+                    z.top_ciz(c, kim, 512, 900, 280, yon=yon, goz=goz, kirmizi_goz=kirmizi,
+                              golge_ciz=False)
+                ad = f"{kim['ad']}_{ek}_{yon_ad}"
+                _kaydet((1024, 1024), ciz, kar / f"{ad}.png", kar / f"{ad}.svg")
+    for kim in (z.TURKIYE, z.OSMANLI, z.INGILTERE):
         for ifade in IFADELER:
             for yon_ad, yon in YONLER.items():
                 def ciz(c, kim=kim, ifade=ifade, yon=yon):
@@ -504,7 +585,13 @@ def main():
     p.add_argument("--hizli", action="store_true", help="yarım çözünürlük önizleme")
     p.add_argument("--sadece", choices=["video", "kit"])
     p.add_argument("--kare", type=float, help="tek kare PNG üret (saniye)")
+    p.add_argument("--osmanli-bayrak", choices=["kirmizi", "yesil"], default="kirmizi",
+                   help="kirmizi: 1844–1914 bayrağı (tarihe uygun); yesil: üç hilalli "
+                        "yaygın görsel (tarihsel dayanağı tartışmalı, yıl yazılmaz)")
     a = p.parse_args()
+    global OSMANLI_KIM
+    yesil = a.osmanli_bayrak == "yesil"
+    OSMANLI_KIM = z.OSMANLI_YESIL if yesil else z.OSMANLI
     cikti = Path(a.cikti)
     cikti.mkdir(parents=True, exist_ok=True)
     if a.kare is not None:
@@ -516,7 +603,8 @@ def main():
         sesler = cikti / "ses_katmanlari"
         sesler.mkdir(exist_ok=True)
         karisim = ses_uret(sesler)
-        ad = "deneme01_cay_diplomasisi" + ("_onizleme" if a.hizli else "") + ".mp4"
+        ad = ("deneme01_cay_diplomasisi" + ("_yesil_bayrak" if yesil else "")
+              + ("_onizleme" if a.hizli else "") + ".mp4")
         video_uret(cikti / ad, karisim, 0.5 if a.hizli else 1.0)
         print(cikti / ad)
     if a.sadece != "video":

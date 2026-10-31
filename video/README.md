@@ -86,8 +86,9 @@ Edit → Setup script) yapıştır, her oturum hazır başlar.
   ses -14 LUFS (YouTube referansı), tepe -1,5 dBTP.
 - `ses_katmanlari/`: `muzik.wav`, `efektler.wav`, `karisim.wav` ayrı
   katmanlar; kurguda sesi yeniden dengelemek için.
-- `kit/karakterler/`: 2 karakter × 9 ifade × 3 yön = 54 saydam PNG (1024 px)
-  ve aynıları SVG olarak (Inkscape veya Illustrator'da düzenlenebilir).
+- `kit/karakterler/`: 3 karakter (Türkiye, Osmanlı, İngiltere) × 9 ifade × 3 yön
+  = 81 saydam PNG (1024 px); artı kırmızı gözlü öfkeli Osmanlı (3 yön) ve yeşil
+  üç hilalli Osmanlı (normal + kırmızı gözlü, 3'er yön): toplam 90. Aynıları SVG olarak da var (Inkscape veya Illustrator'da düzenlenebilir).
   İfadeler: `normal`, `kapali` (göz kırpma karesi), `mutlu`, `sasirmis`,
   `kizgin`, `gururlu`, `kuskulu`, `uzgun`, `endiseli`.
   Yönler: `saga`, `on`, `sola`.
@@ -203,6 +204,24 @@ Countryball geleneğinden (Wikipedia, *Rules of Countryballs*):
 - İngiltere'nin aksesuarı silindir şapka ve monokl. Polonya bayrağı ters
   çizilir. İsrail küp, Singapur üçgen, Kazakistan tuğla, Nepal canavar.
 
+Deneme 01'de "HAYIR!" anında Türkiye, **Osmanlı İmparatorluğu'na (1844–1914)**
+dönüşüyor: beyaz parlama, şok dalgası, düşen fes, kırmızı parlayan göz,
+arkada ışınlar ve "OSMANLI İMPARATORLUĞU 1844–1914" şeridi. "...Tamam."dan
+sonra bir duman bulutuyla tekrar Türkiye'ye dönüyor.
+
+- **Osmanlı bayrağı (1844–1922)** kırmızı zeminde beyaz hilal ve beş köşeli
+  yıldız; 1844'te resmen kabul edildi. Yeşil değil. 1936 standardından önce
+  hilalin inceliği çizimden çizime değişiyordu; ölçüler Wikimedia Commons'taki
+  SVG'den alındı (hilal Türk bayrağındakinden kalın).
+- **Yeşil üç hilalli sürüm** (`python3 video/bolum01.py --osmanli-bayrak yesil`):
+  internette "Osmanlı bayrağı 1517–1793" diye yaygın görsel. Tarihsel dayanağı
+  tartışmalı: üç hilal en çok kırmızı deniz sancaklarında belgeli, yeşil olanı
+  daha dar ve tutarsız kaynaklara dayanıyor; 1844–1914 bayrağı kesinlikle değil.
+  Bu yüzden bu sürümde şeritte yıl yazmıyor. Görsel olarak dönüşüm daha belirgin
+  (top kırmızıdan yeşile dönüyor). Yerleşim Barış'ın gönderdiği görselden ölçüldü.
+- **Fes** 1829'da Osmanlı memurlarına zorunlu kılındı, 1925'te Türkiye'de
+  yasaklandı; 1844–1914 dönemine uyuyor ve Osmanlı topunu Türkiye'den ayırıyor.
+
 Bayrak ölçüleri resmî:
 
 - **Türk bayrağı** Türk Bayrağı Kanunu oranlarıyla çizilir: dış daire G/2,
@@ -250,6 +269,12 @@ Bayrak ölçüleri resmî:
 - Synfig sürümleri: <https://github.com/synfig/synfig/releases>
 - Countryball kuralları: <https://en.wikipedia.org/wiki/Rules_of_Countryballs>
 - Türk bayrağı ölçüleri: <https://en.wikipedia.org/wiki/Flag_of_Turkey>
+- Osmanlı bayrağı (1844'te kabul, kırmızı): <https://en.wikipedia.org/wiki/Flag_of_the_Ottoman_Empire>;
+  çizim: <https://commons.wikimedia.org/wiki/File:Flag_of_the_Ottoman_Empire_(1844%E2%80%931922).svg>
+- Fes (1829 zorunluluğu, 1925 yasağı): <https://en.wikipedia.org/wiki/Fez_(hat)>
+- Üç hilal ve Osmanlı sancakları: <https://flagspot.net/FLAGS/tr-ottom.html>,
+  <https://fiav.org/wp-content/uploads/2021/05/17-30-Martykan-HistoryOfOttomanNavalFlags.pdf>,
+  <https://www.hurriyetdailynews.com/amp/ottomans-flags-banners-for-battles-24913>
 - Union Jack ölçü ve renkleri: <https://en.wikipedia.org/wiki/Union_Jack>
 - Kişi başı çay tüketimi (Türkiye 3,16 kg, İngiltere 1,94 kg, 2016):
   <https://www.statista.com/statistics/507950/global-per-capita-tea-consumption-by-country/>,

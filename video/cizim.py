@@ -36,7 +36,10 @@ def boya(c, dolgu=None, cizgi=None, kalinlik=0.0, matris=None):
     Çizgi kalınlığı 'matris' (dünya) uzayında ölçülür; böylece top basılıp
     uzadığında dış çizgi incelip kalınlaşmaz."""
     if dolgu is not None:
-        c.set_source_rgba(*dolgu)
+        if isinstance(dolgu, cairo.Pattern):
+            c.set_source(dolgu)
+        else:
+            c.set_source_rgba(*dolgu)
         c.fill_preserve()
     if cizgi is not None and kalinlik > 0:
         c.save()
@@ -98,6 +101,37 @@ def elle_daire(c, R, tohum=0, genlik=0.010, adim=180):
 
 # ---------------------------------------------------------------- bayraklar
 
+def hilal_yolu(c, ox, oy, r1, r2, d):
+    """Sağa açılan hilal yolu: dış daire (ox, oy, r1) eksi d kadar sağdaki
+    iç daire (r2)."""
+    xk = (r1 * r1 - r2 * r2 + d * d) / (2 * d)
+    yk = math.sqrt(r1 * r1 - xk * xk)
+    a1 = math.atan2(yk, xk)
+    c.new_sub_path()
+    c.arc(ox, oy, r1, a1, 2 * math.pi - a1)
+    a2 = math.atan2(-yk, xk - d)
+    c.arc_negative(ox + d, oy, r2, a2, -a2)
+    c.close_path()
+
+
+def ay_yildiz(c, ox, oy, r1, r2, d, yildiz_uzaklik, rs, ic_oran):
+    """Beyaz hilal + beş köşeli yıldız. (ox, oy) dış dairenin merkezi;
+    iç daire d kadar sağda; yıldızın bir ucu hilale (sola) bakar."""
+    c.new_path()
+    hilal_yolu(c, ox, oy, r1, r2, d)
+    sx = ox + yildiz_uzaklik
+    for i in range(10):
+        a = math.pi + i * math.pi / 5
+        r = rs if i % 2 == 0 else rs * ic_oran
+        nokta = (sx + r * math.cos(a), oy + r * math.sin(a))
+        # İlk köşe move_to ile başlamalı: close_path'ten sonra line_to,
+        # yıldızı hilalin ucuna bağlayan fazladan bir üçgen çiziyordu.
+        (c.move_to if i == 0 else c.line_to)(*nokta)
+    c.close_path()
+    c.set_source_rgba(*BEYAZ)
+    c.fill()
+
+
 def bayrak_turkiye(c, R, olcek=0.86, ay_x=-0.47, ay_y=0.25):
     """Kırmızı zemin + resmi oranlı ay-yıldız.
 
@@ -108,26 +142,22 @@ def bayrak_turkiye(c, R, olcek=0.86, ay_x=-0.47, ay_y=0.25):
     c.set_source_rgba(*hex_renk("#E30A17"))
     c.paint()
     G = olcek * 2 * R
-    ox, oy = ay_x * R, ay_y * R
-    r1, r2, d = G / 4, G / 5, G / 16
-    xk = (r1 * r1 - r2 * r2 + d * d) / (2 * d)
-    yk = math.sqrt(r1 * r1 - xk * xk)
-    a1 = math.atan2(yk, xk)
-    c.new_path()
-    c.arc(ox, oy, r1, a1, 2 * math.pi - a1)
-    a2 = math.atan2(-yk, xk - d)
-    c.arc_negative(ox + d, oy, r2, a2, -a2)
-    c.close_path()
-    # Yıldız: merkez, dış daire merkezinden 0.32083·G sağda (resmi SVG).
-    sx, sy, rs = ox + 0.320833 * G, oy, G / 8
-    ic = rs * math.sin(math.radians(18)) / math.sin(math.radians(54))
-    for i in range(10):
-        a = math.pi + i * math.pi / 5
-        r = rs if i % 2 == 0 else ic
-        c.line_to(sx + r * math.cos(a), sy + r * math.sin(a))
-    c.close_path()
-    c.set_source_rgba(*BEYAZ)
-    c.fill()
+    ic_oran = math.sin(math.radians(18)) / math.sin(math.radians(54))
+    ay_yildiz(c, ay_x * R, ay_y * R, G / 4, G / 5, G / 16, 0.320833 * G, G / 8, ic_oran)
+
+
+def bayrak_osmanli(c, R, olcek=0.80, ay_x=-0.47, ay_y=0.25):
+    """Osmanlı bayrağı (1844–1922): kırmızı zemin, beyaz hilal ve beş köşeli
+    yıldız. 1936 standardından önce hilalin inceliği ve yeri çizimden çizime
+    değişiyordu; ölçüler Wikimedia Commons'taki 'Flag of the Ottoman Empire
+    (1844–1922).svg' dosyasından (G = 800 birim): dış daire r 225, iç daire
+    r 180 ve 75 sağda, yıldız merkezi dış daireden 273.6 sağda, dış yarıçap
+    109.5, iç/dış oranı 0.42."""
+    c.set_source_rgba(*hex_renk("#E30A17"))
+    c.paint()
+    G = olcek * 2 * R
+    ay_yildiz(c, ay_x * R, ay_y * R, 0.28125 * G, 0.225 * G, 0.09375 * G,
+              0.34196 * G, 0.13689 * G, 0.42)
 
 
 def bayrak_ingiltere(c, R, olcek=1.06):
@@ -188,7 +218,7 @@ def _goz_yolu(c, ex, ey, rx, ry):
     c.restore()
 
 
-def tek_goz(c, ex, ey, rx, ry, durum, ic_yon, acik, matris, kal):
+def tek_goz(c, ex, ey, rx, ry, durum, ic_yon, acik, matris, kal, dolgu=BEYAZ):
     """Tek göz. ic_yon: öbür göze doğru yön (+1 sağ, -1 sol)."""
     if durum == "mutlu":
         c.save()
@@ -216,7 +246,7 @@ def tek_goz(c, ex, ey, rx, ry, durum, ic_yon, acik, matris, kal):
         kapak = ((dis, ey - ry * (1 - derin)), (ic, ey - ry * 1.05))
     if kapak is None:
         _goz_yolu(c, ex, ey, rx, ry)
-        boya(c, dolgu=BEYAZ, cizgi=SIYAH, kalinlik=kal, matris=matris)
+        boya(c, dolgu=dolgu, cizgi=SIYAH, kalinlik=kal, matris=matris)
         return
     (x1, y1), (x2, y2) = sorted(kapak)
     c.save()
@@ -227,7 +257,7 @@ def tek_goz(c, ex, ey, rx, ry, durum, ic_yon, acik, matris, kal):
     c.close_path()
     c.clip()
     _goz_yolu(c, ex, ey, rx, ry)
-    boya(c, dolgu=BEYAZ, cizgi=SIYAH, kalinlik=kal, matris=matris)
+    boya(c, dolgu=dolgu, cizgi=SIYAH, kalinlik=kal, matris=matris)
     c.restore()
     c.save()
     _goz_yolu(c, ex, ey, rx * 1.12, ry * 1.12)
@@ -250,7 +280,38 @@ def goz_konumlari(R, yon):
     return (m - s / 2, y, rx_a, ry), (m + s / 2, y, rx_b, ry)
 
 
-def gozler(c, R, yon, durum, acik, matris, kal):
+def kirmizi_goz_dolgusu(ex, ey, r, guc):
+    """Beyazdan kızgın kırmızıya geçen göz dolgusu (guc 0..1)."""
+    g = cairo.RadialGradient(ex - r * 0.2, ey - r * 0.25, 0, ex, ey, r)
+    for durak, renk in ((0, (1, 0.95, 0.7)), (0.35, (1, 0.42, 0.12)), (0.75, (0.95, 0.06, 0.04)),
+                        (1, (0.6, 0, 0.02))):
+        g.add_color_stop_rgba(durak, *(karistir(1.0, k, guc) for k in renk), 1)
+    return g
+
+
+def goz_parlamasi(c, ex, ey, rx, ry, guc):
+    """Kırmızı gözün etrafındaki parıltı ve yatay ışık çizgisi."""
+    r = max(rx, ry)
+    hale = cairo.RadialGradient(ex, ey, r * 0.6, ex, ey, r * 2.6)
+    hale.add_color_stop_rgba(0, 1, 0.55, 0.2, 0.75 * guc)
+    hale.add_color_stop_rgba(1, 1, 0.45, 0.15, 0)
+    c.set_source(hale)
+    c.arc(ex, ey, r * 2.6, 0, 2 * math.pi)
+    c.fill()
+    c.save()
+    c.translate(ex, ey)
+    c.scale(r * 3.4, r * 0.16)
+    cizgi = cairo.RadialGradient(0, 0, 0, 0, 0, 1)
+    cizgi.add_color_stop_rgba(0, 1, 0.85, 0.75, 0.9 * guc)
+    cizgi.add_color_stop_rgba(1, 1, 0.2, 0.1, 0)
+    c.set_source(cizgi)
+    c.arc(0, 0, 1, 0, 2 * math.pi)
+    c.fill()
+    c.restore()
+
+
+def gozler(c, R, yon, durum, acik, matris, kal, kirmizi=0.0):
+    """kirmizi > 0: baktığı yöndeki göz kırmızı parlar (öfke/güç anı)."""
     a, b = goz_konumlari(R, yon)
     olcek = 1.0
     if durum == "sasirmis":
@@ -258,11 +319,18 @@ def gozler(c, R, yon, durum, acik, matris, kal):
     durum_a = durum_b = durum
     if durum == "kuskulu":
         durum_a, durum_b = ("normal", "gururlu") if yon >= 0 else ("gururlu", "normal")
-    for (ex, ey, rx, ry), d, ic in ((a, durum_a, 1), (b, durum_b, -1)):
+    kirmizi_hangisi = 1 if yon >= 0 else 0
+    for i, ((ex, ey, rx, ry), d, ic) in enumerate(((a, durum_a, 1), (b, durum_b, -1))):
         if durum == "sasirmis":
             ex += -ic * rx * 0.12
+        dolgu = BEYAZ
+        if kirmizi > 0 and i == kirmizi_hangisi:
+            dolgu = kirmizi_goz_dolgusu(ex, ey, max(rx, ry) * olcek, kirmizi)
         tek_goz(c, ex, ey, rx * olcek, ry * olcek,
-                "normal" if d == "sasirmis" else d, ic, acik, matris, kal)
+                "normal" if d == "sasirmis" else d, ic, acik, matris, kal, dolgu)
+    if kirmizi > 0 and acik >= 0.18:
+        ex, ey, rx, ry = (a, b)[kirmizi_hangisi]
+        goz_parlamasi(c, ex, ey + ry * 0.15, rx, ry * 0.7, kirmizi)
     return a, b
 
 
@@ -304,13 +372,83 @@ def monokl(c, R, goz, matris, kal):
     boya(c, cizgi=hex_renk("#e0b12a"), kalinlik=kal * 0.45, matris=matris)
 
 
-def ingiltere_aksesuar(c, R, yon, gozler_, matris, kal):
+def ingiltere_aksesuar(c, R, yon, gozler_, matris, kal, **_):
     a, b = gozler_
     monokl(c, R, b if yon >= 0 else a, matris, kal)
     silindir_sapka(c, R, yon, matris, kal)
 
 
+def fes(c, R, yon, matris, kal, dusus=0.0, t=0.0):
+    """Fes: kırmızı keçe, siyah püskül. 1829'da Osmanlı memurlarına zorunlu
+    kılındı, 1925'te Türkiye'de yasaklandı — 1844–1914 dönemine uygun."""
+    c.save()
+    c.translate(0.10 * R * yon, -0.78 * R - dusus * R)
+    c.rotate(0.10 * yon)
+    alt, ust, yuk = 0.62 * R, 0.46 * R, 0.52 * R
+    c.move_to(-alt / 2, 0)
+    c.line_to(-ust / 2, -yuk)
+    c.line_to(ust / 2, -yuk)
+    c.line_to(alt / 2, 0)
+    c.curve_to(alt / 4, 0.07 * R, -alt / 4, 0.07 * R, -alt / 2, 0)
+    c.close_path()
+    g = cairo.LinearGradient(-alt / 2, 0, alt / 2, 0)
+    g.add_color_stop_rgb(0, 0.78, 0.13, 0.20)
+    g.add_color_stop_rgb(1, 0.55, 0.06, 0.13)
+    boya(c, dolgu=g, cizgi=SIYAH, kalinlik=kal, matris=matris)
+    c.save()
+    c.translate(0, -yuk)
+    c.scale(ust / 2, 0.06 * R)
+    c.arc(0, 0, 1, 0, 2 * math.pi)
+    c.restore()
+    boya(c, dolgu=hex_renk("#c42a3f"), cizgi=SIYAH, kalinlik=kal * 0.8, matris=matris)
+    arka = -1 if yon >= 0 else 1
+    c.save()
+    c.translate(arka * 0.04 * R, -yuk)
+    c.rotate(0.12 * math.sin(t * 5.0))
+    c.move_to(0, 0)
+    c.curve_to(arka * 0.14 * R, -0.07 * R, arka * 0.30 * R, -0.02 * R, arka * 0.32 * R, 0.14 * R)
+    boya(c, cizgi=SIYAH, kalinlik=kal * 0.7, matris=matris)
+    px, py = arka * 0.32 * R, 0.13 * R
+    c.move_to(px - 0.035 * R, py)
+    c.line_to(px + 0.035 * R, py)
+    c.line_to(px + 0.075 * R, py + 0.30 * R)
+    c.curve_to(px + 0.03 * R, py + 0.34 * R, px - 0.03 * R, py + 0.34 * R, px - 0.075 * R, py + 0.30 * R)
+    c.close_path()
+    boya(c, dolgu=hex_renk("#15151a"), cizgi=SIYAH, kalinlik=kal * 0.5, matris=matris)
+    for k in (-0.04, 0.0, 0.04):
+        c.move_to(px + k * 0.5 * R, py + 0.04 * R)
+        c.line_to(px + k * R, py + 0.29 * R)
+    boya(c, cizgi=(1, 1, 1, 0.22), kalinlik=kal * 0.35, matris=matris)
+    c.restore()
+    c.restore()
+
+
+def bayrak_osmanli_yesil(c, R, olcek=1.0, grup_x=-0.28, grup_y=0.20):
+    """Yeşil zemin, üç beyaz hilal (solda iki, sağda bir). İnternette
+    'Osmanlı bayrağı 1517–1793' diye yaygın; tarihsel dayanağı tartışmalı
+    (üç hilal en çok kırmızı deniz sancaklarında belgeli). 1844–1914 bayrağı
+    DEĞİL — o kırmızı ay-yıldız (bayrak_osmanli). Yerleşim, Barış'ın
+    gönderdiği görselden ölçüldü."""
+    c.set_source_rgba(*hex_renk("#228b1e"))
+    c.paint()
+    r1 = 0.211 * R * olcek
+    gx, gy = grup_x * R, grup_y * R
+    c.new_path()
+    for dx, dy in ((-0.228, -0.272), (-0.228, 0.278), (0.228, 0.0)):
+        hilal_yolu(c, gx + dx * R * olcek, gy + dy * R * olcek, r1, 0.85 * r1, 0.22 * r1)
+    c.set_source_rgba(*BEYAZ)
+    c.fill()
+
+
+def osmanli_aksesuar(c, R, yon, gozler_, matris, kal, fes_dusus=0.0, t=0.0, **_):
+    fes(c, R, yon, matris, kal, fes_dusus, t)
+
+
 TURKIYE = {"ad": "turkiye", "bayrak": bayrak_turkiye, "tohum": 7, "aksesuar": None}
+# Türkiye ile aynı tohum: dönüşümde topun dış çizgisi kıpırdamaz.
+OSMANLI = {"ad": "osmanli", "bayrak": bayrak_osmanli, "tohum": 7, "aksesuar": osmanli_aksesuar}
+OSMANLI_YESIL = {"ad": "osmanli-yesil", "bayrak": bayrak_osmanli_yesil, "tohum": 7,
+                 "aksesuar": osmanli_aksesuar}
 INGILTERE = {"ad": "ingiltere", "bayrak": bayrak_ingiltere, "tohum": 3,
              "aksesuar": ingiltere_aksesuar}
 
@@ -333,7 +471,7 @@ def golge(c, x, zemin, R, yukseklik):
 
 def top_ciz(c, kim, x, zemin, R, *, yukseklik=0.0, ezilme=0.0, egim=0.0,
             yon=1.0, goz="normal", acik=1.0, matris=None, golge_ciz=True,
-            kal=None):
+            kal=None, kirmizi_goz=0.0, aksesuar_ayar=None):
     """Bir countryball çizer. (x, zemin) topun yere değdiği nokta.
 
     ezilme > 0 basılma (yere iniş), < 0 uzama (havada). Basılma alt
@@ -368,9 +506,9 @@ def top_ciz(c, kim, x, zemin, R, *, yukseklik=0.0, ezilme=0.0, egim=0.0,
     c.restore()
     elle_daire(c, R, kim["tohum"])
     boya(c, cizgi=SIYAH, kalinlik=kal, matris=matris)
-    goz_ciftleri = gozler(c, R, yon, goz, acik, matris, kal * 0.8)
+    goz_ciftleri = gozler(c, R, yon, goz, acik, matris, kal * 0.8, kirmizi_goz)
     if kim.get("aksesuar"):
-        kim["aksesuar"](c, R, yon, goz_ciftleri, matris, kal * 0.8)
+        kim["aksesuar"](c, R, yon, goz_ciftleri, matris, kal * 0.8, **(aksesuar_ayar or {}))
     c.restore()
 
 
@@ -585,6 +723,45 @@ def ter_damlasi(c, x, y, s, matris=None):
     c.arc(-6, 10, 4, 0, 2 * math.pi)
     boya(c, dolgu=(1, 1, 1, 0.9))
     c.restore()
+
+
+def isinlar(c, x, y, r_ic, r_dis, sayi, aci, renk, alfa):
+    """Arkadan yayılan güç ışınları (dönüşüm anı)."""
+    if alfa <= 0:
+        return
+    c.save()
+    c.translate(x, y)
+    c.rotate(aci)
+    g = cairo.RadialGradient(0, 0, r_ic, 0, 0, r_dis)
+    g.add_color_stop_rgba(0, *renk, alfa)
+    g.add_color_stop_rgba(1, *renk, 0)
+    for i in range(sayi):
+        a0 = 2 * math.pi * i / sayi
+        a1 = a0 + math.pi / sayi
+        c.move_to(r_ic * math.cos(a0), r_ic * math.sin(a0))
+        c.line_to(r_dis * math.cos(a0), r_dis * math.sin(a0))
+        c.line_to(r_dis * math.cos(a1), r_dis * math.sin(a1))
+        c.line_to(r_ic * math.cos(a1), r_ic * math.sin(a1))
+        c.close_path()
+    c.set_source(g)
+    c.fill()
+    c.restore()
+
+
+def duman(c, x, y, R, k, tohum=1):
+    """'Puf' duman bulutu: k 0→1 boyunca büyür ve söner."""
+    if not 0 < k < 1:
+        return
+    rnd = random.Random(tohum)
+    alfa = (1 - k) ** 1.5
+    for _ in range(9):
+        a = rnd.uniform(0, 2 * math.pi)
+        u = R * (0.35 + 0.9 * k) * rnd.uniform(0.6, 1.0)
+        r = R * (0.35 + 0.35 * k) * rnd.uniform(0.7, 1.2)
+        c.arc(x + u * math.cos(a), y + u * math.sin(a), r, 0, 2 * math.pi)
+        c.close_path()
+    c.set_source_rgba(0.96, 0.96, 0.98, 0.9 * alfa)
+    c.fill()
 
 
 def yildiz_parilti(c, x, y, boyut, aci=0.0, alfa=1.0):

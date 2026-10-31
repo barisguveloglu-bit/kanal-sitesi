@@ -153,10 +153,34 @@ def uzgun_tuba():
     return np.concatenate([nota(233.08, 0.32), nota(207.65, 0.85, 0.02)]) * 0.45
 
 
+def davul():
+    """Mehter davulu vuruşu: derin gövde + deri şaklaması."""
+    t = zaman(0.9)
+    gov = np.sin(faz(48 + 70 * np.exp(-t * 14))) * zarf(len(t), 0.002, 4.5)
+    deri = suzgec(_rnd.uniform(-1, 1, len(t)), alt=150, ust=2500) * zarf(len(t), 0.001, 35)
+    return (gov * 1.0 + deri * 0.5) * 0.75
+
+
+def parlama_sesi():
+    """Kırmızı gözün parlaması: metalik 'şing'."""
+    t = zaman(0.8)
+    x = sum(a * np.sin(2 * np.pi * f * t) * np.exp(-t * d)
+            for f, a, d in ((2637, 1.0, 6), (3951, 0.6, 9), (5274, 0.35, 12), (6645, 0.2, 15)))
+    return x * zarf(len(t), 0.001, 0.8) * 0.25
+
+
+def puf():
+    """Duman bulutu: kısa, yumuşak gürültü patlaması."""
+    t = zaman(0.45)
+    x = suzgec(_rnd.uniform(-1, 1, len(t)), alt=200, ust=1800)
+    return x * np.minimum(1, t / 0.01) * np.exp(-t * 9) * 0.6
+
+
 EFEKTLER = {
     "pop": pop, "kapanis_pop": kapanis_pop, "boing": boing, "tok": tok,
     "zil": zil, "tada": tada, "dram": dram, "cizik": cizik, "huu": huu,
     "yutkunma": yutkunma, "uzgun_tuba": uzgun_tuba,
+    "davul": davul, "parlama_sesi": parlama_sesi, "puf": puf,
 }
 
 
