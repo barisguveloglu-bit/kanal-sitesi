@@ -12,6 +12,11 @@ git'e girmez, komutlarla yeniden üretilir.
 | FFmpeg 6.1 | Claude'un bulut makinesi | Ücretsiz | Kodlama, ses ölçümü, birleştirme |
 | Blender 5.2.3 LTS | Claude'un bulut makinesi (+ istersen senin bilgisayarın) | Ücretsiz (GPL) | Arada sırada 3D; 2D için Grease Pencil |
 | Krita 5.3.4.1 | Claude'un bulut makinesi + senin bilgisayarın (Windows/macOS/Linux) | Ücretsiz (GPL) | Elle çizim, kare kare animasyon, katmanlı sahne |
+| Inkscape 1.4.4 | Claude'un bulut makinesi + senin bilgisayarın | Ücretsiz (GPL) | Vektör harita ve sınır çizimi, kit SVG'lerini düzenleme |
+| Synfig 1.5.1 *(isteğe bağlı)* | Claude'un bulut makinesi | Ücretsiz (GPL) | Anahtar kare arası ara hareket (tween), iskelet |
+| GIMP 3.2.6 *(isteğe bağlı)* | Claude'un bulut makinesi | Ücretsiz (GPL) | Küçük resim, fotoğraf düzeltme, toplu iş |
+| Kdenlive 26.08.2 + MLT 7.43 *(isteğe bağlı)* | Claude'un bulut makinesi | Ücretsiz (GPL) | Açık biçimli zaman çizelgesi, ekransız render (`melt`) |
+| Tahoma2D 1.6.3 | Yalnız senin bilgisayarın (kurulmadı, aşağıya bak) | Ücretsiz, açık kaynak | Kukla/tween animasyon, kamera hareketi |
 | CapCut PC | Senin bilgisayarın (Windows/macOS) | Ücretsiz, bazı özellikler Pro | Hızlı kurgu, altyazı, Shorts |
 | Premiere Pro | Senin bilgisayarın (Windows/macOS) | Ücretli (7 günlük deneme) | Çok katmanlı, uzun kurgu |
 
@@ -22,10 +27,35 @@ iptal edilmezse otomatik olarak ücretli üyeliğe dönüşüyor. Bu ikisi senin
 bilgisayarında durur. Bulut makinesindeki zincir ise onların doğrudan
 açabileceği dosyaları üretir: saydam PNG, SVG, WAV ve MP4.
 
+**Sürümler resmî kaynaklardan doğrulandı (31 Ekim 2026):** Blender 5.2.3 LTS
+(download.blender.org), Krita 5.3.4.1 (krita.org'un sunduğu kararlı sürüm;
+6.0.4 KDE sunucusunda var ama krita.org ana indirme olarak 5.3.4.1'i veriyor),
+Inkscape 1.4.4 (inkscape.org, 6 Mayıs 2026; 1.5 henüz yayımlanmadı, "planlanan"
+sürüm), GIMP 3.2.6 (download.gimp.org), Kdenlive 26.08.2 (download.kde.org),
+Tahoma2D 1.6.3 (GitHub "Latest", 1 Eylül 2026), Synfig 1.5.5 (GitHub "Latest",
+16 Mart 2026). Bulutta Synfig'in Ubuntu paketi (1.5.1) kurulu, çünkü bu ağ
+GitHub'daki sürüm dosyalarını indirmeye izin vermiyor. Tahoma2D yalnızca
+GitHub'dan ve Flathub'dan dağıtıldığı için bulutta kurulu değil. Ekransız bir
+kullanımı da yok, senin bilgisayarında kullanılacak bir program.
+
+**Rol başına bir araç.** Aynı işi yapan programlar çoğaldıkça zaman artıyor,
+kalite artmıyor. Önerilen dağılım:
+
+| Rol | Ana araç | Yedek |
+|---|---|---|
+| Elle çizim, kare kare efekt | Krita | — |
+| Vektör varlık, harita, sınır | Inkscape | — |
+| Toplu kayan/zıplayan animasyon | Claude'un zinciri (pycairo) | Blender Grease Pencil, Synfig, Tahoma2D |
+| 3D | Blender | — |
+| Kurgu | CapCut PC | Premiere Pro ya da Kdenlive (ücretsiz) |
+| Küçük resim | Krita ya da GIMP | — |
+
 ## Hızlı başlangıç
 
 ```bash
-bash video/kur.sh                 # ffmpeg, pycairo, Baloo 2 yazı tipi, Blender, Krita
+bash video/kur.sh                 # FFmpeg, pycairo, yazı tipi, Blender, Krita, Inkscape
+TAM=1 bash video/kur.sh           # + Synfig, GIMP, Kdenlive/MLT
+python3 video/araclari_sina.py    # her araca gerçek bir iş yaptırıp sonucu ölçer
 python3 video/bolum01.py          # deneme videosu + ses katmanları + kit
 python3 video/bolum01.py --hizli  # yarım çözünürlükte hızlı önizleme
 python3 video/bolum01.py --kare 13.6   # tek kare kontrolü
@@ -47,7 +77,8 @@ Edit → Setup script) yapıştır, her oturum hazır başlar.
 | `bolum01.py` | Deneme bölümü: senaryo, zaman çizelgesi, kamera, render, kit dışa aktarımı |
 | `uc_boyut.py` + `blender_sahne.py` | 3D deneme: doku üretimi + Blender'da ekransız render |
 | `krita_sahne.py` | Sahneyi katmanlara ayırıp `.ora` yazar, Krita'ya `.kra`'ya çevirtir ve piksel karşılaştırmasıyla doğrular |
-| `kur.sh` | Kurulum (Blender'ı resmî SHA-256 değeriyle doğrular) |
+| `kur.sh` | Kurulum; her indirme yayıncının SHA-256 değeriyle ya da apt imzasıyla doğrulanır |
+| `araclari_sina.py` | Araç sınaması: Inkscape 4K vektör çıktısı, Synfig ara hareket, GIMP toplu iş, MLT zaman çizelgesi render, Krita gidiş-dönüş, Blender ekransız Python |
 
 ## Çıktılar (`video/cikti/`)
 
@@ -133,6 +164,25 @@ krita --export-sequence --export-filename kare.png anim.kra   # animasyon karele
 Yani senin Krita'da çizdiğin `.kra` dosyasını bana verirsen, onu karelere
 çevirip kurguya ya da benim sahnelerime katabilirim.
 
+## Inkscape, Synfig, GIMP ve Kdenlive
+
+- **Inkscape:** Harita videolarında sınırlar ve bölgeler vektör çizilir;
+  4K'ya büyütülse de pikselleşmez. Kitteki her SVG doğrudan açılır.
+  Bulutta komut satırından dışa aktarılır:
+  `inkscape harita.svg --export-type=png --export-width=3840`.
+- **Synfig:** Karakteri anahtar kareler arasında otomatik hareket ettirir;
+  `.sif` dosyası metin tabanlı olduğu için bulutta da üretilip
+  `synfig dosya.sif -t png -o kare.png` ile render edilebilir.
+- **GIMP:** Küçük resim ve fotoğraf işi. Bulutta Python-Fu ile toplu iş
+  (`gimp-console --batch-interpreter=python-fu-eval`).
+- **Kdenlive:** Ücretsiz kurgu programı; Premiere'e para vermek istemezsen
+  ikinci kurgu aracı olabilir. Altındaki MLT motoru (`melt`) bulutta ekransız
+  render yapıyor.
+- **Tahoma2D:** Senin bilgisayarında kukla ve kamera animasyonu için bir
+  seçenek. <https://tahoma2d.org> Windows 8.1/10/11 ve macOS 15+ gereksinimlerini
+  listeliyor; Linux paketi için GitHub sürüm sayfasına bak (bu ortamdan
+  dosya listesini doğrulayamadım).
+
 ## İş bölümü önerisi
 
 1. **Senaryo** (birlikte): konu, replikler, kaç saniye, hangi duygu.
@@ -192,6 +242,12 @@ Bayrak ölçüleri resmî:
 - Krita ile animasyon: <https://docs.krita.org/en/user_manual/animation.html>
 - Krita animasyon dışa aktarma:
   <https://docs.krita.org/en/reference_manual/render_animation.html>
+- Inkscape 1.4.4: <https://inkscape.org/release/>; resmî kararlı PPA:
+  <https://launchpad.net/~inkscape.dev/+archive/ubuntu/stable>
+- GIMP 3.2.6: <https://download.gimp.org/gimp/v3.2/linux/>
+- Kdenlive 26.08.2: <https://download.kde.org/stable/kdenlive/26.08/linux/>
+- Tahoma2D sürümleri: <https://github.com/tahoma2d/tahoma2d/releases>
+- Synfig sürümleri: <https://github.com/synfig/synfig/releases>
 - Countryball kuralları: <https://en.wikipedia.org/wiki/Rules_of_Countryballs>
 - Türk bayrağı ölçüleri: <https://en.wikipedia.org/wiki/Flag_of_Turkey>
 - Union Jack ölçü ve renkleri: <https://en.wikipedia.org/wiki/Union_Jack>
