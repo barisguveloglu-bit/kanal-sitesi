@@ -23,6 +23,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import bedrock_onizleme as B  # noqa: E402
+import hareket  # noqa: E402
 
 GEO = "Simsek_Kol_Kaynak/models/entity/aktor.geo.json"
 ONEK = "animation.film."
@@ -53,6 +54,7 @@ def en_alt(geo, anim, t):
 
 def zemine_oturt(geo, anim, zamanlar):
     """Verilen anlarda kok Y'sini, en alt nokta tam zemine degecek sekilde yazar."""
+    anim["_oturt"] = list(zamanlar)       # akici surum sik aralikla yeniden oturtur
     kok = anim["bones"].setdefault("root", {})
     eski = kok.get("position", {"0.0": [0, 0, 0]})
     yeni = {}
@@ -173,7 +175,12 @@ def _a(uzun, kemikler, dongu=False):
             "bones": kemikler}
 
 
-def pozlar():
+def pozlar(akici=False):
+    """Film pozlari. akici=False: 1. bolumun cizildigi hali (anahtarlar
+    arasi dogrusal) -- cizilmis bloklarla tutarlilik icin DEGISMEZ.
+    akici=True: ayni anahtarlar egriyle (hareket.akici_kanal), kol ve bas
+    govdeden biraz sonra (ortusme), buyuk kol hareketinin sonunda hafif
+    tasma; yere degen pozlar sik aralikla yeniden zemine oturtulur."""
     geo = _geo()
     P = {}
 
@@ -411,7 +418,38 @@ def pozlar():
         P[ad]["bones"]["rightItem"] = {"rotation": r, "position": p}
         P[ad]["_cozum_tirpan"] = rap
 
+    if akici:
+        for ad, a in P.items():
+            akici_yap(geo, a)
     return {ONEK + k: v for k, v in P.items()}
+
+
+# temasin (el yerde, el blokta, el karinda) ani hesapla bulunmus pozlar:
+# orada kol ve bas KAYDIRILMAZ, tasma eklenmez -- yalniz egri.
+_KOL_BAS = ("rightArm", "leftArm", "head")
+ORTUSME = 0.05            # sn: kol ve bas govdeden bu kadar geride
+
+
+def akici_yap(geo, a):
+    temasli = any(k.startswith("_cozum") for k in a)
+    uz = a.get("animation_length")
+    for kem, b in a["bones"].items():
+        if not isinstance(b.get("rotation"), dict):
+            continue
+        kanal = b["rotation"]
+        if kem in _KOL_BAS and not temasli:
+            kanal = hareket.takip_tasmasi(kanal)
+            kanal = hareket.akici_kanal(kanal, gecikme=ORTUSME, uzunluk=uz)
+        else:
+            kanal = hareket.akici_kanal(kanal, uzunluk=uz)
+        b["rotation"] = kanal
+    if a.get("_oturt"):
+        # egriyle ara anlarda govde baska yerde: zemine sik aralikla oturt
+        son = max(a["_oturt"][-1], uz or 0.0)
+        n = int(round(son * 30))
+        kok = a["bones"].get("root", {})
+        kok.pop("position", None)
+        zemine_oturt(geo, a, [round(i / 30.0, 4) for i in range(n + 1)])
 
 
 if __name__ == "__main__":

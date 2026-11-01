@@ -774,8 +774,12 @@ mekânı blok blok üretiliyor; Blender yalnız önizlemede
   ayıklama, döndürme). Fener dokusu küçük bir atlas (`FENER_BOLGE`), yatık
   kütüğün halkası ekseninin iki ucunda: ikisi de önizlemede yanlış çıktı,
   test kilitliyor.
-- `hanedan.py`: sur, tepe, merdiven, kale, iki ev halkası, tarlalar,
+- `hanedan.py`: sur, tepe, merdiven, kale, üç ev halkası, tarlalar,
   azıcık ağaç ve çiçek, az sayıda köylü (`bilgi["koyluler"]`, blok değil).
+  Evler sıkı diziliyor (`halka_diz`: her ev bir öncekinin gerçek ucundan
+  başlıyor, sabit adımla dizilince halkada boşluk kalıyordu); ev
+  merkeze bakan en yakın ana yöne döndüğü için çapraz açılarda halka
+  bandına yalnız küçük evler sığıyor.
   **Ölçülerin ve biçimin hepsi Claude'un önerisi**, kayıttaki iskelet
   SERI_SEZON1.md'de; kullanıcı onaylamadan oraya yazılmaz.
 - `koylu.py`: köylü modeli ve doku katmanları. Kutular Java 26.3 JAR'ından
@@ -790,3 +794,27 @@ mekânı blok blok üretiliyor; Blender yalnız önizlemede
   yolların açıklığı, köylülerin durduğu yer, köylü modeli ve şapka kuralı.
   Film aracına (`blender_film.py`) henüz bağlı değil; bağlanınca
   FILM_YETENEK_HARITASI.md aynı commit'te güncellenir.
+
+**Bataklık ve cadının kulübesi — `addon/arac/kulube.py` (v7.99.16).**
+2. bölüm Part 1'in mekânı. Kulübe ölçülenin aynısı + kullanıcının iki
+eklemesi (kırmızı yatak, kitaplık); yatağın başı **kuzeyde**, çünkü yatak
+dokusunun yastığı kuzeye çiziliyor. Bataklığın renkleri ve meşesi Java
+26.3 JAR'ından okundu (sayılar, dosya değil); havuzların, ağaçların ve
+geçidin yeri Claude'un önerisi. Önizleme `arac/kulube_onizle.py`, kilit
+`test/kulube.mjs`. İki tuzak:
+- **Blender 5.2'de `NISHITA` gökyüzü yok.** Türü ayarlayan satır hata verip
+  aynı `try`'daki güneş yüksekliğini de atlıyor; yüksekliği ayrı yaz.
+  `blender_film.py`'de bu satır duruyor, bilerek düzeltilmedi
+  (FILM_YETENEK_HARITASI.md "2. bölümden önce açık").
+- **Ufuk düzlemi suyu örtmesin:** suyun üstü bloğun 14/16'sında; ufuk
+  yapının dışında başlamalı (kulübede ortası boş çerçeve, hanedanda
+  surdan başlayan halka).
+
+**Akıcı hareket — `addon/arac/hareket.py` (v7.99.16).** Kullanıcı:
+*"robotik dövüşlerden ya da hareketlerden memnun değilim."* Senaryoda
+`"akici": true`: yaylı dönüş, ivmeli yürüme, ayak temasına inen gövde,
+başın hedefe bakması, yumuşak geçişler, eğrili film pozları, yöne göre
+ırkilme. **Yazılmazsa eski hareket**; 1. bölümün senaryoları bilerek
+değiştirilmedi (dosya özeti çizilmiş blokların künyesinde). Yeni her
+senaryo `"akici": true` taşır, `test/hareket.mjs` kilitliyor. Ayrıntı ve
+ölçüler FILM_YETENEK_HARITASI.md "Akıcı hareket".

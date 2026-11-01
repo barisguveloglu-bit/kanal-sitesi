@@ -1,12 +1,41 @@
 # Film aracı — yetenek haritası
 
-v7.99.15 · 2026-10-25 (ince kollu model eklendi; 2026-10-19'da Osmanlı Topuzu, balta seti ve dizli bacak; ilk hâli v7.99.14 · 2026-10-17). Kaynak: `arac/blender_film.py`, `film_poz.py`,
+v7.99.16 · 2026-11-01 (akıcı hareket eklendi; 2026-10-25'te ince kollu model; 2026-10-19'da Osmanlı Topuzu, balta seti ve dizli bacak; ilk hâli v7.99.14 · 2026-10-17). Kaynak: `arac/blender_film.py`, `film_poz.py`, `hareket.py`,
 `kamera_denetim.py`, `zemin_denetim.py`, `form_model.py`, `thomas_goz.py`,
 `film_ses.py`, `film_birlestir.py` ve `test/` altındaki film testleri.
 Kod okunarak çıkarıldı; bu bir envanter, karar değil. Sayılar ya kod
 sabiti ya da kayıtlı ölçüm.
 
 ## Hazır olan / hiç olmayan
+
+**Akıcı hareket (v7.99.16, senaryoda `"akici": true`)**
+
+Kullanıcı: *"robotik dövüşlerden ya da hareketlerden memnun değilim."*
+Kodda ölçülen sebepler ve karşılıkları (`arac/hareket.py`, kilit
+`test/hareket.mjs`):
+
+| robotik görünen | eskisi | akıcıda |
+|---|---|---|
+| dönüş | sabit 540°/sn, ilk karede 22,5° atlıyor, anında duruyor | ivme sınırlı yay: ilk karede ~2°, en çok 26,6°/kare, yavaşlayarak oturur (180° ≈ 0,8 sn) |
+| yürümeye başlama/durma | ilk karede 0 → 4,3 blok/sn, varışta anında durma | 9 blok/sn² ivme, varışa yaklaşırken frenleme |
+| adım | sert bacak açılınca iki ayak havada (40°'de 1,5 px, koşuda 3 px) | gövde ayak temasına iner (bacağın alt köşesi, gerçek modelle bire bir); doğal inip kalkma |
+| yürüyen gövde | yalnız kol ve bacak sallanıyor | hıza göre öne eğilme, göğüs burulması (baş sabit), kollar gövdeye sürtmez |
+| baş | kendiliğinden hiçbir yere bakmıyor | vurduğu / yürüdüğü / `bak`tığı aktöre, yoksa 10 blok içindeki en yakına döner; yayla gecikir (dönüşe baş önce başlar); vuruşta %70 azalır, film pozunda poz yönetir |
+| hareketler arası geçiş | 0,12 sn doğrusal | aynı süre, smoothstep (yumuşak giriş-çıkış) |
+| film pozları (`dus`, `kalk`...) | birkaç anahtar arası doğrusal | Blender'ın "auto clamped" eğrisi (taşmasız), kol ve baş gövdeden 0,05 sn geride (örtüşme), büyük kol hareketinin sonunda hafif taşma; yere değen pozlar 30 Hz'de yeniden zemine oturtuluyor. Temas hesaplı pozlarda (`_cozum`) kaydırma ve taşma yok: el yere/bloğa aynı anda değer |
+| darbe tepkisi | hep aynı | vuruşun yönüne ve gücüne göre baş ve gövde ırkilmesi, küçük deterministik oynama; savunan da hafifçe sarsılır |
+| itme sönümü | karede ×0,8 (kare hızına bağlı) | zamana bağlı (24 kare/sn'de eskisiyle aynı) |
+| duran karakter | yalnız nefes | nefese ek ağırlık aktarma (5,3 sn) |
+| **yürürken duruş (kullanıcı: "Barış'da duruş bozukluğu var")** | setin TAM duruşu yürürken de kalıyordu: Barış antitheus duruşunun 21° yana dönük kökü ve 12–20° burulmuş bacaklarıyla, salınım üstüne eklenerek yürüyordu. Oyun hareket edince `durus_ust`a geçiyor, film hiç geçmiyordu. **1. bölümün iki partında da var; kullanıcının kararı: 1. bölüm yeniden çizilmeyecek** (*"1. bölüm artık çok geç, çizme en iyisi"*, 2026-11-01). | yürürken üst beden duruşuna yumuşak geçiş (oyundaki gibi): kök ve bacak burulması 0° |
+| dizsiz bacak | Epic Fight duruşu dize kurulu; tek kutu bacak uyluğun açısını alınca ayak gövdenin altından kayıyor (ayaklık üstünde durur gibi) | akıcı senaryoda diz varsayılan (`"diz": false` ile kapanır) |
+
+**`akici` yazılmayan senaryo eski hareketi verir**: 1. bölümün iki
+senaryosu değişmedi (dosyayı değiştirmek özetini değiştirir, çizilmiş
+her blok "başka sürümle çizilmiş" uyarısı verirdi). Eski ve yeni kod
+1. bölümün 14.487 karesinde bire bir aynı çıktı verdi. `film/` altındaki
+1. bölüm dışı her senaryo `"akici": true` taşımak zorunda (test kilitliyor).
+Önce/sonra karşılaştırması (önizleme kalitesi): aynı sahne iki kez
+çizildi, yan yana video kullanıcıya gönderildi.
 
 **Hamle**
 - Hazır:
@@ -82,10 +111,14 @@ sabiti ya da kayıtlı ölçüm.
 
 **Sahne**
 - Hazır:
-  - **orman:** çimen, açıklığın dışında ağaçlar, çukur, Nishita gökyüzü, güneş ve ay; `isik` anahtarlarıyla sabahtan geceye geçiş;
+  - **orman:** çimen, açıklığın dışında ağaçlar, çukur, gökyüzü (Blender 5.2'de fiilen `MULTIPLE_SCATTERING`, aşağıda "2. bölümden önce açık"), güneş ve ay; `isik` anahtarlarıyla sabahtan geceye geçiş;
   - **oda:** deepslate oda, açılan kapı, bembeyaz dış, ışık hüzmesi, sis, toz, iki göz, kötünün karanlığı. Kötü yerinden oynayamaz.
+- **Kurulu ama film aracına bağlı değil (v7.99.16):**
+  - **bataklık ve cadının kulübesi** (`arac/kulube.py`, önizleme `arac/kulube_onizle.py`, kilit `test/kulube.mjs`): ölçülen kulübe + kırmızı yatak ve kitaplık, Minecraft'ın bataklık renkleri ve bataklık meşesi, havuzlar, nilüfer, sarmaşık, mor geçit (yeri Claude'un önerisi);
+  - **hanedan** (`arac/hanedan.py`, `hanedan_onizle.py`).
+  Blok kurucu (`arac/blok_kur.py`) bu iş için: biyom boyası, blok başına boya, ova dışında çimen yan yüzüne boyalı örtü, Nether geçidi, şerit dokularda (su, geçit) yalnız ilk kare.
 - Yok:
-  - bataklık kulübesi (kurucusu yazılmadı), savaş odası, hanedan ve surlar, Nether, zihin ortamı, karlı arazi;
+  - savaş odası, Nether, zihin ortamı, karlı arazi; bataklık ve hanedanın filme bağlanması;
   - hava durumu;
   - el lambası, meşale ve ateş ışığı.
 
@@ -136,6 +169,7 @@ sabiti ya da kayıtlı ölçüm.
 - Form rakibin içine giriyordu.
 - Dövüş v2'de beş kadraj hatası ve çizimi ilk karede çökerten `KeyError`.
 - Zisa'nın ince kollu skini 4 px kollu modele giydiriliyordu: kolun boş dış sütunu kenarda kırık bir şerit olarak görünüyordu (kilit: `ince_kol.mjs`).
+- Bataklık önizlemesi (v7.99.16, kilit: `kulube.mjs`): ufuk düzlemi havuzların suyunu örtüyordu (hanedanda da tarla sularını); su dokusu 32 karelik şerit hâlinde bir bloğa sıkışıyordu; çimen yan dokusundaki hazır ova yeşili havuz kenarlarında parlak çizgi oluyordu, örtü konunca kuzey yüzleri "ön" sayıldığı için örtüsüz kaldı; kapının önüne sarmaşık sarkıyordu.
 
 **Kullanıcının izlemesi**
 - Tırpan tutuşu: sağ el 10–18 px kayıktı (kilit: `tutus.mjs`, `silah_govde.mjs`).
@@ -179,6 +213,7 @@ sabiti ya da kayıtlı ölçüm.
 
 ## 2. bölümden önce açık
 
+- **Gökyüzü türü (v7.99.16'da ölçüldü):** Blender 5.2'de `NISHITA` yok (`SINGLE_SCATTERING`, `MULTIPLE_SCATTERING`, `PREETHAM`, `HOSEK_WILKIE`). `blender_film.py` türü ayarlarken hata alıyor ve aynı `try` içindeki `gunes_yukseklik`'i atlıyor: gökyüzü fiilen varsayılan `MULTIPLE_SCATTERING`, `isik` anahtarı olmayan senaryoda `gunes_yukseklik` uygulanmıyor. `isik` anahtarları yüksekliği ayrı bir `try` içinde yazdığı için 1. bölümün orman çizimi etkilenmedi. Film aracında düzeltilmedi (1. bölümün görünüşü bu); önizleme betikleri (`hanedan_onizle`, `kulube_onizle`) yüksekliği artık ayrı yazıyor.
 - **Takılan yürüyüş:** kök düzeltmesi yapılmadı (SERI_SEZON1, "bilinen hata"). Kalabalık sahneler bunu sık tetikler.
 - **Skin aynası:** düzeltip düzeltmemek kullanıcının kararı. Düzeltilmezse Thomas planıyla bizim plan arasında yüz aynalanır.
 - **Antitheus `auto_3`:** kullanılmıyor, çünkü sap 0,1–0,2 sn boyunca başın içinden geçiyor.

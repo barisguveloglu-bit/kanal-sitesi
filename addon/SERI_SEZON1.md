@@ -39,6 +39,8 @@ kararı: *"bu iki evren farklı evrenler."*
 | **Ice-man** | 2 | Gerçek adı Ice-man, kod adı **Deney 081**. 2. bölümün düşmanı. Silahı **Ay Işığı Asası** (`pa:kns_asa_ayisigi`, Konsey eşyası): lacivert gövde, pençe biçimli baş, içinde buz mavisi küre. Kullanıcının gönderdiği görselle model karşılaştırılıp eşleştirildi. Modda dövüş seti yok; film için bir asa seti bağlanacak (Karanlık Tırpan'daki `OZEL_SILAH` yolu). Skin kullanıcıdan geldi (aşağıda). |
 | **Komutan Ömer** | 2 | İnsanlara ait hanedanın askerî bir bölgesindeki komutan; ışıklı, harita masalı savaş odasında. Skin: **`kaynak_doku/aktor/omer.png`** — kullanıcının kendi yaptığı skin (2026-10-10), aktör listesinde `omer` (10. sıra, `pa:skin` = 9), 64×64 RGBA, geniş kol, md5 `35bfb612ddac5cce9ea74c59e106a33d`. |
 | **Asker** | 1 | Ana kötünün askerlerinden; El-Harkos'un öldüğü haberini patronuna getiren görevli. |
+| **Pipos** (Barış'ın akıl hocası) | ? | Adı **Pipos** (kullanıcı, 2026-11-01). Barış'ın akıl hocası; Barış'ta bir potansiyel gördüğü için onu seçti, Barış için **manevi baba gibi**. Silahsız: *"akıl hocası için sadece yumruk düşündüm"*. **Dövüş sanatının adı: Kaplan sanatı** (kullanıcı). Üslup (kullanıcı): *"yumruk seti disiplinli olsun, dövüş stili akıllıca, bilgelik içeren dövüş stili olsun; savunması daha baskın, saldırısı geri planda olan"* — ve düzeltmesi: *"savunma önde olsun dedik de o kadar da abartılı önde olmasın; son saldırı hiç olmazsa ne olacak, o zaman dövüş bitmez, sürekli savunma yapar"*. Yani savunma önde ama ölçülü, **her dövüş bir bitiriş saldırısıyla biter**. El-Harkos'un saldırgan `yumruk` setinden ayrı, kendi seti. Ayrıntılı taslak (onay bekliyor): `DOVUS_KAPLAN_SANATI.md`. Kullanıcının bir arkadaşı animasyonda yer almak istedi; skini kullanıcı yaptı, **sarı renkler ağırlıklı** (altın-siyah, beyaz başlık, göğüste altın amblem). `kaynak_doku/film_aktor/pipos.png`, 64×64, geniş kol, md5 `ace916170b14a953f954880b3a06336d`. Oyunun aktör listesine **girmedi**: oraya alfabetik eklenir ve mevcut aktörlerin `pa:skin` sırasını kaydırabilirdi; şimdilik yalnız film. |
+| **Çocukluk arkadaşı** (adı henüz yok) | ? | Barış'ın çocukluk arkadaşı (kullanıcı, 2026-11-01). Kraliyet büyüsü ama asa yok: *"büyücülerin genelde bir asası olur ya onda farklı onun silahları var"*. Silahları iki tabanca, **Ebony & Ivory** (arkadaşının seçimi): sağ elde siyah, sol elde beyaz. Skini kullanıcı yaptı, arkadaşının isteğiyle **Dante'ye benzetildi**: gümüş-beyaz saç, mavi göz, koyu bordo uzun ceket, lacivert gömlek. `kaynak_doku/film_aktor/cocukluk_arkadasi.png`, 64×64, geniş kol, md5 `aad31c91f2c7e7485e5cfda3e4d94142`; aktör listesine girmedi (aynı sebep). Tabanca modeli **kendi küp modelimiz** (`arac/ikiz_tabanca.py`, Capcom'un modeli ya da dokusu alınmadı); biçimi ve boyu Claude'un taslağı, onay bekliyor. Silahlı dövüş film aracında henüz yok. |
 
 **Ice-man skini:** kullanıcının kendi yaptığı skin (*"üzerinde biraz
 çalıştım ve yaptım"*) — dış varlık değil, depoya girdi:
@@ -871,6 +873,23 @@ hedef ~57,5).
   pencereden atlayış, Zisa'nın büyü işareti (perçem telleri, alın sembolü); 3 — Saldırı II, buz duvarı, kar girdabı, donma kabı, duvar
   delinmesi; 4 — buz kaplı merdiven, Kor Yürüyüşü, Kıvılcım, yarım küre buz
   kalkanı, buz sütunu, jeot ve lav, lavın donması.
+
+**Part 1 kararları (kullanıcı, 2026-11-01):**
+- **Cadının skini:** kullanıcının gönderdiği skin (*"cadı skin'i bu olsun"*):
+  `kaynak_doku/film_aktor/cadi.png`, 64×64 RGBA, geniş kol, md5
+  `20430b0b19c70ec8ab7caf9b1ab8a72d`. Mor saç, kırmızı göz, lacivert elbise,
+  sarı-kahve çizgili kollar, arkada kahverengi pelerin. Yalnız film; aktör
+  listesine girmedi (Pipos'la aynı sebep). Kaynağı soruldu: kullanıcının kendi
+  yaptığı skin değilse izin durumu belli olana kadar depoya girmez.
+- **Kapıyı tıklatıp Ömer'e haberi getiren:** gri sur askeri
+  (`kaynak_doku/aktor/sur_askeri_gri.png`; kullanıcı: *"gri olsun"*).
+- **Günün saatleri** (Claude önerdi, kullanıcı: *"tamam"*): cadının gelişi ve
+  Satanachia **gece** (1. bölüm ay ışığında bitiyor) → kulübede uyanış
+  **sabah** → Ömer'in odası ve Zisa'nın evi **öğleye yakın** (baskın öğle
+  güneşinde).
+- **Geçit:** Minecraft'taki gibi **obsidyen çerçeveli mor geçit**. Yeri henüz
+  söylenmedi.
+- **Part 1'in sonu:** Barış Zisa'nın evinin **içinde** (kullanıcı: *"ev içi"*).
 
 **Hazır paketler — hangi sahnede ne.** Aşağıda adı geçen her Pooka efekti
 ve MCprep TNT'si Cycles'ta tek başına çizildi (`REFERANS_HAZIR_PAKETLER.md`,

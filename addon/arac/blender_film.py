@@ -58,6 +58,7 @@ import film_poz  # noqa: E402
 import diz_model  # noqa: E402
 import form_model  # noqa: E402
 import thomas_goz  # noqa: E402
+import hareket as H  # noqa: E402
 
 KOK = B.KOK
 ANIM_WOM = "Simsek_Kol_Kaynak/animations/wom_kilic.animation.json"
@@ -96,12 +97,25 @@ DONUS_HIZI = 540.0            # derece/sn -- "bak" ve yon degisimi tek karede ol
 _POZLAR = None
 
 
-def film_pozlari():
-    """arac/film_poz.py'nin pozlari (bir kez hesaplanir)."""
+def film_pozlari(akici=False):
+    """arac/film_poz.py'nin pozlari (her surum bir kez hesaplanir).
+    akici=False: 1. bolumun cizildigi dogrusal hali."""
     global _POZLAR
-    if _POZLAR is None:
-        _POZLAR = film_poz.pozlar()
-    return _POZLAR
+    if not isinstance(_POZLAR, dict) or "dogrusal" in _POZLAR:
+        _POZLAR = {} if not isinstance(_POZLAR, dict) or "dogrusal" in _POZLAR else _POZLAR
+    if akici not in _POZLAR:
+        _POZLAR[akici] = film_poz.pozlar(akici=True) if akici else film_poz.pozlar()
+    return _POZLAR[akici]
+
+
+def akici_mi(senaryo):
+    """Akici hareket (hareket.py): senaryoda "akici": true. Yazilmazsa ESKI
+    hareket -- 1. bolumun senaryolari degismeden ayni filmi versin (dosyayi
+    degistirmek ozetini degistirir, cizilmis her blok "baska surumle
+    cizilmis" uyarisi verirdi). Yeni her senaryo "akici": true tasimak
+    zorunda: test/hareket.mjs film/ altindaki 1. bolum disi her senaryoya
+    bakar."""
+    return bool(senaryo.get("akici", False))
 
 
 def zaman_haritasi(senaryo):
@@ -236,6 +250,14 @@ class Aktor:
         self.silah_gorunur = not v.get("silah_gizli", False)
         self.durus_onceki, self.durus_t = None, -99.0
         self.hedef_aci = None    # donus: aci buna DONUS_HIZI ile yaklasir
+        # akici hareket (hareket.py): donus ve yurume hizi, bas takibi
+        self.akici = False
+        self.aci_hiz = 0.0       # derece/sn
+        self.yuru_v = 0.0        # blok/sn
+        self.bak_kim = None      # basin baktigi aktor ("bak" olayiyla da)
+        self.bas = [0.0, 0.0]    # [yaw, pitch] derece
+        self.bas_v = [0.0, 0.0]
+        self.irkilmeler = []     # [{"bas", "guc", "yan"}] darbe irkilmesi
         # Baris'in formu (form_model.py): 1,5 kat + iki ek kol. Ayar burada
         # cozulur -- yanlis yazilmis "form" cizim baslamadan HATA verir.
         self.form = form_model.form_ayari(v.get("form"))
@@ -425,13 +447,59 @@ def toprak_parcalari(senaryo, olaylar, aktorler, harita, pozlar, efektler, sarsi
                          "boy": PARCA_BOY})
 
 
+def irkilme_bilgisi(h, a, faz, e, t):
+    """Darbenin irkilme ayari: gucu vurusun hasari ve itmesinden, yonu
+    vuranin kurbanin hangi yaninda oldugundan. Kucuk deterministik
+    oynama: ayni darbe iki kez tipatip ayni durmasin (ayni senaryoda ayni)."""
+    gel = (a.poz[0] - h.poz[0], a.poz[1] - h.poz[1])
+    gb = math.hypot(*gel) or 1.0
+    sg = sag_yon(h.aci)
+    yan = max(-1.0, min(1.0, (gel[0] * sg[0] + gel[1] * sg[1]) / gb))
+    oyna = (math.sin(t * 12.9898 + len(a.ad) * 78.233) * 43758.5453) % 1.0
+    guc = max(0.6, min(1.4, faz.get("hasar", 1) * e.get("itme", 1.0))) * (0.85 + 0.3 * oyna)
+    return {"guc": round(guc, 4), "yan": round(yan, 4)}
+
+
+BAS_YUKSEK = 1.62            # gozler zeminden ~26 px (blok)
+BAS_MENZIL = 10.0            # bu yakindaki aktore kendiliginden bakar
+
+
+def bas_takip_adimi(a, aktorler, dt):
+    """Basin hedefi: once vurdugu / yurudugu / "bak"tigi aktor, yoksa en
+    yakin gorunur aktor. Bas oraya yayla doner (govdeden hizli: donuse
+    bas once baslar). Hedef yoksa yavasca ileri doner."""
+    hedef = aktorler.get(a.bak_kim) if a.bak_kim else None
+    if hedef is None or not hedef.gorunur or hedef is a:
+        yakin = [b for b in aktorler.values() if b is not a and b.gorunur]
+        yakin = [b for b in yakin if math.hypot(b.poz[0] - a.poz[0], b.poz[1] - a.poz[1]) <= BAS_MENZIL]
+        hedef = min(yakin, key=lambda b: math.hypot(b.poz[0] - a.poz[0], b.poz[1] - a.poz[1])) if yakin else None
+    if hedef is not None:
+        yaw, pitch = H.bas_takibi(a.poz, a.aci, a.z + BAS_YUKSEK * a.olcek, hedef.poz,
+                                  hedef.z + BAS_YUKSEK * hedef.olcek)
+    else:
+        yaw, pitch = 0.0, 0.0
+    for i, h_ in enumerate((yaw, pitch)):
+        a.bas[i], a.bas_v[i] = H.yay(a.bas[i], a.bas_v[i], h_, dt, H.BAS_W)
+
+
 def zaman_cizelgesi(senaryo, setler, anims, suz=True):
     """Her aktor icin kare basina (x, y, z, aci, katmanlar) + efekt ve
     altyazi listeleri. Oyun mantiginin (cekim.js) kare-zamanli karsiligi."""
     fps = senaryo.get("fps", 24)
     harita = zaman_haritasi(senaryo)
-    pozlar = film_pozlari()
+    akici = akici_mi(senaryo)
+    pozlar = film_pozlari(akici)
     aktorler = {ad: Aktor(ad, v, setler) for ad, v in senaryo["aktorler"].items()}
+    for a in aktorler.values():
+        a.akici = akici
+        if akici and "diz" not in a.v and not a.form:
+            # Epic Fight'in durusu ve vuruslari DIZE kurulu: dizsiz tek kutu
+            # bacak uylugun acisini butun bacaga verince ayak govdenin
+            # altindan kayiyor, govde ayaklik ustunde durur gibi gorunuyor.
+            # Akici senaryoda diz varsayilan; "diz": false ile kapanir.
+            a.diz = diz_model.diz_ayari(True)
+        if isinstance(a.v.get("bak"), str) and a.v["bak"] in aktorler:
+            a.bak_kim = a.v["bak"]
 
     def carpisma_coz(a, onceki):
         _carpisma(a, onceki, aktorler)
@@ -472,6 +540,7 @@ def zaman_cizelgesi(senaryo, setler, anims, suz=True):
                 h = o["bak"]
                 if isinstance(h, str):
                     a.hedef_aci = yon_aci(a.poz, aktorler[h].poz)
+                    a.bak_kim = h
                 elif isinstance(h, (list, tuple)):
                     a.hedef_aci = yon_aci(a.poz, h)    # bir noktaya bak (cukur)
                 else:
@@ -517,6 +586,8 @@ def zaman_cizelgesi(senaryo, setler, anims, suz=True):
             if "git" in o:
                 g = o["git"]
                 a.yuru = ({"hedef": g} if isinstance(g, str) else {"nokta": [float(g[0]), float(g[1])]})
+                if isinstance(g, str):
+                    a.bak_kim = g
                 a.yuru["hiz"] = float(o["adim"]) if "adim" in o else (KOS if o.get("kos") else YURU)
             if "vur" in o:
                 hedef = aktorler.get(o.get("hedef")) if o.get("hedef") else None
@@ -532,6 +603,9 @@ def zaman_cizelgesi(senaryo, setler, anims, suz=True):
                            "iz_carpan": float(o.get("hamle", 1.0)), "itme": float(o.get("itme", 1.0))}
                 a.seri["son"] = t + s["sure"] / hiz
                 a.yuru = None
+                a.yuru_v = 0.0
+                if hedef:
+                    a.bak_kim = hedef.ad
                 a.savun_bitis = -1
             if "savun" in o:
                 sure = float(o["savun"]) if not isinstance(o["savun"], bool) else 1.1
@@ -552,6 +626,12 @@ def zaman_cizelgesi(senaryo, setler, anims, suz=True):
         # ---- donus: ani degil, en kisa yoldan DONUS_HIZI ile ----
         for a in aktorler.values():
             if a.hedef_aci is None:
+                continue
+            if akici:
+                # yayla: yavas baslar, hizlanir, yavaslayarak oturur
+                a.aci, a.aci_hiz, vardi = H.aci_yayi(a.aci, a.aci_hiz, a.hedef_aci, dt)
+                if vardi:
+                    a.hedef_aci = None
                 continue
             fark_ = (a.hedef_aci - a.aci + 180.0) % 360.0 - 180.0
             adim_ = DONUS_HIZI * dt
@@ -610,6 +690,10 @@ def zaman_cizelgesi(senaryo, setler, anims, suz=True):
                     guc = ITME * faz.get("hasar", 1) * carp * e.get("itme", 1.0)
                     h.itme = [h.itme[0] + on[0] * guc * 6, h.itme[1] + on[1] * guc * 6]
                     tur = "savun" if savundu else ("kan" if e.get("kan") else "vurus")
+                    if savundu and akici:
+                        ir_ = irkilme_bilgisi(h, a, faz, e, t)
+                        ir_["guc"] *= 0.35            # savunan da sarsilir, az
+                        h.irkilmeler.append(dict(ir_, bas=t))
                     efektler.append({"t": t, "tur": tur, "yon": list(on), "kim": a.ad, "hedef": h.ad,
                                      "nokta": [h.poz[0] - on[0] * 0.3, h.poz[1] - on[1] * 0.3, h.z + 1.15 * h.olcek]})
                     if not savundu:
@@ -623,6 +707,8 @@ def zaman_cizelgesi(senaryo, setler, anims, suz=True):
                             h.dusuler.append((t, e["dusur"]))
                         else:
                             h.tepki.append({"anim": "animation.aktor.darbe", "bas": t, "sure": 0.4})
+                            if akici:
+                                h.irkilmeler.append(dict(irkilme_bilgisi(h, a, faz, e, t), bas=t))
                         if son:
                             sarsinti.append(t)
                 if yerel >= e["sure"] * e["hiz"]:
@@ -633,17 +719,24 @@ def zaman_cizelgesi(senaryo, setler, anims, suz=True):
                 dur = (VARIS * (a.olcek + aktorler[a.yuru["hedef"]].olcek) / 2) if "hedef" in a.yuru else 0.05
                 dx, dy = hedef[0] - a.poz[0], hedef[1] - a.poz[1]
                 uz = math.hypot(dx, dy)
-                if uz <= dur:
+                if uz <= dur or (akici and uz - dur < 0.02):
                     a.yuru = None
+                    a.yuru_v = 0.0
                 else:
-                    adim = min(a.yuru["hiz"] * dt, uz - dur)
+                    if akici:
+                        # ivmeyle kalkar, varisa yaklasirken yavaslar
+                        a.yuru_v = H.yuru_hizi(a.yuru_v, a.yuru["hiz"], uz - dur, dt)
+                        adim = min(max(a.yuru_v, 0.05) * dt, uz - dur)
+                    else:
+                        adim = min(a.yuru["hiz"] * dt, uz - dur)
                     a.poz = [a.poz[0] + dx / uz * adim, a.poz[1] + dy / uz * adim]
                     if not any(b0 <= t <= b1 for b0, b1 in bak_serbest):
                         a.hedef_aci = yon_aci((0, 0), (dx, dy))
             # geri itilme: sonumlenen hiz
             if abs(a.itme[0]) + abs(a.itme[1]) > 1e-4:
                 a.poz = [a.poz[0] + a.itme[0] * dt, a.poz[1] + a.itme[1] * dt]
-                a.itme = [a.itme[0] * 0.8, a.itme[1] * 0.8]
+                c_ = H.itme_sonumu(dt) if akici else 0.8
+                a.itme = [a.itme[0] * c_, a.itme[1] * c_]
             carpisma_coz(a, onceki)
             yol = math.hypot(a.poz[0] - onceki[0], a.poz[1] - onceki[1])
             yuruyor = a.eylem is None and yol > 1e-4
@@ -660,12 +753,18 @@ def zaman_cizelgesi(senaryo, setler, anims, suz=True):
             else:
                 a.zemin += (hz_ - a.zemin) * (1.0 - math.exp(-dt / ZEMIN_SURE))
             a.z = (a.taban_z if a.taban_z is not None else a.zemin) + a.dikey
-            a.kayit.append({"t": t, "x": a.poz[0], "y": a.poz[1], "z": a.z, "aci": a.aci,
+            ek_ = {}
+            if akici:
+                bas_takip_adimi(a, aktorler, dt)
+                a.irkilmeler = [r for r in a.irkilmeler if t - r["bas"] <= 0.6]
+                ek_ = {"bas": list(a.bas), "bob": H.adim_cokmesi(a.mesafe, a.hizli, a.olcek),
+                       "irk": [dict(r) for r in a.irkilmeler]}
+            a.kayit.append(dict(ek_, **{"t": t, "x": a.poz[0], "y": a.poz[1], "z": a.z, "aci": a.aci,
                             "eylem": dict(a.eylem) if a.eylem and "anim" in a.eylem else None,
                             "tepki": [dict(r) for r in a.tepki], "mesafe": a.mesafe,
                             "hizli": a.hizli, "gorunur": a.gorunur, "esya": a.esya, "durus": a.durus,
                             "durus_onceki": a.durus_onceki, "durus_t": a.durus_t,
-                            "silah": a.silah_gorunur})
+                            "silah": a.silah_gorunur}))
     # altyazi FILM zamaninda: agir cekimde yazi da uzun kalir
     for y in yazilar:
         y["t"] = kare_bul(harita, y["t"]) / fps
@@ -776,6 +875,19 @@ def kare_pozu(a, k, kemikler, anims, setler):
     t = k["t"]
     poz = {}
     temel = durus_animi(a, setler, k)
+    # YURURKEN UST BEDEN DURUSU (akici). Oyun hareket eden aktorde setin
+    # tam durusundan "durus_ust"une geciyor (kol_uret.py: modified_move_speed
+    # >= 0.1): bacaklar ve kok durustan cikar, yalniz yuruyusun salinimi
+    # kalir. Film bunu hic yapmiyordu: Baris antitheus durusunun 21 derece
+    # yana donuk kokuyle ve 12-20 derece burulmus bacaklariyla, salinim
+    # USTUNE eklenerek yuruyordu -- kullanicinin gordugu "durus bozuklugu"
+    # (1. bolumde de vardi).
+    ust, w_ust = None, 0.0
+    if a.akici and k["hizli"] > 0.01:
+        s_ = setler.get(a.set or "") or {}
+        if temel and temel == s_.get("durus") and s_.get("durus_ust") in anims:
+            ust = s_["durus_ust"]
+            w_ust = H.yumusak(min(1.0, k["hizli"] / YURU_UST_ESIK))
     eski, w_eski = None, 0.0
     if k.get("durus_onceki") and t - k.get("durus_t", -99) < DURUS_GECIS:
         eski = durus_animi(a, setler, ad=k["durus_onceki"])
@@ -787,6 +899,12 @@ def kare_pozu(a, k, kemikler, anims, setler):
             an = anims[temel]
             uzun = an.get("animation_length", 1.0) or 1.0
             v = kanal_pozu(an, kem, t % uzun)
+        if ust and w_ust > 0:
+            an_u = anims[ust]
+            vu = kanal_pozu(an_u, kem, t % (an_u.get("animation_length", 1.0) or 1.0)) or (
+                [0, 0, 0], [0, 0, 0], [1, 1, 1])
+            v0 = v or ([0, 0, 0], [0, 0, 0], [1, 1, 1])
+            v = tuple([v0[j][i] * (1 - w_ust) + vu[j][i] * w_ust for i in range(3)] for j in range(3))
         if eski and eski in anims and w_eski > 0:
             an = anims[eski]
             ve = kanal_pozu(an, kem, t % (an.get("animation_length", 1.0) or 1.0)) or ([0, 0, 0], [0, 0, 0], [1, 1, 1])
@@ -805,6 +923,16 @@ def kare_pozu(a, k, kemikler, anims, setler):
             if kem in poz:
                 r, p, o = poz[kem][0]
                 poz[kem][0] = ([r[0] + isaret * math.cos(math.radians(aci)) * genlik * h, r[1], r[2]], p, o)
+        if a.akici:
+            # yurumenin govdesi: hiza gore one egilme, kollarin karsisinda
+            # gogus burulmasi (bas sabit kalir), kollar govdeye surtmesin
+            c_ = math.cos(math.radians(aci))
+            for kem, d in (("waist", [YURU_EGIL * min(h, 1.3), 0, 0]), ("body", [0, -YURU_BURUL * h * c_, 0]),
+                           ("head", [0, YURU_BURUL * h * c_, 0]), ("rightArm", [0, 0, 3.0 * h]),
+                           ("leftArm", [0, 0, -3.0 * h])):
+                if kem in poz:
+                    r, p, o = poz[kem][0]
+                    poz[kem][0] = ([r[0] + d[0], r[1] + d[1], r[2] + d[2]], p, o)
     # nefes: duran karakter heykel gibi durmasin (kullanici: "hareketler
     # donuk gibi"). Bas ve govde; kollar yalniz silahsizda (iki elle tutus
     # bozulmasin). Yururken soner. Faz aktore gore: herkes ayni anda solumaz.
@@ -812,14 +940,19 @@ def kare_pozu(a, k, kemikler, anims, setler):
     if nef > 0:
         faz = (sum(map(ord, str(a.v.get("skin", "")) + str(a.v.get("isim", "")))) % 97) / 97 * 2 * math.pi
         sn = math.sin(2 * math.pi * t / NEFES_SURE + faz)
+        sn2 = 0.0
         ekler = [("head", NEFES_BAS, 0), ("body", NEFES_GOVDE, 0)]
         if not a.v.get("silah"):
             ekler += [("rightArm", NEFES_KOL, 2), ("leftArm", -NEFES_KOL, 2)]
+        if a.akici:
+            # agirlik bir ayaktan otekine yavasca aktarilir (heykel gibi durmaz)
+            ekler += [("waist", AGIRLIK_SALINIM, 2)]
+            sn2 = math.sin(2 * math.pi * t / AGIRLIK_SURE + faz * 1.7)
         for kem, gen, eks in ekler:
             if kem in poz:
                 r, p, o = poz[kem][0]
                 r = list(r)
-                r[eks] += gen * sn * nef
+                r[eks] += gen * (sn2 if a.akici and kem == "waist" else sn) * nef
                 poz[kem][0] = (r, p, o)
     katman = []
     e = k["eylem"]
@@ -827,6 +960,8 @@ def kare_pozu(a, k, kemikler, anims, setler):
         yerel = (t - e["bas"]) * e["hiz"]
         sure = e["sure"] * e["hiz"]
         w = min(1.0, yerel / GECIS, max(0.0, (sure - yerel) / GECIS)) if sure > 0 else 1.0
+        if a.akici:
+            w = H.yumusak(w)
         katman.append((e["anim"], yerel, max(0.0, w)))
     for r in k["tepki"]:
         yerel = t - r["bas"]
@@ -834,8 +969,37 @@ def kare_pozu(a, k, kemikler, anims, setler):
             w = min(1.0, yerel / r.get("giris", 0.08), max(0.0, (r["sure"] - yerel) / GECIS))
         else:
             w = min(1.0, max(0.0, (r["sure"] + GECIS - yerel) / GECIS))
-        katman.append((r["anim"], yerel * r.get("hiz", 1.0), max(0.0, min(1.0, w))))
+        w = max(0.0, min(1.0, w))
+        katman.append((r["anim"], yerel * r.get("hiz", 1.0), H.yumusak(w) if a.akici else w))
     return poz, katman
+
+
+YURU_EGIL = 4.0          # derece: yururken one egilme (kosuda 1,3 kat)
+YURU_UST_ESIK = 0.5      # bu yurume oraninda ust beden durusuna tam gecilmis olur
+YURU_BURUL = 5.0         # derece: gogus burulmasi
+AGIRLIK_SALINIM = 0.9    # derece: duran karakterin agirlik aktarmasi
+AGIRLIK_SURE = 5.3       # sn
+
+
+def kare_ekleri(a, k, katman):
+    """Katmanlar karistiktan SONRA eklenen acilar (akici): basin hedefe
+    bakmasi ve darbe irkilmesi. {kemik: [x, y, z]} derece. Bas takibi
+    vurusta azalir (vurusun kendi basi var), film pozunda kalkar (poz
+    basi yonetir: kagida bakmak, yere yatmak)."""
+    if not a.akici:
+        return {}
+    w_eylem = max([w for an, _, w in katman if k.get("eylem") and an == k["eylem"]["anim"]] or [0.0])
+    w_film = max([w for an, _, w in katman if isinstance(an, str) and an.startswith(film_poz.ONEK)] or [0.0])
+    wt = max(0.0, 1.0 - 0.7 * w_eylem - w_film)
+    ek = {}
+    yaw, pitch = k.get("bas", (0.0, 0.0))
+    if wt > 0:
+        ek["head"] = [pitch * wt, yaw * wt, 0.0]
+    for r in k.get("irk", []):
+        for kem, v in H.irkilme(k["t"] - r["bas"], r["guc"], r["yan"]).items():
+            e0 = ek.setdefault(kem, [0.0, 0.0, 0.0])
+            ek[kem] = [e0[i] + v[i] for i in range(3)]
+    return ek
 
 
 # ============================================================
@@ -1068,7 +1232,7 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
     anims = {}
     anims.update(B.oku(ANIM_WOM)["animations"])
     anims.update(B.oku(ANIM_AKTOR)["animations"])
-    anims.update(film_pozlari())
+    anims.update(film_pozlari(akici_mi(senaryo)))
     aktorler, efektler, yazilar, sarsinti = zaman_cizelgesi(senaryo, setler, anims)
     kam_iz = kamera_izi(senaryo, aktorler)
     fps = senaryo.get("fps", 24)
@@ -1399,7 +1563,8 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
             faz_a = (sum(map(ord, str(a.v.get("skin", "")) + str(a.v.get("isim", "")))) % 97) / 97 * 2 * math.pi
         pv_a = kol_pivotlari(aktor_model[ad], aktor_ince[ad])
         for f, k in enumerate(a.kayit[:len(kam_iz)]):
-            tampona(kok, "location", f + 1, (k["x"], k["y"], k["z"]))
+            # adim cokmesi (akici): sert bacak acilinca govde iner, iki ayak yerde
+            tampona(kok, "location", f + 1, (k["x"], k["y"], k["z"] + k.get("bob", 0.0)))
             # aci surekli kalsin (359 -> 1 derece gecisinde ters tur atmasin)
             z_ = math.radians(k["aci"])
             if kok in unwrap_euler:
@@ -1422,9 +1587,13 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
             anims_a = anims_diz if a.diz else anims
             kemikler_a = kemikler + list(diz_model.ALT_KEMIKLER) if a.diz else kemikler
             poz, katman = kare_pozu(a, k, kemikler_a, anims_a, setler)
+            ekler = kare_ekleri(a, k, katman)
             son_kol = {}
             for kem in kemikler_a:
                 (eu, ps, ol), _ = poz[kem]
+                ek = ekler.get(kem)
+                if ek:
+                    eu = [eu[i] + ek[i] for i in range(3)]
                 l, q, o3 = yerel(kem, eu, ps, ol, pv=pv_a.get(kem)).decompose()
                 for an, t_an, wgt in katman:
                     if an not in anims_a or wgt <= 0:
@@ -1432,7 +1601,8 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
                     v = kanal_pozu(anims_a[an], kem, t_an)
                     if not v:
                         continue
-                    l2, q2, o2 = yerel(kem, v[0], v[1], v[2], pv=pv_a.get(kem)).decompose()
+                    e2 = [v[0][i] + ek[i] for i in range(3)] if ek else v[0]
+                    l2, q2, o2 = yerel(kem, e2, v[1], v[2], pv=pv_a.get(kem)).decompose()
                     q = q.slerp(q2, wgt)
                     l = l.lerp(l2, wgt)
                     o3 = o3.lerp(o2, wgt)

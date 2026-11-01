@@ -17,8 +17,8 @@
       merdiven duzluge ulasiyor; Zisa'nin evi 2. kat penceresi meydana
       bakiyor; sur halkasinda sur blogundan baska bir sey yok.
    5. Evler: surun icinde (en uzak bloklari dahil), birbirine degmiyor,
-      yollar acik; ilk onizlemeden FAZLA ev ("daha fazla ev ekle"),
-      AZICIK agac ve cicek.
+      yollar acik; uc ev halkasi, en az 70 ev (kullanici iki kez "daha
+      fazla ev ekle" dedi), AZICIK agac ve cicek.
    6. Koyluler: az ("biraz az olsun"), her biri yurunur zeminde, iki blok
       bos yerde, ayaklari zeminin ustunde.
    7. Koylu modeli (Java 26.3 JAR'indan): 11 kutu, burun guneye, butun
@@ -209,13 +209,14 @@ print(json.dumps({"kapi_disi_bos": len(kapi_disi), "kapi_bos": len(bos) - len(ka
           r.uzak + " / " + r.sinir);
   kontrol("evler birbirine degmiyor (arada en az bir blok)", r.degen_n === 0, JSON.stringify(r.degen));
   kontrol("yollar acik: zemini yol, ustu bos (" + r.yol_n + " hucre)", r.kapali_n === 0, JSON.stringify(r.kapali));
-  kontrol("ilk onizlemeden fazla ev (14 -> en az 30)", r.ev >= 30, r.ev + " ev, " + r.tarla + " tarla");
+  // kullanici iki kez "daha fazla ev ekle" dedi: 14 -> 37 -> 73 (uc halka, siki dizilim)
+  kontrol("ikinci genislemeden sonra en az 70 ev", r.ev >= 70, r.ev + " ev, " + r.tarla + " tarla");
   kontrol("  tarla var", r.tarla >= 3, String(r.tarla));
-  kontrol("azicik agac: surun icinde 4-15", r.agac.ic >= 4 && r.agac.ic <= 15, JSON.stringify(r.agac));
+  kontrol("azicik agac: surun icinde 4-20", r.agac.ic >= 4 && r.agac.ic <= 20, JSON.stringify(r.agac));
   kontrol("azicik cicek: bos cimenin %3'unden az", r.cicek > 0 && r.cicek < 0.03 * r.cimen,
           r.cicek + " cicek / " + r.cimen + " cimen");
   kontrol("kapilardan yola patika", r.patika > 0, r.patika + " hucre");
-  kontrol("koylu az: 6-14", r.koylu >= 6 && r.koylu <= 14, String(r.koylu));
+  kontrol("koylu az: 6-14 (" + r.ev + " eve)", r.koylu >= 6 && r.koylu <= 14, String(r.koylu));
   kontrol("  her koylu yurunur zeminde, ustu iki blok bos, ayagi zeminde", r.kotu.length === 0, JSON.stringify(r.kotu));
   kontrol("  koyluler birbirinden en az 3 blok uzak", r.yakin >= 3, r.yakin.toFixed(2));
   console.log("  - evler: " + (r.olculmus ? "oyundan olculmus" : "el tasarimi (koy_evleri.json yok)"));

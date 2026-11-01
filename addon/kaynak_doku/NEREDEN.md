@@ -377,3 +377,16 @@ Türev her üretimde yeniden hesaplanıyor (`carpik_dokusu()`), depoda
 tutulmuyor. Kol genişliği de **ölçülüyor** (`carpik_kol_genisligi()`):
 `uzak_akraba.png` klasik (4px) çıktı, v7.67'deki sabit "ince (3px)"
 kalsaydı kol dokusu bir piksel kayardı.
+
+## `film_aktor/` — yalnız film
+
+Kullanıcının kendi yaptığı skinler (2026-11-01): iki arkadaşı animasyonda
+yer almak istedi. `kol_uret.py` bu klasörü **okumuyor**: `aktor/`
+klasörüne konsalar alfabetik sıraya girer ve mevcut aktörlerin `pa:skin`
+dizinini kaydırırlardı. Film araçları (`blender_film.py`) yolu doğrudan
+kullanıyor.
+
+| dosya | ne | md5 |
+|---|---|---|
+| `pipos.png` | Pipos, Barış'ın akıl hocası (64×64, geniş kol) | `ace916170b14a953f954880b3a06336d` |
+| `cocukluk_arkadasi.png` | Barış'ın çocukluk arkadaşı (64×64, geniş kol) | `aad31c91f2c7e7485e5cfda3e4d94142` |

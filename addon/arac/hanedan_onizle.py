@@ -6,7 +6,7 @@
 
 Koyluler $KOYLU_DOKU'daki Mojang dokulariyla cizilir (arac/arac_kur.sh kurar).
 
-Isik ve renk duzeni blender_film.py'ninkiyle ayni (Nishita gok, gunes 1.7,
+Isik ve renk duzeni blender_film.py'ninkiyle ayni (gok dokusu, gunes 1.7,
 gok 0.18, Standard gorunum, pozlama -0.45): onizlemede gorulen, filmde
 gorulecek olanla ayni tonda olsun. Ogle: 2. bolumun baskini oglen.
 """
@@ -37,7 +37,7 @@ DIZI_Z, DIZI_X = -140.0, -40.0
 def secenekler():
     arg = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
     s = {"cikti": None, "ornek": 24, "en": 1280, "boy": 720,
-         "gorus": "kus,kapi,meydan,sokak,sokak_dis,zisa_on,zisa_yan,zisa_ic,dogu_sur,koylu,tarla"}
+         "gorus": "kus,kapi,meydan,sokak,sokak_dis,sokak_en_dis,zisa_on,zisa_yan,zisa_ic,dogu_sur,koylu,tarla"}
     i = 0
     while i < len(arg):
         k = arg[i].lstrip("-")
@@ -141,12 +141,10 @@ def main():
     w.use_nodes = True
     nt = w.node_tree
     gok = nt.nodes.new("ShaderNodeTexSky")
-    try:
-        gok.sky_type = "NISHITA"
-        gok.sun_elevation = math.radians(55)
-        gok.sun_rotation = math.radians(150)
-    except Exception:
-        pass
+    # Blender 5.2'de "NISHITA" yok; turu ayarlayan satir hata verip
+    # yuksekligi de atliyordu (kulube_onizle.py'de olculdu). Tur varsayilan
+    # kalir (film araci da fiilen onu kullaniyor), yukseklik ayri yazilir.
+    gok.sun_elevation = math.radians(55)
     nt.links.new(gok.outputs["Color"], nt.nodes["Background"].inputs["Color"])
     nt.nodes["Background"].inputs["Strength"].default_value = 0.18
     sc.world = w
@@ -196,9 +194,20 @@ def main():
     ufuk.use_nodes = True
     ufuk.node_tree.nodes["Principled BSDF"].inputs["Base Color"].default_value = (0.24, 0.42, 0.13, 1)
     # Toprak yolun ustu 15/16 blok (z 0.9375): ufuk ondan ALCAKTA olmali,
-    # 0.98'deyken yollari ortup soluk yesile boyuyordu.
+    # 0.98'deyken yollari ortup soluk yesile boyuyordu. Ama 0.90 da tarla
+    # sularinin ustunde (0.875): tam disk onlari ortuyordu. Ufuk artik
+    # surun disinda baslayan bir halka; tarlalar surun icinde.
     bpy.ops.mesh.primitive_circle_add(vertices=96, radius=400, fill_type="NGON", location=(0, 0, 0.90))
-    bpy.context.object.data.materials.append(ufuk)
+    halka = bpy.context.object
+    halka.data.materials.append(ufuk)
+    bpy.ops.mesh.primitive_cylinder_add(vertices=96, radius=hanedan.SUR_YARICAP, depth=1.0, location=(0, 0, 0.90))
+    delik = bpy.context.object
+    mod = halka.modifiers.new("delik", "BOOLEAN")
+    mod.operation = "DIFFERENCE"
+    mod.object = delik
+    bpy.context.view_layer.objects.active = halka
+    bpy.ops.object.modifier_apply(modifier="delik")
+    bpy.data.objects.remove(delik)
 
     # Zisa'nin evi: kutusu (Blender eksenleri) gorusler icin
     z = bilgi["zisa"]
@@ -230,14 +239,37 @@ def main():
         on = Vector((k["yon"][0], -k["yon"][1], 0)).normalized()
         return (tuple(p + on * uzak + Vector((0, 0, boy))), tuple(p + Vector((0, 0, 1.0))), lens)
 
+    kati = {tuple(q["p"]) for q in bloklar if blok_kur.sekil(q["t"]) not in ("carpraz", "hali", "yol")}
+
+    def acik_mi(kam, hedef):
+        """Kameradan hedefe dogru cizgi bir bloga carpmiyor mu (Blender
+        ekseni: x, -z, y). Cicek ve ot engel sayilmaz."""
+        for i in range(1, 60):
+            q = kam + (hedef - kam) * (i / 60.0)
+            if (int(math.floor(q.x)), int(math.floor(q.z)), int(math.floor(-q.y))) in kati:
+                return False
+        return True
+
     def merkezden_bak(meslek, uzak, boy, lens):
-        """O meslekteki ilk koyluye yerlesimin icinden (merkez tarafindan)
+        """O meslekteki koylulere yerlesimin icinden (merkez tarafindan)
         bakan kamera: dis halkada koylunun arkasi sur, kamera oraya
-        dusunce kare karariyordu."""
-        k = next(q for q in bilgi["koyluler"] if q["meslek"] == meslek)
-        p = Vector((k["p"][0], -k["p"][2], k["p"][1]))
-        ice = Vector((-p.x, -p.y, 0)).normalized()
-        return (tuple(p + ice * uzak + Vector((0, 0, boy))), tuple(p + Vector((0, 0, 0.8))), lens)
+        dusunce kare karariyordu. Gorusu agac ya da ev kesmeyen ilk
+        koylu ve aci secilir (ilk denemede kareyi bir agac govdesi kesti)."""
+        aday = []
+        for k in [q for q in bilgi["koyluler"] if q["meslek"] == meslek]:
+            p = Vector((k["p"][0], -k["p"][2], k["p"][1]))
+            ice = Vector((-p.x, -p.y, 0)).normalized()
+            yan = Vector((-ice.y, ice.x, 0))
+            for kay in (0.0, 2.5, -2.5, 5.0, -5.0, 7.5, -7.5):
+                kam = p + ice * uzak + yan * kay + Vector((0, 0, boy))
+                hedef = p + Vector((0, 0, 1.2))
+                aday.append((kam, hedef))
+                # yalniz koyluye giden cizgi degil, kadrajin iki yani da acik
+                # olmali (ikinci denemede bir ev kosesi karenin ucte birini kapladi)
+                if all(acik_mi(kam, hedef + yan * y) for y in (0.0, 3.0, -3.0)):
+                    return (tuple(kam), tuple(p + Vector((0, 0, 0.8))), lens)
+        kam, hedef = aday[0]
+        return (tuple(kam), tuple(hedef), lens)
 
     dizi_kondu = False
 
@@ -256,16 +288,17 @@ def main():
 
     H = hanedan
     goruslar = {
-        "kus": ((96, -104, 78), (0, 0, 6), 28),
+        "kus": ((122, -132, 100), (0, 0, 6), 28),
         "kapi": ((0, -(H.SUR_YARICAP + 22), 3.0), (0, -H.SUR_YARICAP, 7.5), 24),
         "meydan": ((0, -(H.IC_YOL[0] + 1.5), 2.4), (0, -10, H.TEPE_YUKSEKLIK - 2), 22),
         "sokak": (halka(4, (H.IC_YOL[0] + H.IC_YOL[1]) / 2.0, 2.4), halka(44, H.IC_EV_HALKASI, 4.2), 20),
-        "sokak_dis": (halka(292, (H.ORTA_YOL[0] + H.ORTA_YOL[1]) / 2.0, 2.4), halka(250, H.DIS_EV_HALKASI, 4.4), 20),
+        "sokak_dis": (halka(292, (H.ORTA_YOL[0] + H.ORTA_YOL[1]) / 2.0, 2.4), halka(250, H.ORTA_EV_HALKASI, 4.4), 20),
+        "sokak_en_dis": (halka(338, (H.DIS_YOL[0] + H.DIS_YOL[1]) / 2.0, 2.4), halka(305, H.DIS_EV_HALKASI, 4.6), 20),
         "zisa_on": (tuple(zb + merkez_yon * 10.5 + Vector((0, -7.5, 2.8))), tuple(zb + Vector((0, 0, 5.5))), 18),
         "zisa_yan": (tuple(zb + merkez_yon * 11 + Vector((0, 7, 3.0))), tuple(zb + Vector((0, 0, 5.0))), 20),
         "zisa_ic": (tuple(zb + merkez_yon * 3.6 + Vector((-0.5, 1.2, 6.9))),
                     tuple(zb - merkez_yon * 3 + Vector((0, -0.6, 5.6))), 14),
-        "dogu_sur": (((H.ORTA_YOL[0] + H.ORTA_YOL[1]) / 2.0 - 4, 1.5, 2.6), (H.SUR_YARICAP, 0, 7), 22),
+        "dogu_sur": (((H.DIS_YOL[0] + H.DIS_YOL[1]) / 2.0 - 4, 1.5, 2.6), (H.SUR_YARICAP, 0, 7), 22),
         "koylu": meydandaki_koylu(),
         # indirilen butun koylu dokulari yan yana (yerlesimin cok disinda, ufuk zemininde)
         # hedef koylunun beli (ayak 0.9 + 0.95): ayak hizasina bakinca dizi karenin ustune kaciyordu

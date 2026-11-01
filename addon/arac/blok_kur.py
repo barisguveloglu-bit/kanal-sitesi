@@ -20,7 +20,9 @@ Sekiller (olculen Bedrock durumlariyla):
   tarafin yonu; corner none/inner_*/outer_*; upside_down_bit), yarim
   (vertical_half), cit (connection_*), cit kapisi, duvar
   (wall_connection_type_*), cam bolme, kapi, tuzak kapi, carpraz bitki,
-  hali, mesale, fener, yatak, saksi, kazan, merdiven, su.
+  hali, mesale, fener, yatak, saksi, kazan, merdiven, su, Nether gecidi.
+Biyom: `Dokular(var, renkler={...})` cimen/yaprak/su boyasini degistirir
+(bataklik: kulube.py); bir blokta "renk" varsa o blogun boyasi odur.
 Bilinmeyen sekil tam kup cizilir; dokusu bulunmayan blok mor-siyah
 degil, gri cizilir ve `eksik` listesine yazilir (uydurma doku yok).
 """
@@ -49,8 +51,10 @@ AD = {
     "lit_pumpkin": "jack_o_lantern", "snow_layer": "snow", "web": "cobweb", "frame": "item_frame",
     "smooth_stone_slab": "smooth_stone", "carpet": "white_wool", "wool": "white_wool",
     "standing_banner": "white_wool", "wall_banner": "white_wool",
-    "glass_pane": "glass", "iron_bars": "iron_bars",
+    "glass_pane": "glass", "iron_bars": "iron_bars", "portal": "nether_portal",
 }
+CIMEN_ORTU = "grass_block_side_overlay"
+GECIT_ISIK = 3.0        # Nether gecidinin isigi (fener ve mesale 4.0)
 TAHTA = ["oak", "spruce", "birch", "jungle", "acacia", "dark_oak", "mangrove", "cherry", "pale_oak", "bamboo",
          "crimson", "warped"]
 OPAK_DEGIL = ("glass", "leaves", "ice", "water", "lava", "slime", "honey", "barrier", "light_block")
@@ -77,11 +81,17 @@ def taban_doku(ad):
 
 class Dokular:
     """Doku dosyasi bulucu. `var`: MCprep blok klasorundeki ad kumesi
-    (uzantisiz). Bulunamayan blok `eksik`e yazilir."""
+    (uzantisiz). Bulunamayan blok `eksik`e yazilir.
 
-    def __init__(self, var):
+    `renkler`: biyom boyasi ({"cimen", "yaprak", "su"}); verilmezse ova.
+    Hus ve ladin yapragi ile nilufer Minecraft'ta biyomdan bagimsiz,
+    onlar degismez."""
+
+    def __init__(self, var, renkler=None):
         self.var = set(var)
         self.eksik = set()
+        self.renk = {"cimen": CIMEN, "yaprak": YAPRAK, "su": SU}
+        self.renk.update(renkler or {})
 
     def bul(self, *adaylar):
         for a in adaylar:
@@ -94,7 +104,9 @@ class Dokular:
         s = s or {}
         ad = AD.get(t, t)
         if t == "grass_block":
-            return {"ust": ("grass_block_top", CIMEN), "alt": ("dirt", None)}.get(yuz, ("grass_block_side", None))
+            # Yan yuz: grass_block_side. Ova disinda ustune boyali ortu biner
+            # (orgu(), CIMEN_ORTU).
+            return {"ust": ("grass_block_top", self.renk["cimen"]), "alt": ("dirt", None)}.get(yuz, ("grass_block_side", None))
         if t in ("wheat", "carrots", "potatoes", "beetroot"):
             # ekinin dokusu buyume evresinden (Bedrock growth 0-7; bugday 8,
             # digerleri 4 doku); duz adla aranirsa "eksik" sayiliyordu
@@ -122,19 +134,19 @@ class Dokular:
                     ("farmland" if yuz == "ust" else "dirt"), None)
         if t.endswith("_leaves") or t == "leaves":
             # Minecraft'ta hus ve ladin yapragi biyomdan bagimsiz sabit renk
-            renk = {"birch_leaves": HUS_YAPRAK, "spruce_leaves": LADIN_YAPRAK}.get(t, YAPRAK)
+            renk = {"birch_leaves": HUS_YAPRAK, "spruce_leaves": LADIN_YAPRAK}.get(t, self.renk["yaprak"])
             return (self.bul(ad, "oak_leaves"), renk)
         if t in ("water", "flowing_water"):
-            return ("water_still", SU)
+            return ("water_still", self.renk["su"])
         if t == "waterlily":
             return ("lily_pad", NILUFER)
         if t in ("vine",):
-            return ("vine", YAPRAK)
+            return ("vine", self.renk["yaprak"])
         if t in ("short_grass", "tallgrass", "fern", "tall_grass", "large_fern"):
             kok = {"tallgrass": "short_grass"}.get(t, t)
             if t in ("tall_grass", "large_fern"):
                 kok = t + ("_top" if s.get("upper_block_bit") else "_bottom")
-            return (self.bul(kok, "short_grass"), CIMEN)
+            return (self.bul(kok, "short_grass"), self.renk["cimen"])
         if t in ("furnace", "lit_furnace", "smoker", "lit_smoker", "blast_furnace", "lit_blast_furnace"):
             kok = t.replace("lit_", "")
             return ({"ust": self.bul(kok + "_top", "furnace_top"), "alt": self.bul(kok + "_top", "furnace_top"),
@@ -223,6 +235,8 @@ def sekil(t):
         return "merdiven"
     if t in ("water", "flowing_water"):
         return "su"
+    if t in ("portal",):
+        return "gecit"
     if t in ("waterlily",):
         return "nilufer"
     if t in ("dirt_path", "grass_path", "farmland"):
@@ -424,6 +438,11 @@ def _uv(yuz, x, y, z):
 # kareli canlandirma (MCprep paketinde olculdu); yalniz ilk kare kullanilir.
 # Genel UV ile cizilince dokunun bos ortasina dusuyor, fener gorunmuyordu.
 FENER_KARE = 3
+# Ayni sorun su ve gecitte: dokulari 16 px genis, 32 kare uzun serit (MCprep
+# paketinde olculdu: water_still 16x512, nether_portal 16x512). Butun yuze
+# serildiginde 32 kare bir bloga sikisiyor, cizgili gorunuyordu. Yalniz ilk
+# kare (seridin ustu) kullanilir.
+KARELI = {"water_still": 32, "nether_portal": 32}
 FENER_BOLGE = {(0, "yan"): (0, 2, 6, 9), (0, "ust"): (0, 9, 6, 15),
                (1, "yan"): (1, 0, 5, 2), (1, "ust"): (1, 10, 5, 14)}
 
@@ -474,6 +493,9 @@ def orgu(bloklar, dokular, koken=(0, 0, 0), isikli=()):
     cikti = {}
 
     def ekle(anahtar, dortlu, uvler):
+        if anahtar[0] in KARELI:
+            n = float(KARELI[anahtar[0]])
+            uvler = [(u, 1 - (1 - v) / n) for u, v in uvler]
         c = cikti.setdefault(anahtar, {"v": [], "f": [], "uv": []})
         i = len(c["v"])
         for (x, y, z) in dortlu:
@@ -490,8 +512,27 @@ def orgu(bloklar, dokular, koken=(0, 0, 0), isikli=()):
         t, s = b["t"], b.get("s", {})
         sk = sekil(t)
         isik = 4.0 if (t in isikli or sk in ("mesale", "fener")) else 0.0
+        if sk == "gecit":
+            # Nether gecidi: Java'nin portal modeli 4 px kalin bir kutunun
+            # yalniz iki genis yuzu (portal_ns / portal_ew); isik saciyor
+            doku = dokular.bul("nether_portal")
+            if doku is None:
+                dokular.eksik.add(t)
+                continue
+            anahtar = (doku, None, GECIT_ISIK, True)
+            for d in (6 * PX, 10 * PX):
+                if s.get("portal_axis", "x") == "z":
+                    q = [(d, 0, 1), (d, 1, 1), (d, 1, 0), (d, 0, 0)]
+                    uvq = [(1 - e, c) for a, c, e in q]
+                else:
+                    q = [(0, 0, d), (0, 1, d), (1, 1, d), (1, 0, d)]
+                    uvq = [(a, c) for a, c, e in q]
+                ekle(anahtar, [(p[0] + a, p[1] + c, p[2] + e) for a, c, e in q], uvq)
+            continue
         if sk in ("carpraz", "nilufer", "sarmasik"):
             doku, renk = dokular.yuz(t, "yan", s)
+            if renk is not None and "renk" in b:
+                renk = tuple(b["renk"])
             if t in ("wheat", "carrots", "potatoes", "beetroot"):
                 evre = s.get("growth", 7)
                 kok = {"wheat": "wheat_stage", "carrots": "carrots_stage", "potatoes": "potatoes_stage",
@@ -589,6 +630,8 @@ def orgu(bloklar, dokular, koken=(0, 0, 0), isikli=()):
                     doku, renk = dokular.bul("barrel_side", "oak_planks"), None
                 else:
                     doku, renk = dokular.yuz(t, yuz, s)
+                    if renk is not None and "renk" in b:
+                        renk = tuple(b["renk"])
                 anahtar = (doku or "_eksik", renk, isik, saydam)
                 uvler = [_uv(yon, a, c, e) for a, c, e in dortlu]
                 if (eksen == "x" and yon in ("u", "a", "g", "k")) or (eksen == "z" and yon in ("d", "b")):
@@ -597,12 +640,27 @@ def orgu(bloklar, dokular, koken=(0, 0, 0), isikli=()):
                     uvler = _bolge_uv(uvler, FENER_BOLGE[(min(ki, 1), "ust" if yon in ("u", "a") else "yan")],
                                       FENER_KARE)
                 ekle(anahtar, [(p[0] + a, p[1] + c, p[2] + e) for a, c, e in dortlu], uvler)
+                # kosul yonla soruluyor, yuzun adiyla degil: kuzey yuzu "on"
+                # sayiliyor ve ilk yazista ortusuz kaliyordu
+                if (t == "grass_block" and yon not in ("u", "a") and dokular.renk["cimen"] != CIMEN
+                        and dokular.bul(CIMEN_ORTU)):
+                    # Java'nin grass_block modeli iki kat: yan doku + ustune
+                    # biyomla boyanan ortu. grass_block_side'in kendi saciagi
+                    # OVA yesiliyle hazir boyali; bataklikta havuz kenarlarinda
+                    # parlak cizgi oluyordu (onizlemede goruldu). Ortu ayni
+                    # yuzun 0,003 blok onunde (ust uste binen yuzler Cycles'ta
+                    # titrer). Ovada ortu yok: hanedanin orgusu degismedi.
+                    dx, dy, dz = YONLER[yon]
+                    o = 0.003
+                    ortu_renk = tuple(b["renk"]) if "renk" in b else dokular.renk["cimen"]
+                    ekle((CIMEN_ORTU, ortu_renk, 0.0, True),
+                         [(p[0] + a + dx * o, p[1] + c + dy * o, p[2] + e + dz * o) for a, c, e in dortlu], uvler)
         if sk == "kazan":
             seviye = s.get("fill_level", 0)
             if seviye:
                 h = (4 + 11 * seviye / 6.0) * PX
                 q = [(2 * PX, h, 2 * PX), (2 * PX, h, 14 * PX), (14 * PX, h, 14 * PX), (14 * PX, h, 2 * PX)]
-                ekle(("water_still", SU, 0.0, True), [(p[0] + a, p[1] + c, p[2] + e) for a, c, e in q],
+                ekle(("water_still", dokular.renk["su"], 0.0, True), [(p[0] + a, p[1] + c, p[2] + e) for a, c, e in q],
                      [_uv("u", a, c, e) for a, c, e in q])
         if sk == "saksi" and b.get("bitki"):
             doku = dokular.bul(b["bitki"])
@@ -655,8 +713,9 @@ def dondur(bloklar, ceyrek):
         for on, d in baglar.items():
             for ad, deger in d.items():
                 s[on + ters_c[vek(KARDINAL[ad])]] = deger
-        if "pillar_axis" in s and ceyrek % 2 and s["pillar_axis"] in ("x", "z"):
-            s["pillar_axis"] = "z" if s["pillar_axis"] == "x" else "x"
+        for eksen_ad in ("pillar_axis", "portal_axis"):
+            if eksen_ad in s and ceyrek % 2 and s[eksen_ad] in ("x", "z"):
+                s[eksen_ad] = "z" if s[eksen_ad] == "x" else "x"
         if "torch_facing_direction" in s and s["torch_facing_direction"] in KARDINAL:
             s["torch_facing_direction"] = ters_c[vek(KARDINAL[s["torch_facing_direction"]])]
         if "facing_direction" in s and s["facing_direction"] in (2, 3, 4, 5):
@@ -672,8 +731,9 @@ def dondur(bloklar, ceyrek):
         e = {"p": [nx, y, nz], "t": t}
         if s:
             e["s"] = s
-        if "bitki" in b:
-            e["bitki"] = b["bitki"]
+        for anahtar in ("bitki", "renk"):
+            if anahtar in b:
+                e[anahtar] = b[anahtar]
         yeni.append(e)
     return yeni
 

@@ -38,11 +38,11 @@ import koylu
 BURASI = os.path.dirname(os.path.abspath(__file__))
 
 # ---- ONERI DEGERLERI (onay bekliyor) ----
-ZEMIN_YARICAP = 90        # cimen alan (surun disinda da cimen ve agac)
-SUR_YARICAP = 66          # surun orta cizgisi
+ZEMIN_YARICAP = 112       # cimen alan (surun disinda da cimen ve agac)
+SUR_YARICAP = 84          # surun orta cizgisi (ikinci genisleme: 66 -> 84, ucuncu ev halkasi)
 SUR_KALINLIK = 3
 SUR_YUKSEKLIK = 9         # yuruyus yolu y = 9, mazgallar y = 10
-KULE_SAYISI = 12          # halkadaki kule; kapi iki kulenin tam ortasinda (+2 kapi kulesi)
+KULE_SAYISI = 16          # halkadaki kule; kapi iki kulenin tam ortasinda (+2 kapi kulesi)
 KULE_YARICAP = 3
 KULE_YUKSEKLIK = 14
 KAPI_ACISI = 90           # derece; 90 = guney (ana kapi, merdivenin karsisi)
@@ -53,20 +53,26 @@ TEPE_YUKSEKLIK = 20
 DUZLUK_YARICAP = 9        # tepenin ustu, ana yapi icin
 MEYDAN_YARICAP = 29       # tasli meydan halkasi MEYDAN-7..MEYDAN; merdivenin dibi burada
 IC_YOL = (30, 33)         # meydanin cevresindeki halka sokak
-ORTA_YOL = (47, 50)       # iki ev halkasinin arasindaki halka sokak
+ORTA_YOL = (47, 50)       # ic ve orta ev halkasinin arasindaki halka sokak
+DIS_YOL = (65, 68)        # orta ve dis ev halkasinin arasindaki halka sokak
 IC_EV_HALKASI = 40        # ic halka evlerinin orta cizgisi
-DIS_EV_HALKASI = 57.5     # dis halka: surun hemen dibi
+ORTA_EV_HALKASI = 57.5    # orta halka (Zisa'nin evi burada)
+DIS_EV_HALKASI = 75.5     # dis halka: surun hemen dibi
 EV_SUR_ARASI = 1.0        # evin en uzak blogu ile surun ic yuzu arasi (blok)
 ANA_SOKAKLAR = (0, 90, 180, 270)    # ic yoldan sura; 180 Zisa'nin kapisinda biter
-ARA_SOKAKLAR = (45, 135, 225, 315)  # yalniz ic halkada: ic yoldan orta yola
+ARA_SOKAKLAR = (45, 135, 225, 315)  # ic yoldan sura
+# yalniz dis halkada (dis yoldan sura); her sokak bir ev yeri yiyor, dort
+# tane yetiyor (sekiz taneyken dis halkaya 24 ev sigiyordu)
+DIS_ARA_SOKAKLAR = (22.5, 112.5, 202.5, 292.5)
 TARLA_SIKLIGI = 6         # dis halkada her 6. yer tarla
-AGAC_IC = 12              # surun icindeki agac ("azicik")
+AGAC_IC = 18              # surun icindeki agac ("azicik"; alan iki katina cikti)
 AGAC_TEPE = 3
-AGAC_DIS = 14
+AGAC_DIS = 20
 CICEK_ORANI = 0.012       # bos cimenin %1.2'si cicek ("azicik")
 OT_ORANI = 0.05
-KOYLU_SAYISI = 10         # "biraz az olsun"
-EV_SINIRI = {"kule_ev": 4, "kutuphane": 2}   # uc katli kule ev her bosluga sigiyordu (40 evin 8'i)
+KOYLU_SAYISI = 14         # "biraz az olsun": ~70 eve 14 koylu
+# uc katli kule ev her bosluga sigiyordu (40 evin 8'i); buyukler de sinirli
+EV_SINIRI = {"kule_ev": 7, "kutuphane": 3, "han": 3, "firin": 4}
 TOHUM = 2026
 
 
@@ -126,6 +132,18 @@ def sokak_bitisi(aci):
     return SUR_YARICAP - SUR_KALINLIK / 2.0 - 0.5
 
 
+def yol_mu(x, z):
+    """Hucre bir yolun ustunde mi (meydan haric)."""
+    r = math.hypot(x, z)
+    if IC_YOL[0] <= r <= IC_YOL[1] or ORTA_YOL[0] <= r <= ORTA_YOL[1] or DIS_YOL[0] <= r <= DIS_YOL[1]:
+        return True
+    ic_yuz = SUR_YARICAP - SUR_KALINLIK / 2.0 - 0.5
+    return (any(_sokak_mu(x, z, a, IC_YOL[0], sokak_bitisi(a), KAPI_GENISLIK / 2.0 if a == KAPI_ACISI else 1.5)
+                for a in ANA_SOKAKLAR)
+            or any(_sokak_mu(x, z, a, IC_YOL[0], ic_yuz) for a in ARA_SOKAKLAR)
+            or any(_sokak_mu(x, z, a, DIS_YOL[0], ic_yuz) for a in DIS_ARA_SOKAKLAR))
+
+
 def zemin_ve_yollar(d, rnd):
     """Zemin, meydan ve yollar. Donus: yol hucreleri {(x, z)}."""
     yollar = set()
@@ -137,11 +155,7 @@ def zemin_ve_yollar(d, rnd):
             t = "grass_block"
             if MEYDAN_YARICAP - 7 <= r <= MEYDAN_YARICAP and tepe_yuksekligi(x, z) == 0:
                 t = rnd.choice(["stone_bricks"] * 5 + ["cobblestone", "mossy_stone_bricks", "andesite"])
-            elif IC_YOL[0] <= r <= IC_YOL[1] or ORTA_YOL[0] <= r <= ORTA_YOL[1]:
-                t = "dirt_path"
-            elif any(_sokak_mu(x, z, a, IC_YOL[0], sokak_bitisi(a), KAPI_GENISLIK / 2.0 if a == KAPI_ACISI else 1.5)
-                     for a in ANA_SOKAKLAR) \
-                    or any(_sokak_mu(x, z, a, IC_YOL[0], ORTA_YOL[1]) for a in ARA_SOKAKLAR):
+            elif yol_mu(x, z):
                 t = "dirt_path"
             d.koy((x, 0, z), t)
             if t != "grass_block":
@@ -303,10 +317,11 @@ def sur(d, rnd):
 
 
 def fener_direkleri(d, yollar):
-    """Iki halka yolun dis kenarinda fener direkleri (sokak acilarinin
+    """Halka yollarin dis kenarinda fener direkleri (sokak acilarinin
     arasinda). Donus: direk hucreleri."""
     hucre = set()
-    for r, adet, kayma in ((IC_YOL[1] + 1.0, 16, 11.25), (ORTA_YOL[1] + 1.0, 24, 7.5)):
+    for r, adet, kayma in ((IC_YOL[1] + 1.0, 16, 11.25), (ORTA_YOL[1] + 1.0, 24, 7.5),
+                           (DIS_YOL[1] + 1.0, 32, 5.625)):
         for i in range(adet):
             a = math.radians(i * 360.0 / adet + kayma)
             rr = r
@@ -622,9 +637,16 @@ EV_TIPLERI = [
                   cati="dark_oak", tente=True, tohum=9, ic=("hay_block", "hay_block", "barrel", "chest"))),
     ("genis_ev", dict(X=11, Z=7, duvar="oak_planks", alt_duvar="cobblestone", cati="oak", veranda=True,
                       cicek=True, baca=True, tohum=10, ic=("bed", "bed", "crafting_table", "furnace", "chest"))),
+    ("han", dict(X=9, Z=7, kat=2, duvar="oak_planks", alt_duvar="cobblestone", direk="dark_oak_log",
+                 cati="spruce", veranda=True, cicek=True, baca=True, tohum=11,
+                 ic=("bed", "bed", "bed", "crafting_table", "barrel", "chest", "furnace", "barrel"))),
+    ("firin", dict(X=7, Z=6, duvar="cobblestone", alt_duvar="stone_bricks", direk="oak_log", cati="dark_oak",
+                   baca=True, tente=True, tohum=12, ic=("furnace", "smoker", "furnace", "barrel", "crafting_table"))),
+    ("gri_ev", dict(X=6, Z=6, kat=2, duvar="light_gray_terracotta", direk="spruce_log", cati="spruce",
+                    cicek=True, tohum=13, ic=("bed", "crafting_table", "chest"))),
 ]
 # genis ya da derin olanlar ic halkaya sigmiyor; ic halka bunlarsiz dizilir
-DIS_HALKA_TIPLERI = ("atolye", "ahir", "genis_ev")
+DIS_HALKA_TIPLERI = ("atolye", "ahir", "genis_ev", "han", "firin")
 EKINLER = ("wheat", "carrots", "potatoes", "beetroot")
 
 
@@ -750,8 +772,12 @@ def _yaylar(sokaklar, r, pay=2.5):
 
 
 def halka_diz(d, liste, r, lo, hi, yaylar, yasak, bilgi, halka, sayac):
-    """Evleri yay boyunca yan yana dizer, araya en az bir blok. Konamayan
-    tip atlanip siradaki denenir; hicbiri olmazsa iki blok ilerlenir."""
+    """Evleri yay boyunca SIKI dizer: her ev bir oncekinin gercek ucundan
+    (hucrelerinin en buyuk acisindan) hemen sonra baslar, yasaktaki bir
+    hucrelik tampon aralarinda en az bir blok birakir. Ev sigmazsa yay
+    boyunca birer blok kaydirilarak denenir, sonra siradaki tip; hicbiri
+    olmazsa iki blok ilerlenir. (Ilk yazilis evi en genis kenarina gore
+    sabit adimla diziyordu: araliklar bos kaliyordu.)"""
     for a0, a1 in yaylar:
         a = a0
         while a < a1:
@@ -762,11 +788,15 @@ def halka_diz(d, liste, r, lo, hi, yaylar, yasak, bilgi, halka, sayac):
                     continue
                 xs = [b["p"][0] for b in ev["bloklar"]]
                 zs = [b["p"][2] for b in ev["bloklar"]]
-                yari = max(max(xs) - min(xs), max(zs) - min(zs)) / 2.0 + 1.0
-                orta = a + math.degrees((yari + 1.0) / r)
-                if orta + math.degrees(yari / r) > a1:
-                    continue
-                s = ev_yerlestir(d, ev["bloklar"], orta, r, tuple(ev["kapi_yonu"]), lo, hi, yasak, yaz=False)
+                yari = min(max(xs) - min(xs), max(zs) - min(zs)) / 2.0 + 0.5
+                s, orta = None, None
+                for kay in range(10):
+                    orta = a + math.degrees((yari + 0.5 + kay) / r)
+                    if orta + math.degrees(yari / r) > a1:
+                        break
+                    s = ev_yerlestir(d, ev["bloklar"], orta, r, tuple(ev["kapi_yonu"]), lo, hi, yasak, yaz=False)
+                    if s is not None:
+                        break
                 if s is None:
                     continue
                 ev_yaz(d, s)
@@ -776,7 +806,9 @@ def halka_diz(d, liste, r, lo, hi, yaylar, yasak, bilgi, halka, sayac):
                                        "tarla": bool(ev.get("tarla")), "on": list(s["on"]),
                                        "kapilar": s["kapilar"],
                                        "hucreler": sorted(list(c) for c in s["hucreler"])})
-                a = orta + math.degrees((yari + 1.0) / r)
+                # sonraki ev bu evin gercek ucundan baslar
+                uc = max(((math.degrees(math.atan2(z, x)) - orta + 180) % 360) - 180 for x, z in s["hucreler"])
+                a = orta + uc + math.degrees(1.0 / r)
                 sayac[0] += deneme + 1
                 konuldu = True
                 break
@@ -964,28 +996,37 @@ def hanedan(evler=None, zisa_acisi=180.0):
     fener_hucre = fener_direkleri(d, yollar)
     yasak = set(yollar) | sur_hucre | _komsu(fener_hucre, 1)
     bilgi = {"evler": []}
-    # Zisa'nin evi: batida, dis halkada; bati sokagi kapisinin onunde biter.
+    # Zisa'nin evi: batida, orta halkada; bati sokagi kapisinin onunde biter.
     # Part 2'de Baris dogudaki gedige sokaklardan kosarak gidiyor.
-    z = ev_yerlestir(d, zisa_evi(), zisa_acisi, DIS_EV_HALKASI, (0, -1), lo=ORTA_YOL[1] + 2, yasak=yasak)
+    z = ev_yerlestir(d, zisa_evi(), zisa_acisi, ORTA_EV_HALKASI, (0, -1), lo=ORTA_YOL[1] + 2,
+                     hi=DIS_YOL[0] - 2, yasak=yasak)
     if z is None:
-        raise RuntimeError("Zisa'nin evi dis halkaya sigmadi")
+        raise RuntimeError("Zisa'nin evi orta halkaya sigmadi")
     yasak |= _komsu(z["hucreler"], 1)
     bilgi["zisa"] = {"aci": zisa_acisi, "yaricap": round(z["r"], 3), "uzak": round(z["uzak"], 3),
                      "on": list(z["on"]), "hucreler": sorted(list(c) for c in z["hucreler"])}
     tipler = (evleri_oku() if evler is None else evler) or el_evleri()
     ic_liste = [e for e in tipler if e["ad"] not in DIS_HALKA_TIPLERI] or tipler
-    karisik = list(tipler)
-    random.Random(TOHUM + 1).shuffle(karisik)
-    dis_liste = []
-    for i, e in enumerate(karisik * 2):
-        dis_liste.append(e)
-        if (i + 1) % (TARLA_SIKLIGI - 1) == 0:
-            dis_liste.append(tarlalar()[(i // (TARLA_SIKLIGI - 1)) % len(EKINLER)])
+    def karisik_liste(tohum, tarlali):
+        """Butun tipler karisik; tarlali ise her TARLA_SIKLIGI. yer tarla
+        (tarlalar yerlesimin kenarinda: yalniz dis halka)."""
+        karisik = list(tipler)
+        random.Random(tohum).shuffle(karisik)
+        liste = []
+        for i, e in enumerate(karisik * 2):
+            liste.append(e)
+            if tarlali and (i + 1) % (TARLA_SIKLIGI - 1) == 0:
+                liste.append(tarlalar()[(i // (TARLA_SIKLIGI - 1)) % len(EKINLER)])
+        return liste
     random.Random(TOHUM + 2).shuffle(ic_liste)
     halka_diz(d, ic_liste, IC_EV_HALKASI, IC_YOL[1] + 2, ORTA_YOL[0] - 2,
               _yaylar(ANA_SOKAKLAR + ARA_SOKAKLAR, IC_EV_HALKASI), yasak, bilgi, "ic", [0])
-    halka_diz(d, dis_liste, DIS_EV_HALKASI, ORTA_YOL[1] + 2, None,
-              _yaylar([a for a in ANA_SOKAKLAR if a != 180], DIS_EV_HALKASI), yasak, bilgi, "dis", [0])
+    halka_diz(d, karisik_liste(TOHUM + 1, False), ORTA_EV_HALKASI, ORTA_YOL[1] + 2, DIS_YOL[0] - 2,
+              _yaylar([a for a in ANA_SOKAKLAR if a != 180] + list(ARA_SOKAKLAR), ORTA_EV_HALKASI),
+              yasak, bilgi, "orta", [0])
+    halka_diz(d, karisik_liste(TOHUM + 3, True), DIS_EV_HALKASI, DIS_YOL[1] + 2, None,
+              _yaylar([a for a in ANA_SOKAKLAR if a != 180] + list(ARA_SOKAKLAR) + list(DIS_ARA_SOKAKLAR),
+                      DIS_EV_HALKASI), yasak, bilgi, "dis", [0])
     yerlesen = [{"on": z["on"], "kapilar": z["kapilar"]}] + bilgi["evler"]
     patika = kapi_yollari(d, yerlesen, yollar)
     ev_hucre = set(map(tuple, bilgi["zisa"]["hucreler"]))
