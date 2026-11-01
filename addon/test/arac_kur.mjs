@@ -15,7 +15,10 @@
    6. JangaFX VDB'leri yalniz --vdb ile
    7. paket_kur GERCEKTEN kosturulur (file:// kaynakla, ag yok): SHA'si
       tutmayan dosya kurulmuyor, tutan kuruluyor, ikinci kosu indirmiyor
-   8. paket dosyalari depoda yok  */
+   8. paket dosyalari depoda yok
+   v7.99.16 koylu dokulari (REFERANS_MOJANG_KILAVUZ.md):
+   9. Mojang'in resmi istemci JAR'i, surum ve iki ozet sabit, yalniz
+      entity/villager aciliyor; doku da JAR da depoda yok  */
 import { execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync, mkdtempSync, mkdirSync, rmSync } from "node:fs";
 import { createHash } from "node:crypto";
@@ -79,6 +82,27 @@ paket_kur d a.txt ${dogru} file://${T}/kaynak/a.txt
 kontrol("paket_kur: SHA-256 tutmayan kurulmuyor, tutan kuruluyor, ikinci kosu indirmiyor",
         !!fonk && deneme.includes("TUTMUYOR") && !deneme.includes("YANLIS_KURULDU") && deneme.includes("DOGRU_KURULDU") && deneme.includes("zaten kurulu"),
         deneme.replace(/\s+/g, " ").trim().slice(0, 160));
+// koylu dokulari (v7.99.16): Mojang'in resmi istemci JAR'i, surum sabit, iki
+// ozet de tutmazsa kurulmuyor; JAR'dan yalniz entity/villager aciliyor ve JAR
+// siliniyor; ozetler REFERANS_MOJANG_KILAVUZ.md'deki tabloyla ayni
+const kSurum = betik.match(/^KOYLU_SURUM=(\S+)$/m), kS1 = betik.match(/^KOYLU_SHA1=([0-9a-f]{40})$/m);
+const kS256 = betik.match(/^KOYLU_SHA256=([0-9a-f]{64})$/m);
+const mojang = readFileSync(KOK + "REFERANS_MOJANG_KILAVUZ.md", "utf8");
+kontrol("koylu JAR'i: surum sabit, resmi Mojang adresi (SHA-1 adresin icinde)",
+        !!kSurum && kSurum[1] === "26.3" && !!kS1 &&
+        betik.includes("KOYLU_URL=https://piston-data.mojang.com/v1/objects/${KOYLU_SHA1}/client.jar"),
+        kSurum ? kSurum[1] : "yok");
+kontrol("koylu JAR'i: SHA-1 VE SHA-256 karsilastiriliyor, tutmazsa kurulmuyor",
+        /\[ "\$s1" != "\$KOYLU_SHA1" \] \|\| \[ "\$s256" != "\$KOYLU_SHA256" \]/.test(betik) &&
+        /TUTMUYOR[^\n]*Kurulmadi/.test(betik.slice(betik.indexOf("KOYLU_SURUM="))));
+kontrol("koylu JAR'i: yalniz entity/villager aciliyor, JAR siliniyor",
+        betik.includes('KOYLU_ICI=assets/minecraft/textures/entity/villager') &&
+        betik.includes('unzip -q -o "$gecici/client.jar" "$KOYLU_ICI/*"') && betik.includes('rm -f "$gecici/client.jar"'));
+kontrol("koylu ozetleri REFERANS_MOJANG_KILAVUZ.md ile ayni",
+        !!kS1 && !!kS256 && mojang.includes("`" + kS1[1] + "`") && mojang.includes("`" + kS256[1] + "`"));
+const koyluIzli = execFileSync("git", ["ls-files"], { cwd: KOK, encoding: "utf8" }).split("\n")
+  .filter((f) => /textures\/entity\/villager|(^|\/)client\.jar$|profession_level|(^|\/)villager(_baby)?\.png$/.test(f));
+kontrol("Mojang koylu dokusu ve JAR'i depoda yok", koyluIzli.length === 0, koyluIzli.join(", "));
 const paketIzli = execFileSync("git", ["ls-files"], { cwd: KOK, encoding: "utf8" }).split("\n")
   .filter((f) => /\.(vdb|glb|rar|7z)$|pooka_efektler|kenney_particlePack|smokeParticleAssets|qubodupPunch/i.test(f));
 kontrol("hazir paket dosyalari depoda yok", paketIzli.length === 0, paketIzli.join(", "));

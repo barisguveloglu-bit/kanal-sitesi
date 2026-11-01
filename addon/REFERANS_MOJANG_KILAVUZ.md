@@ -42,3 +42,33 @@ uyumlu: Mojang dosyaları depoya/pakete girmez.
 Kılavuzun video bölümü oyun görüntüsü (gameplay) için yazılmış; Blender'da
 çizilmiş bir animasyon da "varlık" (doku, model) kullandığı için aynı
 kuralları uyguluyoruz — en dar okumayı seçiyoruz.
+
+## Köylü dokuları ve modeli (v7.99.16)
+
+Kullanıcı: *"köylüler de olacak fakat biraz az olsun … skinler bayağı fazla
+hepsini indir."* MCprep'te yalnız çıplak köylü (`villager.png`) var; biyom,
+meslek ve rütbe katmanları yok. Hepsi Mojang'ın Java istemcisinden alındı.
+
+| ne | değer |
+|---|---|
+| kaynak | Mojang resmî sürüm listesi `piston-meta.mojang.com` → Java **26.3** (son kararlı sürüm, 2026-09-15) |
+| istemci JAR'ı | `https://piston-data.mojang.com/v1/objects/e877b6a07acd633fb3bb475002175cec036e7b87/client.jar` (41.483.720 bayt) |
+| SHA-1 (Mojang'ın listesinden) | `e877b6a07acd633fb3bb475002175cec036e7b87` |
+| SHA-256 (bizim ölçümümüz) | `4508d006323f24fa02876310c192d739af56516eb259000ac50f0909a68c9a2d` |
+| alınan | yalnız `assets/minecraft/textures/entity/villager/` (35 doku: çıplak yetişkin ve bebek, 7 biyom, 14 meslek, 5 rütbe, 7 bebek biyomu; 8 `.mcmeta`) |
+| kurulum | `arac/arac_kur.sh` → `$KOYLU_DOKU` (`/opt/araclar/paketler/koylu`); JAR silinir |
+
+**Depoya ve pakete girmez:** Mojang dosyası; yalnız filmde (videoda)
+kullanılıyor, yukarıdaki kontrol listesiyle. `test/arac_kur.mjs` hem
+sürümü ve iki özeti hem de depoda köylü dokusu olmadığını ölçüyor.
+
+**Model uydurulmadı.** `arac/koylu.py`'deki kutular, pivotlar, kol açısı
+(−0,75 rad) ve ölçek (0,9375) aynı JAR'dan `javap` ile okundu:
+`VillagerModel.createBodyModel`, `LayerDefinitions`
+(`MeshTransformer.scaling(0.9375)`) ve `VillagerProfessionLayer` (şapka
+kuralı: biyomun şapkası yalnız mesleğin şapkası yoksa ya da yarımsa ve
+biyomunki tam değilse görünür). Mojang 26.x'te Java kodunu karartmadığı
+için sınıf ve yöntem adları okunur durumda. JAR sürüm atlarsa: yeni
+JAR'ı indir, aynı üç sınıfı `javap -c -p` ile oku, `koylu.py`'deki
+`PARCALAR`, `OLCEK`, `KOL_ACISI` değerlerini karşılaştır, sonra
+`node addon/test/hanedan.mjs`.

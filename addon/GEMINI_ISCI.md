@@ -158,6 +158,14 @@ resimler, sonra
 | # | fikir | kapaktaki yazı (tam yazımıyla) | kullanılan karakterler |
 ```
 
+## Ölçülenler
+
+- **İlk durum bildirimi (2026-10-27):** sabit tablo biçimi istendi
+  (`| # | iş | ne yapacağım | ne yapmayacağım |`, üç satır, başka metin
+  yok). Argon biçime bire bir uydu: üç satır, fazladan cümle yok, "bitti"
+  yok; her satırda o işin kuralları doğru geri söylendi. Bu yalnız talimata
+  uyumu ölçüyor; gerçek bir işte kaynak doğruluğu ayrıca denetlenecek.
+
 ## Açık
 
 - **Yayımlanmamış kare ve video Gemini'ye gider mi?** Kullanıcının kararı

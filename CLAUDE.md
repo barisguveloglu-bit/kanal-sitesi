@@ -766,3 +766,27 @@ bir boşta: kök ölçeği görünürlük için 0/1 anahtarlanıyor. Kamera ve a
 ölçekle çarpılıyor; ölçek 1 iken sonuç birebir eski
 (`test/form_model.mjs` 14.000'den fazla çekimde karşılaştırıyor).
 Yerleşim kararı kullanıcının.
+
+**Hanedan ve köylüler — `addon/arac/hanedan.py` (v7.99.16).** 2. bölümün
+mekânı blok blok üretiliyor; Blender yalnız önizlemede
+(`arac/hanedan_onizle.py`). Parçalar:
+- `blok_kur.py`: blok listesinden doku başına örgü (Minecraft adları, yüz
+  ayıklama, döndürme). Fener dokusu küçük bir atlas (`FENER_BOLGE`), yatık
+  kütüğün halkası ekseninin iki ucunda: ikisi de önizlemede yanlış çıktı,
+  test kilitliyor.
+- `hanedan.py`: sur, tepe, merdiven, kale, iki ev halkası, tarlalar,
+  azıcık ağaç ve çiçek, az sayıda köylü (`bilgi["koyluler"]`, blok değil).
+  **Ölçülerin ve biçimin hepsi Claude'un önerisi**, kayıttaki iskelet
+  SERI_SEZON1.md'de; kullanıcı onaylamadan oraya yazılmaz.
+- `koylu.py`: köylü modeli ve doku katmanları. Kutular Java 26.3 JAR'ından
+  `javap` ile okundu, uydurulmadı (REFERANS_MOJANG_KILAVUZ.md "Köylü
+  dokuları"). Dokular Mojang'ın: `arac_kur.sh` resmî JAR'dan
+  `$KOYLU_DOKU`'ya kurar, **depoya girmez**.
+- `yapi_olc.py` + `koy_evleri.py`: yapıları gerçek oyundan (BDS) ölçer.
+  Cadı kulübesi ölçüldü (`yapilar/cadi_kulubesi.json`); köy taraması betik
+  bekçisine takılıp bitmedi, evler şimdilik `ev_tipi` ile elle kurulu.
+  `koy_evleri.json` oluşursa hanedan onu kullanır.
+- `test/hanedan.mjs`: sur, kapı, merdiven, evlerin bandı ve araları,
+  yolların açıklığı, köylülerin durduğu yer, köylü modeli ve şapka kuralı.
+  Film aracına (`blender_film.py`) henüz bağlı değil; bağlanınca
+  FILM_YETENEK_HARITASI.md aynı commit'te güncellenir.

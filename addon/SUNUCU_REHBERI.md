@@ -75,19 +75,33 @@ alınan oyuncu blok kırabilir hale gelir. Düzeltilmedi.
 
 ## Gerekenler
 
-- 64 bit Linux. Mojang'a göre Ubuntu 18 ve sonrası; burada Ubuntu 24.04'te
-  denendi. Mojang'ın önerisi: en az 2 çekirdek, 1 GB bellek.
+- 64 bit Linux, **x86-64 (Intel/AMD) işlemci**. Mojang BDS'i yalnız x86-64
+  için yayımlıyor; ARM sunucuda (bazı ucuz ya da ücretsiz planlar ARM) ancak
+  çeviri katmanıyla, yavaş ve kararsız çalışıyor. Mojang'a göre Ubuntu 18 ve
+  sonrası; burada Ubuntu 24.04'te denendi. Mojang'ın önerisi: en az 2 çekirdek,
+  1 GB bellek; eklentimiz büyük olduğu için 2 GB daha rahat.
 - `python3`, `curl`; isteğe bağlı `openssl` (sunucu kimliği için).
 - Dışarıdan bağlantı için **TCP 19132** ve **UDP 19140–19199** açık olmalı
   (modemde port yönlendirme ya da kiralık sunucunun güvenlik duvarı).
 - Sürekli açık bir makine: senin bilgisayarın ya da kiralık bir sunucu.
-  Telefon BDS çalıştıramaz. Claude'un bulut oturumu da olamaz: geçici ve
+  Bilgisayar yoksa yol **kiralık sunucu**: telefondan bir SSH uygulamasıyla
+  bağlanılıp kurulur. Telefon BDS çalıştıramaz. Claude'un bulut oturumu da olamaz: geçici ve
   dışarıdan bağlantı kabul etmiyor. Realms bu ayarları açmıyor.
 - Windows için set **henüz yok** (BDS'in Windows sürümü var; sunucunun nerede
   çalışacağına karar verilince yazılır).
 
 BDS'i kullanmak [Minecraft EULA](https://www.minecraft.net/eula)'sını kabul
 etmek demek.
+
+**Hazır barındırma hizmetleri (ör. Aternos) bu seti çalıştıramaz:**
+kurulum betiği orada koşmuyor. Aternos'un kendi rehberine göre eklentiler
+`packs` klasörüne yüklenebiliyor; sıkı ayarların (`server-authoritative-*`,
+paket hız sınırı) orada değiştirilebilip değiştirilemediği **bilinmiyor**,
+denenmedi. Arena komutları konsoldan elle yapıştırılabilir.
+
+**Sunucu adı:** `ÖyleMc` (kullanıcının seçimi). Oyuncunun sunucu listesinde
+gördüğü ad; dosyaya UTF-8 yazılıyor ve sunucu bu adla açıldı. Listede doğru
+görünüp görünmediğine bir istemciyle bakılmadı.
 
 ### Bağlantı türü: neden nethernet
 

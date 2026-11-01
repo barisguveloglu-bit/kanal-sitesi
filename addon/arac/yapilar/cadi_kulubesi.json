@@ -1,0 +1,1440 @@
+{
+ "ad": "cadi_kulubesi",
+ "aciklama": "Minecraft bataklik kulubesi (cadi kulubesi). SERI_SEZON1.md: 'o kulubenin aynisi olacak', blok blok olculerek.",
+ "olcum": {
+  "tarih": "2026-11-01",
+  "nasil": "Bedrock Dedicated Server 1.26.52.3, bos tohumlu dunya; 'locate structure temple' bataklik yaninda iki kulube buldu (-3256 ~ -2920 ve -4264 ~ 2184); bir davranis paketi betigi her blogun turunu ve durumunu okudu (arac/yapi_olc.py).",
+  "dogrulama": "iki kulube kazik ustunde 147 blokta bire bir ayni. Tek fark birinde zeminde duran kahverengi mantar: bataklik suslemesi, yapiya ait degil, alinmadi.",
+  "kutu": [
+   7,
+   5,
+   9
+  ],
+  "olculmeyen": "saksinin ici: betik API'si saksinin icindeki bitkiyi vermiyor. Java surumunde kirmizi mantar; filmde o varsayildi."
+ },
+ "eksenler": "p = [x, y, z] Minecraft yonleriyle: x dogu, y yukari, z guney. Kapi ve veranda kuzeyde (z = 0).",
+ "basamak_yonu": "Bedrock weirdo_direction: 0 dogu, 1 bati, 2 guney, 3 kuzey -- basamagin YUKSEK tarafinin baktigi yon (catida ice dogru, olcumden).",
+ "kaziklar": {
+  "t": "oak_log",
+  "sutunlar": [
+   [
+    1,
+    2
+   ],
+   [
+    5,
+    2
+   ],
+   [
+    1,
+    7
+   ],
+   [
+    5,
+    7
+   ]
+  ],
+  "asagi": "yere kadar (olculen iki kulubede 3 ve 4-5 blok; araziye gore)"
+ },
+ "saksi_ici": "red_mushroom",
+ "bloklar": [
+  {
+   "p": [
+    2,
+    0,
+    0
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    3,
+    0,
+    0
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    4,
+    0,
+    0
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    1,
+    0,
+    1
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    2,
+    0,
+    1
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    3,
+    0,
+    1
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    4,
+    0,
+    1
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    5,
+    0,
+    1
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    1,
+    0,
+    2
+   ],
+   "t": "oak_log",
+   "s": {
+    "pillar_axis": "y",
+    "old_log_type": "oak"
+   }
+  },
+  {
+   "p": [
+    2,
+    0,
+    2
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    3,
+    0,
+    2
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    4,
+    0,
+    2
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    5,
+    0,
+    2
+   ],
+   "t": "oak_log",
+   "s": {
+    "pillar_axis": "y",
+    "old_log_type": "oak"
+   }
+  },
+  {
+   "p": [
+    1,
+    0,
+    3
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    2,
+    0,
+    3
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    3,
+    0,
+    3
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    4,
+    0,
+    3
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    5,
+    0,
+    3
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    1,
+    0,
+    4
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    2,
+    0,
+    4
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    3,
+    0,
+    4
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    4,
+    0,
+    4
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    5,
+    0,
+    4
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    1,
+    0,
+    5
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    2,
+    0,
+    5
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    3,
+    0,
+    5
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    4,
+    0,
+    5
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    5,
+    0,
+    5
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    1,
+    0,
+    6
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    2,
+    0,
+    6
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    3,
+    0,
+    6
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    4,
+    0,
+    6
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    5,
+    0,
+    6
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    1,
+    0,
+    7
+   ],
+   "t": "oak_log",
+   "s": {
+    "pillar_axis": "y",
+    "old_log_type": "oak"
+   }
+  },
+  {
+   "p": [
+    2,
+    0,
+    7
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    3,
+    0,
+    7
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    4,
+    0,
+    7
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    5,
+    0,
+    7
+   ],
+   "t": "oak_log",
+   "s": {
+    "pillar_axis": "y",
+    "old_log_type": "oak"
+   }
+  },
+  {
+   "p": [
+    1,
+    1,
+    1
+   ],
+   "t": "oak_fence",
+   "s": {
+    "connection_west": false,
+    "connection_east": false,
+    "connection_north": false,
+    "connection_south": true
+   }
+  },
+  {
+   "p": [
+    5,
+    1,
+    1
+   ],
+   "t": "oak_fence",
+   "s": {
+    "connection_west": false,
+    "connection_east": false,
+    "connection_north": false,
+    "connection_south": true
+   }
+  },
+  {
+   "p": [
+    1,
+    1,
+    2
+   ],
+   "t": "oak_log",
+   "s": {
+    "pillar_axis": "y",
+    "old_log_type": "oak"
+   }
+  },
+  {
+   "p": [
+    2,
+    1,
+    2
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    3,
+    1,
+    2
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    5,
+    1,
+    2
+   ],
+   "t": "oak_log",
+   "s": {
+    "pillar_axis": "y",
+    "old_log_type": "oak"
+   }
+  },
+  {
+   "p": [
+    1,
+    1,
+    3
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    5,
+    1,
+    3
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    1,
+    1,
+    4
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    5,
+    1,
+    4
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    1,
+    1,
+    5
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    5,
+    1,
+    5
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    1,
+    1,
+    6
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    3,
+    1,
+    6
+   ],
+   "t": "crafting_table"
+  },
+  {
+   "p": [
+    4,
+    1,
+    6
+   ],
+   "t": "cauldron",
+   "s": {
+    "cauldron_liquid": "water",
+    "fill_level": 6
+   }
+  },
+  {
+   "p": [
+    5,
+    1,
+    6
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    1,
+    1,
+    7
+   ],
+   "t": "oak_log",
+   "s": {
+    "pillar_axis": "y",
+    "old_log_type": "oak"
+   }
+  },
+  {
+   "p": [
+    2,
+    1,
+    7
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    3,
+    1,
+    7
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    4,
+    1,
+    7
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    5,
+    1,
+    7
+   ],
+   "t": "oak_log",
+   "s": {
+    "pillar_axis": "y",
+    "old_log_type": "oak"
+   }
+  },
+  {
+   "p": [
+    1,
+    2,
+    2
+   ],
+   "t": "oak_log",
+   "s": {
+    "pillar_axis": "y",
+    "old_log_type": "oak"
+   }
+  },
+  {
+   "p": [
+    2,
+    2,
+    2
+   ],
+   "t": "oak_fence",
+   "s": {
+    "connection_west": true,
+    "connection_east": true,
+    "connection_north": false,
+    "connection_south": false
+   }
+  },
+  {
+   "p": [
+    3,
+    2,
+    2
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    5,
+    2,
+    2
+   ],
+   "t": "oak_log",
+   "s": {
+    "pillar_axis": "y",
+    "old_log_type": "oak"
+   }
+  },
+  {
+   "p": [
+    1,
+    2,
+    3
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    5,
+    2,
+    3
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    1,
+    2,
+    5
+   ],
+   "t": "flower_pot"
+  },
+  {
+   "p": [
+    1,
+    2,
+    6
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    5,
+    2,
+    6
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    1,
+    2,
+    7
+   ],
+   "t": "oak_log",
+   "s": {
+    "pillar_axis": "y",
+    "old_log_type": "oak"
+   }
+  },
+  {
+   "p": [
+    2,
+    2,
+    7
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    3,
+    2,
+    7
+   ],
+   "t": "oak_fence",
+   "s": {
+    "connection_west": true,
+    "connection_east": true,
+    "connection_north": false,
+    "connection_south": false
+   }
+  },
+  {
+   "p": [
+    4,
+    2,
+    7
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    5,
+    2,
+    7
+   ],
+   "t": "oak_log",
+   "s": {
+    "pillar_axis": "y",
+    "old_log_type": "oak"
+   }
+  },
+  {
+   "p": [
+    1,
+    3,
+    2
+   ],
+   "t": "oak_log",
+   "s": {
+    "pillar_axis": "y",
+    "old_log_type": "oak"
+   }
+  },
+  {
+   "p": [
+    2,
+    3,
+    2
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    3,
+    3,
+    2
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    4,
+    3,
+    2
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    5,
+    3,
+    2
+   ],
+   "t": "oak_log",
+   "s": {
+    "pillar_axis": "y",
+    "old_log_type": "oak"
+   }
+  },
+  {
+   "p": [
+    1,
+    3,
+    3
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    5,
+    3,
+    3
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    1,
+    3,
+    4
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    5,
+    3,
+    4
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    1,
+    3,
+    5
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    5,
+    3,
+    5
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    1,
+    3,
+    6
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    5,
+    3,
+    6
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    1,
+    3,
+    7
+   ],
+   "t": "oak_log",
+   "s": {
+    "pillar_axis": "y",
+    "old_log_type": "oak"
+   }
+  },
+  {
+   "p": [
+    2,
+    3,
+    7
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    3,
+    3,
+    7
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    4,
+    3,
+    7
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    5,
+    3,
+    7
+   ],
+   "t": "oak_log",
+   "s": {
+    "pillar_axis": "y",
+    "old_log_type": "oak"
+   }
+  },
+  {
+   "p": [
+    0,
+    4,
+    1
+   ],
+   "t": "spruce_stairs",
+   "s": {
+    "corner": "outer_left",
+    "weirdo_direction": 2,
+    "upside_down_bit": false
+   }
+  },
+  {
+   "p": [
+    1,
+    4,
+    1
+   ],
+   "t": "spruce_stairs",
+   "s": {
+    "corner": "none",
+    "weirdo_direction": 2,
+    "upside_down_bit": false
+   }
+  },
+  {
+   "p": [
+    2,
+    4,
+    1
+   ],
+   "t": "spruce_stairs",
+   "s": {
+    "corner": "none",
+    "weirdo_direction": 2,
+    "upside_down_bit": false
+   }
+  },
+  {
+   "p": [
+    3,
+    4,
+    1
+   ],
+   "t": "spruce_stairs",
+   "s": {
+    "corner": "none",
+    "weirdo_direction": 2,
+    "upside_down_bit": false
+   }
+  },
+  {
+   "p": [
+    4,
+    4,
+    1
+   ],
+   "t": "spruce_stairs",
+   "s": {
+    "corner": "none",
+    "weirdo_direction": 2,
+    "upside_down_bit": false
+   }
+  },
+  {
+   "p": [
+    5,
+    4,
+    1
+   ],
+   "t": "spruce_stairs",
+   "s": {
+    "corner": "none",
+    "weirdo_direction": 2,
+    "upside_down_bit": false
+   }
+  },
+  {
+   "p": [
+    6,
+    4,
+    1
+   ],
+   "t": "spruce_stairs",
+   "s": {
+    "corner": "outer_right",
+    "weirdo_direction": 2,
+    "upside_down_bit": false
+   }
+  },
+  {
+   "p": [
+    0,
+    4,
+    2
+   ],
+   "t": "spruce_stairs",
+   "s": {
+    "corner": "none",
+    "weirdo_direction": 0,
+    "upside_down_bit": false
+   }
+  },
+  {
+   "p": [
+    1,
+    4,
+    2
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    2,
+    4,
+    2
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    3,
+    4,
+    2
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    4,
+    4,
+    2
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    5,
+    4,
+    2
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    6,
+    4,
+    2
+   ],
+   "t": "spruce_stairs",
+   "s": {
+    "corner": "none",
+    "weirdo_direction": 1,
+    "upside_down_bit": false
+   }
+  },
+  {
+   "p": [
+    0,
+    4,
+    3
+   ],
+   "t": "spruce_stairs",
+   "s": {
+    "corner": "none",
+    "weirdo_direction": 0,
+    "upside_down_bit": false
+   }
+  },
+  {
+   "p": [
+    1,
+    4,
+    3
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    2,
+    4,
+    3
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    3,
+    4,
+    3
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    4,
+    4,
+    3
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    5,
+    4,
+    3
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    6,
+    4,
+    3
+   ],
+   "t": "spruce_stairs",
+   "s": {
+    "corner": "none",
+    "weirdo_direction": 1,
+    "upside_down_bit": false
+   }
+  },
+  {
+   "p": [
+    0,
+    4,
+    4
+   ],
+   "t": "spruce_stairs",
+   "s": {
+    "corner": "none",
+    "weirdo_direction": 0,
+    "upside_down_bit": false
+   }
+  },
+  {
+   "p": [
+    1,
+    4,
+    4
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    2,
+    4,
+    4
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    3,
+    4,
+    4
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    4,
+    4,
+    4
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    5,
+    4,
+    4
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    6,
+    4,
+    4
+   ],
+   "t": "spruce_stairs",
+   "s": {
+    "corner": "none",
+    "weirdo_direction": 1,
+    "upside_down_bit": false
+   }
+  },
+  {
+   "p": [
+    0,
+    4,
+    5
+   ],
+   "t": "spruce_stairs",
+   "s": {
+    "corner": "none",
+    "weirdo_direction": 0,
+    "upside_down_bit": false
+   }
+  },
+  {
+   "p": [
+    1,
+    4,
+    5
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    2,
+    4,
+    5
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    3,
+    4,
+    5
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    4,
+    4,
+    5
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    5,
+    4,
+    5
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    6,
+    4,
+    5
+   ],
+   "t": "spruce_stairs",
+   "s": {
+    "corner": "none",
+    "weirdo_direction": 1,
+    "upside_down_bit": false
+   }
+  },
+  {
+   "p": [
+    0,
+    4,
+    6
+   ],
+   "t": "spruce_stairs",
+   "s": {
+    "corner": "none",
+    "weirdo_direction": 0,
+    "upside_down_bit": false
+   }
+  },
+  {
+   "p": [
+    1,
+    4,
+    6
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    2,
+    4,
+    6
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    3,
+    4,
+    6
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    4,
+    4,
+    6
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    5,
+    4,
+    6
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    6,
+    4,
+    6
+   ],
+   "t": "spruce_stairs",
+   "s": {
+    "corner": "none",
+    "weirdo_direction": 1,
+    "upside_down_bit": false
+   }
+  },
+  {
+   "p": [
+    0,
+    4,
+    7
+   ],
+   "t": "spruce_stairs",
+   "s": {
+    "corner": "none",
+    "weirdo_direction": 0,
+    "upside_down_bit": false
+   }
+  },
+  {
+   "p": [
+    1,
+    4,
+    7
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    2,
+    4,
+    7
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    3,
+    4,
+    7
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    4,
+    4,
+    7
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    5,
+    4,
+    7
+   ],
+   "t": "spruce_planks"
+  },
+  {
+   "p": [
+    6,
+    4,
+    7
+   ],
+   "t": "spruce_stairs",
+   "s": {
+    "corner": "none",
+    "weirdo_direction": 1,
+    "upside_down_bit": false
+   }
+  },
+  {
+   "p": [
+    0,
+    4,
+    8
+   ],
+   "t": "spruce_stairs",
+   "s": {
+    "corner": "outer_right",
+    "weirdo_direction": 3,
+    "upside_down_bit": false
+   }
+  },
+  {
+   "p": [
+    1,
+    4,
+    8
+   ],
+   "t": "spruce_stairs",
+   "s": {
+    "corner": "none",
+    "weirdo_direction": 3,
+    "upside_down_bit": false
+   }
+  },
+  {
+   "p": [
+    2,
+    4,
+    8
+   ],
+   "t": "spruce_stairs",
+   "s": {
+    "corner": "none",
+    "weirdo_direction": 3,
+    "upside_down_bit": false
+   }
+  },
+  {
+   "p": [
+    3,
+    4,
+    8
+   ],
+   "t": "spruce_stairs",
+   "s": {
+    "corner": "none",
+    "weirdo_direction": 3,
+    "upside_down_bit": false
+   }
+  },
+  {
+   "p": [
+    4,
+    4,
+    8
+   ],
+   "t": "spruce_stairs",
+   "s": {
+    "corner": "none",
+    "weirdo_direction": 3,
+    "upside_down_bit": false
+   }
+  },
+  {
+   "p": [
+    5,
+    4,
+    8
+   ],
+   "t": "spruce_stairs",
+   "s": {
+    "corner": "none",
+    "weirdo_direction": 3,
+    "upside_down_bit": false
+   }
+  },
+  {
+   "p": [
+    6,
+    4,
+    8
+   ],
+   "t": "spruce_stairs",
+   "s": {
+    "corner": "outer_left",
+    "weirdo_direction": 3,
+    "upside_down_bit": false
+   }
+  }
+ ]
+}

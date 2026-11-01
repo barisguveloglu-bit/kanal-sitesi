@@ -185,12 +185,45 @@ else
   echo "jangafx VDB: atlandi (patlama sahnesi icin: bash addon/arac/arac_kur.sh --vdb)"
 fi
 
+# ---- Koylu dokulari (2. bolumun hanedani; REFERANS_MOJANG_KILAVUZ.md) ----
+# Kullanici: "skinler bayagi fazla hepsini indir." MCprep'te yalniz cipla
+# koylu var (villager.png); 7 biyom, 14 meslek ve 5 rutbe katmani yok.
+# Kaynak RESMI: Mojang'in istemci JAR'i. Surum SABIT; SHA-1 Mojang'in kendi
+# surum listesinden (piston-meta), SHA-256 bizim olcumumuz -- ikisi de
+# tutmazsa KURULMAZ. JAR'dan YALNIZ entity/villager klasoru acilir, JAR
+# silinir. Mojang dosyasi: depoya ve pakete GIRMEZ, yalniz filmde kullanilir.
+KOYLU_SURUM=26.3
+KOYLU_SHA1=e877b6a07acd633fb3bb475002175cec036e7b87
+KOYLU_SHA256=4508d006323f24fa02876310c192d739af56516eb259000ac50f0909a68c9a2d
+KOYLU_URL=https://piston-data.mojang.com/v1/objects/${KOYLU_SHA1}/client.jar
+KOYLU_ICI=assets/minecraft/textures/entity/villager
+if [ -f "$PAKET/koylu/.sha_${KOYLU_SHA256:0:16}" ]; then
+  echo "koylu dokulari ${KOYLU_SURUM}: zaten kurulu"
+elif ! curl -fsSL -o "$gecici/client.jar" "$KOYLU_URL"; then
+  echo "UYARI: koylu dokulari indirilemedi (gerisi kuruluyor)." >&2
+else
+  s1=$(sha1sum "$gecici/client.jar" | awk '{print $1}')
+  s256=$(sha256sum "$gecici/client.jar" | awk '{print $1}')
+  if [ "$s1" != "$KOYLU_SHA1" ] || [ "$s256" != "$KOYLU_SHA256" ]; then
+    echo "HATA: koylu JAR'i TUTMUYOR (SHA-1 $s1, SHA-256 $s256). Kurulmadi." >&2
+  elif unzip -q -o "$gecici/client.jar" "$KOYLU_ICI/*" -d "$gecici/koylu_ac"; then
+    mkdir -p "$PAKET/koylu"
+    cp -r "$gecici/koylu_ac/$KOYLU_ICI/." "$PAKET/koylu/"
+    touch "$PAKET/koylu/.sha_${KOYLU_SHA256:0:16}"
+    echo "koylu dokulari ${KOYLU_SURUM}: SHA-1 ve SHA-256 resmi kaynakla ayni, $(find "$PAKET/koylu" -name '*.png' | wc -l) doku kuruldu"
+  else
+    echo "UYARI: koylu JAR'i acilamadi (unzip?)." >&2
+  fi
+  rm -f "$gecici/client.jar"
+fi
+
 # ---- ortam degiskenleri ----
 cat > "$KOK/film_araclari.sh" <<EOF
 export BLENDER="$KOK/blender/blender"
 export MCPREP_DOKU="$KOK/mcprep/$DOKU_YOL"
 export THOMAS_RIG="$KOK/thomas_rig/thomas_rig_legacy.blend"
 export FILM_PAKETLER="$PAKET"
+export KOYLU_DOKU="$PAKET/koylu"
 EOF
 if [ -w /etc/profile.d ]; then cp "$KOK/film_araclari.sh" /etc/profile.d/film_araclari.sh; fi
 
