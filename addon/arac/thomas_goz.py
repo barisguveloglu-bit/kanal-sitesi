@@ -63,6 +63,9 @@ BAKIS_KEMIK = {"L": "Eye.L", "R": "Eye.R"}
 # kontrol paneli, kemik sekilleri) gizlenir. Head_Deform / Head_NoDeform arasindaki
 # secimi iskeletin kendi surucusu yapar ("Full rigged face").
 CIZILEN = {"Head_Deform", "Head_NoDeform", "Eyes"}
+# agiz acikken (aktorde "agiz") iskeletin disleri ve dili de cizilir
+# (kullanici, 2026-11-02: "Thomas Rig Legacy kullan, onda agiz da var")
+AGIZ_CIZILEN = {"Top_teeth", "Bottom_teeth", "Tongue"}
 SURUCULU = {"Head_Deform", "Head_NoDeform"}
 YUZ_UV = (8 / 64, 16 / 64, 1 - 16 / 64, 1 - 8 / 64)    # skinde yuz: x 8-16, y 8-16 (u0, u1, v0, v1)
 RIG_YUZ = (0.0, -1.0)      # olculdu: iskeletin yuzu -Y'ye bakiyor
@@ -265,9 +268,11 @@ def _yuz_yonu(me, merkez):
     raise SystemExit("HATA: kafa orgusunde yuz dokusu bulunamadi (UV %r)" % (YUZ_UV,))
 
 
-def kur(bpy, senaryo, harita, aktorler, kemik_nesne, kare_bul, skin_yolu, rig_yolu=None):
+def kur(bpy, senaryo, harita, aktorler, kemik_nesne, kare_bul, skin_yolu, rig_yolu=None, agiz_cizelgesi=None):
     """Goz ayarli aktorlere Thomas kafasi kurar, thomas planlarinda gosterir.
-    aktorler: {ad: a} (a.v senaryodaki sozluk). Dondurur: {ad: iskelet nesnesi}."""
+    aktorler: {ad: a} (a.v senaryodaki sozluk). Dondurur: {ad: iskelet nesnesi}.
+    agiz_cizelgesi(ad) -> [(t, sekil)] ya da None: verilirse iskeletin 3B
+    agzi o cizelgeyle konusur (arac/agiz.py THOMAS_AGIZ)."""
     from mathutils import Matrix, Vector
     p = plan(senaryo, harita, {ad: a.v for ad, a in aktorler.items()})
     if not p:
@@ -299,12 +304,14 @@ def kur(bpy, senaryo, harita, aktorler, kemik_nesne, kare_bul, skin_yolu, rig_yo
             if giris not in grup[0].inputs:
                 raise SystemExit("HATA: goz dugumunde giris yok: %s" % giris)
             grup[0].inputs[giris].default_value = deger
-        # -- yalniz kafa ve gozler cizilir
+        # -- yalniz kafa ve gozler cizilir (agiz acikken disler ve dil de)
+        agiz_c = agiz_cizelgesi(ad) if agiz_cizelgesi else None
+        cizilen = CIZILEN | (AGIZ_CIZILEN if agiz_c else set())
         for o in yeni:
             if o.type in ("ARMATURE", "LATTICE", "EMPTY"):
                 continue
             t = taban_ad(o.name)
-            if t in CIZILEN:
+            if t in cizilen:
                 continue
             if o.animation_data and any(d.data_path == "hide_render" for d in o.animation_data.drivers):
                 o.driver_remove("hide_render")
@@ -360,13 +367,32 @@ def kur(bpy, senaryo, harita, aktorler, kemik_nesne, kare_bul, skin_yolu, rig_yo
             for g, kem in BAKIS_KEMIK.items():
                 pb[kem].location = deger[g]
                 pb[kem].keyframe_insert("location", frame=f)
+        # -- agiz: sekil degisince kontroller ANINDA (CONSTANT) degisir
+        if agiz_c:
+            import agiz as AGZ
+            onceki = None
+            for f in range(len(harita)):
+                s_ = AGZ.sekil_karede(agiz_c, harita[f])
+                if s_ == onceki:
+                    continue
+                for kem, d in AGZ.thomas_degerleri(s_).items():
+                    pb[kem].rotation_mode = "XYZ"
+                    pb[kem].location = d["location"]
+                    pb[kem].keyframe_insert("location", frame=f + 1)
+                    if "rotation_euler" in d:
+                        pb[kem].rotation_euler = d["rotation_euler"]
+                        pb[kem].keyframe_insert("rotation_euler", frame=f + 1)
+                onceki = s_
+            agiz_kemik = {AGZ.THOMAS_KONTROL} | set(AGZ.THOMAS_SURGU.values())
+            _sabit_yap(rig, lambda yol: any('"%s"' % k in yol for k in agiz_kemik))
         kurulan[ad] = rig
     return kurulan
 
 
-def _sabit_yap(nesne):
+def _sabit_yap(nesne, suzgec=None):
     """Nesnenin butun anahtarlari CONSTANT (plan kesmesinde ara kare olmasin).
-    Blender 5'te eylemler katmanli; iki yapiyi da dolasir."""
+    Blender 5'te eylemler katmanli; iki yapiyi da dolasir. suzgec(data_path)
+    verilirse yalniz onun kabul ettigi egriler (agiz: goz anahtarlari yumusak kalsin)."""
     ad = nesne.animation_data
     if not ad or not ad.action:
         return
@@ -379,5 +405,7 @@ def _sabit_yap(nesne):
                 for kanal in serit.channelbags:
                     egriler += list(kanal.fcurves)
     for fc in egriler:
+        if suzgec is not None and not suzgec(fc.data_path):
+            continue
         for k in fc.keyframe_points:
             k.interpolation = "CONSTANT"

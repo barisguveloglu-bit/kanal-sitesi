@@ -19,7 +19,10 @@
       keci geriye gidip kafanin ustunden asagi iniyor; hicbir parca
       kafanin icinde degil.
    6. Acmadan hicbir sey eklenmiyor: Part 1'in senaryolarinda "agiz" ve
-      "boynuz" yok (Part 2'den itibaren, kullanici). */
+      "boynuz" yok (Part 2'den itibaren, kullanici).
+   7. Thomas Rig Legacy'nin 3B agzi (kullanici: "onda agiz da var"): her
+      sekle olculen sinirlar icinde kontrol degeri; disler ve dil yalniz
+      agiz acikken; Thomas planlarinda doku agzi gizli. */
 import { execFileSync } from "node:child_process";
 import { readFileSync, readdirSync } from "node:fs";
 import { join, dirname } from "node:path";
@@ -110,6 +113,41 @@ print(json.dumps(out))`);
   kontrol("keci: geriye gidip kafanin ustunden asagi iniyor, daha cok parca",
           k.n > s.n && Math.max(...k.z) > 4 && k.y[k.y.length - 1] < 32, "z en cok " + Math.max(...k.z) + ", son y " + k.y[k.y.length - 1]);
   kontrol("hicbir boynuz parcasi kafanin icinde degil", s.ic === 0 && k.ic === 0, s.ic + " / " + k.ic);
+}
+
+console.log("\n=== 7. THOMAS RIG LEGACY'NIN 3B AGZI ===");
+{
+  // kullanici: "Thomas Rig Legacy kullan, onda agiz da var" -- goz: "thomas"
+  // planlarinda iskeletin kendi agzi konusur (olculen kontroller)
+  const r = py(`
+import agiz as A
+S = A.THOMAS_SINIR
+sinir_disi, eksik = [], [s for s in A.SEKILLER + ["X"] if s not in A.THOMAS_AGIZ]
+for s, a in A.THOMAS_AGIZ.items():
+    x, y = a.get("konum", (0, 0))
+    if not (S["x"][0] <= x <= S["x"][1] and S["y"][0] <= y <= S["y"][1]): sinir_disi.append(s)
+    for k in ("yuvarlak", "yumusak", "kare", "dis"):
+        if not (S["surgu"][0] <= a.get(k, 0) <= S["surgu"][1]): sinir_disi.append(s + ":" + k)
+d = {s: A.thomas_degerleri(s) for s in A.THOMAS_AGIZ}
+y = lambda s: d[s][A.THOMAS_KONTROL]["location"][1]
+x = lambda s: d[s][A.THOMAS_KONTROL]["location"][0]
+z = lambda s: d[s][A.THOMAS_KONTROL]["rotation_euler"][2]
+print(json.dumps({"eksik": eksik, "sinir_disi": sinir_disi, "acik": [y("C"), y("D"), y("kahkaha")], "kapali": [y("X"), y("A")],
+                  "buzuk_x": x("F"), "gul": [z("gulumse"), y("gulumse"), z("sirit"), z("kahkaha")],
+                  "surgu_hep": all(set(v) >= set(A.THOMAS_SURGU.values()) | {A.THOMAS_KONTROL} for v in d.values())}))`);
+  kontrol("her sekil (X dahil) icin Thomas kontrol degeri var", r.eksik.length === 0, r.eksik.join(" "));
+  kontrol("degerler olculen sinirlarin icinde (iskeletin LIMIT_LOCATION'i)", r.sinir_disi.length === 0, r.sinir_disi.join(" "));
+  kontrol("acik sekiller (C, D, kahkaha) agzi acar; X ve A kapali",
+          r.acik.every((v) => v <= -0.1) && r.kapali.every((v) => v >= 0), JSON.stringify(r.acik) + " / " + JSON.stringify(r.kapali));
+  kontrol("F (U) buzuk: kontrol en solda", Math.abs(r.buzuk_x + 0.1648) < 1e-9, String(r.buzuk_x));
+  kontrol("gulumse/sirit/kahkaha koseleri yukari (Z donusu eksi); gulumse azicik acik (kapaliyken gorunmuyordu)",
+          r.gul[0] < 0 && r.gul[1] < 0 && r.gul[2] < 0 && r.gul[3] < 0, JSON.stringify(r.gul));
+  kontrol("her sekilde butun kontroller yaziliyor (onceki sekilden deger kalmasin)", r.surgu_hep);
+  const tg = readFileSync(join(ARAC, "thomas_goz.py"), "utf8");
+  const bf = readFileSync(join(ARAC, "blender_film.py"), "utf8");
+  kontrol("disler ve dil yalniz agiz acikken cizilir (1. bolumun goz planlari degismez)",
+          /cizilen = CIZILEN \| \(AGIZ_CIZILEN if agiz_c else set\(\)\)/.test(tg));
+  kontrol("Thomas planlarinda doku agzi gizli (yuzun onunde asili kalmasin)", /s_ = "X" if \(f \+ 1\) in t_kare else/.test(bf));
 }
 
 console.log("\n=== 6. ACMADAN HICBIR SEY YOK ===");

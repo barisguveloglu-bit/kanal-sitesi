@@ -70,7 +70,40 @@ gösterildi). "Çalışmadı" yazan satırlar da ölçüm — bir daha denenmesi
 | kaşlar | `Eyebrow_control*`, `L/R.Eyebrow_*` | kaş yüksekliği, bükme, germe | kullanıcı yalnız göz istedi — kullanılmıyor |
 
 Kullanılmayanlar (kullanıcının kararı): yanak kızarıklığı (`blush`), kirpik
-(`eye_lashes`), kan lekesi, ağız şekilleri.
+(`eye_lashes`), kan lekesi. **Ağız artık kullanılıyor** (aşağıda, 2026-11-02).
+
+## Ağız (ölçüldü, 2026-11-02)
+
+Kullanıcı: *"Thomas Rig Legacy kullan, onda ağız da var."* İskeletin ağzı
+3B: kafa örgüsünde şekil anahtarları (`Jaw`, `SmoothMouth`, `SquareMouth`,
+`RoundMouth`, `square_round`…), ayrı `Top_teeth` / `Bottom_teeth` (`TeethGap`
+şekil anahtarıyla) ve `Tongue`. Göz gibi `Full rigged face = 1` ister.
+Ölçüm sahnesi: `scratchpad/thomas_agiz/kilavuz.py` (16 + 3×12 çizim, Ömer,
+Barış, Zisa skinleri; kullanıcıya gösterildi).
+
+| kontrol | sınır | ne yapar (ölçülen) |
+|---|---|---|
+| `iUI_MouthController` konum **y** | −0,2448 … +0,0848 | eksi = ağız açılır (−0,12 orta, alt dişler; −0,24 ardına kadar, dişler ve dil); artı = kapalı |
+| `iUI_MouthController` konum **x** | ±0,1648 | eksi = küçük yuvarlak "o" (büzük), artı = ince geniş ağız |
+| `iUI_MouthController` dönüş **Z** | — | eksi = gülümseme (köşeler yukarı), artı = somurtma. **X ve Y dönüşü etkisiz** (denendi) |
+| `iUI_RoundMouth` y | 0 … 0,105 | açık ağız yuvarlak dikdörtgen (O); kapalıyken görünmez |
+| `iUI_SmoothMouth` y | 0 … 0,105 | açık ağız yumuşak mercek biçimi |
+| `iUI_SquarreMouth` y | 0 … 0,105 | açık ağız köşeli; kapalıyken görünmez |
+| `iUI_TeethGap` y | 0 … 0,105 | iki ön diş arası açılır |
+
+Sürücüler basit ifade (`abs(var)*10`) — betik izni olmadan çalışıyor.
+Dişler ve dil `noface` sürücüsüyle gizlenip gösteriliyor; film yalnız ağız
+açıkken (aktörde `"agiz"`) onları çizer, 1. bölümün göz planları değişmez.
+
+**Ağız şekilleri → kontroller** (`arac/agiz.py` `THOMAS_AGIZ`, üç skinde
+çizildi): X kapalı · A (M/B/P) y +0,06 · B x 0,07 y −0,05 · C y −0,12 ·
+D y −0,2448 · E (O) x −0,07 y −0,14 + yuvarlak 0,105 · F (U) x −0,1648 y −0,08 ·
+G (F/V) x 0,05 y −0,04 + kare 0,06 · H (L) y −0,15 + yumuşak 0,105 ·
+gülümse x 0,04 y −0,035 Z −0,6 (kapalı ağızla gülümseme **görünmüyordu**,
+azıcık aralık) · sırıt x 0,12 y −0,08 Z −0,6 · kahkaha x 0,08 y −0,22 Z −0,5.
+Şekil kareye göre **anında** değişir (anahtarlar CONSTANT; göz anahtarları
+yumuşak kalır). Thomas planlarında bizim kafa gizli olduğundan doku ağzı da
+gizlenir.
 
 ## İlk önizleme
 

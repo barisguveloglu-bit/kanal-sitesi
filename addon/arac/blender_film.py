@@ -1678,10 +1678,16 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
             sc.collection.objects.link(ob)
             ob.parent = kemik_nesne[ad]["head"]
             agiz_nesne[ad][sekil] = ob
-        # gorunurluk: her sekil kendi karelerinde (mantiksal anahtar = aninda)
+        # gorunurluk: her sekil kendi karelerinde (mantiksal anahtar = aninda).
+        # Thomas kafasinin planlarinda o kafanin kendi 3B agzi konusur; bizim
+        # kafa gizli, doku agzi da gizli kalmali (yoksa yuzun onunde asili kalir)
+        t_plan = thomas_goz.plan(senaryo, harita, {k: v.v for k, v in aktorler.items()}).get(ad, {})
+        t_kare = set()
+        for a0, b0 in t_plan.get("araliklar", []):
+            t_kare.update(range(a0, b0 + 1))
         onceki_s = None
         for f in range(len(kam_iz)):
-            s_ = AGZ.sekil_karede(ciz, harita[f])
+            s_ = "X" if (f + 1) in t_kare else AGZ.sekil_karede(ciz, harita[f])
             if s_ != onceki_s:
                 for sekil, ob in agiz_nesne[ad].items():
                     ob.hide_render = sekil != s_
@@ -2067,7 +2073,13 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
     kar_kur(bpy, senaryo, harita)
 
     # ---- Thomas gozleri: goz ayarli aktorler, goz="thomas" planlarda (REFERANS_THOMAS_RIG.md) ----
-    thomas_goz.kur(bpy, senaryo, harita, aktorler, kemik_nesne, kare_bul, B.yol)
+    def _agiz_c(ad):
+        a_ = aktorler[ad]
+        if not a_.v.get("agiz", senaryo.get("agiz", False)):
+            return None
+        c_ = AGZ.agiz_cizelgesi(senaryo.get("olaylar", []), ad, fps, yazi_suresi)
+        return c_ if any(s_ != "X" for _t, s_ in c_) else None
+    thomas_goz.kur(bpy, senaryo, harita, aktorler, kemik_nesne, kare_bul, B.yol, agiz_cizelgesi=_agiz_c)
 
     if senaryo.get("mekan") == "oda":
         oda_kur(bpy, senaryo, doku_malzemesi, harita, fps, kam_iz, aktor_parcalari, kemik_nesne,

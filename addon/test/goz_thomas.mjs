@@ -133,7 +133,7 @@ const tg = readFileSync(ARAC + "thomas_goz.py", "utf8");
 const yuz = tg.slice(tg.indexOf("def _yuz_yonu"), tg.indexOf("def kur("));
 kontrol("9. Mojang dokusu yok, KAYNAKLAR'da satir var, film kur()'u cagiriyor, yuz yonu normalden degil",
         !/Steve-base\.png|thomas_rig_legacy\.blend/i.test(izli) && /\| Thomas Rig Legacy[^|]*\| BlueEvilGFX/.test(kaynaklar) &&
-        /thomas_goz\.kur\(bpy, senaryo, harita, aktorler, kemik_nesne, kare_bul, B\.yol\)/.test(film) &&
+        /thomas_goz\.kur\(bpy, senaryo, harita, aktorler, kemik_nesne, kare_bul, B\.yol(, agiz_cizelgesi=_agiz_c)?\)/.test(film) &&
         yuz.includes("p.center - merkez") && !/return p\.normal/.test(yuz), "");
 
 const mv = r.mavi;

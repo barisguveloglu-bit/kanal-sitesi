@@ -941,6 +941,10 @@ yapmaya başla; 2. bölümün Part 2'sinde bu sisteme geçelim"* dedi.
   hafif öne/dışa kıvrık, sivrilen) ya da **keçi boynuzu** (geriye ve aşağı,
   kulağın çevresinden dolanan); simetrik ikinci boynuz; koyu kırmızı ya da
   siyah; kafa kemiğine bağlı.
+- **Thomas Rig Legacy'nin ağzı** (kullanıcı, 2026-11-02: *"Thomas Rig Legacy.
+  Kullan, onda ağız da"*): Thomas kafasının kullanıldığı planlarda iskeletin
+  kendi 3B ağzı konuşur (dişler, dil); öbür planlarda doku ağzı. Ölçüm:
+  `REFERANS_THOMAS_RIG.md` "Ağız".
 - Part 1 bu sistem olmadan çiziliyor (kullanıcının sözü Part 2'den).
 - Açık (sorulacak): boynuz kimde ve hangi tür; hangi karakterler ağızla konuşur;
   seslendirme kaydı olacak mı (dudak senkronu ses kaydından mı, altyazı

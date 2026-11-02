@@ -192,6 +192,46 @@ def sekil_karede(cizelge, t):
     return s
 
 
+# ---------------- Thomas Rig Legacy'nin 3B agzi ----------------
+# Kullanici (2026-11-02): "Thomas Rig Legacy kullan, onda agiz da var."
+# Thomas kafasinin kullanildigi planlarda (goz: "thomas") agiz iskeletin
+# kendi agzidir (kafa orgusunde sekil anahtarlari, ust/alt dis, dil).
+# Kontroller olculdu (REFERANS_THOMAS_RIG.md "Agiz"): iUI_MouthController
+# konumu x -0,1648..0,1648 (eksi buzuk "o", arti genis), y -0,2448..0,0848
+# (eksi acik, arti kapali); Z donusu eksi gulumseme, arti somurtma; dort
+# surgu y 0..0,105 (yuvarlak, yumusak, kare, dis araligi).
+THOMAS_KONTROL = "iUI_MouthController"
+THOMAS_SURGU = {"yuvarlak": "iUI_RoundMouth", "yumusak": "iUI_SmoothMouth",
+                "kare": "iUI_SquarreMouth", "dis": "iUI_TeethGap"}
+THOMAS_AGIZ = {
+    "X": {},
+    "A": {"konum": (0.0, 0.06)},
+    "B": {"konum": (0.07, -0.05)},
+    "C": {"konum": (0.0, -0.12)},
+    "D": {"konum": (0.0, -0.2448)},
+    "E": {"konum": (-0.07, -0.14), "yuvarlak": 0.105},
+    "F": {"konum": (-0.1648, -0.08)},
+    "G": {"konum": (0.05, -0.04), "kare": 0.06},
+    "H": {"konum": (0.0, -0.15), "yumusak": 0.105},
+    # kapali gulumseme gorunmuyordu (olculdu): agiz cok az aralik
+    "gulumse": {"konum": (0.04, -0.035), "don": -0.6},
+    "sirit": {"konum": (0.12, -0.08), "don": -0.6},
+    "kahkaha": {"konum": (0.08, -0.22), "don": -0.5},
+}
+THOMAS_SINIR = {"x": (-0.1648, 0.1648), "y": (-0.2448, 0.0848), "surgu": (0.0, 0.105)}
+
+
+def thomas_degerleri(sekil):
+    """{kemik: {"location": (x, y, z), "rotation_euler": (x, y, z)}} -- bir
+    sekil icin Thomas iskeletinin agiz kontrolleri (sinirlar icinde)."""
+    a = THOMAS_AGIZ[sekil]
+    x, y = a.get("konum", (0.0, 0.0))
+    out = {THOMAS_KONTROL: {"location": (x, y, 0.0), "rotation_euler": (0.0, 0.0, a.get("don", 0.0))}}
+    for ad, kem in THOMAS_SURGU.items():
+        out[kem] = {"location": (0.0, a.get(ad, 0.0), 0.0)}
+    return out
+
+
 # ---------------- hucre cizimi ----------------
 def _koyu(c, k):
     return tuple(int(max(0, min(255, v * k))) for v in c[:3])
