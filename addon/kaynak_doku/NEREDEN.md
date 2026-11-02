@@ -390,3 +390,14 @@ kullanıyor.
 |---|---|---|
 | `pipos.png` | Pipos, Barış'ın akıl hocası (64×64, geniş kol) | `ace916170b14a953f954880b3a06336d` |
 | `cocukluk_arkadasi.png` | Barış'ın çocukluk arkadaşı (64×64, geniş kol) | `aad31c91f2c7e7485e5cfda3e4d94142` |
+| `baris_iyilesmis.png` | Barış, yaraları iyileşmiş (64×64, geniş kol; 2. bölüm) | `2725b595cd0ddae055a6232214b31261` |
+| `cadi.png` | Barış'ı kurtaran cadı (64×64, geniş kol; kullanıcının kendi yaptığı, 2026-11-02) | `20430b0b19c70ec8ab7caf9b1ab8a72d` |
+
+`baris_iyilesmis.png` (2026-11-02): kullanıcı *"yaraları iyileştiği için yaraları uygun
+şekilde dolduracağız"* dedi ve iyileşmiş Barış'ın dört ekran görüntüsünü (ön, arka, iki yan)
+referans verdi. Dosya o görüntülerden **yüz yüz okundu**: görüntülerin renkleri skinin
+paletiyle bire bir (gölgelendirme yok), her hücrenin ortası palete oturtuldu (en büyük
+sapma 2,2). Görüntülerde görünmeyen yüzler (üst, alt, iç yanlar) `Simsek_Skin/uzak_akraba.png`'den,
+kırmızısız ve sargısız (açık gri bantlar); iç yanlar ön yüzün şeritleriyle. Başın altı gri
+(ön ve arka görüntüde çenenin altındaki bant). Standart açılımla dört yandan çizilip
+referansla karşılaştırıldı. Eski skin (yaralı) silinmedi: 1. bölüm onunla çizildi.

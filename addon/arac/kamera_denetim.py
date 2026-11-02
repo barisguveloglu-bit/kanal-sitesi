@@ -33,6 +33,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import blender_film as F  # noqa: E402
 import bedrock_onizleme as B  # noqa: E402
+import mekan as MK  # noqa: E402
 
 SENSOR = 36.0                 # Blender kamerasinin varsayilan sensor genisligi (mm)
 EN_BOY = 16 / 9
@@ -61,7 +62,10 @@ def _isin_kutu(o, d, mn, mx):
 
 def agac_kutulari(sen):
     out = []
-    if sen.get("mekan") == "oda":
+    # oda ve blok mekanda orman agaci yok (blok mekanda agaclar blok:
+    # mekan.py duvar ve gorus olcer; eskisi "zemin" ayari olmadan 6 hayali
+    # agac uretirdi)
+    if sen.get("mekan") == "oda" or MK.yukle(sen) is not None:
         return out
     for ax, ay, _tur, boy in F.agac_yerleri(sen):
         out.append(("govde", (ax, ay, 0), (ax + 1, ay + 1, boy)))
@@ -118,6 +122,7 @@ def denetle(sen):
     atislar = sorted(sen.get("kamera", []), key=lambda c: c["t"])
     agac = agac_kutulari(sen)
     oda = sen.get("oda") if sen.get("mekan") == "oda" else None
+    mk = MK.yukle(sen)                    # blok mekan (mekan.py) ya da None
     ck = sen.get("zemin", {}).get("cukur")
     serbest = sen.get("kural180_serbest", [])
     sorun = []
@@ -147,6 +152,10 @@ def denetle(sen):
         taban = 0.0
         if ck and t >= ck.get("t", 0) and math.hypot(kp[0] - ck["x"], kp[1] - ck["y"]) <= ck["r"]:
             taban = -ck["derin"]
+        if mk is not None:
+            taban = mk.yuzey(kp[0], kp[1], ust=kp[2])
+            if mk.duvarda_mi(kp):
+                ekle(f, "DUVAR", "kamera bir blogun icinde %s" % [round(x, 2) for x in kp])
         if kp[2] < taban + 0.12:
             ekle(f, "ZEMIN", "kamera z=%.2f" % kp[2])
         if oda and not (-oda["genis"] / 2 < kp[0] < oda["genis"] / 2 and -oda["derin"] / 2 < kp[1] < oda["derin"] / 2
@@ -217,6 +226,8 @@ def denetle(sen):
                 if _isin_kutu(kp, v, mn, mx):
                     ekle(f, "KADRAJ", "%s'i agac %s kapatiyor" % (ad, tur))
                     break
+            if mk is not None and not mk.gorus_acik(kp, hedef):
+                ekle(f, "KADRAJ", "%s'i bir blok (duvar, yaprak) kapatiyor" % ad)
             # 8. ortme: gorus cizgisi baska aktorun govdesinden geciyor mu
             for ad2, a2 in ak.items():
                 r2 = a2.kayit[min(f, len(a2.kayit) - 1)]

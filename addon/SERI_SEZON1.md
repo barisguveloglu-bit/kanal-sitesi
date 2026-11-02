@@ -242,6 +242,11 @@ dedi. Sıra: 1. bölümün Part 1'i tam kalite çizilir, ses/müzik eklenir, kul
 teslim edilir ve **orada beklenir**. Onay gelmeden 2. bölümün senaryo JSON'u,
 çekimi ya da çizimi başlamaz.
 
+**PART 1 ONAYLANDI (kullanıcı, 2026-11-01):** Part 1'in dokuz sahnesi
+("4 part kesimi" tablosu) için *"tamam, onayımı veriyorum"*. Part 1'in
+senaryo dosyaları yazılabilir. Part 2–4'ün sahneleri için ayrıca onay
+istenir.
+
 Kullanıcı: *"ilk taslak, sonradan değişebilir."* 1. bölümün devamı;
 kötü **Ice-man / Deney 081** (1. bölümün sonunda gözlerin "getirin"
 dediği). Silahı zaten kayıtlı: Ay Işığı Asası.
@@ -879,16 +884,31 @@ hedef ~57,5).
   `kaynak_doku/film_aktor/cadi.png`, 64×64 RGBA, geniş kol, md5
   `20430b0b19c70ec8ab7caf9b1ab8a72d`. Mor saç, kırmızı göz, lacivert elbise,
   sarı-kahve çizgili kollar, arkada kahverengi pelerin. Yalnız film; aktör
-  listesine girmedi (Pipos'la aynı sebep). Kaynağı soruldu: kullanıcının kendi
-  yaptığı skin değilse izin durumu belli olana kadar depoya girmez.
+  listesine girmedi (Pipos'la aynı sebep). **Kullanıcının kendi yaptığı skin**
+  (2026-11-02: *"cadı'yı ben yaptım"*).
 - **Kapıyı tıklatıp Ömer'e haberi getiren:** gri sur askeri
   (`kaynak_doku/aktor/sur_askeri_gri.png`; kullanıcı: *"gri olsun"*).
 - **Günün saatleri** (Claude önerdi, kullanıcı: *"tamam"*): cadının gelişi ve
   Satanachia **gece** (1. bölüm ay ışığında bitiyor) → kulübede uyanış
   **sabah** → Ömer'in odası ve Zisa'nın evi **öğleye yakın** (baskın öğle
   güneşinde).
-- **Geçit:** Minecraft'taki gibi **obsidyen çerçeveli mor geçit**. Yeri henüz
-  söylenmedi.
+- **Geçit:** Minecraft'taki gibi **obsidyen çerçeveli mor geçit**. Yeri: ilk
+  önizlemede kulübenin 15 blok batısındaydı; kullanıcı *"birazcık daha uzak
+  olsun ama birazcık"* dedi, 20 bloğa alındı (`arac/kulube.py` `GECIT`).
+- **Cadı geçidi açarken görünür,** Barış'ın gözünden DEĞİL: normal kamerayla,
+  kendi skiniyle (kullanıcı: *"cadı görünecek ama Barış'ın gözünden değil,
+  cadının skini olsun"*). Barış'ın gözünden yalnız el lambalı geliş (2. sahne).
+- **Kulübeden iniş:** Barış verandadan **atlar** (kullanıcı: *"atlasın"*);
+  merdiven eklenmedi. Film aracına zıplama/düşme yazılacak.
+- **Savaş odası kalenin içinde** (kullanıcı: *"evet"*).
+- **Barış'ın yaraları iyileşiyor** (kullanıcı, 2026-11-02): *"Barış skin'ini düzenleyelim,
+  çünkü yaraları iyileştiği için yaraları uygun şekilde dolduracağız"*; referans olarak
+  iyileşmiş hâlin dört ekran görüntüsünü verdi. Skin: `kaynak_doku/film_aktor/baris_iyilesmis.png`
+  (md5 `2725b595cd0ddae055a6232214b31261`): kan, yara ve sargılar yok; iki göz açık mavi,
+  üstlerinde camgöbeği kaş; göğüste camgöbeği X ve elmas; sağ kolun önünde ve dışında, sol
+  kolun önünde ve arkasında camgöbeği çizgiler. Yaralı skin (`uzak_akraba.png`) 1. bölümün;
+  iyileşmiş skin **kulübede uyandığı andan itibaren** (kullanıcı, 2026-11-02: *"direk
+  uyandığında öyle olsun"*). Baygın yattığı orman ve cadının gelişi yaralı skinle.
 - **Part 1'in sonu:** Barış Zisa'nın evinin **içinde** (kullanıcı: *"ev içi"*).
 
 **Hazır paketler — hangi sahnede ne.** Aşağıda adı geçen her Pooka efekti

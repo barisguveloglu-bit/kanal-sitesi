@@ -37,6 +37,17 @@ BAS_W = 18.0            # bas yayi: govdeden hizli (once bas doner)
 BAS_YAW, BAS_PITCH = 55.0, 25.0   # bas donus sinirlari (derece)
 BACAK_PX = 12.0         # Minecraft bacak boyu (piksel)
 BACAK_DERIN = 2.0       # bacak kutusunun yari derinligi (4 px / 2)
+# ---- yer cekimi ve zipla (blok mekan, v7.99.16): Minecraft'in sayilari ----
+# Oyun her tikte (20/sn) once konumu hiz kadar ilerletir, sonra hizi
+# (v - 0,08) x 0,98 yapar; ekran tikler arasini dogrusal ara degerle cizer.
+# Bu sira ziplamanin tepesini 1,2522 blok yapiyor; surekli zamanli yaklasim
+# (ilk yazis) 0,89 veriyordu, o yuzden hesap tik tik.
+TIK = 20                # tik/sn
+YERCEKIMI_TIK = 0.08    # blok/tik^2
+SURTUNME_TIK = 0.98     # dusey hiz carpani, tik basina
+ZIPLA_TIK = 0.42        # blok/tik: ziplamanin ilk dusey hizi
+INIS_ESIK = 4.0         # blok/sn: bundan hizli inen diz cokertir (yarim bloktan dusus ~5,5)
+INIS_DIZ = 38.0         # derece: en sert iniste uylugun one donusu
 
 
 def yumusak(u):
@@ -109,6 +120,56 @@ def adim_cokmesi(mesafe, hizli, olcek=1.0):
     th = math.radians(abs(bacak_acisi(mesafe, hizli, olcek)))
     kose = BACAK_PX * (1.0 - math.cos(th)) - BACAK_DERIN * math.sin(th)
     return -(kose / 16.0) * olcek
+
+
+def _tikler(z0, v0, n):
+    """n tik sonra (konum, hiz) -- blok, blok/tik."""
+    p, v = z0, v0
+    for _ in range(n):
+        p += v
+        v = (v - YERCEKIMI_TIK) * SURTUNME_TIK
+    return p, v
+
+
+def yorunge(z0, v0, u):
+    """Havaya kalkistan (ziplama v0 = ZIPLA_TIK, kenardan dusme v0 = 0)
+    u saniye sonra (z, dusey hiz blok/sn). Tikler arasi dogrusal."""
+    n = int(max(0.0, u) * TIK)
+    kesir = max(0.0, u) * TIK - n
+    p, v = _tikler(z0, v0, n)
+    return p + v * kesir, v * TIK
+
+
+def ucus_suresi(z0, zh, v0):
+    """z0'dan v0 ile kalkan aktor inerken zh'ye kac saniyede deger
+    (yorunge ile ayni hesap). Zipla hedefe inecek yatay hizi buradan."""
+    p, v = z0, v0
+    for k in range(400):
+        q = p + v
+        if v < 0 and q <= zh:
+            return (k + (p - zh) / (p - q)) / TIK
+        p, v = q, (v - YERCEKIMI_TIK) * SURTUNME_TIK
+    return 400.0 / TIK
+
+
+def inis_cokmesi(u, guc=1.0, olcek=1.0, diz=True):
+    """Iniste diz cokmesi. u: inisten beri sn; guc 0..1 (inis hizindan).
+    Hizli cokus (0,07 sn), yumusak kalkis (~0,45 sn). Uyluk one theta,
+    baldir geri 2 theta doner: ayak kalcanin tam altinda kalir, kalca
+    12(1 - cos theta) px iner -- govde o kadar alcalir, ayak zeminde kalir.
+    Dizsiz modelde bacak bukulemez: yalniz bel ve kollar (alcalma yok,
+    yoksa ayak zemine girerdi). Donus: (alcalma blok, {kemik: [x, y, z]})."""
+    if u < 0 or u > 0.6:
+        return 0.0, {}
+    a = (u / 0.07) if u < 0.07 else math.exp(-(u - 0.07) / 0.13)
+    th = INIS_DIZ * guc * a
+    ek = {"waist": [0.55 * th, 0.0, 0.0], "rightArm": [-0.45 * th, 0.0, 0.0], "leftArm": [-0.45 * th, 0.0, 0.0]}
+    if not diz:
+        return 0.0, ek
+    for b in ("rightLeg", "leftLeg"):
+        ek[b] = [-th, 0.0, 0.0]
+        ek[b + "Alt"] = [2.0 * th, 0.0, 0.0]
+    return -(BACAK_PX * (1.0 - math.cos(math.radians(th))) / 16.0) * olcek, ek
 
 
 def bas_takibi(poz, aci, z, hedef, hedef_z):

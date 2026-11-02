@@ -49,10 +49,11 @@ her blok "başka sürümle çizilmiş" uyarısı verirdi). Eski ve yeni kod
   - `topuz` (Ömer, v7.99.15): Epic Fight baltasından **türetilmiş** (`arac/wom_cevir.py` `TURETILMIS`): `axe_auto1/2`, koşu `axe_dash`, hava `axe_airslash`, bekleme duruşu Epic Fight'ın normal duruşu. Vuruşlar, süreler, hasar ve hamle baltayla aynı (hız demir balta, 0,9). Silah elde kaymıyor; çarpışma düzeltmesi önce kolda, kalanı bilekte, ikisi de izlemeli.
   - `balta` (v7.99.15): Epic Fight'ın tek elli baltası; eşyası yok, yalnız topuzun tabanı.
   - ruine, longsword, satsujin, evil_tachi, nova, herrscher, solar.
+- **Zıplama ve düşme (v7.99.16, yalnız blok mekânda):** `zipla: [x, y]` Minecraft'ın tik hesabıyla (0,42 blok/tik, yer çekimi 0,08, tik başına %2 sürtünme; tepe 1,2522 blok) hedefe tam iner; kenardan yürüyen aktör de aynı yer çekimiyle düşer. Hızlı inişte diz çöker (uyluk θ, baldır 2θ: ayak kalçanın altında kalır), iniş sesi. Basamağa çıkış Minecraft gibi 0,6 blok. Kilit `test/mekan.mjs`.
 - Ortam: `yer_vurus` (yumruk yere iner, toprak sıçrar, önüne 0,5 blokluk bir blok kopar) → `parca_al` (iki elle; el ile blok arası ≤ 0,15 blok denetleniyor) → `parca_at` (balistik uçuş 0,15–1,5 sn, hedefin önünde kırılır).
 - Yok:
   - büyü ya da mermi saldırısı, kalkan, bir aktörü tutup fırlatma, aynı anda birden çok kişiye vuruş;
-  - yol bulma, engelden dolaşma, zıplama, tırmanma, uçma;
+  - yol bulma, engelden dolaşma, tırmanma, uçma; duvar çarpışması (blok mekânda aktör zemine basar ama duvarın içinden geçebilir: yolu senaryo seçer);
   - ağaç devirme, blok kırma, topraktan başka blok türü;
   - **Karanlık Tırpan ve Osmanlı Topuzu dışında çizilen silah modeli.** Ay Işığı Asası'nın modeli eklentide var ama filme bağlı değil; başka setle dövüşen aktör eli boş savurur.
 
@@ -90,6 +91,7 @@ her blok "başka sürümle çizilmiş" uyarısı verirdi). Eski ve yeni kod
 - Hazır:
   - 10 kalıp (`genis`, `yan`, `omuz`, `yakin`, `yakin_on`, `ust`, `dusuk`, `yorunge`, `takip`, POV için `goz`) ve `elle` (nokta, `kaydir`);
   - ayarlar: `gecis`, `lens`, `yatik`, `odak` (alan derinliği), `taraf`, `kam_dz`/`bak_dz`;
+  - kamera denetimi blok mekânda (v7.99.16): kamera bir bloğun içindeyse `DUVAR`; duvar, yaprak ve sarkan sarmaşık konuyu kapatıyorsa `KADRAJ`. Orman ağaçları yalnız ormanda sayılır.
   - 180° kilidi ve yumuşak takip kendiliğinden.
 - Yok:
   - çekim içinde zoom (lens çekim boyunca sabit);
@@ -113,12 +115,15 @@ her blok "başka sürümle çizilmiş" uyarısı verirdi). Eski ve yeni kod
 - Hazır:
   - **orman:** çimen, açıklığın dışında ağaçlar, çukur, gökyüzü (Blender 5.2'de fiilen `MULTIPLE_SCATTERING`, aşağıda "2. bölümden önce açık"), güneş ve ay; `isik` anahtarlarıyla sabahtan geceye geçiş;
   - **oda:** deepslate oda, açılan kapı, bembeyaz dış, ışık hüzmesi, sis, toz, iki göz, kötünün karanlığı. Kötü yerinden oynayamaz.
-- **Kurulu ama film aracına bağlı değil (v7.99.16):**
-  - **bataklık ve cadının kulübesi** (`arac/kulube.py`, önizleme `arac/kulube_onizle.py`, kilit `test/kulube.mjs`): ölçülen kulübe + kırmızı yatak ve kitaplık, Minecraft'ın bataklık renkleri ve bataklık meşesi, havuzlar, nilüfer, sarmaşık, mor geçit (yeri Claude'un önerisi);
-  - **hanedan** (`arac/hanedan.py`, `hanedan_onizle.py`).
+- **Blok mekânlar (v7.99.16, senaryoda `"mekan": "bataklik"` ya da `"hanedan"`; `arac/mekan.py`, kilit `test/mekan.mjs`):**
+  - **bataklık ve cadının kulübesi** (`arac/kulube.py`, önizleme `arac/kulube_onizle.py`, kilit `test/kulube.mjs`): ölçülen kulübe + kırmızı yatak ve kitaplık, Minecraft'ın bataklık renkleri ve bataklık meşesi, havuzlar, nilüfer, sarmaşık, mor geçit;
+  - **hanedan** (`arac/hanedan.py`, `hanedan_onizle.py`). Köylüler filmde henüz çizilmiyor (yalnız önizlemede).
+  - Aktör bloklara basar (yatak 9/16, basamak yarım yarım, kulübenin içindeki aktör çatıya basmaz); başlangıç yüksekliği `"kat"`. Senaryo eksenleri Blender'ın: Minecraft (x, z) → senaryo [x, -z].
+  - Fener, meşale ve geçit doku rengiyle ışır (`mekan_kur`'un kendi malzemesi; `doku_malzemesi`'ne dokunulmadı).
+  - Ufuk ortası boş: bataklıkta kare çerçeve, hanedanda surdan başlayan halka.
   Blok kurucu (`arac/blok_kur.py`) bu iş için: biyom boyası, blok başına boya, ova dışında çimen yan yüzüne boyalı örtü, Nether geçidi, şerit dokularda (su, geçit) yalnız ilk kare.
 - Yok:
-  - savaş odası, Nether, zihin ortamı, karlı arazi; bataklık ve hanedanın filme bağlanması;
+  - savaş odası, Nether, zihin ortamı, karlı arazi;
   - hava durumu;
   - el lambası, meşale ve ateş ışığı.
 
@@ -169,6 +174,7 @@ her blok "başka sürümle çizilmiş" uyarısı verirdi). Eski ve yeni kod
 - Form rakibin içine giriyordu.
 - Dövüş v2'de beş kadraj hatası ve çizimi ilk karede çökerten `KeyError`.
 - Zisa'nın ince kollu skini 4 px kollu modele giydiriliyordu: kolun boş dış sütunu kenarda kırık bir şerit olarak görünüyordu (kilit: `ince_kol.mjs`).
+- Bataklıkta ilk film denemesi (v7.99.16, kilit: `mekan.mjs`): kamera sarkan sarmaşıkların arasına düştü, kare kapandı, denetim "0 sorun" dedi (sarmaşık görüşü kesen sayılmıyordu; çekimin konusu da yazılmamıştı). İlk zıplama 0,89 blok çıktı (sürekli zamanlı hesap; Minecraft 1,25) ve hedefi 0,26 blok aştı (yatay hareket bir kare erken başlıyordu).
 - Bataklık önizlemesi (v7.99.16, kilit: `kulube.mjs`): ufuk düzlemi havuzların suyunu örtüyordu (hanedanda da tarla sularını); su dokusu 32 karelik şerit hâlinde bir bloğa sıkışıyordu; çimen yan dokusundaki hazır ova yeşili havuz kenarlarında parlak çizgi oluyordu, örtü konunca kuzey yüzleri "ön" sayıldığı için örtüsüz kaldı; kapının önüne sarmaşık sarkıyordu.
 
 **Kullanıcının izlemesi**

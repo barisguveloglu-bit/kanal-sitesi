@@ -171,8 +171,9 @@ def ses_kur(senaryo, katmanlar=False):
             ef.ekle(oku("impactMining_000.ogg"), t, 1.0)
             ef.ekle(oku("impactSoft_heavy_000.ogg"), t, 0.5)
         elif e["tur"] == "dusus":
+            # "inis": blok mekanda ziplayip ya da kenardan dusup ayakla inis (v7.99.16)
             ef.ekle(oku("impactSoft_heavy_001.ogg" if e.get("ses") == "parca_yere" else "impactSoft_heavy_000.ogg"),
-                    t, 0.6 if e.get("ses") == "parca_yere" else 1.0)
+                    t, {"parca_yere": 0.6, "inis": 0.7}.get(e.get("ses"), 1.0))
         elif e["tur"] == "firlat":
             ef.ekle(oku("cloth2.ogg"), t, 0.9, 0.7)
     # ---- donma anlari: boguk vurgu ----

@@ -59,6 +59,7 @@ import diz_model  # noqa: E402
 import form_model  # noqa: E402
 import thomas_goz  # noqa: E402
 import hareket as H  # noqa: E402
+import mekan as MK  # noqa: E402
 
 KOK = B.KOK
 ANIM_WOM = "Simsek_Kol_Kaynak/animations/wom_kilic.animation.json"
@@ -238,6 +239,12 @@ class Aktor:
         self.taban_z = None if v.get("z") is None else float(v["z"])
         self.z = self.taban_z or 0.0
         self.zemin = None        # izlenen zemin (yumusatilmis)
+        # blok mekan (mekan.py): baslangic yuksekligi ipucu (kulubenin icinde
+        # baslayan aktor catiya degil tabana bassin), dusey hiz, zipla, inisler
+        self.kat = float(v.get("kat", 0.0))
+        self.havada = None       # {"t0", "z0", "v0"}: kalkis (hareket.yorunge)
+        self.zipla = None        # {"t0", "bas", "hedef", "T"}: havadaki yatay yol
+        self.inisler = []        # [{"bas", "guc"}] iniste diz cokmesi
         self.dusuler = []        # [(t, poz)] vurusla yere dusurulme (zemin denetimi okur)
         self.dikey = 0.0         # hava vurusunun zeminden yuksekligi
         self.gorunur = not v.get("gizli", False)
@@ -307,13 +314,18 @@ def cukur_derinligi(ck, cx, cy):
     return 0.0
 
 
-def zemin_yuksekligi(senaryo, x, y, t, yari=AYAK_YARI):
+def zemin_yuksekligi(senaryo, x, y, t, yari=AYAK_YARI, ust=None):
     """Aktorun bastigi zemin (blok): ayak izinin degdigi bloklarin EN
     YUKSEGI, Minecraft'taki gibi. Cukur `t`'den once kapakli (duz cimen).
     v7.99.14 (kullanici, Part 2: "yavas yavas yuruyup yere yatiyor ya,
     o zaman ucuyormus gibi oluyor"): aktorler hep z = 0'da duruyordu;
     Baris 65. saniyede cukurun ortasindan zemin hizasinda gecti, dovusun
-    basinda (kare 1067-1301) cukurun 0,35 blok ustunde durdu."""
+    basinda (kare 1067-1301) cukurun 0,35 blok ustunde durdu.
+    Blok mekanda (mekan.py, v7.99.16) bloklardan: `ust` aktorun bulundugu
+    yukseklik, ondan en fazla 0,6 blok yukaridaki yuzeylere basilir."""
+    M = MK.yukle(senaryo)
+    if M is not None:
+        return M.zemin(x, y, ust, yari)
     ck = senaryo.get("zemin", {}).get("cukur")
     if not ck or t < ck.get("t", 0.0):
         return 0.0
@@ -516,6 +528,7 @@ def zaman_cizelgesi(senaryo, setler, anims, suz=True):
     # denetimi). Aralik disinda davranis eskisi gibi; araliklar birbirine
     # sizmiyor (test/tek_kare_donus.mjs her araligi ayri olcuyor).
     bak_serbest = senaryo.get("bak_serbest", [])
+    blok = MK.yukle(senaryo) is not None     # blok mekan: yer cekimi ve zipla
     efektler, yazilar, sarsinti = [], [], []
     i = 0
     for f, t in enumerate(harita):
@@ -583,6 +596,25 @@ def zaman_cizelgesi(senaryo, setler, anims, suz=True):
                 for rr in a.tepki:
                     if rr.get("ad") and (o["poz_bitir"] is True or rr["ad"] == o["poz_bitir"]):
                         rr["sure"] = min(rr["sure"], t - rr["bas"] + GECIS)
+            if "zipla" in o:
+                # Minecraft ziplamasi (0,42 blok/tik) ve hedef noktaya inecek
+                # yatay hiz; yalniz blok mekanda (kulubenin verandasindan inis:
+                # kullanici "atlasin"). "guc": dusey hiz carpani.
+                if not blok:
+                    raise ValueError("zipla yalniz blok mekanda (mekan: bataklik/hanedan)")
+                hx, hy = float(o["zipla"][0]), float(o["zipla"][1])
+                z0 = a.zemin if a.zemin is not None else a.kat
+                v0 = H.ZIPLA_TIK * float(o.get("guc", 1.0))
+                zh = zemin_yuksekligi(senaryo, hx, hy, t, ust=z0 + 1.0)
+                T = H.ucus_suresi(z0, zh, v0)
+                # yatay konum kalkistan beri gecen zamana bagli (dusey yorunge
+                # gibi): artimla ilerletilince bir kare once basliyor, hedefi
+                # 0,26 blok asiyordu (olculdu)
+                a.zipla = {"t0": t, "bas": list(a.poz), "hedef": [hx, hy], "T": T}
+                a.havada = {"t0": t, "z0": z0, "v0": v0}
+                a.yuru = None
+                a.yuru_v = 0.0
+                a.hedef_aci = yon_aci(a.poz, (hx, hy))
             if "git" in o:
                 g = o["git"]
                 a.yuru = ({"hedef": g} if isinstance(g, str) else {"nokta": [float(g[0]), float(g[1])]})
@@ -714,6 +746,10 @@ def zaman_cizelgesi(senaryo, setler, anims, suz=True):
                 if yerel >= e["sure"] * e["hiz"]:
                     a.eylem = None
                     a.dikey = 0.0
+            elif a.zipla:
+                u = min(1.0, (t - a.zipla["t0"]) / a.zipla["T"])
+                b0, h0 = a.zipla["bas"], a.zipla["hedef"]
+                a.poz = [b0[0] + (h0[0] - b0[0]) * u, b0[1] + (h0[1] - b0[1]) * u]
             elif a.yuru:
                 hedef = aktorler[a.yuru["hedef"]].poz if "hedef" in a.yuru else a.yuru["nokta"]
                 dur = (VARIS * (a.olcek + aktorler[a.yuru["hedef"]].olcek) / 2) if "hedef" in a.yuru else 0.05
@@ -747,11 +783,33 @@ def zaman_cizelgesi(senaryo, setler, anims, suz=True):
             # zemin: ayagin altindaki en yuksek blok. Basamaga CIKIS aninda
             # (Minecraft'taki gibi; yumusatilinca ayak basamagin icine giriyordu),
             # INIS ZEMIN_SURE ile yumusak (hikaye zamani)
-            hz_ = zemin_yuksekligi(senaryo, a.poz[0], a.poz[1], t)
-            if a.zemin is None or hz_ >= a.zemin:
-                a.zemin = hz_
+            if blok:
+                # Blok mekan: yukari basamaga aninda (Minecraft), asagi YER
+                # CEKIMIYLE (verandadan atlayis, basamaktan inis). Inen hizli
+                # gelirse diz cokmesi ve ses.
+                hz_ = zemin_yuksekligi(senaryo, a.poz[0], a.poz[1], t,
+                                       ust=a.zemin if a.zemin is not None else a.kat)
+                if a.zemin is None:
+                    a.zemin = hz_
+                elif a.havada or hz_ < a.zemin - 1e-6:
+                    if not a.havada:              # kenardan yurudu: bir onceki karede dusmeye basladi
+                        a.havada = {"t0": t - dt, "z0": a.zemin, "v0": 0.0}
+                    yeni, vz = H.yorunge(a.havada["z0"], a.havada["v0"], t - a.havada["t0"])
+                    if vz <= 0 and yeni <= hz_:
+                        if -vz > H.INIS_ESIK:
+                            a.inisler.append({"bas": t, "guc": min(1.0, -vz / 16.0)})
+                            efektler.append({"t": t, "tur": "dusus", "ses": "inis", "nokta": [a.poz[0], a.poz[1], hz_]})
+                        a.zemin, a.havada, a.zipla = hz_, None, None
+                    else:
+                        a.zemin = yeni
+                else:
+                    a.zemin = hz_
             else:
-                a.zemin += (hz_ - a.zemin) * (1.0 - math.exp(-dt / ZEMIN_SURE))
+                hz_ = zemin_yuksekligi(senaryo, a.poz[0], a.poz[1], t)
+                if a.zemin is None or hz_ >= a.zemin:
+                    a.zemin = hz_
+                else:
+                    a.zemin += (hz_ - a.zemin) * (1.0 - math.exp(-dt / ZEMIN_SURE))
             a.z = (a.taban_z if a.taban_z is not None else a.zemin) + a.dikey
             ek_ = {}
             if akici:
@@ -759,6 +817,11 @@ def zaman_cizelgesi(senaryo, setler, anims, suz=True):
                 a.irkilmeler = [r for r in a.irkilmeler if t - r["bas"] <= 0.6]
                 ek_ = {"bas": list(a.bas), "bob": H.adim_cokmesi(a.mesafe, a.hizli, a.olcek),
                        "irk": [dict(r) for r in a.irkilmeler]}
+                a.inisler = [r for r in a.inisler if t - r["bas"] <= 0.6]
+                if a.inisler:
+                    ek_["inis"] = [dict(r) for r in a.inisler]
+                    ek_["bob"] += sum(H.inis_cokmesi(t - r["bas"], r["guc"], a.olcek, bool(a.diz))[0]
+                                      for r in a.inisler)
             a.kayit.append(dict(ek_, **{"t": t, "x": a.poz[0], "y": a.poz[1], "z": a.z, "aci": a.aci,
                             "eylem": dict(a.eylem) if a.eylem and "anim" in a.eylem else None,
                             "tepki": [dict(r) for r in a.tepki], "mesafe": a.mesafe,
@@ -997,6 +1060,10 @@ def kare_ekleri(a, k, katman):
         ek["head"] = [pitch * wt, yaw * wt, 0.0]
     for r in k.get("irk", []):
         for kem, v in H.irkilme(k["t"] - r["bas"], r["guc"], r["yan"]).items():
+            e0 = ek.setdefault(kem, [0.0, 0.0, 0.0])
+            ek[kem] = [e0[i] + v[i] for i in range(3)]
+    for r in k.get("inis", []):
+        for kem, v in H.inis_cokmesi(k["t"] - r["bas"], r["guc"], a.olcek, bool(a.diz))[1].items():
             e0 = ek.setdefault(kem, [0.0, 0.0, 0.0])
             ek[kem] = [e0[i] + v[i] for i in range(3)]
     return ek
@@ -1382,6 +1449,8 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
 
     if senaryo.get("mekan") == "oda":
         gok_kapat(bpy, sc, gunes, ay)
+    elif MK.yukle(senaryo) is not None:
+        mekan_kur(bpy, MK.yukle(senaryo), klasor)
     else:
         # ---- zemin ----
         zemin_kur(bpy, senaryo, doku_malzemesi,
@@ -2056,6 +2125,53 @@ def oda_kur(bpy, senaryo, doku_malzemesi, harita, fps, kam_iz, aktor_parcalari=N
             goz_k.rotation_euler = (0, 0, math.radians(yeni))
             goz_k.keyframe_insert("rotation_euler", frame=max(f1, f0 + 1))
             goz_aci = yeni
+
+
+def mekan_kur(bpy, M, klasor):
+    """Blok mekan (mekan.py): doku basina tek orgu (blok_kur), ortasi bos
+    ufuk. Kendi malzemesi var: fener, mesale ve gecit DOKUNUN rengiyle
+    isir (doku_malzemesi'nin isigi Baris'in mor flasi; ona dokunulmadi,
+    1. bolumun gorunusu degismesin)."""
+    import blok_kur
+    sc = bpy.context.scene
+    malz = {}
+
+    def blok_malz(yol, renk=None, isik=0.0):
+        anahtar = (yol, renk, isik)
+        if anahtar in malz:
+            return malz[anahtar]
+        m = bpy.data.materials.new(os.path.basename(yol))
+        m.use_nodes = True
+        n = m.node_tree
+        bsdf = n.nodes["Principled BSDF"]
+        tex = n.nodes.new("ShaderNodeTexImage")
+        tex.image = bpy.data.images.load(boyali_doku(yol, renk, klasor) if renk else yol)
+        tex.interpolation = "Closest"
+        n.links.new(tex.outputs["Color"], bsdf.inputs["Base Color"])
+        n.links.new(tex.outputs["Alpha"], bsdf.inputs["Alpha"])
+        bsdf.inputs["Roughness"].default_value = 0.95
+        if isik:
+            n.links.new(tex.outputs["Color"], bsdf.inputs["Emission Color"])
+            bsdf.inputs["Emission Strength"].default_value = isik
+        malz[anahtar] = m
+        return m
+
+    var = ({f[:-4] for f in os.listdir(MCPREP_DOKU) if f.endswith(".png")}
+           if MCPREP_DOKU and os.path.isdir(MCPREP_DOKU) else set())
+    dk = blok_kur.Dokular(var, renkler=M.renkler)
+    orguler = blok_kur.orgu(M.bloklar, dk)
+    blok_kur.blender_ekle(bpy, M.ad, orguler, blok_malz, MCPREP_DOKU)
+    if dk.eksik:
+        print("UYARI: dokusu bulunmayan bloklar gri cizildi:", sorted(dk.eksik))
+    ufuk = bpy.data.materials.new("ufuk")
+    ufuk.use_nodes = True
+    ufuk.node_tree.nodes["Principled BSDF"].inputs["Base Color"].default_value = tuple(M.ufuk["renk"]) + (1,)
+    ufuk.node_tree.nodes["Principled BSDF"].inputs["Roughness"].default_value = 1.0
+    k, y = MK.ufuk_ormesi(M.ufuk)
+    me = bpy.data.meshes.new("ufuk")
+    me.from_pydata(k, [], y)
+    me.materials.append(ufuk)
+    sc.collection.objects.link(bpy.data.objects.new("ufuk", me))
 
 
 def boyali_doku(dosya, renk, klasor):

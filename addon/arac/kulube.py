@@ -22,9 +22,9 @@ Gurultu BIZIM (deterministik deger gurultusu), Mojang'in gurultusu degil:
 lekelerin yeri oyundakiyle ayni olmaz, bicimi ayni olur.
 
 CLAUDE'UN ONERISI (kullanici onaylamadi): havuzlarin yeri, agaclarin yeri,
-kapinin onundeki kuru serit ve gecidin yeri. Gecidin bicimi kullanicinin
-(2026-11-01: obsidyen cerceveli mor gecit, Minecraft'taki gibi); yeri
-soyleyene kadar burada kulubenin batisinda, kulubeye bakiyor.
+kapinin onundeki kuru serit. Gecit kullanicinin (2026-11-01): obsidyen
+cerceveli mor gecit, Minecraft'taki gibi; kulubenin batisinda, kulubeye
+bakiyor, ilk onizlemeden "birazcik daha uzak".
 
 Eksenler Minecraft'in: x dogu, y yukari, z guney. Zeminin ustu y = 0
 (cimen bloklari y = -1). Kulubenin kapisi ve verandasi kuzeyde.
@@ -55,7 +55,9 @@ SU_ESIK = -0.08
 DERIN_ESIK = -0.42
 AGAC_SAYISI = 16
 AGAC_ARALIK = 6.5
-GECIT = {"x": -15, "z": 0, "eksen": "z"}     # cercevenin bati kenari; kulubeye (doguya) bakar
+# cercevenin x'i; kulubeye (doguya) bakar. Ilk onizlemede -15'ti, kullanici:
+# "birazcik daha uzak olsun ama birazcik" (2026-11-01).
+GECIT = {"x": -20, "z": 0, "eksen": "z"}
 
 
 def _ozet(ix, iz, tohum):
