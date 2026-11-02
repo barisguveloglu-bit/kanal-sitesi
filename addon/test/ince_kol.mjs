@@ -81,7 +81,9 @@ out["uyusmayan"] = uyusmayan
 out["bpy_uyusmayan"] = bpy_uyusmayan
 out["ince_olanlar"] = sorted(a for a, s in sonuc.items() if s)
 bolum1 = set()
-for f in sorted(glob.glob("film/*.json")):
+# yalniz 1. bolumun senaryolari: film/ altinda 2. bolumun senaryolari da var
+# (v7.99.16) ve Zisa'nin sahnesi ince kollu Zisa'yi bilerek kullaniyor
+for f in sorted(glob.glob("film/bolum1_*.json")):
     for a in json.load(open(f, encoding="utf-8"))["aktorler"].values():
         bolum1.add(a["skin"])
 out["bolum1"] = {os.path.basename(s): F.skin_ince_mi(*Image.open(B.yol(s)).size, pil_alfa(Image.open(B.yol(s)).convert("RGBA")))
