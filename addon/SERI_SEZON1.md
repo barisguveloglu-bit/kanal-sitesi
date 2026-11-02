@@ -399,6 +399,15 @@ dediği). Silahı zaten kayıtlı: Ay Işığı Asası.
     Açık (sorulacak): yukarıdaki "kendi evinde uyanır, çarpık skinle tek
     kırmızı göz" sahnesiyle aynı son sahne mi (önce uyanış, sonra gölge),
     ayrı mı; kırmızı göz gölgenin mi, Barış'ın mı; canavarlaşan yerler hangileri.
+  - **Bölünmüş ekran (kullanıcı, 2026-11-02):** *"burada ekranı ikiye
+    böleceğiz, ikisi de senkron olacaklar, izleyici buradan sonra bir şeyler
+    fark edecek: zihin boyutunda o gülüyor, Barış da kendi dünyasında gülüyor
+    ama farklı."* Bir yanda zihin boyutunda Satanachia, öbür yanda kendi
+    dünyasında Barış; ikisi aynı anda (senkron) gülüyor, gülüşleri farklı.
+    Açık (sorulacak): son sahnenin neresinde (gölgeden önce mi, sonra mı);
+    Barış'ın gülüşü neden farklı (Claude'un okuması: ikinci kâğıtla
+    özgürlüğünü geri aldığını sanıp rahatlamış gülüyor, Satanachia kazandığı
+    için; doğrulanmadı).
   - **Neden imzaladı (kullanıcı, kesin değil — "olabilir"):** karşısında en
     büyük komutanlardan biri var; muhtemelen **zihinsel olarak büyük baskı**
     uygulayıp onu zorladı, Barış öyle imzalamış olabilir.
