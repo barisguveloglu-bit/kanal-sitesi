@@ -76,10 +76,17 @@ her blok "başka sürümle çizilmiş" uyarısı verirdi). Eski ve yeni kod
 - Yok:
   - ateş, alev, duman, patlama ışığı;
   - yarı saydam kalkan kubbesi ve çarpma dalgası;
-  - buz, kar, donma efekti;
+  - buz ve donma efekti (seyrek kar var, aşağıda);
   - şiddeti ayarlanabilen sarsıntı (görüntü titremesi artık var, aşağıda);
-  - kararma ve beyaz geçiş;
+  - beyaz geçiş (kararma var, aşağıda);
   - yumuşak hız rampası (`zaman` aralıkları basamak gibi değişiyor).
+- **2. bölüm Part 1 parçaları (v7.99.16, kilit `test/part1_parcalar.mjs`):**
+  - `"kararma": [{"t": [t0, t1], "giris", "cikis"}]`: görüntü pozlamayla siyaha iner ve açılır (göz kapanıp açılması, bayılma). Titremeyle aynı pozlama eğrisinde; titremenin rastgele dizisini değiştirmez.
+  - `"bulaniklik": [{"t", "fstop", "mesafe", "gecis"}]`: odak gözün önüne çekilir, diyafram açılır (Barış'ın gözünden bulanık cadı). Yalnız bulanıklık için açılan alan derinliği aralık dışında f/128: odak yazmayan çekim keskin kalır.
+  - `"kar": {"t", "merkez", "alan", "sayi", "hiz", "ruzgar", "tohum"}`: Minecraft kar tanesi gibi küçük beyaz kareler, rüzgârla batıya kayar, yere inen tane tepeden yeniden başlar. Pooka karı bağlanmadı; seyrek kar için bu yetti.
+  - `"esya": "fener"`: Minecraft'ın asılı feneri sol yumruktan sarkar, içinde sıcak nokta ışığı (`"fener_guc"`, W).
+  - Savaş odası (`arac/hanedan.py` `savas_odasi`): kalenin zemin katının kuzey yarısı, bölme duvarında açık kapı, harita masası, kırmızı halı, tavandan sarkan fenerler, meşaleler, kitaplık, altın köşeler; kapının iki yanında iki sancak. Kalenin dışı bire bir aynı. Biçim Claude'un önerisi.
+  - Sancak ve savaş haritası **kendi çizimimiz**, kodla piksel piksel üretiliyor (dosya yok): sancak 20×40 Minecraft sancağı ölçüsünde, "Surda Şafak" (kullanıcı onayı bekliyor); harita parşömen üstünde kıta, buzlu doğu, bölge sınırları, ülke işaretleri.
 - **Satanachia'nın ruhu ve görüntü titremesi (v7.99.16, kilit `test/ruh_kure.mjs`):**
   - `"ruh": {"yaricap", "yol": [{"t", "nokta"}], "gir", "parilti"}` kara duman küre: küçük mat siyah çekirdek, çevresinde kenarı gürültüyle lime lime olan siyah hacim (ışığı yutar, saçmaz). İlk noktada 0,35 sn'de büyüyerek belirir, yol boyunca zamana göre Catmull-Rom eğrisiyle gider (anahtarda hız sıçramaz), `gir` anında son noktada küçülüp kaybolur.
   - `"parilti": {"renk", "guc", "isik"}` **Claude'un önerisi, varsayılan değil:** dumanın içinde seyrek, sönük közler, isteğe bağlı olarak içinde kızıl nokta ışığı. Gece katıksız kara duman kara gökte ve karanlık odada kayboluyordu.
@@ -116,7 +123,7 @@ her blok "başka sürümle çizilmiş" uyarısı verirdi). Eski ve yeni kod
 - Yok:
   - ağız ve yüz ifadesi;
   - zombi, iskelet, creeper, golem modeli (yalnız insan aktör var);
-  - kâğıt ve kitaptan başka eşya (el lambası).
+  - kâğıt, kitap ve el fenerinden başka eşya.
 
 **Sahne**
 - Hazır:
@@ -130,9 +137,9 @@ her blok "başka sürümle çizilmiş" uyarısı verirdi). Eski ve yeni kod
   - Ufuk ortası boş: bataklıkta kare çerçeve, hanedanda surdan başlayan halka.
   Blok kurucu (`arac/blok_kur.py`) bu iş için: biyom boyası, blok başına boya, ova dışında çimen yan yüzüne boyalı örtü, Nether geçidi, şerit dokularda (su, geçit) yalnız ilk kare.
 - Yok:
-  - savaş odası, Nether, zihin ortamı, karlı arazi;
+  - Nether, zihin ortamı, karlı arazi (savaş odası var, aşağıda);
   - hava durumu;
-  - el lambası, meşale ve ateş ışığı (görünmeyen dolgu ışığı var, aşağıda).
+  - elde meşale ve ateş ışığı (el feneri ve görünmeyen dolgu ışığı var, aşağıda).
 - **Dolgu ışığı (v7.99.16):** senaryoda `"isiklar": [{"nokta", "guc", "renk", "yaricap", "t"}]` görünmeyen nokta ışığı (sinemadaki gibi); `t` verilirse yalnız o aralıkta yanar. Kulübenin içinde Barış'ın siyah kıyafeti ışıksız okunmuyordu.
 
 **Yazı ve ses**
@@ -183,6 +190,7 @@ her blok "başka sürümle çizilmiş" uyarısı verirdi). Eski ve yeni kod
 - Dövüş v2'de beş kadraj hatası ve çizimi ilk karede çökerten `KeyError`.
 - Zisa'nın ince kollu skini 4 px kollu modele giydiriliyordu: kolun boş dış sütunu kenarda kırık bir şerit olarak görünüyordu (kilit: `ince_kol.mjs`).
 - Kulübe sahnesi denemesi (v7.99.16, kilit: `kulube_sahne.mjs`): iç mekân ışıksız kaldı, Barış'ın siyah kıyafeti zeminle birleşti (dolgu ışığı eklendi); aktör tanımındaki `"bak": [x, y]` sessizce yok sayıldı, Barış kitaplığa değil duvara uzandı; kapalı kitapla okumak garip durdu ve kol -80'de kitap yüzü kapattı (açık kitap, göğüs hizası); ayakucundaki kamera doğrulan Barış'ın sırtını gösterdi.
+- Part 1 denemeleri (v7.99.16, kilit: `part1_parcalar.mjs`): POV'da bulanıklık f/0,5'te her şeyi lapaya çevirdi (f/0,8, odak 0,45 m); `"adim"` hızdır (blok/sn), 0,8 verilince cadı ağır çekimde yürüdü; çömelen cadı kameranın içine girdi (ayakta kalıp eğiliyor); yürürken verilen `"bak"` yürüyüşün yönüyle ezildi (varıştan sonra verilir); kale tepede, oyunculara `kat` yazılmayınca yerin altında kaldılar; köşe kulesinin duvarı odanın köşesine giriyor, ilk kamera onun içinde kaldı; sancak kumaşının iki ters yüzü üst üste binip simsiyah çıktı (tek yüz); gece–sabah kesmesi tek senaryoda temiz olmuyor (ışık anahtarları 7 karede bir, yumuşak), Part 1 beş dosyaya bölündü.
 - Ruh küresi denemesi (v7.99.16, kilit: `ruh_kure.mjs`): ilk çizimde Blender düştü (sıfıra yakın ölçekli hacim, openvdb "Non-zero scale values required"; ölçek tabanda kalıyor, nesne gizleniyor); büyük parlak çekirdek bilye gibi durdu, duman soluk gri sis gibi kaldı (çekirdek küçültüldü ve matlaştı, duman siyah ve yoğun); gece kara küre görünmedi, kızıl parıltı tek başına kırmızı bir top yaptı (közler dumanın içine alındı); yol anahtar noktalar arasında süreler eşit değilken her noktada hızı 1,4 blok/sn sıçratıyordu (düz Catmull-Rom; zamana göre teğet). Klibin son saniyesi neredeyse kapkara çıktı: dolgu ışığının `t` aralığı Blender 5.2'de hiç sabitlenmemiş, ışık 3 sn boyunca yavaş yavaş sönmüş. Blender 5'te `action.fcurves` yok, eski kod onu `hasattr` ile sorup sessizce boş liste alıyordu (`egriler()`; kilit: `kulube_sahne.mjs` 7. bölüm).
 - Bataklıkta ilk film denemesi (v7.99.16, kilit: `mekan.mjs`): kamera sarkan sarmaşıkların arasına düştü, kare kapandı, denetim "0 sorun" dedi (sarmaşık görüşü kesen sayılmıyordu; çekimin konusu da yazılmamıştı). İlk zıplama 0,89 blok çıktı (sürekli zamanlı hesap; Minecraft 1,25) ve hedefi 0,26 blok aştı (yatay hareket bir kare erken başlıyordu).
 - Bataklık önizlemesi (v7.99.16, kilit: `kulube.mjs`): ufuk düzlemi havuzların suyunu örtüyordu (hanedanda da tarla sularını); su dokusu 32 karelik şerit hâlinde bir bloğa sıkışıyordu; çimen yan dokusundaki hazır ova yeşili havuz kenarlarında parlak çizgi oluyordu, örtü konunca kuzey yüzleri "ön" sayıldığı için örtüsüz kaldı; kapının önüne sarmaşık sarkıyordu.

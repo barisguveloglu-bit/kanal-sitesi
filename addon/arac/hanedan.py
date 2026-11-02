@@ -264,6 +264,69 @@ def ana_yapi(d, rnd):
         d.koy((x, y0, z - 1), "lantern")
 
 
+def savas_odasi(d):
+    """Komutan Omer'in savas odasi: kalenin zemin katinda (kullanici: "savas
+    odasi kalenin icinde"). Kayit: "isiklarla dolu, biraz sasali; buyuk bir
+    haritanin serildigi, ulkelerin birbirine karsi plan kurdugu oda";
+    sancaklar "kapinin girisinde" (kullanici, 2026-11-02).
+    Bicim CLAUDE'UN ONERISI (kayitta bicim yok):
+      * zemin katin kuzey yarisi (x -5..5, z -5..1); z = 2'de bolme duvari,
+        ortasinda acik koyu mese kapi (guneyden, kalenin buyuk kapisindan gelinir);
+      * ortada 5x3 koyu mese masa, ustunde harita (doku film aracinda
+        cizilir: bilgi["savas_odasi"]["harita"]); altinda kirmizi hali;
+      * tavandan sarkan alti fener, duvarlarda mesaleler, kose ayaklarinda
+        altin bloklar ("biraz sasali"); bati duvarinda kitapliklar ve kursu;
+      * kapinin iki yaninda, odanin icinde iki sancak (bilgi["savas_odasi"]
+        ["sancaklar"]; desen film aracinda).
+    rnd KULLANMAZ: hanedanin geri kalaninin rastgele dizisi degismesin.
+    Kalenin disi degismez (her sey ic duvarlarin icinde)."""
+    y0 = TEPE_YUKSEKLIK + 1
+    # bolme duvari ve kapi
+    for x in range(-5, 6):
+        for y in range(y0, y0 + 4):
+            if x == 0 and y < y0 + 2:
+                continue
+            d.koy((x, y, 2), "stone_bricks" if (x + y) % 3 else "chiseled_stone_bricks")
+    d.koy((0, y0, 2), "dark_oak_door", {"direction": 3, "open_bit": True})
+    d.koy((0, y0 + 1, 2), "dark_oak_door", {"direction": 3, "open_bit": True, "upper_block_bit": True})
+    # hali ve masa
+    for x in range(-3, 4):
+        for z in range(-4, 1):
+            d.koy((x, y0, z), "red_carpet")
+    for x in range(-2, 3):
+        for z in range(-3, 0):
+            d.koy((x, y0, z), "dark_oak_planks")
+    # kose ayaklari: altin ust (biraz sasali)
+    for x, z in ((-5, -5), (5, -5), (-5, 1), (5, 1)):
+        for y in range(y0, y0 + 3):
+            d.koy((x, y, z), "polished_andesite")
+        d.koy((x, y0 + 3, z), "gold_block")
+    # bati duvari: kitaplik ve kursu (strateji belgeleri)
+    for z in (-4, -3, -1, 0):
+        for y in range(y0, y0 + 2):
+            d.koy((-5, y, z), "bookshelf")
+    d.koy((-4, y0, -2), "lectern", {"direction": 1})
+    # dogu duvari: sandiklar (harita ve belgeler)
+    for z in (-4, -3):
+        d.koy((5, y0, z), "chest", {"facing_direction": 4})
+    # tavandan sarkan fenerler (tavan y0 + 4)
+    for x, z in ((-3, -4), (0, -4), (3, -4), (-3, 0), (0, 0), (3, 0)):
+        d.koy((x, y0 + 3, z), "lantern", {"hanging": True})
+    # duvar mesaleleri (kuzey duvari z = -6'nin icinde)
+    for x in (-4, -2, 2, 4):
+        d.koy((x, y0 + 2, -5), "wall_torch", {"torch_facing_direction": "south"})
+    return {
+        "zemin_y": y0,
+        "kapi": [0, y0, 2],
+        "masa": {"x": [-2, 3], "z": [-3, 0], "ust": y0 + 1},
+        # harita masanin ustunde (Minecraft koordinatlari: x0, x1, z0, z1, y)
+        "harita": {"x": [-2.0, 3.0], "z": [-3.0, 0.0], "y": y0 + 1 + 0.01},
+        # sancaklar: kapinin iki yaninda, odanin icinde, kumasi kuzeye bakar
+        "sancaklar": [{"p": [-0.6, y0, 1.6], "bak": "kuzey", "desen": "surda_safak"},
+                      {"p": [1.6, y0, 1.6], "bak": "kuzey", "desen": "surda_safak"}],
+    }
+
+
 def kule_acilari():
     """Halkadaki kuleler kapinin iki yaninda simetrik; ayrica kapinin agzina
     bitisik iki kapi kulesi (kapi tek basina kucuk bir delik gibi duruyordu)."""
@@ -992,10 +1055,11 @@ def hanedan(evler=None, zisa_acisi=180.0):
     tepe(d, rnd)
     merdiven(d)
     ana_yapi(d, rnd)
+    oda = savas_odasi(d)
     sur_hucre = sur(d, rnd)
     fener_hucre = fener_direkleri(d, yollar)
     yasak = set(yollar) | sur_hucre | _komsu(fener_hucre, 1)
-    bilgi = {"evler": []}
+    bilgi = {"evler": [], "savas_odasi": oda}
     # Zisa'nin evi: batida, orta halkada; bati sokagi kapisinin onunde biter.
     # Part 2'de Baris dogudaki gedige sokaklardan kosarak gidiyor.
     z = ev_yerlestir(d, zisa_evi(), zisa_acisi, ORTA_EV_HALKASI, (0, -1), lo=ORTA_YOL[1] + 2,

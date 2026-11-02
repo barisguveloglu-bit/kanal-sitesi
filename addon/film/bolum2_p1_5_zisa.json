@@ -1,0 +1,116 @@
+{
+ "fps": 30,
+ "sure": 6.0,
+ "cozunurluk": [
+  1920,
+  1080
+ ],
+ "ornek": 4096,
+ "uyarlamali": 0.01,
+ "akici": true,
+ "mekan": "hanedan",
+ "gunes_yon": 60,
+ "pozlama": 0.0,
+ "isik": [
+  {
+   "t": 0,
+   "gunes": 1.7,
+   "gok": 0.18,
+   "yukseklik": 55,
+   "ay": 0.0
+  }
+ ],
+ "isiklar": [
+  {
+   "nokta": [
+    -57.5,
+    0.8,
+    3.6
+   ],
+   "guc": 30,
+   "renk": [
+    1.0,
+    0.86,
+    0.68
+   ],
+   "yaricap": 0.5
+  }
+ ],
+ "aktorler": {
+  "b": {
+   "skin": "kaynak_doku/film_aktor/baris_iyilesmis.png",
+   "isim": "Barış",
+   "konum": [
+    -55.6,
+    2.5
+   ],
+   "kat": 1.0,
+   "bak": [
+    -58.0,
+    0.0
+   ]
+  },
+  "z": {
+   "skin": "kaynak_doku/aktor/zisa.png",
+   "isim": "Zisa",
+   "konum": [
+    -59.0,
+    -0.4
+   ],
+   "kat": 1.0,
+   "bak": [
+    -60.0,
+    2.0
+   ]
+  }
+ },
+ "olaylar": [
+  {
+   "t": 1.0,
+   "aktor": "b",
+   "git": [
+    -56.7,
+    1.1
+   ],
+   "adim": 1.8
+  },
+  {
+   "t": 1.6,
+   "aktor": "z",
+   "bak": [
+    -56.7,
+    1.1
+   ]
+  },
+  {
+   "t": 2.6,
+   "aktor": "b",
+   "bak": [
+    -59.0,
+    -0.4
+   ]
+  }
+ ],
+ "kamera": [
+  {
+   "t": 0.0,
+   "aci": "elle",
+   "kam": [
+    -56.0,
+    -2.6,
+    2.5
+   ],
+   "bak": [
+    -58.0,
+    0.8,
+    1.7
+   ],
+   "lens": 20,
+   "kaydir": [
+    0.0,
+    0.1,
+    0.0
+   ]
+  }
+ ]
+}

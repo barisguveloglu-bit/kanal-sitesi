@@ -1637,6 +1637,63 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
                 kt.parent = kemik_nesne[ad]["leftArm"]
                 kitaplar[(ad, es)] = kt
 
+    # ---- el feneri (v7.99.16, 2. bolum Part 1: cadinin el lambasi) ----
+    # "esya": "fener": Minecraft'in asili feneri (blok_kur'un fener orgusu,
+    # MCprep dokusu) sol yumruktan sarkar; kancasi yumrugun altinda. Icinde
+    # sicak bir nokta isigi: gecede cadinin yuzunu ve yolu o aydinlatir.
+    fenerler = {}            # {aktor: [nesne, ...]} (orgu parcalari + isik)
+    if any(k.get("esya") == "fener" for a in aktorler.values() for k in a.kayit):
+        import blok_kur
+        var = ({f[:-4] for f in os.listdir(MCPREP_DOKU) if f.endswith(".png")}
+               if MCPREP_DOKU and os.path.isdir(MCPREP_DOKU) else set())
+        org = blok_kur.orgu([{"p": [0, 0, 0], "t": "lantern", "s": {"hanging": True}}], blok_kur.Dokular(var))
+        fener_m = {}
+        for (doku, renk, isik, saydam), c in org.items():
+            m = bpy.data.materials.new("fener_" + doku)
+            m.use_nodes = True
+            n_ = m.node_tree
+            bsdf = n_.nodes["Principled BSDF"]
+            yol = os.path.join(MCPREP_DOKU, doku + ".png")
+            if os.path.isfile(yol):
+                tex = n_.nodes.new("ShaderNodeTexImage")
+                tex.image = bpy.data.images.load(yol)
+                tex.interpolation = "Closest"
+                n_.links.new(tex.outputs["Color"], bsdf.inputs["Base Color"])
+                n_.links.new(tex.outputs["Alpha"], bsdf.inputs["Alpha"])
+                if isik:
+                    n_.links.new(tex.outputs["Color"], bsdf.inputs["Emission Color"])
+                    bsdf.inputs["Emission Strength"].default_value = isik
+            fener_m[doku] = m
+        for ad, a in aktorler.items():
+            if not any(k.get("esya") == "fener" for k in a.kayit):
+                continue
+            parca = []
+            for (doku, renk, isik, saydam), c in org.items():
+                if not c["f"]:
+                    continue
+                me = bpy.data.meshes.new("fener_%s_%s" % (ad, doku))
+                # kanca tepesi (blogun 10/16'si) yumrugun altina gelsin
+                me.from_pydata([(v[0] - 0.5, v[1] + 0.5, v[2] - 10 / 16.0) for v in c["v"]], [], c["f"])
+                lay = me.uv_layers.new()
+                for j, d in enumerate(lay.data):
+                    d.uv = c["uv"][j]
+                me.materials.append(fener_m[doku])
+                ob_f = bpy.data.objects.new("fener_%s_%s" % (ad, doku), me)
+                sc.collection.objects.link(ob_f)
+                ob_f.location = blender_nokta([-6.0, 12.0, 0.0])      # sol yumrugun alti
+                ob_f.parent = kemik_nesne[ad]["leftArm"]
+                parca.append(ob_f)
+            li_f = bpy.data.lights.new("fener_isik_%s" % ad, "POINT")
+            li_f.energy = float(senaryo.get("fener_guc", 25.0))
+            li_f.color = (1.0, 0.72, 0.42)
+            li_f.shadow_soft_size = 0.06
+            ob_li = bpy.data.objects.new("fener_isik_%s" % ad, li_f)
+            sc.collection.objects.link(ob_li)
+            ob_li.location = blender_nokta([-6.0, 7.5, 0.0])          # fenerin govdesi
+            ob_li.parent = kemik_nesne[ad]["leftArm"]
+            parca.append(ob_li)
+            fenerler[ad] = parca
+
     def sabit_anahtar(ob, yol):
         for fc in egriler(ob):
             if fc.data_path == yol:
@@ -1663,6 +1720,10 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
                 for f_, acik in esya_anahtarlari(a.kayit[:len(kam_iz)], esya=es):
                     kitaplar[(ad, es)].hide_render = not acik
                     kitaplar[(ad, es)].keyframe_insert("hide_render", frame=f_)
+        for ob_f in fenerler.get(ad, []):
+            for f_, acik in esya_anahtarlari(a.kayit[:len(kam_iz)], esya="fener"):
+                ob_f.hide_render = not acik
+                ob_f.keyframe_insert("hide_render", frame=f_)
         if a.form:
             # ek kollar (form_model.py): ana kolun alt kemigi; kendi pivotlari
             # yerlesime gore degisir, govde_model'in pivot tablosunda yok
@@ -1784,19 +1845,30 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
     kam.data.clip_start = 0.05
     rnd = random.Random(7)
     sars_kare = [kare_bul(harita, s) for s in sarsinti]
-    if any(c[4] for c in kam_iz):
+    dof_kendi = any(c[4] for c in kam_iz)
+    bulanik_kare = bulaniklik_karaleri(senaryo, harita, len(kam_iz))
+    # bulaniklik disinda keskin kalsin: yalniz bulaniklik icin acilan alan
+    # derinligi tabanda f/128 (1. bolum gibi odak yazmayan cekimler degismez)
+    fstop_taban = float(senaryo.get("fstop", 2.2)) if dof_kendi else 128.0
+    if dof_kendi or bulanik_kare:
         kam.data.dof.use_dof = True
-        kam.data.dof.aperture_fstop = senaryo.get("fstop", 2.2)
+        kam.data.dof.aperture_fstop = fstop_taban
     kam.rotation_mode = "QUATERNION"
     titreme_kare = titreme_karaleri(senaryo, harita, len(kam_iz))
+    karar_kare = kararma_karaleri(senaryo, harita, len(kam_iz))
     rnd_t = random.Random(11)
-    if titreme_kare:
-        # pozlama kirpismasi: titreme suresince her karede biraz karanlik
+    if titreme_kare or karar_kare:
+        # pozlama kirpismasi: titreme suresince her karede biraz karanlik;
+        # kararma: siyaha iner. rnd_t yalniz titreme karesinde cagrilir
+        # (kararma eklenince titremenin dizisi degismesin)
         taban_poz = sc.view_settings.exposure
         for f in range(len(kam_iz)):
             g_ = titreme_kare.get(f, 0.0)
-            sc.view_settings.exposure = taban_poz - (rnd_t.uniform(0.0, 0.9) * g_ if g_ else 0.0)
-            if g_ or titreme_kare.get(f - 1) or titreme_kare.get(f + 1) or f == 0:
+            k_ = karar_kare.get(f, 0.0)
+            sc.view_settings.exposure = (taban_poz - (rnd_t.uniform(0.0, 0.9) * g_ if g_ else 0.0)
+                                         - KARARMA_EV * k_)
+            if (g_ or k_ or titreme_kare.get(f - 1) or titreme_kare.get(f + 1)
+                    or karar_kare.get(f - 1) or karar_kare.get(f + 1) or f == 0):
                 sc.view_settings.keyframe_insert("exposure", frame=f + 1)
         sc.view_settings.exposure = taban_poz
     for f, (kp, bk, lens, yatik, odak) in enumerate(kam_iz):
@@ -1824,11 +1896,20 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
                 d = (Vector((r_["x"], r_["y"], r_["z"] + 1.3 * aktorler[odak].olcek)) - Vector(kp)).length
             else:
                 d = (Vector(bk) - Vector(kp)).length
+            if bulanik_kare:
+                b_ = bulanik_kare.get(f)
+                fs_ = fstop_taban
+                if b_:
+                    u_, fs_b, md_ = b_
+                    d = d + (md_ - d) * u_
+                    fs_ = math.exp(math.log(fstop_taban) + (math.log(fs_b) - math.log(fstop_taban)) * u_)
+                tampona(kam.data.dof, "aperture_fstop", f + 1, (fs_,))
             tampona(kam.data.dof, "focus_distance", f + 1, (d,))
     toplu_anahtar(bpy, tampon, kam)
 
     # ---- Satanachia'nin ruhu: siyah bulutlu kure (senaryo "ruh") ----
     ruh_kur(bpy, senaryo, harita)
+    kar_kur(bpy, senaryo, harita)
 
     # ---- Thomas gozleri: goz ayarli aktorler, goz="thomas" planlarda (REFERANS_THOMAS_RIG.md) ----
     thomas_goz.kur(bpy, senaryo, harita, aktorler, kemik_nesne, kare_bul, B.yol)
@@ -2286,6 +2367,55 @@ def titreme_karaleri(senaryo, harita, n):
     return {f: g for f, g in out.items() if g > 0}
 
 
+def _aralik_gucu(t, t0, t1, giris, cikis):
+    """t0-t1 araliginda 0..1: giriste ve cikista yumusak (smoothstep)."""
+    if t < t0 or t > t1:
+        return 0.0
+    u = 1.0
+    if giris > 0:
+        u = min(u, (t - t0) / giris)
+    if cikis > 0:
+        u = min(u, (t1 - t) / cikis)
+    u = max(0.0, min(1.0, u))
+    return u * u * (3 - 2 * u)
+
+
+# Kararma (v7.99.16): "kararma": [{"t": [t0, t1], "giris": sn, "cikis": sn}]
+# goruntu pozlamayla siyaha iner ve geri acilir (goz kapanip acilmasi, bayilma).
+# KARARMA_EV kadar: -0,45 tabanda ~-12,5 EV, siyah.
+KARARMA_EV = 12.0
+
+
+def kararma_karaleri(senaryo, harita, n):
+    """{kare: 0..1} (1 = tam siyah)."""
+    out = {}
+    for ka in senaryo.get("kararma", []):
+        t0, t1 = ka["t"]
+        gi, ci = float(ka.get("giris", 0.3)), float(ka.get("cikis", 0.3))
+        for f in range(min(n, len(harita))):
+            u = _aralik_gucu(harita[f], t0, t1, gi, ci)
+            if u > 0:
+                out[f] = max(out.get(f, 0.0), u)
+    return out
+
+
+# Bulaniklik (v7.99.16, Part 1 2. sahne: Baris'in gozunden, gelenin yuzu
+# bulanik): "bulaniklik": [{"t": [t0, t1], "fstop": 0.3, "mesafe": 0.2,
+# "gecis": sn}]. Odak gozun hemen onune cekilir, diyafram acilir; gecis
+# suresince eski odaktan kayar (goz toparlanmaya calisir gibi).
+def bulaniklik_karaleri(senaryo, harita, n):
+    """{kare: (u, fstop, mesafe)}; u 0..1 bulanikligin agirligi."""
+    out = {}
+    for bu in senaryo.get("bulaniklik", []):
+        t0, t1 = bu["t"]
+        g = float(bu.get("gecis", 0.3))
+        for f in range(min(n, len(harita))):
+            u = _aralik_gucu(harita[f], t0, t1, g, g)
+            if u > 0 and u >= out.get(f, (0,))[0]:
+                out[f] = (u, float(bu.get("fstop", 0.3)), float(bu.get("mesafe", 0.2)))
+    return out
+
+
 # ---- Satanachia'nin ruhu (v7.99.16, 2. bolum Part 1) ----
 # Kullanici: "siyah bir top ciz, bulutlu ruh olarak uygun". Senaryo:
 # "ruh": {"yaricap": 0.3, "yol": [{"t", "nokta": [x, y, z]}, ...], "gir": t,
@@ -2327,6 +2457,68 @@ def ruh_yolu(ruh, t):
     if "gir" in ruh and t > yol[-1]["t"]:
         s = min(s, max(0.0, (t_son - t) / max(1e-6, t_son - yol[-1]["t"])))
     return p, s * s * (3 - 2 * s)
+
+
+# ---- seyrek kar (v7.99.16, 2. bolum Part 1: kulubeden cikista usume) ----
+# "kar": {"t": [t0, t1], "merkez": [x, y], "alan": 10, "sayi": 120,
+#         "hiz": 0.7, "ruzgar": [-0.35, 0.0], "tohum": 3}
+# Minecraft'in kar tanesi gibi kucuk beyaz kareler; "ruzgar" yatay kayma
+# (blok/sn; varsayilan bati yonu: soguk doguda). Tane alanin tepesine
+# ulasinca alttan degil USTTEN yeniden baslar (sonsuz dusus). Saf Python
+# kismi kar_yolu, test edilir.
+def kar_yolu(kar, i, t):
+    """i. tanenin t anindaki yeri (x, y, z)."""
+    rnd = random.Random(int(kar.get("tohum", 3)) * 7919 + i)
+    alan = float(kar.get("alan", 10.0))
+    yuks = float(kar.get("yukseklik", 7.0))
+    taban = float(kar.get("taban", 0.0))
+    mx, my = kar.get("merkez", [0.0, 0.0])
+    x0, y0 = mx + rnd.uniform(-alan, alan), my + rnd.uniform(-alan, alan)
+    hiz = float(kar.get("hiz", 0.7)) * rnd.uniform(0.75, 1.25)
+    faz = rnd.uniform(0.0, yuks)
+    rx, ry = kar.get("ruzgar", [-0.35, 0.0])
+    sal = rnd.uniform(0.0, 2 * math.pi)
+    z = taban + yuks - ((faz + hiz * t) % yuks)
+    x = x0 + rx * t + 0.12 * math.sin(1.7 * t + sal)
+    y = y0 + ry * t + 0.12 * math.cos(1.3 * t + sal)
+    # alanin disina kayan tane karsi kenardan girer
+    x = mx - alan + ((x - (mx - alan)) % (2 * alan))
+    y = my - alan + ((y - (my - alan)) % (2 * alan))
+    return x, y, z
+
+
+def kar_kur(bpy, senaryo, harita):
+    kar = senaryo.get("kar")
+    if not kar:
+        return
+    t0, t1 = kar.get("t", [0.0, harita[-1] if harita else 0.0])
+    sc = bpy.context.scene
+    me = bpy.data.meshes.new("kar_tanesi")
+    a = 0.035                                  # yarim kenar: ~1 px'lik tane
+    me.from_pydata([(-a, -a, -a), (a, -a, -a), (a, a, -a), (-a, a, -a),
+                    (-a, -a, a), (a, -a, a), (a, a, a), (-a, a, a)], [],
+                   [(0, 1, 2, 3), (4, 7, 6, 5), (0, 4, 5, 1), (1, 5, 6, 2), (2, 6, 7, 3), (3, 7, 4, 0)])
+    m = bpy.data.materials.new("kar")
+    m.use_nodes = True
+    b = m.node_tree.nodes["Principled BSDF"]
+    b.inputs["Base Color"].default_value = (0.95, 0.97, 1.0, 1)
+    b.inputs["Roughness"].default_value = 0.9
+    b.inputs["Emission Color"].default_value = (0.95, 0.97, 1.0, 1)
+    b.inputs["Emission Strength"].default_value = float(kar.get("parlaklik", 0.25))
+    me.materials.append(m)
+    tampon = {}
+    for i in range(int(kar.get("sayi", 120))):
+        ob = bpy.data.objects.new("kar_%03d" % i, me)
+        sc.collection.objects.link(ob)
+        for f, t in enumerate(harita):
+            tampon.setdefault((ob, "location"), []).append((f + 1, kar_yolu(kar, i, t)))
+        # aralik disinda gorunmez (sabit anahtar: hide_render mantiksal)
+        f0 = kare_bul(harita, t0) + 1
+        f1 = kare_bul(harita, t1) + 1
+        for f_, acik in sorted({1: t0 <= harita[0] <= t1, f0: True, f1: False}.items()):
+            ob.hide_render = not acik
+            ob.keyframe_insert("hide_render", frame=f_)
+    toplu_anahtar(bpy, tampon)
 
 
 def ruh_kur(bpy, senaryo, harita):
@@ -2464,6 +2656,210 @@ def ruh_kur(bpy, senaryo, harita):
             g_.inputs["W"].keyframe_insert("default_value", frame=f + 1)
 
 
+# ---- sancak ve savas haritasi (v7.99.16, 2. bolum Part 1: Omer'in savas odasi) ----
+# Ikisi de KENDI cizimimiz, Mojang dokusu degil: desen kodla piksel piksel
+# uretilir (dosya yok, depoya bir sey girmez). Sancak Minecraft sancagi
+# olcusunde (20 x 40 piksel kumas, kullanici: "Minecraft sancagi olsun").
+# Renkler Minecraft boya renkleri (sRGB; sayilar, dosya degil).
+BOYA = {"kirmizi": (0xB0, 0x2E, 0x26), "sari": (0xFE, 0xD8, 0x3D), "gri": (0x47, 0x4F, 0x52),
+        "acik_gri": (0x9D, 0x9D, 0x97), "beyaz": (0xF9, 0xFF, 0xFE), "siyah": (0x1D, 0x1D, 0x21),
+        "mavi": (0x3C, 0x44, 0xAA), "acik_mavi": (0x3A, 0xB3, 0xDA), "mor": (0x89, 0x32, 0xB8),
+        "turuncu": (0xF9, 0x80, 0x1D), "yesil": (0x5E, 0x7C, 0x16), "kahve": (0x83, 0x54, 0x32)}
+# "Surda Safak": CLAUDE'UN ONERISI, kullanici onayi bekliyor (SERI_SEZON1.md
+# "Bayraklar"). Kizil zemin, sari daire (gunes), gri alt yari (sur):
+# gunes surun arkasindan dogar. Oyunda: kirmizi sancak + daire (sari) +
+# alt yari (gri), 2 desen katmani.
+SANCAK_DESEN = {"surda_safak": ["kirmizi", ("daire", "sari"), ("alt_yari", "gri")]}
+
+
+def sancak_pikselleri(desen):
+    """20 x 40 kumas: satir satir (ustten) [(r, g, b) 0..255]."""
+    katman = SANCAK_DESEN[desen]
+    out = [[BOYA[katman[0]]] * 20 for _ in range(40)]
+    for ad, renk in katman[1:]:
+        for y in range(40):
+            for x in range(20):
+                if ad == "daire" and (x - 9.5) ** 2 + (y - 19.5) ** 2 <= 5.2 ** 2:
+                    out[y][x] = BOYA[renk]
+                elif ad == "alt_yari" and y >= 20:
+                    out[y][x] = BOYA[renk]
+                elif ad == "ust_yari" and y < 20:
+                    out[y][x] = BOYA[renk]
+    return out
+
+
+def _deger_gurultu(x, y, tohum):
+    """Deterministik deger gurultusu, 0..1 (yumusak)."""
+    def h(i, j):
+        n = (i * 374761393 + j * 668265263 + tohum * 2147483647) & 0xFFFFFFFF
+        n = (n ^ (n >> 13)) * 1274126177 & 0xFFFFFFFF
+        return (n & 0xFFFF) / 65535.0
+    i, j = math.floor(x), math.floor(y)
+    fx, fy = x - i, y - j
+    sx, sy = fx * fx * (3 - 2 * fx), fy * fy * (3 - 2 * fy)
+    a = h(i, j) + (h(i + 1, j) - h(i, j)) * sx
+    b = h(i, j + 1) + (h(i + 1, j + 1) - h(i, j + 1)) * sx
+    return a + (b - a) * sy
+
+
+# Savas haritasi (CLAUDE'UN ONERISI; kayitta haritanin icerigi yok): eski
+# parsomen uzerinde kita, deniz, bolge sinirlari. Dogu buz rengine boyali
+# (kayit: Ice-man'in ordusu Dogu bolgesinde); ortada bizim hanedanin
+# kirmizi isareti; baska ulkelerin isaretleri baska renkte.
+HARITA_ISARET = [  # (x, y) 0..1 haritada, renk, yaricap piksel
+    ((0.42, 0.52), "kirmizi", 3.2),      # hanedan (biz)
+    ((0.18, 0.30), "mavi", 2.4), ((0.24, 0.80), "sari", 2.4), ((0.40, 0.17), "yesil", 2.4),
+    ((0.82, 0.18), "acik_mavi", 2.8), ((0.86, 0.80), "acik_mavi", 2.2)]
+
+
+def harita_pikselleri(gen=160, yuk=96, tohum=11):
+    """Savas haritasi: satir satir [(r, g, b) 0..255]."""
+    parsomen, deniz = (214, 196, 152), (126, 146, 150)
+    kara, kiyi, sinir = (190, 170, 118), (92, 70, 44), (120, 86, 52)
+    buz = (206, 222, 230)
+    out = []
+    yuks = [[0.0] * gen for _ in range(yuk)]
+    for y in range(yuk):
+        for x in range(gen):
+            u, v = x / gen, y / yuk
+            n = (_deger_gurultu(u * 5, v * 3, tohum) * 0.6 + _deger_gurultu(u * 12, v * 7, tohum + 1) * 0.3
+                 + _deger_gurultu(u * 26, v * 15, tohum + 2) * 0.1)
+            kenar = min(u, 1 - u, v * 1.4, (1 - v) * 1.4)        # kenarlarda deniz
+            yuks[y][x] = n - 0.55 + min(0.0, kenar - 0.12) * 2.5
+    for y in range(yuk):
+        satir = []
+        for x in range(gen):
+            h_ = yuks[y][x]
+            if h_ < 0:
+                c = deniz
+            else:
+                c = buz if x / gen > 0.7 + 0.05 * _deger_gurultu(y / 8.0, 0.5, tohum + 3) else kara
+                kom = [yuks[y + dy][x + dx] for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))
+                       if 0 <= x + dx < gen and 0 <= y + dy < yuk]
+                if any(k_ < 0 for k_ in kom):
+                    c = kiyi
+                # bolge sinirlari: kesik cizgi (iki dikey, bir yatay egri)
+                for sx_ in (0.3, 0.68):
+                    bx = sx_ + 0.04 * math.sin(y / 9.0 + sx_ * 10)
+                    if abs(x / gen - bx) < 0.5 / gen and (y // 3) % 2 == 0:
+                        c = sinir
+                by_ = 0.45 + 0.05 * math.sin(x / 11.0)
+                if x / gen < 0.3 and abs(y / yuk - by_) < 0.5 / yuk and (x // 3) % 2 == 0:
+                    c = sinir
+            # parsomen lekesi
+            lek = _deger_gurultu(x / 7.0, y / 7.0, tohum + 5) * 0.12 - 0.06
+            c = tuple(max(0, min(255, int(k * (1 + lek)))) for k in c)
+            satir.append(c)
+        out.append(satir)
+    for (u, v), renk, r in HARITA_ISARET:
+        cx, cy = u * gen, v * yuk
+        for y in range(int(cy - r - 1), int(cy + r + 2)):
+            for x in range(int(cx - r - 1), int(cx + r + 2)):
+                if 0 <= x < gen and 0 <= y < yuk:
+                    d_ = math.hypot(x + 0.5 - cx, y + 0.5 - cy)
+                    if d_ <= r:
+                        out[y][x] = BOYA[renk]
+                    elif d_ <= r + 1:
+                        out[y][x] = kiyi
+    # cerceve
+    for x in range(gen):
+        out[0][x] = out[yuk - 1][x] = kiyi
+    for y in range(yuk):
+        out[y][0] = out[y][gen - 1] = kiyi
+    return out
+
+
+def _resim(bpy, ad, piksel):
+    """[(r, g, b)] satirlari (ustten) -> Blender resmi (alttan yazilir)."""
+    yuk, gen = len(piksel), len(piksel[0])
+    im = bpy.data.images.new(ad, gen, yuk)
+    duz = []
+    for satir in reversed(piksel):
+        for r, g, b in satir:
+            duz += (r / 255.0, g / 255.0, b / 255.0, 1.0)
+    im.pixels = duz
+    im.pack()
+    return im
+
+
+def _duz_malzeme(bpy, ad, im=None, renk=None, rough=0.9):
+    m = bpy.data.materials.new(ad)
+    m.use_nodes = True
+    b = m.node_tree.nodes["Principled BSDF"]
+    b.inputs["Roughness"].default_value = rough
+    if im is not None:
+        tex = m.node_tree.nodes.new("ShaderNodeTexImage")
+        tex.image = im
+        tex.interpolation = "Closest"
+        m.node_tree.links.new(tex.outputs["Color"], b.inputs["Base Color"])
+    if renk is not None:
+        b.inputs["Base Color"].default_value = tuple(renk) + (1,)
+    return m
+
+
+def savas_odasi_esyalari(bpy, so):
+    """Harita (masanin ustunde duzlem) ve sancaklar (direk, ust cubuk, kumas)."""
+    from mathutils import Vector
+    sc = bpy.context.scene
+    # harita: Minecraft (x, z) -> Blender (x, -z)
+    h = so["harita"]
+    (x0, x1), (z0, z1), y = h["x"], h["z"], h["y"]
+    me = bpy.data.meshes.new("savas_haritasi")
+    me.from_pydata([(x0, -z1, y), (x1, -z1, y), (x1, -z0, y), (x0, -z0, y)], [], [(0, 1, 2, 3)])
+    lay = me.uv_layers.new()
+    for j, uv in enumerate([(0, 0), (1, 0), (1, 1), (0, 1)]):
+        lay.data[j].uv = uv
+    me.materials.append(_duz_malzeme(bpy, "savas_haritasi", _resim(bpy, "savas_haritasi", harita_pikselleri())))
+    ob = bpy.data.objects.new("savas_haritasi", me)
+    sc.collection.objects.link(ob)
+    # sancaklar
+    PX = 1 / 16.0
+    direk_m = _duz_malzeme(bpy, "sancak_direk", renk=(0.16, 0.10, 0.06))
+    for i, sn in enumerate(so.get("sancaklar", [])):
+        mx, my, mz = sn["p"]
+        kok = Vector((mx, -mz, my))
+        # kumas kuzeye (+Y) bakar; direk arkasinda
+        on = {"kuzey": (0, 1), "guney": (0, -1), "dogu": (1, 0), "bati": (-1, 0)}[sn.get("bak", "kuzey")]
+        yan = (on[1], -on[0])
+        parcalar = []
+
+        def kutu(c, yar, mal):
+            cx, cy, cz = c
+            ax, ay_, az = yar
+            v = [(cx + sx * ax, cy + sy * ay_, cz + sz * az) for sx in (-1, 1) for sy in (-1, 1) for sz in (-1, 1)]
+            f = [(0, 1, 3, 2), (4, 6, 7, 5), (0, 4, 5, 1), (2, 3, 7, 6), (0, 2, 6, 4), (1, 5, 7, 3)]
+            m_ = bpy.data.meshes.new("sancak_%d" % i)
+            m_.from_pydata(v, [], f)
+            m_.materials.append(mal)
+            o_ = bpy.data.objects.new("sancak_%d" % i, m_)
+            sc.collection.objects.link(o_)
+            return o_
+        # direk 2 px kalin, 44 px boy; ust cubuk 20 px
+        parcalar.append(kutu((kok.x, kok.y, kok.z + 22 * PX), (PX, PX, 22 * PX), direk_m))
+        parcalar.append(kutu((kok.x + on[0] * 1.5 * PX, kok.y + on[1] * 1.5 * PX, kok.z + 43 * PX),
+                             (abs(yan[0]) * 10 * PX + abs(on[0]) * PX + 0.001,
+                              abs(yan[1]) * 10 * PX + abs(on[1]) * PX + 0.001, PX), direk_m))
+        # kumas: 20 x 40 px, diregin onunde, ust cubuktan sarkar
+        im = _resim(bpy, "sancak_%s_%d" % (sn.get("desen", "surda_safak"), i), sancak_pikselleri(sn.get("desen", "surda_safak")))
+        kum_m = _duz_malzeme(bpy, "sancak_kumas_%d" % i, im, rough=1.0)
+        d_ = 2.6 * PX
+        c = (kok.x + on[0] * d_, kok.y + on[1] * d_, kok.z + 22 * PX)
+        k_ = [(c[0] - yan[0] * 10 * PX, c[1] - yan[1] * 10 * PX, c[2] - 20 * PX),
+              (c[0] + yan[0] * 10 * PX, c[1] + yan[1] * 10 * PX, c[2] - 20 * PX),
+              (c[0] + yan[0] * 10 * PX, c[1] + yan[1] * 10 * PX, c[2] + 20 * PX),
+              (c[0] - yan[0] * 10 * PX, c[1] - yan[1] * 10 * PX, c[2] + 20 * PX)]
+        # TEK yuz: iki ters yuz ust uste konunca biri digerini karartiyordu
+        # (ilk onizlemede kumas simsiyah); Cycles tek yuzu iki yandan da cizer
+        m_ = bpy.data.meshes.new("sancak_kumas_%d" % i)
+        m_.from_pydata(k_, [], [(0, 1, 2, 3)])
+        lay = m_.uv_layers.new()
+        for j, uv in enumerate([(0, 0), (1, 0), (1, 1), (0, 1)]):
+            lay.data[j].uv = uv
+        m_.materials.append(kum_m)
+        o_ = bpy.data.objects.new("sancak_kumas_%d" % i, m_)
+        sc.collection.objects.link(o_)
+
+
 def mekan_kur(bpy, M, klasor):
     """Blok mekan (mekan.py): doku basina tek orgu (blok_kur), ortasi bos
     ufuk. Kendi malzemesi var: fener, mesale ve gecit DOKUNUN rengiyle
@@ -2500,6 +2896,8 @@ def mekan_kur(bpy, M, klasor):
     blok_kur.blender_ekle(bpy, M.ad, orguler, blok_malz, MCPREP_DOKU)
     if dk.eksik:
         print("UYARI: dokusu bulunmayan bloklar gri cizildi:", sorted(dk.eksik))
+    if (M.bilgi or {}).get("savas_odasi"):
+        savas_odasi_esyalari(bpy, M.bilgi["savas_odasi"])
     ufuk = bpy.data.materials.new("ufuk")
     ufuk.use_nodes = True
     ufuk.node_tree.nodes["Principled BSDF"].inputs["Base Color"].default_value = tuple(M.ufuk["renk"]) + (1,)

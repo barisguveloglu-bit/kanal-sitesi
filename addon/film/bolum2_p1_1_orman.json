@@ -1,0 +1,193 @@
+{
+ "fps": 30,
+ "sure": 10.5,
+ "cozunurluk": [
+  1920,
+  1080
+ ],
+ "ornek": 4096,
+ "uyarlamali": 0.01,
+ "akici": true,
+ "fstop": 2.0,
+ "zemin": {
+  "boyut": 64,
+  "agac": 34,
+  "tohum": 7,
+  "aciklik": 12,
+  "cukur": {
+   "x": -2.544189547939938,
+   "y": -0.10490994977110427,
+   "r": 1.25,
+   "derin": 0.35,
+   "t": 0.0
+  }
+ },
+ "isik": [
+  {
+   "t": 0,
+   "gunes": 0.0,
+   "gok": 0.045,
+   "yukseklik": -6,
+   "ay": 1.3
+  }
+ ],
+ "aktorler": {
+  "b": {
+   "skin": "Simsek_Kol_Kaynak/textures/entity/aktor/uzak_akraba.png",
+   "isim": "Barış",
+   "konum": [
+    0.55,
+    6.934
+   ],
+   "bak": [
+    5.0,
+    6.934
+   ]
+  },
+  "c": {
+   "skin": "kaynak_doku/film_aktor/cadi.png",
+   "isim": "",
+   "konum": [
+    8.0,
+    8.2
+   ],
+   "bak": [
+    0.55,
+    6.934
+   ]
+  }
+ },
+ "olaylar": [
+  {
+   "t": 0.0,
+   "aktor": "b",
+   "poz": "bayil",
+   "tut": true,
+   "atla": 3.0
+  },
+  {
+   "t": 0.0,
+   "aktor": "c",
+   "esya": "fener"
+  },
+  {
+   "t": 3.6,
+   "aktor": "c",
+   "git": [
+    1.05,
+    4.7
+   ],
+   "adim": 2.2
+  },
+  {
+   "t": 7.7,
+   "aktor": "c",
+   "bak": [
+    -0.35,
+    5.3
+   ]
+  }
+ ],
+ "bulaniklik": [
+  {
+   "t": [
+    3.5,
+    10.5
+   ],
+   "fstop": 0.8,
+   "mesafe": 0.45,
+   "gecis": 0.0
+  }
+ ],
+ "kararma": [
+  {
+   "t": [
+    3.4,
+    4.4
+   ],
+   "giris": 0.0,
+   "cikis": 1.0
+  },
+  {
+   "t": [
+    8.7,
+    10.5
+   ],
+   "giris": 0.9,
+   "cikis": 0.0
+  }
+ ],
+ "kamera": [
+  {
+   "t": 0.0,
+   "aci": "elle",
+   "kam": [
+    -2.4,
+    3.0,
+    2.2
+   ],
+   "bak": [
+    0.0,
+    6.0,
+    0.15
+   ],
+   "lens": 28,
+   "kaydir": [
+    0.15,
+    -0.1,
+    0.1
+   ]
+  },
+  {
+   "t": 3.5,
+   "aci": "elle",
+   "kam": [
+    -0.3,
+    5.35,
+    0.45
+   ],
+   "bak": "c",
+   "bak_yuks": 1.35,
+   "lens": 24
+  }
+ ],
+ "fener_guc": 120.0,
+ "isiklar": [
+  {
+   "nokta": [
+    0.1,
+    6.1,
+    4.2
+   ],
+   "guc": 45,
+   "renk": [
+    0.6,
+    0.7,
+    1.0
+   ],
+   "yaricap": 1.0,
+   "t": [
+    0.0,
+    3.5
+   ]
+  },
+  {
+   "nokta": [
+    1.6,
+    4.4,
+    2.6
+   ],
+   "guc": 18,
+   "renk": [
+    0.6,
+    0.7,
+    1.0
+   ],
+   "yaricap": 1.0,
+   "t": [
+    3.5,
+    10.5
+   ]
+  }
+ ]
+}

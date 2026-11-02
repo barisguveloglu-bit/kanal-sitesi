@@ -1,0 +1,201 @@
+{
+ "fps": 30,
+ "sure": 12.5,
+ "cozunurluk": [
+  1920,
+  1080
+ ],
+ "ornek": 4096,
+ "uyarlamali": 0.01,
+ "akici": true,
+ "mekan": "hanedan",
+ "gunes_yon": 60,
+ "pozlama": 0.0,
+ "isik": [
+  {
+   "t": 0,
+   "gunes": 1.7,
+   "gok": 0.18,
+   "yukseklik": 55,
+   "ay": 0.0
+  }
+ ],
+ "isiklar": [
+  {
+   "nokta": [
+    -2.5,
+    2.5,
+    24.2
+   ],
+   "guc": 45,
+   "renk": [
+    1.0,
+    0.82,
+    0.6
+   ],
+   "yaricap": 0.5
+  },
+  {
+   "nokta": [
+    3.5,
+    2.5,
+    24.2
+   ],
+   "guc": 45,
+   "renk": [
+    1.0,
+    0.82,
+    0.6
+   ],
+   "yaricap": 0.5
+  },
+  {
+   "nokta": [
+    0.5,
+    -0.8,
+    24.2
+   ],
+   "guc": 35,
+   "renk": [
+    1.0,
+    0.82,
+    0.6
+   ],
+   "yaricap": 0.5
+  }
+ ],
+ "aktorler": {
+  "o": {
+   "skin": "kaynak_doku/aktor/omer.png",
+   "isim": "Ömer",
+   "konum": [
+    0.5,
+    3.6
+   ],
+   "bak": [
+    0.5,
+    1.5
+   ],
+   "kat": 21.0
+  },
+  "s": {
+   "skin": "kaynak_doku/aktor/sur_askeri_gri.png",
+   "isim": "Asker",
+   "konum": [
+    0.5,
+    -5.2
+   ],
+   "bak": [
+    0.5,
+    0.0
+   ],
+   "kat": 21.0
+  }
+ },
+ "olaylar": [
+  {
+   "t": 2.6,
+   "aktor": "s",
+   "git": [
+    0.5,
+    -3.3
+   ],
+   "adim": 2.6
+  },
+  {
+   "t": 3.8,
+   "aktor": "s",
+   "poz": "kapi_tikla"
+  },
+  {
+   "t": 4.3,
+   "aktor": "o",
+   "bak": [
+    0.5,
+    -2.5
+   ]
+  },
+  {
+   "t": 5.0,
+   "aktor": "s",
+   "git": [
+    0.5,
+    -0.7
+   ],
+   "adim": 2.4
+  },
+  {
+   "t": 6.4,
+   "aktor": "s",
+   "soyle": "Efendim, Doğu bölgesinden çok büyük buz dalgaları hissediyoruz. Hanedanımızın büyücüleri öyle hissetti."
+  },
+  {
+   "t": 10.9,
+   "aktor": "o",
+   "soyle": "Tamam."
+  }
+ ],
+ "kamera": [
+  {
+   "t": 0.0,
+   "aci": "elle",
+   "kam": [
+    -2.7,
+    3.0,
+    23.8
+   ],
+   "bak": [
+    2.3,
+    1.9,
+    22.4
+   ],
+   "lens": 18,
+   "kaydir": [
+    0.2,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "t": 3.5,
+   "aci": "elle",
+   "kam": [
+    0.5,
+    3.2,
+    23.6
+   ],
+   "bak": [
+    0.5,
+    -2.6,
+    22.6
+   ],
+   "lens": 26
+  },
+  {
+   "t": 6.3,
+   "aci": "elle",
+   "kam": [
+    1.6,
+    2.0,
+    23.2
+   ],
+   "bak": "s",
+   "bak_yuks": 1.5,
+   "lens": 40,
+   "odak": "s"
+  },
+  {
+   "t": 10.7,
+   "aci": "elle",
+   "kam": [
+    0.9,
+    0.9,
+    23.0
+   ],
+   "bak": "o",
+   "bak_yuks": 1.55,
+   "lens": 45,
+   "odak": "o"
+  }
+ ]
+}
