@@ -1,6 +1,6 @@
 {
  "fps": 30,
- "sure": 12.5,
+ "sure": 14.8,
  "cozunurluk": [
   1920,
   1080
@@ -130,7 +130,7 @@
    "soyle": "Efendim, Doğu bölgesinden çok büyük buz dalgaları hissediyoruz. Hanedanımızın büyücüleri öyle hissetti."
   },
   {
-   "t": 10.9,
+   "t": 13.2,
    "aktor": "o",
    "soyle": "Tamam."
   }
@@ -185,7 +185,7 @@
    "odak": "s"
   },
   {
-   "t": 10.7,
+   "t": 13.0,
    "aci": "elle",
    "kam": [
     0.9,

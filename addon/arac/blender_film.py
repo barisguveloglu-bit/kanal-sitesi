@@ -3497,6 +3497,18 @@ def secili_kareler(klasor, adim=1, toplam=None, bas=1):
     return [(n, var[n]) for n in istenen]
 
 
+def altyazi_satirlari(isim, metin, olc, genislik):
+    """Altyazi satirlari [(isim, metin)]: sigmayan altyazi ortaya en yakin
+    bosluktan iki satira bolunur (isim ilk satirda). olc(metin) -> piksel.
+    Sigan altyazi tek satir kalir (1. bolumun altyazilari degismez)."""
+    if olc(isim + metin) <= genislik or " " not in metin:
+        return [(isim, metin)]
+    orta = len(metin) / 2.0
+    bosluk = [i for i, h in enumerate(metin) if h == " "]
+    i = min(bosluk, key=lambda j: abs(j - orta))
+    return [(isim, metin[:i]), ("", metin[i + 1:])]
+
+
 def altyazi_bas(klasor, adim=1, aralik=None):
     """aralik [a, b]: yalniz o film kareleri (parca: Part 1 / Part 2).
     Altyazi zamani FILM zamaninda kalir; video a karesinden baslar."""
@@ -3509,16 +3521,26 @@ def altyazi_bas(klasor, adim=1, aralik=None):
     os.makedirs(cikti, exist_ok=True)
     for f in os.listdir(cikti):
         os.remove(os.path.join(cikti, f))
+    # bir konusma altyazisi, sonraki konusma baslayinca biter: Part 1'de
+    # askerin uzun cumlesinin suresi Omer'in "Tamam."ina tasiyordu, ikisi
+    # ayni satira ust uste basildi (onizleme denetimi, v7.99.16)
+    yazilar = bilgi["yazilar"]
+    for y in yazilar:
+        y["_son"] = y["t"] + y["sure"]
+        if y["tur"] != "baslik":
+            sonraki = [z["t"] for z in yazilar if z["tur"] != "baslik" and z["t"] > y["t"] + 1e-9]
+            if sonraki:
+                y["_son"] = min(y["_son"], min(sonraki))
     for i, (no, ad) in enumerate(kareler):
         t = (no - 1) / fps
         im = Image.open(os.path.join(klasor, "kare", ad)).convert("RGB")
         W, H = im.size
         d = ImageDraw.Draw(im, "RGBA")
-        for y in bilgi["yazilar"]:
-            if not (y["t"] <= t < y["t"] + y["sure"]):
+        for y in yazilar:
+            if not (y["t"] <= t < y["_son"]):
                 continue
             yerel = t - y["t"]
-            alfa = int(255 * min(1.0, yerel / 0.25, (y["sure"] - yerel) / 0.25))
+            alfa = int(255 * min(1.0, yerel / 0.25, (y["_son"] - t) / 0.25))
             if y["tur"] == "baslik" and not BASLIK_SAHNEDE:
                 continue                      # ayri kart: film_birlestir.baslik_karti
             if y["tur"] == "baslik":
@@ -3528,17 +3550,22 @@ def altyazi_bas(klasor, adim=1, aralik=None):
                 d.text(((W - g) / 2, H * 0.38), y["metin"], font=f, fill=(255, 255, 255, alfa))
                 continue
             f = ImageFont.truetype(YAZI_TIPI, int(H * 0.045))
-            parcalar = ([(y["isim"] + ": ", (255, 214, 90, alfa))] if y["tur"] == "soyle" and y.get("isim") else []) + \
-                       [(y["metin"], (255, 255, 255, alfa) if y["tur"] == "soyle" else (220, 220, 220, alfa))]
-            toplam = sum(d.textlength(p, font=f) for p, _ in parcalar)
-            x0 = (W - toplam) / 2
-            yy = H * 0.86
+            isim = (y["isim"] + ": ") if y["tur"] == "soyle" and y.get("isim") else ""
+            renk_m = (255, 255, 255, alfa) if y["tur"] == "soyle" else (220, 220, 220, alfa)
+            satirlar = altyazi_satirlari(isim, y["metin"], lambda m: d.textlength(m, font=f), W * 0.9)
             pad = H * 0.012
-            d.rectangle([x0 - pad * 2, yy - pad, x0 + toplam + pad * 2, yy + H * 0.045 + pad * 1.6],
-                        fill=(0, 0, 0, int(alfa * 0.55)))
-            for p, renk in parcalar:
-                d.text((x0, yy), p, font=f, fill=renk)
-                x0 += d.textlength(p, font=f)
+            satir_h = H * 0.045 + pad * 1.6
+            yy0 = H * 0.86 - (len(satirlar) - 1) * satir_h
+            for k_, (isim_, metin_) in enumerate(satirlar):
+                parcalar = ([(isim_, (255, 214, 90, alfa))] if isim_ else []) + [(metin_, renk_m)]
+                toplam = sum(d.textlength(p, font=f) for p, _ in parcalar)
+                x0 = (W - toplam) / 2
+                yy = yy0 + k_ * satir_h
+                d.rectangle([x0 - pad * 2, yy - pad, x0 + toplam + pad * 2, yy + H * 0.045 + pad * 1.6],
+                            fill=(0, 0, 0, int(alfa * 0.55)))
+                for p, renk in parcalar:
+                    d.text((x0, yy), p, font=f, fill=renk)
+                    x0 += d.textlength(p, font=f)
         im.save(os.path.join(cikti, "%04d.png" % (i + 1)))
     # BT.709 matris + etiket (ffmpeg varsayilani BT.601 ve etiketsiz: HD'de
     # yesiller koyu gorunuyordu, v7.99.12 uzun denetim). crf 8: bu bir ARA

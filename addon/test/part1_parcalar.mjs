@@ -156,6 +156,43 @@ console.log("\n=== 8. PART 1'IN BES SENARYOSU ===");
   kontrol("toplam sure hedefte (50-73,7 sn)", sure >= 50 && sure <= 73.7, sure.toFixed(1) + " sn");
 }
 
+console.log("\n=== 9. ALTYAZI: SIGMAYAN IKI SATIR, KONUSMALAR UST USTE BINMEZ ===");
+{
+  // onizleme denetimi: askerin 103 harflik cumlesi ekrana sigmiyordu ve
+  // suresi Omer'in "Tamam."ina tasiyip ayni satira ust uste basildi
+  const r = py(`
+import blender_film as F, tempfile, os
+from PIL import Image
+olc = lambda m: len(m) * 12.0
+uzun = F.altyazi_satirlari("Asker: ", "Efendim, Doğu bölgesinden çok büyük buz dalgaları hissediyoruz. Hanedanımızın büyücüleri öyle hissetti.", olc, 864)
+kisa = F.altyazi_satirlari("Ömer: ", "Tamam.", olc, 864)
+# ust uste binme: iki konusma, ilkinin suresi ikincinin icine tasiyor
+d = tempfile.mkdtemp(); os.makedirs(os.path.join(d, "kare"))
+for f in range(1, 31):
+    Image.new("RGB", (320, 180), (20, 60, 30)).save(os.path.join(d, "kare", "%04d.png" % f))
+json.dump({"fps": 10, "kare": 30, "yazilar": [
+    {"t": 0.0, "sure": 2.5, "metin": "Birinci", "tur": "soyle", "isim": "A"},
+    {"t": 1.0, "sure": 1.5, "metin": "İkinci", "tur": "soyle", "isim": "B"}]}, open(os.path.join(d, "yazilar.json"), "w"))
+F.altyazi_bas(d)
+# ayni kareler, yalniz ikinci konusmayla
+d2 = tempfile.mkdtemp(); os.makedirs(os.path.join(d2, "kare"))
+for f in range(1, 31):
+    Image.new("RGB", (320, 180), (20, 60, 30)).save(os.path.join(d2, "kare", "%04d.png" % f))
+json.dump({"fps": 10, "kare": 30, "yazilar": [{"t": 1.0, "sure": 1.5, "metin": "İkinci", "tur": "soyle", "isim": "B"}]},
+          open(os.path.join(d2, "yazilar.json"), "w"))
+F.altyazi_bas(d2)
+px = lambda k, f: Image.open(os.path.join(k, "altyazili", "%04d.png" % f)).convert("L").tobytes()
+# ikinci konusma 1,0 sn'de basliyor: 1,3 sn'deki kare (14) yalniz ikinciyi
+# tasimali -- iki konusmali cizim, yalniz ikinciyle cizime bire bir esit
+print(json.dumps({"uzun": [list(x) for x in uzun], "kisa": [list(x) for x in kisa],
+                  "tek14": px(d, 14) == px(d2, 14), "ilk5_dolu": px(d, 5) != px(d2, 5),
+                  "olc_sig": max(olc(a + b) for a, b in uzun) <= 864}))`);
+  kontrol("sigmayan altyazi iki satir, isim ilk satirda, iki satir da sigiyor",
+          r.uzun.length === 2 && r.uzun[0][0] === "Asker: " && r.uzun[1][0] === "" && r.olc_sig, JSON.stringify(r.uzun.map((x) => x[1].length)));
+  kontrol("sigan altyazi tek satir (1. bolum degismez)", r.kisa.length === 1);
+  kontrol("onceki konusma sonrakinin basinda biter: o anda yalniz yeni konusma var", r.tek14 && r.ilk5_dolu);
+}
+
 console.log("");
 console.log(hata ? ">>> SORUN VAR" : ">>> Part 1 parcalari: kararma, bulaniklik, kar, sancak, harita, savas odasi tutarli");
 process.exit(hata ? 1 : 0);
