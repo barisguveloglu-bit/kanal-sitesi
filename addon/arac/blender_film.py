@@ -1638,11 +1638,10 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
                 kitaplar[(ad, es)] = kt
 
     def sabit_anahtar(ob, yol):
-        if ob.animation_data and ob.animation_data.action:
-            for fc in ob.animation_data.action.fcurves if hasattr(ob.animation_data.action, "fcurves") else []:
-                if fc.data_path == yol:
-                    for kp in fc.keyframe_points:
-                        kp.interpolation = "CONSTANT"
+        for fc in egriler(ob):
+            if fc.data_path == yol:
+                for kp in fc.keyframe_points:
+                    kp.interpolation = "CONSTANT"
 
     # Anahtarlar TOPLU yaziliyor: keyframe_insert 2666 kare x 5 aktor x 10 kemik
     # icin sahne kurulumu 12 dakika suruyordu (olculdu).
@@ -1770,7 +1769,7 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
             for f_ in sorted(anahtar):
                 lamba.energy = anahtar[f_]
                 lamba.keyframe_insert("energy", frame=f_)
-            for fc in (lamba.animation_data.action.fcurves if hasattr(lamba.animation_data.action, "fcurves") else []):
+            for fc in egriler(lamba):
                 for kp in fc.keyframe_points:
                     kp.interpolation = "CONSTANT"     # yanip soner, yavasca kararmaz
 
@@ -1789,6 +1788,17 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
         kam.data.dof.use_dof = True
         kam.data.dof.aperture_fstop = senaryo.get("fstop", 2.2)
     kam.rotation_mode = "QUATERNION"
+    titreme_kare = titreme_karaleri(senaryo, harita, len(kam_iz))
+    rnd_t = random.Random(11)
+    if titreme_kare:
+        # pozlama kirpismasi: titreme suresince her karede biraz karanlik
+        taban_poz = sc.view_settings.exposure
+        for f in range(len(kam_iz)):
+            g_ = titreme_kare.get(f, 0.0)
+            sc.view_settings.exposure = taban_poz - (rnd_t.uniform(0.0, 0.9) * g_ if g_ else 0.0)
+            if g_ or titreme_kare.get(f - 1) or titreme_kare.get(f + 1) or f == 0:
+                sc.view_settings.keyframe_insert("exposure", frame=f + 1)
+        sc.view_settings.exposure = taban_poz
     for f, (kp, bk, lens, yatik, odak) in enumerate(kam_iz):
         sars = sum(max(0.0, 1 - (f - s) / (0.3 * fps)) for s in sars_kare if 0 <= f - s < 0.3 * fps)
         titre = Vector((rnd.uniform(-1, 1), rnd.uniform(-1, 1), rnd.uniform(-1, 1))) * 0.06 * sars
@@ -1798,6 +1808,13 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
         onq = tampon.get((kam, "rotation_quaternion"))
         if onq and sum(x * y for x, y in zip(onq[-1][1], q)) < 0:
             q = -q
+        if titreme_kare.get(f):
+            # goruntu titremesi (senaryo "titreme"): ayri tohumla, 1. bolumun
+            # sarsinti dizisi degismesin
+            g_ = titreme_kare[f]
+            titre = titre + Vector((rnd_t.uniform(-1, 1), rnd_t.uniform(-1, 1), rnd_t.uniform(-1, 1))) * 0.035 * g_
+            eksen_ = Vector((rnd_t.uniform(-1, 1), rnd_t.uniform(-1, 1), rnd_t.uniform(-1, 1))).normalized()
+            q = q @ Quaternion(eksen_, math.radians(1.6 * g_))
         tampona(kam, "location", f + 1, Vector(kp) + titre)
         tampona(kam, "rotation_quaternion", f + 1, q)
         tampona(kam.data, "lens", f + 1, (lens,))
@@ -1809,6 +1826,9 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
                 d = (Vector(bk) - Vector(kp)).length
             tampona(kam.data.dof, "focus_distance", f + 1, (d,))
     toplu_anahtar(bpy, tampon, kam)
+
+    # ---- Satanachia'nin ruhu: siyah bulutlu kure (senaryo "ruh") ----
+    ruh_kur(bpy, senaryo, harita)
 
     # ---- Thomas gozleri: goz ayarli aktorler, goz="thomas" planlarda (REFERANS_THOMAS_RIG.md) ----
     thomas_goz.kur(bpy, senaryo, harita, aktorler, kemik_nesne, kare_bul, B.yol)
@@ -1835,6 +1855,26 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
     bpy.ops.render.render(animation=True)
     with open(os.path.join(klasor, "yazilar.json"), "w", encoding="utf-8") as fh:
         json.dump({"fps": fps, "yazilar": yazilar, "kare": len(kam_iz)}, fh, ensure_ascii=False)
+
+
+def egriler(veri):
+    """Bir veri blogunun animasyon egrileri, Blender surumunden bagimsiz.
+    Blender 5'te action katmanli: egriler katman > serit > kanal torbasinda,
+    action.fcurves YOK. Eski yol (hasattr(action, "fcurves")) 5.2'de sessizce
+    bos liste veriyordu: dolgu isiginin "t" araligi CONSTANT olmadi, isik
+    5,6-8,6 sn boyunca yavas yavas sondu (kure onizlemesi, v7.99.16).
+    thomas_goz.py ayni yolu kullaniyor."""
+    ad = getattr(veri, "animation_data", None)
+    if not ad or not ad.action:
+        return []
+    if hasattr(ad.action, "fcurves"):
+        return list(ad.action.fcurves)
+    out = []
+    for katman in getattr(ad.action, "layers", []):
+        for serit in katman.strips:
+            for kanal in serit.channelbags:
+                out += list(kanal.fcurves)
+    return out
 
 
 def toplu_anahtar(bpy, tampon, kam=None):
@@ -2226,6 +2266,202 @@ def kitap_ormesi(acik=False):
             ys.append(tuple(i0 + v for v in f_))
             mi.append(m_)
     return ks, ys, mi
+
+
+# ---- goruntu titremesi (v7.99.16, 2. bolum Part 1) ----
+# Kullanici (Satanachia'nin ruhu girerken): "arasi titresin biraz". Senaryo:
+# "titreme": [{"t": [bas, son], "guc": 1.0}]. Kamera kare kare sarsilir,
+# pozlama kirpisir (karanliga). Sarsinti (vurusun son temasi) ayri kalir.
+def titreme_karaleri(senaryo, harita, n):
+    """{kare: guc}: titreme araliklarinda; uclarda 0,15 sn yumusak giris/cikis."""
+    out = {}
+    for ti in senaryo.get("titreme", []):
+        t0, t1 = ti["t"]
+        g = float(ti.get("guc", 1.0))
+        for f in range(min(n, len(harita))):
+            t = harita[f]
+            if t0 <= t <= t1:
+                u = min(1.0, (t - t0) / 0.15, (t1 - t) / 0.15)
+                out[f] = max(out.get(f, 0.0), g * max(0.0, u))
+    return {f: g for f, g in out.items() if g > 0}
+
+
+# ---- Satanachia'nin ruhu (v7.99.16, 2. bolum Part 1) ----
+# Kullanici: "siyah bir top ciz, bulutlu ruh olarak uygun". Senaryo:
+# "ruh": {"yaricap": 0.3, "yol": [{"t", "nokta": [x, y, z]}, ...], "gir": t,
+#         "parilti": {"renk", "guc", "isik"} (istege bagli; yoksa katiksiz
+#         kara duman; "isik" icindeki kizil nokta isiginin gucu, W)}.
+# Ilk noktada buyuyerek belirir (gecitten cikar), yol boyunca yumusak
+# egriyle gider, "gir" aninda son noktada kuculup kaybolur (Baris'in
+# bedenine girer). Siyah cekirdek + cevresinde dalgalanan siyah duman.
+def ruh_yolu(ruh, t):
+    """(nokta, olcek) ya da None (gorunmuyor). Saf Python, test edilir."""
+    yol = sorted(ruh["yol"], key=lambda k: k["t"])
+    t0, t_son = yol[0]["t"], ruh.get("gir", yol[-1]["t"])
+    if t < t0 or t > t_son:
+        return None
+    if t >= yol[-1]["t"]:
+        p = list(yol[-1]["nokta"])
+    else:
+        i = max(j for j in range(len(yol)) if yol[j]["t"] <= t)
+        a, b = yol[i], yol[i + 1]
+        dt = b["t"] - a["t"]
+        u = (t - a["t"]) / dt
+
+        def teget(j):
+            # zamana gore Catmull-Rom tegeti (blok/sn). Duz Catmull-Rom
+            # anahtarlar arasi sureler esit degilken her noktada hizi
+            # sicratiyordu (test/ruh_kure.mjs: 1,4 blok/sn). Uclarda tek yanli
+            # farkin yarisi (eski egrinin ucla ayni davranisi).
+            if j == 0 or j == len(yol) - 1:
+                k0, k1 = (0, 1) if j == 0 else (j - 1, j)
+                return [0.5 * (yol[k1]["nokta"][k] - yol[k0]["nokta"][k]) / (yol[k1]["t"] - yol[k0]["t"])
+                        for k in range(3)]
+            return [(yol[j + 1]["nokta"][k] - yol[j - 1]["nokta"][k]) / (yol[j + 1]["t"] - yol[j - 1]["t"])
+                    for k in range(3)]
+        ma, mb = teget(i), teget(i + 1)
+        h00, h10 = 2 * u ** 3 - 3 * u * u + 1, u ** 3 - 2 * u * u + u
+        h01, h11 = -2 * u ** 3 + 3 * u * u, u ** 3 - u * u
+        p = [h00 * a["nokta"][k] + h10 * dt * ma[k] + h01 * b["nokta"][k] + h11 * dt * mb[k] for k in range(3)]
+    s = min(1.0, (t - t0) / 0.35)
+    if "gir" in ruh and t > yol[-1]["t"]:
+        s = min(s, max(0.0, (t_son - t) / max(1e-6, t_son - yol[-1]["t"])))
+    return p, s * s * (3 - 2 * s)
+
+
+def ruh_kur(bpy, senaryo, harita):
+    ruh = senaryo.get("ruh")
+    if not ruh:
+        return
+    from mathutils import Vector
+    sc = bpy.context.scene
+    r = float(ruh.get("yaricap", 0.3))
+    # cekirdek: kucuk, mat siyah; dumanin icinde kalir, kurenin govdesini
+    # koyulastirir (ilk denemede buyuk ve parlak cekirdek bilye gibi duruyordu)
+    bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=3, radius=1.0)
+    cek = bpy.context.object
+    cek.name = "ruh_cekirdek"
+    m = bpy.data.materials.new("ruh_cekirdek")
+    m.use_nodes = True
+    b = m.node_tree.nodes["Principled BSDF"]
+    b.inputs["Base Color"].default_value = (0.002, 0.002, 0.002, 1)
+    b.inputs["Roughness"].default_value = 0.95
+    cek.data.materials.append(m)
+    bpy.ops.object.shade_smooth()
+    # bulut: kara duman. Yogunluk = kuresel egim + 4B gurultu; esik gurultuyle
+    # oynadigi icin govde dolu, kenar lime lime. Renk siyah: isigi yutar,
+    # sacmaz (gri sis gibi degil, kara duman gibi gorunsun)
+    bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=2, radius=1.0)
+    bul = bpy.context.object
+    bul.name = "ruh_bulut"
+    mv = bpy.data.materials.new("ruh_bulut")
+    mv.use_nodes = True
+    nt = mv.node_tree
+    for n in list(nt.nodes):
+        if n.type != "OUTPUT_MATERIAL":
+            nt.nodes.remove(n)
+    cikis = [n for n in nt.nodes if n.type == "OUTPUT_MATERIAL"][0]
+    hv = nt.nodes.new("ShaderNodeVolumePrincipled")
+    hv.inputs["Color"].default_value = (0.003, 0.003, 0.003, 1)
+    hv.inputs["Absorption Color"].default_value = (0.0, 0.0, 0.0, 1)
+    tc = nt.nodes.new("ShaderNodeTexCoord")
+    gur = nt.nodes.new("ShaderNodeTexNoise")
+    gur.noise_dimensions = "4D"
+    gur.inputs["Scale"].default_value = 2.2
+    gur.inputs["Detail"].default_value = 8.0
+    gur.inputs["Roughness"].default_value = 0.62
+    egim = nt.nodes.new("ShaderNodeTexGradient")
+    egim.gradient_type = "SPHERICAL"
+    # egim + (gurultu - 0,5) x 0,7: kenar gurultuyle iceri/disari tasiyor
+    kay = nt.nodes.new("ShaderNodeMath")
+    kay.operation = "MULTIPLY_ADD"
+    kay.inputs[1].default_value = 0.7
+    kay.inputs[2].default_value = -0.35
+    top = nt.nodes.new("ShaderNodeMath")
+    top.operation = "ADD"
+    aralik = nt.nodes.new("ShaderNodeMapRange")
+    aralik.inputs["From Min"].default_value = 0.12
+    aralik.inputs["From Max"].default_value = 0.42
+    yog = nt.nodes.new("ShaderNodeMath")
+    yog.operation = "MULTIPLY"
+    yog.inputs[1].default_value = 45.0
+    nt.links.new(tc.outputs["Object"], gur.inputs["Vector"])
+    nt.links.new(tc.outputs["Object"], egim.inputs["Vector"])
+    nt.links.new(gur.outputs["Fac"], kay.inputs[0])
+    nt.links.new(kay.outputs["Value"], top.inputs[0])
+    nt.links.new(egim.outputs["Fac"], top.inputs[1])
+    nt.links.new(top.outputs["Value"], aralik.inputs["Value"])
+    nt.links.new(aralik.outputs["Result"], yog.inputs[0])
+    nt.links.new(yog.outputs["Value"], hv.inputs["Density"])
+    nt.links.new(hv.outputs["Volume"], cikis.inputs["Volume"])
+    if ruh.get("parilti"):
+        # CLAUDE'UN ONERISI, varsayilan degil: gecede katiksiz kara duman kara
+        # gokte kayboluyordu (ilk onizleme). Kayit: ruh "buyuk bir kinle
+        # yaniyor". Dumanin ICINDE seyrek, sonuk korlar: ikinci bir gurultunun
+        # tepeleri, yalniz dumanin dolu yerinde (yogunlukla carpilir).
+        pr = ruh["parilti"]
+        hv.inputs["Emission Color"].default_value = tuple(pr.get("renk", [0.6, 0.03, 0.02])) + (1,)
+        koz = nt.nodes.new("ShaderNodeTexNoise")
+        koz.noise_dimensions = "4D"
+        koz.inputs["Scale"].default_value = 5.0
+        koz.inputs["Detail"].default_value = 3.0
+        koz_esik = nt.nodes.new("ShaderNodeMapRange")
+        koz_esik.inputs["From Min"].default_value = 0.58
+        koz_esik.inputs["From Max"].default_value = 0.78
+        koz_carp = nt.nodes.new("ShaderNodeMath")
+        koz_carp.operation = "MULTIPLY"
+        koz_guc = nt.nodes.new("ShaderNodeMath")
+        koz_guc.operation = "MULTIPLY"
+        koz_guc.inputs[1].default_value = float(pr.get("guc", 2.0))
+        nt.links.new(tc.outputs["Object"], koz.inputs["Vector"])
+        nt.links.new(koz.outputs["Fac"], koz_esik.inputs["Value"])
+        nt.links.new(koz_esik.outputs["Result"], koz_carp.inputs[0])
+        nt.links.new(aralik.outputs["Result"], koz_carp.inputs[1])
+        nt.links.new(koz_carp.outputs["Value"], koz_guc.inputs[0])
+        nt.links.new(koz_guc.outputs["Value"], hv.inputs["Emission Strength"])
+        gur_w = [gur, koz]
+    else:
+        gur_w = [gur]
+    isik = None
+    if ruh.get("parilti", {}).get("isik"):
+        # CLAUDE'UN ONERISI: kurenin icinde sonuk kizil bir nokta isigi;
+        # yaklastigi yuzu (Baris'in yuzu, yatak) hafifce kizila boyar.
+        # Karanlik odada kara duman ancak boyle okunuyor (onizleme, 6,8 sn).
+        pr = ruh["parilti"]
+        isik = bpy.data.objects.new("ruh_isik", bpy.data.lights.new("ruh_isik", "POINT"))
+        sc.collection.objects.link(isik)
+        isik.data.color = tuple(pr.get("renk", [0.6, 0.03, 0.02]))
+        isik.data.shadow_soft_size = r * 0.5
+    bul.data.materials.append(mv)
+    fps = senaryo.get("fps", 24)
+    for f, t in enumerate(harita):
+        yer = ruh_yolu(ruh, t)
+        if yer is None:
+            p, s = ruh["yol"][0]["nokta"], 0.0
+        else:
+            p, s = yer
+        # duman kat 1,5: gorunen kenar ~1,1 r, uclar 1,4 r'ye uzanir;
+        # cekirdek 0,6 r, dumanin dolu govdesinin icinde kalir
+        for ob, kat in ((cek, 0.6), (bul, 1.5)):
+            ob.location = Vector(p)
+            # sifira yakin olcek hacmi cokertiyor (openvdb: "Non-zero scale
+            # values required", ilk denemede Blender dustu): gorunmezken
+            # olcek tabanda kalir, nesne gizlenir
+            ob.scale = (max(r * kat * s, 0.02),) * 3
+            ob.rotation_euler = (0.0, 0.0, t * 0.8)
+            ob.hide_render = s < 0.03
+            ob.keyframe_insert("location", frame=f + 1)
+            ob.keyframe_insert("scale", frame=f + 1)
+            ob.keyframe_insert("rotation_euler", frame=f + 1)
+            ob.keyframe_insert("hide_render", frame=f + 1)
+        if isik is not None:
+            isik.location = Vector(p)
+            isik.data.energy = float(ruh["parilti"]["isik"]) * s
+            isik.keyframe_insert("location", frame=f + 1)
+            isik.data.keyframe_insert("energy", frame=f + 1)
+        for g_ in gur_w:                                 # duman kivranir
+            g_.inputs["W"].default_value = t * 0.9
+            g_.inputs["W"].keyframe_insert("default_value", frame=f + 1)
 
 
 def mekan_kur(bpy, M, klasor):

@@ -106,6 +106,22 @@ print(json.dumps({"aci": ak["b"].kayit[0]["aci"], "beklenen": F.yon_aci([0.75, 0
           r.aci.toFixed(2));
 }
 
+console.log("\n=== 7. DOLGU ISIGI ARALIKTA YANIP SONER (Blender 5) ===");
+{
+  // Blender 5'te action katmanli; action.fcurves yok. Eski yol sessizce bos
+  // liste verdi, dolgu isigi CONSTANT olmadi ve "t" araligi boyunca yavas
+  // yavas sondu (kure onizlemesi: son saniye neredeyse kapkara).
+  // Blender'siz olculuyor: egrilere yalniz egriler() ile ulasiliyor mu.
+  const { readFileSync } = await import("node:fs");
+  const kod = readFileSync(join(ARAC, "blender_film.py"), "utf8");
+  const bas = kod.indexOf("\ndef egriler(");
+  const son = kod.indexOf("\ndef ", bas + 1);
+  const disarida = [...kod.matchAll(/action\.fcurves/g)].filter((m) => m.index < bas || m.index > son).length;
+  kontrol("egriler() var, Blender 5'in katmanli action'ina iniyor", bas > 0 && kod.slice(bas, son).includes("channelbags"));
+  kontrol("egriler() disinda action.fcurves yok", disarida === 0, disarida + " yer");
+  kontrol("dolgu isigi egrilerini egriler() ile CONSTANT yapiyor", /for fc in egriler\(lamba\):/.test(kod));
+}
+
 console.log("");
 console.log(hata ? ">>> SORUN VAR" : ">>> kulube sahneleri: pozlar, kitap ve bakis tutarli");
 process.exit(hata ? 1 : 0);

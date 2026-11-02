@@ -273,6 +273,10 @@ dediği). Silahı zaten kayıtlı: Ay Işığı Asası.
   karakterimize giriyor"*.
 - **Adı: Satanachia** (kullanıcı: *"isim olarak güzel seçtim, komutan adı
   bu olsun"*).
+- **Kini kime (kullanıcı, 2026-11-02):** cevabı 3. bölümde. *"3. bölüm
+  tamamen Nether'ın geçmişi ile alakalı"*; Nether'ın geçmişine
+  **flashback'lerle** bakılacak. Geçmişin ve kinin içeriği henüz anlatılmadı,
+  uydurulmaz.
 - **Filmde gösteriliyor.** Ruh **siyah, bulutlu bir küre** olarak çizilir
   (kullanıcı: *"siyah bir top çiz, bulutlu ruh olarak uygun"*).
 - 5. sahnede **ağrıların birden geçmesi Satanachia ile ilgili DEĞİL**
@@ -512,6 +516,16 @@ virüsünü üretiyor.
 - Birden fazla **hanedan ve krallık** var; her biri **farklı bölgede**
   yaşıyor ve her birinin **ırkı farklı**. **End'de ve Nether'da** da
   krallıklar var.
+- **Bayraklar (kullanıcı, 2026-11-02):** her topluluğun **kendi bayrağı**
+  olmalı: insan hanedanları, Nether'dakiler, End'dekiler (*"her birinin bir
+  bayrağı olmalı, biz bunu düşünmedik"*). Tasarım henüz yok.
+  - **Biçim: Minecraft sancağı** (kullanıcı, 2026-11-02). Bedrock'ta 16 boya
+    rengi, en fazla 6 desen katmanı (komutla da 6).
+  - **İlk görüneceği yer:** Ömer'in savaş odası (strateji, savaş planı, öbür
+    ülkelere karşı neler yapılabileceği konuşulan yer); bayraklar **kapının
+    girişinde** dikili (kullanıcı).
+  - **Renkler anlamlarına göre seçilecek** (kullanıcı: *"renklerin anlamları
+    ile yapacağız"*). Araştırma özeti kullanıcıya sunuldu; seçim bekliyor.
 - **Komutan Ömer:** **insanlara** ait hanedanın askerî bir bölgesindeki
   komutan.
 - **El lambalı kişi:** **cadı** ırkından.

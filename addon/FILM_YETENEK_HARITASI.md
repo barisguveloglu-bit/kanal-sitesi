@@ -77,9 +77,13 @@ her blok "başka sürümle çizilmiş" uyarısı verirdi). Eski ve yeni kod
   - ateş, alev, duman, patlama ışığı;
   - yarı saydam kalkan kubbesi ve çarpma dalgası;
   - buz, kar, donma efekti;
-  - şiddeti ayarlanabilen sarsıntı, görüntü titremesi;
+  - şiddeti ayarlanabilen sarsıntı (görüntü titremesi artık var, aşağıda);
   - kararma ve beyaz geçiş;
   - yumuşak hız rampası (`zaman` aralıkları basamak gibi değişiyor).
+- **Satanachia'nın ruhu ve görüntü titremesi (v7.99.16, kilit `test/ruh_kure.mjs`):**
+  - `"ruh": {"yaricap", "yol": [{"t", "nokta"}], "gir", "parilti"}` kara duman küre: küçük mat siyah çekirdek, çevresinde kenarı gürültüyle lime lime olan siyah hacim (ışığı yutar, saçmaz). İlk noktada 0,35 sn'de büyüyerek belirir, yol boyunca zamana göre Catmull-Rom eğrisiyle gider (anahtarda hız sıçramaz), `gir` anında son noktada küçülüp kaybolur.
+  - `"parilti": {"renk", "guc", "isik"}` **Claude'un önerisi, varsayılan değil:** dumanın içinde seyrek, sönük közler, isteğe bağlı olarak içinde kızıl nokta ışığı. Gece katıksız kara duman kara gökte ve karanlık odada kayboluyordu.
+  - `"titreme": [{"t": [t0, t1], "guc"}]`: o aralıkta kamera her karede biraz kayar ve döner, pozlama kırpışır; uçlarda 0,15 sn'de açılıp kapanır. Ayrı tohumla çalışır; `titreme` yazmayan senaryonun kamerası bire bir eskisi kalır.
 - **Kurulu ama bağlı değil (v7.99.15):** ateş, duman, patlama, yıldırım,
   kritik vuruş ve büyü parçacıkları (Pooka, Kenney), gerçekçi VDB patlamaları
   (`--vdb`), Quaternius dövüş animasyonları (yumruk, yuvarlanma, kalkan,
@@ -179,6 +183,7 @@ her blok "başka sürümle çizilmiş" uyarısı verirdi). Eski ve yeni kod
 - Dövüş v2'de beş kadraj hatası ve çizimi ilk karede çökerten `KeyError`.
 - Zisa'nın ince kollu skini 4 px kollu modele giydiriliyordu: kolun boş dış sütunu kenarda kırık bir şerit olarak görünüyordu (kilit: `ince_kol.mjs`).
 - Kulübe sahnesi denemesi (v7.99.16, kilit: `kulube_sahne.mjs`): iç mekân ışıksız kaldı, Barış'ın siyah kıyafeti zeminle birleşti (dolgu ışığı eklendi); aktör tanımındaki `"bak": [x, y]` sessizce yok sayıldı, Barış kitaplığa değil duvara uzandı; kapalı kitapla okumak garip durdu ve kol -80'de kitap yüzü kapattı (açık kitap, göğüs hizası); ayakucundaki kamera doğrulan Barış'ın sırtını gösterdi.
+- Ruh küresi denemesi (v7.99.16, kilit: `ruh_kure.mjs`): ilk çizimde Blender düştü (sıfıra yakın ölçekli hacim, openvdb "Non-zero scale values required"; ölçek tabanda kalıyor, nesne gizleniyor); büyük parlak çekirdek bilye gibi durdu, duman soluk gri sis gibi kaldı (çekirdek küçültüldü ve matlaştı, duman siyah ve yoğun); gece kara küre görünmedi, kızıl parıltı tek başına kırmızı bir top yaptı (közler dumanın içine alındı); yol anahtar noktalar arasında süreler eşit değilken her noktada hızı 1,4 blok/sn sıçratıyordu (düz Catmull-Rom; zamana göre teğet). Klibin son saniyesi neredeyse kapkara çıktı: dolgu ışığının `t` aralığı Blender 5.2'de hiç sabitlenmemiş, ışık 3 sn boyunca yavaş yavaş sönmüş. Blender 5'te `action.fcurves` yok, eski kod onu `hasattr` ile sorup sessizce boş liste alıyordu (`egriler()`; kilit: `kulube_sahne.mjs` 7. bölüm).
 - Bataklıkta ilk film denemesi (v7.99.16, kilit: `mekan.mjs`): kamera sarkan sarmaşıkların arasına düştü, kare kapandı, denetim "0 sorun" dedi (sarmaşık görüşü kesen sayılmıyordu; çekimin konusu da yazılmamıştı). İlk zıplama 0,89 blok çıktı (sürekli zamanlı hesap; Minecraft 1,25) ve hedefi 0,26 blok aştı (yatay hareket bir kare erken başlıyordu).
 - Bataklık önizlemesi (v7.99.16, kilit: `kulube.mjs`): ufuk düzlemi havuzların suyunu örtüyordu (hanedanda da tarla sularını); su dokusu 32 karelik şerit hâlinde bir bloğa sıkışıyordu; çimen yan dokusundaki hazır ova yeşili havuz kenarlarında parlak çizgi oluyordu, örtü konunca kuzey yüzleri "ön" sayıldığı için örtüsüz kaldı; kapının önüne sarmaşık sarkıyordu.
 
