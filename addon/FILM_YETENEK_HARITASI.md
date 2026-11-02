@@ -14,10 +14,14 @@ Kullanıcı: *"robotik dövüşlerden ya da hareketlerden memnun değilim."*
 Kodda ölçülen sebepler ve karşılıkları (`arac/hareket.py`, kilit
 `test/hareket.mjs`):
 
+**Hareket denetimi (v7.99.16, kullanıcı: *"yürüyüşler her şey robotik olmayacak değil mi, bunları ayrıca denetle"*):** `python3 arac/hareket_denetim.py film/<senaryo>.json` her oyuncunun kökünü kare kare ölçer: tek karede hız sıçraması (> 18 blok/sn²; zıplayış inişinden sonraki 0,5 sn'de > 47), ani dönüş (> 4160°/sn² ya da > 790°/sn), ışınlanma (> 0,5 blok/kare), yürümeden kayma. `"akici": true` açık diye güvenilmez, ölçülür. 1. bölüm dışındaki her senaryo temiz olmalı (`test/hareket_denetim.mjs`). İlk koşuda Part 1'in beş senaryosunda 8 bulgu çıktı; aşağıdaki tablonun son üç satırı onların düzeltmesi. Kemik düzeyi (kol, bacak) bu denetimin dışında: onu önizleme gösterir.
+
 | robotik görünen | eskisi | akıcıda |
 |---|---|---|
 | dönüş | sabit 540°/sn, ilk karede 22,5° atlıyor, anında duruyor | ivme sınırlı yay: ilk karede ~2°, en çok 26,6°/kare, yavaşlayarak oturur (180° ≈ 0,8 sn) |
-| yürümeye başlama/durma | ilk karede 0 → 4,3 blok/sn, varışta anında durma | 9 blok/sn² ivme, varışa yaklaşırken frenleme |
+| yürümeye başlama/durma | ilk karede 0 → 4,3 blok/sn, varışta anında durma | 9 blok/sn² ivme, varışa yaklaşırken frenleme; son 0,3 blokta hız kalanın 0,6. kuvvetiyle söner (fren hiç 9'u aşmaz, son kare ~0,2 blok/sn; v7.99.16 denetimi: sabit frenle son karede 0,6 → 0) |
+| yürürken yeni `git` | yol tek karede kırılıyor (yan ivme 51 blok/sn²) | yol kavisli: hareket yönü hedefe en çok 9 blok/sn² yan ivmeyle döner, hedef yanda kaldıkça yavaşlar; son 0,15 blokta doğrudan hedefe |
+| zıplama | kalkış karesinde bir kare yerinde (yürürken 2,6 → 0 → 2,6), yere değince yatay hız tek karede 4,5 → 0 | kalkış olayın karesinde; inişte yatay hız sürtünmeyle söner (τ 0,12 sn, ~0,5 blok kayma, Minecraft'ın yer sürtünmesine yakın) |
 | adım | sert bacak açılınca iki ayak havada (40°'de 1,5 px, koşuda 3 px) | gövde ayak temasına iner (bacağın alt köşesi, gerçek modelle bire bir); doğal inip kalkma |
 | yürüyen gövde | yalnız kol ve bacak sallanıyor | hıza göre öne eğilme, göğüs burulması (baş sabit), kollar gövdeye sürtmez |
 | baş | kendiliğinden hiçbir yere bakmıyor | vurduğu / yürüdüğü / `bak`tığı aktöre, yoksa 10 blok içindeki en yakına döner; yayla gecikir (dönüşe baş önce başlar); vuruşta %70 azalır, film pozunda poz yönetir |

@@ -244,6 +244,7 @@ class Aktor:
         self.kat = float(v.get("kat", 0.0))
         self.havada = None       # {"t0", "z0", "v0"}: kalkis (hareket.yorunge)
         self.zipla = None        # {"t0", "bas", "hedef", "T"}: havadaki yatay yol
+        self.kayma = None        # [vx, vy]: zipladiktan sonra iniste sonen yatay hiz (akici)
         self.inisler = []        # [{"bas", "guc"}] iniste diz cokmesi
         self.dusuler = []        # [(t, poz)] vurusla yere dusurulme (zemin denetimi okur)
         self.dikey = 0.0         # hava vurusunun zeminden yuksekligi
@@ -261,6 +262,7 @@ class Aktor:
         self.akici = False
         self.aci_hiz = 0.0       # derece/sn
         self.yuru_v = 0.0        # blok/sn
+        self.yuru_yon = None     # akici: hareket yonu (birim), kavisle doner
         self.bak_kim = None      # basin baktigi aktor ("bak" olayiyla da)
         self.bas = [0.0, 0.0]    # [yaw, pitch] derece
         self.bas_v = [0.0, 0.0]
@@ -615,10 +617,15 @@ def zaman_cizelgesi(senaryo, setler, anims, suz=True):
                 # yatay konum kalkistan beri gecen zamana bagli (dusey yorunge
                 # gibi): artimla ilerletilince bir kare once basliyor, hedefi
                 # 0,26 blok asiyordu (olculdu)
-                a.zipla = {"t0": t, "bas": list(a.poz), "hedef": [hx, hy], "T": T}
-                a.havada = {"t0": t, "z0": z0, "v0": v0}
+                # akici: kalkis olayin karesinde baslamis sayilir (bir kare
+                # once). Yoksa o kare yerinde kalip sonra hizlaniyordu:
+                # yurumeden atlayista 2,6 -> 0 -> 2,6 blok/sn (denetim, 78)
+                t_k = t - dt if akici else t
+                a.zipla = {"t0": t_k, "bas": list(a.poz), "hedef": [hx, hy], "T": T}
+                a.havada = {"t0": t_k, "z0": z0, "v0": v0}
                 a.yuru = None
                 a.yuru_v = 0.0
+                a.yuru_yon = None
                 a.hedef_aci = yon_aci(a.poz, (hx, hy))
             if "git" in o:
                 g = o["git"]
@@ -760,24 +767,43 @@ def zaman_cizelgesi(senaryo, setler, anims, suz=True):
                 dur = (VARIS * (a.olcek + aktorler[a.yuru["hedef"]].olcek) / 2) if "hedef" in a.yuru else 0.05
                 dx, dy = hedef[0] - a.poz[0], hedef[1] - a.poz[1]
                 uz = math.hypot(dx, dy)
-                if uz <= dur or (akici and uz - dur < 0.02):
+                if uz <= dur or (akici and uz - dur < H.VARIS_ESIK):
                     a.yuru = None
                     a.yuru_v = 0.0
+                    a.yuru_yon = None
                 else:
+                    mx, my = dx / uz, dy / uz
                     if akici:
+                        # yol kavisli: hareket yonu hedefe yan ivme sinirli doner
+                        # (yururken verilen yeni "git" yolu tek karede kirmasin);
+                        # son 0,15 blokta dogrudan hedefe (hedefi cevrelemesin)
+                        istek = (mx, my)
+                        yon_ = istek if uz - dur < 0.15 else H.yon_dondur(a.yuru_yon, istek, a.yuru_v, dt)
+                        cos_ = yon_[0] * istek[0] + yon_[1] * istek[1]
+                        # hedef yanda/arkada kaldikca yavaslar (donus yaricapi kuculur)
+                        istek_hiz = a.yuru["hiz"] * (0.35 + 0.65 * max(0.0, cos_))
                         # ivmeyle kalkar, varisa yaklasirken yavaslar
-                        a.yuru_v = H.yuru_hizi(a.yuru_v, a.yuru["hiz"], uz - dur, dt)
+                        a.yuru_v = H.yuru_hizi(a.yuru_v, istek_hiz, uz - dur, dt)
                         adim = min(max(a.yuru_v, 0.05) * dt, uz - dur)
+                        a.yuru_yon = yon_
+                        mx, my = yon_
                     else:
                         adim = min(a.yuru["hiz"] * dt, uz - dur)
-                    a.poz = [a.poz[0] + dx / uz * adim, a.poz[1] + dy / uz * adim]
+                    a.poz = [a.poz[0] + mx * adim, a.poz[1] + my * adim]
                     if not any(b0 <= t <= b1 for b0, b1 in bak_serbest):
-                        a.hedef_aci = yon_aci((0, 0), (dx, dy))
+                        a.hedef_aci = yon_aci((0, 0), (mx, my))
             # geri itilme: sonumlenen hiz
             if abs(a.itme[0]) + abs(a.itme[1]) > 1e-4:
                 a.poz = [a.poz[0] + a.itme[0] * dt, a.poz[1] + a.itme[1] * dt]
                 c_ = H.itme_sonumu(dt) if akici else 0.8
                 a.itme = [a.itme[0] * c_, a.itme[1] * c_]
+            # inis kaymasi (akici): yere degen ziplayisin yatay hizi soner
+            if a.kayma:
+                a.poz = [a.poz[0] + a.kayma[0] * dt, a.poz[1] + a.kayma[1] * dt]
+                c_ = math.exp(-dt / H.INIS_KAYMA_TAU)
+                a.kayma = [a.kayma[0] * c_, a.kayma[1] * c_]
+                if abs(a.kayma[0]) + abs(a.kayma[1]) < 1e-3:
+                    a.kayma = None
             carpisma_coz(a, onceki)
             yol = math.hypot(a.poz[0] - onceki[0], a.poz[1] - onceki[1])
             yuruyor = a.eylem is None and yol > 1e-4
@@ -804,6 +830,19 @@ def zaman_cizelgesi(senaryo, setler, anims, suz=True):
                         if -vz > H.INIS_ESIK:
                             a.inisler.append({"bas": t, "guc": min(1.0, -vz / 16.0)})
                             efektler.append({"t": t, "tur": "dusus", "ses": "inis", "nokta": [a.poz[0], a.poz[1], hz_]})
+                        if akici and a.zipla:
+                            # yere degme iki kare arasinda: o karenin degmeden
+                            # sonraki parcasi da kayar (yoksa yatay yol hedefte
+                            # kesilip bir kare yavas, sonra yine hizli -- denetim)
+                            zp = a.zipla
+                            v_ = [(zp["hedef"][0] - zp["bas"][0]) / zp["T"],
+                                  (zp["hedef"][1] - zp["bas"][1]) / zp["T"]]
+                            asim = max(0.0, t - (zp["t0"] + zp["T"]))
+                            tau_ = H.INIS_KAYMA_TAU
+                            k_ = tau_ * (1.0 - math.exp(-asim / tau_))
+                            a.poz = [a.poz[0] + v_[0] * k_, a.poz[1] + v_[1] * k_]
+                            c_ = math.exp(-asim / tau_)
+                            a.kayma = [v_[0] * c_, v_[1] * c_]
                         a.zemin, a.havada, a.zipla = hz_, None, None
                     else:
                         a.zemin = yeni

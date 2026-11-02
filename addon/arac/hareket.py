@@ -32,6 +32,26 @@ DONUS_AZAMI = 720.0     # derece/sn ust sinir (180 derece donuste bile ani degil
 DONUS_IVME = 2600.0     # derece/sn^2: ilk karede ~2 derece, 180 derece ~0,55 sn
 YURU_IVME = 9.0         # blok/sn^2: yurume hizina ~0,5 sn, kosuya ~0,6 sn
 YURU_FREN = 7.0         # blok/sn^2: varisa yaklasirken yavaslama
+# Varisin son santimleri: sabit frenli (karekok) egri kesikli adimda son
+# karede ~2 x fren x dt = 0,5 blok/sn ile duruyordu (hareket denetimi:
+# 19-24 blok/sn^2 tek karede). Son YAKLASMA_X blokta hiz kalanin
+# YAKLASMA_US. kuvvetiyle soner: frenin en buyugu birlesmede 2 x fren x us
+# (= 8,4 < YURU_IVME; kesikli adimda ~8,8), sona dogru sifira iner; son kare
+# hizi ~0,1-0,25 blok/sn. (Ustel yaklasma denendi: birlesmede fren HER ZAMAN 2 x fren =
+# 14 cikiyor, hareket.mjs'in 9 kilidi yakaladi.)
+YAKLASMA_X = 0.3        # blok
+YAKLASMA_US = 0.6
+# Yurume yolunun kavisi: yeni bir "git" yururken verilince yol tek karede
+# kiriliyordu (denetim: 51 blok/sn^2 yan ivme). Hareket yonu hedefe en cok
+# YAN_IVME / hiz (rad/sn) ile doner: 2,6 blok/sn'de ~0,75 blok yaricap.
+YAN_IVME = 9.0          # blok/sn^2
+YON_DONUS_AZAMI = 6.0   # rad/sn (yavasken bile)
+VARIS_ESIK = 0.004      # blok: bundan yakinda varilmis sayilir
+# Zipladiktan sonra inis: yatay hiz yere degince bir anda sifirlanmiyor
+# (denetim: 4,5 -> 0 tek karede, 97 blok/sn^2). Minecraft'ta da yerde
+# surtunme hizi birkac tikte sondurur (tik basina x0,546, ~0,5 blok
+# kayma); burada ustel, ayni kayma boyu.
+INIS_KAYMA_TAU = 0.12   # sn
 ITME_TAU = 0.1867       # sn: eski "karede x0,8" 24 kare/sn'de buna esit
 BAS_W = 18.0            # bas yayi: govdeden hizli (once bas doner)
 BAS_YAW, BAS_PITCH = 55.0, 25.0   # bas donus sinirlari (derece)
@@ -92,7 +112,11 @@ def aci_yayi(aci, hiz, hedef, dt, w=DONUS_W, azami=DONUS_AZAMI, ivme=DONUS_IVME)
 def yuru_hizi(v, hedef_hiz, kalan, dt, ivme=YURU_IVME, fren=YURU_FREN):
     """Yurume hizi: ivmeyle kalkar, varisa yaklasirken yavaslar.
     kalan: hedefe kalan yol (blok)."""
-    tavan = math.sqrt(2.0 * fren * max(0.0, kalan))
+    kalan = max(0.0, kalan)
+    if kalan >= YAKLASMA_X:
+        tavan = math.sqrt(2.0 * fren * kalan)
+    else:
+        tavan = math.sqrt(2.0 * fren * YAKLASMA_X) * (kalan / YAKLASMA_X) ** YAKLASMA_US
     if v < hedef_hiz:
         v = min(hedef_hiz, v + ivme * dt)
     else:
@@ -294,3 +318,14 @@ def takip_tasmasi(kanal, oran=0.08, sure=0.18):
         yeni.append((t1 + sure, list(b)))
     yeni.sort()
     return {"%.4f" % t: v for t, v in yeni}
+
+
+def yon_dondur(yon, istek, hiz, dt, yan=YAN_IVME, azami=YON_DONUS_AZAMI):
+    """Yurume yonu (birim vektor) istenen yone, yan ivme sinirli doner."""
+    if yon is None:
+        return istek
+    a = math.atan2(yon[0] * istek[1] - yon[1] * istek[0], yon[0] * istek[0] + yon[1] * istek[1])
+    w = min(azami, yan / max(hiz, 1e-3)) * dt
+    a = max(-w, min(w, a))
+    c, s_ = math.cos(a), math.sin(a)
+    return (yon[0] * c - yon[1] * s_, yon[0] * s_ + yon[1] * c)

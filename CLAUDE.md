@@ -818,3 +818,7 @@ başın hedefe bakması, yumuşak geçişler, eğrili film pozları, yöne göre
 değiştirilmedi (dosya özeti çizilmiş blokların künyesinde). Yeni her
 senaryo `"akici": true` taşır, `test/hareket.mjs` kilitliyor. Ayrıntı ve
 ölçüler FILM_YETENEK_HARITASI.md "Akıcı hareket".
+Ayar açık diye güvenilmez (kullanıcı: *"bunları ayrıca denetle"*): yeni
+ya da değişen her senaryo `python3 addon/arac/hareket_denetim.py <senaryo>`
+ile ölçülür, bulgu sıfır olmalı (`test/hareket_denetim.mjs`). Bulgu
+çıkarsa önce sebep film aracında mı senaryoda mı, ona bakılır.

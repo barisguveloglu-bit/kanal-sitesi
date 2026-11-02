@@ -92,7 +92,9 @@ console.log("\n=== 3. ZIPLA VE DUSME (Minecraft tik hesabi) ===");
   const r = py(ATLA + `
 ak, ef, _, _ = F.zaman_cizelgesi(SEN, SETLER, F.film_pozlari(True))
 k = ak["b"].kayit
-once = [q for q in k if q["t"] < 2.9][-1]
+# kalkistan onceki kare: akici kalkis olayin karesinde basliyor; 2,9'un
+# kayan noktali karesi (2,8999...) artik havada, payli secilir
+once = [q for q in k if q["t"] < 2.9 - 1e-6][-1]
 tepe = max(q["z"] for q in k if q["t"] >= 2.9)
 son = k[-1]
 inis = [e for e in ef if e.get("ses") == "inis"]
@@ -102,13 +104,25 @@ ak2, ef2, _, _ = F.zaman_cizelgesi(S2, SETLER, F.film_pozlari(True))
 k2 = ak2["b"].kayit
 dus = [q for q in k2 if 0.05 < q["z"] < 3.95]
 import hareket as H
+yer = [i for i, q in enumerate(k) if q["t"] >= 2.9 and q["z"] == 0]
+i0 = yer[0]
+temas = k[i0]
+hizlar = [math.hypot(k[i]["x"] - k[i - 1]["x"], k[i]["y"] - k[i - 1]["y"]) * 30 for i in range(i0, len(k))]
+ucus = [math.hypot(k[i]["x"] - k[i - 1]["x"], k[i]["y"] - k[i - 1]["y"]) * 30 for i in range(1, i0) if k[i]["t"] > 3.0]
 print(json.dumps({"z_once": once["z"], "tepe": tepe - once["z"], "son": [son["x"], son["y"], son["z"]],
+                  "temas": [temas["x"], temas["y"]], "kayma": son["y"] - 7.5, "v_ucus": ucus[-1],
+                  "ilk_kayma": hizlar[1], "azalan": all(hizlar[j + 1] <= hizlar[j] + 1e-9 for j in range(len(hizlar) - 1)),
                   "inis": len(inis), "dus_kare": len(dus), "son2": k2[-1]["z"],
                   "inis2": len([e for e in ef2 if e.get("ses") == "inis"]),
                   "yorunge_tepe": max(H.yorunge(0, H.ZIPLA_TIK, u / 1000.0)[0] for u in range(0, 800))}))`);
   kontrol("zipla tepesi +1,2522 blok (Minecraft)", Math.abs(r.tepe - 1.2522) < 2e-3, r.tepe.toFixed(4));
-  kontrol("hedefe tam inis", Math.abs(r.son[0] - 1.4) < 1e-6 && Math.abs(r.son[1] - 7.5) < 1e-6 && r.son[2] === 0,
-          JSON.stringify(r.son));
+  // akici: yere degme hedefte, sonra yatay hiz surtunmeyle soner (Minecraft
+  // gibi ~0,5 blok kayma; eskisi tek karede 4,5 -> 0 duruyordu, robotik)
+  kontrol("yere degme hedefte (degme karesi hedefin en cok bir kare kaymasi ilerisinde)",
+          Math.abs(r.temas[0] - 1.4) < 1e-3 && r.temas[1] >= 7.5 - 1e-9 && r.temas[1] - 7.5 < r.v_ucus / 30 + 1e-9,
+          JSON.stringify(r.temas));
+  kontrol("iniste kayma: hiz soner, 0,3-0,8 blok, tek karede durmaz", r.kayma > 0.3 && r.kayma < 0.8 && r.azalan && r.ilk_kayma > 0.5 * r.v_ucus,
+          "kayma " + r.kayma.toFixed(3) + ", ilk kare " + r.ilk_kayma.toFixed(2) + " / ucus " + r.v_ucus.toFixed(2));
   kontrol("iniste ses (dusus/inis)", r.inis === 1, String(r.inis));
   kontrol("kenardan yuruyen aktor yer cekimiyle dusuyor (ara karelerde havada) ve iniyor",
           r.dus_kare >= 3 && r.son2 === 0 && r.inis2 === 1, r.dus_kare + " kare, inis " + r.inis2);
