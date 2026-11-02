@@ -389,6 +389,16 @@ dediği). Silahı zaten kayıtlı: Ay Işığı Asası.
     göze `sag`/`sol` ile ayrı ayar) — doku varyantı gerekmiyor.
   - **Konuşma yeri:** Barış ile Satanachia normal bir ortamda değil, Barış'ın
     **zihin ortamında** konuşuyor (kullanıcı).
+  - **Son sahne: gölge (kullanıcı, 2026-11-02):** *"zihinden çıktıktan sonra
+    Satanachia gölgesi normalken birden büyüyor, ondan sonra bazı yerleri
+    canavarlaşıyor, ondan sonra bir gözü ile kırmızı şekilde bakıyor, yavaş
+    yavaş karanlık çöküyor, gözün ışıltısı hâlâ duruyor."* Amaç: *"burada
+    artık izleyicilere bir şeyler vereceğiz bu kişi hakkında."* Sıra: gölge
+    normal → büyür → bazı yerleri canavarlaşır → tek kırmızı gözle bakar →
+    karanlık yavaş çöker → gözün ışıltısı karanlıkta kalır.
+    Açık (sorulacak): yukarıdaki "kendi evinde uyanır, çarpık skinle tek
+    kırmızı göz" sahnesiyle aynı son sahne mi (önce uyanış, sonra gölge),
+    ayrı mı; kırmızı göz gölgenin mi, Barış'ın mı; canavarlaşan yerler hangileri.
   - **Neden imzaladı (kullanıcı, kesin değil — "olabilir"):** karşısında en
     büyük komutanlardan biri var; muhtemelen **zihinsel olarak büyük baskı**
     uygulayıp onu zorladı, Barış öyle imzalamış olabilir.
