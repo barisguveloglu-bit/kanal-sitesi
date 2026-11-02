@@ -57,13 +57,14 @@ her blok "başka sürümle çizilmiş" uyarısı verirdi). Eski ve yeni kod
   - ağaç devirme, blok kırma, topraktan başka blok türü;
   - **Karanlık Tırpan ve Osmanlı Topuzu dışında çizilen silah modeli.** Ay Işığı Asası'nın modeli eklentide var ama filme bağlı değil; başka setle dövüşen aktör eli boş savurur.
 
-**Poz** (`film_poz`, 14)
+**Poz** (`film_poz`, 20)
 - Hazır:
   - **Film pozları:** `dus`, `kalk`, `sendele`, `diz_cok`, `yuzustu`, `bayil`, `govde_tut` (yaralı yürüyüş), `comel_dokun`, `etrafa_bak`, `kagit`, `yere_yumruk`, `blok_al`, `blok_at`, `tirpan_bekle`.
+  - **2. bölüm Part 1 (v7.99.16, kilit `test/kulube_sahne.mjs`):** `dogrul` (yatakta sersem doğrulma, oturup bakınma; `dus` ile yatırılmış aktörden; yatağa oturur, en alt nokta her an ≤ 0,1 px), `kitap_al` / `kitap_oku` (sayfa çevirir, döngü) / `kitap_koy` (aynı kol açısından birbirine bağlanır), `titre` (üşüme, 8 Hz döngü), `kapi_tikla` (iki vuruş).
   - **Oyundan gelenler:** `savun`, üç yöne `kacin`, `darbe`, `konus`.
   - **Otomatik:** nefes ve yürüyüş.
   - Yere değen pozlar ölçülerek zemine oturtuluyor.
-- Yok: yataktan doğrulma, oturma, kitap okuma, büyü yapma ya da el açma, kalkan duruşu, kapı tıklatma, selam.
+- Yok: yataktan kalkıp yatağın yanına inme (Part 1'de kesmeyle: oturan aktör gizlenir, ayaktaki gösterilir), sandalyede oturma, büyü yapma ya da el açma, kalkan duruşu, selam.
 
 **Efekt**
 - Hazır:
@@ -104,12 +105,14 @@ her blok "başka sürümle çizilmiş" uyarısı verirdi). Eski ve yeni kod
   - `form`: 1,5 kat boy ve iki ek kol (`alt` ya da `omuz`);
   - Thomas gözleri: `kirmizi`/`mavi` kalıp, her göze ayrı ayar, `goz_kapak`, `goz_bakis`; planda `goz: "thomas"` ile açılır;
   - `silah`: `karanlik_tirpan` (Barış) ya da `osmanli_topuzu` (Ömer); `silah_gizli`/`silah_goster`, `durus`, sol elde kâğıt;
+  - sol elde kitap (v7.99.16): `"esya": "kitap"` kapalı (raftan alırken, koyarken), `"kitap_acik"` sırttan V açık, sayfalar okuyana dönük (`blender_film.kitap_ormesi`);
+  - aktörün başlangıç `"bak"`ı bir nokta da olabilir (v7.99.16; eskiden sessizce yok sayılıyordu);
   - `diz: true` (v7.99.15): bacak uyluk + baldır, diz açısı Epic Fight'ın (`wom_cevir.py --diz`; dövüş setlerinin bütün duruş ve vuruşlarında). Yazılmazsa eski düz bacak; oyundaki model değişmez.
   - İnce kol (v7.99.15, Alex tipi, 3 px): skin ince kolluysa model `aktor_ince.geo.json`, kollar kendi pivotlarında (y 21,5) döner. Yazılmazsa skinden oyundaki ölçüyle anlaşılır (`kol_uret.aktor_ince_mi`: sağ kolun 4. sütunu boş); `ince: true`/`false` elle, `form` ile birlikte hata. Bugün ince olan tek skin Zisa'nınki; 1. bölümün skinleri geniş, çizimleri değişmedi.
 - Yok:
   - ağız ve yüz ifadesi;
   - zombi, iskelet, creeper, golem modeli (yalnız insan aktör var);
-  - kâğıttan başka eşya (kitap, el lambası).
+  - kâğıt ve kitaptan başka eşya (el lambası).
 
 **Sahne**
 - Hazır:
@@ -125,7 +128,8 @@ her blok "başka sürümle çizilmiş" uyarısı verirdi). Eski ve yeni kod
 - Yok:
   - savaş odası, Nether, zihin ortamı, karlı arazi;
   - hava durumu;
-  - el lambası, meşale ve ateş ışığı.
+  - el lambası, meşale ve ateş ışığı (görünmeyen dolgu ışığı var, aşağıda).
+- **Dolgu ışığı (v7.99.16):** senaryoda `"isiklar": [{"nokta", "guc", "renk", "yaricap", "t"}]` görünmeyen nokta ışığı (sinemadaki gibi); `t` verilirse yalnız o aralıkta yanar. Kulübenin içinde Barış'ın siyah kıyafeti ışıksız okunmuyordu.
 
 **Yazı ve ses**
 - Hazır:
@@ -174,6 +178,7 @@ her blok "başka sürümle çizilmiş" uyarısı verirdi). Eski ve yeni kod
 - Form rakibin içine giriyordu.
 - Dövüş v2'de beş kadraj hatası ve çizimi ilk karede çökerten `KeyError`.
 - Zisa'nın ince kollu skini 4 px kollu modele giydiriliyordu: kolun boş dış sütunu kenarda kırık bir şerit olarak görünüyordu (kilit: `ince_kol.mjs`).
+- Kulübe sahnesi denemesi (v7.99.16, kilit: `kulube_sahne.mjs`): iç mekân ışıksız kaldı, Barış'ın siyah kıyafeti zeminle birleşti (dolgu ışığı eklendi); aktör tanımındaki `"bak": [x, y]` sessizce yok sayıldı, Barış kitaplığa değil duvara uzandı; kapalı kitapla okumak garip durdu ve kol -80'de kitap yüzü kapattı (açık kitap, göğüs hizası); ayakucundaki kamera doğrulan Barış'ın sırtını gösterdi.
 - Bataklıkta ilk film denemesi (v7.99.16, kilit: `mekan.mjs`): kamera sarkan sarmaşıkların arasına düştü, kare kapandı, denetim "0 sorun" dedi (sarmaşık görüşü kesen sayılmıyordu; çekimin konusu da yazılmamıştı). İlk zıplama 0,89 blok çıktı (sürekli zamanlı hesap; Minecraft 1,25) ve hedefi 0,26 blok aştı (yatay hareket bir kare erken başlıyordu).
 - Bataklık önizlemesi (v7.99.16, kilit: `kulube.mjs`): ufuk düzlemi havuzların suyunu örtüyordu (hanedanda da tarla sularını); su dokusu 32 karelik şerit hâlinde bir bloğa sıkışıyordu; çimen yan dokusundaki hazır ova yeşili havuz kenarlarında parlak çizgi oluyordu, örtü konunca kuzey yüzleri "ön" sayıldığı için örtüsüz kaldı; kapının önüne sarmaşık sarkıyordu.
 
@@ -210,7 +215,7 @@ her blok "başka sürümle çizilmiş" uyarısı verirdi). Eski ve yeni kod
 - İşçi eski kodla çizilmiş kareyi "var" saydı; kareye `.girdi` imzası eklendi (kilit: `cizim_dagit.mjs`).
 
 **Dış iskeletle karşılaştırma**
-- Bizim araç skinleri yatay aynalıyor. Hâlâ açık.
+- Bizim araç skinleri yatay aynalıyor. **Kullanıcının kararı (2026-11-02): aynı kalsın** (1. bölümle aynı görünüş).
 
 **Ders:**
 - Betik temiz derken karede hata çıktı: v7.99.10'da beş, dövüş v2'de beş.
@@ -221,7 +226,7 @@ her blok "başka sürümle çizilmiş" uyarısı verirdi). Eski ve yeni kod
 
 - **Gökyüzü türü (v7.99.16'da ölçüldü):** Blender 5.2'de `NISHITA` yok (`SINGLE_SCATTERING`, `MULTIPLE_SCATTERING`, `PREETHAM`, `HOSEK_WILKIE`). `blender_film.py` türü ayarlarken hata alıyor ve aynı `try` içindeki `gunes_yukseklik`'i atlıyor: gökyüzü fiilen varsayılan `MULTIPLE_SCATTERING`, `isik` anahtarı olmayan senaryoda `gunes_yukseklik` uygulanmıyor. `isik` anahtarları yüksekliği ayrı bir `try` içinde yazdığı için 1. bölümün orman çizimi etkilenmedi. Film aracında düzeltilmedi (1. bölümün görünüşü bu); önizleme betikleri (`hanedan_onizle`, `kulube_onizle`) yüksekliği artık ayrı yazıyor.
 - **Takılan yürüyüş:** kök düzeltmesi yapılmadı (SERI_SEZON1, "bilinen hata"). Kalabalık sahneler bunu sık tetikler.
-- **Skin aynası:** düzeltip düzeltmemek kullanıcının kararı. Düzeltilmezse Thomas planıyla bizim plan arasında yüz aynalanır.
+- **Skin aynası — KAPANDI (kullanıcı, 2026-11-02: "aynı kalsın"):** düzeltilmiyor. Thomas planıyla bizim plan arasında yüz aynalanır; skinin iki yanı farklıysa (Barış'ın kolları) filmde taraflar ters görünür.
 - **Antitheus `auto_3`:** kullanılmıyor, çünkü sap 0,1–0,2 sn boyunca başın içinden geçiyor.
 - **Zıplayan vuruşta iniş:** Barış'ın `guillotine`'inde beden inişten sonra 6,7 px, asaların `kingkong`'unda 2,1 px havada kalıyor; düzeltilmedi. Part 2 çizilirken `antitheus` setine dokunulmadı.
 - **Film pozlarında diz yok:** dizli aktörde de `diz_cok`, `dus`, `yuzustu` gibi film pozlarında baldır düz kalır (diz kanalı yalnız dövüş setlerinin animasyonlarında).

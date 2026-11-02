@@ -780,8 +780,8 @@ mekânı blok blok üretiliyor; Blender yalnız önizlemede
   başlıyor, sabit adımla dizilince halkada boşluk kalıyordu); ev
   merkeze bakan en yakın ana yöne döndüğü için çapraz açılarda halka
   bandına yalnız küçük evler sığıyor.
-  **Ölçülerin ve biçimin hepsi Claude'un önerisi**, kayıttaki iskelet
-  SERI_SEZON1.md'de; kullanıcı onaylamadan oraya yazılmaz.
+  **Ölçülerin ve biçimin hepsi Claude'un önerisiydi; kullanıcı 2026-11-02'de
+  onayladı** (ölçüler SERI_SEZON1.md, "Hanedanın tasarımı ONAYLANDI").
 - `koylu.py`: köylü modeli ve doku katmanları. Kutular Java 26.3 JAR'ından
   `javap` ile okundu, uydurulmadı (REFERANS_MOJANG_KILAVUZ.md "Köylü
   dokuları"). Dokular Mojang'ın: `arac_kur.sh` resmî JAR'dan

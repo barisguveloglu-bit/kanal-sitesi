@@ -521,6 +521,11 @@ def zaman_cizelgesi(senaryo, setler, anims, suz=True):
             a.aci = yon_aci(a.poz, aktorler[hedef].poz)
         elif isinstance(hedef, (int, float)):
             a.aci = float(hedef)
+        elif isinstance(hedef, (list, tuple)):
+            # bir noktaya (olaylardaki "bak" gibi). v7.99.16'ya kadar sessizce
+            # yok sayiliyordu: aktor kuzeye bakiyordu (kulube denemesinde
+            # Baris kitapliga degil duvara uzandi).
+            a.aci = yon_aci(a.poz, hedef)
     olaylar = sorted(senaryo.get("olaylar", []), key=lambda o: o["t"])
     # "bak_serbest" araliginda yuruyus yonu "bak"i EZMEZ. Engelde takilan
     # yuruyus hic bitmiyor ve her kare yuruyus yonunu hedef aci yapiyordu:
@@ -1603,6 +1608,35 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
             kg.parent = kemik_nesne[ad]["leftArm"]
             kagitlar[ad] = kg
 
+    # ---- kitap (v7.99.16, 2. bolum Part 1: kitapliktaki ates kitabi) ----
+    # Kagit gibi sol yumrukta, ayni yerde: dinlenmede yatay, "kitap_oku"
+    # pozunda kol -80 derece kalkinca dikilir, kapagi Baris'a doner. Kapali
+    # kitap: iki kapak (6x8 px, 0.35 kalin), sirt (yumruk tarafinda), arada
+    # krem sayfalar -- acik kenardan, ustten ve alttan gorunur.
+    kitaplar = {}            # {(aktor, esya): nesne}; esya "kitap" (kapali) ya da "kitap_acik"
+    istenen = {k.get("esya") for a in aktorler.values() for k in a.kayit} & set(KITAP_ESYA)
+    if istenen:
+        kapak_m = bpy.data.materials.new("kitap_kapak")
+        kapak_m.use_nodes = True
+        kapak_m.node_tree.nodes["Principled BSDF"].inputs["Base Color"].default_value = (0.32, 0.06, 0.035, 1)
+        sayfa_m = bpy.data.materials.new("kitap_sayfa")
+        sayfa_m.use_nodes = True
+        sayfa_m.node_tree.nodes["Principled BSDF"].inputs["Base Color"].default_value = (0.86, 0.8, 0.64, 1)
+        for ad, a in aktorler.items():
+            for es in sorted({k.get("esya") for k in a.kayit} & set(KITAP_ESYA)):
+                ks, ys, mi = kitap_ormesi(es == "kitap_acik")
+                me = bpy.data.meshes.new("%s_%s" % (es, ad))
+                me.from_pydata(ks, [], ys)
+                me.materials.append(kapak_m)
+                me.materials.append(sayfa_m)
+                for p_, m_ in zip(me.polygons, mi):
+                    p_.material_index = m_
+                kt = bpy.data.objects.new("%s_%s" % (es, ad), me)
+                sc.collection.objects.link(kt)
+                kt.location = blender_nokta([-6.0, 11.6, -5.5])      # kagidin yeri: sol yumruk
+                kt.parent = kemik_nesne[ad]["leftArm"]
+                kitaplar[(ad, es)] = kt
+
     def sabit_anahtar(ob, yol):
         if ob.animation_data and ob.animation_data.action:
             for fc in ob.animation_data.action.fcurves if hasattr(ob.animation_data.action, "fcurves") else []:
@@ -1625,6 +1659,11 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
             for f_, acik in esya_anahtarlari(a.kayit[:len(kam_iz)]):
                 kagitlar[ad].hide_render = not acik
                 kagitlar[ad].keyframe_insert("hide_render", frame=f_)
+        for es in KITAP_ESYA:
+            if (ad, es) in kitaplar:
+                for f_, acik in esya_anahtarlari(a.kayit[:len(kam_iz)], esya=es):
+                    kitaplar[(ad, es)].hide_render = not acik
+                    kitaplar[(ad, es)].keyframe_insert("hide_render", frame=f_)
         if a.form:
             # ek kollar (form_model.py): ana kolun alt kemigi; kendi pivotlari
             # yerlesime gore degisir, govde_model'in pivot tablosunda yok
@@ -1709,6 +1748,31 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
                     tampona(o, "rotation_quaternion", f + 1, q)
                     tampona(o, "location", f + 1, l)
                     tampona(o, "scale", f + 1, o3)
+
+    # ---- dolgu isiklari (v7.99.16) ----
+    # "isiklar": [{"nokta": [x, y, z], "guc": W, "renk": [r, g, b], "yaricap": r,
+    #              "t": [bas, son]}] -- gorunmeyen nokta isigi (sinemadaki
+    # dolgu isigi). Kulubenin ici yalniz pencere ve kapidan isik aliyordu;
+    # Baris'in siyah kiyafeti zeminle birlesiyordu (ilk onizleme). Sahneye
+    # blok eklemeden aydinlatir; "t" verilirse yalniz o aralikta yanar.
+    for i, li in enumerate(senaryo.get("isiklar", [])):
+        lamba = bpy.data.lights.new("dolgu_%d" % i, "POINT")
+        lamba.energy = float(li.get("guc", 30.0))
+        lamba.color = tuple(li.get("renk", [1.0, 0.86, 0.68]))
+        lamba.shadow_soft_size = float(li.get("yaricap", 0.3))
+        ob_l = bpy.data.objects.new("dolgu_%d" % i, lamba)
+        ob_l.location = Vector(li["nokta"])
+        sc.collection.objects.link(ob_l)
+        if "t" in li:
+            guc = lamba.energy
+            f0, f1 = kare_bul(harita, li["t"][0]) + 1, kare_bul(harita, li["t"][1]) + 1
+            anahtar = {1: guc if f0 <= 1 else 0.0, f0: guc, f1: 0.0}
+            for f_ in sorted(anahtar):
+                lamba.energy = anahtar[f_]
+                lamba.keyframe_insert("energy", frame=f_)
+            for fc in (lamba.animation_data.action.fcurves if hasattr(lamba.animation_data.action, "fcurves") else []):
+                for kp in fc.keyframe_points:
+                    kp.interpolation = "CONSTANT"     # yanip soner, yavasca kararmaz
 
     # ---- kivilcimlar ----
     kivilcim_kur(bpy, efektler, fps, doku_malzemesi, harita,
@@ -2125,6 +2189,43 @@ def oda_kur(bpy, senaryo, doku_malzemesi, harita, fps, kam_iz, aktor_parcalari=N
             goz_k.rotation_euler = (0, 0, math.radians(yeni))
             goz_k.keyframe_insert("rotation_euler", frame=max(f1, f0 + 1))
             goz_aci = yeni
+
+
+# ---- kitap esyasi (v7.99.16, 2. bolum Part 1: kitapliktaki ates kitabi) ----
+# Kagit gibi sol yumrukta, ayni yerde; dinlenmede yatay. "kitap": kapali (iki
+# kapak, sirt, krem sayfalar; raftan alirken ve koyarken). "kitap_acik": sirttan
+# V acilmis iki yari, sayfalar ustte (okurken; kapali kitapla okumak garip
+# duruyordu, ilk onizleme).
+KITAP_ESYA = ("kitap", "kitap_acik")
+KITAP_ACI = 20.0              # acik kitabin her yarisi duzden bu kadar kalkik
+
+
+def kitap_ormesi(acik=False):
+    """(koseler, yuzler, malzeme) -- kagidin merkezine gore, blok biriminde
+    (Blender ekseni: x yan, y kagidin uzunlugu, z kalinlik). Malzeme 0 kapak,
+    1 sayfa. Kutu: (x0, x1, uzunluk0, uzunluk1, kalinlik0, kalinlik1, malzeme,
+    sirt ekseni etrafinda donus derecesi)."""
+    if acik:
+        KUTU = []
+        for yon in (1, -1):
+            x0, x1 = (0.0, 5.0) if yon > 0 else (-5.0, 0.0)
+            KUTU += [(x0, x1, -4.0, 4.0, -0.35, 0.0, 0, yon * KITAP_ACI),
+                     (x0 * 0.96, x1 * 0.96, -3.8, 3.8, 0.0, 0.55, 1, yon * KITAP_ACI)]
+    else:
+        KUTU = [(-3.0, 3.0, -4.0, 4.0, 0.65, 1.0, 0, 0.0), (-3.0, 3.0, -4.0, 4.0, -1.0, -0.65, 0, 0.0),
+                (-3.0, -2.65, -4.0, 4.0, -0.65, 0.65, 0, 0.0), (-2.65, 2.85, -3.85, 3.85, -0.65, 0.65, 1, 0.0)]
+    ks, ys, mi = [], [], []
+    for x0, x1, u0, u1, k0, k1, m_, aci in KUTU:
+        c, s = math.cos(math.radians(aci)), math.sin(math.radians(aci))
+        i0 = len(ks)
+        for xx in (x0, x1):
+            for kk in (k0, k1):
+                for uu in (u0, u1):
+                    ks.append(((xx * c - kk * s) / 16.0, uu / 16.0, (xx * s + kk * c) / 16.0))
+        for f_ in ((0, 1, 3, 2), (4, 6, 7, 5), (0, 4, 5, 1), (2, 3, 7, 6), (0, 2, 6, 4), (1, 5, 7, 3)):
+            ys.append(tuple(i0 + v for v in f_))
+            mi.append(m_)
+    return ks, ys, mi
 
 
 def mekan_kur(bpy, M, klasor):

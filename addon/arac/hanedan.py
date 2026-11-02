@@ -13,9 +13,9 @@ Kayittaki tasarim (SERI_SEZON1.md, kullanici 2026-10-10 / 10-17):
 Kullanici (2026-11-01, ilk onizlemeden sonra): "Daha fazla genislet daha
 fazla ev ekle azicik cicek agac ekle. Ayrica koyluler de olacak fakat biraz
 az olsun."
-Kayitta OLMAYAN her sey (olculer, ana yapinin bicimi, kapi yeri, iki ev
-halkasi, tarlalar, renkler) burada CLAUDE'UN ONERISI ve kullanicinin onayini
-bekliyor; degerler en ustte, tek yerde.
+Olculer, ana yapinin bicimi, kapi yeri, ev halkalari, tarlalar ve renkler
+CLAUDE'UN ONERISIYDI; kullanici 2026-11-02'de ONAYLADI ("onayli, onay
+veriyorum"; kayit SERI_SEZON1.md). Degerler en ustte, tek yerde.
 
 Evler: koy evlerini oyundan olcmek icin arac/yapi_olc.py var; olcum
 bitmedigi icin evler simdilik ova koyu uslubunda elle kurulu (ev_tipi);
@@ -37,7 +37,7 @@ import koylu
 
 BURASI = os.path.dirname(os.path.abspath(__file__))
 
-# ---- ONERI DEGERLERI (onay bekliyor) ----
+# ---- DEGERLER (Claude'un onerisi, kullanici onayladi 2026-11-02) ----
 ZEMIN_YARICAP = 112       # cimen alan (surun disinda da cimen ve agac)
 SUR_YARICAP = 84          # surun orta cizgisi (ikinci genisleme: 66 -> 84, ucuncu ev halkasi)
 SUR_KALINLIK = 3
@@ -339,7 +339,7 @@ def fener_direkleri(d, yollar):
 
 
 # ---------------------------------------------------------------------
-# ZISA'NIN EVI -- elle tasarim (onay bekliyor)
+# ZISA'NIN EVI -- elle tasarim (hanedanla birlikte onaylandi, 2026-11-02)
 # ---------------------------------------------------------------------
 def zisa_evi():
     """Iki katli koy evi; on cephesi (kapi, 2. kat pencereleri) KUZEYE

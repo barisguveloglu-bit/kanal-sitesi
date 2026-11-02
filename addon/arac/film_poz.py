@@ -321,6 +321,74 @@ def pozlar(akici=False):
     })
     zemine_oturt(geo, P["kalk"], [0.0, 0.1, 0.2, 0.35, 0.5, 0.6, 0.7, 0.85, 1.0, 1.2])
 
+    # ---- 2. bolum Part 1, kulube (v7.99.16) ----
+    # dogrul: yatakta sirtustu yatistan SERSEM dogrulur, oturur, nerede
+    # oldugunu anlamaya calisir (SERI_SEZON1.md 3. sahne: "Baris bir yerde
+    # uyaniyor, nerede oldugunu anlamaya calisiyor"). kalk'in ilk yarisi gibi:
+    # kalca yerinde kalir (kok 12 px geri), bacaklar dunyada yatay; ama yavas,
+    # kollar yataga dayanir, sonda bas sola-saga bakar. Baslangic hali dus'un
+    # son hali (sahne "poz": "dus", "atla": 0.7, "tut": true ile yatirir).
+    P["dogrul"] = _a(3.4, {
+        "root": {"rotation": {"0.0": [-90, 0, 0], "0.5": [-80, 0, 0], "1.1": [-25, 0, 0], "1.5": [0, 0, 0], "3.4": [0, 0, 0]},
+                 "position": {"0.0": [0, 0, 0], "0.5": [0, 0, 1.5], "1.1": [0, 0, 9], "1.5": [0, 0, 12], "3.4": [0, 0, 12]}},
+        "waist": {"rotation": {"0.0": [8, 0, 0], "0.5": [12, 0, 0], "1.1": [30, 0, 0], "1.5": [18, 0, 0], "2.0": [12, 0, 0], "3.4": [12, 0, 0]}},
+        "head": {"rotation": {"0.0": [15, 0, 0], "0.5": [20, 0, 0], "1.1": [12, 0, 0], "1.5": [8, 0, 0],
+                              "2.1": [0, -45, 0], "2.6": [-5, 40, 0], "3.1": [5, 5, 0], "3.4": [5, 0, 0]}},
+        "rightLeg": {"rotation": {"0.0": [0, 0, 8], "1.1": [-65, 0, 6], "1.5": [-90, 0, 5], "3.4": [-90, 0, 5]}},
+        "leftLeg": {"rotation": {"0.0": [0, 0, -8], "1.1": [-65, 0, -6], "1.5": [-90, 0, -5], "3.4": [-90, 0, -5]}},
+        "rightArm": {"rotation": {"0.0": [0, 0, 15], "0.5": [20, 0, 22], "1.1": [30, 0, 18], "1.5": [-25, 0, 8], "3.4": [-25, 0, 8]}},
+        "leftArm": {"rotation": {"0.0": [0, 0, -15], "0.5": [20, 0, -22], "1.1": [30, 0, -18], "1.5": [-25, 0, -8], "3.4": [-25, 0, -8]}},
+    })
+    zemine_oturt(geo, P["dogrul"], [0.0, 0.25, 0.5, 0.8, 1.1, 1.3, 1.5, 2.0, 3.4])
+
+    # kitap_al / kitap_koy: sol el kitapligin rafina uzanir (one-yukari),
+    # kitabi alip okuma tutusuna indirir; koy tersi. Kitap SOL elde (kagit
+    # gibi); sahne "esya": "kitap" olayini kavrama aninda yazar (al 0,55 sn,
+    # koy 0,55 sn'de "esya": null). Okurken "esya": "kitap_acik", koymadan
+    # once yine "kitap" (blender_film.KITAP_ESYA).
+    # okurken kitap GOGUS hizasinda: -80'de (kagit gibi) yuzu kapatiyordu
+    oku_sol = [-56, 24, 0]
+    raf = [-118, 12, 0]
+    P["kitap_al"] = _a(1.2, {
+        "leftArm": {"rotation": {"0.0": [0, 0, 0], "0.45": raf, "0.65": raf, "1.2": oku_sol}},
+        "head": {"rotation": {"0.0": [0, 0, 0], "0.45": [-18, -6, 0], "0.65": [-15, -6, 0], "1.2": [28, -8, 0]}},
+        "waist": {"rotation": {"0.0": [0, 0, 0], "0.45": [-4, -8, 0], "1.2": [4, 0, 0]}},
+    })
+    P["kitap_al"]["_cozum"] = {"kavra_t": 0.55}
+    # kitap_oku: iki elle tutar, bas egik; ortada bir sayfa cevirir (sag el
+    # sayfayi suruklur). Dongu: sahne istedigi kadar tutar.
+    P["kitap_oku"] = _a(3.0, {
+        "leftArm": {"rotation": {"0.0": oku_sol, "3.0": oku_sol}},
+        "rightArm": {"rotation": {"0.0": [-50, -28, 0], "1.3": [-50, -28, 0], "1.55": [-56, -6, 0],
+                                  "1.8": [-50, -28, 0], "3.0": [-50, -28, 0]}},
+        "head": {"rotation": {"0.0": [28, -8, 0], "1.3": [28, -10, 0], "1.6": [26, -2, 0], "1.9": [28, -8, 0], "3.0": [28, -8, 0]}},
+        "waist": {"rotation": {"0.0": [4, 0, 0], "3.0": [4, 0, 0]}},
+    }, dongu=True)
+    P["kitap_koy"] = _a(1.2, {
+        "leftArm": {"rotation": {"0.0": oku_sol, "0.45": raf, "0.65": raf, "1.2": [0, 0, 0]}},
+        "head": {"rotation": {"0.0": [28, -8, 0], "0.45": [-15, -6, 0], "1.2": [0, 0, 0]}},
+        "waist": {"rotation": {"0.0": [4, 0, 0], "0.45": [-4, -8, 0], "1.2": [0, 0, 0]}},
+    })
+    P["kitap_koy"]["_cozum"] = {"birak_t": 0.55}
+
+    # titre: kulubeden cikinca usur (6. sahne): kollar gogse sarili, omuzlar
+    # kalkik, sik titreme (8 Hz). Dongu 0,25 sn.
+    sar = {"rightArm": [-58, -40, 8], "leftArm": [-54, 42, -8], "waist": [6, 0, 0], "head": [10, 0, 0]}
+    titre = {}
+    for kem, (x, y, z) in sar.items():
+        d = 3.0 if "Arm" in kem else 1.5
+        titre[kem] = {"rotation": {"0.0": [x, y, z], "0.0625": [x, y, z + d], "0.125": [x, y, z],
+                                   "0.1875": [x, y, z - d], "0.25": [x, y, z]}}
+    P["titre"] = _a(0.25, titre, dongu=True)
+
+    # kapi_tikla: sag yumruk kapiya iki kez vurur (8. sahne, gri sur askeri)
+    P["kapi_tikla"] = _a(0.9, {
+        "rightArm": {"rotation": {"0.0": [-20, 0, 0], "0.2": [-88, -12, 0], "0.3": [-100, -12, 0], "0.4": [-88, -12, 0],
+                                  "0.5": [-100, -12, 0], "0.62": [-88, -12, 0], "0.9": [-20, 0, 0]}},
+        "head": {"rotation": {"0.0": [0, 0, 0], "0.3": [4, 0, 0], "0.9": [0, 0, 0]}},
+    })
+    P["kapi_tikla"]["_cozum"] = {"vurus_t": [0.3, 0.5]}
+
     # ---- yere_yumruk: El-Harkos'un iskalayan yumrugu yere iner (dovus v2) ----
     # Yumruk TAM zemine (yumruk yarisi 2 px yukarida), ayaklar yerde. Dizsiz
     # bacakla ayakta egilince yumruk yere yetismiyordu (bel 85 dereceyle bile

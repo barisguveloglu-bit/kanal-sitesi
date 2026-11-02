@@ -436,6 +436,21 @@ virüsünü üretiyor.
   sahnesi gibi `blender_film.py`'de blok blok yazılacak; henüz yazılmadı.
   Tasarımın kaydı bu maddeler; kullanıcının aklında ek ayrıntılar var, henüz
   anlatılmadı.
+- **Hanedanın tasarımı ONAYLANDI (kullanıcı, 2026-11-02: *"onaylı, onay veriyorum"*).**
+  Claude'un önerisiydi, iki genişletmeden sonra (*"daha fazla genişlet, daha fazla ev
+  ekle"*) onaylandı. Kurucu `arac/hanedan.py`, filmde `"mekan": "hanedan"`:
+  - yuvarlak sur, yarıçapı 84 blok (3 kalın, 9 yüksek, mazgallı), 16 kule + ana
+    kapının iki kulesi; ana kapı güneyde, 5 blok genişliğinde, merdivenin karşısında;
+  - ortada 18 blok yarıçaplı, 20 blok yüksek tepe, üstünde ana yapı (kale);
+    meydandan merdivenle çıkılıyor;
+  - taşlı meydan (yarıçap 29), çevresinde halka sokak;
+  - **üç ev halkası** (orta çizgileri 40, 57,5 ve 75,5 blok; en dıştaki surun hemen
+    dibinde), aralarında iki halka sokak, ana yönlerde ve köşegenlerde sura giden
+    sokaklar; **73 ev** (sıkı dizili), dış halkada 7 tarla;
+  - azıcık ağaç (surun içinde 18, tepede 3, dışarıda 20) ve çiçek; **14 köylü**
+    (*"biraz az olsun"*), dokuları Mojang'ın, depoya girmez;
+  - **Zisa'nın evi** orta halkada, batıda (180°; açılar doğudan, 90° güney), iki katlı, ön
+    cephesi meydana bakıyor.
 - **Siyasi yapı (kullanıcı, 2026-10-10):** oldukça iyi. Komutanlar birbiriyle
   iyi anlaşıyor, radikal bir kesim yok. Askerler komutanlarla iyi anlaşıyor;
   hanedandan **kaçan ya da isyan eden asker yok**. Buna karşılık asker ile
@@ -901,6 +916,9 @@ hedef ~57,5).
 - **Kulübeden iniş:** Barış verandadan **atlar** (kullanıcı: *"atlasın"*);
   merdiven eklenmedi. Film aracına zıplama/düşme yazılacak.
 - **Savaş odası kalenin içinde** (kullanıcı: *"evet"*).
+- **Skin aynası aynı kalıyor** (kullanıcı, 2026-11-02: *"aynı kalsın"*): film aracı
+  skinleri yatay aynalı çizmeye devam ediyor, 1. bölümle aynı görünüş. Barış'ın
+  kollarındaki desen filmde oyundakinin ters tarafında görünür; bilinerek seçildi.
 - **Barış'ın yaraları iyileşiyor** (kullanıcı, 2026-11-02): *"Barış skin'ini düzenleyelim,
   çünkü yaraları iyileştiği için yaraları uygun şekilde dolduracağız"*; referans olarak
   iyileşmiş hâlin dört ekran görüntüsünü verdi. Skin: `kaynak_doku/film_aktor/baris_iyilesmis.png`
@@ -909,6 +927,9 @@ hedef ~57,5).
   kolun önünde ve arkasında camgöbeği çizgiler. Yaralı skin (`uzak_akraba.png`) 1. bölümün;
   iyileşmiş skin **kulübede uyandığı andan itibaren** (kullanıcı, 2026-11-02: *"direk
   uyandığında öyle olsun"*). Baygın yattığı orman ve cadının gelişi yaralı skinle.
+  **Genel kural (kullanıcı, 2026-11-02):** *"Barış yara aldığı zamanlarda, yani dövüşlerde
+  falan, yaralı hâlini göreceğiz; dövüş olmadığı yerlerde iyileşmiş hâliyle göreceğiz."*
+  Dövüşte ve yaralandığı anlarda `uzak_akraba.png`, dövüş dışında `baris_iyilesmis.png`.
 - **Part 1'in sonu:** Barış Zisa'nın evinin **içinde** (kullanıcı: *"ev içi"*).
 
 **Hazır paketler — hangi sahnede ne.** Aşağıda adı geçen her Pooka efekti
