@@ -84,6 +84,12 @@ her blok "başka sürümle çizilmiş" uyarısı verirdi). Eski ve yeni kod
   - şiddeti ayarlanabilen sarsıntı (görüntü titremesi artık var, aşağıda);
   - beyaz geçiş (kararma var, aşağıda);
   - yumuşak hız rampası (`zaman` aralıkları basamak gibi değişiyor).
+- **Ağız ve boynuz (v7.99.16, kilit `test/agiz.mjs`; kullanıcı: 2. bölüm Part 2'den itibaren):**
+  - Senaryoda `"agiz": true` (ya da aktörde `"agiz": true/false`): dokuyla yapılan ağız. Yüzün ağız satırlarına (varsayılan 6–7; Zisa'da yalnız 7, gözleri 6'da) ince bir katman, kafa kemiğine bağlı, kafanın ön yüzüyle aynı UV kuralıyla (`B.kupler`; skin aynası dahil hizalı), yüzün 0,05 px önünde (şapka katmanının arkasında). Şekil kareye göre anında değişir.
+  - Şekiller: dudak senkronunun alışılmış harfleri (A kapalı M/B/P, B az açık, C açık, D geniş, E yuvarlak, F büzük, G F/V, H L, X dinlenme = skinin kendi yüzü) + `gulumse`, `sirit`, `kahkaha`. Varsayılan şekiller kendi çizimimiz (kodla, skinin tenine göre); kullanıcı çizerse `kaynak_doku/agiz/<skin adı>` geçerli (hücreler yan yana, `agiz.SEKILLER` sırasında).
+  - Dudak senkronu `"soyle"` metninden (seslendirme kaydı yok): Türkçe harf → şekil, en kısa tutma 2 kare, konuşma altyazı süresine ve bir sonraki konuşmanın başına sığar. İfade: `{"aktor", "agiz": "sirit"}`, `null` dinlenmeye döner; konuşmadan sonra ifade geri gelir. Kayıt gelirse Rhubarb Lip Sync (MIT, Türkçe için `phonetic` tanıyıcı) aynı harflerle zaman çizelgesi verir; bu makineden GitHub sürüm sayfası 403 verdi, kurulmadı.
+  - Aktörde `"boynuz": "seytan"` (kısa, yukarı, öne/dışa kıvrık, sivrilen; 5 kademe) ya da `"keci"` (geriye ve aşağı, kafanın üstünden dolanan; 9 kademe); iki yan ayna simetrik, koyu kırmızıdan siyaha; `{"tur", "renk": [[r,g,b], [r,g,b]]}` ile renk.
+  - Yazılmazsa hiçbir şey eklenmez: 1. bölüm ve Part 1 bire bir eskisi.
 - **2. bölüm Part 1 parçaları (v7.99.16, kilit `test/part1_parcalar.mjs`):**
   - `"kararma": [{"t": [t0, t1], "giris", "cikis"}]`: görüntü pozlamayla siyaha iner ve açılır (göz kapanıp açılması, bayılma). Titremeyle aynı pozlama eğrisinde; titremenin rastgele dizisini değiştirmez.
   - `"bulaniklik": [{"t", "fstop", "mesafe", "gecis"}]`: odak gözün önüne çekilir, diyafram açılır (Barış'ın gözünden bulanık cadı). Yalnız bulanıklık için açılan alan derinliği aralık dışında f/128: odak yazmayan çekim keskin kalır.

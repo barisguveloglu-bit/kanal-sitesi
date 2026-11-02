@@ -1,0 +1,126 @@
+/* AGIZ VE BOYNUZ -- arac/agiz.py + blender_film                  v7.99.16
+
+   Kullanici (2026-11-02): dokuyla yapilan agiz (ifade kareye gore ANINDA
+   degisir) ve kuplerden boynuz; "2. bolumun Part 2'sinde bu sisteme
+   gecelim". Blender gerekmiyor.
+
+   ---- BU DOSYANIN TUTTUGU SEY ----
+   1. Dudak senkronu (altyazi metninden): M/B/P kapali (A), A genis (D),
+      O yuvarlak (E), E/I disli; son sekil X (susma); hicbir sekil 2
+      kareden kisa degil (kullanici: "2-3 karede bir degisim yeterli").
+   2. Konusma altyazinin suresine ve bir sonraki konusmanin basina sigiyor
+      (askerin cumlesi Omer'in "Tamam"inin ustune tasiyordu); ifade
+      konusmadan sonra geri geliyor.
+   3. Agiz hucresi: X tamamen saydam (skinin kendi yuzu); obur sekiller
+      yalniz agiz satirlarina ve 1-6. sutunlara dokunur; on bir sekil
+      birbirinden farkli. Zisa'da agiz yalniz 7. satir (gozleri 6'da).
+   4. Kullanicinin cizdigi agiz resmi hucre hucre okunuyor.
+   5. Boynuz: iki yan ayna simetrik; seytan yukari cikip sivriliyor,
+      keci geriye gidip kafanin ustunden asagi iniyor; hicbir parca
+      kafanin icinde degil.
+   6. Acmadan hicbir sey eklenmiyor: Part 1'in senaryolarinda "agiz" ve
+      "boynuz" yok (Part 2'den itibaren, kullanici). */
+import { execFileSync } from "node:child_process";
+import { readFileSync, readdirSync } from "node:fs";
+import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const BURADA = dirname(fileURLToPath(import.meta.url));
+const ARAC = join(BURADA, "..", "arac");
+const FILM = join(BURADA, "..", "film");
+const ORTAM = { ...process.env, PYTHONDONTWRITEBYTECODE: "1" };
+let hata = false;
+const kontrol = (ad, gecti, detay = "") => {
+  if (!gecti) hata = true;
+  console.log("  " + (gecti ? "✓" : "✗") + " " + ad + (detay ? "  ::  " + detay : ""));
+};
+const py = (kod) => JSON.parse(execFileSync("python3", ["-c",
+  "import sys, json, math\nsys.dont_write_bytecode = True\nsys.path.insert(0, sys.argv[1])\n" + kod, ARAC],
+  { encoding: "utf8", env: ORTAM, maxBuffer: 1 << 26 }));
+
+console.log("=== 1-2. DUDAK SENKRONU ===");
+{
+  const r = py(`
+import agiz as A, blender_film as F
+ilk = lambda m: A.dudak(m, 0.0)[0][1]
+d = A.dudak("Efendim, Doğu bölgesinden çok büyük buz dalgaları hissediyoruz.", 0.0)
+kisa = min(b[0] - a[0] for a, b in zip(d, d[1:]))
+sen = json.load(open(${JSON.stringify(join(FILM, "bolum2_p1_4_savas.json"))}))
+s = A.agiz_cizelgesi(sen["olaylar"], "s", 30, F.yazi_suresi)
+o_bas = [x["t"] for x in sen["olaylar"] if x.get("aktor") == "o" and x.get("soyle")][0]
+ifade = A.agiz_cizelgesi([{"t": 1, "aktor": "o", "agiz": "gulumse"}, {"t": 2, "aktor": "o", "soyle": "Tamam."}], "o")
+print(json.dumps({"m": ilk("mm"), "b": ilk("bb"), "a": ilk("aa"), "o": ilk("oo"), "u": ilk("uu"), "f": ilk("ff"),
+                  "son": d[-1][1], "kisa": kisa, "s_son": s[-1][0], "o_bas": o_bas,
+                  "ifade_son": ifade[-1][1], "ifade_ilk": ifade[0][1]}))`);
+  kontrol("M/B kapali (A), A genis (D), O yuvarlak (E), U buzuk (F), F disler dudakta (G)",
+          r.m === "A" && r.b === "A" && r.a === "D" && r.o === "E" && r.u === "F" && r.f === "G",
+          [r.m, r.b, r.a, r.o, r.u, r.f].join(" "));
+  kontrol("konusma susmayla (X) bitiyor", r.son === "X");
+  kontrol("hicbir sekil 2 kareden kisa degil", r.kisa >= 2 / 30 - 1e-9, (r.kisa * 30).toFixed(2) + " kare");
+  kontrol("askerin konusmasi Omer'in sozunden once bitiyor", r.s_son < r.o_bas, r.s_son.toFixed(2) + " < " + r.o_bas);
+  kontrol("konusmadan sonra ifade (gulumse) geri geliyor", r.ifade_ilk === "gulumse" && r.ifade_son === "gulumse");
+}
+
+console.log("\n=== 3-4. AGIZ HUCRESI ===");
+{
+  const r = py(`
+import agiz as A
+from PIL import Image
+def yuz(yol):
+    im = Image.open(yol).convert("RGBA")
+    return [[im.getpixel((8 + c, 8 + r)) for c in range(8)] for r in range(8)]
+ys = yuz("../kaynak_doku/aktor/omer.png")
+x = A.agiz_hucresi(ys, "X", 6)
+sekil = {s: A.agiz_hucresi(ys, s, 6) for s in A.SEKILLER}
+disari = [s for s, h in sekil.items() for r in range(2) for c in (0, 7) if h[r][c][3]]
+farkli = len({json.dumps(h) for h in sekil.values()})
+zs = A.agiz_hucresi(yuz("../kaynak_doku/aktor/zisa.png"), "D", A.agiz_satiri("kaynak_doku/aktor/zisa.png"))
+# kullanicinin agiz resmi: 11 hucre yan yana, D hucresi kirmizi
+atlas = [[(255, 0, 0, 255) if 8 * 3 <= c < 8 * 4 else (0, 0, 0, 0) for c in range(8 * len(A.SEKILLER))] for r in range(2)]
+print(json.dumps({"x_saydam": all(p[3] == 0 for r in x for p in r), "disari": disari, "farkli": farkli,
+                  "zisa_satir": len(zs), "zisa_ayar": A.agiz_satiri("x/zisa.png"), "varsayilan": A.agiz_satiri("x/omer.png"),
+                  "atlas_d": A.atlas_hucresi(atlas, "D", 2)[0][0], "atlas_a": A.atlas_hucresi(atlas, "A", 2)[0][0]}))`);
+  kontrol("X (dinlenme) tamamen saydam: skinin kendi yuzu", r.x_saydam);
+  kontrol("sekiller yalniz 1-6. sutunlara dokunuyor", r.disari.length === 0, r.disari.join(" "));
+  kontrol("on bir sekil birbirinden farkli", r.farkli === 11, String(r.farkli));
+  kontrol("Zisa'da agiz yalniz 7. satir (gozleri 6'da); varsayilan 6-7", r.zisa_satir === 1 && r.zisa_ayar === 7 && r.varsayilan === 6);
+  kontrol("kullanicinin cizdigi agiz resmi hucre hucre okunuyor",
+          JSON.stringify(r.atlas_d) === "[255,0,0,255]" && r.atlas_a[3] === 0);
+}
+
+console.log("\n=== 5. BOYNUZ ===");
+{
+  const r = py(`
+import agiz as A
+out = {}
+for tur in ("seytan", "keci"):
+    p = A.boynuz_parcalari(tur)
+    n = len(p) // 2
+    sag, sol = p[:n], p[n:]
+    ayna = all(abs(a["merkez"][0] + b["merkez"][0]) < 1e-9 and a["merkez"][1:] == b["merkez"][1:] for a, b in zip(sag, sol))
+    ic = [q for q in p if abs(q["merkez"][0]) < 4 + q["kenar"] / 2 - 1e-9 and 24 < q["merkez"][1] < 32 and abs(q["merkez"][2]) < 4]
+    out[tur] = {"n": n, "ayna": ayna, "ic": len(ic), "y": [q["merkez"][1] for q in sag], "z": [q["merkez"][2] for q in sag],
+                "kenar": [q["kenar"] for q in sag]}
+print(json.dumps(out))`);
+  const s = r.seytan, k = r.keci;
+  kontrol("iki yan ayna simetrik (seytan, keci)", s.ayna && k.ayna);
+  kontrol("seytan: yukari cikiyor ve sivriliyor (5 kademe)",
+          s.n === 5 && s.y.every((y, i) => i === 0 || y > s.y[i - 1]) && s.kenar.every((x, i) => i === 0 || x < s.kenar[i - 1]),
+          JSON.stringify(s.y));
+  kontrol("keci: geriye gidip kafanin ustunden asagi iniyor, daha cok parca",
+          k.n > s.n && Math.max(...k.z) > 4 && k.y[k.y.length - 1] < 32, "z en cok " + Math.max(...k.z) + ", son y " + k.y[k.y.length - 1]);
+  kontrol("hicbir boynuz parcasi kafanin icinde degil", s.ic === 0 && k.ic === 0, s.ic + " / " + k.ic);
+}
+
+console.log("\n=== 6. ACMADAN HICBIR SEY YOK ===");
+{
+  const p1 = readdirSync(FILM).filter((a) => a.startsWith("bolum2_p1_") || a.startsWith("bolum1_"));
+  const var_ = p1.filter((a) => /"agiz"\s*:\s*true|"boynuz"/.test(readFileSync(join(FILM, a), "utf8")));
+  kontrol("1. bolum ve Part 1 senaryolarinda agiz/boynuz yok (Part 2'den itibaren)", var_.length === 0, var_.join(" "));
+  const kod = readFileSync(join(ARAC, "blender_film.py"), "utf8");
+  kontrol("film araci agzi yalniz \"agiz\" yazilinca kuruyor", /if not a\.v\.get\("agiz", senaryo\.get\("agiz", False\)\):/.test(kod));
+}
+
+console.log("");
+console.log(hata ? ">>> SORUN VAR" : ">>> agiz ve boynuz: senkron, hucreler ve geometri tutarli");
+process.exit(hata ? 1 : 0);

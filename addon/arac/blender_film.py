@@ -58,6 +58,7 @@ import film_poz  # noqa: E402
 import diz_model  # noqa: E402
 import form_model  # noqa: E402
 import thomas_goz  # noqa: E402
+import agiz as AGZ  # noqa: E402
 import hareket as H  # noqa: E402
 import mekan as MK  # noqa: E402
 
@@ -1604,6 +1605,121 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
                 aktor_parcalari.setdefault(ad, []).append(ob)
                 if sira > 0:
                     silah_nesneleri[ad].append(ob)
+
+    # ---- agiz ve boynuz (v7.99.16; kullanici: 2. bolum Part 2'den itibaren) ----
+    # Senaryo "agiz": true (ya da aktorde "agiz": true/false) acar; yazilmazsa
+    # hicbir sey eklenmez, 1. bolum ve Part 1 bire bir eskisi (arac/agiz.py).
+    agiz_nesne = {}            # {aktor: {sekil: nesne}}
+    for ad, a in aktorler.items():
+        if not a.v.get("agiz", senaryo.get("agiz", False)):
+            continue
+        ciz = AGZ.agiz_cizelgesi(senaryo.get("olaylar", []), ad, fps, yazi_suresi)
+        kullanilan = sorted({s_ for _t, s_ in ciz if s_ != "X"})
+        if not kullanilan:
+            continue
+        model_a = aktor_model[ad]
+        satir = int(a.v.get("agiz_satir", AGZ.agiz_satiri(a.v["skin"])))
+        n_ = 8 - satir
+        im_s = bpy.data.images.load(B.yol(a.v["skin"]))
+        gw, gh = im_s.size
+        k_ = gw // 64 or 1
+        px_s = list(im_s.pixels[:])
+        yuz = [[None] * 8 for _ in range(8)]
+        for r in range(8):
+            for c in range(8):
+                x_, y_ = (8 + c) * k_, (8 + r) * k_
+                i_ = ((gh - 1 - y_) * gw + x_) * 4          # Blender resmi alttan yukari
+                yuz[r][c] = tuple(int(round(v * 255)) for v in px_s[i_:i_ + 4])
+        bas = model_a.kemik["head"]
+        agiz_nesne[ad] = {}
+        atlas = None
+        ozel = AGZ.ozel_atlas(a.v["skin"])
+        if ozel:                       # kullanicinin cizdigi agizlar
+            im_a = bpy.data.images.load(ozel)
+            aw, ah = im_a.size
+            pa = list(im_a.pixels[:])
+            atlas = [[tuple(int(round(v * 255)) for v in pa[((ah - 1 - y_) * aw + x_) * 4:((ah - 1 - y_) * aw + x_) * 4 + 4])
+                      for x_ in range(aw)] for y_ in range(ah)]
+        for sekil in kullanilan:
+            hucre = (AGZ.atlas_hucresi(atlas, sekil, n_) if atlas is not None
+                     else AGZ.agiz_hucresi(yuz, sekil, satir))
+            ad_r = "agiz_%s_%s" % (ad, sekil)
+            im = bpy.data.images.new(ad_r, 8, n_, alpha=True)
+            duz = []
+            for satir_px in reversed(hucre):
+                for rgba in satir_px:
+                    duz += [v / 255.0 for v in rgba]
+            im.pixels = duz
+            hedef_k = os.path.join(klasor, "_doku")
+            os.makedirs(hedef_k, exist_ok=True)
+            im.filepath_raw = os.path.join(hedef_k, ad_r + ".png")
+            im.file_format = "PNG"
+            im.save()
+            # kafanin on yuzunun agiz satirlari: ayni UV kurali (B.kupler) --
+            # skin aynasi dahil yuzle bire bir hizali; yuzun 0,05 px onunde
+            # (sapka katmani 0,5 px'te, onun arkasinda)
+            tek = B.Model({"minecraft:geometry": [{"description": {"texture_width": 8, "texture_height": n_},
+                           "bones": [dict(bas, parent=None, rotation=[0, 0, 0], cubes=[
+                               {"origin": [-4, 24, -4.05], "size": [8, n_, 0],
+                                "uv": {"north": {"uv": [0, 0], "uv_size": [8, n_]}}}])]}]})
+            me = bpy.data.meshes.new(ad_r)
+            ks, ps, uv = [], [], []
+            for pts, u in B.kupler(tek):
+                i0 = len(ks)
+                ks.extend(blender_nokta(p) for p in pts)
+                ps.append((i0, i0 + 1, i0 + 2, i0 + 3))
+                uv.extend(u)
+            me.from_pydata(ks, [], ps)
+            lay = me.uv_layers.new()
+            for j, dd in enumerate(lay.data):
+                dd.uv = uv[j]
+            me.materials.append(doku_malzemesi(im.filepath_raw))
+            ob = bpy.data.objects.new(ad_r, me)
+            sc.collection.objects.link(ob)
+            ob.parent = kemik_nesne[ad]["head"]
+            agiz_nesne[ad][sekil] = ob
+        # gorunurluk: her sekil kendi karelerinde (mantiksal anahtar = aninda)
+        onceki_s = None
+        for f in range(len(kam_iz)):
+            s_ = AGZ.sekil_karede(ciz, harita[f])
+            if s_ != onceki_s:
+                for sekil, ob in agiz_nesne[ad].items():
+                    ob.hide_render = sekil != s_
+                    ob.keyframe_insert("hide_render", frame=f + 1)
+                onceki_s = s_
+    for ad, a in aktorler.items():
+        tur = a.v.get("boynuz")
+        if not tur:
+            continue
+        tur_ad = tur if isinstance(tur, str) else tur.get("tur", "seytan")
+        renkler = (tur.get("renk") if isinstance(tur, dict) else None) or [[0.22, 0.015, 0.02], [0.02, 0.01, 0.012]]
+        bas = aktor_model[ad].kemik["head"]
+        kupler_ = AGZ.boynuz_kupleri(tur_ad)
+        yari = len(kupler_) // 2
+        mats = []
+        for i in range(yari):
+            u_ = i / max(1, yari - 1)
+            c0, c1 = renkler[0], renkler[-1]
+            m = bpy.data.materials.new("boynuz_%s_%d" % (ad, i))
+            m.use_nodes = True
+            bs = m.node_tree.nodes["Principled BSDF"]
+            bs.inputs["Base Color"].default_value = tuple(c0[k] + (c1[k] - c0[k]) * u_ for k in range(3)) + (1,)
+            bs.inputs["Roughness"].default_value = 0.55
+            mats.append(m)
+        for i, kp in enumerate(kupler_):
+            tek = B.Model({"minecraft:geometry": [{"description": {"texture_width": 64, "texture_height": 64},
+                           "bones": [dict(bas, parent=None, rotation=[0, 0, 0], cubes=[kp])]}]})
+            me = bpy.data.meshes.new("boynuz_%s_%d" % (ad, i))
+            ks, ps = [], []
+            for pts, _u in B.kupler(tek):
+                i0 = len(ks)
+                ks.extend(blender_nokta(p) for p in pts)
+                ps.append((i0, i0 + 1, i0 + 2, i0 + 3))
+            me.from_pydata(ks, [], ps)
+            me.materials.append(mats[i % yari])
+            ob = bpy.data.objects.new("boynuz_%s_%d" % (ad, i), me)
+            sc.collection.objects.link(ob)
+            ob.parent = kemik_nesne[ad]["head"]
 
     # ---- kareler: kok + kemik anahtarlari ----
     kemikler = list(govde_model.kemik.keys())

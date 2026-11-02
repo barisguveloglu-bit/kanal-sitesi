@@ -408,6 +408,8 @@ dediği). Silahı zaten kayıtlı: Ay Işığı Asası.
     Barış'ın gülüşü neden farklı (Claude'un okuması: ikinci kâğıtla
     özgürlüğünü geri aldığını sanıp rahatlamış gülüyor, Satanachia kazandığı
     için; doğrulanmadı).
+    **Barış bu sahnede çarpık skinle** (kullanıcı, 2026-11-02: *"onda da çarpık
+    skin olacak, yani bugün yaptığımız iyileşmiş skin değil"*).
   - **Neden imzaladı (kullanıcı, kesin değil — "olabilir"):** karşısında en
     büyük komutanlardan biri var; muhtemelen **zihinsel olarak büyük baskı**
     uygulayıp onu zorladı, Barış öyle imzalamış olabilir.
@@ -926,6 +928,23 @@ hedef ~57,5).
   pencereden atlayış, Zisa'nın büyü işareti (perçem telleri, alın sembolü); 3 — Saldırı II, buz duvarı, kar girdabı, donma kabı, duvar
   delinmesi; 4 — buz kaplı merdiven, Kor Yürüyüşü, Kıvılcım, yarım küre buz
   kalkanı, buz sütunu, jeot ve lav, lavın donması.
+
+**Ağız ve boynuz sistemi — 2. bölüm Part 2'den itibaren (kullanıcı, 2026-11-02):**
+kullanıcı iki yöntem getirdi ve *"bu yöntemleri ekleyelim, bütün araçları bul,
+yapmaya başla; 2. bölümün Part 2'sinde bu sisteme geçelim"* dedi.
+- **Ağız:** dokuyla yapılan ağız; ağız şekilleri bir resimde yan yana (kapalı,
+  az açık, tam açık, "O", gülümseme, dişli sırıtma), yüzün hemen önünde bir
+  düzlem, kafa kemiğine bağlı; ifade kareye göre anında değişir (kayarak değil);
+  dudak senkronu kaba: M/B/P kapalı, A geniş, O yuvarlak, E/İ dişli; 2-3 karede
+  bir değişim yeter.
+- **Boynuz:** küplerden kademeli şekil; **şeytan boynuzu** (kısa, yukarı ve
+  hafif öne/dışa kıvrık, sivrilen) ya da **keçi boynuzu** (geriye ve aşağı,
+  kulağın çevresinden dolanan); simetrik ikinci boynuz; koyu kırmızı ya da
+  siyah; kafa kemiğine bağlı.
+- Part 1 bu sistem olmadan çiziliyor (kullanıcının sözü Part 2'den).
+- Açık (sorulacak): boynuz kimde ve hangi tür; hangi karakterler ağızla konuşur;
+  seslendirme kaydı olacak mı (dudak senkronu ses kaydından mı, altyazı
+  metninden mi).
 
 **Part 1 kararları (kullanıcı, 2026-11-01):**
 - **Cadının skini:** kullanıcının gönderdiği skin (*"cadı skin'i bu olsun"*):
