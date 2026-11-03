@@ -987,6 +987,7 @@ yapmaya başla; 2. bölümün Part 2'sinde bu sisteme geçelim"* dedi.
   falan, yaralı hâlini göreceğiz; dövüş olmadığı yerlerde iyileşmiş hâliyle göreceğiz."*
   Dövüşte ve yaralandığı anlarda `uzak_akraba.png`, dövüş dışında `baris_iyilesmis.png`.
 - **Part 1'in sonu:** Barış Zisa'nın evinin **içinde** (kullanıcı: *"ev içi"*).
+- **Pipos ve çocukluk arkadaşı hanedanın girişinde bekliyor** (kullanıcı, 2026-11-03: *"en son eklediğimiz iki karakter ... hanedanın girişinde beklesinler ve akıl hocam Pipos endişeli görünecek"*; endişenin tarifi: *"biri bir yerdeyken onun arkasından endişelenen kişi genelde yerinde duramaz ve hep kötü bir senaryo düşünür"*). Sahne `film/bolum2_p1_4b_giris.json` (10,5 sn), Part 1'in toplamı 71,8 sn (sınır 73,7). **Claude'un önerisi, kullanıcının onayını bekliyor:** sahnenin yeri savaş odasından sonra, Zisa'nın evinden önce; öğleye yakın, surun büyük güney kapısının önü. Pipos kapının önünde volta atıyor, uçlarda durup yola uzun uzun bakıyor, ellerini ovuşturuyor, yola doğru birkaç adım atıp duruyor, sonunda kapıya dönüp yere bakıyor. Arkadaş kulenin dibinde elleri arkada sakin bekliyor, başıyla Pipos'u izliyor (zıtlık). Konuşma yok (metin uydurulmadı). Arkadaşın elinde silah yok: kullanıcı ilk denemede kavuşmuş kolları silah sandı, poz değişti.
 
 **Hazır paketler — hangi sahnede ne.** Aşağıda adı geçen her Pooka efekti
 ve MCprep TNT'si Cycles'ta tek başına çizildi (`REFERANS_HAZIR_PAKETLER.md`,

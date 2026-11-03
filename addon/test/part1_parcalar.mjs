@@ -160,7 +160,7 @@ print(json.dumps(F.esya_anahtarlari(kayit, esya="fener")))`);
           JSON.stringify(r) === JSON.stringify([[1, false], [4, true], [8, false]]), JSON.stringify(r));
 }
 
-console.log("\n=== 8. PART 1'IN BES SENARYOSU ===");
+console.log("\n=== 8. PART 1'IN ALTI SENARYOSU ===");
 {
   const adlar = readdirSync(FILM).filter((a) => a.startsWith("bolum2_p1_") && a.endsWith(".json")).sort();
   let sure = 0;
@@ -170,7 +170,11 @@ console.log("\n=== 8. PART 1'IN BES SENARYOSU ===");
     sure += d.sure;
     if (!(d.fps === 30 && d.cozunurluk[0] === 1920 && d.cozunurluk[1] === 1080 && d.ornek === 4096 && d.akici === true)) kotu.push(a);
   }
-  kontrol("bes senaryo", adlar.length === 5, adlar.join(" "));
+  // 4b_giris (2026-11-03, kullanici): Pipos ve cocukluk arkadasi hanedanin
+  // girisinde bekliyor; ad sirasi savas odasi ile Zisa'nin evi arasinda
+  kontrol("alti senaryo, giris sahnesi savas odasi ile Zisa'nin evi arasinda", adlar.length === 6 &&
+          adlar.indexOf("bolum2_p1_4b_giris.json") === adlar.indexOf("bolum2_p1_4_savas.json") + 1 &&
+          adlar.indexOf("bolum2_p1_5_zisa.json") === adlar.length - 1, adlar.join(" "));
   kontrol("hepsi 30 fps, 1920x1080, 4096 ornek, akici", kotu.length === 0, kotu.join(" "));
   kontrol("toplam sure hedefte (50-73,7 sn)", sure >= 50 && sure <= 73.7, sure.toFixed(1) + " sn");
 }
@@ -330,6 +334,56 @@ print(json.dumps({"son": [son["x"], son["y"], son["z"]], "duzlem": duzlem, "ic_y
   kontrol("parlamadan once en az 0,4 sn cercevede duruyor", r.durus >= 0.4, r.durus.toFixed(2) + " sn");
   kontrol("obsidyenin kenarina girmeden ustune cikiyor", r.kenar.length === 0, r.kenar.length + " kare");
   kontrol("parlamayla gizleniyor", r.gorunur === true && r.sonra[0] === false);
+}
+
+console.log("\n=== 13. HANEDANIN GIRISI: PIPOS ENDISELI, ARKADASI ELLERI ARKADA IZLIYOR ===");
+{
+  // kullanici (2026-11-03): "akil hocam Pipos endiseli gorunecek ... biri bir
+  // yerdeyken onun arkasindan endiselenen kisi genelde yerinde duramaz ve hep
+  // kotu bir senaryo dusunur". Olculen: Pipos volta atiyor (yonu en az uc kez
+  // donuyor), yola uzun bakiyor, ellerini ovusturuyor; arkadasi elleri
+  // arkada, BASI pozdayken de Pipos'u izliyor.
+  const r = py(`
+import blender_film as F, bedrock_onizleme as B, film_poz as FP
+P = F.film_pozlari(True)
+e, k = P[FP.ONEK + "endise"], P[FP.ONEK + "eller_arkada"]
+s = json.load(open(sys.argv[1] + "/../film/bolum2_p1_4b_giris.json"))
+setler = B.oku(F.HAREKET)["setler"]
+ak, *_ = F.zaman_cizelgesi(s, setler, P)
+p, a = ak["p"].kayit, ak["a"].kayit
+# volta: x yonundeki hareketin isareti kac kez degisiyor (0,02 blok esik)
+don, yon = 0, 0
+for i in range(1, len(p)):
+    dx = p[i]["x"] - p[i - 1]["x"]
+    if abs(dx) > 0.02 / 30 * 30 * 0.02:
+        y_ = 1 if dx > 0 else -1
+        if yon and y_ != yon:
+            don += 1
+        yon = y_
+gidis = [o for o in s["olaylar"] if o.get("aktor") == "p" and "git" in o]
+yol_bakis = [o for o in s["olaylar"] if o.get("aktor") == "p" and o.get("bak_bas") and o["bak_bas"][1] < -105]
+# arkadas: eller_arkada pozundayken bas takibi suruyor mu (kare_ekleri bas verir)
+w = []
+for kk in a[60::30]:
+    _, kat = F.kare_pozu(ak["a"], kk, ["head", "rightArm", "leftArm"], P, setler)
+    w.append(bool(F.kare_ekleri(ak["a"], kk, kat).get("head")))
+# karsilastirma: ayni anda baska bir film pozu (titre) basi yine yonetir
+kk = dict(a[120]); kk["tepki"] = [{"anim": FP.ONEK + "titre", "bas": 0.0, "sure": 1e6, "tut": True, "giris": 0.1}]
+_, kat2 = F.kare_pozu(ak["a"], kk, ["head"], P, setler)
+print(json.dumps({"e_hata": e["_cozum"]["el_hatasi_px"], "e_dongu": e["loop"] is True,
+                  "e_bas": e["bones"]["head"]["rotation"], "k_serbest": k.get("_bas_serbest"), "k_bas": "head" in k["bones"],
+                  "k_hata": max(k["_cozum"].values()), "don": don, "gidis": len(gidis), "yol": len(yol_bakis),
+                  "a_izliyor": w, "titre_bas": bool(F.kare_ekleri(ak["a"], kk, kat2).get("head"))}))`);
+  kontrol("endise: eller karnin onunde kenetli (<= 2,5 px), ovusturma dongusu, bas egik",
+          r.e_hata <= 2.5 && r.e_dongu && Object.values(r.e_bas).every((v) => v[0] >= 10), r.e_hata + " px");
+  kontrol("eller_arkada: eller sirtin arkasinda (<= 2,5 px), bas pozda yok ve serbest", r.k_hata <= 2.5 && r.k_serbest === true && !r.k_bas,
+          r.k_hata + " px");
+  kontrol("Pipos yerinde duramiyor: en az uc gidis, yonu en az iki kez donuyor", r.gidis >= 3 && r.don >= 2,
+          r.gidis + " gidis, " + r.don + " donus");
+  kontrol("Pipos yola uzun uzun bakiyor (en az iki kez, uzaktaki yol)", r.yol >= 2, r.yol + " bakis");
+  kontrol("arkadas elleri arkadayken de basiyla Pipos'u izliyor", r.a_izliyor.length >= 6 && r.a_izliyor.every((x) => x),
+          JSON.stringify(r.a_izliyor));
+  kontrol("baska film pozu basi yine yonetir (Part 1'in eski sahneleri degismez)", r.titre_bas === false);
 }
 
 console.log("");

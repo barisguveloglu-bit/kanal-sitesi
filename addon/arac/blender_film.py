@@ -1125,7 +1125,10 @@ def kare_ekleri(a, k, katman):
     if not a.akici:
         return {}
     w_eylem = max([w for an, _, w in katman if k.get("eylem") and an == k["eylem"]["anim"]] or [0.0])
-    w_film = max([w for an, _, w in katman if isinstance(an, str) and an.startswith(film_poz.ONEK)] or [0.0])
+    # "_bas_serbest" poz basi yonetmez (eller_arkada): bas takibi surer
+    P_ = film_pozlari(True)
+    w_film = max([w for an, _, w in katman if isinstance(an, str) and an.startswith(film_poz.ONEK)
+                  and not P_.get(an, {}).get("_bas_serbest")] or [0.0])
     wt = max(0.0, 1.0 - 0.7 * w_eylem - w_film)
     ek = {}
     yaw, pitch = k.get("bas", (0.0, 0.0))

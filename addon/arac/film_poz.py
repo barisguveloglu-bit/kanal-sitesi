@@ -389,6 +389,43 @@ def pozlar(akici=False):
     })
     P["kapi_tikla"]["_cozum"] = {"vurus_t": [0.3, 0.5]}
 
+    # ---- endise: Pipos hanedanin girisinde bekler (2. bolum Part 1,
+    # kullanici: "akil hocam Pipos endiseli gorunecek"). Eller karnin onunde
+    # kenetli ve birbirini ovusturuyor (dongu: iki yumruk iki nokta arasinda
+    # gidip gelir), bas egik. Eli cenede ilk deneme geri alindi: duz Minecraft
+    # kolu cene icin fazla uzun (omuzdan ceneye ~7 px, yumruk ~10,5 px),
+    # kol yuzun onunden yatay geciyordu. Karnin onu tam erisimde. ----
+    ovus = [([1.2, 13.5, -5.2], [-1.2, 13.5, -5.2]), ([0.4, 14.4, -5.5], [-1.8, 12.9, -5.0])]
+    kol_e, hata_e = [], []
+    for sag_h, sol_h in ovus:
+        r_, h1 = kol_ara(geo, "rightArm", SAG_YUMRUK, sag_h)
+        l_, h2 = kol_ara(geo, "leftArm", SOL_YUMRUK, sol_h)
+        kol_e.append((r_, l_))
+        hata_e += [h1, h2]
+    (r0, l0), (r1, l1) = kol_e
+    P["endise"] = _a(0.9, {
+        "rightArm": {"rotation": {"0.0": r0, "0.45": r1, "0.9": r0}},
+        "leftArm": {"rotation": {"0.0": l0, "0.45": l1, "0.9": l0}},
+        "head": {"rotation": {"0.0": [14, -4, 0], "0.45": [12, 4, 0], "0.9": [14, -4, 0]}},
+    }, dongu=True)
+    P["endise"]["_cozum"] = {"el_hatasi_px": round(max(hata_e), 2)}
+
+    # ---- eller_arkada: eller sirtin arkasinda birlesik, sakin bekleyis
+    # (Pipos'un yaninda bekleyen cocukluk arkadasi; telasli Pipos'la zitlik).
+    # Bas pozda YOK ve "_bas_serbest": bas takibi surer -- arkadas Pipos'u
+    # gozuyle izler. Ilk deneme kollari gogsun onunde kavusturuyordu; iki
+    # kolun ucu (el ve ceket kolunun agzi) dumduz kameraya bakiyor, uzaktan
+    # elde tutulan bir silah gibi okunuyordu (kullanici: "cocukluk
+    # arkadasinin elinde neden silah var"). Arkada eller gorunmez. ----
+    sag_k, h_sk = kol_ara(geo, "rightArm", SAG_YUMRUK, [1.2, 13.0, 4.8])
+    sol_k, h_lk = kol_ara(geo, "leftArm", SOL_YUMRUK, [-1.2, 13.0, 4.8])
+    P["eller_arkada"] = _a(0.5, {
+        "rightArm": {"rotation": {"0.0": [0, 0, 0], "0.4": sag_k, "0.5": sag_k}},
+        "leftArm": {"rotation": {"0.0": [0, 0, 0], "0.45": sol_k, "0.5": sol_k}},
+    })
+    P["eller_arkada"]["_cozum"] = {"sag_hata_px": round(h_sk, 2), "sol_hata_px": round(h_lk, 2)}
+    P["eller_arkada"]["_bas_serbest"] = True
+
     # ---- yere_yumruk: El-Harkos'un iskalayan yumrugu yere iner (dovus v2) ----
     # Yumruk TAM zemine (yumruk yarisi 2 px yukarida), ayaklar yerde. Dizsiz
     # bacakla ayakta egilince yumruk yere yetismiyordu (bel 85 dereceyle bile

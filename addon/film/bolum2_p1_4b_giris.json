@@ -1,0 +1,213 @@
+{
+ "fps": 30,
+ "sure": 10.5,
+ "cozunurluk": [
+  1920,
+  1080
+ ],
+ "ornek": 4096,
+ "uyarlamali": 0.01,
+ "akici": true,
+ "mekan": "hanedan",
+ "gunes_yon": 60,
+ "pozlama": 0.0,
+ "isik": [
+  {
+   "t": 0,
+   "gunes": 1.7,
+   "gok": 0.18,
+   "yukseklik": 55,
+   "ay": 0.0
+  }
+ ],
+ "aktorler": {
+  "p": {
+   "skin": "kaynak_doku/film_aktor/pipos.png",
+   "isim": "Pipos",
+   "konum": [
+    3.4,
+    -89.2
+   ],
+   "kat": 1.0,
+   "bak": [
+    -1.0,
+    -89.2
+   ]
+  },
+  "a": {
+   "skin": "kaynak_doku/film_aktor/cocukluk_arkadasi.png",
+   "isim": "",
+   "konum": [
+    -3.3,
+    -87.7
+   ],
+   "kat": 1.0,
+   "bak": [
+    1.5,
+    -90.5
+   ]
+  }
+ },
+ "olaylar": [
+  {
+   "t": 0.0,
+   "aktor": "a",
+   "poz": "eller_arkada",
+   "tut": true,
+   "atla": 0.5
+  },
+  {
+   "t": 0.2,
+   "aktor": "p",
+   "git": [
+    -0.6,
+    -89.0
+   ],
+   "adim": 2.6
+  },
+  {
+   "t": 2.1,
+   "aktor": "p",
+   "bak": [
+    -0.6,
+    -110.0
+   ]
+  },
+  {
+   "t": 2.3,
+   "aktor": "p",
+   "bak_bas": [
+    -0.6,
+    -112.0,
+    1.6
+   ]
+  },
+  {
+   "t": 3.3,
+   "aktor": "p",
+   "bak_bas": null
+  },
+  {
+   "t": 3.3,
+   "aktor": "p",
+   "git": [
+    3.2,
+    -89.4
+   ],
+   "adim": 2.8
+  },
+  {
+   "t": 5.0,
+   "aktor": "p",
+   "bak": [
+    1.0,
+    -100.0
+   ]
+  },
+  {
+   "t": 5.0,
+   "aktor": "p",
+   "poz": "endise",
+   "tut": true
+  },
+  {
+   "t": 5.2,
+   "aktor": "a",
+   "bak": "p"
+  },
+  {
+   "t": 6.7,
+   "aktor": "p",
+   "poz_bitir": "endise"
+  },
+  {
+   "t": 6.7,
+   "aktor": "p",
+   "git": [
+    2.9,
+    -91.3
+   ],
+   "adim": 1.9
+  },
+  {
+   "t": 7.9,
+   "aktor": "p",
+   "bak_bas": [
+    1.5,
+    -112.0,
+    1.8
+   ]
+  },
+  {
+   "t": 8.9,
+   "aktor": "p",
+   "bak_bas": null
+  },
+  {
+   "t": 8.9,
+   "aktor": "p",
+   "bak": [
+    0.0,
+    -84.0
+   ]
+  },
+  {
+   "t": 9.4,
+   "aktor": "p",
+   "bak_bas": [
+    2.4,
+    -88.3,
+    0.2
+   ]
+  }
+ ],
+ "kamera": [
+  {
+   "t": 0.0,
+   "aci": "elle",
+   "kam": [
+    -6.5,
+    -97.5,
+    2.3
+   ],
+   "bak": [
+    0.5,
+    -86.5,
+    3.0
+   ],
+   "lens": 24,
+   "kaydir": [
+    0.15,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "t": 3.3,
+   "aci": "elle",
+   "kam": [
+    6.6,
+    -93.6,
+    2.2
+   ],
+   "bak": "p",
+   "bak_yuks": 1.4,
+   "lens": 40
+  },
+  {
+   "t": 6.7,
+   "aci": "elle",
+   "kam": [
+    2.2,
+    -86.0,
+    3.0
+   ],
+   "bak": [
+    1.6,
+    -108.0,
+    1.2
+   ],
+   "lens": 30
+  }
+ ]
+}

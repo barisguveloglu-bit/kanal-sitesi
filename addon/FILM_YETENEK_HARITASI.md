@@ -65,6 +65,7 @@ her blok "başka sürümle çizilmiş" uyarısı verirdi). Eski ve yeni kod
 - Hazır:
   - **Film pozları:** `dus`, `kalk`, `sendele`, `diz_cok`, `yuzustu`, `bayil`, `govde_tut` (yaralı yürüyüş), `comel_dokun`, `etrafa_bak`, `kagit`, `yere_yumruk`, `blok_al`, `blok_at`, `tirpan_bekle`.
   - **2. bölüm Part 1 (v7.99.16, kilit `test/kulube_sahne.mjs`):** `dogrul` (yatakta sersem doğrulma, oturup bakınma; `dus` ile yatırılmış aktörden; yatağa oturur, en alt nokta her an ≤ 0,1 px), `kitap_al` / `kitap_oku` (sayfa çevirir, döngü) / `kitap_koy` (aynı kol açısından birbirine bağlanır), `titre` (üşüme, 8 Hz döngü), `kapi_tikla` (iki vuruş).
+  - **Hanedanın girişi (2026-11-03, kilit `test/part1_parcalar.mjs` 13. bölüm):** `endise` (eller karnın önünde kenetli, birbirini ovuşturur, döngü; baş eğik), `eller_arkada` (sakin bekleyiş, eller sırtta). `eller_arkada` `"_bas_serbest"` taşır: film pozu başı yönetmez, baş takibi sürer (bekleyen arkadaş Pipos'u gözüyle izler); öbür film pozları başı eskisi gibi yönetir. Geri alınan iki deneme: eli çenede (düz Minecraft kolu çene için fazla uzun, kol yüzün önünden yatay geçti) ve göğüste kavuşmuş kollar (iki kolun ucu kameraya bakıyor, kullanıcı elde silah sandı).
   - **Oyundan gelenler:** `savun`, üç yöne `kacin`, `darbe`, `konus`.
   - **Otomatik:** nefes ve yürüyüş.
   - Yere değen pozlar ölçülerek zemine oturtuluyor.
