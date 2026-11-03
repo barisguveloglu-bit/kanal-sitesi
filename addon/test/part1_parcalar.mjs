@@ -370,7 +370,13 @@ for kk in a[60::30]:
 # karsilastirma: ayni anda baska bir film pozu (titre) basi yine yonetir
 kk = dict(a[120]); kk["tepki"] = [{"anim": FP.ONEK + "titre", "bas": 0.0, "sure": 1e6, "tut": True, "giris": 0.1}]
 _, kat2 = F.kare_pozu(ak["a"], kk, ["head"], P, setler)
-print(json.dumps({"e_hata": e["_cozum"]["el_hatasi_px"], "e_dongu": e["loop"] is True,
+# Baris'in gelisi (kullanici: "Baris'in geldigi gorulsun ... o sahneden sonra
+# Baris'i direkt Zisa'nin evinde goruyoruz"): yoldan gelir, Pipos'la yuz yuze
+bk = ak["b"].kayit
+ayr = lambda k1, k2: abs((F.yon_aci([k1["x"], k1["y"]], [k2["x"], k2["y"]]) - k1["aci"] + 180) % 360 - 180)
+gelis = {"yol": bk[0]["y"] - bk[-1]["y"], "bas_y": bk[0]["y"], "ara": math.hypot(bk[-1]["x"] - p[-1]["x"], bk[-1]["y"] - p[-1]["y"]),
+         "b_bakis": ayr(bk[-1], p[-1]), "p_bakis": ayr(p[-1], bk[-1]), "gorunur": bk[-1]["gorunur"]}
+print(json.dumps({"gelis": gelis, "e_hata": e["_cozum"]["el_hatasi_px"], "e_dongu": e["loop"] is True,
                   "e_bas": e["bones"]["head"]["rotation"], "k_serbest": k.get("_bas_serbest"), "k_bas": "head" in k["bones"],
                   "k_hata": max(k["_cozum"].values()), "don": don, "gidis": len(gidis), "yol": len(yol_bakis),
                   "a_izliyor": w, "titre_bas": bool(F.kare_ekleri(ak["a"], kk, kat2).get("head"))}))`);
@@ -384,6 +390,9 @@ print(json.dumps({"e_hata": e["_cozum"]["el_hatasi_px"], "e_dongu": e["loop"] is
   kontrol("arkadas elleri arkadayken de basiyla Pipos'u izliyor", r.a_izliyor.length >= 6 && r.a_izliyor.every((x) => x),
           JSON.stringify(r.a_izliyor));
   kontrol("baska film pozu basi yine yonetir (Part 1'in eski sahneleri degismez)", r.titre_bas === false);
+  kontrol("Baris yoldan geliyor ve sonunda Pipos'la yuz yuze (Zisa'nin evine atlamadan once)",
+          r.gelis.bas_y < -108 && r.gelis.yol < -10 && r.gelis.ara >= 1.05 && r.gelis.ara <= 2.2 && r.gelis.b_bakis < 25 &&
+          r.gelis.p_bakis < 25 && r.gelis.gorunur, JSON.stringify(Object.fromEntries(Object.entries(r.gelis).map(([k, v]) => [k, typeof v === "number" ? +v.toFixed(2) : v]))));
 }
 
 console.log("");
