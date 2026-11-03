@@ -400,6 +400,22 @@ console.log("6. surum (cizim_surum)");
           "kod " + tk + (tk ? " " + tc.trim().split("\n").slice(-3).join(" | ") : ""));
 }
 
+console.log("\n=== 7. ISCI KOMUTU SENARYO LISTESINI TASIYOR ===");
+{
+  // v7.99.16 (2. bolum Part 1): plan --senaryolar ile kuruluyordu ama
+  // iscinin komutu onu tasimiyordu; isci varsayilanina (1. bolum) dusup
+  // yanlis filmi cizecekti. Iki komut yolu da olculur: istem ve eksik.
+  const ist = py([ARAC + "cizim_dagit.py", "istem", "--isci", "2", "--no", "1", "--senaryolar", SENLER, "--blok", "4",
+                  "--commit", "HEAD"], { cwd: KANAL });
+  const komut = ist.split("\n").find((l) => l.includes("cizim_isci.py") && l.includes("--isci 1/2")) || "";
+  kontrol("istem: iscinin komutunda --senaryolar ve listenin tamami var",
+          komut.includes("--senaryolar " + SENLER), komut.trim().slice(0, 120));
+  kontrol("istem: metin bolume bagli degil (\"1. bolum\" yazmiyor)", !/1\. bolum/.test(ist));
+  const ek = dagitPy("eksik", "--depo", join(T, "u7_d"), "--uzak", ciplakDepo("u7"), "--yeni", "2");
+  kontrol("eksik: yeniden dagitilan isin komutunda --senaryolar var",
+          ek.isler.length === 2 && ek.isler.every((x) => x.includes("--senaryolar " + SENLER)), JSON.stringify(ek.isler).slice(0, 160));
+}
+
 rmSync(T, { recursive: true, force: true });
 console.log("");
 console.log(hata ? ">>> SORUN VAR" : ">>> dagitik cizim: tam bir kez, kayipsiz, kaldigi yerden, gizli depoya");

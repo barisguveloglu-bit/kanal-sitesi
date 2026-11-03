@@ -61,7 +61,7 @@ def plan_cmd(arg, bilgiler):
 
 
 # ------------------------------------------------------------
-ISTEM = """Bu oturum, Minecraft animasyon serisi 1. bolum filminin TAM KALITE cizim iscisi ({kimlik}).
+ISTEM = """Bu oturum, Minecraft animasyon serisi filminin TAM KALITE cizim iscisi ({kimlik}).
 Gorevin: asagidaki betigi calistirip bitene kadar ayakta tutmak. Kod yazma, dosya duzenleme, commit yok.
 
 1. Gizli cikti deposunu oturuma ekle: add_repo araci, owner "barisguveloglu-bit", repo "already-exists", access "push".
@@ -103,6 +103,13 @@ def kanal_commit(istenen=None):
     return c
 
 
+def senaryo_eki(arg):
+    """Iscinin komutuna senaryo listesi. v7.99.16 (2. bolum Part 1): plan
+    --senaryolar ile kuruluyor ama isci komutu onu tasimiyordu; isci kendi
+    varsayilanina (O.FILM = 1. bolum) dusup 1. bolumu yeniden cizecekti."""
+    return " --senaryolar %s" % arg.senaryolar if arg.senaryolar else ""
+
+
 def istem_metni(kimlik, isler, commit):
     return ISTEM.format(kimlik=kimlik, isler=isler, commit=commit, dal=KANAL_DAL)
 
@@ -113,7 +120,7 @@ def istem_cmd(arg, bilgiler):
     for k in nolar:
         if len(nolar) > 1:
             print("=" * 20, "isci %d/%d" % (k, arg.isci), "=" * 20)
-        ek = "" if arg.blok == O.BLOK else " --blok %d" % arg.blok
+        ek = ("" if arg.blok == O.BLOK else " --blok %d" % arg.blok) + senaryo_eki(arg)
         print(istem_metni("isci %d/%d" % (k, arg.isci), "--isci %d/%d%s" % (k, arg.isci, ek), commit))
 
 
@@ -244,7 +251,7 @@ def eksik_cmd(arg, bilgiler):
                 sira.append(kok)
                 grup[kok] = []
             grup[kok].append((a, b))
-        ek = "" if arg.blok == O.BLOK else " --blok %d" % arg.blok
+        ek = ("" if arg.blok == O.BLOK else " --blok %d" % arg.blok) + senaryo_eki(arg)
         isler.append(" ".join("--is %s:%s" % (kok, O.aralik_metin(grup[kok])) for kok in sira) + ek)
     if arg.json:
         print(json.dumps({"bloklar": [[list(b) for b in liste] for liste in dagilim], "isler": isler}))
