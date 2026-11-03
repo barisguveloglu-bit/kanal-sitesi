@@ -11,8 +11,9 @@
    2. Bulaniklik: aralikta odak yakina ceker, disinda yok.
    3. Kar: tane alanin icinde kalir, zamanla duser, tepeye donup surer
       (sonsuz), ruzgarla bati yonune kayar, ayni tohum ayni kar.
-   4. Sancak: 20 x 40 kumas (Minecraft sancagi), "Surda Safak": ust yari
-      kirmizi, gunes UFKUN USTUNDE yarim daire, alt yari gri.
+   4. Sancak: 20 x 40 kumas (Minecraft sancagi), "Surda Safak" ikinci
+      surum: gunes mazgalli surun ARKASINDAN dogar, sur tuglali, ortada
+      tahta kapi, kenarda altin serit; oyundaki karsiligi <= 6 katman.
    5. Savas haritasi: boyut, cerceve, bizim kirmizi isaret karada.
    6. Savas odasi yalniz kalenin ICINDE: hanedanin geri kalani bire bir
       ayni (onaylanmis tasarim degismez).
@@ -100,22 +101,33 @@ console.log("\n=== 4-5. SANCAK VE SAVAS HARITASI ===");
   const r = py(`
 import blender_film as F
 s = F.sancak_pikselleri("surda_safak")
-K, S, G = F.BOYA["kirmizi"], F.BOYA["sari"], F.BOYA["gri"]
-ust = all(c in (K, S) for row in s[:20] for c in row)
-alt = all(c == G for row in s[20:] for c in row)
+K, S, T = F.BOYA["kirmizi"], F.BOYA["sari"], F.BOYA["turuncu"]
+U = F.SANCAK_UFUK
+gok = (K, S, T)
+# sur siperinin altinda (U + 2'den asagi) gok ya da gunes rengi yok: gunes surun ARKASINDA
+sur_temiz = all(s[y][x] not in gok for y in range(U + 2, 39) for x in range(1, 19))
 sari = [(x, y) for y, row in enumerate(s) for x, c in enumerate(row) if c == S]
+mazgal = [max(s[U][x]) - min(s[U][x]) < 20 for x in range(1, 19)]   # tas gri, gok kizil
+beklenen_m = [any(a <= x <= b for a, b in F.SANCAK_MAZGAL) for x in range(1, 19)]
+kapi = s[35][F.SANCAK_KAPI[0]] == F.BOYA["kahve"]
+kenar = all(s[y][x][0] > 150 and s[y][x][0] > s[y][x][1] > s[y][x][2] for y in range(40) for x in (0, 19))
+oyunda = len(F.SANCAK_OYUNDA["surda_safak"]) - 1
+renk = len(set(c for row in s for c in row))
 h = F.harita_pikselleri()
 gen, yuk = len(h[0]), len(h)
 u, v = F.HARITA_ISARET[0][0]
 biz = h[int(v * yuk)][int(u * gen)]
 cerceve = all(h[0][x] == h[yuk - 1][x] for x in range(gen))
-print(json.dumps({"boyut": [len(s[0]), len(s)], "ust": ust, "alt": alt, "sari_alt": max(y for x, y in sari),
-                  "sari_ust": min(y for x, y in sari), "sari_say": len(sari), "h": [gen, yuk],
+print(json.dumps({"boyut": [len(s[0]), len(s)], "sur_temiz": sur_temiz, "sari_alt": max(y for x, y in sari),
+                  "sari_say": len(sari), "mazgal": mazgal == beklenen_m, "kapi": kapi, "kenar": kenar,
+                  "oyunda": oyunda, "renk": renk, "h": [gen, yuk],
                   "biz": list(biz), "kirmizi": list(K), "cerceve": cerceve}))`);
   kontrol("sancak 20 x 40 (Minecraft sancagi)", r.boyut[0] === 20 && r.boyut[1] === 40, JSON.stringify(r.boyut));
-  kontrol("ust yari kirmizi ve gunes, alt yari tamamen gri (sur)", r.ust && r.alt);
-  kontrol("gunes ufkun ustunde yarim daire (sari yalniz 15-19. satirda)", r.sari_alt === 19 && r.sari_ust >= 13 && r.sari_say > 20,
-          r.sari_ust + "-" + r.sari_alt + ", " + r.sari_say + " px");
+  kontrol("gunes surun arkasindan dogar: siperin altinda gok/gunes rengi yok, gunes ufkun ustunde",
+          r.sur_temiz && r.sari_alt < 24 && r.sari_say > 15, "sari en alt " + r.sari_alt + ", " + r.sari_say + " px");
+  kontrol("mazgallar dolu, aralarindan gok gorunuyor; ortada tahta kapi; kenarda altin serit", r.mazgal && r.kapi && r.kenar);
+  kontrol("ayrintili doku (duz uc renk degil); oyundaki karsiligi en fazla 6 desen katmani",
+          r.renk >= 15 && r.oyunda <= 6, r.renk + " renk, oyunda " + r.oyunda + " katman");
   kontrol("savas haritasi 160 x 96, cerceveli", r.h[0] === 160 && r.h[1] === 96 && r.cerceve);
   kontrol("haritada bizim hanedanin kirmizi isareti", JSON.stringify(r.biz) === JSON.stringify(r.kirmizi));
 }

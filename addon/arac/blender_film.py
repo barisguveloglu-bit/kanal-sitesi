@@ -2861,26 +2861,113 @@ BOYA = {"kirmizi": (0xB0, 0x2E, 0x26), "sari": (0xFE, 0xD8, 0x3D), "gri": (0x47,
         "mavi": (0x3C, 0x44, 0xAA), "acik_mavi": (0x3A, 0xB3, 0xDA), "mor": (0x89, 0x32, 0xB8),
         "turuncu": (0xF9, 0x80, 0x1D), "yesil": (0x5E, 0x7C, 0x16), "kahve": (0x83, 0x54, 0x32)}
 # "Surda Safak": CLAUDE'UN ONERISI, kullanici onayi bekliyor (SERI_SEZON1.md
-# "Bayraklar"). Kizil zemin, sari daire (gunes), gri alt yari (sur):
-# gunes surun arkasindan dogar. Oyunda: kirmizi sancak + daire (sari) +
-# alt yari (gri), 2 desen katmani.
-SANCAK_DESEN = {"surda_safak": ["kirmizi", ("daire", "sari"), ("alt_yari", "gri")]}
+# "Bayraklar"). v7.99.16 ikinci surum (kullanici: "daha iyi yap, detayli"):
+# duz uc renk yerine Minecraft sancagi olcusunde (20 x 40) elle cizilmis
+# gibi piksel doku. Ustte gece cekiliyor (son yildizlar), kizil gok ufka
+# dogru turuncu, gunes mazgalli surun ARKASINDAN dogar (on alti isin, ikisi
+# bir uzun), sur tuglali ve ortasinda kapali tahta kapi, kenarda altin
+# serit. Anlam: kizil = cesaret ve dokulen kan, altin = umut ve soyluluk,
+# gri sur = savunma ve sabir, kapi = korunan halk.
+# Oyunda birebir kurulamaz (Bedrock en fazla 6 desen katmani, tugla deseni
+# butun kumasi kaplar); oyundaki en yakin karsiligi SANCAK_OYUNDA.
+SANCAK_OYUNDA = {"surda_safak": [("taban", "kirmizi"), ("gradient", "siyah"), ("flower", "turuncu"),
+                                 ("circle", "sari"), ("half_horizontal_bottom", "gri"),
+                                 ("border", "sari")]}
+SANCAK_GUNES = (9.5, 23.0, 4.8)       # merkez x, y (ustten) ve yaricap, piksel
+SANCAK_UFUK = 22                       # mazgallarin ust satiri
+SANCAK_MAZGAL = [(1, 3), (6, 8), (11, 13), (16, 18)]   # dolu sutunlar (dahil)
+SANCAK_KAPI = (7, 12, 30)              # kapi: sol, sag sutun, kemerin ust satiri
+
+
+def _karis(a, b, t):
+    return tuple(int(round(a[i] + (b[i] - a[i]) * t)) for i in range(3))
+
+
+def _surda_safak():
+    gece, koyu = (0x2A, 0x0E, 0x14), (0x6E, 0x1A, 0x18)
+    kizil, acik, safak = BOYA["kirmizi"], (0xD4, 0x4C, 0x2A), BOYA["turuncu"]
+    sari, oz = BOYA["sari"], (0xFF, 0xF1, 0xA0)
+    altin, altin_k = (0xD8, 0xA8, 0x2C), (0x9C, 0x6C, 0x14)
+    tas, tas_a, tas_k, harc = BOYA["gri"], (0x5E, 0x67, 0x6A), (0x3E, 0x45, 0x48), (0x26, 0x2A, 0x2D)
+    tepe = (0x84, 0x8C, 0x8E)
+    tahta, tahta_k, demir = BOYA["kahve"], (0x5A, 0x39, 0x22), (0x2E, 0x30, 0x34)
+    bayer = [[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]]
+    gok_durak = [(0.0, gece), (0.30, koyu), (0.62, kizil), (0.86, acik), (1.0, safak)]
+    gx, gy, gr = SANCAK_GUNES
+    out = [[gece] * 20 for _ in range(40)]
+    for y in range(40):
+        for x in range(20):
+            # gok: duraklar arasi, 4 x 4 Bayer titremesiyle (piksel dokusu, yumusak degil)
+            t = min(1.0, y / (SANCAK_UFUK + 1.0))
+            for (t0, c0), (t1, c1) in zip(gok_durak, gok_durak[1:]):
+                if t <= t1:
+                    u = (t - t0) / (t1 - t0)
+                    u = min(1.0, max(0.0, (u - 0.3) / 0.4))    # titreme yalniz gecis bandinda
+                    c = c1 if u * 16 > bayer[y % 4][x % 4] + 0.5 else c0
+                    break
+            dx, dy = x + 0.5 - gx, y + 0.5 - gy
+            r = math.hypot(dx, dy)
+            if r < 11.5:                                   # gunesin cevresi aydinlik
+                c = _karis(c, safak, 0.45 * (1 - r / 11.5) ** 1.5)
+            aci = math.degrees(math.atan2(dy, dx)) % 22.5
+            uzun = int((math.degrees(math.atan2(dy, dx)) % 360) // 22.5) % 2 == 0
+            if gr + 0.9 < r < (9.6 if uzun else 7.4) and min(aci, 22.5 - aci) < 42.0 / r:
+                c = sari if uzun else safak                # on alti isin, ikisi bir uzun
+            if r <= gr:
+                c = oz if r <= gr - 2.2 else (sari if r <= gr - 0.7 else safak)
+            out[y][x] = c
+    for (x, y) in ((4, 3), (15, 5), (12, 1), (2, 8)):      # cekilen gecenin son yildizlari
+        out[y][x] = (0xE8, 0xD8, 0xC8)
+    # sur: mazgallar, ust kenar, tugla siralari (her tasin kendi tonu)
+    for y in range(SANCAK_UFUK, 40):
+        for x in range(20):
+            if y < SANCAK_UFUK + 2:
+                if not any(a <= x <= b for a, b in SANCAK_MAZGAL):
+                    continue
+                c = tepe if y == SANCAK_UFUK else tas_a
+            elif y == SANCAK_UFUK + 2:
+                c = tepe                                    # siper ustu
+            else:
+                sira = (y - SANCAK_UFUK - 3) // 3
+                if (y - SANCAK_UFUK - 3) % 3 == 2:
+                    c = harc
+                elif (x + (2 if sira % 2 else 0)) % 5 == 0:
+                    c = harc
+                else:
+                    n = ((x + (2 if sira % 2 else 0)) // 5 * 7 + sira * 13) % 3
+                    c = (tas, tas_a, tas_k)[n]
+            out[y][x] = c
+    # kapi: kemerli, iki kanat tahta, demir kusak, kemer taslari acik
+    sol, sag, ust = SANCAK_KAPI
+    for y in range(ust - 1, 40):
+        for x in range(sol - 1, sag + 2):
+            ic = sol <= x <= sag and (y > ust or sol + 1 <= x <= sag - 1)
+            kemer = not ic and (y >= ust + 1 and x in (sol - 1, sag + 1) or
+                                y == ust and x in (sol, sag) or y == ust - 1 and sol + 1 <= x <= sag - 1)
+            if ic:
+                if x in (9, 10) and x == 9:
+                    c = tahta_k                             # iki kanadin birlesimi
+                elif y in (ust + 3, ust + 6):
+                    c = demir
+                else:
+                    c = tahta_k if (x - sol) % 2 else tahta
+                out[y][x] = c
+            elif kemer:
+                out[y][x] = tepe
+    # kenar: altin serit (ust kenar sopaya baglanir, serit yok)
+    for y in range(40):
+        for x in range(20):
+            if x in (0, 19) or y == 39:
+                out[y][x] = altin if (x + y) % 2 else altin_k
+    return out
+
+
+SANCAK_DESEN = {"surda_safak": _surda_safak}
 
 
 def sancak_pikselleri(desen):
     """20 x 40 kumas: satir satir (ustten) [(r, g, b) 0..255]."""
-    katman = SANCAK_DESEN[desen]
-    out = [[BOYA[katman[0]]] * 20 for _ in range(40)]
-    for ad, renk in katman[1:]:
-        for y in range(40):
-            for x in range(20):
-                if ad == "daire" and (x - 9.5) ** 2 + (y - 19.5) ** 2 <= 5.2 ** 2:
-                    out[y][x] = BOYA[renk]
-                elif ad == "alt_yari" and y >= 20:
-                    out[y][x] = BOYA[renk]
-                elif ad == "ust_yari" and y < 20:
-                    out[y][x] = BOYA[renk]
-    return out
+    return SANCAK_DESEN[desen]()
 
 
 def _deger_gurultu(x, y, tohum):
