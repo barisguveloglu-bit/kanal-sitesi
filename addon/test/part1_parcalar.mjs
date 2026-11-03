@@ -107,7 +107,7 @@ gok = (K, S, T)
 # sur siperinin altinda (U + 2'den asagi) gok ya da gunes rengi yok: gunes surun ARKASINDA
 sur_temiz = all(s[y][x] not in gok for y in range(U + 2, 39) for x in range(1, 19))
 sari = [(x, y) for y, row in enumerate(s) for x, c in enumerate(row) if c == S]
-mazgal = [max(s[U][x]) - min(s[U][x]) < 20 for x in range(1, 19)]   # tas gri, gok kizil
+mazgal = [s[U][x][0] - s[U][x][1] < 60 for x in range(1, 19)]   # tas (isinmis da olsa) gri, gok kizil
 beklenen_m = [any(a <= x <= b for a, b in F.SANCAK_MAZGAL) for x in range(1, 19)]
 kapi = s[35][F.SANCAK_KAPI[0]] == F.BOYA["kahve"]
 kenar = all(s[y][x][0] > 150 and s[y][x][0] > s[y][x][1] > s[y][x][2] for y in range(40) for x in (0, 19))

@@ -2873,10 +2873,11 @@ BOYA = {"kirmizi": (0xB0, 0x2E, 0x26), "sari": (0xFE, 0xD8, 0x3D), "gri": (0x47,
 SANCAK_OYUNDA = {"surda_safak": [("taban", "kirmizi"), ("gradient", "siyah"), ("flower", "turuncu"),
                                  ("circle", "sari"), ("half_horizontal_bottom", "gri"),
                                  ("border", "sari")]}
-SANCAK_GUNES = (9.5, 23.0, 4.8)       # merkez x, y (ustten) ve yaricap, piksel
+SANCAK_GUNES = (9.5, 22.5, 5.2)       # merkez x, y (ustten) ve yaricap, piksel
 SANCAK_UFUK = 22                       # mazgallarin ust satiri
 SANCAK_MAZGAL = [(1, 3), (6, 8), (11, 13), (16, 18)]   # dolu sutunlar (dahil)
 SANCAK_KAPI = (7, 12, 30)              # kapi: sol, sag sutun, kemerin ust satiri
+SANCAK_MAZGAL_DELIGI = [3, 16]         # ok mazgallari (sutun), kapinin iki yaninda
 
 
 def _karis(a, b, t):
@@ -2884,60 +2885,76 @@ def _karis(a, b, t):
 
 
 def _surda_safak():
-    gece, koyu = (0x2A, 0x0E, 0x14), (0x6E, 0x1A, 0x18)
-    kizil, acik, safak = BOYA["kirmizi"], (0xD4, 0x4C, 0x2A), BOYA["turuncu"]
-    sari, oz = BOYA["sari"], (0xFF, 0xF1, 0xA0)
+    sari, oz, safak = BOYA["sari"], (0xFF, 0xF4, 0xB0), BOYA["turuncu"]
     altin, altin_k = (0xD8, 0xA8, 0x2C), (0x9C, 0x6C, 0x14)
     tas, tas_a, tas_k, harc = BOYA["gri"], (0x5E, 0x67, 0x6A), (0x3E, 0x45, 0x48), (0x26, 0x2A, 0x2D)
-    tepe = (0x84, 0x8C, 0x8E)
-    tahta, tahta_k, demir = BOYA["kahve"], (0x5A, 0x39, 0x22), (0x2E, 0x30, 0x34)
+    tepe, golge, delik = (0x84, 0x8C, 0x8E), (0x30, 0x35, 0x38), (0x14, 0x14, 0x18)
+    sicak = (0xE6, 0xA0, 0x60)                       # gunesin surda biraktigi isik
+    tahta, tahta_k, demir, halka = BOYA["kahve"], (0x5A, 0x39, 0x22), (0x2E, 0x30, 0x34), (0x9A, 0x9E, 0xA2)
     bayer = [[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]]
-    gok_durak = [(0.0, gece), (0.30, koyu), (0.62, kizil), (0.86, acik), (1.0, safak)]
+    # gok: gece -> kizil -> safak, sekiz durak; titreme yalniz duraklar arasindaki dar bantta
+    gok_durak = [(0.00, (0x22, 0x0B, 0x12)), (0.14, (0x4A, 0x12, 0x18)), (0.28, (0x6E, 0x1A, 0x18)),
+                 (0.42, (0x90, 0x22, 0x1E)), (0.56, BOYA["kirmizi"]), (0.72, (0xD4, 0x4C, 0x2A)),
+                 (0.86, (0xE8, 0x66, 0x24)), (1.00, safak)]
     gx, gy, gr = SANCAK_GUNES
-    out = [[gece] * 20 for _ in range(40)]
+    out = [[gok_durak[0][1]] * 20 for _ in range(40)]
     for y in range(40):
         for x in range(20):
-            # gok: duraklar arasi, 4 x 4 Bayer titremesiyle (piksel dokusu, yumusak degil)
-            t = min(1.0, y / (SANCAK_UFUK + 1.0))
+            t = min(1.0, y / (SANCAK_UFUK + 0.5))
             for (t0, c0), (t1, c1) in zip(gok_durak, gok_durak[1:]):
                 if t <= t1:
-                    u = (t - t0) / (t1 - t0)
-                    u = min(1.0, max(0.0, (u - 0.3) / 0.4))    # titreme yalniz gecis bandinda
+                    u = min(1.0, max(0.0, ((t - t0) / (t1 - t0) - 0.35) / 0.3))
                     c = c1 if u * 16 > bayer[y % 4][x % 4] + 0.5 else c0
                     break
-            dx, dy = x + 0.5 - gx, y + 0.5 - gy
-            r = math.hypot(dx, dy)
-            if r < 11.5:                                   # gunesin cevresi aydinlik
-                c = _karis(c, safak, 0.45 * (1 - r / 11.5) ** 1.5)
-            aci = math.degrees(math.atan2(dy, dx)) % 22.5
-            uzun = int((math.degrees(math.atan2(dy, dx)) % 360) // 22.5) % 2 == 0
-            if gr + 0.9 < r < (9.6 if uzun else 7.4) and min(aci, 22.5 - aci) < 42.0 / r:
-                c = sari if uzun else safak                # on alti isin, ikisi bir uzun
-            if r <= gr:
-                c = oz if r <= gr - 2.2 else (sari if r <= gr - 0.7 else safak)
+            r = math.hypot(x + 0.5 - gx, y + 0.5 - gy)
+            if r < 10.5:                                   # gunesin cevresi aydinlik
+                c = _karis(c, safak, 0.42 * (1 - r / 10.5) ** 1.6)
             out[y][x] = c
-    for (x, y) in ((4, 3), (15, 5), (12, 1), (2, 8)):      # cekilen gecenin son yildizlari
-        out[y][x] = (0xE8, 0xD8, 0xC8)
-    # sur: mazgallar, ust kenar, tugla siralari (her tasin kendi tonu)
+    # isinlar: on alti dogru cizgi, ikisi bir uzun (uzunlar sari, kisalar kehribar)
+    for i in range(16):
+        aci = math.radians(i * 22.5)
+        uzun = i % 2 == 0
+        r = gr + 1.2
+        while r <= (9.8 if uzun else 7.6):
+            x, y = int(math.floor(gx + math.cos(aci) * r)), int(math.floor(gy + math.sin(aci) * r))
+            if 0 <= x < 20 and 0 <= y < SANCAK_UFUK:
+                out[y][x] = sari if uzun else (0xFF, 0xB4, 0x34)   # kisa isin kehribar: parlamadan ayrilsin
+            r += 0.25
+    for y in range(SANCAK_UFUK):                          # gunes kursu: oz, sari, turuncu halka
+        for x in range(20):
+            r = math.hypot(x + 0.5 - gx, y + 0.5 - gy)
+            if r <= gr:
+                out[y][x] = oz if r <= gr - 2.4 else (sari if r <= gr - 0.8 else safak)
+    yildiz = (0xEC, 0xDE, 0xD0)
+    for (x, y) in ((4, 3), (12, 1), (2, 8), (17, 9)):    # cekilen gecenin son yildizlari
+        out[y][x] = yildiz
+    out[5][15] = yildiz                                    # sabah yildizi: kucuk hac
+    for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+        out[5 + dy][15 + dx] = _karis(out[5 + dy][15 + dx], yildiz, 0.45)
+    # sur: mazgallar, siper ustu, golge, tugla siralari (her tasin kendi tonu)
     for y in range(SANCAK_UFUK, 40):
         for x in range(20):
+            yakin = max(0.0, 1.0 - abs(x + 0.5 - gx) / 7.5)     # gunese bakan yuz isinir
             if y < SANCAK_UFUK + 2:
                 if not any(a <= x <= b for a, b in SANCAK_MAZGAL):
                     continue
-                c = tepe if y == SANCAK_UFUK else tas_a
+                c = _karis(tepe, sicak, 0.55 * yakin) if y == SANCAK_UFUK else _karis(tas_a, sicak, 0.2 * yakin)
             elif y == SANCAK_UFUK + 2:
-                c = tepe                                    # siper ustu
+                c = _karis(tepe, sicak, 0.4 * yakin)               # siper ustu
+            elif y == SANCAK_UFUK + 3:
+                c = golge                                          # siperin golgesi
             else:
-                sira = (y - SANCAK_UFUK - 3) // 3
-                if (y - SANCAK_UFUK - 3) % 3 == 2:
-                    c = harc
-                elif (x + (2 if sira % 2 else 0)) % 5 == 0:
+                sira = (y - SANCAK_UFUK - 4) // 3
+                kay = 2 if sira % 2 else 0
+                if (y - SANCAK_UFUK - 4) % 3 == 2 or (x + kay) % 5 == 0:
                     c = harc
                 else:
-                    n = ((x + (2 if sira % 2 else 0)) // 5 * 7 + sira * 13) % 3
-                    c = (tas, tas_a, tas_k)[n]
+                    c = (tas, tas_a, tas_k)[((x + kay) // 5 * 7 + sira * 13) % 3]
             out[y][x] = c
-    # kapi: kemerli, iki kanat tahta, demir kusak, kemer taslari acik
+    for x in SANCAK_MAZGAL_DELIGI:                         # ok mazgallari
+        for y in range(SANCAK_UFUK + 6, SANCAK_UFUK + 9):
+            out[y][x] = delik
+    # kapi: kemerli, iki kanat tahta, demir kusak, halkalar, kemer taslari acik
     sol, sag, ust = SANCAK_KAPI
     for y in range(ust - 1, 40):
         for x in range(sol - 1, sag + 2):
@@ -2945,7 +2962,7 @@ def _surda_safak():
             kemer = not ic and (y >= ust + 1 and x in (sol - 1, sag + 1) or
                                 y == ust and x in (sol, sag) or y == ust - 1 and sol + 1 <= x <= sag - 1)
             if ic:
-                if x in (9, 10) and x == 9:
+                if x == 9:
                     c = tahta_k                             # iki kanadin birlesimi
                 elif y in (ust + 3, ust + 6):
                     c = demir
@@ -2954,6 +2971,7 @@ def _surda_safak():
                 out[y][x] = c
             elif kemer:
                 out[y][x] = tepe
+    out[ust + 4][8] = out[ust + 4][11] = halka
     # kenar: altin serit (ust kenar sopaya baglanir, serit yok)
     for y in range(40):
         for x in range(20):
