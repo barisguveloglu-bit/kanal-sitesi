@@ -18,7 +18,14 @@
       ayni (onaylanmis tasarim degismez).
    7. Fener esyasi gorunurluk anahtari ilk karede de yaziliyor.
    8. Part 1'in bes senaryosu: 30 fps, 1920x1080, 4096 ornek (kalite
-      kilidi), "akici": true, toplam sure hedefte (<= 73,7 sn). */
+      kilidi), "akici": true, toplam sure hedefte (<= 73,7 sn).
+   9. Altyazi: sigmayan iki satir, konusmalar ust uste binmez.
+   10. Poz devri: ayni anda biten ve baslayan iki poz arasinda taban
+       (ayakta durus) gorunmez -- Baris dogrulurken bir an kalkmaz.
+   11. "bak_bas": bas bir noktaya doner (yerde yatanin yuzu); orman
+       sahnesinde cadi Baris'in gozune (POV kamerasi) bakar.
+   12. Cadi gecide obsidyenin ustunden girer, isinlanmadan once cercevede
+       mor yuzun ONUNDE durur (inis kaymasi arkaya gecirmez). */
 import { execFileSync } from "node:child_process";
 import { readFileSync, readdirSync } from "node:fs";
 import { join, dirname } from "node:path";
@@ -191,6 +198,126 @@ print(json.dumps({"uzun": [list(x) for x in uzun], "kisa": [list(x) for x in kis
           r.uzun.length === 2 && r.uzun[0][0] === "Asker: " && r.uzun[1][0] === "" && r.olc_sig, JSON.stringify(r.uzun.map((x) => x[1].length)));
   kontrol("sigan altyazi tek satir (1. bolum degismez)", r.kisa.length === 1);
   kontrol("onceki konusma sonrakinin basinda biter: o anda yalniz yeni konusma var", r.tek14 && r.ilk5_dolu);
+}
+
+console.log("\n=== 10. POZ DEVRI: AYNI ANDA BITEN VE BASLAYAN POZ ARASINDA TABAN GORUNMEZ ===");
+{
+  // onizleme denetimi (kullanici): "Baris kalkarken saliselik kalkiyor sonra
+  // geri yatmis gibi gorunuyor". "dus" sonerken "dogrul" giriyordu; ikisi
+  // tabanin ustune yarim yarim karisinca arada ayakta durus one cikti.
+  // Olcu: poz katmanlari sirayla tabanin ustune karisiyor, tabanin kalan
+  // payi = carpim (1 - w). Devir boyunca 0 olmali.
+  const r = py(`
+import blender_film as F, bedrock_onizleme as B
+setler = B.oku(F.HAREKET)["setler"]
+anims = {}
+anims.update(B.oku(F.ANIM_WOM)["animations"]); anims.update(B.oku(F.ANIM_AKTOR)["animations"])
+anims.update(F.film_pozlari(True))
+kem = ["root", "waist", "body", "head", "rightArm", "leftArm", "rightLeg", "leftLeg"]
+def olc(bitir_once, akici=True):
+    bit = {"t": 1.0, "aktor": "b", "poz_bitir": "dus"}
+    yeni = {"t": 1.0, "aktor": "b", "poz": "dogrul", "tut": True}
+    sen = {"fps": 30, "sure": 2.0, "akici": akici,
+           "aktorler": {"b": {"skin": "x.png", "konum": [0, 0], "bak": 0}},
+           "olaylar": [{"t": 0.0, "aktor": "b", "poz": "dus", "atla": 0.7, "tut": True}] + ([bit, yeni] if bitir_once else [yeni, bit]),
+           "kamera": [{"t": 0, "aci": "genis", "a": "b"}]}
+    ak, *_ = F.zaman_cizelgesi(sen, setler, anims)
+    a = ak["b"]
+    taban, son = 0.0, {}
+    for k in a.kayit:
+        _, kat = F.kare_pozu(a, k, kem, anims, setler)
+        ws = {ad.split(".")[-1]: w for ad, _, w in kat if ad.startswith(F.film_poz.ONEK)}
+        p = 1.0
+        for w in ws.values():
+            p *= (1.0 - w)
+        if 0.9 <= k["t"] <= 1.6:
+            taban = max(taban, p)
+        son = ws
+    return {"taban": taban, "dogrul": son.get("dogrul", 0.0), "dus": son.get("dus", 0.0)}
+print(json.dumps({"bitir_once": olc(True), "poz_once": olc(False), "eski": olc(True, False)}))`);
+  for (const [ad, x] of [["poz_bitir once yazilmis", r.bitir_once], ["poz once yazilmis", r.poz_once]]) {
+    kontrol("devirde taban gorunmuyor (" + ad + ")", x.taban < 0.01, x.taban.toFixed(4));
+    kontrol("devirden sonra yalniz yeni poz kalir (" + ad + ")", x.dogrul > 0.999 && x.dus < 1e-6,
+            "dogrul " + x.dogrul.toFixed(3) + ", dus " + x.dus.toFixed(3));
+  }
+  kontrol("akici: false eski karisim (olcu isiriyor: taban gorunuyordu)", r.eski.taban > 0.2, r.eski.taban.toFixed(3));
+}
+
+console.log("\n=== 11. ELLE BAKIS NOKTASI: CADI YERDE YATANIN YUZUNE BAKAR ===");
+{
+  // onizleme denetimi (kullanici): POV'da "cadinin surati hep bir yone
+  // bakiyor". Bas en yakin aktorun KOKUNE, ayakta goz hizasinda bakiyordu:
+  // yerde yatan Baris'in ayaklarinin ustundeki bosluga. "bak_bas": [x, y, z]
+  // basi o noktaya (Baris'in gozu = POV kamerasi) cevirir.
+  const r = py(`
+import blender_film as F, bedrock_onizleme as B, hareket as H
+setler = B.oku(F.HAREKET)["setler"]
+def olc(kip):
+    ol = [{"t": 0.0, "aktor": "b", "poz": "bayil", "tut": True, "atla": 3.0}]
+    if kip != "yok":
+        ol.append({"t": 0.2, "aktor": "c", "bak_bas": [-0.3, 5.35, 0.45]})
+    if kip == "geri":
+        ol.append({"t": 1.5, "aktor": "c", "bak_bas": None})
+    sen = {"fps": 30, "sure": 3.0, "akici": True,
+           "aktorler": {"b": {"skin": "x.png", "konum": [0.55, 6.934], "bak": [5.0, 6.934]},
+                        "c": {"skin": "y.png", "konum": [1.05, 4.7], "bak": [-0.35, 5.3]}},
+           "olaylar": ol, "kamera": [{"t": 0, "aci": "genis", "a": "c"}]}
+    ak, *_ = F.zaman_cizelgesi(sen, setler, F.film_pozlari(True))
+    c = ak["c"].kayit
+    return {"bas": c[int(1.4 * 30)]["bas"], "son": c[-1]["bas"]}
+yaw, pitch = H.bas_takibi([1.05, 4.7], F.yon_aci([1.05, 4.7], [-0.35, 5.3]), F.BAS_YUKSEK, [-0.3, 5.35], 0.45,
+                          pitch_siniri=90)
+p = json.load(open(sys.argv[1] + "/../film/bolum2_p1_1_orman.json"))
+bb = [o for o in p["olaylar"] if "bak_bas" in o]
+print(json.dumps({"elle": olc("elle"), "yok": olc("yok"), "geri": olc("geri"), "yaw": yaw, "pitch": pitch,
+                  "BAS_PITCH": H.BAS_PITCH, "ELLE": H.BAS_PITCH_ELLE, "orman": bb}))`);
+  kontrol("bas noktaya doner: asagi egim hesaplanan aciya oturur", Math.abs(r.elle.bas[1] - r.pitch) < 0.5 && Math.abs(r.elle.bas[0] - r.yaw) < 0.5,
+          r.elle.bas.map((x) => x.toFixed(1)).join(", ") + " / beklenen " + r.yaw.toFixed(1) + ", " + r.pitch.toFixed(1));
+  kontrol("yerdeki yuz icin egim olagan sinirin otesinde, elle sinirin icinde",
+          r.pitch > r.BAS_PITCH && r.pitch < r.ELLE, r.pitch.toFixed(1) + " (olagan " + r.BAS_PITCH + ", elle " + r.ELLE + ")");
+  kontrol("yazilmazsa eski davranis: bas yatanin kokune, egim yok (olcu isiriyor)",
+          Math.abs(r.yok.bas[1]) < 0.5 && Math.abs(r.yok.bas[0]) > 30, r.yok.bas.map((x) => x.toFixed(1)).join(", "));
+  kontrol("\"bak_bas\": null olagan takibe dondurur", Math.abs(r.geri.son[0] - r.yok.son[0]) < 0.5 && Math.abs(r.geri.son[1]) < 0.5,
+          r.geri.son.map((x) => x.toFixed(1)).join(", "));
+  kontrol("orman sahnesinde cadi POV kamerasina (Baris'in gozu) bakiyor",
+          r.orman.length === 1 && JSON.stringify(r.orman[0].bak_bas) === "[-0.3,5.35,0.45]" && r.orman[0].aktor === "c");
+}
+
+console.log("\n=== 12. CADI GECIDE OBSIDYENIN USTUNDEN GIRER, ISINLANMADAN ONCE CERCEVEDE DURUR ===");
+{
+  // onizleme denetimi (kullanici): "portala girerken hemen yanindan giriyor
+  // ... ilk once portalin obsidyen yerine cikmasi lazim sonra da isinlanir".
+  // Sonra ikinci hata olculdu: inis kaymasi cadiyi 0,3 blok ileri tasiyip
+  // gecidin mor yuzunun ARKASINA geciriyordu (x -19,79), parlamadan once
+  // gozden kayboluyordu. Olcu gecidin kendi bilgisinden (kulube._gecit).
+  const r = py(`
+import blender_film as F, bedrock_onizleme as B, kulube as K
+_, bilgi = K.bataklik()
+g = bilgi["gecit"]
+duzlem = g["cerceve"][0][0] + 0.5                     # gecit blogunun ortasi (4 px kalin dilim)
+ic_y = sorted([-g["ic"][0][2], -(g["ic"][1][2] + 1)])  # Minecraft z -> film -y
+taban = g["cerceve"][0][1] + 1                          # alt obsidyenin ustu
+s = json.load(open(sys.argv[1] + "/../film/bolum2_p1_2_ruh.json"))
+ak, *_ = F.zaman_cizelgesi(s, B.oku(F.HAREKET)["setler"], F.film_pozlari(True))
+c = ak["c"].kayit
+gizle = next(o["t"] for o in s["olaylar"] if o.get("aktor") == "c" and o.get("gizle"))
+k_once = [k for k in c if k["t"] < gizle - 1e-6]
+son = k_once[-1]
+# cercevede ayakta: obsidyenin ustunde, ic genislikte, dilime degiyor ama mor yuzun onunde
+icinde = [k for k in k_once if abs(k["z"] - taban) < 1e-6 and ic_y[0] + 0.3 <= k["y"] <= ic_y[1] - 0.3
+          and k["x"] - 0.3 < duzlem + 0.125 and k["x"] > duzlem]
+kenar = [k["z"] for k in c if k["t"] < gizle and k["x"] - 0.3 < duzlem + 0.5 and k["z"] < taban - 1e-6]
+print(json.dumps({"son": [son["x"], son["y"], son["z"]], "duzlem": duzlem, "ic_y": ic_y, "taban": taban,
+                  "durus": len(icinde) / s["fps"], "kenar": kenar, "gorunur": son["gorunur"],
+                  "sonra": [k["gorunur"] for k in c if k["t"] > gizle + 0.05][:1]}))`);
+  kontrol("isinlanmadan once obsidyenin USTUNDE, cercevenin icinde", Math.abs(r.son[2] - r.taban) < 1e-6 &&
+          r.son[1] >= r.ic_y[0] + 0.3 && r.son[1] <= r.ic_y[1] - 0.3, r.son.map((x) => x.toFixed(3)).join(", "));
+  kontrol("gecit dilimine degiyor (Minecraft'ta gecide girmis sayilir)", r.son[0] - 0.3 < r.duzlem + 0.125,
+          "on yuz " + (r.son[0] - 0.3).toFixed(3) + " < " + (r.duzlem + 0.125).toFixed(3));
+  kontrol("mor yuzun arkasina gecmiyor (govdesi gorunur kalir)", r.son[0] > r.duzlem, r.son[0].toFixed(3) + " > " + r.duzlem);
+  kontrol("parlamadan once en az 0,4 sn cercevede duruyor", r.durus >= 0.4, r.durus.toFixed(2) + " sn");
+  kontrol("obsidyenin kenarina girmeden ustune cikiyor", r.kenar.length === 0, r.kenar.length + " kare");
+  kontrol("parlamayla gizleniyor", r.gorunur === true && r.sonra[0] === false);
 }
 
 console.log("");

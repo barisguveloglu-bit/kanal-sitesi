@@ -265,6 +265,7 @@ class Aktor:
         self.yuru_v = 0.0        # blok/sn
         self.yuru_yon = None     # akici: hareket yonu (birim), kavisle doner
         self.bak_kim = None      # basin baktigi aktor ("bak" olayiyla da)
+        self.bas_nokta = None    # basin baktigi nokta [x, y, z] ("bak_bas"; akici)
         self.bas = [0.0, 0.0]    # [yaw, pitch] derece
         self.bas_v = [0.0, 0.0]
         self.irkilmeler = []     # [{"bas", "guc", "yan"}] darbe irkilmesi
@@ -483,6 +484,16 @@ def bas_takip_adimi(a, aktorler, dt):
     """Basin hedefi: once vurdugu / yurudugu / "bak"tigi aktor, yoksa en
     yakin gorunur aktor. Bas oraya yayla doner (govdeden hizli: donuse
     bas once baslar). Hedef yoksa yavasca ileri doner."""
+    if a.bas_nokta is not None:
+        # elle verilen nokta (Part 1: cadi yerde yatan Baris'in YUZUNE baksin;
+        # en yakin aktor kuraliyla Baris'in ayaklarinin ustundeki bosluga
+        # bakiyordu -- kullanici: "cadinin surati hep bir yone bakiyor")
+        n_ = a.bas_nokta
+        yaw, pitch = H.bas_takibi(a.poz, a.aci, a.z + BAS_YUKSEK * a.olcek, n_[:2], n_[2],
+                                  pitch_siniri=H.BAS_PITCH_ELLE)
+        for i, h_ in enumerate((yaw, pitch)):
+            a.bas[i], a.bas_v[i] = H.yay(a.bas[i], a.bas_v[i], h_, dt, H.BAS_W)
+        return
     hedef = aktorler.get(a.bak_kim) if a.bak_kim else None
     if hedef is None or not hedef.gorunur or hedef is a:
         yakin = [b for b in aktorler.values() if b is not a and b.gorunur]
@@ -566,6 +577,9 @@ def zaman_cizelgesi(senaryo, setler, anims, suz=True):
                     a.hedef_aci = yon_aci(a.poz, h)    # bir noktaya bak (cukur)
                 else:
                     a.hedef_aci = float(h)
+            if "bak_bas" in o:
+                b_ = o["bak_bas"]
+                a.bas_nokta = None if b_ is None else [float(b_[0]), float(b_[1]), float(b_[2])]
             if "gizle" in o:
                 a.gorunur = False
             if "goster" in o:
@@ -597,13 +611,27 @@ def zaman_cizelgesi(senaryo, setler, anims, suz=True):
                 uz = pozlar[ad_p]["animation_length"] / hz
                 # "atla": poz bu kadar saniye ONCE baslamis gibi (film Baris
                 # zaten yerde yatarken acilir -- dususu gorunmez)
+                giris_ = float(o.get("giris", POZ_GIRIS))
+                if akici:
+                    # poz devri: ayni anda biten poz, yenisi TAM girene kadar
+                    # tutulur -- gecis iki poz arasinda olur. Yoksa ikisi tabanin
+                    # ustune yarim yarim karisiyor, arada ayakta durus one
+                    # cikiyordu (Part 1 onizlemesi: Baris dogrulurken bir an
+                    # kalkip geri yatti; kitap pozlarinda kol bir an dustu)
+                    for rr in a.tepki:
+                        son_ = rr["bas"] + rr["sure"] - GECIS
+                        if rr.get("ad") and abs(son_ - t) < 1e-6:
+                            rr["sure"] += giris_
                 a.tepki.append({"anim": ad_p, "bas": t - float(o.get("atla", 0.0)), "hiz": hz, "ad": o["poz"],
                                 "sure": 1e6 if o.get("tut") else uz,
-                                "tut": True, "giris": float(o.get("giris", POZ_GIRIS))})
+                                "tut": True, "giris": giris_})
             if "poz_bitir" in o:
+                yeni_ = [r_ for r_ in a.tepki if akici and r_.get("ad") and abs(r_["bas"] - t) < 1e-6]
                 for rr in a.tepki:
-                    if rr.get("ad") and (o["poz_bitir"] is True or rr["ad"] == o["poz_bitir"]):
+                    if rr.get("ad") and rr not in yeni_ and (o["poz_bitir"] is True or rr["ad"] == o["poz_bitir"]):
                         rr["sure"] = min(rr["sure"], t - rr["bas"] + GECIS)
+                        if yeni_:          # yeni poz once yazilmis: o girene kadar tut
+                            rr["sure"] += max(r_.get("giris", POZ_GIRIS) for r_ in yeni_)
             if "zipla" in o:
                 # Minecraft ziplamasi (0,42 blok/tik) ve hedef noktaya inecek
                 # yatay hiz; yalniz blok mekanda (kulubenin verandasindan inis:

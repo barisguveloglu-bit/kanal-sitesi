@@ -196,7 +196,10 @@ def inis_cokmesi(u, guc=1.0, olcek=1.0, diz=True):
     return -(BACAK_PX * (1.0 - math.cos(math.radians(th))) / 16.0) * olcek, ek
 
 
-def bas_takibi(poz, aci, z, hedef, hedef_z):
+BAS_PITCH_ELLE = 45.0   # elle verilen bakis noktasinda (yere yatan birinin yuzu) asagi bakis siniri
+
+
+def bas_takibi(poz, aci, z, hedef, hedef_z, pitch_siniri=None):
     """Gozun hedefe donuk acilari (derece): (yaw, pitch). yaw + karakterin
     sagi (film_poz kurali: kafa Y +45 -> sag), pitch + asagi. Sinirli."""
     on = (-math.sin(math.radians(aci)), math.cos(math.radians(aci)))
@@ -209,7 +212,8 @@ def bas_takibi(poz, aci, z, hedef, hedef_z):
     pitch = -math.degrees(math.atan2(hedef_z - z, uz))
     # arkada kalan hedefe bas zorlanmaz: siniri asan aci yumusakca sinira iner
     yaw = max(-BAS_YAW, min(BAS_YAW, yaw))
-    return yaw, max(-BAS_PITCH, min(BAS_PITCH, pitch))
+    ps = BAS_PITCH if pitch_siniri is None else pitch_siniri
+    return yaw, max(-ps, min(ps, pitch))
 
 
 def irkilme(u, guc=1.0, yan=0.0):
