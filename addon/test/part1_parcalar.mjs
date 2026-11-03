@@ -177,6 +177,13 @@ console.log("\n=== 8. PART 1'IN ALTI SENARYOSU ===");
           adlar.indexOf("bolum2_p1_5_zisa.json") === adlar.length - 1, adlar.join(" "));
   kontrol("hepsi 30 fps, 1920x1080, 4096 ornek, akici", kotu.length === 0, kotu.join(" "));
   kontrol("toplam sure hedefte (50-73,7 sn)", sure >= 50 && sure <= 73.7, sure.toFixed(1) + " sn");
+  // cizilen kare sayisi "sure"den fazla: her senaryo zaman haritasinin ucuyla bir kare
+  // ekliyor. Yazili toplam 73,5 sn iken cizilen 2212 kare = 73,73 sn idi (sinir asiliyordu).
+  const kare = py(`
+import blender_film as F
+yollar = ${JSON.stringify(adlar.map((a) => join(FILM, a)))}
+print(json.dumps(sum(len(F.zaman_haritasi(json.load(open(y)))) for y in yollar)))`);
+  kontrol("cizilen kare sayisi da sinirin altinda (<= 73,7 sn)", kare / 30 <= 73.7, kare + " kare = " + (kare / 30).toFixed(2) + " sn");
 }
 
 console.log("\n=== 9. ALTYAZI: SIGMAYAN IKI SATIR, KONUSMALAR UST USTE BINMEZ ===");
