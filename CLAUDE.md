@@ -642,6 +642,28 @@ anlatırken oradan git.
   `hide_render` kapalıyken de boş çıkar; önce koleksiyonu ve üstlerini aç
   (bu, dört efekti yanlışlıkla "çalışmıyor" diye yazdırdı).
 
+## Sahnede hata bulununca: önce teşhis, cila turu yok (2026-11-03)
+
+Kullanıcının kesin kuralı: *"sahnede hata keşfettiğimizde hatanın nasıl
+olduğunu yaz, hangi sorunlardan kaynaklandığını yaz; ondan sonra gerisi
+zaten kolay. Sahnenin daha düzgün hâlini yapmaya çalışma, o zaman limit
+tükeniyor."* Yeni oturumda da geçerli.
+
+1. **Teşhis yazılır:** hata ne (hangi sahne, hangi saniye/kare), nasıl
+   oluştu, hangi sebepten (kod mu, senaryo mu, ölçü mü), neden hiçbir test
+   yakalamadı. Yeri `addon/FILM_YETENEK_HARITASI.md`'nin geçmiş hatalar
+   bölümü; kullanıcıya da aynı özet.
+2. **Düzeltme en küçüğüdür:** hatanın kendisi kodda ya da senaryoda
+   giderilir ve testle kilitlenir. Fazlası yok.
+3. **"Daha düzgün hâli" turu YOK:** düzeltilen sahneyi kendiliğinden yeniden
+   çizip denemek, kadraj cilalamak, aynı sahneden peş peşe deneme kareleri
+   almak yok. Limiti asıl bunlar tüketiyor. Yeniden çizim ve görsel deneme
+   yalnız kullanıcı isterse yapılır, o da en az kareyle.
+
+Neden: 2026-11-03'te yedi günlük limit uyarı seviyesindeydi. Yalnız hanedan
+girişi sahnesi için yedi ayrı deneme çizimi yapılmıştı (kamera, poz,
+kadraj).
+
 ## Animasyon serisi — LORE'dan ayrı evren (1. sezon)
 
 Kullanıcının Minecraft animasyon serisi **sitenin evreninden ayrı bir
