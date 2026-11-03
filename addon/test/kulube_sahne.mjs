@@ -57,7 +57,9 @@ print(json.dumps({
   "titre": [D[ad("titre")]["loop"], D[ad("titre")]["animation_length"]],
   "tikla": D[ad("kapi_tikla")]["_cozum"]["vurus_t"]}))`);
   kontrol("alti yeni poz var", r.yeni);
-  kontrol("1. bolumun 14 pozu yerinde", r.eski && r.toplam === 20, r.toplam + " poz");
+  // 20 + 2: hanedanin girisi (2026-11-03) endise ve eller_arkada ekledi;
+  // ikisi part1_parcalar.mjs 13. bolumde olculuyor
+  kontrol("1. bolumun 14 pozu yerinde", r.eski && r.toplam === 22, r.toplam + " poz");
   kontrol("dogrul: en alt nokta her an zeminde (<= 0,1 px)", Math.max(Math.abs(r.alt[0]), Math.abs(r.alt[1])) <= 0.1,
           r.alt.map((x) => x.toFixed(3)).join(" .. "));
   kontrol("dogrul: sonunda oturuyor (kok dik, bacaklar one)",
