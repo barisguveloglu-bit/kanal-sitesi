@@ -928,6 +928,83 @@ Kaynaklar: [Lincoln Archers — nasıl atılır](https://sites.google.com/view/l
 [Nock On Archery](https://nockonarchery.com/?p=18735) ·
 [WBEZ — yay çekmek](https://tools.wbez.org/drawing-a-bow)
 
+## 41. Dönüş (reversal): üstünlüğün el değiştirmesi
+
+- Senaryo dilinde dönüş, sahnenin yönünü ters çeviren an; çoğu zaman
+  doruktan hemen önce. Yöntem: sonucu önce planla, sahneyi **tersinden**
+  başlat ki geç gelen dönüş onu oraya indirsin. Sahne boyunca **küçük
+  dönüşler** gerilimi canlı tutar.
+- Bedende: zamanlama, mesafe ya da ritimdeki küçük değişiklikler güç
+  değişimini işaret eder; her adım niyeti iletmeli (tiyatro kaynağı).
+- Kamera: dövüşün gelgitini ve **ivmeyi kimin kazandığını** gösteren planlar
+  (zayıf kaynak).
+
+**Bizde:** onaylı yapı zaten bir dönüş zinciri: gedik (Ice-man üstün) →
+sokak (Barış zorlanıyor) → meydan (Barış donuyor — en dip) → buzun
+çatlaması (BÜYÜK dönüş: ateş) → merdiven → lav (son). Öneri: büyük dönüşün
+önünde **en az iki küçük dönüş** (Barış'ın okların sektiğini fark edip cesaretlenmesi,
+Ömer'in buz duvarına vuruşu) ve büyük dönüş anında §18'deki bilinçli eksen
+geçişi. Mesafe değişimi de dönüşü taşır: Ice-man'in tuttuğu menzil (§21)
+ilk kez kapandığında seyirci üstünlüğün döndüğünü bedenden okur.
+
+Kaynaklar: [Script Reader Pro — dönüşler](https://www.scriptreaderpro.com/tips-for-writing-a-screenplay/) ·
+[Barter Theatre](https://bartertheatre.com/?p=64857) ·
+[Académie Duello — aksiyon mantığı](https://academieduello.com/?p=3928) ·
+[Be On Air — dövüş çekmek](https://beonair.com/?p=10417)
+
+## 42. Ortamın kırılması: okunaklı, eyleme bağlı, az ama ağır
+
+- Bir Pixar animatörü (Animation Mentor): yıkımı dev bina çöküşlerinden
+  çok **animatörün elinden çıkan küçük etkileşimlere** çevir; amaç
+  benzetim gerçekçiliği değil, okunaklı enerji ve ağırlık. Ağır molozda
+  kilit anlarda **güçlü aralık değişimi** (yoksa yumuşak görünür).
+- Okunaklılık katmanı: en iyi planlarda **bir şey çok hızlı**, ortamın
+  tepkisi biraz daha yavaş (anekdot).
+- Oyun bedeli: yerdeki moloz ve duvardaki delikler oyunu zenginleştiriyor
+  ama düzensiz kenarlar hareketin akıcılığını bozuyor (Marvel Rivals
+  geliştiricileri).
+- Film efekti: moloz kendi başına **akan bir ortam** gibi ele alındı
+  (Digital Domain, Black Widow).
+
+**Bizde:** kullanıcının kuralı *"ortam direkt kullanılacak"* ve film
+aracında yerden kopan toprak, uçan/kırılan blok, blok fırlatma var
+(`toprak_parcalari`, dövüş v2). Öneri: (1) her kırılma bir hamleye bağlı
+(boşuna yıkım yok), (2) vuran hareket hızlı, moloz biraz yavaş ve ağır
+(kısa ağır çekim değil, aralık), (3) moloz yerde kalıyorsa aktörlerin zemin
+hesabına girer — zemin_denetim sırası bozulmamalı (Marvel Rivals dersinin
+bizdeki karşılığı).
+
+Kaynaklar: [Animation Mentor — yıkım](https://www.animationmentor.com/?p=92487) ·
+[Marvel Rivals geliştirici notu](https://www.marvelrivals.com/news/official/20240510/40185_1154481.html) ·
+[Digital Domain — Black Widow (CopComm)](https://digital.copcomm.com/i/1399888/57)
+
+## 43. Bekleme duruşu (dövüşe hazır idle): kişiliğin aynası
+
+- Dövüşçünün bekleme döngüsü kişiliği göstermenin en etkili yollarından
+  biri; **beden tipi duruşu belirler** (yumruklu iri karakter: boksör
+  duruşu; alçak ağırlık merkezli, güçlü bacaklı karakter: karate duruşu).
+- **Dövüşe hazır ile rahat duruşun ölçülebilir farkı:** omurga hafif öne
+  (rahatta dik), ayaklar biraz daha açık, nefes hızı farklı. Silah tipi
+  başına bir duruş (kılıç+kalkan, tüfek, tabanca, çıplak el).
+- Katman: alt beden rahat duruşta, üst beden dövüş duruşunda (oyun
+  motorları).
+- Döngü 2–4 sn, aynı pozla ve aynı hızla başlayıp biter; dövüş ortasında
+  duruş değişimi **zıplama** yapıyorsa göze batar.
+
+**Bizde:** film aracında set duruşları WoM'dan (`durus`, `durus_ust`) ve
+"duran karakter" nefes + ağırlık aktarması (5,3 sn) var. Kendi
+setlerimizin ilk parçası **bekleme duruşu** olmalı, her karakterin
+kimliğiyle (öneri): Pipos alçak, geniş, kök salmış (Hung Gar at duruşu);
+Barış öne eğik, kısa adımlı, sabırsız; Ice-man dik, asa önde, kıpırtısız
+(soğukluk); Ömer ağır, topuz omuzda; arkadaş gevşek, silahlar aşağıda.
+Nefes hızı da karakterle değişebilir (Pipos yavaş, Barış hızlı).
+`DURUS_GECIS` duruş değişimini zaten yumuşatıyor.
+
+Kaynaklar: [Pixelblog 52 — bekleme dövüş duruşu](https://slynyrd.com/blog/2024/9/26/pixelblog-52-idle-fighting-stance) ·
+[MoCap Online — idle tasarımı](https://mocaponline.com/blogs/mocap-news/idle-animation-design-guide) ·
+[Woodmere — idle ve kişilik](https://woodmereartmuseum.org/media/pgs/__the_breath_of_life__idle_animation_function_and_character_personality.html) ·
+[Homecoming forumu — duruş değişimi](https://forums.homecomingservers.com/topic/25105-set-idle-stance)
+
 ---
 
 ## Özet: araştırılan konular
@@ -972,6 +1049,9 @@ Kaynaklar: [Lincoln Archers — nasıl atılır](https://sites.google.com/view/l
 38. Camı kırıp atlamak (§38)
 39. Zombi sürüsü (§39)
 40. Okçu (§40)
+41. Dönüş: üstünlüğün el değiştirmesi (§41)
+42. Ortamın kırılması (§42)
+43. Bekleme duruşu ve kişilik (§43)
 
 **Boşluklar (kaynak bulunamadı, uydurulmadı):** blok karakterle dövüş
 koreografisi, Alan Becker'ın yöntemi, gedik savunmasının ekranda
