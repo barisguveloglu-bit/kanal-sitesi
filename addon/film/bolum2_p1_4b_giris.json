@@ -32,7 +32,8 @@
    "bak": [
     -1.0,
     -89.2
-   ]
+   ],
+   "kimlik": "pipos"
   },
   "a": {
    "skin": "kaynak_doku/film_aktor/cocukluk_arkadasi.png",
@@ -45,7 +46,8 @@
    "bak": [
     1.5,
     -90.5
-   ]
+   ],
+   "kimlik": "arkadas"
   },
   "b": {
    "skin": "kaynak_doku/film_aktor/baris_iyilesmis.png",
@@ -58,7 +60,8 @@
    "bak": [
     2.3,
     -97.4
-   ]
+   ],
+   "kimlik": "baris"
   }
  },
  "olaylar": [

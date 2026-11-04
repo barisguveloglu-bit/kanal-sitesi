@@ -59,7 +59,8 @@
     -1.8
    ],
    "kat": 4.6,
-   "bak": 180
+   "bak": 180,
+   "kimlik": "baris"
   },
   "bc": {
    "skin": "Simsek_Kol_Kaynak/textures/entity/aktor/carpik.png",
@@ -70,7 +71,8 @@
    ],
    "kat": 4.6,
    "bak": 180,
-   "gizli": true
+   "gizli": true,
+   "kimlik": "baris"
   }
  },
  "olaylar": [

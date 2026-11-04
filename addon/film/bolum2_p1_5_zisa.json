@@ -48,7 +48,8 @@
    "bak": [
     -58.0,
     0.0
-   ]
+   ],
+   "kimlik": "baris"
   },
   "z": {
    "skin": "kaynak_doku/aktor/zisa.png",
@@ -61,7 +62,8 @@
    "bak": [
     -60.0,
     2.0
-   ]
+   ],
+   "kimlik": "zisa"
   }
  },
  "olaylar": [

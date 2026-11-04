@@ -137,7 +137,9 @@ bağlanırken hazırlık, vuruş ve toparlanma evreleriyle hareketlenecekler.
 Kullanıcı araştırmanın karakterlere işlenmesini istedi
 (`DOVUS_KIMLIKLERI.md` 3. bölüm, kaynaklar `REFERANS_DOVUS_KOREOGRAFI.md`
 §6, §35, §43, §47, §57, §61). Taslağın yukarıdaki kısmı değişmedi; aşağıdakiler
-ona eklenecek **öneriler**, onay bekliyor:
+kullanıcının *"hepsini karakterlerimize entegre et"* isteğiyle taslağa **işlendi**
+(taslağın kendisi hâlâ onay bekliyor). Araçta: `"kimlik": "pipos"` dövüş
+hâlinde geniş duruş ve yavaş nefes (`arac/dovus_kimlik.py`).
 
 - **D0 sakin → alçak at duruşu:** filmde diz var; ayaklar omuzdan geniş,
   dizler bükük, ağırlık ortada (Hung Gar *sei ping ma*). En alçak ve en

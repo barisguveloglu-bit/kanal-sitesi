@@ -768,7 +768,35 @@ el kaynaklarımız aynı yönde. Her videoda uyulacaklar:
 
 **Kendi dövüş hareketlerimiz (kullanıcı, 2026-11-04):** *"sadece bu iki mod üzerinden yapmayalım, kendi dövüş şeylerimiz de olsun ... ben Bedrock oynuyorum diye onunla alakalı bir durum da olmayacak, ne alakası var animasyonla bir oyunun Bedrock sürümü."* Epic Fight / WoM yalnız kaynaklardan biri; karakterlerin kendi hamle setleri anahtar karelerle yazılır (film pozları gibi). Filmin hareketleri Bedrock'a bağlı değil: Bedrock biçimi yalnız aynı dosyaların oyun eklentisinde de kullanılmasından. Kalan tek sınır Minecraft görünüşü (tek parça kol; diz filmde var). Hangi setin önce yazılacağı ve hamlelerin kendisi henüz konuşulmadı.
 Araştırma notları (2026-11-04, kullanıcı istedi): `REFERANS_DOVUS_KOREOGRAFI.md`, 61 konu (iki tur), kaynaklı; "Bizde" satırları öneri, karar değil.
-**Karakterlere işlenmesi (kullanıcı, 2026-11-04: *"bu öğrendiğin şeylerden hepsini karakterlerimize yedir, entegre et"*):** `DOVUS_KIMLIKLERI.md` — her karakterin dövüş kimliği (tip, taban, bekleme duruşu, hamle dili, işaret, ses, kamera), beş mekâna göre dersler, araca dönüşecekler ve 61 dersin çapraz tablosu. Kayıttaki olaylar değişmedi; **[öneri]** satırları kullanıcı onaylayınca buraya geçer. Pipos'un taslağına eklenecekler `DOVUS_KAPLAN_SANATI.md` 9. bölümde.
+**Dövüş kimlikleri — karakterlere işlendi (kullanıcı, 2026-11-04: *"bu öğrendiğin şeylerden hepsini
+karakterlerimize yedir, entegre et"*).** Araştırmanın 61 dersi karakterlere yazıldı; ayrıntı, kaynaklar ve 61 dersin
+çapraz tablosu `DOVUS_KIMLIKLERI.md`'de, film aracındaki karşılığı `arac/dovus_kimlik.py` (aktör `"kimlik"`, olay
+`"dovus"`). Bunlar **dövüş kimliğidir, hikâye olayı değil**: sahne, konuşma, bedel ya da ilişki eklemez; kullanıcı birini
+değiştirmek isterse değişir.
+- **Ortak:** her hamle başlangıç–temas–toparlanma, ağırlık sınıfı, önceden işaret, savrulma, vuruş donması (hafif 1, orta 2,
+  ağır 3 kare) ve vurulanın tepkisiyle yazılır; her mekânda bir ana plan, temastan önce kesme yok, son darbeden önce bir
+  durgunluk ("ma"), dövüş başına bir-iki ağır çekim; 180° ekseni yalnız bir kez, bilerek.
+- **Barış:** önce zorlanan, ateşi bulunca yakın baskı; taban Kuzey Shaolin (uzun duruş, tekme, sıçrayış); bekleme duruşu
+  öne eğik, hızlı nefes; tırpanda imza hamlesi içe çekiş. Ateş bedenden çıkar: Kıvılcım avuçtan, Alev Kalkanı göğüsten,
+  Kor Yürüyüşü ayaktan. Part 3'teki ilk ateş dağınık, Part 4'teki toplu (acemi → usta); ateş onu yorar (kitabın uyarısı).
+  Güçlü vuruşta kısa bağırış. Buzdan çıkış: sessizlik → kalp atışı → içten turuncu çatlak → patlama → sessizlik.
+- **Ice-man:** en az hareket eden karakter (nefesi neredeyse yok); alan tutucu, asa = menzil; önce yavaşlatır sonra
+  dondurur, her büyük büyüsü işaretli (küre parlar, yerde buz çizgisi); küre ilk sahnede bir kez söner (zayıf noktanın
+  önceden ekilmesi); beş mekân onun beş evresi; hiç bağırmaz. Sonunda ağır çekim düşüşün başında, lava değmeden kesme.
+- **Pipos:** karşı vurucu; taban Hung Gar kaplan pençesi; alçak, geniş at duruşu, yavaş nefes; bekle → tek kısa geri adım
+  ve savuşturma → karşı vuruş → durgunluk → tek bitiriş; sessiz, yalnız nefes; gerekmedikçe yaralamaz. Taslağa işlenenler
+  `DOVUS_KAPLAN_SANATI.md` 9. bölümde.
+- **Ömer:** ağır komutan; topuz zırh kırıcı, onun bile buz duvarını kıramaması Ice-man'in gücünü ölçer; duvarı kıramadığı
+  an askerlerine dönüp onları yönlendirir; topuzu indirirken derin bir ses.
+- **Zisa:** koruyucu; büyü alnındaki sembolden çıkar, jest içe çekip dışa yayar; koruma büyüsü görünmez başlar, ok çarpınca
+  Barış'ın dış çizgisi onun renginde bir an parlar ve ok seker; Saldırı II Barış'ın vuruşunu bir ağırlık sınıfı yükseltir.
+- **Çocukluk arkadaşı:** menzil ve çeviklik; iki tabanca gövdeye yakın, yakın dövüşle iç içe; imza pozu çapraz kollarla iki
+  yöne ateş; Pipos'la birbirini tamamlar (birlikte dövüşüp dövüşmeyecekleri kullanıcının kararı).
+- **Sur askerleri:** gedikte omuz omuza kalkan duvarı; kalkanla it, kısa vur, yerinde kal; toplu bağırış (altyazı).
+- **Ordu:** zombiler aynı adımla yürümez, çekimde tek etkin saldıran; iskeletler moloz tepesinde siluet, okçu çek–dayan;
+  creeper'ların tıslaması seyirciye işaret; sur delinmesi: yaklaşma → tıslama → patlama → toz → gedik → dumandan geçen zombi.
+- **Satanachia:** 2. bölümde dövüşmez; Barış'ın ateşinde tek karelik kırmızı-siyah iz gibi az ve tekrar eden ipuçları
+  (içeriği ve sıklığı kullanıcının kararı).
 
 Kullanıcının sözü: *"2. bölümde bayağı bayağı efekt kullanacağız, yani ortam
 direkt kullanılacak, dövüş detaylı; 'ben 5 vurdum o bir vurdu' gibi

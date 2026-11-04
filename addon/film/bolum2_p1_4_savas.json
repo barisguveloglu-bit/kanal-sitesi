@@ -76,7 +76,8 @@
     0.5,
     1.5
    ],
-   "kat": 21.0
+   "kat": 21.0,
+   "kimlik": "omer"
   },
   "s": {
    "skin": "kaynak_doku/aktor/sur_askeri_gri.png",
@@ -89,7 +90,8 @@
     0.5,
     0.0
    ],
-   "kat": 21.0
+   "kat": 21.0,
+   "kimlik": "asker"
   }
  },
  "olaylar": [

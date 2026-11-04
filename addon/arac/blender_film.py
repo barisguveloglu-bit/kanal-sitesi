@@ -61,6 +61,7 @@ import thomas_goz  # noqa: E402
 import agiz as AGZ  # noqa: E402
 import hareket as H  # noqa: E402
 import mekan as MK  # noqa: E402
+import dovus_kimlik as DK  # noqa: E402
 
 KOK = B.KOK
 ANIM_WOM = "Simsek_Kol_Kaynak/animations/wom_kilic.animation.json"
@@ -266,6 +267,10 @@ class Aktor:
         self.yuru_yon = None     # akici: hareket yonu (birim), kavisle doner
         self.bak_kim = None      # basin baktigi aktor ("bak" olayiyla da)
         self.bas_nokta = None    # basin baktigi nokta [x, y, z] ("bak_bas"; akici)
+        # dovus kimligi (dovus_kimlik.py, DOVUS_KIMLIKLERI.md): yanlis yazilmis ad
+        # cizimden once HATA. Yalniz "dovus": true halindeyken etkili.
+        self.kimlik = DK.kimlik(v.get("kimlik"))
+        self.dovus = bool(v.get("dovus", False))
         self.bas = [0.0, 0.0]    # [yaw, pitch] derece
         self.bas_v = [0.0, 0.0]
         self.irkilmeler = []     # [{"bas", "guc", "yan"}] darbe irkilmesi
@@ -577,6 +582,8 @@ def zaman_cizelgesi(senaryo, setler, anims, suz=True):
                     a.hedef_aci = yon_aci(a.poz, h)    # bir noktaya bak (cukur)
                 else:
                     a.hedef_aci = float(h)
+            if "dovus" in o:
+                a.dovus = bool(o["dovus"])     # dovus haline gir / cik (kimlik)
             if "bak_bas" in o:
                 b_ = o["bak_bas"]
                 a.bas_nokta = None if b_ is None else [float(b_[0]), float(b_[1]), float(b_[2])]
@@ -890,6 +897,8 @@ def zaman_cizelgesi(senaryo, setler, anims, suz=True):
                 a.irkilmeler = [r for r in a.irkilmeler if t - r["bas"] <= 0.6]
                 ek_ = {"bas": list(a.bas), "bob": H.adim_cokmesi(a.mesafe, a.hizli, a.olcek),
                        "irk": [dict(r) for r in a.irkilmeler]}
+                if a.kimlik:
+                    ek_["dovus"] = a.dovus
                 a.inisler = [r for r in a.inisler if t - r["bas"] <= 0.6]
                 if a.inisler:
                     ek_["inis"] = [dict(r) for r in a.inisler]
@@ -1073,16 +1082,22 @@ def kare_pozu(a, k, kemikler, anims, setler):
     # donuk gibi"). Bas ve govde; kollar yalniz silahsizda (iki elle tutus
     # bozulmasin). Yururken soner. Faz aktore gore: herkes ayni anda solumaz.
     nef = max(0.0, 1.0 - min(1.0, h))
+    # dovus kimligi (DOVUS_KIMLIKLERI.md): dovus halinde nefes, agirlik
+    # aktarmasi ve dovuse hazir bekleme durusu karaktere gore (Ice-man
+    # kipirtisiz, Baris hizli solur ve one egik, Pipos genis ve yavas...).
+    # Dovus disinda her sayi bire bir eskisi.
+    kim = a.kimlik if (a.akici and a.kimlik and k.get("dovus")) else None
     if nef > 0:
         faz = (sum(map(ord, str(a.v.get("skin", "")) + str(a.v.get("isim", "")))) % 97) / 97 * 2 * math.pi
-        sn = math.sin(2 * math.pi * t / NEFES_SURE + faz)
+        sn = math.sin(2 * math.pi * t / (kim["nefes_sure"] if kim else NEFES_SURE) + faz)
         sn2 = 0.0
-        ekler = [("head", NEFES_BAS, 0), ("body", NEFES_GOVDE, 0)]
+        ng = kim["nefes_genlik"] if kim else 1.0
+        ekler = [("head", NEFES_BAS * ng, 0), ("body", NEFES_GOVDE * ng, 0)]
         if not a.v.get("silah"):
-            ekler += [("rightArm", NEFES_KOL, 2), ("leftArm", -NEFES_KOL, 2)]
+            ekler += [("rightArm", NEFES_KOL * ng, 2), ("leftArm", -NEFES_KOL * ng, 2)]
         if a.akici:
             # agirlik bir ayaktan otekine yavasca aktarilir (heykel gibi durmaz)
-            ekler += [("waist", AGIRLIK_SALINIM, 2)]
+            ekler += [("waist", AGIRLIK_SALINIM * (kim["salinim"] if kim else 1.0), 2)]
             sn2 = math.sin(2 * math.pi * t / AGIRLIK_SURE + faz * 1.7)
         for kem, gen, eks in ekler:
             if kem in poz:
@@ -1090,6 +1105,12 @@ def kare_pozu(a, k, kemikler, anims, setler):
                 r = list(r)
                 r[eks] += gen * (sn2 if a.akici and kem == "waist" else sn) * nef
                 poz[kem][0] = (r, p, o)
+        if kim:
+            # dovuse hazir bekleme durusu: dururken tam, yururken soner
+            for kem, d in kim["bekleme"].items():
+                if kem in poz:
+                    r, p, o = poz[kem][0]
+                    poz[kem][0] = ([r[i] + d[i] * nef for i in range(3)], p, o)
     katman = []
     e = k["eylem"]
     if e:

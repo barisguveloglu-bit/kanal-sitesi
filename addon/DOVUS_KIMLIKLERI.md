@@ -6,17 +6,26 @@ entegre et."* Bu belge `REFERANS_DOVUS_KOREOGRAFI.md`'deki 61 konunun
 kaynağı `§n` ile gösterilir.
 
 **İki tür satır var, karıştırılmaz:**
-- **[kayıt]** — `SERI_SEZON1.md`'de onaylı olan; burada yalnız tekrarlanır,
-  değiştirilmez.
-- **[öneri]** — araştırmadan gelen entegrasyon. Kullanıcı tek tek ya da
-  toptan onaylarsa `SERI_SEZON1.md`'ye geçer; onaylanmadıkça karar değildir.
+- **[kayıt]** — `SERI_SEZON1.md`'de daha önce onaylanmış olan; burada yalnız
+  tekrarlanır, değiştirilmez.
+- **[entegre]** — araştırmadan gelen ve kullanıcının *"hepsini karakterlerimize
+  entegre et"* isteğiyle (2026-11-04) karakterlerin dövüş kimliği olan.
+  `SERI_SEZON1.md` "Dövüş kimlikleri" bölümüne yazıldı. Kullanıcı birini
+  değiştirmek isterse değişir. **Hikâye olayı değildir:** sahne, konuşma, bedel
+  ya da ilişki eklemez.
+
+**Araçta olan (v7.99.16, `arac/dovus_kimlik.py`, `test/dovus_kimlik.mjs`):**
+aktörün `"kimlik"`i, `"dovus"` hâli, karaktere göre nefes ve bekleme duruşu,
+hamle künyesi doğrulaması, vuruş donması sayıları. Part 1'in altı senaryosunda
+karakterler kimlikleriyle etiketli (dövüş olmadığı için çizim değişmedi).
+Geri kalanı bölüm 12'deki sırayla, kullanılacağı sahneyle birlikte yazılır.
 
 Hikâyeye yeni olay eklenmedi. Kayıtta olmayan bir olay, konuşma, bedel ya da
 ilişki uydurulmadı; gereken yerde "kullanıcının kararı" yazıyor.
 
 ---
 
-## 0. Bütün karakterler için ortak kurallar [öneri]
+## 0. Bütün karakterler için ortak kurallar [entegre]
 
 **Her hamlenin künyesi** (kendi hamle setlerimiz bununla yazılır; §4, §19,
 §22, §30, §32, §59, §60):
@@ -62,7 +71,7 @@ kırıp atlıyor. Part 3'te buzun içinde bağırıyor, gözleri parlıyor, ate�
 çıkıyor; Part 4'te Kor Yürüyüşü ile lav kabuğunu çatlatıp Ice-man'i
 düşürüyor. İçinde Satanachia var, kendisi bilmiyor (3. bölümde öğrenecek).
 
-**Dövüş kimliği [öneri]:**
+**Dövüş kimliği [entegre]:**
 - **Tip:** önce zorlanan (sokakta zombilerle), ateşi bulunca **yakın baskı**
   (§13). Ice-man'in menzilini kapatmak onun dövüşünün asıl işi (§21, §41).
 - **Taban:** Kuzey Shaolin / Uzun Yumruk: uzun yay duruşu, ileri atılma,
@@ -107,7 +116,7 @@ dondurma. **Zayıf noktası:** asadaki küre her büyük büyüden sonra bir an
 sönüyor. Sıcakta zayıflıyor. Lav çukuruna düşerek ölüyor; ağır çekim yalnız
 bu anda.
 
-**Dövüş kimliği [öneri]:**
+**Dövüş kimliği [entegre]:**
 - **Tip:** alan tutucu: rakibi uzakta tutar, mesafeyi asayla ve buzla
   yönetir (§13, §21).
 - **Sükûnet:** **en az hareket eden karakter.** Bekleme duruşunda nefes
@@ -140,7 +149,7 @@ sanatı**: savunma önde ama ölçülü, her dövüş bir bitiriş saldırısıy
 biter. Taslak `DOVUS_KAPLAN_SANATI.md` (onay bekliyor). Part 1'de hanedan
 girişinde endişeyle bekliyor, Barış gelince ona koşuyor.
 
-**Dövüş kimliği [öneri]:**
+**Dövüş kimliği [entegre]:**
 - **Tip:** karşı vurucu: rakibin önce saldırmasını bekler, savunmasıyla
   saldırısı bir ve aynı (§13, §35).
 - **Taban:** Hung Gar kaplan pençesi: alçak at duruşu, yukarıdan aşağı inen
@@ -166,7 +175,7 @@ girişinde endişeyle bekliyor, Barış gelince ona koşuyor.
 duvarını kıramıyor (meydanda), sonra hanedana ilerleyen orduyla savaşıyor.
 Topuz seti Epic Fight baltasından türetilmiş, hız 0,9.
 
-**Dövüş kimliği [öneri]:**
+**Dövüş kimliği [entegre]:**
 - **Tip:** tutucuya yakın ağır dövüşçü: yakında tehlikeli, yavaş (§13).
 - **Silahın anlamı:** dilimli topuz **zırh kırıcı**; onun bile buz duvarını
   kıramaması Ice-man'in gücünü ölçerek gösterir (§36).
@@ -189,7 +198,7 @@ olağanüstü kavrama; Barış'ı seviyor. 2. bölümde **koruma büyüsü**
 büyüsünü okların çarpıp **geri sekmesiyle** fark ediyor. Düşünme 4'te
 kürenin söndüğünü (zayıf noktayı) o görüyor; askerler ona yürüyor.
 
-**Dövüş kimliği [öneri]:**
+**Dövüş kimliği [entegre]:**
 - **Tip:** koruyucu destek; kendisi dövüşmeyebilir (§13). Dövüşüp
   dövüşmediği kullanıcının kararı (kayıtta merdivende "sur askerleri ve Zisa
   dalgaları durduruyor").
@@ -215,7 +224,7 @@ kürenin söndüğünü (zayıf noktayı) o görüyor; askerler ona yürüyor.
 Dante'ye benzetildi. Part 1'de Pipos'un yanında hanedan girişinde elleri
 arkada, sakin bekliyor. Silahlı dövüş film aracında henüz yok.
 
-**Dövüş kimliği [öneri]:**
+**Dövüş kimliği [entegre]:**
 - **Tip:** menzil + çeviklik (§13).
 - **Silah dili:** silah gövdeye yakın, yakın dövüşle iç içe: vur, it, ateş et
   (§7); imza pozu **çapraz kol + iki yöne ateş** (§37).
@@ -234,7 +243,7 @@ arkada, sakin bekliyor. Silahlı dövüş film aracında henüz yok.
 askerler duvar gibi duruyor, zombiler geçemiyor; okçular creeper'ları sura
 varmadan vurmaya çalışıyor. Bağırışları **yalnız altyazı**.
 
-**Dövüş kimliği [öneri]:**
+**Dövüş kimliği [entegre]:**
 - **Kalkan duvarı:** omuz omuza tek sıra; kalkan önde ~45°; zombi gelince
   **kalkanla it**, ardından kısa vuruş; ileri değil yerinde (hattı bozmamak)
   (§29, §52). Silahları kayıtta yok: kılıç-kalkan öneri.
@@ -248,7 +257,7 @@ varmadan vurmaya çalışıyor. Bağırışları **yalnız altyazı**.
 zombiler giriyor; buzlaşan kişi otomatik olarak orduya katılıyor; patron
 ölünce dağılıyorlar.
 
-**[öneri]:**
+**[entegre]:**
 - **Zombiler:** öne uzanmış kollar; her birine farklı faz ve %5–10 hız
   farkı; kafada 1–2 karelik gecikme; tam eşzamanlı yürüyüş yok (§39).
   Çekimde tek etkin saldıran (§25).
@@ -268,7 +277,7 @@ zombiler giriyor; buzlaşan kişi otomatik olarak orduya katılıyor; patron
 girdi; Barış bir an çarpık skine döndü. Kininin kime olduğu 3. bölümde.
 3. bölümün sonunda gölgesi büyüyor, tek kırmızı gözüyle bakıyor.
 
-**[öneri]:** 2. bölümde dövüşmez; yalnız **önceden ekme** (§55): Barış'ın
+**[entegre]:** 2. bölümde dövüşmez; yalnız **önceden ekme** (§55): Barış'ın
 ateşinde tek kare kırmızı-siyah kıvılcım ya da öfke anında başın tek
 kırmızı gözlü bakışı andıran küçük eğimi. Az, tekrar eden, her part'ta en
 çok bir kez. İçeriği kullanıcının kararı.
@@ -282,7 +291,7 @@ kimliği yok; Ateşin Kitabı onun evinde — Barış'ın ateşinin kaynağı (�
 
 ---
 
-## 11. Beş mekân: dersler mekâna göre [öneri]
+## 11. Beş mekân: dersler mekâna göre [entegre]
 
 | mekân (part) | kim üstün | uygulanan dersler |
 |---|---|---|
@@ -293,19 +302,19 @@ kimliği yok; Ateşin Kitabı onun evinde — Barış'ın ateşinin kaynağı (�
 | 4. Merdivenler (4) | Barış ↔ Ice-man | Kor Yürüyüşü: menzili kapatmak (§21, §41); Ice-man ilk kez savunmada (§44); ateşin bedeli: yorgunluk (§45, kayıt); asker dalgaları ve kalkan duvarı (§29) |
 | 5. Lav çukuru (4) | çaresiz Ice-man → Barış | çaresizlik evresi (§44); son darbeden önce ma (§61); tek ağır çekim (§33); düşüş ve son (§49); ordunun dağılması (§34) |
 
-## 12. Araca dönüşecekler (yapılacaklar; sahneler yazılırken) [öneri]
+## 12. Araca dönüşecekler (yapılacaklar; sahneler yazılırken) [entegre]
 
-Hiçbiri bugün yazılmadı. Kullanıcı onaylayınca, kullanılacağı sahneyle
+Araçta olanlar işaretli. Kalanlar kullanılacağı sahneyle
 **aynı anda** yazılır (kullanılmayan kod kalmasın diye) ve
 `FILM_YETENEK_HARITASI.md` aynı commit'te güncellenir:
 
-1. Hamle künyesi alanları (bölüm 0) — kendi setlerimizin dosya biçimi.
-2. Vuruş donması (`donma`, 1–3 kare) — `zaman_haritasi` üzerinden.
+1. Hamle künyesi alanları (bölüm 0) — doğrulaması **araçta** (`kunye_dogrula`); dosya biçimi ilk kendi setimizle.
+2. Vuruş donması — sayıları **araçta** (`donma_kare`); zaman haritasına bağlanması ilk kendi setimizle.
 3. Darbe karesi vurgusu (temasta kısa ışık ya da 1–2 karelik kamera
    sarsıntısı; `titreme` var, vuruşa bağlı değil).
 4. Savrulma sesi anı + ağırlık sınıfına göre ses seçimi.
 5. İşaret efektleri (kürenin parlaması, yerde buz çizgisi, alın sembolü).
-6. Karakter bekleme duruşları (film pozu olarak; nefes hızı karaktere göre).
+6. ~~Karakter bekleme duruşları ve nefes~~ — **araçta** (`"kimlik"` + `"dovus"`).
 7. Sürü düzeni yardımcısı (tek etkin saldıran, halka, faz/hız farkı).
 8. Denetimler: dövüş planında ana plan var mı, temastan önce kesme var mı
    (`kamera_denetim.py`); siluet / gri tonlama karesi (`denetim_pafta.py`).
