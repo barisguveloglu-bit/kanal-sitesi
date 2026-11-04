@@ -1,4 +1,4 @@
-# Dövüş koreografisi — araştırma notları (2026-11-04)
+# Dövüş koreografisi — araştırma notları (2026-11-04; iki tur)
 
 Kullanıcı: *"dövüş koreografilerini araştır, yaklaşık 10 dakika boyunca uzun
 uzun araştır, her birini kaydet."* Bağlam: dövüşler yalnız Epic Fight / WoM'dan
@@ -1005,6 +1005,425 @@ Kaynaklar: [Pixelblog 52 — bekleme dövüş duruşu](https://slynyrd.com/blog/
 [Woodmere — idle ve kişilik](https://woodmereartmuseum.org/media/pgs/__the_breath_of_life__idle_animation_function_and_character_personality.html) ·
 [Homecoming forumu — duruş değişimi](https://forums.homecomingservers.com/topic/25105-set-idle-stance)
 
+## 44. Kötü dövüşünün evreleri (boss fight): her evre yeni bir kural
+
+- Evreler **sayıyı değil mekanizmayı** artırmalı: yeni saldırı deseni,
+  ortam tehlikesi, hatta zayıf noktanın değişmesi. Her evresi aynı desen +
+  daha çok can olan dövüş başarısız.
+- Yaygın yapı (oyun geleneği, kural değil): %75 hafif tırmanma, %50 büyük
+  tırmanma (arena fiziksel olarak değişebilir), %25 çaresizlik evresi (her
+  şey, daha önce görülmemiş birleşimlerle). Kurulum → komplikasyon → çözüm.
+- **İkinci evre bükülme:** öğrenileni çöpe atmaz, büker; ilk evredeki bir
+  ipucu sonra karşılık bulur. Evreler bir beceriyi öğretir, sonra daha iyisini
+  ister; **nefes payı** bırakılır. Her boss evre istemez; tek güçlü fikirli düello
+  da olur.
+
+**Bizde:** onaylı beş mekân = Ice-man'in evreleri ve "arena fiziksel olarak
+değişir" kuralı zaten mekân değişimiyle var. Evre başına yeni mekanizma
+önerisi: (1) gedik: uzaktan ordu yönetimi, (2) sokak: dolaylı (oklar), (3)
+meydan: doğrudan buz (dondurma — Barış'ın dibi), (4) merdiven: buzlu zemin +
+yarım küre kalkan (ilk kez savunmaya geçiyor), (5) lav: çaresizlik (buz
+sütunları, her şey). İlk evrede **ipucu**: asadaki küre ilk sahnede parlar
+(zayıf nokta sonradan karşılık bulur).
+
+Kaynaklar: [Wayline — boss tasarım ilkeleri](https://www.wayline.io/blog/crafting-legendary-boss-battles) ·
+[Scoutski — boss design](https://scoutski.github.io/posts/boss-design/) ·
+[Nerd Burglars — üç evre](https://nerdburglars.net/the-trifecta-of-power-understanding-the-three-stages-of-video-game-boss-battles/) ·
+[Medium — çok evreli boss](https://medium.com/@scott.sourile/designing-a-multi-phase-boss-encounter-in-unity-pt-1-b06ed37aa3f0)
+
+## 45. Güç uyanışı: birikim, patlama, sessizlik — ve bedel
+
+- Sesi taşıyan birikim: davullar şarj boyunca büyür, dönüşümde gür bir
+  patlama, **ardından sessizlik** (an akılda kalır). Tek efekt değil, bir
+  dizi: hazırlık → sahneleme → karşılık.
+- Katmanlı küçük ayrıntılar (gözyaşı, moloz, arka plandaki tepkiler) durdurup
+  bakana ödül verir.
+- Güç bir **uyarı** gibi de çerçevelenebilir: seyirci kahramanın o güce sahip
+  olmasını istemez (Attack on Titan yorumu).
+- **Bedel:** güçlü dönüşümlerin ortak özelliği fiziksel, zihinsel ya da ahlaki
+  bir bedel.
+
+**Bizde:** onaylı an Part 3 sonunda: Barış buzun içinde bağırıyor, **gözleri
+parlıyor**, ateş. Öneri dizisi: buzun içinde sessizlik → kalp atışı sesi →
+gözlerde kıvılcım → buz içten turuncu ışır (çatlaklar) → patlama → bir an
+sessizlik → Barış ayakta. Bedel ve uyarı fikri sezonun sırrıyla örtüşüyor
+(Satanachia Barış'ın içinde; gücün nereden geldiği belirsiz — kayıtta
+"ağrıların geçmesi Satanachia ile ilgili DEĞİL", ateşin kaynağı ise
+cadının kitabı). Bedelin ne olduğu kullanıcının kararı, uydurulmadı.
+
+Kaynaklar: [Inbetween Drafts — güç uyanışları](https://inbetweendrafts.com/the-most-iconic-anime-power-up-scenes/) ·
+[WatchMojo — uyanış sahneleri](https://watchmojo.com/articles/top-20-anime-power-awakening-scenes) ·
+[Fiction Horizon — en çok durdurulan anlar](https://fictionhorizon.com/most-paused-anime-moments/)
+
+## 46. İlk aksiyon sahnesi karakteri tanıtır
+
+- İlk sahne kahramanı **eylemle** tanıtma fırsatı: göster, anlatma; seyirci
+  karakteri ne yaptığından öğrenir. Tanıtım eylemin kendisi olabilir.
+- İlk dövüşün iki işi var: tanıtmak ve sonraki sahnelere **karşılaştırma
+  ölçüsü** olmak (Rurouni Kenshin dökümü).
+- **Davranış ne yaptığını, seçim kim olduğunu söyler:** küçük bir çatışmadaki
+  karar karakteri tanımlar.
+
+**Bizde:** Part 2'de Barış'ın ilk hareketi bir **seçim**: Zisa "bu hâlinle
+yapamazsın" derken *"Gideceğim, onlara yardım edeceğim"* — camı kırıp atlıyor.
+Bu, sezonda Barış'ın kim olduğunu söyleyen an. Öneri: atlayışın ilk planı
+yüzünde kararlılık (siluet net), dövüşte ilk hamlesi **ölçü** olur (sokakta
+zorlanması sonraki ateşli hâlle karşılaştırılacak). Ice-man'in tanıtımı da
+eylemle: konuşmadan, fırtınayı koyulaştırarak (Düşünme 1).
+
+Kaynaklar: [No Film School — karakter tanıtmak](https://nofilmschool.com/2016/07/how-to-introduce-your-movie-character) ·
+[No Film School — Joker'in otobüs çevirmesi](https://nofilmschool.com/dark-knight-bus-flip-joker-introduction) ·
+[TV Tropes — Establishing Character Moment](https://tvtropes.org/pmwiki/pmwiki.php/PlayingWith/EstablishingCharacterMoment) ·
+[Writer's Digest — kahramanı tanıtmak](https://writersdigest.com/write-better-fiction/how-to-introduce-your-hero-speculative-version)
+
+## 47. Akıl hocası dövüşü: ölçülülük, göstererek öğretme
+
+- Ustanın dövüşünde **ölçülülük**: gerçek dövüşçü çatışma aramaz ama gerekince
+  kararlı biçimde çözer ("bilgi ve savunma için, savaş için değil").
+- **Anlatarak değil göstererek** öğretir; dolaylı, mecazlı dersler, beceriyle
+  birlikte karakter.
+- Yazım dersi: idman dövüşü öğrenmek için değil, **denetimli dövüştür**;
+  büyümeyi gösterme fırsatı. Gerçek tehlike yoksa "dövüş" sayılmaz.
+- Ahlaki sınır: usta öğrencisine nerede duracağını da öğretir.
+- Uyarı: "bilge yabancı usta" klişesine düşmemek.
+
+**Bizde:** Pipos'un Kaplan sanatı kuralı (savunma önde, ölçülü, tek
+bitiriş) bu ölçülülüğün beden hâli. Öneri: Pipos dövüşte **rakibini
+yaralamadan durdurabildiği hâlde** gerekince tek kararlı bitiriş yapar;
+Barış'a (ileride) sözle değil hareketle öğretir — ör. bir saldırıyı tek
+kısa geri adımla boşa çıkarıp Barış'a bakar. Pipos'un kendi kimliği
+(kullanıcının arkadaşının karakteri, sarı-altın skin) klişeden uzak; ırk
+ya da köken üzerinden "bilgelik" kurulmaz.
+
+Kaynaklar: [No Film School — "wax on, wax off"](https://nofilmschool.com/wax-on-wax-off-karate-kid-meaning) ·
+[Writer's Digest — idman dövüşü](https://writersdigest.com/write-better-fiction/writing-scenes-with-sparring-fightwrite) ·
+[TV Tropes — Opponent Instruction](https://tvtropes.org:443/pmwiki/pmwiki.php/Main/OpponentInstruction) ·
+[GamesRadar — bilge akıl hocaları](https://www.gamesradar.com/the-30-wisest-movie-mentors/3)
+
+## 48. Koruma büyüsü / kalkan: gözün olduğu yerde, çarpınca görünür
+
+- Okunaklılık **gözün baktığı yerde** olmalı: kalkan kabarcığı kartın çevresinde
+  kalınca fark edilmiyordu; daha parlak, yüzün üstündeki işlem daha iyi
+  okundu (Legends of Runeterra oyuncu geri bildirimi). Kalkan biraz dikkat
+  dağıtmalı.
+- VFX'e kullanıcı deneyimi ilkeleri: **mavi** kalkan ve büyüyle
+  özdeşleşmiş; bilinen görsel dili yeniden kullan (iyileşmeye artı gibi).
+- Kalkan **çarpınca** görünür: boştayken uyuyan, vurulunca dış çizgisi
+  parlayan ve mermiyi parçacığa ayıran bariyer; çarpma tepkisi, çatlak,
+  enerji dağılması.
+
+**Bizde:** Zisa'nın koruma büyüsü onaylı biçimde **görünmez** başlıyor:
+Barış onu "okların çarpıp sekmesiyle fark ediyor". Bu, araştırmayla bire bir
+uyumlu: kalkan boşta görünmez, **çarpınca** Barış'ın bedeninin dış çizgisi
+Zisa'nın büyü renginde bir an parlar, ok parçalanıp seker. Renk: Zisa'nın alın
+sembolünün rengi (perçem/alın sembolü taslağı) — mavi geleneği yerine onun
+kendi rengi, kimlik için.
+
+Kaynaklar: [Mighty Bear — UX ve VFX](https://medium.com/mighty-bear-games/how-ux-design-can-help-with-vfx-a0925f80e0f0) ·
+[Legends of Runeterra — Spellshield görünürlüğü](https://outof.games/devtracker/legends-of-runeterra/reddit/r-legendsofruneterra/11143) ·
+[UAL öğrenci projesi — bariyer](https://20035428.myblog.arts.ac.uk/?p=1114)
+
+## 49. Kötünün sonu: düşüş, ağır çekim, yüz, müzik
+
+- "Disney kötü ölümü": zafer konuşmasından sonra düşerek ölen kötü; kamera
+  çoğu zaman **çarpmadan önce** başka yere kesilir.
+- Lav çukuru oyunlarda yaygın son; "lav yumuşak bir iniş sunmaz" — son
+  kesinleşir.
+- Etkiyi taşıyanlar: **ağır çekim, müzik ve karakterin yüz ifadesi**
+  (WatchMojo); oyunculuk ve güçlü müzik (Mustafar yorumu).
+
+**Bizde:** onaylı son: Barış Ice-man'i lav çukuruna düşürüyor, ağır çekim,
+Ice-man ölüyor, ordu dağılıyor. Öneri: (1) ağır çekim düşüşün **başında**
+(Ice-man'in gözleri — yüzü Minecraft'ta sabit, ifadeyi gözlerin ışığı ve
+asanın küresinin sönmesi taşır), (2) lava değmeden kesme (çarpma yerine
+yükselen buhar ve sönen buz ışığı), (3) bir an sessizlik (§45 ile aynı
+ilke), (4) sonra ordunun dağılması (sonucun dünyadaki karşılığı).
+
+Kaynaklar: [TV Tropes — Disney Villain Death](https://tvtropes.org/pmwiki/pmwiki.php/DisneyVillainDeath/VideoGames) ·
+[Destructoid — Crocomire](https://destructoid.com/?p=20507) ·
+[WatchMojo — düşerek ölen kötüler](https://www.watchmojo.com/articles/top-10-movie-scenes-where-villains-fall-to-their-death) ·
+[Far Out — yer çekimiyle ölen kötüler](https://faroutmagazine.co.uk/exploring-cinematic-curiosity-villains-killed-by-gravity/)
+
+## 50. Birlikte dövüşen iki kişi: sırt sırta, tamamlayıcı stiller
+
+- "Rakipler birleşir": ortak düşmana karşı geçici ya da kalıcı ittifak;
+  zaten dostça bir rekabet varsa birleşme kolaylaşır.
+- **Sırt sırta** dövüşen ikili, aralarındaki atışmayla bile birbirini kollar
+  (Bash Brothers kalıbı). Zıt stiller önce çatışır, sonra birbirini tamamlar
+  (Cobra Kai 4. sezon: iki dojo birleşir, stiller hemen çatışır).
+- Bu ikili dövüşlerin koreografi dökümü için ayrıntılı kaynak çıkmadı.
+
+**Bizde:** Pipos ve çocukluk arkadaşı ileride birlikte dövüşürse doğal
+tamamlayıcılık: **yakın ve kök (Pipos, Hung Gar, karşı vurucu) + menzil ve
+çeviklik (arkadaş, iki tabanca)** — biri yakına geleni karşılar, öteki
+uzaktakini. Barış ile Pipos arasında usta-öğrenci, Barış ile arkadaş
+arasında çocukluk dostluğu: sırt sırta an bu iki ilişkiye farklı tat verir.
+Hikâyede birlikte dövüşüp dövüşmeyecekleri kullanıcının kararı.
+
+Kaynaklar: [TV Tropes — Rivals Team Up](https://tvtropes.org/pmwiki/pmwiki.php/Main/RivalsTeamUp) ·
+[TV Tropes — Bash Brothers](https://tvtropes.org:443/pmwiki/pmwiki.php/Main/BashBrothers) ·
+[Tom's Guide — Cobra Kai 4](https://www.tomsguide.com/news/ralph-macchio-reveals-cobra-kai-season-4s-most-exciting-storyline)
+
+## 51. Komutan: önden giden, kritik anda toparlayan
+
+- Ortak kalıplar: **önden savaşan komutan**, kritik anda söylenen toparlama
+  cümlesi, lider ile askerleri arasındaki güveni gösteren **sessiz insani an**.
+- Örnekler: ilk inen ve son ayrılan komutan; asker cephesini savunan albay;
+  liderliği yalnız aksiyonla değil kişisel anlarla kurulan lider.
+
+**Bizde:** Ömer onaylı olarak "elinde topuzla geliyor", buz duvarını
+kıramıyor, sonra hanedana ilerleyen orduyla savaşıyor — önden giden
+komutan. Öneri: (1) gelişi askerlerin tepkisiyle (askerler onu görünce
+duruşlarını toplar), (2) duvarı kıramadığı an komutan için yenilgi değil,
+**yön değişimi**: hemen askerlerine dönüp onları orduya yönlendirir
+(toparlama anı; cümle kullanıcınınsa yazılır, uydurulmaz), (3) savaş
+odasındaki sakin "Tamam." ile bu sahne arasındaki zıtlık zaten karakteri
+kuruyor.
+
+Kaynaklar: [TV Tropes — Frontline General](https://tvtropes.org/pmwiki/pmwiki.php/Main/FrontlineGeneral) ·
+[Task & Purpose — takip edeceğimiz kurgusal komutanlar](https://taskandpurpose.com/culture/5-fictional-military-leaders-wed-actually-follow-combat/) ·
+[Stony Brook — Gettysburg ve liderlik](https://you.stonybrook.edu/leadership/2015/02/16/gettysburg)
+
+## 52. Kılıç ve kalkan: önce ayak, kalkan köşesi, kalkanla vuruş
+
+- **Önce ayak işi:** uzun kılıç okullarında kılıçtan önce ayak öğretilir;
+  Alman okulu zamanlama, ayak, bağlama ve döndürme üzerine.
+- **Kalkan kapanır:** kalkanın köşesi düz vuruşu karşılar, kalkanı
+  kaldırmaya gerek kalmaz; kol ~45° açıyla. Saldırıların çoğu kalkan
+  tarafına iner.
+- **Kalkanla vuruş:** 14. yüzyıl I.33 elyazmasına dayanan kılıç-bokleri
+  derslerinde kalkan tarafında bağlama, kalkanla vuruş, kılıcı taşıyıp
+  saplama ya da kalkanla vuruş.
+- Mesafe: vurmak için çoğu zaman adım atmak gerekir; adımsız saldırı da
+  vardır, mesafe yönetimi önemli.
+
+**Bizde:** gedikteki ağır zırhlı sur askerleri (gri sur askeri skini) için
+dövüş dili: kalkan önde ~45° (gediği kapatan duvar, §29), zombi gelince
+**kalkanla itme**, ardından kısa kılıç vuruşu; ileri değil yerinde (hattı
+bozmamak). Askerin kendi hamle seti bu üç hareketle yeter: kalkanla
+karşıla, kalkanla it, kısa vur. Kayıtta askerin silahı yazılı değil —
+kılıç-kalkan öneri, kullanıcı seçer.
+
+Kaynaklar: [SCA Drachenwald — kalkan](https://sca-drachenwald.gitlab.io/archive/node/155.html) ·
+[Dimicator — I.33 kılıç ve bokler](https://dimicator.teachable.com/p/the-medieval-art-of-fighting-with-sword-buckler) ·
+[Medium — Fight Earnestly](https://medium.com/universe-factory/fight-earnestly-ceb0eccc117f) ·
+[Castle Duncan — kılıç kalkan](https://castleduncan.com/forum/topic/148-sword-and-shield-combat/)
+
+## 53. Surun delinmesi: yük, patlama, duman, açıklık, geçiş
+
+- Gerçek bir sur yıkma gösteriminde **sıra:** patlayıcılar duvara yerleşir →
+  patlama → duman yükselir → açıklık → tanklar geçer. Bu, kullanılabilir bir
+  vuruş sırası.
+- Efekt ekibi: kırılan parçalar benzetildikten sonra **ince toz ve küçük
+  moloz** eklemek ölçeği ve gerçekliği sattı.
+- Tepki: duman içinden geçen askerler, moloz bir askeri siper almaya zorlar.
+
+**Bizde:** Düşünme 1'in son vuruşu "sur patlıyor". Sıra önerisi:
+(1) creeper'lar karın içinde sura yaklaşır (Ice-man'in fırtınası saklıyor —
+seyirci görür, askerler görmez: §32 işaret seyirciye verilir),
+(2) creeper'ın tıslama sesi + yanıp sönmesi (Minecraft'ın kendi işareti),
+(3) patlama, (4) toz ve küçük blok parçaları, (5) gedik açılır, (6) zombiler
+dumanın içinden geçer, askerler siper alır ve kalkan duvarı kurar (§29, §52).
+Film aracında blok kırılması ve parçalar var; creeper patlaması yazılmadı.
+
+Kaynaklar: [CriticalPast — duvar yıkma gösterimi](https://www.criticalpast.com/video/65675058853_bar-charges_smoke-rises_tanks-pass_gap-created_18-feet-wide-gap) ·
+[The Mill — yıkım efekti](https://archive.themill.com/portfolio/2716/mobile-strike---arnold%27s-fight) ·
+[Variety — Warfare patlama sahnesi](https://variety.com/2025/film/news/how-warfare-created-ied-explosion-military-flyover-injuries-real-life-soldiers-1236366483)
+
+## 54. Kar fırtınasında savaş: siluet, sis yoğunluğunun sürekliliği
+
+- Sisli savaşta en zor şey **ışığın ve sis yoğunluğunun** planlar arasında
+  sürekli kalması; sis içinde önden ya da yandan güneş yanlış görünüyor;
+  sis **atlıların içinden çıkmasına** izin veriyor (ASC, 2004).
+- Arka ışık dramatik siluet verir ama ayrıntıyı korumak için pozlama dikkat
+  ister.
+- Kalabalık sahnede seçili yapılara sis eklemek onları öne çıkarır ve derinlik
+  kurar; sis koyulaştıkça yalnız insanların ve binaların dış çizgisi kalır.
+- (Zayıf kaynak) Winterfell savaşında beyaz perde yalnız seyirciyi değil iki
+  tarafı da zorladı.
+
+**Bizde:** Part 2'nin fırtınası onaylı ("doğudan gelen fırtına göğün yarısını
+karartıyor", Pooka karı ve Kenney dumanı seçili). Kurallar: (1) **sis/kar
+yoğunluğu bir senaryo değeri olarak sabitlenir**, planlar arasında
+değişmez (süreklilik), (2) düşman fırtınanın **içinden çıkar** (Ice-man'in
+ordusu karın içinden belirir — korku), (3) Ice-man fırtınanın önünde arka
+ışıkla siluet, (4) fırtına iki tarafı da zorlar: okçular creeper'ları göremez
+(Düşünme 1'in mantığı bu).
+
+Kaynaklar: [ASC — sisli savaş (2004)](https://theasc.com/magazine/jan04/cover/page3.html) ·
+[ASC — Normal'in kar fırtınası](https://theasc.com/articles/normal-cinematography-salas) ·
+[Roger Deakins forumu — yoğun sis](https://www.rogerdeakins.com/?p=215052) ·
+[The Week — GoT'nin havası](https://theweek.com/articles/838418/im-obsessed-game-thrones-weather)
+
+## 55. Gizli bir durumu önceden sezdirmek (önceden ekme)
+
+- Örtük ipuçları: tekrar eden simge ve motifler (erken görünen nesne kritik
+  sahnede döner). Karakterin **tereddüdü ya da olağandışı davranışı** sonraki
+  seçimlerini sessizce işaret eder.
+- Tekrarlanan, alışılmadık biçimde vurgulanan ya da duygusal anlara bağlanan
+  ayrıntılar, sonradan yeni anlam kazanınca önceden ekmedir.
+- Denge: her şey önceden sezdirilmez; bazı dönüşler beklenmedik kalmalı.
+  İyi önceden ekme ikinci izlemede ödüllendirir (Altıncı His).
+
+**Bizde:** sezonun sırrı (Satanachia Barış'ın içinde; Barış 3. bölümde
+öğreniyor; ruh girerken Barış bir an çarpık skine dönüyor — onaylı). Dövüş
+diliyle önceden ekme önerisi: Barış'ın ateşinde **bir tek kare** kırmızı-siyah
+(çarpık rengi) kıvılcım; ya da Barış'ın bekleme duruşunda, öfkelendiği bir
+an, başın Satanachia'nın tek kırmızı gözlü bakışına benzer küçük bir eğimi
+(3. bölüm sonunun gölge sahnesiyle aynı motif). Az ve tekrar eden: her
+part'ta en çok bir kez. İpucunun içeriği kullanıcının kararı.
+
+Kaynaklar: [Literary Devices — foreshadowing](https://literarydevices.net/foreshadowing-explained-how-it-shapes-storytelling-writing/) ·
+[Vaia — karakter eylemleriyle önceden sezdirme](https://vaia.com/en-us/explanations/english/creative-writing/foreshadowing-character-actions) ·
+[Spec Stories — the art of foreshadowing](https://specstories.substack.com/p/the-art-of-foreshadowing) ·
+[Filmlifestyle — foreshadowing](https://filmlifestyle.com/what-is-foreshadowing/)
+
+## 56. Yeni gücün ilk kullanımı: acemi, sonra ustalık
+
+- Büyüme yavaş: küçük deneyimler birikir, yeni davranış **çekinerek
+  denenir**, eski kalıba geri kayma olur. Evreler: başta eski davranış +
+  rahatsızlık ipucu; erken ortada ilk çekingen denemeler; ortada yeni
+  davranış sıklaşır ama tutarsız.
+- Üç sahne testi: başlangıç, dönüm noktası, son — her biri yayın ilerleyişini
+  göstermeli.
+- Acemi hatanın mizahı ile gerçek büyüme olasılığı arasında denge; yeni güç
+  bazen **güç tükenmesi bayılması** ile gelir; tam denetim, bedeli ödendikten
+  (alıştırma ya da başarısızlık) sonraki karşılık sahnesine saklanır. Başından
+  beri usta bir karakter, acemiyi daha görünür kılar.
+
+**Bizde:** Barış'ın ateşi için üç sahne testi zaten kurulabiliyor:
+(1) başlangıç — kulübede kitabı okuyor (Part 1, ateşi henüz kullanmıyor),
+(2) dönüm — buzun içinde ilk ateş (Part 3 sonu; ham, denetimsiz, öfkeli),
+(3) son — lav çukurunda ateşin denetimli kullanımı (Part 4). Öneri: Part 3'teki
+ilk ateş **fazla büyük ve dağınık** (Barış'ı da sendeletir), Part 4'te daha
+toplu ve isabetli (Kor Yürüyüşü bilinçli). Ustalık yolculuğunu Pipos'un
+başından beri usta hâliyle zıtlık güçlendirir (§47). Bedel kullanıcının kararı.
+
+Kaynaklar: [Literary Devices — karakter yayı](https://literarydevices.net/mastering-character-arc-how-to-trace-growth-change-in-stories/) ·
+[TV Tropes — New Super Power](https://tvtropes.org/pmwiki/pmwiki.php/Main/NewSuperPower) ·
+[TV Tropes — How Do I Shot Web](https://TVTropes.org/pmwiki/pmwiki.php/Main/HowDoIShotWeb) ·
+[River — belirgin yay anı olmadan büyüme](https://rivereditor.com/guides/how-to-show-character-growth-without-obvious-arc-moments-2026)
+
+## 57. Kiai: vuruşla nefes, bağırış ve onun bedeli
+
+- Kiai (Korece kihap): odak, nefes yönetimi ve tekniğe güç; yeni başlayanlar
+  farkında olmadan nefesini tutar, kiai **vuruşta tam nefes vermeyi** öğretir.
+  Bazılarına göre önemli olan ses değil **nefes vermenin kendisi** (karın ve
+  gövde kasları). Ses şart değil; iyi bir kiai her zaman yüksek değil.
+- Kullanımlar: rakibi ürkütmek, sindirmek, güven ya da zafer göstermek.
+- Taktik bedel (forum): nefes vererek vuran kişi bir sonraki nefese kadar
+  kısa bir an güçsüz kalır — karşı saldırı penceresi; bağırış vuruşu **önceden
+  işaret eder**.
+
+**Bizde:** her karaktere bir **ses kimliği** (ses kaydı kararı açık): Barış
+güçlü vuruşta kısa bağırış (buzdaki onaylı bağırış bunun doruğu), Pipos
+**sessiz** — yalnız nefes (karşı vurucunun sükûneti; bağırmak açık verir),
+Ice-man hiç ses çıkarmaz (soğukluk), Ömer topuzu indirirken derin bir
+"hıh", askerler toplu bağırış (gedikte cesaret). Bağırışın açık verdiği an
+Pipos'un karşı vuruş anı olabilir (§35). Öneri.
+
+Kaynaklar: [Black Belt — kiai'nin tarihi](https://www.blackbeltmag.com/the-kiai-history-usage-and-application-in-martial-arts) ·
+[Merakata — kiai sadece bağırış değil](https://merakata.substack.com/p/kiai-more-than-a-shout) ·
+[The Martial Way — kiai](https://www.themartialway.com.au/kiai/) ·
+[Kendo Guide — nefes](https://www.kendo-guide.com/breathing_in_training.html)
+
+## 58. Kötünün sükûneti: kıpırtısızlık güçtür
+
+- Tehdidi bedenle oynamamak: tehdit sözde, seste ve gözde; beden **sakin**
+  kalır, kıpırtısızlık güç kaynağı. Hannibal Lecter neredeyse kımıldamaz;
+  bir baş eğmesi bile ağırlık taşır.
+- Kusursuz duruş, **az jest, verimli hareket** otorite iletir (Esposito
+  üslubu); bakışı tutmak gözle görülür bir eylem olmadan güç gösterir.
+  Hareketsiz kalınca her nefes ve bakış kayması bilinçli görünür.
+- Karşı görüş: tedirgin edici, öngörülemeyen jestler de bir seçenek.
+
+**Bizde:** Ice-man (Deney 081) için çok güçlü ve ucuz bir kural: **en az
+hareket eden karakter o.** Bekleme duruşunda nefes salınımı neredeyse sıfır,
+dönüşleri yavaş ve tek seferde, büyüsünü tek bir asa hareketiyle atar; Barış
+ne kadar çok hareket ederse Ice-man o kadar az. "Bu kadar kolaysın" anı
+kıpırtısız söylenir. Sezonun ana kötüsü (karanlık odadaki iki beyaz göz)
+de aynı ilkeyle zaten kurulu: bedeni yok gibi, yalnız gözler.
+
+Kaynaklar: [Prompt Index — Anthony Hopkins üslubu](https://www.thepromptindex.com/skill/2632-actor-style-anthony-hopkins) ·
+[Prompt Index — Giancarlo Esposito üslubu](https://www.thepromptindex.com/skill/2523-actor-style-giancarlo-esposito) ·
+[Aeon — Willem Dafoe'nun pozları](https://archive.aeon.org/arc/prime-suspense-willem-dafoes-poses-as-a-visual-language-of-intensity-and-emotion)
+
+## 59. Hareket ekonomisi: bekleme pozu imza, vuruşu pozlar satar
+
+- Bekleme pozu karakterin **görsel imzası** ve her hareketin tabanı; güçlü
+  bir bekleme pozu bütün animasyon sürecinde karşılığını verir (Gnomon).
+- İnandırıcı vuruş animasyonu düzgün hareketten çok **özenle kurulmuş poz
+  dizisine** dayanır.
+- Sifu (dövüş oyunu) hareketlerini elle anahtar kareledi, yalnız yere
+  serme hareketlerinde hareket yakalama kullandı.
+- Ağır vuruşa toparlanma karesi; sağlam taban (omuz genişliğinde ayak)
+  burulma gücü üretir (zayıf kaynak). Tam bir dövüş oyunu karakteri 200–500
+  animasyon ister — bu yüzden ekonomik hamle setleri.
+
+**Bizde:** "kendi hamle setlerimiz" için ölçek dersi: bir karakter için
+200 değil, **bekleme + 4–6 hamle + 2 tepki** yeter (film, oyun değil).
+Önce bekleme pozu (imza), sonra hamleler o pozdan doğar ve ona döner. Elle
+anahtar kare (Sifu gibi) bizim yöntemimiz zaten (`film_poz.py`).
+
+Kaynaklar: [Gnomon — stilize saldırı animasyonu](https://bit.thegnomonworkshop.com/workshops/animating-stylized-attacks-in-maya) ·
+[Digital Trends — Sifu animasyon söyleşisi](https://digitaltrends.com/gaming/sloclap-sifu-animation-interview) ·
+[MoCap Online — dövüş sanatı animasyonu](https://mocaponline.com/blogs/mocap-news/martial-arts-animation-fighting-styles) ·
+[CORE — 2B dövüş oyunu karakter animasyonu tezi](https://core.ac.uk/download/38089441.pdf)
+
+## 60. Büyü atma pozu: büyünün çıktığı yer, yerden yukarı, yön
+
+- Önce büyünün **nereden çıktığına** karar ver, el şekline sonra: yalnız el
+  jestiyle kurulan poz büyülü görünür ama bedenden kopuk durur; kol, omuz ve
+  gövde ellere açıkça bağlanmalı.
+- Hareket **yerden yukarı** başlar: ayak, kalça ve gövde hareketin güçlü mü,
+  denetimli mi, zahmetsiz mi hissettireceğini belirler.
+- Jestin **yönü** net olmalı: büyü görünmez olsa da enerjinin nereden gelip
+  nereye gittiği hissedilmeli. Önce his seçilir (hızlı/yavaş, denetimli/
+  kaotik, güçlü/narin), poz birden çok açıdan denenir.
+- Dört karelik örnek: 1 hazırlık (asa aşağı-geri, beden kıvrılır), 2 asa
+  başın üstüne, tepe karesi **bambaşka bir siluet**, son kare beklemeye
+  döner. Etki **bırakma karesinde** tetiklenir, başlangıçta değil; ses de
+  bırakmaya denk gelir.
+- Minecraft notu: başka bir animasyon kolları ezince büyü atma pozu hiç
+  görünmüyor — oyuncu "hiçbir şey olmuyor" sanıyor.
+
+**Bizde:** büyülü üç karakter için doğrudan kural: **Zisa** — büyü alnındaki
+sembolden ve göğüsten çıkar (onaylı alın sembolü), jest içe çekip dışa
+yayar (koruyucu, kapsayıcı); **Ice-man** — büyü asanın küresinden çıkar
+(zayıf nokta orada), jest kısa ve aşağı (kontrol, §58); **Barış** — ateş
+avuçtan ve ayaktan çıkar (Kıvılcım avuç, Kor Yürüyüşü ayak), jest geniş ve
+ileri (Kuzey Shaolin, §16). Hepsinde efekt **bırakma karesinde** başlar;
+film aracında efekt olayları zaten `t` ile yazılıyor — bırakma karesine
+bağlanmalı. Film pozu kolu yönetirken setin duruşu kolları ezmemeli
+(Minecraft notu; araçta katman sırası bunu zaten çözüyor).
+
+Kaynaklar: [PoseMyArt — büyü pozları](https://posemy.art/blog/drawing-spell-casting-poses/) ·
+[OpenMW — büyü bırakma anahtarı](https://git.cijber.net/mirror/openmw/commit/447e93bdb4a8bbceb9dca3da8aea714959073e67) ·
+[Hive Workshop — kanal + atma animasyonu](https://www.hiveworkshop.com/threads/channel-cast-time-animation.261346) ·
+[Opsive — büyü eylemleri](https://opsive.com/support/documentation/ultimate-character-controller/items-inventory/character-item/item-actions/usable/magic/)
+
+## 61. Son darbeden önceki durgunluk ("ma")
+
+- Japon sinemasında **ma**: anlatıyı güçlendirmek için bilinçli durgunluk,
+  duraklama ya da boşluk; son savaştan önce orman yolunda samurayın
+  kıpırtısız durduğu geniş plan (Miike).
+- *Kill Bill: Vol. 1* dökümü: doruk başlarken iki taraf da durup birbirini
+  tartar; sonra saldırılar hızlanır, son darbeye varır (son darbe ~8 sn, hızlı
+  değişimler ~110 sn).
+- *The Raid 2* karambit dövüşü: kesik hızlı değişimler, her biri ötekinin
+  hızını ve stilini sınar, sonra **durup bakar, izler, bekler**.
+- Ses: darbeden hemen önce **ani sessizlik** (The Night Comes for Us dökümü).
+
+**Bizde:** bütün dövüşlerin ortak kuralı olarak: **son darbeden önce bir
+"ma"** — iki taraf durur, ses kesilir, sonra tek hamle. Pipos'un "tek
+bitiriş"i (§6, §35), Barış'ın lav çukurundaki son darbesi (§49) ve
+Ice-man'in "Bu kadar kolaysın"ı bu boşluğu taşır. Düşünme anları (beş mekân,
+yedi düşünme) dövüş içindeki küçük ma'lar; son darbe öncekisi en uzunu.
+
+Kaynaklar: [LibreTexts — sinemasal durgunluk ve ma](https://human.libretexts.org/Courses/Nashville_State_Community_College/Tokyo_in_Film/03:_Production/3.05:_Cinematic_Stillness_and_the_Power_of_Ma) ·
+[GamesRadar — The Raid 2 karambit dövüşü](https://www.gamesradar.com/five-minutes-of-beautifully-choreographed-violence-the-karambit-fight-is-the-best-bit-in-the-raid-2) ·
+[Find This Movie — Kill Bill doruğu](https://findthismovie.com/?p=86504)
+
 ---
 
 ## Özet: araştırılan konular
@@ -1052,6 +1471,24 @@ Kaynaklar: [Pixelblog 52 — bekleme dövüş duruşu](https://slynyrd.com/blog/
 41. Dönüş: üstünlüğün el değiştirmesi (§41)
 42. Ortamın kırılması (§42)
 43. Bekleme duruşu ve kişilik (§43)
+44. Kötü dövüşünün evreleri (§44)
+45. Güç uyanışı (§45)
+46. İlk aksiyon sahnesi karakteri tanıtır (§46)
+47. Akıl hocası dövüşü (§47)
+48. Koruma büyüsü / kalkan (§48)
+49. Kötünün sonu (§49)
+50. Birlikte dövüşen iki kişi (§50)
+51. Komutan (§51)
+52. Kılıç ve kalkan (§52)
+53. Surun delinmesi (§53)
+54. Kar fırtınasında savaş (§54)
+55. Gizli durumu önceden sezdirmek (§55)
+56. Yeni gücün ilk kullanımı (§56)
+57. Kiai: nefes, bağırış, bedeli (§57)
+58. Kötünün sükûneti (§58)
+59. Hareket ekonomisi ve bekleme pozu (§59)
+60. Büyü atma pozu (§60)
+61. Son darbeden önceki durgunluk (§61)
 
 **Boşluklar (kaynak bulunamadı, uydurulmadı):** blok karakterle dövüş
 koreografisi, Alan Becker'ın yöntemi, gedik savunmasının ekranda

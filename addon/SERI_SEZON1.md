@@ -767,7 +767,8 @@ el kaynaklarımız aynı yönde. Her videoda uyulacaklar:
 ### Dövüş tarzı (kullanıcı, 2026-10-12)
 
 **Kendi dövüş hareketlerimiz (kullanıcı, 2026-11-04):** *"sadece bu iki mod üzerinden yapmayalım, kendi dövüş şeylerimiz de olsun ... ben Bedrock oynuyorum diye onunla alakalı bir durum da olmayacak, ne alakası var animasyonla bir oyunun Bedrock sürümü."* Epic Fight / WoM yalnız kaynaklardan biri; karakterlerin kendi hamle setleri anahtar karelerle yazılır (film pozları gibi). Filmin hareketleri Bedrock'a bağlı değil: Bedrock biçimi yalnız aynı dosyaların oyun eklentisinde de kullanılmasından. Kalan tek sınır Minecraft görünüşü (tek parça kol; diz filmde var). Hangi setin önce yazılacağı ve hamlelerin kendisi henüz konuşulmadı.
-Araştırma notları (2026-11-04, kullanıcı istedi): `REFERANS_DOVUS_KOREOGRAFI.md`, 43 konu, kaynaklı; "Bizde" satırları öneri, karar değil.
+Araştırma notları (2026-11-04, kullanıcı istedi): `REFERANS_DOVUS_KOREOGRAFI.md`, 61 konu (iki tur), kaynaklı; "Bizde" satırları öneri, karar değil.
+**Karakterlere işlenmesi (kullanıcı, 2026-11-04: *"bu öğrendiğin şeylerden hepsini karakterlerimize yedir, entegre et"*):** `DOVUS_KIMLIKLERI.md` — her karakterin dövüş kimliği (tip, taban, bekleme duruşu, hamle dili, işaret, ses, kamera), beş mekâna göre dersler, araca dönüşecekler ve 61 dersin çapraz tablosu. Kayıttaki olaylar değişmedi; **[öneri]** satırları kullanıcı onaylayınca buraya geçer. Pipos'un taslağına eklenecekler `DOVUS_KAPLAN_SANATI.md` 9. bölümde.
 
 Kullanıcının sözü: *"2. bölümde bayağı bayağı efekt kullanacağız, yani ortam
 direkt kullanılacak, dövüş detaylı; 'ben 5 vurdum o bir vurdu' gibi

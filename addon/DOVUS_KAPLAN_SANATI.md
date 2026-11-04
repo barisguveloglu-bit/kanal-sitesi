@@ -131,3 +131,27 @@ bağlanırken hazırlık, vuruş ve toparlanma evreleriyle hareketlenecekler.
 | S1 savuşturma | −62, −28, 0 | −100, −38, 0 | 0, 14, 0 | 0, −10, 0 | −8, 0, −4 | 12, 0, 4 |
 | K1 avuç | −90, −6, 0 | −42, 24, 0 | 0, −22, 0 | 0, 20, 0 | −16, 0, −3 | 18, 0, 3 |
 | B1 atılış | −96, −12, 0 | −96, 12, 0 | 20, 0, 0 | −14, 0, 0 | −32, 0, −2 | 26, 0, 2 |
+
+## 9. Araştırmadan gelenler (2026-11-04)
+
+Kullanıcı araştırmanın karakterlere işlenmesini istedi
+(`DOVUS_KIMLIKLERI.md` 3. bölüm, kaynaklar `REFERANS_DOVUS_KOREOGRAFI.md`
+§6, §35, §43, §47, §57, §61). Taslağın yukarıdaki kısmı değişmedi; aşağıdakiler
+ona eklenecek **öneriler**, onay bekliyor:
+
+- **D0 sakin → alçak at duruşu:** filmde diz var; ayaklar omuzdan geniş,
+  dizler bükük, ağırlık ortada (Hung Gar *sei ping ma*). En alçak ve en
+  geniş bekleme duruşu Pipos'un olsun; nefes salınımı yavaş.
+- **S1 savuşturma + tek kısa geri adım:** karşı vurucunun açılışı; `yan_adim`
+  olayının yanına `geri_adim` (kısa, 0,2–0,3 blok).
+- **K1 avuç → kaplan pençesi:** yukarıdan aşağı iner, gücü bel dönüşünden
+  alır; blok kolda açık el okunmadığı için pençeyi kolun açısı ve belin
+  dönüşü taşır. Öndeki kol saldırırken arkadaki kol korur.
+- **B1 atılış öncesi "ma":** 0,4–0,8 sn iki taraf da durur, ses kesilir;
+  sonra iki pençe birden aşağı (tek bitiriş).
+- **Ses:** Pipos bağırmaz, yalnız nefes verir. Rakibin bağırışı onun karşı
+  vuruş anı olabilir (bağırış vuruşu önceden işaret eder).
+- **Ölçülülük:** gerekmedikçe yaralamaz; bitiriş tek ve kararlı.
+- **Bilinen zayıflık:** açık bulamayan karşı vurucu, uzaktan saldıran
+  rakipte geride kalır. Hikâyede kullanılıp kullanılmayacağı kullanıcının
+  kararı.
