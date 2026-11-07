@@ -540,8 +540,9 @@ virüsünü üretiyor.
 - **Bayraklar (kullanıcı, 2026-11-02):** her topluluğun **kendi bayrağı**
   olmalı: insan hanedanları, Nether'dakiler, End'dekiler (*"her birinin bir
   bayrağı olmalı, biz bunu düşünmedik"*). Tasarım henüz yok.
-  - **Biçim: Minecraft sancağı** (kullanıcı, 2026-11-02). Bedrock'ta 16 boya
-    rengi, en fazla 6 desen katmanı (komutla da 6).
+  - **Biçim: Minecraft sancağı** (kullanıcı, 2026-11-02): ölçü ve görünüş
+    sancağınki. Oyunun boya ve desen sınırları filmi bağlamaz (kullanıcı,
+    2026-11-04: animasyonun telefondaki/tabletteki Bedrock oyunuyla ilgisi yok).
   - **İlk görüneceği yer:** Ömer'in savaş odası (strateji, savaş planı, öbür
     ülkelere karşı neler yapılabileceği konuşulan yer); bayraklar **kapının
     girişinde** dikili (kullanıcı).
@@ -961,7 +962,7 @@ hedef ~57,5).
   delinmesi; 4 — buz kaplı merdiven, Kor Yürüyüşü, Kıvılcım, yarım küre buz
   kalkanı, buz sütunu, jeot ve lav, lavın donması.
 
-**Ağız ve boynuz sistemi — 2. bölüm Part 2'den itibaren (kullanıcı, 2026-11-02):**
+**Ağız ve boynuz sistemi — ilk karar 2. bölüm Part 2'den itibarendi (kullanıcı, 2026-11-02; ağız 2026-11-07'de Part 1'e de alındı):**
 kullanıcı iki yöntem getirdi ve *"bu yöntemleri ekleyelim, bütün araçları bul,
 yapmaya başla; 2. bölümün Part 2'sinde bu sisteme geçelim"* dedi.
 - **Ağız:** dokuyla yapılan ağız; ağız şekilleri bir resimde yan yana (kapalı,
@@ -977,7 +978,13 @@ yapmaya başla; 2. bölümün Part 2'sinde bu sisteme geçelim"* dedi.
   Kullan, onda ağız da"*): Thomas kafasının kullanıldığı planlarda iskeletin
   kendi 3B ağzı konuşur (dişler, dil); öbür planlarda doku ağzı. Ölçüm:
   `REFERANS_THOMAS_RIG.md` "Ağız".
-- Part 1 bu sistem olmadan çiziliyor (kullanıcının sözü Part 2'den).
+- **Part 1 de ağızlı (kullanıcı, 2026-11-07):** *"ağız modellerini herkese ekle,
+  Part 1'de de olsun, herkes altyazıyla senkron"*; seçim: 2. bölümün tamamı,
+  Part 1 dahil; **1. bölüm değil** (yeniden çizilmez). Part 1'in altı
+  senaryosunda `"agiz": true`; konuşma yalnız savaş odasında (askerin raporu,
+  Ömer'in "Tamam."ı), öbür sahnelerde ağız dinlenmede (skinin kendi yüzü).
+  Ölçüldü: Pipos'un altın maskesi (şapka katmanı) ağız bölgesinin 12
+  pikselinin 10'unu kaplıyor; konuşursa ağzı görünmez (Part 2'de karar).
 - Açık (sorulacak): boynuz kimde ve hangi tür; hangi karakterler ağızla konuşur;
   seslendirme kaydı olacak mı (dudak senkronu ses kaydından mı, altyazı
   metninden mi).

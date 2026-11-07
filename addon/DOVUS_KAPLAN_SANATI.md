@@ -120,7 +120,7 @@ Bütün dövüşe yayılınca **savunma yaklaşık %60, saldırı %40**: savunma
 
 ## 8. Önizleme pozları (taslak, 2026-11-01)
 
-Bedrock dönüşü `[x, y, z]` derece; kural film_poz.py'deki gibi (kol X −90
+Model dönüşü `[x, y, z]` derece; kural film_poz.py'deki gibi (kol X −90
 öne kalkar, bel X + öne eğilir). Sabit anahtar pozlar; film aracına
 bağlanırken hazırlık, vuruş ve toparlanma evreleriyle hareketlenecekler.
 

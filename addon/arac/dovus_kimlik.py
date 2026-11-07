@@ -21,7 +21,7 @@ AGIRLIK = ("hafif", "orta", "agir")
 DONMA_KARE = {"hafif": 1, "orta": 2, "agir": 3}
 DONMA_AZAMI = 4          # Saldiri II agir vurusa bir kare ekler (§ Zisa)
 
-# bekleme: dovus halinde tabana eklenen acilar (derece, Bedrock kurali:
+# bekleme: dovus halinde tabana eklenen acilar (derece, modelin donus kurali, film_poz.py:
 # bel X + one egilir; bacak Z +/- yana acilir). Bacak acisi <= 8 derece:
 # ayagin alt kosesi en cok ~0,3 px kalkar, zemine oturtma gerekmez.
 KIMLIKLER = {

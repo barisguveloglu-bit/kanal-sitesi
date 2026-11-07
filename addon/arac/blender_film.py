@@ -1658,9 +1658,10 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
                 if sira > 0:
                     silah_nesneleri[ad].append(ob)
 
-    # ---- agiz ve boynuz (v7.99.16; kullanici: 2. bolum Part 2'den itibaren) ----
+    # ---- agiz ve boynuz (v7.99.16; kullanici: 2. bolumun tamami, 2026-11-07'den
+    # beri Part 1 dahil) ----
     # Senaryo "agiz": true (ya da aktorde "agiz": true/false) acar; yazilmazsa
-    # hicbir sey eklenmez, 1. bolum ve Part 1 bire bir eskisi (arac/agiz.py).
+    # hicbir sey eklenmez, 1. bolum bire bir eskisi (arac/agiz.py).
     agiz_nesne = {}            # {aktor: {sekil: nesne}}
     for ad, a in aktorler.items():
         if not a.v.get("agiz", senaryo.get("agiz", False)):
@@ -2892,11 +2893,6 @@ BOYA = {"kirmizi": (0xB0, 0x2E, 0x26), "sari": (0xFE, 0xD8, 0x3D), "gri": (0x47,
 # bir uzun), sur tuglali ve ortasinda kapali tahta kapi, kenarda altin
 # serit. Anlam: kizil = cesaret ve dokulen kan, altin = umut ve soyluluk,
 # gri sur = savunma ve sabir, kapi = korunan halk.
-# Oyunda birebir kurulamaz (Bedrock en fazla 6 desen katmani, tugla deseni
-# butun kumasi kaplar); oyundaki en yakin karsiligi SANCAK_OYUNDA.
-SANCAK_OYUNDA = {"surda_safak": [("taban", "kirmizi"), ("gradient", "siyah"), ("flower", "turuncu"),
-                                 ("circle", "sari"), ("half_horizontal_bottom", "gri"),
-                                 ("border", "sari")]}
 SANCAK_GUNES = (9.5, 22.5, 5.2)       # merkez x, y (ustten) ve yaricap, piksel
 SANCAK_UFUK = 22                       # mazgallarin ust satiri
 SANCAK_MAZGAL = [(1, 3), (6, 8), (11, 13), (16, 18)]   # dolu sutunlar (dahil)

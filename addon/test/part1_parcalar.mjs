@@ -13,7 +13,7 @@
       (sonsuz), ruzgarla bati yonune kayar, ayni tohum ayni kar.
    4. Sancak: 20 x 40 kumas (Minecraft sancagi), "Surda Safak" ikinci
       surum: gunes mazgalli surun ARKASINDAN dogar, sur tuglali, ortada
-      tahta kapi, kenarda altin serit; oyundaki karsiligi <= 6 katman.
+      tahta kapi, kenarda altin serit.
    5. Savas haritasi: boyut, cerceve, bizim kirmizi isaret karada.
    6. Savas odasi yalniz kalenin ICINDE: hanedanin geri kalani bire bir
       ayni (onaylanmis tasarim degismez).
@@ -111,7 +111,6 @@ mazgal = [s[U][x][0] - s[U][x][1] < 60 for x in range(1, 19)]   # tas (isinmis d
 beklenen_m = [any(a <= x <= b for a, b in F.SANCAK_MAZGAL) for x in range(1, 19)]
 kapi = s[35][F.SANCAK_KAPI[0]] == F.BOYA["kahve"]
 kenar = all(s[y][x][0] > 150 and s[y][x][0] > s[y][x][1] > s[y][x][2] for y in range(40) for x in (0, 19))
-oyunda = len(F.SANCAK_OYUNDA["surda_safak"]) - 1
 renk = len(set(c for row in s for c in row))
 h = F.harita_pikselleri()
 gen, yuk = len(h[0]), len(h)
@@ -120,14 +119,15 @@ biz = h[int(v * yuk)][int(u * gen)]
 cerceve = all(h[0][x] == h[yuk - 1][x] for x in range(gen))
 print(json.dumps({"boyut": [len(s[0]), len(s)], "sur_temiz": sur_temiz, "sari_alt": max(y for x, y in sari),
                   "sari_say": len(sari), "mazgal": mazgal == beklenen_m, "kapi": kapi, "kenar": kenar,
-                  "oyunda": oyunda, "renk": renk, "h": [gen, yuk],
+                  "renk": renk, "h": [gen, yuk],
                   "biz": list(biz), "kirmizi": list(K), "cerceve": cerceve}))`);
   kontrol("sancak 20 x 40 (Minecraft sancagi)", r.boyut[0] === 20 && r.boyut[1] === 40, JSON.stringify(r.boyut));
   kontrol("gunes surun arkasindan dogar: siperin altinda gok/gunes rengi yok, gunes ufkun ustunde",
           r.sur_temiz && r.sari_alt < 24 && r.sari_say > 15, "sari en alt " + r.sari_alt + ", " + r.sari_say + " px");
   kontrol("mazgallar dolu, aralarindan gok gorunuyor; ortada tahta kapi; kenarda altin serit", r.mazgal && r.kapi && r.kenar);
-  kontrol("ayrintili doku (duz uc renk degil); oyundaki karsiligi en fazla 6 desen katmani",
-          r.renk >= 15 && r.oyunda <= 6, r.renk + " renk, oyunda " + r.oyunda + " katman");
+  // oyunun sancak kurali (6 desen katmani) filme uygulanmaz -- kullanici 2026-11-04:
+  // animasyonun telefondaki/tabletteki Bedrock oyunuyla ilgisi yok
+  kontrol("ayrintili doku (duz uc renk degil)", r.renk >= 15, r.renk + " renk");
   kontrol("savas haritasi 160 x 96, cerceveli", r.h[0] === 160 && r.h[1] === 96 && r.cerceve);
   kontrol("haritada bizim hanedanin kirmizi isareti", JSON.stringify(r.biz) === JSON.stringify(r.kirmizi));
 }

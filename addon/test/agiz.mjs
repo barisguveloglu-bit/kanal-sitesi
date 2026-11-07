@@ -18,8 +18,11 @@
    5. Boynuz: iki yan ayna simetrik; seytan yukari cikip sivriliyor,
       keci geriye gidip kafanin ustunden asagi iniyor; hicbir parca
       kafanin icinde degil.
-   6. Acmadan hicbir sey eklenmiyor: Part 1'in senaryolarinda "agiz" ve
-      "boynuz" yok (Part 2'den itibaren, kullanici).
+   6. Kapsam (kullanici 2026-11-07: "herkes altyazıyla senkron, Part 1'de
+      de olsun"): 2. bolum Part 1'in alti senaryosunun hepsinde "agiz";
+      1. bolumde yok (yeniden cizilmez); boynuz henuz hicbirinde yok (kimde
+      olacagi acik soru). Konusan aktorun agzi sapka katmaninin arkasinda
+      kalmiyor (Pipos'un altin maskesi agiz bolgesini kapliyor).
    7. Thomas Rig Legacy'nin 3B agzi (kullanici: "onda agiz da var"): her
       sekle olculen sinirlar icinde kontrol degeri; disler ve dil yalniz
       agiz acikken; Thomas planlarinda doku agzi gizli. */
@@ -150,11 +153,35 @@ print(json.dumps({"eksik": eksik, "sinir_disi": sinir_disi, "acik": [y("C"), y("
   kontrol("Thomas planlarinda doku agzi gizli (yuzun onunde asili kalmasin)", /s_ = "X" if \(f \+ 1\) in t_kare else/.test(bf));
 }
 
-console.log("\n=== 6. ACMADAN HICBIR SEY YOK ===");
+console.log("\n=== 6. KAPSAM: PART 1 AGIZLI, 1. BOLUM DEGIL ===");
 {
-  const p1 = readdirSync(FILM).filter((a) => a.startsWith("bolum2_p1_") || a.startsWith("bolum1_"));
-  const var_ = p1.filter((a) => /"agiz"\s*:\s*true|"boynuz"/.test(readFileSync(join(FILM, a), "utf8")));
-  kontrol("1. bolum ve Part 1 senaryolarinda agiz/boynuz yok (Part 2'den itibaren)", var_.length === 0, var_.join(" "));
+  const oku = (a) => readFileSync(join(FILM, a), "utf8");
+  const b1 = readdirSync(FILM).filter((a) => a.startsWith("bolum1_"));
+  const p1 = readdirSync(FILM).filter((a) => a.startsWith("bolum2_p1_") && a.endsWith(".json"));
+  const b1_var = b1.filter((a) => /"agiz"\s*:\s*true|"boynuz"/.test(oku(a)));
+  kontrol("1. bolum senaryolarinda agiz/boynuz yok (1. bolum yeniden cizilmez)", b1.length > 0 && b1_var.length === 0, b1_var.join(" "));
+  const p1_yok = p1.filter((a) => JSON.parse(oku(a)).agiz !== true);
+  kontrol("2. bolum Part 1'in alti senaryosunun hepsinde \"agiz\": true", p1.length === 6 && p1_yok.length === 0,
+          p1.length + " senaryo; eksik: " + p1_yok.join(" "));
+  kontrol("Part 1'de boynuz yok (kimde olacagi acik soru)", p1.every((a) => !/"boynuz"/.test(oku(a))));
+  const r = py(`
+import agiz as A, os
+from PIL import Image
+os.chdir(${JSON.stringify(join(BURADA, ".."))})
+sonuc = []
+for y in sys.argv[2:]:
+    s = json.load(open(y))
+    konusan = sorted({o["aktor"] for o in s["olaylar"] if o.get("soyle")})
+    for ad in konusan:
+        skin = s["aktorler"][ad]["skin"]
+        im = Image.open(skin).convert("RGBA")
+        satir = A.agiz_satiri(skin)
+        n = (8 - satir) * 6
+        kapali = sum(1 for r_ in range(satir, 8) for c in range(1, 7) if im.getpixel((40 + c, 8 + r_))[3] > 0)
+        sonuc.append([y.split("/")[-1], ad, kapali, n])
+print(json.dumps(sonuc))`.replace("sys.argv[2:]", JSON.stringify(p1.map((a) => "film/" + a))));
+  kontrol("konusan aktorlerin agzi sapka katmaninin arkasinda kalmiyor (en cok yarisi kapali)",
+          r.length >= 2 && r.every(([, , k, n]) => k * 2 <= n), JSON.stringify(r));
   const kod = readFileSync(join(ARAC, "blender_film.py"), "utf8");
   kontrol("film araci agzi yalniz \"agiz\" yazilinca kuruyor", /if not a\.v\.get\("agiz", senaryo\.get\("agiz", False\)\):/.test(kod));
 }

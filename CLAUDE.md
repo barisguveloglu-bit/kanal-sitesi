@@ -671,6 +671,14 @@ evren** (kullanıcının kararı: *"bu iki evren farklı evrenler"*). Seride
 Barış güç açıyor; `LORE.md` "Barış güçsüz kalacak" diyor — çelişki
 değil. Seriye ait hiçbir şey `LORE.md`'ye ya da `data.js`'e yazılmaz.
 
+**Animasyon oyundan da ayrı (kullanıcı, 2026-11-04):** *"animasyon yapıyoruz ya,
+bu benim telefonumdaki veya tabletimdeki Minecraft'taki Bedrock ile alakası yok;
+bir şey benim bununla alakalı bir bilgime bağlıysa bunu sil — biri animasyon,
+diğeri oyun."* Film kararı oyunun kuralına ya da kullanıcının oyunu hakkındaki
+bir bilgiye dayandırılmaz (ör. sancağın "oyunda 6 desen katmanı" sınırı ve
+oyundaki tarifi bu yüzden silindi). Film aracının model ve hareket dosyalarını
+eklentinin klasörlerinden okuması yalnız ortak veri; kural değil.
+
 **Film araçları yeni oturumda hazır gelir (v7.99.10).** `addon/arac/arac_kur.sh`
 Blender 5.2.2 + MCprep 3.6.3 dokularını **resmî kaynaktan** indirip SHA-256 /
 md5 ile doğrular, `/opt/araclar`'a kurar (`BLENDER`, `MCPREP_DOKU`); kuruluysa

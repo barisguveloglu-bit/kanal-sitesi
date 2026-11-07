@@ -8,6 +8,7 @@
  "ornek": 4096,
  "uyarlamali": 0.01,
  "akici": true,
+ "agiz": true,
  "mekan": "hanedan",
  "gunes_yon": 60,
  "pozlama": 0.0,
