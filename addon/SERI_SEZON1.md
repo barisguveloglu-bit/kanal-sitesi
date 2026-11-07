@@ -985,6 +985,14 @@ yapmaya başla; 2. bölümün Part 2'sinde bu sisteme geçelim"* dedi.
   Ömer'in "Tamam."ı), öbür sahnelerde ağız dinlenmede (skinin kendi yüzü).
   Ölçüldü: Pipos'un altın maskesi (şapka katmanı) ağız bölgesinin 12
   pikselinin 10'unu kaplıyor; konuşursa ağzı görünmez (Part 2'de karar).
+- **Ağız Thomas Rig Legacy'nin 3B ağzıyla (kullanıcı, 2026-11-07):**
+  *"Thomas Rig Legacy vardı ya, onunla yapacaksın bu işi."* Konuşma
+  çekimleri `goz: "thomas"` planı; konuşanın Thomas kafası var (dişler,
+  dil, altyazıdan dudak senkronu). Göz rengi uydurulmadı, skinin kendi göz
+  pikselinden (Ömer `#291500`, asker `#fd0301`; ışıma yok). Doku ağzı
+  konuşmuyor. Önizlemede görülen: Thomas gözü askerin kırmızı nokta
+  gözlerini beyaz göz + kırmızı halkaya çeviriyor; Ömer'in gözü skinine
+  yakın. Askerin bu görünüşü kullanıcıya soruldu.
 - Açık (sorulacak): boynuz kimde ve hangi tür; hangi karakterler ağızla konuşur;
   seslendirme kaydı olacak mı (dudak senkronu ses kaydından mı, altyazı
   metninden mi).

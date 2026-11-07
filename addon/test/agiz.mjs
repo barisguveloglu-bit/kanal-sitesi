@@ -23,6 +23,10 @@
       1. bolumde yok (yeniden cizilmez); boynuz henuz hicbirinde yok (kimde
       olacagi acik soru). Konusan aktorun agzi sapka katmaninin arkasinda
       kalmiyor (Pipos'un altin maskesi agiz bolgesini kapliyor).
+      Konusma Thomas Rig Legacy'nin 3B agziyla (kullanici 2026-11-07:
+      "Thomas Rig Legacy ile yapacaksin bu isi"): her konusma ani bir
+      goz="thomas" planinin icinde, konusanin Thomas kafasi var ve goz
+      rengi uydurulmadi, skinin kendi yuz pikselinden (dogrusal).
    7. Thomas Rig Legacy'nin 3B agzi (kullanici: "onda agiz da var"): her
       sekle olculen sinirlar icinde kontrol degeri; disler ve dil yalniz
       agiz acikken; Thomas planlarinda doku agzi gizli. */
@@ -182,6 +186,35 @@ for y in sys.argv[2:]:
 print(json.dumps(sonuc))`.replace("sys.argv[2:]", JSON.stringify(p1.map((a) => "film/" + a))));
   kontrol("konusan aktorlerin agzi sapka katmaninin arkasinda kalmiyor (en cok yarisi kapali)",
           r.length >= 2 && r.every(([, , k, n]) => k * 2 <= n), JSON.stringify(r));
+  const th = py(`
+import agiz as A, blender_film as F, os
+from PIL import Image
+os.chdir(${JSON.stringify(join(BURADA, ".."))})
+def dogrusal(c):
+    c = c / 255.0
+    return round(c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4, 4)
+sonuc = []
+for y in sys.argv[2:]:
+    s = json.load(open(y))
+    atis = sorted(s.get("kamera", []), key=lambda c: c["t"])
+    def thomas(t):
+        suan = [c for c in atis if c["t"] <= t + 1e-9]
+        return (suan[-1] if suan else atis[0]).get("goz") == "thomas"
+    for ad in sorted({o["aktor"] for o in s["olaylar"] if o.get("soyle")}):
+        c = A.agiz_cizelgesi(s["olaylar"], ad, 30, F.yazi_suresi)
+        anlar = [i / 30.0 for i in range(int(c[0][0] * 30), int(c[-1][0] * 30) + 2)
+                 if A.sekil_karede(c, i / 30.0) != "X"]
+        disari = [round(t, 2) for t in anlar if not thomas(t)]
+        v = s["aktorler"][ad]
+        im = Image.open(v["skin"]).convert("RGB")
+        yuz = {tuple(dogrusal(x) for x in im.getpixel((8 + i, 8 + j))) for i in range(8) for j in range(8)}
+        g = v.get("goz") or {}
+        sonuc.append([y.split("/")[-1], ad, len(anlar), disari[:5], bool(g), tuple(g.get("iris", ())) in yuz])
+print(json.dumps(sonuc))`.replace("sys.argv[2:]", JSON.stringify(p1.map((a) => "film/" + a))));
+  kontrol("Part 1'de her konusma ani Thomas planinda (3B agiz; doku agzi konusmuyor)",
+          th.length >= 2 && th.every(([, , n, d]) => n > 0 && d.length === 0), JSON.stringify(th.map((x) => x.slice(0, 4))));
+  kontrol("konusanlarin Thomas kafasi var; goz rengi skinin kendi yuz pikseli (uydurulmadi)",
+          th.every(([, , , , g, renk]) => g && renk), JSON.stringify(th.map((x) => [x[1], x[4], x[5]])));
   const kod = readFileSync(join(ARAC, "blender_film.py"), "utf8");
   kontrol("film araci agzi yalniz \"agiz\" yazilinca kuruyor", /if not a\.v\.get\("agiz", senaryo\.get\("agiz", False\)\):/.test(kod));
 }
