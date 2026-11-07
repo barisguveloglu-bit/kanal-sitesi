@@ -14,6 +14,10 @@
    8. arac_kur.sh: resmi kaynak + SHA-256 (REFERANS ile ayni), tutmazsa KURULMUYOR;
       indirme/SHA hatasi Blender kurulumunu DURDURMUYOR (bulut her oturumda bu
       betigi calistiriyor); paketten YALNIZ iskelet .blend'i aciliyor, THOMAS_RIG yaziliyor
+  12. boyali gozler (2026-11-07, Omer'de gozun altinda kalan cizgi): Thomas
+      kafasinin skin kopyasinda goz satirinin tenden farkli pikselleri
+      (beyaz + iris) tenle silinir; kur() bunu yapiyor. Omer 5. satir 1,2,5,6;
+      asker 4. satir 2,5 (kirmizi noktalar); ten pikselleri dokunulmuyor.
   11. goz yuksekligi (2026-11-07, Omer'de dort goz): skinin goz satiri ->
       Eyes_UP_DOWN; 4 = iskeletin kendi yeri (0), 1 satir = kemikte 0,1
       (Blender'da olculdu: kemik -0,06 -> goz 0,036 iner); sinir disi HATA.
@@ -162,6 +166,27 @@ print(json.dumps({"s4": T.goz_yuksekligi(4), "s5": T.goz_yuksekligi(5), "s3": T.
 kontrol("11. goz yuksekligi: 4. satir 0, 5. satir -0,1 (olculen oran), 3. satir +0,1; sinir disi ve kesir HATA; yazilmazsa 0 (1. bolum ayni)",
         yk.s4 === 0 && yk.s5 === -0.1 && yk.s3 === 0.1 && yk.s6 && yk.s2 && yk.kesir && yk.varsayilan === 0 && yk.ayar5 === -0.1 &&
         /pb\[YUKSEKLIK_KEMIK\]\.location = \(0\.0, bilgi\["ayar"\]\["yukseklik"\], 0\.0\)/.test(tg), JSON.stringify(yk));
+
+const bg = JSON.parse(execFileSync("python3", ["-c", `
+import sys, json, os
+sys.dont_write_bytecode = True
+sys.path.insert(0, sys.argv[1])
+import thomas_goz as T
+from PIL import Image
+k = os.path.join(sys.argv[1], "..", "kaynak_doku", "aktor")
+c = {}
+for ad, sat in (("omer.png", 5), ("sur_askeri_gri.png", 4)):
+    im = Image.open(os.path.join(k, ad)).convert("RGBA")
+    yuz = [[im.getpixel((8 + x, 8 + y)) for x in range(8)] for y in range(8)]
+    ten, sil = T.boyali_gozler(yuz, sat)
+    c[ad] = {"ten": list(ten), "sil": sorted(list(p) for p in sil)}
+print(json.dumps(c))`, ARAC], { encoding: "utf8" }));
+const kurk = tg.slice(tg.indexOf("def kur("), tg.indexOf("def _sabit_yap"));
+kontrol("12. boyali gozler Thomas kafasinin skininden siliniyor: Omer 5. satir 1,2,5,6 (beyaz+kahve), asker 4. satir 2,5 (kirmizi); ten dokunulmuyor",
+        JSON.stringify(bg["omer.png"].sil) === "[[1,5],[2,5],[5,5],[6,5]]" && bg["omer.png"].ten.join() === "254,209,162" &&
+        JSON.stringify(bg["sur_askeri_gri.png"].sil) === "[[2,4],[5,4]]" &&
+        /ten, silinen = boyali_gozler\(yuz, bilgi\["ayar"\]\["satir"\]\)/.test(kurk) && /skin\[0\]\.pixels = px/.test(kurk),
+        JSON.stringify(bg));
 
 console.log("");
 console.log(hata ? ">>> SORUN VAR" : ">>> Thomas gozleri: kullanicinin ayari, olculen sinirlar, resmi kaynak");

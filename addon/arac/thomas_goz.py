@@ -127,7 +127,27 @@ def goz_ayari(v):
     return {"sol": gozler["sol"], "sag": gozler["sag"],
             "ortak": {k: x for k, x in ortak.items() if k in ORTAK_GIRIS},
             "ayri": bool(v.get("sol") or v.get("sag")),
+            "satir": int(v.get("satir", RIG_GOZ_SATIRI)),
             "yukseklik": goz_yuksekligi(v.get("satir", RIG_GOZ_SATIRI))}
+
+
+def boyali_gozler(yuz, satir=RIG_GOZ_SATIRI, esik=60):
+    """Skine boyali gozleri bulur (Thomas kafasinda silinecekler).
+    yuz: 8x8 [(r, g, b, a)] (skindeki on yuz, ustten). Ten = goz satirindan
+    asagisinin en sik rengi; goz satirinda tenden belirgin farkli (RGB fark
+    toplami > esik) pikseller boyali gozdur (beyaz + iris).
+    Donus: (ten (r, g, b), [(sutun, satir), ...]).
+    Neden (kullanici, 2026-11-07, Omer): Thomas gozu ~0,9 px boyunda; gozu
+    skinin satirina indirmek yetmedi, boyali gozun alt kenari ince bir cizgi
+    olarak kaldi. REFERANS_THOMAS_RIG: "skin gozsuzse temiz"."""
+    say = {}
+    for r in range(satir, 8):
+        for c in range(8):
+            p = tuple(yuz[r][c][:3])
+            say[p] = say.get(p, 0) + 1
+    ten = max(sorted(say.items()), key=lambda kv: kv[1])[0]
+    fark = lambda p: sum(abs(a - b) for a, b in zip(p[:3], ten))
+    return ten, [(c, satir) for c in range(8) if fark(yuz[satir][c]) > esik]
 
 
 def goz_yuksekligi(satir):
@@ -316,6 +336,22 @@ def kur(bpy, senaryo, harita, aktorler, kemik_nesne, kare_bul, skin_yolu, rig_yo
             raise SystemExit("HATA: iskeletin skin resmi (Steve) bulunamadi: %s" % [i.name for i in resimler])
         skin[0].filepath = skin_yolu(aktorler[ad].v["skin"])
         skin[0].reload()
+        # -- skine boyali gozler silinir (yalniz bu kafanin kopyasinda; bizim
+        # kafa kendi resmini kullaniyor): Thomas gozu boyali gozu tam ortmuyor
+        G, Y = skin[0].size
+        px = list(skin[0].pixels)
+        def _p(x, y):                       # skin koordinati (ustten) -> dizin
+            return ((Y - 1 - y) * G + x) * 4
+        yuz = [[tuple(int(round(px[_p(8 + c, 8 + r) + k] * 255)) for k in range(4)) for c in range(8)]
+               for r in range(8)]
+        ten, silinen = boyali_gozler(yuz, bilgi["ayar"]["satir"])
+        for c, r in silinen:
+            i = _p(8 + c, 8 + r)
+            px[i:i + 3] = [x / 255.0 for x in ten]
+        skin[0].pixels = px
+        skin[0].update()
+        skin[0].pack()
+        print("THOMAS %s: boyali goz silindi %s (ten %s)" % (ad, silinen, ten), flush=True)
         # -- gercek goz yuvasi, gercekci goz, iki goz ayri renk istendiyse
         mp = rig.pose.bones["Main_Properties"]
         mp["Full rigged face"] = 1

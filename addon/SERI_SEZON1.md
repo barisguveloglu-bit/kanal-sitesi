@@ -995,6 +995,8 @@ yapmaya başla; 2. bölümün Part 2'sinde bu sisteme geçelim"* dedi.
   yakın. Askerin bu görünüşü kullanıcıya soruldu.
   Kullanıcı Ömer'de dört göz buldu (Thomas gözleri 4. satırda, Ömer'in
   gözleri 5. satırda); Thomas gözleri skinin kendi göz satırına indirildi.
+  Kalan ince çizgi için Thomas kafasının skin kopyasında boyalı gözler
+  tenle siliniyor (skin dosyası değişmiyor).
 - Açık (sorulacak): boynuz kimde ve hangi tür; hangi karakterler ağızla konuşur;
   seslendirme kaydı olacak mı (dudak senkronu ses kaydından mı, altyazı
   metninden mi).
