@@ -14,6 +14,9 @@
    8. arac_kur.sh: resmi kaynak + SHA-256 (REFERANS ile ayni), tutmazsa KURULMUYOR;
       indirme/SHA hatasi Blender kurulumunu DURDURMUYOR (bulut her oturumda bu
       betigi calistiriyor); paketten YALNIZ iskelet .blend'i aciliyor, THOMAS_RIG yaziliyor
+  11. goz yuksekligi (2026-11-07, Omer'de dort goz): skinin goz satiri ->
+      Eyes_UP_DOWN; 4 = iskeletin kendi yeri (0), 1 satir = kemikte 0,1
+      (Blender'da olculdu: kemik -0,06 -> goz 0,036 iner); sinir disi HATA.
    9. depoda Mojang dokusu yok (Steve-base.png), KAYNAKLAR.md'de satir var,
       blender_film kur()'u cagiriyor, yuz yonu yuzey normalinden ALINMIYOR
       (ilk denemede kupler ters sarili oldugu icin kafa 180 derece ters oturdu)
@@ -141,6 +144,24 @@ kontrol("10. mavi kalip = kullanicinin fotografindaki goz, isimasiz; tek goze ay
         mv.kalip.iris.join() === mv.foto.join() && mv.kalip.isima === 0 && mv.sag.iris.join() === mv.foto.join() &&
         mv.sag.isima === 0 && mv.sol.iris.join() === "1,0,0" && mv.sol.isima === 30 && mv.ortak.yayilma === 12 && mv.hata,
         "foto " + mv.foto.join(",") + " sag " + mv.sag.iris.join(","));
+
+const yk = JSON.parse(execFileSync("python3", ["-c", `
+import sys, json
+sys.dont_write_bytecode = True
+sys.path.insert(0, sys.argv[1])
+import thomas_goz as T
+def hata(x):
+    try:
+        T.goz_yuksekligi(x); return False
+    except ValueError:
+        return True
+print(json.dumps({"s4": T.goz_yuksekligi(4), "s5": T.goz_yuksekligi(5), "s3": T.goz_yuksekligi(3),
+                  "s6": hata(6), "s2": hata(2), "kesir": hata(4.5),
+                  "varsayilan": T.goz_ayari({"kalip": "kirmizi"})["yukseklik"],
+                  "ayar5": T.goz_ayari({"kalip": "kirmizi", "satir": 5})["yukseklik"]}))`, ARAC], { encoding: "utf8" }));
+kontrol("11. goz yuksekligi: 4. satir 0, 5. satir -0,1 (olculen oran), 3. satir +0,1; sinir disi ve kesir HATA; yazilmazsa 0 (1. bolum ayni)",
+        yk.s4 === 0 && yk.s5 === -0.1 && yk.s3 === 0.1 && yk.s6 && yk.s2 && yk.kesir && yk.varsayilan === 0 && yk.ayar5 === -0.1 &&
+        /pb\[YUKSEKLIK_KEMIK\]\.location = \(0\.0, bilgi\["ayar"\]\["yukseklik"\], 0\.0\)/.test(tg), JSON.stringify(yk));
 
 console.log("");
 console.log(hata ? ">>> SORUN VAR" : ">>> Thomas gozleri: kullanicinin ayari, olculen sinirlar, resmi kaynak");

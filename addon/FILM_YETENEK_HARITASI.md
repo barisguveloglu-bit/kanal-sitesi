@@ -243,6 +243,7 @@ her blok "başka sürümle çizilmiş" uyarısı verirdi). Eski ve yeni kod
 - İşçi eski kodla çizilmiş kareyi "var" saydı; kareye `.girdi` imzası eklendi (kilit: `cizim_dagit.mjs`).
 
 **Dış iskeletle karşılaştırma**
+- **Ömer'de dört göz (2026-11-07, kullanıcı buldu; savaş odası, 13,0 sn'den sona, Thomas ağzıyla "Tamam"):** Thomas iskeletinin gözleri yüzde sabit yükseklikte, Steve'in göz satırında (4. satır); Ömer'in skininde o satır kaş, gözleri 5. satırda. İskeletin göz yuvaları kaşın yerine açıldı, skine boyalı gözler altında kaldı. Sebep ölçü: skinin göz satırı iskeletinkiyle hiç karşılaştırılmamıştı (önceki Thomas skinlerinin gözü 4. satırdaydı); test göz rengini ölçüyor, yerini ölçmüyordu; önizlemeye bakarken Claude da kaçırdı. Düzeltme: aktörün `goz.satir` ayarı → `Eyes_UP_DOWN` (1 satır = kemikte 0,1; Blender'da ölçüldü: kemik −0,06 → göz 0,036 iner, ilk deneme 0,06 ile yarım kaldı). Kilit: `goz_thomas.mjs` 11, `agiz.mjs` 6 (Thomas gözü skinin göz satırında). Sınır: iskelet gözü en çok 5. satıra iner; Zisa (gözleri 6. satırda) Thomas kafasıyla konuşamaz, kod HATA verir.
 - Bizim araç skinleri yatay aynalıyor. **Kullanıcının kararı (2026-11-02): aynı kalsın** (1. bölümle aynı görünüş).
 
 **Ders:**

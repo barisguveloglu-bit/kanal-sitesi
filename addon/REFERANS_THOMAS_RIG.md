@@ -64,7 +64,7 @@ gösterildi). "Çalışmadı" yazan satırlar da ölçüm — bir daha denenmesi
 | yüzey | `Roughness` | parlaklık | |
 | bakış (bebek) | `Eye.L` / `Eye.R` konumu | **Y = yukarı/aşağı**; **Z = sağ/sol, iki gözde ters işaret** (L z −, R z + → ekranın sağına bakar) | sınır: L y ±0,1 z −0,15…0,05; R y ±0,1 z −0,05…0,15. `Pupils_controller.001` **çalışmadı** |
 | göz kapağı | `iUI_Blink.L` / `iUI_Blink.r` Y | −0,052 kapalı, −0,026 yarı, 0 normal, +0,052 iyice açık | tek göz ayrı |
-| göz yüksekliği | `Eyes_UP_DOWN` Y | iki göz birlikte yüzde kayar | −0,184…+0,11; skinin boyalı gözü yerinde kalır — skin gözsüzse temiz |
+| göz yüksekliği | `Eyes_UP_DOWN` Y | iki göz birlikte yüzde kayar | −0,184…+0,11; skinin boyalı gözü yerinde kalır — skin gözsüzse temiz. **Oran (2026-11-07, Blender'da `Eyes` z'si):** kemik −0,06 → göz 0,036 iner; 1 piksel (0,06) = kemikte 0,1. Gözü 4. satırda olmayan skinde (Ömer: 5. satır) Thomas gözü oraya indirilir (`goz.satir`), yoksa dört göz |
 | göz şekli | her gözde 8 kol: `Bone.011…026, .035` (`CS_Eye_1…8.L/R`) | göz kapağı hattını büker (kızgın, kısık, şaşkın) | kol 1 = üst köşe, kol 2 = üst kapağın kavisi |
 | bakış takibi | `Main_Properties["Eyes tracker"]`, `EyesTracker` (IK) | gözler bir hedefi izler | varsayılan açık; ayrıca denenmedi |
 | kaşlar | `Eyebrow_control*`, `L/R.Eyebrow_*` | kaş yüksekliği, bükme, germe | kullanıcı yalnız göz istedi — kullanılmıyor |

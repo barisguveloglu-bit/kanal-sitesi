@@ -19,6 +19,12 @@ Senaryo:
   olay {"t", "aktor", "goz_bakis": [yatay, dikey], "sure"}
       -1..1; yatay +1 ekranin sagi (karaktere dogru bakan kamerada),
       dikey +1 yukari. Olculen sinirlarda kirpilir.
+  aktorler.<ad>.goz.satir = n
+      Skinin kendi gozlerinin yuzdeki satiri (0 = ust). Iskeletin gozleri
+      Steve'in satirinda (4); skinin gozu baska satirdaysa Thomas gozleri
+      oraya kaydirilir (Eyes_UP_DOWN), yoksa skine boyali gozler yuvalarin
+      altinda/ustunde ikinci bir cift goz olarak gorunur (2026-11-07,
+      Omer: gozleri 5. satirda, 4. satirda kaslari -- dort goz cizildi).
 
 Iskelet dosyasi DEPODA YOK: arac_kur.sh resmi siteden (extensions.blender.org)
 indirir, SHA-256 ile dogrular, yalniz iskelet .blend'ini acar (paketteki
@@ -57,6 +63,16 @@ BAKIS_ADIM = 0.1           # tam bakista Eye.L / Eye.R'nin kaymasi
 BAKIS_SINIR = {"L": {"y": (-0.1, 0.1), "z": (-0.15, 0.05)},
                "R": {"y": (-0.1, 0.1), "z": (-0.05, 0.15)}}
 BAKIS_ISARET = {"L": -1.0, "R": 1.0}
+# goz yuksekligi (REFERANS_THOMAS_RIG.md "goz yuksekligi"): Eyes_UP_DOWN yerel Y,
+# iki goz birlikte kayar, -0,184 (asagi) .. +0,11. Olculdu (2026-11-07, Blender'da
+# Eyes nesnesinin z'si): kemik -0,06 -> goz 0,036 iner (oran 0,6); kafa 8 px =
+# 0,48 birim, 1 px = 0,06 birim -> 1 satir = kemikte 0,1. Ilk deneme 0,06 ile
+# yapildi, goz 0,6 px indi ve boyali gozlerin alt yarisi gorundu.
+# Iskeletin gozleri skinin 4. satirindaki goze oturur (Steve).
+YUKSEKLIK_KEMIK = "Eyes_UP_DOWN"
+YUKSEKLIK_SINIR = (-0.184, 0.11)
+RIG_GOZ_SATIRI = 4
+PIKSEL = 0.1
 KAPAK_KEMIK = {"sol": "iUI_Blink.L", "sag": "iUI_Blink.r"}     # .r kucuk harf: iskeletteki ad
 BAKIS_KEMIK = {"L": "Eye.L", "R": "Eye.R"}
 # Cizilen nesneler; gerisi (govde, kol, bacak, kas, dis, dil, katman cikintilari,
@@ -87,12 +103,12 @@ def goz_ayari(v):
     kalip = v.get("kalip")
     if kalip is not None and kalip not in KALIPLAR:
         raise ValueError("bilinmeyen goz kalibi: %s (bilinenler: %s)" % (kalip, ", ".join(KALIPLAR)))
-    bilinen = set(GIRIS) | set(ORTAK_GIRIS) | {"kalip", "sol", "sag"}
+    bilinen = set(GIRIS) | set(ORTAK_GIRIS) | {"kalip", "sol", "sag", "satir"}
     for k in v:
         if k not in bilinen:
             raise ValueError("bilinmeyen goz anahtari: %s" % k)
     ortak = dict(KALIPLAR.get(kalip, {}))
-    ortak.update({k: x for k, x in v.items() if k not in ("kalip", "sol", "sag")})
+    ortak.update({k: x for k, x in v.items() if k not in ("kalip", "sol", "sag", "satir")})
     gozler = {}
     for taraf in ("sol", "sag"):
         ozel = dict(v.get(taraf) or {})
@@ -110,7 +126,19 @@ def goz_ayari(v):
         gozler[taraf] = dict(taban, **ozel)
     return {"sol": gozler["sol"], "sag": gozler["sag"],
             "ortak": {k: x for k, x in ortak.items() if k in ORTAK_GIRIS},
-            "ayri": bool(v.get("sol") or v.get("sag"))}
+            "ayri": bool(v.get("sol") or v.get("sag")),
+            "yukseklik": goz_yuksekligi(v.get("satir", RIG_GOZ_SATIRI))}
+
+
+def goz_yuksekligi(satir):
+    """Skinin goz satiri -> Eyes_UP_DOWN yerel Y (asagi eksi). Olculen sinirin
+    disi HATA: iskelet gozu oraya indiremiyor, sessizce kirpmak dort goz demek."""
+    if int(satir) != satir:
+        raise ValueError("goz satiri tamsayi olmali: %r" % (satir,))
+    y = -(int(satir) - RIG_GOZ_SATIRI) * PIKSEL
+    if not (YUKSEKLIK_SINIR[0] - 1e-9 <= y <= YUKSEKLIK_SINIR[1] + 1e-9):
+        raise ValueError("goz satiri %s iskeletin goz yuksekligi sinirinin disinda (%.3f)" % (satir, y))
+    return round(y, 6)
 
 
 def giris_degerleri(ayar):
@@ -358,6 +386,9 @@ def kur(bpy, senaryo, harita, aktorler, kemik_nesne, kare_bul, skin_yolu, rig_yo
         _sabit_yap(tasiyici)
         # -- kapak ve bakis anahtarlari
         pb = rig.pose.bones
+        # -- goz yuksekligi: skinin kendi goz satirina (sabit, butun film)
+        pb[YUKSEKLIK_KEMIK].location = (0.0, bilgi["ayar"]["yukseklik"], 0.0)
+        pb[YUKSEKLIK_KEMIK].keyframe_insert("location", frame=1)
         ol = goz_olaylari(senaryo, harita, ad, kare_bul)
         for f, deger in ol["kapak"]:
             for taraf, kem in KAPAK_KEMIK.items():

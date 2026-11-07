@@ -209,12 +209,18 @@ for y in sys.argv[2:]:
         im = Image.open(v["skin"]).convert("RGB")
         yuz = {tuple(dogrusal(x) for x in im.getpixel((8 + i, 8 + j))) for i in range(8) for j in range(8)}
         g = v.get("goz") or {}
-        sonuc.append([y.split("/")[-1], ad, len(anlar), disari[:5], bool(g), tuple(g.get("iris", ())) in yuz])
+        # Thomas gozu skinin kendi gozunun satirinda mi (Omer'de dort goz: gozleri 5. satirda)
+        satirlar = sorted({j for i in range(8) for j in range(8)
+                           if tuple(dogrusal(x) for x in im.getpixel((8 + i, 8 + j))) == tuple(g.get("iris", ()))})
+        sonuc.append([y.split("/")[-1], ad, len(anlar), disari[:5], bool(g), tuple(g.get("iris", ())) in yuz,
+                      satirlar, g.get("satir", 4)])
 print(json.dumps(sonuc))`.replace("sys.argv[2:]", JSON.stringify(p1.map((a) => "film/" + a))));
   kontrol("Part 1'de her konusma ani Thomas planinda (3B agiz; doku agzi konusmuyor)",
           th.length >= 2 && th.every(([, , n, d]) => n > 0 && d.length === 0), JSON.stringify(th.map((x) => x.slice(0, 4))));
   kontrol("konusanlarin Thomas kafasi var; goz rengi skinin kendi yuz pikseli (uydurulmadi)",
           th.every(([, , , , g, renk]) => g && renk), JSON.stringify(th.map((x) => [x[1], x[4], x[5]])));
+  kontrol("Thomas gozu skinin kendi goz satirinda (yoksa boyali gozlerle dort goz olur)",
+          th.every(([, , , , , , sat, s_]) => sat.length === 1 && sat[0] === s_), JSON.stringify(th.map((x) => [x[1], x[6], x[7]])));
   const kod = readFileSync(join(ARAC, "blender_film.py"), "utf8");
   kontrol("film araci agzi yalniz \"agiz\" yazilinca kuruyor", /if not a\.v\.get\("agiz", senaryo\.get\("agiz", False\)\):/.test(kod));
 }
