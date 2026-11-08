@@ -2315,7 +2315,7 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
 
     # ---- Satanachia'nin ruhu: siyah bulutlu kure (senaryo "ruh") ----
     ruh_kur(bpy, senaryo, harita)
-    kar_kur(bpy, senaryo, harita)
+    kar_kur(bpy, senaryo, harita, [c[0] for c in kam_iz])
 
     # ---- Thomas gozleri: goz ayarli aktorler, goz="thomas" planlarda (REFERANS_THOMAS_RIG.md) ----
     def _agiz_c(ad):
@@ -2901,7 +2901,20 @@ def kar_yolu(kar, i, t):
     return x, y, z
 
 
-def kar_kur(bpy, senaryo, harita):
+# Kameraya bundan yakin kar tanesi o karede gizlenir (blok). 2026-11-08 kare
+# incelemesi: kulubenin 534-562. karelerinde bir tane kameranin 0,6-0,86 m
+# onunden gecti, ekranda 150-218 px beyaz kup oldu (dusen blok sanilir).
+# 1,5 blokta 7 cm'lik tane 35 mm'de ~87 px; oteki karlarin en buyugu ~80 px.
+KAR_YAKIN = 1.5
+
+
+def kar_gizli_kareler(kar, harita, kam_konum, i, yakin=KAR_YAKIN):
+    """i. tanenin kameraya `yakin`dan yakin oldugu kareler (0 tabanli)."""
+    return [f for f, t in enumerate(harita)
+            if f < len(kam_konum) and math.dist(kar_yolu(kar, i, t), kam_konum[f]) < yakin]
+
+
+def kar_kur(bpy, senaryo, harita, kam_konum=None):
     kar = senaryo.get("kar")
     if not kar:
         return
@@ -2926,6 +2939,10 @@ def kar_kur(bpy, senaryo, harita):
         sc.collection.objects.link(ob)
         for f, t in enumerate(harita):
             tampon.setdefault((ob, "location"), []).append((f + 1, kar_yolu(kar, i, t)))
+        gizli = set(kar_gizli_kareler(kar, harita, kam_konum, i)) if kam_konum else set()
+        if gizli:                                # yalniz kameraya yaklasan tane anahtarlanir
+            for f in range(len(harita)):
+                tampon.setdefault((ob, "scale"), []).append((f + 1, (0.0,) * 3 if f in gizli else (1.0,) * 3))
         # aralik disinda gorunmez (sabit anahtar: hide_render mantiksal)
         for f_, acik in sorted(aralik_anahtarlari(harita, t0, t1, True, False).items()):
             ob.hide_render = not acik

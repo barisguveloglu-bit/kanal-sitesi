@@ -449,6 +449,39 @@ print(json.dumps({"son": son_kare, "orta": orta, "ruh_son": deger(F.aralik_anaht
           "cagri " + r.cagri);
 }
 
+console.log("\n=== 15. KAMERAYA COK YAKIN KAR TANESI GIZLENIR ===");
+// 2026-11-08 kare incelemesi: kulubenin 534-562. karelerinde bir tane kameranin
+// 0,6-0,86 m onunden gecti, ekranda 150-218 px beyaz kup oldu.
+{
+  const r = py(`
+import math, os
+import blender_film as F, bedrock_onizleme as B
+sen = B.oku("film/bolum2_p1_3_kulube.json")
+h = F.zaman_haritasi(sen)
+ak, _, _, _ = F.zaman_cizelgesi(sen, B.oku(F.HAREKET)["setler"], {})
+kam = [c[0] for c in F.kamera_izi(sen, ak)]
+kar = sen["kar"]
+n = int(kar.get("sayi", 120))
+def yakin_kare(yakin):
+    return sorted({f + 1 for i in range(n) for f in F.kar_gizli_kareler(kar, h, kam, i, yakin)})
+once = yakin_kare(F.KAR_YAKIN)
+# gizlenen kareler disinda (anahtar mantigiyla) kameraya KAR_YAKIN'dan yakin gorunur tane kaliyor mu
+kalan = 0
+for i in range(n):
+    gizli = set(F.kar_gizli_kareler(kar, h, kam, i))
+    for f, t in enumerate(h):
+        if f not in gizli and math.dist(F.kar_yolu(kar, i, t), kam[f]) < F.KAR_YAKIN:
+            kalan += 1
+kod = open(os.path.join(os.path.dirname(os.path.abspath(F.__file__)), "blender_film.py"), encoding="utf-8").read()
+print(json.dumps({"once": once, "kalan": kalan, "yakin": F.KAR_YAKIN,
+                  "bagli": "kar_kur(bpy, senaryo, harita, [c[0] for c in kam_iz])" in kod
+                            and "(0.0,) * 3 if f in gizli" in kod}))`);
+  kontrol("kulubede kameraya 1,5 bloktan yakin tane olan kareler bulunuyor (534-562 dahil)",
+          r.once.includes(534) && r.once.includes(553) && r.once.includes(562), r.once.length + " kare: " + r.once[0] + "-" + r.once[r.once.length - 1]);
+  kontrol("o karelerde tane gizleniyor: kameraya yakin gorunur tane kalmiyor", r.kalan === 0, String(r.kalan));
+  kontrol("film araci kari kameranin konumuyla kuruyor", r.bagli && r.yakin >= 1.0, String(r.yakin));
+}
+
 console.log("");
 console.log(hata ? ">>> SORUN VAR" : ">>> Part 1 parcalari: kararma, bulaniklik, kar, sancak, harita, savas odasi tutarli");
 process.exit(hata ? 1 : 0);
