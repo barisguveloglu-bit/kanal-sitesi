@@ -38,7 +38,7 @@ import subprocess
 import sys
 
 import numpy as np
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import blender_film as F  # noqa: E402
@@ -352,8 +352,15 @@ def pafta_ciz(satirlar, resim, bilgi, baslik, sutun, en, yol):
 # ============================================================
 # 6. ANA AKIS
 # ============================================================
+def gri_ton(im):
+    """Siluet / deger denetimi (DOVUS_KIMLIKLERI 12.8, REFERANS §17): renk
+    atilir, kontrast acilir. Gri tonda okunmayan poz ya da birbirine karisan
+    iki dovuscu renkle de zor okunur."""
+    return ImageOps.autocontrast(im.convert("L"), cutoff=1).convert("RGB")
+
+
 def pafta_uret(kaynak, cikti, senaryo=None, yazilar=None, baslik="", her=0.5,
-               sutun=3, satir=3, en=640, aralik=None, fps=None, kaynak_adi=""):
+               sutun=3, satir=3, en=640, aralik=None, fps=None, kaynak_adi="", gri=False):
     cikti = os.path.abspath(cikti)
     if (cikti + os.sep).startswith(O.KOK + os.sep):
         raise SystemExit("HATA: cikti kanal-sitesi deposunun icinde (%s). "
@@ -384,6 +391,8 @@ def pafta_uret(kaynak, cikti, senaryo=None, yazilar=None, baslik="", her=0.5,
                         "isaret": isaret, "video": kaynak.video_zamani(f)}
     satirlar = satirlara_bol(secim, sutun)
     resim = kaynak.resimler(sorted(bilgi), en)
+    if gri:
+        resim = {f: gri_ton(im) for f, im in resim.items()}
 
     os.makedirs(cikti, exist_ok=True)
     for ad in os.listdir(cikti):
@@ -473,6 +482,7 @@ def main():
     p.add_argument("--en", type=int, default=640)
     p.add_argument("--aralik")
     p.add_argument("--parca")
+    p.add_argument("--gri", action="store_true", help="siluet/deger denetimi: gri ton, acik kontrast")
     arg = p.parse_args()
     if bool(arg.cizim) == bool(arg.video):
         p.error("ya cizim klasoru ya --video")
@@ -499,7 +509,7 @@ def main():
     else:
         yazilar = []
     d = pafta_uret(kaynak, arg.cikti, senaryo, yazilar, arg.baslik, arg.her, arg.sutun, arg.satir,
-                   arg.en, aralik, fps, adi)
+                   arg.en, aralik, fps, adi, arg.gri)
     print("%d pafta, %d cekim, %d tek kare suphesi -> %s" % (
         len(d["paftalar"]), len(d["cekimler"]), len(d["tek_kare"]), os.path.abspath(arg.cikti)))
 

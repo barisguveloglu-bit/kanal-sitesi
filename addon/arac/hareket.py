@@ -216,18 +216,40 @@ def bas_takibi(poz, aci, z, hedef, hedef_z, pitch_siniri=None):
     return yaw, max(-ps, min(ps, pitch))
 
 
-def irkilme(u, guc=1.0, yan=0.0):
+IRK_BAS_GECIKME = 0.06   # sn: sirali irkilmede bas govdeden sonra (§66, ~2 kare)
+IRK_KOL_GECIKME = 0.03   # sn: kollar govdeyle bas arasinda
+
+
+def _irk_egri(u):
+    if u < 0 or u > 0.6:
+        return 0.0
+    return (u / 0.05) if u < 0.05 else math.exp(-(u - 0.05) / 0.14)
+
+
+def irkilme(u, guc=1.0, yan=0.0, sirali=False):
     """Darbe aninin eklenen pozu. u: darbeden beri sn. Hizli yukselis
     (0,05 sn), yavas donus (~0,45 sn). yan: -1 soldan, +1 sagdan gelen
-    vurus. Donus: {kemik: [x, y, z]} derece."""
-    if u < 0 or u > 0.6:
+    vurus. Donus: {kemik: [x, y, z]} derece.
+    sirali (REFERANS_DOVUS_KOREOGRAFI §66-67, yalniz darbe_vurgusu'lu
+    senaryo): zincir govde -> kollar -> bas; bas IRK_BAS_GECIKME sonra
+    tepe yapar (surukleme). sirali=False bire bir eskisi."""
+    if not sirali:
+        if u < 0 or u > 0.6:
+            return {}
+        a = _irk_egri(u) * guc
+        return {"head": [-14.0 * a, -18.0 * yan * a, 6.0 * yan * a],
+                "body": [-7.0 * a, -9.0 * yan * a, 0.0],
+                "rightArm": [-10.0 * a, 0.0, 9.0 * a],
+                "leftArm": [-10.0 * a, 0.0, -9.0 * a]}
+    if u < 0 or u > 0.6 + IRK_BAS_GECIKME:
         return {}
-    a = (u / 0.05) if u < 0.05 else math.exp(-(u - 0.05) / 0.14)
-    a *= guc
-    return {"head": [-14.0 * a, -18.0 * yan * a, 6.0 * yan * a],
-            "body": [-7.0 * a, -9.0 * yan * a, 0.0],
-            "rightArm": [-10.0 * a, 0.0, 9.0 * a],
-            "leftArm": [-10.0 * a, 0.0, -9.0 * a]}
+    g = _irk_egri(u) * guc
+    k = _irk_egri(u - IRK_KOL_GECIKME) * guc
+    b = _irk_egri(u - IRK_BAS_GECIKME) * guc
+    return {"head": [-14.0 * b, -18.0 * yan * b, 6.0 * yan * b],
+            "body": [-7.0 * g, -9.0 * yan * g, 0.0],
+            "rightArm": [-10.0 * k, 0.0, 9.0 * k],
+            "leftArm": [-10.0 * k, 0.0, -9.0 * k]}
 
 
 # ---- film pozlari: anahtarlar arasi egri ----

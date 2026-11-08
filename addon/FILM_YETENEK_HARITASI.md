@@ -174,6 +174,24 @@ her blok "başka sürümle çizilmiş" uyarısı verirdi). Eski ve yeni kod
 - Blender'sız denetim: `kamera_denetim` (9 kural), `zemin_denetim`, tek kare dönüş süzgeci.
 - Denetim paftası (v7.99.15, `denetim_pafta.py`): çizimden ya da videodan çekim çekim kare numaralı pafta; altyazı her karenin altında. Bütün kareyi bozan tek karelik hatayı (siyah kare, ışık titremesi, başka yerden gelmiş kare) ölçüp kırmızı çerçeveyle gösterir. Yerel tek kare hatasını aramaz. Gemini'nin denetimi bunun üstüne kurulu (`GEMINI_ISCI.md`).
 
+**Dövüş hissi ve efektleri (2026-11-08, kullanıcı: "daha fazla araştır, hepsini ekle")**
+Yöntem `REFERANS_DOVUS_KOREOGRAFI.md` §62–§74. **Yeni her dövüş senaryosu
+`"vurus_donmasi": true` ve `"darbe_vurgusu": true` taşır**; ikisi de yazılmazsa
+film bire bir eskisi (1. bölüm ve Part 1 bayraksız, testler kilitliyor).
+- Hazır (bayrakla):
+  - **Vuruş donması** (`vurus_donmasi`): temas karesinden sonra bütün sahne durur; kare sayısı saldıranın kimlik ağırlığından (hafif 1, orta 2, ağır 3; savunulan 1; Saldırı II +1). `test/vurus_donmasi.mjs`.
+  - **Darbe vurgusu** (`darbe_vurgusu`): travma modeli kamera sarsıntısı (ağırlıkla, düzgün gürültü, vuruş yönüne eğilimli, donma boyunca da söner); ağır vuruşta temas ışığı; kıvılcım sayısı ağırlıkla; savrulma sesi temastan 2/4/6 kare önce, darbe sesi katmanlı ve arka arkaya aynı değil; **sıralı ırkilme** (gövde → kollar → baş, baş ~2 kare sonra). `test/darbe_vurgusu.mjs`, `test/dovus_efekt.mjs` 7.
+  - **Dövüş planı denetimi** (`kamera_denetim.py` 10–11): temastan önceki 6 karede kesme yok; ilk vuruşta iki taraf kadrajda. `test/dovus_denetim.mjs`.
+- Hazır (olayla, `arac/dovus_efekt.py`, `test/dovus_efekt.mjs`):
+  - **İşaret:** `{"t", "efekt": "isaret", "nokta", "sure": 0.35, "renk", "boyut", "cizgi": [x, y]}` — noktada büyüyen parıltı ve ışık, bırakışta tepe, 0,12 sn'de söner; `cizgi` verilirse yerde hedefe ilerleyen çizgi (buz çizgisi). Ses: yükselen vızıltı.
+  - **Cam kırılması:** `{"efekt": "cam_kir", "nokta", "genislik", "yukseklik", "normal": [x, y], "tohum", "butun": true}` — levha 1/4 blokluk parçalara ayrılır, darbe yönünde balistik uçar, yerde kalır.
+  - **Patlama (creeper):** `{"efekt": "patlama", "nokta", "guc", "tohum", "doku"}` — güçlü kısa ışık, büyüyüp sönen gri-beyaz küp duman, uçan bloklar, kamera sarsıntısı, boğuk patlama sesi.
+  - **Darbe karesi:** `{"efekt": "darbe_karesi", "kare": 1-3, "ters": false}` — yüksek kontrastlı siyah-beyaz kare(ler). Yalnız adı konmuş doruk vuruşlarına (§64); karar sahne yazılırken.
+  - **Sürü düzeni:** senaryoda `"suru": {"hedef", "uyeler", "t": [t0, t1], "tohum", "yaricap": 3.2, "tempo": 1.5}` — hedefin vuruş menzilinde aynı anda tek saldıran; sıradaki halkadan içeri adım atar; ötekiler halkada kendi hızıyla dolaşır, durunca hedefe döner (`"varinca_bak"` — `git` olayına da yazılabilir). **Sınır:** halka hedefin BAŞLANGIÇ konumuna kurulur; sürü aralığında hedef yerinde kalmalı.
+  - **Sis perdesi:** senaryo düzeyinde `"atmosfer": {"yogunluk", "renk", "baslangic", "derinlik", "egri"}` (kompozitörde mist geçişi). Plan başına yazılamaz (süreklilik, §54); kar zaten senaryo değeri.
+  - **Siluet paftası:** `denetim_pafta.py --gri` (renk atılır, kontrast açılır).
+- Deneme çizimi (2026-11-08, 640×360, düşük örnek): altı efekt çöktmeden çizildi; sis, patlama, darbe karesi, yer çizgisi göründü. **İşaret küresi aydınlık, beyaza yakın gökyüzünün önünde seçilmiyor** (ışıma 20 → 2'ye indirildi, nesne ölçüldü, yerinde); karanlık ve fırtınalı sahnede ilk dövüş önizlemesinde bakılacak.
+
 ## 1. bölümde ne kullanıldı
 
 - **Dövüş:** 17 vuruş, 4 savunma, 3 kaçış.
@@ -266,6 +284,10 @@ her blok "başka sürümle çizilmiş" uyarısı verirdi). Eski ve yeni kod
 - **Zıplayan vuruşta iniş:** Barış'ın `guillotine`'inde beden inişten sonra 6,7 px, asaların `kingkong`'unda 2,1 px havada kalıyor; düzeltilmedi. Part 2 çizilirken `antitheus` setine dokunulmadı.
 - **Film pozlarında diz yok:** dizli aktörde de `diz_cok`, `dus`, `yuzustu` gibi film pozlarında baldır düz kalır (diz kanalı yalnız dövüş setlerinin animasyonlarında).
 - **İnce kolda el:** silahın ve kâğıdın tutma noktası geniş kolunki, ince elde yarım piksel dışta kalır (oyunda da öyle). Zisa'nın bıçakları elde tutulmuyor; ölçülmedi. Denetimler ince kolu ayırmıyor ama etkilenmiyor da: zemin denetimi kollara bakmıyor, kamera denetimi aktörü kaba bir silindirle ölçüyor.
+
+- **Hareket denetimi dövüşte temiz değil (2026-11-08'de ölçüldü, sürü testinde):** `hareket_denetim.py` iki kişilik **her** dövüşte `ani_kalkis` buluyor: hamlenin kendi atılması (Epic Fight kök hareketi, ~135–164 blok/sn²) ve darbe itmesi (~99). Sınır yürüyüş için (18). Part 1'de dövüş olmadığı için görülmemişti. Düzeltilmedi; ilk dövüş sahnesi yazılırken karar: denetim hamle ve itmeyi ayırsın mı, yoksa atılma yumuşatılsın mı.
+- **180° dönüşün sonu:** akıcı dönüş yayı hedefe otururken tek karede açısal ivme sınırın ~1,1–1,25 katına çıkıyor (sürüde geri çekilen üyede ölçüldü). Bütün akıcı senaryolarda ortak (`hareket.aci_yayi`); Part 1 çizilirken değiştirilmedi. `test/dovus_efekt.mjs` kötüleşmeyi tutuyor.
+- **Cam sesi gerçek cam kaydı değil:** Kenney Impact Sounds'un cam dosyaları depoda yok; site otomatik indirmeyi reddetti (403). Şimdilik metal tıngırtıları yüksek perdeyle. Kullanıcı CC0 cam sesi verirse `film_ses.py`'de tek satır.
 
 ## Maliyet ölçüsü
 

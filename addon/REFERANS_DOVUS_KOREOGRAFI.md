@@ -1426,6 +1426,215 @@ Kaynaklar: [LibreTexts — sinemasal durgunluk ve ma](https://human.libretexts.o
 
 ---
 
+# Üçüncü tur (2026-11-08): eksik araç maddelerinin nasıl yapılacağı
+
+Kullanıcı: *"daha fazla araştırma yap, hepsini de ekle"*. Bu tur "ne
+olmalı"yı değil, `DOVUS_KIMLIKLERI.md` 12. bölümde araca dönüşmemiş
+maddelerin **nasıl** yapılacağını araştırdı. Kaynakların çoğu oyun
+geliştirme yazıları ve forumlar; sayılar başlangıç noktasıdır, standart değil.
+
+## 62. Vuruş donması (hitstop): sayılar ve filmdeki karşılığı
+
+- Dövüş oyunlarında temas anında **iki karakter de** donar; güçlü vuruşta
+  ekran sarsıntısı eşlik eder. Sakurai: donmanın süresi, hareket, kamera
+  uzaklığı ve titreşimle birlikte ayarlanır; Smash'te donma hasarla büyür.
+- Sayılar (60 fps): bir topluluk kaynağına göre çoğu oyunda hafif ~9, orta
+  ~11, ağır ~13 kare; eski Street Fighter II ~14 (vuruş gücünden bağımsız);
+  Capcom'un örneği 8 kare. Oyunda donma girdi zamanlamasına da yarıyor —
+  filmde bu ihtiyaç yok.
+- Geliştirici rehberi: ağır vuruşta **50–100 ms** bile vuruşun gerçekten
+  oturduğunu hissettiriyor; uzun donma takılma gibi, çok kısa olan fark
+  edilmiyor.
+- Film/animasyon: kurguda kare tutma (aynı kareyi çoğaltma), süre çarpanla.
+
+**Bizde:** 30 fps'te hafif 1, orta 2, ağır 3 kare (33/67/100 ms) rehberin
+aralığında; oyunların büyük sayıları girdi içindi, alınmadı. Donma **bütün
+sahnenin zamanını** durdurur (iki taraf da donar), temas karesinden başlar.
+
+Kaynaklar: [Source Gaming — Sakurai'nin hitstop yazısı (çeviri)](https://sourcegaming.info/2015/11/11/thoughts-on-hitstop-sakurais-famitsu-column-vol-490-1/) ·
+[Ultra Combo forumu — donma süreleri](https://forums.ultra-combo.com/t/why-isnt-hitstop-duration-standardized/24838) ·
+[critpoints — hitstop](https://critpoints.net/2017/05/17/hitstophitfreezehitlaghitpausehitshit/) ·
+[Bugnet — hitstop ayarı](https://bugnet.io/blog/how-to-fix-hitstop-or-freeze-frame-feeling-off) ·
+[Capcom SFV sütunu](https://game.capcom.com/cfn/sfv/column/131545)
+
+## 63. Kamera sarsıntısı: "travma" modeli, düzgün gürültü, yön
+
+- Eiserloh (GDC 2016, "Juicing Your Cameras With Math"): 0–1 arası bir
+  **travma** değeri; her olay ekler, doğrusal söner; görünen sarsıntı
+  **travmanın karesi (ya da küpü)** — küçük vuruş zar zor, büyük vuruş sert.
+  Rastgele sayı yerine **düzgün gürültü** (Perlin): kare kare zıplamaz.
+- Yön: sarsıntı vuruş yönüne eğilimli olursa gücün yanında **yönünü** de
+  anlatır. Hızlı sönen sarsıntı patlayıcı darbe gibi okunur.
+- Ölçü: hak edilmiş anlara sakla (öldürücü darbe gibi); sürekli sarsıntı
+  etkisini yitirir.
+
+**Bizde:** her temasta ağırlığa göre travma (hafif az, ağır çok), savunulan
+vuruşta daha az; sarsıntı = travma², düzgün gürültüyle, vuruş yönüne
+eğilimli, ~0,4 sn'de söner. Bugünkü sarsıntı yalnız kombonun son vuruşunda.
+
+Kaynaklar: [GDC Vault — Juicing Your Cameras With Math](https://gdcvault.com/play/1023146/contactUs) ·
+[Bevy — 2B sarsıntı örneği (konuşmayı izler)](https://bevy.org/examples/camera/2d-screen-shake/) ·
+[Screen shake rehberi](https://gamejuice.pages.dev/articles/screen-shake-guide)
+
+## 64. Darbe karesi (impact frame)
+
+- Animede doruk anında 1–3 karelik, sahnenin renklerini sert siyah-beyaza ya
+  da negatife çeviren kareler; sakuga geleneğinin parçası, One Piece Wano
+  bölümlerinde Vincent Chansard'ın kareleriyle yaygınlaştı.
+- Kaynaklar zayıf (süre bilgisi tek ve düşük yetkili sayfadan).
+
+**Bizde:** her vuruşa değil, yalnız **adı konmuş doruk vuruşlarına**
+(Barış'ın ilk ateşli darbesi, son darbe): 1–2 kare yüksek kontrast. Karar
+sahne yazılırken, kullanıcıya önizlemeyle sorulur.
+
+Kaynaklar: [Know Your Meme — impact frames](https://knowyourmeme.com/memes/cultures/impact-frames) ·
+[Mob Psycho 100 sakuga çalışması](https://journal.uitm.edu.my/index.php/IJAD/article/view/1014)
+
+## 65. Yumruğun zamanlaması: hazırlık, temas, oturma
+
+- Yapı: kurma → uzanma → temas → toparlanma; kol vuruşa **hızlanarak** girer,
+  toparlanırken yavaşlar. Kurmadan sonra **kısa bir duraklama** hareketi
+  okunur kılar; çok küçük ya da kısa hazırlık hızı satamaz.
+- 3B'de yumruk yüze değerken **hızlanmaz**, yavaşlar (Polycount eleştirisi).
+- Vuruş sonrası hafif **aşma ve oturma**; "hazırlığı uzat, teması kısalt,
+  oturmayı uzat" vuruşu keskinleştirir.
+
+**Bizde:** kendi hamle setlerimizin künyesi (`kunye_dogrula`) buna göre:
+`baslangic` içinde görünür bir duraklama, temas kısa, `toparlanma` uzun.
+
+Kaynaklar: [Toon Boom — hazırlık ilkesi](https://learn.toonboom.com/modules/animation-principles/topic/anticipation-principle) ·
+[Polycount — yumruk eleştirisi](https://polycount.com/discussion/comment/2563876) ·
+[Medium — hazırlık](https://medium.com/@brijeshkumarmishra59/anticipation-in-animation-79e0512d7a36)
+
+## 66. Darbe tepkisi: yön ve sıra
+
+- Oyun sistemleri tepkiyi **gelen yöne göre** seçiyor (sol, sağ, ön, arka).
+- Yordamsal tepki zinciri: **gövde → omuzlar → baş → eşya**; izleyen
+  kemiklerin ağırlığı < 0,5 (bir kemik iki kez oynamasın). Üst beden ve baş
+  öncelikli, bacaklar basit kalır.
+- Ağır vuruşta animasyondan fiziğe geçiş: kuvvetleri yavaşça azaltarak.
+
+**Bizde:** akıcı katmanın yöne göre ırkilmesi var; zincirin **sırası**
+`darbe_vurgusu`'lu senaryoda araçta: gövde önce, kollar 0,03 sn, baş 0,06 sn
+sonra (`hareket.irkilme(..., sirali=True)`).
+
+Kaynaklar: [Procedural Hit Reactions — gelişmiş ayarlar](https://ironsami-studio.gitbook.io/proceduralhitreactions/advanced) ·
+[Yöne göre tepki (devlog)](https://swearsoft.itch.io/jackmclantern/devlog/76709/direction-based-hit-reaction) ·
+[Game Creator — tepkiler](https://docs.gamecreator.io/melee/reactions)
+
+## 67. Sürükleme, devam, sıralı kırılma
+
+- Devam: ana hareket durunca saç, giysi, eşyanın süren hareketi. Üst üste
+  binme: birlikte hareket eden parçaların zaman kayması. Sürükleme: ikincil
+  parçaların ana hareketin gerisinde kalması.
+- **Sıralı kırılma** (eklemler sırayla bırakır, "yosun hareketi").
+- Hızlı duruş = uzun devam; çok yavaşsa göze batar, çok hızlıysa görünmez.
+
+**Bizde:** blok karakterde saç/giysi yok; devam baş ve kollarla taşınır.
+
+Kaynaklar: [Toon Boom — devam ilkesi](https://learn.toonboom.com/modules/animation-principles/topic/follow-through-principle) ·
+[Brian Lemay — follow through](https://brianlemay.com/Pages/animationschool/animation/lipsyncbook/followthrough.html) ·
+[RebusFarm — devam ve üst üste binme](https://rebusfarm.net/blog/follow-through-and-overlapping-action-the-animation-principle-that-prevents-stiff-motion)
+
+## 68. Ayak kayması: basılı aralığı bul, ayağı kilitle
+
+- Standart yöntem: ayağın **basılı** aralıklarını hız/yükseklik eşiğiyle
+  bul, en kısa temas süresi şartı koy, basılıyken ayağın dünya konumunu
+  kilitle, kalkarken animasyona geri harmanla. Eşikler karakterin ölçüsüne
+  ve kare hızına göre ayarlanır (Glardon–Boulic–Thalmann 2006).
+
+**Bizde:** denetim olarak: basılı ayağın dünya konumu kayıyor mu
+(`hareket_denetim.py`'nin işi).
+
+Kaynaklar: [Glardon, Boulic, Thalmann — footplant (EPFL)](https://infoscience.epfl.ch/entities/publication/e8b1dc34-691d-450b-9e29-ae34b2f68e60/articledetails)
+
+## 69. Savrulma ve darbe sesi
+
+- Yumruk savrulmasız **ölü** duyulur; savrulma beklentiyi kurar, görünen
+  hareketin biraz **önünde** başlar.
+- Darbenin yeri: kaynaklar ayrışıyor — tam temasta ya da 1–2 kare önce.
+- Darbe 2–4 ses katmanıyla (farklı frekanslar) kurulur; her karakter için
+  önce **kumaş/hareket** katmanı; aynı darbe sesi aynı şiddette tekrarlanmaz.
+
+**Bizde:** savrulma temastan ağırlığa göre önce (hafif 2, orta 4, ağır 6
+kare), darbe temas karesinde; aynı vuruş sesi arka arkaya tekrar etmez.
+
+Kaynaklar: [IRPR — dövüş sahnesi ses tasarımı](https://sounddesign.irpr.agency/guides/how-to-design-sound-for-a-fight-scene/) ·
+[Designing Sound — Bruce Tanis](https://designingsound.org/2010/07/23/bruce-tanis-special-editing-hand-to-hand-fight-sound-effects/) ·
+[Pixflow — yumruk sesleri](https://pixflow.net/blog/punch-impact-sound-effects-for-fight-scenes/)
+
+## 70. Hız rampası
+
+- Tek çekimde hız değişimi: %100'den ~%10–20'ye 0,5–1 sn'de iner, kilit anda
+  1–2 sn tutar, geri çıkar. Temastan **hemen önce** hızı geri vermek darbeyi
+  ağırlaştırır. Müziğin vurgusuna hizalanır; aşırı kullanım etkisini yok eder.
+
+**Bizde:** §33'ün kuralı (dövüş başına bir-iki) korunur; araçta zaman
+parçalarıyla (`"zaman"`) zaten yapılabiliyor.
+
+Kaynaklar: [Film Editing Pro — hız rampası](https://www.filmeditingpro.com/?p=30439) ·
+[Speed ramping vs slow motion](https://nerdtechy.com/speed-ramping-vs-traditional-slow-motion)
+
+## 71. Vuruş kıvılcımı
+
+- Kıvılcımın **büyüklüğü hasarı**, ayrı efekt **vuruşun türünü** anlatır.
+  Savunulan vuruş yumuşak, çoğunlukla **mavi**; ağır vuruş daha dağınık.
+  Keskin biçim göze kolay; tek efekt ekranın ~%12–18'ini aşmasın (tek blog).
+
+**Bizde:** savunmada mavi kıvılcım zaten var; vuruş kıvılcımının sayısı ve
+büyüklüğü ağırlıkla büyür.
+
+Kaynaklar: [Virtua Fighter forumu — kıvılcım ve tür](https://host.virtuafighter.com/threads/hit-flashes-sparks-effects-auras-whats-the-difference.21696) ·
+[TV Tropes — Hit Spark](https://TVTropes.org/pmwiki/pmwiki.php/Main/HitSpark) ·
+[Uhiyama Lab — donma, ışık, sarsıntı, ses](https://uhiyama-lab.com/en/notes/unity/unity-game-feel-hit-feedback/)
+
+## 72. İşaret (telegraph) nasıl kurulur
+
+- Bir poz, bir ses ve bir görsel (parıltı, gölge, yerde çizgi); **ikisi
+  birden**. Ağır saldırının hazırlığı daha uzun; belirginlik ölümcüllükle
+  büyür; her saldırının işareti ötekinden ayrılabilir olmalı.
+- Okunaklılık yavaş tempo ister; tek bir öğrenci projesi tepki penceresini
+  ~300–500 ms veriyor (standart değil).
+
+**Bizde:** işaret efekti = bir noktada büyüyen parıltı (asanın küresi, alın
+sembolü, avuç) + isteğe bağlı yerde çizgi; süre künyedeki `isaret`.
+
+Kaynaklar: [Game Developer — saldırılar ve işaret](https://gamedeveloper.com/design/enemy-attacks-and-telegraphing) ·
+[Enemy intent telegraph](https://saschb2b.github.io/game-mechanics/concepts/enemy-intent-telegraph)
+
+## 73. Sürü dövüşü: saldırı jetonu
+
+- Hedefin üstünde bir **saldırı izni havuzu**; yakın dövüşte varsayılan 1
+  jeton (The Last of Us Part II'de Naughty Dog). Jetonu olmayan düşman
+  **durmaz**: yer değiştirir, yanlar, çember çizer. Bırakılmayan jeton havuzu
+  sessizce küçültür. Jeton düzenleme katmanıdır, tasarımın yerini tutmaz.
+
+**Bizde:** sürü düzeni yardımcısı: hedef başına en çok bir etkin + bir
+hazırlanan; ötekiler çember üstünde farklı faz/hızla dolaşır.
+
+Kaynaklar: [Signals and Light — düşman saldırısı nedir](https://signalsandlight.substack.com/p/what-is-an-enemy-attack) ·
+[StraySpark — saldırı jetonu](https://www.strayspark.studio/blog/attack-token-system-ue5-group-combat-that-feels-fair) ·
+[Bugnet — hepsi birden saldırıyor](https://bugnet.io/blog/how-to-fix-enemies-all-attacking-at-once)
+
+## 74. Cam kırılması ve patlama
+
+- Blender'da cam: Cell Fracture + katı cisim + kırılana dek tutan bağlar,
+  üstüne parçacık ve duman. Bilinen sorunlar: cisim gelmeden kırılma
+  (zamanlama), kırıktan sonra kırılma (refraction) yanlış.
+- Minecraft patlaması: Java'da `explosion_emitter`, Bedrock'ta
+  `huge_explosion_emitter`; duman parçacıkları ayrı. (Kimlikler; dosya
+  alınmadı.)
+
+**Bizde:** fizik benzetimi yerine belirleyici (tohumlu) yol: cam küçük kare
+parçalara ayrılıp balistik uçar (toprak parçalarının yöntemi); patlama =
+kısa ışık + büyüyüp sönen gri-beyaz küp duman + uçan bloklar.
+
+Kaynaklar: [Blender Guru — cam kırma](https://www.blenderguru.com/tutorials/make-glass-smash-animation) ·
+[Minecraft wiki — particle komutu](https://wiki.ronlab.site/content/minecraftwiki_en_all_maxi_2025-11/Commands/particle) ·
+[Mojira MCPE-127604](https://mojira.dev/MCPE-127604)
+
+---
+
 ## Özet: araştırılan konular
 
 1. Dövüş bir hikâye: tırmanma, vuruş sırası, karakter (§1)
@@ -1489,11 +1698,24 @@ Kaynaklar: [LibreTexts — sinemasal durgunluk ve ma](https://human.libretexts.o
 59. Hareket ekonomisi ve bekleme pozu (§59)
 60. Büyü atma pozu (§60)
 61. Son darbeden önceki durgunluk (§61)
+62. Vuruş donması: sayılar, filmdeki karşılığı (§62)
+63. Kamera sarsıntısı: travma modeli (§63)
+64. Darbe karesi (§64)
+65. Yumruğun zamanlaması (§65)
+66. Darbe tepkisi: yön ve sıra (§66)
+67. Sürükleme, devam, sıralı kırılma (§67)
+68. Ayak kayması (§68)
+69. Savrulma ve darbe sesi (§69)
+70. Hız rampası (§70)
+71. Vuruş kıvılcımı (§71)
+72. İşaret nasıl kurulur (§72)
+73. Sürü dövüşü: saldırı jetonu (§73)
+74. Cam kırılması ve patlama (§74)
 
 **Boşluklar (kaynak bulunamadı, uydurulmadı):** blok karakterle dövüş
 koreografisi, Alan Becker'ın yöntemi, gedik savunmasının ekranda
 kurulması, buz duvarı tasarımı, iki hedefe aynı anda ateşin sahnelenmesi,
-topuz kullanım tekniği, okçuluk için animasyon kaynağı.
+topuz kullanım tekniği, okçuluk için animasyon kaynağı; üçüncü turda: Minecraft animasyonuna özgü dövüş ipuçları, 24 fps filmde donma kare sayısı, işaret parıltısının süresi.
 
 **Hiçbiri karar değil.** "Bizde" satırları öneri; seriye geçmesi için
 kullanıcının onayı gerekir (SERI_SEZON1.md'ye yalnız onaylananlar yazılır).

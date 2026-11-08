@@ -852,3 +852,13 @@ Ayar açık diye güvenilmez (kullanıcı: *"bunları ayrıca denetle"*): yeni
 ya da değişen her senaryo `python3 addon/arac/hareket_denetim.py <senaryo>`
 ile ölçülür, bulgu sıfır olmalı (`test/hareket_denetim.mjs`). Bulgu
 çıkarsa önce sebep film aracında mı senaryoda mı, ona bakılır.
+
+**Dövüş hissi ve efektleri (2026-11-08).** Kullanıcı: *"daha fazla araştırma
+yap, hepsini de ekle."* Yeni her dövüş senaryosu `"vurus_donmasi": true` ve
+`"darbe_vurgusu": true` taşır (vuruş donması, travma sarsıntısı, savrulma
+sesi, sıralı ırkilme; yazılmazsa film bire bir eskisi). Olay efektleri
+(`isaret`, `cam_kir`, `patlama`, `darbe_karesi`), sürü düzeni (`"suru"`) ve sis
+perdesi (`"atmosfer"`) `arac/dovus_efekt.py`'de; ayrıntı ve açık maddeler
+FILM_YETENEK_HARITASI.md "Dövüş hissi ve efektleri". **Bilinen:** hareket
+denetimi her dövüşte hamle atılmasını ve darbe itmesini `ani_kalkis` sayıyor;
+ilk dövüş sahnesi yazılırken karar verilecek.

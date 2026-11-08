@@ -103,6 +103,43 @@ def ugultu(sure):
     return np.stack([s, s * 0.95], axis=1).astype(np.float32)
 
 
+# ---- darbe vurgusu (2026-11-08; REFERANS_DOVUS_KOREOGRAFI §30, §69) ----
+# Senaryo "darbe_vurgusu": true: savrulma sesi TEMASA bagli, agirliga gore
+# once (hafif 2, orta 4, agir 6 kare; DOVUS_KIMLIKLERI bolum 0'daki
+# "savrulma temastan 2-6 kare once"), agir vurusun savrulmasi daha pes;
+# darbe sesi agirlikla katmanlanir (agirda alcak gumburtu) ve arka arkaya
+# iki vurus ayni dosyayi calmaz. Yazilmazsa eski ses bire bir.
+SAVRULMA_ONCE = {"hafif": 2, "orta": 4, "agir": 6}       # kare
+SAVRULMA_HIZ = {"hafif": 1.0, "orta": 0.85, "agir": 0.7}  # oynatma hizi = perde
+DARBE_SES = {
+    "hafif": [[("impactPunch_medium_00%d.ogg", 0.8, 1.1)]],
+    "orta": [[("impactPunch_medium_00%d.ogg", 1.0, 1.0)]],
+    "agir": [[("impactPunch_heavy_00%d.ogg", 1.1, 1.0), ("lowFrequency_explosion_001.ogg", 0.35, 1.0)]],
+}
+DARBE_DEGISKE = {"impactPunch_medium_00%d.ogg": 3, "impactPunch_heavy_00%d.ogg": 2}
+
+
+def savrulma_zamanlari(senaryo, efektler, harita, fps):
+    """[(film_sn, agirlik)]: temastan agirliga gore SAVRULMA_ONCE kare once."""
+    out = []
+    for e in efektler:
+        if e["tur"] not in ("vurus", "kan", "savun"):
+            continue
+        ag = F._agirlik(senaryo, e.get("kim"))
+        out.append((max(0.0, (F.kare_bul(harita, e["t"]) - SAVRULMA_ONCE[ag]) / fps), ag))
+    return out
+
+
+def darbe_katmanlari(agirlik, sira):
+    """[(dosya, duzey, hiz)]: sira'inci vurusun darbe sesi; ayni turden
+    arka arkaya iki vurus ayni dosyayi calmaz (sira ile doner)."""
+    out = []
+    for ad, duzey, hiz in DARBE_SES[agirlik][0]:
+        n = DARBE_DEGISKE.get(ad)
+        out.append((ad % (sira % n) if n else ad, duzey, hiz))
+    return out
+
+
 def ses_kur(senaryo, katmanlar=False):
     """Karisim (n, 2). katmanlar=True: {"efekt", "ortam", "muzik"} ayri ayri
     (stem) -- kullanici son miksaji isterse Resolve'da kendisi yapar."""
@@ -129,9 +166,23 @@ def ses_kur(senaryo, katmanlar=False):
                 ef.ekle(oku(adim_ses[f % len(adim_ses)]), f / fps, 0.5)
                 sonraki = k["mesafe"] + 0.9
     # ---- senaryo olaylari ----
-    for o in senaryo.get("olaylar", []):
+    vurgu = bool(senaryo.get("darbe_vurgusu"))
+    for o in F.DE.tum_olaylar(senaryo):
         t = o["t"]
-        if "vur" in o:
+        # dovus efektleri (dovus_efekt.py). Cam sesi GERCEK CAM KAYDI DEGIL:
+        # Kenney Impact Sounds'un cam dosyalari depoda yok (site otomatik
+        # indirmeyi reddetti); metal tingirtilari yuksek perdeyle ust uste.
+        if o.get("efekt") == "isaret":
+            ef.ekle(oku("forceField_001.ogg"), film_t(t), 0.55, 1.25)
+        if o.get("efekt") == "cam_kir":
+            for j, hz in enumerate((1.7, 1.95, 1.55)):
+                ef.ekle(oku("impactMetal_light_00%d.ogg" % j), film_t(t) + 0.025 * j, 0.75, hz)
+            ef.ekle(oku("impactMining_000.ogg"), film_t(t), 0.45, 1.6)
+        if o.get("efekt") == "patlama":
+            ef.ekle(oku("lowFrequency_explosion_000.ogg"), film_t(t), 1.3)
+            ef.ekle(oku("lowFrequency_explosion_001.ogg"), film_t(t), 0.9, 0.8)
+            ef.ekle(oku("impactMining_000.ogg"), film_t(t + 0.05), 0.8, 0.8)
+        if "vur" in o and not vurgu:
             ef.ekle(oku("cloth%d.ogg" % (1 + int(t * 10) % 2)), film_t(t + 0.15), 0.7, 0.8)   # savurma
         if "isinlan" in o:
             ef.ekle(oku("forceField_00%d.ogg" % (int(t) % 2)), film_t(t), 0.9, 0.75)
@@ -147,9 +198,17 @@ def ses_kur(senaryo, katmanlar=False):
             ef.ekle(oku("impactMining_000.ogg"), film_t(t), 0.8)
     # ---- temaslar ----
     yumruk = {ad for ad, a in ak.items() if a.set == "yumruk"}
+    if vurgu:
+        for i, (ts, ag) in enumerate(savrulma_zamanlari(senaryo, efektler, harita, fps)):
+            ef.ekle(oku("cloth%d.ogg" % (1 + i % 2)), ts, 0.75, 0.8 * SAVRULMA_HIZ[ag])
+    sira = 0
     for e in efektler:
         t = film_t(e["t"])
-        if e["tur"] == "vurus":
+        if e["tur"] == "vurus" and vurgu and e.get("kim") in yumruk:
+            for ad, duzey, hiz in darbe_katmanlari(F._agirlik(senaryo, e.get("kim")), sira):
+                ef.ekle(oku(ad), t, duzey, hiz)
+            sira += 1
+        elif e["tur"] == "vurus":
             if e.get("kim") in yumruk:
                 ef.ekle(oku("impactPunch_medium_00%d.ogg" % (int(e["t"] * 7) % 3)), t, 1.0)
             else:

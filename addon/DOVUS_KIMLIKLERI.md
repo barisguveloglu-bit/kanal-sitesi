@@ -304,22 +304,21 @@ kimliği yok; Ateşin Kitabı onun evinde — Barış'ın ateşinin kaynağı (�
 
 ## 12. Araca dönüşecekler (yapılacaklar; sahneler yazılırken) [entegre]
 
-Araçta olanlar işaretli. Kalanlar kullanılacağı sahneyle
-**aynı anda** yazılır (kullanılmayan kod kalmasın diye) ve
-`FILM_YETENEK_HARITASI.md` aynı commit'te güncellenir:
+Araçta olanlar işaretli. Eskiden kalanlar "kullanılacağı sahneyle aynı
+anda" yazılacaktı; kullanıcı 2026-11-08'de hepsini **şimdi** istedi
+(*"daha fazla araştırma yap, hepsini de ekle"*): on maddenin onu da araçta,
+ayrıntı `FILM_YETENEK_HARITASI.md` "Dövüş hissi ve efektleri":
 
 1. Hamle künyesi alanları (bölüm 0) — doğrulaması **araçta** (`kunye_dogrula`); dosya biçimi ilk kendi setimizle.
-2. Vuruş donması — sayıları **araçta** (`donma_kare`); zaman haritasına bağlanması ilk kendi setimizle.
-3. Darbe karesi vurgusu (temasta kısa ışık ya da 1–2 karelik kamera
-   sarsıntısı; `titreme` var, vuruşa bağlı değil).
-4. Savrulma sesi anı + ağırlık sınıfına göre ses seçimi.
-5. İşaret efektleri (kürenin parlaması, yerde buz çizgisi, alın sembolü).
+2. Vuruş donması — **araçta** (`"vurus_donmasi": true`, zaman haritasına bağlı).
+3. Darbe karesi vurgusu — **araçta** (`"darbe_vurgusu": true`: travma sarsıntısı, temas ışığı; doruk için `darbe_karesi` efekti).
+4. Savrulma sesi anı + ağırlık sınıfına göre ses — **araçta** (`darbe_vurgusu` ile).
+5. İşaret efektleri — **araçta** (`"efekt": "isaret"`, isteğe bağlı yer çizgisi).
 6. ~~Karakter bekleme duruşları ve nefes~~ — **araçta** (`"kimlik"` + `"dovus"`).
-7. Sürü düzeni yardımcısı (tek etkin saldıran, halka, faz/hız farkı).
-8. Denetimler: dövüş planında ana plan var mı, temastan önce kesme var mı
-   (`kamera_denetim.py`); siluet / gri tonlama karesi (`denetim_pafta.py`).
-9. Sis/kar yoğunluğunun senaryo değeri olarak sabitlenmesi (süreklilik).
-10. Cam kırılması ve creeper patlaması (4 part tablosunda zaten var).
+7. Sürü düzeni yardımcısı — **araçta** (senaryoda `"suru"`).
+8. Denetimler — **araçta** (`kamera_denetim.py` 10–11; `denetim_pafta.py --gri`).
+9. Sis/kar yoğunluğu senaryo değeri — **araçta** (`"atmosfer"`; plan başına yazılamaz).
+10. Cam kırılması ve creeper patlaması — **araçta** (`"cam_kir"`, `"patlama"`).
 
 ## 13. Çapraz tablo: 61 dersin hepsi nereye gitti
 

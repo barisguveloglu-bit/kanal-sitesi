@@ -23,6 +23,12 @@ onemli." Blender'siz, zaman cizelgesi + kamera izi uzerinden olcer:
  8-9 v7.99.10 onizlemesinden sonra eklendi: denetim "0 sorun" diyordu ama
  alcak aci kamerayi B'nin arkasina, omuz ustu B'yi A'nin omzunun arkasina
  koyuyordu; ikisi de kadrajin yarisini kapatti.
+10. TEMAS_KESME  vurusun son TEMAS_ONCESI karesinde (agir vurusun savrulmasi
+             kadar) kamera kesmesi yok: savrulma ve temas ayni cekimde
+             gorunur (REFERANS_DOVUS_KOREOGRAFI §8, §69)
+11. ANA_PLAN  dovusun ilk vurusunda iki taraf da kadrajda (§1, §8)
+ 10-11 yalniz yeni dovus senaryolarinda ("vurus_donmasi" ya da
+ "darbe_vurgusu"; 2026-11-08): 1. bolum bu kurallardan once cizildi.
 Cikti: sorunlu cekimlerin listesi (hikaye zamani + kural + ayrinti).
 """
 import json
@@ -36,6 +42,7 @@ import bedrock_onizleme as B  # noqa: E402
 import mekan as MK  # noqa: E402
 
 SENSOR = 36.0                 # Blender kamerasinin varsayilan sensor genisligi (mm)
+TEMAS_ONCESI = 6              # kare: agir vurusun savrulmasi (film_ses.SAVRULMA_ONCE["agir"])
 EN_BOY = 16 / 9
 
 
@@ -114,10 +121,55 @@ def konular(c):
     return [(x, 1.0) for x in (c.get("a"), c.get("b")) if x]
 
 
+def kadrajda(kp, bk, lens, hedef):
+    """Nokta (hedef) kameranin goruntusunun icinde mi (yatay/dikey yari aci)."""
+    yon = [bk[i] - kp[i] for i in range(3)]
+    n = math.sqrt(sum(x * x for x in yon)) or 1e-9
+    yon = [x / n for x in yon]
+    yf = 2 * math.atan(SENSOR / 2 / lens)
+    dfv = 2 * math.atan(math.tan(yf / 2) / EN_BOY)
+    v = [hedef[i] - kp[i] for i in range(3)]
+    ileri = sum(v[i] * yon[i] for i in range(3))
+    if ileri <= 0:
+        return False
+    sag = [yon[1], -yon[0], 0]
+    sn = math.hypot(sag[0], sag[1]) or 1e-9
+    sag = [sag[0] / sn, sag[1] / sn, 0]
+    yuk = [sag[1] * yon[2] - 0, -sag[0] * yon[2], sag[0] * yon[1] - sag[1] * yon[0]]
+    yat = math.atan2(sum(v[i] * sag[i] for i in range(3)), ileri)
+    dik = math.atan2(sum(v[i] * yuk[i] for i in range(3)), ileri)
+    return abs(yat) <= yf / 2 * 1.02 and abs(dik) <= dfv / 2 * 1.15
+
+
+def dovus_denetle(sen, harita, kam, efektler, atis_no, ak):
+    """10-11: [(kare, kural, ayrinti)] -- yalniz yeni dovus senaryolarinda."""
+    if not (sen.get("vurus_donmasi") or sen.get("darbe_vurgusu")):
+        return []
+    out = []
+    kesmeler = [f for f in range(1, len(kam)) if atis_no(f) != atis_no(f - 1)]
+    for e in efektler:
+        if e["tur"] not in ("vurus", "kan", "savun"):
+            continue
+        ft = F.kare_bul(harita, e["t"])
+        for fk in kesmeler:
+            if ft - TEMAS_ONCESI < fk <= ft:
+                out.append((ft, "TEMAS_KESME", "%s'in vurusundan %d kare once kesme (savrulma ve temas ayni cekimde gorunmeli)"
+                            % (e.get("kim"), ft - fk)))
+    vur = [o for o in sorted(F.DE.tum_olaylar(sen), key=lambda o: o["t"]) if "vur" in o and o.get("hedef")]
+    if vur:
+        f = F.kare_bul(harita, vur[0]["t"])
+        kp, bk, lens = kam[f][0], kam[f][1], kam[f][2]
+        for ad in (vur[0]["aktor"], vur[0]["hedef"]):
+            r = ak[ad].kayit[min(f, len(ak[ad].kayit) - 1)]
+            if not kadrajda(kp, bk, lens, (r["x"], r["y"], r["z"] + 1.0)):
+                out.append((f, "ANA_PLAN", "dovusun ilk vurusunda %s kadraj disinda: ilk plan iki tarafi gostermeli" % ad))
+    return out
+
+
 def denetle(sen):
     setler = B.oku(F.HAREKET)["setler"]
     harita = F.zaman_haritasi(sen)
-    ak, _, _, _ = F.zaman_cizelgesi(sen, setler, {})
+    ak, efektler, _, _ = F.zaman_cizelgesi(sen, setler, {})
     kam = F.kamera_izi(sen, ak)
     atislar = sorted(sen.get("kamera", []), key=lambda c: c["t"])
     agac = agac_kutulari(sen)
@@ -261,6 +313,8 @@ def denetle(sen):
                 ekle(f, "180", "%s-%s ekseninin obur tarafina gecti" % ciftler)
             onceki_taraf[ciftler] = taraf
         onceki_atis, onceki_kp, onceki_yon = no, kp, yon
+    for f, kural, ayrinti in dovus_denetle(sen, harita, kam, efektler, atis_no, ak):
+        ekle(f, kural, ayrinti)
     return sorun, len(kam), len(atislar)
 
 

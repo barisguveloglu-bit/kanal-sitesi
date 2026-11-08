@@ -62,6 +62,7 @@ import agiz as AGZ  # noqa: E402
 import hareket as H  # noqa: E402
 import mekan as MK  # noqa: E402
 import dovus_kimlik as DK  # noqa: E402
+import dovus_efekt as DE  # noqa: E402
 
 KOK = B.KOK
 ANIM_WOM = "Simsek_Kol_Kaynak/animations/wom_kilic.animation.json"
@@ -121,11 +122,13 @@ def akici_mi(senaryo):
     return bool(senaryo.get("akici", False))
 
 
-def zaman_haritasi(senaryo):
+def zaman_haritasi(senaryo, donmali=True):
     """Film karesi -> hikaye zamani. "zaman": [{"t", "sure", "hiz"}] parcalari
     hikayenin o araligini yavaslatir (hiz 0.25 = dort kat agir cekim, 0.02 =
     vurusta donma). Olaylar, kamera kesmeleri ve fizik HIKAYE zamaninda;
-    altyazi ve ses FILM zamaninda (kare / fps)."""
+    altyazi ve ses FILM zamaninda (kare / fps).
+    "vurus_donmasi": true ise her temas karesinin ardina donma kareleri
+    eklenir (donma_noktalari); donmali=False donmasiz haritayi verir."""
     fps = senaryo.get("fps", 24)
     parca = senaryo.get("zaman", [])
     sure = senaryo["sure"]
@@ -140,7 +143,151 @@ def zaman_haritasi(senaryo):
     while t < sure - 1e-9:
         t = min(sure, t + hiz(t) / fps)
         harita.append(t)
+    if donmali and senaryo.get("vurus_donmasi"):
+        harita = donma_ekle(harita, donma_noktalari(senaryo, harita))
     return harita
+
+
+# ---- vurus donmasi (2026-11-08; REFERANS_DOVUS_KOREOGRAFI §4, §62) ----
+# Temas aninda BUTUN sahnenin zamani durur (iki taraf da donar): temas
+# karesinin ardina ayni ani tutan kareler eklenir. Kare sayisi saldiranin
+# kimlik agirligindan (dovus_kimlik.donma_kare: hafif 1, orta 2, agir 3;
+# "saldiri_ii": true +1); savunulan vurus 1 kare. Hikaye zamani donma
+# karelerinde DONMA_ADIM kadar ilerler (dt sifir olmasin: bolme yok).
+# Kamera sarsintisi film zamaninda surer. Senaryo "vurus_donmasi": true ile
+# acilir; yazilmazsa harita bire bir eskisi (1. bolum ve Part 1 degismez).
+DONMA_ADIM = 1e-6
+_DONMA_ONBELLEK = {}
+
+
+def donma_ekle(harita, noktalar):
+    """noktalar: [(t, kare)] -- t haritadaki bir karenin zamani. O karenin
+    ardina kare kadar, zamani DONMA_ADIM adimlarla ilerleyen kare ekler."""
+    if not noktalar:
+        return list(harita)
+    kalan = sorted(noktalar)
+    out, j = [], 0
+    for t in harita:
+        out.append(t)
+        while j < len(kalan) and kalan[j][0] <= t + 1e-9:
+            if abs(kalan[j][0] - t) <= 1e-9:
+                for k in range(1, int(kalan[j][1]) + 1):
+                    out.append(t + k * DONMA_ADIM)
+            j += 1
+    return out
+
+
+def donma_noktalari(senaryo, harita=None):
+    """Otomatik vurus donmasi: [(temas zamani, donma karesi)]. Temaslar
+    donmasiz haritayla kosan dovus benzetiminden (zaman_cizelgesi)."""
+    if not senaryo.get("vurus_donmasi"):
+        return []
+    anahtar = json.dumps(senaryo, sort_keys=True, default=str)
+    if anahtar not in _DONMA_ONBELLEK:
+        h0 = harita if harita is not None else zaman_haritasi(senaryo, donmali=False)
+        _, efektler, _, _ = zaman_cizelgesi(senaryo, B.oku(HAREKET)["setler"], {}, harita=h0)
+        noktalar = {}
+        for e in efektler:
+            if e["tur"] not in ("vurus", "kan", "savun"):
+                continue
+            v = senaryo["aktorler"].get(e.get("kim"), {})
+            kim = DK.kimlik(v.get("kimlik"))
+            agirlik = kim["agirlik"] if kim else "orta"
+            n = 1 if e["tur"] == "savun" else DK.donma_kare(agirlik, bool(v.get("saldiri_ii")))
+            noktalar[e["t"]] = max(noktalar.get(e["t"], 0), n)
+        _DONMA_ONBELLEK[anahtar] = sorted(noktalar.items())
+    return list(_DONMA_ONBELLEK[anahtar])
+
+
+# ---- darbe vurgusu (2026-11-08; REFERANS_DOVUS_KOREOGRAFI §63, §71) ----
+# Senaryo "darbe_vurgusu": true: her temas agirligina gore kamerayi sarsar
+# (Eiserloh'un travma modeli: her darbe travma ekler, film zamaninda
+# dogrusal soner, gorunen sarsinti travmanin KARESI; kare kare ziplayan
+# rastgele sayi yerine duzgun gurultu; vurus yonune egilimli), kivilcim
+# agirlikla buyur, agir vurusta temas noktasinda kisa isik cakar. Yazilmazsa
+# eski sarsinti (yalniz kombonun son vurusu, 0,3 sn) bire bir kalir.
+DARBE_TRAVMA = {"hafif": 0.35, "orta": 0.55, "agir": 0.85}
+DARBE_SAVUN = 0.5            # savunulan vurusun travmasi bu katla
+DARBE_SONUM = 2.4            # travma / sn: 0,85 -> 0 ~0,35 sn
+DARBE_KONUM = 0.10           # blok: travma 1'de sarsintinin konum genligi
+DARBE_ACI = 1.4              # derece: travma 1'de kameranin yuvarlanmasi
+DARBE_YON = 0.45             # 0 rastgele, 1 tamamen vurus yonunde
+DARBE_KIVILCIM = {"hafif": 6, "orta": 10, "agir": 16}
+
+
+def _agirlik(senaryo, ad):
+    kim = DK.kimlik(senaryo["aktorler"].get(ad, {}).get("kimlik"))
+    return kim["agirlik"] if kim else "orta"
+
+
+def darbe_listesi(senaryo, efektler, sarsinti):
+    """[(t, travma, (yx, yy))]: her temas (vurus/kan/savun) saldiranin kimlik
+    agirligiyla; temassiz sarsinti (zemin vurusu) agir sayilir."""
+    out = []
+    for e in efektler:
+        if e["tur"] not in ("vurus", "kan", "savun"):
+            continue
+        tr = DARBE_TRAVMA[_agirlik(senaryo, e.get("kim"))] * (DARBE_SAVUN if e["tur"] == "savun" else 1.0)
+        out.append((e["t"], tr, tuple(e.get("yon", (0.0, 0.0))[:2])))
+    temas = {round(t, 6) for t, _, _ in out}
+    for t in sarsinti:
+        if round(t, 6) not in temas:
+            out.append((t, DARBE_TRAVMA["agir"], (0.0, 0.0)))
+    return sorted(out)
+
+
+def travma_karaleri(darbeler, harita, fps, n):
+    """Kare basina (travma 0..1, (yx, yy)). Her darbe kendi karesinden
+    itibaren FILM zamaninda soner (vurus donmasi boyunca da surer); toplam
+    1'de kirpilir; yon o karede en guclu darbeninki."""
+    out = [(0.0, (0.0, 0.0))] * n
+    guclu = [0.0] * n
+    for t, tr, yon in darbeler:
+        f0 = kare_bul(harita, t)
+        f = f0
+        while f < n:
+            kalan = tr - DARBE_SONUM * (f - f0) / fps
+            if kalan <= 0:
+                break
+            out[f] = (min(1.0, out[f][0] + kalan), yon if kalan >= guclu[f] else out[f][1])
+            guclu[f] = max(guclu[f], kalan)
+            f += 1
+    return out
+
+
+def darbe_isik_anahtarlari(f0):
+    """Agir vurusun temas isigi: [(kare, W)] -- temasta parlar, 5 karede soner."""
+    return [(f0 - 1, 0.0), (f0, 420.0), (f0 + 2, 140.0), (f0 + 5, 0.0)]
+
+
+def _yumusak_gurultu(t, tohum):
+    """-1..1 duzgun gurultu: tohumlu uc sinusun ortalamasi (belirleyici,
+    kare kare ziplamaz; Perlin'in isini goruyor). Frekans 3-6 Hz: 30 fps'te
+    olculdu -- 7-15 Hz kare basina ceyrek-yarim tur ilerliyor ve rastgeleden
+    bile kesik cikiyordu (ortalama adim / RMS 1,56; rastgele 1,04; 3-6 Hz 0,83).
+    0,35 sn'lik darbe sarsintisinda 1-2 salinim: sarsilip toparlanma."""
+    r = random.Random(tohum)
+    s = 0.0
+    for _ in range(3):
+        s += math.sin(2 * math.pi * r.uniform(3.0, 6.0) * t + r.uniform(0.0, 2 * math.pi))
+    return s / 3.0
+
+
+def sarsinti_ofseti(f, travma, yon, fps):
+    """(dx, dy, dz, yuvarlanma derecesi). Genlik travma^2 (kucuk vurus zar
+    zor, buyuk vurus sert); yatayda vurus yonune DARBE_YON kadar egilimli."""
+    g = travma * travma
+    if g <= 0.0:
+        return (0.0, 0.0, 0.0, 0.0)
+    t = f / float(fps)
+    nx, ny, nz = _yumusak_gurultu(t, 101), _yumusak_gurultu(t, 202), _yumusak_gurultu(t, 303)
+    yl = math.hypot(yon[0], yon[1])
+    if yl > 1e-9:
+        b = _yumusak_gurultu(t, 404)
+        nx = (1 - DARBE_YON) * nx + DARBE_YON * b * yon[0] / yl
+        ny = (1 - DARBE_YON) * ny + DARBE_YON * b * yon[1] / yl
+    return (DARBE_KONUM * g * nx, DARBE_KONUM * g * ny, DARBE_KONUM * g * nz * 0.6,
+            DARBE_ACI * g * _yumusak_gurultu(t, 505))
 
 
 def esya_anahtarlari(kayit, esya="kagit"):
@@ -288,6 +435,7 @@ class Aktor:
         self.bas = [0.0, 0.0]    # [yaw, pitch] derece
         self.bas_v = [0.0, 0.0]
         self.irkilmeler = []     # [{"bas", "guc", "yan"}] darbe irkilmesi
+        self.sirali_irk = False  # govde once, kollar ve bas sonra (darbe_vurgusu)
         # Baris'in formu (form_model.py): 1,5 kat + iki ek kol. Ayar burada
         # cozulur -- yanlis yazilmis "form" cizim baslamadan HATA verir.
         self.form = form_model.form_ayari(v.get("form"))
@@ -527,11 +675,13 @@ def bas_takip_adimi(a, aktorler, dt):
         a.bas[i], a.bas_v[i] = H.yay(a.bas[i], a.bas_v[i], h_, dt, H.BAS_W)
 
 
-def zaman_cizelgesi(senaryo, setler, anims, suz=True):
+def zaman_cizelgesi(senaryo, setler, anims, suz=True, harita=None):
     """Her aktor icin kare basina (x, y, z, aci, katmanlar) + efekt ve
-    altyazi listeleri. Oyun mantiginin (cekim.js) kare-zamanli karsiligi."""
+    altyazi listeleri. Oyun mantiginin (cekim.js) kare-zamanli karsiligi.
+    harita verilirse o kullanilir (vurus donmasinin ilk gecisi: donmasiz)."""
     fps = senaryo.get("fps", 24)
-    harita = zaman_haritasi(senaryo)
+    if harita is None:
+        harita = zaman_haritasi(senaryo)
     akici = akici_mi(senaryo)
     pozlar = film_pozlari(akici)
     aktorler = {ad: Aktor(ad, v, setler) for ad, v in senaryo["aktorler"].items()}
@@ -545,6 +695,8 @@ def zaman_cizelgesi(senaryo, setler, anims, suz=True):
             a.diz = diz_model.diz_ayari(True)
         if isinstance(a.v.get("bak"), str) and a.v["bak"] in aktorler:
             a.bak_kim = a.v["bak"]
+        # sirali irkilme (REFERANS §66): yalniz yeni dovus senaryolarinda
+        a.sirali_irk = bool(senaryo.get("darbe_vurgusu"))
 
     def carpisma_coz(a, onceki):
         _carpisma(a, onceki, aktorler)
@@ -559,7 +711,8 @@ def zaman_cizelgesi(senaryo, setler, anims, suz=True):
             # yok sayiliyordu: aktor kuzeye bakiyordu (kulube denemesinde
             # Baris kitapliga degil duvara uzandi).
             a.aci = yon_aci(a.poz, hedef)
-    olaylar = sorted(senaryo.get("olaylar", []), key=lambda o: o["t"])
+    # suru yardimcisinin olaylari da (yazilmazsa liste bire bir eskisi)
+    olaylar = sorted(DE.tum_olaylar(senaryo), key=lambda o: o["t"])
     # "bak_serbest" araliginda yuruyus yonu "bak"i EZMEZ. Engelde takilan
     # yuruyus hic bitmiyor ve her kare yuruyus yonunu hedef aci yapiyordu:
     # 1. bolumun 4. sahnesinde El-Harkos kopyalara hic donmedi (v7.99.12
@@ -582,7 +735,14 @@ def zaman_cizelgesi(senaryo, setler, anims, suz=True):
                 yazilar.append({"t": o["t"], "sure": o.get("sure", 2.5), "metin": o["baslik"],
                                 "tur": "baslik"})
                 continue
-            if "efekt" in o:
+            if "efekt" in o and o["efekt"] in YENI_EFEKT:
+                # dovus efektleri (dovus_efekt.py): ayarlari olayin kendisinde
+                e_ = {k_: v_ for k_, v_ in o.items() if k_ not in ("efekt", "aktor")}
+                e_.update({"tur": o["efekt"], "nokta": list(o["nokta"]) if "nokta" in o else None})
+                efektler.append(e_)
+                if o["efekt"] == "patlama":
+                    sarsinti.append(o["t"])
+            elif "efekt" in o:
                 efektler.append({"t": o["t"], "tur": o["efekt"], "nokta": list(o["nokta"])})
             if "aktor" not in o:
                 continue                      # sahne olayi (kapi, goz): Blender kurucusu okur
@@ -683,6 +843,9 @@ def zaman_cizelgesi(senaryo, setler, anims, suz=True):
                 if isinstance(g, str):
                     a.bak_kim = g
                 a.yuru["hiz"] = float(o["adim"]) if "adim" in o else (KOS if o.get("kos") else YURU)
+                if o.get("varinca_bak"):
+                    # varinca o aktore don (suru: halkada yer degistiren hedefe bakar)
+                    a.yuru["varinca_bak"] = o["varinca_bak"]
             if "vur" in o:
                 hedef = aktorler.get(o.get("hedef")) if o.get("hedef") else None
                 vur_aci = yon_aci(a.poz, hedef.poz) if hedef else (a.hedef_aci if a.hedef_aci is not None else a.aci)
@@ -818,6 +981,9 @@ def zaman_cizelgesi(senaryo, setler, anims, suz=True):
                 dx, dy = hedef[0] - a.poz[0], hedef[1] - a.poz[1]
                 uz = math.hypot(dx, dy)
                 if uz <= dur or (akici and uz - dur < H.VARIS_ESIK):
+                    if a.yuru.get("varinca_bak"):
+                        a.hedef_aci = yon_aci(a.poz, aktorler[a.yuru["varinca_bak"]].poz)
+                        a.bak_kim = a.yuru["varinca_bak"]
                     a.yuru = None
                     a.yuru_v = 0.0
                     a.yuru_yon = None
@@ -908,7 +1074,8 @@ def zaman_cizelgesi(senaryo, setler, anims, suz=True):
             ek_ = {}
             if akici:
                 bas_takip_adimi(a, aktorler, dt)
-                a.irkilmeler = [r for r in a.irkilmeler if t - r["bas"] <= 0.6]
+                a.irkilmeler = [r for r in a.irkilmeler
+                                if t - r["bas"] <= 0.6 + (H.IRK_BAS_GECIKME if a.sirali_irk else 0.0)]
                 ek_ = {"bas": list(a.bas), "bob": H.adim_cokmesi(a.mesafe, a.hizli, a.olcek),
                        "irk": [dict(r) for r in a.irkilmeler]}
                 if a.kimlik:
@@ -1170,7 +1337,7 @@ def kare_ekleri(a, k, katman):
     if wt > 0:
         ek["head"] = [pitch * wt, yaw * wt, 0.0]
     for r in k.get("irk", []):
-        for kem, v in H.irkilme(k["t"] - r["bas"], r["guc"], r["yan"]).items():
+        for kem, v in H.irkilme(k["t"] - r["bas"], r["guc"], r["yan"], getattr(a, "sirali_irk", False)).items():
             e0 = ek.setdefault(kem, [0.0, 0.0, 0.0])
             ek[kem] = [e0[i] + v[i] for i in range(3)]
     for r in k.get("inis", []):
@@ -2063,7 +2230,9 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
 
     # ---- kivilcimlar ----
     kivilcim_kur(bpy, efektler, fps, doku_malzemesi, harita,
-                 zemin=lambda x, y, t_: zemin_yuksekligi(senaryo, x, y, t_))
+                 zemin=lambda x, y, t_: zemin_yuksekligi(senaryo, x, y, t_),
+                 vurgu=({ad: _agirlik(senaryo, ad) for ad in senaryo["aktorler"]}
+                        if senaryo.get("darbe_vurgusu") else None))
 
     # ---- kamera ----
     kam = bpy.data.objects.new("kamera", bpy.data.cameras.new("kamera"))
@@ -2072,6 +2241,9 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
     kam.data.clip_start = 0.05
     rnd = random.Random(7)
     sars_kare = [kare_bul(harita, s) for s in sarsinti]
+    # darbe vurgusu (senaryo "darbe_vurgusu"): travma modeli eski sarsintinin yerine
+    darbe_kare = (travma_karaleri(darbe_listesi(senaryo, efektler, sarsinti), harita, fps, len(kam_iz))
+                  if senaryo.get("darbe_vurgusu") else None)
     dof_kendi = any(c[4] for c in kam_iz)
     bulanik_kare = bulaniklik_karaleri(senaryo, harita, len(kam_iz))
     # bulaniklik disinda keskin kalsin: yalniz bulaniklik icin acilan alan
@@ -2099,11 +2271,18 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
                 sc.view_settings.keyframe_insert("exposure", frame=f + 1)
         sc.view_settings.exposure = taban_poz
     for f, (kp, bk, lens, yatik, odak) in enumerate(kam_iz):
-        sars = sum(max(0.0, 1 - (f - s) / (0.3 * fps)) for s in sars_kare if 0 <= f - s < 0.3 * fps)
-        titre = Vector((rnd.uniform(-1, 1), rnd.uniform(-1, 1), rnd.uniform(-1, 1))) * 0.06 * sars
+        yuvarla = 0.0
+        if darbe_kare is not None:
+            dx_, dy_, dz_, yuvarla = sarsinti_ofseti(f, darbe_kare[f][0], darbe_kare[f][1], fps)
+            titre = Vector((dx_, dy_, dz_))
+        else:
+            sars = sum(max(0.0, 1 - (f - s) / (0.3 * fps)) for s in sars_kare if 0 <= f - s < 0.3 * fps)
+            titre = Vector((rnd.uniform(-1, 1), rnd.uniform(-1, 1), rnd.uniform(-1, 1))) * 0.06 * sars
         q = (Vector(bk) - Vector(kp)).to_track_quat("-Z", "Y")
         if yatik:
             q = q @ Quaternion((0, 0, 1), math.radians(yatik))
+        if yuvarla:
+            q = q @ Quaternion((0, 0, 1), math.radians(yuvarla))
         onq = tampon.get((kam, "rotation_quaternion"))
         if onq and sum(x * y for x, y in zip(onq[-1][1], q)) < 0:
             q = -q
@@ -2150,6 +2329,8 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
     if senaryo.get("mekan") == "oda":
         oda_kur(bpy, senaryo, doku_malzemesi, harita, fps, kam_iz, aktor_parcalari, kemik_nesne,
                 {ad: a.kayit for ad, a in aktorler.items()})
+    # sis perdesi ve darbe karesi: oda kompozitorunden SONRA (zincire eklenir)
+    kompozitor_kur(bpy, senaryo, harita, efektler)
 
     os.makedirs(os.path.join(klasor, "kare"), exist_ok=True)
     if isinstance(tek_kare, list):           # denetim: secili kareler, tek kurulumla
@@ -3519,7 +3700,7 @@ def _parca(bpy, nokta, boy, malz, f0, f1, son_nokta, ara=None, kalici=False):
     return ob
 
 
-def kivilcim_kur(bpy, efektler, fps, doku_malzemesi, harita=None, zemin=None):
+def kivilcim_kur(bpy, efektler, fps, doku_malzemesi, harita=None, zemin=None, vurgu=None):
     """Temas efektleri. Zamanlar hikaye zamaninda; kareye `harita` cevirir.
       vurus: sari kivilcim (tirpan El-Harkos'tan sekiyor -- "silah islemiyor")
       savun: mavi kivilcim
@@ -3550,10 +3731,22 @@ def kivilcim_kur(bpy, efektler, fps, doku_malzemesi, harita=None, zemin=None):
         f0 = kare(e["t"])
         n = e.get("nokta")          # "parca" noktasiz: yolu "iz"de (dovus v2)
         if e["tur"] in ("vurus", "savun"):
-            for _ in range(10):
+            # darbe vurgusu (vurgu = {aktor: agirlik}): kivilcim agirlikla
+            # buyur, agir vurusta temas noktasinda kisa sicak isik (REFERANS §71)
+            ag = vurgu.get(e.get("kim"), "orta") if vurgu else None
+            for _ in range(DARBE_KIVILCIM[ag] if ag else 10):
                 yon = (rnd.uniform(-1, 1), rnd.uniform(-1, 1), rnd.uniform(0, 1.2))
                 _parca(bpy, n, 0.07, mavi if e["tur"] == "savun" else sari, f0, f0 + int(0.3 * fps),
                        tuple(n[i] + yon[i] * 0.6 for i in range(3)))
+            if ag == "agir" and e["tur"] == "vurus":
+                fl = bpy.data.objects.new("darbe_isik", bpy.data.lights.new("darbe_isik", "POINT"))
+                fl.data.color = (1.0, 0.82, 0.55)
+                fl.data.shadow_soft_size = 0.05
+                fl.location = n
+                bpy.context.scene.collection.objects.link(fl)
+                for fk, g in darbe_isik_anahtarlari(f0):
+                    fl.data.energy = g
+                    fl.data.keyframe_insert("energy", frame=max(0, fk))
         elif e["tur"] == "isik":
             nl = bpy.data.objects.new("flas", bpy.data.lights.new("flas", "POINT"))
             nl.data.color = (0.78, 0.49, 1.0)
@@ -3614,6 +3807,8 @@ def kivilcim_kur(bpy, efektler, fps, doku_malzemesi, harita=None, zemin=None):
             ob.keyframe_insert("scale", frame=fk)
             ob.scale = (0, 0, 0)
             ob.keyframe_insert("scale", frame=fk + 1)
+        elif e["tur"] in ("isaret", "cam_kir", "patlama"):
+            dovus_efekt_kur(bpy, e, kare, doku_malzemesi, zemin)
         elif e["tur"] == "kan":
             yon = e.get("yon", [0, 1])
             for j in range(18):
@@ -3641,6 +3836,218 @@ def kivilcim_kur(bpy, efektler, fps, doku_malzemesi, harita=None, zemin=None):
                     lk.keyframe_insert("scale", frame=yere[0] - 1)
                     lk.scale = (bl, bl, 0.004)
                     lk.keyframe_insert("scale", frame=yere[0])
+
+
+# ============================================================
+# dovus efektleri (dovus_efekt.py hesaplar, burada Blender'a)
+# ============================================================
+YENI_EFEKT = ("isaret", "cam_kir", "patlama", "darbe_karesi")
+ISARET_ISIMA = 2.0
+
+
+def _iz_anahtarla(ob, iz, kare, boy=None, kalici=True):
+    """iz: [(t, x, y, z, don)] ya da duman [(t, x, y, z, boy)]: kare kare anahtar.
+    Ilk karede belirir; kalici degilse son karede kaybolur."""
+    gorulen = set()
+    f_ilk = kare(iz[0][0])
+    ob.scale = (0, 0, 0)
+    ob.keyframe_insert("scale", frame=max(0, f_ilk - 1))
+    for t, x, y, z, d in iz:
+        fk = kare(t)
+        if fk in gorulen:
+            continue
+        gorulen.add(fk)
+        ob.location = (x, y, z)
+        ob.keyframe_insert("location", frame=fk)
+        if boy is None:                       # duman: 5. alan boy
+            ob.scale = (d, d, d)
+        else:
+            ob.scale = boy
+            ob.rotation_euler = (math.radians(d * 0.6), math.radians(d * 0.35), ob.rotation_euler[2])
+            ob.keyframe_insert("rotation_euler", frame=fk)
+        ob.keyframe_insert("scale", frame=fk)
+    if not kalici:
+        ob.scale = (0, 0, 0)
+        ob.keyframe_insert("scale", frame=max(gorulen) + 1)
+
+
+def dovus_efekt_kur(bpy, e, kare, doku_malzemesi, zemin=None):
+    """isaret / cam_kir / patlama (REFERANS_DOVUS_KOREOGRAFI §72, §74)."""
+    sc = bpy.context.scene
+    n = e["nokta"]
+    t0 = e["t"]
+    if e["tur"] == "isaret":
+        renk = tuple(e.get("renk", [0.55, 0.8, 1.0]))
+        sure = float(e.get("sure", DE.ISARET_SURE))
+        # isima 2: renk doymadan kalir (20 ve 6da beyaza doyup acik gokte/siste
+        # kayboluyordu, deneme karesi 2026-11-08)
+        malz = _isik_malz(bpy, "isaret", renk, ISARET_ISIMA)
+        boy = float(e.get("boyut", DE.ISARET_BOY))
+        ob = _kup_nesne(bpy, malz, boy, n, "isaret")
+        isik = bpy.data.objects.new("isaret_isik", bpy.data.lights.new("isaret_isik", "POINT"))
+        isik.data.color = renk
+        isik.data.shadow_soft_size = 0.1
+        isik.location = n
+        sc.collection.objects.link(isik)
+        gorulen = set()
+        for t, g in DE.isaret_ornekleri(t0, sure):
+            fk = kare(t)
+            if fk in gorulen and g == 0:
+                continue
+            gorulen.add(fk)
+            ob.scale = (boy * g,) * 3
+            ob.keyframe_insert("scale", frame=max(0, fk))
+            isik.data.energy = DE.ISARET_ISIK * float(e.get("guc", 1.0)) * g
+            isik.data.keyframe_insert("energy", frame=max(0, fk))
+        if e.get("cizgi"):
+            son = kare(t0 + sure + DE.ISARET_SON)
+            for i, (x, y, tb, aci) in enumerate(DE.yer_cizgisi(n[:2], e["cizgi"], t0, sure)):
+                zz = (zemin(x, y, tb) if zemin else 0.0) + 0.012
+                p = _kup_nesne(bpy, malz, (DE.CIZGI_ARALIK * 0.85, 0.07, 0.012), (x, y, zz), "isaret_cizgi")
+                p.rotation_euler = (0, 0, math.radians(aci))
+                hedef = p.scale[:]
+                p.scale = (0, 0, 0)
+                p.keyframe_insert("scale", frame=max(0, kare(tb) - 1))
+                p.scale = hedef
+                p.keyframe_insert("scale", frame=kare(tb))
+                p.keyframe_insert("scale", frame=son)
+                p.scale = (0, 0, 0)
+                p.keyframe_insert("scale", frame=son + 1)
+    elif e["tur"] == "cam_kir":
+        cam = bpy.data.materials.new("cam")
+        cam.use_nodes = True
+        b = cam.node_tree.nodes["Principled BSDF"]
+        b.inputs["Base Color"].default_value = (0.78, 0.92, 0.96, 1)
+        b.inputs["Roughness"].default_value = 0.05
+        for ad_, v_ in (("Transmission Weight", 0.85), ("Alpha", 0.75)):
+            if ad_ in b.inputs:
+                b.inputs[ad_].default_value = v_
+        gen, yuk = float(e.get("genislik", 1.0)), float(e.get("yukseklik", 1.0))
+        normal = e.get("normal", [0.0, 1.0])
+        z0 = zemin(n[0], n[1], t0) if zemin else 0.0
+        parcalar = DE.cam_parcalari(n, gen, yuk, normal, t0, e.get("tohum", 1), zemin_z=z0)
+        f0 = kare(t0)
+        if e.get("butun", True):
+            lv = _kup_nesne(bpy, cam, (gen, DE.CAM_KALINLIK, yuk), n, "cam_levha")
+            lv.rotation_euler = (0, 0, math.radians(parcalar[0]["aci"]))
+            lv.keyframe_insert("scale", frame=max(0, f0 - 1))
+            lv.scale = (0, 0, 0)
+            lv.keyframe_insert("scale", frame=f0)
+        for p_ in parcalar:
+            ob = _kup_nesne(bpy, cam, p_["boy"], p_["bas"], "cam_parca")
+            ob.rotation_euler = (0, 0, math.radians(p_["aci"]))
+            _iz_anahtarla(ob, p_["iz"], kare, boy=p_["boy"])
+    elif e["tur"] == "patlama":
+        guc = float(e.get("guc", 1.0))
+        z0 = zemin(n[0], n[1], t0) if zemin else 0.0
+        res = DE.patlama(n, t0, e.get("tohum", 1), guc, zemin_z=z0)
+        fl = bpy.data.objects.new("patlama_isik", bpy.data.lights.new("patlama_isik", "POINT"))
+        fl.data.color = (1.0, 0.85, 0.65)
+        fl.data.shadow_soft_size = 0.4
+        fl.location = (n[0], n[1], n[2] + 0.5)
+        sc.collection.objects.link(fl)
+        for t, w in res["isik"]:
+            fl.data.energy = w
+            fl.data.keyframe_insert("energy", frame=max(0, kare(t)))
+        griler = {}
+        for d in res["duman"]:
+            g = round(d["gri"], 1)
+            if g not in griler:
+                m_ = bpy.data.materials.new("duman_%g" % g)
+                m_.use_nodes = True
+                bb = m_.node_tree.nodes["Principled BSDF"]
+                bb.inputs["Base Color"].default_value = (g, g, g, 1)
+                bb.inputs["Roughness"].default_value = 1.0
+                bb.inputs["Emission Color"].default_value = (g, g, g, 1)
+                bb.inputs["Emission Strength"].default_value = 0.35
+                griler[g] = m_
+            ob = _kup_nesne(bpy, griler[g], 0.0, d["iz"][0][1:4], "duman")
+            _iz_anahtarla(ob, d["iz"], kare, boy=None, kalici=False)
+        doku = os.path.join(MCPREP_DOKU, e.get("doku", "dirt.png"))
+        malz = doku_malzemesi(doku)
+        for p_ in res["parca"]:
+            ob = _kup_nesne(bpy, malz, p_["boy"], p_["iz"][0][1:4], "patlama_parca")
+            _iz_anahtarla(ob, p_["iz"], kare, boy=(p_["boy"],) * 3)
+
+
+def kompozitor_kur(bpy, senaryo, harita, efektler):
+    """Sis perdesi (senaryo "atmosfer", §54) ve darbe karesi (§64).
+    Ikisi de yoksa hicbir sey yapmaz (eski senaryolar bire bir).
+    Oda kotusunun kompozitoru varsa onun cikisina zincirlenir."""
+    atm = DE.atmosfer_ayari(senaryo)
+    dk = DE.darbe_kareleri(efektler, kare_bul, harita)
+    if not atm and not dk:
+        return None
+    sc = bpy.context.scene
+    vl = sc.view_layers[0]
+    soket = lambda nl, kim: next(s_ for s_ in nl if s_.identifier == kim)
+    ng = sc.compositing_node_group
+    if ng is None:
+        ng = bpy.data.node_groups.new("film_kompozitor", "CompositorNodeTree")
+        ng.interface.new_socket("Image", in_out="OUTPUT", socket_type="NodeSocketColor")
+        rl = ng.nodes.new("CompositorNodeRLayers")
+        rl.scene = sc
+        rl.layer = vl.name
+        cikis = ng.nodes.new("NodeGroupOutput")
+        kaynak = rl.outputs["Image"]
+    else:
+        cikis = next(x for x in ng.nodes if x.bl_idname == "NodeGroupOutput")
+        kaynak = cikis.inputs[0].links[0].from_socket
+        rl = next(x for x in ng.nodes if x.bl_idname == "CompositorNodeRLayers" and x.layer == vl.name)
+    if atm:
+        vl.use_pass_mist = True
+        ms = sc.world.mist_settings
+        ms.start = float(atm["baslangic"])
+        ms.depth = float(atm["derinlik"])
+        ms.falloff = atm["egri"]
+        carp = ng.nodes.new("ShaderNodeMath")
+        carp.operation = "MULTIPLY"
+        ng.links.new(rl.outputs["Mist"], carp.inputs[0])
+        carp.inputs[1].default_value = float(atm["yogunluk"])
+        mx = ng.nodes.new("ShaderNodeMix")
+        mx.data_type = "RGBA"
+        ng.links.new(carp.outputs[0], soket(mx.inputs, "Factor_Float"))
+        ng.links.new(kaynak, soket(mx.inputs, "A_Color"))
+        soket(mx.inputs, "B_Color").default_value = (*atm["renk"], 1.0)
+        kaynak = soket(mx.outputs, "Result_Color")
+    if dk:
+        bw = ng.nodes.new("CompositorNodeRGBToBW")
+        ng.links.new(kaynak, bw.inputs[0])
+        mr = ng.nodes.new("ShaderNodeMapRange")
+        mr.interpolation_type = "SMOOTHSTEP"
+        mr.clamp = True
+        ng.links.new(bw.outputs[0], soket(mr.inputs, "Value"))
+        soket(mr.inputs, "From Min").default_value = 0.08
+        soket(mr.inputs, "From Max").default_value = 0.22
+        mx2 = ng.nodes.new("ShaderNodeMix")
+        mx2.data_type = "RGBA"
+        ng.links.new(kaynak, soket(mx2.inputs, "A_Color"))
+        ng.links.new(soket(mr.outputs, "Result"), soket(mx2.inputs, "B_Color"))
+        fak = soket(mx2.inputs, "Factor_Float")
+        to_min, to_max = soket(mr.inputs, "To Min"), soket(mr.inputs, "To Max")
+        anahtar = {1: (0.0, False)}
+        for f_, ters in sorted(dk.items()):
+            anahtar[f_] = (1.0, ters)
+            if f_ + 1 not in dk:
+                anahtar[f_ + 1] = (0.0, False)
+        for f_, (v_, ters) in sorted(anahtar.items()):
+            if f_ < 1:
+                continue
+            fak.default_value = v_
+            fak.keyframe_insert("default_value", frame=f_)
+            to_min.default_value, to_max.default_value = (1.0, 0.0) if ters else (0.0, 1.0)
+            to_min.keyframe_insert("default_value", frame=f_)
+            to_max.keyframe_insert("default_value", frame=f_)
+        if ng.animation_data and ng.animation_data.action:
+            for fc in egriler(ng):
+                for kp in fc.keyframe_points:
+                    kp.interpolation = "CONSTANT"
+        kaynak = soket(mx2.outputs, "Result_Color")
+    ng.links.new(kaynak, cikis.inputs[0])
+    sc.compositing_node_group = ng
+    sc.render.use_compositing = True
+    sc.render.compositor_device = "CPU"        # bkz. kotu_karanlik_kur: bulutta EGL yok
+    return ng
 
 
 # ============================================================
