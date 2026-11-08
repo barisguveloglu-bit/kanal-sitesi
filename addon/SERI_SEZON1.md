@@ -1004,6 +1004,14 @@ yapmaya başla; 2. bölümün Part 2'sinde bu sisteme geçelim"* dedi.
   - Kulübedeki kitap sahnesi (kitap başın üstünde belirip kayboluyor):
     *"olduğu gibi bırak, limitleri daha fazla harcamayalım"* — düzeltilmiyor,
     yeniden çizilmiyor.
+- **Beğen / abone animasyonu her videoda 3 kez (kullanıcı, 2026-11-08):**
+  *"izliyorlar ama abone olmuyorlar, like atmıyorlar"* diye istendi; ikinci
+  turdan sonra *"iyi olmuş, bundan sonraki her videoda bunu ekleyelim, 3 tane
+  olsun, farklı yerlerde."* `film_birlestir.py` bunu kendiliğinden yapar:
+  videonun %15, %50 ve %85'ine ortalanmış üç an (başlık kartından sonra,
+  siyah sondan önce, üst üste binmeden). Yerleri elle `--cagri 12,40,70`
+  ile değişir; `--cagri yok` yalnız denemeler için. Animasyon:
+  `arac/cagri_animasyon.py` (FILM_YETENEK_HARITASI.md "Yazı ve ses").
 - Açık (sorulacak): boynuz kimde ve hangi tür; hangi karakterler ağızla konuşur;
   seslendirme kaydı olacak mı (dudak senkronu ses kaydından mı, altyazı
   metninden mi).

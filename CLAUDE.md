@@ -862,3 +862,9 @@ perdesi (`"atmosfer"`) `arac/dovus_efekt.py`'de; ayrıntı ve açık maddeler
 FILM_YETENEK_HARITASI.md "Dövüş hissi ve efektleri". **Bilinen:** hareket
 denetimi her dövüşte hamle atılmasını ve darbe itmesini `ani_kalkis` sayıyor;
 ilk dövüş sahnesi yazılırken karar verilecek.
+
+**Beğen / abone animasyonu her videoda 3 kez (kullanıcı, 2026-11-08).**
+*"Bundan sonraki her videoda bunu ekleyelim, 3 tane olsun, farklı yerlerde."*
+`film_birlestir.py` `--cagri` verilmezse `arac/cagri_animasyon.py`'nin
+katmanını videonun %15, %50 ve %85'ine kendiliğinden ekler (`test/cagri.mjs`).
+Yayına giden bir videoda `--cagri yok` kullanılmaz.

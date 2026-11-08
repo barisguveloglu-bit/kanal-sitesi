@@ -152,6 +152,29 @@ print(json.dumps({"n": n, "beklenen": int(round(C.SURE * C.FPS)), "ilk_alfa": in
   kontrol("film sesi kisilmiyor (normalize=0): seviye kaynaktaki gibi", r.film_ses_once > 0.08 && r.film_ses_sira > 0.08,
           JSON.stringify([r.film_ses_once, r.film_ses_sira]));
 
+  console.log("\n=== 4b. HER VIDEODA 3 KEZ (varsayilan) ===");
+  // Kullanici (2026-11-08): "bundan sonraki her videoda bunu ekleyelim, 3 tane olsun, farkli yerlerde."
+  const v = py(`
+import film_birlestir as FB, cagri_animasyon as C
+z = FB.cagri_zamanlari(76.7, 2.5, 0.6, C.SURE)
+kisa = FB.cagri_zamanlari(8.0, 2.5, 0.6, C.SURE)
+kod = open(os.path.join(sys.argv[1], "film_birlestir.py"), encoding="utf-8").read()
+ana = kod[kod.index("def main("):]
+g, f, _, _ = FB.cagri_filtre([3.0], "x.mov", 5, boyut="960x540")
+print(json.dumps({"z": z, "kisa": kisa, "sure": C.SURE,
+                  "varsayilan": "if cagri is None:" in ana and "cagri_zamanlari(" in ana,
+                  "yok": '== "yok"' in ana, "olcek": "scale=960:540" in f}))`);
+  const z = v.z;
+  kontrol("~77 sn'lik videoda 3 kez: baslik kartindan sonra, siyah sondan once, ust uste binmeden",
+          z.length === 3 && z[0] >= 3.0 && z[2] + v.sure <= 76.7 - 0.6 &&
+          z[1] - z[0] >= v.sure + 1 && z[2] - z[1] >= v.sure + 1, JSON.stringify(z));
+  kontrol("videonun basina, ortasina ve sonuna yayiliyor (%15 / %50 / %85)",
+          Math.abs(z[0] + v.sure / 2 - 0.15 * 76.7) < 1 && Math.abs(z[1] + v.sure / 2 - 0.5 * 76.7) < 1 &&
+          Math.abs(z[2] + v.sure / 2 - 0.85 * 76.7) < 1, JSON.stringify(z));
+  kontrol("sigmayan kisa onizlemede eklenmiyor", v.kisa.length === 0, JSON.stringify(v.kisa));
+  kontrol("film_birlestir --cagri verilmezse varsayilan 3 an; --cagri yok kapatir", v.varsayilan && v.yok);
+  kontrol("taslak (kucuk cozunurluk) filmde katman filmin boyutuna olceklenir", v.olcek);
+
   console.log("\n=== 5. MARKA ===");
   const kod = readFileSync(join(ARAC, "cagri_animasyon.py"), "utf8");
   kontrol("simgeler ve yazi tipi kod icinde kendi desenimiz; disaridan logo/yazi tipi dosyasi yuklenmiyor",

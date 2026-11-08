@@ -4,6 +4,10 @@
     python3 addon/arac/film_birlestir.py part1.mp4 orman:bolum1_orman.json:part1
     python3 addon/arac/film_birlestir.py part2.mp4 orman:bolum1_orman.json:part2 oda:bolum1_oda.json
 
+--cagri 35,95: begen/abone animasyonu (cagri_animasyon.py) bu saniyelerde;
+yazilmazsa filmin %15, %50, %85'inde 3 kez (kullanici, 2026-11-08: her
+videoda 3 kez, farkli yerlerde); --cagri yok: hic.
+
 --adim N: onizleme (blender_film --adim N ile cizilmis); video fps/N'de
 akar, ses ve altyazi yine film zamaninda. Eksik kare varsa durur.
 
@@ -160,7 +164,34 @@ def boyut(video):
     return o.stdout.strip().replace(",", "x")
 
 
-def cagri_filtre(zamanlar, mov, ilk_girdi, v="v", a="a0"):
+# Kullanici (2026-11-08): "bundan sonraki her videoda bunu ekleyelim, 3 tane
+# olsun, farkli yerlerde." --cagri verilmezse filmin bu oranlarina ortalanir.
+CAGRI_ORAN = (0.15, 0.50, 0.85)
+
+
+def video_suresi(video):
+    c = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", video],
+                       capture_output=True, text=True, check=True)
+    return float(c.stdout.strip())
+
+
+def cagri_zamanlari(toplam, bas=0.0, son=0.0, sure=6.0, oran=CAGRI_ORAN):
+    """Varsayilan cagri anlari (bitmis filmin saniyeleri): her biri filmin
+    `oran`ina ortalanir; baslik kartindan (bas) sonra, siyah sondan (son)
+    once kalir, birbirine binmez (arada en az 1 sn). Sigmayan atlanir:
+    kisa filmde (onizleme) daha az ya da hic."""
+    a, b = bas + 0.5, toplam - son - sure - 0.5
+    out = []
+    for o in oran:
+        t = min(b, max(a, toplam * o - sure / 2))
+        if out:
+            t = max(t, out[-1] + sure + 1.0)
+        if a <= t <= b:
+            out.append(round(t, 2))
+    return out
+
+
+def cagri_filtre(zamanlar, mov, ilk_girdi, v="v", a="a0", boyut=None):
     """Begen/abone animasyonu (cagri_animasyon.py) filmin `zamanlar` saniyelerine
     (BITMIS filmin zamani, baslik karti dahil). -> (girdi, filtre, v_cikis, a_cikis).
     Katman basina saydam karelerle doldurulur (overlay ikinci girdinin ilk
@@ -170,7 +201,8 @@ def cagri_filtre(zamanlar, mov, ilk_girdi, v="v", a="a0"):
     for k, tk in enumerate(zamanlar):
         m = ilk_girdi + k
         girdi += ["-i", mov]
-        f.append("[%d:v]format=rgba,tpad=start_duration=%g:color=0x00000000[cg%d];" % (m, tk, k))
+        olcek = (",scale=%s:flags=neighbor" % boyut.replace("x", ":")) if boyut and boyut != "1920x1080" else ""
+        f.append("[%d:v]format=rgba%s,tpad=start_duration=%g:color=0x00000000[cg%d];" % (m, olcek, tk, k))
         f.append("[%s][cg%d]overlay=eof_action=pass:format=auto[cv%d];" % (v, k, k))
         v = "cv%d" % k
         ms = int(round(tk * 1000))
@@ -188,10 +220,10 @@ def main(argv):
         i = argv.index("--adim")
         adim = int(argv[i + 1])
         argv = argv[:i] + argv[i + 2:]
-    cagri = []
-    if "--cagri" in argv:                     # --cagri 35,95 : begen/abone animasyonu o saniyelerde
+    cagri = None                              # yazilmazsa: varsayilan 3 an (CAGRI_ORAN)
+    if "--cagri" in argv:                     # --cagri 35,95 : o saniyelerde; --cagri yok : hic
         i = argv.index("--cagri")
-        cagri = [float(x) for x in argv[i + 1].split(",") if x]
+        cagri = [] if argv[i + 1] == "yok" else [float(x) for x in argv[i + 1].split(",") if x]
         argv = argv[:i] + argv[i + 2:]
     cikti = os.path.abspath(argv[0])
     parcalar, kartlar = [], []
@@ -225,12 +257,17 @@ def main(argv):
     # ses zinciri filtre grafiginin ICINDE: ffmpeg -af ile -filter_complex'i
     # birlikte kabul etmiyor (cikis 234)
     vc, ac, ek = "v", "a0", ""
+    if cagri is None:
+        import cagri_animasyon as CA
+        bas = KART_SURE if kartlar else 0.0
+        cagri = cagri_zamanlari(bas + sum(video_suresi(p) for p in parcalar) + SIYAH_SON, bas, SIYAH_SON, CA.SURE)
     if cagri:
+        print("begen/abone animasyonu:", ", ".join("%.1f sn" % x for x in cagri))
         import cagri_animasyon as CA
         kl = cikti + ".cagri"
         if not os.path.exists(os.path.join(kl, "cagri.mov")):
             CA.uret(kl)
-        g_, ek, vc, ac = cagri_filtre(cagri, os.path.join(kl, "cagri.mov"), j + 2)
+        g_, ek, vc, ac = cagri_filtre(cagri, os.path.join(kl, "cagri.mov"), j + 2, boyut=boyut(parcalar[0]))
         girdi += g_
     fc = ("".join(filtre) + "concat=n=%d:v=1:a=1[v][a0];" % (n + 1) + ek
           + "[%s]%s[a]" % (ac, SES_ZINCIR))
