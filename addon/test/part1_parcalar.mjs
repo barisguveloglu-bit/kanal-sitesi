@@ -26,7 +26,12 @@
    11. "bak_bas": bas bir noktaya doner (yerde yatanin yuzu); orman
        sahnesinde cadi Baris'in gozune (POV kamerasi) bakar.
    12. Cadi gecide obsidyenin ustunden girer, isinlanmadan once cercevede
-       mor yuzun ONUNDE durur (inis kaymasi arkaya gecirmez). */
+       mor yuzun ONUNDE durur (inis kaymasi arkaya gecirmez).
+   14. "Sona kadar" yazilan dolgu isigi ve kar son karede SONMEZ
+       (2026-11-08, cizilen karelerin incelemesi: ruh sahnesinin 284.
+       karesi karardi -- isik 6,41-9,81, sahne 9,41'de bitiyor; kare_bul
+       son kareye kirptigi icin kapanma anahtari son kareye yaziliyordu).
+       Ortadaki bitis (kulube isigi 13,4'te, kesmede) aynen kalir. */
 import { execFileSync } from "node:child_process";
 import { readFileSync, readdirSync } from "node:fs";
 import { join, dirname } from "node:path";
@@ -400,6 +405,48 @@ print(json.dumps({"gelis": gelis, "e_hata": e["_cozum"]["el_hatasi_px"], "e_dong
   kontrol("Baris yoldan geliyor ve sonunda Pipos'la yuz yuze (Zisa'nin evine atlamadan once)",
           r.gelis.bas_y < -108 && r.gelis.yol < -10 && r.gelis.ara >= 1.05 && r.gelis.ara <= 2.2 && r.gelis.b_bakis < 25 &&
           r.gelis.p_bakis < 25 && r.gelis.gorunur, JSON.stringify(Object.fromEntries(Object.entries(r.gelis).map(([k, v]) => [k, typeof v === "number" ? +v.toFixed(2) : v]))));
+}
+
+console.log("\n=== 14. SONA KADAR YAZILAN ISIK VE KAR SON KAREDE SONMEZ ===");
+{
+  const r = py(`
+import os, glob
+import blender_film as F, bedrock_onizleme as B
+def deger(anahtar, f):
+    v = None
+    for k in sorted(anahtar):
+        if k <= f:
+            v = anahtar[k]
+    return v
+son_kare, orta = [], []
+for y in sorted(glob.glob(os.path.join(sys.argv[1], "..", "film", "bolum2_p1_*.json"))):
+    s = B.oku(y)
+    h = F.zaman_haritasi(s)
+    n = len(h)
+    araliklar = [("isik", l["t"]) for l in s.get("isiklar", []) if l.get("t")]
+    if s.get("kar"):
+        araliklar.append(("kar", s["kar"].get("t", [0.0, h[-1]])))
+    for tur, (t0, t1) in araliklar:
+        a = F.aralik_anahtarlari(h, t0, t1, 1, 0)
+        ad = os.path.basename(y)[:-5] + ":" + tur
+        if t1 >= h[-1] - 1e-9:
+            son_kare.append([ad, deger(a, n), deger(a, n - 1)])
+        else:
+            orta.append([ad, F.kare_bul(h, t1) + 1, deger(a, F.kare_bul(h, t1)), deger(a, F.kare_bul(h, t1) + 1)])
+ruh = B.oku(os.path.join(sys.argv[1], "..", "film", "bolum2_p1_2_ruh.json"))
+hr = F.zaman_haritasi(ruh)
+kod = open(os.path.join(sys.argv[1], "blender_film.py"), encoding="utf-8").read()
+print(json.dumps({"son": son_kare, "orta": orta, "ruh_son": deger(F.aralik_anahtarlari(hr, 6.41, 9.81, 1, 0), len(hr)),
+                  "ruh_once": deger(F.aralik_anahtarlari(hr, 6.41, 9.81, 1, 0), 192),
+                  "cagri": kod.count("aralik_anahtarlari(harita, ") - kod.count("def aralik_anahtarlari(harita, "),
+                  "eski": ("f1: 0.0}" in kod) or ("f1: False}" in kod)}))`);
+  kontrol("sona kadar yazilan isik/kar son karede yanik (ruh 284, orman 316, kulube kari 619)",
+          r.son.length >= 4 && r.son.every(([, a, b]) => a === 1 && b === 1), JSON.stringify(r.son));
+  kontrol("ortada biten aralik tam o karede kapanir (kulube isiklari 13,4'te, kesmede)",
+          r.orta.length >= 3 && r.orta.every(([, , once, sonra]) => once === 1 && sonra === 0), JSON.stringify(r.orta));
+  kontrol("ruh isigi 6,41'den once sonuk, son karede yanik", r.ruh_once === 0 && r.ruh_son === 1, r.ruh_once + " / " + r.ruh_son);
+  kontrol("film araci isigi ve kari ortak yardimciyla kuruyor; eski son kareye kirpilan anahtar yok", r.cagri === 2 && !r.eski,
+          "cagri " + r.cagri);
 }
 
 console.log("");

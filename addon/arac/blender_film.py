@@ -164,6 +164,20 @@ def kare_bul(harita, t):
     return min(len(harita) - 1, bisect.bisect_left(harita, t - 1e-9))
 
 
+def aralik_anahtarlari(harita, t0, t1, acik, kapali):
+    """[t0, t1) araliginda acik, disinda kapali bir seyin sabit anahtarlari:
+    {Blender karesi (1 tabanli): deger}. t1 sahnenin son anina ya da
+    sonrasina dusuyorsa kapanma anahtari YAZILMAZ: kare_bul son kareye
+    kirptigi icin "sona kadar" yazilan isik/kar son karede sonuyordu
+    (2026-11-08, 2. bolum Part 1 ruh sahnesinin 284. karesi karardi:
+    dolgu isigi 6,41-9,81, sahne 9,41'de bitiyor)."""
+    f0 = kare_bul(harita, t0) + 1
+    anahtar = {1: acik if f0 <= 1 else kapali, f0: acik}
+    if harita and t1 < harita[-1] - 1e-9:
+        anahtar[kare_bul(harita, t1) + 1] = kapali
+    return anahtar
+
+
 # ============================================================
 # 1. ZAMAN CIZELGESI -- saf Python (test Blender'siz calistiriyor)
 # ============================================================
@@ -2039,8 +2053,7 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
         sc.collection.objects.link(ob_l)
         if "t" in li:
             guc = lamba.energy
-            f0, f1 = kare_bul(harita, li["t"][0]) + 1, kare_bul(harita, li["t"][1]) + 1
-            anahtar = {1: guc if f0 <= 1 else 0.0, f0: guc, f1: 0.0}
+            anahtar = aralik_anahtarlari(harita, li["t"][0], li["t"][1], guc, 0.0)
             for f_ in sorted(anahtar):
                 lamba.energy = anahtar[f_]
                 lamba.keyframe_insert("energy", frame=f_)
@@ -2733,9 +2746,7 @@ def kar_kur(bpy, senaryo, harita):
         for f, t in enumerate(harita):
             tampon.setdefault((ob, "location"), []).append((f + 1, kar_yolu(kar, i, t)))
         # aralik disinda gorunmez (sabit anahtar: hide_render mantiksal)
-        f0 = kare_bul(harita, t0) + 1
-        f1 = kare_bul(harita, t1) + 1
-        for f_, acik in sorted({1: t0 <= harita[0] <= t1, f0: True, f1: False}.items()):
+        for f_, acik in sorted(aralik_anahtarlari(harita, t0, t1, True, False).items()):
             ob.hide_render = not acik
             ob.keyframe_insert("hide_render", frame=f_)
     toplu_anahtar(bpy, tampon)
