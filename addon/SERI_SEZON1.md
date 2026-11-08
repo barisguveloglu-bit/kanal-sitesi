@@ -998,6 +998,12 @@ yapmaya başla; 2. bölümün Part 2'sinde bu sisteme geçelim"* dedi.
   gözleri 5. satırda); Thomas gözleri skinin kendi göz satırına indirildi.
   Kalan ince çizgi için Thomas kafasının skin kopyasında boyalı gözler
   tenle siliniyor (skin dosyası değişmiyor).
+- **Çizilen karelerin incelemesinden iki karar (kullanıcı, 2026-11-08):**
+  - Ruh sahnesinin kararan son karesi (284): *"önerimi kabul ediyorum"* —
+    birleştirmede 284'ün yerine 283 konur, yeniden çizim yok.
+  - Kulübedeki kitap sahnesi (kitap başın üstünde belirip kayboluyor):
+    *"olduğu gibi bırak, limitleri daha fazla harcamayalım"* — düzeltilmiyor,
+    yeniden çizilmiyor.
 - Açık (sorulacak): boynuz kimde ve hangi tür; hangi karakterler ağızla konuşur;
   seslendirme kaydı olacak mı (dudak senkronu ses kaydından mı, altyazı
   metninden mi).
