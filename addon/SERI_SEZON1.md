@@ -1098,6 +1098,29 @@ karşılığı olmayan için.
   tarifiyle siyah bulutlu küre); çağırma çemberi (şeklini bir stok resimden
   okuyor, o resim temiz kopyadan çıkarıldığı için boş).
 
+### Mavi küre eğitimi — 2. bölüm Part 2 için fikir (kullanıcı, 2026-11-08; ayrıntılar sonra)
+
+Kullanıcının sözü: *"genel referans olarak bir tane anime geldi aklıma …
+Barış karakterimize bunu Part 2'de akıl hocası öğretsin, elinde mavi bir
+küre … nasıl yapıldığını görselli bir şekilde göstereceğiz … insan
+anatomisi var ya, görsellerle gösteriyorlar, onun Minecraft'taki hâli …
+arkada akıl hocası anlatacak, o sırada Minecraft anatomisi gelecek: şu
+damarından şunu uygulaman gerekiyor, bunu şahman gerekiyor, hissetmen
+gerekiyor … detaylandırırız daha sonra."*
+
+- **Kayıtlı olan:** Part 2'de Pipos (akıl hocası) Barış'a elde mavi bir
+  küre yapmayı öğretir. Anlatım görselli: Pipos konuşurken ekrana
+  Minecraft tarzı bir "anatomi" görünümü gelir (bedenin içi, damarlar,
+  enerjinin yolu) ve tekniğin nasıl yapıldığını adım adım gösterir.
+- **Referans bir anime sahnesi; kopya değil.** Önceki kural geçerli
+  (*"birebir kopyalamayacağız ama fikir"*): adı, görünüşü ve anlatımı bizim.
+- **Açık (kullanıcı detaylandıracak, uydurulmaz):** Part 2'nin neresine
+  girdiği (Part 2'nin taslağı fırtına ve sur baskını); kürenin ne olduğu
+  ve adı (Barış'ın güçleri ateş: Kıvılcım, Alev Kalkanı, Kor Yürüyüşü);
+  Pipos'un sözleri; anatomi görünümünde hangi adımlar gösterileceği.
+- Film aracında bu görünüm yok (yeni yetenek: bedenin içini gösteren yarı
+  saydam beden, sırayla yanan damarlar, avuçta toplanan küre).
+
 ## Part 2 düzeltmeleri (kullanıcı, 2026-10-12 — *"bozuk bir şey sunamayız asla"*)
 
 Kullanıcı Part 2'yi indirip izledi, üç sorun buldu; düzeltilmeden yayın yok.
