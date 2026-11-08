@@ -160,11 +160,38 @@ def boyut(video):
     return o.stdout.strip().replace(",", "x")
 
 
+def cagri_filtre(zamanlar, mov, ilk_girdi, v="v", a="a0"):
+    """Begen/abone animasyonu (cagri_animasyon.py) filmin `zamanlar` saniyelerine
+    (BITMIS filmin zamani, baslik karti dahil). -> (girdi, filtre, v_cikis, a_cikis).
+    Katman basina saydam karelerle doldurulur (overlay ikinci girdinin ilk
+    karesini beklemesin), ses gecikmeyle karisima eklenir (normalize=0:
+    filmin sesi kisilmez)."""
+    girdi, f, sesler = [], [], []
+    for k, tk in enumerate(zamanlar):
+        m = ilk_girdi + k
+        girdi += ["-i", mov]
+        f.append("[%d:v]format=rgba,tpad=start_duration=%g:color=0x00000000[cg%d];" % (m, tk, k))
+        f.append("[%s][cg%d]overlay=eof_action=pass:format=auto[cv%d];" % (v, k, k))
+        v = "cv%d" % k
+        ms = int(round(tk * 1000))
+        f.append("[%d:a]adelay=%d|%d[ca%d];" % (m, ms, ms, k))
+        sesler.append("[ca%d]" % k)
+    if zamanlar:
+        f.append("[%s]%samix=inputs=%d:normalize=0:duration=first[cmix];" % (a, "".join(sesler), len(zamanlar) + 1))
+        a = "cmix"
+    return girdi, "".join(f), v, a
+
+
 def main(argv):
     adim = 1
     if "--adim" in argv:
         i = argv.index("--adim")
         adim = int(argv[i + 1])
+        argv = argv[:i] + argv[i + 2:]
+    cagri = []
+    if "--cagri" in argv:                     # --cagri 35,95 : begen/abone animasyonu o saniyelerde
+        i = argv.index("--cagri")
+        cagri = [float(x) for x in argv[i + 1].split(",") if x]
         argv = argv[:i] + argv[i + 2:]
     cikti = os.path.abspath(argv[0])
     parcalar, kartlar = [], []
@@ -197,10 +224,19 @@ def main(argv):
     filtre.append("[%d:v][%d:a]" % (j, j + 1))
     # ses zinciri filtre grafiginin ICINDE: ffmpeg -af ile -filter_complex'i
     # birlikte kabul etmiyor (cikis 234)
-    fc = "".join(filtre) + "concat=n=%d:v=1:a=1[v][a0];[a0]%s[a]" % (n + 1, SES_ZINCIR)
+    vc, ac, ek = "v", "a0", ""
+    if cagri:
+        import cagri_animasyon as CA
+        kl = cikti + ".cagri"
+        if not os.path.exists(os.path.join(kl, "cagri.mov")):
+            CA.uret(kl)
+        g_, ek, vc, ac = cagri_filtre(cagri, os.path.join(kl, "cagri.mov"), j + 2)
+        girdi += g_
+    fc = ("".join(filtre) + "concat=n=%d:v=1:a=1[v][a0];" % (n + 1) + ek
+          + "[%s]%s[a]" % (ac, SES_ZINCIR))
     ara = cikti + ".ara.mkv"
     subprocess.run(["ffmpeg", "-y", "-v", "error"] + girdi +
-                   ["-filter_complex", fc, "-map", "[v]", "-map", "[a]"] + VIDEO_CIKIS +
+                   ["-filter_complex", fc, "-map", "[%s]" % vc, "-map", "[a]"] + VIDEO_CIKIS +
                    ["-pix_fmt", "yuv420p", "-c:a", "flac", "-ar", "48000", ara], check=True)
     olcu, kazanc, sonra = ses_ayarla(ara, cikti)
     os.remove(ara)

@@ -163,6 +163,7 @@ her blok "başka sürümle çizilmiş" uyarısı verirdi). Eski ve yeni kod
   - **Müzik:** tek parça ve susma aralıkları.
   - Seviye −14 LUFS; stem'ler ayrı veriliyor.
 - Yok: ateş, buz, büyü ve kalkan sesleri; ikinci bir müzik parçası.
+- **Beğen / abone çağrı animasyonu (2026-11-08, `arac/cagri_animasyon.py`, kilit `test/cagri.mjs`):** Minecraft arayüzü panelinde Barış'ın yüzü; piksel imleç beğen → ABONE OL → zil (tık, sıçrama ve zil sesiyle), 4,4 sn, saydam. YouTube logosu yok, simgeler kendi piksel çizimimiz. Panel altyazının üstünde (y 650–849). Filme: `film_birlestir.py ... --cagri 35,95` (bitmiş filmin saniyeleri, başlık kartı dahil); kendi kurgu programı için alfalı `cagri.mov` (ProRes 4444).
 
 **Çizim ve denetim**
 - Taslak seçenekleri:
