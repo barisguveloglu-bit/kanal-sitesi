@@ -40,7 +40,7 @@ kararı: *"bu iki evren farklı evrenler."*
 | **Komutan Ömer** | 2 | İnsanlara ait hanedanın askerî bir bölgesindeki komutan; ışıklı, harita masalı savaş odasında. Skin: **`kaynak_doku/aktor/omer.png`** — kullanıcının kendi yaptığı skin (2026-10-10), aktör listesinde `omer` (10. sıra, `pa:skin` = 9), 64×64 RGBA, geniş kol, md5 `35bfb612ddac5cce9ea74c59e106a33d`. |
 | **Asker** | 1 | Ana kötünün askerlerinden; El-Harkos'un öldüğü haberini patronuna getiren görevli. |
 | **Pipos** (Barış'ın akıl hocası) | ? | Adı **Pipos** (kullanıcı, 2026-11-01). Barış'ın akıl hocası; Barış'ta bir potansiyel gördüğü için onu seçti, Barış için **manevi baba gibi**. Silahsız: *"akıl hocası için sadece yumruk düşündüm"*. **Dövüş sanatının adı: Kaplan sanatı** (kullanıcı). Üslup (kullanıcı): *"yumruk seti disiplinli olsun, dövüş stili akıllıca, bilgelik içeren dövüş stili olsun; savunması daha baskın, saldırısı geri planda olan"* — ve düzeltmesi: *"savunma önde olsun dedik de o kadar da abartılı önde olmasın; son saldırı hiç olmazsa ne olacak, o zaman dövüş bitmez, sürekli savunma yapar"*. Yani savunma önde ama ölçülü, **her dövüş bir bitiriş saldırısıyla biter**. El-Harkos'un saldırgan `yumruk` setinden ayrı, kendi seti. Ayrıntılı taslak (onay bekliyor): `DOVUS_KAPLAN_SANATI.md`. Kullanıcının bir arkadaşı animasyonda yer almak istedi; skini kullanıcı yaptı, **sarı renkler ağırlıklı** (altın-siyah, beyaz başlık, göğüste altın amblem). `kaynak_doku/film_aktor/pipos.png`, 64×64, geniş kol, md5 `ace916170b14a953f954880b3a06336d`. Oyunun aktör listesine **girmedi**: oraya alfabetik eklenir ve mevcut aktörlerin `pa:skin` sırasını kaydırabilirdi; şimdilik yalnız film. |
-| **Çocukluk arkadaşı** (adı henüz yok) | ? | Barış'ın çocukluk arkadaşı (kullanıcı, 2026-11-01). Kraliyet büyüsü ama asa yok: *"büyücülerin genelde bir asası olur ya onda farklı onun silahları var"*. Silahları iki tabanca, **Ebony & Ivory** (arkadaşının seçimi): sağ elde siyah, sol elde beyaz. Skini kullanıcı yaptı, arkadaşının isteğiyle **Dante'ye benzetildi**: gümüş-beyaz saç, mavi göz, koyu bordo uzun ceket, lacivert gömlek. `kaynak_doku/film_aktor/cocukluk_arkadasi.png`, 64×64, geniş kol, md5 `aad31c91f2c7e7485e5cfda3e4d94142`; aktör listesine girmedi (aynı sebep). Tabanca modeli **kendi küp modelimiz** (`arac/ikiz_tabanca.py`, Capcom'un modeli ya da dokusu alınmadı); biçimi ve boyu Claude'un taslağı, onay bekliyor. Silahlı dövüş film aracında henüz yok. |
+| **Mikami** (Barış'ın çocukluk arkadaşı) | ? | **Adı Mikami** (kullanıcı, 2026-11-08: *"çocukluk arkadaşının adı bundan sonra Mikami, bundan sonra öyle diyeceğiz"*). Barış'ın çocukluk arkadaşı (kullanıcı, 2026-11-01). Kraliyet büyüsü ama asa yok: *"büyücülerin genelde bir asası olur ya onda farklı onun silahları var"*. Silahları iki tabanca, **Ebony & Ivory** (arkadaşının seçimi): sağ elde siyah, sol elde beyaz. Skini kullanıcı yaptı, arkadaşının isteğiyle **Dante'ye benzetildi**: gümüş-beyaz saç, mavi göz, koyu bordo uzun ceket, lacivert gömlek. `kaynak_doku/film_aktor/cocukluk_arkadasi.png`, 64×64, geniş kol, md5 `aad31c91f2c7e7485e5cfda3e4d94142`; aktör listesine girmedi (aynı sebep). Tabanca modeli **kendi küp modelimiz** (`arac/ikiz_tabanca.py`, Capcom'un modeli ya da dokusu alınmadı); biçimi ve boyu Claude'un taslağı, onay bekliyor. Silahlı dövüş film aracında henüz yok. |
 
 **Ice-man skini:** kullanıcının kendi yaptığı skin (*"üzerinde biraz
 çalıştım ve yaptım"*) — dış varlık değil, depoya girdi:
@@ -946,7 +946,7 @@ hedef ~57,5).
 | **1 — Uyanış** | Barış baygın · el lambalı cadı (POV) · Satanachia geçitten girer · kulübede uyanış · ateş kitabı · ağrıların geçmesi · kulübeden çıkış, üşüme · Ömer'in odası, buz dalgası haberi · Barış Zisa'nın evinde | evde, baskından hemen önce | ~57 sn |
 | **2 — Baskın** | evde konuşma, sesler, *"saldırı var!"*, fırtına · 1. mekan sur gediği (Düşünme 1) · Barış'ın çıkışı: Antitheus, cam, atlayış · Zisa'nın koruma büyüsü | Barış koşarak sokağa girerken | ~57 sn |
 | **3 — Dip noktası** | 2. mekan sokaklar (Düşünme 2, Saldırı II) · Ömer ve buz duvarı · 3. mekan meydan (Düşünme 3–4): donma, *"Bu kadar kolaysın"*, zayıf nokta, *"O kızı da getirin"*, buzun çatlaması | 1. mekan değişimi: ateşli darbe Ice-man'i duvardan geçirir | ~57 sn |
-| **4 — Final** | 4. mekan merdivenler (Düşünme 5–6) · 2. mekan değişimi, tepenin içine düşüş · 5. mekan jeot lav çukuru (Düşünme 7), ağır çekim, Ice-man'in ölümü · ordunun dağılması | ordu dağılırken | ~57 sn |
+| **4 — Final** | 4. mekan merdivenler (Düşünme 5–6) · 2. mekan değişimi, tepenin içine düşüş · 5. mekan jeot lav çukuru (Düşünme 7), ağır çekim, Ice-man'in ölümü · ordunun dağılması · *"Bir hafta sonra"* (yazı) · mavi küre eğitimi, Pipos + Mikami (kullanıcı, 2026-11-08) | eğitim sahnesi (ayrıntı sonra) | ~57 sn + eğitim (ölçülecek) |
 
 - Ömer'in buz duvarı Part 3'te, meydanda (Claude önerdi, kullanıcı
   onayladı, 2026-10-19).
@@ -1098,7 +1098,7 @@ karşılığı olmayan için.
   tarifiyle siyah bulutlu küre); çağırma çemberi (şeklini bir stok resimden
   okuyor, o resim temiz kopyadan çıkarıldığı için boş).
 
-### Mavi küre eğitimi — 2. bölüm Part 2 için fikir (kullanıcı, 2026-11-08; ayrıntılar sonra)
+### Mavi küre eğitimi — 2. bölüm Part 4 sonu, "Bir hafta sonra" (kullanıcı, 2026-11-08; ayrıntılar sonra)
 
 Kullanıcının sözü: *"genel referans olarak bir tane anime geldi aklıma …
 Barış karakterimize bunu Part 2'de akıl hocası öğretsin, elinde mavi bir
@@ -1108,16 +1108,22 @@ arkada akıl hocası anlatacak, o sırada Minecraft anatomisi gelecek: şu
 damarından şunu uygulaman gerekiyor, bunu şahman gerekiyor, hissetmen
 gerekiyor … detaylandırırız daha sonra."*
 
-- **Kayıtlı olan:** Part 2'de Pipos (akıl hocası) Barış'a elde mavi bir
+- **YERİ DEĞİŞTİ (kullanıcı, 2026-11-08, aynı gün):** eğitim Part 2'de değil,
+  **Part 4'te Ice-man'le final dövüşünden sonra**. Ekranda yazıyla
+  *"Bir hafta sonra"*; ardından Pipos ve **Mikami** birlikte anlatır
+  (*"Mikami ile anlatacaklar, çünkü o da kraliyet büyücüsü"*). Part 4'ün
+  tahmini süresi ~57 sn ve tavan 73,7 sn: sahne eklenince ölçülür; sığmazsa
+  kullanıcıya sorulur (bölümün toplamı 3:50 kararı).
+- **Kayıtlı olan:** Pipos (akıl hocası) Barış'a elde mavi bir
   küre yapmayı öğretir. Anlatım görselli: Pipos konuşurken ekrana
   Minecraft tarzı bir "anatomi" görünümü gelir (bedenin içi, damarlar,
   enerjinin yolu) ve tekniğin nasıl yapıldığını adım adım gösterir.
 - **Referans bir anime sahnesi; kopya değil.** Önceki kural geçerli
   (*"birebir kopyalamayacağız ama fikir"*): adı, görünüşü ve anlatımı bizim.
-- **Açık (kullanıcı detaylandıracak, uydurulmaz):** Part 2'nin neresine
-  girdiği (Part 2'nin taslağı fırtına ve sur baskını); kürenin ne olduğu
+- **Açık (kullanıcı detaylandıracak, uydurulmaz):** kürenin ne olduğu
   ve adı (Barış'ın güçleri ateş: Kıvılcım, Alev Kalkanı, Kor Yürüyüşü);
-  Pipos'un sözleri; anatomi görünümünde hangi adımlar gösterileceği.
+  Pipos'un ve Mikami'nin sözleri, kimin neyi anlattığı; anatomi görünümünde
+  hangi adımlar gösterileceği.
 - Film aracında bu görünüm yok (yeni yetenek: bedenin içini gösteren yarı
   saydam beden, sırayla yanan damarlar, avuçta toplanan küre).
 
