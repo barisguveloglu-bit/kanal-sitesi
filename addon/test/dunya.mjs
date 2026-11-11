@@ -346,3 +346,35 @@ export function oyuncuKur(boyut, bakis, bas) {
     applyDamage: () => true
   };
 }
+
+/* ---- OYUN KIPI TAKLIDI, GERCEK API GIBI  (v7.99.17) ----
+   Testlerdeki sahte oyuncular setGameMode'a verilen HER metni
+   kabul ediyordu. Gercek motor etmiyor: GameMode degerleri buyuk
+   harfle basliyor ("Survival", "Creative", "Adventure",
+   "Spectator") ve kucuk harfli ad "Native type conversion
+   failed" diye atiyor. Bu yuzden Gozcu ve Kilic'in
+   setGameMode("survival") cagrisi testte yesil, oyunda hataydi.
+
+   Bu taklit ikisini de gercegi gibi yapiyor:
+     setGameMode  gecersiz adda ATAR
+     getGameMode  buyuk harfle baslayan adi DONER
+   Kip `alan` adli ozellikte KUCUK harfle tutuluyor; testler
+   onu okuyor ("spectator" gibi), API bicimini degil.          */
+const GECERLI_KIPLER = new Set(["Survival", "Creative", "Adventure", "Spectator"]);
+export function kipTak(o, kip, alan = "_kip") {
+  o[alan] = String(kip).toLowerCase();
+  o._yazilan = [];
+  o.getGameMode = () => {
+    const k = String(o[alan]);
+    return k.charAt(0).toUpperCase() + k.slice(1);
+  };
+  o.setGameMode = (y) => {
+    if (!GECERLI_KIPLER.has(y)) {
+      throw new Error("Native type conversion failed. Function argument [0] " +
+                      "expected type: GameMode | undefined");
+    }
+    o[alan] = y.toLowerCase();
+    o._yazilan.push(y);
+  };
+  return o;
+}

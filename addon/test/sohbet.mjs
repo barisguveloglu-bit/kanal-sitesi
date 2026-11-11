@@ -344,7 +344,13 @@ console.log("=== 12. DURUM RAPORU (v4.25) ===");
     kontrol("raporda '" + beklenen + "' satiri var", r.includes(beklenen));
   }
   kontrol("surum numarasi yaziyor", r.includes(ayar.SURUM), ayar.SURUM);
-  kontrol("API yuzeyi yaziyor", /2\.0\.0-beta|2\.0\.0/.test(r));
+  /* v7.99.17: rapor "2.0.0" yaziyordu, manifest 2.5.0 istiyordu
+     -- ve bu iddia o bayat sayiyi bekleyerek hatayi KILITLIYORDU.
+     Artik raporun ayarlar.js'teki API_SURUM'u yazdigi olculuyor;
+     onun manifestle ayni oldugunu erken_calisma.mjs tutuyor.   */
+  kontrol("API yuzeyi yaziyor",
+          typeof ayar.API_SURUM === "string" && r.includes("API §f" + ayar.API_SURUM),
+          String(ayar.API_SURUM));
   kontrol("'test' ve 'bilgi' de ayni raporu veriyor",
           (yaz(o, "test"), sonMesaj(o).includes("Simsek durum")));
 }

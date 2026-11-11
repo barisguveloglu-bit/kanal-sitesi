@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "kns_asa_harkos"
+        "textures": {
+          "default": "kns_asa_harkos"
+        }
       },
       "minecraft:display_name": {
         "value": "Harkos'un Asası"

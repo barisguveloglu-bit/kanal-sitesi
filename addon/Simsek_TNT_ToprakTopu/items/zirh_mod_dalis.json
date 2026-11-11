@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "zirh_mod_dalis"
+        "textures": {
+          "default": "zirh_mod_dalis"
+        }
       },
       "minecraft:display_name": {
         "value": "Çekirdek · Dalış"

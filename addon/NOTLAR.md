@@ -1,3 +1,92 @@
+# v7.99.17 — Gerçek motor taraması: açılış ve çalışma hataları
+
+Kullanıcı: *"son hâlini bulup hata var mı diye bak, geniş çaplı bir tarama
+yap, hataları düzelt."*
+
+Bu depodaki 185 test dosyası `@minecraft/server`'ın **sahtesine** karşı çalışıyor.
+Sahte motor JSON okumuyor, yanlış imzalı bir çağrıyı ve tırnaksız bir komut
+argümanını kabul ediyor. Bu sürümde paket ilk kez **gerçek motorda** (Bedrock
+Dedicated Server 1.26.52.3) hem açıldı hem çalıştırıldı.
+
+## Üç tarama
+
+| tarama | araç | sonuç |
+|---|---|---|
+| açılış | `sunucu/acilis_dene.py` | 958 hata/uyarı satırı → 2 (ikisi de dış Iron Man dosyasından) |
+| çalışma | `sunucu/tarama_dene.py` (yeni) | 325 yeteneğin 325'i çalıştı; 6 hata sınıfı bulundu ve düzeltildi |
+| görünüm paketi | çapraz başvuru (ikon → atlas → dosya, geometri, animasyon, ses) | bulgu yok |
+
+Ayrıca betikler gerçek API'nin tip tanımına (`@minecraft/server@2.5.0`
+`index.d.ts`) karşı TypeScript ile denetlendi: 21 satır işaretledi, hepsi
+yanlış alarm (sabit daraltma). Çağrıların çoğu tipsiz yardımcılardan geçtiği
+için bu denetimin kapsamı dar; asıl bulgular sahte oyunculu taramadan geldi.
+
+## Oyunda fark edilebilecek düzeltmeler
+
+- **İksir tarifleri yüklenmiyordu.** 13 tarifin 13'ü de `unlock` verisi
+  olmadığı için motor tarafından reddediliyordu; iksir zinciri tezgahta
+  hiç üretilemiyordu. Artık yükleniyor.
+- **Üç kayıt her dünya açılışında sıfırlanıyordu:** seçilen nefes üslubu,
+  Sonsuzluk eldiveni ve taşları, Error 404 fazı ve ayarları. Kayıt açılışta
+  okunamıyor (erken çalıştırma), durum boş kalıyor, ilk değişiklikte eski
+  kaydın üstüne yazılıyordu.
+- **Arınma sayı kimlikli sisi sökmüyordu** (`fog @s remove 13` sözdizimi
+  hatası). Bilinen altı saldırı kimliğinin üçü sayı.
+- **Nefes "çekiş":** itilemeyen bir hedef, o hedefin hasarını da atlatıyordu.
+- **Dönüşüm:** aynı tick'te bütçe doluysa tuş hiçbir şey yapmıyor ve kollar
+  havada kalıyordu; artık sebebini yazıyor.
+- **Ilkel Beşli'nin unutma süresi** yazdığımız 10 saniye değil motorun
+  varsayılanıydı (alan adı yanlıştı, yok sayılıyordu).
+
+Görünmeyenler: 371 eşyada reddedilen `minecraft:armor` (koruma zaten
+`wearable`'daydı), 558 eşyada şemada olmayan ikon alanı, dört kupa bloğunda
+karışık malzeme yöntemi, her açılışta basılan iki yanlış "KAYITLI DEĞİL"
+alarmı, bayat API sürümü mesajı, Gözcü'nün her kip geri alışında bastığı hata.
+
+Tam tablo: `SUNUCU_REHBERI.md` "Gerçek motorun eklentide bulduğu hatalar".
+
+## Sahte motor üç yerde gerçeğe yaklaştırıldı
+
+Hataların ortak sebebi sahte motorun fazla hoşgörülü olmasıydı. Düzeltme
+yalnız kodda değil, taklitte de:
+
+| taklit | eskiden | şimdi |
+|---|---|---|
+| erken çalıştırma | modellenmiyordu | `_durum.erken`: dünyaya dokunan çağrı atar ve **kaydedilir**; `dunyaYukle()` |
+| oyun kipi (`dunya.mjs` `kipTak`) | her metni kabul ediyordu | yalnız `Survival/Creative/Adventure/Spectator`; küçük harf atar |
+| `applyKnockback` (powerborne testi) | iki imzayı da kabul ediyordu | dört sayıda atar (2.x'in davranışı) |
+
+`test/erken_calisma.mjs`'in en geniş iddiası: 130 betiğin hiçbiri üst düzeyde
+yasak bir çağrı yapmıyor — çağrı `try/catch` ile yutulsa da görünür. Yasak
+listesi `index.d.ts`'ten: üzerinde "can be called in early-execution mode"
+yazmayan her `World` / `ItemTypes` / `EntityTypes` fonksiyonu.
+
+## Sürüm numarası neden 7.99.8'den 7.99.17'ye atladı
+
+7.99.9–16 film aracı ve sunucu seti için belge etiketi olarak kullanıldı;
+paketin kendi numarası 7.99.8'de kaldı. O arada Osmanlı Topuzu pakete girdi
+ama paketler yeniden üretilmedi: depodaki `Simsek_v7.99.8.mcaddon` **topuzsuzdu**
+(ölçüldü). Aynı numaralı iki farklı paket oyunda ayırt edilemez; numara belge
+etiketleriyle eşitlendi.
+
+## Mutasyonla ısırdığı gösterilenler
+
+Düzeltme geri alınınca düşen test: Gözcü kipi (`gozcu.mjs`), Kılıç kipi
+(`denetim.mjs`, 5 iddia), tırnaksız sis (`arinma.mjs`, 3), dönüşüm bütçesi
+(`donusum.mjs`, 2), itme (`powerborne.mjs`), denetimin ertelenmesi, kaydın
+ertelenmesi ve API sürümü (`erken_calisma.mjs`, 4+4+2). `erken_calisma.mjs` ve
+`motor_bicim.mjs` eski kodda motorun verdiği sayıların aynısını verdi
+(558 · 371 · 13 · 7 · 4).
+
+## Ölçülmeyen
+
+- **Kaynak paketinin ekrandaki hâli.** Sunucu motoru onu yüklemiyor. İkon
+  biçimi şemaya göre düzeltildi ve Mojang'ın kendi örnek paketindeki biçimle
+  aynı; ikonların oyunda doğru çizildiği **telefonda görülmedi**.
+- Sahte oyuncu ekran görmez: menü, kamera, HUD.
+- Yetenekler birer kez, varsayılan durumda çalıştı. Her yeteneğin her dalı
+  (hedef yok, hedef oyuncu, su altı…) gezilmedi.
+
 # v7.97.0 — İki dış moddan iki sistem: Enerji ve Füzyon
 
 Kullanıcı iki mod gönderdi (Avatar Addon 2.0.0, Dragon Block C Ultimate

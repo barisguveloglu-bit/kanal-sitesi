@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_ghost_rider__ghost_rider_agents_of_shield_suit"
+        "textures": {
+          "default": "mrv_ghost_rider__ghost_rider_agents_of_shield_suit"
+        }
       },
       "minecraft:display_name": {
         "value": "Ghost Rider Agents of Shield Suit"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_kostum"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 16
       }
     }
   }

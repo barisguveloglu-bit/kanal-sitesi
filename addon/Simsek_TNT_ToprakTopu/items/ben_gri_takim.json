@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "ben_gri_takim"
+        "textures": {
+          "default": "ben_gri_takim"
+        }
       },
       "minecraft:display_name": {
         "value": "Gri Madde · Takım · Recal"

@@ -67,7 +67,7 @@
           "priority": 1,
           "within_radius": 20,
           "must_see": true,
-          "must_see_forget_ticks": 200,
+          "must_see_forget_duration": 10.0,
           "reselect_targets": true,
           "scan_interval": 4,
           "entity_types": [

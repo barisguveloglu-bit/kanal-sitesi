@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_ironman__ironman_mark6"
+        "textures": {
+          "default": "mrv_ironman__ironman_mark6"
+        }
       },
       "minecraft:display_name": {
         "value": "Iron Man: Mark VI  Armor"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_kostum"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 15
       },
       "minecraft:durability": {
         "max_durability": 1200

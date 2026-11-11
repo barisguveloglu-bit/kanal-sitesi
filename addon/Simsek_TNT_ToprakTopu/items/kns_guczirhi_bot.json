@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "kns_guczirhi_bot"
+        "textures": {
+          "default": "kns_guczirhi_bot"
+        }
       },
       "minecraft:display_name": {
         "value": "Güç Zırhı Botu"
@@ -23,9 +25,6 @@
       },
       "minecraft:wearable": {
         "slot": "slot.armor.feet",
-        "protection": 7
-      },
-      "minecraft:armor": {
         "protection": 7
       },
       "minecraft:durability": {

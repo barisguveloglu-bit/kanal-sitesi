@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mahou_staff_emrys"
+        "textures": {
+          "default": "mahou_staff_emrys"
+        }
       },
       "minecraft:display_name": {
         "value": "Emrys"

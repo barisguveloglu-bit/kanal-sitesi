@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "kns_void_balta"
+        "textures": {
+          "default": "kns_void_balta"
+        }
       },
       "minecraft:display_name": {
         "value": "Void Baltası"

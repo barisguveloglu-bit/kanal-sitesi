@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_punisher__punisher_daredevil_born_again_suit"
+        "textures": {
+          "default": "mrv_punisher__punisher_daredevil_born_again_suit"
+        }
       },
       "minecraft:display_name": {
         "value": "Punisher Suit: Daredevil Born Again"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_kostum"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 12
       },
       "minecraft:durability": {
         "max_durability": 1500

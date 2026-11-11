@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_dr_doom__dr_doom_demon_in_an_armor_suit"
+        "textures": {
+          "default": "mrv_dr_doom__dr_doom_demon_in_an_armor_suit"
+        }
       },
       "minecraft:display_name": {
         "value": "Doctor Doom: Demon in an armor suit"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_kostum"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 18
       }
     }
   }

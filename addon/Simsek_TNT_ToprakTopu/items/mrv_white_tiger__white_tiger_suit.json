@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_white_tiger__white_tiger_suit"
+        "textures": {
+          "default": "mrv_white_tiger__white_tiger_suit"
+        }
       },
       "minecraft:display_name": {
         "value": "White Tiger suit"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_kostum"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 12
       }
     }
   }

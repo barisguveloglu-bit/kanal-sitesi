@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_fantastic_4__mole"
+        "textures": {
+          "default": "mrv_fantastic_4__mole"
+        }
       },
       "minecraft:display_name": {
         "value": "The Thing [Transformation]"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_ek"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 20
       }
     }
   }

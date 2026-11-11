@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_fantastic_4__fantastic_4_2005_suit"
+        "textures": {
+          "default": "mrv_fantastic_4__fantastic_4_2005_suit"
+        }
       },
       "minecraft:display_name": {
         "value": "Fantastic 4 (2025) Suit"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_kostum"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 16
       }
     }
   }

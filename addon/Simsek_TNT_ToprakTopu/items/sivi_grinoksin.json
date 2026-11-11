@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "sivi_grinoksin"
+        "textures": {
+          "default": "sivi_grinoksin"
+        }
       },
       "minecraft:display_name": {
         "value": "Grinoksin Sıvısı"

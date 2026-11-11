@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "omnitrix_recal"
+        "textures": {
+          "default": "omnitrix_recal"
+        }
       },
       "minecraft:display_name": {
         "value": "Omnitrix · Recal"

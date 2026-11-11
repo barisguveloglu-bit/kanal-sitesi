@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "iksir_redoksin"
+        "textures": {
+          "default": "iksir_redoksin"
+        }
       },
       "minecraft:display_name": {
         "value": "Redoksin"

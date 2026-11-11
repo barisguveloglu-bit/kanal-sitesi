@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "kns_earl_balta"
+        "textures": {
+          "default": "kns_earl_balta"
+        }
       },
       "minecraft:display_name": {
         "value": "Earl Baltası"

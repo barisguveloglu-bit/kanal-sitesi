@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_guardians__adam_warlock"
+        "textures": {
+          "default": "mrv_guardians__adam_warlock"
+        }
       },
       "minecraft:display_name": {
         "value": "Adam Warlock [Skin]"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_ek"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 15
       }
     }
   }

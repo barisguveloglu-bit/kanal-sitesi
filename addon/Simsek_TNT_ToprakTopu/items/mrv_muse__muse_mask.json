@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_muse__muse_mask"
+        "textures": {
+          "default": "mrv_muse__muse_mask"
+        }
       },
       "minecraft:display_name": {
         "value": "Muse Mask"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_maske"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 2
       }
     }
   }

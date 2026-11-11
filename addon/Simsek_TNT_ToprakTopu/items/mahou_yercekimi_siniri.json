@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mahou_yercekimi_siniri"
+        "textures": {
+          "default": "mahou_yercekimi_siniri"
+        }
       },
       "minecraft:display_name": {
         "value": "Yerçekimi Sınırı Parşömeni"

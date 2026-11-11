@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_mole__mole_powers"
+        "textures": {
+          "default": "mrv_mole__mole_powers"
+        }
       },
       "minecraft:display_name": {
         "value": "The Thing Powers"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_guc"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 5
       }
     }
   }

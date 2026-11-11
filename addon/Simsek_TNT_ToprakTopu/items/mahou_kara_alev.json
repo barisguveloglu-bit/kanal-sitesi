@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mahou_kara_alev"
+        "textures": {
+          "default": "mahou_kara_alev"
+        }
       },
       "minecraft:display_name": {
         "value": "Kara Alev Parşömeni"

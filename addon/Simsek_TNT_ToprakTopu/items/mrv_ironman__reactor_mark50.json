@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_ironman__reactor_mark50"
+        "textures": {
+          "default": "mrv_ironman__reactor_mark50"
+        }
       },
       "minecraft:display_name": {
         "value": "Mark L Reactor"

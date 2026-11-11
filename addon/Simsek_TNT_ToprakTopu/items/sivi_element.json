@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "sivi_element"
+        "textures": {
+          "default": "sivi_element"
+        }
       },
       "minecraft:display_name": {
         "value": "Element Sıvısı"

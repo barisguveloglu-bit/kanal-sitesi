@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_antman__antman_civil_war_suit"
+        "textures": {
+          "default": "mrv_antman__antman_civil_war_suit"
+        }
       },
       "minecraft:display_name": {
         "value": "Ant-Man: Civil War Suit"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_kostum"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 12
       },
       "minecraft:durability": {
         "max_durability": 1250

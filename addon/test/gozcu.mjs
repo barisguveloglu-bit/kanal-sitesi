@@ -36,7 +36,7 @@
 
    Her birinde yine ayni oncelik: temiz oyuncu suclanmiyor. */
 
-import { dunyaKur, oyuncuKur } from "./dunya.mjs";
+import { dunyaKur, oyuncuKur, kipTak } from "./dunya.mjs";
 import { tickIlerlet, vurusTetikle, itemUseTetikle, system, _durum } from "@minecraft/server";
 
 const w = console.warn;
@@ -669,12 +669,13 @@ console.log("");
 console.log("=== 14. OYUN KIPI DENETIMI (gamemode_switcher) ===");
 {
   const arinma = await import("./pack/yetenekler/arinma.js");
-  const kipli = (id, kip) => ({
-    id, typeId: "minecraft:player", name: id, isValid: true,
-    _kip: kip, _yazilan: [],
-    getGameMode() { return this._kip; },
-    setGameMode(y) { this._kip = y; this._yazilan.push(y); }
-  });
+  /* v7.99.17: kip taklidi gercek API gibi (dunya.mjs kipTak).
+     runCommand YOK: geri alma yalniz API'den gecebilir; kucuk
+     harfli ad verilirse taklit atar ve "geri alindi" DUSER --
+     gercek motorda olan da buydu.                            */
+  const kipli = (id, kip) => kipTak({
+    id, typeId: "minecraft:player", name: id, isValid: true
+  }, kip);
 
   gozcu.kipUnut();
   _durum.sohbet.length = 0;
@@ -826,9 +827,7 @@ console.log("\n=== İZLEYİCİ KİPİ KENDİ İŞİMİZDEN OLABİLİR (v7.79) ==
   const D = dunyaKur();
   const o = oyuncuKur(D.boyut, { x: 0, y: 0, z: 1 }, { x: 0, y: 64, z: 0 });
   o.id = "izl"; o.typeId = "minecraft:player";
-  o._kip = "spectator";
-  o.getGameMode = () => o._kip;
-  o.setGameMode = (k) => { o._kip = k; };
+  kipTak(o, "spectator");
   o.runCommand = () => ({ successCount: 1 });
   o.sendMessage = () => {};
 

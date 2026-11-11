@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_moon_knight__western_moon_knight_suit"
+        "textures": {
+          "default": "mrv_moon_knight__western_moon_knight_suit"
+        }
       },
       "minecraft:display_name": {
         "value": "Moon Knight Suit: Wild West"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_kostum"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 16
       }
     }
   }

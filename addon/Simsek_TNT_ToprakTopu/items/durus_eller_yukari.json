@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "durus_eller_yukari"
+        "textures": {
+          "default": "durus_eller_yukari"
+        }
       },
       "minecraft:display_name": {
         "value": "Duruş · Eller Yukarı"

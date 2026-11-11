@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_white_tiger__white_tiger_amulet"
+        "textures": {
+          "default": "mrv_white_tiger__white_tiger_amulet"
+        }
       },
       "minecraft:display_name": {
         "value": "White Tiger Amulet"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_guc"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 1
       }
     }
   }

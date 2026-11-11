@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "ben_devasa"
+        "textures": {
+          "default": "ben_devasa"
+        }
       },
       "minecraft:display_name": {
         "value": "Devasaur"

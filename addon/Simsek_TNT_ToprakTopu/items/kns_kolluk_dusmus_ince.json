@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "kns_kolluk_dusmus_ince"
+        "textures": {
+          "default": "kns_kolluk_dusmus_ince"
+        }
       },
       "minecraft:display_name": {
         "value": "Düşmüş Kol (İnce)"
@@ -23,9 +25,6 @@
       },
       "minecraft:wearable": {
         "slot": "slot.armor.chest",
-        "protection": 7
-      },
-      "minecraft:armor": {
         "protection": 7
       },
       "minecraft:durability": {

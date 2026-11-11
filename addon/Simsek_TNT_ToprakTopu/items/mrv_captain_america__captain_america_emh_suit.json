@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_captain_america__captain_america_emh_suit"
+        "textures": {
+          "default": "mrv_captain_america__captain_america_emh_suit"
+        }
       },
       "minecraft:display_name": {
         "value": "Captain America Suit: Avengers Earth's Mightiest Heroes"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_kostum"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 12
       }
     }
   }

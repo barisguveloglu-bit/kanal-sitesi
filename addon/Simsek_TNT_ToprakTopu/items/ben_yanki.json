@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "ben_yanki"
+        "textures": {
+          "default": "ben_yanki"
+        }
       },
       "minecraft:display_name": {
         "value": "Yankı Yankı"

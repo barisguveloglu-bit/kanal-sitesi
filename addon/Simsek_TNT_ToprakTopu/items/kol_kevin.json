@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "kol_kevin"
+        "textures": {
+          "default": "kol_kevin"
+        }
       },
       "minecraft:display_name": {
         "value": "Kevin Kolu"

@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "ilkel_balta"
+        "textures": {
+          "default": "ilkel_balta"
+        }
       },
       "minecraft:display_name": {
         "value": "İlkel Baltası"

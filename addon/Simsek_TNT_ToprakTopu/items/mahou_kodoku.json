@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mahou_kodoku"
+        "textures": {
+          "default": "mahou_kodoku"
+        }
       },
       "minecraft:display_name": {
         "value": "Kodoku"

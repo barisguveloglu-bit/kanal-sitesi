@@ -1,4 +1,4 @@
-import { bilgiYaz, hataYaz, actionbarYaz } from "./yardimcilar.js";
+import { bilgiYaz, hataYaz, actionbarYaz, gecerliMi } from "./yardimcilar.js";
 import { MENU_ACIK } from "./ayarlar.js";
 
 /* ============================================================
@@ -113,6 +113,10 @@ export function menuAc(oyuncu, baslik, liste, secili, secildi, ekler) {
         hataYaz("menu.secildi", e);
       }
     }).catch((e) => {
+      /* v7.99.17: menu acikken oyundan cikan oyuncu ("Player quit
+         before responding") hata degil; ne yazilacak biri var ne
+         de duzeltilecek bir sey. Gercek motorda goruldu.       */
+      if (!gecerliMi(oyuncu)) return;
       /* Oyuncu sohbet/envanter acikken menu gosterilemez; bu
          bir hata degil, sadece haber ver.                     */
       actionbarYaz(oyuncu, "§7Menu acilamadi, once ekrani kapat");

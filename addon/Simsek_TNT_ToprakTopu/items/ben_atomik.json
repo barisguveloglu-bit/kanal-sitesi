@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "ben_atomik"
+        "textures": {
+          "default": "ben_atomik"
+        }
       },
       "minecraft:display_name": {
         "value": "Atomik"

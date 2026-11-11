@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_captain_america__us_agent_black_suit"
+        "textures": {
+          "default": "mrv_captain_america__us_agent_black_suit"
+        }
       },
       "minecraft:display_name": {
         "value": "US Agent Suit"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_kostum"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 12
       }
     }
   }

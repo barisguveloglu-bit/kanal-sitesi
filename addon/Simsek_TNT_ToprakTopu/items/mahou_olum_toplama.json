@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mahou_olum_toplama"
+        "textures": {
+          "default": "mahou_olum_toplama"
+        }
       },
       "minecraft:display_name": {
         "value": "Ölüm Toplama Parşömeni"

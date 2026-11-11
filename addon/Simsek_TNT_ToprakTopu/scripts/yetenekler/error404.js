@@ -1,7 +1,7 @@
 import { system, world } from "@minecraft/server";
 import { yetenekKaydet } from "./kayit.js";
 import {
-  hataYaz, gecerliMi, kollariIndir, actionbarYaz, baslikYaz, varlikKonumu
+  hataYaz, gecerliMi, kollariIndir, actionbarYaz, baslikYaz, varlikKonumu, dunyaHazirOlunca
 } from "../yardimcilar.js";
 import { blokIste } from "../butce.js";
 import {
@@ -118,7 +118,11 @@ function kayitYaz() {
     }));
   } catch (e) { hataYaz("e404.kayitYaz", e); }
 }
-kayitOku();
+/* v7.99.17: ust duzeyde DEGIL, dunya yuklenince. Erken
+   calistirmada getDynamicProperty istisna atiyor; kayit hic
+   okunmuyor ve ilk yazista ustune yaziliyordu.
+   (yardimcilar.js: dunyaHazirOlunca)                        */
+dunyaHazirOlunca("e404.kayitOku", kayitOku);
 /* Dunya kaydini yeniden okur. Testin kayittan yuklenen fazi
    olcebilmesi icin disa aciliyor; kod icinde de dunya
    degisirse cagrilabilir.                                    */

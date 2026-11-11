@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "zirh_mod_guc"
+        "textures": {
+          "default": "zirh_mod_guc"
+        }
       },
       "minecraft:display_name": {
         "value": "Çekirdek · Güç"

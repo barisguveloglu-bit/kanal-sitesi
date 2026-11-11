@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "ben_cene"
+        "textures": {
+          "default": "ben_cene"
+        }
       },
       "minecraft:display_name": {
         "value": "Yüzen Çene · Recal"

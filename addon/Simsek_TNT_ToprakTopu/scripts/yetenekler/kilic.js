@@ -1,7 +1,7 @@
 import { system, world } from "@minecraft/server";
 import { blokIste } from "../butce.js";
 import {
-  gecerliMi, actionbarYaz, varlikKonumu, hataYaz
+  gecerliMi, actionbarYaz, varlikKonumu, hataYaz, kipApiAdi
 } from "../yardimcilar.js";
 import {
   KILIC_ACIK, KILIC_YARICAP, KILIC_TAVAN,
@@ -139,12 +139,12 @@ function modYaz(oyuncu, mod) {
   if (!mod) return false;
   try {
     if (typeof oyuncu.setGameMode === "function") {
-      oyuncu.setGameMode(mod);
+      oyuncu.setGameMode(kipApiAdi(mod));       // "spectator" -> "Spectator"
       return true;
     }
   } catch (e) { /* API yok: komuta dusuyoruz */ }
   try {
-    oyuncu.runCommand("gamemode " + mod);
+    oyuncu.runCommand("gamemode " + String(mod).toLowerCase());
     return true;
   } catch (e) {
     return false;

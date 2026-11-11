@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "kns_earl_kurek"
+        "textures": {
+          "default": "kns_earl_kurek"
+        }
       },
       "minecraft:display_name": {
         "value": "Earl Küreği"

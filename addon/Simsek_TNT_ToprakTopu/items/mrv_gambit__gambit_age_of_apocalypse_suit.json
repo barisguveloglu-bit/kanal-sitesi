@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_gambit__gambit_age_of_apocalypse_suit"
+        "textures": {
+          "default": "mrv_gambit__gambit_age_of_apocalypse_suit"
+        }
       },
       "minecraft:display_name": {
         "value": "Gambit Suit: Age of Apocalypse"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_kostum"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 14
       }
     }
   }

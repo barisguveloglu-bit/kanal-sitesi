@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "iksir_hiperoksin"
+        "textures": {
+          "default": "iksir_hiperoksin"
+        }
       },
       "minecraft:display_name": {
         "value": "Hiperoksin"

@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_black_widow__yelena_survivor_suit"
+        "textures": {
+          "default": "mrv_black_widow__yelena_survivor_suit"
+        }
       },
       "minecraft:display_name": {
         "value": "Yelena Suit: Survivor"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_kostum"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 13
       }
     }
   }

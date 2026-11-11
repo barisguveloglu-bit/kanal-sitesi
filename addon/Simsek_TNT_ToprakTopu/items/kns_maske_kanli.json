@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "kns_maske_kanli"
+        "textures": {
+          "default": "kns_maske_kanli"
+        }
       },
       "minecraft:display_name": {
         "value": "Kanlı Deadmau5"
@@ -23,9 +25,6 @@
       },
       "minecraft:wearable": {
         "slot": "slot.armor.chest",
-        "protection": 7
-      },
-      "minecraft:armor": {
         "protection": 7
       },
       "minecraft:durability": {

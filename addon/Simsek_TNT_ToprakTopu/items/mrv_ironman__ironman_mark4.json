@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_ironman__ironman_mark4"
+        "textures": {
+          "default": "mrv_ironman__ironman_mark4"
+        }
       },
       "minecraft:display_name": {
         "value": "Iron Man Armor: Mark IV"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_kostum"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 14
       },
       "minecraft:durability": {
         "max_durability": 1200

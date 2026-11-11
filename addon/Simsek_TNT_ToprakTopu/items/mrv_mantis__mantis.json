@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_mantis__mantis"
+        "textures": {
+          "default": "mrv_mantis__mantis"
+        }
       },
       "minecraft:display_name": {
         "value": "Mantis [Skin]"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_ek"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 15
       }
     }
   }

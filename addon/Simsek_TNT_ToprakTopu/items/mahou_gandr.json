@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mahou_gandr"
+        "textures": {
+          "default": "mahou_gandr"
+        }
       },
       "minecraft:display_name": {
         "value": "Gandr Parşömeni"

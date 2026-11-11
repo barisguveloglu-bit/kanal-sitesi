@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "kol_gunes"
+        "textures": {
+          "default": "kol_gunes"
+        }
       },
       "minecraft:display_name": {
         "value": "Güneş Kolu"

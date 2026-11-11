@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "ben_gulle_10k"
+        "textures": {
+          "default": "ben_gulle_10k"
+        }
       },
       "minecraft:display_name": {
         "value": "Gülle · 10K"

@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "kns_harkos"
+        "textures": {
+          "default": "kns_harkos"
+        }
       },
       "minecraft:display_name": {
         "value": "Harkos"
@@ -23,9 +25,6 @@
       },
       "minecraft:wearable": {
         "slot": "slot.armor.head",
-        "protection": 7
-      },
-      "minecraft:armor": {
         "protection": 7
       },
       "minecraft:durability": {

@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_fantastic_4__fantastic_4_2025_suit_sue"
+        "textures": {
+          "default": "mrv_fantastic_4__fantastic_4_2025_suit_sue"
+        }
       },
       "minecraft:display_name": {
         "value": "Fantastic 4: First Steps Suit (Sue)"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_kostum"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 16
       }
     }
   }

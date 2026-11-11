@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "kns_guczirhi_bacak"
+        "textures": {
+          "default": "kns_guczirhi_bacak"
+        }
       },
       "minecraft:display_name": {
         "value": "Güç Zırhı Pantolonu"
@@ -23,9 +25,6 @@
       },
       "minecraft:wearable": {
         "slot": "slot.armor.legs",
-        "protection": 7
-      },
-      "minecraft:armor": {
         "protection": 7
       },
       "minecraft:durability": {

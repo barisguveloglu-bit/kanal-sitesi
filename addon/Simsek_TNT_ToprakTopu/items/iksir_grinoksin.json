@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "iksir_grinoksin"
+        "textures": {
+          "default": "iksir_grinoksin"
+        }
       },
       "minecraft:display_name": {
         "value": "Grinoksin"

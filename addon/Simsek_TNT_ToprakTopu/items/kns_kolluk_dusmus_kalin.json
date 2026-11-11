@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "kns_kolluk_dusmus_kalin"
+        "textures": {
+          "default": "kns_kolluk_dusmus_kalin"
+        }
       },
       "minecraft:display_name": {
         "value": "Düşmüş Kol (Kalın)"
@@ -23,9 +25,6 @@
       },
       "minecraft:wearable": {
         "slot": "slot.armor.chest",
-        "protection": 7
-      },
-      "minecraft:armor": {
         "protection": 7
       },
       "minecraft:durability": {

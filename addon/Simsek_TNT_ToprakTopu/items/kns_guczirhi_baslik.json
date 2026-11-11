@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "kns_guczirhi_baslik"
+        "textures": {
+          "default": "kns_guczirhi_baslik"
+        }
       },
       "minecraft:display_name": {
         "value": "Güç Zırhı Başlığı"
@@ -23,9 +25,6 @@
       },
       "minecraft:wearable": {
         "slot": "slot.armor.head",
-        "protection": 7
-      },
-      "minecraft:armor": {
         "protection": 7
       },
       "minecraft:durability": {

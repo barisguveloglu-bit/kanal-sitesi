@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_winter_soldier__bucky_burns_infinity_war_suit"
+        "textures": {
+          "default": "mrv_winter_soldier__bucky_burns_infinity_war_suit"
+        }
       },
       "minecraft:display_name": {
         "value": "Bucky Barnes Suit: Avengers Infinity War"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_kostum"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 14
       }
     }
   }

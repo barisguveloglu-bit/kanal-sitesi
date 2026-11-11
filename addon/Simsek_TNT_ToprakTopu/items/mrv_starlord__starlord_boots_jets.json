@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_starlord__starlord_boots_jets"
+        "textures": {
+          "default": "mrv_starlord__starlord_boots_jets"
+        }
       },
       "minecraft:display_name": {
         "value": "Star-Lord Jet Boots"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_guc"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 5
       }
     }
   }

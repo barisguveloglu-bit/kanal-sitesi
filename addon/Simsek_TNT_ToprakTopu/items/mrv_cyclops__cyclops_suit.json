@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_cyclops__cyclops_suit"
+        "textures": {
+          "default": "mrv_cyclops__cyclops_suit"
+        }
       },
       "minecraft:display_name": {
         "value": "Cyclops Suit"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_kostum"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 16
       }
     }
   }

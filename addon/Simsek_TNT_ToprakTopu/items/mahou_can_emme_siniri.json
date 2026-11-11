@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mahou_can_emme_siniri"
+        "textures": {
+          "default": "mahou_can_emme_siniri"
+        }
       },
       "minecraft:display_name": {
         "value": "Can Emme Sınırı Parşömeni"

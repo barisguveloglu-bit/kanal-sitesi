@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "will_kilic"
+        "textures": {
+          "default": "will_kilic"
+        }
       },
       "minecraft:display_name": {
         "value": "Will1545 Kılıcı"

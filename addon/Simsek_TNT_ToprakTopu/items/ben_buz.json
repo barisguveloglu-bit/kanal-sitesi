@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "ben_buz"
+        "textures": {
+          "default": "ben_buz"
+        }
       },
       "minecraft:display_name": {
         "value": "Büyük Üşütük"

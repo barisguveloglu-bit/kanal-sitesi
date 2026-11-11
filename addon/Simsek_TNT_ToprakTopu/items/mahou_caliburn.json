@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mahou_caliburn"
+        "textures": {
+          "default": "mahou_caliburn"
+        }
       },
       "minecraft:display_name": {
         "value": "Caliburn"

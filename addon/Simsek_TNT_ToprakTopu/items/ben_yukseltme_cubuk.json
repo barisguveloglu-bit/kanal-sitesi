@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "ben_yukseltme_cubuk"
+        "textures": {
+          "default": "ben_yukseltme_cubuk"
+        }
       },
       "minecraft:display_name": {
         "value": "Yükseltme · Çubuk · Recal"

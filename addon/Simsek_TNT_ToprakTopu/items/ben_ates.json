@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "ben_ates"
+        "textures": {
+          "default": "ben_ates"
+        }
       },
       "minecraft:display_name": {
         "value": "Ateş Topu · Recal"

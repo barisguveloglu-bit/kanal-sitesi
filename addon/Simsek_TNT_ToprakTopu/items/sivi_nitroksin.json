@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "sivi_nitroksin"
+        "textures": {
+          "default": "sivi_nitroksin"
+        }
       },
       "minecraft:display_name": {
         "value": "Nitroksin Sıvısı"

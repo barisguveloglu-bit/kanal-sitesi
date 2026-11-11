@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "kns_olubuyucu_bot"
+        "textures": {
+          "default": "kns_olubuyucu_bot"
+        }
       },
       "minecraft:display_name": {
         "value": "Ölü Büyücü Botu"
@@ -23,9 +25,6 @@
       },
       "minecraft:wearable": {
         "slot": "slot.armor.feet",
-        "protection": 7
-      },
-      "minecraft:armor": {
         "protection": 7
       },
       "minecraft:durability": {

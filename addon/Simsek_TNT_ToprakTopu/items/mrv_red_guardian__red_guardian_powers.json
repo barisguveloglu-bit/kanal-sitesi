@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_red_guardian__red_guardian_powers"
+        "textures": {
+          "default": "mrv_red_guardian__red_guardian_powers"
+        }
       },
       "minecraft:display_name": {
         "value": "Red Guardian Powers"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_guc"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 5
       }
     }
   }

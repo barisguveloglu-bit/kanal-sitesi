@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "kol_toprak"
+        "textures": {
+          "default": "kol_toprak"
+        }
       },
       "minecraft:display_name": {
         "value": "Toprak Kol"

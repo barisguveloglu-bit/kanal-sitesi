@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "goz_beyaz_lazer"
+        "textures": {
+          "default": "goz_beyaz_lazer"
+        }
       },
       "minecraft:display_name": {
         "value": "Beyaz Göz (Lazer)"
@@ -17,9 +19,6 @@
       "minecraft:max_stack_size": 1,
       "minecraft:wearable": {
         "slot": "slot.armor.head",
-        "protection": 17
-      },
-      "minecraft:armor": {
         "protection": 17
       },
       "minecraft:allow_off_hand": false

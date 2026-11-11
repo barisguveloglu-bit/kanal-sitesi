@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_red_guardian__red_guardian_helmet"
+        "textures": {
+          "default": "mrv_red_guardian__red_guardian_helmet"
+        }
       },
       "minecraft:display_name": {
         "value": "Red Guardian Helmet"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_maske"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 2
       },
       "minecraft:durability": {
         "max_durability": 1800

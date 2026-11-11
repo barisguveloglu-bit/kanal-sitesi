@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_ironman__ironman_super_hero_squad"
+        "textures": {
+          "default": "mrv_ironman__ironman_super_hero_squad"
+        }
       },
       "minecraft:display_name": {
         "value": "Iron Man Armor: Super Hero Squad"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_kostum"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 15
       },
       "minecraft:durability": {
         "max_durability": 4200

@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_ms_marvel__ms_marvel_mask"
+        "textures": {
+          "default": "mrv_ms_marvel__ms_marvel_mask"
+        }
       },
       "minecraft:display_name": {
         "value": "Ms. Marvel Mask"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_maske"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 1
       },
       "minecraft:durability": {
         "max_durability": 1760

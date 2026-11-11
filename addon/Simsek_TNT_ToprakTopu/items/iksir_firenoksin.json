@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "iksir_firenoksin"
+        "textures": {
+          "default": "iksir_firenoksin"
+        }
       },
       "minecraft:display_name": {
         "value": "Firenoksin"

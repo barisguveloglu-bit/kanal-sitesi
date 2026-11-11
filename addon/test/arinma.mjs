@@ -113,15 +113,26 @@ console.log("=== 1b. EKRAN · SES · SIS  (v7.35) ===");
           o._komutlar.some((k) => k.trim() === "stopsound @s"),
           o._komutlar.filter((k) => k.indexOf("stopsound") !== -1).join(",") || "-");
 
+  /* v7.99.17: TAM ESLESME ve TIRNAKLI. Gercek motor tirnaksiz
+     sayi kimligini reddediyor (`fog @s remove 13` soz dizimi
+     hatasi); sahte oyuncu her metni kabul ettigi icin bu test
+     yillarca yesildi. Eski iddia ustelik on ek ariyordu:
+     "remove 1" aramasi "remove 11"i de buluyordu.            */
   kontrol("olculen sis kimlikleri kaldiriliyor",
-          ayar.ARIN_SIS_BILINEN.every((k) => komutVar(o, "fog @s remove " + k)),
+          ayar.ARIN_SIS_BILINEN.every(
+            (k) => o._komutlar.includes('fog @s remove "' + k + '"')),
           ayar.ARIN_SIS_BILINEN.join(","));
+  kontrol("hicbir fog komutu tirnaksiz kimlik tasimiyor",
+          o._komutlar.filter((k) => k.startsWith("fog @s "))
+            .every((k) => /^fog @s (remove|push "[^"]+") "[^"]+"$/.test(k)),
+          o._komutlar.filter((k) => k.startsWith("fog @s ")).join(" | "));
   kontrol("ustune varsayilan sis itiliyor",
           komutVar(o, 'fog @s push "minecraft:fog_default"'));
   /* Kendi ittigimiz sis her arinmada birikmesin diye once
      kendi kimligimiz kaldiriliyor.                          */
   kontrol("once kendi sisimiz toplaniyor",
-          o._komutlar.indexOf("fog @s remove " + ayar.ARIN_SIS_KIMLIK) <
+          o._komutlar.indexOf('fog @s remove "' + ayar.ARIN_SIS_KIMLIK + '"') >= 0 &&
+          o._komutlar.indexOf('fog @s remove "' + ayar.ARIN_SIS_KIMLIK + '"') <
           o._komutlar.findIndex((k) => k.indexOf("fog @s push") !== -1));
 }
 
@@ -350,7 +361,7 @@ console.log("=== 1e. SIS KIMLIGI 'basic' DE SOKULUYOR  (v7.50) ===");
           ayar.ARIN_SIS_BILINEN.indexOf("basic") !== -1,
           ayar.ARIN_SIS_BILINEN.join(","));
   const eksik = ayar.ARIN_SIS_BILINEN.filter(
-    (k) => !komutVar(o, "fog @s remove " + k));
+    (k) => !o._komutlar.includes('fog @s remove "' + k + '"'));
   kontrol("bilinen her kimlik icin remove atiliyor",
           eksik.length === 0, eksik.join(", ") || "eksik yok");
 }

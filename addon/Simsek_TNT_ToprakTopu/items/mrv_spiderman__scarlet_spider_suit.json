@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_spiderman__scarlet_spider_suit"
+        "textures": {
+          "default": "mrv_spiderman__scarlet_spider_suit"
+        }
       },
       "minecraft:display_name": {
         "value": "Traje de Scarlet Spider"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_kostum"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 12
       },
       "minecraft:durability": {
         "max_durability": 1200

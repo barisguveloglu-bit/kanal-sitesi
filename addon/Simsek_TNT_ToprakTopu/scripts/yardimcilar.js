@@ -41,6 +41,42 @@ export function hataYaz(nerede, e) {
 }
 
 /* ============================================================
+   DUNYA HAZIR OLUNCA  (v7.99.17)
+
+   @minecraft/server 2.x'te betik dosyasinin EN UST DUZEYI
+   "erken calistirma"da kosuyor: dunya henuz yuklu degil.
+   O anda dunyaya dokunan her cagri (getDynamicProperty,
+   getAllPlayers, ItemTypes.get ...) ya istisna atiyor ya da
+   bos donuyor.
+
+   Bunu sahte motor GOREMEDI, gercek motor (BDS 1.26.52.3)
+   gosterdi:
+     * nefes / sonsuzluk / error404 kaydi acilista OKUNAMIYORDU
+       ("cannot be used in early execution"). Durum bos
+       kaliyor, ilk yazista eski kaydin USTUNE yaziliyordu --
+       yani secilen uslup, toplanan taslar ve faz her dunya
+       acilisinda sifirlaniyordu.
+     * kol ve bot denetimi esyalar/varliklar kaydolmadan once
+       kosuyor, her acilista "KAYITLI DEGIL" diye yanlis alarm
+       veriyordu.
+
+   Cozum tek yerde: is `worldLoad` olayina erteleniyor. Olay
+   yoksa (erken calistirmasi olmayan eski surum) is HEMEN
+   kosuyor -- eski davranisin aynisi.
+   ============================================================ */
+export function dunyaHazirOlunca(nerede, is) {
+  const kos = () => { try { is(); } catch (e) { hataYaz(nerede, e); } };
+  let olay;
+  try { olay = world.afterEvents && world.afterEvents.worldLoad; }
+  catch (e) { olay = undefined; }
+  if (olay && typeof olay.subscribe === "function") {
+    try { olay.subscribe(kos); return; }
+    catch (e) { /* abone olunamadi: asagida hemen deneniyor */ }
+  }
+  kos();
+}
+
+/* ============================================================
    API UYUMLULUGU
    Surumler arasi farklar tek yerde toplandi.
    ============================================================ */
@@ -302,7 +338,12 @@ export function actionbarYaz(oyuncu, metin, sayac = false) {
   try {
     oyuncu.sendMessage(metin);
   } catch (e) {
-    hataYaz("actionbarYaz", e);
+    /* v7.99.17: OYUNDAN CIKMIS oyuncuya yazilamamasi hata degil.
+       Suren bir is, sahibi ciktiktan sonra da bir-iki tick yazmaya
+       calisiyor; gercek motorda her biri "Entity being invalid"
+       diye HATA satiri basiyordu. Oyuncu hala gecerliyse hata
+       gercektir ve yaziliyor.                                    */
+    if (gecerliMi(oyuncu)) hataYaz("actionbarYaz", e);
   }
 }
 
@@ -641,6 +682,19 @@ export function kaliciYaz(anahtar, veri, kirp, tavan) {
     hataYaz("kaliciYaz(" + anahtar + ")", e);
     return undefined;
   }
+}
+
+/* ---- OYUN KIPI ADI, API BICIMINDE  (v7.99.17) ----
+   setGameMode bir GameMode degeri bekliyor ve o degerler BUYUK
+   harfle basliyor: "Survival", "Creative", "Adventure",
+   "Spectator". Depo kipleri kucuk harfle tutuyor (komut bicimi:
+   `gamemode survival`). Kucuk harfli ad API'ye verilince gercek
+   motor "Native type conversion failed" diye atiyor; Gozcu her
+   geri almada bir HATA satiri basip komuta dusuyordu, Kilic
+   sessizce dusuyordu. Cevrim tek yerde.                        */
+export function kipApiAdi(kip) {
+  const ad = String(kip || "");
+  return ad.charAt(0).toUpperCase() + ad.slice(1).toLowerCase();
 }
 
 /* ---- GERI ITME, IKI IMZA  (v7.98.2) ----

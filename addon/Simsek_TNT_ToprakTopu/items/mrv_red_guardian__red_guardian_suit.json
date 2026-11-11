@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_red_guardian__red_guardian_suit"
+        "textures": {
+          "default": "mrv_red_guardian__red_guardian_suit"
+        }
       },
       "minecraft:display_name": {
         "value": "Red Guardian Suit"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_kostum"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 12
       },
       "minecraft:durability": {
         "max_durability": 1800

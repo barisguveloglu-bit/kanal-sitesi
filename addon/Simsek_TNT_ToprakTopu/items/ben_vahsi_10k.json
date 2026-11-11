@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "ben_vahsi_10k"
+        "textures": {
+          "default": "ben_vahsi_10k"
+        }
       },
       "minecraft:display_name": {
         "value": "Vahşi Sırtlan · 10K"

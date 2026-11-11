@@ -18,7 +18,7 @@
         },
         "odun": {
           "texture": "kupa_odun",
-          "render_method": "opaque"
+          "render_method": "alpha_test"
         },
         "zincir": {
           "texture": "kupa_zincir",

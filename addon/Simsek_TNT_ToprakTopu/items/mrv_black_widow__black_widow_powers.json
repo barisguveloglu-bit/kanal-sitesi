@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_black_widow__black_widow_powers"
+        "textures": {
+          "default": "mrv_black_widow__black_widow_powers"
+        }
       },
       "minecraft:display_name": {
         "value": "Black Widow Powers"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_guc"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 5
       }
     }
   }

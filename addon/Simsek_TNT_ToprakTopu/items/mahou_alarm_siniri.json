@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mahou_alarm_siniri"
+        "textures": {
+          "default": "mahou_alarm_siniri"
+        }
       },
       "minecraft:display_name": {
         "value": "Alarm Sınırı Parşömeni"

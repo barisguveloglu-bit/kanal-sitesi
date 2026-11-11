@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "ben_vahsi"
+        "textures": {
+          "default": "ben_vahsi"
+        }
       },
       "minecraft:display_name": {
         "value": "Vahşi Sırtlan · Recal"

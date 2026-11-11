@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_rocket_raccoon__rocket_raccoon_powers"
+        "textures": {
+          "default": "mrv_rocket_raccoon__rocket_raccoon_powers"
+        }
       },
       "minecraft:display_name": {
         "value": "Rocket Raccoon Kit"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_guc"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 5
       }
     }
   }

@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "durus_selam"
+        "textures": {
+          "default": "durus_selam"
+        }
       },
       "minecraft:display_name": {
         "value": "Duruş · Selam"

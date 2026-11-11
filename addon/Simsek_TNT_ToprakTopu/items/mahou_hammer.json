@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mahou_hammer"
+        "textures": {
+          "default": "mahou_hammer"
+        }
       },
       "minecraft:display_name": {
         "value": "Çekiç"

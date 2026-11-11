@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_sue__sue_powers"
+        "textures": {
+          "default": "mrv_sue__sue_powers"
+        }
       },
       "minecraft:display_name": {
         "value": "Sue Storm  powers"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_guc"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 5
       }
     }
   }

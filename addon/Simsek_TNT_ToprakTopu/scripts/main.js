@@ -6,7 +6,7 @@ import {
   ESYASIZ_BAKIS_ESIGI, ESYASIZ_TUTMA, ESYASIZ_TARAMA,
   KOL_VER_ACIK, KOL_VER_ESIGI, KOL_VER_TUTMA, CIFT_EL_ACIK, AYNI_ANDA,
   FTECH_KUYRUK_EK,
-  MENU_DOKUNUSLA, KALP_ADIM, KALP_TAVAN, BETA_GEREKLI,
+  MENU_DOKUNUSLA, KALP_ADIM, KALP_TAVAN, BETA_GEREKLI, API_SURUM,
   SOHBET_ONEK, BOT_TAVAN, DERIN_HEDEFLER, DERIN_VARSAYILAN,
   DONDUR_GIRDI_KILIT, ILKEL_BESLI, ILKEL_ACIK, botTuruMu,
   KILIC_ESYA, SEY_ACIK, SEY_AD, SEY_TAVAN,
@@ -29,7 +29,7 @@ import {
 
 import {
   hataYaz, bilgiYaz, gecerliMi, olayaAbone, sistemOlayaAbone, kollariKaldir,
-  kollariIndir, actionbarYaz, eldekiEsya, actionbarUnut
+  kollariIndir, actionbarYaz, eldekiEsya, actionbarUnut, dunyaHazirOlunca
 } from "./yardimcilar.js";
 
 import {
@@ -3002,9 +3002,15 @@ olayaAbone("playerInteractWithEntity", (olay) => {
   }
 });
 
-kolDenetimi();
+/* v7.99.17: kol ve bot denetimi DUNYA YUKLENINCE. Ust duzeyde
+   kosarken (erken calistirma) esya ve varlik kayit defteri
+   henuz bos; gercek motorda her acilista "10/10 kol esyasi
+   KAYITLI DEGIL" ve "pa:bot KAYITLI DEGIL" yaziyordu, oysa
+   ikisi de kayitliydi. Yanlis alarm, gercek bir eksigi
+   gorunmez kilar. siraDenetimi dunyaya dokunmuyor, yerinde. */
+dunyaHazirOlunca("kolDenetimi", kolDenetimi);
 siraDenetimi();
-botDenetimi();
+dunyaHazirOlunca("botDenetimi", botDenetimi);
 
 /* ---------------- Sohbet komutlari ----------------
    Komutlarin calistiracagi isler burada baglaniyor. sohbet.js
@@ -3029,7 +3035,7 @@ function durumRaporu(oyuncu) {
   const satir = ["§6--- Simsek durum ---"];
 
   satir.push("§7Surum §f" + SURUM +
-             " §8· API §f" + (BETA_GEREKLI ? "2.0.0-beta" : "2.0.0") +
+             " §8· API §f" + API_SURUM + (BETA_GEREKLI ? "-beta" : "") +
              " §8· yetenek §f" + tumYetenekler().length);
 
   satir.push("§7Sohbet komutlari: " +
@@ -3228,10 +3234,13 @@ sohbetKur();
    BETA_GEREKLI v4.25'te false'a alinmisti -- yani satir yanlis
    bilgi veriyordu. Artik ayardan okunuyor: ikisi bir daha
    ayrisamaz.                                                    */
+/* v7.99.17: surum numarasi burada ELLE yaziliydi ("2.0.0") ve
+   manifest 2.5.0'a ciktiginda bayatladi. Artik API_SURUM'dan;
+   onu da kol_uret.py manifest'ten yaziyor.                    */
 bilgiYaz(BETA_GEREKLI
-  ? "API: @minecraft/server 2.0.0-BETA isteniyor -- dunya ayarlarinda " +
+  ? "API: @minecraft/server " + API_SURUM + "-BETA isteniyor -- dunya ayarlarinda " +
     "'Beta API'ler' ACIK olmali, yoksa paket HIC yuklenmez."
-  : "API: @minecraft/server 2.0.0 (kararli). Beta API ayari gerekmiyor; " +
+  : "API: @minecraft/server " + API_SURUM + " (kararli). Beta API ayari gerekmiyor; " +
     "sohbet komutlari (chatSend) sadece Beta acikken calisir, menu ve " +
     "/scriptevent her durumda calisir.");
 

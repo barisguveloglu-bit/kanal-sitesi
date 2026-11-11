@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "ben_yukseltme_10k"
+        "textures": {
+          "default": "ben_yukseltme_10k"
+        }
       },
       "minecraft:display_name": {
         "value": "Yükseltme · 10K"

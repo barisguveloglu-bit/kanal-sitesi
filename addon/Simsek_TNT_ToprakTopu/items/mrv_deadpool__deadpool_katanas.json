@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_deadpool__deadpool_katanas"
+        "textures": {
+          "default": "mrv_deadpool__deadpool_katanas"
+        }
       },
       "minecraft:display_name": {
         "value": "Deadpool katanas"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_ek"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 1
       }
     }
   }

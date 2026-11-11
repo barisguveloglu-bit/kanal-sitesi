@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_dr_strange__dr_strange_cape"
+        "textures": {
+          "default": "mrv_dr_strange__dr_strange_cape"
+        }
       },
       "minecraft:display_name": {
         "value": "Doctor Strange cape"

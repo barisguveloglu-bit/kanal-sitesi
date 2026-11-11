@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_fantastic_4__fantastic_4_2015_suit_reed"
+        "textures": {
+          "default": "mrv_fantastic_4__fantastic_4_2015_suit_reed"
+        }
       },
       "minecraft:display_name": {
         "value": "Fant4stic Suit (Reed)"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_kostum"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 16
       }
     }
   }

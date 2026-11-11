@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "ben_gri_uzuv_10k"
+        "textures": {
+          "default": "ben_gri_uzuv_10k"
+        }
       },
       "minecraft:display_name": {
         "value": "Gri Madde · Uzuv · 10K"

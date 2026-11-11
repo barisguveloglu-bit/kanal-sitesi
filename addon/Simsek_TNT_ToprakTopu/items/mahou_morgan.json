@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mahou_morgan"
+        "textures": {
+          "default": "mahou_morgan"
+        }
       },
       "minecraft:display_name": {
         "value": "Morgan"

@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "ben_elmas_10k"
+        "textures": {
+          "default": "ben_elmas_10k"
+        }
       },
       "minecraft:display_name": {
         "value": "Elmas Kafa · 10K"

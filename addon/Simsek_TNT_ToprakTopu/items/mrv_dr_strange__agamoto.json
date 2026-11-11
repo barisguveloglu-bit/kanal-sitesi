@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_dr_strange__agamoto"
+        "textures": {
+          "default": "mrv_dr_strange__agamoto"
+        }
       },
       "minecraft:display_name": {
         "value": "Agamotto eye"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_guc"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 1
       }
     }
   }

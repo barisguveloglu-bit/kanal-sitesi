@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_antman__wasp_emh_skin"
+        "textures": {
+          "default": "mrv_antman__wasp_emh_skin"
+        }
       },
       "minecraft:display_name": {
         "value": "Wasp - Avengers: Earth's mightiest heroes [Transform]"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_kostum"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 20
       }
     }
   }

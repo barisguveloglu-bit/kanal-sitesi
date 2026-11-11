@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "sivi_firenoksin"
+        "textures": {
+          "default": "sivi_firenoksin"
+        }
       },
       "minecraft:display_name": {
         "value": "Firenoksin Sıvısı"

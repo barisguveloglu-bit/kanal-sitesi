@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "ben_hayalet_10k"
+        "textures": {
+          "default": "ben_hayalet_10k"
+        }
       },
       "minecraft:display_name": {
         "value": "Hayalet · 10K"

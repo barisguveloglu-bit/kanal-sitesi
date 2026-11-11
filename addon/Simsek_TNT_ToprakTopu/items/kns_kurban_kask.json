@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "kns_kurban_kask"
+        "textures": {
+          "default": "kns_kurban_kask"
+        }
       },
       "minecraft:display_name": {
         "value": "Kurban Kask"
@@ -23,9 +25,6 @@
       },
       "minecraft:wearable": {
         "slot": "slot.armor.head",
-        "protection": 7
-      },
-      "minecraft:armor": {
         "protection": 7
       },
       "minecraft:durability": {

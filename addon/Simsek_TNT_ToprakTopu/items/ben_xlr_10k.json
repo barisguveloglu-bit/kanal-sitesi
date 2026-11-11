@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "ben_xlr_10k"
+        "textures": {
+          "default": "ben_xlr_10k"
+        }
       },
       "minecraft:display_name": {
         "value": "Şimşek Hız · 10K"

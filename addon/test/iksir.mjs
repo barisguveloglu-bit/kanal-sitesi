@@ -290,9 +290,10 @@ console.log("=== YENI IKSIRLER ve GOZ ZIRHI (v4.62) ===");
       toplam++;
       const c = oku(yol)["minecraft:item"].components;
       const w = c["minecraft:wearable"];
-      /* Iki bilesen de ayni sayiyi tasimali: biri unutulursa
-         zirh cubugu ile gercek indirim ayrisirdi.            */
-      if (c["minecraft:armor"] && c["minecraft:armor"].protection === GOZ_ZIRH &&
+      /* v7.99.17: koruma YALNIZ wearable'da. Eskiden ayni sayi
+         minecraft:armor'da da duruyordu; o bilesen 1.21.0
+         biciminde yok ve gercek motor reddediyordu.         */
+      if (!c["minecraft:armor"] &&
           w && w.protection === GOZ_ZIRH) zirhli++;
     }
   }

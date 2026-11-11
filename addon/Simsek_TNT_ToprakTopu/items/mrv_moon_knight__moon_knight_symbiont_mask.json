@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_moon_knight__moon_knight_symbiont_mask"
+        "textures": {
+          "default": "mrv_moon_knight__moon_knight_symbiont_mask"
+        }
       },
       "minecraft:display_name": {
         "value": "Symbiote Moon Knight Mask"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_maske"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 4
       }
     }
   }

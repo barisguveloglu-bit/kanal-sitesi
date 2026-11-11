@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_squirrel_girl__squirrel_girl_ears"
+        "textures": {
+          "default": "mrv_squirrel_girl__squirrel_girl_ears"
+        }
       },
       "minecraft:display_name": {
         "value": "Squirrel Girl Ears"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_maske"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 2
       }
     }
   }

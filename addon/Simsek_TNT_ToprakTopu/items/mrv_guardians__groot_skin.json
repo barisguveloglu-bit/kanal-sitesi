@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_guardians__groot_skin"
+        "textures": {
+          "default": "mrv_guardians__groot_skin"
+        }
       },
       "minecraft:display_name": {
         "value": "Groot [Transformation]"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_ek"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 15
       }
     }
   }

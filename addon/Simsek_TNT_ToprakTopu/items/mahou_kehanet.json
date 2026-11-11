@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mahou_kehanet"
+        "textures": {
+          "default": "mahou_kehanet"
+        }
       },
       "minecraft:display_name": {
         "value": "Kehanet Parşömeni"

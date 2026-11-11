@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "revolver"
+        "textures": {
+          "default": "revolver"
+        }
       },
       "minecraft:display_name": {
         "value": "Revolver"

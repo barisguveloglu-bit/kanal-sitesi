@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "kns_dusmus_2"
+        "textures": {
+          "default": "kns_dusmus_2"
+        }
       },
       "minecraft:display_name": {
         "value": "Düşmüş · 2. Aşama"
@@ -23,9 +25,6 @@
       },
       "minecraft:wearable": {
         "slot": "slot.armor.chest",
-        "protection": 20
-      },
-      "minecraft:armor": {
         "protection": 20
       },
       "minecraft:durability": {

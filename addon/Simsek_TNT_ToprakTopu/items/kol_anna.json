@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "kol_anna"
+        "textures": {
+          "default": "kol_anna"
+        }
       },
       "minecraft:display_name": {
         "value": "Anna Kolu"

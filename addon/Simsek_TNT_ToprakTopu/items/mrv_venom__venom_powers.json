@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_venom__venom_powers"
+        "textures": {
+          "default": "mrv_venom__venom_powers"
+        }
       },
       "minecraft:display_name": {
         "value": "Symbiote Powers"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_guc"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 5
       }
     }
   }

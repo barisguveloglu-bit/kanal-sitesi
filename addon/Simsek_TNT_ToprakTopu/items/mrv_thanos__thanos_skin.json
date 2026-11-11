@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_thanos__thanos_skin"
+        "textures": {
+          "default": "mrv_thanos__thanos_skin"
+        }
       },
       "minecraft:display_name": {
         "value": "Thanos [Transformation]"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_ek"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 15
       }
     }
   }

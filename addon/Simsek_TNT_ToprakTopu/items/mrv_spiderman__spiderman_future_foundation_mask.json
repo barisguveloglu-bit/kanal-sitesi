@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_spiderman__spiderman_future_foundation_mask"
+        "textures": {
+          "default": "mrv_spiderman__spiderman_future_foundation_mask"
+        }
       },
       "minecraft:display_name": {
         "value": "Spider-Man: Fundacion futura Mask"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_maske"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 3
       },
       "minecraft:durability": {
         "max_durability": 1650

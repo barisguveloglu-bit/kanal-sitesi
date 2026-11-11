@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_moon_knight__moon_knight_magic_suit"
+        "textures": {
+          "default": "mrv_moon_knight__moon_knight_magic_suit"
+        }
       },
       "minecraft:display_name": {
         "value": "Moon Knight Suit"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_kostum"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 12
       },
       "minecraft:durability": {
         "max_durability": 1250

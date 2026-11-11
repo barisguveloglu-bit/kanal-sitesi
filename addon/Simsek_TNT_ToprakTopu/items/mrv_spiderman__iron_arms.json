@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_spiderman__iron_arms"
+        "textures": {
+          "default": "mrv_spiderman__iron_arms"
+        }
       },
       "minecraft:display_name": {
         "value": "Iron Spider metal arms"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_ek"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 1
       }
     }
   }

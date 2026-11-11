@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mahou_yukselis"
+        "textures": {
+          "default": "mahou_yukselis"
+        }
       },
       "minecraft:display_name": {
         "value": "Yükseliş Parşömeni"

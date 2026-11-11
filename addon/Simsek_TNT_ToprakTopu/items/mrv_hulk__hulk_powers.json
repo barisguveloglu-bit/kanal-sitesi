@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_hulk__hulk_powers"
+        "textures": {
+          "default": "mrv_hulk__hulk_powers"
+        }
       },
       "minecraft:display_name": {
         "value": "Hulk Powers"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_guc"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 5
       }
     }
   }

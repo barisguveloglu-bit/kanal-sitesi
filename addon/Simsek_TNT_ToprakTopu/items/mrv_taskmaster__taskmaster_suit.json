@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_taskmaster__taskmaster_suit"
+        "textures": {
+          "default": "mrv_taskmaster__taskmaster_suit"
+        }
       },
       "minecraft:display_name": {
         "value": "Taskmaster Suit"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_kostum"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 14
       }
     }
   }

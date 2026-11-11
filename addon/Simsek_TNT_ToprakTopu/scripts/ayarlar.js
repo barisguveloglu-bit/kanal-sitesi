@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.99.8";
+export const SURUM = "v7.99.17";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -35,6 +35,13 @@ export const SURUM = "v7.99.8";
    olduruyor.
    ============================================================ */
 export const BETA_GEREKLI = false;
+
+/* Manifestte istenen @minecraft/server surumu. ELLE YAZMA:
+   kol_uret.py her uretimde manifest.json'dan okuyup bu satiri
+   yeniden yaziyor (v7.99.17). Acilis mesaji ve "durum" raporu
+   bunu basiyor; elle yaziliyken manifest 2.5.0'a cikmis, mesaj
+   2.0.0'da kalmisti.                                          */
+export const API_SURUM = "2.5.0";
 
 /* ---------------- Tetikleyici esyalar ---------------- */
 export const SIMSEK_ESYA = "minecraft:blaze_rod";     // baktigin yere simsek

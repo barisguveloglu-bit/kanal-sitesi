@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "kns_asa_sihirli_ok"
+        "textures": {
+          "default": "kns_asa_sihirli_ok"
+        }
       },
       "minecraft:display_name": {
         "value": "Sihirli Ok Asası"

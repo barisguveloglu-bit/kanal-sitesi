@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "kursun"
+        "textures": {
+          "default": "kursun"
+        }
       },
       "minecraft:display_name": {
         "value": "Kurşun"

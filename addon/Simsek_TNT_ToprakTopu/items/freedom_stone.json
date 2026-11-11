@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "freedom_stone"
+        "textures": {
+          "default": "freedom_stone"
+        }
       },
       "minecraft:display_name": {
         "value": "Freedom Stone"

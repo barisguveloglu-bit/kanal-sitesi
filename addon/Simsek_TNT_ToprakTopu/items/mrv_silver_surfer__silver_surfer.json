@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_silver_surfer__silver_surfer"
+        "textures": {
+          "default": "mrv_silver_surfer__silver_surfer"
+        }
       },
       "minecraft:display_name": {
         "value": "Silver Surfer [Transformation]"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_kostum"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 12
       }
     }
   }

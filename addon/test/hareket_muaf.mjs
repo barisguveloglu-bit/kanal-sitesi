@@ -14,7 +14,7 @@
    2. Uctan uca: Toprak Izi acikken ucma hilesi YAKALANIYOR.
    3. WoM: yerinde vuran vurus muaf tutmuyor; tasiyan vurus yalniz
       izi suresince tutuyor.                                       */
-import { dunyaKur, oyuncuKur } from "./dunya.mjs";
+import { dunyaKur, oyuncuKur, kipTak } from "./dunya.mjs";
 import { tickIlerlet, sohbetTetikle, _durum } from "@minecraft/server";
 import { readFileSync } from "node:fs";
 
@@ -99,9 +99,8 @@ console.log("\n=== 2b. OYUN KIPI VE BLOK HIZI AYNI KURALDA ===");
   /* Oyun kipi muafiyetini hareketTara'dan aliyor: izleyici kipi. */
   const o = kur("hm4");
   tetikle(o, "toprak_izi");
-  o._kip = "spectator";
-  Object.assign(o, { getGameMode: () => o._kip, setGameMode: (k) => { o._kip = k; },
-                     runCommand: () => ({ successCount: 1 }) });
+  kipTak(o, "spectator");
+  Object.assign(o, { runCommand: () => ({ successCount: 1 }) });
   gozcu.kipUnut("hm4");
   const sonuc = gozcu.kipDenetle(o, (k) => M.hareketMuafIsVarMi(k));
   kontrol("Toprak Izi acikken izleyici kipi YAKALANDI", sonuc !== null, JSON.stringify(sonuc));

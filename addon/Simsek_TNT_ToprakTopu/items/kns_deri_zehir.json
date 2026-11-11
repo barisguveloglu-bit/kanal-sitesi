@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "kns_deri_zehir"
+        "textures": {
+          "default": "kns_deri_zehir"
+        }
       },
       "minecraft:display_name": {
         "value": "Zehir Derisi"
@@ -23,9 +25,6 @@
       },
       "minecraft:wearable": {
         "slot": "slot.armor.head",
-        "protection": 7
-      },
-      "minecraft:armor": {
         "protection": 7
       },
       "minecraft:durability": {

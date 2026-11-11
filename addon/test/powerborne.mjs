@@ -49,8 +49,14 @@ function kur(id, ek = {}) {
   o._hasar = []; o._etki = []; o._itme = [];
   o.applyDamage = (m) => { o._hasar.push(m); return true; };
   o.addEffect = (a, s, sec) => { o._etki.push({ a, s, sec }); };
+  /* v7.99.17: GERCEK API GIBI. @minecraft/server 2.x'te imza
+     applyKnockback({x, z}, dikey); dort sayi verilince motor
+     "Incorrect number of arguments" diye ATIYOR. Bu taklit eski
+     imzayi da sessizce kabul ediyordu, yani hangi imzanin
+     kullanildigi olculmuyordu.                                */
   o.applyKnockback = (a, b) => {
-    o._itme.push(typeof a === "object" ? { x: a.x, z: a.z, y: b } : { x: a, z: b });
+    if (typeof a !== "object") throw new TypeError("Incorrect number of arguments to function. Expected 2, received 4");
+    o._itme.push({ x: a.x, z: a.z, y: b });
     return true;
   };
   o._yazilar = [];
@@ -71,7 +77,8 @@ function hedef(id, tip, x, y, z) {
     applyDamage(m) { this._hasar.push(m); return true; },
     addEffect(a, s, sec) { this._etki.push({ a, s, sec }); },
     applyKnockback(a, b) {
-      this._itme.push(typeof a === "object" ? { x: a.x, z: a.z, y: b } : { x: a, z: b });
+      if (typeof a !== "object") throw new TypeError("Incorrect number of arguments to function. Expected 2, received 4");
+      this._itme.push({ x: a.x, z: a.z, y: b });
       return true;
     },
     applyImpulse() { return true; }

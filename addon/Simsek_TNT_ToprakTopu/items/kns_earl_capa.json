@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "kns_earl_capa"
+        "textures": {
+          "default": "kns_earl_capa"
+        }
       },
       "minecraft:display_name": {
         "value": "Earl Çapası"

@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_black_panther__black_panther_basts_chosen_mask"
+        "textures": {
+          "default": "mrv_black_panther__black_panther_basts_chosen_mask"
+        }
       },
       "minecraft:display_name": {
         "value": "§tBlack Panther Mask: Bast’s Chosen"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_maske"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 2
       }
     }
   }

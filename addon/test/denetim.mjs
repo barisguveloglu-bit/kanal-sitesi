@@ -28,7 +28,7 @@
       blok delinen her lazerde ozet actionbar'i hic gorunmuyor,
       yerine Content Log'a ReferenceError dusuyordu.          */
 
-import { dunyaKur } from "./dunya.mjs";
+import { dunyaKur, kipTak } from "./dunya.mjs";
 import { tickIlerlet, _durum, world } from "@minecraft/server";
 import { readFileSync } from "node:fs";
 
@@ -53,14 +53,17 @@ const kontrol = (ad, gecti, detay = "") => {
    getGameMode okusun. Sahte dunyanin oyuncusunda bu yok --
    olmasaydi "geri alindi" olcumu sessizce hep gecerdi.     */
 function oyuncuKip(id, kip) {
-  return {
+  /* v7.99.17: kip taklidi gercek API gibi (dunya.mjs kipTak):
+     kucuk harfli adi REDDEDIYOR. runCommand BILEREK atiyor --
+     komut yedegi calisirsa "API'yle yazildi" olcumu bos kalirdi. */
+  return kipTak({
     id, typeId: "minecraft:player", name: id, isValid: true,
-    _kip: kip, _yazilan: [],
-    getGameMode() { return this._kip; },
-    setGameMode(y) { this._kip = y; this._yazilan.push(y); },
     onScreenDisplay: { setActionBar() {} },
-    runCommand() { return { successCount: 1 }; }
-  };
+    runCommand(k) {
+      if (String(k).startsWith("gamemode")) throw new Error("komut yedegine dusuldu: " + k);
+      return { successCount: 1 };
+    }
+  }, kip);
 }
 
 console.log("=== 1. KALICI IZLEYICI ACIGI (kilic.js) ===");
@@ -87,14 +90,14 @@ console.log("=== 1. KALICI IZLEYICI ACIGI (kilic.js) ===");
 
   const defter = kilic.kilicKaydiOku();
   kontrol("DUNYA KAYDI yazildi (onceki kip dahil)",
-          defter.izl1 === "creative", JSON.stringify(defter));
+          String(defter.izl1).toLowerCase() === "creative", JSON.stringify(defter));
 
   /* ---- ASIL ACIK: izleyiciyken CIKMAK ----
      playerLeave yalniz kimlik verir; oyuncu nesnesi gecersizdir,
      yani kip CIKARKEN yazilamaz. O yuzden dunya kaydi KALMALI. */
   kilic.kilicUnut("izl1");
   kontrol("cikinca dunya kaydi SILINMIYOR",
-          kilic.kilicKaydiOku().izl1 === "creative",
+          String(kilic.kilicKaydiOku().izl1).toLowerCase() === "creative",
           JSON.stringify(kilic.kilicKaydiOku()));
 
   /* ---- GERI GIRINCE DUZELIYOR ---- */

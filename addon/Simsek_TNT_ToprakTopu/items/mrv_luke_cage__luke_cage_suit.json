@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_luke_cage__luke_cage_suit"
+        "textures": {
+          "default": "mrv_luke_cage__luke_cage_suit"
+        }
       },
       "minecraft:display_name": {
         "value": "Luke Cage Suit"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_kostum"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 12
       }
     }
   }

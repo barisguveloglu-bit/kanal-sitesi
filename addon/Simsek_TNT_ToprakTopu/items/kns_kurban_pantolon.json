@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "kns_kurban_pantolon"
+        "textures": {
+          "default": "kns_kurban_pantolon"
+        }
       },
       "minecraft:display_name": {
         "value": "Kurban Pantolon"
@@ -23,9 +25,6 @@
       },
       "minecraft:wearable": {
         "slot": "slot.armor.legs",
-        "protection": 7
-      },
-      "minecraft:armor": {
         "protection": 7
       },
       "minecraft:durability": {

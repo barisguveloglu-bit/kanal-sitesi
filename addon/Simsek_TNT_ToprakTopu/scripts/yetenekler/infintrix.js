@@ -1,7 +1,7 @@
 import { world } from "@minecraft/server";
 import { yetenekKaydet } from "./kayit.js";
 import {
-  hataYaz, gecerliMi, kollariIndir, actionbarYaz, baslikYaz, parcacikAt
+  hataYaz, gecerliMi, kollariIndir, actionbarYaz, baslikYaz, parcacikAt, dunyaHazirOlunca
 } from "../yardimcilar.js";
 import {
   SNS_ACIK, SNS_SIRA_BAS, SNS_KAYIT_ANAHTAR,
@@ -101,7 +101,11 @@ function kayitYaz() {
     world.setDynamicProperty(SNS_KAYIT_ANAHTAR, JSON.stringify(o));
   } catch (e) { hataYaz("sonsuzluk.kayitYaz", e); }
 }
-kayitOku();
+/* v7.99.17: ust duzeyde DEGIL, dunya yuklenince. Erken
+   calistirmada getDynamicProperty istisna atiyor; kayit hic
+   okunmuyor ve ilk yazista ustune yaziliyordu.
+   (yardimcilar.js: dunyaHazirOlunca)                        */
+dunyaHazirOlunca("sonsuzluk.kayitOku", kayitOku);
 
 /* Yaratik anahtarindan BICIM EKI. "ben_ates_10k" -> "_10k".
    Yanik cezasinin uzunlugu buna bagli (kaynakta da Omnitrix

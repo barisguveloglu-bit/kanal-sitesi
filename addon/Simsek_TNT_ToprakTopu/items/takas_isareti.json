@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "takas_isareti"
+        "textures": {
+          "default": "takas_isareti"
+        }
       },
       "minecraft:display_name": {
         "value": "Kol Takası (geçici)"

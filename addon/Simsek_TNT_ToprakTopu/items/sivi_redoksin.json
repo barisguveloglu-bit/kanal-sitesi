@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "sivi_redoksin"
+        "textures": {
+          "default": "sivi_redoksin"
+        }
       },
       "minecraft:display_name": {
         "value": "Redoksin Sıvısı"

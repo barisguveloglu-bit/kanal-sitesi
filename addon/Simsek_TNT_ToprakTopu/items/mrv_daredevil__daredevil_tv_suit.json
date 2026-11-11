@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_daredevil__daredevil_tv_suit"
+        "textures": {
+          "default": "mrv_daredevil__daredevil_tv_suit"
+        }
       },
       "minecraft:display_name": {
         "value": "Daredevil (Tv Serie) Suit"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_kostum"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 16
       }
     }
   }

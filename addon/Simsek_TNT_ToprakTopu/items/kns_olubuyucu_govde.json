@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "kns_olubuyucu_govde"
+        "textures": {
+          "default": "kns_olubuyucu_govde"
+        }
       },
       "minecraft:display_name": {
         "value": "Ölü Büyücü Zırhı"
@@ -23,9 +25,6 @@
       },
       "minecraft:wearable": {
         "slot": "slot.armor.chest",
-        "protection": 7
-      },
-      "minecraft:armor": {
         "protection": 7
       },
       "minecraft:durability": {

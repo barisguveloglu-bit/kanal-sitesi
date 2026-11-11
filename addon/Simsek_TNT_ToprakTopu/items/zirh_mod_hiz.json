@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "zirh_mod_hiz"
+        "textures": {
+          "default": "zirh_mod_hiz"
+        }
       },
       "minecraft:display_name": {
         "value": "Çekirdek · Hız"

@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_scarlet_witch__scarlet_witch_mom_suit"
+        "textures": {
+          "default": "mrv_scarlet_witch__scarlet_witch_mom_suit"
+        }
       },
       "minecraft:display_name": {
         "value": "Scarlet Witch Suit: Multiverse of Madness"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_kostum"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 15
       }
     }
   }

@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_moon_knight__moon_knight_blood_mask"
+        "textures": {
+          "default": "mrv_moon_knight__moon_knight_blood_mask"
+        }
       },
       "minecraft:display_name": {
         "value": "Blood Moon Knight Mask"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_maske"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 4
       }
     }
   }

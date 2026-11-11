@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_gambit__gambit_age_of_apocalypse_cape"
+        "textures": {
+          "default": "mrv_gambit__gambit_age_of_apocalypse_cape"
+        }
       },
       "minecraft:display_name": {
         "value": "Gambit Cape: Age of Apocalypse"

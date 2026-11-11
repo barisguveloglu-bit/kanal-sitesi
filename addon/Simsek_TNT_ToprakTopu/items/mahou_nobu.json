@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mahou_nobu"
+        "textures": {
+          "default": "mahou_nobu"
+        }
       },
       "minecraft:display_name": {
         "value": "Nobu"

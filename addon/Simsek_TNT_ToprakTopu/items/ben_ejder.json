@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "ben_ejder"
+        "textures": {
+          "default": "ben_ejder"
+        }
       },
       "minecraft:display_name": {
         "value": "Ejderha"

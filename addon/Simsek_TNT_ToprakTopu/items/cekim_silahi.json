@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "cekim_silahi"
+        "textures": {
+          "default": "cekim_silahi"
+        }
       },
       "minecraft:display_name": {
         "value": "Yerçekimi Silahı"

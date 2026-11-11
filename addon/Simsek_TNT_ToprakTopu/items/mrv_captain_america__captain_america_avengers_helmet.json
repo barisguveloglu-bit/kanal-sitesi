@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_captain_america__captain_america_avengers_helmet"
+        "textures": {
+          "default": "mrv_captain_america__captain_america_avengers_helmet"
+        }
       },
       "minecraft:display_name": {
         "value": "Captain America Helmet: Avengers (2012)"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_maske"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 2
       }
     }
   }

@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mahou_icgoru"
+        "textures": {
+          "default": "mahou_icgoru"
+        }
       },
       "minecraft:display_name": {
         "value": "İçgörü Parşömeni"

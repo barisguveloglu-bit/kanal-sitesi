@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_ms_marvel__ms_marvel_protection"
+        "textures": {
+          "default": "mrv_ms_marvel__ms_marvel_protection"
+        }
       },
       "minecraft:display_name": {
         "value": "Protection [Activate: Place in Leg Slot]"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_guc"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 5
       }
     }
   }

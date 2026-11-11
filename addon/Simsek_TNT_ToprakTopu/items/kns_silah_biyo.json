@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "kns_silah_biyo"
+        "textures": {
+          "default": "kns_silah_biyo"
+        }
       },
       "minecraft:display_name": {
         "value": "Biyo Silah"

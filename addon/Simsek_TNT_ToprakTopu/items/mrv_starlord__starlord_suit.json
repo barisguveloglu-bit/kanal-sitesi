@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_starlord__starlord_suit"
+        "textures": {
+          "default": "mrv_starlord__starlord_suit"
+        }
       },
       "minecraft:display_name": {
         "value": "Star-Lord Suit"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_kostum"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 12
       }
     }
   }

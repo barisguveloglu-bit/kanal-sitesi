@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "kol_kanli"
+        "textures": {
+          "default": "kol_kanli"
+        }
       },
       "minecraft:display_name": {
         "value": "Kanlı Kol"

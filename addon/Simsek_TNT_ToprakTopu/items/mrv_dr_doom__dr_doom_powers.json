@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_dr_doom__dr_doom_powers"
+        "textures": {
+          "default": "mrv_dr_doom__dr_doom_powers"
+        }
       },
       "minecraft:display_name": {
         "value": "Doctor Doom powers"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_guc"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 5
       }
     }
   }

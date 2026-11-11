@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_dr_strange__dr_strange_suit"
+        "textures": {
+          "default": "mrv_dr_strange__dr_strange_suit"
+        }
       },
       "minecraft:display_name": {
         "value": "Doctor Strange suit"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_kostum"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 16
       }
     }
   }

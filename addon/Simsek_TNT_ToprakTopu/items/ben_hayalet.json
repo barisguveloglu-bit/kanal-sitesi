@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "ben_hayalet"
+        "textures": {
+          "default": "ben_hayalet"
+        }
       },
       "minecraft:display_name": {
         "value": "Hayalet · Recal"

@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mahou_uzamsal_karisiklik"
+        "textures": {
+          "default": "mahou_uzamsal_karisiklik"
+        }
       },
       "minecraft:display_name": {
         "value": "Uzamsal Karışıklık Parşömeni"

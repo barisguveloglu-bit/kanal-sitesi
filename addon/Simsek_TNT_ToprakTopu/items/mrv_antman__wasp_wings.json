@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_antman__wasp_wings"
+        "textures": {
+          "default": "mrv_antman__wasp_wings"
+        }
       },
       "minecraft:display_name": {
         "value": "Wasp wings"

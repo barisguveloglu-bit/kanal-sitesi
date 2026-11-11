@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "kns_asa_yeralti"
+        "textures": {
+          "default": "kns_asa_yeralti"
+        }
       },
       "minecraft:display_name": {
         "value": "Yeraltı Asası"

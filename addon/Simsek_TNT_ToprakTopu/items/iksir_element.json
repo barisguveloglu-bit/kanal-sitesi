@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "iksir_element"
+        "textures": {
+          "default": "iksir_element"
+        }
       },
       "minecraft:display_name": {
         "value": "Element İksiri"

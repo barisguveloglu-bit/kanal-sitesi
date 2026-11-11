@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_falcon__falcon_suit"
+        "textures": {
+          "default": "mrv_falcon__falcon_suit"
+        }
       },
       "minecraft:display_name": {
         "value": "Falcon Suit"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_kostum"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 7
       }
     }
   }

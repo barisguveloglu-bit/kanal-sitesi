@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "zaman_saati"
+        "textures": {
+          "default": "zaman_saati"
+        }
       },
       "minecraft:display_name": {
         "value": "Zaman Saati"

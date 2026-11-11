@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "zirh_mod_gizlilik"
+        "textures": {
+          "default": "zirh_mod_gizlilik"
+        }
       },
       "minecraft:display_name": {
         "value": "Çekirdek · Gizlilik"

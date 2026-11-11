@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "altin_kursun"
+        "textures": {
+          "default": "altin_kursun"
+        }
       },
       "minecraft:display_name": {
         "value": "Altın Kurşun"

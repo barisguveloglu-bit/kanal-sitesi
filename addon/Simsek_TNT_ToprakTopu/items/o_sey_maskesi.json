@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "o_sey_maskesi"
+        "textures": {
+          "default": "o_sey_maskesi"
+        }
       },
       "minecraft:display_name": {
         "value": "O Şey Maskesi"

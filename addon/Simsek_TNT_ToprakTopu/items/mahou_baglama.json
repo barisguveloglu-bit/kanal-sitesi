@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mahou_baglama"
+        "textures": {
+          "default": "mahou_baglama"
+        }
       },
       "minecraft:display_name": {
         "value": "Bağlama Parşömeni"

@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mahou_guclendirme"
+        "textures": {
+          "default": "mahou_guclendirme"
+        }
       },
       "minecraft:display_name": {
         "value": "Güçlendirme Parşömeni"

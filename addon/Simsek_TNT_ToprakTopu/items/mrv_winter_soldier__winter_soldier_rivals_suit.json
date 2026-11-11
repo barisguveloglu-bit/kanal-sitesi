@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_winter_soldier__winter_soldier_rivals_suit"
+        "textures": {
+          "default": "mrv_winter_soldier__winter_soldier_rivals_suit"
+        }
       },
       "minecraft:display_name": {
         "value": "Winter Soldier Suit: Rivals"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_kostum"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 14
       }
     }
   }

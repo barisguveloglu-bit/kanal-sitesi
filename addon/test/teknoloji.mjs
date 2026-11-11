@@ -158,8 +158,11 @@ console.log("=== 3. ZIRH PUANI ESYANIN ICINDE ===");
         yanlis.push(anahtar + "_" + p + " wearable=" +
                     c["minecraft:wearable"].protection + " != " + bek);
       }
-      if (!c["minecraft:armor"] || c["minecraft:armor"].protection !== bek) {
-        yanlis.push(anahtar + "_" + p + " armor bileseni yok/yanlis");
+      /* v7.99.17: minecraft:armor 1.21.0 biciminde yok (gercek
+         motor reddediyordu). Koruma yalniz wearable'da; armor
+         geri gelirse burada gorunsun.                       */
+      if (c["minecraft:armor"]) {
+        yanlis.push(anahtar + "_" + p + " minecraft:armor geri gelmis");
       }
       /* Yuva adlari ayarlar.js'te DEGIL, ureteci tablosunda
          (kol_uret.py:TEKNOLOJI_PARCA). Script bunlari

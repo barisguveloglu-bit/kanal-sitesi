@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_captain_america__sam_wilson_helmet"
+        "textures": {
+          "default": "mrv_captain_america__sam_wilson_helmet"
+        }
       },
       "minecraft:display_name": {
         "value": "Sam Wilson Helmet: Captain America"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_maske"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 3
       }
     }
   }

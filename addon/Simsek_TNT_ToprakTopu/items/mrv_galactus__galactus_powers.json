@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_galactus__galactus_powers"
+        "textures": {
+          "default": "mrv_galactus__galactus_powers"
+        }
       },
       "minecraft:display_name": {
         "value": "Galactus Powers"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_guc"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 10
       }
     }
   }

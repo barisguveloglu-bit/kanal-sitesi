@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_spiderman__ultimate_spiderman_ucm_mask"
+        "textures": {
+          "default": "mrv_spiderman__ultimate_spiderman_ucm_mask"
+        }
       },
       "minecraft:display_name": {
         "value": "Ultimate Spider-Man Mask [MCU]"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_maske"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 2
       },
       "minecraft:durability": {
         "max_durability": 1200

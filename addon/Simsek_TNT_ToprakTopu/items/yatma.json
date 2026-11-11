@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "yatma"
+        "textures": {
+          "default": "yatma"
+        }
       },
       "minecraft:display_name": {
         "value": "Yatma"

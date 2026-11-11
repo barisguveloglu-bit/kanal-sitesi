@@ -159,7 +159,15 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # hanenin 0 yerine 5'ten baslamasi bunun isareti -- 7.83.0
 # ile 7.83.5 AYNI kod, sadece numara degisti.
 # v7.91.0: ORTANCA hane -- Avaritia'dan uc mekanik.
-SURUM_NO = (7, 99, 8)
+# v7.99.17: GERCEK MOTOR TARAMASI. Paket ilk kez Bedrock Dedicated
+# Server'da acilip sahte oyuncularla butun yetenekler calistirildi;
+# motorun reddettigi bicimler ve acilis/calisma ani hatalari
+# duzeltildi (NOTLAR.md). Numara 7.99.8'den atliyor: 7.99.9-16
+# film araci ve sunucu seti icin belge etiketi olarak kullanildi
+# ve o arada Osmanli Topuzu pakete girdi AMA surum degismedi,
+# depodaki hazir .mcaddon topuzsuz kaldi. Ayni numarali iki farkli
+# paket oyunda ayirt edilemez; numara belge etiketleriyle esitlendi.
+SURUM_NO = (7, 99, 17)
 
 SURUM_METIN = ".".join(map(str, SURUM_NO))
 
@@ -486,6 +494,49 @@ def insan_hiyerarsisi(veri):
     return veri
 
 
+# ---------------------------------------------------------------
+#  ESYA BICIMI MOTORUN SEMASINA UYDURULUYOR             (v7.99.17)
+#
+#  Gercek motor (BDS 1.26.52.3) format_version 1.21.0 esyalarda
+#  iki seyi reddediyordu; sahte motor ikisini de goremezdi:
+#
+#    * minecraft:icon {"texture": X}  -- 558 uyari: "texture"
+#      semada YOK. 1.21.0 bicimi {"textures": {"default": X}}
+#      istiyor (Mojang'in kendi ornek paketi boyle yaziyor).
+#    * minecraft:armor                -- 371 hata: "deprecated and
+#      is not available in json format 1.21.0". Koruma zaten
+#      minecraft:wearable.protection'da tasiniyor; armor ikinci
+#      bir kopyaydi ve motor onu atiyordu.
+#
+#  1.20.50 bicimindeki esyalar (WoM silahlari, F-Tech, tirpan,
+#  topuz) ESKI ikon bicimini kullanir ve motor onlarda uyarmiyor;
+#  onlara dokunulmuyor.
+#
+#  Ureteclerin hepsi hala {"texture": X} yaziyor; cevrim burada,
+#  TEK yerde -- yirmi dort ayri yerde degil. Yeni bir esya
+#  ureteci eklenince de kendiliginden dogru bicimde cikar.
+#  test/motor_bicim.mjs kilitliyor.
+# ---------------------------------------------------------------
+YENI_IKON_BICIMI = (1, 20, 60)
+
+
+def esya_bicim_duzelt(veri):
+    try:
+        surum = tuple(int(x) for x in str(veri.get("format_version", "")).split("."))
+    except ValueError:
+        return veri
+    if surum < YENI_IKON_BICIMI:
+        return veri
+    bilesenler = veri["minecraft:item"].get("components")
+    if not isinstance(bilesenler, dict):
+        return veri
+    ikon = bilesenler.get("minecraft:icon")
+    if isinstance(ikon, dict) and "texture" in ikon and "textures" not in ikon:
+        bilesenler["minecraft:icon"] = {"textures": {"default": ikon["texture"]}}
+    bilesenler.pop("minecraft:armor", None)
+    return veri
+
+
 def yaz_json(yol, veri, sikistir=False):
     """sikistir: girintisiz (v7.99.3). Buyuk uretilmis dosyalar icin
     -- WoM animasyonu girintiyle 0.7 MB'tan 2.3 MB'a cikiyordu; icerik
@@ -493,6 +544,8 @@ def yaz_json(yol, veri, sikistir=False):
     os.makedirs(os.path.dirname(yol), exist_ok=True)
     if yol.endswith(".geo.json") or "/models/entity/" in yol.replace("\\", "/"):
         veri = insan_hiyerarsisi(veri)
+    if isinstance(veri, dict) and "minecraft:item" in veri:
+        veri = esya_bicim_duzelt(veri)
     with open(yol, "w", encoding="utf-8") as f:
         if sikistir:
             json.dump(veri, f, ensure_ascii=False, separators=(",", ":"))
@@ -1002,12 +1055,20 @@ def sekilsiz_tarif(kimlik, malzemeler, sonuc, adet=1):
 
     `tags: ["crafting_table"]` SART: yazilmazsa tarif hicbir
     tezgahta gorunmez -- Bedrock tarifi bir is istasyonuna
-    baglamak zorunda.                                          """
+    baglamak zorunda.
+
+    `unlock` DA SART (v7.99.17): gercek motor 13 tarifin 13'unu
+    de "1.20+ Recipes require unlock data" diye REDDEDIYORDU,
+    yani iksir zinciri oyunda hic uretilemiyordu. Sahte motor
+    tarif okumadigi icin bunu goremedi. "AlwaysUnlocked": tarif
+    kitabinda bastan acik; dolimitedcrafting kurali acik olsa
+    da uretilebilir.                                           """
     return {
         "format_version": "1.20.10",
         "minecraft:recipe_shapeless": {
             "description": {"identifier": "pa:" + kimlik},
             "tags": ["crafting_table"],
+            "unlock": {"context": "AlwaysUnlocked"},
             "ingredients": [{"item": m} for m in malzemeler],
             "result": {"item": sonuc, "count": adet},
         },
@@ -1140,7 +1201,6 @@ def goz_esyasi(kimlik, ad):
                     "slot": "slot.armor.head",
                     "protection": GOZ_ZIRH,
                 },
-                "minecraft:armor": {"protection": GOZ_ZIRH},
                 "minecraft:allow_off_hand": False,
             },
         },
@@ -2554,6 +2614,12 @@ BOT_CAN = 80     # = 40 kalp
 ILKEL_AV_YARICAP  = 20     # kac blok icinde dusman arasin
 ILKEL_AV_TARAMA   = 4      # kac tick'te bir taransin (varsayilan 10)
 ILKEL_AV_UNUTMA   = 200    # gozden kaybolunca kac tick kovalasin
+# v7.99.17: JSON'a SANIYE olarak, `must_see_forget_duration` adiyla
+# gidiyor. Eskiden `must_see_forget_ticks` yaziliyordu; oyle bir alan
+# YOK (gercek motor: "child 'must_see_forget_ticks' not valid here"),
+# yedi varlikta yok sayiliyordu ve unutma suresi motorun
+# varsayilanina dusuyordu. Mojang'in kendi zombisi bu adi kullaniyor.
+ILKEL_AV_UNUTMA_SN = ILKEL_AV_UNUTMA / 20.0
 ILKEL_SALDIRI_HIZ = 1.6    # melee_attack hizi (normal bot 1.4)
 
 ILKEL = [
@@ -3253,7 +3319,7 @@ def ilkel_varliklari():
                 "priority": 1,
                 "within_radius": ILKEL_AV_YARICAP,
                 "must_see": True,
-                "must_see_forget_ticks": ILKEL_AV_UNUTMA,
+                "must_see_forget_duration": ILKEL_AV_UNUTMA_SN,
                 "reselect_targets": True,
                 "scan_interval": ILKEL_AV_TARAMA,
                 "entity_types": [{
@@ -4649,7 +4715,7 @@ def o_sey_varligi():
             "priority": 1,
             "within_radius": ILKEL_AV_YARICAP,
             "must_see": True,
-            "must_see_forget_ticks": ILKEL_AV_UNUTMA,
+            "must_see_forget_duration": ILKEL_AV_UNUTMA_SN,
             "reselect_targets": True,
             "scan_interval": ILKEL_AV_TARAMA,
             "entity_types": [{
@@ -5709,7 +5775,6 @@ def teknoloji_esyasi(takim, parca, yuva, koruma, ad):
                 "minecraft:max_stack_size": 1,
                 "minecraft:wearable": {"slot": yuva,
                                        "protection": zirh_puani(koruma)},
-                "minecraft:armor": {"protection": zirh_puani(koruma)},
                 # Etiket: script "teknoloji zirhi mi" diye
                 # bakarken kimlikleri tek tek yazmasin.
                 "minecraft:tags": {"tags": ["pa:teknoloji_zirhi"]},
@@ -6206,8 +6271,6 @@ def marvel_esyasi(p):
                                "protection": zirh_puani(p["koruma"])},
         "minecraft:tags": {"tags": ["pa:marvel", "pa:marvel_" + p["tur"]]},
     }
-    if p["koruma"]:
-        bilesenler["minecraft:armor"] = {"protection": zirh_puani(p["koruma"])}
     if p["dayaniklilik"]:
         bilesenler["minecraft:durability"] = {
             "max_durability": p["dayaniklilik"]}
@@ -7535,7 +7598,6 @@ def konsey_esyasi(t):
         bilesenler["minecraft:wearable"] = {
             "slot": "slot.armor." + yuva,
             "protection": zirh_puani(koruma)}
-        bilesenler["minecraft:armor"] = {"protection": zirh_puani(koruma)}
     else:
         # Elde tutulanlar: asalar, aletler, silahlar.
         bilesenler["minecraft:hand_equipped"] = True
@@ -11520,16 +11582,23 @@ def kupa_blogu(kimlik, ad, bicim):
                         # cikardi.
                         "render_method": "alpha_test",
                     },
+                    # v7.99.17: "odun" ve "ip" de alpha_test. Ikisi
+                    # opaque'ti ve gercek motor dort kupayi da
+                    # "MaterialInstances can't mix and match opaque
+                    # and transparent materials" diye isaretliyordu.
+                    # Bir blogun butun malzemeleri AYNI yontemi
+                    # kullanmali. Odun ve ip dokusunda saydam
+                    # piksel yok; alpha_test'te ayni cizilirler.
                     "odun": {
                         "texture": KUPA_ODUN_DOKU,
-                        "render_method": "opaque",
+                        "render_method": "alpha_test",
                     },
                     # "ip" YALNIZ daragacinda var. Kullanmayan
                     # bicimlere yazilmiyor: tanimli ama hicbir
                     # yuzun istemedigi bir malzeme, ileride
                     # "bu neden burada" sorusu doguruyor.
                     **({"ip": {"texture": KUPA_IP_DOKU,
-                               "render_method": "opaque"}}
+                               "render_method": "alpha_test"}}
                        if bicim == KUPA_ASILI else {}),
                     # alpha_test: zincir dokusunun halkalari
                     # arasi SAYDAM. opaque olsaydi o pikseller
@@ -13004,6 +13073,19 @@ def surumu_scripte_yaz():
     if n != 1:
         print("UYARI: ayarlar.js'te SURUM satiri bulunamadi.")
         return
+    # v7.99.17: API surumu de manifest'ten. Acilis mesaji "2.0.0"
+    # diye elle yaziliydi; manifest 2.5.0'a cikinca bayatladi.
+    api = None
+    for b in json.load(open(os.path.join(BP, "manifest.json"),
+                            encoding="utf-8")).get("dependencies", []):
+        if b.get("module_name") == "@minecraft/server":
+            api = b.get("version")
+    if isinstance(api, str):
+        yeni, n = re.subn(r'export const API_SURUM = "[^"]*";',
+                          'export const API_SURUM = "%s";' % api,
+                          yeni, count=1)
+        if n != 1:
+            print("UYARI: ayarlar.js'te API_SURUM satiri bulunamadi.")
     if yeni != metin:
         open(yol, "w", encoding="utf-8").write(yeni)
 

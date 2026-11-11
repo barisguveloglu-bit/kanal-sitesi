@@ -18,11 +18,11 @@
         },
         "odun": {
           "texture": "kupa_odun",
-          "render_method": "opaque"
+          "render_method": "alpha_test"
         },
         "ip": {
           "texture": "kupa_ip",
-          "render_method": "opaque"
+          "render_method": "alpha_test"
         }
       },
       "minecraft:collision_box": false,

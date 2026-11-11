@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mahou_treasury_projection_gauntlet"
+        "textures": {
+          "default": "mahou_treasury_projection_gauntlet"
+        }
       },
       "minecraft:display_name": {
         "value": "Hazine Yansıtma Eldiveni"

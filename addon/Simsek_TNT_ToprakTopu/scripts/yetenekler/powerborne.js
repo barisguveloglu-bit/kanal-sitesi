@@ -2,7 +2,7 @@ import { system } from "@minecraft/server";
 import { yetenekKaydet } from "./kayit.js";
 import {
   hataYaz, gecerliMi, kollariIndir, actionbarYaz, parcacikAt,
-  koniHedefleri, varlikKonumu, eldekiEsya
+  koniHedefleri, varlikKonumu, eldekiEsya, itmeUygula
 } from "../yardimcilar.js";
 import { blokIste } from "../butce.js";
 import {
@@ -57,13 +57,16 @@ function vur(hedef, oyuncu, hasar) {
 /* Itme: Bedrock 2.x tek nesne, 1.x dort sayi bekliyor.
    Ikisi de deneniyor -- surum farki yuzunden yetenegin
    yarisi calismasin.                                       */
+/* v7.99.17: ortak yardimciya (itmeUygula) baglandi. Eski hali
+   once YENI imzayi deniyor, o atarsa ESKI imzaya dusuyordu.
+   Gercek motorda yeni imza "bu varlik itilemez" diye attiginda
+   (olmus ya da itilmeyi desteklemeyen hedef) eski imza
+   "Expected 2, received 4" diyor ve kayda O yaziliyordu --
+   asil sebebi gizleyen, her seferinde yanlis yere baktiran bir
+   hata satiri. Itilemeyen hedef hata degil: false donuyor.    */
 function it(varlik, yatayX, yatayZ, dikey) {
-  try {
-    if (typeof varlik.applyKnockback !== "function") return false;
-    try { varlik.applyKnockback({ x: yatayX, z: yatayZ }, dikey); }
-    catch (e) { varlik.applyKnockback(yatayX, yatayZ, Math.hypot(yatayX, yatayZ) * 3, dikey); }
-    return true;
-  } catch (e) { hataYaz("pb.itme", e); return false; }
+  if (!varlik || typeof varlik.applyKnockback !== "function") return false;
+  return itmeUygula(varlik, yatayX, yatayZ, Math.hypot(yatayX, yatayZ), dikey);
 }
 
 function sureliIs(ad, oyuncu, sure, ara, adim, bitirme) {

@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "durus_bagli_eller"
+        "textures": {
+          "default": "durus_bagli_eller"
+        }
       },
       "minecraft:display_name": {
         "value": "Duruş · Bağlı Eller"

@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_silver_surfer__silver_surfer_powers"
+        "textures": {
+          "default": "mrv_silver_surfer__silver_surfer_powers"
+        }
       },
       "minecraft:display_name": {
         "value": "Silver Surfer Powers"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_guc"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 5
       }
     }
   }

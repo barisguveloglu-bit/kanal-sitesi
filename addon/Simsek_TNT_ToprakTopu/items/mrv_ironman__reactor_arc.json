@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_ironman__reactor_arc"
+        "textures": {
+          "default": "mrv_ironman__reactor_arc"
+        }
       },
       "minecraft:display_name": {
         "value": "Arc Reactor"

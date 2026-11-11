@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_mantis__mantis_powers"
+        "textures": {
+          "default": "mrv_mantis__mantis_powers"
+        }
       },
       "minecraft:display_name": {
         "value": "Mantis Powers"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_guc"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 5
       }
     }
   }

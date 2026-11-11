@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_guardians__guardians_suit"
+        "textures": {
+          "default": "mrv_guardians__guardians_suit"
+        }
       },
       "minecraft:display_name": {
         "value": "Guardians of the Galaxy Suit"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_kostum"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 12
       }
     }
   }

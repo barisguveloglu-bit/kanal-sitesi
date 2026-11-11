@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_gwenpool__jeff_the_land_shark_skin"
+        "textures": {
+          "default": "mrv_gwenpool__jeff_the_land_shark_skin"
+        }
       },
       "minecraft:display_name": {
         "value": "Jeff the land shark"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_ek"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 16
       }
     }
   }

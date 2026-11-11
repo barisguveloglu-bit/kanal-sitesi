@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_muse__muse_suit"
+        "textures": {
+          "default": "mrv_muse__muse_suit"
+        }
       },
       "minecraft:display_name": {
         "value": "Muse Suit"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_kostum"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 12
       }
     }
   }

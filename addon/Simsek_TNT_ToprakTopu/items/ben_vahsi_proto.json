@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "ben_vahsi_proto"
+        "textures": {
+          "default": "ben_vahsi_proto"
+        }
       },
       "minecraft:display_name": {
         "value": "Vahşi Sırtlan · Prototip"

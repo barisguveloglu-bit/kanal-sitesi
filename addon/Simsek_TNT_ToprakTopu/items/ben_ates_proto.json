@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "ben_ates_proto"
+        "textures": {
+          "default": "ben_ates_proto"
+        }
       },
       "minecraft:display_name": {
         "value": "Ateş Topu · Prototip"

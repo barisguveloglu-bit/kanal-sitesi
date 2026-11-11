@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "durus_t_durusu"
+        "textures": {
+          "default": "durus_t_durusu"
+        }
       },
       "minecraft:display_name": {
         "value": "Duruş · T Duruşu"

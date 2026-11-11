@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "ben_yukseltme_proto"
+        "textures": {
+          "default": "ben_yukseltme_proto"
+        }
       },
       "minecraft:display_name": {
         "value": "Yükseltme · Prototip"

@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "bazuka"
+        "textures": {
+          "default": "bazuka"
+        }
       },
       "minecraft:display_name": {
         "value": "Bazuka"

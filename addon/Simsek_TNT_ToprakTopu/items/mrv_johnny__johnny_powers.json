@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_johnny__johnny_powers"
+        "textures": {
+          "default": "mrv_johnny__johnny_powers"
+        }
       },
       "minecraft:display_name": {
         "value": "Johnny Storm Powers"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_guc"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 5
       }
     }
   }

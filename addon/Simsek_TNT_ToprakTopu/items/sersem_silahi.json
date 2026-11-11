@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "sersem_silahi"
+        "textures": {
+          "default": "sersem_silahi"
+        }
       },
       "minecraft:display_name": {
         "value": "Sersemletici"

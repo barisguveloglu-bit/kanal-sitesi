@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "meka_ayak"
+        "textures": {
+          "default": "meka_ayak"
+        }
       },
       "minecraft:display_name": {
         "value": "MekaSuit Bot"
@@ -17,9 +19,6 @@
       "minecraft:max_stack_size": 1,
       "minecraft:wearable": {
         "slot": "slot.armor.feet",
-        "protection": 3
-      },
-      "minecraft:armor": {
         "protection": 3
       },
       "minecraft:tags": {

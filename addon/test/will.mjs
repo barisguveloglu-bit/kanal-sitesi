@@ -44,7 +44,8 @@ console.log("=== 1. ESYA: GORUNUM VE DAYANIKLILIK ===");
      kilic `sword` dizisinin elemani) -- ikon mor-siyahti. Kendi
      anahtarimiz, vanilla DOSYASINA bakiyor; vanilla ezilmiyor. */
   kontrol("ikonu kendi anahtarimiz",
-          c["minecraft:icon"].texture === "will_kilic", c["minecraft:icon"].texture);
+          c["minecraft:icon"].textures.default === "will_kilic",
+          JSON.stringify(c["minecraft:icon"]));
   const it = oku(KOK + "/Simsek_Kol_Kaynak/textures/item_texture.json").texture_data;
   kontrol("  anahtar vanilla altin kilic dosyasina bakiyor",
           it.will_kilic && it.will_kilic.textures === "textures/items/gold_sword",

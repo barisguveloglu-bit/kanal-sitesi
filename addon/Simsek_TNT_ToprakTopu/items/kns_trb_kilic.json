@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "kns_trb_kilic"
+        "textures": {
+          "default": "kns_trb_kilic"
+        }
       },
       "minecraft:display_name": {
         "value": "Trb1545 Kılıcı"

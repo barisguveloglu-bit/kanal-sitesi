@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "kns_void_kurek"
+        "textures": {
+          "default": "kns_void_kurek"
+        }
       },
       "minecraft:display_name": {
         "value": "Void Küreği"

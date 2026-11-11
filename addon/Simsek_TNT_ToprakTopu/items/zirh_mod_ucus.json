@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "zirh_mod_ucus"
+        "textures": {
+          "default": "zirh_mod_ucus"
+        }
       },
       "minecraft:display_name": {
         "value": "Çekirdek · Uçuş"

@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_ironman__ironman_mark50"
+        "textures": {
+          "default": "mrv_ironman__ironman_mark50"
+        }
       },
       "minecraft:display_name": {
         "value": "Iron Man Armor: Mark L"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_kostum"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 20
       },
       "minecraft:durability": {
         "max_durability": 5000

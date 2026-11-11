@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_black_widow__black_widow_winter_soldier_suit"
+        "textures": {
+          "default": "mrv_black_widow__black_widow_winter_soldier_suit"
+        }
       },
       "minecraft:display_name": {
         "value": "Black Widow Suit: Captain America - The Winter Soldier"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_kostum"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 13
       }
     }
   }

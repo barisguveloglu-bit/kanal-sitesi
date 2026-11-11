@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "ben_jet"
+        "textures": {
+          "default": "ben_jet"
+        }
       },
       "minecraft:display_name": {
         "value": "Jet Işını"

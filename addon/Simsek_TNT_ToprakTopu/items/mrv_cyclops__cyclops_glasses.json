@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_cyclops__cyclops_glasses"
+        "textures": {
+          "default": "mrv_cyclops__cyclops_glasses"
+        }
       },
       "minecraft:display_name": {
         "value": "Cyclops glasses"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_maske"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 3
       }
     }
   }

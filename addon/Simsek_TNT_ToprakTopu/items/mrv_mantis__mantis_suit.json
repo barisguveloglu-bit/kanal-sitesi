@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_mantis__mantis_suit"
+        "textures": {
+          "default": "mrv_mantis__mantis_suit"
+        }
       },
       "minecraft:display_name": {
         "value": "Mantis Suit"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_kostum"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 12
       }
     }
   }

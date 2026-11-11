@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "kns_ender_kilic"
+        "textures": {
+          "default": "kns_ender_kilic"
+        }
       },
       "minecraft:display_name": {
         "value": "Ender Kılıcı"

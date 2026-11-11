@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_thor__thor_comic_suit"
+        "textures": {
+          "default": "mrv_thor__thor_comic_suit"
+        }
       },
       "minecraft:display_name": {
         "value": "Thor classic suit"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_kostum"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 12
       }
     }
   }

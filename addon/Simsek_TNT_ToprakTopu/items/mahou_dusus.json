@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mahou_dusus"
+        "textures": {
+          "default": "mahou_dusus"
+        }
       },
       "minecraft:display_name": {
         "value": "Düşüş Parşömeni"

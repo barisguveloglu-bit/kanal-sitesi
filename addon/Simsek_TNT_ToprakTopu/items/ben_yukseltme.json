@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "ben_yukseltme"
+        "textures": {
+          "default": "ben_yukseltme"
+        }
       },
       "minecraft:display_name": {
         "value": "Yükseltme · Recal"

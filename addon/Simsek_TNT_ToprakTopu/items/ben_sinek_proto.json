@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "ben_sinek_proto"
+        "textures": {
+          "default": "ben_sinek_proto"
+        }
       },
       "minecraft:display_name": {
         "value": "Sinek Suratlı · Prototip"

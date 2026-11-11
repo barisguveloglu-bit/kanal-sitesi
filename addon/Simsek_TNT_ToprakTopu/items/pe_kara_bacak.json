@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "pe_kara_bacak"
+        "textures": {
+          "default": "pe_kara_bacak"
+        }
       },
       "minecraft:display_name": {
         "value": "Kara Madde Pantolon"
@@ -17,9 +19,6 @@
       "minecraft:max_stack_size": 1,
       "minecraft:wearable": {
         "slot": "slot.armor.legs",
-        "protection": 6
-      },
-      "minecraft:armor": {
         "protection": 6
       },
       "minecraft:tags": {

@@ -136,14 +136,22 @@ for (const dosya of readdirSync(BP + "/items")) {
   if (g && Number(g.protection) > zirhTavan) {
     asan.push(`${dosya} ${g.protection}`);
   }
-  const z = c["minecraft:armor"];
-  if (z && Number(z.protection) > zirhTavan) asan.push(`${dosya} armor ${z.protection}`);
+  /* v7.99.17: minecraft:armor 1.21.0 biciminde YOK (gercek motor
+     371 esyada reddetti); koruma yalniz wearable'da. Geri
+     sizarsa burada gorunsun -- test/motor_bicim.mjs ayrica
+     bicim surumune gore olcuyor.                              */
+  if (c["minecraft:armor"] && d.format_version !== "1.20.50") {
+    asan.push(`${dosya} minecraft:armor geri gelmis`);
+  }
   /* Ikonu atlasta olmayan esya oyunda mor-siyah kare olur.
      v7.98.2'ye kadar `golden_*` muaftu ("vanilla anahtari")
      ama vanilla'da oyle bir anahtar YOKTU: muafiyet tam
      yakalanmasi gereken hatayi sakliyordu. Istisna yok.      */
   const ik = c["minecraft:icon"];
-  const anahtar = typeof ik === "string" ? ik : (ik && ik.texture);
+  /* Iki bicim de okunuyor: 1.20.50 esyalar {"texture": X},
+     1.21.0 esyalar {"textures": {"default": X}} (v7.99.17). */
+  const anahtar = typeof ik === "string" ? ik
+    : (ik && (ik.texture || (ik.textures && ik.textures.default)));
   if (anahtar && !atlas.texture_data[anahtar]) {
     dokusuz.push(`${dosya} -> ${anahtar}`);
   }
@@ -161,9 +169,12 @@ ol("uretecte olcu supurgesi tanimli",
    /def ikonlari_olcule\(/.test(uretec));
 ol("supurge main()'den cagriliyor",
    /ikonlari_olcule\(os\.path\.join\(RP, "textures\/item"\)\)/.test(uretec));
+/* v7.99.17: esik 6'ydi, cunku her giyilebilir puani IKI kez
+   yaziyordu (wearable + armor). armor kalkti; sayilan sey artik
+   dogrudan wearable'in korumasi: Teknoloji, Marvel ve Konsey.  */
 ol("zirh puani giyilebilirlere uygulaniyor",
-   (uretec.match(/zirh_puani\(/g) || []).length >= 6,
-   String((uretec.match(/zirh_puani\(/g) || []).length));
+   (uretec.match(/"protection": zirh_puani\(/g) || []).length >= 3,
+   String((uretec.match(/"protection": zirh_puani\(/g) || []).length));
 
 if (hatalar.length) {
   console.error("KALDI:");

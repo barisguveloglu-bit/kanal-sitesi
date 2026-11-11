@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "kns_void_kilic"
+        "textures": {
+          "default": "kns_void_kilic"
+        }
       },
       "minecraft:display_name": {
         "value": "Void Kılıcı"

@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_jeff_the_land_shark__jeff_the_land_shark_powers"
+        "textures": {
+          "default": "mrv_jeff_the_land_shark__jeff_the_land_shark_powers"
+        }
       },
       "minecraft:display_name": {
         "value": "Jeff the Land Shark Powers"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_guc"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 5
       }
     }
   }

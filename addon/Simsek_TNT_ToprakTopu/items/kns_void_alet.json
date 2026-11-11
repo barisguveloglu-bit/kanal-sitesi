@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "kns_void_alet"
+        "textures": {
+          "default": "kns_void_alet"
+        }
       },
       "minecraft:display_name": {
         "value": "Void Çoklu Alet"

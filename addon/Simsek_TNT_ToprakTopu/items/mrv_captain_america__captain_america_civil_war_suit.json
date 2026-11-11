@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_captain_america__captain_america_civil_war_suit"
+        "textures": {
+          "default": "mrv_captain_america__captain_america_civil_war_suit"
+        }
       },
       "minecraft:display_name": {
         "value": "Captain America: Civil Wars suit"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_kostum"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 12
       }
     }
   }

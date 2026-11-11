@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_ironman__ironman_avengers"
+        "textures": {
+          "default": "mrv_ironman__ironman_avengers"
+        }
       },
       "minecraft:display_name": {
         "value": "Iron Man Armor - The Avengers: Earth's Mightiest Heroes"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_kostum"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 15
       },
       "minecraft:durability": {
         "max_durability": 4200

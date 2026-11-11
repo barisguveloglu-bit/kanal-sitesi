@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "durus_kavusuk"
+        "textures": {
+          "default": "durus_kavusuk"
+        }
       },
       "minecraft:display_name": {
         "value": "Duruş · Kavuşuk Kollar"

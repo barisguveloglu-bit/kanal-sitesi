@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "ben_astro"
+        "textures": {
+          "default": "ben_astro"
+        }
       },
       "minecraft:display_name": {
         "value": "Astro Bot"

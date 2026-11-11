@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_hawkeye__ultimate_hawkeye_mask"
+        "textures": {
+          "default": "mrv_hawkeye__ultimate_hawkeye_mask"
+        }
       },
       "minecraft:display_name": {
         "value": "Ultimate Hawkeye mask"

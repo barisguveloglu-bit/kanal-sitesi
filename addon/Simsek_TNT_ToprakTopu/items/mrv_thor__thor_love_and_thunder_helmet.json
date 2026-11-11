@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_thor__thor_love_and_thunder_helmet"
+        "textures": {
+          "default": "mrv_thor__thor_love_and_thunder_helmet"
+        }
       },
       "minecraft:display_name": {
         "value": "Thor: Love and thunder helmet"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_maske"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 3
       }
     }
   }

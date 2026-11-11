@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_ms_marvel__ms_marvel_suit"
+        "textures": {
+          "default": "mrv_ms_marvel__ms_marvel_suit"
+        }
       },
       "minecraft:display_name": {
         "value": "Ms. Marvel Suit"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_kostum"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 11
       },
       "minecraft:durability": {
         "max_durability": 1760

@@ -1,6 +1,6 @@
 import { system, world } from "@minecraft/server";
 import {
-  hataYaz, gecerliMi, olayaAbone, sohbeteYaz
+  hataYaz, gecerliMi, olayaAbone, sohbeteYaz, kipApiAdi
 } from "../yardimcilar.js";
 import {
   GOZCU_ACIK, GOZCU_MENZIL, GOZCU_ACI, GOZCU_HIZ,
@@ -622,7 +622,7 @@ function kipOku(oyuncu) {
 function kipGeriAl(oyuncu, hedef) {
   try {
     if (typeof oyuncu.setGameMode === "function") {
-      oyuncu.setGameMode(hedef);
+      oyuncu.setGameMode(kipApiAdi(hedef));     // "survival" -> "Survival"
       return true;
     }
   } catch (e) { hataYaz("gozcu.kipYaz", e); }

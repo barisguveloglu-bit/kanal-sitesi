@@ -10,7 +10,7 @@
               zirha DOKUNMUYOR
 */
 
-import { dunyaKur, oyuncuKur } from "./dunya.mjs";
+import { dunyaKur, oyuncuKur, kipTak } from "./dunya.mjs";
 import {
   tickIlerlet, varlikKaydet, esyaKaydet, _durum,
   vurusTetikle, blokKirTetikle, itemUseTetikle
@@ -119,9 +119,7 @@ console.log("\n=== 3. KILIC: SIFIRLAMA ===");
   D.bloklar.hepsiDolu = true;                    // her yer tas
   const o = oyuncuKur(D.boyut, { x: 0, y: 0, z: 1 }, { x: 0.5, y: 90, z: 0.5 });
   o.id = "k1"; o.typeId = "minecraft:player";
-  o._mod = "survival";
-  o.getGameMode = () => o._mod;
-  o.setGameMode = (m) => { o._mod = m; };
+  kipTak(o, "survival", "_mod");
   _durum.oyuncular = [o];
 
   sus();
@@ -180,9 +178,7 @@ console.log("\n=== 5. KILIC: IZLEYICI MODU SURELI ===");
   const D = dunyaKur();
   const o = oyuncuKur(D.boyut, { x: 0, y: 0, z: 1 }, { x: 0.5, y: 90, z: 0.5 });
   o.id = "k3"; o.typeId = "minecraft:player";
-  o._mod = "creative";                       // yaratici moddaki biri
-  o.getGameMode = () => o._mod;
-  o.setGameMode = (m) => { o._mod = m; };
+  kipTak(o, "creative", "_mod");             // yaratici moddaki biri
   _durum.oyuncular = [o];
 
   sus();

@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_black_widow__black_widow_avengers_suit"
+        "textures": {
+          "default": "mrv_black_widow__black_widow_avengers_suit"
+        }
       },
       "minecraft:display_name": {
         "value": "Black Widow Suit: Avengers (2012)"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_kostum"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 13
       }
     }
   }

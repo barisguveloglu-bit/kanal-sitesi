@@ -130,14 +130,21 @@ function sesSustur(oyuncu) {
    Once kendi eski sisimizi topluyoruz (ust uste birikmesin),
    sonra bilinen kimlikleri kaldirip ustune varsayilan sisi
    itiyoruz.                                                 */
+/* v7.99.17: KIMLIK TIRNAK ICINDE. Gercek motorda (BDS, sahte
+   oyuncuyla) olculdu: bilinen alti kimligin ucu sayi ("1", "11",
+   "13") ve tirnaksiz yazilinca komut HIC calismiyordu --
+       Syntax error: Unexpected "13": at "@s remove >>13<<"
+   Yani saldiranin sayi kimlikli sisi sokulmuyordu, ustune de
+   Savunma Kipi her taramada uc hata satiri basiyordu. /fog'un
+   son argumani bir METIN; tirnak icinde sayi da gecerli.     */
 function sisKaldir(oyuncu) {
   if (!ARIN_SIS) return false;
   let oldu = false;
-  komut(oyuncu, "fog @s remove " + ARIN_SIS_KIMLIK);
+  komut(oyuncu, 'fog @s remove "' + ARIN_SIS_KIMLIK + '"');
   for (const kimlik of ARIN_SIS_BILINEN) {
-    if (komut(oyuncu, "fog @s remove " + kimlik)) oldu = true;
+    if (komut(oyuncu, 'fog @s remove "' + kimlik + '"')) oldu = true;
   }
-  if (komut(oyuncu, 'fog @s push "minecraft:fog_default" ' + ARIN_SIS_KIMLIK)) {
+  if (komut(oyuncu, 'fog @s push "minecraft:fog_default" "' + ARIN_SIS_KIMLIK + '"')) {
     oldu = true;
   }
   return oldu;

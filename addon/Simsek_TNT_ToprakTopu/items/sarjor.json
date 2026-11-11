@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "sarjor"
+        "textures": {
+          "default": "sarjor"
+        }
       },
       "minecraft:display_name": {
         "value": "Şarjör"

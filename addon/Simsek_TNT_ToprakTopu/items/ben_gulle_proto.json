@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "ben_gulle_proto"
+        "textures": {
+          "default": "ben_gulle_proto"
+        }
       },
       "minecraft:display_name": {
         "value": "Gülle · Prototip"

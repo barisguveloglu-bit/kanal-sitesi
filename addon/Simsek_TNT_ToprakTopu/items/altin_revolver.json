@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "altin_revolver"
+        "textures": {
+          "default": "altin_revolver"
+        }
       },
       "minecraft:display_name": {
         "value": "Altın Revolver"

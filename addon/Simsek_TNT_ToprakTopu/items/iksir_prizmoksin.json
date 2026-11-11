@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "iksir_prizmoksin"
+        "textures": {
+          "default": "iksir_prizmoksin"
+        }
       },
       "minecraft:display_name": {
         "value": "Prizmoksin"

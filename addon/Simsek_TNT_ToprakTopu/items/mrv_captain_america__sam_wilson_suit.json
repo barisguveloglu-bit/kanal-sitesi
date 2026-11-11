@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_captain_america__sam_wilson_suit"
+        "textures": {
+          "default": "mrv_captain_america__sam_wilson_suit"
+        }
       },
       "minecraft:display_name": {
         "value": "Sam Wilson Suit: Captain America"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_kostum"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 12
       }
     }
   }

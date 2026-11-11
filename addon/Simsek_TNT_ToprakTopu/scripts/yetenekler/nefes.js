@@ -2,7 +2,7 @@ import { system, world } from "@minecraft/server";
 import { yetenekKaydet } from "./kayit.js";
 import {
   hataYaz, gecerliMi, kollariIndir, actionbarYaz, parcacikAt,
-  koniHedefleri, varlikKonumu
+  koniHedefleri, varlikKonumu, dunyaHazirOlunca, itmeUygula
 } from "../yardimcilar.js";
 import { varlikIste } from "../butce.js";
 import {
@@ -80,7 +80,11 @@ function kayitYaz() {
     world.setDynamicProperty(NEFES_KAYIT_ANAHTAR, JSON.stringify(d));
   } catch (e) { hataYaz("nefes.kayitYaz", e); }
 }
-kayitOku();
+/* v7.99.17: ust duzeyde DEGIL, dunya yuklenince. Erken
+   calistirmada getDynamicProperty istisna atiyor; kayit hic
+   okunmuyor ve ilk yazista ustune yaziliyordu.
+   (yardimcilar.js: dunyaHazirOlunca)                        */
+dunyaHazirOlunca("nefes.kayitOku", kayitOku);
 
 function beklemedeMi(oyuncu) {
   const son = bekleme.get(oyuncu.id);
@@ -235,10 +239,12 @@ const MEKANIK = {
         const k = h.location;
         const dx = m.x - k.x, dz = m.z - k.z;
         const boy = Math.hypot(dx, dz) || 1;
-        if (typeof h.applyKnockback === "function") {
-          try { h.applyKnockback({ x: dx / boy, z: dz / boy }, 0.3); }
-          catch (e) { h.applyKnockback(dx / boy, dz / boy, 1.2, 0.3); }
-        }
+        /* v7.99.17: itmeUygula. Eski hali itilemeyen hedefte
+           (olmus, itilmeyi desteklemeyen) ISTISNA atiyor, asagidaki
+           hasar da o hedef icin atlaniyordu -- gercek motorda
+           "Expected 2, received 4" diye goruldu. Cekilemeyen hedef
+           yine de vurulmali.                                    */
+        if (typeof h.applyKnockback === "function") itmeUygula(h, dx, dz, 1, 0.3);
         vur(h, oyuncu, f.hasar);
         parcacikAt(oyuncu.dimension, u.parcacik, k);
         n++;

@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "ben_dortkol"
+        "textures": {
+          "default": "ben_dortkol"
+        }
       },
       "minecraft:display_name": {
         "value": "Dört Kol · Recal"

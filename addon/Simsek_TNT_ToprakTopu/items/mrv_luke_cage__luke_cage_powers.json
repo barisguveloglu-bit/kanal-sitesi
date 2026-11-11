@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_luke_cage__luke_cage_powers"
+        "textures": {
+          "default": "mrv_luke_cage__luke_cage_powers"
+        }
       },
       "minecraft:display_name": {
         "value": "Luke Cage Powers"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_guc"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 5
       }
     }
   }

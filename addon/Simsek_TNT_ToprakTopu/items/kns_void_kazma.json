@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "kns_void_kazma"
+        "textures": {
+          "default": "kns_void_kazma"
+        }
       },
       "minecraft:display_name": {
         "value": "Void Kazması"

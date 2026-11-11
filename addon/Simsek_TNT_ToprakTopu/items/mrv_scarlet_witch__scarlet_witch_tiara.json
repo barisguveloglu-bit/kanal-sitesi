@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_scarlet_witch__scarlet_witch_tiara"
+        "textures": {
+          "default": "mrv_scarlet_witch__scarlet_witch_tiara"
+        }
       },
       "minecraft:display_name": {
         "value": "Scarlet Witch Tiara"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_ek"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 2
       }
     }
   }

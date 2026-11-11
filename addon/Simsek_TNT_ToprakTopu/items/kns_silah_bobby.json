@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "kns_silah_bobby"
+        "textures": {
+          "default": "kns_silah_bobby"
+        }
       },
       "minecraft:display_name": {
         "value": "Bobby Silahı"

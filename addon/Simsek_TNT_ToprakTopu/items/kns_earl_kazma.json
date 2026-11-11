@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "kns_earl_kazma"
+        "textures": {
+          "default": "kns_earl_kazma"
+        }
       },
       "minecraft:display_name": {
         "value": "Earl Kazması"

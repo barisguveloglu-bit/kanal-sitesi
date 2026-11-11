@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_moon_knight__western_moon_knight_mask"
+        "textures": {
+          "default": "mrv_moon_knight__western_moon_knight_mask"
+        }
       },
       "minecraft:display_name": {
         "value": "Moon Knight Mask: Wild West"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_maske"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 4
       }
     }
   }

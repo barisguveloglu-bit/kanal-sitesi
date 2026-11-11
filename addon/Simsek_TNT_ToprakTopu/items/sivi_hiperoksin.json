@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "sivi_hiperoksin"
+        "textures": {
+          "default": "sivi_hiperoksin"
+        }
       },
       "minecraft:display_name": {
         "value": "Hiperoksin Sıvısı"

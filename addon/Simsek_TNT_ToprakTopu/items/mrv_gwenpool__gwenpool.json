@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_gwenpool__gwenpool"
+        "textures": {
+          "default": "mrv_gwenpool__gwenpool"
+        }
       },
       "minecraft:display_name": {
         "value": "Gwenpool [Transformation]"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_ek"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 12
       }
     }
   }

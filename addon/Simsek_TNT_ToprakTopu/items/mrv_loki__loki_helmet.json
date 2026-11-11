@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_loki__loki_helmet"
+        "textures": {
+          "default": "mrv_loki__loki_helmet"
+        }
       },
       "minecraft:display_name": {
         "value": "Loki Helmet"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_maske"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 3
       }
     }
   }

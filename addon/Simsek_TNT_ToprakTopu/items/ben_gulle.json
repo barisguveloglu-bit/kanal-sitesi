@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "ben_gulle"
+        "textures": {
+          "default": "ben_gulle"
+        }
       },
       "minecraft:display_name": {
         "value": "Gülle · Recal"

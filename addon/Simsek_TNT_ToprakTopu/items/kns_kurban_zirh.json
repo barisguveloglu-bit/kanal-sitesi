@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "kns_kurban_zirh"
+        "textures": {
+          "default": "kns_kurban_zirh"
+        }
       },
       "minecraft:display_name": {
         "value": "Kurban Zırh"
@@ -23,9 +25,6 @@
       },
       "minecraft:wearable": {
         "slot": "slot.armor.chest",
-        "protection": 7
-      },
-      "minecraft:armor": {
         "protection": 7
       },
       "minecraft:durability": {

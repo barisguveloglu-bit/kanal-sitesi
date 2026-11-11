@@ -501,5 +501,36 @@ console.log("=== SAHIPSIZ KILIK YUKLENINCE SILINIYOR (v7.98.2) ===");
 }
 
 console.log("");
+console.log("=== BUTCE DOLUYKEN: SESSIZ COKME YOK  (v7.99.17) ===");
+{
+  /* Gercek motor taramasinda yakalandi: ayni tick'te varlik
+     butcesi tukenmisse donus() undefined doner. Yetenek
+     `sonuc.hata` okurken TypeError atiyor, oyuncu hicbir sey
+     gormuyor ve kayda "cannot read property 'hata' of
+     undefined" dusuyordu. carpik.js bunu ele aliyordu, burasi
+     almiyordu.                                              */
+  const { varlikIste } = await import("./pack/butce.js");
+  const kayit = await import("./pack/yetenekler/kayit.js");
+  const { o } = kur("d_butce");
+  const yazilan = [];
+  o.onScreenDisplay = { setActionBar(m) { yazilan.push(String(m)); }, setTitle() {} };
+  o.sendMessage = (m) => { yazilan.push(String(m)); };
+  varlikIste(ayar.TICK_VARLIK_BUTCESI);            // bu tick'in butcesi bitti
+  kontrol("butce gercekten tukendi", varlikIste(1) === 0);
+
+  const satirlar = [];
+  console.warn = (...a) => { satirlar.push(a.join(" ")); };
+  let firlatti = false, donen;
+  try { donen = kayit.yetenekAl("donusum").olustur(o); } catch (e) { firlatti = true; }
+  ac();
+  kontrol("yetenek istisna atmiyor", !firlatti);
+  kontrol("is acmiyor", donen === undefined);
+  kontrol("kayda HATA yazilmiyor", !satirlar.some((s) => s.includes("HATA @")),
+          satirlar.filter((s) => s.includes("HATA @")).map((s) => s.slice(0, 80)).join(" | "));
+  kontrol("oyuncuya sebebi soyleniyor",
+          yazilan.some((m) => m.includes("Bütçe dolu")), yazilan.join(" | "));
+}
+
+console.log("");
 console.log(hata ? ">>> SORUN VAR" : ">>> donusum calisiyor: O Sey oluyorsun");
 process.exit(hata ? 1 : 0);

@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "kns_asa_kemikcagiran"
+        "textures": {
+          "default": "kns_asa_kemikcagiran"
+        }
       },
       "minecraft:display_name": {
         "value": "Kemik Çağıran Asa"

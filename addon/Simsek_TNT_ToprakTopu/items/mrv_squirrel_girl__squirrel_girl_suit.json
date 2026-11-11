@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_squirrel_girl__squirrel_girl_suit"
+        "textures": {
+          "default": "mrv_squirrel_girl__squirrel_girl_suit"
+        }
       },
       "minecraft:display_name": {
         "value": "Squirrel Girl Suit"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_kostum"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 12
       }
     }
   }

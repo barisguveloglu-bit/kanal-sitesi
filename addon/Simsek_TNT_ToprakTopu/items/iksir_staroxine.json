@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "iksir_staroxine"
+        "textures": {
+          "default": "iksir_staroxine"
+        }
       },
       "minecraft:display_name": {
         "value": "StarOxine"

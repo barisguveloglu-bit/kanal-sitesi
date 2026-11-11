@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "roket"
+        "textures": {
+          "default": "roket"
+        }
       },
       "minecraft:display_name": {
         "value": "Roket"

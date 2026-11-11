@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_rogue__rogue"
+        "textures": {
+          "default": "mrv_rogue__rogue"
+        }
       },
       "minecraft:display_name": {
         "value": "Rogue [Transformation]"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_ek"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 20
       }
     }
   }

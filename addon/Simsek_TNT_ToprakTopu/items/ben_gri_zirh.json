@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "ben_gri_zirh"
+        "textures": {
+          "default": "ben_gri_zirh"
+        }
       },
       "minecraft:display_name": {
         "value": "Gri Madde · Zırh · Recal"

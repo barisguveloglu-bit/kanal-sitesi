@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "ben_cene_proto"
+        "textures": {
+          "default": "ben_cene_proto"
+        }
       },
       "minecraft:display_name": {
         "value": "Yüzen Çene · Prototip"

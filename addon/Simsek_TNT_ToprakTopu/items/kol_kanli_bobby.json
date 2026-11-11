@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "kol_kanli_bobby"
+        "textures": {
+          "default": "kol_kanli_bobby"
+        }
       },
       "minecraft:display_name": {
         "value": "Bobby Kanlı Kol"

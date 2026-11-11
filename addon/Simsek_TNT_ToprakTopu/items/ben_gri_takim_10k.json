@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "ben_gri_takim_10k"
+        "textures": {
+          "default": "ben_gri_takim_10k"
+        }
       },
       "minecraft:display_name": {
         "value": "Gri Madde · Takım · 10K"

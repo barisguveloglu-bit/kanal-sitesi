@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_ironman__ironman_mark2_frozen"
+        "textures": {
+          "default": "mrv_ironman__ironman_mark2_frozen"
+        }
       },
       "minecraft:display_name": {
         "value": "Iron Man Armor: Mark II [Frozen]"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_kostum"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 8
       },
       "minecraft:durability": {
         "max_durability": 200

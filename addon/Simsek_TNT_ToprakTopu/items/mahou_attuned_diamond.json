@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mahou_attuned_diamond"
+        "textures": {
+          "default": "mahou_attuned_diamond"
+        }
       },
       "minecraft:display_name": {
         "value": "Uyumlu Elmas"

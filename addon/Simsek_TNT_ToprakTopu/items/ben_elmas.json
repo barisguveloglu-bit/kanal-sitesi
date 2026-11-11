@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "ben_elmas"
+        "textures": {
+          "default": "ben_elmas"
+        }
       },
       "minecraft:display_name": {
         "value": "Elmas Kafa · Recal"

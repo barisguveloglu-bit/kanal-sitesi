@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_captain_america__captain_america_brave_new_world_suit"
+        "textures": {
+          "default": "mrv_captain_america__captain_america_brave_new_world_suit"
+        }
       },
       "minecraft:display_name": {
         "value": "Captain America Suit: Brave New World"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_kostum"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 12
       }
     }
   }

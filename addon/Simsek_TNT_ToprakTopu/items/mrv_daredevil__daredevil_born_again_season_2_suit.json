@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_daredevil__daredevil_born_again_season_2_suit"
+        "textures": {
+          "default": "mrv_daredevil__daredevil_born_again_season_2_suit"
+        }
       },
       "minecraft:display_name": {
         "value": "Daredevil Suit: Born Again (Season 2)"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_kostum"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 16
       }
     }
   }

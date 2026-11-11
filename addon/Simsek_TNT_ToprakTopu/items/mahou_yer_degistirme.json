@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mahou_yer_degistirme"
+        "textures": {
+          "default": "mahou_yer_degistirme"
+        }
       },
       "minecraft:display_name": {
         "value": "Zihinsel Yer Değiştirme Parşömeni"

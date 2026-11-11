@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mahou_fay_gorusu"
+        "textures": {
+          "default": "mahou_fay_gorusu"
+        }
       },
       "minecraft:display_name": {
         "value": "Fay Görüşü Parşömeni"

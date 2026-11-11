@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_captain_america__baron_zemo_mask"
+        "textures": {
+          "default": "mrv_captain_america__baron_zemo_mask"
+        }
       },
       "minecraft:display_name": {
         "value": "Baron Zemo Mask"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_maske"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 2
       }
     }
   }

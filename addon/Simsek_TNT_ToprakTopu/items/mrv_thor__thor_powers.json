@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_thor__thor_powers"
+        "textures": {
+          "default": "mrv_thor__thor_powers"
+        }
       },
       "minecraft:display_name": {
         "value": "Thor Powers"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_guc"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 5
       }
     }
   }

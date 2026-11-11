@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "ben_xlr_proto"
+        "textures": {
+          "default": "ben_xlr_proto"
+        }
       },
       "minecraft:display_name": {
         "value": "Şimşek Hız · Prototip"

@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_gambit__gambit_powers"
+        "textures": {
+          "default": "mrv_gambit__gambit_powers"
+        }
       },
       "minecraft:display_name": {
         "value": "Gambit Powers"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_guc"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 5
       }
     }
   }

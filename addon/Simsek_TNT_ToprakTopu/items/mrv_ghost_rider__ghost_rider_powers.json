@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_ghost_rider__ghost_rider_powers"
+        "textures": {
+          "default": "mrv_ghost_rider__ghost_rider_powers"
+        }
       },
       "minecraft:display_name": {
         "value": "Ghost Rider Powers"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_guc"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 5
       }
     }
   }

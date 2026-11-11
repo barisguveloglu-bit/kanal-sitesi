@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mrv_captain_america__sam_wilson_glasses"
+        "textures": {
+          "default": "mrv_captain_america__sam_wilson_glasses"
+        }
       },
       "minecraft:display_name": {
         "value": "Sam Wilson Glasses: Captain America"
@@ -24,9 +26,6 @@
           "pa:marvel",
           "pa:marvel_maske"
         ]
-      },
-      "minecraft:armor": {
-        "protection": 2
       }
     }
   }

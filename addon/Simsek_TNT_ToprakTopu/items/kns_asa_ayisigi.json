@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "kns_asa_ayisigi"
+        "textures": {
+          "default": "kns_asa_ayisigi"
+        }
       },
       "minecraft:display_name": {
         "value": "Ay Işığı Asası"

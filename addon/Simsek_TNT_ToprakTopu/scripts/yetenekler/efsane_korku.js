@@ -563,7 +563,11 @@ export function sahipsizGolgeKur() {
   return olayaAbone("entityLoad", (olay) => {
     try {
       const v = olay && olay.entity;
-      if (!v || v.typeId !== EFSANE_GOLGE_KIMLIK || golgeler.has(v.id)) return;
+      /* v7.99.17: yuklenen varlik ayni tick'te silinmis olabilir
+         (baska bir supurge, olum). Gecersiz varligi silmeye
+         calismak gercek motorda HATA satiri basiyordu.          */
+      if (!v || !gecerliMi(v)) return;
+      if (v.typeId !== EFSANE_GOLGE_KIMLIK || golgeler.has(v.id)) return;
       v.remove();
     } catch (e) {
       hataYaz("efsane_korku.sahipsizGolge", e);

@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "kol_ucus"
+        "textures": {
+          "default": "kol_ucus"
+        }
       },
       "minecraft:display_name": {
         "value": "Uçuş Kolu"

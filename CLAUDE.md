@@ -487,8 +487,29 @@ Mojang'ın sıkı ayarları açık, yalnız izin listesindekiler girer
   bağlanan herkese gönderir, yani kurmak paylaşmaktır.
 - `acilis_dene.py` eklentinin **gerçek motordaki** açılışını ölçüyor;
   `test/` ise sahte `@minecraft/server`'a karşı çalışıyor. İlk koşuda
-  (2026-10-27) motor, sahtenin göremediği hatalar buldu; liste rehberin
-  "Gerçek motorun eklentide bulduğu hatalar" bölümünde, **düzeltilmedi**.
+  (2026-10-27) motor, sahtenin göremediği hatalar buldu; **v7.99.17'de
+  düzeltildi** (rehberin "Gerçek motorun eklentide bulduğu hatalar" bölümü;
+  açık kalan dördü orada gerekçesiyle yazılı).
+- **`tarama_dene.py` (v7.99.17) eklentinin gerçek motordaki ÇALIŞMASINI
+  ölçüyor:** altı sahte oyuncu (`@minecraft/server-gametest`) 325 yeteneği,
+  sohbet komutlarını ve 600 eşyayı gerçek API'de çalıştırır, ~4 dk. Yalnız
+  **deneme kurulumunda** (`--deneme`; dünyayı bozar, izin listesi doluysa
+  reddeder). Yeni bir yetenek ya da API çağrısı yazınca sahte motor yeşil
+  diye güvenme: `acilis_dene.py` + `tarama_dene.py`. Sürüm çıkmadan önce
+  ikisi de koşulur.
+- **Sahte motoru hoşgörülü bırakma.** v7.99.17'deki hataların hepsi taklidin
+  gerçeğin reddettiğini kabul etmesinden çıktı (küçük harfli `GameMode`,
+  dört sayılı `applyKnockback`, erken çalıştırmada dünya okuma). Gerçek
+  motor bir çağrıyı reddediyorsa taklit de reddetmeli; `test/dunya.mjs`
+  `kipTak` ve `node_modules/@minecraft/server` `_durum.erken` böyle.
+- **Betiğin üst düzeyinde dünyaya dokunma** (`getDynamicProperty`,
+  `getAllPlayers`, `ItemTypes.get`…): 2.x'te erken çalıştırmada atıyor.
+  `yardimcilar.js` `dunyaHazirOlunca` ile ertele; `test/erken_calisma.mjs`
+  130 betiğin hiçbirinin bunu yapmadığını ölçüyor.
+- **Eşya JSON'unun biçimi `yaz_json` içinde düzeltiliyor**
+  (`esya_bicim_duzelt`): üreteçler `{"texture": X}` yazmaya devam eder,
+  1.21.0 eşyada dosyaya `{"textures": {"default": X}}` gider; `minecraft:armor`
+  yazılmaz (koruma `wearable.protection`'da). `test/motor_bicim.mjs` kilitliyor.
 - Claude'un bulut oturumu sunucuyu **barındıramaz** (geçici, dışarıdan
   bağlantı yok); burada yalnız kurulum ve açılış denenir.
 - **Düello yeri (kullanıcı: "dövüşler yapılacak yer olmalı"):** gökte

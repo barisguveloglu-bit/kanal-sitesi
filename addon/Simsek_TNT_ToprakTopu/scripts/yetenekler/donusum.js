@@ -402,6 +402,17 @@ yetenekKaydet({
       return undefined;
     }
 
+    /* v7.99.17: sonuc undefined olabilir -- butce dolu
+       (varlikIste). carpik.js bunu ele aliyordu, burasi
+       almiyordu: `sonuc.hata` okunurken TypeError atiyor,
+       oyuncu hicbir sey gormuyor ve kollari havada kaliyordu.
+       Gercek motor taramasinda yakalandi.                    */
+    if (!sonuc) {
+      actionbarYaz(oyuncu, "§7Bütçe dolu, bir tık sonra dene.");
+      kollariIndir(oyuncu);
+      return undefined;
+    }
+
     try {
       if (sonuc.hata) {
         oyuncu.sendMessage("§c" + sonuc.hata);

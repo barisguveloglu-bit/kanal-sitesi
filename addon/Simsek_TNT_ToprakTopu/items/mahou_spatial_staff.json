@@ -9,7 +9,9 @@
     },
     "components": {
       "minecraft:icon": {
-        "texture": "mahou_spatial_staff"
+        "textures": {
+          "default": "mahou_spatial_staff"
+        }
       },
       "minecraft:display_name": {
         "value": "Uzamsal Karışıklık Asası"

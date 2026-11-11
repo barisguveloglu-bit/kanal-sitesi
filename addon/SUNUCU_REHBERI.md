@@ -275,24 +275,62 @@ Yeniden denemek için: `python3 addon/sunucu/acilis_dene.py --hedef ~/simsek_sun
 (sunucu kapalıyken; açar, yoklar, arenayı ve kuralları denetler, kapatır,
 kaydı `acilis_kaydi.txt`'ye yazar).
 
-## Gerçek motorun eklentide bulduğu hatalar (açık)
+## Gerçek motorun eklentide bulduğu hatalar
 
-Bu, eklentinin gerçek oyun motorunda ilk açılışı oldu; `test/` altındaki her
-şey `@minecraft/server`'ın sahtesine karşı çalışıyor. Motor şunları bildirdi.
-**Hiçbiri düzeltilmedi**; düzeltme ayrı iş, karar kullanıcının.
+`test/` altındaki her şey `@minecraft/server`'ın sahtesine karşı çalışıyor.
+Paket gerçek motorda iki yoldan ölçülüyor:
 
-| sayı | seviye | ne | etkisi |
-|---|---|---|---|
-| 3 | betik | `getDynamicProperty` erken çalıştırmada çağrılıyor (`infintrix.js:81`, `error404.js:92`, `nefes.js:68`) | kayıtlı durum açılışta okunamıyor; büyük olasılıkla telefonda da |
-| 2 | betik | "10/10 kol eşyası KAYITLI DEĞİL", "pa:bot KAYITLI DEĞİL" | **yanlış alarm**: denetim eşyalar yüklenmeden önce çalışıyor; konsol yoklaması ikisinin de kayıtlı olduğunu gösterdi |
-| 1 | betik | açılış mesajı "@minecraft/server 2.0.0" diyor | manifest 2.5.0; mesaj bayat |
-| 371 | hata | `minecraft:armor` 1.21.0 biçiminde kaldırılmış | zırh eşyalarında zırh bileşeni reddediliyor |
-| 558 | uyarı | `minecraft:icon` içinde `texture` alanı şemada yok | ikon tanımı yanlış biçimde |
-| 13 | hata | "1.20+ Recipes require unlock data" (iksir zinciri tarifleri) | depodaki 13 tarifin hepsi; yüklenmiyor olabilir |
-| 7 | hata | `nearest_attackable_target` içinde `must_see_forget_ticks` geçersiz (pa:raxxan, harkos, miskel, o_sey, kajaros, okazor, o_sey_mutant) | o alan yok sayılıyor |
-| 1 | uyarı | `minecraft:player` içinde `minecraft:scaffolding_climber` şemada yok | |
-| 4+4 | hata/uyarı | bir blokta opak ve saydam `material_instances` karışık | çizim sorunu olabilir |
-| 1 | hata | komut sıralamasında `arathnido:SuitTexture0` küçük harf olmalı | |
+| araç | neyi ölçer | süre |
+|---|---|---|
+| `python3 addon/sunucu/acilis_dene.py --hedef K` | **açılış**: motorun reddettiği JSON alanı, erken çalıştırmada çağrılan fonksiyon | ~10 sn |
+| `python3 addon/sunucu/tarama_dene.py --hedef K --deneme` | **çalışma**: altı sahte oyuncu 325 yeteneği, 67 sohbet komutunu ve 600 eşyayı gerçek API'de çalıştırır | ~4 dk |
+
+`tarama_dene.py` **yalnız deneme kurulumunda** çalıştırılır: yetenekler blok
+kırar, arenayı bozar. `--deneme` yazılmadan çalışmaz; izin listesinde oyuncu
+varsa (gerçek sunucunun işareti) reddeder. Koşu bitince paketi, manifesti ve
+`level.dat`'ı eski hâline getirir; dünyanın blokları geri gelmez. Gerçek
+sunucunu taramak istersen başka bir klasöre yeniden kur ve orayı tara.
+
+### İlk açılışta bulunanlar (2026-10-27) — v7.99.17'de düzeltildi
+
+| sayı | ne | düzeltme |
+|---|---|---|
+| 3 | `getDynamicProperty` erken çalıştırmada (`infintrix.js`, `error404.js`, `nefes.js`): kayıt açılışta okunamıyor, ilk yazışta üstüne yazılıyordu | okuma `worldLoad` olayına ertelendi (`yardimcilar.js` `dunyaHazirOlunca`) |
+| 2 | "10/10 kol eşyası KAYITLI DEĞİL", "pa:bot KAYITLI DEĞİL" yanlış alarmı | iki denetim de dünya yüklenince koşuyor |
+| 1 | açılış mesajı "@minecraft/server 2.0.0" | `API_SURUM`, üreteç manifestten yazıyor |
+| 371 | `minecraft:armor` 1.21.0 biçiminde yok | bileşen kaldırıldı; koruma zaten `minecraft:wearable.protection`'da |
+| 558 | `minecraft:icon` içinde `texture` şemada yok | 1.21.0 eşyalarda `{"textures": {"default": X}}` |
+| 13 | "1.20+ Recipes require unlock data": tarifler **yüklenmiyordu** | `"unlock": {"context": "AlwaysUnlocked"}` |
+| 7 | `must_see_forget_ticks` diye bir alan yok | `must_see_forget_duration` (saniye; 200 tick = 10 sn) |
+| 4+4 | dört kupa bloğunda opak ve saydam malzeme karışık | hepsi `alpha_test` (odun ve ip dokusunda saydam piksel yok, ölçüldü) |
+
+### Sahte oyunculu taramada bulunanlar (2026-11-11) — v7.99.17'de düzeltildi
+
+| ne | etkisi | düzeltme |
+|---|---|---|
+| Arınma `fog @s remove 13` yazıyordu | sayı kimlikli sis (bilinen altı kimliğin üçü) **sökülmüyordu**; Savunma Kipi her taramada üç hata satırı basıyordu | kimlik tırnak içinde |
+| Gözcü ve Kılıç `setGameMode("survival")` | API büyük harfle başlayan ad istiyor; Gözcü hata basıp komuta düşüyordu | `kipApiAdi` |
+| Dönüşüm: bütçe doluyken `sonuc.hata` → TypeError | oyuncu hiçbir şey görmüyordu | `carpik.js`'teki aynı kontrol |
+| Güç (PowerBorne) ve Nefes: itilemeyen hedefte eski imzaya düşüş | "Expected 2, received 4" asıl sebebi gizliyordu; Nefes'te o hedefin **hasarı da atlanıyordu** | `itmeUygula` |
+| çıkmış oyuncuya yazma, menü açıkken çıkış, zaten silinmiş gölge | hata değil ama HATA satırı basıyordu | geçerlilik soruluyor |
+
+Kilitler: `test/erken_calisma.mjs` (sahte motora erken çalıştırma modeli
+eklendi), `test/motor_bicim.mjs` (beş biçim hatası dosya düzeyinde),
+`test/arinma.mjs`, `test/donusum.mjs`, `test/gozcu.mjs`, `test/denetim.mjs`
+(sahte oyuncunun oyun kipi artık gerçek API gibi: küçük harfli adı reddediyor).
+
+### Açık kalanlar — bilerek
+
+| ne | neden dokunulmadı |
+|---|---|
+| `minecraft:player` içinde `minecraft:scaffolding_climber` şemada yok (uyarı) | `kaynak_dis/ironman/player.json`'dan geliyor; motor yok sayıyor, etkisi yok |
+| `arathnido:SuitTexture0` küçük harf olmalı (komut seçicisi) | Iron Man eklentisinin kendi özellik adı; değiştirmek o eklentiyle uyumu bozar. Özellik betikte ve MoLang'de çalışıyor, yalnız `has_property` seçicisine kaydolmuyor |
+| `scan_interval` 10'dan küçük (pa:okazor, pa:o_sey; "performansı etkileyebilir") | `ILKEL_AV_TARAMA = 4` bilinçli (üreteçte yazılı); motor değeri uyguluyor, yalnız uyarıyor |
+| `ilkel.silah`: oyuncu olmayan varlıkta `minecraft:equippable` betikten okunamıyor | bilinen sınır, kodda yazılı; silah doğuşta ganimet tablosuyla veriliyor |
+
+**Ölçülmeyen:** kaynak (görünüm) paketi. Sunucu motoru onu yüklemiyor;
+ikonların ve modellerin ekranda doğru çizildiği yalnız oyunda görülür.
+Sahte oyuncu da ekran görmez: menü, kamera ve HUD davranışı ölçülmedi.
 
 ## Sonraki aşamalar (yazılmadı)
 
