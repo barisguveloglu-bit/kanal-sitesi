@@ -44,6 +44,10 @@ const sonKullanim = new Map();
    Modu HATIRLIYORUZ, "survival" diye varsaymiyoruz -- yaratici
    moddaki biri kilici kullaninca survival'a dusmesin.       */
 const izleyiciler = new Map();
+/* Sure dolunca geri donus bir sonraki kilicTara'da yaziliyor; Gozcu
+   ayni tick'te daha once kosarsa hala izleyici gorur. Bir hareket
+   ornegi (10 tick) kadar pay.                                      */
+const KILIC_IZLEYICI_PAY = 10;
 
 /* ============================================================
    KALICI IZLEYICI KAYDI  (v7.40)
@@ -165,6 +169,17 @@ function izleyiciYap(oyuncu) {
      donusun tek dayanagi bu.                              */
   kayitEkle(oyuncu.id, eskiKip);
   return true;
+}
+
+/* Bu oyuncuyu izleyici kipine BIZ mi soktuk?  (v7.99.17)
+   Gozcu "oyuncunun calisan isi var mi" diye soruyor; Kilic'in
+   temizlik isi ~1 saniyede bitiyor ama izleyici suresi 10 saniye.
+   Aradaki 9 saniyede is yok, kip bizim: Gozcu uyariyor ve Savunma
+   Kipi aciksa oyuncuyu izleyicilikten cekiyordu. Gercek motor
+   taramasinda yakalandi. Sorunun dogru muhatabi bu defter.       */
+export function kilicIzleyiciMi(oyuncuId) {
+  const kayit = izleyiciler.get(oyuncuId);
+  return !!kayit && system.currentTick < kayit.bitis + KILIC_IZLEYICI_PAY;
 }
 
 /* Merkezi tick'ten cagriliyor. Defter bosken hic donmiyor. */

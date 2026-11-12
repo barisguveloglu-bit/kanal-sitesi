@@ -129,13 +129,27 @@ print(json.dumps({"basliksurum": s, "alanlar": cikti,
           String(a.Generator && a.Generator[1]));
 
   const kat = JSON.parse(a.FlatWorldLayers[1]);
-  kontrol("arazi TEK katman", kat.block_layers.length === 1,
+  /* ---- v7.99.17: GERCEK MOTORDA OLCULDU ----
+     Bu madde "arazi TEK katman" diyordu ve yanlis seyi
+     kilitliyordu: yeni dunya biciminde (post_1_18) tek katli bir
+     liste HIC BLOK URETMIYOR -- dunya zeminsizdi. Katmanlar
+     y = -64'ten basliyor. Zemini y=0'a koyan ve motorun urettigi
+     tanim: altta hava, ustunde tek kat bedrock (olcum tablosu
+     dunya_uret.py DUZ_KATMAN ustunde).                        */
+  const kati = kat.block_layers.filter((k) => k.block_name !== "minecraft:air");
+  kontrol("tek KATI katman var ve o BEDROCK",
+          kati.length === 1 && kati[0].block_name === "minecraft:bedrock",
           JSON.stringify(kat.block_layers));
-  kontrol("o katman BEDROCK",
-          kat.block_layers[0].block_name === "minecraft:bedrock",
-          kat.block_layers[0].block_name);
-  kontrol("katman kalinligi 1 (ustu bos)",
-          kat.block_layers[0].count === 1, String(kat.block_layers[0].count));
+  kontrol("bedrock kalinligi 1, EN USTTE (ustu bos)",
+          kati.length === 1 && kati[0].count === 1 &&
+          kat.block_layers[kat.block_layers.length - 1] === kati[0],
+          JSON.stringify(kat.block_layers));
+  kontrol("liste TEK katli degil (tek katli liste blok uretmiyor)",
+          kat.block_layers.length >= 2, String(kat.block_layers.length));
+  kontrol("yeni dunya bicimi", kat.world_version === "version.post_1_18", kat.world_version);
+  /* Yeni bicimde ilk katman y = -64. */
+  const zeminY = -64 + kat.block_layers.slice(0, -1).reduce((t, k) => t + k.count, 0);
+  kontrol("zemin y = 0", zeminY === 0, String(zeminY));
   kontrol("biyom plains (gokyuzu paketiyle ayni)", kat.biome_id === 1,
           String(kat.biome_id));
 
@@ -158,8 +172,9 @@ print(json.dumps({"basliksurum": s, "alanlar": cikti,
 
   /* Dogum y=1: bedrock y=0'da. y=4 yazilsaydi her giriste
      uc blok dusurdu.                                       */
-  kontrol("dogum noktasi zeminin USTUNDE (y=1)",
-          a.SpawnY && a.SpawnY[1] === 1, String(a.SpawnY && a.SpawnY[1]));
+  kontrol("dogum noktasi zeminin HEMEN USTUNDE (zemin + 1)",
+          a.SpawnY && a.SpawnY[1] === zeminY + 1,
+          "dogum y " + (a.SpawnY && a.SpawnY[1]) + " · zemin y " + zeminY);
 
   kontrol("sablonda db/ klasoru var", d.var.indexOf("db") !== -1,
           d.var.join(" "));

@@ -497,6 +497,16 @@ Mojang'ın sıkı ayarları açık, yalnız izin listesindekiler girer
   reddeder). Yeni bir yetenek ya da API çağrısı yazınca sahte motor yeşil
   diye güvenme: `acilis_dene.py` + `tarama_dene.py`. Sürüm çıkmadan önce
   ikisi de koşulur.
+- **Tarama dürüst oyunla başlıyor (v7.99.18):** sahte oyuncular yetenek
+  kullanmadan yürür, koşar, zıplar, yakın dövüşür, düşer; o aşamada Gözcü'nün
+  yazdığı her uyarı yanlış alarmdır ve taramayı düşürür. Gözcü'nün bir eşiğini
+  ya da muafiyetini değiştirince bu ölçülür. Blok kırma/koyma, yüzme, elitra
+  ve binek o aşamada **yok**.
+- **`dunya_dene.py` (v7.99.18) hazır dünyayı gerçek motorda açıyor.**
+  `Efsane_Dunyasi.mctemplate` v7.85'ten beri yalnız yazılıp geri okunarak
+  doğrulanıyordu ve **zeminsizdi**: yeni dünya biçiminde tek katlı düz katman
+  listesi hiç blok üretmiyor. `dunya_uret.py`'de katman tanımına ya da doğum
+  noktasına dokunursan bunu çalıştır; ölçüm tablosu `DUZ_KATMAN` üstünde.
 - **Sahte motoru hoşgörülü bırakma.** v7.99.17'deki hataların hepsi taklidin
   gerçeğin reddettiğini kabul etmesinden çıktı (küçük harfli `GameMode`,
   dört sayılı `applyKnockback`, erken çalıştırmada dünya okuma). Gerçek

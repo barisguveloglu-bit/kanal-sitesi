@@ -715,6 +715,30 @@ console.log("=== 14. OYUN KIPI DENETIMI (gamemode_switcher) ===");
           sonuc2 && sonuc2.geriAlindi === true && hileci2._kip === ayar.KIP_IZIN[0],
           hileci2._kip);
 
+  /* ---- GERI ALMA, GELDIGI KIPE  (v7.99.17) ----
+     Duello sunucusu macera kipinde. Yaratici kipe gecen biri
+     survival'a "geri alinirsa" blok kirabilir hale gelir: geri
+     alma kapatmasi gereken kapiyi acar. Oyuncu hangi izinli
+     kipten geldiyse oraya donmeli.                            */
+  gozcu.kipUnut();
+  tickIlerlet(ayar.KIP_SUS + 5);
+  const maceraci = kipli("kip_macera", "adventure");
+  kontrol("macera kipinde temiz", gozcu.kipDenetle(maceraci) === null);
+  maceraci.setGameMode("Creative");                 // hile: yaratici kipe gecti
+  const sonuc3 = gozcu.kipDenetle(maceraci);
+  kontrol("maceradan gelen MACERAYA geri aliniyor (survival'a degil)",
+          sonuc3 && sonuc3.geriAlindi === true && maceraci._kip === "adventure",
+          maceraci._kip);
+  kontrol("  bildirim de dogru kipi yaziyor",
+          sonSohbet().indexOf("adventure'a geri alındı") !== -1, sonSohbet());
+  /* Cikip giren oyuncunun eski kipi hatirlanmamali. */
+  gozcu.kipUnut("kip_macera");
+  tickIlerlet(ayar.KIP_SUS + 5);
+  maceraci.setGameMode("Creative");
+  gozcu.kipDenetle(maceraci);
+  kontrol("defter silinince varsayilana donuyor",
+          maceraci._kip === ayar.KIP_IZIN[0], maceraci._kip);
+
   /* OKUNAMAYAN kip suclanmiyor -- eski API surumu. */
   gozcu.kipUnut();
   kontrol("kipi okunamayan oyuncu suclanmiyor",

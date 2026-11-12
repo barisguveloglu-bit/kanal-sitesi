@@ -40,7 +40,7 @@ import { menuAc, menuKullanilabilir } from "./menu.js";
 import { asaTara, mezarOnar } from "./yetenekler/asa.js";
 import { disTara } from "./yetenekler/disler.js";
 import {
-  kilicKullan, kilicTara, kilicUnut, kilicGirisDuzelt
+  kilicKullan, kilicTara, kilicUnut, kilicGirisDuzelt, kilicIzleyiciMi
 } from "./yetenekler/kilic.js";
 import { tasTara, tasUnut } from "./yetenekler/tas.js";
 import { silahKullan, silahTara, silahUnut, silahiBul } from "./yetenekler/silahlar.js";
@@ -635,8 +635,11 @@ system.runInterval(() => {
 
   if (HAREKET_ACIK && system.currentTick % HAREKET_ORNEK === 0) {
     try {
+      /* v7.99.17: Kilic'in izleyici suresi de "kendi isimiz". Temizlik
+         isi erken bitiyor, izleyici kipi 10 sn suruyor (kilic.js).   */
       hareketTara(world.getAllPlayers(),
-                  (kimlik) => hareketMuafIsVarMi(kimlik) || womHareketteMi(kimlik));
+                  (kimlik) => hareketMuafIsVarMi(kimlik) || womHareketteMi(kimlik) ||
+                              kilicIzleyiciMi(kimlik));
     } catch (e) {
       hataYaz("hareketTara", e);
     }

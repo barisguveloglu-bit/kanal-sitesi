@@ -248,9 +248,31 @@ def gokyuzu_paketi():
 #   biome_id 1 = plains. Duz dunyada TEK biyom var; gokyuzu
 #   paketinde de plains tanimli, yani hazir dunyada renk
 #   kesinlikle tutuyor.
+#
+# ---- ALTTA 64 KAT HAVA NEDEN VAR  (v7.99.17) ----
+# Bu dosya v7.85'ten beri "oyunda denenemiyor" diye yazilip geri
+# okunarak dogrulaniyordu. v7.99.17'de ilk kez GERCEK MOTORDA acildi
+# (Bedrock Dedicated Server 1.26.52.3) ve dunya ZEMINSIZ cikti:
+# hicbir yukseklikte tek bir blok yoktu, oyuncu dogar dogmaz bosluga
+# duserdi. Olculen (ayni sablon, yalniz bu dize degistirilerek):
+#
+#   post_1_18 · bedrock x1                -> HIC BLOK YOK
+#   post_1_18 · bedrock x2                -> y -64 ve -63
+#   post_1_18 · bedrock x1 + tas x1       -> y -64 bedrock, -63 tas
+#   post_1_18 · bedrock + 2 toprak + cimen-> y -64 .. -61 (klasik)
+#   pre_1_18  · bedrock x1                -> y 0
+#   post_1_18 · hava x64 + bedrock x1     -> y 0            <-- bu
+#
+# Yani yeni bicimde katmanlar y = -64'ten baslar ve TEK katli bir
+# liste hic uretilmiyor. Tasarim "tek kat bedrock y=0'da, oyuncu
+# y=1'de" idi (asagidaki SpawnY); onu veren ve dunyayi yeni bicimde
+# (tam yukseklik) tutan tanim, altina 64 kat hava koymak.
+DUZ_HAVA_KATI = 64          # -64'ten 0'a
+DUZ_ZEMIN_Y = -64 + DUZ_HAVA_KATI
 DUZ_KATMAN = {
     "biome_id": 1,
-    "block_layers": [{"block_name": "minecraft:bedrock", "count": 1}],
+    "block_layers": [{"block_name": "minecraft:air", "count": DUZ_HAVA_KATI},
+                     {"block_name": "minecraft:bedrock", "count": 1}],
     "encoding_version": 6,
     "structure_options": None,
     "world_version": "version.post_1_18",
@@ -279,10 +301,12 @@ def level_dat_sozlugu():
         "RandomSeed": U(TOHUM),
 
         # Dogum: tek kat bedrock y=0'da, oyuncu y=1'de duruyor.
-        # y=4 yazilsaydi her giriste 3 blok dusurdu.
-        "SpawnX": T(0), "SpawnY": T(1), "SpawnZ": T(0),
+        # y=4 yazilsaydi her giriste 3 blok dusurdu. Zeminin y'si
+        # katman tanimindan TURETILIYOR: ikisi ayrisirsa oyuncu ya
+        # zeminin icinde ya da boslukta dogar.
+        "SpawnX": T(0), "SpawnY": T(DUZ_ZEMIN_Y + 1), "SpawnZ": T(0),
         "LimitedWorldOriginX": T(0),
-        "LimitedWorldOriginY": T(1),
+        "LimitedWorldOriginY": T(DUZ_ZEMIN_Y + 1),
         "LimitedWorldOriginZ": T(0),
 
         "GameType": T(0),         # hayatta kalma

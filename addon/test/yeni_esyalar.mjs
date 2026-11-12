@@ -195,6 +195,61 @@ console.log("\n=== 5. KILIC: IZLEYICI MODU SURELI ===");
           o._mod === "creative", o._mod);
 }
 
+console.log("\n=== 5b. KILIC'IN IZLEYICISI GOZCU'YE TAKILMIYOR  (v7.99.17) ===");
+{
+  /* Gercek motor taramasinda yakalandi. Temizlik isi ~1 sn'de
+     bitiyor, izleyici suresi 10 sn. Gozcu "calisan isi var mi"
+     diye soruyordu: is bitince kip "sahipsiz" gorunuyor, Gozcu
+     uyariyor ve Savunma Kipi aciksa oyuncuyu izleyicilikten
+     CEKIYORDU. Burada ACIK ARAZI (silinecek blok yok, is hemen
+     biter) ve Savunma Kipi ACIK: tam o durum.                 */
+  const arinma = await import("./pack/yetenekler/arinma.js");
+  const gozcu = await import("./pack/yetenekler/gozcu.js");
+  const D = dunyaKur();
+  const o = oyuncuKur(D.boyut, { x: 0, y: 0, z: 1 }, { x: 0.5, y: 90, z: 0.5 });
+  o.id = "k5b"; o.typeId = "minecraft:player"; o.name = "k5b";
+  kipTak(o, "survival", "_mod");
+  _durum.oyuncular = [o];
+  gozcu.kipUnut();
+  arinma.arinmaUnut();
+  arinma.savunmaAc({
+    id: "savunan5b", typeId: "minecraft:player", name: "savunan5b", isValid: true,
+    runCommand: () => ({ successCount: 1 }),
+    onScreenDisplay: { setActionBar() {} }
+  });
+  _durum.sohbet.length = 0;
+
+  sus();
+  itemUseTetikle({ source: o, itemStack: { typeId: ayar.KILIC_ESYA } });
+  tickIlerlet(2);
+  ac();
+  kontrol("izleyiciye alindi", o._mod === "spectator", o._mod);
+
+  /* Surenin ORTASI: is coktan bitti, kip hala bizim. */
+  let erkenCikti = false;
+  sus();
+  for (let i = 0; i < ayar.KILIC_IZLEYICI_SURE - 20; i++) {
+    tickIlerlet(1);
+    if (o._mod !== "spectator") { erkenCikti = true; break; }
+  }
+  ac();
+  kontrol("sure dolmadan izleyicilikten CEKILMEDI", !erkenCikti, o._mod);
+  kontrol("Gozcu kip uyarisi YAZMADI",
+          !_durum.sohbet.some((m) => String(m).includes("oyun kipi")),
+          _durum.sohbet.filter((m) => String(m).includes("oyun kipi")).join(" | "));
+
+  sus(); tickIlerlet(40); ac();
+  kontrol("suresi dolunca kendi kipine dondu", o._mod === "survival", o._mod);
+
+  /* Muafiyet KILIC'A OZEL: defterde olmayan izleyici yine yakalanir. */
+  sus(); tickIlerlet(ayar.KIP_SUS + 20); ac();
+  gozcu.kipUnut();
+  o.setGameMode("Spectator");
+  const yakalandi = gozcu.kipDenetle(o, () => false);
+  kontrol("Kilic'siz izleyici kipi yine yakalaniyor", yakalandi !== null);
+  arinma.arinmaUnut();
+}
+
 console.log("\n=== 6. TASA CEVIRME ===");
 {
   const D = dunyaKur();

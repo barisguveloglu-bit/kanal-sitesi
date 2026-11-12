@@ -69,9 +69,11 @@ Bedeli: dövüşte inşa da yok (kule, köprü). Blok kırma olayına bağlı ö
 Geri almak tek satır: `sunucu.properties`'te `gamemode=survival` (test de
 değişir).
 
-**Bilinen etkileşim:** Gözcü yaratıcı kipe geçen birini Savunma Kipi açıkken
-`survival`'a geri alıyor (`KIP_IZIN[0]`), `adventure`'a değil. Bu sunucuda geri
-alınan oyuncu blok kırabilir hale gelir. Düzeltilmedi.
+**Gözcü ile etkileşim (v7.99.17'de düzeltildi):** Gözcü yaratıcı kipe geçen
+birini Savunma Kipi açıkken hep `survival`'a geri alıyordu; bu sunucuda geri
+alınan oyuncu blok kırabilir hale geliyordu. Artık oyuncu hangi izinli kipten
+geldiyse oraya dönüyor (burada `adventure`). Hiç izinli kipte görülmeden
+yaratıcı kipte katılan biri için eski davranış sürüyor (`survival`).
 
 ## Gerekenler
 
@@ -283,7 +285,8 @@ Paket gerçek motorda iki yoldan ölçülüyor:
 | araç | neyi ölçer | süre |
 |---|---|---|
 | `python3 addon/sunucu/acilis_dene.py --hedef K` | **açılış**: motorun reddettiği JSON alanı, erken çalıştırmada çağrılan fonksiyon | ~10 sn |
-| `python3 addon/sunucu/tarama_dene.py --hedef K --deneme` | **çalışma**: altı sahte oyuncu 325 yeteneği, 67 sohbet komutunu ve 600 eşyayı gerçek API'de çalıştırır | ~4 dk |
+| `python3 addon/sunucu/tarama_dene.py --hedef K --deneme` | **çalışma**: altı sahte oyuncu önce dürüstçe oynar (Gözcü yanlış alarm veriyor mu), sonra 325 yeteneği iki kez, 67 sohbet komutunu ve 600 eşyayı gerçek API'de çalıştırır; bota dokunur, ölür, yeniden doğar | ~7 dk |
+| `python3 addon/sunucu/dunya_dene.py --hedef K` | **hazır dünya**: `Efsane_Dunyasi.mctemplate`'i geçici bir dünyada açar, doğum noktasının altında zemin olduğunu sorar | ~30 sn |
 
 `tarama_dene.py` **yalnız deneme kurulumunda** çalıştırılır: yetenekler blok
 kırar, arenayı bozar. `--deneme` yazılmadan çalışmaz; izin listesinde oyuncu
@@ -319,6 +322,20 @@ eklendi), `test/motor_bicim.mjs` (beş biçim hatası dosya düzeyinde),
 `test/arinma.mjs`, `test/donusum.mjs`, `test/gozcu.mjs`, `test/denetim.mjs`
 (sahte oyuncunun oyun kipi artık gerçek API gibi: küçük harfli adı reddediyor).
 
+### İkinci turda bulunanlar (2026-11-11) — v7.99.18'de düzeltildi
+
+| ne | etkisi | düzeltme |
+|---|---|---|
+| **Efsanenin Dünyası zeminsizdi.** Yeni dünya biçiminde tek katlı düz katman listesi hiç blok üretmiyor (ölçüm tablosu `dunya_uret.py` `DUZ_KATMAN` üstünde) | dünyayı açan oyuncu doğar doğmaz boşluğa düşerdi | altta 64 kat hava, üstünde tek kat bedrock: zemin tasarımdaki gibi y=0 |
+| Kılıç (sıfırlama) oyuncuyu 10 sn izleyici yapıyor, temizlik işi ~1 sn'de bitiyor | kalan 9 sn'de Gözcü "oyun kipi spectator" diye uyarıyor, Savunma Kipi açıksa oyuncuyu izleyicilikten **çekiyordu** | `kilicIzleyiciMi`: kipi bizim verdiğimizi Kılıç'ın defteri söylüyor |
+| Gözcü geri almayı hep `survival`'a yapıyordu | macera kipindeki düello sunucusunda geri alınan oyuncu blok kırabilir hale geliyordu | oyuncu geldiği izinli kipe dönüyor |
+
+**Dürüst oyun ölçümü.** Sahte oyuncular hiçbir yetenek kullanmadan yürüdü,
+koştu, koşarak zıpladı, ikişerli yakın dövüştü (gerçek geri itilme) ve dört
+blokluk sahanlıktan düştü: oyuncu başına en az 148 blok yol, 84 oyuncu-oyuncu
+vuruşu. Gözcü bu aşamada **hiç uyarı vermedi**. Araç bu sayıların alt sınırını
+soruyor; aşama boş geçerse "0 uyarı"yı kabul etmiyor.
+
 ### Açık kalanlar — bilerek
 
 | ne | neden dokunulmadı |
@@ -331,6 +348,8 @@ eklendi), `test/motor_bicim.mjs` (beş biçim hatası dosya düzeyinde),
 **Ölçülmeyen:** kaynak (görünüm) paketi. Sunucu motoru onu yüklemiyor;
 ikonların ve modellerin ekranda doğru çizildiği yalnız oyunda görülür.
 Sahte oyuncu da ekran görmez: menü, kamera ve HUD davranışı ölçülmedi.
+Dürüst oyunda blok kırma ve koyma yok (sunucu macera kipinde); yüzme,
+elitra ve binek de denenmedi. Gözcü'nün bunlardaki yanlış alarmı ölçülmedi.
 
 ## Sonraki aşamalar (yazılmadı)
 

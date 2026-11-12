@@ -109,11 +109,13 @@ console.log("=== 2. HAZIRLIK VE 3. GERI ALMA ===");
     "sev = os.path.join(kok, 'worlds', 'Deneme', 'level.dat')",
     "geri, nk, ne = t.hazirla(kok)",
     "ana = open(os.path.join(bp, 'scripts', 'main.js'), encoding='utf-8').read()",
+    "yrd = open(os.path.join(bp, 'scripts', 'yardimcilar.js'), encoding='utf-8').read()",
     "m = json.load(open(os.path.join(bp, 'manifest.json'), encoding='utf-8'))",
     "d = nbt.level_dat_oku(open(sev, 'rb').read())[1]",
     "print(json.dumps({",
     "  'komut': nk, 'esya': ne,",
     "  'ek': '[TARAMA]' in ana, 'liste': 'const __TUM_ESYALAR = [' in ana,",
+    "  'sohbet_kancasi': yrd.count('[TARAMA-SOHBET]'),",
     "  'oyun_testi': [x for x in m['dependencies'] if x.get('module_name') == t.OYUN_TESTI],",
     "  'bagimlilik': len(m['dependencies']),",
     "  'deney': d['experiments'].deger['gametest'].deger,",
@@ -125,6 +127,10 @@ console.log("=== 2. HAZIRLIK VE 3. GERI ALMA ===");
   kontrol("hazirlik calisti", r.kod === 0 && h !== null, r.cikti.slice(0, 200));
   if (h) {
     kontrol("ek main.js'e girdi", h.ek === true && h.liste === true);
+    /* Gozcu sohbete yaziyor, sohbet sunucu kaydina dusmuyor: kanca
+       olmadan "durust oyunda 0 uyari" HER ZAMAN sifir cikardi.   */
+    kontrol("sohbet kancasi takildi (tam bir yere)", h.sohbet_kancasi === 1,
+            String(h.sohbet_kancasi));
     kontrol("komut ve esya listesi dolu", h.komut >= 40 && h.esya >= 500,
             h.komut + " komut · " + h.esya + " esya");
     kontrol("manifest sahte oyuncu modulunu istiyor",
@@ -139,6 +145,9 @@ console.log("=== 2. HAZIRLIK VE 3. GERI ALMA ===");
   kontrol("GERI ALMA: betikler depodakinin aynisi (ek yok)",
           readFileSync(join(bp, "scripts", "main.js"), "utf8")
             === readFileSync(join(ADDON, PAKET, "scripts", "main.js"), "utf8"));
+  kontrol("GERI ALMA: sohbet kancasi sokuldu",
+          readFileSync(join(bp, "scripts", "yardimcilar.js"), "utf8")
+            === readFileSync(join(ADDON, PAKET, "scripts", "yardimcilar.js"), "utf8"));
   rmSync(kok, { recursive: true, force: true });
 }
 
@@ -185,6 +194,48 @@ console.log("=== 4. OZET DOGRU SAYIYOR ===");
 }
 
 console.log("");
+console.log("=== 4b. GOZCU UYARILARI ASAMAYA GORE ===");
+{
+  const satirlar = [
+    "[t WARN] [Scripting] [TARAMA] ASAMA durust",
+    "[t WARN] [Scripting] [TARAMA-SOHBET] §c⚠ Gözcü: §ftarama3 §7· hız §f17.2 blok/sn",
+    "[t WARN] [Scripting] [TARAMA-SOHBET] §c⚠ Gözcü: §ftarama5 §7· hız §f15.9 blok/sn",
+    "[t WARN] [Scripting] [TARAMA-SOHBET] §7baska bir sohbet satiri",
+    "[t WARN] [Scripting] [TARAMA] ASAMA yetenek",
+    "[t WARN] [Scripting] [TARAMA-SOHBET] §c⚠ Gözcü: §ftarama1 §7· menzil §f6.1",
+  ];
+  const r = kos(["-c", [
+    "import sys, json",
+    "sys.dont_write_bytecode = True",
+    "sys.path.insert(0, sys.argv[1])",
+    "import tarama_dene as t",
+    "g = t.gozcu_ozeti(json.load(sys.stdin))",
+    "print(json.dumps({a: dict(c) for a, c in g.items()}, ensure_ascii=False))",
+  ].join("\n"), SET], JSON.stringify(satirlar));
+  let g = null;
+  try { g = JSON.parse(r.cikti.trim()); } catch (e) { g = null; }
+  kontrol("gozcu ozeti okundu", g !== null, r.cikti.slice(0, 200));
+  if (g) {
+    const d = Object.entries(g.durust || {});
+    /* Iki uyari yalniz oyuncu adinda ve sayida ayriliyor: tek sebep. */
+    kontrol("durust asamadaki uyarilar tek sebepte toplaniyor",
+            d.length === 1 && d[0][1] === 2, JSON.stringify(g.durust));
+    kontrol("renk kodlari ve oyuncu adi ayiklaniyor",
+            d.length === 1 && !d[0][0].includes("§") && d[0][0].includes("<oyuncu>"),
+            d.length ? d[0][0] : "");
+    kontrol("Gozcu olmayan sohbet sayilmiyor",
+            !Object.keys(g.durust || {}).some((m) => m.includes("baska")));
+    kontrol("yetenek asamasi AYRI sayiliyor",
+            Object.values(g.yetenek || {}).reduce((a, b) => a + b, 0) === 1);
+  }
+  /* Durust asama bos gecerse "0 uyari" bir sey kanitlamaz: alt sinir var. */
+  const kaynak = readFileSync(arac, "utf8");
+  kontrol("durust asamanin alt sinirlari tanimli ve soruluyor",
+          /DURUST_EN_AZ = \{/.test(kaynak) && /durust asama zayif/.test(kaynak) &&
+          /durust asama olcumu yok/.test(kaynak));
+}
+
+console.log("");
 console.log("=== 5. EK, main.js'IN GERCEK ADLARINI KULLANIYOR ===");
 {
   const ek = readFileSync(join(SET, "tarama_eki.js"), "utf8");
@@ -203,6 +254,41 @@ console.log("=== 5. EK, main.js'IN GERCEK ADLARINI KULLANIYOR ===");
           !existsSync(join(ADDON, PAKET, "scripts", "tarama_eki.js")));
   kontrol("paketin manifesti sahte oyuncu modulunu ISTEMIYOR",
           !readFileSync(join(ADDON, PAKET, "manifest.json"), "utf8").includes("server-gametest"));
+}
+
+console.log("");
+console.log("=== 6. HAZIR DUNYA DENETIMI (dunya_dene.py) ===");
+{
+  /* Motor burada yok; olculen, aracin NEYI sordugu. Dogum noktasi
+     level.dat'tan geliyor: zemin onun bir ALTINDA aranmali. Sabit
+     bir yukseklik sorsaydi, katman tanimi degistiginde arac yanlis
+     yere bakip "bozuk" (ya da daha kotusu "saglam") derdi.       */
+  const r = kos(["-c", [
+    "import sys, json",
+    "sys.dont_write_bytecode = True",
+    "sys.path.insert(0, sys.argv[1])",
+    "import dunya_dene as d",
+    "print(json.dumps({'a': d.yoklamalar((0, 1, 0)), 'b': d.yoklamalar((5, -62, 9)), 'gecici': d.GECICI}))",
+  ].join("\n"), SET]);
+  let y = null;
+  try { y = JSON.parse(r.cikti.trim()); } catch (e) { y = null; }
+  kontrol("yoklamalar okundu", y !== null, r.cikti.slice(0, 200));
+  if (y) {
+    const komutlar = y.a.map((x) => x[0]);
+    kontrol("zemin dogum noktasinin BIR ALTINDA araniyor",
+            komutlar.includes("testforblock 0 0 0 bedrock"), komutlar[0]);
+    kontrol("dogum noktasi ve ustu hava soruluyor",
+            komutlar.includes("testforblock 0 1 0 air") && komutlar.includes("testforblock 0 2 0 air"));
+    kontrol("zeminin alti da soruluyor (tek kat)", komutlar.includes("testforblock 0 -1 0 air"));
+    kontrol("uzak bir noktada da soruluyor",
+            komutlar.some((k) => /^testforblock 12 0 12 bedrock$/.test(k)));
+    kontrol("yukseklik dogum noktasindan TURETILIYOR",
+            y.b.map((x) => x[0]).includes("testforblock 5 -63 9 bedrock"), y.b[0][0]);
+    kontrol("gecici dunya adi var olan bir dunyayla karismaz", y.gecici.startsWith("_"), y.gecici);
+  }
+  const kaynak = readFileSync(join(SET, "dunya_dene.py"), "utf8");
+  kontrol("server.properties ve gecici dunya finally'de geri aliniyor",
+          /finally:\s*\n\s*open\(ayar, "w"[^\n]*\)\.write\(eski_ayar\)\s*\n\s*shutil\.rmtree\(dunya/.test(kaynak));
 }
 
 kontrol("kosu klasorde __pycache__ birakmadi", !existsSync(join(SET, "__pycache__")));

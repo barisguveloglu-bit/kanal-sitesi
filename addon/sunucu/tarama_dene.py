@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""BUTUN YETENEKLERI GERCEK MOTORDA, SAHTE OYUNCUYLA CALISTIR.   v7.99.17
+"""BUTUN YETENEKLERI GERCEK MOTORDA, SAHTE OYUNCUYLA CALISTIR.   v7.99.18
 
     python3 addon/sunucu/tarama_dene.py --hedef KLASOR --deneme [--sure 900]
 
@@ -66,6 +66,11 @@ BEKLENEN = (
     "HATA @ ilkel.silah: minecraft:equippable script tarafinda yok",
 )
 
+# Durust asamanin gercekten oynandigini gosteren alt sinirlar: her oyuncu
+# en az bu kadar yol yurumus, biri en az bu hiza (kosarak ziplama ~7 blok/sn)
+# ve bu yukseklige (sahanlik 4 blok) cikmis, en az bu kadar vurus isabet etmis.
+DURUST_EN_AZ = {"yol": 80.0, "hiz": 6.0, "zirve": 3.5, "vurus": 20}
+
 EK_KOMUTLAR = [
     "can 10", "bot elmas 4", "bot bekle", "bot takip", "bot geri", "jujutsu gojo",
     "meyve gomu", "yetenek gura", "yetenek olmayan", "cekim aktor", "cekim sahne",
@@ -101,6 +106,15 @@ def hazirla(kok):
     esyalar = sorted(
         json.load(open(f, encoding="utf-8"))["minecraft:item"]["description"]["identifier"]
         for f in glob.glob(os.path.join(ADDON, PAKET, "items", "*.json")))
+    # Gozcu uyarilarini SOHBETE yaziyor; sohbet sunucu kaydina dusmez.
+    # Yalniz bu kopyada sohbeteYaz kayda da yaziyor.
+    yrd = os.path.join(bp, "scripts", "yardimcilar.js")
+    metin = open(yrd, encoding="utf-8").read()
+    kanca = "export function sohbeteYaz(metin) {\n"
+    if metin.count(kanca) != 1:
+        raise SystemExit("HATA: yardimcilar.js'te sohbeteYaz bulunamadi; kanca takilamadi.")
+    open(yrd, "w", encoding="utf-8").write(metin.replace(
+        kanca, kanca + '  console.warn("[TARAMA-SOHBET] " + metin);\n'))
     ek = open(os.path.join(BURASI, "tarama_eki.js"), encoding="utf-8").read()
     with open(os.path.join(bp, "scripts", "main.js"), "a", encoding="utf-8") as f:
         f.write("\nconst __KOMUTLAR = %s;\nconst __TUM_ESYALAR = %s;\n"
@@ -128,6 +142,28 @@ def hazirla(kok):
     return geri_al, len(komutlar), len(esyalar)
 
 
+def gozcu_ozeti(satirlar):
+    """Gozcu'nun sohbete yazdiklari, asamaya gore.
+
+    Donen: {asama: Counter(sebep)}. "durust" asamasinda oyuncular hicbir
+    yetenek kullanmiyor; orada gorulen her uyari YANLIS ALARM."""
+    asama, c = "acilis", collections.defaultdict(collections.Counter)
+    for s in satirlar:
+        m = re.search(r"\[TARAMA\] ASAMA (\w+)", s)
+        if m:
+            asama = m.group(1)
+            continue
+        m = re.search(r"\[TARAMA-SOHBET\] (.*)", s)
+        if not m or "Gözcü" not in m.group(1):
+            continue
+        duz = re.sub(r"§.", "", m.group(1))
+        # "⚠ Gözcü: tarama3 · sebep · sayilar" -> oyuncu adi ve sayilar atilir
+        sebep = re.sub(r"tarama\d+", "<oyuncu>", duz)
+        sebep = re.sub(r"\d+([.,]\d+)?", "N", sebep)
+        c[asama][sebep[:160]] += 1
+    return c
+
+
 def ozetle(satirlar):
     """Kayit -> (calisan, hic_calismayan, istisnalar, hatalar, bitti)."""
     calisan, hic, istisna, bitti = set(), None, [], False
@@ -140,7 +176,9 @@ def ozetle(satirlar):
                 calisan.add(t.split()[1])
             elif t.startswith("HIC CALISMAYAN:"):
                 hic = [x for x in t.split(":", 1)[1].strip().split(",") if x]
-            elif t.startswith(("ISTISNA", "TETIK ISTISNA", "KURULAMADI", "esya atti", "komut atti")):
+            elif t.startswith(("ISTISNA", "TETIK ISTISNA", "KURULAMADI", "esya atti", "komut atti",
+                               "durust adim atti", "dokunma atti", "etkilesim atti",
+                               "oldurme atti", "yeniden dogus atti")):
                 istisna.append(t[:300])
             elif t == "BITTI":
                 bitti = True
@@ -212,6 +250,36 @@ def main():
     for m, n in sorted(hatalar.items(), key=lambda x: -x[1]):
         isaret = " " if any(b in m for b in BEKLENEN) else "!"
         print("  %s x%-4d %s" % (isaret, n, m[:150]))
+    # Durust asama GERCEKTEN oynandi mi? Oynanmadiysa "0 uyari" bos.
+    olcum = None
+    for s in satirlar:
+        m = re.search(r"\[TARAMA\] DURUST olcum yol=([\d.]+) hiz=([\d.]+) zirve=([\d.]+) vurus=(\d+)", s)
+        if m:
+            olcum = [float(m.group(1)), float(m.group(2)), float(m.group(3)), int(m.group(4))]
+    if olcum is None:
+        sorun.append("durust asama olcumu yok")
+    else:
+        print("durust oyun: her oyuncu en az %.0f blok yurudu, en yuksek hiz %.1f blok/sn, "
+              "zirve %.1f blok, %d oyuncu-oyuncu vurusu" % tuple(olcum))
+        for ad, deger, esik in (("yol", olcum[0], DURUST_EN_AZ["yol"]),
+                                ("hiz", olcum[1], DURUST_EN_AZ["hiz"]),
+                                ("zirve", olcum[2], DURUST_EN_AZ["zirve"]),
+                                ("vurus", olcum[3], DURUST_EN_AZ["vurus"])):
+            if deger < esik:
+                sorun.append("durust asama zayif: %s %.1f < %.1f (0 uyari bir sey kanitlamaz)"
+                             % (ad, deger, esik))
+    gozcu = gozcu_ozeti(satirlar)
+    durust = gozcu.get("durust", {})
+    print("Gozcu, DURUST oyunda: %d uyari (her biri yanlis alarm)" % sum(durust.values()))
+    for m, n in sorted(durust.items(), key=lambda x: -x[1]):
+        print("  ! x%-4d %s" % (n, m))
+        sorun.append("Gozcu durust oyuncuyu sucladi x%d: %s" % (n, m))
+    for asama in sorted(gozcu):
+        if asama == "durust":
+            continue
+        print("Gozcu, %s asamasinda: %d uyari (bilgi)" % (asama, sum(gozcu[asama].values())))
+        for m, n in sorted(gozcu[asama].items(), key=lambda x: -x[1])[:8]:
+            print("    x%-4d %s" % (n, m))
     for s in sorun:
         print("SORUN: " + s)
     return 1 if sorun else 0

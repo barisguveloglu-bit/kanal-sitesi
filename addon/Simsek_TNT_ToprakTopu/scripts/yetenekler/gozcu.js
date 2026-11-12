@@ -593,9 +593,19 @@ export function hareketMuaf(oyuncu, isVarMi) {
 // oyuncuId -> son kip bildirimi (tick)
 const kipDefteri = new Map();
 
+/* oyuncuId -> en son gorulen IZINLI kip  (v7.99.17)
+   Geri alma hep KIP_IZIN[0]'a ("survival") yapiliyordu. Duello
+   sunucusu macera kipinde (blok kirmak ve koymak kapali): yaratici
+   kipe gecen biri "geri alininca" survival'a dusuyor, yani blok
+   kirabilir hale geliyordu -- geri alma, kapatmasi gereken kapiyi
+   aciyordu. Artik oyuncu HANGI izinli kipten geldiyse oraya donuyor.
+   Hic izinli kipte gorulmediyse (yaratici kipte katildi) eski
+   davranis: KIP_IZIN[0].                                          */
+const sonIzinliKip = new Map();
+
 export function kipUnut(oyuncuId) {
-  if (oyuncuId === undefined) kipDefteri.clear();
-  else kipDefteri.delete(oyuncuId);
+  if (oyuncuId === undefined) { kipDefteri.clear(); sonIzinliKip.clear(); }
+  else { kipDefteri.delete(oyuncuId); sonIzinliKip.delete(oyuncuId); }
 }
 
 /* Oyuncunun kipini okur. API surumleri arasinda iki bicim var:
@@ -642,7 +652,10 @@ export function kipDenetle(oyuncu, isVarMi) {
   if (!gecerliMi(oyuncu)) return null;
   const kip = kipOku(oyuncu);
   if (kip === undefined) return null;              // okunamadi -> suclama yok
-  if (KIP_IZIN.indexOf(kip) !== -1) return null;
+  if (KIP_IZIN.indexOf(kip) !== -1) {
+    sonIzinliKip.set(oyuncu.id, kip);
+    return null;
+  }
 
   /* ---- IZLEYICI KIPI KENDI ISIMIZDEN OLABILIR  (v7.79) ----
      Dis inceleme bunu buldu ve hakliydi: Kilic oyuncuyu 200
@@ -673,11 +686,12 @@ export function kipDenetle(oyuncu, isVarMi) {
   let ad = "?";
   try { ad = oyuncu.name || oyuncu.typeId || "?"; } catch (e) { /* onemsiz */ }
 
+  const hedefKip = sonIzinliKip.get(oyuncu.id) || KIP_IZIN[0];
   let geri = false;
-  if (savunmaVarMi()) geri = kipGeriAl(oyuncu, KIP_IZIN[0]);
+  if (savunmaVarMi()) geri = kipGeriAl(oyuncu, hedefKip);
 
   gozcuYaz("§c⚠ Gözcü: §f" + ad + " §7· oyun kipi §f" + kip + " §8· " +
-             (geri ? "§a" + KIP_IZIN[0] + "'a geri alındı"
+             (geri ? "§a" + hedefKip + "'a geri alındı"
                    : savunmaVarMi() ? "§cgeri alınamadı"
                                     : "§7Savunma Kipi kapalı, geri alınmadı"));
   return { kip, geriAlindi: geri };

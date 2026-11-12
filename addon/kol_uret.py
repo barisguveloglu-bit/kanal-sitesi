@@ -167,7 +167,11 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # ve o arada Osmanli Topuzu pakete girdi AMA surum degismedi,
 # depodaki hazir .mcaddon topuzsuz kaldi. Ayni numarali iki farkli
 # paket oyunda ayirt edilemez; numara belge etiketleriyle esitlendi.
-SURUM_NO = (7, 99, 17)
+# v7.99.18: taramanin IKINCI TURU. Durust oyun, ikinci basis, olum ve
+# hazir dunya dosyasi da gercek motorda olculdu: Efsanenin Dunyasi
+# ZEMINSIZDI (dunya_uret.py), Kilic'in izleyici kipi Gozcu'ye
+# takiliyordu, Gozcu macera kipinden geleni survival'a "geri aliyordu".
+SURUM_NO = (7, 99, 18)
 
 SURUM_METIN = ".".join(map(str, SURUM_NO))
 

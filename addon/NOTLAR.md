@@ -1,3 +1,57 @@
+# v7.99.18 — Taramanın ikinci turu: dürüst oyun, ölüm, hazır dünya
+
+Kullanıcı: *"Devam et."* İlk turun sonunda "ölçülmeyen" diye yazılanlar
+gerçek motorda ölçüldü.
+
+## Bulunan ve düzeltilen
+
+- **Efsanenin Dünyası zeminsizdi.** `.mctemplate` v7.85'ten beri üretiliyor
+  ve "oyunda denenemiyor" diye yalnız yazılıp geri okunarak doğrulanıyordu.
+  Gerçek motorda ilk açılışta hiçbir yükseklikte tek bir blok çıkmadı. Aynı
+  şablon, yalnız katman dizesi değiştirilerek altı kez açıldı:
+
+  | katman tanımı | motorun ürettiği |
+  |---|---|
+  | yeni biçim · bedrock ×1 (eski tanımımız) | **hiç blok yok** |
+  | yeni biçim · bedrock ×2 | y −64 ve −63 |
+  | yeni biçim · bedrock + taş | y −64, −63 |
+  | yeni biçim · bedrock + 2 toprak + çimen | y −64 … −61 |
+  | eski biçim · bedrock ×1 | y 0 |
+  | yeni biçim · hava ×64 + bedrock ×1 | **y 0** (seçilen) |
+
+  Tasarım "tek kat bedrock y=0'da, oyuncu y=1'de" idi; onu veren ve dünyayı
+  yeni biçimde tutan tanım seçildi. Doğum yüksekliği artık katman tanımından
+  türetiliyor. `test/efsane_dunyasi.mjs` "arazi TEK katman" diyerek yanlış
+  şeyi kilitliyordu; düzeltildi.
+- **Kılıç'ın izleyici kipi Gözcü'ye takılıyordu.** Temizlik işi ~1 sn'de
+  bitiyor, izleyici süresi 10 sn; Gözcü "çalışan işi var mı" diye sorduğu için
+  kalan sürede uyarıyor, Savunma Kipi açıksa oyuncuyu izleyicilikten
+  çekiyordu. v7.79'da "düzeltildi" denen hatanın açık arazideki hâli.
+- **Gözcü macera kipinden geleni survival'a "geri alıyordu".** Düello
+  sunucusunda bu, kapatması gereken kapıyı açıyordu.
+
+## Bulunmayan
+
+- **Dürüst oyunda Gözcü sıfır yanlış alarm verdi.** Oyuncu başına en az 148
+  blok yol, 84 oyuncu-oyuncu vuruşu, dört blokluk düşüş. Anlık en yüksek hız
+  14,5 blok/sn ölçüldü (vuruşun geri itmesi); Gözcü'nün eşiği 14 ama yarım
+  saniyelik ortalamaya bakıyor ve hasardan sonra 2 sn affediyor, o yüzden
+  uyarmadı. Pay dar; eşik düşürülürse ilk patlayacak yer burası.
+- Yeteneklerin ikinci basışı, bota dokunma, ölüm ve yeniden doğuş: yeni hata yok.
+
+## Yeni araçlar
+
+- `sunucu/tarama_dene.py` genişledi: dürüst oyun aşaması (ölçümlü), ikinci
+  tur, etkileşim, ölüm. Gözcü sohbete yazdığı için tarama kopyasında
+  `sohbeteYaz` kayda da yazıyor; uyarılar aşamaya göre sayılıyor.
+- `sunucu/dunya_dene.py`: hazır dünyayı geçici bir klasörde açıp zemini soruyor.
+  Eski şablonda düştüğü gösterildi.
+
+## Ölçülmeyen
+
+Blok kırma/koyma (sunucu macera kipinde), yüzme, elitra, binek; kaynak
+paketinin ekrandaki hâli; menü, kamera, HUD.
+
 # v7.99.17 — Gerçek motor taraması: açılış ve çalışma hataları
 
 Kullanıcı: *"son hâlini bulup hata var mı diye bak, geniş çaplı bir tarama
