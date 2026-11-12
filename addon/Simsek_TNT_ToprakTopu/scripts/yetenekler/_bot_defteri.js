@@ -8,7 +8,8 @@ import {
   BOT_SAHIP_OZELLIK, BOT_DURUM_OZELLIK, BOT_OLAY_TAKIP, BOT_OLAY_BEKLE,
   BOT_SCRIPT_MENZIL, BOT_CANTA_TAVAN,
   BOT_SAVAS_VARSAYILAN, BOT_OLAY_SAVAS_AC, BOT_OLAY_SAVAS_KAPAT,
-  BOT_YERDEN_TOPLA, BOT_KIMLIKLER, BOT_OLAY_EVCIL, BOT_EVCIL_DENEME
+  BOT_YERDEN_TOPLA, BOT_KIMLIKLER, BOT_OLAY_EVCIL, BOT_EVCIL_DENEME,
+  BOT_KAYIP_YAKIN, BOT_KAYIP_TARAMA, BOT_KAYIP_ESKI, BOT_KONUM_YAZ
 } from "../ayarlar.js";
 
 /* ============================================================
@@ -284,7 +285,17 @@ function yaz() {
   try {
     const b = [];
     for (const [oyuncuId, liste] of defter) {
-      for (const k of liste) b.push([oyuncuId, k.botId, k.boyutId, k.durum]);
+      for (const k of liste) {
+        /* v7.99.20: son gorulen konum da (x, z). Eski surum ilk dort
+           alani okuyor, fazlasini yok sayiyor; geriye uyumlu.      */
+        if (k.konum) {
+          b.push([oyuncuId, k.botId, k.boyutId, k.durum,
+                  Math.round(k.konum.x), Math.round(k.konum.z)]);
+          k.yazilanKonum = { x: k.konum.x, z: k.konum.z };
+        } else {
+          b.push([oyuncuId, k.botId, k.boyutId, k.durum]);
+        }
+      }
     }
 
     const c = {};
@@ -347,6 +358,9 @@ function oku() {
       if (!Array.isArray(satir) || satir.length < 2) continue;
       const oyuncuId = String(satir[0]);
       const liste = defter.get(oyuncuId) || [];
+      const kx = Number(satir[4]), kz = Number(satir[5]);
+      const konum = (satir.length >= 6 && isFinite(kx) && isFinite(kz))
+        ? { x: kx, z: kz } : undefined;
       liste.push({
         botId: String(satir[1]),
         boyutId: satir[2],
@@ -354,7 +368,9 @@ function oku() {
         /* evcil bilgisi KAYDEDILMIYOR: tame() dunya yeniden
            yuklenince de gecerli mi bilmiyoruz. Ilk taramada
            yeniden deneniyor.                                   */
-        evcil: undefined
+        evcil: undefined,
+        konum,
+        yazilanKonum: konum
       });
       defter.set(oyuncuId, liste);
       sayi++;
@@ -404,6 +420,107 @@ function varligiBul(kayit) {
     hataYaz("bot.varligiBul", e);
   }
   return undefined;
+}
+
+/* ---------------- Olen / kaybolan / geri gelen bot  (v7.99.20) ----------------
+   Gerekce ayarlar.js BOT_KAYIP_* ustunde.                        */
+
+/* kosul(kayit) true olan kayitlari defterden siler. Donen: kac tane. */
+function kayitlariSil(kosul, yazilsin = true) {
+  let n = 0;
+  for (const [oyuncuId, liste] of defter) {
+    const kalan = [];
+    for (const k of liste) {
+      if (kosul(k)) {
+        n++;
+        evcilDeneme.delete(k.botId);
+        ilkelSilindi(k.botId);
+      } else {
+        kalan.push(k);
+      }
+    }
+    if (kalan.length === liste.length) continue;
+    if (kalan.length === 0) defter.delete(oyuncuId);
+    else defter.set(oyuncuId, kalan);
+  }
+  if (n > 0 && yazilsin) yaz();
+  return n;
+}
+
+/* Bulunan botun son konumu. Diske yalniz anlamli olcude
+   kimildayinca (BOT_KONUM_YAZ) gidiyor: her taramada dunya
+   ozelligi yazmak bosuna. Donen: diske yazilmali mi.        */
+function konumGuncelle(kayit, varlik) {
+  try {
+    const l = varlik.location;
+    kayit.konum = { x: l.x, z: l.z };
+    if (varlik.dimension) kayit.boyutId = varlik.dimension.id;
+  } catch (e) {
+    return false;
+  }
+  const y = kayit.yazilanKonum;
+  return !y || Math.hypot(kayit.konum.x - y.x, kayit.konum.z - y.z) > BOT_KONUM_YAZ;
+}
+
+/* Bulunamayan kayit KESIN gitmis mi? Sayac her taramada bir artiyor;
+   bot bulununca botTara sifirliyor. */
+function kayipMi(kayit, oyuncu) {
+  let boyut, l;
+  try { boyut = oyuncu.dimension.id; l = oyuncu.location; } catch (e) { return false; }
+  if (kayit.boyutId && kayit.boyutId !== boyut) { kayit.kayip = 0; return false; }
+  if (kayit.konum) {
+    /* Sahip uzaktaysa botun parcasi yuklu olmayabilir: hukum yok. */
+    if (Math.hypot(l.x - kayit.konum.x, l.z - kayit.konum.z) > BOT_KAYIP_YAKIN) {
+      kayit.kayip = 0;
+      return false;
+    }
+    kayit.kayip = (kayit.kayip || 0) + 1;
+    return kayit.kayip >= BOT_KAYIP_TARAMA;
+  }
+  kayit.kayip = (kayit.kayip || 0) + 1;
+  return kayit.kayip >= BOT_KAYIP_ESKI;
+}
+
+/* entityDie: olen bot defterden duser. Donen: dustu mu. */
+export function botOldu(varlik) {
+  if (!BOT_ACIK || !varlik) return false;
+  let tip, id;
+  try { tip = varlik.typeId; id = varlik.id; } catch (e) { return false; }
+  if (!BOT_KIMLIKLER.has(tip) || id === undefined) return false;
+  oku();
+  return kayitlariSil((k) => k.botId === id) > 0;
+}
+
+/* entityLoad: sahibini tasiyan ama defterde olmayan bot kendini
+   yeniden baglar (yanlislikla dusurulen canli bot kaybolmasin).
+   Tavan BURADA uygulanmiyor: tavan yeni bot DOGURMAYI sinirliyor,
+   var olan botun geri donmesini degil. Donen: baglandi mi.        */
+export function botYuklendi(varlik) {
+  if (!BOT_ACIK || !varlik) return false;
+  let tip;
+  try { tip = varlik.typeId; } catch (e) { return false; }
+  if (!BOT_KIMLIKLER.has(tip)) return false;
+  const sahip = botunSahibi(varlik);
+  if (!sahip) return false;
+  oku();
+  let id, boyutId, l;
+  try { id = varlik.id; boyutId = varlik.dimension.id; l = varlik.location; }
+  catch (e) { return false; }
+  const liste = defter.get(sahip) || [];
+  const eski = liste.find((k) => k.botId === id);
+  if (eski) {
+    eski.kayip = 0;
+    eski.konum = { x: l.x, z: l.z };
+    eski.boyutId = boyutId;
+    return false;
+  }
+  let durum = "takip";
+  try { if (varlik.getDynamicProperty(BOT_DURUM_OZELLIK) === "bekle") durum = "bekle"; }
+  catch (e) { /* ozellik okunamadi: takip */ }
+  liste.push({ botId: id, boyutId, durum, evcil: undefined, konum: { x: l.x, z: l.z } });
+  defter.set(sahip, liste);
+  yaz();
+  return true;
 }
 
 /* ---------------- Sorgu ---------------- */
@@ -821,11 +938,20 @@ export function botTara(oyuncular) {
     let yazBekliyor = false;
 
     let indeks = 0;
+    const gitmis = [];
     for (const kayit of liste) {
       const sira = indeks++;
 
       const v = varligiBul(kayit);
-      if (!v) continue;            // chunk yuklu degil; defterden SILME
+      if (!v) {
+        /* Parcasi yuklu degilse defterden SILME -- ama KESIN gittiyse
+           (olu) sil: yoksa sayida ve tavanda sonsuza dek kaliyordu
+           (v7.99.20, ayarlar.js BOT_KAYIP_* notu).               */
+        if (kayipMi(kayit, oyuncu)) gitmis.push(kayit);
+        continue;
+      }
+      kayit.kayip = 0;
+      if (konumGuncelle(kayit, v)) yazBekliyor = true;
 
       /* Yerden topladiklarini cantaya aktar. BEKLE kontrolunun
          USTUNDE: duran bot da esya topluyor (pickup_items hiz
@@ -896,6 +1022,10 @@ export function botTara(oyuncular) {
       }
     }
 
+    if (gitmis.length > 0) {
+      kayitlariSil((k) => gitmis.indexOf(k) !== -1, false);
+      yazBekliyor = true;
+    }
     if (yazBekliyor) yaz();
   }
 }

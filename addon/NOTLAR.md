@@ -1,3 +1,49 @@
+# v7.99.21 — İlkel Beşli yürüyor, ölen bot sayıdan düşüyor
+
+Kullanıcı: *"İlkel Beşli yürümüyor, biraz uzaklaşınca yanıma ışınlanıyorlar.
+Bir bot öldüğünde menüde hâlâ sayısı var: 30'a kadar sınırlı, 29 olması
+gerekirken hâlâ 30."* İkisi de gerçek motorda (BDS, sahte oyuncu) önce
+ölçüldü, sonra düzeltildi.
+
+## Yürüme
+
+| | önce | sonra |
+|---|---|---|
+| normal bot | 28 blok yürüdü | aynı |
+| Okazor / Miskel / El-Harkos | hız **0,00**, hiç yürümedi, betik ışınladı | 27,8 / 25,6 / 28 blok yürüdü, ışınlanma yok |
+| "bekle → takip"ten sonra | hız 0 | yine yürüyor |
+
+**Sebep:** bot çağrılınca betik `pa:takip` olayını tetikliyor; olay önce
+`pa:bekle`'yi (hız 0) kaldırıyor, sonra `pa:takip`'i ekliyor. Bedrock'ta grup
+kaldırmak içindeki hızı siliyor, temel değer geri gelmiyor. Normal botun
+`pa:takip`'i hızı yeniden yazıyordu; İlkel Beşli, O Şey ve Mutant'ta boştu.
+v4.66'da "üyenin kendi hızı gölgelenmesin" diye oradan **silinmişti**; kural
+doğruydu, çözüm yanlıştı. Artık `pa:takip` varlığın **kendi** hızını taşıyor
+(`kol_uret.py` `takip_hizini_koru`, üç üreteç). `test/ilkel.mjs` ve
+`test/o_sey.mjs` eskiden "takip grubunda hız olmasın" diyerek hatayı
+**kilitliyordu**; ikisi de düzeltildi. `test/motor_bicim.mjs` 6. bölüm
+sekiz varlığın hepsini tutuyor.
+
+El-Harkos'un pasif Hız I'i (0,42 → 0,50) ve hızlı yürüyüşü tasarım; tick tick
+ölçüldü, ışınlanma yok.
+
+## Sayı
+
+**Sebep:** tarama bulamadığı botu "parçası yüklü değil" sayıp defterden hiç
+silmiyordu; ölü bot da bulunamadığı için sonsuza dek sayılıyor ve tavanı
+dolduruyordu. Üç katman (`ayarlar.js` `BOT_KAYIP_*` notu):
+
+1. `entityDie`: bot ölünce anında düşer.
+2. Kesin gitmiş: son görüldüğü yerin 24 blok yakınındasın, 5 sn bulunamadı.
+3. Eski sürümden kalan, konumu bilinmeyen kayıt: 30 sn bulunamazsa düşer
+   (kullanıcının dünyasındaki geçmiş ölümler).
+
+Yanlış düşen canlı bot kaybolmaz: parçası yüklenince sahibini kendi
+özelliğinden okuyup **yeniden bağlanıyor**. Uzakta bekleyen bot düşmez.
+Gerçek motorda: 2 bottan biri öldü → defter 1. `test/bot.mjs` 28. bölüm;
+beş mutasyonla ısırdığı gösterildi. Sahte motora ölüm olayı eklendi
+(yoktu; ölen bot hiç sınanamıyordu).
+
 # v7.99.20 — Bot ve İlkel Beşli gerçek motorda
 
 Kullanıcı: *"İlkel Beşli ve botlar durumuna bak, hata yakalamaya çalış."*

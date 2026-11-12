@@ -348,15 +348,23 @@ console.log("=== 3. MUTANT: O SEY'DEN GUCLU AMA AYRI ===");
           Math.abs(kutu - boy) < 0.35,
           "kutu " + kutu + " · model " + boy.toFixed(2));
 
-  /* v4.66 dersi: bilesen gruplari temel bilesenleri EZIYOR. */
+  /* v4.66 dersi: bilesen gruplari temel bilesenleri EZIYOR.
+     v7.99.20: AYNI degeri tasimak ezmek degil. pa:takip Mutant'in
+     KENDI hizini tasimak ZORUNDA: "pa:takip" olayi once pa:bekle'yi
+     kaldiriyor ve Bedrock grup kaldirinca hizi siliyor (gercek
+     motorda olculdu: Ilkel Besli ve O Sey hic yurumuyordu).       */
   let ezen = [];
   for (const [grup, ic] of Object.entries(m.component_groups || {})) {
     if (grup === "pa:bekle") continue;
     for (const b of ["minecraft:attack", "minecraft:health",
                      "minecraft:movement"]) {
-      if (ic[b]) ezen.push(grup + "/" + b);
+      if (ic[b] && JSON.stringify(ic[b]) !== JSON.stringify(m.components[b])) ezen.push(grup + "/" + b);
     }
   }
+  const takipHiz = ((m.component_groups || {})["pa:takip"] || {})["minecraft:movement"];
+  kontrol("pa:takip Mutant'in KENDI hizini tasiyor (yoksa yurumez)",
+          takipHiz !== undefined && takipHiz.value === m.components["minecraft:movement"].value,
+          JSON.stringify(takipHiz));
   kontrol("hicbir grup temel sayilari EZMIYOR", ezen.length === 0,
           ezen.join(", ") || "temiz");
 }

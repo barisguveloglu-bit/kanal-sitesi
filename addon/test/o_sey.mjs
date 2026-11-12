@@ -268,9 +268,20 @@ console.log("=== 5. VARLIK VE AYARLAR AYNI SEYI SOYLUYOR ===");
   /* v4.66 dersi: bilesen gruplari temel bilesenleri EZIYOR.
      Grup icinde attack/health/movement kalirsa savasa girer
      girmez normal bot sayilarina duser.                       */
+  /* v7.99.20: pa:takip HIZ TASIMALI -- O Sey'in KENDI hizini.
+     "pa:takip" olayi once pa:bekle'yi kaldiriyor; Bedrock grup
+     kaldirinca icindeki hizi siliyor, temel deger geri gelmiyor.
+     Bu madde eskiden pa:takip'te de "movement yok" diyordu ve tam
+     o hatayi kilitliyordu: gercek motorda O Sey ve Ilkel Besli'nin
+     hizi 0'di, hic yurumuyorlardi.                              */
+  const takipHiz = ((v.component_groups || {})["pa:takip"] || {})["minecraft:movement"];
+  kontrol("pa:takip O Sey'in KENDI hizini tasiyor (yoksa yurumez)",
+          takipHiz !== undefined && takipHiz.value === v.components["minecraft:movement"].value,
+          JSON.stringify(takipHiz) + " · temel " + JSON.stringify(v.components["minecraft:movement"]));
   for (const [ad, ic] of Object.entries(v.component_groups || {})) {
     if (ad === "pa:bekle") continue;
     for (const b of ["minecraft:attack", "minecraft:health", "minecraft:movement"]) {
+      if (ad === "pa:takip" && b === "minecraft:movement") continue;   // yukarida, kendi hizi
       kontrol(ad + " grubunda " + b + " yok (v4.66)", !(b in ic));
     }
   }

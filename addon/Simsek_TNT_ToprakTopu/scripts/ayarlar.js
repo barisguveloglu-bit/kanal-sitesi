@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.99.20";
+export const SURUM = "v7.99.21";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -4820,6 +4820,32 @@ export const BOT_EVCIL_DENEME     = 5;
      BOT_SCRIPT_MENZIL (8) vanilla takip YOKKEN, botun yaninda
        kalmasi icin. Daha kucuk cunku tek kurtaran o.           */
 export const BOT_SCRIPT_MENZIL    = 8;
+
+/* ---- OLEN BOT DEFTERDEN DUSER  (v7.99.20) ----
+   Kullanici: "bir bot oldugu zaman menude hala sayisi var, 30'a
+   kadar sinirli ya, 29 olmasi gerekirken hala 30."
+   Gercek motorda olculdu: iki bottan biri oldu, dunyada bir kaldi,
+   defter iki demeye devam etti. Sebep: tarama bulamadigi botu
+   "parcasi yuklu degil" sayip defterden HIC silmiyordu; olu bot da
+   bulunamadigi icin sonsuza dek sayiliyordu ve tavani dolduruyordu.
+
+   Uc katman:
+     1. entityDie: bot olunce aninda duser (asil yol).
+     2. KESIN GITMIS: sahip, botun son goruldugu noktaya
+        BOT_KAYIP_YAKIN bloktan yakin ve bot ust uste BOT_KAYIP_TARAMA
+        taramada bulunamadi. O kadar yakindaki parca HER ZAMAN yuklu
+        (benzetim mesafesi en az 4 parca = 64 blok), yani bot oradaysa
+        bulunurdu. Olay kacarsa (baska bir eklentinin remove'u) bu tutar.
+     3. ESKI SURUM KAYDI: konumu hic bilinmeyen kayit (bu surumden once
+        olmus botlar). Sahibi ayni boyutta cevrimiciyken BOT_KAYIP_ESKI
+        tarama bulunamazsa dusuyor.
+   Yanlis dusurulen CANLI bot kaybolmaz: bot sahibini kendi ozelliginde
+   tasiyor ve parcasi yuklenince (entityLoad) kendini yeniden bagliyor.
+   Yani temizlik geri alinabilir; tarama birimi BOT_TARAMA (1 sn). */
+export const BOT_KAYIP_YAKIN  = 24;   // blok, yatay
+export const BOT_KAYIP_TARAMA = 5;    // ~5 sn
+export const BOT_KAYIP_ESKI   = 30;   // ~30 sn
+export const BOT_KONUM_YAZ    = 16;   // son yazilan konumdan bu kadar uzaklasinca diske
 
 /* ============================================================
    BOT ISLERI  --  Asama 2 (v4.27): odun topla, maden kaz

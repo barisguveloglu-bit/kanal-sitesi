@@ -187,5 +187,31 @@ console.log("=== 5. BOTA DOKUNMA: ETKILESIM BILESENI  (v7.99.20) ===");
           /bilgiYaz\("ilkel\.silah: minecraft:equippable script tarafinda yok/.test(ilkelKod));
 }
 
+console.log("");
+console.log("=== 6. TAKIP EDEN VARLIK YURUYEBILIYOR  (v7.99.20) ===");
+{
+  /* Gercek motorda olculdu: bot cagrilinca betik "pa:takip" olayini
+     tetikliyor; olay once pa:bekle'yi (hiz 0) KALDIRIYOR, sonra
+     pa:takip'i ekliyor. Grup kaldirmak icindeki hizi siliyor ve
+     temel deger geri gelmiyor. pa:takip hiz tasimiyorsa varlik
+     0 hizda kaliyor: Ilkel Besli, O Sey ve Mutant hic yurumuyordu,
+     uzaklasinca betik onlari yanina isinliyordu.                  */
+  const bozuk = [], toplam = [];
+  for (const yol of jsonlar(BP + "/entities")) {
+    const e = oku(yol)["minecraft:entity"];
+    const g = e.component_groups || {};
+    const bekleHiz = g["pa:bekle"] && g["pa:bekle"]["minecraft:movement"];
+    if (!bekleHiz) continue;                 // bekle'si hiz sifirlamiyor: konu disi
+    toplam.push(ad(yol));
+    const taban = (e.components || {})["minecraft:movement"];
+    const takip = g["pa:takip"] && g["pa:takip"]["minecraft:movement"];
+    if (!takip || !taban || takip.value !== taban.value || !(takip.value > 0)) {
+      bozuk.push(ad(yol) + " [taban " + JSON.stringify(taban) + " · takip " + JSON.stringify(takip) + "]");
+    }
+  }
+  kontrol("bekle/takip olan varliklar bulundu", toplam.length >= 8, toplam.length + " varlik");
+  kontrol("her birinin pa:takip'i kendi hizini geri yaziyor", bozuk.length === 0, kisalt(bozuk));
+}
+
 console.log(hata ? ">>> SORUN VAR" : ">>> motor bicimi temiz");
 process.exit(hata ? 1 : 0);

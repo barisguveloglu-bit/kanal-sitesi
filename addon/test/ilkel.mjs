@@ -177,11 +177,24 @@ console.log("=== 1. HER UYE KENDI VARLIGI, KENDI SKINI ===");
        KURAL: uyenin istatistigi neyse o gecerlidir. Tek
        istisna pa:bekle'nin movement 0'i -- o istatistik degil,
        DURUM ("bekle" = "kimildama").                         */
+    /* v7.99.20: pa:takip HIZI TASIMALI -- ama uyenin KENDI hizini.
+       "pa:takip" olayi once pa:bekle'yi kaldiriyor; Bedrock grup
+       kaldirinca icindeki bileseni siliyor ve temel deger geri
+       gelmiyor. Bu kural eskiden "hicbir grup hiz tasimasin"
+       diyordu ve tam o hatayi KILITLIYORDU: gercek motorda uyelerin
+       hizi dogdugu anda 0'di, hic yurumediler.                   */
+    const takipHiz = ((v.component_groups || {})["pa:takip"] || {})["minecraft:movement"];
+    kontrol(anahtar + ": pa:takip uyenin KENDI hizini tasiyor (yoksa yurumez)",
+            takipHiz !== undefined && c["minecraft:movement"] !== undefined &&
+            takipHiz.value === c["minecraft:movement"].value,
+            "takip " + JSON.stringify(takipHiz) + " · temel " + JSON.stringify(c["minecraft:movement"]));
     for (const [grup, ic] of Object.entries(v.component_groups || {})) {
       if (grup === "pa:bekle") continue;
       for (const bilesen of ["minecraft:attack", "minecraft:health",
                              "minecraft:movement"]) {
         if (ic[bilesen] === undefined || c[bilesen] === undefined) continue;
+        /* Ayni deger golgelemez: pa:takip'in hizi temelin aynisi. */
+        if (JSON.stringify(ic[bilesen]) === JSON.stringify(c[bilesen])) continue;
         kontrol(anahtar + ": " + grup + " grubu " + bilesen + " golgelemiyor",
                 false,
                 "grup " + JSON.stringify(ic[bilesen]) +

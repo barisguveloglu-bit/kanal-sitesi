@@ -1099,5 +1099,114 @@ console.log("=== UST USTE IKI BOT ISI BOTU 'BEKLE'DE BIRAKMIYOR (v7.98.2) ===");
 }
 
 console.log("");
+console.log("=== 28. OLEN BOT SAYIDAN DUSUYOR (v7.99.20 -- gercek oyun hatasi) ===");
+{
+  /* Kullanici: "bir bot oldugu zaman menude hala sayisi var, 30'a
+     kadar sinirli ya, 29 olmasi gerekirken hala 30." Gercek motorda
+     olculdu: iki bottan biri oldu, dunyada bir kaldi, defter iki dedi.
+     Sahte motorda olum olayi YOKTU; bu bolum onu kullaniyor.        */
+  const { olumTetikle, varlikYukleTetikle } = await import("@minecraft/server");
+  const tara = (n) => { sus(); tickIlerlet(ayar.BOT_TARAMA * n + 2); ac(); };
+  const kayitliSayi = () => {
+    const h = _durum.ozellikler.get(ayar.BOT_KAYIT_ANAHTAR);
+    return typeof h === "string" ? JSON.parse(h).b.length : 0;
+  };
+  const kaybet = (D, v) => {          // parcasi bosaldi: dunyada var ama bulunamiyor
+    const i = D.sayac.varliklar.indexOf(v);
+    if (i !== -1) D.sayac.varliklar.splice(i, 1);
+  };
+
+  /* 1. OLUM OLAYI: aninda duser, diske de yazilir. */
+  temizle();
+  const { D, o } = kur("b28");
+  cagir(o); tickIlerlet(ayar.BOT_DOGUM_BEKLEME || 61); cagir(o);
+  const botlar = D.sayac.varliklar.filter((v) => v.typeId === "pa:bot");
+  kontrol("iki bot cagrildi", defter.botSayisi("b28") === 2 && botlar.length === 2,
+          defter.botSayisi("b28") + " defter · " + botlar.length + " dunya");
+  botlar[0].isValid = false;
+  sus(); olumTetikle(botlar[0]); ac();
+  kontrol("bot olunce sayi 1'e dustu", defter.botSayisi("b28") === 1, String(defter.botSayisi("b28")));
+  kontrol("  ve kayitta da 1", kayitliSayi() === 1, String(kayitliSayi()));
+  /* Baskasinin olumu bizim sayimiza dokunmuyor. */
+  sus(); olumTetikle({ id: "z1", typeId: "minecraft:zombie", isValid: false }); ac();
+  sus(); olumTetikle({ id: botlar[1].id, typeId: "minecraft:zombie", isValid: true }); ac();
+  kontrol("zombinin olumu (ayni kimlikle bile) bot sayisini degistirmiyor",
+          defter.botSayisi("b28") === 1, String(defter.botSayisi("b28")));
+
+  /* 2. OLAY KACARSA: son goruldugu yerin yanindasin ama bot yok. */
+  tara(1);                                  // konum kaydedildi
+  const ikinci = botlar[1];
+  ikinci.isValid = false;                   // olay gelmeden yok oldu (remove)
+  tara(ayar.BOT_KAYIP_TARAMA - 1);
+  kontrol("olay kacinca hemen dusmuyor (parca yeni yukleniyor olabilir)",
+          defter.botSayisi("b28") === 1, String(defter.botSayisi("b28")));
+  tara(2);
+  kontrol("BOT_KAYIP_TARAMA sonra dustu (yanindaydin, yoktu)",
+          defter.botSayisi("b28") === 0, String(defter.botSayisi("b28")));
+}
+{
+  /* 3. UZAKTAKI BOT DUSMEZ: sahip son goruldugu yerden uzakta, botun
+     parcasi yuklu degil. Bu canli bir bot; silinmemeli.             */
+  const { olumTetikle, varlikYukleTetikle } = await import("@minecraft/server");
+  const tara = (n) => { sus(); tickIlerlet(ayar.BOT_TARAMA * n + 2); ac(); };
+  temizle();
+  const { D, o } = kur("b28u");
+  cagir(o);
+  const bot = botu(D);
+  tara(1);
+  defter.botDurum(o, "bekle");              // beklemede birakildi
+  uzaklastir(o, 300);                        // sahip cok uzakta
+  const i = D.sayac.varliklar.indexOf(bot); D.sayac.varliklar.splice(i, 1);   // parcasi bosaldi
+  tara(ayar.BOT_KAYIP_ESKI + 5);
+  kontrol("uzakta bekleyen bot DUSMEDI", defter.botSayisi("b28u") === 1, String(defter.botSayisi("b28u")));
+
+  /* 4. ESKI SURUM KAYDI: konumu hic bilinmeyen olu kayit. */
+  temizle();
+  const k2 = kur("b28e");
+  _durum.ozellikler.set(ayar.BOT_KAYIT_ANAHTAR,
+    JSON.stringify({ b: [["b28e", "olu_eski_bot", "minecraft:overworld", "takip"]], c: {}, s: {} }));
+  defter.defteriUnut();
+  kontrol("eski kayit okundu", defter.botSayisi("b28e") === 1);
+  tara(ayar.BOT_KAYIP_ESKI - 2);
+  kontrol("eski kayit hemen dusmuyor", defter.botSayisi("b28e") === 1);
+  tara(4);
+  kontrol("eski surumden kalan olu kayit BOT_KAYIP_ESKI sonra dustu",
+          defter.botSayisi("b28e") === 0, String(defter.botSayisi("b28e")));
+
+  /* 5. YANLIS DUSEN CANLI BOT GERI BAGLANIR (entityLoad). */
+  temizle();
+  const k3 = kur("b28g");
+  cagir(k3.o);
+  const canli = botu(k3.D);
+  defter.defteriUnut();
+  _durum.ozellikler.delete(ayar.BOT_KAYIT_ANAHTAR);     // defter bos: bot sahipsiz
+  kontrol("defter bos", defter.botSayisi("b28g") === 0);
+  sus(); varlikYukleTetikle(canli); ac();
+  kontrol("parcasi yuklenen sahipli bot kendini yeniden bagladi", defter.botSayisi("b28g") === 1,
+          String(defter.botSayisi("b28g")));
+  sus(); varlikYukleTetikle(canli); ac();
+  kontrol("  iki kez yuklenince cift kayit yok", defter.botSayisi("b28g") === 1,
+          String(defter.botSayisi("b28g")));
+  /* Sahipsiz bir bot ya da baska bir varlik baglanmiyor. */
+  sus();
+  varlikYukleTetikle({ id: "yabanci", typeId: "pa:bot", isValid: true, location: { x: 0, y: 64, z: 0 },
+                       dimension: k3.D.boyut, getDynamicProperty: () => undefined });
+  varlikYukleTetikle({ id: "zombi", typeId: "minecraft:zombie", isValid: true, location: { x: 0, y: 64, z: 0 },
+                       dimension: k3.D.boyut, getDynamicProperty: () => "b28g" });
+  ac();
+  kontrol("sahipsiz bot ve zombi baglanmadi", defter.botSayisi("b28g") === 1, String(defter.botSayisi("b28g")));
+
+  /* 6. Konum kayda giriyor ve geri okunuyor (yeniden baslatmadan sonra
+     "son goruldugu yer" bilinsin). */
+  tara(1);
+  const ham = JSON.parse(_durum.ozellikler.get(ayar.BOT_KAYIT_ANAHTAR) || "{\"b\":[]}");
+  const satir = ham.b.find((s) => s[0] === "b28g");
+  kontrol("kayit satiri konum tasiyor", satir && satir.length === 6 && isFinite(satir[4]),
+          JSON.stringify(satir));
+  defter.defteriUnut();
+  kontrol("  ve geri okununca konum bilinyor", defter.botAl("b28g") && defter.botAl("b28g").konum !== undefined);
+}
+
+console.log("");
 console.log(hata ? ">>> SORUN VAR" : ">>> tum bot testleri gecti");
 process.exit(hata ? 1 : 0);

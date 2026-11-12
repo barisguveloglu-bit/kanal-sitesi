@@ -11,7 +11,11 @@
       "pa:evcil": {
         "minecraft:is_tamed": {}
       },
-      "pa:takip": {},
+      "pa:takip": {
+        "minecraft:movement": {
+          "value": 0.42
+        }
+      },
       "pa:bekle": {
         "minecraft:movement": {
           "value": 0.0

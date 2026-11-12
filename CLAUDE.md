@@ -520,6 +520,15 @@ Mojang'ın sıkı ayarları açık, yalnız izin listesindekiler girer
   dört sayılı `applyKnockback`, erken çalıştırmada dünya okuma). Gerçek
   motor bir çağrıyı reddediyorsa taklit de reddetmeli; `test/dunya.mjs`
   `kipTak` ve `node_modules/@minecraft/server` `_durum.erken` böyle.
+- **Bedrock'ta bileşen grubu kaldırmak içindeki bileşeni siler; gövdedeki
+  temel değer geri gelmez (v7.99.21, gerçek motorda ölçüldü).** Bot,
+  İlkel Beşli ve O Şey'in `pa:takip` grubu bu yüzden varlığın **kendi** hızını
+  taşır (`kol_uret.py` `takip_hizini_koru`); boş bırakılınca "bekle → takip"
+  hızı 0'da bırakıyor ve İlkel Beşli hiç yürümüyordu. Bir gruptan bileşen
+  silmeden önce o grubu kaldıran olayı düşün.
+- **Ölen bot defterden düşer** (`entityDie` + kesin kayıp + yeniden bağlama,
+  `ayarlar.js` `BOT_KAYIP_*`). Bulunamayan botu "uzakta" sayıp sonsuza dek
+  tutmak, sayıyı ve tavanı ölü botlarla dolduruyordu.
 - **Betiğin üst düzeyinde dünyaya dokunma** (`getDynamicProperty`,
   `getAllPlayers`, `ItemTypes.get`…): 2.x'te erken çalıştırmada atıyor.
   `yardimcilar.js` `dunyaHazirOlunca` ile ertele; `test/erken_calisma.mjs`

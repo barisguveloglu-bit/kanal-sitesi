@@ -176,7 +176,9 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # uretemiyordu, hiz iksiri hiz olcumunu kapatiyordu (NOTLAR.md).
 # v7.99.20: bota dokunma (minecraft:interact yoktu), Ilkel silah
 # uyarisi sohbete HATA diye dusuyordu. Gercek motorda olculdu.
-SURUM_NO = (7, 99, 20)
+# v7.99.21: Ilkel Besli / O Sey yurumuyordu (takip grubu hizi sifirliyordu),
+# olen bot sayidan dusmuyordu. Ikisi de gercek motorda olculup duzeltildi.
+SURUM_NO = (7, 99, 21)
 
 SURUM_METIN = ".".join(map(str, SURUM_NO))
 
@@ -3318,6 +3320,9 @@ def ilkel_varliklari():
                             "minecraft:movement"):
                 if bilesen in ic and bilesen in govde["components"]:
                     del ic[bilesen]
+        # v7.99.20: silinen hizin yerine uyenin KENDI hizi (yukarida
+        # takip_hizini_koru): yoksa "pa:takip" olayi hizi 0'da birakiyor.
+        takip_hizini_koru(govde)
 
         # ---- SALDIRGANLIK (v4.60) ----
         # Bu blok SADECE Ilkel Besli'ye giriyor; normal bot
@@ -3572,6 +3577,36 @@ def lazer_animasyonu():
 
 
 BOT_ETKILESIM_YAZI = "action.interact.simsek_bot"
+
+
+# ---------------------------------------------------------------
+#  TAKIP GRUBU VARLIGIN KENDI HIZINI TASIR                (v7.99.20)
+#
+#  Kullanici: "ilkel besli yurumuyor, biraz uzaklasinca yanima
+#  isinlaniyorlar ama hic yurumuyorlar."
+#
+#  Gercek motorda (BDS, sahte oyuncu) olculdu: normal bot 28 blok
+#  YURUDU; Okazor, Miskel ve El-Harkos'un hizi DOGDUKLARI ANDA 0,00
+#  idi, hic yurumediler, uzaklasinca betik onlari yanina isinladi.
+#
+#  Sebep: bot cagrilinca betik "pa:takip" olayini tetikliyor. Olay
+#  once pa:bekle grubunu KALDIRIYOR (o grupta movement 0 var), sonra
+#  pa:takip'i EKLIYOR. Bedrock'ta grup kaldirmak icindeki bileseni
+#  varliktan siliyor -- temel bilesendeki deger GERI GELMIYOR. Normal
+#  botun pa:takip'i hizi yeniden yaziyordu (0.32), o yuzden yuruyordu.
+#  Ilkel Besli, O Sey ve Mutant'ta pa:takip BOSTU: v4.66'da "uyenin
+#  kendi hizi golgelenmesin" diye oradan silinmisti (botun 0.32'si
+#  herkesi esitliyordu). Kural dogruydu, cozum yanlisti: hizi silmek
+#  yerine pa:takip'e varligin KENDI hizini yazmak gerekiyordu.
+#
+#  Uc uretec de (ilkel, o_sey, mutant) bunu cagiriyor;
+#  test/ilkel.mjs ve test/motor_bicim.mjs kilitliyor.
+# ---------------------------------------------------------------
+def takip_hizini_koru(govde):
+    hiz = govde.get("components", {}).get("minecraft:movement")
+    takip = govde.get("component_groups", {}).get("pa:takip")
+    if hiz is not None and takip is not None:
+        takip["minecraft:movement"] = dict(hiz)     # tek duzey: {"value": x}
 
 
 def bot_sunucu_varligi():
@@ -4733,6 +4768,7 @@ def o_sey_varligi():
         for bilesen in ("minecraft:attack", "minecraft:health",
                         "minecraft:movement"):
             ic.pop(bilesen, None)
+    takip_hizini_koru(govde)        # v7.99.20, gerekce tanimin ustunde
 
     # Saldirganlik: Ilkel Besli'nin aynisi, sadece "monster"
     # ailesine. Koyun, inek, koylu guvende.
@@ -5234,6 +5270,7 @@ def mutant_varligi():
         for bilesen in ("minecraft:attack", "minecraft:health",
                         "minecraft:movement"):
             ic.pop(bilesen, None)
+    takip_hizini_koru(govde)        # v7.99.20, gerekce tanimin ustunde
     return v
 
 

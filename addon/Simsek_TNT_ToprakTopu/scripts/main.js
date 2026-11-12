@@ -378,6 +378,7 @@ import {
 import {
   botTara, botVarMi, botDurum, botGeri, botAl, botunSahibi, botDenetimi,
   botUnut, botKayitliMi, botSayisi, botYanaCagir, botSavas, savasAcikMi,
+  botOldu, botYuklendi,
   cantaDolulugu, eksikBotTurleri
 } from "./yetenekler/_bot_defteri.js";
 
@@ -3014,6 +3015,16 @@ olayaAbone("playerInteractWithEntity", (olay) => {
 dunyaHazirOlunca("kolDenetimi", kolDenetimi);
 siraDenetimi();
 dunyaHazirOlunca("botDenetimi", botDenetimi);
+
+/* ---- OLEN BOT SAYIDAN DUSER, CANLI BOT GERI BAGLANIR  (v7.99.20) ----
+   Kullanici: "bir bot oldugu zaman menude hala sayisi var." Gerekce
+   ayarlar.js BOT_KAYIP_* ustunde. Abonelik erken calistirmada serbest. */
+olayaAbone("entityDie", (olay) => {
+  try { botOldu(olay && olay.deadEntity); } catch (e) { hataYaz("bot.olum", e); }
+});
+olayaAbone("entityLoad", (olay) => {
+  try { botYuklendi(olay && olay.entity); } catch (e) { hataYaz("bot.yuklendi", e); }
+});
 
 /* ---------------- Sohbet komutlari ----------------
    Komutlarin calistiracagi isler burada baglaniyor. sohbet.js
