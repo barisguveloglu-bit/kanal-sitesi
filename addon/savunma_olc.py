@@ -66,10 +66,19 @@ KAPALI, ACIK, AYIRT, OP, IMKANSIZ = "kapali", "acik", "ayirt", "op", "imkansiz"
 OZELLIKLER = [
     # ---------------- DOVUS ----------------
     ("anti_knockback",   "dovus", "TWMF", KAPALI, "7.31", "geri itme denetimi"),
-    ("killaura",         "dovus", "TWMF", KAPALI, "7.30", "menzil + bakis acisi + CPS"),
+    # v7.99.19, gercek motorda olculdu: menzil ve bakis acisi YAKALIYOR.
+    # CPS olcumu tek kurbanda tetiklenemiyor -- motor ayni kurbana saniyede
+    # en cok 2 vurus OLAYI veriyor (210 deneme -> 21 olay); esik 14.
+    ("killaura",         "dovus", "TWMF", KAPALI, "7.30",
+     "menzil + bakis acisi (CPS olcumu tek kurbanda tetiklenemez: motor 2/sn veriyor)"),
     ("reach / hitbox_expand", "dovus", "TWMF", KAPALI, "7.30", "vurus aninda mesafe"),
     ("tp_to_player",     "dovus", "TWF", KAPALI, "7.30", "isinlanma sicramasi"),
-    ("packets_per_attack", "dovus", "W", KAPALI, "7.38", "ayni tick + ayni kurban"),
+    # v7.99.19, gercek motorda olculdu: bizim olcum HIC tetiklenmiyor,
+    # cunku motor ayni kurbana tickte tek vurus olayi veriyor (30 deneme
+    # -> 10 olay). Madde yine kapali: fazla paketler hasar da vermiyor,
+    # yani kapatan biz degil motorun kendisi.
+    ("packets_per_attack", "dovus", "W", KAPALI, "7.38",
+     "motor yutuyor: ayni kurbana tickte tek vurus olayi (olculdu); bizim olcum tetiklenmiyor"),
     ("auto_armor",       "dovus", "TMF",  AYIRT, "", "envanter otomasyonu"),
     ("auto_bow",         "dovus", "TMF",  AYIRT, "", "envanter otomasyonu"),
     ("switcher",         "dovus", "TWMF", AYIRT, "", "envanter otomasyonu"),
@@ -77,23 +86,36 @@ OZELLIKLER = [
     ("auto_crystal",     "dovus", "W",  ACIK, "", "koyma+vurma hizi olculebilir"),
 
     # ---------------- HAREKET ----------------
-    ("flying",           "hareket", "TWMF", KAPALI, "7.30", "kesintisiz yukselme"),
+    # v7.99.19, gercek motorda olculdu: 12 saniye KESINTISIZ tirmanis
+    # yakalaniyordu ama sabit yukseklikte ucan HICBIR olcume takilmiyordu.
+    # "Havada asili" olcumu eklendi (Savunma Kipi acikken, ~6 sn).
+    ("flying",           "hareket", "TWMF", KAPALI, "7.30",
+     "kesintisiz yukselme + havada asili (v7.99.19, Savunma Kipi acikken)"),
     # v7.46: suzulme eskiden TOPTAN muaf idi -- elytra takan biri
     # butun hareket denetimlerini kapatiyordu. Artik roketsiz
     # tirmanis olculuyor, gerisi hala muaf (gercek suzulme
     # roketle 30+ blok/sn yapar).
     ("elytra_fly",       "hareket", "MF",  KAPALI, "7.46",
      "suzulurken roketsiz surekli yukselme"),
-    ("speed",            "hareket", "TWF", KAPALI, "7.30", "yatay hiz"),
+    ("speed",            "hareket", "TWF", KAPALI, "7.30",
+     "yatay hiz (v7.99.19: hiz efekti esigi seviye kadar buyutuyor, tamamen kapatmiyor)"),
     ("high_jump",        "hareket", "TWF", KAPALI, "7.30", "yukselme"),
     ("air_jump",         "hareket", "TWMF", KAPALI, "7.30", "yukselme"),
     ("tap_teleport",     "hareket", "TW", KAPALI, "7.30", "isinlanma"),
-    ("vanilla_fly_bypass", "hareket", "T", KAPALI, "7.30", "ucus olcumu"),
-    ("no_clip",          "hareket", "TWMF", KAPALI, "7.38", "kati blok icinde"),
-    ("phase",            "hareket", "TWMF", KAPALI, "7.38", "kati blok icinde"),
-    ("tpmine",           "hareket", "W",  KAPALI, "7.38", "kati blok icinde"),
+    ("vanilla_fly_bypass", "hareket", "T", KAPALI, "7.30",
+     "ucus olcumu; isOnGround'a guvenmeyen havada asili olcumu (v7.99.19)"),
+    # v7.99.19: bu uc madde v7.38'den beri "kapali" yaziyordu ama olcum
+    # tek basina HIC bildirim uretemiyordu (10 sn'de en fazla 1 isaret,
+    # bildirim 4 istiyor). Gercek motorda hile taklidiyle goruldu;
+    # isaret agirligiyla duzeltildi: blogun icinde 4 saniye.
+    # Duvardan 2 saniyeden kisa surede GECEN yine gorunmez.
+    ("no_clip",          "hareket", "TWMF", KAPALI, "7.38", "kati blok icinde (4 sn; Savunma Kipi acikken)"),
+    ("phase",            "hareket", "TWMF", KAPALI, "7.38", "kati blok icinde (4 sn; hizli gecis gorunmez)"),
+    ("tpmine",           "hareket", "W",  KAPALI, "7.38", "kati blok icinde (4 sn; Savunma Kipi acikken)"),
+    # v7.99.19: tek dusus tek isaretti, bildirim 10 sn'de DORT hasarsiz
+    # dusus istiyordu. Artik ikinci hasarsiz dususte.
     ("no_fall",          "hareket", "TF", KAPALI, "7.47",
-     "esik ustu dusus + can azalmadi"),
+     "esik ustu dusus + can azalmadi (10 sn'de ikinci dususte bildirim)"),
     # v7.99.5: Alexa Special V4 (Toolbox ailesi) incelemesinde kapandi.
     ("jesus",            "hareket", "TF",  KAPALI, "7.99",
      "ayak alti sivi + ayak hizasi hava + kose/tekne dogrulamasi"),

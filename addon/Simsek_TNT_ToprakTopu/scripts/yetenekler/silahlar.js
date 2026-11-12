@@ -282,9 +282,18 @@ export function silahAtes(oyuncu, t) {
     if (h.ileri > carpma.uzak + 1) continue;
 
     try {
+      /* v7.99.19: "entityAttack". Eskiden "projectile" yaziyordu;
+         gercek motor o sebebi yalniz bir MERMI VARLIGIYLA
+         (damagingProjectile) kabul ediyor, yoksa "Cause
+         'projectile' is not valid" diye atiyor. Isin silahi
+         mermi dogurmuyor (yukarida: butce yemesin diye) -- yani
+         ateşli silahlarin isabeti HIC hasar vermiyordu ve atis
+         ayni try'daki sersemletmeyi de atliyordu. Gercek motor
+         taramasinda (tarama_dene.py) yakalandi; sahte hedef her
+         secenegi kabul ettigi icin test goremedi.               */
       if (t.hasar > 0) {
         h.varlik.applyDamage(t.hasar, {
-          cause: "projectile", damagingEntity: oyuncu
+          cause: "entityAttack", damagingEntity: oyuncu
         });
       }
       if (t.sersem) sersemlet(h.varlik, t.sersem);

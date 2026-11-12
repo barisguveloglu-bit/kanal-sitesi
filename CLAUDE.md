@@ -502,6 +502,14 @@ Mojang'ın sıkı ayarları açık, yalnız izin listesindekiler girer
   yazdığı her uyarı yanlış alarmdır ve taramayı düşürür. Gözcü'nün bir eşiğini
   ya da muafiyetini değiştirince bu ölçülür. Blok kırma/koyma, yüzme, elitra
   ve binek o aşamada **yok**.
+- **Savunma duvarı gerçek motorda (v7.99.19):** `tarama_dene.py --asama hile`
+  (~2,5 dk) her oyuncuya tek bir hile taklit ettiriyor ve Gözcü'nün kimi
+  yakaladığını, Arınma/Savunma Kipi/Yedek/Kafes Kır'ın çalışıp çalışmadığını
+  sayıyor. Gözcü'ye ya da bir savunmaya dokununca bunu koş. Test yazarken
+  **"bildirildi mi"** diye sor, "işaret kondu mu" yetmez: katı blok ve
+  hasarsız düşüş yıllarca işaret koyup hiç bildirmedi. Bir taklit "kaçtı"
+  derse önce taklidi şüphele (yön değiştiren salınım, ölü oyuncu iki kez
+  yanlış sonuç verdi). Sonuç tablosu `REFERANS_SAVUNMA_PLANI.md` sonunda.
 - **`dunya_dene.py` (v7.99.18) hazır dünyayı gerçek motorda açıyor.**
   `Efsane_Dunyasi.mctemplate` v7.85'ten beri yalnız yazılıp geri okunarak
   doğrulanıyordu ve **zeminsizdi**: yeni dünya biçiminde tek katlı düz katman

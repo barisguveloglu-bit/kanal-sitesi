@@ -29,7 +29,7 @@
    ekliyor) tarama_dene.py sayar.
    ================================================================== */
 import { spawnSimulatedPlayer as __dogur } from "@minecraft/server-gametest";
-import { GameMode as __Kip, ItemStack as __Esya } from "@minecraft/server";
+import { GameMode as __Kip, ItemStack as __Esya, InputPermissionCategory as __Girdi } from "@minecraft/server";
 import { enerjiVer as __enerjiVer } from "./enerji.js";
 const __T = (m) => console.warn("[TARAMA] " + m);
 world.afterEvents.worldLoad.subscribe(() => system.runTimeout(__basla, 100));
@@ -71,7 +71,7 @@ function __basla() {
 
     let kalan = tanimlar.map((t) => t.kimlik);
     let gecis = 1, tick = 0, bosTick = 0, asama = "durust", tur = 1;
-    let durustTick = 0, etkTick = 0, olumTick = 0;
+    let durustTick = 0, etkTick = 0, olumTick = 0, hileTick = 0;
     const sonAtis = new Map();
     const komutlar = __KOMUTLAR;
     let komutSira = 0, esyaSira = 0;
@@ -80,7 +80,7 @@ function __basla() {
     const bakim = () => {
       /* Durust asamada oyunculara DOKUNULMAZ: efekt, isinlama ve
          hedef yaratik hareket olcumunu kirletirdi.               */
-      if (asama === "durust" || asama === "olum") return;
+      if (asama === "durust" || asama === "hile" || asama === "olum") return;
       try { boyut.runCommand("fill 0 290 0 41 290 41 bedrock"); } catch (e) { /* yuklu degil */ }
       try { boyut.runCommand("fill 1 291 1 40 300 40 air replace water"); } catch (e) {}
       try { boyut.runCommand("fill 1 291 1 40 300 40 air replace lava"); } catch (e) {}
@@ -147,12 +147,24 @@ function __basla() {
       }
       if (d === 0) {
         __T("ASAMA durust");
+        /* Savunma Kipi DURUST oyunda da acik: kati blok, su ustu ve
+           havada asili olcumleri yalniz o acikken blok okuyor. Kapali
+           kalsaydi bu uc olcumun yanlis alarmi gercek motorda hic
+           sinanmazdi (ilk yazilista boyleydi). Hile asamasi sonunda
+           kapaniyor; Savunma Kipi ac-kapa.                         */
+        if (gec(oy[3])) sor(oy[3], "scriptevent s:k savunma");
         try {
           boyut.runCommand("fill 1 291 1 40 300 40 air");
-          for (let b = 0; b < 4; b++) {
-            boyut.runCommand("fill 4 " + (291 + b) + " " + (26 + b) + " 37 " + (291 + b) + " " + (26 + b) + " stone");
+          /* Yarim basamakli rampa: oyuncu 0,5 blogu ziplamadan cikar,
+             yani cikis yol bulmaya bagli degil. Ilk yazilista tam
+             basamaklardi ve navigateToLocation cogu kosuda cikamadi
+             (zirve 1,6) -- dusus hic sinanmiyordu.                 */
+          for (let b = 0; b < 8; b++) {
+            const z = 24 + b, tam = Math.floor((b + 1) / 2);
+            if (tam > 0) boyut.runCommand("fill 4 291 " + z + " 37 " + (290 + tam) + " " + z + " stone");
+            if ((b + 1) % 2 === 1) boyut.runCommand("fill 4 " + (291 + tam) + " " + z + " 37 " + (291 + tam) + " " + z + " smooth_stone_slab");
           }
-          boyut.runCommand("fill 4 294 30 37 294 32 stone");
+          boyut.runCommand("fill 4 291 32 37 294 34 stone");
         } catch (e) { __T("durust sahne kurulamadi: " + e); }
       }
       for (let i = 0; i < oy.length; i++) {
@@ -176,7 +188,7 @@ function __basla() {
             const orta = (yer(i).x + yer(es).x) / 2;
             p.moveToLocation({ x: orta + (i % 2 === 0 ? -1.2 : 1.2), y: 291, z: 14.5 });
           }
-          if (d >= 700 && d < 900 && d % 13 === (i % 2) * 6) {                          // yakin dovus
+          if (d >= 700 && d < 830 && d % 13 === (i % 2) * 6) {                          // yakin dovus
             /* attack() GERCEK vurus: nisangahtaki hedefe, oyunun
                kendi menzilinde. attackEntity kullanilmiyor -- o her
                mesafeden vurur, yani kendisi bir menzil hilesi olurdu.
@@ -190,8 +202,8 @@ function __basla() {
               else { p.stopMoving(); p.attack(); }
             }
           }
-          if (d === 900) p.navigateToLocation({ x: k.x, y: 295, z: 31.5 });             // basamak
-          if (d === 1100) p.moveToLocation({ x: k.x, y: 291, z: 36.5 });                // dus
+          if (d === 900) p.moveToLocation({ x: k.x, y: 295, z: 33.5 });                 // rampa
+          if (d === 1100) p.moveToLocation({ x: k.x, y: 291, z: 38.5 });                // 4 blok dus
           if (d === 1200) p.stopMoving();
         } catch (e) { __T("durust adim atti (" + d + "): " + e); }
       }
@@ -203,8 +215,230 @@ function __basla() {
             " vurus=" + durustVurus);
         try { boyut.runCommand("fill 1 291 1 40 300 40 air"); } catch (e) {}
         for (const p of oy) { if (gec(p)) { try { p.teleport(yer(p.__yuva), { dimension: boyut }); } catch (e) {} } }
-        __T("ASAMA yetenek");
-        asama = "yetenek";
+        __T("ASAMA hile");
+        asama = "hile";
+      }
+    };
+
+    /* ---- 0b. SAVUNMA DUVARI: HILE TAKLIDI ----
+       Tablodaki "kapali" maddeler gercek motorda yakalaniyor mu?
+       Her turda her oyuncunun TEK rolu var; Gozcu'nun uyarisi
+       oyuncu adini tasidigi icin hangi rolun yakalandigi belli.
+       tarama_dene.py rol tablosunu "HILE-ROL" satirindan okuyor.
+
+       SINIR: bu bir TAKLIT. Vurus tarafi gercek (entityHitEntity,
+       gercek konum ve bakis); komut tarafi gercek (komutlarin
+       kendisi). Hareket tarafi ISINLAMA ile kuruluyor: gercek bir
+       hileli istemci konumu paketle yollar, sunucunun gordugu
+       konum ayni olsa da isFalling / isFlying gibi durum bayraklari
+       farkli olabilir. "yoklama" diye isaretli roller bir iddiayi
+       sinamiyor, yalniz ne oldugunu kayda yaziyor.               */
+    const TUR = 320;
+    const capa = oy.map(() => null);
+    const isinla = (p, x, y, z) => p.teleport({ x, y, z }, { dimension: boyut });
+    const sor = (p, k) => { try { p.runCommand(k); } catch (e) { __T("HILE komut atti [" + k + "]: " + e); } };
+    const blokTip = (x, y, z) => { try { const b = boyut.getBlock({ x, y, z }); return b ? b.typeId : "?"; } catch (e) { return "?"; } };
+    const kipi = (p) => { try { return String(p.getGameMode()); } catch (e) { return "?"; } };
+    const girdiAcik = (p, tur) => { try { return p.inputPermissions.isPermissionCategoryEnabled(tur); } catch (e) { return "okunamadi:" + e; } };
+    const bastaki = (p) => { try { const e = p.getComponent("minecraft:equippable").getEquipment("Head"); return e ? e.typeId : "bos"; } catch (e) { return "okunamadi"; } };
+    const elmas = (p) => {
+      try {
+        const kap = p.getComponent("inventory").container; let n = 0;
+        for (let s = 0; s < kap.size; s++) { const e = kap.getItem(s); if (e && e.typeId === "minecraft:diamond") n += e.amount; }
+        return n;
+      } catch (e) { return -1; }
+    };
+    const ROLLER = [
+      ["hiz", "isinlanma", "menzil", "kurban", "bakmadan", "kurban"],
+      ["cps", "kurban", "aynitick", "kurban", "kip", "kati"],
+      ["geriitme", "vuran", "yukselme", "asili", "kafes", "komut"],
+      ["hiz_efekt", "kurban", "kurban", "kurban", "kurban", "kurban"],
+    ];
+    /* Motor bir oyuncunun vuruslarindan kacini OLAY olarak veriyor?
+       Gozcu'nun CPS ve "ayni tick" olcumleri entityHitEntity sayiyor;
+       motor fazla vuruslari yutuyorsa o olcumler hic tetiklenmez.   */
+    const vurusDefteri = new Map();           // ad -> tick listesi
+    try {
+      world.afterEvents.entityHitEntity.subscribe((olay) => {
+        try {
+          if (asama !== "hile") return;
+          const v = olay.damagingEntity;
+          if (!v || v.typeId !== "minecraft:player") return;
+          const l = vurusDefteri.get(v.name) || [];
+          l.push(system.currentTick); vurusDefteri.set(v.name, l);
+        } catch (e) { /* olcum onemsiz */ }
+      });
+    } catch (e) { __T("vurus defteri kurulamadi: " + e); }
+    const vurusOzeti = (tur) => {
+      const parca = [];
+      for (const [ad, l] of vurusDefteri) {
+        let enSn = 0, enTick = 0;
+        for (let a = 0; a < l.length; a++) {
+          let sn = 0, tk = 0;
+          for (let b = a; b < l.length && l[b] - l[a] < 20; b++) { sn++; if (l[b] === l[a]) tk++; }
+          if (sn > enSn) enSn = sn; if (tk > enTick) enTick = tk;
+        }
+        parca.push(ad + "=" + l.length + "/" + enSn + "/" + enTick);
+      }
+      __T("HILE-VURUS tur=" + tur + " (toplam/enCokSn/enCokTick) " + parca.join(" "));
+      vurusDefteri.clear();
+    };
+    const hileAdim = () => {
+      const h = hileTick++;
+      const tur = Math.floor(h / TUR), r = h % TUR;
+      if (r === TUR - 1 && tur < ROLLER.length) vurusOzeti(tur + 1);
+      if (tur >= ROLLER.length) {
+        if (r === 0) { if (gec(oy[3])) sor(oy[3], "scriptevent s:k savunma"); }
+        if (r === 20) {
+          try { boyut.runCommand("fill 1 291 1 40 300 40 air"); } catch (e) {}
+          for (const p of oy) {
+            if (!gec(p)) continue;
+            try { p.setGameMode(__Kip.Survival); p.teleport(yer(p.__yuva), { dimension: boyut }); } catch (e) {}
+          }
+          /* --asama hile: yalniz durust oyun + savunma duvari (~3 dk). */
+          if (__SON_ASAMA === "hile") { __T("BITTI"); system.clearRun(id); asama = "bitti"; return; }
+          __T("ASAMA yetenek");
+          asama = "yetenek";
+        }
+        return;
+      }
+      const rol = ROLLER[tur];
+      if (r === 0) {
+        __T("HILE-ROL tur=" + (tur + 1) + " " + oy.map((p, i) => (gec(p) ? p.name : "?") + "=" + rol[i]).join(" "));
+        try { boyut.runCommand("fill 1 291 1 40 300 40 air"); } catch (e) {}
+        for (let i = 0; i < oy.length; i++) {
+          const p = oy[i]; if (!gec(p)) continue;
+          const k = yer(i);
+          try {
+            /* Durust dovuste olen oyuncu vuramaz ve vurulamaz: ilk
+               kosuda iki "kacti" sonucu boyle cikti (olu oyuncu).   */
+            try { p.respawn(); } catch (e2) { /* zaten hayatta */ }
+            p.stopMoving();
+            sor(p, "effect @s instant_health 1 20 true");
+            p.addEffect("resistance", TUR + 40, { amplifier: 4, showParticles: false });
+            isinla(p, k.x, 291, k.z);
+            capa[i] = { x: k.x, y: 291, z: k.z };
+          } catch (e) { __T("HILE kurulum atti: " + e); }
+        }
+        return;
+      }
+      if (r < 40) return;                       // af pencereleri kapansin
+      const d = r - 40;
+      for (let i = 0; i < oy.length; i++) {
+        const p = oy[i]; if (!gec(p)) continue;
+        const k = yer(i), es = oy[i % 2 === 0 ? i + 1 : i - 1];
+        try {
+          switch (rol[i]) {
+            case "hiz": {                        // 20 blok/sn, yerde
+              const s = d % 40; const z = k.z + (s < 20 ? s : 40 - s) * 1.0;
+              if (d < 220) isinla(p, k.x, 291, z);
+              break;
+            }
+            case "hiz_efekt": {                  // Hiz I iksiri + 20 blok/sn (iksirin aciklayamayacagi hiz)
+              if (d === 0) p.addEffect("speed", TUR, { amplifier: 0, showParticles: false });
+              const s = d % 40; const z = k.z + (s < 20 ? s : 40 - s) * 1.0;
+              if (d > 2 && d < 220) isinla(p, k.x, 291, z);
+              break;
+            }
+            case "isinlanma":                    // 20 blokluk sicrama
+              if (d < 220 && d % 15 === 0) isinla(p, k.x, 291, (Math.floor(d / 15) % 2) ? k.z + 20 : k.z);
+              break;
+            case "menzil":                       // 7 bloktan vurus
+              if (d === 0) { isinla(p, k.x, 291, k.z); isinla(es, k.x, 291, k.z + 7); }
+              if (d > 10 && d < 220 && d % 10 === 0 && gec(es)) { p.lookAtEntity(es); p.attackEntity(es); }
+              break;
+            case "bakmadan":                     // hedefe arkasi donuk vurus
+              if (d === 0) { isinla(p, k.x, 291, k.z); isinla(es, k.x, 291, k.z + 2); }
+              if (d > 10 && d < 220 && d % 10 === 0 && gec(es)) { p.setRotation({ x: 0, y: 180 }); p.attackEntity(es); }
+              break;
+            case "cps":                          // saniyede 20 vurus
+              if (d === 0) { isinla(p, k.x, 291, k.z); isinla(es, k.x, 291, k.z + 2); }
+              if (d > 10 && d < 220 && gec(es)) { p.lookAtEntity(es); p.attackEntity(es); }
+              break;
+            case "aynitick":                     // tek tickte uc vurus
+              if (d === 0) { isinla(p, k.x, 291, k.z); isinla(es, k.x, 291, k.z + 2); }
+              if (d > 10 && d < 220 && d % 20 === 0 && gec(es)) {
+                p.lookAtEntity(es); p.attackEntity(es); p.attackEntity(es); p.attackEntity(es);
+              }
+              break;
+            case "kip":                          // yaratici kipe gec
+              if (d === 10) p.setGameMode(__Kip.Creative);
+              if (d === 80) __T("HILE-SONUC kip sonra=" + kipi(p));
+              break;
+            case "kati":                         // kati blogun icinde dur
+              if (d === 0) boyut.runCommand("fill " + Math.floor(k.x) + " 291 " + Math.floor(k.z + 6) + " " + Math.floor(k.x) + " 292 " + Math.floor(k.z + 6) + " stone");
+              /* Blogun ICINDE yavasca kayiyor: olcum "kimildadi mi" diye
+                 soruyor ve ornekler 10 tickte bir -- iki ornek arasinda
+                 ayni yere donen bir salinim hareketsiz gorunur.        */
+              if (d > 5 && d < 220) isinla(p, k.x + ((d % 14) / 14 - 0.5) * 0.3, 291, k.z + 6);
+              break;
+            case "geriitme": {                   // vurulunca itilmiyor, yana kayiyor
+              /* Velocity hilesi acik biri kosmaya devam eder: 5 sn'de
+                 bir yon degistiren, 1,2 blok/sn'lik yana kayma. Ilk
+                 yazilista 1 sn'de bir donen bir salinimdi; donus
+                 noktalarinda olcumun "kimildadi" esigi (0,3 blok)
+                 tutmuyor ve sonuc rastlantiya kaliyordu.            */
+              if (d === 0) { isinla(p, k.x, 291, k.z); isinla(es, k.x + 1.5, 291, k.z + 2.2); }
+              if (d > 5 && d < 220) { const s = d % 100; isinla(p, k.x + (s < 50 ? s : 100 - s) * 0.06, 291, k.z); }
+              break;
+            }
+            case "vuran":                        // geriitme rolunun rakibi: gercek vurus
+              /* 7 tickte bir: Gozcu geri itmeyi vurustan 6-10 tick sonra,
+                 10 tickte bir kosan taramada olcuyor. 10 tickte bir vuran
+                 taklit hep ayni evreye dusup ya hep olculuyor ya hic.    */
+              if (d > 10 && d < 220 && d % 7 === 0 && gec(es)) { p.lookAtEntity(es); p.attack(); }
+              break;
+            case "yukselme":                     // kesintisiz yukselme
+              /* 12 saniye KESINTISIZ: olcum 6 ornekte bir isaret veriyor,
+                 bildirim 4 isaret istiyor.                            */
+              if (d < 250) isinla(p, k.x, 291 + d * 0.055, k.z);
+              if (d === 150) __T("HILE-DURUM yukselme dusuyor=" + p.isFalling + " ucuyor=" + p.isFlying + " yerde=" + p.isOnGround);
+              break;
+            case "asili":                        // YOKLAMA: havada sabit yukseklikte yuru
+              if (d < 200) isinla(p, k.x + (d % 40 < 20 ? d % 40 : 40 - d % 40) * 0.15, 294.5, k.z);
+              if (d === 150) __T("HILE-DURUM asili dusuyor=" + p.isFalling + " ucuyor=" + p.isFlying + " yerde=" + p.isOnGround);
+              break;
+            case "kafes": {                      // bloklarla hapsedilme -> Kafes Kir
+              const bx = Math.floor(k.x), bz = Math.floor(k.z);
+              if (d === 0) boyut.runCommand("fill " + (bx - 1) + " 290 " + (bz - 1) + " " + (bx + 1) + " 293 " + (bz + 1) + " obsidian hollow");
+              if (d === 20) __T("HILE-SONUC kafes once=" + blokTip(bx + 1, 291, bz));
+              if (d === 30) sor(p, "scriptevent s:k kafes");
+              if (d === 120) __T("HILE-SONUC kafes sonra=" + blokTip(bx + 1, 291, bz) + " ust=" + blokTip(bx, 293, bz));
+              break;
+            }
+            case "komut":                        // komut saldirisi -> Arinma / Savunma Kipi / Yedek
+              if (d === 0) {
+                sor(p, "inputpermission set @s movement disabled");
+                sor(p, "inputpermission set @s camera disabled");
+                sor(p, "effect @s blindness 600 1 true");
+                sor(p, "effect @s slowness 600 5 true");
+                sor(p, 'replaceitem entity @s slot.armor.head 0 carved_pumpkin 1 0 {"item_lock":{"mode":"lock_in_slot"}}');
+                sor(p, 'fog @s push minecraft:fog_hell "13"');
+                sor(p, "title @s title kapali");
+              }
+              if (d === 10) __T("HILE-SONUC komut once hareket=" + girdiAcik(p, __Girdi.Movement) + " kamera=" + girdiAcik(p, __Girdi.Camera) +
+                                " korluk=" + !!p.getEffect("blindness") + " yavaslik=" + !!p.getEffect("slowness") + " bas=" + bastaki(p));
+              if (d === 12) sor(p, "scriptevent s:k arin");
+              if (d === 40) __T("HILE-SONUC komut arin hareket=" + girdiAcik(p, __Girdi.Movement) + " kamera=" + girdiAcik(p, __Girdi.Camera) +
+                                " korluk=" + !!p.getEffect("blindness") + " yavaslik=" + !!p.getEffect("slowness") + " bas=" + bastaki(p));
+              /* Dongu halinde kilit: Savunma Kipi kendiliginden acmali. */
+              /* Savunma Kipi acilirken envanteri KENDISI yedekliyor
+                 (YEDEK_OTOMATIK) ve elle yedek 5 dk bekliyor. Elmaslar
+                 o yedege girsin diye ONCE veriliyor.                  */
+              if (d === 45) { p.giveItem(new __Esya("minecraft:diamond", 5), false); }
+              if (d === 50) sor(p, "scriptevent s:k savunma");
+              if (d === 70) { sor(p, "inputpermission set @s movement disabled"); sor(p, "effect @s blindness 600 1 true"); }
+              if (d === 72) __T("HILE-SONUC komut dongu once hareket=" + girdiAcik(p, __Girdi.Movement) + " korluk=" + !!p.getEffect("blindness"));
+              if (d === 150) __T("HILE-SONUC komut dongu sonra hareket=" + girdiAcik(p, __Girdi.Movement) + " korluk=" + !!p.getEffect("blindness"));
+              if (d === 152) sor(p, "scriptevent s:k savunma");
+              /* /clear -> Envanter Yedegi */
+              if (d === 175) { __T("HILE-SONUC komut yedek once elmas=" + elmas(p)); sor(p, "clear @s"); }
+              if (d === 180) { __T("HILE-SONUC komut yedek silindi elmas=" + elmas(p)); sor(p, "scriptevent s:k yukle"); }
+              if (d === 200) __T("HILE-SONUC komut yedek sonra elmas=" + elmas(p));
+              break;
+            default: break;                      // kurban: yerinde durur
+          }
+        } catch (e) { __T("HILE adim atti (" + rol[i] + "," + d + "): " + e); }
       }
     };
 
@@ -212,6 +446,7 @@ function __basla() {
       tick++;
       if (tick % 40 === 0) bakim();
       if (asama === "durust") { durustAdim(); return; }
+      if (asama === "hile") { hileAdim(); return; }
       if (asama === "yetenek") {
         if (kalan.length === 0) {
           bosTick++;

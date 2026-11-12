@@ -69,7 +69,11 @@ BEKLENEN = (
 # Durust asamanin gercekten oynandigini gosteren alt sinirlar: her oyuncu
 # en az bu kadar yol yurumus, biri en az bu hiza (kosarak ziplama ~7 blok/sn)
 # ve bu yukseklige (sahanlik 4 blok) cikmis, en az bu kadar vurus isabet etmis.
-DURUST_EN_AZ = {"yol": 80.0, "hiz": 6.0, "zirve": 3.5, "vurus": 20}
+# (zirve 3,5: sahanlik 4 blok. v7.99.19'dan beri yarim basamakli rampa;
+# once tam basamakti ve yol bulma cogu kosuda cikamiyordu, dusus sinanmiyordu.)
+# (yol 40: sahte oyuncunun yol bulmasi degisken, olculen en az 52 ile 150
+# arasi. Bos gecen bir asama 0'a yakin cikar; esik onu ayirmaya yeter.)
+DURUST_EN_AZ = {"yol": 40.0, "hiz": 6.0, "zirve": 3.5, "vurus": 12}
 
 EK_KOMUTLAR = [
     "can 10", "bot elmas 4", "bot bekle", "bot takip", "bot geri", "jujutsu gojo",
@@ -79,7 +83,7 @@ EK_KOMUTLAR = [
 ]
 
 
-def hazirla(kok):
+def hazirla(kok, son_asama="hepsi"):
     """Deneme kopyasini taramaya hazirlar. Donen: geri alma islevi."""
     bp = os.path.join(kok, "behavior_packs", PAKET)
     if not os.path.isdir(bp):
@@ -117,8 +121,9 @@ def hazirla(kok):
         kanca, kanca + '  console.warn("[TARAMA-SOHBET] " + metin);\n'))
     ek = open(os.path.join(BURASI, "tarama_eki.js"), encoding="utf-8").read()
     with open(os.path.join(bp, "scripts", "main.js"), "a", encoding="utf-8") as f:
-        f.write("\nconst __KOMUTLAR = %s;\nconst __TUM_ESYALAR = %s;\n"
-                % (json.dumps(komutlar, ensure_ascii=False), json.dumps(esyalar)))
+        f.write("\nconst __KOMUTLAR = %s;\nconst __TUM_ESYALAR = %s;\nconst __SON_ASAMA = %s;\n"
+                % (json.dumps(komutlar, ensure_ascii=False), json.dumps(esyalar),
+                   json.dumps(son_asama)))
         f.write(ek)
 
     # 2. manifest: sahte oyuncu modulu
@@ -164,6 +169,150 @@ def gozcu_ozeti(satirlar):
     return c
 
 
+# ---- SAVUNMA DUVARI: hile taklidi asamasi ----
+# rol -> Gozcu uyarisinda aranacak parca. Bu roller savunma_olc.py'de
+# "kapali" sayilan maddelerin gercek motordaki karsiligi.
+HILE_GOZCU = {
+    "hiz": "hız ",
+    "isinlanma": "ışınlanma",
+    "menzil": "menzil ",
+    "bakmadan": "bakmadan vurus",
+    "kip": "oyun kipi creative",
+    "kati": "katı blok içinde",
+    "geriitme": "geri itilmedi",
+    "yukselme": "kesintisiz yükselme",
+    "hiz_efekt": "hız ",
+    # v7.99.19'a kadar yoklamaydi: olcumu yoktu, Gozcu sessiz kaliyordu.
+    "asili": "havada asılı",
+}
+# Bir iddiayi sinamayan roller: ne oldugu yalniz kayda yazilir.
+#
+# cps / aynitick NEDEN YOKLAMA: ilk kosuda (2026-11-12) ikisi de "kacti"
+# cikti ve sebep Gozcu degil MOTORDU. Sahte oyuncu ayni kurbana tick basina
+# bir (210) ve tickte uc (30) vurus denedi; motor 21 ve 10 vurus OLAYI verdi:
+# saniyede en cok 2, tickte en cok 1 (kurbanin 10 tick'lik dokunulmazligi).
+# Yani Gozcu'nun "saniyede >14 vurus" ve "ayni tickte >1 vurus" olcumleri
+# TEK KURBANDA tetiklenemiyor -- ama o fazla vuruslar hasar da vermiyor.
+HILE_YOKLAMA = {
+    "cps": "saniyede 20 vurus denemesi (motor fazlasini yutuyor)",
+    "aynitick": "ayni tickte 3 vurus denemesi (motor fazlasini yutuyor)",
+}
+
+
+def hile_ozeti(satirlar):
+    """Hile asamasi -> [(rol, durum, ayrinti)].
+
+    durum: "yakalandi" / "KACTI" (Gozcu), "calisti" / "CALISMADI" (Arinma,
+    Kafes Kir, Yedek), "yoklama" (iddia yok)."""
+    asama, roller, uyarilar, sonuc, durum = "", {}, collections.defaultdict(list), {}, {}
+    tur, rol_turu, vurus = 0, {}, {}
+    for s in satirlar:
+        m = re.search(r"\[TARAMA\] ASAMA (\w+)", s)
+        if m:
+            asama = m.group(1)
+            continue
+        if asama != "hile":
+            continue
+        m = re.search(r"\[TARAMA\] HILE-ROL tur=(\d+) (.*)", s)
+        if m:
+            tur = int(m.group(1))
+            for cift in m.group(2).split():
+                ad, _, rol = cift.partition("=")
+                roller[rol] = ad
+                rol_turu[rol] = tur
+            continue
+        m = re.search(r"\[TARAMA\] HILE-VURUS tur=(\d+) \S+ (.*)", s)
+        if m:
+            for cift in m.group(2).split():
+                ad, _, sayi = cift.partition("=")
+                vurus[(int(m.group(1)), ad)] = sayi
+            continue
+        m = re.search(r"\[TARAMA\] HILE-SONUC (.*)", s)
+        if m:
+            # "komut dongu once hareket=false korluk=true" -> anahtar
+            # "komut dongu once", degerler sozluk. Ayni anahtar iki
+            # satirda gelirse (kafes once / kafes sonra) birlesir.
+            ilk = re.match(r"((?:[a-z]+ )+?)(\w+=.*)", m.group(1))
+            if ilk:
+                sonuc.setdefault(ilk.group(1).strip(), {}).update(
+                    x.split("=", 1) for x in ilk.group(2).split())
+            continue
+        m = re.search(r"\[TARAMA\] HILE-DURUM (\w+) (.*)", s)
+        if m:
+            durum[m.group(1)] = m.group(2)
+            continue
+        m = re.search(r"\[TARAMA-SOHBET\] (.*)", s)
+        if m and "Gözcü" in m.group(1):
+            duz = re.sub(r"§.", "", m.group(1))
+            ad = re.search(r"Gözcü: (\S+)", duz)
+            if ad:
+                # Uyari hangi TURDA geldiyse o turun rolune yazilir: ayni
+                # oyuncu her turda baska bir rol oynuyor.
+                uyarilar[(tur, ad.group(1))].append(duz)
+    c = []
+    if not roller:
+        return c
+    for rol, parca in HILE_GOZCU.items():
+        ad = roller.get(rol)
+        kendi = uyarilar.get((rol_turu.get(rol), ad), [])
+        bulunan = [u for u in kendi if parca in u]
+        ek = ""
+        if (rol_turu.get(rol), ad) in vurus:
+            ek += " · vurus olayi (toplam/enCokSn/enCokTick) %s" % vurus[(rol_turu.get(rol), ad)]
+        if rol == "kip":
+            sonra = sonuc.get("kip", {}).get("sonra", "?")
+            ek = " · kip geri alindi: %s" % sonra
+            if bulunan and sonra.lower() == "creative":
+                c.append((rol, "KACTI", "uyari var ama kip geri alinmadi (%s)" % sonra))
+                continue
+        if rol in durum:
+            ek += " · " + durum[rol]
+        if bulunan:
+            c.append((rol, "yakalandi", re.sub(r"^.*Gözcü: \S+ · ", "", bulunan[0])[:90] + ek))
+        else:
+            baska = [re.sub(r"^.*Gözcü: \S+ · ", "", u)[:60] for u in kendi]
+            c.append((rol, "KACTI", ("baska uyari: " + " | ".join(baska[:2]) if baska else "hic uyari yok") + ek))
+    for rol, ne in HILE_YOKLAMA.items():
+        ad = roller.get(rol)
+        gor = [re.sub(r"^.*Gözcü: \S+ · ", "", u)[:70] for u in uyarilar.get((rol_turu.get(rol), ad), [])]
+        olay = vurus.get((rol_turu.get(rol), ad))
+        c.append((rol, "yoklama", ne + " -> " +
+                  ("vurus olayi toplam/enCokSn/enCokTick %s · " % olay if olay else "") +
+                  (" | ".join(gor[:2]) if gor else "Gozcu sessiz") +
+                  (" · " + durum[rol] if rol in durum else "")))
+    # Arinma
+    a = sonuc.get("komut arin")
+    o = sonuc.get("komut once")
+    if a and o:
+        kilitliydi = (o.get("hareket") == "false" and o.get("korluk") == "true" and
+                      o.get("bas", "").endswith("carved_pumpkin"))
+        acildi = (a.get("hareket") == "true" and a.get("kamera") == "true" and
+                  a.get("korluk") == "false" and a.get("yavaslik") == "false" and
+                  not a.get("bas", "").endswith("carved_pumpkin"))
+        c.append(("arinma", "calisti" if (kilitliydi and acildi) else "CALISMADI",
+                  "once %s -> sonra %s" % (o, a)))
+    else:
+        c.append(("arinma", "CALISMADI", "olcum satiri yok"))
+    do, ds = sonuc.get("komut dongu once"), sonuc.get("komut dongu sonra")
+    if do and ds:
+        tamam = (do.get("hareket") == "false" and ds.get("hareket") == "true" and ds.get("korluk") == "false")
+        c.append(("savunma kipi (dongu)", "calisti" if tamam else "CALISMADI", "once %s -> sonra %s" % (do, ds)))
+    else:
+        c.append(("savunma kipi (dongu)", "CALISMADI", "olcum satiri yok"))
+    yo, ysil, ys = sonuc.get("komut yedek once"), sonuc.get("komut yedek silindi"), sonuc.get("komut yedek sonra")
+    if yo and ysil and ys:
+        tamam = (int(yo["elmas"]) > 0 and int(ysil["elmas"]) == 0 and ys["elmas"] == yo["elmas"])
+        c.append(("envanter yedegi (/clear)", "calisti" if tamam else "CALISMADI",
+                  "elmas %s -> %s -> %s" % (yo["elmas"], ysil["elmas"], ys["elmas"])))
+    else:
+        c.append(("envanter yedegi (/clear)", "CALISMADI", "olcum satiri yok"))
+    kafes = sonuc.get("kafes", {})
+    tamam = (kafes.get("once") == "minecraft:obsidian" and kafes.get("sonra") == "minecraft:air")
+    c.append(("kafes kir", "calisti" if tamam else "CALISMADI",
+              "duvar: %s -> %s" % (kafes.get("once", "?"), kafes.get("sonra", "?"))))
+    return c
+
+
 def ozetle(satirlar):
     """Kayit -> (calisan, hic_calismayan, istisnalar, hatalar, bitti)."""
     calisan, hic, istisna, bitti = set(), None, [], False
@@ -177,6 +326,7 @@ def ozetle(satirlar):
             elif t.startswith("HIC CALISMAYAN:"):
                 hic = [x for x in t.split(":", 1)[1].strip().split(",") if x]
             elif t.startswith(("ISTISNA", "TETIK ISTISNA", "KURULAMADI", "esya atti", "komut atti",
+                               "HILE adim atti", "HILE komut atti", "HILE kurulum atti",
                                "durust adim atti", "dokunma atti", "etkilesim atti",
                                "oldurme atti", "yeniden dogus atti")):
                 istisna.append(t[:300])
@@ -194,6 +344,8 @@ def main():
     p.add_argument("--hedef", default=os.environ.get("SUNUCU_KOK",
                                                      os.path.expanduser("~/simsek_sunucu")))
     p.add_argument("--sure", type=int, default=900)
+    p.add_argument("--asama", choices=("hepsi", "hile"), default="hepsi",
+                   help="hile: yalniz durust oyun + savunma duvari (~3 dk), yetenekler kosmaz")
     p.add_argument("--deneme", action="store_true",
                    help="bu klasorun DENEME kurulumu oldugunu onayla (dunya bozulur)")
     a = p.parse_args()
@@ -213,7 +365,7 @@ def main():
         print("  Tarama dunyayi bozar. Baska bir klasore kur ve orayi tara.")
         return 1
 
-    geri_al, n_komut, n_esya = hazirla(kok)
+    geri_al, n_komut, n_esya = hazirla(kok, a.asama)
     print("hazir: %d komut, %d esya; sunucu aciliyor" % (n_komut, n_esya))
     t0 = time.time()
     acildi = False
@@ -236,6 +388,8 @@ def main():
         sorun.append("tarama %d sn icinde bitmedi" % a.sure)
     if hic:
         sorun.append("hic calismayan yetenek: " + ", ".join(hic))
+    if a.asama == "hepsi" and bitti and len(calisan) == 0:
+        sorun.append("hicbir yetenek calismadi")
     for t in istisna:
         sorun.append("istisna: " + t)
     beklenmeyen = [(m, n) for m, n in hatalar.items() if not any(b in m for b in BEKLENEN)]
@@ -268,6 +422,15 @@ def main():
             if deger < esik:
                 sorun.append("durust asama zayif: %s %.1f < %.1f (0 uyari bir sey kanitlamaz)"
                              % (ad, deger, esik))
+    hile = hile_ozeti(satirlar)
+    if hile:
+        print("savunma duvari, gercek motorda hile taklidi:")
+        for rol, durum, ayrinti in hile:
+            print("  %-9s %-26s %s" % (durum, rol, ayrinti[:150]))
+            if durum in ("KACTI", "CALISMADI"):
+                sorun.append("savunma: %s %s (%s)" % (rol, durum, ayrinti[:100]))
+    else:
+        sorun.append("hile asamasi kosmadi")
     gozcu = gozcu_ozeti(satirlar)
     durust = gozcu.get("durust", {})
     print("Gozcu, DURUST oyunda: %d uyari (her biri yanlis alarm)" % sum(durust.values()))
@@ -275,7 +438,7 @@ def main():
         print("  ! x%-4d %s" % (n, m))
         sorun.append("Gozcu durust oyuncuyu sucladi x%d: %s" % (n, m))
     for asama in sorted(gozcu):
-        if asama == "durust":
+        if asama in ("durust", "hile"):
             continue
         print("Gozcu, %s asamasinda: %d uyari (bilgi)" % (asama, sum(gozcu[asama].values())))
         for m, n in sorted(gozcu[asama].items(), key=lambda x: -x[1])[:8]:

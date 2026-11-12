@@ -236,6 +236,67 @@ console.log("=== 4b. GOZCU UYARILARI ASAMAYA GORE ===");
 }
 
 console.log("");
+console.log("=== 4c. SAVUNMA DUVARI OZETI (hile taklidi) ===");
+{
+  /* Ayni oyuncu her turda BASKA rol oynuyor; uyari hangi turda
+     geldiyse o turun rolune yazilmali. Ilk yazilista uyarilar
+     oyuncu adina gore toplaniyordu ve bir turun uyarisi baska
+     turun rolunu "yakalandi" gosteriyordu.                    */
+  const S = (m) => "[t WARN] [Scripting] " + m;
+  const satirlar = [
+    S("[TARAMA] ASAMA hile"),
+    S("[TARAMA] HILE-ROL tur=1 tarama0=hiz tarama1=isinlanma tarama2=menzil tarama3=kurban tarama4=bakmadan tarama5=kurban"),
+    S("[TARAMA-SOHBET] §c⚠ Gözcü: §ftarama0 §7· 4 işaret §8· son sebep: hız 20.0 blok/sn"),
+    S("[TARAMA-SOHBET] §c⚠ Gözcü: §ftarama2 §7· 4 işaret §8· son sebep: menzil 7.0 blok"),
+    S("[TARAMA] HILE-VURUS tur=1 (toplam/enCokSn/enCokTick) tarama2=20/2/1"),
+    S("[TARAMA] HILE-ROL tur=2 tarama0=cps tarama1=kurban tarama2=aynitick tarama3=kurban tarama4=kip tarama5=kati"),
+    S("[TARAMA-SOHBET] §c⚠ Gözcü: §ftarama4 §7· oyun kipi §fcreative §8· §asurvival'a geri alındı"),
+    S("[TARAMA] HILE-SONUC kip sonra=Survival"),
+    S("[TARAMA] HILE-VURUS tur=2 (toplam/enCokSn/enCokTick) tarama0=21/2/1 tarama2=10/1/1"),
+    S("[TARAMA] HILE-ROL tur=3 tarama0=geriitme tarama1=vuran tarama2=yukselme tarama3=asili tarama4=kafes tarama5=komut"),
+    S("[TARAMA] HILE-SONUC komut once hareket=false kamera=false korluk=true yavaslik=true bas=minecraft:carved_pumpkin"),
+    S("[TARAMA] HILE-SONUC kafes once=minecraft:obsidian"),
+    S("[TARAMA] HILE-SONUC komut arin hareket=true kamera=true korluk=false yavaslik=false bas=bos"),
+    S("[TARAMA] HILE-SONUC komut dongu once hareket=false korluk=true"),
+    S("[TARAMA] HILE-SONUC kafes sonra=minecraft:air ust=minecraft:air"),
+    S("[TARAMA] HILE-SONUC komut dongu sonra hareket=true korluk=false"),
+    S("[TARAMA] HILE-SONUC komut yedek once elmas=5"),
+    S("[TARAMA] HILE-SONUC komut yedek silindi elmas=0"),
+    S("[TARAMA] HILE-SONUC komut yedek sonra elmas=0"),
+    S("[TARAMA] ASAMA yetenek"),
+    S("[TARAMA-SOHBET] §c⚠ Gözcü: §ftarama1 §7· 4 işaret §8· son sebep: ışınlanma 20 blok"),
+  ];
+  const r = kos(["-c", [
+    "import sys, json",
+    "sys.dont_write_bytecode = True",
+    "sys.path.insert(0, sys.argv[1])",
+    "import tarama_dene as t",
+    "print(json.dumps(t.hile_ozeti(json.load(sys.stdin)), ensure_ascii=False))",
+  ].join("\n"), SET], JSON.stringify(satirlar));
+  let h = null;
+  try { h = Object.fromEntries(JSON.parse(r.cikti.trim()).map((x) => [x[0], x])); } catch (e) { h = null; }
+  kontrol("hile ozeti okundu", h !== null, r.cikti.slice(0, 200));
+  if (h) {
+    kontrol("uyarisi gelen rol 'yakalandi'", h.hiz[1] === "yakalandi" && h.menzil[1] === "yakalandi");
+    kontrol("uyarisi GELMEYEN rol 'KACTI'", h.bakmadan[1] === "KACTI" && h.kati[1] === "KACTI",
+            h.bakmadan[1] + " · " + h.kati[1]);
+    /* tarama1'in isinlanma uyarisi hile asamasi BITTIKTEN sonra geldi. */
+    kontrol("asama disindaki uyari role yazilmiyor", h.isinlanma[1] === "KACTI", h.isinlanma[1]);
+    /* tarama2 1. turda menzil, 3. turda yukselme: menzil uyarisi yukselmeyi kurtarmamali. */
+    kontrol("bir turun uyarisi baska turun rolunu kurtarmiyor", h.yukselme[1] === "KACTI", h.yukselme[1]);
+    kontrol("kip: uyari + geri alma birlikte", h.kip[1] === "yakalandi" && h.kip[2].includes("Survival"));
+    kontrol("motorun yuttugu olcumler YOKLAMA, olay sayisiyla",
+            h.cps[1] === "yoklama" && h.cps[2].includes("21/2/1") &&
+            h.aynitick[1] === "yoklama" && h.aynitick[2].includes("10/1/1"), h.cps[2]);
+    kontrol("Arinma: once kilitli, sonra acik -> calisti", h.arinma[1] === "calisti");
+    kontrol("Savunma Kipi dongusu calisti", h["savunma kipi (dongu)"][1] === "calisti");
+    kontrol("Kafes Kir calisti", h["kafes kir"][1] === "calisti");
+    kontrol("geri gelmeyen envanter CALISMADI", h["envanter yedegi (/clear)"][1] === "CALISMADI",
+            h["envanter yedegi (/clear)"][2]);
+  }
+}
+
+console.log("");
 console.log("=== 5. EK, main.js'IN GERCEK ADLARINI KULLANIYOR ===");
 {
   const ek = readFileSync(join(SET, "tarama_eki.js"), "utf8");

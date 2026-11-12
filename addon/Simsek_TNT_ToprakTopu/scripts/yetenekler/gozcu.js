@@ -21,7 +21,7 @@ import {
   KIP_ACIK, KIP_IZIN, KIP_SUS,
   KATI_ACIK, KATI_ORNEK, KATI_SUS, KATI_GECILEBILIR, KATI_GECILEBILIR_ONEK,
   TICK_VURUS_ACIK, TICK_VURUS_ESIK,
-  KACIS_ACIK, KACIS_PENCERE
+  KACIS_ACIK, KACIS_PENCERE, GOZCU_AGIR, HAVADA_ACIK, HAVADA_ORNEK, HAVADA_DIKEY, HAVADA_YATAY
 } from "../ayarlar.js";
 /* Oyun kipini GERI ALMAK yalniz Savunma Kipi acikken -- sebebi
    ayarlar.js'te yazili (kendi dunyasinda insa yapan ev sahibi). */
@@ -190,12 +190,14 @@ export function ayniTickSay(d, kurbanId, simdi) {
   return d.tickVurus.sayi;
 }
 
-function isaretle(vuran, kurban, sebep) {
+function isaretle(vuran, kurban, sebep, agirlik = 1) {
   const simdi = system.currentTick;
   let d = defter.get(vuran.id);
   if (!d) { d = { isaretler: [], sonBildirim: -99999, vurus: [] }; defter.set(vuran.id, d); }
 
-  d.isaretler.push(simdi);
+  /* agirlik: bu isaret kac "supheli an" sayiliyor (ayarlar.js
+     GOZCU_AGIR). Varsayilan 1; vurus ve hiz olcumleri oyle.    */
+  for (let i = 0; i < agirlik; i++) d.isaretler.push(simdi);
   /* Pencere disinda kalanlar dusuyor: tek bir gecikme
      sicramasi saatler sonra birikip suclama uretmesin.      */
   d.isaretler = d.isaretler.filter((t) => simdi - t < GOZCU_PENCERE);
@@ -432,7 +434,7 @@ function dususOlc(o, iz, dy) {
   if (typeof simdiCan !== "number") return;
   if (onceCan - simdiCan >= DUSUS_PAY) return;  // hasar aldi, sorun yok
 
-  isaretle(o, o, ["düşme hasarı yok (" + yukseklik.toFixed(0) + " blok)"]);
+  isaretle(o, o, ["düşme hasarı yok (" + yukseklik.toFixed(0) + " blok)"], GOZCU_AGIR);
 }
 
 /* ---- YAVAS DUSUS  --  slow_falling  (v7.99.5) ----
@@ -823,6 +825,69 @@ export function suUstuDogrula(oyuncu) {
 }
 
 
+/* ---- HAVADA ASILI  (v7.99.19) ----
+   Ucuz on kosul: merkezin hemen alti hava mi (tek blok).
+   Tam dogrulama esik dolunca: dort kose + orta, govde boyunca ve
+   ayak altina 1,6 blok; altta tekne/araba/varlik. Gerekce ve durust
+   oyuncu listesi ayarlar.js HAVADA_* ustunde.                     */
+export function ayakAltiBosMu(oyuncu) {
+  try {
+    const boyut = oyuncu.dimension;
+    const k = oyuncu.location;
+    if (!boyut || typeof boyut.getBlock !== "function" || !k) return undefined;
+    const b = boyut.getBlock({ x: k.x, y: k.y - 0.3, z: k.z });
+    if (!b) return undefined;
+    return b.isAir === true;
+  } catch (e) {
+    return undefined;
+  }
+}
+
+/* true = gercekten havada, hicbir destek yok. undefined = okunamadi. */
+export function havadaDogrula(oyuncu) {
+  try {
+    const boyut = oyuncu.dimension;
+    const k = oyuncu.location;
+    if (!boyut || typeof boyut.getBlock !== "function" || !k) return undefined;
+    for (const [ox, oz] of [[0, 0], [0.3, 0.3], [0.3, -0.3], [-0.3, 0.3], [-0.3, -0.3]]) {
+      for (const oy of [1.6, 0.9, 0.2, -0.3, -1.0, -1.6]) {
+        const b = boyut.getBlock({ x: k.x + ox, y: k.y + oy, z: k.z + oz });
+        if (!b) return undefined;
+        if (b.isAir !== true) return false;
+      }
+    }
+    if (typeof boyut.getEntities !== "function") return undefined;
+    for (const v of boyut.getEntities({ location: k, maxDistance: 3 })) {
+      try {
+        if (v.id === oyuncu.id) continue;
+        const l = v.location;
+        if (!l) continue;
+        /* Altinda duran her sey (tekne, araba, yaratik) destek olabilir. */
+        if (l.y < k.y - 0.2 && Math.hypot(l.x - k.x, l.z - k.z) < 1.5) return false;
+      } catch (e) { return undefined; }
+    }
+    return true;
+  } catch (e) {
+    return undefined;
+  }
+}
+
+/* Hiz efektinin esik carpani: seviye basina +%20 (oyunun kendi
+   kurali). Efekt yoksa 1. Seviye okunamazsa I sayilir -- efekt
+   var ama ne kadar oldugu bilinmiyorsa en kucugu bagislanir.   */
+export function hizCarpani(oyuncu) {
+  try {
+    if (typeof oyuncu.getEffect !== "function") return 1;
+    const e = oyuncu.getEffect("speed");
+    if (!e) return 1;
+    const a = Number(e.amplifier);
+    const seviye = (Number.isFinite(a) && a >= 0 ? a : 0) + 1;
+    return 1 + 0.2 * seviye;
+  } catch (e) {
+    return 1;
+  }
+}
+
 /* main.js her HAREKET_ORNEK tickte cagiriyor. */
 export function hareketTara(oyuncular, isVarMi) {
   if (!GOZCU_ACIK || !HAREKET_ACIK) return;
@@ -863,7 +928,9 @@ export function hareketTara(oyuncular, isVarMi) {
                         kati: onceki ? onceki.kati : 0,
                         katiBildirim: onceki ? onceki.katiBildirim : -99999,
                         yavas: onceki ? onceki.yavas : 0,
-                        su: onceki ? onceki.su : 0 });
+                        su: onceki ? onceki.su : 0,
+                        havada: onceki ? onceki.havada : 0,
+                        havadaYol: onceki ? onceki.havadaYol : 0 });
       if (!onceki) continue;
       /* Boyut degistiyse iki konum ayni uzayda degil: olcum
          yapilmiyor, yeni iz zaten yukarida yazildi.         */
@@ -871,7 +938,7 @@ export function hareketTara(oyuncular, isVarMi) {
         const yeni = izler.get(o.id);
         yeni.yukselme = 0; yeni.suzulme = 0; yeni.kati = 0;
         yeni.dusus = 0; yeni.dususCan = undefined;
-        yeni.yavas = 0; yeni.su = 0;
+        yeni.yavas = 0; yeni.su = 0; yeni.havada = 0; yeni.havadaYol = 0;
         continue;
       }
 
@@ -904,7 +971,7 @@ export function hareketTara(oyuncular, isVarMi) {
         ? muaf.slice(6) : undefined;
 
       if (muaf && !efektMuaf) {
-        iz.yukselme = 0; iz.kati = 0; iz.su = 0;
+        iz.yukselme = 0; iz.kati = 0; iz.su = 0; iz.havada = 0; iz.havadaYol = 0;
         /* SUZULME ARTIK TOPTAN MUAF DEGIL  (v7.46).
            Eskiden burada kosulsuz `continue` vardi: elytra
            takip suzulme durumunda kalan biri hiz, sicrama,
@@ -964,8 +1031,35 @@ export function hareketTara(oyuncular, isVarMi) {
             simdi - (iz.katiBildirim || -99999) >= KATI_SUS) {
           iz.katiBildirim = simdi;
           iz.kati = 0;
-          isaretle(o, o, ["katı blok içinde " + KATI_ORNEK + " örnek"]);
+          isaretle(o, o, ["katı blok içinde " + KATI_ORNEK + " örnek"], GOZCU_AGIR);
         }
+      }
+
+      /* HAVADA ASILI -- fly / hover (v7.99.19). Kati denetimiyle
+         ayni kapi: Savunma Kipi acik ve oyuncu kimildamis ya da
+         sayac acik. Levitasyon / yavas dusme havada durmayi
+         acikliyor: o efektte olculmuyor.                     */
+      if (HAVADA_ACIK && savunmaVarMi() &&
+          efektMuaf !== "levitation" && efektMuaf !== "slow_falling" &&
+          Math.abs(dy) < HAVADA_DIKEY &&
+          (toplam > 0.05 || (iz.havada || 0) > 0)) {
+        const bos = ayakAltiBosMu(o);
+        if (bos === true) {
+          iz.havada = (iz.havada || 0) + 1;
+          iz.havadaYol = (iz.havadaYol || 0) + yatay;
+        } else if (bos === false) {
+          iz.havada = 0; iz.havadaYol = 0;
+        }
+        if (iz.havada >= HAVADA_ORNEK) {
+          const yol = iz.havadaYol;
+          iz.havada = 0; iz.havadaYol = 0;
+          if (yol >= HAVADA_YATAY && havadaDogrula(o) === true) {
+            isaretle(o, o, ["havada asılı " + HAVADA_ORNEK + " örnek (" +
+                            yol.toFixed(1) + " blok yatay)"], GOZCU_AGIR);
+          }
+        }
+      } else {
+        iz.havada = 0; iz.havadaYol = 0;
       }
 
       /* SU USTUNDE DURMA -- jesus (v7.99.5). Kati denetimiyle
@@ -1044,10 +1138,28 @@ export function hareketTara(oyuncular, isVarMi) {
            jump_boost  -> sicrama (dikey mesafe)
            levitation / slow_falling -> yukselme ve sicrama
          Hicbiri KATI BLOK'u aciklamiyor; o yukarida calisti. */
-      const efHiz    = efektMuaf === "speed";
-      const efSicrama = efektMuaf === "jump_boost" ||
-                        efektMuaf === "levitation" ||
-                        efektMuaf === "slow_falling";
+      /* ---- EFEKT NE KADARINI ACIKLIYORSA O KADAR  (v7.99.19) ----
+         v7.62 efekti toptan muafiyetten "yalniz ilgili olcum"e
+         indirmisti ama ilgili olcum o efektte TAMAMEN kapaliydi:
+           * hiz efekti olan (en ucuz hiz iksiri yeter) hiz
+             olcumunden muaftı; onu yalniz sicrama esigi tutuyordu
+             (ornek basina 12 blok = 24 blok/sn). Yani Hiz I ile
+             14-24 blok/sn arasi gorunmuyordu -- durust Hiz I'in
+             (8,5 blok/sn) uc katina kadar;
+           * ziplama / yavas dusus / levitasyon efekti olan icin
+             "isinlanma" etiketi hic yazilmiyordu (hiz olcumu yine
+             tutuyordu ama teshis yanlis cikiyordu).
+
+         Hiz efekti yurume hizini seviye basina %20 artirir; esik
+         de o kadar buyuyor, fazlasi degil. Dikey efektler DIKEY
+         hareketi aciklar: sicrama onlarda yalniz yatay bilesenle
+         olculuyor.                                              */
+      const hizTavan = HAREKET_HIZ * hizCarpani(o);
+      const efHiz    = hizSn <= hizTavan;
+      const efSicrama = (efektMuaf === "jump_boost" ||
+                         efektMuaf === "levitation" ||
+                         efektMuaf === "slow_falling") &&
+                        yatay <= sicramaPay;
       const efYukselme = efektMuaf === "levitation" ||
                          efektMuaf === "slow_falling";
       if (efektMuaf && !efYukselme) iz.yukselme = iz.yukselme || 0;

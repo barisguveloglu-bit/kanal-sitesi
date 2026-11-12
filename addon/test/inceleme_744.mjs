@@ -626,6 +626,29 @@ console.log("=== 9. DUSME HASARI YOK (v7.47) ===");
   kontrol("hasarsiz inis ISARETLENIYOR",
           isaretSayisi("nofall") >= 1, isaretSayisi("nofall") + " isaret");
 
+  /* ---- UCTAN UCA: BILDIRIM  (v7.99.19) ----
+     Ustteki madde ISARETI soruyor. Bildirim 10 sn'de 4 isaret
+     istiyor ve dusus basina tek isaret konuyordu: hasarsiz dusen
+     biri ancak 10 sn'de DORT kez duserse bildiriliyordu, yani
+     fiilen hic. Isaret artik iki sayiliyor (GOZCU_AGIR): tek
+     dusus bildirmiyor, ikincisi bildiriyor.                    */
+  gozcu.hareketUnut(); gozcu.gozcuUnut(); sohbetiTemizle();
+  dus(D, "nofall2", ayar.DUSUS_ESIK + 4, 20);
+  kontrol("TEK hasarsiz dusus bildirmiyor", suclama() === 0,
+          isaretSayisi("nofall2") + " isaret · " + suclama() + " bildirim");
+  gozcu.hareketUnut();                       // iz sifir, DEFTER duruyor
+  dus(D, "nofall2", ayar.DUSUS_ESIK + 4, 20);
+  kontrol("IKINCI hasarsiz dusus BILDIRIYOR",
+          suclama() === 1 &&
+          _durum.sohbet.some((m) => String(m).includes("düşme hasarı yok")),
+          isaretSayisi("nofall2") + " isaret · " + suclama() + " bildirim");
+  /* Hasar ALAN iki dusus yine temiz. */
+  gozcu.hareketUnut(); gozcu.gozcuUnut(); sohbetiTemizle();
+  dus(D, "durust2", ayar.DUSUS_ESIK + 4, 14);
+  gozcu.hareketUnut();
+  dus(D, "durust2", ayar.DUSUS_ESIK + 4, 14);
+  kontrol("hasar alan iki dusus bildirilmiyor", suclama() === 0);
+
   /* ESIGIN ALTINDA: kisa dusus zaten hasar vermez, suclama
      olmamali. Vanilla 3 bloga kadar hic hasar yok.           */
   gozcu.hareketUnut(); gozcu.gozcuUnut();

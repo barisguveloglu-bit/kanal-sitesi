@@ -294,5 +294,118 @@ console.log("\n=== 3. BLOK MENZILI (far_bypass / pick_distance) ===");
 }
 
 console.log("");
-console.log(hata ? ">>> SORUN VAR" : ">>> jesus · slow_falling · blok menzili: temiz oyuncu suclanmiyor, hile yakalaniyor");
+/* ================================================================
+   HAVADA ASILI -- fly / hover                             v7.99.19
+   Gercek motorda hile taklidiyle bulundu: sabit yukseklikte ucan
+   oyuncu hicbir olcume takilmiyordu. Ustelik motor havadaki sahte
+   oyuncuyu isOnGround=true gosterdi; hileli istemci de oyle der.
+   Once DURUST oyuncu, sonra hile. Sahte dunyada y < 64 tas.
+   ================================================================ */
+console.log("");
+console.log("=== 5. HAVADA ASILI (fly / hover) ===");
+{
+  const savunan5 = {
+    id: "savunan5", typeId: "minecraft:player", name: "savunan5", isValid: true,
+    runCommand: () => ({ successCount: 1 }), onScreenDisplay: { setActionBar() {} }
+  };
+  const seri = ayar.HAVADA_ORNEK * 2 + 1;          // iki teyit
+  const ileri = (o) => { o.location = { x: o.location.x, y: o.location.y, z: o.location.z + 0.5 }; };
+  const bildirim = () => _durum.sohbet.filter((m) => String(m).includes("havada asılı")).length;
+
+  /* Savunma Kipi KAPALIYKEN hic olculmuyor ve blok okumuyor. */
+  arinma.arinmaUnut();
+  {
+    const D = dunyaKur();
+    sifirla();
+    const once = D.sayac.getBlock;
+    const o = oyuncu(D, "hv_kapali", 0.5, 70, 0.5, { isOnGround: true });
+    yuru(o, seri, ileri);
+    kontrol("Savunma Kipi kapaliyken havada asili olculmuyor", isaret("hv_kapali") === 0);
+    kontrol("  ve hic blok okumuyor", D.sayac.getBlock - once === 0, (D.sayac.getBlock - once) + " okuma");
+  }
+
+  arinma.savunmaAc(savunan5);
+  const durust = (ad, kur, adim = ileri, ek = {}, isVarMi = yok) => {
+    const D = dunyaKur();
+    sifirla();
+    const o = oyuncu(D, ad, 0.5, 70, 0.5, ek);
+    if (kur) kur(D, o);
+    yuru(o, seri * 2, adim, isVarMi);
+    kontrol(ad + " suclanmiyor", isaret(ad) === 0 && bildirim() === 0,
+            isaret(ad) + " isaret · " + bildirim() + " bildirim");
+  };
+  /* Zeminde yuruyen: ayak alti tas. */
+  durust("hv_yerde", (D, o) => { o.location.y = 64; });
+  /* Art arda ziplayan: dikeyde surekli kimildiyor. */
+  durust("hv_ziplayan", (D, o) => { o.location.y = 64; },
+         (o, i) => { o.location = { x: o.location.x, y: (i % 2 ? 64 : 65.2), z: o.location.z + 0.5 }; });
+  /* Kenarda yuruyen: merkez havada, bir kosesi tasin ustunde. */
+  durust("hv_kenar", (D, o) => {
+    for (let z = -2; z < 40; z++) D.bloklar.set("0,69," + z, "minecraft:stone");
+    o.location.x = 1.2;
+  });
+  /* Citin ustunde yuruyen: cit 1,5 blok, oyuncu y 70.5'te, 70 hava. */
+  durust("hv_cit", (D, o) => {
+    for (let z = -2; z < 40; z++) D.bloklar.set("0,69," + z, "minecraft:oak_fence");
+    o.location.y = 70.5;
+  });
+  /* Agin icinde yavas: govdenin icinde blok var. */
+  durust("hv_ag", (D, o) => {
+    for (let z = -2; z < 40; z++) D.bloklar.set("0,70," + z, "minecraft:web");
+  });
+  /* Baglantisi donan: havada kaliyor ama KIMILDAMIYOR (titresim var). */
+  durust("hv_donuk", null,
+         (o, i) => { o.location = { x: 0.5 + (i % 2 ? 0.06 : 0), y: 70, z: 0.5 }; });
+  /* Levitasyon efektiyle (kendi ucuslarimiz) havada. */
+  durust("hv_levitasyon", null, ileri,
+         { getEffect: (e) => (e === "levitation" ? { amplifier: 0 } : undefined) });
+  /* Kendi isimiz calisirken. */
+  durust("hv_kendi_isi", null, ileri, {}, () => true);
+  /* Ucus kipi (yaratici / yetki): muaf. */
+  durust("hv_ucus_kipi", null, ileri, { isFlying: true });
+  /* Tekneyle ya da bir varligin ustunde. */
+  durust("hv_tekne", (D, o) => {
+    const tekne = { id: "tekne", typeId: "minecraft:boat", isValid: true,
+                    get location() { return { x: o.location.x, y: 69.5, z: o.location.z }; } };
+    D.boyut._varliklar = [tekne];
+  });
+
+  /* HILE: havada sabit yukseklikte yuruyor, "yerdeyim" diyor. */
+  {
+    const D = dunyaKur();
+    sifirla();
+    const o = oyuncu(D, "hv_hile", 0.5, 70, 0.5, { isOnGround: true });
+    yuru(o, seri, ileri);
+    kontrol("havada sabit yukseklikte yuruyen YAKALANDI",
+            isaret("hv_hile") >= ayar.GOZCU_ESIK && bildirim() === 1,
+            isaret("hv_hile") + " isaret · " + bildirim() + " bildirim");
+  }
+  /* Tek teyit (3 sn) bildirmiyor. */
+  {
+    const D = dunyaKur();
+    sifirla();
+    const o = oyuncu(D, "hv_kisa", 0.5, 70, 0.5);
+    yuru(o, ayar.HAVADA_ORNEK, ileri);
+    kontrol("3 sn havada kalan BILDIRILMIYOR (tek teyit)", bildirim() === 0,
+            isaret("hv_kisa") + " isaret");
+  }
+  /* Blok okuma ucuz: ornek basina ust sinir. */
+  {
+    const D = dunyaKur();
+    sifirla();
+    const once = D.sayac.getBlock;
+    const o = oyuncu(D, "hv_butce", 0.5, 64, 0.5);
+    yuru(o, 20, ileri);
+    const okuma = D.sayac.getBlock - once;
+    /* Olculen dokum (Savunma Kipi acik, yerde yuruyen): kati blok 2
+       (ayak + bas) + su ustu 2 (alt + ayak) + havada 1 (ayak alti).
+       Havada asili olcumunun payi ornek basina TEK blok; tam
+       dogrulama (30 blok) yalniz esik dolunca.                   */
+    kontrol("yerde yuruyende ornek basina en fazla 5 blok okuma (2 kati + 2 su + 1 havada)",
+            okuma <= 21 * 5, okuma + " okuma / 21 ornek");
+  }
+  arinma.arinmaUnut();
+}
+
+console.log(hata ? ">>> SORUN VAR" : ">>> jesus · slow_falling · blok menzili · havada asili: temiz oyuncu suclanmiyor, hile yakalaniyor");
 process.exit(hata ? 1 : 0);

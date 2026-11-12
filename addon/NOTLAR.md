@@ -1,3 +1,44 @@
+# v7.99.19 — Savunma duvarı gerçek motorda: üç açık kapandı, bir silah hatası
+
+Kullanıcı: *"toolbox gibi dosyalara karşı savunma duvarı oluşturmuştuk ya,
+onların durumunu da bak, savunma duvarında açıklar var mı kontrol et."*
+
+Duvar ilk kez Bedrock Dedicated Server'da sahte oyuncularla sınandı:
+`python3 addon/sunucu/tarama_dene.py --hedef K --deneme --asama hile`
+(~2,5 dk). Önce dürüst oyun (Savunma Kipi açık), sonra her oyuncu tek bir
+hile. Tam tablo ve gerekçeler: `REFERANS_SAVUNMA_PLANI.md` sonundaki
+"v7.99.19" bölümü. Özet:
+
+| açık | eski durum | şimdi |
+|---|---|---|
+| katı blok içinde (`no_clip`/`phase`/`tpmine`) | ölçüm vardı, **bildirim hiç gelmiyordu** (10 sn'de en fazla 1 işaret) | duvarda 4 sn → bildirim |
+| hasarsız düşüş (`no_fall`) | 10 sn'de **dört** düşüş gerekiyordu | ikinci düşüşte bildirim |
+| Hız iksiri + hız hilesi | iksir hız ölçümünü **kapatıyordu** (14–24 blok/sn görünmez) | eşik iksir seviyesi kadar büyüyor |
+| sabit yükseklikte uçuş | **hiçbir ölçüm yoktu**; istemci "yerdeyim" derse yavaş düşüş de kör | yeni "havada asılı" ölçümü (Savunma Kipi açıkken, ~6 sn) |
+
+Dürüst oyunda (oyuncu başına ≥120 blok, gerçek geri itmeli dövüş, 4 blok
+düşüş) **sıfır yanlış alarm**, Savunma Kipi açıkken.
+
+**Ateşli silahlar hiç hasar vermiyordu.** `cause: "projectile"` gerçek
+motorda bir mermi varlığı istiyor; ışın silahı mermi doğurmadığı için her
+isabet reddediliyordu. `entityAttack` yapıldı; silah testinin sahte hedefi
+artık bu sebebi motor gibi reddediyor.
+
+**Ölçülemeyen iki madde (motor yutuyor):** aynı kurbana saniyede 20 vuruş ve
+tickte 3 vuruş denendi; motor saniyede en çok 2, tickte en çok 1 vuruş olayı
+verdi. Gözcü'nün CPS ve "aynı tick" ölçümleri tek kurbanda tetiklenemiyor,
+ama fazla vuruşlar hasar da vermiyor.
+
+**Testlerin ortak dersi:** "işaret kondu mu" diye soran testler yeşildi,
+"bildirildi mi" diye soran yoktu. Katı blok ve hasarsız düşüş için uçtan uca
+bildirim maddeleri eklendi (`test/gozcu.mjs` 15, `test/inceleme_744.mjs` 9).
+Her yeni madde mutasyonla ısırıyor (ağırlık, susma, efekt eşiği, havada
+asılının altı parçası, silah sebebi).
+
+**Taklidin kendi hataları da düzeltildi:** ilk koşularda geri itme ve CPS
+"kaçtı" göründü; sebep taklitti (yön değiştiren salınım, ölü oyuncu). Rapor
+etmeden önce her "kaçtı" sonucu taklit açısından da incelendi.
+
 # v7.99.18 — Taramanın ikinci turu: dürüst oyun, ölüm, hazır dünya
 
 Kullanıcı: *"Devam et."* İlk turun sonunda "ölçülmeyen" diye yazılanlar

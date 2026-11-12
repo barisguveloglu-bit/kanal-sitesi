@@ -4,7 +4,7 @@
    ============================================================ */
 
 // Oyun ici bildirimlerde gorunur. manifest.json'daki surumle ayni tutulmali.
-export const SURUM = "v7.99.18";
+export const SURUM = "v7.99.19";
 
 /* ============================================================
    BETA MODULU  --  DENENDI, GERI ALINDI (v4.26)
@@ -2684,6 +2684,31 @@ export const GOZCU_ACI      = 0.25;   // kosinus (~75 derece)
 export const GOZCU_HIZ      = 14;     // saniyede en fazla vurus
 export const GOZCU_PENCERE  = 200;    // tick (10 sn) -- isaret penceresi
 export const GOZCU_ESIK     = 4;      // bu kadar isaret -> bildir
+/* ---- KANIT AGIRLIGI  (v7.99.19) ----
+   Esik VURUS icin ayarlandi: tek supheli vurus bir gecikme
+   sicramasi olabilir, dort tanesi olamaz. Ama iki olcum isaret
+   vermeden once ZATEN bekliyor ve sonra seyrek isaret veriyor:
+
+     kati blok icinde   4 ornek (2 sn) -> isaret, sonra 200 tick
+                        sus. 200 tick = pencerenin kendisi, yani
+                        pencereye en fazla BIR isaret giriyordu ve
+                        esik (4) HIC dolmuyordu: duvarin icinde
+                        dakikalarca duran biri bildirilmiyordu.
+     dusme hasari yok   dusus basina tek isaret. Bildirim 10 sn'de
+                        DORT hasarsiz dusus istiyordu.
+
+   Testler "isaret kondu mu" diye soruyordu, "bildirildi mi" diye
+   degil; gercek motorda hile taklidiyle goruldu (tarama_dene.py).
+
+   Bu iki olcumun isareti iki sayiliyor: ikinci teyitte bildirim.
+   Kati blok 4 sn (iki kez 2 sn), dusme hasari iki dusus. Tek
+   olay hala bildirmiyor -- yanlis suclamanin bedeli kacan hileden
+   buyuk kurali duruyor.
+
+   YUKSELME, SUZULME, SU USTU, YAVAS DUSUS agirlik ALMADI: dordu de
+   seyrek de olsa esigi doldurabiliyor (6-12 sn) ve yukselme blok
+   okumadigi icin merdiveni ucmaktan ayiramiyor.                 */
+export const GOZCU_AGIR     = 2;
 export const GOZCU_SUS      = 200;    // ayni oyuncu icin bildirim arasi
 /* Kendi botlarimiz ve mob'lar denetlenmiyor: bot zaten bizim
    kodumuz, mob'un bakis yonu insan olcusune vurulamaz.       */
@@ -2879,6 +2904,42 @@ export const YAVAS_DUSUS_BLOK  = [       // typeId'de gecen parca -> dusus mesru
   "web", "powder_snow", "honey", "scaffolding", "lava", "water",
   "bubble", "berry", "ladder", "vine"
 ];
+
+/* ---------------- HAVADA ASILI  --  fly / hover (v7.99.19) ----------------
+   Gercek motorda hile taklidiyle bulunan acik: SABIT YUKSEKLIKTE
+   ucan oyuncu hicbir olcume takilmiyordu.
+     * "kesintisiz yukselme" yalniz yukselirken sayiyor;
+     * "yavas dusus" inis istiyor (YAVAS_DUSUS_MIN) ve ustelik
+       isOnGround'a guveniyor -- hileli istemci "yerdeyim" diyebilir:
+       taklitte motor havadaki oyuncuyu yerde=true gosterdi.
+   Bu olcum istemcinin ne dedigine bakmiyor, BLOKLARA bakiyor.
+
+   Olcut: ust uste HAVADA_ORNEK ornek boyunca dikeyde HAVADA_DIKEY'den
+   az kimildiyor ve ayaginin alti HAVA; bu arada en az HAVADA_YATAY
+   blok yatay yol aldi. Esik dolunca tam dogrulama: govdenin dort
+   kosesi ve ortasi icin bastan ayak altina 1,6 blok kadar her blok
+   HAVA, altinda tekne / araba / baska bir varlik YOK.
+
+   ---- DURUST OYUNCU NEDEN SUCLANMIYOR ----
+     * ziplamanin tepesi < 0,5 sn: 3 sn ust uste ornegi dolduramaz;
+     * kenarda duran: dort koseden biri tasta -> dogrulama dusuruyor;
+     * citin/duvarin ustu (1,5 blok): 1 blok asagisi cit -> okunuyor;
+     * halı, kar, yari blok: ayak alti dolu;
+     * ag, toz kar, sarmasik, iskele: govdenin icinde blok var;
+     * su, merdiven, suzulme, ucus kipi, binme, kendi isimiz: muaf
+       (hareketMuaf), levitasyon / yavas dusme efekti: muaf (kendi
+       ucuslarimizin hepsi bu efektlerle, ftech/viktor/ucurma dahil);
+     * Reishi Zemini ve Toprak Izi GERCEK blok koyuyor: ayak alti dolu;
+     * BAGLANTISI DONAN oyuncu havada asili gorunur ama KIMILDAMAZ:
+       HAVADA_YATAY yol sarti onu ayiriyor. Bedeli durustce: yerinde
+       havada BEKLEYEN hileci de yakalanmaz.
+
+   Kati blok ve su ustu gibi YALNIZ SAVUNMA KIPI ACIKKEN (blok okuyor).
+   Isaret iki sayiliyor (GOZCU_AGIR): ikinci teyitte, ~6 sn'de bildirim. */
+export const HAVADA_ACIK   = true;
+export const HAVADA_ORNEK  = 6;          // ust uste kac ornek (3 sn)
+export const HAVADA_DIKEY  = 0.05;       // ornek basina bundan az dikey hareket
+export const HAVADA_YATAY  = 1.0;        // pencerede en az bu kadar yatay yol
 
 /* ---------------- SU USTUNDE DURMA  --  jesus (v7.99.5) ----------------
    Alexa Special V4 / FerSReD / Toolbox menusundeki "Su Uzerinde
@@ -3153,7 +3214,10 @@ export const KIP_SUS     = 200;   // iki bildirim arasi en az tick
    kalmasin diye buraya yazildi.                            */
 export const KATI_ACIK   = true;
 export const KATI_ORNEK  = 4;     // ust uste kac tarama
-export const KATI_SUS    = 200;
+/* v7.99.19: 200'du, yani isaret penceresinin (GOZCU_PENCERE)
+   kendisi -- yukaridaki GOZCU_AGIR notu. Artik iki teyit arasi
+   kadar: KATI_ORNEK ornek zaten 40 tick suruyor.               */
+export const KATI_SUS    = 40;
 /* ---- LISTE 1.21 DUZLESTIRMESINDEN ONCEKI HALDEYDI (v7.83) ----
    Iki isim 1.21'de ARTIK YOK: `minecraft:tallgrass` ve
    `minecraft:double_plant`. Ikisi de tek tek bloklara

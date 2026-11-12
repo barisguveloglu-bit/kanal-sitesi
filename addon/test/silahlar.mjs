@@ -86,7 +86,16 @@ function hedefYap(id, boyut, z, tip = "minecraft:zombie") {
     id, typeId: tip, isValid: true, dimension: boyut,
     location: { x: 0.5, y: 90, z },
     _hasar: [], _efektler: [], _komutlar: [], _itildi: null,
-    applyDamage(m, se) { this._hasar.push({ m, se }); return true; },
+    /* v7.99.19: GERCEK MOTOR GIBI. "projectile" sebebi bir mermi
+       varligi (damagingProjectile) olmadan reddediliyor; bu taklit
+       her secenegi kabul ettigi icin silahlarin hic hasar
+       vermedigi yillarca gorulmedi.                            */
+    applyDamage(m, se) {
+      if (se && se.cause === "projectile" && !se.damagingProjectile) {
+        throw new Error("Unsupported functionality: Cause 'projectile' is not valid.");
+      }
+      this._hasar.push({ m, se }); return true;
+    },
     addEffect(ad, s2, se) { this._efektler.push({ ad, sure: s2, se }); },
     removeEffect(ad) { this._efektler = this._efektler.filter((e) => e.ad !== ad); },
     runCommand(k) { this._komutlar.push(k); return { successCount: 1 }; },
@@ -149,6 +158,10 @@ console.log("\n=== 2. MERMI TUKETILIYOR ===");
           hedef._hasar.length + " vurus");
   kontrol("hasar tablodaki sayi", hedef._hasar[0] &&
           hedef._hasar[0].m === t.hasar, String(hedef._hasar[0] && hedef._hasar[0].m));
+  kontrol("hasari atan oyuncu (oldurme ona yazilsin)",
+          hedef._hasar[0] && hedef._hasar[0].se && hedef._hasar[0].se.damagingEntity &&
+          hedef._hasar[0].se.cause === "entityAttack",
+          JSON.stringify(hedef._hasar[0] && hedef._hasar[0].se && hedef._hasar[0].se.cause));
   kontrol("BIR mermi harcandi", o._yuvalar[0].amount === 4,
           o._yuvalar[0].amount + " mermi kaldi");
 }

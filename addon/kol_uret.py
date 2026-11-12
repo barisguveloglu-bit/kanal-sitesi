@@ -171,7 +171,10 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # hazir dunya dosyasi da gercek motorda olculdu: Efsanenin Dunyasi
 # ZEMINSIZDI (dunya_uret.py), Kilic'in izleyici kipi Gozcu'ye
 # takiliyordu, Gozcu macera kipinden geleni survival'a "geri aliyordu".
-SURUM_NO = (7, 99, 18)
+# v7.99.19: SAVUNMA DUVARI GERCEK MOTORDA. Sahte oyuncular hile taklidi
+# yapti; duvar ici ve hasarsiz dusus tek basina hic bildirim
+# uretemiyordu, hiz iksiri hiz olcumunu kapatiyordu (NOTLAR.md).
+SURUM_NO = (7, 99, 19)
 
 SURUM_METIN = ".".join(map(str, SURUM_NO))
 

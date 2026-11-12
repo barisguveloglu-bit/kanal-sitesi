@@ -372,3 +372,104 @@ suçlanmadığını (örümcek ağı, bal blok, tekne, iskele kenarı,
 nilüfer, iksirler, kendi işimiz, yaratıcı kip), sonra hilenin
 yakalandığını tutuyor; yedi mutasyonla ısırdığı doğrulandı.
 
+
+# v7.99.19 — Savunma duvarı gerçek motorda: hile taklidi
+
+Kullanıcı: *"toolbox gibi dosyalara karşı savunma duvarı oluşturmuştuk ya,
+onların durumunu da bak, savunma duvarında açıklar var mı kontrol et."*
+
+Bu belgedeki "kapalı" sayıları bugüne kadar **sahte motora** karşı
+ölçülüyordu. v7.99.19'da duvar ilk kez Bedrock Dedicated Server'da,
+`@minecraft/server-gametest` sahte oyuncularıyla sınandı
+(`sunucu/tarama_dene.py --asama hile`, ~2,5 dk). Önce altı oyuncu **dürüst**
+oynuyor (yürüme, koşma, koşarak zıplama, gerçek geri itmeli yakın dövüş,
+yarım basamaklı rampadan 4 blok düşüş) — Savunma Kipi **açık**; bu aşamada
+gelen her uyarı yanlış alarmdır. Sonra her oyuncu tek bir hileyi taklit
+ediyor; Gözcü uyarısı oyuncu adını taşıdığı için hangi hilenin yakalandığı
+belli.
+
+**Sınır:** bu bir taklit. Vuruş ve komut tarafı gerçek (gerçek `entityHitEntity`,
+gerçek komutlar); hareket tarafı ışınlamayla kuruluyor. Gerçek bir hileli
+istemci konumu paketle yollar; sunucunun gördüğü konum aynı olsa da durum
+bayrakları farklı olabilir.
+
+## Sonuç (son koşu)
+
+| hile (tablodaki karşılığı) | gerçek motorda | not |
+|---|---|---|
+| hız 20 blok/sn (`speed`) | yakalandı | |
+| 20 blokluk ışınlanma (`tap_teleport`, `tp_to_player`) | yakalandı | |
+| 7+ bloktan vuruş (`reach`) | yakalandı | |
+| hedefe bakmadan vuruş (`killaura`) | yakalandı | |
+| yaratıcı kipe geçiş (`gamemode_switcher`) | yakalandı + geri alındı | |
+| katı bloğun içinde (`no_clip`, `phase`, `tpmine`) | **v7.99.19'a kadar KAÇIYORDU** → yakalandı | aşağıda |
+| vurulunca itilmeme (`anti_knockback`) | yakalandı | |
+| kesintisiz yükselme (`flying`, `air_jump`) | yakalandı | |
+| **Hız I iksiri + 20 blok/sn** | **v7.99.19'a kadar KAÇIYORDU** → yakalandı | aşağıda |
+| **sabit yükseklikte uçuş** | **hiçbir ölçüm yoktu** → yakalandı | aşağıda |
+| saniyede 20 vuruş (`killaura` CPS) | ölçülemiyor — motor yutuyor | aşağıda |
+| aynı tickte 3 vuruş (`packets_per_attack`) | ölçülemiyor — motor yutuyor | aşağıda |
+| komutla kilit (girdi, kamera, körlük, yavaşlık, balkabağı, sis, başlık) | Arınma hepsini açtı | |
+| döngü hâlinde kilit | Savunma Kipi açtı | |
+| `/clear` | Envanter Yedeği geri getirdi | |
+| obsidyen kafes | Kafes Kır kırdı | |
+| **dürüst oyun** (Savunma Kipi açık) | **0 yanlış alarm** | oyuncu başına ≥120 blok, 32–93 vuruş, 4 blok düşüş |
+
+## Bulunan açıklar ve düzeltmeleri
+
+**1. Katı blok ve hasarsız düşüş tek başına hiç bildirim üretemiyordu.**
+Bildirim 10 sn'de 4 işaret istiyor. Katı blok ölçümü 2 sn'de bir işaret koyup
+200 tick (pencerenin kendisi) susuyordu: pencereye en fazla **bir** işaret
+giriyordu. Hasarsız düşüş düşüş başına tek işaretti: 10 sn'de dört kez düşmek
+gerekiyordu. `no_clip`, `phase`, `tpmine` ve `no_fall` v7.38/v7.47'den beri
+"kapalı" yazıyordu; ölçüm doğruydu, **bildirim hiç gelmiyordu**. Testler
+"işaret kondu mu" diye soruyordu, "bildirildi mi" diye değil.
+Düzeltme: bu iki ölçümün işareti iki sayılıyor (`GOZCU_AGIR`), katı blok
+susması 40 tick. Duvarın içinde 4 sn → bildirim; ikinci hasarsız düşüş →
+bildirim. Tek olay hâlâ bildirmiyor. Bilinen sınır: duvardan 2 sn'den kısa
+sürede **geçen** görünmez.
+
+**2. Hız iksiri hız ölçümünü kapatıyordu.** v7.62 efekt muafiyetini
+"toptan"dan "yalnız ilgili ölçüm"e indirmişti ama ilgili ölçüm o efektte
+tamamen kapalıydı: en ucuz Hız I iksirini içen biri 14–24 blok/sn arasında
+görünmüyordu (dürüst Hız I ≈ 8,5). Artık eşik efektin seviyesi kadar büyüyor
+(seviye başına %20, oyunun kendi kuralı). Zıplama/levitasyon efekti dikey
+hareketi açıklıyor; yatay 20 blokluk ışınlanmayı açıklamıyor.
+
+**3. Sabit yükseklikte uçan hiçbir ölçüme takılmıyordu.** "Kesintisiz
+yükselme" yalnız yükselirken sayıyor, "yavaş düşüş" iniş istiyor ve
+`isOnGround`'a güveniyor — taklitte motor havadaki oyuncuyu `yerde=true`
+gösterdi; hileli istemci de öyle der. Yeni **havada asılı** ölçümü
+istemcinin ne dediğine değil bloklara bakıyor: 3 sn boyunca dikeyde
+kımıldamıyor, ayağının altı hava ve en az 1 blok yatay yol aldı; eşik dolunca
+gövdenin dört köşesi ve ortası, baştan ayak altına 1,6 blok, hepsi hava ve
+altında varlık yok. Yalnız Savunma Kipi açıkken (blok okuyor, örnek başına
+tek blok). ~6 sn'de bildirim. Dürüst oyuncu listesi (kenar, çit, ağ, halı,
+tekne, levitasyon, kendi uçuşlarımız, donmuş bağlantı) `ayarlar.js`
+`HAVADA_*` üstünde ve `test/gozcu_alexa.mjs` 5. bölümde; altı mutasyonla
+ısırdığı gösterildi. Bedeli: yerinde havada **bekleyen** hileci yakalanmaz
+(donmuş bağlantıdan ayırt edilemez).
+
+**4. Ateşli silahlar hiç hasar vermiyordu** (savunma değil ama bu turda
+bulundu): `cause: "projectile"` gerçek motorda bir mermi varlığı istiyor.
+
+## Motorun kendisinin kapattıkları
+
+Sahte oyuncu aynı kurbana tick başına bir (210) ve tickte üç (30) vuruş
+denedi; motor **21** ve **10** vuruş olayı verdi: saniyede en çok 2, tickte en
+çok 1 (kurbanın 10 tick'lik dokunulmazlığı). Yani Gözcü'nün "saniyede >14
+vuruş" ve "aynı tickte >1 vuruş" ölçümleri tek kurbanda **tetiklenemiyor** —
+ama fazla vuruşlar hasar da vermiyor. `killaura` ve `packets_per_attack`
+kapalı sayılmaya devam ediyor; kapatan motor, tabloda öyle yazıyor.
+
+## Bilinçli sınırlar (değişmedi)
+
+- **Geri itme:** hiç kımıldamayan oyuncu suçlanmıyor (köşeye sıkışan dürüst
+  oyuncu yüzünden). Velocity açıp **yerinde duran** hileci yakalanmaz;
+  koşmaya devam eden yakalanır.
+- Hız eşiği 14 blok/sn; dürüst oyunda anlık 14,1'e kadar ölçüldü. Yarım
+  saniyelik ortalama ve hasar affı sayesinde uyarı yok, ama **pay dar**:
+  eşik düşürülürse ilk patlayacak yer burası.
+- Blok okuyan üç ölçüm (katı blok, su üstü, havada asılı) yalnız Savunma
+  Kipi açıkken. Düğme kapalıyken üçü de kör.
+

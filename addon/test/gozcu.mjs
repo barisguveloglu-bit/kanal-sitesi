@@ -378,6 +378,58 @@ console.log("=== 10. HAREKET DENETIMI ===");
             !gozcu.gozcuDurum(o.id) || gozcu.gozcuDurum(o.id).isaret === 0,
             gozcu.gozcuDurum(o.id) ? gozcu.gozcuDurum(o.id).isaret + " isaret" : "0");
   }
+
+  /* ---- EFEKT NE KADARINI ACIKLIYORSA O KADAR  (v7.99.19) ----
+     Hiz efekti olan oyuncu hiz olcumunden, ziplama efekti olan
+     isinlanma olcumunden SINIRSIZ muaftı: en ucuz hiz iksirini
+     icen her hizda kosabiliyordu. Gercek motorda hile taklidiyle
+     goruldu. Once durust oyuncu, sonra hile.                    */
+  const efektli = (id, efektler) => {
+    const o = kosan(id, 0, 64, 0);
+    o.getEffect = (ad) => (ad in efektler ? { amplifier: efektler[ad] } : undefined);
+    return o;
+  };
+  const kostur = (o, ornekBasina, n = 8) => {
+    gozcu.gozcuUnut(); gozcu.hareketUnut(); _durum.sohbet.length = 0;
+    for (let i = 0; i < n; i++) {
+      gozcu.hareketTara([o], yok); tickIlerlet(ayar.HAREKET_ORNEK);
+      o.location.z += ornekBasina;
+    }
+    gozcu.hareketTara([o], yok);
+    return (gozcu.gozcuDurum(o.id) || { isaret: 0 }).isaret;
+  };
+  kontrol("carpan: efekt yok 1, Hiz I 1.2, Hiz VII 2.4",
+          gozcu.hizCarpani(kosan("c0", 0, 64, 0)) === 1 &&
+          Math.abs(gozcu.hizCarpani(efektli("c1", { speed: 0 })) - 1.2) < 1e-9 &&
+          Math.abs(gozcu.hizCarpani(efektli("c7", { speed: 6 })) - 2.4) < 1e-9);
+  /* DURUST: Hiz VII ile kosarak ziplama ~17 blok/sn (7,1 x 2,4). */
+  kontrol("Hiz VII ile 17 blok/sn kosan SUCLANMIYOR",
+          kostur(efektli("ef_durust7", { speed: 6 }), 8.5) === 0);
+  kontrol("Hiz I ile 8,5 blok/sn kosan SUCLANMIYOR",
+          kostur(efektli("ef_durust1", { speed: 0 }), 4.25) === 0);
+  /* HILE: ayni efekt, efektin aciklayamayacagi hiz. */
+  kontrol("Hiz I ile 20 blok/sn YAKALANIYOR (esik 16,8)",
+          kostur(efektli("ef_hile1", { speed: 0 }), 10) >= ayar.GOZCU_ESIK &&
+          sonSohbet().indexOf("hız") !== -1, sonSohbet());
+  kontrol("Hiz VII ile 40 blok/sn YAKALANIYOR (esik 33,6)",
+          kostur(efektli("ef_hile7", { speed: 6 }), 20, 8) >= ayar.GOZCU_ESIK, sonSohbet());
+  /* Ziplama efekti DIKEY hareketi aciklar, yatay isinlanmayi degil. */
+  {
+    const o = efektli("ef_zip_durust", { jump_boost: 4 });
+    gozcu.gozcuUnut(); gozcu.hareketUnut(); _durum.sohbet.length = 0;
+    for (let i = 0; i < 8; i++) {
+      gozcu.hareketTara([o], yok); tickIlerlet(ayar.HAREKET_ORNEK);
+      o.location.y += (i % 2 === 0) ? 13 : -13;        // efektli dev ziplama: dikey
+      o.location.z += 2;
+    }
+    gozcu.hareketTara([o], yok);
+    kontrol("ziplama efektiyle DIKEY buyuk hareket suclanmiyor",
+            (gozcu.gozcuDurum(o.id) || { isaret: 0 }).isaret === 0,
+            (gozcu.gozcuDurum(o.id) || { isaret: 0 }).isaret + " isaret · " + sonSohbet());
+  }
+  kontrol("ziplama efektiyle YATAY 20 blok isinlanma YAKALANIYOR",
+          kostur(efektli("ef_zip_hile", { jump_boost: 0 }), 20) >= ayar.GOZCU_ESIK &&
+          sonSohbet().indexOf("ışınlanma") !== -1, sonSohbet());
 }
 
 console.log("");
@@ -782,6 +834,68 @@ console.log("=== 15. KATI BLOK ICINDE (no_clip / phase / tpmine) ===");
           /if \(KATI_ACIK && savunmaVarMi\(\)/.test(kod15));
   kontrol("kati denetimi kimildamayan oyuncuda blok okumuyor",
           /toplam > 0\.05 \|\| \(iz\.kati \|\| 0\) > 0/.test(kod15));
+
+  /* ---- UCTAN UCA: DUVARIN ICINDE DURAN BILDIRILIYOR  (v7.99.19) ----
+     Yukaridaki maddeler olcumun PARCALARINI soruyor; hicbiri
+     "duvarin icinde duran oyuncu icin Gozcu bir sey YAZIYOR mu"
+     diye sormuyordu. Yazmiyordu: olcum 2 sn'de bir isaret koyup
+     200 tick susuyordu, bildirim ise 200 tick icinde 4 isaret
+     istiyordu. Gercek motorda hile taklidiyle goruldu.          */
+  const arinma15 = await import("./pack/yetenekler/arinma.js");
+  const icteki = (id) => ({
+    id, typeId: "minecraft:player", name: id, isValid: true,
+    dimension: D.boyut, location: { x: 0.5, y: 30, z: 0.5 },
+    isGliding: false, isFlying: false, isInWater: false,
+    isClimbing: false, isFalling: false,
+    getEffect: () => undefined, getComponent: () => undefined
+  });
+  const gez = (o, ornek) => {
+    for (let i = 0; i < ornek; i++) {
+      tickIlerlet(ayar.HAREKET_ORNEK);
+      o.location = { x: 0.5 + (i % 2 ? 0.2 : -0.2), y: 30, z: 0.5 };   // blogun icinde kimildiyor
+      gozcu.hareketTara([o], () => false);
+    }
+  };
+  const kipAc = () => arinma15.savunmaAc({
+    id: "sav15", typeId: "minecraft:player", name: "sav15", isValid: true,
+    runCommand: () => ({ successCount: 1 }), onScreenDisplay: { setActionBar() {} }
+  });
+
+  /* Savunma Kipi KAPALIYKEN hic olculmuyor (blok okumama kurali). */
+  gozcu.gozcuUnut(); gozcu.hareketUnut(); arinma15.arinmaUnut(); _durum.sohbet.length = 0;
+  const kapali = icteki("kati_kapali");
+  gez(kapali, ayar.KATI_ORNEK * 4);
+  kontrol("Savunma Kipi kapaliyken kati blok BILDIRILMIYOR", sohbetSayisi() === 0, sonSohbet());
+
+  gozcu.gozcuUnut(); gozcu.hareketUnut(); _durum.sohbet.length = 0;
+  kipAc();
+  const hileci15 = icteki("kati_hileci");
+  gez(hileci15, ayar.KATI_ORNEK + 2);
+  kontrol("ilk teyit (2 sn) isaret koyuyor ama BILDIRMIYOR",
+          gozcu.gozcuDurum("kati_hileci") && gozcu.gozcuDurum("kati_hileci").isaret === ayar.GOZCU_AGIR &&
+          sohbetSayisi() === 0,
+          (gozcu.gozcuDurum("kati_hileci") || { isaret: 0 }).isaret + " isaret · " + sohbetSayisi() + " bildirim");
+  gez(hileci15, ayar.KATI_ORNEK + 2);
+  kontrol("ikinci teyitte (4-6 sn) BILDIRIYOR",
+          sohbetSayisi() === 1 && sonSohbet().indexOf("katı blok içinde") !== -1, sonSohbet());
+
+  /* Bir an blogun icinde gorunup cikan (gecikme, kapi) bildirilmemeli. */
+  gozcu.gozcuUnut(); gozcu.hareketUnut(); _durum.sohbet.length = 0;
+  /* Zeminin hemen altinda (y 62: ayak ve bas tasta), sonra iki blok
+     yukari, zeminin ustune. Uzaga isinlansaydi "isinlanma" isareti
+     alirdi ve madde yanlis sebeple duserdi.                       */
+  const gecici = icteki("kati_gecici");
+  for (let i = 0; i < ayar.KATI_ORNEK - 1; i++) {
+    tickIlerlet(ayar.HAREKET_ORNEK);
+    gecici.location = { x: 0.5 + (i % 2 ? 0.2 : -0.2), y: 62, z: 0.5 };
+    gozcu.hareketTara([gecici], () => false);
+  }
+  gecici.location = { x: 0.5, y: 64, z: 0.5 };
+  for (let i = 0; i < 12; i++) { tickIlerlet(ayar.HAREKET_ORNEK); gozcu.hareketTara([gecici], () => false); }
+  kontrol("kisa sure blokta gorunen suclanmiyor",
+          sohbetSayisi() === 0 && (gozcu.gozcuDurum("kati_gecici") || { isaret: 0 }).isaret === 0,
+          sonSohbet());
+  arinma15.arinmaUnut();
 }
 
 console.log("");

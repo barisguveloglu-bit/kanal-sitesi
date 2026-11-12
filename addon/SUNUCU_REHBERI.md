@@ -287,6 +287,7 @@ Paket gerçek motorda iki yoldan ölçülüyor:
 | `python3 addon/sunucu/acilis_dene.py --hedef K` | **açılış**: motorun reddettiği JSON alanı, erken çalıştırmada çağrılan fonksiyon | ~10 sn |
 | `python3 addon/sunucu/tarama_dene.py --hedef K --deneme` | **çalışma**: altı sahte oyuncu önce dürüstçe oynar (Gözcü yanlış alarm veriyor mu), sonra 325 yeteneği iki kez, 67 sohbet komutunu ve 600 eşyayı gerçek API'de çalıştırır; bota dokunur, ölür, yeniden doğar | ~7 dk |
 | `python3 addon/sunucu/dunya_dene.py --hedef K` | **hazır dünya**: `Efsane_Dunyasi.mctemplate`'i geçici bir dünyada açar, doğum noktasının altında zemin olduğunu sorar | ~30 sn |
+| `python3 addon/sunucu/tarama_dene.py --hedef K --deneme --asama hile` | **savunma duvarı**: yalnız dürüst oyun + hile taklidi (Gözcü, Arınma, Savunma Kipi, Yedek, Kafes Kır); yetenekler koşmaz | ~2,5 dk |
 
 `tarama_dene.py` **yalnız deneme kurulumunda** çalıştırılır: yetenekler blok
 kırar, arenayı bozar. `--deneme` yazılmadan çalışmaz; izin listesinde oyuncu
@@ -335,6 +336,14 @@ koştu, koşarak zıpladı, ikişerli yakın dövüştü (gerçek geri itilme) v
 blokluk sahanlıktan düştü: oyuncu başına en az 148 blok yol, 84 oyuncu-oyuncu
 vuruşu. Gözcü bu aşamada **hiç uyarı vermedi**. Araç bu sayıların alt sınırını
 soruyor; aşama boş geçerse "0 uyarı"yı kabul etmiyor.
+
+### Savunma duvarı (2026-11-12) — v7.99.19
+
+Hile taklidinin sonucu ve bulunan dört açık (katı blok ve hasarsız düşüş
+bildirim üretemiyordu, hız iksiri hız ölçümünü kapatıyordu, sabit yükseklikte
+uçuşun ölçümü yoktu) `REFERANS_SAVUNMA_PLANI.md` sonundaki "v7.99.19"
+bölümünde. Aynı turda bulunan silah hatası: ateşli silahlar `cause:
+"projectile"` yüzünden hiç hasar vermiyordu.
 
 ### Açık kalanlar — bilerek
 
