@@ -1,3 +1,20 @@
+# v7.99.20 — Bot ve İlkel Beşli gerçek motorda
+
+Kullanıcı: *"İlkel Beşli ve botlar durumuna bak, hata yakalamaya çalış."*
+Gerçek motorda (BDS, sahte oyuncu) temiz dünyada ölçüldü.
+
+| ne | sonuç |
+|---|---|
+| bot çağırma, takip (20 blok), bekle, tekrar takip, geri gönderme | çalışıyor |
+| savaş kipi (aç-kapa, oyuncu başına kayıtlı) | açıkken düşmanı öldürdü |
+| İlkel Beşli'nin beşi (`bot okazor` …) | beşi de çağrıldı, hepsi düşmanı 10 sn içinde öldürdü, beşinin de elinde balta (`testfor … hasitem`) |
+| **bota dokunma (menü)** | **çalışmıyordu**: varlıkta `minecraft:interact` yoktu, motor dokunmayı reddetti. Bilesen eklendi (bot gövdesine; İlkel Beşli ve O Şey ondan kopyalanıyor), düğme yazısı "Menü". Motor artık kabul ediyor. **Sınır:** sahte oyuncunun dokunuşu betik olayını hiç tetiklemiyor; menünün açıldığı telefonda görülmeli. |
+| İlk İlkel çağrısında sohbete kırmızı `HATA ilkel.silah` | bilinen sınırdı (betik mob'un elini okuyamıyor), hata değil: Content Log'a alındı |
+
+Kilit: `test/motor_bicim.mjs` 5. bölüm. Bot defteri kalıcı ve her yeni
+oyuncu kimliğiyle büyüyor (deneme dünyasında 53 sahip, 86 bot); bot başına
+~70 bayt, gerçek sunucuda sorun değil, dokunulmadı.
+
 # v7.99.19 — Savunma duvarı gerçek motorda: üç açık kapandı, bir silah hatası
 
 Kullanıcı: *"toolbox gibi dosyalara karşı savunma duvarı oluşturmuştuk ya,

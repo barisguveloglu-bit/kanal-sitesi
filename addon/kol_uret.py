@@ -174,7 +174,9 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # v7.99.19: SAVUNMA DUVARI GERCEK MOTORDA. Sahte oyuncular hile taklidi
 # yapti; duvar ici ve hasarsiz dusus tek basina hic bildirim
 # uretemiyordu, hiz iksiri hiz olcumunu kapatiyordu (NOTLAR.md).
-SURUM_NO = (7, 99, 19)
+# v7.99.20: bota dokunma (minecraft:interact yoktu), Ilkel silah
+# uyarisi sohbete HATA diye dusuyordu. Gercek motorda olculdu.
+SURUM_NO = (7, 99, 20)
 
 SURUM_METIN = ".".join(map(str, SURUM_NO))
 
@@ -3569,6 +3571,9 @@ def lazer_animasyonu():
     }
 
 
+BOT_ETKILESIM_YAZI = "action.interact.simsek_bot"
+
+
 def bot_sunucu_varligi():
     """format_version 1.16.0: varliklar icin en genis desteklenen
     surum ve hicbir deneysel ayar istemiyor.
@@ -3670,6 +3675,21 @@ def bot_sunucu_varligi():
                 "minecraft:pushable": {"is_pushable": True, "is_pushable_by_piston": True},
                 "minecraft:breathable": {"total_supply": 15, "suffocate_time": 0},
                 "minecraft:nameable": {},
+                # ---- DOKUNMA (v7.99.20) ----
+                # main.js "bota dokununca menu" playerInteractWithEntity
+                # olayini bekliyor ve bot cagrilinca oyuncuya "Dokun ->
+                # menu" yaziyor. Bu bilesen YOKTU: gercek motorda
+                # (BDS, sahte oyuncu) bota dokunma REDDEDILIYORDU,
+                # bilesen eklenince kabul edildi. Telefonda "Etkilesim"
+                # dugmesi de ancak varligin bir etkilesimi varsa cikar.
+                # Olay tetiklemiyor (event yok), yalniz etkilesimi acar.
+                # Ilkel Besli bu govdeden kopyalaniyor, beside de var.
+                "minecraft:interact": {"interactions": [{
+                    "on_interact": {"filters": {"all_of": [
+                        {"test": "is_family", "subject": "other", "value": "player"}]}},
+                    "interact_text": BOT_ETKILESIM_YAZI,
+                    "swing": True,
+                }]},
                 # Kaybolmasin: bot kalici, chunk bosalinca silinmemeli
                 "minecraft:persistent": {},
                 "minecraft:movement": {"value": 0.32},
@@ -14645,6 +14665,10 @@ def main():
         else:
             print("UYARI: skin dokusu bulunamadi (%s)" % kaynak_yol)
     png_yaz(os.path.join(SKP, "pack_icon.png"), 64, 64, paket_ikonu((32, 197, 181)))
+
+    # Bota dokunma dugmesinin yazisi (v7.99.20, bot_sunucu_varligi).
+    en_us.append(BOT_ETKILESIM_YAZI + "=Menu")
+    tr_tr.append(BOT_ETKILESIM_YAZI + "=Menü")
 
     os.makedirs(os.path.join(RP, "texts"), exist_ok=True)
     yaz_json(os.path.join(RP, "texts/languages.json"), ["en_US", "tr_TR"])

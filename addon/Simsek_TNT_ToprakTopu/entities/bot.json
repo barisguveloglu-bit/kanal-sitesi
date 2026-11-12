@@ -128,6 +128,25 @@
         "suffocate_time": 0
       },
       "minecraft:nameable": {},
+      "minecraft:interact": {
+        "interactions": [
+          {
+            "on_interact": {
+              "filters": {
+                "all_of": [
+                  {
+                    "test": "is_family",
+                    "subject": "other",
+                    "value": "player"
+                  }
+                ]
+              }
+            },
+            "interact_text": "action.interact.simsek_bot",
+            "swing": true
+          }
+        ]
+      },
       "minecraft:persistent": {},
       "minecraft:movement": {
         "value": 0.32

@@ -1,7 +1,7 @@
 import { system, ItemStack } from "@minecraft/server";
 import { yetenekKaydet } from "./kayit.js";
 import {
-  hataYaz, gecerliMi, kollariIndir, actionbarYaz, olayaAbone,
+  hataYaz, bilgiYaz, gecerliMi, kollariIndir, actionbarYaz, olayaAbone,
   parcacikAt
 } from "../yardimcilar.js";
 import {
@@ -215,12 +215,15 @@ export function silahVer(varlik, anahtar) {
        o zaman script silahi ne koyabiliyor NE DE OKUYABILIYOR.
        "Konulamadi" demek yaniltici olurdu: silah muhtemelen
        elinde, sadece buradan gorulemiyor.                     */
+    /* v7.99.20: hataYaz DEGIL, bilgiYaz. Ustteki not "bu artik bir
+       hata degil" diyordu ama hataYaz cagriliyordu: gercek motorda
+       (BDS) ilk Ilkel cagrisinda oyuncunun SOHBETINE kirmizi
+       "HATA ilkel.silah" dusuyordu. Bilinen sinir Content Log'a. */
     if (!silahUyarisi) {
       silahUyarisi = true;
-      hataYaz("ilkel.silah", new Error(
-        "minecraft:equippable script tarafinda yok. Silah dogusta " +
-        "ganimet tablosuyla veriliyor; tazeleme (dusen silahi geri " +
-        "koyma) calismayacak."));
+      bilgiYaz("ilkel.silah: minecraft:equippable script tarafinda yok. " +
+               "Silah dogusta ganimet tablosuyla veriliyor; tazeleme " +
+               "(dusen silahi geri koyma) calismayacak.");
     }
     return "okunamadi";
   }

@@ -158,5 +158,34 @@ console.log("=== 4. BLOK: MALZEME YONTEMI TEK ===");
   kontrol("hicbir blok malzeme yontemlerini karistirmiyor", karisik.length === 0, kisalt(karisik));
 }
 
+console.log("");
+console.log("=== 5. BOTA DOKUNMA: ETKILESIM BILESENI  (v7.99.20) ===");
+{
+  /* main.js bota dokununca menu aciyor (playerInteractWithEntity) ve
+     bot cagrilinca "Dokun -> menu" yaziyor. Varlikta minecraft:interact
+     YOKTU: gercek motorda dokunma reddediliyordu (sahte oyuncu,
+     interactWithEntity -> false), bilesen eklenince kabul edildi.
+     Telefonda "Etkilesim" dugmesi de ancak bir etkilesim varsa cikar. */
+  const dil = readFileSync(KOK + "/Simsek_Kol_Kaynak/texts/tr_TR.lang", "utf8");
+  const eksik = [], yazisiz = [];
+  for (const ad of ["bot", "ilkel_okazor", "ilkel_kajaros", "ilkel_raxxan",
+                    "ilkel_harkos", "ilkel_miskel", "o_sey"]) {
+    const c = oku(BP + "/entities/" + ad + ".json")["minecraft:entity"].components;
+    const e = c["minecraft:interact"];
+    const ilk = e && Array.isArray(e.interactions) && e.interactions[0];
+    if (!ilk) { eksik.push(ad); continue; }
+    if (!ilk.interact_text || dil.indexOf(ilk.interact_text + "=") === -1) yazisiz.push(ad);
+  }
+  kontrol("bot, Ilkel Besli ve O Sey'de etkilesim bileseni var", eksik.length === 0, eksik.join(", "));
+  kontrol("dugme yazisi dil dosyasinda", yazisiz.length === 0, yazisiz.join(", "));
+  /* Bilinen sinir HATA diye sohbete dusmesin (ilk Ilkel cagrisinda oluyordu). */
+  const ilkelKod = readFileSync(BP + "/scripts/yetenekler/bot_ilkel.js", "utf8");
+  /* Yalniz BILINEN SINIR (equippable yok). Esyanin kayitli olmadigi
+     ikinci yol gercek bir hata ve orada hataYaz dogru.             */
+  kontrol("Ilkel silah siniri sohbete HATA olarak yazilmiyor",
+          !/hataYaz\([^)]*\n?[^)]*script tarafinda yok/.test(ilkelKod) &&
+          /bilgiYaz\("ilkel\.silah: minecraft:equippable script tarafinda yok/.test(ilkelKod));
+}
+
 console.log(hata ? ">>> SORUN VAR" : ">>> motor bicimi temiz");
 process.exit(hata ? 1 : 0);
