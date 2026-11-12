@@ -285,7 +285,7 @@ Paket gerçek motorda iki yoldan ölçülüyor:
 | araç | neyi ölçer | süre |
 |---|---|---|
 | `python3 addon/sunucu/acilis_dene.py --hedef K` | **açılış**: motorun reddettiği JSON alanı, erken çalıştırmada çağrılan fonksiyon | ~10 sn |
-| `python3 addon/sunucu/tarama_dene.py --hedef K --deneme` | **çalışma**: altı sahte oyuncu önce dürüstçe oynar (Gözcü yanlış alarm veriyor mu), sonra 325 yeteneği iki kez, 67 sohbet komutunu ve 600 eşyayı gerçek API'de çalıştırır; bota dokunur, ölür, yeniden doğar | ~7 dk |
+| `python3 addon/sunucu/tarama_dene.py --hedef K --deneme` | **çalışma**: altı sahte oyuncu önce dürüstçe oynar (Gözcü yanlış alarm veriyor mu), sonra 325 yeteneği iki kez, 67 sohbet komutunu ve 600 eşyayı gerçek API'de çalıştırır; bota dokunur, dokuz iksiri sonuna kadar içer (birini yarıda bırakır: güç gelmemeli), ölür, yeniden doğar | ~8 dk |
 | `python3 addon/sunucu/dunya_dene.py --hedef K` | **hazır dünya**: `Efsane_Dunyasi.mctemplate`'i geçici bir dünyada açar, doğum noktasının altında zemin olduğunu sorar | ~30 sn |
 | `python3 addon/sunucu/tarama_dene.py --hedef K --deneme --asama hile` | **savunma duvarı**: yalnız dürüst oyun + hile taklidi (Gözcü, Arınma, Savunma Kipi, Yedek, Kafes Kır); yetenekler koşmaz | ~2,5 dk |
 
@@ -294,6 +294,12 @@ kırar, arenayı bozar. `--deneme` yazılmadan çalışmaz; izin listesinde oyun
 varsa (gerçek sunucunun işareti) reddeder. Koşu bitince paketi, manifesti ve
 `level.dat`'ı eski hâline getirir; dünyanın blokları geri gelmez. Gerçek
 sunucunu taramak istersen başka bir klasöre yeniden kur ve orayı tara.
+
+Kendi kısa denemeni yazarken (`tarama_eki.js` yerine başka bir ek):
+**sahte oyuncu sayısını altıda tut.** v7.99.22'de yedi sahte oyuncuyla
+(sunucu sınırı `max-players=4`) sunucu iki koşuda da doğumdan üç tick sonra
+**çöktü**; dördüyle çökmedi, tarama altıyla sorunsuz çalışıyor. Sebep
+ölçülmedi, yalnız sınır.
 
 ### İlk açılışta bulunanlar (2026-10-27) — v7.99.17'de düzeltildi
 

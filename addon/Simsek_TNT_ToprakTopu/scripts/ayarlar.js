@@ -3310,13 +3310,36 @@ export const KACIS_PENCERE = 120;   // tick (6 sn)
    Dunya taramasi yok, sadece iksir icmis oyuncular geziliyor.
    Sure dolunca goz kendiliginden cikiyor.
 
-   Goz esyasi SADECE GORUNUM. Guc bayragi degil -- oyuncu gozu
-   cikarsa bile kademe suresi devam eder. Referansta tam tersiydi
-   ve bu yuzden gozu kilitlemek zorunda kalmislar.
+   Goz esyasi guc bayragi degil -- goz bir sekilde giderse bile
+   kademe suresi devam eder.
 
-   Kademeler birikmiyor: yeni iksir icince onceki iptal olur ve
-   yenisi bastan baslar.                                          */
+   Kademeler birikmiyor: yeni iksir icince onceki iptal olur
+   (efektleri DE silinir, v7.99.22) ve yenisi bastan baslar.     */
 export const IKSIR_TAZELEME = 40;   // kac tick'te bir efektler yenilensin
+
+/* ---------------- Iksir gozu: isaret ve kilit  (v7.99.22) ----------------
+   Goz v4.62'den beri yalniz gorunum degil: kafa yuvasina 17 koruma
+   (8,5 kalkan) veriyor. Kilitsiz oldugu icin iki acik vardi, ikisi
+   de gercek motorda (BDS 1.26.52.3) olculdu:
+
+     1. GOZ IKSIRDEN KALICI KASK OLUYORDU. kilit=none, olumde
+        kalmiyor: oyuncu gozu cikarip saklayabiliyor, olunce yere
+        dusuyor, cikip girince (kademe bellekte, sifirlaniyor)
+        kafada kaliyordu. Iksir bitince yalniz kafadaki goz
+        siliniyordu.
+     2. OYUNCUNUN KENDI GOZU SILINIYORDU. Askerin Kusagi Kanli
+        Goz'u (pa:goz_kan) bagimsiz bir kask olarak veriyor.
+        gozTak "pa:goz_" ile baslayan her seyi bizim sayip uzerine
+        yaziyor, iksir bitince de siliyordu: odul geri gelmemek
+        uzere gidiyordu (olculdu: once goz_kan, sonra BOS).
+
+   Cozum: iksirin taktigi goz bu IMLE isaretleniyor, yuvasina
+   kilitleniyor ve olumde kaliyor. Yalniz ISARETLI goze dokunulur.
+   Isaretsiz goz iki turlu: Kusak'in verdigi goz turu oyuncunundur
+   (asla dokunulmaz); oteki turler yalniz iksirden gelebiliyordu,
+   yani eski surumlerden kalmis iksir gozudur ve iksirinki sayilir.
+   Imi oyuncu ipucunda da goruyor: gozun neden cikmadigini soyluyor. */
+export const IKSIR_GOZ_IMI = "§7İksir gözü · iksir bitince çıkar";
 
 /* ---------------- Goz lazeri ----------------
    Nitroksin'in ikonik yetenegi. Referansta bes kademenin lazeri

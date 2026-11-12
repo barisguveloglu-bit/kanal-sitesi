@@ -2,7 +2,8 @@
 
    Referansin uc hatasini yapmadigimiz sinaniyor:
      1. guc KALICI degil, suresi var
-     2. goz KILITLI degil ve guc bayragi degil (cikarsa da devam)
+     2. goz guc bayragi degil (giderse de devam); kilitli ama
+        yalniz iksir suresince (v7.99.22, 10. bolum)
      3. her tick DUNYA TARAMASI yok                                 */
 
 import { dunyaKur, oyuncuKur } from "./dunya.mjs";
@@ -46,9 +47,13 @@ function icen(id = "ik") {
   o.getComponent = (ad) => {
     if (ad === "minecraft:equippable") {
       return {
-        getEquipment: (slot) => (slot === "Head" && o._kafa) ? { typeId: o._kafa } : undefined,
+        /* Gercekteki gibi takilan esyanin KENDISI doner (ipucu satiri,
+           kilit). Testin elle yazdigi o._kafa ipucusuz bir esyadir.  */
+        getEquipment: (slot) => (slot === "Head" && o._kafa)
+          ? ((o._kafaEsya && o._kafaEsya.typeId === o._kafa) ? o._kafaEsya : { typeId: o._kafa })
+          : undefined,
         setEquipment: (slot, esya) => {
-          if (slot === "Head") o._kafa = esya ? esya.typeId : undefined;
+          if (slot === "Head") { o._kafa = esya ? esya.typeId : undefined; o._kafaEsya = esya; }
           return true;
         }
       };
@@ -101,7 +106,7 @@ console.log("=== 3. GOZ SADECE GORUNUM (referansta guc bayragiydi) ===");
 
   kontrol("goz cikarilinca guc DEVAM ediyor", o._efekt.length > oncekiAdet,
           oncekiAdet + " -> " + o._efekt.length + " efekt");
-  kontrol("goz zorla geri takilmiyor (kilit yok)", o._kafa === undefined,
+  kontrol("goz zorla geri takilmiyor", o._kafa === undefined,
           String(o._kafa));
 }
 
@@ -615,6 +620,96 @@ console.log("=== 9. KASK SILINMIYOR (v7.98.2) ===");
   o2._kafa = "pa:goz_yesil";
   sus(); ic(o2, "pa:iksir_nitroksin"); tickIlerlet(4); ac();
   kontrol("bizim gozumuz degisebiliyor", o2._kafa === "pa:goz_beyaz", String(o2._kafa));
+}
+
+console.log("");
+console.log("=== 10. GOZ ISARETLI, KUSAK'IN GOZU KORUNUYOR, YARIM ICME GUC VERMIYOR (v7.99.22) ===");
+{
+  /* Uc hata gercek motorda (BDS 1.26.52.3) olculdu:
+       - icmeye basla, birak: guc geldi, iksir elde duruyordu
+       - Askerin Kusagi'nin Kanli Goz'u iksir icince siliniyordu
+       - goz kilitsizdi: iksirden kalici 17 korumali kask cikiyordu
+     Ayni olcumde goz 10 hasari 5,2'ye indirdi: 17 puan = 8,5 kalkan. */
+  esyaKaydet("pa:goz_beyaz_lazer", "pa:goz_kan_lazer", "minecraft:netherite_helmet");
+  const { kademeAl, kademeUnut, kademeBitir, lazerGozuAc, lazerGozuKapat, iksirGozuMu } =
+    await import("./pack/yetenekler/iksirler.js");
+  const IMI = ayar.IKSIR_GOZ_IMI;
+  const kafa = (o) => o.getComponent("minecraft:equippable").getEquipment("Head");
+
+  /* a. itemUse icmenin BASI: tek basina guc vermemeli. */
+  {
+    const { o } = icen("y1");
+    sus(); mc.itemUseTetikle({ source: o, itemStack: { typeId: "pa:iksir_nitroksin" } }); tickIlerlet(4); ac();
+    kontrol("icmeye baslamak guc VERMIYOR (yarim birakilabilir)",
+            kademeAl(o.id) === undefined && o._efekt.length === 0 && o._kafa === undefined,
+            (kademeAl(o.id) || {}).kimlik + " · " + o._efekt.length + " efekt · kafa " + o._kafa);
+    sus(); ic(o, "pa:iksir_nitroksin"); tickIlerlet(2); ac();
+    kontrol("  icme BITINCE guc geliyor", (kademeAl(o.id) || {}).kimlik === "nitroksin");
+  }
+
+  /* b. Iksirin gozu isaretli, kilitli, olumde kaliyor. */
+  {
+    const { o } = icen("y2");
+    sus(); ic(o, "pa:iksir_nitroksin"); tickIlerlet(2); ac();
+    const g = kafa(o);
+    kontrol("iksirin gozu isaretli", !!g && g.getLore().indexOf(IMI) !== -1, g ? JSON.stringify(g.getLore()) : "kafa bos");
+    kontrol("  yuvasina kilitli", !!g && g.lockMode === mc.ItemLockMode.slot, g && g.lockMode);
+    kontrol("  olumde kaliyor", !!g && g.keepOnDeath === true);
+    sus(); lazerGozuAc(o, kademeAl(o.id)); ac();
+    const l = kafa(o);
+    kontrol("  lazer gozu de isaretli ve kilitli",
+            !!l && l.typeId === "pa:goz_beyaz_lazer" && l.getLore().indexOf(IMI) !== -1 &&
+            l.lockMode === mc.ItemLockMode.slot, l && l.typeId);
+  }
+
+  /* c. Kusak'in Kanli Goz'u: isaretsiz pa:goz_kan oyuncunun kendi kaski. */
+  for (const iksir of ["pa:iksir_nitroksin", "pa:iksir_kan_iksiri"]) {
+    const { o } = icen("y3" + iksir);
+    o._kafa = "pa:goz_kan";
+    sus(); ic(o, iksir); tickIlerlet(2); ac();
+    kontrol("Kusak gozu icince yerinde (" + iksir.slice(9) + ")",
+            o._kafa === "pa:goz_kan" && !iksirGozuMu(kafa(o)), String(o._kafa));
+    kontrol("  guc yine verildi", !!kademeAl(o.id));
+    sus(); lazerGozuAc(o, kademeAl(o.id)); lazerGozuKapat(o, kademeAl(o.id)); ac();
+    kontrol("  lazer acip kapamak ona dokunmuyor", o._kafa === "pa:goz_kan", String(o._kafa));
+    sus(); kademeBitir(o); tickIlerlet(45); ac();
+    kontrol("  iksir bitince de yerinde", o._kafa === "pa:goz_kan", String(o._kafa));
+  }
+
+  /* d. Gecis: onceki kademenin efektleri siliniyor. */
+  {
+    const { o } = icen("y4");
+    sus(); ic(o, "pa:iksir_nitroksin"); tickIlerlet(2); o._silinen = [];
+    ic(o, "pa:iksir_hiperoksin"); tickIlerlet(2); ac();
+    const nitro = ayar.KADEMELER.find((k) => k.kimlik === "nitroksin").efektler.map((e) => e[0]);
+    const kalan = nitro.filter((ad) => o._silinen.indexOf(ad) === -1);
+    kontrol("gecince oncekinin efektleri silindi", kalan.length === 0, "silinmeyen: " + kalan.join(","));
+  }
+
+  /* e. Sahipsiz goz: kademe yokken kafadaki iksir gozu cikiyor. */
+  {
+    const { o } = icen("y5");
+    sus(); ic(o, "pa:iksir_nitroksin"); tickIlerlet(2);
+    kademeUnut(o.id);                  // cikip girdi ya da dunya yeniden acildi
+    tickIlerlet(ayar.IKSIR_TAZELEME + 2); ac();
+    kontrol("kademesi kalmamis isaretli goz cikti", o._kafa === undefined, String(o._kafa));
+
+    const durumlar = [
+      ["pa:goz_beyaz", undefined, "eski surumden isaretsiz iksir gozu cikti"],
+      ["pa:goz_kan", "pa:goz_kan", "Kusak'in gozu (isaretsiz) yerinde"],
+      ["minecraft:netherite_helmet", "minecraft:netherite_helmet", "kaska dokunulmadi"],
+    ];
+    for (const [takili, beklenen, ad] of durumlar) {
+      const { o: o2 } = icen("y5" + takili);
+      o2._kafa = takili;
+      sus(); tickIlerlet(ayar.IKSIR_TAZELEME + 2); ac();
+      kontrol("  " + ad, o2._kafa === beklenen, String(o2._kafa));
+    }
+
+    const { o: o3 } = icen("y6");
+    sus(); ic(o3, "pa:iksir_nitroksin"); tickIlerlet(ayar.IKSIR_TAZELEME * 3); ac();
+    kontrol("  kademesi suren goz yerinde", o3._kafa === "pa:goz_beyaz", String(o3._kafa));
+  }
 }
 
 console.log("");

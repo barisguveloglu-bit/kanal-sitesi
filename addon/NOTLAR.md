@@ -1,3 +1,59 @@
+# v7.99.22 — İksirler: sonsuz iksir, silinen Kanlı Göz, kalıcı göz kaskı
+
+Kullanıcı: *"İksirlerde, Nitroksin gibi şeylerde hata var mı bak. İçince
+gözde, kafa zırhında 17 diyor ama 8,5 olmalı, örtüşmüyor; sen yine de 8,5'e
+ayarla."* Önce gerçek motorda (BDS 1.26.52.3, sahte oyuncu) ölçüldü, sonra
+düzeltildi.
+
+## 17 mi 8,5 mi — ikisi aynı zırh, değiştirilmedi
+
+Oyunun yazdığı **17 puan** (20 üzerinden), çubuktaki **8,5 kalkan** (10
+üzerinden); 1 kalkan = 2 puan. v4.75'te istenen "zırh barında 10 tanesinden
+8,5" tam olarak bu. Gerçek motorda ölçüldü: gözlü oyuncu 10 hasarın **5,2**'sini
+aldı, gözsüz 10'unu; bu 17 puanın formülü (10 × (1 − (17 − 10/2)/25) = 5,2).
+`protection` tam sayı: "8,5" yazdırmanın yolu 8 ya da 9 puan, yani çubukta 4
+ya da 4,5 kalkan — istenen zırhın yarısı. O yüzden **17 kaldı**; gerekçe
+`kol_uret.py` `GOZ_ZIRH` üstünde.
+
+## Bulunan ve düzeltilen (dördü de gerçek motorda ölçüldü)
+
+| hata | ölçüm (önce) | düzeltme |
+|---|---|---|
+| **Sonsuz iksir** | içmeye başla, 6 tick sonra bırak → güç geldi, iksir **elde 1 adet duruyor** | güç yalnız `itemCompleteUse` (içme bitince); `itemUse` yedeği kaldırıldı |
+| **Kuşak'ın Kanlı Göz'ü siliniyordu** | Askerin Kuşağı'nın `pa:goz_kan`'ı takılıyken Nitroksin içildi → kafada `goz_beyaz`; iksir bitince **boş** | iksirin gözü işaretli (`IKSIR_GOZ_IMI`); yalnız işaretli göze dokunuluyor |
+| **Göz iksirden kalıcı kask oluyordu** | `kilit=none`, `olumde_kal=false`: çıkarılıp saklanabiliyor, ölünce düşüyor, çıkıp girince (kademe bellekte) kafada kalıyordu — 17 puanlık kask | göz yuvasına kilitli, ölümde kalıyor; iki saniyede bir sahipsiz iksir gözü toplanıyor |
+| **Geçişte eski efektler kalıyordu** | Nitroksin'den Kan İksiri'ne geçince 2 sn sonra Zıplama V hâlâ üstte (Kan'da II) | geçişte önceki kademenin efektleri siliniyor |
+
+**Davranış değişikliği:** iksir gözü artık iksir sürerken çıkarılamıyor
+(referans modlarda da kilitliydi). İksir bitince ya da "Gücü Kapat" ile
+kendiliğinden çıkıyor. Kilitsiz bırakma kararı iksir sisteminin ilk
+sürümünden, "göz yalnız görünüm" varsayımına dayanıyordu; v4.62'de göze
+koruma verilince o varsayım düştü.
+
+**Eski dünyalardaki gözler:** işaretsiz göz iki türlü. Kuşak'ın verdiği tür
+(`pa:goz_kan`) oyuncunundur, dokunulmuyor. Öteki türler yalnız iksirden
+gelebiliyordu; iksir yokken kafada duruyorsa toplanıyor.
+
+## Kilitler
+
+- `test/iksir.mjs` 10. bölüm: yarım içme güç vermiyor, göz işaretli/kilitli/
+  ölümde kalıyor, Kuşak'ın gözü içince, lazerde ve iksir bitince yerinde,
+  geçişte efektler siliniyor, sahipsiz göz toplanıyor (kask ve Kuşak gözü
+  hariç). Yedi mutasyonun yedisini de yakaladı.
+- `sunucu/tarama_dene.py` yeni **iksir aşaması**: dokuz iksiri gerçek motorda
+  sonuna kadar içiyor (güç, harcanma, gözün kilidi), birini yarıda bırakıyor.
+  Eşya aşamasının `useItem`'i içmeyi bitirmiyor; o yüzden ayrı aşama.
+- Sahte motor: `ItemStack` kilit, ölümde kalma ve ipucu satırı taşıyor
+  (gerçekte ölçülen varsayılanlarla); `ItemLockMode` eklendi.
+
+## Gerçek motor taraması
+
+Koşuyor; sonuç sürümün son commit'inde.
+
+Yan bulgu (deneme düzeneği): yedi sahte oyuncuyla sunucu iki koşuda da
+doğumdan üç tick sonra çöktü (`max-players=4`); dördüyle çökmedi. Rehbere
+yazıldı.
+
 # v7.99.21 — İlkel Beşli yürüyor, ölen bot sayıdan düşüyor
 
 Kullanıcı: *"İlkel Beşli yürümüyor, biraz uzaklaşınca yanıma ışınlanıyorlar.

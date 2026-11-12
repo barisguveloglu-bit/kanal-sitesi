@@ -355,7 +355,8 @@ import {
 /* Iksirler de kendi dosyasinda kayit oluyor; buradan sadece
    tarama ve temizlik cagriliyor.                              */
 import {
-  iksirTara, iksirAktifMi, kademeUnut, iksirKancalari, kademeAl
+  iksirTara, iksirAktifMi, kademeUnut, iksirKancalari, kademeAl,
+  gozDenetimZamani, sahipsizGozTemizle
 } from "./yetenekler/iksirler.js";
 
 /* Lazer modu (Element'in buz/ates secimi). Modul yukaridaki
@@ -679,6 +680,10 @@ system.runInterval(() => {
      oyuncu listesi istiyor; getAllPlayers TEK kez cagriliyor,
      ikisi de bosken hic cagrilmiyor.                           */
   const iksirVar = iksirAktifMi();
+  /* Sahipsiz iksir gozu: kimse iksir icmemisken de bakilmali
+     (kademe dunya acilisinda bos, goz kafada kalmis olabilir).
+     Iki saniyede bir, o tick'te oyuncu listesi zaten aliniyor. */
+  const gozDenetim = gozDenetimZamani();
   const kalpVar = kalpliVarMi();
   const botVar = botVarMi();
   /* Donusum de oyuncu listesi istiyor; getAllPlayers yine TEK
@@ -691,7 +696,7 @@ system.runInterval(() => {
      eklendi: kapida sayilmayan bir sistem, tek oyuncu
      dunyasinda hicbir sey acik degilken SESSIZCE calismazdi
      -- "calisiyor mu != ulasilabiliyor mu" (v4.83 dersi).  */
-  if (iksirVar || kalpVar || botVar || kilikVar || ZIRH_ACIK ||
+  if (iksirVar || gozDenetim || kalpVar || botVar || kilikVar || ZIRH_ACIK ||
       BEN10_ACIK || MARVEL_ACIK || CAN_SAYACI_ACIK ||
       TEKNOLOJI_ACIK || MAHOU_ACIK || VILTRUMITE_ACIK) {
     let oyuncular;
@@ -706,6 +711,13 @@ system.runInterval(() => {
         iksirTara(oyuncular);
       } catch (e) {
         hataYaz("iksirTara", e);
+      }
+    }
+    if (gozDenetim) {
+      try {
+        sahipsizGozTemizle(oyuncular);
+      } catch (e) {
+        hataYaz("sahipsizGozTemizle", e);
       }
     }
     if (kalpVar) {

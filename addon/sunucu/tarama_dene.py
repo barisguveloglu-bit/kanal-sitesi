@@ -199,6 +199,30 @@ HILE_YOKLAMA = {
 }
 
 
+def iksir_ozeti(satirlar):
+    """(yarim birakilan icmenin satiri, sonuna kadar icilenlerin satirlari)."""
+    yarim, tam = None, []
+    for s in satirlar:
+        m = re.search(r"\[TARAMA\] IKSIR (yarim .*|tam .*)", s)
+        if m:
+            if m.group(1).startswith("yarim"):
+                yarim = m.group(1)
+            else:
+                tam.append(m.group(1))
+    return yarim, tam
+
+
+def iksir_sayisi():
+    """Icilebilir iksir sayisi. pa:iksir_sise ara urun: icilmez, sayilmaz."""
+    n = 0
+    for f in glob.glob(os.path.join(ADDON, PAKET, "items", "*.json")):
+        esya = json.load(open(f, encoding="utf-8"))["minecraft:item"]
+        if (esya["description"]["identifier"].startswith("pa:iksir_") and
+                esya.get("components", {}).get("minecraft:use_animation") == "drink"):
+            n += 1
+    return n
+
+
 def hile_ozeti(satirlar):
     """Hile asamasi -> [(rol, durum, ayrinti)].
 
@@ -328,7 +352,7 @@ def ozetle(satirlar):
             elif t.startswith(("ISTISNA", "TETIK ISTISNA", "KURULAMADI", "esya atti", "komut atti",
                                "HILE adim atti", "HILE komut atti", "HILE kurulum atti",
                                "durust adim atti", "dokunma atti", "etkilesim atti",
-                               "oldurme atti", "yeniden dogus atti")):
+                               "oldurme atti", "yeniden dogus atti", "iksir atti")):
                 istisna.append(t[:300])
             elif t == "BITTI":
                 bitti = True
@@ -431,6 +455,23 @@ def main():
                 sorun.append("savunma: %s %s (%s)" % (rol, durum, ayrinti[:100]))
     else:
         sorun.append("hile asamasi kosmadi")
+    if a.asama == "hepsi":
+        # v7.99.22: guc yalniz icme BITINCE geliyor. Esya asamasinin
+        # useItem'i icmeyi bitirmiyor; iksirler ayri asamada icildi.
+        yarim, tam = iksir_ozeti(satirlar)
+        beklenen = iksir_sayisi()
+        tamam = [t for t in tam if ": TAMAM" in t]
+        print("iksir, gercek motorda: %d/%d sonuna kadar icildi" % (len(tamam), beklenen))
+        print("  %s" % (yarim or "yarim icme olcumu YOK"))
+        for t in tam:
+            if ": TAMAM" not in t:
+                print("  ! %s" % t[:150])
+        if yarim is None:
+            sorun.append("iksir asamasi kosmadi")
+        elif "guc=yok" not in yarim or "elde=1" not in yarim:
+            sorun.append("yarim birakilan icme guc verdi ya da iksiri harcadi: " + yarim[:120])
+        if len(tamam) < beklenen:
+            sorun.append("iksir: %d/%d sonuna kadar icildi" % (len(tamam), beklenen))
     gozcu = gozcu_ozeti(satirlar)
     durust = gozcu.get("durust", {})
     print("Gozcu, DURUST oyunda: %d uyari (her biri yanlis alarm)" % sum(durust.values()))

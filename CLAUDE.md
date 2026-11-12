@@ -537,6 +537,14 @@ Mojang'ın sıkı ayarları açık, yalnız izin listesindekiler girer
   (`esya_bicim_duzelt`): üreteçler `{"texture": X}` yazmaya devam eder,
   1.21.0 eşyada dosyaya `{"textures": {"default": X}}` gider; `minecraft:armor`
   yazılmaz (koruma `wearable.protection`'da). `test/motor_bicim.mjs` kilitliyor.
+- **İksir gücü yalnız içme BİTİNCE gelir (v7.99.22, gerçek motorda ölçüldü).**
+  `itemUse` içmenin başında geliyor; ona bağlı eski yedek yol yarıda bırakılan
+  içmeye güç verip iksiri elde bırakıyordu (tek iksir sınırsız). Yedek yolu geri
+  ekleme: "iksir içilemiyor" riskini `tarama_dene.py`'nin iksir aşaması tutuyor
+  (dokuz iksiri sonuna kadar içer, birini yarıda bırakır). İksirin gözü
+  işaretli (`IKSIR_GOZ_IMI`), yuvasına kilitli ve ölümde kalıyor; yalnız işaretli
+  göze dokunulur, Askerin Kuşağı'nın Kanlı Göz'ü oyuncunundur. Göz 17 puan =
+  8,5 kalkan: oyunun yazdığı sayı puan, çubuk kalkan (`kol_uret.py` `GOZ_ZIRH`).
 - Claude'un bulut oturumu sunucuyu **barındıramaz** (geçici, dışarıdan
   bağlantı yok); burada yalnız kurulum ve açılış denenir.
 - **Düello yeri (kullanıcı: "dövüşler yapılacak yer olmalı"):** gökte

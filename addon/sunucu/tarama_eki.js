@@ -20,6 +20,8 @@
         (uslup secili, eldiven acik, kilik giyili),
      3. her sohbet komutunu /scriptevent ile gonderir,
      4. bota dokunur (playerInteractWithEntity),
+     4b. iksirleri GERCEKTEN icer (v7.99.22): biri yarida birakir,
+        dokuzu sonuna kadar; guc, harcanma ve gozun kilidi sayilir,
      5. her esyayi verir, kullanir, bir kez vurur,
      6. oyunculari oldurup yeniden dogurur (olum, mezar, playerSpawn),
      7. oyunculari cikarir (playerLeave yolu).
@@ -31,6 +33,8 @@
 import { spawnSimulatedPlayer as __dogur } from "@minecraft/server-gametest";
 import { GameMode as __Kip, ItemStack as __Esya, InputPermissionCategory as __Girdi } from "@minecraft/server";
 import { enerjiVer as __enerjiVer } from "./enerji.js";
+import { kademeAl as __kAl, kademeBitir as __kBitir } from "./yetenekler/iksirler.js";
+import { iksirinKademesi as __iksirKademe } from "./yetenekler/kayit.js";
 const __T = (m) => console.warn("[TARAMA] " + m);
 world.afterEvents.worldLoad.subscribe(() => system.runTimeout(__basla, 100));
 function __basla() {
@@ -71,7 +75,7 @@ function __basla() {
 
     let kalan = tanimlar.map((t) => t.kimlik);
     let gecis = 1, tick = 0, bosTick = 0, asama = "durust", tur = 1;
-    let durustTick = 0, etkTick = 0, olumTick = 0, hileTick = 0;
+    let durustTick = 0, etkTick = 0, olumTick = 0, hileTick = 0, iksirTick = 0;
     const sonAtis = new Map();
     const komutlar = __KOMUTLAR;
     let komutSira = 0, esyaSira = 0;
@@ -522,7 +526,51 @@ function __basla() {
             __T("bota dokunma: " + botlar.length + " bot, " + n + " etkilesim");
           } catch (x) { __T("etkilesim atti: " + x); }
         }
-        if (e === 120) { __T("ASAMA esya"); asama = "esya"; }
+        if (e === 120) { __T("ASAMA iksir"); asama = "iksir"; iksirTick = 0; }
+        return;
+      }
+      if (asama === "iksir") {
+        /* Esya asamasindaki useItem icmeyi BITIRMIYOR (yalniz itemUse).
+           Iksir gucu v7.99.22'den beri yalniz icme bitince geliyor;
+           burada useItemInSlot ile gercekten icilir. Ilk tur: biri
+           6 tick sonra birakir -- guc gelmemeli, iksir elde kalmali. */
+        const t = iksirTick++;
+        /* Yalniz kademesi olanlar: pa:iksir_sise bir ara urun, icilmez. */
+        const iksirler = esyalar.filter((k) => !!__iksirKademe(k));
+        const kap = (p) => p.getComponent("inventory").container;
+        const ver = (p, k) => { kap(p).clearAll(); kap(p).setItem(0, new __Esya(k, 1)); p.selectedSlotIndex = 0; };
+        const canli = oy.filter(gec);
+        const TUR = 45;
+        try {
+          if (t === 0) { ver(canli[0], iksirler[0]); canli[0].useItemInSlot(0); }
+          if (t === 6) canli[0].stopUsingItem();
+          if (t === 40) {
+            const k = __kAl(canli[0].id), e = kap(canli[0]).getItem(0);
+            __T("IKSIR yarim " + iksirler[0] + ": guc=" + (k ? k.kimlik : "yok") + " elde=" + (e ? e.amount : 0));
+            __kBitir(canli[0]);
+          }
+          if (t >= TUR) {
+            const tur = Math.floor((t - TUR) / TUR), an = (t - TUR) % TUR;
+            const parca = iksirler.slice(tur * canli.length, (tur + 1) * canli.length);
+            if (parca.length === 0) {
+              for (const p of canli) { try { __kBitir(p); } catch (x) {} }
+              __T("ASAMA esya"); asama = "esya"; return;
+            }
+            if (an === 0) parca.forEach((k, i) => { ver(canli[i], k); canli[i].useItemInSlot(0); });
+            if (an === 40) {
+              parca.forEach((k, i) => {
+                const p = canli[i], kd = __kAl(p.id), e = kap(p).getItem(0);
+                const s = p.getComponent("equippable").getEquipmentSlot("Head"), g = s.getItem();
+                const beklenen = k.slice("pa:iksir_".length);
+                const tamam = kd && kd.kimlik === beklenen && !e && g && g.typeId === kd.goz &&
+                              s.lockMode === "slot" && s.keepOnDeath === true;
+                __T("IKSIR tam " + beklenen + ": " + (tamam ? "TAMAM" : "SORUN") +
+                    " guc=" + (kd ? kd.kimlik : "yok") + " elde=" + (e ? e.amount : 0) +
+                    " kafa=" + (g ? g.typeId : "bos") + " kilit=" + s.lockMode + " olumde=" + s.keepOnDeath);
+              });
+            }
+          }
+        } catch (x) { __T("iksir atti: " + x); }
         return;
       }
       if (asama === "esya") {

@@ -635,6 +635,14 @@ def esya(kimlik, ad):
 # YARIM SIMGE OLUYOR: zirh cubugu yarim simge cizebiliyor
 # (tek sayilar hep yarim gosterir), o yuzden 8,5 tam olarak
 # ciziliyor. 10 simgeye 1,5 simge kaldi.
+#
+# v7.99.22: kullanici "zirhta 17 yaziyor, 8,5 olmali" dedi. Ikisi
+# AYNI zirh: oyunun yazdigi sayi PUAN (20 uzerinden), cubuk SIMGE
+# (10 uzerinden). Gercek motorda olculdu: gozlu oyuncu 10 hasarin
+# 5,2'sini aldi, gozsuz 10'unu -- tam 17 puanin formulu
+# (10 x (1 - (17 - 10/2)/25) = 5,2). protection tam sayi; "8,5"
+# yazdirmanin yolu 8 ya da 9 puan, yani cubukta 4 ya da 4,5 simge:
+# kullanicinin istedigi zirhin yarisi. O yuzden 17 kaldi.
 GOZ_ZIRH = 17
 
 # GOZ RENGI iki bicimde yazilabilir:

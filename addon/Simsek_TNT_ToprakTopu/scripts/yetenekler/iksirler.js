@@ -8,7 +8,7 @@ import { KADEMELER, IKSIR_TAZELEME, IKSIR_ONEK,
   PARLAMA_ACIK, PARLAMA_GIRIS, PARLAMA_TUT, PARLAMA_CIKIS,
   PARLAMA_BANT_GIRIS, PARLAMA_BANT_TUT, PARLAMA_BANT_CIKIS,
   PARLAMA_BANT_ARALIK,
-  IKSIR_LAZERI_SEC, NITROKSIN_DUSME_BAGISIK,
+  IKSIR_LAZERI_SEC, NITROKSIN_DUSME_BAGISIK, IKSIR_GOZ_IMI, DUSMUS_KUSAK,
 } from "../ayarlar.js";
 
 /* ============================================================
@@ -28,9 +28,13 @@ import { KADEMELER, IKSIR_TAZELEME, IKSIR_ONEK,
 
    ---- BIZDE ----
    Durum bir Map. Tarama yok; sadece iksir icmis oyuncular
-   geziliyor, kimse icmemisse dongu hic donmuyor. Goz SADECE
-   GORUNUM -- cikarsa da kademe devam eder, o yuzden kilide
-   gerek yok. Sure dolunca goz kendiliginden cikar.
+   geziliyor, kimse icmemisse dongu hic donmuyor. Goz guc
+   bayragi degil -- giderse de kademe devam eder. Sure dolunca
+   goz kendiliginden cikar.
+
+   KILIT GERI GELDI (v7.99.22): goz 17 koruma tasiyor, yani
+   "yalniz gorunum" degil. Kilitsizken iksirden kalici kask
+   cikariliyordu; ayrinti ayarlar.js IKSIR_GOZ_IMI notunda.
    ============================================================ */
 
 for (const k of KADEMELER) {
@@ -58,10 +62,51 @@ export function kademeAl(oyuncuId) {
 
 export function kademeUnut(oyuncuId) {
   durumlar.delete(oyuncuId);
-  sonIcme.delete(oyuncuId);
 }
 
-/* ---------------- Goz (sadece gorunum) ---------------- */
+/* ---------------- Goz ---------------- */
+
+/* Kusak'in verdigi goz turleri. Isaretsizse oyuncunun KENDI
+   kaskidir; iksir ona asla dokunmaz. Liste elle yazilmadi:
+   Kusak'a yeni bir goz girerse burasi kendiliginden bilir.     */
+const KUSAK_GOZLERI = new Set(
+  DUSMUS_KUSAK.map((satir) => satir[0]).filter((e) => e.startsWith("pa:goz_")));
+
+function gozImliMi(esya) {
+  try {
+    return typeof esya.getLore === "function" &&
+           esya.getLore().indexOf(IKSIR_GOZ_IMI) !== -1;
+  } catch (e) {
+    return false;
+  }
+}
+
+/* Kafadaki esya iksirin gozu mu? Isaretliyse evet. Isaretsiz
+   bir goz yalniz Kusak'in vermedigi bir turse iksirindir: o
+   turler baska yoldan gelmiyor, yani eski bir surumden kalmis
+   iksir gozu.                                                  */
+export function iksirGozuMu(esya) {
+  if (!esya || typeof esya.typeId !== "string" || !esya.typeId.startsWith("pa:goz_")) {
+    return false;
+  }
+  return gozImliMi(esya) || !KUSAK_GOZLERI.has(esya.typeId);
+}
+
+/* Isaretli, yuvasina kilitli, olumde kalan goz. Isaretlenemezse
+   HIC takilmaz: isaretsiz bir Kanli Goz Kusak'inkinden ayirt
+   edilemez ve bir daha cikarilamazdi. Guc yine calisir.        */
+function gozEsyasi(tip) {
+  try {
+    const esya = new ItemStack(tip, 1);
+    esya.setLore([IKSIR_GOZ_IMI]);
+    esya.lockMode = api.ItemLockMode ? api.ItemLockMode.slot : "slot";
+    esya.keepOnDeath = true;
+    return esya;
+  } catch (e) {
+    hataYaz("iksir.gozEsyasi(" + tip + ")", e);
+    return undefined;
+  }
+}
 
 let gozUyarisi = false;
 
@@ -88,14 +133,14 @@ function gozTak(oyuncu, kademe) {
     /* KASK VARSA DOKUNMA (v7.98.2). Eskiden bakilmadan
        yaziliyordu: iksiri icen oyuncunun netherite kaski geri
        gelmemek uzere siliniyordu. gozCikar zaten ayni kurala
-       uyuyordu, gozTak uymuyordu. Yuvada bizim gozumuz (baska
+       uyuyordu, gozTak uymuyordu. Yuvada iksirin gozu (baska
        bir kademenin) varsa degistirmek serbest -- o bizim.
-       Kask varsa goz gorunmez; kademenin gucleri yine calisir. */
+       Kask varsa goz gorunmez; kademenin gucleri yine calisir.
+       Oyuncunun KENDI gozu (Kusak) da bir kask: dokunulmaz.   */
     const simdiki = e.getEquipment("Head");
-    const bizimGoz = simdiki && typeof simdiki.typeId === "string" &&
-                     simdiki.typeId.startsWith("pa:goz_");
-    if (simdiki && !bizimGoz) return;
-    e.setEquipment("Head", new ItemStack(kademe.goz, 1));
+    if (simdiki && !iksirGozuMu(simdiki)) return;
+    const goz = gozEsyasi(kademe.goz);
+    if (goz) e.setEquipment("Head", goz);
   } catch (err) {
     // Goz esyasi kayitli olmayabilir; kademe yine de calisir
     hataYaz("iksir.gozTak(" + kademe.goz + ")", err);
@@ -107,10 +152,10 @@ function gozCikar(oyuncu, kademe) {
   const e = ekipman(oyuncu);
   if (!e) return;
   try {
-    // Sadece BIZIM taktigimiz gozu kaldir: oyuncu araya bir kask
-    // taktiysa onu silmeyelim.
+    // Sadece BIZIM taktigimiz gozu kaldir: oyuncunun kaskina ya
+    // da kendi gozune (Kusak) dokunma.
     const simdiki = e.getEquipment("Head");
-    if (!simdiki) return;
+    if (!simdiki || !iksirGozuMu(simdiki)) return;
     // Normal goz ya da lazer varyanti -- ikisi de bizim
     if (simdiki.typeId !== kademe.goz && simdiki.typeId !== kademe.lazerGoz) return;
     e.setEquipment("Head", undefined);
@@ -121,7 +166,7 @@ function gozCikar(oyuncu, kademe) {
 
 /* Lazer atarken goz parlak varyantina geciyor, bitince normale
    donuyor. Referansta da boyleydi (replaceitem ile goz_lazer),
-   tek farki bizde KILIT yok -- gozu istedigin an cikarabilirsin.
+   Yeni goz da isaretli ve kilitli takilir (gozEsyasi).
 
    Lazer gozu kayitli degilse sessizce normal gozde kaliyor:
    gorsel eksik olur, lazer yine calisir.                        */
@@ -147,8 +192,9 @@ function gozDegistir(oyuncu, eskiTip, yeniTip) {
   if (!e) return;
   try {
     const simdiki = e.getEquipment("Head");
-    if (!simdiki || simdiki.typeId !== eskiTip) return;
-    e.setEquipment("Head", new ItemStack(yeniTip, 1));
+    if (!simdiki || simdiki.typeId !== eskiTip || !iksirGozuMu(simdiki)) return;
+    const goz = gozEsyasi(yeniTip);
+    if (goz) e.setEquipment("Head", goz);
   } catch (err) {
     hataYaz("iksir.gozDegistir(" + yeniTip + ")", err);
   }
@@ -162,17 +208,7 @@ export function kademeBitir(oyuncu) {
   if (!d) return undefined;
 
   efektSil(oyuncu, d.kademe);
-  gozCikar(oyuncu, d.kademe);
-  // Lazer gozu takiliyken kapatilmis olabilir
-  if (d.kademe.lazerGoz) {
-    const e = ekipman(oyuncu);
-    try {
-      const simdiki = e && e.getEquipment("Head");
-      if (simdiki && simdiki.typeId === d.kademe.lazerGoz) e.setEquipment("Head", undefined);
-    } catch (err) {
-      hataYaz("iksir.kademeBitir", err);
-    }
-  }
+  gozCikar(oyuncu, d.kademe);        // lazer gozunu de kapsiyor
   durumlar.delete(oyuncu.id);
   // Elle kapatinca da lazer secimi geri birakilsin
   if (IKSIR_LAZERI_SEC) kancaCagir("lazerBirak", oyuncu);
@@ -265,9 +301,18 @@ export function iksirIc(oyuncu, kademe) {
   if (!kademe) return false;
 
   /* Kademeler BIRIKMEZ. Yeni iksir oncekini iptal eder ve bastan
-     baslar; yoksa bes iksiri ust uste icip sonsuz guc olurdu.   */
+     baslar; yoksa bes iksiri ust uste icip sonsuz guc olurdu.
+
+     EFEKTLER DE (v7.99.22): eskiden yalniz goz cikiyordu. Onceki
+     kademenin efektleri 6 sn daha kaliyordu ve ayni efektin
+     zayifi yenisini gecemiyordu -- gercek motorda olculdu:
+     Nitroksin'den Kan Iksiri'ne gecince Ziplama V (Kan'da II)
+     2 saniye sonra hala ustteydi.                              */
   const onceki = durumlar.get(oyuncu.id);
-  if (onceki && onceki.kademe !== kademe) gozCikar(oyuncu, onceki.kademe);
+  if (onceki && onceki.kademe !== kademe) {
+    efektSil(oyuncu, onceki.kademe);
+    gozCikar(oyuncu, onceki.kademe);
+  }
 
   durumlar.set(oyuncu.id, {
     kademe,
@@ -290,36 +335,26 @@ export function iksirIc(oyuncu, kademe) {
 }
 
 /* ---------------- Icme olayi ----------------
-   ASIL YOL: itemCompleteUse -- icme animasyonu BITINCE gelir,
+   TEK YOL: itemCompleteUse -- icme animasyonu BITINCE gelir,
    yani yarim birakip guc kazanamazsin.
 
-   YEDEK YOL: itemUse -- icmeye BASLAYINCA gelir. Neden lazim:
-   esyanin icilebilir sayilmasi minecraft:use_animation'a bagli
-   ve bu bilesenin adi/davranisi surumler arasi degisebiliyor.
-   Icme hic "tamamlanmazsa" itemCompleteUse hic gelmez ve iksir
-   tamamen olu kalir (v4.1'de bu oldu). Yedek yol o durumda
-   devreye giriyor.
-
-   Cift tetiklenme sorun degil: ayni iksir CIFT_ESIK tick icinde
-   ikinci kez gelirse yok sayiliyor, yani sure bastan baslamiyor. */
-const CIFT_ESIK = 30;
-const sonIcme = new Map();   // oyuncuId -> { kimlik, tick }
-
-function icmeyiIsle(oyuncu, esya, nereden) {
+   ITEMUSE YEDEGI KALDIRILDI (v7.99.22). itemUse icmeye
+   BASLAYINCA geliyor; v4.1'de icme hic tamamlanmadigi icin
+   yedek olarak eklenmisti. Bedeli gercek motorda olculdu:
+   icmeye basla, birak -> guc geldi, iksir elde DURUYOR. Yani
+   tek iksir sonsuz kez iciliyordu.
+   v4.1'in tehlikesi (iksir icilemez olursa itemCompleteUse hic
+   gelmez) artik iki yerde tutuluyor: test/motor_bicim.mjs
+   esyanin icilebilir bicimini, sunucu/tarama_dene.py dokuz
+   iksirin gercek motorda SONUNA KADAR icildigini olcuyor.     */
+function icmeyiIsle(oyuncu, esya) {
   if (!oyuncu || !esya) return;
 
   const kademe = iksirinKademesi(esya.typeId);
   if (!kademe) return;
 
-  const onceki = sonIcme.get(oyuncu.id);
-  const simdi = system.currentTick;
-  if (onceki && onceki.kimlik === kademe.kimlik && simdi - onceki.tick < CIFT_ESIK) {
-    return;   // ayni icme iki yoldan da geldi
-  }
-  sonIcme.set(oyuncu.id, { kimlik: kademe.kimlik, tick: simdi });
-
   iksirIc(oyuncu, kademe);
-  bilgiYaz("iksir icildi: " + kademe.kimlik + " (" + nereden + ")");
+  bilgiYaz("iksir icildi: " + kademe.kimlik + " (itemCompleteUse)");
 
   /* Icince lazer jest secimine gelsin. Sebebi ayarlar.js'teki
      IKSIR_LAZERI_SEC aciklamasinda: lazer esyasiz sirada 21.
@@ -401,17 +436,9 @@ function kancaCagir(ad, ...arg) {
 
 const tamKuruldu = olayaAbone("itemCompleteUse", (olay) => {
   try {
-    icmeyiIsle(olay.source, olay.itemStack, "itemCompleteUse");
+    icmeyiIsle(olay.source, olay.itemStack);
   } catch (e) {
     hataYaz("itemCompleteUse", e);
-  }
-});
-
-const basKuruldu = olayaAbone("itemUse", (olay) => {
-  try {
-    icmeyiIsle(olay.source, olay.itemStack, "itemUse");
-  } catch (e) {
-    hataYaz("itemUse.iksir", e);
   }
 });
 
@@ -433,10 +460,8 @@ if (NITROKSIN_DUSME_BAGISIK) {
   }
 }
 
-if (!tamKuruldu && !basKuruldu) {
-  bilgiYaz("KRITIK: ne itemCompleteUse ne itemUse kuruldu, iksirler calismaz.");
-} else if (!tamKuruldu) {
-  bilgiYaz("itemCompleteUse yok, iksirler itemUse ile calisacak.");
+if (!tamKuruldu) {
+  bilgiYaz("KRITIK: itemCompleteUse kurulamadi, iksirler calismaz.");
 }
 
 /* ---------------- Her tick ----------------
@@ -498,6 +523,39 @@ export function iksirTara(oyuncular) {
     const kalan = (d.bitisTick - simdi) / 20;
     if (kalan <= 5) {
       actionbarYaz(oyuncu, "§e" + d.kademe.ad + " §8· " + kalan.toFixed(0) + " sn");
+    }
+  }
+}
+
+/* ---------------- Sahipsiz goz  (v7.99.22) ----------------
+   Kademe bellekte duruyor: dunya kapanip acilinca ya da oyuncu
+   cikip girince siliniyor, kafadaki goz ise kaliyordu (kilitli
+   ve olumde kalan bir goz icin bu daha da kotu olurdu). Iki
+   saniyede bir: kafada iksirin gozu var ama ona ait bir kademe
+   yoksa cikar. Oyuncunun kendi gozune (Kusak) dokunmaz; eski
+   surumden kalan isaretsiz iksir gozlerini de bu toplar.     */
+let sonGozDenetimi = -Infinity;
+
+export function gozDenetimZamani() {
+  return system.currentTick - sonGozDenetimi >= IKSIR_TAZELEME;
+}
+
+export function sahipsizGozTemizle(oyuncular) {
+  sonGozDenetimi = system.currentTick;
+  for (const oyuncu of oyuncular) {
+    if (!gecerliMi(oyuncu)) continue;
+    try {
+      /* ekipman() degil: o bileseni olmayan oyuncu icin bir kez
+         uyari yaziyor; bu denetim kimse iksir icmeden de kosuyor. */
+      const e = oyuncu.getComponent("minecraft:equippable");
+      if (!e || typeof e.getEquipment !== "function") continue;
+      const simdiki = e.getEquipment("Head");
+      if (!simdiki || !iksirGozuMu(simdiki)) continue;
+      const d = durumlar.get(oyuncu.id);
+      if (d && (simdiki.typeId === d.kademe.goz || simdiki.typeId === d.kademe.lazerGoz)) continue;
+      e.setEquipment("Head", undefined);
+    } catch (err) {
+      hataYaz("iksir.sahipsizGoz", err);
     }
   }
 }

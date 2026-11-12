@@ -297,6 +297,33 @@ console.log("=== 4c. SAVUNMA DUVARI OZETI (hile taklidi) ===");
 }
 
 console.log("");
+console.log("=== 4d. IKSIR OZETI (v7.99.22) ===");
+{
+  const satirlar = [
+    "[t WARN] [Scripting] [TARAMA] IKSIR yarim pa:iksir_element: guc=yok elde=1",
+    "[t WARN] [Scripting] [TARAMA] IKSIR tam element: TAMAM guc=element elde=0 kafa=pa:goz_element kilit=slot olumde=true",
+    "[t WARN] [Scripting] [TARAMA] IKSIR tam nitroksin: SORUN guc=yok elde=1 kafa=bos kilit=none olumde=false",
+    "[t WARN] [Scripting] [SimsekTNT] iksir icildi: element (itemCompleteUse)",
+  ];
+  const r = kos(["-c", [
+    "import sys, json",
+    "sys.dont_write_bytecode = True",
+    "sys.path.insert(0, sys.argv[1])",
+    "import tarama_dene as t",
+    "y, tam = t.iksir_ozeti(json.load(sys.stdin))",
+    "print(json.dumps({'yarim': y, 'tam': tam, 'sayi': t.iksir_sayisi()}))",
+  ].join("\n"), SET], JSON.stringify(satirlar));
+  let o = null;
+  try { o = JSON.parse(r.cikti.trim()); } catch (e) { o = null; }
+  kontrol("iksir ozeti okundu", o !== null, r.cikti.slice(0, 200));
+  if (o) {
+    kontrol("yarim icme satiri ayri tutuluyor", o.yarim && o.yarim.includes("guc=yok elde=1"), o.yarim);
+    kontrol("sonuna kadar icilenler sayiliyor", o.tam.length === 2 && o.tam.filter((x) => x.includes(": TAMAM")).length === 1);
+    kontrol("beklenen iksir sayisi esyalardan (9)", o.sayi === 9, String(o.sayi));
+  }
+}
+
+console.log("");
 console.log("=== 5. EK, main.js'IN GERCEK ADLARINI KULLANIYOR ===");
 {
   const ek = readFileSync(join(SET, "tarama_eki.js"), "utf8");
@@ -311,6 +338,11 @@ console.log("=== 5. EK, main.js'IN GERCEK ADLARINI KULLANIYOR ===");
   }
   const enerji = readFileSync(join(ADDON, PAKET, "scripts", "enerji.js"), "utf8");
   kontrol("enerjiVer disa acik", /^export function enerjiVer\(/m.test(enerji));
+  /* v7.99.22: iksir asamasi kademeyi okuyup bitiriyor. */
+  const iksir = readFileSync(join(ADDON, PAKET, "scripts", "yetenekler", "iksirler.js"), "utf8");
+  kontrol("kademeAl ve kademeBitir disa acik (iksir asamasi)",
+          /^export function kademeAl\(/m.test(iksir) && /^export function kademeBitir\(/m.test(iksir) &&
+          ek.includes('from "./yetenekler/iksirler.js"'));
   kontrol("ek pakete GIRMIYOR (scripts/ altinda yok)",
           !existsSync(join(ADDON, PAKET, "scripts", "tarama_eki.js")));
   kontrol("paketin manifesti sahte oyuncu modulunu ISTEMIYOR",

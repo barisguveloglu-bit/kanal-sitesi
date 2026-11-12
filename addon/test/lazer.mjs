@@ -52,9 +52,13 @@ function kur(id) {
   o.getComponent = (ad) => {
     if (ad === "minecraft:equippable") {
       return {
-        getEquipment: (slot) => (slot === "Head" && o._kafa) ? { typeId: o._kafa } : undefined,
+        /* Gercekteki gibi takilan esyanin KENDISI doner (ipucu satiri,
+           kilit). Testin elle yazdigi o._kafa ipucusuz bir esyadir.  */
+        getEquipment: (slot) => (slot === "Head" && o._kafa)
+          ? ((o._kafaEsya && o._kafaEsya.typeId === o._kafa) ? o._kafaEsya : { typeId: o._kafa })
+          : undefined,
         setEquipment: (slot, esya) => {
-          if (slot === "Head") o._kafa = esya ? esya.typeId : undefined;
+          if (slot === "Head") { o._kafa = esya ? esya.typeId : undefined; o._kafaEsya = esya; }
           return true;
         }
       };
