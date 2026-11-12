@@ -74,6 +74,10 @@ BEKLENEN = (
 # (yol 40: sahte oyuncunun yol bulmasi degisken, olculen en az 52 ile 150
 # arasi. Bos gecen bir asama 0'a yakin cikar; esik onu ayirmaya yeter.)
 DURUST_EN_AZ = {"yol": 40.0, "hiz": 6.0, "zirve": 3.5, "vurus": 12}
+# Ustu durust oyunda olamaz: oyuncu dustu ya da olup yeniden dogdu demek.
+# v7.99.22'de bozuk arenada 308 blok/sn olculdu ve savunma duvarinin uc
+# maddesi yanlis yere "calismadi" dedi; arena yeniden kurulunca 12,2.
+DURUST_EN_COK_HIZ = 40.0
 
 EK_KOMUTLAR = [
     "can 10", "bot elmas 4", "bot bekle", "bot takip", "bot geri", "jujutsu gojo",
@@ -446,6 +450,10 @@ def main():
             if deger < esik:
                 sorun.append("durust asama zayif: %s %.1f < %.1f (0 uyari bir sey kanitlamaz)"
                              % (ad, deger, esik))
+        if olcum[1] > DURUST_EN_COK_HIZ:
+            sorun.append("durust asamada %.0f blok/sn: oyuncu dustu ya da yeniden dogdu; arena "
+                         "bozuk olabilir, once arena_kur.py --yeniden (sonraki sonuclar guvenilmez)"
+                         % olcum[1])
     hile = hile_ozeti(satirlar)
     if hile:
         print("savunma duvari, gercek motorda hile taklidi:")

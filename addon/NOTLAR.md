@@ -48,7 +48,22 @@ gelebiliyordu; iksir yokken kafada duruyorsa toplanıyor.
 
 ## Gerçek motor taraması
 
-Koşuyor; sonuç sürümün son commit'inde.
+Tam tarama (`tarama_dene.py --deneme`, 464 sn): 325 yetenek çalıştı,
+beklenmeyen HATA yok, **iksir 9/9 sonuna kadar içildi** (güç geldi, iksir
+harcandı, göz kilitli ve ölümde kalıyor); yarıda bırakılan içme: güç yok,
+iksir elde 1.
+
+Savunma duvarı o koşuda üç madde düşürdü (Kafes Kır, Envanter Yedeği,
+bakmadan vuruş). Sebep değişiklik değil, **bozuk arena**: önceki taramalar ve
+yürüme denemeleri zemini delmişti, oyuncular düşüp yeniden doğuyordu (dürüst
+aşamada 308 blok/sn, elmaslar ölümde gitti). Arena yeniden kurulunca
+(`--asama hile`, 136 sn) 15 maddenin 15'i yakalandı ya da çalıştı, dürüst
+oyunda 0 yanlış alarm, en yüksek hız 12,2 blok/sn. Tarama artık dürüst
+aşamada 40 blok/sn'yi aşan hızı "arena bozuk olabilir" diye bildiriyor;
+rehbere "her tam taramadan önce arenayı yeniden kur" yazıldı.
+
+Açılış (`acilis_dene.py`): TAMAM, v7.99.22 yüklendi; içerik kaydında yalnız
+önceden bilinen satırlar.
 
 Yan bulgu (deneme düzeneği): yedi sahte oyuncuyla sunucu iki koşuda da
 doğumdan üç tick sonra çöktü (`max-players=4`); dördüyle çökmedi. Rehbere

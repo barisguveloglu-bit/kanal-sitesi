@@ -178,7 +178,7 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # uyarisi sohbete HATA diye dusuyordu. Gercek motorda olculdu.
 # v7.99.21: Ilkel Besli / O Sey yurumuyordu (takip grubu hizi sifirliyordu),
 # olen bot sayidan dusmuyordu. Ikisi de gercek motorda olculup duzeltildi.
-SURUM_NO = (7, 99, 21)
+SURUM_NO = (7, 99, 22)
 
 SURUM_METIN = ".".join(map(str, SURUM_NO))
 

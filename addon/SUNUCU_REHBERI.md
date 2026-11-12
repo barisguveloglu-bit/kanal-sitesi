@@ -294,6 +294,11 @@ kırar, arenayı bozar. `--deneme` yazılmadan çalışmaz; izin listesinde oyun
 varsa (gerçek sunucunun işareti) reddeder. Koşu bitince paketi, manifesti ve
 `level.dat`'ı eski hâline getirir; dünyanın blokları geri gelmez. Gerçek
 sunucunu taramak istersen başka bir klasöre yeniden kur ve orayı tara.
+**Her tam taramadan önce arenayı yeniden kur**
+(`python3 addon/sunucu/arena_kur.py --hedef K --yeniden`): v7.99.22'de bozuk
+arenada oyuncular düşüp yeniden doğdu, savunma duvarının üç maddesi yanlış
+yere "çalışmadı" dedi. Dürüst aşamada 40 blok/sn'yi aşan hız artık bunu
+söylüyor.
 
 Kendi kısa denemeni yazarken (`tarama_eki.js` yerine başka bir ek):
 **sahte oyuncu sayısını altıda tut.** v7.99.22'de yedi sahte oyuncuyla
