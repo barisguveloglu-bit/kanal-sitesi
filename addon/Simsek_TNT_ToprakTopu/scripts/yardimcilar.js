@@ -24,12 +24,22 @@ export function bilgiYaz(mesaj) {
 
 const sonHataTick = new Map();
 
+/* ---- CIKMIS OYUNCU SOHBETE DUSMUYOR  (v7.99.25) ----
+   Gercek motorda olculdu: oyuncu bir yetenegin ortasinda cikinca
+   yetenegin gecikmeli mesaji "Entity being invalid" atiyor (kasirga,
+   kafes, ucurma, kubbe, toprak duvar, kalp ekle); menusu acikken
+   cikan oyuncu "Player quit before responding". Ikisi de ODADAKI
+   HERKESIN sohbetine kirmizi HATA olarak dusuyordu -- oyuncu zaten
+   gitti, yapilacak bir sey yok. Kayda (Content Log) yine yaziliyor. */
+const SOHBETE_DUSMEYEN = ["Entity being invalid", "Player quit before responding"];
+
 export function hataYaz(nerede, e) {
   const mesaj = (e && e.message) ? e.message : String(e);
   const iz = (e && e.stack) ? "\n  " + String(e.stack).split("\n").join("\n  ") : "";
   console.warn("[SimsekTNT] HATA @ " + nerede + ": " + mesaj + iz);
 
   if (!HATA_SOHBETE) return;
+  if (SOHBETE_DUSMEYEN.some((s) => mesaj.indexOf(s) !== -1)) return;
 
   // Ayni hata her tick tekrarlanabilir; sohbeti bogmasin
   const simdi = system.currentTick;
