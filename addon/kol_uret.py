@@ -178,7 +178,7 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # uyarisi sohbete HATA diye dusuyordu. Gercek motorda olculdu.
 # v7.99.21: Ilkel Besli / O Sey yurumuyordu (takip grubu hizi sifirliyordu),
 # olen bot sayidan dusmuyordu. Ikisi de gercek motorda olculup duzeltildi.
-SURUM_NO = (7, 99, 22)
+SURUM_NO = (7, 99, 23)
 
 SURUM_METIN = ".".join(map(str, SURUM_NO))
 
@@ -8321,6 +8321,46 @@ def ben10_ikonu(anahtar, geo):
                 break
         if kutu:
             break
+
+    # ---- SAYDAM ON YUZ  (v7.99.22) ----
+    # Ates'in (Heatblast) bas agacinda ilk iki kup `head_ic`: on
+    # yuzleri dokunun SAYDAM bolgesine dusuyor (0/30 piksel). Ikon
+    # tamamen saydam uretiliyor, uc Ates esyasi envanterde de elde
+    # de GORUNMUYORDU. Kafa aslinda `flames`: genisligi 0 olan bir
+    # duzlem, yukaridaki arama onu atliyor.
+    # Yalniz secilen bolge bossa genis arama: her yuz, duzlemler de,
+    # saydam bolge atlanarak. Oteki ikonlar bire bir ayni kaliyor.
+    def gorunur(k):
+        a = im.crop(k).getchannel("A").histogram()
+        return sum(a[8:]) > 0
+
+    if kutu is None or not gorunur(kutu):
+        kutu = None
+        for agac2 in (alt_agac("head"), alt_agac("body"), kemikler):
+            for b in agac2:
+                for kup in (b.get("cubes") or []):
+                    uv = kup.get("uv")
+                    if not isinstance(uv, dict):
+                        continue
+                    for ad in ("north", "south", "east", "west", "up", "down"):
+                        n = uv.get(ad)
+                        if not isinstance(n, dict) or "uv" not in n:
+                            continue
+                        ux, uy = n["uv"]
+                        sw, sh = n.get("uv_size", [0, 0])
+                        aday = (int(min(ux, ux + sw)), int(min(uy, uy + sh)),
+                                int(max(ux, ux + sw)), int(max(uy, uy + sh)))
+                        if (aday[2] <= im.width and aday[3] <= im.height and
+                                aday[2] > aday[0] and aday[3] > aday[1] and
+                                gorunur(aday)):
+                            kutu = aday
+                            break
+                    if kutu:
+                        break
+                if kutu:
+                    break
+            if kutu:
+                break
     if kutu is None:
         return None
     w, h = kutu[2] - kutu[0], kutu[3] - kutu[1]

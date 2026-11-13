@@ -1,3 +1,60 @@
+# v7.99.23 — Her eşya: envanterde ve elde görünüyor mu
+
+Kullanıcı: *"Moddan bir eşya aldığımda elimde de, elimde değilken envanterimde
+de görünüyor mu? Her eşyaya bak."*
+
+## Ölçüm
+
+Yeni araç `arac/gorunum_denetle.py`, 600 eşya, 363 attachable, 10 blok:
+
+- **envanter:** ikon anahtarı atlasta, dosyası diskte ve dosyada görünür
+  piksel var;
+- **elde:** attachable'ı olan 363 eşyanın geometrisi, dokusu, render
+  controller'ı, animasyonu ve malzemesi tanımlı, en az bir küpü dokunun görünür
+  bölgesine düşüyor. Attachable'ı olmayan 237 eşya elde ikonuyla çiziliyor;
+  onları envanter maddesi kapsıyor;
+- blok dokuları ve yumurta ikonları.
+
+## Bulunan: üç Ateş eşyası görünmüyordu
+
+`pa:ben_ates`, `pa:ben_ates_10k`, `pa:ben_ates_proto` (Ben 10, Heatblast):
+ikon **tamamen saydamdı**. Envanterde boş kare, elde (attachable'ı yok, ikonla
+çiziliyor) hiçbir şey.
+
+**Sebep:** `kol_uret.py` `ben10_ikonu` kafa ağacındaki ilk küpün ön yüzünü
+kesiyor. Ateş'te o küp `head_ic`; ön yüzü dokunun saydam bölgesine düşüyor
+(0/30 piksel). Asıl kafa `flames`: genişliği 0 olan bir düzlem, arama
+düzlemleri atlıyordu. **Düzeltme:** seçilen bölge boşsa geniş arama (her yüz,
+düzlemler dahil, saydam bölge atlanarak). İkon artık alev başı. Öbür 597 ikon
+bire bir aynı: üretimde yalnız bu üç dosya değişti.
+
+**Neden hiçbir test yakalamadı:** `ikon_atlas.mjs` ikonun atlasta ve diskte,
+kare ve ikinin kuvveti olduğunu soruyordu; içinde piksel olup olmadığını
+sormuyordu. Dosyanın var olması görünmesi demek değil.
+
+## Kilit
+
+`test/esya_gorunum.mjs`: depodaki her eşya (HATA 0); bilerek bozulmuş küçük
+bir eklentide dört bozukluğun dördünü de buluyor (saydam ikon, atlasta olmayan
+anahtar, küpleri saydam bölgede kalan model, olmayan geometri) ve sağlam eşyayı
+suçlamıyor. Eski saydam ikon geri konunca düştüğü gösterildi.
+
+## Görünüyor, not düşüldü
+
+- `pa:will_kilic` oyunun kendi altın kılıç dokusunu kullanıyor; bu makinede
+  doğrulanamıyor, oyunda düzgün.
+- Altı Konsey kaskının (Okazor, Kajaros, Raxxan, Harkos, Miskel, Code-Man)
+  ikonunda karakterin üstünde kırmızı çarpı var: kaynak paketin kendi çizimi,
+  `konsey_al.py` olduğu gibi taşıyor.
+- En az dolu ikonlar: Gülle ve XLR8 (üçer biçim) ince bir şerit gibi (16
+  piksel), görünür ama ne olduğu zor anlaşılıyor; Thor'un Galactus miğferi
+  siyah, koyu zeminde zor seçiliyor. Değiştirilmedi.
+- 22 eşya yaratıcı menüde bilerek gizli (18 iksir gözü, 4 Düşmüş çizimi);
+  ellerine geçince envanterde ve elde görünüyorlar.
+
+Gerçek motor koşulmadı: BDS doku çizmiyor ve bu sürüm yalnız üç ikonu
+değiştirdi.
+
 # v7.99.22 — İksirler: sonsuz iksir, silinen Kanlı Göz, kalıcı göz kaskı
 
 Kullanıcı: *"İksirlerde, Nitroksin gibi şeylerde hata var mı bak. İçince

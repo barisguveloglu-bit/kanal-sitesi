@@ -171,6 +171,15 @@ var mı). İkisi ayrı sorular, ikisi de gerekli.
 GeckoLib sürüm atlarsa: `python3 addon/arac/gecko_coz.py`, sonra testi
 çalıştır.
 
+### Görünürlük — `arac/gorunum_denetle.py` (v7.99.23)
+
+Kullanıcı: *"her eşyaya bak, elde de envanterde de görünüyor mu."* Araç her
+eşyanın ikonunda **görünür piksel** olduğunu, attachable'ların eksiksiz olduğunu
+ve modelin en az bir küpünün dokunun görünür bölgesine düştüğünü ölçüyor
+(`test/esya_gorunum.mjs`). Dosyanın var olması görünmesi demek değil: üç Ateş
+ikonu atlasta, diskte ve doğru ölçüdeydi, ama tamamen saydamdı. Yeni bir ikon
+üreteci yazınca çıktısının boş olmadığını da sor.
+
 ### Ters yazılmış Java elementi (v7.94.8)
 
 Java'da `from > to` olan bir element **geçerlidir** — Java tolere edip
