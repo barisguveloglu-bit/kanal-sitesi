@@ -64,7 +64,7 @@ Geriye iki şey kaldı: ağaca kazınmış adı ve nasıl öldüğü.
 | Tarih | Olay |
 |---|---|
 | Lâle Devri | Ağaç, görkemli olduğu için yerinden söktürülüp **Bâb-ı Hümâyun** önüne dikilir. Üzerindeki isimlere kimse dikkat etmez. |
-| **1728** | Yılmaz saraya çıkar, ağacın yerine iadesini ister; isimlerin evvelkilere ait olduğunu, bunun saygısızlık olduğunu söyler. **III. Ahmed yanlış anlar**, Yılmaz'ın kellesi cellatlar eliyle vurulur. **Güçleri henüz uyanmadığı için karşılık veremez.** |
+| **1728** | Yılmaz saraya çıkar, ağacın yerine iadesini ister; isimlerin evvelkilere ait olduğunu, bunun saygısızlık olduğunu söyler. **III. Ahmed yanlış anlar**, Yılmaz'ın kellesi cellatlar eliyle vurulur. **Karşılık verecek gücü yoktur.** |
 | **1731** | III. Ahmed 1730'da tahttan inmiştir. **Yılmaz'ın ölümünden üç yıl sonra**, I. Mahmud devrinde, ağacın imar işlerinde kullanılmasına karar verilir. |
 | **1731** | Keresteciler gövdenin bazı yerlerinden **bal gibi bir sıvı** aktığını görür. Tadarlar: **baldan tatlı.** |
 | 1731–1735 | Gövde parça parça kesilir, sarayın ziyafetlerinde kullanılır, sıvısı **padişahın cariyelerine** dağıtılır. |
@@ -440,7 +440,10 @@ Barış'ın kaçırıldığını biliyorlar. **Neden önemli olduğunu bilmiyorl
 Arkadaşlarını arıyorlar, dünyanın anahtarını değil.
 
 ### Cips Yiyen Adam
-İki formu var: cips ve yoğurt. Başka form tanımlı değil.
+Üç formu var: cips, yoğurt ve **Ağlamış Hali.** Üçüncüsü yiyerek değil,
+üzüntüden açılır; Samara Kadın kaybolduğunda ortaya çıktı (başı öne eğik,
+üstünde beyaz bir örtü). Güçleri henüz gösterilmedi, tır değeri yok.
+Formdan çıkınca yorgun düşer; toparlanmak için cips gerekir.
 
 ---
 

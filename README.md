@@ -13,7 +13,7 @@ Codex kuralları: [AGENTS.md](AGENTS.md).
 
 | Dosya | İçerik |
 |---|---|
-| `index.html` | Ana sayfa — evrenin özeti ve güç sıralaması |
+| `index.html` | Ana sayfa — evrenin özeti; güç sıralaması bilerek yok |
 | `karakterler.html` | Tüm karakterler, taraflarına göre ayrılmış |
 | `irade.html` | İrade sistemi ve Kanlı Göz paradoksu |
 | `efsane.html` | 300 yıllık efsane ve kuruyan ağaç |
