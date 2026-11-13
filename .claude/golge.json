@@ -1,0 +1,22 @@
+{
+  "kapilar": {
+    "ozellik": {
+      "komut": [
+        "python3",
+        ".claude/ozellik.py",
+        "--kez",
+        "300"
+      ],
+      "ozet": "\\d+ kural",
+      "durum": "gölge",
+      "eklendi": "2026-09-22",
+      "kayit": {
+        "kosu": 1,
+        "temiz": 1,
+        "engellerdi": 0,
+        "insan": 0,
+        "kosmadi": 0
+      }
+    }
+  }
+}

@@ -2,6 +2,13 @@
 
 Hikayenin lore arşivi. Derleme adımı yok, kurulum yok — HTML/CSS/JS.
 
+## Echo'yu Codex ile kullanmak
+
+Depoyu Codex'te aç ve **“Echo ile çalış; önce başlangıç denetimi yap”** de.
+`python3 echo.py baslat` hafızayı ve denetimleri getirir. Claude kurulumu veya
+API anahtarı gerekmez. Kullanım ve otomasyon sınırları: [ECHO.md](ECHO.md).
+Codex kuralları: [AGENTS.md](AGENTS.md).
+
 ## Sayfalar
 
 | Dosya | İçerik |
@@ -10,7 +17,7 @@ Hikayenin lore arşivi. Derleme adımı yok, kurulum yok — HTML/CSS/JS.
 | `karakterler.html` | Tüm karakterler, taraflarına göre ayrılmış |
 | `irade.html` | İrade sistemi ve Kanlı Göz paradoksu |
 | `efsane.html` | 300 yıllık efsane ve kuruyan ağaç |
-| `mafya.html` | Mafya hiyerarşisi ve derebeyi ağı (kurgu uyarılı) |
+| `mafya.html` | 3D Türkiye haritası, mafya hiyerarşisi ve derebeyi ağı (kurgu uyarılı) |
 | `icraatler.html` | Karakterlerin yaptıkları — sıralama değil, kayıt |
 | `soru-cevap.html` | Soruların nasıl sorulacağı — YouTube'a yönlendiriyor |
 | `404.html` | Olmayan adreslerde çıkan sayfa (stili kendi içinde) |
@@ -27,6 +34,9 @@ python3 -m http.server 8000
 ```
 
 Sonra tarayıcıda `http://localhost:8000` adresini aç.
+
+Mafya sayfasındaki 3D harita dosyadan (`file://`) açılınca çalışmaz; onun için
+yerel sunucu gerekir. Ayrıntı: [`assets/harita/KAYNAK.md`](assets/harita/KAYNAK.md).
 
 ## İçerik nasıl eklenir
 

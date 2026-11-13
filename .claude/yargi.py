@@ -157,9 +157,12 @@ def puanla(a):
                 kusur.append(f"cevapta geçmeyen gerçek: {', '.join(eksik)}")
             if not araliklar:
                 kusur.append("atıf yok — canon iddiası adressiz")
-            elif not any(b <= vaka["satir"] <= s for b, s in araliklar):
+            elif not any(b <= no <= s for b, s in araliklar
+                         for no in (vaka["satir"] if isinstance(vaka["satir"], list)
+                                    else [vaka["satir"]])):
                 kusur.append(f"atıf cevabın geçtiği satırı göstermiyor "
-                             f"(beklenen LORE.md:{vaka['satir']})")
+                             f"(beklenen LORE.md:"
+                             f"{'/'.join(str(x) for x in (vaka['satir'] if isinstance(vaka['satir'], list) else [vaka['satir']]))})")
         else:
             # Asıl sınav burada: canon susuyorken model konuşuyor mu?
             uyduran = [o for o in vaka["olmamali"] if o.lower() in metin.lower()]

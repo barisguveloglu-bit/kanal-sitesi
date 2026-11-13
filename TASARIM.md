@@ -137,7 +137,7 @@ neşeli, zıplayan, renkli animasyonlar tona uymaz.
 | Karakterler | 6 karakter kartı, taraflarına göre gruplanmış |
 | İrade Sistemi | 5 kademeli merdiven — sitenin ana mekaniği |
 | Kanlı Göz Efsanesi | Efsane + **eskimiş kâğıt görünümlü 1728 vakayinamesi** |
-| Mafya Haritası | 4 kademeli hiyerarşi şeması, 3 komutan kartı, **81 il kutusu** |
+| Mafya Haritası | **3D fiziki Türkiye haritası** (WebGL; iller cephe rengiyle, dokununca derebeyi), 4 kademeli hiyerarşi şeması, 3 komutan kartı, **81 il kutusu** |
 | İcraatler | Karakter başına "ne yaptı" listeleri |
 | Soru & Cevap | İzleyici soruları (backend'i henüz kurulmadı) |
 | (menüde olmayan bir sayfa) | Mor–camgöbeği bozulma renkleri, kilitli bölüm |
@@ -152,8 +152,9 @@ Taşıyıcının beyni yeterince yıkanırsa, yıkayanlara **tek bir dilek hakk�
 Kötülerin dileği: kavgasız bir dünya. Ama bunu güçle kurmak istiyorlar.
 Aradıkları taşıyıcının adı da **Barış** — cümle iki anlama birden geliyor.
 
-Efsane unutuldu çünkü taşıyıcı isimlerinin kazındığı ağaç **1728'de**
-Osmanlı sarayının önüne dikildi, sonra kesilip ziyafetlerde tüketildi.
+Efsane unutuldu çünkü taşıyıcı isimlerinin kazındığı ağaç **Lâle Devri'nde**
+Osmanlı sarayının önüne dikildi, sonra 1731–1735'te kesilip ziyafetlerde
+tüketildi.
 
 Ton: **karanlık, gizemli, ağır.** Kayıp bir tarih ve gizli bir tehdit hissi.
 Kahramanlık değil, tedirginlik.

@@ -39,7 +39,7 @@ python3 .claude/mutasyon.py
 
 Araçları kasten bozup sınavın yakalayıp yakalamadığına bakar. Kaçan her
 mutasyon, hiçbir testin korumadığı bir davranış demektir — testin var
-olması yetmez, **canlı** olması gerekir. Yavaştır (~2 dk), her koşuda
+olması yetmez, **canlı** olması gerekir. Yavaştır (~6 dk), her koşuda
 değil; test eklendiğinde ve commit öncesi çalıştır.
 
 ## 4. Geri getirme evali
@@ -57,6 +57,11 @@ python3 .claude/degerlendir.py --ayrinti
 | `gerçek kapsama` | Getirilen metin cevabı içeriyor mu | Doğru bölüm, yanlış parça |
 | `konu dışı doğru` | Alakasız soruya susuyor mu | Uydurmanın kapısı açık |
 | `sahte delil yok` | Cevapsız soruya sahte dayanak üretiyor mu | **En tehlikelisi** |
+| `değişmezlik` | Aynı soru aksansız / büyük harfle / noktalamalı yazılınca aynı yere varıyor mu | YouTube'dan gelen soruların bir kısmı kayboluyor |
+
+Oranların yanındaki köşeli parantez %95 Wilson aralığıdır. Alt ucu eşiğin
+altındaysa set, eşiği aştığımızı kanıtlamaya yetecek büyüklükte değil —
+düşen sayıyı yorumlarken bunu hesaba kat.
 
 ## 5. Açık geri bildirimler
 

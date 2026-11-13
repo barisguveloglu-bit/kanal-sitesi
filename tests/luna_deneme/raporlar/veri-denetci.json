@@ -1,0 +1,32 @@
+[
+  {
+    "id": "V1",
+    "sonuc": "temiz",
+    "alinti": "\"ad\":\"A\",\"ozellikler\":[\"hızlı\"]",
+    "aciklama": "ad metin ve ozellikler metin dizisi. trim ve map/toUpperCase çağrıları çalışır."
+  },
+  {
+    "id": "V2",
+    "sonuc": "kusur",
+    "alinti": "\"ozellikler\":\"hızlı\"",
+    "aciklama": "ozellikler metin verilmiş; render işlevi .map çağırdığı için çalışma anında hata oluşur."
+  },
+  {
+    "id": "V3",
+    "sonuc": "kusur",
+    "alinti": "\"ozellikler\":[\"güçlü\"]",
+    "aciklama": "ad alanı yok; kayit.ad.trim() çağrısı çalışma anında hata verir."
+  },
+  {
+    "id": "V4",
+    "sonuc": "temiz",
+    "alinti": "\"ozellikler\":[]",
+    "aciklama": "ad metin, ozellikler boş dizi (geçerli); isteğe bağlı metadata sözleşmeyi bozmaz."
+  },
+  {
+    "id": "V5",
+    "sonuc": "kusur",
+    "alinti": "\"ozellikler\":[12]",
+    "aciklama": "Dizi elemanı metin değil; map içindeki x.toUpperCase() çağrısı çalışma anında hata verir."
+  }
+]

@@ -1,0 +1,31 @@
+{
+  "rol": "erisim-denetci",
+  "kural": "Her parça ayrı bir sayfadadır; çevrede lang=tr ve geçerli HTML yapısı vardır. Yalnız bu parçada kesin klavye/erişilebilir ad/odak hatası ara. Belirtilmeyen CSS veya olay dinleyicisi yok. hidden olan öğenin gizlenmesi bilinçlidir.",
+  "gercek": "yerel button klavyeyle çalışır; aria-hidden içeriği erişilebilir addan çıkarır; div için klavye desteği kendiliğinden oluşmaz; görünür odak korunmalıdır.",
+  "vakalar": [
+    {
+      "id": "E1",
+      "metin": "<button aria-label=\"Menüyü aç\"><span aria-hidden=\"true\">☰</span></button>"
+    },
+    {
+      "id": "E2",
+      "metin": "<button><span aria-hidden=\"true\">×</span></button>"
+    },
+    {
+      "id": "E3",
+      "metin": "<div onclick=\"ac()\">Menüyü aç</div>"
+    },
+    {
+      "id": "E4",
+      "metin": "<style>button:focus { outline: none; box-shadow: none; }</style><button>Aç</button>"
+    },
+    {
+      "id": "E5",
+      "metin": "<section hidden>İçerik henüz yayımlanmadı.</section>"
+    },
+    {
+      "id": "E6",
+      "metin": "<label for=\"arama\">Ara</label><input id=\"arama\" type=\"search\">"
+    }
+  ]
+}

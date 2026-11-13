@@ -35,16 +35,38 @@ Her canon iddiasının yanına adresini yaz:
 
 Adres veremediğin cümle, canon iddiası olarak kurulmamalı.
 
-## 4. Dayanak yoksa
+## 4. Dayanak yoksa — önce bir kez daha ara
 
-İki ayrı durum var, ikisini karıştırma:
+"Canon bunu söylemiyor" demeden önce aşağıdaki denemeyi yap. Her durumda
+**en fazla bir** yeniden arama; ikincisi de boşsa dur.
 
-- **Arama hiçbir şey döndürmedi** → soru bu evrenle ilgili değil.
-- **Dayanak geldi ama cevap içinde yok** → soru konu içinde, canon susuyor.
-  Örnek: "Barış'ın kız kardeşi kim" sorusunda aile bölümü gelir ama kız
-  kardeş geçmez.
+Bu adım 30 soruluk bir deneme sınavından sonra eklendi. Önceki hâli
+"arama hiçbir şey döndürmedi → soru bu evrenle ilgili değil" diyordu ve
+bu **yanlıştı**: arama, cevabı canon'da olan soruları da boş döndürüyordu
+(ağız dili, eş anlamlı kelime, ek yüzünden). Boş sonucu "konu dışı" diye
+okumak, kendinden emin bir yanlış cevap üretiyordu.
 
-Her iki durumda da cevap aynı: **"Canon bunu söylemiyor."** Boşluğu doldurma.
+**a) Arama hiçbir şey döndürmedi.** Soruyu **canon'un kendi kelimeleriyle**
+bir kez yeniden yaz: ağız dilini yazı diline çevir, eş anlamlı bir kelimeyi
+canon'da geçebilecek karşılığıyla değiştir, eki at ve kelimenin yalın
+hâlini kullan, karakterin tam adını yaz. Yeniden arama da boşsa
+→ soru bu evrenle ilgili değil.
+
+**b) Dayanak geldi ama cevap içinde yok.** Soru iki şey arasındaki bir
+**ilişkiyi** soruyorsa ("X'i kim koruyor", "X kimin emrinde"), ilişki
+yalnızca **karşı tarafın** bölümünde yazılı olabilir: "A → B" diye yazılmış
+bir satır A'nın bölümünde durur ve B'nin bölümünde A'nın adı hiç geçmeyebilir.
+İlişki fiilini tek başına ara. Yine yoksa → soru konu içinde, canon susuyor. Örnek:
+"Barış'ın kız kardeşi kim" sorusunda aile bölümü gelir ama kız kardeş
+geçmez.
+
+**c) Dayanak yalnız `data.js`'ten geldi.** `data.js` canon'dan türetilmiş
+site verisi, canon'un kendisi değil — adres olarak verilemez. Aynı bilgiyi
+karakterlerin **tam adlarıyla** `LORE.md`'de ara ve oradaki satırı adresle.
+`LORE.md`'de yoksa bu bir senkron hatası olabilir: söyle.
+
+Denemeden sonra hâlâ dayanak yoksa cevap: **"Canon bunu söylemiyor."**
+Boşluğu doldurma.
 
 Bu, hikaye için bir eksik olabilir — o zaman `LORE.md` sonundaki
 "Açık Uçlar"a aday olarak söyle. Ama kendin karara bağlama, Barış'a sor.

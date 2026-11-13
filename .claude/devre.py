@@ -47,7 +47,22 @@ Dört tur boyunca aynı iki durum arasında gidip gelen bir döngü sayaca
 göre sağlıklı görünür; sınır dolana kadar döner ve "sınırı aştı" der.
 Oysa asıl sorun ikinci turda başlamıştır.
 
-Çıkış kodu: 0 devam edebilirsin, 1 DEVRE KESİLDİ (dur, insana çık).
+## Üst üste binme — çakışma kilidi
+
+Zamanlanmış bir döngünün bir turu aralıktan uzun sürerse, önceki tur
+bitmeden yenisi başlar ve ikisi aynı alana girer. Dışarıda gözlendi:
+15 dakikada bir koşan döngünün turları 15 dakikayı aşınca iki koşu
+aynı işi yaptı. Sayaç bunu göremez — iki koşu aynı sayacı paylaşır ve
+ikisi de "2/8" der.
+
+Bu yüzden her halka bir SAHİP taşır (oturum kimliği ya da `--sahip`).
+Başka bir sahip, halka hâlâ kendi süre bütçesi içindeyken `dene`
+derse reddedilir ve durum dosyasına HİÇ dokunulmaz. Bütçesi dolmuş
+halkanın kilidi ölü sayılır: çökmüş bir koşu halkayı sonsuza kadar
+kilitlememeli — kesici ceza değil fren.
+
+Çıkış kodu: 0 devam edebilirsin, 1 DEVRE KESİLDİ (dur, insana çık),
+4 ÇAKIŞMA (başka bir koşu bu halkayı tutuyor — bu turu atla, üstüne binme).
 """
 
 import argparse
@@ -76,6 +91,18 @@ VARSAYILAN_SINIR = 3
 # turda sınır hiç dolmadan saatler ve token gidebilir. Sayaç "kaç kez
 # denedin", saat "ne kadar harcadın" sorusunu cevaplar; ikisi ayrı risk.
 VARSAYILAN_SURE = 1800
+
+# Süre bütçesi kapalı (0) halkada kilit bu kadar saniye yaşar.
+KILIT_SURE = 1800
+
+CAKISMA = 4
+
+
+def sahip_kimligi(a):
+    """Bu koşunun kimliği. Oturum kimliği ortamdan gelir; yoksa ve
+    --sahip de verilmemişse kimlik bilinmez ve kilit uygulanamaz."""
+    return (getattr(a, "sahip", None)
+            or os.environ.get("CLAUDE_CODE_SESSION_ID") or "")
 
 
 def durum_oku():
@@ -151,9 +178,28 @@ def bayat_mi(halka):
         return True
 
 
+def kilit_canli(halka):
+    """Halkayı tutan koşu hâlâ kendi bütçesi içinde mi."""
+    if bayat_mi(halka) or halka.get("durum") == "kesildi":
+        return False
+    butce = halka.get("sure_siniri") or KILIT_SURE
+    return gecen_sure(halka) <= butce
+
+
 def dene(a):
     d = durum_oku()
     halka = d.get(a.halka)
+
+    ben = sahip_kimligi(a)
+    tutan = (halka or {}).get("sahip", "")
+    if halka and ben and tutan and tutan != ben and kilit_canli(halka):
+        print(f"ÇAKIŞMA — '{a.halka}' halkası başka bir koşuda açık "
+              f"(sahip {tutan[:12]}, {gecen_sure(halka):.0f} sn önce başladı, "
+              f"{halka['sayac']}. turda).")
+        print("Önceki tur bitmeden yenisi başlarsa ikisi aynı alana girer.")
+        print("Bu turu ATLA: bekle, aralığı büyüt ya da farklı bir halka adı ver.")
+        print("Durum dosyasına dokunulmadı.")
+        return CAKISMA
 
     if halka is None or bayat_mi(halka):
         halka = {"sayac": 0, "sinir": a.sinir,
@@ -162,6 +208,8 @@ def dene(a):
 
     halka["sinir"] = a.sinir
     halka["sure_siniri"] = a.sure
+    if ben:
+        halka["sahip"] = ben
     halka["sayac"] += 1
     halka["son"] = datetime.now().isoformat(timespec="seconds")
 
@@ -271,6 +319,8 @@ def main(argv):
     d.add_argument("--ilerleme-kapali", action="store_true",
                    help="tekrar/salınım denetimini kapat (bilerek yineleyen işler için)")
     d.add_argument("--not", dest="not_", default="", help="bu turda ne yapıldı")
+    d.add_argument("--sahip", default=None,
+                   help="koşu kimliği (varsayılan: oturum kimliği)")
     d.set_defaults(islev=dene)
 
     b = alt.add_parser("basari", help="iş bitti, sayacı sıfırla")
