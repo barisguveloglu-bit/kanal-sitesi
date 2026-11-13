@@ -27,8 +27,9 @@ Bunları **bozamazsın**, hikaye bunların içinde kurulur:
 
 1. **Her 300 yılda bir** bir taşıyıcı doğar (`LORE.md:13`).
 2. Taşıyıcı adını **ağaca yazdırır**; efsane böyle aktarılıyordu.
-3. **Güçler uyanmayabilir.** Yılmaz güçleri uyanmadığı için karşılık
-   veremedi — taşıyıcı olmak yenilmez olmak demek değil.
+3. **Taşıyıcının gücü yok.** Yılmaz'ın karşılık verecek gücü yoktu; Kanlı
+   Göz taşıyıcısı asla güç kazanmaz (`LORE.md:391-392`). Taşıyıcı olmak
+   yenilmez olmak demek değil.
 4. Sitede **sıralı güç tablosu yok** (`LORE.md:347`). "En güçlü taşıyıcı"
    gibi bir cümle kurma.
 5. Taşıyıcının ayırt edici özelliği **iradesi**. Adı bile bunu anlatıyor

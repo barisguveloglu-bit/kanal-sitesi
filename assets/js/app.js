@@ -344,7 +344,7 @@ function karakterKarti(k) {
           .map(
             (f) => `
           <div class="form-kutu">
-            <div class="ad">${kacir(f.ad)} <span class="tir-sayi">${f.tir} tır</span></div>
+            <div class="ad">${kacir(f.ad)} <span class="tir-sayi">${f.tir != null ? f.tir + " tır" : "gücü bilinmiyor"}</span></div>
             <div class="aciklama">${kacir(f.aciklama)}</div>
           </div>`
           )

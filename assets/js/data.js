@@ -178,6 +178,13 @@ const KARAKTERLER = [
         tir: 5,
         aciklama: "Ciddi savaş modu. Beş tır kaldırır.",
       },
+      {
+        ad: "Ağlamış Hali",
+        tir: null,
+        aciklama:
+          "Üzüntüden açılan form; Samara Kadın kaybolduğunda ortaya çıktı. " +
+          "Güçleri henüz gösterilmedi. Bitince yorgun düşer, cipse ihtiyaç duyar.",
+      },
     ],
     iradeKademe: 4,
     detay:

@@ -139,7 +139,7 @@ neşeli, zıplayan, renkli animasyonlar tona uymaz.
 | Kanlı Göz Efsanesi | Efsane + **eskimiş kâğıt görünümlü 1728 vakayinamesi** |
 | Mafya Haritası | **3D fiziki Türkiye haritası** (WebGL; iller cephe rengiyle, dokununca derebeyi), 4 kademeli hiyerarşi şeması, 3 komutan kartı, **81 il kutusu** |
 | İcraatler | Karakter başına "ne yaptı" listeleri |
-| Soru & Cevap | İzleyici soruları (backend'i henüz kurulmadı) |
+| Soru & Cevap | Soruların nasıl sorulacağı — YouTube yorumlarına yönlendiriyor (backend bilerek yok) |
 | (menüde olmayan bir sayfa) | Mor–camgöbeği bozulma renkleri, kilitli bölüm |
 
 ---
