@@ -1,3 +1,69 @@
+# v7.99.24 — Pelerinler dalgalanıyor
+
+Kullanıcı: *"Süper kahramanların pelerini düz durmasın, birçok farklı durum
+ekle; örneğin creative modda uçtuğumuzda dalgalansın. Hepsini düşünerek ekle."*
+
+## Hangi eşyalar
+
+20 Marvel kostümü: Thor (6), Loki (2), Doctor Doom (3), Doctor Strange,
+Kara Panter, Gambit, Vision, Adam Warlock, Scarlet Witch, Sentry, Spider-Man
+2099, Ms. Marvel. Pelerinleri `capa` → `capa2` → … zincirinde; her parçanın
+menteşesi (pivot) kendi üst kenarında. **Kök kemik yaka:** Thor'un ön tokaları,
+Gambit'in göğsü saran bloğu onun içinde, dönerse gövdenin içinden geçer. O
+yüzden kök sabit, sarkan 2–4 parça dönüyor. Ms. Marvel'de iki şerit var.
+Moon Knight ve Doom maskelerindeki başlık (`capa0`, kafada) bilerek dışarıda:
+kafayla dönüyor.
+
+## Durumlar
+
+| durum | pelerin (kök · uç, derece) |
+|---|---|
+| bekleme | 4 · 4, hafif nefes salınımı |
+| yürüme / koşma | 26 / 33 · 32 / 40, adımla salınım |
+| **creative'de havada durma** | 15 · 17, **19° dalga** |
+| **hızlı uçuş** | 74 · 104: bayrak gibi geriye akıyor, uç kıvrılıyor |
+| düşüş | 79 · 115: rüzgâr alttan, hızlı çırpınma |
+| eğilme · yüzme · binek | 21 · 11 · 41, kendi payı |
+| yağmur / fırtına | dalga 2,5 kat |
+| darbe alınca | sarsılma |
+| uyku | dümdüz |
+
+"Uçuyor mu" diye bir sorgu **yok** (Microsoft'un listesinde yalnız `can_fly`,
+o yetenek, durum değil). Uçuş durumdan çıkarılıyor: havada (yerde, suda,
+binekte, süzülürken değil), 0,8 sn'den uzun ve hızla düşmüyor. Normal zıplama
+~0,6 sn olduğu için uçuş sayılmıyor; yavaş düşme ve havada kalma da "süzülen"
+pelerin olarak dalgalanıyor.
+
+## Nasıl
+
+Hesap **tek yerde**: kostüm attachable'ının `pre_animation` betiği
+(`kol_uret.py` `PELERIN_BETIK`), her karede bir kez. Animasyon
+(`animations/pelerin.animation.json`, dört yapı) yalnız açıları kemiklere
+yazıyor. Açılar gövdeye göre mutlak hesaplanıp 0'ın altına inmiyor.
+
+- **İşaret ölçüldü:** pozitif X dönüşü pelerinin ucunu geriye götürüyor (Thor,
+  capa2 +30°: uç z 1,75 → 12,8; −30°: gövdenin içinden öne). Projenin oyunla
+  doğrulanmış dönüşümüyle (`arac/bedrock_onizleme.py`).
+- **Geçişler yumuşak:** durumlar kare süresine göre yumuşatılıyor, dönüş hızı
+  saniyede 420° ile sınırlı. İlk sürümde uçuştan uykuya geçiş tek karede 39°
+  atlıyordu; test buldu.
+- **Değişkenler kalıcı değilse:** attachable değişkenlerinin kareden kareye
+  kaldığı belgede yazmıyor. Betik bunu kendisi anlıyor ve yumuşatmasız yola
+  geçiyor; pelerin yine kalkıyor ve dalgalanıyor.
+
+## Kilit
+
+`test/pelerin.mjs`: 20 kostümün hepsine bağlı, yaka dönmüyor, başlıklar
+dışarıda, yalnız belgede olan sorgular, işaret; betik bir MoLang
+yorumlayıcısıyla 30 FPS'te on bir durumda koşturuluyor (açılar 0..170, uyku
+düz, havada dalga, hızlı uçuşta akış, zıplama uçuş değil, geçişte en çok
+14°/kare, kalıcılık yokken de çalışıyor). Altı bozmanın altısını yakaladı.
+
+**Oyunda görülmesi gereken:** hareketin görünüşü. Kostüm içindeki sorguların
+giyen oyuncuyu okuduğu belgede açıkça yazmıyor; oyunun kendi yayı aynı yoldan
+oyuncunun gerilme süresini okuyor, ona dayanarak çalışacağı düşünülüyor.
+Pelerin hiç kıpırdamıyorsa bu varsayım tutmamıştır.
+
 # v7.99.23 — Her eşya: envanterde ve elde görünüyor mu
 
 Kullanıcı: *"Moddan bir eşya aldığımda elimde de, elimde değilken envanterimde

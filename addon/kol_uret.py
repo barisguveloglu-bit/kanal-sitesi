@@ -178,7 +178,7 @@ SKIN_SERI   = "SimsekUzakAkraba"      # lang anahtarlarinin koku
 # uyarisi sohbete HATA diye dusuyordu. Gercek motorda olculdu.
 # v7.99.21: Ilkel Besli / O Sey yurumuyordu (takip grubu hizi sifirliyordu),
 # olen bot sayidan dusmuyordu. Ikisi de gercek motorda olculup duzeltildi.
-SURUM_NO = (7, 99, 23)
+SURUM_NO = (7, 99, 24)
 
 SURUM_METIN = ".".join(map(str, SURUM_NO))
 
@@ -6483,31 +6483,188 @@ def marvel_geo_yaz(kaynak, hedef, ad):
         f.write("\n")
 
 
-def marvel_attachable(p):
+def marvel_attachable(p, zincirler=None):
     """Kostum/maskenin oyuncuya cizilmesi.
 
     Geometri kimligi cikarma sirasinda `geometry.mrv_*` olarak
     yeniden adlandirildi: modun kendi adlari vanilla ve bizim
-    geometrilerle carpisabilirdi.                             """
+    geometrilerle carpisabilirdi.
+
+    `zincirler` (v7.99.24): kostumun pelerini varsa sarkan
+    parcalari; pelerin animasyonu ve durum betigi baglanir.   """
     ad = marvel_kimlik(p)
-    return {
-        "format_version": "1.10.0",
-        "minecraft:attachable": {
-            "description": {
-                "identifier": "pa:" + ad,
-                "materials": {
-                    "default": "armor",
-                    "enchanted": "armor_enchanted",
-                },
-                "textures": {
-                    "default": "textures/entity/" + ad,
-                    "enchanted": "textures/misc/enchanted_actor_glint",
-                },
-                "geometry": {"default": "geometry." + p["geo"]},
-                "render_controllers": ["controller.render.armor"],
-            }
+    tanim = {
+        "identifier": "pa:" + ad,
+        "materials": {
+            "default": "armor",
+            "enchanted": "armor_enchanted",
         },
+        "textures": {
+            "default": "textures/entity/" + ad,
+            "enchanted": "textures/misc/enchanted_actor_glint",
+        },
+        "geometry": {"default": "geometry." + p["geo"]},
+        "render_controllers": ["controller.render.armor"],
     }
+    if zincirler:
+        tanim["animations"] = {"pelerin": pelerin_anim_kimligi(zincirler)}
+        tanim["scripts"] = {"pre_animation": list(PELERIN_BETIK),
+                            "animate": ["pelerin"]}
+    return {"format_version": "1.10.0", "minecraft:attachable": {"description": tanim}}
+
+
+# ================================================================
+#  PELERIN  (v7.99.24)
+# ================================================================
+# Kullanici: "super kahramanlarin pelerini duz durmasin, bircok
+# farkli durum ekle; ornegin creative moddayken uctugumuzda
+# dalgalansin. Hepsini dusunerek ekle."
+#
+# ---- PELERIN NEREDE ----
+# Marvel modlarinda pelerin `capa` adli zincir: kok kemik govdeye
+# bagli, alt kemikler birbirine (capa -> capa2 -> ... -> capa5).
+# Her kemigin pivotu kendi parcasinin UST kenarinda: parcalar
+# mentese gibi bagli. Kok kemik YAKA: Thor'da on omuz tokalari,
+# Gambit'te gogsu saran blok onun icinde. Kok donerse on parcalar
+# govdenin icinden gecer -- o yuzden kok SABIT, donenler ondan
+# SARKAN parcalar. Ms. Marvel'de iki serit var (capa ve capa5
+# ikisi de govdeye bagli). Kafadaki `capa0` (Moon Knight, Doom
+# maskeleri) baslik: kafayla doner, dalgalanmaz.
+#
+# ---- ISARET OLCULDU ----
+# Pozitif X donusu sarkan parcanin ucunu +Z'ye (geriye) goturuyor:
+# Thor'da capa2 +30 -> uc z 1,75 -> 12,8; -30 -> z -9,2, govdenin
+# icinden one (arac/bedrock_onizleme.py'nin oyunla dogrulanmis
+# donusumu). Pelerin govdenin arkasinda (+Z). Butun acilar govdeye
+# gore MUTLAK hesaplaniyor ve 0'in altina inmiyor: pelerin hicbir
+# durumda govdeye girmez.
+#
+# ---- DURUMLAR ----
+# "Ucuyor mu" diye bir sorgu yok (Microsoft'un sorgu listesinde
+# yalniz can_fly var, o yetenek, durum degil). Ucus: havada
+# (yerde, suda, binekte, suzulurken degil), 0,8 sn'den uzun ve
+# hizla dusmuyor (dikey hiz > -8 m/sn). Normal ziplama ~0,6 sn
+# surdugu icin ucus sayilmiyor; yavas dusme ve havada kalma
+# iksiri de "suzulen" pelerin olarak dalgalaniyor.
+#   bekleme   hafif nefes salinimi (2 derece, 0,35 Hz)
+#   yurume / kosma   hizla kalkiyor (koşuda ~33 derece), adimla salinim
+#   ucus, asili  ~16 derece ve yavas dalga (creative'de havada durunca)
+#   ucus, hizli  bayrak gibi geriye akiyor (~74 derece), uc kivriliyor
+#   dusus     ruzgar alttan: pelerin yukari kalkiyor, hizli cirpinma
+#   egilme / yuzme / binek / yagmur-firtina / darbe   kendi payi
+#   uyku      dumduz (0)
+# Durum degisiminde acilar ziplamiyor: durumlar kare suresine gore
+# yumusatiliyor (q.delta_time) ve pelerinin donus hizi saniyede 420
+# dereceyle sinirli (ilk surumde ucustan uykuya gecis tek karede
+# 39 derece atliyordu; test buldu).
+#
+# ---- DEGISKENLER KALICI DEGILSE ----
+# Attachable'larda degiskenlerin kareden kareye kaldigi belgede
+# yazmiyor. `v.pl_say` her karede bir artiyor: kalici degilse hep
+# 1 kalir ve betik yumusatmasiz yola gecer (hedef dogrudan, dalga
+# q.life_time'dan, hiz siniri yok). Pelerin yine kalkar ve
+# dalgalanir, yalniz gecisler keskin olur. Kalici olunca bu yol
+# yalniz ILK karede calisir (ilk surumde iki karede calisiyordu ve
+# kosarak ziplamayi bir an ucus sayiyordu; test buldu).
+#
+# Hesap TEK yerde (bu betik, her karede bir kez); animasyon
+# dosyasi yalniz v.pl_r1..r4'u okuyor. test/pelerin.mjs betigi
+# bir MoLang yorumlayicisiyla her durumda kosturup olcuyor.
+PELERIN_DURUM_SORGULARI = (
+    "q.delta_time", "q.life_time", "q.ground_speed", "q.vertical_speed",
+    "q.is_on_ground", "q.is_in_water", "q.is_in_water_or_rain", "q.is_riding",
+    "q.is_gliding", "q.is_swimming", "q.is_sneaking", "q.is_sleeping", "q.hurt_time",
+)
+PELERIN_PARCA = 4          # en uzun sarkan zincir (Thor, Strange, Doom...)
+PELERIN_BETIK = [
+    # kare suresi ve kalicilik
+    "v.pl_dt = (q.delta_time > 0.0) ? math.min(q.delta_time, 0.1) : 0.033;",
+    "v.pl_say = math.min(v.pl_say + 1.0, 10.0);",
+    "v.pl_k = (v.pl_say > 1.5) ? math.clamp(v.pl_dt * 6.0, 0.0, 1.0) : 1.0;",
+    # durumlar
+    "v.pl_hava = (q.is_on_ground || q.is_in_water || q.is_riding || q.is_gliding) ? 0.0 : 1.0;",
+    "v.pl_sure = (v.pl_hava > 0.5) ? v.pl_sure + v.pl_dt : 0.0;",
+    "v.pl_hiz = math.lerp(v.pl_hiz, q.ground_speed, v.pl_k);",
+    "v.pl_dus = math.lerp(v.pl_dus, (v.pl_hava > 0.5 && q.vertical_speed < -8.0) ? math.clamp((-8.0 - q.vertical_speed) / 16.0, 0.0, 1.0) : 0.0, v.pl_k);",
+    "v.pl_uc = math.lerp(v.pl_uc, (v.pl_hava > 0.5 && q.vertical_speed >= -8.0 && (v.pl_say < 1.5 || v.pl_sure > 0.8)) ? 1.0 : 0.0, v.pl_k * 0.5);",
+    "v.pl_egil = math.lerp(v.pl_egil, q.is_sneaking, v.pl_k);",
+    "v.pl_su = math.lerp(v.pl_su, (q.is_in_water || q.is_swimming) ? 1.0 : 0.0, v.pl_k * 0.5);",
+    "v.pl_suz = math.lerp(v.pl_suz, q.is_gliding, v.pl_k);",
+    "v.pl_bin = math.lerp(v.pl_bin, q.is_riding, v.pl_k);",
+    "v.pl_uyu = math.lerp(v.pl_uyu, q.is_sleeping, v.pl_k);",
+    "v.pl_yag = math.lerp(v.pl_yag, (q.is_in_water_or_rain && !q.is_in_water) ? 1.0 : 0.0, v.pl_k * 0.3);",
+    "v.pl_kos = math.clamp(v.pl_hiz / 7.0, 0.0, 1.0) * (1.0 - v.pl_uc) * (1.0 - v.pl_su);",
+    "v.pl_ucuz = v.pl_uc * math.clamp(v.pl_hiz / 11.0, 0.0, 1.0);",
+    # kalkis (derece), dalga sikligi (Hz), genlik (derece), kivrim
+    "v.pl_taban = math.min(4.0 + 36.0 * v.pl_kos + 12.0 * v.pl_uc + 58.0 * v.pl_ucuz + 75.0 * v.pl_dus + 10.0 * v.pl_egil + 8.0 * v.pl_su + 6.0 * v.pl_bin + 4.0 * v.pl_yag + 10.0 * math.clamp(q.hurt_time / 10.0, 0.0, 1.0), 85.0);",
+    "v.pl_f = 0.35 + 1.6 * v.pl_kos + 0.8 * v.pl_uc + 1.6 * v.pl_ucuz + 2.6 * v.pl_dus + 3.0 * v.pl_suz + 0.8 * v.pl_yag - 0.2 * v.pl_su;",
+    "v.pl_g = 2.0 + 5.0 * v.pl_kos + 6.0 * v.pl_uc + 6.0 * v.pl_ucuz + 8.0 * v.pl_dus + 4.0 * v.pl_suz + 4.0 * v.pl_su + 3.0 * v.pl_yag;",
+    "v.pl_kiv = 3.0 * v.pl_kos + 10.0 * v.pl_ucuz + 12.0 * v.pl_dus;",
+    "v.pl_faz = (v.pl_say > 1.5) ? math.mod(v.pl_faz + v.pl_dt * 360.0 * v.pl_f, 360.0) : q.life_time * 360.0 * v.pl_f;",
+    # parca acilari: govdeye gore mutlak hedef, 0..170; uyurken 0
+    "v.pl_h1 = math.clamp(v.pl_taban + 0.6 * v.pl_g * math.sin(v.pl_faz), 0.0, 170.0) * (1.0 - v.pl_uyu);",
+    "v.pl_h2 = math.clamp(v.pl_taban + v.pl_kiv + 0.8 * v.pl_g * math.sin(v.pl_faz - 70.0), 0.0, 170.0) * (1.0 - v.pl_uyu);",
+    "v.pl_h3 = math.clamp(v.pl_taban + 2.0 * v.pl_kiv + 1.0 * v.pl_g * math.sin(v.pl_faz - 140.0), 0.0, 170.0) * (1.0 - v.pl_uyu);",
+    "v.pl_h4 = math.clamp(v.pl_taban + 3.0 * v.pl_kiv + 1.2 * v.pl_g * math.sin(v.pl_faz - 210.0), 0.0, 170.0) * (1.0 - v.pl_uyu);",
+    # donus hizi siniri: saniyede en cok 420 derece (en hizli dalga
+    # ~290 derece/sn, yani dalga kesilmiyor; yalniz durum gecisi
+    # -- dususten inis, ucustan uyku -- tek karede ziplamiyor)
+    "v.pl_L = (v.pl_say > 1.5) ? 420.0 * v.pl_dt : 1000.0;",
+    "v.pl_a1 = v.pl_a1 + math.clamp(v.pl_h1 - v.pl_a1, -v.pl_L, v.pl_L);",
+    "v.pl_a2 = v.pl_a2 + math.clamp(v.pl_h2 - v.pl_a2, -v.pl_L, v.pl_L);",
+    "v.pl_a3 = v.pl_a3 + math.clamp(v.pl_h3 - v.pl_a3, -v.pl_L, v.pl_L);",
+    "v.pl_a4 = v.pl_a4 + math.clamp(v.pl_h4 - v.pl_a4, -v.pl_L, v.pl_L);",
+    # kemige yazilan: bir oncekine gore
+    "v.pl_r1 = v.pl_a1;",
+    "v.pl_r2 = v.pl_a2 - v.pl_a1;",
+    "v.pl_r3 = v.pl_a3 - v.pl_a2;",
+    "v.pl_r4 = v.pl_a4 - v.pl_a3;",
+]
+
+
+def pelerin_zincirleri(geo_yolu):
+    """Govdeye bagli pelerinlerin SARKAN parcalari: [[kemik, ...], ...].
+
+    Kok (`capa*`, ebeveyni `body`) yaka oldugu icin listede yok.
+    Zincir, kupu olan tek `capa*` cocuk boyunca iniyor; kupsuz
+    yan kemikler (`capa2_0`, `capa2_9`...) atlaniyor.           """
+    if not os.path.exists(geo_yolu):
+        return []
+    with open(geo_yolu, encoding="utf-8") as f:
+        veri = json.load(f)
+    kemikler = (veri.get("minecraft:geometry") or [{}])[0].get("bones") or []
+    cocuk = {}
+    for b in kemikler:
+        cocuk.setdefault(b.get("parent"), []).append(b)
+    zincirler = []
+    for b in kemikler:
+        if b.get("parent") != "body" or not b["name"].startswith("capa"):
+            continue
+        zincir, ad = [], b["name"]
+        while True:
+            dolu = [c for c in cocuk.get(ad, [])
+                    if c["name"].startswith("capa") and c.get("cubes")]
+            if len(dolu) != 1:
+                break
+            ad = dolu[0]["name"]
+            zincir.append(ad)
+        if zincir:
+            zincirler.append(zincir[:PELERIN_PARCA])
+    return zincirler
+
+
+def pelerin_anim_kimligi(zincirler):
+    return "animation.pa.pelerin_" + "_".join(
+        "%sx%d" % (z[0], len(z)) for z in zincirler)
+
+
+def pelerin_animasyonu(zincirler):
+    """Kemiklere yalniz betigin hesapladigi acilar yaziliyor."""
+    kemikler = {}
+    for zincir in zincirler:
+        for i, ad in enumerate(zincir, 1):
+            kemikler[ad] = {"rotation": ["v.pl_r%d" % i, 0, 0]}
+    return {"loop": True, "bones": kemikler}
 
 
 # ================================================================
@@ -13665,6 +13822,7 @@ def main():
     # kalkani) ve 21 ek parca (pelerin, kanat, katana...) ortaya
     # cikti. Atlananlar artik `MARVEL_ATLANAN`da kayitli.
     _mrv_geo_yazildi = set()
+    _pelerin_animler = {}
     for _mp in MARVEL_PARCA:
         _mad = MARVEL_ONEK + _mp["kahraman"] + MARVEL_AYIRAC + _mp["anahtar"]
         yaz_json(os.path.join(BP, "items/%s.json" % _mad), marvel_esyasi(_mp))
@@ -13683,8 +13841,13 @@ def main():
                 else:
                     print("UYARI: %s geometrisi yok (%s)" % (_mad, _mgk))
             if _mp["geo"] in _mrv_geo_yazildi:
+                _mz = pelerin_zincirleri(os.path.join(
+                    RP, "models/entity/%s.geo.json" % _mp["geo"]))
+                if _mz:
+                    _pelerin_animler[pelerin_anim_kimligi(_mz)] = \
+                        pelerin_animasyonu(_mz)
                 yaz_json(os.path.join(RP, "attachables/%s.json" % _mad),
-                         marvel_attachable(_mp))
+                         marvel_attachable(_mp, _mz))
             _mdk = os.path.join(MARVEL_DOKU_KAYNAK,
                                 _mp["anahtar"] + ".png")
             if os.path.exists(_mdk):
@@ -13711,6 +13874,11 @@ def main():
         for liste in (en_us, tr_tr):
             liste.append("item.pa:%s.name=%s" % (_mad, _mp["ad"]))
             liste.append("item.pa:%s=%s" % (_mad, _mp["ad"]))
+
+    # Pelerin animasyonlari (v7.99.24): yapisi ayni kostumler ayni
+    # animasyonu paylasiyor (Thor'un altisi, Doom'un ucu...).
+    yaz_json(os.path.join(RP, "animations/pelerin.animation.json"),
+             {"format_version": "1.8.0", "animations": dict(sorted(_pelerin_animler.items()))})
 
     # ---- F-TECH: EQUIPMENT (v7.96.4) ----
     # 13 esya: 10 yukseltme + bos yukseltme + matkap + yaprak

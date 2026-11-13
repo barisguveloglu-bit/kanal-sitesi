@@ -1,0 +1,130 @@
+{
+  "format_version": "1.8.0",
+  "animations": {
+    "animation.pa.pelerin_capa2x2": {
+      "loop": true,
+      "bones": {
+        "capa2": {
+          "rotation": [
+            "v.pl_r1",
+            0,
+            0
+          ]
+        },
+        "capa3": {
+          "rotation": [
+            "v.pl_r2",
+            0,
+            0
+          ]
+        }
+      }
+    },
+    "animation.pa.pelerin_capa2x3": {
+      "loop": true,
+      "bones": {
+        "capa2": {
+          "rotation": [
+            "v.pl_r1",
+            0,
+            0
+          ]
+        },
+        "capa3": {
+          "rotation": [
+            "v.pl_r2",
+            0,
+            0
+          ]
+        },
+        "capa4": {
+          "rotation": [
+            "v.pl_r3",
+            0,
+            0
+          ]
+        }
+      }
+    },
+    "animation.pa.pelerin_capa2x4": {
+      "loop": true,
+      "bones": {
+        "capa2": {
+          "rotation": [
+            "v.pl_r1",
+            0,
+            0
+          ]
+        },
+        "capa3": {
+          "rotation": [
+            "v.pl_r2",
+            0,
+            0
+          ]
+        },
+        "capa4": {
+          "rotation": [
+            "v.pl_r3",
+            0,
+            0
+          ]
+        },
+        "capa5": {
+          "rotation": [
+            "v.pl_r4",
+            0,
+            0
+          ]
+        }
+      }
+    },
+    "animation.pa.pelerin_capa6x3_capa2x3": {
+      "loop": true,
+      "bones": {
+        "capa6": {
+          "rotation": [
+            "v.pl_r1",
+            0,
+            0
+          ]
+        },
+        "capa7": {
+          "rotation": [
+            "v.pl_r2",
+            0,
+            0
+          ]
+        },
+        "capa8": {
+          "rotation": [
+            "v.pl_r3",
+            0,
+            0
+          ]
+        },
+        "capa2": {
+          "rotation": [
+            "v.pl_r1",
+            0,
+            0
+          ]
+        },
+        "capa3": {
+          "rotation": [
+            "v.pl_r2",
+            0,
+            0
+          ]
+        },
+        "capa4": {
+          "rotation": [
+            "v.pl_r3",
+            0,
+            0
+          ]
+        }
+      }
+    }
+  }
+}

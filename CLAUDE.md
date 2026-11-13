@@ -180,6 +180,16 @@ ve modelin en az bir küpünün dokunun görünür bölgesine düştüğünü ö
 ikonu atlasta, diskte ve doğru ölçüdeydi, ama tamamen saydamdı. Yeni bir ikon
 üreteci yazınca çıktısının boş olmadığını da sor.
 
+### Pelerin — `kol_uret.py` `PELERIN_BETIK` (v7.99.24)
+
+Marvel kostümlerinin pelerini durumlara göre hareket ediyor (bekleme, yürüme,
+koşma, uçuş, düşüş, eğilme, yüzme, binek, yağmur, darbe, uyku). Hesap
+attachable'ın `pre_animation` betiğinde, animasyon yalnız açıyı yazıyor; yeni
+bir durum eklenecekse betiğe eklenir ve `test/pelerin.mjs`'in durum tablosuna
+bir satır girer. **Kök kemik (yaka) dönmez**, açılar 0'ın altına inmez
+(pozitif X = geriye, ölçüldü). **`q.is_flying` diye bir sorgu yok**: uçuş
+durumdan çıkarılıyor; belgede olmayan bir sorgu yazma.
+
 ### Ters yazılmış Java elementi (v7.94.8)
 
 Java'da `from > to` olan bir element **geçerlidir** — Java tolere edip

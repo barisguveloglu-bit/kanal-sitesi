@@ -16,7 +16,51 @@
       },
       "render_controllers": [
         "controller.render.armor"
-      ]
+      ],
+      "animations": {
+        "pelerin": "animation.pa.pelerin_capa2x2"
+      },
+      "scripts": {
+        "pre_animation": [
+          "v.pl_dt = (q.delta_time > 0.0) ? math.min(q.delta_time, 0.1) : 0.033;",
+          "v.pl_say = math.min(v.pl_say + 1.0, 10.0);",
+          "v.pl_k = (v.pl_say > 1.5) ? math.clamp(v.pl_dt * 6.0, 0.0, 1.0) : 1.0;",
+          "v.pl_hava = (q.is_on_ground || q.is_in_water || q.is_riding || q.is_gliding) ? 0.0 : 1.0;",
+          "v.pl_sure = (v.pl_hava > 0.5) ? v.pl_sure + v.pl_dt : 0.0;",
+          "v.pl_hiz = math.lerp(v.pl_hiz, q.ground_speed, v.pl_k);",
+          "v.pl_dus = math.lerp(v.pl_dus, (v.pl_hava > 0.5 && q.vertical_speed < -8.0) ? math.clamp((-8.0 - q.vertical_speed) / 16.0, 0.0, 1.0) : 0.0, v.pl_k);",
+          "v.pl_uc = math.lerp(v.pl_uc, (v.pl_hava > 0.5 && q.vertical_speed >= -8.0 && (v.pl_say < 1.5 || v.pl_sure > 0.8)) ? 1.0 : 0.0, v.pl_k * 0.5);",
+          "v.pl_egil = math.lerp(v.pl_egil, q.is_sneaking, v.pl_k);",
+          "v.pl_su = math.lerp(v.pl_su, (q.is_in_water || q.is_swimming) ? 1.0 : 0.0, v.pl_k * 0.5);",
+          "v.pl_suz = math.lerp(v.pl_suz, q.is_gliding, v.pl_k);",
+          "v.pl_bin = math.lerp(v.pl_bin, q.is_riding, v.pl_k);",
+          "v.pl_uyu = math.lerp(v.pl_uyu, q.is_sleeping, v.pl_k);",
+          "v.pl_yag = math.lerp(v.pl_yag, (q.is_in_water_or_rain && !q.is_in_water) ? 1.0 : 0.0, v.pl_k * 0.3);",
+          "v.pl_kos = math.clamp(v.pl_hiz / 7.0, 0.0, 1.0) * (1.0 - v.pl_uc) * (1.0 - v.pl_su);",
+          "v.pl_ucuz = v.pl_uc * math.clamp(v.pl_hiz / 11.0, 0.0, 1.0);",
+          "v.pl_taban = math.min(4.0 + 36.0 * v.pl_kos + 12.0 * v.pl_uc + 58.0 * v.pl_ucuz + 75.0 * v.pl_dus + 10.0 * v.pl_egil + 8.0 * v.pl_su + 6.0 * v.pl_bin + 4.0 * v.pl_yag + 10.0 * math.clamp(q.hurt_time / 10.0, 0.0, 1.0), 85.0);",
+          "v.pl_f = 0.35 + 1.6 * v.pl_kos + 0.8 * v.pl_uc + 1.6 * v.pl_ucuz + 2.6 * v.pl_dus + 3.0 * v.pl_suz + 0.8 * v.pl_yag - 0.2 * v.pl_su;",
+          "v.pl_g = 2.0 + 5.0 * v.pl_kos + 6.0 * v.pl_uc + 6.0 * v.pl_ucuz + 8.0 * v.pl_dus + 4.0 * v.pl_suz + 4.0 * v.pl_su + 3.0 * v.pl_yag;",
+          "v.pl_kiv = 3.0 * v.pl_kos + 10.0 * v.pl_ucuz + 12.0 * v.pl_dus;",
+          "v.pl_faz = (v.pl_say > 1.5) ? math.mod(v.pl_faz + v.pl_dt * 360.0 * v.pl_f, 360.0) : q.life_time * 360.0 * v.pl_f;",
+          "v.pl_h1 = math.clamp(v.pl_taban + 0.6 * v.pl_g * math.sin(v.pl_faz), 0.0, 170.0) * (1.0 - v.pl_uyu);",
+          "v.pl_h2 = math.clamp(v.pl_taban + v.pl_kiv + 0.8 * v.pl_g * math.sin(v.pl_faz - 70.0), 0.0, 170.0) * (1.0 - v.pl_uyu);",
+          "v.pl_h3 = math.clamp(v.pl_taban + 2.0 * v.pl_kiv + 1.0 * v.pl_g * math.sin(v.pl_faz - 140.0), 0.0, 170.0) * (1.0 - v.pl_uyu);",
+          "v.pl_h4 = math.clamp(v.pl_taban + 3.0 * v.pl_kiv + 1.2 * v.pl_g * math.sin(v.pl_faz - 210.0), 0.0, 170.0) * (1.0 - v.pl_uyu);",
+          "v.pl_L = (v.pl_say > 1.5) ? 420.0 * v.pl_dt : 1000.0;",
+          "v.pl_a1 = v.pl_a1 + math.clamp(v.pl_h1 - v.pl_a1, -v.pl_L, v.pl_L);",
+          "v.pl_a2 = v.pl_a2 + math.clamp(v.pl_h2 - v.pl_a2, -v.pl_L, v.pl_L);",
+          "v.pl_a3 = v.pl_a3 + math.clamp(v.pl_h3 - v.pl_a3, -v.pl_L, v.pl_L);",
+          "v.pl_a4 = v.pl_a4 + math.clamp(v.pl_h4 - v.pl_a4, -v.pl_L, v.pl_L);",
+          "v.pl_r1 = v.pl_a1;",
+          "v.pl_r2 = v.pl_a2 - v.pl_a1;",
+          "v.pl_r3 = v.pl_a3 - v.pl_a2;",
+          "v.pl_r4 = v.pl_a4 - v.pl_a3;"
+        ],
+        "animate": [
+          "pelerin"
+        ]
+      }
     }
   }
 }
