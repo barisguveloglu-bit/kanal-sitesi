@@ -17,7 +17,7 @@ Codex kuralları: [AGENTS.md](AGENTS.md).
 | `karakterler.html` | Tüm karakterler, taraflarına göre ayrılmış |
 | `irade.html` | İrade sistemi ve Kanlı Göz paradoksu |
 | `efsane.html` | 300 yıllık efsane ve kuruyan ağaç |
-| `mafya.html` | Mafya hiyerarşisi ve derebeyi ağı (kurgu uyarılı) |
+| `mafya.html` | 3D Türkiye haritası, mafya hiyerarşisi ve derebeyi ağı (kurgu uyarılı) |
 | `icraatler.html` | Karakterlerin yaptıkları — sıralama değil, kayıt |
 | `soru-cevap.html` | Soruların nasıl sorulacağı — YouTube'a yönlendiriyor |
 | `404.html` | Olmayan adreslerde çıkan sayfa (stili kendi içinde) |
@@ -34,6 +34,9 @@ python3 -m http.server 8000
 ```
 
 Sonra tarayıcıda `http://localhost:8000` adresini aç.
+
+Mafya sayfasındaki 3D harita dosyadan (`file://`) açılınca çalışmaz; onun için
+yerel sunucu gerekir. Ayrıntı: [`assets/harita/KAYNAK.md`](assets/harita/KAYNAK.md).
 
 ## İçerik nasıl eklenir
 

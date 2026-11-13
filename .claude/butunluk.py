@@ -542,10 +542,14 @@ def _olu_siniflar():
         css += open(ek, encoding="utf-8").read()
     siniflar = set(re.findall(r"\.([a-z][a-z0-9_-]*)(?=[\s,:.{\[>+~])", css))
     kullanim = "".join(K.html.values()) + K.app
-    for ad in ("goz.js", "gizli.js", "animasyon.js"):
-        y = os.path.join(KOK, "assets/js", ad)
-        if os.path.exists(y):
-            kullanim += open(y, encoding="utf-8").read()
+    # Bütün site betikleri taranır (app.js zaten K.app'te). Elle yazılmış
+    # dosya listesi yeni betiği görmüyordu: harita3d.js eklenince onun
+    # sınıfları kullanıldıkları hâlde "ölü" sayıldı. data.js bilerek
+    # dışarıda: veri dosyası kullanım kanıtı değildir ("tehlike" notu).
+    js_klasoru = os.path.join(KOK, "assets/js")
+    for ad in sorted(os.listdir(js_klasoru)):
+        if ad.endswith(".js") and ad not in ("app.js", "data.js"):
+            kullanim += open(os.path.join(js_klasoru, ad), encoding="utf-8").read()
     return {s for s in siniflar if s not in kullanim}
 
 

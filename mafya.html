@@ -81,6 +81,52 @@
   </div>
 </section>
 
+<section aria-labelledby="harita-baslik">
+  <div class="kapsayici">
+    <h2 id="harita-baslik">Türkiye Haritası</h2>
+    <p class="giris-metni">
+      Harita gerçek, üzerindeki ağ kurgu. İller bağlı oldukları cephenin
+      rengini taşıyor; bir ile dokununca oranın derebeyi çıkıyor.
+    </p>
+
+    <div class="harita3d" data-harita3d>
+      <div class="harita3d-sahne" data-harita3d-sahne>
+        <div class="harita3d-etiketler" data-harita3d-etiketler aria-hidden="true"></div>
+        <p class="harita3d-durum" data-harita3d-durum>
+          3D harita için JavaScript gerekiyor. İller ve derebeyleri aşağıdaki listede.
+        </p>
+        <p class="harita3d-ipucu" data-harita3d-ipucu hidden>
+          Yakınlaştırmak için önce haritaya tıkla ya da Ctrl ile tekerleği kullan.
+        </p>
+        <div class="harita3d-araclar" role="toolbar" aria-label="Harita denetimleri" data-harita3d-araclar hidden>
+          <button type="button" data-eylem="yakinlas" aria-label="Yakınlaştır">+</button>
+          <button type="button" data-eylem="uzaklas" aria-label="Uzaklaştır">−</button>
+          <button type="button" data-eylem="egim" aria-label="Bakış açısını değiştir">⤢</button>
+          <button type="button" data-eylem="sifirla" aria-label="Başlangıç görünümüne dön">⌂</button>
+          <button type="button" data-eylem="tamekran" aria-label="Tam ekran" aria-pressed="false">⛶</button>
+        </div>
+      </div>
+
+      <p class="harita3d-yardim" id="harita3d-klavye">
+        Sürükle: döndür ve eğ · İki parmak ya da Ctrl + tekerlek: yakınlaştır ·
+        Klavyede ok tuşları döndürür, Shift + ok kaydırır, + ve − yakınlaştırır.
+        Aşağıdaki 81 il listesinde "Haritada göster"e basınca harita o ile gider.
+      </p>
+
+      <div class="harita3d-alt">
+        <div class="harita3d-bilgi" data-harita3d-bilgi aria-live="polite"></div>
+        <button type="button" class="harita3d-kabartma" data-harita3d-kabartma hidden>Kabartma: 12×</button>
+      </div>
+
+      <ul class="harita3d-lejant" data-harita3d-lejant></ul>
+      <p class="harita3d-kaynak">
+        Yükseklik: NOAA ETOPO 2022 · Sınırlar, göller, nehirler: Natural Earth (ikisi de kamu malı).
+        Dağlar daha iyi görünsün diye yükseklik abartılı çizildi.
+      </p>
+    </div>
+  </div>
+</section>
+
 <section>
   <div class="kapsayici">
     <h2>Hiyerarşi</h2>
@@ -208,5 +254,6 @@
 <script defer src="assets/js/goz.js"></script>
 <script defer src="assets/js/app.js"></script>
 <script defer src="assets/js/animasyon.js"></script>
+<script defer src="assets/js/harita3d.js"></script>
 </body>
 </html>
