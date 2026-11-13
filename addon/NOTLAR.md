@@ -1,3 +1,37 @@
+# Ölçüm: Raxxan + Kajaros kaç vardene karşı durur (2026-11-13)
+
+Kullanıcı: *"Gerçek motorda dene: İlkel Beşli'den Raxxan ve Kajaros vs warden,
+bu ikisi kaç warden'a karşı durabiliyor?"* Kod değişmedi; ölçüm kaydı.
+
+BDS 1.26.52.3, zorluk normal, düz bedrock arena. Sahip 5 blok yüksek bir
+sütunun üstünde, dokunulmaz. İkisi oyundaki gibi `bot raxxan` / `bot kajaros`
+ile çağrıldı, `bot savas ac`, her tur tam canla yeniden. Vardenler 10 blok
+uzakta doğdu; her biri dövüşe birinin vuruşuyla başladı (ona kızgın).
+
+| varden | sonuç | süre | Raxxan en düşük can (2800) |
+|---|---|---|---|
+| 1 | kazandı | 5,0 sn | 2800 |
+| 5 | kazandı | 32,0 sn | 1880 |
+| 10 | kazandı | 62,5 sn | 2150 |
+| 12 | kazandı | 74,5 sn | 1240 |
+| 16 | kazandı | 100,8 sn | 1630 |
+| 20 | kazandı | 127,7 sn | 760 |
+| 25 | **kazandı** | 181,7 sn | **550** |
+| 30 | **bitmedi** (450 sn) | — | Raxxan 79,5. sn'de öldü; 11 varden kaldı |
+
+1'den 12'ye her sayı tek tek denendi, hepsi kazanıldı.
+
+**Kajaros'un canı hiçbir turda 3482'nin altına inmedi** (30 vardende bile,
+979 isabet). Sebep ayarlarda: `vurulunca: 40` — her darbede 40 can
+iyileşiyor; vardenin vuruşu ona Direnç II yüzünden 30 değil 18 işliyor. Yani
+vardenler onu öldüremiyor, ama 30 vardeni tek başına 7,5 dakikada bitiremedi
+(19'unu öldürdü). Zayıf halka Raxxan: direnci ve darbe iyileşmesi yok.
+
+**Düzeneğin ilk hâli geçersizdi:** dövüşü sahibin vuruşuyla başlatınca
+vardenler sütundaki sahibe kilitlendi ve İlkeller onları karşılıksız dövdü
+(12 vardende bile Kajaros hasar almadı). İkinci düzenekte vardenler
+İlkellere 979 kez, sahibe **0** kez vurdu.
+
 # v7.99.24 — Pelerinler dalgalanıyor
 
 Kullanıcı: *"Süper kahramanların pelerini düz durmasın, birçok farklı durum
