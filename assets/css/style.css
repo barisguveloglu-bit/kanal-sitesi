@@ -1716,3 +1716,245 @@ body.kapi-aciliyor { animation: kapiBozulma 1.4s steps(1) forwards; }
   color: var(--text-3);
   letter-spacing: 0.08em;
 }
+
+/* ===================================================================
+   3D TÜRKİYE HARİTASI (mafya.html, assets/js/harita3d.js)
+   -------------------------------------------------------------------
+   Renkler mevcut paletten; cephe renkleri [data-bolge] --bolge-renk.
+   Sayfayı kaydırırken harita parmağı yutmasın diye gömülü hâlde
+   dokunma yalnız yatayda haritaya gider (pan-y); tam ekranda hepsi.
+   =================================================================== */
+.harita3d {
+  margin-top: 24px;
+  scroll-margin-top: 84px; /* listeden gelince yapışkan üst bar haritayı örtmesin */
+}
+
+.harita3d-sahne {
+  position: relative;
+  height: clamp(320px, 62vw, 620px);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.harita3d-tuval {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+  touch-action: pan-y;
+}
+.harita3d-tuval:active { cursor: grabbing; }
+
+.harita3d-etiketler {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.harita3d-etiket {
+  position: absolute;
+  top: 0;
+  left: 0;
+  font-size: 0.74rem;
+  line-height: 1;
+  color: var(--text);
+  white-space: nowrap;
+  text-shadow: 0 0 3px #000, 0 0 6px #000, 0 1px 2px #000;
+  will-change: transform;
+}
+.harita3d-etiket-cephe { text-align: center; }
+.harita3d-etiket-bolge {
+  display: block;
+  padding-bottom: 3px;
+  font-family: var(--font-baslik);
+  font-size: 0.92rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  border-bottom: 2px solid var(--bolge-renk);
+}
+.harita3d-etiket-komutan {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+}
+
+.harita3d-durum {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  padding: 24px;
+  text-align: center;
+  color: var(--text-2);
+  font-size: 0.92rem;
+}
+
+.harita3d-ipucu {
+  position: absolute;
+  left: 50%;
+  top: 12px;
+  transform: translateX(-50%);
+  margin: 0;
+  padding: 7px 12px;
+  max-width: calc(100% - 28px);
+  font-size: 0.84rem;
+  color: var(--text);
+  background: rgba(10, 10, 12, 0.92);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  pointer-events: none;
+}
+
+/* Denetimler altta tek sıra: dar ekranda haritanın doğusunu örtmesin. */
+.harita3d-araclar {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  display: flex;
+  gap: 6px;
+}
+.harita3d-araclar button {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 10px;
+  font: inherit;
+  font-size: 1.1rem;
+  line-height: 1;
+  color: var(--text);
+  background: rgba(17, 17, 22, 0.88);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+.harita3d-araclar button:hover { border-color: var(--kan); background: rgba(23, 23, 30, 0.96); }
+.harita3d-araclar button[aria-pressed="true"] { border-color: var(--kan-parlak); color: var(--kan-parlak); }
+
+.harita3d-yardim {
+  margin: 10px 0 0;
+  font-size: 0.82rem;
+  color: var(--text-3);
+}
+
+.harita3d-alt {
+  display: grid;
+  gap: 14px;
+  margin-top: 16px;
+}
+@media (min-width: 760px) {
+  .harita3d-alt { grid-template-columns: 1fr auto; align-items: start; }
+}
+
+.harita3d-kabartma {
+  min-height: 44px;
+  padding: 8px 14px;
+  font: inherit;
+  font-size: 0.92rem;
+  color: var(--text);
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+.harita3d-kabartma:hover { border-color: var(--text-3); }
+
+/* 81 il kutusundaki "Haritada göster" (harita3d.js ekler) */
+.derebeyi-haritada {
+  display: block;
+  margin-top: 8px;
+  min-height: 30px;
+  padding: 4px 8px;
+  font: inherit;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  color: var(--text-2);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+.derebeyi-haritada:hover { color: var(--text); border-color: var(--bolge-renk, var(--text-3)); }
+
+.harita3d-bilgi {
+  min-height: 96px;
+  padding: 14px 16px;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.harita3d-il {
+  padding-left: 12px;
+  border-left: 3px solid var(--bolge-renk);
+}
+.harita3d-il h3 { margin: 2px 0 6px; font-size: 1.2rem; }
+.harita3d-plaka {
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  color: var(--text-2);
+}
+.harita3d-derebeyi { margin: 0 0 6px; color: var(--text); }
+.harita3d-cephe { margin: 0; font-size: 0.88rem; color: var(--bolge-renk); }
+.harita3d-ipucu-metin { margin: 0; color: var(--text-2); }
+
+.harita3d-lejant {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.86rem;
+  color: var(--text-2);
+}
+.harita3d-lejant li { display: inline-flex; align-items: center; gap: 8px; }
+.harita3d-renk {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  background: var(--bolge-renk);
+}
+.harita3d-kaynak {
+  margin: 10px 0 0;
+  font-size: 0.78rem;
+  color: var(--text-3);
+}
+
+/* Tam ekran: sabit katman. main'in kendi yığın bağlamı var (z-index: 1),
+   üst barın (50) altında kalmasın diye o da yükselir. */
+html.harita3d-acik,
+html.harita3d-acik body { overflow: hidden; }
+html.harita3d-acik main { z-index: 200; }
+.harita3d.tam-ekran {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  background: var(--bg);
+}
+.harita3d.tam-ekran .harita3d-sahne {
+  flex: 1 1 auto;
+  height: auto;
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+}
+.harita3d.tam-ekran .harita3d-tuval { touch-action: none; }
+.harita3d.tam-ekran .harita3d-araclar {
+  right: calc(10px + env(safe-area-inset-right, 0px));
+}
+.harita3d.tam-ekran .harita3d-ipucu { top: calc(12px + env(safe-area-inset-top, 0px)); }
+.harita3d.tam-ekran .harita3d-alt {
+  max-height: 38vh;
+  margin: 0;
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+  overflow: auto;
+  border-top: 1px solid var(--line);
+}
+.harita3d.tam-ekran .harita3d-yardim,
+.harita3d.tam-ekran .harita3d-lejant,
+.harita3d.tam-ekran .harita3d-kaynak { display: none; }

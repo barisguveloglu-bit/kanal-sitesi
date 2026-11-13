@@ -137,7 +137,7 @@ neşeli, zıplayan, renkli animasyonlar tona uymaz.
 | Karakterler | 6 karakter kartı, taraflarına göre gruplanmış |
 | İrade Sistemi | 5 kademeli merdiven — sitenin ana mekaniği |
 | Kanlı Göz Efsanesi | Efsane + **eskimiş kâğıt görünümlü 1728 vakayinamesi** |
-| Mafya Haritası | 4 kademeli hiyerarşi şeması, 3 komutan kartı, **81 il kutusu** |
+| Mafya Haritası | **3D fiziki Türkiye haritası** (WebGL; iller cephe rengiyle, dokununca derebeyi), 4 kademeli hiyerarşi şeması, 3 komutan kartı, **81 il kutusu** |
 | İcraatler | Karakter başına "ne yaptı" listeleri |
 | Soru & Cevap | İzleyici soruları (backend'i henüz kurulmadı) |
 | (menüde olmayan bir sayfa) | Mor–camgöbeği bozulma renkleri, kilitli bölüm |
