@@ -929,6 +929,23 @@ içinde, okunuşu yanında; doğrulanmayanlar öyle işaretli.
     olsun"*). Kullanıcı daha önce *"sesleri sen yaparsın veya ElevenLabs ile
     yaparız"* demişti; altyazı seçildi.
   - Saldırı II'nin rengi: **mor**, Zisa'nın büyü rengi (Zisa bölümünde).
+- **Pipos ve Mikami baskında (kullanıcı, 2026-11-22; mikrofonla yazdı):**
+  *"Pipos karakterimiz hem oradaki köylüleri ve insanları kurtarıyor hem de
+  buz iskeletlerinden gelen oklar onlara geri savuşturuyor o şekilde mikami
+  ise orduya haber ediyor çünkü oradaki insanların ol diye koşacak vakti yok
+  hem ok yağmuruna hem de zombiler saldırıyor mikami ise baskın olduğunu
+  söylüyor komutan Ömer'e"*.
+  - Pipos köylüleri ve insanları kurtarıyor; buz iskeletlerinin oklarını
+    **onlara geri savuşturuyor**. Bu, Kaplan sanatının savunmayı öne alan
+    üslubuna uyuyor (`DOVUS_KAPLAN_SANATI.md`, onay bekliyor).
+  - Mikami orduya haber veriyor; baskın olduğunu **Komutan Ömer'e** o
+    söylüyor. Gerekçe: oradakilerin hem ok yağmuru hem zombiler yüzünden
+    koşacak vakti yok. ("ol diye koşacak" kısmı "haber vermeye koşacak" diye
+    okundu, doğrulanmadı.)
+  - İskeletler **buz iskeleti** (kullanıcının sözü).
+  - Hangi parta ve hangi sıraya girdiği **açık**. Claude'un önerisi: Part 2'de,
+    sur gediğinin patlamasından sonra; Mikami'nin Ömer'e haberi, Ömer'in
+    Part 3'te meydana gelişinden önce. Kullanıcı karar verecek.
 
 ### 4 part kesimi ve hazır paketler (Claude'un kararı, 2026-10-19)
 
