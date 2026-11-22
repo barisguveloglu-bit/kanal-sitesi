@@ -537,6 +537,29 @@ virüsünü üretiyor.
 - Birden fazla **hanedan ve krallık** var; her biri **farklı bölgede**
   yaşıyor ve her birinin **ırkı farklı**. **End'de ve Nether'da** da
   krallıklar var.
+- **Irklar ve krallıklar — TASLAK (kullanıcı, 2026-11-22; mikrofonla yazdı,
+  kendi sözü: "bunlar henüz taslak hâlinde"):** *"neredeyse her canlının bir
+  krallığı var bir hanedanı var ve bunu göreceğiz zaten mesela köylüler
+  ileride hanedanlarını kuracaklar ticaretin ana ağı onlar olacak o şekilde
+  neredeyse dediğim yani köpeklerin olmaz mesela veya lamaların endermanlar
+  zaten The End yer altında da bir hanedan var yani madenler dediğimiz hani
+  oyunculara maden bölgeleri falan vardır ya oralarda var genellikle ama
+  kötümüz yönetiyor onları 1 sezondan sonra zaten ana kötü olmayacak çünkü 1
+  sezon finalinde onu öldüreceğiz o yüzden bir lidersizlik durumu olacağını
+  düşünüyorum"*.
+  - Neredeyse her canlının bir krallığı ya da hanedanı var; köpek, lama gibi
+    hayvanlarınki yok.
+  - **Köylüler** ileride kendi hanedanlarını kuracak, ticaretin ana ağı
+    olacaklar.
+  - **Endermanlar** The End'de.
+  - **Yer altı hanedanı:** madenlerde, oyuncuların maden bölgelerinde; onları
+    **ana kötü** yönetiyor ("kötümüz" sonraki cümleyle birlikte ana kötü diye
+    okundu).
+  - **1. sezonun finalinde ana kötü ölüyor;** ardından bir **lidersizlik**
+    dönemi gelecek (kullanıcının düşüncesi).
+  - **Taslak harita (Claude, 2026-11-22):** claude.ai'de özel sayfa
+    ("Karanlık Tırpan Dünyası"). Yeri kayıtlı olan yalnız hanedanın Doğu
+    bölgesine yakınlığı; öbür yerlerin konumu Claude'un önerisi.
 - **Bayraklar (kullanıcı, 2026-11-02):** her topluluğun **kendi bayrağı**
   olmalı: insan hanedanları, Nether'dakiler, End'dekiler (*"her birinin bir
   bayrağı olmalı, biz bunu düşünmedik"*). Tasarım henüz yok.
@@ -734,7 +757,9 @@ mikrofonla anlattı, özeti onayladı):**
   kurulur, tahminle değil; Mojang'ın yapı dosyası depoya girmez, sahne bizim
   betiğimizle kurulur (orman sahnesi gibi).
 - **Ice-man ordusu:** zombi, iskelet, creeper — **bizim modellerimiz**, buzlaşmış
-  hâlleriyle — ve **insanlar**. İnsan skinlerini kullanıcı bulup indirme linkini
+  hâlleriyle — ve **insanlar**. **Örümcek de orduda** (kullanıcı, 2026-11-22:
+  *"örümcek creeper zombi iskelet bunların genel görünüşünü bulalım"*); dördünün
+  genel görünüşü konuşuluyor, karar bekliyor. İnsan skinlerini kullanıcı bulup indirme linkini
   verecek; her biri `KAYNAKLAR.md` üç kademe kuralına göre kaydedilir.
 
 - **Kulübeye eklenenler (kullanıcı):** asıl kulübede olmayan **yatak** ve
