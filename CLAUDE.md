@@ -872,7 +872,9 @@ Yayına giden bir videoda `--cagri yok` kullanılmaz.
 geldiği an animasyon dursun, bu abone ol beğen şeyi sonlandıktan sonra
 başlasın."* O andan önceki son kare 6 sn donar, film sesi susar (yalnız
 çağrının kendi sesi), sonra film kaldığı yerden sürer; hiçbir kare atlanmaz,
-her çağrı videoyu 6 sn uzatır (`film_birlestir.durdurma_filtre`). Test
+her çağrı videoyu 6 sn uzatır (`film_birlestir.durdurma_filtre`). Varsayılan
+an bir altyazının ortasına düşerse en yakın altyazısız ana kayar (cümle
+yarıda donup 6 sn ekranda kalmasın; `cagri_zamanlari(..., yazilar=)`). Test
 kayıpsız sahte filmde kare dizisini bire bir ölçüyor; ffmpeg 6.1'de `loop`
 filtresinin `start`'ı bir önceki kareyi donduruyor, kod buna göre yazıldı.
 

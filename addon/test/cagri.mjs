@@ -220,7 +220,20 @@ kisa = FB.cagri_zamanlari(8.0, 2.5, 0.6, C.SURE)
 kod = open(os.path.join(sys.argv[1], "film_birlestir.py"), encoding="utf-8").read()
 ana = kod[kod.index("def main("):]
 g, f, _, _ = FB.cagri_filtre([3.0], "x.mov", 5, boyut="960x540")
-print(json.dumps({"z": z, "kisa": kisa, "sure": C.SURE,
+# altyazi ortasina dusen an en yakin altyazisiz ana kayar (film orada duruyor)
+tek = FB.cagri_zamanlari(76.7, 2.5, 0.6, C.SURE, yazilar=[(7.0, 9.5)])
+iki = FB.cagri_zamanlari(76.7, 2.5, 0.6, C.SURE, yazilar=[(4.0, 7.2), (7.3, 12.0)])
+dolu = FB.cagri_zamanlari(76.7, 2.5, 0.6, C.SURE, yazilar=[(0.0, 76.7)])
+# parca_yazilari: altyazi_bas'in kurali (sonraki baslayinca biter), baslik sayilmaz, part araligi kaydirir
+pk = os.path.join(sys.argv[2], "pk"); os.makedirs(pk, exist_ok=True)
+json.dump({"fps": 30, "kare": 120, "yazilar": [{"t": 0.0, "sure": 2.0, "metin": "B", "tur": "baslik"},
+                                               {"t": 1.5, "sure": 3.0, "metin": "x", "tur": "soyle", "isim": "A"},
+                                               {"t": 3.0, "sure": 1.0, "metin": "y", "tur": "anlat"}]},
+          open(os.path.join(pk, "yazilar.json"), "w"))
+json.dump({"fps": 30, "parcalar": {"part1": [31, 120]}}, open(os.path.join(pk, "s.json"), "w"))
+py_ = FB.parca_yazilari(pk, os.path.join(pk, "s.json"), "part1")
+print(json.dumps({"z": z, "kisa": kisa, "sure": C.SURE, "tek": tek, "iki": iki, "dolu": dolu, "py": py_,
+                  "kayma": "yazilar=yazilar" in ana and "parca_yazilari(" in ana,
                   "durur": "durdurma_filtre(" in ana and "cagri_filtre(" in ana
                            and ana.index("durdurma_filtre(") < ana.index("cagri_filtre("),
                   "varsayilan": "if cagri is None:" in ana and "cagri_zamanlari(" in ana,
@@ -235,6 +248,16 @@ print(json.dumps({"z": z, "kisa": kisa, "sure": C.SURE,
   kontrol("sigmayan kisa onizlemede eklenmiyor", v.kisa.length === 0, JSON.stringify(v.kisa));
   kontrol("film_birlestir --cagri verilmezse varsayilan 3 an; --cagri yok kapatir", v.varsayilan && v.yok);
   kontrol("film_birlestir her cagride once filmi durduruyor, katmani donmus karenin ustune koyuyor", v.durur);
+  // Film durdugu icin cumle yarida donup 6 sn ekranda kalmasin (ilk deneme Part 1'de uc anin ikisini cumle ortasina koyuyordu)
+  kontrol("altyazi ortasina dusen an en yakin altyazisiz ana kayiyor (8.51 -> 9.75), digerleri yerinde",
+          JSON.stringify(v.tek) === JSON.stringify([9.75, z[1], z[2]]), JSON.stringify(v.tek));
+  kontrol("ust uste binen iki altyazi tek blok sayiliyor, an blogun disina kayiyor",
+          JSON.stringify(v.iki) === JSON.stringify([12.25, z[1], z[2]]), JSON.stringify(v.iki));
+  kontrol("bos yer yoksa an yerinde kaliyor (cagri her videoda 3 kez sart)",
+          JSON.stringify(v.dolu) === JSON.stringify(z), JSON.stringify(v.dolu));
+  kontrol("parca_yazilari: konusma sonraki baslayinca biter, baslik sayilmaz, part araligi kaydirir",
+          JSON.stringify(v.py) === JSON.stringify([[0.5, 2.0], [2.0, 3.0]]), JSON.stringify(v.py));
+  kontrol("film_birlestir varsayilan anlari ekrandaki altyazilarla kuruyor", v.kayma);
   kontrol("taslak (kucuk cozunurluk) filmde katman filmin boyutuna olceklenir", v.olcek);
 
   console.log("\n=== 5. MARKA ===");

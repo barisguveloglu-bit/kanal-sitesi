@@ -241,19 +241,57 @@ def video_suresi(video):
     return float(c.stdout.strip())
 
 
-def cagri_zamanlari(toplam, bas=0.0, son=0.0, sure=6.0, oran=CAGRI_ORAN):
+CAGRI_YAZI_PAYI = 0.25    # sn: altyazinin giris/cikis gecisi (altyazi_bas'ta 0,25 sn)
+
+
+def cagri_zamanlari(toplam, bas=0.0, son=0.0, sure=6.0, oran=CAGRI_ORAN, yazilar=()):
     """Varsayilan cagri anlari (bitmis filmin saniyeleri): her biri filmin
     `oran`ina ortalanir; baslik kartindan (bas) sonra, siyah sondan (son)
     once kalir, birbirine binmez (arada en az 1 sn). Sigmayan atlanir:
-    kisa filmde (onizleme) daha az ya da hic."""
+    kisa filmde (onizleme) daha az ya da hic.
+    yazilar: ekrandaki altyazi araliklari [(a, b)], ayni saniyelerle. Film
+    cagri aninda DURDUGU icin an bir altyazinin ortasina dusmez: en yakin
+    altyazisiz ana kayar (cumle yarida donup 6 sn ekranda kalmasin; ilk
+    deneme Part 1'de uc anin ikisini cumle ortasina koyuyordu). Bos yer
+    yoksa an yerinde kalir: cagri her videoda 3 kez sart."""
     a, b = bas + 0.5, toplam - son - sure - 0.5
+    dolu = []
+    for x, y in sorted((x - CAGRI_YAZI_PAYI, y + CAGRI_YAZI_PAYI) for x, y in yazilar):
+        if dolu and x <= dolu[-1][1]:
+            dolu[-1][1] = max(dolu[-1][1], y)
+        else:
+            dolu.append([x, y])
     out = []
     for o in oran:
-        t = min(b, max(a, toplam * o - sure / 2))
-        if out:
-            t = max(t, out[-1] + sure + 1.0)
+        alt = max(a, out[-1] + sure + 1.0) if out else a
+        t = max(alt, min(b, toplam * o - sure / 2))
+        for x, y in dolu:
+            if x < t < y:
+                adaylar = sorted((abs(u - t), u) for u in (x, y) if alt <= u <= b)
+                if adaylar:
+                    t = adaylar[0][1]
+                break
         if a <= t <= b:
             out.append(round(t, 2))
+    return out
+
+
+def parca_yazilari(klasor, senaryo_yolu, parca_adi=None):
+    """Parcanin ekrandaki altyazi araliklari, parcanin kendi saniyesiyle:
+    cizimin yazilar.json'u + yazi ekleri, altyazi_bas'in kuraliyla (bir
+    konusma sonraki baslayinca biter; baslik karti ayri, sayilmaz)."""
+    sen = B.oku(os.path.abspath(senaryo_yolu))
+    bilgi = json.load(open(os.path.join(klasor, "yazilar.json"), encoding="utf-8"))
+    ys = sorted((y for y in bilgi["yazilar"] + yazi_ekleri(senaryo_yolu) if y.get("tur") != "baslik"),
+                key=lambda y: y["t"])
+    aralik = sen["parcalar"][parca_adi] if parca_adi else None
+    bas = (aralik[0] - 1) / bilgi["fps"] if aralik else 0.0
+    out = []
+    for i, y in enumerate(ys):
+        son = y["t"] + y["sure"]
+        if i + 1 < len(ys):
+            son = min(son, ys[i + 1]["t"])
+        out.append((y["t"] - bas, son - bas))
     return out
 
 
@@ -335,10 +373,11 @@ def main(argv):
         cagri = [] if argv[i + 1] == "yok" else [float(x) for x in argv[i + 1].split(",") if x]
         argv = argv[:i] + argv[i + 2:]
     cikti = os.path.abspath(argv[0])
-    parcalar, kartlar = [], []
+    parcalar, kartlar, kaynaklar = [], [], []
     fps = 30
     for a in argv[1:]:
         k, s, *pa = a.split(":")              # klasor:senaryo[:part1]
+        kaynaklar.append((os.path.abspath(k), s, pa[0] if pa else None))
         p, fps = parca(os.path.abspath(k), s, adim, pa[0] if pa else None)
         kart = baslik_karti(os.path.abspath(k), s, pa[0] if pa else None,
                             os.path.join(os.path.abspath(k), "baslik_karti.png"),
@@ -369,7 +408,13 @@ def main(argv):
     if cagri is None:
         import cagri_animasyon as CA
         bas = KART_SURE if kartlar else 0.0
-        cagri = cagri_zamanlari(bas + sum(video_suresi(p) for p in parcalar) + SIYAH_SON, bas, SIYAH_SON, CA.SURE)
+        # ekrandaki altyazilar (bitmis filmin saniyeleri): duraklama cumle ortasina dusmesin
+        yazilar, ofs = [], bas
+        for p, (k, s, pa) in zip(parcalar, kaynaklar):
+            uz = video_suresi(p)
+            yazilar += [(x + ofs, min(y, uz) + ofs) for x, y in parca_yazilari(k, s, pa) if x < uz]
+            ofs += uz
+        cagri = cagri_zamanlari(ofs + SIYAH_SON, bas, SIYAH_SON, CA.SURE, yazilar=yazilar)
     if cagri:
         print("begen/abone animasyonu:", ", ".join("%.1f sn" % x for x in cagri), "(film bu anlarda durur)")
         import cagri_animasyon as CA
