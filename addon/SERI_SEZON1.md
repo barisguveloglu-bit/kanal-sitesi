@@ -1052,6 +1052,31 @@ yapmaya başla; 2. bölümün Part 2'sinde bu sisteme geçelim"* dedi.
   **Genel kural (kullanıcı, 2026-11-02):** *"Barış yara aldığı zamanlarda, yani dövüşlerde
   falan, yaralı hâlini göreceğiz; dövüş olmadığı yerlerde iyileşmiş hâliyle göreceğiz."*
   Dövüşte ve yaralandığı anlarda `uzak_akraba.png`, dövüş dışında `baris_iyilesmis.png`.
+- **Part 1'e iç ses ve anlatım — ONAYLANDI (kullanıcı, 2026-11-22).** Kullanıcı
+  çizilmiş Part 1'i izledi: *"daha konuşma ekle"* (74 sn'de yalnız iki satır vardı:
+  askerin raporu, Ömer'in "Tamam."ı). Seçimi **iç ses / anlatım** (yeniden çizim
+  yok); satırları Claude taslak yazdı, kullanıcı **14 satırın hepsini onayladı**
+  (*"Hepsini onaylıyorum"*). Kayıt: `film/yazi_ekleri/bolum2_p1.json`; birleştirmede
+  altyazıya eklenir, kareler değişmez. Biçim: iç ses gri ve parantezli, anlatıcı gri,
+  Pipos beyaz ve adıyla. **1. bölümdeki "Barış hiç konuşmuyor" ilkesi 2. bölümde
+  değişti:** Barış'ın iç sesi var (sesli konuşması değil).
+  - Orman: *(Kazandım... değil mi?)* · *(Işık... Biri geliyor.)* · *(Kimsin...?)*
+  - Ruh (anlatıcı): *Cadı onu kulübesine bıraktı, sonra Nether'a geçti.* · *Ama
+    geçitten yalnız cadı geçmedi.* · *Nether'ın en acımasız ruhu bir beden buldu.*
+    (Satanachia'nın adı söylenmiyor; Barış onu 3. bölümde öğrenir.)
+  - Kulübe: *(Ormanda bayılmıştım. Bu yatağa kendim gelmedim.)* · *(Ateş
+    büyüleri... Bir cadının evindeyim galiba.)* · *(Acımıyor. Hiçbir yerim
+    acımıyor.)* · *(Bataklığa kar mı yağıyor?)* (ağrıların neden geçtiği
+    söylenmiyor — henüz belirlenmedi).
+  - Giriş, Pipos (altın maske ağzı örttüğü için ağız oynamadan konuşabiliyor):
+    *Hâlâ görünmüyor.* · *Bir şey olsaydı... duyardık, değil mi?* · *Barış!* ·
+    *Geç kaldın, evlat.*
+  - Savaş odası ve Zisa'nın evi olduğu gibi. Mikami ve Zisa'nın yüzü
+    göründüğü için onlara yazı eki satırı verilmedi (ağızları oynamazdı).
+  - Part 2'den itibaren konuşma senaryolara baştan yazılır (ağızlı).
+- **Beğen / abone anında film durur (kullanıcı, 2026-11-22):** *"abone ol beğen
+  geldiği an animasyon dursun, sonlandıktan sonra başlasın"*. Her videoda; film
+  son karede 6 sn donar, sonra kaldığı yerden sürer.
 - **Part 1'in sonu:** Barış Zisa'nın evinin **içinde** (kullanıcı: *"ev içi"*).
 - **Pipos ve çocukluk arkadaşı hanedanın girişinde bekliyor** (kullanıcı, 2026-11-03: *"en son eklediğimiz iki karakter ... hanedanın girişinde beklesinler ve akıl hocam Pipos endişeli görünecek"*; endişenin tarifi: *"biri bir yerdeyken onun arkasından endişelenen kişi genelde yerinde duramaz ve hep kötü bir senaryo düşünür"*). Sahne `film/bolum2_p1_4b_giris.json` (12,1 sn), Part 1'in toplamı 73,4 sn yazılı, çizilen 2209 kare = 73,63 sn (sınır 73,7). **ONAYLANDI (kullanıcı, 2026-11-07: *"giriş sahnesini de onaylıyorum"*; Barış'ın gelişi dahil son hâli).** Claude'un önerisiydi: sahnenin yeri savaş odasından sonra, Zisa'nın evinden önce; öğleye yakın, surun büyük güney kapısının önü. Pipos kapının önünde volta atıyor, uçlarda durup yola uzun uzun bakıyor, ellerini ovuşturuyor, yola doğru birkaç adım atıp duruyor, sonunda kapıya dönüp yere bakıyor. Arkadaş kulenin dibinde elleri arkada sakin bekliyor, başıyla Pipos'u izliyor (zıtlık). Konuşma yok (metin uydurulmadı). Arkadaşın elinde silah yok: kullanıcı ilk denemede kavuşmuş kolları silah sandı, poz değişti.
   - **Barış'ın gelişi görünür** (kullanıcı, 2026-11-03: *"Barış'ın geldiği görülsün ... o sahneden sonra yani kaygılı sahneden sonra Barış'ı direkt Zisa evinde görüyoruz"*). Bekleyiş biraz kısaldı; yola bakan çekimde Barış (iyileşmiş skin) uzaktan yürüyerek gelir, Pipos onu görüp ona doğru koşar adım gider, arkadaş ellerini çözüp arkadan gelir; son çekim Barış'ın omzunun arkasından, Pipos'la yüz yüze, arkada kapı. Sonra Zisa'nın evi. Karşılaşmada konuşma ya da sarılma yok (Claude'un sade önerisi; kullanıcı isterse eklenir).

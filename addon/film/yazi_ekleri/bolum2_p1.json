@@ -1,0 +1,25 @@
+{
+  "_aciklama": "2. bölüm Part 1 — çizimden SONRA eklenen yazılar. Kareler ve senaryolar değişmez; film_birlestir altyazıyı basarken çizimin yazilar.json'una ekler (film_birlestir.yazi_ekleri). Kullanıcının kararı (2026-11-22): 'İç ses / anlatım' (yeniden çizim yok); satırları Claude taslak yazdı, kullanıcı 14 satırın hepsini onayladı ('Hepsini onaylıyorum'). Biçim: iç ses gri ve parantezli, anlatıcı gri, Pipos beyaz ve adıyla. t: sahnenin kendi saniyesi.",
+  "bolum2_p1_1_orman": [
+    {"t": 0.6, "tur": "anlat", "metin": "(Kazandım... değil mi?)"},
+    {"t": 4.6, "tur": "anlat", "metin": "(Işık... Biri geliyor.)"},
+    {"t": 7.4, "tur": "anlat", "metin": "(Kimsin...?)"}
+  ],
+  "bolum2_p1_2_ruh": [
+    {"t": 0.2, "tur": "anlat", "metin": "Cadı onu kulübesine bıraktı, sonra Nether'a geçti."},
+    {"t": 3.6, "tur": "anlat", "metin": "Ama geçitten yalnız cadı geçmedi."},
+    {"t": 6.5, "tur": "anlat", "metin": "Nether'ın en acımasız ruhu bir beden buldu."}
+  ],
+  "bolum2_p1_3_kulube": [
+    {"t": 1.3, "tur": "anlat", "metin": "(Ormanda bayılmıştım. Bu yatağa kendim gelmedim.)"},
+    {"t": 6.3, "tur": "anlat", "metin": "(Ateş büyüleri... Bir cadının evindeyim galiba.)"},
+    {"t": 10.8, "tur": "anlat", "metin": "(Acımıyor. Hiçbir yerim acımıyor.)"},
+    {"t": 18.0, "tur": "anlat", "metin": "(Bataklığa kar mı yağıyor?)"}
+  ],
+  "bolum2_p1_4b_giris": [
+    {"t": 0.4, "tur": "soyle", "isim": "Pipos", "metin": "Hâlâ görünmüyor.", "neden": "altın maske ağzı örtüyor (ağız bölgesinin 12 pikselinin 10'u, SERI_SEZON1.md)"},
+    {"t": 3.0, "tur": "soyle", "isim": "Pipos", "metin": "Bir şey olsaydı... duyardık, değil mi?", "neden": "altın maske ağzı örtüyor"},
+    {"t": 8.0, "tur": "soyle", "isim": "Pipos", "metin": "Barış!", "sure": 1.5, "neden": "altın maske ağzı örtüyor; tek kelime, kısa süre yeter"},
+    {"t": 9.6, "tur": "soyle", "isim": "Pipos", "metin": "Geç kaldın, evlat.", "neden": "altın maske ağzı örtüyor"}
+  ]
+}

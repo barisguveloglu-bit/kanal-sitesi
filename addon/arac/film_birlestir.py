@@ -6,7 +6,11 @@
 
 --cagri 35,95: begen/abone animasyonu (cagri_animasyon.py) bu saniyelerde;
 yazilmazsa filmin %15, %50, %85'inde 3 kez (kullanici, 2026-11-08: her
-videoda 3 kez, farkli yerlerde); --cagri yok: hic.
+videoda 3 kez, farkli yerlerde); --cagri yok: hic. Animasyon gelince FILM
+DURUR (kullanici, 2026-11-22: "abone ol begen geldigi an animasyon dursun,
+bittikten sonra baslasin"): son kare animasyon boyunca donar, film sesi
+susar, sonra film kaldigi yerden surer (durdurma_filtre). Saniyeler
+DURDURMASIZ filmin saniyeleri; her cagri videoyu cagri_animasyon.SURE uzatir.
 
 --adim N: onizleme (blender_film --adim N ile cizilmis); video fps/N'de
 akar, ses ve altyazi yine film zamaninda. Eksik kare varsa durur.
@@ -17,6 +21,7 @@ senaryodan) -> parca.mkv (ses KAYIPSIZ); sonra parcalar ardarda, en sona
 0.6 sn siyah (dorduncu duvar: "ondan sonra bitsin"). YouTube icin H.264
 (BT.709 matris + etiket) + AAC 384k, +faststart (yukleme yarim kalsa da oynar).
 """
+import json
 import os
 import subprocess
 import sys
@@ -95,7 +100,12 @@ def parca(klasor, senaryo_yolu, adim=1, parca_adi=None):
     sen = B.oku(os.path.abspath(senaryo_yolu))
     fps0 = sen.get("fps", 24)
     aralik = sen["parcalar"][parca_adi] if parca_adi else None
-    F.altyazi_bas(klasor, adim, aralik)         # -> klasor/film.mp4 (sessiz)
+    ek = yazi_ekleri(senaryo_yolu)              # cizimden sonra eklenen yazilar (film/yazi_ekleri/)
+    if ek:
+        bilgi = json.load(open(os.path.join(klasor, "yazilar.json"), encoding="utf-8"))
+        yazi_ekleri_sigiyor(bilgi["yazilar"], ek, bilgi["kare"] / bilgi["fps"], os.path.basename(senaryo_yolu))
+        print("%s: %d yazi eki" % (os.path.basename(senaryo_yolu), len(ek)))
+    F.altyazi_bas(klasor, adim, aralik, ek=ek)  # -> klasor/film.mp4 (sessiz)
     dilim = ses_dilimi(aralik, fps0)
     ek = "_" + parca_adi if parca_adi else ""
     wav = os.path.join(klasor, "ses%s.wav" % ek)
@@ -107,6 +117,62 @@ def parca(klasor, senaryo_yolu, adim=1, parca_adi=None):
     cikti = os.path.join(klasor, "parca%s.mkv" % ek)
     parca_kaydet(os.path.join(klasor, "film.mp4"), wav, sen.get("fps", 24) / adim, cikti)
     return cikti, sen.get("fps", 24) / adim
+
+
+# Cizimden SONRA eklenen yazilar (kullanici, 2026-11-22: Part 1'e "ic ses /
+# anlatim"; satirlari Claude taslak yazar, kullanici onaylar -- onaylanmayan
+# satir buraya girmez). film/yazi_ekleri/*.json: {"<senaryo adi>": [{"t",
+# "metin", "tur": "anlat"|"soyle", "isim" (soyle), "sure" (yoksa
+# F.yazi_suresi), "neden" (soyle: agiz neden oynamak zorunda degil)}]}.
+# Kareler ve senaryo DEGISMEZ: "soyle" olayi konusma hareketi ve agiz
+# cizdirir (yeniden cizim), yazi eki yalniz altyaziya girer. Bu yuzden ek
+# "soyle" yalniz agzi gorunmeyen biri icin (Pipos'un maskesi, kadraj disi).
+YAZI_EKLERI = "yazi_ekleri"
+
+
+def yazi_ekleri(senaryo_yolu):
+    """Senaryonun yazi ekleri (zamana gore sirali, dogrulanmis); yoksa []."""
+    ad = os.path.splitext(os.path.basename(senaryo_yolu))[0]
+    kl = os.path.join(os.path.dirname(os.path.abspath(senaryo_yolu)), YAZI_EKLERI)
+    out = []
+    for dosya in sorted(os.listdir(kl)) if os.path.isdir(kl) else []:
+        if dosya.endswith(".json"):
+            for y in json.load(open(os.path.join(kl, dosya), encoding="utf-8")).get(ad, []):
+                out.append(yazi_eki(y, "%s/%s" % (dosya, ad)))
+    return sorted(out, key=lambda y: y["t"])
+
+
+def yazi_eki(y, yer):
+    """Bir yazi ekini dogrular -> altyazi_bas'in bekledigi sozluk."""
+    t, metin, tur = y.get("t"), y.get("metin"), y.get("tur")
+    if not isinstance(t, (int, float)) or t < 0 or not isinstance(metin, str) or not metin.strip():
+        raise ValueError("%s: yazi ekinde t/metin bozuk: %r" % (yer, y))
+    if tur not in ("anlat", "soyle"):
+        raise ValueError("%s: yazi ekinin turu anlat ya da soyle olmali: %r" % (yer, y))
+    if tur == "soyle" and not (y.get("isim") and y.get("neden")):
+        raise ValueError("%s: ek konusma isim ve neden ister (agiz oynamiyor, neden sorun degil?): %r" % (yer, y))
+    sure = float(y.get("sure", F.yazi_suresi(metin)))
+    if sure <= 0:
+        raise ValueError("%s: yazi ekinin suresi pozitif olmali: %r" % (yer, y))
+    out = {"t": float(t), "sure": sure, "metin": metin, "tur": tur}
+    if tur == "soyle":
+        out["isim"] = y["isim"]
+    return out
+
+
+def yazi_ekleri_sigiyor(yazilar, ek, son, ad):
+    """Ek satirlar sahnenin icinde mi, birbiriyle ve cizimin satirlariyla
+    cakisiyor mu: altyazi_bas bir satiri sonraki baslayinca keser, sahne
+    sonunda da kesilir -- sessizce yarim kalmasin diye HATA."""
+    for y in ek:
+        if y["t"] + y["sure"] > son + 1e-6:
+            raise ValueError("%s: yazi eki sahne bitince kesilir (%.2f + %.2f > %.2f sn): %s"
+                             % (ad, y["t"], y["sure"], son, y["metin"]))
+    hepsi = sorted([y for y in yazilar if y.get("tur") != "baslik"] + list(ek), key=lambda y: y["t"])
+    for a, b in zip(hepsi, hepsi[1:]):
+        if a["t"] + a["sure"] > b["t"] + 1e-6:
+            raise ValueError("%s: yazilar cakisiyor (%.2f sn '%s' bitmeden %.2f sn '%s' basliyor)"
+                             % (ad, a["t"], a["metin"], b["t"], b["metin"]))
 
 
 def kare_say(video):
@@ -214,6 +280,49 @@ def cagri_filtre(zamanlar, mov, ilk_girdi, v="v", a="a0", boyut=None):
     return girdi, "".join(f), v, a
 
 
+def durdurma_filtre(zamanlar, sure, fps, v="v", a="a0"):
+    """Cagri sirasinda film DURUR (kullanici, 2026-11-22: "abone ol begen
+    geldigi an animasyon dursun, bu abone ol begen seyi sonlandiktan sonra
+    baslasin"). `zamanlar`: DURDURMASIZ filmin saniyeleri, kareye yuvarlanir.
+    Goruntu: o andan onceki son kare `sure` boyunca tutulur (loop, tek kare
+    bellekte); kare atlanmaz, araya baska kare girmez. Ses: o anda kesilir,
+    `sure` sessizlik, sonra kaldigi yerden; kesim ve donus KENAR_MS'lik
+    gecisle (tik yapmasin -- ses_kenar.mjs'deki ders). Cagrinin kendi sesi
+    bu sessizligin ustune cagri_filtre'de eklenir.
+    -> (filtre, v_cikis, a_cikis, anlar): `anlar` cagrinin DURDURULMUS
+    filmdeki baslangici (k. cagri, onceki k duraklama kadar kayar)."""
+    kare = sorted({int(round(t * fps)) for t in zamanlar if t * fps >= 1})
+    if not kare:
+        return "", v, a, []
+    tut = int(round(sure * fps))
+    sure = tut / fps                          # ses ve goruntu ayni uzunlukta dursun
+    e = KENAR_MS / 1000.0
+    f = []
+    for k, n in enumerate(reversed(kare)):   # sondan basa: duraklama sonrakilerin kare sirasini kaydirmasin
+        # start=n -> n-1. kare (andan onceki son kare) donar: ffmpeg 6.1'de
+        # OLCULDU, start=n-1 bir kare erken (n-2) donduruyordu, ses ise tam
+        # n/fps'de kesiliyordu. test/cagri.mjs kare dizisini bire bir olcuyor.
+        f.append("[%s]loop=loop=%d:size=1:start=%d[dz%d];" % (v, tut, n, k))
+        v = "dz%d" % k
+    f.append("[%s]setpts=N/(%g*TB)[dv];" % (v, fps))
+    sinir = [n / fps for n in kare]
+    m = len(sinir)
+    f.append("[%s]asplit=%d%s;" % (a, m + 1, "".join("[ds%d]" % i for i in range(m + 1))))
+    for i in range(m + 1):
+        bas = sinir[i - 1] if i else None
+        son = sinir[i] if i < m else None
+        kes = ([("start=%.6f" % bas)] if bas is not None else []) + ([("end=%.6f" % son)] if son is not None else [])
+        z = ["atrim=" + ":".join(kes), "asetpts=PTS-STARTPTS"]
+        if bas is not None:
+            z.append("afade=t=in:d=%g" % e)
+        if son is not None:
+            z.append("afade=t=out:st=%.6f:d=%g" % (son - (bas or 0.0) - e, e))
+            z.append("apad=pad_dur=%.6f" % sure)
+        f.append("[ds%d]%s[dp%d];" % (i, ",".join(z), i))
+    f.append("%sconcat=n=%d:v=0:a=1[da];" % ("".join("[dp%d]" % i for i in range(m + 1)), m + 1))
+    return "".join(f), "dv", "da", [round(s + k * sure, 6) for k, s in enumerate(sinir)]
+
+
 def main(argv):
     adim = 1
     if "--adim" in argv:
@@ -262,12 +371,16 @@ def main(argv):
         bas = KART_SURE if kartlar else 0.0
         cagri = cagri_zamanlari(bas + sum(video_suresi(p) for p in parcalar) + SIYAH_SON, bas, SIYAH_SON, CA.SURE)
     if cagri:
-        print("begen/abone animasyonu:", ", ".join("%.1f sn" % x for x in cagri))
+        print("begen/abone animasyonu:", ", ".join("%.1f sn" % x for x in cagri), "(film bu anlarda durur)")
         import cagri_animasyon as CA
         kl = cikti + ".cagri"
         if not os.path.exists(os.path.join(kl, "cagri.mov")):
             CA.uret(kl)
-        g_, ek, vc, ac = cagri_filtre(cagri, os.path.join(kl, "cagri.mov"), j + 2, boyut=boyut(parcalar[0]))
+        # once film durur (son kare donar, ses susar), cagri donmus karenin ustune biner
+        dz, v_d, a_d, anlar = durdurma_filtre(sorted(cagri), CA.SURE, fps)
+        g_, ek, vc, ac = cagri_filtre(anlar, os.path.join(kl, "cagri.mov"), j + 2, v=v_d, a=a_d,
+                                      boyut=boyut(parcalar[0]))
+        ek = dz + ek
         girdi += g_
     fc = ("".join(filtre) + "concat=n=%d:v=1:a=1[v][a0];" % (n + 1) + ek
           + "[%s]%s[a]" % (ac, SES_ZINCIR))

@@ -4122,11 +4122,14 @@ def altyazi_satirlari(isim, metin, olc, genislik):
     return [(isim, metin[:i]), ("", metin[i + 1:])]
 
 
-def altyazi_bas(klasor, adim=1, aralik=None):
+def altyazi_bas(klasor, adim=1, aralik=None, ek=()):
     """aralik [a, b]: yalniz o film kareleri (parca: Part 1 / Part 2).
-    Altyazi zamani FILM zamaninda kalir; video a karesinden baslar."""
+    Altyazi zamani FILM zamaninda kalir; video a karesinden baslar.
+    ek: cizimden SONRA eklenen yazilar (film_birlestir.yazi_ekleri; ic ses,
+    anlatici) -- cizimin yazilar.json'una eklenir, kareler degismez."""
     from PIL import Image, ImageDraw, ImageFont
     bilgi = json.load(open(os.path.join(klasor, "yazilar.json"), encoding="utf-8"))
+    bilgi["yazilar"] = sorted(bilgi["yazilar"] + [dict(y) for y in ek], key=lambda y: y["t"])
     fps = bilgi["fps"]
     a, b = aralik or (1, bilgi.get("kare"))
     kareler = secili_kareler(klasor, adim, b, a)

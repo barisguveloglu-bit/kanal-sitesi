@@ -868,3 +868,18 @@ ilk dövüş sahnesi yazılırken karar verilecek.
 `film_birlestir.py` `--cagri` verilmezse `arac/cagri_animasyon.py`'nin
 katmanını videonun %15, %50 ve %85'ine kendiliğinden ekler (`test/cagri.mjs`).
 Yayına giden bir videoda `--cagri yok` kullanılmaz.
+**Animasyon gelince film durur (kullanıcı, 2026-11-22):** *"abone ol beğen
+geldiği an animasyon dursun, bu abone ol beğen şeyi sonlandıktan sonra
+başlasın."* O andan önceki son kare 6 sn donar, film sesi susar (yalnız
+çağrının kendi sesi), sonra film kaldığı yerden sürer; hiçbir kare atlanmaz,
+her çağrı videoyu 6 sn uzatır (`film_birlestir.durdurma_filtre`). Test
+kayıpsız sahte filmde kare dizisini bire bir ölçüyor; ffmpeg 6.1'de `loop`
+filtresinin `start`'ı bir önceki kareyi donduruyor, kod buna göre yazıldı.
+
+**Çizimden sonra yazı ekleme (kullanıcı, 2026-11-22).** Çizilmiş bir parta
+konuşma istenirse iki yol var: senaryoya `soyle` yazmak ağız ve konuşma
+hareketi çizdirir, yani o sahne baştan sona yeniden çizilir; iç ses, anlatıcı
+ya da ağzı görünmeyen birinin sözü ise `film/yazi_ekleri/*.json`'a yazılır,
+birleştirmede altyazıya girer, kare değişmez (`film_birlestir.yazi_ekleri`,
+`test/yazi_eki.mjs`). Satırları Claude taslak yazar, **kullanıcı onaylamadan
+dosyaya girmez**; onaylanan satırlar `SERI_SEZON1.md`'ye de yazılır.
