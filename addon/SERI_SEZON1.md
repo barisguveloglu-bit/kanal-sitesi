@@ -698,8 +698,20 @@ mikrofonla anlattı, özeti onayladı):**
     - Açık: koruma büyüsü ve Saldırı II birer End Blessing mi; Ender
       Armblades hangi sahnede görünüyor (*"o şekil bir şey gözükecek"*);
       ırksal dezavantajın biçimi.
-- **Cadı ve büyücü:** kullanıcının sözü *"ikisi de aynı şey"*. Aradaki fark
-  (cadı bir ırk, büyücü büyü yapan bir insan mı) soruldu, cevap bekliyor.
+- **Cadı ve büyücü AYRI (kullanıcı, 2026-11-22):** *"Ne zaman dedim ben,
+  lütfen, bu ikisini ayırdım, bir şey olmalı; örneğin Işık Yolu ile başka bir
+  yol daha vardı cadılarda."* Bu satırda 2026-10-19'dan beri *"ikisi de aynı
+  şey"* yazıyordu; kullanıcı böyle demediğini söyledi. Kaynak konuşma buradan
+  doğrulanamadı, büyük ihtimalle mikrofon yazısı ya da Claude yanlış anladı.
+  Yanlış kayıt silindi.
+  - Kullanıcının verdiği örnek: cadıların kendine ait iki yolu var (Işık Yolu,
+    Karanlık Yolu; aşağıda).
+  - Farkın tam tanımı **açık**. Claude'un önerisi (onay bekliyor): cadı bir
+    **soy/ırk** (kendi tarihi, iki yolu ve insanların ona önyargısı var),
+    büyücü **eğitimle olunan bir uğraş**, her ırktan olabilir. Kayıttaki
+    büyücüler buna uyuyor: Zisa (yarı Endra, kraliyet büyücülüğüne aday) ve
+    Mikami (kraliyet büyücüsü); krallık cadıları sevmiyor ama kraliyet
+    büyücüleri tutuyor.
 - **Cadıların iki yolu:** **Işık Yolu** (iyi) ve **Karanlık Yolu** (kötü).
   5000 yıl önce cadıların bir kısmı idam edildi, bir kısmı kaçtı; bundan
   **500 yıl sonra** iki kardeş bu iki yolu kurup ayrıldı ve birbirine düşman
