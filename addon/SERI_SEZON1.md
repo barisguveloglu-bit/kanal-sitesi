@@ -1074,6 +1074,9 @@ yapmaya başla; 2. bölümün Part 2'sinde bu sisteme geçelim"* dedi.
   - Savaş odası ve Zisa'nın evi olduğu gibi. Mikami ve Zisa'nın yüzü
     göründüğü için onlara yazı eki satırı verilmedi (ağızları oynamazdı).
   - Part 2'den itibaren konuşma senaryolara baştan yazılır (ağızlı).
+- **Part 1 bilinen görsel kusurlarıyla yayınlanır (kullanıcı, 2026-11-22: *"Olduğu
+  gibi kalsın"*).** Yeniden çizim de 2D onarım da istenmedi; kusurların listesi
+  `FILM_YETENEK_HARITASI.md` "Bütün Part 1'in incelemesi".
 - **Beğen / abone anında film durur (kullanıcı, 2026-11-22):** *"abone ol beğen
   geldiği an animasyon dursun, sonlandıktan sonra başlasın"*. Her videoda; film
   son karede 6 sn donar, sonra kaldığı yerden sürer.
