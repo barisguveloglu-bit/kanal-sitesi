@@ -432,6 +432,14 @@ ve başka yaratıklar. Hepsi buzla ilişkili.
 **Buz virüsü (kullanıcı, 2026-10-10):** Ice-man, **Barış onu yenene kadar**
 buzlaşmış bir **virüs** yayıyor; seviyesi ilerledikçe kendi ordusundan kendi
 virüsünü üretiyor.
+- **Ice-man'in bıraktıkları (kullanıcı, 2026-11-22):** *"Ice-man'in ordusu bir
+  hanedan değil, 2. bölümde bitiyor ama Overworld'de dünyada büyük bir kış ve
+  bir ordu bıraktı yani etkisi büyük."* Ice-man 2. bölümde ölüyor; ama
+  Overworld'de **büyük bir kış** ve **bir ordu** kalıyor (Baskın'daki "patronunu
+  kaybedince dağılıyor" ile uyumlu: ordu dağılıyor ama yok olmuyor).
+  - Açık: Ice-man ölünce virüs dağılan ordunun ısırıklarıyla yayılmaya devam
+    ediyor mu; kış bütün Overworld'ü mü kaplıyor, ne kadar sürüyor; kalan ordunun
+    bir lideri olacak mı.
 - **Bulaşma:** ısırıkla. Örnek: bir zombi köydeki bir insanı ısırır, virüs
   ısırıktan girer; **önce bedene alışır, sonra buzlaşma başlar.**
 - **Tedavi:** kökünden kazımanın yolu, Minecraft'ta zombi köylüyü normal
