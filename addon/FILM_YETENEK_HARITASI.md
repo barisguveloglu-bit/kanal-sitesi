@@ -278,7 +278,11 @@ film bire bir eskisi (1. bölüm ve Part 1 bayraksız, testler kilitliyor).
   - Ölçü tutuyor: o yakın çekimde 1 birim ≈ 50 px, titreyen uç da 25 px.
   - Sebep: model ölçüsü. Bu, Minecraft oyuncu modelinin kendisi; oyunun çizicisi katmanları sırayla çizdiği için oyunda görünmüyor.
   - Neden yakalanmadı: hiçbir test eş düzlemli bindirmeye bakmıyor; kare ölçümü de alan küçük olduğu için kaçırdı.
-  - Düzeltilmedi; karar kullanıcının. En küçük düzeltme film aracında: modeli okurken komşu dış katmanlara az farklı şişirme vermek (ör. 0,25 / 0,26 / 0,27). Böylece yüzler artık aynı düzlemde olmaz ve fark gözle görülmez. Oyunun modeli değişmez.
+  - **Düzeltildi, yalnız kod** (kullanıcının kararı, 2026-11-22: "B — yalnız kodu düzelt"; çizilmiş kareler yeniden çizilmez). Film aracı modeli okurken komşulara az farklı şişirme veriyor (`blender_film.dis_katman_ayir`, `DIS_KATMAN_PAY`): kollar +0,02, sağ pantolon +0,01, sol pantolon +0,03, sol bacak +0,01. En büyük pay 0,03 birim (~2 mm). Oyunun dosyası değişmez.
+  - Geometri denetimi iki çifte daha rastladı: iki bacağın taban küpü (0,2 birim) ile ceket–pantolon bel şeridi ve kol–pantolon köşeleri. Düzeltme bunları da kapsıyor.
+  - Bilerek ortak kalan tek yer dizin eklem düzlemi (y = 6): uyluk ve baldır orada buluşuyor, o yüzler içeride kalıyor.
+  - Bundan sonra çizilen her kare bu geometriyle çıkar; 1. bölümün yeniden çizimi de dahil, fark yalnız şeritlerde.
+  - Kilit: `dis_katman.mjs`. Ham modelde bindirmeler var; film modelinin altı çeşidinde yok. Mutasyonda tablo boşaltılınca, kol payı silinince, pantolonlar eşitlenince ve çağrı kaynaktan kaldırılınca test düşüyor.
 - **Savaş 391–445, saçın tepesi:** saçın üst kenarı arkadaki parlak pencerenin önünde duruyor. Kenardaki beyaz boşluk ve ince çizgiler kare kare değişiyor. Muhtemel sebep şapka katmanının saydam pikselleri ve katmanla baş arasındaki 0,5 birimlik boşluk (pencere aradan görünüyor); doğrulanmadı.
 - **Giriş 175–282, aşırı parlak:** omuz üstünden dışarı bakan çekimde gökyüzü bembeyaz. 255–282 arasında zırh da patlıyor: beyaz vizör gökyüzüne karışıyor, miğferin üstü havada duruyor gibi görünüyor; 277 soluk. Sebep ışık ve pozlama; ölçülmedi.
 - Kasıtlı olup ölçünün işaretlediği:

@@ -77,6 +77,31 @@ GEO_AKTOR = "Simsek_Kol_Kaynak/models/entity/aktor.geo.json"
 # Iki geometride yalniz bu dort kemik farkli: kol 3 px, pivot y 21.5.
 GEO_AKTOR_INCE = "Simsek_Kol_Kaynak/models/entity/aktor_ince.geo.json"
 INCE_KEMIKLER = ("rightArm", "rightSleeve", "leftArm", "leftSleeve")
+# 2026-11-22: komsu uzuvlarin yuzleri AYNI DUZLEMDE ust uste biniyordu:
+# ceket-kol 0,5 birim, iki pantolon 0,7, iki bacak 0,2, ceket-pantolon belde
+# 0,5 (Minecraft oyuncu modelinin olcusu). Oyun katmanlari sirayla cizdigi
+# icin gorunmez; Cycles'ta hangisinin onde cikacagi uzvun en kucuk hareketiyle
+# degisti ve yakin planda serit yanip sondu (2. bolum Part 1: savas 391-445
+# omuz, giris 310-317 bacak arasi; FILM_YETENEK_HARITASI.md). Her komsuya az
+# farkli sisirme: yuzler artik ayni duzlemde degil; en buyuk pay 0,03 birim
+# (~2 mm), gozle gorulmez. Yalniz film: oyunun dosyasi degismez. Dizin eklem
+# duzlemi (diz_model, y = DIZ_Y) bilerek ortak: yarilar orada bulusuyor.
+# Kilit: test/dis_katman.mjs.
+DIS_KATMAN_PAY = {"rightSleeve": 0.02, "leftSleeve": 0.02,
+                  "rightPants": 0.01, "leftPants": 0.03, "leftLeg": 0.01}
+
+
+def dis_katman_ayir(geo):
+    """Aktor geometrisi -> komsu yuzleri ayri duzlemde film geometrisi.
+    Girdi DEGISMEZ (kopya); yalniz DIS_KATMAN_PAY'daki kemiklerin sisirmesi
+    artar, olcu/konum/doku ayni."""
+    g = json.loads(json.dumps(geo))
+    for b in g["minecraft:geometry"][0]["bones"]:
+        pay = DIS_KATMAN_PAY.get(b["name"], 0.0)
+        if pay:
+            for c in b.get("cubes", []):
+                c["inflate"] = round(c.get("inflate", 0) + pay, 6)
+    return g
 SILAH = {"karanlik_tirpan": ("Simsek_Kol_Kaynak/models/entity/karanlik_tirpan.geo.json",
                              "Simsek_Kol_Kaynak/textures/entity/karanlik_tirpan.png"),
          # v7.99.15: Omer'in silahi; seti "topuz" (Epic Fight baltasindan turetilmis)
@@ -1750,8 +1775,8 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
         sc.collection.objects.link(bpy.data.objects.new("ufuk", me))
 
     # ---- aktorler: kemik bos nesneleri + kup parcalari ----
-    geo = B.oku(GEO_AKTOR)
-    geo_ince = B.oku(GEO_AKTOR_INCE)
+    geo = dis_katman_ayir(B.oku(GEO_AKTOR))
+    geo_ince = dis_katman_ayir(B.oku(GEO_AKTOR_INCE))
     govde_model = B.Model(geo)
     # Baris'in formu (form_model.py): ek kollu model, yerlesim basina bir kez.
     # Formsuz, dizsiz, genis kollu aktor govde_model'i kullanir -- onun modeli
