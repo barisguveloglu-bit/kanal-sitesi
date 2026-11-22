@@ -437,9 +437,17 @@ virüsünü üretiyor.
   bir ordu bıraktı yani etkisi büyük."* Ice-man 2. bölümde ölüyor; ama
   Overworld'de **büyük bir kış** ve **bir ordu** kalıyor (Baskın'daki "patronunu
   kaybedince dağılıyor" ile uyumlu: ordu dağılıyor ama yok olmuyor).
-  - Açık: Ice-man ölünce virüs dağılan ordunun ısırıklarıyla yayılmaya devam
-    ediyor mu; kış bütün Overworld'ü mü kaplıyor, ne kadar sürüyor; kalan ordunun
-    bir lideri olacak mı.
+  - **Cevaplandı (kullanıcı, 2026-11-22):**
+    - Kalan ordu **başıboş** dolaşıyor, lideri yok (*"başıboş mu dolaşacak, o
+      şekilde"*).
+    - Kış Overworld'ün **yarısını**, **doğu yarısını** kaplıyor; Barış'ın hanedanı
+      da kışın içinde kalıyor (seçenekli soruda seçti).
+    - Virüs **ısırıkla sürüyor:** Ice-man'in kendisi artık yeni virüs üretemiyor,
+      ama kalan ordunun ısırıkları virüsü taşımaya devam ediyor; ısırılan buzlaşıp
+      başıboş orduya katılıyor. Kullanıcının iki cevabı birbirine ters okunduğu
+      için seçenekli soruyla soruldu, bu okuma seçildi. Yukarıdaki "Barış onu
+      yenene kadar virüs yayıyor" Ice-man'in kendi ürettiği virüs için geçerli.
+  - Açık: kışın süresi.
 - **Bulaşma:** ısırıkla. Örnek: bir zombi köydeki bir insanı ısırır, virüs
   ısırıktan girer; **önce bedene alışır, sonra buzlaşma başlar.**
 - **Tedavi:** kökünden kazımanın yolu, Minecraft'ta zombi köylüyü normal
