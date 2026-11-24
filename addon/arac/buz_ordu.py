@@ -864,7 +864,8 @@ def iskelet_ressam(yuzey, asama):
 
     def yuz_ozellik(P):
         """kafatasi (ofkeli): buz catlagi, koyu kas, oyugun ic-ust kosesinde
-        isiyan bebek, burun boslugu, elmacik, ust dis sirasi ve acik cene."""
+        isiyan bebek, burun boslugu, elmacik, duz agiz ve aralikli alt disler
+        (koseleri yukarida kalan agiz sirittiriyordu)."""
         i, j = P.i, P.j
         if (i, j) in CATLAK:
             if asama >= 2:
@@ -881,9 +882,9 @@ def iskelet_ressam(yuzey, asama):
         if j == 5 and i in (1, 6):
             return IT["golge"], SIYAH
         if j == 6 and 1 <= i <= 6:
-            return (IT["dis"] if 2 <= i <= 5 else IT["oyuk"]), SIYAH   # ust disler
-        if j == 7 and 2 <= i <= 5:
-            return IT["oyuk"], SIYAH                                   # acik cene
+            return IT["oyuk"], SIYAH                                   # duz agiz cizgisi
+        if j == 7 and 1 <= i <= 6:
+            return (IT["dis"] if i in (1, 3, 4, 6) else IT["oyuk"]), SIYAH   # aralikli alt disler
         if j == 7 and i in (0, 7):
             return IT["golge"], SIYAH
         return None
