@@ -305,6 +305,7 @@ film bire bir eskisi (1. bölüm ve Part 1 bayraksız, testler kilitliyor).
 
 ## 2. bölümden önce açık
 
+- **Karanlık Tırpan 2.0 "Hilal Ay" (2026-11-24, `arac/tirpan_hilal.py`, kilit `test/tirpan_hilal.mjs`):** üreteç depoda, film aracına bağlı değil. Part 2'de Barış onu çıkarıyor. Bağlanırken iki iş var: `SILAH` tablosu bugün yalnız diskteki dosyayı okuyor, Hilal Ay ise üreteçle çizim klasörüne yazılmalı; silah malzemesi bugün tek renk (mor) ışıyor, Hilal Ay'ın ışıması piksel piksel (`_isik.png` haritası: kenar ve amblem mor, gövde ışımıyor).
 - **Gökyüzü türü (v7.99.16'da ölçüldü):** Blender 5.2'de `NISHITA` yok (`SINGLE_SCATTERING`, `MULTIPLE_SCATTERING`, `PREETHAM`, `HOSEK_WILKIE`). `blender_film.py` türü ayarlarken hata alıyor ve aynı `try` içindeki `gunes_yukseklik`'i atlıyor: gökyüzü fiilen varsayılan `MULTIPLE_SCATTERING`, `isik` anahtarı olmayan senaryoda `gunes_yukseklik` uygulanmıyor. `isik` anahtarları yüksekliği ayrı bir `try` içinde yazdığı için 1. bölümün orman çizimi etkilenmedi. Film aracında düzeltilmedi (1. bölümün görünüşü bu); önizleme betikleri (`hanedan_onizle`, `kulube_onizle`) yüksekliği artık ayrı yazıyor.
 - **Takılan yürüyüş:** kök düzeltmesi yapılmadı (SERI_SEZON1, "bilinen hata"). Kalabalık sahneler bunu sık tetikler.
 - **Skin aynası — KAPANDI (kullanıcı, 2026-11-02: "aynı kalsın"):** düzeltilmiyor. Thomas planıyla bizim plan arasında yüz aynalanır; skinin iki yanı farklıysa (Barış'ın kolları) filmde taraflar ters görünür.

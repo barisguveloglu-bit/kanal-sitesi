@@ -774,8 +774,15 @@ mikrofonla anlattı, özeti onayladı):**
   betiğimizle kurulur (orman sahnesi gibi).
 - **Ice-man ordusu:** zombi, iskelet, creeper — **bizim modellerimiz**, buzlaşmış
   hâlleriyle — ve **insanlar**. **Örümcek de orduda** (kullanıcı, 2026-11-22:
-  *"örümcek creeper zombi iskelet bunların genel görünüşünü bulalım"*); dördünün
-  genel görünüşü konuşuluyor, karar bekliyor. İnsan skinlerini kullanıcı bulup indirme linkini
+  *"örümcek creeper zombi iskelet bunların genel görünüşünü bulalım"*).
+  **Genel görünüş ONAYLANDI (kullanıcı, 2026-11-24, seçenekli soruda
+  "Önerdiğin gibi"):** zombi donmakta (bir kısmı buz kabuklu), iskelet kristalli
+  ve buz yaylı, creeper kar renginde ve tıslarken yüzü ışıyan, örümcek koyu
+  lacivert ve sırtı kristalli; hepsi Ice-man'in turkuaz renklerinde, gözleri
+  camgöbeği. Dayanağı buz virüsü: yaratıklar buzdan yapılmış değil, buzlaşmakta;
+  aynı yaratığın 2–3 buzlaşma aşaması kalabalıkta çeşitlilik verir (Claude'un
+  2026-11-22 önerisi). Skinleri **Claude kodla çiziyor**, kullanıcı önizlemede
+  onaylıyor. Kutu ölçüleri oyunun kendi model kodundan okunur (köylüde olduğu gibi). İnsan skinlerini kullanıcı bulup indirme linkini
   verecek; her biri `KAYNAKLAR.md` üç kademe kuralına göre kaydedilir.
 
 - **Kulübeye eklenenler (kullanıcı):** asıl kulübede olmayan **yatak** ve
@@ -887,14 +894,15 @@ içinde, okunuşu yanında; doğrulanmayanlar öyle işaretli.
   Askerler *"Hey, gelin gelin, saldırı var!"* diye bağırıp saldırının olduğu
   yere koşuyor. İkisi askerlerin koştuğu yere bakıyor: orada büyük bir
   **fırtına** var. Saldırı hanedanın *"hiç kısmından"* giriyor (anlaşılmadı;
-  sorulacak).
+  Part 2 planında "doğu kısmı" diye okundu, kullanıcı planı onayladı, 2026-11-24).
 - **Sur:** çok sayıda **creeper** suru patlatıyor; ardından **iskeletler ve
   zombiler** giriyor. Zombilerle askerler savaşıyor.
 - **Barış çıkıyor:** *"Gideceğim, onlara yardım edeceğim"* diyor. Zisa: bu
-  hâlinle yapamazsın, *"yüklerim de yok"* ("güçlerin de yok" diye okundu,
-  doğrulanmadı), kendini tehlikeye atamazsın. Zisa, Barış'ın güçlerinin
+  hâlinle yapamazsın, *"yüklerim de yok"* ("güçlerin de yok" diye okundu;
+  kullanıcı Part 2 planında onayladı, 2026-11-24), kendini tehlikeye atamazsın. Zisa, Barış'ın güçlerinin
   uyandığını bilmiyor. Barış bir anda **Antitheus'u çıkarıyor** (kullanıcının
-  sözü; Karanlık Tırpan olduğu doğrulanmadı), **camı kırıp aşağı atlıyor**,
+  sözü; 2026-11-24'te netleşti: Karanlık Tırpan 2.0 **"Hilal Ay"**, aşağıda),
+  **camı kırıp aşağı atlıyor**,
   koşmaya başlıyor.
 - **Zisa'nın koruma büyüsü:** Zisa Barış'a koruma büyüsü yapıyor. Barış bunu
   iskeletlerin okları çarpıp işlemeden **geri sekince** fark ediyor.
@@ -996,9 +1004,40 @@ içinde, okunuşu yanında; doğrulanmayanlar öyle işaretli.
     koşacak vakti yok. ("ol diye koşacak" kısmı "haber vermeye koşacak" diye
     okundu, doğrulanmadı.)
   - İskeletler **buz iskeleti** (kullanıcının sözü).
-  - Hangi parta ve hangi sıraya girdiği **açık**. Claude'un önerisi: Part 2'de,
-    sur gediğinin patlamasından sonra; Mikami'nin Ömer'e haberi, Ömer'in
-    Part 3'te meydana gelişinden önce. Kullanıcı karar verecek.
+  - Yeri: **Part 2**, sur gediğinden sonra (5. ve 6. sahne; kullanıcı Part 2
+    planını onayladı, 2026-11-24).
+- **PART 2 ONAYLANDI (kullanıcı, 2026-11-24):** seçenekli soruda *"Onaylıyorum"*,
+  ardından *"Onayı veriyorum"*. Öğle, hedef 60–65 sn (sınır 73,7). Sahneler ve
+  replikler (Claude yazdı, kullanıcı onayladı):
+  1. Zisa'nın evi. Zisa: *"Herkes seni merak etti. Neredeydin?"* Barış:
+     *"Anlatması uzun."* Dışarıdan sesler; askerler koşuyor: *"Hey, gelin gelin,
+     saldırı var!"*
+  2. Pencereden: doğudan gelen fırtına göğün yarısını karartmış; ovada Ice-man ve
+     büyük ordu (zombi, iskelet, creeper, örümcek).
+  3. Doğu suru: okçular creeper'ları vuruyor; Ice-man fırtınayı koyulaştırıyor,
+     karın içinde saklanan creeper'lar sura varıyor: tıslama, patlama, gedik.
+  4. Gedik: kalkanlı sur askerleri duvar gibi duruyor, zombiler geçemiyor;
+     iskeletler molozun üstünden ok yağdırıyor.
+  5. Pipos köylüleri kurtarıyor (*"Evlere girin!"*), buz oklarını iskeletlere
+     geri savuşturuyor.
+  6. Mikami kaleye koşuyor: *"Komutanım! Doğu surunda gedik açıldı, baskın
+     var!"* Ömer topuzunu alıyor.
+  7. Zisa'nın evi. Barış: *"Gideceğim, onlara yardım edeceğim."* Zisa: *"Bu
+     hâlinle yapamazsın. Güçlerin de yok, kendini tehlikeye atma."* Barış
+     silahını çıkarıyor, camı kırıp aşağı atlıyor.
+  8. Zisa'nın alnındaki sembol parlıyor (koruma büyüsü, görünmez başlıyor);
+     Barış koşarak sokağa giriyor. Son.
+  - Zisa Thomas ağzıyla konuşamıyor (gözleri skinin 6. satırında), **dokuyla
+    çizilen ağızla** konuşuyor.
+  - Ice-man'in **insan askerleri** skinleri gelene kadar bu partta **yok**.
+- **Barış'ın silahı: Karanlık Tırpan 2.0 "Hilal Ay" (kullanıcı):** 2026-11-21
+  görünüş yenilensin, kapsam *"yalnız filmde"*; üç taslak (Hilal Ay, Ruh Ateşi,
+  Gölge ve Kemik); 2026-11-22 *"Hilal Ay olsun"* (2. bölüm Part 1'in kapağı
+  bununla, "yere saplanmış" duruşla çizildi); 2026-11-24 Part 2'de bu çıkıyor ve
+  *"Hilal ay depoya alabilirsin"*. Üreteç `arac/tirpan_hilal.py` (kilit
+  `test/tirpan_hilal.mjs`): onaylanan taslağın 220 küpünü aynı ölçü, renk ve
+  ışımayla veriyor; pivotu ve sapı oyundaki tırpanla aynı. Oyundaki Karanlık
+  Tırpan değişmiyor. Film aracına henüz bağlı değil.
 
 ### 4 part kesimi ve hazır paketler (Claude'un kararı, 2026-10-19)
 
