@@ -857,7 +857,8 @@ geçidin yeri Claude'un önerisi. Önizleme `arac/kulube_onizle.py`, kilit
   Üstüne buz düşmeyen kabuk küpü üretimde budanıyor.
 - **İskeletin göğsü:** kaburga araları bilerek boş, içte buz kalbi var.
 - **Kemikler:** zombi ve iskelet aktörün kemik adlarını taşıyor.
-- **Durum:** film aracına henüz bağlı değil; `test/buz_ordu.mjs`
+- **Durum:** görünüş onaylandı (kullanıcı, 2026-11-24); film aracına henüz
+  bağlı değil; `test/buz_ordu.mjs`
   kilitliyor.
 
 **Akıcı hareket — `addon/arac/hareket.py` (v7.99.16).** Kullanıcı:

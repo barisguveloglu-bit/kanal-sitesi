@@ -803,7 +803,9 @@ mikrofonla anlattı, özeti onayladı):**
     - kaburga araları boş, içinde ışıyan buz kalbi;
     - kafatasında ışıyan buz çatlağı ve buz tacı;
     - bilek ve inciklerde içinden kemik görünen kabuk.
-  Yeni önizleme gönderildi; **onay bekliyor**.
+  **ONAYLANDI (kullanıcı, 2026-11-24):** yeni zombi ve iskelet önizlemesine *"onaylıyorum"*.
+  Creeper ve örümcek ilk önizlemeden sonra değişmedi; kullanıcı yalnız zombi ve iskeletin
+  iyileştirilmesini istemişti. Dördü de film aracına henüz bağlı değil.
 
 - **Kulübeye eklenenler (kullanıcı):** asıl kulübede olmayan **yatak** ve
   **kitaplık** bizim eklememiz — kulübe *"bunlar eklenmiş şekilde"* olacak.
