@@ -784,6 +784,11 @@ mikrofonla anlattı, özeti onayladı):**
   2026-11-22 önerisi). Skinleri **Claude kodla çiziyor**, kullanıcı önizlemede
   onaylıyor. Kutu ölçüleri oyunun kendi model kodundan okunur (köylüde olduğu gibi). İnsan skinlerini kullanıcı bulup indirme linkini
   verecek; her biri `KAYNAKLAR.md` üç kademe kuralına göre kaydedilir.
+  **Modeller ve deriler (2026-11-24):** `arac/buz_ordu.py`. Dördünün kutuları Java 26.3 model kodundan okundu, deriler kodla çizildi. Zombinin 3, öbürlerinin 2 aşaması var; iskeletin buz yayı ayrı bir model. Ayrıntılar şöyle:
+  - Virüs boynun sol dibindeki ısırıktan yayılıyor: ışıyan camgöbeği damarlar ve damarları izleyen buz.
+  - Creeper tıslarken ağzından çatlaklar yayılıyor ve yüzü ışıyor.
+  - Örümceğin sırtında kristaller ve teal oklar var.
+  Önizleme kullanıcıya gönderildi; **onay bekliyor**.
 
 - **Kulübeye eklenenler (kullanıcı):** asıl kulübede olmayan **yatak** ve
   **kitaplık** bizim eklememiz — kulübe *"bunlar eklenmiş şekilde"* olacak.

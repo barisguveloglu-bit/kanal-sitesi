@@ -840,6 +840,22 @@ geçidin yeri Claude'un önerisi. Önizleme `arac/kulube_onizle.py`, kilit
   yapının dışında başlamalı (kulübede ortası boş çerçeve, hanedanda
   surdan başlayan halka).
 
+**Buz ordusu — `addon/arac/buz_ordu.py` (2026-11-24).** Ice-man'in ordusu:
+- **Yaratıklar:** zombi (3 aşama), iskelet ve buz yayı, creeper, örümcek
+  (ikişer aşama).
+- **Ölçüler:** kutular, pivotlar ve dönüşler Java 26.3 JAR'ından `javap`
+  ile okundu (köylüdeki JAR). Sayılar alınır, JAR depoya girmez; kaynak
+  REFERANS_MOJANG_KILAVUZ.md "Buz ordusu modelleri".
+- **Deriler:** kodla çiziliyor, Mojang dokusu yok. Her doku pikseli film
+  aracının UV kuralıyla (`bedrock_onizleme.kupler`) modeldeki 3B yerine
+  çevrilip boyanıyor; buz, virüs damarları ve çatlaklar kutu kenarlarından
+  kesintisiz geçiyor.
+- **Ayna:** Java'da aynalı olan parçalar ayrı UV alıyor, çünkü film aracı
+  "mirror"u uygulamıyor.
+- **Kemikler:** zombi ve iskelet aktörün kemik adlarını taşıyor.
+- **Durum:** film aracına henüz bağlı değil; `test/buz_ordu.mjs`
+  kilitliyor.
+
 **Akıcı hareket — `addon/arac/hareket.py` (v7.99.16).** Kullanıcı:
 *"robotik dövüşlerden ya da hareketlerden memnun değilim."* Senaryoda
 `"akici": true`: yaylı dönüş, ivmeli yürüme, ayak temasına inen gövde,

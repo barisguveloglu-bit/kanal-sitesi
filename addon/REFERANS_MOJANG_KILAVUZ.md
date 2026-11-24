@@ -72,3 +72,41 @@ için sınıf ve yöntem adları okunur durumda. JAR sürüm atlarsa: yeni
 JAR'ı indir, aynı üç sınıfı `javap -c -p` ile oku, `koylu.py`'deki
 `PARCALAR`, `OLCEK`, `KOL_ACISI` değerlerini karşılaştır, sonra
 `node addon/test/hanedan.mjs`.
+
+## Buz ordusu modelleri (2026-11-24)
+
+Kullanıcı: *"Ölçülerini oyunun kendi model kodundan okuyup skinlerini kodla
+çizeceksin."* Zombi, iskelet, creeper ve örümceğin kutuları köylüdeki
+JAR'dan (aynı SHA-1) `javap -c -p` ile okundu. JAR yalnız geçici klasöre
+indi, depoya girmedi. **Dokuların hiçbir pikseli Mojang'ın değil:**
+`arac/buz_ordu.py` her pikseli kodla çiziyor ve hiçbir dosya okumuyor
+(`test/buz_ordu.mjs` bunu ölçüyor).
+
+| yaratık | sınıf | okunan |
+|---|---|---|
+| zombi | `LayerDefinitions.createRoots`: `ZOMBIE = HumanoidModel.createMesh(NONE, 0)` | kafa 8³ (şapka katmanı +0,5), gövde 8×12×4, kol ve bacak 4×12×4; kol pivotu (±5, 2, 0), bacak (±1,9, 12, 0) |
+| iskelet | `SkeletonModel.createBodyLayer` → `createDefaultSkeletonMesh` | kafa ve gövde zombininki; kol ve bacak 2×12×2, kol (±5, 2, 0), bacak (±2, 12, 0); `translateToHand` eşya için kolu 1 px içeri alıyor |
+| creeper | `CreeperModel.createBodyLayer(NONE)` | kafa ve gövde (0, 6, 0); dört bacak tek kutu listesi, 4×6×4, (±2, 18, ±4) |
+| örümcek | `SpiderModel.createSpiderBodyLayer` | kafa (0, 15, −3) 8³; body0 (0, 15, 0) 6³; body1 (0, 15, 9) 10×8×12; bacak 16×2×2, pivot (±4, 15, 2 / 1 / 0 / −1); dönüş y ±π/4 · ±π/8, z ±π/4 · ±0,58119 |
+
+Hareket sabitleri (film aracına henüz bağlı değil; aynı JAR'dan):
+- **Zombi kolları** (`AnimationUtils.animateZombieArms`): el boşsa xRot
+  −π/2,25 (saldırganken −π/1,5), yRot sağda −0,1, solda +0,1.
+- **Yay duruşu** (`HumanoidModel.poseRightArm`, BOW_AND_ARROW): sağ kol
+  xRot −π/2, yRot −0,1; sol kol xRot −π/2, yRot 0,1 + 0,4.
+- **Creeper yürüyüşü:** çapraz bacak çiftleri xRot = cos(0,6662·adım)·1,4·hız
+  (öbür çift +π).
+- **Örümcek yürüyüşü:** f = 0,6662·adım. Dört bacak çiftinde (arka, orta-arka,
+  orta-ön, ön) yRot'a −cos(2f + 0 / π / π⁄2 / 3π⁄2)·0,4·hız, zRot'a
+  |sin(f + 0 / π / π⁄2 / 3π⁄2)·0,4|·hız eklenir (sağda +, solda −).
+
+**Dönüşte x'in işareti açık:** `jar_model_coz.py` Java'dan Bedrock'a −rx
+yazıyor, film aracının `bb_mat` kuralından türetme ise +rx veriyor. Bu dört
+modelin dinlenme pozunda x dönüşü yok. `buz_ordu.cevir_donus` x dönüşü
+görürse duruyor: önce ölçülsün diye. Y ve z işaretlerinde iki kaynak aynı
+sonucu veriyor; örümceğin bacak uçları film aracının zincirinden geçirilip
+ölçüldü (zeminde, dışa ve doğru yöne).
+
+JAR sürüm atlarsa: yeni JAR'ı indir, aynı sınıfları `javap -c -p` ile oku,
+`buz_ordu.py`'deki `JAVA` tablosuyla karşılaştır, sonra
+`node addon/test/buz_ordu.mjs` çalıştır.
