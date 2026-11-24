@@ -863,27 +863,27 @@ def iskelet_ressam(yuzey, asama):
         return "kemik"
 
     def yuz_ozellik(P):
-        """kafatasi: buz catlagi, kas golgesi, isiyan bebekler, burun boslugu,
-        elmacik, dis sirasi."""
+        """kafatasi (ofkeli): buz catlagi, koyu kas, oyugun ic-ust kosesinde
+        isiyan bebek, burun boslugu, elmacik, ust dis sirasi ve acik cene."""
         i, j = P.i, P.j
         if (i, j) in CATLAK:
             if asama >= 2:
                 return (70, 210, 230), carp(CAMGOBEGI, 0.6)
             return IT["catlak"], carp(CAMGOBEGI, 0.25)
         if j == 2 and i in (1, 2, 5, 6):
-            return IT["golge"], SIYAH
+            return IT["koyu"], SIYAH                                   # kas: golgeli, ofkeli
         if j in (3, 4) and i in (1, 2, 5, 6):
-            if j == 4 and i in (2, 5):
-                return ACIK_CAM, CAMGOBEGI                             # isiyan bebek
             if j == 3 and i in (2, 5):
-                return (24, 120, 140), carp(CAMGOBEGI, 0.3)            # bebegin halesi
+                return ACIK_CAM, CAMGOBEGI                             # isiyan bebek
             return IT["oyuk"], SIYAH
         if j == 5 and i in (3, 4):
             return (30, 40, 56), SIYAH
         if j == 5 and i in (1, 6):
             return IT["golge"], SIYAH
         if j == 6 and 1 <= i <= 6:
-            return (IT["dis"] if i in (1, 3, 4, 6) else (40, 50, 64)), SIYAH
+            return (IT["dis"] if 2 <= i <= 5 else IT["oyuk"]), SIYAH   # ust disler
+        if j == 7 and 2 <= i <= 5:
+            return IT["oyuk"], SIYAH                                   # acik cene
         if j == 7 and i in (0, 7):
             return IT["golge"], SIYAH
         return None
@@ -917,6 +917,8 @@ def iskelet_ressam(yuzey, asama):
             # cevresindeki araliklar yari saydam, isiyan buzla dolu.
             if asama >= 2 and abs(x) < 3.2 and 15.0 < y < 22.5:
                 return (52, 182, 206, 150), carp(CAMGOBEGI, 0.3)
+            if P.yuz in ("east", "west"):
+                return (34, 48, 70, 255), SIYAH                         # yanda: golgeli aralik
             return (0, 0, 0, 0), SIYAH
         f = 1.0
         if kem in ("rightArm", "leftArm") and (abs(y - 17.5) < 0.6 or y < 13.6):
