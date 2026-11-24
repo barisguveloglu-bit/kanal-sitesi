@@ -100,6 +100,14 @@ Hareket sabitleri (film aracına henüz bağlı değil; aynı JAR'dan):
   orta-ön, ön) yRot'a −cos(2f + 0 / π / π⁄2 / 3π⁄2)·0,4·hız, zRot'a
   |sin(f + 0 / π / π⁄2 / 3π⁄2)·0,4|·hız eklenir (sağda +, solda −).
 
+**Buz kabuğunun kalınlığı da oyundan:** `LayerDefinitions` statik
+başlangıcında `INNER_ARMOR_DEFORMATION = 0.5`, `OUTER_ARMOR_DEFORMATION = 1.0`.
+Oyunun kendi buz iskeleti Stray'in dış katmanı (`STRAY_OUTER_LAYER`) ise
+`HumanoidModel.createMesh(new CubeDeformation(0.25), 0)`, doku 64×32: ince
+kemiği insan boyu kutularla sarıyor. Zombinin kabuğu gövde kutularını 0,5
+şişiriyor (iç zırh). İskeletin bilek ve incik kabuğu kemiğin kendi kesitini
+her yandan 1 px (dış zırh) sarıyor; boyu bizim seçimimiz (alt yarı).
+
 **Dönüşte x'in işareti açık:** `jar_model_coz.py` Java'dan Bedrock'a −rx
 yazıyor, film aracının `bb_mat` kuralından türetme ise +rx veriyor. Bu dört
 modelin dinlenme pozunda x dönüşü yok. `buz_ordu.cevir_donus` x dönüşü

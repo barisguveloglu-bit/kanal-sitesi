@@ -37,6 +37,16 @@ kutu kenarlarindan kesintisiz geciyor. Kristaller ayri kupler, yuzleri
 paletten tek renk; isiyan pikseller ayri bir isima haritasinda (_isik.png;
 creeper'da tislama icin ikincisi: _tislama.png).
 
+DUZELTME (kullanici, ayni gun: "Zombi ve iskeleti daha iyi yapmaya calis"):
+buz boya degil HACIM: govdeyi saran yari saydam KABUK katmani. Kalinliklar
+oyunun zirh katmanlarindan (LayerDefinitions: INNER_ARMOR_DEFORMATION 0.5,
+OUTER_ARMOR_DEFORMATION 1.0; oyunun buz iskeleti Stray de kemigini
+HumanoidModel.createMesh(0.25) ile sarar). Zombi: isirik V yakadaki tende,
+damar yalniz tende ve koyu cerceveli, kabuk sol yarida, uzanan kollarin
+altinda buz sarkitlari, morarmis eller ve ayaklar. Iskelet: kaburga aralari
+bos, icinde isiyan buz kalbi; kafatasinda isiyan catlak ve buz taci; bilek ve
+inciklerde icinden kemik gorunen kabuk.
+
     python3 addon/arac/buz_ordu.py <cikti_klasoru>
 """
 import json
@@ -149,6 +159,24 @@ AYRISMA = {("zombi", "left_leg"): 0.01}
 # kolu 1 px iceri aliyor, nokta da 1 px iceri.
 ESYA = {"zombi": ([-6, 13.3, 0.5], [6, 13.3, 0.5]), "iskelet": ([-5, 13.3, 0.5], [5, 13.3, 0.5])}
 
+# Buz kabugu (yari saydam ust katman). Kalinliklar oyunun zirh katmanlarindan:
+# LayerDefinitions INNER_ARMOR_DEFORMATION = 0.5, OUTER_ARMOR_DEFORMATION = 1.0.
+ZIRH_IC, ZIRH_DIS = 0.5, 1.0
+# zombi: govdeyi ZIRH_IC ile saran katman; doku duzeni 64x64 oyuncu derisinin
+# dis katmanlari (ceket, kollar, pantolon)
+ZOMBI_KABUK = {"body": (16, 32), "rightArm": (40, 32), "leftArm": (48, 48),
+               "rightLeg": (0, 32), "leftLeg": (0, 48)}
+# iskelet: kemigin kesiti her yandan ZIRH_DIS kalin (4x4), boyu kolun ve bacagin
+# alt yarisi (bilek, incik). Bacak kabuklari aralarinda 0.1 px birakir (degen
+# yuzler ust uste binip titremesin). (origin, size, uv)
+ISKELET_KABUK = {"rightArm": ([-7, 11.6, -2], [4, 6, 4], (0, 32)),
+                 "leftArm": ([3, 11.6, -2], [4, 6, 4], (16, 32)),
+                 "rightLeg": ([-4.05, 1, -2], [4, 6, 4], (32, 32)),
+                 "leftLeg": ([0.05, 1, -2], [4, 6, 4], (48, 32))}
+# palet (x0, y0, satir eni): kutularin ve kabuklarin bos biraktigi kose
+PALET_YERI = {"zombi": (56, 16, 8), "iskelet": (56, 16, 8), "creeper": (48, 56, 16),
+              "orumcek": (48, 56, 16)}
+
 
 def cevir_pivot(p):
     """Java mutlak pivot -> Bedrock (jar_model_coz.py ile ayni kural)."""
@@ -178,8 +206,6 @@ TEAL = (29, 134, 142)                # #1d868e
 KOYU_TEAL = (23, 62, 69)             # #173e45
 KIRAGI = (186, 220, 232)
 BUZ1 = (192, 230, 241)
-BUZ2 = (226, 247, 252)
-BUZ_MAVI = (118, 208, 228)
 SIYAH = (0, 0, 0)
 
 
@@ -259,6 +285,18 @@ KRISTAL = {
     1: {"up": (214, 248, 255), "ns": (166, 234, 248), "ew": (124, 214, 236), "down": (82, 168, 194)},
     2: {"up": (238, 254, 255), "ns": (178, 246, 255), "ew": (134, 232, 248), "down": (96, 192, 214)},
 }
+# zombi ve iskeletin kristalleri: koku koyu, ucu acik (daha belirgin)
+BUZ_KRISTAL = {
+    0: {"up": (176, 232, 246), "ns": (108, 198, 224), "ew": (78, 168, 200), "down": (46, 118, 150)},
+    1: {"up": (208, 246, 254), "ns": (142, 226, 244), "ew": (104, 200, 228), "down": (66, 148, 180)},
+    2: {"up": (242, 255, 255), "ns": (188, 248, 255), "ew": (150, 236, 250), "down": (98, 188, 214)},
+}
+# iskeletin gogsundeki buz kalbi: her kademesi isiyor
+KALP = {
+    0: {"up": (120, 238, 250), "ns": (54, 214, 236), "ew": (34, 184, 212), "down": (26, 140, 170)},
+    1: {"up": (176, 248, 255), "ns": (96, 232, 248), "ew": (60, 210, 234), "down": (40, 166, 196)},
+    2: {"up": (236, 255, 255), "ns": (160, 250, 255), "ew": (110, 236, 250), "down": (70, 196, 222)},
+}
 SINIF = {"up": "up", "down": "down", "north": "ns", "south": "ns", "east": "ew", "west": "ew"}
 
 
@@ -282,10 +320,12 @@ def _kup_uv(palet, adlar):
     return {f: {"uv": list(palet.hucre[adlar[f]]), "uv_size": [1, 1]} for f in B.YUZLER}
 
 
-def kristal(palet, taban, yon, boy, en, isik=0.0, onek="k"):
+def kristal(palet, taban, yon, boy, en, isik=0.0, onek="k", renk=None, isik_kok=0.0):
     """Uc kademeli buz kristali: kok, orta, sivri uc. `taban` dosya uzayinda,
     kok yuzeyin 0.4 px icine gomulu. `isik` ucun (ve onun yarisi kadar
-    ortanin) isimasi."""
+    ortanin) isimasi; `isik_kok` kok ve ortanin en az isimasi (kalp);
+    `renk` yuz renk takimi (varsayilan KRISTAL)."""
+    renk = renk or KRISTAL
     egim = yon_acisi(yon)
     n = math.sqrt(sum(v * v for v in yon))
     piv = [round(taban[i] - 0.4 * yon[i] / n, 3) for i in range(3)]
@@ -294,10 +334,10 @@ def kristal(palet, taban, yon, boy, en, isik=0.0, onek="k"):
     for sev, (pay, gen) in enumerate(((0.44, 1.0), (0.34, 0.66), (0.26, 0.36))):
         w = round(en * gen, 3)
         hh = round(boy * pay + (0.4 if sev == 0 else 0.0), 3)
-        guc = isik if sev == 2 else (isik * 0.5 if sev == 1 else 0.0)
+        guc = isik if sev == 2 else max(isik * 0.5 if sev == 1 else 0.0, isik_kok)
         adlar = {}
         for f, s in SINIF.items():
-            rgb = KRISTAL[sev][s]
+            rgb = renk[sev][s]
             ad = "%s%d_%s_%d" % (onek, sev, s, int(round(guc * 100)))
             palet.ekle(ad, rgb, carp(ACIK_CAM if s in ("up", "ns") else TURKUAZ, guc) if guc else SIYAH)
             adlar[f] = ad
@@ -312,30 +352,57 @@ def kristal(palet, taban, yon, boy, en, isik=0.0, onek="k"):
 def kristaller(yaratik, asama):
     L = []
     if yaratik == "zombi":
-        L.append((1, "body", (2.6, 23.0, -2.0), (0.3, 0.6, -1), 2.0, 1.1, 0.25))         # isirik
+        # isirik (boynun sol dibi)
+        L += [(1, "body", (2.3, 23.3, -2.0), (0.25, 0.7, -1), 2.6, 1.3, 0.3, "b"),
+              (1, "body", (3.4, 21.9, -2.0), (0.7, 0.3, -1), 1.9, 1.0, 0.3, "b")]
         if asama >= 2:
-            L += [(2, "leftArm", (6.2, 24.0, -0.6), (0.35, 1, -0.2), 3.6, 1.6, 0.3),
-                  (2, "leftArm", (7.3, 23.6, 1.0), (0.9, 1, 0.3), 2.6, 1.2, 0.3),
-                  (2, "leftArm", (5.0, 24.0, 1.2), (-0.1, 1, 0.5), 2.2, 1.0, 0.3),
-                  (2, "head", (2.6, 32.0, 1.0), (0.4, 1, 0.3), 2.4, 1.2, 0.3)]
+            # sol omuz kumesi (kabugun ustunde) ve kafanin sol tepesi
+            L += [(2, "leftArm", (6.0, 24.4, -0.5), (0.3, 1, -0.2), 4.8, 2.1, 0.3, "b"),
+                  (2, "leftArm", (7.5, 24.2, 1.0), (0.9, 1, 0.3), 3.6, 1.6, 0.3, "b"),
+                  (2, "leftArm", (4.8, 24.3, 1.3), (-0.15, 1, 0.5), 2.9, 1.3, 0.3, "b"),
+                  (2, "leftArm", (8.4, 21.6, -0.4), (1, 0.4, -0.1), 2.7, 1.2, 0.3, "b"),
+                  (2, "head", (2.8, 32.4, 1.2), (0.45, 1, 0.3), 3.0, 1.4, 0.3, "b"),
+                  # buz sarkitlari: sol on kolun alti. Dinlenmede +z'ye bakar,
+                  # kol one kalkinca (zombi duruşu) asagi sarkar.
+                  (2, "leftArm", (5.0, 13.8, 2.4), (0, -0.12, 1), 2.8, 1.0, 0.2, "b"),
+                  (2, "leftArm", (6.6, 15.4, 2.4), (0, -0.1, 1), 2.0, 0.9, 0.2, "b"),
+                  (2, "leftArm", (7.4, 13.0, 2.4), (0, -0.1, 1), 1.5, 0.8, 0.2, "b")]
         if asama >= 3:
-            L += [(3, "leftArm", (8.0, 20.5, 0.2), (1, 0.25, 0), 2.6, 1.2, 0.3),
-                  (3, "leftArm", (8.0, 17.0, -0.8), (1, -0.1, -0.3), 2.0, 1.0, 0.3),
-                  (3, "head", (1.0, 32.0, -1.4), (0.1, 1, -0.4), 3.0, 1.4, 0.3),
-                  (3, "head", (3.4, 32.0, -2.6), (0.6, 1, -0.6), 2.0, 1.0, 0.3),
-                  (3, "body", (1.6, 22.0, 2.0), (0.2, 0.5, 1), 3.2, 1.5, 0.3),
-                  (3, "body", (-1.8, 19.0, 2.0), (-0.3, 0.3, 1), 2.4, 1.2, 0.3),
-                  (3, "rightArm", (-6.2, 24.0, 0.4), (-0.3, 1, 0.2), 2.0, 1.0, 0.3)]
+            L += [(3, "body", (1.6, 22.6, 2.5), (0.3, 0.6, 1), 4.8, 2.1, 0.3, "b"),       # sirt
+                  (3, "body", (-1.2, 20.8, 2.5), (-0.3, 0.45, 1), 3.8, 1.7, 0.3, "b"),
+                  (3, "body", (2.8, 18.6, 2.5), (0.5, 0.2, 1), 2.9, 1.3, 0.3, "b"),
+                  (3, "head", (1.0, 32.5, -1.6), (0.1, 1, -0.4), 3.8, 1.7, 0.3, "b"),
+                  (3, "head", (3.6, 32.5, -2.8), (0.6, 1, -0.6), 2.5, 1.1, 0.3, "b"),
+                  (3, "head", (4.5, 30.0, 0.5), (1, 0.4, 0.1), 2.3, 1.0, 0.3, "b"),
+                  (3, "rightArm", (-6.0, 24.4, 0.4), (-0.3, 1, 0.2), 2.6, 1.2, 0.3, "b"),
+                  (3, "leftArm", (8.5, 17.0, 0.6), (1, -0.05, 0.2), 3.1, 1.4, 0.3, "b"),
+                  (3, "rightArm", (-6.0, 13.6, 2.4), (0, -0.12, 1), 2.2, 0.9, 0.2, "b"),
+                  (3, "rightArm", (-7.2, 15.0, 2.4), (0, -0.1, 1), 1.5, 0.8, 0.2, "b"),
+                  (3, "leftArm", (5.8, 16.6, 2.4), (0, -0.1, 1), 2.1, 0.9, 0.2, "b"),
+                  # cenenin altinda (kafanin on-alt kenari) sarkitlar
+                  (3, "head", (2.6, 24.0, -3.9), (0.05, -1, -0.1), 1.9, 0.8, 0.2, "b"),
+                  (3, "head", (1.2, 24.0, -3.9), (0, -1, -0.1), 1.3, 0.7, 0.2, "b")]
     elif yaratik == "iskelet":
-        L += [(1, "head", (-1.6, 32.0, 0.4), (-0.25, 1, 0.1), 2.4, 1.2, 0.3),
-              (1, "rightArm", (-5.0, 24.0, 0.0), (-0.4, 1, 0.1), 2.6, 1.2, 0.3)]
+        # buz taci (kafanin ust kenari boyunca), omuz, omurga ve gogusteki buz kalbi
+        L += [(1, "head", (-2.6, 32.0, -1.8), (-0.45, 1, -0.35), 2.8, 1.3, 0.3, "b"),
+              (1, "head", (2.4, 32.0, 1.4), (0.4, 1, 0.3), 2.3, 1.1, 0.3, "b"),
+              (1, "rightArm", (-5.0, 24.0, 0.0), (-0.35, 1, 0.1), 3.2, 1.4, 0.3, "b"),
+              (1, "body", (0.0, 20.5, 2.0), (0, 0.4, 1), 2.6, 1.2, 0.3, "b"),
+              (1, "body", (0.0, 17.6, 0.0), (0, 1, 0), 3.6, 2.0, 1.0, "kalp")]
         if asama >= 2:
-            L += [(2, "head", (0.6, 32.0, -1.2), (0.1, 1, -0.25), 3.6, 1.6, 0.35),
-                  (2, "head", (2.8, 32.0, 0.8), (0.45, 1, 0.1), 2.6, 1.2, 0.3),
-                  (2, "head", (-3.2, 31.0, -0.2), (-1, 0.5, 0), 2.0, 1.0, 0.3),
-                  (2, "rightArm", (-6.0, 21.0, 0.0), (-1, 0.3, 0.1), 2.0, 1.0, 0.3),
-                  (2, "body", (0.0, 21.0, 2.0), (0, 0.45, 1), 3.0, 1.4, 0.3),
-                  (2, "leftArm", (5.0, 24.0, 0.0), (0.3, 1, -0.1), 2.0, 1.0, 0.3)]
+            L += [(2, "head", (0.0, 32.0, -2.6), (0, 1, -0.45), 4.2, 1.7, 0.35, "b"),
+                  (2, "head", (-2.8, 32.0, 1.2), (-0.5, 1, 0.25), 3.2, 1.4, 0.3, "b"),
+                  (2, "head", (2.8, 32.0, -2.0), (0.5, 1, -0.35), 3.6, 1.5, 0.3, "b"),
+                  (2, "head", (0.4, 32.0, 2.6), (0.1, 1, 0.45), 2.8, 1.3, 0.3, "b"),
+                  (2, "leftArm", (5.0, 24.0, 0.0), (0.35, 1, -0.1), 3.2, 1.4, 0.3, "b"),
+                  (2, "rightArm", (-6.0, 22.0, 0.6), (-1, 0.5, 0.2), 2.5, 1.1, 0.3, "b"),
+                  (2, "body", (0.0, 17.5, 2.0), (0, 0.25, 1), 3.4, 1.5, 0.3, "b"),
+                  (2, "body", (0.0, 14.5, 2.0), (0, 0.1, 1), 2.5, 1.1, 0.3, "b"),
+                  (2, "body", (0.8, 17.4, 0.2), (0.5, 1, 0.1), 2.5, 1.3, 1.0, "kalp"),
+                  (2, "body", (-0.9, 17.5, -0.2), (-0.5, 1, -0.1), 2.3, 1.2, 1.0, "kalp"),
+                  # bilek kabugunun dis yuzunde sivri buz
+                  (2, "rightArm", (-7.0, 15.0, 0.0), (-1, 0.3, 0), 2.5, 1.0, 0.3, "b"),
+                  (2, "leftArm", (7.0, 15.0, 0.0), (1, 0.3, 0), 2.5, 1.0, 0.3, "b")]
     elif yaratik == "creeper":
         sar = [(-2.6, 2.4, 1.6), (1.8, 1.8, 1.4)]                  # (x, boy, en) buz sarkitlari
         if asama >= 2:
@@ -357,16 +424,18 @@ def kristaller(yaratik, asama):
                   (2, "body1", (2.7, 13.0, 12.2), (0.55, 1, 0.55), 2.8, 1.3, 0.7),
                   (2, "head", (-2.0, 13.0, -6.0), (-0.35, 1, 0.3), 2.0, 1.0, 0.7),
                   (2, "head", (2.0, 13.0, -6.0), (0.35, 1, 0.3), 2.0, 1.0, 0.7)]
-    return [x[1:] for x in L if x[0] <= asama]
+    # (kemik, taban, yon, boy, en, isik, tur); tur: k (creeper, orumcek), b (zombi, iskelet), kalp
+    return [tuple(x[1:7]) + (x[7] if len(x) > 7 else "k",) for x in L if x[0] <= asama]
 
 
 # ---------------------------------------------------------------- geometri
 def _sapkali(yaratik, asama):
-    return yaratik == "zombi" and asama >= 3
+    """zombinin sapka katmani kafanin buz kabugu; bos kalirsa yaratik() budar"""
+    return yaratik == "zombi" and asama >= 2
 
 
 def geometri(yaratik, asama, palet=None):
-    palet = palet or Palet(48, 56, 16)
+    palet = palet or Palet(*PALET_YERI[yaratik])
     parca = {p[0]: p for p in JAVA[yaratik]}
     kemikler, pivot = [], {}
     for ad, java_ad, ebeveyn, sabit in KEMIK[yaratik]:
@@ -395,9 +464,23 @@ def geometri(yaratik, asama, palet=None):
             b["pivot"] = list(sabit)
         pivot[ad] = b["pivot"]
         kemikler.append(b)
+    # buz kabugu: kutu-UV'li yari saydam ust katman (ustune buz dusmeyen kup budanir)
+    if yaratik == "zombi" and asama >= 2:
+        for ad, uv in ZOMBI_KABUK.items():
+            taban = next(b for b in kemikler if b["name"] == ad)["cubes"][0]
+            kemikler.append({"name": "buz_" + ad, "parent": ad, "pivot": list(pivot[ad]),
+                             "cubes": [{"origin": list(taban["origin"]), "size": list(taban["size"]),
+                                        "uv": list(uv),
+                                        "inflate": ZIRH_IC + (0.01 if ad == "leftLeg" else 0.0)}]})
+    if yaratik == "iskelet" and asama >= 2:
+        for ad, (o, boyut, uv) in ISKELET_KABUK.items():
+            kemikler.append({"name": "buz_" + ad, "parent": ad, "pivot": list(pivot[ad]),
+                             "cubes": [{"origin": list(o), "size": list(boyut), "uv": list(uv)}]})
+    turler = {"k": (KRISTAL, "k", 0.0), "b": (BUZ_KRISTAL, "b", 0.0), "kalp": (KALP, "h", 0.8)}
     gruplar = {}
-    for kemik, taban, yon, boy, en, isik in kristaller(yaratik, asama):
-        gruplar.setdefault(kemik, []).extend(kristal(palet, taban, yon, boy, en, isik))
+    for kemik, taban, yon, boy, en, isik, tur in kristaller(yaratik, asama):
+        renk, onek, kok = turler[tur]
+        gruplar.setdefault(kemik, []).extend(kristal(palet, taban, yon, boy, en, isik, onek, renk, kok))
     for kemik, kupler in gruplar.items():
         kemikler.append({"name": "kristal_" + kemik, "parent": kemik, "pivot": list(pivot[kemik]),
                          "cubes": kupler})
@@ -549,6 +632,28 @@ class Yuzey:
                     yas[j] = yas[k]
         return yas
 
+    def taban_esi(self, uygun):
+        """Ust katman (kabuk, sapka) pikseli -> altindaki en yakin govde pikseli."""
+        izgara = {}
+        for k, P in enumerate(self.liste):
+            if uygun(P):
+                izgara.setdefault(self._hucre(P.p), []).append(k)
+        esi = {}
+        for k, P in enumerate(self.liste):
+            if uygun(P):
+                continue
+            a = self._hucre(P.p)
+            en, enk = 1e9, None
+            for dx in (-2, -1, 0, 1, 2):
+                for dy in (-2, -1, 0, 1, 2):
+                    for dz in (-2, -1, 0, 1, 2):
+                        for j in izgara.get((a[0] + dx, a[1] + dy, a[2] + dz), ()):
+                            d = uzak(self.liste[j].p, P.p)
+                            if d < en:
+                                en, enk = d, j
+            esi[k] = enk
+        return esi
+
     def yayilim(self, kaynak, adim, uygun):
         """Yuzey boyunca en kisa yol (Dijkstra): {k: baslangic} -> {k: deger};
         `adim` bir piksel ilerlemenin bedeli."""
@@ -573,143 +678,173 @@ def jit(P, tohum, miktar):
     return 1 + (h(P.px, P.py, tohum) - 0.5) * 2 * miktar
 
 
-BUZ_ORTA = (170, 220, 236)
+# ---------------------------------------------------------------- ortak: buz kabugu
+def kabuk_rengi(P, skor, tohum, saydam=1.0):
+    """Yari saydam buz kabugu pikseli -> (rgb, alfa). Kenar (dusuk skor) koyu
+    ve belirgin, kabugun kalinligi okunsun; ici camsi: capraz parlama seritleri,
+    ic catlaklar. saydam < 1: icinden daha cok gorunur (iskeletin kemigi)."""
+    n = fbm(P.p, 2.0, tohum, 2)
+    if skor < 0.12:
+        return carp((106, 190, 218), jit(P, tohum + 1, 0.05)), int(232 * min(1.0, saydam + 0.15))
+    c = kar((156, 216, 236), (216, 245, 252), (n - 0.25) * 1.5)
+    a = 172 + 52 * n
+    if (P.p[0] * 0.7 + P.p[1] + P.p[2] * 0.7) % 4.6 < 0.75 and n > 0.42:
+        c, a = (240, 253, 255), 236                                  # parlama seridi
+    elif abs(fbm(P.p, 1.5, tohum + 2, 2) - 0.5) < 0.028:
+        c, a = (96, 176, 206), 214                                   # ic catlak
+    return carp(c, jit(P, tohum + 3, 0.03)), int(max(40, min(250, a * saydam)))
 
 
-def buz_rengi(P, skor, taban, tohum):
-    """skor <= 0: taban; 0..0.18 kiragi (taban sezilir); fazlasi kalin buz:
-    camgobegi derinlik, icte catlaklar, parilti, kenarda camgobegi kusak."""
-    if skor <= 0:
-        return taban
-    if skor < 0.18:
-        return kar(taban, KIRAGI, 0.45 + skor * 2.2)
-    n = fbm(P.p, 2.0, tohum + 5, 2)
-    c = kar(BUZ_ORTA, BUZ2, (n - 0.3) * 1.7 + (0.22 if P.n[1] > 0.7 else 0.0))
-    if abs(fbm(P.p, 1.6, tohum + 6, 2) - 0.5) < 0.035:
-        c = (110, 200, 224)                                          # buzun icinde catlak
-    r = h(P.px, P.py, tohum + 9)
-    if r < 0.05:
-        c = (244, 254, 255)                                          # parilti
-    elif r > 0.96:
-        c = BUZ_MAVI
-    if skor < 0.26:
-        c = kar(c, BUZ_MAVI, 0.4)                                    # kenar kusagi
-    return carp(c, jit(P, tohum, 0.04))
+def ust_katman(P):
+    return P.kemik == "hat" or P.kemik.startswith("buz_")
 
 
 # ---------------------------------------------------------------- zombi
-ZT = {"ten": (90, 126, 94), "ten_k": (68, 98, 74), "ten_a": (112, 146, 108), "sac": (46, 66, 52),
-      "gom": (29, 122, 132), "gom_k": (20, 92, 100), "gom_a": (42, 146, 154),
-      "pan": (44, 54, 82), "pan_k": (32, 40, 62), "pan_a": (58, 70, 100),
-      "oyuk": (36, 52, 44), "agiz": (26, 32, 28), "dis": (196, 202, 178)}
-ISIRIK = (2.6, 23.0, -2.05)                 # boynun sol dibi, gogsun onu
-# asama -> (damar kolu, damar boyu, dal olasiligi, buz siniri, ayak, el)
-ZOMBI_ASAMA = {1: (5, 8, 0.0, 2.5, 1.6, 0.0), 2: (7, 14, 0.07, 8.5, 3.4, 13.2),
-               3: (9, 20, 0.09, 13.0, 5.0, 14.4)}
+ZT = {"ten": (84, 126, 90), "ten_k": (62, 96, 70), "ten_a": (104, 146, 106), "sac": (42, 62, 48),
+      "soguk": (122, 152, 170), "morarti": (72, 84, 130),
+      "gom_k": (24, 98, 108), "gom_a": (50, 158, 166), "pan_k": (34, 42, 76), "pan_a": (64, 76, 122),
+      "oyuk": (28, 38, 38), "agiz": (22, 26, 26), "dis": (150, 184, 190),
+      "damar": (60, 232, 248), "halka": (30, 84, 94)}
+ISIRIK = (2.4, 22.6, -2.05)       # boynun sol dibi: V yakadaki acik ten
+# asama -> (damar kolu, damar boyu, dal, ince buz siniri, kabuk siniri,
+#           ayak kabugu, el kabugu, tenin soguk tonu)
+ZOMBI_ASAMA = {1: (5, 9, 0.0, 3.5, 0.0, 0.0, 0.0, 0.0),
+               2: (7, 15, 0.07, 9.0, 6.5, 2.4, 15.0, 0.22),
+               3: (9, 21, 0.09, 15.0, 13.0, 5.0, 16.0, 0.42)}
 
 
 def zombi_ressam(yuzey, asama):
-    kol, boy, dal, E, ayak, el = ZOMBI_ASAMA[asama]
-    beden = lambda P: P.kemik != "hat"
+    kol, boy, dal, E_ince, E_kabuk, ayak, el, soguk = ZOMBI_ASAMA[asama]
+    beden = lambda P: not ust_katman(P)
     damar = yuzey.damar(ISIRIK, 31, kol, boy, dal, beden)
     virus = yuzey.yayilim(damar, 1.7, beden)          # buz damarlarin cevresine yayiliyor
+    halka = {j for k in damar for j, d in yuzey.komsu[k]
+             if d <= 1.01 and j not in damar and beden(yuzey.liste[j])}
+    esi = yuzey.taban_esi(beden)
+    kollar = ("leftArm",) if asama == 2 else ("leftArm", "rightArm")
 
-    def taban(P):
+    def malzeme(P):
         k, (x, y, z) = P.kemik, P.p
-        n = fbm(P.p, 2.4, 3)
         if k == "head":
-            c = kar(ZT["ten"], ZT["ten_k"], (n - 0.45) * 2.2)
-            if P.yuz == "up" or (P.yuz != "down" and y > 30.4 + h(P.px, P.py, 4)):
-                c = kar(ZT["ten_k"], ZT["sac"], h(P.px, P.py, 5) * 1.2)
-            return carp(c, jit(P, 6, 0.07))
+            return "ten"
         if k == "body":
-            if fbm(P.p, 2.0, 41) > 0.7 or (y < 12.9 and h(P.px, P.py, 7) < 0.45):
-                return carp(ZT["ten_k"], jit(P, 8, 0.08))           # yirtik
-            return carp(kar(ZT["gom_k"], ZT["gom_a"], (n - 0.25) * 1.6), jit(P, 9, 0.05))
+            if P.yuz == "north" and y > 20 and abs(x) < (y - 20) * 0.9 + 0.5:
+                return "ten"                                           # V yaka
+            if fbm(P.p, 2.0, 41) > 0.72 or (y < 12.9 and h(P.px, P.py, 7) < 0.45):
+                return "ten"                                           # yirtik, etek
+            return "gomlek"
         if k in ("rightArm", "leftArm"):
-            if y > 19.6 + (h(P.px, 11) - 0.5) * 1.6 or P.yuz == "up":
-                return carp(kar(ZT["gom_k"], ZT["gom_a"], (n - 0.25) * 1.6), jit(P, 12, 0.05))
-            c = ZT["ten_k"] if y < 13.8 else kar(ZT["ten"], ZT["ten_a"], (n - 0.5) * 2)
-            return carp(c, jit(P, 13, 0.07))
-        if y > 3.0 + h(P.px, 14) * 1.4 and P.yuz != "down":           # pantolon, yirtik paca
-            return carp(kar(ZT["pan_k"], ZT["pan_a"], (n - 0.3) * 1.6), jit(P, 15, 0.05))
-        return carp(ZT["ten_k"], jit(P, 16, 0.08))                    # ayak
+            return "gomlek" if (y > 19.6 + (h(P.px, 11) - 0.5) * 1.6 or P.yuz == "up") else "ten"
+        return "pantolon" if (y > 3.0 + h(P.px, 14) * 1.4 and P.yuz != "down") else "ten"
+
+    def taban(P, mz, k):
+        x, y, z = P.p
+        n = fbm(P.p, 2.4, 3)
+        if mz == "ten":
+            c = kar(ZT["ten"], ZT["ten_k"], (n - 0.45) * 2.0)
+            if P.kemik == "head" and (P.yuz == "up" or (P.yuz != "down" and y > 30.4 + h(P.px, P.py, 4))):
+                c = kar(ZT["ten_k"], ZT["sac"], h(P.px, P.py, 5) * 1.2)        # sac dibi
+            c = kar(c, ZT["soguk"], soguk + 0.45 * max(0.0, 1 - virus.get(k, 99.0) / 12.0))
+            if P.kemik in ("rightArm", "leftArm"):
+                c = kar(c, ZT["morarti"], (14.4 - y) / 2.4)                   # morarmis parmaklar
+            if P.kemik in ("rightLeg", "leftLeg"):
+                c = kar(c, ZT["morarti"], (3.0 - y) / 3.0)                    # morarmis ayaklar
+            return carp(c, jit(P, 6, 0.06))
+        if mz == "gomlek":
+            c = kar(ZT["gom_k"], ZT["gom_a"], (n - 0.25) * 1.6)
+            return carp(kar(c, (110, 160, 176), soguk * 0.6), jit(P, 9, 0.05))
+        c = kar(ZT["pan_k"], ZT["pan_a"], (n - 0.3) * 1.6)
+        return carp(kar(c, (96, 112, 150), soguk * 0.5), jit(P, 15, 0.05))
 
     def yuz_ozellik(P):
-        """kafanin on yuzu (8x8), simetrik cizim."""
+        """kafanin on yuzu (8x8), simetrik: kaslar, isiyan gozler, oyuklar,
+        burun delikleri, buz disli acik agiz."""
         i, j = P.i, P.j
         if i in (1, 2, 5, 6):
             if j == 2:
-                return carp(ZT["ten_k"], 0.85), SIYAH
+                return carp(ZT["ten_k"], 0.8), SIYAH
             if j == 3:
                 ic = i in (2, 5)
-                return (ACIK_CAM if ic else TURKUAZ), carp(CAMGOBEGI, 1.0 if ic else 0.75)
+                return (ACIK_CAM if ic else TURKUAZ), carp(CAMGOBEGI, 1.0 if ic else 0.55)
             if j == 4:
                 return ZT["oyuk"], SIYAH
         if j == 5 and i in (3, 4):
-            return carp(ZT["ten_k"], 0.85), SIYAH
+            return carp(ZT["ten_k"], 0.75), SIYAH
         if j == 6 and 2 <= i <= 5:
-            return (ZT["dis"] if i == 3 else ZT["agiz"]), SIYAH
-        if j == 7 and i in (2, 5):
-            return carp(ZT["ten_k"], 0.9), SIYAH
+            return (ZT["dis"] if i in (3, 4) else ZT["agiz"]), SIYAH
+        if j == 7 and 2 <= i <= 5:
+            return ZT["agiz"], SIYAH
         return None
 
-    def skor(P, k):
-        x, y, z = P.p
-        n = fbm(P.p, 3.4, 21) - 0.5
-        s = (E - virus.get(k, 99.0)) / 5.0 + 0.6 * n
-        s = max(s, (ayak - y) / 2.4 + 0.5 * n)
-        if P.kemik in ("rightArm", "leftArm") and el:
-            s = max(s, (el - y) / 1.8 + 0.5 * n)
-        if P.kemik == "head" and P.yuz == "up":
-            s = max(s, 0.05 * asama + 0.4 * n)
-        if asama >= 3:
-            s = max(s, (fbm(P.p, 4.6, 23) - 0.66) * 3.2)
+    def kiragi(P, k):
+        n = fbm(P.p, 3.0, 21) - 0.5
+        s = (E_ince - virus.get(k, 99.0)) / 5.0 + 0.6 * n
+        if P.n[1] > 0.7:
+            s = max(s, 0.06 * asama + 0.4 * n)                         # tepede biriken kiragi
         return s
 
-    def sapka(P):
-        """3. asama: kafanin sol yarisini ve tepesini saran buz kabugu
-        (gozler, agiz ve yuzun sag yarisi acik)."""
-        x, y, z = P.p
-        n = fbm(P.p, 2.2, 51) - 0.5
-        if P.yuz == "north" and y < 30.2:
-            return (0, 0, 0, 0), SIYAH
-        if not ((x + 2.4 * n > 0.4) or (P.yuz == "up" and n > -0.15)):
-            return (0, 0, 0, 0), SIYAH
-        return buz_rengi(P, 0.3 + n, BUZ1, 52) + (255,), SIYAH
+    def kabuk_skor(Pb, kb):
+        n = fbm(Pb.p, 3.0, 27) - 0.5
+        y = Pb.p[1]
+        s = (E_kabuk - virus.get(kb, 99.0)) / 4.0 + 0.6 * n if E_kabuk else -1.0
+        if ayak and Pb.kemik in ("rightLeg", "leftLeg"):
+            s = max(s, (ayak - y) / 2.0 + 0.5 * n)
+        if el and Pb.kemik in kollar:
+            s = max(s, (el - y) / 2.0 + 0.5 * n)
+        return s
 
     def ressam(P, k):
-        if P.kemik == "hat":
-            return sapka(P)
+        if not beden(P):                                               # buz kabugu katmani
+            b = esi.get(k)
+            s = kabuk_skor(yuzey.liste[b], b) if b is not None else -1.0
+            if P.kemik == "hat" and P.yuz == "north" and P.p[1] < 30.2:
+                s = -1.0                                               # gozler ve agiz acik
+            if s <= 0:
+                return (0, 0, 0, 0), SIYAH
+            c, a = kabuk_rengi(P, s, 40)
+            return c + (a,), SIYAH
         oz = yuz_ozellik(P) if (P.kemik == "head" and P.yuz == "north") else None
         if oz and oz[1] != SIYAH:
-            return oz[0] + (255,), oz[1]                              # gozler hep gorunur
-        s = skor(P, k)
-        c = buz_rengi(P, s, oz[0] if oz else taban(P), 40)
+            return oz[0] + (255,), oz[1]                               # gozler hep gorunur
+        mz = malzeme(P)
+        c = oz[0] if oz else taban(P, mz, k)
+        s = kiragi(P, k)
+        if s > 0:
+            c = kar(c, KIRAGI, min(0.85, 0.3 + s * 1.2))
+        if kabuk_skor(P, k) > 0:
+            c = kar(c, (126, 166, 190), 0.5)                           # kabugun altinda donmus
         isik = SIYAH
-        if k in damar:                                                # buz virusunun damarlari
-            c = (96, 214, 234) if s >= 0.18 else (20, 170, 192)
-            isik = carp(CAMGOBEGI, max(0.15, 0.65 - 0.5 * damar[k] / boy))
+        if mz == "ten" and not oz:                                     # damar yalniz tende gorunur
+            if k in damar:
+                c = ZT["damar"]
+                isik = carp(CAMGOBEGI, max(0.25, 0.85 - 0.55 * damar[k] / boy))
+            elif k in halka:
+                c = kar(c, ZT["halka"], 0.75)                           # damarin koyu cercevesi
         if uzak(P.p, ISIRIK) < 0.9:
-            c, isik = (26, 40, 48), SIYAH                              # isirik yarasi
+            c, isik = (24, 36, 44), SIYAH                               # isirik yarasi
         return c + (255,), isik
     return ressam
 
 
 # ---------------------------------------------------------------- iskelet
-IT = {"kemik": (212, 222, 228), "golge": (180, 194, 205), "koyu": (122, 138, 150),
-      "bosluk": (28, 38, 50), "dis": (232, 238, 242)}
+IT = {"kemik": (224, 233, 239), "golge": (190, 204, 216), "koyu": (126, 142, 158),
+      "oyuk": (18, 26, 42), "dis": (238, 245, 249), "catlak": (54, 74, 96)}
+CATLAK = {(5, 0), (5, 1), (6, 2)}        # kafatasinin on yuzunde buz catlagi
 
 
 def iskelet_ressam(yuzey, asama):
-    R_buz = (0.0, 9.5)[asama - 1]
+    beden = lambda P: not ust_katman(P)
+    esi = yuzey.taban_esi(beden)
+    R_buz = (0.0, 7.0)[asama - 1]
     BUZ_MERKEZ = (-6.0, 22.0, 0.0)                    # yay kolunun (sag) omzu
 
     def kemik(P, f=1.0):
-        c = kar(IT["kemik"], IT["golge"], (fbm(P.p, 2.2, 61) - 0.4) * 1.5)
-        if abs(fbm(P.p, 1.9, 62, 2) - 0.5) < 0.022:
-            c = IT["koyu"]                                             # kil catlak
-        return carp(c, f * jit(P, 63, 0.04))
+        c = kar(IT["kemik"], IT["golge"], (fbm(P.p, 2.6, 61) - 0.45) * 1.2)
+        if P.n[1] > 0.7:
+            c = carp(c, 1.04)
+        elif P.n[1] < -0.7:
+            c = carp(c, 0.84)
+        return carp(c, f * jit(P, 63, 0.025))
 
     def govde_deseni(P):
         i, j = P.i, P.j
@@ -728,55 +863,71 @@ def iskelet_ressam(yuzey, asama):
         return "kemik"
 
     def yuz_ozellik(P):
+        """kafatasi: buz catlagi, kas golgesi, isiyan bebekler, burun boslugu,
+        elmacik, dis sirasi."""
         i, j = P.i, P.j
+        if (i, j) in CATLAK:
+            if asama >= 2:
+                return (70, 210, 230), carp(CAMGOBEGI, 0.6)
+            return IT["catlak"], carp(CAMGOBEGI, 0.25)
+        if j == 2 and i in (1, 2, 5, 6):
+            return IT["golge"], SIYAH
         if j in (3, 4) and i in (1, 2, 5, 6):
             if j == 4 and i in (2, 5):
-                return ACIK_CAM, CAMGOBEGI
-            return (22, 30, 42), SIYAH
+                return ACIK_CAM, CAMGOBEGI                             # isiyan bebek
+            if j == 3 and i in (2, 5):
+                return (24, 120, 140), carp(CAMGOBEGI, 0.3)            # bebegin halesi
+            return IT["oyuk"], SIYAH
         if j == 5 and i in (3, 4):
-            return (40, 50, 62), SIYAH
+            return (30, 40, 56), SIYAH
+        if j == 5 and i in (1, 6):
+            return IT["golge"], SIYAH
         if j == 6 and 1 <= i <= 6:
-            return (IT["dis"] if i in (1, 3, 4, 6) else (52, 60, 72)), SIYAH
+            return (IT["dis"] if i in (1, 3, 4, 6) else (40, 50, 64)), SIYAH
         if j == 7 and i in (0, 7):
             return IT["golge"], SIYAH
         return None
 
     def skor(P):
-        x, y, z = P.p
         n = fbm(P.p, 3.2, 71) - 0.5
-        s = (1.4 - y) / 1.6 + 0.5 * n                                   # ayaklar
-        if P.yuz == "up":
-            s = max(s, 0.06 + 0.45 * n)
+        s = (1.2 - P.p[1]) / 1.6 + 0.5 * n                              # ayaklar
+        if P.n[1] > 0.7:
+            s = max(s, 0.04 + 0.4 * n)
         if R_buz:
             s = max(s, (R_buz - uzak(P.p, BUZ_MERKEZ)) / 4.5 + 0.55 * n)
         return s
 
     def ressam(P, k):
         kem, (x, y, z) = P.kemik, P.p
-        isik = SIYAH
+        if not beden(P):
+            # bilek ve incik kabugu: icinden kemik gorunur; ust kenari duzensiz, ustu acik
+            n = fbm(P.p, 1.8, 77) - 0.5
+            ust = (16.8 if "Arm" in kem else 6.2) + 1.6 * n
+            s = (ust - y) / 2.0
+            if P.yuz == "up" or s <= 0:
+                return (0, 0, 0, 0), SIYAH
+            c, a = kabuk_rengi(P, s, 78, saydam=0.72)
+            return c + (a,), SIYAH
         if kem == "head" and P.yuz == "north":
             oz = yuz_ozellik(P)
             if oz:
                 return oz[0] + (255,), oz[1]
-        if kem == "body":
-            if govde_deseni(P) == "bosluk":
-                c = IT["bosluk"]
-                if P.yuz == "north" and 2 <= P.i <= 5 and 2 <= P.j <= 6:
-                    # gogsun icinde buz cekirdegi: 1. asama sonuk, 2. asama buzla dolu
-                    if asama >= 2:
-                        c, isik = (44, 170, 196), carp(CAMGOBEGI, 0.32)
-                    elif P.j in (4, 6) and P.i in (2, 5):
-                        c, isik = (30, 96, 112), carp(CAMGOBEGI, 0.15)
-                return c + (255,), isik
-            c = kemik(P)
-        else:
-            f = 1.0
-            if kem in ("rightArm", "leftArm") and (abs(y - 17.5) < 0.6 or y < 13.6):
-                f = 0.86                                                # dirsek, el
-            if kem in ("rightLeg", "leftLeg") and (abs(y - 6.5) < 0.6 or y < 1.4):
-                f = 0.86                                                # diz, ayak
-            c = kemik(P, f)
-        return buz_rengi(P, skor(P), c, 75) + (255,), isik
+        if kem == "body" and govde_deseni(P) == "bosluk":
+            # kaburga aralari BOS: icteki buz kalbi gorunsun. 2. asamada kalbin
+            # cevresindeki araliklar yari saydam, isiyan buzla dolu.
+            if asama >= 2 and abs(x) < 3.2 and 15.0 < y < 22.5:
+                return (52, 182, 206, 150), carp(CAMGOBEGI, 0.3)
+            return (0, 0, 0, 0), SIYAH
+        f = 1.0
+        if kem in ("rightArm", "leftArm") and (abs(y - 17.5) < 0.6 or y < 13.6):
+            f = 0.86                                                    # dirsek, el
+        if kem in ("rightLeg", "leftLeg") and (abs(y - 6.5) < 0.6 or y < 1.4):
+            f = 0.86                                                    # diz, ayak
+        c = kemik(P, f)
+        s = skor(P)
+        if s > 0:
+            c = kar(c, KIRAGI, min(0.8, 0.35 + s))
+        return c + (255,), SIYAH
     return ressam
 
 
@@ -899,12 +1050,24 @@ def boya(yuzey, palet, ressam):
     return renk, isik
 
 
+def _bos_katmanlari_buda(geo, yuzey, renk):
+    """Ustune hic buz dusmeyen kabuk ve sapka kuplerini atar (saydam kup cizilmesin)."""
+    dolu = {}
+    for P in yuzey.liste:
+        if ust_katman(P):
+            dolu[P.kemik] = dolu.get(P.kemik, False) or renk[P.py][P.px][3] > 0
+    for b in geo["minecraft:geometry"][0]["bones"]:
+        if b["name"] in dolu and not dolu[b["name"]]:
+            b.pop("cubes", None)
+
+
 def yaratik(ad, asama):
     """-> {"geo", "renk", "isik"} (+ creeper'da "tislama")"""
-    palet = Palet(48, 56, 16)
+    palet = Palet(*PALET_YERI[ad])
     geo = geometri(ad, asama, palet)
     yuzey = Yuzey(geo)
     renk, isik = boya(yuzey, palet, RESSAM[ad](yuzey, asama))
+    _bos_katmanlari_buda(geo, yuzey, renk)
     cikti = {"geo": geo, "renk": renk, "isik": isik}
     if ad == "creeper":
         _, cikti["tislama"] = boya(yuzey, palet, creeper_ressam(yuzey, asama, tislama=True))

@@ -852,6 +852,10 @@ geçidin yeri Claude'un önerisi. Önizleme `arac/kulube_onizle.py`, kilit
   kesintisiz geçiyor.
 - **Ayna:** Java'da aynalı olan parçalar ayrı UV alıyor, çünkü film aracı
   "mirror"u uygulamıyor.
+- **Buz kabuğu:** yarı saydam bir üst katman (`buz_*` kemikleri, zombinin
+  şapkası). Kalınlığı oyunun zırh katmanından: iç zırh 0,5, dış zırh 1,0.
+  Üstüne buz düşmeyen kabuk küpü üretimde budanıyor.
+- **İskeletin göğsü:** kaburga araları bilerek boş, içte buz kalbi var.
 - **Kemikler:** zombi ve iskelet aktörün kemik adlarını taşıyor.
 - **Durum:** film aracına henüz bağlı değil; `test/buz_ordu.mjs`
   kilitliyor.

@@ -788,7 +788,22 @@ mikrofonla anlattı, özeti onayladı):**
   - Virüs boynun sol dibindeki ısırıktan yayılıyor: ışıyan camgöbeği damarlar ve damarları izleyen buz.
   - Creeper tıslarken ağzından çatlaklar yayılıyor ve yüzü ışıyor.
   - Örümceğin sırtında kristaller ve teal oklar var.
-  Önizleme kullanıcıya gönderildi; **onay bekliyor**.
+  Önizleme kullanıcıya gönderildi.
+  **Zombi ve iskelet yenilendi (kullanıcı, 2026-11-24: *"Zombi ve iskeleti daha iyi
+  yapmaya çalış"*).** Creeper ve örümcek için bir şey söylenmedi; değişmedi.
+  - Buz artık boya değil hacim: gövdeyi saran yarı saydam kabuk. Kalınlığı oyunun zırh
+    katmanından alındı.
+  - Zombi:
+    - ısırık V yakadaki tende;
+    - damarlar yalnız tende, koyu çerçeveyle;
+    - kabuk sol yarıda;
+    - uzanan kolların altında buz sarkıtları;
+    - morarmış eller ve ayaklar, açık ağızda buz dişler.
+  - İskelet:
+    - kaburga araları boş, içinde ışıyan buz kalbi;
+    - kafatasında ışıyan buz çatlağı ve buz tacı;
+    - bilek ve inciklerde içinden kemik görünen kabuk.
+  Yeni önizleme gönderildi; **onay bekliyor**.
 
 - **Kulübeye eklenenler (kullanıcı):** asıl kulübede olmayan **yatak** ve
   **kitaplık** bizim eklememiz — kulübe *"bunlar eklenmiş şekilde"* olacak.
