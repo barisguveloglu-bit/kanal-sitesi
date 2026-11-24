@@ -1932,7 +1932,9 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
     # hicbir sey eklenmez, 1. bolum bire bir eskisi (arac/agiz.py).
     agiz_nesne = {}            # {aktor: {sekil: nesne}}
     for ad, a in aktorler.items():
-        if a.yaratik or not a.v.get("agiz", senaryo.get("agiz", False)):
+        if a.yaratik:
+            continue                        # yaratikta agiz yok (dokusu uretiliyor)
+        if not a.v.get("agiz", senaryo.get("agiz", False)):
             continue
         ciz = AGZ.agiz_cizelgesi(senaryo.get("olaylar", []), ad, fps, yazi_suresi)
         kullanilan = sorted({s_ for _t, s_ in ciz if s_ != "X"})
