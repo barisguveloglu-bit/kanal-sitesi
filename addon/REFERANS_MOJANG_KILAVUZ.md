@@ -96,6 +96,14 @@ Hareket sabitleri (film aracına henüz bağlı değil; aynı JAR'dan):
   xRot −π/2, yRot −0,1; sol kol xRot −π/2, yRot 0,1 + 0,4.
 - **Creeper yürüyüşü:** çapraz bacak çiftleri xRot = cos(0,6662·adım)·1,4·hız
   (öbür çift +π).
+- **Yürüme sayacı** (`LivingEntity.calculateEntityAnimation`, `updateWalkAnimation`,
+  `WalkAnimationState.update`): her tikte alınan yatay yol d (blok) → hedef
+  min(4·d, 1); hız += (hedef − hız)·0,4; konum += hız. Yetişkinde konum
+  ölçeği 1, bebekte 3. Aşağıdaki "adım" bu konum, "hız" bu hız.
+- **Creeper şişmesi** (`CreeperRenderer.scale`): f1 = 1 + sin(100·ş)·ş·0,01;
+  f = sınırla(ş, 0, 1)⁴; enine (1 + 0,4·f)·f1, boyuna (1 + 0,1·f)/f1. Beyaz
+  parlama (`getWhiteOverlayProgress`): ⌊10·ş⌋ çiftse 0, tekse sınırla(ş, 0,5, 1).
+  Filmde beyaz yerine tıslama ışıması bu ritimle yanıp sönüyor.
 - **Örümcek yürüyüşü:** f = 0,6662·adım. Dört bacak çiftinde (arka, orta-arka,
   orta-ön, ön) yRot'a −cos(2f + 0 / π / π⁄2 / 3π⁄2)·0,4·hız, zRot'a
   |sin(f + 0 / π / π⁄2 / 3π⁄2)·0,4|·hız eklenir (sağda +, solda −).

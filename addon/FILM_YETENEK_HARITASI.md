@@ -129,13 +129,19 @@ her blok "başka sürümle çizilmiş" uyarısı verirdi). Eski ve yeni kod
   - `form`: 1,5 kat boy ve iki ek kol (`alt` ya da `omuz`);
   - Thomas gözleri: `kirmizi`/`mavi` kalıp, her göze ayrı ayar, `goz_kapak`, `goz_bakis`; planda `goz: "thomas"` ile açılır;
   - `silah`: `karanlik_tirpan` (Barış) ya da `osmanli_topuzu` (Ömer); `silah_gizli`/`silah_goster`, `durus`, sol elde kâğıt;
+  - üreteçli silah (2026-11-24): `karanlik_tirpan_hilal` (Hilal Ay, 2. bölüm Part 2'den) ve `buz_yay` (iskeletin varsayılanı). Çizim klasörüne üretiliyor (`silah_yollari`), ışıması piksel piksel (`_isik.png`). Diskteki silahlar eskisi gibi ışımasız;
+  - yaratık (2026-11-24, `arac/yaratik_film.py`): `"yaratik": "zombi" | "iskelet" | "creeper" | "orumcek"`, `"asama"`. Hareketin sabitleri oyunun kodundan (REFERANS_MOJANG_KILAVUZ.md "Buz ordusu modelleri"):
+    - zombi ve iskelet aktörün kemikleriyle ve kendi pivotlarıyla hareket ediyor;
+    - creeper ve örümcek oyunun bacak formülleriyle ve oyundaki yürüme sayacıyla yürüyor;
+    - olaylar: zombi `saldirgan` (kollar −120°) ve `saldir` (0,3 sn kol savurma); iskelet `nisan: sn` (oyunun yay duruşu, kollar başı izler); creeper `tisla: sn` (oyunun şişmesi, `_tislama.png` oyunun yanıp sönme ritmiyle);
   - sol elde kitap (v7.99.16): `"esya": "kitap"` kapalı (raftan alırken, koyarken), `"kitap_acik"` sırttan V açık, sayfalar okuyana dönük (`blender_film.kitap_ormesi`);
   - aktörün başlangıç `"bak"`ı bir nokta da olabilir (v7.99.16; eskiden sessizce yok sayılıyordu);
   - `diz: true` (v7.99.15): bacak uyluk + baldır, diz açısı Epic Fight'ın (`wom_cevir.py --diz`; dövüş setlerinin bütün duruş ve vuruşlarında). Yazılmazsa eski düz bacak; oyundaki model değişmez.
   - İnce kol (v7.99.15, Alex tipi, 3 px): skin ince kolluysa model `aktor_ince.geo.json`, kollar kendi pivotlarında (y 21,5) döner. Yazılmazsa skinden oyundaki ölçüyle anlaşılır (`kol_uret.aktor_ince_mi`: sağ kolun 4. sütunu boş); `ince: true`/`false` elle, `form` ile birlikte hata. Bugün ince olan tek skin Zisa'nınki; 1. bölümün skinleri geniş, çizimleri değişmedi.
 - Yok:
   - ağız ve yüz ifadesi;
-  - zombi, iskelet, creeper, golem modeli (yalnız insan aktör var);
+  - golem modeli;
+  - yaratıkta dövüş seti, buz oku ve creeper patlaması (2. bölüm Part 2'nin 2. ve 3. maddesi);
   - kâğıt, kitap ve el fenerinden başka eşya.
 
 **Sahne**
@@ -305,14 +311,12 @@ film bire bir eskisi (1. bölüm ve Part 1 bayraksız, testler kilitliyor).
 
 ## 2. bölümden önce açık
 
-- **Karanlık Tırpan 2.0 "Hilal Ay" (2026-11-24, `arac/tirpan_hilal.py`, kilit `test/tirpan_hilal.mjs`):** üreteç depoda, film aracına bağlı değil. Part 2'de Barış onu çıkarıyor. Bağlanırken iki iş var: `SILAH` tablosu bugün yalnız diskteki dosyayı okuyor, Hilal Ay ise üreteçle çizim klasörüne yazılmalı; silah malzemesi bugün tek renk (mor) ışıyor, Hilal Ay'ın ışıması piksel piksel (`_isik.png` haritası: kenar ve amblem mor, gövde ışımıyor).
-- **Buz ordusu (2026-11-24, `arac/buz_ordu.py`, kilit `test/buz_ordu.mjs`):** zombi (3 aşama), iskelet ile buz yayı, creeper ve örümcek (ikişer aşama). Kutular oyunun model kodundan okundu, deriler kodla çizildi (REFERANS_MOJANG_KILAVUZ.md "Buz ordusu modelleri"). Film aracına bağlı değil. Bağlanırken altı iş var:
-  1. Zombi ve iskelet aktörün kemik adlarını taşıyor, aktör hareketleri onlara geçer. Creeper ve örümcek için yürüyüş yazılmalı; sabitler referans belgesinde.
-  2. Işıma piksel piksel (`_isik.png`). Creeper tıslarken `_tislama.png`'ye geçer (ağız, gözler, ağızdan yayılan çatlaklar).
-  3. Yay iskeletin `rightItem`'ine takılır. Kol −90° kalkınca dikilir (test ölçüyor).
-  4. Film aracı "mirror"u uygulamıyor. Java'da aynalı olan parçalara (sol kol ve bacak, creeper'ın bacakları, örümceğin sol bacakları) ayrı UV verildi.
-  5. Yarı saydam üst katmanlar var (zombinin buz kabuğu ve şapkası, iskeletin bilek ve incik kabuğu). İskeletin kaburga araları bilerek boş; içinde ışıyan buz kalbi duruyor. Malzeme Alpha'yı bağlamalı. Film aracı bağlıyor, Cycles'ta saydamlık örnek ister.
-  6. Zombinin sol bacağı 0,01 px şişik. Oyunun ölçüsünde bacaklar 0,2 px üst üste biniyor; ön yüzler aynı düzlemde olduğu için ışık o şeritte kendi gölgesine düşüyor ve iki bacak arasında siyah bir çizgi çıkıyordu (ilk önizlemede görüldü). Çare aktördekiyle aynı (`DIS_KATMAN_PAY["leftLeg"]`).
+- **Hilal Ay ve buz ordusu — BAĞLANDI (2026-11-24, `arac/yaratik_film.py`, kilit `test/yaratik_film.mjs`):** ayarlar yukarıda, "Karakter". Kalan ve bilinenler:
+  1. Yaratığın dövüş seti yok; buz oku, okun savuşturulması, creeper patlaması ve gedik sonraki maddeler.
+  2. Hareket ve kamera denetimi yaratıklı senaryoda çalışıyor (deneme senaryosu 0 bulgu), ama yaratığı insan gibi ölçüyor (silindir, insan adımı).
+  3. Film aracı "mirror"u uygulamıyor. Java'da aynalı olan parçalara (sol kol ve bacak, creeper'ın bacakları, örümceğin sol bacakları) ayrı UV verildi.
+  4. Yarı saydam üst katmanlar var: zombinin buz kabuğu ve şapkası, iskeletin bilek ve incik kabuğu. İskeletin kaburga araları bilerek boş, içinde ışıyan buz kalbi duruyor. Cycles'ta saydamlık örnek ister.
+  5. Zombinin sol bacağı 0,01 px şişik. Oyunun ölçüsünde bacaklar 0,2 px üst üste biniyor; ön yüzler aynı düzlemde olduğu için ışık o şeritte kendi gölgesine düşüyor ve iki bacak arasında siyah bir çizgi çıkıyordu (ilk önizlemede görüldü). Çare aktördekiyle aynı (`DIS_KATMAN_PAY["leftLeg"]`).
 - **Gökyüzü türü (v7.99.16'da ölçüldü):** Blender 5.2'de `NISHITA` yok (`SINGLE_SCATTERING`, `MULTIPLE_SCATTERING`, `PREETHAM`, `HOSEK_WILKIE`). `blender_film.py` türü ayarlarken hata alıyor ve aynı `try` içindeki `gunes_yukseklik`'i atlıyor: gökyüzü fiilen varsayılan `MULTIPLE_SCATTERING`, `isik` anahtarı olmayan senaryoda `gunes_yukseklik` uygulanmıyor. `isik` anahtarları yüksekliği ayrı bir `try` içinde yazdığı için 1. bölümün orman çizimi etkilenmedi. Film aracında düzeltilmedi (1. bölümün görünüşü bu); önizleme betikleri (`hanedan_onizle`, `kulube_onizle`) yüksekliği artık ayrı yazıyor.
 - **Takılan yürüyüş:** kök düzeltmesi yapılmadı (SERI_SEZON1, "bilinen hata"). Kalabalık sahneler bunu sık tetikler.
 - **Skin aynası — KAPANDI (kullanıcı, 2026-11-02: "aynı kalsın"):** düzeltilmiyor. Thomas planıyla bizim plan arasında yüz aynalanır; skinin iki yanı farklıysa (Barış'ın kolları) filmde taraflar ters görünür.

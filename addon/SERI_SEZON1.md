@@ -805,7 +805,10 @@ mikrofonla anlattı, özeti onayladı):**
     - bilek ve inciklerde içinden kemik görünen kabuk.
   **ONAYLANDI (kullanıcı, 2026-11-24):** yeni zombi ve iskelet önizlemesine *"onaylıyorum"*.
   Creeper ve örümcek ilk önizlemeden sonra değişmedi; kullanıcı yalnız zombi ve iskeletin
-  iyileştirilmesini istemişti. Dördü de film aracına henüz bağlı değil.
+  iyileştirilmesini istemişti.
+  **Film aracına bağlandı (2026-11-24, kullanıcı: *"1. maddeyle başlayalım"*):** `arac/yaratik_film.py`.
+  Olaylar: zombi `saldirgan` ve `saldir`, iskelet `nisan`, creeper `tisla`. Creeper ile örümcek
+  oyunun bacak formülleriyle yürüyor. Ok, patlama ve gedik sonraki maddelerde.
 
 - **Kulübeye eklenenler (kullanıcı):** asıl kulübede olmayan **yatak** ve
   **kitaplık** bizim eklememiz — kulübe *"bunlar eklenmiş şekilde"* olacak.
@@ -1059,7 +1062,8 @@ içinde, okunuşu yanında; doğrulanmayanlar öyle işaretli.
   *"Hilal ay depoya alabilirsin"*. Üreteç `arac/tirpan_hilal.py` (kilit
   `test/tirpan_hilal.mjs`): onaylanan taslağın 220 küpünü aynı ölçü, renk ve
   ışımayla veriyor; pivotu ve sapı oyundaki tırpanla aynı. Oyundaki Karanlık
-  Tırpan değişmiyor. Film aracına henüz bağlı değil.
+  Tırpan değişmiyor. Film aracına bağlandı (2026-11-24): `"silah": "karanlik_tirpan_hilal"`,
+  ışıması piksel piksel.
 
 ### 4 part kesimi ve hazır paketler (Claude'un kararı, 2026-10-19)
 

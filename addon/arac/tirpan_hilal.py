@@ -21,8 +21,9 @@ olculeri ve her kupun rengi onaylanan taslakla ayni).
            + karanlik_tirpan_hilal_isik.png
 
 _isik.png: isiyan renklerin hucresi kendi renginde, obur hucreler siyah
-(isima haritasi). Film aracina henuz bagli degil; bagladiginda silahin
-malzemesi bu haritayla isimali (bugunku SILAH malzemesi tek renk isiyor).
+(isima haritasi). Film araci (2026-11-24) "silah": "karanlik_tirpan_hilal"
+gorunce bunu cizim klasorune uretiyor (yaratik_film.silah_varliklari) ve
+malzeme bu haritayla piksel piksel isiyor.
 """
 import json
 import math

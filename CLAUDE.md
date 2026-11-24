@@ -857,9 +857,13 @@ geçidin yeri Claude'un önerisi. Önizleme `arac/kulube_onizle.py`, kilit
   Üstüne buz düşmeyen kabuk küpü üretimde budanıyor.
 - **İskeletin göğsü:** kaburga araları bilerek boş, içte buz kalbi var.
 - **Kemikler:** zombi ve iskelet aktörün kemik adlarını taşıyor.
-- **Durum:** görünüş onaylandı (kullanıcı, 2026-11-24); film aracına henüz
-  bağlı değil; `test/buz_ordu.mjs`
-  kilitliyor.
+- **Durum:** görünüş onaylandı (kullanıcı, 2026-11-24); kilit `test/buz_ordu.mjs`.
+- **Filmde (2026-11-24, kullanıcı: "1. maddeyle başlayalım"):** `arac/yaratik_film.py`.
+  Aktörde `"yaratik"` + `"asama"`; olaylar `saldirgan`, `saldir`, `nisan`, `tisla`.
+  Silah `karanlik_tirpan_hilal` (Hilal Ay) ve `buz_yay` üreteçten, ışıması
+  piksel piksel. Yürüme sayacı, zombi kolu, yay duruşu, creeper ve örümcek
+  bacakları, creeper şişmesi oyunun kodundan; kilit `test/yaratik_film.mjs`.
+  Ayrıntı FILM_YETENEK_HARITASI.md "Karakter".
 
 **Akıcı hareket — `addon/arac/hareket.py` (v7.99.16).** Kullanıcı:
 *"robotik dövüşlerden ya da hareketlerden memnun değilim."* Senaryoda

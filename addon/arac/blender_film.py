@@ -63,6 +63,7 @@ import hareket as H  # noqa: E402
 import mekan as MK  # noqa: E402
 import dovus_kimlik as DK  # noqa: E402
 import dovus_efekt as DE  # noqa: E402
+import yaratik_film as YF  # noqa: E402
 
 KOK = B.KOK
 ANIM_WOM = "Simsek_Kol_Kaynak/animations/wom_kilic.animation.json"
@@ -107,6 +108,19 @@ SILAH = {"karanlik_tirpan": ("Simsek_Kol_Kaynak/models/entity/karanlik_tirpan.ge
          # v7.99.15: Omer'in silahi; seti "topuz" (Epic Fight baltasindan turetilmis)
          "osmanli_topuzu": ("Simsek_Kol_Kaynak/models/entity/osmanli_topuzu.geo.json",
                             "Simsek_Kol_Kaynak/textures/entity/osmanli_topuzu.png")}
+
+
+def silah_yollari(ad, klasor):
+    """Silahin (geo, doku, isima haritasi) ya da None. SILAH'takiler diskte,
+    isima haritasi yok (eski filmler bire bir eskisi). Uretecliler (Hilal Ay,
+    buz yayi; yaratik_film.URETECLI_SILAH) cizim klasorune uretilir."""
+    if not ad:
+        return None
+    if ad in SILAH:
+        return SILAH[ad][0], SILAH[ad][1], None
+    return YF.silah_varliklari(ad, os.path.join(klasor, "varlik"))
+
+
 MCPREP_DOKU = os.environ.get("MCPREP_DOKU", "")      # .../mcprep_default/assets/minecraft/textures/block
 YAZI_TIPI = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
 # Mojang kullanim kilavuzu: "title card ... outside of the actual game
@@ -410,7 +424,14 @@ class Aktor:
     def __init__(self, ad, v, setler):
         self.ad = ad
         self.v = v
-        self.set = v.get("set") or ("yumruk" if not v.get("silah") else None)
+        # buz ordusu (yaratik_film.py): {"tur", "asama", "insansi"} ya da None;
+        # yanlis tur ya da asama cizim baslamadan HATA. Yaratigin dovus seti
+        # yok (yazilmadikca): bekleme durusu dinlenme pozu, saldirisi kolda.
+        self.yaratik = YF.yaratik_ayari(v)
+        if self.yaratik:
+            self.set = v.get("set")
+        else:
+            self.set = v.get("set") or ("yumruk" if not v.get("silah") else None)
         self.poz = [float(v.get("konum", [0, 0])[0]), float(v.get("konum", [0, 0])[1])]
         self.z = 0.0
         self.aci = float(v.get("aci", 0))
@@ -472,6 +493,8 @@ class Aktor:
         self.ince = ince_ayari(v.get("ince"))
         if self.ince and self.form:
             raise ValueError("%s: form ince kolla olculmedi" % ad)
+        if self.yaratik:
+            self.ince = False            # yaratigin dokusu uretiliyor, skin olculmez
 
 
 def vurus_sec(setler, set_ad, tur, a, t):
@@ -1604,6 +1627,11 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
     anims.update(B.oku(ANIM_AKTOR)["animations"])
     anims.update(film_pozlari(akici_mi(senaryo)))
     aktorler, efektler, yazilar, sarsinti = zaman_cizelgesi(senaryo, setler, anims)
+    # buz ordusu: geo, doku ve isima haritasi cizim klasorune uretilir
+    # (yaratik_film.yaratik_varliklari); senaryo sozlugu degistirilmez
+    yaratik_varlik = {ad: YF.yaratik_varliklari(a.yaratik["tur"], a.yaratik["asama"],
+                                                os.path.join(klasor, "varlik"))
+                      for ad, a in aktorler.items() if a.yaratik}
     kam_iz = kamera_izi(senaryo, aktorler)
     fps = senaryo.get("fps", 24)
     harita = zaman_haritasi(senaryo)
@@ -1718,8 +1746,10 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
 
     malz = {}
 
-    def doku_malzemesi(yol, renk=None, isik=0.0):
-        anahtar = (yol, renk, isik)
+    tislama_dugum = {}         # aktor -> (karisim faktoru soketi): creeper tislamasi
+
+    def doku_malzemesi(yol, renk=None, isik=0.0, isik_yol=None, tislama_yol=None, ozel=None):
+        anahtar = (yol, renk, isik, isik_yol, tislama_yol, ozel)
         if anahtar in malz:
             return malz[anahtar]
         m = bpy.data.materials.new(os.path.basename(yol))
@@ -1742,6 +1772,28 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
         if isik:
             bsdf.inputs["Emission Color"].default_value = (0.78, 0.49, 1.0, 1)
             bsdf.inputs["Emission Strength"].default_value = isik
+        if isik_yol:
+            # piksel piksel isima (buz ordusu, Hilal Ay): haritanin pikseli kendi
+            # renginde isir, siyah piksel isimaz
+            it = n.nodes.new("ShaderNodeTexImage")
+            it.image = bpy.data.images.load(B.yol(isik_yol))
+            it.interpolation = "Closest"
+            renk_cikis = it.outputs["Color"]
+            if tislama_yol:
+                # creeper: tislarken ikinci harita, oyunun yanip sonme ritmiyle
+                tt = n.nodes.new("ShaderNodeTexImage")
+                tt.image = bpy.data.images.load(B.yol(tislama_yol))
+                tt.interpolation = "Closest"
+                mx = n.nodes.new("ShaderNodeMix")
+                mx.data_type = "RGBA"
+                soket = {x.identifier: x for x in mx.inputs}
+                soket["Factor_Float"].default_value = 0.0
+                n.links.new(renk_cikis, soket["A_Color"])
+                n.links.new(tt.outputs["Color"], soket["B_Color"])
+                renk_cikis = [x for x in mx.outputs if x.identifier == "Result_Color"][0]
+                tislama_dugum[ozel] = soket["Factor_Float"]
+            n.links.new(renk_cikis, bsdf.inputs["Emission Color"])
+            bsdf.inputs["Emission Strength"].default_value = YF.ISIK_GUC
         malz[anahtar] = m
         return m
 
@@ -1794,6 +1846,11 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
             bpy.data.images.remove(im)
 
     def aktor_modeli(a, ince):
+        if a.yaratik:
+            g = yaratik_varlik[a.ad]["geo"]
+            if g not in form_modelleri:
+                form_modelleri[g] = B.Model(B.oku(g))
+            return form_modelleri[g]
         if ince and a.form:
             raise ValueError("%s: skin ince kollu, form ince kolla olculmedi"
                              " (\"ince\": false yazilabilir)" % a.ad)
@@ -1832,12 +1889,16 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
             ana = b.get("parent")
             kn[kem].parent = kn[ana] if ana else ust
         kemik_nesne[ad] = kn
-        parcalar = [(model_a, a.v["skin"], 0.0)]
-        if a.v.get("silah") in SILAH:
-            g, d = SILAH[a.v["silah"]]
-            parcalar.append((B.Model(B.oku(g)), d, 0.0))
+        if a.yaratik:
+            yv = yaratik_varlik[ad]
+            parcalar = [(model_a, yv["doku"], 0.0, yv["isik"], yv["tislama"])]
+        else:
+            parcalar = [(model_a, a.v["skin"], 0.0, None, None)]
+        sil = silah_yollari(YF.silah_adi(a.v, a.yaratik), klasor)
+        if sil:
+            parcalar.append((B.Model(B.oku(sil[0])), sil[1], 0.0, sil[2], None))
         silah_nesneleri[ad] = []
-        for sira, (model, doku, isik) in enumerate(parcalar):
+        for sira, (model, doku, isik, isik_yol, tislama_yol) in enumerate(parcalar):
             for kem, b in model.kemik.items():
                 yuzler = kemik_kupleri(model, kem)
                 if not yuzler:
@@ -1856,7 +1917,8 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
                 lay = me.uv_layers.new()
                 for j, dd in enumerate(lay.data):
                     dd.uv = uv[j]
-                me.materials.append(doku_malzemesi(doku, isik=isik))
+                me.materials.append(doku_malzemesi(doku, isik=isik, isik_yol=isik_yol, tislama_yol=tislama_yol,
+                                                   ozel=ad if tislama_yol else None))
                 ob = bpy.data.objects.new("%s_%s_m" % (ad, kem), me)
                 sc.collection.objects.link(ob)
                 ob.parent = kn[hedef]
@@ -1870,7 +1932,7 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
     # hicbir sey eklenmez, 1. bolum bire bir eskisi (arac/agiz.py).
     agiz_nesne = {}            # {aktor: {sekil: nesne}}
     for ad, a in aktorler.items():
-        if not a.v.get("agiz", senaryo.get("agiz", False)):
+        if a.yaratik or not a.v.get("agiz", senaryo.get("agiz", False)):
             continue
         ciz = AGZ.agiz_cizelgesi(senaryo.get("olaylar", []), ad, fps, yazi_suresi)
         kullanilan = sorted({s_ for _t, s_ in ciz if s_ != "X"})
@@ -2150,9 +2212,20 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
             pivot_ek = {ek: B.ic(aktor_model[ad].kemik[ek]["pivot"]) for ek in form_model.EK_KOL}
             faz_a = (sum(map(ord, str(a.v.get("skin", "")) + str(a.v.get("isim", "")))) % 97) / 97 * 2 * math.pi
         pv_a = kol_pivotlari(aktor_model[ad], aktor_ince[ad])
+        yr = a.yaratik
+        if yr:
+            # yaratik kendi pivotlariyla doner (iskeletin bacagi +-2, aktorunku +-1,9)
+            pv_a = {kem: B.ic(b["pivot"]) for kem, b in aktor_model[ad].kemik.items()}
+            sayac = YF.yurume_sayaci([(k_["x"], k_["y"]) for k_ in a.kayit], fps)
+            dinlenme = {kem: list(b.get("rotation", [0, 0, 0])) for kem, b in aktor_model[ad].kemik.items()}
+            kendi_kemik = [kem for kem in aktor_model[ad].kemik
+                           if not kem.startswith(("kristal_", "buz_"))]
+            onceki_tis = None
         for f, k in enumerate(a.kayit[:len(kam_iz)]):
-            # adim cokmesi (akici): sert bacak acilinca govde iner, iki ayak yerde
-            tampona(kok, "location", f + 1, (k["x"], k["y"], k["z"] + k.get("bob", 0.0)))
+            # adim cokmesi (akici): sert bacak acilinca govde iner, iki ayak yerde.
+            # Dort ayakli yaratikta yok (insan adiminin olcusu).
+            bob = 0.0 if (yr and not yr["insansi"]) else k.get("bob", 0.0)
+            tampona(kok, "location", f + 1, (k["x"], k["y"], k["z"] + bob))
             # aci surekli kalsin (359 -> 1 derece gecisinde ters tur atmasin)
             z_ = math.radians(k["aci"])
             if kok in unwrap_euler:
@@ -2174,8 +2247,35 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
                 onceki_s = k.get("silah", True)
             anims_a = anims_diz if a.diz else anims
             kemikler_a = kemikler + list(diz_model.ALT_KEMIKLER) if a.diz else kemikler
-            poz, katman = kare_pozu(a, k, kemikler_a, anims_a, setler)
-            ekler = kare_ekleri(a, k, katman)
+            ezme = {}
+            if yr and not yr["insansi"]:
+                # creeper ve orumcek: oyunun bacak formulleri (yaratik_film), katman yok
+                kemikler_a = kendi_kemik
+                kon_, hiz_ = sayac[f]
+                bas_ = k.get("bas", (0.0, 0.0))
+                if yr["tur"] == "creeper":
+                    p_ = YF.creeper_pozu(kon_, hiz_, bas_)
+                    s_ = YF.sisme(k["t"], senaryo.get("olaylar", []), ad)
+                    sx_, sy_ = YF.sisme_olcegi(s_)
+                    olc_ = {"root": (sx_, sy_, sx_)}
+                    if ad in tislama_dugum:
+                        tis = YF.yanip_sonme(s_)
+                        if tis != onceki_tis:
+                            tislama_dugum[ad].default_value = tis
+                            tislama_dugum[ad].keyframe_insert("default_value", frame=f + 1)
+                            onceki_tis = tis
+                else:
+                    p_ = YF.orumcek_pozu(dinlenme, kon_, hiz_, bas_)
+                    olc_ = {}
+                poz = {kem: [(p_.get(kem, dinlenme.get(kem, [0, 0, 0])), (0, 0, 0), olc_.get(kem, (1, 1, 1))), None]
+                       for kem in kemikler_a}
+                katman, ekler = [], {}
+            else:
+                if yr:
+                    kemikler_a = [kem for kem in kemikler_a if kem in kn]
+                    ezme = YF.kol_ezmesi(yr, k["t"], senaryo.get("olaylar", []), ad, k.get("bas", (0.0, 0.0)))
+                poz, katman = kare_pozu(a, k, kemikler_a, anims_a, setler)
+                ekler = kare_ekleri(a, k, katman)
             son_kol = {}
             for kem in kemikler_a:
                 (eu, ps, ol), _ = poz[kem]
@@ -2183,7 +2283,10 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
                 if ek:
                     eu = [eu[i] + ek[i] for i in range(3)]
                 l, q, o3 = yerel(kem, eu, ps, ol, pv=pv_a.get(kem)).decompose()
-                for an, t_an, wgt in katman:
+                if kem in ezme:
+                    # zombi kollari, iskeletin yay durusu: oyunun durusu tum katmanlari ezer
+                    l, q, o3 = yerel(kem, ezme[kem], (0, 0, 0), (1, 1, 1), pv=pv_a.get(kem)).decompose()
+                for an, t_an, wgt in ([] if kem in ezme else katman):
                     if an not in anims_a or wgt <= 0:
                         continue
                     v = kanal_pozu(anims_a[an], kem, t_an)
@@ -2228,6 +2331,12 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
                     tampona(o, "rotation_quaternion", f + 1, q)
                     tampona(o, "location", f + 1, l)
                     tampona(o, "scale", f + 1, o3)
+
+    # creeper tislamasi yanip soner (oyunun getWhiteOverlayProgress ritmi): kayarak degil
+    for soket in tislama_dugum.values():
+        for fc in egriler(soket.id_data):
+            for kp in fc.keyframe_points:
+                kp.interpolation = "CONSTANT"
 
     # ---- dolgu isiklari (v7.99.16) ----
     # "isiklar": [{"nokta": [x, y, z], "guc": W, "renk": [r, g, b], "yaricap": r,
