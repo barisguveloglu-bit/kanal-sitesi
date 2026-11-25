@@ -65,6 +65,7 @@ import dovus_kimlik as DK  # noqa: E402
 import dovus_efekt as DE  # noqa: E402
 import yaratik_film as YF  # noqa: E402
 import ok_film as OK  # noqa: E402
+import gedik as GD  # noqa: E402
 
 KOK = B.KOK
 ANIM_WOM = "Simsek_Kol_Kaynak/animations/wom_kilic.animation.json"
@@ -457,6 +458,7 @@ class Aktor:
         self.zipla = None        # {"t0", "bas", "hedef", "T"}: havadaki yatay yol
         self.kayma = None        # [vx, vy]: zipladiktan sonra iniste sonen yatay hiz (akici)
         self.inisler = []        # [{"bas", "guc"}] iniste diz cokmesi
+        self.patladi = False     # creeper patladi (gedik.py): govdesi artik yok
         self.dusuler = []        # [(t, poz)] vurusla yere dusurulme (zemin denetimi okur)
         self.dikey = 0.0         # hava vurusunun zeminden yuksekligi
         self.gorunur = not v.get("gizli", False)
@@ -546,7 +548,7 @@ def zemin_yuksekligi(senaryo, x, y, t, yari=AYAK_YARI, ust=None):
     yukseklik, ondan en fazla 0,6 blok yukaridaki yuzeylere basilir."""
     M = MK.yukle(senaryo)
     if M is not None:
-        return M.zemin(x, y, ust, yari)
+        return M.zemin(x, y, ust, yari, t)      # patlamali mekanda t aninin bloklari
     ck = senaryo.get("zemin", {}).get("cukur")
     if not ck or t < ck.get("t", 0.0):
         return 0.0
@@ -807,6 +809,78 @@ def zaman_cizelgesi(senaryo, setler, anims, suz=True, harita=None, oklar=None):
         s_.tepki.append({"anim": "animation.aktor.savun", "bas": t_, "sure": OK.SAVUSTURMA_SURE,
                          "tut": True, "giris": 0.05})
         s_.savun_bitis = max(s_.savun_bitis, t_ + OK.SAVUSTURMA_SURE)
+
+    # ---- creeper patlamasi (gedik.py): kirilan bloklar ve moloz mekanda
+    # (mekan.ZamanliMekan, senaryodan); burada gorunus, efekt ve itme ----
+    mk_ = MK.yukle(senaryo)
+
+    def patla_isle(o, a, t_):
+        if not a.yaratik or a.yaratik["tur"] != "creeper":
+            raise ValueError("patla: yalniz creeper patlar (%s)" % a.ad)
+        if YF.sisme(t_ + 1e-6, olaylar, a.ad) < 0.999:
+            raise ValueError("patla: %s tam sismemis: once 'tisla' (oyunda %d tik = %.1f sn sisip patlar)"
+                             % (a.ad, GD.SISME_TIK, GD.SISME_TIK / GD.TIK))
+        e = None
+        if mk_ is not None and hasattr(mk_, "patlamalar"):
+            e = next((p_ for p_ in mk_.patlamalar if abs(p_["t"] - o["t"]) < 1e-9 and p_["aktor"] == a.ad), None)
+        if e is not None:
+            nx, ny, nz = e["nokta"]
+            R = e["yaricap"]
+            tohum = e["tohum"]
+            say = {}
+            for t__ in e["turler"].values():
+                say[t__] = say.get(t__, 0) + 1
+            tas = [k_ for k_ in sorted(say, key=lambda k_: (-say[k_], k_)) if GD.direnc(k_) >= GD.MOLOZ_TAS]
+        else:                                   # blok mekan degil: blok kirilmaz
+            nx, ny = float(o["patla"][0]), float(o["patla"][1])
+            nz = zemin_yuksekligi(senaryo, nx, ny, t_)
+            R = float(o.get("guc", GD.CREEPER_YARICAP))
+            tohum = int(o.get("tohum", 1))
+            tas = []
+        if math.hypot(a.poz[0] - nx, a.poz[1] - ny) > 0.6 or abs(a.z - nz) > 0.6:
+            raise ValueError("patla: %s patlama noktasinda degil (yazili %.2f, %.2f, %.2f; creeper %.2f, %.2f, %.2f)"
+                             % (a.ad, nx, ny, nz, a.poz[0], a.poz[1], a.z))
+        a.gorunur = False                       # oyunda discard
+        a.patladi = True                        # artik ses de cikarmaz (gorunmez govde cukura duser)
+        guc = R / GD.CREEPER_YARICAP
+        import blok_kur
+        efektler.append({"t": t_, "tur": "patlama", "nokta": [nx, ny, nz + 0.6], "guc": guc, "tohum": tohum,
+                         "doku": (blok_kur.taban_doku(tas[0]) if tas else "dirt") + ".png", "kim": a.ad})
+        efektler.append({"t": t_, "tur": "toz", "nokta": [nx, ny, nz], "guc": guc, "tohum": tohum,
+                         "ruzgar": list(senaryo.get("ruzgar", [0.0, 0.0])), "kim": a.ad})
+        sarsinti.append(t_)
+        # itme (hurtEntities): bloklar henuz yerinde
+        mc = (nx, nz, -ny)
+        once = t_ - 1e-6
+        kati = ((lambda q: mk_.kati_mi((q[0], -q[2], q[1]), saydam_gecer=False, t=once))
+                if mk_ is not None else (lambda q: False))
+        for h in aktorler.values():
+            if h is a or not h.gorunur:
+                continue
+            en, boy, goz = OK.boyut(h)
+            ayak = (h.poz[0], h.z, -h.poz[1])
+            if math.dist(ayak, mc) > 2.0 * R:
+                continue
+            kutu = (ayak[0] - en / 2, ayak[1], ayak[2] - en / 2, ayak[0] + en / 2, ayak[1] + boy, ayak[2] + en / 2)
+            r_ = GD.itme(mc, R, ayak, en, boy, goz, GD.gorunurluk(kati, mc, kutu))
+            if r_ is None or r_[1] <= 1e-6:
+                continue
+            (vx, _vy, vz), k = r_
+            h.itme = [h.itme[0] + vx * GD.TIK, h.itme[1] - vz * GD.TIK]      # Minecraft z -> Blender -y
+            if h.yaratik and h.yaratik["tur"] not in ("zombi", "iskelet"):
+                continue                        # dort ayakli: yalniz itilir (aktorun pozlari yok)
+            if k >= GD.PATLAMA_DUSURME and not h.yaratik:
+                h.tepki.append({"anim": film_poz.ONEK + "dus", "bas": t_, "hiz": 1.0, "ad": "dus",
+                                "sure": 1e6, "tut": True, "giris": 0.06})
+                efektler.append({"t": t_ + DUSUS_SES["dus"], "tur": "dusus", "nokta": [h.poz[0], h.poz[1], h.z]})
+                h.dusuler.append((t_, "dus"))
+            else:
+                h.tepki.append({"anim": "animation.aktor.darbe", "bas": t_, "sure": 0.4})
+                if akici:
+                    yb = math.hypot(vx, vz) or 1.0
+                    sg = sag_yon(h.aci)
+                    yan = max(-1.0, min(1.0, -((vx / yb) * sg[0] + (-vz / yb) * sg[1])))
+                    h.irkilmeler.append({"guc": min(1.0, 0.5 + k), "yan": round(yan, 4), "bas": t_})
     i = 0
     for f, t in enumerate(harita):
         dt = t - harita[f - 1] if f else 1.0 / fps
@@ -851,6 +925,8 @@ def zaman_cizelgesi(senaryo, setler, anims, suz=True, harita=None, oklar=None):
                 a.gorunur = False
             if "goster" in o:
                 a.gorunur = True
+            if o.get("patla") is not None:
+                patla_isle(o, a, t)
             if "isinlan" in o:
                 # mor flas eski yerde, yeni yerde belirme (gucun gostergesi)
                 efektler.append({"t": t, "tur": "isik", "nokta": [a.poz[0], a.poz[1], a.z + 1.0]})
@@ -1130,7 +1206,7 @@ def zaman_cizelgesi(senaryo, setler, anims, suz=True, harita=None, oklar=None):
                         a.havada = {"t0": t - dt, "z0": a.zemin, "v0": 0.0}
                     yeni, vz = H.yorunge(a.havada["z0"], a.havada["v0"], t - a.havada["t0"])
                     if vz <= 0 and yeni <= hz_:
-                        if -vz > H.INIS_ESIK:
+                        if -vz > H.INIS_ESIK and not a.patladi:
                             a.inisler.append({"bas": t, "guc": min(1.0, -vz / 16.0)})
                             efektler.append({"t": t, "tur": "dusus", "ses": "inis", "nokta": [a.poz[0], a.poz[1], hz_]})
                         if akici and a.zipla:
@@ -1848,7 +1924,7 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
     if senaryo.get("mekan") == "oda":
         gok_kapat(bpy, sc, gunes, ay)
     elif MK.yukle(senaryo) is not None:
-        mekan_kur(bpy, MK.yukle(senaryo), klasor)
+        mekan_kur(bpy, MK.yukle(senaryo), klasor, kare=lambda t_: kare_bul(harita, t_) + 1)
     else:
         # ---- zemin ----
         zemin_kur(bpy, senaryo, doku_malzemesi,
@@ -3598,11 +3674,13 @@ def savas_odasi_esyalari(bpy, so):
         sc.collection.objects.link(o_)
 
 
-def mekan_kur(bpy, M, klasor):
+def mekan_kur(bpy, M, klasor, kare=None):
     """Blok mekan (mekan.py): doku basina tek orgu (blok_kur), ortasi bos
     ufuk. Kendi malzemesi var: fener, mesale ve gecit DOKUNUN rengiyle
     isir (doku_malzemesi'nin isigi Baris'in mor flasi; ona dokunulmadi,
-    1. bolumun gorunusu degismesin)."""
+    1. bolumun gorunusu degismesin).
+    Patlamali mekanda (mekan.ZamanliMekan) kalkan bloklar ve moloz ayri
+    nesneler: her grup kendi aninda belirir ya da kaybolur (kare: t -> kare)."""
     import blok_kur
     sc = bpy.context.scene
     malz = {}
@@ -3630,8 +3708,19 @@ def mekan_kur(bpy, M, klasor):
     var = ({f[:-4] for f in os.listdir(MCPREP_DOKU) if f.endswith(".png")}
            if MCPREP_DOKU and os.path.isdir(MCPREP_DOKU) else set())
     dk = blok_kur.Dokular(var, renkler=M.renkler)
-    orguler = blok_kur.orgu(M.bloklar, dk)
-    blok_kur.blender_ekle(bpy, M.ad, orguler, blok_malz, MCPREP_DOKU)
+    if hasattr(M, "cizim_gruplari"):
+        sabit, gruplar = M.cizim_gruplari()
+        blok_kur.blender_ekle(bpy, M.ad, blok_kur.orgu(sabit, dk), blok_malz, MCPREP_DOKU)
+        for i, (a, b, bl) in enumerate(gruplar):
+            for ob in blok_kur.blender_ekle(bpy, "%s_g%02d" % (M.ad, i), blok_kur.orgu(bl, dk), blok_malz,
+                                            MCPREP_DOKU):
+                if a > -math.inf:
+                    _gorun_kare(ob, kare(a), True)
+                if b < math.inf:
+                    _gorun_kare(ob, kare(b), False)
+    else:
+        orguler = blok_kur.orgu(M.bloklar, dk)
+        blok_kur.blender_ekle(bpy, M.ad, orguler, blok_malz, MCPREP_DOKU)
     if dk.eksik:
         print("UYARI: dokusu bulunmayan bloklar gri cizildi:", sorted(dk.eksik))
     if (M.bilgi or {}).get("savas_odasi"):
@@ -3926,6 +4015,71 @@ def _parca(bpy, nokta, boy, malz, f0, f1, son_nokta, ara=None, kalici=False):
     return ob
 
 
+def toz_kur(bpy, e, kare, fps):
+    """Creeper patlamasinin toz bulutu (gedik.toz_ayari, filmin kurali): kure
+    hacim, yogunlugu kuresel egim + 4B gurultu (ruh bulutunun yontemi);
+    buyur, ruzgarla kayar, yukselir, TOZ_SURE icinde soner."""
+    toz = GD.toz_ayari(e["nokta"], e["t"], float(e.get("guc", 1.0)), e.get("tohum", 1), e.get("ruzgar", (0, 0)))
+    bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=2, radius=1.0)
+    ob = bpy.context.object
+    ob.name = "toz_%s" % e.get("kim", "")
+    m = bpy.data.materials.new("toz_%s" % e.get("kim", ""))
+    m.use_nodes = True
+    nt = m.node_tree
+    for n in list(nt.nodes):
+        if n.type != "OUTPUT_MATERIAL":
+            nt.nodes.remove(n)
+    cikis = [n for n in nt.nodes if n.type == "OUTPUT_MATERIAL"][0]
+    hv = nt.nodes.new("ShaderNodeVolumePrincipled")
+    hv.inputs["Color"].default_value = tuple(toz["renk"]) + (1,)
+    tc = nt.nodes.new("ShaderNodeTexCoord")
+    gur = nt.nodes.new("ShaderNodeTexNoise")
+    gur.noise_dimensions = "4D"
+    gur.inputs["Scale"].default_value = 1.8
+    gur.inputs["Detail"].default_value = 4.0
+    gur.inputs["W"].default_value = float(toz["tohum"])
+    egim = nt.nodes.new("ShaderNodeTexGradient")
+    egim.gradient_type = "SPHERICAL"
+    kay = nt.nodes.new("ShaderNodeMath")
+    kay.operation = "MULTIPLY_ADD"
+    kay.inputs[1].default_value = 0.8
+    kay.inputs[2].default_value = -0.4
+    top = nt.nodes.new("ShaderNodeMath")
+    top.operation = "ADD"
+    aralik = nt.nodes.new("ShaderNodeMapRange")
+    aralik.inputs["From Min"].default_value = 0.1
+    aralik.inputs["From Max"].default_value = 0.55
+    yog = nt.nodes.new("ShaderNodeMath")
+    yog.operation = "MULTIPLY"
+    nt.links.new(tc.outputs["Object"], gur.inputs["Vector"])
+    nt.links.new(tc.outputs["Object"], egim.inputs["Vector"])
+    nt.links.new(gur.outputs["Fac"], kay.inputs[0])
+    nt.links.new(kay.outputs["Value"], top.inputs[0])
+    nt.links.new(egim.outputs["Fac"], top.inputs[1])
+    nt.links.new(top.outputs["Value"], aralik.inputs["Value"])
+    nt.links.new(aralik.outputs["Result"], yog.inputs[0])
+    nt.links.new(yog.outputs["Value"], hv.inputs["Density"])
+    nt.links.new(hv.outputs["Volume"], cikis.inputs["Volume"])
+    ob.data.materials.append(m)
+    gorulen = set()
+    t = toz["t0"] - 1.0 / fps
+    while t <= toz["t1"] + 1.0 / fps:
+        fk = kare(t)
+        if fk not in gorulen:
+            gorulen.add(fk)
+            konum, boy, d = GD.toz_anlik(toz, t)
+            ob.location = konum
+            ob.scale = (max(boy, 1e-3) / 2.0,) * 3
+            ob.keyframe_insert("location", frame=fk)
+            ob.keyframe_insert("scale", frame=fk)
+            yog.inputs[1].default_value = d
+            yog.inputs[1].keyframe_insert("default_value", frame=fk)
+            gur.inputs["W"].default_value = float(toz["tohum"]) + 0.35 * (t - toz["t0"])
+            gur.inputs["W"].keyframe_insert("default_value", frame=fk)
+        t += 1.0 / fps
+    return ob
+
+
 def kivilcim_kur(bpy, efektler, fps, doku_malzemesi, harita=None, zemin=None, vurgu=None):
     """Temas efektleri. Zamanlar hikaye zamaninda; kareye `harita` cevirir.
       vurus: sari kivilcim (tirpan El-Harkos'tan sekiyor -- "silah islemiyor")
@@ -4042,6 +4196,8 @@ def kivilcim_kur(bpy, efektler, fps, doku_malzemesi, harita=None, zemin=None, vu
             ob.keyframe_insert("scale", frame=fk + 1)
         elif e["tur"] in ("isaret", "cam_kir", "patlama"):
             dovus_efekt_kur(bpy, e, kare, doku_malzemesi, zemin)
+        elif e["tur"] == "toz":
+            toz_kur(bpy, e, kare, fps)
         elif e["tur"] == "kan":
             yon = e.get("yon", [0, 1])
             for j in range(18):

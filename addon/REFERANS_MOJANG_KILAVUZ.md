@@ -159,3 +159,35 @@ atanına oyunun nişan kuralıyla gider.
 Buz okunun görünüşü bizim: ölçü oyunun okununki (uç 3,6 px önde, kuyruk
 10,8 px arkada; 16 × 0,9 = 14,4 px), kesit ve doku kodla. Kristal uç ve
 kanatlar ışıyor; hiçbir piksel Mojang'ın değil.
+
+## Creeper patlaması (2026-11-25)
+
+Kullanıcı: *"Sırada 3. madden devam et"* (surda creeper patlaması ve gedik).
+Aynı JAR'dan (aynı SHA-1) `javap -c -p` ile okundu; JAR geçici klasöre indi
+ve silindi. Film aracında `arac/gedik.py` + `mekan.ZamanliMekan`, kilit
+`test/gedik.mjs`.
+
+| ne | sınıf | okunan |
+|---|---|---|
+| şişme | `Creeper.tick` | `swell` her tik `swellDir` kadar artar; `maxSwell` 30 tik, ulaşınca patlar |
+| patlama | `Creeper.explodeCreeper` | yarıçap `explosionRadius` 3, yüklü creeper 2 katı; merkez ayakların hizası (`getX`, `getY`, `getZ`); creeper o an yok olur (`discard`) |
+| ışınlar | `ServerExplosion.calculateExplodedPositions` | 16 × 16 × 16 ızgaranın yüzeyindeki 1352 yön; güç yarıçap × (0,7 + rastgele × 0,6); 0,3 blokluk adımlar; blok ya da sıvı varsa güç −= (direnç + 0,3) × 0,3, hâlâ > 0 ise o blok kırılır; her adımda güç −= 0,225 |
+| direnç | `ExplosionDamageCalculator` | max(blok, sıvı); hava ve sıvısız hücrede yok |
+| itme | `ServerExplosion.hurtEntities` | 2 × yarıçap içindeki varlık, göz hizasından patlamaya doğru (1 − uzaklık / (2 × yarıçap)) × görünürlük blok/tik itilir. Görünürlük `getSeenPercent`: varlığın kutusundaki ızgara noktalarından patlamaya çizgi, blok kesmeyenlerin oranı. Sıra: önce ışınlar, sonra itme (bloklar yerinde), en son bloklar kalkar |
+| boy | `EntityType` | creeper 0,6 × 1,7 (patlama noktasında baş yüksekliği denetimi) |
+
+**Direnç** (`Blocks`, `strength(sertlik, direnç)`): taş tuğla, yosunlu,
+çatlak ve oymalı taş tuğla, taş, andezit, cilalı andezit, kırık taş ve
+yosunlu kırık taş 6,0; duvar, basamak ve yarım bloklar ana bloğun kopyası
+(`registerWall`, `registerLegacyStair`, `registerSlab`); çimen 0,6, çakıl
+0,6, tarla 0,6, toprak yol 0,65, toprak 0,5; tahta ve tahta basamak 3,0,
+kütük 2,0 (`logProperties`), yaprak 0,2 (`leavesProperties`); cam ve cam
+bölme 0,3; kar bloğu 0,2, kar 0,1; buz 0,5; fener 3,5; su 100; fıçı,
+sandık, tezgâh 2,5; kitaplık 1,5; ocak 3,5; pişmiş toprak 4,2; ot, çiçek,
+ekin ve meşale anında kırılır (0). Tabloda olmayan blok patlamaya girerse
+`gedik.direnc` HATA verir: önce ölçülüp yazılır.
+
+**Filmin kuralı (oyunda yok):** moloz yığını (kırılan taşın yarısı, yarım
+blok yarım blok, 0,3 sn sonra), toz bulutu, güçlü itilen insanın düşmesi.
+Hanedanın zemini tek kat olduğu için patlama çevresinde zeminin altına
+toprak ve taş, surun altına taş temel konuyor (oyunda da zeminin altı dolu).

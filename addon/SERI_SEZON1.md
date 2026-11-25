@@ -815,6 +815,11 @@ mikrofonla anlattı, özeti onayladı):**
   aralığında oku atanına geri yollar; ok iskeleti vurur, `dusur` verilirse düşürür.
   Pipos savuştururken oyundan gelen elsiz savunma duruşunu kullanıyor. Kaplan sanatının
   kendi hamlesi `DOVUS_KAPLAN_SANATI.md` onaylanınca yazılacak.
+  **Creeper patlaması ve gedik bağlandı (2026-11-25, kullanıcı: *"Sırada 3. madden devam et"*):**
+  `arac/gedik.py`. Creeper `tisla`dan 1,5 sn sonra `patla` ile patlar; bloklar oyunun
+  patlamasıyla kırılır, moloz ve toz filmin kuralı. Ölçüm (karar değil): oyunun kuralıyla tek
+  creeper 3 kat taş suru delemiyor; doğu surunda 4 creeper sırayla patlayınca 3 blok genişliğinde,
+  2 blok yüksekliğinde geçit açılıyor. Kaç creeper'ın nereden geleceği sahne yazılırken.
 
 - **Kulübeye eklenenler (kullanıcı):** asıl kulübede olmayan **yatak** ve
   **kitaplık** bizim eklememiz — kulübe *"bunlar eklenmiş şekilde"* olacak.

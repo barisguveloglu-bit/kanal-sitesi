@@ -869,6 +869,10 @@ geçidin yeri Claude'un önerisi. Önizleme `arac/kulube_onizle.py`, kilit
   Fizik, atış ve okun ölçüsü oyunun kodundan (REFERANS_MOJANG_KILAVUZ.md "Buz
   okları"); savuşturma filmin kuralı. Kilit `test/ok_film.mjs`; ayrıntı
   FILM_YETENEK_HARITASI.md "Hamle".
+- **Patlama ve gedik (2026-11-25, 3. madde):** `arac/gedik.py`. Creeper `patla: [x, y]`
+  ile patlar (önce `tisla`); bloklar oyunun ışınlarıyla kırılır, mekân zamana göre
+  değişir (`mekan.ZamanliMekan`: zemin, görüş, kamera denetimi ve çizim o anın
+  bloklarına bakar). Moloz ve toz filmin kuralı. Kilit `test/gedik.mjs`.
 
 **Akıcı hareket — `addon/arac/hareket.py` (v7.99.16).** Kullanıcı:
 *"robotik dövüşlerden ya da hareketlerden memnun değilim."* Senaryoda

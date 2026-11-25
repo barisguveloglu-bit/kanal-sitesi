@@ -55,6 +55,13 @@ her blok "başka sürümle çizilmiş" uyarısı verirdi). Eski ve yeni kod
     - Savuşturan: `{"t", "aktor": "pipos", "savustur": sn, "dusur"}`. O aralıkta gövdesine 1,1 bloktan yakın gelen oku aynı hızla atanına yollar; geri dönen ok oyunun nişan kuralıyla gider.
     - Savuşturan 0,12 sn önce savunma duruşuna geçer (0,35 sn). Savuşturmada buz kırığı çıkar, savuşturan hafifçe ırkilir. Geri dönen ok atanını vurunca savuşturanın `dusur`u uygulanır.
     - Bilinmeyen aktör ya da aynı adlı iki ok çizimden önce HATA verir.
+    - Sesler (2026-11-25, ilk yazışta oklar sessizdi): bırakışta ince savrulma, saplanınca yumuşak darbe ve buz çıtırtısı, savuşturmada metal tıngırtısı (kitaplıkta kiriş vızlaması yok).
+  - **Creeper patlaması ve gedik (2026-11-25, `arac/gedik.py`, kilit `test/gedik.mjs`; 3. madde):**
+    - `{"t", "aktor": "c1", "patla": [x, y]}` (ya da `[x, y, z]`; `"guc"` 3, yüklü creeper 6; `"tohum"`). Creeper o anda noktada (0,6 blok içinde) ve tam şişmiş olmalı: önce `tisla` 1,5 sn (oyunda 30 tik). Yoksa, creeper değilse ya da nokta bir bloğun içindeyse (creeper'ın boyu 1,7 blok) çizimden önce HATA.
+    - Oyunun patlaması (REFERANS_MOJANG_KILAVUZ.md "Creeper patlaması"): 1352 ışın, blokların direnciyle kırılan bloklar. Creeper kaybolur; parlama, duman, surun dokusunda uçan parçalar, sarsıntı, patlama sesi.
+    - Yakındakiler oyunun formülüyle itilir (2 × yarıçap içinde, görünürlükle); güçlü itilen insan aktör yere düşer.
+    - Filmin kuralı: kırılan taşın yarısı gediğin dibine moloz olarak yarım blok yarım blok yığılır (üstüne yürünür), 0,3 sn sonra belirir; birkaç saniye kalan toz bulutu (hacim). Gedik senaryodan hesaplanır: zemin, kamera denetimi ve çizim aynı gediği bilir.
+    - Oyunun gerçeği: tek creeper 3 kat taş surun yalnız dış katını oyar; hanedanın doğu surunda 4 creeper sırayla (ikisi dış yüzde, ikisi açılan oyukta) 3 blok genişliğinde, 2 blok yüksekliğinde geçit açıyor (test kilitliyor).
 - Dövüş setleri (17):
   - `antitheus` (Barış): `auto_1/2/4`, koşu vuruşu `agression`, hava vuruşu `guillotine`.
   - `yumruk` (El-Harkos).
@@ -67,7 +74,7 @@ her blok "başka sürümle çizilmiş" uyarısı verirdi). Eski ve yeni kod
 - Yok:
   - büyü saldırısı ve oktan başka mermi, kalkan, bir aktörü tutup fırlatma, aynı anda birden çok kişiye vuruş;
   - yol bulma, engelden dolaşma, tırmanma, uçma; duvar çarpışması (blok mekânda aktör zemine basar ama duvarın içinden geçebilir: yolu senaryo seçer);
-  - ağaç devirme, blok kırma, topraktan başka blok türü;
+  - ağaç devirme; patlamadan başka blok kırma; topraktan başka uçan blok türü;
   - **Karanlık Tırpan ve Osmanlı Topuzu dışında çizilen silah modeli.** Ay Işığı Asası'nın modeli eklentide var ama filme bağlı değil; başka setle dövüşen aktör eli boş savurur.
 
 **Poz** (`film_poz`, 20)
@@ -84,6 +91,7 @@ her blok "başka sürümle çizilmiş" uyarısı verirdi). Eski ve yeni kod
 **Efekt**
 - Hazır:
   - kıvılcım (vuruşta sarı, savunmada mavi), mor ışınlanma flaşı, gücü ayarlanabilen toprak sıçraması, uçan ve kırılan blok, azaltılmış kan;
+  - toz bulutu (`toz`, 2026-11-25, creeper patlamasında): bej-gri hacim, 0,8 sn'de büyür, rüzgârla kayar, ~5 sn'de söner;
   - buz kırığı (`buz_kirigi`, 2026-11-25): okun isabetinde 12, savuşturmada 18 ışıyan camgöbeği parça, 0,35 sn'de 0,55 bloğa saçılır;
   - çukur (`zemin.cukur`): t anında açılır, ezik zemin ve saçılmış toprak bırakır, aktör çukura basar;
   - `efekt` olayıyla bu efektlerden biri istenen noktaya konabiliyor;
@@ -143,7 +151,7 @@ her blok "başka sürümle çizilmiş" uyarısı verirdi). Eski ve yeni kod
   - yaratık (2026-11-24, `arac/yaratik_film.py`): `"yaratik": "zombi" | "iskelet" | "creeper" | "orumcek"`, `"asama"`. Hareketin sabitleri oyunun kodundan (REFERANS_MOJANG_KILAVUZ.md "Buz ordusu modelleri"):
     - zombi ve iskelet aktörün kemikleriyle ve kendi pivotlarıyla hareket ediyor;
     - creeper ve örümcek oyunun bacak formülleriyle ve oyundaki yürüme sayacıyla yürüyor;
-    - olaylar: zombi `saldirgan` (kollar −120°) ve `saldir` (0,3 sn kol savurma); iskelet `nisan: sn` (oyunun yay duruşu, kollar başı izler; `ok` olayında bırakmadan 1 sn önce kendiliğinden gerer); creeper `tisla: sn` (oyunun şişmesi, `_tislama.png` oyunun yanıp sönme ritmiyle);
+    - olaylar: zombi `saldirgan` (kollar −120°) ve `saldir` (0,3 sn kol savurma); iskelet `nisan: sn` (oyunun yay duruşu, kollar başı izler; `ok` olayında bırakmadan 1 sn önce kendiliğinden gerer); creeper `tisla: sn` (oyunun şişmesi, `_tislama.png` oyunun yanıp sönme ritmiyle) ve `patla` ("Hamle", creeper patlaması);
   - sol elde kitap (v7.99.16): `"esya": "kitap"` kapalı (raftan alırken, koyarken), `"kitap_acik"` sırttan V açık, sayfalar okuyana dönük (`blender_film.kitap_ormesi`);
   - aktörün başlangıç `"bak"`ı bir nokta da olabilir (v7.99.16; eskiden sessizce yok sayılıyordu);
   - `diz: true` (v7.99.15): bacak uyluk + baldır, diz açısı Epic Fight'ın (`wom_cevir.py --diz`; dövüş setlerinin bütün duruş ve vuruşlarında). Yazılmazsa eski düz bacak; oyundaki model değişmez.
@@ -151,7 +159,7 @@ her blok "başka sürümle çizilmiş" uyarısı verirdi). Eski ve yeni kod
 - Yok:
   - ağız ve yüz ifadesi;
   - golem modeli;
-  - yaratıkta dövüş seti ve creeper patlaması (2. bölüm Part 2'nin 3. maddesi);
+  - yaratıkta dövüş seti;
   - kâğıt, kitap ve el fenerinden başka eşya.
 
 **Sahne**
@@ -164,6 +172,7 @@ her blok "başka sürümle çizilmiş" uyarısı verirdi). Eski ve yeni kod
   - Aktör bloklara basar (yatak 9/16, basamak yarım yarım, kulübenin içindeki aktör çatıya basmaz); başlangıç yüksekliği `"kat"`. Senaryo eksenleri Blender'ın: Minecraft (x, z) → senaryo [x, -z].
   - Fener, meşale ve geçit doku rengiyle ışır (`mekan_kur`'un kendi malzemesi; `doku_malzemesi`'ne dokunulmadı).
   - Ufuk ortası boş: bataklıkta kare çerçeve, hanedanda surdan başlayan halka.
+  - **Zamanla değişen bloklar (2026-11-25, `mekan.ZamanliMekan`):** senaryoda `patla` varsa kırılan bloklar o anda kalkar, moloz belirir; zemin, görüş ve kamera denetimi o anın bloklarına bakar. Patlamanın çevresinde zeminin altı toprak (3 kat) ve taşla doldurulur, taş yapının altı taş temel (hanedanın zemini tek kat, çukur boşluğa açılıyordu). Patlamalı senaryoda halka ufuk zemin bloklarının bittiği yere (hanedanda 109,6) çekilir: sur dışındaki çukuru örtmesin, blokların üstünde görünüş aynı.
   Blok kurucu (`arac/blok_kur.py`) bu iş için: biyom boyası, blok başına boya, ova dışında çimen yan yüzüne boyalı örtü, Nether geçidi, şerit dokularda (su, geçit) yalnız ilk kare.
 - Yok:
   - Nether, zihin ortamı, karlı arazi (savaş odası var, aşağıda);
@@ -333,6 +342,12 @@ film bire bir eskisi (1. bölüm ve Part 1 bayraksız, testler kilitliyor).
   3. Kamera denetimi oku konu saymıyor. Okun nereden gelip nereye gittiğini plan seçer.
   4. Önizleme (2026-11-25, düşük örnek, 2 kare): savunma duruşu ve geri dönen ışıyan ok karede seçiliyor. Buz kırığı parçaları seçilmedi; gerçek sahnenin ilk önizlemesinde yakın planda bakılacak.
   5. Filmde olmayanlar: atış sapması (ıska için `sapma`), saplanan okun titremesi ve gövdeye saplı ok. İsabet eden ok kaybolur.
+- **Creeper patlaması ve gedik — BAĞLANDI (2026-11-25, `arac/gedik.py`, kilit `test/gedik.mjs`):** ayarlar yukarıda, "Hamle". Kalan ve bilinenler:
+  1. Çukurun kenarları 1,5–2,5 blok yüksek: yürüyüş (0,6 blok) ve zıplama (tepe 1,25) aşamıyor. Sonraki creeper'ların ve zombilerin oyuğa nereden gireceği Part 2'nin sahnesi yazılırken kurulacak (hanedanın doğusunda kuzey kenardan dolaşıp bir zıplama yetiyor, ölçüldü).
+  2. Patlamanın itmesi hareket denetiminde `ani_kalkis` (deneme senaryosunda 248 blok/sn²): darbe ve ok itmesiyle aynı açık madde.
+  3. Moloz ve toz filmin kuralı; moloz çoğunlukla çukurların dibini dolduruyor, gedikte belirgin bir "tepe" oluşmuyor. İskeletlerin duracağı yer sahne yazılırken seçilecek.
+  4. Creeper'ın tıslama sesi yok: kitaplıkta uygun ses yok, Mojang'ın sesi kullanılmıyor.
+  5. Önizleme (2026-11-25, düşük kalite, 2 kare): patlama anında parlama ve çukur, 4 sn sonra gediğin üstünde toz bulutu seçiliyor.
 - **Gökyüzü türü (v7.99.16'da ölçüldü):** Blender 5.2'de `NISHITA` yok (`SINGLE_SCATTERING`, `MULTIPLE_SCATTERING`, `PREETHAM`, `HOSEK_WILKIE`). `blender_film.py` türü ayarlarken hata alıyor ve aynı `try` içindeki `gunes_yukseklik`'i atlıyor: gökyüzü fiilen varsayılan `MULTIPLE_SCATTERING`, `isik` anahtarı olmayan senaryoda `gunes_yukseklik` uygulanmıyor. `isik` anahtarları yüksekliği ayrı bir `try` içinde yazdığı için 1. bölümün orman çizimi etkilenmedi. Film aracında düzeltilmedi (1. bölümün görünüşü bu); önizleme betikleri (`hanedan_onizle`, `kulube_onizle`) yüksekliği artık ayrı yazıyor.
 - **Takılan yürüyüş:** kök düzeltmesi yapılmadı (SERI_SEZON1, "bilinen hata"). Kalabalık sahneler bunu sık tetikler.
 - **Skin aynası — KAPANDI (kullanıcı, 2026-11-02: "aynı kalsın"):** düzeltilmiyor. Thomas planıyla bizim plan arasında yüz aynalanır; skinin iki yanı farklıysa (Barış'ın kolları) filmde taraflar ters görünür.

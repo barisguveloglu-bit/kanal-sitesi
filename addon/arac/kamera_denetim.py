@@ -205,8 +205,8 @@ def denetle(sen):
         if ck and t >= ck.get("t", 0) and math.hypot(kp[0] - ck["x"], kp[1] - ck["y"]) <= ck["r"]:
             taban = -ck["derin"]
         if mk is not None:
-            taban = mk.yuzey(kp[0], kp[1], ust=kp[2])
-            if mk.duvarda_mi(kp):
+            taban = mk.yuzey(kp[0], kp[1], ust=kp[2], t=t)      # patlamali mekanda o anin bloklari
+            if mk.duvarda_mi(kp, t=t):
                 ekle(f, "DUVAR", "kamera bir blogun icinde %s" % [round(x, 2) for x in kp])
         if kp[2] < taban + 0.12:
             ekle(f, "ZEMIN", "kamera z=%.2f" % kp[2])
@@ -278,7 +278,7 @@ def denetle(sen):
                 if _isin_kutu(kp, v, mn, mx):
                     ekle(f, "KADRAJ", "%s'i agac %s kapatiyor" % (ad, tur))
                     break
-            if mk is not None and not mk.gorus_acik(kp, hedef):
+            if mk is not None and not mk.gorus_acik(kp, hedef, t=t):
                 ekle(f, "KADRAJ", "%s'i bir blok (duvar, yaprak) kapatiyor" % ad)
             # 8. ortme: gorus cizgisi baska aktorun govdesinden geciyor mu
             for ad2, a2 in ak.items():

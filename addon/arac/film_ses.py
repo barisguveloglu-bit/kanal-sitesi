@@ -178,10 +178,17 @@ def ses_kur(senaryo, katmanlar=False):
             for j, hz in enumerate((1.7, 1.95, 1.55)):
                 ef.ekle(oku("impactMetal_light_00%d.ogg" % j), film_t(t) + 0.025 * j, 0.75, hz)
             ef.ekle(oku("impactMining_000.ogg"), film_t(t), 0.45, 1.6)
-        if o.get("efekt") == "patlama":
+        if o.get("efekt") == "patlama" or o.get("patla") is not None:
             ef.ekle(oku("lowFrequency_explosion_000.ogg"), film_t(t), 1.3)
             ef.ekle(oku("lowFrequency_explosion_001.ogg"), film_t(t), 0.9, 0.8)
             ef.ekle(oku("impactMining_000.ogg"), film_t(t + 0.05), 0.8, 0.8)
+        if o.get("patla") is not None:
+            # moloz (gedik.MOLOZ_GECIKME): taslar yere iner
+            for j, hz in enumerate((0.7, 0.85, 0.62)):
+                ef.ekle(oku("impactMining_000.ogg"), film_t(t + 0.3 + 0.07 * j), 0.6, hz)
+        if o.get("ok") is not None and o.get("aktor"):
+            # ok birakilir: kisa ince savrulma (kirisin vizlamasi icin kitaplikta ses yok)
+            ef.ekle(oku("cloth%d.ogg" % (1 + int(t * 10) % 2)), film_t(t), 0.55, 1.6)
         if "vur" in o and not vurgu:
             ef.ekle(oku("cloth%d.ogg" % (1 + int(t * 10) % 2)), film_t(t + 0.15), 0.7, 0.8)   # savurma
         if "isinlan" in o:
@@ -229,6 +236,13 @@ def ses_kur(senaryo, katmanlar=False):
             ef.ekle(oku("knifeSlice.ogg"), t, 0.8)
             ef.ekle(oku("impactMining_000.ogg"), t, 1.0)
             ef.ekle(oku("impactSoft_heavy_000.ogg"), t, 0.5)
+        elif e["tur"] == "buz_kirigi":
+            if e.get("hedef"):                  # ok aktore saplandi
+                ef.ekle(oku("impactSoft_heavy_000.ogg"), t, 0.7, 1.35)
+                ef.ekle(oku("impactMetal_light_001.ogg"), t, 0.35, 2.0)
+            else:                               # savusturuldu: buz metale carpar gibi
+                ef.ekle(oku("impactMetal_light_000.ogg"), t, 0.8, 1.45)
+                ef.ekle(oku("impactMetal_light_002.ogg"), t + 0.02, 0.45, 1.9)
         elif e["tur"] == "dusus":
             # "inis": blok mekanda ziplayip ya da kenardan dusup ayakla inis (v7.99.16)
             ef.ekle(oku("impactSoft_heavy_001.ogg" if e.get("ses") == "parca_yere" else "impactSoft_heavy_000.ogg"),
