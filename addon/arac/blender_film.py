@@ -64,6 +64,7 @@ import mekan as MK  # noqa: E402
 import dovus_kimlik as DK  # noqa: E402
 import dovus_efekt as DE  # noqa: E402
 import yaratik_film as YF  # noqa: E402
+import ok_film as OK  # noqa: E402
 
 KOK = B.KOK
 ANIM_WOM = "Simsek_Kol_Kaynak/animations/wom_kilic.animation.json"
@@ -133,6 +134,7 @@ VARIS = 1.6
 MENZIL = 3.5
 KACIN, KACIN_SN = 2.4, 0.3
 ITME = 0.55
+OK_ITME = 0.5                 # ok yakin dovus vurusunun yarisi kadar iter
 GECIS = 0.12                  # animasyon gecisi (sn)
 POZ_GIRIS = 0.15              # poz katmaninin yumusak girisi (sn)
 CARPISMA_ARA = 1.05           # iki aktorun merkezleri arasi en az (blok)
@@ -723,10 +725,12 @@ def bas_takip_adimi(a, aktorler, dt):
         a.bas[i], a.bas_v[i] = H.yay(a.bas[i], a.bas_v[i], h_, dt, H.BAS_W)
 
 
-def zaman_cizelgesi(senaryo, setler, anims, suz=True, harita=None):
+def zaman_cizelgesi(senaryo, setler, anims, suz=True, harita=None, oklar=None):
     """Her aktor icin kare basina (x, y, z, aci, katmanlar) + efekt ve
     altyazi listeleri. Oyun mantiginin (cekim.js) kare-zamanli karsiligi.
-    harita verilirse o kullanilir (vurus donmasinin ilk gecisi: donmasiz)."""
+    harita verilirse o kullanilir (vurus donmasinin ilk gecisi: donmasiz).
+    oklar bir liste verilirse buz oklarinin kare kayitlari ona eklenir
+    (ok_film.OkDunyasi.kayit); verilmese de oklar ucar, isabet eder."""
     fps = senaryo.get("fps", 24)
     if harita is None:
         harita = zaman_haritasi(senaryo)
@@ -769,6 +773,40 @@ def zaman_cizelgesi(senaryo, setler, anims, suz=True, harita=None):
     bak_serbest = senaryo.get("bak_serbest", [])
     blok = MK.yukle(senaryo) is not None     # blok mekan: yer cekimi ve zipla
     efektler, yazilar, sarsinti = [], [], []
+    # ---- buz oklari (ok_film.py): atis, ucus, isabet, savusturma ----
+    okd = OK.OkDunyasi(olaylar, aktorler, lambda x, y, t_: zemin_yuksekligi(senaryo, x, y, t_))
+
+    def ok_isabet(h, ok, nokta, hiz, t_, dusur):
+        """ok aktore saplandi: yakin dovus darbesiyle ayni tepki (darbe ya da
+        dusurme), hafif itme, buz kiriklari"""
+        yb = math.hypot(hiz[0], hiz[1]) or 1.0
+        on = (hiz[0] / yb, hiz[1] / yb)
+        guc = ITME * OK_ITME
+        h.itme = [h.itme[0] + on[0] * guc * 6, h.itme[1] + on[1] * guc * 6]
+        efektler.append({"t": t_, "tur": "buz_kirigi", "nokta": list(nokta), "kim": ok.atan, "hedef": h.ad})
+        if dusur:
+            h.tepki.append({"anim": film_poz.ONEK + dusur, "bas": t_, "hiz": 1.0, "ad": dusur,
+                            "sure": 1e6, "tut": True, "giris": 0.06})
+            efektler.append({"t": t_ + DUSUS_SES.get(dusur, 0.55), "tur": "dusus", "nokta": [h.poz[0], h.poz[1], h.z]})
+            h.dusuler.append((t_, dusur))
+        else:
+            h.tepki.append({"anim": "animation.aktor.darbe", "bas": t_, "sure": 0.4})
+            if akici:
+                sg = sag_yon(h.aci)
+                yan = max(-1.0, min(1.0, -(on[0] * sg[0] + on[1] * sg[1])))
+                h.irkilmeler.append({"guc": 0.8, "yan": round(yan, 4), "bas": t_})
+
+    def ok_savustu(s_, ok, nokta, t_):
+        """ok savusturuldu: buz kiriklari, savusturan hafif sarsilir"""
+        efektler.append({"t": t_, "tur": "buz_kirigi", "nokta": list(nokta), "sayi": 18, "kim": s_.ad})
+        if akici:
+            s_.irkilmeler.append({"guc": 0.35, "yan": 0.0, "bas": t_})
+
+    def ok_hazirlan(s_, t_):
+        """ok gelmeden savunma durusu (yakin dovusteki 'savun'un kisa hali)"""
+        s_.tepki.append({"anim": "animation.aktor.savun", "bas": t_, "sure": OK.SAVUSTURMA_SURE,
+                         "tut": True, "giris": 0.05})
+        s_.savun_bitis = max(s_.savun_bitis, t_ + OK.SAVUSTURMA_SURE)
     i = 0
     for f, t in enumerate(harita):
         dt = t - harita[f - 1] if f else 1.0 / fps
@@ -928,6 +966,7 @@ def zaman_cizelgesi(senaryo, setler, anims, suz=True, harita=None):
                 yazilar.append({"t": o["t"], "sure": sure, "metin": o["soyle"], "tur": "soyle",
                                 "isim": a.v.get("isim", a.ad.capitalize())})   # "" -> isimsiz (ana kotu)
                 a.tepki.append({"anim": "animation.aktor.konus", "bas": t, "sure": sure})
+        okd.nisan_et(t)                    # ok olayindan once atan hedefe doner
         # ---- donus: ani degil, en kisa yoldan DONUS_HIZI ile ----
         for a in aktorler.values():
             if a.hedef_aci is None:
@@ -1139,6 +1178,9 @@ def zaman_cizelgesi(senaryo, setler, anims, suz=True, harita=None):
                             "hizli": a.hizli, "gorunur": a.gorunur, "esya": a.esya, "durus": a.durus,
                             "durus_onceki": a.durus_onceki, "durus_t": a.durus_t,
                             "silah": a.silah_gorunur}))
+        okd.adim(f, t, ok_isabet, ok_savustu, ok_hazirlan)
+    if oklar is not None:
+        oklar.extend(okd.kayit())
     # altyazi FILM zamaninda: agir cekimde yazi da uzun kalir
     for y in yazilar:
         y["t"] = kare_bul(harita, y["t"]) / fps
@@ -1626,7 +1668,8 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
     anims.update(B.oku(ANIM_WOM)["animations"])
     anims.update(B.oku(ANIM_AKTOR)["animations"])
     anims.update(film_pozlari(akici_mi(senaryo)))
-    aktorler, efektler, yazilar, sarsinti = zaman_cizelgesi(senaryo, setler, anims)
+    oklar = []
+    aktorler, efektler, yazilar, sarsinti = zaman_cizelgesi(senaryo, setler, anims, oklar=oklar)
     # buz ordusu: geo, doku ve isima haritasi cizim klasorune uretilir
     # (yaratik_film.yaratik_varliklari); senaryo sozlugu degistirilmez
     yaratik_varlik = {ad: YF.yaratik_varliklari(a.yaratik["tur"], a.yaratik["asama"],
@@ -2333,6 +2376,36 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
                     tampona(o, "rotation_quaternion", f + 1, q)
                     tampona(o, "location", f + 1, l)
                     tampona(o, "scale", f + 1, o3)
+
+    # ---- buz oklari (ok_film.py): her ok bir nesne, konum ve yon kare kare ----
+    if oklar:
+        ok_g, ok_d, ok_i = YF.ok_varliklari(os.path.join(klasor, "varlik"))
+        ok_me = bpy.data.meshes.new("buz_ok")
+        ks, ps, uv = [], [], []
+        for pts, u in B.kupler(B.Model(B.oku(ok_g))):
+            i0 = len(ks)
+            ks.extend(blender_nokta(p) for p in pts)
+            ps.append((i0, i0 + 1, i0 + 2, i0 + 3))
+            uv.extend(u)
+        ok_me.from_pydata(ks, [], ps)
+        lay = ok_me.uv_layers.new()
+        for j, dd in enumerate(lay.data):
+            dd.uv = uv[j]
+        ok_me.materials.append(doku_malzemesi(ok_d, isik_yol=ok_i))
+        for ok in oklar:
+            ob = bpy.data.objects.new(ok["ad"], ok_me)
+            ob.rotation_mode = "XYZ"
+            sc.collection.objects.link(ob)
+            onceki_g = None
+            for f, r in enumerate(ok["kareler"][:len(kam_iz)]):
+                gor = bool(r and r[5])
+                if gor:
+                    tampona(ob, "location", f + 1, (r[0], r[1], r[2]))
+                    tampona(ob, "rotation_euler", f + 1, (math.radians(r[4]), 0.0, math.radians(r[3])))
+                if gor != onceki_g:
+                    ob.hide_render = not gor
+                    ob.keyframe_insert("hide_render", frame=f + 1)
+                    onceki_g = gor
 
     # creeper tislamasi yanip soner (oyunun getWhiteOverlayProgress ritmi): kayarak degil
     for soket in tislama_dugum.values():
@@ -3866,6 +3939,7 @@ def kivilcim_kur(bpy, efektler, fps, doku_malzemesi, harita=None, zemin=None, vu
     kare = (lambda t: kare_bul(harita, t) + 1) if harita else (lambda t: int(t * fps) + 1)
     sari = _isik_malz(bpy, "kivilcim", (1.0, 0.85, 0.5), 12.0)
     mavi = _isik_malz(bpy, "kivilcim_mavi", (0.6, 0.8, 1.0), 12.0)
+    buz_k = _isik_malz(bpy, "buz_kirigi", (0.55, 0.95, 1.0), 9.0)
     mor = _isik_malz(bpy, "isinlanma", (0.78, 0.49, 1.0), 25.0)
     kan_m = bpy.data.materials.new("kan")
     kan_m.use_nodes = True
@@ -3900,6 +3974,12 @@ def kivilcim_kur(bpy, efektler, fps, doku_malzemesi, harita=None, zemin=None, vu
                 for fk, g in darbe_isik_anahtarlari(f0):
                     fl.data.energy = g
                     fl.data.keyframe_insert("energy", frame=max(0, fk))
+        elif e["tur"] == "buz_kirigi":
+            # buz oku saplaninca ya da savusturulunca: camgobegi buz kiriklari
+            for _ in range(int(e.get("sayi", 12))):
+                yon = (rnd.uniform(-1, 1), rnd.uniform(-1, 1), rnd.uniform(-0.2, 1.0))
+                _parca(bpy, n, rnd.uniform(0.04, 0.08), buz_k, f0, f0 + int(0.35 * fps),
+                       tuple(n[i] + yon[i] * 0.55 for i in range(3)))
         elif e["tur"] == "isik":
             nl = bpy.data.objects.new("flas", bpy.data.lights.new("flas", "POINT"))
             nl.data.color = (0.78, 0.49, 1.0)

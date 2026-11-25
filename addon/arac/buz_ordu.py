@@ -1142,6 +1142,53 @@ def yay_paleti(isik_mi):
     return s
 
 
+# ---------------------------------------------------------------- buz oku
+# Oyunun ok olculeri (ArrowModel, javap): capraz iki duzlem 16x4 px, arkada
+# 5x5 kanat (0.8), hepsi 0.9 olcekli. Uc varlik noktasinin 3.6 px onunde,
+# kuyruk 10.8 px arkasinda (14.4 px = 0.9 blok). Filmde duzlem yerine kendi
+# kup modelimiz: buz sap, isiyan kristal uc, kuyrukta capraz iki buz kanat
+# (5 * 0.8 * 0.9 = 3.6 px). Model -z'ye (one) bakar, varlik noktasi (0, 0, 0).
+OK_ON, OK_ARKA, OK_KANAT = 3.6, 10.8, 3.6
+OK_RENK = [
+    ("sap", (150, 226, 240), SIYAH), ("sap2", (196, 240, 250), SIYAH), ("sap_k", (70, 170, 196), SIYAH),
+    ("uc", (214, 252, 255), carp(ACIK_CAM, 0.9)), ("uc2", (90, 236, 250), CAMGOBEGI),
+    ("kanat", (176, 236, 248), carp(ACIK_CAM, 0.3)), ("kanat2", (120, 206, 228), SIYAH),
+]
+OK_HUCRE = {ad: (i % 16, i // 16) for i, (ad, _, _) in enumerate(OK_RENK)}
+
+
+def _ok_kup(o, s, adlar):
+    if isinstance(adlar, str):
+        adlar = {f: adlar for f in B.YUZLER}
+    return {"origin": [round(v, 3) for v in o], "size": [round(v, 3) for v in s],
+            "uv": {f: {"uv": list(OK_HUCRE[adlar[f]]), "uv_size": [1, 1]} for f in B.YUZLER}}
+
+
+def ok_kupleri():
+    sap = {"up": "sap2", "down": "sap_k", "north": "sap", "south": "sap", "east": "sap2", "west": "sap_k"}
+    return [_ok_kup([-0.35, -0.35, -OK_ON + 1.7], [0.7, 0.7, OK_ON - 1.7 + OK_ARKA], sap),
+            _ok_kup([-0.7, -0.7, -OK_ON + 0.8], [1.4, 1.4, 1.0], "uc2"),          # kristal uc
+            _ok_kup([-0.4, -0.4, -OK_ON], [0.8, 0.8, 0.9], "uc"),                 # sivri burun
+            _ok_kup([-0.1, -OK_KANAT / 2, OK_ARKA - 4.0], [0.2, OK_KANAT, 3.6], "kanat"),
+            _ok_kup([-OK_KANAT / 2, -0.1, OK_ARKA - 4.0], [OK_KANAT, 0.2, 3.6], "kanat2")]
+
+
+def ok_geometri():
+    return {"format_version": "1.12.0", "minecraft:geometry": [{
+        "description": {"identifier": "geometry.buz_ok", "texture_width": 16, "texture_height": 16,
+                        "visible_bounds_width": 1, "visible_bounds_height": 1,
+                        "visible_bounds_offset": [0, 0, 0]},
+        "bones": [{"name": "ok", "pivot": [0, 0, 0], "cubes": ok_kupleri()}]}]}
+
+
+def ok_paleti(isik_mi):
+    s = [[(0, 0, 0, 0 if not isik_mi else 255)] * 16 for _ in range(16)]
+    for ad, rgb, e in OK_RENK:
+        x, y = OK_HUCRE[ad]
+        s[y][x] = (e if isik_mi else rgb) + (255,)
+    return s
+
+
 # ---------------------------------------------------------------- yazma
 def png_yaz(yol, satirlar):
     """Saf Python PNG (Blender'in Python'unda PIL yok)."""
@@ -1179,6 +1226,9 @@ def uret(klasor):
     yaz("buz_yay.geo.json", yay_geometri())
     yaz("buz_yay.png", yay_paleti(False))
     yaz("buz_yay_isik.png", yay_paleti(True))
+    yaz("buz_ok.geo.json", ok_geometri())
+    yaz("buz_ok.png", ok_paleti(False))
+    yaz("buz_ok_isik.png", ok_paleti(True))
     return yollar
 
 

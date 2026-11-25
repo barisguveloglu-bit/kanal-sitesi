@@ -864,6 +864,11 @@ geçidin yeri Claude'un önerisi. Önizleme `arac/kulube_onizle.py`, kilit
   piksel piksel. Yürüme sayacı, zombi kolu, yay duruşu, creeper ve örümcek
   bacakları, creeper şişmesi oyunun kodundan; kilit `test/yaratik_film.mjs`.
   Ayrıntı FILM_YETENEK_HARITASI.md "Karakter".
+- **Oklar (2026-11-25, kullanıcı: "ikisini de yap"):** `arac/ok_film.py`. İskelet
+  `ok` olayıyla atar; savuşturan `savustur` aralığında oku atanına geri yollar.
+  Fizik, atış ve okun ölçüsü oyunun kodundan (REFERANS_MOJANG_KILAVUZ.md "Buz
+  okları"); savuşturma filmin kuralı. Kilit `test/ok_film.mjs`; ayrıntı
+  FILM_YETENEK_HARITASI.md "Hamle".
 
 **Akıcı hareket — `addon/arac/hareket.py` (v7.99.16).** Kullanıcı:
 *"robotik dövüşlerden ya da hareketlerden memnun değilim."* Senaryoda

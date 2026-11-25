@@ -89,7 +89,8 @@ indi, depoya girmedi. **Dokuların hiçbir pikseli Mojang'ın değil:**
 | creeper | `CreeperModel.createBodyLayer(NONE)` | kafa ve gövde (0, 6, 0); dört bacak tek kutu listesi, 4×6×4, (±2, 18, ±4) |
 | örümcek | `SpiderModel.createSpiderBodyLayer` | kafa (0, 15, −3) 8³; body0 (0, 15, 0) 6³; body1 (0, 15, 9) 10×8×12; bacak 16×2×2, pivot (±4, 15, 2 / 1 / 0 / −1); dönüş y ±π/4 · ±π/8, z ±π/4 · ±0,58119 |
 
-Hareket sabitleri (film aracına henüz bağlı değil; aynı JAR'dan):
+Hareket sabitleri (aynı JAR'dan; 2026-11-24'ten beri film aracında,
+`arac/yaratik_film.py`):
 - **Zombi kolları** (`AnimationUtils.animateZombieArms`): el boşsa xRot
   −π/2,25 (saldırganken −π/1,5), yRot sağda −0,1, solda +0,1.
 - **Yay duruşu** (`HumanoidModel.poseRightArm`, BOW_AND_ARROW): sağ kol
@@ -126,3 +127,35 @@ sonucu veriyor; örümceğin bacak uçları film aracının zincirinden geçiril
 JAR sürüm atlarsa: yeni JAR'ı indir, aynı sınıfları `javap -c -p` ile oku,
 `buz_ordu.py`'deki `JAVA` tablosuyla karşılaştır, sonra
 `node addon/test/buz_ordu.mjs` çalıştır.
+
+## Buz okları (2026-11-25)
+
+Kullanıcı: *"Sıradaki 2. madde: iskeletlerin buz okları ve Pipos'un okları
+iskeletlere geri savuşturması, ikisini de yap."* Okun fiziği, iskeletin
+atışı ve okun modeli aynı JAR'dan (aynı SHA-1) `javap -c -p` ile okundu.
+JAR yine yalnız geçici klasöre indi ve silindi. Film aracında
+`arac/ok_film.py`, model `arac/buz_ordu.py` (`ok_kupleri`), kilit
+`test/ok_film.mjs`.
+
+| ne | sınıf | okunan |
+|---|---|---|
+| çıkış | `AbstractArrow(EntityType, LivingEntity, …)` | atanın göz yüksekliğinin 0,1 blok altı, atanın ekseninde |
+| atış | `AbstractSkeleton.performRangedAttack` | hedef noktası hedefin boyunun 0,3333'ü; düşey farka yatay uzaklığın 0,2'si eklenir; hız 1,6 blok/tik, yayın gücünden bağımsız; sapma `rangedAttackUncertainty` |
+| germe | `RangedBowAttackGoal.tick`, `BowItem.getPowerForTime` | iskelet yayı 20 tik gerip bırakır; güç f = tik/20 için (f² + 2f)/3, 20. tikte 1 |
+| uçuş | `AbstractArrow.tick` | konum += hız; havada hız × 0,99 (`getAirDrag`), suda × 0,6; düşey hız −0,05 (`getDefaultGravity`) |
+| boylar | `EntityType` | oyuncu 0,6 × 1,8 (göz 1,62); iskelet ve Stray 0,6 × 1,99 (göz 1,74); zombi 0,6 × 1,95 (göz 1,74); ok 0,5 × 0,5 |
+| model | `ArrowModel.createBodyLayer` | iki çapraz düzlem `addBox(−12, −2, 0, 16, 4, 0)` (x dönüşü π/4 ve 3π/4, UV ölçeği 1,0 / 0,8), arkada 5 × 5 kanat düzlemi (x −11, π/4, ölçek 0,8); bütün parça × 0,9; doku 32 × 32 |
+| yön | `ArrowRenderer.submit` | önce y ekseninde yRot − 90°, sonra z ekseninde xRot |
+| saplanma | `ArrowModel.setupAnim` | saplanan ok z ekseninde −sin(3·shake)·shake derece titrer |
+
+Filmde bu sayılarla 14 blok öteden atılan ok hedefe ~0,45 sn'de varıyor.
+Tik arası filmde de ara değerle: ok tikin içinde doğrusal ilerliyor, hız
+tik sınırında değişiyor; 30 fps'de her karede ~1,07 blok. **Filmde olmayanlar:** atış sapması (ıska için
+olay `sapma` taşır), saplanma titremesi, suda yavaşlama ve gövdeye saplı
+okun çizimi (isabet eden ok kaybolur). **Savuşturma oyunda yok, filmin
+kuralı:** ayarları `ok_film.py` başında (`SAVUSTURMA_*`), geri dönen ok
+atanına oyunun nişan kuralıyla gider.
+
+Buz okunun görünüşü bizim: ölçü oyunun okununki (uç 3,6 px önde, kuyruk
+10,8 px arkada; 16 × 0,9 = 14,4 px), kesit ve doku kodla. Kristal uç ve
+kanatlar ışıyor; hiçbir piksel Mojang'ın değil.

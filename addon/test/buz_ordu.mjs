@@ -24,7 +24,8 @@
       yari saydam, kemigin ekseninde
    6. yay: iskeletin eline (rightItem) oturuyor; yay durusunda (sag kol -90)
       dikiliyor, dinlenmede yatay
-   7. uretim: ayni cikti iki kez ayni; uret() 32 dosya yaziyor; uretec dosya
+   7. uretim: ayni cikti iki kez ayni; uret() 35 dosya yaziyor (buz oku
+      2026-11-25'te eklendi: model + iki doku); uretec dosya
       okumuyor (Mojang dokusu kullanilmiyor)
    8. mutasyon: kol genisligi, bacak donusu, goz isimasi, tislama agzi,
       kalbin isimasi ve kabuk bozulunca ilgili kontrol dusuyor            */
@@ -318,7 +319,7 @@ try {
 
   console.log("1. bicim");
   kontrol("uretilen her geometri bicim_dogrula'dan bulgusuz geciyor", r.bulgu.length === 0, r.bulgu.slice(0, 3).join(" | "));
-  kontrol("dokuz yaratik + yay: kimlikler ayri", r.kimlikler.length === 10 && new Set(r.kimlikler).size === 10,
+  kontrol("dokuz yaratik + yay + ok: kimlikler ayri", r.kimlikler.length === 11 && new Set(r.kimlikler).size === 11,
           r.kimlikler.join(","));
 
   console.log("2. olcu: oyunun model kodundan");
@@ -378,7 +379,7 @@ try {
 
   console.log("7. uretim");
   kontrol("ayni cikti iki kez bire bir ayni", r.ayni);
-  kontrol("uret() 32 dosya yaziyor", r.dosya_sayisi === 32, String(r.dosya_sayisi));
+  kontrol("uret() 35 dosya yaziyor", r.dosya_sayisi === 35, String(r.dosya_sayisi));
   kontrol("uretec dosya okumuyor (Mojang dokusu yok, her piksel kodla)", r.okumuyor);
 
   console.log("8. mutasyon: test isiriyor");

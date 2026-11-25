@@ -808,7 +808,13 @@ mikrofonla anlattı, özeti onayladı):**
   iyileştirilmesini istemişti.
   **Film aracına bağlandı (2026-11-24, kullanıcı: *"1. maddeyle başlayalım"*):** `arac/yaratik_film.py`.
   Olaylar: zombi `saldirgan` ve `saldir`, iskelet `nisan`, creeper `tisla`. Creeper ile örümcek
-  oyunun bacak formülleriyle yürüyor. Ok, patlama ve gedik sonraki maddelerde.
+  oyunun bacak formülleriyle yürüyor. Patlama ve gedik sonraki maddede.
+  **Buz okları ve savuşturma bağlandı (2026-11-25, kullanıcı: *"iskeletlerin buz okları ve
+  Pipos'un okları iskeletlere geri savuşturması, ikisini de yap"*):** `arac/ok_film.py`.
+  İskelet `ok` olayıyla atar (1 sn gerer), ok oyunun fiziğiyle uçar. Pipos `savustur`
+  aralığında oku atanına geri yollar; ok iskeleti vurur, `dusur` verilirse düşürür.
+  Pipos savuştururken oyundan gelen elsiz savunma duruşunu kullanıyor. Kaplan sanatının
+  kendi hamlesi `DOVUS_KAPLAN_SANATI.md` onaylanınca yazılacak.
 
 - **Kulübeye eklenenler (kullanıcı):** asıl kulübede olmayan **yatak** ve
   **kitaplık** bizim eklememiz — kulübe *"bunlar eklenmiş şekilde"* olacak.

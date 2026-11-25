@@ -95,6 +95,18 @@ def yaratik_varliklari(tur, asama, klasor):
     return yollar
 
 
+def ok_varliklari(klasor):
+    """buz oku (buz_ordu.ok_geometri) cizim klasorune -> (geo, doku, isik)"""
+    import buz_ordu
+    os.makedirs(klasor, exist_ok=True)
+    yollar = tuple(os.path.join(klasor, "buz_ok" + e) for e in (".geo.json", ".png", "_isik.png"))
+    if not all(os.path.isfile(p) for p in yollar):
+        _yaz(yollar[0], buz_ordu.ok_geometri())
+        _yaz(yollar[1], buz_ordu.ok_paleti(False))
+        _yaz(yollar[2], buz_ordu.ok_paleti(True))
+    return yollar
+
+
 def silah_varliklari(ad, klasor):
     """uretecli silah -> (geo, doku, isik) cizim klasorunde; degilse None"""
     if ad not in URETECLI_SILAH:
@@ -167,6 +179,10 @@ def kol_ezmesi(ayar, t, olaylar, ad, bas=(0.0, 0.0)):
     for o in kendi:
         if o.get("nisan") is not None and t - o["t"] <= float(o["nisan"]):
             return yay_durusu(bas[0], bas[1])
+    import ok_film
+    for bas_t, son_t in ok_film.nisan_araliklari(olaylar, ad):
+        if bas_t <= t <= son_t:
+            return yay_durusu(bas[0], bas[1])        # 'ok': birakmadan once gerer
     return {}
 
 

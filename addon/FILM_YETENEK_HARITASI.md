@@ -46,6 +46,15 @@ her blok "başka sürümle çizilmiş" uyarısı verirdi). Eski ve yeni kod
   - **Hareket:** `git` (yürüme 4,3, koşma 5,6 blok/sn; `adim` ile elle hız), `bak` (540°/sn), `kacin` geri/sağ/sol (2,4 blok, 0,3 sn; kaçış sırasında vuruş geçmez), `isinlan` (iki mor flaş), `gizle`/`goster`.
   - **Saldırı:** `vur` türleri `oto` (kombo sırası; 2 sn ara verilince başa döner), `kosu`, `hava` (havaya kalkan vuruş) ya da vuruşun adı. Ayarları: `hiz`, `hamle` (atılma çarpanı), `itme`, `kan`, `dusur` (vuruşla yere düşürme). Temas anı ve hamle izi oyundaki WoM verisinden geliyor; menzil 3,5 blok.
   - **Savunma ve tepki:** `savun` (süreli) önden gelen vuruşun itmesini %35'e indirir, darbe tepkisi oynatmaz. Darbe tepkisi (0,4 sn) otomatik. İki aktörün merkezleri arasında en az 1,05 blok kalır.
+  - **Ok ve savuşturma (2026-11-25, `arac/ok_film.py`, kilit `test/ok_film.mjs`; kullanıcı: *"iskeletlerin buz okları ve Pipos'un okları iskeletlere geri savuşturması, ikisini de yap"*):**
+    - Atan: `{"t", "aktor": "i1", "ok": "pipos" | [x, y, z], "ad", "sapma": [x, y, z], "dusur"}`. Ok t'de çıkar. Atan 1 sn önceden yayı gerer ve hedefe döner (iskeletin yay duruşu).
+    - Ok oyunun fiziğiyle uçar (REFERANS_MOJANG_KILAVUZ.md "Buz okları"): 14 blok ~0,45 sn.
+    - Ok tikin içinde de ilerler (oyunda istemci iki tik arasını ara değerle çizer): 30 fps'de her karede ~1,07 blok, 0,25 ağır çekimde ~0,27. Temas, savuşturma ve saplanma tikin içindeki gerçek anında işlenir. İlk yazışta ok yalnız tik sınırında ilerliyordu: 30 fps'de her üç karenin birinde, ağır çekimde savuşturma noktasında 3 kare duruyordu. Çizimden önce kayıttan ölçülerek bulundu; `test/ok_film.mjs` 2b kilitliyor.
+    - Vurduğu aktöre darbe tepkisi ve geri itme verir (yakın dövüş itmesinin yarısı); `dusur` verilirse o film pozuyla yere düşürür.
+    - Boşa giden ok yere eğik saplanır ve sahne boyunca kalır. Atanını vurmaz.
+    - Savuşturan: `{"t", "aktor": "pipos", "savustur": sn, "dusur"}`. O aralıkta gövdesine 1,1 bloktan yakın gelen oku aynı hızla atanına yollar; geri dönen ok oyunun nişan kuralıyla gider.
+    - Savuşturan 0,12 sn önce savunma duruşuna geçer (0,35 sn). Savuşturmada buz kırığı çıkar, savuşturan hafifçe ırkilir. Geri dönen ok atanını vurunca savuşturanın `dusur`u uygulanır.
+    - Bilinmeyen aktör ya da aynı adlı iki ok çizimden önce HATA verir.
 - Dövüş setleri (17):
   - `antitheus` (Barış): `auto_1/2/4`, koşu vuruşu `agression`, hava vuruşu `guillotine`.
   - `yumruk` (El-Harkos).
@@ -56,7 +65,7 @@ her blok "başka sürümle çizilmiş" uyarısı verirdi). Eski ve yeni kod
 - **Zıplama ve düşme (v7.99.16, yalnız blok mekânda):** `zipla: [x, y]` Minecraft'ın tik hesabıyla (0,42 blok/tik, yer çekimi 0,08, tik başına %2 sürtünme; tepe 1,2522 blok) hedefe tam iner; kenardan yürüyen aktör de aynı yer çekimiyle düşer. Hızlı inişte diz çöker (uyluk θ, baldır 2θ: ayak kalçanın altında kalır), iniş sesi. Basamağa çıkış Minecraft gibi 0,6 blok. Kilit `test/mekan.mjs`.
 - Ortam: `yer_vurus` (yumruk yere iner, toprak sıçrar, önüne 0,5 blokluk bir blok kopar) → `parca_al` (iki elle; el ile blok arası ≤ 0,15 blok denetleniyor) → `parca_at` (balistik uçuş 0,15–1,5 sn, hedefin önünde kırılır).
 - Yok:
-  - büyü ya da mermi saldırısı, kalkan, bir aktörü tutup fırlatma, aynı anda birden çok kişiye vuruş;
+  - büyü saldırısı ve oktan başka mermi, kalkan, bir aktörü tutup fırlatma, aynı anda birden çok kişiye vuruş;
   - yol bulma, engelden dolaşma, tırmanma, uçma; duvar çarpışması (blok mekânda aktör zemine basar ama duvarın içinden geçebilir: yolu senaryo seçer);
   - ağaç devirme, blok kırma, topraktan başka blok türü;
   - **Karanlık Tırpan ve Osmanlı Topuzu dışında çizilen silah modeli.** Ay Işığı Asası'nın modeli eklentide var ama filme bağlı değil; başka setle dövüşen aktör eli boş savurur.
@@ -75,6 +84,7 @@ her blok "başka sürümle çizilmiş" uyarısı verirdi). Eski ve yeni kod
 **Efekt**
 - Hazır:
   - kıvılcım (vuruşta sarı, savunmada mavi), mor ışınlanma flaşı, gücü ayarlanabilen toprak sıçraması, uçan ve kırılan blok, azaltılmış kan;
+  - buz kırığı (`buz_kirigi`, 2026-11-25): okun isabetinde 12, savuşturmada 18 ışıyan camgöbeği parça, 0,35 sn'de 0,55 bloğa saçılır;
   - çukur (`zemin.cukur`): t anında açılır, ezik zemin ve saçılmış toprak bırakır, aktör çukura basar;
   - `efekt` olayıyla bu efektlerden biri istenen noktaya konabiliyor;
   - `zaman` aralığıyla ağır çekim (0,25) ve donma (≤ 0,04);
@@ -82,7 +92,7 @@ her blok "başka sürümle çizilmiş" uyarısı verirdi). Eski ve yeni kod
 - Yok:
   - ateş, alev, duman, patlama ışığı;
   - yarı saydam kalkan kubbesi ve çarpma dalgası;
-  - buz ve donma efekti (seyrek kar var, aşağıda);
+  - buz ve donma efekti (seyrek kar ve okun buz kırığı var);
   - şiddeti ayarlanabilen sarsıntı (görüntü titremesi artık var, aşağıda);
   - beyaz geçiş (kararma var, aşağıda);
   - yumuşak hız rampası (`zaman` aralıkları basamak gibi değişiyor).
@@ -133,7 +143,7 @@ her blok "başka sürümle çizilmiş" uyarısı verirdi). Eski ve yeni kod
   - yaratık (2026-11-24, `arac/yaratik_film.py`): `"yaratik": "zombi" | "iskelet" | "creeper" | "orumcek"`, `"asama"`. Hareketin sabitleri oyunun kodundan (REFERANS_MOJANG_KILAVUZ.md "Buz ordusu modelleri"):
     - zombi ve iskelet aktörün kemikleriyle ve kendi pivotlarıyla hareket ediyor;
     - creeper ve örümcek oyunun bacak formülleriyle ve oyundaki yürüme sayacıyla yürüyor;
-    - olaylar: zombi `saldirgan` (kollar −120°) ve `saldir` (0,3 sn kol savurma); iskelet `nisan: sn` (oyunun yay duruşu, kollar başı izler); creeper `tisla: sn` (oyunun şişmesi, `_tislama.png` oyunun yanıp sönme ritmiyle);
+    - olaylar: zombi `saldirgan` (kollar −120°) ve `saldir` (0,3 sn kol savurma); iskelet `nisan: sn` (oyunun yay duruşu, kollar başı izler; `ok` olayında bırakmadan 1 sn önce kendiliğinden gerer); creeper `tisla: sn` (oyunun şişmesi, `_tislama.png` oyunun yanıp sönme ritmiyle);
   - sol elde kitap (v7.99.16): `"esya": "kitap"` kapalı (raftan alırken, koyarken), `"kitap_acik"` sırttan V açık, sayfalar okuyana dönük (`blender_film.kitap_ormesi`);
   - aktörün başlangıç `"bak"`ı bir nokta da olabilir (v7.99.16; eskiden sessizce yok sayılıyordu);
   - `diz: true` (v7.99.15): bacak uyluk + baldır, diz açısı Epic Fight'ın (`wom_cevir.py --diz`; dövüş setlerinin bütün duruş ve vuruşlarında). Yazılmazsa eski düz bacak; oyundaki model değişmez.
@@ -141,7 +151,7 @@ her blok "başka sürümle çizilmiş" uyarısı verirdi). Eski ve yeni kod
 - Yok:
   - ağız ve yüz ifadesi;
   - golem modeli;
-  - yaratıkta dövüş seti, buz oku ve creeper patlaması (2. bölüm Part 2'nin 2. ve 3. maddesi);
+  - yaratıkta dövüş seti ve creeper patlaması (2. bölüm Part 2'nin 3. maddesi);
   - kâğıt, kitap ve el fenerinden başka eşya.
 
 **Sahne**
@@ -312,11 +322,17 @@ film bire bir eskisi (1. bölüm ve Part 1 bayraksız, testler kilitliyor).
 ## 2. bölümden önce açık
 
 - **Hilal Ay ve buz ordusu — BAĞLANDI (2026-11-24, `arac/yaratik_film.py`, kilit `test/yaratik_film.mjs`):** ayarlar yukarıda, "Karakter". Kalan ve bilinenler:
-  1. Yaratığın dövüş seti yok; buz oku, okun savuşturulması, creeper patlaması ve gedik sonraki maddeler.
+  1. Yaratığın dövüş seti yok; creeper patlaması ve gedik sonraki madde. Buz oku ve savuşturma 2026-11-25'te bağlandı (aşağıda).
   2. Hareket ve kamera denetimi yaratıklı senaryoda çalışıyor (deneme senaryosu 0 bulgu), ama yaratığı insan gibi ölçüyor (silindir, insan adımı).
   3. Film aracı "mirror"u uygulamıyor. Java'da aynalı olan parçalara (sol kol ve bacak, creeper'ın bacakları, örümceğin sol bacakları) ayrı UV verildi.
   4. Yarı saydam üst katmanlar var: zombinin buz kabuğu ve şapkası, iskeletin bilek ve incik kabuğu. İskeletin kaburga araları bilerek boş, içinde ışıyan buz kalbi duruyor. Cycles'ta saydamlık örnek ister.
   5. Zombinin sol bacağı 0,01 px şişik. Oyunun ölçüsünde bacaklar 0,2 px üst üste biniyor; ön yüzler aynı düzlemde olduğu için ışık o şeritte kendi gölgesine düşüyor ve iki bacak arasında siyah bir çizgi çıkıyordu (ilk önizlemede görüldü). Çare aktördekiyle aynı (`DIS_KATMAN_PAY["leftLeg"]`).
+- **Buz okları ve savuşturma — BAĞLANDI (2026-11-25, `arac/ok_film.py`, kilit `test/ok_film.mjs`):** ayarlar yukarıda, "Hamle". Kalan ve bilinenler:
+  1. Savuşturma oyunda yok, filmin kuralı. Savuşturan, oyundan gelen elsiz savunma duruşunu kullanıyor. Pipos'un kendi savuşturma hamlesi `DOVUS_KAPLAN_SANATI.md` onaylanınca yazılacak; taslakta yeni imza hareketi uydurulmadı.
+  2. Hareket denetimi ok isabetinin geri itmesini `ani_kalkis` sayıyor: deneme senaryosunda 39,6 blok/sn², sınır 18. Bu, yakın dövüşteki darbe itmesiyle aynı açık madde (aşağıda) ve kararı ilk dövüş sahnesinde verilecek. Oyunda da her isabet hedefi iter.
+  3. Kamera denetimi oku konu saymıyor. Okun nereden gelip nereye gittiğini plan seçer.
+  4. Önizleme (2026-11-25, düşük örnek, 2 kare): savunma duruşu ve geri dönen ışıyan ok karede seçiliyor. Buz kırığı parçaları seçilmedi; gerçek sahnenin ilk önizlemesinde yakın planda bakılacak.
+  5. Filmde olmayanlar: atış sapması (ıska için `sapma`), saplanan okun titremesi ve gövdeye saplı ok. İsabet eden ok kaybolur.
 - **Gökyüzü türü (v7.99.16'da ölçüldü):** Blender 5.2'de `NISHITA` yok (`SINGLE_SCATTERING`, `MULTIPLE_SCATTERING`, `PREETHAM`, `HOSEK_WILKIE`). `blender_film.py` türü ayarlarken hata alıyor ve aynı `try` içindeki `gunes_yukseklik`'i atlıyor: gökyüzü fiilen varsayılan `MULTIPLE_SCATTERING`, `isik` anahtarı olmayan senaryoda `gunes_yukseklik` uygulanmıyor. `isik` anahtarları yüksekliği ayrı bir `try` içinde yazdığı için 1. bölümün orman çizimi etkilenmedi. Film aracında düzeltilmedi (1. bölümün görünüşü bu); önizleme betikleri (`hanedan_onizle`, `kulube_onizle`) yüksekliği artık ayrı yazıyor.
 - **Takılan yürüyüş:** kök düzeltmesi yapılmadı (SERI_SEZON1, "bilinen hata"). Kalabalık sahneler bunu sık tetikler.
 - **Skin aynası — KAPANDI (kullanıcı, 2026-11-02: "aynı kalsın"):** düzeltilmiyor. Thomas planıyla bizim plan arasında yüz aynalanır; skinin iki yanı farklıysa (Barış'ın kolları) filmde taraflar ters görünür.
