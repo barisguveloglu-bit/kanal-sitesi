@@ -92,6 +92,7 @@ her blok "başka sürümle çizilmiş" uyarısı verirdi). Eski ve yeni kod
 - Hazır:
   - kıvılcım (vuruşta sarı, savunmada mavi), mor ışınlanma flaşı, gücü ayarlanabilen toprak sıçraması, uçan ve kırılan blok, azaltılmış kan;
   - toz bulutu (`toz`, 2026-11-25, creeper patlamasında): bej-gri hacim, 0,8 sn'de büyür, rüzgârla kayar, ~5 sn'de söner;
+  - **kar fırtınası ve yıldırım** (2026-11-25, `arac/firtina.py`, kilit `test/firtina.mjs`; aşağıda "Sahne"): yoğun rüzgârlı kar, fırtına duvarı, göğün kararması, sis, oyunun biçim ve zamanlamasıyla yıldırım;
   - buz kırığı (`buz_kirigi`, 2026-11-25): okun isabetinde 12, savuşturmada 18 ışıyan camgöbeği parça, 0,35 sn'de 0,55 bloğa saçılır;
   - çukur (`zemin.cukur`): t anında açılır, ezik zemin ve saçılmış toprak bırakır, aktör çukura basar;
   - `efekt` olayıyla bu efektlerden biri istenen noktaya konabiliyor;
@@ -176,7 +177,15 @@ her blok "başka sürümle çizilmiş" uyarısı verirdi). Eski ve yeni kod
   Blok kurucu (`arac/blok_kur.py`) bu iş için: biyom boyası, blok başına boya, ova dışında çimen yan yüzüne boyalı örtü, Nether geçidi, şerit dokularda (su, geçit) yalnız ilk kare.
 - Yok:
   - Nether, zihin ortamı, karlı arazi (savaş odası var, aşağıda);
-  - hava durumu;
+  - yağmur ve gök gürültülü yağmur (kar fırtınası var, aşağıda).
+- **Kar fırtınası (2026-11-25, `arac/firtina.py`, kilit `test/firtina.mjs`; senaryo düzeyinde `"firtina"`, plan başına yazılmaz):**
+  - `"yogunluk": [[t, 0..1], ...]` (Ice-man koyulaştırır; parça parça doğrusal), `"gelis": "dogu"` ya da `[x, y]`.
+  - **Kar:** kamerayla giden kutuda (40 × 40 × 24 blok) geometri düğümleriyle, taneler dünyaya bağlı; görünen tane sayısı yoğunlukla (12.000'e kadar), rüzgâr fırtınanın tersine 8 blok/sn, düşüş 4 blok/sn (tane başına ±%25). Kameraya 3 bloktan yakın tane gizli.
+  - **Gök:** fırtınanın geldiği yarı kararır (yoğunlukla), güneş söner (`isik` anahtarı yoksa; varsa güneşi `isik` yönetir).
+  - **Fırtına duvarı:** fırtına yönünde 150°'lik yay, 150 blok yüksek, `"uzaklik": [[t, blok]]` ile yaklaşır; tabanda dolu, tepede seyrek, iki ucu solar; gölge düşürmez.
+  - **Sis:** fırtına grisi, yoğunlukla koyulaşır (kompozitör). `atmosfer` ile birlikte yazılırsa HATA.
+  - **Yıldırım:** `"yildirim": [{"t", "nokta": [x, y], "tohum"}]` ya da `{"sayi", "tohum"}` (duvarın yönünde, yoğunlukla ağırlıklı anlarda). Oyunun biçimi (8 × 16 blok, 2 dal, 4 toplanan katman) ve ömrü (ilk çakıştan sonra 1–3 yeniden çakış, her biri yeni biçim, her çakış 2 tik); çakışta gök ve sahne beyaz-mavi parlar. Gök gürültüsü ışıktan uzaklık / 343 sn sonra (filmin kuralı; oyunda anında), uzakta kısık.
+  - **Ses:** rüzgâr yoğunlukla güçlenir.
   - elde meşale ve ateş ışığı (el feneri ve görünmeyen dolgu ışığı var, aşağıda).
 - **Dolgu ışığı (v7.99.16):** senaryoda `"isiklar": [{"nokta", "guc", "renk", "yaricap", "t"}]` görünmeyen nokta ışığı (sinemadaki gibi); `t` verilirse yalnız o aralıkta yanar. Kulübenin içinde Barış'ın siyah kıyafeti ışıksız okunmuyordu.
 
@@ -348,6 +357,12 @@ film bire bir eskisi (1. bölüm ve Part 1 bayraksız, testler kilitliyor).
   3. Moloz ve toz filmin kuralı; moloz çoğunlukla çukurların dibini dolduruyor, gedikte belirgin bir "tepe" oluşmuyor. İskeletlerin duracağı yer sahne yazılırken seçilecek.
   4. Creeper'ın tıslama sesi yok: kitaplıkta uygun ses yok, Mojang'ın sesi kullanılmıyor.
   5. Önizleme (2026-11-25, düşük kalite, 2 kare): patlama anında parlama ve çukur, 4 sn sonra gediğin üstünde toz bulutu seçiliyor.
+- **Kar fırtınası ve yıldırım — BAĞLANDI (2026-11-25, `arac/firtina.py`, kilit `test/firtina.mjs`):** ayarlar yukarıda, "Sahne". Kalan ve bilinenler:
+  1. Önizleme (2026-11-25, düşük kalite, 3 kare): doğuya bakınca yıldırım, kar ve gri fırtına; kuzeye bakınca batı yarısı açık mavi, doğu yarısı koyu gri. İlk önizlemede açık sis (0,80) kararan göğü yeniden açıyordu, sis fırtına grisine (0,56–0,64) çekildi; duvarın ucu keskin dikey çizgiydi, solma eklendi; kameraya 1,5–3 blok yakın taneler büyük beyaz küp gibiydi, gizleme 3 bloğa çıktı. Son iki düzeltme yeniden çizilmedi.
+  2. Kar kutusu kameraya bağlı: sarsıntıda kutu da sarsılır, kutunun kenarındaki taneler bir an yer değiştirebilir (görülmedi).
+  3. Gök gürültüsünün gecikmesi hanedanın ortasından ölçülüyor (kamera her çekimde başka yerde; 40 blokluk fark ~0,1 sn).
+  4. Gök parlaması oyunun formülüyle değil (ClientLevel okunmadı): süresi oyunun (çakış tikleri), gücü filmin.
+  5. Karlı arazi yok: kar yerde birikmiyor.
 - **Gökyüzü türü (v7.99.16'da ölçüldü):** Blender 5.2'de `NISHITA` yok (`SINGLE_SCATTERING`, `MULTIPLE_SCATTERING`, `PREETHAM`, `HOSEK_WILKIE`). `blender_film.py` türü ayarlarken hata alıyor ve aynı `try` içindeki `gunes_yukseklik`'i atlıyor: gökyüzü fiilen varsayılan `MULTIPLE_SCATTERING`, `isik` anahtarı olmayan senaryoda `gunes_yukseklik` uygulanmıyor. `isik` anahtarları yüksekliği ayrı bir `try` içinde yazdığı için 1. bölümün orman çizimi etkilenmedi. Film aracında düzeltilmedi (1. bölümün görünüşü bu); önizleme betikleri (`hanedan_onizle`, `kulube_onizle`) yüksekliği artık ayrı yazıyor.
 - **Takılan yürüyüş:** kök düzeltmesi yapılmadı (SERI_SEZON1, "bilinen hata"). Kalabalık sahneler bunu sık tetikler.
 - **Skin aynası — KAPANDI (kullanıcı, 2026-11-02: "aynı kalsın"):** düzeltilmiyor. Thomas planıyla bizim plan arasında yüz aynalanır; skinin iki yanı farklıysa (Barış'ın kolları) filmde taraflar ters görünür.

@@ -66,6 +66,7 @@ import dovus_efekt as DE  # noqa: E402
 import yaratik_film as YF  # noqa: E402
 import ok_film as OK  # noqa: E402
 import gedik as GD  # noqa: E402
+import firtina as FR  # noqa: E402
 
 KOK = B.KOK
 ANIM_WOM = "Simsek_Kol_Kaynak/animations/wom_kilic.animation.json"
@@ -1863,6 +1864,8 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
                                     math.radians(senaryo.get("gunes_yon", 40)))
             gunes.keyframe_insert("rotation_euler", frame=f + 1)
 
+    firtina_gok_kur(bpy, senaryo, harita, fps, nt, gok, gunes)
+
     malz = {}
 
     tislama_dugum = {}         # aktor -> (karisim faktoru soketi): creeper tislamasi
@@ -2601,6 +2604,7 @@ def blender_filmi(senaryo, klasor, onizleme=False, tek_kare=None, adim=1, aralik
     # ---- Satanachia'nin ruhu: siyah bulutlu kure (senaryo "ruh") ----
     ruh_kur(bpy, senaryo, harita)
     kar_kur(bpy, senaryo, harita, [c[0] for c in kam_iz])
+    firtina_kar_kur(bpy, senaryo, harita, kam)
 
     # ---- Thomas gozleri: goz ayarli aktorler, goz="thomas" planlarda (REFERANS_THOMAS_RIG.md) ----
     def _agiz_c(ad):
@@ -3197,6 +3201,358 @@ def kar_gizli_kareler(kar, harita, kam_konum, i, yakin=KAR_YAKIN):
     """i. tanenin kameraya `yakin`dan yakin oldugu kareler (0 tabanli)."""
     return [f for f, t in enumerate(harita)
             if f < len(kam_konum) and math.dist(kar_yolu(kar, i, t), kam_konum[f]) < yakin]
+
+
+def firtina_gok_kur(bpy, senaryo, harita, fps, nt, gok, gunes):
+    """Kar firtinasi (firtina.py): gogun firtina tarafi kararir, gunes soner,
+    firtina duvari yaklasir, yildirimlar duser (oyunun bicim ve zamanlamasi),
+    cakista gok ve sahne aydinlanir. Kar firtina_kar_kur'da, sis kompozitorde.
+    Firtina yazilmazsa hicbir sey eklenmez."""
+    f = FR.ayar(senaryo)
+    if not f:
+        return
+    sc = bpy.context.scene
+    son = len(harita) - 1
+    adim_ = max(1, int(fps / 6))
+    kareler = list(range(0, len(harita), adim_)) + [son]
+    # ---- gok: firtinanin geldigi yon kararir; cakista parlar ----
+    bg = nt.nodes["Background"]
+    tc = nt.nodes.new("ShaderNodeTexCoord")
+    yon = nt.nodes.new("ShaderNodeVectorMath")
+    yon.operation = "DOT_PRODUCT"
+    nt.links.new(tc.outputs["Generated"], yon.inputs[0])
+    yon.inputs[1].default_value = (f["gelis"][0], f["gelis"][1], 0.0)
+    aralik = nt.nodes.new("ShaderNodeMapRange")
+    aralik.interpolation_type = "SMOOTHSTEP"
+    aralik.inputs["From Min"].default_value = -0.25
+    aralik.inputs["From Max"].default_value = 0.45
+    nt.links.new(yon.outputs["Value"], aralik.inputs["Value"])
+    pay = nt.nodes.new("ShaderNodeMath")
+    pay.operation = "MULTIPLY"
+    nt.links.new(aralik.outputs["Result"], pay.inputs[0])
+    kar_ = nt.nodes.new("ShaderNodeMix")
+    kar_.data_type = "RGBA"
+    soket = lambda nl, kim: next(s_ for s_ in nl if s_.identifier == kim)
+    nt.links.new(pay.outputs[0], soket(kar_.inputs, "Factor_Float"))
+    nt.links.new(gok.outputs["Color"], soket(kar_.inputs, "A_Color"))
+    soket(kar_.inputs, "B_Color").default_value = tuple(f["gok"]["renk"]) + (1.0,)
+    flas = nt.nodes.new("ShaderNodeMix")
+    flas.data_type = "RGBA"
+    flas.blend_type = "ADD"
+    nt.links.new(soket(kar_.outputs, "Result_Color"), soket(flas.inputs, "A_Color"))
+    soket(flas.inputs, "B_Color").default_value = (0.75, 0.8, 1.0, 1.0)
+    flas_fak = soket(flas.inputs, "Factor_Float")
+    flas_fak.default_value = 0.0
+    nt.links.new(soket(flas.outputs, "Result_Color"), bg.inputs["Color"])
+    for f_ in kareler:
+        pay.inputs[1].default_value = FR.gok_payi(f, harita[f_])
+        pay.inputs[1].keyframe_insert("default_value", frame=f_ + 1)
+    # ---- gunes: firtina gogu kapladikca soner (isik anahtarlari yoksa) ----
+    if not senaryo.get("isik"):
+        taban = gunes.data.energy
+        for f_ in kareler:
+            gunes.data.energy = taban * (1.0 - 0.55 * FR.yogunluk(f, harita[f_]))
+            gunes.data.keyframe_insert("energy", frame=f_ + 1)
+    # ---- firtina duvari: firtinanin yonunde, yaklasan yay ----
+    d = f["duvar"]
+    a0 = math.atan2(f["gelis"][1], f["gelis"][0])
+    yari = math.radians(float(d["aci"])) / 2.0
+    n_a, n_z = 64, 8
+    ks, ps = [], []
+    for i in range(n_a + 1):
+        a = a0 - yari + 2.0 * yari * i / n_a
+        for j in range(n_z + 1):
+            ks.append((math.cos(a), math.sin(a), j / n_z))
+    for i in range(n_a):
+        for j in range(n_z):
+            k = i * (n_z + 1) + j
+            ps.append((k, k + n_z + 1, k + n_z + 2, k + 1))
+    me = bpy.data.meshes.new("firtina_duvari")
+    me.from_pydata(ks, [], ps)
+    uv = me.uv_layers.new()                           # U: yay boyunca 0..1 (uclarda solma)
+    for poli in me.polygons:
+        for li in poli.loop_indices:
+            vi = me.loops[li].vertex_index
+            uv.data[li].uv = (vi // (n_z + 1) / n_a, (vi % (n_z + 1)) / n_z)
+    m = bpy.data.materials.new("firtina_duvari")
+    m.use_nodes = True
+    mt = m.node_tree
+    bs = mt.nodes["Principled BSDF"]
+    bs.inputs["Base Color"].default_value = tuple(d["renk"]) + (1.0,)
+    bs.inputs["Roughness"].default_value = 1.0
+    gtc = mt.nodes.new("ShaderNodeTexCoord")
+    gur = mt.nodes.new("ShaderNodeTexNoise")
+    gur.noise_dimensions = "4D"
+    gur.inputs["Scale"].default_value = 5.0
+    gur.inputs["Detail"].default_value = 6.0
+    gur.inputs["Roughness"].default_value = 0.6
+    mt.links.new(gtc.outputs["Generated"], gur.inputs["Vector"])
+    esik = mt.nodes.new("ShaderNodeMapRange")
+    esik.inputs["From Min"].default_value = 0.32
+    esik.inputs["From Max"].default_value = 0.62
+    mt.links.new(gur.outputs["Fac"], esik.inputs["Value"])
+    ayir = mt.nodes.new("ShaderNodeSeparateXYZ")
+    mt.links.new(gtc.outputs["Generated"], ayir.inputs[0])
+    dik = mt.nodes.new("ShaderNodeMapRange")          # tabanda dolu, tepede seyrek
+    dik.inputs["From Min"].default_value = 1.0
+    dik.inputs["From Max"].default_value = 0.0
+    mt.links.new(ayir.outputs["Z"], dik.inputs["Value"])
+    ust = mt.nodes.new("ShaderNodeMath")
+    ust.operation = "POWER"
+    ust.inputs[1].default_value = 0.6
+    mt.links.new(dik.outputs["Result"], ust.inputs[0])
+    alfa = mt.nodes.new("ShaderNodeMath")
+    alfa.operation = "MULTIPLY"
+    mt.links.new(esik.outputs["Result"], alfa.inputs[0])
+    mt.links.new(ust.outputs["Value"], alfa.inputs[1])
+    # yayin iki ucu solar (ilk onizlemede uc keskin dikey bir cizgiydi)
+    uvn = mt.nodes.new("ShaderNodeUVMap")
+    uva = mt.nodes.new("ShaderNodeSeparateXYZ")
+    mt.links.new(uvn.outputs["UV"], uva.inputs[0])
+    uc1 = mt.nodes.new("ShaderNodeMapRange")
+    uc1.interpolation_type = "SMOOTHSTEP"
+    uc1.inputs["From Min"].default_value = 0.0
+    uc1.inputs["From Max"].default_value = 0.18
+    mt.links.new(uva.outputs["X"], uc1.inputs["Value"])
+    uc2 = mt.nodes.new("ShaderNodeMapRange")
+    uc2.interpolation_type = "SMOOTHSTEP"
+    uc2.inputs["From Min"].default_value = 1.0
+    uc2.inputs["From Max"].default_value = 0.82
+    mt.links.new(uva.outputs["X"], uc2.inputs["Value"])
+    uclar = mt.nodes.new("ShaderNodeMath")
+    uclar.operation = "MULTIPLY"
+    mt.links.new(uc1.outputs["Result"], uclar.inputs[0])
+    mt.links.new(uc2.outputs["Result"], uclar.inputs[1])
+    alfa_u = mt.nodes.new("ShaderNodeMath")
+    alfa_u.operation = "MULTIPLY"
+    mt.links.new(alfa.outputs["Value"], alfa_u.inputs[0])
+    mt.links.new(uclar.outputs["Value"], alfa_u.inputs[1])
+    alfa2 = mt.nodes.new("ShaderNodeMath")
+    alfa2.operation = "MULTIPLY"
+    mt.links.new(alfa_u.outputs["Value"], alfa2.inputs[0])
+    mt.links.new(alfa2.outputs["Value"], bs.inputs["Alpha"])
+    me.materials.append(m)
+    duvar = bpy.data.objects.new("firtina_duvari", me)
+    duvar.visible_shadow = False
+    sc.collection.objects.link(duvar)
+    mx, my = d["merkez"]
+    duvar.location = (mx, my, -2.0)
+    for f_ in kareler:
+        t_ = harita[f_]
+        r_ = FR.duvar_uzakligi(f, t_)
+        duvar.scale = (r_, r_, float(d["yukseklik"]))
+        duvar.keyframe_insert("scale", frame=f_ + 1)
+        alfa2.inputs[1].default_value = min(1.0, 0.35 + FR.yogunluk(f, t_))
+        alfa2.inputs[1].keyframe_insert("default_value", frame=f_ + 1)
+        gur.inputs["W"].default_value = 0.12 * t_
+        gur.inputs["W"].keyframe_insert("default_value", frame=f_ + 1)
+    # ---- yildirimlar: oyunun bicimi (4 katman, toplanarak) ve zamanlamasi ----
+    ym = bpy.data.materials.new("yildirim")
+    ym.use_nodes = True
+    yt = ym.node_tree
+    for n_ in list(yt.nodes):
+        if n_.type != "OUTPUT_MATERIAL":
+            yt.nodes.remove(n_)
+    ycik = [n_ for n_ in yt.nodes if n_.type == "OUTPUT_MATERIAL"][0]
+    saydam = yt.nodes.new("ShaderNodeBsdfTransparent")
+    isima = yt.nodes.new("ShaderNodeEmission")
+    isima.inputs["Color"].default_value = tuple(FR.RENK) + (1.0,)
+    isima.inputs["Strength"].default_value = 40.0 * FR.SAYDAM
+    topla = yt.nodes.new("ShaderNodeAddShader")
+    yt.links.new(saydam.outputs[0], topla.inputs[0])
+    yt.links.new(isima.outputs[0], topla.inputs[1])
+    yt.links.new(topla.outputs[0], ycik.inputs["Surface"])
+    kare = lambda t_: kare_bul(harita, t_) + 1
+    for i, y_ in enumerate(FR.yildirimlar(f, harita[-1])):
+        zx = 0.9                                  # hanedanin ufku; uzak ovaya duser
+        bicimler = {}
+        for k in y_["omur"]:
+            bicimler.setdefault(k["bicim"], []).append(k["tik"])
+        for b, tikler in bicimler.items():
+            ks, ps = [], []
+            for p_ in FR.yildirim_bicimi(y_["tohum"] * 101 + b):
+                for katman in range(FR.KATMAN):
+                    w = FR.yari_genislik(katman)
+                    w_a, w_u = w * p_["k_alt"], w * p_["k_ust"]
+                    (xa, ya, za), (xu, yu, zu) = p_["alt"], p_["ust"]
+                    i0 = len(ks)
+                    for (sx, sz) in ((-1, -1), (1, -1), (1, 1), (-1, 1)):
+                        ks.append((xa + sx * w_a, -(za + sz * w_a), ya))
+                    for (sx, sz) in ((-1, -1), (1, -1), (1, 1), (-1, 1)):
+                        ks.append((xu + sx * w_u, -(zu + sz * w_u), yu))
+                    for c in range(4):
+                        ps.append((i0 + c, i0 + (c + 1) % 4, i0 + 4 + (c + 1) % 4, i0 + 4 + c))
+            me = bpy.data.meshes.new("yildirim_%d_%d" % (i, b))
+            me.from_pydata(ks, [], ps)
+            me.materials.append(ym)
+            ob = bpy.data.objects.new("yildirim_%d_%d" % (i, b), me)
+            ob.location = (y_["nokta"][0], y_["nokta"][1], zx)
+            ob.visible_shadow = False
+            sc.collection.objects.link(ob)
+            t_bas = y_["t"] + min(tikler) / FR.TIK
+            t_son = y_["t"] + (max(tikler) + 1) / FR.TIK
+            _gorun_kare(ob, kare(t_bas), True)
+            _gorun_kare(ob, max(kare(t_bas) + 1, kare(t_son)), False)
+            ob.hide_render = True
+            ob.keyframe_insert("hide_render", frame=0)
+        # cakis isigi: gok parlar, yildirim yonunden gunes gibi beyaz isik
+        isik = bpy.data.objects.new("yildirim_isik_%d" % i, bpy.data.lights.new("yildirim_isik_%d" % i, "SUN"))
+        isik.data.color = (0.75, 0.8, 1.0)
+        isik.data.angle = math.radians(8)
+        # gunes isigi -Z'ye bakar; Rz(a) Rx(70) ile yatay yonu (-sin a, cos a).
+        # Isik yildirimdan sahneye (d = -nokta) gitsin: a = atan2(dy, dx) - 90
+        dx, dy = -y_["nokta"][0], -y_["nokta"][1]
+        isik.rotation_euler = (math.radians(70), 0.0, math.atan2(dy, dx) - math.pi / 2)
+        sc.collection.objects.link(isik)
+        isik.data.energy = 0.0
+        isik.data.keyframe_insert("energy", frame=0)
+        for k in y_["omur"]:
+            if not k["parlama"]:
+                continue
+            fk0 = kare(y_["t"] + k["tik"] / FR.TIK)
+            fk1 = max(fk0 + 1, kare(y_["t"] + (k["tik"] + 1) / FR.TIK))
+            for fk, e_, fl_ in ((fk0 - 1, 0.0, 0.0), (fk0, 4.0, 1.2), (fk1, 0.0, 0.0)):
+                isik.data.energy = e_
+                isik.data.keyframe_insert("energy", frame=max(0, fk))
+                flas_fak.default_value = fl_
+                flas_fak.keyframe_insert("default_value", frame=max(0, fk))
+    # cakis keskin: isik ve gok parlamasi tik boyunca sabit, sonra kapanir
+    for nesne in (isik_ for isik_ in bpy.data.lights if isik_.name.startswith("yildirim_isik")):
+        for fc in egriler(nesne):
+            for kp in fc.keyframe_points:
+                kp.interpolation = "CONSTANT"
+    yol = flas_fak.path_from_id("default_value")
+    for fc in egriler(nt):
+        if fc.data_path == yol:
+            for kp in fc.keyframe_points:
+                kp.interpolation = "CONSTANT"
+    return duvar
+
+
+def firtina_kar_kur(bpy, senaryo, harita, kam):
+    """Firtinanin kari (firtina.py): kamerayla giden bir kutuda geometri
+    dugumleriyle; taneler dunyaya bagli (ruzgar ve dusus hikaye zamaninda),
+    kutudan cikan karsi yuzden girer. Yogunluk artinca yeni taneler eklenir
+    (sira numarasiyla), kameraya 'yakin'dan yakin tane gizli (kar_kur gibi)."""
+    f = FR.ayar(senaryo)
+    if not f:
+        return None
+    k = f["kar"]
+    sc = bpy.context.scene
+    rnd = random.Random(int(f["tohum"]) * 7919 + 101)
+    n = int(k["sayi"])
+    me = bpy.data.meshes.new("firtina_kar_tohum")
+    me.from_pydata([(rnd.random(), rnd.random(), rnd.random()) for _ in range(n)], [], [])
+    ob = bpy.data.objects.new("firtina_kar", me)
+    sc.collection.objects.link(ob)
+    kutu = [float(v) for v in k["kutu"]]
+    rz = FR.ruzgar(f)
+    ng = bpy.data.node_groups.new("firtina_kar", "GeometryNodeTree")
+    ng.interface.new_socket("Geometry", in_out="INPUT", socket_type="NodeSocketGeometry")
+    ng.interface.new_socket("Geometry", in_out="OUTPUT", socket_type="NodeSocketGeometry")
+    N = ng.nodes
+    L = ng.links
+    gir = N.new("NodeGroupInput")
+    cik = N.new("NodeGroupOutput")
+    nokta = N.new("GeometryNodeMeshToPoints")
+    L.new(gir.outputs[0], nokta.inputs["Mesh"])
+    konum = N.new("GeometryNodeInputPosition")
+    zaman = N.new("ShaderNodeValue")
+    zaman.label = "hikaye zamani"
+    sayi = N.new("ShaderNodeValue")
+    sayi.label = "gorunen tane"
+    hiz_r = N.new("FunctionNodeRandomValue")          # tane basina hiz 0,75..1,25
+    hiz_r.data_type = "FLOAT"                         # Blender 5.2: yalniz secili turun soketleri var
+    hiz_r.inputs["Min"].default_value = 0.75
+    hiz_r.inputs["Max"].default_value = 1.25
+    zt = N.new("ShaderNodeMath")
+    zt.operation = "MULTIPLY"
+    L.new(zaman.outputs[0], zt.inputs[0])
+    L.new(hiz_r.outputs["Value"], zt.inputs[1])
+    kay = N.new("ShaderNodeCombineXYZ")              # (ruzgar x t, ruzgar y t, -dusus t)
+    for i_, c_ in enumerate((rz[0], rz[1], -float(k["dusus"]))):
+        m_ = N.new("ShaderNodeMath")
+        m_.operation = "MULTIPLY"
+        m_.inputs[1].default_value = c_
+        L.new(zt.outputs[0], m_.inputs[0])
+        L.new(m_.outputs[0], kay.inputs[i_])
+    olcek = N.new("ShaderNodeVectorMath")
+    olcek.operation = "MULTIPLY"
+    olcek.inputs[1].default_value = kutu
+    L.new(konum.outputs[0], olcek.inputs[0])
+    dunya = N.new("ShaderNodeVectorMath")
+    dunya.operation = "ADD"
+    L.new(olcek.outputs[0], dunya.inputs[0])
+    L.new(kay.outputs[0], dunya.inputs[1])
+    kam_bilgi = N.new("GeometryNodeObjectInfo")
+    kam_bilgi.transform_space = "ORIGINAL"
+    kam_bilgi.inputs["Object"].default_value = kam
+    kose = N.new("ShaderNodeVectorMath")             # kutunun kosesi: kamera - kutu / 2
+    kose.operation = "SUBTRACT"
+    L.new(kam_bilgi.outputs["Location"], kose.inputs[0])
+    kose.inputs[1].default_value = [v / 2.0 for v in kutu]
+    goreli = N.new("ShaderNodeVectorMath")
+    goreli.operation = "SUBTRACT"
+    L.new(dunya.outputs[0], goreli.inputs[0])
+    L.new(kose.outputs[0], goreli.inputs[1])
+    sar = N.new("ShaderNodeVectorMath")
+    sar.operation = "WRAP"
+    L.new(goreli.outputs[0], sar.inputs[0])
+    sar.inputs[1].default_value = kutu
+    sar.inputs[2].default_value = (0.0, 0.0, 0.0)
+    son_ = N.new("ShaderNodeVectorMath")
+    son_.operation = "ADD"
+    L.new(sar.outputs[0], son_.inputs[0])
+    L.new(kose.outputs[0], son_.inputs[1])
+    yerlestir = N.new("GeometryNodeSetPosition")
+    L.new(nokta.outputs[0], yerlestir.inputs["Geometry"])
+    L.new(son_.outputs[0], yerlestir.inputs["Position"])
+    # silinecekler: sira >= gorunen ya da kameraya yakin
+    sira = N.new("GeometryNodeInputIndex")
+    fazla = N.new("ShaderNodeMath")
+    fazla.operation = "GREATER_THAN"
+    L.new(sira.outputs[0], fazla.inputs[0])
+    L.new(sayi.outputs[0], fazla.inputs[1])
+    uzak = N.new("ShaderNodeVectorMath")
+    uzak.operation = "DISTANCE"
+    L.new(son_.outputs[0], uzak.inputs[0])
+    L.new(kam_bilgi.outputs["Location"], uzak.inputs[1])
+    yakin = N.new("ShaderNodeMath")
+    yakin.operation = "LESS_THAN"
+    yakin.inputs[1].default_value = float(k["yakin"])
+    L.new(uzak.outputs["Value"], yakin.inputs[0])
+    veya = N.new("ShaderNodeMath")
+    veya.operation = "MAXIMUM"
+    L.new(fazla.outputs[0], veya.inputs[0])
+    L.new(yakin.outputs[0], veya.inputs[1])
+    sil = N.new("GeometryNodeDeleteGeometry")
+    sil.domain = "POINT"
+    L.new(yerlestir.outputs[0], sil.inputs["Geometry"])
+    L.new(veya.outputs[0], sil.inputs["Selection"])
+    kup = N.new("GeometryNodeMeshCube")
+    kup.inputs["Size"].default_value = (float(k["boy"]),) * 3
+    km = bpy.data.materials.new("firtina_kar")
+    km.use_nodes = True
+    kb = km.node_tree.nodes["Principled BSDF"]
+    kb.inputs["Base Color"].default_value = (0.95, 0.97, 1.0, 1)
+    kb.inputs["Roughness"].default_value = 0.9
+    kb.inputs["Emission Color"].default_value = (0.95, 0.97, 1.0, 1)
+    kb.inputs["Emission Strength"].default_value = float(k["parlaklik"])
+    malz = N.new("GeometryNodeSetMaterial")
+    malz.inputs["Material"].default_value = km
+    L.new(kup.outputs["Mesh"], malz.inputs["Geometry"])
+    ornek = N.new("GeometryNodeInstanceOnPoints")
+    L.new(sil.outputs[0], ornek.inputs["Points"])
+    L.new(malz.outputs[0], ornek.inputs["Instance"])
+    L.new(ornek.outputs[0], cik.inputs[0])
+    mod = ob.modifiers.new("firtina_kar", "NODES")
+    mod.node_group = ng
+    for f_, t_ in enumerate(harita):
+        zaman.outputs[0].default_value = t_
+        zaman.outputs[0].keyframe_insert("default_value", frame=f_ + 1)
+        sayi.outputs[0].default_value = FR.kar_sayisi(f, t_) - 0.5
+        sayi.outputs[0].keyframe_insert("default_value", frame=f_ + 1)
+    return ob
 
 
 def kar_kur(bpy, senaryo, harita, kam_konum=None):
@@ -4364,6 +4720,11 @@ def kompozitor_kur(bpy, senaryo, harita, efektler):
     Ikisi de yoksa hicbir sey yapmaz (eski senaryolar bire bir).
     Oda kotusunun kompozitoru varsa onun cikisina zincirlenir."""
     atm = DE.atmosfer_ayari(senaryo)
+    fr = FR.ayar(senaryo)                     # atmosferle birlikte yazilmissa HATA verir
+    if fr:
+        atm = {"yogunluk": float(fr["sis"]["yogunluk"]), "renk": list(fr["sis"]["renk"]),
+               "baslangic": float(fr["sis"]["baslangic"]), "derinlik": float(fr["sis"]["derinlik"]),
+               "egri": "LINEAR"}
     dk = DE.darbe_kareleri(efektler, kare_bul, harita)
     if not atm and not dk:
         return None
@@ -4393,6 +4754,12 @@ def kompozitor_kur(bpy, senaryo, harita, efektler):
         carp.operation = "MULTIPLY"
         ng.links.new(rl.outputs["Mist"], carp.inputs[0])
         carp.inputs[1].default_value = float(atm["yogunluk"])
+        if fr:
+            # firtina koyulastikca sis de koyulasir (firtina.yogunluk, hikaye zamani)
+            adim_ = max(1, len(harita) // 400)
+            for f_ in list(range(0, len(harita), adim_)) + [len(harita) - 1]:
+                carp.inputs[1].default_value = float(atm["yogunluk"]) * FR.yogunluk(fr, harita[f_])
+                carp.inputs[1].keyframe_insert("default_value", frame=f_ + 1)
         mx = ng.nodes.new("ShaderNodeMix")
         mx.data_type = "RGBA"
         ng.links.new(carp.outputs[0], soket(mx.inputs, "Factor_Float"))

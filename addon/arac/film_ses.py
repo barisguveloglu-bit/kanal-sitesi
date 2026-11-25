@@ -16,7 +16,6 @@ Senaryodaki "ses" alani: {"ortam": "orman"|"oda", "gece": [t0, t1],
 Ortam sesleri (ruzgar, cekirge, oda ugultusu) burada URETILIYOR.
 """
 import json
-import math
 import os
 import subprocess
 import sys
@@ -269,6 +268,16 @@ def ses_kur(senaryo, katmanlar=False):
             tt = np.arange(len(ortam.x)) / ORAN
             agirlik = np.clip((tt - t0) / max(0.1, t1 - t0), 0, 1)[:, None]
             ortam.x[:] += cekirge(sure, rnd)[:len(ortam.x)] * agirlik
+    # ---- firtina (firtina.py): yogunlukla buyuyen ruzgar, gecikmeli gok gurultusu ----
+    fr = F.FR.ayar(senaryo)
+    if fr:
+        yog = [F.FR.yogunluk(fr, t_) for t_ in harita]
+        tt = np.arange(len(ortam.x)) / ORAN
+        zarf = np.interp(tt, np.arange(len(harita)) / fps, yog)[:, None]
+        ortam.x[:] += ruzgar(sure, np.random.default_rng(11))[:len(ortam.x)] * 4.8 * zarf
+        # filmin kurali: isik aninda, ses uzakliktan (hanedanin ortasindan) 343 blok/sn ile
+        for dosya, tg, duzey, perde in F.FR.gurultu_sesleri(fr, harita[-1], film_t):
+            ef.ekle(oku(dosya), tg, duzey, perde)
     # ---- muzik: dovusle girer, delen darbede bir an susar ----
     for m in cfg.get("muzik", []):
         parca = oku("battleThemeA.mp3")

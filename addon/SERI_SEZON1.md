@@ -817,9 +817,14 @@ mikrofonla anlattı, özeti onayladı):**
   kendi hamlesi `DOVUS_KAPLAN_SANATI.md` onaylanınca yazılacak.
   **Creeper patlaması ve gedik bağlandı (2026-11-25, kullanıcı: *"Sırada 3. madden devam et"*):**
   `arac/gedik.py`. Creeper `tisla`dan 1,5 sn sonra `patla` ile patlar; bloklar oyunun
-  patlamasıyla kırılır, moloz ve toz filmin kuralı. Ölçüm (karar değil): oyunun kuralıyla tek
+  patlamasıyla kırılır, moloz ve toz filmin kuralı (hazır paket planındaki Pooka patlaması ve
+  Kenney siyah dumanı yerine kendi kodumuz: film aracının patlama efekti ve toz bulutu). Ölçüm (karar değil): oyunun kuralıyla tek
   creeper 3 kat taş suru delemiyor; doğu surunda 4 creeper sırayla patlayınca 3 blok genişliğinde,
   2 blok yüksekliğinde geçit açılıyor. Kaç creeper'ın nereden geleceği sahne yazılırken.
+  **Kar fırtınası ve yıldırım bağlandı (2026-11-25):** `arac/firtina.py`. Senaryoda `"firtina"`:
+  yoğunluk zamanla artar (Ice-man koyulaştırır), doğu yarısı kararır, fırtına duvarı yaklaşır, kar
+  ve sis yoğunlukla koyulaşır; yıldırım oyunun biçim ve zamanlamasıyla, gök gürültüsü uzaklığa göre
+  gecikmeli. Hazır paket planındaki Pooka karı ve yıldırımı ile Kenney dumanı yerine kendi kodumuz.
 
 - **Kulübeye eklenenler (kullanıcı):** asıl kulübede olmayan **yatak** ve
   **kitaplık** bizim eklememiz — kulübe *"bunlar eklenmiş şekilde"* olacak.

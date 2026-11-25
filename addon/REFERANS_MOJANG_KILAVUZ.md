@@ -191,3 +191,22 @@ ekin ve meşale anında kırılır (0). Tabloda olmayan blok patlamaya girerse
 blok yarım blok, 0,3 sn sonra), toz bulutu, güçlü itilen insanın düşmesi.
 Hanedanın zemini tek kat olduğu için patlama çevresinde zeminin altına
 toprak ve taş, surun altına taş temel konuyor (oyunda da zeminin altı dolu).
+
+## Yıldırım (2026-11-25)
+
+Kullanıcı: *"Sırada 3. madden devam et"* (sis duvarıyla yoğun kar fırtınası
+ve şimşek). Aynı JAR'dan `javap -c -p` ile okundu, JAR silindi. Film
+aracında `arac/firtina.py`, kilit `test/firtina.mjs`.
+
+| ne | sınıf | okunan |
+|---|---|---|
+| ömür | `LightningBolt` | yaratılınca `life` 2, `flashes` = rastgele(3) + 1. Her tik: `life` 2 ise gök gürültüsü (ses 10000, perde 0,8 + rastgele × 0,2) ve çarpma sesi (perde 0,5 + rastgele × 0,2); `life`−−; `life` < 0 iken `flashes` 0 ise biter, değilse `life` < −rastgele(10) olunca `flashes`−−, `life` = 1 ve yeni tohum. `life` ≥ 0 olan tiklerde gök aydınlanır (`setSkyFlashTime(2)`) |
+| biçim | `LightningBoltRenderer` | 8 parça × 16 blok. Ana çizgi tepeden aşağı her parçada yatayda rastgele(11) − 5 blok kayar ve çarpma noktasında biter (kaymalar önceden toplanıp çıkarılır); 2 dal: 7 − dal'ıncı parçadan başlar, 3 parça, rastgele(31) − 15. 4 iç içe katman, aynı tohum; yarı genişlik 0,1 + katman × 0,2, ana çizgide alt uçta (parça − 1) × 0,1 + 1, üst uçta parça × 0,1 + 1 katı. Renk (0,45, 0,45, 0,5), saydamlık 0,3, `RenderTypes.lightning` (toplanarak) |
+
+Bu sayılarla bir yıldırım ilk çakıştan sonra 1–3 kez yeniden çakar ve her
+seferinde biçim değiştirir (2–4 biçim), her çakış 2 tik parlar.
+
+**Filmde oyundan farklı (filmin kuralı):** gök gürültüsü ışıktan uzaklık /
+343 sn sonra çalar (oyunda anında, her yerde); gök parlamasının gücü filmin
+(ClientLevel'in formülü okunmadı). Kar fırtınası, fırtına duvarı, göğün
+kararması ve sis oyunun hava çiziminden alınmadı: bizim kodumuz.

@@ -873,6 +873,10 @@ geçidin yeri Claude'un önerisi. Önizleme `arac/kulube_onizle.py`, kilit
   ile patlar (önce `tisla`); bloklar oyunun ışınlarıyla kırılır, mekân zamana göre
   değişir (`mekan.ZamanliMekan`: zemin, görüş, kamera denetimi ve çizim o anın
   bloklarına bakar). Moloz ve toz filmin kuralı. Kilit `test/gedik.mjs`.
+- **Kar fırtınası ve yıldırım (2026-11-25, 3. madde):** `arac/firtina.py`. Senaryo düzeyinde
+  `"firtina"` (yoğunluk, geliş yönü, kar, duvar, gök, sis, yıldırım); kar geometri düğümleriyle
+  kamerayla giden kutuda. Yıldırımın biçimi ve ömrü oyunun kodundan, gök gürültüsü uzaklık / 343
+  sn sonra (filmin kuralı). `atmosfer` ile birlikte yazılmaz. Kilit `test/firtina.mjs`.
 
 **Akıcı hareket — `addon/arac/hareket.py` (v7.99.16).** Kullanıcı:
 *"robotik dövüşlerden ya da hareketlerden memnun değilim."* Senaryoda
